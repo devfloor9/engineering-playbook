@@ -1,0 +1,12 @@
+{
+  "name": "engineering-playbook",
+  "version": "1.0.0",
+  "scripts": {
+    "generate-summary": "node scripts/generate-summary.js",
+    "new-post": "node scripts/new-post.js",
+    "sync": "npm run generate-summary && git add . && git commit -m 'Update SUMMARY.md' && git push"
+  },
+  "devDependencies": {
+    "gray-matter": "^4.0.3"
+  }
+}
