@@ -1,0 +1,47 @@
+# .github/workflows/gitbook-sync.yml
+name: GitBook Sync
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '**.md'
+      - '!SUMMARY.md'  # SUMMARY.md 변경은 무시
+  workflow_dispatch:
+
+jobs:
+  update-summary:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+    
+    - name: Generate SUMMARY.md
+      run: |
+        npm install
+        npm run generate-summary
+    
+    - name: Check if SUMMARY.md changed
+      id: check
+      run: |
+        if git diff --exit-code SUMMARY.md; then
+          echo "changed=false" >> $GITHUB_OUTPUT
+        else
+          echo "changed=true" >> $GITHUB_OUTPUT
+        fi
+    
+    - name: Commit and Push
+      if: steps.check.outputs.changed == 'true'
+      run: |
+        git config --local user.email "devfloor9@gmail.com"
+        git config --local user.name "devfloor9"
+        git add SUMMARY.md
+        git commit -m "📚 Auto-update SUMMARY.md"
+        git push
