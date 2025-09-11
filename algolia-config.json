@@ -1,0 +1,119 @@
+{
+  "index_name": "engineering-playbook",
+  "start_urls": [
+    {
+      "url": "https://devfloor9.github.io/engineering-playbook/docs/",
+      "selectors_key": "docs",
+      "tags": ["docs"]
+    },
+    {
+      "url": "https://devfloor9.github.io/engineering-playbook/blog/",
+      "selectors_key": "blog",
+      "tags": ["blog"]
+    }
+  ],
+  "sitemap_urls": [
+    "https://devfloor9.github.io/engineering-playbook/sitemap.xml"
+  ],
+  "selectors": {
+    "docs": {
+      "lvl0": {
+        "selector": ".theme-doc-sidebar-item-category-level-1 > .menu__link--active, .theme-doc-sidebar-item-link-level-1 > .menu__link--active",
+        "default_value": "Documentation"
+      },
+      "lvl1": "article h1",
+      "lvl2": "article h2",
+      "lvl3": "article h3",
+      "lvl4": "article h4",
+      "lvl5": "article h5",
+      "text": "article p, article li, article td"
+    },
+    "blog": {
+      "lvl0": {
+        "selector": "",
+        "default_value": "Blog"
+      },
+      "lvl1": "article h1",
+      "lvl2": "article h2",
+      "lvl3": "article h3",
+      "lvl4": "article h4",
+      "lvl5": "article h5",
+      "text": "article p, article li"
+    }
+  },
+  "selectors_exclude": [
+    ".hash-link",
+    ".anchor",
+    ".table-of-contents",
+    "nav",
+    "aside",
+    "footer"
+  ],
+  "custom_settings": {
+    "attributesForFaceting": [
+      "type",
+      "lang",
+      "language",
+      "version",
+      "docusaurus_tag"
+    ],
+    "attributesToRetrieve": [
+      "hierarchy",
+      "content",
+      "anchor",
+      "url",
+      "url_without_anchor",
+      "type"
+    ],
+    "attributesToHighlight": [
+      "hierarchy",
+      "content"
+    ],
+    "attributesToSnippet": [
+      "content:10"
+    ],
+    "camelCaseAttributes": [
+      "hierarchy",
+      "content"
+    ],
+    "searchableAttributes": [
+      "unordered(hierarchy.lvl0)",
+      "unordered(hierarchy.lvl1)",
+      "unordered(hierarchy.lvl2)",
+      "unordered(hierarchy.lvl3)",
+      "unordered(hierarchy.lvl4)",
+      "unordered(hierarchy.lvl5)",
+      "content"
+    ],
+    "distinct": true,
+    "attributeForDistinct": "url",
+    "customRanking": [
+      "desc(weight.pageRank)",
+      "desc(weight.level)",
+      "asc(weight.position)"
+    ],
+    "ranking": [
+      "words",
+      "filters",
+      "typo",
+      "attribute",
+      "proximity",
+      "exact",
+      "custom"
+    ],
+    "highlightPreTag": "<span class='algolia-docsearch-suggestion--highlight'>",
+    "highlightPostTag": "</span>",
+    "minWordSizefor1Typo": 3,
+    "minWordSizefor2Typos": 7,
+    "allowTyposOnNumericTokens": false,
+    "minProximity": 1,
+    "ignorePlurals": true,
+    "advancedSyntax": true,
+    "attributeCriteriaComputedByMinProximity": true,
+    "removeWordsIfNoResults": "allOptional"
+  },
+  "min_indexed_level": 0,
+  "nb_hits_max": 5000,
+  "use_anchors": true,
+  "only_content_level": false
+}
