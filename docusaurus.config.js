@@ -139,34 +139,34 @@ const config = {
           src: 'img/logo.svg',
         },
         items: [
+          { to: '/docs/intro', label: 'Documentation', position: 'left' },
           {
             type: 'dropdown',
-            label: 'Technical Domains',
+            label: 'Domains',
             position: 'left',
             items: [
               {
                 to: '/docs/performance-networking',
-                label: '🚀 Performance & Networking',
+                label: 'Performance & Networking',
               },
               {
                 to: '/docs/observability-monitoring',
-                label: '👁️ Observability & Monitoring',
+                label: 'Observability & Monitoring',
               },
               {
                 to: '/docs/genai-aiml',
-                label: '🤖 GenAI & AI/ML',
+                label: 'GenAI & AI/ML',
               },
               {
                 to: '/docs/hybrid-multicloud',
-                label: '🌐 Hybrid & Multi-Cloud',
+                label: 'Hybrid & Multi-Cloud',
               },
               {
                 to: '/docs/security-compliance',
-                label: '🔒 Security & Compliance',
+                label: 'Security & Compliance',
               },
             ],
           },
-          { to: '/docs/intro', label: 'Getting Started', position: 'left' },
           { to: '/blog', label: 'Blog', position: 'left' },
           {
             type: 'search',
@@ -184,11 +184,15 @@ const config = {
         ],
       },
       footer: {
-        style: 'dark',
+        style: 'light',
         links: [
           {
-            title: 'Technical Domains',
+            title: 'Documentation',
             items: [
+              {
+                label: 'Getting Started',
+                to: '/docs/intro',
+              },
               {
                 label: 'Performance & Networking',
                 to: '/docs/performance-networking',
@@ -197,15 +201,15 @@ const config = {
                 label: 'Observability & Monitoring',
                 to: '/docs/observability-monitoring',
               },
+            ],
+          },
+          {
+            title: 'More',
+            items: [
               {
                 label: 'GenAI & AI/ML',
                 to: '/docs/genai-aiml',
               },
-            ],
-          },
-          {
-            title: 'More Domains',
-            items: [
               {
                 label: 'Hybrid & Multi-Cloud',
                 to: '/docs/hybrid-multicloud',
@@ -230,7 +234,7 @@ const config = {
             ],
           },
         ],
-        copyright: `Copyright © ${new Date().getFullYear()} EKS Engineering Playbook. Built with Docusaurus.`,
+        copyright: `Copyright © ${new Date().getFullYear()} EKS Engineering Playbook.`,
       },
       prism: {
         theme: prismThemes.github,
@@ -277,14 +281,7 @@ const config = {
         { property: 'og:type', content: 'website' },
         { property: 'og:site_name', content: 'EKS Engineering Playbook' },
       ],
-      announcementBar: {
-        id: 'support_us',
-        content:
-          '⭐️ If you find this playbook helpful, give it a star on <a target="_blank" rel="noopener noreferrer" href="https://github.com/devfloor9/engineering-playbook">GitHub</a>! ⭐️',
-        backgroundColor: '#fafbfc',
-        textColor: '#091E42',
-        isCloseable: true,
-      },
+
     }),
 };
 

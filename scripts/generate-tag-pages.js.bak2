@@ -121,8 +121,7 @@ import Layout from '@theme/Layout';
 import Link from '@docusaurus/Link';
 import TagList from '@site/src/components/TagList';
 
-export default function Tag${tag.replace(/[^a-zA-Z0-9]/g, '').charAt(0).toUpperCase() + tag.replace(/[^a-zA-Z0-9]/g, '').slice(1)}Page() {
-  const tagName = '${tag}';
+export default function Tag${tag.charAt(0).toUpperCase() + tag.slice(1)}Page() {
   const documents = ${JSON.stringify(sortedDocs.map(doc => ({
     title: doc.metadata.title || doc.name,
     path: doc.path,
@@ -137,8 +136,8 @@ export default function Tag${tag.replace(/[^a-zA-Z0-9]/g, '').charAt(0).toUpperC
 
   return (
     <Layout
-      title={\`#\${tagName} Tag Documentation\`}
-      description={\`Documentation tagged with \${tagName} in the EKS Engineering Playbook.\`}
+      title={`#${tag} 태그 문서 목록`}
+      description={`${tag} 태그가 포함된 EKS Engineering Playbook 문서들을 확인하세요.`}
     >
       <div className="container margin-vert--lg">
         <div className="row">
@@ -152,7 +151,7 @@ export default function Tag${tag.replace(/[^a-zA-Z0-9]/g, '').charAt(0).toUpperC
                   borderRadius: '2rem',
                   fontSize: '1.5rem'
                 }}>
-                  #{tagName}
+                  #{tag}
                 </span>
               </h1>
               <div className="margin-top--md">
@@ -249,16 +248,16 @@ export default function Tag${tag.replace(/[^a-zA-Z0-9]/g, '').charAt(0).toUpperC
                         }}>
                           <div style={{display: 'flex', gap: '1rem', alignItems: 'center'}}>
                             {doc.date && (
-                              <span>{new Date(doc.date).toLocaleDateString('en-US')}</span>
+                              <span>📅 {new Date(doc.date).toLocaleDateString('ko-KR')}</span>
                             )}
                             {doc.difficulty && (
-                              <span>Level: {getDifficultyName(doc.difficulty)}</span>
+                              <span>📊 {getDifficultyName(doc.difficulty)}</span>
                             )}
                             {doc.estimatedTime && (
-                              <span>Read time: {doc.estimatedTime}</span>
+                              <span>⏱️ {doc.estimatedTime}</span>
                             )}
                           </div>
-                          <TagList tags={doc.tags.filter(t => t !== tagName)} />
+                          <TagList tags={doc.tags.filter(t => t !== '${tag}')} />
                         </div>
                       </div>
                     </div>
@@ -287,20 +286,20 @@ function getCategoryColor(category) {
 
 function getCategoryName(category) {
   const names = {
-    'performance-networking': 'Performance & Networking',
-    'observability-monitoring': 'Observability & Monitoring',
+    'performance-networking': '성능 & 네트워킹',
+    'observability-monitoring': '관찰가능성',
     'genai-aiml': 'GenAI & AI/ML',
-    'hybrid-multicloud': 'Hybrid & Multi-Cloud',
-    'security-compliance': 'Security & Compliance'
+    'hybrid-multicloud': '하이브리드 클라우드',
+    'security-compliance': '보안 & 컴플라이언스'
   };
   return names[category] || category;
 }
 
 function getDifficultyName(difficulty) {
   const names = {
-    'beginner': 'Beginner',
-    'intermediate': 'Intermediate',
-    'advanced': 'Advanced'
+    'beginner': '초급',
+    'intermediate': '중급',
+    'advanced': '고급'
   };
   return names[difficulty] || difficulty;
 }`;
@@ -346,9 +345,9 @@ export default function TagsIndexPage() {
         <div className="row">
           <div className="col col--8 col--offset-2">
             <header className="margin-bottom--xl text--center">
-              <h1>Tags</h1>
+              <h1>📋 태그 목록</h1>
               <p style={{fontSize: '1.1rem', color: 'var(--ifm-color-emphasis-700)'}}>
-                Browse <strong>{Object.keys(tagStats).length} tags</strong> to find relevant documentation
+                총 <strong>{Object.keys(tagStats).length}개</strong>의 태그로 분류된 문서들을 확인하세요
               </p>
             </header>
 
@@ -395,7 +394,7 @@ export default function TagsIndexPage() {
               {filteredTags.map(([tag, stats]) => (
                 <div key={tag} className="col col--6 col--lg-4 margin-bottom--md">
                   <Link
-                    to={\`/tags/\${tag}\`}
+                    to={`/tags/\${tag}`}
                     className="card"
                     style={{
                       textDecoration: 'none',
@@ -512,7 +511,7 @@ function main() {
   let generatedPages = 0;
   Object.entries(tagStats).forEach(([tag, stats]) => {
     const pageContent = generateTagPageContent(tag, stats);
-    const fileName = `${tag}.js`;
+    const fileName = `\${tag}.js`;
     const filePath = path.join(TAGS_OUTPUT_DIR, fileName);
     
     fs.writeFileSync(filePath, pageContent);
@@ -524,8 +523,8 @@ function main() {
   const indexPath = path.join(TAGS_OUTPUT_DIR, 'index.js');
   fs.writeFileSync(indexPath, indexContent);
   
-  console.log(`✅ Generated ${generatedPages} tag pages and 1 index page`);
-  console.log(`📁 Output directory: ${TAGS_OUTPUT_DIR}`);
+  console.log(`✅ Generated \${generatedPages} tag pages and 1 index page`);
+  console.log(`📁 Output directory: \${TAGS_OUTPUT_DIR}`);
   
   // Generate summary
   const topTags = Object.entries(tagStats)
@@ -534,7 +533,7 @@ function main() {
   
   console.log('\\n📊 Top 10 tags:');
   topTags.forEach(([tag, stats]) => {
-    console.log(`   ${tag}: ${stats.count} documents`);
+    console.log(`   \${tag}: \${stats.count} documents`);
   });
 }
 
