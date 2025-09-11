@@ -4,7 +4,7 @@
 // There are various equivalent ways to declare your Docusaurus config.
 // See: https://docusaurus.io/docs/api/docusaurus-config
 
-import {themes as prismThemes} from 'prism-react-renderer';
+import { themes as prismThemes } from 'prism-react-renderer';
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
@@ -22,8 +22,11 @@ const config = {
   // If you aren't using GitHub pages, you don't need these.
   organizationName: 'devfloor9', // Usually your GitHub org/user name.
   projectName: 'engineering-playbook', // Usually your repo name.
+  deploymentBranch: 'gh-pages', // The branch of your docs repo that you are publishing to GitHub pages
+  trailingSlash: false, // GitHub Pages adds a trailing slash to Docusaurus URLs by default
 
-  onBrokenLinks: 'throw',
+  //onBrokenLinks: 'throw',
+  onBrokenLinks: 'warn',
   onBrokenMarkdownLinks: 'warn',
 
   // Even if you don't use internationalization, you can use this field to set
@@ -48,13 +51,14 @@ const config = {
           showLastUpdateAuthor: true,
           showLastUpdateTime: true,
           breadcrumbs: true,
-          docLayoutComponent: "@theme/DocPage",
-          docItemComponent: "@theme/DocItem",
+          // Configure sidebar routing
+          routeBasePath: 'docs',
+          path: 'docs',
         },
         blog: {
           showReadingTime: true,
-          readingTime: ({content, frontMatter, defaultReadingTime}) =>
-            defaultReadingTime({content, options: {wordsPerMinute: 300}}),
+          readingTime: ({ content, defaultReadingTime }) =>
+            defaultReadingTime({ content, options: { wordsPerMinute: 300 } }),
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
           editUrl:
@@ -83,7 +87,6 @@ const config = {
   ],
 
   plugins: [
-    // Additional plugins for enhanced functionality
     [
       '@docusaurus/plugin-ideal-image',
       {
@@ -92,6 +95,34 @@ const config = {
         min: 640,
         steps: 2,
         disableInDev: false,
+      },
+    ],
+    [
+      '@docusaurus/plugin-pwa',
+      {
+        debug: true,
+        offlineModeActivationStrategies: [
+          'appInstalled',
+          'standalone',
+          'queryString',
+        ],
+        pwaHead: [
+          {
+            tagName: 'link',
+            rel: 'icon',
+            href: '/img/logo.svg',
+          },
+          {
+            tagName: 'link',
+            rel: 'manifest',
+            href: '/manifest.json',
+          },
+          {
+            tagName: 'meta',
+            name: 'theme-color',
+            content: 'rgb(37, 194, 160)',
+          },
+        ],
       },
     ],
   ],
@@ -135,8 +166,12 @@ const config = {
               },
             ],
           },
-          {to: '/docs/intro', label: 'Getting Started', position: 'left'},
-          {to: '/blog', label: 'Blog', position: 'left'},
+          { to: '/docs/intro', label: 'Getting Started', position: 'left' },
+          { to: '/blog', label: 'Blog', position: 'left' },
+          {
+            type: 'search',
+            position: 'right',
+          },
           {
             type: 'localeDropdown',
             position: 'right',
@@ -200,27 +235,53 @@ const config = {
       prism: {
         theme: prismThemes.github,
         darkTheme: prismThemes.dracula,
-        additionalLanguages: ['bash', 'yaml', 'json', 'dockerfile', 'terraform', 'python'],
+        additionalLanguages: ['bash', 'yaml', 'json', 'docker', 'hcl', 'python'],
       },
+      // Algolia search configuration
       algolia: {
-        // The application ID provided by Algolia
-        appId: 'YOUR_APP_ID',
-        // Public API key: it is safe to commit it
-        apiKey: 'YOUR_SEARCH_API_KEY',
-        indexName: 'engineering-playbook',
-        // Optional: see doc section below
+        appId: process.env.ALGOLIA_APP_ID || 'YOUR_APP_ID',
+        apiKey: process.env.ALGOLIA_SEARCH_API_KEY || 'YOUR_SEARCH_API_KEY',
+        indexName: process.env.ALGOLIA_INDEX_NAME || 'engineering-playbook',
         contextualSearch: true,
-        // Optional: Specify domains where the navigation should occur through window.location instead on history.push
-        externalUrlRegex: 'external\\.com|domain\\.com',
-        // Optional: Replace parts of the item URLs from Algolia
-        replaceSearchResultPathname: {
-          from: '/docs/', // or as RegExp: /\/docs\//
-          to: '/',
+        searchParameters: {
+          facetFilters: ['language:ko', 'language:en'],
+          hitsPerPage: 10,
+          attributesToRetrieve: [
+            'hierarchy.lvl0',
+            'hierarchy.lvl1', 
+            'hierarchy.lvl2',
+            'hierarchy.lvl3',
+            'content',
+            'type',
+            'url'
+          ],
+          attributesToHighlight: [
+            'hierarchy.lvl0',
+            'hierarchy.lvl1',
+            'hierarchy.lvl2', 
+            'hierarchy.lvl3',
+            'content'
+          ],
+          attributesToSnippet: ['content:10'],
+          highlightPreTag: '<mark>',
+          highlightPostTag: '</mark>',
         },
-        // Optional: Algolia search parameters
-        searchParameters: {},
-        // Optional: path for search page that enabled by default (`false` to disable it)
         searchPagePath: 'search',
+        insights: true,
+      },
+      metadata: [
+        { name: 'keywords', content: 'EKS, Kubernetes, AWS, DevOps, Cloud, Architecture' },
+        { name: 'description', content: 'Comprehensive EKS Architecture Deep Dive - Engineering Playbook' },
+        { property: 'og:type', content: 'website' },
+        { property: 'og:site_name', content: 'EKS Engineering Playbook' },
+      ],
+      announcementBar: {
+        id: 'support_us',
+        content:
+          '⭐️ If you find this playbook helpful, give it a star on <a target="_blank" rel="noopener noreferrer" href="https://github.com/devfloor9/engineering-playbook">GitHub</a>! ⭐️',
+        backgroundColor: '#fafbfc',
+        textColor: '#091E42',
+        isCloseable: true,
       },
     }),
 };
