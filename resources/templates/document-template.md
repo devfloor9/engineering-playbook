@@ -1,42 +1,54 @@
 ---
-title: "문서 제목을 여기에 입력하세요"
-description: "문서에 대한 간단한 설명을 여기에 입력하세요 (1-2문장)"
-tags: [eks, kubernetes, 관련태그1, 관련태그2]
-category: "performance-networking" # 5개 도메인 중 하나: performance-networking, observability-monitoring, genai-aiml, hybrid-multicloud, security-compliance
-date: 2025-01-15
-authors: [author-name]
-sidebar_position: 1
+title: "[문서 제목]"
+description: "[문서에 대한 간단한 설명 (150자 이내)]"
+tags: [eks, kubernetes, tag1, tag2]
+category: "[performance-networking|observability-monitoring|genai-aiml|hybrid-multicloud|security-compliance]"
+date: "YYYY-MM-DD"
+authors: [devfloor9]
+difficulty: "[beginner|intermediate|advanced]"
+estimated_time: "[예상 읽기 시간 (예: 15분)]"
+prerequisites: 
+  - "[필요한 사전 지식 1]"
+  - "[필요한 사전 지식 2]"
+related_docs:
+  - "[관련 문서 1 경로]"
+  - "[관련 문서 2 경로]"
 ---
 
-# 문서 제목
+# [문서 제목]
 
 ## 개요
 
-이 문서에서 다룰 내용에 대한 간단한 소개를 작성합니다.
+[문서의 목적과 다룰 내용에 대한 간단한 소개]
 
-## 전제 조건
+## 목표
 
-이 가이드를 따르기 전에 필요한 사항들:
+이 문서를 통해 다음을 학습할 수 있습니다:
 
-- [ ] EKS 클러스터가 구성되어 있어야 합니다
-- [ ] kubectl이 설치되어 있어야 합니다
-- [ ] 기타 필요한 도구나 권한
+- [ ] [학습 목표 1]
+- [ ] [학습 목표 2]
+- [ ] [학습 목표 3]
+
+## 사전 요구사항
+
+- [필요한 도구나 지식 1]
+- [필요한 도구나 지식 2]
 
 ## 아키텍처 개요
 
+[시스템 아키텍처에 대한 설명]
+
 ```mermaid
-graph TB
-    A[Component A] --> B[Component B]
-    B --> C[Component C]
+graph TD
+    A[컴포넌트 A] --> B[컴포넌트 B]
+    B --> C[컴포넌트 C]
 ```
 
-시스템 아키텍처에 대한 설명을 여기에 작성합니다.
+## 단계별 구현 가이드
 
-## 구현 단계
+### 1단계: [단계 제목]
 
-### 1단계: 초기 설정
-
-구체적인 구현 단계를 설명합니다.
+[단계에 대한 설명]
 
 ```yaml
 # 설정 예제
@@ -48,72 +60,76 @@ data:
   key: value
 ```
 
-### 2단계: 구성 및 배포
+### 2단계: [단계 제목]
 
-다음 단계에 대한 설명을 작성합니다.
+[단계에 대한 설명]
 
 ```bash
 # 실행 명령어 예제
 kubectl apply -f config.yaml
 ```
 
-## 검증 및 테스트
+## 모니터링 및 검증
 
-구현이 올바르게 되었는지 확인하는 방법:
+### 상태 확인
 
 ```bash
 # 상태 확인 명령어
 kubectl get pods -n namespace
 ```
 
-## 모니터링 및 관찰성
+### 메트릭 모니터링
 
-시스템 모니터링 방법과 주요 메트릭:
-
-- **메트릭 1**: 설명
-- **메트릭 2**: 설명
-- **로그 위치**: `/var/log/example`
+[모니터링 방법 설명]
 
 ## 문제 해결
 
 ### 일반적인 문제들
 
-**문제**: 설명
-**해결책**: 해결 방법
+#### 문제 1: [문제 설명]
 
-**문제**: 설명  
-**해결책**: 해결 방법
+**증상:**
+- [증상 설명]
+
+**원인:**
+- [원인 분석]
+
+**해결 방법:**
+```bash
+# 해결 명령어
+kubectl logs pod-name
+```
+
+## 모범 사례
+
+- ✅ [권장사항 1]
+- ✅ [권장사항 2]
+- ❌ [피해야 할 사항 1]
+- ❌ [피해야 할 사항 2]
 
 ## 성능 최적화
 
-성능 향상을 위한 권장사항:
-
-1. **최적화 방법 1**: 설명
-2. **최적화 방법 2**: 설명
+[성능 최적화 팁과 권장사항]
 
 ## 보안 고려사항
 
-보안과 관련된 중요한 사항들:
-
-- 권한 설정
-- 네트워크 정책
-- 암호화 설정
+[보안 관련 주의사항과 권장사항]
 
 ## 참고 자료
 
-- [공식 문서 링크](https://example.com)
-- [관련 GitHub 저장소](https://github.com/example)
-- [추가 읽을거리](https://example.com)
+- [공식 문서 링크]
+- [관련 블로그 포스트]
+- [GitHub 리포지토리]
 
 ## 다음 단계
 
-이 문서를 완료한 후 다음으로 읽어볼 문서들:
+이 문서를 완료한 후 다음 문서들을 참고하세요:
 
-- [관련 문서 1](../category/document1.md)
-- [관련 문서 2](../category/document2.md)
+- [관련 문서 1](../path/to/doc1.md)
+- [관련 문서 2](../path/to/doc2.md)
 
 ---
 
-**💡 팁**: 실제 환경에 적용하기 전에 테스트 환경에서 먼저 검증해보세요.
-
-**⚠️ 주의**: 프로덕션 환경에서는 백업을 먼저 수행하세요.
+**마지막 업데이트:** [날짜]  
+**검토자:** [검토자 이름]  
+**버전:** 1.0

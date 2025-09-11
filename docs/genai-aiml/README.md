@@ -1,41 +1,63 @@
----
-sidebar_position: 1
----
-
 # GenAI & AI/ML
 
-EKS 환경에서 GenAI 및 AI/ML 워크로드를 효율적으로 운영하기 위한 전략과 구현 방법을 다룹니다.
+이 섹션에서는 Amazon EKS에서 생성형 AI 및 AI/ML 워크로드를 구축하고 운영하는 방법에 대한 심화 기술 문서들을 다룹니다.
 
-## 📋 주요 주제
+## 📚 주요 문서
 
-### 🤖 프로덕션 GenAI 구축
-- LiteLLM, LangGraph, Langfuse 통합
-- 확장 가능한 GenAI 아키텍처
-- 모델 서빙 최적화
+### 프로덕션 GenAI 플랫폼 구축
+- **Building Production-Ready GenAI: LiteLLM, LangGraph, and Langfuse on EKS**
+  - LiteLLM을 통한 다중 LLM 모델 통합
+  - LangGraph 기반 복잡한 AI 워크플로우 구현
+  - Langfuse를 통한 GenAI 애플리케이션 모니터링
 
-### ⚡ GPU 효율성 극대화
-- MIG(Multi-Instance GPU) 활용
-- Time-Slicing 전략
-- 리소스 스케줄링 최적화
+### GPU 리소스 최적화
+- **Maximizing GPU Efficiency: MIG and Time-Slicing Strategies for EKS**
+  - NVIDIA MIG(Multi-Instance GPU) 설정 및 활용
+  - GPU 시간 분할(Time-Slicing) 전략
+  - GPU 리소스 스케줄링 최적화
 
-### 🏗️ GenAI 플랫폼 구축
-- EBA 워크샵 가이드
-- 엔드투엔드 파이프라인 구성
-- 모니터링 및 관리 시스템
+### GenAI 플랫폼 아키텍처
+- **The Future of GenAI Platforms: Building on Amazon EKS (EBA Workshop Guide)**
+  - 엔터프라이즈급 GenAI 플랫폼 설계
+  - 확장 가능한 AI 인프라 구축
+  - 실제 워크샵 가이드 및 실습
 
 ## 🎯 학습 목표
 
-이 섹션을 완료하면 다음을 할 수 있게 됩니다:
+이 섹션을 통해 다음을 학습할 수 있습니다:
 
-- 프로덕션 레벨의 GenAI 시스템 구축
-- GPU 리소스 효율성 극대화
-- AI/ML 워크로드 모니터링 및 최적화
-- 확장 가능한 GenAI 플랫폼 설계
+- EKS에서 확장 가능한 GenAI 플랫폼 구축 방법
+- GPU 리소스 효율적 활용 및 최적화 전략
+- AI/ML 워크로드의 자동 스케일링 및 리소스 관리
+- 프로덕션 환경에서의 AI 모델 배포 및 운영
 
-## 📚 문서 목록
+## 🚀 주요 기술 스택
 
-최신 GenAI 기술과 EKS의 결합을 통해 혁신적인 AI 플랫폼을 구축하는 방법을 배워보세요.
+- **LiteLLM**: 다중 LLM 모델 통합 프레임워크
+- **LangGraph**: AI 워크플로우 오케스트레이션
+- **Langfuse**: GenAI 애플리케이션 관찰성 및 추적
+- **NVIDIA GPU Operator**: GPU 리소스 관리
+- **Karpenter**: 노드 자동 스케일링
+
+## 💡 GPU 리소스 관리
+
+### MIG (Multi-Instance GPU)
+- 단일 GPU를 여러 인스턴스로 분할
+- 리소스 격리 및 효율적 활용
+- 다중 테넌트 환경 지원
+
+### Time-Slicing
+- GPU 시간 공유를 통한 동시 워크로드 실행
+- 개발/테스트 환경에 적합
+- 비용 효율적인 GPU 활용
+
+## 🔗 관련 자료
+
+- [EKS Engineering Playbook 메인](../../README.md)
+- [Observability & Monitoring](../observability-monitoring/)
+- [Performance & Networking](../performance-networking/)
+- [Hybrid & Multi-Cloud](../hybrid-multicloud/)
 
 ---
 
-**AI의 미래를 EKS와 함께 만들어보세요!** 🚀🤖
+**💡 팁**: GenAI 워크로드는 GPU 리소스를 많이 사용하므로, 비용 최적화를 위해 Spot 인스턴스와 자동 스케일링을 적극 활용하세요!
