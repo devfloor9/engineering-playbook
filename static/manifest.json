@@ -1,21 +1,27 @@
 {
   "name": "EKS Engineering Playbook",
   "short_name": "EKS Playbook",
-  "theme_color": "#25c2a0",
+  "description": "Comprehensive EKS Architecture Deep Dive - Engineering best practices, patterns, and implementations",
+  "theme_color": "#0969da",
   "background_color": "#ffffff",
   "display": "standalone",
   "scope": "./",
   "start_url": "./",
+  "orientation": "portrait-primary",
+  "categories": ["productivity", "education", "developer"],
+  "lang": "en",
   "icons": [
     {
       "src": "img/logo.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     },
     {
       "src": "img/logo.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }

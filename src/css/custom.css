@@ -119,7 +119,7 @@
 
 .navbar__search-input:focus {
   border-color: var(--ifm-color-primary);
-  box-shadow: 0 0 0 2px rgba(46, 133, 85, 0.2);
+  box-shadow: 0 0 0 2px rgba(9, 105, 218, 0.2);
 }
 
 /* Tag-based filtering styles */
@@ -144,6 +144,184 @@
 .search-filter-tag.active {
   background: var(--ifm-color-primary);
   color: white;
+}
+
+/* Mobile optimizations */
+@media screen and (max-width: 996px) {
+  .container {
+    padding: 0 1rem;
+  }
+  
+  .hero__title {
+    font-size: 2rem !important;
+  }
+  
+  .hero__subtitle {
+    font-size: 1rem !important;
+  }
+  
+  .card {
+    margin-bottom: 1rem;
+  }
+  
+  .navbar__item {
+    padding: 0.25rem 0.5rem;
+  }
+  
+  .navbar__link {
+    font-size: 0.9rem;
+  }
+  
+  .DocSearch-Button {
+    width: 100%;
+    margin: 0.5rem 0;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .hero {
+    padding: 2rem 0 !important;
+  }
+  
+  .hero__title {
+    font-size: 1.75rem !important;
+    margin-bottom: 0.5rem !important;
+  }
+  
+  .hero__subtitle {
+    font-size: 0.9rem !important;
+  }
+  
+  .card__body {
+    padding: 1rem;
+  }
+  
+  .card__header {
+    padding: 1rem 1rem 0.5rem;
+  }
+  
+  .card__footer {
+    padding: 0.5rem 1rem 1rem;
+  }
+  
+  .button {
+    font-size: 0.9rem;
+    padding: 0.5rem 1rem;
+  }
+  
+  .navbar__toggle {
+    color: var(--ifm-navbar-link-color);
+  }
+  
+  .menu__link {
+    font-size: 0.9rem;
+    padding: 0.5rem 0.75rem;
+  }
+  
+  .table-of-contents {
+    display: none;
+  }
+  
+  .col {
+    margin-bottom: 1rem;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .container {
+    padding: 0 0.75rem;
+  }
+  
+  .hero__title {
+    font-size: 1.5rem !important;
+  }
+  
+  .hero__subtitle {
+    font-size: 0.85rem !important;
+  }
+  
+  .card {
+    margin-bottom: 0.75rem;
+  }
+  
+  .button {
+    font-size: 0.85rem;
+    padding: 0.4rem 0.8rem;
+  }
+  
+  .navbar__brand {
+    font-size: 1rem;
+  }
+  
+  .footer__links {
+    text-align: center;
+  }
+  
+  .footer__link-item {
+    display: block;
+    margin: 0.25rem 0;
+  }
+}
+
+/* Touch-friendly navigation */
+@media (hover: none) and (pointer: coarse) {
+  .card:hover {
+    transform: none;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .button {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  .navbar__link {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+  }
+  
+  .menu__link {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+  }
+  
+  .DocSearch-Button {
+    min-height: 44px;
+  }
+}
+
+/* Responsive images and diagrams */
+.markdown img {
+  max-width: 100%;
+  height: auto;
+}
+
+.markdown pre {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.markdown table {
+  display: block;
+  overflow-x: auto;
+  white-space: nowrap;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media screen and (max-width: 768px) {
+  .markdown table {
+    font-size: 0.85rem;
+  }
+  
+  .markdown pre {
+    font-size: 0.8rem;
+  }
+  
+  .markdown code {
+    font-size: 0.85rem;
+  }
 }
 
 /* Custom styles for EKS Engineering Playbook */

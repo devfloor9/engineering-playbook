@@ -22,6 +22,7 @@ yarn-error.log*
 # IDE
 .vscode/
 .idea/
+.kiro/
 
 # OS
 Thumbs.db
