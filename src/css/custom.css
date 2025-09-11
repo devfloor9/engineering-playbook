@@ -29,6 +29,122 @@
   --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
 }
 
+/* Search customization */
+.DocSearch {
+  --docsearch-primary-color: var(--ifm-color-primary);
+  --docsearch-text-color: var(--ifm-font-color-base);
+  --docsearch-muted-color: var(--ifm-color-secondary-darkest);
+  --docsearch-container-background: rgba(101, 108, 133, 0.8);
+  --docsearch-modal-background: var(--ifm-color-secondary-lighter);
+  --docsearch-searchbox-background: var(--ifm-color-secondary);
+  --docsearch-searchbox-focus-background: var(--ifm-color-white);
+  --docsearch-hit-color: var(--ifm-font-color-base);
+  --docsearch-hit-active-color: var(--ifm-color-white);
+  --docsearch-hit-background: var(--ifm-color-white);
+  --docsearch-hit-shadow: 0 1px 3px 0 rgba(212, 217, 225, 0.5);
+  --docsearch-key-gradient: linear-gradient(
+    -225deg,
+    var(--ifm-color-emphasis-200) 0%,
+    var(--ifm-color-emphasis-100) 100%
+  );
+}
+
+[data-theme='dark'] .DocSearch {
+  --docsearch-text-color: var(--ifm-font-color-base);
+  --docsearch-muted-color: var(--ifm-color-secondary-darkest);
+  --docsearch-container-background: rgba(47, 55, 69, 0.7);
+  --docsearch-modal-background: var(--ifm-background-color);
+  --docsearch-searchbox-background: var(--ifm-background-color);
+  --docsearch-searchbox-focus-background: var(--ifm-color-black);
+  --docsearch-hit-color: var(--ifm-font-color-base);
+  --docsearch-hit-shadow: inset 1px 1px 0 0 hsla(0, 0%, 100%, 0.05),
+    0 3px 8px 0 #555a64;
+  --docsearch-key-gradient: linear-gradient(
+    -26.5deg,
+    var(--ifm-color-emphasis-200) 0%,
+    var(--ifm-color-emphasis-100) 100%
+  );
+}
+
+/* Search page customization */
+.search-tips {
+  background: var(--ifm-color-emphasis-100);
+  padding: 1rem;
+  border-radius: 0.5rem;
+  margin: 1rem 0;
+}
+
+.search-tips h3 {
+  margin-top: 0;
+  color: var(--ifm-color-primary);
+}
+
+.search-categories .card {
+  height: 100%;
+  transition: transform 0.2s ease-in-out;
+}
+
+.search-categories .card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.search-categories .card__header h4 {
+  margin-bottom: 0;
+  font-size: 1.1rem;
+}
+
+.search-categories .card__body p {
+  margin-bottom: 0;
+  font-size: 0.9rem;
+  color: var(--ifm-color-emphasis-700);
+}
+
+/* Enhanced search result highlighting */
+.algolia-docsearch-suggestion--highlight {
+  background: var(--ifm-color-primary);
+  color: white;
+  padding: 0.1em 0.2em;
+  border-radius: 0.2em;
+}
+
+/* Search input styling */
+.navbar__search-input {
+  border-radius: 1rem;
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--ifm-color-emphasis-300);
+  transition: all 0.2s ease-in-out;
+}
+
+.navbar__search-input:focus {
+  border-color: var(--ifm-color-primary);
+  box-shadow: 0 0 0 2px rgba(46, 133, 85, 0.2);
+}
+
+/* Tag-based filtering styles */
+.search-filter-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 1rem 0;
+}
+
+.search-filter-tag {
+  background: var(--ifm-color-emphasis-200);
+  color: var(--ifm-color-emphasis-800);
+  padding: 0.25rem 0.5rem;
+  border-radius: 1rem;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.search-filter-tag:hover,
+.search-filter-tag.active {
+  background: var(--ifm-color-primary);
+  color: white;
+}
+
 /* Custom styles for EKS Engineering Playbook */
 .hero__title {
   font-size: 3rem;
