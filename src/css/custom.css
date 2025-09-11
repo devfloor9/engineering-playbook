@@ -39,28 +39,89 @@
   margin-bottom: 2rem;
 }
 
+/* Enhanced navigation styling */
+.navbar__item--dropdown .navbar__link:after {
+  border-color: var(--ifm-color-primary) transparent transparent;
+}
+
+.dropdown__menu {
+  min-width: 250px;
+}
+
+.dropdown__link {
+  padding: 0.75rem 1rem;
+  font-size: 0.95rem;
+}
+
+.dropdown__link:hover {
+  background-color: var(--ifm-color-primary-lightest);
+}
+
 /* Category cards styling */
 .category-card {
   border: 1px solid var(--ifm-color-emphasis-200);
-  border-radius: 8px;
+  border-radius: 12px;
   padding: 1.5rem;
   margin-bottom: 1rem;
-  transition: box-shadow 0.2s ease;
+  transition: all 0.3s ease;
+  background: var(--ifm-background-color);
 }
 
 .category-card:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
   text-decoration: none;
+  transform: translateY(-2px);
+  border-color: var(--ifm-color-primary-light);
 }
 
 .category-card h3 {
   margin-bottom: 0.5rem;
   color: var(--ifm-color-primary);
+  font-size: 1.25rem;
 }
 
 .category-card p {
   margin-bottom: 0;
   color: var(--ifm-color-emphasis-700);
+  line-height: 1.6;
+}
+
+/* Sidebar enhancements */
+.theme-doc-sidebar-item-category > .menu__list-item-collapsible > .menu__link {
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.menu__link--sublist-caret:after {
+  background-size: 1.25rem 1.25rem;
+}
+
+/* Cross-reference links styling */
+.menu__link[href^="/docs/"]:not(.menu__link--active) {
+  color: var(--ifm-color-primary-dark);
+}
+
+.menu__link[href^="/docs/"]:hover {
+  background-color: var(--ifm-color-primary-lightest);
+}
+
+/* Mobile optimizations */
+@media (max-width: 768px) {
+  .hero__title {
+    font-size: 2rem;
+  }
+  
+  .hero__subtitle {
+    font-size: 1.2rem;
+  }
+  
+  .category-card {
+    padding: 1rem;
+  }
+  
+  .navbar__item--dropdown .navbar__link {
+    padding: 0.5rem 0.75rem;
+  }
 }
 
 /* Code block enhancements */
