@@ -237,6 +237,7 @@ const config = {
         darkTheme: prismThemes.dracula,
         additionalLanguages: ['bash', 'yaml', 'json', 'docker', 'hcl', 'python'],
       },
+      /*
       // Algolia search configuration
       algolia: {
         appId: process.env.ALGOLIA_APP_ID || 'YOUR_APP_ID',
@@ -269,6 +270,7 @@ const config = {
         searchPagePath: 'search',
         insights: true,
       },
+      */
       metadata: [
         { name: 'keywords', content: 'EKS, Kubernetes, AWS, DevOps, Cloud, Architecture' },
         { name: 'description', content: 'Comprehensive EKS Architecture Deep Dive - Engineering Playbook' },
