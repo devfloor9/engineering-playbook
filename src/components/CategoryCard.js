@@ -5,29 +5,29 @@ import {translate} from '@docusaurus/Translate';
 const CategoryCard = ({category, title, description, icon, docCount, color}) => {
   const categoryInfo = {
     'performance-networking': {
-      title: '🚀 Performance & Networking',
-      description: 'EKS DNS 최적화, Cilium ENI 모드, 네트워크 성능 튜닝',
-      color: '#FF6B6B'
+      title: 'Performance & Networking',
+      description: 'EKS DNS optimization, Cilium ENI mode, network performance tuning',
+      color: '#2e8555'
     },
     'observability-monitoring': {
-      title: '👁️ Observability & Monitoring',
-      description: 'Hubble 네트워크 가시성, AI/ML 워크로드 모니터링',
-      color: '#4ECDC4'
+      title: 'Observability & Monitoring',
+      description: 'Hubble network visibility, AI/ML workload monitoring',
+      color: '#25c2a0'
     },
     'genai-aiml': {
-      title: '🤖 GenAI & AI/ML',
-      description: '프로덕션 GenAI 구축, GPU 효율성, MIG 전략',
-      color: '#45B7D1'
+      title: 'GenAI & AI/ML',
+      description: 'Production GenAI platforms, GPU efficiency, MIG strategies',
+      color: '#1877f2'
     },
     'hybrid-multicloud': {
-      title: '🌐 Hybrid & Multi-Cloud',
-      description: 'EKS 하이브리드 노드, 클라우드 버스팅',
-      color: '#96CEB4'
+      title: 'Hybrid & Multi-Cloud',
+      description: 'EKS hybrid nodes, cloud bursting architectures',
+      color: '#f56565'
     },
     'security-compliance': {
-      title: '🔒 Security & Compliance',
-      description: 'ROSA 네트워크 보안, 컴플라이언스 아키텍처',
-      color: '#FFEAA7'
+      title: 'Security & Compliance',
+      description: 'ROSA network security, compliance architectures',
+      color: '#ed8936'
     }
   };
 

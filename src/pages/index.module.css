@@ -20,4 +20,72 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  margin-top: 2rem;
+}
+
+.features {
+  display: flex;
+  align-items: center;
+  padding: 2rem 0;
+  width: 100%;
+}
+
+.quickStart {
+  padding: 4rem 0;
+  background-color: var(--ifm-color-emphasis-100);
+}
+
+.quickStartButtons {
+  margin-top: 1rem;
+}
+
+.quickStartButtons .button {
+  margin: 0.25rem;
+}
+
+/* Clean card styling */
+.features .card {
+  height: 100%;
+  transition: transform 0.2s ease-in-out;
+}
+
+.features .card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.features .card__body h3 {
+  color: var(--ifm-color-primary);
+  margin-bottom: 1rem;
+}
+
+.features .card__body p {
+  color: var(--ifm-color-emphasis-700);
+  line-height: 1.6;
+}
+
+/* Hero section styling */
+.heroBanner .hero__title {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.heroBanner .hero__subtitle {
+  font-size: 1.25rem;
+  margin-bottom: 0;
+  opacity: 0.9;
+}
+
+@media screen and (max-width: 768px) {
+  .heroBanner .hero__title {
+    font-size: 2rem;
+  }
+  
+  .heroBanner .hero__subtitle {
+    font-size: 1rem;
+  }
+  
+  .features .col {
+    margin-bottom: 2rem;
+  }
 }
