@@ -15,6 +15,9 @@
     "generate-summary": "node scripts/generate-summary.js",
     "new-post": "node scripts/new-post.js",
     "validate-metadata": "node scripts/validate-metadata.js",
+    "generate-tags": "node scripts/generate-tag-pages.js",
+    "auto-categorize": "node scripts/auto-categorize.js",
+    "algolia-index": "node scripts/algolia-index.js",
     "sync": "npm run generate-summary && git add . && git commit -m 'Update SUMMARY.md' && git push"
   },
   "dependencies": {
