@@ -11,6 +11,9 @@ sidebar_position: 3
 
 # Agentic AI Platform 기술적 도전과제와 Kubernetes
 
+> 📅 **작성일**: 2025-02-05 | ⏱️ **읽는 시간**: 약 16분
+
+
 Agentic AI Platform을 구축하고 운영하는 과정에서 플랫폼 엔지니어와 아키텍트는 다양한 기술적 도전과제에 직면합니다. 이 문서에서는 4가지 핵심 도전과제를 분석하고, Kubernetes와 Amazon EKS가 이러한 문제를 어떻게 해결하는지 설명합니다.
 
 ## 개요

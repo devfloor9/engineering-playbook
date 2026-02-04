@@ -11,6 +11,9 @@ sidebar_position: 3
 
 # EKS Node Monitoring Agent
 
+> 📅 **작성일**: 2025-08-26 | ⏱️ **읽는 시간**: 약 9분
+
+
 ## 개요
 
 EKS Node Monitoring Agent(NMA)는 AWS가 제공하는 노드 상태 모니터링 도구입니다. EKS 클러스터의 노드에서 발생하는 하드웨어 및 시스템 레벨 문제를 자동으로 감지하고 보고합니다. 2024년에 정식 출시된 이 서비스는 노드 자동 복구(Node Auto Repair) 기능과 함께 작동하여 클러스터의 안정성을 향상시킵니다.

@@ -11,6 +11,9 @@ sidebar_position: 2
 
 # ROSA Security Compliance Console Access Control
 
+> 📅 **작성일**: 2025-06-10 | ⏱️ **읽는 시간**: 약 4분
+
+
 ## 개요
 
 ROSA(Red Hat OpenShift Service on AWS)를 금융권에 도입할 때는 Red Hat Hybrid Cloud Console에 대한 접근 제어가 중요한 보안 요구사항입니다. 이 가이드는 IdP(Identity Provider), MFA, IP 기반 접근 통제를 활용한 안전한 관리자 접근 제어 전략을 설명합니다.

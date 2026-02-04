@@ -11,6 +11,9 @@ sidebar_position: 7
 
 # 대규모 EKS 환경 비용 관리 가이드
 
+> 📅 **작성일**: 2025-07-01 | ⏱️ **읽는 시간**: 약 6분
+
+
 ## Executive Overview
 
 This comprehensive presentation guide provides a detailed structure for a 110-slide session on "Cost Management in Large-Scale EKS Environments." The content is organized to deliver maximum value through a balance of theoretical foundations, practical implementations, and real-world success stories, ensuring attendees gain actionable insights for immediate application.

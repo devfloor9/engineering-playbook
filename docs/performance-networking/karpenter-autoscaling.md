@@ -11,6 +11,9 @@ sidebar_position: 4
 
 # Ultra-Fast EKS Autoscaling with Karpenter
 
+> 📅 **작성일**: 2025-06-30 | ⏱️ **읽는 시간**: 약 3분
+
+
 ## The Sub-10 Second Scaling Challenge
 
 In modern cloud-native architectures, the difference between 10 seconds and 3 minutes can mean thousands of failed requests, degraded user experiences, and lost revenue. This article demonstrates how to achieve consistent sub-10 second autoscaling in Amazon EKS using Karpenter's revolutionary approach to node provisioning, combined with strategically implemented high-resolution metrics.

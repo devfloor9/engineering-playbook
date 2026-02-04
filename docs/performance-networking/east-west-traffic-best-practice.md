@@ -11,6 +11,9 @@ sidebar_position: 4
 
 # EKS East-West 트래픽 최적화 가이드
 
+> 📅 **작성일**: 2025-05-22 | ⏱️ **읽는 시간**: 약 4분
+
+
 East-West(서비스↔서비스)의 홉 수가 1 → 2 로 늘어나면 p99 지연이 msec 단위로 지연되고, AZ 를 가로지르면 AWS 대역폭 요금(GB 단가 $0.01)이 발생합니다. 이 아티클은 **Kubernetes 네이티브 기능(Topology Hints·InternalTrafficPolicy)부터 Cilium ClusterMesh, AWS VPC Lattice, Istio Ambient**까지 레이어별 옵션을 간단히 알아보고, p99·p999 지연, CPU·메모리 오버헤드, 그리고 **10 TB/월** 동-AZ 트래픽을 가정한 비용을 정량 비교합니다.
 
 ---

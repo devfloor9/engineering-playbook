@@ -11,6 +11,9 @@ sidebar_position: 3
 
 # Cilium ENI 모드와 Gateway API 구성 가이드
 
+> 📅 **작성일**: 2025-01-07 | ⏱️ **읽는 시간**: 약 8분
+
+
 이 가이드는 Amazon EKS 환경에서 Cilium ENI 모드와 Gateway API를 구성하기 위한 전반적인 개요를 제공합니다. 세부적인 구현 방법은 각 섹션의 공식 문서 링크를 참조하세요.
 
 ## 버전 정보

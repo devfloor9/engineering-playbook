@@ -11,6 +11,9 @@ sidebar_position: 5
 
 # Harbor 2.13과 EKS Hybrid Nodes 통합 가이드
 
+> 📅 **작성일**: 2025-08-20 | ⏱️ **읽는 시간**: 약 3분
+
+
 ## 개요
 
 이 가이드는 Harbor 2.13과 EKS Hybrid Nodes (Kubernetes 1.33)를 통합하는 단계별 구성 방법을 제공합니다. 2024년 12월 정식 출시된 EKS Hybrid Nodes는 온프레미스 인프라와 AWS EKS를 통합 관리할 수 있게 해주며, Harbor 2.13은 향상된 보안 기능과 AI 모델 관리 기능을 제공합니다.
