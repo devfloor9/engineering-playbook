@@ -3,7 +3,7 @@ title: "대규모 EKS 환경 비용 관리 가이드"
 description: "대규모 Amazon EKS 환경에서 30-90% 비용 절감을 달성하기 위한 FinOps 전략, 도구, 최적화 기법 및 실제 성공 사례"
 tags: [eks, cost-management, finops, karpenter, kubecost, optimization]
 category: "performance-networking"
-date: 2025-02-04
+date: 2025-07-01
 authors: [devfloor9]
 sidebar_position: 7
 ---

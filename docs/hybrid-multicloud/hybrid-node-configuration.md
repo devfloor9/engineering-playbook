@@ -3,7 +3,7 @@ title: "EKS Hybrid Node Configuration Guide"
 description: "Comprehensive configuration guide for EKS Hybrid Nodes covering architecture, prerequisites, installation steps, and integration with Harbor private registry."
 tags: [eks, hybrid-nodes, nodeadm, kubernetes, harbor, containerd, configuration]
 category: "hybrid-multicloud"
-date: 2025-02-04
+date: 2025-08-20
 authors: [devfloor9]
 sidebar_position: 6
 ---

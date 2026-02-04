@@ -3,7 +3,7 @@ title: "EKS Node Monitoring Agent"
 description: "AWS EKS Node Monitoring Agent 아키텍처, 배포 전략, 제한사항 및 모범 사례 가이드"
 tags: [eks, monitoring, node-monitoring, aws, observability, cloudwatch]
 category: "observability-monitoring"
-date: 2025-02-04
+date: 2025-08-26
 authors: [devfloor9]
 sidebar_position: 3
 ---

@@ -3,7 +3,7 @@ title: "Cilium ENI 모드와 Gateway API 구성 가이드"
 description: "Amazon EKS 환경에서 Cilium ENI 모드와 Gateway API를 구성하여 고성능 네이티브 네트워킹을 구현하는 전반적인 가이드"
 tags: [eks, cilium, eni, gateway-api, networking, ebpf]
 category: "performance-networking"
-date: 2025-02-04
+date: 2025-01-07
 authors: [devfloor9]
 sidebar_position: 3
 ---

@@ -3,7 +3,7 @@ title: "EKS East-West 트래픽 최적화 가이드"
 description: "Kubernetes 환경에서 서비스 간 통신 지연을 최소화하고 비용을 절감하는 East-West 트래픽 최적화 전략"
 tags: [eks, networking, performance, cost-optimization, service-mesh]
 category: "performance-networking"
-date: 2025-02-04
+date: 2025-05-22
 authors: [devfloor9]
 sidebar_position: 4
 ---
