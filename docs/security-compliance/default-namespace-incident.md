@@ -11,6 +11,9 @@ sidebar_position: 2
 
 # EKS Default Namespace 삭제 시 장애 대응 가이드
 
+> 📅 **작성일**: 2025-01-07 | ⏱️ **읽는 시간**: 약 18분
+
+
 ## 1. 개요 (TL;DR)
 
 :::danger Critical Alert

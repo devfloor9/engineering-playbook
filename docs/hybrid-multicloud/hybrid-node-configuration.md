@@ -11,6 +11,9 @@ sidebar_position: 6
 
 # EKS Hybrid Nodes 구성 가이드
 
+> 📅 **작성일**: 2025-08-20 | ⏱️ **읽는 시간**: 약 3분
+
+
 ## 목차
 
 - Hybrid Node 아키텍처 및 동작 방식

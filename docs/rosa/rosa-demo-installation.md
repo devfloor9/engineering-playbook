@@ -11,6 +11,9 @@ sidebar_position: 3
 
 # ROSA Demo Installation Guide
 
+> 📅 **작성일**: 2024-03-06 | ⏱️ **읽는 시간**: 약 2분
+
+
 이 문서는 ROSA(Red Hat OpenShift Service on AWS) 클러스터의 설치 과정과 결과를 기록한 데모 가이드입니다. STS 기반의 보안 강화 설치 방식과 오토스케일링 구성을 포함합니다.
 
 ---

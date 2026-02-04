@@ -11,6 +11,9 @@ sidebar_position: 4
 
 # Agentic AI Platform 아키텍처
 
+> 📅 **작성일**: 2025-02-05 | ⏱️ **읽는 시간**: 약 9분
+
+
 이 문서에서는 Amazon EKS 기반 Agentic AI Platform의 전체 시스템 아키텍처와 핵심 컴포넌트 설계를 다룹니다. 자율적으로 작업을 수행하는 AI 에이전트를 효율적으로 구축하고 운영하기 위한 플랫폼 아키텍처를 제시합니다.
 
 ## 개요
@@ -158,7 +161,6 @@ graph LR
 
 Tool Registry는 에이전트가 사용할 수 있는 도구들을 중앙에서 관리합니다. Kubernetes CRD(Custom Resource Definition)를 통해 도구를 선언적으로 정의합니다.
 
-
 ```yaml
 apiVersion: kagent.dev/v1alpha1
 kind: Tool
@@ -256,7 +258,6 @@ collection.create_index(field_name="embedding", index_params=index_params)
 ### Orchestrator (Kagent)
 
 Kagent는 Kubernetes Operator 패턴을 사용하여 AI 에이전트의 전체 라이프사이클을 관리합니다.
-
 
 ```mermaid
 graph TB
@@ -357,7 +358,6 @@ spec:
 ### Inference Gateway (Kgateway)
 
 Kgateway는 Kubernetes Gateway API를 기반으로 AI 모델 추론 요청을 지능적으로 라우팅합니다.
-
 
 ```mermaid
 graph LR
@@ -461,7 +461,6 @@ spec:
 ### 네임스페이스 구성 전략
 
 Agentic AI Platform은 관심사 분리와 보안을 위해 기능별로 네임스페이스를 분리합니다.
-
 
 ```mermaid
 graph TB
@@ -599,7 +598,6 @@ GPU 리소스는 비용이 높으므로 신중하게 계획해야 합니다. 초
 
 Agentic AI Platform의 각 컴포넌트는 독립적으로 수평 확장이 가능합니다.
 
-
 ```mermaid
 graph TB
     subgraph Scaling["확장 전략"]
@@ -718,7 +716,6 @@ spec:
 ### 멀티 테넌트 지원
 
 Agentic AI Platform은 여러 팀이나 프로젝트가 동일한 플랫폼을 공유할 수 있도록 멀티 테넌트를 지원합니다.
-
 
 ```mermaid
 graph TB
@@ -943,3 +940,137 @@ spec:
 ## 데이터 플로우
 
 다음 다이어그램은 사용자 요청이 플랫폼을 통해 처리되는 전체 흐름을 보여줍니다.
+
+
+```mermaid
+sequenceDiagram
+    participant Client as 클라이언트
+    participant Gateway as Kgateway
+    participant Auth as Auth Service
+    participant Kagent as Kagent
+    participant Agent as Agent Pod
+    participant Milvus as Milvus
+    participant LLM as vLLM
+    participant LangFuse as LangFuse
+    
+    Client->>Gateway: 1. API 요청 (JWT 토큰)
+    Gateway->>Auth: 2. 토큰 검증
+    Auth-->>Gateway: 3. 검증 결과
+    Gateway->>Kagent: 4. 에이전트 라우팅
+    Kagent->>Agent: 5. 작업 할당
+    
+    Note over Agent: 6. 컨텍스트 검색
+    Agent->>Milvus: 7. 벡터 검색 쿼리
+    Milvus-->>Agent: 8. 관련 문서 반환
+    
+    Note over Agent: 9. LLM 추론
+    Agent->>LLM: 10. 프롬프트 + 컨텍스트
+    LLM-->>Agent: 11. 생성된 응답
+    
+    Agent->>LangFuse: 12. 트레이스 기록
+    Agent-->>Kagent: 13. 작업 완료
+    Kagent-->>Gateway: 14. 응답 전달
+    Gateway-->>Client: 15. 최종 응답
+```
+
+### 요청 처리 단계
+
+| 단계 | 컴포넌트 | 설명 |
+| ---- | -------- | ---- |
+| 1-3 | Gateway, Auth | 인증 및 권한 검증 |
+| 4-5 | Kagent, Agent | 에이전트 선택 및 작업 할당 |
+| 6-8 | Agent, Milvus | RAG를 위한 컨텍스트 검색 |
+| 9-11 | Agent, LLM | LLM 추론 수행 |
+| 12 | LangFuse | 관측성 데이터 기록 |
+| 13-15 | 전체 | 응답 반환 |
+
+## 모니터링 및 관측성
+
+### 핵심 메트릭
+
+```yaml
+# Prometheus ServiceMonitor
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: agent-metrics
+  namespace: observability
+spec:
+  selector:
+    matchLabels:
+      app: kagent
+  namespaceSelector:
+    matchNames:
+      - ai-agents
+  endpoints:
+    - port: metrics
+      interval: 15s
+      path: /metrics
+---
+# PrometheusRule for Alerts
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: agent-alerts
+  namespace: observability
+spec:
+  groups:
+    - name: agent-alerts
+      rules:
+        - alert: AgentHighLatency
+          expr: |
+            histogram_quantile(0.99, 
+              rate(agent_request_duration_seconds_bucket[5m])
+            ) > 10
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Agent 응답 지연 발생"
+            description: "P99 지연 시간이 10초를 초과했습니다"
+        
+        - alert: AgentHighErrorRate
+          expr: |
+            rate(agent_request_errors_total[5m]) / 
+            rate(agent_request_total[5m]) > 0.05
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Agent 오류율 증가"
+            description: "오류율이 5%를 초과했습니다"
+```
+
+### Grafana 대시보드 구성
+
+주요 모니터링 대시보드:
+
+- **Agent Overview**: 에이전트별 요청 수, 지연 시간, 오류율
+- **LLM Performance**: 모델별 토큰 처리량, 추론 시간
+- **Resource Usage**: CPU, 메모리, GPU 사용률
+- **Cost Tracking**: 테넌트별, 모델별 비용 추적
+
+## 결론
+
+Agentic AI Platform 아키텍처는 다음과 같은 핵심 원칙을 따릅니다:
+
+1. **모듈화**: 각 컴포넌트는 독립적으로 배포, 확장, 업데이트 가능
+2. **확장성**: Kubernetes 네이티브 스케일링으로 트래픽 변화에 유연하게 대응
+3. **관측성**: 전체 요청 흐름을 추적하고 분석할 수 있는 통합 모니터링
+4. **보안**: 다층 보안 모델로 데이터와 서비스 보호
+5. **멀티 테넌트**: 리소스 격리와 공정한 분배를 통한 다중 팀 지원
+
+:::tip 다음 단계
+- [GPU 리소스 관리](./gpu-resource-management.md) - 동적 리소스 할당 상세 가이드
+- [Kagent Agent 관리](./kagent-kubernetes-agents.md) - 에이전트 배포 및 운영
+- [Agent 모니터링](./agent-monitoring.md) - LangFuse 통합 가이드
+:::
+
+## 참고 자료
+
+- [Kagent GitHub Repository](https://github.com/kagent-dev/kagent)
+- [Kgateway Documentation](https://kgateway.dev/)
+- [Milvus Documentation](https://milvus.io/docs)
+- [LangFuse Documentation](https://langfuse.com/docs)
+- [Kubernetes Gateway API](https://gateway-api.sigs.k8s.io/)
+- [Karpenter Documentation](https://karpenter.sh/docs/)
