@@ -11,9 +11,6 @@ sidebar_position: 4
 
 # Agentic AI Platform 아키텍처
 
-> 📅 **작성일**: 2025-02-05 | ⏱️ **읽는 시간**: 약 9분
-
-
 이 문서에서는 Amazon EKS 기반 Agentic AI Platform의 전체 시스템 아키텍처와 핵심 컴포넌트 설계를 다룹니다. 자율적으로 작업을 수행하는 AI 에이전트를 효율적으로 구축하고 운영하기 위한 플랫폼 아키텍처를 제시합니다.
 
 ## 개요
@@ -814,7 +811,6 @@ spec:
 
 Agentic AI Platform은 다층 보안 모델을 적용합니다.
 
-
 ```mermaid
 graph TB
     subgraph Security["보안 레이어"]
@@ -932,15 +928,16 @@ spec:
 ```
 
 :::danger 보안 주의사항
+
 - 프로덕션 환경에서는 반드시 mTLS를 활성화하세요
 - API 키와 토큰은 Kubernetes Secrets 또는 AWS Secrets Manager에 저장하세요
 - 정기적으로 보안 감사를 수행하고 취약점을 패치하세요
+
 :::
 
 ## 데이터 플로우
 
 다음 다이어그램은 사용자 요청이 플랫폼을 통해 처리되는 전체 흐름을 보여줍니다.
-
 
 ```mermaid
 sequenceDiagram
@@ -1061,9 +1058,11 @@ Agentic AI Platform 아키텍처는 다음과 같은 핵심 원칙을 따릅니�
 5. **멀티 테넌트**: 리소스 격리와 공정한 분배를 통한 다중 팀 지원
 
 :::tip 다음 단계
+
 - [GPU 리소스 관리](./gpu-resource-management.md) - 동적 리소스 할당 상세 가이드
 - [Kagent Agent 관리](./kagent-kubernetes-agents.md) - 에이전트 배포 및 운영
 - [Agent 모니터링](./agent-monitoring.md) - LangFuse 통합 가이드
+
 :::
 
 ## 참고 자료
