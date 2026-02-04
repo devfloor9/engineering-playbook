@@ -22,9 +22,12 @@ yarn-error.log*
 # IDE & Git
 .vscode/
 .idea/
-.kiro/
 .git/
-.gitignore
+
+# AI Tools (Kiro & Claude Code)
+.kiro/
+.claude/
+.omc/
 
 
 # OS

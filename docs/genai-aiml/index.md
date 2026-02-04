@@ -1,3 +1,14 @@
+---
+title: GenAI & AI/ML
+description: Amazon EKS에서 생성형 AI 및 AI/ML 워크로드 구축과 운영에 대한 심화 기술 문서
+tags: [eks, genai, ai, ml, gpu, litellm, langgraph, langfuse, mig]
+category: genai-aiml
+date: 2025-01-15
+authors: [devfloor9]
+sidebar_position: 3
+sidebar_label: GenAI & AI/ML
+---
+
 # GenAI & AI/ML
 
 이 섹션에서는 Amazon EKS에서 생성형 AI 및 AI/ML 워크로드를 구축하고 운영하는 방법에 대한 심화 기술 문서들을 다룹니다.
@@ -53,11 +64,12 @@
 
 ## 🔗 관련 자료
 
-- [EKS Engineering Playbook 메인](../../README.md)
-- [Observability & Monitoring](../observability-monitoring/)
-- [Performance & Networking](../performance-networking/)
-- [Hybrid & Multi-Cloud](../hybrid-multicloud/)
+- [Observability & Monitoring](/docs/observability-monitoring)
+- [Performance & Networking](/docs/performance-networking)
+- [Hybrid & Multi-Cloud](/docs/hybrid-multicloud)
 
 ---
 
-**💡 팁**: GenAI 워크로드는 GPU 리소스를 많이 사용하므로, 비용 최적화를 위해 Spot 인스턴스와 자동 스케일링을 적극 활용하세요!
+:::tip 팁
+GenAI 워크로드는 GPU 리소스를 많이 사용하므로, 비용 최적화를 위해 Spot 인스턴스와 자동 스케일링을 적극 활용하세요!
+:::

@@ -1,3 +1,14 @@
+---
+title: Security & Compliance
+description: Amazon EKS 환경에서의 보안 강화 및 컴플라이언스 준수에 대한 심화 기술 문서
+tags: [eks, security, compliance, rbac, iam, network-policy, encryption]
+category: security-compliance
+date: 2025-01-15
+authors: [devfloor9]
+sidebar_position: 5
+sidebar_label: Security & Compliance
+---
+
 # Security & Compliance
 
 이 섹션에서는 Amazon EKS 환경에서의 보안 강화 및 컴플라이언스 준수에 대한 심화 기술 문서들을 다룹니다.
@@ -57,11 +68,13 @@
 ## 📋 컴플라이언스 프레임워크
 
 ### 주요 표준
-- **SOC 2**: 보안, 가용성, 처리 무결성
-- **PCI DSS**: 결제 카드 데이터 보안
-- **HIPAA**: 의료 정보 보호
-- **GDPR**: 개인정보 보호 규정
-- **ISO 27001**: 정보보안 관리 시스템
+| 표준 | 설명 |
+|------|------|
+| SOC 2 | 보안, 가용성, 처리 무결성 |
+| PCI DSS | 결제 카드 데이터 보안 |
+| HIPAA | 의료 정보 보호 |
+| GDPR | 개인정보 보호 규정 |
+| ISO 27001 | 정보보안 관리 시스템 |
 
 ### 컴플라이언스 도구
 - **AWS Config**: 리소스 구성 모니터링
@@ -97,11 +110,12 @@
 
 ## 🔗 관련 자료
 
-- [EKS Engineering Playbook 메인](../../README.md)
-- [Hybrid & Multi-Cloud](../hybrid-multicloud/)
-- [Observability & Monitoring](../observability-monitoring/)
-- [Performance & Networking](../performance-networking/)
+- [Hybrid & Multi-Cloud](/docs/hybrid-multicloud)
+- [Observability & Monitoring](/docs/observability-monitoring)
+- [Performance & Networking](/docs/performance-networking)
 
 ---
 
-**💡 팁**: 보안은 한 번 설정하고 끝나는 것이 아닙니다. 지속적인 모니터링과 정기적인 보안 평가가 필수입니다!
+:::warning 중요
+보안은 한 번 설정하고 끝나는 것이 아닙니다. 지속적인 모니터링과 정기적인 보안 평가가 필수입니다!
+:::
