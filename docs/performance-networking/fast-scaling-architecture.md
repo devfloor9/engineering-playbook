@@ -3,7 +3,7 @@ title: "고속 스케일링 아키텍처: 15초 미만 Pod 스케일링"
 description: "대규모 EKS 환경에서 15초 미만의 고속 스케일링을 달성하기 위한 CloudWatch와 ADOT+Prometheus 기반 아키텍처 비교"
 tags: [eks, scaling, keda, karpenter, cloudwatch, prometheus, performance]
 category: "performance-networking"
-date: 2025-02-04
+date: 2025-06-30
 authors: [devfloor9]
 sidebar_position: 5
 ---

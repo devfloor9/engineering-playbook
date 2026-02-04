@@ -3,7 +3,7 @@ title: "GitOps 기반 EKS 클러스터 운영"
 description: "대규모 EKS 클러스터 운영을 위한 GitOps 아키텍처, KRO/ACK 활용, 멀티클러스터 관리 전략"
 tags: [eks, gitops, argocd, kro, ack, kubernetes, automation, infrastructure-as-code]
 category: "observability-monitoring"
-date: 2025-02-04
+date: 2025-07-01
 authors: [devfloor9]
 sidebar_position: 4
 ---

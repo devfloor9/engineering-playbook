@@ -3,7 +3,7 @@ title: "GenAI Platform on Amazon EKS"
 description: "Comprehensive workshop guide for building production-ready GenAI platforms on Amazon EKS, covering architecture, implementation, and best practices for AI/ML workloads."
 tags: [eks, genai, ai, ml, llm, platform, kubernetes, mlops, dify, vllm]
 category: "genai-aiml"
-date: 2025-02-04
+date: 2025-06-12
 authors: [devfloor9]
 sidebar_position: 2
 ---

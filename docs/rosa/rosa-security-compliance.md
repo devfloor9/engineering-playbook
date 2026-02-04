@@ -3,7 +3,7 @@ title: "ROSA Security Compliance Console Access Control"
 description: "금융권 보안 요구사항을 충족하기 위한 Red Hat Hybrid Cloud Console 접근 제어 방안"
 tags: [rosa, openshift, security, compliance, idp, mfa, financial]
 category: "rosa"
-date: 2025-02-04
+date: 2025-06-10
 authors: [devfloor9]
 sidebar_position: 2
 ---

@@ -3,7 +3,7 @@ title: "Ultra-Fast EKS Autoscaling with Karpenter"
 description: "Karpenter를 활용한 10초 미만 EKS 오토스케일링 달성 방법 - 고해상도 메트릭과 최적화된 프로비저닝 전략"
 tags: [eks, karpenter, autoscaling, performance, spot-instances]
 category: "performance-networking"
-date: 2025-02-04
+date: 2025-06-30
 authors: [devfloor9]
 sidebar_position: 4
 ---

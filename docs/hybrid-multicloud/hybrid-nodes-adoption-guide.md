@@ -3,7 +3,7 @@ title: "EKS Hybrid Nodes Adoption Guide"
 description: "Key considerations and frequently asked questions for adopting Amazon EKS Hybrid Nodes, covering networking, DNS, GPU servers, cost analysis, and architecture decisions."
 tags: [eks, hybrid-nodes, networking, dns, gpu, cost-optimization, architecture]
 category: "hybrid-multicloud"
-date: 2025-02-04
+date: 2025-05-26
 authors: [devfloor9]
 sidebar_position: 7
 ---

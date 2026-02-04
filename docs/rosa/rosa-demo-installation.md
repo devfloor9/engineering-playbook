@@ -3,7 +3,7 @@ title: "ROSA Demo Installation Guide"
 description: "ROSA 클러스터 설치 데모 - STS 기반 클러스터 생성 및 구성 가이드"
 tags: [rosa, openshift, installation, sts, demo, autoscaling]
 category: "rosa"
-date: 2025-02-04
+date: 2024-03-06
 authors: [devfloor9]
 sidebar_position: 3
 ---
