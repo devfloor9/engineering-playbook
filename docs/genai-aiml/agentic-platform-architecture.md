@@ -598,3 +598,348 @@ GPU 리소스는 비용이 높으므로 신중하게 계획해야 합니다. 초
 ### 수평적 확장 전략
 
 Agentic AI Platform의 각 컴포넌트는 독립적으로 수평 확장이 가능합니다.
+
+
+```mermaid
+graph TB
+    subgraph Scaling["확장 전략"]
+        subgraph AgentScaling["Agent 확장"]
+            HPA_AGENT["HPA<br/>(CPU/Memory)"]
+            KEDA_AGENT["KEDA<br/>(Queue Length)"]
+        end
+        
+        subgraph InferenceScaling["Inference 확장"]
+            HPA_VLLM["HPA<br/>(GPU Utilization)"]
+            KARPENTER["Karpenter<br/>(Node Provisioning)"]
+        end
+        
+        subgraph DataScaling["Data 확장"]
+            MILVUS_SCALE["Milvus<br/>(Query/Index Nodes)"]
+            REDIS_SCALE["Redis<br/>(Cluster Mode)"]
+        end
+    end
+    
+    style AgentScaling fill:#e8f5e9
+    style InferenceScaling fill:#fce4ec
+    style DataScaling fill:#f3e5f5
+```
+
+#### Agent 자동 스케일링 (KEDA)
+
+```yaml
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: agent-scaler
+  namespace: ai-agents
+spec:
+  scaleTargetRef:
+    name: customer-support-agent
+  minReplicaCount: 2
+  maxReplicaCount: 20
+  pollingInterval: 15
+  cooldownPeriod: 300
+  triggers:
+    # Redis 큐 길이 기반 스케일링
+    - type: redis
+      metadata:
+        address: redis-master.ai-data.svc:6379
+        listName: agent-task-queue
+        listLength: "10"
+    # Prometheus 메트릭 기반 스케일링
+    - type: prometheus
+      metadata:
+        serverAddress: http://prometheus.observability.svc:9090
+        metricName: agent_active_sessions
+        threshold: "50"
+        query: |
+          sum(agent_active_sessions{agent="customer-support"})
+```
+
+#### GPU 노드 자동 프로비저닝 (Karpenter)
+
+```yaml
+apiVersion: karpenter.sh/v1
+kind: NodePool
+metadata:
+  name: gpu-inference-pool
+spec:
+  template:
+    spec:
+      requirements:
+        - key: "node.kubernetes.io/instance-type"
+          operator: In
+          values: 
+            - "p4d.24xlarge"   # 8x A100 40GB
+            - "p5.48xlarge"   # 8x H100 80GB
+            - "g5.48xlarge"   # 8x A10G 24GB
+        - key: "karpenter.sh/capacity-type"
+          operator: In
+          values: ["on-demand", "spot"]
+        - key: "kubernetes.io/arch"
+          operator: In
+          values: ["amd64"]
+      nodeClassRef:
+        group: karpenter.k8s.aws
+        kind: EC2NodeClass
+        name: gpu-nodeclass
+  limits:
+    nvidia.com/gpu: 64
+  disruption:
+    consolidationPolicy: WhenEmptyOrUnderutilized
+    consolidateAfter: 30s
+    budgets:
+      - nodes: "20%"
+---
+apiVersion: karpenter.k8s.aws/v1
+kind: EC2NodeClass
+metadata:
+  name: gpu-nodeclass
+spec:
+  amiFamily: AL2
+  subnetSelectorTerms:
+    - tags:
+        karpenter.sh/discovery: "ai-cluster"
+  securityGroupSelectorTerms:
+    - tags:
+        karpenter.sh/discovery: "ai-cluster"
+  blockDeviceMappings:
+    - deviceName: /dev/xvda
+      ebs:
+        volumeSize: 500Gi
+        volumeType: gp3
+        iops: 10000
+        throughput: 500
+  tags:
+    Environment: production
+    Workload: ai-inference
+```
+
+### 멀티 테넌트 지원
+
+Agentic AI Platform은 여러 팀이나 프로젝트가 동일한 플랫폼을 공유할 수 있도록 멀티 테넌트를 지원합니다.
+
+
+```mermaid
+graph TB
+    subgraph MultiTenant["멀티 테넌트 아키텍처"]
+        subgraph Shared["공유 컴포넌트"]
+            GW["Kgateway"]
+            KAGENT["Kagent Controller"]
+            MILVUS["Milvus (Partitioned)"]
+        end
+        
+        subgraph TenantA["Tenant A"]
+            NS_A["Namespace: tenant-a"]
+            AGENT_A["Agents"]
+            QUOTA_A["ResourceQuota"]
+        end
+        
+        subgraph TenantB["Tenant B"]
+            NS_B["Namespace: tenant-b"]
+            AGENT_B["Agents"]
+            QUOTA_B["ResourceQuota"]
+        end
+    end
+    
+    GW --> NS_A
+    GW --> NS_B
+    KAGENT --> AGENT_A
+    KAGENT --> AGENT_B
+    AGENT_A --> MILVUS
+    AGENT_B --> MILVUS
+    
+    style Shared fill:#e3f2fd
+    style TenantA fill:#e8f5e9
+    style TenantB fill:#fff3e0
+```
+
+#### 테넌트 격리 전략
+
+| 격리 수준 | 방법 | 장점 | 단점 |
+| --------- | ---- | ---- | ---- |
+| **네임스페이스** | 테넌트별 네임스페이스 | 간단한 구현, 리소스 격리 | 네트워크 정책 필요 |
+| **노드** | 테넌트별 노드 풀 | 완전한 격리 | 비용 증가 |
+| **클러스터** | 테넌트별 클러스터 | 최고 수준 격리 | 관리 복잡성 |
+
+#### 테넌트별 리소스 할당
+
+```yaml
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: tenant-a-quota
+  namespace: tenant-a
+spec:
+  hard:
+    requests.cpu: "20"
+    requests.memory: "40Gi"
+    limits.cpu: "40"
+    limits.memory: "80Gi"
+    requests.nvidia.com/gpu: "4"
+    pods: "50"
+    services: "10"
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: tenant-isolation
+  namespace: tenant-a
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              name: tenant-a
+        - namespaceSelector:
+            matchLabels:
+              name: ai-gateway
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              name: tenant-a
+        - namespaceSelector:
+            matchLabels:
+              name: ai-inference
+        - namespaceSelector:
+            matchLabels:
+              name: ai-data
+```
+
+## 보안 아키텍처
+
+### 인증/인가
+
+Agentic AI Platform은 다층 보안 모델을 적용합니다.
+
+
+```mermaid
+graph TB
+    subgraph Security["보안 레이어"]
+        subgraph External["외부 접근"]
+            OIDC["OIDC Provider<br/>(Cognito/Okta)"]
+            JWT["JWT Validation"]
+        end
+        
+        subgraph Internal["내부 통신"]
+            MTLS["mTLS<br/>(Istio)"]
+            RBAC["Kubernetes RBAC"]
+        end
+        
+        subgraph Data["데이터 보안"]
+            ENCRYPT["암호화<br/>(At-rest/In-transit)"]
+            SECRETS["Secrets Manager"]
+        end
+    end
+    
+    OIDC --> JWT
+    JWT --> MTLS
+    MTLS --> RBAC
+    RBAC --> ENCRYPT
+    ENCRYPT --> SECRETS
+    
+    style External fill:#ffcdd2
+    style Internal fill:#fff9c4
+    style Data fill:#c8e6c9
+```
+
+#### RBAC 설정 예시
+
+```yaml
+# Agent 운영자 역할
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: agent-operator
+  namespace: ai-agents
+rules:
+  - apiGroups: ["kagent.dev"]
+    resources: ["agents", "tools", "workflows"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  - apiGroups: [""]
+    resources: ["pods", "pods/log", "services", "configmaps"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["get", "list"]
+    resourceNames: ["agent-*"]
+---
+# Agent 뷰어 역할
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: agent-viewer
+  namespace: ai-agents
+rules:
+  - apiGroups: ["kagent.dev"]
+    resources: ["agents", "tools", "workflows"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: [""]
+    resources: ["pods", "pods/log"]
+    verbs: ["get", "list", "watch"]
+```
+
+### 네트워크 정책
+
+```yaml
+# ai-inference 네임스페이스 네트워크 정책
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: inference-network-policy
+  namespace: ai-inference
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    # ai-agents에서만 접근 허용
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              name: ai-agents
+        - namespaceSelector:
+            matchLabels:
+              name: ai-gateway
+      ports:
+        - protocol: TCP
+          port: 8000
+        - protocol: TCP
+          port: 8080
+  egress:
+    # 외부 모델 API 접근 (필요시)
+    - to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+            except:
+              - 10.0.0.0/8
+              - 172.16.0.0/12
+              - 192.168.0.0/16
+      ports:
+        - protocol: TCP
+          port: 443
+    # observability로 메트릭 전송
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              name: observability
+      ports:
+        - protocol: TCP
+          port: 9090
+```
+
+:::danger 보안 주의사항
+- 프로덕션 환경에서는 반드시 mTLS를 활성화하세요
+- API 키와 토큰은 Kubernetes Secrets 또는 AWS Secrets Manager에 저장하세요
+- 정기적으로 보안 감사를 수행하고 취약점을 패치하세요
+:::
+
+## 데이터 플로우
+
+다음 다이어그램은 사용자 요청이 플랫폼을 통해 처리되는 전체 흐름을 보여줍니다.
