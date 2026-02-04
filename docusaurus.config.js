@@ -12,6 +12,12 @@ const config = {
   tagline: 'Comprehensive EKS Architecture Deep Dive',
   favicon: 'img/favicon.ico',
 
+  // Enable Mermaid diagrams
+  markdown: {
+    mermaid: true,
+  },
+  themes: ['@docusaurus/theme-mermaid'],
+
   // Set the production url of your site here
   url: 'https://devfloor9.github.io',
   // Set the /<baseUrl>/ pathname under which your site is served
