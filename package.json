@@ -22,12 +22,12 @@
     "sync": "npm run generate-summary && git add . && git commit -m 'Update SUMMARY.md' && git push"
   },
   "dependencies": {
-    "@docusaurus/core": "3.5.2",
-    "@docusaurus/plugin-ideal-image": "3.5.2",
-    "@docusaurus/plugin-pwa": "3.5.2",
-    "@docusaurus/preset-classic": "3.5.2",
-    "@docusaurus/theme-mermaid": "^3.5.2",
-    "@docusaurus/theme-search-algolia": "^3.5.2",
+    "@docusaurus/core": "^3.9.2",
+    "@docusaurus/plugin-ideal-image": "^3.9.2",
+    "@docusaurus/plugin-pwa": "^3.9.2",
+    "@docusaurus/preset-classic": "^3.9.2",
+    "@docusaurus/theme-mermaid": "^3.9.2",
+    "@docusaurus/theme-search-algolia": "^3.9.2",
     "@mdx-js/react": "^3.0.0",
     "clsx": "^2.0.0",
     "prism-react-renderer": "^2.4.1",
@@ -36,8 +36,8 @@
     "react-dom": "^18.0.0"
   },
   "devDependencies": {
-    "@docusaurus/module-type-aliases": "3.5.2",
-    "@docusaurus/types": "3.5.2",
+    "@docusaurus/module-type-aliases": "^3.9.2",
+    "@docusaurus/types": "^3.9.2",
     "gray-matter": "^4.0.3",
     "js-yaml": "^4.1.0"
   },
