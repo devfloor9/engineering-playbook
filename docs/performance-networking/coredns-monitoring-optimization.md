@@ -1,6 +1,7 @@
 ---
-title: "CoreDNS 모니터링 및 최적화 가이드"
-description: "Amazon EKS 환경에서 CoreDNS 성능 모니터링, TTL 설정, 모니터링 아키텍처 모범 사례 및 실무 최적화 전략"
+title: "CoreDNS 모니터링과 성능 최적화 완벽 가이드"
+sidebar_label: "CoreDNS 모니터링 & 최적화"
+description: "Amazon EKS의 CoreDNS 성능을 체계적으로 모니터링하고 최적화하는 방법. Prometheus 메트릭, TTL 튜닝, 모니터링 아키텍처, 실제 문제 해결 사례 포함"
 tags: [eks, coredns, dns, monitoring, prometheus, performance]
 category: "performance-networking"
 date: 2025-05-20

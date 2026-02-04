@@ -1,6 +1,7 @@
 ---
 title: "EKS Node Monitoring Agent"
-description: "AWS EKS Node Monitoring Agent 아키텍처, 배포 전략, 제한사항 및 모범 사례 가이드"
+sidebar_label: "노드 모니터링 에이전트"
+description: "AWS EKS 클러스터의 노드 상태를 자동으로 감지하고 보고하는 Node Monitoring Agent의 아키텍처, 배포 전략, 제한사항, 모범 사례를 다룹니다."
 tags: [eks, monitoring, node-monitoring, aws, observability, cloudwatch]
 category: "observability-monitoring"
 date: 2025-08-26
@@ -10,9 +11,22 @@ sidebar_position: 3
 
 # EKS Node Monitoring Agent
 
-## EKS Node Monitoring Agent란?
+## 개요
 
-EKS Node Monitoring Agent(NMA)는 AWS가 제공하는 노드 상태 모니터링 도구로, EKS 클러스터의 노드에서 발생하는 하드웨어 및 시스템 레벨 문제를 자동으로 감지하고 보고합니다. 2024년에 정식 출시된 이 서비스는 노드 자동 복구(Node Auto Repair) 기능과 함께 작동하여 클러스터의 안정성을 향상시킵니다.
+EKS Node Monitoring Agent(NMA)는 AWS가 제공하는 노드 상태 모니터링 도구입니다. EKS 클러스터의 노드에서 발생하는 하드웨어 및 시스템 레벨 문제를 자동으로 감지하고 보고합니다. 2024년에 정식 출시된 이 서비스는 노드 자동 복구(Node Auto Repair) 기능과 함께 작동하여 클러스터의 안정성을 향상시킵니다.
+
+### 문제 해결
+
+전통적인 EKS 클러스터 운영에서는 다음의 문제들이 있었습니다:
+
+- 하드웨어 장애의 조기 감지 부족
+- 시스템 레벨 문제의 수동 모니터링 필요
+- 노드 상태 변화에 대한 지연된 대응
+- 문제 감지와 자동 복구의 통합 부재
+
+NMA는 이러한 문제들을 해결하기 위해 설계되었습니다.
+
+### EKS Node Monitoring Agent란?
 
 ### 주요 특징
 
@@ -21,16 +35,25 @@ EKS Node Monitoring Agent(NMA)는 AWS가 제공하는 노드 상태 모니터링
 - **CloudWatch 통합**: 감지된 문제를 CloudWatch로 전송하여 중앙 집중식 모니터링
 - **EKS Add-on 지원**: 간편한 설치 및 관리
 
-EKS Node Monitoring Agent는 노드 상태 문제를 자동으로 감지하는 유용한 도구이지만, 단독으로는 완전한 모니터링 솔루션이 될 수 없으므로, 다음의 제한 사항을 고려한 적절한 기대치 설정과 보완 도구 활용을 고려해야 합니다.
+:::warning 중요
+
+NMA는 노드 상태 문제를 자동으로 감지하는 유용한 도구이지만, 단독으로는 완전한 모니터링 솔루션이 될 수 없습니다. 다음의 제한 사항을 고려한 적절한 기대치 설정과 보완 도구 활용이 필요합니다.
+
+:::
 
 :::tip 핵심 권장사항
 
-- ✅ NMA를 노드 상태 감지 레이어로 활용
-- ✅ Container Insights나 Prometheus로 메트릭 수집 보완
-- ✅ Node Auto Repair와 함께 사용하여 자동 복구 구현
-- ✅ 환경별 특성에 맞게 임계값 조정
-- ❌ NMA만으로 전체 모니터링 의존 불가
-- ❌ 급격한 하드웨어 장애 대응 불가
+**✅ 권장하는 사용법**
+
+- NMA를 노드 상태 감지 레이어로 활용
+- Container Insights나 Prometheus로 메트릭 수집 보완
+- Node Auto Repair와 함께 사용하여 자동 복구 구현
+- 환경별 특성에 맞게 임계값 조정
+
+**❌ 피해야 할 사용법**
+
+- NMA만으로 전체 모니터링 의존 불가
+- 급격한 하드웨어 장애 대응 불가
 
 :::
 
@@ -70,7 +93,9 @@ REST 설정 로직에서 확인할 수 있듯이, NMA는 다양한 EKS 환경을
 
 ## 2. 아키텍처 및 동작 원리
 
-### 2.1 내부 구조
+### 2.1 Agent Startup 및 초기화 흐름
+
+다음 다이어그램은 NMA의 시작 과정과 모니터링 루프의 전체 흐름을 보여줍니다.
 
 ```mermaid
 graph TD
@@ -164,7 +189,7 @@ graph TD
 
 ### 2.2 모니터 등록 및 관리
 
-MNA는 아래와 같이 모니터 구성을 통해 각 서브시스템을 관리합니다:
+NMA는 모니터 구성을 통해 각 서브시스템을 관리합니다. 다음은 모니터 등록의 구조를 보여줍니다.
 
 ```go
 var monitorConfigs = []monitorConfig{
@@ -224,7 +249,7 @@ if enableConsoleDiagnostics {
 
 ### 2.7 배포 및 운영 특징
 
-#### DaemonSet 기반 배포
+#### 2.7.1 DaemonSet 기반 배포
 
 `agent.tpl.yaml`에서 확인할 수 있듯이, NMA는 DaemonSet으로 배포되어 모든 워커 노드에서 실행됩니다:
 
@@ -236,7 +261,7 @@ metadata:
   namespace: kube-system
 ```
 
-#### 노드 선택 및 제약사항
+#### 2.7.2 노드 선택 및 제약사항
 
 `values.yaml`의 affinity 설정을 통해 특정 노드 타입에서만 실행되도록 제한:
 
@@ -245,7 +270,7 @@ metadata:
 - HyperPod 노드 제외
 - AMD64/ARM64 아키텍처만 지원
 
-#### 권한 관리
+#### 2.7.3 권한 관리
 
 `agent.tpl.yaml`의 RBAC 설정을 통한 최소 권한 원칙 적용:
 
@@ -261,7 +286,7 @@ rules:
     verbs: ["get", "watch", "list"]
 ```
 
-#### 리소스 효율성
+#### 2.7.4 리소스 효율성
 
 `values.yaml`에 정의된 리소스 제한으로 경량 운영:
 
@@ -277,7 +302,7 @@ resources:
 
 ### 2.8 감지 가능한 문제 유형
 
-#### Conditions (자동 복구 대상)
+#### 2.8.1 Conditions (자동 복구 대상)
 
 - `DiskPressure`: 디스크 공간 부족
 - `MemoryPressure`: 메모리 부족
@@ -286,7 +311,7 @@ resources:
 - `KubeletUnhealthy`: Kubelet 서비스 이상
 - `ContainerRuntimeUnhealthy`: Docker/containerd 문제
 
-#### Events (경고 용도)
+#### 2.8.2 Events (경고 용도)
 
 - 커널 소프트 락업
 - I/O 지연
@@ -298,31 +323,27 @@ resources:
 
 ### 3.1 Manual Mode (DaemonSet)
 
-```yaml
-장점:
-  - 유연한 버전 관리
-  - ConfigMap 기반 설정 변경
-  - 커스텀 설정 가능
+**장점:**
+- 유연한 버전 관리
+- ConfigMap 기반 설정 변경
+- 커스텀 설정 가능
 
-단점:
-  - kubelet 의존성 높음
-  - 노드 부트스트랩 시 지연
-  - kubelet 장애 시 영향 받음
-```
+**단점:**
+- kubelet 의존성 높음
+- 노드 부트스트랩 시 지연
+- kubelet 장애 시 영향 받음
 
 ### 3.2 EKS Auto Mode
 
-```yaml
-장점:
-  - AMI에 직접 내장
-  - kubelet과 독립적 실행
-  - 더 높은 가용성
-  - 빠른 문제 감지
+**장점:**
+- AMI에 직접 내장
+- kubelet과 독립적 실행
+- 더 높은 가용성
+- 빠른 문제 감지
 
-단점:
-  - 업데이트 시 AMI 교체 필요
-  - 커스터마이징 제한적
-```
+**단점:**
+- 업데이트 시 AMI 교체 필요
+- 커스터마이징 제한적
 
 ## 4. 기술적 제한사항
 
@@ -334,51 +355,48 @@ resources:
 
 ### 4.2 대체 백엔드 사용 시 제약
 
-```yaml
-CloudWatch 외 백엔드 사용 시:
-  ❌ 네이티브 ADOT 통합 없음
-  ❌ Prometheus 메트릭 범위 매우 제한적
-  ❌ 설정 변경 옵션 부재
-  ❌ 공식 문서 및 지원 부족
-```
+:::warning CloudWatch 외 백엔드 사용 시
+
+- 네이티브 ADOT 통합 없음
+- Prometheus 메트릭 범위 매우 제한적
+- 설정 변경 옵션 부재
+- 공식 문서 및 지원 부족
+
+:::
 
 ### 4.3 하드웨어 장애 감지 한계
 
-```yaml
-감지 가능:
-  ✅ 점진적 성능 저하
-  ✅ I/O 에러 증가
-  ✅ 메모리 ECC 에러
+**감지 가능:**
+- ✅ 점진적 성능 저하
+- ✅ I/O 에러 증가
+- ✅ 메모리 ECC 에러
 
-감지 불가능:
-  ❌ 급작스런 전원 차단
-  ❌ 즉각적인 하드웨어 고장
-  ❌ 네트워크 완전 단절
-```
+**감지 불가능:**
+- ❌ 급작스런 전원 차단
+- ❌ 즉각적인 하드웨어 고장
+- ❌ 네트워크 완전 단절
 
 ## 5. 권장 구현 전략
 
 ### 5.1 다층 모니터링 아키텍처
 
-```yaml
+```
 통합 모니터링 스택:
-  ├── L1: 상태 감지 (NMA)
-  │   └── 노드 문제 조기 감지
-  │
-  ├── L2: 메트릭 수집 (Container Insights/Prometheus)
-  │   └── 상세 성능 데이터
-  │
-  ├── L3: 자동 대응 (Node Auto Repair)
-  │   └── 문제 노드 자동 교체
-  │
-  └── L4: 통합 대시보드 (CloudWatch/Grafana)
-      └── 종합 모니터링 뷰
+├── L1: 상태 감지 (NMA)
+│   └── 노드 문제 조기 감지
+├── L2: 메트릭 수집 (Container Insights/Prometheus)
+│   └── 상세 성능 데이터
+├── L3: 자동 대응 (Node Auto Repair)
+│   └── 문제 노드 자동 교체
+└── L4: 통합 대시보드 (CloudWatch/Grafana)
+    └── 종합 모니터링 뷰
 ```
 
 ### 5.2 Prometheus 사용 시 권장 구성
 
+NMA와 Node Exporter를 함께 사용할 때는 다음 구성을 권장합니다.
+
 ```yaml
-# NMA + Node Exporter 병행 사용
 apiVersion: v1
 kind: Service
 metadata:
@@ -388,11 +406,9 @@ spec:
     - name: nma
       purpose: "노드 상태 이벤트"
       port: 8080
-
     - name: node-exporter
       purpose: "상세 시스템 메트릭"
       port: 9100
-
     - name: kube-state-metrics
       purpose: "클러스터 상태 메트릭"
       port: 8080
@@ -402,19 +418,22 @@ spec:
 
 ### 6.1 리소스 사용량
 
-```yaml
-NMA 리소스 요구사항:
-  - CPU: 100m-200m (평상시)
-  - Memory: 200Mi-400Mi
-  - Network: 1-2MB/min (CloudWatch 전송)
-  - 로그 저장: 최대 100MB
-```
+NMA는 매우 가벼운 구성 요소입니다.
+
+| 리소스 | 요구사항 |
+|--------|---------|
+| CPU | 100m-200m (평상시) |
+| Memory | 200Mi-400Mi |
+| Network | 1-2MB/min (CloudWatch 전송) |
+| 로그 저장 | 최대 100MB |
 
 ### 6.2 CloudWatch 비용
 
-- 커스텀 메트릭: $0.30/metric/month
-- 이벤트: $1.00/million events
-- 로그: $0.50/GB ingested
+| 항목 | 비용 |
+|------|------|
+| 커스텀 메트릭 | $0.30/metric/month |
+| 이벤트 | $1.00/million events |
+| 로그 | $0.50/GB ingested |
 
 ## 7. 모범 사례
 
@@ -427,9 +446,8 @@ NMA 리소스 요구사항:
 
 ### 7.2 다른 도구와의 통합
 
-```yaml
-권장 조합:
-  - NMA + Container Insights: 완전한 가시성
-  - NMA + Prometheus + Grafana: 오픈소스 스택
-  - NMA + Datadog/New Relic: 엔터프라이즈 모니터링
-```
+| 조합 | 설명 |
+|------|------|
+| NMA + Container Insights | 완전한 AWS 네이티브 가시성 |
+| NMA + Prometheus + Grafana | 오픈소스 기반 모니터링 스택 |
+| NMA + Datadog/New Relic | 엔터프라이즈급 모니터링 솔루션 |
