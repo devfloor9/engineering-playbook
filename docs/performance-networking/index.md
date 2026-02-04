@@ -1,3 +1,14 @@
+---
+title: Performance & Networking
+description: Amazon EKS의 성능 최적화와 네트워킹 관련 심화 기술 문서
+tags: [eks, performance, networking, dns, cilium, coredns]
+category: performance-networking
+date: 2025-01-15
+authors: [devfloor9]
+sidebar_position: 1
+sidebar_label: Performance & Networking
+---
+
 # Performance & Networking
 
 이 섹션에서는 Amazon EKS의 성능 최적화와 네트워킹 관련 심화 기술 문서들을 다룹니다.
@@ -33,10 +44,11 @@
 
 ## 🔗 관련 자료
 
-- [EKS Engineering Playbook 메인](../../README.md)
-- [Observability & Monitoring](../observability-monitoring/)
-- [Security & Compliance](../security-compliance/)
+- [Observability & Monitoring](/docs/observability-monitoring)
+- [Security & Compliance](/docs/security-compliance)
 
 ---
 
-**💡 팁**: 성능 최적화 작업 전에 현재 상태의 베이스라인 메트릭을 수집하는 것이 중요합니다!
+:::tip 팁
+성능 최적화 작업 전에 현재 상태의 베이스라인 메트릭을 수집하는 것이 중요합니다!
+:::

@@ -1,3 +1,14 @@
+---
+title: Observability & Monitoring
+description: Amazon EKS 환경에서의 관찰성과 모니터링 관련 심화 기술 문서
+tags: [eks, observability, monitoring, hubble, prometheus, grafana, langfuse]
+category: observability-monitoring
+date: 2025-01-15
+authors: [devfloor9]
+sidebar_position: 2
+sidebar_label: Observability & Monitoring
+---
+
 # Observability & Monitoring
 
 이 섹션에서는 Amazon EKS 환경에서의 관찰성(Observability)과 모니터링 관련 심화 기술 문서들을 다룹니다.
@@ -34,11 +45,12 @@
 
 ## 🔗 관련 자료
 
-- [EKS Engineering Playbook 메인](../../README.md)
-- [Performance & Networking](../performance-networking/)
-- [GenAI & AI/ML](../genai-aiml/)
-- [Security & Compliance](../security-compliance/)
+- [Performance & Networking](/docs/performance-networking)
+- [GenAI & AI/ML](/docs/genai-aiml)
+- [Security & Compliance](/docs/security-compliance)
 
 ---
 
-**💡 팁**: 효과적인 모니터링을 위해서는 SLI(Service Level Indicators)와 SLO(Service Level Objectives)를 먼저 정의하는 것이 중요합니다!
+:::tip 팁
+효과적인 모니터링을 위해서는 SLI(Service Level Indicators)와 SLO(Service Level Objectives)를 먼저 정의하는 것이 중요합니다!
+:::

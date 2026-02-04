@@ -1,3 +1,14 @@
+---
+title: Hybrid & Multi-Cloud
+description: Amazon EKS를 활용한 하이브리드 클라우드 및 멀티 클라우드 환경 구축에 대한 심화 기술 문서
+tags: [eks, hybrid, multicloud, hybrid-nodes, cloud-bursting, edge]
+category: hybrid-multicloud
+date: 2025-01-15
+authors: [devfloor9]
+sidebar_position: 4
+sidebar_label: Hybrid & Multi-Cloud
+---
+
 # Hybrid & Multi-Cloud
 
 이 섹션에서는 Amazon EKS를 활용한 하이브리드 클라우드 및 멀티 클라우드 환경 구축에 대한 심화 기술 문서들을 다룹니다.
@@ -33,20 +44,19 @@
 
 ## 🏗️ 아키텍처 패턴
 
-### 하이브리드 클러스터 구성
-```
-┌─────────────────┐    ┌─────────────────┐
-│   AWS Cloud     │    │  On-Premises    │
-│                 │    │                 │
-│  ┌───────────┐  │    │  ┌───────────┐  │
-│  │EKS Control│  │◄──►│  │Hybrid Node│  │
-│  │   Plane   │  │    │  │           │  │
-│  └───────────┘  │    │  └───────────┘  │
-│                 │    │                 │
-│  ┌───────────┐  │    │  ┌───────────┐  │
-│  │Cloud Nodes│  │    │  │Edge Nodes │  │
-│  └───────────┘  │    │  └───────────┘  │
-└─────────────────┘    └─────────────────┘
+```mermaid
+graph LR
+    subgraph AWS["AWS Cloud"]
+        CP[EKS Control Plane]
+        CN[Cloud Nodes]
+    end
+    subgraph OnPrem["On-Premises"]
+        HN[Hybrid Nodes]
+        EN[Edge Nodes]
+    end
+    CP <--> HN
+    CP <--> CN
+    HN <--> EN
 ```
 
 ## 🔧 주요 기술 및 도구
@@ -76,11 +86,12 @@
 
 ## 🔗 관련 자료
 
-- [EKS Engineering Playbook 메인](../../README.md)
-- [Security & Compliance](../security-compliance/)
-- [Performance & Networking](../performance-networking/)
-- [Observability & Monitoring](../observability-monitoring/)
+- [Security & Compliance](/docs/security-compliance)
+- [Performance & Networking](/docs/performance-networking)
+- [Observability & Monitoring](/docs/observability-monitoring)
 
 ---
 
-**💡 팁**: 하이브리드 환경에서는 네트워크 레이턴시와 대역폭을 고려한 워크로드 배치 전략이 매우 중요합니다!
+:::tip 팁
+하이브리드 환경에서는 네트워크 레이턴시와 대역폭을 고려한 워크로드 배치 전략이 매우 중요합니다!
+:::
