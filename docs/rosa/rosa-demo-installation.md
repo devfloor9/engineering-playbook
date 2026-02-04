@@ -1,7 +1,8 @@
 ---
 title: "ROSA Demo Installation Guide"
-description: "ROSA 클러스터 설치 데모 - STS 기반 클러스터 생성 및 구성 가이드"
-tags: [rosa, openshift, installation, sts, demo, autoscaling]
+sidebar_label: "설치 데모"
+description: "ROSA 클러스터 설치 데모 - STS 기반 클러스터 생성, IAM 역할 구성, 오토스케일링 설정 및 관리자 접근 구성 가이드"
+tags: [rosa, openshift, installation, sts, demo, autoscaling, iam]
 category: "rosa"
 date: 2024-03-06
 authors: [devfloor9]
@@ -10,9 +11,15 @@ sidebar_position: 3
 
 # ROSA Demo Installation Guide
 
-이 문서는 ROSA (Red Hat OpenShift Service on AWS) 클러스터의 설치 과정과 결과를 기록한 데모 가이드입니다.
+이 문서는 ROSA(Red Hat OpenShift Service on AWS) 클러스터의 설치 과정과 결과를 기록한 데모 가이드입니다. STS 기반의 보안 강화 설치 방식과 오토스케일링 구성을 포함합니다.
 
-## Cluster Creation
+---
+
+## 클러스터 생성
+
+### 생성 명령어
+
+아래 명령어를 사용하여 ROSA 클러스터를 생성합니다:
 
 ```bash
 I: Creating cluster 'rosa-demo-icn'
@@ -50,9 +57,11 @@ rosa create cluster --cluster-name rosa-demo-icn \
   --autoscaler-scale-down-utilization-threshold 0.500000
 ```
 
-## Cluster Information
+---
 
-설치 완료 후 클러스터 정보:
+## 클러스터 정보
+
+설치 완료 후 생성된 클러스터의 상세 정보는 다음과 같습니다:
 
 | 항목 | 값 |
 |------|-----|
@@ -62,15 +71,15 @@ rosa create cluster --cluster-name rosa-demo-icn \
 | **Region** | ap-northeast-2 |
 | **Multi-AZ** | false |
 
-### Node Configuration
+### 노드 구성
 
 | 노드 타입 | 수량 |
 |----------|------|
-| Control plane | 3 |
+| Control Plane | 3 |
 | Infra | 2 |
 | Compute | 2 |
 
-### Network Configuration
+### 네트워크 구성
 
 | 설정 | 값 |
 |------|-----|
@@ -80,15 +89,15 @@ rosa create cluster --cluster-name rosa-demo-icn \
 | **Pod CIDR** | 10.128.0.0/14 |
 | **Host Prefix** | /23 |
 
-### IAM Roles (STS)
+### IAM 역할 (STS)
 
 ```yaml
 STS Role ARN: arn:aws:iam::XXXXXXXXXXXX:role/ManagedOpenShift-Installer-Role
 Support Role ARN: arn:aws:iam::XXXXXXXXXXXX:role/ManagedOpenShift-Support-Role
-Instance IAM Roles:
-  - Control plane: arn:aws:iam::XXXXXXXXXXXX:role/ManagedOpenShift-ControlPlane-Role
+인스턴스 IAM 역할:
+  - Control Plane: arn:aws:iam::XXXXXXXXXXXX:role/ManagedOpenShift-ControlPlane-Role
   - Worker: arn:aws:iam::XXXXXXXXXXXX:role/ManagedOpenShift-Worker-Role
-Operator IAM Roles:
+Operator IAM 역할:
   - rosa-oidc-openshift-cluster-csi-drivers-ebs-cloud-credentials
   - rosa-oidc-openshift-cloud-network-config-controller-cloud-credentials
   - rosa-oidc-openshift-machine-api-aws-cloud-credentials
@@ -97,7 +106,7 @@ Operator IAM Roles:
   - rosa-oidc-openshift-ingress-operator-cloud-credentials
 ```
 
-### Additional Settings
+### 추가 설정
 
 | 설정 | 값 |
 |------|-----|
@@ -106,7 +115,11 @@ Operator IAM Roles:
 | **Private** | No |
 | **User Workload Monitoring** | Enabled |
 
-## Autoscaler Configuration
+---
+
+## 오토스케일러 구성
+
+클러스터의 자동 확장 설정은 다음과 같습니다:
 
 ```yaml
 autoscaler:
@@ -124,7 +137,9 @@ autoscaler:
   scaleDownUtilizationThreshold: 0.5
 ```
 
-## Admin User Setup
+---
+
+## 관리자 사용자 설정
 
 클러스터 설치 후 관리자 계정 생성:
 
@@ -145,24 +160,33 @@ oc login https://api.rosa-demo-icn.XXXX.p1.openshiftapps.com:6443 \
 - 접근이 활성화되기까지 몇 분이 소요될 수 있습니다
 :::
 
-## Post-Installation Steps
+---
 
-1. **Identity Provider 설정**
-   ```bash
-   rosa create idp --help
-   ```
+## 설치 후 단계
 
-2. **클러스터 상태 확인**
-   ```bash
-   rosa describe cluster -c rosa-demo-icn
-   ```
+설치 완료 후 다음 단계를 진행하세요:
 
-3. **설치 로그 모니터링**
-   ```bash
-   rosa logs install -c rosa-demo-icn --watch
-   ```
+### 1. Identity Provider 설정
 
-## Architecture Diagram
+```bash
+rosa create idp --help
+```
+
+### 2. 클러스터 상태 확인
+
+```bash
+rosa describe cluster -c rosa-demo-icn
+```
+
+### 3. 설치 로그 모니터링
+
+```bash
+rosa logs install -c rosa-demo-icn --watch
+```
+
+---
+
+## 아키텍처 다이어그램
 
 ```mermaid
 graph TB
@@ -173,22 +197,22 @@ graph TB
                 M2[Master 2]
                 M3[Master 3]
             end
-            subgraph Infra["Infra Nodes"]
+            subgraph Infra["Infra 노드"]
                 I1[Infra 1]
                 I2[Infra 2]
             end
-            subgraph Workers["Worker Nodes (Autoscaling)"]
+            subgraph Workers["Worker 노드 (오토스케일링)"]
                 W1[Worker 1<br/>m5.xlarge]
                 W2[Worker 2<br/>m5.xlarge]
             end
         end
-        IAM[IAM Roles<br/>STS-based]
+        IAM[IAM 역할<br/>STS 기반]
         OIDC[OIDC Provider]
     end
 
-    subgraph Network["Network CIDRs"]
-        SC[Service: 172.30.0.0/16]
-        PC[Pod: 10.128.0.0/14]
+    subgraph Network["네트워크 CIDR"]
+        SC["Service: 172.30.0.0/16"]
+        PC["Pod: 10.128.0.0/14"]
     end
 
     IAM --> CP

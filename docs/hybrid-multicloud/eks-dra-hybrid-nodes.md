@@ -1,17 +1,22 @@
 ---
-title: "EKS DRA: Hybrid Nodes Architecture"
-description: "Dynamic Resource Allocation (DRA) implementation for hybrid GPU/CPU node configurations in Amazon EKS clusters"
+title: "EKS DRA: Hybrid Nodes 아키텍처"
+sidebar_label: "DRA 아키텍처"
+description: "Amazon EKS 클러스터에서 하이브리드 GPU/CPU 노드 구성을 위한 동적 리소스 할당(DRA) 구현 가이드"
 tags: ["eks", "dra", "gpu", "hybrid-nodes", "kubernetes"]
 category: hybrid-multicloud
 date: "2024-02-04"
 authors: ["Platform Team"]
 ---
 
-# EKS DRA: Hybrid Nodes Architecture
+# EKS DRA: Hybrid Nodes 아키텍처
 
-## Overview
+## 개요
 
-Dynamic Resource Allocation (DRA) in Amazon EKS enables flexible resource management for workloads requiring both GPU and CPU resources. This document outlines the architecture and implementation patterns for hybrid node configurations.
+Amazon EKS의 동적 리소스 할당(DRA)은 GPU 및 CPU 리소스가 모두 필요한 워크로드에 대한 유연한 리소스 관리를 지원합니다. 이 문서는 하이브리드 노드 구성에 대한 아키텍처 및 구현 패턴을 설명합니다.
+
+:::info DRA란?
+동적 리소스 할당(DRA)은 Kubernetes 1.26에서 도입된 기능으로, Pod이 요청할 때 GPU, NPU, 특수 가속기 등의 리소스를 동적으로 할당할 수 있게 합니다. 이는 기존의 정적 리소스 할당 방식을 개선하여 더 효율적인 리소스 활용을 가능하게 합니다.
+:::
 
 ## Architecture Pattern
 

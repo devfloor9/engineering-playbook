@@ -1,6 +1,7 @@
 ---
-title: "Ultra-Fast EKS Autoscaling with Karpenter"
-description: "Karpenter를 활용한 10초 미만 EKS 오토스케일링 달성 방법 - 고해상도 메트릭과 최적화된 프로비저닝 전략"
+title: "Karpenter를 활용한 초고속 오토스케일링"
+sidebar_label: "Karpenter 오토스케일링"
+description: "Amazon EKS에서 Karpenter로 10초 미만의 오토스케일링을 달성하는 방법. 고해상도 메트릭, HPA 구성, 다중 리전 전략을 포함한 완벽한 가이드"
 tags: [eks, karpenter, autoscaling, performance, spot-instances]
 category: "performance-networking"
 date: 2025-06-30

@@ -1,6 +1,7 @@
 ---
-title: "EKS Hybrid Nodes Adoption Guide"
-description: "Key considerations and frequently asked questions for adopting Amazon EKS Hybrid Nodes, covering networking, DNS, GPU servers, cost analysis, and architecture decisions."
+title: "EKS Hybrid Nodes 도입 가이드"
+sidebar_label: "하이브리드 노드 도입"
+description: "Amazon EKS Hybrid Nodes 도입을 위한 네트워킹, DNS, GPU 서버, 비용 분석 및 아키텍처 결정 사항을 다룬 포괄적 가이드"
 tags: [eks, hybrid-nodes, networking, dns, gpu, cost-optimization, architecture]
 category: "hybrid-multicloud"
 date: 2025-05-26
@@ -8,7 +9,7 @@ authors: [devfloor9]
 sidebar_position: 7
 ---
 
-# EKS Hybrid Nodes Adoption Guide
+# EKS Hybrid Nodes 도입 가이드
 
 ## 네트워킹 및 방화벽 구성
 

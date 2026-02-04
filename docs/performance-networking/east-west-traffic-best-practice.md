@@ -1,6 +1,7 @@
 ---
-title: "EKS East-West 트래픽 최적화 가이드"
-description: "Kubernetes 환경에서 서비스 간 통신 지연을 최소화하고 비용을 절감하는 East-West 트래픽 최적화 전략"
+title: "East-West 트래픽 최적화: 성능과 비용의 균형"
+sidebar_label: "East-West 트래픽 최적화"
+description: "EKS에서 서비스 간 통신의 지연시간을 최소화하고 크로스-AZ 비용을 절감하는 심층 최적화 전략. Topology Hints부터 Cilium ClusterMesh, Istio Ambient까지"
 tags: [eks, networking, performance, cost-optimization, service-mesh]
 category: "performance-networking"
 date: 2025-05-22

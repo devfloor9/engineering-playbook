@@ -1,6 +1,7 @@
 ---
-title: "EKS Hybrid Node Configuration Guide"
-description: "Comprehensive configuration guide for EKS Hybrid Nodes covering architecture, prerequisites, installation steps, and integration with Harbor private registry."
+title: "EKS Hybrid Nodes 구성 가이드"
+sidebar_label: "노드 구성"
+description: "EKS Hybrid Nodes 구성을 위한 포괄적 가이드로, 아키텍처, 필수 요구사항, 설치 단계 및 Harbor 프라이빗 레지스트리 통합을 다룹니다."
 tags: [eks, hybrid-nodes, nodeadm, kubernetes, harbor, containerd, configuration]
 category: "hybrid-multicloud"
 date: 2025-08-20
@@ -8,9 +9,9 @@ authors: [devfloor9]
 sidebar_position: 6
 ---
 
-# EKS Hybrid Node Configuration Guide
+# EKS Hybrid Nodes 구성 가이드
 
-## Table of Contents
+## 목차
 
 - Hybrid Node 아키텍처 및 동작 방식
 - Hybrid Node 사전 준비
