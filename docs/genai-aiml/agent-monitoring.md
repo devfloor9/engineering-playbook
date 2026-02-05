@@ -1,17 +1,17 @@
 ---
-title: "AI Agent 모니터링 (LangFuse & LangSmith)"
-sidebar_label: "Agent 모니터링"
-description: "LangFuse, LangSmith를 활용한 Agentic AI 애플리케이션 모니터링 및 추적"
-tags: [eks, langfuse, langsmith, monitoring, observability, tracing, opentelemetry]
+title: "AI Agent 모니터링 및 운영"
+sidebar_label: "Agent 모니터링 & 운영"
+description: "LangFuse, LangSmith를 활용한 Agentic AI 애플리케이션 모니터링, 알림 설정, 트러블슈팅 가이드"
+tags: [eks, langfuse, langsmith, monitoring, observability, tracing, opentelemetry, operations, troubleshooting, alerting]
 category: "genai-aiml"
 date: 2025-02-05
 authors: [devfloor9]
 sidebar_position: 8
 ---
 
-# AI Agent 모니터링 (LangFuse & LangSmith)
+# AI Agent 모니터링 및 운영
 
-이 문서에서는 LangFuse와 LangSmith를 활용하여 Agentic AI 애플리케이션의 성능과 동작을 효과적으로 추적하고 모니터링하는 방법을 다룹니다. Kubernetes 환경에서의 배포부터 Grafana 대시보드 구성까지 실무에 필요한 전체 가이드를 제공합니다.
+이 문서에서는 LangFuse와 LangSmith를 활용하여 Agentic AI 애플리케이션의 성능과 동작을 효과적으로 추적하고 모니터링하는 방법을 다룹니다. Kubernetes 환경에서의 배포부터 Grafana 대시보드 구성, 알림 설정, 그리고 트러블슈팅까지 실무에 필요한 전체 운영 가이드를 제공합니다.
 
 ## 개요
 
@@ -56,19 +56,19 @@ graph TB
         API["LangFuse API<br/>(tRPC)"]
         WORKER["Background Worker<br/>(Queue Processing)"]
     end
-    
+
     subgraph Storage["Storage Layer"]
         PG["PostgreSQL<br/>(Metadata)"]
         REDIS["Redis<br/>(Cache/Queue)"]
         S3["S3<br/>(Blob Storage)"]
     end
-    
+
     subgraph Clients["AI Applications"]
         AGENT1["Agent 1"]
         AGENT2["Agent 2"]
         AGENTN["Agent N"]
     end
-    
+
     AGENT1 --> API
     AGENT2 --> API
     AGENTN --> API
@@ -78,7 +78,7 @@ graph TB
     WORKER --> PG
     WORKER --> REDIS
     WORKER --> S3
-    
+
     style LangFuseStack fill:#e8f5e9
     style Storage fill:#e3f2fd
     style Clients fill:#fff3e0
@@ -209,11 +209,11 @@ stringData:
   NEXTAUTH_SECRET: "your-nextauth-secret-32-chars-min"  # openssl rand -base64 32
   SALT: "your-salt-value-here"  # openssl rand -base64 32
   ENCRYPTION_KEY: "0000000000000000000000000000000000000000000000000000000000000000"  # 64 hex chars
-  
+
   # 선택적 환경 변수
   NEXTAUTH_URL: "https://langfuse.your-domain.com"
   LANGFUSE_ENABLE_EXPERIMENTAL_FEATURES: "true"
-  
+
   # S3 설정 (선택적)
   S3_ENDPOINT: "https://s3.ap-northeast-2.amazonaws.com"
   S3_ACCESS_KEY_ID: "your-access-key"
@@ -492,17 +492,17 @@ def run_agent(user_input: str, chat_history: list = None, metadata: dict = None)
     """에이전트를 실행하고 LangSmith에 트레이스를 기록합니다."""
     if chat_history is None:
         chat_history = []
-    
+
     # 현재 실행 트리에 메타데이터 추가
     run_tree = get_current_run_tree()
     if run_tree and metadata:
         run_tree.extra["metadata"] = metadata
-    
+
     result = agent_executor.invoke({
         "input": user_input,
         "chat_history": chat_history,
     })
-    
+
     return result
 
 # 사용 예시
@@ -563,7 +563,7 @@ def run_agent_with_langfuse(
     tenant_id: str = None,
 ):
     """LangFuse 트레이싱이 적용된 에이전트 실행"""
-    
+
     # 트레이스에 메타데이터 추가
     langfuse_context.update_current_trace(
         user_id=user_id,
@@ -574,13 +574,13 @@ def run_agent_with_langfuse(
         },
         tags=["customer-support", "production"],
     )
-    
+
     # 에이전트 실행
     result = agent_executor.invoke(
         {"input": user_input, "chat_history": []},
         config={"callbacks": [langfuse_handler]},
     )
-    
+
     # 출력 토큰 및 비용 기록
     langfuse_context.update_current_observation(
         output=result["output"],
@@ -588,18 +588,18 @@ def run_agent_with_langfuse(
             "intermediate_steps": len(result.get("intermediate_steps", [])),
         },
     )
-    
+
     return result
 
 @observe(name="vector_search", as_type="span")
 def search_with_tracing(query: str, collection: str, top_k: int = 5):
     """벡터 검색을 트레이싱과 함께 수행"""
     from pymilvus import Collection
-    
+
     langfuse_context.update_current_observation(
         input={"query": query, "collection": collection, "top_k": top_k},
     )
-    
+
     # Milvus 검색 수행
     collection = Collection(collection)
     results = collection.search(
@@ -609,11 +609,11 @@ def search_with_tracing(query: str, collection: str, top_k: int = 5):
         limit=top_k,
         output_fields=["content", "metadata"],
     )
-    
+
     langfuse_context.update_current_observation(
         output={"num_results": len(results[0])},
     )
-    
+
     return results
 
 # 점수 및 피드백 기록
@@ -634,11 +634,11 @@ if __name__ == "__main__":
         session_id="session_456",
         tenant_id="tenant_abc",
     )
-    
+
     # 피드백 기록 (예: 사용자가 응답에 만족)
     trace_id = langfuse_context.get_current_trace_id()
     record_feedback(trace_id, score=1.0, comment="정확한 답변")
-    
+
     # 플러시하여 모든 이벤트 전송
     langfuse.flush()
 ```
@@ -659,21 +659,21 @@ graph TB
             TOOL_LAT["도구 실행 시간"]
             RETRIEVAL_LAT["검색 지연"]
         end
-        
+
         subgraph Tokens["🔢 Token Usage"]
             INPUT_TOK["입력 토큰"]
             OUTPUT_TOK["출력 토큰"]
             TOTAL_TOK["총 토큰"]
             COST["비용"]
         end
-        
+
         subgraph Errors["❌ Error Rate"]
             LLM_ERR["LLM 오류"]
             TOOL_ERR["도구 오류"]
             TIMEOUT["타임아웃"]
             RATE_LIMIT["Rate Limit"]
         end
-        
+
         subgraph Traces["🔍 Trace Analysis"]
             CHAIN_LEN["체인 길이"]
             TOOL_CALLS["도구 호출 수"]
@@ -681,7 +681,7 @@ graph TB
             SUCCESS["성공률"]
         end
     end
-    
+
     style Latency fill:#e3f2fd
     style Tokens fill:#e8f5e9
     style Errors fill:#ffcdd2
@@ -741,7 +741,7 @@ data:
             regex: "3000"
             action: keep
         metrics_path: /api/public/metrics
-        
+
       - job_name: 'ai-agents'
         kubernetes_sd_configs:
           - role: pod
@@ -839,7 +839,7 @@ def record_llm_usage(
     # 토큰 수 기록
     LLM_TOKENS.labels(model=model, token_type="input", tenant_id=tenant_id).inc(input_tokens)
     LLM_TOKENS.labels(model=model, token_type="output", tenant_id=tenant_id).inc(output_tokens)
-    
+
     # 비용 계산 및 기록
     if model in MODEL_COSTS:
         cost = (
@@ -847,7 +847,7 @@ def record_llm_usage(
             (output_tokens / 1000) * MODEL_COSTS[model]["output"]
         )
         LLM_COST.labels(model=model, tenant_id=tenant_id).inc(cost)
-    
+
     # 추론 시간 기록
     LLM_INFERENCE_DURATION.labels(model=model, provider="openai").observe(duration)
 
@@ -865,7 +865,7 @@ def record_agent_request(
         model=model,
         tenant_id=tenant_id
     ).observe(duration)
-    
+
     if not success and error_type:
         AGENT_ERRORS.labels(
             agent_name=agent_name,
@@ -881,7 +881,7 @@ def start_metrics_server(port: int = 8000):
 ```
 
 
-## Grafana 대시보드
+## Grafana 대시보드 및 알림
 
 ### 대시보드 개요
 
@@ -896,260 +896,33 @@ graph TB
             AVG_LATENCY["평균 지연"]
             ACTIVE_USERS["활성 사용자"]
         end
-        
+
         subgraph Row2["Performance"]
             LATENCY_CHART["지연 시간 분포"]
             THROUGHPUT["처리량 추이"]
             ERROR_RATE["오류율 추이"]
         end
-        
+
         subgraph Row3["Cost & Usage"]
             TOKEN_USAGE["토큰 사용량"]
             COST_BY_MODEL["모델별 비용"]
             COST_BY_TENANT["테넌트별 비용"]
         end
-        
+
         subgraph Row4["Traces"]
             TRACE_TABLE["최근 트레이스"]
             SLOW_TRACES["느린 요청"]
             ERROR_TRACES["오류 트레이스"]
         end
     end
-    
+
     style Row1 fill:#e3f2fd
     style Row2 fill:#e8f5e9
     style Row3 fill:#fff3e0
     style Row4 fill:#fce4ec
 ```
 
-### 대시보드 JSON 설정
-
-```json
-{
-  "dashboard": {
-    "id": null,
-    "uid": "ai-agent-monitoring",
-    "title": "AI Agent Monitoring",
-    "tags": ["ai", "agent", "langfuse", "llm"],
-    "timezone": "browser",
-    "schemaVersion": 38,
-    "version": 1,
-    "refresh": "30s",
-    "panels": [
-      {
-        "id": 1,
-        "title": "Total Requests",
-        "type": "stat",
-        "gridPos": {"h": 4, "w": 6, "x": 0, "y": 0},
-        "targets": [
-          {
-            "expr": "sum(increase(agent_request_duration_seconds_count[24h]))",
-            "legendFormat": "Total"
-          }
-        ],
-        "options": {
-          "colorMode": "value",
-          "graphMode": "area",
-          "justifyMode": "auto"
-        },
-        "fieldConfig": {
-          "defaults": {
-            "unit": "short",
-            "thresholds": {
-              "mode": "absolute",
-              "steps": [
-                {"color": "green", "value": null}
-              ]
-            }
-          }
-        }
-      },
-      {
-        "id": 2,
-        "title": "Success Rate",
-        "type": "gauge",
-        "gridPos": {"h": 4, "w": 6, "x": 6, "y": 0},
-        "targets": [
-          {
-            "expr": "1 - (sum(rate(agent_errors_total[5m])) / sum(rate(agent_request_duration_seconds_count[5m])))",
-            "legendFormat": "Success Rate"
-          }
-        ],
-        "options": {
-          "showThresholdLabels": false,
-          "showThresholdMarkers": true
-        },
-        "fieldConfig": {
-          "defaults": {
-            "unit": "percentunit",
-            "min": 0,
-            "max": 1,
-            "thresholds": {
-              "mode": "absolute",
-              "steps": [
-                {"color": "red", "value": null},
-                {"color": "yellow", "value": 0.9},
-                {"color": "green", "value": 0.95}
-              ]
-            }
-          }
-        }
-      },
-      {
-        "id": 3,
-        "title": "P95 Latency",
-        "type": "stat",
-        "gridPos": {"h": 4, "w": 6, "x": 12, "y": 0},
-        "targets": [
-          {
-            "expr": "histogram_quantile(0.95, sum(rate(agent_request_duration_seconds_bucket[5m])) by (le))",
-            "legendFormat": "P95"
-          }
-        ],
-        "fieldConfig": {
-          "defaults": {
-            "unit": "s",
-            "thresholds": {
-              "mode": "absolute",
-              "steps": [
-                {"color": "green", "value": null},
-                {"color": "yellow", "value": 5},
-                {"color": "red", "value": 10}
-              ]
-            }
-          }
-        }
-      },
-      {
-        "id": 4,
-        "title": "Active Sessions",
-        "type": "stat",
-        "gridPos": {"h": 4, "w": 6, "x": 18, "y": 0},
-        "targets": [
-          {
-            "expr": "sum(agent_active_sessions)",
-            "legendFormat": "Active"
-          }
-        ],
-        "fieldConfig": {
-          "defaults": {
-            "unit": "short",
-            "thresholds": {
-              "mode": "absolute",
-              "steps": [
-                {"color": "green", "value": null}
-              ]
-            }
-          }
-        }
-      },
-      {
-        "id": 5,
-        "title": "Request Latency Distribution",
-        "type": "timeseries",
-        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 4},
-        "targets": [
-          {
-            "expr": "histogram_quantile(0.50, sum(rate(agent_request_duration_seconds_bucket[5m])) by (le))",
-            "legendFormat": "P50"
-          },
-          {
-            "expr": "histogram_quantile(0.95, sum(rate(agent_request_duration_seconds_bucket[5m])) by (le))",
-            "legendFormat": "P95"
-          },
-          {
-            "expr": "histogram_quantile(0.99, sum(rate(agent_request_duration_seconds_bucket[5m])) by (le))",
-            "legendFormat": "P99"
-          }
-        ],
-        "fieldConfig": {
-          "defaults": {
-            "unit": "s",
-            "custom": {
-              "drawStyle": "line",
-              "lineInterpolation": "smooth",
-              "fillOpacity": 10
-            }
-          }
-        }
-      },
-      {
-        "id": 6,
-        "title": "Error Rate by Type",
-        "type": "timeseries",
-        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 4},
-        "targets": [
-          {
-            "expr": "sum(rate(agent_errors_total[5m])) by (error_type)",
-            "legendFormat": "{{error_type}}"
-          }
-        ],
-        "fieldConfig": {
-          "defaults": {
-            "unit": "short",
-            "custom": {
-              "drawStyle": "bars",
-              "fillOpacity": 80
-            }
-          }
-        }
-      },
-      {
-        "id": 7,
-        "title": "Token Usage by Model",
-        "type": "timeseries",
-        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 12},
-        "targets": [
-          {
-            "expr": "sum(rate(llm_tokens_total[1h])) by (model)",
-            "legendFormat": "{{model}}"
-          }
-        ],
-        "fieldConfig": {
-          "defaults": {
-            "unit": "short",
-            "custom": {
-              "drawStyle": "line",
-              "fillOpacity": 20,
-              "stacking": {"mode": "normal"}
-            }
-          }
-        }
-      },
-      {
-        "id": 8,
-        "title": "Cost by Tenant (Daily)",
-        "type": "piechart",
-        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 12},
-        "targets": [
-          {
-            "expr": "sum(increase(llm_cost_dollars_total[24h])) by (tenant_id)",
-            "legendFormat": "{{tenant_id}}"
-          }
-        ],
-        "options": {
-          "legend": {
-            "displayMode": "table",
-            "placement": "right",
-            "values": ["value", "percent"]
-          },
-          "pieType": "donut"
-        },
-        "fieldConfig": {
-          "defaults": {
-            "unit": "currencyUSD"
-          }
-        }
-      }
-    ]
-  }
-}
-```
-
-
-### 알림 설정
-
-Grafana 알림 규칙을 설정하여 이상 상황을 감지합니다.
+### Grafana 알림 규칙
 
 ```yaml
 # grafana-alerts.yaml
@@ -1211,7 +984,7 @@ data:
               description: "Current P99 latency: {{ $values.A }}s"
             labels:
               severity: warning
-              
+
           - uid: agent-high-error-rate
             title: Agent High Error Rate
             condition: C
@@ -1220,7 +993,7 @@ data:
                 datasourceUid: prometheus
                 model:
                   expr: |
-                    sum(rate(agent_errors_total[5m])) by (agent_name) / 
+                    sum(rate(agent_errors_total[5m])) by (agent_name) /
                     sum(rate(agent_request_duration_seconds_count[5m])) by (agent_name)
               - refId: B
                 datasourceUid: __expr__
@@ -1242,7 +1015,7 @@ data:
               description: "Current error rate: {{ printf \"%.2f\" $values.A }}%"
             labels:
               severity: critical
-              
+
           - uid: llm-rate-limit
             title: LLM Rate Limit Errors
             condition: C
@@ -1271,7 +1044,7 @@ data:
               description: "{{ $values.A }} rate limit errors in last 5 minutes"
             labels:
               severity: warning
-              
+
           - uid: cost-budget-alert
             title: Daily Cost Budget Exceeded
             condition: C
@@ -1303,6 +1076,119 @@ data:
 ```
 
 
+## 운영 체크리스트
+
+### 일일 점검 항목
+
+| 점검 항목 | 확인 방법 | 정상 기준 |
+| --- | --- | --- |
+| GPU 상태 | `kubectl get nodes -l nvidia.com/gpu.present=true` | 모든 노드 Ready |
+| 모델 Pod | `kubectl get pods -n inference` | Running 상태 |
+| 에러율 | Grafana 대시보드 | < 1% |
+| 응답 시간 | P99 레이턴시 | < 5초 |
+| GPU 사용률 | DCGM 메트릭 | 40-80% |
+| 메모리 사용 | GPU 메모리 | < 90% |
+
+### 주간 점검 항목
+
+| 점검 항목 | 확인 방법 | 조치 사항 |
+| --- | --- | --- |
+| 비용 분석 | Kubecost 리포트 | 이상 비용 식별 |
+| 용량 계획 | 리소스 트렌드 | 스케일링 계획 |
+| 보안 패치 | 이미지 스캔 | 취약점 패치 |
+| 백업 검증 | 복구 테스트 | 백업 정책 확인 |
+
+
+## 트러블슈팅 가이드
+
+### GPU OOM (Out of Memory) 문제
+
+#### 증상
+
+```
+CUDA out of memory. Tried to allocate X GiB
+RuntimeError: CUDA error: out of memory
+```
+
+#### 진단
+
+```bash
+# GPU 메모리 상태 확인
+kubectl exec -it <pod-name> -n inference -- nvidia-smi
+
+# DCGM 메트릭 확인
+kubectl exec -it <dcgm-exporter-pod> -n monitoring -- dcgmi dmon -e 155,156
+```
+
+#### 해결 방안
+
+```yaml
+# 1. 배치 크기 줄이기
+env:
+- name: MAX_BATCH_SIZE
+  value: "16"  # 32에서 16으로 감소
+
+# 2. 모델 양자화 적용
+env:
+- name: QUANTIZATION
+  value: "int8"  # 또는 "fp8"
+
+# 3. KV 캐시 크기 제한
+env:
+- name: MAX_NUM_SEQS
+  value: "128"  # 동시 시퀀스 수 제한
+```
+
+### 네트워크 지연 문제
+
+#### 증상
+
+- 추론 요청 타임아웃
+- 모델 간 통신 지연
+- NCCL 타임아웃 (분산 추론 시)
+
+#### 해결 방안
+
+```yaml
+# 1. Pod Anti-Affinity로 분산 배치
+affinity:
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+    - weight: 100
+      podAffinityTerm:
+        labelSelector:
+          matchLabels:
+            app: inference
+        topologyKey: "topology.kubernetes.io/zone"
+
+# 2. 타임아웃 증가
+env:
+- name: NCCL_TIMEOUT
+  value: "1800"  # 30분
+- name: REQUEST_TIMEOUT
+  value: "300"   # 5분
+```
+
+### LangFuse 연결 오류
+
+```bash
+# 증상: LangFuse에 트레이스가 기록되지 않음
+
+# 1. LangFuse 서비스 상태 확인
+kubectl get pods -n observability -l app=langfuse
+
+# 2. LangFuse 로그 확인
+kubectl logs -n observability -l app=langfuse --tail=100
+
+# 3. 네트워크 연결 테스트
+kubectl run -it --rm debug --image=curlimages/curl --restart=Never -- \
+  curl -v http://langfuse.observability.svc/api/public/health
+
+# 4. 환경 변수 확인
+kubectl exec -n ai-agents <pod-name> -- env | grep LANGFUSE
+```
+
+
 ## 비용 추적
 
 ### 모델별 비용 분석
@@ -1321,31 +1207,18 @@ class ModelPricing:
     """모델별 가격 정보 (USD per 1K tokens)"""
     input_price: float
     output_price: float
-    
+
 # 2024년 기준 모델 가격
 MODEL_PRICING: Dict[str, ModelPricing] = {
     # OpenAI
     "gpt-4-turbo": ModelPricing(0.01, 0.03),
-    "gpt-4-turbo-preview": ModelPricing(0.01, 0.03),
     "gpt-4": ModelPricing(0.03, 0.06),
-    "gpt-4-32k": ModelPricing(0.06, 0.12),
     "gpt-3.5-turbo": ModelPricing(0.0005, 0.0015),
-    "gpt-3.5-turbo-16k": ModelPricing(0.003, 0.004),
-    
+
     # Anthropic
     "claude-3-opus": ModelPricing(0.015, 0.075),
     "claude-3-sonnet": ModelPricing(0.003, 0.015),
     "claude-3-haiku": ModelPricing(0.00025, 0.00125),
-    "claude-2.1": ModelPricing(0.008, 0.024),
-    
-    # Amazon Bedrock (Claude)
-    "anthropic.claude-3-opus-20240229-v1:0": ModelPricing(0.015, 0.075),
-    "anthropic.claude-3-sonnet-20240229-v1:0": ModelPricing(0.003, 0.015),
-    "anthropic.claude-3-haiku-20240307-v1:0": ModelPricing(0.00025, 0.00125),
-    
-    # Self-hosted (예: vLLM) - 인프라 비용 기반 추정
-    "llama-3-70b": ModelPricing(0.001, 0.001),
-    "mixtral-8x7b": ModelPricing(0.0005, 0.0005),
 }
 
 @dataclass
@@ -1358,11 +1231,11 @@ class UsageRecord:
     tenant_id: str
     agent_name: str
     trace_id: str
-    
+
     @property
     def total_tokens(self) -> int:
         return self.input_tokens + self.output_tokens
-    
+
     @property
     def cost(self) -> float:
         if self.model not in MODEL_PRICING:
@@ -1375,11 +1248,11 @@ class UsageRecord:
 
 class CostTracker:
     """비용 추적기"""
-    
+
     def __init__(self, langfuse_client=None):
         self.langfuse = langfuse_client
         self.records: List[UsageRecord] = []
-    
+
     def record_usage(
         self,
         model: str,
@@ -1400,7 +1273,7 @@ class CostTracker:
             trace_id=trace_id,
         )
         self.records.append(record)
-        
+
         # Prometheus 메트릭 업데이트
         from metrics_exporter import record_llm_usage
         record_llm_usage(
@@ -1410,164 +1283,11 @@ class CostTracker:
             tenant_id=tenant_id,
             duration=0,  # 별도 측정 필요
         )
-        
+
         return record
-    
-    def get_cost_by_tenant(
-        self,
-        start_time: Optional[datetime] = None,
-        end_time: Optional[datetime] = None,
-    ) -> Dict[str, float]:
-        """테넌트별 비용 집계"""
-        if start_time is None:
-            start_time = datetime.utcnow() - timedelta(days=30)
-        if end_time is None:
-            end_time = datetime.utcnow()
-        
-        costs: Dict[str, float] = {}
-        for record in self.records:
-            if start_time <= record.timestamp <= end_time:
-                if record.tenant_id not in costs:
-                    costs[record.tenant_id] = 0.0
-                costs[record.tenant_id] += record.cost
-        
-        return costs
-    
-    def get_cost_by_model(
-        self,
-        tenant_id: Optional[str] = None,
-        start_time: Optional[datetime] = None,
-        end_time: Optional[datetime] = None,
-    ) -> Dict[str, Dict[str, float]]:
-        """모델별 비용 및 토큰 사용량 집계"""
-        if start_time is None:
-            start_time = datetime.utcnow() - timedelta(days=30)
-        if end_time is None:
-            end_time = datetime.utcnow()
-        
-        result: Dict[str, Dict[str, float]] = {}
-        for record in self.records:
-            if start_time <= record.timestamp <= end_time:
-                if tenant_id and record.tenant_id != tenant_id:
-                    continue
-                    
-                if record.model not in result:
-                    result[record.model] = {
-                        "input_tokens": 0,
-                        "output_tokens": 0,
-                        "total_tokens": 0,
-                        "cost": 0.0,
-                        "requests": 0,
-                    }
-                
-                result[record.model]["input_tokens"] += record.input_tokens
-                result[record.model]["output_tokens"] += record.output_tokens
-                result[record.model]["total_tokens"] += record.total_tokens
-                result[record.model]["cost"] += record.cost
-                result[record.model]["requests"] += 1
-        
-        return result
-    
-    def generate_cost_report(
-        self,
-        tenant_id: Optional[str] = None,
-        period_days: int = 30,
-    ) -> str:
-        """비용 리포트 생성"""
-        end_time = datetime.utcnow()
-        start_time = end_time - timedelta(days=period_days)
-        
-        model_costs = self.get_cost_by_model(tenant_id, start_time, end_time)
-        tenant_costs = self.get_cost_by_tenant(start_time, end_time)
-        
-        report = {
-            "period": {
-                "start": start_time.isoformat(),
-                "end": end_time.isoformat(),
-                "days": period_days,
-            },
-            "summary": {
-                "total_cost": sum(tenant_costs.values()),
-                "total_requests": sum(m["requests"] for m in model_costs.values()),
-                "total_tokens": sum(m["total_tokens"] for m in model_costs.values()),
-            },
-            "by_model": model_costs,
-            "by_tenant": tenant_costs,
-        }
-        
-        return json.dumps(report, indent=2, default=str)
-```
-
-
-### 테넌트별 비용 할당
-
-멀티 테넌트 환경에서 비용을 공정하게 할당하는 방법입니다.
-
-```yaml
-# cost-allocation-configmap.yaml
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: cost-allocation-config
-  namespace: observability
-data:
-  allocation-rules.yaml: |
-    # 테넌트별 예산 설정
-    tenants:
-      tenant-a:
-        monthly_budget_usd: 5000
-        alert_threshold_percent: 80
-        models_allowed:
-          - gpt-4-turbo
-          - gpt-3.5-turbo
-          - claude-3-sonnet
-        rate_limits:
-          requests_per_minute: 100
-          tokens_per_day: 1000000
-          
-      tenant-b:
-        monthly_budget_usd: 2000
-        alert_threshold_percent: 80
-        models_allowed:
-          - gpt-3.5-turbo
-          - claude-3-haiku
-        rate_limits:
-          requests_per_minute: 50
-          tokens_per_day: 500000
-          
-      tenant-c:
-        monthly_budget_usd: 10000
-        alert_threshold_percent: 90
-        models_allowed:
-          - gpt-4-turbo
-          - gpt-4
-          - claude-3-opus
-          - claude-3-sonnet
-        rate_limits:
-          requests_per_minute: 200
-          tokens_per_day: 5000000
-    
-    # 공유 인프라 비용 분배
-    infrastructure_cost_allocation:
-      method: proportional  # proportional, equal, fixed
-      base_monthly_cost_usd: 1000  # GPU 인프라 기본 비용
-      
-    # 알림 설정
-    alerts:
-      budget_warning:
-        threshold_percent: 80
-        channels: [slack, email]
-      budget_exceeded:
-        threshold_percent: 100
-        channels: [slack, email, pagerduty]
-      rate_limit_warning:
-        threshold_percent: 90
-        channels: [slack]
 ```
 
 ### 비용 대시보드 쿼리
-
-Grafana에서 비용 분석을 위한 PromQL 쿼리 예시입니다.
 
 ```promql
 # 일별 총 비용
@@ -1577,25 +1297,14 @@ sum(increase(llm_cost_dollars_total[24h]))
 sum(increase(llm_cost_dollars_total[24h])) by (tenant_id)
 
 # 모델별 비용 비율
-sum(increase(llm_cost_dollars_total[24h])) by (model) 
-/ ignoring(model) group_left 
+sum(increase(llm_cost_dollars_total[24h])) by (model)
+/ ignoring(model) group_left
 sum(increase(llm_cost_dollars_total[24h]))
 
-# 시간당 비용 추이
-sum(rate(llm_cost_dollars_total[1h])) * 3600
-
 # 예산 대비 사용률 (월간)
-sum(increase(llm_cost_dollars_total[30d])) by (tenant_id) 
-/ on(tenant_id) group_left 
+sum(increase(llm_cost_dollars_total[30d])) by (tenant_id)
+/ on(tenant_id) group_left
 tenant_monthly_budget_usd
-
-# 토큰당 평균 비용
-sum(rate(llm_cost_dollars_total[1h])) 
-/ sum(rate(llm_tokens_total[1h]))
-
-# 요청당 평균 비용
-sum(increase(llm_cost_dollars_total[24h])) 
-/ sum(increase(agent_request_duration_seconds_count[24h]))
 ```
 
 :::tip 비용 최적화 팁
@@ -1603,361 +1312,6 @@ sum(increase(llm_cost_dollars_total[24h]))
 2. **프롬프트 최적화**: 불필요한 컨텍스트 제거로 입력 토큰 절감
 3. **캐싱 활용**: 반복적인 쿼리에 대한 응답 캐싱
 4. **배치 처리**: 가능한 경우 요청을 배치로 처리하여 오버헤드 감소
-:::
-
-
-## OpenTelemetry 통합
-
-LangFuse와 기존 관측성 스택을 OpenTelemetry로 통합합니다.
-
-### OpenTelemetry Collector 설정
-
-```yaml
-# otel-collector-config.yaml
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: otel-collector-config
-  namespace: observability
-data:
-  config.yaml: |
-    receivers:
-      otlp:
-        protocols:
-          grpc:
-            endpoint: 0.0.0.0:4317
-          http:
-            endpoint: 0.0.0.0:4318
-      
-      prometheus:
-        config:
-          scrape_configs:
-            - job_name: 'langfuse'
-              static_configs:
-                - targets: ['langfuse:3000']
-              metrics_path: /api/public/metrics
-    
-    processors:
-      batch:
-        timeout: 10s
-        send_batch_size: 1000
-      
-      memory_limiter:
-        check_interval: 1s
-        limit_mib: 1000
-        spike_limit_mib: 200
-      
-      attributes:
-        actions:
-          - key: environment
-            value: production
-            action: upsert
-          - key: service.namespace
-            value: ai-platform
-            action: upsert
-    
-    exporters:
-      prometheus:
-        endpoint: "0.0.0.0:8889"
-        namespace: ai_agent
-        
-      otlp/jaeger:
-        endpoint: jaeger-collector.observability:4317
-        tls:
-          insecure: true
-      
-      awsxray:
-        region: ap-northeast-2
-        
-      logging:
-        loglevel: info
-    
-    extensions:
-      health_check:
-        endpoint: 0.0.0.0:13133
-      pprof:
-        endpoint: 0.0.0.0:1777
-    
-    service:
-      extensions: [health_check, pprof]
-      pipelines:
-        traces:
-          receivers: [otlp]
-          processors: [memory_limiter, batch, attributes]
-          exporters: [otlp/jaeger, awsxray, logging]
-        
-        metrics:
-          receivers: [otlp, prometheus]
-          processors: [memory_limiter, batch]
-          exporters: [prometheus]
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: otel-collector
-  namespace: observability
-spec:
-  replicas: 2
-  selector:
-    matchLabels:
-      app: otel-collector
-  template:
-    metadata:
-      labels:
-        app: otel-collector
-    spec:
-      containers:
-        - name: otel-collector
-          image: otel/opentelemetry-collector-contrib:0.92.0
-          args:
-            - --config=/etc/otel/config.yaml
-          ports:
-            - containerPort: 4317  # OTLP gRPC
-            - containerPort: 4318  # OTLP HTTP
-            - containerPort: 8889  # Prometheus exporter
-            - containerPort: 13133 # Health check
-          volumeMounts:
-            - name: config
-              mountPath: /etc/otel
-          resources:
-            requests:
-              memory: "256Mi"
-              cpu: "100m"
-            limits:
-              memory: "512Mi"
-              cpu: "500m"
-      volumes:
-        - name: config
-          configMap:
-            name: otel-collector-config
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: otel-collector
-  namespace: observability
-spec:
-  selector:
-    app: otel-collector
-  ports:
-    - name: otlp-grpc
-      port: 4317
-      targetPort: 4317
-    - name: otlp-http
-      port: 4318
-      targetPort: 4318
-    - name: prometheus
-      port: 8889
-      targetPort: 8889
-```
-
-### Python OpenTelemetry 통합
-
-```python
-# otel_integration.py
-from opentelemetry import trace
-from opentelemetry.sdk.trace import TracerProvider
-from opentelemetry.sdk.trace.export import BatchSpanProcessor
-from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
-from opentelemetry.instrumentation.requests import RequestsInstrumentor
-from opentelemetry.sdk.resources import Resource
-from opentelemetry.semconv.resource import ResourceAttributes
-import os
-
-def setup_opentelemetry():
-    """OpenTelemetry 초기화"""
-    resource = Resource.create({
-        ResourceAttributes.SERVICE_NAME: "ai-agent",
-        ResourceAttributes.SERVICE_VERSION: "1.0.0",
-        ResourceAttributes.DEPLOYMENT_ENVIRONMENT: os.environ.get("ENVIRONMENT", "production"),
-    })
-    
-    provider = TracerProvider(resource=resource)
-    
-    # OTLP Exporter 설정
-    otlp_exporter = OTLPSpanExporter(
-        endpoint=os.environ.get("OTEL_EXPORTER_OTLP_ENDPOINT", "otel-collector:4317"),
-        insecure=True,
-    )
-    
-    provider.add_span_processor(BatchSpanProcessor(otlp_exporter))
-    trace.set_tracer_provider(provider)
-    
-    # HTTP 요청 자동 계측
-    RequestsInstrumentor().instrument()
-    
-    return trace.get_tracer(__name__)
-
-# 사용 예시
-tracer = setup_opentelemetry()
-
-@tracer.start_as_current_span("agent_execution")
-def execute_agent(user_input: str, tenant_id: str):
-    """OpenTelemetry 트레이싱이 적용된 에이전트 실행"""
-    current_span = trace.get_current_span()
-    current_span.set_attribute("tenant_id", tenant_id)
-    current_span.set_attribute("input_length", len(user_input))
-    
-    # 에이전트 로직 실행
-    with tracer.start_as_current_span("llm_inference") as llm_span:
-        llm_span.set_attribute("model", "gpt-4-turbo")
-        # LLM 호출
-        response = call_llm(user_input)
-        llm_span.set_attribute("output_tokens", response.usage.completion_tokens)
-    
-    return response
-```
-
-
-## 트러블슈팅
-
-### 일반적인 문제와 해결 방법
-
-#### LangFuse 연결 오류
-
-```bash
-# 증상: LangFuse에 트레이스가 기록되지 않음
-
-# 1. LangFuse 서비스 상태 확인
-kubectl get pods -n observability -l app=langfuse
-
-# 2. LangFuse 로그 확인
-kubectl logs -n observability -l app=langfuse --tail=100
-
-# 3. 네트워크 연결 테스트
-kubectl run -it --rm debug --image=curlimages/curl --restart=Never -- \
-  curl -v http://langfuse.observability.svc/api/public/health
-
-# 4. 환경 변수 확인
-kubectl exec -n ai-agents <pod-name> -- env | grep LANGFUSE
-```
-
-#### 높은 지연 시간 디버깅
-
-```python
-# trace_analyzer.py
-from langfuse import Langfuse
-from datetime import datetime, timedelta
-
-langfuse = Langfuse()
-
-def analyze_slow_traces(threshold_seconds: float = 10.0, hours: int = 24):
-    """느린 트레이스 분석"""
-    traces = langfuse.get_traces(
-        limit=100,
-        order_by="latency",
-        order="desc",
-    )
-    
-    slow_traces = []
-    for trace in traces.data:
-        if trace.latency and trace.latency > threshold_seconds:
-            # 각 스팬별 지연 시간 분석
-            observations = langfuse.get_observations(trace_id=trace.id)
-            
-            breakdown = []
-            for obs in observations.data:
-                if obs.end_time and obs.start_time:
-                    duration = (obs.end_time - obs.start_time).total_seconds()
-                    breakdown.append({
-                        "name": obs.name,
-                        "type": obs.type,
-                        "duration": duration,
-                    })
-            
-            slow_traces.append({
-                "trace_id": trace.id,
-                "total_latency": trace.latency,
-                "breakdown": sorted(breakdown, key=lambda x: x["duration"], reverse=True),
-            })
-    
-    return slow_traces
-
-# 분석 실행
-slow = analyze_slow_traces(threshold_seconds=10.0)
-for trace in slow[:5]:
-    print(f"\nTrace: {trace['trace_id']}")
-    print(f"Total Latency: {trace['total_latency']:.2f}s")
-    print("Breakdown:")
-    for item in trace['breakdown'][:5]:
-        print(f"  - {item['name']}: {item['duration']:.2f}s ({item['type']})")
-```
-
-#### 메모리 누수 진단
-
-```yaml
-# memory-debug-pod.yaml
-apiVersion: v1
-kind: Pod
-metadata:
-  name: memory-debug
-  namespace: observability
-spec:
-  containers:
-    - name: debug
-      image: python:3.11-slim
-      command: ["sleep", "infinity"]
-      resources:
-        requests:
-          memory: "256Mi"
-        limits:
-          memory: "512Mi"
-      env:
-        - name: LANGFUSE_HOST
-          value: "http://langfuse.observability.svc"
-```
-
-```python
-# memory_profiler.py
-import tracemalloc
-import gc
-from langfuse import Langfuse
-
-def profile_langfuse_memory():
-    """LangFuse 클라이언트 메모리 사용량 프로파일링"""
-    tracemalloc.start()
-    
-    langfuse = Langfuse()
-    
-    # 여러 트레이스 생성
-    for i in range(100):
-        trace = langfuse.trace(name=f"test-trace-{i}")
-        trace.generation(
-            name="test-generation",
-            input="test input",
-            output="test output",
-        )
-    
-    langfuse.flush()
-    
-    # 메모리 스냅샷
-    snapshot = tracemalloc.take_snapshot()
-    top_stats = snapshot.statistics('lineno')
-    
-    print("Top 10 memory allocations:")
-    for stat in top_stats[:10]:
-        print(stat)
-    
-    # 가비지 컬렉션
-    gc.collect()
-    
-    tracemalloc.stop()
-```
-
-### 성능 최적화 체크리스트
-
-| 항목 | 확인 사항 | 권장 설정 |
-| ---- | --------- | --------- |
-| **배치 크기** | 트레이스 배치 전송 크기 | 100-500 |
-| **플러시 간격** | 자동 플러시 주기 | 5-10초 |
-| **연결 풀** | HTTP 연결 재사용 | 활성화 |
-| **비동기 전송** | 백그라운드 전송 | 활성화 |
-| **샘플링** | 고트래픽 시 샘플링 | 10-50% |
-
-:::danger 주의사항
-- 프로덕션에서 모든 트레이스를 저장하면 스토리지 비용이 급증할 수 있습니다
-- 민감한 데이터(PII)가 트레이스에 포함되지 않도록 마스킹을 적용하세요
-- LangFuse 데이터베이스의 정기적인 백업과 보존 정책을 설정하세요
 :::
 
 
@@ -1972,6 +1326,7 @@ AI Agent 모니터링은 Agentic AI 애플리케이션의 안정적인 운영과
 3. **핵심 메트릭**: Latency, Token Usage, Error Rate, Trace 분석을 통한 종합적인 모니터링
 4. **Grafana 대시보드**: 실시간 모니터링과 알림을 통한 proactive 운영
 5. **비용 추적**: 모델별, 테넌트별 비용 분석으로 예산 관리 및 최적화
+6. **트러블슈팅**: GPU OOM, 네트워크 지연, 모델 로딩 실패 등 일반적인 문제 해결
 
 ### 모니터링 성숙도 모델
 

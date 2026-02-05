@@ -7,31 +7,21 @@ sidebar_position: 5
 
 # Security & Governance
 
-This section covers advanced technical documentation on security hardening and compliance management in Amazon EKS environments. Through network security, access control, data protection, and monitoring and auditing, you can meet the strict regulatory requirements of financial institutions and other regulated sectors.
+Security in modern cloud environments extends beyond simple firewall deployment to encompass defense-in-depth strategies and continuous security posture assessment. Security hardening in Amazon EKS environments requires a comprehensive approach spanning from cluster-level access control to network isolation, data encryption, and runtime security monitoring. This section covers security architecture design and implementation based on the Defense in Depth principle.
 
-## 📚 Main Documents
+Security governance transcends technical controls to embed organizational policies, processes, and compliance requirements into code and infrastructure. In regulated industries such as finance, compliance with frameworks like PCI-DSS, SOC 2, and ISO 27001 is mandatory. This necessitates establishing automated policy enforcement, continuous audit logging, and real-time threat detection systems. In Kubernetes-based environments, robust security posture can be achieved by integrating native security features like RBAC, Network Policy, and Pod Security Standards with AWS cloud-native services such as IAM, KMS, and GuardDuty.
 
-### Operational Security and Incident Management
-- **[Default Namespace Incident Response](./default-namespace-incident.md)**
-  - Analysis of default namespace security threats
-  - Incident detection and response procedures
-  - Post-incident analysis and improvement measures
-  - Security monitoring automation
+Incident response capability is a core element of security strategy. Operating under the premise that perfect defense is impossible, it is crucial to establish swift detection, accurate analysis, effective isolation, and systematic recovery processes when security incidents occur. API audit logs through CloudTrail, network traffic analysis via VPC Flow Logs, and anomaly detection using runtime security tools like Falco form the foundation of incident response. Furthermore, post-incident analysis to identify root causes and automation of preventive measures continuously improve security posture.
 
-## 🎯 Learning Objectives
+Security is not a one-time configuration but an area requiring continuous assessment and improvement. Proactive identification and remediation of security vulnerabilities through regular vulnerability scanning, CIS benchmark-based security assessments, and penetration testing are essential. Applying Zero Trust principles to deny all access by default and permit only explicitly verified requests is fundamental to modern security architecture.
 
-Through this section, you will learn:
+## Main Documents
 
-- Comprehensive security hardening methods for EKS clusters
-- Network security policy design and implementation
-- Compliance requirement adherence strategies including financial sector requirements
-- Access control and privilege management
-- Data protection and encryption strategies
-- Security monitoring and auditing
-- Incident response and forensics
-- Continuous security assessment and improvement
+**Operational Security and Incident Management**
 
-## 🏗️ Architecture Patterns
+[Default Namespace Incident Response](./default-namespace-incident.md) - Analysis of default namespace security threats, incident detection and response procedures, post-incident analysis and improvement measures, security monitoring automation
+
+## Architecture Patterns
 
 ```mermaid
 graph TB
@@ -100,197 +90,44 @@ graph TB
     style Monitoring fill:#ff6d00
 ```
 
-## 🛡️ Security Areas
+## Security Areas
 
-### 1. Cluster Security
+Security architecture consists of three layers: cluster level, workload level, and data level. Cluster security is implemented through the integration of AWS IAM and Kubernetes RBAC, centered on authentication and authorization management. IRSA (IAM Roles for Service Accounts) enables fine-grained AWS resource access permissions at the pod level, applying the principle of least privilege to minimize the attack surface. OIDC provider integration allows connection with existing enterprise SSO systems and strengthens user authentication security by applying MFA.
 
-#### Authentication and Authorization
-- **IAM Roles and Policies**: Fine-grained permission management through AWS IAM
-  - IRSA (IAM Roles for Service Accounts)
-  - Pod-based IAM policies
-  - Application of least privilege principle
+Network security is a core element of defense in depth, controlling pod-to-pod communication through Kubernetes Network Policies and implementing namespace isolation. Adopting a service mesh (Istio, Linkerd) automatically configures mTLS to encrypt all service-to-service communication and automates certificate management. At the VPC level, public and private subnets are separated, outbound traffic is controlled through NAT Gateway, and network traffic is continuously monitored via VPC Flow Logs.
 
-- **RBAC (Role-Based Access Control)**: Kubernetes native permission management
-  - Role definitions (Role, ClusterRole)
-  - Binding configuration (RoleBinding, ClusterRoleBinding)
-  - User and service account management
+Workload security strengthens container execution environment security through Pod Security Standards. Applying the Restricted level blocks root privilege execution, restricts host network access, and removes dangerous Capabilities. Security Context settings enforce read-only filesystems and minimize execution privileges. Container images are scanned in the CI/CD pipeline using tools like Trivy to proactively block vulnerabilities, and policies are enforced to use only signed images from approved registries.
 
-- **OIDC Provider Integration**: External identity provider integration
-  - Single sign-on (SSO)
-  - Multi-factor authentication (MFA)
-  - Attribute-based access control
+Secret management is centralized through the integration of AWS Secrets Manager and External Secrets Operator. Instead of storing secrets directly as Kubernetes Secrets, they are kept in external secret stores, with automatic rotation and periodic synchronization minimizing secret exposure risk. Envelope encryption using KMS protects data encryption keys, and key rotation policies manage long-term key exposure risk.
 
-#### Network Security
-- **Network Policies**: Traffic control
-  - Pod-to-pod communication restriction
-  - Ingress/Egress policies
-  - Namespace isolation
+Data security includes encryption for both data at rest and data in transit. EBS volumes are protected at the block level through KMS-based encryption, and etcd transparently encrypts the Kubernetes configuration database through AWS KMS integration. At the application level, end-to-end encryption for sensitive data provides multi-layered protection. Data in transit is encrypted through TLS/mTLS, with the API server protected by TLS and mTLS automatically applied to pod-to-pod communication through the service mesh. At the ingress level, HTTPS is enforced and certificates are automatically renewed through Let's Encrypt and Cert Manager.
 
-- **Service Mesh Security** (Istio/Linkerd)
-  - mTLS (Mutual TLS) automatic configuration
-  - Traffic encryption
-  - Certificate auto-management
+## Compliance Frameworks
 
-- **VPC and Subnet Security**
-  - Public/Private subnet separation
-  - Outbound traffic control via NAT Gateway
-  - VPC Flow Logs monitoring
+Compliance adherence requires integration of technical implementation and organizational processes. SOC 2 addresses data security, availability, and processing integrity, implemented in EKS environments through high availability architecture, data encryption, and access control. PCI-DSS is an essential standard for payment card data processing, requiring network isolation, data encryption, access control, and regular security assessments. HIPAA is regulation for healthcare information protection, with data encryption and audit logging at its core. GDPR requires data minimization, user rights protection, and processing transparency for personal information protection, while ISO 27001 provides a comprehensive framework for information security management systems.
 
-### 2. Workload Security
+Compliance requirements in EKS environments are mapped to technical controls. Access control requirements are implemented through the combination of AWS IAM and Kubernetes RBAC, while encryption requirements are met through TLS/mTLS and AWS KMS. Audit requirements are implemented through API call logging via CloudTrail and application log collection, and monitoring requirements are met through real-time threat detection via GuardDuty and Security Hub. Policy enforcement is automated through OPA Gatekeeper at the admission control stage, proactively blocking policy violations.
 
-#### Pod Security
-- **Pod Security Standards** implementation
-  - Restricted: Maximum security
-  - Baseline: Basic security
-  - Unrestricted: No restrictions
+Compliance tools enable automated assessment and continuous monitoring. AWS Config continuously monitors resource configurations and detects policy violations, while Security Hub integrates results from multiple security services to provide a centralized dashboard. GuardDuty identifies anomalous behavior through machine learning-based threat detection, and CloudTrail records all API calls to provide audit trails. Inspector assesses vulnerabilities in EC2 instances and container images and provides security recommendations.
 
-- **Security Context** configuration
-  - Execution privilege restriction
-  - Read-only filesystem
-  - Capability removal
+## Security Tools and Technologies
 
-- **Container Image Scanning**
-  - Vulnerability assessment
-  - Use of approved images
-  - Image signature verification
+Open source security tools are key elements for strengthening security in Kubernetes environments. Falco monitors runtime security at the system call level, detecting anomalous behavior in real-time. It detects unexpected process execution, sensitive file access, network connection attempts, and generates alerts. OPA Gatekeeper provides policy-based control, operating as an admission webhook to validate security policies at pod creation time and block deployments on violations. Trivy scans container images and filesystems to detect known vulnerabilities, integrating into CI/CD pipelines to prevent vulnerable images from being deployed to production environments. Kube-bench evaluates cluster security settings against CIS Kubernetes benchmarks and provides recommendations, while kube-hunter performs penetration testing on clusters to discover potential security vulnerabilities.
 
-#### Secret Management
-- **AWS Secrets Manager** integration
-  - Centralized secret management
-  - Automatic rotation
-  - Audit logging
+AWS native security services provide security features optimized for cloud environments. AWS WAF is a web application firewall that blocks common web attacks like SQL injection and XSS, implementing application-specific security policies through custom rules. AWS Shield automatically provides basic DDoS protection to all AWS services, while Shield Advanced offers advanced protection against large-scale DDoS attacks and 24/7 DDoS response team support. Amazon Inspector continuously assesses vulnerabilities in EC2 instances and container images, providing CVE-based security recommendations, and AWS Systems Manager automates operating system and application patching to rapidly address vulnerabilities.
 
-- **External Secrets Operator** utilization
-  - Multiple secret backend support
-  - Automatic synchronization
-  - Periodic refresh
+## Security Monitoring and Response
 
-- **Encryption Key Management** (KMS)
-  - Envelope encryption
-  - Key rotation policies
-  - Access control
+Real-time security monitoring is an essential element for early threat detection and rapid response. Security event logs are collected from multiple sources including CloudTrail, VPC Flow Logs, application logs, and container logs, then integrated into a centralized log repository. Anomaly detection is implemented through machine learning-based analysis and rule-based alerting, with GuardDuty automatically detecting abnormal API call patterns, suspicious network activity, and compromised instance behavior. Automated security response workflows are implemented through EventBridge and Lambda, automatically performing isolation, alerting, and recovery actions when specific security events occur.
 
-### 3. Data Security
+The incident response process minimizes the impact of security incidents through systematic and repeatable procedures. In the detection phase, security monitoring tools automatically identify anomalies and generate alerts. In the analysis phase, the security team evaluates incident severity, impact scope, and attack vectors to determine response priorities. In the isolation phase, affected resources are disconnected from the network to prevent further damage propagation. In the recovery phase, compromised systems are restored to normal state and services are resumed. In the post-incident analysis phase, root causes are identified and attack paths are reconstructed, while in the improvement phase, security policies and technical controls are strengthened based on lessons learned to prevent recurrence.
 
-#### Data at Rest Encryption
-- **EBS Volume Encryption**: Block storage encryption
-  - KMS-based encryption
-  - Policy-based enforcement
+Forensic analysis is the process of understanding the full context of security incidents and collecting evidence. Through CloudTrail log analysis, attacker API call patterns and privilege escalation attempts are tracked, and VPC Flow Logs are reviewed to identify abnormal network traffic and data exfiltration attempts. Container logs are collected to analyze application-level attack traces, and network traffic analysis detects communication with C&C servers or internal reconnaissance activities. This forensic data can be used as evidence when legal action is required and provides insights for improving security posture.
 
-- **etcd Encryption**: Kubernetes configuration database encryption
-  - AWS KMS integration
-  - Transparent encryption
+## Related Categories
 
-- **Application-Level Encryption**: Application data encryption
-  - End-to-end encryption
-  - Custom encryption policies
+[Hybrid Infrastructure](/docs/hybrid-multicloud) - Hybrid environment security
 
-#### Data in Transit Encryption
-- **TLS/mTLS Configuration**: Protocol-based encryption
-  - API Server TLS
-  - Pod-to-pod mTLS
-  - Certificate management
+[Operations & Observability](/docs/observability-monitoring) - Security monitoring
 
-- **Service-to-Service Communication Encryption**: Internal traffic protection
-  - Service mesh mTLS
-  - Automatic certificate management
-
-- **Ingress TLS Configuration**: External traffic protection
-  - HTTPS enforcement
-  - Automatic certificate renewal
-
-## 📋 Compliance Frameworks
-
-### Key Standards and Regulations
-| Standard | Application Area | Key Requirements |
-|----------|------------------|------------------|
-| **SOC 2** | Data Security | Security, Availability, Processing Integrity |
-| **PCI DSS** | Payment Card | Data Encryption, Access Control |
-| **HIPAA** | Healthcare Information | Data Protection, Audit Logging |
-| **GDPR** | Personal Data | Data Protection, User Rights |
-| **ISO 27001** | Information Security | Information Security Management System |
-| **PCI-DSS** | Payment Systems | Encryption, Access Control, Monitoring |
-
-### Compliance Mapping
-| Requirement | EKS Implementation | Tools |
-|------------|-------------------|-------|
-| Access Control | RBAC + IAM | AWS IAM + K8s RBAC |
-| Encryption | TLS + KMS | AWS KMS + Cert Manager |
-| Audit | CloudTrail + Logging | AWS CloudTrail |
-| Monitoring | Real-time Surveillance | GuardDuty + Security Hub |
-| Policy Enforcement | Policy-based Control | OPA Gatekeeper |
-
-### Compliance Tools
-- **AWS Config**: Resource configuration monitoring and policy enforcement
-- **AWS Security Hub**: Centralized security status management dashboard
-- **Amazon GuardDuty**: Threat detection and analysis
-- **AWS CloudTrail**: API call audit and logging
-- **AWS Inspector**: Vulnerability assessment and monitoring
-
-## 🔧 Security Tools and Technologies
-
-### Open Source Security Tools
-| Tool | Function | Use Case |
-|------|----------|----------|
-| **Falco** | Runtime security monitoring | Abnormal behavior detection |
-| **OPA Gatekeeper** | Policy-based control | Policy enforcement |
-| **Trivy** | Vulnerability scanning | CI/CD pipeline |
-| **Kube-bench** | CIS Benchmark | Security assessment |
-| **kube-hunter** | Penetration testing | Security testing |
-
-### AWS Native Security Services
-- **AWS WAF**: Web application firewall
-- **AWS Shield**: DDoS protection (Basic/Advanced)
-- **Amazon Inspector**: Vulnerability assessment
-- **AWS Systems Manager**: Patch management
-
-## 🚨 Security Monitoring and Response
-
-### Real-time Monitoring
-- Security event log collection and analysis
-- Anomaly detection and alerting
-- Automated security response workflows
-- Centralized security event dashboard
-
-### Incident Response Process
-1. **Detection**: Automatic security event detection
-2. **Analysis**: Incident severity and impact assessment
-3. **Isolation**: Affected resource isolation
-4. **Recovery**: Recovery to normal state
-5. **Analysis**: Root cause analysis
-6. **Improvement**: Preventive measures
-
-### Forensics and Analysis
-- AWS CloudTrail log analysis
-- VPC Flow Logs review
-- Container log collection
-- Network traffic analysis
-
-## 🔗 Related Categories
-
-- [Hybrid Infrastructure](/docs/hybrid-multicloud) - Hybrid environment security
-- [Operations & Observability](/docs/observability-monitoring) - Security monitoring
-- [Infrastructure Optimization](/docs/performance-networking) - Network security
-
----
-
-:::warning Important
-Security is not a one-time setup. **Continuous monitoring and regular security assessments are essential.** At minimum, assess your security posture quarterly and review logs monthly.
-:::
-
-:::tip Tip
-**Apply Zero Trust Principles**: Default deny all access and only permit explicitly allowed traffic. This can significantly enhance security.
-:::
-
-:::info Recommended Learning Path
-1. Basic RBAC and IAM setup
-2. Network policy implementation
-3. Data encryption (TLS + KMS)
-4. Security monitoring (GuardDuty + CloudTrail)
-5. Advanced features (Service Mesh, OPA Gatekeeper)
-6. Compliance verification
-:::
-
-:::warning Caution - Financial Sector Requirements
-Financial institutions may have additional regulatory requirements (PCI-DSS, HIPAA, etc.). Clarify requirements with your compliance team before project start.
-:::
+[Infrastructure Optimization](/docs/performance-networking) - Network security

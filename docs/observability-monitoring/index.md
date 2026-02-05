@@ -7,160 +7,16 @@ sidebar_position: 2
 
 # Operations & Observability
 
-이 섹션에서는 Amazon EKS 환경에서의 관찰성(Observability)과 모니터링 관련 심화 기술 문서들을 다룹니다. 네트워크 가시성, 클러스터 모니터링, AI/ML 워크로드 추적, 노드 에이전트 구성 등을 통해 시스템 상태를 종합적으로 파악하고 관리할 수 있습니다.
+현대의 클라우드 네이티브 환경에서 운영과 관찰성은 단순한 모니터링을 넘어 시스템의 건강도를 종합적으로 이해하고 선제적으로 대응하는 핵심 역량입니다. Amazon EKS와 같은 컨테이너 오케스트레이션 플랫폼에서는 수백 개의 마이크로서비스가 동적으로 생성되고 소멸하며, 복잡한 네트워크 통신이 이루어지기 때문에 전통적인 모니터링 방식으로는 시스템 상태를 파악하기 어렵습니다. 이러한 환경에서 효과적인 관찰성을 구축하기 위해서는 로그, 메트릭, 추적이라는 세 가지 기둥을 통합적으로 활용하고, GitOps 기반의 선언적 운영 방식을 적용하여 변경 사항을 체계적으로 관리해야 합니다.
 
-## 📚 주요 문서
+특히 Kubernetes 클러스터에서는 네트워크 가시성이 매우 중요합니다. Pod 간의 통신 흐름을 실시간으로 추적하고, 네트워크 정책이 올바르게 적용되고 있는지 확인하며, 예상치 못한 트래픽 패턴을 조기에 발견할 수 있어야 합니다. Hubble과 같은 도구를 활용하면 Cilium 기반의 네트워크 계층에서 모든 통신을 관찰하고, 서비스 메시 수준의 가시성을 확보할 수 있습니다. 이를 통해 보안 위협을 탐지하고, 네트워크 병목 지점을 식별하며, 컴플라이언스 요구사항을 충족시킬 수 있습니다.
 
-### 네트워크 관찰성
-- **[Gaining Network Visibility: Implementing Hubble for EKS Observability](./node-monitoring-agent.md)**
-  - Hubble을 통한 네트워크 트래픽 가시성 확보
-  - 서비스 메시 관찰성 구현
-  - 네트워크 정책 및 보안 모니터링
-  - 네트워크 이상 탐지
+운영의 자동화와 일관성을 위해서는 GitOps 방식의 접근이 필수적입니다. 모든 클러스터 구성을 Git 저장소에 코드로 관리하고, Flux CD나 ArgoCD 같은 GitOps 도구를 통해 선언적 상태를 자동으로 동기화함으로써 수동 작업으로 인한 오류를 방지하고 변경 이력을 완벽하게 추적할 수 있습니다. 이러한 방식은 재현성과 감사 추적을 보장하며, 인프라를 코드로 관리하는 Infrastructure as Code의 이점을 극대화합니다. 또한 노드 수준에서의 모니터링도 중요합니다. 각 워커 노드의 CPU, 메모리, 디스크, 네트워크 사용량을 지속적으로 수집하고, 노드의 건강도를 평가하여 문제가 발생하기 전에 선제적으로 대응할 수 있어야 합니다.
 
-### 클러스터 운영 모니터링
-- **[GitOps-Based Cluster Operation and Monitoring](./gitops-cluster-operation.md)**
-  - GitOps 기반 클러스터 구성 관리
-  - 선언적 인프라 운영
-  - 변경사항 자동 동기화
-  - 감사 추적 및 버전 관리
+효과적인 관찰성 구축을 위해서는 SLI(Service Level Indicators)와 SLO(Service Level Objectives)를 명확히 정의하고, 이를 기반으로 의미 있는 메트릭에 집중해야 합니다. 모든 것을 모니터링하려는 시도는 오히려 노이즈를 증가시키고 중요한 신호를 놓치게 만들 수 있습니다. Prometheus를 통해 시계열 메트릭을 수집하고 Grafana로 시각화하며, Jaeger를 활용해 분산 추적을 구현함으로써 시스템의 전체적인 동작을 이해하고 성능을 최적화할 수 있습니다. 이 섹션에서는 이러한 도구들을 실제 환경에 적용하는 방법과 모범 사례를 다룹니다.
 
-### 노드 모니터링
-- **[Node Monitoring Agent Configuration](./node-monitoring-agent.md)**
-  - 각 노드의 상태 모니터링
-  - 시스템 메트릭 수집
-  - 노드 건강도 관리
-  - 문제 조기 탐지
+## 문서 목록
 
-## 🎯 학습 목표
-
-이 섹션을 통해 다음을 학습할 수 있습니다:
-
-- EKS 클러스터의 종합적인 관찰성 구축 방법
-- 네트워크 트래픽 및 서비스 간 통신 모니터링
-- 실시간 클러스터 상태 추적
-- 노드 및 워크로드 건강도 관리
-- 이상 징후 조기 탐지 및 알림
-- 성능 메트릭 분석 및 개선 방안 도출
-
-## 🏗️ 아키텍처 패턴
-
-```mermaid
-graph TB
-    subgraph EKS["Amazon EKS Cluster"]
-        CP[Control Plane]
-        Nodes["Worker Nodes"]
-        Pods["Pods & Workloads"]
-    end
-    
-    subgraph Observability["Observability Stack"]
-        Hubble["Hubble Network Observatory"]
-        Monitoring["Monitoring Agent"]
-        Collector["Metrics Collector"]
-    end
-    
-    subgraph GitOps["GitOps Controller"]
-        FluxCD["Flux CD"]
-        ArgoCD["ArgoCD"]
-    end
-    
-    subgraph Storage["Storage & Visualization"]
-        TimeSeries["Time Series DB"]
-        Dashboard["Grafana Dashboards"]
-    end
-    
-    Pods --> Hubble
-    Nodes --> Monitoring
-    Monitoring --> Collector
-    Hubble --> Collector
-    Collector --> TimeSeries
-    TimeSeries --> Dashboard
-    FluxCD <--> CP
-    ArgoCD <--> CP
-    
-    style EKS fill:#ff9900
-    style Observability fill:#4286f4
-    style GitOps fill:#34a853
-    style Storage fill:#ea4335
-```
-
-## 🔧 주요 기술 및 도구
-
-| 기술 | 설명 | 기능 |
-|------|------|------|
-| **Hubble** | Cilium 기반 네트워크 관찰성 | 네트워크 트래픽 시각화 |
-| **Prometheus** | 메트릭 수집 및 저장 | 시계열 데이터 관리 |
-| **Grafana** | 메트릭 시각화 | 대시보드 및 알림 |
-| **Jaeger** | 분산 추적 시스템 | 요청 흐름 추적 |
-| **Flux CD / ArgoCD** | GitOps 도구 | 선언적 구성 관리 |
-| **Node Exporter** | 노드 메트릭 수집 | 시스템 상태 모니터링 |
-
-## 💡 핵심 개념
-
-### 관찰성의 3가지 기둥
-
-#### 1. 로그 (Logs)
-- 이벤트 기반 기록
-- 트러블슈팅 및 디버깅
-- 감사 추적
-
-#### 2. 메트릭 (Metrics)
-- 시계열 수치 데이터
-- 성능 모니터링
-- 용량 계획
-
-#### 3. 추적 (Traces)
-- 요청 흐름 추적
-- 분산 시스템 이해
-- 병목 지점 파악
-
-### 네트워크 관찰성의 중요성
-- **보안**: 의외의 트래픽 패턴 탐지
-- **성능**: 네트워크 병목 지점 식별
-- **컴플라이언스**: 통신 감시 및 기록
-
-### GitOps의 장점
-- **버전 관리**: 모든 구성을 코드로 관리
-- **재현성**: 언제든 동일한 상태 복구 가능
-- **감사**: 변경 이력 추적
-- **자동화**: 선언적 상태 자동 동기화
-
-## 📊 모니터링 기본 설정
-
-### SLI/SLO 정의
-- **SLI (Service Level Indicator)**: 측정 가능한 서비스 지표
-  - API 응답 시간
-  - 에러율
-  - 처리량
-
-- **SLO (Service Level Objective)**: 목표 수준
-  - 99.9% 가용성
-  - 95% 이하 응답 시간
-
-### 알림 규칙
-- **Critical**: 즉시 대응 필요
-- **Warning**: 모니터링 및 계획된 대응
-- **Info**: 정보 제공
-
-## 🔗 관련 카테고리
-
-- [Infrastructure Optimization](/docs/performance-networking) - 네트워크 성능 메트릭
-- [Agentic AI Platform](/docs/genai-aiml) - AI/ML 워크로드 모니터링
-- [Security & Governance](/docs/security-compliance) - 보안 모니터링
-
----
-
-:::tip 팁
-효과적한 모니터링을 위해서는 SLI(Service Level Indicators)와 SLO(Service Level Objectives)를 먼저 정의하는 것이 중요합니다. 이를 통해 의미 있는 메트릭에 집중할 수 있습니다.
-:::
-
-:::info 추천 학습 경로
-1. 기본 메트릭 수집 및 시각화 (Prometheus + Grafana)
-2. 네트워크 관찰성 (Hubble)
-3. 분산 추적 (Jaeger)
-4. GitOps 기반 구성 관리
-:::
-
-:::warning 주의
-모니터링은 비용이 소요됩니다. 필요한 메트릭에만 집중하고, 로그 저장 기간을 적절히 설정하여 스토리지 비용을 관리하세요.
-:::
+- [Gaining Network Visibility: Implementing Hubble for EKS Observability](./node-monitoring-agent.md) - Hubble을 통한 네트워크 트래픽 가시성 확보 및 서비스 메시 관찰성 구현
+- [GitOps-Based Cluster Operation and Monitoring](./gitops-cluster-operation.md) - GitOps 기반 클러스터 구성 관리 및 선언적 인프라 운영
+- [Node Monitoring Agent Configuration](./node-monitoring-agent.md) - 노드 상태 모니터링 및 시스템 메트릭 수집

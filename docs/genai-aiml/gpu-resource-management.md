@@ -720,7 +720,7 @@ GPU 클러스터의 동적 리소스 관리는 GenAI 서비스의 성능과 비�
 
 ### 다음 단계
 
-- [GenAI 플랫폼 아키텍처](./genai-platform.md) - 전체 플랫폼 구성
+- [Agentic AI 플랫폼 아키텍처](./agentic-platform-architecture.md) - 전체 플랫폼 구성
 - [Agentic AI 인프라](./agentic-ai-challenges.md) - AI 에이전트 운영 전략
 
 ---

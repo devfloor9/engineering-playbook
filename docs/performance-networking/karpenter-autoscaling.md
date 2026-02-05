@@ -1,43 +1,42 @@
 ---
 title: "Karpenter를 활용한 초고속 오토스케일링"
 sidebar_label: "Karpenter 오토스케일링"
-description: "Amazon EKS에서 Karpenter로 10초 미만의 오토스케일링을 달성하는 방법. 고해상도 메트릭, HPA 구성, 다중 리전 전략을 포함한 완벽한 가이드"
-tags: [eks, karpenter, autoscaling, performance, spot-instances]
+description: "Amazon EKS에서 Karpenter와 고해상도 메트릭으로 10초 미만의 오토스케일링을 달성하는 방법. CloudWatch와 Prometheus 아키텍처 비교, HPA 구성, 프로덕션 패턴 포함"
+tags: [eks, karpenter, autoscaling, performance, cloudwatch, prometheus, spot-instances]
 category: "performance-networking"
 date: 2025-06-30
 authors: [devfloor9]
 sidebar_position: 4
 ---
 
-# Ultra-Fast EKS Autoscaling with Karpenter
+# Karpenter를 활용한 초고속 오토스케일링
 
-> 📅 **작성일**: 2025-06-30 | ⏱️ **읽는 시간**: 약 3분
+> 📅 **작성일**: 2025-06-30 | ⏱️ **읽는 시간**: 약 10분
 
+## 개요
 
-## The Sub-10 Second Scaling Challenge
+현대 클라우드 네이티브 애플리케이션에서 10초와 3분의 차이는 수천 개의 실패한 요청, 저하된 사용자 경험, 수익 손실을 의미할 수 있습니다. 이 글에서는 Karpenter의 혁신적인 노드 프로비저닝 접근 방식과 전략적으로 구현된 고해상도 메트릭을 결합하여 Amazon EKS에서 일관된 10초 미만의 오토스케일링을 달성하는 방법을 제시합니다.
 
-In modern cloud-native architectures, the difference between 10 seconds and 3 minutes can mean thousands of failed requests, degraded user experiences, and lost revenue. This article demonstrates how to achieve consistent sub-10 second autoscaling in Amazon EKS using Karpenter's revolutionary approach to node provisioning, combined with strategically implemented high-resolution metrics.
+글로벌 규모의 EKS 환경(3개 리전, 28개 클러스터, 15,000개 이상의 Pod)에서 스케일링 지연 시간을 180초 이상에서 10초 미만으로 단축한 프로덕션 검증 아키텍처를 탐구합니다.
 
-We'll explore a production-tested architecture that reduced scaling latency from 180+ seconds to under 10 seconds while managing 15,000+ pods across multiple regions.
+## 기존 오토스케일링의 문제점
 
-## Why Traditional Autoscaling Fails at Speed
-
-Before diving into the solution, let's understand why conventional approaches fail:
+솔루션으로 들어가기 전에 기존 접근 방식이 실패하는 이유를 이해해야 합니다:
 
 ```mermaid
 graph LR
-    subgraph "Traditional Scaling Timeline (3+ minutes)"
-        T1[Traffic Spike<br/>T+0s] --> T2[CPU Metrics Update<br/>T+60s]
-        T2 --> T3[HPA Decision<br/>T+90s]
-        T3 --> T4[ASG Scaling<br/>T+120s]
-        T4 --> T5[Node Ready<br/>T+180s]
-        T5 --> T6[Pod Scheduled<br/>T+210s]
+    subgraph "기존 스케일링 타임라인 (3분 이상)"
+        T1[트래픽 급증<br/>T+0s] --> T2[CPU 메트릭 업데이트<br/>T+60s]
+        T2 --> T3[HPA 결정<br/>T+90s]
+        T3 --> T4[ASG 스케일링<br/>T+120s]
+        T4 --> T5[노드 준비<br/>T+180s]
+        T5 --> T6[Pod 스케줄링<br/>T+210s]
     end
 
-    subgraph "User Impact"
-        I1[Timeouts Start<br/>T+5s]
-        I2[Errors Spike<br/>T+30s]
-        I3[Service Degraded<br/>T+60s]
+    subgraph "사용자 영향"
+        I1[타임아웃 시작<br/>T+5s]
+        I2[에러 급증<br/>T+30s]
+        I3[서비스 저하<br/>T+60s]
     end
 
     T1 -.-> I1
@@ -50,26 +49,33 @@ graph LR
 
 ```
 
-The fundamental issue: by the time CPU metrics trigger scaling, it's already too late.
+근본적인 문제: CPU 메트릭이 스케일링을 트리거할 때는 이미 늦었습니다.
 
-## The Karpenter Revolution: Direct-to-Metal Provisioning
+**현재 환경의 도전 과제:**
 
-Karpenter eliminates the Auto Scaling Group (ASG) abstraction layer, provisioning EC2 instances directly based on pending pod requirements:
+- **글로벌 규모**: 3개 리전, 28개 EKS 클러스터, 15,000개 Pod 운영
+- **대용량 트래픽**: 일일 773.4K 리퀘스트 처리
+- **지연 시간 문제**: HPA + Karpenter 조합으로 1-3분의 스케일링 지연 발생
+- **메트릭 수집 지연**: CloudWatch 메트릭의 1-3분 지연으로 실시간 대응 불가
+
+## Karpenter 혁명: Direct-to-Metal 프로비저닝
+
+Karpenter는 Auto Scaling Group(ASG) 추상화 레이어를 제거하고 대기 중인 Pod 요구 사항을 기반으로 EC2 인스턴스를 직접 프로비저닝합니다:
 
 ```mermaid
 graph TB
-    subgraph "Karpenter Architecture"
-        PP[Pending Pods<br/>Detected]
-        KL[Karpenter Logic]
+    subgraph "Karpenter 아키텍처"
+        PP[대기 중인 Pod<br/>감지됨]
+        KL[Karpenter 로직]
         EC2[EC2 Fleet API]
 
-        PP -->|Milliseconds| KL
+        PP -->|밀리초| KL
 
-        subgraph "Intelligent Decision Engine"
-            IS[Instance Selection]
-            SP[Spot/OD Mix]
-            AZ[AZ Distribution]
-            CP[Capacity Planning]
+        subgraph "지능형 의사결정 엔진"
+            IS[인스턴스 선택]
+            SP[Spot/OD 믹스]
+            AZ[AZ 분산]
+            CP[용량 계획]
         end
 
         KL --> IS
@@ -83,18 +89,18 @@ graph TB
         CP --> EC2
     end
 
-    subgraph "Traditional ASG"
+    subgraph "기존 ASG"
         ASG[Auto Scaling Group]
         LT[Launch Template]
-        ASGL[ASG Logic]
+        ASGL[ASG 로직]
 
         ASG --> LT
         LT --> ASGL
-        ASGL -->|2-3 min| EC2_OLD[EC2 API]
+        ASGL -->|2-3분| EC2_OLD[EC2 API]
     end
 
-    EC2 -->|30-45s| NODE[Node Ready]
-    EC2_OLD -->|120-180s| NODE_OLD[Node Ready]
+    EC2 -->|30-45초| NODE[노드 준비]
+    EC2_OLD -->|120-180초| NODE_OLD[노드 준비]
 
     style KL fill:#ff9900,stroke:#232f3e,stroke-width:3px
     style EC2 fill:#146eb4,stroke:#232f3e,stroke-width:2px
@@ -102,209 +108,43 @@ graph TB
 
 ```
 
-## The 10-Second Architecture: Layer by Layer
+## 고속 메트릭 아키텍처: 두 가지 접근 방식
 
-Achieving sub-10 second scaling requires optimization at every layer:
+10초 미만 스케일링을 달성하려면 빠른 감지 시스템이 필요합니다. 두 가지 검증된 아키텍처를 비교합니다.
 
-```mermaid
-graph TB
-    subgraph "Layer 1: Ultra-Fast Metrics [1-2s]"
-        ALB[ALB Metrics]
-        APP[App Metrics]
-        PROM[Prometheus<br/>Scrape: 1s]
+### 방식 1: CloudWatch High-Resolution Integration
 
-        ALB -->|1s| PROM
-        APP -->|1s| PROM
-    end
+AWS 네이티브 환경에서 CloudWatch의 고해상도 메트릭을 활용합니다.
 
-    subgraph "Layer 2: Instant Decisions [2-3s]"
-        MA[Metrics API]
-        HPA[HPA Controller<br/>Sync: 5s]
-        VPA[VPA Recommender]
-
-        PROM --> MA
-        MA --> HPA
-        MA --> VPA
-    end
-
-    subgraph "Layer 3: Rapid Provisioning [30-45s]"
-        KARP[Karpenter<br/>Provisioner]
-        SPOT[Spot Fleet]
-        OD[On-Demand]
-
-        HPA --> KARP
-        KARP --> SPOT
-        KARP --> OD
-    end
-
-    subgraph "Layer 4: Instant Scheduling [2-5s]"
-        SCHED[Scheduler]
-        NODE[Available Nodes]
-        POD[New Pods]
-
-        SPOT --> NODE
-        OD --> NODE
-        NODE --> SCHED
-        SCHED --> POD
-    end
-
-    subgraph "Total Timeline"
-        TOTAL[Total: 35-55s<br/>P95: 10초 미만 for pods<br/>P95: 60초 미만 for nodes]
-    end
-
-    style KARP fill:#ff9900,stroke:#232f3e,stroke-width:3px
-    style HPA fill:#146eb4,stroke:#232f3e,stroke-width:2px
-    style TOTAL fill:#48C9B0,stroke:#232f3e,stroke-width:3px
-
-```
-
-## Critical Configuration: The Karpenter Provisioner
-
-The key to sub-60 second node provisioning lies in optimal Karpenter configuration:
-
-```mermaid
-graph LR
-    subgraph "Provisioner Strategy"
-        subgraph "Instance Selection"
-            IT[Instance Types<br/>c6i.xlarge → c6i.8xlarge<br/>c7i.xlarge → c7i.8xlarge<br/>c6a.xlarge → c6a.8xlarge]
-            FLEX[Flexibility = Speed<br/>15+ instance types]
-        end
-
-        subgraph "Capacity Mix"
-            SPOT[Spot: 70-80%<br/>Diverse instance pools]
-            OD[On-Demand: 20-30%<br/>Critical workloads]
-            INT[Interruption Handling<br/>30s grace period]
-        end
-
-        subgraph "Speed Optimizations"
-            TTL[ttlSecondsAfterEmpty: 30<br/>Fast deprovisioning]
-            CONS[Consolidation: true<br/>Continuous optimization]
-            LIMITS[Soft limits only<br/>No hard constraints]
-        end
-    end
-
-    IT --> RESULT[45-60s provisioning]
-    SPOT --> RESULT
-    TTL --> RESULT
-
-    style RESULT fill:#48C9B0,stroke:#232f3e,stroke-width:3px
-
-```
-
-### Karpenter Provisioner YAML
-
-```yaml
-apiVersion: karpenter.sh/v1alpha5
-kind: Provisioner
-metadata:
-  name: fast-scaling
-spec:
-  # Speed-optimized configuration
-  ttlSecondsAfterEmpty: 30
-  ttlSecondsUntilExpired: 604800  # 7 days
-
-  # Maximum flexibility for speed
-  requirements:
-    - key: karpenter.sh/capacity-type
-      operator: In
-      values: ["spot", "on-demand"]
-    - key: kubernetes.io/arch
-      operator: In
-      values: ["amd64"]
-    - key: node.kubernetes.io/instance-type
-      operator: In
-      values:
-        # Compute optimized - primary choice
-        - c6i.xlarge
-        - c6i.2xlarge
-        - c6i.4xlarge
-        - c6i.8xlarge
-        - c7i.xlarge
-        - c7i.2xlarge
-        - c7i.4xlarge
-        - c7i.8xlarge
-        # AMD alternatives - better availability
-        - c6a.xlarge
-        - c6a.2xlarge
-        - c6a.4xlarge
-        - c6a.8xlarge
-        # Memory optimized - for specific workloads
-        - m6i.xlarge
-        - m6i.2xlarge
-        - m6i.4xlarge
-
-  # Ensure fast provisioning
-  limits:
-    resources:
-      cpu: 100000  # Soft limit only
-      memory: 400000Gi
-
-  # Consolidation for efficiency
-  consolidation:
-    enabled: true
-
-  # AWS-specific optimizations
-  providerRef:
-    name: fast-nodepool
----
-apiVersion: karpenter.k8s.aws/v1alpha1
-kind: AWSNodeInstanceProfile
-metadata:
-  name: fast-nodepool
-spec:
-  subnetSelector:
-    karpenter.sh/discovery: "${CLUSTER_NAME}"
-  securityGroupSelector:
-    karpenter.sh/discovery: "${CLUSTER_NAME}"
-
-  # Speed optimizations
-  userData: |
-    #!/bin/bash
-    # Optimize node startup time
-    /etc/eks/bootstrap.sh ${CLUSTER_NAME} \
-      --b64-cluster-ca ${B64_CLUSTER_CA} \
-      --apiserver-endpoint ${API_SERVER_URL} \
-      --container-runtime containerd \
-      --node-labels=karpenter.sh/fast-scaling=true \
-      --max-pods=110
-
-    # Pre-pull critical images
-    ctr -n k8s.io images pull k8s.gcr.io/pause:3.9 &
-    ctr -n k8s.io images pull public.ecr.aws/eks-distro/kubernetes/pause:3.9 &
-
-```
-
-## High-Resolution Metrics: The Sensory System
-
-Fast scaling requires fast sensing. Here's how to implement sub-5 second metric collection without breaking the bank:
+#### 주요 구성 요소
 
 ```mermaid
 graph TB
-    subgraph "Metric Sources"
-        subgraph "Critical (1s)"
-            RPS[Requests/sec]
-            LAT[P99 Latency]
-            ERR[Error Rate]
-            QUEUE[Queue Depth]
+    subgraph "메트릭 소스"
+        subgraph "중요 메트릭 (1초)"
+            RPS[초당 요청 수]
+            LAT[P99 지연시간]
+            ERR[에러율]
+            QUEUE[큐 깊이]
         end
 
-        subgraph "Standard (60s)"
-            CPU[CPU Usage]
-            MEM[Memory Usage]
-            DISK[Disk I/O]
-            NET[Network I/O]
+        subgraph "표준 메트릭 (60초)"
+            CPU[CPU 사용량]
+            MEM[메모리 사용량]
+            DISK[디스크 I/O]
+            NET[네트워크 I/O]
         end
     end
 
-    subgraph "Collection Pipeline"
-        AGENT[ADOT Collector<br/>Batch: 1s]
-        EMF[EMF Format<br/>Compression]
+    subgraph "수집 파이프라인"
+        AGENT[ADOT Collector<br/>배치: 1초]
+        EMF[EMF 포맷<br/>압축]
         CW[CloudWatch API<br/>PutMetricData]
     end
 
-    subgraph "Decision Layer"
+    subgraph "의사결정 레이어"
         API[Custom Metrics API]
-        CACHE[In-Memory Cache<br/>TTL: 5s]
+        CACHE[인메모리 캐시<br/>TTL: 5초]
         HPA[HPA Controller]
     end
 
@@ -329,22 +169,274 @@ graph TB
 
 ```
 
-### Cost-Optimized Metric Strategy
+#### 스케일링 타임라인 (15초)
 
 ```mermaid
-pie title "Monthly CloudWatch Costs per Cluster"
-    "High-Res Metrics (10)" : 3
-    "Standard Metrics (100)" : 10
-    "API Calls" : 5
-    "Total per Cluster" : 18
+timeline
+    title CloudWatch 기반 오토스케일링 타임라인
+
+    T+0s  : 애플리케이션에서 메트릭 발생
+    T+1s  : CloudWatch로 비동기 배치 전송
+    T+2s  : CloudWatch 메트릭 처리 완료
+    T+5s  : KEDA 폴링 사이클 실행
+    T+6s  : KEDA가 스케일링 결정
+    T+8s  : HPA 업데이트 및 Pod 생성 요청
+    T+12s : Karpenter 노드 프로비저닝
+    T+14s : Pod 스케줄링 완료
+```
+
+**장점:**
+- ✅ **빠른 메트릭 수집**: 1-2초의 낮은 지연시간
+- ✅ **간단한 설정**: AWS 네이티브 통합
+- ✅ **관리 오버헤드 없음**: 별도 인프라 관리 불필요
+
+**단점:**
+- ❌ **제한된 처리량**: 계정당 1,000 TPS
+- ❌ **Pod 한계**: 클러스터당 최대 5,000개
+- ❌ **높은 메트릭 비용**: AWS CloudWatch 메트릭 요금
+
+### 방식 2: ADOT + Prometheus 기반 아키텍처
+
+AWS Distro for OpenTelemetry(ADOT)와 Prometheus를 결합한 오픈소스 기반 고성능 파이프라인입니다.
+
+#### 주요 구성 요소
+
+- **ADOT Collector**: DaemonSet과 Sidecar 하이브리드 배포
+- **Prometheus**: HA 구성 및 Remote Storage 연동
+- **Thanos Query Layer**: 멀티 클러스터 글로벌 뷰 제공
+- **KEDA Prometheus Scaler**: 2초 간격의 고속 폴링
+- **Grafana Mimir**: 장기 저장 및 고속 쿼리 엔진
+
+#### 스케일링 타임라인 (70초)
+
+```mermaid
+timeline
+    title ADOT + Prometheus 오토스케일링 타임라인 (최적화된 환경)
+
+    T+0s   : 애플리케이션에서 메트릭 발생
+    T+15s  : ADOT 수집 (15초 최적화된 스크레이프)
+    T+16s  : Prometheus 저장 및 인덱싱 완료
+    T+25s  : KEDA 폴링 실행 (10초 간격 최적화)
+    T+26s  : 스케일링 결정 (P95 메트릭 기반)
+    T+41s  : HPA 업데이트 (15초 동기화 주기)
+    T+46s  : Pod 생성 요청 시작
+    T+51s  : 이미지 풀링 및 컨테이너 시작
+    T+66s  : Pod Ready 상태 및 스케일링 완료
+```
+
+**장점:**
+- ✅ **높은 처리량**: 100,000+ TPS 지원
+- ✅ **확장성**: 클러스터당 20,000+ Pod 지원
+- ✅ **낮은 메트릭 비용**: 스토리지 비용만 발생 (Self-managed)
+- ✅ **완전한 제어**: 설정 및 최적화 자유도
+
+**단점:**
+- ❌ **복잡한 설정**: 추가 컴포넌트 관리 필요
+- ❌ **높은 운영 복잡성**: HA 구성, 백업/복구, 성능 튜닝 필요
+- ❌ **전문 인력 필요**: Prometheus 운영 경험 필수
+
+### 비용 최적화 메트릭 전략
+
+```mermaid
+pie title "클러스터당 월별 CloudWatch 비용"
+    "고해상도 메트릭 (10개)" : 3
+    "표준 메트릭 (100개)" : 10
+    "API 호출" : 5
+    "클러스터당 총액" : 18
 
 ```
 
-With 28 clusters: ~$500/month for comprehensive monitoring vs. $30,000+ for everything at high resolution.
+28개 클러스터 기준: 종합 모니터링에 월 ~$500 vs 모든 메트릭을 고해상도로 수집 시 $30,000+
 
-## Real-Time Scaling Workflow
+### 권장 사용 사례
 
-Here's how all components work together to achieve sub-10 second scaling:
+**CloudWatch High Resolution Metric이 적합한 경우:**
+- 소규모 애플리케이션 (Pod 5,000개 이하)
+- 간단한 모니터링 요구사항
+- AWS 네이티브 솔루션 선호
+- 빠른 구축과 안정적인 운영 우선
+
+**ADOT + Prometheus가 적합한 경우:**
+- 대규모 클러스터 (Pod 20,000개 이상)
+- 높은 메트릭 처리량 요구
+- 세밀한 모니터링 및 커스터마이징 필요
+- 최고 수준의 성능과 확장성 필요
+
+## 10초 아키텍처: 레이어별 최적화
+
+10초 미만 스케일링을 달성하려면 모든 레이어에서 최적화가 필요합니다:
+
+```mermaid
+graph TB
+    subgraph "레이어 1: 초고속 메트릭 [1-2초]"
+        ALB[ALB 메트릭]
+        APP[앱 메트릭]
+        PROM[Prometheus<br/>스크레이프: 1초]
+
+        ALB -->|1초| PROM
+        APP -->|1초| PROM
+    end
+
+    subgraph "레이어 2: 즉각 의사결정 [2-3초]"
+        MA[Metrics API]
+        HPA[HPA Controller<br/>동기화: 5초]
+        VPA[VPA Recommender]
+
+        PROM --> MA
+        MA --> HPA
+        MA --> VPA
+    end
+
+    subgraph "레이어 3: 빠른 프로비저닝 [30-45초]"
+        KARP[Karpenter<br/>Provisioner]
+        SPOT[Spot Fleet]
+        OD[On-Demand]
+
+        HPA --> KARP
+        KARP --> SPOT
+        KARP --> OD
+    end
+
+    subgraph "레이어 4: 즉시 스케줄링 [2-5초]"
+        SCHED[Scheduler]
+        NODE[사용 가능한 노드]
+        POD[새 Pod]
+
+        SPOT --> NODE
+        OD --> NODE
+        NODE --> SCHED
+        SCHED --> POD
+    end
+
+    subgraph "전체 타임라인"
+        TOTAL[총 시간: 35-55초<br/>P95: Pod 10초 미만<br/>P95: 노드 60초 미만]
+    end
+
+    style KARP fill:#ff9900,stroke:#232f3e,stroke-width:3px
+    style HPA fill:#146eb4,stroke:#232f3e,stroke-width:2px
+    style TOTAL fill:#48C9B0,stroke:#232f3e,stroke-width:3px
+
+```
+
+## Karpenter 핵심 설정
+
+60초 미만 노드 프로비저닝의 핵심은 최적의 Karpenter 구성에 있습니다:
+
+```mermaid
+graph LR
+    subgraph "Provisioner 전략"
+        subgraph "인스턴스 선택"
+            IT[인스턴스 유형<br/>c6i.xlarge → c6i.8xlarge<br/>c7i.xlarge → c7i.8xlarge<br/>c6a.xlarge → c6a.8xlarge]
+            FLEX[유연성 = 속도<br/>15+ 인스턴스 유형]
+        end
+
+        subgraph "용량 믹스"
+            SPOT[Spot: 70-80%<br/>다양한 인스턴스 풀]
+            OD[On-Demand: 20-30%<br/>중요 워크로드]
+            INT[중단 처리<br/>30초 유예 기간]
+        end
+
+        subgraph "속도 최적화"
+            TTL[ttlSecondsAfterEmpty: 30<br/>빠른 디프로비저닝]
+            CONS[Consolidation: true<br/>지속적 최적화]
+            LIMITS[소프트 제한만<br/>하드 제약 없음]
+        end
+    end
+
+    IT --> RESULT[45-60초 프로비저닝]
+    SPOT --> RESULT
+    TTL --> RESULT
+
+    style RESULT fill:#48C9B0,stroke:#232f3e,stroke-width:3px
+
+```
+
+### Karpenter Provisioner YAML
+
+```yaml
+apiVersion: karpenter.sh/v1alpha5
+kind: Provisioner
+metadata:
+  name: fast-scaling
+spec:
+  # 속도 최적화 구성
+  ttlSecondsAfterEmpty: 30
+  ttlSecondsUntilExpired: 604800  # 7일
+
+  # 속도를 위한 최대 유연성
+  requirements:
+    - key: karpenter.sh/capacity-type
+      operator: In
+      values: ["spot", "on-demand"]
+    - key: kubernetes.io/arch
+      operator: In
+      values: ["amd64"]
+    - key: node.kubernetes.io/instance-type
+      operator: In
+      values:
+        # 컴퓨팅 최적화 - 기본 선택
+        - c6i.xlarge
+        - c6i.2xlarge
+        - c6i.4xlarge
+        - c6i.8xlarge
+        - c7i.xlarge
+        - c7i.2xlarge
+        - c7i.4xlarge
+        - c7i.8xlarge
+        # AMD 대안 - 더 나은 가용성
+        - c6a.xlarge
+        - c6a.2xlarge
+        - c6a.4xlarge
+        - c6a.8xlarge
+        # 메모리 최적화 - 특정 워크로드용
+        - m6i.xlarge
+        - m6i.2xlarge
+        - m6i.4xlarge
+
+  # 빠른 프로비저닝 보장
+  limits:
+    resources:
+      cpu: 100000  # 소프트 제한만
+      memory: 400000Gi
+
+  # 효율성을 위한 통합
+  consolidation:
+    enabled: true
+
+  # AWS 특화 최적화
+  providerRef:
+    name: fast-nodepool
+---
+apiVersion: karpenter.k8s.aws/v1alpha1
+kind: AWSNodeInstanceProfile
+metadata:
+  name: fast-nodepool
+spec:
+  subnetSelector:
+    karpenter.sh/discovery: "${CLUSTER_NAME}"
+  securityGroupSelector:
+    karpenter.sh/discovery: "${CLUSTER_NAME}"
+
+  # 속도 최적화
+  userData: |
+    #!/bin/bash
+    # 노드 시작 시간 최적화
+    /etc/eks/bootstrap.sh ${CLUSTER_NAME} \
+      --b64-cluster-ca ${B64_CLUSTER_CA} \
+      --apiserver-endpoint ${API_SERVER_URL} \
+      --container-runtime containerd \
+      --node-labels=karpenter.sh/fast-scaling=true \
+      --max-pods=110
+
+    # 중요 이미지 사전 풀
+    ctr -n k8s.io images pull k8s.gcr.io/pause:3.9 &
+    ctr -n k8s.io images pull public.ecr.aws/eks-distro/kubernetes/pause:3.9 &
+
+```
+
+## 실시간 스케일링 워크플로
+
+모든 구성 요소가 함께 작동하여 10초 미만 스케일링을 달성하는 방법:
 
 ```mermaid
 sequenceDiagram
@@ -357,35 +449,35 @@ sequenceDiagram
     participant EC2
     participant Node
 
-    User->>ALB: Traffic spike begins
-    ALB->>Pod: Forward requests
-    Pod->>Pod: Queue building
+    User->>ALB: 트래픽 급증 시작
+    ALB->>Pod: 요청 전달
+    Pod->>Pod: 큐 증가
 
-    Note over Metrics: 1s collection interval
-    Pod->>Metrics: Queue depth > threshold
-    Metrics->>HPA: Metric update (2s)
+    Note over Metrics: 1초 수집 간격
+    Pod->>Metrics: 큐 깊이 > 임계값
+    Metrics->>HPA: 메트릭 업데이트 (2초)
 
-    HPA->>HPA: Calculate new replicas
-    HPA->>Pod: Create new pods
+    HPA->>HPA: 새 레플리카 계산
+    HPA->>Pod: 새 Pod 생성
 
-    Note over Karpenter: Detect unschedulable pods
-    Pod->>Karpenter: Pending pods signal
-    Karpenter->>Karpenter: Select optimal instances<br/>(200ms)
+    Note over Karpenter: 스케줄 불가능한 Pod 감지
+    Pod->>Karpenter: 대기 중인 Pod 신호
+    Karpenter->>Karpenter: 최적 인스턴스 선택<br/>(200ms)
 
-    Karpenter->>EC2: Launch instances<br/>(Fleet API)
-    EC2->>Node: Provision nodes<br/>(30-45s)
+    Karpenter->>EC2: 인스턴스 시작<br/>(Fleet API)
+    EC2->>Node: 노드 프로비저닝<br/>(30-45초)
 
-    Node->>Node: Join cluster<br/>(10-15s)
-    Node->>Pod: Schedule pods
-    Pod->>ALB: Ready to serve
+    Node->>Node: 클러스터 조인<br/>(10-15초)
+    Node->>Pod: Pod 스케줄링
+    Pod->>ALB: 서비스 준비
 
-    Note over User,ALB: Total time: 60초 미만 for new capacity
+    Note over User,ALB: 총 시간: 60초 미만 (새 용량)
 
 ```
 
-## HPA Configuration for Aggressive Scaling
+## 공격적 스케일링을 위한 HPA 구성
 
-The HorizontalPodAutoscaler must be configured for instant response:
+HorizontalPodAutoscaler는 즉각적인 응답을 위해 구성되어야 합니다:
 
 ```yaml
 apiVersion: autoscaling/v2
@@ -401,7 +493,7 @@ spec:
   maxReplicas: 1000
 
   metrics:
-  # Primary metric - Queue depth
+  # 기본 메트릭 - 큐 깊이
   - type: External
     external:
       metric:
@@ -413,7 +505,7 @@ spec:
         type: AverageValue
         averageValue: "10"
 
-  # Secondary metric - Request rate
+  # 보조 메트릭 - 요청 속도
   - type: External
     external:
       metric:
@@ -427,7 +519,7 @@ spec:
 
   behavior:
     scaleUp:
-      stabilizationWindowSeconds: 0  # No delay!
+      stabilizationWindowSeconds: 0  # 지연 없음!
       policies:
       - type: Percent
         value: 100
@@ -437,7 +529,7 @@ spec:
         periodSeconds: 10
       selectPolicy: Max
     scaleDown:
-      stabilizationWindowSeconds: 300  # 5 min cooldown
+      stabilizationWindowSeconds: 300  # 5분 쿨다운
       policies:
       - type: Percent
         value: 10
@@ -445,27 +537,27 @@ spec:
 
 ```
 
-## When KEDA Makes Sense: Event-Driven Scenarios
+## KEDA 활용 시점: 이벤트 드리븐 시나리오
 
-While Karpenter handles infrastructure scaling, KEDA excels in specific event-driven scenarios:
+Karpenter가 인프라 스케일링을 처리하는 반면, KEDA는 특정 이벤트 드리븐 시나리오에서 뛰어납니다:
 
 ```mermaid
 graph LR
-    subgraph "Use Karpenter + HPA"
-        WEB[Web Traffic]
-        API[API Requests]
-        SYNC[Synchronous Workloads]
-        USER[User-Facing Services]
+    subgraph "Karpenter + HPA 사용"
+        WEB[웹 트래픽]
+        API[API 요청]
+        SYNC[동기 워크로드]
+        USER[사용자 대면 서비스]
     end
 
-    subgraph "Use KEDA"
-        QUEUE[Queue Processing<br/>SQS, Kafka]
-        BATCH[Batch Jobs<br/>Scheduled Tasks]
-        ASYNC[Async Processing]
-        DEV[Dev/Test Envs<br/>Scale to Zero]
+    subgraph "KEDA 사용"
+        QUEUE[큐 처리<br/>SQS, Kafka]
+        BATCH[배치 작업<br/>예약된 작업]
+        ASYNC[비동기 처리]
+        DEV[개발/테스트 환경<br/>제로 스케일]
     end
 
-    WEB --> DECISION{Scaling<br/>Strategy}
+    WEB --> DECISION{스케일링<br/>전략}
     API --> DECISION
     SYNC --> DECISION
     USER --> DECISION
@@ -475,39 +567,39 @@ graph LR
     ASYNC --> DECISION
     DEV --> DECISION
 
-    DECISION -->|Karpenter| FAST[60초 미만<br/>Node Scaling]
-    DECISION -->|KEDA| EVENT[Event-Driven<br/>Pod Scaling]
+    DECISION -->|Karpenter| FAST[60초 미만<br/>노드 스케일링]
+    DECISION -->|KEDA| EVENT[이벤트 드리븐<br/>Pod 스케일링]
 
     style FAST fill:#ff9900
     style EVENT fill:#76c5d5
 
 ```
 
-## Production Performance Metrics
+## 프로덕션 성능 메트릭
 
-Real-world results from a deployment handling 750K+ daily requests:
+일일 750K+ 요청을 처리하는 배포의 실제 결과:
 
 ```mermaid
 graph TB
-    subgraph "Before Optimization"
-        B1[Scaling Trigger<br/>60-90s delay]
-        B2[Node Provisioning<br/>3-5 minutes]
-        B3[Total Response<br/>4-6 minutes]
-        B4[User Impact<br/>Timeouts & Errors]
+    subgraph "최적화 이전"
+        B1[스케일링 트리거<br/>60-90초 지연]
+        B2[노드 프로비저닝<br/>3-5분]
+        B3[전체 응답<br/>4-6분]
+        B4[사용자 영향<br/>타임아웃 및 에러]
     end
 
-    subgraph "After Karpenter + High-Res"
-        A1[Scaling Trigger<br/>2-5s delay]
-        A2[Node Provisioning<br/>45-60s]
-        A3[Total Response<br/>Under 60s]
-        A4[User Impact<br/>None]
+    subgraph "Karpenter + 고해상도 이후"
+        A1[스케일링 트리거<br/>2-5초 지연]
+        A2[노드 프로비저닝<br/>45-60초]
+        A3[전체 응답<br/>60초 미만]
+        A4[사용자 영향<br/>없음]
     end
 
-    subgraph "Improvements"
-        I1[95% faster detection]
-        I2[75% faster provisioning]
-        I3[80% faster overall]
-        I4[100% availability maintained]
+    subgraph "개선 사항"
+        I1[95% 더 빠른 감지]
+        I2[75% 더 빠른 프로비저닝]
+        I3[80% 더 빠른 전체]
+        I4[100% 가용성 유지]
     end
 
     B1 --> I1
@@ -525,35 +617,35 @@ graph TB
 
 ```
 
-## Multi-Region Considerations
+## 다중 리전 고려 사항
 
-For organizations running across multiple regions, consistent sub-10 second scaling requires region-specific optimizations:
+여러 리전에서 운영하는 조직의 경우, 일관된 10초 미만 스케일링을 위해 리전별 최적화가 필요합니다:
 
 ```mermaid
 graph TB
-    subgraph "Global Architecture"
-        subgraph "US Region (40% traffic)"
+    subgraph "글로벌 아키텍처"
+        subgraph "미국 리전 (40% 트래픽)"
             US_KARP[Karpenter US]
-            US_TYPES[c6i, c7i priority]
+            US_TYPES[c6i, c7i 우선]
             US_SPOT[80% Spot]
         end
 
-        subgraph "EU Region (35% traffic)"
+        subgraph "유럽 리전 (35% 트래픽)"
             EU_KARP[Karpenter EU]
-            EU_TYPES[c6a, c7a priority]
+            EU_TYPES[c6a, c7a 우선]
             EU_SPOT[75% Spot]
         end
 
-        subgraph "AP Region (25% traffic)"
+        subgraph "아시아 태평양 리전 (25% 트래픽)"
             AP_KARP[Karpenter AP]
-            AP_TYPES[c5, m5 included]
+            AP_TYPES[c5, m5 포함]
             AP_SPOT[70% Spot]
         end
     end
 
-    subgraph "Cross-Region Metrics"
-        GLOBAL[Global Metrics<br/>Aggregator]
-        REGIONAL[Regional<br/>Decision Making]
+    subgraph "리전 간 메트릭"
+        GLOBAL[글로벌 메트릭<br/>애그리게이터]
+        REGIONAL[리전별<br/>의사결정]
     end
 
     US_KARP --> REGIONAL
@@ -564,55 +656,55 @@ graph TB
 
 ```
 
-## Best Practices for Sub-10 Second Scaling
+## 10초 미만 스케일링 모범 사례
 
-### 1. **Metric Selection**
+### 1. 메트릭 선택
 
-- Use leading indicators (queue depth, connection count) not lagging ones (CPU)
-- Keep high-resolution metrics under 10-15 per cluster
-- Batch metric submissions to avoid API throttling
+- 선행 지표(큐 깊이, 연결 수) 사용, 후행 지표(CPU) 아님
+- 클러스터당 고해상도 메트릭을 10-15개 이하로 유지
+- API 스로틀링 방지를 위한 배치 메트릭 제출
 
-### 2. **Karpenter Optimization**
+### 2. Karpenter 최적화
 
-- Provide maximum instance type flexibility
-- Use spot instances aggressively with proper interruption handling
-- Enable consolidation for cost efficiency
-- Set appropriate ttlSecondsAfterEmpty (30-60s)
+- 최대 인스턴스 유형 유연성 제공
+- 적절한 중단 처리와 함께 Spot 인스턴스 적극 활용
+- 비용 효율성을 위한 통합 활성화
+- 적절한 ttlSecondsAfterEmpty 설정 (30-60초)
 
-### 3. **HPA Tuning**
+### 3. HPA 튜닝
 
-- Zero stabilization window for scale-up
-- Aggressive scaling policies (100% increase allowed)
-- Multiple metrics with proper weights
-- Appropriate cooldown for scale-down
+- 스케일업을 위한 제로 안정화 윈도우
+- 공격적인 스케일링 정책 (100% 증가 허용)
+- 적절한 가중치를 가진 여러 메트릭
+- 스케일다운을 위한 적절한 쿨다운
 
-### 4. **Monitoring**
+### 4. 모니터링
 
-- Track P95 scaling latency as primary KPI
-- Alert on scaling failures or delays exceeding 15s
-- Monitor spot interruption rates
-- Track cost per scaled pod
+- P95 스케일링 지연 시간을 기본 KPI로 추적
+- 15초를 초과하는 스케일링 실패 또는 지연에 대한 알림
+- Spot 중단 비율 모니터링
+- 스케일된 Pod당 비용 추적
 
-## Troubleshooting Common Issues
+## 일반적인 문제 해결
 
 ```mermaid
 graph LR
-    subgraph "Symptom"
-        SLOW[Scaling over 10s]
+    subgraph "증상"
+        SLOW[10초 초과 스케일링]
     end
 
-    subgraph "Diagnosis"
-        D1[Check Metric Lag]
-        D2[Verify HPA Config]
-        D3[Review Instance Types]
-        D4[Analyze Subnet Capacity]
+    subgraph "진단"
+        D1[메트릭 지연 확인]
+        D2[HPA 구성 검증]
+        D3[인스턴스 유형 검토]
+        D4[서브넷 용량 분석]
     end
 
-    subgraph "Solution"
-        S1[Reduce Collection Interval]
-        S2[Remove Stabilization Window]
-        S3[Add More Instance Types]
-        S4[Expand Subnet CIDR]
+    subgraph "솔루션"
+        S1[수집 간격 축소]
+        S2[안정화 윈도우 제거]
+        S3[더 많은 인스턴스 유형 추가]
+        S4[서브넷 CIDR 확장]
     end
 
     SLOW --> D1 --> S1
@@ -622,17 +714,26 @@ graph LR
 
 ```
 
-## Conclusion
+## 하이브리드 접근 방식 (권장)
 
-Achieving sub-10 second autoscaling in EKS is not just possible—it's essential for modern applications. The combination of Karpenter's intelligent provisioning, high-resolution metrics for critical indicators, and properly tuned HPA configurations creates a system that responds to demand in near real-time.
+실제 프로덕션 환경에서는 두 가지 방식을 혼합한 하이브리드 접근을 권장합니다:
 
-Key takeaways:
+1. **미션 크리티컬 서비스**: ADOT + Prometheus로 10-13초 스케일링 달성
+2. **일반 서비스**: CloudWatch Direct로 12-15초 스케일링 및 운영 단순화
+3. **점진적 마이그레이션**: CloudWatch에서 시작하여 필요에 따라 ADOT로 전환
 
-- **Karpenter is the foundation** - Direct EC2 provisioning cuts minutes from scaling time
-- **Selective high-resolution metrics** - Monitor what matters at 1-5 second intervals
-- **Aggressive HPA configuration** - Remove artificial delays in scaling decisions
-- **Cost optimization through intelligence** - Fast scaling reduces over-provisioning
+## 결론
 
-The architecture presented here has been proven in production environments handling millions of requests daily. By implementing these patterns, you can ensure your EKS clusters scale as fast as your business demands—measured in seconds, not minutes.
+EKS에서 10초 미만의 오토스케일링 달성은 불가능한 것이 아니라 필수적입니다. Karpenter의 지능형 프로비저닝, 중요한 지표에 대한 고해상도 메트릭, 적절하게 튜닝된 HPA 구성의 조합은 거의 실시간으로 수요에 대응하는 시스템을 만듭니다.
 
-Remember: In the cloud-native world, speed isn't just a feature—it's a fundamental requirement for reliability, efficiency, and user satisfaction.
+**핵심 요점:**
+
+- **Karpenter가 기반**: 직접 EC2 프로비저닝으로 스케일링 시간에서 수분 단축
+- **선택적 고해상도 메트릭**: 중요한 것을 1-5초 간격으로 모니터링
+- **공격적 HPA 구성**: 스케일링 결정의 인위적 지연 제거
+- **지능을 통한 비용 최적화**: 빠른 스케일링으로 과다 프로비저닝 감소
+- **아키텍처 선택**: 규모와 요구사항에 맞는 CloudWatch 또는 Prometheus 선택
+
+여기에 제시된 아키텍처는 일일 수백만 건의 요청을 처리하는 프로덕션 환경에서 검증되었습니다. 이러한 패턴을 구현함으로써 EKS 클러스터가 비즈니스 수요만큼 빠르게 스케일링되도록 보장할 수 있습니다—분이 아닌 초 단위로 측정됩니다.
+
+기억하세요: 클라우드 네이티브 세계에서 속도는 단순히 기능이 아니라 안정성, 효율성, 사용자 만족도를 위한 근본적인 요구 사항입니다.

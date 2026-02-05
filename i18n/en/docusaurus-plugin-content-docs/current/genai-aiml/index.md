@@ -7,18 +7,28 @@ sidebar_position: 3
 
 # Agentic AI Platform
 
-This section covers advanced technical documentation on building and operating generative AI and AI/ML workloads on Amazon EKS. Through GPU resource optimization, LiteLLM integration, LangGraph workflow implementation, and Langfuse monitoring, you can build production-grade GenAI platforms.
+Modern generative AI platforms require a comprehensive technology stack that goes beyond simple model serving to encompass complex agent systems, dynamic resource management, and cost-efficient operations. An Agentic AI platform built on Amazon EKS represents a contemporary approach that leverages Kubernetes' powerful orchestration capabilities to meet these demanding requirements. This platform delivers dynamic GPU resource allocation and scaling, intelligent routing across diverse LLM providers, and cost optimization through real-time monitoring as a unified, integrated system.
 
-## 📚 Key Documentation
+The core philosophy of the Kubernetes-native approach is to aggressively leverage the open-source ecosystem while maintaining enterprise-grade stability. Model serving through LiteLLM and vLLM, complex agent workflows based on LangGraph, vector database integration via Milvus, and end-to-end pipeline monitoring with Langfuse all operate harmoniously atop a Kubernetes cluster. Particularly when combining Karpenter-based node auto-scaling with the NVIDIA GPU Operator, GPU resources can be dynamically provisioned and released according to workload patterns, dramatically reducing cloud costs.
 
-### Building Production GenAI Platform
-- **[Building Production-Ready GenAI Platform on EKS](./genai-platform.md)**
-  - Multi-LLM model integration through LiteLLM
-  - Complex AI workflow implementation based on LangGraph
-  - GenAI application monitoring and tracking through Langfuse
-  - Deployment and operations strategy in production environments
-  - Cost optimization and performance tuning
-  - Real implementation cases and best practices
+As practical starting points for production environment construction, AWS provides two essential sample repositories. The GenAI on EKS Starter Kit (aws-samples/sample-genai-on-eks-starter-kit) offers integrated configurations of essential components including LiteLLM, vLLM, SGLang, Langfuse, Milvus, Open WebUI, n8n, Strands Agents, and Agno to support rapid prototyping and development. Meanwhile, Scalable Model Inference and Agentic AI (aws-solutions-library-samples/guidance-for-scalable-model-inference-and-agentic-ai-on-amazon-eks) presents production-grade architectural patterns necessary for building Karpenter auto-scaling, Ray Serve-based distributed inference, LiteLLM gateway, OpenSearch-based RAG systems, and multi-agent systems.
+
+This combination of technology stacks effectively addresses the four core challenges that arise in handling Frontier Model traffic. GPU scheduling and resource isolation ensure stable performance even in multi-tenant environments through MIG and Time-Slicing, while the dynamic routing layer performs intelligent request distribution considering model availability and cost. Agent lifecycle management is declaratively defined through Kagent CRDs, and system-wide observability is secured through Langfuse and Prometheus-based metrics. All of this combines with Kubernetes' self-healing capabilities to complete a platform capable of 24/7 uninterrupted operations.
+
+## Key Documentation
+
+### Agentic AI Platform Infrastructure Guide
+
+[Technical Challenges and Kubernetes Necessity](./agentic-ai-challenges.md)
+[Agentic AI Platform Architecture](./agentic-platform-architecture.md)
+[GPU Resource Management](./gpu-resource-management.md)
+[Inference Gateway and Dynamic Routing](./inference-gateway-routing.md)
+[MoE Model Serving](./moe-model-serving.md)
+[Agent Monitoring](./agent-monitoring.md)
+[Kagent Kubernetes Agent Management](./kagent-kubernetes-agents.md)
+[Milvus Vector Database](./milvus-vector-database.md)
+[Ragas RAG Evaluation](./ragas-evaluation.md)
+[NeMo Framework](./nemo-framework.md)
 
 ## 🎯 Learning Objectives
 

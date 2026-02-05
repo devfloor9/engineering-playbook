@@ -719,7 +719,7 @@ Dynamic resource management of GPU clusters is a key factor determining performa
 
 ### Next Steps
 
-- [GenAI Platform Architecture](./genai-platform.md) - Complete platform configuration
+- [Agentic AI Platform Architecture](./agentic-platform-architecture.md) - Complete platform configuration
 - [Agentic AI Infrastructure](./agentic-ai-challenges.md) - AI agent operation strategy
 
 ---

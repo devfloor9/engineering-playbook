@@ -7,187 +7,28 @@ sidebar_position: 4
 
 # Hybrid Infrastructure
 
-This section covers advanced technical documentation for building hybrid and multi-cloud environments using Amazon EKS. By leveraging on-premises node connections, cloud bursting, hybrid storage, and Dynamic Resource Allocation (DRA), you can build flexible infrastructure.
+Modern enterprise infrastructure environments are transcending the boundaries between cloud and on-premises. Through Amazon EKS Hybrid Nodes, enterprises can now extend the power of cloud-native platforms into their own data centers. This approach goes beyond simply connecting two environments, enabling organizations to operate on-premises and cloud resources as a single Kubernetes cluster under a unified management plane.
 
-## 📚 Key Documentation
+The core value of hybrid infrastructure lies in flexibility and choice. Even when data sovereignty or regulatory requirements mandate keeping certain data on-premises, the rest of the application can leverage cloud elasticity and scalability. Organizations can also continue utilizing their existing on-premises hardware investments, particularly expensive GPU servers or special-purpose hardware, while simultaneously benefiting from cloud-based modern management tools and automation capabilities.
 
-### Basic Hybrid Configuration
-- **[Extending EKS Beyond the Cloud: Your First Hybrid Node Setup](./hybrid-node-configuration.md)**
-  - Basic methods for connecting on-premises nodes to EKS clusters
-  - Hybrid networking configuration and security setup
-  - On-premises node registration and initial configuration
-  - Step-by-step practical configuration guide
+EKS Hybrid Nodes deploy lightweight agents on each on-premises server to communicate securely with the AWS EKS control plane. These agents receive management commands through encrypted channels via VPN or AWS Direct Connect, while actual workloads execute on-premises. This architecture proves especially valuable for applications where network latency is critical or when large volumes of data must be processed locally.
 
-### Hybrid Workload Management
-- **[EKS Hybrid Nodes Adoption Guide](./hybrid-nodes-adoption-guide.md)**
-  - Migration strategies to hybrid environments
-  - Workload selection and placement criteria
-  - Phase-by-phase adoption planning
-  - Best practices and lessons learned
+From a storage management perspective, hybrid environments offer new possibilities. Using Harbor registry allows managing container images on-premises while synchronizing with the cloud, and traditional storage protocols like NFS or iSCSI can be integrated with Kubernetes persistent volumes. Through Dynamic Resource Allocation (DRA) technology, Kubernetes can natively recognize and allocate specialized hardware such as GPUs or FPGAs, making high-performance computing workload placement more sophisticated.
 
-### Advanced Hybrid Features
-- **[Dynamic Resource Allocation for Hybrid Nodes](./eks-dra-hybrid-nodes.md)**
-  - Dynamic Resource Allocation (DRA) technology
-  - Managing complex resource requirements
-  - GPU and specialized hardware utilization
+Cloud bursting represents one of the most attractive usage patterns of hybrid infrastructure. Organizations can utilize on-premises resources during normal operations, then automatically expand workloads to the cloud when traffic surges or special events occur. When combined with auto-scaling tools like Karpenter, this approach maintains cost efficiency while securing nearly unlimited computing power when needed.
 
-- **[SR-IOV and DGX H200 Integration](./sriov-dgx-h200-hybrid.md)**
-  - High-performance networking through SR-IOV
-  - NVIDIA DGX H200 system integration
-  - High-performance computing workload optimization
+## Document List
 
-### Hybrid Storage
-- **[Harbor Registry and Hybrid Storage Integration](./harbor-hybrid-integration.md)**
-  - Operating container image registries through Harbor
-  - Image synchronization between on-premises and cloud
-  - Image repository security and access control
+**Hybrid Workload Management**
 
-- **[File Storage for Hybrid Nodes](./hybrid-nodes-file-storage.md)**
-  - File storage configuration for on-premises nodes
-  - Utilizing storage protocols like NFS and iSCSI
-  - Data synchronization between cloud and on-premises
+[EKS Hybrid Nodes Adoption Guide](./hybrid-nodes-adoption-guide.md) - Basic methods for connecting on-premises nodes to EKS clusters, hybrid networking configuration and security setup, migration strategies to hybrid environments, workload selection and placement criteria, phase-by-phase adoption planning and best practices, managing complex resource requirements through DRA technology, GPU and specialized hardware utilization
 
-## 🎯 Learning Objectives
+**Advanced Hybrid Features**
 
-Through this section, you will learn:
+[SR-IOV and DGX H200 Integration](./sriov-dgx-h200-hybrid.md) - High-performance networking through SR-IOV, NVIDIA DGX H200 system integration and optimization
 
-- Hybrid cloud architecture design and implementation methods
-- Workload distribution and migration between on-premises and cloud
-- Network connectivity and security setup in hybrid environments
-- Managing complex resource requirements (DRA)
-- Optimizing high-performance computing workloads
-- Storage management in hybrid environments
-- Elastic expansion through cloud bursting
-- Monitoring and management in hybrid environments
+**Hybrid Storage**
 
-## 🏗️ Architecture Pattern
+[Harbor Registry and Hybrid Storage Integration](./harbor-hybrid-integration.md) - Operating container image registries through Harbor, image synchronization between on-premises and cloud
 
-```mermaid
-graph LR
-    subgraph AWS[" AWS Cloud "]
-        CP["EKS Control Plane"]
-        CN["Cloud Nodes<br/>EC2 Instances"]
-        ACM["AWS Certificate Manager"]
-        SM["Secrets Manager"]
-    end
-
-    subgraph OnPrem[" On-Premises "]
-        HN["Hybrid Nodes<br/>Kubernetes Agents"]
-        EN["Edge Nodes"]
-        Harbor["Harbor Registry"]
-        Storage["NFS/iSCSI Storage"]
-    end
-
-    subgraph Network["Secure Network"]
-        VPN["VPN/Direct Connect"]
-        SG["Security Groups"]
-    end
-
-    CP <-->|Management Plane| HN
-    CP <-->|Workload API| CN
-    CP <-->|TLS/mTLS| ACM
-    CP <-->|Secrets| SM
-    HN <-->|Sync| Harbor
-    Storage <-->|Replication| CN
-    HN ---|VPN| VPN
-    CN ---|AWS Network| VPN
-    VPN ---|Secure| OnPrem
-
-    style AWS fill:#ff9900
-    style OnPrem fill:#34a853
-    style Network fill:#4286f4
-```
-
-## 🔧 Key Technologies and Tools
-
-| Technology | Description | Purpose |
-|-----------|-------------|---------|
-| **EKS Hybrid Nodes** | On-premises node connection | Leverage existing infrastructure |
-| **AWS Outposts** | Fully managed hybrid infrastructure | Complete AWS environment |
-| **AWS Systems Manager** | Centralized hybrid node management | Agent and patch management |
-| **VPN / Direct Connect** | Secure network connectivity | Data center connection |
-| **Karpenter** | Hybrid environment auto-scaling | Cost-efficient resource management |
-| **Harbor Registry** | Container image repository | Distributed environment image management |
-| **NFS / iSCSI** | Network storage | Data sharing |
-
-## 💡 Core Concepts
-
-### How Hybrid Nodes Work
-- **Agents**: Lightweight agents running on each on-premises node
-- **Management Channel**: Secure communication with AWS management plane
-- **Workload Execution**: Kubernetes workloads run on on-premises nodes
-- **Monitoring**: Centralized monitoring from the cloud
-
-### Cloud Bursting Strategy
-- **Auto Scaling**: Automatic expansion to cloud when on-premises capacity is exceeded
-- **Cost Optimization**: Use only the necessary amount of cloud resources
-- **Performance Maintenance**: Workload placement considering latency
-
-### Network Considerations
-- **Bandwidth**: Network bandwidth limitations between on-premises and cloud
-- **Latency**: Application design considering network delays
-- **Security**: Encrypted communication between data center and cloud
-
-### Resource Isolation
-- **Namespaces**: Separation of on-premises/cloud workloads
-- **Node Affinity**: Workload placement to specific node types
-- **Policies**: Compliance requirements enforcement
-
-## 💼 Use Cases
-
-### Data Sovereignty and Compliance
-- Keeping sensitive data on-premises
-- Regulatory requirements compliance
-- Regional data processing requirements
-- GDPR, HIPAA compliance
-
-### Latency Optimization
-- Edge computing workloads
-- Real-time data processing
-- Regional service delivery
-- Fast communication with local data centers
-
-### Cost Optimization
-- Leveraging existing on-premises infrastructure
-- Elastic expansion through cloud bursting
-- Using on-premises resources outside peak times
-- Combination with Spot instances and hybrid approach
-
-### Migration Path
-- Gradual migration from on-premises to cloud
-- Coexistence of existing applications and new cloud-native apps
-- Performance evaluation before migration decision
-
-## 📊 Hybrid Environment Considerations
-
-| Item | Consideration | Solution |
-|------|---------------|----------|
-| **Network** | Bandwidth limitations | Data compression, local caching |
-| **Latency** | High delays | Workload placement optimization |
-| **Security** | Data center protection | VPN/Direct Connect + encryption |
-| **Operations** | Dual management | Centralized monitoring and automation |
-| **Costs** | Bandwidth costs | Cloud bursting optimization |
-
-## 🔗 Related Categories
-
-- [Security & Governance](/docs/security-compliance) - Hybrid security requirements
-- [Infrastructure Optimization](/docs/performance-networking) - Hybrid networking
-- [Operations & Observability](/docs/observability-monitoring) - Hybrid environment monitoring
-
----
-
-:::tip Tip
-In hybrid environments, workload placement strategy considering network latency and bandwidth is very important. Place workloads that store state on-premises as much as possible, and elastically expand stateless workloads.
-:::
-
-:::info Recommended Learning Path
-1. Basic hybrid node setup
-2. Network connectivity and security
-3. Workload placement and migration
-4. Advanced features (DRA, SR-IOV)
-5. Operations and monitoring
-:::
-
-:::warning Warning - Network Bandwidth
-Network costs between data center and cloud can be higher than expected. Carefully review network architecture during initial design phase, and consider economical connection methods such as Direct Connect.
-:::
+[File Storage for Hybrid Nodes](./hybrid-nodes-file-storage.md) - File storage configuration for on-premises nodes, NFS/iSCSI utilization and data synchronization
