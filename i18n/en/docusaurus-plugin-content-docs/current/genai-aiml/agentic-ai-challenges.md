@@ -12,59 +12,520 @@ sidebar_position: 3
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
-> **Written**: 2025-02-05 | **Reading time**: ~18 min
+> **Written**: 2025-02-05 | **Reading time**: ~25 min
 
-When building and operating an Agentic AI Platform, platform engineers and architects face various technical challenges. This document analyzes 4 key challenges and presents **EKS-based solutions centered on Karpenter**.
+:::tip TL;DR (Key Summary)
+**4 Challenges of Agentic AI Platform and Solutions:**
 
-## Overview
+| Challenge | Key Solution |
+|-----------|--------------|
+| 1. GPU Monitoring & Resource Scheduling | **Karpenter + DCGM Exporter** |
+| 2. Dynamic Routing & Scaling | **Kgateway + KEDA + vLLM** |
+| 3. Token/Session Cost Monitoring | **LangFuse / LangSmith** |
+| 4. FM Fine-tuning Automation | **NeMo + Kubeflow** |
 
-Agentic AI systems leveraging Frontier Models (latest large language models) have fundamentally different infrastructure requirements from traditional web applications. In particular, **dynamic provisioning and cost optimization of GPU resources** is the core challenge, and **Karpenter** is the most effective solution to address it.
+**Recommended Starting Point:** Create EKS Auto Mode cluster → Automatic Karpenter configuration → Add GPU NodePool → Deploy AI workloads
+
+**Key Message:** Achieve complete GPU infrastructure automation with Kubernetes + EKS Auto Mode + Karpenter combination
+:::
+
+When building and operating an Agentic AI Platform, platform engineers and architects face various technical challenges. This document analyzes 4 key challenges and explains why **cloud infrastructure automation and organic integration of AI platform** is the core solution.
+
+## 4 Key Technical Challenges of Agentic AI Platform
+
+Agentic AI systems leveraging Frontier Models (latest large language models) have **fundamentally different infrastructure requirements** from traditional web applications.
 
 ```mermaid
 graph TB
     subgraph "4 Key Technical Challenges"
-        C1["🖥️ GPU Monitoring and<br/>Resource Scheduling"]
-        C2["🔀 Agentic AI Request<br/>Dynamic Routing and Scaling"]
-        C3["📊 Token/Session Level<br/>Monitoring and Cost Control"]
-        C4["🔧 FM Fine-tuning and<br/>Automation Pipeline"]
+        C1["🖥️ Challenge 1<br/>GPU Monitoring & Resource Scheduling"]
+        C2["🔀 Challenge 2<br/>Agentic AI Request Dynamic Routing & Scaling"]
+        C3["📊 Challenge 3<br/>Token/Session Level Monitoring & Cost Control"]
+        C4["🔧 Challenge 4<br/>FM Fine-tuning & Automation Pipeline"]
     end
 
-    subgraph "Karpenter-Centered Solutions"
-        S1["⭐ Karpenter<br/>Just-in-Time GPU Provisioning"]
-        S2["Gateway API + KEDA<br/>Dynamic Scaling Integration"]
-        S3["LangFuse + OpenTelemetry<br/>Cost Tracking"]
-        S4["Kubeflow + NeMo<br/>Training Pipeline"]
+    subgraph "Common Characteristics"
+        COMMON["GPU Resource Intensive<br/>Unpredictable Workloads<br/>High Infrastructure Costs<br/>Complex Distributed Systems"]
+    end
+
+    C1 --> COMMON
+    C2 --> COMMON
+    C3 --> COMMON
+    C4 --> COMMON
+
+    style C1 fill:#ff6b6b
+    style C2 fill:#4ecdc4
+    style C3 fill:#45b7d1
+    style C4 fill:#96ceb4
+    style COMMON fill:#f9f9f9
+```
+
+### Challenge Summary
+
+| Challenge | Core Problem | Limitations of Traditional Infrastructure |
+| --- | --- | --- |
+| **GPU Monitoring & Scheduling** | Lack of multi-cluster GPU visibility, generation-specific workload matching | Manual monitoring, static allocation |
+| **Dynamic Routing & Scaling** | Unpredictable traffic, multi-model serving complexity | Slow provisioning, fixed capacity |
+| **Cost Control** | GPU idle costs, difficulty tracking at token level | No cost visibility, no optimization |
+| **FM Fine-tuning** | Distributed training infrastructure complexity, resource provisioning delays | Manual cluster management, low utilization |
+
+:::warning Limitations of Traditional Infrastructure Approach
+Traditional VM-based infrastructure or manual management approaches cannot effectively respond to Agentic AI's **dynamic and unpredictable workload patterns**. The high cost of GPU resources and complex distributed system requirements make **automated infrastructure management** essential.
+:::
+
+---
+
+## Core Solution: Cloud Infrastructure Automation and AI Platform Integration
+
+The key to solving Agentic AI Platform challenges is **organic integration of cloud infrastructure automation and AI workloads**. This integration is important because:
+
+```mermaid
+graph LR
+    subgraph "AI Workload Characteristics"
+        AI1["Dynamic Resource Demands"]
+        AI2["Unpredictable Traffic"]
+        AI3["High-cost GPU Resources"]
+        AI4["Complex Distributed Processing"]
+    end
+
+    subgraph "Infrastructure Automation Requirements"
+        INF1["Real-time Provisioning"]
+        INF2["Automatic Scaling"]
+        INF3["Cost Optimization"]
+        INF4["Declarative Management"]
+    end
+
+    subgraph "Integration Platform"
+        PLATFORM["Kubernetes<br/>Container Orchestration"]
+    end
+
+    AI1 --> PLATFORM
+    AI2 --> PLATFORM
+    AI3 --> PLATFORM
+    AI4 --> PLATFORM
+    PLATFORM --> INF1
+    PLATFORM --> INF2
+    PLATFORM --> INF3
+    PLATFORM --> INF4
+
+    style PLATFORM fill:#326ce5
+```
+
+### Why Kubernetes?
+
+Kubernetes is the **ideal foundational platform** to solve all challenges of Agentic AI Platform:
+
+| Kubernetes Core Feature | AI Platform Application | Solved Challenge |
+| --- | --- | --- |
+| **Declarative Resource Management** | Define GPU resources as code with version control | Challenge 1, 4 |
+| **Auto Scaling (HPA/VPA)** | Automatic Pod expansion/contraction based on traffic patterns | Challenge 2 |
+| **Namespace-based Isolation** | Resource quota management by team/project | Challenge 3 |
+| **Operator Pattern** | Automation of complex distributed learning workflows | Challenge 4 |
+| **Service Mesh Integration** | Multi-model routing and traffic management | Challenge 2 |
+| **Metrics-based Orchestration** | GPU utilization-based scheduling decisions | Challenge 1, 3 |
+
+```mermaid
+graph TB
+    subgraph "Kubernetes Core Components"
+        API["API Server<br/>Declarative Resource Management"]
+        SCHED["Scheduler<br/>GPU-aware Scheduling"]
+        CTRL["Controller Manager<br/>State Reconciliation Loop"]
+        ETCD["etcd<br/>Cluster State Storage"]
+    end
+
+    subgraph "AI Workload Support"
+        GPU["GPU Device Plugin<br/>GPU Resource Abstraction"]
+        HPA["HPA/KEDA<br/>Metrics-based Scaling"]
+        OP["Operators<br/>Complex Workflow Automation"]
+    end
+
+    subgraph "Challenge Resolution"
+        S1["✅ Integrated GPU Resource Management"]
+        S2["✅ Dynamic Scaling"]
+        S3["✅ Resource Quota Management"]
+        S4["✅ Distributed Learning Automation"]
+    end
+
+    API --> GPU
+    SCHED --> GPU
+    CTRL --> HPA
+    CTRL --> OP
+    GPU --> S1
+    HPA --> S2
+    API --> S3
+    OP --> S4
+
+    style API fill:#326ce5
+    style SCHED fill:#326ce5
+    style CTRL fill:#326ce5
+```
+
+:::info Kubernetes Support for AI Workloads
+Kubernetes provides rich integration with AI/ML ecosystems including NVIDIA GPU Operator, Kubeflow, and KEDA. Through these integrations, GPU resource management, distributed learning, and model serving can be **integrated and managed on a single platform**.
+:::
+
+---
+
+Now that we understand why Kubernetes is suitable for AI workloads, let's look at the **specific open-source solutions that solve each challenge**.
+
+## Kubernetes Ecosystem Solutions for Agentic AI - Bird's Eye View
+
+The Kubernetes ecosystem has **specialized open-source solutions** to solve each challenge of Agentic AI Platform. These solutions are designed to be Kubernetes-native, allowing you to leverage the benefits of **declarative management, automatic scaling, and high availability**.
+
+### Solution Mapping Overview
+
+```mermaid
+graph TB
+    subgraph "4 Key Technical Challenges"
+        C1["🖥️ GPU Monitoring &<br/>Resource Scheduling"]
+        C2["🔀 Dynamic Routing &<br/>Scaling"]
+        C3["📊 Token/Session Monitoring<br/>& Cost Control"]
+        C4["🔧 FM Fine-tuning &<br/>Automation Pipeline"]
+    end
+
+    subgraph "Kubernetes Native Solutions"
+        S1["Karpenter<br/>GPU Node Auto Provisioning"]
+        S2["Kgateway + LiteLLM<br/>Inference Gateway"]
+        S3["LangFuse / LangSmith<br/>LLM Observability"]
+        S4["NeMo + Kubeflow<br/>Distributed Training Pipeline"]
+    end
+
+    subgraph "Model Serving Layer"
+        VLLM["vLLM<br/>High-Performance Inference Engine"]
+        LLMD["llm-d<br/>Distributed Inference Scheduler"]
+    end
+
+    subgraph "Agent Orchestration"
+        KAGENT["KAgent<br/>Kubernetes Agent Framework"]
     end
 
     C1 --> S1
-    C2 --> S1
     C2 --> S2
     C3 --> S3
     C4 --> S4
+
+    S2 --> VLLM
+    S2 --> LLMD
+    KAGENT --> S2
+    KAGENT --> S3
 
     style C1 fill:#ff6b6b
     style C2 fill:#4ecdc4
     style C3 fill:#45b7d1
     style C4 fill:#96ceb4
     style S1 fill:#ffd93d
+    style S2 fill:#4286f4
+    style S3 fill:#9b59b6
+    style S4 fill:#76b900
+    style VLLM fill:#e74c3c
+    style LLMD fill:#e74c3c
+    style KAGENT fill:#2ecc71
 ```
 
-:::info Target Audience
-This document is intended for **technical decision makers** and **solution architects** evaluating Agentic AI Platform adoption. It provides rationale for GPU resource optimization strategies using Karpenter and EKS adoption.
-:::
+### Challenge-specific Solution Detailed Mapping
 
-## Karpenter: The Core of Agentic AI Infrastructure
+| Challenge | Core Solution | Supporting Solutions | Solves |
+| --- | --- | --- | --- |
+| **GPU Monitoring & Scheduling** | Karpenter | DCGM Exporter, NVIDIA GPU Operator | GPU node auto provisioning, generation-specific workload matching |
+| **Dynamic Routing & Scaling** | Kgateway, LiteLLM | KEDA, vLLM, llm-d | Multi-model routing, traffic-based auto scaling |
+| **Token/Cost Monitoring** | LangFuse, LangSmith | OpenTelemetry, Prometheus | Token-level tracking, cost visibility, quality evaluation |
+| **FM Fine-tuning** | NeMo, Kubeflow | MLflow, Ray | Distributed learning orchestration, pipeline automation |
 
-Karpenter is the **core component** that solves all challenges of the Agentic AI Platform. Unlike traditional Cluster Autoscaler, Karpenter directly analyzes workload requirements and provisions optimal nodes immediately.
+### Core Solutions Introduction
 
-### Core Value Provided by Karpenter
+#### 1. Model Serving: vLLM + llm-d
 
-| Feature | Description | Agentic AI Application |
+**vLLM** is a high-performance serving engine for LLM inference that **maximizes memory efficiency** through PagedAttention.
+
+**llm-d** is a scheduler that **intelligently distributes** LLM inference requests in Kubernetes environments.
+
+```mermaid
+graph LR
+    subgraph "Inference Request Flow"
+        REQ["Client Request"]
+        LLMD["llm-d<br/>Request Router"]
+
+        subgraph "vLLM Instances"
+            V1["vLLM Pod 1<br/>GPU: A100"]
+            V2["vLLM Pod 2<br/>GPU: A100"]
+            V3["vLLM Pod 3<br/>GPU: H100"]
+        end
+    end
+
+    REQ --> LLMD
+    LLMD --> V1
+    LLMD --> V2
+    LLMD --> V3
+
+    style LLMD fill:#e74c3c
+    style V1 fill:#3498db
+    style V2 fill:#3498db
+    style V3 fill:#3498db
+```
+
+| Solution | Role | Core Features |
 | --- | --- | --- |
-| Just-in-Time Provisioning | Create nodes immediately based on workload requirements | Minimize GPU node wait time |
-| Spot Instance Support | Cost savings up to 90% | Optimize inference workload costs |
-| Consolidation | Automatic cleanup of idle nodes | Maximize GPU resource efficiency |
-| Diverse Instance Types | Automatically select instances optimized for workload | Optimal GPU matching by model size |
+| **vLLM** | Inference Engine | PagedAttention, Continuous Batching, Speculative Decoding |
+| **llm-d** | Distributed Scheduler | Load balancing, Prefix Caching-aware routing, Failure recovery |
+
+#### 2. Inference Gateway: Kgateway + LiteLLM
+
+**Kgateway** is a Kubernetes Gateway API-based AI inference gateway that provides **multi-model routing and traffic management**.
+
+**LiteLLM** **abstracts various LLM providers** with a unified API, making model switching easy.
+
+```mermaid
+graph TB
+    subgraph "Gateway Layer"
+        CLIENT["Client Applications"]
+        KGW["Kgateway<br/>Inference Gateway"]
+        LITE["LiteLLM<br/>Provider Abstraction"]
+    end
+
+    subgraph "Model Backends"
+        SELF["Self-hosted<br/>vLLM / TGI"]
+        BEDROCK["Amazon Bedrock"]
+        OPENAI["OpenAI API"]
+    end
+
+    CLIENT --> KGW
+    KGW --> LITE
+    LITE --> SELF
+    LITE --> BEDROCK
+    LITE --> OPENAI
+
+    style KGW fill:#4286f4
+    style LITE fill:#9b59b6
+```
+
+| Solution | Role | Core Features |
+| --- | --- | --- |
+| **Kgateway** | Traffic Management | Header-based routing, weight distribution, Rate Limiting, Canary deployment |
+| **LiteLLM** | API Abstraction | 100+ LLM provider support, unified API, fallback settings, cost tracking |
+
+#### 3. LLM Observability: LangFuse + LangSmith
+
+**LangFuse** and **LangSmith** are observability platforms that **track the entire lifecycle of LLM applications**.
+
+```mermaid
+graph LR
+    subgraph "LLM Application"
+        APP["Agent Application"]
+        CHAIN["LangChain / LlamaIndex"]
+    end
+
+    subgraph "Observability Platform"
+        LF["LangFuse<br/>(Self-hosted)"]
+        LS["LangSmith<br/>(Managed)"]
+    end
+
+    subgraph "Analysis Features"
+        TRACE["Trace Analysis"]
+        COST["Cost Tracking"]
+        EVAL["Quality Evaluation"]
+        DEBUG["Debugging"]
+    end
+
+    APP --> CHAIN
+    CHAIN --> LF
+    CHAIN --> LS
+    LF --> TRACE & COST & EVAL & DEBUG
+    LS --> TRACE & COST & EVAL & DEBUG
+
+    style LF fill:#45b7d1
+    style LS fill:#9b59b6
+```
+
+| Solution | Deployment | Core Features |
+| --- | --- | --- |
+| **LangFuse** | Self-hosted (K8s) | Token tracking, cost analysis, prompt management, A/B testing |
+| **LangSmith** | Managed SaaS | Tracing, evaluation, dataset management, collaboration features |
+
+#### 4. Agent Orchestration: KAgent
+
+**KAgent** is a Kubernetes-native AI Agent framework that **defines and manages Agent workflows as CRDs**.
+
+```mermaid
+graph TB
+    subgraph "KAgent Architecture"
+        CRD["Agent CRD<br/>Declarative Definition"]
+        CTRL["KAgent Controller<br/>State Management"]
+
+        subgraph "Agent Components"
+            TOOL["Tool Definitions"]
+            MEM["Memory Store"]
+            LLM["LLM Backend"]
+        end
+    end
+
+    subgraph "Integration"
+        KGW["Kgateway"]
+        OBS["LangFuse"]
+    end
+
+    CRD --> CTRL
+    CTRL --> TOOL & MEM & LLM
+    CTRL --> KGW
+    CTRL --> OBS
+
+    style CRD fill:#2ecc71
+    style CTRL fill:#2ecc71
+```
+
+| Feature | Description |
+| --- | --- |
+| **Declarative Agent Definition** | Define Agent configuration, tools, memory in YAML |
+| **Automatic Scaling** | Auto-expand Agent instances based on request volume |
+| **Integrated Observability** | Automatic integration with LangFuse/LangSmith |
+| **Tool Management** | Tool integration based on MCP (Model Context Protocol) |
+
+### Solution Stack Integration Architecture
+
+```mermaid
+graph TB
+    subgraph "Client Layer"
+        WEB["Web Application"]
+        API["API Clients"]
+        AGENT["Agent Applications"]
+    end
+
+    subgraph "Gateway Layer"
+        KGW["Kgateway<br/>Traffic Management"]
+        LITE["LiteLLM<br/>Provider Abstraction"]
+    end
+
+    subgraph "Orchestration Layer"
+        KAGENT["KAgent<br/>Agent Framework"]
+        KEDA["KEDA<br/>Event-driven Scaling"]
+    end
+
+    subgraph "Serving Layer"
+        LLMD["llm-d<br/>Request Scheduler"]
+        VLLM1["vLLM Instance 1"]
+        VLLM2["vLLM Instance 2"]
+        VLLM3["vLLM Instance 3"]
+    end
+
+    subgraph "Infrastructure Layer"
+        KARP["Karpenter<br/>Node Provisioning"]
+        GPU1["GPU Node 1"]
+        GPU2["GPU Node 2"]
+        GPU3["GPU Node 3"]
+    end
+
+    subgraph "Observability Layer"
+        LF["LangFuse<br/>LLM Tracing"]
+        PROM["Prometheus<br/>Metrics"]
+        GRAF["Grafana<br/>Dashboards"]
+    end
+
+    WEB & API & AGENT --> KGW
+    KGW --> LITE
+    LITE --> KAGENT
+    KAGENT --> LLMD
+    LLMD --> VLLM1 & VLLM2 & VLLM3
+    VLLM1 --> GPU1
+    VLLM2 --> GPU2
+    VLLM3 --> GPU3
+    KARP --> GPU1 & GPU2 & GPU3
+    KEDA --> VLLM1 & VLLM2 & VLLM3
+
+    KAGENT -.-> LF
+    VLLM1 & VLLM2 & VLLM3 -.-> PROM
+    PROM --> GRAF
+    LF --> GRAF
+
+    style KGW fill:#4286f4
+    style KAGENT fill:#2ecc71
+    style KARP fill:#ffd93d
+    style LF fill:#45b7d1
+    style LLMD fill:#e74c3c
+```
+
+---
+
+Now that we've explored the various solutions in the Kubernetes ecosystem, let's look at the **infrastructure automation strategies for operating these solutions in real production environments**.
+
+## Amazon EKS and Karpenter: Maximizing Kubernetes Advantages
+
+### EKS + Karpenter + AWS Infrastructure Integration Architecture
+
+```mermaid
+graph TB
+    subgraph "AWS Managed Services"
+        EKS["Amazon EKS"]
+        ALB["Application<br/>Load Balancer"]
+        SM["Secrets Manager"]
+        CW["CloudWatch"]
+    end
+
+    subgraph "AWS Data Services"
+        S3["Amazon S3<br/>(Model Storage)"]
+        RDS["Amazon RDS<br/>(LangFuse DB)"]
+    end
+
+    subgraph "AWS Networking"
+        EFA["Elastic Fabric Adapter<br/>(High-Performance)"]
+        SG["Security Groups"]
+    end
+
+    subgraph "EKS Cluster"
+        KARP["Karpenter<br/>Smart Node Provisioning"]
+
+        subgraph "Node Pools"
+            GPU["GPU NodePool<br/>(Inference)"]
+            TRAIN["Training NodePool<br/>(Distributed)"]
+            CPU["CPU NodePool<br/>(Control)"]
+        end
+
+        subgraph "AI Platform Stack"
+            KGW["Kgateway"]
+            VLLM["vLLM"]
+            KAGENT["KAgent"]
+            LF["LangFuse"]
+        end
+    end
+
+    EKS --> KARP
+    KARP --> GPU & TRAIN & CPU
+    ALB --> KGW
+    KGW --> VLLM
+    VLLM --> GPU
+    GPU -.-> EFA
+    TRAIN -.-> EFA
+    LF --> RDS
+    VLLM --> S3
+    KGW --> SM
+
+    style EKS fill:#ff9900
+    style KARP fill:#ffd93d
+    style S3 fill:#ff9900
+    style RDS fill:#ff9900
+```
+
+### Why EKS + Karpenter?
+
+| Aspect | EKS Standard + Karpenter | EKS Auto Mode |
+| --- | --- | --- |
+| **Karpenter Installation** | Manual installation required | ✅ Automatically configured |
+| **NodePool Management** | Define manually | ✅ Provided by default + customizable |
+| **Upgrades** | Manual management | ✅ Automatic upgrades |
+| **Monitoring** | Separate configuration | ✅ Integrated provisioning |
+| **GPU Support** | Full support with manual tuning | ✅ Automatic GPU optimization |
+
+### AWS Service Integration
+
+| AWS Service | Purpose | Karpenter Integration |
+| --- | --- | --- |
+| Amazon S3 | Store model artifacts | CSI Driver, IRSA |
+| FSx for Lustre | High-performance training data | CSI Driver |
+| CloudWatch | Metrics, logs | Container Insights |
+| EC2 Spot | Cost optimization | Karpenter capacity-type |
+| EFA | High-performance networking | NodeClass configuration |
+
+### Karpenter: The Core of AI Infrastructure Automation
+
+Karpenter overcomes the limitations of traditional Cluster Autoscaler and provides **node provisioning optimized for AI workloads**:
 
 ```mermaid
 flowchart LR
@@ -73,24 +534,207 @@ flowchart LR
         CA2 --> CA3[Scale Out ASG]
         CA3 --> CA4[Node Ready]
         CA4 --> CA5[Schedule Pod]
+        CA5 --> CA6["⏱️ 5-10 min required"]
     end
 
     subgraph "Karpenter Approach"
         K1[Pod Pending] --> K2[Analyze Workload]
         K2 --> K3[Select Optimal Instance]
         K3 --> K4[Provision Immediately]
+        K4 --> K5["⚡ 2-3 min required"]
     end
 
+    style CA6 fill:#ff6b6b
+    style K5 fill:#4ecdc4
     style K2 fill:#ffd93d
     style K3 fill:#ffd93d
     style K4 fill:#ffd93d
 ```
 
+### Core Value Provided by Karpenter
+
+| Feature | Description | Agentic AI Application |
+| --- | --- | --- |
+| **Just-in-Time Provisioning** | Create nodes immediately based on workload requirements | Minimize GPU node wait time |
+| **Spot Instance Support** | Cost savings up to 90% | Optimize inference workload costs |
+| **Consolidation** | Automatic cleanup of idle nodes | Maximize GPU resource efficiency |
+| **Diverse Instance Types** | Automatically select instances optimized for workload | Optimal GPU matching by model size |
+| **Disruption Budgets** | Manage node updates while minimizing service impact | Stable scale-down operations |
+
 :::tip Karpenter vs Cluster Autoscaler
-Karpenter selects optimal instances by directly analyzing workload requirements without Node Groups. For GPU workloads, provisioning time is **shortened by over 50%**.
+Karpenter selects optimal instances by directly analyzing workload requirements without Node Groups. For GPU workloads, provisioning time is **shortened by over 50%**, and costs are **reduced by 20-30%** through consolidation.
 :::
 
-## 4 Key Technical Challenges
+### EKS Auto Mode: Completing Full Automation
+
+**EKS Auto Mode** automatically configures and manages core components including Karpenter, completing the final puzzle of AI infrastructure automation.
+
+```mermaid
+graph TB
+    subgraph "EKS Auto Mode Automatic Management"
+        AUTO["EKS Auto Mode"]
+        KARP["Karpenter<br/>(Auto-configured)"]
+        VPC_CNI["VPC CNI<br/>(Auto-configured)"]
+        CSI["EBS CSI Driver<br/>(Auto-configured)"]
+        COREDNS["CoreDNS<br/>(Auto-configured)"]
+        POD_ID["Pod Identity Agent<br/>(Auto-configured)"]
+    end
+
+    subgraph "User-defined Area"
+        NP["Custom NodePool<br/>(GPU-optimized)"]
+        NC["Custom NodeClass<br/>(EFA, Storage)"]
+        WL["AI Workloads"]
+    end
+
+    AUTO --> KARP
+    AUTO --> VPC_CNI
+    AUTO --> CSI
+    AUTO --> COREDNS
+    AUTO --> POD_ID
+    KARP --> NP
+    NP --> NC
+    NC --> WL
+
+    style AUTO fill:#ff9900
+    style KARP fill:#ffd93d
+```
+
+#### EKS Auto Mode vs Manual Configuration Comparison
+
+| Component | Manual Configuration (EKS Standard) | EKS Auto Mode |
+| --- | --- | --- |
+| **Karpenter Installation** | Manual Helm chart installation, IAM role configuration | ✅ Automatic installation and configuration |
+| **NodePool Management** | Define manually | Default provided + customizable |
+| **VPC CNI** | Manual installation and upgrade | ✅ Automatic management |
+| **EBS CSI Driver** | Manual installation, IRSA configuration | ✅ Automatic management |
+| **CoreDNS** | Manual scaling | ✅ Automatic scaling |
+| **Security Patches** | Manual application | ✅ Automatic application |
+| **Version Upgrades** | Manual planning and execution | ✅ Automatic upgrades |
+
+#### EKS Auto Mode Advantages for AI Workloads
+
+```mermaid
+sequenceDiagram
+    participant User as Platform Engineer
+    participant Auto as EKS Auto Mode
+    participant Karp as Karpenter (Auto-managed)
+    participant EC2 as AWS EC2
+
+    Note over User,EC2: EKS Auto Mode Cluster Creation
+    User->>Auto: Cluster creation request
+    Auto->>Auto: Karpenter automatic installation
+    Auto->>Auto: Default NodePool configuration
+    Auto-->>User: Cluster ready
+
+    Note over User,EC2: Deploy GPU Workload
+    User->>Auto: Deploy GPU Pod
+    Auto->>Karp: Detect pending Pod
+    Karp->>EC2: Provision GPU instance
+    EC2-->>Karp: p4d.24xlarge ready
+    Karp-->>User: Pod running
+
+    Note over User,EC2: Automatic Optimization
+    Karp->>Karp: Execute consolidation
+    Karp->>EC2: Clean up idle nodes
+```
+
+#### EKS Auto Mode GPU Workload Configuration
+
+You can add custom NodePool for GPU workloads in EKS Auto Mode:
+
+```yaml
+# Add GPU NodePool to EKS Auto Mode
+apiVersion: karpenter.sh/v1
+kind: NodePool
+metadata:
+  name: gpu-inference-pool
+spec:
+  template:
+    metadata:
+      labels:
+        node-type: gpu-inference
+        eks-auto-mode: "true"
+    spec:
+      requirements:
+        - key: karpenter.sh/capacity-type
+          operator: In
+          values: ["spot", "on-demand"]
+        - key: node.kubernetes.io/instance-type
+          operator: In
+          values:
+            - g5.xlarge
+            - g5.2xlarge
+            - g5.4xlarge
+            - g5.12xlarge
+            - p4d.24xlarge
+        - key: karpenter.k8s.aws/instance-gpu-count
+          operator: Gt
+          values: ["0"]
+      nodeClassRef:
+        group: karpenter.k8s.aws
+        kind: EC2NodeClass
+        name: default  # Use EKS Auto Mode default NodeClass
+  limits:
+    nvidia.com/gpu: 50
+  disruption:
+    consolidationPolicy: WhenEmptyOrUnderutilized
+    consolidateAfter: 30s
+```
+
+:::tip EKS Auto Mode Recommendations
+EKS Auto Mode is the **recommended option for new AI platform construction**:
+- Karpenter installation and configuration automation **reduces initial build time by 80%**
+- Automatic upgrades of core components **significantly reduce operational burden**
+- Define only GPU NodePool, then **immediately deploy AI workloads**
+:::
+
+:::info EKS Auto Mode and GPU Support
+EKS Auto Mode fully supports NVIDIA GPUs and accelerated computing instances. GPU drivers are automatically included in the selected AMI, and advanced configurations such as EFA networking can be added through custom NodeClass when needed.
+:::
+
+### Karpenter vs Cluster Autoscaler Detailed Comparison
+
+:::tip Karpenter vs Cluster Autoscaler
+Karpenter selects optimal instances by directly analyzing workload requirements without Node Groups. For GPU workloads, **provisioning time is reduced by 50%+**, and **costs are reduced by 20-30%** through consolidation.
+:::
+
+### Challenge-specific Karpenter Solutions Mapping
+
+```mermaid
+graph TB
+    subgraph "4 Key Technical Challenges"
+        C1["🖥️ GPU Monitoring &<br/>Resource Scheduling"]
+        C2["🔀 Agentic AI Request<br/>Dynamic Routing & Scaling"]
+        C3["📊 Token/Session Level<br/>Monitoring & Cost Control"]
+        C4["🔧 FM Fine-tuning &<br/>Automation Pipeline"]
+    end
+
+    subgraph "Karpenter-centered Solutions"
+        S1["⭐ Karpenter NodePool<br/>GPU Instance Auto Selection"]
+        S2["Karpenter + KEDA<br/>End-to-End Auto Scaling"]
+        S3["Spot + Consolidation<br/>50-70% Cost Reduction"]
+        S4["Training NodePool<br/>EFA Network Optimization"]
+    end
+
+    subgraph "Supporting Solutions"
+        A1["DCGM Exporter<br/>GPU Metrics Collection"]
+        A2["Gateway API<br/>Dynamic Routing"]
+        A3["LangFuse<br/>Token Tracking"]
+        A4["NeMo + Kubeflow<br/>Training Pipeline"]
+    end
+
+    C1 --> S1
+    C2 --> S2
+    C3 --> S3
+    C4 --> S4
+
+## Intermediate Summary
+
+We've identified the core infrastructure automation pattern that solves Agentic AI challenges. Now let's examine **detailed implementation patterns for each challenge**.
+
+---
+
+## 4 Key Technical Challenges in Detail
 
 ### Challenge 1: GPU Monitoring and Resource Scheduling
 
@@ -1223,68 +1867,82 @@ spec:
 - Balance checkpoint save frequency with storage costs
 :::
 
-## Amazon EKS and Karpenter Synergy
+## Conclusion: Complete GPU Infrastructure Automation with Kubernetes + EKS Auto Mode
 
-Amazon EKS reaches its maximum effectiveness when used with Karpenter.
-
-### EKS + Karpenter Architecture
+The 4 key challenges of Agentic AI Platform can be effectively solved through **organic integration of cloud infrastructure automation and AI platform**. In particular, **EKS Auto Mode** completes the final puzzle of full automation by automatically managing core components including Karpenter.
 
 ```mermaid
 graph TB
-    subgraph "AWS Managed Area"
-        CP["EKS Control Plane<br/>etcd, API Server, Scheduler"]
-        UP["Automatic Upgrades"]
-        HA["High Availability (Multi-AZ)"]
+    subgraph "Problem Recognition"
+        P["Agentic AI Platform<br/>4 Key Challenges"]
     end
 
-    subgraph "Karpenter Managed Area"
-        KARP["Karpenter Controller"]
-        NP1["GPU Inference NodePool"]
-        NP2["GPU Training NodePool"]
-        NP3["Spot NodePool"]
+    subgraph "Solution Framework"
+        K8S["Kubernetes<br/>Container Orchestration"]
+        AUTO["EKS Auto Mode<br/>Fully Managed + Karpenter Automation"]
+        AWS["AWS Infrastructure<br/>GPU, Network, Storage"]
     end
 
-    subgraph "AI Workloads"
-        INF["Inference Service"]
-        TRAIN["Training Jobs"]
-        BATCH["Batch Processing"]
+    subgraph "Achievement Goals"
+        G1["✅ Fully Automated GPU Management"]
+        G2["✅ 50-70% Cost Reduction"]
+        G3["✅ 50% Provisioning Time Reduction"]
+        G4["✅ 80% Operational Burden Reduction"]
     end
 
-    CP --> KARP
-    KARP --> NP1
-    KARP --> NP2
-    KARP --> NP3
-    NP1 --> INF
-    NP2 --> TRAIN
-    NP3 --> BATCH
+    P --> K8S
+    K8S --> AUTO
+    AUTO --> AWS
+    AWS --> G1 & G2 & G3 & G4
 
-    style CP fill:#ff9900
-    style KARP fill:#ffd93d
+    style P fill:#ff6b6b
+    style K8S fill:#326ce5
+    style AUTO fill:#ff9900
+    style G1 fill:#4ecdc4
+    style G2 fill:#4ecdc4
+    style G3 fill:#4ecdc4
+    style G4 fill:#4ecdc4
 ```
 
-### EKS Auto Mode and Karpenter
+### Key Messages
 
-Using EKS Auto Mode automatically configures Karpenter and greatly reduces operational burden.
+1. **Kubernetes is the Essential Foundation for AI Infrastructure**: Through declarative resource management, automatic scaling, and the Operator pattern, Kubernetes effectively manages complex AI workloads
+2. **EKS Auto Mode Realizes Complete Automation**: Automatic management of core components like Karpenter, VPC CNI, and EBS CSI Driver significantly reduces operational burden
+3. **Karpenter is the Core of GPU Infrastructure Automation**: Just-in-Time provisioning, Spot instances, and Consolidation optimize both cost and performance
+4. **AWS Infrastructure Integration Maximizes Synergy**: Tight integration with EFA networking, diverse GPU instances, and FSx storage
 
-| Feature | EKS Standard + Karpenter | EKS Auto Mode |
-| --- | --- | --- |
-| Karpenter Installation | Manual installation required | Automatically configured |
-| NodePool Management | Define manually | Provided by default + customizable |
-| Upgrades | Manual management | Automatic upgrades |
-| Monitoring | Separate configuration | Integrated provision |
+### EKS Auto Mode: Recommended Starting Point
 
-### AWS Service Integration
+For building a new Agentic AI Platform, it is recommended to **start with EKS Auto Mode**:
 
-| AWS Service | Purpose | Karpenter Integration |
-| --- | --- | --- |
-| Amazon S3 | Store model artifacts | CSI Driver, IRSA |
-| FSx for Lustre | High-performance training data | CSI Driver |
-| CloudWatch | Metrics, logs | Container Insights |
-| EC2 Spot | Cost optimization | Karpenter capacity-type |
+| Benefit | Description |
+| --- | --- |
+| **Immediate Start** | Deploy GPU workloads immediately after cluster creation without Karpenter installation |
+| **Automatic Upgrades** | Core components like Karpenter, CNI, CSI automatically updated |
+| **Security Patch Automation** | Security patches automatically applied |
+| **Customization Possible** | Add custom GPU NodePool, EFA NodeClass when needed |
 
-## Summary of Karpenter Adoption Benefits
+### Challenge-specific Final Resolution Summary
 
-### Quantitative Effects
+| Challenge | Kubernetes-based | EKS Auto Mode + Karpenter | Expected Effect |
+| --- | --- | --- | --- |
+| **GPU Monitoring** | DCGM + Prometheus | NodePool-based integrated management | 40% improved resource utilization |
+| **Dynamic Scaling** | HPA + KEDA | Just-in-Time provisioning (auto-configured) | 50% shorter provisioning time |
+| **Cost Control** | Namespace Quota | Spot + Consolidation (auto-enabled) | 50-70% cost reduction |
+| **FM Fine-tuning** | Kubeflow Operator | Training NodePool + EFA | 30% improved training efficiency |
+
+### Core Recommendations
+
+1. **Start with EKS Auto Mode**: Create new clusters with Auto Mode to leverage Karpenter automatic configuration
+2. **Custom GPU NodePool Definition**: Add GPU NodePool matching workload characteristics (inference/training/experiment separation)
+3. **Aggressive Spot Instance Utilization**: Operate 70%+ of inference workloads on Spot
+4. **Enable Consolidation by Default**: Leverage automatically enabled Consolidation in EKS Auto Mode
+5. **Integrate KEDA**: Link metrics-based Pod scaling with Karpenter node provisioning
+6. **Add EFA NodeClass**: High-performance networking configuration for distributed training workloads
+
+---
+
+## Quantitative Improvements with Karpenter
 
 | Metric | Traditional | After Karpenter | Improvement |
 | --- | --- | --- | --- |
@@ -1293,33 +1951,12 @@ Using EKS Auto Mode automatically configures Karpenter and greatly reduces opera
 | Monthly GPU Cost | Baseline | Spot usage | 60-90% savings |
 | Idle Node Cost | Occurs | Consolidation | 20-30% savings |
 
-### Qualitative Effects
+## Qualitative Improvements
 
 - **Reduced Operational Complexity**: No need to manage Node Groups
-- **Improved Automation**: Automatic provisioning based on workload
-- **Better Cost Visibility**: Easier to track costs by workload
+- **Improved Automation**: Automatic provisioning based on workload requirements
+- **Better Cost Visibility**: Easier cost tracking by workload
 - **Scalability**: Immediately respond to traffic surges
-
-## Conclusion
-
-The 4 key challenges of Agentic AI Platform can be effectively solved with **an EKS-based architecture centered on Karpenter**.
-
-### Core Recommendations
-
-1. **Prioritize Karpenter**: Leverage Karpenter as the core component for GPU node management
-2. **Utilize Spot Instances**: Optimize inference workload costs with Spot instances
-3. **Integrate KEDA**: Implement end-to-end automatic scaling by integrating Karpenter with KEDA
-4. **Enable Consolidation**: Maximize cost efficiency by automatically cleaning up idle resources
-
-:::info Next Steps
-For detailed implementation guides on each challenge mentioned in this document, refer to:
-
-- [GPU Resource Management](./gpu-resource-management.md) - Detailed guide for dynamic resource allocation with Karpenter
-- [Inference Gateway](./inference-gateway-routing.md) - Dynamic routing with Kgateway
-- [Agent Monitoring](./agent-monitoring.md) - LangFuse and LangSmith integration
-- [NeMo Framework](./nemo-framework.md) - FM fine-tuning pipeline
-
-:::
 
 ## References
 

@@ -2,8 +2,8 @@
 
 /**
  * Tag Pages Generator Script
- * 
- * This script automatically generates tag-based listing pages for the EKS Engineering Playbook.
+ *
+ * This script automatically generates tag-based listing pages for the Engineering Playbook.
  * It scans all markdown files, extracts tags from frontmatter, and creates tag pages.
  */
 
@@ -138,7 +138,7 @@ export default function Tag${tag.replace(/[^a-zA-Z0-9]/g, '').charAt(0).toUpperC
   return (
     <Layout
       title={\`#\${tagName} Tag Documentation\`}
-      description={\`Documentation tagged with \${tagName} in the EKS Engineering Playbook.\`}
+      description={\`Documentation tagged with \${tagName} in the Engineering Playbook.\`}
     >
       <div className="container margin-vert--lg">
         <div className="row">
@@ -318,16 +318,16 @@ import Link from '@docusaurus/Link';
 export default function TagsIndexPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
-  
+
   const tagStats = ${JSON.stringify(tagStats, null, 2)};
-  
+
   const filteredTags = Object.entries(tagStats).filter(([tag, stats]) => {
     const matchesSearch = tag.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = selectedCategory === 'all' || 
+    const matchesCategory = selectedCategory === 'all' ||
       stats.categories.includes(selectedCategory);
     return matchesSearch && matchesCategory;
   }).sort(([,a], [,b]) => b.count - a.count);
-  
+
   const categories = [
     { value: 'all', label: '전체' },
     { value: 'performance-networking', label: '성능 & 네트워킹' },
@@ -340,7 +340,7 @@ export default function TagsIndexPage() {
   return (
     <Layout
       title="태그 목록"
-      description="EKS Engineering Playbook의 모든 태그를 확인하고 관련 문서를 찾아보세요."
+      description="Engineering Playbook의 모든 태그를 확인하고 관련 문서를 찾아보세요."
     >
       <div className="container margin-vert--lg">
         <div className="row">

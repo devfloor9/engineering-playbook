@@ -7,9 +7,9 @@ export default function TagEngineeringPage() {
   const tagName = 'engineering';
   const documents = [
   {
-    "title": "EKS Engineering Playbook에 오신 것을 환영합니다",
+    "title": "Engineering Playbook에 오신 것을 환영합니다",
     "path": "/blog/2025-01-15-welcome",
-    "description": "EKS Engineering Playbook에 오신 것을 환영합니다! 🎉\n\n안녕하세요! EKS Engineering Playbook의 첫 번째 블로그 포스트입니다.\n\n이 플레이북은 Amazon EKS(Elastic Kubernetes Service) 관련 아키텍처 딥다이브 문서들을 체계적으로 정리한 종합 가이드입니다.\n\n 🎯 우리의 목표...",
+    "description": "Engineering Playbook에 오신 것을 환영합니다! 🎉\n\n안녕하세요! Engineering Playbook의 첫 번째 블로그 포스트입니다.\n\n이 플레이북은 Amazon EKS(Elastic Kubernetes Service) 관련 아키텍처 딥다이브 문서들을 체계적으로 정리한 종합 가이드입니다.\n\n 🎯 우리의 목표...",
     "tags": [
       "eks",
       "kubernetes",
@@ -25,7 +25,7 @@ export default function TagEngineeringPage() {
   return (
     <Layout
       title={`#${tagName} Tag Documentation`}
-      description={`Documentation tagged with ${tagName} in the EKS Engineering Playbook.`}
+      description={`Documentation tagged with ${tagName} in the Engineering Playbook.`}
     >
       <div className="container margin-vert--lg">
         <div className="row">

@@ -570,7 +570,7 @@ spec:
   retrieval:
     vectorStore:
       type: milvus
-      host: milvus.ai-data.svc.cluster.local
+      host: milvus-proxy.ai-data.svc.cluster.local
       port: 19530
       collection: support-knowledge
     embedding:

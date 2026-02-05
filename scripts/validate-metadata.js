@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 
 /**
- * EKS Engineering Playbook - 문서 메타데이터 검증 스크립트
- * 
- * 이 스크립트는 마크다운 문서의 frontmatter 메타데이터가 
+ * Engineering Playbook - 문서 메타데이터 검증 스크립트
+ *
+ * 이 스크립트는 마크다운 문서의 frontmatter 메타데이터가
  * 정의된 스키마를 준수하는지 검증합니다.
  */
 
@@ -130,7 +130,7 @@ function validateDocuments(directories = ['docs', 'blog']) {
   let validFiles = 0;
   let errorCount = 0;
   
-  console.log('🔍 EKS Engineering Playbook 문서 메타데이터 검증 시작...\n');
+  console.log('🔍 Engineering Playbook 문서 메타데이터 검증 시작...\n');
   
   for (const dir of directories) {
     if (!fs.existsSync(dir)) {

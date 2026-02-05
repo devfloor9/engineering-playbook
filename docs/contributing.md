@@ -1,7 +1,7 @@
 ---
 title: "Contributing Guide"
 sidebar_label: "기여 가이드"
-description: "EKS Engineering Playbook에 기여하는 방법 - 문서 작성 표준, 포맷팅 가이드, PR 프로세스"
+description: "Engineering Playbook에 기여하는 방법 - 문서 작성 표준, 포맷팅 가이드, PR 프로세스"
 tags: [contributing, documentation, guidelines, howto]
 category: "setup"
 date: 2025-02-05
@@ -15,7 +15,7 @@ sidebar_position: 99
 
 ## 개요
 
-EKS Engineering Playbook은 Amazon EKS 아키텍처와 운영 모범 사례를 공유하는 커뮤니티 주도의 프로젝트입니다. 이 가이드는 누구나 쉽게 기여할 수 있도록 문서 작성 표준, 포맷팅 규칙, PR 프로세스를 명확하게 설명합니다.
+Engineering Playbook은 Amazon EKS 아키텍처와 운영 모범 사례를 공유하는 커뮤니티 주도의 프로젝트입니다. 이 가이드는 누구나 쉽게 기여할 수 있도록 문서 작성 표준, 포맷팅 규칙, PR 프로세스를 명확하게 설명합니다.
 
 **기여 방법:**
 - 새로운 문서 작성

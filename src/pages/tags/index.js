@@ -16,7 +16,7 @@ export default function TagsIndexPage() {
         "name": "intro.md",
         "metadata": {
           "title": "Introduction",
-          "description": "Welcome to the EKS Engineering Playbook - your comprehensive guide to Amazon EKS architecture and best practices",
+          "description": "Welcome to the Engineering Playbook - your comprehensive guide to Amazon EKS architecture and best practices",
           "tags": [
             "eks",
             "kubernetes",
@@ -24,7 +24,7 @@ export default function TagsIndexPage() {
             "getting-started"
           ],
           "wordCount": 305,
-          "excerpt": "EKS Engineering Playbook\n\nWelcome to the EKS Engineering Playbook - a comprehensive collection of technical guides, best practices, and architectural patterns for Amazon Elastic Kubernetes Serv..."
+          "excerpt": "Engineering Playbook\n\nWelcome to the Engineering Playbook - a comprehensive collection of technical guides, best practices, and architectural patterns for Amazon Elastic Kubernetes Serv..."
         },
         "path": "/docs/intro",
         "type": "doc"
@@ -35,7 +35,7 @@ export default function TagsIndexPage() {
         "name": "2025-01-15-welcome.md",
         "metadata": {
           "slug": "welcome",
-          "title": "EKS Engineering Playbook에 오신 것을 환영합니다",
+          "title": "Engineering Playbook에 오신 것을 환영합니다",
           "authors": [
             "devfloor9"
           ],
@@ -46,7 +46,7 @@ export default function TagsIndexPage() {
             "playbook"
           ],
           "wordCount": 181,
-          "excerpt": "EKS Engineering Playbook에 오신 것을 환영합니다! 🎉\n\n안녕하세요! EKS Engineering Playbook의 첫 번째 블로그 포스트입니다.\n\n이 플레이북은 Amazon EKS(Elastic Kubernetes Service) 관련 아키텍처 딥다이브 문서들을 체계적으로 정리한 종합 가이드입니다.\n\n 🎯 우리의 목표..."
+          "excerpt": "Engineering Playbook에 오신 것을 환영합니다! 🎉\n\n안녕하세요! Engineering Playbook의 첫 번째 블로그 포스트입니다.\n\n이 플레이북은 Amazon EKS(Elastic Kubernetes Service) 관련 아키텍처 딥다이브 문서들을 체계적으로 정리한 종합 가이드입니다.\n\n 🎯 우리의 목표..."
         },
         "path": "/blog/2025-01-15-welcome",
         "type": "blog"
@@ -64,7 +64,7 @@ export default function TagsIndexPage() {
         "name": "intro.md",
         "metadata": {
           "title": "Introduction",
-          "description": "Welcome to the EKS Engineering Playbook - your comprehensive guide to Amazon EKS architecture and best practices",
+          "description": "Welcome to the Engineering Playbook - your comprehensive guide to Amazon EKS architecture and best practices",
           "tags": [
             "eks",
             "kubernetes",
@@ -72,7 +72,7 @@ export default function TagsIndexPage() {
             "getting-started"
           ],
           "wordCount": 305,
-          "excerpt": "EKS Engineering Playbook\n\nWelcome to the EKS Engineering Playbook - a comprehensive collection of technical guides, best practices, and architectural patterns for Amazon Elastic Kubernetes Serv..."
+          "excerpt": "Engineering Playbook\n\nWelcome to the Engineering Playbook - a comprehensive collection of technical guides, best practices, and architectural patterns for Amazon Elastic Kubernetes Serv..."
         },
         "path": "/docs/intro",
         "type": "doc"
@@ -83,7 +83,7 @@ export default function TagsIndexPage() {
         "name": "2025-01-15-welcome.md",
         "metadata": {
           "slug": "welcome",
-          "title": "EKS Engineering Playbook에 오신 것을 환영합니다",
+          "title": "Engineering Playbook에 오신 것을 환영합니다",
           "authors": [
             "devfloor9"
           ],
@@ -94,7 +94,7 @@ export default function TagsIndexPage() {
             "playbook"
           ],
           "wordCount": 181,
-          "excerpt": "EKS Engineering Playbook에 오신 것을 환영합니다! 🎉\n\n안녕하세요! EKS Engineering Playbook의 첫 번째 블로그 포스트입니다.\n\n이 플레이북은 Amazon EKS(Elastic Kubernetes Service) 관련 아키텍처 딥다이브 문서들을 체계적으로 정리한 종합 가이드입니다.\n\n 🎯 우리의 목표..."
+          "excerpt": "Engineering Playbook에 오신 것을 환영합니다! 🎉\n\n안녕하세요! Engineering Playbook의 첫 번째 블로그 포스트입니다.\n\n이 플레이북은 Amazon EKS(Elastic Kubernetes Service) 관련 아키텍처 딥다이브 문서들을 체계적으로 정리한 종합 가이드입니다.\n\n 🎯 우리의 목표..."
         },
         "path": "/blog/2025-01-15-welcome",
         "type": "blog"
@@ -112,7 +112,7 @@ export default function TagsIndexPage() {
         "name": "intro.md",
         "metadata": {
           "title": "Introduction",
-          "description": "Welcome to the EKS Engineering Playbook - your comprehensive guide to Amazon EKS architecture and best practices",
+          "description": "Welcome to the Engineering Playbook - your comprehensive guide to Amazon EKS architecture and best practices",
           "tags": [
             "eks",
             "kubernetes",
@@ -120,7 +120,7 @@ export default function TagsIndexPage() {
             "getting-started"
           ],
           "wordCount": 305,
-          "excerpt": "EKS Engineering Playbook\n\nWelcome to the EKS Engineering Playbook - a comprehensive collection of technical guides, best practices, and architectural patterns for Amazon Elastic Kubernetes Serv..."
+          "excerpt": "Engineering Playbook\n\nWelcome to the Engineering Playbook - a comprehensive collection of technical guides, best practices, and architectural patterns for Amazon Elastic Kubernetes Serv..."
         },
         "path": "/docs/intro",
         "type": "doc"
@@ -138,7 +138,7 @@ export default function TagsIndexPage() {
         "name": "intro.md",
         "metadata": {
           "title": "Introduction",
-          "description": "Welcome to the EKS Engineering Playbook - your comprehensive guide to Amazon EKS architecture and best practices",
+          "description": "Welcome to the Engineering Playbook - your comprehensive guide to Amazon EKS architecture and best practices",
           "tags": [
             "eks",
             "kubernetes",
@@ -146,7 +146,7 @@ export default function TagsIndexPage() {
             "getting-started"
           ],
           "wordCount": 305,
-          "excerpt": "EKS Engineering Playbook\n\nWelcome to the EKS Engineering Playbook - a comprehensive collection of technical guides, best practices, and architectural patterns for Amazon Elastic Kubernetes Serv..."
+          "excerpt": "Engineering Playbook\n\nWelcome to the Engineering Playbook - a comprehensive collection of technical guides, best practices, and architectural patterns for Amazon Elastic Kubernetes Serv..."
         },
         "path": "/docs/intro",
         "type": "doc"
@@ -164,7 +164,7 @@ export default function TagsIndexPage() {
         "name": "algolia-search-setup.md",
         "metadata": {
           "title": "Algolia 검색 설정 가이드",
-          "description": "EKS Engineering Playbook에서 Algolia DocSearch를 설정하고 관리하는 방법을 설명합니다.",
+          "description": "Engineering Playbook에서 Algolia DocSearch를 설정하고 관리하는 방법을 설명합니다.",
           "tags": [
             "algolia",
             "search",
@@ -179,7 +179,7 @@ export default function TagsIndexPage() {
           "difficulty": "intermediate",
           "estimated_time": "30분",
           "wordCount": 750,
-          "excerpt": "Algolia 검색 설정 가이드\n\n이 가이드는 EKS Engineering Playbook에서 Algolia DocSearch를 설정하고 관리하는 방법을 설명합니다.\n\n 개요\n\nAlgolia DocSearch는 문서 사이트를 위한 강력한 검색 솔루션입니다. 이 플레이북에서는 다음과 같은 검색 기능을 제공합니다:\n\n- 실시간 검색 결과\n- 다국어 지..."
+          "excerpt": "Algolia 검색 설정 가이드\n\n이 가이드는 Engineering Playbook에서 Algolia DocSearch를 설정하고 관리하는 방법을 설명합니다.\n\n 개요\n\nAlgolia DocSearch는 문서 사이트를 위한 강력한 검색 솔루션입니다. 이 플레이북에서는 다음과 같은 검색 기능을 제공합니다:\n\n- 실시간 검색 결과\n- 다국어 지..."
         },
         "path": "/docs/setup/algolia-search-setup",
         "type": "doc"
@@ -199,7 +199,7 @@ export default function TagsIndexPage() {
         "name": "algolia-search-setup.md",
         "metadata": {
           "title": "Algolia 검색 설정 가이드",
-          "description": "EKS Engineering Playbook에서 Algolia DocSearch를 설정하고 관리하는 방법을 설명합니다.",
+          "description": "Engineering Playbook에서 Algolia DocSearch를 설정하고 관리하는 방법을 설명합니다.",
           "tags": [
             "algolia",
             "search",
@@ -214,7 +214,7 @@ export default function TagsIndexPage() {
           "difficulty": "intermediate",
           "estimated_time": "30분",
           "wordCount": 750,
-          "excerpt": "Algolia 검색 설정 가이드\n\n이 가이드는 EKS Engineering Playbook에서 Algolia DocSearch를 설정하고 관리하는 방법을 설명합니다.\n\n 개요\n\nAlgolia DocSearch는 문서 사이트를 위한 강력한 검색 솔루션입니다. 이 플레이북에서는 다음과 같은 검색 기능을 제공합니다:\n\n- 실시간 검색 결과\n- 다국어 지..."
+          "excerpt": "Algolia 검색 설정 가이드\n\n이 가이드는 Engineering Playbook에서 Algolia DocSearch를 설정하고 관리하는 방법을 설명합니다.\n\n 개요\n\nAlgolia DocSearch는 문서 사이트를 위한 강력한 검색 솔루션입니다. 이 플레이북에서는 다음과 같은 검색 기능을 제공합니다:\n\n- 실시간 검색 결과\n- 다국어 지..."
         },
         "path": "/docs/setup/algolia-search-setup",
         "type": "doc"
@@ -234,7 +234,7 @@ export default function TagsIndexPage() {
         "name": "algolia-search-setup.md",
         "metadata": {
           "title": "Algolia 검색 설정 가이드",
-          "description": "EKS Engineering Playbook에서 Algolia DocSearch를 설정하고 관리하는 방법을 설명합니다.",
+          "description": "Engineering Playbook에서 Algolia DocSearch를 설정하고 관리하는 방법을 설명합니다.",
           "tags": [
             "algolia",
             "search",
@@ -249,7 +249,7 @@ export default function TagsIndexPage() {
           "difficulty": "intermediate",
           "estimated_time": "30분",
           "wordCount": 750,
-          "excerpt": "Algolia 검색 설정 가이드\n\n이 가이드는 EKS Engineering Playbook에서 Algolia DocSearch를 설정하고 관리하는 방법을 설명합니다.\n\n 개요\n\nAlgolia DocSearch는 문서 사이트를 위한 강력한 검색 솔루션입니다. 이 플레이북에서는 다음과 같은 검색 기능을 제공합니다:\n\n- 실시간 검색 결과\n- 다국어 지..."
+          "excerpt": "Algolia 검색 설정 가이드\n\n이 가이드는 Engineering Playbook에서 Algolia DocSearch를 설정하고 관리하는 방법을 설명합니다.\n\n 개요\n\nAlgolia DocSearch는 문서 사이트를 위한 강력한 검색 솔루션입니다. 이 플레이북에서는 다음과 같은 검색 기능을 제공합니다:\n\n- 실시간 검색 결과\n- 다국어 지..."
         },
         "path": "/docs/setup/algolia-search-setup",
         "type": "doc"
@@ -269,7 +269,7 @@ export default function TagsIndexPage() {
         "name": "algolia-search-setup.md",
         "metadata": {
           "title": "Algolia 검색 설정 가이드",
-          "description": "EKS Engineering Playbook에서 Algolia DocSearch를 설정하고 관리하는 방법을 설명합니다.",
+          "description": "Engineering Playbook에서 Algolia DocSearch를 설정하고 관리하는 방법을 설명합니다.",
           "tags": [
             "algolia",
             "search",
@@ -284,7 +284,7 @@ export default function TagsIndexPage() {
           "difficulty": "intermediate",
           "estimated_time": "30분",
           "wordCount": 750,
-          "excerpt": "Algolia 검색 설정 가이드\n\n이 가이드는 EKS Engineering Playbook에서 Algolia DocSearch를 설정하고 관리하는 방법을 설명합니다.\n\n 개요\n\nAlgolia DocSearch는 문서 사이트를 위한 강력한 검색 솔루션입니다. 이 플레이북에서는 다음과 같은 검색 기능을 제공합니다:\n\n- 실시간 검색 결과\n- 다국어 지..."
+          "excerpt": "Algolia 검색 설정 가이드\n\n이 가이드는 Engineering Playbook에서 Algolia DocSearch를 설정하고 관리하는 방법을 설명합니다.\n\n 개요\n\nAlgolia DocSearch는 문서 사이트를 위한 강력한 검색 솔루션입니다. 이 플레이북에서는 다음과 같은 검색 기능을 제공합니다:\n\n- 실시간 검색 결과\n- 다국어 지..."
         },
         "path": "/docs/setup/algolia-search-setup",
         "type": "doc"
@@ -304,7 +304,7 @@ export default function TagsIndexPage() {
         "name": "2025-01-15-welcome.md",
         "metadata": {
           "slug": "welcome",
-          "title": "EKS Engineering Playbook에 오신 것을 환영합니다",
+          "title": "Engineering Playbook에 오신 것을 환영합니다",
           "authors": [
             "devfloor9"
           ],
@@ -315,7 +315,7 @@ export default function TagsIndexPage() {
             "playbook"
           ],
           "wordCount": 181,
-          "excerpt": "EKS Engineering Playbook에 오신 것을 환영합니다! 🎉\n\n안녕하세요! EKS Engineering Playbook의 첫 번째 블로그 포스트입니다.\n\n이 플레이북은 Amazon EKS(Elastic Kubernetes Service) 관련 아키텍처 딥다이브 문서들을 체계적으로 정리한 종합 가이드입니다.\n\n 🎯 우리의 목표..."
+          "excerpt": "Engineering Playbook에 오신 것을 환영합니다! 🎉\n\n안녕하세요! Engineering Playbook의 첫 번째 블로그 포스트입니다.\n\n이 플레이북은 Amazon EKS(Elastic Kubernetes Service) 관련 아키텍처 딥다이브 문서들을 체계적으로 정리한 종합 가이드입니다.\n\n 🎯 우리의 목표..."
         },
         "path": "/blog/2025-01-15-welcome",
         "type": "blog"
@@ -333,7 +333,7 @@ export default function TagsIndexPage() {
         "name": "2025-01-15-welcome.md",
         "metadata": {
           "slug": "welcome",
-          "title": "EKS Engineering Playbook에 오신 것을 환영합니다",
+          "title": "Engineering Playbook에 오신 것을 환영합니다",
           "authors": [
             "devfloor9"
           ],
@@ -344,7 +344,7 @@ export default function TagsIndexPage() {
             "playbook"
           ],
           "wordCount": 181,
-          "excerpt": "EKS Engineering Playbook에 오신 것을 환영합니다! 🎉\n\n안녕하세요! EKS Engineering Playbook의 첫 번째 블로그 포스트입니다.\n\n이 플레이북은 Amazon EKS(Elastic Kubernetes Service) 관련 아키텍처 딥다이브 문서들을 체계적으로 정리한 종합 가이드입니다.\n\n 🎯 우리의 목표..."
+          "excerpt": "Engineering Playbook에 오신 것을 환영합니다! 🎉\n\n안녕하세요! Engineering Playbook의 첫 번째 블로그 포스트입니다.\n\n이 플레이북은 Amazon EKS(Elastic Kubernetes Service) 관련 아키텍처 딥다이브 문서들을 체계적으로 정리한 종합 가이드입니다.\n\n 🎯 우리의 목표..."
         },
         "path": "/blog/2025-01-15-welcome",
         "type": "blog"
@@ -374,7 +374,7 @@ export default function TagsIndexPage() {
   return (
     <Layout
       title="태그 목록"
-      description="EKS Engineering Playbook의 모든 태그를 확인하고 관련 문서를 찾아보세요."
+      description="Engineering Playbook의 모든 태그를 확인하고 관련 문서를 찾아보세요."
     >
       <div className="container margin-vert--lg">
         <div className="row">

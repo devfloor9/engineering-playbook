@@ -330,7 +330,7 @@ spec:
   memory:
     type: redis
     config:
-      host: redis-master.ai-agents.svc
+      host: redis-master.ai-data.svc.cluster.local
       port: 6379
       ttl: 3600
       maxHistory: 50
