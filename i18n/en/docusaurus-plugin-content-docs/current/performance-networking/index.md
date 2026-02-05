@@ -1,11 +1,11 @@
 ---
-title: "Performance & Networking"
-sidebar_label: "Performance & Networking"
+title: "Infrastructure Optimization"
+sidebar_label: "Infrastructure Optimization"
 description: "Advanced technical documentation on performance optimization and networking for Amazon EKS"
 sidebar_position: 1
 ---
 
-# Performance & Networking
+# Infrastructure Optimization
 
 This section covers advanced technical documentation on performance optimization and networking for Amazon EKS clusters. Topics include DNS performance tuning, network performance optimization, cost management, and auto-scaling—all essential for production environments.
 
@@ -119,9 +119,9 @@ graph TB
 
 ## 🔗 Related Categories
 
-- [Observability & Monitoring](/docs/observability-monitoring) - Performance metrics monitoring
-- [Security & Compliance](/docs/security-compliance) - Network security policies
-- [Hybrid & Multi-Cloud](/docs/hybrid-multicloud) - Hybrid environment networking
+- [Operations & Observability](/docs/observability-monitoring) - Performance metrics monitoring
+- [Security & Governance](/docs/security-compliance) - Network security policies
+- [Hybrid Infrastructure](/docs/hybrid-multicloud) - Hybrid environment networking
 
 ---
 

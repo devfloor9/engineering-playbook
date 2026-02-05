@@ -1,11 +1,11 @@
 ---
-title: "Security & Compliance"
-sidebar_label: "Security & Compliance"
+title: "Security & Governance"
+sidebar_label: "Security & Governance"
 description: "Advanced technical documentation on security hardening and compliance management in Amazon EKS environments"
 sidebar_position: 5
 ---
 
-# Security & Compliance
+# Security & Governance
 
 This section covers advanced technical documentation on security hardening and compliance management in Amazon EKS environments. Through network security, access control, data protection, and monitoring and auditing, you can meet the strict regulatory requirements of financial institutions and other regulated sectors.
 
@@ -268,9 +268,9 @@ graph TB
 
 ## 🔗 Related Categories
 
-- [Hybrid & Multi-Cloud](/docs/hybrid-multicloud) - Hybrid environment security
-- [Observability & Monitoring](/docs/observability-monitoring) - Security monitoring
-- [Performance & Networking](/docs/performance-networking) - Network security
+- [Hybrid Infrastructure](/docs/hybrid-multicloud) - Hybrid environment security
+- [Operations & Observability](/docs/observability-monitoring) - Security monitoring
+- [Infrastructure Optimization](/docs/performance-networking) - Network security
 
 ---
 

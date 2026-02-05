@@ -160,23 +160,23 @@ const config = {
             items: [
               {
                 to: '/docs/performance-networking',
-                label: 'Performance & Networking',
+                label: 'Infrastructure Optimization',
               },
               {
                 to: '/docs/observability-monitoring',
-                label: 'Observability & Monitoring',
+                label: 'Operations & Observability',
               },
               {
                 to: '/docs/genai-aiml',
-                label: 'GenAI & AI/ML',
+                label: 'Agentic AI Platform',
               },
               {
                 to: '/docs/hybrid-multicloud',
-                label: 'Hybrid & Multi-Cloud',
+                label: 'Hybrid Infrastructure',
               },
               {
                 to: '/docs/security-compliance',
-                label: 'Security & Compliance',
+                label: 'Security & Governance',
               },
             ],
           },
@@ -207,11 +207,11 @@ const config = {
                 to: '/docs/intro',
               },
               {
-                label: 'Performance & Networking',
+                label: 'Infrastructure Optimization',
                 to: '/docs/performance-networking',
               },
               {
-                label: 'Observability & Monitoring',
+                label: 'Operations & Observability',
                 to: '/docs/observability-monitoring',
               },
             ],
@@ -220,15 +220,15 @@ const config = {
             title: 'More',
             items: [
               {
-                label: 'GenAI & AI/ML',
+                label: 'Agentic AI Platform',
                 to: '/docs/genai-aiml',
               },
               {
-                label: 'Hybrid & Multi-Cloud',
+                label: 'Hybrid Infrastructure',
                 to: '/docs/hybrid-multicloud',
               },
               {
-                label: 'Security & Compliance',
+                label: 'Security & Governance',
                 to: '/docs/security-compliance',
               },
             ],

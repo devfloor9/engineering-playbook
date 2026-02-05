@@ -364,11 +364,11 @@ export default function TagsIndexPage() {
   
   const categories = [
     { value: 'all', label: '전체' },
-    { value: 'performance-networking', label: '성능 & 네트워킹' },
-    { value: 'observability-monitoring', label: '관찰가능성' },
-    { value: 'genai-aiml', label: 'GenAI & AI/ML' },
-    { value: 'hybrid-multicloud', label: '하이브리드 클라우드' },
-    { value: 'security-compliance', label: '보안 & 컴플라이언스' }
+    { value: 'performance-networking', label: '인프라 최적화' },
+    { value: 'observability-monitoring', label: '운영 & 관찰가능성' },
+    { value: 'genai-aiml', label: '에이전틱 AI 플랫폼' },
+    { value: 'hybrid-multicloud', label: '하이브리드 인프라' },
+    { value: 'security-compliance', label: '보안 & 거버넌스' }
   ];
 
   return (

@@ -297,7 +297,7 @@ graph TD
 
 ### 5가지 주요 카테고리
 
-#### 1. Performance & Networking (성능 및 네트워킹)
+#### 1. Infrastructure Optimization (인프라 최적화)
 **다루는 주제:**
 - EKS DNS 성능 최적화
 - 네트워크 성능 튜닝
@@ -312,7 +312,7 @@ graph TD
 성능 관련 문서는 구체적인 메트릭과 벤치마크를 포함하세요.
 :::
 
-#### 2. Observability & Monitoring (관찰성 및 모니터링)
+#### 2. Operations & Observability (운영 및 관찰성)
 **다루는 주제:**
 - 로깅 및 추적
 - 메트릭 수집 및 분석
@@ -328,7 +328,7 @@ graph TD
 모니터링 문서는 실제 쿼리와 대시보드 설정 예제를 포함하세요.
 :::
 
-#### 3. GenAI & AI/ML (생성형AI 및 AI/ML)
+#### 3. Agentic AI Platform (에이전틱 AI 플랫폼)
 **다루는 주제:**
 - GPU 리소스 관리 및 최적화
 - LLM 통합 및 라우팅
@@ -344,7 +344,7 @@ graph TD
 AI/ML 문서는 GPU 활용률, 비용, 성능 관련 구체적 수치를 포함하세요.
 :::
 
-#### 4. Hybrid & Multi-Cloud (하이브리드 및 멀티클라우드)
+#### 4. Hybrid Infrastructure (하이브리드 인프라)
 **다루는 주제:**
 - EKS 하이브리드 노드 구성
 - 클라우드 버스팅 아키텍처
@@ -358,7 +358,7 @@ AI/ML 문서는 GPU 활용률, 비용, 성능 관련 구체적 수치를 포함�
 하이브리드 환경 문서는 온프레미스와 클라우드 간 통합 방식을 명확히 하세요.
 :::
 
-#### 5. Security & Compliance (보안 및 규정 준수)
+#### 5. Security & Governance (보안 및 거버넌스)
 **다루는 주제:**
 - RBAC 및 IAM 권한 관리
 - 네트워크 보안 정책

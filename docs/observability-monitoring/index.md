@@ -1,11 +1,11 @@
 ---
-title: "Observability & Monitoring"
-sidebar_label: "관찰성 & 모니터링"
+title: "Operations & Observability"
+sidebar_label: "운영 & 옵저버빌리티"
 description: "Amazon EKS 환경에서의 관찰성과 모니터링 관련 심화 기술 문서"
 sidebar_position: 2
 ---
 
-# Observability & Monitoring
+# Operations & Observability
 
 이 섹션에서는 Amazon EKS 환경에서의 관찰성(Observability)과 모니터링 관련 심화 기술 문서들을 다룹니다. 네트워크 가시성, 클러스터 모니터링, AI/ML 워크로드 추적, 노드 에이전트 구성 등을 통해 시스템 상태를 종합적으로 파악하고 관리할 수 있습니다.
 
@@ -144,9 +144,9 @@ graph TB
 
 ## 🔗 관련 카테고리
 
-- [Performance & Networking](/docs/performance-networking) - 네트워크 성능 메트릭
-- [GenAI & AI/ML](/docs/genai-aiml) - AI/ML 워크로드 모니터링
-- [Security & Compliance](/docs/security-compliance) - 보안 모니터링
+- [Infrastructure Optimization](/docs/performance-networking) - 네트워크 성능 메트릭
+- [Agentic AI Platform](/docs/genai-aiml) - AI/ML 워크로드 모니터링
+- [Security & Governance](/docs/security-compliance) - 보안 모니터링
 
 ---
 

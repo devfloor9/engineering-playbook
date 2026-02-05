@@ -12,31 +12,31 @@ Welcome to the **Engineering Playbook** - a comprehensive collection of technica
 
 This playbook is organized into five key technical domains, each containing detailed implementation guides, troubleshooting resources, and real-world examples:
 
-### [Performance & Networking](./performance-networking/)
+### [Infrastructure Optimization](./performance-networking/)
 - EKS DNS performance optimization
 - Cilium ENI mode configuration
 - Network performance tuning strategies
 - Load balancing and ingress patterns
 
-### [Observability & Monitoring](./observability-monitoring/)
+### [Operations & Observability](./observability-monitoring/)
 - Hubble network visibility implementation
 - AI/ML workload monitoring
 - Prometheus and Grafana configurations
 - Logging and alerting strategies
 
-### [GenAI & AI/ML](./genai-aiml/)
+### [Agentic AI Platform](./genai-aiml/)
 - Production GenAI platform architecture
 - GPU efficiency optimization
 - MIG and time-slicing strategies
 - Model serving and inference patterns
 
-### [Hybrid & Multi-Cloud](./hybrid-multicloud/)
+### [Hybrid Infrastructure](./hybrid-multicloud/)
 - EKS hybrid node configurations
 - Cloud bursting architectures
 - Multi-cloud management patterns
 - Edge computing with EKS
 
-### [Security & Compliance](./security-compliance/)
+### [Security & Governance](./security-compliance/)
 - ROSA network security implementations
 - Compliance architecture patterns
 - RBAC and IAM best practices

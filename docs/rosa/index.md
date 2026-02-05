@@ -187,10 +187,10 @@ Primary Region (ROSA)
 
 ## 🔗 관련 카테고리
 
-- [Hybrid & Multi-Cloud](/docs/hybrid-multicloud) - 하이브리드 환경 관리
-- [Security & Compliance](/docs/security-compliance) - ROSA 보안 아키텍처
-- [Performance & Networking](/docs/performance-networking) - 네트워킹 최적화
-- [Observability & Monitoring](/docs/observability-monitoring) - 클러스터 모니터링
+- [Hybrid Infrastructure](/docs/hybrid-multicloud) - 하이브리드 환경 관리
+- [Security & Governance](/docs/security-compliance) - ROSA 보안 아키텍처
+- [Infrastructure Optimization](/docs/performance-networking) - 네트워킹 최적화
+- [Operations & Observability](/docs/observability-monitoring) - 클러스터 모니터링
 
 ---
 

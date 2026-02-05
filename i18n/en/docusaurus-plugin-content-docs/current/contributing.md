@@ -297,7 +297,7 @@ This is a dangerous operation. Be careful!
 
 ### 5 Main Categories
 
-#### 1. Performance & Networking
+#### 1. Infrastructure Optimization
 **Topics Covered:**
 - EKS DNS performance optimization
 - Network performance tuning
@@ -312,7 +312,7 @@ This is a dangerous operation. Be careful!
 Include specific metrics and benchmarks in performance-related documents.
 :::
 
-#### 2. Observability & Monitoring
+#### 2. Operations & Observability
 **Topics Covered:**
 - Logging and tracing
 - Metrics collection and analysis
@@ -328,7 +328,7 @@ Include specific metrics and benchmarks in performance-related documents.
 Include actual queries and dashboard configuration examples in monitoring documents.
 :::
 
-#### 3. GenAI & AI/ML
+#### 3. Agentic AI Platform
 **Topics Covered:**
 - GPU resource management and optimization
 - LLM integration and routing
@@ -344,7 +344,7 @@ Include actual queries and dashboard configuration examples in monitoring docume
 Include specific figures related to GPU utilization, cost, and performance in AI/ML documents.
 :::
 
-#### 4. Hybrid & Multi-Cloud
+#### 4. Hybrid Infrastructure
 **Topics Covered:**
 - EKS hybrid node configuration
 - Cloud bursting architecture
@@ -358,7 +358,7 @@ Include specific figures related to GPU utilization, cost, and performance in AI
 Clearly explain integration methods between on-premises and cloud environments.
 :::
 
-#### 5. Security & Compliance
+#### 5. Security & Governance
 **Topics Covered:**
 - RBAC and IAM permission management
 - Network security policies

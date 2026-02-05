@@ -1,11 +1,11 @@
 ---
-title: "Observability & Monitoring"
-sidebar_label: "Observability & Monitoring"
+title: "Operations & Observability"
+sidebar_label: "Operations & Observability"
 description: "Advanced technical documentation on observability and monitoring in Amazon EKS environments"
 sidebar_position: 2
 ---
 
-# Observability & Monitoring
+# Operations & Observability
 
 This section covers advanced technical documentation on observability and monitoring in Amazon EKS environments. Through network visibility, cluster monitoring, AI/ML workload tracking, and node agent configuration, you can comprehensively understand and manage system state.
 
@@ -144,9 +144,9 @@ graph TB
 
 ## 🔗 Related Categories
 
-- [Performance & Networking](/docs/performance-networking) - Network performance metrics
-- [GenAI & AI/ML](/docs/genai-aiml) - AI/ML workload monitoring
-- [Security & Compliance](/docs/security-compliance) - Security monitoring
+- [Infrastructure Optimization](/docs/performance-networking) - Network performance metrics
+- [Agentic AI Platform](/docs/genai-aiml) - AI/ML workload monitoring
+- [Security & Governance](/docs/security-compliance) - Security monitoring
 
 ---
 

@@ -26,7 +26,7 @@ const sidebars = {
     },
     {
       type: 'category',
-      label: 'Performance & Networking',
+      label: 'Infrastructure Optimization',
       collapsed: true,
       link: {
         type: 'doc',
@@ -43,7 +43,7 @@ const sidebars = {
     },
     {
       type: 'category',
-      label: 'Observability & Monitoring',
+      label: 'Operations & Observability',
       collapsed: true,
       link: {
         type: 'doc',
@@ -56,7 +56,7 @@ const sidebars = {
     },
     {
       type: 'category',
-      label: 'GenAI & AI/ML',
+      label: 'Agentic AI Platform',
       collapsed: true,
       link: {
         type: 'doc',
@@ -79,7 +79,7 @@ const sidebars = {
     },
     {
       type: 'category',
-      label: 'Hybrid & Multi-Cloud',
+      label: 'Hybrid Infrastructure',
       collapsed: true,
       link: {
         type: 'doc',
@@ -96,7 +96,7 @@ const sidebars = {
     },
     {
       type: 'category',
-      label: 'Security & Compliance',
+      label: 'Security & Governance',
       collapsed: true,
       link: {
         type: 'doc',

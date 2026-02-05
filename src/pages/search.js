@@ -34,7 +34,7 @@ export default function SearchPage() {
                 <div className="col col--6">
                   <div className="card margin-bottom--md">
                     <div className="card__header">
-                      <h4>Performance & Networking</h4>
+                      <h4>Infrastructure Optimization</h4>
                     </div>
                     <div className="card__body">
                       <p>EKS DNS optimization, Cilium ENI mode, network performance tuning</p>
@@ -44,7 +44,7 @@ export default function SearchPage() {
                 <div className="col col--6">
                   <div className="card margin-bottom--md">
                     <div className="card__header">
-                      <h4>Observability & Monitoring</h4>
+                      <h4>Operations & Observability</h4>
                     </div>
                     <div className="card__body">
                       <p>Hubble network visibility, AI/ML workload monitoring</p>
@@ -56,7 +56,7 @@ export default function SearchPage() {
                 <div className="col col--6">
                   <div className="card margin-bottom--md">
                     <div className="card__header">
-                      <h4>GenAI & AI/ML</h4>
+                      <h4>Agentic AI Platform</h4>
                     </div>
                     <div className="card__body">
                       <p>Production GenAI platforms, GPU efficiency, MIG strategies</p>
@@ -66,7 +66,7 @@ export default function SearchPage() {
                 <div className="col col--6">
                   <div className="card margin-bottom--md">
                     <div className="card__header">
-                      <h4>Hybrid & Multi-Cloud</h4>
+                      <h4>Hybrid Infrastructure</h4>
                     </div>
                     <div className="card__body">
                       <p>EKS hybrid nodes, cloud bursting architectures</p>
@@ -78,7 +78,7 @@ export default function SearchPage() {
                 <div className="col col--6">
                   <div className="card margin-bottom--md">
                     <div className="card__header">
-                      <h4>Security & Compliance</h4>
+                      <h4>Security & Governance</h4>
                     </div>
                     <div className="card__body">
                       <p>ROSA network security, compliance architectures</p>
