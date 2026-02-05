@@ -7,132 +7,31 @@ sidebar_position: 1
 
 # Infrastructure Optimization
 
-This section covers advanced technical documentation on performance optimization and networking for Amazon EKS clusters. Topics include DNS performance tuning, network performance optimization, cost management, and auto-scaling—all essential for production environments.
+Operating Kubernetes clusters in production environments extends far beyond simply deploying workloads. It represents a complex challenge that requires simultaneously pursuing two critical objectives: continuous performance optimization and cost efficiency. In Amazon EKS environments, organizations must maximize the advantages of cloud-native architecture while addressing real-world operational challenges such as DNS lookup latency, network bottlenecks, and inefficient resource allocation.
 
-## 📚 Key Documentation
+This section presents a systematic, practice-oriented approach to infrastructure optimization for EKS clusters. DNS performance tuning is particularly crucial in microservices architectures where service discovery forms the backbone of inter-service communication. Through CoreDNS caching strategies and query optimization, response times can be dramatically improved. At the network layer, we explore how to leverage Cilium's eBPF-based ENI mode to achieve superior throughput and lower latency compared to traditional CNI plugins. Additionally, through modern traffic routing patterns using Gateway API and East-West traffic optimization strategies, efficient service-to-service communication can be implemented without the overhead of a service mesh.
 
-### DNS Performance Optimization
-- **[Supercharging EKS DNS Performance: A Deep Dive into CoreDNS Optimization](./coredns-monitoring-optimization.md)**
-  - CoreDNS configuration optimization methods
-  - DNS query performance tuning strategies
-  - Monitoring and metrics collection
-  - Real-world performance improvement case studies
+In the auto-scaling domain, we introduce intelligent node provisioning strategies centered around Karpenter. These architectural patterns overcome the limitations of the traditional Cluster Autoscaler, enabling cost optimization through Spot instances and diverse instance types while maintaining rapid scale-out capabilities. All optimization efforts are quantitatively validated through metrics-based decision making using Prometheus and CloudWatch, with effectiveness demonstrated through actual benchmark results and production environment case studies.
 
-### Network Performance Optimization
-- **[Unleashing Network Performance: Mastering Cilium ENI Mode on Amazon EKS](./cilium-eni-gateway-api.md)**
-  - Cilium ENI mode configuration and optimization
-  - Gateway API integration
-  - Network throughput enhancement techniques
-  - Real benchmark results
+## Key Documentation
 
-### Traffic Management
-- **[East-West Traffic Best Practices for EKS](./east-west-traffic-best-practice.md)**
-  - In-cluster traffic optimization
-  - Service-to-service communication patterns
-  - Network policy implementation
+**[Supercharging EKS DNS Performance: A Deep Dive into CoreDNS Optimization](./coredns-monitoring-optimization.md)**
+CoreDNS configuration optimization, DNS query performance tuning strategies, monitoring metrics collection, and real-world performance improvement case studies
 
-### Auto-Scaling
-- **[Karpenter Auto-Scaling for EKS](./karpenter-autoscaling.md)**
-  - Node auto-scaling using Karpenter
-  - Cost optimization strategies
-  - Provisioning optimization
+**[Unleashing Network Performance: Mastering Cilium ENI Mode on Amazon EKS](./cilium-eni-gateway-api.md)**
+Cilium ENI mode configuration and optimization, Gateway API integration, network throughput enhancement techniques, and benchmark results
 
-- **[Fast Scaling Architecture for EKS](./fast-scaling-architecture.md)**
-  - Quick scale-out architecture design
-  - Workload placement optimization
+**[East-West Traffic Best Practices for EKS](./east-west-traffic-best-practice.md)**
+In-cluster traffic optimization, service-to-service communication patterns, network policy implementation
 
-### Cost Management
-- **[Cost Management for EKS](./cost-management.md)**
-  - EKS cluster cost optimization
-  - Resource efficiency strategies
+**[Karpenter Auto-Scaling for EKS](./karpenter-autoscaling.md)**
+Node auto-scaling using Karpenter, cost optimization strategies, provisioning optimization, quick scale-out architecture design, workload placement optimization
 
-## 🎯 Learning Objectives
+**[Cost Management for EKS](./cost-management.md)**
+EKS cluster cost optimization, resource efficiency strategies
 
-By completing this section, you will learn:
+## Related Categories
 
-- DNS performance tuning techniques for EKS clusters
-- Network throughput optimization methods
-- Efficient traffic routing and management
-- Elastic resource management through auto-scaling
-- Network cost optimization strategies
-- Performance monitoring in production environments
-
-## 🏗️ Architecture Pattern
-
-```mermaid
-graph TB
-    subgraph EKS["Amazon EKS Cluster"]
-        CP[Control Plane]
-        CoreDNS["CoreDNS Pod"]
-        Services["Services"]
-        Workloads["Workloads"]
-    end
-
-    subgraph Network["Networking Layer"]
-        Cilium["Cilium CNI"]
-        ENI["ENI Mode"]
-        GatewayAPI["Gateway API"]
-    end
-
-    subgraph Scaling["Auto-Scaling"]
-        Karpenter["Karpenter"]
-        ASG["Auto Scaling Groups"]
-    end
-
-    Workloads <--> CoreDNS
-    Workloads <--> Services
-    Cilium <--> ENI
-    ENI <--> GatewayAPI
-    Karpenter --> ASG
-
-    style EKS fill:#ff9900
-    style Network fill:#4286f4
-    style Scaling fill:#44546a
-```
-
-## 🔧 Key Technologies and Tools
-
-| Technology | Description | Use Case |
-|------|------|----------|
-| **CoreDNS** | Kubernetes default DNS server | DNS resolution performance optimization |
-| **Cilium** | eBPF-based networking plugin | High-performance network processing |
-| **Gateway API** | Next-generation ingress API | Flexible traffic routing |
-| **Karpenter** | Auto-scaling platform | Cost-efficient node management |
-| **Prometheus** | Metrics collection and storage | Performance monitoring |
-
-## 💡 Core Concepts
-
-### DNS Performance Optimization
-- **Understanding Cluster DNS**: How CoreDNS operates in EKS
-- **Caching Strategies**: Reducing DNS response times
-- **Load Balancing**: Distributing DNS queries
-
-### Network Optimization
-- **ENI Mode**: AWS-native networking
-- **eBPF Technology**: High-performance packet processing
-- **Bandwidth Utilization**: Maximizing network throughput
-
-### Cost Efficiency
-- **Spot Instances**: Low-cost nodes
-- **Auto-Scaling**: Resource adjustment based on demand
-- **Resource Requests**: Appropriate CPU/memory settings
-
-## 🔗 Related Categories
-
-- [Operations & Observability](/docs/observability-monitoring) - Performance metrics monitoring
-- [Security & Governance](/docs/security-compliance) - Network security policies
-- [Hybrid Infrastructure](/docs/hybrid-multicloud) - Hybrid environment networking
-
----
-
-:::tip Tip
-Before starting performance optimization work, be sure to collect baseline metrics of the current state. This allows you to quantitatively measure the impact of optimizations.
-:::
-
-:::info Recommended Learning Order
-For those new to this content, we recommend proceeding in the following order:
-1. CoreDNS monitoring and optimization (DNS fundamentals)
-2. Cilium ENI mode (network fundamentals)
-3. Karpenter auto-scaling (cost optimization)
-4. Full architecture integration
-:::
+[Operations & Observability](/docs/observability-monitoring) - Performance metrics monitoring
+[Security & Governance](/docs/security-compliance) - Network security policies
+[Hybrid Infrastructure](/docs/hybrid-multicloud) - Hybrid environment networking

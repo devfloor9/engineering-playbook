@@ -1,8 +1,8 @@
 ---
 title: "Agentic AI Platform Architecture"
 sidebar_label: "Platform Architecture"
-description: "Complete system architecture and component design of Agentic AI Platform based on Amazon EKS"
-tags: [eks, architecture, agentic-ai, platform, kubernetes, kagent, kgateway]
+description: "Comprehensive guide covering complete system architecture, core component design, and implementation strategies for production-grade GenAI platform based on Amazon EKS"
+tags: [eks, architecture, agentic-ai, platform, kubernetes, kagent, kgateway, genai, mlops]
 category: "genai-aiml"
 date: 2025-02-05
 authors: [devfloor9]
@@ -11,17 +11,36 @@ sidebar_position: 4
 
 # Agentic AI Platform Architecture
 
-This document covers the complete system architecture and key component design of an Agentic AI Platform based on Amazon EKS. It presents a platform architecture to efficiently build and operate autonomous AI agents that can perform complex tasks.
+> 📅 **Date**: 2025-02-05 | ⏱️ **Reading Time**: ~15 minutes
+
+This document covers the complete system architecture and key component design of a production-grade Agentic AI Platform based on Amazon EKS. It presents a platform architecture to efficiently build and operate autonomous AI agents that can perform complex tasks.
 
 ## Overview
 
-Agentic AI Platform is an integrated platform that enables autonomous AI agents to perform complex tasks. The platform provides the following core capabilities:
+Agentic AI Platform is an integrated platform that enables autonomous AI agents to perform complex tasks. It provides stable and scalable GenAI services by integrating the latest AI/ML technology, container orchestration, and cloud-native architecture.
 
-- **Agent Orchestration**: Manage AI agent lifecycle through Kagent
-- **Intelligent Routing**: Dynamic routing of inference requests through Kgateway
-- **Vector Search**: Support RAG (Retrieval-Augmented Generation) through Milvus
-- **Observability**: Track and analyze agent behavior through LangFuse
-- **Scalability**: Horizontal scaling native to Kubernetes
+### Problem Statement
+
+Challenges in existing GenAI service implementation:
+
+- **Complexity of AI Model Serving**: Difficulty in deploying and managing resources for various models
+- **Lack of Integration**: Absence of integration of various ML frameworks and tools
+- **Scaling Issues**: Difficulty in performance optimization and auto-scaling
+- **MLOps Automation**: Absence of deployment pipeline and automation
+- **Cost Efficiency**: Lack of resource utilization optimization strategies
+
+This guide presents practical strategies to systematically address these challenges.
+
+### Core Capabilities
+
+| Capability | Description |
+|------------|-------------|
+| **Agent Orchestration** | Manage AI agent lifecycle through Kagent |
+| **Intelligent Routing** | Dynamic routing of inference requests through Kgateway |
+| **Vector Search** | Support RAG (Retrieval-Augmented Generation) through Milvus |
+| **Observability** | Track and analyze agent behavior through LangFuse |
+| **Scalability** | Horizontal scaling native to Kubernetes |
+| **Multi-Tenancy** | Support multiple teams with resource isolation and fair distribution |
 
 :::info Target Audience
 This document is intended for solution architects, platform engineers, and DevOps engineers. Basic understanding of Kubernetes and AI/ML workloads is required.
@@ -330,7 +349,7 @@ spec:
   memory:
     type: redis
     config:
-      host: redis-master.ai-agents.svc
+      host: redis-master.ai-data.svc.cluster.local
       port: 6379
       ttl: 3600
       maxHistory: 50
@@ -1046,6 +1065,34 @@ Key monitoring dashboards:
 - **LLM Performance**: Token throughput, inference time by model
 - **Resource Usage**: CPU, memory, GPU utilization
 - **Cost Tracking**: Cost tracking by tenant and model
+
+## Technology Stack
+
+### Core Infrastructure
+
+| Area | Technology |
+|------|-----------|
+| Container Orchestration | Amazon EKS (Auto Mode, Pod Identity) |
+| Networking | Cilium CNI, Gateway API, VPC Lattice |
+| Security | OPA/Kyverno, RBAC, Pod Security Standards |
+| GitOps | ArgoCD, Helm, Kustomize |
+
+### GenAI Technologies
+
+| Area | Technology |
+|------|-----------|
+| Model Serving | vLLM, Text Generation Inference (TGI) |
+| Low-Code Platform | Dify (Visual AI Workflow Builder) |
+| Agent Frameworks | LangChain, LangGraph, CrewAI |
+| Vector Databases | Milvus, RAG integration patterns |
+
+### Platform Operations
+
+| Area | Technology |
+|------|-----------|
+| Observability | OpenTelemetry, Prometheus, Grafana, Hubble |
+| Cost Management | Kubecost, Karpenter optimization |
+| Automation | AWS Controllers for Kubernetes (ACK) |
 
 ## Conclusion
 

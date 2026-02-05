@@ -1,19 +1,19 @@
 ---
-title: "AI Agent Monitoring (LangFuse & LangSmith)"
-sidebar_label: "Agent Monitoring"
-description: "Guide to monitoring and tracing Agentic AI applications using LangFuse and LangSmith"
-tags: [eks, langfuse, langsmith, monitoring, observability, tracing, opentelemetry]
+title: "AI Agent Monitoring and Operations"
+sidebar_label: "Agent Monitoring & Operations"
+description: "Comprehensive guide for monitoring, alerting, and troubleshooting Agentic AI applications using LangFuse and LangSmith"
+tags: [eks, langfuse, langsmith, monitoring, observability, tracing, opentelemetry, operations, troubleshooting, alerting]
 category: "genai-aiml"
 date: 2025-02-05
 authors: [devfloor9]
 sidebar_position: 8
 ---
 
-# AI Agent Monitoring (LangFuse & LangSmith)
+# AI Agent Monitoring and Operations
 
-> **Written**: 2025-02-05 | **Reading time**: ~15 min
+> **Written**: 2025-02-05 | **Reading time**: ~20 min
 
-This document covers methods for effectively tracking and monitoring the performance and behavior of Agentic AI applications using LangFuse and LangSmith. We provide a comprehensive guide for practical operations, from deployment in Kubernetes environments to configuring Grafana dashboards.
+This document covers comprehensive methods for effectively tracking and monitoring the performance and behavior of Agentic AI applications using LangFuse and LangSmith. We provide a complete operational guide from deployment in Kubernetes environments to Grafana dashboard configuration, alert setup, and troubleshooting.
 
 ## Overview
 
@@ -883,7 +883,7 @@ def start_metrics_server(port: int = 8000):
 ```
 
 
-## Grafana Dashboard
+## Grafana Dashboard and Alerting
 
 ### Dashboard Overview
 
@@ -924,234 +924,7 @@ graph TB
     style Row4 fill:#fce4ec
 ```
 
-### Dashboard JSON Configuration
-
-```json
-{
-  "dashboard": {
-    "id": null,
-    "uid": "ai-agent-monitoring",
-    "title": "AI Agent Monitoring",
-    "tags": ["ai", "agent", "langfuse", "llm"],
-    "timezone": "browser",
-    "schemaVersion": 38,
-    "version": 1,
-    "refresh": "30s",
-    "panels": [
-      {
-        "id": 1,
-        "title": "Total Requests",
-        "type": "stat",
-        "gridPos": {"h": 4, "w": 6, "x": 0, "y": 0},
-        "targets": [
-          {
-            "expr": "sum(increase(agent_request_duration_seconds_count[24h]))",
-            "legendFormat": "Total"
-          }
-        ],
-        "options": {
-          "colorMode": "value",
-          "graphMode": "area",
-          "justifyMode": "auto"
-        },
-        "fieldConfig": {
-          "defaults": {
-            "unit": "short",
-            "thresholds": {
-              "mode": "absolute",
-              "steps": [
-                {"color": "green", "value": null}
-              ]
-            }
-          }
-        }
-      },
-      {
-        "id": 2,
-        "title": "Success Rate",
-        "type": "gauge",
-        "gridPos": {"h": 4, "w": 6, "x": 6, "y": 0},
-        "targets": [
-          {
-            "expr": "1 - (sum(rate(agent_errors_total[5m])) / sum(rate(agent_request_duration_seconds_count[5m])))",
-            "legendFormat": "Success Rate"
-          }
-        ],
-        "options": {
-          "showThresholdLabels": false,
-          "showThresholdMarkers": true
-        },
-        "fieldConfig": {
-          "defaults": {
-            "unit": "percentunit",
-            "min": 0,
-            "max": 1,
-            "thresholds": {
-              "mode": "absolute",
-              "steps": [
-                {"color": "red", "value": null},
-                {"color": "yellow", "value": 0.9},
-                {"color": "green", "value": 0.95}
-              ]
-            }
-          }
-        }
-      },
-      {
-        "id": 3,
-        "title": "P95 Latency",
-        "type": "stat",
-        "gridPos": {"h": 4, "w": 6, "x": 12, "y": 0},
-        "targets": [
-          {
-            "expr": "histogram_quantile(0.95, sum(rate(agent_request_duration_seconds_bucket[5m])) by (le))",
-            "legendFormat": "P95"
-          }
-        ],
-        "fieldConfig": {
-          "defaults": {
-            "unit": "s",
-            "thresholds": {
-              "mode": "absolute",
-              "steps": [
-                {"color": "green", "value": null},
-                {"color": "yellow", "value": 5},
-                {"color": "red", "value": 10}
-              ]
-            }
-          }
-        }
-      },
-      {
-        "id": 4,
-        "title": "Active Sessions",
-        "type": "stat",
-        "gridPos": {"h": 4, "w": 6, "x": 18, "y": 0},
-        "targets": [
-          {
-            "expr": "sum(agent_active_sessions)",
-            "legendFormat": "Active"
-          }
-        ],
-        "fieldConfig": {
-          "defaults": {
-            "unit": "short",
-            "thresholds": {
-              "mode": "absolute",
-              "steps": [
-                {"color": "green", "value": null}
-              ]
-            }
-          }
-        }
-      },
-      {
-        "id": 5,
-        "title": "Request Latency Distribution",
-        "type": "timeseries",
-        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 4},
-        "targets": [
-          {
-            "expr": "histogram_quantile(0.50, sum(rate(agent_request_duration_seconds_bucket[5m])) by (le))",
-            "legendFormat": "P50"
-          },
-          {
-            "expr": "histogram_quantile(0.95, sum(rate(agent_request_duration_seconds_bucket[5m])) by (le))",
-            "legendFormat": "P95"
-          },
-          {
-            "expr": "histogram_quantile(0.99, sum(rate(agent_request_duration_seconds_bucket[5m])) by (le))",
-            "legendFormat": "P99"
-          }
-        ],
-        "fieldConfig": {
-          "defaults": {
-            "unit": "s",
-            "custom": {
-              "drawStyle": "line",
-              "lineInterpolation": "smooth",
-              "fillOpacity": 10
-            }
-          }
-        }
-      },
-      {
-        "id": 6,
-        "title": "Error Rate by Type",
-        "type": "timeseries",
-        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 4},
-        "targets": [
-          {
-            "expr": "sum(rate(agent_errors_total[5m])) by (error_type)",
-            "legendFormat": "{{error_type}}"
-          }
-        ],
-        "fieldConfig": {
-          "defaults": {
-            "unit": "short",
-            "custom": {
-              "drawStyle": "bars",
-              "fillOpacity": 80
-            }
-          }
-        }
-      },
-      {
-        "id": 7,
-        "title": "Token Usage by Model",
-        "type": "timeseries",
-        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 12},
-        "targets": [
-          {
-            "expr": "sum(rate(llm_tokens_total[1h])) by (model)",
-            "legendFormat": "{{model}}"
-          }
-        ],
-        "fieldConfig": {
-          "defaults": {
-            "unit": "short",
-            "custom": {
-              "drawStyle": "line",
-              "fillOpacity": 20,
-              "stacking": {"mode": "normal"}
-            }
-          }
-        }
-      },
-      {
-        "id": 8,
-        "title": "Cost by Tenant (Daily)",
-        "type": "piechart",
-        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 12},
-        "targets": [
-          {
-            "expr": "sum(increase(llm_cost_dollars_total[24h])) by (tenant_id)",
-            "legendFormat": "{{tenant_id}}"
-          }
-        ],
-        "options": {
-          "legend": {
-            "displayMode": "table",
-            "placement": "right",
-            "values": ["value", "percent"]
-          },
-          "pieType": "donut"
-        },
-        "fieldConfig": {
-          "defaults": {
-            "unit": "currencyUSD"
-          }
-        }
-      }
-    ]
-  }
-}
-```
-
-
-### Alert Configuration
-
-Set up Grafana alert rules to detect anomalies.
+### Grafana Alert Rules
 
 ```yaml
 # grafana-alerts.yaml
@@ -1305,6 +1078,119 @@ data:
 ```
 
 
+## Operations Checklist
+
+### Daily Checks
+
+| Check Item | How to Check | Normal Status |
+| --- | --- | --- |
+| GPU Status | `kubectl get nodes -l nvidia.com/gpu.present=true` | All nodes Ready |
+| Model Pods | `kubectl get pods -n inference` | Running state |
+| Error Rate | Grafana dashboard | < 1% |
+| Response Time | P99 latency | < 5 seconds |
+| GPU Utilization | DCGM metrics | 40-80% |
+| Memory Usage | GPU memory | < 90% |
+
+### Weekly Checks
+
+| Check Item | How to Check | Action |
+| --- | --- | --- |
+| Cost Analysis | Kubecost report | Identify anomalous costs |
+| Capacity Planning | Resource trends | Plan scaling |
+| Security Patches | Image scan | Patch vulnerabilities |
+| Backup Validation | Recovery test | Verify backup policy |
+
+
+## Troubleshooting Guide
+
+### GPU OOM (Out of Memory) Issue
+
+#### Symptoms
+
+```
+CUDA out of memory. Tried to allocate X GiB
+RuntimeError: CUDA error: out of memory
+```
+
+#### Diagnosis
+
+```bash
+# Check GPU memory status
+kubectl exec -it <pod-name> -n inference -- nvidia-smi
+
+# Check DCGM metrics
+kubectl exec -it <dcgm-exporter-pod> -n monitoring -- dcgmi dmon -e 155,156
+```
+
+#### Solutions
+
+```yaml
+# 1. Reduce batch size
+env:
+- name: MAX_BATCH_SIZE
+  value: "16"  # Decreased from 32
+
+# 2. Apply model quantization
+env:
+- name: QUANTIZATION
+  value: "int8"  # or "fp8"
+
+# 3. Limit KV cache size
+env:
+- name: MAX_NUM_SEQS
+  value: "128"  # Limit concurrent sequences
+```
+
+### Network Latency Issues
+
+#### Symptoms
+
+- Inference request timeouts
+- Latency between models
+- NCCL timeouts (distributed inference)
+
+#### Solutions
+
+```yaml
+# 1. Pod anti-affinity for distributed deployment
+affinity:
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+    - weight: 100
+      podAffinityTerm:
+        labelSelector:
+          matchLabels:
+            app: inference
+        topologyKey: "topology.kubernetes.io/zone"
+
+# 2. Increase timeout
+env:
+- name: NCCL_TIMEOUT
+  value: "1800"  # 30 minutes
+- name: REQUEST_TIMEOUT
+  value: "300"   # 5 minutes
+```
+
+### LangFuse Connection Error
+
+```bash
+# Symptom: Traces not recorded in LangFuse
+
+# 1. Check LangFuse service status
+kubectl get pods -n observability -l app=langfuse
+
+# 2. Check LangFuse logs
+kubectl logs -n observability -l app=langfuse --tail=100
+
+# 3. Test network connection
+kubectl run -it --rm debug --image=curlimages/curl --restart=Never -- \
+  curl -v http://langfuse.observability.svc/api/public/health
+
+# 4. Verify environment variables
+kubectl exec -n ai-agents <pod-name> -- env | grep LANGFUSE
+```
+
+
 ## Cost Tracking
 
 ### Cost Analysis by Model
@@ -1328,26 +1214,13 @@ class ModelPricing:
 MODEL_PRICING: Dict[str, ModelPricing] = {
     # OpenAI
     "gpt-4-turbo": ModelPricing(0.01, 0.03),
-    "gpt-4-turbo-preview": ModelPricing(0.01, 0.03),
     "gpt-4": ModelPricing(0.03, 0.06),
-    "gpt-4-32k": ModelPricing(0.06, 0.12),
     "gpt-3.5-turbo": ModelPricing(0.0005, 0.0015),
-    "gpt-3.5-turbo-16k": ModelPricing(0.003, 0.004),
 
     # Anthropic
     "claude-3-opus": ModelPricing(0.015, 0.075),
     "claude-3-sonnet": ModelPricing(0.003, 0.015),
     "claude-3-haiku": ModelPricing(0.00025, 0.00125),
-    "claude-2.1": ModelPricing(0.008, 0.024),
-
-    # Amazon Bedrock (Claude)
-    "anthropic.claude-3-opus-20240229-v1:0": ModelPricing(0.015, 0.075),
-    "anthropic.claude-3-sonnet-20240229-v1:0": ModelPricing(0.003, 0.015),
-    "anthropic.claude-3-haiku-20240307-v1:0": ModelPricing(0.00025, 0.00125),
-
-    # Self-hosted (e.g., vLLM) - estimated based on infrastructure
-    "llama-3-70b": ModelPricing(0.001, 0.001),
-    "mixtral-8x7b": ModelPricing(0.0005, 0.0005),
 }
 
 @dataclass
@@ -1414,162 +1287,9 @@ class CostTracker:
         )
 
         return record
-
-    def get_cost_by_tenant(
-        self,
-        start_time: Optional[datetime] = None,
-        end_time: Optional[datetime] = None,
-    ) -> Dict[str, float]:
-        """Aggregate cost by tenant."""
-        if start_time is None:
-            start_time = datetime.utcnow() - timedelta(days=30)
-        if end_time is None:
-            end_time = datetime.utcnow()
-
-        costs: Dict[str, float] = {}
-        for record in self.records:
-            if start_time <= record.timestamp <= end_time:
-                if record.tenant_id not in costs:
-                    costs[record.tenant_id] = 0.0
-                costs[record.tenant_id] += record.cost
-
-        return costs
-
-    def get_cost_by_model(
-        self,
-        tenant_id: Optional[str] = None,
-        start_time: Optional[datetime] = None,
-        end_time: Optional[datetime] = None,
-    ) -> Dict[str, Dict[str, float]]:
-        """Aggregate cost and token usage by model."""
-        if start_time is None:
-            start_time = datetime.utcnow() - timedelta(days=30)
-        if end_time is None:
-            end_time = datetime.utcnow()
-
-        result: Dict[str, Dict[str, float]] = {}
-        for record in self.records:
-            if start_time <= record.timestamp <= end_time:
-                if tenant_id and record.tenant_id != tenant_id:
-                    continue
-
-                if record.model not in result:
-                    result[record.model] = {
-                        "input_tokens": 0,
-                        "output_tokens": 0,
-                        "total_tokens": 0,
-                        "cost": 0.0,
-                        "requests": 0,
-                    }
-
-                result[record.model]["input_tokens"] += record.input_tokens
-                result[record.model]["output_tokens"] += record.output_tokens
-                result[record.model]["total_tokens"] += record.total_tokens
-                result[record.model]["cost"] += record.cost
-                result[record.model]["requests"] += 1
-
-        return result
-
-    def generate_cost_report(
-        self,
-        tenant_id: Optional[str] = None,
-        period_days: int = 30,
-    ) -> str:
-        """Generate cost report."""
-        end_time = datetime.utcnow()
-        start_time = end_time - timedelta(days=period_days)
-
-        model_costs = self.get_cost_by_model(tenant_id, start_time, end_time)
-        tenant_costs = self.get_cost_by_tenant(start_time, end_time)
-
-        report = {
-            "period": {
-                "start": start_time.isoformat(),
-                "end": end_time.isoformat(),
-                "days": period_days,
-            },
-            "summary": {
-                "total_cost": sum(tenant_costs.values()),
-                "total_requests": sum(m["requests"] for m in model_costs.values()),
-                "total_tokens": sum(m["total_tokens"] for m in model_costs.values()),
-            },
-            "by_model": model_costs,
-            "by_tenant": tenant_costs,
-        }
-
-        return json.dumps(report, indent=2, default=str)
-```
-
-
-### Cost Allocation by Tenant
-
-How to fairly allocate costs in multi-tenant environments.
-
-```yaml
-# cost-allocation-configmap.yaml
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: cost-allocation-config
-  namespace: observability
-data:
-  allocation-rules.yaml: |
-    # Tenant budget configuration
-    tenants:
-      tenant-a:
-        monthly_budget_usd: 5000
-        alert_threshold_percent: 80
-        models_allowed:
-          - gpt-4-turbo
-          - gpt-3.5-turbo
-          - claude-3-sonnet
-        rate_limits:
-          requests_per_minute: 100
-          tokens_per_day: 1000000
-
-      tenant-b:
-        monthly_budget_usd: 2000
-        alert_threshold_percent: 80
-        models_allowed:
-          - gpt-3.5-turbo
-          - claude-3-haiku
-        rate_limits:
-          requests_per_minute: 50
-          tokens_per_day: 500000
-
-      tenant-c:
-        monthly_budget_usd: 10000
-        alert_threshold_percent: 90
-        models_allowed:
-          - gpt-4-turbo
-          - gpt-4
-          - claude-3-opus
-          - claude-3-sonnet
-        rate_limits:
-          requests_per_minute: 200
-          tokens_per_day: 5000000
-
-    # Infrastructure cost allocation
-    infrastructure_cost_allocation:
-      method: proportional  # proportional, equal, fixed
-      base_monthly_cost_usd: 1000  # GPU infrastructure base cost
-
-    # Alert configuration
-    alerts:
-      budget_warning:
-        threshold_percent: 80
-        channels: [slack, email]
-      budget_exceeded:
-        threshold_percent: 100
-        channels: [slack, email, pagerduty]
-      rate_limit_warning:
-        threshold_percent: 90
-        channels: [slack]
 ```
 
 ### Cost Dashboard Queries
-
-Example PromQL queries for cost analysis in Grafana.
 
 ```promql
 # Daily total cost
@@ -1583,21 +1303,10 @@ sum(increase(llm_cost_dollars_total[24h])) by (model)
 / ignoring(model) group_left
 sum(increase(llm_cost_dollars_total[24h]))
 
-# Cost trend per hour
-sum(rate(llm_cost_dollars_total[1h])) * 3600
-
 # Budget utilization (monthly)
 sum(increase(llm_cost_dollars_total[30d])) by (tenant_id)
 / on(tenant_id) group_left
 tenant_monthly_budget_usd
-
-# Average cost per token
-sum(rate(llm_cost_dollars_total[1h]))
-/ sum(rate(llm_tokens_total[1h]))
-
-# Average cost per request
-sum(increase(llm_cost_dollars_total[24h]))
-/ sum(increase(agent_request_duration_seconds_count[24h]))
 ```
 
 :::tip Cost Optimization Tips
@@ -1605,361 +1314,6 @@ sum(increase(llm_cost_dollars_total[24h]))
 2. **Prompt Optimization**: Remove unnecessary context to reduce input tokens
 3. **Caching**: Cache responses for repeated queries
 4. **Batch Processing**: Process requests in batches when possible to reduce overhead
-:::
-
-
-## OpenTelemetry Integration
-
-Integrate LangFuse with existing observability stacks using OpenTelemetry.
-
-### OpenTelemetry Collector Configuration
-
-```yaml
-# otel-collector-config.yaml
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: otel-collector-config
-  namespace: observability
-data:
-  config.yaml: |
-    receivers:
-      otlp:
-        protocols:
-          grpc:
-            endpoint: 0.0.0.0:4317
-          http:
-            endpoint: 0.0.0.0:4318
-
-      prometheus:
-        config:
-          scrape_configs:
-            - job_name: 'langfuse'
-              static_configs:
-                - targets: ['langfuse:3000']
-              metrics_path: /api/public/metrics
-
-    processors:
-      batch:
-        timeout: 10s
-        send_batch_size: 1000
-
-      memory_limiter:
-        check_interval: 1s
-        limit_mib: 1000
-        spike_limit_mib: 200
-
-      attributes:
-        actions:
-          - key: environment
-            value: production
-            action: upsert
-          - key: service.namespace
-            value: ai-platform
-            action: upsert
-
-    exporters:
-      prometheus:
-        endpoint: "0.0.0.0:8889"
-        namespace: ai_agent
-
-      otlp/jaeger:
-        endpoint: jaeger-collector.observability:4317
-        tls:
-          insecure: true
-
-      awsxray:
-        region: ap-northeast-2
-
-      logging:
-        loglevel: info
-
-    extensions:
-      health_check:
-        endpoint: 0.0.0.0:13133
-      pprof:
-        endpoint: 0.0.0.0:1777
-
-    service:
-      extensions: [health_check, pprof]
-      pipelines:
-        traces:
-          receivers: [otlp]
-          processors: [memory_limiter, batch, attributes]
-          exporters: [otlp/jaeger, awsxray, logging]
-
-        metrics:
-          receivers: [otlp, prometheus]
-          processors: [memory_limiter, batch]
-          exporters: [prometheus]
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: otel-collector
-  namespace: observability
-spec:
-  replicas: 2
-  selector:
-    matchLabels:
-      app: otel-collector
-  template:
-    metadata:
-      labels:
-        app: otel-collector
-    spec:
-      containers:
-        - name: otel-collector
-          image: otel/opentelemetry-collector-contrib:0.92.0
-          args:
-            - --config=/etc/otel/config.yaml
-          ports:
-            - containerPort: 4317  # OTLP gRPC
-            - containerPort: 4318  # OTLP HTTP
-            - containerPort: 8889  # Prometheus exporter
-            - containerPort: 13133 # Health check
-          volumeMounts:
-            - name: config
-              mountPath: /etc/otel
-          resources:
-            requests:
-              memory: "256Mi"
-              cpu: "100m"
-            limits:
-              memory: "512Mi"
-              cpu: "500m"
-      volumes:
-        - name: config
-          configMap:
-            name: otel-collector-config
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: otel-collector
-  namespace: observability
-spec:
-  selector:
-    app: otel-collector
-  ports:
-    - name: otlp-grpc
-      port: 4317
-      targetPort: 4317
-    - name: otlp-http
-      port: 4318
-      targetPort: 4318
-    - name: prometheus
-      port: 8889
-      targetPort: 8889
-```
-
-### Python OpenTelemetry Integration
-
-```python
-# otel_integration.py
-from opentelemetry import trace
-from opentelemetry.sdk.trace import TracerProvider
-from opentelemetry.sdk.trace.export import BatchSpanProcessor
-from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
-from opentelemetry.instrumentation.requests import RequestsInstrumentor
-from opentelemetry.sdk.resources import Resource
-from opentelemetry.semconv.resource import ResourceAttributes
-import os
-
-def setup_opentelemetry():
-    """Initialize OpenTelemetry."""
-    resource = Resource.create({
-        ResourceAttributes.SERVICE_NAME: "ai-agent",
-        ResourceAttributes.SERVICE_VERSION: "1.0.0",
-        ResourceAttributes.DEPLOYMENT_ENVIRONMENT: os.environ.get("ENVIRONMENT", "production"),
-    })
-
-    provider = TracerProvider(resource=resource)
-
-    # OTLP Exporter configuration
-    otlp_exporter = OTLPSpanExporter(
-        endpoint=os.environ.get("OTEL_EXPORTER_OTLP_ENDPOINT", "otel-collector:4317"),
-        insecure=True,
-    )
-
-    provider.add_span_processor(BatchSpanProcessor(otlp_exporter))
-    trace.set_tracer_provider(provider)
-
-    # Auto-instrument HTTP requests
-    RequestsInstrumentor().instrument()
-
-    return trace.get_tracer(__name__)
-
-# Usage example
-tracer = setup_opentelemetry()
-
-@tracer.start_as_current_span("agent_execution")
-def execute_agent(user_input: str, tenant_id: str):
-    """Execute agent with OpenTelemetry tracing."""
-    current_span = trace.get_current_span()
-    current_span.set_attribute("tenant_id", tenant_id)
-    current_span.set_attribute("input_length", len(user_input))
-
-    # Execute agent logic
-    with tracer.start_as_current_span("llm_inference") as llm_span:
-        llm_span.set_attribute("model", "gpt-4-turbo")
-        # LLM call
-        response = call_llm(user_input)
-        llm_span.set_attribute("output_tokens", response.usage.completion_tokens)
-
-    return response
-```
-
-
-## Troubleshooting
-
-### Common Issues and Solutions
-
-#### LangFuse Connection Error
-
-```bash
-# Symptom: Traces not recorded in LangFuse
-
-# 1. Check LangFuse service status
-kubectl get pods -n observability -l app=langfuse
-
-# 2. Check LangFuse logs
-kubectl logs -n observability -l app=langfuse --tail=100
-
-# 3. Test network connection
-kubectl run -it --rm debug --image=curlimages/curl --restart=Never -- \
-  curl -v http://langfuse.observability.svc/api/public/health
-
-# 4. Verify environment variables
-kubectl exec -n ai-agents <pod-name> -- env | grep LANGFUSE
-```
-
-#### High Latency Debugging
-
-```python
-# trace_analyzer.py
-from langfuse import Langfuse
-from datetime import datetime, timedelta
-
-langfuse = Langfuse()
-
-def analyze_slow_traces(threshold_seconds: float = 10.0, hours: int = 24):
-    """Analyze slow traces."""
-    traces = langfuse.get_traces(
-        limit=100,
-        order_by="latency",
-        order="desc",
-    )
-
-    slow_traces = []
-    for trace in traces.data:
-        if trace.latency and trace.latency > threshold_seconds:
-            # Analyze latency per span
-            observations = langfuse.get_observations(trace_id=trace.id)
-
-            breakdown = []
-            for obs in observations.data:
-                if obs.end_time and obs.start_time:
-                    duration = (obs.end_time - obs.start_time).total_seconds()
-                    breakdown.append({
-                        "name": obs.name,
-                        "type": obs.type,
-                        "duration": duration,
-                    })
-
-            slow_traces.append({
-                "trace_id": trace.id,
-                "total_latency": trace.latency,
-                "breakdown": sorted(breakdown, key=lambda x: x["duration"], reverse=True),
-            })
-
-    return slow_traces
-
-# Run analysis
-slow = analyze_slow_traces(threshold_seconds=10.0)
-for trace in slow[:5]:
-    print(f"\nTrace: {trace['trace_id']}")
-    print(f"Total Latency: {trace['total_latency']:.2f}s")
-    print("Breakdown:")
-    for item in trace['breakdown'][:5]:
-        print(f"  - {item['name']}: {item['duration']:.2f}s ({item['type']})")
-```
-
-#### Memory Leak Diagnosis
-
-```yaml
-# memory-debug-pod.yaml
-apiVersion: v1
-kind: Pod
-metadata:
-  name: memory-debug
-  namespace: observability
-spec:
-  containers:
-    - name: debug
-      image: python:3.11-slim
-      command: ["sleep", "infinity"]
-      resources:
-        requests:
-          memory: "256Mi"
-        limits:
-          memory: "512Mi"
-      env:
-        - name: LANGFUSE_HOST
-          value: "http://langfuse.observability.svc"
-```
-
-```python
-# memory_profiler.py
-import tracemalloc
-import gc
-from langfuse import Langfuse
-
-def profile_langfuse_memory():
-    """Profile LangFuse client memory usage."""
-    tracemalloc.start()
-
-    langfuse = Langfuse()
-
-    # Create multiple traces
-    for i in range(100):
-        trace = langfuse.trace(name=f"test-trace-{i}")
-        trace.generation(
-            name="test-generation",
-            input="test input",
-            output="test output",
-        )
-
-    langfuse.flush()
-
-    # Memory snapshot
-    snapshot = tracemalloc.take_snapshot()
-    top_stats = snapshot.statistics('lineno')
-
-    print("Top 10 memory allocations:")
-    for stat in top_stats[:10]:
-        print(stat)
-
-    # Garbage collection
-    gc.collect()
-
-    tracemalloc.stop()
-```
-
-### Performance Optimization Checklist
-
-| Item | Check | Recommended |
-| ---- | --------- | --------- |
-| **Batch Size** | Trace batch send size | 100-500 |
-| **Flush Interval** | Auto flush period | 5-10 seconds |
-| **Connection Pool** | HTTP connection reuse | Enabled |
-| **Async Transmission** | Background transmission | Enabled |
-| **Sampling** | High-traffic sampling | 10-50% |
-
-:::danger Caution
-- Storing all traces in production can increase storage costs dramatically
-- Apply masking to sensitive data (PII) to prevent exposure in traces
-- Set up regular backups and retention policies for LangFuse database
 :::
 
 
@@ -1974,6 +1328,7 @@ AI Agent monitoring is essential for stable operation and continuous improvement
 3. **Core Metrics**: Comprehensive monitoring through latency, token usage, error rate, and trace analysis
 4. **Grafana Dashboard**: Real-time monitoring and alerting for proactive operations
 5. **Cost Tracking**: Model and tenant-based cost analysis for budget management and optimization
+6. **Troubleshooting**: Common problem resolution for GPU OOM, network latency, model loading failures
 
 ### Monitoring Maturity Model
 

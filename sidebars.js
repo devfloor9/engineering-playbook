@@ -21,7 +21,6 @@ const sidebars = {
       },
       items: [
         'performance-networking/karpenter-autoscaling',
-        'performance-networking/fast-scaling-architecture',
         'performance-networking/cilium-eni-gateway-api',
         'performance-networking/east-west-traffic-best-practice',
         'performance-networking/coredns-monitoring-optimization',
@@ -50,7 +49,6 @@ const sidebars = {
         id: 'genai-aiml/index',
       },
       items: [
-        'genai-aiml/genai-platform',
         'genai-aiml/agentic-ai-challenges',
         'genai-aiml/agentic-platform-architecture',
         'genai-aiml/gpu-resource-management',
@@ -61,7 +59,6 @@ const sidebars = {
         'genai-aiml/kagent-kubernetes-agents',
         'genai-aiml/milvus-vector-database',
         'genai-aiml/ragas-evaluation',
-        'genai-aiml/operations-troubleshooting',
       ],
     },
     {
@@ -74,11 +71,9 @@ const sidebars = {
       },
       items: [
         'hybrid-multicloud/hybrid-nodes-adoption-guide',
-        'hybrid-multicloud/hybrid-node-configuration',
         'hybrid-multicloud/sriov-dgx-h200-hybrid',
         'hybrid-multicloud/hybrid-nodes-file-storage',
         'hybrid-multicloud/harbor-hybrid-integration',
-        'hybrid-multicloud/eks-dra-hybrid-nodes',
       ],
     },
     {

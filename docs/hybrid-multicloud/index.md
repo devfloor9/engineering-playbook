@@ -7,187 +7,28 @@ sidebar_position: 4
 
 # Hybrid Infrastructure
 
-이 섹션에서는 Amazon EKS를 활용한 하이브리드 클라우드 및 멀티 클라우드 환경 구축에 대한 심화 기술 문서들을 다룹니다. 온프레미스 노드 연결, 클라우드 버스팅, 하이브리드 스토리지, DRA(Dynamic Resource Allocation) 등을 통해 유연한 인프라 구축이 가능합니다.
+현대 기업의 인프라 환경은 클라우드와 온프레미스의 경계를 넘어서고 있습니다. Amazon EKS 하이브리드 노드를 통해 기업들은 클라우드 네이티브 플랫폼의 강력함을 자사 데이터센터로 확장할 수 있게 되었습니다. 이러한 접근 방식은 단순히 두 환경을 연결하는 것을 넘어, 통합된 관리 평면 아래에서 온프레미스와 클라우드 리소스를 하나의 Kubernetes 클러스터로 운영할 수 있게 합니다.
 
-## 📚 주요 문서
+하이브리드 인프라스트럭처의 핵심 가치는 유연성과 선택권에 있습니다. 데이터 주권이나 규제 요구사항으로 인해 특정 데이터를 온프레미스에 보관해야 하는 경우에도, 애플리케이션의 나머지 부분은 클라우드의 탄력성과 확장성을 활용할 수 있습니다. 또한 기존에 투자한 온프레미스 하드웨어, 특히 고가의 GPU 서버나 특수 목적 하드웨어를 계속 활용하면서도 클라우드의 최신 관리 도구와 자동화 기능을 함께 사용할 수 있습니다.
 
-### 기본 하이브리드 구성
-- **[Extending EKS Beyond the Cloud: Your First Hybrid Node Setup](./hybrid-node-configuration.md)**
-  - 온프레미스 노드를 EKS 클러스터에 연결하는 기본 방법
-  - 하이브리드 네트워킹 구성 및 보안 설정
-  - 온프레미스 노드 등록 및 초기 구성
-  - 실제 구성 단계별 가이드
+EKS 하이브리드 노드는 각 온프레미스 서버에 경량 에이전트를 배포하여 AWS의 EKS 컨트롤 플레인과 안전하게 통신합니다. 이 에이전트는 VPN이나 AWS Direct Connect를 통해 암호화된 채널로 관리 명령을 수신하고, 실제 워크로드는 온프레미스에서 실행됩니다. 이러한 아키텍처는 네트워크 레이턴시가 중요한 애플리케이션이나 대량의 데이터를 로컬에서 처리해야 하는 경우에 특히 유용합니다.
 
-### 하이브리드 워크로드 관리
-- **[EKS Hybrid Nodes Adoption Guide](./hybrid-nodes-adoption-guide.md)**
-  - 하이브리드 환경으로의 마이그레이션 전략
-  - 워크로드 선택 및 배치 기준
-  - 단계별 도입 계획
-  - 모범 사례 및 lessons learned
+스토리지 관리 측면에서 하이브리드 환경은 새로운 가능성을 제공합니다. Harbor 레지스트리를 활용하면 컨테이너 이미지를 온프레미스에서 관리하면서도 클라우드와 동기화할 수 있고, NFS나 iSCSI 같은 전통적인 스토리지 프로토콜을 Kubernetes의 영구 볼륨과 통합할 수 있습니다. Dynamic Resource Allocation(DRA) 기술을 통해서는 GPU나 FPGA 같은 특수 하드웨어를 Kubernetes가 네이티브하게 인식하고 할당할 수 있게 되어, 고성능 컴퓨팅 워크로드의 배치가 더욱 정교해집니다.
 
-### 고급 하이브리드 기능
-- **[Dynamic Resource Allocation for Hybrid Nodes](./eks-dra-hybrid-nodes.md)**
-  - DRA(Dynamic Resource Allocation) 기술
-  - 복잡한 리소스 요구사항 관리
-  - GPU 및 특수 하드웨어 활용
+클라우드 버스팅은 하이브리드 인프라의 가장 매력적인 사용 패턴 중 하나입니다. 평상시에는 온프레미스 리소스를 활용하다가, 트래픽이 급증하거나 특별한 이벤트가 발생했을 때 자동으로 클라우드로 워크로드를 확장할 수 있습니다. Karpenter와 같은 오토스케일링 도구와 결합하면, 비용 효율성을 유지하면서도 필요한 순간에는 무제한에 가까운 컴퓨팅 파워를 확보할 수 있습니다.
 
-- **[SR-IOV and DGX H200 Integration](./sriov-dgx-h200-hybrid.md)**
-  - SR-IOV를 통한 고성능 네트워킹
-  - NVIDIA DGX H200 시스템 통합
-  - 고성능 컴퓨팅 워크로드 최적화
+## 문서 목록
 
-### 하이브리드 스토리지
-- **[Harbor Registry and Hybrid Storage Integration](./harbor-hybrid-integration.md)**
-  - Harbor를 통한 컨테이너 이미지 레지스트리 운영
-  - 온프레미스와 클라우드 간 이미지 동기화
-  - 이미지 저장소 보안 및 접근 제어
+**하이브리드 워크로드 관리**
 
-- **[File Storage for Hybrid Nodes](./hybrid-nodes-file-storage.md)**
-  - 온프레미스 노드의 파일 스토리지 구성
-  - NFS, iSCSI 등 스토리지 프로토콜 활용
-  - 클라우드와 온프레미스 간 데이터 동기화
+[EKS Hybrid Nodes Adoption Guide](./hybrid-nodes-adoption-guide.md) - 온프레미스 노드를 EKS 클러스터에 연결하는 기본 방법, 하이브리드 네트워킹 구성 및 보안 설정, 하이브리드 환경으로의 마이그레이션 전략, 워크로드 선택 및 배치 기준, 단계별 도입 계획과 모범 사례, DRA 기술을 통한 복잡한 리소스 요구사항 관리
 
-## 🎯 학습 목표
+**고급 하이브리드 기능**
 
-이 섹션을 통해 다음을 학습할 수 있습니다:
+[SR-IOV and DGX H200 Integration](./sriov-dgx-h200-hybrid.md) - SR-IOV를 통한 고성능 네트워킹, NVIDIA DGX H200 시스템 통합 및 최적화
 
-- 하이브리드 클라우드 아키텍처 설계 및 구현 방법
-- 온프레미스와 클라우드 간 워크로드 분산 및 마이그레이션
-- 하이브리드 환경에서의 네트워크 연결 및 보안 설정
-- 복잡한 리소스 요구사항 관리 (DRA)
-- 고성능 컴퓨팅 워크로드 최적화
-- 하이브리드 환경에서의 스토리지 관리
-- 클라우드 버스팅을 통한 탄력적 확장
-- 하이브리드 환경에서의 모니터링 및 관리
+**하이브리드 스토리지**
 
-## 🏗️ 아키텍처 패턴
+[Harbor Registry and Hybrid Storage Integration](./harbor-hybrid-integration.md) - Harbor를 통한 컨테이너 이미지 레지스트리 운영, 온프레미스와 클라우드 간 이미지 동기화
 
-```mermaid
-graph LR
-    subgraph AWS[" AWS Cloud "]
-        CP["EKS Control Plane"]
-        CN["Cloud Nodes<br/>EC2 Instances"]
-        ACM["AWS Certificate Manager"]
-        SM["Secrets Manager"]
-    end
-    
-    subgraph OnPrem[" On-Premises "]
-        HN["Hybrid Nodes<br/>Kubernetes Agents"]
-        EN["Edge Nodes"]
-        Harbor["Harbor Registry"]
-        Storage["NFS/iSCSI Storage"]
-    end
-    
-    subgraph Network["Secure Network"]
-        VPN["VPN/Direct Connect"]
-        SG["Security Groups"]
-    end
-    
-    CP <-->|Management Plane| HN
-    CP <-->|Workload API| CN
-    CP <-->|TLS/mTLS| ACM
-    CP <-->|Secrets| SM
-    HN <-->|Sync| Harbor
-    Storage <-->|Replication| CN
-    HN ---|VPN| VPN
-    CN ---|AWS Network| VPN
-    VPN ---|Secure| OnPrem
-    
-    style AWS fill:#ff9900
-    style OnPrem fill:#34a853
-    style Network fill:#4286f4
-```
-
-## 🔧 주요 기술 및 도구
-
-| 기술 | 설명 | 용도 |
-|------|------|------|
-| **EKS Hybrid Nodes** | 온프레미스 노드 연결 | 기존 인프라 활용 |
-| **AWS Outposts** | 완전 관리형 하이브리드 인프라 | 완전한 AWS 환경 |
-| **AWS Systems Manager** | 하이브리드 노드 중앙 관리 | 에이전트 및 패치 관리 |
-| **VPN / Direct Connect** | 안전한 네트워크 연결 | 데이터 센터 연결 |
-| **Karpenter** | 하이브리드 환경 자동 스케일링 | 비용 효율적 리소스 관리 |
-| **Harbor Registry** | 컨테이너 이미지 저장소 | 분산 환경 이미지 관리 |
-| **NFS / iSCSI** | 네트워크 스토리지 | 데이터 공유 |
-
-## 💡 핵심 개념
-
-### 하이브리드 노드의 작동 원리
-- **에이전트**: 온프레미스의 각 노드에서 실행되는 경량 에이전트
-- **관리 채널**: AWS의 관리 평면과 안전한 통신
-- **워크로드 실행**: Kubernetes 워크로드가 온프레미스 노드에서 실행
-- **모니터링**: 클라우드에서 중앙집중식 모니터링
-
-### 클라우드 버스팅 전략
-- **자동 스케일**: 온프레미스 용량 초과 시 클라우드로 자동 확장
-- **비용 최적화**: 필요한 만큼만 클라우드 리소스 사용
-- **성능 유지**: 레이턴시를 고려한 워크로드 배치
-
-### 네트워크 고려사항
-- **대역폭**: 온프레미스-클라우드 간 네트워크 대역폭 제한
-- **레이턴시**: 네트워크 지연을 고려한 애플리케이션 설계
-- **보안**: 데이터 센터와 클라우드 간 암호화 통신
-
-### 리소스 격리
-- **네임스페이스**: 온프레미스/클라우드 워크로드 분리
-- **노드 어피니티**: 특정 노드 타입으로 워크로드 배치
-- **정책**: 컴플라이언스 요구사항 준수
-
-## 💼 사용 사례
-
-### 데이터 주권 및 컴플라이언스
-- 민감한 데이터의 온프레미스 보관
-- 규제 요구사항 준수
-- 지역별 데이터 처리 요구사항
-- GDPR, HIPAA 등 규제 준수
-
-### 레이턴시 최적화
-- 엣지 컴퓨팅 워크로드
-- 실시간 데이터 처리
-- 지역별 서비스 제공
-- 로컬 데이터센터와의 빠른 통신
-
-### 비용 최적화
-- 기존 온프레미스 인프라 활용
-- 클라우드 버스팅을 통한 탄력적 확장
-- 피크 타임 외 온프레미스 리소스 활용
-- Spot 인스턴스와 하이브리드 조합
-
-### 마이그레이션 경로
-- 온프레미스에서 클라우드로의 단계적 마이그레이션
-- 기존 애플리케이션과 새로운 클라우드 네이티브 앱 공존
-- 성능 평가 후 마이그레이션 결정
-
-## 📊 하이브리드 환경 고려사항
-
-| 항목 | 고려사항 | 해결 방법 |
-|------|--------|----------|
-| **네트워크** | 대역폭 제한 | 데이터 압축, 로컬 캐싱 |
-| **레이턴시** | 높은 지연 | 워크로드 배치 최적화 |
-| **보안** | 데이터 센터 보호 | VPN/Direct Connect + 암호화 |
-| **운영** | 이중 관리 | 중앙 모니터링 및 자동화 |
-| **비용** | 대역폭 비용 | 클라우드 버스팅 최적화 |
-
-## 🔗 관련 카테고리
-
-- [Security & Governance](/docs/security-compliance) - 하이브리드 보안 요구사항
-- [Infrastructure Optimization](/docs/performance-networking) - 하이브리드 네트워킹
-- [Operations & Observability](/docs/observability-monitoring) - 하이브리드 환경 모니터링
-
----
-
-:::tip 팁
-하이브리드 환경에서는 네트워크 레이턴시와 대역폭을 고려한 워크로드 배치 전략이 매우 중요합니다. 상태를 저장하는 워크로드는 가능한 한 온프레미스에 배치하고, 상태 없는 워크로드는 탄력적으로 확장하세요.
-:::
-
-:::info 추천 학습 경로
-1. 기본 하이브리드 노드 설정
-2. 네트워크 연결 및 보안
-3. 워크로드 배치 및 마이그레이션
-4. 고급 기능 (DRA, SR-IOV)
-5. 운영 및 모니터링
-:::
-
-:::warning 주의 - 네트워크 대역폭
-데이터 센터와 클라우드 간의 네트워크 비용은 예상보다 클 수 있습니다. 초기 설계 단계에서 네트워크 아키텍처를 신중하게 검토하고, Direct Connect 등의 경제적인 연결 방안을 고려하세요.
-:::
+[File Storage for Hybrid Nodes](./hybrid-nodes-file-storage.md) - 온프레미스 노드의 파일 스토리지 구성, NFS/iSCSI 활용 및 데이터 동기화

@@ -1,8 +1,8 @@
 ---
 title: "Agentic AI Platform 아키텍처"
 sidebar_label: "플랫폼 아키텍처"
-description: "EKS 기반 Agentic AI Platform의 전체 시스템 아키텍처 및 컴포넌트 설계"
-tags: [eks, architecture, agentic-ai, platform, kubernetes, kagent, kgateway]
+description: "Amazon EKS 기반 프로덕션급 GenAI 플랫폼의 전체 시스템 아키텍처, 핵심 컴포넌트 설계, 그리고 구현 전략을 다루는 종합 가이드"
+tags: [eks, architecture, agentic-ai, platform, kubernetes, kagent, kgateway, genai, mlops]
 category: "genai-aiml"
 date: 2025-02-05
 authors: [devfloor9]
@@ -11,17 +11,36 @@ sidebar_position: 4
 
 # Agentic AI Platform 아키텍처
 
-이 문서에서는 Amazon EKS 기반 Agentic AI Platform의 전체 시스템 아키텍처와 핵심 컴포넌트 설계를 다룹니다. 자율적으로 작업을 수행하는 AI 에이전트를 효율적으로 구축하고 운영하기 위한 플랫폼 아키텍처를 제시합니다.
+> 📅 **작성일**: 2025-02-05 | ⏱️ **읽는 시간**: 약 15분
+
+이 문서는 Amazon EKS 기반 프로덕션급 Agentic AI Platform의 전체 시스템 아키텍처와 핵심 컴포넌트 설계를 다룹니다. 자율적으로 작업을 수행하는 AI 에이전트를 효율적으로 구축하고 운영하기 위한 플랫폼 아키텍처를 제시합니다.
 
 ## 개요
 
-Agentic AI Platform은 자율적인 AI 에이전트가 복잡한 작업을 수행할 수 있도록 지원하는 통합 플랫폼입니다. 이 플랫폼은 다음과 같은 핵심 기능을 제공합니다:
+Agentic AI Platform은 자율적인 AI 에이전트가 복잡한 작업을 수행할 수 있도록 지원하는 통합 플랫폼입니다. 최신 AI/ML 기술, 컨테이너 오케스트레이션, 그리고 클라우드 네이티브 아키텍처를 통합하여 안정적이고 확장 가능한 GenAI 서비스를 제공합니다.
 
-- **에이전트 오케스트레이션**: Kagent를 통한 AI 에이전트 라이프사이클 관리
-- **지능형 라우팅**: Kgateway를 통한 추론 요청의 동적 라우팅
-- **벡터 검색**: Milvus를 통한 RAG(Retrieval-Augmented Generation) 지원
-- **관측성**: LangFuse를 통한 에이전트 동작 추적 및 분석
-- **확장성**: Kubernetes 네이티브 수평적 확장
+### 해결하는 문제
+
+기존 GenAI 서비스 구축 과정에서의 도전 과제:
+
+- **AI 모델 서빙의 복잡성**: 다양한 모델의 배포 및 리소스 관리 어려움
+- **통합 부족**: ML 프레임워크와 도구의 통합 부재
+- **스케일링 문제**: 성능 최적화 및 자동 확장의 어려움
+- **MLOps 자동화**: 배포 파이프라인 및 자동화 부재
+- **비용 효율성**: 리소스 활용 최적화 방안 부재
+
+이 가이드는 이러한 문제들을 체계적으로 해결하기 위한 실전 전략을 제시합니다.
+
+### 핵심 기능
+
+| 기능 | 설명 |
+|------|------|
+| **에이전트 오케스트레이션** | Kagent를 통한 AI 에이전트 라이프사이클 관리 |
+| **지능형 라우팅** | Kgateway를 통한 추론 요청의 동적 라우팅 |
+| **벡터 검색** | Milvus를 통한 RAG(Retrieval-Augmented Generation) 지원 |
+| **관측성** | LangFuse를 통한 에이전트 동작 추적 및 분석 |
+| **확장성** | Kubernetes 네이티브 수평적 확장 |
+| **멀티테넌트** | 리소스 격리와 공정한 분배를 통한 다중 팀 지원 |
 
 :::info 대상 독자
 이 문서는 솔루션 아키텍트, 플랫폼 엔지니어, DevOps 엔지니어를 대상으로 합니다. Kubernetes와 AI/ML 워크로드에 대한 기본적인 이해가 필요합니다.
@@ -38,13 +57,13 @@ graph TB
         UI["Web UI<br/>(Dashboard)"]
         SDK["Agent SDK<br/>(Python/JS)"]
     end
-    
+
     subgraph GatewayLayer["🚪 Gateway Layer"]
         KGWY["Kgateway<br/>Inference Gateway"]
         AUTH["Authentication<br/>(OIDC/JWT)"]
         RATE["Rate Limiter<br/>(Token Bucket)"]
     end
-    
+
     subgraph AgentLayer["🤖 Agent Layer"]
         KAGENT["Kagent Controller<br/>(Operator)"]
         AGENT1["Agent Instance 1<br/>(Customer Support)"]
@@ -52,19 +71,19 @@ graph TB
         AGENTN["Agent Instance N<br/>(Custom Agent)"]
         TOOLS["Tool Registry<br/>(CRD-based)"]
     end
-    
+
     subgraph ModelLayer["🧠 Model Serving Layer"]
         VLLM1["vLLM<br/>Model A (GPT-4)"]
         VLLM2["vLLM<br/>Model B (Claude)"]
         TGI["TGI<br/>MoE Model (Mixtral)"]
     end
-    
+
     subgraph DataLayer["💾 Data Layer"]
         MILVUS["Milvus<br/>Vector DB"]
         REDIS["Redis<br/>Session Cache"]
         S3["S3<br/>Document Store"]
     end
-    
+
     subgraph ObservabilityLayer["📊 Observability Layer"]
         LANGFUSE["LangFuse<br/>Agent Tracing"]
         PROM["Prometheus<br/>Metrics"]
@@ -97,7 +116,7 @@ graph TB
     LANGFUSE --> OTEL
     OTEL --> PROM
     PROM --> GRAFANA
-    
+
     style ClientLayer fill:#e3f2fd
     style GatewayLayer fill:#fff3e0
     style AgentLayer fill:#e8f5e9
@@ -130,19 +149,19 @@ graph LR
         MEMORY["Memory Manager<br/>(Short/Long-term)"]
         EXECUTOR["Tool Executor<br/>(Async)"]
     end
-    
+
     subgraph External["External Services"]
         LLM["LLM Service"]
         VECTOR["Vector Store"]
         TOOLS["External Tools"]
     end
-    
+
     RUNTIME --> MEMORY
     RUNTIME --> EXECUTOR
     EXECUTOR --> LLM
     EXECUTOR --> VECTOR
     EXECUTOR --> TOOLS
-    
+
     style AgentPod fill:#e8f5e9
     style External fill:#fff3e0
 ```
@@ -208,20 +227,20 @@ graph TB
         INDEX["Index Node<br/>(Indexing)"]
         DATA["Data Node<br/>(Storage)"]
     end
-    
+
     subgraph Storage["Storage Backend"]
         ETCD["etcd<br/>(Metadata)"]
         MINIO["MinIO/S3<br/>(Vectors)"]
         PULSAR["Pulsar<br/>(Log)"]
     end
-    
+
     PROXY --> QUERY
     PROXY --> INDEX
     PROXY --> DATA
     QUERY --> ETCD
     INDEX --> MINIO
     DATA --> PULSAR
-    
+
     style MilvusCluster fill:#f3e5f5
     style Storage fill:#e0f7fa
 ```
@@ -263,20 +282,20 @@ graph TB
         WEBHOOK["Admission Webhook<br/>(Validation)"]
         METRICS["Metrics Exporter"]
     end
-    
+
     subgraph CRDs["Custom Resources"]
         AGENT_CRD["Agent CRD"]
         TOOL_CRD["Tool CRD"]
         WORKFLOW_CRD["Workflow CRD"]
     end
-    
+
     subgraph ManagedResources["Managed Resources"]
         DEPLOY["Deployments"]
         SVC["Services"]
         HPA["HPA"]
         CM["ConfigMaps"]
     end
-    
+
     RECONCILER --> AGENT_CRD
     RECONCILER --> TOOL_CRD
     RECONCILER --> WORKFLOW_CRD
@@ -285,7 +304,7 @@ graph TB
     AGENT_CRD --> SVC
     AGENT_CRD --> HPA
     AGENT_CRD --> CM
-    
+
     style KagentController fill:#e8f5e9
     style CRDs fill:#fff3e0
     style ManagedResources fill:#e3f2fd
@@ -306,12 +325,12 @@ spec:
     name: gpt-4-turbo
     temperature: 0.7
     maxTokens: 4096
-  
+
   # 시스템 프롬프트
   systemPrompt: |
     당신은 친절하고 전문적인 고객 지원 에이전트입니다.
     항상 정확한 정보를 제공하고, 모르는 것은 솔직히 인정하세요.
-  
+
   # 사용할 도구
   tools:
     - name: search-knowledge-base
@@ -325,7 +344,7 @@ spec:
       config:
         endpoint: http://ticketing-service/api/tickets
         method: POST
-  
+
   # 메모리 설정
   memory:
     type: redis
@@ -334,14 +353,14 @@ spec:
       port: 6379
       ttl: 3600
       maxHistory: 50
-  
+
   # 스케일링 설정
   scaling:
     minReplicas: 2
     maxReplicas: 10
     targetCPUUtilization: 70
     targetMemoryUtilization: 80
-  
+
   # 리소스 제한
   resources:
     requests:
@@ -363,19 +382,19 @@ graph LR
         C2["Agent 2"]
         C3["Agent N"]
     end
-    
+
     subgraph Kgateway["Kgateway"]
         LB["Load Balancer"]
         ROUTER["Smart Router"]
         CACHE["Response Cache"]
     end
-    
+
     subgraph Models["Model Backends"]
         M1["vLLM - GPT-4"]
         M2["vLLM - Claude"]
         M3["TGI - Mixtral"]
     end
-    
+
     C1 --> LB
     C2 --> LB
     C3 --> LB
@@ -384,7 +403,7 @@ graph LR
     ROUTER --> M1
     ROUTER --> M2
     ROUTER --> M3
-    
+
     style Clients fill:#e3f2fd
     style Kgateway fill:#fff3e0
     style Models fill:#fce4ec
@@ -418,7 +437,7 @@ spec:
         - name: vllm-gpt4-canary
           port: 8000
           weight: 20
-    
+
     # Claude 모델 라우팅
     - matches:
         - path:
@@ -430,7 +449,7 @@ spec:
       backendRefs:
         - name: vllm-claude3
           port: 8000
-    
+
     # MoE 모델 라우팅 (복잡한 작업용)
     - matches:
         - path:
@@ -466,37 +485,37 @@ graph TB
             GW["Kgateway"]
             AUTH["Auth Service"]
         end
-        
+
         subgraph NSAgents["ai-agents"]
             KAGENT["Kagent Controller"]
             AGENTS["Agent Pods"]
             TOOLS["Tool Registry"]
         end
-        
+
         subgraph NSInference["ai-inference"]
             VLLM["vLLM Deployments"]
             TGI["TGI Deployments"]
             GPU["GPU Nodes"]
         end
-        
+
         subgraph NSData["ai-data"]
             MILVUS["Milvus Cluster"]
             REDIS["Redis Cluster"]
         end
-        
+
         subgraph NSObservability["observability"]
             LANGFUSE["LangFuse"]
             PROM["Prometheus"]
             GRAFANA["Grafana"]
         end
     end
-    
+
     NSGateway --> NSAgents
     NSAgents --> NSInference
     NSAgents --> NSData
     NSInference --> NSObservability
     NSAgents --> NSObservability
-    
+
     style NSGateway fill:#fff3e0
     style NSAgents fill:#e8f5e9
     style NSInference fill:#fce4ec
@@ -602,18 +621,18 @@ graph TB
             HPA_AGENT["HPA<br/>(CPU/Memory)"]
             KEDA_AGENT["KEDA<br/>(Queue Length)"]
         end
-        
+
         subgraph InferenceScaling["Inference 확장"]
             HPA_VLLM["HPA<br/>(GPU Utilization)"]
             KARPENTER["Karpenter<br/>(Node Provisioning)"]
         end
-        
+
         subgraph DataScaling["Data 확장"]
             MILVUS_SCALE["Milvus<br/>(Query/Index Nodes)"]
             REDIS_SCALE["Redis<br/>(Cluster Mode)"]
         end
     end
-    
+
     style AgentScaling fill:#e8f5e9
     style InferenceScaling fill:#fce4ec
     style DataScaling fill:#f3e5f5
@@ -664,7 +683,7 @@ spec:
       requirements:
         - key: "node.kubernetes.io/instance-type"
           operator: In
-          values: 
+          values:
             - "p4d.24xlarge"   # 8x A100 40GB
             - "p5.48xlarge"   # 8x H100 80GB
             - "g5.48xlarge"   # 8x A10G 24GB
@@ -722,27 +741,27 @@ graph TB
             KAGENT["Kagent Controller"]
             MILVUS["Milvus (Partitioned)"]
         end
-        
+
         subgraph TenantA["Tenant A"]
             NS_A["Namespace: tenant-a"]
             AGENT_A["Agents"]
             QUOTA_A["ResourceQuota"]
         end
-        
+
         subgraph TenantB["Tenant B"]
             NS_B["Namespace: tenant-b"]
             AGENT_B["Agents"]
             QUOTA_B["ResourceQuota"]
         end
     end
-    
+
     GW --> NS_A
     GW --> NS_B
     KAGENT --> AGENT_A
     KAGENT --> AGENT_B
     AGENT_A --> MILVUS
     AGENT_B --> MILVUS
-    
+
     style Shared fill:#e3f2fd
     style TenantA fill:#e8f5e9
     style TenantB fill:#fff3e0
@@ -818,24 +837,24 @@ graph TB
             OIDC["OIDC Provider<br/>(Cognito/Okta)"]
             JWT["JWT Validation"]
         end
-        
+
         subgraph Internal["내부 통신"]
             MTLS["mTLS<br/>(Istio)"]
             RBAC["Kubernetes RBAC"]
         end
-        
+
         subgraph Data["데이터 보안"]
             ENCRYPT["암호화<br/>(At-rest/In-transit)"]
             SECRETS["Secrets Manager"]
         end
     end
-    
+
     OIDC --> JWT
     JWT --> MTLS
     MTLS --> RBAC
     RBAC --> ENCRYPT
     ENCRYPT --> SECRETS
-    
+
     style External fill:#ffcdd2
     style Internal fill:#fff9c4
     style Data fill:#c8e6c9
@@ -949,21 +968,21 @@ sequenceDiagram
     participant Milvus as Milvus
     participant LLM as vLLM
     participant LangFuse as LangFuse
-    
+
     Client->>Gateway: 1. API 요청 (JWT 토큰)
     Gateway->>Auth: 2. 토큰 검증
     Auth-->>Gateway: 3. 검증 결과
     Gateway->>Kagent: 4. 에이전트 라우팅
     Kagent->>Agent: 5. 작업 할당
-    
+
     Note over Agent: 6. 컨텍스트 검색
     Agent->>Milvus: 7. 벡터 검색 쿼리
     Milvus-->>Agent: 8. 관련 문서 반환
-    
+
     Note over Agent: 9. LLM 추론
     Agent->>LLM: 10. 프롬프트 + 컨텍스트
     LLM-->>Agent: 11. 생성된 응답
-    
+
     Agent->>LangFuse: 12. 트레이스 기록
     Agent-->>Kagent: 13. 작업 완료
     Kagent-->>Gateway: 14. 응답 전달
@@ -1016,7 +1035,7 @@ spec:
       rules:
         - alert: AgentHighLatency
           expr: |
-            histogram_quantile(0.99, 
+            histogram_quantile(0.99,
               rate(agent_request_duration_seconds_bucket[5m])
             ) > 10
           for: 5m
@@ -1025,10 +1044,10 @@ spec:
           annotations:
             summary: "Agent 응답 지연 발생"
             description: "P99 지연 시간이 10초를 초과했습니다"
-        
+
         - alert: AgentHighErrorRate
           expr: |
-            rate(agent_request_errors_total[5m]) / 
+            rate(agent_request_errors_total[5m]) /
             rate(agent_request_total[5m]) > 0.05
           for: 5m
           labels:
@@ -1046,6 +1065,34 @@ spec:
 - **LLM Performance**: 모델별 토큰 처리량, 추론 시간
 - **Resource Usage**: CPU, 메모리, GPU 사용률
 - **Cost Tracking**: 테넌트별, 모델별 비용 추적
+
+## 기술 스택
+
+### 핵심 인프라
+
+| 분야 | 기술 |
+|------|------|
+| Container Orchestration | Amazon EKS (Auto Mode, Pod Identity) |
+| Networking | Cilium CNI, Gateway API, VPC Lattice |
+| Security | OPA/Kyverno, RBAC, Pod Security Standards |
+| GitOps | ArgoCD, Helm, Kustomize |
+
+### GenAI 기술
+
+| 분야 | 기술 |
+|------|------|
+| Model Serving | vLLM, Text Generation Inference (TGI) |
+| Low-Code Platform | Dify (Visual AI Workflow Builder) |
+| Agent Frameworks | LangChain, LangGraph, CrewAI |
+| Vector Databases | Milvus, RAG 통합 패턴 |
+
+### 플랫폼 운영
+
+| 분야 | 기술 |
+|------|------|
+| Observability | OpenTelemetry, Prometheus, Grafana, Hubble |
+| Cost Management | Kubecost, Karpenter optimization |
+| Automation | AWS Controllers for Kubernetes (ACK) |
 
 ## 결론
 
