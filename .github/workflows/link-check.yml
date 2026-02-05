@@ -1,0 +1,162 @@
+name: Link Checker
+
+on:
+  # Trigger on pushes to main that affect documentation
+  push:
+    branches:
+      - main
+    paths:
+      - 'docs/**'
+      - '*.md'
+      - '.github/workflows/link-check.yml'
+
+  # Trigger on pull requests targeting main
+  pull_request:
+    branches:
+      - main
+
+  # Weekly scheduled check (every Monday at 9:00 AM UTC)
+  schedule:
+    - cron: '0 9 * * 1'
+
+  # Allow manual workflow dispatch
+  workflow_dispatch:
+
+jobs:
+  link-check:
+    name: Check Links
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Restore lychee cache
+        uses: actions/cache@v4
+        with:
+          path: .lycheecache
+          key: cache-lychee-${{ github.sha }}
+          restore-keys: cache-lychee-
+
+      - name: Run lychee link checker
+        uses: lycheeverse/lychee-action@v2
+        with:
+          # Check all markdown files and documentation
+          args: |
+            --verbose
+            --no-progress
+            --cache
+            --max-cache-age 1d
+            --exclude-path './.github'
+            --exclude-path './node_modules'
+            '**/*.md'
+            '**/*.mdx'
+            'docs/**'
+
+          # Fail the workflow on broken links
+          fail: true
+
+          # Output format
+          format: markdown
+
+          # Custom output file
+          output: ./lychee-report.md
+        env:
+          # Add GitHub token for API rate limits
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create lychee configuration
+        if: always()
+        run: |
+          cat > lychee.toml << 'EOF'
+          # Maximum number of concurrent network requests
+          max_concurrency = 10
+
+          # Request timeout in seconds
+          timeout = 30
+
+          # Number of retries for failed requests
+          max_retries = 3
+
+          # Delay between retries in seconds
+          retry_wait_time = 2
+
+          # Accept invalid SSL certificates (use with caution)
+          accept_invalid_certs = false
+
+          # Check links with these schemes
+          scheme = ["https", "http"]
+
+          # Exclude these URLs from checking
+          exclude = [
+            # Examples and placeholders
+            'https?://example\\.com.*',
+            'https?://.*\\.example\\.com.*',
+            'http://localhost.*',
+            'https?://127\\.0\\.0\\.1.*',
+
+            # Common problematic domains
+            'https?://.*linkedin\\.com.*',  # Often blocks automated requests
+            'https?://.*facebook\\.com.*',  # Often blocks automated requests
+            'https?://.*twitter\\.com.*',   # Rate limits
+            'https?://.*x\\.com.*',         # Rate limits
+
+            # Documentation placeholders
+            'https?://your-.*',
+            'https?://.*\\.local.*',
+
+            # Common CI/CD variables
+            'https?://\\$\\{.*\\}.*',
+            'https?://%.*%.*',
+          ]
+
+          # Exclude links with these patterns
+          exclude_path = [
+            '.git',
+            'node_modules',
+            'vendor',
+            '.github/workflows',
+          ]
+
+          # Check anchors/fragments
+          include_fragments = true
+
+          # Follow redirects
+          max_redirects = 5
+
+          # User agent string
+          user_agent = "Mozilla/5.0 (compatible; LinkChecker/1.0; +https://github.com/lycheeverse/lychee)"
+
+          # HTTP headers to send with requests
+          [headers]
+          "Accept" = "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+          EOF
+
+      - name: Upload link check report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lychee-report
+          path: lychee-report.md
+          retention-days: 30
+
+      - name: Comment PR with results
+        if: github.event_name == 'pull_request' && failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            let report = 'Link check failed. Please review the broken links.';
+
+            try {
+              report = fs.readFileSync('./lychee-report.md', 'utf8');
+            } catch (err) {
+              console.log('Could not read lychee report:', err.message);
+            }
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `## 🔗 Link Check Results\n\n${report}`
+            });

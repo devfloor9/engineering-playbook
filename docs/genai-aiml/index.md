@@ -11,7 +11,24 @@ sidebar_position: 3
 
 ## 📚 주요 문서
 
+### 🚀 Agentic AI 플랫폼 인프라 가이드 (신규)
+
+Frontier Model 트래픽을 효율적으로 처리하고 Agentic AI 플랫폼을 구축하기 위한 종합 가이드입니다.
+
+- **[기술적 도전과제 및 K8s 필요성](./agentic-ai-challenges.md)** - GPU 스케줄링, 동적 라우팅, 비용 관리의 4가지 핵심 도전과제
+- **[Agentic AI 플랫폼 아키텍처](./agentic-platform-architecture.md)** - 전체 시스템 아키텍처 및 컴포넌트 설계
+- **[GPU 리소스 관리](./gpu-resource-management.md)** - 멀티 GPU 클러스터 운영 및 동적 리소스 할당
+- **[Inference Gateway 및 동적 라우팅](./inference-gateway-routing.md)** - Kgateway 기반 트래픽 관리
+- **[MoE 모델 서빙](./moe-model-serving.md)** - Mixture of Experts 모델 배포 전략
+- **[Agent 모니터링](./agent-monitoring.md)** - LangFuse/LangSmith 통합 모니터링
+- **[Kagent Kubernetes Agent 관리](./kagent-kubernetes-agents.md)** - CRD 기반 Agent 라이프사이클 관리
+- **[Milvus 벡터 데이터베이스](./milvus-vector-database.md)** - RAG 파이프라인을 위한 벡터 DB 통합
+- **[Ragas RAG 평가](./ragas-evaluation.md)** - RAG 품질 평가 및 CI/CD 통합
+- **[NeMo 프레임워크](./nemo-framework.md)** - LLM 파인튜닝 및 TensorRT 최적화
+- **[운영 및 트러블슈팅](./operations-troubleshooting.md)** - 알림 설정 및 문제 해결 가이드
+
 ### 프로덕션 GenAI 플랫폼 구축
+
 - **[Building Production-Ready GenAI Platform on EKS](./genai-platform.md)**
   - LiteLLM을 통한 다중 LLM 모델 통합
   - LangGraph 기반 복잡한 AI 워크플로우 구현
@@ -24,12 +41,14 @@ sidebar_position: 3
 
 이 섹션을 통해 다음을 학습할 수 있습니다:
 
+- Agentic AI 플랫폼 구축 시 4가지 핵심 기술적 도전과제 이해
 - EKS에서 확장 가능한 GenAI 플랫폼 구축 방법
 - 여러 LLM 제공자(OpenAI, Anthropic, Google 등) 통합
 - 복잡한 AI 워크플로우 설계 및 구현
 - GPU 리소스 효율적 활용 및 최적화 전략
 - AI/ML 워크로드의 자동 스케일링 및 리소스 관리
 - 프로덕션 환경에서의 AI 모델 배포 및 운영
+- Kagent, Kgateway, Milvus, Ragas, NeMo 등 오픈소스 활용
 - 비용 추적 및 최적화
 - 성능 모니터링 및 분석
 
@@ -88,13 +107,18 @@ graph TB
 ## 🔧 주요 기술 및 도구
 
 | 기술 | 설명 | 용도 |
-|------|------|------|
+| --- | --- | --- |
+| **Kagent** | Kubernetes Agent 관리 | CRD 기반 Agent 라이프사이클 |
+| **Kgateway** | Inference Gateway | 동적 라우팅 및 로드밸런싱 |
+| **Milvus** | 벡터 데이터베이스 | RAG 파이프라인 지원 |
+| **Ragas** | RAG 평가 프레임워크 | 품질 측정 및 CI/CD 통합 |
+| **NeMo** | LLM 학습 프레임워크 | 파인튜닝 및 최적화 |
 | **LiteLLM** | 다중 LLM 프로바이더 통합 | LLM 라우팅 및 폴백 |
 | **LangGraph** | AI 워크플로우 오케스트레이션 | 복잡한 AI 워크플로우 구현 |
 | **Langfuse** | GenAI 애플리케이션 모니터링 | 추적, 모니터링, 분석 |
 | **NVIDIA GPU Operator** | GPU 리소스 관리 | GPU 드라이버 및 런타임 |
 | **Karpenter** | 노드 자동 스케일링 | 비용 효율적 리소스 관리 |
-| **Ray** | 분산 머신러닝 | 대규모 모델 서빙 |
+| **vLLM** | 고성능 LLM 서빙 | PagedAttention 기반 추론 |
 
 ## 💡 핵심 개념
 
@@ -158,6 +182,15 @@ GenAI 워크로드는 GPU 리소스를 많이 사용하므로, 비용 최적화�
 :::
 
 :::info 추천 학습 경로
+
+**Agentic AI 플랫폼 구축 경로:**
+1. 기술적 도전과제 및 K8s 필요성 이해
+2. 플랫폼 아키텍처 설계
+3. GPU 리소스 관리 및 Karpenter 설정
+4. Inference Gateway 및 동적 라우팅 구성
+5. Agent 모니터링 및 운영 체계 구축
+
+**GenAI 애플리케이션 개발 경로:**
 1. LiteLLM 기본 설정 및 라우팅
 2. LangGraph를 사용한 간단한 워크플로우
 3. Langfuse 모니터링 통합
