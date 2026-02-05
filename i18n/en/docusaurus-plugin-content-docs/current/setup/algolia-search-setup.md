@@ -1,6 +1,6 @@
 ---
 title: "Algolia Search Setup Guide"
-description: "Learn how to set up and manage Algolia DocSearch for the EKS Engineering Playbook."
+description: "Learn how to set up and manage Algolia DocSearch for the Engineering Playbook."
 tags: [algolia, search, docusaurus, setup]
 category: "setup"
 date: "2025-01-15"
@@ -13,7 +13,7 @@ estimated_time: "30 minutes"
 
 > 📅 **Written**: 2025-01-15 | ⏱️ **Reading time**: ~4 min
 
-This guide explains how to set up and manage Algolia DocSearch for the EKS Engineering Playbook.
+This guide explains how to set up and manage Algolia DocSearch for the Engineering Playbook.
 
 ## Overview
 

@@ -9,7 +9,7 @@ export default function TagDocusaurusPage() {
   {
     "title": "Algolia 검색 설정 가이드",
     "path": "/docs/setup/algolia-search-setup",
-    "description": "EKS Engineering Playbook에서 Algolia DocSearch를 설정하고 관리하는 방법을 설명합니다.",
+    "description": "Engineering Playbook에서 Algolia DocSearch를 설정하고 관리하는 방법을 설명합니다.",
     "date": "2025-01-15",
     "category": "setup",
     "tags": [
@@ -29,7 +29,7 @@ export default function TagDocusaurusPage() {
   return (
     <Layout
       title={`#${tagName} Tag Documentation`}
-      description={`Documentation tagged with ${tagName} in the EKS Engineering Playbook.`}
+      description={`Documentation tagged with ${tagName} in the Engineering Playbook.`}
     >
       <div className="container margin-vert--lg">
         <div className="row">

@@ -8,7 +8,7 @@ import { themes as prismThemes } from 'prism-react-renderer';
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
-  title: 'EKS Engineering Playbook',
+  title: 'Engineering Playbook',
   tagline: 'Comprehensive EKS Architecture Deep Dive',
   favicon: 'img/favicon.ico',
 
@@ -71,12 +71,12 @@ const config = {
             'https://github.com/devfloor9/engineering-playbook/tree/main/',
           blogSidebarTitle: 'Recent Posts',
           blogSidebarCount: 10,
-          blogTitle: 'EKS Engineering Blog',
+          blogTitle: 'Engineering Blog',
           blogDescription: 'Latest insights and updates on EKS engineering practices',
           postsPerPage: 'ALL',
           feedOptions: {
             type: 'all',
-            copyright: `Copyright © ${new Date().getFullYear()} EKS Engineering Playbook.`,
+            copyright: `Copyright © ${new Date().getFullYear()} Engineering Playbook.`,
           },
         },
         theme: {
@@ -146,9 +146,9 @@ const config = {
       // Replace with your project's social card
       image: 'img/docusaurus-social-card.jpg',
       navbar: {
-        title: 'EKS Engineering Playbook',
+        title: 'Engineering Playbook',
         logo: {
-          alt: 'EKS Engineering Playbook Logo',
+          alt: 'Engineering Playbook Logo',
           src: 'img/logo.svg',
         },
         items: [
@@ -247,7 +247,7 @@ const config = {
             ],
           },
         ],
-        copyright: `Copyright © ${new Date().getFullYear()} EKS Engineering Playbook.`,
+        copyright: `Copyright © ${new Date().getFullYear()} Engineering Playbook.`,
       },
       prism: {
         theme: prismThemes.github,
@@ -292,7 +292,7 @@ const config = {
         { name: 'keywords', content: 'EKS, Kubernetes, AWS, DevOps, Cloud, Architecture' },
         { name: 'description', content: 'Comprehensive EKS Architecture Deep Dive - Engineering Playbook' },
         { property: 'og:type', content: 'website' },
-        { property: 'og:site_name', content: 'EKS Engineering Playbook' },
+        { property: 'og:site_name', content: 'Engineering Playbook' },
       ],
 
     }),

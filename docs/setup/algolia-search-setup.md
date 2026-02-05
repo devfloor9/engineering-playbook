@@ -1,6 +1,6 @@
 ---
 title: "Algolia 검색 설정 가이드"
-description: "EKS Engineering Playbook에서 Algolia DocSearch를 설정하고 관리하는 방법을 설명합니다."
+description: "Engineering Playbook에서 Algolia DocSearch를 설정하고 관리하는 방법을 설명합니다."
 tags: [algolia, search, docusaurus, setup]
 category: "setup"
 date: "2025-01-15"
@@ -14,7 +14,7 @@ estimated_time: "30분"
 > 📅 **작성일**: 2025-01-15 | ⏱️ **읽는 시간**: 약 4분
 
 
-이 가이드는 EKS Engineering Playbook에서 Algolia DocSearch를 설정하고 관리하는 방법을 설명합니다.
+이 가이드는 Engineering Playbook에서 Algolia DocSearch를 설정하고 관리하는 방법을 설명합니다.
 
 ## 개요
 

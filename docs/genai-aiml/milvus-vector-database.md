@@ -127,11 +127,11 @@ helm repo add milvus https://zilliztech.github.io/milvus-helm/
 helm repo update
 
 # 네임스페이스 생성
-kubectl create namespace milvus
+kubectl create namespace ai-data
 
 # 프로덕션 설정으로 설치
 helm install milvus milvus/milvus \
-  --namespace milvus \
+  --namespace ai-data \
   --set cluster.enabled=true \
   --set etcd.replicaCount=3 \
   --set minio.mode=distributed \
@@ -340,7 +340,7 @@ vectorstore = Milvus.from_documents(
     documents=splits,
     embedding=embeddings,
     connection_args={
-        "host": "milvus-proxy.milvus.svc.cluster.local",
+        "host": "milvus-proxy.ai-data.svc.cluster.local",
         "port": "19530",
     },
     collection_name="langchain_docs",
@@ -369,7 +369,7 @@ Settings.embed_model = OpenAIEmbedding(model="text-embedding-3-small")
 
 # Milvus 벡터 스토어 설정
 vector_store = MilvusVectorStore(
-    uri="http://milvus-proxy.milvus.svc.cluster.local:19530",
+    uri="http://milvus-proxy.ai-data.svc.cluster.local:19530",
     collection_name="llamaindex_docs",
     dim=1536,
     overwrite=True,
@@ -524,7 +524,7 @@ apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: milvus-backup-sync
-  namespace: milvus
+  namespace: ai-data
 spec:
   schedule: "0 */6 * * *"  # 6시간마다
   jobTemplate:
@@ -555,7 +555,7 @@ apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
   name: milvus-monitor
-  namespace: milvus
+  namespace: ai-data
 spec:
   selector:
     matchLabels:

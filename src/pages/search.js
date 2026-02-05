@@ -6,7 +6,7 @@ export default function SearchPage() {
   return (
     <Layout
       title="Search"
-      description="Search the EKS Engineering Playbook for technical documentation and guides"
+      description="Search the Engineering Playbook for technical documentation and guides"
     >
       <Head>
         <meta name="robots" content="noindex, nofollow" />

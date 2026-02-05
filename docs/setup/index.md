@@ -1,7 +1,7 @@
 ---
 title: "Setup & Configuration"
 sidebar_label: "설정 가이드"
-description: "EKS Engineering Playbook 설정 및 구성 가이드 - 검색, 개발 환경, 배포 설정"
+description: "Engineering Playbook 설정 및 구성 가이드 - 검색, 개발 환경, 배포 설정"
 tags: [setup, configuration, guide]
 category: "setup"
 date: 2025-02-05
@@ -13,7 +13,7 @@ sidebar_position: 1
 
 > 📅 **작성일**: 2025-02-05 | ⏱️ **읽는 시간**: 약 1분
 
-이 섹션에서는 EKS Engineering Playbook의 설정 및 구성 관련 문서를 다룹니다.
+이 섹션에서는 Engineering Playbook의 설정 및 구성 관련 문서를 다룹니다.
 
 ## 가이드 목록
 

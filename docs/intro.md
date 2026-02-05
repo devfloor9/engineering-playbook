@@ -1,12 +1,12 @@
 ---
 title: Introduction
-description: Welcome to the EKS Engineering Playbook - your comprehensive guide to Amazon EKS architecture and best practices
+description: Welcome to the Engineering Playbook - your comprehensive guide to Amazon EKS architecture and best practices
 tags: [eks, kubernetes, introduction, getting-started]
 ---
 
-# EKS Engineering Playbook
+# Engineering Playbook
 
-Welcome to the **EKS Engineering Playbook** - a comprehensive collection of technical guides, best practices, and architectural patterns for Amazon Elastic Kubernetes Service (EKS).
+Welcome to the **Engineering Playbook** - a comprehensive collection of technical guides, best practices, and architectural patterns for Amazon Elastic Kubernetes Service (EKS).
 
 ## What You'll Find Here
 

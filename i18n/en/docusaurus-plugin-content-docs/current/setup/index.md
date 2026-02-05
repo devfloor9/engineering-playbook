@@ -1,7 +1,7 @@
 ---
 title: "Setup & Configuration"
 sidebar_label: "Setup Guide"
-description: "EKS Engineering Playbook setup and configuration guide - search, development environment, deployment configuration"
+description: "Engineering Playbook setup and configuration guide - search, development environment, deployment configuration"
 tags: [setup, configuration, guide]
 category: "setup"
 date: 2025-02-05
@@ -13,7 +13,7 @@ sidebar_position: 1
 
 > 📅 **Written**: 2025-02-05 | ⏱️ **Reading time**: ~1 min
 
-This section covers setup and configuration documentation for the EKS Engineering Playbook.
+This section covers setup and configuration documentation for the Engineering Playbook.
 
 ## Guide List
 

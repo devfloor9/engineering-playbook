@@ -2,8 +2,8 @@
 
 /**
  * Algolia Index Management Script
- * 
- * This script helps manage the Algolia search index for the EKS Engineering Playbook.
+ *
+ * This script helps manage the Algolia search index for the Engineering Playbook.
  * It can be used to manually update the search index or check index status.
  */
 

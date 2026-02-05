@@ -5,6 +5,7 @@ description: "Agentic AI Platform 구축 시 직면하는 4가지 핵심 도전�
 tags: [eks, kubernetes, genai, agentic-ai, gpu, infrastructure, challenges, karpenter]
 category: "genai-aiml"
 date: 2025-02-05
+update: 2026-02-04
 authors: [devfloor9]
 sidebar_position: 3
 ---
@@ -12,7 +13,7 @@ sidebar_position: 3
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
-> 📅 **작성일**: 2025-02-05 | ⏱️ **읽는 시간**: 약 25분
+> 📅 **작성일**: 2025-02-05 | **수정일**: 2026-02-04 | ⏱️ **읽는 시간**: 약 25분
 
 :::tip TL;DR (핵심 요약)
 **Agentic AI 플랫폼의 4가지 도전과제와 해결책:**

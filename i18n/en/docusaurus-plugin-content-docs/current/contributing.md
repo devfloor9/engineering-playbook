@@ -1,7 +1,7 @@
 ---
 title: "Contributing Guide"
 sidebar_label: "Contributing Guide"
-description: "How to contribute to EKS Engineering Playbook - documentation writing standards, formatting guide, PR process"
+description: "How to contribute to Engineering Playbook - documentation writing standards, formatting guide, PR process"
 tags: [contributing, documentation, guidelines, howto]
 category: "setup"
 date: 2025-02-05
@@ -15,7 +15,7 @@ sidebar_position: 99
 
 ## Overview
 
-The EKS Engineering Playbook is a community-driven project that shares Amazon EKS architecture and operational best practices. This guide clearly explains documentation writing standards, formatting rules, and the PR process so anyone can contribute easily.
+The Engineering Playbook is a community-driven project that shares Amazon EKS architecture and operational best practices. This guide clearly explains documentation writing standards, formatting rules, and the PR process so anyone can contribute easily.
 
 **Ways to Contribute:**
 - Write new documentation

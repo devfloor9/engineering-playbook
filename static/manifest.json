@@ -1,6 +1,6 @@
 {
-  "name": "EKS Engineering Playbook",
-  "short_name": "EKS Playbook",
+  "name": "Engineering Playbook",
+  "short_name": "Playbook",
   "description": "Comprehensive EKS Architecture Deep Dive - Engineering best practices, patterns, and implementations",
   "theme_color": "#0969da",
   "background_color": "#ffffff",

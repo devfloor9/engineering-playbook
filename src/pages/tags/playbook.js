@@ -25,7 +25,7 @@ export default function TagPlaybookPage() {
   return (
     <Layout
       title={`#${tagName} Tag Documentation`}
-      description={`Documentation tagged with ${tagName} in the EKS Engineering Playbook.`}
+      description={`Documentation tagged with ${tagName} in the Engineering Playbook.`}
     >
       <div className="container margin-vert--lg">
         <div className="row">

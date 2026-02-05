@@ -9,7 +9,7 @@ export default function TagGettingstartedPage() {
   {
     "title": "Introduction",
     "path": "/docs/intro",
-    "description": "Welcome to the EKS Engineering Playbook - your comprehensive guide to Amazon EKS architecture and best practices",
+    "description": "Welcome to the Engineering Playbook - your comprehensive guide to Amazon EKS architecture and best practices",
     "tags": [
       "eks",
       "kubernetes",
@@ -23,7 +23,7 @@ export default function TagGettingstartedPage() {
   return (
     <Layout
       title={`#${tagName} Tag Documentation`}
-      description={`Documentation tagged with ${tagName} in the EKS Engineering Playbook.`}
+      description={`Documentation tagged with ${tagName} in the Engineering Playbook.`}
     >
       <div className="container margin-vert--lg">
         <div className="row">
