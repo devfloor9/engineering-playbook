@@ -9,7 +9,7 @@ const FeatureList = [
     Svg: require('@site/static/img/undraw_docusaurus_mountain.svg').default,
     description: (
       <>
-        EKS DNS 성능 최적화, Cilium ENI 모드, CoreDNS 모니터링 등
+        DNS 성능 최적화, 컨테이너 네트워킹 모드, CoreDNS 모니터링 등
         네트워크 성능 향상을 위한 실전 가이드를 제공합니다.
       </>
     ),
@@ -42,7 +42,7 @@ const FeatureList = [
     Svg: require('@site/static/img/undraw_docusaurus_mountain.svg').default,
     description: (
       <>
-        EKS를 클라우드 너머로 확장, 하이브리드 워크로드 스케일링,
+        클라우드 네이티브 플랫폼을 클라우드 너머로 확장, 하이브리드 워크로드 스케일링,
         멀티클라우드 아키텍처 구현 방법을 다룹니다.
       </>
     ),
@@ -53,7 +53,7 @@ const FeatureList = [
     Svg: require('@site/static/img/undraw_docusaurus_tree.svg').default,
     description: (
       <>
-        ROSA 네트워크 보안 컴플라이언스, 보안 아키텍처 모범 사례,
+        네트워크 보안 컴플라이언스, 보안 아키텍처 모범 사례,
         컴플라이언스 구현 가이드를 제공합니다.
       </>
     ),
@@ -83,7 +83,7 @@ export default function HomepageFeatures() {
       <div className="container">
         <div className="text--center margin-bottom--lg">
           <Heading as="h2">5개 핵심 기술 도메인</Heading>
-          <p>EKS 아키텍처의 모든 측면을 다루는 종합 가이드</p>
+          <p>클라우드 네이티브 아키텍처의 모든 측면을 다루는 종합 가이드</p>
         </div>
         <div className="row">
           {FeatureList.slice(0, 3).map((props, idx) => (

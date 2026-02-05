@@ -9,7 +9,7 @@ import { themes as prismThemes } from 'prism-react-renderer';
 /** @type {import('@docusaurus/types').Config} */
 const config = {
   title: 'Engineering Playbook',
-  tagline: 'Comprehensive EKS Architecture Deep Dive',
+  tagline: 'Cloud Native Architecture & Best Practices',
   favicon: 'img/favicon.ico',
 
   // Enable Mermaid diagrams
@@ -289,8 +289,8 @@ const config = {
       },
       */
       metadata: [
-        { name: 'keywords', content: 'EKS, Kubernetes, AWS, DevOps, Cloud, Architecture' },
-        { name: 'description', content: 'Comprehensive EKS Architecture Deep Dive - Engineering Playbook' },
+        { name: 'keywords', content: 'Kubernetes, AWS, Cloud Native, DevOps, Architecture, Best Practices' },
+        { name: 'description', content: 'Cloud Native Architecture & Best Practices - Engineering Playbook' },
         { property: 'og:type', content: 'website' },
         { property: 'og:site_name', content: 'Engineering Playbook' },
       ],

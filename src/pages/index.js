@@ -10,8 +10,8 @@ const FeatureList = [
     title: 'Infrastructure Optimization',
     description: (
       <>
-        Optimize EKS DNS performance, configure Cilium ENI mode, and implement
-        advanced networking strategies for high-performance Kubernetes clusters.
+        Optimize DNS performance, configure container networking modes, and implement
+        advanced networking strategies for high-performance cloud native clusters.
       </>
     ),
     link: '/docs/performance-networking',
@@ -31,7 +31,7 @@ const FeatureList = [
     description: (
       <>
         Build production-ready GenAI platforms, maximize GPU efficiency with MIG
-        and time-slicing strategies for AI/ML workloads on EKS.
+        and time-slicing strategies for AI/ML workloads on Kubernetes.
       </>
     ),
     link: '/docs/genai-aiml',
@@ -40,7 +40,7 @@ const FeatureList = [
     title: 'Hybrid Infrastructure',
     description: (
       <>
-        Extend EKS beyond the cloud with hybrid nodes, implement cloud bursting
+        Extend cloud native platforms with hybrid nodes, implement cloud bursting
         strategies, and manage multi-cloud architectures.
       </>
     ),
@@ -50,8 +50,8 @@ const FeatureList = [
     title: 'Security & Governance',
     description: (
       <>
-        Implement ROSA network security, compliance architectures, and security
-        best practices for enterprise EKS deployments.
+        Implement network security, compliance architectures, and security
+        best practices for enterprise cloud native deployments.
       </>
     ),
     link: '/docs/security-compliance',
@@ -102,7 +102,7 @@ export default function Home() {
   return (
     <Layout
       title={`${siteConfig.title}`}
-      description="Comprehensive EKS Architecture Deep Dive - Engineering best practices, patterns, and implementations">
+      description="Comprehensive Cloud Native Architecture Guide - Engineering best practices, patterns, and implementations">
       <HomepageHeader />
       <main>
         <section className={styles.features}>
@@ -112,7 +112,7 @@ export default function Home() {
                 <div className="text--center margin-bottom--xl">
                   <h2>Technical Domains</h2>
                   <p className="lead">
-                    Explore comprehensive guides across five key technical domains for EKS engineering excellence.
+                    Explore comprehensive guides across five key technical domains for cloud native engineering excellence.
                   </p>
                 </div>
               </div>
@@ -133,7 +133,7 @@ export default function Home() {
                   <div className="card__body text--center">
                     <h2>Quick Start</h2>
                     <p>
-                      New to EKS engineering? Start with our comprehensive introduction 
+                      New to cloud native engineering? Start with our comprehensive introduction
                       and work your way through the technical domains.
                     </p>
                     <div className={styles.quickStartButtons}>

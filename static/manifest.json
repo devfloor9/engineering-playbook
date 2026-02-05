@@ -1,7 +1,7 @@
 {
   "name": "Engineering Playbook",
   "short_name": "Playbook",
-  "description": "Comprehensive EKS Architecture Deep Dive - Engineering best practices, patterns, and implementations",
+  "description": "Cloud Native Architecture & Best Practices - Engineering guides, patterns, and implementations",
   "theme_color": "#0969da",
   "background_color": "#ffffff",
   "display": "standalone",
