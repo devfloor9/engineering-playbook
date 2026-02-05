@@ -1,0 +1,30 @@
+{
+  "version.label": {
+    "message": "Next",
+    "description": "The label for version current"
+  },
+  "sidebar.docs.category.Infrastructure Optimization": {
+    "message": "Infrastructure Optimization",
+    "description": "The label for category 'Infrastructure Optimization' in sidebar 'docs'"
+  },
+  "sidebar.docs.category.Operations & Observability": {
+    "message": "Operations & Observability",
+    "description": "The label for category 'Operations & Observability' in sidebar 'docs'"
+  },
+  "sidebar.docs.category.Agentic AI Platform": {
+    "message": "Agentic AI Platform",
+    "description": "The label for category 'Agentic AI Platform' in sidebar 'docs'"
+  },
+  "sidebar.docs.category.Hybrid Infrastructure": {
+    "message": "Hybrid Infrastructure",
+    "description": "The label for category 'Hybrid Infrastructure' in sidebar 'docs'"
+  },
+  "sidebar.docs.category.Security & Governance": {
+    "message": "Security & Governance",
+    "description": "The label for category 'Security & Governance' in sidebar 'docs'"
+  },
+  "sidebar.docs.category.ROSA (OpenShift on AWS)": {
+    "message": "ROSA (OpenShift on AWS)",
+    "description": "The label for category 'ROSA (OpenShift on AWS)' in sidebar 'docs'"
+  }
+}

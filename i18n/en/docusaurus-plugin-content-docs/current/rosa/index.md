@@ -9,17 +9,9 @@ sidebar_position: 6
 
 This section covers technical documentation on ROSA (Red Hat OpenShift Service on AWS) cluster deployment and operations. ROSA is a fully managed OpenShift service jointly managed by AWS and Red Hat, making it easy to build enterprise-grade Kubernetes platforms.
 
-## 📚 Main Documents
+## 📚 Main Documents (Implementation Order)
 
-### Security and Compliance
-- **[ROSA Security Compliance Console Access Control](./rosa-security-compliance.md)**
-  - Red Hat Hybrid Cloud Console access control configuration
-  - Access control strategies for meeting financial sector security requirements
-  - IdP (Identity Provider) integration and MFA configuration
-  - Role-based access control (RBAC) configuration
-  - Audit and logging settings
-
-### Cluster Installation and Configuration
+### Step 1: Cluster Installation and Configuration
 - **[ROSA Demo Installation Guide](./rosa-demo-installation.md)**
   - STS (Security Token Service)-based cluster creation
   - Step-by-step installation via ROSA CLI
@@ -27,6 +19,14 @@ This section covers technical documentation on ROSA (Red Hat OpenShift Service o
   - Network and IAM role setup
   - Initial cluster validation
   - Lab environment configuration and testing
+
+### Step 2: Security and Access Control
+- **[ROSA Security Compliance Console Access Control](./rosa-security-compliance.md)**
+  - Red Hat Hybrid Cloud Console access control configuration
+  - Access control strategies for meeting financial sector security requirements
+  - IdP (Identity Provider) integration and MFA configuration
+  - Role-based access control (RBAC) configuration
+  - Audit and logging settings
 
 ## 🎯 Learning Objectives
 
@@ -187,10 +187,10 @@ Primary Region (ROSA)
 
 ## 🔗 Related Categories
 
-- [Hybrid Infrastructure](/docs/hybrid-multicloud) - Hybrid environment management
-- [Security & Governance](/docs/security-compliance) - ROSA security architecture
-- [Infrastructure Optimization](/docs/performance-networking) - Networking optimization
-- [Operations & Observability](/docs/observability-monitoring) - Cluster monitoring
+- [Hybrid Infrastructure](/docs/hybrid-infrastructure) - Hybrid environment management
+- [Security & Governance](/docs/security-governance) - ROSA security architecture
+- [Infrastructure Optimization](/docs/infrastructure-optimization) - Networking optimization
+- [Operations & Observability](/docs/operations-observability) - Cluster monitoring
 
 ---
 

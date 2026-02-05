@@ -17,14 +17,21 @@ const sidebars = {
       collapsed: true,
       link: {
         type: 'doc',
-        id: 'performance-networking/index',
+        id: 'infrastructure-optimization/index',
       },
       items: [
-        'performance-networking/karpenter-autoscaling',
-        'performance-networking/cilium-eni-gateway-api',
-        'performance-networking/east-west-traffic-best-practice',
-        'performance-networking/coredns-monitoring-optimization',
-        'performance-networking/cost-management',
+        // 1. 네트워크 기반 구성
+        'infrastructure-optimization/cilium-eni-gateway-api',
+        // 1-1. NGINX Ingress → Gateway API 마이그레이션
+        'infrastructure-optimization/nginx-to-gateway-api-migration',
+        // 2. DNS 설정 및 최적화
+        'infrastructure-optimization/coredns-monitoring-optimization',
+        // 3. 내부 트래픽 최적화
+        'infrastructure-optimization/east-west-traffic-best-practice',
+        // 4. 오토스케일링 구성
+        'infrastructure-optimization/karpenter-autoscaling',
+        // 5. 비용 관리 (운영 단계)
+        'infrastructure-optimization/cost-management',
       ],
     },
     {
@@ -33,11 +40,13 @@ const sidebars = {
       collapsed: true,
       link: {
         type: 'doc',
-        id: 'observability-monitoring/index',
+        id: 'operations-observability/index',
       },
       items: [
-        'observability-monitoring/node-monitoring-agent',
-        'observability-monitoring/gitops-cluster-operation',
+        // 1. GitOps 기반 클러스터 운영 체계 구축
+        'operations-observability/gitops-cluster-operation',
+        // 2. 노드 모니터링 에이전트 배포
+        'operations-observability/node-monitoring-agent',
       ],
     },
     {
@@ -46,19 +55,29 @@ const sidebars = {
       collapsed: true,
       link: {
         type: 'doc',
-        id: 'genai-aiml/index',
+        id: 'agentic-ai-platform/index',
       },
       items: [
-        'genai-aiml/agentic-ai-challenges',
-        'genai-aiml/agentic-platform-architecture',
-        'genai-aiml/gpu-resource-management',
-        'genai-aiml/inference-gateway-routing',
-        'genai-aiml/moe-model-serving',
-        'genai-aiml/nemo-framework',
-        'genai-aiml/agent-monitoring',
-        'genai-aiml/kagent-kubernetes-agents',
-        'genai-aiml/milvus-vector-database',
-        'genai-aiml/ragas-evaluation',
+        // Phase 1: 이해 및 설계
+        'agentic-ai-platform/agentic-ai-challenges',
+        'agentic-ai-platform/agentic-platform-architecture',
+        // Phase 2: GPU 인프라 구성
+        'agentic-ai-platform/gpu-resource-management',
+        // Phase 3: 모델 서빙 (기본 → 고급)
+        'agentic-ai-platform/vllm-model-serving',
+        'agentic-ai-platform/ray-serve-vllm-integration',
+        'agentic-ai-platform/moe-model-serving',
+        'agentic-ai-platform/nemo-framework',
+        // Phase 4: 추론 라우팅 및 게이트웨이
+        'agentic-ai-platform/inference-gateway-routing',
+        // Phase 5: RAG 데이터 레이어
+        'agentic-ai-platform/milvus-vector-database',
+        // Phase 6: AI 에이전트 배포
+        'agentic-ai-platform/kagent-kubernetes-agents',
+        // Phase 7: 운영 및 모니터링
+        'agentic-ai-platform/agent-monitoring',
+        // Phase 8: 평가 및 검증
+        'agentic-ai-platform/ragas-evaluation',
       ],
     },
     {
@@ -67,13 +86,17 @@ const sidebars = {
       collapsed: true,
       link: {
         type: 'doc',
-        id: 'hybrid-multicloud/index',
+        id: 'hybrid-infrastructure/index',
       },
       items: [
-        'hybrid-multicloud/hybrid-nodes-adoption-guide',
-        'hybrid-multicloud/sriov-dgx-h200-hybrid',
-        'hybrid-multicloud/hybrid-nodes-file-storage',
-        'hybrid-multicloud/harbor-hybrid-integration',
+        // 1. 하이브리드 노드 기본 가이드
+        'hybrid-infrastructure/hybrid-nodes-adoption-guide',
+        // 2. 고성능 네트워킹 (SR-IOV)
+        'hybrid-infrastructure/sriov-dgx-h200-hybrid',
+        // 3. 공유 스토리지 구성
+        'hybrid-infrastructure/hybrid-nodes-file-storage',
+        // 4. 컨테이너 레지스트리 통합
+        'hybrid-infrastructure/harbor-hybrid-integration',
       ],
     },
     {
@@ -82,10 +105,10 @@ const sidebars = {
       collapsed: true,
       link: {
         type: 'doc',
-        id: 'security-compliance/index',
+        id: 'security-governance/index',
       },
       items: [
-        'security-compliance/default-namespace-incident',
+        'security-governance/default-namespace-incident',
       ],
     },
     {
@@ -97,8 +120,10 @@ const sidebars = {
         id: 'rosa/index',
       },
       items: [
-        'rosa/rosa-security-compliance',
+        // 1. 설치 가이드
         'rosa/rosa-demo-installation',
+        // 2. 보안 및 접근 제어
+        'rosa/rosa-security-compliance',
       ],
     },
   ],
