@@ -83,28 +83,45 @@ graph TB
 Karpenter는 기존 Cluster Autoscaler의 한계를 극복하고, **AI 워크로드에 최적화된 노드 프로비저닝**을 제공합니다.
 
 ```mermaid
-flowchart LR
-    subgraph "기존 방식 (Cluster Autoscaler)"
-        CA1[Pod Pending] --> CA2[Node Group 확인]
-        CA2 --> CA3[ASG 스케일 아웃]
-        CA3 --> CA4[노드 준비 완료]
-        CA4 --> CA5[Pod 스케줄링]
-        CA5 --> CA6["⏱️ 5-10분 소요"]
-    end
+sequenceDiagram
+    participant Pod as Pod (Pending)
+    participant CA as Cluster Autoscaler
+    participant ASG as Auto Scaling Group
+    participant EC2 as EC2 Instance
 
-    subgraph "Karpenter 방식"
-        K1[Pod Pending] --> K2[워크로드 분석]
-        K2 --> K3[최적 인스턴스 선택]
-        K3 --> K4[즉시 프로비저닝]
-        K4 --> K5["⚡ 2-3분 소요"]
+    rect rgb(255, 235, 235)
+    Note over Pod,EC2: 기존 방식 (Cluster Autoscaler) - 5~10분 소요
+    Pod->>CA: 1. Pending 감지
+    CA->>CA: 2. Node Group 확인
+    CA->>ASG: 3. 스케일 아웃 요청
+    ASG->>EC2: 4. 인스턴스 시작
+    Note right of EC2: AMI 부팅 대기
+    EC2->>EC2: 5. 노드 준비
+    EC2->>Pod: 6. Pod 스케줄링
     end
-
-    style CA6 fill:#ff6b6b
-    style K5 fill:#4ecdc4
-    style K2 fill:#ffd93d
-    style K3 fill:#ffd93d
-    style K4 fill:#ffd93d
 ```
+
+```mermaid
+sequenceDiagram
+    participant Pod as Pod (Pending)
+    participant Karp as Karpenter
+    participant EC2 as EC2 API
+
+    rect rgb(235, 255, 245)
+    Note over Pod,EC2: Karpenter 방식 - 2~3분 소요
+    Pod->>Karp: 1. Pending 감지
+    Karp->>Karp: 2. 워크로드 분석 & 최적 인스턴스 선택
+    Karp->>EC2: 3. EC2 API 직접 호출
+    EC2->>Pod: 4. 즉시 프로비저닝 & 스케줄링
+    end
+```
+
+| 비교 항목 | Cluster Autoscaler | Karpenter |
+|----------|-------------------|-----------|
+| **프로비저닝 시간** | 5-10분 | 2-3분 |
+| **인스턴스 선택** | Node Group 내 고정 타입 | 워크로드 기반 동적 선택 |
+| **GPU 지원** | 수동 Node Group 구성 | NodePool 자동 매칭 |
+| **비용 최적화** | 제한적 | Spot, Consolidation 자동 |
 
 ### Karpenter가 제공하는 핵심 가치
 
@@ -1223,13 +1240,80 @@ eksctl create cluster --name ai-platform --region us-west-2 --auto-mode
 
 ---
 
-## AWS 인프라 자동화: ACK, KRO, Argo 통합
+## EKS Capability: Agentic AI를 위한 통합 플랫폼 기능
 
-EKS의 진정한 강점은 **Kubernetes 네이티브 방식으로 AWS 인프라 전체를 자동화**할 수 있다는 것입니다. ACK(AWS Controllers for Kubernetes), KRO(Kubernetes Resource Orchestrator), 그리고 Argo 기반 파이프라인을 통해 AI 플랫폼의 전체 라이프사이클을 선언적으로 관리할 수 있습니다.
+### EKS Capability란?
+
+**EKS Capability**는 Amazon EKS에서 특정 워크로드를 효과적으로 운영하기 위해 **검증된 오픈소스 도구와 AWS 서비스를 통합하여 제공하는 플랫폼 수준의 기능**입니다. EKS는 단순한 Kubernetes 관리형 서비스를 넘어, 특정 도메인(AI/ML, 데이터 분석, 웹 애플리케이션 등)에 최적화된 **엔드-투-엔드 솔루션 스택**을 제공합니다.
+
+```mermaid
+graph TB
+    subgraph "EKS Capability 계층 구조"
+        EKS["Amazon EKS<br/>관리형 Kubernetes"]
+
+        subgraph "Platform Capabilities"
+            AUTO["EKS Auto Mode<br/>인프라 자동화"]
+            ADDON["EKS Add-ons<br/>핵심 컴포넌트"]
+        end
+
+        subgraph "Workload Capabilities"
+            AI["AI/ML Capability<br/>Karpenter, GPU, Training Operator"]
+            DATA["Data Capability<br/>Spark, Flink, EMR"]
+            APP["App Capability<br/>ALB, Service Mesh"]
+        end
+
+        subgraph "Integration Capabilities (EKS 공식 지원)"
+            ACK_C["ACK<br/>AWS 리소스 통합"]
+            KRO_C["KRO<br/>리소스 오케스트레이션"]
+            ARGOCD_C["Argo CD<br/>GitOps 배포"]
+        end
+    end
+
+    EKS --> AUTO & ADDON
+    AUTO --> AI & DATA & APP
+    AI --> ACK_C & KRO_C & ARGOCD_C
+
+    style EKS fill:#ff9900
+    style AI fill:#76b900
+    style ACK_C fill:#326ce5
+    style KRO_C fill:#ffd93d
+    style ARGOCD_C fill:#e85a25
+```
+
+### Agentic AI를 위한 핵심 EKS Capability
+
+Agentic AI 워크로드를 효과적으로 운영하기 위해 EKS는 다음 **Integration Capability**를 공식 지원합니다:
+
+| EKS Capability | 역할 | Agentic AI 활용 | 지원 방식 |
+|----------------|------|-----------------|----------|
+| **ACK (AWS Controllers for Kubernetes)** | AWS 서비스의 Kubernetes 네이티브 관리 | S3 모델 저장소, RDS 메타데이터, SageMaker 학습 작업 | EKS Add-on |
+| **KRO (Kubernetes Resource Orchestrator)** | 복합 리소스 추상화 및 템플릿화 | AI 추론 스택, 학습 파이프라인 원클릭 배포 | EKS Add-on |
+| **Argo CD** | GitOps 기반 지속적 배포 | 모델 서빙 배포 자동화, 롤백, 환경 동기화 | EKS Add-on |
+
+:::warning Argo Workflows는 별도 설치 필요
+**Argo Workflows**는 EKS Capability로 공식 지원되지 않으므로 **직접 설치가 필요**합니다.
+Argo CD(EKS Capability)와 함께 사용하면 강력한 ML 파이프라인 자동화를 구현할 수 있습니다.
+
+```bash
+# Argo Workflows 설치
+kubectl create namespace argo
+kubectl apply -n argo -f https://github.com/argoproj/argo-workflows/releases/download/v3.5.0/install.yaml
+```
+:::
+
+:::info EKS Capability의 핵심 가치
+ACK, KRO, Argo CD (EKS Capability)를 조합하면:
+- **선언적 관리**: 모든 인프라와 워크로드를 YAML로 정의
+- **GitOps 기반**: Git을 Single Source of Truth로 활용
+- **완전 자동화**: 코드 커밋부터 프로덕션 배포까지 무중단 파이프라인
+- **통합 모니터링**: AWS CloudWatch와 Kubernetes 메트릭 통합
+:::
+
+---
 
 ### ACK (AWS Controllers for Kubernetes)
 
-**ACK**는 Kubernetes Custom Resource로 AWS 서비스를 직접 프로비저닝하고 관리할 수 있게 해주는 오픈소스 프로젝트입니다.
+**ACK**는 EKS Capability의 핵심 구성요소로, Kubernetes Custom Resource를 통해 AWS 서비스를 직접 프로비저닝하고 관리할 수 있게 해주는 오픈소스 프로젝트입니다. **EKS Add-on으로 간편하게 설치**할 수 있습니다.
 
 ```mermaid
 graph LR
