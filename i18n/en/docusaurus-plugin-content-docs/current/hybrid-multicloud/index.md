@@ -25,12 +25,6 @@ This section covers advanced technical documentation for building hybrid and mul
   - Phase-by-phase adoption planning
   - Best practices and lessons learned
 
-- **[Amazon EKS Hybrid Node: Complete Configuration Guide](./hybrid-nodes-complete-guide.md)**
-  - Detailed EKS Hybrid Node configuration methods
-  - Network connectivity and security setup
-  - Troubleshooting and monitoring
-  - Operational cluster maintenance
-
 ### Advanced Hybrid Features
 - **[Dynamic Resource Allocation for Hybrid Nodes](./eks-dra-hybrid-nodes.md)**
   - Dynamic Resource Allocation (DRA) technology
@@ -52,13 +46,6 @@ This section covers advanced technical documentation for building hybrid and mul
   - File storage configuration for on-premises nodes
   - Utilizing storage protocols like NFS and iSCSI
   - Data synchronization between cloud and on-premises
-
-### Cloud Bursting
-- **[Cloud Bursting with EKS: Scaling Hybrid Workloads Seamlessly](./cloud-bursting-strategy.md)**
-  - Workload expansion strategies from on-premises to cloud
-  - Automatic scaling and resource optimization
-  - Cost-efficient hybrid operations
-  - Network bandwidth optimization
 
 ## 🎯 Learning Objectives
 

@@ -11,13 +11,6 @@ sidebar_position: 5
 
 ## 📚 주요 문서
 
-### 네트워크 보안 및 컴플라이언스
-- **[ROSA Network Security Compliance Architecture: Best Practices and Implementation](./rosa-network-security-compliance.md)**
-  - Red Hat OpenShift Service on AWS (ROSA) 네트워크 보안 아키텍처
-  - 금융권 보안 요구사항 충족 방법
-  - 컴플라이언스 정책 구현 및 모니터링
-  - 네트워크 보안 정책 설계 및 운영
-
 ### 운영 보안 및 인시던트 관리
 - **[Default Namespace Incident Response](./default-namespace-incident.md)**
   - 기본 네임스페이스 보안 위협 분석

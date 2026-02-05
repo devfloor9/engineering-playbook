@@ -25,12 +25,6 @@ sidebar_position: 4
   - 단계별 도입 계획
   - 모범 사례 및 lessons learned
 
-- **[Amazon EKS Hybrid Node: Complete Configuration Guide](./hybrid-nodes-complete-guide.md)**
-  - EKS Hybrid Node의 상세한 설정 방법
-  - 네트워크 연결 및 보안 구성
-  - 트러블슈팅 및 모니터링
-  - 운영 중인 클러스터 유지보수
-
 ### 고급 하이브리드 기능
 - **[Dynamic Resource Allocation for Hybrid Nodes](./eks-dra-hybrid-nodes.md)**
   - DRA(Dynamic Resource Allocation) 기술
@@ -52,13 +46,6 @@ sidebar_position: 4
   - 온프레미스 노드의 파일 스토리지 구성
   - NFS, iSCSI 등 스토리지 프로토콜 활용
   - 클라우드와 온프레미스 간 데이터 동기화
-
-### 클라우드 버스팅
-- **[Cloud Bursting with EKS: Scaling Hybrid Workloads Seamlessly](./cloud-bursting-strategy.md)**
-  - 온프레미스에서 클라우드로의 워크로드 확장 전략
-  - 자동 스케일링 및 리소스 최적화
-  - 비용 효율적인 하이브리드 운영 방법
-  - 네트워크 대역폭 최적화
 
 ## 🎯 학습 목표
 
