@@ -15,7 +15,7 @@ sidebar_position: 99
 
 ## 개요
 
-Engineering Playbook은 Amazon EKS 아키텍처와 운영 모범 사례를 공유하는 커뮤니티 주도의 프로젝트입니다. 이 가이드는 누구나 쉽게 기여할 수 있도록 문서 작성 표준, 포맷팅 규칙, PR 프로세스를 명확하게 설명합니다.
+Engineering Playbook은 Kubernetes와 클라우드 네이티브 아키텍처, 운영 모범 사례를 공유하는 커뮤니티 주도의 프로젝트입니다. 이 가이드는 누구나 쉽게 기여할 수 있도록 문서 작성 표준, 포맷팅 규칙, PR 프로세스를 명확하게 설명합니다.
 
 **기여 방법:**
 - 새로운 문서 작성
@@ -81,7 +81,7 @@ npm run build
 title: "문서 제목"
 sidebar_label: "사이드바 라벨 (한국어)"
 description: "150자 이내의 간단한 설명"
-tags: [eks, kubernetes, tag1, tag2]
+tags: [kubernetes, cloud-native, tag1, tag2]
 category: "[performance-networking|observability-monitoring|genai-aiml|hybrid-multicloud|security-compliance]"
 date: YYYY-MM-DD
 authors: [your-github-username]
@@ -299,7 +299,7 @@ graph TD
 
 #### 1. Infrastructure Optimization (인프라 최적화)
 **다루는 주제:**
-- EKS DNS 성능 최적화
+- Kubernetes DNS 성능 최적화
 - 네트워크 성능 튜닝
 - 로드 밸런싱 및 Ingress 패턴
 - Cilium 및 네트워크 보안
@@ -346,7 +346,7 @@ AI/ML 문서는 GPU 활용률, 비용, 성능 관련 구체적 수치를 포함�
 
 #### 4. Hybrid Infrastructure (하이브리드 인프라)
 **다루는 주제:**
-- EKS 하이브리드 노드 구성
+- 클라우드 네이티브 하이브리드 노드 구성
 - 클라우드 버스팅 아키텍처
 - 멀티클라우드 관리
 - 엣지 컴퓨팅
@@ -579,7 +579,7 @@ PR을 제출하기 전에 다음 항목을 확인하세요:
 ### Q: 어떤 내용을 기여해야 하나요?
 
 **A:** 다음과 같은 내용을 환영합니다:
-- EKS 관련 새로운 기술 정보
+- Kubernetes 및 클라우드 네이티브 관련 새로운 기술 정보
 - 실제 운영 경험 공유
 - 기존 문서의 오류 수정
 - 더 좋은 예제나 설명

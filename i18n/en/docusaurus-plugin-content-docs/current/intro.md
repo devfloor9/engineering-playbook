@@ -1,12 +1,12 @@
 ---
 title: Introduction
-description: Welcome to the Engineering Playbook - your comprehensive guide to Amazon EKS architecture and best practices
-tags: [eks, kubernetes, introduction, getting-started]
+description: Welcome to the Engineering Playbook - your comprehensive guide to cloud native architecture and best practices
+tags: [cloud-native, kubernetes, introduction, getting-started]
 ---
 
 # Engineering Playbook
 
-Welcome to the **Engineering Playbook** - a comprehensive collection of technical guides, best practices, and architectural patterns for Amazon Elastic Kubernetes Service (EKS).
+Welcome to the **Engineering Playbook** - a comprehensive collection of technical guides, best practices, and architectural patterns for cloud native infrastructure on AWS.
 
 ## What You'll Find Here
 
@@ -44,7 +44,7 @@ This playbook is organized into five key technical domains, each containing deta
 
 ## Getting Started
 
-1. **New to EKS?** Start with the fundamentals in each domain's introduction
+1. **New to cloud native?** Start with the fundamentals in each domain's introduction
 2. **Specific use case?** Use the search functionality to find relevant guides
 3. **Implementation ready?** Follow the step-by-step guides with code examples
 
@@ -61,7 +61,7 @@ Each guide follows a consistent structure:
 
 ## Contributing
 
-This playbook is continuously updated with the latest EKS patterns and best practices. For contributions, issues, or suggestions, visit our [GitHub repository](https://github.com/devfloor9/engineering-playbook).
+This playbook is continuously updated with the latest cloud native patterns and best practices. For contributions, issues, or suggestions, visit our [GitHub repository](https://github.com/devfloor9/engineering-playbook).
 
 ## Support
 

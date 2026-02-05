@@ -15,7 +15,7 @@ sidebar_position: 99
 
 ## Overview
 
-The Engineering Playbook is a community-driven project that shares Amazon EKS architecture and operational best practices. This guide clearly explains documentation writing standards, formatting rules, and the PR process so anyone can contribute easily.
+The Engineering Playbook is a community-driven project that shares Kubernetes and cloud native architecture and operational best practices. This guide clearly explains documentation writing standards, formatting rules, and the PR process so anyone can contribute easily.
 
 **Ways to Contribute:**
 - Write new documentation
@@ -81,7 +81,7 @@ Every document must start with frontmatter in the following format:
 title: "Document Title"
 sidebar_label: "Sidebar Label (English)"
 description: "Brief description within 150 characters"
-tags: [eks, kubernetes, tag1, tag2]
+tags: [kubernetes, cloud-native, tag1, tag2]
 category: "[performance-networking|observability-monitoring|genai-aiml|hybrid-multicloud|security-compliance]"
 date: YYYY-MM-DD
 authors: [your-github-username]
@@ -299,7 +299,7 @@ This is a dangerous operation. Be careful!
 
 #### 1. Infrastructure Optimization
 **Topics Covered:**
-- EKS DNS performance optimization
+- Kubernetes DNS performance optimization
 - Network performance tuning
 - Load balancing and Ingress patterns
 - Cilium and network security
@@ -346,7 +346,7 @@ Include specific figures related to GPU utilization, cost, and performance in AI
 
 #### 4. Hybrid Infrastructure
 **Topics Covered:**
-- EKS hybrid node configuration
+- Cloud native hybrid node configuration
 - Cloud bursting architecture
 - Multi-cloud management
 - Edge computing
@@ -579,7 +579,7 @@ Before submitting a PR, verify the following items:
 ### Q: What content should I contribute?
 
 **A:** We welcome the following types of contributions:
-- New EKS-related technical information
+- New Kubernetes and cloud native technical information
 - Real operational experience sharing
 - Fixes for existing documentation errors
 - Better examples or explanations
