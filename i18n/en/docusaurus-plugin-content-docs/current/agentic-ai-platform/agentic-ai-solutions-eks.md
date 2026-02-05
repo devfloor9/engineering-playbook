@@ -167,27 +167,48 @@ EKS Auto Mode is a fully managed node lifecycle offering that automates:
 
 ### Karpenter vs. Cluster Autoscaler: Deep Dive
 
-**Architecture Comparison:**
+**Provisioning Process Comparison:**
 
 ```mermaid
-graph LR
-    subgraph "Cluster Autoscaler (Legacy)"
-        CA[CA Pod] --> ASG[Auto Scaling Group]
-        ASG --> LT[Launch Template]
-        LT --> EC2_CA[EC2 Instances]
+sequenceDiagram
+    participant Pod as Pod (Pending)
+    participant CA as Cluster Autoscaler
+    participant ASG as Auto Scaling Group
+    participant EC2 as EC2 Instance
+
+    rect rgb(255, 235, 235)
+    Note over Pod,EC2: Cluster Autoscaler - 5~10 minutes
+    Pod->>CA: 1. Detect Pending
+    CA->>CA: 2. Check Node Group
+    CA->>ASG: 3. Scale Out Request
+    ASG->>EC2: 4. Start Instance
+    Note right of EC2: Wait for AMI boot
+    EC2->>EC2: 5. Node Ready
+    EC2->>Pod: 6. Schedule Pod
     end
-
-    subgraph "Karpenter (Modern)"
-        K[Karpenter Pod] --> EC2API[EC2 API Direct]
-        EC2API --> EC2_K[EC2 Instances<br/>600+ types]
-    end
-
-    PODS[Pending Pods] --> CA
-    PODS --> K
-
-    style CA fill:#FFA500
-    style K fill:#32CD32
 ```
+
+```mermaid
+sequenceDiagram
+    participant Pod as Pod (Pending)
+    participant Karp as Karpenter
+    participant EC2 as EC2 API
+
+    rect rgb(235, 255, 245)
+    Note over Pod,EC2: Karpenter - 2~3 minutes
+    Pod->>Karp: 1. Detect Pending
+    Karp->>Karp: 2. Analyze Workload & Select Optimal Instance
+    Karp->>EC2: 3. Direct EC2 API Call
+    EC2->>Pod: 4. Instant Provisioning & Scheduling
+    end
+```
+
+| Comparison | Cluster Autoscaler | Karpenter |
+|------------|-------------------|-----------|
+| **Provisioning Time** | 5-10 min | 2-3 min |
+| **Instance Selection** | Fixed types in Node Group | Dynamic based on workload |
+| **GPU Support** | Manual Node Group config | Automatic NodePool matching |
+| **Cost Optimization** | Limited | Auto Spot, Consolidation |
 
 **Decision Criteria:**
 
@@ -2313,13 +2334,80 @@ helm install agentic-ai agentic-ai/platform -f values.yaml
 
 ---
 
-## AWS Infrastructure Automation: ACK, KRO, and Argo Integration
+## EKS Capability: Integrated Platform Features for Agentic AI
 
-The true power of EKS lies in its ability to **automate the entire AWS infrastructure using Kubernetes-native approaches**. With ACK (AWS Controllers for Kubernetes), KRO (Kubernetes Resource Orchestrator), and Argo-based pipelines, you can manage the entire lifecycle of your AI platform declaratively.
+### What is EKS Capability?
+
+**EKS Capability** refers to **platform-level features that integrate validated open-source tools and AWS services** to effectively operate specific workloads on Amazon EKS. EKS goes beyond being a simple managed Kubernetes service, providing **end-to-end solution stacks** optimized for specific domains (AI/ML, data analytics, web applications, etc.).
+
+```mermaid
+graph TB
+    subgraph "EKS Capability Layer Structure"
+        EKS["Amazon EKS<br/>Managed Kubernetes"]
+
+        subgraph "Platform Capabilities"
+            AUTO["EKS Auto Mode<br/>Infrastructure Automation"]
+            ADDON["EKS Add-ons<br/>Core Components"]
+        end
+
+        subgraph "Workload Capabilities"
+            AI["AI/ML Capability<br/>Karpenter, GPU, Training Operator"]
+            DATA["Data Capability<br/>Spark, Flink, EMR"]
+            APP["App Capability<br/>ALB, Service Mesh"]
+        end
+
+        subgraph "Integration Capabilities (EKS Official Support)"
+            ACK_C["ACK<br/>AWS Resource Integration"]
+            KRO_C["KRO<br/>Resource Orchestration"]
+            ARGOCD_C["Argo CD<br/>GitOps Deployment"]
+        end
+    end
+
+    EKS --> AUTO & ADDON
+    AUTO --> AI & DATA & APP
+    AI --> ACK_C & KRO_C & ARGOCD_C
+
+    style EKS fill:#ff9900
+    style AI fill:#76b900
+    style ACK_C fill:#326ce5
+    style KRO_C fill:#ffd93d
+    style ARGOCD_C fill:#e85a25
+```
+
+### Core EKS Capabilities for Agentic AI
+
+To effectively operate Agentic AI workloads, EKS officially supports the following **Integration Capabilities**:
+
+| EKS Capability | Role | Agentic AI Usage | Support Method |
+|----------------|------|------------------|----------------|
+| **ACK (AWS Controllers for Kubernetes)** | Kubernetes-native management of AWS services | S3 model storage, RDS metadata, SageMaker training jobs | EKS Add-on |
+| **KRO (Kubernetes Resource Orchestrator)** | Composite resource abstraction and templating | One-click deployment of AI inference stacks, training pipelines | EKS Add-on |
+| **Argo CD** | GitOps-based continuous deployment | Model serving deployment automation, rollback, environment sync | EKS Add-on |
+
+:::warning Argo Workflows Requires Manual Installation
+**Argo Workflows** is NOT officially supported as an EKS Capability, so **manual installation is required**.
+When combined with Argo CD (EKS Capability), it enables powerful ML pipeline automation.
+
+```bash
+# Install Argo Workflows
+kubectl create namespace argo
+kubectl apply -n argo -f https://github.com/argoproj/argo-workflows/releases/download/v3.5.0/install.yaml
+```
+:::
+
+:::info Core Value of EKS Capabilities
+By combining ACK, KRO, and Argo CD (EKS Capabilities):
+- **Declarative Management**: Define all infrastructure and workloads in YAML
+- **GitOps-Based**: Use Git as Single Source of Truth
+- **Full Automation**: Zero-downtime pipeline from code commit to production deployment
+- **Unified Monitoring**: Integration of AWS CloudWatch and Kubernetes metrics
+:::
+
+---
 
 ### ACK (AWS Controllers for Kubernetes)
 
-**ACK** is an open-source project that enables you to provision and manage AWS services directly through Kubernetes Custom Resources.
+**ACK** is a core component of EKS Capability, an open-source project that enables you to provision and manage AWS services directly through Kubernetes Custom Resources. It can be **easily installed as an EKS Add-on**.
 
 ```mermaid
 graph LR
