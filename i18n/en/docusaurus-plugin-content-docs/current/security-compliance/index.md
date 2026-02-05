@@ -11,13 +11,6 @@ This section covers advanced technical documentation on security hardening and c
 
 ## 📚 Main Documents
 
-### Network Security and Compliance
-- **[ROSA Network Security Compliance Architecture: Best Practices and Implementation](./rosa-network-security-compliance.md)**
-  - Red Hat OpenShift Service on AWS (ROSA) network security architecture
-  - Strategies for meeting financial sector security requirements
-  - Compliance policy implementation and monitoring
-  - Network security policy design and operations
-
 ### Operational Security and Incident Management
 - **[Default Namespace Incident Response](./default-namespace-incident.md)**
   - Analysis of default namespace security threats
