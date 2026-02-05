@@ -16,7 +16,22 @@ const config = {
   markdown: {
     mermaid: true,
   },
-  themes: ['@docusaurus/theme-mermaid'],
+  themes: [
+    '@docusaurus/theme-mermaid',
+    [
+      '@easyops-cn/docusaurus-search-local',
+      {
+        hashed: true,
+        language: ['ko', 'en'],
+        highlightSearchTermsOnTargetPage: true,
+        explicitSearchResultPath: true,
+        docsRouteBasePath: '/docs',
+        indexBlog: false,
+        searchBarShortcutHint: true,
+        searchBarPosition: 'right',
+      },
+    ],
+  ],
 
   // Set the production url of your site here
   url: 'https://devfloor9.github.io',
@@ -61,24 +76,7 @@ const config = {
           routeBasePath: 'docs',
           path: 'docs',
         },
-        blog: {
-          showReadingTime: true,
-          readingTime: ({ content, defaultReadingTime }) =>
-            defaultReadingTime({ content, options: { wordsPerMinute: 300 } }),
-          // Please change this to your repo.
-          // Remove this to remove the "edit this page" links.
-          editUrl:
-            'https://github.com/devfloor9/engineering-playbook/tree/main/',
-          blogSidebarTitle: 'Recent Posts',
-          blogSidebarCount: 10,
-          blogTitle: 'Engineering Blog',
-          blogDescription: 'Latest insights and updates on EKS engineering practices',
-          postsPerPage: 'ALL',
-          feedOptions: {
-            type: 'all',
-            copyright: `Copyright © ${new Date().getFullYear()} Engineering Playbook.`,
-          },
-        },
+        blog: false,
         theme: {
           customCss: './src/css/custom.css',
         },
@@ -154,38 +152,6 @@ const config = {
         items: [
           { to: '/docs/intro', label: 'Documentation', position: 'left' },
           {
-            type: 'dropdown',
-            label: 'Domains',
-            position: 'left',
-            items: [
-              {
-                to: '/docs/performance-networking',
-                label: 'Infrastructure Optimization',
-              },
-              {
-                to: '/docs/observability-monitoring',
-                label: 'Operations & Observability',
-              },
-              {
-                to: '/docs/genai-aiml',
-                label: 'Agentic AI Platform',
-              },
-              {
-                to: '/docs/hybrid-multicloud',
-                label: 'Hybrid Infrastructure',
-              },
-              {
-                to: '/docs/security-compliance',
-                label: 'Security & Governance',
-              },
-            ],
-          },
-          { to: '/blog', label: 'Blog', position: 'left' },
-          {
-            type: 'search',
-            position: 'right',
-          },
-          {
             type: 'localeDropdown',
             position: 'right',
           },
@@ -208,11 +174,11 @@ const config = {
               },
               {
                 label: 'Infrastructure Optimization',
-                to: '/docs/performance-networking',
+                to: '/docs/infrastructure-optimization',
               },
               {
                 label: 'Operations & Observability',
-                to: '/docs/observability-monitoring',
+                to: '/docs/operations-observability',
               },
             ],
           },
@@ -221,25 +187,21 @@ const config = {
             items: [
               {
                 label: 'Agentic AI Platform',
-                to: '/docs/genai-aiml',
+                to: '/docs/agentic-ai-platform',
               },
               {
                 label: 'Hybrid Infrastructure',
-                to: '/docs/hybrid-multicloud',
+                to: '/docs/hybrid-infrastructure',
               },
               {
                 label: 'Security & Governance',
-                to: '/docs/security-compliance',
+                to: '/docs/security-governance',
               },
             ],
           },
           {
             title: 'Community',
             items: [
-              {
-                label: 'Blog',
-                to: '/blog',
-              },
               {
                 label: 'GitHub',
                 href: 'https://github.com/devfloor9/engineering-playbook',

@@ -3,23 +3,19 @@ title: "ROSA (Red Hat OpenShift on AWS)"
 sidebar_label: "ROSA"
 description: "Red Hat OpenShift Service on AWS (ROSA) 구축 및 운영에 대한 기술 문서"
 sidebar_position: 6
+date: 2025-02-05
+authors: [devfloor9]
 ---
 
 # ROSA (Red Hat OpenShift on AWS)
 
+> 📅 **작성일**: 2025-02-05 | ⏱️ **읽는 시간**: 약 3분
+
 이 섹션에서는 Red Hat OpenShift Service on AWS (ROSA) 구축 및 운영에 대한 기술 문서들을 다룹니다. ROSA는 AWS와 Red Hat이 함께 관리하는 완전 관리형 OpenShift 서비스로, 엔터프라이즈급 Kubernetes 플랫폼을 쉽게 구축할 수 있습니다.
 
-## 📚 주요 문서
+## 📚 주요 문서 (구현 순서)
 
-### 보안 및 컴플라이언스
-- **[ROSA Security Compliance Console Access Control](./rosa-security-compliance.md)**
-  - Red Hat Hybrid Cloud Console 접근 제어 구성
-  - 금융권 보안 요구사항 충족을 위한 접근 제어 전략
-  - IdP (Identity Provider) 통합 및 MFA 구성
-  - 역할 기반 접근 제어 (RBAC) 구성
-  - 감사 및 로깅 설정
-
-### 클러스터 설치 및 구성
+### 1단계: 클러스터 설치 및 구성
 - **[ROSA Demo Installation Guide](./rosa-demo-installation.md)**
   - STS (Security Token Service) 기반 클러스터 생성
   - ROSA CLI를 이용한 단계별 설치
@@ -27,6 +23,14 @@ sidebar_position: 6
   - 네트워크 및 IAM 역할 설정
   - 초기 클러스터 검증
   - 실습 환경 구성 및 테스트
+
+### 2단계: 보안 및 접근 제어
+- **[ROSA Security Compliance Console Access Control](./rosa-security-compliance.md)**
+  - Red Hat Hybrid Cloud Console 접근 제어 구성
+  - 금융권 보안 요구사항 충족을 위한 접근 제어 전략
+  - IdP (Identity Provider) 통합 및 MFA 구성
+  - 역할 기반 접근 제어 (RBAC) 구성
+  - 감사 및 로깅 설정
 
 ## 🎯 학습 목표
 
@@ -187,10 +191,10 @@ Primary Region (ROSA)
 
 ## 🔗 관련 카테고리
 
-- [Hybrid Infrastructure](/docs/hybrid-multicloud) - 하이브리드 환경 관리
-- [Security & Governance](/docs/security-compliance) - ROSA 보안 아키텍처
-- [Infrastructure Optimization](/docs/performance-networking) - 네트워킹 최적화
-- [Operations & Observability](/docs/observability-monitoring) - 클러스터 모니터링
+- [Hybrid Infrastructure](/docs/hybrid-infrastructure) - 하이브리드 환경 관리
+- [Security & Governance](/docs/security-governance) - ROSA 보안 아키텍처
+- [Infrastructure Optimization](/docs/infrastructure-optimization) - 네트워킹 최적화
+- [Operations & Observability](/docs/operations-observability) - 클러스터 모니터링
 
 ---
 

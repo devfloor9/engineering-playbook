@@ -122,6 +122,98 @@
   box-shadow: 0 0 0 2px rgba(9, 105, 218, 0.2);
 }
 
+/* Center search bar in navbar */
+.navbar__inner {
+  position: relative;
+  align-items: center;
+}
+
+/* Search container - move to center using absolute positioning */
+[class*="navbarSearchContainer"] {
+  position: absolute !important;
+  left: 50% !important;
+  top: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  margin: 0 !important;
+  z-index: 10;
+  display: flex !important;
+  align-items: center !important;
+  height: auto !important;
+}
+
+/* Style the search box */
+.navbar__search {
+  margin: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  height: 36px !important;
+}
+
+/* Search bar wrapper alignment */
+[class*="searchBar_"] {
+  display: flex !important;
+  align-items: center !important;
+}
+
+/* Style the search input */
+.navbar__search-input {
+  min-width: 320px !important;
+  width: 320px;
+  border-radius: 2rem !important;
+  padding: 0.5rem 1rem !important;
+  background: var(--ifm-color-emphasis-100) !important;
+  border: 1px solid var(--ifm-color-emphasis-300) !important;
+  transition: all 0.2s ease-in-out;
+  font-size: 0.9rem;
+}
+
+.navbar__search-input:focus {
+  min-width: 380px !important;
+  width: 380px;
+  background: var(--ifm-background-color) !important;
+  border-color: var(--ifm-color-primary) !important;
+  box-shadow: 0 0 0 3px rgba(9, 105, 218, 0.15);
+  outline: none;
+}
+
+.navbar__search-input::placeholder {
+  color: var(--ifm-color-emphasis-500);
+}
+
+/* Dark mode search styling */
+[data-theme='dark'] .navbar__search-input {
+  background: var(--ifm-color-emphasis-200) !important;
+  border-color: var(--ifm-color-emphasis-400) !important;
+  color: var(--ifm-font-color-base);
+}
+
+[data-theme='dark'] .navbar__search-input:focus {
+  background: var(--ifm-background-color) !important;
+  border-color: var(--ifm-color-primary) !important;
+}
+
+/* Responsive search bar */
+@media screen and (max-width: 996px) {
+  [class*="navbarSearchContainer"] {
+    position: static !important;
+    transform: none !important;
+    left: auto !important;
+    top: auto !important;
+    width: 100%;
+    margin: 0.5rem 0 !important;
+  }
+
+  .navbar__search-input {
+    min-width: 100% !important;
+    width: 100% !important;
+  }
+
+  .navbar__search-input:focus {
+    min-width: 100% !important;
+    width: 100% !important;
+  }
+}
+
 /* Tag-based filtering styles */
 .search-filter-tags {
   display: flex;
