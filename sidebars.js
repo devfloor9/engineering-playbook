@@ -11,19 +11,6 @@
 const sidebars = {
   docs: [
     'intro',
-    'contributing',
-    {
-      type: 'category',
-      label: 'Setup & Configuration',
-      collapsed: true,
-      link: {
-        type: 'doc',
-        id: 'setup/index',
-      },
-      items: [
-        'setup/algolia-search-setup',
-      ],
-    },
     {
       type: 'category',
       label: 'Infrastructure Optimization',
