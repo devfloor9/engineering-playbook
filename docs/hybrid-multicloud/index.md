@@ -1,11 +1,11 @@
 ---
-title: "Hybrid & Multi-Cloud"
-sidebar_label: "하이브리드 & 멀티클라우드"
+title: "Hybrid Infrastructure"
+sidebar_label: "하이브리드 인프라"
 description: "Amazon EKS를 활용한 하이브리드 클라우드 및 멀티 클라우드 환경 구축에 대한 심화 기술 문서"
 sidebar_position: 4
 ---
 
-# Hybrid & Multi-Cloud
+# Hybrid Infrastructure
 
 이 섹션에서는 Amazon EKS를 활용한 하이브리드 클라우드 및 멀티 클라우드 환경 구축에 대한 심화 기술 문서들을 다룹니다. 온프레미스 노드 연결, 클라우드 버스팅, 하이브리드 스토리지, DRA(Dynamic Resource Allocation) 등을 통해 유연한 인프라 구축이 가능합니다.
 
@@ -170,9 +170,9 @@ graph LR
 
 ## 🔗 관련 카테고리
 
-- [Security & Compliance](/docs/security-compliance) - 하이브리드 보안 요구사항
-- [Performance & Networking](/docs/performance-networking) - 하이브리드 네트워킹
-- [Observability & Monitoring](/docs/observability-monitoring) - 하이브리드 환경 모니터링
+- [Security & Governance](/docs/security-compliance) - 하이브리드 보안 요구사항
+- [Infrastructure Optimization](/docs/performance-networking) - 하이브리드 네트워킹
+- [Operations & Observability](/docs/observability-monitoring) - 하이브리드 환경 모니터링
 
 ---
 

@@ -7,17 +7,17 @@ import styles from './index.module.css';
 
 const FeatureList = [
   {
-    title: 'Performance & Networking',
+    title: 'Infrastructure Optimization',
     description: (
       <>
-        Optimize EKS DNS performance, configure Cilium ENI mode, and implement 
+        Optimize EKS DNS performance, configure Cilium ENI mode, and implement
         advanced networking strategies for high-performance Kubernetes clusters.
       </>
     ),
     link: '/docs/performance-networking',
   },
   {
-    title: 'Observability & Monitoring',
+    title: 'Operations & Observability',
     description: (
       <>
         Implement comprehensive monitoring solutions with Hubble network visibility,
@@ -27,7 +27,7 @@ const FeatureList = [
     link: '/docs/observability-monitoring',
   },
   {
-    title: 'GenAI & AI/ML',
+    title: 'Agentic AI Platform',
     description: (
       <>
         Build production-ready GenAI platforms, maximize GPU efficiency with MIG
@@ -37,7 +37,7 @@ const FeatureList = [
     link: '/docs/genai-aiml',
   },
   {
-    title: 'Hybrid & Multi-Cloud',
+    title: 'Hybrid Infrastructure',
     description: (
       <>
         Extend EKS beyond the cloud with hybrid nodes, implement cloud bursting
@@ -47,7 +47,7 @@ const FeatureList = [
     link: '/docs/hybrid-multicloud',
   },
   {
-    title: 'Security & Compliance',
+    title: 'Security & Governance',
     description: (
       <>
         Implement ROSA network security, compliance architectures, and security

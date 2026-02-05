@@ -1,11 +1,11 @@
 ---
-title: "Hybrid & Multi-Cloud"
-sidebar_label: "Hybrid & Multi-Cloud"
+title: "Hybrid Infrastructure"
+sidebar_label: "Hybrid Infrastructure"
 description: "Advanced technical documentation for building hybrid and multi-cloud environments using Amazon EKS"
 sidebar_position: 4
 ---
 
-# Hybrid & Multi-Cloud
+# Hybrid Infrastructure
 
 This section covers advanced technical documentation for building hybrid and multi-cloud environments using Amazon EKS. By leveraging on-premises node connections, cloud bursting, hybrid storage, and Dynamic Resource Allocation (DRA), you can build flexible infrastructure.
 
@@ -170,9 +170,9 @@ graph LR
 
 ## 🔗 Related Categories
 
-- [Security & Compliance](/docs/security-compliance) - Hybrid security requirements
-- [Performance & Networking](/docs/performance-networking) - Hybrid networking
-- [Observability & Monitoring](/docs/observability-monitoring) - Hybrid environment monitoring
+- [Security & Governance](/docs/security-compliance) - Hybrid security requirements
+- [Infrastructure Optimization](/docs/performance-networking) - Hybrid networking
+- [Operations & Observability](/docs/observability-monitoring) - Hybrid environment monitoring
 
 ---
 

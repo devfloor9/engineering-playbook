@@ -1,11 +1,11 @@
 ---
-title: "Security & Compliance"
-sidebar_label: "보안 & 컴플라이언스"
+title: "Security & Governance"
+sidebar_label: "보안 & 거버넌스"
 description: "Amazon EKS 환경에서의 보안 강화 및 컴플라이언스 준수에 대한 심화 기술 문서"
 sidebar_position: 5
 ---
 
-# Security & Compliance
+# Security & Governance
 
 이 섹션에서는 Amazon EKS 환경에서의 보안 강화 및 컴플라이언스 준수에 대한 심화 기술 문서들을 다룹니다. 네트워크 보안, 접근 제어, 데이터 보호, 감사 및 모니터링 등을 통해 금융권을 포함한 엄격한 규제 환경의 요구사항을 충족할 수 있습니다.
 
@@ -268,9 +268,9 @@ graph TB
 
 ## 🔗 관련 카테고리
 
-- [Hybrid & Multi-Cloud](/docs/hybrid-multicloud) - 하이브리드 환경 보안
-- [Observability & Monitoring](/docs/observability-monitoring) - 보안 모니터링
-- [Performance & Networking](/docs/performance-networking) - 네트워크 보안
+- [Hybrid Infrastructure](/docs/hybrid-multicloud) - 하이브리드 환경 보안
+- [Operations & Observability](/docs/observability-monitoring) - 보안 모니터링
+- [Infrastructure Optimization](/docs/performance-networking) - 네트워크 보안
 
 ---
 

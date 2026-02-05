@@ -1,11 +1,11 @@
 ---
-title: "Performance & Networking"
-sidebar_label: "성능 & 네트워킹"
+title: "Infrastructure Optimization"
+sidebar_label: "인프라 최적화"
 description: "Amazon EKS의 성능 최적화와 네트워킹 관련 심화 기술 문서"
 sidebar_position: 1
 ---
 
-# Performance & Networking
+# Infrastructure Optimization
 
 이 섹션에서는 Amazon EKS 클러스터의 성능 최적화와 네트워킹 관련 심화 기술 문서들을 다룹니다. DNS 성능 튜닝, 네트워크 성능 최적화, 비용 관리, 자동 스케일링 등 프로덕션 환경에서 필수적인 주제들을 다룹니다.
 
@@ -119,9 +119,9 @@ graph TB
 
 ## 🔗 관련 카테고리
 
-- [Observability & Monitoring](/docs/observability-monitoring) - 성능 메트릭 모니터링
-- [Security & Compliance](/docs/security-compliance) - 네트워크 보안 정책
-- [Hybrid & Multi-Cloud](/docs/hybrid-multicloud) - 하이브리드 환경 네트워킹
+- [Operations & Observability](/docs/observability-monitoring) - 성능 메트릭 모니터링
+- [Security & Governance](/docs/security-compliance) - 네트워크 보안 정책
+- [Hybrid Infrastructure](/docs/hybrid-multicloud) - 하이브리드 환경 네트워킹
 
 ---
 

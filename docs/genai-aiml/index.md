@@ -1,11 +1,11 @@
 ---
-title: "GenAI & AI/ML"
-sidebar_label: "생성형AI & AI/ML"
+title: "Agentic AI Platform"
+sidebar_label: "Agentic AI 플랫폼"
 description: "Amazon EKS에서 생성형 AI 및 AI/ML 워크로드 구축과 운영에 대한 심화 기술 문서"
 sidebar_position: 3
 ---
 
-# GenAI & AI/ML
+# Agentic AI Platform
 
 이 섹션에서는 Amazon EKS에서 생성형 AI 및 AI/ML 워크로드를 구축하고 운영하는 방법에 대한 심화 기술 문서들을 다룹니다. GPU 리소스 최적화, LiteLLM 통합, LangGraph 워크플로우 구현, Langfuse 모니터링 등을 통해 프로덕션급 GenAI 플랫폼을 구축할 수 있습니다.
 
@@ -171,9 +171,9 @@ graph TB
 
 ## 🔗 관련 카테고리
 
-- [Observability & Monitoring](/docs/observability-monitoring) - AI/ML 워크로드 모니터링
-- [Performance & Networking](/docs/performance-networking) - GPU 성능 최적화
-- [Hybrid & Multi-Cloud](/docs/hybrid-multicloud) - 하이브리드 환경의 AI 배포
+- [Operations & Observability](/docs/observability-monitoring) - AI/ML 워크로드 모니터링
+- [Infrastructure Optimization](/docs/performance-networking) - GPU 성능 최적화
+- [Hybrid Infrastructure](/docs/hybrid-multicloud) - 하이브리드 환경의 AI 배포
 
 ---
 

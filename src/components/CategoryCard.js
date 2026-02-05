@@ -5,27 +5,27 @@ import {translate} from '@docusaurus/Translate';
 const CategoryCard = ({category, title, description, icon, docCount, color}) => {
   const categoryInfo = {
     'performance-networking': {
-      title: 'Performance & Networking',
+      title: 'Infrastructure Optimization',
       description: 'EKS DNS optimization, Cilium ENI mode, network performance tuning',
       color: '#2e8555'
     },
     'observability-monitoring': {
-      title: 'Observability & Monitoring',
+      title: 'Operations & Observability',
       description: 'Hubble network visibility, AI/ML workload monitoring',
       color: '#25c2a0'
     },
     'genai-aiml': {
-      title: 'GenAI & AI/ML',
+      title: 'Agentic AI Platform',
       description: 'Production GenAI platforms, GPU efficiency, MIG strategies',
       color: '#1877f2'
     },
     'hybrid-multicloud': {
-      title: 'Hybrid & Multi-Cloud',
+      title: 'Hybrid Infrastructure',
       description: 'EKS hybrid nodes, cloud bursting architectures',
       color: '#f56565'
     },
     'security-compliance': {
-      title: 'Security & Compliance',
+      title: 'Security & Governance',
       description: 'ROSA network security, compliance architectures',
       color: '#ed8936'
     }

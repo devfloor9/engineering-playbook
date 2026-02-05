@@ -142,11 +142,11 @@ const getCategoryColor = (category) => {
 // 카테고리 한국어 이름 반환
 const getCategoryName = (category) => {
   const names = {
-    'performance-networking': '성능 & 네트워킹',
-    'observability-monitoring': '관찰가능성',
-    'genai-aiml': 'GenAI & AI/ML',
-    'hybrid-multicloud': '하이브리드 클라우드',
-    'security-compliance': '보안 & 컴플라이언스'
+    'performance-networking': 'Infrastructure Optimization',
+    'observability-monitoring': 'Operations & Observability',
+    'genai-aiml': 'Agentic AI Platform',
+    'hybrid-multicloud': 'Hybrid Infrastructure',
+    'security-compliance': 'Security & Governance'
   };
   return names[category] || category;
 };

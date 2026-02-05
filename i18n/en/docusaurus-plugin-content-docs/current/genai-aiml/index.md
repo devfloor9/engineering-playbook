@@ -1,11 +1,11 @@
 ---
-title: "GenAI & AI/ML"
-sidebar_label: "GenAI & AI/ML"
+title: "Agentic AI Platform"
+sidebar_label: "Agentic AI Platform"
 description: "Advanced technical documentation on building and operating generative AI and AI/ML workloads on Amazon EKS"
 sidebar_position: 3
 ---
 
-# GenAI & AI/ML
+# Agentic AI Platform
 
 This section covers advanced technical documentation on building and operating generative AI and AI/ML workloads on Amazon EKS. Through GPU resource optimization, LiteLLM integration, LangGraph workflow implementation, and Langfuse monitoring, you can build production-grade GenAI platforms.
 
@@ -147,9 +147,9 @@ graph TB
 
 ## 🔗 Related Categories
 
-- [Observability & Monitoring](/docs/observability-monitoring) - AI/ML workload monitoring
-- [Performance & Networking](/docs/performance-networking) - GPU performance optimization
-- [Hybrid & Multi-Cloud](/docs/hybrid-multicloud) - AI deployment in hybrid environments
+- [Operations & Observability](/docs/observability-monitoring) - AI/ML workload monitoring
+- [Infrastructure Optimization](/docs/performance-networking) - GPU performance optimization
+- [Hybrid Infrastructure](/docs/hybrid-multicloud) - AI deployment in hybrid environments
 
 ---
 

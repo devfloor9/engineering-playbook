@@ -187,10 +187,10 @@ Primary Region (ROSA)
 
 ## 🔗 Related Categories
 
-- [Hybrid & Multi-Cloud](/docs/hybrid-multicloud) - Hybrid environment management
-- [Security & Compliance](/docs/security-compliance) - ROSA security architecture
-- [Performance & Networking](/docs/performance-networking) - Networking optimization
-- [Observability & Monitoring](/docs/observability-monitoring) - Cluster monitoring
+- [Hybrid Infrastructure](/docs/hybrid-multicloud) - Hybrid environment management
+- [Security & Governance](/docs/security-compliance) - ROSA security architecture
+- [Infrastructure Optimization](/docs/performance-networking) - Networking optimization
+- [Operations & Observability](/docs/observability-monitoring) - Cluster monitoring
 
 ---
 

@@ -178,11 +178,11 @@ function getCategoryColor(category) {
 
 function getCategoryName(category) {
   const names = {
-    'performance-networking': 'Performance & Networking',
-    'observability-monitoring': 'Observability & Monitoring',
-    'genai-aiml': 'GenAI & AI/ML',
-    'hybrid-multicloud': 'Hybrid & Multi-Cloud',
-    'security-compliance': 'Security & Compliance'
+    'performance-networking': 'Infrastructure Optimization',
+    'observability-monitoring': 'Operations & Observability',
+    'genai-aiml': 'Agentic AI Platform',
+    'hybrid-multicloud': 'Hybrid Infrastructure',
+    'security-compliance': 'Security & Governance'
   };
   return names[category] || category;
 }
