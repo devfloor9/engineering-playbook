@@ -60,6 +60,7 @@ const sidebars = {
       items: [
         // Phase 1: 이해 및 설계
         'agentic-ai-platform/agentic-ai-challenges',
+        'agentic-ai-platform/agentic-ai-solutions-eks',
         'agentic-ai-platform/agentic-platform-architecture',
         // Phase 2: GPU 인프라 구성
         'agentic-ai-platform/gpu-resource-management',
