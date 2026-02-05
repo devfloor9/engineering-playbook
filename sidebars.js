@@ -11,6 +11,19 @@
 const sidebars = {
   docs: [
     'intro',
+    'contributing',
+    {
+      type: 'category',
+      label: 'Setup & Configuration',
+      collapsed: true,
+      link: {
+        type: 'doc',
+        id: 'setup/index',
+      },
+      items: [
+        'setup/algolia-search-setup',
+      ],
+    },
     {
       type: 'category',
       label: 'Performance & Networking',
@@ -51,6 +64,17 @@ const sidebars = {
       },
       items: [
         'genai-aiml/genai-platform',
+        'genai-aiml/agentic-ai-challenges',
+        'genai-aiml/agentic-platform-architecture',
+        'genai-aiml/gpu-resource-management',
+        'genai-aiml/inference-gateway-routing',
+        'genai-aiml/moe-model-serving',
+        'genai-aiml/nemo-framework',
+        'genai-aiml/agent-monitoring',
+        'genai-aiml/kagent-kubernetes-agents',
+        'genai-aiml/milvus-vector-database',
+        'genai-aiml/ragas-evaluation',
+        'genai-aiml/operations-troubleshooting',
       ],
     },
     {
