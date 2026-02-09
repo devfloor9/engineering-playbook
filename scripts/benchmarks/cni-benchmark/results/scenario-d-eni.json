@@ -1,0 +1,30 @@
+{
+  "scenario": "scenario-d-eni",
+  "timestamp": "2026-02-09T22:00:02Z",
+  "cluster": "yjeong-demo@cni-bench.ap-northeast-2.eksctl.io",
+  "network": {
+    "tcp_throughput_gbps": 12.41,
+    "udp_throughput_gbps": 10.00,
+    "udp_loss_percent": 20.42,
+    "mean_rtt_us": 4453
+  },
+  "http": {
+    "qps_1000": {
+      "actual_qps": 999.7,
+      "p50_ms": 4.29,
+      "p99_ms": 8.75
+    },
+    "qps_5000": {
+      "actual_qps": 3992.6,
+      "p99_ms": 23.01
+    },
+    "qps_max": {
+      "actual_qps": 4026.4,
+      "p99_ms": 26.67
+    }
+  },
+  "dns": {
+    "p50_ms": 2,
+    "p99_ms": 4
+  }
+}

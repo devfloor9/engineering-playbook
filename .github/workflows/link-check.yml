@@ -38,6 +38,79 @@ jobs:
           key: cache-lychee-${{ github.sha }}
           restore-keys: cache-lychee-
 
+      - name: Create lychee configuration
+        run: |
+          cat > .lychee.toml << 'EOF'
+          # Maximum number of concurrent network requests
+          max_concurrency = 10
+
+          # Request timeout in seconds
+          timeout = 30
+
+          # Number of retries for failed requests
+          max_retries = 3
+
+          # Delay between retries in seconds
+          retry_wait_time = 2
+
+          # Accept these HTTP status codes as valid
+          accept = [200, 301, 302]
+
+          # Check links with these schemes
+          scheme = ["https", "http"]
+
+          # Exclude these URLs from checking
+          exclude = [
+            # Examples and placeholders
+            'https?://example\\.com.*',
+            'https?://.*\\.example\\.com.*',
+            'http://localhost.*',
+            'https?://127\\.0\\.0\\.1.*',
+
+            # Common problematic domains (block automated requests)
+            'https?://.*linkedin\\.com.*',
+            'https?://.*facebook\\.com.*',
+            'https?://.*twitter\\.com.*',
+            'https?://.*x\\.com.*',
+
+            # Domains with intermittent SSL/connection issues in CI
+            'https?://netflixtechblog\\.com.*',
+            'https?://keda\\.sh/?$',
+
+            # Documentation placeholders
+            'https?://your-.*',
+            'https?://.*your-org.*',
+            'https?://.*yourdomain.*',
+            'https?://.*\\.local.*',
+
+            # Common CI/CD variables
+            'https?://\\$\\{.*\\}.*',
+            'https?://%.*%.*',
+          ]
+
+          # Exclude links with these patterns
+          exclude_path = [
+            '.git',
+            'node_modules',
+            'vendor',
+            '.github/workflows',
+            'SUMMARY.md',
+          ]
+
+          # Check anchors/fragments
+          include_fragments = true
+
+          # Follow redirects
+          max_redirects = 5
+
+          # User agent string
+          user_agent = "Mozilla/5.0 (compatible; LinkChecker/1.0; +https://github.com/lycheeverse/lychee)"
+
+          # HTTP headers to send with requests
+          [headers]
+          "Accept" = "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+          EOF
+
       - name: Run lychee link checker
         uses: lycheeverse/lychee-action@v2
         with:
@@ -64,73 +137,6 @@ jobs:
         env:
           # Add GitHub token for API rate limits
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Create lychee configuration
-        if: always()
-        run: |
-          cat > lychee.toml << 'EOF'
-          # Maximum number of concurrent network requests
-          max_concurrency = 10
-
-          # Request timeout in seconds
-          timeout = 30
-
-          # Number of retries for failed requests
-          max_retries = 3
-
-          # Delay between retries in seconds
-          retry_wait_time = 2
-
-          # Accept invalid SSL certificates (use with caution)
-          accept_invalid_certs = false
-
-          # Check links with these schemes
-          scheme = ["https", "http"]
-
-          # Exclude these URLs from checking
-          exclude = [
-            # Examples and placeholders
-            'https?://example\\.com.*',
-            'https?://.*\\.example\\.com.*',
-            'http://localhost.*',
-            'https?://127\\.0\\.0\\.1.*',
-
-            # Common problematic domains
-            'https?://.*linkedin\\.com.*',  # Often blocks automated requests
-            'https?://.*facebook\\.com.*',  # Often blocks automated requests
-            'https?://.*twitter\\.com.*',   # Rate limits
-            'https?://.*x\\.com.*',         # Rate limits
-
-            # Documentation placeholders
-            'https?://your-.*',
-            'https?://.*\\.local.*',
-
-            # Common CI/CD variables
-            'https?://\\$\\{.*\\}.*',
-            'https?://%.*%.*',
-          ]
-
-          # Exclude links with these patterns
-          exclude_path = [
-            '.git',
-            'node_modules',
-            'vendor',
-            '.github/workflows',
-          ]
-
-          # Check anchors/fragments
-          include_fragments = true
-
-          # Follow redirects
-          max_redirects = 5
-
-          # User agent string
-          user_agent = "Mozilla/5.0 (compatible; LinkChecker/1.0; +https://github.com/lycheeverse/lychee)"
-
-          # HTTP headers to send with requests
-          [headers]
-          "Accept" = "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
-          EOF
 
       - name: Upload link check report
         if: always()

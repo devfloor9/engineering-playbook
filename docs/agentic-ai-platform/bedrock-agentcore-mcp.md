@@ -216,7 +216,7 @@ AWS는 공식 MCP 서버를 오픈소스로 제공합니다 ([github.com/awslabs
 
 ## 관련 문서
 
-- [Agentic AI 플랫폼 아키텍처](./agentic-platform-architecture)
-- [Kagent Kubernetes 에이전트](./kagent-kubernetes-agents)
-- [에이전트 모니터링](./agent-monitoring)
-- [추론 게이트웨이 라우팅](./inference-gateway-routing)
+- [Agentic AI 플랫폼 아키텍처](./agentic-platform-architecture.md)
+- [Kagent Kubernetes 에이전트](./kagent-kubernetes-agents.md)
+- [에이전트 모니터링](./agent-monitoring.md)
+- [추론 게이트웨이 라우팅](./inference-gateway-routing.md)

@@ -1116,7 +1116,7 @@ Agentic AI Platform architecture follows these core principles:
 
 - [Kagent GitHub Repository](https://github.com/kagent-dev/kagent)
 - [Kgateway Documentation](https://kgateway.dev/)
-- [Milvus Documentation](https://milvus.io/docs)
+- [Milvus Documentation](https://milvus.io/docs/overview.md)
 - [LangFuse Documentation](https://langfuse.com/docs)
 - [Kubernetes Gateway API](https://gateway-api.sigs.k8s.io/)
 - [Karpenter Documentation](https://karpenter.sh/docs/)

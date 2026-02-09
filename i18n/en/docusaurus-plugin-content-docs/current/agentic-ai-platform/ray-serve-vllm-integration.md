@@ -555,6 +555,6 @@ Key metrics:
 
 - [Ray Serve Official Documentation](https://docs.ray.io/en/latest/serve/index.html)
 - [KubeRay GitHub](https://github.com/ray-project/kuberay)
-- [vLLM Ray Serve Integration Guide](https://docs.vllm.ai/en/latest/serving/deploying_with_triton.html)
+- [vLLM Documentation](https://docs.vllm.ai/en/latest/)
 - [Scalable Model Inference on Amazon EKS](https://github.com/aws-solutions-library-samples/guidance-for-scalable-model-inference-and-agentic-ai-on-amazon-eks)
 - [GenAI on EKS Starter Kit](https://github.com/aws-samples/sample-genai-on-eks-starter-kit)

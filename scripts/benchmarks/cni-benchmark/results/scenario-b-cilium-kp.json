@@ -1,0 +1,30 @@
+{
+  "scenario": "scenario-b-cilium-kp",
+  "timestamp": "2026-02-09T21:41:48Z",
+  "cluster": "yjeong-demo@cni-bench.ap-northeast-2.eksctl.io",
+  "network": {
+    "tcp_throughput_gbps": 12.34,
+    "udp_throughput_gbps": 7.92,
+    "udp_loss_percent": 0.94,
+    "mean_rtt_us": 4955
+  },
+  "http": {
+    "qps_1000": {
+      "actual_qps": 999.6,
+      "p50_ms": 4.36,
+      "p99_ms": 9.87
+    },
+    "qps_5000": {
+      "actual_qps": 4012.0,
+      "p99_ms": 21.60
+    },
+    "qps_max": {
+      "actual_qps": 4044.7,
+      "p99_ms": 25.25
+    }
+  },
+  "dns": {
+    "p50_ms": 2,
+    "p99_ms": 4
+  }
+}

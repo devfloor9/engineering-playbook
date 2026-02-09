@@ -1,0 +1,122 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 600" width="900" height="600">
+  <defs>
+    <style>
+      .title { font: 600 24px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; fill: #1e293b; }
+      .subtitle { font: 400 14px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; fill: #64748b; }
+      .card-title { font: 600 16px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; fill: #334155; }
+      .card-metric { font: 700 28px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+      .card-label { font: 500 13px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; fill: #475569; }
+      .card-detail { font: 400 12px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; fill: #64748b; }
+    </style>
+  </defs>
+
+  <!-- Background -->
+  <rect width="900" height="600" fill="#ffffff"/>
+
+  <!-- Header -->
+  <text x="450" y="40" class="title" text-anchor="middle">Key Findings Summary</text>
+  <text x="450" y="62" class="subtitle" text-anchor="middle">VPC CNI vs Cilium CNI Benchmark Key Insights</text>
+
+  <!-- Card 1: TCP Throughput -->
+  <g>
+    <rect x="30" y="90" width="270" height="180" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1" rx="8"/>
+    <rect x="30" y="90" width="4" height="180" fill="#64748b" rx="2"/>
+    <text x="50" y="120" class="card-title">TCP Throughput</text>
+    <text x="50" y="160" class="card-metric" fill="#64748b">~12.4 Gbps</text>
+    <text x="50" y="185" class="card-label">Identical across all scenarios</text>
+    <text x="50" y="220" class="card-detail">Saturated at NIC bandwidth (12.5Gbps)</text>
+    <text x="50" y="240" class="card-detail">→ CNI irrelevant</text>
+  </g>
+
+  <!-- Card 2: UDP Packet Loss -->
+  <g>
+    <rect x="315" y="90" width="270" height="180" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1" rx="8"/>
+    <rect x="315" y="90" width="4" height="90" fill="#dc2626" rx="2"/>
+    <rect x="315" y="180" width="4" height="90" fill="#10b981" rx="2"/>
+    <text x="335" y="120" class="card-title">UDP Packet Loss</text>
+    <text x="335" y="155" class="card-metric" fill="#dc2626">20.4%</text>
+    <text x="335" y="173" class="card-label">VPC CNI / ENI baseline</text>
+    <text x="335" y="208" class="card-metric" fill="#10b981">0.03%</text>
+    <text x="335" y="226" class="card-label">ENI+Tuning</text>
+    <text x="335" y="255" class="card-detail">Bandwidth Manager is</text>
+    <text x="335" y="270" class="card-detail">the key differentiator</text>
+  </g>
+
+  <!-- Card 3: RTT Latency -->
+  <g>
+    <rect x="600" y="90" width="270" height="180" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1" rx="8"/>
+    <rect x="600" y="90" width="4" height="180" fill="#3b82f6" rx="2"/>
+    <text x="620" y="120" class="card-title">RTT Latency</text>
+    <text x="620" y="155" class="card-label" fill="#64748b">VPC CNI</text>
+    <text x="620" y="180" class="card-metric" fill="#64748b">4,894µs</text>
+    <line x1="680" y1="192" x2="740" y2="192" stroke="#3b82f6" stroke-width="2" marker-end="url(#arrowblue)"/>
+    <rect x="750" y="167" width="60" height="24" fill="#3b82f6" rx="4"/>
+    <text x="780" y="185" class="card-label" fill="white" text-anchor="middle">-36%</text>
+    <text x="620" y="215" class="card-label" fill="#10b981">ENI+Tuning</text>
+    <text x="620" y="240" class="card-metric" fill="#10b981">3,135µs</text>
+    <text x="620" y="265" class="card-detail">Socket LB + BPF Host Routing</text>
+  </g>
+
+  <!-- Card 4: kube-proxy removal effect -->
+  <g>
+    <rect x="30" y="290" width="420" height="280" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1" rx="8"/>
+    <rect x="30" y="290" width="4" height="280" fill="#8b5cf6" rx="2"/>
+    <text x="50" y="320" class="card-title">kube-proxy Removal Effect</text>
+
+    <!-- Small chart showing O(n) vs O(1) -->
+    <line x1="70" y1="440" x2="400" y2="440" stroke="#cbd5e1" stroke-width="1"/>
+    <line x1="70" y1="360" x2="70" y2="440" stroke="#cbd5e1" stroke-width="1"/>
+
+    <!-- iptables O(n) line -->
+    <path d="M 100 430 L 180 400 L 260 360 L 340 310" stroke="#ef4444" stroke-width="2.5" fill="none"/>
+    <text x="350" y="310" class="card-label" fill="#ef4444">O(n) iptables</text>
+
+    <!-- eBPF O(1) line -->
+    <path d="M 100 380 L 340 380" stroke="#10b981" stroke-width="2.5" fill="none"/>
+    <text x="350" y="385" class="card-label" fill="#10b981">O(1) eBPF</text>
+
+    <text x="70" y="470" class="card-label">Small scale (&lt;100 Svc)</text>
+    <text x="70" y="490" class="card-detail">Negligible difference</text>
+
+    <text x="250" y="470" class="card-label">Large scale (500+ Svc)</text>
+    <text x="250" y="490" class="card-detail">Performance degrades as iptables rules increase</text>
+
+    <text x="50" y="540" class="card-detail">iptables: Latency increases proportional to service count</text>
+    <text x="50" y="558" class="card-detail">eBPF: Consistent performance regardless of service count</text>
+  </g>
+
+  <!-- Card 5: ENI vs Overlay -->
+  <g>
+    <rect x="465" y="290" width="405" height="280" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1" rx="8"/>
+    <rect x="465" y="290" width="4" height="280" fill="#059669" rx="2"/>
+    <text x="485" y="320" class="card-title">ENI vs Overlay</text>
+
+    <!-- Overlay column -->
+    <rect x="495" y="350" width="170" height="140" fill="#fef3c7" stroke="#f59e0b" stroke-width="1" rx="6"/>
+    <text x="580" y="375" class="card-label" fill="#92400e" text-anchor="middle">Overlay (VXLAN)</text>
+    <text x="505" y="405" class="card-detail" fill="#78350f">RTT +12%</text>
+    <text x="505" y="425" class="card-detail" fill="#78350f">UDP Loss 0.7%</text>
+    <text x="505" y="445" class="card-detail" fill="#78350f">IP saving</text>
+    <circle cx="580" cy="470" r="6" fill="#f59e0b"/>
+    <text x="590" y="475" class="card-detail" fill="#78350f">IP-constrained</text>
+
+    <!-- ENI column -->
+    <rect x="685" y="350" width="170" height="140" fill="#d1fae5" stroke="#10b981" stroke-width="1" rx="6"/>
+    <text x="770" y="375" class="card-label" fill="#064e3b" text-anchor="middle">ENI (Native)</text>
+    <text x="695" y="405" class="card-detail" fill="#065f46">RTT -12%</text>
+    <text x="695" y="425" class="card-detail" fill="#065f46">VPC integrated</text>
+    <text x="695" y="445" class="card-detail" fill="#065f46">Higher IP use</text>
+    <circle cx="770" cy="470" r="6" fill="#10b981"/>
+    <text x="780" y="475" class="card-detail" fill="#065f46">IP available</text>
+
+    <text x="485" y="530" class="card-detail">Use ENI if IP available (performance priority)</text>
+    <text x="485" y="548" class="card-detail">Use Overlay if IP constrained (efficiency priority)</text>
+  </g>
+
+  <!-- Arrow marker definition -->
+  <defs>
+    <marker id="arrowblue" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#3b82f6"/>
+    </marker>
+  </defs>
+</svg>

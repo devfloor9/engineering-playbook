@@ -3024,4 +3024,4 @@ kubectl apply -f gpu-nodepools.yaml
 **Next Steps:**
 - Review [Technical Challenges document](./agentic-ai-challenges.md) for open-source alternatives
 - Explore [AWS EKS Workshop](https://eksworkshop.com/) for hands-on labs
-- Join [Cloud Native Community Day](https://www.cncf.io/community-day/) for latest trends
+- Join [Cloud Native Community Groups](https://community.cncf.io/) for latest trends
