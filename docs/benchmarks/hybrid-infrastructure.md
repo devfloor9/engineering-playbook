@@ -5,7 +5,7 @@ description: 하이브리드 클라우드 인프라 네트워크 및 스토리�
 tags: [benchmark, hybrid, network, storage, sriov]
 last_update:
   date: 2026-02-09
-  author: engineering-playbook
+  author: devfloor9
 ---
 
 # 하이브리드 인프라 벤치마크

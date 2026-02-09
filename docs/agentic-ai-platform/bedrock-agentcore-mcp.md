@@ -6,7 +6,7 @@ sidebar_position: 13
 tags: [bedrock, agentcore, mcp, ai-agent, eks]
 last_update:
   date: 2025-02-09
-  author: engineering-playbook
+  author: devfloor9
 ---
 
 # Bedrock AgentCore와 MCP 통합
