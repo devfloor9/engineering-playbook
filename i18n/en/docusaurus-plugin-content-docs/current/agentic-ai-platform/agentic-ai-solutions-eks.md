@@ -2755,6 +2755,109 @@ With this integrated architecture:
 
 ## Conclusion: AI Infrastructure Automation with Kubernetes + EKS Auto Mode
 
+The four key challenges of Agentic AI Platform construction can be effectively solved through **organic integration of cloud infrastructure automation and AI platforms**. In particular, **EKS Auto Mode** completes the **final puzzle of full automation** by automatically managing core components including Karpenter.
+
+```mermaid
+graph TB
+    subgraph "Problem Recognition"
+        P["Agentic AI Platform<br/>4 Key Challenges"]
+    end
+
+    subgraph "Solution Framework"
+        K8S["Kubernetes<br/>Container Orchestration"]
+        AUTO["EKS Auto Mode<br/>Fully Managed + Karpenter Automation"]
+        AWS["AWS Infrastructure<br/>GPU, Network, Storage"]
+    end
+
+    subgraph "Achieved Goals"
+        G1["✅ Fully Automated GPU Management"]
+        G2["✅ 50-70% Cost Reduction"]
+        G3["✅ 50% Faster Provisioning"]
+        G4["✅ 80% Reduced Operational Burden"]
+    end
+
+    P --> K8S
+    K8S --> AUTO
+    AUTO --> AWS
+    AWS --> G1 & G2 & G3 & G4
+
+    style P fill:#ff6b6b
+    style K8S fill:#326ce5
+    style AUTO fill:#ff9900
+    style G1 fill:#4ecdc4
+    style G2 fill:#4ecdc4
+    style G3 fill:#4ecdc4
+    style G4 fill:#4ecdc4
+```
+
+### Key Messages
+
+1. **Kubernetes is the Essential Foundation for AI Infrastructure**: Effectively manages complex AI workloads through declarative resource management, auto-scaling, and the Operator pattern
+2. **EKS Auto Mode Realizes Full Automation**: Dramatically reduces operational burden through automatic management of core components like Karpenter, VPC CNI, EBS CSI Driver
+3. **Karpenter is the Core of GPU Infrastructure Automation**: Optimizes cost and performance through Just-in-Time provisioning, Spot instances, and Consolidation
+4. **AWS Infrastructure Integration Maximizes Synergy**: Tight integration with EFA networking, diverse GPU instances, and FSx storage
+
+### EKS Auto Mode: Recommended Starting Point
+
+We recommend starting with **EKS Auto Mode** when building a new Agentic AI platform.
+
+| Benefit | Description |
+| --- | --- |
+| **Immediate Start** | Deploy GPU workloads immediately after cluster creation without Karpenter installation/configuration |
+| **Automatic Upgrades** | Automatic updates for core components like Karpenter, CNI, CSI |
+| **Automated Security Patching** | Automatic application of security vulnerability patches |
+| **Extensible with Custom Configuration** | Add custom settings like GPU NodePool, EFA NodeClass when needed |
+
+### Final Summary of Solutions by Challenge
+
+| Challenge | Kubernetes-Based | EKS Auto Mode + Karpenter | Expected Effect |
+| --- | --- | --- | --- |
+| **GPU Monitoring** | DCGM + Prometheus | NodePool-based integrated management | 40% improved resource utilization |
+| **Dynamic Scaling** | HPA + KEDA | Just-in-Time provisioning (auto-configured) | 50% reduced provisioning time |
+| **Cost Control** | Namespace Quota | Spot + Consolidation (auto-enabled) | 50-70% cost reduction |
+| **FM Fine-tuning** | Kubeflow Operator | Training NodePool + EFA | 30% improved training efficiency |
+
+### Key Recommendations
+
+1. **Start with EKS Auto Mode**: Create new clusters with Auto Mode to leverage automatic Karpenter configuration
+2. **Define Custom GPU NodePools**: Add GPU NodePools tailored to workload characteristics (separate inference/training/experimentation)
+3. **Actively Use Spot Instances**: Run 70%+ of inference workloads on Spot
+4. **Enable Consolidation by Default**: Leverage Consolidation automatically enabled in EKS Auto Mode
+5. **Integrate with KEDA**: Link metric-based Pod scaling with Karpenter node provisioning
+6. **Add EFA NodeClass**: Configure high-performance networking for distributed training workloads
+
+---
+
+## References
+
+### Kubernetes and Infrastructure
+- [Kubernetes Official Documentation](https://kubernetes.io/docs/)
+- [Karpenter Official Documentation](https://karpenter.sh/docs/)
+- [Amazon EKS Best Practices Guide](https://aws.github.io/aws-eks-best-practices/)
+- [NVIDIA GPU Operator Documentation](https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/overview.html)
+- [KEDA - Kubernetes Event-driven Autoscaling](https://keda.sh/)
+
+### Model Serving and Inference
+- [vLLM Documentation](https://docs.vllm.ai/)
+- [llm-d Project](https://github.com/llm-d/llm-d)
+- [Kgateway Documentation](https://kgateway.io/docs/)
+- [LiteLLM Documentation](https://docs.litellm.ai/)
+
+### LLM Observability
+- [LangFuse Documentation](https://langfuse.com/docs)
+- [LangSmith Documentation](https://docs.smith.langchain.com/)
+
+### Agent Frameworks and Training
+- [KAgent - Kubernetes Agent Framework](https://github.com/kagent-dev/kagent)
+- [NVIDIA NeMo Framework](https://docs.nvidia.com/nemo-framework/user-guide/latest/overview.html)
+- [Kubeflow Documentation](https://www.kubeflow.org/docs/)
+
+### AWS Services
+- [Amazon EKS Documentation](https://docs.aws.amazon.com/eks/)
+- [EKS Auto Mode](https://docs.aws.amazon.com/eks/latest/userguide/automode.html)
+- [AWS Elastic Fabric Adapter (EFA)](https://aws.amazon.com/hpc/efa/)
+- [Amazon FSx for Lustre](https://aws.amazon.com/fsx/lustre/)
+
 ### The EKS Advantage for Agentic AI
 
 **Why EKS is the Optimal Platform:**
