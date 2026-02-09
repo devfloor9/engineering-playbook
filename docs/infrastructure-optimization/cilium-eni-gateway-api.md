@@ -4,14 +4,16 @@ sidebar_label: "Cilium ENI & Gateway API"
 description: "Amazon EKS에서 Cilium ENI 모드와 Gateway API를 결합하여 고성능 eBPF 기반 네이티브 네트워킹을 구현하는 완전 가이드"
 tags: [eks, cilium, eni, gateway-api, networking, ebpf]
 category: "performance-networking"
-date: 2025-01-07
+date: 2025-02-09
 authors: [devfloor9]
 sidebar_position: 3
 ---
 
 # Cilium ENI 모드와 Gateway API 구성 가이드
 
-> 📅 **작성일**: 2025-01-07 | ⏱️ **읽는 시간**: 약 8분
+> **📌 기준 버전**: Cilium v1.19.0, Gateway API v1.2.1, Amazon EKS 1.32
+
+> 📅 **작성일**: 2025-02-09 | ⏱️ **읽는 시간**: 약 8분
 
 
 이 가이드는 Amazon EKS 환경에서 Cilium ENI 모드와 Gateway API를 구성하기 위한 전반적인 개요를 제공합니다. 세부적인 구현 방법은 각 섹션의 공식 문서 링크를 참조하세요.
@@ -43,6 +45,13 @@ Gateway API는 Kubernetes Ingress를 대체하는 차세대 트래픽 관리 표
 - 표현력 있는 라우팅 규칙
 - 확장 가능한 설계
 - 멀티 프로토콜 지원 (HTTP, HTTPS, TCP, gRPC)
+
+:::info Gateway API GA 현황
+Gateway API v1.0이 2023년 10월 GA되었으며, 현재 v1.2.1이 안정 버전입니다.
+- **GA 리소스**: GatewayClass, Gateway, HTTPRoute
+- **Beta**: ReferenceGrant, BackendTLSPolicy (v1.2+)
+- **주요 구현체**: Cilium, kGateway v2.1 (CNCF Sandbox), Istio, NGINX Gateway Fabric, Kong
+:::
 
 ### 1.3 아키텍처 오버뷰
 
@@ -91,6 +100,10 @@ Cilium AWS ENI 문서 참조
 Cilium DaemonSet은 hostNetwork: true로 실행되어 CNI 없이도 설치 가능합니다. 테인트를 사용하면 Cilium이 준비되기 전까지 다른 파드가 스케줄링되지 않습니다.
 :::
 
+:::tip EKS Auto Mode와 Cilium
+EKS Auto Mode는 자체 VPC CNI를 자동 관리합니다. Cilium ENI 모드를 사용하려면 Self-managed 노드가 필요합니다. Auto Mode 클러스터에서 Cilium의 고급 기능(Hubble, Network Policy 강화)이 필요한 경우, Cilium을 오버레이 모드로 추가 배포할 수 있습니다.
+:::
+
 ### 2.2 VPC 및 서브넷 요구사항
 
 ### 2.3 IAM 권한 요구사항
@@ -129,7 +142,7 @@ Cilium 설치 사전 요구사항 참조
    └─→ helm repo add cilium https://helm.cilium.io/
 
 4. Cilium Helm 설치 (hostNetwork로 실행되어 CNI 없이 설치 가능)
-   └─→ helm install cilium cilium/cilium --values values.yaml
+   └─→ helm install cilium cilium/cilium --version 1.19.0 --values values.yaml
 
 5. CoreDNS 설치 (Cilium 설치 후)
    └─→ kubectl apply -f coredns.yaml 또는 EKS 애드온으로 설치
@@ -150,7 +163,7 @@ Cilium 설치 사전 요구사항 참조
    └─→ kubectl -n kube-system delete daemonset aws-node
 
 3. Cilium 설치
-   └─→ helm install cilium cilium/cilium --values values.yaml
+   └─→ helm install cilium cilium/cilium --version 1.19.0 --values values.yaml
 
 4. 기존 파드 재시작 (네트워킹 복구)
    └─→ kubectl rollout restart deployment -n <namespace>
@@ -330,9 +343,22 @@ Gateway 리소스를 생성하면 Cilium이 자동으로 LoadBalancer 타입 Ser
 
 ---
 
-## 6. 운영 고려사항
+## 6. 고급 기능
 
-### 6.1 관측성 도구
+### BGP Control Plane v2
+
+Cilium 1.16+부터 BGP Control Plane v2가 도입되어 온프레미스 및 하이브리드 환경에서의 네트워킹이 크게 개선되었습니다:
+
+- **CiliumBGPPeeringPolicy** CRD로 BGP 피어링 설정 관리
+- **LoadBalancer IP 광고**: 외부 로드밸런서 없이 서비스 IP를 직접 광고
+- **Multi-hop BGP**: 복잡한 네트워크 토폴로지 지원
+- **하이브리드 환경**: EKS Hybrid Nodes와 온프레미스 네트워크 간 직접 라우팅
+
+---
+
+## 7. 운영 고려사항
+
+### 7.1 관측성 도구
 
 **Hubble:**
 
@@ -351,7 +377,7 @@ Gateway 리소스를 생성하면 Cilium이 자동으로 LoadBalancer 타입 Ser
 - Cilium 공식 대시보드 제공
 - Gateway API 트래픽 모니터링
 
-### 6.2 Source IP 보존
+### 7.2 Source IP 보존
 
 Cilium Gateway API는 `externalTrafficPolicy: Local` 설정 없이도 Source IP를 보존합니다:
 
@@ -368,7 +394,7 @@ X-Envoy-External-Address: <client-ip>
 TLS Passthrough 사용 시에는 TCP 프록시로 동작하므로 Source IP가 Envoy IP로 보입니다.
 :::
 
-### 6.3 주요 검증 명령어
+### 7.3 주요 검증 명령어
 
 ```bash
 # Cilium 상태 확인
@@ -390,23 +416,23 @@ hubble observe --namespace default
 kubectl get ciliumnodes -o wide
 ```
 
-### 6.4 일반적인 문제 및 해결 방향
+### 7.4 일반적인 문제 및 해결 방향
 
 📚 **상세 문제해결 가이드**: Cilium 트러블슈팅 문서
 
 ---
 
-## 7. 공식 문서 링크 모음
+## 8. 공식 문서 링크 모음
 
-### 7.1 Cilium 문서
+### 8.1 Cilium 문서
 
-### 7.2 Kubernetes Gateway API 문서
+### 8.2 Kubernetes Gateway API 문서
 
-### 7.3 AWS 문서
+### 8.3 AWS 문서
 
 ---
 
-## 다음 단계
+## 9. 다음 단계
 
 1. 공식 문서를 참조하여 환경에 맞는 세부 설정 적용
 2. Hubble을 활용한 네트워크 모니터링 구성

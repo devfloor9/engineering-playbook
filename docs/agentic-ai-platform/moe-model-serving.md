@@ -4,14 +4,16 @@ sidebar_label: "MoE 모델 서빙"
 description: "Mixture of Experts 모델의 EKS 기반 배포 및 최적화 전략"
 tags: [eks, moe, vllm, tgi, model-serving, gpu, mixtral]
 category: "genai-aiml"
-date: 2025-02-05
+date: 2025-02-09
 authors: [devfloor9]
 sidebar_position: 7
 ---
 
 # MoE 모델 서빙 가이드
 
-> 📅 **작성일**: 2025-02-05 | ⏱️ **읽는 시간**: 약 12분
+> **📌 현재 버전**: vLLM v0.15.1 (2025-02-04), TGI 2.3.0. 본 문서의 배포 예시는 최신 버전 기준입니다.
+
+> 📅 **작성일**: 2025-02-09 | ⏱️ **읽는 시간**: 약 12분
 
 ## 개요
 
@@ -126,7 +128,9 @@ MoE 모델은 활성화되는 파라미터는 적지만, 전체 Expert를 메모
 | --- | --- | --- | --- | --- | --- |
 | Mixtral 8x7B | 46.7B | 12.9B | ~94GB | ~47GB | 2x A100 80GB |
 | Mixtral 8x22B | 141B | 39B | ~282GB | ~141GB | 4x H100 80GB |
+| DeepSeek-V3 | 671B | 37B | ~1.3TB | ~671GB | 8x H100 80GB |
 | DeepSeek-MoE 16B | 16.4B | 2.8B | ~33GB | ~17GB | 1x A100 40GB |
+| Qwen2.5-MoE-A14B | ~50B | 14B | ~100GB | ~50GB | 2x A100 80GB |
 | Qwen1.5-MoE-A2.7B | 14.3B | 2.7B | ~29GB | ~15GB | 1x A100 40GB |
 | DBRX | 132B | 36B | ~264GB | ~132GB | 4x H100 80GB |
 
@@ -248,7 +252,7 @@ spec:
           effect: NoSchedule
       containers:
         - name: vllm
-          image: vllm/vllm-openai:v0.6.0
+          image: vllm/vllm-openai:v0.15.1
           ports:
             - name: http
               containerPort: 8000
@@ -345,7 +349,7 @@ spec:
           effect: NoSchedule
       containers:
         - name: vllm
-          image: vllm/vllm-openai:v0.6.0
+          image: vllm/vllm-openai:v0.15.1
           ports:
             - name: http
               containerPort: 8000

@@ -4,18 +4,30 @@ sidebar_label: "Karpenter 오토스케일링"
 description: "Amazon EKS에서 Karpenter와 고해상도 메트릭으로 10초 미만의 오토스케일링을 달성하는 방법. CloudWatch와 Prometheus 아키텍처 비교, HPA 구성, 프로덕션 패턴 포함"
 tags: [eks, karpenter, autoscaling, performance, cloudwatch, prometheus, spot-instances]
 category: "performance-networking"
-date: 2025-06-30
+date: 2025-02-09
+last_update:
+  date: 2025-02-09
+  author: devfloor9
 authors: [devfloor9]
 sidebar_position: 4
 ---
 
 # Karpenter를 활용한 초고속 오토스케일링
 
-> 📅 **작성일**: 2025-06-30 | ⏱️ **읽는 시간**: 약 10분
+> 📅 **작성일**: 2025-02-09 | ⏱️ **읽는 시간**: 약 10분
 
 ## 개요
 
 현대 클라우드 네이티브 애플리케이션에서 10초와 3분의 차이는 수천 개의 실패한 요청, 저하된 사용자 경험, 수익 손실을 의미할 수 있습니다. 이 글에서는 Karpenter의 혁신적인 노드 프로비저닝 접근 방식과 전략적으로 구현된 고해상도 메트릭을 결합하여 Amazon EKS에서 일관된 10초 미만의 오토스케일링을 달성하는 방법을 제시합니다.
+
+:::warning Karpenter v1.0+ 마이그레이션 필수
+이 문서는 Karpenter v1.x (GA) 기준으로 작성되었습니다. v0.x에서 마이그레이션하는 경우:
+- v0.33+ → v1.0 순차 업그레이드 필요
+- `Provisioner` → `NodePool`, `AWSNodeTemplate` → `EC2NodeClass` (v1beta1에서 이미 변경됨)
+- v1.0부터 `v1` API 그룹 사용 (`karpenter.sh/v1`)
+- **호환성**: K8s 1.31 → Karpenter ≥1.0.5 | K8s 1.32 → ≥1.2 | K8s 1.33 → ≥1.5
+- [공식 마이그레이션 가이드](https://karpenter.sh/docs/upgrading/v1-migration/)
+:::
 
 글로벌 규모의 EKS 환경(3개 리전, 28개 클러스터, 15,000개 이상의 Pod)에서 스케일링 지연 시간을 180초 이상에서 10초 미만으로 단축한 프로덕션 검증 아키텍처를 탐구합니다.
 
@@ -60,7 +72,7 @@ graph LR
 
 ## Karpenter 혁명: Direct-to-Metal 프로비저닝
 
-Karpenter는 Auto Scaling Group(ASG) 추상화 레이어를 제거하고 대기 중인 Pod 요구 사항을 기반으로 EC2 인스턴스를 직접 프로비저닝합니다:
+Karpenter는 Auto Scaling Group(ASG) 추상화 레이어를 제거하고 대기 중인 Pod 요구 사항을 기반으로 EC2 인스턴스를 직접 프로비저닝합니다. Karpenter v1.x는 **Drift Detection** 기능을 통해 NodePool 스펙 변경 시 기존 노드를 자동으로 교체합니다. AMI 업데이트, 보안 패치 적용 등이 자동화됩니다.
 
 ```mermaid
 graph TB
@@ -351,71 +363,80 @@ graph LR
 
 ```
 
-### Karpenter Provisioner YAML
+### Karpenter NodePool YAML
 
 ```yaml
-apiVersion: karpenter.sh/v1alpha5
-kind: Provisioner
+apiVersion: karpenter.sh/v1
+kind: NodePool
 metadata:
   name: fast-scaling
 spec:
   # 속도 최적화 구성
-  ttlSecondsAfterEmpty: 30
-  ttlSecondsUntilExpired: 604800  # 7일
+  disruption:
+    consolidationPolicy: WhenEmptyOrUnderutilized
+    consolidateAfter: 30s
+    budgets:
+    - nodes: "10%"
 
   # 속도를 위한 최대 유연성
-  requirements:
-    - key: karpenter.sh/capacity-type
-      operator: In
-      values: ["spot", "on-demand"]
-    - key: kubernetes.io/arch
-      operator: In
-      values: ["amd64"]
-    - key: node.kubernetes.io/instance-type
-      operator: In
-      values:
-        # 컴퓨팅 최적화 - 기본 선택
-        - c6i.xlarge
-        - c6i.2xlarge
-        - c6i.4xlarge
-        - c6i.8xlarge
-        - c7i.xlarge
-        - c7i.2xlarge
-        - c7i.4xlarge
-        - c7i.8xlarge
-        # AMD 대안 - 더 나은 가용성
-        - c6a.xlarge
-        - c6a.2xlarge
-        - c6a.4xlarge
-        - c6a.8xlarge
-        # 메모리 최적화 - 특정 워크로드용
-        - m6i.xlarge
-        - m6i.2xlarge
-        - m6i.4xlarge
+  template:
+    spec:
+      requirements:
+        - key: karpenter.sh/capacity-type
+          operator: In
+          values: ["spot", "on-demand"]
+        - key: kubernetes.io/arch
+          operator: In
+          values: ["amd64"]
+        - key: node.kubernetes.io/instance-type
+          operator: In
+          values:
+            # 컴퓨팅 최적화 - 기본 선택
+            - c6i.xlarge
+            - c6i.2xlarge
+            - c6i.4xlarge
+            - c6i.8xlarge
+            - c7i.xlarge
+            - c7i.2xlarge
+            - c7i.4xlarge
+            - c7i.8xlarge
+            # AMD 대안 - 더 나은 가용성
+            - c6a.xlarge
+            - c6a.2xlarge
+            - c6a.4xlarge
+            - c6a.8xlarge
+            # 메모리 최적화 - 특정 워크로드용
+            - m6i.xlarge
+            - m6i.2xlarge
+            - m6i.4xlarge
+
+      nodeClassRef:
+        group: karpenter.k8s.aws
+        kind: EC2NodeClass
+        name: fast-nodepool
 
   # 빠른 프로비저닝 보장
   limits:
-    resources:
-      cpu: 100000  # 소프트 제한만
-      memory: 400000Gi
-
-  # 효율성을 위한 통합
-  consolidation:
-    enabled: true
-
-  # AWS 특화 최적화
-  providerRef:
-    name: fast-nodepool
+    cpu: 100000  # 소프트 제한만
+    memory: 400000Gi
 ---
-apiVersion: karpenter.k8s.aws/v1alpha1
-kind: AWSNodeInstanceProfile
+apiVersion: karpenter.k8s.aws/v1
+kind: EC2NodeClass
 metadata:
   name: fast-nodepool
 spec:
-  subnetSelector:
-    karpenter.sh/discovery: "${CLUSTER_NAME}"
-  securityGroupSelector:
-    karpenter.sh/discovery: "${CLUSTER_NAME}"
+  amiSelectorTerms:
+    - alias: al2023@latest
+
+  subnetSelectorTerms:
+    - tags:
+        karpenter.sh/discovery: "${CLUSTER_NAME}"
+
+  securityGroupSelectorTerms:
+    - tags:
+        karpenter.sh/discovery: "${CLUSTER_NAME}"
+
+  role: "KarpenterNodeRole-${CLUSTER_NAME}"
 
   # 속도 최적화
   userData: |
@@ -425,8 +446,7 @@ spec:
       --b64-cluster-ca ${B64_CLUSTER_CA} \
       --apiserver-endpoint ${API_SERVER_URL} \
       --container-runtime containerd \
-      --node-labels=karpenter.sh/fast-scaling=true \
-      --max-pods=110
+      --kubelet-extra-args '--node-labels=karpenter.sh/fast-scaling=true --max-pods=110'
 
     # 중요 이미지 사전 풀
     ctr -n k8s.io images pull k8s.gcr.io/pause:3.9 &
@@ -721,6 +741,20 @@ graph LR
 1. **미션 크리티컬 서비스**: ADOT + Prometheus로 10-13초 스케일링 달성
 2. **일반 서비스**: CloudWatch Direct로 12-15초 스케일링 및 운영 단순화
 3. **점진적 마이그레이션**: CloudWatch에서 시작하여 필요에 따라 ADOT로 전환
+
+## EKS Auto Mode vs Self-managed Karpenter
+
+EKS Auto Mode (2025 GA)는 Karpenter를 내장하여 자동 관리합니다:
+
+| 항목 | Self-managed Karpenter | EKS Auto Mode |
+|------|----------------------|---------------|
+| 설치/업그레이드 | 직접 관리 (Helm) | AWS 자동 관리 |
+| NodePool 설정 | 완전한 커스터마이징 | 제한된 설정 |
+| 비용 최적화 | 세밀한 제어 가능 | 자동 최적화 |
+| OS 패치 | 직접 관리 | 자동 패치 |
+| 적합한 환경 | 고급 커스터마이징 필요 | 운영 부담 최소화 |
+
+**권장**: 복잡한 스케줄링 요구사항이 있는 경우 Self-managed, 운영 단순화가 목표인 경우 EKS Auto Mode를 선택합니다.
 
 ## 결론
 

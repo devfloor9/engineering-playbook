@@ -4,14 +4,16 @@ sidebar_label: "GitOps 클러스터 운영"
 description: "대규모 EKS 클러스터의 안정적인 운영을 위한 GitOps 아키텍처, KRO/ACK 활용 방법, 멀티클러스터 관리 전략 및 자동화 기법을 다룹니다."
 tags: [eks, gitops, argocd, kro, ack, kubernetes, automation, infrastructure-as-code]
 category: "observability-monitoring"
-date: 2025-07-01
+date: 2025-02-09
 authors: [devfloor9]
 sidebar_position: 4
 ---
 
 # GitOps 기반 EKS 클러스터 운영
 
-> 📅 **작성일**: 2025-07-01 | ⏱️ **읽는 시간**: 약 7분
+> 📅 **작성일**: 2025-02-09 | ⏱️ **읽는 시간**: 약 7분
+
+> **📌 기준 버전**: ArgoCD v2.13+ / v3 (프리릴리즈), Kubernetes 1.32
 
 
 ## 개요
@@ -37,6 +39,10 @@ sidebar_position: 4
 **1. GitOps 플랫폼 선택**
 - ArgoCD ApplicationSets를 활용한 멀티 클러스터 관리
 - Progressive Delivery를 위한 Flagger 통합
+
+:::tip ArgoCD as EKS Add-on
+ArgoCD는 EKS Add-on으로도 제공됩니다. `aws eks create-addon`을 통해 설치하면 AWS가 버전 호환성을 관리합니다.
+:::
 
 **2. Infrastructure as Code 전략**
 - **ACK/KRO (Kubernetes Resource Orchestrator)** 채택 권장
@@ -266,6 +272,31 @@ spec:
               maxSize: 50
               desiredSize: 10
 ```
+
+## ArgoCD v3 업데이트 (2025)
+
+ArgoCD v3가 KubeCon EU 2025에서 프리릴리즈되었으며, 주요 개선 사항은 다음과 같습니다:
+
+### 확장성 개선
+- **대규모 클러스터 지원**: 수천 개의 Application 리소스 관리 성능 향상
+- **Sharding 개선**: Application Controller의 수평 확장 강화
+- **메모리 최적화**: 대규모 매니페스트 처리 시 메모리 사용량 감소
+
+### 보안 강화
+- **RBAC 개선**: 더 세밀한 권한 제어
+- **Audit Logging**: 모든 작업에 대한 감사 로그 강화
+- **시크릿 관리**: External Secrets Operator와의 통합 개선
+
+### 마이그레이션 가이드
+ArgoCD v2.x에서 v3로의 마이그레이션:
+1. v2.13으로 먼저 업그레이드 (호환성 확인)
+2. 사용 중단 API 확인 및 업데이트
+3. v3 프리릴리즈에서 기능 테스트
+4. 프로덕션 업그레이드 실행
+
+:::warning 주의사항
+ArgoCD v3는 2025년 상반기 프리릴리즈 상태입니다. 프로덕션 환경에서는 안정 버전(v2.13+)을 사용하고, v3 GA 릴리즈를 확인한 후 마이그레이션하세요.
+:::
 
 ## 결론
 

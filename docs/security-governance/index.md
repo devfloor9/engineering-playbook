@@ -3,7 +3,7 @@ title: "Security & Governance"
 sidebar_label: "보안 & 거버넌스"
 description: "Amazon EKS 환경에서의 보안 강화 및 컴플라이언스 준수에 대한 심화 기술 문서"
 sidebar_position: 5
-date: 2025-02-05
+date: 2025-02-09
 authors: [devfloor9]
 ---
 
@@ -24,6 +24,22 @@ authors: [devfloor9]
 **운영 보안 및 인시던트 관리**
 
 [Default Namespace Incident Response](./default-namespace-incident.md) - 기본 네임스페이스 보안 위협 분석, 인시던트 탐지 및 대응 절차, 사후 분석 및 개선 방안, 보안 모니터링 자동화
+
+**Identity & Access Management**
+
+[Identity-First Security 아키텍처](./identity-first-security.md) - EKS Pod Identity 기반 제로트러스트 접근 제어, IRSA에서 Pod Identity로의 마이그레이션, 최소 권한 원칙 자동화
+
+**위협 탐지 & 대응**
+
+[GuardDuty Extended Threat Detection](./guardduty-extended-threat-detection.md) - EC2/ECS 호스트 및 컨테이너 시그널 상관 분석, MITRE ATT&CK 매핑, 자동화된 위협 대응
+
+**정책 관리**
+
+[Kyverno 기반 정책 관리](./kyverno-policy-management.md) - Kyverno v1.16 CEL 기반 정책, 네임스페이스 수준 정책, 정책 예외 관리, OPA Gatekeeper 비교
+
+**공급망 보안**
+
+[컨테이너 공급망 보안](./supply-chain-security.md) - ECR 이미지 스캐닝 및 서명, Sigstore/Cosign 통합, SBOM 생성 및 관리, CI/CD 보안 게이트
 
 ## 아키텍처 패턴
 
@@ -51,7 +67,7 @@ graph TB
         CP["Control Plane"]
         RBAC["RBAC Policies"]
         NetworkPolicy["Network Policies"]
-        IRSA["IAM Roles for SA"]
+        IRSA["Pod Identity / IRSA"]
     end
     
     subgraph DataProtection["Data Protection"]
@@ -98,6 +114,10 @@ graph TB
 
 보안 아키텍처는 클러스터 레벨, 워크로드 레벨, 데이터 레벨의 세 가지 계층으로 구성됩니다. 클러스터 보안은 인증 및 권한 관리를 중심으로 AWS IAM과 Kubernetes RBAC의 통합을 통해 구현됩니다. IRSA(IAM Roles for Service Accounts)를 활용하면 Pod 단위로 세밀한 AWS 리소스 접근 권한을 부여할 수 있으며, 최소 권한 원칙을 적용하여 공격 표면을 최소화합니다. OIDC 프로바이더 통합을 통해 기업의 기존 SSO 시스템과 연동하고 MFA를 적용함으로써 사용자 인증 보안을 강화할 수 있습니다.
 
+:::info EKS Pod Identity (2025 권장)
+EKS Pod Identity는 IRSA의 진화된 형태로, 더 간단한 설정과 향상된 보안을 제공합니다. OIDC 프로바이더 설정 없이 Pod에 IAM 역할을 직접 바인딩할 수 있으며, 크로스 어카운트 접근이 간소화됩니다. 신규 프로젝트에서는 Pod Identity를 우선 검토하세요.
+:::
+
 네트워크 보안은 다층 방어의 핵심 요소로, Kubernetes Network Policy를 통해 Pod 간 통신을 제어하고 네임스페이스 간 격리를 구현합니다. 서비스 메시(Istio, Linkerd)를 도입하면 mTLS를 자동으로 구성하여 모든 서비스 간 통신을 암호화하고 인증서 관리를 자동화할 수 있습니다. VPC 레벨에서는 퍼블릭 서브넷과 프라이빗 서브넷을 분리하고 NAT Gateway를 통해 아웃바운드 트래픽을 제어하며, VPC Flow Logs를 통해 네트워크 트래픽을 지속적으로 모니터링합니다.
 
 워크로드 보안은 Pod Security Standards를 통해 컨테이너 실행 환경의 보안을 강화합니다. Restricted 레벨을 적용하면 루트 권한 실행을 차단하고 호스트 네트워크 접근을 제한하며 위험한 Capabilities를 제거합니다. Security Context 설정을 통해 읽기 전용 파일시스템을 강제하고 실행 권한을 최소화합니다. 컨테이너 이미지는 Trivy와 같은 도구로 CI/CD 파이프라인에서 스캔하여 취약점을 사전에 차단하고, 승인된 레지스트리의 서명된 이미지만 사용하도록 정책을 시행합니다.
@@ -127,6 +147,25 @@ AWS 네이티브 보안 서비스는 클라우드 환경에 최적화된 보안 
 사고 대응 프로세스는 체계적이고 반복 가능한 절차를 통해 보안 사고의 영향을 최소화합니다. 탐지 단계에서는 보안 모니터링 도구가 이상 징후를 자동으로 식별하고 알림을 발생시킵니다. 분석 단계에서는 보안팀이 사고의 심각도, 영향 범위, 공격 벡터를 평가하고 대응 우선순위를 결정합니다. 격리 단계에서는 영향을 받은 리소스를 네트워크에서 분리하고 추가 피해 확산을 방지합니다. 복구 단계에서는 손상된 시스템을 정상 상태로 복원하고 서비스를 재개합니다. 사후 분석 단계에서는 근본 원인을 파악하고 공격 경로를 재구성하며, 개선 단계에서는 학습된 교훈을 바탕으로 보안 정책과 기술 통제를 강화하여 재발을 방지합니다.
 
 포렌식 분석은 보안 사고의 전체 맥락을 이해하고 증거를 수집하는 과정입니다. CloudTrail 로그 분석을 통해 공격자의 API 호출 패턴과 권한 상승 시도를 추적하고, VPC Flow Logs를 검토하여 비정상적인 네트워크 트래픽과 데이터 유출 시도를 식별합니다. 컨테이너 로그를 수집하여 애플리케이션 레벨의 공격 흔적을 분석하고, 네트워크 트래픽 분석을 통해 C&C 서버와의 통신이나 내부 정찰 활동을 탐지합니다. 이러한 포렌식 데이터는 법적 대응이 필요한 경우 증거로 활용될 수 있으며, 보안 태세 개선을 위한 인사이트를 제공합니다.
+
+## 보안 로드맵 2025
+
+### 최신 보안 기능 (AWS re:Invent 2025)
+
+| 기능 | 상태 | 영향도 |
+|------|------|--------|
+| GuardDuty Extended Threat Detection | GA | 컨테이너 위협 탐지 강화 |
+| IAM Policy Autopilot | Preview | 코드 기반 최소 권한 정책 생성 |
+| EKS Pod Identity | GA | IRSA 대체/보완 |
+| Security Hub Analytics | GA | 실시간 리스크 정량화 |
+| ECR Enhanced Scanning | GA | 공급망 보안 강화 |
+
+### Kyverno v1.16 주요 업데이트
+
+- **CEL 기반 정책 (Beta)**: Rego 대신 Common Expression Language 사용
+- **네임스페이스 CEL 정책**: 팀별 자율적 정책 관리
+- **정밀한 정책 예외**: 세분화된 예외 처리
+- **향상된 관측성**: 정책 적용 메트릭 및 대시보드
 
 ## 관련 카테고리
 
