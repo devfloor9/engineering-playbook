@@ -54,72 +54,120 @@ graph LR
 
 ### Distributed Architecture Components
 
+Milvus operates with a **cloud-native distributed architecture** on Kubernetes, separating concerns across multiple layers:
+
 ```mermaid
 graph TB
-    subgraph "Client Layer"
-        SDK["Python/Java SDK"]
-        REST["REST API"]
+    subgraph "Milvus Distributed Architecture"
+        subgraph "Access Layer"
+            PROXY["Milvus Proxy<br/>(Deployment)"]
+        end
+
+        subgraph "Coordinator Layer"
+            ROOT["Root Coord"]
+            QUERY["Query Coord"]
+            DATA["Data Coord"]
+            INDEX["Index Coord"]
+        end
+
+        subgraph "Worker Layer"
+            QN["Query Nodes<br/>(StatefulSet)"]
+            DN["Data Nodes<br/>(StatefulSet)"]
+            IN["Index Nodes<br/>(StatefulSet)"]
+        end
+
+        subgraph "Storage Layer"
+            ETCD["etcd<br/>(Metadata)"]
+            MINIO["MinIO/S3<br/>(Object Storage)"]
+            PULSAR["Pulsar<br/>(Message Queue)"]
+        end
     end
 
-    subgraph "Access Layer"
-        Proxy["Proxy"]
-    end
+    PROXY --> ROOT & QUERY & DATA & INDEX
+    QUERY --> QN
+    DATA --> DN
+    INDEX --> IN
+    QN & DN & IN --> ETCD & MINIO & PULSAR
 
-    subgraph "Coordinator Layer"
-        RootCoord["Root Coordinator"]
-        QueryCoord["Query Coordinator"]
-        DataCoord["Data Coordinator"]
-        IndexCoord["Index Coordinator"]
-    end
-
-    subgraph "Worker Layer"
-        QueryNode["Query Nodes"]
-        DataNode["Data Nodes"]
-        IndexNode["Index Nodes"]
-    end
-
-    subgraph "Storage Layer"
-        etcd[(etcd)]
-        MinIO[(MinIO/S3)]
-        Pulsar["Pulsar/Kafka"]
-    end
-
-    SDK --> Proxy
-    REST --> Proxy
-    Proxy --> RootCoord
-    Proxy --> QueryCoord
-    Proxy --> DataCoord
-    Proxy --> IndexCoord
-
-    QueryCoord --> QueryNode
-    DataCoord --> DataNode
-    IndexCoord --> IndexNode
-
-    RootCoord --> etcd
-    QueryNode --> MinIO
-    DataNode --> MinIO
-    DataNode --> Pulsar
-
-    style Proxy fill:#4285f4,stroke:#333
-    style QueryNode fill:#34a853,stroke:#333
-    style DataNode fill:#fbbc04,stroke:#333
-    style IndexNode fill:#ea4335,stroke:#333
+    style PROXY fill:#00d4aa
+    style QN fill:#00d4aa
+    style DN fill:#00d4aa
+    style IN fill:#00d4aa
 ```
 
 ### Component Roles
 
-| Component | Role | Scaling |
-| --- | --- | --- |
-| Proxy | Route client requests | Horizontal scaling |
-| Query Node | Perform vector search | Horizontal scaling |
-| Data Node | Handle insert/delete | Horizontal scaling |
-| Index Node | Build indexes | Horizontal scaling |
-| etcd | Store metadata | 3-5 node cluster |
-| MinIO/S3 | Store vector data | Unlimited |
+| Component | Kubernetes Resource | Role | Scaling |
+| --- | --- | --- | --- |
+| **Proxy** | Deployment | Client request handling, routing | Horizontal scaling |
+| **Coordinators** | Deployment | Metadata management, task coordination | Limited scaling |
+| **Query Nodes** | StatefulSet | Vector search execution | Horizontal scaling |
+| **Data Nodes** | StatefulSet | Data insertion/deletion processing | Horizontal scaling |
+| **Index Nodes** | StatefulSet | Index building | Horizontal scaling |
+| **etcd** | StatefulSet | Metadata storage | 3-5 node cluster |
+| **MinIO/S3** | External/StatefulSet | Vector data storage | Unlimited |
+| **Pulsar** | StatefulSet | Message queue for data sync | 3+ node cluster |
 
 ## EKS Deployment Guide
 
+### Installation via Milvus Operator
+
+For production deployments, the Milvus Operator provides declarative management:
+
+```bash
+# Install Milvus Operator
+helm repo add milvus https://milvus-io.github.io/milvus-helm/
+helm install milvus-operator milvus/milvus-operator -n milvus-operator --create-namespace
+
+# Deploy Milvus Cluster
+kubectl apply -f - <<EOF
+apiVersion: milvus.io/v1beta1
+kind: Milvus
+metadata:
+  name: milvus-cluster
+  namespace: ai-vectordb
+spec:
+  mode: cluster
+  dependencies:
+    etcd:
+      inCluster:
+        values:
+          replicaCount: 3
+    storage:
+      inCluster:
+        values:
+          mode: distributed
+    pulsar:
+      inCluster:
+        values:
+          components:
+            autorecovery: false
+  components:
+    proxy:
+      replicas: 2
+      resources:
+        requests:
+          cpu: "1"
+          memory: "2Gi"
+    queryNode:
+      replicas: 3
+      resources:
+        requests:
+          cpu: "2"
+          memory: "8Gi"
+    dataNode:
+      replicas: 2
+    indexNode:
+      replicas: 2
+      resources:
+        requests:
+          nvidia.com/gpu: 1  # GPU-accelerated indexing
+EOF
+```
+
 ### Installation via Helm Chart
+
+Alternatively, install directly via Helm:
 
 ```bash
 # Add Milvus Helm repository
