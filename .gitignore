@@ -24,10 +24,11 @@ yarn-error.log*
 .idea/
 .git/
 
-# AI Tools (Kiro & Claude Code)
+# AI Tools
 .kiro/
 .claude/
 .omc/
+CLAUDE.md
 
 
 # OS
