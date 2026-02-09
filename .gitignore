@@ -35,5 +35,24 @@ presentations/
 standards/
 resources/
 
+# Backup & temporary files
+*.backup
+*.bak
+*.tmp
+*.orig
+*.swp
+*.swo
+*.old
+*~
+
+# Log files
+*.log
+
+# Screenshots & temp images
+navbar-current.png
+
+# Playwright
+.playwright-mcp/
+
 # OS
 Thumbs.db
