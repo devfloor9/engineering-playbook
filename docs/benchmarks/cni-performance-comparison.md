@@ -485,6 +485,80 @@ ethtool -i eth0 | grep driver
 
 ---
 
+## 참고: VPC CNI vs Cilium 네트워크 정책 비교
+
+EKS에서 VPC CNI와 Cilium 모두 네트워크 정책을 지원하지만, 지원 범위와 기능에 큰 차이가 있습니다.
+
+| 기능 | VPC CNI (EKS Network Policy) | Cilium |
+|------|----------------------------|--------|
+| **Kubernetes NetworkPolicy API** | ✅ 지원 | ✅ 지원 |
+| **L3/L4 필터링** (IP, Port, Protocol) | ✅ 지원 | ✅ 지원 |
+| **L7 필터링** (HTTP path/method, gRPC, Kafka) | ❌ 미지원 | ✅ CiliumNetworkPolicy CRD |
+| **FQDN 기반 정책** (DNS 도메인 허용/차단) | ❌ 미지원 | ✅ `toFQDNs` 규칙 |
+| **Identity 기반 매칭** | ❌ IP 기반 | ✅ Cilium Identity (eBPF, O(1)) |
+| **Cluster-wide 정책** | ❌ Namespace 단위만 | ✅ CiliumClusterwideNetworkPolicy |
+| **Host-level 정책** | ❌ Pod 트래픽만 | ✅ 호스트 트래픽도 제어 |
+| **정책 시행 가시성** | CloudWatch Logs (제한적) | ✅ Hubble (실시간 flow + verdict) |
+| **정책 편집기/UI** | ❌ | ✅ Cilium Network Policy Editor |
+| **구현 방식** | eBPF (AWS network policy agent) | eBPF (Cilium agent) |
+| **성능 영향** | 낮음 | 낮음 (eBPF 기반 동일) |
+
+### 주요 차이점
+
+**L7 정책 (Cilium 전용)**: HTTP 요청의 경로, 메서드, 헤더 수준에서 필터링이 가능합니다. 예를 들어 `GET /api/public`은 허용하고 `DELETE /api/admin`은 차단하는 정책을 설정할 수 있습니다.
+
+```yaml
+# Cilium L7 정책 예시
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-get-only
+spec:
+  endpointSelector:
+    matchLabels:
+      app: api-server
+  ingress:
+  - fromEndpoints:
+    - matchLabels:
+        role: frontend
+    toPorts:
+    - ports:
+      - port: "80"
+        protocol: TCP
+      rules:
+        http:
+        - method: GET
+          path: "/api/public.*"
+```
+
+**FQDN 기반 정책 (Cilium 전용)**: 외부 도메인에 대한 접근을 DNS 이름으로 제어할 수 있습니다. IP가 변경되어도 정책이 자동으로 업데이트됩니다.
+
+```yaml
+# 특정 AWS 서비스만 허용
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-aws-only
+spec:
+  endpointSelector:
+    matchLabels:
+      app: backend
+  egress:
+  - toFQDNs:
+    - matchPattern: "*.amazonaws.com"
+    - matchPattern: "*.eks.amazonaws.com"
+```
+
+**정책 시행 가시성**: Cilium의 Hubble은 모든 네트워크 흐름에 대해 정책 판정(ALLOWED/DENIED)을 실시간으로 표시합니다. VPC CNI는 CloudWatch Logs를 통해 제한적인 로깅만 제공합니다.
+
+:::tip 선택 가이드
+- **기본 L3/L4 정책만 필요**: VPC CNI의 EKS Network Policy로 충분합니다.
+- **L7 필터링, FQDN 정책, 실시간 가시성 필요**: Cilium이 유일한 선택지입니다.
+- **멀티테넌트 환경**: Cilium의 CiliumClusterwideNetworkPolicy와 Host-level 정책이 강력합니다.
+:::
+
+---
+
 ## 참고 자료
 
 - [Cilium Performance Tuning Guide](https://docs.cilium.io/en/stable/operations/performance/tuning/)
