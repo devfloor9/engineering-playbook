@@ -30,6 +30,10 @@ yarn-error.log*
 .omc/
 CLAUDE.md
 
+# Removed directories (non-documentation)
+presentations/
+standards/
+resources/
 
 # OS
 Thumbs.db
