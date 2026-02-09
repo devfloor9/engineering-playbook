@@ -151,6 +151,7 @@ const config = {
         },
         items: [
           { to: '/docs/intro', label: 'Documentation', position: 'left' },
+          { to: '/docs/benchmarks', label: 'Benchmark Reports', position: 'left' },
           {
             type: 'localeDropdown',
             position: 'right',

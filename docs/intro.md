@@ -6,7 +6,7 @@ tags: [kubernetes, cloud-native, introduction, getting-started]
 
 # Engineering Playbook
 
-**Engineering Playbook**에 오신 것을 환영합니다. 이 문서는 AWS 기반 클라우드 네이티브 인프라를 위한 기술 가이드, 모범 사례, 아키텍처 패턴을 종합적으로 다룹니다.
+**Engineering Playbook**에 오신 것을 환영합니다. 이 문서는 AWS 기반 클라우드 네이티브 인프라를 위한 기술 가이드, 모범 사례, 아키텍처 패턴을 종합적으로 다룹니다. 또한 각 기술 도메인에 대한 **테스트 및 벤치마크 정보**를 제공하여, 구현의 성능과 안정성을 검증할 수 있도록 지원합니다.
 
 ## 주요 내용
 
@@ -41,6 +41,12 @@ tags: [kubernetes, cloud-native, introduction, getting-started]
 - 컴플라이언스 아키텍처 패턴
 - RBAC 및 IAM 모범 사례
 - 보안 모니터링 및 감사
+
+### [Benchmark Reports](./benchmarks/)
+- 인프라 성능 벤치마크 리포트
+- AI/ML 워크로드 처리량 및 지연 시간 측정
+- 네트워크 및 스토리지 성능 테스트 결과
+- 비용 대비 성능 비교 분석
 
 ## 시작하기
 

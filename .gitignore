@@ -27,8 +27,17 @@ yarn-error.log*
 # AI Tools
 .kiro/
 .claude/
-.omc/
 CLAUDE.md
+
+# OMC (oh-my-claudecode) - config, state, and databases
+.omc/
+*.omc-state.json
+*.omc-config.json
+omc-*.db
+omc-*.sqlite
+swarm.db
+delegation-audit.jsonl
+notepad.md
 
 # Removed directories (non-documentation)
 presentations/
