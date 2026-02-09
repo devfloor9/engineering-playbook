@@ -4,12 +4,14 @@ sidebar_label: "EKS 비용 관리"
 description: "Amazon EKS 환경에서 30-90%의 획기적 비용 절감을 달성하는 FinOps 전략. 비용 구조 분석, Karpenter 최적화, 도구 선택, 실제 성공 사례 포함"
 tags: [eks, cost-management, finops, karpenter, kubecost, optimization]
 category: "performance-networking"
-date: 2025-02-05
+date: 2025-02-09
 authors: [devfloor9]
 sidebar_position: 7
 ---
 
 # 대규모 EKS 환경 비용 관리 가이드
+
+> **📌 업데이트**: 2025-02-09 - Karpenter v1.6 GA 및 EKS Auto Mode 비용 분석 반영
 
 > 📅 **작성일**: 2025-02-05 | ⏱️ **읽는 시간**: 약 25분
 
@@ -18,6 +20,14 @@ sidebar_position: 7
 Amazon EKS 환경의 비용 관리는 클라우드 운영에서 가장 중요한 과제 중 하나입니다. 2024년 기준 AWS 고객들의 총 지출이 1,000억 달러를 넘어설 것으로 예상되는 가운데, 평균 30-35%의 클라우드 비용이 낭비되고 있습니다. 특히 Kubernetes 환경에서는 68%의 조직이 비용 초과를 경험하고 있습니다.
 
 이 가이드는 EKS 환경에서 30-90%의 비용 절감을 달성하기 위한 실전 전략을 다룹니다. FinOps 원칙부터 Karpenter를 활용한 고급 최적화, 실제 기업의 성공 사례까지 포괄적으로 설명합니다.
+
+:::tip EKS Auto Mode 비용 고려사항
+2025년 GA된 EKS Auto Mode는 Karpenter를 내장하여 자동 비용 최적화를 제공합니다:
+- **추가 비용**: EKS Auto Mode 노드에 대해 EC2 가격의 ~10% 프리미엄
+- **절감 효과**: 자동 Spot 최적화, 빈패킹, 노드 통합으로 운영 비용 절감
+- **비교 분석**: Self-managed 클러스터 대비 총 소유 비용(TCO) 평가 필요
+- **적합한 경우**: 전용 FinOps 엔지니어 없이 비용 최적화를 원하는 팀
+:::
 
 ### 핵심 내용
 
@@ -498,7 +508,7 @@ Karpenter는 차세대 Kubernetes 오토스케일러로, Cluster Autoscaler 대�
 
 ```yaml
 # NodePool 설정 예시
-apiVersion: karpenter.sh/v1beta1
+apiVersion: karpenter.sh/v1
 kind: NodePool
 metadata:
   name: default
@@ -534,7 +544,7 @@ spec:
     memory: "1000Gi"
 
 ---
-apiVersion: karpenter.k8s.aws/v1beta1
+apiVersion: karpenter.k8s.aws/v1
 kind: EC2NodeClass
 metadata:
   name: default
@@ -578,7 +588,7 @@ Node 2: [Pod C(2 CPU)] ---------------------------- - 총 2/4 CPU 사용
 
 ```yaml
 # Spot 우선 전략
-apiVersion: karpenter.sh/v1beta1
+apiVersion: karpenter.sh/v1
 kind: NodePool
 metadata:
   name: spot-optimized
@@ -696,7 +706,7 @@ aws iam attach-role-policy \
 
 # 3. Helm으로 Karpenter 설치
 helm upgrade --install karpenter oci://public.ecr.aws/karpenter/karpenter \
-  --version v0.33.0 \
+  --version v1.1.1 \
   --namespace karpenter \
   --create-namespace \
   --set settings.clusterName=${CLUSTER_NAME} \
@@ -718,7 +728,7 @@ kubectl logs -n karpenter -l app.kubernetes.io/name=karpenter
 ```yaml
 # 프로덕션: 온디맨드 우선
 ---
-apiVersion: karpenter.sh/v1beta1
+apiVersion: karpenter.sh/v1
 kind: NodePool
 metadata:
   name: production-on-demand
@@ -741,7 +751,7 @@ spec:
 
 ---
 # 개발/스테이징: Spot 전용
-apiVersion: karpenter.sh/v1beta1
+apiVersion: karpenter.sh/v1
 kind: NodePool
 metadata:
   name: development-spot
@@ -765,7 +775,7 @@ spec:
 
 ---
 # GPU 워크로드
-apiVersion: karpenter.sh/v1beta1
+apiVersion: karpenter.sh/v1
 kind: NodePool
 metadata:
   name: gpu-workloads
@@ -1465,7 +1475,7 @@ aws ec2 describe-instance-type-offerings \
 **NodePool 디버깅**
 ```yaml
 # 광범위한 요구사항으로 테스트
-apiVersion: karpenter.sh/v1beta1
+apiVersion: karpenter.sh/v1
 kind: NodePool
 metadata:
   name: debug-nodepool
@@ -1552,7 +1562,7 @@ spec:
 
 ---
 # 2. 다양한 Spot 풀 사용
-apiVersion: karpenter.sh/v1beta1
+apiVersion: karpenter.sh/v1
 kind: NodePool
 metadata:
   name: diversified-spot
@@ -1647,7 +1657,7 @@ spec:
 
 ---
 # 2. Karpenter 단일 AZ 통합 설정
-apiVersion: karpenter.sh/v1beta1
+apiVersion: karpenter.sh/v1
 kind: NodePool
 metadata:
   name: single-az-consolidation

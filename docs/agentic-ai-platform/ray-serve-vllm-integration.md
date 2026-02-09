@@ -3,9 +3,12 @@ title: "Ray Serve와 vLLM 통합 아키텍처"
 sidebar_label: "Ray Serve + vLLM"
 description: "Ray Serve 기반 분산 추론 아키텍처와 vLLM 통합 전략, 자동 스케일링, 프로덕션 배포 패턴"
 sidebar_position: 6
+date: 2025-02-09
 ---
 
 # Ray Serve와 vLLM 통합 아키텍처
+
+> **📌 기준 버전**: Ray 2.44.0+, vLLM v0.15.1, KubeRay Operator 1.2+
 
 대규모 LLM 서빙 환경에서 단일 vLLM 인스턴스만으로는 엔터프라이즈급 요구사항을 충족하기 어렵다. 다중 모델 관리, 동적 스케일링, 복잡한 전처리/후처리 파이프라인, 그리고 장애 복구가 필요한 프로덕션 환경에서는 분산 서빙 프레임워크가 필수다. Ray Serve는 이러한 요구사항을 해결하는 분산 모델 서빙 라이브러리로, vLLM과 결합하면 각각의 강점을 극대화할 수 있다.
 
@@ -222,6 +225,13 @@ spec:
 
 [Scalable Model Inference and Agentic AI on Amazon EKS](https://github.com/aws-solutions-library-samples/guidance-for-scalable-model-inference-and-agentic-ai-on-amazon-eks) 아키텍처에서는 Ray Serve를 통한 분산 추론을 구현한다.
 
+:::info vLLM v0.15.x 호환성
+vLLM v0.15.1은 Ray Serve와의 통합이 크게 개선되었습니다:
+- **자동 텐서 병렬화**: Ray의 GPU 할당에 따라 자동 설정
+- **Multi-LoRA on Ray**: Ray Serve 레플리카별 LoRA 어댑터 동적 로딩
+- **향상된 메트릭**: Prometheus 호환 메트릭 자동 노출
+:::
+
 ```python
 # serve_app.py
 import os
@@ -315,6 +325,14 @@ class LargeModelDeployment:
 ```
 
 ## 자동 스케일링 전략
+
+### Ray Serve 오토스케일링 개선
+
+최신 Ray 버전에서의 오토스케일링 주요 개선:
+
+- **GPU-aware 스케일링**: GPU 활용률 기반 레플리카 수 조정
+- **예측적 스케일링**: 요청 패턴 학습 기반 선제적 스케일아웃
+- **Karpenter 통합**: Ray 노드 요청 시 Karpenter가 최적의 GPU 인스턴스 자동 프로비저닝
 
 ### Ray Serve 자동 스케일링
 

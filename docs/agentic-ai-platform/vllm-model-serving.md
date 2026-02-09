@@ -3,11 +3,14 @@ title: "vLLM 기반 FM 배포 및 성능 최적화"
 sidebar_label: "vLLM 모델 서빙"
 description: "vLLM을 활용한 Foundation Model 배포, Kubernetes 통합, 성능 최적화 전략"
 sidebar_position: 5
+date: 2025-02-09
 ---
 
 # vLLM 기반 Foundation Model 배포 및 성능 최적화
 
 vLLM은 PagedAttention 알고리즘을 통해 KV 캐시 메모리 낭비를 60-80% 줄이고, 연속 배칭(Continuous Batching)으로 기존 대비 2-24배의 처리량 향상을 제공하는 고성능 LLM 추론 엔진이다. Meta, Mistral AI, Cohere, IBM 등 주요 기업들이 프로덕션 환경에서 활용하고 있으며, OpenAI 호환 API를 제공하여 기존 애플리케이션의 마이그레이션이 용이하다.
+
+> **📌 현재 버전**: vLLM v0.15.1 (2025-02-04 릴리즈). 본 문서의 코드 예시는 v0.15.x 기준입니다.
 
 본 문서에서는 Amazon EKS 환경에서 vLLM을 배포하고 운영하기 위한 실무 가이드를 제공한다. GPU 메모리 계산, 병렬화 전략 선택, Kubernetes 배포 패턴, 그리고 프로덕션 환경에서의 성능 튜닝 방법을 다룬다.
 
@@ -86,6 +89,20 @@ vllm serve meta-llama/Llama-3.3-70B-Instruct \
 
 MoE(Mixture-of-Experts) 모델을 위한 특수 전략이다. 토큰이 관련 "전문가"에만 라우팅되어 불필요한 계산을 줄인다. `--enable-expert-parallel` 플래그로 활성화한다.
 
+## 지원 하드웨어 확장
+
+vLLM v0.15.x는 다양한 하드웨어 가속기를 지원합니다:
+
+| 하드웨어 | 지원 수준 | 주요 용도 |
+|----------|----------|----------|
+| NVIDIA GPU (A100, H100, H200) | 완전 지원 | 프로덕션 추론 |
+| AMD GPU (MI300X) | 지원 | 대안 GPU 인프라 |
+| Intel GPU (Gaudi 2/3) | 지원 | 비용 효율적 추론 |
+| Google TPU | 지원 | GCP 환경 |
+| AWS Trainium/Inferentia | 지원 | AWS 네이티브 가속 |
+
+AWS EKS 환경에서는 NVIDIA GPU가 기본 선택이며, 비용 최적화를 위해 AWS Trainium2 인스턴스(`trn2.48xlarge`)도 고려할 수 있습니다.
+
 ## Kubernetes 배포
 
 ### 기본 배포 구성
@@ -112,7 +129,7 @@ spec:
         karpenter.sh/instance-family: g6e
       containers:
         - name: vllm
-          image: vllm/vllm-openai:v0.10.2
+          image: vllm/vllm-openai:v0.15.1
           command: ["vllm", "serve"]
           args:
             - Qwen/Qwen3-32B-FP8
@@ -205,7 +222,7 @@ spec:
       hostIPC: true
       containers:
         - name: vllm
-          image: vllm/vllm-openai:v0.10.2
+          image: vllm/vllm-openai:v0.15.1
           command: ["vllm", "serve"]
           args:
             - meta-llama/Llama-3.3-70B-Instruct
@@ -255,6 +272,19 @@ vllm serve TheBloke/Llama-2-70B-GPTQ --quantization gptq
 ```
 
 FP8은 품질 저하가 거의 없으면서 메모리를 절반으로 줄인다. INT4(AWQ, GPTQ)는 복잡한 추론 작업에서 품질 저하가 발생할 수 있으므로 워크로드별 프로파일링이 필요하다.
+
+### Multi-LoRA 서빙
+
+vLLM은 단일 기본 모델에서 여러 LoRA 어댑터를 동시에 서빙할 수 있습니다:
+
+```bash
+vllm serve meta-llama/Llama-3.3-70B-Instruct \
+  --enable-lora \
+  --lora-modules customer-support=./lora-cs finance=./lora-fin \
+  --max-loras 4
+```
+
+이를 통해 하나의 GPU 세트에서 도메인별 특화 모델을 효율적으로 운영할 수 있어 GPU 리소스를 크게 절약합니다.
 
 ### 프리픽스 캐싱(Prefix Caching)
 

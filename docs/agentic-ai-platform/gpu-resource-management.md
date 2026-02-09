@@ -4,14 +4,14 @@ sidebar_label: "GPU 리소스 관리"
 description: "복수 GPU 클러스터 환경에서의 동적 리소스 할당 및 Karpenter 기반 자동 스케일링"
 tags: [eks, gpu, karpenter, autoscaling, resource-management, dcgm]
 category: "genai-aiml"
-date: 2025-02-05
+date: 2025-02-09
 authors: [devfloor9]
 sidebar_position: 5
 ---
 
 # GPU 클러스터 동적 리소스 관리
 
-> 📅 **작성일**: 2025-02-05 | ⏱️ **읽는 시간**: 약 9분
+> 📅 **작성일**: 2025-02-09 | ⏱️ **읽는 시간**: 약 9분
 
 
 ## 개요
@@ -309,14 +309,24 @@ spec:
 |--------------|-----|-----------|------|--------|---------|------|
 | p4d.24xlarge | 8x A100 | 40GB x 8 | 96 | 1152 GiB | 400 Gbps EFA | 대규모 LLM 추론 |
 | p5.48xlarge | 8x H100 | 80GB x 8 | 192 | 2048 GiB | 3200 Gbps EFA | 초대규모 모델, 학습 |
+| p5e.48xlarge | 8x H200 | 141GB x 8 | 192 | 2048 GiB | 3200 Gbps EFA | 대규모 모델 학습/추론 |
 | g5.48xlarge | 8x A10G | 24GB x 8 | 192 | 768 GiB | 100 Gbps | 중소규모 모델 추론 |
+| g6e.xlarge ~ g6e.48xlarge | NVIDIA L40S | 최대 8×48GB | 최대 192 | 최대 768 GiB | 최대 100 Gbps | 비용 효율적 추론 |
+| trn2.48xlarge | 16x Trainium2 | - | 192 | 2048 GiB | 1600 Gbps | AWS 네이티브 학습 |
 
 :::tip 인스턴스 선택 가이드
 
+- **p5e.48xlarge**: 100B+ 파라미터 모델, H200의 최대 메모리 활용
 - **p5.48xlarge**: 70B+ 파라미터 모델, 최고 성능 요구 시
 - **p4d.24xlarge**: 13B-70B 파라미터 모델, 비용 대비 성능 균형
+- **g6e.xlarge~48xlarge**: 13B-70B 모델, L40S의 비용 효율적 추론
 - **g5.48xlarge**: 7B 이하 모델, 비용 효율적인 추론
+- **trn2.48xlarge**: AWS 네이티브 학습 워크로드, Trainium2 최적화
 
+:::
+
+:::tip EKS Auto Mode GPU 스케줄링
+EKS Auto Mode는 GPU 워크로드를 자동으로 감지하고 적절한 GPU 인스턴스를 프로비저닝합니다. NodePool 설정 없이도 GPU Pod의 리소스 요청에 따라 최적의 인스턴스를 선택합니다.
 :::
 
 ---
@@ -729,6 +739,13 @@ GPU 클러스터의 동적 리소스 관리는 GenAI 서비스의 성능과 비�
 
 ### DRA의 등장 배경과 필요성
 
+:::info DRA (Dynamic Resource Allocation) 상태 업데이트
+- **K8s 1.26-1.30**: Alpha (feature gate 필요)
+- **K8s 1.31+**: Beta로 승격, 기본 활성화
+- **K8s 1.33**: 안정성 및 성능 대폭 개선
+- EKS 1.31+에서는 DRA가 기본 활성화되어 별도의 feature gate 설정이 불필요합니다.
+:::
+
 Kubernetes 초기 단계에서 GPU 리소스 할당은 **Device Plugin** 모델을 사용했습니다. 이 모델은 다음과 같은 근본적인 한계를 가집니다:
 
 | 한계점 | 설명 | 영향 |
@@ -739,7 +756,7 @@ Kubernetes 초기 단계에서 GPU 리소스 할당은 **Device Plugin** 모델�
 | **다이나믹 요구사항 미대응** | 런타임 리소스 변경 불가 | 초기 요청 값 고정, 스케일링 어려움 |
 | **멀티 리소스 조정 불가** | 여러 리소스 타입 조율 불가 | Pod이 GPU 1개만 받았는데 메모리 부족 상황 |
 
-**DRA (Dynamic Resource Allocation)**는 Kubernetes 1.26+부터 도입되어 이러한 한계를 극복합니다.
+**DRA (Dynamic Resource Allocation)**는 Kubernetes 1.26에서 Alpha로 도입되었으며, 1.31+에서 Beta로 승격되어 이러한 한계를 극복합니다.
 
 ### DRA의 핵심 개념
 
@@ -834,8 +851,8 @@ status:
 | **멀티 리소스 조율** | 불가능 | Pod 수준에서 여러 리소스 조율 |
 | **성능 제약 정책** | 없음 | ResourceClass로 성능 정책 정의 가능 |
 | **할당 복원력** | 노드 장애 시 수동 정리 | 자동 복구 메커니즘 |
-| **Kubernetes 버전** | 1.8+ | 1.26+ (Alpha), 1.29+ (Beta) |
-| **성숙도** | 프로덕션 | 점진적 적용 권장 |
+| **Kubernetes 버전** | 1.8+ | 1.26+ (Alpha), 1.31+ (Beta, 기본 활성화) |
+| **성숙도** | 프로덕션 | 1.31+ 프로덕션 준비 |
 
 :::tip DRA 선택 가이드
 **DRA를 사용해야 할 때:**
@@ -843,11 +860,12 @@ status:
 - 멀티 테넌트 환경에서 공정한 리소스 배분 필요
 - 리소스 우선순위를 적용해야 하는 경우
 - 동적 스케일링이 중요한 경우
+- **K8s 1.31+ 환경**: DRA가 기본 활성화되어 프로덕션 준비 완료
 
 **Device Plugin이 충분한 경우:**
 - 단순히 GPU를 전체 단위로만 할당
 - 레거시 시스템과의 호환성 중요
-- Kubernetes 버전이 1.25 이하
+- Kubernetes 버전이 1.30 이하
 :::
 
 ### 고급 GPU 파티셔닝 전략

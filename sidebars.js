@@ -79,6 +79,8 @@ const sidebars = {
         'agentic-ai-platform/agent-monitoring',
         // Phase 8: 평가 및 검증
         'agentic-ai-platform/ragas-evaluation',
+        // Phase 9: Bedrock AgentCore & MCP 통합
+        'agentic-ai-platform/bedrock-agentcore-mcp',
       ],
     },
     {
@@ -110,6 +112,14 @@ const sidebars = {
       },
       items: [
         'security-governance/default-namespace-incident',
+        // 2. Identity-First Security
+        'security-governance/identity-first-security',
+        // 3. GuardDuty Extended Threat Detection
+        'security-governance/guardduty-extended-threat-detection',
+        // 4. Kyverno 정책 관리
+        'security-governance/kyverno-policy-management',
+        // 5. 공급망 보안
+        'security-governance/supply-chain-security',
       ],
     },
     {
@@ -125,6 +135,21 @@ const sidebars = {
         'rosa/rosa-demo-installation',
         // 2. 보안 및 접근 제어
         'rosa/rosa-security-compliance',
+      ],
+    },
+    {
+      type: 'category',
+      label: 'Benchmark Reports',
+      collapsed: true,
+      link: {
+        type: 'doc',
+        id: 'benchmarks/index',
+      },
+      items: [
+        'benchmarks/infrastructure-performance',
+        'benchmarks/ai-ml-workload',
+        'benchmarks/hybrid-infrastructure',
+        'benchmarks/security-operations',
       ],
     },
   ],
