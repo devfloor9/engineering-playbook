@@ -1738,15 +1738,14 @@ aws ec2 create-vpc-endpoint \
 ### 추가 학습 리소스
 
 **공식 문서**
-- [AWS EKS Best Practices - Cost Optimization](https://aws.github.io/aws-eks-best-practices/cost_optimization/)
+- [AWS EKS Best Practices - Cost Optimization](https://aws.github.io/aws-eks-best-practices/cost_optimization/cfm_framework/)
 - [Karpenter Documentation](https://karpenter.sh/)
 - [Kubecost Architecture](https://docs.kubecost.com/)
 - [FinOps Foundation](https://www.finops.org/framework/)
 
 **실전 사례**
-- [Anthropic: Karpenter로 40% 비용 절감](https://www.anthropic.com/news/karpenter-case-study)
-- [Delivery Hero: 70% 비용 절감 전략](https://aws.amazon.com/blogs/containers/delivery-hero-70-percent-cost-reduction/)
-- [Netflix: 대규모 컨테이너 최적화](https://netflixtechblog.com/scheduling-notebooks-348e6c14cfd6)
+- [AWS Containers Blog - Cost Optimization](https://aws.amazon.com/blogs/containers/)
+- [FinOps Foundation - Kubernetes Cost Optimization](https://www.finops.org/wg/containers-kubernetes/)
 
 **관련 문서**
 - [Karpenter 기반 오토스케일링](./karpenter-autoscaling.md)
@@ -1755,7 +1754,7 @@ aws ec2 create-vpc-endpoint \
 - [하이브리드 노드 가이드](../hybrid-infrastructure/hybrid-nodes-adoption-guide.md)
 
 **커뮤니티**
-- [CNCF FinOps WG](https://github.com/cncf/tag-app-delivery/tree/main/finops-wg)
+- [FinOps Foundation](https://www.finops.org/)
 - [Karpenter Slack](https://kubernetes.slack.com/archives/C02SFFZSA2K)
 - [AWS Containers Roadmap](https://github.com/aws/containers-roadmap)
 
@@ -1763,7 +1762,7 @@ aws ec2 create-vpc-endpoint \
 
 **피드백 및 기여**
 
-이 문서에 대한 피드백이나 개선 제안은 [GitHub Issues](https://github.com/your-org/engineering-playbook/issues)에 등록해주세요.
+이 문서에 대한 피드백이나 개선 제안은 [GitHub Issues](https://github.com/devfloor9/engineering-playbook/issues)에 등록해주세요.
 
 **문서 버전**: v2.0 (2025-02-05)
 **다음 리뷰**: 2025-05-05

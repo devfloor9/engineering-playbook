@@ -147,6 +147,7 @@ const sidebars = {
       },
       items: [
         'benchmarks/infrastructure-performance',
+        'benchmarks/cni-performance-comparison',
         'benchmarks/ai-ml-workload',
         'benchmarks/hybrid-infrastructure',
         'benchmarks/security-operations',

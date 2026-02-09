@@ -1,0 +1,273 @@
+<svg width="960" height="520" viewBox="0 0 960 520" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+    .title { font-size: 16px; font-weight: 700; fill: #1a1a2e; }
+    .scenario-label { font-size: 13px; font-weight: 700; fill: #ffffff; }
+    .layer-text { font-size: 11px; font-weight: 600; fill: #ffffff; }
+    .layer-sub { font-size: 9px; font-weight: 400; fill: rgba(255,255,255,0.85); }
+    .legend-text { font-size: 10px; fill: #555; }
+    .arrow-text { font-size: 9px; fill: #888; font-style: italic; }
+    .metric-label { font-size: 9px; fill: #666; }
+    .metric-value { font-size: 11px; font-weight: 700; }
+    .metric-good { fill: #16a34a; }
+    .metric-ok { fill: #2563eb; }
+    .metric-warn { fill: #d97706; }
+    .metric-bad { fill: #dc2626; }
+  </style>
+
+  <!-- Title -->
+  <text x="480" y="28" text-anchor="middle" class="title">Data Plane Stack Comparison Across 5 Scenarios</text>
+
+  <!-- Column positions: 40, 224, 408, 592, 776 (each 168 wide, 16 gap) -->
+
+  <!-- ==================== Scenario A ==================== -->
+  <g transform="translate(40, 48)">
+    <!-- Header -->
+    <rect width="168" height="34" rx="6" fill="#64748b"/>
+    <text x="84" y="22" text-anchor="middle" class="scenario-label">A: VPC CNI Baseline</text>
+
+    <!-- Layer 1: Service LB -->
+    <rect y="42" width="168" height="56" rx="4" fill="#ef4444"/>
+    <text x="84" y="65" text-anchor="middle" class="layer-text">kube-proxy</text>
+    <text x="84" y="80" text-anchor="middle" class="layer-sub">iptables (DNAT/SNAT)</text>
+
+    <!-- Layer 2: CNI -->
+    <rect y="106" width="168" height="56" rx="4" fill="#f97316"/>
+    <text x="84" y="129" text-anchor="middle" class="layer-text">VPC CNI</text>
+    <text x="84" y="144" text-anchor="middle" class="layer-sub">aws-node DaemonSet</text>
+
+    <!-- Layer 3: Network -->
+    <rect y="170" width="168" height="56" rx="4" fill="#3b82f6"/>
+    <text x="84" y="193" text-anchor="middle" class="layer-text">ENI Secondary IP</text>
+    <text x="84" y="208" text-anchor="middle" class="layer-sub">VPC Native (no overlay)</text>
+
+    <!-- Metrics -->
+    <rect y="240" width="168" height="68" rx="4" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+    <text x="12" y="256" class="metric-label">RTT</text>
+    <text x="156" y="256" text-anchor="end" class="metric-value metric-bad">4,894 µs</text>
+    <text x="12" y="272" class="metric-label">UDP Loss</text>
+    <text x="156" y="272" text-anchor="end" class="metric-value metric-bad">20.39%</text>
+    <text x="12" y="288" class="metric-label">HTTP p99</text>
+    <text x="156" y="288" text-anchor="end" class="metric-value metric-warn">10.92 ms</text>
+    <text x="12" y="302" class="metric-label">Max QPS</text>
+    <text x="156" y="302" text-anchor="end" class="metric-value metric-ok">4,104</text>
+  </g>
+
+  <!-- ==================== Scenario B ==================== -->
+  <g transform="translate(224, 48)">
+    <!-- Header -->
+    <rect width="168" height="34" rx="6" fill="#64748b"/>
+    <text x="84" y="22" text-anchor="middle" class="scenario-label">B: Cilium + kube-proxy</text>
+
+    <!-- Layer 1: Service LB -->
+    <rect y="42" width="168" height="56" rx="4" fill="#ef4444"/>
+    <text x="84" y="65" text-anchor="middle" class="layer-text">kube-proxy</text>
+    <text x="84" y="80" text-anchor="middle" class="layer-sub">iptables retained</text>
+
+    <!-- Layer 2: CNI -->
+    <rect y="106" width="168" height="56" rx="4" fill="#8b5cf6"/>
+    <text x="84" y="129" text-anchor="middle" class="layer-text">Cilium Agent</text>
+    <text x="84" y="144" text-anchor="middle" class="layer-sub">eBPF dataplane</text>
+
+    <!-- Layer 3: Network -->
+    <rect y="170" width="168" height="56" rx="4" fill="#6366f1"/>
+    <text x="84" y="193" text-anchor="middle" class="layer-text">VXLAN Overlay</text>
+    <text x="84" y="208" text-anchor="middle" class="layer-sub">50B encapsulation overhead</text>
+
+    <!-- Metrics -->
+    <rect y="240" width="168" height="68" rx="4" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+    <text x="12" y="256" class="metric-label">RTT</text>
+    <text x="156" y="256" text-anchor="end" class="metric-value metric-bad">4,955 µs</text>
+    <text x="12" y="272" class="metric-label">UDP Loss</text>
+    <text x="156" y="272" text-anchor="end" class="metric-value metric-good">0.94%</text>
+    <text x="12" y="288" class="metric-label">HTTP p99</text>
+    <text x="156" y="288" text-anchor="end" class="metric-value metric-ok">9.87 ms</text>
+    <text x="12" y="302" class="metric-label">Max QPS</text>
+    <text x="156" y="302" text-anchor="end" class="metric-value metric-ok">4,045</text>
+  </g>
+
+  <!-- ==================== Scenario C ==================== -->
+  <g transform="translate(408, 48)">
+    <!-- Header -->
+    <rect width="168" height="34" rx="6" fill="#64748b"/>
+    <text x="84" y="22" text-anchor="middle" class="scenario-label">C: Cilium kp-less</text>
+
+    <!-- Layer 1: Service LB -->
+    <rect y="42" width="168" height="56" rx="4" fill="#10b981"/>
+    <text x="84" y="65" text-anchor="middle" class="layer-text">eBPF LB</text>
+    <text x="84" y="80" text-anchor="middle" class="layer-sub">kube-proxy fully replaced</text>
+
+    <!-- Layer 2: CNI -->
+    <rect y="106" width="168" height="56" rx="4" fill="#8b5cf6"/>
+    <text x="84" y="129" text-anchor="middle" class="layer-text">Cilium Agent</text>
+    <text x="84" y="144" text-anchor="middle" class="layer-sub">eBPF dataplane</text>
+
+    <!-- Layer 3: Network -->
+    <rect y="170" width="168" height="56" rx="4" fill="#6366f1"/>
+    <text x="84" y="193" text-anchor="middle" class="layer-text">VXLAN Overlay</text>
+    <text x="84" y="208" text-anchor="middle" class="layer-sub">50B encapsulation overhead</text>
+
+    <!-- Metrics -->
+    <rect y="240" width="168" height="68" rx="4" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+    <text x="12" y="256" class="metric-label">RTT</text>
+    <text x="156" y="256" text-anchor="end" class="metric-value metric-bad">5,092 µs</text>
+    <text x="12" y="272" class="metric-label">UDP Loss</text>
+    <text x="156" y="272" text-anchor="end" class="metric-value metric-good">0.69%</text>
+    <text x="12" y="288" class="metric-label">HTTP p99</text>
+    <text x="156" y="288" text-anchor="end" class="metric-value metric-good">8.91 ms</text>
+    <text x="12" y="302" class="metric-label">Max QPS</text>
+    <text x="156" y="302" text-anchor="end" class="metric-value metric-ok">4,019</text>
+  </g>
+
+  <!-- ==================== Scenario D ==================== -->
+  <g transform="translate(592, 48)">
+    <!-- Header -->
+    <rect width="168" height="34" rx="6" fill="#64748b"/>
+    <text x="84" y="22" text-anchor="middle" class="scenario-label">D: Cilium ENI</text>
+
+    <!-- Layer 1: Service LB -->
+    <rect y="42" width="168" height="56" rx="4" fill="#10b981"/>
+    <text x="84" y="65" text-anchor="middle" class="layer-text">eBPF LB</text>
+    <text x="84" y="80" text-anchor="middle" class="layer-sub">kube-proxy fully replaced</text>
+
+    <!-- Layer 2: CNI -->
+    <rect y="106" width="168" height="56" rx="4" fill="#8b5cf6"/>
+    <text x="84" y="129" text-anchor="middle" class="layer-text">Cilium Agent</text>
+    <text x="84" y="144" text-anchor="middle" class="layer-sub">eBPF dataplane</text>
+
+    <!-- Layer 3: Network -->
+    <rect y="170" width="168" height="56" rx="4" fill="#3b82f6"/>
+    <text x="84" y="193" text-anchor="middle" class="layer-text">AWS ENI</text>
+    <text x="84" y="208" text-anchor="middle" class="layer-sub">Native Routing (no overlay)</text>
+
+    <!-- Metrics -->
+    <rect y="240" width="168" height="68" rx="4" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+    <text x="12" y="256" class="metric-label">RTT</text>
+    <text x="156" y="256" text-anchor="end" class="metric-value metric-warn">4,453 µs</text>
+    <text x="12" y="272" class="metric-label">UDP Loss</text>
+    <text x="156" y="272" text-anchor="end" class="metric-value metric-bad">20.42%</text>
+    <text x="12" y="288" class="metric-label">HTTP p99</text>
+    <text x="156" y="288" text-anchor="end" class="metric-value metric-good">8.75 ms</text>
+    <text x="12" y="302" class="metric-label">Max QPS</text>
+    <text x="156" y="302" text-anchor="end" class="metric-value metric-ok">4,026</text>
+  </g>
+
+  <!-- ==================== Scenario E ==================== -->
+  <g transform="translate(776, 48)">
+    <!-- Header -->
+    <rect width="168" height="34" rx="6" fill="#0f766e"/>
+    <text x="84" y="22" text-anchor="middle" class="scenario-label">E: ENI + Full Tuning</text>
+
+    <!-- Layer 1: Service LB -->
+    <rect y="42" width="168" height="56" rx="4" fill="#059669"/>
+    <text x="84" y="65" text-anchor="middle" class="layer-text">eBPF LB + Socket LB</text>
+    <text x="84" y="80" text-anchor="middle" class="layer-sub">LB at connect() time</text>
+
+    <!-- Layer 2: CNI + Tuning -->
+    <rect y="106" width="168" height="56" rx="4" fill="#7c3aed"/>
+    <text x="84" y="125" text-anchor="middle" class="layer-text">Cilium Agent (Tuned)</text>
+    <text x="84" y="139" text-anchor="middle" class="layer-sub">BPF Host Routing</text>
+    <text x="84" y="151" text-anchor="middle" class="layer-sub">BPF Masq + BBR</text>
+
+    <!-- Layer 3: Network -->
+    <rect y="170" width="168" height="56" rx="4" fill="#2563eb"/>
+    <text x="84" y="193" text-anchor="middle" class="layer-text">AWS ENI</text>
+    <text x="84" y="208" text-anchor="middle" class="layer-sub">Native Routing (no overlay)</text>
+
+    <!-- Metrics -->
+    <rect y="240" width="168" height="68" rx="4" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5"/>
+    <text x="12" y="256" class="metric-label">RTT</text>
+    <text x="156" y="256" text-anchor="end" class="metric-value metric-good">3,135 µs</text>
+    <text x="12" y="272" class="metric-label">UDP Loss</text>
+    <text x="156" y="272" text-anchor="end" class="metric-value metric-good">0.03%</text>
+    <text x="12" y="288" class="metric-label">HTTP p99</text>
+    <text x="156" y="288" text-anchor="end" class="metric-value metric-ok">9.89 ms</text>
+    <text x="12" y="302" class="metric-label">Max QPS</text>
+    <text x="156" y="302" text-anchor="end" class="metric-value metric-good">4,182</text>
+  </g>
+
+  <!-- ==================== Transition Arrows ==================== -->
+  <!-- A → B -->
+  <g transform="translate(208, 120)">
+    <line x1="0" y1="0" x2="16" y2="0" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+  </g>
+  <text x="216" y="105" text-anchor="middle" class="arrow-text">CNI replace</text>
+
+  <!-- B → C -->
+  <g transform="translate(392, 120)">
+    <line x1="0" y1="0" x2="16" y2="0" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+  </g>
+  <text x="400" y="105" text-anchor="middle" class="arrow-text">remove kp</text>
+
+  <!-- C → D -->
+  <g transform="translate(576, 120)">
+    <line x1="0" y1="0" x2="16" y2="0" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+  </g>
+  <text x="584" y="105" text-anchor="middle" class="arrow-text">switch ENI</text>
+
+  <!-- D → E -->
+  <g transform="translate(760, 120)">
+    <line x1="0" y1="0" x2="16" y2="0" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+  </g>
+  <text x="768" y="105" text-anchor="middle" class="arrow-text">apply tuning</text>
+
+  <!-- Arrowhead marker -->
+  <defs>
+    <marker id="arrowhead" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#94a3b8"/>
+    </marker>
+  </defs>
+
+  <!-- ==================== Legend ==================== -->
+  <g transform="translate(40, 380)">
+    <text x="0" y="0" class="title" style="font-size:12px">Legend</text>
+
+    <!-- Row 1 -->
+    <rect x="0" y="12" width="16" height="12" rx="2" fill="#ef4444"/>
+    <text x="22" y="22" class="legend-text">kube-proxy (iptables)</text>
+
+    <rect x="160" y="12" width="16" height="12" rx="2" fill="#10b981"/>
+    <text x="182" y="22" class="legend-text">eBPF LB (replaces kube-proxy)</text>
+
+    <rect x="370" y="12" width="16" height="12" rx="2" fill="#059669"/>
+    <text x="392" y="22" class="legend-text">eBPF LB + Tuning (Socket LB)</text>
+
+    <!-- Row 2 -->
+    <rect x="0" y="34" width="16" height="12" rx="2" fill="#f97316"/>
+    <text x="22" y="44" class="legend-text">VPC CNI (aws-node)</text>
+
+    <rect x="160" y="34" width="16" height="12" rx="2" fill="#8b5cf6"/>
+    <text x="182" y="44" class="legend-text">Cilium Agent (eBPF)</text>
+
+    <rect x="370" y="34" width="16" height="12" rx="2" fill="#7c3aed"/>
+    <text x="392" y="44" class="legend-text">Cilium Agent + Full Tuning</text>
+
+    <!-- Row 3 -->
+    <rect x="0" y="56" width="16" height="12" rx="2" fill="#6366f1"/>
+    <text x="22" y="66" class="legend-text">VXLAN Overlay</text>
+
+    <rect x="160" y="56" width="16" height="12" rx="2" fill="#3b82f6"/>
+    <text x="182" y="66" class="legend-text">AWS ENI (Native Routing)</text>
+
+    <rect x="370" y="56" width="16" height="12" rx="2" fill="#2563eb"/>
+    <text x="392" y="66" class="legend-text">AWS ENI + Tuning Optimization</text>
+
+    <!-- Metric colors -->
+    <text x="600" y="0" class="title" style="font-size:12px">Performance Metric Colors</text>
+    <circle cx="608" cy="18" r="5" fill="#16a34a"/>
+    <text x="618" y="22" class="legend-text">Excellent</text>
+    <circle cx="660" cy="18" r="5" fill="#2563eb"/>
+    <text x="670" y="22" class="legend-text">Good</text>
+    <circle cx="710" cy="18" r="5" fill="#d97706"/>
+    <text x="720" y="22" class="legend-text">Caution</text>
+    <circle cx="760" cy="18" r="5" fill="#dc2626"/>
+    <text x="770" y="22" class="legend-text">Poor</text>
+  </g>
+
+  <!-- ==================== Key Insight Box ==================== -->
+  <g transform="translate(40, 470)">
+    <rect width="880" height="38" rx="6" fill="#eff6ff" stroke="#93c5fd" stroke-width="1"/>
+    <text x="16" y="16" style="font-size:10px; font-weight:700; fill:#1e40af;">Key Insights</text>
+    <text x="16" y="30" style="font-size:10px; fill:#1e3a5f;">TCP Throughput converges to NIC bandwidth (12.5 Gbps) with no CNI difference | UDP Loss is the key differentiator (20% → 0.03%) | Cilium ENI+tuning improves RTT by 36% (4,894 → 3,135 µs)</text>
+  </g>
+</svg>

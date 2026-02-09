@@ -1,0 +1,169 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: postgres-secret
+  namespace: bench
+type: Opaque
+stringData:
+  POSTGRES_USER: conduit
+  POSTGRES_PASSWORD: conduit-bench-2026
+  POSTGRES_DB: conduit
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres
+  namespace: bench
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      containers:
+      - name: postgres
+        image: postgres:15-alpine
+        ports:
+        - containerPort: 5432
+        envFrom:
+        - secretRef:
+            name: postgres-secret
+        env:
+        - name: PGDATA
+          value: /var/lib/postgresql/data/pgdata
+        resources:
+          requests:
+            cpu: 250m
+            memory: 256Mi
+          limits:
+            cpu: 1000m
+            memory: 512Mi
+        volumeMounts:
+        - name: pgdata
+          mountPath: /var/lib/postgresql/data
+      volumes:
+      - name: pgdata
+        emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  namespace: bench
+spec:
+  selector:
+    app: postgres
+  ports:
+  - port: 5432
+    targetPort: 5432
+  clusterIP: None
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: conduit-api
+  namespace: bench
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: conduit-api
+  template:
+    metadata:
+      labels:
+        app: conduit-api
+    spec:
+      initContainers:
+      - name: init-db
+        image: postgres:15-alpine
+        command: ['sh', '-c']
+        args:
+        - |
+          until pg_isready -h postgres -p 5432 -U conduit; do
+            echo "Waiting for PostgreSQL..."
+            sleep 2
+          done
+          PGPASSWORD=conduit-bench-2026 psql -h postgres -U conduit -d conduit -c "
+          CREATE TABLE IF NOT EXISTS users (
+            id SERIAL PRIMARY KEY,
+            username VARCHAR(255) UNIQUE NOT NULL,
+            email VARCHAR(255) UNIQUE NOT NULL,
+            bio TEXT DEFAULT '',
+            image TEXT DEFAULT '',
+            created_at TIMESTAMP DEFAULT NOW(),
+            updated_at TIMESTAMP DEFAULT NOW()
+          );
+          CREATE TABLE IF NOT EXISTS articles (
+            id SERIAL PRIMARY KEY,
+            slug VARCHAR(255) UNIQUE NOT NULL,
+            title VARCHAR(255) NOT NULL,
+            description TEXT DEFAULT '',
+            body TEXT DEFAULT '',
+            author_id INT REFERENCES users(id),
+            created_at TIMESTAMP DEFAULT NOW(),
+            updated_at TIMESTAMP DEFAULT NOW()
+          );
+          CREATE TABLE IF NOT EXISTS comments (
+            id SERIAL PRIMARY KEY,
+            body TEXT NOT NULL,
+            article_id INT REFERENCES articles(id),
+            author_id INT REFERENCES users(id),
+            created_at TIMESTAMP DEFAULT NOW()
+          );
+          CREATE TABLE IF NOT EXISTS tags (
+            id SERIAL PRIMARY KEY,
+            name VARCHAR(100) UNIQUE NOT NULL
+          );
+          CREATE TABLE IF NOT EXISTS favorites (
+            user_id INT REFERENCES users(id),
+            article_id INT REFERENCES articles(id),
+            PRIMARY KEY (user_id, article_id)
+          );
+          CREATE TABLE IF NOT EXISTS follows (
+            follower_id INT REFERENCES users(id),
+            followed_id INT REFERENCES users(id),
+            PRIMARY KEY (follower_id, followed_id)
+          );
+          -- Seed data
+          INSERT INTO users (username, email) VALUES ('testuser', 'test@example.com') ON CONFLICT DO NOTHING;
+          INSERT INTO tags (name) VALUES ('benchmark'),('kubernetes'),('cilium'),('networking'),('cni') ON CONFLICT DO NOTHING;
+          INSERT INTO articles (slug, title, description, body, author_id)
+            SELECT 'article-' || i, 'Benchmark Article ' || i, 'Test article for CNI benchmark', 'This is a test article body for performance testing. It contains enough text to simulate a real article.', 1
+            FROM generate_series(1, 100) AS i ON CONFLICT DO NOTHING;
+          "
+          echo "Database initialized."
+      containers:
+      - name: postgrest
+        image: postgrest/postgrest:v12.2.3
+        ports:
+        - containerPort: 3000
+        env:
+        - name: PGRST_DB_URI
+          value: postgres://conduit:conduit-bench-2026@postgres:5432/conduit
+        - name: PGRST_DB_SCHEMAS
+          value: public
+        - name: PGRST_DB_ANON_ROLE
+          value: conduit
+        resources:
+          requests:
+            cpu: 250m
+            memory: 128Mi
+          limits:
+            cpu: 500m
+            memory: 256Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: conduit-api
+  namespace: bench
+spec:
+  selector:
+    app: conduit-api
+  ports:
+  - port: 3000
+    targetPort: 3000

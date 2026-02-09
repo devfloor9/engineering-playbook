@@ -1,0 +1,27 @@
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: cni-bench
+  region: ap-northeast-2
+  version: "1.31"
+
+availabilityZones:
+  - ap-northeast-2a
+  - ap-northeast-2c
+
+managedNodeGroups:
+  - name: bench-nodes
+    instanceType: m6i.xlarge
+    desiredCapacity: 3
+    minSize: 3
+    maxSize: 3
+    availabilityZones:
+      - ap-northeast-2a
+    labels:
+      role: benchmark
+    tags:
+      purpose: cni-benchmark
+    iam:
+      withAddonPolicies:
+        ebs: true

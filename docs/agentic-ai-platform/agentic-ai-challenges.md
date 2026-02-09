@@ -1015,11 +1015,11 @@ Agentic AI 플랫폼을 구축하는 조직을 위한 권장 사항:
 - [RAGAS Documentation](https://docs.ragas.io/)
 
 ### 벡터 데이터베이스
-- [Milvus Documentation](https://milvus.io/docs)
+- [Milvus Documentation](https://milvus.io/docs/overview.md)
 - [Milvus Operator](https://github.com/milvus-io/milvus-operator)
 
 ### GPU 인프라
-- [NVIDIA DRA Documentation](https://docs.nvidia.com/datacenter/cloud-native/kubernetes/latest/dra.html)
+- [NVIDIA GPU Operator Documentation](https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/latest/)
 - [DCGM Exporter](https://github.com/NVIDIA/dcgm-exporter)
 - [NCCL Documentation](https://docs.nvidia.com/deeplearning/nccl/user-guide/docs/index.html)
 - [AWS EFA Documentation](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/efa.html)

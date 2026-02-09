@@ -16,20 +16,16 @@ EKS 클러스터 인프라의 핵심 성능 지표를 측정하고 분석합니�
 
 ### Cilium ENI vs VPC CNI 비교
 
-:::note 테스트 예정
-이 벤치마크는 현재 준비 중입니다. 테스트 환경 구성 후 결과가 업데이트됩니다.
-:::
+VPC CNI와 Cilium CNI의 다중 모드(kube-proxy, kube-proxy-less, ENI, 튜닝 적용)별 정량 비교는 독립 문서로 분리하여 상세하게 다루고 있습니다.
 
-**테스트 환경**
-- 클러스터: EKS 1.31
-- 노드 타입: m6i.xlarge
-- CNI: Cilium ENI mode / VPC CNI
+상세 벤치마크 결과는 [CNI 성능 비교 벤치마크](./cni-performance-comparison.md)를 참조하세요.
 
-**측정 항목**
-- Pod-to-Pod 지연 시간
-- Pod-to-Service 지연 시간
-- TCP/UDP 처리량
-- 연결 설정 속도
+**비교 시나리오 (5개):**
+- A: VPC CNI 기본 (kube-proxy + iptables)
+- B: Cilium + kube-proxy (Overlay)
+- C: Cilium kube-proxy-less (eBPF 대체)
+- D: Cilium ENI 모드 (Native Routing)
+- E: Cilium ENI + 풀 튜닝 (DSR, XDP, Socket LB 등)
 
 ### Gateway API 성능
 

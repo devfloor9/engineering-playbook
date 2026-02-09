@@ -1930,4 +1930,4 @@ kubectl apply -f gpu-nodepools.yaml
 **다음 단계:**
 - 오픈소스 대안을 확인하려면 [기술적 도전과제 문서](./agentic-ai-challenges.md)를 검토하세요
 - 실습을 위해 [AWS EKS Workshop](https://eksworkshop.com/)을 탐색하세요
-- 최신 트렌드를 위해 [Cloud Native Community Day](https://www.cncf.io/community-day/)에 참여하세요
+- 최신 트렌드를 위해 [Cloud Native Community Groups](https://community.cncf.io/)에 참여하세요

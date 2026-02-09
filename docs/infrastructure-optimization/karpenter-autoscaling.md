@@ -26,7 +26,7 @@ sidebar_position: 4
 - `Provisioner` → `NodePool`, `AWSNodeTemplate` → `EC2NodeClass` (v1beta1에서 이미 변경됨)
 - v1.0부터 `v1` API 그룹 사용 (`karpenter.sh/v1`)
 - **호환성**: K8s 1.31 → Karpenter ≥1.0.5 | K8s 1.32 → ≥1.2 | K8s 1.33 → ≥1.5
-- [공식 마이그레이션 가이드](https://karpenter.sh/docs/upgrading/v1-migration/)
+- [공식 업그레이드 가이드](https://karpenter.sh/docs/upgrading/upgrade-guide/)
 :::
 
 글로벌 규모의 EKS 환경(3개 리전, 28개 클러스터, 15,000개 이상의 Pod)에서 스케일링 지연 시간을 180초 이상에서 10초 미만으로 단축한 프로덕션 검증 아키텍처를 탐구합니다.
