@@ -28,19 +28,19 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 20
           cache: npm
-          
+
       - name: Install dependencies
         run: npm ci
-        
+
       - name: Generate tag pages
         run: npm run generate-tags
-        
+
       - name: Build website
         run: npm run build
 
@@ -57,30 +57,30 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 20
           cache: npm
-          
+
       - name: Install dependencies
         run: npm ci
-        
+
       - name: Generate tag pages
         run: npm run generate-tags
-        
+
       - name: Build website
         run: npm run build
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
-        
+
       - name: Upload to GitHub Pages
         uses: actions/upload-pages-artifact@v3
         with:
           path: ./build
-          
+
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
