@@ -1763,3 +1763,171 @@ graph TB
 - [EKS Auto Mode](https://docs.aws.amazon.com/eks/latest/userguide/automode.html)
 - [AWS Elastic Fabric Adapter (EFA)](https://aws.amazon.com/hpc/efa/)
 - [Amazon FSx for Lustre](https://aws.amazon.com/fsx/lustre/)
+
+### Agentic AI를 위한 EKS의 장점
+
+**EKS가 최적의 플랫폼인 이유:**
+
+1. **첫날부터 프로덕션 준비 완료**
+   - 99.95% SLA를 제공하는 AWS 관리형 Control Plane
+   - 자동 보안 패치 및 Kubernetes 업그레이드
+   - AWS 서비스와의 깊은 통합 (IAM, VPC, CloudWatch)
+
+2. **간소화된 운영**
+   - EKS Auto Mode로 노드 관리 부담 제거
+   - Karpenter를 통한 GPU 프로비저닝 자동화
+   - CloudWatch를 통한 통합 관찰성 제공
+
+3. **대규모 비용 최적화**
+   - Spot 인스턴스 통합으로 60-90% 비용 절감
+   - Karpenter Consolidation으로 유휴 낭비 30-40% 감소
+   - Right-sizing 및 오토스케일링으로 과다 프로비저닝 최소화
+
+4. **엔터프라이즈 보안**
+   - Pod 레벨 IAM 역할 (IRSA)
+   - VPC 및 Security Groups를 통한 네트워크 격리
+   - 규정 준수 인증 (HIPAA, PCI-DSS, SOC 2)
+
+### 배포 경로 선택하기
+
+<Tabs>
+<TabItem value="auto-mode" label="EKS Auto Mode (대부분에게 권장)">
+
+**적합한 경우:**
+- 스타트업 및 소규모 팀
+- Kubernetes 초보 팀
+- 표준 Agentic AI 워크로드 (CPU + 중간 수준 GPU)
+- 빠른 출시 요구사항
+
+**시작하기:**
+```bash
+aws eks create-cluster \
+  --name agentic-ai-auto \
+  --region us-west-2 \
+  --compute-config enabled=true
+```
+
+**장점:**
+- 인프라 관리 부담 제로
+- AWS 최적화된 기본 설정
+- 내장된 비용 최적화
+- 자동 보안 패치
+
+**단점:**
+- 인스턴스 타입에 대한 제어 감소
+- 극단적인 비용 시나리오 최적화 어려움
+- AWS 관리형 타입으로 GPU 지원 제한
+
+</TabItem>
+<TabItem value="karpenter" label="EKS + Karpenter (최대 제어)">
+
+**적합한 경우:**
+- 대규모 프로덕션 워크로드
+- 복잡한 GPU 요구사항 (혼합 인스턴스 타입)
+- 비용 최적화가 최우선 (70%+ 절감)
+- Kubernetes 전문성을 보유한 팀
+
+**시작하기:**
+```bash
+terraform apply -f eks-karpenter-blueprint/
+kubectl apply -f karpenter-nodepools/
+```
+
+**장점:**
+- 인스턴스에 대한 세밀한 제어
+- 최대 비용 최적화 (70-80% 절감)
+- 유연한 GPU 스케줄링
+- 커스텀 AMI 및 노드 구성
+
+**단점:**
+- Karpenter 관리 필요
+- 구성 복잡도 증가
+- 팀에 K8s 전문성 필요
+
+</TabItem>
+<TabItem value="hybrid" label="하이브리드 (두 방식의 장점 결합)">
+
+**적합한 경우:**
+- 성장하는 플랫폼 (단순하게 시작, 복잡하게 확장)
+- 혼합 워크로드 타입 (CPU 에이전트 + GPU LLM)
+- Auto Mode에서 Karpenter로 점진적 마이그레이션
+
+**아키텍처:**
+- Control Plane은 EKS Auto Mode 사용
+- 시스템 워크로드는 관리형 노드 그룹에서 실행
+- GPU 워크로드는 Karpenter NodePool에서 실행
+
+**시작하기:**
+```bash
+# 1단계: Auto Mode로 EKS 클러스터 생성
+aws eks create-cluster --name agentic-ai --compute-config enabled=true
+
+# 2단계: GPU 노드용 Karpenter 설치
+helm install karpenter oci://public.ecr.aws/karpenter/karpenter
+
+# 3단계: GPU NodePool 배포
+kubectl apply -f gpu-nodepools.yaml
+```
+
+**장점:**
+- 점진적 복잡도 증가
+- 중요한 부분(GPU 비용)에서 최적화
+- AWS 관리형 Control Plane + 커스텀 Data Plane
+
+**단점:**
+- Auto Mode와 Karpenter 모두 관리 필요
+- 잠재적 구성 충돌 가능성
+
+</TabItem>
+</Tabs>
+
+### 미래: AI 네이티브 Kubernetes
+
+**주요 트렌드:**
+- **AI 최적화 스케줄링**: ML 기반 인스턴스 선택을 통한 Karpenter
+- **동적 모델 라우팅**: 작업 복잡도 기반 지능형 LLM 선택
+- **연합 학습(Federated Learning)**: EKS Anywhere를 통한 멀티 클러스터 학습
+- **서버리스 GPU**: 급증하는 워크로드를 위한 AWS Lambda GPU 인스턴스
+
+**EKS 로드맵 하이라이트:**
+- 네이티브 GPU 공유 (MIG/MPS 지원)
+- 통합 모델 서빙 (SageMaker + EKS)
+- 멀티 테넌트 AI 플랫폼을 위한 비용 할당
+- LLM 워크로드를 위한 향상된 관찰성
+
+### 지금 시작하기
+
+**오늘부터 시작:**
+
+1. **프로토타입** (1주)
+   - EKS Auto Mode 클러스터 배포
+   - 샘플 Agentic AI 워크로드 실행
+   - 기준 비용 및 성능 측정
+
+2. **최적화** (2-4주)
+   - GPU 워크로드를 위해 Karpenter로 마이그레이션
+   - KEDA 오토스케일링 구현
+   - CloudWatch 대시보드 설정
+
+3. **확장** (지속적)
+   - Consolidation 정책 미세 조정
+   - 학습 파이프라인 구현
+   - 멀티 테넌트 플랫폼 구축
+
+**리소스:**
+- [AWS EKS Best Practices Guide](https://aws.github.io/aws-eks-best-practices/)
+- [Karpenter Documentation](https://karpenter.sh/)
+- [KEDA Scalers Reference](https://keda.sh/docs/scalers/)
+- [Kubeflow on AWS](https://awslabs.github.io/kubeflow-manifests/)
+
+**질문이 있으신가요?**
+- [AWS Containers Slack](https://aws-containers.slack.com) 참여
+- [EKS Blueprints](https://github.com/aws-ia/terraform-aws-eks-blueprints)에 이슈 등록
+- 아키텍처 검토를 위해 AWS Solutions Architect에게 문의
+
+---
+
+**다음 단계:**
+- 오픈소스 대안을 확인하려면 [기술적 도전과제 문서](./agentic-ai-challenges.md)를 검토하세요
+- 실습을 위해 [AWS EKS Workshop](https://eksworkshop.com/)을 탐색하세요
+- 최신 트렌드를 위해 [Cloud Native Community Day](https://www.cncf.io/community-day/)에 참여하세요

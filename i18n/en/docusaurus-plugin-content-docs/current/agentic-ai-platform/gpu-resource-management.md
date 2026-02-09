@@ -724,9 +724,334 @@ Dynamic resource management of GPU clusters is a key factor determining performa
 
 ---
 
+---
+
+## Deep Dive: Dynamic Resource Allocation (DRA)
+
+### Background and Necessity of DRA
+
+In the early stages of Kubernetes, GPU resource allocation used the **Device Plugin** model. This model has fundamental limitations:
+
+| Limitation | Description | Impact |
+| --- | --- | --- |
+| **Static Allocation** | Resource quantities fixed at node startup | Cannot allocate partial GPU, low utilization |
+| **No Fine-Grained Control** | Can only allocate entire GPU to Pod | No GPU partitioning support (MIG unavailable) |
+| **No Priority Support** | Only first-come-first-served allocation | QoS classes not applied, difficult to ensure fair resource distribution |
+| **No Dynamic Requirements** | Cannot change resources at runtime | Initial request values fixed, difficult to scale |
+| **No Multi-Resource Coordination** | Cannot coordinate multiple resource types | Pod receives 1 GPU but insufficient memory scenario |
+
+**DRA (Dynamic Resource Allocation)** was introduced in Kubernetes 1.26+ to overcome these limitations.
+
+### Core Concepts of DRA
+
+DRA is a new paradigm that separates **declarative resource requests from immediate allocation**:
+
+```mermaid
+graph LR
+    A["Pod Creation<br/>(ResourceClaim Request)"] -->|Pending| B["Karpenter<br/>(Node Analysis)"]
+    B -->|Insufficient Resources| C["Provision New Node"]
+    C -->|Ready for Allocation| D["DRA Controller<br/>(Resource Reservation)"]
+    D -->|Allocated| E["Pod Binding"]
+    E -->|Reserved| F["Pod Scheduling"]
+    F -->|InUse| G["Pod Running"]
+
+    H["Resource Quota<br/>Check"] -->|Applied| D
+    I["GPU Partitioning<br/>Policy"] -->|Applied| D
+
+    style A fill:#e8f4f8
+    style D fill:#326ce5
+    style E fill:#76b900
+    style G fill:#ffd93d
+```
+
+### ResourceClaim Lifecycle
+
+The core of DRA is **ResourceClaim**, a new Kubernetes resource:
+
+```yaml
+# 1. Lifecycle State Description
+
+# PENDING State: Waiting for resource allocation
+apiVersion: resource.k8s.io/v1alpha2
+kind: ResourceClaim
+metadata:
+  name: gpu-claim-vllm
+  namespace: ai-inference
+spec:
+  resourceClassName: gpu.nvidia.com
+  parametersRef:
+    apiGroup: gpu.nvidia.com
+    kind: GpuClaimParameters
+    name: h100-params
+status:
+  phase: Pending  # Not yet allocated
+
+---
+
+# ALLOCATED State: DRA controller completed resource reservation
+status:
+  phase: Allocated
+  allocation:
+    resourceHandle: "gpu-handle-12345"
+    shareable: false
+
+---
+
+# RESERVED State: Ready for Pod binding
+status:
+  phase: Reserved
+  allocation:
+    resourceHandle: "gpu-handle-12345"
+    nodeName: "gpu-node-01"
+
+---
+
+# INUSE State: Pod actively running
+status:
+  phase: InUse
+  allocation:
+    resourceHandle: "gpu-handle-12345"
+    nodeName: "gpu-node-01"
+  reservedFor:
+    - kind: Pod
+      name: vllm-inference
+      namespace: ai-inference
+      uid: "abc123"
+```
+
+To transition from one state to the next, specific conditions must be met:
+
+- **Pending → Allocated**: DRA driver confirms and reserves available resources
+- **Allocated → Reserved**: Pod specifies ResourceClaim and scheduler determines node
+- **Reserved → InUse**: Pod actually starts running on the node
+
+### Detailed Comparison: DRA vs Device Plugin
+
+| Aspect | Device Plugin | DRA |
+| --- | --- | --- |
+| **Resource Allocation Timing** | At node startup (static) | At Pod scheduling time (dynamic) |
+| **Allocation Unit** | Only entire GPU | GPU divisible (MIG, time-slicing) |
+| **Priority Support** | None (first-come-first-served) | Supports ResourceClaim priorities |
+| **Multi-Resource Coordination** | Impossible | Coordinate multiple resources at Pod level |
+| **Performance Constraint Policies** | None | Can define performance policies via ResourceClass |
+| **Allocation Resilience** | Manual cleanup on node failure | Automatic recovery mechanism |
+| **Kubernetes Version** | 1.8+ | 1.26+ (Alpha), 1.29+ (Beta) |
+| **Maturity** | Production | Gradual adoption recommended |
+
+:::tip DRA Selection Guide
+**When to Use DRA:**
+- GPU partitioning needed (MIG, time-slicing)
+- Multi-tenant environment requiring fair resource distribution
+- Need to apply resource priorities
+- Dynamic scaling is critical
+
+**When Device Plugin is Sufficient:**
+- Simply allocating GPUs in whole units
+- Compatibility with legacy systems important
+- Kubernetes version is 1.25 or below
+:::
+
+### Advanced GPU Partitioning Strategies
+
+#### 1. MIG (Multi-Instance GPU) Based Partitioning
+
+MIG partitions modern GPUs like H100 and A100 into up to 7 independent GPUs:
+
+```yaml
+# MIG Profile Definition
+apiVersion: gpu.nvidia.com/v1alpha1
+kind: GpuClaimParameters
+metadata:
+  name: a100-mig-1g.5gb
+  namespace: ai-inference
+spec:
+  # MIG Profile Selection: 1g.5gb, 2g.10gb, 3g.20gb, 7g.40gb
+  mig:
+    profile: "1g.5gb"  # MIG instance with 5GB memory
+    count: 1
+
+---
+
+# MIG-based ResourceClass
+apiVersion: resource.k8s.io/v1alpha2
+kind: ResourceClass
+metadata:
+  name: gpu.nvidia.com/mig
+driverName: nvidia.com/gpu
+structuredParameters: true
+parametersSchema:
+  openAPIV3Schema:
+    type: object
+    properties:
+      gpuProfile:
+        type: string
+        enum: ["1g.5gb", "2g.10gb", "3g.20gb", "7g.40gb"]
+        default: "1g.5gb"
+
+---
+
+# MIG ResourceClaim Usage Example
+apiVersion: resource.k8s.io/v1alpha2
+kind: ResourceClaim
+metadata:
+  name: inference-gpu-mig
+  namespace: ai-inference
+spec:
+  resourceClassName: gpu.nvidia.com/mig
+  parametersRef:
+    apiGroup: gpu.nvidia.com
+    kind: GpuClaimParameters
+    name: a100-mig-1g.5gb
+
+---
+
+# Using MIG ResourceClaim in Pod
+apiVersion: v1
+kind: Pod
+metadata:
+  name: vllm-mig-inference
+  namespace: ai-inference
+spec:
+  containers:
+    - name: vllm
+      image: vllm/vllm-openai:latest
+      command: ["python", "-m", "vllm.entrypoints.openai.api_server"]
+      args:
+        - "--model"
+        - "meta-llama/Llama-2-7b-hf"
+        - "--gpu-memory-utilization"
+        - "0.9"
+      resources:
+        requests:
+          memory: "4Gi"
+          cpu: "4"
+        claims:
+          - name: mig-gpu
+  resourceClaims:
+    - name: mig-gpu
+      source:
+        resourceClaimTemplateName: mig-template
+```
+
+**MIG Profile Performance Metrics:**
+
+| Profile | Memory | SM Count | Use Case | Expected Throughput |
+| --- | --- | --- | --- | --- |
+| 1g.5gb | 5GB | 14 | Small models (3B-7B) | ~20 tok/s |
+| 2g.10gb | 10GB | 28 | Medium models (7B-13B) | ~50 tok/s |
+| 3g.20gb | 20GB | 42 | Large models (13B-70B) | ~100 tok/s |
+| 7g.40gb | 40GB | 84 | Extra large models (70B+) | ~200 tok/s |
+
+#### 2. Time-Slicing Based Partitioning
+
+Time-Slicing divides GPU time to allow multiple Pods to share the same GPU:
+
+```yaml
+# Time-Slicing ResourceSlice Definition
+apiVersion: gpu.nvidia.com/v1alpha1
+kind: ResourceSlice
+metadata:
+  name: gpu-node-timeslice
+  namespace: ai-inference
+spec:
+  nodeName: gpu-node-01
+  devices:
+    - id: 0  # GPU 0
+      vendor: nvidia
+      model: "A100-SXM4-80GB"
+      # Time-slicing configuration: up to 4 Pods can use same GPU
+      timeSlicing:
+        replicas: 4
+        # GPU scheduling policy: "aggressive", "default", "conservative"
+        schedulingPolicy: "default"
+        # Context switching overhead (ms)
+        contextSwitchInterval: 100
+
+---
+
+# Time-Slicing ResourceClass
+apiVersion: resource.k8s.io/v1alpha2
+kind: ResourceClass
+metadata:
+  name: gpu.nvidia.com/timeslice
+driverName: nvidia.com/gpu
+structuredParameters: true
+
+---
+
+# Time-Slicing ResourceClaim Usage
+apiVersion: resource.k8s.io/v1alpha2
+kind: ResourceClaim
+metadata:
+  name: inference-gpu-slice
+  namespace: ai-inference
+spec:
+  resourceClassName: gpu.nvidia.com/timeslice
+
+---
+
+# Multiple Pods sharing same GPU via time-slice
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vllm-timeslice-replicas
+  namespace: ai-inference
+spec:
+  replicas: 3  # 3 Pods sharing same GPU
+  selector:
+    matchLabels:
+      app: vllm-slice
+  template:
+    metadata:
+      labels:
+        app: vllm-slice
+    spec:
+      containers:
+        - name: vllm
+          image: vllm/vllm-openai:latest
+          resources:
+            requests:
+              memory: "8Gi"
+              cpu: "2"
+            claims:
+              - name: gpu-slice
+      resourceClaims:
+        - name: gpu-slice
+          source:
+            resourceClaimTemplateName: timeslice-template
+```
+
+**Time-Slicing Performance Considerations:**
+
+```mermaid
+graph TB
+    subgraph "Time-Slicing Overhead"
+        A["GPU Context Switching"] -->|~100-500ms| B["L2 Cache Flush"]
+        B --> C["Load New Kernel"]
+        C --> D["Memory Reorganization"]
+        D --> E["5-15% Performance Degradation"]
+    end
+
+    F["Recommended Use Cases"] -->|Batch Inference| G["Throughput-Focused"]
+    F -->|Development/Testing| H["Cost Optimization"]
+    F -->|Low QoS Requirements| I["Non-Urgent Tasks"]
+
+    J["Cases to Avoid"] -->|Real-time Inference| K["Low Latency Requirements"]
+    J -->|High-Performance Training| L["High Throughput Needed"]
+    J -->|Sensitive Applications| M["Performance Guarantee Needed"]
+
+    style E fill:#ff6b6b
+    style G fill:#76b900
+    style K fill:#ff6b6b
+```
+
+---
+
 ## References
 
 - [Karpenter Official Documentation](https://karpenter.sh/)
 - [NVIDIA DCGM Exporter](https://github.com/NVIDIA/dcgm-exporter)
 - [KEDA Official Documentation](https://keda.sh/)
 - [AWS GPU Instance Guide](https://aws.amazon.com/ec2/instance-types/#Accelerated_Computing)
+- [Kubernetes Dynamic Resource Allocation (DRA)](https://kubernetes.io/docs/concepts/scheduling-eviction/dynamic-resource-allocation/)
+- [NVIDIA GPU Operator Documentation](https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/overview.html)
