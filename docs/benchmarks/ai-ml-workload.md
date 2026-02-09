@@ -5,7 +5,7 @@ description: AI/ML 모델 서빙 및 추론 성능 벤치마크 리포트
 tags: [benchmark, ai, ml, gpu, inference, vllm]
 last_update:
   date: 2026-02-09
-  author: engineering-playbook
+  author: devfloor9
 ---
 
 # AI/ML 워크로드 벤치마크
