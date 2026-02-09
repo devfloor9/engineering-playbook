@@ -725,9 +725,331 @@ GPU 클러스터의 동적 리소스 관리는 GenAI 서비스의 성능과 비�
 
 ---
 
+## DRA 심층 분석: Dynamic Resource Allocation
+
+### DRA의 등장 배경과 필요성
+
+Kubernetes 초기 단계에서 GPU 리소스 할당은 **Device Plugin** 모델을 사용했습니다. 이 모델은 다음과 같은 근본적인 한계를 가집니다:
+
+| 한계점 | 설명 | 영향 |
+| --- | --- | --- |
+| **정적 할당** | 노드 시작 시 리소스 수량 고정 | GPU 부분 할당 불가능, 낮은 활용률 |
+| **세분화 불가** | GPU 전체를 Pod에만 할당 가능 | GPU 파티셔닝 미지원 (MIG 사용 불가) |
+| **우선순위 미지원** | 선착순 할당만 가능 | QoS 클래스 미적용, 공정한 리소스 배분 어려움 |
+| **다이나믹 요구사항 미대응** | 런타임 리소스 변경 불가 | 초기 요청 값 고정, 스케일링 어려움 |
+| **멀티 리소스 조정 불가** | 여러 리소스 타입 조율 불가 | Pod이 GPU 1개만 받았는데 메모리 부족 상황 |
+
+**DRA (Dynamic Resource Allocation)**는 Kubernetes 1.26+부터 도입되어 이러한 한계를 극복합니다.
+
+### DRA의 핵심 개념
+
+DRA는 **선언적 리소스 요청과 즉시 할당**을 분리하는 새로운 패러다임입니다:
+
+```mermaid
+graph LR
+    A["Pod 생성<br/>(ResourceClaim 요청)"] -->|Pending| B["Karpenter<br/>(노드 분석)"]
+    B -->|리소스 부족| C["새 노드 프로비저닝"]
+    C -->|할당 준비| D["DRA Controller<br/>(리소스 예약)"]
+    D -->|Allocated| E["Pod Binding"]
+    E -->|Reserved| F["Pod 스케줄링"]
+    F -->|InUse| G["Pod 실행"]
+
+    H["Resource Quota<br/>확인"] -->|적용| D
+    I["GPU 파티셔닝<br/>정책"] -->|적용| D
+
+    style A fill:#e8f4f8
+    style D fill:#326ce5
+    style E fill:#76b900
+    style G fill:#ffd93d
+```
+
+### ResourceClaim 라이프사이클
+
+DRA의 핵심은 **ResourceClaim**이라는 새로운 Kubernetes 리소스입니다:
+
+```yaml
+# 1. 라이프사이클 상태 설명
+
+# PENDING 상태: 리소스 할당 대기 중
+apiVersion: resource.k8s.io/v1alpha2
+kind: ResourceClaim
+metadata:
+  name: gpu-claim-vllm
+  namespace: ai-inference
+spec:
+  resourceClassName: gpu.nvidia.com
+  parametersRef:
+    apiGroup: gpu.nvidia.com
+    kind: GpuClaimParameters
+    name: h100-params
+status:
+  phase: Pending  # 아직 할당되지 않음
+
+---
+
+# ALLOCATED 상태: DRA 컨트롤러가 리소스 예약 완료
+status:
+  phase: Allocated
+  allocation:
+    resourceHandle: "gpu-handle-12345"
+    shareable: false
+
+---
+
+# RESERVED 상태: Pod이 바인딩될 준비 완료
+status:
+  phase: Reserved
+  allocation:
+    resourceHandle: "gpu-handle-12345"
+    nodeName: "gpu-node-01"
+
+---
+
+# INUSE 상태: Pod이 활성 실행 중
+status:
+  phase: InUse
+  allocation:
+    resourceHandle: "gpu-handle-12345"
+    nodeName: "gpu-node-01"
+  reservedFor:
+    - kind: Pod
+      name: vllm-inference
+      namespace: ai-inference
+      uid: "abc123"
+```
+
+각 상태에서 다음 상태로 전환되려면 특정 조건을 만족해야 합니다:
+
+- **Pending → Allocated**: DRA 드라이버가 사용 가능한 리소스 확인 및 예약
+- **Allocated → Reserved**: Pod이 ResourceClaim을 지정하고 스케줄러가 노드 결정
+- **Reserved → InUse**: Pod이 실제로 노드에서 실행 시작
+
+### DRA vs Device Plugin 상세 비교
+
+| 항목 | Device Plugin | DRA |
+| --- | --- | --- |
+| **리소스 할당 시점** | 노드 시작 시 (정적) | Pod 스케줄링 시 (동적) |
+| **할당 단위** | 전체 GPU만 가능 | GPU 분할 가능 (MIG, time-slicing) |
+| **우선순위 지원** | 없음 (선착순) | ResourceClaim의 우선순위 지원 |
+| **멀티 리소스 조율** | 불가능 | Pod 수준에서 여러 리소스 조율 |
+| **성능 제약 정책** | 없음 | ResourceClass로 성능 정책 정의 가능 |
+| **할당 복원력** | 노드 장애 시 수동 정리 | 자동 복구 메커니즘 |
+| **Kubernetes 버전** | 1.8+ | 1.26+ (Alpha), 1.29+ (Beta) |
+| **성숙도** | 프로덕션 | 점진적 적용 권장 |
+
+:::tip DRA 선택 가이드
+**DRA를 사용해야 할 때:**
+- GPU 파티셔닝이 필요한 경우 (MIG, time-slicing)
+- 멀티 테넌트 환경에서 공정한 리소스 배분 필요
+- 리소스 우선순위를 적용해야 하는 경우
+- 동적 스케일링이 중요한 경우
+
+**Device Plugin이 충분한 경우:**
+- 단순히 GPU를 전체 단위로만 할당
+- 레거시 시스템과의 호환성 중요
+- Kubernetes 버전이 1.25 이하
+:::
+
+### 고급 GPU 파티셔닝 전략
+
+#### 1. MIG (Multi-Instance GPU) 기반 파티셔닝
+
+MIG는 H100, A100 같은 최신 GPU를 최대 7개의 독립적인 GPU로 분할합니다:
+
+```yaml
+# MIG 프로필 정의
+apiVersion: gpu.nvidia.com/v1alpha1
+kind: GpuClaimParameters
+metadata:
+  name: a100-mig-1g.5gb
+  namespace: ai-inference
+spec:
+  # MIG 프로필 선택: 1g.5gb, 2g.10gb, 3g.20gb, 7g.40gb
+  mig:
+    profile: "1g.5gb"  # 5GB 메모리를 가진 MIG 인스턴스
+    count: 1
+
+---
+
+# MIG 기반 ResourceClass
+apiVersion: resource.k8s.io/v1alpha2
+kind: ResourceClass
+metadata:
+  name: gpu.nvidia.com/mig
+driverName: nvidia.com/gpu
+structuredParameters: true
+parametersSchema:
+  openAPIV3Schema:
+    type: object
+    properties:
+      gpuProfile:
+        type: string
+        enum: ["1g.5gb", "2g.10gb", "3g.20gb", "7g.40gb"]
+        default: "1g.5gb"
+
+---
+
+# MIG ResourceClaim 사용 예시
+apiVersion: resource.k8s.io/v1alpha2
+kind: ResourceClaim
+metadata:
+  name: inference-gpu-mig
+  namespace: ai-inference
+spec:
+  resourceClassName: gpu.nvidia.com/mig
+  parametersRef:
+    apiGroup: gpu.nvidia.com
+    kind: GpuClaimParameters
+    name: a100-mig-1g.5gb
+
+---
+
+# Pod에서 MIG ResourceClaim 사용
+apiVersion: v1
+kind: Pod
+metadata:
+  name: vllm-mig-inference
+  namespace: ai-inference
+spec:
+  containers:
+    - name: vllm
+      image: vllm/vllm-openai:latest
+      command: ["python", "-m", "vllm.entrypoints.openai.api_server"]
+      args:
+        - "--model"
+        - "meta-llama/Llama-2-7b-hf"
+        - "--gpu-memory-utilization"
+        - "0.9"
+      resources:
+        requests:
+          memory: "4Gi"
+          cpu: "4"
+        claims:
+          - name: mig-gpu
+  resourceClaims:
+    - name: mig-gpu
+      source:
+        resourceClaimTemplateName: mig-template
+```
+
+**MIG 프로필 성능 지표:**
+
+| 프로필 | 메모리 | SM 수 | 용도 | 예상 처리량 |
+| --- | --- | --- | --- | --- |
+| 1g.5gb | 5GB | 14 | 소형 모델 (3B-7B) | ~20 tok/s |
+| 2g.10gb | 10GB | 28 | 중형 모델 (7B-13B) | ~50 tok/s |
+| 3g.20gb | 20GB | 42 | 대형 모델 (13B-70B) | ~100 tok/s |
+| 7g.40gb | 40GB | 84 | 초대형 모델 (70B+) | ~200 tok/s |
+
+#### 2. Time-Slicing 기반 파티셔닝
+
+Time-Slicing은 시간 기반으로 GPU 시간을 분할하여 여러 Pod이 동일 GPU를 공유합니다:
+
+```yaml
+# Time-Slicing ResourceSlice 정의
+apiVersion: gpu.nvidia.com/v1alpha1
+kind: ResourceSlice
+metadata:
+  name: gpu-node-timeslice
+  namespace: ai-inference
+spec:
+  nodeName: gpu-node-01
+  devices:
+    - id: 0  # GPU 0
+      vendor: nvidia
+      model: "A100-SXM4-80GB"
+      # Time-slicing 설정: 최대 4개 Pod이 동일 GPU 사용 가능
+      timeSlicing:
+        replicas: 4
+        # GPU 스케줄링 정책: "aggressive", "default", "conservative"
+        schedulingPolicy: "default"
+        # 컨텍스트 스위칭 오버헤드 설정 (ms)
+        contextSwitchInterval: 100
+
+---
+
+# Time-Slicing ResourceClass
+apiVersion: resource.k8s.io/v1alpha2
+kind: ResourceClass
+metadata:
+  name: gpu.nvidia.com/timeslice
+driverName: nvidia.com/gpu
+structuredParameters: true
+
+---
+
+# Time-Slicing ResourceClaim 사용
+apiVersion: resource.k8s.io/v1alpha2
+kind: ResourceClaim
+metadata:
+  name: inference-gpu-slice
+  namespace: ai-inference
+spec:
+  resourceClassName: gpu.nvidia.com/timeslice
+
+---
+
+# 여러 Pod이 동일 GPU를 time-slice로 공유
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vllm-timeslice-replicas
+  namespace: ai-inference
+spec:
+  replicas: 3  # 3개 Pod이 동일 GPU 공유
+  selector:
+    matchLabels:
+      app: vllm-slice
+  template:
+    metadata:
+      labels:
+        app: vllm-slice
+    spec:
+      containers:
+        - name: vllm
+          image: vllm/vllm-openai:latest
+          resources:
+            requests:
+              memory: "8Gi"
+              cpu: "2"
+            claims:
+              - name: gpu-slice
+      resourceClaims:
+        - name: gpu-slice
+          source:
+            resourceClaimTemplateName: timeslice-template
+```
+
+**Time-Slicing 성능 고려사항:**
+
+```mermaid
+graph TB
+    subgraph "Time-Slicing 오버헤드"
+        A["GPU 컨텍스트 스위칭"] -->|~100-500ms| B["L2 캐시 플러시"]
+        B --> C["새 커널 로드"]
+        C --> D["메모리 재구성"]
+        D --> E["성능 저하 5-15%"]
+    end
+
+    F["추천 사용 사례"] -->|배치 추론| G["처리량 중심"]
+    F -->|개발/테스트| H["비용 최적화"]
+    F -->|낮은 QoS 요구| I["비긴급 작업"]
+
+    J["피해야 할 사용 사례"] -->|실시간 추론| K["낮은 지연 요구"]
+    J -->|고성능 학습| L["높은 처리량 필요"]
+    J -->|민감한 애플리케이션| M["성능 보장 필요"]
+
+    style E fill:#ff6b6b
+    style G fill:#76b900
+    style K fill:#ff6b6b
+```
+
+---
+
 ## 참고 자료
 
 - [Karpenter 공식 문서](https://karpenter.sh/)
 - [NVIDIA DCGM Exporter](https://github.com/NVIDIA/dcgm-exporter)
 - [KEDA 공식 문서](https://keda.sh/)
 - [AWS GPU 인스턴스 가이드](https://aws.amazon.com/ec2/instance-types/#Accelerated_Computing)
+- [NVIDIA DRA Documentation](https://docs.nvidia.com/datacenter/cloud-native/kubernetes/latest/dra.html)

@@ -616,6 +616,414 @@ spec:
 | gpu_memory_used | GPU memory usage | < 95% |
 | throughput_tokens_per_sec | Processing throughput | Monitor |
 
+---
+
+## Deep Dive: NCCL for Distributed Training
+
+### Role and Importance of NCCL
+
+NCCL (**NVIDIA Collective Communication Library**) is the core library responsible for **high-speed communication between multi-GPUs** in distributed GPU training. The performance of deep learning models is directly affected by the degree of NCCL optimization.
+
+```mermaid
+graph TB
+    subgraph "Distributed Training Performance Analysis"
+        A["Total Training Time"] --> B["Computation Time 60%"]
+        A --> C["Communication Time 40%"]
+
+        C --> D["Area NCCL Optimizes"]
+        D --> E["Collective Operation Time"]
+        E --> F["Synchronization Overhead"]
+
+        B --> G["GPU Computation (Kernels)"]
+
+        style D fill:#326ce5
+        style E fill:#76b900
+        style F fill:#ff6b6b
+    end
+
+    subgraph "Problems NCCL Solves"
+        H["3-10x Improvement<br/>vs Raw Network"]
+        I["CPU Overhead Elimination"]
+        J["GPU Memory Efficiency"]
+        K["Automatic NVLink/EFA Usage"]
+    end
+```
+
+**Why NCCL is Critical in Distributed Training:**
+
+| Aspect | Impact Level | NCCL Optimization |
+| --- | --- | --- |
+| **Model Parallelism** | High | Optimize activation/gradient transfer between GPUs |
+| **Data Parallelism** | Very High | Fast gradient synchronization via AllReduce |
+| **Pipeline Parallelism** | High | Optimize activation transfer between stages |
+| **Mixed Precision Training** | Medium | Optimize compressed gradient communication |
+
+### Core Collective Operations
+
+#### 1. AllReduce - The Most Important Operation
+
+AllReduce sums data from all GPUs and distributes the result to all GPUs:
+
+```
+Initial State:
+GPU 0: [1, 2, 3]
+GPU 1: [4, 5, 6]
+GPU 2: [7, 8, 9]
+GPU 3: [10, 11, 12]
+
+After AllReduce:
+GPU 0: [22, 26, 30]  # 1+4+7+10, 2+5+8+11, 3+6+9+12
+GPU 1: [22, 26, 30]
+GPU 2: [22, 26, 30]
+GPU 3: [22, 26, 30]
+```
+
+**AllReduce Usage Example (in Distributed Training):**
+
+```python
+import torch
+import torch.distributed as dist
+
+# Initialize distributed training
+dist.init_process_group("nccl")
+rank = dist.get_rank()
+world_size = dist.get_world_size()
+
+# Each GPU's gradients (different from each other)
+gradients = torch.randn(1024, device=f"cuda:{rank}")
+
+# AllReduce: Sum and average gradients from all GPUs
+dist.all_reduce(gradients, op=dist.ReduceOp.SUM)
+gradients /= world_size
+
+# Now all GPUs have identical gradients
+# Model weights are synchronized when updating
+```
+
+#### 2. AllGather - Collect All Data
+
+AllGather collects data from all GPUs and distributes the complete dataset to each GPU:
+
+```
+Initial State:
+GPU 0: [1, 2]
+GPU 1: [3, 4]
+GPU 2: [5, 6]
+GPU 3: [7, 8]
+
+After AllGather:
+GPU 0: [1, 2, 3, 4, 5, 6, 7, 8]
+GPU 1: [1, 2, 3, 4, 5, 6, 7, 8]
+GPU 2: [1, 2, 3, 4, 5, 6, 7, 8]
+GPU 3: [1, 2, 3, 4, 5, 6, 7, 8]
+```
+
+**AllGather Use Cases:**
+
+```python
+# Example: Collecting statistics from all GPUs in batch normalization
+local_batch_stats = compute_batch_stats(local_batch)
+
+# AllGather to collect statistics from all GPUs
+all_batch_stats = [torch.empty_like(local_batch_stats) for _ in range(world_size)]
+dist.all_gather(all_batch_stats, local_batch_stats)
+
+# Compute global statistics
+global_mean = torch.stack(all_batch_stats).mean(dim=0)
+global_std = torch.stack(all_batch_stats).std(dim=0)
+```
+
+#### 3. ReduceScatter - Inverse of AllGather
+
+ReduceScatter first sums data, then partitions and distributes to each GPU:
+
+```
+Initial State:
+GPU 0: [1, 2, 3, 4, 5, 6, 7, 8]
+GPU 1: [9, 10, 11, 12, 13, 14, 15, 16]
+GPU 2: [17, 18, 19, 20, 21, 22, 23, 24]
+GPU 3: [25, 26, 27, 28, 29, 30, 31, 32]
+
+After ReduceScatter sum and partition:
+GPU 0: [52, 56]      # (1+9+17+25), (2+10+18+26)
+GPU 1: [60, 64]      # (3+11+19+27), (4+12+20+28)
+GPU 2: [68, 72]      # (5+13+21+29), (6+14+22+30)
+GPU 3: [76, 80]      # (7+15+23+31), (8+16+24+32)
+```
+
+**ReduceScatter Use Case (Model Parallelism):**
+
+```python
+# Sum and partition computation results in model parallelism
+local_output = model_fragment(input_data)
+
+# ReduceScatter: Sum all fragments then partition to each GPU
+reduced_output = torch.empty(output_size // world_size, device=local_output.device)
+dist.reduce_scatter(reduced_output, [local_output] * world_size)
+```
+
+#### 4. Broadcast - Data Distribution
+
+Broadcast copies data from one GPU to all GPUs:
+
+```
+Initial State:
+GPU 0: [1, 2, 3, 4]
+GPU 1: [0, 0, 0, 0]
+GPU 2: [0, 0, 0, 0]
+GPU 3: [0, 0, 0, 0]
+
+After Broadcast:
+GPU 0: [1, 2, 3, 4]
+GPU 1: [1, 2, 3, 4]
+GPU 2: [1, 2, 3, 4]
+GPU 3: [1, 2, 3, 4]
+```
+
+**Broadcast Use Case:**
+
+```python
+# Broadcast model checkpoint from master GPU
+model_state = load_checkpoint() if rank == 0 else None
+
+# Broadcast: Distribute master GPU's model state to all GPUs
+dist.broadcast_object_list([model_state], src=0)
+model.load_state_dict(model_state)
+```
+
+### Network Topology Awareness
+
+NCCL automatically detects the physical connection topology between GPUs and selects the optimal path:
+
+```mermaid
+graph TB
+    subgraph "Topology Hierarchy (Faster from Top to Bottom)"
+        L1["1. NVSwitch (Within Same Node)<br/>Up to 600GB/s"]
+        L2["2. NVLink (Within Same Node)<br/>Up to 200GB/s"]
+        L3["3. EFA/InfiniBand (Between Nodes)<br/>Up to 100GB/s"]
+        L4["4. Ethernet (Between Nodes)<br/>Up to 10-100GB/s"]
+    end
+
+    L1 --> L2 --> L3 --> L4
+
+    subgraph "NCCL Automatic Path Selection"
+        A["Topology Analysis"] --> B["Optimal Algorithm Selection"]
+        B --> C["Channel Configuration"]
+    end
+
+    style L1 fill:#76b900
+    style L2 fill:#76b900
+    style L3 fill:#4ecdc4
+    style L4 fill:#ff6b6b
+```
+
+### NCCL Performance Tuning Parameters
+
+```yaml
+# Complete Guide to NCCL Environment Variables
+
+# 1. Algorithm Selection
+export NCCL_ALGO=Ring           # Ring (default), Tree, CollNet
+export NCCL_ALGO_ALL=Ring       # Specify AllReduce algorithm
+export NCCL_ALGO_TREE=Tree      # Force Tree algorithm
+
+# 2. Protocol Selection
+export NCCL_PROTO=Simple        # Simple (default) or LL (Low Latency)
+
+# 3. Channel Settings (Very Important)
+export NCCL_MIN_NCHANNELS=4     # Minimum channels (default 4)
+export NCCL_MAX_NCHANNELS=8     # Maximum channels (default 32)
+
+# 4. Buffer Size
+export NCCL_BUFFSIZE=2097152    # Default 2MB, 1MB-4MB recommended
+
+# 5. Debug Settings
+export NCCL_DEBUG=INFO          # TRACE, DEBUG, INFO, WARN
+export NCCL_DEBUG_FILE=/var/log/nccl-debug.txt
+export NCCL_DEBUG_SUBSYS=ALL    # Trace all subsystems
+
+# 6. Network Interface
+export NCCL_SOCKET_IFNAME=eth0  # Network interface to use
+export NCCL_IB_DISABLE=0        # Use InfiniBand
+
+# 7. EFA Settings (AWS)
+export FI_PROVIDER=efa
+export FI_EFA_USE_DEVICE_RDMA=1
+export FI_EFA_FORK_SAFE=1
+
+# 8. Kernel Optimization
+export NCCL_CHECKS_DISABLE=0    # Enable safety checks (production)
+export NCCL_COMM_BLOCKING_WAIT=0
+export NCCL_ASYNC_ERROR_HANDLING=1
+
+# 9. P2P Settings
+export NCCL_P2P_DISABLE=0       # Enable GPU P2P communication
+export NCCL_P2P_LEVEL=SYS       # P2P level: LOC (local), SYS (system)
+
+# 10. Timeout Settings
+export NCCL_COMM_WAIT_TIMEOUT=0 # 0 = infinite wait
+```
+
+### Kubernetes Integration Points
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+<Tabs>
+<TabItem value="config" label="NCCL Configuration" default>
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: distributed-training
+spec:
+  containers:
+  - name: trainer
+    image: nvcr.io/nvidia/pytorch:24.01-py3
+    env:
+    # NCCL Core Settings
+    - name: NCCL_DEBUG
+      value: "INFO"  # Enable NCCL logging
+    - name: NCCL_DEBUG_SUBSYS
+      value: "INIT,GRAPH,ENV"
+
+    # Network Interface Selection
+    - name: NCCL_SOCKET_IFNAME
+      value: "eth0"  # Primary network interface
+    - name: NCCL_IB_DISABLE
+      value: "0"  # Enable InfiniBand if available
+
+    # Performance Tuning
+    - name: NCCL_NET_GDR_LEVEL
+      value: "5"  # GPUDirect RDMA level
+    - name: NCCL_P2P_LEVEL
+      value: "NVL"  # Use NVLink for P2P
+    - name: NCCL_CROSS_NIC
+      value: "1"  # Use multiple NICs
+
+    # EFA-specific (AWS)
+    - name: FI_PROVIDER
+      value: "efa"
+    - name: FI_EFA_USE_DEVICE_RDMA
+      value: "1"
+    - name: NCCL_PROTO
+      value: "simple"
+
+    resources:
+      limits:
+        nvidia.com/gpu: 8
+```
+
+</TabItem>
+<TabItem value="topology" label="Topology Detection">
+
+```yaml
+# ConfigMap with NCCL topology information
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nccl-topology
+data:
+  topology.xml: |
+    <?xml version="1.0" encoding="UTF-8"?>
+    <system version="1">
+      <gpu dev="0" numa="0" pci="0000:10:1c.0">
+        <nvlink target="1" count="12"/>
+        <nvlink target="2" count="12"/>
+        <nvlink target="3" count="12"/>
+      </gpu>
+      <gpu dev="1" numa="0" pci="0000:10:1d.0">
+        <nvlink target="0" count="12"/>
+        <nvlink target="2" count="12"/>
+        <nvlink target="3" count="12"/>
+      </gpu>
+      <!-- Additional GPUs... -->
+    </system>
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: training-with-topology
+spec:
+  containers:
+  - name: trainer
+    volumeMounts:
+    - name: nccl-topology
+      mountPath: /etc/nccl
+    env:
+    - name: NCCL_TOPO_FILE
+      value: /etc/nccl/topology.xml
+  volumes:
+  - name: nccl-topology
+    configMap:
+      name: nccl-topology
+```
+
+</TabItem>
+<TabItem value="benchmark" label="NCCL Benchmark">
+
+```yaml
+# NCCL Tests DaemonSet for network validation
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: nccl-tests
+  namespace: gpu-testing
+spec:
+  selector:
+    matchLabels:
+      app: nccl-tests
+  template:
+    metadata:
+      labels:
+        app: nccl-tests
+    spec:
+      hostNetwork: true  # Access host network
+      containers:
+      - name: nccl-test
+        image: nvcr.io/nvidia/pytorch:24.01-py3
+        command:
+        - /bin/bash
+        - -c
+        - |
+          # Install NCCL tests
+          git clone https://github.com/NVIDIA/nccl-tests.git
+          cd nccl-tests
+          make MPI=1
+
+          # Run all-reduce benchmark
+          mpirun --allow-run-as-root \
+            -np 8 \
+            --hostfile /etc/mpi/hostfile \
+            --bind-to none \
+            -x NCCL_DEBUG=INFO \
+            -x NCCL_SOCKET_IFNAME=eth0 \
+            ./build/all_reduce_perf -b 8 -e 4G -f 2 -g 1
+        resources:
+          limits:
+            nvidia.com/gpu: 8
+        volumeMounts:
+        - name: dshm
+          mountPath: /dev/shm
+      volumes:
+      - name: dshm
+        emptyDir:
+          medium: Memory
+          sizeLimit: 64Gi
+```
+
+</TabItem>
+</Tabs>
+
+**NCCL Performance Factors:**
+1. **Network Bandwidth**: InfiniBand (200-400 Gbps) > EFA (100 Gbps) > Ethernet (25-100 Gbps)
+2. **GPU Interconnect**: NVLink (600 GB/s) > PCIe 5.0 (128 GB/s)
+3. **Topology Awareness**: Direct connections reduce latency
+4. **Protocol Selection**: `simple` for small messages, `LL128` for large
+
+---
+
 ## Related Documentation
 
 - [GPU Resource Management](./gpu-resource-management.md)
@@ -626,10 +1034,12 @@ spec:
 - Measure baseline performance with the base model before fine-tuning
 - LoRA/QLoRA enables fine-tuning large models with limited GPU resources
 - TensorRT-LLM conversion can improve inference performance by 2-4x
+- NCCL tuning is critical for distributed training performance - start with `NCCL_DEBUG=INFO` to understand communication patterns
 :::
 
 :::warning Cautions
 - Large-scale training incurs significant GPU costs. Utilize spot instances and checkpoints
 - Consider NCCL communication overhead when deciding on number of nodes for distributed training
 - Always save checkpoints to persistent storage like S3
+- Improper NCCL configuration can degrade performance by 50%+ - always validate with NCCL tests
 :::

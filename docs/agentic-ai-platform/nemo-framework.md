@@ -622,6 +622,256 @@ spec:
 | gpu_memory_used | GPU 메모리 사용량 | < 95% |
 | throughput_tokens_per_sec | 처리량 | 모니터링 |
 
+---
+
+## NCCL 심층 분석: 분산 학습 통신 최적화
+
+### NCCL의 역할과 중요성
+
+NCCL (**NVIDIA Collective Communication Library**)는 분산 GPU 학습에서 **multi-GPU 간 고속 통신**을 담당하는 핵심 라이브러리입니다. 딥러닝 모델의 성능은 NCCL의 최적화 정도에 직접적으로 영향을 미칩니다.
+
+```mermaid
+graph TB
+    subgraph "분산 학습 성능 분석"
+        A["전체 학습 시간"] --> B["계산 시간 60%"]
+        A --> C["통신 시간 40%"]
+
+        C --> D["NCCL이 최적화하는 영역"]
+        D --> E["Collective 연산 시간"]
+        E --> F["동기화 오버헤드"]
+
+        B --> G["GPU 계산 (커널)"]
+
+        style D fill:#326ce5
+        style E fill:#76b900
+        style F fill:#ff6b6b
+    end
+
+    subgraph "NCCL이 해결하는 문제"
+        H["Raw 네트워크 대비<br/>3-10배 개선"]
+        I["CPU 오버헤드 제거"]
+        J["GPU 메모리 효율성"]
+        K["NVLink/EFA 자동 활용"]
+    end
+```
+
+**분산 학습에서 NCCL이 중요한 이유:**
+
+| 항목 | 영향도 | NCCL의 최적화 |
+| --- | --- | --- |
+| **모델 병렬화 (Model Parallelism)** | 높음 | 각 GPU 간 활성화/그래디언트 전송 최적화 |
+| **데이터 병렬화 (Data Parallelism)** | 매우 높음 | AllReduce로 그래디언트 동기화 빠름 |
+| **파이프라인 병렬화 (Pipeline Parallelism)** | 높음 | 스테이지 간 활성화 전송 최적화 |
+| **혼합 정밀도 학습 (Mixed Precision)** | 중간 | 압축된 그래디언트 통신 최적화 |
+
+### 핵심 집합 연산 (Collective Operations)
+
+#### 1. AllReduce - 가장 중요한 연산
+
+AllReduce는 모든 GPU의 데이터를 합산하고 결과를 모든 GPU에 배분합니다:
+
+```
+초기 상태:
+GPU 0: [1, 2, 3]
+GPU 1: [4, 5, 6]
+GPU 2: [7, 8, 9]
+GPU 3: [10, 11, 12]
+
+AllReduce 후:
+GPU 0: [22, 26, 30]  # 1+4+7+10, 2+5+8+11, 3+6+9+12
+GPU 1: [22, 26, 30]
+GPU 2: [22, 26, 30]
+GPU 3: [22, 26, 30]
+```
+
+**AllReduce 사용 예시 (분산 학습에서):**
+
+```python
+import torch
+import torch.distributed as dist
+
+# 분산 학습 초기화
+dist.init_process_group("nccl")
+rank = dist.get_rank()
+world_size = dist.get_world_size()
+
+# 각 GPU의 그래디언트 (서로 다름)
+gradients = torch.randn(1024, device=f"cuda:{rank}")
+
+# AllReduce: 모든 GPU의 그래디언트 합산 및 평균화
+dist.all_reduce(gradients, op=dist.ReduceOp.SUM)
+gradients /= world_size
+
+# 이제 모든 GPU가 동일한 그래디언트를 가짐
+# 모델 가중치 업데이트 시 동기화됨
+```
+
+#### 2. AllGather - 모든 데이터 수집
+
+AllGather는 모든 GPU의 데이터를 수집하여 각 GPU에 전체 데이터를 배분합니다:
+
+```
+초기 상태:
+GPU 0: [1, 2]
+GPU 1: [3, 4]
+GPU 2: [5, 6]
+GPU 3: [7, 8]
+
+AllGather 후:
+GPU 0: [1, 2, 3, 4, 5, 6, 7, 8]
+GPU 1: [1, 2, 3, 4, 5, 6, 7, 8]
+GPU 2: [1, 2, 3, 4, 5, 6, 7, 8]
+GPU 3: [1, 2, 3, 4, 5, 6, 7, 8]
+```
+
+**AllGather 사용 사례:**
+
+```python
+# 예시: 배치 정규화에서 모든 GPU의 통계 수집
+local_batch_stats = compute_batch_stats(local_batch)
+
+# AllGather로 모든 GPU의 통계 수집
+all_batch_stats = [torch.empty_like(local_batch_stats) for _ in range(world_size)]
+dist.all_gather(all_batch_stats, local_batch_stats)
+
+# 전역 통계 계산
+global_mean = torch.stack(all_batch_stats).mean(dim=0)
+global_std = torch.stack(all_batch_stats).std(dim=0)
+```
+
+#### 3. ReduceScatter - AllGather의 역연산
+
+ReduceScatter는 데이터를 먼저 합산한 후 각 GPU에 분할하여 배분합니다:
+
+```
+초기 상태:
+GPU 0: [1, 2, 3, 4, 5, 6, 7, 8]
+GPU 1: [9, 10, 11, 12, 13, 14, 15, 16]
+GPU 2: [17, 18, 19, 20, 21, 22, 23, 24]
+GPU 3: [25, 26, 27, 28, 29, 30, 31, 32]
+
+ReduceScatter 합산 후 분할:
+GPU 0: [52, 56]      # (1+9+17+25), (2+10+18+26)
+GPU 1: [60, 64]      # (3+11+19+27), (4+12+20+28)
+GPU 2: [68, 72]      # (5+13+21+29), (6+14+22+30)
+GPU 3: [76, 80]      # (7+15+23+31), (8+16+24+32)
+```
+
+**ReduceScatter 사용 사례 (Model Parallelism):**
+
+```python
+# 모델 병렬화에서 계산 결과를 합산하고 분할
+local_output = model_fragment(input_data)
+
+# ReduceScatter: 모든 프래그먼트 합산 후 각 GPU에 분할
+reduced_output = torch.empty(output_size // world_size, device=local_output.device)
+dist.reduce_scatter(reduced_output, [local_output] * world_size)
+```
+
+#### 4. Broadcast - 데이터 배포
+
+Broadcast는 한 GPU의 데이터를 모든 GPU에 복사합니다:
+
+```
+초기 상태:
+GPU 0: [1, 2, 3, 4]
+GPU 1: [0, 0, 0, 0]
+GPU 2: [0, 0, 0, 0]
+GPU 3: [0, 0, 0, 0]
+
+Broadcast 후:
+GPU 0: [1, 2, 3, 4]
+GPU 1: [1, 2, 3, 4]
+GPU 2: [1, 2, 3, 4]
+GPU 3: [1, 2, 3, 4]
+```
+
+**Broadcast 사용 사례:**
+
+```python
+# 마스터 GPU에서 모델 체크포인트 브로드캐스트
+model_state = load_checkpoint() if rank == 0 else None
+
+# Broadcast: 마스터 GPU의 모델 상태를 모든 GPU에 배포
+dist.broadcast_object_list([model_state], src=0)
+model.load_state_dict(model_state)
+```
+
+### 네트워크 토폴로지 인식
+
+NCCL은 GPU 간 물리적 연결 토폴로지를 자동으로 감지하고 최적의 경로를 선택합니다:
+
+```mermaid
+graph TB
+    subgraph "토폴로지 계층 (위에서 아래로 빠름)"
+        L1["1. NVSwitch (같은 노드 내)<br/>최대 600GB/s"]
+        L2["2. NVLink (같은 노드 내)<br/>최대 200GB/s"]
+        L3["3. EFA/InfiniBand (노드 간)<br/>최대 100GB/s"]
+        L4["4. Ethernet (노드 간)<br/>최대 10-100GB/s"]
+    end
+
+    L1 --> L2 --> L3 --> L4
+
+    subgraph "NCCL 자동 경로 선택"
+        A["토폴로지 분석"] --> B["최적 알고리즘 선택"]
+        B --> C["채널 구성"]
+    end
+
+    style L1 fill:#76b900
+    style L2 fill:#76b900
+    style L3 fill:#4ecdc4
+    style L4 fill:#ff6b6b
+```
+
+### NCCL 성능 튜닝 파라미터
+
+```yaml
+# NCCL 환경 변수 완벽 가이드
+
+# 1. 알고리즘 선택
+export NCCL_ALGO=Ring           # Ring (기본), Tree, CollNet
+export NCCL_ALGO_ALL=Ring       # AllReduce 알고리즘 지정
+export NCCL_ALGO_TREE=Tree      # Tree 알고리즘 강제
+
+# 2. 프로토콜 선택
+export NCCL_PROTO=Simple        # Simple (기본) 또는 LL (Low Latency)
+
+# 3. 채널 설정 (매우 중요)
+export NCCL_MIN_NCHANNELS=4     # 최소 채널 수 (기본 4)
+export NCCL_MAX_NCHANNELS=8     # 최대 채널 수 (기본 32)
+
+# 4. 버퍼 크기
+export NCCL_BUFFSIZE=2097152    # 기본 2MB, 1MB-4MB 권장
+
+# 5. 디버그 설정
+export NCCL_DEBUG=INFO          # TRACE, DEBUG, INFO, WARN
+export NCCL_DEBUG_FILE=/var/log/nccl-debug.txt
+export NCCL_DEBUG_SUBSYS=ALL    # 모든 서브시스템 추적
+
+# 6. 네트워크 인터페이스
+export NCCL_SOCKET_IFNAME=eth0  # 사용할 네트워크 인터페이스
+export NCCL_IB_DISABLE=0        # InfiniBand 사용
+
+# 7. EFA 설정 (AWS)
+export FI_PROVIDER=efa
+export FI_EFA_USE_DEVICE_RDMA=1
+export FI_EFA_FORK_SAFE=1
+
+# 8. 커널 최적화
+export NCCL_CHECKS_DISABLE=0    # 안전 검사 활성화 (프로덕션)
+export NCCL_COMM_BLOCKING_WAIT=0
+export NCCL_ASYNC_ERROR_HANDLING=1
+
+# 9. P2P 설정
+export NCCL_P2P_DISABLE=0       # GPU P2P 통신 활성화
+export NCCL_P2P_LEVEL=SYS       # P2P 레벨: LOC (로컬), SYS (시스템)
+
+# 10. 타임아웃 설정
+export NCCL_COMM_WAIT_TIMEOUT=0 # 0 = 무한 대기
+```
+
+---
+
 ## 관련 문서
 
 - [GPU 리소스 관리](./gpu-resource-management.md)
@@ -632,10 +882,12 @@ spec:
 - 파인튜닝 전 기본 모델로 베이스라인 성능을 측정하세요
 - LoRA/QLoRA를 사용하면 적은 GPU로도 대형 모델 파인튜닝이 가능합니다
 - TensorRT-LLM 변환으로 추론 성능을 2-4배 향상시킬 수 있습니다
+- NCCL 환경 변수를 적절히 설정하면 분산 학습 성능을 크게 개선할 수 있습니다
 :::
 
 :::warning 주의사항
 - 대규모 학습은 상당한 GPU 비용이 발생합니다. Spot 인스턴스와 체크포인트를 활용하세요
 - 분산 학습 시 NCCL 통신 오버헤드를 고려하여 노드 수를 결정하세요
 - 체크포인트는 반드시 S3 등 영구 스토리지에 저장하세요
+- EFA 사용 시 적절한 보안 그룹 설정이 필요합니다 (모든 트래픽 허용)
 :::
