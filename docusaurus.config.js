@@ -114,12 +114,12 @@ const config = {
           {
             tagName: 'link',
             rel: 'icon',
-            href: '/img/logo.svg',
+            href: '/engineering-playbook/img/logo.svg',
           },
           {
             tagName: 'link',
             rel: 'manifest',
-            href: '/manifest.json',
+            href: '/engineering-playbook/manifest.json',
           },
           {
             tagName: 'meta',
