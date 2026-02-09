@@ -468,6 +468,80 @@ ethtool -i eth0 | grep driver
 
 ---
 
+## Reference: VPC CNI vs Cilium Network Policy Comparison
+
+Both VPC CNI and Cilium support network policies on EKS, but they differ significantly in scope and capabilities.
+
+| Feature | VPC CNI (EKS Network Policy) | Cilium |
+|---------|----------------------------|--------|
+| **Kubernetes NetworkPolicy API** | ✅ Supported | ✅ Supported |
+| **L3/L4 Filtering** (IP, Port, Protocol) | ✅ Supported | ✅ Supported |
+| **L7 Filtering** (HTTP path/method, gRPC, Kafka) | ❌ Not supported | ✅ CiliumNetworkPolicy CRD |
+| **FQDN-based Policies** (DNS domain allow/deny) | ❌ Not supported | ✅ `toFQDNs` rules |
+| **Identity-based Matching** | ❌ IP-based | ✅ Cilium Identity (eBPF, O(1)) |
+| **Cluster-wide Policies** | ❌ Namespace-scoped only | ✅ CiliumClusterwideNetworkPolicy |
+| **Host-level Policies** | ❌ Pod traffic only | ✅ Host traffic control |
+| **Policy Enforcement Visibility** | CloudWatch Logs (limited) | ✅ Hubble (real-time flow + verdict) |
+| **Policy Editor/UI** | ❌ | ✅ Cilium Network Policy Editor |
+| **Implementation** | eBPF (AWS network policy agent) | eBPF (Cilium agent) |
+| **Performance Impact** | Low | Low (same eBPF-based) |
+
+### Key Differences
+
+**L7 Policies (Cilium only)**: Filter at HTTP request path, method, and header level. For example, allow `GET /api/public` while blocking `DELETE /api/admin`.
+
+```yaml
+# Cilium L7 policy example
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-get-only
+spec:
+  endpointSelector:
+    matchLabels:
+      app: api-server
+  ingress:
+  - fromEndpoints:
+    - matchLabels:
+        role: frontend
+    toPorts:
+    - ports:
+      - port: "80"
+        protocol: TCP
+      rules:
+        http:
+        - method: GET
+          path: "/api/public.*"
+```
+
+**FQDN-based Policies (Cilium only)**: Control external access by DNS name. Policies automatically update when IPs change.
+
+```yaml
+# Allow specific AWS services only
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-aws-only
+spec:
+  endpointSelector:
+    matchLabels:
+      app: backend
+  egress:
+  - toFQDNs:
+    - matchPattern: "*.amazonaws.com"
+    - matchPattern: "*.eks.amazonaws.com"
+```
+
+**Policy Enforcement Visibility**: Cilium's Hubble shows real-time policy verdicts (ALLOWED/DENIED) for all network flows. VPC CNI provides limited logging through CloudWatch Logs.
+
+:::tip Selection Guide
+- **Basic L3/L4 policies only**: VPC CNI's EKS Network Policy is sufficient.
+- **L7 filtering, FQDN policies, real-time visibility needed**: Cilium is the only option.
+- **Multi-tenant environments**: Cilium's CiliumClusterwideNetworkPolicy and host-level policies are essential.
+:::
+
+---
+
 ## References
 
 - [Cilium Performance Tuning Guide](https://docs.cilium.io/en/stable/operations/performance/tuning/)
