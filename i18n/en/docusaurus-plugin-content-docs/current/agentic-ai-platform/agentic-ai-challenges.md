@@ -4,7 +4,7 @@ sidebar_label: "Technical Challenges"
 description: "4 key technical challenges in operating Agentic AI workloads and the Kubernetes-based open source ecosystem"
 tags: [kubernetes, genai, agentic-ai, gpu, challenges, open-source]
 category: "genai-aiml"
-date: 2025-02-05
+date: "2025-02-05"
 authors: [devfloor9]
 sidebar_position: 3
 ---
@@ -12,7 +12,7 @@ sidebar_position: 3
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
-> **Written**: 2025-02-05 | **Reading time**: ~20 min
+> **Written**: 2025-02-05 | **Last modified**: 2026-02-04 | **Reading time**: ~25 min
 
 ## Introduction
 
@@ -64,7 +64,7 @@ Traditional VM-based infrastructure or manual management approaches cannot effec
 
 ## The Key to Resolution: Integration of Cloud Infrastructure Automation and AI Platform
 
-The key to solving Agentic AI Platform challenges is **organic integration of cloud infrastructure automation and AI workloads**. This integration is important because:
+The key to solving Agentic AI Platform challenges is the **organic integration of cloud infrastructure automation and AI workloads**. Here's why this integration matters:
 
 ```mermaid
 graph LR
@@ -97,8 +97,6 @@ graph LR
 
     style PLATFORM fill:#326ce5
 ```
-
----
 
 ## Why Kubernetes?
 
@@ -155,9 +153,11 @@ Kubernetes provides rich integration with AI/ML ecosystems including NVIDIA GPU 
 
 ---
 
+Now that we understand why Kubernetes is ideal for AI workloads, let's look at the **specific open source solutions that address each challenge**.
+
 ## Bird's Eye View of Kubernetes Agentic AI Solutions
 
-The Kubernetes ecosystem has **specialized open-source solutions** to solve each challenge of Agentic AI Platform. These solutions are designed to be Kubernetes-native, allowing you to leverage the benefits of **declarative management, automatic scaling, and high availability**.
+The Kubernetes ecosystem has **specialized open-source solutions** to solve each challenge of the Agentic AI Platform. These solutions are designed to be Kubernetes-native, allowing you to leverage the benefits of **declarative management, automatic scaling, and high availability**.
 
 ### Solution Mapping Overview
 
@@ -171,7 +171,7 @@ graph TB
     end
 
     subgraph "Kubernetes Native Solutions"
-        S1["Auto Node Provisioning<br/>GPU-aware Scheduling"]
+        S1["Karpenter<br/>GPU Node Auto Provisioning"]
         S2["Kgateway + LiteLLM<br/>Inference Gateway"]
         S3["LangFuse / LangSmith<br/>LLM Observability"]
         S4["NeMo + Kubeflow<br/>Distributed Training Pipeline"]
@@ -213,16 +213,18 @@ graph TB
 
 | Challenge | Core Solution | Supporting Solutions | Solves |
 | --- | --- | --- | --- |
-| **GPU Monitoring & Scheduling** | Kubernetes Scheduler + Device Plugins | DCGM Exporter, NVIDIA GPU Operator | GPU visibility, generation-specific workload matching |
+| **GPU Monitoring & Scheduling** | Karpenter | DCGM Exporter, NVIDIA GPU Operator | GPU node auto provisioning, generation-specific workload matching |
 | **Dynamic Routing & Scaling** | Kgateway, LiteLLM | KEDA, vLLM, llm-d | Multi-model routing, traffic-based auto scaling |
 | **Token/Cost Monitoring** | LangFuse, LangSmith | OpenTelemetry, Prometheus | Token-level tracking, cost visibility, quality evaluation |
 | **FM Fine-tuning** | NeMo, Kubeflow | MLflow, Ray | Distributed learning orchestration, pipeline automation |
 
 ---
 
+So far, we've surveyed the various solutions in the Kubernetes ecosystem. Now let's take a closer look at **how these solutions actually integrate and work together** from an open source architecture perspective.
+
 ## Open Source Ecosystem and Kubernetes Integration Architecture
 
-Now that we understand the landscape, let's explore the **detailed open source solutions** and how they integrate with Kubernetes.
+The Agentic AI Platform is composed of various open source projects that integrate organically around Kubernetes. This section explains how the core open source projects in **LLM Observability, Model Serving, Vector Databases, and GPU Infrastructure** collaborate to form a complete Agentic AI Platform.
 
 ### 1. Model Serving: vLLM + llm-d
 
@@ -394,11 +396,435 @@ graph TB
 - Native integration with Kubernetes RBAC
 - Leverages Kubernetes Secrets for API keys
 
-### 5. Distributed Training: NeMo + Kubeflow
+### Solution Stack Integration Architecture
 
-**NeMo** is NVIDIA's framework for large-scale model training with built-in support for various parallelism strategies.
+```mermaid
+graph TB
+    subgraph "Client Layer"
+        WEB["Web Application"]
+        API["API Clients"]
+        AGENT["Agent Applications"]
+    end
 
-**Kubeflow** provides ML workflow orchestration on Kubernetes.
+    subgraph "Gateway Layer"
+        KGW["Kgateway<br/>Traffic Management"]
+        LITE["LiteLLM<br/>Provider Abstraction"]
+    end
+
+    subgraph "Orchestration Layer"
+        KAGENT["KAgent<br/>Agent Framework"]
+        KEDA["KEDA<br/>Event-driven Scaling"]
+    end
+
+    subgraph "Serving Layer"
+        LLMD["llm-d<br/>Request Scheduler"]
+        VLLM1["vLLM Instance 1"]
+        VLLM2["vLLM Instance 2"]
+        VLLM3["vLLM Instance 3"]
+    end
+
+    subgraph "Infrastructure Layer"
+        KARP["Karpenter<br/>Node Provisioning"]
+        GPU1["GPU Node 1"]
+        GPU2["GPU Node 2"]
+        GPU3["GPU Node 3"]
+    end
+
+    subgraph "Observability Layer"
+        LF["LangFuse<br/>LLM Tracing"]
+        PROM["Prometheus<br/>Metrics"]
+        GRAF["Grafana<br/>Dashboards"]
+    end
+
+    WEB & API & AGENT --> KGW
+    KGW --> LITE
+    LITE --> KAGENT
+    KAGENT --> LLMD
+    LLMD --> VLLM1 & VLLM2 & VLLM3
+    VLLM1 --> GPU1
+    VLLM2 --> GPU2
+    VLLM3 --> GPU3
+    KARP --> GPU1 & GPU2 & GPU3
+    KEDA --> VLLM1 & VLLM2 & VLLM3
+
+    KAGENT -.-> LF
+    VLLM1 & VLLM2 & VLLM3 -.-> PROM
+    PROM --> GRAF
+    LF --> GRAF
+
+    style KGW fill:#4286f4
+    style KAGENT fill:#2ecc71
+    style KARP fill:#ffd93d
+    style LF fill:#45b7d1
+    style LLMD fill:#e74c3c
+```
+
+---
+
+### Full Open Source Integration Architecture
+
+```mermaid
+graph TB
+    subgraph "Application Layer"
+        AGENT["Agentic AI Application"]
+        RAG["RAG Pipeline"]
+    end
+
+    subgraph "LLM Observability Layer"
+        LF["LangFuse<br/>(Self-hosted)"]
+        LS["LangSmith<br/>(Managed)"]
+        RAGAS["RAGAS<br/>(RAG Quality Evaluation)"]
+    end
+
+    subgraph "Inference Gateway Layer"
+        LITE["LiteLLM<br/>(Provider Abstraction)"]
+        KGW["Kgateway<br/>(Traffic Management)"]
+    end
+
+    subgraph "Model Serving Layer"
+        LLMD["llm-d<br/>(Distributed Scheduler)"]
+        VLLM["vLLM<br/>(Inference Engine)"]
+    end
+
+    subgraph "Vector Database Layer"
+        MILVUS["Milvus<br/>(Vector Store)"]
+    end
+
+    subgraph "GPU Infrastructure Layer"
+        DRA["DRA<br/>(Dynamic Resource Allocation)"]
+        DCGM["DCGM<br/>(GPU Monitoring)"]
+        NCCL["NCCL<br/>(GPU Communication)"]
+        KARP["Karpenter<br/>(Node Provisioning)"]
+    end
+
+    AGENT --> LF & LS
+    AGENT --> LITE
+    RAG --> MILVUS
+    RAG --> RAGAS
+    LITE --> KGW
+    KGW --> LLMD
+    LLMD --> VLLM
+    VLLM --> DRA
+    DRA --> DCGM
+    VLLM --> NCCL
+    KARP --> DRA
+
+    style LF fill:#45b7d1
+    style LS fill:#9b59b6
+    style RAGAS fill:#e67e22
+    style LITE fill:#9b59b6
+    style LLMD fill:#e74c3c
+    style MILVUS fill:#00d4aa
+    style DRA fill:#326ce5
+    style DCGM fill:#76b900
+    style NCCL fill:#76b900
+    style KARP fill:#ffd93d
+```
+
+### Layer-by-Layer Open Source Roles and Integration
+
+#### LLM Observability Layer: LangFuse, LangSmith, RAGAS
+
+Core tools for **tracking the entire lifecycle and evaluating the quality** of LLM applications.
+
+| Solution | Role | Kubernetes Integration | Core Features |
+| --- | --- | --- | --- |
+| **LangFuse** | LLM Tracing (Self-hosted) | Helm Chart, StatefulSet | Token tracking, cost analysis, prompt version management |
+| **LangSmith** | LLM Tracing (Managed) | SDK integration | Tracing, evaluation, dataset management, collaboration |
+| **RAGAS** | RAG Quality Evaluation | Job/CronJob | Faithfulness, Relevancy, Context Precision evaluation |
+
+```mermaid
+graph LR
+    subgraph "LLM Application"
+        APP["Agent App"]
+        SDK1["LangFuse SDK"]
+        SDK2["LangSmith SDK"]
+    end
+
+    subgraph "Kubernetes Cluster"
+        subgraph "LangFuse Stack"
+            LF_WEB["LangFuse Web<br/>(Deployment)"]
+            LF_WORKER["LangFuse Worker<br/>(Deployment)"]
+            LF_DB["PostgreSQL<br/>(StatefulSet)"]
+            LF_REDIS["Redis<br/>(StatefulSet)"]
+        end
+
+        subgraph "RAGAS Evaluation"
+            RAGAS_JOB["RAGAS Job<br/>(CronJob)"]
+        end
+    end
+
+    APP --> SDK1 --> LF_WEB
+    APP --> SDK2
+    LF_WEB --> LF_WORKER --> LF_DB
+    LF_WORKER --> LF_REDIS
+    RAGAS_JOB --> LF_DB
+
+    style LF_WEB fill:#45b7d1
+    style RAGAS_JOB fill:#e67e22
+```
+
+**LangFuse Kubernetes Deployment Example:**
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: langfuse-web
+  namespace: observability
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: langfuse-web
+  template:
+    spec:
+      containers:
+        - name: langfuse
+          image: langfuse/langfuse:latest
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: langfuse-secrets
+                  key: database-url
+            - name: NEXTAUTH_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: langfuse-secrets
+                  key: nextauth-secret
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: ragas-evaluation
+  namespace: observability
+spec:
+  schedule: "0 */6 * * *"  # Runs every 6 hours
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+            - name: ragas
+              image: ragas/ragas:latest
+              command: ["python", "-m", "ragas.evaluate"]
+              env:
+                - name: LANGFUSE_HOST
+                  value: "http://langfuse-web:3000"
+          restartPolicy: OnFailure
+```
+
+#### Inference Gateway Layer: LiteLLM
+
+**LiteLLM** abstracts 100+ LLM providers into a **unified OpenAI-compatible API**.
+
+```mermaid
+graph TB
+    subgraph "LiteLLM Gateway"
+        PROXY["LiteLLM Proxy<br/>(Deployment)"]
+        CONFIG["Config<br/>(ConfigMap)"]
+        CACHE["Redis Cache<br/>(StatefulSet)"]
+    end
+
+    subgraph "LLM Backends"
+        SELF["Self-hosted<br/>vLLM / TGI"]
+        BEDROCK["Amazon Bedrock"]
+        OPENAI["OpenAI API"]
+        ANTHROPIC["Anthropic API"]
+    end
+
+    subgraph "Features"
+        LB["Load Balancing"]
+        FALLBACK["Fallback Logic"]
+        COST["Cost Tracking"]
+        RATE["Rate Limiting"]
+    end
+
+    PROXY --> SELF & BEDROCK & OPENAI & ANTHROPIC
+    CONFIG --> PROXY
+    CACHE --> PROXY
+    PROXY --> LB & FALLBACK & COST & RATE
+
+    style PROXY fill:#9b59b6
+```
+
+**LiteLLM Kubernetes Deployment Example:**
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: litellm-proxy
+  namespace: ai-gateway
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: litellm
+  template:
+    spec:
+      containers:
+        - name: litellm
+          image: ghcr.io/berriai/litellm:main-latest
+          ports:
+            - containerPort: 4000
+          env:
+            - name: LITELLM_MASTER_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: litellm-secrets
+                  key: master-key
+            - name: REDIS_HOST
+              value: "redis-cache"
+          volumeMounts:
+            - name: config
+              mountPath: /app/config.yaml
+              subPath: config.yaml
+      volumes:
+        - name: config
+          configMap:
+            name: litellm-config
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: litellm-config
+  namespace: ai-gateway
+data:
+  config.yaml: |
+    model_list:
+      - model_name: gpt-4
+        litellm_params:
+          model: openai/gpt-4
+          api_key: os.environ/OPENAI_API_KEY
+      - model_name: claude-3
+        litellm_params:
+          model: anthropic/claude-3-opus
+          api_key: os.environ/ANTHROPIC_API_KEY
+      - model_name: llama-70b
+        litellm_params:
+          model: openai/llama-70b
+          api_base: http://vllm-llama:8000/v1
+
+    router_settings:
+      routing_strategy: least-busy
+      enable_fallbacks: true
+
+    general_settings:
+      master_key: os.environ/LITELLM_MASTER_KEY
+```
+
+#### Distributed Inference Layer: llm-d
+
+**llm-d** is a scheduler that **intelligently distributes** LLM inference requests in Kubernetes environments.
+
+| Feature | Description | Kubernetes Integration |
+| --- | --- | --- |
+| **Prefix Caching Awareness** | Routes requests with the same prompt prefix to the same instance | Leverages Service Discovery |
+| **Load Balancing** | Intelligent distribution based on GPU utilization | Prometheus metrics integration |
+| **Failure Recovery** | Automatic re-routing on instance failure | Health Check + Endpoint Slice |
+| **Dynamic Scaling** | Backend expansion based on request volume | KEDA integration |
+
+```mermaid
+graph LR
+    subgraph "llm-d Architecture"
+        ROUTER["llm-d Router<br/>(Deployment)"]
+        SCHED["Scheduler Logic"]
+        CACHE["Prefix Cache Index"]
+    end
+
+    subgraph "vLLM Backends"
+        V1["vLLM-1<br/>GPU: A100"]
+        V2["vLLM-2<br/>GPU: A100"]
+        V3["vLLM-3<br/>GPU: H100"]
+    end
+
+    subgraph "Kubernetes Resources"
+        SVC["Service"]
+        EP["EndpointSlice"]
+        HPA["HPA/KEDA"]
+    end
+
+    ROUTER --> SCHED --> CACHE
+    SCHED --> V1 & V2 & V3
+    SVC --> ROUTER
+    EP --> V1 & V2 & V3
+    HPA --> V1 & V2 & V3
+
+    style ROUTER fill:#e74c3c
+    style SCHED fill:#e74c3c
+```
+
+**llm-d Kubernetes Deployment Example:**
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: llm-d-router
+  namespace: ai-inference
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: llm-d
+  template:
+    spec:
+      containers:
+        - name: llm-d
+          image: ghcr.io/llm-d/llm-d:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: BACKENDS
+              value: "vllm-0.vllm:8000,vllm-1.vllm:8000,vllm-2.vllm:8000"
+            - name: ROUTING_STRATEGY
+              value: "prefix-aware"
+            - name: PROMETHEUS_ENDPOINT
+              value: "http://prometheus:9090"
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "500m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: llm-d
+  namespace: ai-inference
+spec:
+  selector:
+    app: llm-d
+  ports:
+    - port: 8080
+      targetPort: 8080
+```
+
+### 5. Vector Database Layer: Milvus
+
+Milvus, a core component of RAG pipelines, operates with a distributed architecture on Kubernetes.
+
+For detailed information, see **[Milvus Vector Database](./milvus-vector-database.md)**.
+
+**Key features of Milvus:**
+- **Distributed Architecture**: Separates access, coordination, worker, and storage layers for independent scaling
+- **Kubernetes Operator**: CRD-based declarative management
+- **GPU Acceleration**: GPU-accelerated index building on Index Nodes
+- **S3 Integration**: Amazon S3 as persistent storage
+
+### 6. Distributed Training: NeMo + Kubeflow
+
+**NVIDIA NeMo** and **Kubeflow** provide **automated distributed training pipelines** for large-scale models.
+
+| Solution | Role | Core Features |
+| --- | --- | --- |
+| **NeMo** | Training Framework | LLM/multimodal training, model parallelism, optimization techniques |
+| **Kubeflow** | ML Orchestration | Pipeline management, experiment tracking, hyperparameter tuning |
 
 ```mermaid
 graph LR
@@ -439,348 +865,72 @@ graph LR
 - Topology-aware scheduling (node affinity, anti-affinity)
 - Integration with CSI drivers for shared storage (FSx for Lustre)
 
-### Solution Stack Integration Architecture
+---
+
+## GPU Infrastructure and Resource Management
+
+GPU resource management is at the core of Agentic AI platforms. For detailed information, see:
+
+- **[GPU Resource Management](./gpu-resource-management.md)**: Device Plugin, DRA (Dynamic Resource Allocation), GPU topology-aware scheduling
+- **[NeMo Framework](./nemo-framework.md)**: Distributed training and NCCL optimization
+
+:::tip Key GPU Management Concepts
+- **Device Plugin**: Kubernetes' basic GPU allocation mechanism
+- **DRA (Dynamic Resource Allocation)**: Flexible resource management in Kubernetes 1.26+
+- **NCCL**: High-performance communication library for distributed GPU training
+:::
+
+### GPU Infrastructure Stack Overview
 
 ```mermaid
 graph TB
-    subgraph "Client Layer"
-        WEB["Web Application"]
-        API["API Clients"]
-        AGENT["Agent Applications"]
+    subgraph "GPU Infrastructure Stack"
+        subgraph "Resource Allocation"
+            DRA["DRA<br/>(Dynamic Resource Allocation)"]
+            DRIVER["NVIDIA Device Plugin"]
+        end
+
+        subgraph "Monitoring"
+            DCGM["DCGM Exporter"]
+            PROM["Prometheus"]
+            GRAF["Grafana"]
+        end
+
+        subgraph "Communication"
+            NCCL["NCCL<br/>(GPU Collective Comm)"]
+            EFA["EFA Driver"]
+        end
+
+        subgraph "Node Management"
+            KARP["Karpenter"]
+            GPU_OP["GPU Operator"]
+        end
     end
 
-    subgraph "Gateway Layer"
-        KGW["Kgateway<br/>Traffic Management"]
-        LITE["LiteLLM<br/>Provider Abstraction"]
+    subgraph "GPU Nodes"
+        N1["Node 1<br/>8x A100"]
+        N2["Node 2<br/>8x A100"]
+        N3["Node 3<br/>8x H100"]
     end
 
-    subgraph "Orchestration Layer"
-        KAGENT["KAgent<br/>Agent Framework"]
-        KEDA["KEDA<br/>Event-driven Scaling"]
-    end
+    DRA --> DRIVER --> N1 & N2 & N3
+    DCGM --> N1 & N2 & N3
+    DCGM --> PROM --> GRAF
+    NCCL --> EFA --> N1 & N2 & N3
+    KARP --> N1 & N2 & N3
+    GPU_OP --> DRIVER & DCGM
 
-    subgraph "Serving Layer"
-        LLMD["llm-d<br/>Request Scheduler"]
-        VLLM1["vLLM Instance 1"]
-        VLLM2["vLLM Instance 2"]
-        VLLM3["vLLM Instance 3"]
-    end
-
-    subgraph "Infrastructure Layer"
-        SCHED["Kubernetes Scheduler"]
-        GPU1["GPU Node 1"]
-        GPU2["GPU Node 2"]
-        GPU3["GPU Node 3"]
-    end
-
-    subgraph "Observability Layer"
-        LF["LangFuse<br/>LLM Tracing"]
-        PROM["Prometheus<br/>Metrics"]
-        GRAF["Grafana<br/>Dashboards"]
-    end
-
-    WEB & API & AGENT --> KGW
-    KGW --> LITE
-    LITE --> KAGENT
-    KAGENT --> LLMD
-    LLMD --> VLLM1 & VLLM2 & VLLM3
-    VLLM1 --> GPU1
-    VLLM2 --> GPU2
-    VLLM3 --> GPU3
-    SCHED --> GPU1 & GPU2 & GPU3
-    KEDA --> VLLM1 & VLLM2 & VLLM3
-
-    KAGENT -.-> LF
-    VLLM1 & VLLM2 & VLLM3 -.-> PROM
-    PROM --> GRAF
-    LF --> GRAF
-
-    style KGW fill:#4286f4
-    style KAGENT fill:#2ecc71
-    style LF fill:#45b7d1
-    style LLMD fill:#e74c3c
+    style DRA fill:#326ce5
+    style DCGM fill:#76b900
+    style NCCL fill:#76b900
+    style KARP fill:#ffd93d
 ```
 
----
-
-## Deep Dive: Kubernetes GPU Scheduling and Resource Management
-
-### GPU Device Plugin Architecture
-
-Kubernetes supports GPU resources through the **Device Plugin** framework, which extends the kubelet to support vendor-specific devices.
-
-```mermaid
-graph TB
-    subgraph "Kubernetes Control Plane"
-        API["API Server"]
-        SCHED["Scheduler"]
-    end
-
-    subgraph "GPU Node"
-        KUBELET["kubelet"]
-        DEVICE["NVIDIA Device Plugin"]
-        RUNTIME["Container Runtime"]
-        DRIVER["NVIDIA Driver"]
-        GPU["GPU Hardware"]
-    end
-
-    subgraph "Pod"
-        CONTAINER["Container with GPU"]
-    end
-
-    API --> SCHED
-    SCHED --> KUBELET
-    KUBELET <--> DEVICE
-    DEVICE --> DRIVER
-    DRIVER --> GPU
-    KUBELET --> RUNTIME
-    RUNTIME --> CONTAINER
-    CONTAINER -.-> GPU
-
-    style DEVICE fill:#76b900
-    style GPU fill:#ff6b6b
-```
-
-**How it works:**
-1. **Device Plugin Registration**: NVIDIA Device Plugin discovers GPUs on the node and registers them with kubelet
-2. **Resource Advertisement**: kubelet advertises available GPU resources to the API server
-3. **Scheduling**: Scheduler considers GPU availability when placing Pods
-4. **Allocation**: Device Plugin allocates specific GPU devices to containers
-5. **Isolation**: Container runtime ensures GPU isolation between containers
-
-### Dynamic Resource Allocation (DRA)
-
-**DRA** is a newer Kubernetes feature (beta in 1.26+) that enables more flexible resource management beyond simple counting.
-
-**Benefits for AI Workloads:**
-- **GPU Partitioning**: MIG (Multi-Instance GPU) support for sharing single GPU
-- **Topology-Aware Scheduling**: Consider GPU-GPU interconnects (NVLink, NVSwitch)
-- **Time-Slicing**: Share GPUs across multiple workloads
-- **Custom Resource Claims**: Request specific GPU characteristics (memory, compute capability)
-
-```yaml
-# Example: DRA ResourceClaim for specific GPU requirements
-apiVersion: resource.k8s.io/v1alpha2
-kind: ResourceClaim
-metadata:
-  name: high-memory-gpu
-spec:
-  resourceClassName: nvidia-gpu
-  parametersRef:
-    apiGroup: gpu.nvidia.com
-    kind: GpuClaimParameters
-    name: high-memory-gpu-params
----
-apiVersion: gpu.nvidia.com/v1alpha1
-kind: GpuClaimParameters
-metadata:
-  name: high-memory-gpu-params
-spec:
-  count: 2
-  memory: "80Gi"  # Requires 80GB VRAM
-  computeCapability: "8.0"  # A100 or newer
-  topology:
-    nvlink: required  # Must be NVLink connected
-```
-
-### GPU Topology-Aware Scheduling
-
-For distributed training, **GPU topology** (how GPUs are connected) is critical for performance.
-
-```mermaid
-graph TB
-    subgraph "Single Node - NVLink Topology"
-        GPU0["GPU 0"] <--> GPU1["GPU 1"]
-        GPU1 <--> GPU2["GPU 2"]
-        GPU2 <--> GPU3["GPU 3"]
-        GPU3 <--> GPU0
-    end
-
-    subgraph "Multi-Node - NVSwitch/IB Topology"
-        NODE1["Node 1<br/>4 GPUs"]
-        NODE2["Node 2<br/>4 GPUs"]
-        NODE3["Node 3<br/>4 GPUs"]
-        NODE4["Node 4<br/>4 GPUs"]
-
-        SWITCH["NVSwitch Fabric<br/>or<br/>InfiniBand Network"]
-
-        NODE1 <--> SWITCH
-        NODE2 <--> SWITCH
-        NODE3 <--> SWITCH
-        NODE4 <--> SWITCH
-    end
-
-    style GPU0 fill:#76b900
-    style GPU1 fill:#76b900
-    style GPU2 fill:#76b900
-    style GPU3 fill:#76b900
-    style SWITCH fill:#ff9900
-```
-
-**Scheduling Considerations:**
-- **Affinity Rules**: Co-locate training Pods on same node when possible
-- **Anti-Affinity**: Spread inference replicas across nodes for HA
-- **Node Labels**: Label nodes with GPU topology information
-- **Pod Topology Spread**: Use `topologySpreadConstraints` for intelligent placement
-
-### NCCL Integration for Distributed Training
-
-**NCCL** (NVIDIA Collective Communications Library) is crucial for multi-GPU communication in distributed training.
-
-**Kubernetes Integration Points:**
-
-<Tabs>
-<TabItem value="config" label="NCCL Configuration" default>
-
-```yaml
-apiVersion: v1
-kind: Pod
-metadata:
-  name: distributed-training
-spec:
-  containers:
-  - name: trainer
-    image: nvcr.io/nvidia/pytorch:24.01-py3
-    env:
-    # NCCL Core Settings
-    - name: NCCL_DEBUG
-      value: "INFO"  # Enable NCCL logging
-    - name: NCCL_DEBUG_SUBSYS
-      value: "INIT,GRAPH,ENV"
-
-    # Network Interface Selection
-    - name: NCCL_SOCKET_IFNAME
-      value: "eth0"  # Primary network interface
-    - name: NCCL_IB_DISABLE
-      value: "0"  # Enable InfiniBand if available
-
-    # Performance Tuning
-    - name: NCCL_NET_GDR_LEVEL
-      value: "5"  # GPUDirect RDMA level
-    - name: NCCL_P2P_LEVEL
-      value: "NVL"  # Use NVLink for P2P
-    - name: NCCL_CROSS_NIC
-      value: "1"  # Use multiple NICs
-
-    # EFA-specific (AWS)
-    - name: FI_PROVIDER
-      value: "efa"
-    - name: FI_EFA_USE_DEVICE_RDMA
-      value: "1"
-    - name: NCCL_PROTO
-      value: "simple"
-
-    resources:
-      limits:
-        nvidia.com/gpu: 8
-```
-
-</TabItem>
-<TabItem value="topology" label="Topology Detection">
-
-```yaml
-# ConfigMap with NCCL topology information
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: nccl-topology
-data:
-  topology.xml: |
-    <?xml version="1.0" encoding="UTF-8"?>
-    <system version="1">
-      <gpu dev="0" numa="0" pci="0000:10:1c.0">
-        <nvlink target="1" count="12"/>
-        <nvlink target="2" count="12"/>
-        <nvlink target="3" count="12"/>
-      </gpu>
-      <gpu dev="1" numa="0" pci="0000:10:1d.0">
-        <nvlink target="0" count="12"/>
-        <nvlink target="2" count="12"/>
-        <nvlink target="3" count="12"/>
-      </gpu>
-      <!-- Additional GPUs... -->
-    </system>
----
-apiVersion: v1
-kind: Pod
-metadata:
-  name: training-with-topology
-spec:
-  containers:
-  - name: trainer
-    volumeMounts:
-    - name: nccl-topology
-      mountPath: /etc/nccl
-    env:
-    - name: NCCL_TOPO_FILE
-      value: /etc/nccl/topology.xml
-  volumes:
-  - name: nccl-topology
-    configMap:
-      name: nccl-topology
-```
-
-</TabItem>
-<TabItem value="benchmark" label="NCCL Benchmark">
-
-```yaml
-# NCCL Tests DaemonSet for network validation
-apiVersion: apps/v1
-kind: DaemonSet
-metadata:
-  name: nccl-tests
-  namespace: gpu-testing
-spec:
-  selector:
-    matchLabels:
-      app: nccl-tests
-  template:
-    metadata:
-      labels:
-        app: nccl-tests
-    spec:
-      hostNetwork: true  # Access host network
-      containers:
-      - name: nccl-test
-        image: nvcr.io/nvidia/pytorch:24.01-py3
-        command:
-        - /bin/bash
-        - -c
-        - |
-          # Install NCCL tests
-          git clone https://github.com/NVIDIA/nccl-tests.git
-          cd nccl-tests
-          make MPI=1
-
-          # Run all-reduce benchmark
-          mpirun --allow-run-as-root \
-            -np 8 \
-            --hostfile /etc/mpi/hostfile \
-            --bind-to none \
-            -x NCCL_DEBUG=INFO \
-            -x NCCL_SOCKET_IFNAME=eth0 \
-            ./build/all_reduce_perf -b 8 -e 4G -f 2 -g 1
-        resources:
-          limits:
-            nvidia.com/gpu: 8
-        volumeMounts:
-        - name: dshm
-          mountPath: /dev/shm
-      volumes:
-      - name: dshm
-        emptyDir:
-          medium: Memory
-          sizeLimit: 64Gi
-```
-
-</TabItem>
-</Tabs>
-
-**NCCL Performance Factors:**
-1. **Network Bandwidth**: InfiniBand (200-400 Gbps) > EFA (100 Gbps) > Ethernet (25-100 Gbps)
-2. **GPU Interconnect**: NVLink (600 GB/s) > PCIe 5.0 (128 GB/s)
-3. **Topology Awareness**: Direct connections reduce latency
-4. **Protocol Selection**: `simple` for small messages, `LL128` for large
+| Component | Role | Detailed Documentation |
+| --- | --- | --- |
+| **DRA (Dynamic Resource Allocation)** | Dynamic GPU resource allocation | [GPU Resource Management](./gpu-resource-management.md) |
+| **DCGM (Data Center GPU Manager)** | GPU metrics collection | [GPU Resource Management](./gpu-resource-management.md) |
+| **NCCL (NVIDIA Collective Communication Library)** | Multi-GPU communication optimization | [NeMo Framework](./nemo-framework.md) |
 
 ---
 
@@ -823,35 +973,58 @@ For organizations building Agentic AI platforms:
 
 :::info Next Step: EKS-Based Solutions
 For detailed solutions using **Amazon EKS and AWS services** to address these challenges, see [EKS-Based Agentic AI Solutions](./agentic-ai-solutions-eks.md).
+:::
 
-The EKS solutions document covers:
-- **Karpenter** for intelligent GPU node provisioning
-- **EKS Auto Mode** for fully managed Kubernetes
-- **AWS service integrations** (S3, FSx, EFA, Secrets Manager)
-- **Production-ready configurations** and best practices
+---
+
+## Next Steps
+
+This document explored the 4 core challenges of Agentic AI workloads and the Kubernetes-based open source ecosystem.
+
+:::info Next Step: EKS-Based Solutions
+For specific methods to solve the challenges introduced in this document using **Amazon EKS and AWS services**, see [EKS-Based Agentic AI Solutions](./agentic-ai-solutions-eks.md).
+
+Topics covered in the next document:
+- Building fully automated clusters with EKS Auto Mode
+- GPU node auto provisioning with Karpenter
+- Integration with AWS services (Bedrock, S3, CloudWatch)
+- Security and operational strategies for production environments
+- Hands-on deployment guides and troubleshooting
 :::
 
 ---
 
 ## References
 
-### Kubernetes and GPU
-- [Kubernetes Device Plugin Framework](https://kubernetes.io/docs/concepts/extend-kubernetes/compute-storage-net/device-plugins/)
-- [Dynamic Resource Allocation (DRA)](https://kubernetes.io/docs/concepts/scheduling-eviction/dynamic-resource-allocation/)
+### Kubernetes and Infrastructure
+- [Kubernetes Official Documentation](https://kubernetes.io/docs/)
+- [Karpenter Official Documentation](https://karpenter.sh/docs/)
+- [Amazon EKS Best Practices Guide](https://aws.github.io/aws-eks-best-practices/)
 - [NVIDIA GPU Operator Documentation](https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/overview.html)
-- [GPU Operator Architecture](https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/latest/platform-support.html)
-
-### Open Source Solutions
-- [vLLM Documentation](https://docs.vllm.ai/)
-- [LiteLLM Documentation](https://docs.litellm.ai/)
-- [LangFuse Documentation](https://langfuse.com/docs)
-- [LangSmith Documentation](https://docs.smith.langchain.com/)
-- [NVIDIA NeMo Framework](https://docs.nvidia.com/nemo-framework/user-guide/latest/overview.html)
-- [Kubeflow Documentation](https://www.kubeflow.org/docs/)
 - [KEDA - Kubernetes Event-driven Autoscaling](https://keda.sh/)
 
-### NCCL and Distributed Training
+### Model Serving and Inference
+- [vLLM Documentation](https://docs.vllm.ai/)
+- [llm-d Project](https://github.com/llm-d/llm-d)
+- [Kgateway Documentation](https://kgateway.io/docs/)
+- [LiteLLM Documentation](https://docs.litellm.ai/)
+
+### LLM Observability
+- [LangFuse Documentation](https://langfuse.com/docs)
+- [LangSmith Documentation](https://docs.smith.langchain.com/)
+- [RAGAS Documentation](https://docs.ragas.io/)
+
+### Vector Database
+- [Milvus Documentation](https://milvus.io/docs)
+- [Milvus Operator](https://github.com/milvus-io/milvus-operator)
+
+### GPU Infrastructure
+- [NVIDIA DRA Documentation](https://docs.nvidia.com/datacenter/cloud-native/kubernetes/latest/dra.html)
+- [DCGM Exporter](https://github.com/NVIDIA/dcgm-exporter)
 - [NCCL Documentation](https://docs.nvidia.com/deeplearning/nccl/user-guide/docs/index.html)
-- [NCCL Tests Repository](https://github.com/NVIDIA/nccl-tests)
-- [PyTorch Distributed Training](https://pytorch.org/tutorials/beginner/dist_overview.html)
-- [EFA Best Practices](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/efa-start.html)
+- [AWS EFA Documentation](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/efa.html)
+
+### Agent Framework and Training
+- [KAgent - Kubernetes Agent Framework](https://github.com/kagent-dev/kagent)
+- [NVIDIA NeMo Framework](https://docs.nvidia.com/nemo-framework/user-guide/latest/overview.html)
+- [Kubeflow Documentation](https://www.kubeflow.org/docs/)
