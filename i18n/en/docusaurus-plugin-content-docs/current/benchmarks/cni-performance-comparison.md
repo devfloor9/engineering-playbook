@@ -38,7 +38,7 @@ import NetworkPolicyChart from '@site/src/components/NetworkPolicyChart';
 
 A quantitative benchmark comparing VPC CNI and Cilium CNI performance across 5 scenarios on Amazon EKS 1.31.
 
-**Bottom line**: TCP throughput is NIC-bound (12.5 Gbps) and identical across all CNI configurations, but Cilium ENI with full tuning delivers **680× lower UDP packet loss** (20% → 0.03%), **36% lower RTT** (4,894 → 3,135 µs), and **20% lower HTTP p99 latency** (10.92 → 8.75 ms) compared to VPC CNI.
+**Bottom line**: TCP throughput is NIC-bound (12.5 Gbps) and identical across all CNI configurations, but Cilium ENI with full tuning delivers **680× lower UDP packet loss** (20% → 0.03%), **36% lower RTT** (4,894 → 3,135 µs), and **20% lower HTTP p99 latency** (10.92 → 8.75 ms) compared to VPC CNI. Additionally, 1,000-service scaling tests show that kube-proxy's iptables rules grew **101× (99→10,059 rules)** with **+16% per-connection overhead**, while Cilium eBPF maintained **O(1) constant performance** regardless of service count.
 
 **5 Scenarios**:
 - **A** VPC CNI Baseline

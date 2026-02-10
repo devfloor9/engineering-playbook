@@ -35,7 +35,7 @@ import NetworkPolicyChart from '@site/src/components/NetworkPolicyChart';
 
 Amazon EKS 1.31 환경에서 VPC CNI와 Cilium CNI의 성능을 5개 시나리오로 정량 비교한 벤치마크 보고서입니다.
 
-**한 줄 요약**: TCP throughput은 NIC 대역폭(12.5 Gbps)에 포화되어 CNI 간 차이가 없으나, Cilium ENI+튜닝 적용 시 VPC CNI 대비 **UDP 패킷 손실 개선**(20%→0.03%), **RTT 36% 단축**(4894→3135µs), **HTTP p99 지연 20% 감소**(10.92→8.75ms)를 달성했습니다.
+**한 줄 요약**: TCP throughput은 NIC 대역폭(12.5 Gbps)에 포화되어 CNI 간 차이가 없으나, Cilium ENI+튜닝 적용 시 VPC CNI 대비 **UDP 패킷 손실 개선**(20%→0.03%), **RTT 36% 단축**(4894→3135µs), **HTTP p99 지연 20% 감소**(10.92→8.75ms)를 달성했습니다. 또한 1,000개 서비스 스케일링 테스트에서 kube-proxy의 iptables 규칙이 **101배 증가**(99→10,059개)하며 연결당 **+16% 오버헤드**가 발생한 반면, Cilium eBPF는 서비스 수 증가에 무관한 **O(1) 성능**을 유지했습니다.
 
 **5개 시나리오**:
 - **A** VPC CNI 기본 (베이스라인)

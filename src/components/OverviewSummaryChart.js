@@ -25,10 +25,14 @@ export default function OverviewSummaryChart({ locale = 'en' }) {
       udpPacketLoss: 'UDP Packet Loss',
       podToPodRtt: 'Pod-to-Pod RTT',
       httpP99: 'HTTP p99 @QPS=1000',
+      serviceScaling: 'Service Scaling (1000 svc)',
       identical: 'Identical (NIC-saturated)',
       reduction680x: '680× reduction',
       lower36: '36% lower',
       lower20: '20% lower',
+      iptablesGrowth101x: '101× iptables growth, +16%/conn',
+      ebpfO1: 'O(1) constant performance',
+      ebpfO1Advantage: 'O(1) vs O(n)',
       footnote: '* HTTP p99 improvements reflect optimized network path and reduced latency'
     },
     ko: {
@@ -41,10 +45,14 @@ export default function OverviewSummaryChart({ locale = 'en' }) {
       udpPacketLoss: 'UDP 패킷 손실',
       podToPodRtt: 'Pod 간 RTT',
       httpP99: 'HTTP p99 @QPS=1000',
+      serviceScaling: '서비스 스케일링 (1000 svc)',
       identical: '동일 (NIC 포화)',
       reduction680x: '680배 개선',
       lower36: '36% 단축',
       lower20: '20% 감소',
+      iptablesGrowth101x: 'iptables 101배 증가, 연결당 +16%',
+      ebpfO1: 'O(1) 성능 일정',
+      ebpfO1Advantage: 'O(1) vs O(n)',
       footnote: '* HTTP p99 개선은 최적화된 네트워크 경로와 감소된 지연시간을 반영'
     }
   };
@@ -55,7 +63,8 @@ export default function OverviewSummaryChart({ locale = 'en' }) {
     { metric: t.tcpThroughput, vpcCni: '12.41 Gbps', cilium: '12.40 Gbps', improvement: t.identical, color: '#6b7280' },
     { metric: t.udpPacketLoss, vpcCni: '20.39%', cilium: '0.03%', improvement: t.reduction680x, color: '#10b981' },
     { metric: t.podToPodRtt, vpcCni: '4,894 µs', cilium: '3,135 µs', improvement: t.lower36, color: '#10b981' },
-    { metric: t.httpP99, vpcCni: '10.92 ms', cilium: '8.75 ms*', improvement: t.lower20, color: '#10b981' }
+    { metric: t.httpP99, vpcCni: '10.92 ms', cilium: '8.75 ms*', improvement: t.lower20, color: '#10b981' },
+    { metric: t.serviceScaling, vpcCni: t.iptablesGrowth101x, cilium: t.ebpfO1, improvement: t.ebpfO1Advantage, color: '#10b981' }
   ];
 
   return (
