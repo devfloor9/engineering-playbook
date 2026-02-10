@@ -9,7 +9,20 @@ authors: [devfloor9]
 sidebar_position: 5
 ---
 
+import HttpPerformanceChart from '@site/src/components/HttpPerformanceChart';
+import ServiceScalingChart from '@site/src/components/ServiceScalingChart';
+import KubeproxyScalingChart from '@site/src/components/KubeproxyScalingChart';
+import LatencyChart from '@site/src/components/LatencyChart';
+import UdpLossChart from '@site/src/components/UdpLossChart';
+import ThroughputChart from '@site/src/components/ThroughputChart';
+import AimlRelevanceChart from '@site/src/components/AimlRelevanceChart';
+import TestEnvironmentChart from '@site/src/components/TestEnvironmentChart';
+import ScenarioComparisonChart from '@site/src/components/ScenarioComparisonChart';
+import DnsResourceChart from '@site/src/components/DnsResourceChart';
+
 # VPC CNI vs Cilium CNI 성능 비교 벤치마크
+
+> 📅 **작성일**: 2026-02-09 | ✍️ **작성자**: devfloor9 | ⏱️ **읽는 시간**: 약 25분
 
 ## 개요 요약
 
@@ -35,22 +48,13 @@ Amazon EKS 1.31 환경에서 VPC CNI와 Cilium CNI의 성능을 5개 시나리�
 
 \* HTTP p99 최저값은 시나리오 D(Cilium ENI 기본)에서 달성. 시나리오 E는 BBR 혼잡 제어의 보수적 동작으로 9.89ms 기록.
 
+<AimlRelevanceChart locale="ko" />
+
 ---
 
 ## 테스트 환경
 
-| 항목 | 사양 |
-|------|------|
-| EKS 버전 | 1.31 (Platform: eks.51) |
-| Cilium 버전 | 1.16.5 (Helm Chart: cilium-1.16.5) |
-| 노드 타입 | m6i.xlarge (4 vCPU, 16GB RAM, ENA NIC) |
-| 노드 수 | 3 (단일 AZ: ap-northeast-2a) |
-| OS | Amazon Linux 2023.10.20260120 |
-| 커널 | 6.1.159-182.297.amzn2023.x86_64 |
-| 컨테이너 런타임 | containerd 2.1.5 |
-| Service CIDR | 10.100.0.0/16 |
-| 도구 | kubectl 1.31+, Cilium CLI 0.16+, Helm 3.16+, Fortio 1.65+, iperf3 3.17+ |
-| 측정 방식 | 최소 3회 반복 측정 후 중앙값 사용 |
+<TestEnvironmentChart locale="ko" />
 
 **클러스터 구성**: `scripts/benchmarks/cni-benchmark/cluster.yaml` 참조
 **워크로드 배포**: `scripts/benchmarks/cni-benchmark/workloads.yaml` 참조
@@ -61,13 +65,7 @@ Amazon EKS 1.31 환경에서 VPC CNI와 Cilium CNI의 성능을 5개 시나리�
 
 5개 시나리오는 CNI, kube-proxy 모드, IP 할당 방식, 튜닝 적용 여부를 조합하여 각 변수의 독립적 영향을 측정하도록 설계했습니다.
 
-| # | 시나리오 | CNI | kube-proxy | IP 할당 | 튜닝 | 측정 목적 |
-|---|---------|-----|-----------|---------|------|----------|
-| A | VPC CNI 기본 | VPC CNI | iptables | ENI Secondary IP | 기본값 | 베이스라인 |
-| B | Cilium + kube-proxy | Cilium | iptables 유지 | Overlay (VXLAN) | 기본값 | VPC CNI → Cilium 전환 시 영향 |
-| C | Cilium kube-proxy-less | Cilium | eBPF 대체 | Overlay (VXLAN) | 기본값 | kube-proxy 제거 효과 |
-| D | Cilium ENI 모드 | Cilium | eBPF 대체 | AWS ENI (native) | 기본값 | Overlay vs Native Routing |
-| E | Cilium ENI + 풀 튜닝 | Cilium | eBPF 대체 | AWS ENI (native) | 전체 적용 | 튜닝 누적 효과 |
+<ScenarioComparisonChart locale="ko" />
 
 ### 시나리오 E 튜닝 포인트
 
@@ -174,7 +172,7 @@ Cilium Operator가 EC2 API를 통해 ENI에서 IP를 할당하고, CiliumNode CR
 
 #### TCP/UDP 처리량
 
-![TCP/UDP 처리량 비교](/img/benchmarks/chart-network-throughput.svg)
+<ThroughputChart />
 
 :::info UDP 처리량 차이 원인
 TCP는 모든 시나리오에서 NIC 대역폭(12.5 Gbps)에 포화되어 차이가 없지만, UDP는 구성별로 뚜렷한 성능 차이가 발생합니다:
@@ -188,11 +186,11 @@ TCP는 모든 시나리오에서 NIC 대역폭(12.5 Gbps)에 포화되어 차이
 
 #### Pod-to-Pod 지연
 
-![Pod-to-Pod RTT 비교](/img/benchmarks/chart-latency-comparison.svg)
+<LatencyChart />
 
 #### UDP 패킷 손실률
 
-![UDP 패킷 손실률 비교](/img/benchmarks/chart-udp-loss.svg)
+<UdpLossChart />
 
 <details>
 <summary>상세 데이터 테이블</summary>
@@ -213,7 +211,7 @@ m6i.xlarge의 기준 네트워크 대역폭은 12.5 Gbps입니다. 모든 시나
 
 ### HTTP 애플리케이션 성능
 
-![HTTP 애플리케이션 성능 비교](/img/benchmarks/chart-http-performance.svg)
+<HttpPerformanceChart />
 
 <details>
 <summary>상세 데이터 테이블</summary>
@@ -238,7 +236,7 @@ m6i.xlarge의 기준 네트워크 대역폭은 12.5 Gbps입니다. 모든 시나
 
 Cilium eBPF의 O(1) 서비스 룩업 성능을 검증하기 위해, 동일한 Scenario E 환경에서 서비스 수를 4개 → 104개로 변경한 후 성능을 비교했습니다.
 
-![Service Scaling Impact](/img/benchmarks/chart-service-scaling.svg)
+<ServiceScalingChart />
 
 <details>
 <summary>상세 데이터 테이블</summary>
@@ -256,53 +254,52 @@ Cilium eBPF의 O(1) 서비스 룩업 성능을 검증하기 위해, 동일한 Sc
 Cilium eBPF 환경에서 서비스 수를 4개에서 104개로 26배 증가시켰음에도 모든 메트릭이 측정 오차 범위(5% 이내)에서 동일했습니다. 이는 eBPF의 해시 맵 기반 O(1) 룩업이 서비스 수에 무관하게 일정한 성능을 유지함을 확인합니다. 반면, kube-proxy(iptables)는 서비스 수에 비례하여 규칙 체인을 순회하는 O(n) 특성을 가지며, 500개 이상의 서비스에서 유의미한 성능 저하가 발생합니다.
 :::
 
-### kube-proxy (iptables) 서비스 스케일링 비교
+### kube-proxy (iptables) 서비스 스케일링: 4 → 104 → 1,000개
 
-eBPF의 O(1) 장점을 검증하기 위해 동일한 테스트를 VPC CNI + kube-proxy (시나리오 A)에서 수행했습니다.
+eBPF의 O(1) 장점을 대조 검증하기 위해 VPC CNI + kube-proxy (시나리오 A)에서 서비스 수를 **4개 → 104개 → 1,000개**로 확장하며 성능 변화를 측정했습니다.
 
-![kube-proxy vs Cilium 서비스 스케일링](/img/benchmarks/chart-kubeproxy-scaling.svg)
+<KubeproxyScalingChart locale="ko" />
+
+#### keepalive vs Connection:close 비교 분석
+
+**keepalive 모드** (기존 연결 재사용): iptables 규칙이 101배 증가해도 HTTP 성능에 영향 없음. 이는 conntrack이 이미 설정된 연결의 패킷을 캐시하여 iptables 체인 순회를 우회하기 때문입니다.
+
+**Connection:close 모드** (매 요청마다 신규 TCP 연결): 모든 SYN 패킷에서 KUBE-SERVICES iptables 체인을 순회하여 DNAT 규칙을 평가합니다. 1,000개 서비스에서 **연결당 +26µs (+16%)** 오버헤드가 측정되었습니다.
+
+:::info 왜 Connection:close 테스트가 중요한가?
+프로덕션 환경에서 keepalive를 사용하지 않는 워크로드(gRPC 미사용 레거시 서비스, 단발성 HTTP 요청, TCP 기반 마이크로서비스 등)는 매 요청마다 iptables 체인 순회 비용을 지불합니다. KUBE-SERVICES 체인은 확률 기반 매칭(`-m statistic --mode random`)을 사용하므로 평균 순회 길이는 O(n/2)이며, 서비스 수에 비례하여 증가합니다.
+:::
+
+:::warning iptables 스케일링 한계
+1,000개 서비스 규모에서 연결당 오버헤드는 측정 가능하지만(+26µs) 아직 미미한 수준입니다. 하지만 이 추세는 **서비스 수에 선형으로 증가**하며, 실질적 성능 저하 임계점은 **5,000개 이상 서비스**에서 나타납니다:
+
+- kube-proxy sync 재생성이 **500ms 이상**으로 증가
+- 체인 순회가 연결당 **수백 µs를 추가**
+- Service endpoint 변경 시 전체 iptables 규칙 재생성 필요
+
+반면 Cilium eBPF는 서비스 수에 관계없이 **O(1) 해시 맵 조회**를 유지하며, iptables 규칙 오버헤드가 전혀 없습니다.
+:::
 
 <details>
-<summary>상세 비교 데이터</summary>
+<summary>kube-proxy vs Cilium 전체 비교 데이터</summary>
 
-| 메트릭 | kube-proxy 4개 | kube-proxy 104개 | 변화 | Cilium 4개 | Cilium 104개 | 변화 |
-|--------|---------------|-----------------|------|-----------|-------------|------|
-| HTTP p99 @QPS=1000 | 5.86ms | 5.99ms | +2.2% | 3.94ms | 3.64ms | -8% |
-| HTTP avg @QPS=1000 | 2.508ms | 2.675ms | +6.7% | - | - | - |
-| 최대 QPS (keepalive) | 4,197 | 4,231 | ~0% | 4,405 | 4,221 | -4.2% |
-| TCP 처리량 | 12.4 Gbps | 12.4 Gbps | ~0% | 12.3 Gbps | 12.4 Gbps | ~0% |
-| iptables NAT 규칙 수 | 99 | 699 | **+607%** | N/A (eBPF) | N/A (eBPF) | - |
-| Sync 주기 시간 | ~130ms | ~160ms | +23% | N/A | N/A | - |
+| 메트릭 | kube-proxy 4개 | kube-proxy 104개 | kube-proxy 1000개 | 변화 (4→1000) | Cilium 4개 | Cilium 104개 | 변화 |
+|--------|---------------|-----------------|------------------|--------------|-----------|-------------|------|
+| HTTP p99 @QPS=1000 | 5.86ms | 5.99ms | 2.96ms | -49% | 3.94ms | 3.64ms | -8% |
+| HTTP avg @QPS=1000 | 2.508ms | 2.675ms | 1.374ms | -45% | - | - | - |
+| 최대 QPS (keepalive) | 4,197 | 4,231 | 4,178 | ~0% | 4,405 | 4,221 | -4.2% |
+| TCP 처리량 | 12.4 Gbps | 12.4 Gbps | - | - | 12.3 Gbps | 12.4 Gbps | ~0% |
+| iptables NAT 규칙 수 | 99 | 699 | 10,059 | **+101배** | N/A (eBPF) | N/A (eBPF) | - |
+| Sync 주기 시간 | ~130ms | ~160ms | ~170ms | +31% | N/A | N/A | - |
+| 연결당 설정 시간 (Connection:close) | 164µs | - | 190µs | **+16%** | N/A | N/A | - |
+| HTTP avg (Connection:close) | 4.399ms | - | 4.621ms | +5% | N/A | N/A | - |
+| HTTP p99 (Connection:close) | 8.11ms | - | 8.53ms | +5% | N/A | N/A | - |
 
 </details>
 
-:::warning iptables 규칙 증가
-104개 서비스에서 kube-proxy iptables NAT 규칙이 99개에서 699개로 7.1배 증가했습니다. 이 규모에서 HTTP 지연 영향은 미미했지만(+2.2% p99), 규칙 증가는 선형 O(n)입니다. 1,000개 이상 서비스에서는 iptables 재생성이 sync 주기당 500ms를 초과하고, 5,000개 이상에서는 kube-proxy sync가 수 초가 걸릴 수 있어 신규 연결 설정 지연에 직접 영향을 미칩니다.
+### DNS 해석 성능 및 리소스 사용량
 
-반면 Cilium eBPF는 서비스 수에 관계없이 O(1)로 유지되는 해시 맵 조회를 사용하며, iptables 규칙 오버헤드가 전혀 없습니다.
-:::
-
-### DNS 해석 성능
-
-| 메트릭 | A: VPC CNI | B: Cilium+kp | C: kp-less | D: ENI | E: ENI+튜닝 |
-|--------|-----------|-------------|-----------|--------|------------|
-| DNS Resolution p50 (ms) | 2 | 2 | 2 | 2 | 2 |
-| DNS Resolution p99 (ms) | 4 | 4 | 2 | 4 | 3 |
-
-:::info DNS 성능 차이 미미
-모든 시나리오에서 DNS 해석 지연은 2-4ms 범위로 CNI 구성에 관계없이 거의 동일합니다. kube-proxy-less 모드(시나리오 C)에서 p99가 약간 낮은 것(2ms)이 유일한 차이점입니다.
-:::
-
-### 리소스 사용량
-
-| 메트릭 | A: VPC CNI (aws-node) | B: Cilium+kp | C: kp-less | D: ENI | E: ENI+튜닝 |
-|--------|---------------------|-------------|-----------|--------|------------|
-| CPU (벤치마크 부하, per node) | 미측정 | ~4-6m | ~4-6m | ~5-6m | ~4-5m |
-| Memory (벤치마크 부하, per node) | 미측정 | ~83Mi | ~129Mi | ~81Mi | ~82Mi |
-
-:::note 리소스 오버헤드 해석
-Cilium 에이전트의 리소스 사용량은 벤치마크 부하(iperf3, Fortio) 하에서 측정되었으며, 프로덕션 환경에서는 클러스터 규모(Pod/Service 수, 정책 수)에 따라 증가할 수 있습니다. VPC CNI aws-node 데몬셋은 별도 측정하지 않았습니다. 시나리오 C(kp-less)의 메모리 사용량이 높은 이유는 kube-proxy 대체 시 eBPF 맵에 Service endpoint 상태를 추가로 유지하기 때문입니다.
-:::
+<DnsResourceChart locale="ko" />
 
 ### 튜닝 포인트별 영향도
 
@@ -321,106 +318,355 @@ m6i.xlarge의 ENA 드라이버는 `bpf_link` 기능을 지원하지 않아 XDP n
 
 ## 분석 및 권장사항
 
-![주요 발견사항 요약](/img/benchmarks/chart-key-findings.svg)
-
-![워크로드별 권장 CNI 구성](/img/benchmarks/chart-recommendation-matrix.svg)
-
-<details>
-<summary>상세 분석 보기</summary>
+<div style={{background: 'linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #0d7377 100%)', borderRadius: '16px', padding: '32px', color: 'white', margin: '24px 0'}}>
+  <div style={{fontSize: '22px', fontWeight: 700, marginBottom: '4px'}}>벤치마크 핵심 결과 요약</div>
+  <div style={{fontSize: '13px', opacity: 0.7, marginBottom: '24px'}}>EKS 1.31 · m6i.xlarge × 3 Nodes · 5개 시나리오 실측 데이터 기반</div>
+  <div style={{display: 'flex', gap: '16px', flexWrap: 'wrap'}}>
+    <div style={{background: 'rgba(255,255,255,0.1)', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '12px', padding: '16px 20px', flex: 1, minWidth: '150px', textAlign: 'center'}}>
+      <div style={{fontSize: '32px', fontWeight: 800, color: '#5eead4'}}>-36%</div>
+      <div style={{fontSize: '12px', opacity: 0.85, marginTop: '4px'}}>RTT 지연 개선</div>
+      <div style={{fontSize: '11px', opacity: 0.6}}>시나리오 E vs A</div>
+    </div>
+    <div style={{background: 'rgba(255,255,255,0.1)', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '12px', padding: '16px 20px', flex: 1, minWidth: '150px', textAlign: 'center'}}>
+      <div style={{fontSize: '32px', fontWeight: 800, color: '#5eead4'}}>680×</div>
+      <div style={{fontSize: '12px', opacity: 0.85, marginTop: '4px'}}>UDP 손실 개선</div>
+      <div style={{fontSize: '11px', opacity: 0.6}}>20.39% → 0.03%</div>
+    </div>
+    <div style={{background: 'rgba(255,255,255,0.1)', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '12px', padding: '16px 20px', flex: 1, minWidth: '150px', textAlign: 'center'}}>
+      <div style={{fontSize: '32px', fontWeight: 800, color: '#fb923c'}}>101×</div>
+      <div style={{fontSize: '12px', opacity: 0.85, marginTop: '4px'}}>iptables 규칙 증가</div>
+      <div style={{fontSize: '11px', opacity: 0.6}}>99 → 10,059 (1000 svc)</div>
+    </div>
+    <div style={{background: 'rgba(255,255,255,0.1)', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '12px', padding: '16px 20px', flex: 1, minWidth: '150px', textAlign: 'center'}}>
+      <div style={{fontSize: '32px', fontWeight: 800, color: '#fbbf24'}}>O(1)</div>
+      <div style={{fontSize: '12px', opacity: 0.85, marginTop: '4px'}}>eBPF 서비스 룩업</div>
+      <div style={{fontSize: '11px', opacity: 0.6}}>vs iptables O(n)</div>
+    </div>
+  </div>
+</div>
 
 ### 주요 발견사항
 
-#### 1. TCP Throughput은 NIC 대역폭에 포화
+<div style={{borderLeft: '4px solid #94a3b8', background: '#f8fafc', borderRadius: '0 8px 8px 0', padding: '16px 20px', marginBottom: '16px'}}>
+  <div style={{display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px'}}>
+    <span style={{background: '#94a3b8', color: 'white', borderRadius: '50%', width: '26px', height: '26px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', fontWeight: 700}}>1</span>
+    <strong style={{fontSize: '15px', color: '#1e293b'}}>TCP Throughput은 NIC 대역폭에 포화</strong>
+  </div>
+  <p style={{fontSize: '14px', color: '#475569', lineHeight: 1.7, margin: 0}}>
+    m6i.xlarge 기준 대역폭 12.5 Gbps에서 모든 시나리오가 <strong>12.34–12.41 Gbps</strong>로 측정되었습니다. CNI 구성에 관계없이 NIC 한계에 도달하므로, TCP throughput은 CNI 성능 비교의 유의미한 지표가 아닙니다.
+  </p>
+</div>
 
-m6i.xlarge의 네트워크 기준 대역폭은 12.5 Gbps입니다. 모든 시나리오에서 TCP throughput이 12.34-12.41 Gbps로 측정되어 CNI 구성에 관계없이 NIC 한계에 도달했습니다. **TCP throughput은 CNI 성능을 비교하는 유의미한 지표가 아닙니다.**
+<div style={{borderLeft: '4px solid #ef4444', background: 'linear-gradient(to right, #fef2f2, #fff5f5)', borderRadius: '0 8px 8px 0', padding: '16px 20px', marginBottom: '16px'}}>
+  <div style={{display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px'}}>
+    <span style={{background: '#ef4444', color: 'white', borderRadius: '50%', width: '26px', height: '26px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', fontWeight: 700}}>2</span>
+    <strong style={{fontSize: '15px', color: '#1e293b'}}>UDP Loss가 가장 큰 차이점</strong>
+    <span style={{background: '#fee2e2', color: '#dc2626', fontSize: '11px', padding: '2px 10px', borderRadius: '12px', fontWeight: 600}}>핵심 차별화 요소</span>
+  </div>
+  <table style={{width: '100%', borderCollapse: 'collapse', fontSize: '13px', marginBottom: '12px'}}>
+    <thead>
+      <tr style={{borderBottom: '2px solid #fecaca'}}>
+        <th style={{textAlign: 'left', padding: '8px', color: '#991b1b'}}>시나리오</th>
+        <th style={{textAlign: 'right', padding: '8px', color: '#991b1b'}}>UDP Loss</th>
+        <th style={{textAlign: 'left', padding: '8px', color: '#991b1b'}}>이유</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr style={{borderBottom: '1px solid #fecaca'}}>
+        <td style={{padding: '8px'}}>A (VPC CNI)</td>
+        <td style={{textAlign: 'right', padding: '8px', color: '#dc2626', fontWeight: 700}}>20.39%</td>
+        <td style={{padding: '8px'}}>Native ENI, eBPF rate limiting 없음</td>
+      </tr>
+      <tr style={{borderBottom: '1px solid #fecaca'}}>
+        <td style={{padding: '8px'}}>B (Cilium+kp)</td>
+        <td style={{textAlign: 'right', padding: '8px', color: '#059669', fontWeight: 700}}>0.94%</td>
+        <td style={{padding: '8px'}}>eBPF Bandwidth Manager</td>
+      </tr>
+      <tr style={{borderBottom: '1px solid #fecaca'}}>
+        <td style={{padding: '8px'}}>C (kp-less)</td>
+        <td style={{textAlign: 'right', padding: '8px', color: '#059669', fontWeight: 700}}>0.69%</td>
+        <td style={{padding: '8px'}}>eBPF Bandwidth Manager</td>
+      </tr>
+      <tr style={{borderBottom: '1px solid #fecaca'}}>
+        <td style={{padding: '8px'}}>D (ENI)</td>
+        <td style={{textAlign: 'right', padding: '8px', color: '#dc2626', fontWeight: 700}}>20.42%</td>
+        <td style={{padding: '8px'}}>튜닝 미적용</td>
+      </tr>
+      <tr>
+        <td style={{padding: '8px', fontWeight: 600}}>E (ENI+튜닝)</td>
+        <td style={{textAlign: 'right', padding: '8px', color: '#059669', fontWeight: 800}}>0.03%</td>
+        <td style={{padding: '8px'}}>Bandwidth Manager + BBR</td>
+      </tr>
+    </tbody>
+  </table>
+  <div style={{background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '8px', padding: '10px 14px', fontSize: '13px', color: '#991b1b', lineHeight: 1.6}}>
+    <strong>핵심 인사이트:</strong> Cilium의 eBPF Bandwidth Manager는 EDT 기반 rate limiting을 수행하여 UDP 패킷 드랍을 극적으로 감소시킵니다. VPC CNI와 기본 Cilium ENI 모드(시나리오 D)는 이 기능이 비활성화되어 20% 손실을 보입니다.
+  </div>
+</div>
 
-#### 2. UDP Loss가 가장 큰 차이점
+<div style={{borderLeft: '4px solid #10b981', background: 'linear-gradient(to right, #ecfdf5, #f0fdf4)', borderRadius: '0 8px 8px 0', padding: '16px 20px', marginBottom: '16px'}}>
+  <div style={{display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px'}}>
+    <span style={{background: '#10b981', color: 'white', borderRadius: '50%', width: '26px', height: '26px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', fontWeight: 700}}>3</span>
+    <strong style={{fontSize: '15px', color: '#1e293b'}}>RTT 지연 개선</strong>
+    <span style={{background: '#d1fae5', color: '#065f46', fontSize: '11px', padding: '2px 10px', borderRadius: '12px', fontWeight: 600}}>36% 개선</span>
+  </div>
+  <div style={{display: 'flex', gap: '12px', flexWrap: 'wrap', marginBottom: '12px'}}>
+    <div style={{background: 'white', border: '1px solid #a7f3d0', borderRadius: '8px', padding: '12px 16px', textAlign: 'center', flex: 1, minWidth: '120px'}}>
+      <div style={{fontSize: '11px', color: '#6b7280'}}>A: VPC CNI</div>
+      <div style={{fontSize: '22px', fontWeight: 700, color: '#64748b'}}>4,894µs</div>
+    </div>
+    <div style={{display: 'flex', alignItems: 'center', color: '#9ca3af', fontSize: '18px'}}>→</div>
+    <div style={{background: 'white', border: '1px solid #a7f3d0', borderRadius: '8px', padding: '12px 16px', textAlign: 'center', flex: 1, minWidth: '120px'}}>
+      <div style={{fontSize: '11px', color: '#6b7280'}}>D: ENI</div>
+      <div style={{fontSize: '22px', fontWeight: 700, color: '#3b82f6'}}>4,453µs</div>
+      <div style={{fontSize: '11px', color: '#059669'}}>-9%</div>
+    </div>
+    <div style={{display: 'flex', alignItems: 'center', color: '#9ca3af', fontSize: '18px'}}>→</div>
+    <div style={{background: 'white', border: '2px solid #10b981', borderRadius: '8px', padding: '12px 16px', textAlign: 'center', flex: 1, minWidth: '120px'}}>
+      <div style={{fontSize: '11px', color: '#6b7280'}}>E: ENI+튜닝</div>
+      <div style={{fontSize: '22px', fontWeight: 800, color: '#059669'}}>3,135µs</div>
+      <div style={{fontSize: '11px', color: '#059669', fontWeight: 600}}>-36%</div>
+    </div>
+  </div>
+  <p style={{fontSize: '13px', color: '#065f46', lineHeight: 1.6, margin: 0}}>
+    주요 기여 요인: Socket-level LB (connect() 시점 직접 연결), BPF Host Routing (호스트 NS iptables bypass), Native Routing (VXLAN encap/decap 제거)
+  </p>
+</div>
 
-| 시나리오 | UDP Loss | 이유 |
-|---------|----------|------|
-| A (VPC CNI) | 20.39% | Native ENI, eBPF rate limiting 없음 |
-| B (Cilium+kp) | 0.94% | eBPF Bandwidth Manager 효과 |
-| C (kp-less) | 0.69% | eBPF Bandwidth Manager 효과 |
-| D (ENI) | 20.42% | Native ENI + eBPF, 하지만 튜닝 미적용 |
-| E (ENI+튜닝) | 0.03% | Bandwidth Manager + BBR 최적화 |
+<div style={{borderLeft: '4px solid #8b5cf6', background: 'linear-gradient(to right, #f5f3ff, #faf5ff)', borderRadius: '0 8px 8px 0', padding: '16px 20px', marginBottom: '16px'}}>
+  <div style={{display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px'}}>
+    <span style={{background: '#8b5cf6', color: 'white', borderRadius: '50%', width: '26px', height: '26px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', fontWeight: 700}}>4</span>
+    <strong style={{fontSize: '15px', color: '#1e293b'}}>kube-proxy 제거의 효과</strong>
+    <span style={{background: '#ede9fe', color: '#6d28d9', fontSize: '11px', padding: '2px 10px', borderRadius: '12px', fontWeight: 600}}>B vs C 비교</span>
+  </div>
+  <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '8px', marginBottom: '12px'}}>
+    <div style={{background: 'white', border: '1px solid #ddd6fe', borderRadius: '8px', padding: '10px 14px'}}>
+      <div style={{fontSize: '11px', color: '#6b7280'}}>TCP/UDP throughput</div>
+      <div style={{fontSize: '15px', fontWeight: 600, color: '#64748b'}}>차이 없음</div>
+    </div>
+    <div style={{background: 'white', border: '1px solid #ddd6fe', borderRadius: '8px', padding: '10px 14px'}}>
+      <div style={{fontSize: '11px', color: '#6b7280'}}>RTT</div>
+      <div style={{fontSize: '15px', fontWeight: 600, color: '#dc2626'}}>+3% 악화</div>
+      <div style={{fontSize: '11px', color: '#94a3b8'}}>4955 → 5092µs</div>
+    </div>
+    <div style={{background: 'white', border: '1px solid #ddd6fe', borderRadius: '8px', padding: '10px 14px'}}>
+      <div style={{fontSize: '11px', color: '#6b7280'}}>HTTP p99@1000</div>
+      <div style={{fontSize: '15px', fontWeight: 600, color: '#059669'}}>-10% 개선</div>
+      <div style={{fontSize: '11px', color: '#94a3b8'}}>9.87 → 8.91ms</div>
+    </div>
+    <div style={{background: 'white', border: '1px solid #ddd6fe', borderRadius: '8px', padding: '10px 14px'}}>
+      <div style={{fontSize: '11px', color: '#6b7280'}}>DNS p99</div>
+      <div style={{fontSize: '15px', fontWeight: 600, color: '#059669'}}>-50% 개선</div>
+      <div style={{fontSize: '11px', color: '#94a3b8'}}>4ms → 2ms</div>
+    </div>
+  </div>
+  <div style={{background: '#f5f3ff', border: '1px solid #ddd6fe', borderRadius: '8px', padding: '10px 14px', fontSize: '13px', color: '#5b21b6', lineHeight: 1.6}}>
+    <strong>해석:</strong> 소규모 클러스터(Service 100개 미만)에서는 kube-proxy 제거의 성능 이득이 미미합니다. iptables O(n) 룩업 오버헤드는 Service 500개 이상에서 지배적이 됩니다.
+  </div>
+</div>
 
-**핵심 인사이트**: Cilium의 eBPF Bandwidth Manager는 EDT 기반 rate limiting을 수행하여 UDP 패킷 드랍을 극적으로 감소시킵니다. VPC CNI와 기본 Cilium ENI 모드(시나리오 D)는 이 기능이 비활성화되어 20% 손실을 보입니다.
+<div style={{borderLeft: '4px solid #3b82f6', background: 'linear-gradient(to right, #eff6ff, #f0f9ff)', borderRadius: '0 8px 8px 0', padding: '16px 20px', marginBottom: '16px'}}>
+  <div style={{display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px'}}>
+    <span style={{background: '#3b82f6', color: 'white', borderRadius: '50%', width: '26px', height: '26px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', fontWeight: 700}}>5</span>
+    <strong style={{fontSize: '15px', color: '#1e293b'}}>ENI 모드 vs Overlay 모드</strong>
+    <span style={{background: '#dbeafe', color: '#1d4ed8', fontSize: '11px', padding: '2px 10px', borderRadius: '12px', fontWeight: 600}}>C vs D 비교</span>
+  </div>
+  <table style={{width: '100%', borderCollapse: 'collapse', fontSize: '13px', marginBottom: '12px'}}>
+    <thead>
+      <tr style={{borderBottom: '2px solid #bfdbfe'}}>
+        <th style={{textAlign: 'left', padding: '8px', color: '#1e40af'}}>메트릭</th>
+        <th style={{textAlign: 'right', padding: '8px', color: '#1e40af'}}>C (VXLAN)</th>
+        <th style={{textAlign: 'right', padding: '8px', color: '#1e40af'}}>D (ENI)</th>
+        <th style={{textAlign: 'right', padding: '8px', color: '#1e40af'}}>변화</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr style={{borderBottom: '1px solid #dbeafe'}}>
+        <td style={{padding: '8px'}}>TCP Throughput</td>
+        <td style={{textAlign: 'right', padding: '8px'}}>12.34 Gbps</td>
+        <td style={{textAlign: 'right', padding: '8px'}}>12.41 Gbps</td>
+        <td style={{textAlign: 'right', padding: '8px', color: '#94a3b8'}}>+0.6%</td>
+      </tr>
+      <tr style={{borderBottom: '1px solid #dbeafe'}}>
+        <td style={{padding: '8px'}}>RTT</td>
+        <td style={{textAlign: 'right', padding: '8px'}}>5,092 µs</td>
+        <td style={{textAlign: 'right', padding: '8px', fontWeight: 600}}>4,453 µs</td>
+        <td style={{textAlign: 'right', padding: '8px', color: '#059669', fontWeight: 600}}>-12.5%</td>
+      </tr>
+      <tr style={{borderBottom: '1px solid #dbeafe'}}>
+        <td style={{padding: '8px'}}>HTTP p99@1000</td>
+        <td style={{textAlign: 'right', padding: '8px'}}>8.91 ms</td>
+        <td style={{textAlign: 'right', padding: '8px', fontWeight: 600}}>8.75 ms</td>
+        <td style={{textAlign: 'right', padding: '8px', color: '#059669'}}>-1.8%</td>
+      </tr>
+      <tr>
+        <td style={{padding: '8px'}}>UDP Loss</td>
+        <td style={{textAlign: 'right', padding: '8px', color: '#059669', fontWeight: 600}}>0.69%</td>
+        <td style={{textAlign: 'right', padding: '8px', color: '#dc2626', fontWeight: 600}}>20.42%</td>
+        <td style={{textAlign: 'right', padding: '8px', color: '#dc2626'}}>튜닝 필요</td>
+      </tr>
+    </tbody>
+  </table>
+  <div style={{background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '8px', padding: '10px 14px', fontSize: '13px', color: '#1e40af', lineHeight: 1.6}}>
+    <strong>핵심 인사이트:</strong> VXLAN encap/decap은 RTT에서 ~640µs 추가 지연(12%)을 발생시킵니다. ENI 모드는 VPC CIDR에서 직접 IP를 할당하므로 IP 주소 공간 요구사항이 증가합니다. IP 제약 환경에서는 Overlay 모드가 더 적합합니다.
+  </div>
+</div>
 
-#### 3. RTT 지연 개선
-
-시나리오 E(ENI+튜닝)는 VPC CNI 대비 **RTT를 36% 개선**(4894µs → 3135µs)했습니다. 주요 기여 요인:
-- Socket-level LB (connect() 시점 직접 연결)
-- BPF Host Routing (호스트 NS iptables bypass)
-- Native Routing (VXLAN encap/decap 제거)
-
-#### 4. kube-proxy 제거의 효과
-
-시나리오 B(Cilium+kube-proxy) vs C(kp-less)를 비교하면 kube-proxy 제거의 직접적 영향을 볼 수 있습니다:
-- **TCP/UDP throughput**: 차이 없음 (동일)
-- **RTT**: 오히려 약간 증가 (4955 → 5092µs, 3% 악화)
-- **HTTP p99@1000**: 개선 (9.87 → 8.91ms, 10% 개선)
-- **DNS p99**: 개선 (4 → 2ms, 50% 개선)
-
-**해석**: 소규모 클러스터(Service 100개 미만)에서는 kube-proxy 제거의 성능 이득이 미미합니다. iptables의 O(n) 룩업 오버헤드는 규모가 커질수록(Service 500개 이상) 지배적이 됩니다. 본 테스트는 최소 워크로드 환경이므로 차이가 작았습니다.
-
-#### 5. ENI 모드 vs Overlay 모드
-
-시나리오 C(kp-less, VXLAN) vs D(ENI, Native Routing) 비교:
-
-| 메트릭 | C (VXLAN) | D (ENI) | 변화 |
-|--------|-----------|---------|------|
-| TCP Throughput | 12.34 Gbps | 12.41 Gbps | +0.6% (무시 가능) |
-| RTT | 5092 µs | 4453 µs | -12.5% (개선) |
-| HTTP p99@1000 | 8.91 ms | 8.75 ms | -1.8% (개선) |
-| UDP Loss | 0.69% | 20.42% | +2900% (악화, 튜닝 미적용) |
-
-**핵심 인사이트**:
-- VXLAN encap/decap의 CPU 오버헤드는 RTT에서 12% 차이를 만듭니다(~640µs 추가 지연).
-- TCP throughput은 NIC 포화로 차이 없음.
-- ENI 모드는 VPC CIDR에서 직접 IP를 할당하므로 **IP 주소 공간 요구사항**이 증가합니다. IP 제약 환경에서는 Overlay 모드가 더 적합할 수 있습니다.
-
-#### 6. 튜닝 적용의 누적 효과
-
-시나리오 D(ENI 기본) → E(ENI+튜닝) 전환의 복합 효과:
-
-| 메트릭 | D (ENI) | E (ENI+튜닝) | 변화 |
-|--------|---------|-------------|------|
-| RTT | 4453 µs | 3135 µs | -30% (개선) |
-| UDP Loss | 20.42% | 0.03% | -99.9% (극적 개선) |
-| HTTP QPS@max | 4026 | 4182 | +3.9% (개선) |
-| HTTP p99@1000 | 8.75 ms | 9.89 ms | +13% (약간 악화) |
-
-**가장 영향력 있는 튜닝 (추정)**:
-1. **Bandwidth Manager + BBR**: UDP loss를 20% → 0.03%로 극적 개선
-2. **Socket LB**: connect() 시점 직접 연결로 RTT 단축
-3. **BPF Host Routing**: 호스트 NS iptables bypass
-
-**XDP와 DSR 미적용 영향**: ENA 드라이버 제약으로 XDP와 DSR을 적용하지 못했습니다. 이들이 적용되었다면 추가 10-20% 성능 향상이 기대되었으나 현재 환경에서는 검증 불가합니다.
+<div style={{borderLeft: '4px solid #f59e0b', background: 'linear-gradient(to right, #fffbeb, #fefce8)', borderRadius: '0 8px 8px 0', padding: '16px 20px', marginBottom: '16px'}}>
+  <div style={{display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px'}}>
+    <span style={{background: '#f59e0b', color: 'white', borderRadius: '50%', width: '26px', height: '26px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', fontWeight: 700}}>6</span>
+    <strong style={{fontSize: '15px', color: '#1e293b'}}>튜닝 적용의 누적 효과</strong>
+    <span style={{background: '#fef3c7', color: '#92400e', fontSize: '11px', padding: '2px 10px', borderRadius: '12px', fontWeight: 600}}>D → E 전환</span>
+  </div>
+  <table style={{width: '100%', borderCollapse: 'collapse', fontSize: '13px', marginBottom: '12px'}}>
+    <thead>
+      <tr style={{borderBottom: '2px solid #fde68a'}}>
+        <th style={{textAlign: 'left', padding: '8px', color: '#92400e'}}>메트릭</th>
+        <th style={{textAlign: 'right', padding: '8px', color: '#92400e'}}>D (ENI)</th>
+        <th style={{textAlign: 'right', padding: '8px', color: '#92400e'}}>E (ENI+튜닝)</th>
+        <th style={{textAlign: 'right', padding: '8px', color: '#92400e'}}>변화</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr style={{borderBottom: '1px solid #fde68a'}}>
+        <td style={{padding: '8px'}}>RTT</td>
+        <td style={{textAlign: 'right', padding: '8px'}}>4,453 µs</td>
+        <td style={{textAlign: 'right', padding: '8px', fontWeight: 700, color: '#059669'}}>3,135 µs</td>
+        <td style={{textAlign: 'right', padding: '8px', color: '#059669', fontWeight: 600}}>-30%</td>
+      </tr>
+      <tr style={{borderBottom: '1px solid #fde68a'}}>
+        <td style={{padding: '8px'}}>UDP Loss</td>
+        <td style={{textAlign: 'right', padding: '8px', color: '#dc2626'}}>20.42%</td>
+        <td style={{textAlign: 'right', padding: '8px', fontWeight: 700, color: '#059669'}}>0.03%</td>
+        <td style={{textAlign: 'right', padding: '8px', color: '#059669', fontWeight: 700}}>-99.9%</td>
+      </tr>
+      <tr style={{borderBottom: '1px solid #fde68a'}}>
+        <td style={{padding: '8px'}}>HTTP QPS@max</td>
+        <td style={{textAlign: 'right', padding: '8px'}}>4,026</td>
+        <td style={{textAlign: 'right', padding: '8px', fontWeight: 600}}>4,182</td>
+        <td style={{textAlign: 'right', padding: '8px', color: '#059669'}}>+3.9%</td>
+      </tr>
+      <tr>
+        <td style={{padding: '8px'}}>HTTP p99@1000</td>
+        <td style={{textAlign: 'right', padding: '8px'}}>8.75 ms</td>
+        <td style={{textAlign: 'right', padding: '8px'}}>9.89 ms</td>
+        <td style={{textAlign: 'right', padding: '8px', color: '#dc2626'}}>+13%</td>
+      </tr>
+    </tbody>
+  </table>
+  <div style={{background: '#fffbeb', border: '1px solid #fde68a', borderRadius: '8px', padding: '10px 14px', fontSize: '13px', color: '#92400e', lineHeight: 1.6}}>
+    <strong>가장 영향력 있는 튜닝:</strong><br/>
+    1. <strong>Bandwidth Manager + BBR</strong> — UDP loss 20% → 0.03% 극적 개선<br/>
+    2. <strong>Socket LB</strong> — connect() 시점 직접 연결로 RTT 단축<br/>
+    3. <strong>BPF Host Routing</strong> — 호스트 NS iptables bypass<br/>
+    <br/>
+    <em>참고: ENA 드라이버 제약으로 XDP와 DSR은 미적용. 적용 시 추가 10-20% 향상이 기대되나 현재 환경에서는 검증 불가합니다.</em>
+  </div>
+</div>
 
 ### 워크로드별 권장 구성
 
-| 워크로드 특성 | 권장 시나리오 | 이유 |
-|-------------|-------------|------|
-| 소규모, 단순 (Service 100개 미만) | A: VPC CNI 기본 | 운영 복잡도 최소, 충분한 성능 |
-| UDP 스트리밍, 비디오 | E: Cilium ENI+튜닝 | UDP loss 0.03% (VPC CNI 대비 680배 개선) |
-| 네트워크 정책 필요 | C 또는 D | L3/L4/L7 정책 + eBPF 성능 |
-| 고성능, 대규모 (Service 500개 이상) | D: Cilium ENI | 네이티브 라우팅 + kube-proxy 제거 |
-| 지연 민감 (금융, 실시간) | E: Cilium ENI+튜닝 | RTT 36% 개선, p99 최소화 |
-| IP 주소 제약 환경 | C: Cilium kp-less | VXLAN Overlay로 IP 소비 최소화 |
-| 멀티테넌트, 관찰성 중시 | D + Hubble 활성화 | ENI 성능 + 네트워크 가시성 |
+<div style={{overflowX: 'auto'}}>
+<table style={{width: '100%', borderCollapse: 'separate', borderSpacing: 0, borderRadius: '12px', overflow: 'hidden', fontSize: '14px', border: '1px solid #e2e8f0'}}>
+  <thead>
+    <tr style={{background: 'linear-gradient(135deg, #1e293b, #334155)'}}>
+      <th style={{padding: '14px 16px', color: 'white', textAlign: 'left', fontWeight: 600}}>워크로드 특성</th>
+      <th style={{padding: '14px 16px', color: 'white', textAlign: 'center', fontWeight: 600}}>권장 시나리오</th>
+      <th style={{padding: '14px 16px', color: 'white', textAlign: 'left', fontWeight: 600}}>이유</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr style={{background: '#f8fafc', borderBottom: '1px solid #e2e8f0'}}>
+      <td style={{padding: '12px 16px'}}>소규모, 단순 (Service &lt;100)</td>
+      <td style={{padding: '12px 16px', textAlign: 'center'}}><span style={{background: '#e2e8f0', color: '#475569', padding: '4px 12px', borderRadius: '20px', fontWeight: 600, fontSize: '12px'}}>A: VPC CNI</span></td>
+      <td style={{padding: '12px 16px', color: '#64748b'}}>운영 복잡도 최소, 충분한 성능</td>
+    </tr>
+    <tr style={{background: 'white', borderBottom: '1px solid #e2e8f0'}}>
+      <td style={{padding: '12px 16px'}}>UDP 스트리밍, 비디오</td>
+      <td style={{padding: '12px 16px', textAlign: 'center'}}><span style={{background: '#d1fae5', color: '#065f46', padding: '4px 12px', borderRadius: '20px', fontWeight: 600, fontSize: '12px'}}>E: ENI+튜닝</span></td>
+      <td style={{padding: '12px 16px', color: '#64748b'}}>UDP loss 0.03% (VPC CNI 대비 680배 개선)</td>
+    </tr>
+    <tr style={{background: '#f8fafc', borderBottom: '1px solid #e2e8f0'}}>
+      <td style={{padding: '12px 16px'}}>네트워크 정책 필요</td>
+      <td style={{padding: '12px 16px', textAlign: 'center'}}><span style={{background: '#ede9fe', color: '#5b21b6', padding: '4px 12px', borderRadius: '20px', fontWeight: 600, fontSize: '12px'}}>C 또는 D</span></td>
+      <td style={{padding: '12px 16px', color: '#64748b'}}>L3/L4/L7 정책 + eBPF 성능</td>
+    </tr>
+    <tr style={{background: 'white', borderBottom: '1px solid #e2e8f0'}}>
+      <td style={{padding: '12px 16px'}}>고성능, 대규모 (Service 500+)</td>
+      <td style={{padding: '12px 16px', textAlign: 'center'}}><span style={{background: '#dbeafe', color: '#1e40af', padding: '4px 12px', borderRadius: '20px', fontWeight: 600, fontSize: '12px'}}>D: Cilium ENI</span></td>
+      <td style={{padding: '12px 16px', color: '#64748b'}}>네이티브 라우팅 + kube-proxy 제거</td>
+    </tr>
+    <tr style={{background: '#f8fafc', borderBottom: '1px solid #e2e8f0'}}>
+      <td style={{padding: '12px 16px'}}>지연 민감 (금융, 실시간)</td>
+      <td style={{padding: '12px 16px', textAlign: 'center'}}><span style={{background: '#d1fae5', color: '#065f46', padding: '4px 12px', borderRadius: '20px', fontWeight: 600, fontSize: '12px'}}>E: ENI+튜닝</span></td>
+      <td style={{padding: '12px 16px', color: '#64748b'}}>RTT 36% 개선, p99 최소화</td>
+    </tr>
+    <tr style={{background: 'white', borderBottom: '1px solid #e2e8f0'}}>
+      <td style={{padding: '12px 16px'}}>IP 주소 제약 환경</td>
+      <td style={{padding: '12px 16px', textAlign: 'center'}}><span style={{background: '#e0f2fe', color: '#0369a1', padding: '4px 12px', borderRadius: '20px', fontWeight: 600, fontSize: '12px'}}>C: kp-less</span></td>
+      <td style={{padding: '12px 16px', color: '#64748b'}}>VXLAN Overlay로 IP 소비 최소화</td>
+    </tr>
+    <tr style={{background: '#f8fafc'}}>
+      <td style={{padding: '12px 16px'}}>멀티테넌트, 관찰성 중시</td>
+      <td style={{padding: '12px 16px', textAlign: 'center'}}><span style={{background: '#dbeafe', color: '#1e40af', padding: '4px 12px', borderRadius: '20px', fontWeight: 600, fontSize: '12px'}}>D + Hubble</span></td>
+      <td style={{padding: '12px 16px', color: '#64748b'}}>ENI 성능 + 네트워크 가시성</td>
+    </tr>
+  </tbody>
+</table>
+</div>
 
 ### 시나리오별 최종 평가
 
-| 환경 | 권장 시나리오 | 운영 복잡도 | 성능 | 주요 개선 포인트 |
-|------|-------------|-----------|------|-----------------|
-| 개발/스테이징 | A: VPC CNI | 낮음 | 기준선 | 기본 설정, 학습 곡선 없음 |
-| 일반 프로덕션 | D: Cilium ENI | 중간 | 높음 | RTT -9%, kube-proxy 제거 |
-| UDP 집약 워크로드 | E: Cilium ENI+튜닝 | 높음 | 최고 | UDP loss 680배 개선 (20% → 0.03%) |
-| 지연 민감 워크로드 | E: Cilium ENI+튜닝 | 높음 | 최고 | RTT -36% (4894 → 3135µs) |
-| 네트워크 정책 필수 | C 또는 D | 중간 | 높음 | L3/L4/L7 정책 + eBPF |
-| IP 주소 제약 환경 | C: kp-less | 중간 | 보통 | VXLAN로 IP 소비 최소화 |
-
-</details>
+<div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px', margin: '16px 0'}}>
+  <div style={{border: '2px solid #e2e8f0', borderRadius: '12px', padding: '20px', background: 'white'}}>
+    <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px'}}>
+      <span style={{background: '#e2e8f0', color: '#475569', padding: '4px 12px', borderRadius: '20px', fontWeight: 700, fontSize: '13px'}}>A: VPC CNI</span>
+      <span style={{fontSize: '12px', color: '#94a3b8'}}>운영 복잡도: 낮음</span>
+    </div>
+    <div style={{fontSize: '14px', fontWeight: 600, color: '#1e293b', marginBottom: '8px'}}>개발/스테이징 환경</div>
+    <div style={{fontSize: '13px', color: '#64748b', lineHeight: 1.6}}>기본 설정으로 충분한 성능. 학습 곡선 없이 즉시 사용 가능.</div>
+    <div style={{marginTop: '12px', paddingTop: '12px', borderTop: '1px solid #f1f5f9'}}>
+      <span style={{fontSize: '12px', color: '#94a3b8'}}>성능: </span>
+      <span style={{fontSize: '12px', color: '#64748b'}}>기준선 (Baseline)</span>
+    </div>
+  </div>
+  <div style={{border: '2px solid #3b82f6', borderRadius: '12px', padding: '20px', background: 'linear-gradient(to bottom, #eff6ff, white)'}}>
+    <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px'}}>
+      <span style={{background: '#dbeafe', color: '#1e40af', padding: '4px 12px', borderRadius: '20px', fontWeight: 700, fontSize: '13px'}}>D: Cilium ENI</span>
+      <span style={{fontSize: '12px', color: '#94a3b8'}}>운영 복잡도: 중간</span>
+    </div>
+    <div style={{fontSize: '14px', fontWeight: 600, color: '#1e293b', marginBottom: '8px'}}>일반 프로덕션 환경</div>
+    <div style={{fontSize: '13px', color: '#64748b', lineHeight: 1.6}}>RTT -9%, kube-proxy 제거로 대규모 Service 환경에 최적.</div>
+    <div style={{marginTop: '12px', paddingTop: '12px', borderTop: '1px solid #dbeafe'}}>
+      <span style={{fontSize: '12px', color: '#94a3b8'}}>성능: </span>
+      <span style={{fontSize: '12px', color: '#1e40af', fontWeight: 600}}>높음</span>
+    </div>
+  </div>
+  <div style={{border: '2px solid #10b981', borderRadius: '12px', padding: '20px', background: 'linear-gradient(to bottom, #ecfdf5, white)'}}>
+    <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px'}}>
+      <span style={{background: '#d1fae5', color: '#065f46', padding: '4px 12px', borderRadius: '20px', fontWeight: 700, fontSize: '13px'}}>E: ENI+튜닝</span>
+      <span style={{fontSize: '12px', color: '#94a3b8'}}>운영 복잡도: 높음</span>
+    </div>
+    <div style={{fontSize: '14px', fontWeight: 600, color: '#1e293b', marginBottom: '8px'}}>고성능/지연 민감 워크로드</div>
+    <div style={{fontSize: '13px', color: '#64748b', lineHeight: 1.6}}>UDP loss 680배 개선, RTT -36%. 금융, 실시간, 스트리밍에 최적.</div>
+    <div style={{marginTop: '12px', paddingTop: '12px', borderTop: '1px solid #a7f3d0'}}>
+      <span style={{fontSize: '12px', color: '#94a3b8'}}>성능: </span>
+      <span style={{fontSize: '12px', color: '#059669', fontWeight: 700}}>최고</span>
+    </div>
+  </div>
+  <div style={{border: '2px solid #8b5cf6', borderRadius: '12px', padding: '20px', background: 'linear-gradient(to bottom, #f5f3ff, white)'}}>
+    <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px'}}>
+      <span style={{background: '#ede9fe', color: '#5b21b6', padding: '4px 12px', borderRadius: '20px', fontWeight: 700, fontSize: '13px'}}>C: kp-less</span>
+      <span style={{fontSize: '12px', color: '#94a3b8'}}>운영 복잡도: 중간</span>
+    </div>
+    <div style={{fontSize: '14px', fontWeight: 600, color: '#1e293b', marginBottom: '8px'}}>네트워크 정책 / IP 제약 환경</div>
+    <div style={{fontSize: '13px', color: '#64748b', lineHeight: 1.6}}>L3/L4/L7 정책 + VXLAN Overlay로 IP 소비 최소화.</div>
+    <div style={{marginTop: '12px', paddingTop: '12px', borderTop: '1px solid #ddd6fe'}}>
+      <span style={{fontSize: '12px', color: '#94a3b8'}}>성능: </span>
+      <span style={{fontSize: '12px', color: '#7c3aed', fontWeight: 600}}>보통~높음</span>
+    </div>
+  </div>
+</div>
 
 :::tip XDP 지원 확인
 XDP Acceleration과 DSR을 활용하려면 인스턴스 타입의 NIC 드라이버가 `bpf_link` 기능을 지원하는지 확인하세요. m6i.xlarge의 ENA 드라이버는 현재 미지원입니다. 향후 드라이버 업데이트 또는 다른 인스턴스 타입(C6i, C7i 등) 고려 시 재검증이 필요합니다.
