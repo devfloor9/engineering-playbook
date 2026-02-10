@@ -22,7 +22,7 @@ Cilium ENI, Gateway API, CoreDNS tuning, Karpenter autoscaling, East-West traffi
 GitOps-based cluster operations, node monitoring agent deployment, and methodologies for reliably operating large-scale Kubernetes clusters.
 
 ### Agentic AI Platform
-End-to-end guides for building generative AI platforms on EKS — covering vLLM, Ray Serve, MoE model serving, Inference Gateway, Milvus vector DB, Kagent, and more. From GPU resource management to agent monitoring across the full stack.
+End-to-end guides for building generative AI platforms on EKS — covering vLLM, llm-d, MoE model serving, Inference Gateway, Milvus vector DB, Kagent, and more. From GPU resource management to agent monitoring across the full stack.
 
 ### Hybrid Infrastructure
 EKS Hybrid Nodes, SR-IOV with DGX H200, Harbor registry integration — bridging on-premises and cloud infrastructure.
@@ -40,7 +40,7 @@ CNI performance comparisons, AI/ML workload benchmarks, hybrid infrastructure pe
 
 - **Container Orchestration**: Amazon EKS, EKS Auto Mode, Karpenter
 - **Networking**: Cilium, Gateway API, CoreDNS
-- **AI/ML Serving**: vLLM, Ray Serve, llm-d, NeMo
+- **AI/ML Serving**: vLLM, llm-d, NeMo
 - **Observability**: Prometheus, Grafana, Langfuse, Hubble
 - **GitOps**: ArgoCD
 - **Security**: Kyverno, GuardDuty, Pod Identity

@@ -11,7 +11,7 @@ Modern generative AI platforms require a comprehensive technology stack that goe
 
 The core philosophy of the Kubernetes-native approach is to aggressively leverage the open-source ecosystem while maintaining enterprise-grade stability. Model serving through LiteLLM and vLLM, complex agent workflows based on LangGraph, vector database integration via Milvus, and end-to-end pipeline monitoring with Langfuse all operate harmoniously atop a Kubernetes cluster. Particularly when combining Karpenter-based node auto-scaling with the NVIDIA GPU Operator, GPU resources can be dynamically provisioned and released according to workload patterns, dramatically reducing cloud costs.
 
-As practical starting points for production environment construction, AWS provides two essential sample repositories. The GenAI on EKS Starter Kit (aws-samples/sample-genai-on-eks-starter-kit) offers integrated configurations of essential components including LiteLLM, vLLM, SGLang, Langfuse, Milvus, Open WebUI, n8n, Strands Agents, and Agno to support rapid prototyping and development. Meanwhile, Scalable Model Inference and Agentic AI (aws-solutions-library-samples/guidance-for-scalable-model-inference-and-agentic-ai-on-amazon-eks) presents production-grade architectural patterns necessary for building Karpenter auto-scaling, Ray Serve-based distributed inference, LiteLLM gateway, OpenSearch-based RAG systems, and multi-agent systems.
+As practical starting points for production environment construction, AWS provides two essential sample repositories. The GenAI on EKS Starter Kit (aws-samples/sample-genai-on-eks-starter-kit) offers integrated configurations of essential components including LiteLLM, vLLM, SGLang, Langfuse, Milvus, Open WebUI, n8n, Strands Agents, and Agno to support rapid prototyping and development. Meanwhile, Scalable Model Inference and Agentic AI (aws-solutions-library-samples/guidance-for-scalable-model-inference-and-agentic-ai-on-amazon-eks) presents production-grade architectural patterns necessary for building Karpenter auto-scaling, llm-d-based distributed inference, LiteLLM gateway, OpenSearch-based RAG systems, and multi-agent systems.
 
 This combination of technology stacks effectively addresses the four core challenges that arise in handling Frontier Model traffic. GPU scheduling and resource isolation ensure stable performance even in multi-tenant environments through MIG and Time-Slicing, while the dynamic routing layer performs intelligent request distribution considering model availability and cost. Agent lifecycle management is declaratively defined through Kagent CRDs, and system-wide observability is secured through Langfuse and Prometheus-based metrics. All of this combines with Kubernetes' self-healing capabilities to complete a platform capable of 24/7 uninterrupted operations.
 
@@ -26,8 +26,8 @@ This combination of technology stacks effectively addresses the four core challe
 
 ### Phase 3: Model Serving (Basic → Advanced)
 - [vLLM-based FM Deployment and Performance Optimization](./vllm-model-serving.md) - Basic model serving configuration
-- [Ray Serve and vLLM Integration Architecture](./ray-serve-vllm-integration.md) - Distributed serving setup
 - [MoE Model Serving](./moe-model-serving.md) - Mixture of Experts model serving
+- [llm-d EKS Auto Mode Deployment](./llm-d-eks-automode.md) - Kubernetes-native distributed inference
 - [NeMo Framework](./nemo-framework.md) - Training and serving framework
 
 ### Phase 4: Inference Routing and Gateway

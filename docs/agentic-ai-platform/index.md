@@ -15,7 +15,7 @@ authors: [devfloor9]
 
 Kubernetes 네이티브 접근 방식의 핵심 철학은 오픈소스 생태계를 적극 활용하면서도 엔터프라이즈급 안정성을 확보하는 것입니다. LiteLLM과 vLLM을 통한 모델 서빙, LangGraph 기반의 복잡한 에이전트 워크플로우, Milvus를 활용한 벡터 데이터베이스 통합, 그리고 Langfuse를 통한 전체 파이프라인 모니터링이 Kubernetes 클러스터 위에서 조화롭게 작동합니다. 특히 Karpenter를 통한 노드 자동 스케일링과 NVIDIA GPU Operator를 결합하면 워크로드 패턴에 따라 GPU 리소스를 동적으로 프로비저닝하고 해제함으로써 클라우드 비용을 극적으로 절감할 수 있습니다.
 
-프로덕션 환경 구축을 위한 실전 출발점으로 AWS는 두 가지 핵심 샘플 저장소를 제공합니다. GenAI on EKS Starter Kit (aws-samples/sample-genai-on-eks-starter-kit)은 LiteLLM, vLLM, SGLang, Langfuse, Milvus, Open WebUI, n8n, Strands Agents, Agno 등 필수 컴포넌트들의 통합 구성을 제공하여 빠른 프로토타이핑과 개발을 지원합니다. 한편 Scalable Model Inference and Agentic AI (aws-solutions-library-samples/guidance-for-scalable-model-inference-and-agentic-ai-on-amazon-eks)는 Karpenter 자동 스케일링, Ray Serve 기반 분산 추론, LiteLLM 게이트웨이, OpenSearch 기반 RAG 시스템, 그리고 멀티 에이전트 시스템 구축에 필요한 프로덕션급 아키텍처 패턴을 제시합니다.
+프로덕션 환경 구축을 위한 실전 출발점으로 AWS는 두 가지 핵심 샘플 저장소를 제공합니다. GenAI on EKS Starter Kit (aws-samples/sample-genai-on-eks-starter-kit)은 LiteLLM, vLLM, SGLang, Langfuse, Milvus, Open WebUI, n8n, Strands Agents, Agno 등 필수 컴포넌트들의 통합 구성을 제공하여 빠른 프로토타이핑과 개발을 지원합니다. 한편 Scalable Model Inference and Agentic AI (aws-solutions-library-samples/guidance-for-scalable-model-inference-and-agentic-ai-on-amazon-eks)는 Karpenter 자동 스케일링, llm-d 기반 분산 추론, LiteLLM 게이트웨이, OpenSearch 기반 RAG 시스템, 그리고 멀티 에이전트 시스템 구축에 필요한 프로덕션급 아키텍처 패턴을 제시합니다.
 
 이러한 기술 스택의 조합은 Frontier Model 트래픽 처리에서 발생하는 네 가지 핵심 도전과제를 효과적으로 해결합니다. GPU 스케줄링과 리소스 격리는 MIG와 Time-Slicing을 통해 다중 테넌트 환경에서도 안정적인 성능을 보장하며, 동적 라우팅 계층은 모델 가용성과 비용을 고려한 지능적인 요청 분배를 수행합니다. Agent 라이프사이클 관리는 Kagent CRD를 통해 선언적으로 정의되고, 전체 시스템의 관찰 가능성은 Langfuse와 Prometheus 기반 메트릭으로 확보됩니다. 이 모든 것이 Kubernetes의 자가 치유 능력과 결합되어 24/7 무중단 운영이 가능한 플랫폼을 완성합니다.
 
@@ -30,8 +30,8 @@ Kubernetes 네이티브 접근 방식의 핵심 철학은 오픈소스 생태계
 
 ### Phase 3: 모델 서빙 (기본 → 고급)
 - [vLLM 기반 FM 배포 및 성능 최적화](./vllm-model-serving.md) - 기본 모델 서빙 구성
-- [Ray Serve와 vLLM 통합 아키텍처](./ray-serve-vllm-integration.md) - 분산 서빙 구성
 - [MoE 모델 서빙](./moe-model-serving.md) - Mixture of Experts 모델 서빙
+- [llm-d EKS Auto Mode 배포](./llm-d-eks-automode.md) - Kubernetes 네이티브 분산 추론
 - [NeMo 프레임워크](./nemo-framework.md) - 학습 및 서빙 프레임워크
 
 ### Phase 4: 추론 라우팅 및 게이트웨이

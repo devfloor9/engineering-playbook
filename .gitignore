@@ -28,6 +28,7 @@ yarn-error.log*
 .kiro/
 .claude/
 CLAUDE.md
+**/AGENTS.md
 
 # OMC (oh-my-claudecode) - config, state, and databases
 .omc/
