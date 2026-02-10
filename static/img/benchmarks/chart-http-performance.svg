@@ -1,14 +1,9 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 530" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
   <!-- Background -->
-  <rect width="800" height="450" fill="#ffffff"/>
-
-  <!-- Title -->
-  <text x="400" y="30" text-anchor="middle" font-size="20" font-weight="600" fill="#1e293b">
-    HTTP Application Performance Comparison
-  </text>
+  <rect width="800" height="530" fill="#ffffff"/>
 
   <!-- Top Chart: p99 Latency -->
-  <g transform="translate(100, 60)">
+  <g transform="translate(100, 35)">
     <!-- Subtitle -->
     <text x="0" y="-5" font-size="14" font-weight="600" fill="#475569">HTTP p99 Latency @QPS=1000 (ms)</text>
     <text x="600" y="-5" text-anchor="end" font-size="11" fill="#94a3b8" font-style="italic">Lower is better</text>
@@ -33,41 +28,36 @@
     <!-- X-axis -->
     <line x1="0" y1="120" x2="600" y2="120" stroke="#94a3b8" stroke-width="2"/>
 
-    <!-- Bars (scale: 1ms = 10px, inverted) -->
-    <!-- Bar width: 70px, spacing: 50px -->
-
     <!-- A: VPC CNI (10.92ms) -->
-    <rect x="40" y="10.8" width="70" height="109.2" fill="#64748b" opacity="0.85" rx="3"/>
-    <text x="75" y="7" text-anchor="middle" font-size="12" fill="#64748b" font-weight="700">10.92</text>
-    <text x="75" y="140" text-anchor="middle" font-size="11" fill="#475569" font-weight="500">A: VPC CNI</text>
+    <rect x="35" y="10.8" width="60" height="109.2" fill="#64748b" opacity="0.85" rx="3"/>
+    <text x="65" y="-4" text-anchor="middle" font-size="12" fill="#64748b" font-weight="700">10.92</text>
+    <text x="65" y="148" text-anchor="middle" font-size="11" fill="#475569" font-weight="500">A: VPC CNI</text>
 
     <!-- B: Cilium+kp (9.87ms) -->
-    <rect x="160" y="21.3" width="70" height="98.7" fill="#8b5cf6" opacity="0.85" rx="3"/>
-    <text x="195" y="18" text-anchor="middle" font-size="12" fill="#8b5cf6" font-weight="700">9.87</text>
-    <text x="195" y="140" text-anchor="middle" font-size="11" fill="#475569" font-weight="500">B: Cilium+kp</text>
+    <rect x="145" y="21.3" width="60" height="98.7" fill="#8b5cf6" opacity="0.85" rx="3"/>
+    <text x="175" y="6" text-anchor="middle" font-size="12" fill="#8b5cf6" font-weight="700">9.87</text>
+    <text x="175" y="148" text-anchor="middle" font-size="11" fill="#475569" font-weight="500">B: Cilium+kp</text>
 
-    <!-- C: kp-less (8.91ms) BEST -->
-    <rect x="280" y="30.9" width="70" height="89.1" fill="#10b981" opacity="0.9" rx="3"/>
-    <rect x="278" y="28.9" width="74" height="93.1" fill="none" rx="4" stroke="#10b981" stroke-width="2" opacity="0.5"/>
-    <text x="315" y="27" text-anchor="middle" font-size="12" fill="#10b981" font-weight="700">8.91</text>
-    <text x="315" y="17" text-anchor="middle" font-size="10" fill="#10b981" font-weight="600">✓ Lowest</text>
-    <text x="315" y="140" text-anchor="middle" font-size="11" fill="#475569" font-weight="500">C: kp-less</text>
+    <!-- C: kp-less (8.91ms) — 2nd lowest -->
+    <rect x="255" y="30.9" width="60" height="89.1" fill="#10b981" opacity="0.85" rx="3"/>
+    <text x="285" y="15" text-anchor="middle" font-size="12" fill="#10b981" font-weight="700">8.91</text>
+    <text x="285" y="148" text-anchor="middle" font-size="11" fill="#475569" font-weight="500">C: kp-less</text>
 
-    <!-- D: ENI (8.75ms) BEST -->
-    <rect x="400" y="32.5" width="70" height="87.5" fill="#3b82f6" opacity="0.9" rx="3"/>
-    <rect x="398" y="30.5" width="74" height="91.5" fill="none" rx="4" stroke="#3b82f6" stroke-width="2" opacity="0.5"/>
-    <text x="435" y="29" text-anchor="middle" font-size="12" fill="#3b82f6" font-weight="700">8.75</text>
-    <text x="435" y="19" text-anchor="middle" font-size="10" fill="#3b82f6" font-weight="600">✓ Lowest</text>
-    <text x="435" y="140" text-anchor="middle" font-size="11" fill="#475569" font-weight="500">D: ENI</text>
+    <!-- D: ENI (8.75ms) — ACTUAL LOWEST -->
+    <rect x="365" y="32.5" width="60" height="87.5" fill="#3b82f6" opacity="0.9" rx="3"/>
+    <rect x="363" y="30.5" width="64" height="91.5" fill="none" rx="4" stroke="#3b82f6" stroke-width="2" opacity="0.5"/>
+    <text x="395" y="17" text-anchor="middle" font-size="12" fill="#3b82f6" font-weight="700">8.75</text>
+    <text x="395" y="1" text-anchor="middle" font-size="10" fill="#3b82f6" font-weight="600">✓ Lowest</text>
+    <text x="395" y="148" text-anchor="middle" font-size="11" fill="#475569" font-weight="500">D: ENI</text>
 
     <!-- E: ENI+Tuned (9.89ms) -->
-    <rect x="520" y="21.1" width="70" height="98.9" fill="#059669" opacity="0.85" rx="3"/>
-    <text x="555" y="18" text-anchor="middle" font-size="12" fill="#059669" font-weight="700">9.89</text>
-    <text x="555" y="140" text-anchor="middle" font-size="11" fill="#475569" font-weight="500">E: ENI+Tuned</text>
+    <rect x="475" y="21.1" width="60" height="98.9" fill="#059669" opacity="0.85" rx="3"/>
+    <text x="505" y="6" text-anchor="middle" font-size="12" fill="#059669" font-weight="700">9.89</text>
+    <text x="505" y="148" text-anchor="middle" font-size="11" fill="#475569" font-weight="500">E: ENI+Tuned</text>
   </g>
 
   <!-- Bottom Chart: Max QPS -->
-  <g transform="translate(100, 250)">
+  <g transform="translate(100, 300)">
     <!-- Subtitle -->
     <text x="0" y="-5" font-size="14" font-weight="600" fill="#475569">Maximum Achieved QPS</text>
     <text x="600" y="-5" text-anchor="end" font-size="11" fill="#94a3b8" font-style="italic">Higher is better</text>
@@ -92,34 +82,36 @@
     <!-- X-axis -->
     <line x1="0" y1="120" x2="600" y2="120" stroke="#94a3b8" stroke-width="2"/>
 
-    <!-- Bars (scale: 1 QPS = 0.6px from 4000 baseline) -->
-    <!-- Bar width: 70px, spacing: 50px -->
-
     <!-- A: VPC CNI (4,104) -->
-    <rect x="40" y="57.6" width="70" height="62.4" fill="#64748b" opacity="0.85" rx="3"/>
-    <text x="75" y="50" text-anchor="middle" font-size="12" fill="#64748b" font-weight="700">4,104</text>
-    <text x="75" y="140" text-anchor="middle" font-size="11" fill="#475569" font-weight="500">A: VPC CNI</text>
+    <rect x="35" y="57.6" width="60" height="62.4" fill="#64748b" opacity="0.85" rx="3"/>
+    <text x="65" y="42" text-anchor="middle" font-size="12" fill="#64748b" font-weight="700">4,104</text>
+    <text x="65" y="148" text-anchor="middle" font-size="11" fill="#475569" font-weight="500">A: VPC CNI</text>
 
     <!-- B: Cilium+kp (4,045) -->
-    <rect x="160" y="93" width="70" height="27" fill="#8b5cf6" opacity="0.85" rx="3"/>
-    <text x="195" y="86" text-anchor="middle" font-size="12" fill="#8b5cf6" font-weight="700">4,045</text>
-    <text x="195" y="140" text-anchor="middle" font-size="11" fill="#475569" font-weight="500">B: Cilium+kp</text>
+    <rect x="145" y="93" width="60" height="27" fill="#8b5cf6" opacity="0.85" rx="3"/>
+    <text x="175" y="78" text-anchor="middle" font-size="12" fill="#8b5cf6" font-weight="700">4,045</text>
+    <text x="175" y="148" text-anchor="middle" font-size="11" fill="#475569" font-weight="500">B: Cilium+kp</text>
 
     <!-- C: kp-less (4,019) -->
-    <rect x="280" y="108.6" width="70" height="11.4" fill="#10b981" opacity="0.85" rx="3"/>
-    <text x="315" y="101" text-anchor="middle" font-size="12" fill="#10b981" font-weight="700">4,019</text>
-    <text x="315" y="140" text-anchor="middle" font-size="11" fill="#475569" font-weight="500">C: kp-less</text>
+    <rect x="255" y="108.6" width="60" height="11.4" fill="#10b981" opacity="0.85" rx="3"/>
+    <text x="285" y="93" text-anchor="middle" font-size="12" fill="#10b981" font-weight="700">4,019</text>
+    <text x="285" y="148" text-anchor="middle" font-size="11" fill="#475569" font-weight="500">C: kp-less</text>
 
     <!-- D: ENI (4,026) -->
-    <rect x="400" y="104.4" width="70" height="15.6" fill="#3b82f6" opacity="0.85" rx="3"/>
-    <text x="435" y="97" text-anchor="middle" font-size="12" fill="#3b82f6" font-weight="700">4,026</text>
-    <text x="435" y="140" text-anchor="middle" font-size="11" fill="#475569" font-weight="500">D: ENI</text>
+    <rect x="365" y="104.4" width="60" height="15.6" fill="#3b82f6" opacity="0.85" rx="3"/>
+    <text x="395" y="89" text-anchor="middle" font-size="12" fill="#3b82f6" font-weight="700">4,026</text>
+    <text x="395" y="148" text-anchor="middle" font-size="11" fill="#475569" font-weight="500">D: ENI</text>
 
     <!-- E: ENI+Tuned (4,182) BEST -->
-    <rect x="520" y="10.8" width="70" height="109.2" fill="#059669" opacity="0.9" rx="3"/>
-    <rect x="518" y="8.8" width="74" height="113.2" fill="none" rx="4" stroke="#059669" stroke-width="2" opacity="0.5"/>
-    <text x="555" y="7" text-anchor="middle" font-size="12" fill="#059669" font-weight="700">4,182</text>
-    <text x="555" y="-3" text-anchor="middle" font-size="10" fill="#059669" font-weight="600">✓ Highest</text>
-    <text x="555" y="140" text-anchor="middle" font-size="11" fill="#475569" font-weight="500">E: ENI+Tuned</text>
+    <rect x="475" y="10.8" width="60" height="109.2" fill="#059669" opacity="0.9" rx="3"/>
+    <rect x="473" y="8.8" width="64" height="113.2" fill="none" rx="4" stroke="#059669" stroke-width="2" opacity="0.5"/>
+    <text x="505" y="-4" text-anchor="middle" font-size="12" fill="#059669" font-weight="700">4,182</text>
+    <text x="505" y="-20" text-anchor="middle" font-size="10" fill="#059669" font-weight="600">✓ Highest</text>
+    <text x="505" y="148" text-anchor="middle" font-size="11" fill="#475569" font-weight="500">E: ENI+Tuned</text>
   </g>
+
+  <!-- Subtitle -->
+  <text x="400" y="518" text-anchor="middle" font-size="11" fill="#94a3b8" font-style="italic">
+    Measurements at QPS=1000 · Optimal configurations vary by workload
+  </text>
 </svg>

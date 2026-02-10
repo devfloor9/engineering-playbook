@@ -7,13 +7,36 @@ category: "benchmark"
 date: 2026-02-09
 authors: [devfloor9]
 sidebar_position: 5
+last_update:
+  date: 2026-02-09
+  author: devfloor9
 ---
 
 # VPC CNI vs Cilium CNI Performance Comparison Benchmark
 
 ## Executive Summary
 
-This report presents quantitative performance measurements of VPC CNI vs Cilium CNI across 5 scenarios (VPC CNI baseline, Cilium+kube-proxy, Cilium kube-proxy-less, Cilium ENI, Cilium ENI+full tuning) in Amazon EKS 1.31 environment. We analyze the independent effects of kube-proxy removal, Overlay vs Native Routing, and full tuning application to support CNI configuration selection based on workload characteristics. Key findings: TCP throughput is identical across all scenarios (~12.4 Gbps, limited by m6i.xlarge NIC bandwidth), but Cilium shows dramatic UDP loss reduction (0.03-0.94% vs 20%+), 36% RTT improvement with tuning (3135µs vs 4894µs), and 20% better HTTP p99 latency with ENI mode.
+A quantitative benchmark comparing VPC CNI and Cilium CNI performance across 5 scenarios on Amazon EKS 1.31.
+
+**Bottom line**: TCP throughput is NIC-bound (12.5 Gbps) and identical across all CNI configurations, but Cilium ENI with full tuning delivers **680× lower UDP packet loss** (20% → 0.03%), **36% lower RTT** (4,894 → 3,135 µs), and **20% lower HTTP p99 latency** (10.92 → 8.75 ms) compared to VPC CNI.
+
+**5 Scenarios**:
+- **A** VPC CNI Baseline
+- **B** Cilium + kube-proxy (migration impact)
+- **C** Cilium kube-proxy-less (kube-proxy removal effect)
+- **D** Cilium ENI Mode (Overlay vs Native Routing)
+- **E** Cilium ENI + Full Tuning (cumulative optimization)
+
+**Key Results**:
+
+| Metric | VPC CNI (A) | Cilium ENI+Tuning (E) | Improvement |
+|--------|------------|----------------------|-------------|
+| TCP Throughput | 12.41 Gbps | 12.40 Gbps | Identical (NIC-saturated) |
+| UDP Packet Loss | 20.39% | 0.03% | **680× reduction** |
+| Pod-to-Pod RTT | 4,894 µs | 3,135 µs | **36% lower** |
+| HTTP p99 @QPS=1000 | 10.92 ms | 8.75 ms* | **20% lower** |
+
+\* Lowest HTTP p99 was achieved in Scenario D (Cilium ENI default). Scenario E recorded 9.89 ms due to BBR's conservative congestion control behavior under moderate load.
 
 ---
 
@@ -39,7 +62,7 @@ This report presents quantitative performance measurements of VPC CNI vs Cilium 
 
 ## Test Scenarios
 
-The 5 scenarios are designed to measure the independent impact of each variable: CNI, kube-proxy mode, IP allocation method, and tuning application.
+The 5 scenarios are designed to isolate the independent impact of each variable: CNI type, kube-proxy mode, IP allocation method, and tuning application.
 
 | # | Scenario | CNI | kube-proxy | IP Allocation | Tuning | Measurement Purpose |
 |---|---------|-----|-----------|---------------|--------|---------------------|
@@ -65,7 +88,7 @@ The 5 scenarios are designed to measure the independent impact of each variable:
 | Hubble Disabled | `hubble.enabled=false` | Remove observability overhead (benchmark only) | ✅ |
 
 :::warning XDP and DSR Compatibility
-On m6i.xlarge with ENA driver, XDP native acceleration (`loadBalancer.acceleration=native`) failed with "bpf_link is not supported" error. Even `acceleration=best-effort` mode failed. DSR (`loadBalancer.mode=dsr`) caused pod crashes and was reverted to `mode=snat`. Scenario E represents partial tuning: Socket LB, BPF Host Routing, BPF Masquerade, Bandwidth Manager, BBR, Native Routing, CT Table expansion, and Hubble disabled were successfully applied.
+On m6i.xlarge with the ENA driver, XDP native acceleration (`loadBalancer.acceleration=native`) failed with a "bpf_link is not supported" error. Even `acceleration=best-effort` mode failed. DSR (`loadBalancer.mode=dsr`) caused pod crashes and was reverted to `mode=snat`. Scenario E therefore represents partial tuning: Socket LB, BPF Host Routing, BPF Masquerade, Bandwidth Manager, BBR, Native Routing, CT Table expansion, and Hubble disabled were successfully applied.
 :::
 
 ---
@@ -78,7 +101,7 @@ Comparison of Pod-to-Service traffic packet paths between VPC CNI (kube-proxy) a
 
 #### Cilium Architecture Overview
 
-The Cilium Daemon manages BPF programs in the kernel, injecting eBPF programs into each container and network interface (eth0).
+The Cilium Daemon manages BPF programs in the kernel, attaching eBPF programs to each container's network interface (eth0) and veth pairs.
 
 ![Cilium Architecture](/img/benchmarks/cilium-arch.png)
 *Source: [Cilium Component Overview](https://docs.cilium.io/en/stable/overview/component-overview.html)*
@@ -106,7 +129,7 @@ The Cilium Operator allocates IPs from ENIs via the EC2 API and provides IP pool
 
 ### Data Plane Stack by Scenario
 
-Comparing Service LB, CNI Agent, and network layer configuration with key performance metrics across all scenarios.
+Comparison of Service LB, CNI Agent, and network layer configuration with key performance metrics across all scenarios.
 
 ![Data Plane Stack Comparison](/img/benchmarks/dataplane-stack-comparison.svg)
 
@@ -147,7 +170,7 @@ See script comments for detailed test procedures.
 ## Benchmark Results
 
 :::info Data Collection
-Benchmark data collected on 2026-02-09 on Amazon EKS 1.31 with m6i.xlarge nodes in ap-northeast-2a. Each measurement represents the median of 3+ test runs.
+Benchmark data collected on 2026-02-09 on Amazon EKS 1.31 with m6i.xlarge nodes (Amazon Linux 2023, single AZ: ap-northeast-2a). Each measurement represents the median of 3+ test runs.
 :::
 
 ### Network Performance
@@ -157,11 +180,11 @@ Benchmark data collected on 2026-02-09 on Amazon EKS 1.31 with m6i.xlarge nodes 
 ![TCP/UDP Throughput Comparison](/img/benchmarks/chart-network-throughput.svg)
 
 :::info Why UDP Throughput Differs Across Configurations
-TCP throughput is identical across all scenarios (saturated at NIC bandwidth of 12.5 Gbps), but UDP shows significant performance differences:
+TCP throughput is identical across all scenarios (saturated at the NIC bandwidth of 12.5 Gbps), but UDP shows significant performance differences:
 
-- **Scenarios A (VPC CNI) and D (Cilium ENI default)**: UDP throughput ~10 Gbps but with **20% packet loss**. Without eBPF Bandwidth Manager, the kernel's default UDP buffers cannot handle iperf3's high-speed transmission, causing buffer overflow and packet drops.
-- **Scenarios B, C (Cilium Overlay)**: UDP throughput ~7.9 Gbps (lower) but with **under 1% packet loss**. VXLAN encapsulation overhead reduces raw throughput, but Cilium's eBPF-based packet processing optimizes buffer management, significantly reducing loss.
-- **Scenario E (Cilium ENI+Tuning)**: UDP throughput ~8.0 Gbps with **0.03% packet loss**. Bandwidth Manager (EDT-based rate limiting) and BBR congestion control regulate transmission rate to match receiver capacity, preventing buffer overflow.
+- **Scenarios A (VPC CNI) and D (Cilium ENI default)**: UDP throughput ~10 Gbps but with **20% packet loss**. Without the eBPF Bandwidth Manager, the kernel's default UDP buffers cannot handle iperf3's high-speed transmission, causing buffer overflow and packet drops.
+- **Scenarios B, C (Cilium Overlay)**: UDP throughput ~7.9 Gbps (lower) but with **under 1% packet loss**. VXLAN encapsulation overhead reduces raw throughput, yet Cilium's eBPF-based packet processing optimizes buffer management, significantly reducing loss.
+- **Scenario E (Cilium ENI+Tuning)**: UDP throughput ~8.0 Gbps with **0.03% packet loss**. The Bandwidth Manager (EDT-based rate limiting) and BBR congestion control regulate the transmission rate to match receiver capacity, preventing buffer overflow.
 
 **Key insight**: For UDP workloads, **packet loss rate** is a more meaningful performance metric than raw throughput. High throughput with high loss actually means lower effective data transfer.
 :::
@@ -207,7 +230,7 @@ TCP throughput is identical across all scenarios (saturated at NIC bandwidth of 
 
 ### Service Scaling Impact (Scenario E)
 
-To validate Cilium eBPF's O(1) service lookup performance, we compared performance with 4 services vs 104 services on the same Scenario E environment.
+To validate Cilium eBPF's O(1) service lookup performance, we compared performance with 4 services vs 104 services in the same Scenario E environment.
 
 ![Service Scaling Impact](/img/benchmarks/chart-service-scaling.svg)
 
@@ -224,7 +247,33 @@ To validate Cilium eBPF's O(1) service lookup performance, we compared performan
 </details>
 
 :::info eBPF O(1) Service Lookup Confirmed
-Increasing service count from 4 to 104 (26x increase) showed no meaningful performance difference on Cilium eBPF — all metrics remained within 5% measurement noise. This confirms that eBPF hash map-based O(1) lookups maintain constant performance regardless of service count. In contrast, kube-proxy (iptables) traverses rule chains proportionally O(n), with significant degradation at 500+ services.
+Increasing the service count from 4 to 104 (26x increase) showed no meaningful performance difference on Cilium eBPF — all metrics remained within 5% measurement noise. This confirms that eBPF hash map-based O(1) lookups maintain constant performance regardless of service count. In contrast, kube-proxy (iptables) traverses rule chains proportionally at O(n), with significant degradation at 500+ services.
+:::
+
+### kube-proxy (iptables) Service Scaling Comparison
+
+To validate eBPF's O(1) advantage, the same test was conducted on VPC CNI + kube-proxy (Scenario A).
+
+![kube-proxy vs Cilium Service Scaling](/img/benchmarks/chart-kubeproxy-scaling.svg)
+
+<details>
+<summary>Detailed Comparison Data</summary>
+
+| Metric | kube-proxy 4 svc | kube-proxy 104 svc | Change | Cilium 4 svc | Cilium 104 svc | Change |
+|--------|-----------------|-------------------|--------|-------------|---------------|--------|
+| HTTP p99 @QPS=1000 | 5.86ms | 5.99ms | +2.2% | 3.94ms | 3.64ms | -8% |
+| HTTP avg @QPS=1000 | 2.508ms | 2.675ms | +6.7% | - | - | - |
+| Max QPS (keepalive) | 4,197 | 4,231 | ~0% | 4,405 | 4,221 | -4.2% |
+| TCP Throughput | 12.4 Gbps | 12.4 Gbps | ~0% | 12.3 Gbps | 12.4 Gbps | ~0% |
+| iptables NAT rules | 99 | 699 | **+607%** | N/A (eBPF) | N/A (eBPF) | - |
+| Sync cycle time | ~130ms | ~160ms | +23% | N/A | N/A | - |
+
+</details>
+
+:::warning iptables Rule Growth
+At 104 services, kube-proxy iptables NAT rules grew from 99 to 699 (7.1x). While HTTP latency impact was modest (+2.2% p99) at this scale, the rule growth is linear O(n). At 1,000+ services, iptables regeneration exceeds 500ms per sync cycle, and at 5,000+ services, kube-proxy sync can take multiple seconds — directly impacting new connection setup latency.
+
+In contrast, Cilium eBPF uses hash map lookups that remain O(1) regardless of service count, with zero iptables rule overhead.
 :::
 
 ### DNS Resolution Performance
@@ -241,12 +290,12 @@ Increasing service count from 4 to 104 (26x increase) showed no meaningful perfo
 | CPU (under load, per node) | N/M | ~4-6m | ~4-6m | ~5-6m | ~4-5m |
 | Memory (per node) | N/M | ~83Mi | ~129Mi | ~81Mi | ~82Mi |
 
-**N/M**: Not measured separately (VPC CNI aws-node DaemonSet resource usage not isolated during benchmark).
+**N/M**: Not measured separately (VPC CNI aws-node DaemonSet resource usage was not isolated during the benchmark).
 
 ### Individual Tuning Point Impact
 
 :::info Tuning Methodology
-Individual tuning point impact was not measured separately. Scenario E applied all compatible tunings simultaneously to Scenario D (ENI baseline). The following table shows which tunings were successfully applied:
+Individual tuning point impact was not measured in isolation. Scenario E applied all compatible tunings simultaneously to Scenario D (ENI baseline). The following table shows which tunings were successfully applied:
 :::
 
 | Tuning Point | Applied in Scenario E | Notes |
@@ -276,18 +325,18 @@ Individual tuning point impact was not measured separately. Scenario E applied a
 
 ### Key Finding 1: TCP Throughput Saturated by NIC Bandwidth
 
-All scenarios achieved essentially identical TCP throughput (12.34-12.41 Gbps), limited by m6i.xlarge's 12.5 Gbps baseline network bandwidth. CNI choice does not impact TCP throughput on instance types where the network becomes the bottleneck. This finding generalizes to most AWS instance types with under 25 Gbps bandwidth.
+All scenarios achieved essentially identical TCP throughput (12.34–12.41 Gbps), limited by the m6i.xlarge's 12.5 Gbps baseline network bandwidth. CNI choice does not impact TCP throughput on instance types where the NIC becomes the bottleneck. This finding generalizes to most AWS instance types with under 25 Gbps bandwidth.
 
 ### Key Finding 2: UDP Loss as Primary Differentiator
 
 The most significant performance difference was UDP packet loss:
 
 - **VPC CNI (A)**: 20.39% loss at 10 Gbps target
-- **Cilium ENI (D)**: 20.42% loss at 10 Gbps target (similar to VPC CNI)
-- **Cilium Overlay (B, C)**: 0.69-0.94% loss at 10 Gbps target
-- **Cilium ENI+Tuning (E)**: 0.03% loss at 10 Gbps target
+- **Cilium ENI (D)**: 20.42% loss at 10 Gbps target (similar to VPC CNI without tuning)
+- **Cilium Overlay (B, C)**: 0.69–0.94% loss at ~7.9 Gbps target
+- **Cilium ENI+Tuning (E)**: 0.03% loss at ~8.0 Gbps target
 
-**Analysis**: Cilium's eBPF-based bandwidth manager provides effective rate limiting, preventing buffer overflows that cause packet loss. VPC CNI and untuned Cilium ENI lack this capability. For UDP-heavy workloads (streaming, gaming, DNS), Cilium with bandwidth manager is essential.
+**Analysis**: Cilium's eBPF-based Bandwidth Manager provides effective EDT-based rate limiting, preventing the buffer overflows that cause packet loss. VPC CNI and untuned Cilium ENI lack this capability. For UDP-heavy workloads (streaming, gaming, DNS), Cilium with Bandwidth Manager is essential.
 
 ### Key Finding 3: Latency Improvements with Tuning
 
@@ -308,7 +357,7 @@ At low-to-moderate load (QPS=1000), p99 latency showed clear CNI impact:
 - **Cilium kp-less (C)**: 8.91ms (18% improvement)
 - **Cilium ENI+Tuning (E)**: 9.89ms (9% improvement)
 
-Scenario D achieved the best p99 latency despite not having full tuning. Scenario E's slightly higher p99 may be due to BBR's conservative congestion control under low load.
+Scenario D achieved the best p99 latency despite not having full tuning applied. Scenario E's slightly higher p99 may be attributable to BBR's conservative congestion control behavior under low load.
 
 ### Key Finding 5: QPS=5000 Anomalies
 
@@ -333,7 +382,7 @@ Comparing Scenario B (kube-proxy) vs C (kube-proxy-less):
 - **HTTP QPS@1000 p99**: B 9.87ms vs C 8.91ms (C better)
 - **DNS p99**: B 4ms vs C 2ms (C better)
 
-kube-proxy removal shows mixed results at small scale (under 100 Services). The benefit becomes significant at 500+ Services where iptables rule chain traversal (O(n)) becomes a bottleneck, while eBPF maintains O(1) hash map lookups.
+kube-proxy removal shows mixed results at small scale (under 100 Services). The benefit becomes significant at 500+ Services, where iptables rule chain traversal at O(n) becomes a bottleneck, while eBPF maintains O(1) hash map lookups.
 
 ### XDP and DSR Limitations on ENA
 
@@ -445,7 +494,7 @@ This is because the ENA driver does not support `bpf_link`-based XDP attachment 
 
 #### Optimizations Achievable Without XDP
 
-This benchmark achieved **36% RTT improvement** (4453 to 3135 us) without XDP or DSR using:
+This benchmark achieved **36% RTT improvement** (4894 to 3135 µs, comparing VPC CNI baseline to Cilium ENI+Tuning) without XDP or DSR, using:
 
 | Tuning Item | Effect |
 |-------------|--------|

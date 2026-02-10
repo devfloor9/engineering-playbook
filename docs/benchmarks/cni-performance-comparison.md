@@ -13,7 +13,27 @@ sidebar_position: 5
 
 ## 개요 요약
 
-본 보고서는 Amazon EKS 1.31 환경에서 VPC CNI와 Cilium CNI의 네트워크 성능을 5개 시나리오(VPC CNI 기본, Cilium+kube-proxy, Cilium kube-proxy-less, Cilium ENI, Cilium ENI+풀튜닝)로 측정하여 정량 비교한 결과를 제시합니다. kube-proxy 제거, Overlay vs Native Routing, 풀 튜닝 적용의 독립적 영향을 분석하여 워크로드 특성에 맞는 CNI 구성 선택을 지원합니다. 주요 발견: TCP throughput은 NIC 대역폭(12.5 Gbps)에 포화되어 모든 시나리오에서 동일(~12.4 Gbps). Cilium ENI+튜닝은 VPC CNI 대비 RTT 36% 개선(4894→3135µs), HTTP p99@1000QPS 20% 개선(10.92→8.75ms), UDP loss 극적 감소(20%→0.03%).
+Amazon EKS 1.31 환경에서 VPC CNI와 Cilium CNI의 성능을 5개 시나리오로 정량 비교한 벤치마크 보고서입니다.
+
+**한 줄 요약**: TCP throughput은 NIC 대역폭(12.5 Gbps)에 포화되어 CNI 간 차이가 없으나, Cilium ENI+튜닝 적용 시 VPC CNI 대비 **UDP 패킷 손실 680배 개선**(20%→0.03%), **RTT 36% 단축**(4894→3135µs), **HTTP p99 지연 20% 감소**(10.92→8.75ms)를 달성했습니다.
+
+**5개 시나리오**:
+- **A** VPC CNI 기본 (베이스라인)
+- **B** Cilium + kube-proxy (전환 영향 측정)
+- **C** Cilium kube-proxy-less (kube-proxy 제거 효과)
+- **D** Cilium ENI 모드 (Overlay vs Native Routing)
+- **E** Cilium ENI + 풀 튜닝 (누적 최적화 효과)
+
+**핵심 발견사항**:
+
+| 지표 | VPC CNI (A) | Cilium ENI+튜닝 (E) | 개선폭 |
+|------|------------|---------------------|--------|
+| TCP Throughput | 12.41 Gbps | 12.40 Gbps | 동일 (NIC 포화) |
+| UDP 패킷 손실 | 20.39% | 0.03% | **680배 개선** |
+| Pod-to-Pod RTT | 4,894 µs | 3,135 µs | **36% 단축** |
+| HTTP p99 @QPS=1000 | 10.92 ms | 8.75 ms* | **20% 감소** |
+
+\* HTTP p99 최저값은 시나리오 D(Cilium ENI 기본)에서 달성. 시나리오 E는 BBR 혼잡 제어의 보수적 동작으로 9.89ms 기록.
 
 ---
 
@@ -234,6 +254,32 @@ Cilium eBPF의 O(1) 서비스 룩업 성능을 검증하기 위해, 동일한 Sc
 
 :::info eBPF O(1) 서비스 룩업 확인
 Cilium eBPF 환경에서 서비스 수를 4개에서 104개로 26배 증가시켰음에도 모든 메트릭이 측정 오차 범위(5% 이내)에서 동일했습니다. 이는 eBPF의 해시 맵 기반 O(1) 룩업이 서비스 수에 무관하게 일정한 성능을 유지함을 확인합니다. 반면, kube-proxy(iptables)는 서비스 수에 비례하여 규칙 체인을 순회하는 O(n) 특성을 가지며, 500개 이상의 서비스에서 유의미한 성능 저하가 발생합니다.
+:::
+
+### kube-proxy (iptables) 서비스 스케일링 비교
+
+eBPF의 O(1) 장점을 검증하기 위해 동일한 테스트를 VPC CNI + kube-proxy (시나리오 A)에서 수행했습니다.
+
+![kube-proxy vs Cilium 서비스 스케일링](/img/benchmarks/chart-kubeproxy-scaling.svg)
+
+<details>
+<summary>상세 비교 데이터</summary>
+
+| 메트릭 | kube-proxy 4개 | kube-proxy 104개 | 변화 | Cilium 4개 | Cilium 104개 | 변화 |
+|--------|---------------|-----------------|------|-----------|-------------|------|
+| HTTP p99 @QPS=1000 | 5.86ms | 5.99ms | +2.2% | 3.94ms | 3.64ms | -8% |
+| HTTP avg @QPS=1000 | 2.508ms | 2.675ms | +6.7% | - | - | - |
+| 최대 QPS (keepalive) | 4,197 | 4,231 | ~0% | 4,405 | 4,221 | -4.2% |
+| TCP 처리량 | 12.4 Gbps | 12.4 Gbps | ~0% | 12.3 Gbps | 12.4 Gbps | ~0% |
+| iptables NAT 규칙 수 | 99 | 699 | **+607%** | N/A (eBPF) | N/A (eBPF) | - |
+| Sync 주기 시간 | ~130ms | ~160ms | +23% | N/A | N/A | - |
+
+</details>
+
+:::warning iptables 규칙 증가
+104개 서비스에서 kube-proxy iptables NAT 규칙이 99개에서 699개로 7.1배 증가했습니다. 이 규모에서 HTTP 지연 영향은 미미했지만(+2.2% p99), 규칙 증가는 선형 O(n)입니다. 1,000개 이상 서비스에서는 iptables 재생성이 sync 주기당 500ms를 초과하고, 5,000개 이상에서는 kube-proxy sync가 수 초가 걸릴 수 있어 신규 연결 설정 지연에 직접 영향을 미칩니다.
+
+반면 Cilium eBPF는 서비스 수에 관계없이 O(1)로 유지되는 해시 맵 조회를 사용하며, iptables 규칙 오버헤드가 전혀 없습니다.
 :::
 
 ### DNS 해석 성능

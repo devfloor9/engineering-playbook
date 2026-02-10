@@ -1,18 +1,15 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 850 440" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
   <!-- Background -->
-  <rect width="800" height="400" fill="#ffffff"/>
-
-  <!-- Title -->
-  <text x="400" y="30" text-anchor="middle" font-size="20" font-weight="600" fill="#1e293b">
-    UDP Packet Loss Rate Comparison (%)
-  </text>
+  <rect width="850" height="440" fill="#ffffff"/>
 
   <!-- Chart area -->
-  <g transform="translate(100, 60)">
+  <g transform="translate(100, 30)">
     <!-- Danger zone (above 5%) -->
     <rect x="0" y="0" width="600" height="240" fill="#fee2e2" opacity="0.3"/>
-    <text x="605" y="240" font-size="10" fill="#dc2626" font-weight="500">Danger Zone</text>
+    <text x="610" y="15" font-size="11" fill="#dc2626" font-weight="600">⚠ Danger Zone</text>
+    <text x="610" y="30" font-size="10" fill="#dc2626">(Loss &gt; 5%)</text>
     <line x1="0" y1="240" x2="600" y2="240" stroke="#dc2626" stroke-width="1" stroke-dasharray="3,3"/>
+    <text x="605" y="244" font-size="10" fill="#dc2626">5%</text>
 
     <!-- Grid lines -->
     <line x1="0" y1="300" x2="600" y2="300" stroke="#e2e8f0" stroke-width="1"/>
@@ -36,46 +33,41 @@
     <!-- X-axis -->
     <line x1="0" y1="300" x2="600" y2="300" stroke="#94a3b8" stroke-width="2"/>
 
-    <!-- Bars (scale: 1% = 12px) -->
-    <!-- Bar width: 80px, spacing: 40px -->
+    <!-- Bars -->
 
-    <!-- A: VPC CNI (20.39%) - RED TINT -->
-    <rect x="40" y="55.32" width="80" height="244.68" fill="#dc2626" opacity="0.85" rx="4"/>
-    <text x="80" y="40" text-anchor="middle" font-size="14" fill="#dc2626" font-weight="700">20.39%</text>
-    <text x="80" y="325" text-anchor="middle" font-size="12" fill="#475569" font-weight="500">A: VPC</text>
-    <text x="80" y="340" text-anchor="middle" font-size="12" fill="#475569">CNI</text>
+    <!-- A: VPC CNI (20.39%) -->
+    <rect x="35" y="55.32" width="70" height="244.68" fill="#dc2626" opacity="0.85" rx="4"/>
+    <text x="70" y="44" text-anchor="middle" font-size="14" fill="#dc2626" font-weight="700">20.39%</text>
+    <text x="70" y="330" text-anchor="middle" font-size="12" fill="#475569" font-weight="500">A: VPC CNI</text>
 
-    <!-- B: Cilium+kp (0.94%) - GREEN TINT -->
-    <rect x="160" y="288.72" width="80" height="11.28" fill="#10b981" opacity="0.85" rx="4"/>
-    <text x="200" y="280" text-anchor="middle" font-size="14" fill="#10b981" font-weight="700">0.94%</text>
-    <text x="200" y="325" text-anchor="middle" font-size="12" fill="#475569" font-weight="500">B: Cilium</text>
-    <text x="200" y="340" text-anchor="middle" font-size="12" fill="#475569">+kp</text>
+    <!-- B: Cilium+kp (0.94%) -->
+    <rect x="155" y="288.72" width="70" height="11.28" fill="#10b981" opacity="0.85" rx="4"/>
+    <text x="190" y="280" text-anchor="middle" font-size="14" fill="#10b981" font-weight="700">0.94%</text>
+    <text x="190" y="330" text-anchor="middle" font-size="12" fill="#475569" font-weight="500">B: Cilium+kp</text>
 
-    <!-- C: kp-less (0.69%) - GREEN TINT -->
-    <rect x="280" y="291.72" width="80" height="8.28" fill="#10b981" opacity="0.85" rx="4"/>
-    <text x="320" y="283" text-anchor="middle" font-size="14" fill="#10b981" font-weight="700">0.69%</text>
-    <text x="320" y="325" text-anchor="middle" font-size="12" fill="#475569" font-weight="500">C: kp-</text>
-    <text x="320" y="340" text-anchor="middle" font-size="12" fill="#475569">less</text>
+    <!-- C: kp-less (0.69%) -->
+    <rect x="275" y="291.72" width="70" height="8.28" fill="#10b981" opacity="0.85" rx="4"/>
+    <text x="310" y="280" text-anchor="middle" font-size="14" fill="#10b981" font-weight="700">0.69%</text>
+    <text x="310" y="330" text-anchor="middle" font-size="12" fill="#475569" font-weight="500">C: kp-less</text>
 
-    <!-- D: ENI (20.42%) - RED TINT -->
-    <rect x="400" y="54.96" width="80" height="245.04" fill="#dc2626" opacity="0.85" rx="4"/>
-    <text x="440" y="40" text-anchor="middle" font-size="14" fill="#dc2626" font-weight="700">20.42%</text>
-    <text x="440" y="325" text-anchor="middle" font-size="12" fill="#475569" font-weight="500">D: ENI</text>
+    <!-- D: ENI (20.42%) -->
+    <rect x="395" y="54.96" width="70" height="245.04" fill="#dc2626" opacity="0.85" rx="4"/>
+    <text x="430" y="44" text-anchor="middle" font-size="14" fill="#dc2626" font-weight="700">20.42%</text>
+    <text x="430" y="330" text-anchor="middle" font-size="12" fill="#475569" font-weight="500">D: ENI</text>
 
-    <!-- E: ENI+Tuned (0.03%) - BEST, GREEN GLOW -->
-    <rect x="520" y="299.64" width="80" height="0.36" fill="#059669" rx="4"/>
-    <rect x="520" y="295" width="80" height="5" fill="#059669" opacity="0.4" rx="2"/>
-    <text x="560" y="285" text-anchor="middle" font-size="14" fill="#059669" font-weight="700">0.03%</text>
-    <text x="560" y="270" text-anchor="middle" font-size="11" fill="#059669" font-weight="600">✓ Best</text>
-    <text x="560" y="325" text-anchor="middle" font-size="12" fill="#475569" font-weight="500">E: ENI</text>
-    <text x="560" y="340" text-anchor="middle" font-size="12" fill="#475569">+Tuned</text>
+    <!-- E: ENI+Tuned (0.03%) -->
+    <rect x="515" y="299.64" width="70" height="0.36" fill="#059669" rx="4"/>
+    <rect x="515" y="295" width="70" height="5" fill="#059669" opacity="0.4" rx="2"/>
+    <text x="550" y="280" text-anchor="middle" font-size="14" fill="#059669" font-weight="700">0.03%</text>
+    <text x="550" y="266" text-anchor="middle" font-size="11" fill="#059669" font-weight="600">✓ Best</text>
+    <text x="550" y="330" text-anchor="middle" font-size="12" fill="#475569" font-weight="500">E: ENI+Tuned</text>
 
     <!-- Highlight glow for E -->
-    <rect x="518" y="293" width="84" height="9" fill="none" rx="5" stroke="#10b981" stroke-width="2" opacity="0.5"/>
+    <rect x="513" y="293" width="74" height="9" fill="none" rx="5" stroke="#10b981" stroke-width="2" opacity="0.5"/>
   </g>
 
   <!-- Subtitle -->
-  <text x="400" y="380" text-anchor="middle" font-size="11" fill="#94a3b8" font-style="italic">
-    Lower is better • Above 5% is unsuitable for production
+  <text x="425" y="425" text-anchor="middle" font-size="11" fill="#94a3b8" font-style="italic">
+    Lower is better · Above 5% is unsuitable for production
   </text>
 </svg>

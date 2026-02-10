@@ -1,0 +1,104 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 600" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+  <!-- Background -->
+  <rect width="900" height="600" fill="#ffffff"/>
+
+  <!-- Title -->
+  <text x="50" y="30" font-size="16" font-weight="600" fill="#111827">
+    kube-proxy (iptables) vs Cilium (eBPF) — Service Scaling Comparison
+  </text>
+  <text x="50" y="50" font-size="13" fill="#6b7280">
+    4 Services vs 104 Services — Impact on latency, throughput, and rule complexity
+  </text>
+
+  <!-- Legend -->
+  <g transform="translate(580, 20)">
+    <rect x="0" y="0" width="16" height="12" fill="#cbd5e1" rx="2"/>
+    <text x="22" y="11" font-size="12" fill="#374151">4 Services</text>
+    <rect x="120" y="0" width="16" height="12" fill="#64748b" rx="2"/>
+    <text x="142" y="11" font-size="12" fill="#374151">104 Services</text>
+  </g>
+
+  <!-- Section: kube-proxy (iptables) -->
+  <text x="50" y="85" font-size="15" font-weight="600" fill="#374151">kube-proxy (iptables)</text>
+
+  <!-- HTTP p99 -->
+  <g transform="translate(0, 100)">
+    <text x="50" y="18" font-size="13" font-weight="500" fill="#1f2937">HTTP p99 @QPS=1000</text>
+    <rect x="240" y="3" width="117" height="22" fill="#cbd5e1" rx="2"/>
+    <text x="362" y="19" font-size="12" fill="#1f2937">5.86ms</text>
+    <rect x="240" y="30" width="120" height="22" fill="#64748b" rx="2"/>
+    <text x="365" y="46" font-size="12" fill="#ffffff">5.99ms</text>
+    <text x="410" y="35" font-size="12" fill="#dc2626" font-weight="500">+2.2%</text>
+  </g>
+
+  <!-- Max QPS -->
+  <g transform="translate(0, 160)">
+    <text x="50" y="18" font-size="13" font-weight="500" fill="#1f2937">Max QPS (keepalive)</text>
+    <rect x="240" y="3" width="210" height="22" fill="#cbd5e1" rx="2"/>
+    <text x="455" y="19" font-size="12" fill="#1f2937">4,197</text>
+    <rect x="240" y="30" width="212" height="22" fill="#64748b" rx="2"/>
+    <text x="457" y="46" font-size="12" fill="#ffffff">4,231</text>
+    <text x="500" y="35" font-size="12" fill="#059669" font-weight="500">~same</text>
+  </g>
+
+  <!-- TCP Throughput -->
+  <g transform="translate(0, 220)">
+    <text x="50" y="18" font-size="13" font-weight="500" fill="#1f2937">TCP Throughput</text>
+    <rect x="240" y="3" width="248" height="22" fill="#cbd5e1" rx="2"/>
+    <text x="493" y="19" font-size="12" fill="#1f2937">12.4 Gbps</text>
+    <rect x="240" y="30" width="248" height="22" fill="#64748b" rx="2"/>
+    <text x="493" y="46" font-size="12" fill="#ffffff">12.4 Gbps</text>
+    <text x="540" y="35" font-size="12" fill="#059669" font-weight="500">identical</text>
+  </g>
+
+  <!-- iptables Rules -->
+  <g transform="translate(0, 280)">
+    <text x="50" y="18" font-size="13" font-weight="500" fill="#1f2937">iptables NAT Rules</text>
+    <rect x="240" y="3" width="50" height="22" fill="#cbd5e1" rx="2"/>
+    <text x="295" y="19" font-size="12" fill="#1f2937">99</text>
+    <rect x="240" y="30" width="350" height="22" fill="#64748b" rx="2"/>
+    <text x="595" y="46" font-size="12" fill="#ffffff">699</text>
+    <text x="640" y="35" font-size="12" fill="#dc2626" font-weight="600">7.1x growth!</text>
+  </g>
+
+  <!-- kube-proxy Sync Time -->
+  <g transform="translate(0, 340)">
+    <text x="50" y="18" font-size="13" font-weight="500" fill="#1f2937">kube-proxy sync time</text>
+    <rect x="240" y="3" width="130" height="22" fill="#cbd5e1" rx="2"/>
+    <text x="375" y="19" font-size="12" fill="#1f2937">~130ms</text>
+    <rect x="240" y="30" width="160" height="22" fill="#64748b" rx="2"/>
+    <text x="405" y="46" font-size="12" fill="#ffffff">~160ms</text>
+    <text x="450" y="35" font-size="12" fill="#dc2626" font-weight="500">+23%</text>
+  </g>
+
+  <!-- Section: Cilium (eBPF) -->
+  <text x="50" y="400" font-size="15" font-weight="600" fill="#065f46">Cilium (eBPF)</text>
+
+  <!-- HTTP p99 -->
+  <g transform="translate(0, 415)">
+    <text x="50" y="18" font-size="13" font-weight="500" fill="#1f2937">HTTP p99 @QPS=1000</text>
+    <rect x="240" y="3" width="158" height="22" fill="#93c5fd" rx="2"/>
+    <text x="403" y="19" font-size="12" fill="#1f2937">3.94ms</text>
+    <rect x="240" y="30" width="146" height="22" fill="#3b82f6" rx="2"/>
+    <text x="391" y="46" font-size="12" fill="#ffffff">3.64ms</text>
+    <text x="440" y="35" font-size="12" fill="#059669" font-weight="500">-8% (noise)</text>
+  </g>
+
+  <!-- eBPF Map Lookup -->
+  <g transform="translate(0, 475)">
+    <text x="50" y="18" font-size="13" font-weight="500" fill="#1f2937">eBPF map lookup</text>
+    <rect x="240" y="3" width="180" height="22" fill="#10b981" rx="2"/>
+    <text x="425" y="19" font-size="12" fill="#ffffff" font-weight="600">O(1) constant time</text>
+    <text x="470" y="19" font-size="12" fill="#065f46" font-weight="500">(no growth)</text>
+  </g>
+
+  <!-- Insight Box -->
+  <rect x="50" y="520" width="800" height="70" fill="#fef3c7" stroke="#f59e0b" stroke-width="2" rx="6"/>
+  <text x="65" y="543" font-size="13" font-weight="600" fill="#92400e">Key Insight:</text>
+  <text x="65" y="561" font-size="12" fill="#92400e">
+    At 104 services, both perform similarly. But kube-proxy iptables rules grow 7x (99→699) while eBPF stays O(1).
+  </text>
+  <text x="65" y="577" font-size="12" fill="#92400e">
+    At 1,000+ services, iptables sync exceeds 500ms and per-connection DNAT adds measurable overhead.
+  </text>
+</svg>
