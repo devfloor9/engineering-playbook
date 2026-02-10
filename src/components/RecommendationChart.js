@@ -187,24 +187,16 @@ export default function RecommendationChart({ locale = 'en' }) {
 
   return (
     <div style={{
-      maxWidth: '720px',
-      margin: '0 auto',
+      width: '100%',
       fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
     }}>
       {/* Section A: Recommendations Table */}
       <div style={{ marginBottom: '32px' }}>
-        <h3 style={{
-          fontSize: '20px',
-          fontWeight: '700',
-          marginBottom: '16px',
-          color: '#1e293b'
-        }}>
-          {t.tableTitle}
-        </h3>
         <div style={{
           border: '1px solid #e2e8f0',
           borderRadius: '12px',
-          overflow: 'hidden'
+          overflowX: 'auto',
+          overflowY: 'hidden'
         }}>
           <table style={{
             width: '100%',
@@ -290,14 +282,6 @@ export default function RecommendationChart({ locale = 'en' }) {
 
       {/* Section B: Evaluation Cards */}
       <div>
-        <h3 style={{
-          fontSize: '20px',
-          fontWeight: '700',
-          marginBottom: '16px',
-          color: '#1e293b'
-        }}>
-          {t.evaluationTitle}
-        </h3>
         <div style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',

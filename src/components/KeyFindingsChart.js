@@ -362,7 +362,7 @@ export default function KeyFindingsChart({ locale = 'en' }) {
 
   return (
     <div style={{
-      maxWidth: '720px',
+      width: '100%',
       margin: '0 auto',
       fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
     }}>
@@ -400,7 +400,7 @@ export default function KeyFindingsChart({ locale = 'en' }) {
         borderColor="#10b981"
         bgColor="linear-gradient(135deg, #fff 0%, #ecfdf5 100%)"
       >
-        <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginTop: '16px' }}>
+        <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginTop: '16px', flexWrap: 'wrap' }}>
           <MetricBox
             label={t.finding3.metric1.label}
             value={t.finding3.metric1.value}
