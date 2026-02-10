@@ -36,7 +36,7 @@ const i18n = {
         { label: "HTTP p99@1000", value: "-10% better", detail: "9.87→8.91ms", highlight: "green" },
         { label: "DNS p99", value: "-50% better", detail: "4ms→2ms", highlight: "green" }
       ],
-      insight: "At small scale (~10 services), kube-proxy removal shows minimal benefit. Significant improvements expected at 500+ services."
+      insight: "At small scale (~10 services), kube-proxy removal shows minimal benefit. At 1,000 services, iptables rules grew 101× (99→10,059) with +16% per-connection overhead, while Cilium eBPF maintained O(1) lookup performance regardless of service count."
     },
     finding5: {
       title: "ENI Mode vs Overlay Mode",
@@ -66,6 +66,18 @@ const i18n = {
         "BPF Host Routing — Bypasses iptables"
       ],
       note: "XDP acceleration and DSR unavailable in ENI mode"
+    },
+    finding7: {
+      title: "1,000-Service Scaling: iptables O(n) vs eBPF O(1)",
+      tag: "Scaling",
+      tableHeaders: ["Metric", "4 Services", "1,000 Services", "Change"],
+      rows: [
+        { metric: "iptables NAT Rules", base: "99", tuned: "10,059", change: "+101×", highlight: "red" },
+        { metric: "Sync Cycle Time", base: "~130ms", tuned: "~170ms", change: "+31%", highlight: "red" },
+        { metric: "Per-conn Setup (close)", base: "164µs", tuned: "190µs", change: "+16%", highlight: "red" },
+        { metric: "Max QPS (keepalive)", base: "4,197", tuned: "4,178", change: "~0%", highlight: "gray" }
+      ],
+      insight: "With keepalive connections, conntrack caching bypasses iptables chain traversal, hiding the O(n) cost. Without keepalive, every SYN packet traverses the full KUBE-SERVICES chain. At 5,000+ services, this overhead becomes critical, adding hundreds of µs per connection."
     }
   },
   ko: {
@@ -103,7 +115,7 @@ const i18n = {
         { label: "HTTP p99@1000", value: "-10% 개선", detail: "9.87→8.91ms", highlight: "green" },
         { label: "DNS p99", value: "-50% 개선", detail: "4ms→2ms", highlight: "green" }
       ],
-      insight: "소규모(~10 services)에서는 kube-proxy 제거 효과가 미미합니다. 500+ services 규모에서 유의미한 개선이 예상됩니다."
+      insight: "소규모(~10 services)에서는 kube-proxy 제거 효과가 미미합니다. 1,000개 서비스에서 iptables 규칙이 101배(99→10,059개) 증가하며 연결당 +16% 오버헤드가 발생한 반면, Cilium eBPF는 서비스 수에 무관한 O(1) 룩업 성능을 유지했습니다."
     },
     finding5: {
       title: "ENI 모드 vs Overlay 모드",
@@ -133,6 +145,18 @@ const i18n = {
         "BPF Host Routing — iptables 우회"
       ],
       note: "ENI 모드에서는 XDP acceleration 및 DSR 사용 불가"
+    },
+    finding7: {
+      title: "1,000개 서비스 스케일링: iptables O(n) vs eBPF O(1)",
+      tag: "스케일링",
+      tableHeaders: ["지표", "4 Services", "1,000 Services", "변화"],
+      rows: [
+        { metric: "iptables NAT 규칙 수", base: "99", tuned: "10,059", change: "+101배", highlight: "red" },
+        { metric: "Sync 주기 시간", base: "~130ms", tuned: "~170ms", change: "+31%", highlight: "red" },
+        { metric: "연결당 설정 시간 (close)", base: "164µs", tuned: "190µs", change: "+16%", highlight: "red" },
+        { metric: "최대 QPS (keepalive)", base: "4,197", tuned: "4,178", change: "~0%", highlight: "gray" }
+      ],
+      insight: "keepalive 연결에서는 conntrack 캐시가 iptables 체인 순회를 우회하여 O(n) 비용이 숨겨집니다. keepalive 없이는 모든 SYN 패킷이 KUBE-SERVICES 체인 전체를 순회합니다. 5,000개 이상 서비스에서는 연결당 수백 µs가 추가되어 실질적 성능 저하가 발생합니다."
     }
   }
 };
@@ -538,6 +562,20 @@ export default function KeyFindingsChart({ locale = 'en' }) {
             {t.finding6.note}
           </div>
         </div>
+      </FindingCard>
+
+      {/* Finding 7: 1000-Service Scaling */}
+      <FindingCard
+        number="7"
+        title={t.finding7.title}
+        tag={t.finding7.tag}
+        tagColor="#f59e0b"
+        borderColor="#f59e0b"
+        bgColor={isDark ? '#1e293b' : 'linear-gradient(135deg, #fff 0%, #fffbeb 100%)'}
+        isDark={isDark}
+      >
+        <MetricTable headers={t.finding7.tableHeaders} rows={t.finding7.rows} locale={locale} isDark={isDark} />
+        <InsightBox text={t.finding7.insight} bgColor="#fffbeb" isDark={isDark} />
       </FindingCard>
     </div>
   );
