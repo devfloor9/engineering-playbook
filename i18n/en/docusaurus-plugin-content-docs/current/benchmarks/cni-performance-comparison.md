@@ -482,4 +482,3 @@ spec:
 - [Cilium kube-proxy Replacement](https://docs.cilium.io/en/stable/network/kubernetes/kubeproxy-free/)
 - [eBPF & XDP Reference](https://docs.cilium.io/en/stable/bpf/)
 - [Fortio - HTTP Load Testing](https://fortio.org/)
-- [Infrastructure Performance Benchmark](/docs/benchmarks/infrastructure-performance) — Comprehensive network, DNS, and autoscaling benchmarks

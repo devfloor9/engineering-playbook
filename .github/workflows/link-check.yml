@@ -122,6 +122,7 @@ jobs:
             --max-cache-age 1d
             --exclude-path './.github'
             --exclude-path './node_modules'
+            --exclude-path './SUMMARY.md'
             '**/*.md'
             '**/*.mdx'
             'docs/**'
