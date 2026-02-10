@@ -1015,7 +1015,7 @@ Agentic AI 플랫폼을 구축하는 조직을 위한 권장 사항:
 - [RAGAS Documentation](https://docs.ragas.io/)
 
 ### 벡터 데이터베이스
-- [Milvus Documentation](https://milvus.io/docs/overview.md)
+- [Milvus Documentation](https://milvus.io/docs)
 - [Milvus Operator](https://github.com/milvus-io/milvus-operator)
 
 ### GPU 인프라

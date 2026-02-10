@@ -77,6 +77,9 @@ jobs:
             'https?://netflixtechblog\\.com.*',
             'https?://keda\\.sh/?$',
 
+            # Domains that block automated requests (bot protection)
+            'https?://milvus\\.io.*',
+
             # Documentation placeholders
             'https?://your-.*',
             'https?://.*your-org.*',
