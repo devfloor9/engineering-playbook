@@ -1,60 +1,65 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 450" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 430" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
   <!-- Background -->
-  <rect width="900" height="450" fill="#ffffff"/>
+  <rect width="900" height="430" fill="#ffffff"/>
 
-  <!-- Title -->
-  <text x="450" y="30" font-size="20" font-weight="600" text-anchor="middle" fill="#1f2937">
-    Service Scaling Impact on Cilium eBPF (Scenario E)
-  </text>
-  <text x="450" y="50" font-size="14" text-anchor="middle" fill="#6b7280">
+  <!-- Subtitle + Legend row -->
+  <text x="50" y="24" font-size="13" fill="#6b7280">
     4 Services vs 104 Services — eBPF O(1) hash map lookup
   </text>
-
-  <!-- Legend -->
-  <rect x="320" y="60" width="20" height="12" fill="#93c5fd"/>
-  <text x="345" y="70" font-size="13" fill="#374151">4 Services</text>
-  <rect x="440" y="60" width="20" height="12" fill="#3b82f6"/>
-  <text x="465" y="70" font-size="13" fill="#374151">104 Services</text>
+  <g transform="translate(600, 12)">
+    <rect x="0" y="0" width="16" height="12" fill="#93c5fd" rx="2"/>
+    <text x="22" y="11" font-size="12" fill="#374151">4 Services</text>
+    <rect x="120" y="0" width="16" height="12" fill="#3b82f6" rx="2"/>
+    <text x="142" y="11" font-size="12" fill="#374151">104 Services</text>
+  </g>
 
   <!-- Group 1: HTTP p99 -->
-  <text x="50" y="110" font-size="14" font-weight="500" fill="#1f2937">HTTP p99 @QPS=1000</text>
-  <rect x="200" y="95" width="158" height="24" fill="#93c5fd" rx="2"/>
-  <text x="363" y="112" font-size="12" fill="#1f2937">3.94ms</text>
-  <rect x="200" y="122" width="146" height="24" fill="#3b82f6" rx="2"/>
-  <text x="351" y="139" font-size="12" fill="#1f2937">3.64ms</text>
-  <text x="450" y="130" font-size="12" fill="#059669" font-weight="500">-8% (within noise)</text>
+  <g transform="translate(0, 50)">
+    <text x="50" y="18" font-size="14" font-weight="500" fill="#1f2937">HTTP p99 @QPS=1000</text>
+    <rect x="200" y="3" width="158" height="24" fill="#93c5fd" rx="2"/>
+    <text x="363" y="20" font-size="12" fill="#1f2937">3.94ms</text>
+    <rect x="200" y="33" width="146" height="24" fill="#3b82f6" rx="2"/>
+    <text x="351" y="50" font-size="12" fill="#1f2937">3.64ms</text>
+    <text x="420" y="42" font-size="12" fill="#059669" font-weight="500">-8% (within noise)</text>
+  </g>
 
   <!-- Group 2: Max QPS -->
-  <text x="50" y="185" font-size="14" font-weight="500" fill="#1f2937">Max Achieved QPS</text>
-  <rect x="200" y="170" width="220" height="24" fill="#93c5fd" rx="2"/>
-  <text x="425" y="187" font-size="12" fill="#1f2937">4,405</text>
-  <rect x="200" y="197" width="211" height="24" fill="#3b82f6" rx="2"/>
-  <text x="416" y="214" font-size="12" fill="#1f2937">4,221</text>
-  <text x="450" y="205" font-size="12" fill="#dc2626" font-weight="500">-4.2%</text>
+  <g transform="translate(0, 125)">
+    <text x="50" y="18" font-size="14" font-weight="500" fill="#1f2937">Max Achieved QPS</text>
+    <rect x="200" y="3" width="220" height="24" fill="#93c5fd" rx="2"/>
+    <text x="425" y="20" font-size="12" fill="#1f2937">4,405</text>
+    <rect x="200" y="33" width="211" height="24" fill="#3b82f6" rx="2"/>
+    <text x="416" y="50" font-size="12" fill="#1f2937">4,221</text>
+    <text x="470" y="42" font-size="12" fill="#dc2626" font-weight="500">-4.2%</text>
+  </g>
 
   <!-- Group 3: TCP Throughput -->
-  <text x="50" y="260" font-size="14" font-weight="500" fill="#1f2937">TCP Throughput (Gbps)</text>
-  <rect x="200" y="245" width="246" height="24" fill="#93c5fd" rx="2"/>
-  <text x="451" y="262" font-size="12" fill="#1f2937">12.3</text>
-  <rect x="200" y="272" width="248" height="24" fill="#3b82f6" rx="2"/>
-  <text x="453" y="289" font-size="12" fill="#1f2937">12.4</text>
-  <text x="480" y="280" font-size="12" fill="#059669" font-weight="500">~identical</text>
+  <g transform="translate(0, 200)">
+    <text x="50" y="18" font-size="14" font-weight="500" fill="#1f2937">TCP Throughput (Gbps)</text>
+    <rect x="200" y="3" width="246" height="24" fill="#93c5fd" rx="2"/>
+    <text x="451" y="20" font-size="12" fill="#1f2937">12.3</text>
+    <rect x="200" y="33" width="248" height="24" fill="#3b82f6" rx="2"/>
+    <text x="453" y="50" font-size="12" fill="#1f2937">12.4</text>
+    <text x="500" y="42" font-size="12" fill="#059669" font-weight="500">~identical</text>
+  </g>
 
   <!-- Group 4: DNS Resolution -->
-  <text x="50" y="335" font-size="14" font-weight="500" fill="#1f2937">DNS Resolution p50</text>
-  <rect x="200" y="320" width="100" height="24" fill="#93c5fd" rx="2"/>
-  <text x="305" y="337" font-size="12" fill="#1f2937">2ms</text>
-  <rect x="200" y="347" width="100" height="24" fill="#3b82f6" rx="2"/>
-  <text x="305" y="364" font-size="12" fill="#1f2937">2ms</text>
-  <text x="330" y="355" font-size="12" fill="#059669" font-weight="500">identical</text>
+  <g transform="translate(0, 275)">
+    <text x="50" y="18" font-size="14" font-weight="500" fill="#1f2937">DNS Resolution p50</text>
+    <rect x="200" y="3" width="100" height="24" fill="#93c5fd" rx="2"/>
+    <text x="305" y="20" font-size="12" fill="#1f2937">2ms</text>
+    <rect x="200" y="33" width="100" height="24" fill="#3b82f6" rx="2"/>
+    <text x="305" y="50" font-size="12" fill="#1f2937">2ms</text>
+    <text x="350" y="42" font-size="12" fill="#059669" font-weight="500">identical</text>
+  </g>
 
   <!-- Insight Box -->
-  <rect x="50" y="385" width="800" height="50" fill="#f0fdf4" stroke="#10b981" stroke-width="2" rx="4"/>
-  <text x="60" y="405" font-size="13" font-weight="600" fill="#065f46">Key Insight:</text>
-  <text x="60" y="423" font-size="12" fill="#065f46">
+  <rect x="50" y="355" width="800" height="60" fill="#f0fdf4" stroke="#10b981" stroke-width="2" rx="6"/>
+  <text x="65" y="378" font-size="13" font-weight="600" fill="#065f46">Key Insight:</text>
+  <text x="65" y="396" font-size="12" fill="#065f46">
     eBPF maintains O(1) performance regardless of service count. With iptables (kube-proxy), service
   </text>
-  <text x="60" y="438" font-size="12" fill="#065f46">
+  <text x="65" y="410" font-size="12" fill="#065f46">
     lookup degrades O(n) as rules increase — significant at 500+ services.
   </text>
 </svg>

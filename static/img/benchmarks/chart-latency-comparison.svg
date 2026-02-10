@@ -1,75 +1,70 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 460" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
   <!-- Background -->
-  <rect width="800" height="400" fill="#ffffff"/>
-
-  <!-- Title -->
-  <text x="400" y="30" text-anchor="middle" font-size="20" font-weight="600" fill="#1e293b">
-    Pod-to-Pod Average RTT Comparison (µs)
-  </text>
+  <rect width="800" height="460" fill="#ffffff"/>
 
   <!-- Chart area -->
-  <g transform="translate(150, 60)">
+  <g transform="translate(150, 30)">
     <!-- Grid lines -->
     <line x1="0" y1="0" x2="600" y2="0" stroke="#e2e8f0" stroke-width="1"/>
-    <line x1="0" y1="60" x2="600" y2="60" stroke="#e2e8f0" stroke-width="1"/>
-    <line x1="0" y1="120" x2="600" y2="120" stroke="#e2e8f0" stroke-width="1"/>
-    <line x1="0" y1="180" x2="600" y2="180" stroke="#e2e8f0" stroke-width="1"/>
-    <line x1="0" y1="240" x2="600" y2="240" stroke="#e2e8f0" stroke-width="1"/>
+    <line x1="0" y1="75" x2="600" y2="75" stroke="#e2e8f0" stroke-width="1"/>
+    <line x1="0" y1="150" x2="600" y2="150" stroke="#e2e8f0" stroke-width="1"/>
+    <line x1="0" y1="225" x2="600" y2="225" stroke="#e2e8f0" stroke-width="1"/>
     <line x1="0" y1="300" x2="600" y2="300" stroke="#e2e8f0" stroke-width="1"/>
+    <line x1="0" y1="375" x2="600" y2="375" stroke="#e2e8f0" stroke-width="1"/>
 
     <!-- X-axis -->
-    <line x1="0" y1="300" x2="600" y2="300" stroke="#94a3b8" stroke-width="2"/>
+    <line x1="0" y1="375" x2="600" y2="375" stroke="#94a3b8" stroke-width="2"/>
 
     <!-- X-axis labels -->
-    <text x="0" y="320" text-anchor="middle" font-size="12" fill="#64748b">0</text>
-    <text x="100" y="320" text-anchor="middle" font-size="12" fill="#64748b">1,000</text>
-    <text x="200" y="320" text-anchor="middle" font-size="12" fill="#64748b">2,000</text>
-    <text x="300" y="320" text-anchor="middle" font-size="12" fill="#64748b">3,000</text>
-    <text x="400" y="320" text-anchor="middle" font-size="12" fill="#64748b">4,000</text>
-    <text x="500" y="320" text-anchor="middle" font-size="12" fill="#64748b">5,000</text>
-    <text x="600" y="320" text-anchor="middle" font-size="12" fill="#64748b">6,000</text>
+    <text x="0" y="398" text-anchor="middle" font-size="12" fill="#64748b">0</text>
+    <text x="100" y="398" text-anchor="middle" font-size="12" fill="#64748b">1,000</text>
+    <text x="200" y="398" text-anchor="middle" font-size="12" fill="#64748b">2,000</text>
+    <text x="300" y="398" text-anchor="middle" font-size="12" fill="#64748b">3,000</text>
+    <text x="400" y="398" text-anchor="middle" font-size="12" fill="#64748b">4,000</text>
+    <text x="500" y="398" text-anchor="middle" font-size="12" fill="#64748b">5,000</text>
+    <text x="600" y="398" text-anchor="middle" font-size="12" fill="#64748b">6,000</text>
 
     <!-- Y-axis -->
-    <line x1="0" y1="0" x2="0" y2="300" stroke="#94a3b8" stroke-width="2"/>
+    <line x1="0" y1="0" x2="0" y2="375" stroke="#94a3b8" stroke-width="2"/>
 
-    <!-- Bars (scale: 1 µs = 0.1px) -->
+    <!-- Bars -->
 
     <!-- A: VPC CNI (4,894 µs) -->
-    <rect x="0" y="10" width="489.4" height="40" fill="#64748b" rx="4"/>
-    <text x="-10" y="35" text-anchor="end" font-size="13" fill="#475569" font-weight="500">A: VPC CNI</text>
-    <text x="479" y="35" text-anchor="end" font-size="12" fill="#ffffff" font-weight="600">4,894 µs</text>
-    <text x="498" y="35" font-size="11" fill="#94a3b8" font-weight="500">Baseline</text>
+    <rect x="0" y="15" width="489.4" height="45" fill="#64748b" rx="4"/>
+    <text x="-10" y="42" text-anchor="end" font-size="13" fill="#475569" font-weight="500">A: VPC CNI</text>
+    <text x="479" y="43" text-anchor="end" font-size="12" fill="#ffffff" font-weight="600">4,894 µs</text>
+    <text x="498" y="43" font-size="11" fill="#94a3b8" font-weight="500">Baseline</text>
 
     <!-- B: Cilium+kp (4,955 µs) -->
-    <rect x="0" y="70" width="495.5" height="40" fill="#8b5cf6" rx="4"/>
-    <text x="-10" y="95" text-anchor="end" font-size="13" fill="#475569" font-weight="500">B: Cilium+kp</text>
-    <text x="485" y="95" text-anchor="end" font-size="12" fill="#ffffff" font-weight="600">4,955 µs</text>
-    <text x="504" y="95" font-size="11" fill="#ef4444" font-weight="600">+1.2%</text>
+    <rect x="0" y="90" width="495.5" height="45" fill="#8b5cf6" rx="4"/>
+    <text x="-10" y="117" text-anchor="end" font-size="13" fill="#475569" font-weight="500">B: Cilium+kp</text>
+    <text x="485" y="118" text-anchor="end" font-size="12" fill="#ffffff" font-weight="600">4,955 µs</text>
+    <text x="504" y="118" font-size="11" fill="#ef4444" font-weight="600">+1.2%</text>
 
     <!-- C: kp-less (5,092 µs) -->
-    <rect x="0" y="130" width="509.2" height="40" fill="#10b981" rx="4"/>
-    <text x="-10" y="155" text-anchor="end" font-size="13" fill="#475569" font-weight="500">C: kp-less</text>
-    <text x="499" y="155" text-anchor="end" font-size="12" fill="#ffffff" font-weight="600">5,092 µs</text>
-    <text x="518" y="155" font-size="11" fill="#ef4444" font-weight="600">+4.0%</text>
+    <rect x="0" y="165" width="509.2" height="45" fill="#10b981" rx="4"/>
+    <text x="-10" y="192" text-anchor="end" font-size="13" fill="#475569" font-weight="500">C: kp-less</text>
+    <text x="499" y="193" text-anchor="end" font-size="12" fill="#ffffff" font-weight="600">5,092 µs</text>
+    <text x="518" y="193" font-size="11" fill="#ef4444" font-weight="600">+4.0%</text>
 
     <!-- D: ENI (4,453 µs) -->
-    <rect x="0" y="190" width="445.3" height="40" fill="#3b82f6" rx="4"/>
-    <text x="-10" y="215" text-anchor="end" font-size="13" fill="#475569" font-weight="500">D: ENI</text>
-    <text x="435" y="215" text-anchor="end" font-size="12" fill="#ffffff" font-weight="600">4,453 µs</text>
-    <text x="454" y="215" font-size="11" fill="#10b981" font-weight="600">-9.0%</text>
+    <rect x="0" y="240" width="445.3" height="45" fill="#3b82f6" rx="4"/>
+    <text x="-10" y="267" text-anchor="end" font-size="13" fill="#475569" font-weight="500">D: ENI</text>
+    <text x="435" y="268" text-anchor="end" font-size="12" fill="#ffffff" font-weight="600">4,453 µs</text>
+    <text x="454" y="268" font-size="11" fill="#10b981" font-weight="600">-9.0%</text>
 
     <!-- E: ENI+Tuned (3,135 µs) - highlighted -->
-    <rect x="0" y="250" width="313.5" height="40" fill="#059669" rx="4" stroke="#10b981" stroke-width="3"/>
-    <text x="-10" y="275" text-anchor="end" font-size="13" fill="#475569" font-weight="500">E: ENI+Tuned</text>
-    <text x="303" y="275" text-anchor="end" font-size="12" fill="#ffffff" font-weight="700">3,135 µs</text>
-    <text x="322" y="275" font-size="12" fill="#10b981" font-weight="700">-36.0%</text>
+    <rect x="0" y="315" width="313.5" height="45" fill="#059669" rx="4" stroke="#10b981" stroke-width="3"/>
+    <text x="-10" y="342" text-anchor="end" font-size="13" fill="#475569" font-weight="500">E: ENI+Tuned</text>
+    <text x="303" y="343" text-anchor="end" font-size="12" fill="#ffffff" font-weight="700">3,135 µs</text>
+    <text x="322" y="343" font-size="12" fill="#10b981" font-weight="700">-36.0%</text>
 
     <!-- Highlight glow effect for E -->
-    <rect x="-2" y="248" width="317.5" height="44" fill="none" rx="5" stroke="#10b981" stroke-width="1" opacity="0.3"/>
+    <rect x="-2" y="313" width="317.5" height="49" fill="none" rx="5" stroke="#10b981" stroke-width="1" opacity="0.3"/>
   </g>
 
   <!-- Subtitle -->
-  <text x="400" y="380" text-anchor="middle" font-size="11" fill="#94a3b8" font-style="italic">
-    Lower is better • Improvement % vs Scenario A
+  <text x="400" y="448" text-anchor="middle" font-size="11" fill="#94a3b8" font-style="italic">
+    Lower is better · Improvement % vs Scenario A
   </text>
 </svg>

@@ -1,90 +1,77 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 420" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
   <!-- Background -->
-  <rect width="800" height="450" fill="#ffffff"/>
+  <rect width="800" height="420" fill="#ffffff"/>
 
-  <!-- Title -->
-  <text x="400" y="30" text-anchor="middle" font-size="20" font-weight="600" fill="#1e293b">
-    TCP/UDP Throughput Comparison (Gbps)
-  </text>
+  <!-- Legend (top, above chart) -->
+  <g transform="translate(310, 20)">
+    <rect x="0" y="0" width="18" height="14" fill="#475569" rx="3"/>
+    <text x="24" y="12" font-size="13" fill="#475569" font-weight="500">TCP</text>
+    <rect x="90" y="0" width="18" height="14" fill="#475569" opacity="0.45" rx="3"/>
+    <text x="114" y="12" font-size="13" fill="#475569" font-weight="500">UDP</text>
+  </g>
 
   <!-- Chart area -->
-  <g transform="translate(80, 60)">
+  <g transform="translate(80, 50)">
     <!-- Grid lines -->
-    <line x1="0" y1="320" x2="640" y2="320" stroke="#e2e8f0" stroke-width="1"/>
-    <line x1="0" y1="265" x2="640" y2="265" stroke="#e2e8f0" stroke-width="1"/>
-    <line x1="0" y1="210" x2="640" y2="210" stroke="#e2e8f0" stroke-width="1"/>
-    <line x1="0" y1="155" x2="640" y2="155" stroke="#e2e8f0" stroke-width="1"/>
-    <line x1="0" y1="100" x2="640" y2="100" stroke="#e2e8f0" stroke-width="1"/>
-    <line x1="0" y1="45" x2="640" y2="45" stroke="#e2e8f0" stroke-width="1"/>
+    <line x1="0" y1="280" x2="640" y2="280" stroke="#e2e8f0" stroke-width="1"/>
+    <line x1="0" y1="233" x2="640" y2="233" stroke="#e2e8f0" stroke-width="1"/>
+    <line x1="0" y1="186" x2="640" y2="186" stroke="#e2e8f0" stroke-width="1"/>
+    <line x1="0" y1="140" x2="640" y2="140" stroke="#e2e8f0" stroke-width="1"/>
+    <line x1="0" y1="93" x2="640" y2="93" stroke="#e2e8f0" stroke-width="1"/>
+    <line x1="0" y1="46" x2="640" y2="46" stroke="#e2e8f0" stroke-width="1"/>
 
     <!-- Y-axis limit line -->
-    <line x1="0" y1="55" x2="640" y2="55" stroke="#f59e0b" stroke-width="2" stroke-dasharray="5,5"/>
-    <text x="645" y="60" font-size="11" fill="#f59e0b" font-weight="500">12.5 Gbps (NIC Limit)</text>
+    <line x1="0" y1="53" x2="640" y2="53" stroke="#f59e0b" stroke-width="2" stroke-dasharray="5,5"/>
+    <text x="645" y="58" font-size="11" fill="#f59e0b" font-weight="500">12.5 Gbps (NIC Limit)</text>
 
     <!-- Y-axis -->
-    <line x1="0" y1="0" x2="0" y2="320" stroke="#94a3b8" stroke-width="2"/>
+    <line x1="0" y1="0" x2="0" y2="280" stroke="#94a3b8" stroke-width="2"/>
 
     <!-- Y-axis labels -->
-    <text x="-10" y="325" text-anchor="end" font-size="12" fill="#64748b">0</text>
-    <text x="-10" y="270" text-anchor="end" font-size="12" fill="#64748b">2</text>
-    <text x="-10" y="215" text-anchor="end" font-size="12" fill="#64748b">4</text>
-    <text x="-10" y="160" text-anchor="end" font-size="12" fill="#64748b">6</text>
-    <text x="-10" y="105" text-anchor="end" font-size="12" fill="#64748b">8</text>
+    <text x="-10" y="284" text-anchor="end" font-size="12" fill="#64748b">0</text>
+    <text x="-10" y="237" text-anchor="end" font-size="12" fill="#64748b">2</text>
+    <text x="-10" y="190" text-anchor="end" font-size="12" fill="#64748b">4</text>
+    <text x="-10" y="144" text-anchor="end" font-size="12" fill="#64748b">6</text>
+    <text x="-10" y="97" text-anchor="end" font-size="12" fill="#64748b">8</text>
     <text x="-10" y="50" text-anchor="end" font-size="12" fill="#64748b">10</text>
     <text x="-10" y="5" text-anchor="end" font-size="12" fill="#64748b">12</text>
 
     <!-- X-axis -->
-    <line x1="0" y1="320" x2="640" y2="320" stroke="#94a3b8" stroke-width="2"/>
+    <line x1="0" y1="280" x2="640" y2="280" stroke="#94a3b8" stroke-width="2"/>
 
-    <!-- Bar width and spacing -->
-    <!-- Group width: 100px, bar width: 22px, gap between bars: 6px, gap between groups: 28px -->
-
-    <!-- Group A: VPC CNI (x=50) -->
+    <!-- Group A: VPC CNI -->
     <g>
-      <rect x="50" y="38" width="22" height="282" fill="#64748b" rx="2"/>
-      <rect x="78" y="100" width="22" height="220" fill="#64748b" opacity="0.7" rx="2"/>
-      <text x="72" y="345" text-anchor="middle" font-size="11" fill="#475569" font-weight="500">A: VPC</text>
-      <text x="72" y="358" text-anchor="middle" font-size="11" fill="#475569">CNI</text>
+      <rect x="40" y="33" width="28" height="247" fill="#64748b" rx="3"/>
+      <rect x="74" y="87" width="28" height="193" fill="#64748b" opacity="0.45" rx="3"/>
+      <text x="71" y="305" text-anchor="middle" font-size="12" fill="#475569" font-weight="500">A: VPC CNI</text>
     </g>
 
-    <!-- Group B: Cilium+kp (x=178) -->
+    <!-- Group B: Cilium+kp -->
     <g>
-      <rect x="178" y="40" width="22" height="280" fill="#8b5cf6" rx="2"/>
-      <rect x="206" y="144" width="22" height="176" fill="#8b5cf6" opacity="0.7" rx="2"/>
-      <text x="200" y="345" text-anchor="middle" font-size="11" fill="#475569" font-weight="500">B: Cilium</text>
-      <text x="200" y="358" text-anchor="middle" font-size="11" fill="#475569">+kp</text>
+      <rect x="168" y="35" width="28" height="245" fill="#8b5cf6" rx="3"/>
+      <rect x="202" y="126" width="28" height="154" fill="#8b5cf6" opacity="0.45" rx="3"/>
+      <text x="199" y="305" text-anchor="middle" font-size="12" fill="#475569" font-weight="500">B: Cilium+kp</text>
     </g>
 
-    <!-- Group C: kp-less (x=306) -->
+    <!-- Group C: kp-less -->
     <g>
-      <rect x="306" y="40" width="22" height="280" fill="#10b981" rx="2"/>
-      <rect x="334" y="144" width="22" height="176" fill="#10b981" opacity="0.7" rx="2"/>
-      <text x="328" y="345" text-anchor="middle" font-size="11" fill="#475569" font-weight="500">C: kp-</text>
-      <text x="328" y="358" text-anchor="middle" font-size="11" fill="#475569">less</text>
+      <rect x="296" y="35" width="28" height="245" fill="#10b981" rx="3"/>
+      <rect x="330" y="126" width="28" height="154" fill="#10b981" opacity="0.45" rx="3"/>
+      <text x="327" y="305" text-anchor="middle" font-size="12" fill="#475569" font-weight="500">C: kp-less</text>
     </g>
 
-    <!-- Group D: ENI (x=434) -->
+    <!-- Group D: ENI -->
     <g>
-      <rect x="434" y="38" width="22" height="282" fill="#3b82f6" rx="2"/>
-      <rect x="462" y="100" width="22" height="220" fill="#3b82f6" opacity="0.7" rx="2"/>
-      <text x="456" y="345" text-anchor="middle" font-size="11" fill="#475569" font-weight="500">D: ENI</text>
+      <rect x="424" y="33" width="28" height="247" fill="#3b82f6" rx="3"/>
+      <rect x="458" y="87" width="28" height="193" fill="#3b82f6" opacity="0.45" rx="3"/>
+      <text x="455" y="305" text-anchor="middle" font-size="12" fill="#475569" font-weight="500">D: ENI</text>
     </g>
 
-    <!-- Group E: ENI+튜닝 (x=562) -->
+    <!-- Group E: ENI+Tuned -->
     <g>
-      <rect x="562" y="39" width="22" height="281" fill="#059669" rx="2"/>
-      <rect x="590" y="142" width="22" height="178" fill="#059669" opacity="0.7" rx="2"/>
-      <text x="584" y="345" text-anchor="middle" font-size="11" fill="#475569" font-weight="500">E: ENI</text>
-      <text x="584" y="358" text-anchor="middle" font-size="11" fill="#475569">+Tuned</text>
-    </g>
-
-    <!-- Legend -->
-    <g transform="translate(220, 380)">
-      <rect x="0" y="0" width="16" height="12" fill="#64748b" rx="2"/>
-      <text x="22" y="10" font-size="12" fill="#475569">TCP</text>
-
-      <rect x="80" y="0" width="16" height="12" fill="#64748b" opacity="0.7" rx="2"/>
-      <text x="102" y="10" font-size="12" fill="#475569">UDP</text>
+      <rect x="552" y="34" width="28" height="246" fill="#059669" rx="3"/>
+      <rect x="586" y="124" width="28" height="156" fill="#059669" opacity="0.45" rx="3"/>
+      <text x="583" y="305" text-anchor="middle" font-size="12" fill="#475569" font-weight="500">E: ENI+Tuned</text>
     </g>
   </g>
 </svg>
