@@ -66,8 +66,9 @@ const sidebars = {
         'agentic-ai-platform/gpu-resource-management',
         // Phase 3: 모델 서빙 (기본 → 고급)
         'agentic-ai-platform/vllm-model-serving',
-        'agentic-ai-platform/ray-serve-vllm-integration',
         'agentic-ai-platform/moe-model-serving',
+        // Phase 3-1: llm-d 분산 추론
+        'agentic-ai-platform/llm-d-eks-automode',
         'agentic-ai-platform/nemo-framework',
         // Phase 4: 추론 라우팅 및 게이트웨이
         'agentic-ai-platform/inference-gateway-routing',

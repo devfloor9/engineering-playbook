@@ -380,6 +380,6 @@ WARNING Sequence group 0 is preempted by PreemptionMode.RECOMPUTE
 ## 참고 자료
 
 - [GenAI on EKS Starter Kit](https://github.com/aws-samples/sample-genai-on-eks-starter-kit): LiteLLM, vLLM, Langfuse, Milvus 등 GenAI 컴포넌트 배포 자동화
-- [Scalable Model Inference and Agentic AI on Amazon EKS](https://github.com/aws-solutions-library-samples/guidance-for-scalable-model-inference-and-agentic-ai-on-amazon-eks): Ray Serve, Karpenter, RAG 워크플로우 포함 종합 아키텍처
+- [Scalable Model Inference and Agentic AI on Amazon EKS](https://github.com/aws-solutions-library-samples/guidance-for-scalable-model-inference-and-agentic-ai-on-amazon-eks): llm-d, Karpenter, RAG 워크플로우 포함 종합 아키텍처
 - [vLLM 공식 문서](https://docs.vllm.ai): 최적화 및 튜닝 가이드
 - [vLLM Kubernetes 배포 가이드](https://docs.vllm.ai/en/stable/deployment/k8s.html)

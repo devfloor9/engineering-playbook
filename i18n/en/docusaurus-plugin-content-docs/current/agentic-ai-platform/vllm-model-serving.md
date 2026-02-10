@@ -350,6 +350,6 @@ Before deployment, verify:
 ## References
 
 - [GenAI on EKS Starter Kit](https://github.com/aws-samples/sample-genai-on-eks-starter-kit): Automated deployment of GenAI components including LiteLLM, vLLM, Langfuse, and Milvus
-- [Scalable Model Inference and Agentic AI on Amazon EKS](https://github.com/aws-solutions-library-samples/guidance-for-scalable-model-inference-and-agentic-ai-on-amazon-eks): Comprehensive architecture including Ray Serve, Karpenter, and RAG workflows
+- [Scalable Model Inference and Agentic AI on Amazon EKS](https://github.com/aws-solutions-library-samples/guidance-for-scalable-model-inference-and-agentic-ai-on-amazon-eks): Comprehensive architecture including llm-d, Karpenter, and RAG workflows
 - [vLLM Official Documentation](https://docs.vllm.ai): Optimization and tuning guide
 - [vLLM Kubernetes Deployment Guide](https://docs.vllm.ai/en/stable/deployment/k8s.html)
