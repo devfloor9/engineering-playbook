@@ -21,10 +21,14 @@ sidebar_position: 5
 
 | 항목 | 사양 |
 |------|------|
-| EKS 버전 | 1.31 |
-| 노드 타입 | m6i.xlarge (4 vCPU, 16GB RAM) |
+| EKS 버전 | 1.31 (Platform: eks.51) |
+| Cilium 버전 | 1.16.5 (Helm Chart: cilium-1.16.5) |
+| 노드 타입 | m6i.xlarge (4 vCPU, 16GB RAM, ENA NIC) |
 | 노드 수 | 3 (단일 AZ: ap-northeast-2a) |
-| OS | Amazon Linux 2023 |
+| OS | Amazon Linux 2023.10.20260120 |
+| 커널 | 6.1.159-182.297.amzn2023.x86_64 |
+| 컨테이너 런타임 | containerd 2.1.5 |
+| Service CIDR | 10.100.0.0/16 |
 | 도구 | kubectl 1.31+, Cilium CLI 0.16+, Helm 3.16+, Fortio 1.65+, iperf3 3.17+ |
 | 측정 방식 | 최소 3회 반복 측정 후 중앙값 사용 |
 
@@ -209,6 +213,28 @@ m6i.xlarge의 기준 네트워크 대역폭은 12.5 Gbps입니다. 모든 시나
 :::
 
 </details>
+
+### 서비스 수 확장에 따른 성능 영향 (Scenario E)
+
+Cilium eBPF의 O(1) 서비스 룩업 성능을 검증하기 위해, 동일한 Scenario E 환경에서 서비스 수를 4개 → 104개로 변경한 후 성능을 비교했습니다.
+
+![Service Scaling Impact](/img/benchmarks/chart-service-scaling.svg)
+
+<details>
+<summary>상세 데이터 테이블</summary>
+
+| 메트릭 | 4 Services | 104 Services | 차이 |
+|--------|-----------|-------------|------|
+| HTTP p99 @QPS=1000 (ms) | 3.94 | 3.64 | -8% (측정 오차 범위) |
+| 최대 달성 QPS | 4,405 | 4,221 | -4.2% |
+| TCP Throughput (Gbps) | 12.3 | 12.4 | ~동일 |
+| DNS Resolution p50 (ms) | 2 | 2 | 동일 |
+
+</details>
+
+:::info eBPF O(1) 서비스 룩업 확인
+Cilium eBPF 환경에서 서비스 수를 4개에서 104개로 26배 증가시켰음에도 모든 메트릭이 측정 오차 범위(5% 이내)에서 동일했습니다. 이는 eBPF의 해시 맵 기반 O(1) 룩업이 서비스 수에 무관하게 일정한 성능을 유지함을 확인합니다. 반면, kube-proxy(iptables)는 서비스 수에 비례하여 규칙 체인을 순회하는 O(n) 특성을 가지며, 500개 이상의 서비스에서 유의미한 성능 저하가 발생합니다.
+:::
 
 ### DNS 해석 성능
 

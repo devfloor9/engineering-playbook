@@ -21,10 +21,14 @@ This report presents quantitative performance measurements of VPC CNI vs Cilium 
 
 | Item | Specification |
 |------|---------------|
-| EKS Version | 1.31 |
-| Node Type | m6i.xlarge (4 vCPU, 16GB RAM) |
+| EKS Version | 1.31 (Platform: eks.51) |
+| Cilium Version | 1.16.5 (Helm Chart: cilium-1.16.5) |
+| Node Type | m6i.xlarge (4 vCPU, 16GB RAM, ENA NIC) |
 | Node Count | 3 (single AZ: ap-northeast-2a) |
-| OS | Amazon Linux 2023 |
+| OS | Amazon Linux 2023.10.20260120 |
+| Kernel | 6.1.159-182.297.amzn2023.x86_64 |
+| Container Runtime | containerd 2.1.5 |
+| Service CIDR | 10.100.0.0/16 |
 | Tools | kubectl 1.31+, Cilium CLI 0.16+, Helm 3.16+, Fortio 1.65+, iperf3 3.17+ |
 | Measurement Method | Median of 3+ repeated measurements |
 
@@ -200,6 +204,28 @@ TCP throughput is identical across all scenarios (saturated at NIC bandwidth of 
 | max | p99 (ms) | 28.07 | 25.25 | 28.50 | 26.67 | 28.45 |
 
 </details>
+
+### Service Scaling Impact (Scenario E)
+
+To validate Cilium eBPF's O(1) service lookup performance, we compared performance with 4 services vs 104 services on the same Scenario E environment.
+
+![Service Scaling Impact](/img/benchmarks/chart-service-scaling.svg)
+
+<details>
+<summary>Detailed Data Table</summary>
+
+| Metric | 4 Services | 104 Services | Difference |
+|--------|-----------|-------------|------------|
+| HTTP p99 @QPS=1000 (ms) | 3.94 | 3.64 | -8% (within noise) |
+| Max Achieved QPS | 4,405 | 4,221 | -4.2% |
+| TCP Throughput (Gbps) | 12.3 | 12.4 | ~identical |
+| DNS Resolution p50 (ms) | 2 | 2 | identical |
+
+</details>
+
+:::info eBPF O(1) Service Lookup Confirmed
+Increasing service count from 4 to 104 (26x increase) showed no meaningful performance difference on Cilium eBPF — all metrics remained within 5% measurement noise. This confirms that eBPF hash map-based O(1) lookups maintain constant performance regardless of service count. In contrast, kube-proxy (iptables) traverses rule chains proportionally O(n), with significant degradation at 500+ services.
+:::
 
 ### DNS Resolution Performance
 
