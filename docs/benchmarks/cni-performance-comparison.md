@@ -471,7 +471,7 @@ spec:
 
 - [Cilium Performance Tuning Guide](https://docs.cilium.io/en/stable/operations/performance/tuning/)
 - [Cilium ENI Mode Documentation](https://docs.cilium.io/en/stable/network/concepts/ipam/eni/)
-- [AWS EKS Networking Best Practices](https://aws.github.io/aws-eks-best-practices/networking/)
+- [AWS EKS Networking Best Practices](https://docs.aws.amazon.com/eks/latest/best-practices/networking.html)
 - [Cilium kube-proxy Replacement](https://docs.cilium.io/en/stable/network/kubernetes/kubeproxy-free/)
 - [eBPF & XDP Reference](https://docs.cilium.io/en/stable/bpf/)
 - [Fortio - HTTP Load Testing](https://fortio.org/)

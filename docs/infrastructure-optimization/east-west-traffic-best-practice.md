@@ -921,7 +921,7 @@ kubectl exec -it test-pod -- cat /etc/resolv.conf
 1. [AWS Elastic Load Balancing 요금 - LCU/NLCU 가격](https://aws.amazon.com/elasticloadbalancing/pricing/)
 2. [AWS 데이터 전송 요금 - Cross-AZ $0.01/GB](https://aws.amazon.com/ec2/pricing/on-demand/#Data_Transfer)
 3. [AWS ELB Best Practices - 지연 최적화](https://docs.aws.amazon.com/elasticloadbalancing/latest/application/application-load-balancers.html)
-4. [AWS NLB Ultra-Low Latency 설명](https://aws.amazon.com/blogs/networking-and-content-delivery/achieve-ultra-low-latency-with-network-load-balancer/)
+4. [AWS Network Load Balancer](https://aws.amazon.com/elasticloadbalancing/network-load-balancer/)
 5. [AWS VPC Lattice 요금](https://aws.amazon.com/vpc/lattice/pricing/)
 6. [Istio 1.24 Performance and Scalability](https://istio.io/latest/docs/ops/deployment/performance-and-scalability/)
 7. [Kubernetes NodeLocal DNSCache](https://kubernetes.io/docs/tasks/administer-cluster/nodelocaldns/)

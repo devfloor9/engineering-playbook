@@ -1015,7 +1015,7 @@ Topics covered in the next document:
 - [RAGAS Documentation](https://docs.ragas.io/)
 
 ### Vector Database
-- [Milvus Documentation](https://milvus.io/docs/overview.md)
+- [Milvus Documentation](https://milvus.io/docs)
 - [Milvus Operator](https://github.com/milvus-io/milvus-operator)
 
 ### GPU Infrastructure

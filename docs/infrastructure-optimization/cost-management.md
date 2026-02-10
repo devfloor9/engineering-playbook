@@ -1745,7 +1745,7 @@ aws ec2 create-vpc-endpoint \
 
 **실전 사례**
 - [AWS Containers Blog - Cost Optimization](https://aws.amazon.com/blogs/containers/)
-- [FinOps Foundation - Kubernetes Cost Optimization](https://www.finops.org/wg/containers-kubernetes/)
+- [FinOps Foundation - Rate Optimization](https://www.finops.org/framework/capabilities/rate-optimization/)
 
 **관련 문서**
 - [Karpenter 기반 오토스케일링](./karpenter-autoscaling.md)
