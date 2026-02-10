@@ -101,7 +101,7 @@ export default function RecommendationChart({ locale = 'en' }) {
   const isDark = colorMode === 'dark';
   const theme = {
     text: isDark ? '#e2e8f0' : '#1f2937',
-    textSecondary: isDark ? '#94a3b8' : '#6b7280',
+    textSecondary: isDark ? '#cbd5e1' : '#475569',
     bgSurface: isDark ? '#1e293b' : '#ffffff',
     bgHeader: isDark ? '#0f172a' : '#f9fafb',
     border: isDark ? '#334155' : '#e2e8f0'
