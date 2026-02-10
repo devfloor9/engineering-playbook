@@ -1,4 +1,5 @@
 import React from 'react';
+import { useColorMode } from '@docusaurus/theme-common';
 
 const i18n = {
   en: {
@@ -96,6 +97,15 @@ const i18n = {
 };
 
 export default function RecommendationChart({ locale = 'en' }) {
+  const { colorMode } = useColorMode();
+  const isDark = colorMode === 'dark';
+  const theme = {
+    text: isDark ? '#e2e8f0' : '#1f2937',
+    textSecondary: isDark ? '#94a3b8' : '#6b7280',
+    bgSurface: isDark ? '#1e293b' : '#ffffff',
+    bgHeader: isDark ? '#0f172a' : '#f9fafb',
+    border: isDark ? '#334155' : '#e2e8f0'
+  };
   const t = i18n[locale] || i18n.en;
 
   const tableData = [
@@ -193,8 +203,8 @@ export default function RecommendationChart({ locale = 'en' }) {
       {/* Section A: Recommendations Table */}
       <div style={{ marginBottom: '32px' }}>
         <div style={{
-          border: '1px solid #e2e8f0',
-          borderRadius: '12px',
+          border: '1px solid ' + theme.border,
+          borderRadius: '8px',
           overflowX: 'auto',
           overflowY: 'hidden'
         }}>
@@ -204,7 +214,7 @@ export default function RecommendationChart({ locale = 'en' }) {
           }}>
             <thead>
               <tr style={{
-                background: 'linear-gradient(135deg, #1e293b, #334155)'
+                background: isDark ? '#0f172a' : 'linear-gradient(135deg, #1e293b, #334155)'
               }}>
                 <th style={{
                   color: 'white',
@@ -212,7 +222,7 @@ export default function RecommendationChart({ locale = 'en' }) {
                   textAlign: 'left',
                   fontSize: '14px',
                   fontWeight: '600',
-                  borderBottom: '1px solid #e2e8f0'
+                  borderBottom: '1px solid ' + theme.border
                 }}>
                   {t.workloadCol}
                 </th>
@@ -222,7 +232,7 @@ export default function RecommendationChart({ locale = 'en' }) {
                   textAlign: 'left',
                   fontSize: '14px',
                   fontWeight: '600',
-                  borderBottom: '1px solid #e2e8f0'
+                  borderBottom: '1px solid ' + theme.border
                 }}>
                   {t.recommendedCol}
                 </th>
@@ -232,7 +242,7 @@ export default function RecommendationChart({ locale = 'en' }) {
                   textAlign: 'left',
                   fontSize: '14px',
                   fontWeight: '600',
-                  borderBottom: '1px solid #e2e8f0'
+                  borderBottom: '1px solid ' + theme.border
                 }}>
                   {t.rationaleCol}
                 </th>
@@ -241,12 +251,12 @@ export default function RecommendationChart({ locale = 'en' }) {
             <tbody>
               {tableData.map((row, idx) => (
                 <tr key={idx} style={{
-                  borderBottom: idx < tableData.length - 1 ? '1px solid #e2e8f0' : 'none'
+                  borderBottom: idx < tableData.length - 1 ? '1px solid ' + theme.border : 'none'
                 }}>
                   <td style={{
                     padding: '12px 16px',
                     fontSize: '14px',
-                    color: '#334155'
+                    color: isDark ? '#e2e8f0' : '#334155'
                   }}>
                     {row.workload}
                   </td>
@@ -255,8 +265,8 @@ export default function RecommendationChart({ locale = 'en' }) {
                     fontSize: '14px'
                   }}>
                     <span style={{
-                      backgroundColor: row.badgeColor,
-                      color: row.badgeTextColor,
+                      backgroundColor: row.badgeColor === '#e2e8f0' ? (isDark ? '#334155' : '#e2e8f0') : row.badgeColor,
+                      color: row.badgeColor === '#e2e8f0' ? (isDark ? '#e2e8f0' : '#1e293b') : row.badgeTextColor,
                       padding: '4px 10px',
                       borderRadius: '6px',
                       fontSize: '13px',
@@ -269,7 +279,7 @@ export default function RecommendationChart({ locale = 'en' }) {
                   <td style={{
                     padding: '12px 16px',
                     fontSize: '14px',
-                    color: '#64748b'
+                    color: theme.textSecondary
                   }}>
                     {row.rationale}
                   </td>
@@ -292,7 +302,7 @@ export default function RecommendationChart({ locale = 'en' }) {
               border: `2px solid ${card.borderColor}`,
               borderRadius: '12px',
               overflow: 'hidden',
-              backgroundColor: 'white'
+              backgroundColor: isDark ? '#1e293b' : 'white'
             }}>
               {card.gradient && (
                 <div style={{
@@ -306,14 +316,14 @@ export default function RecommendationChart({ locale = 'en' }) {
                 <div style={{
                   fontSize: '16px',
                   fontWeight: '700',
-                  color: '#1e293b',
+                  color: isDark ? '#f1f5f9' : '#1e293b',
                   marginBottom: '8px'
                 }}>
                   {card.title}
                 </div>
                 <div style={{
                   fontSize: '13px',
-                  color: '#475569',
+                  color: isDark ? '#94a3b8' : '#475569',
                   marginBottom: '12px',
                   fontWeight: '500'
                 }}>
@@ -321,14 +331,14 @@ export default function RecommendationChart({ locale = 'en' }) {
                 </div>
                 <div style={{
                   fontSize: '12px',
-                  color: '#64748b',
+                  color: theme.textSecondary,
                   marginBottom: '4px'
                 }}>
                   {card.complexity}
                 </div>
                 <div style={{
                   fontSize: '12px',
-                  color: '#64748b'
+                  color: theme.textSecondary
                 }}>
                   {card.performance}
                 </div>

@@ -1,3 +1,5 @@
+import { useColorMode } from '@docusaurus/theme-common';
+
 const i18n = {
   en: {
     finding1: {
@@ -136,10 +138,10 @@ const i18n = {
 };
 
 // Helper: Finding Card Container
-function FindingCard({ number, title, tag, tagColor, borderColor, bgColor, children }) {
+function FindingCard({ number, title, tag, tagColor, borderColor, bgColor, isDark, children }) {
   return (
     <div style={{
-      border: '1px solid #e2e8f0',
+      border: `1px solid ${isDark ? '#475569' : '#e2e8f0'}`,
       borderLeft: `4px solid ${borderColor}`,
       borderRadius: '8px',
       padding: '20px',
@@ -161,7 +163,7 @@ function FindingCard({ number, title, tag, tagColor, borderColor, bgColor, child
         }}>
           {number}
         </div>
-        <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '600', color: '#1e293b', flex: 1 }}>
+        <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '600', color: isDark ? '#f1f5f9' : '#1e293b', flex: 1 }}>
           {title}
         </h3>
         {tag && (
@@ -183,26 +185,26 @@ function FindingCard({ number, title, tag, tagColor, borderColor, bgColor, child
 }
 
 // Helper: Metric Table
-function MetricTable({ headers, rows, locale }) {
+function MetricTable({ headers, rows, locale, isDark }) {
   return (
     <div style={{ overflowX: 'auto', marginTop: '16px' }}>
       <table style={{
         width: '100%',
         borderCollapse: 'collapse',
         fontSize: '14px',
-        background: 'white',
+        background: isDark ? '#1e293b' : 'white',
         borderRadius: '6px',
         overflow: 'hidden'
       }}>
         <thead>
-          <tr style={{ background: '#f8fafc' }}>
+          <tr style={{ background: isDark ? '#0f172a' : '#f8fafc' }}>
             {headers.map((h, i) => (
               <th key={i} style={{
                 padding: '10px 12px',
                 textAlign: 'left',
                 fontWeight: '600',
-                color: '#475569',
-                borderBottom: '2px solid #e2e8f0'
+                color: isDark ? '#cbd5e1' : '#475569',
+                borderBottom: isDark ? '2px solid #334155' : '2px solid #e2e8f0'
               }}>
                 {h}
               </th>
@@ -211,30 +213,30 @@ function MetricTable({ headers, rows, locale }) {
         </thead>
         <tbody>
           {rows.map((row, i) => (
-            <tr key={i} style={{ borderBottom: i < rows.length - 1 ? '1px solid #f1f5f9' : 'none' }}>
+            <tr key={i} style={{ borderBottom: i < rows.length - 1 ? (isDark ? '1px solid #334155' : '1px solid #f1f5f9') : 'none' }}>
               {Object.keys(row).filter(k => k !== 'highlight' && k !== 'bold' && k !== 'vxlanGreen' && k !== 'eniRed' && k !== 'baseRed' && k !== 'boldTuned' && k !== 'semiboldTuned').map((key, j) => {
-                let color = '#334155';
+                let color = isDark ? '#e2e8f0' : '#334155';
                 let fontWeight = '400';
                 let bgColor = 'transparent';
 
                 if (key === 'loss' || (key === 'vxlan' && row.vxlanGreen) || (key === 'tuned' && row.baseRed)) {
                   if (row[key].includes('20.') || row[key] === '20.42%') {
                     color = '#dc2626';
-                    bgColor = '#fee';
+                    bgColor = isDark ? 'rgba(220, 38, 38, 0.15)' : '#fee';
                   } else if (parseFloat(row[key]) < 1 || row[key].includes('0.03') || row[key].includes('0.69') || row[key].includes('0.94')) {
                     color = '#059669';
-                    bgColor = '#ecfdf5';
+                    bgColor = isDark ? 'rgba(5, 150, 105, 0.15)' : '#ecfdf5';
                   }
                 }
 
                 if (key === 'eni' && row.eniRed) {
                   color = '#dc2626';
-                  bgColor = '#fee';
+                  bgColor = isDark ? 'rgba(220, 38, 38, 0.15)' : '#fee';
                 }
 
                 if (key === 'base' && row.baseRed && row[key].includes('20.42')) {
                   color = '#dc2626';
-                  bgColor = '#fee';
+                  bgColor = isDark ? 'rgba(220, 38, 38, 0.15)' : '#fee';
                 }
 
                 if (row.bold === key || (key === 'eni' && row.bold === 'eni')) {
@@ -245,7 +247,7 @@ function MetricTable({ headers, rows, locale }) {
                   fontWeight = '700';
                   if (row.metric === 'UDP Loss') {
                     color = '#059669';
-                    bgColor = '#ecfdf5';
+                    bgColor = isDark ? 'rgba(5, 150, 105, 0.15)' : '#ecfdf5';
                   }
                 }
 
@@ -283,17 +285,17 @@ function MetricTable({ headers, rows, locale }) {
 }
 
 // Helper: Insight Box
-function InsightBox({ text, bgColor = '#fef2f2' }) {
+function InsightBox({ text, bgColor = '#fef2f2', isDark }) {
   return (
     <div style={{
-      background: bgColor,
-      border: '1px solid #fecaca',
+      background: isDark ? 'rgba(220, 38, 38, 0.1)' : bgColor,
+      border: isDark ? '1px solid rgba(220, 38, 38, 0.3)' : '1px solid #fecaca',
       borderRadius: '6px',
       padding: '12px 16px',
       marginTop: '16px',
       fontSize: '14px',
       lineHeight: '1.6',
-      color: '#991b1b'
+      color: isDark ? '#fca5a5' : '#991b1b'
     }}>
       <strong>Insight:</strong> {text}
     </div>
@@ -301,17 +303,17 @@ function InsightBox({ text, bgColor = '#fef2f2' }) {
 }
 
 // Helper: Metric Box (for RTT visualization)
-function MetricBox({ label, value, change, color = '#64748b' }) {
+function MetricBox({ label, value, change, color = '#64748b', isDark }) {
   return (
     <div style={{
       flex: 1,
       padding: '16px',
-      background: 'white',
-      border: '1px solid #e2e8f0',
+      background: isDark ? '#1e293b' : 'white',
+      border: isDark ? '1px solid #334155' : '1px solid #e2e8f0',
       borderRadius: '6px',
       textAlign: 'center'
     }}>
-      <div style={{ fontSize: '12px', color: '#64748b', marginBottom: '8px' }}>{label}</div>
+      <div style={{ fontSize: '12px', color: isDark ? '#94a3b8' : '#64748b', marginBottom: '8px' }}>{label}</div>
       <div style={{ fontSize: '20px', fontWeight: '700', color, marginBottom: '4px' }}>{value}</div>
       {change && (
         <div style={{
@@ -327,7 +329,7 @@ function MetricBox({ label, value, change, color = '#64748b' }) {
 }
 
 // Helper: Metric Grid Card (for kube-proxy removal)
-function MetricGridCard({ label, value, detail, highlight }) {
+function MetricGridCard({ label, value, detail, highlight, isDark }) {
   const colors = {
     green: { bg: '#ecfdf5', text: '#059669' },
     gray: { bg: '#f8fafc', text: '#64748b' }
@@ -337,11 +339,11 @@ function MetricGridCard({ label, value, detail, highlight }) {
   return (
     <div style={{
       padding: '16px',
-      background: 'white',
-      border: '1px solid #e2e8f0',
+      background: isDark ? '#1e293b' : 'white',
+      border: isDark ? '1px solid #334155' : '1px solid #e2e8f0',
       borderRadius: '6px'
     }}>
-      <div style={{ fontSize: '13px', color: '#64748b', marginBottom: '8px' }}>{label}</div>
+      <div style={{ fontSize: '13px', color: isDark ? '#94a3b8' : '#64748b', marginBottom: '8px' }}>{label}</div>
       <div style={{
         fontSize: '18px',
         fontWeight: '700',
@@ -351,7 +353,7 @@ function MetricGridCard({ label, value, detail, highlight }) {
         {value}
       </div>
       {detail && (
-        <div style={{ fontSize: '12px', color: '#94a3b8' }}>{detail}</div>
+        <div style={{ fontSize: '12px', color: isDark ? '#64748b' : '#94a3b8' }}>{detail}</div>
       )}
     </div>
   );
@@ -359,11 +361,12 @@ function MetricGridCard({ label, value, detail, highlight }) {
 
 export default function KeyFindingsChart({ locale = 'en' }) {
   const t = i18n[locale];
+  const { colorMode } = useColorMode();
+  const isDark = colorMode === 'dark';
 
   return (
     <div style={{
       width: '100%',
-      margin: '0 auto',
       fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
     }}>
       {/* Finding 1: TCP Saturated */}
@@ -371,9 +374,10 @@ export default function KeyFindingsChart({ locale = 'en' }) {
         number="1"
         title={t.finding1.title}
         borderColor="#94a3b8"
-        bgColor="#f8fafc"
+        bgColor={isDark ? '#1e293b' : '#f8fafc'}
+        isDark={isDark}
       >
-        <p style={{ margin: 0, fontSize: '14px', lineHeight: '1.6', color: '#475569' }}>
+        <p style={{ margin: 0, fontSize: '14px', lineHeight: '1.6', color: isDark ? '#94a3b8' : '#475569' }}>
           {t.finding1.text}
         </p>
       </FindingCard>
@@ -385,10 +389,11 @@ export default function KeyFindingsChart({ locale = 'en' }) {
         tag={t.finding2.tag}
         tagColor="#ef4444"
         borderColor="#ef4444"
-        bgColor="linear-gradient(135deg, #fff 0%, #fef2f2 100%)"
+        bgColor={isDark ? '#1e293b' : 'linear-gradient(135deg, #fff 0%, #fef2f2 100%)'}
+        isDark={isDark}
       >
-        <MetricTable headers={t.finding2.tableHeaders} rows={t.finding2.rows} locale={locale} />
-        <InsightBox text={t.finding2.insight} />
+        <MetricTable headers={t.finding2.tableHeaders} rows={t.finding2.rows} locale={locale} isDark={isDark} />
+        <InsightBox text={t.finding2.insight} isDark={isDark} />
       </FindingCard>
 
       {/* Finding 3: RTT Improvement */}
@@ -398,33 +403,37 @@ export default function KeyFindingsChart({ locale = 'en' }) {
         tag={t.finding3.tag}
         tagColor="#10b981"
         borderColor="#10b981"
-        bgColor="linear-gradient(135deg, #fff 0%, #ecfdf5 100%)"
+        bgColor={isDark ? '#1e293b' : 'linear-gradient(135deg, #fff 0%, #ecfdf5 100%)'}
+        isDark={isDark}
       >
         <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginTop: '16px', flexWrap: 'wrap' }}>
           <MetricBox
             label={t.finding3.metric1.label}
             value={t.finding3.metric1.value}
             color="#64748b"
+            isDark={isDark}
           />
-          <div style={{ fontSize: '20px', color: '#94a3b8' }}>→</div>
+          <div style={{ fontSize: '20px', color: isDark ? '#475569' : '#94a3b8' }}>→</div>
           <MetricBox
             label={t.finding3.metric2.label}
             value={t.finding3.metric2.value}
             change={t.finding3.metric2.change}
             color="#3b82f6"
+            isDark={isDark}
           />
-          <div style={{ fontSize: '20px', color: '#94a3b8' }}>→</div>
+          <div style={{ fontSize: '20px', color: isDark ? '#475569' : '#94a3b8' }}>→</div>
           <MetricBox
             label={t.finding3.metric3.label}
             value={t.finding3.metric3.value}
             change={t.finding3.metric3.change}
             color="#10b981"
+            isDark={isDark}
           />
         </div>
         <div style={{
           marginTop: '16px',
           fontSize: '13px',
-          color: '#64748b',
+          color: isDark ? '#94a3b8' : '#64748b',
           fontStyle: 'italic',
           paddingLeft: '12px',
           borderLeft: '3px solid #10b981'
@@ -440,7 +449,8 @@ export default function KeyFindingsChart({ locale = 'en' }) {
         tag={t.finding4.tag}
         tagColor="#8b5cf6"
         borderColor="#8b5cf6"
-        bgColor="linear-gradient(135deg, #fff 0%, #f5f3ff 100%)"
+        bgColor={isDark ? '#1e293b' : 'linear-gradient(135deg, #fff 0%, #f5f3ff 100%)'}
+        isDark={isDark}
       >
         <div style={{
           display: 'grid',
@@ -449,17 +459,17 @@ export default function KeyFindingsChart({ locale = 'en' }) {
           marginTop: '16px'
         }}>
           {t.finding4.metrics.map((m, i) => (
-            <MetricGridCard key={i} {...m} />
+            <MetricGridCard key={i} {...m} isDark={isDark} />
           ))}
         </div>
         <div style={{
           marginTop: '16px',
           padding: '12px 16px',
-          background: '#faf5ff',
-          border: '1px solid #e9d5ff',
+          background: isDark ? 'rgba(139, 92, 246, 0.1)' : '#faf5ff',
+          border: isDark ? '1px solid rgba(139, 92, 246, 0.3)' : '1px solid #e9d5ff',
           borderRadius: '6px',
           fontSize: '13px',
-          color: '#6b21a8',
+          color: isDark ? '#c4b5fd' : '#6b21a8',
           lineHeight: '1.5'
         }}>
           <strong>Insight:</strong> {t.finding4.insight}
@@ -473,17 +483,18 @@ export default function KeyFindingsChart({ locale = 'en' }) {
         tag={t.finding5.tag}
         tagColor="#3b82f6"
         borderColor="#3b82f6"
-        bgColor="linear-gradient(135deg, #fff 0%, #eff6ff 100%)"
+        bgColor={isDark ? '#1e293b' : 'linear-gradient(135deg, #fff 0%, #eff6ff 100%)'}
+        isDark={isDark}
       >
-        <MetricTable headers={t.finding5.tableHeaders} rows={t.finding5.rows} locale={locale} />
+        <MetricTable headers={t.finding5.tableHeaders} rows={t.finding5.rows} locale={locale} isDark={isDark} />
         <div style={{
           marginTop: '16px',
           padding: '12px 16px',
-          background: '#dbeafe',
-          border: '1px solid #93c5fd',
+          background: isDark ? 'rgba(59, 130, 246, 0.1)' : '#dbeafe',
+          border: isDark ? '1px solid rgba(59, 130, 246, 0.3)' : '1px solid #93c5fd',
           borderRadius: '6px',
           fontSize: '13px',
-          color: '#1e40af',
+          color: isDark ? '#93c5fd' : '#1e40af',
           lineHeight: '1.5'
         }}>
           <strong>Insight:</strong> {t.finding5.insight}
@@ -497,20 +508,21 @@ export default function KeyFindingsChart({ locale = 'en' }) {
         tag={t.finding6.tag}
         tagColor={locale === 'ko' ? '#f59e0b' : '#06b6d4'}
         borderColor={locale === 'ko' ? '#f59e0b' : '#06b6d4'}
-        bgColor={locale === 'ko' ? 'linear-gradient(135deg, #fff 0%, #fffbeb 100%)' : 'linear-gradient(135deg, #fff 0%, #ecfeff 100%)'}
+        bgColor={isDark ? '#1e293b' : (locale === 'ko' ? 'linear-gradient(135deg, #fff 0%, #fffbeb 100%)' : 'linear-gradient(135deg, #fff 0%, #ecfeff 100%)')}
+        isDark={isDark}
       >
-        <MetricTable headers={t.finding6.tableHeaders} rows={t.finding6.rows} locale={locale} />
+        <MetricTable headers={t.finding6.tableHeaders} rows={t.finding6.rows} locale={locale} isDark={isDark} />
         <div style={{
           marginTop: '16px',
           padding: '16px',
-          background: 'white',
-          border: '1px solid #e2e8f0',
+          background: isDark ? '#0f172a' : 'white',
+          border: isDark ? '1px solid #334155' : '1px solid #e2e8f0',
           borderRadius: '6px'
         }}>
-          <div style={{ fontSize: '13px', fontWeight: '600', color: '#334155', marginBottom: '8px' }}>
+          <div style={{ fontSize: '13px', fontWeight: '600', color: isDark ? '#e2e8f0' : '#334155', marginBottom: '8px' }}>
             {locale === 'en' ? 'Most Impactful Tunings:' : '가장 영향력 있는 튜닝:'}
           </div>
-          <ol style={{ margin: '0', paddingLeft: '20px', fontSize: '13px', color: '#64748b', lineHeight: '1.8' }}>
+          <ol style={{ margin: '0', paddingLeft: '20px', fontSize: '13px', color: isDark ? '#94a3b8' : '#64748b', lineHeight: '1.8' }}>
             {t.finding6.tunings.map((tuning, i) => (
               <li key={i}>{tuning}</li>
             ))}
@@ -518,10 +530,10 @@ export default function KeyFindingsChart({ locale = 'en' }) {
           <div style={{
             marginTop: '12px',
             fontSize: '12px',
-            color: '#94a3b8',
+            color: isDark ? '#64748b' : '#94a3b8',
             fontStyle: 'italic',
             paddingTop: '12px',
-            borderTop: '1px solid #f1f5f9'
+            borderTop: isDark ? '1px solid #334155' : '1px solid #f1f5f9'
           }}>
             {t.finding6.note}
           </div>

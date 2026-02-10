@@ -1,4 +1,19 @@
+import { useColorMode } from '@docusaurus/theme-common';
+
 export default function TuningPointsChart({ locale = 'en' }) {
+  const { colorMode } = useColorMode();
+  const isDark = colorMode === 'dark';
+
+  const theme = {
+    text: isDark ? '#e2e8f0' : '#1f2937',
+    textSecondary: isDark ? '#94a3b8' : '#6b7280',
+    textMono: isDark ? '#cbd5e1' : '#6b7280',
+    bgSurface: isDark ? '#1e293b' : '#ffffff',
+    bgHeader: isDark ? '#0f172a' : '#f9fafb',
+    border: isDark ? '#334155' : '#e5e7eb',
+    borderLight: isDark ? '#1e293b' : '#f1f5f9',
+  };
+
   const i18n = {
     en: {
       title: 'Cilium Scenario E Tuning Points',
@@ -90,11 +105,11 @@ export default function TuningPointsChart({ locale = 'en' }) {
   return (
     <div style={{
       width: '100%',
-      padding: '24px 0',
+      padding: '16px 0',
       fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
     }}>
       <div style={{
-        border: '1px solid #e5e7eb',
+        border: `1px solid ${theme.border}`,
         borderRadius: '8px',
         overflowY: 'hidden',
         overflowX: 'auto'
@@ -104,14 +119,14 @@ export default function TuningPointsChart({ locale = 'en' }) {
           borderCollapse: 'collapse'
         }}>
           <thead>
-            <tr style={{ backgroundColor: '#f9fafb' }}>
+            <tr style={{ backgroundColor: theme.bgHeader }}>
               <th style={{
                 padding: '12px 16px',
                 textAlign: 'left',
                 fontSize: '14px',
                 fontWeight: '600',
-                color: '#374151',
-                borderBottom: '1px solid #e5e7eb',
+                color: isDark ? '#cbd5e1' : '#374151',
+                borderBottom: `1px solid ${theme.border}`,
                 width: '20%'
               }}>{t.tuningItem}</th>
               <th style={{
@@ -119,8 +134,8 @@ export default function TuningPointsChart({ locale = 'en' }) {
                 textAlign: 'left',
                 fontSize: '14px',
                 fontWeight: '600',
-                color: '#374151',
-                borderBottom: '1px solid #e5e7eb',
+                color: isDark ? '#cbd5e1' : '#374151',
+                borderBottom: `1px solid ${theme.border}`,
                 width: '30%'
               }}>{t.helmValue}</th>
               <th style={{
@@ -128,8 +143,8 @@ export default function TuningPointsChart({ locale = 'en' }) {
                 textAlign: 'left',
                 fontSize: '14px',
                 fontWeight: '600',
-                color: '#374151',
-                borderBottom: '1px solid #e5e7eb',
+                color: isDark ? '#cbd5e1' : '#374151',
+                borderBottom: `1px solid ${theme.border}`,
                 width: '35%'
               }}>{t.effect}</th>
               <th style={{
@@ -137,8 +152,8 @@ export default function TuningPointsChart({ locale = 'en' }) {
                 textAlign: 'center',
                 fontSize: '14px',
                 fontWeight: '600',
-                color: '#374151',
-                borderBottom: '1px solid #e5e7eb',
+                color: isDark ? '#cbd5e1' : '#374151',
+                borderBottom: `1px solid ${theme.border}`,
                 width: '15%'
               }}>{t.applied}</th>
             </tr>
@@ -146,25 +161,25 @@ export default function TuningPointsChart({ locale = 'en' }) {
           <tbody>
             {data.map((row, index) => (
               <tr key={index} style={{
-                borderBottom: index < data.length - 1 ? '1px solid #e5e7eb' : 'none'
+                borderBottom: index < data.length - 1 ? `1px solid ${theme.border}` : 'none'
               }}>
                 <td style={{
                   padding: '12px 16px',
                   fontSize: '14px',
-                  color: '#1f2937',
+                  color: theme.text,
                   fontWeight: '500'
                 }}>{row.item}</td>
                 <td style={{
                   padding: '12px 16px',
                   fontSize: '13px',
-                  color: '#6b7280',
+                  color: theme.textMono,
                   fontFamily: 'monospace',
                   wordBreak: 'break-word'
                 }}>{row.helm}</td>
                 <td style={{
                   padding: '12px 16px',
                   fontSize: '14px',
-                  color: '#4b5563'
+                  color: isDark ? '#94a3b8' : '#4b5563'
                 }}>{row.effect}</td>
                 <td style={{
                   padding: '12px 16px',
@@ -189,7 +204,7 @@ export default function TuningPointsChart({ locale = 'en' }) {
                   {row.note && (
                     <div style={{
                       fontSize: '11px',
-                      color: '#9ca3af',
+                      color: theme.textSecondary,
                       marginTop: '4px'
                     }}>({row.note})</div>
                   )}
