@@ -475,4 +475,3 @@ spec:
 - [Cilium kube-proxy Replacement](https://docs.cilium.io/en/stable/network/kubernetes/kubeproxy-free/)
 - [eBPF & XDP Reference](https://docs.cilium.io/en/stable/bpf/)
 - [Fortio - HTTP Load Testing](https://fortio.org/)
-- [인프라 성능 벤치마크](./infrastructure-performance.md) — 네트워크, DNS, 오토스케일링 전체 벤치마크
