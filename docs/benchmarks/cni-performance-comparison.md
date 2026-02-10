@@ -31,11 +31,11 @@ import NetworkPolicyChart from '@site/src/components/NetworkPolicyChart';
 
 > 📅 **작성일**: 2026-02-09 | ✍️ **작성자**: devfloor9 | ⏱️ **읽는 시간**: 약 25분
 
-## 개요 요약
+## 개요 
 
 Amazon EKS 1.31 환경에서 VPC CNI와 Cilium CNI의 성능을 5개 시나리오로 정량 비교한 벤치마크 보고서입니다.
 
-**한 줄 요약**: TCP throughput은 NIC 대역폭(12.5 Gbps)에 포화되어 CNI 간 차이가 없으나, Cilium ENI+튜닝 적용 시 VPC CNI 대비 **UDP 패킷 손실 680배 개선**(20%→0.03%), **RTT 36% 단축**(4894→3135µs), **HTTP p99 지연 20% 감소**(10.92→8.75ms)를 달성했습니다.
+**한 줄 요약**: TCP throughput은 NIC 대역폭(12.5 Gbps)에 포화되어 CNI 간 차이가 없으나, Cilium ENI+튜닝 적용 시 VPC CNI 대비 **UDP 패킷 손실 개선**(20%→0.03%), **RTT 36% 단축**(4894→3135µs), **HTTP p99 지연 20% 감소**(10.92→8.75ms)를 달성했습니다.
 
 **5개 시나리오**:
 - **A** VPC CNI 기본 (베이스라인)
@@ -44,7 +44,7 @@ Amazon EKS 1.31 환경에서 VPC CNI와 Cilium CNI의 성능을 5개 시나리�
 - **D** Cilium ENI 모드 (Overlay vs Native Routing)
 - **E** Cilium ENI + 풀 튜닝 (누적 최적화 효과)
 
-**핵심 발견사항**:
+**주요 시사점**:
 
 <OverviewSummaryChart locale="ko" />
 
