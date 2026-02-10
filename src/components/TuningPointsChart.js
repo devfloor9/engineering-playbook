@@ -89,22 +89,15 @@ export default function TuningPointsChart({ locale = 'en' }) {
 
   return (
     <div style={{
-      maxWidth: '720px',
-      margin: '0 auto',
-      padding: '24px',
+      width: '100%',
+      padding: '24px 0',
       fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
     }}>
-      <h3 style={{
-        fontSize: '20px',
-        fontWeight: '600',
-        marginBottom: '16px',
-        color: '#1f2937'
-      }}>{t.title}</h3>
-
       <div style={{
         border: '1px solid #e5e7eb',
         borderRadius: '8px',
-        overflow: 'hidden'
+        overflowY: 'hidden',
+        overflowX: 'auto'
       }}>
         <table style={{
           width: '100%',

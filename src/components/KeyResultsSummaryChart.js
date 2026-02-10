@@ -39,8 +39,7 @@ export default function KeyResultsSummaryChart({ locale = 'en' }) {
 
   return (
     <div style={{
-      maxWidth: '720px',
-      margin: '0 auto',
+      width: '100%',
       fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
     }}>
       <div style={{

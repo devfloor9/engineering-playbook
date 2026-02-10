@@ -127,9 +127,9 @@ export default function XdpCompatibilityChart({ locale = 'en' }) {
   const t = i18n[locale] || i18n.en;
 
   const containerStyle = {
-    maxWidth: '720px',
+    width: '100%',
     margin: '0 auto',
-    padding: '20px',
+    padding: '20px 0',
     fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
     fontSize: '14px',
     lineHeight: '1.6'
@@ -143,15 +143,6 @@ export default function XdpCompatibilityChart({ locale = 'en' }) {
 
   const lastSectionStyle = {
     marginBottom: '20px'
-  };
-
-  const titleStyle = {
-    fontSize: '18px',
-    fontWeight: '600',
-    marginBottom: '16px',
-    color: '#1a1a1a',
-    borderLeft: '4px solid #0078d4',
-    paddingLeft: '12px'
   };
 
   const tableStyle = {
@@ -205,8 +196,8 @@ export default function XdpCompatibilityChart({ locale = 'en' }) {
     <div style={containerStyle}>
       {/* Section 1: Prerequisites */}
       <div style={sectionStyle}>
-        <h2 style={titleStyle}>{t.sectionPrerequisites}</h2>
-        <table style={tableStyle}>
+        <div style={{overflowX: 'auto'}}>
+          <table style={tableStyle}>
           <thead>
             <tr>
               <th style={thStyle}>{t.requirement}</th>
@@ -237,12 +228,13 @@ export default function XdpCompatibilityChart({ locale = 'en' }) {
             </tr>
           </tbody>
         </table>
+        </div>
       </div>
 
       {/* Section 2: NIC Driver Compatibility */}
       <div style={sectionStyle}>
-        <h2 style={titleStyle}>{t.sectionNicDriver}</h2>
-        <table style={tableStyle}>
+        <div style={{overflowX: 'auto'}}>
+          <table style={tableStyle}>
           <thead>
             <tr>
               <th style={thStyle}>{t.driver}</th>
@@ -309,12 +301,13 @@ export default function XdpCompatibilityChart({ locale = 'en' }) {
             </tr>
           </tbody>
         </table>
+        </div>
       </div>
 
       {/* Section 3: AWS EC2 Support */}
       <div style={sectionStyle}>
-        <h2 style={titleStyle}>{t.sectionAwsEc2}</h2>
-        <table style={tableStyle}>
+        <div style={{overflowX: 'auto'}}>
+          <table style={tableStyle}>
           <thead>
             <tr>
               <th style={thStyle}>{t.instanceType}</th>
@@ -353,12 +346,13 @@ export default function XdpCompatibilityChart({ locale = 'en' }) {
             </tr>
           </tbody>
         </table>
+        </div>
       </div>
 
       {/* Section 4: Optimizations Without XDP */}
       <div style={lastSectionStyle}>
-        <h2 style={titleStyle}>{t.sectionOptimizations}</h2>
-        <table style={tableStyle}>
+        <div style={{overflowX: 'auto'}}>
+          <table style={tableStyle}>
           <thead>
             <tr>
               <th style={thStyle}>{t.tuningItem}</th>
@@ -388,6 +382,7 @@ export default function XdpCompatibilityChart({ locale = 'en' }) {
             </tr>
           </tbody>
         </table>
+        </div>
 
         <div style={highlightBoxStyle}>
           {t.highlightBox}
