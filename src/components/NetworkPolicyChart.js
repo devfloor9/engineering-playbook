@@ -1,4 +1,19 @@
+import { useColorMode } from '@docusaurus/theme-common';
+
 export default function NetworkPolicyChart({ locale = 'en' }) {
+  const { colorMode } = useColorMode();
+  const isDark = colorMode === 'dark';
+
+  const theme = {
+    text: isDark ? '#e2e8f0' : '#1f2937',
+    textSecondary: isDark ? '#94a3b8' : '#6b7280',
+    textMono: isDark ? '#cbd5e1' : '#6b7280',
+    bgSurface: isDark ? '#1e293b' : '#ffffff',
+    bgHeader: isDark ? '#0f172a' : '#f9fafb',
+    border: isDark ? '#334155' : '#e5e7eb',
+    borderLight: isDark ? '#1e293b' : '#f1f5f9',
+  };
+
   const i18n = {
     en: {
       title: 'Network Policy Feature Comparison',
@@ -113,7 +128,7 @@ export default function NetworkPolicyChart({ locale = 'en' }) {
     return (
       <span style={{
         fontSize: '14px',
-        color: '#6b7280'
+        color: theme.textSecondary
       }}>{item.detail}</span>
     );
   };
@@ -121,11 +136,11 @@ export default function NetworkPolicyChart({ locale = 'en' }) {
   return (
     <div style={{
       width: '100%',
-      padding: '24px 0',
+      padding: '16px 0',
       fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
     }}>
       <div style={{
-        border: '1px solid #e5e7eb',
+        border: `1px solid ${theme.border}`,
         borderRadius: '8px',
         overflowY: 'hidden',
         overflowX: 'auto'
@@ -135,14 +150,14 @@ export default function NetworkPolicyChart({ locale = 'en' }) {
           borderCollapse: 'collapse'
         }}>
           <thead>
-            <tr style={{ backgroundColor: '#f9fafb' }}>
+            <tr style={{ backgroundColor: theme.bgHeader }}>
               <th style={{
                 padding: '12px 16px',
                 textAlign: 'left',
                 fontSize: '14px',
                 fontWeight: '600',
-                color: '#374151',
-                borderBottom: '1px solid #e5e7eb',
+                color: isDark ? '#cbd5e1' : '#374151',
+                borderBottom: `1px solid ${theme.border}`,
                 width: '30%'
               }}>{t.feature}</th>
               <th style={{
@@ -150,8 +165,8 @@ export default function NetworkPolicyChart({ locale = 'en' }) {
                 textAlign: 'left',
                 fontSize: '14px',
                 fontWeight: '600',
-                color: '#374151',
-                borderBottom: '1px solid #e5e7eb',
+                color: isDark ? '#cbd5e1' : '#374151',
+                borderBottom: `1px solid ${theme.border}`,
                 width: '35%'
               }}>{t.vpcCni}</th>
               <th style={{
@@ -159,8 +174,8 @@ export default function NetworkPolicyChart({ locale = 'en' }) {
                 textAlign: 'left',
                 fontSize: '14px',
                 fontWeight: '600',
-                color: '#374151',
-                borderBottom: '1px solid #e5e7eb',
+                color: isDark ? '#cbd5e1' : '#374151',
+                borderBottom: `1px solid ${theme.border}`,
                 width: '35%'
               }}>{t.cilium}</th>
             </tr>
@@ -168,13 +183,13 @@ export default function NetworkPolicyChart({ locale = 'en' }) {
           <tbody>
             {data.map((row, index) => (
               <tr key={index} style={{
-                borderBottom: index < data.length - 1 ? '1px solid #e5e7eb' : 'none',
-                backgroundColor: row.cilium.supported && !row.vpcCni.supported ? '#f0fdf4' : 'transparent'
+                borderBottom: index < data.length - 1 ? `1px solid ${theme.border}` : 'none',
+                backgroundColor: row.cilium.supported && !row.vpcCni.supported ? (isDark ? 'rgba(16, 185, 129, 0.1)' : '#f0fdf4') : 'transparent'
               }}>
                 <td style={{
                   padding: '12px 16px',
                   fontSize: '14px',
-                  color: '#1f2937',
+                  color: theme.text,
                   fontWeight: '500'
                 }}>{row.feature}</td>
                 <td style={{
@@ -192,13 +207,13 @@ export default function NetworkPolicyChart({ locale = 'en' }) {
       <div style={{
         marginTop: '16px',
         padding: '12px',
-        backgroundColor: '#f0fdf4',
+        backgroundColor: isDark ? 'rgba(16, 185, 129, 0.1)' : '#f0fdf4',
         borderRadius: '6px',
         borderLeft: '4px solid #10b981'
       }}>
         <p style={{
           fontSize: '13px',
-          color: '#065f46',
+          color: isDark ? '#6ee7b7' : '#065f46',
           margin: 0
         }}>
           <strong style={{ fontWeight: '600' }}>Highlighted rows</strong> indicate features where Cilium provides capabilities not available in VPC CNI.

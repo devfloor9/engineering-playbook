@@ -1,4 +1,5 @@
 import React from 'react';
+import { useColorMode } from '@docusaurus/theme-common';
 
 const i18n = {
   en: {
@@ -124,11 +125,12 @@ const i18n = {
 };
 
 export default function XdpCompatibilityChart({ locale = 'en' }) {
+  const { colorMode } = useColorMode();
+  const isDark = colorMode === 'dark';
   const t = i18n[locale] || i18n.en;
 
   const containerStyle = {
     width: '100%',
-    margin: '0 auto',
     padding: '20px 0',
     fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
     fontSize: '14px',
@@ -136,9 +138,9 @@ export default function XdpCompatibilityChart({ locale = 'en' }) {
   };
 
   const sectionStyle = {
-    marginBottom: '40px',
-    borderBottom: '2px solid #e0e0e0',
-    paddingBottom: '30px'
+    marginBottom: '24px',
+    borderBottom: '1px solid ' + (isDark ? '#334155' : '#e5e7eb'),
+    paddingBottom: '16px'
   };
 
   const lastSectionStyle = {
@@ -149,25 +151,23 @@ export default function XdpCompatibilityChart({ locale = 'en' }) {
     width: '100%',
     borderCollapse: 'collapse',
     marginTop: '12px',
-    backgroundColor: '#ffffff',
-    boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-    borderRadius: '4px',
-    overflow: 'hidden'
+    backgroundColor: isDark ? '#1e293b' : '#ffffff'
   };
 
   const thStyle = {
-    backgroundColor: '#f5f5f5',
+    backgroundColor: isDark ? '#0f172a' : '#f5f5f5',
     padding: '12px',
     textAlign: 'left',
     fontWeight: '600',
-    borderBottom: '2px solid #e0e0e0',
-    color: '#333'
+    borderBottom: isDark ? '2px solid #334155' : '2px solid #e0e0e0',
+    color: isDark ? '#cbd5e1' : '#333'
   };
 
   const tdStyle = {
     padding: '12px',
-    borderBottom: '1px solid #e0e0e0',
-    verticalAlign: 'top'
+    borderBottom: isDark ? '1px solid #334155' : '1px solid #e0e0e0',
+    verticalAlign: 'top',
+    color: isDark ? '#e2e8f0' : 'inherit'
   };
 
   const pillStyle = (color) => ({
@@ -181,15 +181,15 @@ export default function XdpCompatibilityChart({ locale = 'en' }) {
   });
 
   const highlightBoxStyle = {
-    backgroundColor: '#e8f4f8',
-    border: '2px solid #0078d4',
+    backgroundColor: isDark ? 'rgba(0, 120, 212, 0.15)' : '#e8f4f8',
+    border: isDark ? '2px solid #3b82f6' : '2px solid #0078d4',
     borderRadius: '8px',
     padding: '16px',
     marginTop: '20px',
     textAlign: 'center',
     fontWeight: '600',
     fontSize: '15px',
-    color: '#0078d4'
+    color: isDark ? '#60a5fa' : '#0078d4'
   };
 
   return (

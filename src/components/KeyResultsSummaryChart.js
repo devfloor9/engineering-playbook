@@ -1,4 +1,5 @@
 import React from 'react';
+import { useColorMode } from '@docusaurus/theme-common';
 
 const i18n = {
   en: {
@@ -28,6 +29,8 @@ const i18n = {
 };
 
 export default function KeyResultsSummaryChart({ locale = 'en' }) {
+  const { colorMode } = useColorMode();
+  const isDark = colorMode === 'dark';
   const t = i18n[locale] || i18n.en;
 
   const metrics = [

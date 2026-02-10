@@ -1,4 +1,19 @@
+import { useColorMode } from '@docusaurus/theme-common';
+
 export default function OverviewSummaryChart({ locale = 'en' }) {
+  const { colorMode } = useColorMode();
+  const isDark = colorMode === 'dark';
+
+  const theme = {
+    text: isDark ? '#e2e8f0' : '#1f2937',
+    textSecondary: isDark ? '#94a3b8' : '#6b7280',
+    textMono: isDark ? '#cbd5e1' : '#6b7280',
+    bgSurface: isDark ? '#1e293b' : '#ffffff',
+    bgHeader: isDark ? '#0f172a' : '#f9fafb',
+    border: isDark ? '#334155' : '#e5e7eb',
+    borderLight: isDark ? '#1e293b' : '#f1f5f9',
+  };
+
   const i18n = {
     en: {
       title: 'Benchmark Summary',
@@ -46,11 +61,11 @@ export default function OverviewSummaryChart({ locale = 'en' }) {
   return (
     <div style={{
       width: '100%',
-      padding: '24px 0',
+      padding: '16px 0',
       fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
     }}>
       <div style={{
-        border: '1px solid #e5e7eb',
+        border: `1px solid ${theme.border}`,
         borderRadius: '8px',
         overflowY: 'hidden',
         overflowX: 'auto'
@@ -60,64 +75,64 @@ export default function OverviewSummaryChart({ locale = 'en' }) {
           borderCollapse: 'collapse'
         }}>
           <thead>
-            <tr style={{ backgroundColor: '#f9fafb' }}>
+            <tr style={{ backgroundColor: theme.bgHeader }}>
               <th style={{
                 padding: '12px 16px',
                 textAlign: 'left',
                 fontSize: '14px',
                 fontWeight: '600',
-                color: '#374151',
-                borderBottom: '1px solid #e5e7eb'
+                color: isDark ? '#cbd5e1' : '#374151',
+                borderBottom: `1px solid ${theme.border}`
               }}>{t.metric}</th>
               <th style={{
                 padding: '12px 16px',
                 textAlign: 'right',
                 fontSize: '14px',
                 fontWeight: '600',
-                color: '#374151',
-                borderBottom: '1px solid #e5e7eb'
+                color: isDark ? '#cbd5e1' : '#374151',
+                borderBottom: `1px solid ${theme.border}`
               }}>{t.vpcCni}</th>
               <th style={{
                 padding: '12px 16px',
                 textAlign: 'right',
                 fontSize: '14px',
                 fontWeight: '600',
-                color: '#374151',
-                borderBottom: '1px solid #e5e7eb'
+                color: isDark ? '#cbd5e1' : '#374151',
+                borderBottom: `1px solid ${theme.border}`
               }}>{t.cilium}</th>
               <th style={{
                 padding: '12px 16px',
                 textAlign: 'right',
                 fontSize: '14px',
                 fontWeight: '600',
-                color: '#374151',
-                borderBottom: '1px solid #e5e7eb'
+                color: isDark ? '#cbd5e1' : '#374151',
+                borderBottom: `1px solid ${theme.border}`
               }}>{t.improvement}</th>
             </tr>
           </thead>
           <tbody>
             {data.map((row, index) => (
               <tr key={index} style={{
-                borderBottom: index < data.length - 1 ? '1px solid #e5e7eb' : 'none'
+                borderBottom: index < data.length - 1 ? `1px solid ${theme.border}` : 'none'
               }}>
                 <td style={{
                   padding: '12px 16px',
                   fontSize: '14px',
-                  color: '#1f2937',
+                  color: theme.text,
                   fontWeight: '500'
                 }}>{row.metric}</td>
                 <td style={{
                   padding: '12px 16px',
                   textAlign: 'right',
                   fontSize: '14px',
-                  color: '#6b7280',
+                  color: theme.textMono,
                   fontFamily: 'monospace'
                 }}>{row.vpcCni}</td>
                 <td style={{
                   padding: '12px 16px',
                   textAlign: 'right',
                   fontSize: '14px',
-                  color: '#6b7280',
+                  color: theme.textMono,
                   fontFamily: 'monospace'
                 }}>{row.cilium}</td>
                 <td style={{
@@ -130,8 +145,8 @@ export default function OverviewSummaryChart({ locale = 'en' }) {
                     borderRadius: '12px',
                     fontSize: '13px',
                     fontWeight: '500',
-                    backgroundColor: row.color === '#10b981' ? '#d1fae5' : '#f3f4f6',
-                    color: row.color === '#10b981' ? '#065f46' : '#374151'
+                    backgroundColor: row.color === '#10b981' ? '#d1fae5' : (isDark ? '#374151' : '#f3f4f6'),
+                    color: row.color === '#10b981' ? '#065f46' : (isDark ? '#d1d5db' : '#374151')
                   }}>{row.improvement}</span>
                 </td>
               </tr>
@@ -143,7 +158,7 @@ export default function OverviewSummaryChart({ locale = 'en' }) {
       <p style={{
         marginTop: '12px',
         fontSize: '13px',
-        color: '#6b7280',
+        color: theme.textSecondary,
         fontStyle: 'italic'
       }}>{t.footnote}</p>
     </div>
