@@ -129,6 +129,7 @@ jobs:
             --exclude 'https?://milvus\.io.*'
             --exclude 'https?://.*kubeflow\.org.*'
             --exclude 'https?://gateway-api\.sigs\.k8s\.io.*'
+            --exclude 'https?://.*envoyproxy\.io.*'
             '**/*.md'
             '**/*.mdx'
             'docs/**'
