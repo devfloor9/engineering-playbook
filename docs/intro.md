@@ -8,11 +8,11 @@ sidebar_position: 1
 
 # Engineering Playbook
 
-**Engineering Playbook**에 오신 것을 환영합니다. 이 문서는 AWS 기반 클라우드 네이티브 인프라를 위한 기술 가이드, 모범 사례, 아키텍처 패턴을 종합적으로 다룹니다. 또한 각 기술 도메인에 대한 **테스트 및 벤치마크 정보**를 제공하여, 구현의 성능과 안정성을 검증할 수 있도록 지원합니다.
+**Engineering Playbook**에 오신 것을 환영합니다. 이 문서는 AWS 기반 클라우드 네이티브 인프라, Agentic AI 플랫폼 엔지니어링, AIOps/AIDLC를 위한 기술 가이드, 모범 사례, 아키텍처 패턴을 종합적으로 다룹니다. 또한 각 기술 도메인에 대한 **테스트 및 벤치마크 정보**를 제공하여, 구현의 성능과 안정성을 검증할 수 있도록 지원합니다.
 
 ## 주요 내용
 
-이 플레이북은 일곱 가지 핵심 기술 도메인으로 구성되어 있으며, 각 도메인에는 상세한 구현 가이드, 트러블슈팅 자료, 실제 사례가 포함되어 있습니다.
+이 플레이북은 여덟 가지 핵심 기술 도메인으로 구성되어 있으며, 각 도메인에는 상세한 구현 가이드, 트러블슈팅 자료, 실제 사례가 포함되어 있습니다.
 
 ### [Infrastructure Optimization](./infrastructure-optimization/)
 
@@ -20,22 +20,38 @@ sidebar_position: 1
 - NGINX → Gateway API 마이그레이션
 - CoreDNS 모니터링 및 최적화
 - Karpenter 오토스케일링
+- East-West 트래픽 최적화
+- 비용 관리 및 최적화
 
 ### [Operations & Observability](./operations-observability/)
 
 - GitOps 기반 클러스터 운영
 - 노드 모니터링 에이전트 배포
 - EKS 장애 진단 및 대응
-- EKS 고가용성 아키텍처
+- EKS 고가용성 및 복원력 아키텍처
 
 ### [Agentic AI Platform](./agentic-ai-platform/)
 
 - 프로덕션 GenAI 플랫폼 아키텍처
 - GPU 리소스 관리 및 최적화
 - vLLM / MoE 모델 서빙
-- llm-d 분산 추론 인프라
+- llm-d 분산 추론 (EKS Auto Mode)
 - Inference Gateway 라우팅
 - Milvus 벡터 DB 및 RAG
+- Kagent Kubernetes AI 에이전트
+- Langfuse 에이전트 모니터링
+- NeMo Framework 통합
+- Amazon Bedrock AgentCore + MCP
+- RAGAS 평가 프레임워크
+
+### [AIops & AIDLC](./aiops-aidlc/)
+
+- AIOps 개념 및 EKS 적용
+- 지능형 관찰성 스택 (OpenTelemetry + CloudWatch AI + DevOps Guru)
+- 예측 기반 운영 자동화
+- MLOps 파이프라인 (Kubeflow, MLflow, KServe)
+- SageMaker-EKS 통합
+- AIDLC 프레임워크
 
 ### [Hybrid Infrastructure](./hybrid-infrastructure/)
 
@@ -46,10 +62,11 @@ sidebar_position: 1
 
 ### [Security & Governance](./security-governance/)
 
-- Default Namespace 인시던트 분석
 - Identity-First Security
 - GuardDuty Extended Threat Detection
 - Kyverno 정책 관리
+- Default Namespace 인시던트 분석
+- 소프트웨어 공급망 보안
 
 ### [ROSA](./rosa/)
 
@@ -59,7 +76,7 @@ sidebar_position: 1
 ### [Benchmark Reports](./benchmarks/)
 
 - 인프라 성능 벤치마크
-- CNI 성능 비교
+- CNI 성능 비교 (Cilium vs VPC CNI)
 - AI/ML 워크로드 벤치마크
 - 하이브리드 인프라 벤치마크
 - 보안 운영 벤치마크
