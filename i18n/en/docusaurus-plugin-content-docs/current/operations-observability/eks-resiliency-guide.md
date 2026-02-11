@@ -1,6 +1,6 @@
 ---
-title: "EKS Resiliency Guide"
-sidebar_label: "EKS Resiliency"
+title: "EKS High Availability Architecture Guide"
+sidebar_label: "EKS HA Architecture"
 description: "Architecture patterns and operational strategies for achieving high availability and fault tolerance in Amazon EKS environments"
 tags: [eks, kubernetes, resiliency, high-availability, cell-architecture, chaos-engineering, multi-az]
 category: "observability-monitoring"
@@ -9,7 +9,7 @@ authors: [devfloor9]
 sidebar_position: 6
 ---
 
-# EKS Resiliency Guide
+# EKS High Availability Architecture Guide
 
 > 📅 **Published**: 2026-02-10 | ⏱️ **Reading time**: ~20 min
 
@@ -84,8 +84,8 @@ Organizations can classify their resiliency level into 4 stages and progressivel
 | **3** | Cell-Based | Blast Radius isolation | Cell Architecture, Shuffle Sharding, independent deployments | High | Per-Cell overhead |
 | **4** | Multi-Region | Region fault tolerance | Active-Active architecture, Global Accelerator, data replication | Very High | Per-region infrastructure cost |
 
-:::info Debugging Guide Reference
-For operational troubleshooting and incident resolution, refer to the [EKS Debugging Guide](./eks-debugging-guide.md). This document focuses on failure **prevention** and **design**, while real-time troubleshooting is covered in the debugging guide.
+:::info Incident Diagnosis & Response Guide Reference
+For operational troubleshooting and incident resolution, refer to the [EKS Incident Diagnosis and Response Guide](./eks-debugging-guide.md). This document focuses on failure **prevention** and **design**, while real-time troubleshooting is covered in the incident diagnosis guide.
 :::
 
 ---
@@ -1438,7 +1438,7 @@ Higher resiliency levels come with increased costs. Multi-Region Active-Active r
 
 ### Related Documents
 
-- [EKS Debugging Guide](./eks-debugging-guide.md) — Operational troubleshooting and incident resolution
+- [EKS Incident Diagnosis and Response Guide](./eks-debugging-guide.md) — Operational troubleshooting and incident resolution
 - [GitOps-Based EKS Cluster Operations](./gitops-cluster-operation.md) — ArgoCD, KRO-based cluster management
 - [Ultra-Fast Autoscaling with Karpenter](/docs/infrastructure-optimization/karpenter-autoscaling.md) — In-depth Karpenter configuration and HPA optimization
 
