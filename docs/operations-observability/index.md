@@ -28,3 +28,11 @@ GitOps 기반 클러스터 구성 관리 및 선언적 인프라 운영 - 운영
 ### 2단계: 모니터링 에이전트 배포
 **[EKS Node Monitoring Agent](./node-monitoring-agent.md)**
 노드 상태 모니터링 및 시스템 메트릭 수집, Hubble을 통한 네트워크 트래픽 가시성 확보
+
+### 3단계: EKS 디버깅
+**[EKS 디버깅 가이드](./eks-debugging-guide.md)**
+EKS 환경에서 컨트롤 플레인, 노드, 워크로드, 네트워킹, 스토리지 전 레이어의 체계적 장애 진단 및 해결 가이드
+
+### 4단계: EKS 레질리언시
+**[EKS 레질리언시 가이드](./eks-resiliency-guide.md)**
+Multi-AZ 전략, Cell-Based Architecture, Chaos Engineering 등 고가용성과 장애 회복력 확보를 위한 아키텍처 패턴
