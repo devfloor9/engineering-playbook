@@ -263,6 +263,7 @@ graph LR
 | **llm-d** | 분산 스케줄러 | 로드 밸런싱, Prefix Caching 인식 라우팅, 장애 복구 |
 
 **Kubernetes 통합:**
+
 - Kubernetes Deployment로 배포
 - Service를 통해 노출
 - 큐 깊이 메트릭 기반 HPA로 스케일링
@@ -304,6 +305,7 @@ graph TB
 | **LiteLLM** | API 추상화 | 100+ LLM 프로바이더 지원, 통합 API, 폴백 설정, 비용 추적 |
 
 **Kubernetes 통합:**
+
 - Kubernetes Gateway API 표준 구현
 - HTTPRoute 리소스를 통한 선언적 라우팅
 - Kubernetes Service와 네이티브 통합
@@ -348,6 +350,7 @@ graph LR
 | **LangSmith** | Managed SaaS | 트레이싱, 평가, 데이터셋 관리, 협업 기능 |
 
 **Kubernetes 통합 (LangFuse):**
+
 - StatefulSet 또는 Deployment로 배포
 - PostgreSQL 백엔드 필요 (관리형 RDS 또는 클러스터 내 구성 가능)
 - Prometheus 형식의 메트릭 노출
@@ -392,6 +395,7 @@ graph TB
 | **도구 관리** | MCP(Model Context Protocol) 기반 도구 통합 |
 
 **Kubernetes 통합:**
+
 - Custom Resource Definitions (CRD)로 Kubernetes 확장
 - Controller 패턴을 통한 상태 조정
 - Kubernetes RBAC와 네이티브 통합
@@ -813,6 +817,7 @@ RAG 파이프라인의 핵심 컴포넌트인 Milvus는 Kubernetes에서 분산 
 자세한 내용은 **[Milvus 벡터 데이터베이스](./milvus-vector-database.md)** 문서를 참조하세요.
 
 **Milvus의 주요 특징:**
+
 - **분산 아키텍처**: Query/Data/Index Nodes를 독립적으로 스케일링
 - **Kubernetes Operator**: CRD 기반 선언적 관리
 - **GPU 가속**: Index Node에서 GPU를 활용한 빠른 인덱스 빌드
@@ -861,6 +866,7 @@ graph LR
 ```
 
 **Kubernetes 통합:**
+
 - Kubeflow Training Operators (PyTorchJob, MPIJob 등)
 - 분산 워크로드를 위한 Gang 스케줄링
 - 토폴로지 인식 스케줄링 (노드 어피니티, 안티 어피니티)
@@ -876,6 +882,7 @@ GPU 리소스 관리는 Agentic AI 플랫폼의 핵심입니다. 자세한 내�
 - **[NeMo 프레임워크](./nemo-framework.md)**: 분산 학습과 NCCL 최적화
 
 :::tip GPU 관리의 핵심 개념
+
 - **Device Plugin**: Kubernetes의 기본 GPU 할당 메커니즘
 - **DRA (Dynamic Resource Allocation)**: Kubernetes 1.26+의 유연한 리소스 관리
 - **NCCL**: 분산 GPU 학습을 위한 고성능 통신 라이브러리
@@ -986,6 +993,7 @@ Agentic AI 플랫폼을 구축하는 조직을 위한 권장 사항:
 이 문서에서 소개한 도전과제들을 **Amazon EKS와 AWS 서비스**를 활용하여 해결하는 구체적인 방법은 [EKS 기반 Agentic AI 해결방안](./agentic-ai-solutions-eks.md)을 참조하세요.
 
 다음 문서에서 다룰 내용:
+
 - EKS Auto Mode로 완전 자동화된 클러스터 구축
 - Karpenter를 통한 GPU 노드 자동 프로비저닝
 - AWS 서비스와의 통합 (Bedrock, S3, CloudWatch)
@@ -998,6 +1006,7 @@ Agentic AI 플랫폼을 구축하는 조직을 위한 권장 사항:
 ## 참고 자료
 
 ### Kubernetes 및 인프라
+
 - [Kubernetes 공식 문서](https://kubernetes.io/docs/)
 - [Karpenter 공식 문서](https://karpenter.sh/docs/)
 - [Amazon EKS Best Practices Guide](https://aws.github.io/aws-eks-best-practices/)
@@ -1005,27 +1014,32 @@ Agentic AI 플랫폼을 구축하는 조직을 위한 권장 사항:
 - [KEDA - Kubernetes Event-driven Autoscaling](https://keda.sh/)
 
 ### 모델 서빙 및 추론
+
 - [vLLM Documentation](https://docs.vllm.ai/)
 - [llm-d Project](https://github.com/llm-d/llm-d)
 - [Kgateway Documentation](https://kgateway.io/docs/)
 - [LiteLLM Documentation](https://docs.litellm.ai/)
 
 ### LLM Observability
+
 - [LangFuse Documentation](https://langfuse.com/docs)
 - [LangSmith Documentation](https://docs.smith.langchain.com/)
 - [RAGAS Documentation](https://docs.ragas.io/)
 
 ### 벡터 데이터베이스
+
 - [Milvus Documentation](https://milvus.io/docs)
 - [Milvus Operator](https://github.com/milvus-io/milvus-operator)
 
 ### GPU 인프라
+
 - [NVIDIA GPU Operator Documentation](https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/latest/)
 - [DCGM Exporter](https://github.com/NVIDIA/dcgm-exporter)
 - [NCCL Documentation](https://docs.nvidia.com/deeplearning/nccl/user-guide/docs/index.html)
 - [AWS EFA Documentation](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/efa.html)
 
 ### Agent 프레임워크 및 학습
+
 - [KAgent - Kubernetes Agent Framework](https://github.com/kagent-dev/kagent)
 - [NVIDIA NeMo Framework](https://docs.nvidia.com/nemo-framework/user-guide/latest/overview.html)
 - [Kubeflow Documentation](https://www.kubeflow.org/docs/)

@@ -24,31 +24,39 @@ Kubernetes 네이티브 접근 방식의 핵심 철학은 오픈소스 생태계
 ## 주요 문서 (구현 순서)
 
 ### Phase 1: 이해 및 설계
+
 - [기술적 도전과제 및 K8s 필요성](./agentic-ai-challenges.md) - Agentic AI 플랫폼의 핵심 과제 이해
 - [Agentic AI 플랫폼 아키텍처](./agentic-platform-architecture.md) - 전체 아키텍처 설계
 
 ### Phase 2: GPU 인프라 구성
+
 - [GPU 리소스 관리](./gpu-resource-management.md) - MIG, Time-Slicing 등 GPU 리소스 설정
 
 ### Phase 3: 모델 서빙 (기본 → 고급)
+
 - [vLLM 기반 FM 배포 및 성능 최적화](./vllm-model-serving.md) - 기본 모델 서빙 구성
 - [MoE 모델 서빙](./moe-model-serving.md) - Mixture of Experts 모델 서빙
 - [llm-d EKS Auto Mode 배포](./llm-d-eks-automode.md) - Kubernetes 네이티브 분산 추론
 - [NeMo 프레임워크](./nemo-framework.md) - 학습 및 서빙 프레임워크
 
 ### Phase 4: 추론 라우팅 및 게이트웨이
+
 - [Inference Gateway 및 동적 라우팅](./inference-gateway-routing.md) - 지능형 요청 라우팅
 
 ### Phase 5: RAG 데이터 레이어
+
 - [Milvus 벡터 데이터베이스](./milvus-vector-database.md) - 벡터 저장소 구축
 
 ### Phase 6: AI 에이전트 배포
+
 - [Kagent Kubernetes Agent 관리](./kagent-kubernetes-agents.md) - CRD 기반 에이전트 관리
 
 ### Phase 7: 운영 및 모니터링
+
 - [Agent 모니터링](./agent-monitoring.md) - 에이전트 상태 및 성능 모니터링
 
 ### Phase 8: 평가 및 검증
+
 - [Ragas RAG 평가](./ragas-evaluation.md) - RAG 파이프라인 품질 평가
 
 ## 🎯 학습 목표
@@ -137,18 +145,21 @@ graph TB
 ## 💡 핵심 개념
 
 ### LiteLLM 라우팅
+
 - **프로바이더 추상화**: 다양한 LLM API를 통일된 인터페이스로 사용
 - **폴백 메커니즘**: 한 제공자 실패 시 자동으로 다른 제공자로 전환
 - **로드 밸런싱**: 여러 모델에 요청 분산
 - **비용 최적화**: 가성비 좋은 모델 자동 선택
 
 ### LangGraph 워크플로우
+
 - **상태 관리**: 각 단계의 상태를 명확하게 관리
 - **조건부 분기**: 결과에 따른 동적 흐름 제어
 - **병렬 처리**: 독립적인 작업 동시 실행
 - **오류 처리**: 안정적인 예외 처리 메커니즘
 
 ### Langfuse 모니터링
+
 - **요청 추적**: 각 API 호출의 전체 과정 기록
 - **비용 분석**: 모델별, 프로젝트별 비용 추적
 - **성능 분석**: 응답 시간, 정확도 등 메트릭 분석
@@ -157,11 +168,13 @@ graph TB
 ### GPU 리소스 최적화
 
 #### MIG (Multi-Instance GPU)
+
 - **단일 GPU 분할**: 하나의 GPU를 여러 인스턴스로 분할
 - **리소스 격리**: 완전한 컴퓨팅 격리 제공
 - **효율성**: 다중 테넌트 환경에서 안정적
 
 #### Time-Slicing
+
 - **시간 공유**: GPU 시간을 여러 작업이 공유
 - **유연성**: 개발/테스트 환경에 적합
 - **비용**: MIG보다 저렴하지만 성능 공유
@@ -169,6 +182,7 @@ graph TB
 ## 📊 성능 및 비용 최적화
 
 ### 모델 선택 기준
+
 | 모델 | 성능 | 비용 | 용도 |
 |------|------|------|------|
 | GPT-4 | 최고 | 높음 | 복잡한 작업 |
@@ -178,6 +192,7 @@ graph TB
 | Open Source | 다양 | 낮음 | 완전한 제어 필요 시 |
 
 ### 비용 최적화 전략
+
 - **프롬프트 캐싱**: 반복적인 프롬프트 캐시
 - **배치 처리**: 비즈니스 크리티컬하지 않은 작업 배치 처리
 - **모델 계층화**: 복잡도에 따라 다른 모델 사용
@@ -198,6 +213,7 @@ GenAI 워크로드는 GPU 리소스를 많이 사용하므로, 비용 최적화�
 :::info 추천 학습 경로
 
 **Agentic AI 플랫폼 구축 경로:**
+
 1. 기술적 도전과제 및 K8s 필요성 이해
 2. 플랫폼 아키텍처 설계
 3. GPU 리소스 관리 및 Karpenter 설정
@@ -205,6 +221,7 @@ GenAI 워크로드는 GPU 리소스를 많이 사용하므로, 비용 최적화�
 5. Agent 모니터링 및 운영 체계 구축
 
 **GenAI 애플리케이션 개발 경로:**
+
 1. LiteLLM 기본 설정 및 라우팅
 2. LangGraph를 사용한 간단한 워크플로우
 3. Langfuse 모니터링 통합

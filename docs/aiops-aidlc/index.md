@@ -25,17 +25,21 @@ last_update:
 ## 가이드 구성
 
 ### Phase 1: AIOps 기초
+
 - **[AIOps 소개](/docs/aiops-aidlc/aiops-introduction)** — AIOps 개념, 전통적 모니터링 vs AI 기반 관찰성, EKS 적용 시나리오
 - **[지능형 관찰성 스택](/docs/aiops-aidlc/aiops-observability-stack)** — OpenTelemetry + CloudWatch AI + DevOps Guru 통합 아키텍처
 
 ### Phase 2: AI 주도 개발
+
 - **[AIDLC 프레임워크](/docs/aiops-aidlc/aidlc-framework)** — AWS Labs AIDLC 방법론, AI 코딩 에이전트 활용, GitOps 통합
 
 ### Phase 3: MLOps 파이프라인
+
 - **[EKS 기반 MLOps 파이프라인](/docs/aiops-aidlc/mlops-pipeline-eks)** — Kubeflow + MLflow + KServe 엔드투엔드 ML 라이프사이클
 - **[SageMaker-EKS 통합](/docs/aiops-aidlc/sagemaker-eks-integration)** — 하이브리드 아키텍처, 학습은 SageMaker + 서빙은 EKS
 
 ### Phase 4: 예측 운영
+
 - **[예측 스케일링 및 자동 복구](/docs/aiops-aidlc/aiops-predictive-operations)** — ML 기반 예측 오토스케일링, 자가 치유 패턴, 피드백 루프
 
 ## 핵심 기술 스택

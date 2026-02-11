@@ -403,6 +403,7 @@ aws iam get-role --role-name <role-name> \
 ```
 
 :::warning Common IRSA Mistakes
+
 - Typo in the role ARN in the ServiceAccount annotation
 - Mismatch in namespace/sa name in the IAM Role Trust Policy
 - OIDC Provider not associated with the cluster
@@ -414,10 +415,12 @@ aws iam get-role --role-name <role-name> \
 In Kubernetes 1.21+, service account tokens are **valid for 1 hour by default** and are automatically refreshed by the kubelet. However, if you are using a legacy SDK that lacks token refresh logic, long-running workloads may encounter `401 Unauthorized` errors.
 
 **Symptoms:**
+
 - Pod suddenly returns `HTTP 401 Unauthorized` errors after a certain period (typically 1 hour)
 - Works normally temporarily after a restart, then 401 errors recur
 
 **Cause:**
+
 - Projected Service Account Tokens expire after 1 hour by default
 - The kubelet automatically refreshes the token, but if the application reads the token file only once and caches it, the expired token continues to be used
 
@@ -706,12 +709,14 @@ kubectl auth reconcile -f eks-node-manager-role.yaml
 ```
 
 **Method 2: Recreate Node Group**
+
 ```bash
 # RBAC resources are created together when creating a new node group
 eksctl create nodegroup --cluster=<cluster-name> --name=<new-nodegroup-name>
 ```
 
 **Method 3: Upgrade Node Group**
+
 ```bash
 # Upgrade process may trigger RBAC re-setup
 eksctl upgrade nodegroup --cluster=<cluster-name> --name=<nodegroup-name>
@@ -723,7 +728,7 @@ eksctl upgrade nodegroup --cluster=<cluster-name> --name=<nodegroup-name>
 ### Debugging Node Bootstrap with Node Readiness Controller
 
 :::info New Kubernetes Feature (February 2026)
-[Node Readiness Controller](https://kubernetes.io/blog/2026/02/03/node-readiness-controller/) is a new project announced on the official Kubernetes blog that declaratively solves premature scheduling issues during node bootstrapping.
+[Node Readiness Controller](https://github.com/kubernetes-sigs/node-readiness-controller) is a new project announced on the official Kubernetes blog that declaratively solves premature scheduling issues during node bootstrapping.
 :::
 
 #### Problem Scenario
@@ -814,6 +819,7 @@ kubectl get namespace <ns> -o jsonpath='{.metadata.labels.elbv2\.k8s\.aws/pod-re
 ```
 
 :::tip Readiness Feature Comparison
+
 | Feature | Target | Control Mechanism | Status |
 |---------|--------|-------------------|--------|
 | **Node Readiness Controller** | Node | Taint-based | New (Feb 2026) |
@@ -1036,6 +1042,7 @@ spec:
 ```
 
 :::danger Probe Configuration Warnings
+
 - **Do not include external dependencies in the Liveness Probe** (such as database connectivity checks). This can trigger cascading failures where all Pods restart when an external service goes down.
 - **Do not set a high initialDelaySeconds without a startupProbe**. Since liveness/readiness probes are disabled until the startupProbe succeeds, use a startupProbe for slow-starting applications.
 - A Readiness Probe failure does not restart the Pod; it only removes the Pod from the Service Endpoints.
@@ -2099,6 +2106,7 @@ sudo bash eks-log-collector.sh
 ```
 
 **Collected Items:**
+
 - kubelet logs
 - containerd logs
 - iptables rules

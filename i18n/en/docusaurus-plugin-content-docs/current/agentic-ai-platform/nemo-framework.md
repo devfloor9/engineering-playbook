@@ -1017,6 +1017,7 @@ spec:
 </Tabs>
 
 **NCCL Performance Factors:**
+
 1. **Network Bandwidth**: InfiniBand (200-400 Gbps) > EFA (100 Gbps) > Ethernet (25-100 Gbps)
 2. **GPU Interconnect**: NVLink (600 GB/s) > PCIe 5.0 (128 GB/s)
 3. **Topology Awareness**: Direct connections reduce latency
@@ -1031,6 +1032,7 @@ spec:
 - [Inference Gateway](./inference-gateway-routing.md)
 
 :::tip Recommendations
+
 - Measure baseline performance with the base model before fine-tuning
 - LoRA/QLoRA enables fine-tuning large models with limited GPU resources
 - TensorRT-LLM conversion can improve inference performance by 2-4x
@@ -1038,6 +1040,7 @@ spec:
 :::
 
 :::warning Cautions
+
 - Large-scale training incurs significant GPU costs. Utilize spot instances and checkpoints
 - Consider NCCL communication overhead when deciding on number of nodes for distributed training
 - Always save checkpoints to persistent storage like S3

@@ -277,6 +277,7 @@ AWS WAF가 필요한 기능(IP Allowlist, Rate Limiting, Body Size)이 많다면
 ### 6.1 인증 (Basic Auth 대체)
 
 #### AWS Native: Lambda Authorizer
+
 ```yaml
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
@@ -302,6 +303,7 @@ spec:
 ```
 
 #### NGINX Gateway Fabric: OIDC Policy
+
 ```yaml
 apiVersion: gateway.nginx.org/v1alpha1
 kind: Policy
@@ -323,6 +325,7 @@ spec:
 ```
 
 #### Envoy Gateway: ExtAuth
+
 ```yaml
 apiVersion: gateway.envoyproxy.io/v1alpha1
 kind: SecurityPolicy
@@ -346,6 +349,7 @@ spec:
 ### 6.2 IP 제어 (IP Allowlist 대체)
 
 #### AWS Native: WAF IP Sets
+
 ```bash
 # WAF IP Set 생성
 aws wafv2 create-ip-set \
@@ -356,6 +360,7 @@ aws wafv2 create-ip-set \
 ```
 
 #### NGINX Gateway Fabric: NginxProxy Policy
+
 ```yaml
 apiVersion: gateway.nginx.org/v1alpha1
 kind: NginxProxy
@@ -371,6 +376,7 @@ spec:
 ```
 
 #### Envoy Gateway: SecurityPolicy
+
 ```yaml
 apiVersion: gateway.envoyproxy.io/v1alpha1
 kind: SecurityPolicy
@@ -393,6 +399,7 @@ spec:
 ### 6.3 트래픽 제어 (Rate Limiting 대체)
 
 #### AWS Native: WAF Rate-based Rule
+
 ```json
 {
   "Name": "RateLimitRule",
@@ -407,6 +414,7 @@ spec:
 ```
 
 #### NGINX Gateway Fabric: Rate Limiting
+
 ```yaml
 apiVersion: gateway.nginx.org/v1alpha1
 kind: NginxProxy
@@ -420,6 +428,7 @@ spec:
 ```
 
 #### Envoy Gateway: BackendTrafficPolicy
+
 ```yaml
 apiVersion: gateway.envoyproxy.io/v1alpha1
 kind: BackendTrafficPolicy
@@ -495,6 +504,7 @@ spec:
 ### 6.6 세션 어피니티 (Cookie Affinity 대체)
 
 #### AWS Native: TargetGroup Stickiness
+
 ```yaml
 apiVersion: elbv2.k8s.aws/v1beta1
 kind: TargetGroupConfiguration
@@ -511,6 +521,7 @@ spec:
 ```
 
 #### NGINX Gateway Fabric: Upstream Config
+
 ```yaml
 apiVersion: gateway.nginx.org/v1alpha1
 kind: NginxProxy
@@ -525,6 +536,7 @@ spec:
 ```
 
 #### Envoy Gateway: Session Persistence
+
 ```yaml
 apiVersion: gateway.envoyproxy.io/v1alpha1
 kind: BackendTrafficPolicy
@@ -555,6 +567,7 @@ kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/downloa
 ```
 
 #### AWS Native 추가 설치
+
 ```bash
 # AWS LBC CRD
 kubectl apply -k "github.com/aws/eks-charts/stable/aws-load-balancer-controller/crds?ref=master"
@@ -567,6 +580,7 @@ helm install aws-load-balancer-controller eks/aws-load-balancer-controller \
 ```
 
 #### NGINX Gateway Fabric 설치
+
 ```bash
 helm install ngf nginx-gateway/nginx-gateway-fabric \
   -n nginx-gateway \
@@ -575,6 +589,7 @@ helm install ngf nginx-gateway/nginx-gateway-fabric \
 ```
 
 #### Envoy Gateway 설치
+
 ```bash
 helm install envoy-gateway oci://docker.io/envoyproxy/gateway-helm \
   -n envoy-gateway-system \
@@ -673,6 +688,7 @@ kubectl logs -n envoy-gateway-system -l control-plane=envoy-gateway
 ### 8.3 마이그레이션 체크리스트
 
 #### 사전 준비
+
 - [ ] 현재 NGINX Ingress 인벤토리 완료
 - [ ] 8가지 핵심 기능 대안 매핑 완료
 - [ ] 마이그레이션 경로 선택 (AWS/NGINX/Envoy)
@@ -680,6 +696,7 @@ kubectl logs -n envoy-gateway-system -l control-plane=envoy-gateway
 - [ ] 테스트 환경 PoC 완료
 
 #### 마이그레이션 실행
+
 - [ ] GatewayClass 생성
 - [ ] Gateway 리소스 생성
 - [ ] 서비스별 HTTPRoute 생성
@@ -687,11 +704,13 @@ kubectl logs -n envoy-gateway-system -l control-plane=envoy-gateway
 - [ ] 트래픽 테스트 완료
 
 #### 트래픽 전환
+
 - [ ] DNS 가중치 기반 점진적 전환
 - [ ] 에러율/레이턴시 모니터링
 - [ ] 롤백 계획 준비
 
 #### 마이그레이션 완료
+
 - [ ] 모든 트래픽 전환 확인
 - [ ] NGINX Ingress 리소스 백업
 - [ ] NGINX Ingress Controller 제거

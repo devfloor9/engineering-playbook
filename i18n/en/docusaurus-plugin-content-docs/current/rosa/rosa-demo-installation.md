@@ -155,6 +155,7 @@ oc login https://api.rosa-demo-icn.XXXX.p1.openshiftapps.com:6443 \
 ```
 
 :::warning Security Caution
+
 - Store admin password securely
 - If password is lost, you must delete and recreate the admin account
 - Access may take several minutes to become active

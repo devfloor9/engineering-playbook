@@ -32,6 +32,7 @@ sidebar_position: 6
 이 가이드는 Amazon EKS Hybrid Nodes의 완전한 도입 방법을 제공합니다. 2024년 12월 정식 출시된 EKS Hybrid Nodes는 온프레미스 인프라와 AWS EKS를 통합 관리할 수 있게 해주며, 특히 고성능 GPU 서버와 클라우드 리소스를 하나의 Kubernetes 클러스터로 관리할 수 있습니다.
 
 **주요 기능:**
+
 - 온프레미스와 클라우드의 통합 관리
 - Harbor 2.13 프라이빗 레지스트리 통합
 - H100 GPU 서버 지원
@@ -43,12 +44,14 @@ sidebar_position: 6
 ### 시스템 요구사항
 
 **온프레미스 노드:**
+
 - 운영체제: Ubuntu 20.04/22.04/24.04 LTS 또는 RHEL 8/9
 - Docker Engine 20.10.10+ (Harbor용)
 - Container Runtime: containerd 1.6.x 이상
 - 최소 하드웨어: 2 CPU cores, 4GB RAM
 
 **GPU 서버 (선택사항):**
+
 - NVIDIA Driver 550.x 이상
 - NVIDIA Container Toolkit
 - H100/H200 GPU 지원
@@ -187,10 +190,12 @@ dig harbor.company.local
 #### CIDR 설계 원칙
 
 **AWS VPC CIDR:**
+
 - Primary: `10.0.0.0/16` (65,536 IP)
 - Secondary (필요시): `10.1.0.0/16`
 
 **온프레미스 CIDR:**
+
 - 기존 네트워크: `192.168.0.0/16`
 - Pod CIDR: `10.244.0.0/16`
 - Service CIDR: `10.96.0.0/16`
@@ -693,12 +698,14 @@ spec:
 ### Hybrid Nodes 가격 구조
 
 **기본 가격 (2025년 2월 기준):**
+
 - vCPU당: $0.1099/시간 (약 159원/시간)
 - 월 730시간 기준: vCPU당 약 $80.23 (약 116,534원)
 
 ### H100 GPU 서버 비용 분석
 
 **H100 GPU 서버 사양 (DGX H200 기준):**
+
 - CPU: 224 vCPU (2x Intel Xeon Platinum 8592+)
 - RAM: 2TB
 - GPU: 8x H200 (141GB HBM3e)
@@ -801,11 +808,13 @@ aws ce get-cost-and-usage \
 ### 워크로드 분산 전략
 
 **온프레미스 GPU 워커:**
+
 - AI/ML 훈련 워크로드
 - 고성능 추론 서비스
 - 데이터 집약적 처리
 
 **AWS CPU 워커:**
+
 - 웹 애플리케이션 및 API
 - 마이크로서비스
 - 경량 배치 작업
@@ -971,6 +980,7 @@ spec:
 
 :::tip 주요 메트릭
 DRA 성능을 위해 다음 메트릭을 모니터링하세요:
+
 - `dra_allocation_duration_seconds` - 리소스 할당 소요 시간
 - `dra_allocation_errors_total` - 실패한 할당 시도
 - `dra_resource_utilization_ratio` - 리소스 사용 효율성
@@ -1161,6 +1171,7 @@ EKS Hybrid Nodes는 온프레미스와 클라우드를 아우르는 통합 Kuber
 5. **지속적인 검증**: 각 단계별 테스트를 통한 구성 검증
 
 도입 전 다음 사항을 우선적으로 검토하세요:
+
 - Direct Connect를 통한 저지연 연결 확보
 - H100 GPU 서버의 높은 vCPU 비용 최적화 전략
 - PoC를 통한 실제 환경 성능 및 안정성 확인

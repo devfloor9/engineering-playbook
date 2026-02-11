@@ -204,9 +204,9 @@ stale IP 발생 가능성이 높아집니다.
     severity: warning
 ```
 
-3. **대규모(>100 노드) 또는 QPS > 5k 클러스터**
+1. **대규모(>100 노드) 또는 QPS > 5k 클러스터**
    - **NodeLocal DNSCache** (kube-proxy DaemonSet 형태)로 노드 로컬에서 캐시·단축 RTT.
    - nodelocaldns 메트릭도 Prometheus에 수집해 CoreDNS ↔ NodeLocal 비교.
 
-4. **CloudWatch Container Insights**(EKS 전용)
+2. **CloudWatch Container Insights**(EKS 전용)
    Prometheus 수집이 어려운 환경이라면 **cwagent + adot-internal-metrics** 옵션으로 CoreDNS 컨테이너 메트릭을 CloudWatch로 보낼 수 있음. (별도 요금 발생)

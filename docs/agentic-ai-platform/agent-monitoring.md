@@ -39,6 +39,7 @@ Agentic AI 애플리케이션은 복잡한 추론 체인과 다양한 도구 호
 | **확장성** | Kubernetes 네이티브 | 관리형 |
 
 :::tip 선택 가이드
+
 - **LangFuse**: 데이터 주권이 중요하거나, 비용 최적화가 필요한 경우
 - **LangSmith**: LangChain 기반 개발이 주력이고, 빠른 시작이 필요한 경우
 :::
@@ -395,6 +396,7 @@ spec:
 ```
 
 :::warning 프로덕션 배포 시 주의사항
+
 - `NEXTAUTH_SECRET`, `SALT`, `ENCRYPTION_KEY`는 반드시 안전한 랜덤 값으로 설정하세요
 - 프로덕션에서는 AWS Secrets Manager 또는 HashiCorp Vault를 사용하여 시크릿을 관리하세요
 - PostgreSQL은 RDS를 사용하는 것을 권장합니다 (고가용성, 자동 백업)
@@ -1309,6 +1311,7 @@ tenant_monthly_budget_usd
 ```
 
 :::tip 비용 최적화 팁
+
 1. **모델 선택 최적화**: 간단한 작업에는 저렴한 모델(GPT-3.5, Claude Haiku) 사용
 2. **프롬프트 최적화**: 불필요한 컨텍스트 제거로 입력 토큰 절감
 3. **캐싱 활용**: 반복적인 쿼리에 대한 응답 캐싱
@@ -1339,6 +1342,7 @@ AI Agent 모니터링은 Agentic AI 애플리케이션의 안정적인 운영과
 | **Level 4** | 최적화 | A/B 테스트, 자동 튜닝, 예측 분석 |
 
 :::tip 다음 단계
+
 - [Agentic AI Platform 아키텍처](./agentic-platform-architecture.md) - 전체 플랫폼 설계
 - [Kagent Kubernetes Agent 관리](./kagent-kubernetes-agents.md) - 에이전트 배포 및 운영
 - [RAG 평가 프레임워크](./ragas-evaluation.md) - Ragas를 활용한 품질 평가

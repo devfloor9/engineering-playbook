@@ -164,6 +164,7 @@ aws service-quotas get-service-quota \
   --region us-west-2 \
   --query 'Quota.Value'
 ```
+
 :::
 
 ---
@@ -282,6 +283,7 @@ cd llm-d/guides/inference-scheduling
 ```
 
 디렉토리 구조:
+
 ```
 guides/inference-scheduling/
 ├── helmfile.yaml          # 통합 배포 정의
@@ -403,6 +405,7 @@ curl -s http://localhost:8080/v1/chat/completions \
 ```
 
 예상 응답 구조:
+
 ```json
 {
   "id": "chatcmpl-...",
@@ -682,6 +685,7 @@ kubectl delete nodepool gpu-p5
 # 클러스터 삭제 (필요 시)
 eksctl delete cluster --name llm-d-cluster --region us-west-2
 ```
+
 :::
 
 ---
@@ -734,6 +738,7 @@ kubectl logs -f deployment/karpenter -n kube-system
 
 :::tip NCCL 디버깅
 멀티 GPU 통신 문제가 발생하면 다음 환경 변수를 추가하여 상세 로그를 확인하세요:
+
 ```yaml
 env:
   - name: NCCL_DEBUG
@@ -741,6 +746,7 @@ env:
   - name: NCCL_DEBUG_SUBSYS
     value: "ALL"
 ```
+
 :::
 
 ---

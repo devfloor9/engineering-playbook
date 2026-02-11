@@ -262,6 +262,7 @@ graph LR
 | **llm-d** | Distributed Scheduler | Load balancing, Prefix Caching-aware routing, Failure recovery |
 
 **Kubernetes Integration:**
+
 - Deployed as Kubernetes Deployments
 - Exposed via Services
 - Scaled via HPA based on queue depth metrics
@@ -303,6 +304,7 @@ graph TB
 | **LiteLLM** | API Abstraction | 100+ LLM provider support, unified API, fallback settings, cost tracking |
 
 **Kubernetes Integration:**
+
 - Implements Kubernetes Gateway API (standard)
 - HTTPRoute resources for declarative routing
 - Native integration with Kubernetes Services
@@ -347,6 +349,7 @@ graph LR
 | **LangSmith** | Managed SaaS | Tracing, evaluation, dataset management, collaboration features |
 
 **Kubernetes Integration (LangFuse):**
+
 - Deployed as StatefulSet or Deployment
 - Requires PostgreSQL backend (can use managed RDS or in-cluster)
 - Exposes metrics in Prometheus format
@@ -391,6 +394,7 @@ graph TB
 | **Tool Management** | Tool integration based on MCP (Model Context Protocol) |
 
 **Kubernetes Integration:**
+
 - Extends Kubernetes with Custom Resource Definitions (CRDs)
 - Controller pattern for state reconciliation
 - Native integration with Kubernetes RBAC
@@ -812,6 +816,7 @@ Milvus, a core component of RAG pipelines, operates with a distributed architect
 For detailed information, see **[Milvus Vector Database](./milvus-vector-database.md)**.
 
 **Key features of Milvus:**
+
 - **Distributed Architecture**: Separates access, coordination, worker, and storage layers for independent scaling
 - **Kubernetes Operator**: CRD-based declarative management
 - **GPU Acceleration**: GPU-accelerated index building on Index Nodes
@@ -860,6 +865,7 @@ graph LR
 ```
 
 **Kubernetes Integration:**
+
 - Kubeflow Training Operators (PyTorchJob, MPIJob, etc.)
 - Gang scheduling for distributed workloads
 - Topology-aware scheduling (node affinity, anti-affinity)
@@ -875,6 +881,7 @@ GPU resource management is at the core of Agentic AI platforms. For detailed inf
 - **[NeMo Framework](./nemo-framework.md)**: Distributed training and NCCL optimization
 
 :::tip Key GPU Management Concepts
+
 - **Device Plugin**: Kubernetes' basic GPU allocation mechanism
 - **DRA (Dynamic Resource Allocation)**: Flexible resource management in Kubernetes 1.26+
 - **NCCL**: High-performance communication library for distributed GPU training
@@ -985,6 +992,7 @@ This document explored the 4 core challenges of Agentic AI workloads and the Kub
 For specific methods to solve the challenges introduced in this document using **Amazon EKS and AWS services**, see [EKS-Based Agentic AI Solutions](./agentic-ai-solutions-eks.md).
 
 Topics covered in the next document:
+
 - Building fully automated clusters with EKS Auto Mode
 - GPU node auto provisioning with Karpenter
 - Integration with AWS services (Bedrock, S3, CloudWatch)
@@ -997,6 +1005,7 @@ Topics covered in the next document:
 ## References
 
 ### Kubernetes and Infrastructure
+
 - [Kubernetes Official Documentation](https://kubernetes.io/docs/)
 - [Karpenter Official Documentation](https://karpenter.sh/docs/)
 - [Amazon EKS Best Practices Guide](https://aws.github.io/aws-eks-best-practices/)
@@ -1004,27 +1013,32 @@ Topics covered in the next document:
 - [KEDA - Kubernetes Event-driven Autoscaling](https://keda.sh/)
 
 ### Model Serving and Inference
+
 - [vLLM Documentation](https://docs.vllm.ai/)
 - [llm-d Project](https://github.com/llm-d/llm-d)
 - [Kgateway Documentation](https://kgateway.io/docs/)
 - [LiteLLM Documentation](https://docs.litellm.ai/)
 
 ### LLM Observability
+
 - [LangFuse Documentation](https://langfuse.com/docs)
 - [LangSmith Documentation](https://docs.smith.langchain.com/)
 - [RAGAS Documentation](https://docs.ragas.io/)
 
 ### Vector Database
+
 - [Milvus Documentation](https://milvus.io/docs)
 - [Milvus Operator](https://github.com/milvus-io/milvus-operator)
 
 ### GPU Infrastructure
+
 - [NVIDIA GPU Operator Documentation](https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/latest/)
 - [DCGM Exporter](https://github.com/NVIDIA/dcgm-exporter)
 - [NCCL Documentation](https://docs.nvidia.com/deeplearning/nccl/user-guide/docs/index.html)
 - [AWS EFA Documentation](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/efa.html)
 
 ### Agent Framework and Training
+
 - [KAgent - Kubernetes Agent Framework](https://github.com/kagent-dev/kagent)
 - [NVIDIA NeMo Framework](https://docs.nvidia.com/nemo-framework/user-guide/latest/overview.html)
 - [Kubeflow Documentation](https://www.kubeflow.org/docs/)

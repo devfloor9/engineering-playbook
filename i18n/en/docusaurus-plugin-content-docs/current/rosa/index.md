@@ -12,6 +12,7 @@ This section covers technical documentation on ROSA (Red Hat OpenShift Service o
 ## 📚 Main Documents (Implementation Order)
 
 ### Step 1: Cluster Installation and Configuration
+
 - **[ROSA Demo Installation Guide](./rosa-demo-installation.md)**
   - STS (Security Token Service)-based cluster creation
   - Step-by-step installation via ROSA CLI
@@ -21,6 +22,7 @@ This section covers technical documentation on ROSA (Red Hat OpenShift Service o
   - Lab environment configuration and testing
 
 ### Step 2: Security and Access Control
+
 - **[ROSA Security Compliance Console Access Control](./rosa-security-compliance.md)**
   - Red Hat Hybrid Cloud Console access control configuration
   - Access control strategies for meeting financial sector security requirements
@@ -101,24 +103,28 @@ graph TB
 ## 💡 Core Concepts
 
 ### ROSA Features
+
 - **Fully Managed Service**: AWS and Red Hat jointly manage the control plane
 - **High Availability**: Automatic patching and updates
 - **Security**: STS-based temporary credentials, OIDC provider integration
 - **Flexibility**: Full customer control over worker nodes
 
 ### STS-based Authentication Benefits
+
 - **Temporary Credentials**: No permanent access keys required
 - **Automatic Token Renewal**: Tokens renewed automatically before expiration
 - **Least Privilege**: Only minimum required permissions granted
 - **Audit Trail**: All access recorded in CloudTrail
 
 ### Red Hat Hybrid Cloud Console Role
+
 - **Centralized Management**: Manage multiple clusters from one place
 - **Multi-cloud Support**: Integrated management across AWS, Azure, GCP, on-premises OpenShift
 - **Policy-based Management**: Central security policy enforcement
 - **Cost Tracking**: Monitor cluster-specific costs
 
 ### Network Configuration
+
 - **OVNKubernetes**: OpenVSwitch-based high-performance networking
 - **Network Policy**: Full Kubernetes network policy support
 - **Ingress Controller**: Built-in ingress controller
@@ -127,18 +133,21 @@ graph TB
 ## 💼 Use Cases
 
 ### Enterprise Migration
+
 - **On-premises OpenShift → ROSA**: Migrate from existing OpenShift to ROSA
 - **Reduced Management Burden**: Automated control plane operations
 - **Cost Savings**: Reduced operational costs
 - **Global Expansion**: Multi-region deployment
 
 ### Financial Sector Compliance
+
 - **Security Requirements**: Advanced security with STS, OIDC, MFA
 - **Access Control**: Fine-grained permission management
 - **Audit Logging**: All activity recording and tracking
 - **Data Protection**: KMS-based encryption
 
 ### Hybrid Cloud Strategy
+
 - **On-premises + AWS**: Single platform management
 - **Multi-cloud**: Simultaneous AWS, Azure, GCP management
 - **Cloud Bursting**: Expand to cloud during peak demand
@@ -160,6 +169,7 @@ graph TB
 ## 🚀 Deployment Patterns
 
 ### 1. Single Cluster Deployment
+
 ```
 ROSA Cluster
 ├── Development Namespace
@@ -168,6 +178,7 @@ ROSA Cluster
 ```
 
 ### 2. Multi-cluster Deployment
+
 ```
 Hybrid Cloud Console (Central Management)
 ├── AWS Region 1 (ROSA)
@@ -177,6 +188,7 @@ Hybrid Cloud Console (Central Management)
 ```
 
 ### 3. High Availability Deployment
+
 ```
 Primary Region (ROSA)
 ├── Active Cluster
@@ -199,6 +211,7 @@ ROSA is a jointly managed service by AWS and Red Hat, significantly reducing the
 :::
 
 :::info Recommended Learning Path
+
 1. Understand ROSA basic concepts
 2. Create STS-based cluster
 3. IdP integration and user management
@@ -212,6 +225,7 @@ ROSA requires separate OpenShift licensing. Consider both ROSA service costs and
 
 :::success Migration Tip
 If planning to migrate from on-premises OpenShift to ROSA, establish a **phased migration strategy**:
+
 1. Start with development/test environment
 2. Move non-business-critical workloads
 3. Build operational experience, then migrate production workloads

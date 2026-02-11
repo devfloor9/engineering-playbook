@@ -408,6 +408,7 @@ kubectl get mutatingwebhookconfigurations | grep kagent
 
 :::tip Installation Troubleshooting
 If controller fails to start:
+
 1. Check events: `kubectl describe pod -n kagent-system <pod-name>`
 2. Verify RBAC permissions are correct
 3. Verify cert-manager is functioning properly (if using webhooks)
@@ -991,6 +992,7 @@ kubectl apply -f agents/customer-support-agent.yaml
 ```
 
 :::danger Rollback Caution
+
 - Backup current state before rollback
 - Verify database schema compatibility if schema changes existed
 - Test all functionality after rollback

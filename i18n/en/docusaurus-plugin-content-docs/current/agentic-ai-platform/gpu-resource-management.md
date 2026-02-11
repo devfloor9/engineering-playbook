@@ -840,12 +840,14 @@ To transition from one state to the next, specific conditions must be met:
 
 :::tip DRA Selection Guide
 **When to Use DRA:**
+
 - GPU partitioning needed (MIG, time-slicing)
 - Multi-tenant environment requiring fair resource distribution
 - Need to apply resource priorities
 - Dynamic scaling is critical
 
 **When Device Plugin is Sufficient:**
+
 - Simply allocating GPUs in whole units
 - Compatibility with legacy systems important
 - Kubernetes version is 1.25 or below

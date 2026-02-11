@@ -24,6 +24,7 @@ Amazon EKS 환경의 비용 관리는 클라우드 운영에서 가장 중요한
 
 :::tip EKS Auto Mode 비용 고려사항
 2025년 GA된 EKS Auto Mode는 Karpenter를 내장하여 자동 비용 최적화를 제공합니다:
+
 - **추가 비용**: EKS Auto Mode 노드에 대해 EC2 가격의 ~10% 프리미엄
 - **절감 효과**: 자동 Spot 최적화, 빈패킹, 노드 통합으로 운영 비용 절감
 - **비교 분석**: Self-managed 클러스터 대비 총 소유 비용(TCO) 평가 필요
@@ -176,17 +177,20 @@ graph LR
 #### 자가 평가 체크리스트
 
 **Crawl 단계 (기초)**
+
 - [ ] AWS Cost Explorer로 월별 비용 확인
 - [ ] EKS 클러스터별 비용 구분 가능
 - [ ] 주요 비용 증가 원인 파악 가능
 
 **Walk 단계 (성장)**
+
 - [ ] 네임스페이스/팀별 비용 할당
 - [ ] 자동화된 비용 알림 설정
 - [ ] 주간 비용 리뷰 미팅 진행
 - [ ] 리소스 rightsizing 정책 운영
 
 **Run 단계 (성숙)**
+
 - [ ] 실시간 비용 대시보드 운영
 - [ ] Pod 레벨 비용 추적
 - [ ] 자동화된 최적화 워크플로우
@@ -197,6 +201,7 @@ graph LR
 #### 비용 구성 요소
 
 **1. 컨트롤 플레인 비용**
+
 ```
 비용: $0.10/시간 = $72/월 (클러스터당)
 특징: 고정 비용, 최적화 불가
@@ -365,6 +370,7 @@ LIMIT 20;
 ```
 
 **제한사항**
+
 - 24-48시간 데이터 지연
 - CUR에서만 확인 가능 (Cost Explorer 미지원)
 - 역사적 데이터 재처리 불가
@@ -1372,6 +1378,7 @@ ROI: {result['roi_percentage']:.0f}%
 #### 4. 검증 체크리스트
 
 **30일 후 검증**
+
 - [ ] 월별 총 비용 10-20% 감소
 - [ ] Kubecost 또는 SCAD로 Pod 레벨 가시성 확보
 - [ ] 네임스페이스별 비용 할당 70% 이상
@@ -1379,6 +1386,7 @@ ROI: {result['roi_percentage']:.0f}%
 - [ ] 팀별 월간 비용 리뷰 1회 이상 실시
 
 **90일 후 검증**
+
 - [ ] 월별 총 비용 30-40% 감소
 - [ ] Karpenter 배포 완료 및 정상 작동
 - [ ] Spot 인스턴스 비율 50% 이상
@@ -1388,6 +1396,7 @@ ROI: {result['roi_percentage']:.0f}%
 - [ ] 자동화된 rightsizing 정책 운영
 
 **180일 후 검증**
+
 - [ ] 월별 총 비용 40-60% 감소
 - [ ] FinOps 성숙도 "Walk" 이상
 - [ ] 자동화된 최적화 워크플로우 구축
@@ -1401,6 +1410,7 @@ ROI: {result['roi_percentage']:.0f}%
 #### 문제 1: SCAD 데이터가 CUR에 나타나지 않음
 
 **증상**
+
 ```bash
 # Athena 쿼리 결과가 비어있음
 SELECT * FROM eks_cost_report
@@ -1410,11 +1420,13 @@ LIMIT 10;
 ```
 
 **원인**
+
 - SCAD 활성화 후 24-48시간 지연
 - EKS 클러스터에서 SCAD 미활성화
 - CUR에 SPLIT_COST_ALLOCATION_DATA 스키마 요소 누락
 
 **해결**
+
 ```bash
 # 1. 클러스터 SCAD 활성화 확인
 aws eks describe-cluster --name your-cluster \
@@ -1433,6 +1445,7 @@ aws eks update-cluster-config \
 #### 문제 2: Karpenter가 노드를 프로비저닝하지 않음
 
 **증상**
+
 ```bash
 kubectl get pods
 # STATUS: Pending (스케줄되지 않음)
@@ -1442,12 +1455,14 @@ kubectl logs -n karpenter -l app.kubernetes.io/name=karpenter
 ```
 
 **원인**
+
 - NodePool 요구사항과 워크로드 불일치
 - IAM 권한 부족
 - 서브넷/보안 그룹 태그 누락
 - 인스턴스 타입 용량 부족
 
 **해결**
+
 ```bash
 # 1. NodePool과 Pod 요구사항 비교
 kubectl get nodepool default -o yaml
@@ -1474,6 +1489,7 @@ aws ec2 describe-instance-type-offerings \
 ```
 
 **NodePool 디버깅**
+
 ```yaml
 # 광범위한 요구사항으로 테스트
 apiVersion: karpenter.sh/v1
@@ -1498,15 +1514,18 @@ spec:
 #### 문제 3: Kubecost에서 높은 비용 불일치
 
 **증상**
+
 - Kubecost UI 비용과 AWS 청구서 20% 이상 차이
 - 특정 네임스페이스 비용이 비정상적으로 높음
 
 **원인**
+
 - Prometheus 메트릭 누락
 - 잘못된 AWS Spot 가격 데이터
 - 공유 리소스 할당 방법 오류
 
 **해결**
+
 ```bash
 # 1. Prometheus 메트릭 확인
 kubectl port-forward -n kubecost svc/kubecost-prometheus-server 9090:80
@@ -1544,6 +1563,7 @@ kubectl delete pod -n kubecost -l app=cost-model
 #### 문제 4: Spot 인스턴스 중단으로 서비스 영향
 
 **증상**
+
 - 2분 경고 후 Pod 갑작스런 종료
 - 가용성 저하
 
@@ -1627,10 +1647,12 @@ helm install aws-node-termination-handler \
 #### 문제 5: 높은 데이터 전송 비용
 
 **증상**
+
 - AWS 청구서에서 데이터 전송 비용이 예상보다 높음
 - "DataTransfer-Regional-Bytes" 항목 급증
 
 **원인**
+
 - AZ 간 불필요한 트래픽
 - 인터넷으로 나가는 트래픽 미최적화
 - NAT 게이트웨이 과다 사용
@@ -1739,22 +1761,26 @@ aws ec2 create-vpc-endpoint \
 ### 추가 학습 리소스
 
 **공식 문서**
+
 - [AWS EKS Best Practices - Cost Optimization](https://aws.github.io/aws-eks-best-practices/cost_optimization/cfm_framework/)
 - [Karpenter Documentation](https://karpenter.sh/)
 - [Kubecost Architecture](https://docs.kubecost.com/)
 - [FinOps Foundation](https://www.finops.org/framework/)
 
 **실전 사례**
+
 - [AWS Containers Blog - Cost Optimization](https://aws.amazon.com/blogs/containers/)
 - [FinOps Foundation - Rate Optimization](https://www.finops.org/framework/capabilities/rate-optimization/)
 
 **관련 문서**
+
 - [Karpenter 기반 오토스케일링](./karpenter-autoscaling.md)
 - [Cilium ENI와 Gateway API](./cilium-eni-gateway-api.md)
 - [GitOps 클러스터 운영](../operations-observability/gitops-cluster-operation.md)
 - [하이브리드 노드 가이드](../hybrid-infrastructure/hybrid-nodes-adoption-guide.md)
 
 **커뮤니티**
+
 - [FinOps Foundation](https://www.finops.org/)
 - [Karpenter Slack](https://kubernetes.slack.com/archives/C02SFFZSA2K)
 - [AWS Containers Roadmap](https://github.com/aws/containers-roadmap)

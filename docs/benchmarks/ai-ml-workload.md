@@ -32,6 +32,7 @@ AWS EKS 환경에서 vLLM을 이용한 Llama 4 모델 서빙 성능을 5개 시�
 **한 줄 요약**: Llama 4 Scout(109B MoE) 추론에서 AWS 커스텀 실리콘이 NVIDIA GPU 대비 **58-67% 낮은 토큰당 비용**($0.28~$0.35/1M tokens vs $0.85)을 달성했으며, p5/H100은 **최저 TTFT(120ms)**와 **최고 처리량(4,200 tokens/sec)**으로 지연 민감 워크로드에 최적입니다. Trainium2는 H100 처리량의 83%를 41% 비용으로 제공하여 **최고의 성능 대비 비용 비율**을 보여줍니다.
 
 **5개 시나리오**:
+
 - **A** p5.48xlarge — 8× NVIDIA H100 80GB (GPU 베이스라인)
 - **B** p4d.24xlarge — 8× NVIDIA A100 40GB (이전 세대 GPU)
 - **C** g6e.48xlarge — 8× NVIDIA L40S 48GB (비용 최적화 GPU)
@@ -49,6 +50,7 @@ AWS EKS 환경에서 vLLM을 이용한 Llama 4 모델 서빙 성능을 5개 시�
 <InfraComparisonChart locale="ko" />
 
 **클러스터 구성**:
+
 - **EKS 버전**: 1.31
 - **리전**: us-east-1 (단일 AZ)
 - **vLLM 버전**: v0.8.3+ (Llama 4 Day 0 지원, MetaShuffling 최적화)
@@ -74,6 +76,7 @@ Llama 4는 **Mixture of Experts (MoE)** 아키텍처를 채택하여 효율적�
 - **vLLM MetaShuffling**: MoE 추론에 최적화된 토큰 라우팅 및 메모리 관리
 
 :::info Scout vs Maverick 배포 요구사항
+
 - **Scout (109B)**: 단일 H100 80GB에서 BF16 배포 가능. 8×H100으로 1M 컨텍스트 지원
 - **Maverick (400B)**: 최소 8×H100 필요. FP8 양자화 버전 제공. 8×H100으로 ~430K 컨텍스트 지원
 :::
@@ -257,6 +260,7 @@ Llama 4의 MoE 아키텍처는 추론 성능에 다음과 같은 영향을 미�
 ### vLLM 배포 설정
 
 **Llama 4 Scout (GPU 시나리오):**
+
 ```bash
 vllm serve meta-llama/Llama-4-Scout-17B-16E \
   --tensor-parallel-size 8 \
@@ -265,6 +269,7 @@ vllm serve meta-llama/Llama-4-Scout-17B-16E \
 ```
 
 **Llama 4 Scout (Neuron/Trainium2):**
+
 ```bash
 vllm serve meta-llama/Llama-4-Scout-17B-16E \
   --device neuron \
@@ -275,6 +280,7 @@ vllm serve meta-llama/Llama-4-Scout-17B-16E \
 ### Neuron SDK 호환성 주의사항
 
 :::warning Neuron SDK 버전 관리
+
 - Trainium2/Inferentia2 사용 시 AWS Neuron SDK 2.x 이상 필요
 - vLLM의 Neuron 백엔드는 별도 설치 필요: `pip install vllm[neuron]`
 - 모든 Llama 4 모델이 Neuron에서 검증된 것은 아님 — 공식 호환 목록 확인 필요

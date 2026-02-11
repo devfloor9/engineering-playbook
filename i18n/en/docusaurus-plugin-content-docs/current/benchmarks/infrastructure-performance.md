@@ -21,6 +21,7 @@ A detailed quantitative comparison of VPC CNI and Cilium CNI across multiple mod
 For detailed benchmark results, refer to [CNI Performance Comparison Benchmark](./cni-performance-comparison.md).
 
 **Comparison Scenarios (5):**
+
 - A: VPC CNI baseline (kube-proxy + iptables)
 - B: Cilium + kube-proxy (Overlay)
 - C: Cilium kube-proxy-less (eBPF replacement)
@@ -30,6 +31,7 @@ For detailed benchmark results, refer to [CNI Performance Comparison Benchmark](
 ### Gateway API Performance
 
 **Metrics**
+
 - Request processing latency (P50, P95, P99)
 - Requests per second (RPS) throughput
 - TLS handshake overhead
@@ -39,6 +41,7 @@ For detailed benchmark results, refer to [CNI Performance Comparison Benchmark](
 ### CoreDNS Before/After Optimization
 
 **Metrics**
+
 - DNS resolution latency
 - Cache hit rate
 - Queries per second throughput
@@ -49,6 +52,7 @@ For detailed benchmark results, refer to [CNI Performance Comparison Benchmark](
 ### Karpenter vs Cluster Autoscaler
 
 **Metrics**
+
 - Scale-out response time
 - Node provisioning time
 - Pod scheduling delay
@@ -58,6 +62,7 @@ For detailed benchmark results, refer to [CNI Performance Comparison Benchmark](
 ### Cost vs Performance by Instance Type
 
 **Metrics**
+
 - Throughput per vCPU
 - Cost per memory
 - Spot vs On-Demand stability comparison

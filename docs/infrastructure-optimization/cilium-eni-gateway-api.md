@@ -49,6 +49,7 @@ Gateway API는 Kubernetes Ingress를 대체하는 차세대 트래픽 관리 표
 
 :::info Gateway API GA 현황
 Gateway API v1.0이 2023년 10월 GA되었으며, 현재 v1.2.1이 안정 버전입니다.
+
 - **GA 리소스**: GatewayClass, Gateway, HTTPRoute
 - **Beta**: ReferenceGrant, BackendTLSPolicy (v1.2+)
 - **주요 구현체**: Cilium, kGateway v2.1 (CNCF Sandbox), Istio, NGINX Gateway Fabric, Kong

@@ -18,31 +18,39 @@ This combination of technology stacks effectively addresses the four core challe
 ## Key Documentation (Implementation Order)
 
 ### Phase 1: Understanding and Design
+
 - [Technical Challenges and Kubernetes Necessity](./agentic-ai-challenges.md) - Understanding core challenges of Agentic AI platforms
 - [Agentic AI Platform Architecture](./agentic-platform-architecture.md) - Overall architecture design
 
 ### Phase 2: GPU Infrastructure Configuration
+
 - [GPU Resource Management](./gpu-resource-management.md) - GPU resource settings including MIG, Time-Slicing
 
 ### Phase 3: Model Serving (Basic → Advanced)
+
 - [vLLM-based FM Deployment and Performance Optimization](./vllm-model-serving.md) - Basic model serving configuration
 - [MoE Model Serving](./moe-model-serving.md) - Mixture of Experts model serving
 - [llm-d EKS Auto Mode Deployment](./llm-d-eks-automode.md) - Kubernetes-native distributed inference
 - [NeMo Framework](./nemo-framework.md) - Training and serving framework
 
 ### Phase 4: Inference Routing and Gateway
+
 - [Inference Gateway and Dynamic Routing](./inference-gateway-routing.md) - Intelligent request routing
 
 ### Phase 5: RAG Data Layer
+
 - [Milvus Vector Database](./milvus-vector-database.md) - Building vector storage
 
 ### Phase 6: AI Agent Deployment
+
 - [Kagent Kubernetes Agent Management](./kagent-kubernetes-agents.md) - CRD-based agent management
 
 ### Phase 7: Operations and Monitoring
+
 - [Agent Monitoring](./agent-monitoring.md) - Agent status and performance monitoring
 
 ### Phase 8: Evaluation and Validation
+
 - [Ragas RAG Evaluation](./ragas-evaluation.md) - RAG pipeline quality evaluation
 
 ## 🎯 Learning Objectives
@@ -124,18 +132,21 @@ graph TB
 ## 💡 Core Concepts
 
 ### LiteLLM Routing
+
 - **Provider Abstraction**: Use various LLM APIs through unified interface
 - **Fallback Mechanism**: Automatically switch to another provider on failure
 - **Load Balancing**: Distribute requests across multiple models
 - **Cost Optimization**: Automatically select cost-effective models
 
 ### LangGraph Workflow
+
 - **State Management**: Clearly manage state at each step
 - **Conditional Branching**: Dynamic flow control based on results
 - **Parallel Processing**: Concurrent execution of independent tasks
 - **Error Handling**: Robust exception handling mechanism
 
 ### Langfuse Monitoring
+
 - **Request Tracking**: Record entire process of each API call
 - **Cost Analysis**: Track costs by model and project
 - **Performance Analysis**: Analyze metrics like response time and accuracy
@@ -144,11 +155,13 @@ graph TB
 ### GPU Resource Optimization
 
 #### MIG (Multi-Instance GPU)
+
 - **GPU Partitioning**: Divide single GPU into multiple instances
 - **Resource Isolation**: Provide complete computing isolation
 - **Efficiency**: Stable in multi-tenant environments
 
 #### Time-Slicing
+
 - **Time Sharing**: Multiple tasks share GPU time
 - **Flexibility**: Suitable for dev/test environments
 - **Cost**: Less expensive than MIG but shares performance
@@ -156,6 +169,7 @@ graph TB
 ## 📊 Performance and Cost Optimization
 
 ### Model Selection Criteria
+
 | Model | Performance | Cost | Use Case |
 |-------|-------------|------|----------|
 | GPT-4 | Highest | High | Complex tasks |
@@ -165,6 +179,7 @@ graph TB
 | Open Source | Varied | Low | Complete control needed |
 
 ### Cost Optimization Strategies
+
 - **Prompt Caching**: Cache repeated prompts
 - **Batch Processing**: Process non-critical tasks in batches
 - **Model Tiering**: Use different models by complexity
@@ -183,6 +198,7 @@ GenAI workloads consume significant GPU resources. To optimize costs, actively u
 :::
 
 :::info Recommended Learning Path
+
 1. Basic LiteLLM configuration and routing
 2. Simple workflow using LangGraph
 3. Langfuse monitoring integration

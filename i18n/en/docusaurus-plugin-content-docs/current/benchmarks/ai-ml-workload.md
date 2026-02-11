@@ -34,6 +34,7 @@ This benchmark report compares Llama 4 model serving performance across 5 scenar
 **One-line summary**: In Llama 4 Scout (109B MoE) inference, AWS custom silicon achieves **58-67% lower cost per token** ($0.28~$0.35/1M tokens vs $0.85) compared to NVIDIA GPUs, while p5/H100 delivers the **lowest TTFT (120ms)** and **highest throughput (4,200 tokens/sec)** for latency-sensitive workloads. Trainium2 provides 83% of H100 throughput at 41% of the cost, offering the **best performance-to-cost ratio**.
 
 **5 Scenarios**:
+
 - **A** p5.48xlarge — 8× NVIDIA H100 80GB (GPU baseline)
 - **B** p4d.24xlarge — 8× NVIDIA A100 40GB (previous generation GPU)
 - **C** g6e.48xlarge — 8× NVIDIA L40S 48GB (cost-optimized GPU)
@@ -51,6 +52,7 @@ This benchmark report compares Llama 4 model serving performance across 5 scenar
 <InfraComparisonChart />
 
 **Cluster Configuration**:
+
 - **EKS Version**: 1.31
 - **Region**: us-east-1 (single AZ)
 - **vLLM Version**: v0.8.3+ (Llama 4 Day 0 support, MetaShuffling optimization)
@@ -76,6 +78,7 @@ Llama 4 adopts **Mixture of Experts (MoE)** architecture for efficient inference
 - **vLLM MetaShuffling**: Token routing and memory management optimized for MoE inference
 
 :::info Scout vs Maverick Deployment Requirements
+
 - **Scout (109B)**: Can be deployed on single H100 80GB with BF16. Supports 1M context with 8×H100
 - **Maverick (400B)**: Requires minimum 8×H100. FP8 quantized version available. Supports ~430K context with 8×H100
 :::
@@ -259,6 +262,7 @@ Check Workload Requirements
 ### vLLM Deployment Setup
 
 **Llama 4 Scout (GPU scenarios):**
+
 ```bash
 vllm serve meta-llama/Llama-4-Scout-17B-16E \
   --tensor-parallel-size 8 \
@@ -267,6 +271,7 @@ vllm serve meta-llama/Llama-4-Scout-17B-16E \
 ```
 
 **Llama 4 Scout (Neuron/Trainium2):**
+
 ```bash
 vllm serve meta-llama/Llama-4-Scout-17B-16E \
   --device neuron \
@@ -277,6 +282,7 @@ vllm serve meta-llama/Llama-4-Scout-17B-16E \
 ### Neuron SDK Compatibility Notes
 
 :::warning Neuron SDK Version Management
+
 - Trainium2/Inferentia2 require AWS Neuron SDK 2.x or later
 - vLLM's Neuron backend requires separate installation: `pip install vllm[neuron]`
 - Not all Llama 4 models are validated on Neuron — check official compatibility list

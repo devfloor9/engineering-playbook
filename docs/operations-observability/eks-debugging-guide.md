@@ -404,6 +404,7 @@ aws iam get-role --role-name <role-name> \
 ```
 
 :::warning IRSA 일반적인 실수
+
 - ServiceAccount annotation의 role ARN 오타
 - IAM Role Trust Policy에서 namespace/sa 이름 불일치
 - OIDC Provider가 클러스터와 연결되지 않음
@@ -415,10 +416,12 @@ aws iam get-role --role-name <role-name> \
 Kubernetes 1.21+에서 서비스 어카운트 토큰은 **기본 1시간 유효**하며, kubelet에 의해 자동 갱신됩니다. 그러나 레거시 SDK를 사용하는 경우 토큰 갱신 로직이 없어 장기 실행 워크로드에서 `401 Unauthorized` 에러가 발생할 수 있습니다.
 
 **증상:**
+
 - Pod이 일정 시간(보통 1시간) 후 갑자기 `HTTP 401 Unauthorized` 에러를 반환
 - 재시작 후 일시적으로 정상 동작하다가 다시 401 발생
 
 **원인:**
+
 - 프로젝티드 서비스 어카운트 토큰(Projected Service Account Token)은 기본 1시간 만료
 - kubelet이 토큰을 자동 갱신하지만, 애플리케이션이 파일에서 토큰을 한 번만 읽고 캐싱하면 만료된 토큰을 계속 사용
 
@@ -707,12 +710,14 @@ kubectl auth reconcile -f eks-node-manager-role.yaml
 ```
 
 **방법 2: 노드 그룹 재생성**
+
 ```bash
 # 새 노드 그룹 생성 시 RBAC 리소스가 함께 생성됨
 eksctl create nodegroup --cluster=<cluster-name> --name=<new-nodegroup-name>
 ```
 
 **방법 3: 노드 그룹 업그레이드**
+
 ```bash
 # 업그레이드 과정에서 RBAC 재설정이 트리거될 수 있음
 eksctl upgrade nodegroup --cluster=<cluster-name> --name=<nodegroup-name>
@@ -724,7 +729,7 @@ eksctl upgrade nodegroup --cluster=<cluster-name> --name=<nodegroup-name>
 ### Node Readiness Controller를 활용한 노드 부트스트랩 디버깅
 
 :::info Kubernetes 새 기능 (2026년 2월)
-[Node Readiness Controller](https://kubernetes.io/blog/2026/02/03/node-readiness-controller/)는 Kubernetes 공식 블로그에서 발표된 새로운 프로젝트로, 노드 부트스트랩 과정에서 발생하는 조기 스케줄링 문제를 선언적으로 해결합니다.
+[Node Readiness Controller](https://github.com/kubernetes-sigs/node-readiness-controller)는 Kubernetes 공식 블로그에서 발표된 새로운 프로젝트로, 노드 부트스트랩 과정에서 발생하는 조기 스케줄링 문제를 선언적으로 해결합니다.
 :::
 
 #### 문제 상황
@@ -815,6 +820,7 @@ kubectl get namespace <ns> -o jsonpath='{.metadata.labels.elbv2\.k8s\.aws/pod-re
 ```
 
 :::tip Readiness 기능 비교
+
 | 기능 | 적용 대상 | 제어 방식 | 상태 |
 |------|-----------|-----------|------|
 | **Node Readiness Controller** | 노드 | Taint 기반 | New (2026.02) |
@@ -1037,6 +1043,7 @@ spec:
 ```
 
 :::danger Probe 설정 시 주의사항
+
 - **Liveness Probe에 외부 의존성을 포함하지 마세요** (DB 연결 확인 등). 외부 서비스 장애 시 전체 Pod이 재시작되는 cascading failure를 유발합니다.
 - **startupProbe 없이 높은 initialDelaySeconds를 설정하지 마세요**. startupProbe가 성공할 때까지 liveness/readiness probe는 비활성화되므로, 시작이 느린 앱에서는 startupProbe를 사용하세요.
 - Readiness Probe 실패는 Pod을 재시작하지 않고 Service Endpoint에서만 제거합니다.
@@ -2100,6 +2107,7 @@ sudo bash eks-log-collector.sh
 ```
 
 **수집 항목:**
+
 - kubelet logs
 - containerd logs
 - iptables 규칙

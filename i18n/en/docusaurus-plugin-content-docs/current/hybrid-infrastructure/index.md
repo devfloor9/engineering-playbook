@@ -20,17 +20,21 @@ Cloud bursting represents one of the most attractive usage patterns of hybrid in
 ## Document List (Implementation Order)
 
 ### Step 1: Hybrid Nodes Basic Guide
+
 **[EKS Hybrid Nodes Complete Guide](./hybrid-nodes-adoption-guide.md)**
 Basic methods for connecting on-premises nodes to EKS clusters, hybrid networking configuration and security setup, migration strategies to hybrid environments, workload selection and placement criteria
 
 ### Step 2: High-Performance Networking (SR-IOV)
+
 **[DGX H200 SR-IOV Networking Configuration](./sriov-dgx-h200-hybrid.md)**
 High-performance networking through SR-IOV, NVIDIA DGX H200 system integration and optimization
 
 ### Step 3: Shared Storage Configuration
+
 **[EKS Hybrid Nodes Shared File Storage Solutions](./hybrid-nodes-file-storage.md)**
 File storage configuration for on-premises nodes, NFS/iSCSI utilization and data synchronization
 
 ### Step 4: Container Registry Integration
+
 **[Harbor 2.13 and EKS Hybrid Nodes Integration Guide](./harbor-hybrid-integration.md)**
 Operating container image registries through Harbor, image synchronization between on-premises and cloud

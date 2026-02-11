@@ -117,6 +117,7 @@ flowchart TD
 **시간 경과에 따른 서비스 영향**:
 
 :::danger 특히 위험한 시나리오
+
 - DNS 캐시가 만료되거나 TLS 인증서 만료시 서비스 디스커버리 실패로 인한 통신 불가
 - Pod가 OOMKilled 되거나 crash 되면 **재시작 불가**
 - 노드가 장애나면 해당 노드의 **모든 워크로드 손실**
@@ -542,6 +543,7 @@ Namespace에 속하지 않는 Cluster-Scoped 리소스들도 삭제나 수정 �
 ### RBAC 관련 리소스
 
 :::warning 특히 위험한 ClusterRole/ClusterRoleBinding
+
 - `system:node` / `system:node` binding: 삭제 시 **모든 노드가 API Server와 통신 불가**
 - `system:kube-controller-manager`: 삭제 시 **컨트롤러 매니저 동작 중단**
 - `system:kube-scheduler`: 삭제 시 **Pod 스케줄링 중단**
@@ -785,6 +787,7 @@ aws eks associate-access-policy \
 **사전 정의된 Access Policy**:
 
 :::tip 권장 사항
+
 1. **신규 클러스터**: 처음부터 EKS Access Entry만 사용하세요 (`-bootstrap-cluster-creator-admin-permissions` 옵션 활용)
 2. **기존 클러스터**: Access Entry로 점진적 마이그레이션 후 `aws-auth` ConfigMap 의존성 제거
 3. **최소 권한 원칙**: 클러스터 전체 권한 대신 namespace 스코프 권한 사용

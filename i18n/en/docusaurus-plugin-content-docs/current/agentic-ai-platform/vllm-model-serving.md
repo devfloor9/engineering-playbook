@@ -51,6 +51,7 @@ Deploying a 70B parameter model in FP16 requires 140GB for weights alone. This i
 Tensor parallelism distributes parameters within each model layer across multiple GPUs. It is the most common strategy when deploying large models within a single node.
 
 When to apply:
+
 - When the model does not fit on a single GPU
 - To reduce memory pressure per GPU, freeing up KV cache space and increasing throughput
 
@@ -68,6 +69,7 @@ The constraint of tensor parallelism is the number of attention heads. tensor_pa
 Pipeline parallelism distributes model layers sequentially across multiple GPUs. Tokens flow through the pipeline sequentially.
 
 When to apply:
+
 - When tensor parallelism is fully utilized but additional GPUs are needed
 - When multi-node deployment is required
 
@@ -316,6 +318,7 @@ spec:
 ```
 
 Key monitoring metrics:
+
 - `vllm:num_requests_running`: Number of requests currently being processed
 - `vllm:num_requests_waiting`: Number of requests waiting
 - `vllm:gpu_cache_usage_perc`: GPU KV cache utilization percentage
@@ -330,6 +333,7 @@ WARNING Sequence group 0 is preempted by PreemptionMode.RECOMPUTE
 ```
 
 Response measures:
+
 - Increase `gpu_memory_utilization`
 - Decrease `max_num_seqs` or `max_num_batched_tokens`
 - Increase `tensor_parallel_size` to free up per-GPU memory
@@ -338,6 +342,7 @@ Response measures:
 ## Production Deployment Checklist
 
 Before deployment, verify:
+
 1. Calculate GPU memory requirements and select appropriate instance type
 2. Decide on quantization strategy and verify quality-efficiency trade-off
 3. Configure max_model_len appropriate for workload

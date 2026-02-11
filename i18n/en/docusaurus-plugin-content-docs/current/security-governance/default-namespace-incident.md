@@ -113,6 +113,7 @@ When a cluster enters a frozen state, **existing workloads continue to run brief
 **Service impacts over time**:
 
 :::danger Particularly Dangerous Scenarios
+
 - When DNS cache expires or TLS certificates expire, service discovery fails and communication becomes impossible
 - If a Pod is OOMKilled or crashes, **it cannot be restarted**
 - If a node fails, **all workloads on that node are lost**
@@ -538,6 +539,7 @@ Cluster-scoped resources not belonging to any namespace can also impact the enti
 ### RBAC Related Resources
 
 :::warning Particularly Dangerous ClusterRole/ClusterRoleBinding
+
 - `system:node` / `system:node` binding: Deletion causes **all nodes lose API Server communication**
 - `system:kube-controller-manager`: Deletion causes **controller manager to stop**
 - `system:kube-scheduler`: Deletion causes **Pod scheduling to stop**
@@ -781,6 +783,7 @@ aws eks associate-access-policy \
 **Pre-defined Access Policies**:
 
 :::tip Recommendations
+
 1. **New clusters**: Use only EKS Access Entry from the start (use `-bootstrap-cluster-creator-admin-permissions` option)
 2. **Existing clusters**: Gradually migrate to Access Entry, then eliminate aws-auth ConfigMap dependency
 3. **Least Privilege**: Use namespace-scoped permissions instead of cluster-wide permissions

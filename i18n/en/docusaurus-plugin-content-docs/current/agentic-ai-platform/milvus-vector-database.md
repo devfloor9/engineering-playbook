@@ -295,6 +295,7 @@ serviceAccount:
 ```
 
 :::tip S3 IAM Policy
+
 ```json
 {
   "Version": "2012-10-17",
@@ -315,6 +316,7 @@ serviceAccount:
   ]
 }
 ```
+
 :::
 
 ## Index Type Selection Guide
@@ -662,12 +664,14 @@ spec:
 - [Agent Monitoring](./agent-monitoring.md)
 
 :::info Recommendations
+
 - Run minimum 3 Query Nodes in production environments
 - Consider DISKANN index for ultra-large datasets (100M+ vectors)
 - Using S3 as storage significantly reduces operational complexity
 :::
 
 :::warning Caution
+
 - Index building consumes significant CPU/memory; schedule during off-peak hours
 - Collection deletion is permanent; verify backups before deletion
 :::

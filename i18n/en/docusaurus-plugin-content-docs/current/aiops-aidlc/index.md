@@ -25,17 +25,21 @@ This guide covers how to intelligently build and operate EKS-based Modern Applic
 ## Guide Structure
 
 ### Phase 1: AIOps Foundations
+
 - **[AIOps Introduction](/docs/aiops-aidlc/aiops-introduction)** — AIOps concepts, traditional monitoring vs AI-based observability, EKS application scenarios
 - **[Intelligent Observability Stack](/docs/aiops-aidlc/aiops-observability-stack)** — OpenTelemetry + CloudWatch AI + DevOps Guru integration architecture
 
 ### Phase 2: AI-Driven Development
+
 - **[AIDLC Framework](/docs/aiops-aidlc/aidlc-framework)** — AWS Labs AIDLC methodology, AI coding agent utilization, GitOps integration
 
 ### Phase 3: MLOps Pipelines
+
 - **[EKS-Based MLOps Pipeline](/docs/aiops-aidlc/mlops-pipeline-eks)** — Kubeflow + MLflow + KServe end-to-end ML lifecycle
 - **[SageMaker-EKS Integration](/docs/aiops-aidlc/sagemaker-eks-integration)** — Hybrid architecture: train on SageMaker + serve on EKS
 
 ### Phase 4: Predictive Operations
+
 - **[Predictive Scaling and Auto-Remediation](/docs/aiops-aidlc/aiops-predictive-operations)** — ML-based predictive autoscaling, self-healing patterns, feedback loops
 
 ## Core Technology Stack
