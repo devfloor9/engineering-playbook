@@ -42,6 +42,7 @@ A quantitative benchmark comparing VPC CNI and Cilium CNI performance across 5 s
 <CniConclusionInfographic locale="en" />
 
 **5 Scenarios**:
+
 - **A** VPC CNI Baseline
 - **B** Cilium + kube-proxy (migration impact)
 - **C** Cilium kube-proxy-less (kube-proxy removal effect)
@@ -140,11 +141,13 @@ Comparison of Service LB, CNI Agent, and network layer configuration with key pe
 ### Benchmark Execution
 
 **Run all scenarios**:
+
 ```bash
 ./scripts/benchmarks/cni-benchmark/run-all-scenarios.sh
 ```
 
 **Run individual scenario**:
+
 ```bash
 ./scripts/benchmarks/cni-benchmark/run-benchmark.sh <scenario-name>
 ```
@@ -315,6 +318,7 @@ However, in **HTTP/gRPC-based real-time inference serving** environments, the RT
 :::
 
 **The real differentiator when choosing between the two CNIs is features:**
+
 - **L7 network policies** (HTTP path/method-based filtering)
 - **FQDN-based egress policies** (domain name-based external access control)
 - **eBPF-based observability** (real-time network flow visibility via Hubble)
@@ -347,6 +351,7 @@ Issues discovered during benchmark environment setup and their solutions. Refere
 ### eksctl Cluster Creation
 
 - **Minimum 2 AZs required**: eksctl requires at least 2 availability zones in `availabilityZones`, even if you want a single-AZ node group.
+
   ```yaml
   # Cluster level: 2 AZs required
   availabilityZones:
@@ -360,6 +365,7 @@ Issues discovered during benchmark environment setup and their solutions. Refere
 ### Cilium Helm Chart Compatibility
 
 - **`tunnel` option removed** (Cilium 1.15+): `--set tunnel=vxlan` or `--set tunnel=disabled` are no longer valid. Use `routingMode` and `tunnelProtocol` instead.
+
   ```bash
   # Legacy (Cilium 1.14 and below)
   --set tunnel=vxlan
@@ -379,9 +385,11 @@ XDP (eXpress Data Path) processes packets at the NIC driver level, bypassing the
 
 :::warning XDP Not Available on Virtualized AWS Instances
 During this benchmark, `loadBalancer.acceleration=native` and `best-effort` both failed on m6i.xlarge:
+
 ```
 attaching program cil_xdp_entry using bpf_link: create link: invalid argument
 ```
+
 This is because the ENA driver does not support `bpf_link`-based XDP attachment in virtualized environments. This constraint applies equally to all virtualized EC2 instances regardless of architecture (x86 or ARM).
 :::
 
@@ -396,6 +404,7 @@ This is because the ENA driver does not support `bpf_link`-based XDP attachment 
 This benchmark achieved **36% RTT improvement** (4894 to 3135 µs, comparing VPC CNI baseline to Cilium ENI+Tuning) without XDP or DSR. See the tuning details in the component above.
 
 :::tip Verify XDP Support
+
 ```bash
 # Check Cilium XDP activation status
 kubectl -n kube-system exec ds/cilium -- cilium-dbg status | grep XDP
@@ -404,25 +413,31 @@ kubectl -n kube-system exec ds/cilium -- cilium-dbg status | grep XDP
 # Check NIC driver
 ethtool -i eth0 | grep driver
 ```
+
 :::
 
 ### Workload Deployment
 
 - **Fortio container image constraints**: The `fortio/fortio` image does not include `sleep`, `sh`, or `nslookup` binaries. Use Fortio's built-in server mode for idle pods instead of `sleep infinity`.
+
   ```yaml
   command: ["fortio", "server", "-http-port", "8080"]
   ```
+
 - **DNS test pod selection**: For DNS resolution tests, use an image with `sh` (e.g., iperf3) and `getent hosts`. `nslookup` requires separate installation.
 
 ### Pod Restart During CNI Transition
 
 - **CPU exhaustion during Rolling Updates**: When restarting workloads after VPC CNI to Cilium transition, Rolling Update temporarily doubles pod count. This can cause CPU shortage on small nodes.
+
   ```bash
   # Safe restart: delete existing pods and let them recreate
   kubectl delete pods -n bench --all
   kubectl rollout status -n bench deployment --timeout=120s
   ```
+
 - **Cilium DaemonSet restart**: If Cilium DaemonSet doesn't auto-restart after Helm value changes, trigger it manually.
+
   ```bash
   kubectl -n kube-system rollout restart daemonset/cilium
   kubectl -n kube-system rollout status daemonset/cilium --timeout=300s
@@ -489,6 +504,7 @@ spec:
 **Policy Enforcement Visibility**: Cilium's Hubble shows real-time policy verdicts (ALLOWED/DENIED) for all network flows. VPC CNI provides limited logging through CloudWatch Logs.
 
 :::tip Selection Guide
+
 - **Basic L3/L4 policies only**: VPC CNI's EKS Network Policy is sufficient.
 - **L7 filtering, FQDN policies, real-time visibility needed**: Cilium is the only option.
 - **Multi-tenant environments**: Cilium's CiliumClusterwideNetworkPolicy and host-level policies are essential.

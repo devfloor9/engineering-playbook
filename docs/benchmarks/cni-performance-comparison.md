@@ -40,6 +40,7 @@ Amazon EKS 1.31 환경에서 VPC CNI와 Cilium CNI의 성능을 5개 시나리�
 <CniConclusionInfographic locale="ko" />
 
 **5개 시나리오**:
+
 - **A** VPC CNI 기본 (베이스라인)
 - **B** Cilium + kube-proxy (전환 영향 측정)
 - **C** Cilium kube-proxy-less (kube-proxy 제거 효과)
@@ -140,11 +141,13 @@ Cilium Operator가 EC2 API를 통해 ENI에서 IP를 할당하고, CiliumNode CR
 ### 벤치마크 실행
 
 **전체 시나리오 일괄 실행**:
+
 ```bash
 ./scripts/benchmarks/cni-benchmark/run-all-scenarios.sh
 ```
 
 **개별 시나리오 실행**:
+
 ```bash
 ./scripts/benchmarks/cni-benchmark/run-benchmark.sh <scenario-name>
 ```
@@ -293,6 +296,7 @@ eBPF의 O(1) 장점을 대조 검증하기 위해 VPC CNI + kube-proxy (시나�
 :::
 
 **시나리오 E에서 적용된 튜닝**:
+
 - ✅ Socket-level LB, BPF Host Routing, BPF Masquerade, Bandwidth Manager, BBR, Native Routing, CT Table 확장, Hubble 비활성화
 - ❌ XDP Acceleration, DSR (ENA 드라이버 호환성 제약으로 미적용)
 
@@ -317,6 +321,7 @@ m6i.xlarge의 ENA 드라이버는 `bpf_link` 기능을 지원하지 않아 XDP n
 :::
 
 **두 CNI를 선택할 때 고려해야 할 진짜 차이점은 기능입니다:**
+
 - **L7 네트워크 정책** (HTTP 경로/메서드 기반 필터링)
 - **FQDN 기반 Egress 정책** (도메인 이름으로 외부 접근 제어)
 - **eBPF 기반 관찰성** (Hubble을 통한 실시간 네트워크 흐름 가시성)
@@ -353,6 +358,7 @@ XDP Acceleration과 DSR을 활용하려면 인스턴스 타입의 NIC 드라이�
 ### eksctl 클러스터 생성
 
 - **최소 2개 AZ 필요**: eksctl은 `availabilityZones`에 최소 2개 AZ를 요구합니다. 단일 AZ 노드그룹을 원해도 클러스터 수준에서는 2개 이상의 AZ를 지정해야 합니다.
+
   ```yaml
   # 클러스터 수준: 2개 AZ 필수
   availabilityZones:
@@ -366,6 +372,7 @@ XDP Acceleration과 DSR을 활용하려면 인스턴스 타입의 NIC 드라이�
 ### Cilium Helm 차트 호환성
 
 - **`tunnel` 옵션 제거됨** (Cilium 1.15+): `--set tunnel=vxlan` 또는 `--set tunnel=disabled`는 더 이상 유효하지 않습니다. 대신 `routingMode`와 `tunnelProtocol`을 사용하세요.
+
   ```bash
   # 이전 (Cilium 1.14 이하)
   --set tunnel=vxlan
@@ -390,6 +397,7 @@ XDP(eXpress Data Path)는 NIC 드라이버 수준에서 패킷을 처리하여 �
 - DSR은 XDP가 정상 동작하는 환경(Bare Metal + mlx5/i40e 등)에서만 안정적
 
 :::tip XDP 지원 여부 확인
+
 ```bash
 # Cilium XDP 활성화 상태 확인
 kubectl -n kube-system exec ds/cilium -- cilium-dbg status | grep XDP
@@ -398,25 +406,31 @@ kubectl -n kube-system exec ds/cilium -- cilium-dbg status | grep XDP
 # NIC 드라이버 확인
 ethtool -i eth0 | grep driver
 ```
+
 :::
 
 ### 워크로드 배포
 
 - **Fortio 컨테이너 이미지 제약**: `fortio/fortio` 이미지에는 `sleep`, `sh`, `nslookup` 바이너리가 없습니다. Idle 대기 시 `sleep infinity` 대신 Fortio 자체 서버 모드를 사용하세요.
+
   ```yaml
   command: ["fortio", "server", "-http-port", "8080"]
   ```
+
 - **DNS 테스트용 Pod 선택**: DNS 해석 테스트는 `sh`가 포함된 이미지(예: iperf3)에서 `getent hosts`를 사용하세요. `nslookup`은 별도 설치가 필요합니다.
 
 ### CNI 전환 시 Pod 재시작
 
 - **Rolling Update 시 CPU 부족**: VPC CNI → Cilium 전환 후 워크로드를 재시작할 때, Rolling Update 전략은 Pod 수를 일시적으로 2배로 늘립니다. 소규모 노드에서 CPU 부족이 발생할 수 있습니다.
+
   ```bash
   # 안전한 재시작 방법: 기존 Pod 삭제 후 재생성
   kubectl delete pods -n bench --all
   kubectl rollout status -n bench deployment --timeout=120s
   ```
+
 - **Cilium DaemonSet 재시작**: Cilium Helm 값 변경 후 DaemonSet이 자동 재시작되지 않으면 수동으로 트리거하세요.
+
   ```bash
   kubectl -n kube-system rollout restart daemonset/cilium
   kubectl -n kube-system rollout status daemonset/cilium --timeout=300s
@@ -483,6 +497,7 @@ spec:
 **정책 시행 가시성**: Cilium의 Hubble은 모든 네트워크 흐름에 대해 정책 판정(ALLOWED/DENIED)을 실시간으로 표시합니다. VPC CNI는 CloudWatch Logs를 통해 제한적인 로깅만 제공합니다.
 
 :::tip 선택 가이드
+
 - **기본 L3/L4 정책만 필요**: VPC CNI의 EKS Network Policy로 충분합니다.
 - **L7 필터링, FQDN 정책, 실시간 가시성 필요**: Cilium이 유일한 선택지입니다.
 - **멀티테넌트 환경**: Cilium의 CiliumClusterwideNetworkPolicy와 Host-level 정책이 강력합니다.

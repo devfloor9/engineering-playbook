@@ -553,12 +553,14 @@ graph TD
 - [Agentic AI Platform Architecture](./agentic-platform-architecture.md)
 
 :::tip Recommendations
+
 - Include at least 50 diverse questions in evaluation dataset
 - Use domain expert-validated answers as ground truth
 - Track quality changes over time through regular evaluations
 :::
 
 :::warning Cautions
+
 - Ragas evaluation requires LLM API calls, incurring costs
 - For large-scale evaluations, use batch processing and caching
 - Evaluation results may vary depending on the LLM used

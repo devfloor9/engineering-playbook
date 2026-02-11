@@ -202,7 +202,7 @@ In Multi-AZ environments, when new nodes are provisioned, the node may reach `Re
 
 #### Node Readiness Controller (Announced February 2026)
 
-[Node Readiness Controller](https://kubernetes.io/blog/2026/02/03/node-readiness-controller/) declaratively manages custom taints during the node bootstrap process, delaying workload scheduling until all infrastructure requirements are met — including GPU drivers, CNI plugins, CSI drivers, and security agents.
+[Node Readiness Controller](https://github.com/kubernetes-sigs/node-readiness-controller) declaratively manages custom taints during the node bootstrap process, delaying workload scheduling until all infrastructure requirements are met — including GPU drivers, CNI plugins, CSI drivers, and security agents.
 
 ```mermaid
 flowchart TD
@@ -231,6 +231,7 @@ flowchart TD
 ```
 
 **Resiliency Benefits:**
+
 - **During AZ failure recovery**: When Karpenter provisions nodes in a new AZ, workloads only land after the node is fully prepared
 - **Scale-out events**: Even during rapid scaling, workloads are not placed on incomplete nodes
 - **GPU/ML workloads**: Prevents scheduling before driver loading completes, avoiding `CrashLoopBackOff`
@@ -258,6 +259,7 @@ spec:
 ```
 
 **Use Cases:**
+
 - Allow scheduling only after resource quota pre-validation
 - Allow scheduling only after security clearance
 - Allow scheduling only after custom admission checks pass
@@ -278,6 +280,7 @@ metadata:
 Old Pods are not terminated until new Pods are registered as ALB/NLB targets and pass health checks, ensuring zero traffic loss during deployments.
 
 :::tip Readiness Feature Selection Guide
+
 | Requirement | Recommended Feature | Level |
 |-------------|-------------------|-------|
 | Guarantee node bootstrap completion | Node Readiness Controller | Node |

@@ -276,6 +276,7 @@ However, if WAF cost is a concern, NGINX Gateway Fabric or Envoy Gateway can imp
 ### 6.1 Authentication (Basic Auth Alternative)
 
 #### AWS Native: Lambda Authorizer
+
 ```yaml
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
@@ -301,6 +302,7 @@ spec:
 ```
 
 #### NGINX Gateway Fabric: OIDC Policy
+
 ```yaml
 apiVersion: gateway.nginx.org/v1alpha1
 kind: Policy
@@ -322,6 +324,7 @@ spec:
 ```
 
 #### Envoy Gateway: ExtAuth
+
 ```yaml
 apiVersion: gateway.envoyproxy.io/v1alpha1
 kind: SecurityPolicy
@@ -345,6 +348,7 @@ spec:
 ### 6.2 IP Control (IP Allowlist Alternative)
 
 #### AWS Native: WAF IP Sets
+
 ```bash
 # Create WAF IP Set
 aws wafv2 create-ip-set \
@@ -355,6 +359,7 @@ aws wafv2 create-ip-set \
 ```
 
 #### NGINX Gateway Fabric: NginxProxy Policy
+
 ```yaml
 apiVersion: gateway.nginx.org/v1alpha1
 kind: NginxProxy
@@ -370,6 +375,7 @@ spec:
 ```
 
 #### Envoy Gateway: SecurityPolicy
+
 ```yaml
 apiVersion: gateway.envoyproxy.io/v1alpha1
 kind: SecurityPolicy
@@ -392,6 +398,7 @@ spec:
 ### 6.3 Traffic Control (Rate Limiting Alternative)
 
 #### AWS Native: WAF Rate-based Rule
+
 ```json
 {
   "Name": "RateLimitRule",
@@ -406,6 +413,7 @@ spec:
 ```
 
 #### NGINX Gateway Fabric: Rate Limiting
+
 ```yaml
 apiVersion: gateway.nginx.org/v1alpha1
 kind: NginxProxy
@@ -419,6 +427,7 @@ spec:
 ```
 
 #### Envoy Gateway: BackendTrafficPolicy
+
 ```yaml
 apiVersion: gateway.envoyproxy.io/v1alpha1
 kind: BackendTrafficPolicy
@@ -494,6 +503,7 @@ spec:
 ### 6.6 Session Affinity (Cookie Affinity Alternative)
 
 #### AWS Native: TargetGroup Stickiness
+
 ```yaml
 apiVersion: elbv2.k8s.aws/v1beta1
 kind: TargetGroupConfiguration
@@ -510,6 +520,7 @@ spec:
 ```
 
 #### NGINX Gateway Fabric: Upstream Config
+
 ```yaml
 apiVersion: gateway.nginx.org/v1alpha1
 kind: NginxProxy
@@ -524,6 +535,7 @@ spec:
 ```
 
 #### Envoy Gateway: Session Persistence
+
 ```yaml
 apiVersion: gateway.envoyproxy.io/v1alpha1
 kind: BackendTrafficPolicy
@@ -554,6 +566,7 @@ kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/downloa
 ```
 
 #### AWS Native Additional Installation
+
 ```bash
 # AWS LBC CRD
 kubectl apply -k "github.com/aws/eks-charts/stable/aws-load-balancer-controller/crds?ref=master"
@@ -566,6 +579,7 @@ helm install aws-load-balancer-controller eks/aws-load-balancer-controller \
 ```
 
 #### NGINX Gateway Fabric Installation
+
 ```bash
 helm install ngf nginx-gateway/nginx-gateway-fabric \
   -n nginx-gateway \
@@ -574,6 +588,7 @@ helm install ngf nginx-gateway/nginx-gateway-fabric \
 ```
 
 #### Envoy Gateway Installation
+
 ```bash
 helm install envoy-gateway oci://docker.io/envoyproxy/gateway-helm \
   -n envoy-gateway-system \
@@ -672,6 +687,7 @@ kubectl logs -n envoy-gateway-system -l control-plane=envoy-gateway
 ### 8.3 Migration Checklist
 
 #### Pre-Migration
+
 - [ ] Complete current NGINX Ingress inventory
 - [ ] Complete 8 core feature alternative mapping
 - [ ] Select migration path (AWS/NGINX/Envoy)
@@ -679,6 +695,7 @@ kubectl logs -n envoy-gateway-system -l control-plane=envoy-gateway
 - [ ] Complete PoC in test environment
 
 #### During Migration
+
 - [ ] Create GatewayClass
 - [ ] Create Gateway resource
 - [ ] Create HTTPRoute per service
@@ -686,11 +703,13 @@ kubectl logs -n envoy-gateway-system -l control-plane=envoy-gateway
 - [ ] Complete traffic testing
 
 #### Traffic Transition
+
 - [ ] DNS weighted gradual transition
 - [ ] Monitor error rate/latency
 - [ ] Prepare rollback plan
 
 #### Post-Migration
+
 - [ ] Verify all traffic transitioned
 - [ ] Backup NGINX Ingress resources
 - [ ] Remove NGINX Ingress Controller

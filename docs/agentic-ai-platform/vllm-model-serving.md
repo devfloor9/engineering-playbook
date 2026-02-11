@@ -58,6 +58,7 @@ vLLM의 연속 배칭은 배치 경계를 완전히 제거한다. 스케줄러�
 텐서 병렬화는 각 모델 레이어 내에서 파라미터를 여러 GPU에 분산한다. 단일 노드 내에서 대규모 모델을 배포할 때 가장 일반적인 전략이다.
 
 적용 시점:
+
 - 모델이 단일 GPU에 맞지 않을 때
 - GPU당 메모리 압력을 줄여 KV 캐시 공간을 확보하고 처리량을 높이려 할 때
 
@@ -75,6 +76,7 @@ llm = LLM(model="meta-llama/Llama-3.3-70B-Instruct", tensor_parallel_size=4)
 파이프라인 병렬화는 모델 레이어를 여러 GPU에 순차적으로 분산한다. 토큰이 파이프라인을 통해 순차적으로 흐른다.
 
 적용 시점:
+
 - 텐서 병렬화를 최대로 활용했지만 추가 GPU가 필요할 때
 - 다중 노드 배포가 필요할 때
 
@@ -350,6 +352,7 @@ spec:
 ```
 
 주요 모니터링 지표:
+
 - `vllm:num_requests_running`: 현재 처리 중인 요청 수
 - `vllm:num_requests_waiting`: 대기 중인 요청 수
 - `vllm:gpu_cache_usage_perc`: GPU KV 캐시 사용률
@@ -364,6 +367,7 @@ WARNING Sequence group 0 is preempted by PreemptionMode.RECOMPUTE
 ```
 
 대응 방안:
+
 - `gpu_memory_utilization` 증가
 - `max_num_seqs` 또는 `max_num_batched_tokens` 감소
 - `tensor_parallel_size` 증가로 GPU당 메모리 확보
@@ -372,6 +376,7 @@ WARNING Sequence group 0 is preempted by PreemptionMode.RECOMPUTE
 ## 프로덕션 배포 체크리스트
 
 배포 전 확인사항:
+
 1. GPU 메모리 요구사항을 계산하고 적절한 인스턴스 타입 선택
 2. 양자화 전략 결정 및 품질-효율성 트레이드오프 검증
 3. 워크로드에 맞는 max_model_len 설정

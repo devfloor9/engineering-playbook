@@ -124,6 +124,11 @@ function checkInternalLink(url, currentFilePath) {
   let targetPath;
   
   if (linkPath.startsWith('/')) {
+    // Check Docusaurus static directory first for /img/, /assets/ paths
+    const staticPath = path.join(STATIC_DIR, linkPath.substring(1));
+    if (fs.existsSync(staticPath)) {
+      return { exists: true };
+    }
     // Absolute path from root
     targetPath = path.join(__dirname, '..', linkPath.substring(1));
   } else {
@@ -159,24 +164,39 @@ function checkInternalLink(url, currentFilePath) {
   return { exists: false, reason: 'File not found' };
 }
 
+// Convert heading text to slug format (handles Unicode/Korean characters)
+function headingToSlug(heading) {
+  return heading
+    .toLowerCase()
+    .trim()
+    .replace(/[^\p{L}\p{N}\s-]/gu, '') // keep letters (incl unicode), numbers, spaces, hyphens
+    .replace(/\s+/g, '-')              // spaces to hyphens
+    .replace(/-+/g, '-')               // collapse multiple hyphens
+    .replace(/^-|-$/g, '');            // trim leading/trailing hyphens
+}
+
 // Check if anchor exists in file
 function checkAnchorInFile(filePath, anchor) {
   try {
     const content = fs.readFileSync(filePath, 'utf8');
     const { content: body } = matter(content);
-    
-    // Check for heading anchors
-    const headingPattern = new RegExp(`^#+\\s+.*${anchor.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\\\$&')}`, 'mi');
-    if (headingPattern.test(body)) {
-      return { exists: true };
+
+    // Extract all headings and convert to slugs
+    const headingRegex = /^#+\s+(.+)$/gm;
+    let match;
+    while ((match = headingRegex.exec(body)) !== null) {
+      const slug = headingToSlug(match[1]);
+      if (slug === anchor) {
+        return { exists: true };
+      }
     }
-    
+
     // Check for explicit anchor tags
-    const anchorPattern = new RegExp(`<a[^>]+(?:id|name)=["']${anchor}["'][^>]*>`, 'i');
+    const anchorPattern = new RegExp(`<a[^>]+(?:id|name)=["']${anchor.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}["'][^>]*>`, 'i');
     if (anchorPattern.test(body)) {
       return { exists: true };
     }
-    
+
     return { exists: false, reason: `Anchor '#${anchor}' not found` };
   } catch (error) {
     return { exists: false, reason: `Error reading file: ${error.message}` };

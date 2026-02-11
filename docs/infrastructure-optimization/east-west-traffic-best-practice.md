@@ -117,6 +117,7 @@ graph TB
 ```
 
 :::info 핵심 차이점
+
 - **ClusterIP 경로**: Pod → kube-proxy (iptables/IPVS NAT) → target Pod (1 hop)
 - **Internal ALB 경로**: Pod → AZ-local ALB ENI → target Pod (2 hops)
 - Topology Aware Routing 적용 시 ClusterIP 경로는 동일 AZ 내에서 완결됩니다
@@ -166,6 +167,7 @@ graph LR
 | **Internal ALB** | AWS ALB Controller, L7 동작, IP 모드 전용 | L7 기능(경로 라우팅, WAF, gRPC), Cross-Zone 무료 | ALB 시간당 + LCU 비용, 수~수십ms 추가 지연 |
 
 :::tip 서비스 유형 선택 지침
+
 - **기본 선택**: ClusterIP + Topology Aware Routing
 - **StatefulSet**: Headless 서비스
 - **L7 기능 필요 시**: Internal ALB (IP 모드)
@@ -188,12 +190,14 @@ Instance 모드에서는 NodePort 경유로 cross-AZ 트래픽이 증가합니�
 :::info 기술 선택 기준
 
 **왜 ClusterIP를 기본으로 선택하는가?**
+
 - 네이티브 Kubernetes 기능으로 추가 비용 없음
 - 1-hop 통신으로 최저 지연
 - Topology Aware Routing과 결합하여 AZ 인식 가능
 - 서비스 메쉬, Gateway API와의 통합 용이
 
 **왜 Internal ALB는 선택적으로 사용하는가?**
+
 - 시간당 비용($0.0225/h) + LCU 과금이 지속 발생
 - 추가 네트워크 홉으로 2-3ms RTT 오버헤드
 - EC2→EKS 마이그레이션 등 과도기적 사용에 적합
@@ -240,6 +244,7 @@ kubectl get endpointslices -l kubernetes.io/service-name=my-service -o yaml
 ```
 
 :::warning Topology Aware Routing 동작 조건
+
 - 각 AZ에 **충분한 엔드포인트**가 존재해야 합니다
 - Pod가 특정 AZ에만 치우쳐 있으면 해당 서비스는 힌트를 비활성화하고 전체로 라우팅합니다
 - EndpointSlice 컨트롤러가 AZ별 Pod 비율이 균등하지 않다고 판단하면 hints가 생성되지 않습니다
@@ -273,6 +278,7 @@ spec:
 
 :::info Topology Aware Routing vs InternalTrafficPolicy
 두 기능은 **동시에 사용할 수 없으며** 선택적으로 적용해야 합니다:
+
 - **멀티 AZ 환경**: 우선 AZ 단위 분산을 보장하는 Topology Aware Routing 고려
 - **같은 노드 내 빈번한 호출**: 짝을 이루는 파드들 간 강한 결합 통신에 InternalTrafficPolicy(Local) + Pod 공배치 활용
 :::
@@ -372,6 +378,7 @@ helm install node-local-dns deliveryhero/node-local-dns \
 ```
 
 **효과:**
+
 - p99 DNS lookup 지연: 수ms → sub-ms
 - CoreDNS QPS 부하 완화
 - 1만 개 이상 Pod 환경에서 DNS 대기시간 수십ms 절약
@@ -458,6 +465,7 @@ spec:
 | 성능 영향 | 평균 5~10% 처리량 감소 |
 
 :::warning Istio 도입 시 고려사항
+
 - 사이드카 리소스 소모로 EC2 비용 상승 가능
 - mTLS 활성화 시 CPU 사용량 추가 증가
 - 컨트롤 플레인(Istiod) 관리, CRD(VirtualService, DestinationRule) 학습 필요
@@ -589,6 +597,7 @@ spec:
 | **VPC Lattice** | **$400+** | 서비스당 시간과금 + GB당 + 요청당 |
 
 :::tip 비용 최적화 핵심 인사이트
+
 - **InternalTrafficPolicy Local**로 노드-로컬을 보장하면 비용 $0에 가장 낮은 지연 달성. 단, Pod Affinity 및 근접 배치가 필수
 - **서비스 20개 이상, 다계정이면** Lattice가 운영 편의성 제공 (추가 비용 감수)
 - **하이브리드 전략**이 대부분의 워크로드에 가장 경제적: ALB는 L7·WAF 필요한 특정 경로에만 스팟 투입하고, 나머지는 ClusterIP 경로 유지
@@ -699,6 +708,7 @@ Kubecost를 설치하면 네임스페이스별 cross-AZ 트래픽 비용을 시�
 
 :::info 하이브리드 전략
 현실적인 환경에서는 한 가지 전략만 사용하기보다 **혼합하여 사용**하는 경우가 많습니다. 예를 들어:
+
 - 클러스터 내부: ClusterIP + Topology Hints
 - 메쉬 미포함 서비스: InternalTrafficPolicy로 최적화
 - 멀티클러스터 간: Lattice로 연결
@@ -743,6 +753,7 @@ spec:
 EKS로 완전 전환된 후에는 ALB를 제거하고 ClusterIP로 돌아가 지속적인 ALB 비용을 제거합니다.
 
 :::tip 마이그레이션 핵심 원칙
+
 - **정상 상태(steady-state)**: ClusterIP로 최저 비용·최저 지연 유지
 - **과도기**: Internal ALB로 EC2/EKS 듀얼 라우팅 (weighted target groups)
 - **전환 완료 후**: ALB 제거하여 비용 라인 아이템 자체를 삭제
@@ -755,6 +766,7 @@ EKS로 완전 전환된 후에는 ALB를 제거하고 ClusterIP로 돌아가 지
 ### 문제: Topology Aware Routing이 동작하지 않음
 
 **증상:**
+
 ```
 EndpointSlice에 hints 필드가 비어있음
 트래픽이 여전히 cross-AZ로 분산됨
@@ -786,6 +798,7 @@ kubectl get pods -l app=my-app -o json | \
 ### 문제: InternalTrafficPolicy Local에서 트래픽 드롭
 
 **증상:**
+
 ```
 특정 노드에서 서비스 호출 시 connection refused 또는 timeout
 kubectl logs에 "no endpoints available" 메시지
@@ -824,6 +837,7 @@ spec:
 ### 문제: Cross-AZ 비용이 줄지 않음
 
 **증상:**
+
 ```
 Topology Aware Routing 적용 후에도 AWS Cost Explorer에서 Regional Data Transfer 비용이 감소하지 않음
 ```
@@ -850,6 +864,7 @@ kubectl exec -it test-pod -- traceroute target-service.production.svc.cluster.lo
 ### 문제: NodeLocal DNSCache 관련 이슈
 
 **증상:**
+
 ```
 NodeLocal DNSCache 배포 후 DNS 해석 실패
 Pod에서 외부 도메인 조회 불가
@@ -883,23 +898,28 @@ kubectl exec -it test-pod -- cat /etc/resolv.conf
 :::tip 아키텍처 선택 가이드
 
 **1. 저비용 + 초저지연**
+
 - ClusterIP + Topology Aware Routing + NodeLocal DNSCache
 - 필요 시 InternalTrafficPolicy(Local) 추가
 - 10 TB/월 기준 ALB 대비 약 $98, VPC Lattice 대비 $400+ 절감
 
 **2. L4 안정성과 고정 IP 필요**
+
 - Internal NLB (IP 모드)
 - 트래픽 > 5 TB/월이면 비용 면밀히 검토
 
 **3. L7 라우팅·WAF·gRPC 메서드별 제어**
+
 - Internal ALB + K8s Gateway API
 - 필요한 경로에만 배치하여 LCU 증가 방지
 
 **4. 전사 Zero-Trust, 멀티클러스터**
+
 - Istio Ambient → Sidecar 전환은 필요한 워크로드에만 스코프 다운
 - 사이드카 → 노드 프록시(Ambient) → Sidecar-less(eBPF) 순으로 오버헤드 감소
 
 **5. 다계정·서비스 > 50개**
+
 - 관리형 VPC Lattice + IAM 정책으로 복잡도 낮춤
 
 :::

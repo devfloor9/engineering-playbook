@@ -31,6 +31,7 @@ sidebar_position: 6
 This guide provides complete adoption methods for Amazon EKS Hybrid Nodes. EKS Hybrid Nodes, officially released in December 2024, enables integrated management of on-premises infrastructure with AWS EKS, allowing management of high-performance GPU servers and cloud resources within a single Kubernetes cluster.
 
 **Key Features:**
+
 - Unified management of on-premises and cloud
 - Harbor 2.13 private registry integration
 - H100 GPU server support
@@ -42,12 +43,14 @@ This guide provides complete adoption methods for Amazon EKS Hybrid Nodes. EKS H
 ### System Requirements
 
 **On-premises Nodes:**
+
 - Operating System: Ubuntu 20.04/22.04/24.04 LTS or RHEL 8/9
 - Docker Engine 20.10.10+ (for Harbor)
 - Container Runtime: containerd 1.6.x or later
 - Minimum Hardware: 2 CPU cores, 4GB RAM
 
 **GPU Servers (Optional):**
+
 - NVIDIA Driver 550.x or later
 - NVIDIA Container Toolkit
 - H100/H200 GPU support
@@ -186,10 +189,12 @@ dig harbor.company.local
 #### CIDR Design Principles
 
 **AWS VPC CIDR:**
+
 - Primary: `10.0.0.0/16` (65,536 IPs)
 - Secondary (if needed): `10.1.0.0/16`
 
 **On-premises CIDR:**
+
 - Existing network: `192.168.0.0/16`
 - Pod CIDR: `10.244.0.0/16`
 - Service CIDR: `10.96.0.0/16`
@@ -692,12 +697,14 @@ spec:
 ### Hybrid Nodes Pricing Structure
 
 **Base Pricing (February 2025):**
+
 - Per vCPU: $0.1099/hour
 - Based on 730 hours/month: approximately $80.23/vCPU
 
 ### H100 GPU Server Cost Analysis
 
 **H100 GPU Server Specifications (DGX H200 basis):**
+
 - CPU: 224 vCPU (2x Intel Xeon Platinum 8592+)
 - RAM: 2TB
 - GPU: 8x H200 (141GB HBM3e)
@@ -800,11 +807,13 @@ aws ce get-cost-and-usage \
 ### Workload Distribution Strategy
 
 **On-premises GPU Workers:**
+
 - AI/ML training workloads
 - High-performance inference services
 - Data-intensive processing
 
 **AWS CPU Workers:**
+
 - Web applications and APIs
 - Microservices
 - Lightweight batch jobs
@@ -970,6 +979,7 @@ spec:
 
 :::tip Key Metrics
 Monitor these critical metrics for DRA performance:
+
 - `dra_allocation_duration_seconds` - Time to allocate resources
 - `dra_allocation_errors_total` - Failed allocation attempts
 - `dra_resource_utilization_ratio` - Resource usage efficiency
@@ -1160,6 +1170,7 @@ EKS Hybrid Nodes provides an integrated Kubernetes environment spanning on-premi
 5. **Continuous Validation**: Configuration validation through step-by-step testing
 
 Before adoption, prioritize reviewing:
+
 - Secure low-latency connectivity through Direct Connect
 - H100 GPU server high vCPU cost optimization strategies
 - Verify actual environment performance and stability through PoC

@@ -16,6 +16,7 @@ In the auto-scaling domain, we introduce intelligent node provisioning strategie
 ## Key Documentation (Implementation Order)
 
 ### Step 1: Network Foundation Configuration
+
 **[High-Performance Networking with Cilium ENI and Gateway API](./cilium-eni-gateway-api.md)**
 Cilium ENI mode configuration and optimization, Gateway API integration, network throughput enhancement techniques, and benchmark results
 
@@ -23,18 +24,22 @@ Cilium ENI mode configuration and optimization, Gateway API integration, network
 Migration strategies, architecture comparison, and step-by-step implementation guide for transitioning from NGINX Ingress to Gateway API
 
 ### Step 2: DNS Setup and Optimization
+
 **[CoreDNS Monitoring and Performance Optimization Complete Guide](./coredns-monitoring-optimization.md)**
 CoreDNS configuration optimization, DNS query performance tuning strategies, monitoring metrics collection, and real-world performance improvement case studies
 
 ### Step 3: Internal Traffic Optimization
+
 **[East-West Traffic Optimization: Balancing Performance and Cost](./east-west-traffic-best-practice.md)**
 In-cluster traffic optimization, service-to-service communication patterns, network policy implementation
 
 ### Step 4: Auto-Scaling Configuration
+
 **[Ultra-Fast Auto-Scaling with Karpenter](./karpenter-autoscaling.md)**
 Node auto-scaling using Karpenter, cost optimization strategies, provisioning optimization, quick scale-out architecture design
 
 ### Step 5: Cost Management (Operations Phase)
+
 **[Large-Scale EKS Cost Management: 30-90% Reduction Strategies](./cost-management.md)**
 EKS cluster cost optimization, resource efficiency strategies
 

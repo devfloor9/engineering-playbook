@@ -18,17 +18,21 @@ To build effective observability, we must clearly define SLI (Service Level Indi
 ## Document List (Implementation Order)
 
 ### Step 1: Cluster Operations Framework Setup
+
 **[GitOps-Based EKS Cluster Operations](./gitops-cluster-operation.md)**
 GitOps-based cluster configuration management and declarative infrastructure operations - establish the operations framework first
 
 ### Step 2: Monitoring Agent Deployment
+
 **[EKS Node Monitoring Agent](./node-monitoring-agent.md)**
 Node state monitoring and system metrics collection, gaining network traffic visibility through Hubble
 
 ### Step 3: EKS Incident Diagnosis & Response
+
 **[EKS Incident Diagnosis and Response Guide](./eks-debugging-guide.md)**
 Comprehensive guide for systematic diagnosis and resolution of control plane, node, workload, networking, and storage issues in EKS environments
 
 ### Step 4: EKS High Availability Architecture
+
 **[EKS High Availability Architecture Guide](./eks-resiliency-guide.md)**
 Architecture patterns for high availability and fault tolerance including Multi-AZ strategies, Cell-Based Architecture, and Chaos Engineering

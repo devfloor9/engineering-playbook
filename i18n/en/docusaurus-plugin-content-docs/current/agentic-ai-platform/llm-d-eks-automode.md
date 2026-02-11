@@ -163,6 +163,7 @@ aws service-quotas get-service-quota \
   --region us-west-2 \
   --query 'Quota.Value'
 ```
+
 :::
 
 ---
@@ -683,6 +684,7 @@ kubectl delete nodepool gpu-p5
 # Delete cluster (if needed)
 eksctl delete cluster --name llm-d-cluster --region us-west-2
 ```
+
 :::
 
 ---
@@ -743,6 +745,7 @@ env:
   - name: NCCL_DEBUG_SUBSYS
     value: "ALL"
 ```
+
 :::
 
 ---

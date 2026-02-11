@@ -252,6 +252,7 @@ spec:
 
 :::tip EKS Auto Mode 권장 사항
 EKS Auto Mode는 **새로운 AI 플랫폼 구축 시 권장되는 옵션**입니다.
+
 - Karpenter 설치 및 구성 자동화로 **초기 구축 시간 80% 단축**
 - 핵심 컴포넌트 자동 업그레이드로 **운영 부담 대폭 감소**
 - GPU NodePool만 커스텀 정의하면 **즉시 AI 워크로드 배포 가능**
@@ -812,6 +813,7 @@ spec:
 ```
 
 :::tip 비용 최적화 체크리스트
+
 1. **Spot 인스턴스 비율**: 추론 워크로드의 70% 이상을 Spot으로 운영
 2. **Consolidation 활성화**: 30초 이내 유휴 노드 정리
 3. **스케줄 기반 정책**: 비업무 시간 리소스 50% 이상 축소
@@ -819,6 +821,7 @@ spec:
 :::
 
 :::warning 비용 최적화 주의사항
+
 - Spot 인스턴스 중단 시 서비스 영향 최소화를 위한 graceful shutdown 구현 필수
 - 과도한 Consolidation은 스케일 아웃 지연을 유발할 수 있음
 - 비용 절감과 SLA 준수 사이의 균형점 설정 필요
@@ -1091,6 +1094,7 @@ spec:
 | 시간대별 스케줄링 | 비업무 시간 학습 | 15-25% | CronJob + Karpenter |
 
 :::tip 학습 인프라 모범 사례
+
 1. **프로덕션 학습**: On-Demand 인스턴스로 안정성 확보
 2. **실험/튜닝**: Spot 인스턴스로 비용 절감
 3. **체크포인트**: FSx for Lustre에 주기적 저장
@@ -1098,6 +1102,7 @@ spec:
 :::
 
 :::warning 분산 학습 주의사항
+
 - EFA 네트워크가 지원되는 서브넷에서만 최적 성능 발휘
 - NCCL 환경 변수 설정이 성능에 큰 영향
 - 체크포인트 저장 주기와 스토리지 비용 간 균형 필요
@@ -1223,6 +1228,7 @@ aws eks create-addon --cluster-name ai-platform --addon-name keda
 ### EKS 기반 구축의 핵심 이점
 
 :::tip EKS로 Agentic AI 플랫폼을 구축하면
+
 1. **인프라 자동화**: EKS Auto Mode + Karpenter로 GPU 노드 자동 관리
 2. **간편한 배포**: Helm Chart와 EKS Addon으로 솔루션 스택 원클릭 배포
 3. **AWS 서비스 통합**: RDS, S3, Secrets Manager, CloudWatch와 네이티브 연동
@@ -1232,10 +1238,12 @@ aws eks create-addon --cluster-name ai-platform --addon-name keda
 
 :::tip EKS Auto Mode 시작하기
 EKS Auto Mode는 AWS 콘솔, eksctl, 또는 Terraform에서 간단히 활성화할 수 있습니다.
+
 ```bash
 # eksctl로 EKS Auto Mode 클러스터 생성
 eksctl create cluster --name ai-platform --region us-west-2 --auto-mode
 ```
+
 클러스터 생성 후 GPU NodePool만 추가하면 즉시 AI 워크로드를 배포할 수 있습니다.
 :::
 
@@ -1300,10 +1308,12 @@ Argo CD(EKS Capability)와 함께 사용하면 강력한 ML 파이프라인 자�
 kubectl create namespace argo
 kubectl apply -n argo -f https://github.com/argoproj/argo-workflows/releases/download/v3.5.0/install.yaml
 ```
+
 :::
 
 :::info EKS Capability의 핵심 가치
 ACK, KRO, Argo CD (EKS Capability)를 조합하면:
+
 - **선언적 관리**: 모든 인프라와 워크로드를 YAML로 정의
 - **GitOps 기반**: Git을 Single Source of Truth로 활용
 - **완전 자동화**: 코드 커밋부터 프로덕션 배포까지 무중단 파이프라인
@@ -1652,6 +1662,7 @@ graph TB
 
 :::info 완전 자동화의 이점
 이 통합 아키텍처를 통해:
+
 - **개발자**: Git push만으로 모델 배포
 - **플랫폼 팀**: 인프라 관리 부담 최소화
 - **비용 최적화**: 필요한 리소스만 동적 프로비저닝
@@ -1738,6 +1749,7 @@ graph TB
 ## 참고 자료
 
 ### Kubernetes 및 인프라
+
 - [Kubernetes 공식 문서](https://kubernetes.io/docs/)
 - [Karpenter 공식 문서](https://karpenter.sh/docs/)
 - [Amazon EKS Best Practices Guide](https://aws.github.io/aws-eks-best-practices/)
@@ -1745,21 +1757,25 @@ graph TB
 - [KEDA - Kubernetes Event-driven Autoscaling](https://keda.sh/)
 
 ### 모델 서빙 및 추론
+
 - [vLLM Documentation](https://docs.vllm.ai/)
 - [llm-d Project](https://github.com/llm-d/llm-d)
 - [Kgateway Documentation](https://kgateway.io/docs/)
 - [LiteLLM Documentation](https://docs.litellm.ai/)
 
 ### LLM Observability
+
 - [LangFuse Documentation](https://langfuse.com/docs)
 - [LangSmith Documentation](https://docs.smith.langchain.com/)
 
 ### Agent 프레임워크 및 학습
+
 - [KAgent - Kubernetes Agent Framework](https://github.com/kagent-dev/kagent)
 - [NVIDIA NeMo Framework](https://docs.nvidia.com/nemo-framework/user-guide/latest/overview.html)
 - [Kubeflow Documentation](https://www.kubeflow.org/docs/)
 
 ### AWS 서비스
+
 - [Amazon EKS Documentation](https://docs.aws.amazon.com/eks/)
 - [EKS Auto Mode](https://docs.aws.amazon.com/eks/latest/userguide/automode.html)
 - [AWS Elastic Fabric Adapter (EFA)](https://aws.amazon.com/hpc/efa/)
@@ -1795,12 +1811,14 @@ graph TB
 <TabItem value="auto-mode" label="EKS Auto Mode (대부분에게 권장)">
 
 **적합한 경우:**
+
 - 스타트업 및 소규모 팀
 - Kubernetes 초보 팀
 - 표준 Agentic AI 워크로드 (CPU + 중간 수준 GPU)
 - 빠른 출시 요구사항
 
 **시작하기:**
+
 ```bash
 aws eks create-cluster \
   --name agentic-ai-auto \
@@ -1809,12 +1827,14 @@ aws eks create-cluster \
 ```
 
 **장점:**
+
 - 인프라 관리 부담 제로
 - AWS 최적화된 기본 설정
 - 내장된 비용 최적화
 - 자동 보안 패치
 
 **단점:**
+
 - 인스턴스 타입에 대한 제어 감소
 - 극단적인 비용 시나리오 최적화 어려움
 - AWS 관리형 타입으로 GPU 지원 제한
@@ -1823,24 +1843,28 @@ aws eks create-cluster \
 <TabItem value="karpenter" label="EKS + Karpenter (최대 제어)">
 
 **적합한 경우:**
+
 - 대규모 프로덕션 워크로드
 - 복잡한 GPU 요구사항 (혼합 인스턴스 타입)
 - 비용 최적화가 최우선 (70%+ 절감)
 - Kubernetes 전문성을 보유한 팀
 
 **시작하기:**
+
 ```bash
 terraform apply -f eks-karpenter-blueprint/
 kubectl apply -f karpenter-nodepools/
 ```
 
 **장점:**
+
 - 인스턴스에 대한 세밀한 제어
 - 최대 비용 최적화 (70-80% 절감)
 - 유연한 GPU 스케줄링
 - 커스텀 AMI 및 노드 구성
 
 **단점:**
+
 - Karpenter 관리 필요
 - 구성 복잡도 증가
 - 팀에 K8s 전문성 필요
@@ -1849,16 +1873,19 @@ kubectl apply -f karpenter-nodepools/
 <TabItem value="hybrid" label="하이브리드 (두 방식의 장점 결합)">
 
 **적합한 경우:**
+
 - 성장하는 플랫폼 (단순하게 시작, 복잡하게 확장)
 - 혼합 워크로드 타입 (CPU 에이전트 + GPU LLM)
 - Auto Mode에서 Karpenter로 점진적 마이그레이션
 
 **아키텍처:**
+
 - Control Plane은 EKS Auto Mode 사용
 - 시스템 워크로드는 관리형 노드 그룹에서 실행
 - GPU 워크로드는 Karpenter NodePool에서 실행
 
 **시작하기:**
+
 ```bash
 # 1단계: Auto Mode로 EKS 클러스터 생성
 aws eks create-cluster --name agentic-ai --compute-config enabled=true
@@ -1871,11 +1898,13 @@ kubectl apply -f gpu-nodepools.yaml
 ```
 
 **장점:**
+
 - 점진적 복잡도 증가
 - 중요한 부분(GPU 비용)에서 최적화
 - AWS 관리형 Control Plane + 커스텀 Data Plane
 
 **단점:**
+
 - Auto Mode와 Karpenter 모두 관리 필요
 - 잠재적 구성 충돌 가능성
 
@@ -1885,12 +1914,14 @@ kubectl apply -f gpu-nodepools.yaml
 ### 미래: AI 네이티브 Kubernetes
 
 **주요 트렌드:**
+
 - **AI 최적화 스케줄링**: ML 기반 인스턴스 선택을 통한 Karpenter
 - **동적 모델 라우팅**: 작업 복잡도 기반 지능형 LLM 선택
 - **연합 학습(Federated Learning)**: EKS Anywhere를 통한 멀티 클러스터 학습
 - **서버리스 GPU**: 급증하는 워크로드를 위한 AWS Lambda GPU 인스턴스
 
 **EKS 로드맵 하이라이트:**
+
 - 네이티브 GPU 공유 (MIG/MPS 지원)
 - 통합 모델 서빙 (SageMaker + EKS)
 - 멀티 테넌트 AI 플랫폼을 위한 비용 할당
@@ -1916,12 +1947,14 @@ kubectl apply -f gpu-nodepools.yaml
    - 멀티 테넌트 플랫폼 구축
 
 **리소스:**
+
 - [AWS EKS Best Practices Guide](https://aws.github.io/aws-eks-best-practices/)
 - [Karpenter Documentation](https://karpenter.sh/)
 - [KEDA Scalers Reference](https://keda.sh/docs/scalers/)
 - [Kubeflow on AWS](https://awslabs.github.io/kubeflow-manifests/)
 
 **질문이 있으신가요?**
+
 - [AWS Containers Slack](https://aws-containers.slack.com) 참여
 - [EKS Blueprints](https://github.com/aws-ia/terraform-aws-eks-blueprints)에 이슈 등록
 - 아키텍처 검토를 위해 AWS Solutions Architect에게 문의
@@ -1929,6 +1962,7 @@ kubectl apply -f gpu-nodepools.yaml
 ---
 
 **다음 단계:**
+
 - 오픈소스 대안을 확인하려면 [기술적 도전과제 문서](./agentic-ai-challenges.md)를 검토하세요
 - 실습을 위해 [AWS EKS Workshop](https://eksworkshop.com/)을 탐색하세요
 - 최신 트렌드를 위해 [Cloud Native Community Groups](https://community.cncf.io/)에 참여하세요

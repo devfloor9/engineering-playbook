@@ -22,6 +22,7 @@ last_update:
 ## 주요 문서 (구현 순서)
 
 ### 1단계: 네트워크 기반 구성
+
 **[Cilium ENI와 Gateway API를 활용한 고성능 네트워킹](./cilium-eni-gateway-api.md)**
 Cilium ENI 모드 구성 및 최적화, Gateway API 통합, 네트워크 처리량 향상 기법 및 벤치마크 결과
 
@@ -29,18 +30,22 @@ Cilium ENI 모드 구성 및 최적화, Gateway API 통합, 네트워크 처리�
 NGINX Ingress Controller에서 Gateway API로 마이그레이션하는 전략, 아키텍처 비교, 단계별 구현 가이드
 
 ### 2단계: DNS 설정 및 최적화
+
 **[CoreDNS 모니터링과 성능 최적화 완벽 가이드](./coredns-monitoring-optimization.md)**
 CoreDNS 설정 최적화, DNS 쿼리 성능 튜닝 전략, 모니터링 메트릭 수집 및 실제 성능 개선 사례
 
 ### 3단계: 내부 트래픽 최적화
+
 **[East-West 트래픽 최적화: 성능과 비용의 균형](./east-west-traffic-best-practice.md)**
 클러스터 내부 트래픽 최적화, 서비스 간 통신 패턴, 네트워크 정책 구현
 
 ### 4단계: 오토스케일링 구성
+
 **[Karpenter를 활용한 초고속 오토스케일링](./karpenter-autoscaling.md)**
 Karpenter를 통한 노드 자동 스케일링, 비용 최적화 전략, 프로비저닝 최적화, 빠른 스케일 아웃 아키텍처 설계
 
 ### 5단계: 비용 관리 (운영 단계)
+
 **[대규모 EKS 비용 관리: 30-90% 절감 전략](./cost-management.md)**
 EKS 클러스터 비용 최적화, 리소스 효율화 전략
 

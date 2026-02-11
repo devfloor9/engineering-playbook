@@ -21,6 +21,7 @@ This benchmark is currently in preparation.
 :::
 
 **Metrics**
+
 - Latency change when Network Policy is applied
 - Performance scale based on number of policy rules
 - Cilium vs Calico policy engine comparison
@@ -30,6 +31,7 @@ This benchmark is currently in preparation.
 ### Monitoring Agent Overhead
 
 **Metrics**
+
 - Prometheus memory/CPU usage
 - Node monitoring agent resource usage
 - Impact by metric collection interval
@@ -39,6 +41,7 @@ This benchmark is currently in preparation.
 ### Flux CD / ArgoCD Performance
 
 **Metrics**
+
 - Git synchronization latency
 - Large-scale manifest processing speed
 - Concurrent deployment throughput

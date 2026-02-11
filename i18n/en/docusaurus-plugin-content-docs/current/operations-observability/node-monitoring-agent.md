@@ -324,11 +324,13 @@ resources:
 ### 3.1 Manual Mode (DaemonSet)
 
 **Advantages:**
+
 - Flexible version management
 - ConfigMap-based configuration changes
 - Custom configuration possible
 
 **Disadvantages:**
+
 - High kubelet dependency
 - Delays during node bootstrap
 - Affected by kubelet failures
@@ -336,12 +338,14 @@ resources:
 ### 3.2 EKS Auto Mode
 
 **Advantages:**
+
 - Embedded directly in AMI
 - Independent of kubelet execution
 - Higher availability
 - Faster problem detection
 
 **Disadvantages:**
+
 - AMI replacement needed for updates
 - Limited customization
 
@@ -367,11 +371,13 @@ resources:
 ### 4.3 Hardware Failure Detection Limitations
 
 **Can Detect:**
+
 - ✅ Gradual performance degradation
 - ✅ Increased I/O errors
 - ✅ Memory ECC errors
 
 **Cannot Detect:**
+
 - ❌ Sudden power loss
 - ❌ Immediate hardware failure
 - ❌ Complete network disconnection

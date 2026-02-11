@@ -18,6 +18,7 @@ last_update:
 ## 📚 주요 문서 (구현 순서)
 
 ### 1단계: 클러스터 설치 및 구성
+
 - **[ROSA Demo Installation Guide](./rosa-demo-installation.md)**
   - STS (Security Token Service) 기반 클러스터 생성
   - ROSA CLI를 이용한 단계별 설치
@@ -27,6 +28,7 @@ last_update:
   - 실습 환경 구성 및 테스트
 
 ### 2단계: 보안 및 접근 제어
+
 - **[ROSA Security Compliance Console Access Control](./rosa-security-compliance.md)**
   - Red Hat Hybrid Cloud Console 접근 제어 구성
   - 금융권 보안 요구사항 충족을 위한 접근 제어 전략
@@ -107,24 +109,28 @@ graph TB
 ## 💡 핵심 개념
 
 ### ROSA의 특징
+
 - **완전 관리형 서비스**: AWS와 Red Hat이 공동으로 컨트롤 플레인 운영
 - **고가용성**: 자동 패치 및 업데이트
 - **보안**: STS 기반 임시 자격증명, OIDC 프로바이더 통합
 - **유연성**: 고객이 워커 노드 완전 제어
 
 ### STS 기반 인증의 장점
+
 - **임시 자격증명**: 영구 액세스 키 불필요
 - **자동 토큰 갱신**: 토큰 만료 전 자동 갱신
 - **최소 권한**: 필요한 최소한의 권한만 부여
 - **감사 추적**: 모든 접근 기록 CloudTrail에 저장
 
 ### Red Hat Hybrid Cloud Console의 역할
+
 - **중앙 집중식 관리**: 여러 클러스터를 한 곳에서 관리
 - **다중 클라우드 지원**: AWS, Azure, GCP, 온프레미스 OpenShift 통합 관리
 - **정책 기반 관리**: 보안 정책 중앙 시행
 - **비용 추적**: 클러스터별 비용 모니터링
 
 ### 네트워크 구성
+
 - **OVNKubernetes**: OpenVSwitch 기반 고성능 네트워킹
 - **Network Policy**: Kubernetes 네트워크 정책 완벽 지원
 - **Ingress Controller**: 기본 제공 인그레스 컨트롤러
@@ -133,18 +139,21 @@ graph TB
 ## 💼 사용 사례
 
 ### 엔터프라이즈 마이그레이션
+
 - **온프레미스 OpenShift → ROSA**: 기존 OpenShift에서 ROSA로 마이그레이션
 - **관리 부담 감소**: 컨트롤 플레인 운영 자동화
 - **비용 절감**: 운영 비용 감소
 - **글로벌 확장**: 멀티 리전 배포
 
 ### 금융권 컴플라이언스
+
 - **보안 요구사항 충족**: STS, OIDC, MFA 등 고급 보안
 - **접근 제어**: 세밀한 권한 관리
 - **감사 로깅**: 모든 활동 기록 및 추적
 - **데이터 보호**: KMS 기반 암호화
 
 ### 하이브리드 클라우드 전략
+
 - **온프레미스 + AWS**: 단일 플랫폼에서 관리
 - **멀티 클라우드**: AWS, Azure, GCP 동시 관리
 - **클라우드 버스팅**: 피크 시 클라우드로 확장
@@ -166,6 +175,7 @@ graph TB
 ## 🚀 배포 패턴
 
 ### 1. 단일 클러스터 배포
+
 ```
 ROSA Cluster
 ├── Development 네임스페이스
@@ -174,6 +184,7 @@ ROSA Cluster
 ```
 
 ### 2. 멀티 클러스터 배포
+
 ```
 Hybrid Cloud Console (중앙 관리)
 ├── AWS Region 1 (ROSA)
@@ -183,6 +194,7 @@ Hybrid Cloud Console (중앙 관리)
 ```
 
 ### 3. 고가용성 배포
+
 ```
 Primary Region (ROSA)
 ├── Active Cluster
@@ -205,6 +217,7 @@ ROSA는 AWS와 Red Hat이 공동 관리하는 서비스로, 컨트롤 플레인 
 :::
 
 :::info 추천 학습 경로
+
 1. ROSA 기본 개념 이해
 2. STS 기반 클러스터 생성
 3. IdP 통합 및 사용자 관리
@@ -218,6 +231,7 @@ ROSA는 OpenShift 라이선싱이 별도로 필요합니다. 비용 계산 시 R
 
 :::success 마이그레이션 팁
 기존 온프레미스 OpenShift 환경에서 ROSA로 마이그레이션할 계획이라면, **단계적 마이그레이션 전략**을 수립하세요:
+
 1. 개발/테스트 환경부터 시작
 2. 비즈니스 크리티컬하지 않은 워크로드 이전
 3. 운영 경험 축적 후 프로덕션 워크로드 이전

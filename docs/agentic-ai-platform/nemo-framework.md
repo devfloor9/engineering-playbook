@@ -872,6 +872,7 @@ export NCCL_COMM_WAIT_TIMEOUT=0 # 0 = 무한 대기
 - [Inference Gateway](./inference-gateway-routing.md)
 
 :::tip 권장 사항
+
 - 파인튜닝 전 기본 모델로 베이스라인 성능을 측정하세요
 - LoRA/QLoRA를 사용하면 적은 GPU로도 대형 모델 파인튜닝이 가능합니다
 - TensorRT-LLM 변환으로 추론 성능을 2-4배 향상시킬 수 있습니다
@@ -879,6 +880,7 @@ export NCCL_COMM_WAIT_TIMEOUT=0 # 0 = 무한 대기
 :::
 
 :::warning 주의사항
+
 - 대규모 학습은 상당한 GPU 비용이 발생합니다. Spot 인스턴스와 체크포인트를 활용하세요
 - 분산 학습 시 NCCL 통신 오버헤드를 고려하여 노드 수를 결정하세요
 - 체크포인트는 반드시 S3 등 영구 스토리지에 저장하세요

@@ -32,21 +32,25 @@ This architecture was designed to address these issues.
 ### Core Recommendations
 
 **1. GitOps Platform Selection**
+
 - Multi-cluster management using ArgoCD ApplicationSets
 - Flagger integration for Progressive Delivery
 
 **2. Infrastructure as Code Strategy**
+
 - **ACK/KRO (Kubernetes Resource Orchestrator) recommended**
   - Gradual migration possible from existing Terraform state
   - Ensuring operational consistency with Kubernetes-native approach
   - More flexible resource orchestration compared to Helm
 
 **3. Automation Core Elements**
+
 - Blue/Green EKS upgrade automation
 - Automated test pipeline for Addon version management
 - Policy as Code (OPA/Gatekeeper) based governance
 
 **4. Security and Compliance**
+
 - External Secrets Operator + AWS Secrets Manager combination
 - Git signing and RBAC-based approval workflows
 - Real-time compliance monitoring dashboard
@@ -138,14 +142,17 @@ ArgoCD ApplicationSets is the core tool for managing consistent deployments in m
 **Core Strategy:**
 
 #### 1. Cluster Generator
+
 - Dynamic application creation based on cluster registry
 - Label-based cluster grouping (environment, region, purpose)
 
 #### 2. Git Directory Generator
+
 - Environment-specific configuration management (dev/staging/prod)
 - Per-cluster override settings
 
 #### 3. Matrix Generator
+
 - Cluster × Application combination management
 - Conditional deployment rules application
 
@@ -156,16 +163,19 @@ ArgoCD ApplicationSets is the core tool for managing consistent deployments in m
 Implementing zero-downtime cluster upgrades using Blue/Green deployment pattern.
 
 **Preparation Phase**
+
 - New cluster provisioning (KRO)
 - Addon compatibility validation
 - Security policy synchronization
 
 **Migration Phase**
+
 - Gradual workload movement
 - Traffic weight adjustment (0% → 100%)
 - Real-time monitoring
 
 **Validation and Completion**
+
 - Automated smoke testing
 - Performance metrics comparison
 - Legacy cluster removal
@@ -189,6 +199,7 @@ Proper repository structure is essential for effective GitOps implementation.
 :::info External Secrets Operator (ESO) Recommended
 
 **Key Features:**
+
 - Centralized Secret storage
 - Automatic rotation support
 - Fine-grained access control (IRSA)
@@ -271,18 +282,22 @@ GitOps-based large-scale EKS cluster operations strategy can dramatically reduce
 :::tip Core Recommendations
 
 **1. Unified Infrastructure Management via ACK/KRO**
+
 - Kubernetes-native infrastructure management
 - Compatibility with existing Terraform state
 
 **2. Multi-Cluster Management Using ArgoCD ApplicationSets**
+
 - Consistent deployment across clusters
 - Environment-specific customization
 
 **3. Automated Blue/Green Upgrade Strategy**
+
 - Zero-downtime cluster upgrades
 - Automatic rollback capability
 
 **4. Policy as Code Based Governance**
+
 - Policy enforcement through OPA/Gatekeeper
 - Automated compliance
 

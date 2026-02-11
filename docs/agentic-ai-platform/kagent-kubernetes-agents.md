@@ -409,6 +409,7 @@ kubectl get mutatingwebhookconfigurations | grep kagent
 
 :::tip 설치 문제 해결
 Controller가 시작되지 않는 경우:
+
 1. `kubectl describe pod -n kagent-system <pod-name>`으로 이벤트 확인
 2. RBAC 권한이 올바르게 설정되었는지 확인
 3. cert-manager가 정상 동작하는지 확인 (Webhook 사용 시)
@@ -992,6 +993,7 @@ kubectl apply -f agents/customer-support-agent.yaml
 ```
 
 :::danger 롤백 주의사항
+
 - 롤백 전 현재 상태를 백업하세요
 - 데이터베이스 스키마 변경이 있었다면 데이터 호환성을 확인하세요
 - 롤백 후 모든 기능이 정상 동작하는지 테스트하세요

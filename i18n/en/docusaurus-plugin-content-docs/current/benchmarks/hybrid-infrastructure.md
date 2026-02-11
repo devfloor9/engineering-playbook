@@ -21,6 +21,7 @@ This benchmark is currently in preparation.
 :::
 
 **Metrics**
+
 - Cloud-to-on-premises latency
 - VPN/Direct Connect bandwidth
 - Pod-to-pod communication performance (cross-region)
@@ -28,6 +29,7 @@ This benchmark is currently in preparation.
 ### SR-IOV Network Acceleration
 
 **Metrics**
+
 - SR-IOV vs virtual NIC throughput
 - RDMA performance (GPU Direct)
 - Network latency reduction rate
@@ -37,6 +39,7 @@ This benchmark is currently in preparation.
 ### Hybrid File Storage
 
 **Metrics**
+
 - Sequential/random read/write IOPS
 - Large file transfer speed
 - Shared filesystem concurrent access performance
@@ -46,6 +49,7 @@ This benchmark is currently in preparation.
 ### Harbor Registry Performance
 
 **Metrics**
+
 - Image pull speed (local vs remote)
 - Replication latency
 - Concurrent pull request throughput

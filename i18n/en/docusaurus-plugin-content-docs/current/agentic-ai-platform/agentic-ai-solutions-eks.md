@@ -23,6 +23,7 @@ Before reading this document, please review [Technical Challenges of Agentic AI 
 This document provides comprehensive solutions for deploying Agentic AI workloads on Amazon EKS. While the [Technical Challenges document](./agentic-ai-challenges.md) introduced open-source Kubernetes ecosystems for solving four key challenges, this guide focuses on **EKS-native solutions** that maximize AWS service integration.
 
 **Key Focus Areas:**
+
 1. How EKS + Karpenter addresses GPU resource management
 2. AWS-native alternatives to open-source tools
 3. Production-ready architectures with AWS service integration
@@ -84,6 +85,7 @@ graph TB
 ```
 
 **Key Integration Points:**
+
 - **Managed Control Plane**: AWS handles API server, etcd, and controller upgrades
 - **Karpenter Native**: Purpose-built for AWS with EC2/Spot API integration
 - **Service Integration**: Seamless connection to CloudWatch, IAM, VPC, S3
@@ -102,6 +104,7 @@ graph TB
 | **Configuration** | ASG + IAM + Launch Templates | Simple NodePool CRD |
 
 **Karpenter Advantages for Agentic AI:**
+
 1. **Heterogeneous Workloads**: Mix CPU-only agents with GPU-intensive LLM pods
 2. **Burstiness**: Handle sudden traffic spikes with millisecond-level provisioning decisions
 3. **Cost Optimization**: Automatic spot instance selection and consolidation
@@ -112,6 +115,7 @@ graph TB
 **What is EKS Auto Mode?**
 
 EKS Auto Mode is a fully managed node lifecycle offering that automates:
+
 - **Compute Management**: Automatic node provisioning, upgrades, and security patching
 - **Storage Provisioning**: Dynamic EBS/EFS volume creation with optimal performance
 - **Networking**: Automated VPC-CNI configuration and IP address management
@@ -133,12 +137,14 @@ EKS Auto Mode is a fully managed node lifecycle offering that automates:
 <TabItem value="auto-mode" label="EKS Auto Mode">
 
 **Best For:**
+
 - Startups and teams wanting zero infrastructure management
 - Standard workloads without complex GPU requirements
 - Simplified cost management with AWS-optimized defaults
 - Fast time-to-production with minimal configuration
 
 **Limitations:**
+
 - Less control over instance type selection
 - May not optimize for extreme cost efficiency scenarios
 - GPU support depends on AWS-managed node type availability
@@ -147,12 +153,14 @@ EKS Auto Mode is a fully managed node lifecycle offering that automates:
 <TabItem value="karpenter" label="Karpenter">
 
 **Best For:**
+
 - Production workloads requiring fine-grained control
 - Mixed GPU/CPU workloads with complex scheduling requirements
 - Advanced cost optimization (70%+ savings possible)
 - Custom instance requirements (specific GPU types, networking)
 
 **Trade-offs:**
+
 - Requires Karpenter controller management
 - More configuration complexity
 - Team needs Kubernetes expertise
@@ -161,6 +169,7 @@ EKS Auto Mode is a fully managed node lifecycle offering that automates:
 </Tabs>
 
 **Recommendation for Agentic AI:**
+
 - **Start with EKS Auto Mode** for quick prototyping and MVP
 - **Graduate to Karpenter** when you need GPU optimization or >50 nodes
 - **Hybrid approach**: Use Auto Mode for control plane, Karpenter for GPU nodes
@@ -228,6 +237,7 @@ sequenceDiagram
 ### Challenge 1: GPU Monitoring and Resource Scheduling
 
 **Problem Statement:**
+
 - Agent orchestration requires real-time GPU memory and utilization metrics
 - Kubernetes default metrics don't expose GPU-specific data
 - LLM pods need optimal GPU allocation to prevent OOM or underutilization
@@ -281,6 +291,7 @@ spec:
 ```
 
 **AWS-Specific Integration:**
+
 - Use **CloudWatch Container Insights** with custom metrics for GPU data
 - Set up **CloudWatch Alarms** for GPU memory thresholds
 - Enable **CloudWatch Logs Insights** for GPU error correlation
@@ -619,6 +630,7 @@ aws cloudwatch put-metric-alarm \
 ### Challenge 2: Dynamic Routing and Scaling
 
 **Problem Statement:**
+
 - Agentic AI generates unpredictable traffic patterns (bursty, multi-modal)
 - Requests need routing to specialized LLMs based on task type
 - Autoscaling must respond to queue depth, not just CPU/memory
@@ -1137,6 +1149,7 @@ aws apigatewayv2 create-integration \
 ### Challenge 3: Token/Session Cost Control
 
 **Problem Statement:**
+
 - LLM inference costs scale with token count and session length
 - GPU instances are expensive ($1-30/hour depending on type)
 - Need to minimize idle GPU time while maintaining responsiveness
@@ -1596,6 +1609,7 @@ aws cloudwatch put-metric-data \
 ### Challenge 4: FM Fine-tuning Infrastructure
 
 **Problem Statement:**
+
 - Fine-tuning requires different infrastructure than inference (more GPUs, longer sessions)
 - Training jobs are batch workloads, not latency-sensitive
 - Need distributed training across multiple GPU nodes
@@ -2393,10 +2407,12 @@ When combined with Argo CD (EKS Capability), it enables powerful ML pipeline aut
 kubectl create namespace argo
 kubectl apply -n argo -f https://github.com/argoproj/argo-workflows/releases/download/v3.5.0/install.yaml
 ```
+
 :::
 
 :::info Core Value of EKS Capabilities
 By combining ACK, KRO, and Argo CD (EKS Capabilities):
+
 - **Declarative Management**: Define all infrastructure and workloads in YAML
 - **GitOps-Based**: Use Git as Single Source of Truth
 - **Full Automation**: Zero-downtime pipeline from code commit to production deployment
@@ -2745,6 +2761,7 @@ graph TB
 
 :::info Benefits of Full Automation
 With this integrated architecture:
+
 - **Developers**: Deploy models with a simple git push
 - **Platform Teams**: Minimize infrastructure management overhead
 - **Cost Optimization**: Dynamically provision only required resources
@@ -2831,6 +2848,7 @@ We recommend starting with **EKS Auto Mode** when building a new Agentic AI plat
 ## References
 
 ### Kubernetes and Infrastructure
+
 - [Kubernetes Official Documentation](https://kubernetes.io/docs/)
 - [Karpenter Official Documentation](https://karpenter.sh/docs/)
 - [Amazon EKS Best Practices Guide](https://aws.github.io/aws-eks-best-practices/)
@@ -2838,21 +2856,25 @@ We recommend starting with **EKS Auto Mode** when building a new Agentic AI plat
 - [KEDA - Kubernetes Event-driven Autoscaling](https://keda.sh/)
 
 ### Model Serving and Inference
+
 - [vLLM Documentation](https://docs.vllm.ai/)
 - [llm-d Project](https://github.com/llm-d/llm-d)
 - [Kgateway Documentation](https://kgateway.io/docs/)
 - [LiteLLM Documentation](https://docs.litellm.ai/)
 
 ### LLM Observability
+
 - [LangFuse Documentation](https://langfuse.com/docs)
 - [LangSmith Documentation](https://docs.smith.langchain.com/)
 
 ### Agent Frameworks and Training
+
 - [KAgent - Kubernetes Agent Framework](https://github.com/kagent-dev/kagent)
 - [NVIDIA NeMo Framework](https://docs.nvidia.com/nemo-framework/user-guide/latest/overview.html)
 - [Kubeflow Documentation](https://www.kubeflow.org/docs/)
 
 ### AWS Services
+
 - [Amazon EKS Documentation](https://docs.aws.amazon.com/eks/)
 - [EKS Auto Mode](https://docs.aws.amazon.com/eks/latest/userguide/automode.html)
 - [AWS Elastic Fabric Adapter (EFA)](https://aws.amazon.com/hpc/efa/)
@@ -2888,12 +2910,14 @@ We recommend starting with **EKS Auto Mode** when building a new Agentic AI plat
 <TabItem value="auto-mode" label="EKS Auto Mode (Recommended for Most)">
 
 **Best for:**
+
 - Startups and small teams
 - Teams new to Kubernetes
 - Standard Agentic AI workloads (CPU + moderate GPU)
 - Fast time-to-market requirements
 
 **Get Started:**
+
 ```bash
 aws eks create-cluster \
   --name agentic-ai-auto \
@@ -2902,12 +2926,14 @@ aws eks create-cluster \
 ```
 
 **Pros:**
+
 - Zero infrastructure management
 - AWS-optimized defaults
 - Built-in cost optimization
 - Automatic security patching
 
 **Cons:**
+
 - Less control over instance types
 - May not optimize for extreme cost scenarios
 - GPU support limited to AWS-managed types
@@ -2916,24 +2942,28 @@ aws eks create-cluster \
 <TabItem value="karpenter" label="EKS + Karpenter (Maximum Control)">
 
 **Best for:**
+
 - Production workloads at scale
 - Complex GPU requirements (mixed instance types)
 - Cost optimization as top priority (70%+ savings)
 - Teams with Kubernetes expertise
 
 **Get Started:**
+
 ```bash
 terraform apply -f eks-karpenter-blueprint/
 kubectl apply -f karpenter-nodepools/
 ```
 
 **Pros:**
+
 - Fine-grained control over instances
 - Maximum cost optimization (70-80% savings)
 - Flexible GPU scheduling
 - Custom AMIs and node configurations
 
 **Cons:**
+
 - Requires Karpenter management
 - More configuration complexity
 - Team needs K8s expertise
@@ -2942,16 +2972,19 @@ kubectl apply -f karpenter-nodepools/
 <TabItem value="hybrid" label="Hybrid (Best of Both)">
 
 **Best for:**
+
 - Growing platforms (start simple, scale complex)
 - Mixed workload types (CPU agents + GPU LLMs)
 - Gradual migration from Auto Mode to Karpenter
 
 **Architecture:**
+
 - EKS Auto Mode for control plane
 - System workloads on managed node groups
 - GPU workloads on Karpenter NodePools
 
 **Get Started:**
+
 ```bash
 # Step 1: Create EKS cluster with Auto Mode
 aws eks create-cluster --name agentic-ai --compute-config enabled=true
@@ -2964,11 +2997,13 @@ kubectl apply -f gpu-nodepools.yaml
 ```
 
 **Pros:**
+
 - Gradual complexity increase
 - Optimize where it matters (GPU costs)
 - AWS-managed control plane + custom data plane
 
 **Cons:**
+
 - Manage both Auto Mode and Karpenter
 - Potential configuration conflicts
 
@@ -2978,12 +3013,14 @@ kubectl apply -f gpu-nodepools.yaml
 ### The Future: AI-Native Kubernetes
 
 **Emerging Trends:**
+
 - **AI-optimized scheduling**: Karpenter with ML-based instance selection
 - **Dynamic model routing**: Intelligent LLM selection based on task complexity
 - **Federated learning**: Multi-cluster training with EKS Anywhere
 - **Serverless GPU**: AWS Lambda GPU instances for bursty workloads
 
 **EKS Roadmap Highlights:**
+
 - Native GPU sharing (MIG/MPS support)
 - Integrated model serving (SageMaker + EKS)
 - Cost allocation for multi-tenant AI platforms
@@ -3009,12 +3046,14 @@ kubectl apply -f gpu-nodepools.yaml
    - Build multi-tenant platform
 
 **Resources:**
+
 - [AWS EKS Best Practices Guide](https://aws.github.io/aws-eks-best-practices/)
 - [Karpenter Documentation](https://karpenter.sh/)
 - [KEDA Scalers Reference](https://keda.sh/docs/scalers/)
 - [Kubeflow on AWS](https://awslabs.github.io/kubeflow-manifests/)
 
 **Questions?**
+
 - Join the [AWS Containers Slack](https://aws-containers.slack.com)
 - Open an issue in [EKS Blueprints](https://github.com/aws-ia/terraform-aws-eks-blueprints)
 - Contact AWS Solutions Architects for architecture reviews
@@ -3022,6 +3061,7 @@ kubectl apply -f gpu-nodepools.yaml
 ---
 
 **Next Steps:**
+
 - Review [Technical Challenges document](./agentic-ai-challenges.md) for open-source alternatives
 - Explore [AWS EKS Workshop](https://eksworkshop.com/) for hands-on labs
 - Join [Cloud Native Community Groups](https://community.cncf.io/) for latest trends

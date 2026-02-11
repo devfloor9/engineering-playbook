@@ -159,6 +159,7 @@ oc login https://api.rosa-demo-icn.XXXX.p1.openshiftapps.com:6443 \
 ```
 
 :::warning 보안 주의
+
 - 관리자 비밀번호는 안전하게 보관하세요
 - 비밀번호 분실 시 관리자 계정을 삭제하고 재생성해야 합니다
 - 접근이 활성화되기까지 몇 분이 소요될 수 있습니다

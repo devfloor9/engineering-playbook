@@ -22,6 +22,7 @@ last_update:
 :::
 
 **측정 항목**
+
 - Network Policy 적용 시 지연 시간 변화
 - 정책 규칙 수에 따른 성능 스케일
 - Cilium vs Calico 정책 엔진 비교
@@ -31,6 +32,7 @@ last_update:
 ### 모니터링 에이전트 오버헤드
 
 **측정 항목**
+
 - Prometheus 메모리/CPU 사용량
 - 노드 모니터링 에이전트 리소스 사용
 - 메트릭 수집 주기별 영향
@@ -40,6 +42,7 @@ last_update:
 ### Flux CD / ArgoCD 성능
 
 **측정 항목**
+
 - Git 동기화 지연 시간
 - 대규모 매니페스트 처리 속도
 - 동시 배포 처리량

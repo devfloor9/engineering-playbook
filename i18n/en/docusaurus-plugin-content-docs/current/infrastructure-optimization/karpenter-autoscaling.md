@@ -186,11 +186,13 @@ timeline
 ```
 
 **Advantages:**
+
 - ✅ **Fast Metric Collection**: 1-2 second low latency
 - ✅ **Simple Setup**: AWS-native integration
 - ✅ **No Management Overhead**: No separate infrastructure management
 
 **Disadvantages:**
+
 - ❌ **Limited Throughput**: 1,000 TPS per account
 - ❌ **Pod Limit**: Maximum 5,000 pods per cluster
 - ❌ **High Metric Costs**: AWS CloudWatch metric pricing
@@ -225,12 +227,14 @@ timeline
 ```
 
 **Advantages:**
+
 - ✅ **High Throughput**: Supports 100,000+ TPS
 - ✅ **Scalability**: Supports 20,000+ pods per cluster
 - ✅ **Low Metric Costs**: Storage costs only (Self-managed)
 - ✅ **Complete Control**: Full configuration and optimization freedom
 
 **Disadvantages:**
+
 - ❌ **Complex Setup**: Additional component management required
 - ❌ **High Operational Complexity**: HA configuration, backup/recovery, performance tuning needed
 - ❌ **Requires Expertise**: Prometheus operational experience essential
@@ -251,12 +255,14 @@ With 28 clusters: ~$500/month for comprehensive monitoring vs. $30,000+ for ever
 ### Recommended Use Cases
 
 **CloudWatch High Resolution Metric suitable for:**
+
 - Small applications (5,000 pods or fewer)
 - Simple monitoring requirements
 - AWS-native solution preference
 - Fast deployment and stable operations priority
 
 **ADOT + Prometheus suitable for:**
+
 - Large clusters (20,000+ pods)
 - High metric processing throughput requirements
 - Fine-grained monitoring and customization needs

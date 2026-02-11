@@ -199,9 +199,9 @@ Configuration example (Corefile):
     severity: warning
 ```
 
-3. **Large-Scale Clusters (>100 nodes) or QPS > 5k**
+1. **Large-Scale Clusters (>100 nodes) or QPS > 5k**
    - Deploy **NodeLocal DNSCache** (kube-proxy DaemonSet form) for node-local caching/reduced RTT.
    - Collect nodelocaldns metrics in Prometheus, compare CoreDNS ↔ NodeLocal.
 
-4. **CloudWatch Container Insights** (EKS-specific)
+2. **CloudWatch Container Insights** (EKS-specific)
    If Prometheus collection is difficult, use **cwagent + adot-internal-metrics** for CoreDNS container metrics to CloudWatch. (Separate charges apply.)

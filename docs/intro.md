@@ -15,18 +15,21 @@ sidebar_position: 1
 이 플레이북은 일곱 가지 핵심 기술 도메인으로 구성되어 있으며, 각 도메인에는 상세한 구현 가이드, 트러블슈팅 자료, 실제 사례가 포함되어 있습니다.
 
 ### [Infrastructure Optimization](./infrastructure-optimization/)
+
 - Cilium ENI + Gateway API 통합 구성
 - NGINX → Gateway API 마이그레이션
 - CoreDNS 모니터링 및 최적화
 - Karpenter 오토스케일링
 
 ### [Operations & Observability](./operations-observability/)
+
 - GitOps 기반 클러스터 운영
 - 노드 모니터링 에이전트 배포
 - EKS 장애 진단 및 대응
 - EKS 고가용성 아키텍처
 
 ### [Agentic AI Platform](./agentic-ai-platform/)
+
 - 프로덕션 GenAI 플랫폼 아키텍처
 - GPU 리소스 관리 및 최적화
 - vLLM / MoE 모델 서빙
@@ -35,22 +38,26 @@ sidebar_position: 1
 - Milvus 벡터 DB 및 RAG
 
 ### [Hybrid Infrastructure](./hybrid-infrastructure/)
+
 - 하이브리드 노드 도입 가이드
 - SR-IOV DGX H200 고성능 네트워킹
 - 하이브리드 노드 파일 스토리지
 - Harbor 컨테이너 레지스트리 통합
 
 ### [Security & Governance](./security-governance/)
+
 - Default Namespace 인시던트 분석
 - Identity-First Security
 - GuardDuty Extended Threat Detection
 - Kyverno 정책 관리
 
 ### [ROSA](./rosa/)
+
 - ROSA 데모 설치 가이드
 - ROSA 보안 및 컴플라이언스
 
 ### [Benchmark Reports](./benchmarks/)
+
 - 인프라 성능 벤치마크
 - CNI 성능 비교
 - AI/ML 워크로드 벤치마크

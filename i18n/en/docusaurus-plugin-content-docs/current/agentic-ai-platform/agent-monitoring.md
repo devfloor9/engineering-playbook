@@ -40,6 +40,7 @@ This document targets platform operators, MLOps engineers, and AI developers. Ba
 | **Scalability** | Kubernetes native | Managed |
 
 :::tip Selection Guide
+
 - **LangFuse**: When data sovereignty is critical or cost optimization is needed
 - **LangSmith**: When development is primarily LangChain-based and quick start is needed
 :::
@@ -396,6 +397,7 @@ spec:
 ```
 
 :::warning Production Deployment Notes
+
 - Always set `NEXTAUTH_SECRET`, `SALT`, and `ENCRYPTION_KEY` to secure random values
 - In production, use AWS Secrets Manager or HashiCorp Vault for secret management
 - For PostgreSQL, using RDS is recommended (high availability, automatic backups)
@@ -1310,6 +1312,7 @@ tenant_monthly_budget_usd
 ```
 
 :::tip Cost Optimization Tips
+
 1. **Model Selection Optimization**: Use cheaper models (GPT-3.5, Claude Haiku) for simple tasks
 2. **Prompt Optimization**: Remove unnecessary context to reduce input tokens
 3. **Caching**: Cache responses for repeated queries
@@ -1340,6 +1343,7 @@ AI Agent monitoring is essential for stable operation and continuous improvement
 | **Level 4** | Optimized | A/B testing, auto-tuning, predictive analytics |
 
 :::tip Next Steps
+
 - [Agentic AI Platform Architecture](./agentic-platform-architecture.md) - Overall platform design
 - [Kagent Kubernetes Agent Management](./kagent-kubernetes-agents.md) - Agent deployment and operations
 - [RAG Evaluation Framework](./ragas-evaluation.md) - Quality assessment using Ragas

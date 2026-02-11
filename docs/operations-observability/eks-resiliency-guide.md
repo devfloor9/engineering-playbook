@@ -203,7 +203,7 @@ Multi-AZ 환경에서 새 노드가 프로비저닝될 때, 노드가 `Ready` �
 
 #### Node Readiness Controller (2026년 2월 발표)
 
-[Node Readiness Controller](https://kubernetes.io/blog/2026/02/03/node-readiness-controller/)는 노드 부트스트랩 과정에서 커스텀 taint를 선언적으로 관리하여, GPU 드라이버, CNI 플러그인, CSI 드라이버, 보안 에이전트 등 모든 인프라 요구사항이 충족될 때까지 워크로드 스케줄링을 지연시킵니다.
+[Node Readiness Controller](https://github.com/kubernetes-sigs/node-readiness-controller)는 노드 부트스트랩 과정에서 커스텀 taint를 선언적으로 관리하여, GPU 드라이버, CNI 플러그인, CSI 드라이버, 보안 에이전트 등 모든 인프라 요구사항이 충족될 때까지 워크로드 스케줄링을 지연시킵니다.
 
 ```mermaid
 flowchart TD
@@ -232,6 +232,7 @@ flowchart TD
 ```
 
 **레질리언시 관점의 이점:**
+
 - **AZ 장애 복구 시**: Karpenter가 새 AZ에 노드를 프로비저닝할 때, 노드가 완전히 준비된 후에만 트래픽을 수용
 - **Scale-out 이벤트**: 급격한 확장 시에도 미완성 노드에 워크로드가 배치되지 않음
 - **GPU/ML 워크로드**: 드라이버 로딩 완료 전 스케줄링을 방지하여 `CrashLoopBackOff` 방지
@@ -259,6 +260,7 @@ spec:
 ```
 
 **활용 사례:**
+
 - 리소스 쿼터 사전 검증 후 스케줄링 허용
 - 보안 승인 완료 후 스케줄링 허용
 - 커스텀 어드미션 체크 통과 후 스케줄링 허용
@@ -279,6 +281,7 @@ metadata:
 새 Pod가 ALB/NLB 타겟으로 등록되고 헬스 체크를 통과할 때까지 이전 Pod가 종료되지 않으므로, 트래픽 유실 없는 배포가 가능합니다.
 
 :::tip Readiness 기능 선택 가이드
+
 | 요구사항 | 추천 기능 | 적용 레벨 |
 |----------|-----------|-----------|
 | 노드 부트스트랩 완료 보장 | Node Readiness Controller | Node |

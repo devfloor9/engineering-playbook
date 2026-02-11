@@ -38,6 +38,7 @@ sidebar_position: 4
 ### 핵심 제안 사항
 
 **1. GitOps 플랫폼 선택**
+
 - ArgoCD ApplicationSets를 활용한 멀티 클러스터 관리
 - Progressive Delivery를 위한 Flagger 통합
 
@@ -46,17 +47,20 @@ ArgoCD는 EKS Add-on으로도 제공됩니다. `aws eks create-addon`을 통해 
 :::
 
 **2. Infrastructure as Code 전략**
+
 - **ACK/KRO (Kubernetes Resource Orchestrator)** 채택 권장
   - 기존 Terraform 상태와의 점진적 마이그레이션 가능
   - Kubernetes 네이티브 접근 방식으로 운영 일관성 확보
   - Helm 대비 더 유연한 리소스 오케스트레이션
 
 **3. 자동화 핵심 요소**
+
 - Blue/Green 방식의 EKS 업그레이드 자동화
 - Addon 버전 관리를 위한 자동화된 테스트 파이프라인
 - Policy as Code (OPA/Gatekeeper) 기반 거버넌스
 
 **4. 보안 및 규정 준수**
+
 - External Secrets Operator + AWS Secrets Manager 조합
 - Git 서명 및 RBAC 기반 승인 워크플로우
 - 실시간 규정 준수 모니터링 대시보드
@@ -148,14 +152,17 @@ ArgoCD ApplicationSets는 멀티클러스터 환경에서 일관된 배포를 �
 **핵심 전략:**
 
 #### 1. Cluster Generator
+
 - 클러스터 레지스트리 기반 동적 애플리케이션 생성
 - 레이블 기반 클러스터 그룹핑 (환경, 리전, 목적별)
 
 #### 2. Git Directory Generator
+
 - 환경별 구성 관리 (dev/staging/prod)
 - 클러스터별 오버라이드 설정
 
 #### 3. Matrix Generator
+
 - 클러스터 × 애플리케이션 조합 관리
 - 조건부 배포 규칙 적용
 
@@ -166,16 +173,19 @@ ArgoCD ApplicationSets는 멀티클러스터 환경에서 일관된 배포를 �
 Blue/Green 배포 패턴을 사용하여 무중단 클러스터 업그레이드를 구현합니다.
 
 **준비 단계**
+
 - 새 클러스터 프로비저닝 (KRO)
 - Addon 호환성 검증
 - 보안 정책 동기화
 
 **마이그레이션 단계**
+
 - 워크로드 점진적 이동
 - 트래픽 가중치 조정 (0% → 100%)
 - 실시간 모니터링
 
 **검증 및 완료**
+
 - 자동화된 smoke test
 - 성능 메트릭 비교
 - 구 클러스터 제거
@@ -199,6 +209,7 @@ Blue/Green 배포 패턴을 사용하여 무중단 클러스터 업그레이드�
 :::info External Secrets Operator (ESO) 권장
 
 **주요 특징:**
+
 - 중앙집중식 Secret 저장소
 - 자동 로테이션 지원
 - 세밀한 접근 제어 (IRSA)
@@ -279,17 +290,21 @@ spec:
 ArgoCD v3가 KubeCon EU 2025에서 프리릴리즈되었으며, 주요 개선 사항은 다음과 같습니다:
 
 ### 확장성 개선
+
 - **대규모 클러스터 지원**: 수천 개의 Application 리소스 관리 성능 향상
 - **Sharding 개선**: Application Controller의 수평 확장 강화
 - **메모리 최적화**: 대규모 매니페스트 처리 시 메모리 사용량 감소
 
 ### 보안 강화
+
 - **RBAC 개선**: 더 세밀한 권한 제어
 - **Audit Logging**: 모든 작업에 대한 감사 로그 강화
 - **시크릿 관리**: External Secrets Operator와의 통합 개선
 
 ### 마이그레이션 가이드
+
 ArgoCD v2.x에서 v3로의 마이그레이션:
+
 1. v2.13으로 먼저 업그레이드 (호환성 확인)
 2. 사용 중단 API 확인 및 업데이트
 3. v3 프리릴리즈에서 기능 테스트
@@ -306,18 +321,22 @@ GitOps 기반 대규모 EKS 클러스터 운영 전략은 수동 관리 부담�
 :::tip 핵심 권장사항
 
 **1. ACK/KRO를 통한 인프라 관리 통합**
+
 - Kubernetes 네이티브 인프라 관리
 - 기존 Terraform 상태와의 호환성
 
 **2. ArgoCD ApplicationSets를 활용한 멀티클러스터 관리**
+
 - 클러스터 간 일관된 배포
 - 환경별 커스터마이징
 
 **3. 자동화된 Blue/Green 업그레이드 전략 활용**
+
 - 무중단 클러스터 업그레이드
 - 자동 롤백 기능
 
 **4. Policy as Code 기반 거버넌스**
+
 - OPA/Gatekeeper를 통한 정책 강제
 - 규정 준수 자동화
 

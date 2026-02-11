@@ -12,23 +12,27 @@ We provide performance benchmarks and test reports for each technical domain. Th
 ## Benchmark Areas
 
 ### Infrastructure Performance
+
 - Network throughput and latency
 - DNS resolution performance
 - Autoscaling response time
 - Cost efficiency analysis
 
 ### AI/ML Workloads
+
 - Model inference latency
 - GPU utilization and throughput
 - Batch processing performance
 - Multi-model serving comparison
 
 ### Hybrid Infrastructure
+
 - Cloud-to-on-premises network performance
 - Storage I/O benchmarks
 - SR-IOV network acceleration effects
 
 ### Security and Operations
+
 - Policy enforcement overhead
 - Monitoring agent resource usage
 - GitOps synchronization performance
