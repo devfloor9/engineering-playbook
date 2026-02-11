@@ -47,9 +47,9 @@ const sidebars = {
         'operations-observability/gitops-cluster-operation',
         // 2. 노드 모니터링 에이전트 배포
         'operations-observability/node-monitoring-agent',
-        // 3. EKS 디버깅 가이드
+        // 3. EKS 장애 진단 및 대응 가이드
         'operations-observability/eks-debugging-guide',
-        // 4. EKS 레질리언시 가이드
+        // 4. EKS 고가용성 아키텍처 가이드
         'operations-observability/eks-resiliency-guide',
       ],
     },

@@ -1,6 +1,6 @@
 ---
-title: "EKS 레질리언시 가이드"
-sidebar_label: "EKS 레질리언시"
+title: "EKS 고가용성 아키텍처 가이드"
+sidebar_label: "EKS 고가용성 아키텍처"
 description: "Amazon EKS 환경에서 고가용성과 장애 회복력을 확보하기 위한 아키텍처 패턴과 운영 전략 가이드"
 tags: [eks, kubernetes, resiliency, high-availability, cell-architecture, chaos-engineering, multi-az]
 category: "observability-monitoring"
@@ -9,7 +9,7 @@ authors: [devfloor9]
 sidebar_position: 6
 ---
 
-# EKS 레질리언시 가이드
+# EKS 고가용성 아키텍처 가이드
 
 > 📅 **작성일**: 2026-02-10 | ⏱️ **읽는 시간**: 약 20분
 
@@ -84,8 +84,8 @@ graph TB
 | **3** | Cell-Based | Blast Radius 격리 | Cell Architecture, Shuffle Sharding, 독립 배포 | 높음 | Cell 별 오버헤드 |
 | **4** | Multi-Region | 리전 장애 내성 | Active-Active 아키텍처, Global Accelerator, 데이터 복제 | 매우 높음 | 리전 별 인프라 비용 |
 
-:::info 디버깅 가이드 참조
-운영 중 장애 진단 및 해결은 [EKS 디버깅 가이드](./eks-debugging-guide.md)를 참조하세요. 본 문서는 장애 **예방**과 **설계**에 초점을 맞추고 있으며, 실시간 트러블슈팅은 디버깅 가이드에서 다룹니다.
+:::info 장애 진단 및 대응 가이드 참조
+운영 중 장애 진단 및 해결은 [EKS 장애 진단 및 대응 가이드](./eks-debugging-guide.md)를 참조하세요. 본 문서는 장애 **예방**과 **설계**에 초점을 맞추고 있으며, 실시간 트러블슈팅은 장애 진단 및 대응 가이드에서 다룹니다.
 :::
 
 ---
@@ -1438,7 +1438,7 @@ echo "============================================"
 
 ### 관련 문서
 
-- [EKS 디버깅 가이드](./eks-debugging-guide.md) — 운영 중 장애 진단 및 트러블슈팅
+- [EKS 장애 진단 및 대응 가이드](./eks-debugging-guide.md) — 운영 중 장애 진단 및 트러블슈팅
 - [GitOps 기반 EKS 클러스터 운영](./gitops-cluster-operation.md) — ArgoCD, KRO 기반 클러스터 관리
 - [Karpenter를 활용한 초고속 오토스케일링](/docs/infrastructure-optimization/karpenter-autoscaling.md) — Karpenter 심층 설정 및 HPA 최적화
 

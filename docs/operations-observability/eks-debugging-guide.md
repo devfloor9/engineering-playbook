@@ -1,7 +1,7 @@
 ---
-title: "EKS 디버깅 가이드"
-sidebar_label: "EKS 디버깅"
-description: "Amazon EKS 환경에서 애플리케이션 및 인프라 문제를 체계적으로 진단하고 해결하기 위한 종합 디버깅 가이드"
+title: "EKS 장애 진단 및 대응 가이드"
+sidebar_label: "EKS 장애 진단 및 대응"
+description: "Amazon EKS 환경에서 애플리케이션 및 인프라 문제를 체계적으로 진단하고 해결하기 위한 종합 트러블슈팅 가이드"
 tags: [eks, kubernetes, debugging, troubleshooting, observability, incident-response]
 category: "observability-monitoring"
 date: 2026-02-10
@@ -9,7 +9,7 @@ authors: [devfloor9]
 sidebar_position: 5
 ---
 
-# EKS 디버깅 가이드
+# EKS 장애 진단 및 대응 가이드
 
 > 📅 **작성일**: 2026-02-10 | ⏱️ **읽는 시간**: 약 25분
 
@@ -283,8 +283,8 @@ aws cloudwatch put-anomaly-detector \
 | **P3 - Medium** | 성능 저하 | 1시간 이내 | 담당 팀 | HPA 스케일링 실패, 간헐적 타임아웃 |
 | **P4 - Low** | 경미한 이슈 | 4시간 이내 | 백로그 | 단일 Pod 재시작, 비프로덕션 환경 이슈 |
 
-:::info 레질리언시 가이드 참조
-아키텍처 수준의 장애 회복 전략(TopologySpreadConstraints, PodDisruptionBudget, 멀티AZ 배포 등)은 [EKS 레질리언시 가이드](./eks-resiliency-guide.md)를 참조하세요.
+:::info 고가용성 아키텍처 가이드 참조
+아키텍처 수준의 장애 회복 전략(TopologySpreadConstraints, PodDisruptionBudget, 멀티AZ 배포 등)은 [EKS 고가용성 아키텍처 가이드](./eks-resiliency-guide.md)를 참조하세요.
 :::
 
 ---
@@ -2184,7 +2184,7 @@ AWS Support case를 제출할 때 이 로그 파일을 첨부하면 지원 엔�
 
 ### 관련 문서
 
-- [EKS 레질리언시 가이드](./eks-resiliency-guide.md) - 아키텍처 수준 장애 회복 전략
+- [EKS 고가용성 아키텍처 가이드](./eks-resiliency-guide.md) - 아키텍처 수준 장애 회복 전략
 - [GitOps 기반 EKS 클러스터 운영](./gitops-cluster-operation.md) - GitOps 배포 및 운영 자동화
 - [Karpenter를 활용한 초고속 오토스케일링](/docs/infrastructure-optimization/karpenter-autoscaling.md) - Karpenter 기반 노드 프로비저닝 최적화
 - [노드 모니터링 에이전트](./node-monitoring-agent.md) - 노드 수준 모니터링

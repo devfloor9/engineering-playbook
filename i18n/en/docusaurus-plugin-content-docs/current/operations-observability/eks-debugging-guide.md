@@ -1,7 +1,7 @@
 ---
-title: "EKS Debugging Guide"
-sidebar_label: "EKS Debugging"
-description: "Comprehensive debugging guide for systematically diagnosing and resolving application and infrastructure issues in Amazon EKS environments"
+title: "EKS Incident Diagnosis and Response Guide"
+sidebar_label: "EKS Incident Diagnosis & Response"
+description: "Comprehensive troubleshooting guide for systematically diagnosing and resolving application and infrastructure issues in Amazon EKS environments"
 tags: [eks, kubernetes, debugging, troubleshooting, observability, incident-response]
 category: "observability-monitoring"
 date: 2026-02-10
@@ -9,7 +9,7 @@ authors: [devfloor9]
 sidebar_position: 5
 ---
 
-# EKS Debugging Guide
+# EKS Incident Diagnosis and Response Guide
 
 > 📅 **Published**: 2026-02-10 | ⏱️ **Reading time**: ~25 min
 
@@ -283,8 +283,8 @@ aws cloudwatch put-anomaly-detector \
 | **P3 - Medium** | Performance degradation | Within 1 hour | Owning team | HPA scaling failure, intermittent timeouts |
 | **P4 - Low** | Minor issue | Within 4 hours | Backlog | Single Pod restart, non-production environment issue |
 
-:::info Resiliency Guide Reference
-For architecture-level failure recovery strategies (TopologySpreadConstraints, PodDisruptionBudget, Multi-AZ deployments, etc.), refer to the [EKS Resiliency Guide](./eks-resiliency-guide.md).
+:::info High Availability Architecture Guide Reference
+For architecture-level failure recovery strategies (TopologySpreadConstraints, PodDisruptionBudget, Multi-AZ deployments, etc.), refer to the [EKS High Availability Architecture Guide](./eks-resiliency-guide.md).
 :::
 
 ---
@@ -2184,7 +2184,7 @@ Attaching this log file when submitting an AWS Support case enables support engi
 
 ### Related Documents
 
-- [EKS Resiliency Guide](./eks-resiliency-guide.md) - Architecture-level failure recovery strategies
+- [EKS High Availability Architecture Guide](./eks-resiliency-guide.md) - Architecture-level failure recovery strategies
 - [GitOps-Based EKS Cluster Operations](./gitops-cluster-operation.md) - GitOps deployment and operational automation
 - [Ultra-Fast Autoscaling with Karpenter](/docs/infrastructure-optimization/karpenter-autoscaling.md) - Karpenter-based node provisioning optimization
 - [Node Monitoring Agent](./node-monitoring-agent.md) - Node-level monitoring
