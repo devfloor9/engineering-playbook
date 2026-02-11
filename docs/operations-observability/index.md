@@ -2,9 +2,11 @@
 title: "Operations & Observability"
 sidebar_label: "운영 & 옵저버빌리티"
 description: "Amazon EKS 환경에서의 관찰성과 모니터링 관련 심화 기술 문서"
+category: "operations"
 sidebar_position: 2
-date: 2025-02-05
-authors: [devfloor9]
+last_update:
+  date: 2025-02-05
+  author: devfloor9
 ---
 
 # Operations & Observability

@@ -4,8 +4,9 @@ sidebar_label: "파일 스토리지"
 description: "EKS Hybrid Nodes 환경에서 공유 파일 스토리지 구현을 위한 포괄적 가이드로, AWS 관리형 서비스, 엔터프라이즈 스토리지 통합 및 Amazon Linux 2023 대체 접근법을 다룹니다."
 tags: [eks, hybrid-nodes, storage, efs, fsx, nfs, amazon-linux-2023]
 category: "hybrid-multicloud"
-date: 2025-09-15
-authors: [devfloor9]
+last_update:
+  date: 2025-09-15
+  author: devfloor9
 sidebar_position: 4
 ---
 

@@ -4,8 +4,9 @@ sidebar_label: "NGINX to Gateway API 마이그레이션"
 description: "NGINX Ingress Controller EOL 대응, 8가지 핵심 기능 대안, AWS Native / NGINX Gateway Fabric / Envoy Gateway 비교"
 tags: [kubernetes, gateway-api, nginx, ingress, migration, networking, aws, alb, envoy]
 category: "performance-networking"
-date: 2025-02-05
-authors: [devfloor9]
+last_update:
+  date: 2025-02-05
+  author: devfloor9
 sidebar_position: 5
 ---
 

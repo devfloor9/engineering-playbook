@@ -4,8 +4,9 @@ sidebar_label: "EKS 비용 관리"
 description: "Amazon EKS 환경에서 30-90%의 획기적 비용 절감을 달성하는 FinOps 전략. 비용 구조 분석, Karpenter 최적화, 도구 선택, 실제 성공 사례 포함"
 tags: [eks, cost-management, finops, karpenter, kubecost, optimization]
 category: "performance-networking"
-date: 2025-02-09
-authors: [devfloor9]
+last_update:
+  date: 2025-02-09
+  author: devfloor9
 sidebar_position: 7
 ---
 

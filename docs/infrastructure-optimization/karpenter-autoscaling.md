@@ -4,11 +4,9 @@ sidebar_label: "Karpenter 오토스케일링"
 description: "Amazon EKS에서 Karpenter와 고해상도 메트릭으로 10초 미만의 오토스케일링을 달성하는 방법. CloudWatch와 Prometheus 아키텍처 비교, HPA 구성, 프로덕션 패턴 포함"
 tags: [eks, karpenter, autoscaling, performance, cloudwatch, prometheus, spot-instances]
 category: "performance-networking"
-date: 2025-02-09
 last_update:
   date: 2025-02-09
   author: devfloor9
-authors: [devfloor9]
 sidebar_position: 4
 ---
 

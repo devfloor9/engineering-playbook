@@ -4,8 +4,9 @@ sidebar_label: "GitOps 클러스터 운영"
 description: "대규모 EKS 클러스터의 안정적인 운영을 위한 GitOps 아키텍처, KRO/ACK 활용 방법, 멀티클러스터 관리 전략 및 자동화 기법을 다룹니다."
 tags: [eks, gitops, argocd, kro, ack, kubernetes, automation, infrastructure-as-code]
 category: "observability-monitoring"
-date: 2025-02-09
-authors: [devfloor9]
+last_update:
+  date: 2025-02-09
+  author: devfloor9
 sidebar_position: 4
 ---
 

@@ -4,8 +4,9 @@ sidebar_label: "EKS 고가용성 아키텍처"
 description: "Amazon EKS 환경에서 고가용성과 장애 회복력을 확보하기 위한 아키텍처 패턴과 운영 전략 가이드"
 tags: [eks, kubernetes, resiliency, high-availability, cell-architecture, chaos-engineering, multi-az]
 category: "observability-monitoring"
-date: 2026-02-10
-authors: [devfloor9]
+last_update:
+  date: 2026-02-10
+  author: devfloor9
 sidebar_position: 6
 ---
 

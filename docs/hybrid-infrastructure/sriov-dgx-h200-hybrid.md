@@ -4,8 +4,9 @@ sidebar_label: "SR-IOV 네트워킹"
 description: "NVIDIA DGX H200 시스템에서 Amazon EKS Hybrid Nodes를 실행할 때 발생하는 SR-IOV VF 이름 불일치 문제를 드라이버 호환성, 영구 명명 및 systemd 오케스트레이션을 통해 해결합니다."
 tags: [eks, hybrid-nodes, dgx-h200, sriov, infiniband, networking, mlnx-ofed]
 category: "hybrid-multicloud"
-date: 2025-09-01
-authors: [devfloor9]
+last_update:
+  date: 2025-09-01
+  author: devfloor9
 sidebar_position: 3
 ---
 

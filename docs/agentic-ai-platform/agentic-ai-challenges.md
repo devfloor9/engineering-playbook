@@ -4,9 +4,10 @@ sidebar_label: "기술적 도전과제"
 description: "Agentic AI 워크로드 운영 시 직면하는 4가지 핵심 도전과제와 Kubernetes 기반 오픈소스 생태계"
 tags: [kubernetes, genai, agentic-ai, gpu, challenges, open-source]
 category: "genai-aiml"
-date: "2025-02-05"
-authors: [devfloor9]
-sidebar_position: 3
+last_update:
+  date: 2025-02-05
+  author: devfloor9
+sidebar_position: 2
 ---
 
 import Tabs from '@theme/Tabs';

@@ -2,19 +2,12 @@
 title: "NeMo 프레임워크"
 sidebar_label: "NeMo 프레임워크"
 description: "NVIDIA NeMo를 활용한 LLM 파인튜닝 및 최적화 파이프라인 구축"
-sidebar_position: 10
+sidebar_position: 9
 category: "genai-aiml"
-date: 2025-02-05
-authors:
-  - devfloor9
-tags:
-  - nemo
-  - nvidia
-  - fine-tuning
-  - llm
-  - training
-  - tensorrt
-  - genai
+last_update:
+  date: 2025-02-05
+  author: devfloor9
+tags: [nemo, nvidia, fine-tuning, llm, training, tensorrt, genai]
 ---
 
 # NeMo 프레임워크

@@ -2,9 +2,12 @@
 title: "Kyverno 기반 정책 관리"
 sidebar_label: "Kyverno 정책 관리"
 description: "Kyverno v1.16을 활용한 Kubernetes 정책 관리 및 거버넌스"
+category: "security"
 sidebar_position: 4
 tags: [eks, security, kyverno, policy, governance]
-date: 2025-02-09
+last_update:
+  date: 2025-02-09
+  author: devfloor9
 ---
 
 # Kyverno 기반 정책 관리

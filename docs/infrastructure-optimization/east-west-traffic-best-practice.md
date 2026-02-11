@@ -4,8 +4,9 @@ sidebar_label: "East-West 트래픽 최적화"
 description: "EKS에서 서비스 간 통신(East-West)의 지연시간을 최소화하고 크로스-AZ 비용을 절감하는 심층 최적화 전략. Topology Aware Routing, InternalTrafficPolicy부터 Cilium ClusterMesh, AWS VPC Lattice, Istio 멀티클러스터까지"
 tags: [eks, networking, performance, cost-optimization, service-mesh, topology-aware-routing]
 category: "performance-networking"
-date: 2026-02-09
-authors: [devfloor9]
+last_update:
+  date: 2026-02-09
+  author: devfloor9
 sidebar_position: 4
 ---
 

@@ -1,7 +1,9 @@
 ---
 title: 소개
 description: Engineering Playbook에 오신 것을 환영합니다 - 클라우드 네이티브 아키텍처와 모범 사례를 위한 종합 가이드
+category: "getting-started"
 tags: [kubernetes, cloud-native, introduction, getting-started]
+sidebar_position: 1
 ---
 
 # Engineering Playbook
@@ -10,43 +12,50 @@ tags: [kubernetes, cloud-native, introduction, getting-started]
 
 ## 주요 내용
 
-이 플레이북은 다섯 가지 핵심 기술 도메인으로 구성되어 있으며, 각 도메인에는 상세한 구현 가이드, 트러블슈팅 자료, 실제 사례가 포함되어 있습니다.
+이 플레이북은 일곱 가지 핵심 기술 도메인으로 구성되어 있으며, 각 도메인에는 상세한 구현 가이드, 트러블슈팅 자료, 실제 사례가 포함되어 있습니다.
 
 ### [Infrastructure Optimization](./infrastructure-optimization/)
-- EKS DNS 성능 최적화
-- Cilium ENI 모드 구성
-- 네트워크 성능 튜닝 전략
-- 로드 밸런싱 및 인그레스 패턴
+- Cilium ENI + Gateway API 통합 구성
+- NGINX → Gateway API 마이그레이션
+- CoreDNS 모니터링 및 최적화
+- Karpenter 오토스케일링
 
 ### [Operations & Observability](./operations-observability/)
-- Hubble 네트워크 가시성 구현
-- AI/ML 워크로드 모니터링
-- Prometheus 및 Grafana 구성
-- 로깅 및 알림 전략
+- GitOps 기반 클러스터 운영
+- 노드 모니터링 에이전트 배포
+- EKS 장애 진단 및 대응
+- EKS 고가용성 아키텍처
 
 ### [Agentic AI Platform](./agentic-ai-platform/)
 - 프로덕션 GenAI 플랫폼 아키텍처
-- GPU 효율성 최적화
-- MIG 및 타임슬라이싱 전략
-- 모델 서빙 및 추론 패턴
+- GPU 리소스 관리 및 최적화
+- vLLM / MoE 모델 서빙
+- llm-d 분산 추론 인프라
+- Inference Gateway 라우팅
+- Milvus 벡터 DB 및 RAG
 
 ### [Hybrid Infrastructure](./hybrid-infrastructure/)
-- EKS 하이브리드 노드 구성
-- 클라우드 버스팅 아키텍처
-- 멀티 클라우드 관리 패턴
-- EKS를 활용한 엣지 컴퓨팅
+- 하이브리드 노드 도입 가이드
+- SR-IOV DGX H200 고성능 네트워킹
+- 하이브리드 노드 파일 스토리지
+- Harbor 컨테이너 레지스트리 통합
 
 ### [Security & Governance](./security-governance/)
-- ROSA 네트워크 보안 구현
-- 컴플라이언스 아키텍처 패턴
-- RBAC 및 IAM 모범 사례
-- 보안 모니터링 및 감사
+- Default Namespace 인시던트 분석
+- Identity-First Security
+- GuardDuty Extended Threat Detection
+- Kyverno 정책 관리
+
+### [ROSA](./rosa/)
+- ROSA 데모 설치 가이드
+- ROSA 보안 및 컴플라이언스
 
 ### [Benchmark Reports](./benchmarks/)
-- 인프라 성능 벤치마크 리포트
-- AI/ML 워크로드 처리량 및 지연 시간 측정
-- 네트워크 및 스토리지 성능 테스트 결과
-- 비용 대비 성능 비교 분석
+- 인프라 성능 벤치마크
+- CNI 성능 비교
+- AI/ML 워크로드 벤치마크
+- 하이브리드 인프라 벤치마크
+- 보안 운영 벤치마크
 
 ## 시작하기
 

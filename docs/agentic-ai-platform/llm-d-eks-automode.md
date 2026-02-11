@@ -4,8 +4,9 @@ sidebar_label: "llm-d EKS Auto Mode"
 description: "llm-d를 활용한 EKS Auto Mode 환경에서의 Kubernetes 네이티브 분산 추론 배포 및 운영 가이드"
 tags: [eks, llm-d, vllm, inference-gateway, gpu, auto-mode, qwen, kv-cache]
 category: "genai-aiml"
-date: 2026-02-10
-authors: [devfloor9]
+last_update:
+  date: 2026-02-10
+  author: devfloor9
 sidebar_position: 8
 ---
 
