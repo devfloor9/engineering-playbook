@@ -1440,7 +1440,7 @@ Higher resiliency levels come with increased costs. Multi-Region Active-Active r
 
 - [EKS Incident Diagnosis and Response Guide](./eks-debugging-guide.md) — Operational troubleshooting and incident resolution
 - [GitOps-Based EKS Cluster Operations](./gitops-cluster-operation.md) — ArgoCD, KRO-based cluster management
-- [Ultra-Fast Autoscaling with Karpenter](/docs/infrastructure-optimization/karpenter-autoscaling.md) — In-depth Karpenter configuration and HPA optimization
+- [Ultra-Fast Autoscaling with Karpenter](/docs/infrastructure-optimization/karpenter-autoscaling) — In-depth Karpenter configuration and HPA optimization
 
 ### External References
 
