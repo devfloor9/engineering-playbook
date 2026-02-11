@@ -772,9 +772,8 @@ env:
 
 ## 참고 자료
 
-- [llm-d 공식 문서](https://llm-d.ai/docs)
 - [llm-d GitHub](https://github.com/llm-d/llm-d)
-- [llm-d Quickstart Guide](https://llm-d.ai/docs/guide/Installation/quickstart)
+- [llm-d Deployer (Helm Charts)](https://github.com/llm-d/llm-d-deployer)
 - [EKS Auto Mode 문서](https://docs.aws.amazon.com/eks/latest/userguide/automode.html)
 - [Gateway API Inference Extension](https://gateway-api.sigs.k8s.io/geps/gep-3567/)
 - [vLLM 공식 문서](https://docs.vllm.ai/)
