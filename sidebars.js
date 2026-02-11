@@ -90,6 +90,27 @@ const sidebars = {
     },
     {
       type: 'category',
+      label: 'AIops & AIDLC',
+      collapsed: true,
+      link: {
+        type: 'doc',
+        id: 'aiops-aidlc/index',
+      },
+      items: [
+        // Phase 1: AIOps 기초
+        'aiops-aidlc/aiops-introduction',
+        'aiops-aidlc/aiops-observability-stack',
+        // Phase 2: AI 주도 개발
+        'aiops-aidlc/aidlc-framework',
+        // Phase 3: MLOps 파이프라인
+        'aiops-aidlc/mlops-pipeline-eks',
+        'aiops-aidlc/sagemaker-eks-integration',
+        // Phase 4: 예측 운영
+        'aiops-aidlc/aiops-predictive-operations',
+      ],
+    },
+    {
+      type: 'category',
       label: 'Hybrid Infrastructure',
       collapsed: true,
       link: {
@@ -142,10 +163,14 @@ const sidebars = {
         'rosa/rosa-security-compliance',
       ],
     },
+  ],
+
+  // Benchmark Reports — 별도 사이드바로 분리
+  benchmarks: [
     {
       type: 'category',
       label: 'Benchmark Reports',
-      collapsed: true,
+      collapsed: false,
       link: {
         type: 'doc',
         id: 'benchmarks/index',
