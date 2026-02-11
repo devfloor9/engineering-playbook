@@ -9,6 +9,8 @@ authors: [devfloor9]
 sidebar_position: 5
 ---
 
+import { IncidentEscalationTable, ZonalShiftImpactTable, ControlPlaneLogTable, ClusterHealthTable, NodeGroupErrorTable, ErrorQuickRefTable } from '@site/src/components/EksDebugTables';
+
 # EKS Incident Diagnosis and Response Guide
 
 > 📅 **Published**: 2026-02-10 | ⏱️ **Reading time**: ~25 min
@@ -223,16 +225,9 @@ The maximum duration for a Zonal Shift is **3 days** and can be extended. Once a
 :::danger Zonal Shift Only Blocks Traffic
 ARC Zonal Shift **only changes traffic routing at the Load Balancer / Service level**.
 
-| Layer | Zonal Shift Impact | Auto-adjusted | Manual Action Required |
-|---|---|---|---|
-| **ALB / NLB** | Removed from Target Group in affected AZ | ✅ Automatic | - |
-| **EKS Service (kube-proxy)** | Endpoint weight removed for affected AZ | ✅ Automatic | - |
-| **Existing Nodes** | Continue running | ❌ | `kubectl drain` to relocate Pods |
-| **Existing Pods** | Only traffic blocked; Pods still running | ❌ | Auto-relocated during drain |
-| **Karpenter NodePool** | AZ config unchanged; may provision new nodes in affected AZ | ❌ | Patch NodePool requirements |
-| **ASG (Managed Node Group)** | Subnet list unchanged; may scale out in affected AZ | ❌ | Update ASG subnets (console/IaC) |
-| **EBS Volumes** | Pinned to AZ; cannot be moved | ❌ | Snapshot → restore in another AZ |
-| **EFS Mount Targets** | Automatically uses Mount Targets in other AZs | ✅ Automatic | - | Karpenter NodePool and ASG (Managed Node Group) AZ configurations are NOT automatically updated. A complete AZ evacuation requires additional steps:
+<ZonalShiftImpactTable />
+
+Karpenter NodePool and ASG (Managed Node Group) AZ configurations are NOT automatically updated. A complete AZ evacuation requires additional steps:
 
 1. **Start Zonal Shift** → blocks new traffic (automatic)
 2. **Drain nodes in the affected AZ** → relocate existing Pods
@@ -276,12 +271,7 @@ aws cloudwatch put-anomaly-detector \
 
 ### Incident Response Escalation Matrix
 
-| Severity | Definition | Initial Response Time | Escalation | Examples |
-|----------|------------|-----------------------|------------|----------|
-| **P1 - Critical** | Complete service outage | Within 5 min | Immediately notify on-call + management | Control plane failure, all nodes NotReady |
-| **P2 - High** | Major feature failure | Within 15 min | On-call team | Specific AZ failure, multiple Pods in CrashLoopBackOff |
-| **P3 - Medium** | Performance degradation | Within 1 hour | Owning team | HPA scaling failure, intermittent timeouts |
-| **P4 - Low** | Minor issue | Within 4 hours | Backlog | Single Pod restart, non-production environment issue |
+<IncidentEscalationTable />
 
 :::info High Availability Architecture Guide Reference
 For architecture-level failure recovery strategies (TopologySpreadConstraints, PodDisruptionBudget, Multi-AZ deployments, etc.), refer to the [EKS High Availability Architecture Guide](./eks-resiliency-guide.md).
@@ -295,15 +285,7 @@ For architecture-level failure recovery strategies (TopologySpreadConstraints, P
 
 The EKS control plane can send 5 log types to CloudWatch Logs.
 
-| Log Type | Component | CloudWatch Log Stream Pattern | Purpose |
-|----------|-----------|-------------------------------|---------|
-| `api` | kube-apiserver | `kube-apiserver-audit-*` | API request/response records |
-| `audit` | kube-apiserver-audit | `kube-apiserver-audit-*` | Audit logs (who, what, when) |
-| `authenticator` | aws-iam-authenticator | `authenticator-*` | IAM authentication events |
-| `controllerManager` | kube-controller-manager | `kube-controller-manager-*` | Controller operation logs |
-| `scheduler` | kube-scheduler | `scheduler-*` | Scheduling decisions and failures |
-
-Log group: `/aws/eks/<cluster-name>/cluster`
+<ControlPlaneLogTable />
 
 ### Enabling Logs
 
@@ -507,15 +489,7 @@ aws eks describe-cluster --name $CLUSTER \
   --query 'cluster.health' --output json
 ```
 
-| Code | Message | Recoverable |
-|------|---------|-------------|
-| `SUBNET_NOT_FOUND` | Cluster subnet has been deleted | ⚠️ New subnet association required |
-| `SECURITY_GROUP_NOT_FOUND` | Cluster security group has been deleted | ⚠️ Recreate the security group |
-| `IP_NOT_AVAILABLE` | Insufficient IPs in subnet | ✅ Add/expand subnets |
-| `VPC_NOT_FOUND` | VPC has been deleted | ❌ Cluster recreation required |
-| `ASSUME_ROLE_ACCESS_DENIED` | Cluster IAM Role permission issue | ✅ Fix IAM policy |
-| `KMS_KEY_DISABLED` | Secrets encryption KMS key disabled | ✅ Re-enable the KMS key |
-| `KMS_KEY_NOT_FOUND` | KMS key has been deleted | ❌ Unrecoverable |
+<ClusterHealthTable />
 
 :::danger Unrecoverable Issues
 `VPC_NOT_FOUND` and `KMS_KEY_NOT_FOUND` are unrecoverable. The cluster must be recreated.
@@ -679,22 +653,7 @@ aws eks describe-nodegroup --cluster-name $CLUSTER --nodegroup-name $NODEGROUP \
   --query 'nodegroup.health' --output json
 ```
 
-| Error Code | Cause | Resolution |
-|------------|-------|------------|
-| `AccessDenied` | Insufficient permissions on the node IAM Role | Verify and restore the eks:node-manager ClusterRole/ClusterRoleBinding |
-| `AmiIdNotFound` | AMI ID in Launch Template does not exist | Update to a valid EKS optimized AMI ID |
-| `AutoScalingGroupNotFound` | ASG has been deleted or does not exist | Delete and recreate the node group |
-| `ClusterUnreachable` | Node cannot reach the EKS API server | Check VPC settings, security groups, endpoint accessibility |
-| `Ec2SecurityGroupNotFound` | Specified security group has been deleted | Create the correct security group and reconfigure the node group |
-| `Ec2LaunchTemplateNotFound` | Launch Template has been deleted | Create a new Launch Template and update the node group |
-| `Ec2LaunchTemplateVersionMismatch` | Launch Template version mismatch | Verify and fix the version referenced by the node group |
-| `IamInstanceProfileNotFound` | Instance profile does not exist | Recreate the IAM instance profile |
-| `IamNodeRoleNotFound` | Node IAM Role has been deleted | Recreate the IAM Role and attach the required policies |
-| `AsgInstanceLaunchFailures` | EC2 instance launch failure (insufficient capacity, etc.) | Add different instance types/AZs, check Service Quotas |
-| `NodeCreationFailure` | General node creation failure | Check CloudTrail for detailed errors |
-| `InstanceLimitExceeded` | EC2 instance limit exceeded | Request a limit increase from Service Quotas |
-| `InsufficientFreeAddresses` | Insufficient available IP addresses in subnet | Expand subnet CIDR or add new subnets |
-| `InternalFailure` | AWS internal error | Retry; if persistent, contact AWS Support |
+<NodeGroupErrorTable />
 
 **AccessDenied Error Recovery -- Checking eks:node-manager ClusterRole:**
 
@@ -2039,26 +1998,7 @@ Too many alerts cause operations teams to ignore them (Alert Fatigue). Deliver P
 
 ### Error Pattern → Cause → Resolution Quick Reference Table
 
-| # | Error Pattern / Symptom | Cause | Resolution |
-|---|------------------------|-------|------------|
-| 1 | `CrashLoopBackOff` | App crash, invalid configuration, unmet dependencies | `kubectl logs --previous`, inspect app config/env vars |
-| 2 | `ImagePullBackOff` | Image does not exist, registry authentication failure | Verify image name/tag, configure `imagePullSecrets` |
-| 3 | `OOMKilled` | Memory limits exceeded | Increase memory limits, investigate app memory leak |
-| 4 | `Pending` (unschedulable) | Insufficient resources, nodeSelector mismatch | Check `kubectl describe pod` events, verify node capacity/labels |
-| 5 | `CreateContainerConfigError` | ConfigMap/Secret does not exist | Verify referenced ConfigMap/Secret exists |
-| 6 | `Node NotReady` | kubelet failure, resource pressure | Access node via SSM, `systemctl status kubelet` |
-| 7 | `FailedAttachVolume` | EBS volume attached to another node | Delete previous Pod, wait for volume detach (~6 min) |
-| 8 | `FailedMount` | EFS mount target/SG misconfiguration | Verify mount target exists and TCP 2049 is allowed |
-| 9 | `NetworkNotReady` | VPC CNI not started | `kubectl logs -n kube-system -l k8s-app=aws-node` |
-| 10 | `DNS resolution failed` | CoreDNS failure | Check CoreDNS Pod status/logs, `kubectl rollout restart` |
-| 11 | `Unauthorized` / `403` | Insufficient RBAC permissions, aws-auth misconfiguration | `aws sts get-caller-identity`, check aws-auth/Access Entry |
-| 12 | `connection refused` | No Service Endpoint, port mismatch | `kubectl get endpoints`, verify selector and ports |
-| 13 | `Evicted` | Node resource pressure (DiskPressure, etc.) | Clean up node disk, adjust Pod resource requests |
-| 14 | `FailedScheduling: Insufficient cpu/memory` | Insufficient cluster capacity | Increase Karpenter NodePool limits, add nodes |
-| 15 | `Terminating` (stuck) | Finalizer incomplete, preStop hook delay | Check Finalizers, use `--force --grace-period=0` if needed |
-| 16 | `Back-off pulling image` | Pull timeout due to large image size | Optimize image size, use a same-region registry like ECR |
-| 17 | `readiness probe failed` | App startup delay, health check endpoint error | Add `startupProbe`, adjust probe timeouts |
-| 18 | `Too many pods` | Maximum Pods per node exceeded | Check `max-pods` setting, enable Prefix Delegation |
+<ErrorQuickRefTable />
 
 ### Essential kubectl Command Cheat Sheet
 
@@ -2186,7 +2126,7 @@ Attaching this log file when submitting an AWS Support case enables support engi
 
 - [EKS High Availability Architecture Guide](./eks-resiliency-guide.md) - Architecture-level failure recovery strategies
 - [GitOps-Based EKS Cluster Operations](./gitops-cluster-operation.md) - GitOps deployment and operational automation
-- [Ultra-Fast Autoscaling with Karpenter](/docs/infrastructure-optimization/karpenter-autoscaling.md) - Karpenter-based node provisioning optimization
+- [Ultra-Fast Autoscaling with Karpenter](/docs/infrastructure-optimization/karpenter-autoscaling) - Karpenter-based node provisioning optimization
 - [Node Monitoring Agent](./node-monitoring-agent.md) - Node-level monitoring
 
 ### References
