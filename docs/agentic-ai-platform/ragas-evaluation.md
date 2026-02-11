@@ -2,19 +2,12 @@
 title: "Ragas RAG 평가 프레임워크"
 sidebar_label: "Ragas 평가"
 description: "Ragas를 활용한 RAG 파이프라인 품질 평가 및 지속적 개선 방법"
-sidebar_position: 9
+sidebar_position: 14
 category: "genai-aiml"
-date: 2025-02-05
-authors:
-  - devfloor9
-tags:
-  - ragas
-  - rag
-  - evaluation
-  - llm
-  - quality
-  - genai
-  - testing
+last_update:
+  date: 2025-02-05
+  author: devfloor9
+tags: [ragas, rag, evaluation, llm, quality, genai, testing]
 ---
 
 # Ragas RAG 평가 프레임워크

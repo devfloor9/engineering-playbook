@@ -2,8 +2,12 @@
 title: "vLLM 기반 FM 배포 및 성능 최적화"
 sidebar_label: "vLLM 모델 서빙"
 description: "vLLM을 활용한 Foundation Model 배포, Kubernetes 통합, 성능 최적화 전략"
-sidebar_position: 5
-date: 2025-02-09
+category: "genai-aiml"
+sidebar_position: 6
+last_update:
+  date: 2025-02-09
+  author: devfloor9
+tags: [vllm, model-serving, gpu, inference, optimization, foundation-model, eks]
 ---
 
 # vLLM 기반 Foundation Model 배포 및 성능 최적화

@@ -2,9 +2,11 @@
 title: "Infrastructure Optimization"
 sidebar_label: "인프라 최적화"
 description: "Amazon EKS의 성능 최적화와 네트워킹 관련 심화 기술 문서"
+category: "infrastructure"
 sidebar_position: 1
-date: 2025-02-05
-authors: [devfloor9]
+last_update:
+  date: 2025-02-05
+  author: devfloor9
 ---
 
 # Infrastructure Optimization

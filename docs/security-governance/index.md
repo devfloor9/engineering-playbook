@@ -2,9 +2,11 @@
 title: "Security & Governance"
 sidebar_label: "보안 & 거버넌스"
 description: "Amazon EKS 환경에서의 보안 강화 및 컴플라이언스 준수에 대한 심화 기술 문서"
+category: "security"
 sidebar_position: 5
-date: 2025-02-09
-authors: [devfloor9]
+last_update:
+  date: 2025-02-09
+  author: devfloor9
 ---
 
 # Security & Governance

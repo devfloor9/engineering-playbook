@@ -2,9 +2,11 @@
 title: "Hybrid Infrastructure"
 sidebar_label: "하이브리드 인프라"
 description: "Amazon EKS를 활용한 하이브리드 클라우드 및 멀티 클라우드 환경 구축에 대한 심화 기술 문서"
+category: "hybrid"
 sidebar_position: 4
-date: 2025-02-05
-authors: [devfloor9]
+last_update:
+  date: 2025-02-05
+  author: devfloor9
 ---
 
 # Hybrid Infrastructure

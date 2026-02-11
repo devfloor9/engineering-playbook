@@ -4,8 +4,9 @@ sidebar_label: "하이브리드 노드 완전 가이드"
 description: "Amazon EKS Hybrid Nodes 도입을 위한 완전한 가이드: 아키텍처, 구성, 네트워킹, DNS, GPU 서버, 비용 분석 및 동적 리소스 할당(DRA)"
 tags: [eks, hybrid-nodes, nodeadm, kubernetes, harbor, networking, dns, gpu, dra, cost-optimization, architecture]
 category: "hybrid-multicloud"
-date: 2025-08-20
-authors: [devfloor9]
+last_update:
+  date: 2025-08-20
+  author: devfloor9
 sidebar_position: 6
 ---
 

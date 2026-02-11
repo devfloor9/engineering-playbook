@@ -2,9 +2,11 @@
 title: "Agentic AI Platform"
 sidebar_label: "Agentic AI 플랫폼"
 description: "Amazon EKS에서 생성형 AI 및 AI/ML 워크로드 구축과 운영에 대한 심화 기술 문서"
+category: "genai-aiml"
 sidebar_position: 3
-date: 2025-02-05
-authors: [devfloor9]
+last_update:
+  date: 2025-02-05
+  author: devfloor9
 ---
 
 # Agentic AI Platform

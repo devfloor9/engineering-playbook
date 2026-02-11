@@ -4,9 +4,10 @@ sidebar_label: "EKS 기반 해결방안"
 description: "Amazon EKS와 AWS 서비스를 활용한 Agentic AI 도전과제 해결 가이드"
 tags: [eks, aws, karpenter, genai, agentic-ai, gpu, solutions]
 category: "genai-aiml"
-date: 2025-02-05
-authors: [devfloor9]
-sidebar_position: 4
+last_update:
+  date: 2025-02-05
+  author: devfloor9
+sidebar_position: 3
 ---
 
 import Tabs from '@theme/Tabs';

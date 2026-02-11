@@ -2,6 +2,7 @@
 title: Benchmark Reports
 sidebar_position: 7
 description: 클라우드 네이티브 인프라 성능 벤치마크 및 테스트 리포트
+category: "benchmarks"
 tags: [benchmark, performance, testing, report]
 ---
 

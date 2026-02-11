@@ -2,7 +2,8 @@
 title: "Bedrock AgentCore와 MCP 통합"
 sidebar_label: "Bedrock AgentCore & MCP"
 description: "Amazon Bedrock AgentCore를 활용한 프로덕션 AI 에이전트 운영 및 MCP 프로토콜 통합 가이드"
-sidebar_position: 13
+category: "genai-aiml"
+sidebar_position: 15
 tags: [bedrock, agentcore, mcp, ai-agent, eks]
 last_update:
   date: 2025-02-09
