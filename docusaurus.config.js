@@ -28,7 +28,7 @@ const config = {
         docsRouteBasePath: '/docs',
         indexBlog: false,
         searchBarShortcutHint: true,
-        searchBarPosition: 'right',
+        searchBarPosition: 'left',
       },
     ],
   ],
@@ -46,7 +46,6 @@ const config = {
   deploymentBranch: 'gh-pages', // The branch of your docs repo that you are publishing to GitHub pages
   trailingSlash: false, // GitHub Pages adds a trailing slash to Docusaurus URLs by default
 
-  //onBrokenLinks: 'throw',
   onBrokenLinks: 'warn',
   onBrokenMarkdownLinks: 'warn',
 
@@ -104,7 +103,7 @@ const config = {
     [
       '@docusaurus/plugin-pwa',
       {
-        debug: true,
+        debug: false,
         offlineModeActivationStrategies: [
           'appInstalled',
           'standalone',
@@ -158,8 +157,9 @@ const config = {
           },
           {
             href: 'https://github.com/devfloor9/engineering-playbook',
-            label: 'GitHub',
             position: 'right',
+            className: 'header-github-link',
+            'aria-label': 'GitHub repository',
           },
         ],
       },
@@ -217,40 +217,6 @@ const config = {
         darkTheme: prismThemes.dracula,
         additionalLanguages: ['bash', 'yaml', 'json', 'docker', 'hcl', 'python'],
       },
-      /*
-      // Algolia search configuration
-      algolia: {
-        appId: process.env.ALGOLIA_APP_ID || 'YOUR_APP_ID',
-        apiKey: process.env.ALGOLIA_SEARCH_API_KEY || 'YOUR_SEARCH_API_KEY',
-        indexName: process.env.ALGOLIA_INDEX_NAME || 'engineering-playbook',
-        contextualSearch: true,
-        searchParameters: {
-          facetFilters: ['language:ko', 'language:en'],
-          hitsPerPage: 10,
-          attributesToRetrieve: [
-            'hierarchy.lvl0',
-            'hierarchy.lvl1', 
-            'hierarchy.lvl2',
-            'hierarchy.lvl3',
-            'content',
-            'type',
-            'url'
-          ],
-          attributesToHighlight: [
-            'hierarchy.lvl0',
-            'hierarchy.lvl1',
-            'hierarchy.lvl2', 
-            'hierarchy.lvl3',
-            'content'
-          ],
-          attributesToSnippet: ['content:10'],
-          highlightPreTag: '<mark>',
-          highlightPostTag: '</mark>',
-        },
-        searchPagePath: 'search',
-        insights: true,
-      },
-      */
       metadata: [
         { name: 'keywords', content: 'Kubernetes, AWS, Cloud Native, DevOps, Architecture, Best Practices' },
         { name: 'description', content: 'Cloud Native Architecture & Best Practices - Engineering Playbook' },
