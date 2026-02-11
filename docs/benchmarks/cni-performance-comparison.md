@@ -4,8 +4,9 @@ sidebar_label: "CNI 성능 비교"
 description: "EKS 환경에서 VPC CNI와 Cilium CNI의 네트워크 및 애플리케이션 성능을 5개 시나리오(kube-proxy, kube-proxy-less, ENI, 튜닝)로 비교한 벤치마크 보고서"
 tags: [benchmark, cni, cilium, vpc-cni, networking, performance, eks]
 category: "benchmark"
-date: 2026-02-09
-authors: [devfloor9]
+last_update:
+  date: 2026-02-09
+  author: devfloor9
 sidebar_position: 5
 ---
 
@@ -26,16 +27,17 @@ import KeyFindingsChart from '@site/src/components/KeyFindingsChart';
 import RecommendationChart from '@site/src/components/RecommendationChart';
 import XdpCompatibilityChart from '@site/src/components/XdpCompatibilityChart';
 import NetworkPolicyChart from '@site/src/components/NetworkPolicyChart';
+import CniConclusionInfographic from '@site/src/components/CniConclusionInfographic';
 
 # VPC CNI vs Cilium CNI 성능 비교 벤치마크
 
 > 📅 **작성일**: 2026-02-09 | ✍️ **작성자**: devfloor9 | ⏱️ **읽는 시간**: 약 25분
 
-## 개요 
+## 개요
 
 Amazon EKS 1.31 환경에서 VPC CNI와 Cilium CNI의 성능을 5개 시나리오로 정량 비교한 벤치마크 보고서입니다.
 
-**한 줄 요약**: TCP throughput은 NIC 대역폭(12.5 Gbps)에 포화되어 CNI 간 차이가 없으나, Cilium ENI+튜닝 적용 시 VPC CNI 대비 **UDP 패킷 손실 개선**(20%→0.03%), **RTT 36% 단축**(4894→3135µs), **HTTP p99 지연 20% 감소**(10.92→8.75ms)를 달성했습니다. 또한 1,000개 서비스 스케일링 테스트에서 kube-proxy의 iptables 규칙이 **101배 증가**(99→10,059개)하며 연결당 **+16% 오버헤드**가 발생한 반면, Cilium eBPF는 서비스 수 증가에 무관한 **O(1) 성능**을 유지했습니다.
+<CniConclusionInfographic locale="ko" />
 
 **5개 시나리오**:
 - **A** VPC CNI 기본 (베이스라인)
@@ -163,14 +165,14 @@ Cilium Operator가 EC2 API를 통해 ENI에서 IP를 할당하고, CiliumNode CR
 
 <ThroughputChart />
 
-:::info UDP 처리량 차이 원인
-TCP는 모든 시나리오에서 NIC 대역폭(12.5 Gbps)에 포화되어 차이가 없지만, UDP는 구성별로 뚜렷한 성능 차이가 발생합니다:
+:::info UDP 패킷 손실 차이는 기능 차이이지 성능 차이가 아닙니다
+TCP는 모든 시나리오에서 NIC 대역폭(12.5 Gbps)에 포화되어 차이가 없으며, 이것이 실제 CNI 성능을 대표합니다. UDP에서 관찰된 패킷 손실률 차이는 다음과 같은 맥락에서 이해해야 합니다:
 
-- **시나리오 A (VPC CNI)와 D (Cilium ENI 기본)**: UDP throughput ~10 Gbps이지만 **패킷 손실률 20%**. 이는 eBPF Bandwidth Manager가 비활성화되어 커널 네트워크 스택의 기본 UDP 버퍼가 iperf3의 고속 전송을 감당하지 못해 버퍼 오버플로우가 발생하기 때문입니다.
-- **시나리오 B, C (Cilium Overlay)**: UDP throughput ~7.9 Gbps로 낮지만 **패킷 손실률 under 1%**. VXLAN 캡슐화의 오버헤드로 전체 처리량은 감소하지만, Cilium의 eBPF 기반 패킷 처리가 버퍼 관리를 최적화하여 손실을 크게 줄입니다.
-- **시나리오 E (Cilium ENI+튜닝)**: UDP throughput ~8.0 Gbps이면서 **패킷 손실률 0.03%**. Bandwidth Manager(EDT 기반 rate limiting)와 BBR 혼잡 제어가 전송 속도를 수신자의 처리 능력에 맞춰 조절하여 버퍼 오버플로우를 방지합니다.
+- **iperf3 테스트의 특수성**: iperf3은 가능한 최대 속도로 UDP 패킷을 전송하여 의도적으로 네트워크를 포화시킵니다. 이는 실제 프로덕션 워크로드에서 거의 발생하지 않는 극단적 조건입니다.
+- **버퍼 오버플로우가 원인**: 시나리오 A(VPC CNI)와 D(Cilium ENI 기본)에서 20%의 패킷 손실이 발생한 이유는 커널 UDP 버퍼가 고속 전송을 감당하지 못해 오버플로우가 발생했기 때문입니다.
+- **Bandwidth Manager는 기능**: 시나리오 E에서 손실률이 0.03%로 감소한 것은 Bandwidth Manager(EDT 기반 rate limiting)가 전송 속도를 수신 처리 능력에 맞춰 조절했기 때문입니다. 이는 Cilium의 **추가 기능**이지, CNI 자체의 성능 우위를 의미하지 않습니다.
 
-**핵심**: UDP 워크로드에서는 단순 throughput 수치보다 **패킷 손실률**이 실질적인 성능 지표입니다. 높은 throughput + 높은 손실률은 실제로는 더 낮은 유효 전송량을 의미합니다.
+**결론**: 일반적인 프로덕션 워크로드에서는 UDP 패킷 손실 차이가 체감되기 어렵습니다. Bandwidth Manager가 필요한 경우(대용량 미디어 스트리밍 등 극한 UDP 워크로드)에 한해 Cilium의 해당 기능이 유의미합니다.
 :::
 
 #### Pod-to-Pod 지연
@@ -240,7 +242,7 @@ Cilium eBPF의 O(1) 서비스 룩업 성능을 검증하기 위해, 동일한 Sc
 </details>
 
 :::info eBPF O(1) 서비스 룩업 확인
-Cilium eBPF 환경에서 서비스 수를 4개에서 104개로 26배 증가시켰음에도 모든 메트릭이 측정 오차 범위(5% 이내)에서 동일했습니다. 이는 eBPF의 해시 맵 기반 O(1) 룩업이 서비스 수에 무관하게 일정한 성능을 유지함을 확인합니다. 반면, kube-proxy(iptables)는 서비스 수에 비례하여 규칙 체인을 순회하는 O(n) 특성을 가지며, 500개 이상의 서비스에서 유의미한 성능 저하가 발생합니다.
+Cilium eBPF 환경에서 서비스 수를 4개에서 104개로 26배 증가시켰음에도 모든 메트릭이 측정 오차 범위(5% 이내)에서 동일했습니다. 이는 eBPF의 해시 맵 기반 O(1) 룩업이 서비스 수에 무관하게 일정한 성능을 유지함을 확인합니다. 다만, 아래 kube-proxy 스케일링 테스트에서 보듯 iptables 방식의 오버헤드도 1,000개 서비스 수준에서는 실질적으로 미미하여, 서비스 수가 수천 개 이상으로 대규모화되지 않는 한 이 차이가 실제 성능에 영향을 미칠 가능성은 낮습니다.
 :::
 
 ### kube-proxy (iptables) 서비스 스케일링: 4 → 104 → 1,000개
@@ -259,14 +261,8 @@ eBPF의 O(1) 장점을 대조 검증하기 위해 VPC CNI + kube-proxy (시나�
 프로덕션 환경에서 keepalive를 사용하지 않는 워크로드(gRPC 미사용 레거시 서비스, 단발성 HTTP 요청, TCP 기반 마이크로서비스 등)는 매 요청마다 iptables 체인 순회 비용을 지불합니다. KUBE-SERVICES 체인은 확률 기반 매칭(`-m statistic --mode random`)을 사용하므로 평균 순회 길이는 O(n/2)이며, 서비스 수에 비례하여 증가합니다.
 :::
 
-:::warning iptables 스케일링 한계
-1,000개 서비스 규모에서 연결당 오버헤드는 측정 가능하지만(+26µs) 아직 미미한 수준입니다. 하지만 이 추세는 **서비스 수에 선형으로 증가**하며, 실질적 성능 저하 임계점은 **5,000개 이상 서비스**에서 나타납니다:
-
-- kube-proxy sync 재생성이 **500ms 이상**으로 증가
-- 체인 순회가 연결당 **수백 µs를 추가**
-- Service endpoint 변경 시 전체 iptables 규칙 재생성 필요
-
-반면 Cilium eBPF는 서비스 수에 관계없이 **O(1) 해시 맵 조회**를 유지하며, iptables 규칙 오버헤드가 전혀 없습니다.
+:::note iptables 스케일링 특성
+1,000개 서비스 규모에서 연결당 오버헤드는 +26µs(+16%)로 측정 가능하지만, 절대값으로는 **매우 미미한 수준**입니다. 이는 대부분의 프로덕션 환경에서 체감하기 어려운 차이입니다. 이론적으로 서비스 수에 선형 증가하는 O(n) 특성을 가지므로 수천 개 이상의 서비스에서는 누적 영향이 있을 수 있으나, 일반적인 EKS 클러스터(수백 개 서비스)에서는 iptables와 eBPF 간 실질적 성능 차이를 경험하기 어렵습니다. Cilium eBPF의 O(1) 조회는 **대규모 서비스 환경에 대한 미래 대비(future-proofing)** 측면에서 의미가 있습니다.
 :::
 
 <details>
@@ -302,6 +298,33 @@ eBPF의 O(1) 장점을 대조 검증하기 위해 VPC CNI + kube-proxy (시나�
 
 **ENA 드라이버 XDP 제약사항**:
 m6i.xlarge의 ENA 드라이버는 `bpf_link` 기능을 지원하지 않아 XDP native 및 best-effort 모드 모두 실패합니다. DSR 모드 또한 Pod 크래시를 유발하여 SNAT 모드로 회귀했습니다. 향후 NIC 드라이버 업데이트 시 재시도가 필요합니다.
+
+---
+
+## 핵심 결론: 성능 차이 vs 기능 차이
+
+이번 벤치마크의 가장 중요한 결론은 **VPC CNI와 Cilium CNI 간에 실질적인 성능 차이는 거의 없다**는 점입니다.
+
+| 항목 | 결과 | 해석 |
+|------|------|------|
+| TCP Throughput | 모든 시나리오 동일 (12.4 Gbps) | NIC 대역폭에 포화, CNI 무관 |
+| HTTP p99 @QPS=1000 | 8.75~10.92ms (시나리오별 변동) | 측정 오차 범위 내 |
+| UDP 패킷 손실 | VPC CNI 20% vs Cilium 튜닝 0.03% | Bandwidth Manager 기능 유무 차이 (iperf3 극한 조건) |
+| 서비스 스케일링 | iptables +26µs/연결 @1,000개 | 측정 가능하나 실환경에서 미미 |
+
+:::tip AI/ML 실시간 추론 워크로드에서의 의미
+다만, **HTTP/gRPC 기반 실시간 추론 서빙** 환경에서는 RTT 개선(4,894→3,135µs, 약 36%)과 HTTP p99 지연 감소(10.92→8.75ms, 약 20%)가 누적되어 유의미할 수 있습니다. Agentic AI 워크로드처럼 하나의 요청이 **여러 마이크로서비스를 거치는 multi-hop 통신 패턴**(예: Gateway → Router → vLLM → RAG → Vector DB)에서는 hop마다 절감된 지연이 누적되므로, 전체 end-to-end 응답 시간에서 체감 가능한 차이가 발생할 수 있습니다. 초저지연이 요구되는 실시간 추론 서빙에서는 이 점을 고려할 필요가 있습니다.
+:::
+
+**두 CNI를 선택할 때 고려해야 할 진짜 차이점은 기능입니다:**
+- **L7 네트워크 정책** (HTTP 경로/메서드 기반 필터링)
+- **FQDN 기반 Egress 정책** (도메인 이름으로 외부 접근 제어)
+- **eBPF 기반 관찰성** (Hubble을 통한 실시간 네트워크 흐름 가시성)
+- **Hubble 네트워크 맵** — eBPF 기반으로 커널 수준에서 패킷 메타데이터를 수집하므로 사이드카 프록시 방식 대비 **오버헤드가 극히 낮으면서도** 서비스 간 통신 흐름, 의존성, 정책 판정(ALLOWED/DENIED)을 실시간 시각화할 수 있습니다. 별도의 서비스 메시 없이도 네트워크 토폴로지 맵을 확보할 수 있다는 점은 운영 가시성 측면에서 큰 장점입니다.
+- **kube-proxy-less 아키텍처** (운영 복잡도 감소, 대규모 환경 미래 대비)
+- **Bandwidth Manager** (극한 UDP 워크로드의 QoS 제어)
+
+성능 최적화가 목적이라면 CNI 선택보다 **애플리케이션 튜닝, 인스턴스 타입 선정, 네트워크 토폴로지 최적화**가 훨씬 큰 영향을 미칩니다. 다만 multi-hop 추론 파이프라인이나 네트워크 가시성이 중요한 환경에서는 Cilium의 기능적 이점이 성능 개선으로 이어질 수 있습니다.
 
 ---
 

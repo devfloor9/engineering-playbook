@@ -27,7 +27,7 @@ export default function OverviewSummaryChart({ locale = 'en' }) {
       httpP99: 'HTTP p99 @QPS=1000',
       serviceScaling: 'Service Scaling (1000 svc)',
       identical: 'Identical (NIC-saturated)',
-      reduction680x: '680× reduction',
+      reductionBwMgr: 'Bandwidth Manager',
       lower36: '36% lower',
       lower20: '20% lower',
       iptablesGrowth101x: '101× iptables growth, +16%/conn',
@@ -47,7 +47,7 @@ export default function OverviewSummaryChart({ locale = 'en' }) {
       httpP99: 'HTTP p99 @QPS=1000',
       serviceScaling: '서비스 스케일링 (1000 svc)',
       identical: '동일 (NIC 포화)',
-      reduction680x: '680배 개선',
+      reductionBwMgr: 'Bandwidth Manager 적용',
       lower36: '36% 단축',
       lower20: '20% 감소',
       iptablesGrowth101x: 'iptables 101배 증가, 연결당 +16%',
@@ -61,7 +61,7 @@ export default function OverviewSummaryChart({ locale = 'en' }) {
 
   const data = [
     { metric: t.tcpThroughput, vpcCni: '12.41 Gbps', cilium: '12.40 Gbps', improvement: t.identical, color: '#6b7280' },
-    { metric: t.udpPacketLoss, vpcCni: '20.39%', cilium: '0.03%', improvement: t.reduction680x, color: '#10b981' },
+    { metric: t.udpPacketLoss, vpcCni: '20.39%', cilium: '0.03%', improvement: t.reductionBwMgr, color: '#10b981' },
     { metric: t.podToPodRtt, vpcCni: '4,894 µs', cilium: '3,135 µs', improvement: t.lower36, color: '#10b981' },
     { metric: t.httpP99, vpcCni: '10.92 ms', cilium: '8.75 ms*', improvement: t.lower20, color: '#10b981' },
     { metric: t.serviceScaling, vpcCni: t.iptablesGrowth101x, cilium: t.ebpfO1, improvement: t.ebpfO1Advantage, color: '#10b981' }

@@ -7,8 +7,8 @@ const i18n = {
     subtitle: 'EKS 1.31 · m6i.xlarge × 3 Nodes · Real-world measurements across 5 scenarios',
     rttLatency: 'RTT Latency Improvement',
     rttSub: 'Scenario E vs A',
-    udpLoss: 'UDP Loss Improvement',
-    udpSub: '20.39% → 0.03%',
+    udpLoss: 'UDP Loss Mitigation',
+    udpSub: 'Bandwidth Manager + BBR',
     iptablesGrowth: 'iptables Rule Growth',
     iptablesSub: '99 → 10,059 (1000 svc)',
     ebpfLookup: 'eBPF Service Lookup',
@@ -19,8 +19,8 @@ const i18n = {
     subtitle: 'EKS 1.31 · m6i.xlarge × 3 Nodes · 5개 시나리오 실측 데이터 기반',
     rttLatency: 'RTT 지연 개선',
     rttSub: '시나리오 E vs A',
-    udpLoss: 'UDP 손실 개선',
-    udpSub: '20.39% → 0.03%',
+    udpLoss: 'UDP 손실 완화',
+    udpSub: 'Bandwidth Manager + BBR 적용',
     iptablesGrowth: 'iptables 규칙 증가',
     iptablesSub: '99 → 10,059 (1000 svc)',
     ebpfLookup: 'eBPF 서비스 룩업',
@@ -35,7 +35,7 @@ export default function KeyResultsSummaryChart({ locale = 'en' }) {
 
   const metrics = [
     { value: '-36%', label: t.rttLatency, sub: t.rttSub, color: '#5eead4' },
-    { value: '680×', label: t.udpLoss, sub: t.udpSub, color: '#5eead4' },
+    { value: 'BW Mgr', label: t.udpLoss, sub: t.udpSub, color: '#5eead4' },
     { value: '101×', label: t.iptablesGrowth, sub: t.iptablesSub, color: '#fb923c' },
     { value: 'O(1)', label: t.ebpfLookup, sub: t.ebpfSub, color: '#fbbf24' }
   ];

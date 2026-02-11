@@ -148,7 +148,7 @@ export default function UdpLossChart() {
           display: 'flex', gap: '1.5rem', flexWrap: 'wrap',
         }}>
           <div style={{ fontSize: '0.78rem', color: '#64748b' }}>
-            <span style={{ fontWeight: 600, color: '#059669' }}>680×</span> improvement (A→E)
+            <span style={{ fontWeight: 600, color: '#059669' }}>Bandwidth Manager + BBR</span> enabled (E)
           </div>
           <div style={{ fontSize: '0.78rem', color: '#64748b' }}>
             <span style={{ fontWeight: 600, color: '#ef4444' }}>20%+</span> loss without Bandwidth Manager (A, D)

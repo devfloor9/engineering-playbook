@@ -11,7 +11,7 @@ const i18n = {
     resourceSubtitle: 'Cilium agent · during iperf3/Fortio benchmark',
     p50: 'p50', p99: 'p99', cpu: 'CPU', memory: 'Memory', nm: 'N/M',
     dnsSummary: 'DNS resolution latency is 2–4 ms across all scenarios — CNI choice has negligible impact.',
-    resourceSummary: 'Scenario C (kp-less) uses more memory due to eBPF maps storing Service endpoint state for kube-proxy replacement.',
+    resourceSummary: 'Scenario C (kp-less) uses more memory because it combines VXLAN overlay eBPF maps (tunnel endpoints, encapsulation state) with kube-proxy replacement eBPF maps (Service endpoints). Scenarios D/E also replace kube-proxy, but ENI native routing eliminates overlay maps, resulting in lower memory.',
   },
   ko: {
     dnsTitle: 'DNS 해석 성능',
@@ -20,7 +20,7 @@ const i18n = {
     resourceSubtitle: 'Cilium agent · iperf3/Fortio 벤치마크 중 측정',
     p50: 'p50', p99: 'p99', cpu: 'CPU', memory: 'Memory', nm: '미측정',
     dnsSummary: 'DNS 해석 지연은 모든 시나리오에서 2–4 ms 범위로, CNI 구성에 따른 차이가 거의 없습니다.',
-    resourceSummary: '시나리오 C(kp-less)의 메모리가 높은 이유는 kube-proxy 대체 시 eBPF 맵에 Service endpoint 상태를 추가로 유지하기 때문입니다.',
+    resourceSummary: '시나리오 C(kp-less)의 메모리가 높은 이유는 VXLAN 오버레이 eBPF 맵(터널 엔드포인트, 캡슐화 상태)과 kube-proxy 대체 eBPF 맵(Service endpoint)을 동시에 유지하기 때문입니다. D/E도 kube-proxy를 대체하지만 ENI native 라우팅으로 오버레이 맵이 불필요하여 메모리가 낮습니다.',
   },
 };
 

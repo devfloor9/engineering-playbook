@@ -29,6 +29,7 @@ import KeyFindingsChart from '@site/src/components/KeyFindingsChart';
 import RecommendationChart from '@site/src/components/RecommendationChart';
 import XdpCompatibilityChart from '@site/src/components/XdpCompatibilityChart';
 import NetworkPolicyChart from '@site/src/components/NetworkPolicyChart';
+import CniConclusionInfographic from '@site/src/components/CniConclusionInfographic';
 
 # VPC CNI vs Cilium CNI Performance Comparison Benchmark
 
@@ -38,7 +39,7 @@ import NetworkPolicyChart from '@site/src/components/NetworkPolicyChart';
 
 A quantitative benchmark comparing VPC CNI and Cilium CNI performance across 5 scenarios on Amazon EKS 1.31.
 
-**Bottom line**: TCP throughput is NIC-bound (12.5 Gbps) and identical across all CNI configurations, but Cilium ENI with full tuning delivers **680× lower UDP packet loss** (20% → 0.03%), **36% lower RTT** (4,894 → 3,135 µs), and **20% lower HTTP p99 latency** (10.92 → 8.75 ms) compared to VPC CNI. Additionally, 1,000-service scaling tests show that kube-proxy's iptables rules grew **101× (99→10,059 rules)** with **+16% per-connection overhead**, while Cilium eBPF maintained **O(1) constant performance** regardless of service count.
+<CniConclusionInfographic locale="en" />
 
 **5 Scenarios**:
 - **A** VPC CNI Baseline
@@ -164,14 +165,14 @@ Benchmark data collected on 2026-02-09 on Amazon EKS 1.31 with m6i.xlarge nodes 
 
 <ThroughputChart />
 
-:::info Why UDP Throughput Differs Across Configurations
-TCP throughput is identical across all scenarios (saturated at the NIC bandwidth of 12.5 Gbps), but UDP shows significant performance differences:
+:::info UDP packet loss difference is a feature difference, not a performance difference
+TCP shows no difference across all scenarios (saturated at NIC bandwidth of 12.5 Gbps), which represents actual CNI performance. The UDP packet loss difference should be understood in the following context:
 
-- **Scenarios A (VPC CNI) and D (Cilium ENI default)**: UDP throughput ~10 Gbps but with **20% packet loss**. Without the eBPF Bandwidth Manager, the kernel's default UDP buffers cannot handle iperf3's high-speed transmission, causing buffer overflow and packet drops.
-- **Scenarios B, C (Cilium Overlay)**: UDP throughput ~7.9 Gbps (lower) but with **under 1% packet loss**. VXLAN encapsulation overhead reduces raw throughput, yet Cilium's eBPF-based packet processing optimizes buffer management, significantly reducing loss.
-- **Scenario E (Cilium ENI+Tuning)**: UDP throughput ~8.0 Gbps with **0.03% packet loss**. The Bandwidth Manager (EDT-based rate limiting) and BBR congestion control regulate the transmission rate to match receiver capacity, preventing buffer overflow.
+- **iperf3 test specificity**: iperf3 transmits UDP packets at maximum possible speed, intentionally saturating the network. This is an extreme condition that rarely occurs in production workloads.
+- **Buffer overflow is the cause**: The 20% packet loss in Scenario A (VPC CNI) and D (Cilium ENI default) occurs because the kernel UDP buffer cannot handle high-speed transmission, causing buffer overflow.
+- **Bandwidth Manager is a feature**: The reduction to 0.03% loss in Scenario E is because Bandwidth Manager (EDT-based rate limiting) throttles transmission speed to match receiver processing capacity. This is an **additional feature** of Cilium, not an inherent CNI performance advantage.
 
-**Key insight**: For UDP workloads, **packet loss rate** is a more meaningful performance metric than raw throughput. High throughput with high loss actually means lower effective data transfer.
+**Conclusion**: In typical production workloads, the UDP packet loss difference is unlikely to be noticeable. Bandwidth Manager is only meaningful for extreme UDP workloads (e.g., high-volume media streaming).
 :::
 
 #### Pod-to-Pod Latency
@@ -231,8 +232,8 @@ To validate Cilium eBPF's O(1) service lookup performance, we compared performan
 
 </details>
 
-:::info eBPF O(1) Service Lookup Confirmed
-Increasing the service count from 4 to 104 (26x increase) showed no meaningful performance difference on Cilium eBPF — all metrics remained within 5% measurement noise. This confirms that eBPF hash map-based O(1) lookups maintain constant performance regardless of service count. In contrast, kube-proxy (iptables) traverses rule chains proportionally at O(n), with significant degradation at 500+ services.
+:::info eBPF O(1) service lookup confirmed
+Even after increasing services by 26x (4 to 104) in the Cilium eBPF environment, all metrics remained identical within measurement error (within 5%). This confirms that eBPF's hash map-based O(1) lookup maintains consistent performance regardless of service count. However, as shown in the kube-proxy scaling test below, iptables overhead is also practically minimal at the 1,000-service level. Unless service counts scale to several thousand or more, this difference is unlikely to impact real-world performance.
 :::
 
 ### kube-proxy (iptables) Service Scaling: 4 → 104 → 1,000 Services
@@ -251,14 +252,8 @@ To validate eBPF's O(1) advantage, the same scaling test was conducted on VPC CN
 Production workloads that don't use keepalive (legacy services without gRPC, one-shot HTTP requests, TCP-based microservices) pay the iptables chain traversal cost on every request. The KUBE-SERVICES chain uses probability-based matching (`-m statistic --mode random`), so average traversal length is O(n/2) and grows proportionally with service count.
 :::
 
-:::warning iptables Scaling Limits
-At 1,000 services, per-connection overhead is measurable (+26µs) but still modest. However, this trend **scales linearly with service count**, and the real degradation threshold occurs at **5,000+ services**:
-
-- kube-proxy sync regeneration exceeds **500ms+**
-- Chain traversal adds **hundreds of µs per connection**
-- Every Service endpoint change requires full iptables rule regeneration
-
-In contrast, Cilium eBPF maintains **O(1) hash map lookups** regardless of service count, with zero iptables rule overhead.
+:::note iptables scaling characteristics
+At 1,000 services, the per-connection overhead of +26µs (+16%) is measurable but **very minimal** in absolute terms. This is a difference that is difficult to perceive in most production environments. While it theoretically has O(n) characteristics that scale linearly with service count and could accumulate at thousands of services, typical EKS clusters (hundreds of services) are unlikely to experience practical performance differences between iptables and eBPF. Cilium eBPF's O(1) lookup is meaningful as **future-proofing for large-scale service environments**.
 :::
 
 <details>
@@ -301,6 +296,33 @@ Individual tuning point impact was not measured in isolation. Scenario E applied
 | XDP Acceleration | ❌ | ENA driver lacks `bpf_link` support on m6i.xlarge |
 
 **Cumulative Effect (D→E)**: RTT improved from 4453µs to 3135µs (29.6% reduction), max QPS increased from 4026 to 4182 (3.9% improvement).
+
+---
+
+## Key Conclusion: Performance Difference vs Feature Difference
+
+The most important conclusion from this benchmark is that **there is virtually no practical performance difference between VPC CNI and Cilium CNI**.
+
+| Item | Result | Interpretation |
+|------|--------|----------------|
+| TCP Throughput | Identical across all scenarios (12.4 Gbps) | Saturated at NIC bandwidth, CNI-independent |
+| HTTP p99 @QPS=1000 | 8.75~10.92ms (varies by scenario) | Within measurement error |
+| UDP Packet Loss | VPC CNI 20% vs Cilium tuned 0.03% | Bandwidth Manager feature difference (iperf3 extreme conditions) |
+| Service Scaling | iptables +26µs/connection @1,000 | Measurable but negligible in practice |
+
+:::tip Significance for AI/ML Real-Time Inference Workloads
+However, in **HTTP/gRPC-based real-time inference serving** environments, the RTT improvement (4,894→3,135µs, ~36%) and HTTP p99 latency reduction (10.92→8.75ms, ~20%) can accumulate to become meaningful. In Agentic AI workloads where a single request **traverses multiple microservices in a multi-hop communication pattern** (e.g., Gateway → Router → vLLM → RAG → Vector DB), the latency savings compound at each hop, potentially producing a perceivable difference in overall end-to-end response time. This is worth considering for real-time inference serving where ultra-low latency is required.
+:::
+
+**The real differentiator when choosing between the two CNIs is features:**
+- **L7 network policies** (HTTP path/method-based filtering)
+- **FQDN-based egress policies** (domain name-based external access control)
+- **eBPF-based observability** (real-time network flow visibility via Hubble)
+- **Hubble network map** — By collecting packet metadata at the kernel level via eBPF, Hubble provides **extremely low overhead** compared to sidecar proxy approaches while enabling real-time visualization of service-to-service communication flows, dependencies, and policy verdicts (ALLOWED/DENIED). The ability to obtain a network topology map without a separate service mesh is a significant advantage for operational visibility.
+- **kube-proxy-less architecture** (reduced operational complexity, future-proofing for scale)
+- **Bandwidth Manager** (QoS control for extreme UDP workloads)
+
+If performance optimization is the goal, **application tuning, instance type selection, and network topology optimization** will have far greater impact than CNI choice. However, in environments with multi-hop inference pipelines or where network visibility is critical, Cilium's feature advantages can translate into meaningful performance improvements.
 
 ---
 
