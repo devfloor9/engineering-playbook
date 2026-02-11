@@ -4,10 +4,13 @@ sidebar_label: "EKS 장애 진단 및 대응"
 description: "Amazon EKS 환경에서 애플리케이션 및 인프라 문제를 체계적으로 진단하고 해결하기 위한 종합 트러블슈팅 가이드"
 tags: [eks, kubernetes, debugging, troubleshooting, observability, incident-response]
 category: "observability-monitoring"
-date: 2026-02-10
-authors: [devfloor9]
+last_update:
+  date: 2026-02-10
+  author: devfloor9
 sidebar_position: 5
 ---
+
+import { IncidentEscalationTable, ZonalShiftImpactTable, ControlPlaneLogTable, ClusterHealthTable, NodeGroupErrorTable, ErrorQuickRefTable } from '@site/src/components/EksDebugTables';
 
 # EKS 장애 진단 및 대응 가이드
 
@@ -223,16 +226,9 @@ Zonal Shift의 최대 지속 시간은 **3일**이며 연장 가능합니다. Sh
 :::danger Zonal Shift는 트래픽만 차단합니다
 ARC Zonal Shift는 **Load Balancer / Service 레벨의 트래픽 라우팅만 변경**합니다.
 
-| 계층 | Zonal Shift 영향 | 자동 조정 | 수동 작업 필요 |
-|---|---|---|---|
-| **ALB / NLB** | 해당 AZ Target Group에서 제거 | ✅ 자동 | - |
-| **EKS Service (kube-proxy)** | 해당 AZ의 Endpoint 가중치 제거 | ✅ 자동 | - |
-| **기존 노드** | 계속 실행됨 | ❌ | `kubectl drain` 으로 Pod 이동 |
-| **기존 Pod** | 트래픽만 차단, Pod 자체는 실행 중 | ❌ | drain 시 자동 재배치 |
-| **Karpenter NodePool** | AZ 설정 변경 없음, 해당 AZ에 새 노드 생성 가능 | ❌ | NodePool requirements 수정 |
-| **ASG (Managed Node Group)** | 서브넷 목록 변경 없음, 해당 AZ에 스케일아웃 가능 | ❌ | ASG 서브넷 수정 (콘솔/IaC) |
-| **EBS 볼륨** | AZ에 고정, 이동 불가 | ❌ | 스냅샷 → 다른 AZ에 복원 |
-| **EFS Mount Target** | 다른 AZ의 Mount Target 자동 사용 | ✅ 자동 | - | Karpenter NodePool, ASG(Managed Node Group)의 AZ 설정은 자동으로 업데이트되지 않습니다. 따라서 완전한 AZ 대피를 위해서는 추가 작업이 필요합니다:
+<ZonalShiftImpactTable />
+
+Karpenter NodePool, ASG(Managed Node Group)의 AZ 설정은 자동으로 업데이트되지 않습니다. 따라서 완전한 AZ 대피를 위해서는 추가 작업이 필요합니다:
 
 1. **Zonal Shift 시작** → 새 트래픽 차단 (자동)
 2. **해당 AZ 노드 drain** → 기존 Pod 이동
@@ -276,12 +272,7 @@ aws cloudwatch put-anomaly-detector \
 
 ### 인시던트 대응 에스컬레이션 매트릭스
 
-| 심각도 | 정의 | 초동 대응 시간 | 에스컬레이션 | 예시 |
-|--------|------|---------------|-------------|------|
-| **P1 - Critical** | 전체 서비스 중단 | 5분 이내 | 즉시 온콜 + 관리자 | 컨트롤 플레인 장애, 전체 노드 NotReady |
-| **P2 - High** | 주요 기능 장애 | 15분 이내 | 온콜 팀 | 특정 AZ 장애, 다수 Pod CrashLoopBackOff |
-| **P3 - Medium** | 성능 저하 | 1시간 이내 | 담당 팀 | HPA 스케일링 실패, 간헐적 타임아웃 |
-| **P4 - Low** | 경미한 이슈 | 4시간 이내 | 백로그 | 단일 Pod 재시작, 비프로덕션 환경 이슈 |
+<IncidentEscalationTable />
 
 :::info 고가용성 아키텍처 가이드 참조
 아키텍처 수준의 장애 회복 전략(TopologySpreadConstraints, PodDisruptionBudget, 멀티AZ 배포 등)은 [EKS 고가용성 아키텍처 가이드](./eks-resiliency-guide.md)를 참조하세요.
@@ -295,15 +286,7 @@ aws cloudwatch put-anomaly-detector \
 
 EKS 컨트롤 플레인은 5가지 로그 타입을 CloudWatch Logs에 전송할 수 있습니다.
 
-| 로그 타입 | 컴포넌트 | CloudWatch Log Stream 패턴 | 용도 |
-|-----------|---------|---------------------------|------|
-| `api` | kube-apiserver | `kube-apiserver-audit-*` | API 요청/응답 기록 |
-| `audit` | kube-apiserver-audit | `kube-apiserver-audit-*` | 감사 로그 (누가, 무엇을, 언제) |
-| `authenticator` | aws-iam-authenticator | `authenticator-*` | IAM 인증 이벤트 |
-| `controllerManager` | kube-controller-manager | `kube-controller-manager-*` | 컨트롤러 동작 로그 |
-| `scheduler` | kube-scheduler | `scheduler-*` | 스케줄링 결정 및 실패 |
-
-로그 그룹: `/aws/eks/<cluster-name>/cluster`
+<ControlPlaneLogTable />
 
 ### 로그 활성화
 
@@ -507,15 +490,7 @@ aws eks describe-cluster --name $CLUSTER \
   --query 'cluster.health' --output json
 ```
 
-| 코드 | 메시지 | 복구 가능 여부 |
-|---|---|---|
-| `SUBNET_NOT_FOUND` | 클러스터 서브넷이 삭제됨 | ⚠️ 새 서브넷 연결 필요 |
-| `SECURITY_GROUP_NOT_FOUND` | 클러스터 보안그룹이 삭제됨 | ⚠️ 보안그룹 재생성 |
-| `IP_NOT_AVAILABLE` | 서브넷에 IP 부족 | ✅ 서브넷 추가/확장 |
-| `VPC_NOT_FOUND` | VPC가 삭제됨 | ❌ 클러스터 재생성 필요 |
-| `ASSUME_ROLE_ACCESS_DENIED` | 클러스터 IAM Role 권한 문제 | ✅ IAM 정책 수정 |
-| `KMS_KEY_DISABLED` | Secrets 암호화 KMS 키 비활성화 | ✅ KMS 키 재활성화 |
-| `KMS_KEY_NOT_FOUND` | KMS 키 삭제됨 | ❌ 복구 불가 |
+<ClusterHealthTable />
 
 :::danger 복구 불가 이슈
 `VPC_NOT_FOUND`와 `KMS_KEY_NOT_FOUND`는 복구가 불가능합니다. 클러스터를 새로 생성해야 합니다.
@@ -679,22 +654,7 @@ aws eks describe-nodegroup --cluster-name $CLUSTER --nodegroup-name $NODEGROUP \
   --query 'nodegroup.health' --output json
 ```
 
-| 에러 코드 | 원인 | 해결 방법 |
-|---|---|---|
-| `AccessDenied` | 노드 IAM Role에 필요한 권한 부족 | eks:node-manager ClusterRole/ClusterRoleBinding 확인 및 복구 |
-| `AmiIdNotFound` | Launch Template의 AMI ID가 존재하지 않음 | 유효한 EKS optimized AMI ID로 업데이트 |
-| `AutoScalingGroupNotFound` | ASG가 삭제되었거나 존재하지 않음 | 노드 그룹 삭제 후 재생성 |
-| `ClusterUnreachable` | 노드가 EKS API 서버에 연결 불가 | VPC 설정, 보안그룹, 엔드포인트 접근성 확인 |
-| `Ec2SecurityGroupNotFound` | 지정된 보안그룹이 삭제됨 | 올바른 보안그룹 생성 후 노드그룹 재구성 |
-| `Ec2LaunchTemplateNotFound` | Launch Template이 삭제됨 | 새 Launch Template 생성 후 노드그룹 업데이트 |
-| `Ec2LaunchTemplateVersionMismatch` | Launch Template 버전 불일치 | 노드그룹이 참조하는 버전 확인 및 수정 |
-| `IamInstanceProfileNotFound` | 인스턴스 프로파일이 존재하지 않음 | IAM 인스턴스 프로파일 재생성 |
-| `IamNodeRoleNotFound` | 노드 IAM Role이 삭제됨 | IAM Role 재생성 후 필요 정책 연결 |
-| `AsgInstanceLaunchFailures` | EC2 인스턴스 시작 실패 (용량 부족 등) | 다른 인스턴스 타입/AZ 추가, Service Quotas 확인 |
-| `NodeCreationFailure` | 노드 생성 일반 실패 | CloudTrail에서 상세 에러 확인 |
-| `InstanceLimitExceeded` | EC2 인스턴스 한도 초과 | Service Quotas에서 한도 증가 요청 |
-| `InsufficientFreeAddresses` | 서브넷의 가용 IP 주소 부족 | 서브넷 CIDR 확장 또는 새 서브넷 추가 |
-| `InternalFailure` | AWS 내부 오류 | 재시도, 지속시 AWS Support 문의 |
+<NodeGroupErrorTable />
 
 **AccessDenied 에러 복구 — eks:node-manager ClusterRole 확인:**
 
@@ -2039,26 +1999,7 @@ aws events put-rule \
 
 ### 에러 패턴 → 원인 → 해결 빠른 참조 테이블
 
-| # | 에러 패턴 / 증상 | 원인 | 해결 방법 |
-|---|-----------------|------|----------|
-| 1 | `CrashLoopBackOff` | 앱 크래시, 잘못된 설정, 의존성 미충족 | `kubectl logs --previous`, 앱 설정/환경변수 점검 |
-| 2 | `ImagePullBackOff` | 이미지 미존재, 레지스트리 인증 실패 | 이미지 이름/태그 확인, `imagePullSecrets` 설정 |
-| 3 | `OOMKilled` | 메모리 limits 초과 | 메모리 limits 증가, 앱 메모리 누수 점검 |
-| 4 | `Pending` (스케줄링 불가) | 리소스 부족, nodeSelector 불일치 | `kubectl describe pod` 이벤트 확인, 노드 용량/라벨 점검 |
-| 5 | `CreateContainerConfigError` | ConfigMap/Secret 미존재 | 참조되는 ConfigMap/Secret 존재 여부 확인 |
-| 6 | `Node NotReady` | kubelet 장애, 리소스 압박 | SSM으로 노드 접속, `systemctl status kubelet` |
-| 7 | `FailedAttachVolume` | EBS 볼륨 다른 노드에 연결됨 | 이전 Pod 삭제, 볼륨 detach 대기 (~6분) |
-| 8 | `FailedMount` | EFS mount target/SG 설정 오류 | mount target 존재 및 TCP 2049 허용 확인 |
-| 9 | `NetworkNotReady` | VPC CNI 미시작 | `kubectl logs -n kube-system -l k8s-app=aws-node` |
-| 10 | `DNS resolution failed` | CoreDNS 장애 | CoreDNS Pod 상태/로그 확인, `kubectl rollout restart` |
-| 11 | `Unauthorized` / `403` | RBAC 권한 부족, aws-auth 설정 오류 | `aws sts get-caller-identity`, aws-auth/Access Entry 확인 |
-| 12 | `connection refused` | Service Endpoint 없음, 포트 불일치 | `kubectl get endpoints`, selector 및 포트 확인 |
-| 13 | `Evicted` | 노드 리소스 압박 (DiskPressure 등) | 노드 디스크 정리, Pod resource requests 조정 |
-| 14 | `FailedScheduling: Insufficient cpu/memory` | 클러스터 용량 부족 | Karpenter NodePool limits 증가, 노드 추가 |
-| 15 | `Terminating` (stuck) | Finalizer 미완료, preStop hook 지연 | Finalizer 확인, 필요시 `--force --grace-period=0` |
-| 16 | `Back-off pulling image` | 이미지 크기 큰 경우 pull 타임아웃 | 이미지 최적화, ECR 같은 리전 레지스트리 사용 |
-| 17 | `readiness probe failed` | 앱 시작 지연, 헬스체크 엔드포인트 오류 | `startupProbe` 추가, probe 타임아웃 조정 |
-| 18 | `Too many pods` | 노드당 최대 Pod 수 초과 | `max-pods` 설정 확인, Prefix Delegation 활성화 |
+<ErrorQuickRefTable />
 
 ### 필수 kubectl 명령어 치트시트
 
