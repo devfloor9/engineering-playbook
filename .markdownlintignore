@@ -1,0 +1,5 @@
+.claude/
+.omc/
+node_modules/
+build/
+.docusaurus/
