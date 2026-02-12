@@ -14,7 +14,7 @@ import { ArchitectureLayers, ManagedAddons, ServiceComparison, ObservabilityPill
 
 # Building an Intelligent Observability Stack for EKS
 
-> 📅 **Date**: 2026-02-12 | ⏱️ **Reading Time**: ~35 minutes | 📌 **Environment**: EKS 1.35+, ADOT v0.40+, AMP, AMG
+> 📅 **Written**: 2026-02-12 | ⏱️ **Reading Time**: ~35 minutes | 📌 **Reference Environment**: EKS 1.35+, ADOT v0.40+, AMP, AMG
 
 ---
 
@@ -412,7 +412,7 @@ ADOT Collector pipelines process data in the order of `receivers → processors 
 
 ```
 ┌─────────────┐    ┌──────────────┐    ┌─────────────┐
-│  Receivers   │───▶│  Processors  │───▶│  Exporters  │
+│  Receivers  │───▶│  Processors  │───▶│  Exporters  │
 │             │    │              │    │             │
 │ • otlp      │    │ • memory_    │    │ • prometheus│
 │ • prometheus│    │   limiter    │    │   remotewrite│

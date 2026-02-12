@@ -1,64 +1,97 @@
 import React from 'react';
 
 const AiCodingAgentComparison = () => {
-  const qDeveloperFeatures = [
-    { feature: '코드 생성', description: 'AWS SDK, CDK, Terraform 코드 자동 생성' },
-    { feature: 'Security Scan', description: '코드 보안 취약점 자동 탐지' },
-    { feature: '코드 변환', description: 'Java 8→17, .NET Framework→.NET Core 등' },
-    { feature: 'CloudWatch Investigations', description: '운영 이슈 AI 분석' },
-    { feature: 'EKS 트러블슈팅', description: 'kubectl 명령어 제안, YAML 오류 수정' }
-  ];
-
-  const agentComparison = [
+  const agents = [
     {
-      feature: 'AWS 서비스 이해',
-      qDeveloper: { stars: 5, label: '★★★★★' },
-      kiro: { stars: 4, label: '★★★★ (MCP)' },
-      claudeCode: { stars: 3, label: '★★★' }
+      name: 'Amazon Q Developer',
+      provider: 'AWS',
+      model: 'Claude (Anthropic)',
+      cost: 'Pro $19/mo',
+      specialty: 'AWS Native + Security',
+      color: '#ea580c',
+      ratings: {
+        'AWS Services': 5,
+        'Spec-driven': 2,
+        'Security Scan': 5,
+        'MCP Integration': 4,
+        'EKS Ops': 5
+      }
     },
     {
-      feature: 'Spec-driven 개발',
-      qDeveloper: { stars: 2, label: '★★' },
-      kiro: { stars: 5, label: '★★★★★' },
-      claudeCode: { stars: 3, label: '★★★ (CLAUDE.md)' }
+      name: 'Kiro',
+      provider: 'AWS',
+      model: 'Claude + Open Weight',
+      cost: 'Separate',
+      specialty: 'Spec-driven + MCP Native',
+      color: '#2563eb',
+      ratings: {
+        'AWS Services': 4,
+        'Spec-driven': 5,
+        'Security Scan': 3,
+        'MCP Integration': 5,
+        'EKS Ops': 4
+      }
     },
     {
-      feature: '보안 스캔',
-      qDeveloper: { stars: 5, label: '★★★★★' },
-      kiro: { stars: 3, label: '★★★' },
-      claudeCode: { stars: 3, label: '★★★' }
+      name: 'Claude Code',
+      provider: 'Anthropic',
+      model: 'Claude Opus/Sonnet',
+      cost: 'Max $100-200/mo',
+      specialty: 'Autonomous Agent + MCP',
+      color: '#7c3aed',
+      ratings: {
+        'AWS Services': 3,
+        'Spec-driven': 3,
+        'Security Scan': 3,
+        'MCP Integration': 5,
+        'EKS Ops': 4
+      }
     },
     {
-      feature: 'MCP 통합',
-      qDeveloper: { stars: 4, label: '★★★★' },
-      kiro: { stars: 5, label: '★★★★★' },
-      claudeCode: { stars: 5, label: '★★★★★' }
+      name: 'Cursor',
+      provider: 'Anysphere',
+      model: 'Claude / GPT-4o / Custom',
+      cost: 'Pro $20/mo',
+      specialty: 'IDE Integration + Multi-model',
+      color: '#059669',
+      ratings: {
+        'AWS Services': 2,
+        'Spec-driven': 3,
+        'Security Scan': 2,
+        'MCP Integration': 4,
+        'EKS Ops': 2
+      }
     },
     {
-      feature: 'EKS 운영',
-      qDeveloper: { stars: 5, label: '★★★★★' },
-      kiro: { stars: 4, label: '★★★★' },
-      claudeCode: { stars: 4, label: '★★★★ (MCP)' }
-    },
-    {
-      feature: 'AI 모델',
-      qDeveloper: { stars: 0, label: 'Claude (Anthropic)' },
-      kiro: { stars: 0, label: 'Claude + Open Weight' },
-      claudeCode: { stars: 0, label: 'Claude Opus/Sonnet' }
-    },
-    {
-      feature: '비용',
-      qDeveloper: { stars: 0, label: 'Pro $19/월' },
-      kiro: { stars: 0, label: '별도' },
-      claudeCode: { stars: 0, label: 'Max $100-200/월' }
-    },
-    {
-      feature: '특화 영역',
-      qDeveloper: { stars: 0, label: 'AWS 네이티브 + 보안' },
-      kiro: { stars: 0, label: 'Spec-driven + MCP' },
-      claudeCode: { stars: 0, label: '자율 에이전트 + MCP' }
+      name: 'OpenAI Codex',
+      provider: 'OpenAI',
+      model: 'codex-1 (o3-mini based)',
+      cost: 'Included in Pro $20/mo',
+      specialty: 'Multi-file Autonomous Coding',
+      color: '#0891b2',
+      ratings: {
+        'AWS Services': 2,
+        'Spec-driven': 2,
+        'Security Scan': 3,
+        'MCP Integration': 2,
+        'EKS Ops': 2
+      }
     }
   ];
+
+  const qDeveloperFeatures = [
+    { feature: 'Code Generation', description: 'Auto-generate AWS SDK, CDK, Terraform code' },
+    { feature: 'Security Scan', description: 'Automated code vulnerability detection' },
+    { feature: 'Code Transform', description: 'Java 8→17, .NET Framework→.NET Core, etc.' },
+    { feature: 'CloudWatch Investigations', description: 'AI-powered operational issue analysis' },
+    { feature: 'EKS Troubleshooting', description: 'kubectl command suggestions, YAML error fixes' }
+  ];
+
+  const renderStars = (rating) => {
+    return '★'.repeat(rating) + '☆'.repeat(5 - rating);
+  };
+
+  const features = Object.keys(agents[0].ratings);
 
   const styles = {
     container: {
@@ -71,17 +104,17 @@ const AiCodingAgentComparison = () => {
       background: 'linear-gradient(135deg, #7c2d12 0%, #ea580c 100%)',
       color: 'white',
       padding: '1.5rem',
-      borderRadius: '8px 8px 0 0'
+      borderRadius: '12px 12px 0 0'
     },
     title: {
       margin: '0 0 0.5rem 0',
       fontSize: '1.5rem',
-      fontWeight: '600'
+      fontWeight: '700'
     },
     subtitle: {
       margin: 0,
       fontSize: '0.875rem',
-      opacity: 0.9
+      opacity: 0.95
     },
     section: {
       background: 'white',
@@ -98,10 +131,6 @@ const AiCodingAgentComparison = () => {
       fontWeight: '600',
       color: '#111827'
     },
-    featuresGrid: {
-      display: 'grid',
-      gap: '0.75rem'
-    },
     featureRow: {
       display: 'grid',
       gridTemplateColumns: '2fr 3fr',
@@ -109,58 +138,67 @@ const AiCodingAgentComparison = () => {
       padding: '0.875rem',
       background: '#f9fafb',
       borderRadius: '6px',
-      fontSize: '0.875rem'
-    },
-    featureName: {
-      fontWeight: '600',
-      color: '#111827'
-    },
-    featureDescription: {
-      color: '#4b5563',
-      lineHeight: '1.5'
-    },
-    comparisonTable: {
-      marginTop: '2rem'
-    },
-    tableHeader: {
-      display: 'grid',
-      gridTemplateColumns: '2fr 1.5fr 1.5fr 1.5fr',
-      gap: '0.75rem',
-      padding: '0.75rem',
-      background: '#f9fafb',
-      borderRadius: '6px',
-      fontSize: '0.75rem',
-      fontWeight: '600',
-      color: '#6b7280',
-      textTransform: 'uppercase',
-      letterSpacing: '0.05em',
+      fontSize: '0.875rem',
       marginBottom: '0.5rem'
     },
-    comparisonRow: {
-      display: 'grid',
-      gridTemplateColumns: '2fr 1.5fr 1.5fr 1.5fr',
-      gap: '0.75rem',
-      padding: '0.875rem 0.75rem',
-      borderBottom: '1px solid #f3f4f6',
-      fontSize: '0.875rem',
-      alignItems: 'center'
-    },
-    featureCell: {
-      fontWeight: '500',
-      color: '#111827'
-    },
-    ratingCell: {
-      color: '#f59e0b',
-      fontSize: '0.8125rem',
+    cardsGrid: {
       display: 'flex',
+      flexWrap: 'wrap',
+      gap: '1rem',
+      marginTop: '1.5rem'
+    },
+    card: {
+      flex: '1 1 calc(50% - 0.5rem)',
+      minWidth: '280px',
+      background: 'white',
+      borderRadius: '10px',
+      overflow: 'hidden',
+      border: '1px solid #e5e7eb',
+      boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+    },
+    cardHeader: {
+      color: 'white',
+      padding: '1rem 1.25rem',
+      fontWeight: '600',
+      fontSize: '1.1rem'
+    },
+    cardBody: {
+      padding: '1.25rem'
+    },
+    cardMeta: {
+      marginBottom: '1rem',
+      fontSize: '0.8125rem',
+      color: '#6b7280',
+      lineHeight: '1.6'
+    },
+    ratingRow: {
+      display: 'flex',
+      justifyContent: 'space-between',
       alignItems: 'center',
-      gap: '0.25rem'
+      marginBottom: '0.375rem',
+      fontSize: '0.8125rem'
+    },
+    ratingLabel: {
+      color: '#374151',
+      fontWeight: '500'
+    },
+    ratingStars: {
+      color: '#f59e0b',
+      fontSize: '0.875rem',
+      letterSpacing: '1px'
+    },
+    cardFooter: {
+      paddingTop: '0.75rem',
+      borderTop: '1px solid #e5e7eb',
+      fontSize: '0.8125rem',
+      color: '#6b7280',
+      lineHeight: '1.6'
     },
     footer: {
       marginTop: '1.5rem',
       padding: '1rem',
       background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
-      borderRadius: '6px',
+      borderRadius: '8px',
       fontSize: '0.875rem',
       color: '#78350f',
       lineHeight: '1.6'
@@ -170,41 +208,52 @@ const AiCodingAgentComparison = () => {
   return (
     <div style={styles.container}>
       <div style={styles.header}>
-        <h2 style={styles.title}>🤖 AI 코딩 에이전트</h2>
-        <p style={styles.subtitle}>Amazon Q Developer, Kiro, Claude Code 비교</p>
+        <h2 style={styles.title}>AI Coding Agents</h2>
+        <p style={styles.subtitle}>Amazon Q Developer, Kiro, Claude Code, Cursor, OpenAI Codex</p>
       </div>
 
       <div style={styles.section}>
-        <h3 style={styles.sectionTitle}>Amazon Q Developer 주요 기능</h3>
-        <div style={styles.featuresGrid}>
-          {qDeveloperFeatures.map((item, idx) => (
-            <div key={idx} style={styles.featureRow}>
-              <div style={styles.featureName}>{item.feature}</div>
-              <div style={styles.featureDescription}>{item.description}</div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div style={styles.section}>
-        <h3 style={styles.sectionTitle}>AI 코딩 에이전트 비교</h3>
-        <div style={styles.tableHeader}>
-          <div>기능</div>
-          <div>Amazon Q Developer</div>
-          <div>Kiro</div>
-          <div>Claude Code</div>
-        </div>
-        {agentComparison.map((row, idx) => (
-          <div key={idx} style={styles.comparisonRow}>
-            <div style={styles.featureCell}>{row.feature}</div>
-            <div style={styles.ratingCell}>{row.qDeveloper.label}</div>
-            <div style={styles.ratingCell}>{row.kiro.label}</div>
-            <div style={styles.ratingCell}>{row.claudeCode.label}</div>
+        <h3 style={styles.sectionTitle}>Amazon Q Developer Key Features</h3>
+        {qDeveloperFeatures.map((item, idx) => (
+          <div key={idx} style={styles.featureRow}>
+            <div style={{ fontWeight: '600', color: '#111827' }}>{item.feature}</div>
+            <div style={{ color: '#4b5563', lineHeight: '1.5' }}>{item.description}</div>
           </div>
         ))}
-        <div style={styles.footer}>
-          <strong>선택 가이드:</strong> AWS 중심 개발·보안 스캔은 Q Developer, 체계적 Spec-driven 워크플로우는 Kiro, MCP 기반 자율 에이전트 개발은 Claude Code를 권장합니다. 세 도구 모두 <strong>Anthropic Claude</strong> 모델을 사용하며, Kiro는 오픈 웨이트 모델도 지원하여 비용 최적화와 특수 도메인 확장이 가능합니다.
-        </div>
+      </div>
+
+      <div style={styles.cardsGrid}>
+        {agents.map((agent, idx) => (
+          <div key={idx} style={styles.card}>
+            <div style={{ ...styles.cardHeader, background: agent.color }}>
+              {agent.name}
+            </div>
+            <div style={styles.cardBody}>
+              <div style={styles.cardMeta}>
+                <div><strong>Provider:</strong> {agent.provider}</div>
+                <div><strong>Model:</strong> {agent.model}</div>
+              </div>
+              <div style={{ marginBottom: '0.75rem' }}>
+                {features.map((feature, fidx) => (
+                  <div key={fidx} style={styles.ratingRow}>
+                    <span style={styles.ratingLabel}>{feature}</span>
+                    <span style={styles.ratingStars}>
+                      {renderStars(agent.ratings[feature])}
+                    </span>
+                  </div>
+                ))}
+              </div>
+              <div style={styles.cardFooter}>
+                <div><strong>Cost:</strong> {agent.cost}</div>
+                <div><strong>Specialty:</strong> {agent.specialty}</div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div style={styles.footer}>
+        <strong>Selection Guide:</strong> For AWS-native development and security scanning, use Q Developer. For systematic Spec-driven workflows, choose Kiro. For MCP-based autonomous agents, use Claude Code. For IDE-integrated multi-model development, try Cursor. For multi-file autonomous coding, consider OpenAI Codex. Q Developer, Kiro, and Claude Code all use <strong>Anthropic Claude</strong> models, and Kiro also supports open weight models for cost optimization and domain-specific extensibility.
       </div>
     </div>
   );
