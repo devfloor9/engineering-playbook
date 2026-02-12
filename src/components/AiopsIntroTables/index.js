@@ -15,3 +15,5 @@ export { default as OperationPatternsComparison } from './OperationPatternsCompa
 export { default as RoiQuantitativeMetrics } from './RoiQuantitativeMetrics';
 export { default as CostStructure } from './CostStructure';
 export { default as NextSteps } from './NextSteps';
+export { default as PlatformComparison } from './PlatformComparison';
+export { default as CoreTechStack } from './CoreTechStack';

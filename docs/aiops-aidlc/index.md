@@ -9,6 +9,8 @@ last_update:
   author: devfloor9
 ---
 
+import { PlatformComparison, CoreTechStack } from '@site/src/components/AiopsIntroTables';
+
 # AIops & AIDLC for Modern Application Platform
 
 > 📅 **작성일**: 2026-02-12 | ⏱️ **읽는 시간**: 약 5분
@@ -25,27 +27,9 @@ Kiro + MCP가 "사람이 지시하고 AI가 실행"하는 프로그래머틱 패
 
 이 카테고리는 **AI로 플랫폼을 운영하는 방법**에 집중합니다. Agentic AI Platform이 LLM 서빙, GPU 관리, 추론 최적화 등 AI 워크로드를 실행하는 플랫폼 자체를 다룬다면, AIops & AIDLC는 그 플랫폼(또는 일반 애플리케이션 플랫폼)을 AI 도구로 더 효율적으로 개발하고 운영하는 방법론을 제공합니다.
 
-| Agentic AI Platform | AIops & AIDLC |
-|---------------------|---------------|
-| LLM 서빙 및 추론 최적화 | AI로 플랫폼 자체를 운영하고 개발 |
-| vLLM, llm-d 배포 구성 | Kiro+MCP 기반 프로그래머틱 자동화 |
-| GPU 리소스 관리 | 예측 스케일링, AI Agent 자율 운영 |
-| 실시간 추론 패턴 | 관찰성 스택, AIDLC 개발 방법론 |
+<PlatformComparison />
 
-## 핵심 기술 스택
-
-| 영역 | AWS 서비스 | 오픈소스/도구 |
-|------|-----------|-------------|
-| **관찰성** | CloudWatch, X-Ray, AMP, AMG | ADOT (OpenTelemetry), Grafana |
-| **이상 탐지** | DevOps Guru, CloudWatch AI, Anomaly Detection | Prometheus + ML |
-| **AI 개발** | Kiro, Amazon Q Developer | GitHub Copilot, Claude Code |
-| **MCP 통합** | 개별 MCP (50+ GA), Fully Managed MCP (EKS/ECS Preview), AWS MCP Server 통합 (Preview) | Kagent (kmcp) |
-| **GitOps** | Managed Argo CD (EKS Capability) | Argo CD |
-| **인프라 선언** | ACK (50+ AWS CRD), KRO (ResourceGroup) | Terraform, Helm |
-| **네트워킹** | LBC v3 (Gateway API GA), Container Network Observability | Gateway API |
-| **AI Agent** | Amazon Q Developer, Strands Agents | Kagent |
-| **예측 스케일링** | CloudWatch Anomaly Detection | Prophet, ARIMA |
-| **노드 관리** | Karpenter | - |
+<CoreTechStack />
 
 :::info 학습 경로
 **Phase 1 → 2 → 3 → 4** 순서로 읽으면 AIOps 전략 수립부터 자율 운영 실현까지의 전체 여정을 따라갈 수 있습니다. Phase 1(AIOps 전략)은 전체 방향성을 이해하는 출발점이고, Phase 2(관찰성)는 AI 분석의 데이터 기반을 구축하며, Phase 3(AIDLC)는 개발 방법론을, Phase 4(예측 운영)는 자율 운영의 실현을 다룹니다.
