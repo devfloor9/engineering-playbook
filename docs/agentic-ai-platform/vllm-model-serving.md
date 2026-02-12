@@ -1,6 +1,6 @@
 ---
 title: "vLLM 기반 FM 배포 및 성능 최적화"
-sidebar_label: "vLLM 모델 서빙"
+sidebar_label: "5. vLLM 모델 서빙"
 description: "vLLM을 활용한 Foundation Model 배포, Kubernetes 통합, 성능 최적화 전략"
 category: "genai-aiml"
 sidebar_position: 6

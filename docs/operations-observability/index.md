@@ -25,20 +25,30 @@ last_update:
 
 ### 1단계: 클러스터 운영 체계 구축
 
-**[GitOps 기반 EKS 클러스터 운영](./gitops-cluster-operation.md)**
+**[1. GitOps 기반 EKS 클러스터 운영](./gitops-cluster-operation.md)**
 GitOps 기반 클러스터 구성 관리 및 선언적 인프라 운영 - 운영 기반 체계를 먼저 구축
 
 ### 2단계: 모니터링 에이전트 배포
 
-**[EKS Node Monitoring Agent](./node-monitoring-agent.md)**
+**[2. EKS Node Monitoring Agent](./node-monitoring-agent.md)**
 노드 상태 모니터링 및 시스템 메트릭 수집, Hubble을 통한 네트워크 트래픽 가시성 확보
 
 ### 3단계: EKS 장애 진단 및 대응
 
-**[EKS 장애 진단 및 대응 가이드](./eks-debugging-guide.md)**
+**[3. EKS 장애 진단 및 대응 가이드](./eks-debugging-guide.md)**
 EKS 환경에서 컨트롤 플레인, 노드, 워크로드, 네트워킹, 스토리지 전 레이어의 체계적 장애 진단 및 해결 가이드
 
 ### 4단계: EKS 고가용성 아키텍처
 
-**[EKS 고가용성 아키텍처 가이드](./eks-resiliency-guide.md)**
+**[4. EKS 고가용성 아키텍처 가이드](./eks-resiliency-guide.md)**
 Multi-AZ 전략, Cell-Based Architecture, Chaos Engineering 등 고가용성과 장애 회복력 확보를 위한 아키텍처 패턴
+
+### 5단계: Pod 헬스체크 & 라이프사이클 관리
+
+**[5. EKS Pod 헬스체크 & 라이프사이클 관리](./eks-pod-health-lifecycle.md)**
+Kubernetes Probe 설정 전략 (Startup/Liveness/Readiness), Graceful Shutdown 패턴, Pod 라이프사이클 훅, Init Container, 컨테이너 이미지 최적화
+
+### 6단계: Pod 스케줄링 & 가용성 패턴
+
+**[6. EKS Pod 스케줄링 & 가용성 패턴](./eks-pod-scheduling-availability.md)**
+Node/Pod Affinity·Anti-Affinity, Taints·Tolerations, PodDisruptionBudget 고급 패턴, Priority·Preemption, Descheduler를 활용한 워크로드 배치 전략

@@ -1,6 +1,6 @@
 ---
 title: "Agentic AI 워크로드의 기술적 도전과제"
-sidebar_label: "기술적 도전과제"
+sidebar_label: "1. 기술적 도전과제"
 description: "Agentic AI 워크로드 운영 시 직면하는 4가지 핵심 도전과제와 Kubernetes 기반 오픈소스 생태계"
 tags: [kubernetes, genai, agentic-ai, gpu, challenges, open-source]
 category: "genai-aiml"
@@ -1009,7 +1009,7 @@ Agentic AI 플랫폼을 구축하는 조직을 위한 권장 사항:
 
 - [Kubernetes 공식 문서](https://kubernetes.io/docs/)
 - [Karpenter 공식 문서](https://karpenter.sh/docs/)
-- [Amazon EKS Best Practices Guide](https://aws.github.io/aws-eks-best-practices/)
+- [Amazon EKS Best Practices Guide](https://docs.aws.amazon.com/eks/latest/best-practices/introduction.html)
 - [NVIDIA GPU Operator Documentation](https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/overview.html)
 - [KEDA - Kubernetes Event-driven Autoscaling](https://keda.sh/)
 

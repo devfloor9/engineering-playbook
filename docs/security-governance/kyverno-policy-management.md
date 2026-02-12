@@ -1,6 +1,6 @@
 ---
 title: "Kyverno 기반 정책 관리"
-sidebar_label: "Kyverno 정책 관리"
+sidebar_label: "4. Kyverno 정책 관리"
 description: "Kyverno v1.16을 활용한 Kubernetes 정책 관리 및 거버넌스"
 category: "security"
 sidebar_position: 4

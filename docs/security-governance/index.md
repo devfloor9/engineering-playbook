@@ -25,23 +25,23 @@ last_update:
 
 **운영 보안 및 인시던트 관리**
 
-[Default Namespace Incident Response](./default-namespace-incident.md) - 기본 네임스페이스 보안 위협 분석, 인시던트 탐지 및 대응 절차, 사후 분석 및 개선 방안, 보안 모니터링 자동화
+[1. Default Namespace Incident Response](./default-namespace-incident.md) - 기본 네임스페이스 보안 위협 분석, 인시던트 탐지 및 대응 절차, 사후 분석 및 개선 방안, 보안 모니터링 자동화
 
 **Identity & Access Management**
 
-[Identity-First Security 아키텍처](./identity-first-security.md) - EKS Pod Identity 기반 제로트러스트 접근 제어, IRSA에서 Pod Identity로의 마이그레이션, 최소 권한 원칙 자동화
+[2. Identity-First Security 아키텍처](./identity-first-security.md) - EKS Pod Identity 기반 제로트러스트 접근 제어, IRSA에서 Pod Identity로의 마이그레이션, 최소 권한 원칙 자동화
 
 **위협 탐지 & 대응**
 
-[GuardDuty Extended Threat Detection](./guardduty-extended-threat-detection.md) - EC2/ECS 호스트 및 컨테이너 시그널 상관 분석, MITRE ATT&CK 매핑, 자동화된 위협 대응
+[3. GuardDuty Extended Threat Detection](./guardduty-extended-threat-detection.md) - EC2/ECS 호스트 및 컨테이너 시그널 상관 분석, MITRE ATT&CK 매핑, 자동화된 위협 대응
 
 **정책 관리**
 
-[Kyverno 기반 정책 관리](./kyverno-policy-management.md) - Kyverno v1.16 CEL 기반 정책, 네임스페이스 수준 정책, 정책 예외 관리, OPA Gatekeeper 비교
+[4. Kyverno 기반 정책 관리](./kyverno-policy-management.md) - Kyverno v1.16 CEL 기반 정책, 네임스페이스 수준 정책, 정책 예외 관리, OPA Gatekeeper 비교
 
 **공급망 보안**
 
-[컨테이너 공급망 보안](./supply-chain-security.md) - ECR 이미지 스캐닝 및 서명, Sigstore/Cosign 통합, SBOM 생성 및 관리, CI/CD 보안 게이트
+[5. 컨테이너 공급망 보안](./supply-chain-security.md) - ECR 이미지 스캐닝 및 서명, Sigstore/Cosign 통합, SBOM 생성 및 관리, CI/CD 보안 게이트
 
 ## 아키텍처 패턴
 

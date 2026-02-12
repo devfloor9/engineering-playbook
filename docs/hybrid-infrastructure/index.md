@@ -27,20 +27,20 @@ EKS 하이브리드 노드는 각 온프레미스 서버에 경량 에이전트�
 
 ### 1단계: 하이브리드 노드 기본 가이드
 
-**[EKS Hybrid Nodes 완전 가이드](./hybrid-nodes-adoption-guide.md)**
+**[1. 하이브리드 노드 완전 가이드](./hybrid-nodes-adoption-guide.md)**
 온프레미스 노드를 EKS 클러스터에 연결하는 기본 방법, 하이브리드 네트워킹 구성 및 보안 설정, 하이브리드 환경으로의 마이그레이션 전략, 워크로드 선택 및 배치 기준
 
 ### 2단계: 고성능 네트워킹 (SR-IOV)
 
-**[DGX H200 SR-IOV 네트워킹 구성](./sriov-dgx-h200-hybrid.md)**
+**[2. SR-IOV 네트워킹](./sriov-dgx-h200-hybrid.md)**
 SR-IOV를 통한 고성능 네트워킹, NVIDIA DGX H200 시스템 통합 및 최적화
 
 ### 3단계: 공유 스토리지 구성
 
-**[EKS Hybrid Nodes 공유 파일 스토리지 솔루션](./hybrid-nodes-file-storage.md)**
+**[3. 파일 스토리지](./hybrid-nodes-file-storage.md)**
 온프레미스 노드의 파일 스토리지 구성, NFS/iSCSI 활용 및 데이터 동기화
 
 ### 4단계: 컨테이너 레지스트리 통합
 
-**[Harbor 2.13과 EKS Hybrid Nodes 통합 가이드](./harbor-hybrid-integration.md)**
+**[4. Harbor 레지스트리](./harbor-hybrid-integration.md)**
 Harbor를 통한 컨테이너 이미지 레지스트리 운영, 온프레미스와 클라우드 간 이미지 동기화

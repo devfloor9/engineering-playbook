@@ -32,7 +32,12 @@ Kiro + MCP가 "사람이 지시하고 AI가 실행"하는 프로그래머틱 패
 <CoreTechStack />
 
 :::info 학습 경로
-**Phase 1 → 2 → 3 → 4** 순서로 읽으면 AIOps 전략 수립부터 자율 운영 실현까지의 전체 여정을 따라갈 수 있습니다. Phase 1(AIOps 전략)은 전체 방향성을 이해하는 출발점이고, Phase 2(관찰성)는 AI 분석의 데이터 기반을 구축하며, Phase 3(AIDLC)는 개발 방법론을, Phase 4(예측 운영)는 자율 운영의 실현을 다룹니다.
+**1 → 2 → 3 → 4** 순서로 읽으면 AIOps 전략 수립부터 자율 운영 실현까지의 전체 여정을 따라갈 수 있습니다.
+
+- [1. AIOps 전략 가이드](./aiops-introduction.md)는 전체 방향성을 이해하는 출발점
+- [2. 지능형 관찰성 스택](./aiops-observability-stack.md)은 AI 분석의 데이터 기반을 구축
+- [3. AIDLC 프레임워크](./aidlc-framework.md)는 개발 방법론을
+- [4. 예측 스케일링 및 자동 복구](./aiops-predictive-operations.md)는 자율 운영의 실현을 다룹니다.
 :::
 
 ## 참고 자료

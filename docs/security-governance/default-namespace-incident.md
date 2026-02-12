@@ -1,6 +1,6 @@
 ---
 title: "EKS Default Namespace 삭제 시 장애 대응 가이드"
-sidebar_label: "Default Namespace 장애"
+sidebar_label: "1. Default Namespace 장애"
 description: "EKS 클러스터에서 default namespace 삭제로 인한 Control Plane 접근 불가 장애의 원인 분석, 복구 절차, 그리고 재발 방지 전략을 다룹니다."
 tags: [eks, security, incident-response, namespace, troubleshooting]
 category: "security-compliance"

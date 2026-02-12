@@ -1,6 +1,6 @@
 ---
 title: "GuardDuty Extended Threat Detection"
-sidebar_label: "GuardDuty Extended"
+sidebar_label: "3. GuardDuty Extended"
 description: "Amazon GuardDuty Extended Threat Detection을 활용한 EKS 위협 탐지 및 대응"
 category: "security"
 sidebar_position: 3

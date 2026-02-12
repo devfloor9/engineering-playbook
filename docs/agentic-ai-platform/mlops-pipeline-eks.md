@@ -1,6 +1,6 @@
 ---
 title: "EKS 기반 MLOps 파이프라인 구축"
-sidebar_label: "MLOps 파이프라인"
+sidebar_label: "15. MLOps 파이프라인"
 description: "Kubeflow + MLflow + KServe 기반 엔드투엔드 ML 라이프사이클 관리"
 sidebar_position: 15
 category: "agentic-ai-platform"

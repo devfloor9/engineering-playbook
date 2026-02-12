@@ -19,7 +19,7 @@ last_update:
 
 ### 1단계: 클러스터 설치 및 구성
 
-- **[ROSA Demo Installation Guide](./rosa-demo-installation.md)**
+- **[1. ROSA 데모 설치](./rosa-demo-installation.md)**
   - STS (Security Token Service) 기반 클러스터 생성
   - ROSA CLI를 이용한 단계별 설치
   - 자동 스케일링 구성
@@ -29,7 +29,7 @@ last_update:
 
 ### 2단계: 보안 및 접근 제어
 
-- **[ROSA Security Compliance Console Access Control](./rosa-security-compliance.md)**
+- **[2. ROSA 보안 규정 준수](./rosa-security-compliance.md)**
   - Red Hat Hybrid Cloud Console 접근 제어 구성
   - 금융권 보안 요구사항 충족을 위한 접근 제어 전략
   - IdP (Identity Provider) 통합 및 MFA 구성

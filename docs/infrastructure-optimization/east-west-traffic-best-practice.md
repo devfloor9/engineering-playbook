@@ -1,6 +1,6 @@
 ---
 title: "East-West 트래픽 최적화: 성능과 비용의 균형"
-sidebar_label: "East-West 트래픽 최적화"
+sidebar_label: "3. East-West 트래픽 최적화"
 description: "EKS에서 서비스 간 통신(East-West)의 지연시간을 최소화하고 크로스-AZ 비용을 절감하는 심층 최적화 전략. Topology Aware Routing, InternalTrafficPolicy부터 Cilium ClusterMesh, AWS VPC Lattice, Istio 멀티클러스터까지"
 tags: [eks, networking, performance, cost-optimization, service-mesh, topology-aware-routing]
 category: "performance-networking"
@@ -948,5 +948,5 @@ kubectl exec -it test-pod -- cat /etc/resolv.conf
 7. [Kubernetes NodeLocal DNSCache](https://kubernetes.io/docs/tasks/administer-cluster/nodelocaldns/)
 8. [Kubernetes Topology Aware Routing](https://kubernetes.io/docs/concepts/services-networking/topology-aware-routing/)
 9. [Cilium ClusterMesh Documentation](https://docs.cilium.io/en/stable/network/clustermesh/)
-10. [AWS EKS Best Practices - Cost Optimization](https://aws.github.io/aws-eks-best-practices/cost_optimization/cost_opt_networking/)
+10. [AWS EKS Best Practices - Cost Optimization](https://docs.aws.amazon.com/eks/latest/best-practices/cost-opt.html)
 11. [Kubernetes Pod Topology Spread Constraints](https://kubernetes.io/docs/concepts/scheduling-eviction/topology-spread-constraints/)
