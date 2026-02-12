@@ -1,7 +1,7 @@
 ---
 title: "AIops & AIDLC"
 sidebar_label: "AIops & AIDLC"
-description: "AIOps & AIDLC guide to maximize K8s platform capabilities with AI while reducing complexity and accelerating innovation"
+description: "AIops & AIDLC guide to maximize K8s platform advantages with AI while reducing complexity to accelerate innovation"
 sidebar_position: 4
 category: "aiops-aidlc"
 last_update:
@@ -9,66 +9,37 @@ last_update:
   author: devfloor9
 ---
 
+import { PlatformComparison, CoreTechStack } from '@site/src/components/AiopsIntroTables';
+
 # AIops & AIDLC for Modern Application Platform
 
-**Maximize K8s platform capabilities and extensibility with AI while reducing complexity and accelerating innovation**
+> 📅 **Written**: 2026-02-12 | ⏱️ **Reading Time**: About 5 minutes
 
-This guide covers how to intelligently build and operate EKS-based Modern Application Platforms by combining **AIops (AI for IT Operations)** and **AIDLC (AI-Driven Development Lifecycle)**.
+Kubernetes has established itself as the standard for container orchestration, but its diverse features and extensibility come at the cost of operational complexity. AIOps (AI for IT Operations) and AIDLC (AI-Driven Development Lifecycle) are approaches that solve this complexity with AI while maximizing the advantages of K8s platforms. Beyond simply applying AI to monitoring, they present a new operational paradigm where AI leads the entire lifecycle from development to deployment, operations, and incident response.
 
-## How This Differs from Existing Content
+The core premise of this guide is AWS's open source strategy. AWS provides core tools of the Kubernetes ecosystem through Managed Add-ons (22+), Community Add-ons Catalog, and managed open source services (AMP, AMG, ADOT), delegating operational burden to AWS while maintaining the flexibility and portability of open source. In November 2025, AWS announced EKS Capabilities (Managed Argo CD, ACK, KRO), extending even GitOps and declarative infrastructure management to AWS-managed services. EKS serves as the key executor of this open source strategy, acting as the central component of K8s-native automation.
 
-| Existing Agentic AI Platform | This Category (AIops & AIDLC) |
-|------------------------------|-------------------------------|
-| LLM serving and inference optimization | Operating the platform itself with AI |
-| vLLM, llm-d deployment configuration | Kiro+MCP based programmatic automation |
-| GPU resource management | Predictive scaling, AI Agent autonomous ops |
-| Real-time inference patterns | Observability stack, AIDLC methodology |
+Built on this foundation, Kiro and MCP (Model Context Protocol) have emerged as core AIOps tools. Kiro realizes programmatic automation through a spec-driven development approach (requirements → design → tasks → code), and directly performs EKS cluster control, CloudWatch metrics analysis, and cost optimization within development workflows through AWS MCP servers (50+ GA). In November 2025, Fully Managed MCP (EKS/ECS Preview) and AWS MCP Server Integration (15,000+ API, Preview) were added, providing three-tier hosting options from local execution to cloud hosting and full AWS API integration. While individual MCP servers provide deep service-specific tools (kubectl execution, PromQL queries, etc.), the integrated server excels at multi-service composite tasks and Agent SOPs (pre-built workflows), and the two approaches are complementary, not alternative.
 
-## Guide Structure
+If Kiro + MCP represents a programmatic pattern where "humans instruct and AI executes," AI Agent frameworks are the next stage where AI autonomously detects, judges, and executes based on events. Amazon Q Developer (GA) provides the most mature production patterns in CloudWatch Investigations and EKS troubleshooting, while Strands Agents (open source) is an agent SDK proven in AWS production that defines Agent SOPs as natural language workflows. Kagent is a K8s-native AI agent that supports MCP integration (kmcp) but is still in early stages. A realistic approach is to start with Q Developer and gradually expand agent scope.
 
-### Phase 1: AIOps Strategy and Foundations
+## Difference from Agentic AI Platform
 
-- **[AIOps Introduction and EKS Strategy](./aiops-introduction.md)** — AIOps definition, AWS open-source strategy and EKS evolution, Kiro+MCP core, programmatic operations, maturity model, ROI evaluation
+This category focuses on **how to operate platforms with AI**. While Agentic AI Platform covers the platform itself that runs AI workloads—LLM serving, GPU management, inference optimization—AIops & AIDLC provides methodologies to more efficiently develop and operate that platform (or general application platforms) with AI tools.
 
-### Phase 2: Intelligent Observability
+<PlatformComparison />
 
-- **[Intelligent Observability Stack](./aiops-observability-stack.md)** — Managed Add-ons based observability, ADOT+AMP+AMG, CloudWatch AI, DevOps Guru, Hosted MCP integrated analysis, SLO/SLI
+<CoreTechStack />
 
-### Phase 3: AI-Driven Development
-
-- **[AIDLC Framework](./aidlc-framework.md)** — Kiro Spec-driven development, AI coding agents, EKS Capabilities (Managed Argo CD, ACK, KRO) + GitOps, Quality Gates, AI Agent governance
-
-### Phase 4: Predictive Operations
-
-- **[Predictive Scaling and Auto-Remediation](./aiops-predictive-operations.md)** — ML predictive scaling, Karpenter+AI, CloudWatch Anomaly Detection, AI Agent autonomous response, Kiro programmatic debugging, Chaos Engineering
-
-### MLOps Pipelines
-
-MLOps documentation has moved to the **[Agentic AI Platform](/docs/agentic-ai-platform)** category:
-
-- [EKS-Based MLOps Pipeline](/docs/agentic-ai-platform/mlops-pipeline-eks) — Kubeflow + MLflow + KServe
-- [SageMaker-EKS Integration](/docs/agentic-ai-platform/sagemaker-eks-integration) — Hybrid ML architecture
-
-## Core Technology Stack
-
-| Domain | AWS Services | Open Source / Tools |
-|--------|-------------|---------------------|
-| **Observability** | CloudWatch, X-Ray, AMP, AMG | ADOT (OpenTelemetry), Grafana |
-| **Anomaly Detection** | DevOps Guru, CloudWatch AI, Anomaly Detection | Prometheus + ML |
-| **AI Development** | Kiro, Amazon Q Developer | GitHub Copilot, Claude Code |
-| **MCP Integration** | Individual MCP (50+ GA), Fully Managed MCP (EKS/ECS Preview), AWS MCP Server unified (Preview) | Kagent (kmcp) |
-| **GitOps** | Managed Argo CD (EKS Capability) | Argo CD |
-| **Infrastructure** | ACK (50+ AWS CRD), KRO (ResourceGroup) | Terraform, Helm |
-| **Networking** | LBC v3 (Gateway API GA), Container Network Observability | Gateway API |
-| **AI Agent** | Amazon Q Developer, Strands Agents | Kagent |
-| **Predictive Scaling** | CloudWatch Anomaly Detection | Prophet, ARIMA |
-| **Node Management** | Karpenter | - |
+:::info Learning Path
+Reading in **Phase 1 → 2 → 3 → 4** order allows you to follow the entire journey from AIOps strategy formulation to autonomous operations realization. Phase 1 (AIOps Strategy) is the starting point for understanding the overall direction, Phase 2 (Observability) builds the data foundation for AI analysis, Phase 3 (AIDLC) covers development methodologies, and Phase 4 (Predictive Operations) addresses the realization of autonomous operations.
+:::
 
 ## References
 
 - [AWS AI-Driven Development Life Cycle](https://aws.amazon.com/blogs/devops/ai-driven-development-life-cycle/)
 - [AWS Labs AIDLC Workflows (GitHub)](https://github.com/awslabs/aidlc-workflows)
 - [Proactive EKS Monitoring with CloudWatch](https://aws.amazon.com/blogs/containers/proactive-amazon-eks-monitoring-with-amazon-cloudwatch-operator-and-aws-control-plane-metrics/)
-- [AWS Hosted MCP Servers](https://github.com/awslabs/mcp)
+- [AWS MCP Servers (Individual 50+ GA)](https://github.com/awslabs/mcp)
 - [Kagent - Kubernetes AI Agent](https://github.com/kagent-dev/kagent)
 - [Strands Agents SDK](https://github.com/strands-agents/sdk-python)
