@@ -4,32 +4,33 @@ import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 const RoiMetrics = () => {
   const {i18n} = useDocusaurusContext();
   const isKo = i18n.currentLocale === 'ko';
+  const isZh = i18n.currentLocale === 'zh';
 
   const metrics = [
     {
-      name: isKo ? 'MTTR 개선' : 'MTTR Improvement',
-      before: isKo ? '4시간' : '4 hours',
-      after: isKo ? '45분' : '45 min',
+      name: isKo ? 'MTTR 개선' : isZh ? 'MTTR 改善' : 'MTTR Improvement',
+      before: isKo ? '4시간' : isZh ? '4 小时' : '4 hours',
+      after: isKo ? '45분' : isZh ? '45 分钟' : '45 min',
       improvement: '-81%',
       color: '#059669'
     },
     {
-      name: isKo ? 'MTTD 개선' : 'MTTD Improvement',
-      before: isKo ? '30분' : '30 min',
-      after: isKo ? '3분' : '3 min',
+      name: isKo ? 'MTTD 개선' : isZh ? 'MTTD 改善' : 'MTTD Improvement',
+      before: isKo ? '30분' : isZh ? '30 分钟' : '30 min',
+      after: isKo ? '3분' : isZh ? '3 分钟' : '3 min',
       improvement: '-90%',
       color: '#3b82f6'
     },
     {
-      name: isKo ? '알림 노이즈 감소' : 'Alert Noise Reduction',
-      before: isKo ? '500건/일' : '500/day',
-      after: isKo ? '50건/일' : '50/day',
+      name: isKo ? '알림 노이즈 감소' : isZh ? '告警噪音降低' : 'Alert Noise Reduction',
+      before: isKo ? '500건/일' : isZh ? '500 条/日' : '500/day',
+      after: isKo ? '50건/일' : isZh ? '50 条/日' : '50/day',
       improvement: '-90%',
       color: '#8b5cf6'
     },
     {
-      name: isKo ? '비용 절감' : 'Cost Reduction',
-      before: isKo ? '과잉 프로비저닝' : 'Over-provisioning',
+      name: isKo ? '비용 절감' : isZh ? '成本降低' : 'Cost Reduction',
+      before: isKo ? '과잉 프로비저닝' : isZh ? '过度配置' : 'Over-provisioning',
       after: 'AI Right-Sizing',
       improvement: '-35%',
       color: '#d97706'
@@ -51,7 +52,7 @@ const RoiMetrics = () => {
         borderRadius: '8px 8px 0 0'
       }}>
         <div style={{ fontSize: '20px', fontWeight: '600' }}>
-          {isKo ? '💰 AIOps ROI 핵심 지표' : '💰 AIOps ROI Key Metrics'}
+          {isKo ? '💰 AIOps ROI 핵심 지표' : isZh ? '💰 AIOps ROI 核心指标' : '💰 AIOps ROI Key Metrics'}
         </div>
       </div>
 

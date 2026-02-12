@@ -4,6 +4,7 @@ import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 const AidlcPhaseMapping = () => {
   const {i18n} = useDocusaurusContext();
   const isKo = i18n.currentLocale === 'ko';
+  const isZh = i18n.currentLocale === 'zh';
 
   const phases = [
     {
@@ -11,7 +12,7 @@ const AidlcPhaseMapping = () => {
       name: 'Inception',
       nameKo: '구상',
       color: '#3b82f6',
-      description: isKo ? '요구사항 정의 + 아키텍처 설계' : 'Requirements Definition + Architecture Design',
+      description: isKo ? '요구사항 정의 + 아키텍처 설계' : isZh ? '需求定义 + 架构设计' : 'Requirements Definition + Architecture Design',
       tools: ['Amazon Q Developer', 'Kiro Requirements', 'Claude Code'],
       outputs: ['requirements.md', 'design.md']
     },
@@ -20,18 +21,18 @@ const AidlcPhaseMapping = () => {
       name: 'Construction',
       nameKo: '구축',
       color: '#059669',
-      description: isKo ? '코드 생성 + 테스트 + 리뷰' : 'Code Generation + Testing + Review',
+      description: isKo ? '코드 생성 + 테스트 + 리뷰' : isZh ? '代码生成 + 测试 + 审查' : 'Code Generation + Testing + Review',
       tools: ['Kiro', 'GitHub Copilot', 'Claude Code', 'Q Developer'],
-      outputs: isKo ? ['소스 코드', '테스트', 'IaC'] : ['Source Code', 'Tests', 'IaC']
+      outputs: isKo ? ['소스 코드', '테스트', 'IaC'] : isZh ? ['源代码', '测试', 'IaC'] : ['Source Code', 'Tests', 'IaC']
     },
     {
       number: 3,
       name: 'Operations',
       nameKo: '운영',
       color: '#8b5cf6',
-      description: isKo ? '배포 + 모니터링 + 최적화' : 'Deployment + Monitoring + Optimization',
+      description: isKo ? '배포 + 모니터링 + 최적화' : isZh ? '部署 + 监控 + 优化' : 'Deployment + Monitoring + Optimization',
       tools: ['Managed Argo CD', 'ACK', 'MCP', 'AI Agents'],
-      outputs: isKo ? ['GitOps 배포', '관찰성', '자동 복구'] : ['GitOps Deployment', 'Observability', 'Auto Remediation']
+      outputs: isKo ? ['GitOps 배포', '관찰성', '자동 복구'] : isZh ? ['GitOps 部署', '可观测性', '自动修复'] : ['GitOps Deployment', 'Observability', 'Auto Remediation']
     }
   ];
 
@@ -142,7 +143,7 @@ const AidlcPhaseMapping = () => {
   return (
     <div style={styles.container}>
       <div style={styles.header}>
-        <h2 style={styles.title}>🔄 {isKo ? 'AIDLC 3단계 프레임워크' : 'AIDLC 3-Phase Framework'}</h2>
+        <h2 style={styles.title}>🔄 {isKo ? 'AIDLC 3단계 프레임워크' : isZh ? 'AIDLC 三阶段框架' : 'AIDLC 3-Phase Framework'}</h2>
         <p style={styles.subtitle}>Inception → Construction → Operations</p>
       </div>
       <div style={styles.phasesGrid}>
@@ -167,13 +168,13 @@ const AidlcPhaseMapping = () => {
               </div>
             </div>
             <p style={styles.description}>{phase.description}</p>
-            <div style={styles.sectionLabel}>{isKo ? '도구' : 'Tools'}</div>
+            <div style={styles.sectionLabel}>{isKo ? '도구' : isZh ? '工具' : 'Tools'}</div>
             <div style={styles.toolsContainer}>
               {phase.tools.map((tool, idx) => (
                 <span key={idx} style={styles.toolBadge}>{tool}</span>
               ))}
             </div>
-            <div style={styles.sectionLabel}>{isKo ? '산출물' : 'Outputs'}</div>
+            <div style={styles.sectionLabel}>{isKo ? '산출물' : isZh ? '产出物' : 'Outputs'}</div>
             <ul style={styles.outputsList}>
               {phase.outputs.map((output, idx) => (
                 <li key={idx} style={styles.outputItem}>{output}</li>

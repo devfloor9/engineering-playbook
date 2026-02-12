@@ -4,9 +4,10 @@ import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 const ResponsePatterns = () => {
   const {i18n} = useDocusaurusContext();
   const isKo = i18n.currentLocale === 'ko';
+  const isZh = i18n.currentLocale === 'zh';
 
   const traditional = {
-    name: isKo ? '전통적 대응' : 'Traditional Response',
+    name: isKo ? '전통적 대응' : isZh ? '传统响应' : 'Traditional Response',
     nameEn: 'Traditional',
     color: '#dc2626',
     steps: isKo ? [
@@ -15,6 +16,12 @@ const ResponsePatterns = () => {
       'Lambda 함수 실행',
       '정적 런북 실행 (재시작/스케일)',
       '수동 에스컬레이션'
+    ] : isZh ? [
+      'CloudWatch 告警触发',
+      'EventBridge 规则匹配',
+      'Lambda 函数执行',
+      '静态运维手册执行（重启/扩缩容）',
+      '手动升级'
     ] : [
       'CloudWatch alarm triggered',
       'EventBridge rule matching',
@@ -22,11 +29,11 @@ const ResponsePatterns = () => {
       'Static runbook execution (restart/scale)',
       'Manual escalation'
     ],
-    limitation: isKo ? '정적 규칙, 제한적 컨텍스트, 근본 원인 미해결' : 'Static rules, limited context, root cause unresolved'
+    limitation: isKo ? '정적 규칙, 제한적 컨텍스트, 근본 원인 미해결' : isZh ? '静态规则，上下文有限，根因未解决' : 'Static rules, limited context, root cause unresolved'
   };
 
   const aiAgent = {
-    name: isKo ? 'AI 에이전트 대응' : 'AI Agent Response',
+    name: isKo ? 'AI 에이전트 대응' : isZh ? 'AI Agent 响应' : 'AI Agent Response',
     nameEn: 'AI Agent',
     color: '#059669',
     steps: isKo ? [
@@ -36,6 +43,13 @@ const ResponsePatterns = () => {
       '컨텍스트 기반 동적 런북 생성',
       '안전한 자동 복구 실행',
       '복구 검증 + 피드백 학습'
+    ] : isZh ? [
+      '接收 CloudWatch 告警 + K8s 事件',
+      '通过 MCP 集成收集指标+日志+追踪+事件',
+      'AI 根因分析',
+      '基于上下文的动态运维手册生成',
+      '安全的自动修复执行',
+      '恢复验证 + 反馈学习'
     ] : [
       'CloudWatch alerts + K8s events received',
       'Integrated metrics+logs+traces+events via MCP',
@@ -44,7 +58,7 @@ const ResponsePatterns = () => {
       'Safe automated recovery execution',
       'Recovery verification + feedback learning'
     ],
-    advantage: isKo ? '다양한 데이터 소스, 근본 원인 해결, 자가 학습' : 'Multiple data sources, root cause resolution, self-learning'
+    advantage: isKo ? '다양한 데이터 소스, 근본 원인 해결, 자가 학습' : isZh ? '多数据源，根因解决，自我学习' : 'Multiple data sources, root cause resolution, self-learning'
   };
 
   const containerStyle = {
@@ -157,8 +171,8 @@ const ResponsePatterns = () => {
   return (
     <div style={containerStyle}>
       <div style={headerStyle}>
-        <h2 style={titleStyle}>🚨 {isKo ? '인시던트 대응 패턴 비교' : 'Incident Response Pattern Comparison'}</h2>
-        <p style={subtitleStyle}>{isKo ? '전통적 대응 vs AI 에이전트 대응' : 'Traditional Response vs AI Agent Response'}</p>
+        <h2 style={titleStyle}>🚨 {isKo ? '인시던트 대응 패턴 비교' : isZh ? '事件响应模式对比' : 'Incident Response Pattern Comparison'}</h2>
+        <p style={subtitleStyle}>{isKo ? '전통적 대응 vs AI 에이전트 대응' : isZh ? '传统响应 vs AI Agent 响应' : 'Traditional Response vs AI Agent Response'}</p>
       </div>
       <div style={contentStyle}>
         <div style={columnsStyle}>
@@ -175,7 +189,7 @@ const ResponsePatterns = () => {
               ))}
             </div>
             <div style={summaryStyle}>
-              <div style={summaryLabelStyle}>{isKo ? '한계:' : 'Limitations:'}</div>
+              <div style={summaryLabelStyle}>{isKo ? '한계:' : isZh ? '局限性：' : 'Limitations:'}</div>
               {traditional.limitation}
             </div>
           </div>
@@ -193,7 +207,7 @@ const ResponsePatterns = () => {
               ))}
             </div>
             <div style={summaryStyle}>
-              <div style={summaryLabelStyle}>{isKo ? '장점:' : 'Advantages:'}</div>
+              <div style={summaryLabelStyle}>{isKo ? '장점:' : isZh ? '优势：' : 'Advantages:'}</div>
               {aiAgent.advantage}
             </div>
           </div>

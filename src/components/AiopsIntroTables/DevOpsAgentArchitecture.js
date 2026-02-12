@@ -4,53 +4,54 @@ import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 const DevOpsAgentArchitecture = () => {
   const {i18n} = useDocusaurusContext();
   const isKo = i18n.currentLocale === 'ko';
+  const isZh = i18n.currentLocale === 'zh';
 
   const layers = [
     {
-      title: isKo ? '관찰성 데이터 소스' : 'Observability Data Sources',
-      subtitle: isKo ? 'AWS 네이티브 · OSS · 3rd Party 모두 지원' : 'AWS native · OSS · 3rd party all supported',
+      title: isKo ? '관찰성 데이터 소스' : isZh ? '可观测性数据源' : 'Observability Data Sources',
+      subtitle: isKo ? 'AWS 네이티브 · OSS · 3rd Party 모두 지원' : isZh ? 'AWS 原生 · OSS · 第三方均支持' : 'AWS native · OSS · 3rd party all supported',
       color: '#0d9488',
       bg: '#f0fdfa',
       items: [
-        { icon: '📈', name: isKo ? '메트릭' : 'Metrics', desc: isKo ? 'AMP · CloudWatch · Datadog 등' : 'AMP · CloudWatch · Datadog, etc.' },
-        { icon: '🔗', name: isKo ? '트레이스' : 'Traces', desc: isKo ? 'X-Ray · Jaeger · Datadog APM 등' : 'X-Ray · Jaeger · Datadog APM, etc.' },
-        { icon: '📋', name: isKo ? '로그' : 'Logs', desc: isKo ? 'OpenSearch · CloudWatch · Sumo Logic 등' : 'OpenSearch · CloudWatch · Sumo Logic, etc.' },
-        { icon: '☸️', name: 'K8s API', desc: isKo ? '이벤트 · 상태 · 리소스' : 'Events · status · resources' },
+        { icon: '📈', name: isKo ? '메트릭' : isZh ? '指标' : 'Metrics', desc: isKo ? 'AMP · CloudWatch · Datadog 등' : isZh ? 'AMP · CloudWatch · Datadog 等' : 'AMP · CloudWatch · Datadog, etc.' },
+        { icon: '🔗', name: isKo ? '트레이스' : isZh ? '追踪' : 'Traces', desc: isKo ? 'X-Ray · Jaeger · Datadog APM 등' : isZh ? 'X-Ray · Jaeger · Datadog APM 等' : 'X-Ray · Jaeger · Datadog APM, etc.' },
+        { icon: '📋', name: isKo ? '로그' : isZh ? '日志' : 'Logs', desc: isKo ? 'OpenSearch · CloudWatch · Sumo Logic 등' : isZh ? 'OpenSearch · CloudWatch · Sumo Logic 等' : 'OpenSearch · CloudWatch · Sumo Logic, etc.' },
+        { icon: '☸️', name: 'K8s API', desc: isKo ? '이벤트 · 상태 · 리소스' : isZh ? '事件 · 状态 · 资源' : 'Events · status · resources' },
       ]
     },
     {
-      title: isKo ? 'MCP 통합 레이어 (50+ 서버)' : 'MCP Integration Layer (50+ servers)',
-      subtitle: isKo ? '관찰성 백엔드에 무관하게 단일 인터페이스 제공' : 'Single interface regardless of observability backend',
+      title: isKo ? 'MCP 통합 레이어 (50+ 서버)' : isZh ? 'MCP 集成层 (50+ 服务器)' : 'MCP Integration Layer (50+ servers)',
+      subtitle: isKo ? '관찰성 백엔드에 무관하게 단일 인터페이스 제공' : isZh ? '无论可观测性后端如何，提供统一接口' : 'Single interface regardless of observability backend',
       color: '#2563eb',
       bg: '#eff6ff',
       items: [
-        { icon: '☸️', name: 'EKS MCP', desc: isKo ? '클러스터 제어' : 'Cluster control' },
-        { icon: '📈', name: 'CloudWatch MCP', desc: isKo ? '메트릭 · 알람 · 로그' : 'Metrics · alarms · logs' },
-        { icon: '💰', name: 'Cost Explorer MCP', desc: isKo ? '비용 분석' : 'Cost analysis' },
-        { icon: '🔒', name: 'IAM MCP', desc: isKo ? '보안 관리' : 'Security mgmt' },
-        { icon: '📖', name: 'Core MCP', desc: isKo ? '50+ 서버 오케스트레이션' : '50+ server orchestration' },
+        { icon: '☸️', name: 'EKS MCP', desc: isKo ? '클러스터 제어' : isZh ? '集群控制' : 'Cluster control' },
+        { icon: '📈', name: 'CloudWatch MCP', desc: isKo ? '메트릭 · 알람 · 로그' : isZh ? '指标 · 告警 · 日志' : 'Metrics · alarms · logs' },
+        { icon: '💰', name: 'Cost Explorer MCP', desc: isKo ? '비용 분석' : isZh ? '成本分析' : 'Cost analysis' },
+        { icon: '🔒', name: 'IAM MCP', desc: isKo ? '보안 관리' : isZh ? '安全管理' : 'Security mgmt' },
+        { icon: '📖', name: 'Core MCP', desc: isKo ? '50+ 서버 오케스트레이션' : isZh ? '50+ 服务器编排' : '50+ server orchestration' },
       ]
     },
   ];
 
   const consumers = [
     {
-      title: isKo ? 'AI 도구 (프로덕션 레디)' : 'AI Tools (Production Ready)',
+      title: isKo ? 'AI 도구 (프로덕션 레디)' : isZh ? 'AI 工具 (生产就绪)' : 'AI Tools (Production Ready)',
       color: '#7c3aed',
       bg: '#f5f3ff',
       items: [
-        { icon: '🤖', name: 'Q Developer', desc: isKo ? 'CloudWatch Investigations · 트러블슈팅 (GA)' : 'CloudWatch Investigations · troubleshooting (GA)' },
-        { icon: '🔧', name: 'Kiro', desc: isKo ? 'Spec-driven 개발 · MCP 네이티브' : 'Spec-driven dev · MCP native' },
-        { icon: '💻', name: 'AI IDE', desc: isKo ? 'Claude Code · GitHub Copilot 등' : 'Claude Code · GitHub Copilot, etc.' },
+        { icon: '🤖', name: 'Q Developer', desc: isKo ? 'CloudWatch Investigations · 트러블슈팅 (GA)' : isZh ? 'CloudWatch Investigations · 故障排查 (GA)' : 'CloudWatch Investigations · troubleshooting (GA)' },
+        { icon: '🔧', name: 'Kiro', desc: isKo ? 'Spec-driven 개발 · MCP 네이티브' : isZh ? 'Spec 驱动开发 · MCP 原生' : 'Spec-driven dev · MCP native' },
+        { icon: '💻', name: 'AI IDE', desc: isKo ? 'Claude Code · GitHub Copilot 등' : isZh ? 'Claude Code · GitHub Copilot 等' : 'Claude Code · GitHub Copilot, etc.' },
       ]
     },
     {
-      title: isKo ? 'Agent 확장 (점진적 도입)' : 'Agent Extension (Gradual Adoption)',
+      title: isKo ? 'Agent 확장 (점진적 도입)' : isZh ? 'Agent 扩展 (逐步采用)' : 'Agent Extension (Gradual Adoption)',
       color: '#9ca3af',
       bg: '#f9fafb',
       items: [
-        { icon: '📋', name: 'Strands SDK', desc: isKo ? 'Agent SOPs — 자연어 워크플로우 (OSS)' : 'Agent SOPs — natural language workflows (OSS)' },
-        { icon: '⚙️', name: 'Kagent', desc: isKo ? 'K8s 네이티브 Agent — kmcp (초기 단계)' : 'K8s-native Agent — kmcp (early stage)' },
+        { icon: '📋', name: 'Strands SDK', desc: isKo ? 'Agent SOPs — 자연어 워크플로우 (OSS)' : isZh ? 'Agent SOPs — 自然语言工作流 (OSS)' : 'Agent SOPs — natural language workflows (OSS)' },
+        { icon: '⚙️', name: 'Kagent', desc: isKo ? 'K8s 네이티브 Agent — kmcp (초기 단계)' : isZh ? 'K8s 原生 Agent — kmcp (早期阶段)' : 'K8s-native Agent — kmcp (early stage)' },
       ]
     },
   ];
@@ -119,10 +120,10 @@ const DevOpsAgentArchitecture = () => {
         borderRadius: '8px 8px 0 0'
       }}>
         <div style={{ fontSize: '20px', fontWeight: '600', marginBottom: '4px' }}>
-          {isKo ? 'Kiro + MCP 아키텍처 (Agent 확장 가능)' : 'Kiro + MCP Architecture (Agent Extensible)'}
+          {isKo ? 'Kiro + MCP 아키텍처 (Agent 확장 가능)' : isZh ? 'Kiro + MCP 架构 (可扩展 Agent)' : 'Kiro + MCP Architecture (Agent Extensible)'}
         </div>
         <div style={{ fontSize: '14px', opacity: 0.9 }}>
-          {isKo ? '관찰성 백엔드(AWS · OSS · 3rd Party) → MCP 추상화 → AI 도구 → 자동화 액션 (→ Agent 확장)' : 'Observability backends (AWS · OSS · 3rd Party) → MCP abstraction → AI tools → Automation actions (→ Agent extension)'}
+          {isKo ? '관찰성 백엔드(AWS · OSS · 3rd Party) → MCP 추상화 → AI 도구 → 자동화 액션 (→ Agent 확장)' : isZh ? '可观测性后端(AWS · OSS · 第三方) → MCP 抽象 → AI 工具 → 自动化操作 (→ Agent 扩展)' : 'Observability backends (AWS · OSS · 3rd Party) → MCP abstraction → AI tools → Automation actions (→ Agent extension)'}
         </div>
       </div>
 
@@ -216,7 +217,7 @@ const DevOpsAgentArchitecture = () => {
           textAlign: 'center'
         }}>
           <div style={{ fontSize: '15px', fontWeight: '700', color: '#92400e', marginBottom: '6px' }}>
-            {isKo ? '자동화 액션' : 'Automation Actions'}
+            {isKo ? '자동화 액션' : isZh ? '自动化操作' : 'Automation Actions'}
           </div>
           <div style={{
             display: 'flex',
@@ -226,6 +227,7 @@ const DevOpsAgentArchitecture = () => {
           }}>
             {(isKo
               ? ['인시던트 자동 대응', '배포 검증', '리소스 최적화', '비용 절감', '근본 원인 분석']
+              : isZh ? ['自动事件响应', '部署验证', '资源优化', '成本削减', '根因分析']
               : ['Auto Incident Response', 'Deployment Validation', 'Resource Optimization', 'Cost Reduction', 'Root Cause Analysis']
             ).map((action) => (
               <span key={action} style={{

@@ -4,49 +4,50 @@ import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 const AwsServicesMap = () => {
   const {i18n} = useDocusaurusContext();
   const isKo = i18n.currentLocale === 'ko';
+  const isZh = i18n.currentLocale === 'zh';
 
   const services = [
     {
       name: 'DevOps Guru',
-      category: isKo ? '탐지' : 'Detection',
+      category: isKo ? '탐지' : isZh ? '检测' : 'Detection',
       color: '#8b5cf6',
-      description: isKo ? 'ML 이상 탐지, EKS 리소스 그룹 분석' : 'ML anomaly detection, EKS resource group analysis',
-      features: isKo ? ['ML 이상 탐지', 'EKS 리소스 그룹', '자동 알림'] : ['ML Anomaly Detection', 'EKS Resource Groups', 'Auto Alerts']
+      description: isKo ? 'ML 이상 탐지, EKS 리소스 그룹 분석' : isZh ? 'ML 异常检测、EKS 资源组分析' : 'ML anomaly detection, EKS resource group analysis',
+      features: isKo ? ['ML 이상 탐지', 'EKS 리소스 그룹', '자동 알림'] : isZh ? ['ML 异常检测', 'EKS 资源组', '自动告警'] : ['ML Anomaly Detection', 'EKS Resource Groups', 'Auto Alerts']
     },
     {
       name: 'CloudWatch Application Signals',
-      category: isKo ? '관찰성' : 'Observability',
+      category: isKo ? '관찰성' : isZh ? '可观测性' : 'Observability',
       color: '#3b82f6',
-      description: isKo ? 'zero-code 계측, SLI/SLO 자동 설정' : 'Zero-code instrumentation, auto SLI/SLO setup',
-      features: isKo ? ['Zero-code 계측', 'SLI/SLO', '자동 대시보드'] : ['Zero-code Instrumentation', 'SLI/SLO', 'Auto Dashboards']
+      description: isKo ? 'zero-code 계측, SLI/SLO 자동 설정' : isZh ? '零代码插桩、自动 SLI/SLO 设置' : 'Zero-code instrumentation, auto SLI/SLO setup',
+      features: isKo ? ['Zero-code 계측', 'SLI/SLO', '자동 대시보드'] : isZh ? ['零代码插桩', 'SLI/SLO', '自动仪表板'] : ['Zero-code Instrumentation', 'SLI/SLO', 'Auto Dashboards']
     },
     {
       name: 'CloudWatch Investigations',
-      category: isKo ? '분석' : 'Analysis',
+      category: isKo ? '분석' : isZh ? '分析' : 'Analysis',
       color: '#059669',
-      description: isKo ? 'AI 근본 원인 분석, 자동 인시던트 조사' : 'AI root cause analysis, auto incident investigation',
-      features: isKo ? ['AI 근본 원인 분석', '자동 인시던트 조사', '상관관계 분석'] : ['AI Root Cause Analysis', 'Auto Incident Investigation', 'Correlation Analysis']
+      description: isKo ? 'AI 근본 원인 분석, 자동 인시던트 조사' : isZh ? 'AI 根因分析、自动事件调查' : 'AI root cause analysis, auto incident investigation',
+      features: isKo ? ['AI 근본 원인 분석', '자동 인시던트 조사', '상관관계 분석'] : isZh ? ['AI 根因分析', '自动事件调查', '关联分析'] : ['AI Root Cause Analysis', 'Auto Incident Investigation', 'Correlation Analysis']
     },
     {
       name: 'Amazon Q Developer',
-      category: isKo ? '자동화' : 'Automation',
+      category: isKo ? '자동화' : isZh ? '自动化' : 'Automation',
       color: '#d97706',
-      description: isKo ? 'EKS 트러블슈팅, 코드 생성/리뷰' : 'EKS troubleshooting, code generation/review',
-      features: isKo ? ['EKS 트러블슈팅', '코드 생성', '자동 리뷰'] : ['EKS Troubleshooting', 'Code Generation', 'Auto Review']
+      description: isKo ? 'EKS 트러블슈팅, 코드 생성/리뷰' : isZh ? 'EKS 故障排查、代码生成/审查' : 'EKS troubleshooting, code generation/review',
+      features: isKo ? ['EKS 트러블슈팅', '코드 생성', '자동 리뷰'] : isZh ? ['EKS 故障排查', '代码生成', '自动审查'] : ['EKS Troubleshooting', 'Code Generation', 'Auto Review']
     },
     {
       name: 'CloudWatch AI NL Querying',
-      category: isKo ? '분석' : 'Analysis',
+      category: isKo ? '분석' : isZh ? '分析' : 'Analysis',
       color: '#059669',
-      description: isKo ? '자연어 메트릭/로그 쿼리' : 'Natural language metric/log queries',
-      features: isKo ? ['자연어 쿼리', '메트릭 분석', '로그 검색'] : ['Natural Language Query', 'Metric Analysis', 'Log Search']
+      description: isKo ? '자연어 메트릭/로그 쿼리' : isZh ? '自然语言指标/日志查询' : 'Natural language metric/log queries',
+      features: isKo ? ['자연어 쿼리', '메트릭 분석', '로그 검색'] : isZh ? ['自然语言查询', '指标分析', '日志搜索'] : ['Natural Language Query', 'Metric Analysis', 'Log Search']
     },
     {
       name: 'AWS Hosted MCP Servers',
-      category: isKo ? '자동화' : 'Automation',
+      category: isKo ? '자동화' : isZh ? '自动化' : 'Automation',
       color: '#d97706',
-      description: isKo ? 'EKS/Cost/Serverless MCP, AI 도구 통합' : 'EKS/Cost/Serverless MCP, AI tool integration',
-      features: isKo ? ['EKS MCP', 'Cost MCP', 'Serverless MCP', 'AI 도구 통합'] : ['EKS MCP', 'Cost MCP', 'Serverless MCP', 'AI Tool Integration']
+      description: isKo ? 'EKS/Cost/Serverless MCP, AI 도구 통합' : isZh ? 'EKS/Cost/Serverless MCP、AI 工具集成' : 'EKS/Cost/Serverless MCP, AI tool integration',
+      features: isKo ? ['EKS MCP', 'Cost MCP', 'Serverless MCP', 'AI 도구 통합'] : isZh ? ['EKS MCP', 'Cost MCP', 'Serverless MCP', 'AI 工具集成'] : ['EKS MCP', 'Cost MCP', 'Serverless MCP', 'AI Tool Integration']
     }
   ];
 
@@ -65,7 +66,7 @@ const AwsServicesMap = () => {
         borderRadius: '8px 8px 0 0'
       }}>
         <div style={{ fontSize: '20px', fontWeight: '600' }}>
-          {isKo ? '🗺️ AWS AIOps 서비스 맵' : '🗺️ AWS AIOps Services Map'}
+          {isKo ? '🗺️ AWS AIOps 서비스 맵' : isZh ? '🗺️ AWS AIOps 服务地图' : '🗺️ AWS AIOps Services Map'}
         </div>
       </div>
 

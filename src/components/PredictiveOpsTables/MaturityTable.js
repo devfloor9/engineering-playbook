@@ -4,16 +4,21 @@ import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 const MaturityTable = () => {
   const {i18n} = useDocusaurusContext();
   const isKo = i18n.currentLocale === 'ko';
+  const isZh = i18n.currentLocale === 'zh';
 
   const levels = [
     {
-      name: isKo ? '반응형' : 'Reactive',
+      name: isKo ? '반응형' : isZh ? '被动型' : 'Reactive',
       nameEn: 'Reactive',
       color: '#dc2626',
       characteristics: isKo ? [
         '장애 후 대응',
         '수동 분석',
         '정적 임계값 알림'
+      ] : isZh ? [
+        '事件后响应',
+        '手动分析',
+        '静态阈值告警'
       ] : [
         'Post-incident response',
         'Manual analysis',
@@ -22,12 +27,16 @@ const MaturityTable = () => {
       tools: [
         'CloudWatch Alarms',
         'EventBridge',
-        isKo ? 'Lambda 런북' : 'Lambda runbooks'
+        isKo ? 'Lambda 런북' : isZh ? 'Lambda 运维手册' : 'Lambda runbooks'
       ],
       kpis: isKo ? [
         'MTTR 4시간',
         'MTTD 30분',
         '알림 500건/일'
+      ] : isZh ? [
+        'MTTR 4 小时',
+        'MTTD 30 分钟',
+        '告警 500 条/天'
       ] : [
         'MTTR 4 hours',
         'MTTD 30 min',
@@ -35,13 +44,17 @@ const MaturityTable = () => {
       ]
     },
     {
-      name: isKo ? '예측형' : 'Predictive',
+      name: isKo ? '예측형' : isZh ? '预测型' : 'Predictive',
       nameEn: 'Predictive',
       color: '#3b82f6',
       characteristics: isKo ? [
         'ML 이상 탐지',
         '선제적 스케일링',
         '패턴 기반 분석'
+      ] : isZh ? [
+        'ML 异常检测',
+        '主动扩缩容',
+        '基于模式分析'
       ] : [
         'ML anomaly detection',
         'Proactive scaling',
@@ -57,6 +70,10 @@ const MaturityTable = () => {
         'MTTR 1시간',
         'MTTD 5분',
         '알림 100건/일'
+      ] : isZh ? [
+        'MTTR 1 小时',
+        'MTTD 5 分钟',
+        '告警 100 条/天'
       ] : [
         'MTTR 1 hour',
         'MTTD 5 min',
@@ -64,13 +81,17 @@ const MaturityTable = () => {
       ]
     },
     {
-      name: isKo ? '자율형' : 'Autonomous',
+      name: isKo ? '자율형' : isZh ? '自主型' : 'Autonomous',
       nameEn: 'Autonomous',
       color: '#059669',
       characteristics: isKo ? [
         'AI 자율 대응',
         '자가 치유',
         '지속 학습'
+      ] : isZh ? [
+        'AI 自主响应',
+        '自愈',
+        '持续学习'
       ] : [
         'AI autonomous response',
         'Self-healing',
@@ -86,6 +107,10 @@ const MaturityTable = () => {
         'MTTR 15분',
         'MTTD 1분',
         '알림 20건/일'
+      ] : isZh ? [
+        'MTTR 15 分钟',
+        'MTTD 1 分钟',
+        '告警 20 条/天'
       ] : [
         'MTTR 15 min',
         'MTTD 1 min',
@@ -194,8 +219,8 @@ const MaturityTable = () => {
   return (
     <div style={containerStyle}>
       <div style={headerStyle}>
-        <h2 style={titleStyle}>🎯 {isKo ? '운영 성숙도 모델' : 'Operations Maturity Model'}</h2>
-        <p style={subtitleStyle}>{isKo ? '반응형 → 예측형 → 자율형 진화' : 'Reactive → Predictive → Autonomous Evolution'}</p>
+        <h2 style={titleStyle}>🎯 {isKo ? '운영 성숙도 모델' : isZh ? '运维成熟度模型' : 'Operations Maturity Model'}</h2>
+        <p style={subtitleStyle}>{isKo ? '반응형 → 예측형 → 자율형 진화' : isZh ? '被动型 → 预测型 → 自主型演进' : 'Reactive → Predictive → Autonomous Evolution'}</p>
       </div>
       <div style={contentStyle}>
         <div style={gridStyle}>
@@ -206,7 +231,7 @@ const MaturityTable = () => {
               </div>
 
               <div style={sectionStyle}>
-                <div style={sectionTitleStyle}>{isKo ? '특성' : 'Characteristics'}</div>
+                <div style={sectionTitleStyle}>{isKo ? '특성' : isZh ? '特征' : 'Characteristics'}</div>
                 <ul style={listStyle}>
                   {level.characteristics.map((item, idx) => (
                     <li key={idx} style={listItemStyle}>
@@ -218,7 +243,7 @@ const MaturityTable = () => {
               </div>
 
               <div style={sectionStyle}>
-                <div style={sectionTitleStyle}>{isKo ? '도구' : 'Tools'}</div>
+                <div style={sectionTitleStyle}>{isKo ? '도구' : isZh ? '工具' : 'Tools'}</div>
                 <ul style={listStyle}>
                   {level.tools.map((item, idx) => (
                     <li key={idx} style={listItemStyle}>

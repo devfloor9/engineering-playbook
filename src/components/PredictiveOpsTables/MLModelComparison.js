@@ -4,30 +4,31 @@ import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 const MLModelComparison = () => {
   const {i18n} = useDocusaurusContext();
   const isKo = i18n.currentLocale === 'ko';
+  const isZh = i18n.currentLocale === 'zh';
 
   const models = [
     {
       model: 'ARIMA',
-      characteristics: isKo ? '통계 기반, 계절성' : 'Statistical-based, seasonality',
-      suitablePattern: isKo ? '규칙적 일/주간 패턴' : 'Regular daily/weekly patterns',
+      characteristics: isKo ? '통계 기반, 계절성' : isZh ? '基于统计，季节性' : 'Statistical-based, seasonality',
+      suitablePattern: isKo ? '규칙적 일/주간 패턴' : isZh ? '规律的日/周模式' : 'Regular daily/weekly patterns',
       color: '#3b82f6'
     },
     {
       model: 'Prophet',
-      characteristics: isKo ? 'Facebook 개발, 휴일 반영' : 'Developed by Facebook, holiday-aware',
-      suitablePattern: isKo ? '비즈니스 트래픽 (이벤트, 휴일)' : 'Business traffic (events, holidays)',
+      characteristics: isKo ? 'Facebook 개발, 휴일 반영' : isZh ? 'Facebook 开发，假日感知' : 'Developed by Facebook, holiday-aware',
+      suitablePattern: isKo ? '비즈니스 트래픽 (이벤트, 휴일)' : isZh ? '业务流量（活动、假日）' : 'Business traffic (events, holidays)',
       color: '#8b5cf6'
     },
     {
       model: 'LSTM',
-      characteristics: isKo ? '딥러닝, 복잡한 패턴' : 'Deep learning, complex patterns',
-      suitablePattern: isKo ? '불규칙적이지만 반복되는 패턴' : 'Irregular but recurring patterns',
+      characteristics: isKo ? '딥러닝, 복잡한 패턴' : isZh ? '深度学习，复杂模式' : 'Deep learning, complex patterns',
+      suitablePattern: isKo ? '불규칙적이지만 반복되는 패턴' : isZh ? '不规则但重复的模式' : 'Irregular but recurring patterns',
       color: '#ec4899'
     },
     {
       model: 'CloudWatch',
-      characteristics: isKo ? 'AWS 네이티브, 자동' : 'AWS native, automatic',
-      suitablePattern: isKo ? '범용 (별도 ML 인프라 불필요)' : 'General purpose (no separate ML infrastructure needed)',
+      characteristics: isKo ? 'AWS 네이티브, 자동' : isZh ? 'AWS 原生，自动化' : 'AWS native, automatic',
+      suitablePattern: isKo ? '범용 (별도 ML 인프라 불필요)' : isZh ? '通用（无需单独 ML 基础设施）' : 'General purpose (no separate ML infrastructure needed)',
       color: '#f59e0b'
     }
   ];
@@ -129,8 +130,8 @@ const MLModelComparison = () => {
   return (
     <div style={containerStyle}>
       <div style={headerStyle}>
-        <h2 style={titleStyle}>🧠 {isKo ? '시계열 예측 모델 비교' : 'Time Series Forecasting Model Comparison'}</h2>
-        <p style={subtitleStyle}>{isKo ? 'EKS 워크로드 트래픽 패턴 예측' : 'EKS Workload Traffic Pattern Forecasting'}</p>
+        <h2 style={titleStyle}>🧠 {isKo ? '시계열 예측 모델 비교' : isZh ? '时序预测模型对比' : 'Time Series Forecasting Model Comparison'}</h2>
+        <p style={subtitleStyle}>{isKo ? 'EKS 워크로드 트래픽 패턴 예측' : isZh ? 'EKS 工作负载流量模式预测' : 'EKS Workload Traffic Pattern Forecasting'}</p>
       </div>
       <div style={contentStyle}>
         <div style={gridStyle}>
@@ -140,11 +141,11 @@ const MLModelComparison = () => {
                 {model.model}
               </div>
               <div style={rowStyle}>
-                <div style={labelStyle}>{isKo ? '특성' : 'Characteristics'}</div>
+                <div style={labelStyle}>{isKo ? '특성' : isZh ? '特征' : 'Characteristics'}</div>
                 <div style={valueStyle}>{model.characteristics}</div>
               </div>
               <div style={rowStyle}>
-                <div style={labelStyle}>{isKo ? '적합한 패턴' : 'Suitable Patterns'}</div>
+                <div style={labelStyle}>{isKo ? '적합한 패턴' : isZh ? '适用模式' : 'Suitable Patterns'}</div>
                 <div style={valueStyle}>{model.suitablePattern}</div>
               </div>
             </div>
@@ -152,7 +153,7 @@ const MLModelComparison = () => {
         </div>
       </div>
       <div style={footerStyle}>
-        <span style={footerLabelStyle}>{isKo ? '권장:' : 'Recommendation:'}</span> {isKo ? '프로덕션 환경에서는 CloudWatch Anomaly Detection으로 시작하여, 특수 패턴이 있다면 Prophet이나 LSTM을 추가로 도입하는 것이 효과적입니다.' : 'In production environments, start with CloudWatch Anomaly Detection, then introduce Prophet or LSTM if there are special patterns.'}
+        <span style={footerLabelStyle}>{isKo ? '권장:' : isZh ? '建议：' : 'Recommendation:'}</span> {isKo ? '프로덕션 환경에서는 CloudWatch Anomaly Detection으로 시작하여, 특수 패턴이 있다면 Prophet이나 LSTM을 추가로 도입하는 것이 효과적입니다.' : isZh ? '生产环境建议从 CloudWatch 异常检测开始，如果有特殊模式再引入 Prophet 或 LSTM。' : 'In production environments, start with CloudWatch Anomaly Detection, then introduce Prophet or LSTM if there are special patterns.'}
       </div>
     </div>
   );

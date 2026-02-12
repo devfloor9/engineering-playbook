@@ -4,39 +4,40 @@ import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 const AwsManagedOpenSource = () => {
   const {i18n} = useDocusaurusContext();
   const isKo = i18n.currentLocale === 'ko';
+  const isZh = i18n.currentLocale === 'zh';
 
   const categories = [
     {
       icon: '🗄️',
-      label: isKo ? '데이터베이스' : 'Database',
+      label: isKo ? '데이터베이스' : isZh ? '数据库' : 'Database',
       color: '#2563eb',
       bg: '#eff6ff',
       items: ['DocumentDB (MongoDB)', 'ElastiCache (Redis/Valkey)', 'MemoryDB (Redis)', 'Keyspaces (Cassandra)', 'Neptune (Graph)']
     },
     {
       icon: '📡',
-      label: isKo ? '스트리밍·메시징' : 'Streaming·Messaging',
+      label: isKo ? '스트리밍·메시징' : isZh ? '流式处理·消息' : 'Streaming·Messaging',
       color: '#dc2626',
       bg: '#fef2f2',
       items: ['MSK (Kafka)', 'MQ (ActiveMQ/RabbitMQ)']
     },
     {
       icon: '🔍',
-      label: isKo ? '검색·분석' : 'Search·Analytics',
+      label: isKo ? '검색·분석' : isZh ? '搜索·分析' : 'Search·Analytics',
       color: '#059669',
       bg: '#ecfdf5',
       items: ['OpenSearch (Elasticsearch)', 'EMR (Spark/Flink)', 'MWAA (Airflow)']
     },
     {
       icon: '📊',
-      label: isKo ? '관찰성' : 'Observability',
+      label: isKo ? '관찰성' : isZh ? '可观测性' : 'Observability',
       color: '#7c3aed',
       bg: '#f5f3ff',
       items: ['AMP (Prometheus)', 'AMG (Grafana)', 'ADOT (OpenTelemetry)']
     },
     {
       icon: '📦',
-      label: isKo ? '컨테이너' : 'Container',
+      label: isKo ? '컨테이너' : isZh ? '容器' : 'Container',
       color: '#ea580c',
       bg: '#fff7ed',
       items: ['EKS (Kubernetes)', 'ECR (OCI Registry)', 'App Mesh (Envoy)']
@@ -65,10 +66,10 @@ const AwsManagedOpenSource = () => {
         borderRadius: '8px 8px 0 0'
       }}>
         <div style={{ fontSize: '20px', fontWeight: '600', marginBottom: '4px' }}>
-          {isKo ? 'AWS 관리형 오픈소스 서비스' : 'AWS Managed Open Source Services'}
+          {isKo ? 'AWS 관리형 오픈소스 서비스' : isZh ? 'AWS 托管开源服务' : 'AWS Managed Open Source Services'}
         </div>
         <div style={{ fontSize: '14px', opacity: 0.9 }}>
-          {isKo ? '오픈소스의 유연성은 유지하고, 운영 부담은 AWS에 위임' : 'Keep open source flexibility, delegate operations to AWS'}
+          {isKo ? '오픈소스의 유연성은 유지하고, 운영 부담은 AWS에 위임' : isZh ? '保持开源灵活性，将运维负担委托给 AWS' : 'Keep open source flexibility, delegate operations to AWS'}
         </div>
       </div>
 
@@ -134,6 +135,10 @@ const AwsManagedOpenSource = () => {
               <>
                 <strong style={{ color: '#334155' }}>6개 영역</strong>에 걸친 <strong style={{ color: '#334155' }}>18+ 관리형 오픈소스 서비스</strong>
               </>
+            ) : isZh ? (
+              <>
+                跨 <strong style={{ color: '#334155' }}>6 个领域</strong>的 <strong style={{ color: '#334155' }}>18+ 托管开源服务</strong>
+              </>
             ) : (
               <>
                 <strong style={{ color: '#334155' }}>18+ managed open source services</strong> across <strong style={{ color: '#334155' }}>6 domains</strong>
@@ -148,7 +153,7 @@ const AwsManagedOpenSource = () => {
             fontSize: '12px',
             fontWeight: '600'
           }}>
-            {isKo ? '벤더 종속 없는 오픈소스 + AWS 관리형 운영' : 'No vendor lock-in OSS + AWS managed ops'}
+            {isKo ? '벤더 종속 없는 오픈소스 + AWS 관리형 운영' : isZh ? '无供应商锁定的开源 + AWS 托管运维' : 'No vendor lock-in OSS + AWS managed ops'}
           </span>
         </div>
       </div>

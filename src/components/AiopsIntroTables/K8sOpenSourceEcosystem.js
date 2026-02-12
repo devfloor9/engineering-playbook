@@ -4,13 +4,14 @@ import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 const K8sOpenSourceEcosystem = () => {
   const {i18n} = useDocusaurusContext();
   const isKo = i18n.currentLocale === 'ko';
+  const isZh = i18n.currentLocale === 'zh';
   const [activeTab, setActiveTab] = useState(0);
 
   const categories = [
     {
       title: 'Managed Add-ons',
       shortTitle: 'Managed Add-ons',
-      subtitle: isKo ? 'AWS가 수명주기를 직접 관리하는 K8s 확장' : 'K8s extensions with AWS-managed lifecycle',
+      subtitle: isKo ? 'AWS가 수명주기를 직접 관리하는 K8s 확장' : isZh ? 'AWS 直接管理生命周期的 K8s 扩展' : 'K8s extensions with AWS-managed lifecycle',
       color: '#059669',
       badge: 'Managed Add-on',
       items: [
@@ -32,7 +33,7 @@ const K8sOpenSourceEcosystem = () => {
     {
       title: 'Community Add-ons Catalog',
       shortTitle: 'Community',
-      subtitle: isKo ? '2025.03 출시 — 인기 OSS를 EKS 콘솔/CLI로 배포 · 수명주기 관리' : 'Released 2025.03 — Deploy popular OSS via EKS console/CLI · lifecycle management',
+      subtitle: isKo ? '2025.03 출시 — 인기 OSS를 EKS 콘솔/CLI로 배포 · 수명주기 관리' : isZh ? '2025.03 发布 — 通过 EKS 控制台/CLI 部署流行 OSS · 生命周期管理' : 'Released 2025.03 — Deploy popular OSS via EKS console/CLI · lifecycle management',
       color: '#0891b2',
       badge: 'Community Add-on',
       items: [
@@ -46,7 +47,7 @@ const K8sOpenSourceEcosystem = () => {
     {
       title: 'EKS Capabilities',
       shortTitle: 'Capabilities',
-      subtitle: isKo ? '2025.11 출시 — 클러스터 외부 AWS 인프라에서 실행, 자동 HA · 업그레이드' : 'Released 2025.11 — Runs on AWS infra outside cluster, auto HA · upgrades',
+      subtitle: isKo ? '2025.11 출시 — 클러스터 외부 AWS 인프라에서 실행, 자동 HA · 업그레이드' : isZh ? '2025.11 发布 — 在集群外 AWS 基础设施运行，自动 HA · 升级' : 'Released 2025.11 — Runs on AWS infra outside cluster, auto HA · upgrades',
       color: '#2563eb',
       badge: 'EKS Capability',
       items: [
@@ -56,9 +57,9 @@ const K8sOpenSourceEcosystem = () => {
       ]
     },
     {
-      title: isKo ? '관리형 오픈소스 서비스' : 'Managed Open Source Services',
-      shortTitle: isKo ? '관리형 서비스' : 'Managed Services',
-      subtitle: isKo ? 'K8s와 직접 연동되는 독립 관리형 서비스' : 'Independent managed services directly integrated with K8s',
+      title: isKo ? '관리형 오픈소스 서비스' : isZh ? '托管开源服务' : 'Managed Open Source Services',
+      shortTitle: isKo ? '관리형 서비스' : isZh ? '托管服务' : 'Managed Services',
+      subtitle: isKo ? 'K8s와 직접 연동되는 독립 관리형 서비스' : isZh ? '与 K8s 直接集成的独立托管服务' : 'Independent managed services directly integrated with K8s',
       color: '#7c3aed',
       badge: 'Managed Service',
       items: [
@@ -68,9 +69,9 @@ const K8sOpenSourceEcosystem = () => {
       ]
     },
     {
-      title: isKo ? 'AWS 오픈소스 K8s 컨트롤러' : 'AWS Open Source K8s Controllers',
-      shortTitle: isKo ? 'OSS 컨트롤러' : 'OSS Controllers',
-      subtitle: isKo ? 'AWS가 개발 · 유지보수하는 K8s 네이티브 컨트롤러' : 'K8s-native controllers developed & maintained by AWS',
+      title: isKo ? 'AWS 오픈소스 K8s 컨트롤러' : isZh ? 'AWS 开源 K8s 控制器' : 'AWS Open Source K8s Controllers',
+      shortTitle: isKo ? 'OSS 컨트롤러' : isZh ? 'OSS 控制器' : 'OSS Controllers',
+      subtitle: isKo ? 'AWS가 개발 · 유지보수하는 K8s 네이티브 컨트롤러' : isZh ? 'AWS 开发与维护的 K8s 原生控制器' : 'K8s-native controllers developed & maintained by AWS',
       color: '#ea580c',
       badge: 'OSS Controller',
       items: [
@@ -100,10 +101,10 @@ const K8sOpenSourceEcosystem = () => {
         borderRadius: '8px 8px 0 0'
       }}>
         <div style={{ fontSize: '20px', fontWeight: '600', marginBottom: '4px' }}>
-          {isKo ? 'K8s 관련 오픈소스 프로젝트 · 관리형 서비스 맵' : 'K8s Open Source Projects & Managed Services Map'}
+          {isKo ? 'K8s 관련 오픈소스 프로젝트 · 관리형 서비스 맵' : isZh ? 'K8s 开源项目与托管服务地图' : 'K8s Open Source Projects & Managed Services Map'}
         </div>
         <div style={{ fontSize: '14px', opacity: 0.9 }}>
-          {isKo ? 'Kubernetes 생태계의 오픈소스와 AWS 관리형 대응 서비스' : 'Open source & AWS managed counterparts in Kubernetes ecosystem'}
+          {isKo ? 'Kubernetes 생태계의 오픈소스와 AWS 관리형 대응 서비스' : isZh ? 'Kubernetes 生态系统中的开源与 AWS 托管对应服务' : 'Open source & AWS managed counterparts in Kubernetes ecosystem'}
         </div>
       </div>
 
@@ -195,13 +196,13 @@ const K8sOpenSourceEcosystem = () => {
           background: '#fafafa'
         }}>
           <div style={{ fontSize: '11px', fontWeight: '600', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-            {isKo ? '오픈소스' : 'Open Source'}
+            {isKo ? '오픈소스' : isZh ? '开源' : 'Open Source'}
           </div>
           <div style={{ fontSize: '11px', fontWeight: '600', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-            {isKo ? 'AWS 관리형' : 'AWS Managed'}
+            {isKo ? 'AWS 관리형' : isZh ? 'AWS 托管' : 'AWS Managed'}
           </div>
           <div style={{ fontSize: '11px', fontWeight: '600', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-            {isKo ? '역할' : 'Role'}
+            {isKo ? '역할' : isZh ? '角色' : 'Role'}
           </div>
         </div>
 
@@ -252,6 +253,15 @@ const K8sOpenSourceEcosystem = () => {
               + 관리형 서비스 {categories[3].items.length}개
               + OSS 컨트롤러 {categories[4].items.length}개
               = <strong>총 {categories.reduce((a, c) => a + c.items.length, 0)}개</strong> K8s 관련 오픈소스 · 관리형 서비스
+            </>
+          ) : isZh ? (
+            <>
+              <strong>总计:</strong> Managed Add-ons {categories[0].items.length}个
+              + Community {categories[1].items.length}个
+              + Capabilities {categories[2].items.length}个
+              + 托管服务 {categories[3].items.length}个
+              + OSS 控制器 {categories[4].items.length}个
+              = <strong>共 {categories.reduce((a, c) => a + c.items.length, 0)}个</strong> K8s 相关开源与托管服务
             </>
           ) : (
             <>
