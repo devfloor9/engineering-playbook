@@ -1,34 +1,39 @@
 import React from 'react';
+import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 
 const EksCapabilities = () => {
+  const {i18n} = useDocusaurusContext();
+  const isKo = i18n.currentLocale === 'ko';
+  const isZh = i18n.currentLocale === 'zh';
+
   const capabilities = [
     {
       name: 'Managed Argo CD',
       color: '#ea580c',
       status: 'GA',
-      description: 'AWS 관리형 GitOps',
-      features: ['자동 업그레이드', 'HA 구성', 'AWS 인증 통합', '멀티클러스터']
+      description: isKo ? 'AWS 관리형 GitOps' : isZh ? 'AWS 托管 GitOps' : 'AWS-managed GitOps',
+      features: isKo ? ['자동 업그레이드', 'HA 구성', 'AWS 인증 통합', '멀티클러스터'] : isZh ? ['自动升级', 'HA 配置', 'AWS 认证集成', '多集群'] : ['Auto upgrade', 'HA configuration', 'AWS auth integration', 'Multi-cluster']
     },
     {
       name: 'ACK (AWS Controllers for K8s)',
       color: '#3b82f6',
       status: 'GA',
-      description: '50+ AWS 서비스 CRD 관리',
-      features: ['S3/RDS/SQS CRD', '클러스터 외부 실행', '선언적 AWS 관리']
+      description: isKo ? '50+ AWS 서비스 CRD 관리' : isZh ? '50+ AWS 服务 CRD 管理' : '50+ AWS service CRD management',
+      features: isKo ? ['S3/RDS/SQS CRD', '클러스터 외부 실행', '선언적 AWS 관리'] : isZh ? ['S3/RDS/SQS CRD', '集群外执行', '声明式 AWS 管理'] : ['S3/RDS/SQS CRD', 'Out-of-cluster execution', 'Declarative AWS management']
     },
     {
       name: 'KRO (K8s Resource Orchestrator)',
       color: '#8b5cf6',
       status: 'Preview',
-      description: 'ResourceGroup CRD 복합 리소스',
-      features: ['단일 배포 단위', '의존성 관리', '템플릿 변수']
+      description: isKo ? 'ResourceGroup CRD 복합 리소스' : isZh ? 'ResourceGroup CRD 复合资源' : 'ResourceGroup CRD composite resources',
+      features: isKo ? ['단일 배포 단위', '의존성 관리', '템플릿 변수'] : isZh ? ['单一部署单元', '依赖管理', '模板变量'] : ['Single deployment unit', 'Dependency management', 'Template variables']
     },
     {
       name: 'LBC v3',
       color: '#059669',
       status: 'GA',
-      description: 'Gateway API GA 지원',
-      features: ['Gateway API', 'JWT 검증', '헤더 변환', '다중 TG 바인딩']
+      description: isKo ? 'Gateway API GA 지원' : isZh ? 'Gateway API GA 支持' : 'Gateway API GA support',
+      features: isKo ? ['Gateway API', 'JWT 검증', '헤더 변환', '다중 TG 바인딩'] : isZh ? ['Gateway API', 'JWT 验证', '头部转换', '多 TG 绑定'] : ['Gateway API', 'JWT validation', 'Header transformation', 'Multi TG binding']
     }
   ];
 
@@ -120,7 +125,7 @@ const EksCapabilities = () => {
     <div style={styles.container}>
       <div style={styles.header}>
         <h2 style={styles.title}>⚡ EKS Capabilities (2025.11)</h2>
-        <p style={styles.subtitle}>AWS 관리형 K8s 네이티브 도구</p>
+        <p style={styles.subtitle}>{isKo ? 'AWS 관리형 K8s 네이티브 도구' : isZh ? 'AWS 托管 K8s 原生工具' : 'AWS-managed K8s native tools'}</p>
       </div>
       <div style={styles.capabilitiesList}>
         {capabilities.map((capability, idx) => (
