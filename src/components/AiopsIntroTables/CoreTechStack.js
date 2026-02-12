@@ -1,43 +1,48 @@
 import React from 'react';
+import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 
 const CoreTechStack = () => {
+  const {i18n} = useDocusaurusContext();
+  const isKo = i18n.currentLocale === 'ko';
+  const isZh = i18n.currentLocale === 'zh';
+
   const groups = [
     {
-      title: 'Data & Observability',
+      title: isKo ? '데이터 & 관찰성' : isZh ? '数据与可观测性' : 'Data & Observability',
       color: '#059669',
       bgColor: '#ecfdf5',
       items: [
-        { icon: '📊', area: 'Observability', aws: 'CloudWatch, X-Ray, AMP, AMG', oss: 'ADOT, Grafana' },
-        { icon: '🔍', area: 'Anomaly Detection', aws: 'DevOps Guru, CloudWatch AI', oss: 'Prometheus + ML' }
+        { icon: '📊', area: isKo ? '관찰성' : isZh ? '可观测性' : 'Observability', aws: 'CloudWatch, X-Ray, AMP, AMG', oss: 'ADOT, Grafana' },
+        { icon: '🔍', area: isKo ? '이상 탐지' : isZh ? '异常检测' : 'Anomaly Detection', aws: 'DevOps Guru, CloudWatch AI', oss: 'Prometheus + ML' }
       ]
     },
     {
-      title: 'AI Development',
+      title: isKo ? 'AI 개발' : isZh ? 'AI 开发' : 'AI Development',
       color: '#7c3aed',
       bgColor: '#f5f3ff',
       items: [
-        { icon: '🤖', area: 'AI Coding', aws: 'Kiro, Q Developer', oss: 'Claude Code, Cursor' },
-        { icon: '🔗', area: 'MCP Integration', aws: 'Individual (50+ GA), Managed, Unified', oss: 'Kagent (kmcp)' }
+        { icon: '🤖', area: isKo ? 'AI 코딩' : isZh ? 'AI 编码' : 'AI Coding', aws: 'Kiro, Q Developer', oss: 'Claude Code, Cursor' },
+        { icon: '🔗', area: isKo ? 'MCP 통합' : isZh ? 'MCP 集成' : 'MCP Integration', aws: isKo ? 'Individual (50+ GA), Managed, Unified' : isZh ? '独立（50+ GA）、托管、统一' : 'Individual (50+ GA), Managed, Unified', oss: 'Kagent (kmcp)' }
       ]
     },
     {
-      title: 'Deployment & Infra',
+      title: isKo ? '배포 & 인프라' : isZh ? '部署与基础设施' : 'Deployment & Infra',
       color: '#ea580c',
       bgColor: '#fff7ed',
       items: [
         { icon: '🔄', area: 'GitOps', aws: 'Managed Argo CD', oss: 'Argo CD' },
         { icon: '📦', area: 'IaC', aws: 'ACK (50+ CRD), KRO', oss: 'Terraform, Helm' },
-        { icon: '🌐', area: 'Networking', aws: 'LBC v3 (Gateway API GA)', oss: 'Gateway API' }
+        { icon: '🌐', area: isKo ? '네트워킹' : isZh ? '网络' : 'Networking', aws: 'LBC v3 (Gateway API GA)', oss: 'Gateway API' }
       ]
     },
     {
-      title: 'Intelligent Ops',
+      title: isKo ? '지능형 운영' : isZh ? '智能运维' : 'Intelligent Ops',
       color: '#2563eb',
       bgColor: '#eff6ff',
       items: [
         { icon: '🧠', area: 'AI Agent', aws: 'Q Developer, Strands', oss: 'Kagent' },
-        { icon: '📈', area: 'Predictive Scaling', aws: 'CloudWatch Anomaly Detection', oss: 'Prophet, ARIMA' },
-        { icon: '⚙️', area: 'Node Mgmt', aws: 'Karpenter', oss: '-' }
+        { icon: '📈', area: isKo ? '예측 스케일링' : isZh ? '预测性扩展' : 'Predictive Scaling', aws: 'CloudWatch Anomaly Detection', oss: 'Prophet, ARIMA' },
+        { icon: '⚙️', area: isKo ? '노드 관리' : isZh ? '节点管理' : 'Node Mgmt', aws: 'Karpenter', oss: '-' }
       ]
     }
   ];
@@ -58,10 +63,10 @@ const CoreTechStack = () => {
         textAlign: 'center'
       }}>
         <h2 style={{ margin: '0 0 0.25rem 0', fontSize: '1.5rem', fontWeight: '700' }}>
-          Core Technology Stack
+          {isKo ? '핵심 기술 스택' : isZh ? '核心技术栈' : 'Core Technology Stack'}
         </h2>
         <p style={{ margin: 0, fontSize: '0.875rem', opacity: 0.9 }}>
-          AWS Services & Open Source Tools for AIops & AIDLC
+          {isKo ? 'AIops & AIDLC를 위한 AWS 서비스 & 오픈소스 도구' : isZh ? 'AIops & AIDLC 的 AWS 服务与开源工具' : 'AWS Services & Open Source Tools for AIops & AIDLC'}
         </p>
       </div>
 
@@ -182,7 +187,7 @@ const CoreTechStack = () => {
           color: '#64748b',
           fontFamily: 'Menlo, Monaco, Courier New, monospace'
         }}>
-          Observability → Anomaly Detection → AI Agent Response → Predictive Scaling → Auto-Remediation
+          {isKo ? '관찰성 → 이상 탐지 → AI Agent 대응 → 예측 스케일링 → 자동 복구' : isZh ? '可观测性 → 异常检测 → AI Agent 响应 → 预测性扩展 → 自动修复' : 'Observability → Anomaly Detection → AI Agent Response → Predictive Scaling → Auto-Remediation'}
         </div>
       </div>
     </div>

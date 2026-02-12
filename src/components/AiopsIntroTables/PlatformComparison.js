@@ -1,6 +1,10 @@
 import React from 'react';
+import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 
 const PlatformComparison = () => {
+  const {i18n} = useDocusaurusContext();
+  const isKo = i18n.currentLocale === 'ko';
+  const isZh = i18n.currentLocale === 'zh';
   const containerStyle = {
     maxWidth: '760px',
     margin: '2rem auto',
@@ -99,25 +103,25 @@ const PlatformComparison = () => {
   };
 
   const leftCardData = [
-    { icon: '🧠', text: 'LLM 서빙 및 추론 최적화' },
-    { icon: '🚀', text: 'vLLM, llm-d 배포 구성' },
-    { icon: '🎮', text: 'GPU 리소스 관리' },
-    { icon: '⚡', text: '실시간 추론 패턴' },
+    { icon: '🧠', text: isKo ? 'LLM 서빙 및 추론 최적화' : isZh ? 'LLM 服务与推理优化' : 'LLM serving & inference optimization' },
+    { icon: '🚀', text: isKo ? 'vLLM, llm-d 배포 구성' : isZh ? 'vLLM、llm-d 部署配置' : 'vLLM, llm-d deployment configuration' },
+    { icon: '🎮', text: isKo ? 'GPU 리소스 관리' : isZh ? 'GPU 资源管理' : 'GPU resource management' },
+    { icon: '⚡', text: isKo ? '실시간 추론 패턴' : isZh ? '实时推理模式' : 'Real-time inference patterns' },
   ];
 
   const rightCardData = [
-    { icon: '🤖', text: 'AI로 플랫폼 자체를 운영하고 개발' },
-    { icon: '🔧', text: 'Kiro+MCP 기반 프로그래머틱 자동화' },
-    { icon: '📊', text: '예측 스케일링, AI Agent 자율 운영' },
-    { icon: '📐', text: '관찰성 스택, AIDLC 개발 방법론' },
+    { icon: '🤖', text: isKo ? 'AI로 플랫폼 자체를 운영하고 개발' : isZh ? '用 AI 运维和开发平台本身' : 'Operate & develop the platform with AI' },
+    { icon: '🔧', text: isKo ? 'Kiro+MCP 기반 프로그래머틱 자동화' : isZh ? '基于 Kiro+MCP 的编程式自动化' : 'Programmatic automation with Kiro+MCP' },
+    { icon: '📊', text: isKo ? '예측 스케일링, AI Agent 자율 운영' : isZh ? '预测性扩展、AI Agent 自主运维' : 'Predictive scaling, AI Agent autonomous ops' },
+    { icon: '📐', text: isKo ? '관찰성 스택, AIDLC 개발 방법론' : isZh ? '可观测性栈、AIDLC 开发方法论' : 'Observability stack, AIDLC methodology' },
   ];
 
   return (
     <div style={containerStyle}>
       <div style={headerStyle}>
-        <h2 style={titleStyle}>플랫폼 비교</h2>
+        <h2 style={titleStyle}>{isKo ? '플랫폼 비교' : isZh ? '平台对比' : 'Platform Comparison'}</h2>
         <p style={subtitleStyle}>
-          AI 인프라의 두 가지 핵심 관점: 워크로드 실행 vs 운영 방법론
+          {isKo ? 'AI 인프라의 두 가지 핵심 관점: 워크로드 실행 vs 운영 방법론' : isZh ? 'AI 基础设施的两个核心视角：工作负载执行 vs 运维方法论' : 'Two key perspectives of AI infrastructure: workload execution vs operations methodology'}
         </p>
       </div>
 
@@ -158,7 +162,7 @@ const PlatformComparison = () => {
       </div>
 
       <div style={summaryStyle}>
-        AI 워크로드를 실행하는 플랫폼 vs AI로 플랫폼을 운영하는 방법론
+        {isKo ? 'AI 워크로드를 실행하는 플랫폼 vs AI로 플랫폼을 운영하는 방법론' : isZh ? '运行 AI 工作负载的平台 vs 用 AI 运维平台的方法论' : 'Platform that runs AI workloads vs methodology that operates platforms with AI'}
       </div>
     </div>
   );
