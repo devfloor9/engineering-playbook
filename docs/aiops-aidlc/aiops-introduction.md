@@ -10,7 +10,7 @@ last_update:
   author: devfloor9
 ---
 
-import { AiopsMaturityModel, MonitoringComparison, AwsServicesMap, RoiMetrics, AwsManagedOpenSource, K8sOpenSourceEcosystem, EvolutionDiagram, DevOpsAgentArchitecture } from '@site/src/components/AiopsIntroTables';
+import { AiopsMaturityModel, MonitoringComparison, AwsServicesMap, RoiMetrics, AwsManagedOpenSource, K8sOpenSourceEcosystem, EvolutionDiagram, DevOpsAgentArchitecture, McpServerTypes } from '@site/src/components/AiopsIntroTables';
 
 # AI로 K8s 운영 혁신하기 — AIOps 전략 가이드
 
@@ -170,20 +170,9 @@ AWS는 **65개 이상의 MCP 서버**를 제공하여 AI 도구(Kiro, Q Develope
 | **Well-Architected Security MCP** | 보안 평가 · 권장사항 | 보안 컴플라이언스 |
 | **Core MCP** | 다른 MCP 서버 오케스트레이션 | 복합 워크플로우 자동화 |
 
-:::tip AWS MCP 서버 3가지 제공 방식
+<McpServerTypes />
 
-AWS의 MCP 서버는 **3가지 형태**로 제공됩니다:
-
-| 구분 | 개별 로컬 MCP 서버 (65+) | Fully Managed MCP 서버 | AWS MCP Server (통합) |
-|------|---|---|---|
-| **출시** | 2024~ (GA) | 2025.11 (Preview) | 2025.11 (Preview) |
-| **실행 위치** | 로컬 (npx/pip) | AWS 클라우드 | AWS 클라우드 |
-| **범위** | 서비스별 1개 서버 | 서비스별 클라우드 버전 (EKS, ECS) | **15,000+ AWS API** 단일 서버 |
-| **특징** | 서비스별 심화 도구 | IAM 통합, CloudTrail 감사, 자동 패치 | API 실행 + 문서 + Agent SOPs |
-| **설치** | `npx @awslabs/mcp-server-eks` | Kiro/IDE에서 remote 연결 | Kiro/IDE에서 remote 연결 |
-
-위 표의 65+ 개별 서버는 현재 프로덕션에서 사용 가능하며, Fully Managed 및 통합 서버는 Preview 단계입니다. 전체 목록은 [AWS MCP Servers GitHub](https://github.com/awslabs/mcp)를 참조하세요.
-:::
+> 전체 목록은 [AWS MCP Servers GitHub](https://github.com/awslabs/mcp)를 참조하세요.
 
 ### 3.3 Kiro + MCP: 현실적인 AIOps 패턴
 
