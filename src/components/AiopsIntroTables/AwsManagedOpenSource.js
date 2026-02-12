@@ -1,38 +1,42 @@
 import React from 'react';
+import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 
 const AwsManagedOpenSource = () => {
+  const {i18n} = useDocusaurusContext();
+  const isKo = i18n.currentLocale === 'ko';
+
   const categories = [
     {
       icon: '🗄️',
-      label: '데이터베이스',
+      label: isKo ? '데이터베이스' : 'Database',
       color: '#2563eb',
       bg: '#eff6ff',
       items: ['DocumentDB (MongoDB)', 'ElastiCache (Redis/Valkey)', 'MemoryDB (Redis)', 'Keyspaces (Cassandra)', 'Neptune (Graph)']
     },
     {
       icon: '📡',
-      label: '스트리밍·메시징',
+      label: isKo ? '스트리밍·메시징' : 'Streaming·Messaging',
       color: '#dc2626',
       bg: '#fef2f2',
       items: ['MSK (Kafka)', 'MQ (ActiveMQ/RabbitMQ)']
     },
     {
       icon: '🔍',
-      label: '검색·분석',
+      label: isKo ? '검색·분석' : 'Search·Analytics',
       color: '#059669',
       bg: '#ecfdf5',
       items: ['OpenSearch (Elasticsearch)', 'EMR (Spark/Flink)', 'MWAA (Airflow)']
     },
     {
       icon: '📊',
-      label: '관찰성',
+      label: isKo ? '관찰성' : 'Observability',
       color: '#7c3aed',
       bg: '#f5f3ff',
       items: ['AMP (Prometheus)', 'AMG (Grafana)', 'ADOT (OpenTelemetry)']
     },
     {
       icon: '📦',
-      label: '컨테이너',
+      label: isKo ? '컨테이너' : 'Container',
       color: '#ea580c',
       bg: '#fff7ed',
       items: ['EKS (Kubernetes)', 'ECR (OCI Registry)', 'App Mesh (Envoy)']
@@ -61,10 +65,10 @@ const AwsManagedOpenSource = () => {
         borderRadius: '8px 8px 0 0'
       }}>
         <div style={{ fontSize: '20px', fontWeight: '600', marginBottom: '4px' }}>
-          AWS 관리형 오픈소스 서비스
+          {isKo ? 'AWS 관리형 오픈소스 서비스' : 'AWS Managed Open Source Services'}
         </div>
         <div style={{ fontSize: '14px', opacity: 0.9 }}>
-          오픈소스의 유연성은 유지하고, 운영 부담은 AWS에 위임
+          {isKo ? '오픈소스의 유연성은 유지하고, 운영 부담은 AWS에 위임' : 'Keep open source flexibility, delegate operations to AWS'}
         </div>
       </div>
 
@@ -126,7 +130,15 @@ const AwsManagedOpenSource = () => {
           fontSize: '13px'
         }}>
           <span style={{ color: '#64748b' }}>
-            <strong style={{ color: '#334155' }}>6개 영역</strong>에 걸친 <strong style={{ color: '#334155' }}>18+ 관리형 오픈소스 서비스</strong>
+            {isKo ? (
+              <>
+                <strong style={{ color: '#334155' }}>6개 영역</strong>에 걸친 <strong style={{ color: '#334155' }}>18+ 관리형 오픈소스 서비스</strong>
+              </>
+            ) : (
+              <>
+                <strong style={{ color: '#334155' }}>18+ managed open source services</strong> across <strong style={{ color: '#334155' }}>6 domains</strong>
+              </>
+            )}
           </span>
           <span style={{
             background: '#dbeafe',
@@ -136,7 +148,7 @@ const AwsManagedOpenSource = () => {
             fontSize: '12px',
             fontWeight: '600'
           }}>
-            벤더 종속 없는 오픈소스 + AWS 관리형 운영
+            {isKo ? '벤더 종속 없는 오픈소스 + AWS 관리형 운영' : 'No vendor lock-in OSS + AWS managed ops'}
           </span>
         </div>
       </div>

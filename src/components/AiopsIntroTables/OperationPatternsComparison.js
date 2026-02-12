@@ -1,54 +1,58 @@
 import React from 'react';
+import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 
 const OperationPatternsComparison = () => {
+  const {i18n} = useDocusaurusContext();
+  const isKo = i18n.currentLocale === 'ko';
+
   const patterns = [
     {
       name: 'Prompt-Driven',
       color: '#2563eb',
-      humanRole: '매 단계 지시 (Human-in-the-Loop)',
-      responseStart: '운영자가 알림 확인 후 AI에 지시',
-      dataCollection: '프롬프트로 하나씩 요청',
-      analysis: '운영자가 결과를 보고 다음 지시',
-      recovery: '운영자 승인 후 AI가 실행',
-      learning: '운영자 개인 경험에 의존',
-      responseTime: '분~시간',
+      humanRole: isKo ? '매 단계 지시 (Human-in-the-Loop)' : 'Direct each step (Human-in-the-Loop)',
+      responseStart: isKo ? '운영자가 알림 확인 후 AI에 지시' : 'Operator checks alert, then directs AI',
+      dataCollection: isKo ? '프롬프트로 하나씩 요청' : 'Request one by one via prompts',
+      analysis: isKo ? '운영자가 결과를 보고 다음 지시' : 'Operator reviews results, directs next step',
+      recovery: isKo ? '운영자 승인 후 AI가 실행' : 'AI executes after operator approval',
+      learning: isKo ? '운영자 개인 경험에 의존' : 'Relies on operator personal experience',
+      responseTime: isKo ? '분~시간' : 'Minutes~Hours',
       tools: 'Q Developer, ChatOps'
     },
     {
       name: 'Spec-Driven',
       color: '#7c3aed',
-      humanRole: 'Intent 정의 + 결과 검토',
-      responseStart: '사전 정의된 파이프라인 트리거',
-      dataCollection: 'Spec에 정의된 데이터 자동 수집',
-      analysis: '사전 정의된 검증 로직 실행',
-      recovery: 'GitOps로 선언적 롤백/변경',
-      learning: 'Spec 버전 히스토리로 조직 지식화',
-      responseTime: '분',
+      humanRole: isKo ? 'Intent 정의 + 결과 검토' : 'Define intent + Review results',
+      responseStart: isKo ? '사전 정의된 파이프라인 트리거' : 'Pre-defined pipeline trigger',
+      dataCollection: isKo ? 'Spec에 정의된 데이터 자동 수집' : 'Auto-collect data defined in spec',
+      analysis: isKo ? '사전 정의된 검증 로직 실행' : 'Execute pre-defined validation logic',
+      recovery: isKo ? 'GitOps로 선언적 롤백/변경' : 'Declarative rollback/change via GitOps',
+      learning: isKo ? 'Spec 버전 히스토리로 조직 지식화' : 'Org knowledge via spec version history',
+      responseTime: isKo ? '분' : 'Minutes',
       tools: 'Kiro + GitOps + Argo CD'
     },
     {
       name: 'Agent-Driven',
       color: '#059669',
-      humanRole: '가드레일 설정 + 예외 처리 (Human-on-the-Loop)',
-      responseStart: 'Agent가 알림 수신 후 자동 시작',
-      dataCollection: 'MCP로 멀티소스 동시 수집',
-      analysis: 'AI가 근본 원인까지 자동 분석',
-      recovery: '가드레일 범위 내 자율 복구',
-      learning: '결과 피드백 자동 학습',
-      responseTime: '초~분',
+      humanRole: isKo ? '가드레일 설정 + 예외 처리 (Human-on-the-Loop)' : 'Set guardrails + Handle exceptions (Human-on-the-Loop)',
+      responseStart: isKo ? 'Agent가 알림 수신 후 자동 시작' : 'Agent auto-starts after receiving alert',
+      dataCollection: isKo ? 'MCP로 멀티소스 동시 수집' : 'Concurrent multi-source collection via MCP',
+      analysis: isKo ? 'AI가 근본 원인까지 자동 분석' : 'AI auto-analyzes to root cause',
+      recovery: isKo ? '가드레일 범위 내 자율 복구' : 'Autonomous recovery within guardrails',
+      learning: isKo ? '결과 피드백 자동 학습' : 'Auto-learn from result feedback',
+      responseTime: isKo ? '초~분' : 'Seconds~Minutes',
       tools: 'Kagent, Strands SOPs'
     }
   ];
 
   const rows = [
-    { label: '사람의 역할', key: 'humanRole' },
-    { label: '대응 시작', key: 'responseStart' },
-    { label: '데이터 수집', key: 'dataCollection' },
-    { label: '분석', key: 'analysis' },
-    { label: '복구', key: 'recovery' },
-    { label: '학습', key: 'learning' },
-    { label: '대응 시간', key: 'responseTime' },
-    { label: '대표 도구', key: 'tools' }
+    { label: isKo ? '사람의 역할' : 'Human Role', key: 'humanRole' },
+    { label: isKo ? '대응 시작' : 'Response Start', key: 'responseStart' },
+    { label: isKo ? '데이터 수집' : 'Data Collection', key: 'dataCollection' },
+    { label: isKo ? '분석' : 'Analysis', key: 'analysis' },
+    { label: isKo ? '복구' : 'Recovery', key: 'recovery' },
+    { label: isKo ? '학습' : 'Learning', key: 'learning' },
+    { label: isKo ? '대응 시간' : 'Response Time', key: 'responseTime' },
+    { label: isKo ? '대표 도구' : 'Representative Tools', key: 'tools' }
   ];
 
   return (
@@ -66,7 +70,7 @@ const OperationPatternsComparison = () => {
         borderRadius: '8px 8px 0 0'
       }}>
         <div style={{ fontSize: '20px', fontWeight: '600', marginBottom: '4px' }}>
-          운영 패턴 비교: EKS 클러스터 이슈 대응 시나리오
+          {isKo ? '운영 패턴 비교: EKS 클러스터 이슈 대응 시나리오' : 'Operation Pattern Comparison: EKS Cluster Issue Response'}
         </div>
         <div style={{ fontSize: '14px', opacity: 0.9 }}>
           Prompt-Driven · Spec-Driven · Agent-Driven
@@ -151,8 +155,9 @@ const OperationPatternsComparison = () => {
           fontSize: '12px',
           color: '#92400e'
         }}>
-          <strong>실전 조합:</strong> 세 패턴은 상호 보완적입니다. 새로운 장애를 Prompt-Driven으로 탐색한 뒤,
-          반복 패턴을 Spec-Driven으로 코드화하고, 최종적으로 Agent-Driven으로 자율화하는 점진적 성숙 과정을 거칩니다.
+          <strong>{isKo ? '실전 조합:' : 'Real-world Combination:'}</strong> {isKo
+            ? '세 패턴은 상호 보완적입니다. 새로운 장애를 Prompt-Driven으로 탐색한 뒤, 반복 패턴을 Spec-Driven으로 코드화하고, 최종적으로 Agent-Driven으로 자율화하는 점진적 성숙 과정을 거칩니다.'
+            : 'The three patterns are complementary. Explore new failures with Prompt-Driven, codify recurring patterns with Spec-Driven, and finally automate with Agent-Driven in a gradual maturity process.'}
         </div>
       </div>
     </div>

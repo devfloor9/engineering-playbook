@@ -1,24 +1,28 @@
 import React from 'react';
+import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 
 const StackSelectionPatterns = () => {
+  const {i18n} = useDocusaurusContext();
+  const isKo = i18n.currentLocale === 'ko';
+
   const patterns = [
     {
-      pattern: 'AWS 네이티브',
+      pattern: isKo ? 'AWS 네이티브' : 'AWS Native',
       collection: 'CloudWatch Observability Agent',
       backend: 'CloudWatch Logs/Metrics, X-Ray',
-      environment: 'AWS 서비스 의존도가 높고, 단일 콘솔 관리를 선호하는 팀'
+      environment: isKo ? 'AWS 서비스 의존도가 높고, 단일 콘솔 관리를 선호하는 팀' : 'Teams with high AWS service dependency preferring single console management'
     },
     {
-      pattern: 'OSS 중심',
+      pattern: isKo ? 'OSS 중심' : 'OSS-Centric',
       collection: 'ADOT (OpenTelemetry)',
       backend: 'AMP (Prometheus), AMG (Grafana), X-Ray',
-      environment: 'K8s 네이티브 도구 선호, 멀티클라우드 전략, 벤더 종속 최소화'
+      environment: isKo ? 'K8s 네이티브 도구 선호, 멀티클라우드 전략, 벤더 종속 최소화' : 'Prefer K8s-native tools, multi-cloud strategy, minimize vendor lock-in'
     },
     {
       pattern: '3rd Party',
-      collection: 'ADOT 또는 벤더 전용 에이전트',
-      backend: 'Datadog, Sumo Logic, Splunk, New Relic 등',
-      environment: '기존 3rd Party 투자가 있거나, 통합 SaaS 대시보드를 선호하는 조직'
+      collection: isKo ? 'ADOT 또는 벤더 전용 에이전트' : 'ADOT or vendor-specific agents',
+      backend: isKo ? 'Datadog, Sumo Logic, Splunk, New Relic 등' : 'Datadog, Sumo Logic, Splunk, New Relic, etc.',
+      environment: isKo ? '기존 3rd Party 투자가 있거나, 통합 SaaS 대시보드를 선호하는 조직' : 'Organizations with existing 3rd party investments or preferring unified SaaS dashboards'
     }
   ];
 
@@ -38,10 +42,10 @@ const StackSelectionPatterns = () => {
         borderRadius: '8px 8px 0 0'
       }}>
         <div style={{ fontSize: '20px', fontWeight: '600', marginBottom: '4px' }}>
-          관찰성 스택 선택 패턴
+          {isKo ? '관찰성 스택 선택 패턴' : 'Observability Stack Selection Patterns'}
         </div>
         <div style={{ fontSize: '14px', opacity: 0.9 }}>
-          조직의 요구사항에 따른 세 가지 전략
+          {isKo ? '조직의 요구사항에 따른 세 가지 전략' : 'Three strategies based on organizational requirements'}
         </div>
       </div>
 
@@ -66,7 +70,7 @@ const StackSelectionPatterns = () => {
             fontSize: '12px',
             color: '#6b7280'
           }}>
-            패턴
+            {isKo ? '패턴' : 'Pattern'}
           </div>
           <div style={{
             padding: '12px 14px',
@@ -75,7 +79,7 @@ const StackSelectionPatterns = () => {
             fontSize: '12px',
             color: '#6b7280'
           }}>
-            수집 레이어
+            {isKo ? '수집 레이어' : 'Collection Layer'}
           </div>
           <div style={{
             padding: '12px 14px',
@@ -84,7 +88,7 @@ const StackSelectionPatterns = () => {
             fontSize: '12px',
             color: '#6b7280'
           }}>
-            백엔드
+            {isKo ? '백엔드' : 'Backend'}
           </div>
           <div style={{
             padding: '12px 14px',
@@ -93,7 +97,7 @@ const StackSelectionPatterns = () => {
             fontSize: '12px',
             color: '#6b7280'
           }}>
-            적합한 환경
+            {isKo ? '적합한 환경' : 'Suitable Environment'}
           </div>
         </div>
 
@@ -156,8 +160,7 @@ const StackSelectionPatterns = () => {
           color: '#92400e',
           lineHeight: '1.6'
         }}>
-          💡 <strong>핵심:</strong> ADOT(OpenTelemetry)를 수집 레이어로 사용하면 백엔드 교체가 자유롭습니다.
-          이것이 AWS가 자체 에이전트 대신 OpenTelemetry를 Managed Add-on으로 제공하는 이유입니다.
+          💡 <strong>{isKo ? '핵심:' : 'Key Point:'}</strong> {isKo ? 'ADOT(OpenTelemetry)를 수집 레이어로 사용하면 백엔드 교체가 자유롭습니다. 이것이 AWS가 자체 에이전트 대신 OpenTelemetry를 Managed Add-on으로 제공하는 이유입니다.' : 'Using ADOT (OpenTelemetry) as the collection layer allows flexible backend switching. This is why AWS provides OpenTelemetry as a Managed Add-on instead of their own agent.'}
         </div>
       </div>
     </div>

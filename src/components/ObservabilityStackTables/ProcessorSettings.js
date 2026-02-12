@@ -1,31 +1,35 @@
 import React from 'react';
+import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 
 const ProcessorSettings = () => {
+  const {i18n} = useDocusaurusContext();
+  const isKo = i18n.currentLocale === 'ko';
+
   const processors = [
     {
       processor: 'memory_limiter',
-      role: 'OOM 방지',
+      role: isKo ? 'OOM 방지' : 'Prevent OOM',
       settings: 'limit_mib: 512, spike_limit: 128'
     },
     {
       processor: 'batch',
-      role: '네트워크 효율화',
+      role: isKo ? '네트워크 효율화' : 'Network efficiency',
       settings: 'timeout: 10s, batch_size: 1024'
     },
     {
       processor: 'filter',
-      role: '불필요 메트릭 제거',
-      settings: 'go_*, process_* 제외'
+      role: isKo ? '불필요 메트릭 제거' : 'Remove unnecessary metrics',
+      settings: isKo ? 'go_*, process_* 제외' : 'Exclude go_*, process_*'
     },
     {
       processor: 'resource',
-      role: '메타데이터 추가',
-      settings: 'cluster.name, region 부착'
+      role: isKo ? '메타데이터 추가' : 'Add metadata',
+      settings: isKo ? 'cluster.name, region 부착' : 'Attach cluster.name, region'
     },
     {
       processor: 'resourcedetection',
-      role: '환경 자동 감지',
-      settings: 'EKS, EC2 감지기 활성화'
+      role: isKo ? '환경 자동 감지' : 'Auto-detect environment',
+      settings: isKo ? 'EKS, EC2 감지기 활성화' : 'Enable EKS, EC2 detectors'
     }
   ];
 
@@ -45,10 +49,10 @@ const ProcessorSettings = () => {
         borderRadius: '8px 8px 0 0'
       }}>
         <div style={{ fontSize: '20px', fontWeight: '600', marginBottom: '4px' }}>
-          핵심 프로세서 설정
+          {isKo ? '핵심 프로세서 설정' : 'Core Processor Settings'}
         </div>
         <div style={{ fontSize: '14px', opacity: 0.9 }}>
-          ADOT Collector 파이프라인 최적화
+          {isKo ? 'ADOT Collector 파이프라인 최적화' : 'ADOT Collector Pipeline Optimization'}
         </div>
       </div>
 
@@ -73,7 +77,7 @@ const ProcessorSettings = () => {
             fontSize: '12px',
             color: '#6b7280'
           }}>
-            프로세서
+            {isKo ? '프로세서' : 'Processor'}
           </div>
           <div style={{
             padding: '12px 14px',
@@ -82,7 +86,7 @@ const ProcessorSettings = () => {
             fontSize: '12px',
             color: '#6b7280'
           }}>
-            역할
+            {isKo ? '역할' : 'Role'}
           </div>
           <div style={{
             padding: '12px 14px',
@@ -91,7 +95,7 @@ const ProcessorSettings = () => {
             fontSize: '12px',
             color: '#6b7280'
           }}>
-            권장 설정
+            {isKo ? '권장 설정' : 'Recommended Settings'}
           </div>
         </div>
 

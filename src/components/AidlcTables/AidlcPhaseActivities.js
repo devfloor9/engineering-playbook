@@ -1,37 +1,41 @@
 import React from 'react';
+import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 
 const AidlcPhaseActivities = () => {
+  const {i18n} = useDocusaurusContext();
+  const isKo = i18n.currentLocale === 'ko';
+
   const phases = [
     {
-      name: 'Inception 단계',
+      name: isKo ? 'Inception 단계' : 'Inception Phase',
       color: '#3b82f6',
       activities: [
-        { activity: '요구사항 분석', tools: 'Kiro, Q Developer', outputs: 'requirements.md' },
-        { activity: '아키텍처 설계', tools: 'Kiro, Claude', outputs: 'design.md' },
-        { activity: '기술 스택 결정', tools: 'Kiro (MCP 기반 AWS 서비스 탐색)', outputs: '기술 스택 문서' },
-        { activity: '비용 추정', tools: 'Cost Analysis MCP', outputs: '비용 산정서' }
+        { activity: isKo ? '요구사항 분석' : 'Requirements Analysis', tools: 'Kiro, Q Developer', outputs: 'requirements.md' },
+        { activity: isKo ? '아키텍처 설계' : 'Architecture Design', tools: 'Kiro, Claude', outputs: 'design.md' },
+        { activity: isKo ? '기술 스택 결정' : 'Tech Stack Selection', tools: isKo ? 'Kiro (MCP 기반 AWS 서비스 탐색)' : 'Kiro (MCP-based AWS Service Discovery)', outputs: isKo ? '기술 스택 문서' : 'Tech Stack Document' },
+        { activity: isKo ? '비용 추정' : 'Cost Estimation', tools: 'Cost Analysis MCP', outputs: isKo ? '비용 산정서' : 'Cost Estimate' }
       ]
     },
     {
-      name: 'Construction 단계',
+      name: isKo ? 'Construction 단계' : 'Construction Phase',
       color: '#059669',
       activities: [
-        { activity: '태스크 분해', tools: 'Kiro', outputs: 'tasks.md' },
-        { activity: '코드 생성', tools: 'Kiro, Q Developer, Copilot', outputs: '소스 코드' },
-        { activity: '코드 리뷰', tools: 'Q Developer (Security Scan)', outputs: '리뷰 코멘트' },
-        { activity: '테스트 생성', tools: 'Kiro, Q Developer', outputs: '테스트 코드' },
-        { activity: 'IaC 생성', tools: 'Kiro + AWS MCP', outputs: 'Terraform, Helm' }
+        { activity: isKo ? '태스크 분해' : 'Task Decomposition', tools: 'Kiro', outputs: 'tasks.md' },
+        { activity: isKo ? '코드 생성' : 'Code Generation', tools: 'Kiro, Q Developer, Copilot', outputs: isKo ? '소스 코드' : 'Source Code' },
+        { activity: isKo ? '코드 리뷰' : 'Code Review', tools: 'Q Developer (Security Scan)', outputs: isKo ? '리뷰 코멘트' : 'Review Comments' },
+        { activity: isKo ? '테스트 생성' : 'Test Generation', tools: 'Kiro, Q Developer', outputs: isKo ? '테스트 코드' : 'Test Code' },
+        { activity: isKo ? 'IaC 생성' : 'IaC Generation', tools: 'Kiro + AWS MCP', outputs: 'Terraform, Helm' }
       ]
     },
     {
-      name: 'Operations 단계',
+      name: isKo ? 'Operations 단계' : 'Operations Phase',
       color: '#8b5cf6',
       activities: [
-        { activity: 'GitOps 배포', tools: 'Managed Argo CD', outputs: '자동 배포' },
-        { activity: '관찰성 분석', tools: 'AMP/AMG + CloudWatch AI', outputs: '대시보드, 알림' },
-        { activity: '이상 탐지', tools: 'DevOps Guru, CloudWatch', outputs: '인사이트' },
-        { activity: '자동 대응', tools: 'Kagent, Strands, Q Developer', outputs: '자동 복구' },
-        { activity: '인프라 관리', tools: 'ACK + KRO', outputs: 'K8s CRD 기반 관리' }
+        { activity: isKo ? 'GitOps 배포' : 'GitOps Deployment', tools: 'Managed Argo CD', outputs: isKo ? '자동 배포' : 'Automated Deployment' },
+        { activity: isKo ? '관찰성 분석' : 'Observability Analysis', tools: 'AMP/AMG + CloudWatch AI', outputs: isKo ? '대시보드, 알림' : 'Dashboards, Alerts' },
+        { activity: isKo ? '이상 탐지' : 'Anomaly Detection', tools: 'DevOps Guru, CloudWatch', outputs: isKo ? '인사이트' : 'Insights' },
+        { activity: isKo ? '자동 대응' : 'Automated Response', tools: 'Kagent, Strands, Q Developer', outputs: isKo ? '자동 복구' : 'Auto Remediation' },
+        { activity: isKo ? '인프라 관리' : 'Infrastructure Management', tools: 'ACK + KRO', outputs: isKo ? 'K8s CRD 기반 관리' : 'K8s CRD-based Management' }
       ]
     }
   ];
@@ -116,8 +120,8 @@ const AidlcPhaseActivities = () => {
   return (
     <div style={styles.container}>
       <div style={styles.header}>
-        <h2 style={styles.title}>🔨 AIDLC 단계별 활동</h2>
-        <p style={styles.subtitle}>각 단계의 주요 활동, AI 도구, 산출물</p>
+        <h2 style={styles.title}>🔨 {isKo ? 'AIDLC 단계별 활동' : 'AIDLC Phase Activities'}</h2>
+        <p style={styles.subtitle}>{isKo ? '각 단계의 주요 활동, AI 도구, 산출물' : 'Key activities, AI tools, and outputs for each phase'}</p>
       </div>
       <div style={styles.phasesContainer}>
         {phases.map((phase, idx) => (
@@ -130,9 +134,9 @@ const AidlcPhaseActivities = () => {
             </div>
             <div style={styles.activitiesTable}>
               <div style={styles.tableHeader}>
-                <div>활동</div>
-                <div>AI 도구</div>
-                <div>산출물</div>
+                <div>{isKo ? '활동' : 'Activity'}</div>
+                <div>{isKo ? 'AI 도구' : 'AI Tools'}</div>
+                <div>{isKo ? '산출물' : 'Outputs'}</div>
               </div>
               {phase.activities.map((activity, activityIdx) => (
                 <div key={activityIdx} style={styles.activityRow}>

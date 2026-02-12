@@ -1,29 +1,33 @@
 import React from 'react';
+import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 
 const MLModelComparison = () => {
+  const {i18n} = useDocusaurusContext();
+  const isKo = i18n.currentLocale === 'ko';
+
   const models = [
     {
       model: 'ARIMA',
-      characteristics: '통계 기반, 계절성',
-      suitablePattern: '규칙적 일/주간 패턴',
+      characteristics: isKo ? '통계 기반, 계절성' : 'Statistical-based, seasonality',
+      suitablePattern: isKo ? '규칙적 일/주간 패턴' : 'Regular daily/weekly patterns',
       color: '#3b82f6'
     },
     {
       model: 'Prophet',
-      characteristics: 'Facebook 개발, 휴일 반영',
-      suitablePattern: '비즈니스 트래픽 (이벤트, 휴일)',
+      characteristics: isKo ? 'Facebook 개발, 휴일 반영' : 'Developed by Facebook, holiday-aware',
+      suitablePattern: isKo ? '비즈니스 트래픽 (이벤트, 휴일)' : 'Business traffic (events, holidays)',
       color: '#8b5cf6'
     },
     {
       model: 'LSTM',
-      characteristics: '딥러닝, 복잡한 패턴',
-      suitablePattern: '불규칙적이지만 반복되는 패턴',
+      characteristics: isKo ? '딥러닝, 복잡한 패턴' : 'Deep learning, complex patterns',
+      suitablePattern: isKo ? '불규칙적이지만 반복되는 패턴' : 'Irregular but recurring patterns',
       color: '#ec4899'
     },
     {
       model: 'CloudWatch',
-      characteristics: 'AWS 네이티브, 자동',
-      suitablePattern: '범용 (별도 ML 인프라 불필요)',
+      characteristics: isKo ? 'AWS 네이티브, 자동' : 'AWS native, automatic',
+      suitablePattern: isKo ? '범용 (별도 ML 인프라 불필요)' : 'General purpose (no separate ML infrastructure needed)',
       color: '#f59e0b'
     }
   ];
@@ -125,8 +129,8 @@ const MLModelComparison = () => {
   return (
     <div style={containerStyle}>
       <div style={headerStyle}>
-        <h2 style={titleStyle}>🧠 시계열 예측 모델 비교</h2>
-        <p style={subtitleStyle}>EKS 워크로드 트래픽 패턴 예측</p>
+        <h2 style={titleStyle}>🧠 {isKo ? '시계열 예측 모델 비교' : 'Time Series Forecasting Model Comparison'}</h2>
+        <p style={subtitleStyle}>{isKo ? 'EKS 워크로드 트래픽 패턴 예측' : 'EKS Workload Traffic Pattern Forecasting'}</p>
       </div>
       <div style={contentStyle}>
         <div style={gridStyle}>
@@ -136,11 +140,11 @@ const MLModelComparison = () => {
                 {model.model}
               </div>
               <div style={rowStyle}>
-                <div style={labelStyle}>특성</div>
+                <div style={labelStyle}>{isKo ? '특성' : 'Characteristics'}</div>
                 <div style={valueStyle}>{model.characteristics}</div>
               </div>
               <div style={rowStyle}>
-                <div style={labelStyle}>적합한 패턴</div>
+                <div style={labelStyle}>{isKo ? '적합한 패턴' : 'Suitable Patterns'}</div>
                 <div style={valueStyle}>{model.suitablePattern}</div>
               </div>
             </div>
@@ -148,7 +152,7 @@ const MLModelComparison = () => {
         </div>
       </div>
       <div style={footerStyle}>
-        <span style={footerLabelStyle}>권장:</span> 프로덕션 환경에서는 CloudWatch Anomaly Detection으로 시작하여, 특수 패턴이 있다면 Prophet이나 LSTM을 추가로 도입하는 것이 효과적입니다.
+        <span style={footerLabelStyle}>{isKo ? '권장:' : 'Recommendation:'}</span> {isKo ? '프로덕션 환경에서는 CloudWatch Anomaly Detection으로 시작하여, 특수 패턴이 있다면 Prophet이나 LSTM을 추가로 도입하는 것이 효과적입니다.' : 'In production environments, start with CloudWatch Anomaly Detection, then introduce Prophet or LSTM if there are special patterns.'}
       </div>
     </div>
   );

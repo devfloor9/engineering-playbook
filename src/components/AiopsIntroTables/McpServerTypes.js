@@ -1,55 +1,59 @@
 import React from 'react';
+import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 
 const McpServerTypes = () => {
+  const {i18n} = useDocusaurusContext();
+  const isKo = i18n.currentLocale === 'ko';
+
   const types = [
     {
-      name: '개별 로컬 MCP 서버',
+      name: isKo ? '개별 로컬 MCP 서버' : 'Individual Local MCP Server',
       count: '50+',
       status: 'GA',
       statusColor: '#059669',
       color: '#2563eb',
       released: '2024~',
-      location: '로컬 (npx/pip)',
-      scope: '서비스별 1개 서버',
-      feature: '서비스별 심화 도구 (kubectl, PromQL 등)',
+      location: isKo ? '로컬 (npx/pip)' : 'Local (npx/pip)',
+      scope: isKo ? '서비스별 1개 서버' : '1 server per service',
+      feature: isKo ? '서비스별 심화 도구 (kubectl, PromQL 등)' : 'Service-specific deep tools (kubectl, PromQL, etc.)',
       install: 'npx @awslabs/mcp-server-eks',
-      useCase: 'Kiro/IDE에서 개별 AWS 서비스 직접 제어',
+      useCase: isKo ? 'Kiro/IDE에서 개별 AWS 서비스 직접 제어' : 'Direct control of individual AWS services from Kiro/IDE',
     },
     {
-      name: 'Fully Managed MCP 서버',
+      name: isKo ? 'Fully Managed MCP 서버' : 'Fully Managed MCP Server',
       count: 'EKS, ECS',
       status: 'Preview',
       statusColor: '#d97706',
       color: '#7c3aed',
       released: '2025.11',
-      location: 'AWS 클라우드 (Remote)',
-      scope: '서비스별 클라우드 호스팅 버전',
-      feature: 'IAM 통합, CloudTrail 감사, 자동 패치, 베스트 프랙티스 KB',
-      install: 'Kiro/IDE에서 remote 연결',
-      useCase: '엔터프라이즈 보안·감사 요구사항이 있는 환경',
+      location: isKo ? 'AWS 클라우드 (Remote)' : 'AWS Cloud (Remote)',
+      scope: isKo ? '서비스별 클라우드 호스팅 버전' : 'Cloud-hosted version per service',
+      feature: isKo ? 'IAM 통합, CloudTrail 감사, 자동 패치, 베스트 프랙티스 KB' : 'IAM integration, CloudTrail auditing, auto patching, best practice KB',
+      install: isKo ? 'Kiro/IDE에서 remote 연결' : 'Remote connection from Kiro/IDE',
+      useCase: isKo ? '엔터프라이즈 보안·감사 요구사항이 있는 환경' : 'Environments with enterprise security & audit requirements',
     },
     {
-      name: 'AWS MCP Server (통합)',
+      name: isKo ? 'AWS MCP Server (통합)' : 'AWS MCP Server (Unified)',
       count: '15,000+ API',
       status: 'Preview',
       statusColor: '#d97706',
       color: '#dc2626',
       released: '2025.11',
-      location: 'AWS 클라우드 (Remote)',
-      scope: '전체 AWS API 단일 서버',
-      feature: 'API 실행 + AWS 문서 + Agent SOPs (워크플로우 가이드)',
-      install: 'Kiro/IDE에서 remote 연결',
-      useCase: '멀티 서비스 복합 작업, 자연어 기반 AWS 운영',
+      location: isKo ? 'AWS 클라우드 (Remote)' : 'AWS Cloud (Remote)',
+      scope: isKo ? '전체 AWS API 단일 서버' : 'All AWS APIs in single server',
+      feature: isKo ? 'API 실행 + AWS 문서 + Agent SOPs (워크플로우 가이드)' : 'API execution + AWS docs + Agent SOPs (workflow guides)',
+      install: isKo ? 'Kiro/IDE에서 remote 연결' : 'Remote connection from Kiro/IDE',
+      useCase: isKo ? '멀티 서비스 복합 작업, 자연어 기반 AWS 운영' : 'Multi-service complex tasks, natural language AWS operations',
     },
   ];
 
   const rows = [
-    { label: '출시', key: 'released' },
-    { label: '실행 위치', key: 'location' },
-    { label: '범위', key: 'scope' },
-    { label: '핵심 특징', key: 'feature' },
-    { label: '설치/연결', key: 'install' },
-    { label: '활용 시나리오', key: 'useCase' },
+    { label: isKo ? '출시' : 'Release', key: 'released' },
+    { label: isKo ? '실행 위치' : 'Location', key: 'location' },
+    { label: isKo ? '범위' : 'Scope', key: 'scope' },
+    { label: isKo ? '핵심 특징' : 'Key Features', key: 'feature' },
+    { label: isKo ? '설치/연결' : 'Install/Connect', key: 'install' },
+    { label: isKo ? '활용 시나리오' : 'Use Case', key: 'useCase' },
   ];
 
   return (
@@ -67,10 +71,10 @@ const McpServerTypes = () => {
         borderRadius: '8px 8px 0 0'
       }}>
         <div style={{ fontSize: '20px', fontWeight: '600', marginBottom: '4px' }}>
-          AWS MCP 서버 3가지 제공 방식
+          {isKo ? 'AWS MCP 서버 3가지 제공 방식' : '3 AWS MCP Server Deployment Options'}
         </div>
         <div style={{ fontSize: '14px', opacity: 0.9 }}>
-          개별 로컬 (GA) · Fully Managed (Preview) · 통합 서버 (Preview)
+          {isKo ? '개별 로컬 (GA) · Fully Managed (Preview) · 통합 서버 (Preview)' : 'Individual Local (GA) · Fully Managed (Preview) · Unified Server (Preview)'}
         </div>
       </div>
 
@@ -188,9 +192,9 @@ const McpServerTypes = () => {
           fontSize: '12px',
           color: '#92400e'
         }}>
-          <strong>권장 시작점:</strong> 개별 로컬 MCP 서버(GA)로 시작하여 Kiro+MCP 패턴을 검증한 후,
-          엔터프라이즈 보안 요구사항에 따라 Fully Managed로 전환하세요.
-          AWS MCP Server(통합)는 멀티 서비스 복합 작업에 적합합니다.
+          <strong>{isKo ? '권장 시작점:' : 'Recommended Start:'}</strong> {isKo
+            ? '개별 로컬 MCP 서버(GA)로 시작하여 Kiro+MCP 패턴을 검증한 후, 엔터프라이즈 보안 요구사항에 따라 Fully Managed로 전환하세요. AWS MCP Server(통합)는 멀티 서비스 복합 작업에 적합합니다.'
+            : 'Start with Individual Local MCP Server (GA) to validate Kiro+MCP patterns, then migrate to Fully Managed based on enterprise security requirements. AWS MCP Server (Unified) is ideal for multi-service complex tasks.'}
         </div>
       </div>
     </div>

@@ -1,41 +1,45 @@
 import React from 'react';
+import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 
 const RoiQuantitativeMetrics = () => {
+  const {i18n} = useDocusaurusContext();
+  const isKo = i18n.currentLocale === 'ko';
+
   const metrics = [
     {
       name: 'MTTD',
       fullName: 'Mean Time to Detect',
       color: '#2563eb',
-      description: '이상 발생 → 탐지까지 시간',
-      improvement: '80-90% 감소'
+      description: isKo ? '이상 발생 → 탐지까지 시간' : 'Time from anomaly occurrence → detection',
+      improvement: isKo ? '80-90% 감소' : '80-90% reduction'
     },
     {
       name: 'MTTR',
       fullName: 'Mean Time to Resolve',
       color: '#7c3aed',
-      description: '탐지 → 해결까지 시간',
-      improvement: '70-80% 감소'
+      description: isKo ? '탐지 → 해결까지 시간' : 'Time from detection → resolution',
+      improvement: isKo ? '70-80% 감소' : '70-80% reduction'
     },
     {
-      name: '알림 노이즈',
+      name: isKo ? '알림 노이즈' : 'Alert Noise',
       fullName: 'Alert Noise Reduction',
       color: '#059669',
-      description: '일일 알림 건수 중 실제 조치 필요 비율',
-      improvement: '80-90% 감소'
+      description: isKo ? '일일 알림 건수 중 실제 조치 필요 비율' : 'Ratio of daily alerts requiring action',
+      improvement: isKo ? '80-90% 감소' : '80-90% reduction'
     },
     {
-      name: '인시던트 반복률',
+      name: isKo ? '인시던트 반복률' : 'Incident Recurrence',
       fullName: 'Incident Recurrence Rate',
       color: '#d97706',
-      description: '동일 유형 인시던트 재발 비율',
-      improvement: '60-70% 감소'
+      description: isKo ? '동일 유형 인시던트 재발 비율' : 'Recurrence rate of same incident type',
+      improvement: isKo ? '60-70% 감소' : '60-70% reduction'
     },
     {
-      name: '비용 효율',
+      name: isKo ? '비용 효율' : 'Cost Efficiency',
       fullName: 'Cost Efficiency',
       color: '#dc2626',
-      description: '인프라 비용 대비 실제 사용률',
-      improvement: '30-40% 개선'
+      description: isKo ? '인프라 비용 대비 실제 사용률' : 'Actual utilization vs infrastructure cost',
+      improvement: isKo ? '30-40% 개선' : '30-40% improvement'
     }
   ];
 
@@ -54,10 +58,10 @@ const RoiQuantitativeMetrics = () => {
         borderRadius: '8px 8px 0 0'
       }}>
         <div style={{ fontSize: '20px', fontWeight: '600', marginBottom: '4px' }}>
-          AIOps ROI 정량적 지표
+          {isKo ? 'AIOps ROI 정량적 지표' : 'AIOps ROI Quantitative Metrics'}
         </div>
         <div style={{ fontSize: '14px', opacity: 0.9 }}>
-          측정 가능한 개선 효과
+          {isKo ? '측정 가능한 개선 효과' : 'Measurable improvement results'}
         </div>
       </div>
 
@@ -80,7 +84,7 @@ const RoiQuantitativeMetrics = () => {
             fontSize: '12px',
             color: '#6b7280'
           }}>
-            지표
+            {isKo ? '지표' : 'Metric'}
           </div>
           <div style={{
             padding: '12px 14px',
@@ -90,7 +94,7 @@ const RoiQuantitativeMetrics = () => {
             fontSize: '12px',
             color: '#6b7280'
           }}>
-            측정 방법
+            {isKo ? '측정 방법' : 'Measurement Method'}
           </div>
           <div style={{
             padding: '12px 14px',
@@ -100,7 +104,7 @@ const RoiQuantitativeMetrics = () => {
             fontSize: '12px',
             color: '#6b7280'
           }}>
-            목표 개선율
+            {isKo ? '목표 개선율' : 'Target Improvement'}
           </div>
         </div>
 
@@ -170,8 +174,9 @@ const RoiQuantitativeMetrics = () => {
           fontSize: '12px',
           color: '#92400e'
         }}>
-          <strong>측정 기준:</strong> AIOps 도입 전 3개월 평균 vs 도입 후 3개월 평균을 비교하여 개선율을 산출합니다.
-          정성적 지표(운영팀 만족도, 배포 자신감 등)도 함께 추적하세요.
+          <strong>{isKo ? '측정 기준:' : 'Measurement Baseline:'}</strong> {isKo
+            ? 'AIOps 도입 전 3개월 평균 vs 도입 후 3개월 평균을 비교하여 개선율을 산출합니다. 정성적 지표(운영팀 만족도, 배포 자신감 등)도 함께 추적하세요.'
+            : 'Calculate improvement rate by comparing 3-month average before vs after AIOps adoption. Also track qualitative metrics (ops team satisfaction, deployment confidence, etc.).'}
         </div>
       </div>
     </div>

@@ -1,13 +1,17 @@
 import React from 'react';
+import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 
 const AidlcPhaseMapping = () => {
+  const {i18n} = useDocusaurusContext();
+  const isKo = i18n.currentLocale === 'ko';
+
   const phases = [
     {
       number: 1,
       name: 'Inception',
       nameKo: '구상',
       color: '#3b82f6',
-      description: '요구사항 정의 + 아키텍처 설계',
+      description: isKo ? '요구사항 정의 + 아키텍처 설계' : 'Requirements Definition + Architecture Design',
       tools: ['Amazon Q Developer', 'Kiro Requirements', 'Claude Code'],
       outputs: ['requirements.md', 'design.md']
     },
@@ -16,18 +20,18 @@ const AidlcPhaseMapping = () => {
       name: 'Construction',
       nameKo: '구축',
       color: '#059669',
-      description: '코드 생성 + 테스트 + 리뷰',
+      description: isKo ? '코드 생성 + 테스트 + 리뷰' : 'Code Generation + Testing + Review',
       tools: ['Kiro', 'GitHub Copilot', 'Claude Code', 'Q Developer'],
-      outputs: ['소스 코드', '테스트', 'IaC']
+      outputs: isKo ? ['소스 코드', '테스트', 'IaC'] : ['Source Code', 'Tests', 'IaC']
     },
     {
       number: 3,
       name: 'Operations',
       nameKo: '운영',
       color: '#8b5cf6',
-      description: '배포 + 모니터링 + 최적화',
+      description: isKo ? '배포 + 모니터링 + 최적화' : 'Deployment + Monitoring + Optimization',
       tools: ['Managed Argo CD', 'ACK', 'MCP', 'AI Agents'],
-      outputs: ['GitOps 배포', '관찰성', '자동 복구']
+      outputs: isKo ? ['GitOps 배포', '관찰성', '자동 복구'] : ['GitOps Deployment', 'Observability', 'Auto Remediation']
     }
   ];
 
@@ -138,7 +142,7 @@ const AidlcPhaseMapping = () => {
   return (
     <div style={styles.container}>
       <div style={styles.header}>
-        <h2 style={styles.title}>🔄 AIDLC 3단계 프레임워크</h2>
+        <h2 style={styles.title}>🔄 {isKo ? 'AIDLC 3단계 프레임워크' : 'AIDLC 3-Phase Framework'}</h2>
         <p style={styles.subtitle}>Inception → Construction → Operations</p>
       </div>
       <div style={styles.phasesGrid}>
@@ -163,13 +167,13 @@ const AidlcPhaseMapping = () => {
               </div>
             </div>
             <p style={styles.description}>{phase.description}</p>
-            <div style={styles.sectionLabel}>Tools</div>
+            <div style={styles.sectionLabel}>{isKo ? '도구' : 'Tools'}</div>
             <div style={styles.toolsContainer}>
               {phase.tools.map((tool, idx) => (
                 <span key={idx} style={styles.toolBadge}>{tool}</span>
               ))}
             </div>
-            <div style={styles.sectionLabel}>Outputs</div>
+            <div style={styles.sectionLabel}>{isKo ? '산출물' : 'Outputs'}</div>
             <ul style={styles.outputsList}>
               {phase.outputs.map((output, idx) => (
                 <li key={idx} style={styles.outputItem}>{output}</li>

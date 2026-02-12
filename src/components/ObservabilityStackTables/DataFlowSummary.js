@@ -1,31 +1,35 @@
 import React from 'react';
+import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 
 const DataFlowSummary = () => {
+  const {i18n} = useDocusaurusContext();
+  const isKo = i18n.currentLocale === 'ko';
+
   const layers = [
     {
-      layer: '수집',
+      layer: isKo ? '수집' : 'Collection',
       components: 'ADOT, CW Agent, Fluent Bit, Node Monitor, Flow Monitor',
-      role: '메트릭/로그/트레이스/이벤트 수집'
+      role: isKo ? '메트릭/로그/트레이스/이벤트 수집' : 'Collect metrics/logs/traces/events'
     },
     {
-      layer: '전송',
+      layer: isKo ? '전송' : 'Transport',
       components: 'OTLP, Remote Write, CW API, X-Ray API',
-      role: '표준 프로토콜로 데이터 전달'
+      role: isKo ? '표준 프로토콜로 데이터 전달' : 'Deliver data via standard protocols'
     },
     {
-      layer: '저장',
+      layer: isKo ? '저장' : 'Storage',
       components: 'AMP, CloudWatch Logs/Metrics, X-Ray',
-      role: '시계열 저장 및 인덱싱'
+      role: isKo ? '시계열 저장 및 인덱싱' : 'Time-series storage and indexing'
     },
     {
-      layer: '분석',
+      layer: isKo ? '분석' : 'Analysis',
       components: 'AMG, CloudWatch AI, DevOps Guru, Application Signals',
-      role: 'AI/ML 기반 분석 및 시각화'
+      role: isKo ? 'AI/ML 기반 분석 및 시각화' : 'AI/ML-based analysis and visualization'
     },
     {
-      layer: '실행',
+      layer: isKo ? '실행' : 'Action',
       components: 'Hosted MCP, Kiro, Q Developer, Kagent',
-      role: 'AI 기반 자동 대응 및 복구'
+      role: isKo ? 'AI 기반 자동 대응 및 복구' : 'AI-based auto-response and remediation'
     }
   ];
 
@@ -45,10 +49,10 @@ const DataFlowSummary = () => {
         borderRadius: '8px 8px 0 0'
       }}>
         <div style={{ fontSize: '20px', fontWeight: '600', marginBottom: '4px' }}>
-          데이터 흐름 요약
+          {isKo ? '데이터 흐름 요약' : 'Data Flow Summary'}
         </div>
         <div style={{ fontSize: '14px', opacity: 0.9 }}>
-          5개 레이어의 역할과 구성 요소
+          {isKo ? '5개 레이어의 역할과 구성 요소' : 'Roles and components of 5 layers'}
         </div>
       </div>
 
@@ -73,7 +77,7 @@ const DataFlowSummary = () => {
             fontSize: '12px',
             color: '#6b7280'
           }}>
-            레이어
+            {isKo ? '레이어' : 'Layer'}
           </div>
           <div style={{
             padding: '12px 14px',
@@ -82,7 +86,7 @@ const DataFlowSummary = () => {
             fontSize: '12px',
             color: '#6b7280'
           }}>
-            구성 요소
+            {isKo ? '구성 요소' : 'Components'}
           </div>
           <div style={{
             padding: '12px 14px',
@@ -91,7 +95,7 @@ const DataFlowSummary = () => {
             fontSize: '12px',
             color: '#6b7280'
           }}>
-            역할
+            {isKo ? '역할' : 'Role'}
           </div>
         </div>
 

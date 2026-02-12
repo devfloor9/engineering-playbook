@@ -1,35 +1,51 @@
 import React from 'react';
+import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 
 const MaturityTable = () => {
+  const {i18n} = useDocusaurusContext();
+  const isKo = i18n.currentLocale === 'ko';
+
   const levels = [
     {
-      name: '반응형',
+      name: isKo ? '반응형' : 'Reactive',
       nameEn: 'Reactive',
       color: '#dc2626',
-      characteristics: [
+      characteristics: isKo ? [
         '장애 후 대응',
         '수동 분석',
         '정적 임계값 알림'
+      ] : [
+        'Post-incident response',
+        'Manual analysis',
+        'Static threshold alerts'
       ],
       tools: [
         'CloudWatch Alarms',
         'EventBridge',
-        'Lambda 런북'
+        isKo ? 'Lambda 런북' : 'Lambda runbooks'
       ],
-      kpis: [
+      kpis: isKo ? [
         'MTTR 4시간',
         'MTTD 30분',
         '알림 500건/일'
+      ] : [
+        'MTTR 4 hours',
+        'MTTD 30 min',
+        '500 alerts/day'
       ]
     },
     {
-      name: '예측형',
+      name: isKo ? '예측형' : 'Predictive',
       nameEn: 'Predictive',
       color: '#3b82f6',
-      characteristics: [
+      characteristics: isKo ? [
         'ML 이상 탐지',
         '선제적 스케일링',
         '패턴 기반 분석'
+      ] : [
+        'ML anomaly detection',
+        'Proactive scaling',
+        'Pattern-based analysis'
       ],
       tools: [
         'DevOps Guru',
@@ -37,20 +53,28 @@ const MaturityTable = () => {
         'Prophet',
         'Karpenter'
       ],
-      kpis: [
+      kpis: isKo ? [
         'MTTR 1시간',
         'MTTD 5분',
         '알림 100건/일'
+      ] : [
+        'MTTR 1 hour',
+        'MTTD 5 min',
+        '100 alerts/day'
       ]
     },
     {
-      name: '자율형',
+      name: isKo ? '자율형' : 'Autonomous',
       nameEn: 'Autonomous',
       color: '#059669',
-      characteristics: [
+      characteristics: isKo ? [
         'AI 자율 대응',
         '자가 치유',
         '지속 학습'
+      ] : [
+        'AI autonomous response',
+        'Self-healing',
+        'Continuous learning'
       ],
       tools: [
         'Kiro+MCP',
@@ -58,10 +82,14 @@ const MaturityTable = () => {
         'Strands',
         'Q Developer'
       ],
-      kpis: [
+      kpis: isKo ? [
         'MTTR 15분',
         'MTTD 1분',
         '알림 20건/일'
+      ] : [
+        'MTTR 15 min',
+        'MTTD 1 min',
+        '20 alerts/day'
       ]
     }
   ];
@@ -166,8 +194,8 @@ const MaturityTable = () => {
   return (
     <div style={containerStyle}>
       <div style={headerStyle}>
-        <h2 style={titleStyle}>🎯 운영 성숙도 모델</h2>
-        <p style={subtitleStyle}>반응형 → 예측형 → 자율형 진화</p>
+        <h2 style={titleStyle}>🎯 {isKo ? '운영 성숙도 모델' : 'Operations Maturity Model'}</h2>
+        <p style={subtitleStyle}>{isKo ? '반응형 → 예측형 → 자율형 진화' : 'Reactive → Predictive → Autonomous Evolution'}</p>
       </div>
       <div style={contentStyle}>
         <div style={gridStyle}>
@@ -178,7 +206,7 @@ const MaturityTable = () => {
               </div>
 
               <div style={sectionStyle}>
-                <div style={sectionTitleStyle}>특성</div>
+                <div style={sectionTitleStyle}>{isKo ? '특성' : 'Characteristics'}</div>
                 <ul style={listStyle}>
                   {level.characteristics.map((item, idx) => (
                     <li key={idx} style={listItemStyle}>
@@ -190,7 +218,7 @@ const MaturityTable = () => {
               </div>
 
               <div style={sectionStyle}>
-                <div style={sectionTitleStyle}>도구</div>
+                <div style={sectionTitleStyle}>{isKo ? '도구' : 'Tools'}</div>
                 <ul style={listStyle}>
                   {level.tools.map((item, idx) => (
                     <li key={idx} style={listItemStyle}>

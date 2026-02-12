@@ -1,40 +1,44 @@
 import React from 'react';
+import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 
 const ChaosExperiments = () => {
+  const {i18n} = useDocusaurusContext();
+  const isKo = i18n.currentLocale === 'ko';
+
   const experiments = [
     {
-      experiment: 'Pod 종료',
-      injectedFault: '2/3 Pod 종료',
-      systemReaction: 'HPA 30초 후 복구',
-      aiLearning: '"Pod 종료 → HPA 반응 패턴"',
+      experiment: isKo ? 'Pod 종료' : 'Pod Termination',
+      injectedFault: isKo ? '2/3 Pod 종료' : 'Terminate 2/3 pods',
+      systemReaction: isKo ? 'HPA 30초 후 복구' : 'HPA recovery after 30s',
+      aiLearning: isKo ? '"Pod 종료 → HPA 반응 패턴"' : '"Pod termination → HPA response pattern"',
       color: '#ef4444'
     },
     {
-      experiment: '노드 장애',
-      injectedFault: '노드 1대 drain',
-      systemReaction: 'Karpenter 2분 후 대체',
-      aiLearning: '"노드 장애 → Karpenter 대응 시간"',
+      experiment: isKo ? '노드 장애' : 'Node Failure',
+      injectedFault: isKo ? '노드 1대 drain' : 'Drain 1 node',
+      systemReaction: isKo ? 'Karpenter 2분 후 대체' : 'Karpenter replacement after 2 min',
+      aiLearning: isKo ? '"노드 장애 → Karpenter 대응 시간"' : '"Node failure → Karpenter response time"',
       color: '#f97316'
     },
     {
-      experiment: '네트워크 지연',
-      injectedFault: '100ms 추가 지연',
-      systemReaction: '타임아웃 에러 급증',
-      aiLearning: '"네트워크 지연 → 타임아웃 임계값"',
+      experiment: isKo ? '네트워크 지연' : 'Network Latency',
+      injectedFault: isKo ? '100ms 추가 지연' : 'Add 100ms latency',
+      systemReaction: isKo ? '타임아웃 에러 급증' : 'Timeout errors spike',
+      aiLearning: isKo ? '"네트워크 지연 → 타임아웃 임계값"' : '"Network latency → timeout threshold"',
       color: '#f59e0b'
     },
     {
-      experiment: 'CPU 스트레스',
-      injectedFault: '90% CPU 부하',
-      systemReaction: '스로틀링 발생',
-      aiLearning: '"CPU 스트레스 → 스로틀링 패턴"',
+      experiment: isKo ? 'CPU 스트레스' : 'CPU Stress',
+      injectedFault: isKo ? '90% CPU 부하' : '90% CPU load',
+      systemReaction: isKo ? '스로틀링 발생' : 'Throttling occurs',
+      aiLearning: isKo ? '"CPU 스트레스 → 스로틀링 패턴"' : '"CPU stress → throttling pattern"',
       color: '#84cc16'
     },
     {
-      experiment: '메모리 누수',
-      injectedFault: '점진적 메모리 증가',
-      systemReaction: 'OOMKilled 발생',
-      aiLearning: '"메모리 누수 패턴 → 사전 감지 규칙"',
+      experiment: isKo ? '메모리 누수' : 'Memory Leak',
+      injectedFault: isKo ? '점진적 메모리 증가' : 'Gradual memory increase',
+      systemReaction: 'OOMKilled ' + (isKo ? '발생' : 'occurs'),
+      aiLearning: isKo ? '"메모리 누수 패턴 → 사전 감지 규칙"' : '"Memory leak pattern → proactive detection rule"',
       color: '#06b6d4'
     }
   ];
@@ -131,17 +135,17 @@ const ChaosExperiments = () => {
   return (
     <div style={containerStyle}>
       <div style={headerStyle}>
-        <h2 style={titleStyle}>💥 Chaos Engineering 실험 결과</h2>
-        <p style={subtitleStyle}>AWS FIS 기반 장애 주입 및 AI 학습</p>
+        <h2 style={titleStyle}>💥 {isKo ? 'Chaos Engineering 실험 결과' : 'Chaos Engineering Experiment Results'}</h2>
+        <p style={subtitleStyle}>{isKo ? 'AWS FIS 기반 장애 주입 및 AI 학습' : 'AWS FIS-based Fault Injection and AI Learning'}</p>
       </div>
       <div style={{ overflowX: 'auto' }}>
         <table style={tableStyle}>
           <thead>
             <tr>
-              <th style={thStyle}>실험</th>
-              <th style={thStyle}>주입 장애</th>
-              <th style={thStyle}>시스템 반응</th>
-              <th style={thStyle}>AI 학습</th>
+              <th style={thStyle}>{isKo ? '실험' : 'Experiment'}</th>
+              <th style={thStyle}>{isKo ? '주입 장애' : 'Injected Fault'}</th>
+              <th style={thStyle}>{isKo ? '시스템 반응' : 'System Reaction'}</th>
+              <th style={thStyle}>{isKo ? 'AI 학습' : 'AI Learning'}</th>
             </tr>
           </thead>
           <tbody>
@@ -165,7 +169,7 @@ const ChaosExperiments = () => {
         </table>
       </div>
       <div style={footerStyle}>
-        <span style={footerLabelStyle}>피드백 루프:</span> FIS로 장애를 주입하고 AI가 시스템 반응 패턴을 학습하면, AI Agent의 자동 대응 능력이 지속적으로 향상됩니다. "장애 주입 → 관찰 → 학습 → 대응 개선"의 선순환이 자율 운영의 핵심입니다.
+        <span style={footerLabelStyle}>{isKo ? '피드백 루프:' : 'Feedback Loop:'}</span> {isKo ? 'FIS로 장애를 주입하고 AI가 시스템 반응 패턴을 학습하면, AI Agent의 자동 대응 능력이 지속적으로 향상됩니다. "장애 주입 → 관찰 → 학습 → 대응 개선"의 선순환이 자율 운영의 핵심입니다.' : 'As FIS injects faults and AI learns system response patterns, the AI Agent\'s automatic response capabilities continuously improve. The virtuous cycle of "fault injection → observation → learning → response improvement" is key to autonomous operations.'}
       </div>
     </div>
   );

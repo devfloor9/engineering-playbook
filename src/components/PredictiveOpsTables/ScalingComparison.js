@@ -1,46 +1,50 @@
 import React from 'react';
+import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 
 const ScalingComparison = () => {
+  const {i18n} = useDocusaurusContext();
+  const isKo = i18n.currentLocale === 'ko';
+
   const approaches = [
     {
-      name: '수동',
+      name: isKo ? '수동' : 'Manual',
       nameEn: 'Manual',
       color: '#dc2626',
-      trigger: '운영자 판단',
-      responseTime: '분~시간',
-      accuracy: '낮음',
-      complexity: '낮음',
-      description: 'kubectl scale 수동 실행'
+      trigger: isKo ? '운영자 판단' : 'Operator decision',
+      responseTime: isKo ? '분~시간' : 'Minutes to hours',
+      accuracy: isKo ? '낮음' : 'Low',
+      complexity: isKo ? '낮음' : 'Low',
+      description: isKo ? 'kubectl scale 수동 실행' : 'Manual kubectl scale execution'
     },
     {
-      name: '반응형',
+      name: isKo ? '반응형' : 'Reactive',
       nameEn: 'HPA',
       color: '#d97706',
-      trigger: 'CPU/메모리 임계값',
-      responseTime: '1-3분',
-      accuracy: '중간',
-      complexity: '낮음',
-      description: '후행 지표 기반 자동 스케일링'
+      trigger: isKo ? 'CPU/메모리 임계값' : 'CPU/Memory thresholds',
+      responseTime: '1-3' + (isKo ? '분' : ' min'),
+      accuracy: isKo ? '중간' : 'Medium',
+      complexity: isKo ? '낮음' : 'Low',
+      description: isKo ? '후행 지표 기반 자동 스케일링' : 'Autoscaling based on lagging indicators'
     },
     {
-      name: '예측형',
+      name: isKo ? '예측형' : 'Predictive',
       nameEn: 'Predictive',
       color: '#3b82f6',
-      trigger: 'ML 예측 모델',
-      responseTime: '선제적',
-      accuracy: '높음',
-      complexity: '높음',
-      description: '시계열 예측 기반 선제 프로비저닝'
+      trigger: isKo ? 'ML 예측 모델' : 'ML prediction model',
+      responseTime: isKo ? '선제적' : 'Proactive',
+      accuracy: isKo ? '높음' : 'High',
+      complexity: isKo ? '높음' : 'High',
+      description: isKo ? '시계열 예측 기반 선제 프로비저닝' : 'Proactive provisioning based on time series forecasting'
     },
     {
-      name: '자율형',
+      name: isKo ? '자율형' : 'Autonomous',
       nameEn: 'AI Agent',
       color: '#059669',
-      trigger: 'AI 컨텍스트 분석',
-      responseTime: '실시간',
-      accuracy: '매우 높음',
-      complexity: '중간',
-      description: 'MCP+Agent 자율 스케일링 결정'
+      trigger: isKo ? 'AI 컨텍스트 분석' : 'AI context analysis',
+      responseTime: isKo ? '실시간' : 'Real-time',
+      accuracy: isKo ? '매우 높음' : 'Very high',
+      complexity: isKo ? '중간' : 'Medium',
+      description: 'MCP+Agent ' + (isKo ? '자율 스케일링 결정' : 'autonomous scaling decisions')
     }
   ];
 
@@ -131,8 +135,8 @@ const ScalingComparison = () => {
   return (
     <div style={containerStyle}>
       <div style={headerStyle}>
-        <h2 style={titleStyle}>⚡ 스케일링 접근 방식 비교</h2>
-        <p style={subtitleStyle}>수동 → 반응형 → 예측형 → 자율형</p>
+        <h2 style={titleStyle}>⚡ {isKo ? '스케일링 접근 방식 비교' : 'Scaling Approach Comparison'}</h2>
+        <p style={subtitleStyle}>{isKo ? '수동 → 반응형 → 예측형 → 자율형' : 'Manual → Reactive → Predictive → Autonomous'}</p>
       </div>
       <div style={contentStyle}>
         <div style={gridStyle}>
@@ -142,19 +146,19 @@ const ScalingComparison = () => {
                 {approach.name} ({approach.nameEn})
               </div>
               <div style={rowStyle}>
-                <span style={labelStyle}>트리거</span>
+                <span style={labelStyle}>{isKo ? '트리거' : 'Trigger'}</span>
                 <span style={valueStyle}>{approach.trigger}</span>
               </div>
               <div style={rowStyle}>
-                <span style={labelStyle}>응답 시간</span>
+                <span style={labelStyle}>{isKo ? '응답 시간' : 'Response Time'}</span>
                 <span style={valueStyle}>{approach.responseTime}</span>
               </div>
               <div style={rowStyle}>
-                <span style={labelStyle}>정확도</span>
+                <span style={labelStyle}>{isKo ? '정확도' : 'Accuracy'}</span>
                 <span style={valueStyle}>{approach.accuracy}</span>
               </div>
               <div style={rowStyle}>
-                <span style={labelStyle}>복잡도</span>
+                <span style={labelStyle}>{isKo ? '복잡도' : 'Complexity'}</span>
                 <span style={valueStyle}>{approach.complexity}</span>
               </div>
               <div style={descriptionStyle}>

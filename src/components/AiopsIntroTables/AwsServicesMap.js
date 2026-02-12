@@ -1,48 +1,52 @@
 import React from 'react';
+import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 
 const AwsServicesMap = () => {
+  const {i18n} = useDocusaurusContext();
+  const isKo = i18n.currentLocale === 'ko';
+
   const services = [
     {
       name: 'DevOps Guru',
-      category: '탐지',
+      category: isKo ? '탐지' : 'Detection',
       color: '#8b5cf6',
-      description: 'ML 이상 탐지, EKS 리소스 그룹 분석',
-      features: ['ML 이상 탐지', 'EKS 리소스 그룹', '자동 알림']
+      description: isKo ? 'ML 이상 탐지, EKS 리소스 그룹 분석' : 'ML anomaly detection, EKS resource group analysis',
+      features: isKo ? ['ML 이상 탐지', 'EKS 리소스 그룹', '자동 알림'] : ['ML Anomaly Detection', 'EKS Resource Groups', 'Auto Alerts']
     },
     {
       name: 'CloudWatch Application Signals',
-      category: '관찰성',
+      category: isKo ? '관찰성' : 'Observability',
       color: '#3b82f6',
-      description: 'zero-code 계측, SLI/SLO 자동 설정',
-      features: ['Zero-code 계측', 'SLI/SLO', '자동 대시보드']
+      description: isKo ? 'zero-code 계측, SLI/SLO 자동 설정' : 'Zero-code instrumentation, auto SLI/SLO setup',
+      features: isKo ? ['Zero-code 계측', 'SLI/SLO', '자동 대시보드'] : ['Zero-code Instrumentation', 'SLI/SLO', 'Auto Dashboards']
     },
     {
       name: 'CloudWatch Investigations',
-      category: '분석',
+      category: isKo ? '분석' : 'Analysis',
       color: '#059669',
-      description: 'AI 근본 원인 분석, 자동 인시던트 조사',
-      features: ['AI 근본 원인 분석', '자동 인시던트 조사', '상관관계 분석']
+      description: isKo ? 'AI 근본 원인 분석, 자동 인시던트 조사' : 'AI root cause analysis, auto incident investigation',
+      features: isKo ? ['AI 근본 원인 분석', '자동 인시던트 조사', '상관관계 분석'] : ['AI Root Cause Analysis', 'Auto Incident Investigation', 'Correlation Analysis']
     },
     {
       name: 'Amazon Q Developer',
-      category: '자동화',
+      category: isKo ? '자동화' : 'Automation',
       color: '#d97706',
-      description: 'EKS 트러블슈팅, 코드 생성/리뷰',
-      features: ['EKS 트러블슈팅', '코드 생성', '자동 리뷰']
+      description: isKo ? 'EKS 트러블슈팅, 코드 생성/리뷰' : 'EKS troubleshooting, code generation/review',
+      features: isKo ? ['EKS 트러블슈팅', '코드 생성', '자동 리뷰'] : ['EKS Troubleshooting', 'Code Generation', 'Auto Review']
     },
     {
       name: 'CloudWatch AI NL Querying',
-      category: '분석',
+      category: isKo ? '분석' : 'Analysis',
       color: '#059669',
-      description: '자연어 메트릭/로그 쿼리',
-      features: ['자연어 쿼리', '메트릭 분석', '로그 검색']
+      description: isKo ? '자연어 메트릭/로그 쿼리' : 'Natural language metric/log queries',
+      features: isKo ? ['자연어 쿼리', '메트릭 분석', '로그 검색'] : ['Natural Language Query', 'Metric Analysis', 'Log Search']
     },
     {
       name: 'AWS Hosted MCP Servers',
-      category: '자동화',
+      category: isKo ? '자동화' : 'Automation',
       color: '#d97706',
-      description: 'EKS/Cost/Serverless MCP, AI 도구 통합',
-      features: ['EKS MCP', 'Cost MCP', 'Serverless MCP', 'AI 도구 통합']
+      description: isKo ? 'EKS/Cost/Serverless MCP, AI 도구 통합' : 'EKS/Cost/Serverless MCP, AI tool integration',
+      features: isKo ? ['EKS MCP', 'Cost MCP', 'Serverless MCP', 'AI 도구 통합'] : ['EKS MCP', 'Cost MCP', 'Serverless MCP', 'AI Tool Integration']
     }
   ];
 
@@ -61,7 +65,7 @@ const AwsServicesMap = () => {
         borderRadius: '8px 8px 0 0'
       }}>
         <div style={{ fontSize: '20px', fontWeight: '600' }}>
-          🗺️ AWS AIOps 서비스 맵
+          {isKo ? '🗺️ AWS AIOps 서비스 맵' : '🗺️ AWS AIOps Services Map'}
         </div>
       </div>
 

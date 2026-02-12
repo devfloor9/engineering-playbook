@@ -1,25 +1,29 @@
 import React from 'react';
+import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 
 const ObservabilityPillars = () => {
+  const {i18n} = useDocusaurusContext();
+  const isKo = i18n.currentLocale === 'ko';
+
   const pillars = [
     {
       pillar: 'Metrics',
-      role: '수치적 시계열 데이터',
+      role: isKo ? '수치적 시계열 데이터' : 'Numerical time-series data',
       service: 'AMP (Amazon Managed Prometheus), CloudWatch Metrics'
     },
     {
       pillar: 'Logs',
-      role: '이벤트 기반 텍스트 데이터',
+      role: isKo ? '이벤트 기반 텍스트 데이터' : 'Event-based text data',
       service: 'CloudWatch Logs, OpenSearch'
     },
     {
       pillar: 'Traces',
-      role: '분산 요청 추적',
+      role: isKo ? '분산 요청 추적' : 'Distributed request tracing',
       service: 'AWS X-Ray, ADOT'
     },
     {
-      pillar: 'AI 분석',
-      role: 'ML 기반 이상 탐지 및 인사이트',
+      pillar: isKo ? 'AI 분석' : 'AI Analysis',
+      role: isKo ? 'ML 기반 이상 탐지 및 인사이트' : 'ML-based anomaly detection and insights',
       service: 'DevOps Guru, CloudWatch AI, Q Developer'
     }
   ];
@@ -40,10 +44,10 @@ const ObservabilityPillars = () => {
         borderRadius: '8px 8px 0 0'
       }}>
         <div style={{ fontSize: '20px', fontWeight: '600', marginBottom: '4px' }}>
-          3-Pillar 관찰성 + AI 분석 레이어
+          {isKo ? '3-Pillar 관찰성 + AI 분석 레이어' : '3-Pillar Observability + AI Analysis Layer'}
         </div>
         <div style={{ fontSize: '14px', opacity: 0.9 }}>
-          관찰성의 세 기둥과 AI 분석의 결합
+          {isKo ? '관찰성의 세 기둥과 AI 분석의 결합' : 'Combining the three pillars of observability with AI analysis'}
         </div>
       </div>
 
@@ -68,7 +72,7 @@ const ObservabilityPillars = () => {
             fontSize: '12px',
             color: '#6b7280'
           }}>
-            필러
+            {isKo ? '필러' : 'Pillar'}
           </div>
           <div style={{
             padding: '12px 14px',
@@ -77,7 +81,7 @@ const ObservabilityPillars = () => {
             fontSize: '12px',
             color: '#6b7280'
           }}>
-            역할
+            {isKo ? '역할' : 'Role'}
           </div>
           <div style={{
             padding: '12px 14px',
@@ -86,7 +90,7 @@ const ObservabilityPillars = () => {
             fontSize: '12px',
             color: '#6b7280'
           }}>
-            AWS 서비스
+            {isKo ? 'AWS 서비스' : 'AWS Services'}
           </div>
         </div>
 
