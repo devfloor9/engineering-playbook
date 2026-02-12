@@ -1,3 +1,13 @@
 export { default as ArchitectureLayers } from './ArchitectureLayers';
 export { default as ManagedAddons } from './ManagedAddons';
 export { default as ServiceComparison } from './ServiceComparison';
+export { default as ObservabilityPillars } from './ObservabilityPillars';
+export { default as StackSelectionPatterns } from './StackSelectionPatterns';
+export { default as DataFlowSummary } from './DataFlowSummary';
+export { default as ProcessorSettings } from './ProcessorSettings';
+export { default as ContainerInsightsMetrics } from './ContainerInsightsMetrics';
+export { default as ApplicationSignalsLanguages } from './ApplicationSignalsLanguages';
+export { default as DevOpsGuruCost } from './DevOpsGuruCost';
+export { default as EKSMCPTools } from './EKSMCPTools';
+export { default as ErrorBudget } from './ErrorBudget';
+export { default as AlertOptimization } from './AlertOptimization';

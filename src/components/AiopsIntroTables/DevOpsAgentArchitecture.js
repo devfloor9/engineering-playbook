@@ -15,7 +15,7 @@ const DevOpsAgentArchitecture = () => {
       ]
     },
     {
-      title: 'MCP 통합 레이어 (65+ 서버)',
+      title: 'MCP 통합 레이어 (50+ 서버)',
       subtitle: '관찰성 백엔드에 무관하게 단일 인터페이스 제공',
       color: '#2563eb',
       bg: '#eff6ff',
@@ -24,7 +24,7 @@ const DevOpsAgentArchitecture = () => {
         { icon: '📈', name: 'CloudWatch MCP', desc: '메트릭 · 알람 · 로그' },
         { icon: '💰', name: 'Cost Explorer MCP', desc: '비용 분석' },
         { icon: '🔒', name: 'IAM MCP', desc: '보안 관리' },
-        { icon: '📖', name: 'Core MCP', desc: '65+ 서버 오케스트레이션' },
+        { icon: '📖', name: 'Core MCP', desc: '50+ 서버 오케스트레이션' },
       ]
     },
   ];

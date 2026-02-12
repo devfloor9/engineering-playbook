@@ -10,7 +10,7 @@ last_update:
   author: devfloor9
 ---
 
-import { ScalingComparison, ResponsePatterns, MaturityTable } from '@site/src/components/PredictiveOpsTables';
+import { ScalingComparison, ResponsePatterns, MaturityTable, EvolutionStages, MLModelComparison, AnomalyMetrics, RightSizingResults, ChaosExperiments, DashboardPanels } from '@site/src/components/PredictiveOpsTables';
 
 # 예측 스케일링 및 자동 복구 패턴
 
@@ -24,11 +24,7 @@ import { ScalingComparison, ResponsePatterns, MaturityTable } from '@site/src/co
 
 EKS 운영의 진화는 **반응형 → 예측형 → 자율형**의 3단계로 이루어집니다.
 
-| 단계 | 특성 | 도구 |
-|------|------|------|
-| **반응형** | 문제 발생 후 대응 | HPA, CloudWatch Alarms |
-| **예측형** | 패턴 기반 사전 대응 | ML 예측, CloudWatch Anomaly Detection |
-| **자율형** | AI가 자율적으로 판단·대응 | Kiro+MCP, Q Developer, Kagent/Strands |
+<EvolutionStages />
 
 :::info 이 문서의 범위
 반응형 스케일링의 한계를 넘어, ML 기반 예측 스케일링과 AI Agent를 통한 자율 복구 패턴을 다룹니다. 특히 Kiro+MCP 기반 **프로그래머틱 디버깅**과 Kagent/Strands 기반 **자동 인시던트 대응**을 중심으로 설명합니다.
@@ -80,12 +76,7 @@ Pod 수  ███████████████████████�
 
 EKS 워크로드의 트래픽 패턴을 예측하는 대표적 ML 모델:
 
-| 모델 | 특성 | 적합한 패턴 |
-|------|------|-----------|
-| **ARIMA** | 통계 기반, 계절성 | 규칙적 일/주간 패턴 |
-| **Prophet** | Facebook 개발, 휴일 반영 | 비즈니스 트래픽 (이벤트, 휴일) |
-| **LSTM** | 딥러닝, 복잡한 패턴 | 불규칙적이지만 반복되는 패턴 |
-| **CloudWatch** | AWS 네이티브, 자동 | 범용 (별도 ML 인프라 불필요) |
+<MLModelComparison />
 
 ### 2.3 Prophet 기반 예측 스케일링 구현
 
@@ -362,13 +353,7 @@ aws cloudwatch put-anomaly-detector \
 
 Anomaly Detection을 적용할 핵심 EKS 메트릭:
 
-| 메트릭 | 탐지 대상 | 임계값 밴드 |
-|--------|----------|-----------|
-| `pod_cpu_utilization` | CPU 급증/급감 | 2 표준편차 |
-| `pod_memory_utilization` | 메모리 누수 | 2 표준편차 |
-| `node_network_rx_bytes` | 네트워크 이상 | 3 표준편차 |
-| `apiserver_request_total` | API 서버 부하 | 2 표준편차 |
-| `container_restart_count` | Pod 불안정 | 3 표준편차 |
+<AnomalyMetrics />
 
 ### 4.3 Anomaly Detection 기반 알람
 
@@ -735,12 +720,7 @@ spec:
 
 ### 7.3 Right-Sizing 효과
 
-| 메트릭 | Right-Sizing 전 | Right-Sizing 후 | 절감 |
-|--------|-----------------|-----------------|------|
-| CPU requests 합계 | 32 vCPU | 18 vCPU | 44% |
-| Memory requests 합계 | 64 GiB | 38 GiB | 41% |
-| 노드 수 | 8대 | 5대 | 37% |
-| 월간 비용 | $1,200 | $720 | 40% |
+<RightSizingResults />
 
 :::tip K8s 1.35: In-Place Pod Resource Updates
 K8s 1.35(2026.01, EKS 지원)부터 **In-Place Pod Resource Updates** 기능이 도입되어, Pod를 재시작하지 않고도 CPU와 메모리를 동적으로 조정할 수 있습니다. 이는 VPA의 가장 큰 한계였던 "리소스 변경 시 Pod 재시작" 문제를 해결합니다. StatefulSet이나 재시작에 민감한 워크로드에서도 안전하게 수직 스케일링이 가능해졌습니다.
@@ -874,13 +854,7 @@ spec:
 
 Chaos Engineering 실험 결과를 AI가 학습하여 대응 능력을 향상시킵니다.
 
-| 실험 | 주입 장애 | 시스템 반응 | AI 학습 |
-|------|----------|-----------|---------|
-| Pod 종료 | 2/3 Pod 종료 | HPA 30초 후 복구 | "Pod 종료 → HPA 반응 패턴" |
-| 노드 장애 | 노드 1대 drain | Karpenter 2분 후 대체 | "노드 장애 → Karpenter 대응 시간" |
-| 네트워크 지연 | 100ms 추가 지연 | 타임아웃 에러 급증 | "네트워크 지연 → 타임아웃 임계값" |
-| CPU 스트레스 | 90% CPU 부하 | 스로틀링 발생 | "CPU 스트레스 → 스로틀링 패턴" |
-| 메모리 누수 | 점진적 메모리 증가 | OOMKilled 발생 | "메모리 누수 패턴 → 사전 감지 규칙" |
+<ChaosExperiments />
 
 ```python
 # FIS 실험 후 AI 학습 데이터 수집
@@ -1017,14 +991,7 @@ FIS로 장애를 주입하고, AI가 시스템 반응 패턴을 학습하면, AI
 
 ### 10.2 핵심 대시보드 패널
 
-| 패널 | 데이터 소스 | 목적 |
-|------|-----------|------|
-| 트래픽 예측 vs 실제 | AMP | 예측 정확도 시각화 |
-| 스케일링 이벤트 | AMP + K8s | 선제 vs 반응 스케일링 비교 |
-| SLO 현황 | AMP | Error Budget 소진 상태 |
-| 인시던트 타임라인 | CloudWatch | 장애 발생·대응·복구 추적 |
-| 비용 추이 | Cost Explorer | Right-sizing 효과 모니터링 |
-| Agent 활동 로그 | Kagent/Strands | AI Agent 조치 이력 |
+<DashboardPanels />
 
 ---
 

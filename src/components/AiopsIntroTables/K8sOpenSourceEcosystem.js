@@ -1,9 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 const K8sOpenSourceEcosystem = () => {
+  const [activeTab, setActiveTab] = useState(0);
+
   const categories = [
     {
-      title: 'EKS Managed Add-ons',
+      title: 'Managed Add-ons',
+      shortTitle: 'Managed Add-ons',
       subtitle: 'AWS가 수명주기를 직접 관리하는 K8s 확장',
       color: '#059669',
       badge: 'Managed Add-on',
@@ -25,6 +28,7 @@ const K8sOpenSourceEcosystem = () => {
     },
     {
       title: 'Community Add-ons Catalog',
+      shortTitle: 'Community',
       subtitle: '2025.03 출시 — 인기 OSS를 EKS 콘솔/CLI로 배포 · 수명주기 관리',
       color: '#0891b2',
       badge: 'Community Add-on',
@@ -38,6 +42,7 @@ const K8sOpenSourceEcosystem = () => {
     },
     {
       title: 'EKS Capabilities',
+      shortTitle: 'Capabilities',
       subtitle: '2025.11 출시 — 클러스터 외부 AWS 인프라에서 실행, 자동 HA · 업그레이드',
       color: '#2563eb',
       badge: 'EKS Capability',
@@ -49,6 +54,7 @@ const K8sOpenSourceEcosystem = () => {
     },
     {
       title: '관리형 오픈소스 서비스',
+      shortTitle: '관리형 서비스',
       subtitle: 'K8s와 직접 연동되는 독립 관리형 서비스',
       color: '#7c3aed',
       badge: 'Managed Service',
@@ -60,6 +66,7 @@ const K8sOpenSourceEcosystem = () => {
     },
     {
       title: 'AWS 오픈소스 K8s 컨트롤러',
+      shortTitle: 'OSS 컨트롤러',
       subtitle: 'AWS가 개발 · 유지보수하는 K8s 네이티브 컨트롤러',
       color: '#ea580c',
       badge: 'OSS Controller',
@@ -72,6 +79,8 @@ const K8sOpenSourceEcosystem = () => {
     }
   ];
 
+  const activeCat = categories[activeTab];
+
   return (
     <div style={{
       maxWidth: '760px',
@@ -80,6 +89,7 @@ const K8sOpenSourceEcosystem = () => {
       fontSize: '15px',
       lineHeight: '1.6'
     }}>
+      {/* Header */}
       <div style={{
         background: 'linear-gradient(135deg, #064e3b 0%, #065f46 100%)',
         color: 'white',
@@ -94,93 +104,150 @@ const K8sOpenSourceEcosystem = () => {
         </div>
       </div>
 
+      {/* Tab Bar */}
+      <div style={{
+        display: 'flex',
+        background: '#f8fafc',
+        borderLeft: '1px solid #e5e7eb',
+        borderRight: '1px solid #e5e7eb',
+        overflow: 'hidden'
+      }}>
+        {categories.map((cat, idx) => (
+          <button
+            key={cat.title}
+            onClick={() => setActiveTab(idx)}
+            style={{
+              flex: 1,
+              padding: '12px 8px',
+              border: 'none',
+              borderBottom: activeTab === idx ? `3px solid ${cat.color}` : '3px solid transparent',
+              background: activeTab === idx ? 'white' : '#f8fafc',
+              cursor: 'pointer',
+              fontSize: '12px',
+              fontWeight: activeTab === idx ? '700' : '500',
+              color: activeTab === idx ? cat.color : '#6b7280',
+              transition: 'all 0.2s ease',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: '4px',
+              fontFamily: 'inherit'
+            }}
+          >
+            <span>{cat.shortTitle}</span>
+            <span style={{
+              background: activeTab === idx ? `${cat.color}15` : '#e5e7eb',
+              color: activeTab === idx ? cat.color : '#9ca3af',
+              padding: '1px 6px',
+              borderRadius: '10px',
+              fontSize: '10px',
+              fontWeight: '600'
+            }}>
+              {cat.items.length}
+            </span>
+          </button>
+        ))}
+      </div>
+
+      {/* Active Tab Content */}
       <div style={{
         background: 'white',
         border: '1px solid #e5e7eb',
         borderTop: 'none',
         borderRadius: '0 0 8px 8px'
       }}>
-        {categories.map((cat, catIdx) => (
-          <div key={cat.title}>
-            {/* Category Header */}
-            <div style={{
-              background: '#f8fafc',
-              padding: '14px 20px',
-              borderBottom: '1px solid #e5e7eb',
+        {/* Category Description */}
+        <div style={{
+          padding: '14px 20px',
+          borderBottom: '1px solid #e5e7eb',
+          background: `${activeCat.color}05`
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '4px' }}>
+            <span style={{
+              background: activeCat.color,
+              color: 'white',
+              padding: '3px 10px',
+              borderRadius: '4px',
+              fontSize: '12px',
+              fontWeight: '600'
             }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '4px' }}>
-                <span style={{
-                  background: cat.color,
-                  color: 'white',
-                  padding: '3px 10px',
-                  borderRadius: '4px',
-                  fontSize: '12px',
-                  fontWeight: '600'
-                }}>
-                  {cat.badge}
-                </span>
-                <span style={{ fontWeight: '600', color: '#111827', fontSize: '15px' }}>
-                  {cat.title}
-                </span>
-              </div>
-              <div style={{ color: '#6b7280', fontSize: '13px', paddingLeft: '2px' }}>
-                {cat.subtitle}
-              </div>
-            </div>
+              {activeCat.badge}
+            </span>
+            <span style={{ fontWeight: '600', color: '#111827', fontSize: '15px' }}>
+              {activeCat.title}
+            </span>
+          </div>
+          <div style={{ color: '#6b7280', fontSize: '13px', paddingLeft: '2px' }}>
+            {activeCat.subtitle}
+          </div>
+        </div>
 
-            {/* Column Header */}
-            <div style={{
+        {/* Column Header */}
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: '1fr 1.1fr 1.4fr',
+          gap: '8px',
+          padding: '8px 20px',
+          borderBottom: '1px solid #e5e7eb',
+          background: '#fafafa'
+        }}>
+          <div style={{ fontSize: '11px', fontWeight: '600', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+            오픈소스
+          </div>
+          <div style={{ fontSize: '11px', fontWeight: '600', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+            AWS 관리형
+          </div>
+          <div style={{ fontSize: '11px', fontWeight: '600', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+            역할
+          </div>
+        </div>
+
+        {/* Items */}
+        {activeCat.items.map((item, itemIdx) => (
+          <div
+            key={item.oss}
+            style={{
               display: 'grid',
               gridTemplateColumns: '1fr 1.1fr 1.4fr',
               gap: '8px',
-              padding: '8px 20px',
-              borderBottom: '1px solid #e5e7eb',
-              background: '#fafafa'
-            }}>
-              <div style={{ fontSize: '11px', fontWeight: '600', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                오픈소스
-              </div>
-              <div style={{ fontSize: '11px', fontWeight: '600', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                AWS 관리형
-              </div>
-              <div style={{ fontSize: '11px', fontWeight: '600', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                역할
-              </div>
+              padding: '10px 20px',
+              borderBottom: itemIdx < activeCat.items.length - 1 ? '1px solid #f3f4f6' : 'none',
+              borderLeft: `3px solid ${activeCat.color}20`,
+              alignItems: 'center'
+            }}
+          >
+            <div style={{ fontSize: '13px', color: '#374151', fontWeight: '500' }}>
+              {item.oss}
             </div>
-
-            {/* Items */}
-            {cat.items.map((item, itemIdx) => (
-              <div
-                key={item.oss}
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: '1fr 1.1fr 1.4fr',
-                  gap: '8px',
-                  padding: '10px 20px',
-                  borderBottom: (catIdx === categories.length - 1 && itemIdx === cat.items.length - 1)
-                    ? 'none'
-                    : '1px solid #f3f4f6',
-                  borderLeft: `3px solid ${cat.color}20`,
-                  alignItems: 'center'
-                }}
-              >
-                <div style={{ fontSize: '13px', color: '#374151', fontWeight: '500' }}>
-                  {item.oss}
-                </div>
-                <div style={{
-                  fontSize: '13px',
-                  color: cat.color,
-                  fontWeight: '600'
-                }}>
-                  {item.managed}
-                </div>
-                <div style={{ fontSize: '12px', color: '#6b7280' }}>
-                  {item.desc}
-                </div>
-              </div>
-            ))}
+            <div style={{
+              fontSize: '13px',
+              color: activeCat.color,
+              fontWeight: '600'
+            }}>
+              {item.managed}
+            </div>
+            <div style={{ fontSize: '12px', color: '#6b7280' }}>
+              {item.desc}
+            </div>
           </div>
         ))}
+
+        {/* Tab Footer Summary */}
+        <div style={{
+          background: '#fffbeb',
+          borderTop: '1px solid #fde68a',
+          padding: '12px 16px',
+          fontSize: '12px',
+          color: '#92400e',
+          lineHeight: '1.6'
+        }}>
+          <strong>전체 합계:</strong> Managed Add-ons {categories[0].items.length}개
+          + Community {categories[1].items.length}개
+          + Capabilities {categories[2].items.length}개
+          + 관리형 서비스 {categories[3].items.length}개
+          + OSS 컨트롤러 {categories[4].items.length}개
+          = <strong>총 {categories.reduce((a, c) => a + c.items.length, 0)}개</strong> K8s 관련 오픈소스 · 관리형 서비스
+        </div>
       </div>
     </div>
   );
