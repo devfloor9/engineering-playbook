@@ -1,74 +1,78 @@
 import React from 'react';
+import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 
 const QualityGates = () => {
+  const {i18n} = useDocusaurusContext();
+  const isKo = i18n.currentLocale === 'ko';
+
   const gates = [
     {
-      gate: '코드 품질',
+      gate: isKo ? '코드 품질' : 'Code Quality',
       tools: 'Q Developer, Copilot',
-      checks: '코딩 표준, 복잡도, 중복',
+      checks: isKo ? '코딩 표준, 복잡도, 중복' : 'Coding standards, Complexity, Duplication',
       color: '#3b82f6'
     },
     {
-      gate: '보안 스캔',
+      gate: isKo ? '보안 스캔' : 'Security Scan',
       tools: 'Q Developer Security',
-      checks: 'OWASP Top 10, 시크릿 탐지',
+      checks: isKo ? 'OWASP Top 10, 시크릿 탐지' : 'OWASP Top 10, Secret Detection',
       color: '#dc2626'
     },
     {
-      gate: 'IaC 검증',
+      gate: isKo ? 'IaC 검증' : 'IaC Validation',
       tools: 'tflint, OPA',
-      checks: 'Terraform 모범사례, 정책 준수',
+      checks: isKo ? 'Terraform 모범사례, 정책 준수' : 'Terraform Best Practices, Policy Compliance',
       color: '#7c3aed'
     },
     {
-      gate: 'K8s 검증',
+      gate: isKo ? 'K8s 검증' : 'K8s Validation',
       tools: 'Kube-linter, Datree',
-      checks: '보안 컨텍스트, 리소스 제한',
+      checks: isKo ? '보안 컨텍스트, 리소스 제한' : 'Security Context, Resource Limits',
       color: '#0891b2'
     },
     {
-      gate: '테스트 커버리지',
+      gate: isKo ? '테스트 커버리지' : 'Test Coverage',
       tools: 'Go test, pytest',
-      checks: '최소 80% 커버리지',
+      checks: isKo ? '최소 80% 커버리지' : 'Minimum 80% Coverage',
       color: '#059669'
     },
     {
-      gate: '성능 회귀',
+      gate: isKo ? '성능 회귀' : 'Performance Regression',
       tools: 'k6, Artillery',
-      checks: '레이턴시, 처리량 기준',
+      checks: isKo ? '레이턴시, 처리량 기준' : 'Latency, Throughput Benchmarks',
       color: '#ea580c'
     }
   ];
 
   const approvalCriteria = [
     {
-      condition: '보안 스캔 결과',
-      autoApprove: 'Critical/High 0건',
-      manualReview: 'Critical/High 1건 이상',
+      condition: isKo ? '보안 스캔 결과' : 'Security Scan Results',
+      autoApprove: isKo ? 'Critical/High 0건' : '0 Critical/High',
+      manualReview: isKo ? 'Critical/High 1건 이상' : '≥1 Critical/High',
       severity: 'critical'
     },
     {
-      condition: '테스트 커버리지',
+      condition: isKo ? '테스트 커버리지' : 'Test Coverage',
       autoApprove: '≥ 80%',
       manualReview: '< 80%',
       severity: 'high'
     },
     {
-      condition: 'K8s 검증',
-      autoApprove: '경고 0건',
-      manualReview: '경고 1건 이상',
+      condition: isKo ? 'K8s 검증' : 'K8s Validation',
+      autoApprove: isKo ? '경고 0건' : '0 Warnings',
+      manualReview: isKo ? '경고 1건 이상' : '≥1 Warning',
       severity: 'medium'
     },
     {
-      condition: '성능 회귀',
-      autoApprove: 'P99 < SLO 목표',
-      manualReview: 'P99 > SLO 목표',
+      condition: isKo ? '성능 회귀' : 'Performance Regression',
+      autoApprove: isKo ? 'P99 < SLO 목표' : 'P99 < SLO Target',
+      manualReview: isKo ? 'P99 > SLO 목표' : 'P99 > SLO Target',
       severity: 'high'
     },
     {
-      condition: '변경 범위',
-      autoApprove: '< 500줄',
-      manualReview: '≥ 500줄',
+      condition: isKo ? '변경 범위' : 'Change Scope',
+      autoApprove: isKo ? '< 500줄' : '< 500 lines',
+      manualReview: isKo ? '≥ 500줄' : '≥ 500 lines',
       severity: 'medium'
     }
   ];
@@ -213,11 +217,11 @@ const QualityGates = () => {
     <div style={styles.container}>
       <div style={styles.header}>
         <h2 style={styles.title}>🛡️ Quality Gates</h2>
-        <p style={styles.subtitle}>AI 주도 다중 검증 레이어</p>
+        <p style={styles.subtitle}>{isKo ? 'AI 주도 다중 검증 레이어' : 'AI-Driven Multi-Layer Validation'}</p>
       </div>
 
       <div style={styles.section}>
-        <h3 style={styles.sectionTitle}>AI 코드 리뷰 검증 항목</h3>
+        <h3 style={styles.sectionTitle}>{isKo ? 'AI 코드 리뷰 검증 항목' : 'AI Code Review Validation Items'}</h3>
         <div style={styles.gatesGrid}>
           {gates.map((gate, idx) => (
             <div
@@ -242,12 +246,12 @@ const QualityGates = () => {
       </div>
 
       <div style={styles.section}>
-        <h3 style={styles.sectionTitle}>자동 승인 기준</h3>
+        <h3 style={styles.sectionTitle}>{isKo ? '자동 승인 기준' : 'Auto-Approval Criteria'}</h3>
         <div style={styles.approvalTable}>
           <div style={styles.approvalHeader}>
-            <div>조건</div>
-            <div>자동 승인</div>
-            <div>수동 리뷰 필요</div>
+            <div>{isKo ? '조건' : 'Condition'}</div>
+            <div>{isKo ? '자동 승인' : 'Auto Approve'}</div>
+            <div>{isKo ? '수동 리뷰 필요' : 'Manual Review Required'}</div>
           </div>
           {approvalCriteria.map((criteria, idx) => (
             <div key={idx} style={styles.approvalRow}>
@@ -264,7 +268,7 @@ const QualityGates = () => {
           ))}
         </div>
         <div style={styles.footer}>
-          <strong>주의:</strong> AI 코드 리뷰는 패턴 기반 문제를 잘 탐지하지만, 비즈니스 로직의 정확성이나 아키텍처 적합성은 사람의 판단이 필요합니다. AI 리뷰를 1차 필터로 활용하고, 핵심 변경사항은 사람이 최종 검토하는 하이브리드 접근을 권장합니다.
+          <strong>{isKo ? '주의:' : 'Note:'}</strong> {isKo ? 'AI 코드 리뷰는 패턴 기반 문제를 잘 탐지하지만, 비즈니스 로직의 정확성이나 아키텍처 적합성은 사람의 판단이 필요합니다. AI 리뷰를 1차 필터로 활용하고, 핵심 변경사항은 사람이 최종 검토하는 하이브리드 접근을 권장합니다.' : 'AI code review excels at detecting pattern-based issues, but business logic accuracy and architectural suitability require human judgment. We recommend a hybrid approach: use AI review as a first filter, with humans performing final review of critical changes.'}
         </div>
       </div>
     </div>

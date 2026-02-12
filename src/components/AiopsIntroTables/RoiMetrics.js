@@ -1,31 +1,35 @@
 import React from 'react';
+import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 
 const RoiMetrics = () => {
+  const {i18n} = useDocusaurusContext();
+  const isKo = i18n.currentLocale === 'ko';
+
   const metrics = [
     {
-      name: 'MTTR 개선',
-      before: '4시간',
-      after: '45분',
+      name: isKo ? 'MTTR 개선' : 'MTTR Improvement',
+      before: isKo ? '4시간' : '4 hours',
+      after: isKo ? '45분' : '45 min',
       improvement: '-81%',
       color: '#059669'
     },
     {
-      name: 'MTTD 개선',
-      before: '30분',
-      after: '3분',
+      name: isKo ? 'MTTD 개선' : 'MTTD Improvement',
+      before: isKo ? '30분' : '30 min',
+      after: isKo ? '3분' : '3 min',
       improvement: '-90%',
       color: '#3b82f6'
     },
     {
-      name: '알림 노이즈 감소',
-      before: '500건/일',
-      after: '50건/일',
+      name: isKo ? '알림 노이즈 감소' : 'Alert Noise Reduction',
+      before: isKo ? '500건/일' : '500/day',
+      after: isKo ? '50건/일' : '50/day',
       improvement: '-90%',
       color: '#8b5cf6'
     },
     {
-      name: '비용 절감',
-      before: '과잉 프로비저닝',
+      name: isKo ? '비용 절감' : 'Cost Reduction',
+      before: isKo ? '과잉 프로비저닝' : 'Over-provisioning',
       after: 'AI Right-Sizing',
       improvement: '-35%',
       color: '#d97706'
@@ -47,7 +51,7 @@ const RoiMetrics = () => {
         borderRadius: '8px 8px 0 0'
       }}>
         <div style={{ fontSize: '20px', fontWeight: '600' }}>
-          💰 AIOps ROI 핵심 지표
+          {isKo ? '💰 AIOps ROI 핵심 지표' : '💰 AIOps ROI Key Metrics'}
         </div>
       </div>
 

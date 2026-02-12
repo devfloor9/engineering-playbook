@@ -1,30 +1,34 @@
 import React from 'react';
+import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 
 const RightSizingResults = () => {
+  const {i18n} = useDocusaurusContext();
+  const isKo = i18n.currentLocale === 'ko';
+
   const results = [
     {
-      metric: 'CPU requests 합계',
+      metric: isKo ? 'CPU requests 합계' : 'Total CPU requests',
       before: '32 vCPU',
       after: '18 vCPU',
       savings: '44%',
       color: '#ef4444'
     },
     {
-      metric: 'Memory requests 합계',
+      metric: isKo ? 'Memory requests 합계' : 'Total memory requests',
       before: '64 GiB',
       after: '38 GiB',
       savings: '41%',
       color: '#f97316'
     },
     {
-      metric: '노드 수',
-      before: '8대',
-      after: '5대',
+      metric: isKo ? '노드 수' : 'Node count',
+      before: isKo ? '8대' : '8 nodes',
+      after: isKo ? '5대' : '5 nodes',
       savings: '37%',
       color: '#f59e0b'
     },
     {
-      metric: '월간 비용',
+      metric: isKo ? '월간 비용' : 'Monthly cost',
       before: '$1,200',
       after: '$720',
       savings: '40%',
@@ -125,7 +129,7 @@ const RightSizingResults = () => {
     fontWeight: '700'
   };
 
-  const savingsBadgeStyle = (color) => ({
+  const savingsBadgeStyle = (color, savings) => ({
     display: 'inline-block',
     backgroundColor: color,
     color: '#ffffff',
@@ -154,8 +158,8 @@ const RightSizingResults = () => {
   return (
     <div style={containerStyle}>
       <div style={headerStyle}>
-        <h2 style={titleStyle}>💰 AI Right-Sizing 효과</h2>
-        <p style={subtitleStyle}>VPA + ML 기반 자동 리소스 최적화 결과</p>
+        <h2 style={titleStyle}>💰 {isKo ? 'AI Right-Sizing 효과' : 'AI Right-Sizing Results'}</h2>
+        <p style={subtitleStyle}>{isKo ? 'VPA + ML 기반 자동 리소스 최적화 결과' : 'VPA + ML-based Automated Resource Optimization Results'}</p>
       </div>
       <div style={contentStyle}>
         <div style={gridStyle}>
@@ -174,14 +178,14 @@ const RightSizingResults = () => {
                 </div>
               </div>
               <div style={savingsBadgeStyle(item.color)}>
-                {item.savings} 절감
+                {item.savings} {isKo ? '절감' : 'saved'}
               </div>
             </div>
           ))}
         </div>
       </div>
       <div style={footerStyle}>
-        <span style={footerLabelStyle}>핵심 효과:</span> Container Insights 기반 실제 리소스 사용 패턴을 분석하여 과도하게 할당된 requests를 최적화함으로써 노드 수를 37% 감축하고 월간 비용을 40% 절감했습니다.
+        <span style={footerLabelStyle}>{isKo ? '핵심 효과:' : 'Key Impact:'}</span> {isKo ? 'Container Insights 기반 실제 리소스 사용 패턴을 분석하여 과도하게 할당된 requests를 최적화함으로써 노드 수를 37% 감축하고 월간 비용을 40% 절감했습니다.' : 'By analyzing actual resource usage patterns based on Container Insights and optimizing over-allocated requests, we reduced node count by 37% and monthly costs by 40%.'}
       </div>
     </div>
   );

@@ -1,41 +1,45 @@
 import React from 'react';
+import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 
 const DashboardPanels = () => {
+  const {i18n} = useDocusaurusContext();
+  const isKo = i18n.currentLocale === 'ko';
+
   const panels = [
     {
-      panel: '트래픽 예측 vs 실제',
+      panel: isKo ? '트래픽 예측 vs 실제' : 'Predicted vs Actual Traffic',
       dataSource: 'AMP',
-      purpose: '예측 정확도 시각화',
+      purpose: isKo ? '예측 정확도 시각화' : 'Forecast accuracy visualization',
       color: '#3b82f6'
     },
     {
-      panel: '스케일링 이벤트',
+      panel: isKo ? '스케일링 이벤트' : 'Scaling Events',
       dataSource: 'AMP + K8s',
-      purpose: '선제 vs 반응 스케일링 비교',
+      purpose: isKo ? '선제 vs 반응 스케일링 비교' : 'Proactive vs reactive scaling comparison',
       color: '#8b5cf6'
     },
     {
-      panel: 'SLO 현황',
+      panel: isKo ? 'SLO 현황' : 'SLO Status',
       dataSource: 'AMP',
-      purpose: 'Error Budget 소진 상태',
+      purpose: isKo ? 'Error Budget 소진 상태' : 'Error budget burn status',
       color: '#ec4899'
     },
     {
-      panel: '인시던트 타임라인',
+      panel: isKo ? '인시던트 타임라인' : 'Incident Timeline',
       dataSource: 'CloudWatch',
-      purpose: '장애 발생·대응·복구 추적',
+      purpose: isKo ? '장애 발생·대응·복구 추적' : 'Incident detection, response, and recovery tracking',
       color: '#f59e0b'
     },
     {
-      panel: '비용 추이',
+      panel: isKo ? '비용 추이' : 'Cost Trends',
       dataSource: 'Cost Explorer',
-      purpose: 'Right-sizing 효과 모니터링',
+      purpose: isKo ? 'Right-sizing 효과 모니터링' : 'Right-sizing effectiveness monitoring',
       color: '#10b981'
     },
     {
-      panel: 'Agent 활동 로그',
+      panel: isKo ? 'Agent 활동 로그' : 'Agent Activity Log',
       dataSource: 'Kagent/Strands',
-      purpose: 'AI Agent 조치 이력',
+      purpose: isKo ? 'AI Agent 조치 이력' : 'AI Agent action history',
       color: '#06b6d4'
     }
   ];
@@ -137,8 +141,8 @@ const DashboardPanels = () => {
   return (
     <div style={containerStyle}>
       <div style={headerStyle}>
-        <h2 style={titleStyle}>📊 통합 운영 대시보드 구성</h2>
-        <p style={subtitleStyle}>AMG 핵심 대시보드 패널</p>
+        <h2 style={titleStyle}>📊 {isKo ? '통합 운영 대시보드 구성' : 'Unified Operations Dashboard Architecture'}</h2>
+        <p style={subtitleStyle}>{isKo ? 'AMG 핵심 대시보드 패널' : 'AMG Core Dashboard Panels'}</p>
       </div>
       <div style={contentStyle}>
         <div style={gridStyle}>
@@ -148,11 +152,11 @@ const DashboardPanels = () => {
                 {panel.panel}
               </div>
               <div style={rowStyle}>
-                <div style={labelStyle}>데이터 소스</div>
+                <div style={labelStyle}>{isKo ? '데이터 소스' : 'Data Source'}</div>
                 <div style={valueStyle}>{panel.dataSource}</div>
               </div>
               <div style={rowStyle}>
-                <div style={labelStyle}>목적</div>
+                <div style={labelStyle}>{isKo ? '목적' : 'Purpose'}</div>
                 <div style={valueStyle}>{panel.purpose}</div>
               </div>
             </div>
@@ -160,7 +164,7 @@ const DashboardPanels = () => {
         </div>
       </div>
       <div style={footerStyle}>
-        <span style={footerLabelStyle}>통합 가시성:</span> 통합 운영 대시보드는 예측 데이터와 실제 데이터를 함께 표시하여 예측 정확도, SLO 현황, Error Budget, 인시던트 대응 상황을 한눈에 파악할 수 있습니다.
+        <span style={footerLabelStyle}>{isKo ? '통합 가시성:' : 'Unified Visibility:'}</span> {isKo ? '통합 운영 대시보드는 예측 데이터와 실제 데이터를 함께 표시하여 예측 정확도, SLO 현황, Error Budget, 인시던트 대응 상황을 한눈에 파악할 수 있습니다.' : 'The unified operations dashboard displays predicted and actual data together, enabling at-a-glance insights into forecast accuracy, SLO status, error budget, and incident response status.'}
       </div>
     </div>
   );

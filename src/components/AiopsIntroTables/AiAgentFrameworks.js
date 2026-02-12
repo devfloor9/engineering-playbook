@@ -1,30 +1,34 @@
 import React from 'react';
+import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 
 const AiAgentFrameworks = () => {
+  const {i18n} = useDocusaurusContext();
+  const isKo = i18n.currentLocale === 'ko';
+
   const frameworks = [
     {
       name: 'Amazon Q Developer',
       color: '#2563eb',
-      nature: 'AI 어시스턴트 — CloudWatch Investigations, 코드 리뷰, 보안 스캔',
+      nature: isKo ? 'AI 어시스턴트 — CloudWatch Investigations, 코드 리뷰, 보안 스캔' : 'AI Assistant — CloudWatch Investigations, code review, security scan',
       maturity: 'GA',
       maturityColor: '#059669',
-      status: '프로덕션 레디'
+      status: isKo ? '프로덕션 레디' : 'Production Ready'
     },
     {
       name: 'Strands Agents SDK',
       color: '#7c3aed',
-      nature: 'AWS 오픈소스 Agent 프레임워크 — Agent SOPs로 자연어 워크플로우 정의',
-      maturity: '오픈소스',
+      nature: isKo ? 'AWS 오픈소스 Agent 프레임워크 — Agent SOPs로 자연어 워크플로우 정의' : 'AWS OSS Agent framework — Define natural language workflows via Agent SOPs',
+      maturity: isKo ? '오픈소스' : 'Open Source',
       maturityColor: '#d97706',
-      status: 'AWS 내부 활용'
+      status: isKo ? 'AWS 내부 활용' : 'AWS Internal Use'
     },
     {
       name: 'Kagent',
       color: '#059669',
-      nature: 'CNCF 커뮤니티 K8s 네이티브 AI Agent — CRD 기반, kmcp로 MCP 통합',
-      maturity: '초기 단계',
+      nature: isKo ? 'CNCF 커뮤니티 K8s 네이티브 AI Agent — CRD 기반, kmcp로 MCP 통합' : 'CNCF community K8s-native AI Agent — CRD-based, MCP integration via kmcp',
+      maturity: isKo ? '초기 단계' : 'Early Stage',
       maturityColor: '#6b7280',
-      status: '실험적'
+      status: isKo ? '실험적' : 'Experimental'
     }
   ];
 
@@ -43,10 +47,10 @@ const AiAgentFrameworks = () => {
         borderRadius: '8px 8px 0 0'
       }}>
         <div style={{ fontSize: '20px', fontWeight: '600', marginBottom: '4px' }}>
-          AI Agent 프레임워크 비교
+          {isKo ? 'AI Agent 프레임워크 비교' : 'AI Agent Framework Comparison'}
         </div>
         <div style={{ fontSize: '14px', opacity: 0.9 }}>
-          자율 운영을 위한 세 가지 프레임워크
+          {isKo ? '자율 운영을 위한 세 가지 프레임워크' : 'Three frameworks for autonomous operations'}
         </div>
       </div>
 
@@ -69,7 +73,7 @@ const AiAgentFrameworks = () => {
             fontSize: '12px',
             color: '#6b7280'
           }}>
-            도구
+            {isKo ? '도구' : 'Tool'}
           </div>
           <div style={{
             padding: '12px 14px',
@@ -79,7 +83,7 @@ const AiAgentFrameworks = () => {
             fontSize: '12px',
             color: '#6b7280'
           }}>
-            성격
+            {isKo ? '성격' : 'Nature'}
           </div>
           <div style={{
             padding: '12px 14px',
@@ -89,7 +93,7 @@ const AiAgentFrameworks = () => {
             fontSize: '12px',
             color: '#6b7280'
           }}>
-            성숙도
+            {isKo ? '성숙도' : 'Maturity'}
           </div>
         </div>
 
@@ -157,7 +161,9 @@ const AiAgentFrameworks = () => {
           fontSize: '12px',
           color: '#92400e'
         }}>
-          <strong>권장 접근:</strong> Q Developer(GA)로 시작 → Strands(OSS)로 워크플로우 자동화 → Kagent(초기)로 K8s 네이티브 자율 운영 탐색
+          <strong>{isKo ? '권장 접근:' : 'Recommended Approach:'}</strong> {isKo
+            ? 'Q Developer(GA)로 시작 → Strands(OSS)로 워크플로우 자동화 → Kagent(초기)로 K8s 네이티브 자율 운영 탐색'
+            : 'Start with Q Developer (GA) → Automate workflows with Strands (OSS) → Explore K8s-native autonomous ops with Kagent (early)'}
         </div>
       </div>
     </div>

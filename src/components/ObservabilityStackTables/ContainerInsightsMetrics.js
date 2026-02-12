@@ -1,36 +1,40 @@
 import React from 'react';
+import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 
 const ContainerInsightsMetrics = () => {
+  const {i18n} = useDocusaurusContext();
+  const isKo = i18n.currentLocale === 'ko';
+
   const categories = [
     {
       category: 'Control Plane',
       examples: 'apiserver_request_total, etcd_db_total_size',
-      description: 'API 서버, etcd, 스케줄러 상태'
+      description: isKo ? 'API 서버, etcd, 스케줄러 상태' : 'API server, etcd, scheduler status'
     },
     {
       category: 'Node',
       examples: 'node_cpu_utilization, node_memory_working_set',
-      description: '노드 리소스 사용량'
+      description: isKo ? '노드 리소스 사용량' : 'Node resource usage'
     },
     {
       category: 'Pod',
       examples: 'pod_cpu_utilization, pod_memory_working_set',
-      description: 'Pod 리소스 사용량'
+      description: isKo ? 'Pod 리소스 사용량' : 'Pod resource usage'
     },
     {
       category: 'Container',
       examples: 'container_cpu_limit, container_restart_count',
-      description: '컨테이너 수준 상세'
+      description: isKo ? '컨테이너 수준 상세' : 'Container-level details'
     },
     {
       category: 'Service',
       examples: 'service_number_of_running_pods',
-      description: '서비스 레벨 집계'
+      description: isKo ? '서비스 레벨 집계' : 'Service-level aggregation'
     },
     {
       category: 'Namespace',
       examples: 'namespace_number_of_running_pods',
-      description: '네임스페이스 레벨 집계'
+      description: isKo ? '네임스페이스 레벨 집계' : 'Namespace-level aggregation'
     }
   ];
 
@@ -50,10 +54,10 @@ const ContainerInsightsMetrics = () => {
         borderRadius: '8px 8px 0 0'
       }}>
         <div style={{ fontSize: '20px', fontWeight: '600', marginBottom: '4px' }}>
-          Enhanced Container Insights 메트릭 범위
+          {isKo ? 'Enhanced Container Insights 메트릭 범위' : 'Enhanced Container Insights Metrics Scope'}
         </div>
         <div style={{ fontSize: '14px', opacity: 0.9 }}>
-          EKS 1.28+ Control Plane 포함 심층 관찰성
+          {isKo ? 'EKS 1.28+ Control Plane 포함 심층 관찰성' : 'Deep observability including EKS 1.28+ Control Plane'}
         </div>
       </div>
 
@@ -78,7 +82,7 @@ const ContainerInsightsMetrics = () => {
             fontSize: '12px',
             color: '#6b7280'
           }}>
-            카테고리
+            {isKo ? '카테고리' : 'Category'}
           </div>
           <div style={{
             padding: '12px 14px',
@@ -87,7 +91,7 @@ const ContainerInsightsMetrics = () => {
             fontSize: '12px',
             color: '#6b7280'
           }}>
-            메트릭 예시
+            {isKo ? '메트릭 예시' : 'Metric Examples'}
           </div>
           <div style={{
             padding: '12px 14px',
@@ -96,7 +100,7 @@ const ContainerInsightsMetrics = () => {
             fontSize: '12px',
             color: '#6b7280'
           }}>
-            설명
+            {isKo ? '설명' : 'Description'}
           </div>
         </div>
 

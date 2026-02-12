@@ -1,52 +1,56 @@
 import React from 'react';
+import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 
 const DevOpsAgentArchitecture = () => {
+  const {i18n} = useDocusaurusContext();
+  const isKo = i18n.currentLocale === 'ko';
+
   const layers = [
     {
-      title: '관찰성 데이터 소스',
-      subtitle: 'AWS 네이티브 · OSS · 3rd Party 모두 지원',
+      title: isKo ? '관찰성 데이터 소스' : 'Observability Data Sources',
+      subtitle: isKo ? 'AWS 네이티브 · OSS · 3rd Party 모두 지원' : 'AWS native · OSS · 3rd party all supported',
       color: '#0d9488',
       bg: '#f0fdfa',
       items: [
-        { icon: '📈', name: '메트릭', desc: 'AMP · CloudWatch · Datadog 등' },
-        { icon: '🔗', name: '트레이스', desc: 'X-Ray · Jaeger · Datadog APM 등' },
-        { icon: '📋', name: '로그', desc: 'OpenSearch · CloudWatch · Sumo Logic 등' },
-        { icon: '☸️', name: 'K8s API', desc: '이벤트 · 상태 · 리소스' },
+        { icon: '📈', name: isKo ? '메트릭' : 'Metrics', desc: isKo ? 'AMP · CloudWatch · Datadog 등' : 'AMP · CloudWatch · Datadog, etc.' },
+        { icon: '🔗', name: isKo ? '트레이스' : 'Traces', desc: isKo ? 'X-Ray · Jaeger · Datadog APM 등' : 'X-Ray · Jaeger · Datadog APM, etc.' },
+        { icon: '📋', name: isKo ? '로그' : 'Logs', desc: isKo ? 'OpenSearch · CloudWatch · Sumo Logic 등' : 'OpenSearch · CloudWatch · Sumo Logic, etc.' },
+        { icon: '☸️', name: 'K8s API', desc: isKo ? '이벤트 · 상태 · 리소스' : 'Events · status · resources' },
       ]
     },
     {
-      title: 'MCP 통합 레이어 (50+ 서버)',
-      subtitle: '관찰성 백엔드에 무관하게 단일 인터페이스 제공',
+      title: isKo ? 'MCP 통합 레이어 (50+ 서버)' : 'MCP Integration Layer (50+ servers)',
+      subtitle: isKo ? '관찰성 백엔드에 무관하게 단일 인터페이스 제공' : 'Single interface regardless of observability backend',
       color: '#2563eb',
       bg: '#eff6ff',
       items: [
-        { icon: '☸️', name: 'EKS MCP', desc: '클러스터 제어' },
-        { icon: '📈', name: 'CloudWatch MCP', desc: '메트릭 · 알람 · 로그' },
-        { icon: '💰', name: 'Cost Explorer MCP', desc: '비용 분석' },
-        { icon: '🔒', name: 'IAM MCP', desc: '보안 관리' },
-        { icon: '📖', name: 'Core MCP', desc: '50+ 서버 오케스트레이션' },
+        { icon: '☸️', name: 'EKS MCP', desc: isKo ? '클러스터 제어' : 'Cluster control' },
+        { icon: '📈', name: 'CloudWatch MCP', desc: isKo ? '메트릭 · 알람 · 로그' : 'Metrics · alarms · logs' },
+        { icon: '💰', name: 'Cost Explorer MCP', desc: isKo ? '비용 분석' : 'Cost analysis' },
+        { icon: '🔒', name: 'IAM MCP', desc: isKo ? '보안 관리' : 'Security mgmt' },
+        { icon: '📖', name: 'Core MCP', desc: isKo ? '50+ 서버 오케스트레이션' : '50+ server orchestration' },
       ]
     },
   ];
 
   const consumers = [
     {
-      title: 'AI 도구 (프로덕션 레디)',
+      title: isKo ? 'AI 도구 (프로덕션 레디)' : 'AI Tools (Production Ready)',
       color: '#7c3aed',
       bg: '#f5f3ff',
       items: [
-        { icon: '🤖', name: 'Q Developer', desc: 'CloudWatch Investigations · 트러블슈팅 (GA)' },
-        { icon: '🔧', name: 'Kiro', desc: 'Spec-driven 개발 · MCP 네이티브' },
-        { icon: '💻', name: 'AI IDE', desc: 'Claude Code · GitHub Copilot 등' },
+        { icon: '🤖', name: 'Q Developer', desc: isKo ? 'CloudWatch Investigations · 트러블슈팅 (GA)' : 'CloudWatch Investigations · troubleshooting (GA)' },
+        { icon: '🔧', name: 'Kiro', desc: isKo ? 'Spec-driven 개발 · MCP 네이티브' : 'Spec-driven dev · MCP native' },
+        { icon: '💻', name: 'AI IDE', desc: isKo ? 'Claude Code · GitHub Copilot 등' : 'Claude Code · GitHub Copilot, etc.' },
       ]
     },
     {
-      title: 'Agent 확장 (점진적 도입)',
+      title: isKo ? 'Agent 확장 (점진적 도입)' : 'Agent Extension (Gradual Adoption)',
       color: '#9ca3af',
       bg: '#f9fafb',
       items: [
-        { icon: '📋', name: 'Strands SDK', desc: 'Agent SOPs — 자연어 워크플로우 (OSS)' },
-        { icon: '⚙️', name: 'Kagent', desc: 'K8s 네이티브 Agent — kmcp (초기 단계)' },
+        { icon: '📋', name: 'Strands SDK', desc: isKo ? 'Agent SOPs — 자연어 워크플로우 (OSS)' : 'Agent SOPs — natural language workflows (OSS)' },
+        { icon: '⚙️', name: 'Kagent', desc: isKo ? 'K8s 네이티브 Agent — kmcp (초기 단계)' : 'K8s-native Agent — kmcp (early stage)' },
       ]
     },
   ];
@@ -115,10 +119,10 @@ const DevOpsAgentArchitecture = () => {
         borderRadius: '8px 8px 0 0'
       }}>
         <div style={{ fontSize: '20px', fontWeight: '600', marginBottom: '4px' }}>
-          Kiro + MCP 아키텍처 (Agent 확장 가능)
+          {isKo ? 'Kiro + MCP 아키텍처 (Agent 확장 가능)' : 'Kiro + MCP Architecture (Agent Extensible)'}
         </div>
         <div style={{ fontSize: '14px', opacity: 0.9 }}>
-          관찰성 백엔드(AWS · OSS · 3rd Party) → MCP 추상화 → AI 도구 → 자동화 액션 (→ Agent 확장)
+          {isKo ? '관찰성 백엔드(AWS · OSS · 3rd Party) → MCP 추상화 → AI 도구 → 자동화 액션 (→ Agent 확장)' : 'Observability backends (AWS · OSS · 3rd Party) → MCP abstraction → AI tools → Automation actions (→ Agent extension)'}
         </div>
       </div>
 
@@ -212,7 +216,7 @@ const DevOpsAgentArchitecture = () => {
           textAlign: 'center'
         }}>
           <div style={{ fontSize: '15px', fontWeight: '700', color: '#92400e', marginBottom: '6px' }}>
-            자동화 액션
+            {isKo ? '자동화 액션' : 'Automation Actions'}
           </div>
           <div style={{
             display: 'flex',
@@ -220,7 +224,10 @@ const DevOpsAgentArchitecture = () => {
             gap: '8px',
             flexWrap: 'wrap'
           }}>
-            {['인시던트 자동 대응', '배포 검증', '리소스 최적화', '비용 절감', '근본 원인 분석'].map((action) => (
+            {(isKo
+              ? ['인시던트 자동 대응', '배포 검증', '리소스 최적화', '비용 절감', '근본 원인 분석']
+              : ['Auto Incident Response', 'Deployment Validation', 'Resource Optimization', 'Cost Reduction', 'Root Cause Analysis']
+            ).map((action) => (
               <span key={action} style={{
                 background: 'white',
                 border: '1px solid #f59e0b',

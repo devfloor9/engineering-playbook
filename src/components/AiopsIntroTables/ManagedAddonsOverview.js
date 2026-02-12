@@ -1,41 +1,45 @@
 import React from 'react';
+import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 
 const ManagedAddonsOverview = () => {
+  const {i18n} = useDocusaurusContext();
+  const isKo = i18n.currentLocale === 'ko';
+
   const categories = [
     {
       icon: '🌐',
-      name: '네트워킹',
+      name: isKo ? '네트워킹' : 'Networking',
       color: '#2563eb',
       addons: ['VPC CNI', 'CoreDNS', 'kube-proxy'],
-      desc: 'Pod 네트워킹, DNS, 서비스 프록시'
+      desc: isKo ? 'Pod 네트워킹, DNS, 서비스 프록시' : 'Pod networking, DNS, service proxy'
     },
     {
       icon: '💾',
-      name: '스토리지',
+      name: isKo ? '스토리지' : 'Storage',
       color: '#7c3aed',
       addons: ['EBS CSI', 'EFS CSI', 'FSx CSI', 'Mountpoint for S3', 'Snapshot Controller'],
-      desc: '블록/파일/객체 스토리지, 스냅샷'
+      desc: isKo ? '블록/파일/객체 스토리지, 스냅샷' : 'Block/file/object storage, snapshots'
     },
     {
       icon: '📊',
-      name: '관찰성',
+      name: isKo ? '관찰성' : 'Observability',
       color: '#059669',
       addons: ['ADOT', 'CloudWatch Agent', 'Node Monitoring', 'NFM Agent'],
-      desc: '메트릭/로그/트레이스, Container Network Observability'
+      desc: isKo ? '메트릭/로그/트레이스, Container Network Observability' : 'Metrics/logs/traces, Container Network Observability'
     },
     {
       icon: '🔒',
-      name: '보안',
+      name: isKo ? '보안' : 'Security',
       color: '#dc2626',
       addons: ['GuardDuty Agent', 'Pod Identity Agent', 'Private CA Connector'],
-      desc: '런타임 보안, IAM 인증, 인증서'
+      desc: isKo ? '런타임 보안, IAM 인증, 인증서' : 'Runtime security, IAM auth, certificates'
     },
     {
       icon: '🤖',
       name: 'ML',
       color: '#d97706',
       addons: ['SageMaker HyperPod (Task Governance, Observability, Training, Inference)'],
-      desc: 'ML 학습·추론 워크로드 관리'
+      desc: isKo ? 'ML 학습·추론 워크로드 관리' : 'ML training·inference workload mgmt'
     }
   ];
 
@@ -61,10 +65,10 @@ const ManagedAddonsOverview = () => {
       }}>
         <div>
           <div style={{ fontSize: '20px', fontWeight: '600', marginBottom: '4px' }}>
-            EKS Managed Add-ons 카테고리
+            {isKo ? 'EKS Managed Add-ons 카테고리' : 'EKS Managed Add-ons Categories'}
           </div>
           <div style={{ fontSize: '14px', opacity: 0.9 }}>
-            aws eks create-addon 한 줄로 설치 · AWS가 버전 관리 · 보안 패치
+            {isKo ? 'aws eks create-addon 한 줄로 설치 · AWS가 버전 관리 · 보안 패치' : 'Install with one-line aws eks create-addon · AWS manages versions · security patches'}
           </div>
         </div>
         <div style={{
@@ -168,7 +172,9 @@ const ManagedAddonsOverview = () => {
           color: '#92400e',
           lineHeight: '1.6'
         }}>
-          <strong>핵심:</strong> Managed Add-on은 AWS가 <strong>설치·업그레이드·보안 패치</strong>를 관리합니다.
+          <strong>{isKo ? '핵심:' : 'Key:'}</strong> {isKo
+            ? 'Managed Add-on은 AWS가 설치·업그레이드·보안 패치를 관리합니다.'
+            : 'AWS manages installation, upgrades, and security patches for Managed Add-ons.'}
           <code style={{
             background: '#1f2937',
             color: '#10b981',
@@ -179,7 +185,7 @@ const ManagedAddonsOverview = () => {
           }}>
             aws eks create-addon --addon-name {'<name>'}
           </code>
-          한 줄로 프로덕션 배포가 완료됩니다.
+          {isKo ? '한 줄로 프로덕션 배포가 완료됩니다.' : 'One line deploys to production.'}
         </div>
       </div>
     </div>

@@ -1,35 +1,39 @@
 import React from 'react';
+import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 
 const AiAgentEcosystem = () => {
+  const {i18n} = useDocusaurusContext();
+  const isKo = i18n.currentLocale === 'ko';
+
   const agents = [
     {
       name: 'Kagent',
       color: '#3b82f6',
-      characteristics: 'K8s 네이티브',
+      characteristics: isKo ? 'K8s 네이티브' : 'K8s Native',
       features: [
-        'CRD로 관리',
-        'kmcp 통합',
-        '클러스터 내 실행'
+        isKo ? 'CRD로 관리' : 'CRD Management',
+        isKo ? 'kmcp 통합' : 'kmcp Integration',
+        isKo ? '클러스터 내 실행' : 'In-Cluster Execution'
       ]
     },
     {
       name: 'Strands Agents',
       color: '#059669',
-      characteristics: 'AWS 프로덕션 검증',
+      characteristics: isKo ? 'AWS 프로덕션 검증' : 'AWS Production Verified',
       features: [
         'Agent SOPs',
-        '자연어 워크플로우',
-        'AWS SDK 통합'
+        isKo ? '자연어 워크플로우' : 'Natural Language Workflows',
+        isKo ? 'AWS SDK 통합' : 'AWS SDK Integration'
       ]
     },
     {
       name: 'Amazon Q Developer',
       color: '#ea580c',
-      characteristics: '완전 관리형',
+      characteristics: isKo ? '완전 관리형' : 'Fully Managed',
       features: [
         'CloudWatch Investigations',
-        'EKS 트러블슈팅',
-        'AWS 네이티브 통합'
+        isKo ? 'EKS 트러블슈팅' : 'EKS Troubleshooting',
+        isKo ? 'AWS 네이티브 통합' : 'AWS Native Integration'
       ]
     }
   ];
@@ -122,8 +126,8 @@ const AiAgentEcosystem = () => {
   return (
     <div style={styles.container}>
       <div style={styles.header}>
-        <h2 style={styles.title}>🤖 AI Agent 생태계</h2>
-        <p style={styles.subtitle}>Kiro + MCP 기반 운영 자동화 확장</p>
+        <h2 style={styles.title}>🤖 {isKo ? 'AI Agent 생태계' : 'AI Agent Ecosystem'}</h2>
+        <p style={styles.subtitle}>{isKo ? 'Kiro + MCP 기반 운영 자동화 확장' : 'Kiro + MCP-based Operations Automation Extension'}</p>
       </div>
       <div style={styles.agentsGrid}>
         {agents.map((agent, idx) => (
@@ -136,7 +140,7 @@ const AiAgentEcosystem = () => {
           >
             <h3 style={styles.agentName}>{agent.name}</h3>
             <div style={styles.characteristics}>{agent.characteristics}</div>
-            <div style={styles.featuresTitle}>핵심 기능</div>
+            <div style={styles.featuresTitle}>{isKo ? '핵심 기능' : 'Key Features'}</div>
             <ul style={styles.featuresList}>
               {agent.features.map((feature, featureIdx) => (
                 <li key={featureIdx} style={styles.featureItem}>{feature}</li>
@@ -146,8 +150,8 @@ const AiAgentEcosystem = () => {
         ))}
       </div>
       <div style={styles.footer}>
-        <div style={styles.footerTitle}>AI Agent 운영 자동화의 핵심</div>
-        다양한 데이터 소스(CloudWatch, EKS API, X-Ray)를 MCP로 통합하여 운영 인사이트를 도출하고, 세부적이면서도 광범위한 컨트롤을 제공합니다. Q Developer(GA)의 완전 관리형 분석을 먼저 도입하고, Strands(OSS)의 SOP 기반 워크플로우, Kagent(초기 단계)의 K8s 네이티브 접근을 점진적으로 확장합니다.
+        <div style={styles.footerTitle}>{isKo ? 'AI Agent 운영 자동화의 핵심' : 'Core of AI Agent Operations Automation'}</div>
+        {isKo ? '다양한 데이터 소스(CloudWatch, EKS API, X-Ray)를 MCP로 통합하여 운영 인사이트를 도출하고, 세부적이면서도 광범위한 컨트롤을 제공합니다. Q Developer(GA)의 완전 관리형 분석을 먼저 도입하고, Strands(OSS)의 SOP 기반 워크플로우, Kagent(초기 단계)의 K8s 네이티브 접근을 점진적으로 확장합니다.' : 'Integrate diverse data sources (CloudWatch, EKS API, X-Ray) through MCP to derive operational insights and provide detailed yet comprehensive control. Start with Q Developer (GA) fully managed analysis, then progressively expand with Strands (OSS) SOP-based workflows and Kagent (early stage) K8s-native approach.'}
       </div>
     </div>
   );

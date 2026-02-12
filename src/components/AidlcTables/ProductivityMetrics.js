@@ -1,81 +1,85 @@
 import React from 'react';
+import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 
 const ProductivityMetrics = () => {
+  const {i18n} = useDocusaurusContext();
+  const isKo = i18n.currentLocale === 'ko';
+
   const categories = [
     {
-      name: '생산성',
+      name: isKo ? '생산성' : 'Productivity',
       color: '#3b82f6',
       metrics: [
         {
-          name: '코드 생성 속도',
-          before: '100 LOC/일',
-          after: '500 LOC/일',
+          name: isKo ? '코드 생성 속도' : 'Code Generation Speed',
+          before: isKo ? '100 LOC/일' : '100 LOC/day',
+          after: isKo ? '500 LOC/일' : '500 LOC/day',
           improvement: '+400%',
           positive: true
         },
         {
-          name: 'PR 리뷰 시간',
-          before: '4시간',
-          after: '30분',
+          name: isKo ? 'PR 리뷰 시간' : 'PR Review Time',
+          before: isKo ? '4시간' : '4 hours',
+          after: isKo ? '30분' : '30 min',
           improvement: '-87%',
           positive: true
         },
         {
-          name: '배포 빈도',
-          before: '주 1회',
-          after: '일 5회',
+          name: isKo ? '배포 빈도' : 'Deployment Frequency',
+          before: isKo ? '주 1회' : '1x/week',
+          after: isKo ? '일 5회' : '5x/day',
           improvement: '+5x',
           positive: true
         }
       ]
     },
     {
-      name: '품질',
+      name: isKo ? '품질' : 'Quality',
       color: '#059669',
       metrics: [
         {
-          name: '버그 밀도',
-          before: '15건/1K LOC',
-          after: '3건/1K LOC',
+          name: isKo ? '버그 밀도' : 'Bug Density',
+          before: isKo ? '15건/1K LOC' : '15/1K LOC',
+          after: isKo ? '3건/1K LOC' : '3/1K LOC',
           improvement: '-80%',
           positive: true
         },
         {
-          name: '테스트 커버리지',
+          name: isKo ? '테스트 커버리지' : 'Test Coverage',
           before: '45%',
           after: '85%',
           improvement: '+89%',
           positive: true
         },
         {
-          name: '보안 취약점',
-          before: '수동 스캔',
-          after: 'AI 실시간 스캔',
-          improvement: '자동화',
+          name: isKo ? '보안 취약점' : 'Security Vulnerabilities',
+          before: isKo ? '수동 스캔' : 'Manual Scan',
+          after: isKo ? 'AI 실시간 스캔' : 'AI Real-time Scan',
+          improvement: isKo ? '자동화' : 'Automated',
           positive: true
         }
       ]
     },
     {
-      name: '운영',
+      name: isKo ? '운영' : 'Operations',
       color: '#8b5cf6',
       metrics: [
         {
           name: 'MTTR',
-          before: '4시간',
-          after: '45분',
+          before: isKo ? '4시간' : '4 hours',
+          after: isKo ? '45분' : '45 min',
           improvement: '-81%',
           positive: true
         },
         {
-          name: '변경 실패율',
+          name: isKo ? '변경 실패율' : 'Change Failure Rate',
           before: '15%',
           after: '3%',
           improvement: '-80%',
           positive: true
         },
         {
-          name: 'SLO 달성률',
+          name: isKo ? 'SLO 달성률' : 'SLO Achievement',
           before: '95%',
           after: '99.5%',
           improvement: '+4.7%',
@@ -193,8 +197,8 @@ const ProductivityMetrics = () => {
   return (
     <div style={styles.container}>
       <div style={styles.header}>
-        <h2 style={styles.title}>📈 AIDLC 생산성 지표</h2>
-        <p style={styles.subtitle}>AI 도입 전후 비교</p>
+        <h2 style={styles.title}>📈 {isKo ? 'AIDLC 생산성 지표' : 'AIDLC Productivity Metrics'}</h2>
+        <p style={styles.subtitle}>{isKo ? 'AI 도입 전후 비교' : 'Before and After AI Adoption'}</p>
       </div>
       <div style={styles.categoriesContainer}>
         {categories.map((category, idx) => (
@@ -206,10 +210,10 @@ const ProductivityMetrics = () => {
               {category.name}
             </div>
             <div style={styles.columnHeader}>
-              <div>지표</div>
-              <div>도입 전</div>
-              <div>도입 후</div>
-              <div>개선도</div>
+              <div>{isKo ? '지표' : 'Metric'}</div>
+              <div>{isKo ? '도입 전' : 'Before'}</div>
+              <div>{isKo ? '도입 후' : 'After'}</div>
+              <div>{isKo ? '개선도' : 'Improvement'}</div>
             </div>
             <div style={styles.metricsTable}>
               {category.metrics.map((metric, metricIdx) => (

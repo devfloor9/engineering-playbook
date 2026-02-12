@@ -1,10 +1,14 @@
 import React from 'react';
+import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 
 const ApplicationSignalsLanguages = () => {
+  const {i18n} = useDocusaurusContext();
+  const isKo = i18n.currentLocale === 'ko';
+
   const languages = [
     {
       language: 'Java',
-      instrumentation: 'ADOT Java Agent 자동 주입',
+      instrumentation: isKo ? 'ADOT Java Agent 자동 주입' : 'ADOT Java Agent auto-injection',
       status: 'GA',
       statusColor: '#10b981'
     },
@@ -44,10 +48,10 @@ const ApplicationSignalsLanguages = () => {
         borderRadius: '8px 8px 0 0'
       }}>
         <div style={{ fontSize: '20px', fontWeight: '600', marginBottom: '4px' }}>
-          Application Signals 지원 언어
+          {isKo ? 'Application Signals 지원 언어' : 'Application Signals Supported Languages'}
         </div>
         <div style={{ fontSize: '14px', opacity: 0.9 }}>
-          Zero-code 계측 지원 현황
+          {isKo ? 'Zero-code 계측 지원 현황' : 'Zero-code instrumentation support status'}
         </div>
       </div>
 
@@ -72,7 +76,7 @@ const ApplicationSignalsLanguages = () => {
             fontSize: '12px',
             color: '#6b7280'
           }}>
-            언어
+            {isKo ? '언어' : 'Language'}
           </div>
           <div style={{
             padding: '12px 14px',
@@ -81,7 +85,7 @@ const ApplicationSignalsLanguages = () => {
             fontSize: '12px',
             color: '#6b7280'
           }}>
-            계측 방식
+            {isKo ? '계측 방식' : 'Instrumentation Method'}
           </div>
           <div style={{
             padding: '12px 14px',
@@ -91,7 +95,7 @@ const ApplicationSignalsLanguages = () => {
             color: '#6b7280',
             textAlign: 'center'
           }}>
-            상태
+            {isKo ? '상태' : 'Status'}
           </div>
         </div>
 
@@ -152,8 +156,7 @@ const ApplicationSignalsLanguages = () => {
           color: '#92400e',
           lineHeight: '1.6'
         }}>
-          💡 <strong>Zero-code 계측:</strong> Instrumentation CRD로 Pod에 annotation만 추가하면 자동으로 계측 에이전트가 주입됩니다.
-          코드 변경 없이 서비스 맵, SLI/SLO가 생성됩니다.
+          💡 <strong>{isKo ? 'Zero-code 계측:' : 'Zero-code Instrumentation:'}</strong> {isKo ? 'Instrumentation CRD로 Pod에 annotation만 추가하면 자동으로 계측 에이전트가 주입됩니다. 코드 변경 없이 서비스 맵, SLI/SLO가 생성됩니다.' : 'Simply add annotations to Pods via Instrumentation CRD and instrumentation agents are automatically injected. Service maps and SLI/SLO are generated without code changes.'}
         </div>
       </div>
     </div>

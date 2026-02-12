@@ -1,6 +1,9 @@
 import React from 'react';
+import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 
 const AidlcPipeline = () => {
+  const {i18n} = useDocusaurusContext();
+  const isKo = i18n.currentLocale === 'ko';
   const styles = {
     container: {
       maxWidth: '760px',
@@ -148,7 +151,7 @@ const AidlcPipeline = () => {
       {/* Part 1: IaC 자동화 파이프라인 */}
       <div style={styles.section}>
         <div style={styles.header}>
-          <h2 style={styles.title}>🔧 IaC 자동화 파이프라인</h2>
+          <h2 style={styles.title}>🔧 {isKo ? 'IaC 자동화 파이프라인' : 'IaC Automation Pipeline'}</h2>
           <p style={styles.subtitle}>Kiro → MCP → IaC → Argo CD</p>
         </div>
         <div style={styles.pipelineContainer}>
@@ -172,7 +175,7 @@ const AidlcPipeline = () => {
             </div>
             <div style={styles.arrow}>→</div>
             <div style={{ ...styles.column, borderTop: '3px solid #8b5cf6' }}>
-              <div style={styles.columnTitle}>자동 생성 산출물</div>
+              <div style={styles.columnTitle}>{isKo ? '자동 생성 산출물' : 'Auto-Generated Artifacts'}</div>
               <ul style={styles.itemsList}>
                 <li style={styles.item}>Terraform</li>
                 <li style={styles.item}>Helm Chart</li>
@@ -182,7 +185,7 @@ const AidlcPipeline = () => {
             </div>
             <div style={styles.arrow}>→</div>
             <div style={{ ...styles.column, borderTop: '3px solid #0891b2' }}>
-              <div style={styles.columnTitle}>배포</div>
+              <div style={styles.columnTitle}>{isKo ? '배포' : 'Deployment'}</div>
               <ul style={styles.itemsList}>
                 <li style={styles.item}>Git Repository</li>
                 <li style={styles.item}>↓</li>
@@ -196,7 +199,7 @@ const AidlcPipeline = () => {
       {/* Part 2: AI/CD 파이프라인 개념도 */}
       <div style={styles.section}>
         <div style={styles.header}>
-          <h2 style={styles.title}>🚀 AI/CD 파이프라인 개념도</h2>
+          <h2 style={styles.title}>🚀 {isKo ? 'AI/CD 파이프라인 개념도' : 'AI/CD Pipeline Conceptual Diagram'}</h2>
           <p style={styles.subtitle}>Inception → Construction → Deploy</p>
         </div>
         <div style={styles.pipelineContainer}>
@@ -207,9 +210,9 @@ const AidlcPipeline = () => {
               </div>
               <div style={styles.stageBody}>
                 <ul style={styles.stageList}>
-                  <li style={styles.stageItem}>Spec 커밋 감지</li>
+                  <li style={styles.stageItem}>{isKo ? 'Spec 커밋 감지' : 'Spec Commit Detection'}</li>
                   <li style={styles.stageItem}>requirements.md</li>
-                  <li style={styles.stageItem}>design.md 검증</li>
+                  <li style={styles.stageItem}>{isKo ? 'design.md 검증' : 'design.md Validation'}</li>
                 </ul>
               </div>
             </div>
@@ -220,14 +223,14 @@ const AidlcPipeline = () => {
               </div>
               <div style={styles.stageBody}>
                 <ul style={styles.stageList}>
-                  <li style={styles.stageItem}>AI 코드 생성</li>
-                  <li style={styles.stageItem}>AI 보안 스캔 (Q Dev)</li>
-                  <li style={styles.stageItem}>AI 코드 리뷰</li>
-                  <li style={styles.stageItem}>테스트 실행</li>
-                  <li style={styles.stageItem}>Loss Function 검증 ◀ (사람)</li>
+                  <li style={styles.stageItem}>{isKo ? 'AI 코드 생성' : 'AI Code Generation'}</li>
+                  <li style={styles.stageItem}>{isKo ? 'AI 보안 스캔 (Q Dev)' : 'AI Security Scan (Q Dev)'}</li>
+                  <li style={styles.stageItem}>{isKo ? 'AI 코드 리뷰' : 'AI Code Review'}</li>
+                  <li style={styles.stageItem}>{isKo ? '테스트 실행' : 'Test Execution'}</li>
+                  <li style={styles.stageItem}>{isKo ? 'Loss Function 검증 ◀ (사람)' : 'Loss Function Validation ◀ (Human)'}</li>
                 </ul>
                 <div style={styles.loopback}>
-                  ↻ Loss Function 실패 시 재생성
+                  {isKo ? '↻ Loss Function 실패 시 재생성' : '↻ Regenerate on Loss Function Failure'}
                 </div>
               </div>
             </div>
@@ -238,19 +241,18 @@ const AidlcPipeline = () => {
               </div>
               <div style={styles.stageBody}>
                 <ul style={styles.stageList}>
-                  <li style={styles.stageItem}>컨테이너 빌드</li>
-                  <li style={styles.stageItem}>ECR 푸시</li>
-                  <li style={styles.stageItem}>Kustomize 업데이트</li>
-                  <li style={styles.stageItem}>Argo CD 자동 배포</li>
+                  <li style={styles.stageItem}>{isKo ? '컨테이너 빌드' : 'Container Build'}</li>
+                  <li style={styles.stageItem}>{isKo ? 'ECR 푸시' : 'ECR Push'}</li>
+                  <li style={styles.stageItem}>{isKo ? 'Kustomize 업데이트' : 'Kustomize Update'}</li>
+                  <li style={styles.stageItem}>{isKo ? 'Argo CD 자동 배포' : 'Argo CD Auto Deploy'}</li>
                 </ul>
               </div>
             </div>
           </div>
 
           <div style={styles.footer}>
-            <div style={styles.footerTitle}>핵심 통찰</div>
-            AI/CD는 코드 품질을 Loss Function으로 측정하고, 인간은 품질 기준(임계값)만 설정합니다.
-            기준 미달 시 AI가 자동으로 재생성하여 지속적 품질 개선을 달성합니다.
+            <div style={styles.footerTitle}>{isKo ? '핵심 통찰' : 'Key Insight'}</div>
+            {isKo ? 'AI/CD는 코드 품질을 Loss Function으로 측정하고, 인간은 품질 기준(임계값)만 설정합니다. 기준 미달 시 AI가 자동으로 재생성하여 지속적 품질 개선을 달성합니다.' : 'AI/CD measures code quality through Loss Functions, while humans only set quality criteria (thresholds). When standards are not met, AI automatically regenerates to achieve continuous quality improvement.'}
           </div>
         </div>
       </div>

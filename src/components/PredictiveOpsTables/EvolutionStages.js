@@ -1,23 +1,27 @@
 import React from 'react';
+import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 
 const EvolutionStages = () => {
+  const {i18n} = useDocusaurusContext();
+  const isKo = i18n.currentLocale === 'ko';
+
   const stages = [
     {
-      stage: '반응형',
+      stage: isKo ? '반응형' : 'Reactive',
       stageEn: 'Reactive',
-      characteristics: '문제 발생 후 대응',
+      characteristics: isKo ? '문제 발생 후 대응' : 'Post-problem response',
       tools: 'HPA, CloudWatch Alarms'
     },
     {
-      stage: '예측형',
+      stage: isKo ? '예측형' : 'Predictive',
       stageEn: 'Predictive',
-      characteristics: '패턴 기반 사전 대응',
-      tools: 'ML 예측, CloudWatch Anomaly Detection'
+      characteristics: isKo ? '패턴 기반 사전 대응' : 'Pattern-based proactive response',
+      tools: isKo ? 'ML 예측, CloudWatch Anomaly Detection' : 'ML forecasting, CloudWatch Anomaly Detection'
     },
     {
-      stage: '자율형',
+      stage: isKo ? '자율형' : 'Autonomous',
       stageEn: 'Autonomous',
-      characteristics: 'AI가 자율적으로 판단·대응',
+      characteristics: isKo ? 'AI가 자율적으로 판단·대응' : 'AI autonomous decision-making and response',
       tools: 'Kiro+MCP, Q Developer, Kagent/Strands'
     }
   ];
@@ -104,16 +108,16 @@ const EvolutionStages = () => {
   return (
     <div style={containerStyle}>
       <div style={headerStyle}>
-        <h2 style={titleStyle}>🚀 EKS 운영의 진화</h2>
-        <p style={subtitleStyle}>반응형 → 예측형 → 자율형</p>
+        <h2 style={titleStyle}>🚀 {isKo ? 'EKS 운영의 진화' : 'Evolution of EKS Operations'}</h2>
+        <p style={subtitleStyle}>{isKo ? '반응형 → 예측형 → 자율형' : 'Reactive → Predictive → Autonomous'}</p>
       </div>
       <div style={{ overflowX: 'auto' }}>
         <table style={tableStyle}>
           <thead>
             <tr>
-              <th style={thStyle}>단계</th>
-              <th style={thStyle}>특성</th>
-              <th style={thStyle}>도구</th>
+              <th style={thStyle}>{isKo ? '단계' : 'Stage'}</th>
+              <th style={thStyle}>{isKo ? '특성' : 'Characteristics'}</th>
+              <th style={thStyle}>{isKo ? '도구' : 'Tools'}</th>
             </tr>
           </thead>
           <tbody>
@@ -135,7 +139,7 @@ const EvolutionStages = () => {
         </table>
       </div>
       <div style={footerStyle}>
-        <span style={footerLabelStyle}>핵심:</span> 이 문서는 반응형 스케일링의 한계를 넘어 ML 기반 예측 스케일링과 AI Agent를 통한 자율 복구 패턴을 다룹니다.
+        <span style={footerLabelStyle}>{isKo ? '핵심:' : 'Key:'}</span> {isKo ? '이 문서는 반응형 스케일링의 한계를 넘어 ML 기반 예측 스케일링과 AI Agent를 통한 자율 복구 패턴을 다룹니다.' : 'This document covers ML-based predictive scaling and autonomous recovery patterns through AI Agents, going beyond the limitations of reactive scaling.'}
       </div>
     </div>
   );

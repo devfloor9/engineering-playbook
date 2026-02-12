@@ -1,46 +1,50 @@
 import React from 'react';
+import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 
 const AidlcArtifacts = () => {
+  const {i18n} = useDocusaurusContext();
+  const isKo = i18n.currentLocale === 'ko';
+
   const artifacts = [
     {
       name: 'Intent',
-      description: '달성할 고수준 목적 — 비즈니스 목표, 기능, 기술 결과. AI 분해의 시작점',
+      description: isKo ? '달성할 고수준 목적 — 비즈니스 목표, 기능, 기술 결과. AI 분해의 시작점' : 'High-level objective to achieve — business goals, features, technical outcomes. Starting point for AI decomposition',
       sdlcMapping: 'Epic / Feature',
       icon: '🎯',
       color: '#059669'
     },
     {
       name: 'Unit',
-      description: 'Intent에서 파생된 응집력 있는 독립 작업 단위. DDD Subdomain에 해당하며, 느슨 결합으로 병렬 개발 가능',
+      description: isKo ? 'Intent에서 파생된 응집력 있는 독립 작업 단위. DDD Subdomain에 해당하며, 느슨 결합으로 병렬 개발 가능' : 'Cohesive independent work unit derived from Intent. Corresponds to DDD Subdomain, enabling parallel development through loose coupling',
       sdlcMapping: 'Epic / Subdomain',
       icon: '📦',
       color: '#2563eb'
     },
     {
       name: 'Bolt',
-      description: 'Unit 내 태스크를 빠르게 구현하는 최소 반복 단위. 시간/일 단위 (Sprint의 주/월과 대비)',
+      description: isKo ? 'Unit 내 태스크를 빠르게 구현하는 최소 반복 단위. 시간/일 단위 (Sprint의 주/월과 대비)' : 'Minimum iteration unit for rapid task implementation within Unit. Hour/day granularity (vs. Sprint\'s week/month)',
       sdlcMapping: 'Sprint',
       icon: '⚡',
       color: '#d97706'
     },
     {
       name: 'Domain Design',
-      description: '비즈니스 로직을 인프라와 독립적으로 DDD 원칙(Aggregate, Entity, Value Object, Domain Event)으로 모델링',
-      sdlcMapping: '도메인 모델',
+      description: isKo ? '비즈니스 로직을 인프라와 독립적으로 DDD 원칙(Aggregate, Entity, Value Object, Domain Event)으로 모델링' : 'Model business logic independently of infrastructure using DDD principles (Aggregate, Entity, Value Object, Domain Event)',
+      sdlcMapping: isKo ? '도메인 모델' : 'Domain Model',
       icon: '🏗️',
       color: '#7c3aed'
     },
     {
       name: 'Logical Design',
-      description: 'Domain Design에 NFR과 아키텍처 패턴(CQRS, Circuit Breaker)을 적용. ADR(Architecture Decision Record) 생성',
-      sdlcMapping: '아키텍처 설계',
+      description: isKo ? 'Domain Design에 NFR과 아키텍처 패턴(CQRS, Circuit Breaker)을 적용. ADR(Architecture Decision Record) 생성' : 'Apply NFRs and architecture patterns (CQRS, Circuit Breaker) to Domain Design. Generate ADR (Architecture Decision Record)',
+      sdlcMapping: isKo ? '아키텍처 설계' : 'Architecture Design',
       icon: '📐',
       color: '#0891b2'
     },
     {
       name: 'Deployment Unit',
-      description: '패키징된 실행 코드(컨테이너), 설정(Helm), 인프라(Terraform/ACK CRD). 기능·보안·NFR 테스트 완료 상태',
-      sdlcMapping: '릴리스 패키지',
+      description: isKo ? '패키징된 실행 코드(컨테이너), 설정(Helm), 인프라(Terraform/ACK CRD). 기능·보안·NFR 테스트 완료 상태' : 'Packaged executable code (container), configuration (Helm), infrastructure (Terraform/ACK CRD). Functional, security, and NFR testing completed',
+      sdlcMapping: isKo ? '릴리스 패키지' : 'Release Package',
       icon: '🚀',
       color: '#dc2626'
     }
@@ -65,14 +69,14 @@ const AidlcArtifacts = () => {
           fontSize: '1.5rem',
           fontWeight: '600'
         }}>
-          AIDLC 핵심 산출물
+          {isKo ? 'AIDLC 핵심 산출물' : 'AIDLC Core Artifacts'}
         </h2>
         <p style={{
           margin: 0,
           fontSize: '0.95rem',
           opacity: 0.95
         }}>
-          AI-DLC 방법론의 6대 산출물과 SDLC 대응 관계
+          {isKo ? 'AI-DLC 방법론의 6대 산출물과 SDLC 대응 관계' : 'Six Core Artifacts of AI-DLC Methodology and Their SDLC Mapping'}
         </p>
       </div>
 
@@ -146,7 +150,7 @@ const AidlcArtifacts = () => {
           fontWeight: '600',
           color: '#1f2937'
         }}>
-          산출물 흐름
+          {isKo ? '산출물 흐름' : 'Artifact Flow'}
         </h3>
 
         <div style={{ marginBottom: '0.75rem' }}>
@@ -156,7 +160,7 @@ const AidlcArtifacts = () => {
             color: '#059669',
             marginBottom: '0.25rem'
           }}>
-            개발 흐름
+            {isKo ? '개발 흐름' : 'Development Flow'}
           </div>
           <div style={{
             fontSize: '0.95rem',
@@ -174,7 +178,7 @@ const AidlcArtifacts = () => {
             color: '#7c3aed',
             marginBottom: '0.25rem'
           }}>
-            설계 흐름
+            {isKo ? '설계 흐름' : 'Design Flow'}
           </div>
           <div style={{
             fontSize: '0.95rem',

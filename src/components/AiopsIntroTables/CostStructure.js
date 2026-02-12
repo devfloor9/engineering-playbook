@@ -1,30 +1,34 @@
 import React from 'react';
+import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 
 const CostStructure = () => {
+  const {i18n} = useDocusaurusContext();
+  const isKo = i18n.currentLocale === 'ko';
+
   const costItems = [
     {
-      name: 'AMP 수집 비용',
+      name: isKo ? 'AMP 수집 비용' : 'AMP Ingestion Cost',
       color: '#2563eb',
-      description: '메트릭 샘플 수 기반',
-      optimization: '불필요한 메트릭 필터링, 수집 주기 조정'
+      description: isKo ? '메트릭 샘플 수 기반' : 'Based on metric sample count',
+      optimization: isKo ? '불필요한 메트릭 필터링, 수집 주기 조정' : 'Filter unnecessary metrics, adjust collection frequency'
     },
     {
-      name: 'AMG 사용자 비용',
+      name: isKo ? 'AMG 사용자 비용' : 'AMG User Cost',
       color: '#7c3aed',
-      description: '활성 사용자 수 기반',
-      optimization: 'SSO 통합, 뷰어/에디터 역할 분리'
+      description: isKo ? '활성 사용자 수 기반' : 'Based on active user count',
+      optimization: isKo ? 'SSO 통합, 뷰어/에디터 역할 분리' : 'SSO integration, viewer/editor role separation'
     },
     {
       name: 'DevOps Guru',
       color: '#059669',
-      description: '분석 리소스 수 기반',
-      optimization: '핵심 리소스 그룹만 활성화'
+      description: isKo ? '분석 리소스 수 기반' : 'Based on analyzed resource count',
+      optimization: isKo ? '핵심 리소스 그룹만 활성화' : 'Enable only core resource groups'
     },
     {
       name: 'CloudWatch',
       color: '#d97706',
-      description: '로그/메트릭 볼륨 기반',
-      optimization: '로그 필터링, 메트릭 해상도 조정'
+      description: isKo ? '로그/메트릭 볼륨 기반' : 'Based on log/metric volume',
+      optimization: isKo ? '로그 필터링, 메트릭 해상도 조정' : 'Filter logs, adjust metric resolution'
     }
   ];
 
@@ -43,10 +47,10 @@ const CostStructure = () => {
         borderRadius: '8px 8px 0 0'
       }}>
         <div style={{ fontSize: '20px', fontWeight: '600', marginBottom: '4px' }}>
-          AIOps 비용 구조 고려사항
+          {isKo ? 'AIOps 비용 구조 고려사항' : 'AIOps Cost Structure Considerations'}
         </div>
         <div style={{ fontSize: '14px', opacity: 0.9 }}>
-          주요 비용 항목과 최적화 방법
+          {isKo ? '주요 비용 항목과 최적화 방법' : 'Key cost items & optimization methods'}
         </div>
       </div>
 
@@ -69,7 +73,7 @@ const CostStructure = () => {
             fontSize: '12px',
             color: '#6b7280'
           }}>
-            비용 항목
+            {isKo ? '비용 항목' : 'Cost Item'}
           </div>
           <div style={{
             padding: '12px 14px',
@@ -79,7 +83,7 @@ const CostStructure = () => {
             fontSize: '12px',
             color: '#6b7280'
           }}>
-            설명
+            {isKo ? '설명' : 'Description'}
           </div>
           <div style={{
             padding: '12px 14px',
@@ -89,7 +93,7 @@ const CostStructure = () => {
             fontSize: '12px',
             color: '#6b7280'
           }}>
-            최적화 방법
+            {isKo ? '최적화 방법' : 'Optimization Method'}
           </div>
         </div>
 
@@ -140,9 +144,9 @@ const CostStructure = () => {
           fontSize: '12px',
           color: '#92400e'
         }}>
-          <strong>비용 최적화 전략:</strong> 초기에는 전체 활성화로 가치를 검증한 후,
-          데이터 기반으로 불필요한 메트릭과 로그를 필터링하여 비용을 점진적으로 최적화하세요.
-          AWS Cost Explorer와 CloudWatch Contributor Insights로 비용 구조를 분석할 수 있습니다.
+          <strong>{isKo ? '비용 최적화 전략:' : 'Cost Optimization Strategy:'}</strong> {isKo
+            ? '초기에는 전체 활성화로 가치를 검증한 후, 데이터 기반으로 불필요한 메트릭과 로그를 필터링하여 비용을 점진적으로 최적화하세요. AWS Cost Explorer와 CloudWatch Contributor Insights로 비용 구조를 분석할 수 있습니다.'
+            : 'Initially validate value with full activation, then gradually optimize costs by filtering unnecessary metrics and logs based on data. Analyze cost structure using AWS Cost Explorer and CloudWatch Contributor Insights.'}
         </div>
       </div>
     </div>

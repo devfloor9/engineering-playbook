@@ -1,33 +1,50 @@
 import React from 'react';
+import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 
 const ResponsePatterns = () => {
+  const {i18n} = useDocusaurusContext();
+  const isKo = i18n.currentLocale === 'ko';
+
   const traditional = {
-    name: '전통적 대응',
+    name: isKo ? '전통적 대응' : 'Traditional Response',
     nameEn: 'Traditional',
     color: '#dc2626',
-    steps: [
+    steps: isKo ? [
       'CloudWatch 알림 발생',
       'EventBridge 규칙 매칭',
       'Lambda 함수 실행',
       '정적 런북 실행 (재시작/스케일)',
       '수동 에스컬레이션'
+    ] : [
+      'CloudWatch alarm triggered',
+      'EventBridge rule matching',
+      'Lambda function execution',
+      'Static runbook execution (restart/scale)',
+      'Manual escalation'
     ],
-    limitation: '정적 규칙, 제한적 컨텍스트, 근본 원인 미해결'
+    limitation: isKo ? '정적 규칙, 제한적 컨텍스트, 근본 원인 미해결' : 'Static rules, limited context, root cause unresolved'
   };
 
   const aiAgent = {
-    name: 'AI 에이전트 대응',
+    name: isKo ? 'AI 에이전트 대응' : 'AI Agent Response',
     nameEn: 'AI Agent',
     color: '#059669',
-    steps: [
+    steps: isKo ? [
       'CloudWatch 알림 + K8s 이벤트 수신',
       'MCP로 메트릭+로그+트레이스+이벤트 통합 수집',
       'AI 근본 원인 분석',
       '컨텍스트 기반 동적 런북 생성',
       '안전한 자동 복구 실행',
       '복구 검증 + 피드백 학습'
+    ] : [
+      'CloudWatch alerts + K8s events received',
+      'Integrated metrics+logs+traces+events via MCP',
+      'AI root cause analysis',
+      'Context-based dynamic runbook generation',
+      'Safe automated recovery execution',
+      'Recovery verification + feedback learning'
     ],
-    advantage: '다양한 데이터 소스, 근본 원인 해결, 자가 학습'
+    advantage: isKo ? '다양한 데이터 소스, 근본 원인 해결, 자가 학습' : 'Multiple data sources, root cause resolution, self-learning'
   };
 
   const containerStyle = {
@@ -140,8 +157,8 @@ const ResponsePatterns = () => {
   return (
     <div style={containerStyle}>
       <div style={headerStyle}>
-        <h2 style={titleStyle}>🚨 인시던트 대응 패턴 비교</h2>
-        <p style={subtitleStyle}>전통적 대응 vs AI 에이전트 대응</p>
+        <h2 style={titleStyle}>🚨 {isKo ? '인시던트 대응 패턴 비교' : 'Incident Response Pattern Comparison'}</h2>
+        <p style={subtitleStyle}>{isKo ? '전통적 대응 vs AI 에이전트 대응' : 'Traditional Response vs AI Agent Response'}</p>
       </div>
       <div style={contentStyle}>
         <div style={columnsStyle}>
@@ -158,7 +175,7 @@ const ResponsePatterns = () => {
               ))}
             </div>
             <div style={summaryStyle}>
-              <div style={summaryLabelStyle}>한계:</div>
+              <div style={summaryLabelStyle}>{isKo ? '한계:' : 'Limitations:'}</div>
               {traditional.limitation}
             </div>
           </div>
@@ -176,7 +193,7 @@ const ResponsePatterns = () => {
               ))}
             </div>
             <div style={summaryStyle}>
-              <div style={summaryLabelStyle}>장점:</div>
+              <div style={summaryLabelStyle}>{isKo ? '장점:' : 'Advantages:'}</div>
               {aiAgent.advantage}
             </div>
           </div>
