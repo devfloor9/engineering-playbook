@@ -6,3 +6,4 @@ export { default as AwsManagedOpenSource } from './AwsManagedOpenSource';
 export { default as K8sOpenSourceEcosystem } from './K8sOpenSourceEcosystem';
 export { default as EvolutionDiagram } from './EvolutionDiagram';
 export { default as DevOpsAgentArchitecture } from './DevOpsAgentArchitecture';
+export { default as McpServerTypes } from './McpServerTypes';
