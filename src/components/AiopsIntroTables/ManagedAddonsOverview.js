@@ -4,42 +4,43 @@ import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 const ManagedAddonsOverview = () => {
   const {i18n} = useDocusaurusContext();
   const isKo = i18n.currentLocale === 'ko';
+  const isZh = i18n.currentLocale === 'zh';
 
   const categories = [
     {
       icon: '🌐',
-      name: isKo ? '네트워킹' : 'Networking',
+      name: isKo ? '네트워킹' : isZh ? '网络' : 'Networking',
       color: '#2563eb',
       addons: ['VPC CNI', 'CoreDNS', 'kube-proxy'],
-      desc: isKo ? 'Pod 네트워킹, DNS, 서비스 프록시' : 'Pod networking, DNS, service proxy'
+      desc: isKo ? 'Pod 네트워킹, DNS, 서비스 프록시' : isZh ? 'Pod 网络、DNS、服务代理' : 'Pod networking, DNS, service proxy'
     },
     {
       icon: '💾',
-      name: isKo ? '스토리지' : 'Storage',
+      name: isKo ? '스토리지' : isZh ? '存储' : 'Storage',
       color: '#7c3aed',
       addons: ['EBS CSI', 'EFS CSI', 'FSx CSI', 'Mountpoint for S3', 'Snapshot Controller'],
-      desc: isKo ? '블록/파일/객체 스토리지, 스냅샷' : 'Block/file/object storage, snapshots'
+      desc: isKo ? '블록/파일/객체 스토리지, 스냅샷' : isZh ? '块/文件/对象存储、快照' : 'Block/file/object storage, snapshots'
     },
     {
       icon: '📊',
-      name: isKo ? '관찰성' : 'Observability',
+      name: isKo ? '관찰성' : isZh ? '可观测性' : 'Observability',
       color: '#059669',
       addons: ['ADOT', 'CloudWatch Agent', 'Node Monitoring', 'NFM Agent'],
-      desc: isKo ? '메트릭/로그/트레이스, Container Network Observability' : 'Metrics/logs/traces, Container Network Observability'
+      desc: isKo ? '메트릭/로그/트레이스, Container Network Observability' : isZh ? '指标/日志/跟踪、容器网络可观测性' : 'Metrics/logs/traces, Container Network Observability'
     },
     {
       icon: '🔒',
-      name: isKo ? '보안' : 'Security',
+      name: isKo ? '보안' : isZh ? '安全' : 'Security',
       color: '#dc2626',
       addons: ['GuardDuty Agent', 'Pod Identity Agent', 'Private CA Connector'],
-      desc: isKo ? '런타임 보안, IAM 인증, 인증서' : 'Runtime security, IAM auth, certificates'
+      desc: isKo ? '런타임 보안, IAM 인증, 인증서' : isZh ? '运行时安全、IAM 认证、证书' : 'Runtime security, IAM auth, certificates'
     },
     {
       icon: '🤖',
       name: 'ML',
       color: '#d97706',
       addons: ['SageMaker HyperPod (Task Governance, Observability, Training, Inference)'],
-      desc: isKo ? 'ML 학습·추론 워크로드 관리' : 'ML training·inference workload mgmt'
+      desc: isKo ? 'ML 학습·추론 워크로드 관리' : isZh ? 'ML 训练·推理工作负载管理' : 'ML training·inference workload mgmt'
     }
   ];
 
@@ -65,10 +66,10 @@ const ManagedAddonsOverview = () => {
       }}>
         <div>
           <div style={{ fontSize: '20px', fontWeight: '600', marginBottom: '4px' }}>
-            {isKo ? 'EKS Managed Add-ons 카테고리' : 'EKS Managed Add-ons Categories'}
+            {isKo ? 'EKS Managed Add-ons 카테고리' : isZh ? 'EKS 托管插件类别' : 'EKS Managed Add-ons Categories'}
           </div>
           <div style={{ fontSize: '14px', opacity: 0.9 }}>
-            {isKo ? 'aws eks create-addon 한 줄로 설치 · AWS가 버전 관리 · 보안 패치' : 'Install with one-line aws eks create-addon · AWS manages versions · security patches'}
+            {isKo ? 'aws eks create-addon 한 줄로 설치 · AWS가 버전 관리 · 보안 패치' : isZh ? '一行命令安装 aws eks create-addon · AWS 管理版本 · 安全补丁' : 'Install with one-line aws eks create-addon · AWS manages versions · security patches'}
           </div>
         </div>
         <div style={{
@@ -172,8 +173,10 @@ const ManagedAddonsOverview = () => {
           color: '#92400e',
           lineHeight: '1.6'
         }}>
-          <strong>{isKo ? '핵심:' : 'Key:'}</strong> {isKo
+          <strong>{isKo ? '핵심:' : isZh ? '核心:' : 'Key:'}</strong> {isKo
             ? 'Managed Add-on은 AWS가 설치·업그레이드·보안 패치를 관리합니다.'
+            : isZh
+            ? 'AWS 管理 Managed Add-on 的安装、升级和安全补丁。'
             : 'AWS manages installation, upgrades, and security patches for Managed Add-ons.'}
           <code style={{
             background: '#1f2937',
@@ -185,7 +188,7 @@ const ManagedAddonsOverview = () => {
           }}>
             aws eks create-addon --addon-name {'<name>'}
           </code>
-          {isKo ? '한 줄로 프로덕션 배포가 완료됩니다.' : 'One line deploys to production.'}
+          {isKo ? '한 줄로 프로덕션 배포가 완료됩니다.' : isZh ? '一行命令即可部署到生产环境。' : 'One line deploys to production.'}
         </div>
       </div>
     </div>

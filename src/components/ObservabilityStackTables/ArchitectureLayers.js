@@ -4,37 +4,38 @@ import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 const ArchitectureLayers = () => {
   const {i18n} = useDocusaurusContext();
   const isKo = i18n.currentLocale === 'ko';
+  const isZh = i18n.currentLocale === 'zh';
 
   const layers = [
     {
-      name: isKo ? '수집 (Collection)' : 'Collection',
+      name: isKo ? '수집 (Collection)' : isZh ? '采集 (Collection)' : 'Collection',
       color: '#3b82f6',
-      description: isKo ? '관찰성 데이터를 생성하고 수집' : 'Generate and collect observability data',
+      description: isKo ? '관찰성 데이터를 생성하고 수집' : isZh ? '生成并采集可观测性数据' : 'Generate and collect observability data',
       components: ['ADOT Collector', 'CloudWatch Agent', 'Fluent Bit', 'Node Monitoring Agent']
     },
     {
-      name: isKo ? '전송 (Transport)' : 'Transport',
+      name: isKo ? '전송 (Transport)' : isZh ? '传输 (Transport)' : 'Transport',
       color: '#8b5cf6',
-      description: isKo ? '수집된 데이터를 백엔드로 전송' : 'Send collected data to backends',
+      description: isKo ? '수집된 데이터를 백엔드로 전송' : isZh ? '将采集的数据传输到后端' : 'Send collected data to backends',
       components: ['OTLP/gRPC', 'Prometheus Remote Write', 'CloudWatch API', 'X-Ray API']
     },
     {
-      name: isKo ? '저장 (Storage)' : 'Storage',
+      name: isKo ? '저장 (Storage)' : isZh ? '存储 (Storage)' : 'Storage',
       color: '#059669',
-      description: isKo ? '관찰성 데이터를 장기 저장' : 'Long-term storage of observability data',
+      description: isKo ? '관찰성 데이터를 장기 저장' : isZh ? '可观测性数据的长期存储' : 'Long-term storage of observability data',
       components: ['AMP (Prometheus)', 'CloudWatch Logs/Metrics', 'X-Ray Traces', 'S3']
     },
     {
-      name: isKo ? '분석 (Analysis)' : 'Analysis',
+      name: isKo ? '분석 (Analysis)' : isZh ? '分析 (Analysis)' : 'Analysis',
       color: '#d97706',
-      description: isKo ? '데이터를 쿼리하고 시각화' : 'Query and visualize data',
+      description: isKo ? '데이터를 쿼리하고 시각화' : isZh ? '查询和可视化数据' : 'Query and visualize data',
       components: ['AMG (Grafana)', 'CloudWatch AI', 'DevOps Guru', 'Q Developer']
     },
     {
-      name: isKo ? '액션 (Action)' : 'Action',
+      name: isKo ? '액션 (Action)' : isZh ? '执行 (Action)' : 'Action',
       color: '#dc2626',
-      description: isKo ? '인사이트에 기반한 자동화' : 'Insight-driven automation',
-      components: ['Kiro + MCP', 'AI Agents', isKo ? '자동 복구' : 'Auto-remediation', isKo ? '에스컬레이션' : 'Escalation']
+      description: isKo ? '인사이트에 기반한 자동화' : isZh ? '基于洞察的自动化' : 'Insight-driven automation',
+      components: ['Kiro + MCP', 'AI Agents', isKo ? '자동 복구' : isZh ? '自动修复' : 'Auto-remediation', isKo ? '에스컬레이션' : isZh ? '升级' : 'Escalation']
     }
   ];
 
@@ -122,8 +123,8 @@ const ArchitectureLayers = () => {
   return (
     <div style={containerStyle}>
       <div style={headerStyle}>
-        <h3 style={titleStyle}>{isKo ? '🏗️ 관찰성 아키텍처 레이어' : '🏗️ Observability Architecture Layers'}</h3>
-        <p style={subtitleStyle}>{isKo ? '수집 → 전송 → 저장 → 분석 → 액션' : 'Collection → Transport → Storage → Analysis → Action'}</p>
+        <h3 style={titleStyle}>{isKo ? '🏗️ 관찰성 아키텍처 레이어' : isZh ? '🏗️ 可观测性架构层次' : '🏗️ Observability Architecture Layers'}</h3>
+        <p style={subtitleStyle}>{isKo ? '수집 → 전송 → 저장 → 분석 → 액션' : isZh ? '采集 → 传输 → 存储 → 分析 → 执行' : 'Collection → Transport → Storage → Analysis → Action'}</p>
       </div>
       <div style={layersContainerStyle}>
         {layers.map((layer, index) => (

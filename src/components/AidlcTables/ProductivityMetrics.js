@@ -4,82 +4,83 @@ import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 const ProductivityMetrics = () => {
   const {i18n} = useDocusaurusContext();
   const isKo = i18n.currentLocale === 'ko';
+  const isZh = i18n.currentLocale === 'zh';
 
   const categories = [
     {
-      name: isKo ? '생산성' : 'Productivity',
+      name: isKo ? '생산성' : isZh ? '生产力' : 'Productivity',
       color: '#3b82f6',
       metrics: [
         {
-          name: isKo ? '코드 생성 속도' : 'Code Generation Speed',
-          before: isKo ? '100 LOC/일' : '100 LOC/day',
-          after: isKo ? '500 LOC/일' : '500 LOC/day',
+          name: isKo ? '코드 생성 속도' : isZh ? '代码生成速度' : 'Code Generation Speed',
+          before: isKo ? '100 LOC/일' : isZh ? '100 LOC/天' : '100 LOC/day',
+          after: isKo ? '500 LOC/일' : isZh ? '500 LOC/天' : '500 LOC/day',
           improvement: '+400%',
           positive: true
         },
         {
-          name: isKo ? 'PR 리뷰 시간' : 'PR Review Time',
-          before: isKo ? '4시간' : '4 hours',
-          after: isKo ? '30분' : '30 min',
+          name: isKo ? 'PR 리뷰 시간' : isZh ? 'PR 审查时间' : 'PR Review Time',
+          before: isKo ? '4시간' : isZh ? '4小时' : '4 hours',
+          after: isKo ? '30분' : isZh ? '30分钟' : '30 min',
           improvement: '-87%',
           positive: true
         },
         {
-          name: isKo ? '배포 빈도' : 'Deployment Frequency',
-          before: isKo ? '주 1회' : '1x/week',
-          after: isKo ? '일 5회' : '5x/day',
+          name: isKo ? '배포 빈도' : isZh ? '部署频率' : 'Deployment Frequency',
+          before: isKo ? '주 1회' : isZh ? '每周1次' : '1x/week',
+          after: isKo ? '일 5회' : isZh ? '每天5次' : '5x/day',
           improvement: '+5x',
           positive: true
         }
       ]
     },
     {
-      name: isKo ? '품질' : 'Quality',
+      name: isKo ? '품질' : isZh ? '质量' : 'Quality',
       color: '#059669',
       metrics: [
         {
-          name: isKo ? '버그 밀도' : 'Bug Density',
-          before: isKo ? '15건/1K LOC' : '15/1K LOC',
-          after: isKo ? '3건/1K LOC' : '3/1K LOC',
+          name: isKo ? '버그 밀도' : isZh ? '缺陷密度' : 'Bug Density',
+          before: isKo ? '15건/1K LOC' : isZh ? '15个/1K LOC' : '15/1K LOC',
+          after: isKo ? '3건/1K LOC' : isZh ? '3个/1K LOC' : '3/1K LOC',
           improvement: '-80%',
           positive: true
         },
         {
-          name: isKo ? '테스트 커버리지' : 'Test Coverage',
+          name: isKo ? '테스트 커버리지' : isZh ? '测试覆盖率' : 'Test Coverage',
           before: '45%',
           after: '85%',
           improvement: '+89%',
           positive: true
         },
         {
-          name: isKo ? '보안 취약점' : 'Security Vulnerabilities',
-          before: isKo ? '수동 스캔' : 'Manual Scan',
-          after: isKo ? 'AI 실시간 스캔' : 'AI Real-time Scan',
-          improvement: isKo ? '자동화' : 'Automated',
+          name: isKo ? '보안 취약점' : isZh ? '安全漏洞' : 'Security Vulnerabilities',
+          before: isKo ? '수동 스캔' : isZh ? '人工扫描' : 'Manual Scan',
+          after: isKo ? 'AI 실시간 스캔' : isZh ? 'AI 实时扫描' : 'AI Real-time Scan',
+          improvement: isKo ? '자동화' : isZh ? '自动化' : 'Automated',
           positive: true
         }
       ]
     },
     {
-      name: isKo ? '운영' : 'Operations',
+      name: isKo ? '운영' : isZh ? '运维' : 'Operations',
       color: '#8b5cf6',
       metrics: [
         {
           name: 'MTTR',
-          before: isKo ? '4시간' : '4 hours',
-          after: isKo ? '45분' : '45 min',
+          before: isKo ? '4시간' : isZh ? '4小时' : '4 hours',
+          after: isKo ? '45분' : isZh ? '45分钟' : '45 min',
           improvement: '-81%',
           positive: true
         },
         {
-          name: isKo ? '변경 실패율' : 'Change Failure Rate',
+          name: isKo ? '변경 실패율' : isZh ? '变更失败率' : 'Change Failure Rate',
           before: '15%',
           after: '3%',
           improvement: '-80%',
           positive: true
         },
         {
-          name: isKo ? 'SLO 달성률' : 'SLO Achievement',
+          name: isKo ? 'SLO 달성률' : isZh ? 'SLO 达成率' : 'SLO Achievement',
           before: '95%',
           after: '99.5%',
           improvement: '+4.7%',
@@ -197,8 +198,8 @@ const ProductivityMetrics = () => {
   return (
     <div style={styles.container}>
       <div style={styles.header}>
-        <h2 style={styles.title}>📈 {isKo ? 'AIDLC 생산성 지표' : 'AIDLC Productivity Metrics'}</h2>
-        <p style={styles.subtitle}>{isKo ? 'AI 도입 전후 비교' : 'Before and After AI Adoption'}</p>
+        <h2 style={styles.title}>📈 {isKo ? 'AIDLC 생산성 지표' : isZh ? 'AIDLC 生产力指标' : 'AIDLC Productivity Metrics'}</h2>
+        <p style={styles.subtitle}>{isKo ? 'AI 도입 전후 비교' : isZh ? 'AI 采用前后对比' : 'Before and After AI Adoption'}</p>
       </div>
       <div style={styles.categoriesContainer}>
         {categories.map((category, idx) => (
@@ -210,10 +211,10 @@ const ProductivityMetrics = () => {
               {category.name}
             </div>
             <div style={styles.columnHeader}>
-              <div>{isKo ? '지표' : 'Metric'}</div>
-              <div>{isKo ? '도입 전' : 'Before'}</div>
-              <div>{isKo ? '도입 후' : 'After'}</div>
-              <div>{isKo ? '개선도' : 'Improvement'}</div>
+              <div>{isKo ? '지표' : isZh ? '指标' : 'Metric'}</div>
+              <div>{isKo ? '도입 전' : isZh ? '采用前' : 'Before'}</div>
+              <div>{isKo ? '도입 후' : isZh ? '采用后' : 'After'}</div>
+              <div>{isKo ? '개선도' : isZh ? '改进率' : 'Improvement'}</div>
             </div>
             <div style={styles.metricsTable}>
               {category.metrics.map((metric, metricIdx) => (

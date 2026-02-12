@@ -4,24 +4,25 @@ import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 const EvolutionStages = () => {
   const {i18n} = useDocusaurusContext();
   const isKo = i18n.currentLocale === 'ko';
+  const isZh = i18n.currentLocale === 'zh';
 
   const stages = [
     {
-      stage: isKo ? '반응형' : 'Reactive',
+      stage: isKo ? '반응형' : isZh ? '被动型' : 'Reactive',
       stageEn: 'Reactive',
-      characteristics: isKo ? '문제 발생 후 대응' : 'Post-problem response',
+      characteristics: isKo ? '문제 발생 후 대응' : isZh ? '问题发生后响应' : 'Post-problem response',
       tools: 'HPA, CloudWatch Alarms'
     },
     {
-      stage: isKo ? '예측형' : 'Predictive',
+      stage: isKo ? '예측형' : isZh ? '预测型' : 'Predictive',
       stageEn: 'Predictive',
-      characteristics: isKo ? '패턴 기반 사전 대응' : 'Pattern-based proactive response',
-      tools: isKo ? 'ML 예측, CloudWatch Anomaly Detection' : 'ML forecasting, CloudWatch Anomaly Detection'
+      characteristics: isKo ? '패턴 기반 사전 대응' : isZh ? '基于模式的主动响应' : 'Pattern-based proactive response',
+      tools: isKo ? 'ML 예측, CloudWatch Anomaly Detection' : isZh ? 'ML 预测, CloudWatch 异常检测' : 'ML forecasting, CloudWatch Anomaly Detection'
     },
     {
-      stage: isKo ? '자율형' : 'Autonomous',
+      stage: isKo ? '자율형' : isZh ? '自主型' : 'Autonomous',
       stageEn: 'Autonomous',
-      characteristics: isKo ? 'AI가 자율적으로 판단·대응' : 'AI autonomous decision-making and response',
+      characteristics: isKo ? 'AI가 자율적으로 판단·대응' : isZh ? 'AI 自主决策和响应' : 'AI autonomous decision-making and response',
       tools: 'Kiro+MCP, Q Developer, Kagent/Strands'
     }
   ];
@@ -108,16 +109,16 @@ const EvolutionStages = () => {
   return (
     <div style={containerStyle}>
       <div style={headerStyle}>
-        <h2 style={titleStyle}>🚀 {isKo ? 'EKS 운영의 진화' : 'Evolution of EKS Operations'}</h2>
-        <p style={subtitleStyle}>{isKo ? '반응형 → 예측형 → 자율형' : 'Reactive → Predictive → Autonomous'}</p>
+        <h2 style={titleStyle}>🚀 {isKo ? 'EKS 운영의 진화' : isZh ? 'EKS 运维的演进' : 'Evolution of EKS Operations'}</h2>
+        <p style={subtitleStyle}>{isKo ? '반응형 → 예측형 → 자율형' : isZh ? '被动型 → 预测型 → 自主型' : 'Reactive → Predictive → Autonomous'}</p>
       </div>
       <div style={{ overflowX: 'auto' }}>
         <table style={tableStyle}>
           <thead>
             <tr>
-              <th style={thStyle}>{isKo ? '단계' : 'Stage'}</th>
-              <th style={thStyle}>{isKo ? '특성' : 'Characteristics'}</th>
-              <th style={thStyle}>{isKo ? '도구' : 'Tools'}</th>
+              <th style={thStyle}>{isKo ? '단계' : isZh ? '阶段' : 'Stage'}</th>
+              <th style={thStyle}>{isKo ? '특성' : isZh ? '特征' : 'Characteristics'}</th>
+              <th style={thStyle}>{isKo ? '도구' : isZh ? '工具' : 'Tools'}</th>
             </tr>
           </thead>
           <tbody>
@@ -139,7 +140,7 @@ const EvolutionStages = () => {
         </table>
       </div>
       <div style={footerStyle}>
-        <span style={footerLabelStyle}>{isKo ? '핵심:' : 'Key:'}</span> {isKo ? '이 문서는 반응형 스케일링의 한계를 넘어 ML 기반 예측 스케일링과 AI Agent를 통한 자율 복구 패턴을 다룹니다.' : 'This document covers ML-based predictive scaling and autonomous recovery patterns through AI Agents, going beyond the limitations of reactive scaling.'}
+        <span style={footerLabelStyle}>{isKo ? '핵심:' : isZh ? '核心：' : 'Key:'}</span> {isKo ? '이 문서는 반응형 스케일링의 한계를 넘어 ML 기반 예측 스케일링과 AI Agent를 통한 자율 복구 패턴을 다룹니다.' : isZh ? '本文档涵盖基于 ML 的预测扩缩容和通过 AI Agent 实现的自主恢复模式，超越了被动扩缩容的局限性。' : 'This document covers ML-based predictive scaling and autonomous recovery patterns through AI Agents, going beyond the limitations of reactive scaling.'}
       </div>
     </div>
   );

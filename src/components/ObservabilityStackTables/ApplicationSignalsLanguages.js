@@ -4,11 +4,12 @@ import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 const ApplicationSignalsLanguages = () => {
   const {i18n} = useDocusaurusContext();
   const isKo = i18n.currentLocale === 'ko';
+  const isZh = i18n.currentLocale === 'zh';
 
   const languages = [
     {
       language: 'Java',
-      instrumentation: isKo ? 'ADOT Java Agent 자동 주입' : 'ADOT Java Agent auto-injection',
+      instrumentation: isKo ? 'ADOT Java Agent 자동 주입' : isZh ? 'ADOT Java Agent 自动注入' : 'ADOT Java Agent auto-injection',
       status: 'GA',
       statusColor: '#10b981'
     },
@@ -48,10 +49,10 @@ const ApplicationSignalsLanguages = () => {
         borderRadius: '8px 8px 0 0'
       }}>
         <div style={{ fontSize: '20px', fontWeight: '600', marginBottom: '4px' }}>
-          {isKo ? 'Application Signals 지원 언어' : 'Application Signals Supported Languages'}
+          {isKo ? 'Application Signals 지원 언어' : isZh ? 'Application Signals 支持的语言' : 'Application Signals Supported Languages'}
         </div>
         <div style={{ fontSize: '14px', opacity: 0.9 }}>
-          {isKo ? 'Zero-code 계측 지원 현황' : 'Zero-code instrumentation support status'}
+          {isKo ? 'Zero-code 계측 지원 현황' : isZh ? '零代码插桩支持状态' : 'Zero-code instrumentation support status'}
         </div>
       </div>
 
@@ -76,7 +77,7 @@ const ApplicationSignalsLanguages = () => {
             fontSize: '12px',
             color: '#6b7280'
           }}>
-            {isKo ? '언어' : 'Language'}
+            {isKo ? '언어' : isZh ? '语言' : 'Language'}
           </div>
           <div style={{
             padding: '12px 14px',
@@ -85,7 +86,7 @@ const ApplicationSignalsLanguages = () => {
             fontSize: '12px',
             color: '#6b7280'
           }}>
-            {isKo ? '계측 방식' : 'Instrumentation Method'}
+            {isKo ? '계측 방식' : isZh ? '插桩方式' : 'Instrumentation Method'}
           </div>
           <div style={{
             padding: '12px 14px',
@@ -95,7 +96,7 @@ const ApplicationSignalsLanguages = () => {
             color: '#6b7280',
             textAlign: 'center'
           }}>
-            {isKo ? '상태' : 'Status'}
+            {isKo ? '상태' : isZh ? '状态' : 'Status'}
           </div>
         </div>
 
@@ -156,7 +157,7 @@ const ApplicationSignalsLanguages = () => {
           color: '#92400e',
           lineHeight: '1.6'
         }}>
-          💡 <strong>{isKo ? 'Zero-code 계측:' : 'Zero-code Instrumentation:'}</strong> {isKo ? 'Instrumentation CRD로 Pod에 annotation만 추가하면 자동으로 계측 에이전트가 주입됩니다. 코드 변경 없이 서비스 맵, SLI/SLO가 생성됩니다.' : 'Simply add annotations to Pods via Instrumentation CRD and instrumentation agents are automatically injected. Service maps and SLI/SLO are generated without code changes.'}
+          💡 <strong>{isKo ? 'Zero-code 계측:' : isZh ? '零代码插桩:' : 'Zero-code Instrumentation:'}</strong> {isKo ? 'Instrumentation CRD로 Pod에 annotation만 추가하면 자동으로 계측 에이전트가 주입됩니다. 코드 변경 없이 서비스 맵, SLI/SLO가 생성됩니다.' : isZh ? '通过 Instrumentation CRD 仅需为 Pod 添加注解，插桩代理即可自动注入。无需修改代码即可生成服务拓扑、SLI/SLO。' : 'Simply add annotations to Pods via Instrumentation CRD and instrumentation agents are automatically injected. Service maps and SLI/SLO are generated without code changes.'}
         </div>
       </div>
     </div>

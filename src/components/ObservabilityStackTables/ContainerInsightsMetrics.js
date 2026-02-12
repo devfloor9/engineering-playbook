@@ -4,37 +4,38 @@ import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 const ContainerInsightsMetrics = () => {
   const {i18n} = useDocusaurusContext();
   const isKo = i18n.currentLocale === 'ko';
+  const isZh = i18n.currentLocale === 'zh';
 
   const categories = [
     {
       category: 'Control Plane',
       examples: 'apiserver_request_total, etcd_db_total_size',
-      description: isKo ? 'API 서버, etcd, 스케줄러 상태' : 'API server, etcd, scheduler status'
+      description: isKo ? 'API 서버, etcd, 스케줄러 상태' : isZh ? 'API 服务器、etcd、调度器状态' : 'API server, etcd, scheduler status'
     },
     {
       category: 'Node',
       examples: 'node_cpu_utilization, node_memory_working_set',
-      description: isKo ? '노드 리소스 사용량' : 'Node resource usage'
+      description: isKo ? '노드 리소스 사용량' : isZh ? '节点资源使用量' : 'Node resource usage'
     },
     {
       category: 'Pod',
       examples: 'pod_cpu_utilization, pod_memory_working_set',
-      description: isKo ? 'Pod 리소스 사용량' : 'Pod resource usage'
+      description: isKo ? 'Pod 리소스 사용량' : isZh ? 'Pod 资源使用量' : 'Pod resource usage'
     },
     {
       category: 'Container',
       examples: 'container_cpu_limit, container_restart_count',
-      description: isKo ? '컨테이너 수준 상세' : 'Container-level details'
+      description: isKo ? '컨테이너 수준 상세' : isZh ? '容器级详细信息' : 'Container-level details'
     },
     {
       category: 'Service',
       examples: 'service_number_of_running_pods',
-      description: isKo ? '서비스 레벨 집계' : 'Service-level aggregation'
+      description: isKo ? '서비스 레벨 집계' : isZh ? '服务级聚合' : 'Service-level aggregation'
     },
     {
       category: 'Namespace',
       examples: 'namespace_number_of_running_pods',
-      description: isKo ? '네임스페이스 레벨 집계' : 'Namespace-level aggregation'
+      description: isKo ? '네임스페이스 레벨 집계' : isZh ? '命名空间级聚合' : 'Namespace-level aggregation'
     }
   ];
 
@@ -54,10 +55,10 @@ const ContainerInsightsMetrics = () => {
         borderRadius: '8px 8px 0 0'
       }}>
         <div style={{ fontSize: '20px', fontWeight: '600', marginBottom: '4px' }}>
-          {isKo ? 'Enhanced Container Insights 메트릭 범위' : 'Enhanced Container Insights Metrics Scope'}
+          {isKo ? 'Enhanced Container Insights 메트릭 범위' : isZh ? 'Enhanced Container Insights 指标范围' : 'Enhanced Container Insights Metrics Scope'}
         </div>
         <div style={{ fontSize: '14px', opacity: 0.9 }}>
-          {isKo ? 'EKS 1.28+ Control Plane 포함 심층 관찰성' : 'Deep observability including EKS 1.28+ Control Plane'}
+          {isKo ? 'EKS 1.28+ Control Plane 포함 심층 관찰성' : isZh ? '包含 EKS 1.28+ Control Plane 的深度可观测性' : 'Deep observability including EKS 1.28+ Control Plane'}
         </div>
       </div>
 
@@ -82,7 +83,7 @@ const ContainerInsightsMetrics = () => {
             fontSize: '12px',
             color: '#6b7280'
           }}>
-            {isKo ? '카테고리' : 'Category'}
+            {isKo ? '카테고리' : isZh ? '类别' : 'Category'}
           </div>
           <div style={{
             padding: '12px 14px',
@@ -91,7 +92,7 @@ const ContainerInsightsMetrics = () => {
             fontSize: '12px',
             color: '#6b7280'
           }}>
-            {isKo ? '메트릭 예시' : 'Metric Examples'}
+            {isKo ? '메트릭 예시' : isZh ? '指标示例' : 'Metric Examples'}
           </div>
           <div style={{
             padding: '12px 14px',
@@ -100,7 +101,7 @@ const ContainerInsightsMetrics = () => {
             fontSize: '12px',
             color: '#6b7280'
           }}>
-            {isKo ? '설명' : 'Description'}
+            {isKo ? '설명' : isZh ? '描述' : 'Description'}
           </div>
         </div>
 

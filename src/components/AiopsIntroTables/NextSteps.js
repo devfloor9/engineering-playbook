@@ -4,27 +4,28 @@ import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 const NextSteps = () => {
   const {i18n} = useDocusaurusContext();
   const isKo = i18n.currentLocale === 'ko';
+  const isZh = i18n.currentLocale === 'zh';
 
   const steps = [
     {
-      order: isKo ? '다음' : 'Next',
-      doc: isKo ? '지능형 관찰성 스택' : 'Intelligent Observability Stack',
+      order: isKo ? '다음' : isZh ? '下一步' : 'Next',
+      doc: isKo ? '지능형 관찰성 스택' : isZh ? '智能可观测性堆栈' : 'Intelligent Observability Stack',
       link: '/docs/aiops-aidlc/aiops-observability-stack',
-      content: isKo ? 'ADOT, AMP, AMG, CloudWatch AI 통합 아키텍처 구축' : 'Build integrated architecture with ADOT, AMP, AMG, CloudWatch AI',
+      content: isKo ? 'ADOT, AMP, AMG, CloudWatch AI 통합 아키텍처 구축' : isZh ? '构建 ADOT、AMP、AMG、CloudWatch AI 集成架构' : 'Build integrated architecture with ADOT, AMP, AMG, CloudWatch AI',
       color: '#2563eb'
     },
     {
-      order: isKo ? '이후' : 'Then',
-      doc: isKo ? 'AIDLC 프레임워크' : 'AIDLC Framework',
+      order: isKo ? '이후' : isZh ? '然后' : 'Then',
+      doc: isKo ? 'AIDLC 프레임워크' : isZh ? 'AIDLC 框架' : 'AIDLC Framework',
       link: '/docs/aiops-aidlc/aidlc-framework',
-      content: isKo ? 'Kiro Spec-driven 개발, EKS Capabilities GitOps 통합' : 'Kiro spec-driven development, EKS Capabilities GitOps integration',
+      content: isKo ? 'Kiro Spec-driven 개발, EKS Capabilities GitOps 통합' : isZh ? 'Kiro Spec 驱动开发，EKS Capabilities GitOps 集成' : 'Kiro spec-driven development, EKS Capabilities GitOps integration',
       color: '#7c3aed'
     },
     {
-      order: isKo ? '최종' : 'Finally',
-      doc: isKo ? '예측 운영' : 'Predictive Operations',
+      order: isKo ? '최종' : isZh ? '最后' : 'Finally',
+      doc: isKo ? '예측 운영' : isZh ? '预测性运维' : 'Predictive Operations',
       link: '/docs/aiops-aidlc/aiops-predictive-operations',
-      content: isKo ? 'ML 예측 스케일링, AI Agent 자동 인시던트 대응' : 'ML predictive scaling, AI Agent auto incident response',
+      content: isKo ? 'ML 예측 스케일링, AI Agent 자동 인시던트 대응' : isZh ? 'ML 预测性扩展，AI Agent 自动事故响应' : 'ML predictive scaling, AI Agent auto incident response',
       color: '#059669'
     }
   ];
@@ -44,10 +45,10 @@ const NextSteps = () => {
         borderRadius: '8px 8px 0 0'
       }}>
         <div style={{ fontSize: '20px', fontWeight: '600', marginBottom: '4px' }}>
-          {isKo ? '다음 단계' : 'Next Steps'}
+          {isKo ? '다음 단계' : isZh ? '后续步骤' : 'Next Steps'}
         </div>
         <div style={{ fontSize: '14px', opacity: 0.9 }}>
-          {isKo ? 'AIOps & AIDLC 시리즈 학습 경로' : 'AIOps & AIDLC series learning path'}
+          {isKo ? 'AIOps & AIDLC 시리즈 학습 경로' : isZh ? 'AIOps & AIDLC 系列学习路径' : 'AIOps & AIDLC series learning path'}
         </div>
       </div>
 
@@ -70,7 +71,7 @@ const NextSteps = () => {
             fontSize: '12px',
             color: '#6b7280'
           }}>
-            {isKo ? '순서' : 'Order'}
+            {isKo ? '순서' : isZh ? '顺序' : 'Order'}
           </div>
           <div style={{
             padding: '12px 14px',
@@ -80,7 +81,7 @@ const NextSteps = () => {
             fontSize: '12px',
             color: '#6b7280'
           }}>
-            {isKo ? '문서' : 'Document'}
+            {isKo ? '문서' : isZh ? '文档' : 'Document'}
           </div>
           <div style={{
             padding: '12px 14px',
@@ -90,7 +91,7 @@ const NextSteps = () => {
             fontSize: '12px',
             color: '#6b7280'
           }}>
-            {isKo ? '핵심 내용' : 'Key Content'}
+            {isKo ? '핵심 내용' : isZh ? '核心内容' : 'Key Content'}
           </div>
         </div>
 
@@ -147,8 +148,10 @@ const NextSteps = () => {
           fontSize: '12px',
           color: '#92400e'
         }}>
-          <strong>{isKo ? '학습 팁:' : 'Learning Tip:'}</strong> {isKo
+          <strong>{isKo ? '학습 팁:' : isZh ? '学习提示:' : 'Learning Tip:'}</strong> {isKo
             ? '각 문서는 이전 내용을 기반으로 구성되어 있으므로, 순서대로 학습하는 것을 권장합니다. 실제 구축 시에는 관찰성 스택 구축 → AIDLC 적용 → 예측 운영 확장 순서로 진행하세요.'
+            : isZh
+            ? '每个文档都基于前一内容构建，建议按顺序学习。实际实施时，请按以下顺序进行：构建可观测性堆栈 → 应用 AIDLC → 扩展预测性运维。'
             : 'Each document builds on previous content, so sequential learning is recommended. For actual implementation, proceed in order: Build observability stack → Apply AIDLC → Expand predictive operations.'}
         </div>
       </div>
