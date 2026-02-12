@@ -2,8 +2,8 @@
 title: "EKS 기반 MLOps 파이프라인 구축"
 sidebar_label: "MLOps 파이프라인"
 description: "Kubeflow + MLflow + KServe 기반 엔드투엔드 ML 라이프사이클 관리"
-sidebar_position: 5
-category: "aiops-aidlc"
+sidebar_position: 15
+category: "agentic-ai-platform"
 tags: [mlops, kubeflow, mlflow, kserve, argo-workflows, eks, ml-pipeline]
 last_update:
   date: 2026-02-11

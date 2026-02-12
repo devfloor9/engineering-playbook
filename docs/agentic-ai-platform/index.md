@@ -59,6 +59,11 @@ Kubernetes 네이티브 접근 방식의 핵심 철학은 오픈소스 생태계
 
 - [Ragas RAG 평가](./ragas-evaluation.md) - RAG 파이프라인 품질 평가
 
+### Phase 9: MLOps 파이프라인
+
+- [EKS 기반 MLOps 파이프라인](./mlops-pipeline-eks.md) - Kubeflow + MLflow + KServe 엔드투엔드 ML 라이프사이클
+- [SageMaker-EKS 하이브리드 ML 아키텍처](./sagemaker-eks-integration.md) - SageMaker 학습 + EKS 서빙 하이브리드 구성
+
 ## 🎯 학습 목표
 
 이 섹션을 통해 다음을 학습할 수 있습니다:

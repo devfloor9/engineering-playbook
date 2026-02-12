@@ -1,0 +1,189 @@
+import React from 'react';
+
+const K8sOpenSourceEcosystem = () => {
+  const categories = [
+    {
+      title: 'EKS Managed Add-ons',
+      subtitle: 'AWS가 수명주기를 직접 관리하는 K8s 확장',
+      color: '#059669',
+      badge: 'Managed Add-on',
+      items: [
+        { oss: 'Kubernetes VPC CNI', managed: 'vpc-cni', desc: 'Pod 네트워킹, Security Group for Pods, Network Policy' },
+        { oss: 'CoreDNS', managed: 'coredns', desc: 'K8s 클러스터 내부 DNS 서비스' },
+        { oss: 'kube-proxy', managed: 'kube-proxy', desc: 'K8s 서비스 네트워크 프록시' },
+        { oss: 'OpenTelemetry Collector', managed: 'adot', desc: '메트릭 · 로그 · 트레이스 수집 (벤더 중립 백엔드 전송)' },
+        { oss: 'EBS CSI Driver', managed: 'aws-ebs-csi-driver', desc: 'EBS 블록 스토리지 프로비저닝' },
+        { oss: 'EFS CSI Driver', managed: 'aws-efs-csi-driver', desc: 'EFS 파일 스토리지 마운트' },
+        { oss: 'Mountpoint for S3 CSI', managed: 'aws-mountpoint-s3-csi-driver', desc: 'S3 객체 스토리지를 파일시스템으로' },
+        { oss: 'Snapshot Controller', managed: 'snapshot-controller', desc: 'PV 스냅샷 관리' },
+        { oss: 'GuardDuty Agent', managed: 'aws-guardduty-agent', desc: 'K8s 런타임 위협 탐지' },
+        { oss: 'Pod Identity Agent', managed: 'eks-pod-identity-agent', desc: 'Pod 수준 IAM 역할 매핑' },
+        { oss: 'CloudWatch Observability', managed: 'amazon-cloudwatch-observability', desc: 'Container Insights Enhanced · Application Signals · 1-click 온보딩' },
+        { oss: 'Node Monitoring Agent', managed: 'eks-node-monitoring-agent', desc: '노드 하드웨어 · OS 수준 이상 탐지' },
+        { oss: 'Network Flow Monitor Agent', managed: 'aws-network-flow-monitoring-agent', desc: 'Container Network Observability 데이터 수집 · Pod 플로우 · Cross-AZ 가시성' },
+      ]
+    },
+    {
+      title: 'Community Add-ons Catalog',
+      subtitle: '2025.03 출시 — 인기 OSS를 EKS 콘솔/CLI로 배포 · 수명주기 관리',
+      color: '#0891b2',
+      badge: 'Community Add-on',
+      items: [
+        { oss: 'metrics-server', managed: 'EKS Community Add-on', desc: 'Pod/노드 CPU · 메모리 사용량 수집 (HPA/VPA 필수)' },
+        { oss: 'kube-state-metrics', managed: 'EKS Community Add-on', desc: 'K8s 오브젝트 상태 메트릭 (Deployment, Pod, Node 등)' },
+        { oss: 'prometheus-node-exporter', managed: 'EKS Community Add-on', desc: '호스트 시스템 메트릭 (CPU, 디스크, 네트워크 등)' },
+        { oss: 'cert-manager', managed: 'EKS Community Add-on', desc: 'TLS 인증서 자동 발급 · 갱신 (Let\'s Encrypt 등)' },
+        { oss: 'external-dns', managed: 'EKS Community Add-on', desc: 'K8s Service/Ingress → Route 53 DNS 자동 동기화' },
+      ]
+    },
+    {
+      title: 'EKS Capabilities',
+      subtitle: '2025.11 출시 — 클러스터 외부 AWS 인프라에서 실행, 자동 HA · 업그레이드',
+      color: '#2563eb',
+      badge: 'EKS Capability',
+      items: [
+        { oss: 'Argo CD', managed: 'Managed Argo CD', desc: 'GitOps 기반 지속 배포 (HA · 자동 업그레이드 · 멀티클러스터)' },
+        { oss: 'ACK (AWS Controllers for K8s)', managed: 'Managed ACK', desc: '50+ AWS 서비스를 K8s CRD로 선언적 관리' },
+        { oss: 'KRO (K8s Resource Orchestrator)', managed: 'Managed KRO', desc: 'ResourceGroup CRD로 복합 리소스 단일 배포' },
+      ]
+    },
+    {
+      title: '관리형 오픈소스 서비스',
+      subtitle: 'K8s와 직접 연동되는 독립 관리형 서비스',
+      color: '#7c3aed',
+      badge: 'Managed Service',
+      items: [
+        { oss: 'Prometheus', managed: 'AMP (Amazon Managed Prometheus)', desc: '페타바이트 메트릭 저장, PromQL, 자동 스케일링' },
+        { oss: 'Grafana', managed: 'AMG (Amazon Managed Grafana)', desc: '엔터프라이즈 대시보드, SSO, 40+ 데이터소스' },
+        { oss: 'OpenTelemetry', managed: 'ADOT (AWS Distro for OpenTelemetry)', desc: '벤더 중립 계측, AWS 서비스 네이티브 통합' },
+      ]
+    },
+    {
+      title: 'AWS 오픈소스 K8s 컨트롤러',
+      subtitle: 'AWS가 개발 · 유지보수하는 K8s 네이티브 컨트롤러',
+      color: '#ea580c',
+      badge: 'OSS Controller',
+      items: [
+        { oss: 'Karpenter', managed: 'Helm 설치 (EKS Auto Mode 내장)', desc: '노드 자동 프로비저닝 · 최적화 (Managed Add-on 아님)' },
+        { oss: 'AWS Load Balancer Controller', managed: 'LBC v3 (Gateway API GA)', desc: 'ALB/NLB 프로비저닝, Gateway API L4/L7, QUIC/HTTP3, JWT 검증' },
+        { oss: 'AWS Node Termination Handler', managed: 'NTH', desc: 'Spot 중단 · 유지보수 이벤트 대응' },
+        { oss: 'AWS VPC Resource Controller', managed: 'Security Group for Pods', desc: 'Pod에 ENI 기반 보안 그룹 연결' },
+      ]
+    }
+  ];
+
+  return (
+    <div style={{
+      maxWidth: '760px',
+      margin: '0 auto',
+      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+      fontSize: '15px',
+      lineHeight: '1.6'
+    }}>
+      <div style={{
+        background: 'linear-gradient(135deg, #064e3b 0%, #065f46 100%)',
+        color: 'white',
+        padding: '20px 24px',
+        borderRadius: '8px 8px 0 0'
+      }}>
+        <div style={{ fontSize: '20px', fontWeight: '600', marginBottom: '4px' }}>
+          K8s 관련 오픈소스 프로젝트 · 관리형 서비스 맵
+        </div>
+        <div style={{ fontSize: '14px', opacity: 0.9 }}>
+          Kubernetes 생태계의 오픈소스와 AWS 관리형 대응 서비스
+        </div>
+      </div>
+
+      <div style={{
+        background: 'white',
+        border: '1px solid #e5e7eb',
+        borderTop: 'none',
+        borderRadius: '0 0 8px 8px'
+      }}>
+        {categories.map((cat, catIdx) => (
+          <div key={cat.title}>
+            {/* Category Header */}
+            <div style={{
+              background: '#f8fafc',
+              padding: '14px 20px',
+              borderBottom: '1px solid #e5e7eb',
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '4px' }}>
+                <span style={{
+                  background: cat.color,
+                  color: 'white',
+                  padding: '3px 10px',
+                  borderRadius: '4px',
+                  fontSize: '12px',
+                  fontWeight: '600'
+                }}>
+                  {cat.badge}
+                </span>
+                <span style={{ fontWeight: '600', color: '#111827', fontSize: '15px' }}>
+                  {cat.title}
+                </span>
+              </div>
+              <div style={{ color: '#6b7280', fontSize: '13px', paddingLeft: '2px' }}>
+                {cat.subtitle}
+              </div>
+            </div>
+
+            {/* Column Header */}
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: '1fr 1.1fr 1.4fr',
+              gap: '8px',
+              padding: '8px 20px',
+              borderBottom: '1px solid #e5e7eb',
+              background: '#fafafa'
+            }}>
+              <div style={{ fontSize: '11px', fontWeight: '600', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                오픈소스
+              </div>
+              <div style={{ fontSize: '11px', fontWeight: '600', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                AWS 관리형
+              </div>
+              <div style={{ fontSize: '11px', fontWeight: '600', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                역할
+              </div>
+            </div>
+
+            {/* Items */}
+            {cat.items.map((item, itemIdx) => (
+              <div
+                key={item.oss}
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: '1fr 1.1fr 1.4fr',
+                  gap: '8px',
+                  padding: '10px 20px',
+                  borderBottom: (catIdx === categories.length - 1 && itemIdx === cat.items.length - 1)
+                    ? 'none'
+                    : '1px solid #f3f4f6',
+                  borderLeft: `3px solid ${cat.color}20`,
+                  alignItems: 'center'
+                }}
+              >
+                <div style={{ fontSize: '13px', color: '#374151', fontWeight: '500' }}>
+                  {item.oss}
+                </div>
+                <div style={{
+                  fontSize: '13px',
+                  color: cat.color,
+                  fontWeight: '600'
+                }}>
+                  {item.managed}
+                </div>
+                <div style={{ fontSize: '12px', color: '#6b7280' }}>
+                  {item.desc}
+                </div>
+              </div>
+            ))}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+export default K8sOpenSourceEcosystem;
