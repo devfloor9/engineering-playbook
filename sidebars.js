@@ -86,6 +86,9 @@ const sidebars = {
         'agentic-ai-platform/ragas-evaluation',
         // Phase 9: Bedrock AgentCore & MCP 통합
         'agentic-ai-platform/bedrock-agentcore-mcp',
+        // Phase 10: MLOps 파이프라인
+        'agentic-ai-platform/mlops-pipeline-eks',
+        'agentic-ai-platform/sagemaker-eks-integration',
       ],
     },
     {
@@ -102,10 +105,7 @@ const sidebars = {
         'aiops-aidlc/aiops-observability-stack',
         // Phase 2: AI 주도 개발
         'aiops-aidlc/aidlc-framework',
-        // Phase 3: MLOps 파이프라인
-        'aiops-aidlc/mlops-pipeline-eks',
-        'aiops-aidlc/sagemaker-eks-integration',
-        // Phase 4: 예측 운영
+        // Phase 3: 예측 운영
         'aiops-aidlc/aiops-predictive-operations',
       ],
     },
