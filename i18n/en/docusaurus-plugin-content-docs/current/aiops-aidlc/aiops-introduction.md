@@ -14,7 +14,7 @@ import { AiopsMaturityModel, MonitoringComparison, AwsServicesMap, RoiMetrics, A
 
 # Revolutionizing K8s Operations with AI — AIOps Strategy Guide
 
-> 📅 **Written**: 2026-02-12 | ⏱️ **Reading Time**: Approx. 25 minutes | 📌 **Reference Environment**: EKS 1.35+, AWS CLI v2
+> 📅 **Written**: February 12, 2026 | ⏱️ **Reading Time**: Approx. 25 minutes | 📌 **Reference Environment**: EKS 1.35+, AWS CLI v2
 
 ---
 
