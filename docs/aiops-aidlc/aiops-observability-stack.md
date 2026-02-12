@@ -809,11 +809,11 @@ CloudWatch Investigations의 결과를 Hosted MCP 서버를 통해 Kiro에서 �
 
 ---
 
-## 10. Hosted MCP 서버 기반 통합 분석
+## 10. MCP 서버 기반 통합 분석
 
 ### 10.1 MCP가 관찰성에 가져오는 변화
 
-기존에는 CloudWatch 콘솔, Grafana 대시보드, X-Ray 콘솔을 각각 열어 문제를 진단했습니다. Hosted MCP 서버를 사용하면 **Kiro나 Q Developer에서 모든 관찰성 데이터를 통합 조회**할 수 있습니다.
+기존에는 CloudWatch 콘솔, Grafana 대시보드, X-Ray 콘솔을 각각 열어 문제를 진단했습니다. AWS MCP 서버(개별 로컬 65+ GA 또는 Fully Managed Preview)를 사용하면 **Kiro나 Q Developer에서 모든 관찰성 데이터를 통합 조회**할 수 있습니다.
 
 ```mermaid
 graph LR

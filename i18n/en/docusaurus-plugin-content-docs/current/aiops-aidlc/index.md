@@ -56,7 +56,7 @@ MLOps documentation has moved to the **[Agentic AI Platform](/docs/agentic-ai-pl
 | **Observability** | CloudWatch, X-Ray, AMP, AMG | ADOT (OpenTelemetry), Grafana |
 | **Anomaly Detection** | DevOps Guru, CloudWatch AI, Anomaly Detection | Prometheus + ML |
 | **AI Development** | Kiro, Amazon Q Developer | GitHub Copilot, Claude Code |
-| **MCP Integration** | AWS MCP Servers (65+: EKS, CloudWatch, Cost Explorer, IAM, Terraform, etc.) | Kagent (kmcp) |
+| **MCP Integration** | Individual MCP (65+ GA), Fully Managed MCP (EKS/ECS Preview), AWS MCP Server unified (Preview) | Kagent (kmcp) |
 | **GitOps** | Managed Argo CD (EKS Capability) | Argo CD |
 | **Infrastructure** | ACK (50+ AWS CRD), KRO (ResourceGroup) | Terraform, Helm |
 | **Networking** | LBC v3 (Gateway API GA), Container Network Observability | Gateway API |
