@@ -2851,7 +2851,7 @@ We recommend starting with **EKS Auto Mode** when building a new Agentic AI plat
 
 - [Kubernetes Official Documentation](https://kubernetes.io/docs/)
 - [Karpenter Official Documentation](https://karpenter.sh/docs/)
-- [Amazon EKS Best Practices Guide](https://aws.github.io/aws-eks-best-practices/)
+- [Amazon EKS Best Practices Guide](https://docs.aws.amazon.com/eks/latest/best-practices/introduction.html)
 - [NVIDIA GPU Operator Documentation](https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/overview.html)
 - [KEDA - Kubernetes Event-driven Autoscaling](https://keda.sh/)
 
@@ -3047,7 +3047,7 @@ kubectl apply -f gpu-nodepools.yaml
 
 **Resources:**
 
-- [AWS EKS Best Practices Guide](https://aws.github.io/aws-eks-best-practices/)
+- [AWS EKS Best Practices Guide](https://docs.aws.amazon.com/eks/latest/best-practices/introduction.html)
 - [Karpenter Documentation](https://karpenter.sh/)
 - [KEDA Scalers Reference](https://keda.sh/docs/scalers/)
 - [Kubeflow on AWS](https://awslabs.github.io/kubeflow-manifests/)

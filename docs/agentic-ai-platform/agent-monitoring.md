@@ -1,6 +1,6 @@
 ---
 title: "AI Agent 모니터링 및 운영"
-sidebar_label: "Agent 모니터링 & 운영"
+sidebar_label: "12. Agent 모니터링 & 운영"
 description: "LangFuse, LangSmith를 활용한 Agentic AI 애플리케이션 모니터링, 알림 설정, 트러블슈팅 가이드"
 tags: [eks, langfuse, langsmith, monitoring, observability, tracing, opentelemetry, operations, troubleshooting, alerting]
 category: "genai-aiml"

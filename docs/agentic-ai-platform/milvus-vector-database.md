@@ -1,6 +1,6 @@
 ---
 title: "Milvus 벡터 데이터베이스 통합"
-sidebar_label: "Milvus 벡터 DB"
+sidebar_label: "10. Milvus 벡터 DB"
 description: "Amazon EKS에서 Milvus 벡터 데이터베이스를 배포하고 RAG 파이프라인과 통합하는 방법"
 sidebar_position: 11
 category: "genai-aiml"

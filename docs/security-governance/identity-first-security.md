@@ -1,6 +1,6 @@
 ---
 title: "Identity-First Security 아키텍처"
-sidebar_label: "Identity-First Security"
+sidebar_label: "2. Identity-First Security"
 description: "EKS Pod Identity 기반 제로트러스트 접근 제어 및 IRSA 마이그레이션 가이드"
 category: "security"
 sidebar_position: 2

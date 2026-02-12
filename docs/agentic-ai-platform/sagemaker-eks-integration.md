@@ -1,6 +1,6 @@
 ---
 title: "SageMaker-EKS 하이브리드 ML 아키텍처"
-sidebar_label: "SageMaker-EKS 통합"
+sidebar_label: "16. SageMaker-EKS 통합"
 description: "SageMaker에서 학습하고 EKS에서 서빙하는 하이브리드 ML 아키텍처"
 sidebar_position: 16
 category: "agentic-ai-platform"

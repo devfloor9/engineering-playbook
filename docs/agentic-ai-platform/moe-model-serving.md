@@ -1,6 +1,6 @@
 ---
 title: "MoE 모델 서빙 가이드"
-sidebar_label: "MoE 모델 서빙"
+sidebar_label: "6. MoE 모델 서빙"
 description: "Mixture of Experts 모델의 EKS 기반 배포 및 최적화 전략"
 tags: [eks, moe, vllm, tgi, model-serving, gpu, mixtral]
 category: "genai-aiml"

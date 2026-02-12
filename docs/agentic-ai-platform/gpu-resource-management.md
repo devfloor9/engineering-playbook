@@ -1,6 +1,6 @@
 ---
 title: "GPU 클러스터 동적 리소스 관리"
-sidebar_label: "GPU 리소스 관리"
+sidebar_label: "4. GPU 리소스 관리"
 description: "복수 GPU 클러스터 환경에서의 동적 리소스 할당 및 Karpenter 기반 자동 스케일링"
 tags: [eks, gpu, karpenter, autoscaling, resource-management, dcgm]
 category: "genai-aiml"

@@ -2141,8 +2141,8 @@ Attaching this log file when submitting an AWS Support case enables support engi
 
 - [EKS Official Troubleshooting Guide](https://docs.aws.amazon.com/eks/latest/userguide/troubleshooting.html)
 - [EKS Best Practices - Auditing and Logging](https://docs.aws.amazon.com/eks/latest/best-practices/auditing-and-logging.html)
-- [EKS Best Practices - Networking](https://aws.github.io/aws-eks-best-practices/networking/index/)
-- [EKS Best Practices - Reliability](https://aws.github.io/aws-eks-best-practices/reliability/docs/)
+- [EKS Best Practices - Networking](https://docs.aws.amazon.com/eks/latest/best-practices/networking.html)
+- [EKS Best Practices - Reliability](https://docs.aws.amazon.com/eks/latest/best-practices/reliability.html)
 - [Kubernetes Official Debugging Guide - Pods](https://kubernetes.io/docs/tasks/debug/debug-application/debug-pods/)
 - [Kubernetes Official Debugging Guide - Services](https://kubernetes.io/docs/tasks/debug/debug-application/debug-service/)
 - [Kubernetes DNS Debugging](https://kubernetes.io/docs/tasks/administer-cluster/dns-debugging-resolution/)

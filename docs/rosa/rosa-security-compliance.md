@@ -1,6 +1,6 @@
 ---
 title: "ROSA 보안 규정 준수 콘솔 접근 제어"
-sidebar_label: "ROSA 보안 규정 준수"
+sidebar_label: "2. ROSA 보안 규정 준수"
 description: "금융권 보안 요구사항을 충족하기 위한 Red Hat Hybrid Cloud Console 접근 제어 방안. IdP, MFA, IP 기반 접근 통제를 통한 안전한 관리자 접근 제어 전략"
 tags: [rosa, openshift, security, compliance, idp, mfa, financial]
 category: "rosa"

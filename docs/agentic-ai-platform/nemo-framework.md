@@ -1,6 +1,6 @@
 ---
 title: "NeMo 프레임워크"
-sidebar_label: "NeMo 프레임워크"
+sidebar_label: "8. NeMo 프레임워크"
 description: "NVIDIA NeMo를 활용한 LLM 파인튜닝 및 최적화 파이프라인 구축"
 sidebar_position: 9
 category: "genai-aiml"

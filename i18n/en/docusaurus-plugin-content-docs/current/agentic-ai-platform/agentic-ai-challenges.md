@@ -1008,7 +1008,7 @@ Topics covered in the next document:
 
 - [Kubernetes Official Documentation](https://kubernetes.io/docs/)
 - [Karpenter Official Documentation](https://karpenter.sh/docs/)
-- [Amazon EKS Best Practices Guide](https://aws.github.io/aws-eks-best-practices/)
+- [Amazon EKS Best Practices Guide](https://docs.aws.amazon.com/eks/latest/best-practices/introduction.html)
 - [NVIDIA GPU Operator Documentation](https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/overview.html)
 - [KEDA - Kubernetes Event-driven Autoscaling](https://keda.sh/)
 

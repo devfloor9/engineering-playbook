@@ -1,5 +1,6 @@
 ---
 title: 하이브리드 인프라 벤치마크
+sidebar_label: "4. 하이브리드 인프라"
 sidebar_position: 3
 description: 하이브리드 클라우드 인프라 네트워크 및 스토리지 성능 벤치마크
 category: "benchmarks"

@@ -1,6 +1,6 @@
 ---
 title: "대규모 EKS 비용 관리: 30-90% 절감 전략"
-sidebar_label: "EKS 비용 관리"
+sidebar_label: "6. EKS 비용 관리"
 description: "Amazon EKS 환경에서 30-90%의 획기적 비용 절감을 달성하는 FinOps 전략. 비용 구조 분석, Karpenter 최적화, 도구 선택, 실제 성공 사례 포함"
 tags: [eks, cost-management, finops, karpenter, kubecost, optimization]
 category: "performance-networking"
@@ -1762,7 +1762,7 @@ aws ec2 create-vpc-endpoint \
 
 **공식 문서**
 
-- [AWS EKS Best Practices - Cost Optimization](https://aws.github.io/aws-eks-best-practices/cost_optimization/cfm_framework/)
+- [AWS EKS Best Practices - Cost Optimization](https://docs.aws.amazon.com/eks/latest/best-practices/cost-opt.html)
 - [Karpenter Documentation](https://karpenter.sh/)
 - [Kubecost Architecture](https://docs.kubecost.com/)
 - [FinOps Foundation](https://www.finops.org/framework/)
@@ -1774,8 +1774,8 @@ aws ec2 create-vpc-endpoint \
 
 **관련 문서**
 
-- [Karpenter 기반 오토스케일링](./karpenter-autoscaling.md)
-- [Cilium ENI와 Gateway API](./cilium-eni-gateway-api.md)
+- [4. Karpenter 오토스케일링](./karpenter-autoscaling.md)
+- [1. Gateway API 도입 가이드](./gateway-api-adoption-guide.md)
 - [GitOps 클러스터 운영](../operations-observability/gitops-cluster-operation.md)
 - [하이브리드 노드 가이드](../hybrid-infrastructure/hybrid-nodes-adoption-guide.md)
 

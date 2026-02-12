@@ -1,6 +1,6 @@
 ---
 title: "ROSA 데모 설치 가이드"
-sidebar_label: "ROSA 데모 설치"
+sidebar_label: "1. ROSA 데모 설치"
 description: "ROSA 클러스터 설치 데모 - STS 기반 클러스터 생성, IAM 역할 구성, 오토스케일링 설정 및 관리자 접근 구성 가이드"
 tags: [rosa, openshift, installation, sts, demo, autoscaling, iam]
 category: "rosa"

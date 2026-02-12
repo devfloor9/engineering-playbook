@@ -1,6 +1,6 @@
 ---
 title: "EKS 기반 Agentic AI 해결방안"
-sidebar_label: "EKS 기반 해결방안"
+sidebar_label: "2. EKS 기반 해결방안"
 description: "Amazon EKS와 AWS 서비스를 활용한 Agentic AI 도전과제 해결 가이드"
 tags: [eks, aws, karpenter, genai, agentic-ai, gpu, solutions]
 category: "genai-aiml"
@@ -1752,7 +1752,7 @@ graph TB
 
 - [Kubernetes 공식 문서](https://kubernetes.io/docs/)
 - [Karpenter 공식 문서](https://karpenter.sh/docs/)
-- [Amazon EKS Best Practices Guide](https://aws.github.io/aws-eks-best-practices/)
+- [Amazon EKS Best Practices Guide](https://docs.aws.amazon.com/eks/latest/best-practices/introduction.html)
 - [NVIDIA GPU Operator Documentation](https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/overview.html)
 - [KEDA - Kubernetes Event-driven Autoscaling](https://keda.sh/)
 
@@ -1948,7 +1948,7 @@ kubectl apply -f gpu-nodepools.yaml
 
 **리소스:**
 
-- [AWS EKS Best Practices Guide](https://aws.github.io/aws-eks-best-practices/)
+- [AWS EKS Best Practices Guide](https://docs.aws.amazon.com/eks/latest/best-practices/introduction.html)
 - [Karpenter Documentation](https://karpenter.sh/)
 - [KEDA Scalers Reference](https://keda.sh/docs/scalers/)
 - [Kubeflow on AWS](https://awslabs.github.io/kubeflow-manifests/)

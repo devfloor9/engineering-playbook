@@ -1,13 +1,13 @@
 ---
 title: "EKS 고가용성 아키텍처 가이드"
-sidebar_label: "EKS 고가용성 아키텍처"
+sidebar_label: "4. EKS 고가용성 아키텍처"
 description: "Amazon EKS 환경에서 고가용성과 장애 회복력을 확보하기 위한 아키텍처 패턴과 운영 전략 가이드"
 tags: [eks, kubernetes, resiliency, high-availability, cell-architecture, chaos-engineering, multi-az]
 category: "observability-monitoring"
 last_update:
   date: 2026-02-10
   author: devfloor9
-sidebar_position: 6
+sidebar_position: 4
 ---
 
 # EKS 고가용성 아키텍처 가이드
@@ -1451,7 +1451,7 @@ echo "============================================"
 - [AWS Well-Architected — Cell-Based Architecture](https://docs.aws.amazon.com/wellarchitected/latest/reducing-scope-of-impact-with-cell-based-architecture/reducing-scope-of-impact-with-cell-based-architecture.html)
 - [AWS Cell-Based Architecture Guidance](https://aws.amazon.com/solutions/guidance/cell-based-architecture-on-aws/)
 - [AWS Shuffle Sharding](https://aws.amazon.com/blogs/architecture/shuffle-sharding-massive-and-magical-fault-isolation/)
-- [EKS Reliability Best Practices](https://aws.github.io/aws-eks-best-practices/reliability/docs/)
+- [EKS Reliability Best Practices](https://docs.aws.amazon.com/eks/latest/best-practices/reliability.html)
 - [EKS + ARC Zonal Shift](https://docs.aws.amazon.com/eks/latest/userguide/zone-shift.html)
 - [Kubernetes PDB](https://kubernetes.io/docs/concepts/workloads/pods/disruptions/)
 - [Kubernetes Topology Spread Constraints](https://kubernetes.io/docs/concepts/scheduling-eviction/topology-spread-constraints/)

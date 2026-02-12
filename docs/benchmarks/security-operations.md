@@ -1,5 +1,6 @@
 ---
 title: 보안 및 운영 벤치마크
+sidebar_label: "5. 보안 및 운영"
 sidebar_position: 4
 description: 보안 정책 적용 및 운영 도구 성능 벤치마크
 category: "benchmarks"

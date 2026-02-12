@@ -20,17 +20,17 @@ const sidebars = {
         id: 'infrastructure-optimization/index',
       },
       items: [
-        // 1. 네트워크 기반 구성
-        'infrastructure-optimization/cilium-eni-gateway-api',
-        // 1-1. NGINX Ingress → Gateway API 마이그레이션
-        'infrastructure-optimization/nginx-to-gateway-api-migration',
+        // 1. Gateway API 도입 가이드 (네트워크 기반 구성)
+        'infrastructure-optimization/gateway-api-adoption-guide',
         // 2. DNS 설정 및 최적화
         'infrastructure-optimization/coredns-monitoring-optimization',
         // 3. 내부 트래픽 최적화
         'infrastructure-optimization/east-west-traffic-best-practice',
         // 4. 오토스케일링 구성
         'infrastructure-optimization/karpenter-autoscaling',
-        // 5. 비용 관리 (운영 단계)
+        // 5. Pod 리소스 최적화
+        'infrastructure-optimization/eks-resource-optimization',
+        // 6. 비용 관리 (운영 단계)
         'infrastructure-optimization/cost-management',
       ],
     },
@@ -51,6 +51,10 @@ const sidebars = {
         'operations-observability/eks-debugging-guide',
         // 4. EKS 고가용성 아키텍처 가이드
         'operations-observability/eks-resiliency-guide',
+        // 5. Pod 헬스체크 & 라이프사이클
+        'operations-observability/eks-pod-health-lifecycle',
+        // 6. Pod 스케줄링 & 가용성
+        'operations-observability/eks-pod-scheduling-availability',
       ],
     },
     {
@@ -62,33 +66,32 @@ const sidebars = {
         id: 'agentic-ai-platform/index',
       },
       items: [
-        // Phase 1: 이해 및 설계
-        'agentic-ai-platform/agentic-ai-challenges',
-        'agentic-ai-platform/agentic-ai-solutions-eks',
-        'agentic-ai-platform/agentic-platform-architecture',
-        // Phase 2: GPU 인프라 구성
-        'agentic-ai-platform/gpu-resource-management',
-        // Phase 3: 모델 서빙 (기본 → 고급)
-        'agentic-ai-platform/vllm-model-serving',
-        'agentic-ai-platform/moe-model-serving',
-        // Phase 3-1: llm-d 분산 추론
-        'agentic-ai-platform/llm-d-eks-automode',
-        'agentic-ai-platform/nemo-framework',
-        // Phase 4: 추론 라우팅 및 게이트웨이
-        'agentic-ai-platform/inference-gateway-routing',
-        // Phase 5: RAG 데이터 레이어
-        'agentic-ai-platform/milvus-vector-database',
-        // Phase 6: AI 에이전트 배포
-        'agentic-ai-platform/kagent-kubernetes-agents',
-        // Phase 7: 운영 및 모니터링
-        'agentic-ai-platform/agent-monitoring',
-        // Phase 8: 평가 및 검증
-        'agentic-ai-platform/ragas-evaluation',
-        // Phase 9: Bedrock AgentCore & MCP 통합
-        'agentic-ai-platform/bedrock-agentcore-mcp',
-        // Phase 10: MLOps 파이프라인
-        'agentic-ai-platform/mlops-pipeline-eks',
-        'agentic-ai-platform/sagemaker-eks-integration',
+        // 이해 및 설계
+        'agentic-ai-platform/agentic-ai-challenges',              // 1. 기술적 도전과제
+        'agentic-ai-platform/agentic-ai-solutions-eks',           // 2. EKS 기반 해결방안
+        'agentic-ai-platform/agentic-platform-architecture',      // 3. 플랫폼 아키텍처
+        // GPU 인프라 구성
+        'agentic-ai-platform/gpu-resource-management',            // 4. GPU 리소스 관리
+        // 모델 서빙 (기본 → 고급)
+        'agentic-ai-platform/vllm-model-serving',                 // 5. vLLM 모델 서빙
+        'agentic-ai-platform/moe-model-serving',                  // 6. MoE 모델 서빙
+        'agentic-ai-platform/llm-d-eks-automode',                 // 7. llm-d EKS Auto Mode
+        'agentic-ai-platform/nemo-framework',                     // 8. NeMo 프레임워크
+        // 추론 라우팅 및 게이트웨이
+        'agentic-ai-platform/inference-gateway-routing',          // 9. Inference Gateway
+        // RAG 데이터 레이어
+        'agentic-ai-platform/milvus-vector-database',             // 10. Milvus 벡터 DB
+        // AI 에이전트 배포
+        'agentic-ai-platform/kagent-kubernetes-agents',           // 11. Kagent Agent 관리
+        // 운영 및 모니터링
+        'agentic-ai-platform/agent-monitoring',                   // 12. Agent 모니터링 & 운영
+        // 평가 및 검증
+        'agentic-ai-platform/ragas-evaluation',                   // 13. Ragas 평가
+        // Bedrock AgentCore 통합
+        'agentic-ai-platform/bedrock-agentcore-mcp',              // 14. Bedrock AgentCore & MCP
+        // MLOps 파이프라인
+        'agentic-ai-platform/mlops-pipeline-eks',                 // 15. MLOps 파이프라인
+        'agentic-ai-platform/sagemaker-eks-integration',          // 16. SageMaker-EKS 통합
       ],
     },
     {
@@ -100,12 +103,9 @@ const sidebars = {
         id: 'aiops-aidlc/index',
       },
       items: [
-        // Phase 1: AIOps 기초
         'aiops-aidlc/aiops-introduction',
         'aiops-aidlc/aiops-observability-stack',
-        // Phase 2: AI 주도 개발
         'aiops-aidlc/aidlc-framework',
-        // Phase 3: 예측 운영
         'aiops-aidlc/aiops-predictive-operations',
       ],
     },

@@ -23,46 +23,51 @@ Kubernetes 네이티브 접근 방식의 핵심 철학은 오픈소스 생태계
 
 ## 주요 문서 (구현 순서)
 
-### Phase 1: 이해 및 설계
+### 이해 및 설계
 
-- [기술적 도전과제 및 K8s 필요성](./agentic-ai-challenges.md) - Agentic AI 플랫폼의 핵심 과제 이해
-- [Agentic AI 플랫폼 아키텍처](./agentic-platform-architecture.md) - 전체 아키텍처 설계
+- [1. 기술적 도전과제](./agentic-ai-challenges.md) - Agentic AI 플랫폼의 핵심 과제 이해
+- [2. EKS 기반 해결방안](./agentic-ai-solutions-eks.md) - Kubernetes 기반 솔루션 접근
+- [3. 플랫폼 아키텍처](./agentic-platform-architecture.md) - 전체 아키텍처 설계
 
-### Phase 2: GPU 인프라 구성
+### GPU 인프라 구성
 
-- [GPU 리소스 관리](./gpu-resource-management.md) - MIG, Time-Slicing 등 GPU 리소스 설정
+- [4. GPU 리소스 관리](./gpu-resource-management.md) - MIG, Time-Slicing 등 GPU 리소스 설정
 
-### Phase 3: 모델 서빙 (기본 → 고급)
+### 모델 서빙 (기본 → 고급)
 
-- [vLLM 기반 FM 배포 및 성능 최적화](./vllm-model-serving.md) - 기본 모델 서빙 구성
-- [MoE 모델 서빙](./moe-model-serving.md) - Mixture of Experts 모델 서빙
-- [llm-d EKS Auto Mode 배포](./llm-d-eks-automode.md) - Kubernetes 네이티브 분산 추론
-- [NeMo 프레임워크](./nemo-framework.md) - 학습 및 서빙 프레임워크
+- [5. vLLM 모델 서빙](./vllm-model-serving.md) - 기본 모델 서빙 구성
+- [6. MoE 모델 서빙](./moe-model-serving.md) - Mixture of Experts 모델 서빙
+- [7. llm-d EKS Auto Mode](./llm-d-eks-automode.md) - Kubernetes 네이티브 분산 추론
+- [8. NeMo 프레임워크](./nemo-framework.md) - 학습 및 서빙 프레임워크
 
-### Phase 4: 추론 라우팅 및 게이트웨이
+### 추론 라우팅 및 게이트웨이
 
-- [Inference Gateway 및 동적 라우팅](./inference-gateway-routing.md) - 지능형 요청 라우팅
+- [9. Inference Gateway](./inference-gateway-routing.md) - 지능형 요청 라우팅
 
-### Phase 5: RAG 데이터 레이어
+### RAG 데이터 레이어
 
-- [Milvus 벡터 데이터베이스](./milvus-vector-database.md) - 벡터 저장소 구축
+- [10. Milvus 벡터 DB](./milvus-vector-database.md) - 벡터 저장소 구축
 
-### Phase 6: AI 에이전트 배포
+### AI 에이전트 배포
 
-- [Kagent Kubernetes Agent 관리](./kagent-kubernetes-agents.md) - CRD 기반 에이전트 관리
+- [11. Kagent Agent 관리](./kagent-kubernetes-agents.md) - CRD 기반 에이전트 관리
 
-### Phase 7: 운영 및 모니터링
+### 운영 및 모니터링
 
-- [Agent 모니터링](./agent-monitoring.md) - 에이전트 상태 및 성능 모니터링
+- [12. Agent 모니터링 & 운영](./agent-monitoring.md) - 에이전트 상태 및 성능 모니터링
 
-### Phase 8: 평가 및 검증
+### 평가 및 검증
 
-- [Ragas RAG 평가](./ragas-evaluation.md) - RAG 파이프라인 품질 평가
+- [13. Ragas 평가](./ragas-evaluation.md) - RAG 파이프라인 품질 평가
 
-### Phase 9: MLOps 파이프라인
+### Bedrock AgentCore 통합
 
-- [EKS 기반 MLOps 파이프라인](./mlops-pipeline-eks.md) - Kubeflow + MLflow + KServe 엔드투엔드 ML 라이프사이클
-- [SageMaker-EKS 하이브리드 ML 아키텍처](./sagemaker-eks-integration.md) - SageMaker 학습 + EKS 서빙 하이브리드 구성
+- [14. Bedrock AgentCore & MCP](./bedrock-agentcore-mcp.md) - AWS Bedrock 에이전트 통합
+
+### MLOps 파이프라인
+
+- [15. MLOps 파이프라인](./mlops-pipeline-eks.md) - Kubeflow + MLflow + KServe 엔드투엔드 ML 라이프사이클
+- [16. SageMaker-EKS 통합](./sagemaker-eks-integration.md) - SageMaker 학습 + EKS 서빙 하이브리드 구성
 
 ## 🎯 학습 목표
 
@@ -219,19 +224,20 @@ GenAI 워크로드는 GPU 리소스를 많이 사용하므로, 비용 최적화�
 
 **Agentic AI 플랫폼 구축 경로:**
 
-1. 기술적 도전과제 및 K8s 필요성 이해
-2. 플랫폼 아키텍처 설계
-3. GPU 리소스 관리 및 Karpenter 설정
-4. Inference Gateway 및 동적 라우팅 구성
-5. Agent 모니터링 및 운영 체계 구축
+1. [1. 기술적 도전과제](./agentic-ai-challenges.md) - 핵심 과제 이해
+2. [2. EKS 기반 해결방안](./agentic-ai-solutions-eks.md) - Kubernetes 솔루션
+3. [3. 플랫폼 아키텍처](./agentic-platform-architecture.md) - 아키텍처 설계
+4. [4. GPU 리소스 관리](./gpu-resource-management.md) - GPU 인프라 설정
+5. [9. Inference Gateway](./inference-gateway-routing.md) - 동적 라우팅 구성
+6. [12. Agent 모니터링 & 운영](./agent-monitoring.md) - 운영 체계 구축
 
 **GenAI 애플리케이션 개발 경로:**
 
-1. LiteLLM 기본 설정 및 라우팅
-2. LangGraph를 사용한 간단한 워크플로우
-3. Langfuse 모니터링 통합
-4. GPU 리소스 최적화
-5. 전체 플랫폼 통합 및 운영
+1. [5. vLLM 모델 서빙](./vllm-model-serving.md) - 기본 모델 서빙
+2. [9. Inference Gateway](./inference-gateway-routing.md) - LiteLLM 라우팅
+3. [10. Milvus 벡터 DB](./milvus-vector-database.md) - RAG 데이터 레이어
+4. [11. Kagent Agent 관리](./kagent-kubernetes-agents.md) - 에이전트 배포
+5. [13. Ragas 평가](./ragas-evaluation.md) - 품질 평가
 :::
 
 :::warning 주의 - 비용 관리

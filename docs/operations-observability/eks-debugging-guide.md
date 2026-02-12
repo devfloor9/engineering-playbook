@@ -1,13 +1,13 @@
 ---
 title: "EKS 장애 진단 및 대응 가이드"
-sidebar_label: "EKS 장애 진단 및 대응"
+sidebar_label: "3. EKS 장애 진단 및 대응"
 description: "Amazon EKS 환경에서 애플리케이션 및 인프라 문제를 체계적으로 진단하고 해결하기 위한 종합 트러블슈팅 가이드"
 tags: [eks, kubernetes, debugging, troubleshooting, observability, incident-response]
 category: "observability-monitoring"
 last_update:
   date: 2026-02-10
   author: devfloor9
-sidebar_position: 5
+sidebar_position: 3
 ---
 
 import { IncidentEscalationTable, ZonalShiftImpactTable, ControlPlaneLogTable, ClusterHealthTable, NodeGroupErrorTable, ErrorQuickRefTable } from '@site/src/components/EksDebugTables';
@@ -2142,8 +2142,8 @@ AWS Support case를 제출할 때 이 로그 파일을 첨부하면 지원 엔�
 
 - [EKS 공식 트러블슈팅 가이드](https://docs.aws.amazon.com/eks/latest/userguide/troubleshooting.html)
 - [EKS Best Practices - Auditing and Logging](https://docs.aws.amazon.com/eks/latest/best-practices/auditing-and-logging.html)
-- [EKS Best Practices - Networking](https://aws.github.io/aws-eks-best-practices/networking/index/)
-- [EKS Best Practices - Reliability](https://aws.github.io/aws-eks-best-practices/reliability/docs/)
+- [EKS Best Practices - Networking](https://docs.aws.amazon.com/eks/latest/best-practices/networking.html)
+- [EKS Best Practices - Reliability](https://docs.aws.amazon.com/eks/latest/best-practices/reliability.html)
 - [Kubernetes 공식 디버깅 가이드 - Pod](https://kubernetes.io/docs/tasks/debug/debug-application/debug-pods/)
 - [Kubernetes 공식 디버깅 가이드 - Service](https://kubernetes.io/docs/tasks/debug/debug-application/debug-service/)
 - [Kubernetes DNS 디버깅](https://kubernetes.io/docs/tasks/administer-cluster/dns-debugging-resolution/)
