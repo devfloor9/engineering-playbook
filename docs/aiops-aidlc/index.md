@@ -31,9 +31,11 @@ AIops(AI for IT Operations)와 AIDLC(AI-Driven Development Lifecycle)를 결합�
   └─ LBC v3 (2025.01): Gateway API GA (L4/L7), QUIC/HTTP3, JWT 검증
   → EKS가 자동화의 핵심 컴포넌트
                     ↓
-[3단계] Kiro + Hosted MCP = AIOps의 핵심
+[3단계] Kiro + MCP = AIOps의 핵심
   ├─ Kiro: Spec-driven 개발 (requirements→design→tasks→코드), MCP 네이티브
-  ├─ AWS Hosted MCP Servers (2025.10 GA): EKS, Serverless, Cost, Docs
+  ├─ 개별 MCP 서버 (65+, GA): EKS, CloudWatch, Cost Explorer, Terraform 등
+  ├─ Fully Managed MCP (2025.11 Preview): EKS/ECS 클라우드 호스팅
+  ├─ AWS MCP Server 통합 (2025.11 Preview): 15,000+ API + Agent SOPs
   └─ 프로그래머틱 자동화: 디렉팅 기반 → 코드 기반 운영/디버깅
   → 비용효율적이고 빠른 대응이 가능한 AI 시대의 운영 방법론
                     ↓
@@ -85,7 +87,7 @@ MLOps 관련 문서는 **[Agentic AI Platform](/docs/agentic-ai-platform)** 카�
 | **관찰성** | CloudWatch, X-Ray, AMP, AMG | ADOT (OpenTelemetry), Grafana |
 | **이상 탐지** | DevOps Guru, CloudWatch AI, Anomaly Detection | Prometheus + ML |
 | **AI 개발** | Kiro, Amazon Q Developer | GitHub Copilot, Claude Code |
-| **MCP 통합** | AWS MCP Servers (65+: EKS, CloudWatch, Cost Explorer, IAM, Terraform 등) | Kagent (kmcp) |
+| **MCP 통합** | 개별 MCP (65+ GA), Fully Managed MCP (EKS/ECS Preview), AWS MCP Server 통합 (Preview) | Kagent (kmcp) |
 | **GitOps** | Managed Argo CD (EKS Capability) | Argo CD |
 | **인프라 선언** | ACK (50+ AWS CRD), KRO (ResourceGroup) | Terraform, Helm |
 | **네트워킹** | LBC v3 (Gateway API GA), Container Network Observability | Gateway API |
@@ -110,6 +112,6 @@ MLOps 관련 문서는 **[Agentic AI Platform](/docs/agentic-ai-platform)** 카�
 - [AWS AI-Driven Development Life Cycle](https://aws.amazon.com/blogs/devops/ai-driven-development-life-cycle/)
 - [AWS Labs AIDLC Workflows (GitHub)](https://github.com/awslabs/aidlc-workflows)
 - [Proactive EKS Monitoring with CloudWatch](https://aws.amazon.com/blogs/containers/proactive-amazon-eks-monitoring-with-amazon-cloudwatch-operator-and-aws-control-plane-metrics/)
-- [AWS Hosted MCP Servers](https://github.com/awslabs/mcp)
+- [AWS MCP Servers (개별 65+ GA)](https://github.com/awslabs/mcp)
 - [Kagent - Kubernetes AI Agent](https://github.com/kagent-dev/kagent)
 - [Strands Agents SDK](https://github.com/strands-agents/sdk-python)
