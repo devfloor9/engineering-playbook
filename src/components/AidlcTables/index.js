@@ -1,3 +1,11 @@
 export { default as AidlcPhaseMapping } from './AidlcPhaseMapping';
 export { default as EksCapabilities } from './EksCapabilities';
 export { default as ProductivityMetrics } from './ProductivityMetrics';
+export { default as AidlcPrinciples } from './AidlcPrinciples';
+export { default as AidlcPhaseActivities } from './AidlcPhaseActivities';
+export { default as AiCodingAgentComparison } from './AiCodingAgentComparison';
+export { default as QualityGates } from './QualityGates';
+export { default as AiAgentEcosystem } from './AiAgentEcosystem';
+export { default as DetailedMetrics } from './DetailedMetrics';
+export { default as AidlcPipeline } from './AidlcPipeline';
+export { default as AidlcArtifacts } from './AidlcArtifacts';

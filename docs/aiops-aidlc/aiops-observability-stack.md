@@ -10,7 +10,7 @@ last_update:
   author: devfloor9
 ---
 
-import { ArchitectureLayers, ManagedAddons, ServiceComparison } from '@site/src/components/ObservabilityStackTables';
+import { ArchitectureLayers, ManagedAddons, ServiceComparison, ObservabilityPillars, StackSelectionPatterns, DataFlowSummary, ProcessorSettings, ContainerInsightsMetrics, ApplicationSignalsLanguages, DevOpsGuruCost, EKSMCPTools, ErrorBudget, AlertOptimization } from '@site/src/components/ObservabilityStackTables';
 
 # EKS 지능형 관찰성 스택 구축
 
@@ -26,12 +26,7 @@ import { ArchitectureLayers, ManagedAddons, ServiceComparison } from '@site/src/
 
 관찰성의 세 가지 기둥과 AI 분석 레이어를 결합하면 진정한 지능형 운영이 가능합니다.
 
-| 필러 | 역할 | AWS 서비스 |
-|------|------|-----------|
-| **Metrics** | 수치적 시계열 데이터 | AMP (Amazon Managed Prometheus), CloudWatch Metrics |
-| **Logs** | 이벤트 기반 텍스트 데이터 | CloudWatch Logs, OpenSearch |
-| **Traces** | 분산 요청 추적 | AWS X-Ray, ADOT |
-| **AI 분석** | ML 기반 이상 탐지 및 인사이트 | DevOps Guru, CloudWatch AI, Q Developer |
+<ObservabilityPillars />
 
 :::info 이 문서의 범위
 Managed Add-on 기반 관찰성 기초부터 AI 분석 레이어까지, EKS 환경에서 지능형 관찰성 스택을 구축하는 전체 과정을 다룹니다. AWS가 오픈소스 관찰성 도구를 관리형으로 운영하여 **복잡도를 제거**하면서 **K8s 네이티브 관찰성을 극대화**하는 전략을 중심으로 설명합니다. 이 문서는 AWS 네이티브 스택을 기준으로 작성되었지만, ADOT(OpenTelemetry)를 수집 레이어로 사용하면 3rd Party 백엔드와도 동일한 아키텍처를 적용할 수 있습니다.
@@ -41,11 +36,7 @@ Managed Add-on 기반 관찰성 기초부터 AI 분석 레이어까지, EKS 환�
 
 실제 EKS 운영 환경에서는 조직의 요구사항과 기존 투자에 따라 크게 세 가지 관찰성 스택 패턴이 사용됩니다:
 
-| 패턴 | 수집 레이어 | 백엔드 | 적합한 환경 |
-|------|-----------|--------|-----------|
-| **AWS 네이티브** | CloudWatch Observability Agent | CloudWatch Logs/Metrics, X-Ray | AWS 서비스 의존도가 높고, 단일 콘솔 관리를 선호하는 팀 |
-| **OSS 중심** | ADOT (OpenTelemetry) | AMP (Prometheus), AMG (Grafana), X-Ray | K8s 네이티브 도구 선호, 멀티클라우드 전략, 벤더 종속 최소화 |
-| **3rd Party** | ADOT 또는 벤더 전용 에이전트 | Datadog, Sumo Logic, Splunk, New Relic 등 | 기존 3rd Party 투자가 있거나, 통합 SaaS 대시보드를 선호하는 조직 |
+<StackSelectionPatterns />
 
 :::tip 수집 레이어의 핵심: ADOT (OpenTelemetry)
 
@@ -236,13 +227,7 @@ graph TB
 
 ### 3.1 데이터 흐름 요약
 
-| 레이어 | 구성 요소 | 역할 |
-|--------|----------|------|
-| **수집** | ADOT, CW Agent, Fluent Bit, Node Monitor, Flow Monitor | 메트릭/로그/트레이스/이벤트 수집 |
-| **전송** | OTLP, Remote Write, CW API, X-Ray API | 표준 프로토콜로 데이터 전달 |
-| **저장** | AMP, CloudWatch Logs/Metrics, X-Ray | 시계열 저장 및 인덱싱 |
-| **분석** | AMG, CloudWatch AI, DevOps Guru, Application Signals | AI/ML 기반 분석 및 시각화 |
-| **실행** | Hosted MCP, Kiro, Q Developer, Kagent | AI 기반 자동 대응 및 복구 |
+<DataFlowSummary />
 
 ---
 
@@ -439,13 +424,7 @@ ADOT Collector의 파이프라인은 `receivers → processors → exporters` �
 
 **핵심 프로세서 설정**:
 
-| 프로세서 | 역할 | 권장 설정 |
-|---------|------|----------|
-| `memory_limiter` | OOM 방지 | limit_mib: 512, spike_limit: 128 |
-| `batch` | 네트워크 효율화 | timeout: 10s, batch_size: 1024 |
-| `filter` | 불필요 메트릭 제거 | go_*, process_* 제외 |
-| `resource` | 메타데이터 추가 | cluster.name, region 부착 |
-| `resourcedetection` | 환경 자동 감지 | EKS, EC2 감지기 활성화 |
+<ProcessorSettings />
 
 ---
 
@@ -571,14 +550,7 @@ helm install amazon-cloudwatch-observability \
 
 Enhanced Container Insights가 수집하는 메트릭 범위:
 
-| 카테고리 | 메트릭 예시 | 설명 |
-|---------|-----------|------|
-| **Control Plane** | `apiserver_request_total`, `etcd_db_total_size` | API 서버, etcd, 스케줄러 상태 |
-| **Node** | `node_cpu_utilization`, `node_memory_working_set` | 노드 리소스 사용량 |
-| **Pod** | `pod_cpu_utilization`, `pod_memory_working_set` | Pod 리소스 사용량 |
-| **Container** | `container_cpu_limit`, `container_restart_count` | 컨테이너 수준 상세 |
-| **Service** | `service_number_of_running_pods` | 서비스 레벨 집계 |
-| **Namespace** | `namespace_number_of_running_pods` | 네임스페이스 레벨 집계 |
+<ContainerInsightsMetrics />
 
 ### 6.3 EKS Control Plane 메트릭
 
@@ -610,12 +582,7 @@ Application Signals는 **zero-code 계측**으로 애플리케이션의 서비�
 
 ### 7.1 지원 언어 및 계측 방식
 
-| 언어 | 계측 방식 | 상태 |
-|------|----------|------|
-| **Java** | ADOT Java Agent 자동 주입 | GA |
-| **Python** | ADOT Python Auto-instrumentation | GA |
-| **.NET** | ADOT .NET Auto-instrumentation | GA |
-| **Node.js** | ADOT Node.js Auto-instrumentation | GA |
+<ApplicationSignalsLanguages />
 
 ### 7.2 활성화 방법
 
@@ -739,12 +706,7 @@ DevOps Guru의 이상 탐지는 다음 단계로 작동합니다:
 
 ### 8.4 비용 및 활성화 팁
 
-| 항목 | 설명 |
-|------|------|
-| **과금 기준** | 분석된 AWS 리소스 수 기준 (시간당) |
-| **예상 비용** | 리소스 100개 기준 월 ~$50 |
-| **무료 티어** | 최초 3개월 무료 체험 |
-| **활성화 권장** | 프로덕션 클러스터에만 활성화 |
+<DevOpsGuruCost />
 
 ---
 
@@ -813,7 +775,7 @@ CloudWatch Investigations의 결과를 Hosted MCP 서버를 통해 Kiro에서 �
 
 ### 10.1 MCP가 관찰성에 가져오는 변화
 
-기존에는 CloudWatch 콘솔, Grafana 대시보드, X-Ray 콘솔을 각각 열어 문제를 진단했습니다. AWS MCP 서버(개별 로컬 65+ GA 또는 Fully Managed Preview)를 사용하면 **Kiro나 Q Developer에서 모든 관찰성 데이터를 통합 조회**할 수 있습니다.
+기존에는 CloudWatch 콘솔, Grafana 대시보드, X-Ray 콘솔을 각각 열어 문제를 진단했습니다. AWS MCP 서버(개별 로컬 50+ GA 또는 Fully Managed Preview)를 사용하면 **Kiro나 Q Developer에서 모든 관찰성 데이터를 통합 조회**할 수 있습니다.
 
 ```mermaid
 graph LR
@@ -854,14 +816,7 @@ graph LR
 
 EKS MCP 서버가 제공하는 주요 도구:
 
-| 도구 | 기능 | 활용 시나리오 |
-|------|------|-------------|
-| `get_cluster_status` | 클러스터 전체 상태 조회 | 정기 건강 검진 |
-| `list_pods` | Pod 목록 및 상태 | 장애 Pod 식별 |
-| `get_pod_logs` | Pod 로그 조회 | 에러 로그 분석 |
-| `describe_node` | 노드 상세 정보 | 노드 리소스 문제 진단 |
-| `get_events` | K8s 이벤트 조회 | 최근 이벤트 분석 |
-| `list_deployments` | Deployment 상태 | 배포 상태 확인 |
+<EKSMCPTools />
 
 ### 10.3 통합 분석 시나리오
 
@@ -953,11 +908,7 @@ spec:
 
 ### 11.3 Error Budget 개념
 
-| SLO | 월간 Error Budget | 허용 다운타임 |
-|-----|-------------------|-------------|
-| 99.9% | 0.1% | 43.2분 |
-| 99.95% | 0.05% | 21.6분 |
-| 99.99% | 0.01% | 4.32분 |
+<ErrorBudget />
 
 ### 11.4 CloudWatch Composite Alarms
 
@@ -976,13 +927,7 @@ aws cloudwatch put-composite-alarm \
 
 ### 11.5 알림 최적화 체크리스트
 
-| 항목 | 전략 | 기대 효과 |
-|------|------|----------|
-| **SLO 기반 알림** | Error Budget 소진율 기준 알림 | 알림 수 70% 감소 |
-| **Composite Alarms** | 복합 조건으로 노이즈 필터링 | 오탐률 50% 감소 |
-| **DevOps Guru** | ML이 정상/비정상 자동 판단 | 학습 후 오탐 80% 감소 |
-| **알림 라우팅** | 심각도별 채널 분리 (PagerDuty, Slack) | 대응 속도 40% 향상 |
-| **자동 복구** | 알림 → EventBridge → Lambda 자동 대응 | 수동 개입 60% 감소 |
+<AlertOptimization />
 
 ---
 

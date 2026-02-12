@@ -4,7 +4,7 @@ const McpServerTypes = () => {
   const types = [
     {
       name: '개별 로컬 MCP 서버',
-      count: '65+',
+      count: '50+',
       status: 'GA',
       statusColor: '#059669',
       color: '#2563eb',

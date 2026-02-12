@@ -1,3 +1,9 @@
 export { default as ScalingComparison } from './ScalingComparison';
 export { default as ResponsePatterns } from './ResponsePatterns';
 export { default as MaturityTable } from './MaturityTable';
+export { default as EvolutionStages } from './EvolutionStages';
+export { default as MLModelComparison } from './MLModelComparison';
+export { default as AnomalyMetrics } from './AnomalyMetrics';
+export { default as RightSizingResults } from './RightSizingResults';
+export { default as ChaosExperiments } from './ChaosExperiments';
+export { default as DashboardPanels } from './DashboardPanels';

@@ -1,18 +1,18 @@
 ---
 title: "AIDLC 프레임워크 - AI 주도 개발 라이프사이클"
 sidebar_label: "AIDLC 프레임워크"
-description: "Kiro Spec-driven 개발, EKS Capabilities 기반 선언적 자동화, AI Agent 거버넌스를 결합한 AI 주도 개발 방법론"
+description: "AWS AI-DLC 방법론을 EKS 환경에 적용하여 개발과 운영을 AI로 고도화하는 실전 가이드"
 sidebar_position: 4
 category: "aiops-aidlc"
-tags: [aidlc, kiro, mcp, gitops, argocd, ack, kro, quality-gates, ai-agent, eks]
+tags: [aidlc, kiro, mcp, gitops, argocd, ack, kro, ddd, ai-agent, eks]
 last_update:
   date: 2026-02-12
   author: devfloor9
 ---
 
-import { AidlcPhaseMapping, EksCapabilities, ProductivityMetrics } from '@site/src/components/AidlcTables';
+import { AidlcPhaseMapping, EksCapabilities, ProductivityMetrics, AidlcPrinciples, AidlcPhaseActivities, AiCodingAgentComparison, QualityGates, AiAgentEcosystem, DetailedMetrics, AidlcPipeline, AidlcArtifacts } from '@site/src/components/AidlcTables';
 
-# AIDLC 프레임워크 - AI 주도 개발 라이프사이클
+# AIDLC 프레임워크 — EKS 환경에서의 AI 주도 개발·운영 고도화
 
 > 📅 **작성일**: 2026-02-12 | ⏱️ **읽는 시간**: 약 30분 | 📌 **기준 환경**: EKS 1.35+, Kiro, Managed Argo CD
 
@@ -20,40 +20,117 @@ import { AidlcPhaseMapping, EksCapabilities, ProductivityMetrics } from '@site/s
 
 ## 1. 개요
 
-### 1.1 SDLC에서 AIDLC로
+### 1.1 왜 AIDLC인가
 
-전통적 소프트웨어 개발 라이프사이클(SDLC)은 요구사항 → 설계 → 구현 → 테스트 → 배포 → 운영의 선형적 흐름을 따릅니다. AI 도구의 등장으로 이 과정은 근본적으로 변화합니다.
+전통적 소프트웨어 개발 라이프사이클(SDLC)은 사람 중심의 장기 반복 주기(주/월 단위)를 전제로 설계되었습니다. 데일리 스탠드업, 스프린트 리뷰, 회고 같은 리추얼은 이 긴 주기에 최적화된 것입니다. AI의 등장으로 이 전제가 무너집니다.
 
-**AIDLC(AI-Driven Development Lifecycle)**는 AWS Labs가 제시한 방법론으로, AI 에이전트가 개발 라이프사이클의 각 단계에 깊이 통합되어 생산성과 품질을 동시에 향상시킵니다.
+AI는 요구사항 분석, 태스크 분해, 코드 생성, 테스트까지 **시간/일 단위**로 수행합니다. 기존 SDLC에 AI를 끼워 넣는(Retrofit) 접근은 이 잠재력을 제한합니다 — 마치 자동차 시대에 더 빠른 마차를 만드는 것과 같습니다.
+
+**AIDLC(AI-Driven Development Lifecycle)**는 AWS Labs가 제시한 방법론으로, AI를 **첫 원칙(First Principles)**에서 재구성하여 개발 라이프사이클의 핵심 협력자로 통합합니다.
 
 ```
-SDLC (전통적)                    AIDLC (AI 주도)
-━━━━━━━━━━━━━━                  ━━━━━━━━━━━━━━━━
-요구사항 (수동)          →        Inception (AI 분석 + Spec 생성)
-설계 (수동)             →        Construction (AI 코드 생성 + 리뷰)
-구현 (수동)             →        Construction (Kiro Spec → 코드)
-테스트 (수동/CI)        →        Quality Gates (AI 검증)
-배포 (CI/CD)           →        Operations (Managed Argo CD + MCP)
-운영 (수동 모니터링)     →        Operations (AI Agent 자율 운영)
+전통적 SDLC                          AIDLC
+━━━━━━━━━━━━━━                      ━━━━━━━━━━━━━━━━━━━
+사람이 계획하고 실행                    AI가 제안하고, 사람이 검증
+주/월 단위 반복 (Sprint)               시간/일 단위 반복 (Bolt)
+설계 기법은 팀 선택                     DDD/BDD/TDD를 방법론에 내장
+역할 사일로 (FE/BE/DevOps)            AI로 역할 경계 초월
+수동 요구사항 분석                      AI가 Intent를 Unit으로 분해
+순차적 핸드오프                         연속 흐름 + Loss Function 검증
 ```
 
-### 1.2 AIDLC의 핵심 원칙
+### 1.2 AIOps 전략과의 연결
 
-| 원칙 | 설명 |
-|------|------|
-| **Spec-Driven** | 자연어 스펙에서 코드가 자동 생성됨 |
-| **AI-Augmented** | 모든 단계에서 AI가 보조하거나 주도함 |
-| **Programmatic** | 디렉팅(수동 지시) 대신 프로그래머틱 자동화 |
-| **Continuous** | 개발-배포-운영이 끊김 없이 연결됨 |
-| **Observable** | 모든 단계의 결과가 측정되고 피드백됨 |
+[AIOps 전략 가이드](./aiops-introduction.md)에서 다룬 AWS 오픈소스 전략 → MCP 통합 → AI 도구 → Kiro 오케스트레이션은 AIDLC를 실현하는 **기술 기반**입니다. [지능형 관찰성 스택](./aiops-observability-stack.md)에서 구축한 3-Pillar + AI 분석 레이어는 Operations 단계의 **데이터 기반**입니다. 이 문서는 그 기술·데이터 기반 위에서 **개발과 운영을 체계적으로 고도화하는 방법론**을 제시합니다.
 
-:::info 이 문서의 범위
-AIDLC 3단계(Inception → Construction → Operations)를 EKS 환경에서 구현하는 방법을 다룹니다. Kiro의 Spec-driven 개발, EKS Capabilities(Managed Argo CD, ACK, KRO)를 활용한 선언적 자동화, AI Agent를 통한 운영 자동화 확장을 중심으로 설명합니다.
+```
+[Doc 1] AIOps 전략 ──── 기술 기반 (MCP, Kiro, AI Agent)
+           │
+[Doc 2] 관찰성 스택 ──── 데이터 기반 (ADOT, AMP/AMG, CloudWatch AI)
+           │
+[Doc 3] AIDLC 프레임워크 ── 방법론 (이 문서)
+           │
+[Doc 4] 예측 운영 ──────── 심화 (ML 예측, 자동 복구, Chaos)
+```
+
+:::info 원문 참조
+AIDLC의 핵심 개념은 AWS Labs의 [AI-DLC Method Definition](https://prod.d13rzhkk8cj2z0.amplifyapp.com/)에서 정의됩니다. 이 문서는 해당 방법론을 EKS 환경에서 실용적으로 구현하는 가이드입니다.
 :::
 
 ---
 
-## 2. AIDLC 3단계
+## 2. AIDLC 핵심 개념
+
+### 2.1 10대 원칙
+
+<AidlcPrinciples />
+
+이 중 EKS 환경에서 특히 중요한 3가지:
+
+- **Reverse the Conversation Direction** — AI가 EKS 클러스터 상태를 MCP로 수집하고, 배포 계획을 먼저 제안합니다. 개발자는 Google Maps의 운전자처럼 목적지(Intent)를 설정하고, AI가 제시하는 경로를 검증합니다.
+- **Integration of Design Techniques** — DDD를 방법론 핵심에 내장하여, AI가 비즈니스 로직을 Aggregate, Entity, Value Object로 자동 모델링합니다. Scrum에서 "팀이 알아서 선택"하던 설계 기법이 AI-DLC에서는 필수 코어입니다.
+- **Minimize Stages, Maximize Flow** — 핸드오프를 최소화하고 연속 흐름을 구현합니다. 각 단계의 사람 검증은 **Loss Function** 역할로, 하류에 전파될 오류를 조기에 차단합니다.
+
+### 2.2 핵심 산출물 (Artifacts)
+
+AI-DLC는 전통적 SDLC의 용어를 AI 시대에 맞게 재정의합니다.
+
+```
+┌─────────┐    ┌─────────┐    ┌─────────┐
+│  Intent  │───▶│  Unit   │───▶│  Bolt   │
+│ 고수준 목적│    │독립 작업단위│   │빠른 반복 │
+│          │    │(DDD Sub- │   │(Sprint  │
+│비즈니스 목표│   │ domain)  │   │ 대체)   │
+└─────────┘    └─────────┘    └─────────┘
+                    │
+              ┌─────┴─────┐
+              ▼           ▼
+        ┌──────────┐ ┌──────────┐
+        │ Domain   │ │ Logical  │
+        │ Design   │ │ Design   │
+        │비즈니스 로직│ │NFR+패턴  │
+        └──────────┘ └──────────┘
+              │           │
+              └─────┬─────┘
+                    ▼
+            ┌──────────────┐
+            │ Deployment   │
+            │    Unit      │
+            │컨테이너+Helm+ │
+            │  Terraform   │
+            └──────────────┘
+```
+
+<AidlcArtifacts />
+
+:::tip Context Memory와 추적성
+모든 산출물은 **Context Memory**로 저장되어 AI가 라이프사이클 전체에서 참조합니다. 산출물 간 양방향 추적(Domain Model ↔ User Story ↔ 테스트 계획)이 보장되어, AI가 항상 정확한 맥락에서 작업합니다.
+:::
+
+### 2.3 AI 주도 재귀적 워크플로우
+
+AI-DLC의 핵심은 **AI가 계획을 제안하고 사람이 검증하는 재귀적 정제** 과정입니다.
+
+```
+Intent (비즈니스 목적)
+  │
+  ▼
+AI: Level 1 Plan 생성 ◀──── 사람: 검증 · 수정
+  │
+  ├─▶ Step 1 ──▶ AI: Level 2 분해 ◀── 사람: 검증
+  │                 ├─▶ Sub-task 1.1 ──▶ AI 실행 ◀── 사람: 검증
+  │                 └─▶ Sub-task 1.2 ──▶ AI 실행 ◀── 사람: 검증
+  │
+  ├─▶ Step 2 ──▶ AI: Level 2 분해 ◀── 사람: 검증
+  │                 └─▶ ...
+  └─▶ Step N ──▶ ...
+
+[모든 산출물 → Context Memory → 양방향 추적성]
+```
+
+각 단계의 사람 검증은 **Loss Function**입니다 — 오류를 조기에 포착하여 하류 전파를 방지합니다. AI가 경로별(신규 개발, 리팩터링, 결함 수정) 고정 워크플로우를 규정하지 않고, 상황에 맞는 Level 1 Plan을 제안하는 유연한 접근입니다.
+
+### 2.4 AIDLC 3단계 개관
 
 AIDLC는 **Inception**, **Construction**, **Operations** 3단계로 구성됩니다.
 
@@ -61,22 +138,22 @@ AIDLC는 **Inception**, **Construction**, **Operations** 3단계로 구성됩니
 
 ```mermaid
 graph LR
-    subgraph Inception["💡 Inception"]
+    subgraph Inception["Inception"]
         REQ["요구사항 분석"]
-        SPEC["Spec 생성\n(requirements.md)"]
-        DESIGN["설계\n(design.md)"]
+        SPEC["Spec 생성"]
+        DESIGN["설계"]
     end
 
-    subgraph Construction["🔨 Construction"]
-        TASKS["태스크 분해\n(tasks.md)"]
+    subgraph Construction["Construction"]
+        TASKS["태스크 분해"]
         CODE["코드 생성"]
         REVIEW["AI 코드 리뷰"]
         TEST["테스트 생성"]
     end
 
-    subgraph Operations["🚀 Operations"]
-        DEPLOY["선언적 배포\n(Argo CD)"]
-        OBSERVE["관찰성\n(AMP/AMG)"]
+    subgraph Operations["Operations"]
+        DEPLOY["선언적 배포"]
+        OBSERVE["관찰성"]
         AGENT["AI Agent\n자율 운영"]
     end
 
@@ -91,52 +168,49 @@ graph LR
     style Operations fill:#fce4ec,stroke:#e91e63
 ```
 
-### 2.1 Inception 단계
-
-| 활동 | AI 도구 | 산출물 |
-|------|---------|--------|
-| 요구사항 분석 | Kiro, Q Developer | `requirements.md` |
-| 아키텍처 설계 | Kiro, Claude | `design.md` |
-| 기술 스택 결정 | Kiro (MCP 기반 AWS 서비스 탐색) | 기술 스택 문서 |
-| 비용 추정 | Cost Analysis MCP | 비용 산정서 |
-
-### 2.2 Construction 단계
-
-| 활동 | AI 도구 | 산출물 |
-|------|---------|--------|
-| 태스크 분해 | Kiro | `tasks.md` |
-| 코드 생성 | Kiro, Q Developer, Copilot | 소스 코드 |
-| 코드 리뷰 | Q Developer (Security Scan) | 리뷰 코멘트 |
-| 테스트 생성 | Kiro, Q Developer | 테스트 코드 |
-| IaC 생성 | Kiro + AWS MCP | Terraform, Helm |
-
-### 2.3 Operations 단계
-
-| 활동 | AI 도구 | 산출물 |
-|------|---------|--------|
-| GitOps 배포 | Managed Argo CD | 자동 배포 |
-| 관찰성 분석 | AMP/AMG + CloudWatch AI | 대시보드, 알림 |
-| 이상 탐지 | DevOps Guru, CloudWatch | 인사이트 |
-| 자동 대응 | Kagent, Strands, Q Developer | 자동 복구 |
-| 인프라 관리 | ACK + KRO | K8s CRD 기반 관리 |
+<AidlcPhaseActivities />
 
 ---
 
-## 3. Kiro: Spec-Driven 개발
+## 3. Inception 단계 — 요구사항에서 설계까지
 
-### 3.1 Kiro의 핵심 워크플로우
+### 3.1 Mob Elaboration
 
-Kiro는 **Spec-driven 개발**을 통해 자연어 요구사항에서 코드까지의 전체 과정을 체계화합니다.
+Inception의 핵심 리추얼은 **Mob Elaboration**입니다 — Product Owner, 개발자, QA가 한 방에 모여 AI와 협업하는 요구사항 정제 세션입니다.
+
+```
+┌──────────────────────────────────────────────────┐
+│              Mob Elaboration 리추얼                │
+├──────────────────────────────────────────────────┤
+│                                                   │
+│  [AI] Intent를 User Story + Unit으로 분해 제안     │
+│    ↓                                              │
+│  [PO + Dev + QA] 검토 · 과잉/부족 설계 조정        │
+│    ↓                                              │
+│  [AI] 수정 반영 → NFR · Risk 추가 생성             │
+│    ↓                                              │
+│  [팀] 최종 검증 → Bolt 계획 확정                    │
+│                                                   │
+├──────────────────────────────────────────────────┤
+│  산출물:                                          │
+│  PRFAQ · User Stories · NFR 정의                  │
+│  Risk Register · 측정 기준 · Bolt 계획             │
+└──────────────────────────────────────────────────┘
+```
+
+기존 방법론에서 **수 주~수 개월** 걸리던 순차적 요구사항 분석을 AI가 초안을 생성하고 팀이 동시에 검토함으로써 **수 시간**으로 압축합니다.
+
+### 3.2 Kiro Spec-Driven Inception
+
+Kiro는 Mob Elaboration의 산출물을 **Spec 파일**로 체계화합니다. 자연어 요구사항에서 코드까지의 전체 과정을 구조화합니다.
 
 ```
 requirements.md → design.md → tasks.md → 코드 생성 → 검증
 ```
 
-이 워크플로우의 각 단계는 명확한 산출물을 가지며, AI가 각 단계를 자동화합니다.
+**EKS 예시: Payment Service 배포**
 
-### 3.2 Spec 예시: EKS 서비스 배포
-
-**`requirements.md`** (요구사항):
+`requirements.md`:
 
 ```markdown
 # Payment Service 배포 요구사항
@@ -153,7 +227,7 @@ requirements.md → design.md → tasks.md → 코드 생성 → 검증
 - EKS 1.35+ 호환
 ```
 
-**`design.md`** (설계):
+`design.md`:
 
 ```markdown
 # Payment Service 아키텍처
@@ -176,44 +250,44 @@ requirements.md → design.md → tasks.md → 코드 생성 → 검증
 - Secrets Manager CSI Driver
 ```
 
-**`tasks.md`** (태스크):
+`tasks.md`:
 
 ```markdown
 # 구현 태스크
 
-## Phase 1: 인프라
+## Bolt 1: 인프라
 - [ ] ACK DynamoDB Table CRD 작성
 - [ ] ACK SQS Queue CRD 작성
 - [ ] KRO ResourceGroup 정의 (DynamoDB + SQS 통합)
 - [ ] Karpenter NodePool 설정 (graviton, spot)
 
-## Phase 2: 애플리케이션
+## Bolt 2: 애플리케이션
 - [ ] Go REST API 구현
 - [ ] DynamoDB SDK 연동
 - [ ] SQS consumer 구현
 - [ ] Dockerfile + multi-stage build
 
-## Phase 3: 배포
+## Bolt 3: 배포
 - [ ] Helm chart 작성
 - [ ] Argo CD Application 정의
 - [ ] HPA manifest 작성
 - [ ] NetworkPolicy 작성
 
-## Phase 4: 관찰성
+## Bolt 4: 관찰성
 - [ ] ADOT sidecar 설정
 - [ ] Application Signals annotation
 - [ ] CloudWatch 대시보드
 - [ ] SLO 알림 설정
 ```
 
-:::tip 프로그래머틱 vs 디렉팅
-**디렉팅 방식**: "DynamoDB 테이블 만들어줘" → "SQS도 필요해" → "이제 배포해줘" → 매번 수동 지시
-**프로그래머틱 방식**: Kiro가 requirements.md를 분석 → design.md 생성 → tasks.md 분해 → 코드 자동 생성 → 검증까지 자동. **비용 효율적이고 빠른 대응이 가능합니다.**
+:::tip Spec-Driven의 핵심 가치
+**디렉팅 방식**: "DynamoDB 만들어줘" → "SQS도 필요해" → "이제 배포해줘" → 매번 수동 지시, 맥락 유실 위험
+**Spec-Driven**: Kiro가 requirements.md를 분석 → design.md 생성 → tasks.md 분해 → 코드 자동 생성 → 검증까지 일관된 Context Memory로 연결
 :::
 
-### 3.3 MCP 네이티브 통합
+### 3.3 MCP 기반 실시간 컨텍스트 수집
 
-Kiro는 MCP(Model Context Protocol) 네이티브로, AWS Hosted MCP 서버를 통해 실시간으로 AWS 서비스와 상호작용합니다.
+Kiro는 MCP 네이티브로, Inception 단계에서 AWS Hosted MCP 서버를 통해 실시간 인프라 상태를 수집합니다.
 
 ```
 [Kiro + MCP 상호작용]
@@ -226,536 +300,227 @@ Kiro: "비용 분석"
   → Cost Analysis MCP Server: analyze_cost(service="EKS")
   → 응답: { monthly: "$450", recommendations: [...] }
 
-Kiro: "Terraform 코드 생성"
-  → AWS Docs MCP Server: get_terraform_examples(resource="dynamodb")
-  → Kiro: Terraform 코드 자동 생성 + 검증
+Kiro: "현재 워크로드 분석"
+  → EKS MCP Server: list_deployments(namespace="payment")
+  → 응답: { deployments: [...], resource_usage: {...} }
 ```
+
+이를 통해 design.md 생성 시 **현재 클러스터 상태와 비용을 반영한 설계**가 가능합니다. MCP 통합 아키텍처의 상세는 [AIOps 전략 가이드 — MCP 통합 인터페이스](./aiops-introduction.md)를 참조하세요.
 
 ---
 
-## 4. AI 코딩 에이전트
+## 4. Construction 단계 — 설계에서 코드까지
 
-### 4.1 Amazon Q Developer
+### 4.1 DDD 통합: Domain Design에서 Logical Design까지
 
-Amazon Q Developer는 AWS에 최적화된 AI 코딩 에이전트입니다.
+AI-DLC에서 DDD는 **선택사항이 아닌 방법론의 내장 요소**입니다. AI가 비즈니스 로직을 자동으로 DDD 원칙에 따라 모델링합니다.
 
-| 기능 | 설명 |
-|------|------|
-| **코드 생성** | AWS SDK, CDK, Terraform 코드 자동 생성 |
-| **Security Scan** | 코드 보안 취약점 자동 탐지 |
-| **코드 변환** | Java 8→17, .NET Framework→.NET Core 등 |
-| **CloudWatch Investigations** | 운영 이슈 AI 분석 |
-| **EKS 트러블슈팅** | kubectl 명령어 제안, YAML 오류 수정 |
+```mermaid
+graph LR
+    subgraph DD["Domain Design"]
+        AGG["Aggregate"]
+        ENT["Entity"]
+        VO["Value Object"]
+        DE["Domain Event"]
+    end
 
-### 4.2 GitHub Copilot
+    subgraph LD["Logical Design"]
+        CQRS["CQRS 패턴"]
+        CB["Circuit Breaker"]
+        ADR["ADR 생성"]
+    end
 
-```yaml
-# .github/copilot-instructions.md - EKS 프로젝트 가이드
-# Copilot에게 EKS 관련 코딩 컨벤션을 알려줍니다
+    subgraph CG["코드 생성"]
+        AWS["AWS 서비스 매핑"]
+        TEST["테스트 자동 생성"]
+    end
 
-project_context:
-  platform: EKS 1.35+
-  language: Go 1.22
-  infrastructure: Terraform + ACK
-  deployment: Argo CD
-  observability: ADOT + AMP
+    DD -->|NFR 적용| LD
+    LD -->|AI 코드 생성| CG
 
-conventions:
-  - Use structured logging (slog)
-  - All HTTP handlers return proper status codes
-  - Use context.Context for cancellation
-  - Kubernetes resources use labels: app, version, team
+    style DD fill:#e8f5e9,stroke:#4caf50
+    style LD fill:#e3f2fd,stroke:#2196f3
+    style CG fill:#fff3e0,stroke:#ff9800
 ```
 
-### 4.3 AI 코딩 에이전트 비교
+**Payment Service 예시**:
 
-| 기능 | Amazon Q Developer | GitHub Copilot | Kiro |
-|------|-------------------|----------------|------|
-| **AWS 서비스 이해** | ★★★★★ | ★★★ | ★★★★ (MCP) |
-| **Spec-driven 개발** | ★★ | ★★ | ★★★★★ |
-| **보안 스캔** | ★★★★★ | ★★★ | ★★★ |
-| **MCP 통합** | ★★★★ | ★★ | ★★★★★ |
-| **EKS 운영** | ★★★★★ | ★★ | ★★★★ |
-| **비용** | Pro $19/월 | Business $19/월 | 별도 |
+1. **Domain Design** — AI가 비즈니스 로직 모델링
+   - Aggregate: `Payment` (transactionId, amount, status)
+   - Entity: `PaymentMethod`, `Customer`
+   - Value Object: `Money`, `Currency`
+   - Domain Event: `PaymentCreated`, `PaymentCompleted`, `PaymentFailed`
 
----
+2. **Logical Design** — NFR 적용 + 아키텍처 패턴 선택
+   - CQRS: 결제 생성(Command) / 조회(Query) 분리
+   - Circuit Breaker: 외부 결제 게이트웨이 호출
+   - ADR: "DynamoDB on-demand vs provisioned" 의사결정 기록
 
-## 5. EKS Capabilities + GitOps
+3. **코드 생성** — AWS 서비스 매핑
+   - Aggregate → EKS Deployment + DynamoDB Table
+   - Domain Event → SQS FIFO Queue
+   - Circuit Breaker → Envoy sidecar + Istio
 
-### 5.1 EKS Capabilities (2025.11)
+개발자는 각 단계에서 AI가 생성한 모델을 **검증·조정**합니다. 이 검증이 Loss Function 역할을 합니다.
 
-EKS Capabilities는 인기 있는 오픈소스 도구를 AWS 관리형으로 제공합니다.
+### 4.2 Mob Construction
+
+Construction의 핵심 리추얼은 **Mob Construction**입니다. 팀이 한 방에 모여 각자의 Unit을 개발하며, Domain Design 단계에서 생성한 통합 사양(Integration Specification)을 교환합니다.
+
+```
+[Mob Construction 흐름]
+
+Team A: Payment Unit        Team B: Notification Unit
+  │                            │
+  ├─ Domain Design 완료        ├─ Domain Design 완료
+  │                            │
+  └────── 통합 사양 교환 ──────┘
+          (Domain Event 계약)
+  │                            │
+  ├─ Logical Design            ├─ Logical Design
+  ├─ 코드 생성                  ├─ 코드 생성
+  ├─ 테스트                    ├─ 테스트
+  └─ Bolt 전달                 └─ Bolt 전달
+```
+
+각 Unit은 느슨하게 결합되어 **병렬 개발**이 가능하며, Domain Event를 통해 통합됩니다. AI가 통합 테스트도 자동 생성합니다.
+
+:::warning Brown-field (기존 시스템) 접근
+기존 시스템에 기능 추가나 리팩터링을 수행하는 경우, Construction 단계에 **추가 스텝**이 필요합니다:
+
+1. AI가 기존 코드를 **시맨틱 모델로 역공학** (코드 → 모델 승격)
+   - **Static Model**: 컴포넌트, 책임, 관계
+   - **Dynamic Model**: 주요 유스케이스의 컴포넌트 상호작용
+2. 개발자가 역공학된 모델을 검증·수정
+3. 이후 Green-field와 동일한 Construction 흐름 진행
+
+이를 통해 AI가 기존 시스템의 맥락을 정확히 파악한 상태에서 변경을 수행합니다.
+:::
+
+### 4.3 AI 코딩 에이전트
+
+AIDLC Construction 단계에서 활용하는 AI 코딩 에이전트들입니다. Amazon Q Developer와 Kiro는 **Anthropic Claude** 모델을 사용하며, Kiro는 오픈 웨이트 모델도 지원하여 비용 최적화와 특수 도메인 확장이 가능합니다.
+
+<AiCodingAgentComparison />
+
+### 4.4 EKS Capabilities 기반 선언적 자동화
+
+EKS Capabilities(2025.11)는 인기 있는 오픈소스 도구를 AWS 관리형으로 제공하여, Construction 단계의 산출물을 선언적으로 배포합니다.
 
 <EksCapabilities />
 
-### 5.2 Managed Argo CD
+#### 4.4.1 Managed Argo CD — GitOps
 
-Managed Argo CD는 GitOps를 AWS 인프라에서 관리형으로 운영합니다.
+Managed Argo CD는 GitOps를 AWS 인프라에서 관리형으로 운영합니다. Kiro가 생성한 코드를 Git에 푸시하면 자동으로 EKS에 배포됩니다. Application CRD로 단일 환경을, ApplicationSet으로 멀티 환경(dev/staging/production)을 선언적으로 관리합니다.
 
-```yaml
-# Argo CD Application 정의
-apiVersion: argoproj.io/v1alpha1
-kind: Application
-metadata:
-  name: payment-service
-  namespace: argocd
-spec:
-  project: default
-  source:
-    repoURL: https://github.com/my-org/payment-service
-    targetRevision: main
-    path: deploy/overlays/production
-  destination:
-    server: https://kubernetes.default.svc
-    namespace: payment
-  syncPolicy:
-    automated:
-      prune: true
-      selfHeal: true
-    syncOptions:
-      - CreateNamespace=true
-      - PrunePropagationPolicy=foreground
-    retry:
-      limit: 5
-      backoff:
-        duration: 5s
-        factor: 2
-        maxDuration: 3m
-```
+#### 4.4.2 ACK — AWS 리소스 선언적 관리
 
-**ApplicationSet으로 멀티 환경 관리**:
-
-```yaml
-apiVersion: argoproj.io/v1alpha1
-kind: ApplicationSet
-metadata:
-  name: payment-service-set
-spec:
-  generators:
-    - list:
-        elements:
-          - cluster: dev
-            namespace: payment-dev
-            values:
-              replicas: "1"
-          - cluster: staging
-            namespace: payment-staging
-            values:
-              replicas: "2"
-          - cluster: production
-            namespace: payment-prod
-            values:
-              replicas: "3"
-  template:
-    metadata:
-      name: 'payment-{{cluster}}'
-    spec:
-      source:
-        repoURL: https://github.com/my-org/payment-service
-        targetRevision: main
-        path: 'deploy/overlays/{{cluster}}'
-      destination:
-        server: https://kubernetes.default.svc
-        namespace: '{{namespace}}'
-      syncPolicy:
-        automated:
-          prune: true
-          selfHeal: true
-```
-
-### 5.3 ACK (AWS Controllers for Kubernetes)
-
-ACK는 50+ AWS 서비스를 K8s CRD로 선언적으로 관리합니다.
-
-```yaml
-# ACK로 DynamoDB 테이블 생성
-apiVersion: dynamodb.services.k8s.aws/v1alpha1
-kind: Table
-metadata:
-  name: payment-transactions
-  namespace: payment
-spec:
-  tableName: payment-transactions
-  billingMode: PAY_PER_REQUEST
-  attributeDefinitions:
-    - attributeName: transactionId
-      attributeType: S
-    - attributeName: createdAt
-      attributeType: N
-  keySchema:
-    - attributeName: transactionId
-      keyType: HASH
-    - attributeName: createdAt
-      keyType: RANGE
-  tags:
-    - key: Environment
-      value: production
-    - key: ManagedBy
-      value: ACK
-```
-
-```yaml
-# ACK로 SQS 큐 생성
-apiVersion: sqs.services.k8s.aws/v1alpha1
-kind: Queue
-metadata:
-  name: payment-events
-  namespace: payment
-spec:
-  queueName: payment-events.fifo
-  fifoQueue: true
-  contentBasedDeduplication: true
-  visibilityTimeout: 60
-  messageRetentionPeriod: 1209600
-  tags:
-    Environment: production
-    ManagedBy: ACK
-```
+ACK는 50+ AWS 서비스를 K8s CRD로 선언적으로 관리합니다. Kiro가 생성한 Domain Design의 인프라 요소(DynamoDB, SQS, S3 등)를 `kubectl apply`로 배포하며, Argo CD의 GitOps 워크플로우에 자연스럽게 통합됩니다.
 
 :::info ACK의 핵심 가치
-ACK를 사용하면 **클러스터 외부의 AWS 리소스도 K8s 선언적 모델로 관리**할 수 있습니다. DynamoDB, SQS, S3, RDS 등을 `kubectl apply`로 생성/수정/삭제하며, Argo CD의 GitOps 워크플로우에 자연스럽게 통합됩니다. 이것이 "K8s를 중심으로 모든 인프라를 선언적으로 관리"하는 전략입니다.
+ACK를 사용하면 **클러스터 외부의 AWS 리소스도 K8s 선언적 모델로 관리**할 수 있습니다. DynamoDB, SQS, S3, RDS 등을 K8s CRD로 생성/수정/삭제하며, 이것이 "K8s를 중심으로 모든 인프라를 선언적으로 관리"하는 전략입니다.
 :::
 
-### 5.4 KRO (Kubernetes Resource Orchestrator)
+#### 4.4.3 KRO — 복합 리소스 오케스트레이션
 
-KRO는 여러 K8s 리소스를 **단일 배포 단위(ResourceGroup)**로 묶어 관리합니다.
+KRO는 여러 K8s 리소스를 **단일 배포 단위(ResourceGroup)**로 묶습니다. AIDLC의 Deployment Unit 개념과 직접 매핑되어, Deployment + Service + HPA + ACK 리소스를 하나의 Custom Resource로 생성합니다.
 
-```yaml
-# KRO ResourceGroup: 애플리케이션 + 인프라를 하나로
-apiVersion: kro.run/v1alpha1
-kind: ResourceGroup
-metadata:
-  name: payment-service
-spec:
-  schema:
-    apiVersion: v1alpha1
-    kind: PaymentService
-    spec:
-      name:
-        type: string
-      replicas:
-        type: integer
-        default: 3
-      environment:
-        type: string
-        default: production
-  resources:
-    # 1. Deployment
-    - id: deployment
-      template:
-        apiVersion: apps/v1
-        kind: Deployment
-        metadata:
-          name: ${schema.spec.name}
-        spec:
-          replicas: ${schema.spec.replicas}
-          selector:
-            matchLabels:
-              app: ${schema.spec.name}
-          template:
-            metadata:
-              labels:
-                app: ${schema.spec.name}
-            spec:
-              containers:
-                - name: app
-                  image: my-registry/${schema.spec.name}:latest
+#### 4.4.4 LBC v3 Gateway API
 
-    # 2. Service
-    - id: service
-      template:
-        apiVersion: v1
-        kind: Service
-        metadata:
-          name: ${schema.spec.name}
-        spec:
-          selector:
-            app: ${schema.spec.name}
-          ports:
-            - port: 80
-              targetPort: 8080
+AWS Load Balancer Controller v3는 Gateway API를 GA로 전환하며 L4(NLB) + L7(ALB) 라우팅, QUIC/HTTP3, JWT 검증, 헤더 변환을 제공합니다. Gateway + HTTPRoute CRD로 트래픽을 선언적으로 관리합니다.
 
-    # 3. HPA
-    - id: hpa
-      template:
-        apiVersion: autoscaling/v2
-        kind: HorizontalPodAutoscaler
-        metadata:
-          name: ${schema.spec.name}
-        spec:
-          scaleTargetRef:
-            apiVersion: apps/v1
-            kind: Deployment
-            name: ${schema.spec.name}
-          minReplicas: ${schema.spec.replicas}
-          maxReplicas: 20
-          metrics:
-            - type: Resource
-              resource:
-                name: cpu
-                target:
-                  type: Utilization
-                  averageUtilization: 70
-
-    # 4. ACK DynamoDB Table
-    - id: dynamodb
-      template:
-        apiVersion: dynamodb.services.k8s.aws/v1alpha1
-        kind: Table
-        metadata:
-          name: ${schema.spec.name}-data
-        spec:
-          tableName: ${schema.spec.name}-data
-          billingMode: PAY_PER_REQUEST
-          attributeDefinitions:
-            - attributeName: id
-              attributeType: S
-          keySchema:
-            - attributeName: id
-              keyType: HASH
-```
-
-사용 시:
-
-```yaml
-# 이 한 줄로 Deployment + Service + HPA + DynamoDB 전체 생성
-apiVersion: v1alpha1
-kind: PaymentService
-metadata:
-  name: payment-v2
-spec:
-  name: payment-v2
-  replicas: 3
-  environment: production
-```
-
-### 5.5 LBC v3 Gateway API GA (2025.01)
-
-AWS Load Balancer Controller v3는 Gateway API를 GA로 전환하며 L4(NLB: TCPRoute, UDPRoute, TLSRoute) + L7(ALB: HTTPRoute, GRPCRoute) 라우팅, QUIC/HTTP3, JWT 검증 등을 제공합니다.
-
-```yaml
-# Gateway API 기반 라우팅
-apiVersion: gateway.networking.k8s.io/v1
-kind: Gateway
-metadata:
-  name: payment-gateway
-  annotations:
-    alb.ingress.kubernetes.io/scheme: internet-facing
-    alb.ingress.kubernetes.io/target-type: ip
-spec:
-  gatewayClassName: aws-alb
-  listeners:
-    - name: https
-      protocol: HTTPS
-      port: 443
-      tls:
-        mode: Terminate
-        certificateRefs:
-          - name: payment-cert
----
-apiVersion: gateway.networking.k8s.io/v1
-kind: HTTPRoute
-metadata:
-  name: payment-routes
-spec:
-  parentRefs:
-    - name: payment-gateway
-  rules:
-    - matches:
-        - path:
-            type: PathPrefix
-            value: /api/v1/payments
-      backendRefs:
-        - name: payment-service
-          port: 80
-```
-
----
-
-## 6. Hosted MCP 기반 IaC 자동화
-
-### 6.1 Kiro + MCP → IaC 자동 생성
-
-Kiro와 AWS Hosted MCP 서버를 결합하면 IaC(Infrastructure as Code)를 자동으로 생성할 수 있습니다.
-
-```mermaid
-graph TD
-    subgraph Kiro["🤖 Kiro (Spec-Driven)"]
-        REQ2["requirements.md"]
-        DES["design.md"]
-        TSK["tasks.md"]
-    end
-
-    subgraph MCP2["🔌 Hosted MCP Servers"]
-        EKS_MCP2["EKS MCP"]
-        COST["Cost Analysis MCP"]
-        DOCS["AWS Docs MCP"]
-    end
-
-    subgraph Output["📦 자동 생성 산출물"]
-        TF["Terraform\n모듈"]
-        HELM["Helm\nChart"]
-        ACK_CRD["ACK\nCRD"]
-        KRO_RG["KRO\nResourceGroup"]
-    end
-
-    subgraph Deploy["🚀 배포"]
-        ARGO["Managed\nArgo CD"]
-        GIT["Git\nRepository"]
-    end
-
-    REQ2 --> DES --> TSK
-    TSK --> |MCP 조회| MCP2
-    MCP2 --> Output
-    Output --> GIT
-    GIT --> ARGO
-
-    style Kiro fill:#e8f5e9,stroke:#4caf50
-    style MCP2 fill:#e3f2fd,stroke:#2196f3
-    style Output fill:#fff3e0,stroke:#ff9800
-    style Deploy fill:#fce4ec,stroke:#e91e63
-```
-
-### 6.2 자동화 파이프라인 예시
-
-```yaml
-# GitHub Actions - AIDLC 파이프라인
-name: AIDLC Pipeline
-on:
-  push:
-    branches: [main]
-    paths: ['specs/**']
-
-jobs:
-  inception:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Validate Specs
-        run: |
-          # Kiro가 생성한 specs 검증
-          kiro validate specs/requirements.md
-          kiro validate specs/design.md
-
-  construction:
-    needs: inception
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Generate Code from Specs
-        run: |
-          kiro generate --spec specs/tasks.md --output src/
-      - name: Security Scan
-        uses: aws/amazon-q-developer-action@v1
-        with:
-          scan-type: security
-          source-path: src/
-      - name: Run Tests
-        run: |
-          go test ./... -v -cover
-
-  deploy:
-    needs: construction
-    runs-on: ubuntu-latest
-    steps:
-      - name: Build and Push Image
-        run: |
-          docker build -t $ECR_REPO:$GITHUB_SHA .
-          docker push $ECR_REPO:$GITHUB_SHA
-      - name: Update Argo CD
-        run: |
-          # Kustomize 이미지 태그 업데이트
-          cd deploy/overlays/production
-          kustomize edit set image app=$ECR_REPO:$GITHUB_SHA
-          git commit -am "chore: update image to $GITHUB_SHA"
-          git push
-```
-
----
-
-## 7. Quality Gates
-
-### 7.1 AI 코드 리뷰
-
-AIDLC에서 Quality Gates는 AI가 주도하는 다중 검증 레이어입니다.
-
-| Gate | 도구 | 검증 항목 |
-|------|------|----------|
-| **코드 품질** | Q Developer, Copilot | 코딩 표준, 복잡도, 중복 |
-| **보안 스캔** | Q Developer Security | OWASP Top 10, 시크릿 탐지 |
-| **IaC 검증** | tflint, OPA | Terraform 모범사례, 정책 준수 |
-| **K8s 검증** | Kube-linter, Datree | 보안 컨텍스트, 리소스 제한 |
-| **테스트 커버리지** | Go test, pytest | 최소 80% 커버리지 |
-| **성능 회귀** | k6, Artillery | 레이턴시, 처리량 기준 |
-
-### 7.2 AI 기반 PR 리뷰 자동화
-
-```yaml
-# .github/workflows/ai-review.yml
-name: AI Code Review
-on:
-  pull_request:
-    types: [opened, synchronize]
-
-jobs:
-  ai-review:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Q Developer Security Scan
-        uses: aws/amazon-q-developer-action@v1
-        with:
-          scan-type: security
-          source-path: .
-
-      - name: K8s Manifest Validation
-        run: |
-          # Kube-linter로 K8s manifest 검증
-          kube-linter lint deploy/ --config .kube-linter.yaml
-
-      - name: Terraform Validation
-        if: contains(github.event.pull_request.changed_files, 'terraform/')
-        run: |
-          cd terraform/
-          terraform init -backend=false
-          terraform validate
-          tflint --recursive
-```
-
-### 7.3 자동 승인 기준
-
-| 조건 | 자동 승인 | 수동 리뷰 필요 |
-|------|----------|--------------|
-| 보안 스캔 결과 | Critical/High 0건 | Critical/High 1건 이상 |
-| 테스트 커버리지 | ≥ 80% | < 80% |
-| K8s 검증 | 경고 0건 | 경고 1건 이상 |
-| 성능 회귀 | P99 < SLO 목표 | P99 > SLO 목표 |
-| 변경 범위 | < 500줄 | ≥ 500줄 |
-
-:::warning AI 리뷰의 한계
-AI 코드 리뷰는 패턴 기반 문제를 잘 탐지하지만, 비즈니스 로직의 정확성이나 아키텍처 적합성은 사람의 판단이 필요합니다. AI 리뷰를 **1차 필터**로 활용하고, 핵심 변경사항은 사람이 최종 검토하는 하이브리드 접근을 권장합니다.
+:::tip EKS Capabilities + AIDLC 시너지
+Managed Argo CD(배포) + ACK(인프라) + KRO(오케스트레이션) + LBC v3(네트워킹)이 결합되면, Kiro가 Spec에서 생성한 모든 산출물을 **Git Push 한 번으로 전체 스택 배포**가 가능합니다. 이것이 Construction → Operations 전환의 핵심입니다.
 :::
 
+### 4.5 MCP 기반 IaC 자동화 파이프라인
+
+Kiro와 AWS Hosted MCP 서버를 결합하면, Inception의 Spec에서 Construction의 IaC까지 자동으로 생성하고 Argo CD로 배포합니다.
+
+<AidlcPipeline />
+
 ---
 
-## 8. AI Agent 운영 자동화 확장
+## 5. Operations 단계 — 배포에서 자율 운영까지
 
-### 8.1 AI Agent 생태계
+### 5.1 관찰성 기반 — Doc 2 연결
 
-Kiro + MCP를 핵심으로, AI Agent를 점진적으로 도입하여 운영 자동화를 확장합니다.
+Operations 단계의 데이터 기반은 [지능형 관찰성 스택](./aiops-observability-stack.md)에서 구축한 5-Layer 아키텍처입니다.
 
-| Agent | 특성 | 핵심 기능 |
-|-------|------|----------|
-| **Kagent** | K8s 네이티브 | CRD로 관리, kmcp 통합, 클러스터 내 실행 |
-| **Strands Agents** | AWS 프로덕션 검증 | Agent SOPs, 자연어 워크플로우, AWS SDK 통합 |
-| **Amazon Q Developer** | 완전 관리형 | CloudWatch Investigations, EKS 트러블슈팅 |
+```
+[관찰성 스택 → Operations 연결]
 
-### 8.2 Kagent (K8s 네이티브 AI Agent)
+Collection Layer (ADOT, CloudWatch Agent, NFM Agent)
+      ↓
+Transport Layer (OTLP, Prometheus Remote Write)
+      ↓
+Storage Layer (AMP, CloudWatch, X-Ray)
+      ↓
+Analysis Layer (AMG, CloudWatch AI, DevOps Guru)
+      ↓
+Action Layer ← AIDLC Operations가 여기에 위치
+  ├── MCP 기반 통합 분석
+  ├── AI Agent 자동 대응
+  └── 예측 스케일링
+```
 
-Kagent은 K8s CRD로 AI 에이전트를 선언적으로 관리합니다.
+관찰성 스택에서 수집한 메트릭·로그·트레이스가 MCP를 통해 AI 도구와 Agent에 전달되어, Operations 단계의 의사결정 기반이 됩니다.
+
+### 5.2 AI Agent 운영 자동화
+
+<AiAgentEcosystem />
+
+#### 5.2.1 Amazon Q Developer (GA)
+
+가장 성숙한 프로덕션 패턴입니다. CloudWatch Investigations와 EKS 트러블슈팅에서 즉시 활용 가능합니다.
+
+- **CloudWatch Investigations**: AI가 메트릭 이상을 감지하고 근본 원인을 분석
+- **EKS 트러블슈팅**: 클러스터 상태, Pod 장애, 노드 문제를 자연어로 진단
+- **보안 스캔**: 코드 취약점 탐지 + 자동 수정 제안
+
+#### 5.2.2 Strands Agents (OSS)
+
+AWS 프로덕션 검증을 거친 에이전트 SDK로, **Agent SOPs(Standard Operating Procedures)**를 자연어로 정의합니다.
+
+```python
+# Strands Agent SOP: Pod CrashLoopBackOff 대응
+from strands import Agent
+from strands.tools import eks_tool, cloudwatch_tool, slack_tool
+
+ops_agent = Agent(
+    name="eks-incident-responder",
+    model="bedrock/anthropic.claude-sonnet",
+    tools=[eks_tool, cloudwatch_tool, slack_tool],
+    sop="""
+    ## Pod CrashLoopBackOff 대응 SOP
+
+    1. 장애 Pod 식별
+       - kubectl get pods --field-selector=status.phase!=Running
+       - 네임스페이스, Pod 이름, 재시작 횟수 기록
+
+    2. 로그 분석
+       - kubectl logs <pod> --previous
+       - 에러 패턴 분류: OOM, ConfigError, DependencyFailure
+
+    3. 근본 원인 진단
+       - OOM → 메모리 limits 확인
+       - ConfigError → ConfigMap/Secret 확인
+       - DependencyFailure → 의존 서비스 상태 확인
+
+    4. 자동 대응
+       - OOM이고 limits < 2Gi → limits를 1.5배로 패치 (자동)
+       - ConfigError → Slack 알림 + 담당자 멘션 (수동)
+       - DependencyFailure → 의존 서비스 재시작 시도 (자동)
+
+    5. 사후 보고
+       - Slack #incidents 채널에 인시던트 보고서 게시
+    """
+)
+```
+
+#### 5.2.3 Kagent (K8s Native)
+
+K8s CRD로 AI 에이전트를 선언적으로 관리합니다. MCP 통합(kmcp)을 지원하지만 아직 초기 단계입니다.
 
 ```yaml
 # Kagent Agent 정의
@@ -788,122 +553,157 @@ spec:
         actions: ["GetMetricData", "DescribeAlarms"]
 ```
 
-### 8.3 Strands Agents (Agent SOPs)
+:::tip 도입 순서
+Q Developer(GA)의 완전 관리형 분석을 **먼저 도입**하고, Strands(OSS)의 SOP 기반 워크플로우를 추가한 후, Kagent(초기 단계)의 K8s 네이티브 접근을 점진적으로 확장하세요. [AIOps 전략 가이드](./aiops-introduction.md)의 성숙도 모델 Level 3→4 전환과 연계됩니다.
+:::
 
-Strands Agents는 **Agent SOPs(Standard Operating Procedures)**를 자연어로 정의합니다.
+### 5.3 CI/CD에서 AI/CD로
 
-```python
-# Strands Agent SOP: Pod CrashLoopBackOff 대응
-from strands import Agent
-from strands.tools import eks_tool, cloudwatch_tool, slack_tool
+AIDLC에서 배포 파이프라인은 기존 CI/CD를 AI가 강화하는 **AI/CD**로 진화합니다.
 
-ops_agent = Agent(
-    name="eks-incident-responder",
-    model="bedrock/anthropic.claude-sonnet",
-    tools=[eks_tool, cloudwatch_tool, slack_tool],
-    sop="""
-    ## Pod CrashLoopBackOff 대응 SOP
+```
+[CI/CD → AI/CD 전환]
 
-    1. 장애 Pod 식별
-       - kubectl get pods --field-selector=status.phase!=Running
-       - 네임스페이스, Pod 이름, 재시작 횟수 기록
+기존 CI/CD:
+  코드 커밋 → 빌드 → 테스트 → 수동 승인 → 배포
 
-    2. 로그 분석
-       - kubectl logs <pod> --previous (이전 컨테이너 로그)
-       - 에러 패턴 분류: OOM, ConfigError, DependencyFailure
-
-    3. 근본 원인 진단
-       - OOM → 메모리 limits 확인, 메모리 프로파일링 제안
-       - ConfigError → ConfigMap/Secret 확인
-       - DependencyFailure → 의존 서비스 상태 확인
-
-    4. 자동 대응
-       - OOM이고 limits < 2Gi → limits을 1.5배로 패치 (자동)
-       - ConfigError → Slack 알림 + 담당자 멘션 (수동)
-       - DependencyFailure → 의존 서비스 재시작 시도 (자동)
-
-    5. 사후 보고
-       - Slack #incidents 채널에 인시던트 보고서 게시
-    """
-)
+AI/CD:
+  Spec 커밋 → AI 코드 생성 → AI 보안 스캔 → AI 리뷰
+     → Loss Function 검증 (사람) → Argo CD 자동 배포
+     → AI 관찰성 모니터링 → AI Agent 자동 대응
 ```
 
-:::info AI Agent 운영 자동화의 핵심
-**다양한 데이터 소스(CloudWatch, EKS API, X-Ray)를 MCP로 통합**하여 운영 인사이트를 도출하고, **세부적이면서도 광범위한 컨트롤**을 제공합니다. Q Developer(GA)의 완전 관리형 분석을 먼저 도입하고, Strands(OSS)의 SOP 기반 워크플로우, Kagent(초기 단계)의 K8s 네이티브 접근을 점진적으로 확장합니다.
+핵심 전환점:
+- **코드 커밋** → **Spec 커밋** (requirements.md가 트리거)
+- **수동 승인** → **AI 리뷰 + Loss Function 검증** (사람은 의사결정에 집중)
+- **수동 모니터링** → **AI Agent 자율 대응** (MCP 기반 통합 분석)
+
+:::info Operations 심화
+ML 기반 예측 스케일링, Karpenter + AI 예측, Chaos Engineering + AI 학습 등 Operations 단계의 심화 패턴은 [예측 스케일링 및 자동 복구](./aiops-predictive-operations.md)에서 다룹니다.
 :::
 
 ---
 
-## 9. 측정 지표
+## 6. Quality Gates — 전 단계 품질 보증
 
-### 9.1 AIDLC 생산성 메트릭
+AI-DLC에서 사람 검증은 **Loss Function**입니다 — 각 단계에서 오류를 조기에 포착하여 하류 전파를 방지합니다. Quality Gates는 이 Loss Function을 체계화한 것입니다.
+
+```
+Inception          Construction          Operations
+    │                   │                    │
+    ▼                   ▼                    ▼
+[Mob Elaboration    [DDD Model         [배포 전 검증]
+ 산출물 검증]        검증]
+    │                   │                    │
+    ▼                   ▼                    ▼
+[Spec 정합성]      [코드 + 보안 스캔]    [SLO 기반 모니터링]
+    │                   │                    │
+    ▼                   ▼                    ▼
+[NFR 충족 여부]    [테스트 커버리지]     [AI Agent 대응 검증]
+```
+
+<QualityGates />
+
+### 6.1 AI 기반 PR 리뷰 자동화
+
+```yaml
+# .github/workflows/ai-review.yml
+name: AI Code Review
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  ai-review:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Q Developer Security Scan
+        uses: aws/amazon-q-developer-action@v1
+        with:
+          scan-type: security
+          source-path: .
+
+      - name: K8s Manifest Validation
+        run: |
+          kube-linter lint deploy/ --config .kube-linter.yaml
+
+      - name: Terraform Validation
+        if: contains(github.event.pull_request.changed_files, 'terraform/')
+        run: |
+          cd terraform/
+          terraform init -backend=false
+          terraform validate
+          tflint --recursive
+```
+
+---
+
+## 7. 측정 지표
+
+### 7.1 AIDLC 생산성 메트릭
 
 AIDLC 도입 효과를 측정하기 위한 핵심 지표입니다.
 
 <ProductivityMetrics />
 
-### 9.2 주요 측정 항목
+### 7.2 상세 측정 항목 및 DORA 매핑
 
-| 지표 | 설명 | AIDLC 이전 | AIDLC 이후 | 개선율 |
-|------|------|-----------|-----------|--------|
-| **코드 생성 속도** | 기능당 코드 작성 시간 | 8시간 | 2시간 | 75% ↓ |
-| **PR 리뷰 시간** | PR 제출→승인 소요 시간 | 24시간 | 4시간 | 83% ↓ |
-| **배포 빈도** | 프로덕션 배포 횟수/주 | 2회 | 10회 | 5x ↑ |
-| **MTTR** | 장애 평균 복구 시간 | 45분 | 12분 | 73% ↓ |
-| **Change Failure Rate** | 배포 실패율 | 15% | 3% | 80% ↓ |
-| **테스트 커버리지** | 코드 테스트 범위 | 45% | 85% | 89% ↑ |
-| **보안 취약점** | 프로덕션 보안 이슈/분기 | 8건 | 1건 | 87% ↓ |
-
-### 9.3 DORA 메트릭 매핑
-
-| DORA 메트릭 | AIDLC 기여 | 개선 방법 |
-|------------|-----------|----------|
-| **배포 빈도** | Managed Argo CD + AI 자동 승인 | 수동 게이트 제거 |
-| **변경 리드 타임** | Kiro Spec → 코드 자동 생성 | 개발 단계 가속 |
-| **변경 실패율** | AI Quality Gates | 배포 전 다중 검증 |
-| **서비스 복구 시간** | AI Agent 자동 대응 | 수동 진단 제거 |
+<DetailedMetrics />
 
 ---
 
-## 10. 마무리
+## 8. 마무리
 
-### 10.1 AIDLC 도입 로드맵
+### 8.1 도입 로드맵
 
 ```
 Phase 1: AI 코딩 도구 도입
   └── Q Developer/Copilot으로 코드 생성·리뷰 시작
+      (AIOps 성숙도 Level 2)
 
 Phase 2: Spec-Driven 개발
-  └── Kiro + MCP로 체계적 요구사항→코드 워크플로우
+  └── Kiro + MCP로 체계적 requirements → 코드 워크플로우
+      Mob Elaboration 리추얼 시범 도입
+      (AIOps 성숙도 Level 3)
 
 Phase 3: 선언적 자동화
   └── Managed Argo CD + ACK + KRO로 GitOps 완성
+      AI/CD 파이프라인 전환
+      (AIOps 성숙도 Level 3→4)
 
 Phase 4: AI Agent 확장
-  └── Q Developer + Strands + Kagent로 자율 운영 확장
+  └── Q Developer + Strands + Kagent로 자율 운영
+      Mob Construction 리추얼 확산
+      (AIOps 성숙도 Level 4)
 ```
 
-### 10.2 다음 단계
+### 8.2 다음 단계
 
-- **[예측 스케일링 및 자동 복구](./aiops-predictive-operations.md)**: AIDLC Operations 단계의 심화 — ML 기반 예측 운영
-- **[지능형 관찰성 스택](./aiops-observability-stack.md)**: Operations 단계의 기반 — 관찰성 데이터 수집·분석
-- **[AIOps 소개](./aiops-introduction.md)**: AIDLC의 상위 전략 — AIOps 전체 맥락
+- **[예측 스케일링 및 자동 복구](./aiops-predictive-operations.md)** — Operations 단계 심화: ML 기반 예측 스케일링, AI Agent 자동 인시던트 대응, Chaos Engineering
+- **[지능형 관찰성 스택](./aiops-observability-stack.md)** — Operations 단계의 데이터 기반: ADOT, AMP/AMG, CloudWatch AI 구축
+- **[AIOps 전략 가이드](./aiops-introduction.md)** — AIDLC의 기술 기반: AWS 오픈소스 전략, MCP 통합, AI 도구 생태계
 
-### 10.3 학습 경로
+### 8.3 학습 경로
 
 ```
-[이전] AIOps 소개 — 전략과 방향성 이해
+[이전] AIOps 전략 가이드 — 기술 기반 이해 (MCP, Kiro, AI Agent)
      ↓
-[이전] 지능형 관찰성 스택 — 데이터 수집·분석 기반 구축
+[이전] 지능형 관찰성 스택 — 데이터 기반 구축 (ADOT, AMP/AMG)
      ↓
-[현재 문서] AIDLC 프레임워크 — AI 주도 개발 방법론 실천
+[현재] AIDLC 프레임워크 — 방법론 실천 (이 문서)
      ↓
-[다음] 예측 스케일링 및 자동 복구 — 자율 운영으로 진화
+[다음] 예측 스케일링 및 자동 복구 — 자율 운영 심화
 ```
 
-:::info 관련 문서
-
-- [AIOps 전략 가이드](./aiops-introduction.md) — AIOps 전체 전략
-- [지능형 관찰성 스택 구축](./aiops-observability-stack.md) — 관찰성 기반 인프라
-- [예측 스케일링 및 자동 복구](./aiops-predictive-operations.md) — 예측 운영 패턴
+:::info 참고 자료
+- [AWS AI-DLC Method Definition](https://prod.d13rzhkk8cj2z0.amplifyapp.com/) — AIDLC 원문 (Raja SP, AWS)
+- [AWS AI-Driven Development Life Cycle Blog](https://aws.amazon.com/blogs/devops/ai-driven-development-life-cycle/)
+- [AWS Labs AIDLC Workflows (GitHub)](https://github.com/awslabs/aidlc-workflows)
+- [EKS Capabilities (2025.11)](https://aws.amazon.com/blogs/containers/)
+- [Strands Agents SDK](https://github.com/strands-agents/sdk-python)
+- [Kagent - Kubernetes AI Agent](https://github.com/kagent-dev/kagent)
 :::
