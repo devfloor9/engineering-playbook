@@ -90,6 +90,28 @@ gantt
 
 **IngressNightmare (CVE-2025-1974) Attack Scenario:**
 
+<figure>
+
+![IngressNightmare Attack Overview — External/Internal Attacker executes unauthenticated RCE on Ingress NGINX Controller Pod via Malicious Admission Review](/img/infrastructure-optimization/ingressnightmare-attack-overview.png)
+
+<figcaption>
+
+*Unauthenticated Remote Code Execution (RCE) attack vectors targeting Ingress NGINX Controller in a Kubernetes cluster. Both external and internal attackers can compromise the controller pod via Malicious Admission Review, gaining access to all pods in the cluster. (Source: [Wiz Research](https://www.wiz.io/blog/ingress-nginx-kubernetes-vulnerabilities))*
+
+</figcaption>
+</figure>
+
+<figure>
+
+![Ingress NGINX Controller Internal Architecture — Controller, Admission Webhook, NGINX components and backend Pod routing flow](/img/infrastructure-optimization/ingress-nginx-controller-architecture.png)
+
+<figcaption>
+
+*Ingress NGINX Controller Pod internal architecture. The Admission Webhook's configuration validation process, where attackers inject malicious configurations into NGINX, is the core attack surface of CVE-2025-1974. (Source: [Wiz Research](https://www.wiz.io/blog/ingress-nginx-kubernetes-vulnerabilities))*
+
+</figcaption>
+</figure>
+
 ```yaml
 apiVersion: networking.k8s.io/v1
 kind: Ingress
