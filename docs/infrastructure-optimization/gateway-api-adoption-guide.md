@@ -377,58 +377,79 @@ spec:
 
 Gateway API는 다음과 같은 계층 구조로 책임을 분리합니다:
 
-![Gateway API 리소스 모델 — 출처: gateway-api.sigs.k8s.io](https://gateway-api.sigs.k8s.io/images/resource-model.png)
+<Tabs>
+  <TabItem value="overview" label="역할 개요" default>
 
-*출처: [Kubernetes Gateway API 공식 문서](https://gateway-api.sigs.k8s.io/concepts/api-overview/) — GatewayClass → Gateway → xRoute → Service 계층 구조*
+  ![Gateway API 리소스 모델 — 출처: gateway-api.sigs.k8s.io](https://gateway-api.sigs.k8s.io/images/resource-model.png)
 
-**역할별 권한 및 책임:**
+  *출처: [Kubernetes Gateway API 공식 문서](https://gateway-api.sigs.k8s.io/concepts/api-overview/) — GatewayClass → Gateway → xRoute → Service 계층 구조*
 
-<RoleSeparationTable />
+  <RoleSeparationTable />
 
-**RBAC 예제:**
+  </TabItem>
+  <TabItem value="infra" label="인프라 팀 (GatewayClass)">
 
-```yaml
----
-# 인프라 팀: GatewayClass 전용 권한
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
-metadata:
-  name: infrastructure-gateway-manager
-rules:
-- apiGroups: ["gateway.networking.k8s.io"]
-  resources: ["gatewayclasses"]
-  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  **인프라 팀: GatewayClass 전용 권한 (ClusterRole)**
 
----
-# 플랫폼 팀: Gateway 관리 권한 (특정 네임스페이스)
-apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
-metadata:
-  name: platform-gateway-manager
-  namespace: gateway-system
-rules:
-- apiGroups: ["gateway.networking.k8s.io"]
-  resources: ["gateways"]
-  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
-- apiGroups: [""]
-  resources: ["secrets"]  # TLS 인증서 관리
-  verbs: ["get", "list"]
+  GatewayClass는 클러스터 스코프 리소스로, 인프라 팀만 생성/변경할 수 있습니다. 컨트롤러 선택과 전역 정책을 담당합니다.
 
----
-# 애플리케이션 팀: HTTPRoute만 관리 (자신의 네임스페이스)
-apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
-metadata:
-  name: app-route-manager
-  namespace: production-app
-rules:
-- apiGroups: ["gateway.networking.k8s.io"]
-  resources: ["httproutes", "referencegrants"]
-  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
-- apiGroups: [""]
-  resources: ["services"]
-  verbs: ["get", "list"]
-```
+  ```yaml
+  apiVersion: rbac.authorization.k8s.io/v1
+  kind: ClusterRole
+  metadata:
+    name: infrastructure-gateway-manager
+  rules:
+  - apiGroups: ["gateway.networking.k8s.io"]
+    resources: ["gatewayclasses"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  ```
+
+  </TabItem>
+  <TabItem value="platform" label="플랫폼 팀 (Gateway)">
+
+  **플랫폼 팀: Gateway 관리 권한 (Role — 네임스페이스 스코프)**
+
+  Gateway는 네임스페이스 스코프 리소스로, 플랫폼 팀이 리스너 구성, TLS 인증서, 로드밸런서 설정을 관리합니다.
+
+  ```yaml
+  apiVersion: rbac.authorization.k8s.io/v1
+  kind: Role
+  metadata:
+    name: platform-gateway-manager
+    namespace: gateway-system
+  rules:
+  - apiGroups: ["gateway.networking.k8s.io"]
+    resources: ["gateways"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  - apiGroups: [""]
+    resources: ["secrets"]  # TLS 인증서 관리
+    verbs: ["get", "list"]
+  ```
+
+  </TabItem>
+  <TabItem value="app" label="앱 팀 (HTTPRoute)">
+
+  **애플리케이션 팀: HTTPRoute만 관리 (Role — 네임스페이스 스코프)**
+
+  애플리케이션 팀은 자신의 네임스페이스에서 HTTPRoute와 ReferenceGrant만 관리합니다. GatewayClass나 Gateway에는 접근할 수 없습니다.
+
+  ```yaml
+  apiVersion: rbac.authorization.k8s.io/v1
+  kind: Role
+  metadata:
+    name: app-route-manager
+    namespace: production-app
+  rules:
+  - apiGroups: ["gateway.networking.k8s.io"]
+    resources: ["httproutes", "referencegrants"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  - apiGroups: [""]
+    resources: ["services"]
+    verbs: ["get", "list"]
+  ```
+
+  </TabItem>
+</Tabs>
 
 ### 3.3 GA 현황 (v1.4.0)
 
