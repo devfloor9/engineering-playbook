@@ -1,6 +1,7 @@
 {
   "name": "engineering-playbook",
   "version": "1.0.0",
+  "description": "Cloud Native Architecture Engineering Playbook & Benchmark Reports",
   "private": true,
   "scripts": {
     "docusaurus": "docusaurus",

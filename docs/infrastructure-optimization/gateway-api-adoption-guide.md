@@ -10,6 +10,8 @@ last_update:
 sidebar_position: 3
 ---
 
+import GatewayApiBenefits from '@site/src/components/GatewayApiBenefits';
+
 # Gateway API 도입 가이드
 
 > **📌 기준 버전**: Gateway API v1.4.0, Cilium v1.19.0, EKS 1.32, AWS LBC v3.0.0, Envoy Gateway v1.7.0
@@ -239,32 +241,9 @@ spec:
 
 ### 3.1 Gateway API 아키텍처
 
-```mermaid
-flowchart TB
-    subgraph before["기존: NGINX Ingress (단일 계층)"]
-        direction TB
-        I1[Ingress 리소스<br/>모든 설정 혼재<br/>어노테이션 기반]
-        style I1 fill:#ffcccc,stroke:#cc0000,stroke-width:2px
-    end
+![Gateway API 역할 기반 모델 — 출처: gateway-api.sigs.k8s.io](https://gateway-api.sigs.k8s.io/images/gateway-roles.png)
 
-    subgraph after["신규: Gateway API (3-Tier 분리)"]
-        direction TB
-        GC[GatewayClass<br/>인프라 팀<br/>컨트롤러 선택]
-        G[Gateway<br/>플랫폼 팀<br/>리스너 + TLS]
-        HR[HTTPRoute<br/>앱 팀<br/>라우팅 규칙]
-        S[Service]
-
-        GC --> G
-        G --> HR
-        HR --> S
-
-        style GC fill:#ccffcc,stroke:#00cc00,stroke-width:2px
-        style G fill:#ccffcc,stroke:#00cc00,stroke-width:2px
-        style HR fill:#ccffcc,stroke:#00cc00,stroke-width:2px
-    end
-
-    before -.마이그레이션.-> after
-```
+*출처: [Kubernetes Gateway API 공식 문서](https://gateway-api.sigs.k8s.io/) — 3개의 역할(Infrastructure Provider, Cluster Operator, Application Developer)이 각각 GatewayClass, Gateway, HTTPRoute를 관리*
 
 **주요 차이점:**
 
@@ -280,35 +259,9 @@ flowchart TB
 
 Gateway API는 다음과 같은 계층 구조로 책임을 분리합니다:
 
-```
-┌─────────────────────────────────────────────────────────┐
-│ GatewayClass (클러스터 레벨, 인프라 팀)                  │
-│ - 컨트롤러 구현체 선택 (AWS LBC, Cilium, Envoy 등)      │
-│ - 파라미터 정의 (로드밸런서 타입, 성능 프로필)           │
-└────────────────┬────────────────────────────────────────┘
-                 │ 참조
-                 ▼
-┌─────────────────────────────────────────────────────────┐
-│ Gateway (네임스페이스 레벨, 플랫폼 팀)                   │
-│ - 리스너 정의 (포트, 프로토콜, 호스트명)                 │
-│ - TLS 인증서 관리                                        │
-│ - 로드밸런서 어노테이션 (NLB/ALB 설정)                   │
-└────────────────┬────────────────────────────────────────┘
-                 │ 참조
-                 ▼
-┌─────────────────────────────────────────────────────────┐
-│ HTTPRoute (네임스페이스 레벨, 애플리케이션 팀)           │
-│ - 경로 기반 라우팅 (path, header, query 매칭)            │
-│ - 트래픽 분할 (Canary, Blue-Green)                       │
-│ - 요청/응답 변환                                         │
-└────────────────┬────────────────────────────────────────┘
-                 │ 참조
-                 ▼
-┌─────────────────────────────────────────────────────────┐
-│ Service → Pod                                            │
-│ - 백엔드 엔드포인트                                       │
-└─────────────────────────────────────────────────────────┘
-```
+![Gateway API 리소스 모델 — 출처: gateway-api.sigs.k8s.io](https://gateway-api.sigs.k8s.io/images/resource-model.png)
+
+*출처: [Kubernetes Gateway API 공식 문서](https://gateway-api.sigs.k8s.io/concepts/api-overview/) — GatewayClass → Gateway → xRoute → Service 계층 구조*
 
 **역할별 권한 및 책임:**
 
@@ -386,167 +339,9 @@ Alpha 상태의 리소스는 **API 호환성 보장이 없으며**, 마이너 �
 
 ### 3.4 핵심 이점
 
-**1. 역할 기반 접근 제어 (RBAC 분리)**
+Gateway API의 6가지 핵심 이점을 시각적 다이어그램과 YAML 예제로 살펴봅니다.
 
-기존 Ingress는 단일 리소스에 모든 권한이 집중되지만, Gateway API는 리소스별로 권한을 분리합니다:
-
-```yaml
-# 애플리케이션 팀은 HTTPRoute만 수정 가능 (인프라 설정 격리)
-apiVersion: gateway.networking.k8s.io/v1
-kind: HTTPRoute
-metadata:
-  name: backend-api-routes
-  namespace: production-app
-spec:
-  parentRefs:
-  - name: shared-gateway  # 플랫폼 팀이 관리하는 Gateway 참조
-    namespace: gateway-system
-    sectionName: https
-  rules:
-  - matches:
-    - path:
-        type: PathPrefix
-        value: /api/v1
-    backendRefs:
-    - name: backend-v1
-      port: 8080
-```
-
-**2. 표현력 있는 라우팅 (Header, Query, Method 매칭)**
-
-```yaml
-apiVersion: gateway.networking.k8s.io/v1
-kind: HTTPRoute
-metadata:
-  name: advanced-routing
-spec:
-  rules:
-  # 헤더 기반 라우팅 (A/B 테스트)
-  - matches:
-    - headers:
-      - name: X-User-Group
-        value: beta-testers
-    backendRefs:
-    - name: backend-beta
-      port: 8080
-
-  # 쿼리 파라미터 기반 라우팅
-  - matches:
-    - queryParams:
-      - name: version
-        value: "2"
-    backendRefs:
-    - name: backend-v2
-      port: 8080
-
-  # HTTP 메서드 기반 라우팅
-  - matches:
-    - method: POST
-      path:
-        type: PathPrefix
-        value: /api/write
-    backendRefs:
-    - name: write-backend
-      port: 8080
-```
-
-**3. 확장 가능한 설계 (Policy Attachment 패턴)**
-
-Gateway API는 표준 리소스 + Policy 리소스로 기능을 확장합니다:
-
-```yaml
-# 표준 Gateway API 리소스
-apiVersion: gateway.networking.k8s.io/v1
-kind: HTTPRoute
-metadata:
-  name: api-route
-spec:
-  rules:
-  - backendRefs:
-    - name: api-service
-      port: 80
-
----
-# Cilium의 Rate Limiting Policy (별도 리소스)
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
-metadata:
-  name: api-rate-limit
-spec:
-  endpointSelector:
-    matchLabels:
-      gateway.networking.k8s.io/gateway-name: production-gateway
-  ingress:
-  - toPorts:
-    - ports:
-      - port: "80"
-      rules:
-        http:
-        - rateLimit:
-            requestsPerSecond: 1000
-```
-
-**4. 멀티 프로토콜 지원 (HTTP, HTTPS, TCP, UDP, gRPC)**
-
-```yaml
-# gRPC 서비스 라우팅
-apiVersion: gateway.networking.k8s.io/v1
-kind: GRPCRoute
-metadata:
-  name: grpc-service-route
-spec:
-  parentRefs:
-  - name: gateway
-  rules:
-  - matches:
-    - method:
-        service: com.example.UserService
-        method: GetUser
-    backendRefs:
-    - name: user-grpc-service
-      port: 50051
-```
-
-**5. 이식성 (GatewayClass Swap)**
-
-컨트롤러 교체 시 HTTPRoute는 변경 없이 GatewayClass만 교체:
-
-```yaml
-# Before: Cilium
-apiVersion: gateway.networking.k8s.io/v1
-kind: GatewayClass
-metadata:
-  name: cilium
-spec:
-  controllerName: io.cilium/gateway-controller
-
----
-# After: AWS Load Balancer Controller (HTTPRoute는 동일)
-apiVersion: gateway.networking.k8s.io/v1
-kind: GatewayClass
-metadata:
-  name: aws-lb
-spec:
-  controllerName: aws.gateway.networking.k8s.io
-```
-
-**6. 타입 안전 (CRD Schema vs Annotation Typos)**
-
-```yaml
-# ❌ NGINX Ingress: 어노테이션 오타 시 런타임 에러
-annotations:
-  nginx.ingress.kubernetes.io/rewrite-traget: /  # 오타 (target 아님)
-
-# ✅ Gateway API: CRD 스키마 검증으로 사전 차단
-spec:
-  rules:
-  - filters:
-    - type: URLRewrite
-      urlRewrite:
-        path:
-          type: ReplacePrefixMatch
-          replacePrefixMatch: /new-path
-```
+<GatewayApiBenefits />
 
 ### 3.5 기본 리소스 예제
 
@@ -5038,169 +4833,10 @@ kubectl get events -n <namespace> --sort-by='.lastTimestamp' | tail -20
 
 ## 9. 벤치마크 비교 계획
 
-### 9.1 벤치마크 목적
+5개 Gateway API 구현체의 객관적인 성능 비교를 위한 체계적인 벤치마크를 계획하고 있습니다. 처리량, 레이턴시, TLS 성능, L7 라우팅, 스케일링, 리소스 효율성, 장애 복구, gRPC 등 8개 시나리오를 동일한 EKS 환경에서 측정합니다.
 
-이 벤치마크는 5개의 Gateway API 구현체를 동일한 EKS 환경에서 객관적으로 비교하여, 각 솔루션의 강점과 약점을 정량적으로 파악하는 것을 목표로 합니다.
-
-**핵심 질문:**
-- 어떤 솔루션이 가장 빠른가? (처리량, 레이턴시)
-- 리소스 효율성이 가장 좋은 솔루션은? (CPU/Memory 대비 성능)
-- 대규모 환경에서 스케일링이 가장 우수한 솔루션은?
-- 각 솔루션의 trade-off는 무엇인가?
-
-### 9.2 테스트 환경 설계
-
-```mermaid
-graph TB
-    subgraph "EKS Cluster 1.32"
-        subgraph "Load Generator Node"
-            K6[k6 Load Generator<br/>m7g.4xlarge<br/>16 vCPU, 64GB RAM]
-        end
-
-        subgraph "Gateway Nodes (각 솔루션별)"
-            GW1[Gateway Node 1<br/>c7gn.xlarge<br/>4 vCPU, 8GB RAM]
-            GW2[Gateway Node 2<br/>c7gn.xlarge]
-            GW3[Gateway Node 3<br/>c7gn.xlarge]
-        end
-
-        subgraph "Backend Nodes"
-            BE1[Backend Node 1<br/>m7g.xlarge<br/>4 vCPU, 16GB RAM]
-            BE2[Backend Node 2<br/>m7g.xlarge]
-            BE3[Backend Node 3<br/>m7g.xlarge]
-        end
-
-        PROM[Prometheus<br/>메트릭 수집]
-        GRAFANA[Grafana<br/>시각화]
-
-        K6 -->|HTTP/2 Traffic| GW1
-        K6 -->|HTTP/2 Traffic| GW2
-        K6 -->|HTTP/2 Traffic| GW3
-
-        GW1 --> BE1
-        GW2 --> BE2
-        GW3 --> BE3
-
-        GW1 -.->|메트릭| PROM
-        GW2 -.->|메트릭| PROM
-        GW3 -.->|메트릭| PROM
-        BE1 -.->|메트릭| PROM
-        BE2 -.->|메트릭| PROM
-        BE3 -.->|메트릭| PROM
-
-        PROM --> GRAFANA
-    end
-
-    style K6 fill:#4CAF50
-    style PROM fill:#E64A19
-    style GRAFANA fill:#F57C00
-```
-
-### 9.3 테스트 시나리오
-
-#### 1. 기본 처리량 (Throughput Test)
-
-**목적:** 최대 RPS(Requests Per Second) 측정
-
-동시 접속자 수를 100, 500, 1000, 5000으로 증가시키며 각 솔루션의 최대 처리량을 측정합니다.
-
-#### 2. 레이턴시 프로파일
-
-**목적:** P50/P90/P99/P99.9 레이턴시 측정
-
-일정한 부하에서 응답 시간 분포를 측정하여 테일 레이턴시를 비교합니다.
-
-#### 3. TLS 성능
-
-**목적:** TLS 종료 처리량 및 핸드셰이크 시간 측정
-
-HTTPS 트래픽에서 TLS 종료 성능과 핸드셰이크 오버헤드를 측정합니다.
-
-#### 4. L7 라우팅 복잡도
-
-**목적:** 헤더 기반 라우팅, URL rewrite 적용 시 성능 변화
-
-복잡한 라우팅 규칙이 성능에 미치는 영향을 측정합니다.
-
-#### 5. 스케일링 테스트
-
-**목적:** Route 수 증가 시 성능 변화 (10, 50, 100, 500 routes)
-
-많은 수의 HTTPRoute가 있을 때 라우팅 성능과 메모리 사용량을 측정합니다.
-
-#### 6. 리소스 효율성
-
-**목적:** CPU/Memory 사용량 대비 처리량
-
-동일한 리소스 제약 하에서 각 솔루션의 효율성을 비교합니다.
-
-#### 7. 장애 복구
-
-**목적:** 컨트롤러 재시작 시 트래픽 영향
-
-Gateway 컨트롤러가 재시작될 때 다운타임과 복구 시간을 측정합니다.
-
-#### 8. gRPC 성능
-
-**목적:** gRPC 스트리밍 처리량
-
-gRPC 프로토콜 지원 및 성능을 측정합니다.
-
-### 9.4 측정 지표
-
-| 지표 | 단위 | 측정 방법 |
-|------|------|-----------|
-| **RPS (Requests Per Second)** | req/s | k6 summary 또는 Prometheus rate() |
-| **Latency (P50/P90/P99)** | ms | k6 histogram_quantile 또는 Grafana |
-| **Error Rate** | % | (failed requests / total requests) × 100 |
-| **CPU Usage** | % | Prometheus container_cpu_usage_seconds_total |
-| **Memory Usage** | MB | Prometheus container_memory_working_set_bytes |
-| **Connection Setup Time** | ms | k6 http_req_connecting |
-| **TLS Handshake Time** | ms | k6 http_req_tls_handshaking |
-| **Network Throughput** | Mbps | Prometheus rate(container_network_transmit_bytes_total) |
-
-### 9.5 예상 결과 (이론적 분석)
-
-각 솔루션별 예상 강점/약점:
-
-**AWS Native (ALB + NLB)**
-- **강점**: 완전 관리형, 자동 스케일링, AWS 통합
-- **약점**: ALB hop으로 인한 레이턴시 증가, 비용
-- **예상 성능**: 중간 (처리량 10K RPS, P99 50ms)
-
-**Cilium Gateway API (ENI 모드)**
-- **강점**: eBPF 최고 성능, 네이티브 라우팅, Hubble 가시성
-- **약점**: 설정 복잡도, 러닝 커브
-- **예상 성능**: 최상 (처리량 30K RPS, P99 15ms)
-
-**NGINX Gateway Fabric**
-- **강점**: 검증된 NGINX 엔진, 안정성, 풍부한 기능
-- **약점**: 메모리 사용량 높음
-- **예상 성능**: 상 (처리량 20K RPS, P99 25ms)
-
-**Envoy Gateway**
-- **강점**: L7 기능 풍부, 확장성, observability
-- **약점**: 리소스 오버헤드
-- **예상 성능**: 중상 (처리량 15K RPS, P99 30ms)
-
-**kGateway (Solo.io)**
-- **강점**: AI 라우팅, 엔터프라이즈 기능
-- **약점**: 엔터프라이즈 라이선스 필요
-- **예상 성능**: 중상 (처리량 18K RPS, P99 28ms)
-
-### 9.6 벤치마크 실행 계획
-
-| 단계 | 내용 | 도구 | 소요 시간 |
-|------|------|------|-----------|
-| 1. 환경 구축 | EKS 클러스터 및 5개 솔루션 별도 배포 | eksctl, Helm | 2일 |
-| 2. 기본 테스트 | Throughput, Latency 측정 | k6, Prometheus | 1일 |
-| 3. TLS 테스트 | HTTPS 성능 측정 | k6 (TLS) | 0.5일 |
-| 4. L7 테스트 | 복잡한 라우팅 규칙 테스트 | k6 (custom) | 0.5일 |
-| 5. 스케일 테스트 | Route 수 증가 테스트 | kubectl, k6 | 1일 |
-| 6. 리소스 측정 | CPU/Memory 프로파일링 | Prometheus, Grafana | 1일 |
-| 7. 결과 분석 | 데이터 분석 및 보고서 작성 | Jupyter, Matplotlib | 2일 |
-
-:::info
-벤치마크 결과는 [Benchmark Reports](/docs/benchmarks) 섹션에 별도로 게시될 예정입니다.
+:::info 벤치마크 상세 계획
+테스트 환경 설계, 시나리오 상세, 측정 지표 및 실행 계획은 **[Gateway API 구현체 성능 벤치마크 계획](/docs/benchmarks/gateway-api-benchmark)**에서 확인할 수 있습니다.
 :::
 
 ---
