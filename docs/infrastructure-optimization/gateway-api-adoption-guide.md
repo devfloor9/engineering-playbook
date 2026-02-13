@@ -10,6 +10,8 @@ last_update:
 sidebar_position: 3
 ---
 
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
 import GatewayApiBenefits from '@site/src/components/GatewayApiBenefits';
 
 # Gateway API 도입 가이드
@@ -90,27 +92,22 @@ gantt
 
 **IngressNightmare (CVE-2025-1974) 공격 시나리오:**
 
-<figure>
+<Tabs>
+  <TabItem value="attack-overview" label="공격 개요" default>
 
-![IngressNightmare 공격 개요 — External/Internal Attacker가 Malicious Admission Review를 통해 Ingress NGINX Controller Pod에 비인증 RCE 실행](/img/infrastructure-optimization/ingressnightmare-attack-overview.png)
+  ![IngressNightmare 공격 개요](/img/infrastructure-optimization/ingressnightmare-attack-overview.png)
 
-<figcaption>
+  *Kubernetes 클러스터 내 Ingress NGINX Controller를 대상으로 한 비인증 원격 코드 실행(RCE) 공격 벡터. 외부 및 내부 공격자가 Malicious Admission Review를 통해 컨트롤러 Pod를 장악하고, 클러스터 내 전체 Pod에 접근 가능. (Source: [Wiz Research](https://www.wiz.io/blog/ingress-nginx-kubernetes-vulnerabilities))*
 
-*Kubernetes 클러스터 내 Ingress NGINX Controller를 대상으로 한 비인증 원격 코드 실행(RCE) 공격 벡터. 외부 및 내부 공격자가 Malicious Admission Review를 통해 컨트롤러 Pod를 장악하고, 클러스터 내 전체 Pod에 접근 가능. (Source: [Wiz Research](https://www.wiz.io/blog/ingress-nginx-kubernetes-vulnerabilities))*
+  </TabItem>
+  <TabItem value="architecture" label="컨트롤러 아키텍처">
 
-</figcaption>
-</figure>
+  ![Ingress NGINX Controller 내부 아키텍처](/img/infrastructure-optimization/ingress-nginx-controller-architecture.png)
 
-<figure>
+  *Ingress NGINX Controller Pod 내부 아키텍처. Admission Webhook이 설정 검증 과정에서 공격자의 악성 설정을 NGINX에 주입하는 경로가 CVE-2025-1974의 핵심 공격 표면. (Source: [Wiz Research](https://www.wiz.io/blog/ingress-nginx-kubernetes-vulnerabilities))*
 
-![Ingress NGINX Controller 내부 아키텍처 — Controller, Admission Webhook, NGINX 컴포넌트와 백엔드 Pod 라우팅 흐름](/img/infrastructure-optimization/ingress-nginx-controller-architecture.png)
-
-<figcaption>
-
-*Ingress NGINX Controller Pod 내부 아키텍처. Admission Webhook이 설정 검증 과정에서 공격자의 악성 설정을 NGINX에 주입하는 경로가 CVE-2025-1974의 핵심 공격 표면. (Source: [Wiz Research](https://www.wiz.io/blog/ingress-nginx-kubernetes-vulnerabilities))*
-
-</figcaption>
-</figure>
+  </TabItem>
+  <TabItem value="exploit-code" label="공격 코드 예시">
 
 ```yaml
 apiVersion: networking.k8s.io/v1
@@ -139,6 +136,9 @@ spec:
               number: 80
 ```
 
+  </TabItem>
+</Tabs>
+
 **위험도 평가:**
 
 | 취약점 유형 | 심각도 | CVSS 점수 | 영향 범위 |
@@ -157,6 +157,34 @@ spec:
 Gateway API는 다음과 같은 방법으로 NGINX Ingress의 구조적 문제를 해결합니다:
 
 **1. 역할 기반 분리로 Snippets 원천 차단**
+
+<Tabs>
+  <TabItem value="diagram" label="개념도" default>
+
+```mermaid
+flowchart TB
+    subgraph cluster["Gateway API 3-Tier 역할 분리"]
+        direction TB
+        infra["인프라 팀\n(ClusterRole)"]
+        platform["플랫폼 팀\n(Role per NS)"]
+        app["애플리케이션 팀\n(Role per NS)"]
+
+        infra -->|"관리"| gc["GatewayClass\n(클러스터 스코프)"]
+        platform -->|"관리"| gw["Gateway\n(네임스페이스 스코프)"]
+        app -->|"관리"| hr["HTTPRoute\n(네임스페이스 스코프)"]
+    end
+
+    gc --> gw --> hr
+
+    style infra fill:#e53935,color:#fff
+    style platform fill:#fb8c00,color:#fff
+    style app fill:#43a047,color:#fff
+```
+
+각 팀은 자신의 권한 범위 내에서만 리소스를 관리할 수 있으며, NGINX Ingress의 Snippets 어노테이션처럼 임의 설정을 주입할 경로가 존재하지 않습니다.
+
+  </TabItem>
+  <TabItem value="code" label="RBAC 코드">
 
 ```yaml
 # 인프라 팀: GatewayClass 관리 (클러스터 레벨 권한)
@@ -194,9 +222,42 @@ rules:
   verbs: ["create", "update", "delete"]
 ```
 
+  </TabItem>
+</Tabs>
+
 **2. CRD 스키마 기반 구조적 검증**
 
 Gateway API는 OpenAPI 스키마로 모든 필드를 사전 정의하여 임의 설정 주입이 원천적으로 불가능합니다:
+
+<Tabs>
+  <TabItem value="diagram" label="개념도" default>
+
+```mermaid
+flowchart LR
+    subgraph nginx["NGINX Ingress"]
+        direction TB
+        ann["annotations:\nconfiguration-snippet"]
+        ann -->|"임의 문자열"| inject["임의 NGINX 설정 주입"]
+        inject -->|"검증 없음"| danger["보안 위험"]
+    end
+
+    subgraph gw["Gateway API"]
+        direction TB
+        crd["HTTPRoute CRD"]
+        crd -->|"OpenAPI 스키마"| validate["구조적 검증"]
+        validate -->|"사전 정의 필드만"| safe["안전"]
+    end
+
+    style nginx fill:#ffebee,stroke:#c62828
+    style gw fill:#e8f5e9,stroke:#2e7d32
+    style danger fill:#ef5350,color:#fff
+    style safe fill:#66bb6a,color:#fff
+```
+
+NGINX Ingress는 annotations에 임의 문자열을 주입할 수 있지만, Gateway API는 CRD 스키마로 사전 정의된 필드만 허용하여 구조적으로 안전합니다.
+
+  </TabItem>
+  <TabItem value="code" label="비교 코드">
 
 ```yaml
 # ❌ NGINX Ingress (임의 문자열 주입 가능)
@@ -221,9 +282,41 @@ spec:
           value: production
 ```
 
+  </TabItem>
+</Tabs>
+
 **3. Policy Attachment 패턴으로 안전한 확장**
 
 Gateway API는 확장 기능을 별도의 Policy 리소스로 분리하여 RBAC 제어가 가능합니다:
+
+<Tabs>
+  <TabItem value="diagram" label="개념도" default>
+
+```mermaid
+flowchart TB
+    gw["Gateway"] --> hr["HTTPRoute"]
+    hr --> svc["Service\n(app: api-gateway)"]
+
+    policy["CiliumNetworkPolicy\n(별도 Policy 리소스)"]
+    policy -.->|"RBAC으로\n접근 제어"| svc
+
+    subgraph policy_detail["Policy 적용 내용"]
+        direction LR
+        l7["L7 보안 정책"]
+        rate["Rate Limiting\n(100 req/s)"]
+        method["HTTP Method 제한\n(GET /api/*)"]
+    end
+
+    policy --> policy_detail
+
+    style policy fill:#ce93d8,stroke:#7b1fa2
+    style policy_detail fill:#f3e5f5,stroke:#7b1fa2
+```
+
+확장 기능(Rate Limiting, L7 정책 등)은 별도의 Policy 리소스로 분리되어 RBAC으로 접근을 제어할 수 있습니다. 인프라 팀만 Policy를 관리하고, 애플리케이션 팀은 HTTPRoute만 수정합니다.
+
+  </TabItem>
+  <TabItem value="code" label="Policy 코드">
 
 ```yaml
 # Cilium의 CiliumNetworkPolicy로 L7 보안 정책 적용
@@ -250,6 +343,9 @@ spec:
           rateLimit:
             requestsPerSecond: 100
 ```
+
+  </TabItem>
+</Tabs>
 
 **4. 활발한 커뮤니티 지원**
 
@@ -369,7 +465,35 @@ Gateway API의 6가지 핵심 이점을 시각적 다이어그램과 YAML 예제
 
 실제 프로덕션 환경에서 사용하는 Gateway API 리소스 배포 순서입니다:
 
-**Step 1: GatewayClass 정의 (인프라 팀)**
+<Tabs>
+  <TabItem value="overview" label="배포 흐름도" default>
+
+```mermaid
+flowchart LR
+    step1["Step 1\nGatewayClass\n(인프라 팀)"]
+    step2["Step 2\nGateway\n(플랫폼 팀)"]
+    step3["Step 3\nHTTPRoute\n(앱 팀)"]
+    step4["Step 4\nReferenceGrant\n(크로스 NS)"]
+    step5["Step 5\n배포 및 검증"]
+
+    step1 --> step2 --> step3
+    step2 --> step4
+    step3 --> step5
+    step4 --> step5
+
+    style step1 fill:#e53935,color:#fff
+    style step2 fill:#fb8c00,color:#fff
+    style step3 fill:#43a047,color:#fff
+    style step4 fill:#1e88e5,color:#fff
+    style step5 fill:#8e24aa,color:#fff
+```
+
+Gateway API 리소스는 역할별로 분리 배포됩니다. 인프라 팀이 GatewayClass를, 플랫폼 팀이 Gateway를, 앱 팀이 HTTPRoute를 각각 관리합니다.
+
+  </TabItem>
+  <TabItem value="step1" label="Step 1: GatewayClass">
+
+**GatewayClass 정의 (인프라 팀)**
 
 ```yaml
 apiVersion: gateway.networking.k8s.io/v1
@@ -385,7 +509,10 @@ spec:
     name: nlb-performance-profile
 ```
 
-**Step 2: Gateway 생성 (플랫폼 팀)**
+  </TabItem>
+  <TabItem value="step2" label="Step 2: Gateway">
+
+**Gateway 생성 (플랫폼 팀)**
 
 ```yaml
 apiVersion: gateway.networking.k8s.io/v1
@@ -422,7 +549,10 @@ spec:
         from: All  # 모든 네임스페이스의 HTTPRoute 허용
 ```
 
-**Step 3: HTTPRoute 설정 (애플리케이션 팀)**
+  </TabItem>
+  <TabItem value="step3" label="Step 3: HTTPRoute">
+
+**HTTPRoute 설정 (애플리케이션 팀)**
 
 ```yaml
 apiVersion: gateway.networking.k8s.io/v1
@@ -469,7 +599,10 @@ spec:
           replacePrefixMatch: /v1/api
 ```
 
-**Step 4: ReferenceGrant (크로스 네임스페이스 참조)**
+  </TabItem>
+  <TabItem value="step4" label="Step 4: ReferenceGrant">
+
+**ReferenceGrant (크로스 네임스페이스 참조)**
 
 ```yaml
 # gateway-system 네임스페이스의 Gateway를 다른 네임스페이스에서 참조 허용
@@ -489,7 +622,10 @@ spec:
     name: production-gateway
 ```
 
-**Step 5: 배포 및 검증**
+  </TabItem>
+  <TabItem value="step5" label="Step 5: 검증">
+
+**배포 및 검증**
 
 ```bash
 # 리소스 배포
@@ -520,6 +656,9 @@ done | sort | uniq -c
 #   90 v1
 #   10 v2
 ```
+
+  </TabItem>
+</Tabs>
 
 :::tip 네이티브 Canary 배포
 Gateway API는 `weight` 필드를 통해 어노테이션 없이 Canary 배포를 지원합니다. NGINX Ingress의 `nginx.ingress.kubernetes.io/canary` 어노테이션 조합보다 간결하고 이식성이 높습니다.
@@ -592,6 +731,22 @@ flowchart TB
 
 #### GAMMA HTTPRoute 예제
 
+<Tabs>
+  <TabItem value="concept" label="개념도" default>
+
+위의 mermaid 다이어그램에서 보듯이, GAMMA 패턴에서는 HTTPRoute가 Gateway가 아닌 **Service를 직접 parentRef로 참조**합니다. 이를 통해 East-West 트래픽에 L7 정책을 적용할 수 있습니다.
+
+**적용 효과:**
+
+| 항목 | 값 |
+|------|-----|
+| 요청 타임아웃 | 10초 |
+| 최대 재시도 | 3회 (100ms 백오프) |
+| 특징 | Gateway 없이 Service 간 직접 L7 정책 적용 |
+
+  </TabItem>
+  <TabItem value="code" label="HTTPRoute 코드">
+
 ```yaml
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
@@ -614,11 +769,8 @@ spec:
         backoff: 100ms
 ```
 
-이 설정은 `service-b`로 향하는 트래픽에 대해 다음을 적용합니다:
-
-- 요청 타임아웃 10초
-- 최대 3회 재시도
-- 재시도 간 100ms 백오프
+  </TabItem>
+</Tabs>
 
 ### 4.4 Istio Ambient Mode와의 관계
 
