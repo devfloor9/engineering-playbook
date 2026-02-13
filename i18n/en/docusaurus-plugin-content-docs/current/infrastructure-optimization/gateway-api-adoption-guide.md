@@ -13,6 +13,29 @@ sidebar_position: 3
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 import GatewayApiBenefits from '@site/src/components/GatewayApiBenefits';
+import {
+  DocumentStructureTable,
+  RiskAssessmentTable,
+  ArchitectureComparisonTable,
+  RoleSeparationTable,
+  GaStatusTable,
+  GammaEffectsTable,
+  GammaSupportTable,
+  FeatureComparisonMatrix,
+  ScenarioRecommendationTable,
+  FeatureMappingTable,
+  DifficultyComparisonTable,
+  AwsCostTable,
+  OpenSourceCostTable,
+  EksRequirementsTable,
+  LatencyComparisonTable,
+  AlgorithmComparisonTable,
+  InstanceTypeTable,
+  MigrationFeatureMappingTable,
+  TroubleshootingTable,
+  RouteRecommendationTable,
+  SolutionFeatureTable,
+} from '@site/src/components/GatewayApiTables';
 
 # Gateway API Adoption Guide
 
@@ -33,18 +56,7 @@ With the official End-of-Life (EOL) of NGINX Ingress Controller approaching in M
 
 ### 1.2 Document Structure
 
-| Section | Content | Reading Order |
-|---------|---------|---------------|
-| **1. Overview** | Document structure, target audience | Required |
-| **2. NGINX Ingress Retirement** | EOL timeline, security risks | Required |
-| **3. Gateway API Architecture** | 3-Tier model, role separation, GA status | Required |
-| **4. GAMMA Initiative** | Service mesh integration, East-West management | Recommended |
-| **5. Solution Comparison** | 5 implementations feature/performance/cost comparison | Required |
-| **6. NGINX Feature Alternatives** | 8 feature mappings, code examples | Optional |
-| **7. Cilium ENI + Gateway API** | Installation, configuration, performance optimization | Optional |
-| **8. Migration Execution** | 5-Phase strategy, checklists | When implementing |
-| **9. Benchmark Planning** | Test design, measurement metrics | When planning |
-| **10. Conclusion** | Roadmap, recommendations | Required |
+<DocumentStructureTable locale="en" />
 
 :::info Reading Strategy
 - **Quick Understanding**: Sections 1-3, 10 (approximately 10 minutes)
@@ -141,12 +153,7 @@ spec:
 
 **Risk Assessment:**
 
-| Vulnerability Type | Severity | CVSS Score | Impact Scope |
-|-------------------|----------|-----------|--------------|
-| Arbitrary configuration injection via Snippets annotations | **Critical** | 9.8 | Complete Ingress traffic takeover possible |
-| Incorrect configuration propagation due to lack of schema validation | **High** | 7.5 | Service disruption, security policy bypass |
-| RBAC privilege escalation attack (namespace isolation bypass) | **Critical** | 9.1 | Cross-namespace privilege theft |
-| Patch termination after EOL | **Critical** | N/A | Unable to respond to zero-day vulnerabilities |
+<RiskAssessmentTable locale="en" />
 
 :::warning If Currently Operating
 For existing NGINX Ingress environments, we recommend immediately applying admission controller policies that prohibit the use of `nginx.ingress.kubernetes.io/configuration-snippet` and `nginx.ingress.kubernetes.io/server-snippet` annotations.
@@ -365,13 +372,7 @@ spec:
 
 **Key Differences:**
 
-| Aspect | NGINX Ingress | Gateway API |
-|--------|---------------|-------------|
-| **Resource Structure** | All settings in single Ingress resource | Separation of concerns into 3 resources (GatewayClass, Gateway, HTTPRoute) |
-| **Configuration Method** | Non-standard annotations (50+) | Standard CRD fields |
-| **Permission Management** | Namespace-level Ingress permissions can control all settings | Resource-specific RBAC separation (Infrastructure/Platform/App teams) |
-| **Controller Replacement** | Full Ingress rewrite required | Only GatewayClass change needed |
-| **Extensibility** | Snippet injection or custom controller | Policy Attachment pattern |
+<ArchitectureComparisonTable locale="en" />
 
 ### 3.2 3-Tier Resource Model
 
@@ -383,12 +384,7 @@ Gateway API separates responsibilities with the following hierarchy:
 
 **Role-Based Permissions and Responsibilities:**
 
-| Resource | Management Entity | Responsibility Scope | Typical Change Frequency |
-|----------|-------------------|----------------------|-------------------------|
-| **GatewayClass** | Infrastructure Team (SRE, Cluster Admins) | Controller selection, global policies, cost optimization | 1-2 times per quarter |
-| **Gateway** | Platform Team (Network Engineers) | Listener configuration, TLS certificates, load balancer settings | 1-2 times per month |
-| **HTTPRoute** | Application Team (Developers) | Service-specific routing, Canary deployment, A/B testing | Daily |
-| **Service** | Application Team (Developers) | Backend endpoint management | Every deployment |
+<RoleSeparationTable locale="en" />
 
 **RBAC Example:**
 
@@ -439,17 +435,7 @@ rules:
 
 Gateway API is divided into Standard Channel and Experimental Channel, with varying maturity levels per resource:
 
-| Resource | Channel | Status | Production Recommended | Notes |
-|----------|---------|--------|------------------------|-------|
-| **GatewayClass** | Standard | GA (v1) | ✅ | Controller definition, parameter references |
-| **Gateway** | Standard | GA (v1) | ✅ | Listeners, TLS, load balancer settings |
-| **HTTPRoute** | Standard | GA (v1) | ✅ | HTTP routing, header/query matching |
-| **GRPCRoute** | Standard | GA (v1) | ✅ | gRPC service mesh matching |
-| **ReferenceGrant** | Standard | GA (v1beta1) | ✅ | Cross-namespace reference security |
-| **BackendTLSPolicy** | Standard | Beta (v1alpha3) | ⚠️ | Backend TLS termination (mTLS) |
-| **TLSRoute** | Experimental | Alpha (v1alpha2) | ❌ | TLS Passthrough (SNI routing) |
-| **TCPRoute** | Experimental | Alpha (v1alpha2) | ❌ | L4 TCP routing |
-| **UDPRoute** | Experimental | Alpha (v1alpha2) | ❌ | L4 UDP routing (DNS, VoIP) |
+<GaStatusTable locale="en" />
 
 :::warning Experimental Channel Caution
 Alpha-status resources have **no API compatibility guarantees**, with possible field changes or deletions during minor version upgrades. For production environments, we recommend using only GA/Beta resources from the Standard channel.
@@ -535,11 +521,7 @@ As shown in the mermaid diagram above, in the GAMMA pattern, HTTPRoute reference
 
 **Effects:**
 
-| Item | Value |
-|------|-------|
-| Request timeout | 10 seconds |
-| Max retries | 3 (100ms backoff) |
-| Feature | Direct L7 policy application between Services without Gateway |
+<GammaEffectsTable locale="en" />
 
   </TabItem>
   <TabItem value="code" label="HTTPRoute Code">
@@ -677,14 +659,7 @@ spec:
 
 The following shows GAMMA support status for major service mesh implementations.
 
-| Implementation | GAMMA Support | Version | Notes |
-|----------------|---------------|---------|-------|
-| **Istio** | ✅ GA | v1.22+ | Full GAMMA support with Ambient Mode + waypoint proxy |
-| **Cilium** | ✅ GA | v1.16+ | eBPF-based L7 policies, HTTPRoute attach to Service |
-| **Linkerd** | ✅ Beta | v2.15+ | HTTPRoute-based mesh policies, Gateway API v1.2+ |
-| **Envoy Gateway** | ⚠️ Limited | v1.7+ | Ingress-focused, mesh indirect support (requires Istio integration) |
-| **kGateway** | ✅ GA | v2.1+ | Unified gateway (ingress+mesh+AI), HTTPRoute/GRPCRoute mesh support |
-| **Consul** | ⚠️ In Development | v1.19+ | Gateway API experimental phase, coexists with existing Consul Config Entries |
+<GammaSupportTable locale="en" />
 
 **Legend**:
 - ✅ GA: Production ready
@@ -778,25 +753,25 @@ This section provides detailed comparisons of 5 major Gateway API implementation
 - Shield: DDoS protection
 - X-Ray: Distributed tracing
 
-#### Advantages
-
-| Feature | Benefit |
-|---------|---------|
-| **Fully Managed** | No infrastructure operation burden, automatic scaling |
-| **High Availability** | AWS SLA guaranteed (99.99% for ALB, 99.999% for NLB) |
-| **Native Integration** | Seamless integration with AWS security/monitoring services |
-| **Zero Maintenance** | Automatic updates, no patching required |
-| **Auto-Scaling** | Automatic traffic-based scaling, no capacity planning needed |
-
-#### Disadvantages
-
-| Limitation | Impact |
-|------------|--------|
-| **AWS Lock-in** | Multi-cloud or hybrid cloud migration difficult |
-| **Higher Costs** | ALB/NLB hourly + data transfer charges |
-| **Feature Limitations** | Limited L7 features compared to Envoy/Cilium |
-| **Customization Limits** | Cannot implement custom logic |
-| **Network Hop** | External load balancer adds latency |
+<SolutionFeatureTable
+  solution="AWS Native (LBC v3)"
+  color="#ff9800"
+  locale="en"
+  features={[
+    { feature: 'Fully Managed', benefit: 'No infrastructure operation burden, automatic scaling' },
+    { feature: 'High Availability', benefit: 'AWS SLA guaranteed (99.99% for ALB, 99.999% for NLB)' },
+    { feature: 'Native Integration', benefit: 'Seamless integration with AWS security/monitoring services' },
+    { feature: 'Zero Maintenance', benefit: 'Automatic updates, no patching required' },
+    { feature: 'Auto-Scaling', benefit: 'Automatic traffic-based scaling, no capacity planning needed' },
+  ]}
+  limitations={[
+    { limitation: 'AWS Lock-in', impact: 'Multi-cloud or hybrid cloud migration difficult' },
+    { limitation: 'Higher Costs', impact: 'ALB/NLB hourly + data transfer charges' },
+    { limitation: 'Feature Limitations', impact: 'Limited L7 features compared to Envoy/Cilium' },
+    { limitation: 'Customization Limits', impact: 'Cannot implement custom logic' },
+    { limitation: 'Network Hop', impact: 'External load balancer adds latency' },
+  ]}
+/>
 
 #### Cost Model
 
@@ -859,26 +834,26 @@ Estimated Monthly Cost (Medium Traffic):
 - API-aware security (REST API path filtering)
 - Identity-based security
 
-#### Advantages
-
-| Feature | Benefit |
-|---------|---------|
-| **Best Performance** | P99 latency under 10ms, 100k+ RPS per node |
-| **Observability** | Hubble Service Map + real-time flow logs |
-| **Cloud Native** | CNCF project, no vendor lock-in |
-| **ENI Integration** | AWS VPC native networking |
-| **Multi-Cluster** | BGP Control Plane for cluster federation |
-| **No Cost** | Open source, only compute resource costs |
-
-#### Disadvantages
-
-| Limitation | Impact |
-|------------|--------|
-| **Operational Complexity** | eBPF troubleshooting expertise required |
-| **Learning Curve** | Steep learning curve for CiliumNetworkPolicy |
-| **Kernel Requirements** | Requires Linux kernel 4.19+ (5.10+ recommended) |
-| **No Commercial Support** | Community support (enterprise support available via Isovalent) |
-| **Initial Setup Complexity** | ENI mode configuration complexity |
+<SolutionFeatureTable
+  solution="Cilium Gateway API"
+  color="#2196f3"
+  locale="en"
+  features={[
+    { feature: 'Best Performance', benefit: 'P99 latency under 10ms, 100k+ RPS per node' },
+    { feature: 'Observability', benefit: 'Hubble Service Map + real-time flow logs' },
+    { feature: 'Cloud Native', benefit: 'CNCF project, no vendor lock-in' },
+    { feature: 'ENI Integration', benefit: 'AWS VPC native networking' },
+    { feature: 'Multi-Cluster', benefit: 'BGP Control Plane for cluster federation' },
+    { feature: 'No Cost', benefit: 'Open source, only compute resource costs' },
+  ]}
+  limitations={[
+    { limitation: 'Operational Complexity', impact: 'eBPF troubleshooting expertise required' },
+    { limitation: 'Learning Curve', impact: 'Steep learning curve for CiliumNetworkPolicy' },
+    { limitation: 'Kernel Requirements', impact: 'Requires Linux kernel 4.19+ (5.10+ recommended)' },
+    { limitation: 'No Commercial Support', impact: 'Community support (enterprise support available via Isovalent)' },
+    { limitation: 'Initial Setup Complexity', impact: 'ENI mode configuration complexity' },
+  ]}
+/>
 
 #### Performance Metrics
 
@@ -939,24 +914,24 @@ CPU Usage:
 - Security patch guarantee
 - Performance tuning assistance
 
-#### Advantages
-
-| Feature | Benefit |
-|---------|---------|
-| **Stability** | Production-proven over decades |
-| **Easy Migration** | Smooth transition from NGINX Ingress |
-| **Expertise Reuse** | Leverage existing NGINX knowledge |
-| **Enterprise Support** | F5 official support available |
-| **Predictability** | Predictable performance/behavior |
-
-#### Disadvantages
-
-| Limitation | Impact |
-|------------|--------|
-| **Limited Performance** | Lower than eBPF-based solutions |
-| **NGINX Lock-in** | Depends on NGINX-specific features |
-| **License Costs** | NGINX Plus requires commercial license |
-| **Feature Parity Delay** | Gateway API feature adoption slower |
+<SolutionFeatureTable
+  solution="NGINX Gateway Fabric"
+  color="#4caf50"
+  locale="en"
+  features={[
+    { feature: 'Stability', benefit: 'Production-proven over decades' },
+    { feature: 'Easy Migration', benefit: 'Smooth transition from NGINX Ingress' },
+    { feature: 'Expertise Reuse', benefit: 'Leverage existing NGINX knowledge' },
+    { feature: 'Enterprise Support', benefit: 'F5 official support available' },
+    { feature: 'Predictability', benefit: 'Predictable performance/behavior' },
+  ]}
+  limitations={[
+    { limitation: 'Limited Performance', impact: 'Lower than eBPF-based solutions' },
+    { limitation: 'NGINX Lock-in', impact: 'Depends on NGINX-specific features' },
+    { limitation: 'License Costs', impact: 'NGINX Plus requires commercial license' },
+    { limitation: 'Feature Parity Delay', impact: 'Gateway API feature adoption slower' },
+  ]}
+/>
 
 #### Cost Model
 
@@ -1015,24 +990,24 @@ Total Cost of Ownership (3-node cluster):
 - WASM plugin support
 - Custom control plane extensions
 
-#### Advantages
-
-| Feature | Benefit |
-|---------|---------|
-| **CNCF Official** | Vendor-neutral, community-driven |
-| **Rich Features** | Most comprehensive L7 feature set |
-| **Mesh Ready** | Seamless Istio/Linkerd integration |
-| **Extensible** | WASM/Lua plugin ecosystem |
-| **Battle-Tested** | Envoy powers major platforms (AWS, Google, etc.) |
-
-#### Disadvantages
-
-| Limitation | Impact |
-|------------|--------|
-| **Complexity** | Steep learning curve for Envoy |
-| **Resource Usage** | Higher memory usage than NGINX |
-| **Operational Burden** | Requires Envoy expertise |
-| **Configuration Verbosity** | More YAML than simpler solutions |
+<SolutionFeatureTable
+  solution="Envoy Gateway"
+  color="#f44336"
+  locale="en"
+  features={[
+    { feature: 'CNCF Official', benefit: 'Vendor-neutral, community-driven' },
+    { feature: 'Rich Features', benefit: 'Most comprehensive L7 feature set' },
+    { feature: 'Mesh Ready', benefit: 'Seamless Istio/Linkerd integration' },
+    { feature: 'Extensible', benefit: 'WASM/Lua plugin ecosystem' },
+    { feature: 'Battle-Tested', benefit: 'Envoy powers major platforms (AWS, Google, etc.)' },
+  ]}
+  limitations={[
+    { limitation: 'Complexity', impact: 'Steep learning curve for Envoy' },
+    { limitation: 'Resource Usage', impact: 'Higher memory usage than NGINX' },
+    { limitation: 'Operational Burden', impact: 'Requires Envoy expertise' },
+    { limitation: 'Configuration Verbosity', impact: 'More YAML than simpler solutions' },
+  ]}
+/>
 
 #### Performance Metrics
 
@@ -1089,22 +1064,22 @@ Resource Usage:
 - Advanced authentication (OAuth2, OIDC, JWT)
 - Multi-tenancy support
 
-#### Advantages
-
-| Feature | Benefit |
-|---------|---------|
-| **AI-Ready** | LLM/AI workload native support |
-| **Unified Platform** | Single solution for ingress/mesh/API |
-| **Enterprise Support** | Solo.io 24/7 support |
-| **Future-Proof** | Early adoption of emerging standards |
-
-#### Disadvantages
-
-| Limitation | Impact |
-|------------|--------|
-| **License Costs** | Enterprise features require license |
-| **Smaller Community** | Smaller than NGINX/Envoy communities |
-| **Vendor Dependency** | Solo.io-specific features |
+<SolutionFeatureTable
+  solution="kGateway (CNCF Sandbox)"
+  color="#9c27b0"
+  locale="en"
+  features={[
+    { feature: 'AI-Ready', benefit: 'LLM/AI workload native support' },
+    { feature: 'Unified Platform', benefit: 'Single solution for ingress/mesh/API' },
+    { feature: 'Enterprise Support', benefit: 'Solo.io 24/7 support' },
+    { feature: 'Future-Proof', benefit: 'Early adoption of emerging standards' },
+  ]}
+  limitations={[
+    { limitation: 'License Costs', impact: 'Enterprise features require license' },
+    { limitation: 'Smaller Community', impact: 'Smaller than NGINX/Envoy communities' },
+    { limitation: 'Vendor Dependency', impact: 'Solo.io-specific features' },
+  ]}
+/>
 
 #### Cost Model
 
@@ -1132,36 +1107,13 @@ Enterprise:
 
 ### 5.6 Comprehensive Comparison Table
 
-| Feature | AWS Native | Cilium | NGINX Fabric | Envoy GW | kGateway |
-|---------|-----------|--------|-------------|----------|----------|
-| **Performance** | Medium | Best | Medium | Good | Good |
-| **Cost** | $$$$ | $ | $$ | $ | $$$ |
-| **Operational Complexity** | Low | High | Low | Medium | Medium |
-| **L7 Features** | Basic | Good | Good | Best | Best |
-| **Observability** | CloudWatch | Hubble (Best) | Basic | Metrics | Good |
-| **Multi-Cloud** | ❌ | ✅ | ✅ | ✅ | ✅ |
-| **Service Mesh** | ❌ | ✅ GAMMA | ❌ | ✅ Istio | ✅ Unified |
-| **AI/ML Support** | ❌ | ❌ | ❌ | ❌ | ✅ |
-| **Enterprise Support** | AWS | Isovalent | F5/NGINX | Envoy/CNCF | Solo.io |
-| **Learning Curve** | Low | High | Low | Medium | Medium |
-| **Community** | AWS Docs | Large (CNCF) | Large | Large (CNCF) | Medium |
+<FeatureComparisonMatrix locale="en" />
 
 ### 5.7 Decision Matrix
 
 The following are recommended solutions based on common organizational scenarios.
 
-| Scenario | First Choice | Second Choice | Reason |
-|----------|-------------|---------------|---------|
-| **AWS All-In + Minimal Operations** | AWS Native | Cilium | Managed, SLA guarantee, small ops team |
-| **High Performance + Observability** | Cilium | Envoy GW | eBPF best performance, Hubble Service Map |
-| **NGINX Experience + Multi-Cloud** | NGINX Fabric | Envoy GW | Leverage existing NGINX knowledge, cloud-neutral |
-| **CNCF + Service Mesh** | Envoy GW | kGateway | Istio compatible, CNCF standards compliance |
-| **AI/ML + Unified Gateway** | kGateway | Cilium | AI routing, MCP Gateway, future-oriented |
-| **Financial/Healthcare Security** | AWS Native | Cilium | WAF, Shield, audit trails, compliance |
-| **Startup + Cost Optimization** | Cilium | NGINX/Envoy | Fixed costs, avoid vendor lock-in |
-| **Hybrid/Multi-Cluster** | Cilium | kGateway | BGP Control Plane, multi-site mesh |
-| **Fast PoC (Validation)** | AWS Native | NGINX Fabric | Quick setup, managed, proven stability |
-| **Long-Term Strategic Investment** | Cilium | Envoy GW | eBPF future technology, CNCF ecosystem |
+<ScenarioRecommendationTable locale="en" />
 
 ---
 
@@ -1171,16 +1123,7 @@ This section provides detailed comparisons of how to implement 8 major NGINX Ing
 
 ### 6.1 Comprehensive Feature Mapping Table
 
-| # | NGINX Feature | AWS Native | Cilium | NGINX Fabric | Envoy GW | kGateway |
-|---|---------------|------------|--------|-------------|----------|----------|
-| 1 | Basic Auth | Lambda/JWT | L7 Policy | OIDC Policy | ExtAuth | JWT/OIDC |
-| 2 | IP Allowlist | WAF IP Sets + SG | CiliumNetworkPolicy | NginxProxy | SecurityPolicy | RouteOption |
-| 3 | Rate Limiting | WAF Rate Rule | L7 Rate Limit | NginxProxy | BackendTrafficPolicy | RouteOption |
-| 4 | URL Rewrite | HTTPRoute Filter | HTTPRoute Filter | HTTPRoute Filter | HTTPRoute Filter | HTTPRoute Filter |
-| 5 | Body Size | WAF Size Rule | - | NginxProxy | ClientTrafficPolicy | RouteOption |
-| 6 | Custom Error | ALB Fixed Response | - | Custom Backend | Direct Response | DirectResponse |
-| 7 | Header Routing | HTTPRoute matches | HTTPRoute matches | HTTPRoute matches | HTTPRoute matches | HTTPRoute matches |
-| 8 | Cookie Affinity | TG Stickiness | - | Upstream Config | Session Persistence | RouteOption |
+<FeatureMappingTable locale="en" />
 
 **Legend**:
 - ✅ Native support (no additional tools needed)
@@ -1192,16 +1135,7 @@ This section provides detailed comparisons of how to implement 8 major NGINX Ing
 
 Evaluation of difficulty when implementing NGINX features in each solution.
 
-| Feature | AWS Native | Cilium | NGINX Fabric | Envoy GW | kGateway |
-|---------|-----------|--------|-------------|----------|----------|
-| **Basic Auth** | Medium | Medium | Easy | Medium | Easy |
-| **IP Allowlist** | Easy | Easy | Easy | Easy | Easy |
-| **Rate Limiting** | Medium | Medium | Easy | Easy | Easy |
-| **URL Rewrite** | Easy | Easy | Easy | Easy | Easy |
-| **Body Size** | Medium | Hard | Easy | Easy | Easy |
-| **Custom Error** | Easy | Hard | Medium | Easy | Easy |
-| **Header Routing** | Easy | Easy | Easy | Easy | Easy |
-| **Cookie Affinity** | Easy | Hard | Easy | Medium | Easy |
+<DifficultyComparisonTable locale="en" />
 
 **Difficulty Criteria**:
 - **Easy**: Under 5 minutes, 5-10 lines of YAML
@@ -1214,25 +1148,13 @@ Analyzing cost impact per feature when migrating from NGINX Ingress Controller t
 
 #### AWS Native Additional Costs
 
-| Feature | AWS Native Additional Cost | Estimated Monthly Cost |
-|---------|---------------------------|------------------------|
-| **Basic Auth** | Lambda execution cost | ~$2-10 (based on 1M requests) |
-| **IP Allowlist** | WAF IP Set + rules | $5 (Web ACL) + $1 (rule) = $6 |
-| **Rate Limiting** | WAF Rate-Based Rule | $5 (Web ACL) + $1 (rule) + $0.60/million requests |
-| **Body Size** | WAF Body Size Rule | Included in WAF cost |
-| **WAF Total** | Web ACL + rules + requests | ~$20-100/month (depending on traffic) |
+<AwsCostTable locale="en" />
 
 **Cost Optimization Tip**: If you need 3+ features requiring AWS WAF (IP Allowlist, Rate Limiting, Body Size), AWS Native is cost-effective. For only 1-2 features, open-source solutions are cheaper.
 
 #### Open Source Additional Costs
 
-| Feature | Open Source Additional Cost |
-|---------|----------------------------|
-| Basic Auth | None (self-implemented) |
-| IP Allowlist | None (NetworkPolicy) |
-| Rate Limiting | None (L7 Policy) |
-| Body Size | None (Proxy Config) |
-| All Features | None (only compute resources) |
+<OpenSourceCostTable locale="en" />
 
 :::tip Cost Optimization Tip
 If you need 3+ features requiring AWS WAF (IP Allowlist, Rate Limiting, Body Size), AWS Native is cost-effective relative to WAF costs. For only 1-2 features, open-source solutions can implement them for free.
@@ -1979,15 +1901,7 @@ kubectl -n kube-system rollout status ds/cilium
 
 **Key Configuration Options:**
 
-| Option | Value | Description |
-|--------|-------|-------------|
-| `eni.enabled` | true | Enable ENI mode |
-| `ipam.mode` | eni | Use ENI IPAM |
-| `eni.updateEC2AdapterLimitViaAPI` | true | Auto-discover ENI limits via AWS API |
-| `eni.awsEnablePrefixDelegation` | true | Use /28 prefix delegation (16 IPs per prefix) |
-| `tunnel` | disabled | Disable overlay (native routing) |
-| `gatewayAPI.enabled` | true | Enable Gateway API support |
-| `kubeProxyReplacement` | true | Replace kube-proxy with eBPF |
+<EksRequirementsTable locale="en" />
 
 #### Step 3: Install Gateway API CRDs
 
@@ -2450,11 +2364,7 @@ helm install cilium cilium/cilium \
 - **Test Cases**: 12 (11 passed, 1 issue)
 
 ## Performance Results
-| Metric | NGINX Ingress | Cilium Gateway | Change |
-|--------|---------------|----------------|--------|
-| P50 Latency | 5.2ms | 4.1ms | -21% |
-| P99 Latency | 18.3ms | 12.7ms | -31% |
-| Throughput | 45k RPS | 52k RPS | +16% |
+<LatencyComparisonTable locale="en" />
 
 ## Issues Encountered
 1. **Issue**: Rate limiting configuration complexity
@@ -2798,13 +2708,7 @@ For test environment design, detailed scenarios, measurement metrics, and execut
 
 ### 10.1 Executive Summary
 
-| Path | Optimal Target | Key Benefits |
-|------|---------------|--------------|
-| **AWS Native** | AWS all-in organizations | Fully managed, auto-scaling, zero operations |
-| **Cilium** | High-performance + observability focus | eBPF best performance, Hubble visibility, ENI native |
-| **NGINX Fabric** | Leverage NGINX experience | Proven stability, familiar configuration, fast transition |
-| **Envoy Gateway** | CNCF standards + service mesh | Rich L7 features, Istio integration, extensibility |
-| **kGateway** | AI/ML integration needs | AI routing, enterprise support, Solo.io ecosystem |
+<RouteRecommendationTable locale="en" />
 
 ### 10.2 Recommendations
 

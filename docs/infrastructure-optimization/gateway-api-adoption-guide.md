@@ -13,6 +13,28 @@ sidebar_position: 3
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 import GatewayApiBenefits from '@site/src/components/GatewayApiBenefits';
+import {
+  DocumentStructureTable,
+  RiskAssessmentTable,
+  ArchitectureComparisonTable,
+  RoleSeparationTable,
+  GaStatusTable,
+  GammaEffectsTable,
+  GammaSupportTable,
+  FeatureComparisonMatrix,
+  ScenarioRecommendationTable,
+  FeatureMappingTable,
+  DifficultyComparisonTable,
+  AwsCostTable,
+  OpenSourceCostTable,
+  EksRequirementsTable,
+  LatencyComparisonTable,
+  AlgorithmComparisonTable,
+  InstanceTypeTable,
+  MigrationFeatureMappingTable,
+  TroubleshootingTable,
+  RouteRecommendationTable,
+} from '@site/src/components/GatewayApiTables';
 
 # Gateway API 도입 가이드
 
@@ -33,18 +55,7 @@ import GatewayApiBenefits from '@site/src/components/GatewayApiBenefits';
 
 ### 1.2 문서 구성
 
-| 섹션 | 내용 | 읽는 순서 |
-|------|------|-----------|
-| **1. 개요** | 문서 구조, 대상 독자 | 필수 |
-| **2. NGINX Ingress Retirement** | EOL 타임라인, 보안 위험 | 필수 |
-| **3. Gateway API 아키텍처** | 3-Tier 모델, 역할 분리, GA 현황 | 필수 |
-| **4. GAMMA Initiative** | 서비스 메시 통합, East-West 관리 | 권장 |
-| **5. 솔루션 비교** | 5개 구현체 기능/성능/비용 비교 | 필수 |
-| **6. NGINX 기능별 대안** | 8가지 기능 매핑, 코드 예시 | 선택 |
-| **7. Cilium ENI + Gateway API** | 설치, 구성, 성능 최적화 | 선택 |
-| **8. 마이그레이션 실행** | 5-Phase 전략, 체크리스트 | 실행 시 |
-| **9. 벤치마크 계획** | 테스트 설계, 측정 지표 | 계획 시 |
-| **10. 결론** | 로드맵, 권장사항 | 필수 |
+<DocumentStructureTable />
 
 :::info 읽기 전략
 - **빠른 이해**: 섹션 1-3, 10 (약 10분)
@@ -141,12 +152,7 @@ spec:
 
 **위험도 평가:**
 
-| 취약점 유형 | 심각도 | CVSS 점수 | 영향 범위 |
-|-------------|--------|-----------|-----------|
-| Snippets 어노테이션을 통한 임의 설정 주입 | **Critical** | 9.8 | 전체 Ingress 트래픽 장악 가능 |
-| 스키마 검증 부재로 인한 잘못된 설정 전파 | **High** | 7.5 | 서비스 중단, 보안 정책 우회 |
-| RBAC 권한 상승 공격 (네임스페이스 격리 무력화) | **Critical** | 9.1 | 크로스 네임스페이스 권한 탈취 |
-| EOL 이후 패치 종료 | **Critical** | N/A | 제로데이 취약점 대응 불가 |
+<RiskAssessmentTable />
 
 :::warning 현재 운영 중이라면
 기존 NGINX Ingress 환경에서는 `nginx.ingress.kubernetes.io/configuration-snippet` 및 `nginx.ingress.kubernetes.io/server-snippet` 어노테이션 사용을 즉시 금지하는 admission controller 정책 적용을 권장합니다.
@@ -365,13 +371,7 @@ spec:
 
 **주요 차이점:**
 
-| 측면 | NGINX Ingress | Gateway API |
-|------|---------------|-------------|
-| **리소스 구조** | 단일 Ingress 리소스에 모든 설정 포함 | 3개 리소스로 관심사 분리 (GatewayClass, Gateway, HTTPRoute) |
-| **설정 방식** | 비표준 어노테이션 (50개 이상) | 표준 CRD 필드 |
-| **권한 관리** | 네임스페이스 레벨 Ingress 권한으로 모든 설정 제어 가능 | 리소스별 RBAC 분리 (인프라/플랫폼/앱 팀) |
-| **컨트롤러 교체** | 전체 Ingress 재작성 필요 | GatewayClass만 변경 |
-| **확장성** | Snippet 주입 또는 커스텀 컨트롤러 | Policy Attachment 패턴 |
+<ArchitectureComparisonTable />
 
 ### 3.2 3-Tier 리소스 모델
 
@@ -383,12 +383,7 @@ Gateway API는 다음과 같은 계층 구조로 책임을 분리합니다:
 
 **역할별 권한 및 책임:**
 
-| 리소스 | 관리 주체 | 책임 범위 | 일반적인 변경 빈도 |
-|--------|-----------|-----------|-------------------|
-| **GatewayClass** | 인프라 팀 (SRE, 클러스터 관리자) | 컨트롤러 선택, 전역 정책, 비용 최적화 | 분기별 1-2회 |
-| **Gateway** | 플랫폼 팀 (네트워크 엔지니어) | 리스너 구성, TLS 인증서, 로드밸런서 설정 | 월 1-2회 |
-| **HTTPRoute** | 애플리케이션 팀 (개발자) | 서비스별 라우팅, Canary 배포, A/B 테스트 | 일 단위 |
-| **Service** | 애플리케이션 팀 (개발자) | 백엔드 엔드포인트 관리 | 배포 시마다 |
+<RoleSeparationTable />
 
 **RBAC 예제:**
 
@@ -439,17 +434,7 @@ rules:
 
 Gateway API는 Standard Channel과 Experimental Channel로 나뉘며, 리소스별 성숙도가 다릅니다:
 
-| 리소스 | 채널 | 상태 | 프로덕션 권장 | 비고 |
-|--------|------|------|---------------|------|
-| **GatewayClass** | Standard | GA (v1) | ✅ | 컨트롤러 정의, 파라미터 참조 |
-| **Gateway** | Standard | GA (v1) | ✅ | 리스너, TLS, 로드밸런서 설정 |
-| **HTTPRoute** | Standard | GA (v1) | ✅ | HTTP 라우팅, 헤더/쿼리 매칭 |
-| **GRPCRoute** | Standard | GA (v1) | ✅ | gRPC 서비스 메시 매칭 |
-| **ReferenceGrant** | Standard | GA (v1beta1) | ✅ | 크로스 네임스페이스 참조 보안 |
-| **BackendTLSPolicy** | Standard | Beta (v1alpha3) | ⚠️ | 백엔드 TLS 종단 (mTLS) |
-| **TLSRoute** | Experimental | Alpha (v1alpha2) | ❌ | TLS Passthrough (SNI 라우팅) |
-| **TCPRoute** | Experimental | Alpha (v1alpha2) | ❌ | L4 TCP 라우팅 |
-| **UDPRoute** | Experimental | Alpha (v1alpha2) | ❌ | L4 UDP 라우팅 (DNS, VoIP) |
+<GaStatusTable />
 
 :::warning Experimental 채널 주의사항
 Alpha 상태의 리소스는 **API 호환성 보장이 없으며**, 마이너 버전 업그레이드 시 필드 변경 또는 삭제 가능성이 있습니다. 프로덕션 환경에서는 Standard 채널의 GA/Beta 리소스만 사용하는 것을 권장합니다.
@@ -738,11 +723,7 @@ flowchart TB
 
 **적용 효과:**
 
-| 항목 | 값 |
-|------|-----|
-| 요청 타임아웃 | 10초 |
-| 최대 재시도 | 3회 (100ms 백오프) |
-| 특징 | Gateway 없이 Service 간 직접 L7 정책 적용 |
+<GammaEffectsTable />
 
   </TabItem>
   <TabItem value="code" label="HTTPRoute 코드">
@@ -874,14 +855,7 @@ spec:
 
 다음은 주요 서비스 메시 구현체의 GAMMA 지원 현황입니다.
 
-| 구현체 | GAMMA 지원 | 버전 | 비고 |
-|--------|-----------|------|------|
-| **Istio** | ✅ GA | v1.22+ | Ambient Mode + waypoint proxy로 완전한 GAMMA 지원 |
-| **Cilium** | ✅ GA | v1.16+ | eBPF 기반 L7 정책, HTTPRoute attach to Service |
-| **Linkerd** | ✅ Beta | v2.15+ | HTTPRoute 기반 메시 정책, Gateway API v1.2+ |
-| **Envoy Gateway** | ⚠️ 제한적 | v1.7+ | 인그레스 중심, 메시는 간접 지원 (Istio 연동 필요) |
-| **kGateway** | ✅ GA | v2.1+ | 통합 게이트웨이 (인그레스+메시+AI), HTTPRoute/GRPCRoute 메시 지원 |
-| **Consul** | ⚠️ 개발 중 | v1.19+ | Gateway API 실험 단계, 기존 Consul Config Entries 병행 |
+<GammaSupportTable />
 
 **범례**:
 - ✅ GA: 프로덕션 사용 가능
@@ -1526,77 +1500,7 @@ spec:
 
 다음은 5가지 솔루션의 종합 비교표입니다. 이 표를 통해 각 솔루션의 강점과 약점을 한눈에 파악할 수 있습니다.
 
-| 비교 항목 | AWS Native (LBC v3) | Cilium | NGINX Fabric | Envoy Gateway | kGateway |
-|----------|---------------------|--------|-------------|---------------|----------|
-| **기본 정보** | | | | | |
-| 제공사 | AWS | Isovalent/Cisco | F5/NGINX | CNCF Envoy | CNCF (Solo.io) |
-| 데이터플레인 | AWS ALB/NLB (관리형) | Envoy + eBPF | NGINX | Envoy Proxy | Envoy Proxy |
-| 라이선스 | AWS 서비스 | Apache 2.0 | Apache 2.0 / 상용 | Apache 2.0 | Apache 2.0 |
-| CNCF 상태 | - | CNCF 졸업 (eBPF) | - | CNCF 졸업 (Envoy) | CNCF Sandbox |
-| 성숙도 | ✅ 높음 (AWS 검증) | ✅ 높음 (8년+) | ✅ 높음 (NGINX 20년+) | ⚠️ 중간 (2년) | ✅ 높음 (8년+) |
-| **Gateway API** | | | | | |
-| 지원 버전 | v1.3 | v1.3 | v1.3+ | v1.3 | v1.4 |
-| HTTPRoute | ✅ | ✅ | ✅ | ✅ | ✅ |
-| GRPCRoute | ✅ | ✅ | ✅ | ✅ | ✅ |
-| TLSRoute | ✅ (NLB) | ✅ | ✅ | ✅ | ✅ |
-| TCPRoute | ✅ (NLB) | ⚠️ Experimental | ❌ | ✅ | ✅ |
-| UDPRoute | ✅ (NLB) | ⚠️ Experimental | ❌ | ✅ | ✅ |
-| **핵심 기능** | | | | | |
-| TLS Termination | ✅ ACM 통합 | ✅ Secret | ✅ Secret | ✅ Secret | ✅ Secret |
-| mTLS | ⚠️ 제한적 | ✅ | ✅ | ✅ | ✅ |
-| Rate Limiting | ❌ WAF 필요 | ✅ L7 Policy | ✅ NginxProxy | ✅ BackendTrafficPolicy | ✅ RouteOption |
-| Header 조작 | ✅ LBC v3 | ✅ | ✅ | ✅ | ✅ |
-| URL Rewrite | ✅ | ✅ | ✅ | ✅ | ✅ |
-| 인증/인가 | Lambda/Cognito/JWT | L7 Policy | OIDC Policy | ExtAuth/OIDC | JWT/OAuth/OIDC |
-| Canary 배포 | ✅ Weight | ✅ Weight | ✅ Weight | ✅ Weight | ✅ Weight |
-| 세션 어피니티 | ✅ TG Stickiness | ⚠️ 수동 | ✅ Upstream Config | ✅ Session Persistence | ✅ RouteOption |
-| **보안** | | | | | |
-| WAF 통합 | ✅ AWS WAF | ❌ | ⚠️ ModSecurity | ⚠️ 별도 구성 | ⚠️ 별도 구성 |
-| DDoS 보호 | ✅ AWS Shield | ⚠️ 수동 | ⚠️ 수동 | ⚠️ 수동 | ⚠️ 수동 |
-| IP 제어 | SG + WAF | CiliumNetworkPolicy | NginxProxy | SecurityPolicy | RouteOption |
-| 클라이언트 인증서 | ⚠️ 제한적 | ✅ | ✅ | ✅ | ✅ |
-| **성능** | | | | | |
-| 처리량 | AWS 관리형 (고성능) | ✅✅✅ 최고 (eBPF) | ✅✅ 높음 | ✅✅ 높음 | ✅✅ 높음 |
-| 지연시간 | 낮음 | ✅ 가장 낮음 | 낮음 | 낮음 | 낮음 |
-| 리소스 사용 | - (관리형) | ✅ 가장 낮음 | 중간 | 중간 | 중간 |
-| **운영** | | | | | |
-| 스케일링 | AWS Auto Scaling | DaemonSet | HPA/수동 | HPA/수동 | HPA/수동 |
-| 고가용성 | AWS 내장 HA | DaemonSet | Pod + PDB | Pod + PDB | Pod + PDB |
-| 모니터링 | CloudWatch | Hubble + Prometheus | Prometheus | Prometheus | Prometheus |
-| 운영 부담 | ✅ 낮음 | 중간 | 중간 | 중간 | 중간 |
-| SLA 보장 | ✅ 99.99% | ❌ | ⚠️ F5 지원 시 | ❌ | ⚠️ Solo 지원 시 |
-| **메시 통합** | | | | | |
-| GAMMA | ❌ | ✅ GA | ❌ | ⚠️ 제한적 | ✅ GA |
-| Service Mesh | ❌ | ✅ (네이티브) | ❌ | Istio 호환 | ✅ (네이티브) |
-| East-West | ❌ | ✅ eBPF | ❌ | ⚠️ | ✅ |
-| 사이드카 불필요 | - | ✅ | - | ❌ | ⚠️ |
-| **고급 기능** | | | | | |
-| Circuit Breaking | ❌ | ✅ | ⚠️ 제한적 | ✅ | ✅ |
-| Fault Injection | ❌ | ✅ | ❌ | ✅ | ✅ |
-| Retry 정책 | ⚠️ 기본 | ✅ | ✅ | ✅ | ✅ |
-| Timeout 정책 | ✅ | ✅ | ✅ | ✅ | ✅ |
-| GraphQL Gateway | ❌ | ❌ | ❌ | ❌ | ✅ |
-| WebAssembly | ❌ | ❌ | ❌ | ⚠️ 실험적 | ✅ |
-| **AI/ML** | | | | | |
-| 추론 라우팅 | ❌ | ❌ | ❌ | ❌ | ✅ |
-| MCP Gateway | ❌ | ❌ | ❌ | ❌ | ✅ |
-| 모델 A/B 테스트 | ⚠️ Weight만 | ⚠️ Weight만 | ⚠️ Weight만 | ⚠️ Weight만 | ✅ 네이티브 |
-| **관측성** | | | | | |
-| 메트릭 | CloudWatch | Hubble + Prometheus | Prometheus | Prometheus | Prometheus |
-| 로그 | CloudWatch Logs | Loki/ELK | ELK | ELK | ELK |
-| 추적 | X-Ray | Jaeger/Zipkin | Jaeger | Jaeger | Jaeger |
-| Service Map | ❌ | ✅ Hubble | ❌ | ⚠️ 별도 | ⚠️ 별도 |
-| **비용** | | | | | |
-| 기본 비용 | ALB 시간당 + LCU | 컴퓨팅 리소스 | 컴퓨팅 리소스 | 컴퓨팅 리소스 | 컴퓨팅 리소스 |
-| 월 예상 (중규모) | $50-200 | $30-100 | $50-150 | $50-150 | $50-150 |
-| 벤더 종속 | 높음 (AWS) | 낮음 | 낮음 | 없음 | 낮음 |
-| 멀티클라우드 | ❌ | ✅ | ✅ | ✅ | ✅ |
-| 온프레미스 | ❌ | ✅ | ✅ | ✅ | ✅ |
-| **커뮤니티** | | | | | |
-| GitHub Stars | - | 19k+ (Cilium) | 2k+ | 5k+ | 4k+ (Gloo) |
-| 활발도 | AWS 공식 | ✅ 매우 활발 | 중간 | ✅ 활발 | ✅ 활발 |
-| 문서 품질 | ✅ 우수 | ✅ 우수 | 중간 | ✅ 우수 | ✅ 우수 |
-| 프로덕션 사례 | ✅ 많음 | ✅ 많음 | 중간 | 중간 | ✅ 많음 |
+<FeatureComparisonMatrix />
 
 ### 5.7 장단점 종합 비교
 
@@ -1768,18 +1672,7 @@ flowchart TD
 
 다음은 일반적인 조직 시나리오에 따른 권장 솔루션입니다.
 
-| 시나리오 | 1순위 | 2순위 | 이유 |
-|---------|-------|-------|------|
-| **AWS 올인 + 운영 최소화** | AWS Native | Cilium | 관리형, SLA 보장, 운영팀 규모 작음 |
-| **고성능 + 관측성** | Cilium | Envoy GW | eBPF 최고 성능, Hubble Service Map |
-| **NGINX 경험 + 멀티클라우드** | NGINX Fabric | Envoy GW | 기존 NGINX 지식 활용, 클라우드 중립 |
-| **CNCF + 서비스 메시** | Envoy GW | kGateway | Istio 호환, CNCF 표준 준수 |
-| **AI/ML + 통합 게이트웨이** | kGateway | Cilium | AI 라우팅, MCP Gateway, 미래 지향 |
-| **금융/의료 보안** | AWS Native | Cilium | WAF, Shield, 감사 추적, 컴플라이언스 |
-| **스타트업 + 비용 최적화** | Cilium | NGINX/Envoy | 고정 비용, 벤더 종속 회피 |
-| **하이브리드/멀티클러스터** | Cilium | kGateway | BGP Control Plane, 멀티사이트 메시 |
-| **빠른 PoC (검증)** | AWS Native | NGINX Fabric | 빠른 설정, 관리형, 검증된 안정성 |
-| **장기 전략적 투자** | Cilium | Envoy GW | eBPF 미래 기술, CNCF 생태계 |
+<ScenarioRecommendationTable />
 
 ---
 
@@ -1789,16 +1682,7 @@ flowchart TD
 
 ### 6.1 8가지 기능 매핑 종합표
 
-| # | NGINX 기능 | AWS Native | Cilium | NGINX Fabric | Envoy GW | kGateway |
-|---|-----------|------------|--------|-------------|----------|----------|
-| 1 | Basic Auth | Lambda/JWT | L7 Policy | OIDC Policy | ExtAuth | JWT/OIDC |
-| 2 | IP Allowlist | WAF IP Sets + SG | CiliumNetworkPolicy | NginxProxy | SecurityPolicy | RouteOption |
-| 3 | Rate Limiting | WAF Rate Rule | L7 Rate Limit | NginxProxy | BackendTrafficPolicy | RouteOption |
-| 4 | URL Rewrite | HTTPRoute Filter | HTTPRoute Filter | HTTPRoute Filter | HTTPRoute Filter | HTTPRoute Filter |
-| 5 | Body Size | WAF Size Rule | - | NginxProxy | ClientTrafficPolicy | RouteOption |
-| 6 | Custom Error | ALB Fixed Response | - | Custom Backend | Direct Response | DirectResponse |
-| 7 | Header Routing | HTTPRoute matches | HTTPRoute matches | HTTPRoute matches | HTTPRoute matches | HTTPRoute matches |
-| 8 | Cookie Affinity | TG Stickiness | - | Upstream Config | Session Persistence | RouteOption |
+<FeatureMappingTable />
 
 **범례**:
 - ✅ 네이티브 지원 (별도 도구 불필요)
@@ -1810,16 +1694,7 @@ flowchart TD
 
 각 솔루션에서 NGINX 기능을 구현할 때의 난이도를 평가합니다.
 
-| 기능 | AWS Native | Cilium | NGINX Fabric | Envoy GW | kGateway |
-|------|-----------|--------|-------------|----------|----------|
-| **Basic Auth** | 중간 | 중간 | 쉬움 | 중간 | 쉬움 |
-| **IP Allowlist** | 쉬움 | 쉬움 | 쉬움 | 쉬움 | 쉬움 |
-| **Rate Limiting** | 중간 | 중간 | 쉬움 | 쉬움 | 쉬움 |
-| **URL Rewrite** | 쉬움 | 쉬움 | 쉬움 | 쉬움 | 쉬움 |
-| **Body Size** | 중간 | 어려움 | 쉬움 | 쉬움 | 쉬움 |
-| **Custom Error** | 쉬움 | 어려움 | 중간 | 쉬움 | 쉬움 |
-| **Header Routing** | 쉬움 | 쉬움 | 쉬움 | 쉬움 | 쉬움 |
-| **Cookie Affinity** | 쉬움 | 어려움 | 쉬움 | 중간 | 쉬움 |
+<DifficultyComparisonTable />
 
 **난이도 기준**:
 - **쉬움**: 5분 이내, YAML 5-10줄
@@ -1832,25 +1707,13 @@ NGINX Ingress Controller에서 Gateway API로 마이그레이션할 때 기능�
 
 #### AWS Native 추가 비용
 
-| 기능 | AWS Native 추가 비용 | 월 예상 비용 |
-|------|---------------------|------------|
-| **Basic Auth** | Lambda 실행 비용 | ~$2-10 (100만 요청 기준) |
-| **IP Allowlist** | WAF IP Set + 규칙 | $5 (Web ACL) + $1 (규칙) = $6 |
-| **Rate Limiting** | WAF Rate-Based Rule | $5 (Web ACL) + $1 (규칙) + $0.60/백만 요청 |
-| **Body Size** | WAF Body Size Rule | WAF 비용에 포함 |
-| **WAF 전체** | Web ACL + 규칙 + 요청 | ~$20-100/월 (트래픽에 따라) |
+<AwsCostTable />
 
 **비용 최적화 팁**: AWS WAF가 필요한 기능(IP Allowlist, Rate Limiting, Body Size)이 3개 이상이면 AWS Native가 효율적입니다. 1-2개만 필요하면 오픈소스 솔루션이 더 저렴합니다.
 
 #### 오픈소스 추가 비용
 
-| 기능 | 오픈소스 추가 비용 |
-|------|-------------------|
-| Basic Auth | 없음 (자체 구현) |
-| IP Allowlist | 없음 (NetworkPolicy) |
-| Rate Limiting | 없음 (L7 Policy) |
-| Body Size | 없음 (Proxy Config) |
-| 모든 기능 | 없음 (컴퓨팅 리소스만) |
+<OpenSourceCostTable />
 
 :::tip 비용 최적화 팁
 AWS WAF가 필요한 기능(IP Allowlist, Rate Limiting, Body Size)이 3개 이상이면 AWS Native가 WAF 비용 대비 효율적입니다. 1-2개만 필요하면 오픈소스 솔루션에서 무료로 구현할 수 있습니다.
@@ -2673,13 +2536,7 @@ Cilium ENI 모드를 성공적으로 배포하기 위해서는 다음 요구사�
 
 #### EKS 클러스터 요구사항
 
-| 항목 | 요구사항 | 비고 |
-|------|----------|------|
-| **EKS 버전** | 1.28 이상 (권장: 1.32) | Gateway API v1.4 호환성 |
-| **컨트롤 플레인** | kube-proxy 비활성화 | Cilium이 kube-proxy 대체 |
-| **노드 운영체제** | Amazon Linux 2023 또는 Ubuntu 22.04 | eBPF 커널 지원 필요 (5.10+) |
-| **컨테이너 런타임** | containerd 1.6+ | CRI 호환성 |
-| **VPC CNI 제거** | 필수 | Cilium이 CNI 역할 수행 |
+<EksRequirementsTable />
 
 :::warning
 신규 클러스터를 생성할 때 반드시 `--bootstrapSelfManagedAddons false` 플래그를 사용해야 합니다. 이를 통해 AWS VPC CNI가 자동 설치되지 않으며, Cilium을 클린하게 배포할 수 있습니다.
@@ -3543,11 +3400,7 @@ graph TB
 
 **레이턴시 비교:**
 
-| 구성 요소 | ALB + NGINX | NLB + Cilium | 개선율 |
-|-----------|-------------|--------------|--------|
-| L4 로드밸런서 | ALB: 10ms | NLB: 0.4ms | **96% 감소** |
-| L7 프록시 | NGINX: 5ms | eBPF+Envoy: 3.1ms | **38% 감소** |
-| **총 레이턴시** | **15ms** | **3.5ms** | **77% 감소** |
+<LatencyComparisonTable />
 
 #### ENI/IP 관리 최적화
 
@@ -3641,10 +3494,7 @@ loadBalancer:
 
 **알고리즘 비교:**
 
-| 알고리즘 | 연결 고정성 | 백엔드 추가 시 | 백엔드 제거 시 | CPU 오버헤드 |
-|----------|-------------|----------------|----------------|--------------|
-| random | 없음 | 영향 없음 | 영향 없음 | 최소 |
-| maglev | **최대 90%** | 10% 재배치 | 제거된 백엔드 트래픽만 재배치 | 낮음 |
+<AlgorithmComparisonTable />
 
 **XDP 가속 (eXpress Data Path)**<br/>
 네트워크 드라이버 레벨에서 패킷을 처리하여 커널 네트워크 스택을 완전히 우회합니다.
@@ -3678,14 +3528,7 @@ ip link show eth0 | grep xdp
 
 **네트워크 성능 우선 인스턴스 추천:**
 
-| 인스턴스 타입 | vCPU | 메모리 | 네트워크 대역폭 | ENI | IP/ENI | 권장 용도 |
-|---------------|------|--------|-----------------|-----|--------|-----------|
-| **m7g.xlarge** | 4 | 16GB | 최대 12.5Gbps | 4 | 15 | 범용, 비용 효율 |
-| **c7gn.xlarge** | 4 | 8GB | 최대 30Gbps | 4 | 15 | **고성능 게이트웨이** |
-| **m7g.2xlarge** | 8 | 32GB | 최대 15Gbps | 4 | 15 | 중규모 워크로드 |
-| **c7gn.4xlarge** | 16 | 32GB | 최대 50Gbps | 8 | 30 | **대규모 트래픽** |
-| **m7g.8xlarge** | 32 | 128GB | 25Gbps | 8 | 30 | 고밀도 파드 |
-| **c7gn.12xlarge** | 48 | 96GB | 100Gbps | 15 | 50 | **초고성능** |
+<InstanceTypeTable />
 
 **Graviton4 (G시리즈) 선택 이유:**
 - x86 대비 40% 가격 대비 성능 향상
@@ -4310,16 +4153,7 @@ echo "Unique Hosts: $(cat ingress-inventory.json | jq -r '[.items[].spec.rules[]
 
 **Step 1.2: 기능 매핑 (NGINX Ingress → Gateway API)**
 
-| NGINX Ingress 기능 | Gateway API 대안 | 비고 |
-|---------------------|------------------|------|
-| `host: example.com` | `HTTPRoute.spec.hostnames` | 직접 매핑 |
-| `path: /api` | `HTTPRoute.spec.rules[].matches[].path` | 직접 매핑 |
-| `pathType: Prefix` | `path.type: PathPrefix` | 동일 |
-| `annotations: rewrite-target` | `filters[].type: URLRewrite` | 표준화됨 |
-| `annotations: rate-limit` | Policy Attachment (구현체별 상이) | 표준화 진행 중 |
-| `annotations: cors-*` | Policy Attachment | 표준화 진행 중 |
-| `annotations: auth-*` | Policy Attachment 또는 외부 인증 | OAuth2-Proxy 등 권장 |
-| `annotations: ssl-redirect` | Gateway TLS 리스너 자동 처리 | 자동화됨 |
+<MigrationFeatureMappingTable />
 
 **Step 1.3: 리스크 평가**
 
@@ -4901,14 +4735,7 @@ chmod +x validate-httproute.sh
 
 #### 일반적인 이슈 및 해결 방법
 
-| 증상 | 원인 | 해결 방법 |
-|------|------|-----------|
-| **HTTPRoute Accepted=False** | Gateway가 HTTPRoute를 거부함 | 1. ReferenceGrant 확인<br/>2. GatewayClass 올바른지 확인<br/>3. 네임스페이스 정책 확인 |
-| **HTTPRoute Programmed=False** | 데이터플레인 구성 실패 | 1. 백엔드 Service 존재 확인<br/>2. 컨트롤러 로그 확인<br/>3. TLS Secret 유효성 확인 |
-| **503 Service Unavailable** | 백엔드 엔드포인트 없음 | 1. Service의 Endpoints 확인<br/>2. Pod selector 일치 여부 확인<br/>3. Pod 상태 확인 (Ready) |
-| **TLS 인증서 오류** | Secret이 올바르지 않음 | 1. Secret 타입 `kubernetes.io/tls` 확인<br/>2. `tls.crt`, `tls.key` 존재 확인<br/>3. 인증서 유효기간 확인 |
-| **404 Not Found** | 경로 매칭 실패 | 1. PathPrefix vs Exact 타입 확인<br/>2. 대소문자 구분 여부 확인<br/>3. URL 인코딩 확인 |
-| **Gateway 주소 없음** | LoadBalancer 생성 실패 | 1. 클라우드 제공자 쿼터 확인<br/>2. 서브넷 IP 고갈 여부 확인<br/>3. 어노테이션 오타 확인 |
+<TroubleshootingTable />
 
 #### 컨트롤러별 디버깅 명령어
 
@@ -5019,13 +4846,7 @@ kubectl get events -n <namespace> --sort-by='.lastTimestamp' | tail -20
 
 ### 10.1 핵심 요약
 
-| 경로 | 최적 대상 | 핵심 장점 |
-|------|-----------|-----------|
-| **AWS Native** | AWS 올인 조직 | 완전 관리형, 자동 스케일링, 제로 운영 |
-| **Cilium** | 고성능 + 관측성 중시 | eBPF 최고 성능, Hubble 가시성, ENI 네이티브 |
-| **NGINX Fabric** | NGINX 경험 활용 | 검증된 안정성, 익숙한 설정, 빠른 전환 |
-| **Envoy Gateway** | CNCF 표준 + 서비스 메시 | L7 기능 풍부, Istio 통합, 확장성 |
-| **kGateway** | AI/ML 통합 필요 | AI 라우팅, 엔터프라이즈 지원, Solo.io 생태계 |
+<RouteRecommendationTable />
 
 ### 10.2 권장 사항
 
