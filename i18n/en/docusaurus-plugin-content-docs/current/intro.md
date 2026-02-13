@@ -1,21 +1,20 @@
 ---
 title: Introduction
-description: Welcome to the Engineering Playbook - your comprehensive guide to cloud native architecture and best practices
+description: Cloud Native Architecture Engineering Playbook & Benchmark Reports — Amazon EKS infrastructure optimization, Agentic AI platform, AIOps/AIDLC, performance benchmarks
 tags: [cloud-native, kubernetes, introduction, getting-started]
 ---
 
 # Engineering Playbook
 
-Welcome to the **Engineering Playbook** - a comprehensive collection of technical guides, best practices, and architectural patterns for cloud native infrastructure, Agentic AI platform engineering, and AIOps/AIDLC on AWS.
+Welcome to the **Cloud Native Architecture Engineering Playbook & Benchmark Reports**. This playbook provides comprehensive, hands-on guides and architecture patterns for Amazon EKS-based cloud-native infrastructure optimization, Agentic AI platform engineering, and AIOps/AIDLC methodologies. Each technical domain includes **quantitative performance benchmark reports** to support data-driven architecture decisions.
 
 ## What You'll Find Here
 
-This playbook is organized into eight technical domains, each containing detailed implementation guides, troubleshooting resources, and real-world examples:
+This playbook is organized into seven core technical domains plus an independent benchmark reports section. Each domain includes detailed implementation guides, troubleshooting resources, real-world case studies, and quantitative performance data:
 
 ### [Infrastructure Optimization](./infrastructure-optimization/)
 
-- Cilium ENI mode with Gateway API integration
-- NGINX to Gateway API migration strategies
+- Gateway API adoption guide (NGINX Ingress EOL response, 5 solution comparison)
 - CoreDNS monitoring and optimization
 - Karpenter autoscaling configuration
 - East-West traffic optimization
@@ -44,12 +43,10 @@ This playbook is organized into eight technical domains, each containing detaile
 
 ### [AIops & AIDLC](./aiops-aidlc/)
 
-- AIOps concepts and EKS application
-- Intelligent observability stack (OpenTelemetry, CloudWatch AI, DevOps Guru)
-- Predictive operations automation
-- MLOps pipelines (Kubeflow, MLflow, KServe)
-- SageMaker-EKS integration
-- AI Development Lifecycle (AIDLC) framework
+- AIOps introduction and EKS application strategies
+- EKS intelligent observability stack (ADOT + AMP/AMG + CloudWatch AI)
+- AIDLC framework (Kiro + MCP + DevOps Agent)
+- Predictive scaling and auto-recovery patterns
 
 ### [Hybrid Infrastructure](./hybrid-infrastructure/)
 

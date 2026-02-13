@@ -351,7 +351,7 @@
     "description": "Learn More button"
   },
   "homepage.tagline": {
-    "message": "Cloud Native Architecture & Best Practices",
+    "message": "Cloud Native Architecture Engineering Playbook & Benchmark Reports",
     "description": "Site tagline"
   },
   "homepage.getStarted": {
@@ -359,15 +359,15 @@
     "description": "Get Started button"
   },
   "homepage.description": {
-    "message": "Comprehensive Guide to Cloud Native Architecture - Engineering Best Practices, Patterns, Implementation",
+    "message": "Cloud Native Architecture Engineering Playbook & Benchmark Reports — EKS infrastructure optimization, Agentic AI, AIOps, performance benchmarks",
     "description": "Homepage meta description"
   },
   "homepage.domains.title": {
-    "message": "Technical Domains",
+    "message": "Technical Domains & Benchmarks",
     "description": "Technical Domains section title"
   },
   "homepage.domains.subtitle": {
-    "message": "Explore comprehensive guides for 5 core technical domains for cloud native engineering.",
+    "message": "Explore comprehensive guides across seven core technical domains with quantitative benchmark reports.",
     "description": "Technical Domains section subtitle"
   },
   "homepage.quickstart.title": {
@@ -375,7 +375,7 @@
     "description": "Quick Start section title"
   },
   "homepage.quickstart.description": {
-    "message": "New to cloud native engineering? Start with the comprehensive introduction and learn each technical domain.",
+    "message": "New to cloud native engineering? Start with the introduction for a full overview, then explore benchmark reports for data-driven decisions.",
     "description": "Quick Start section description"
   },
   "homepage.quickstart.button": {
@@ -387,7 +387,7 @@
     "description": "Infrastructure Optimization feature title"
   },
   "homepage.features.infrastructure.description": {
-    "message": "Optimize DNS performance, configure container networking modes, and implement advanced networking strategies for high-performance cloud native clusters.",
+    "message": "Gateway API adoption, CoreDNS optimization, Cilium CNI networking, Karpenter autoscaling, East-West traffic optimization, and cost management.",
     "description": "Infrastructure Optimization feature description"
   },
   "homepage.features.observability.title": {
@@ -395,7 +395,7 @@
     "description": "Operations & Observability feature title"
   },
   "homepage.features.observability.description": {
-    "message": "Implement comprehensive monitoring solutions with Hubble network visibility, AI/ML workload monitoring, and advanced observability patterns.",
+    "message": "GitOps cluster operations, node monitoring, EKS debugging, high availability architecture, Pod health lifecycle, and scheduling strategies.",
     "description": "Operations & Observability feature description"
   },
   "homepage.features.agentic.title": {
@@ -403,7 +403,7 @@
     "description": "Agentic AI Platform feature title"
   },
   "homepage.features.agentic.description": {
-    "message": "Build production-ready GenAI platforms, maximize GPU efficiency with MIG and time-slicing strategies for AI/ML workloads on Kubernetes.",
+    "message": "Production GenAI platform with vLLM/MoE serving, llm-d distributed inference, Inference Gateway, Milvus RAG, Kagent AI agents, and MLOps pipelines.",
     "description": "Agentic AI Platform feature description"
   },
   "homepage.features.hybrid.title": {
@@ -411,7 +411,7 @@
     "description": "Hybrid Infrastructure feature title"
   },
   "homepage.features.hybrid.description": {
-    "message": "Extend cloud native platforms with hybrid nodes, implement cloud bursting strategies, and manage multi-cloud architectures.",
+    "message": "Hybrid nodes adoption, SR-IOV DGX H200 high-performance networking, shared file storage, and Harbor container registry integration.",
     "description": "Hybrid Infrastructure feature description"
   },
   "homepage.features.security.title": {
@@ -419,7 +419,35 @@
     "description": "Security & Governance feature title"
   },
   "homepage.features.security.description": {
-    "message": "Implement network security, compliance architectures, and security best practices for enterprise cloud native deployments.",
+    "message": "Identity-First Security, GuardDuty threat detection, Kyverno policy management, supply chain security for enterprise Kubernetes.",
     "description": "Security & Governance feature description"
+  },
+  "homepage.features.aiops.title": {
+    "message": "AIOps & AIDLC",
+    "description": "AIOps & AIDLC feature title"
+  },
+  "homepage.features.aiops.description": {
+    "message": "AIOps strategies for EKS, intelligent observability stack with ADOT/AMP/AMG, AIDLC framework with Kiro and MCP, predictive scaling and auto-recovery.",
+    "description": "AIOps & AIDLC feature description"
+  },
+  "homepage.features.rosa.title": {
+    "message": "ROSA (OpenShift on AWS)",
+    "description": "ROSA feature title"
+  },
+  "homepage.features.rosa.description": {
+    "message": "Red Hat OpenShift Service on AWS installation guide, security configuration, and compliance management.",
+    "description": "ROSA feature description"
+  },
+  "homepage.features.benchmarks.title": {
+    "message": "Benchmark Reports",
+    "description": "Benchmark Reports feature title"
+  },
+  "homepage.features.benchmarks.description": {
+    "message": "Quantitative performance benchmarks: CNI comparison (Cilium vs VPC CNI), Gateway API implementations, AI/ML workloads, and infrastructure performance.",
+    "description": "Benchmark Reports feature description"
+  },
+  "homepage.quickstart.benchmarks": {
+    "message": "View Benchmarks",
+    "description": "Benchmarks button"
   }
 }

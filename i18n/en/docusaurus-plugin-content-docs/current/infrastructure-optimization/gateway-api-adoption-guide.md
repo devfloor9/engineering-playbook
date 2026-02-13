@@ -10,6 +10,8 @@ last_update:
 sidebar_position: 3
 ---
 
+import GatewayApiBenefits from '@site/src/components/GatewayApiBenefits';
+
 # Gateway API Adoption Guide
 
 > **📌 Reference Versions**: Gateway API v1.4.0, Cilium v1.19.0, EKS 1.32, AWS LBC v3.0.0, Envoy Gateway v1.7.0
@@ -239,32 +241,9 @@ spec:
 
 ### 3.1 Gateway API Architecture
 
-```mermaid
-flowchart TB
-    subgraph before["Legacy: NGINX Ingress (Single Layer)"]
-        direction TB
-        I1[Ingress Resource<br/>All Settings Mixed<br/>Annotation-based]
-        style I1 fill:#ffcccc,stroke:#cc0000,stroke-width:2px
-    end
+![Gateway API Role-Based Model — Source: gateway-api.sigs.k8s.io](https://gateway-api.sigs.k8s.io/images/gateway-roles.png)
 
-    subgraph after["New: Gateway API (3-Tier Separation)"]
-        direction TB
-        GC[GatewayClass<br/>Infrastructure Team<br/>Controller Selection]
-        G[Gateway<br/>Platform Team<br/>Listeners + TLS]
-        HR[HTTPRoute<br/>App Team<br/>Routing Rules]
-        S[Service]
-
-        GC --> G
-        G --> HR
-        HR --> S
-
-        style GC fill:#ccffcc,stroke:#00cc00,stroke-width:2px
-        style G fill:#ccffcc,stroke:#00cc00,stroke-width:2px
-        style HR fill:#ccffcc,stroke:#00cc00,stroke-width:2px
-    end
-
-    before -.Migration.-> after
-```
+*Source: [Kubernetes Gateway API Official Documentation](https://gateway-api.sigs.k8s.io/) — Three roles (Infrastructure Provider, Cluster Operator, Application Developer) managing GatewayClass, Gateway, and HTTPRoute respectively*
 
 **Key Differences:**
 
@@ -280,37 +259,9 @@ flowchart TB
 
 Gateway API separates responsibilities with the following hierarchy:
 
-```
-┌─────────────────────────────────────────────────────────┐
-│ GatewayClass (Cluster-level, Infrastructure Team)       │
-│ - Controller implementation selection (AWS LBC, Cilium, │
-│   Envoy, etc.)                                          │
-│ - Parameter definition (load balancer type,             │
-│   performance profile)                                  │
-└────────────────┬────────────────────────────────────────┘
-                 │ References
-                 ▼
-┌─────────────────────────────────────────────────────────┐
-│ Gateway (Namespace-level, Platform Team)                │
-│ - Listener definition (ports, protocols, hostnames)     │
-│ - TLS certificate management                            │
-│ - Load balancer annotations (NLB/ALB settings)          │
-└────────────────┬────────────────────────────────────────┘
-                 │ References
-                 ▼
-┌─────────────────────────────────────────────────────────┐
-│ HTTPRoute (Namespace-level, Application Team)           │
-│ - Path-based routing (path, header, query matching)     │
-│ - Traffic splitting (Canary, Blue-Green)                │
-│ - Request/response transformation                       │
-└────────────────┬────────────────────────────────────────┘
-                 │ References
-                 ▼
-┌─────────────────────────────────────────────────────────┐
-│ Service → Pod                                            │
-│ - Backend endpoints                                      │
-└─────────────────────────────────────────────────────────┘
-```
+![Gateway API Resource Model — Source: gateway-api.sigs.k8s.io](https://gateway-api.sigs.k8s.io/images/resource-model.png)
+
+*Source: [Kubernetes Gateway API Official Documentation](https://gateway-api.sigs.k8s.io/concepts/api-overview/) — GatewayClass → Gateway → xRoute → Service hierarchy*
 
 **Role-Based Permissions and Responsibilities:**
 
@@ -388,160 +339,9 @@ Alpha-status resources have **no API compatibility guarantees**, with possible f
 
 ### 3.4 Key Benefits
 
-**1. Role-Based Access Control (RBAC Separation)**
+Explore the 6 key benefits of Gateway API through visual diagrams and YAML examples.
 
-Traditional Ingress concentrates all permissions in a single resource, but Gateway API separates permissions by resource:
-
-```yaml
-# Application team can only modify HTTPRoute (infrastructure settings isolated)
-apiVersion: gateway.networking.k8s.io/v1
-kind: HTTPRoute
-metadata:
-  name: backend-api-routes
-  namespace: production-app
-spec:
-  parentRefs:
-  - name: shared-gateway  # References Gateway managed by platform team
-    namespace: gateway-system
-    sectionName: https
-  rules:
-  - matches:
-    - path:
-        type: PathPrefix
-        value: /api/v1
-    backendRefs:
-    - name: backend-v1
-      port: 8080
-```
-
-**2. Expressive Routing (Header, Query, Method Matching)**
-
-```yaml
-apiVersion: gateway.networking.k8s.io/v1
-kind: HTTPRoute
-metadata:
-  name: advanced-routing
-spec:
-  rules:
-  # Header-based routing (A/B testing)
-  - matches:
-    - headers:
-      - name: X-User-Group
-        value: beta-testers
-    backendRefs:
-    - name: backend-beta
-      port: 8080
-
-  # Query parameter-based routing
-  - matches:
-    - queryParams:
-      - name: version
-        value: "2"
-    backendRefs:
-    - name: backend-v2
-      port: 8080
-
-  # HTTP method-based routing
-  - matches:
-    - method: POST
-      path:
-        type: PathPrefix
-        value: /api/write
-    backendRefs:
-    - name: write-backend
-      port: 8080
-```
-
-**3. Extensible Design (Policy Attachment Pattern)**
-
-Gateway API extends functionality with standard resources + Policy resources:
-
-```yaml
-# Standard Gateway API resource
-apiVersion: gateway.networking.k8s.io/v1
-kind: HTTPRoute
-metadata:
-  name: api-route
-spec:
-  rules:
-  - backendRefs:
-    - name: api-service
-      port: 80
-
----
-# Cilium's Rate Limiting Policy (separate resource)
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
-metadata:
-  name: api-rate-limit
-spec:
-  endpointSelector:
-    matchLabels:
-      gateway.networking.k8s.io/gateway-name: production-gateway
-  ingress:
-  - toPorts:
-    - ports:
-      - port: "80"
-      rules:
-        http:
-        - rateLimit:
-            requestsPerSecond: 1000
-```
-
-**4. Multi-Protocol Support (HTTP, HTTPS, TCP, UDP, gRPC)**
-
-```yaml
-# gRPC service routing
-apiVersion: gateway.networking.k8s.io/v1
-kind: GRPCRoute
-metadata:
-  name: grpc-service-route
-spec:
-  parentRefs:
-  - name: gateway
-  rules:
-  - matches:
-    - method:
-        service: com.example.UserService
-        method: GetUser
-    backendRefs:
-    - name: user-service
-      port: 9090
-```
-
-**5. Weight-Based Traffic Splitting (Native Canary Deployment)**
-
-```yaml
-apiVersion: gateway.networking.k8s.io/v1
-kind: HTTPRoute
-metadata:
-  name: canary-deployment
-spec:
-  rules:
-  - backendRefs:
-    - name: backend-v1
-      port: 8080
-      weight: 90  # 90% to stable version
-    - name: backend-v2
-      port: 8080
-      weight: 10  # 10% to canary version
-```
-
-**Traffic distribution verification:**
-
-```bash
-# Send 100 requests and check version distribution
-for i in {1..100}; do
-  curl -s https://api.example.com/api/health | jq -r '.version'
-done | sort | uniq -c
-# Example output:
-#   90 v1
-#   10 v2
-```
-
-:::tip Native Canary Deployment
-Gateway API supports Canary deployments through the `weight` field without annotations. This is more concise and portable than NGINX Ingress's `nginx.ingress.kubernetes.io/canary` annotation combinations.
-:::
+<GatewayApiBenefits />
 
 ## 4. GAMMA Initiative — The Future of Service Mesh Integration
 
@@ -2849,221 +2649,10 @@ Use these checklists to track progress at each phase.
 
 ## 9. Benchmark Comparison Planning
 
-### 9.1 Benchmark Objectives
+A systematic benchmark is planned for objective performance comparison of 5 Gateway API implementations. Eight scenarios including throughput, latency, TLS performance, L7 routing, scaling, resource efficiency, failure recovery, and gRPC will be measured in identical EKS environments.
 
-The goal is to objectively compare the 5 Gateway API implementations across key metrics to provide data-driven recommendations.
-
-**Key Questions:**
-1. Which solution provides the lowest latency?
-2. Which solution delivers the highest throughput?
-3. How do resource requirements (CPU, memory) compare?
-4. What is the scalability limit of each solution?
-5. How does cost correlate with performance?
-
-### 9.2 Test Environment
-
-#### Infrastructure Specification
-
-```yaml
-# EKS Cluster Configuration
-Cluster:
-  Version: 1.32
-  Region: us-west-2
-  VPC CIDR: 10.0.0.0/16
-
-Node Groups:
-  - Name: gateway-nodes
-    Instance Type: c5.2xlarge (8 vCPU, 16GB RAM)
-    Count: 3
-    AMI: Amazon Linux 2 (EKS Optimized)
-
-  - Name: app-nodes
-    Instance Type: m5.xlarge (4 vCPU, 16GB RAM)
-    Count: 6
-    AMI: Amazon Linux 2 (EKS Optimized)
-
-Load Generator:
-  Instance Type: c5.4xlarge (16 vCPU, 32GB RAM)
-  Count: 2
-  Location: Same VPC, different subnet
-```
-
-#### Test Application
-
-```yaml
-# Deployment: Simple echo server
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: benchmark-app
-spec:
-  replicas: 12  # 2 per app node
-  template:
-    spec:
-      containers:
-      - name: echo
-        image: ealen/echo-server:latest
-        resources:
-          requests:
-            cpu: 500m
-            memory: 256Mi
-          limits:
-            cpu: 1000m
-            memory: 512Mi
-      nodeSelector:
-        role: app
-```
-
-### 9.3 Test Scenarios
-
-#### Scenario 1: Baseline HTTP Routing
-
-**Configuration:**
-- Simple path-based routing (/)
-- No TLS
-- No additional policies
-
-**Metrics:**
-- Latency (P50, P95, P99, P99.9)
-- Throughput (RPS)
-- CPU usage (gateway + app pods)
-- Memory usage
-
-**Load Pattern:**
-```bash
-# wrk2 constant load
-wrk2 -t8 -c400 -d300s -R10000 http://gateway.example.com/
-```
-
-#### Scenario 2: TLS Termination
-
-**Configuration:**
-- HTTPS with TLS 1.3
-- 2048-bit RSA certificates
-
-**Metrics:**
-- TLS handshake time
-- Throughput vs baseline
-- CPU increase due to TLS
-
-#### Scenario 3: Complex Routing
-
-**Configuration:**
-- 10 HTTPRoutes
-- Header-based routing
-- Path-based routing
-- Query parameter matching
-
-**Metrics:**
-- Routing decision overhead
-- Latency vs baseline
-
-#### Scenario 4: Traffic Splitting (Canary)
-
-**Configuration:**
-- 90/10 weight split
-- 1000 requests per second
-
-**Metrics:**
-- Weight distribution accuracy
-- Latency impact
-
-#### Scenario 5: Rate Limiting
-
-**Configuration:**
-- 1000 RPS limit per IP
-- Burst: 1500
-
-**Metrics:**
-- Enforcement accuracy
-- Latency for allowed requests
-- CPU overhead
-
-#### Scenario 6: Peak Load (Scalability)
-
-**Configuration:**
-- Gradual load increase from 1k to 100k RPS
-- Find breaking point for each solution
-
-**Metrics:**
-- Maximum sustainable RPS
-- Latency at breaking point
-- Recovery time after load reduction
-
-### 9.4 Measurement Tools
-
-#### Load Generation
-
-```bash
-# Install wrk2 (constant throughput load generator)
-git clone https://github.com/giltene/wrk2.git
-cd wrk2
-make
-sudo cp wrk2 /usr/local/bin/
-
-# Install vegeta (HTTP load testing)
-go install github.com/tsenart/vegeta@latest
-
-# Install k6 (modern load testing)
-curl -s https://dl.k6.io/key.gpg | sudo apt-key add -
-echo "deb https://dl.k6.io/deb stable main" | sudo tee -a /etc/apt/sources.list
-sudo apt-get update
-sudo apt-get install k6
-```
-
-#### Metrics Collection
-
-```yaml
-# Prometheus
-helm install prometheus prometheus-community/kube-prometheus-stack \
-  --namespace monitoring \
-  --set prometheus.prometheusSpec.retention=7d \
-  --set prometheus.prometheusSpec.resources.requests.memory=8Gi
-
-# Grafana Dashboards
-- Cilium Gateway API Dashboard
-- AWS Load Balancer Controller Dashboard
-- Envoy Gateway Dashboard
-- NGINX Gateway Fabric Dashboard
-```
-
-#### Log Aggregation
-
-```bash
-# Fluent Bit for centralized logging
-helm install fluent-bit fluent/fluent-bit \
-  --namespace logging \
-  --set backend.type=es \
-  --set backend.es.host=elasticsearch.logging.svc.cluster.local
-```
-
-### 9.5 Success Criteria
-
-| Metric | Target | Critical Threshold |
-|--------|--------|-------------------|
-| **P50 Latency** | under 5ms | under 10ms |
-| **P99 Latency** | under 20ms | under 50ms |
-| **Throughput** | >50k RPS per node | >30k RPS per node |
-| **CPU Usage** | under 50% at 30k RPS | under 80% at 30k RPS |
-| **Memory Usage** | under 2GB per gateway pod | under 4GB per gateway pod |
-| **Error Rate** | under 0.01% | under 0.1% |
-| **TLS Handshake** | under 10ms | under 20ms |
-
-### 9.6 Execution Timeline
-
-| Phase | Duration | Deliverable |
-|-------|----------|-------------|
-| 1. Environment Setup | 3 days | Infrastructure provisioned, tools installed |
-| 2. Baseline Tests (NGINX) | 2 days | NGINX Ingress performance baseline |
-| 3. AWS Native Tests | 2 days | AWS LBC benchmarks across 6 scenarios |
-| 4. Cilium Tests | 2 days | Cilium Gateway API benchmarks |
-| 5. NGINX Fabric Tests | 2 days | NGINX Gateway Fabric benchmarks |
-| 6. Envoy Gateway Tests | 2 days | Envoy Gateway benchmarks |
-| 7. kGateway Tests | 2 days | kGateway benchmarks |
-| 8. Analysis | 2 days | Data analysis and report writing |
-
-:::info
-Benchmark results will be published separately in the [Benchmark Reports](/docs/benchmarks) section.
+:::info Detailed Benchmark Plan
+For test environment design, detailed scenarios, measurement metrics, and execution plan, see **[Gateway API Implementation Performance Benchmark Plan](/docs/benchmarks/gateway-api-benchmark)**.
 :::
 
 ---

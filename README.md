@@ -1,15 +1,15 @@
 # Engineering Playbook
 
-> Cloud Native Architecture & Agentic AI — Battle-tested engineering know-how from production environments
+> 클라우드 네이티브 아키텍처 엔지니어링 플레이북 & 벤치마크 리포트 — Battle-tested engineering know-how from production environments
 
 [![Deploy](https://github.com/devfloor9/engineering-playbook/actions/workflows/deploy.yml/badge.svg)](https://github.com/devfloor9/engineering-playbook/actions/workflows/deploy.yml)
 [![GitHub Pages](https://img.shields.io/badge/docs-GitHub%20Pages-blue)](https://devfloor9.github.io/engineering-playbook/)
 
 ## About
 
-**Engineering Playbook** is a hands-on technical guide for application modernization and Agentic AI platform engineering.
+**Engineering Playbook** is a comprehensive cloud-native architecture engineering playbook and benchmark report collection. It covers Amazon EKS infrastructure optimization, Agentic AI platform engineering, AIOps/AIDLC methodologies, and performance benchmarks — all built from real production experience.
 
-This knowledge base is built from real-world experience — working alongside customers to build cloud-native platforms, debugging production issues firsthand, and continuously refining best practices. It captures architecture patterns, performance optimization strategies, troubleshooting guides, and benchmark results that come from actual operations, not theory.
+This knowledge base captures architecture patterns, performance optimization strategies, troubleshooting guides, and quantitative benchmark results from actual operations. Each technical domain includes both implementation guides and measurable performance data to support data-driven architecture decisions.
 
 **Live Documentation**: [https://devfloor9.github.io/engineering-playbook/](https://devfloor9.github.io/engineering-playbook/)
 
@@ -37,7 +37,7 @@ Identity-First Security with EKS Pod Identity, GuardDuty Extended Threat Detecti
 Red Hat OpenShift on AWS installation, security, and compliance guides for enterprise Kubernetes adoption.
 
 ### Benchmark Reports
-CNI performance comparisons, AI/ML workload benchmarks, hybrid infrastructure performance tests, security operations metrics — data-driven reports from real measurements.
+Comprehensive performance benchmarks across infrastructure, AI/ML, and hybrid domains — including CNI comparisons (VPC CNI vs Cilium), Gateway API implementation benchmarks, AI/ML workload analysis, and security operations metrics. All reports follow reproducible methodology with statistical rigor.
 
 ## Tech Stack
 

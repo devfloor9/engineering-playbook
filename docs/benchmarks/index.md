@@ -18,6 +18,7 @@ tags: [benchmark, performance, testing, report]
 - DNS 해석 성능
 - 오토스케일링 반응 속도
 - 비용 효율성 분석
+- Gateway API 구현체 성능 비교
 
 ### AI/ML 워크로드
 

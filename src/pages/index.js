@@ -12,8 +12,8 @@ const FeatureList = [
     title: 'Infrastructure Optimization',
     titleKo: '인프라 최적화',
     descriptionId: 'homepage.features.infrastructure.description',
-    description: 'Optimize DNS performance, configure container networking modes, and implement advanced networking strategies for high-performance cloud native clusters.',
-    descriptionKo: 'DNS 성능 최적화, 컨테이너 네트워킹 모드 구성, 고성능 클라우드 네이티브 클러스터를 위한 고급 네트워킹 전략을 구현합니다.',
+    description: 'Gateway API adoption, CoreDNS optimization, Cilium CNI networking, Karpenter autoscaling, East-West traffic optimization, and cost management.',
+    descriptionKo: 'Gateway API 도입, CoreDNS 최적화, Cilium CNI 네트워킹, Karpenter 오토스케일링, East-West 트래픽 최적화, 비용 관리 전략을 다룹니다.',
     link: '/docs/infrastructure-optimization',
   },
   {
@@ -21,8 +21,8 @@ const FeatureList = [
     title: 'Operations & Observability',
     titleKo: '운영 & 옵저버빌리티',
     descriptionId: 'homepage.features.observability.description',
-    description: 'Implement comprehensive monitoring solutions with Hubble network visibility, AI/ML workload monitoring, and advanced observability patterns.',
-    descriptionKo: 'Hubble 네트워크 가시성, AI/ML 워크로드 모니터링, 고급 옵저버빌리티 패턴을 활용한 종합 모니터링 솔루션을 구현합니다.',
+    description: 'GitOps cluster operations, node monitoring, EKS debugging, high availability architecture, Pod health lifecycle, and scheduling strategies.',
+    descriptionKo: 'GitOps 클러스터 운영, 노드 모니터링, EKS 장애 진단, 고가용성 아키텍처, Pod 헬스체크 라이프사이클, 스케줄링 전략을 다룹니다.',
     link: '/docs/operations-observability',
   },
   {
@@ -30,17 +30,26 @@ const FeatureList = [
     title: 'Agentic AI Platform',
     titleKo: 'Agentic AI 플랫폼',
     descriptionId: 'homepage.features.agentic.description',
-    description: 'Build production-ready GenAI platforms, maximize GPU efficiency with MIG and time-slicing strategies for AI/ML workloads on Kubernetes.',
-    descriptionKo: '프로덕션급 GenAI 플랫폼을 구축하고, Kubernetes에서 AI/ML 워크로드를 위한 MIG 및 타임슬라이싱 전략으로 GPU 효율성을 극대화합니다.',
+    description: 'Production GenAI platform with vLLM/MoE serving, llm-d distributed inference, Inference Gateway, Milvus RAG, Kagent AI agents, and MLOps pipelines.',
+    descriptionKo: 'vLLM/MoE 모델 서빙, llm-d 분산 추론, Inference Gateway, Milvus RAG, Kagent AI 에이전트, MLOps 파이프라인 등 프로덕션 GenAI 플랫폼을 다룹니다.',
     link: '/docs/agentic-ai-platform',
+  },
+  {
+    titleId: 'homepage.features.aiops.title',
+    title: 'AIOps & AIDLC',
+    titleKo: 'AIOps & AIDLC',
+    descriptionId: 'homepage.features.aiops.description',
+    description: 'AIOps strategies for EKS, intelligent observability stack with ADOT/AMP/AMG, AIDLC framework with Kiro and MCP, predictive scaling and auto-recovery.',
+    descriptionKo: 'EKS AIOps 전략, ADOT/AMP/AMG 지능형 관찰성 스택, Kiro + MCP 기반 AIDLC 프레임워크, 예측 스케일링 및 자동 복구 패턴을 다룹니다.',
+    link: '/docs/aiops-aidlc',
   },
   {
     titleId: 'homepage.features.hybrid.title',
     title: 'Hybrid Infrastructure',
     titleKo: '하이브리드 인프라',
     descriptionId: 'homepage.features.hybrid.description',
-    description: 'Extend cloud native platforms with hybrid nodes, implement cloud bursting strategies, and manage multi-cloud architectures.',
-    descriptionKo: '하이브리드 노드로 클라우드 네이티브 플랫폼을 확장하고, 클라우드 버스팅 전략을 구현하며, 멀티 클라우드 아키텍처를 관리합니다.',
+    description: 'Hybrid nodes adoption, SR-IOV DGX H200 high-performance networking, shared file storage, and Harbor container registry integration.',
+    descriptionKo: '하이브리드 노드 도입, SR-IOV DGX H200 고성능 네트워킹, 공유 파일 스토리지, Harbor 컨테이너 레지스트리 통합을 다룹니다.',
     link: '/docs/hybrid-infrastructure',
   },
   {
@@ -48,15 +57,33 @@ const FeatureList = [
     title: 'Security & Governance',
     titleKo: '보안 & 거버넌스',
     descriptionId: 'homepage.features.security.description',
-    description: 'Implement network security, compliance architectures, and security best practices for enterprise cloud native deployments.',
-    descriptionKo: '네트워크 보안, 컴플라이언스 아키텍처, 엔터프라이즈 클라우드 네이티브 배포를 위한 보안 모범 사례를 구현합니다.',
+    description: 'Identity-First Security, GuardDuty threat detection, Kyverno policy management, supply chain security for enterprise Kubernetes.',
+    descriptionKo: 'Identity-First Security, GuardDuty 위협 탐지, Kyverno 정책 관리, 소프트웨어 공급망 보안 등 엔터프라이즈 Kubernetes 보안을 다룹니다.',
     link: '/docs/security-governance',
+  },
+  {
+    titleId: 'homepage.features.rosa.title',
+    title: 'ROSA (OpenShift on AWS)',
+    titleKo: 'ROSA (OpenShift on AWS)',
+    descriptionId: 'homepage.features.rosa.description',
+    description: 'Red Hat OpenShift Service on AWS installation guide, security configuration, and compliance management.',
+    descriptionKo: 'Red Hat OpenShift Service on AWS 설치 가이드, 보안 구성, 컴플라이언스 관리를 다룹니다.',
+    link: '/docs/rosa',
+  },
+  {
+    titleId: 'homepage.features.benchmarks.title',
+    title: 'Benchmark Reports',
+    titleKo: '벤치마크 리포트',
+    descriptionId: 'homepage.features.benchmarks.description',
+    description: 'Quantitative performance benchmarks: CNI comparison (Cilium vs VPC CNI), Gateway API implementations, AI/ML workloads, and infrastructure performance.',
+    descriptionKo: '정량적 성능 벤치마크: CNI 비교 (Cilium vs VPC CNI), Gateway API 구현체, AI/ML 워크로드, 인프라 성능 벤치마크 리포트를 제공합니다.',
+    link: '/docs/benchmarks',
   },
 ];
 
 function Feature({titleId, title, titleKo, descriptionId, description, descriptionKo, link}) {
   return (
-    <div className={clsx('col col--4')}>
+    <div className={clsx('col col--3')}>
       <div className="card margin-bottom--lg">
         <div className="card__body">
           <h3>
@@ -92,7 +119,7 @@ function HomepageHeader() {
         <h1 className="hero__title">{siteConfig.title}</h1>
         <p className="hero__subtitle">
           <Translate id="homepage.tagline" description="Site tagline">
-            클라우드 네이티브 아키텍처 & 모범 사례
+            클라우드 네이티브 아키텍처 엔지니어링 플레이북 & 벤치마크 리포트
           </Translate>
         </p>
         <div className={styles.buttons}>
@@ -116,7 +143,7 @@ export default function Home() {
       title={`${siteConfig.title}`}
       description={translate({
         id: 'homepage.description',
-        message: '클라우드 네이티브 아키텍처 종합 가이드 - 엔지니어링 모범 사례, 패턴, 구현',
+        message: '클라우드 네이티브 아키텍처 엔지니어링 플레이북 & 벤치마크 리포트 — EKS 인프라 최적화, Agentic AI, AIOps, 성능 벤치마크',
         description: 'Homepage meta description',
       })}>
       <HomepageHeader />
@@ -128,12 +155,12 @@ export default function Home() {
                 <div className="text--center margin-bottom--xl">
                   <h2>
                     <Translate id="homepage.domains.title" description="Technical Domains section title">
-                      기술 도메인
+                      기술 도메인 & 벤치마크
                     </Translate>
                   </h2>
                   <p className="lead">
                     <Translate id="homepage.domains.subtitle" description="Technical Domains section subtitle">
-                      클라우드 네이티브 엔지니어링을 위한 5가지 핵심 기술 도메인의 종합 가이드를 살펴보세요.
+                      일곱 가지 핵심 기술 도메인과 정량적 벤치마크 리포트로 구성된 종합 가이드를 살펴보세요.
                     </Translate>
                   </p>
                 </div>
@@ -160,7 +187,7 @@ export default function Home() {
                     </h2>
                     <p>
                       <Translate id="homepage.quickstart.description" description="Quick Start section description">
-                        클라우드 네이티브 엔지니어링이 처음이신가요? 종합 소개 문서부터 시작하여 각 기술 도메인을 학습해 보세요.
+                        클라우드 네이티브 엔지니어링이 처음이신가요? 소개 문서에서 전체 구성을 확인하고, 벤치마크 리포트로 데이터 기반 의사결정을 시작하세요.
                       </Translate>
                     </p>
                     <div className={styles.quickStartButtons}>
@@ -169,6 +196,13 @@ export default function Home() {
                         to="/docs/intro">
                         <Translate id="homepage.quickstart.button" description="Documentation button">
                           문서 보기
+                        </Translate>
+                      </Link>
+                      <Link
+                        className="button button--outline button--primary margin--sm"
+                        to="/docs/benchmarks">
+                        <Translate id="homepage.quickstart.benchmarks" description="Benchmarks button">
+                          벤치마크 보기
                         </Translate>
                       </Link>
                     </div>

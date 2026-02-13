@@ -1,6 +1,6 @@
 ---
 title: 소개
-description: Engineering Playbook에 오신 것을 환영합니다 - 클라우드 네이티브 아키텍처와 모범 사례를 위한 종합 가이드
+description: 클라우드 네이티브 아키텍처 엔지니어링 플레이북 & 벤치마크 리포트 — Amazon EKS 인프라 최적화, Agentic AI 플랫폼, AIOps/AIDLC, 성능 벤치마크
 category: "getting-started"
 tags: [kubernetes, cloud-native, introduction, getting-started]
 sidebar_position: 1
@@ -8,16 +8,15 @@ sidebar_position: 1
 
 # Engineering Playbook
 
-**Engineering Playbook**에 오신 것을 환영합니다. 이 문서는 AWS 기반 클라우드 네이티브 인프라, Agentic AI 플랫폼 엔지니어링, AIOps/AIDLC를 위한 기술 가이드, 모범 사례, 아키텍처 패턴을 종합적으로 다룹니다. 또한 각 기술 도메인에 대한 **테스트 및 벤치마크 정보**를 제공하여, 구현의 성능과 안정성을 검증할 수 있도록 지원합니다.
+**클라우드 네이티브 아키텍처 엔지니어링 플레이북 & 벤치마크 리포트**에 오신 것을 환영합니다. 이 플레이북은 Amazon EKS 기반 클라우드 네이티브 인프라 최적화, Agentic AI 플랫폼 엔지니어링, AIOps/AIDLC 방법론을 위한 실전 가이드와 아키텍처 패턴을 종합적으로 다룹니다. 각 기술 도메인에 대한 **정량적 성능 벤치마크 리포트**를 함께 제공하여, 데이터 기반의 아키텍처 의사결정을 지원합니다.
 
 ## 주요 내용
 
-이 플레이북은 여덟 가지 핵심 기술 도메인으로 구성되어 있으며, 각 도메인에는 상세한 구현 가이드, 트러블슈팅 자료, 실제 사례가 포함되어 있습니다.
+이 플레이북은 일곱 가지 핵심 기술 도메인과 독립적인 벤치마크 리포트 섹션으로 구성되어 있으며, 각 도메인에는 상세한 구현 가이드, 트러블슈팅 자료, 실제 사례와 정량적 성능 데이터가 포함되어 있습니다.
 
 ### [Infrastructure Optimization](./infrastructure-optimization/)
 
-- Cilium ENI + Gateway API 통합 구성
-- NGINX → Gateway API 마이그레이션
+- Gateway API 도입 가이드 (NGINX Ingress EOL 대응, 5개 솔루션 비교)
 - CoreDNS 모니터링 및 최적화
 - Karpenter 오토스케일링
 - East-West 트래픽 최적화
@@ -46,12 +45,10 @@ sidebar_position: 1
 
 ### [AIops & AIDLC](./aiops-aidlc/)
 
-- AIOps 개념 및 EKS 적용
-- 지능형 관찰성 스택 (OpenTelemetry + CloudWatch AI + DevOps Guru)
-- 예측 기반 운영 자동화
-- MLOps 파이프라인 (Kubeflow, MLflow, KServe)
-- SageMaker-EKS 통합
-- AIDLC 프레임워크
+- AIOps 소개 및 EKS 적용 전략
+- EKS 지능형 관찰성 스택 (ADOT + AMP/AMG + CloudWatch AI)
+- AIDLC 프레임워크 (Kiro + MCP + DevOps Agent)
+- 예측 스케일링 및 자동 복구 패턴
 
 ### [Hybrid Infrastructure](./hybrid-infrastructure/)
 

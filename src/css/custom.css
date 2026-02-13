@@ -457,6 +457,56 @@
   opacity: 0.6;
 }
 
+/* GitHub Star button in navbar */
+.header-star-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--ifm-color-emphasis-300);
+  background: var(--ifm-color-emphasis-100);
+  color: var(--ifm-font-color-base) !important;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 20px;
+  text-decoration: none !important;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.header-star-button:hover {
+  background: var(--ifm-color-emphasis-200);
+  border-color: var(--ifm-color-emphasis-400);
+  text-decoration: none !important;
+  color: var(--ifm-font-color-base) !important;
+}
+
+.header-star-button .star-icon {
+  color: #e3b341;
+  flex-shrink: 0;
+}
+
+[data-theme='dark'] .header-star-button {
+  border-color: var(--ifm-color-emphasis-400);
+  background: var(--ifm-color-emphasis-200);
+}
+
+[data-theme='dark'] .header-star-button:hover {
+  background: var(--ifm-color-emphasis-300);
+  border-color: var(--ifm-color-emphasis-500);
+}
+
+[data-theme='dark'] .header-star-button .star-icon {
+  color: #e3b341;
+}
+
+@media screen and (max-width: 996px) {
+  .header-star-button {
+    display: none;
+  }
+}
+
 /* Category cards styling */
 .category-card {
   border: 1px solid var(--ifm-color-emphasis-200);
