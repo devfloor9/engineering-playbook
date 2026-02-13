@@ -10,6 +10,8 @@ last_update:
 sidebar_position: 3
 ---
 
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
 import GatewayApiBenefits from '@site/src/components/GatewayApiBenefits';
 
 # Gateway API Adoption Guide
@@ -90,27 +92,22 @@ gantt
 
 **IngressNightmare (CVE-2025-1974) Attack Scenario:**
 
-<figure>
+<Tabs>
+  <TabItem value="attack-overview" label="Attack Overview" default>
 
-![IngressNightmare Attack Overview — External/Internal Attacker executes unauthenticated RCE on Ingress NGINX Controller Pod via Malicious Admission Review](/img/infrastructure-optimization/ingressnightmare-attack-overview.png)
+  ![IngressNightmare Attack Overview](/img/infrastructure-optimization/ingressnightmare-attack-overview.png)
 
-<figcaption>
+  *Unauthenticated Remote Code Execution (RCE) attack vectors targeting Ingress NGINX Controller in a Kubernetes cluster. Both external and internal attackers can compromise the controller pod via Malicious Admission Review, gaining access to all pods in the cluster. (Source: [Wiz Research](https://www.wiz.io/blog/ingress-nginx-kubernetes-vulnerabilities))*
 
-*Unauthenticated Remote Code Execution (RCE) attack vectors targeting Ingress NGINX Controller in a Kubernetes cluster. Both external and internal attackers can compromise the controller pod via Malicious Admission Review, gaining access to all pods in the cluster. (Source: [Wiz Research](https://www.wiz.io/blog/ingress-nginx-kubernetes-vulnerabilities))*
+  </TabItem>
+  <TabItem value="architecture" label="Controller Architecture">
 
-</figcaption>
-</figure>
+  ![Ingress NGINX Controller Internal Architecture](/img/infrastructure-optimization/ingress-nginx-controller-architecture.png)
 
-<figure>
+  *Ingress NGINX Controller Pod internal architecture. The Admission Webhook's configuration validation process, where attackers inject malicious configurations into NGINX, is the core attack surface of CVE-2025-1974. (Source: [Wiz Research](https://www.wiz.io/blog/ingress-nginx-kubernetes-vulnerabilities))*
 
-![Ingress NGINX Controller Internal Architecture — Controller, Admission Webhook, NGINX components and backend Pod routing flow](/img/infrastructure-optimization/ingress-nginx-controller-architecture.png)
-
-<figcaption>
-
-*Ingress NGINX Controller Pod internal architecture. The Admission Webhook's configuration validation process, where attackers inject malicious configurations into NGINX, is the core attack surface of CVE-2025-1974. (Source: [Wiz Research](https://www.wiz.io/blog/ingress-nginx-kubernetes-vulnerabilities))*
-
-</figcaption>
-</figure>
+  </TabItem>
+  <TabItem value="exploit-code" label="Exploit Code">
 
 ```yaml
 apiVersion: networking.k8s.io/v1
@@ -139,6 +136,9 @@ spec:
               number: 80
 ```
 
+  </TabItem>
+</Tabs>
+
 **Risk Assessment:**
 
 | Vulnerability Type | Severity | CVSS Score | Impact Scope |
@@ -157,6 +157,34 @@ For existing NGINX Ingress environments, we recommend immediately applying admis
 Gateway API solves NGINX Ingress's structural problems in the following ways:
 
 **1. Role-Based Separation Eliminates Snippets at the Source**
+
+<Tabs>
+  <TabItem value="diagram" label="Concept" default>
+
+```mermaid
+flowchart TB
+    subgraph cluster["Gateway API 3-Tier Role Separation"]
+        direction TB
+        infra["Infrastructure Team\n(ClusterRole)"]
+        platform["Platform Team\n(Role per NS)"]
+        app["Application Team\n(Role per NS)"]
+
+        infra -->|"manages"| gc["GatewayClass\n(cluster-scoped)"]
+        platform -->|"manages"| gw["Gateway\n(namespace-scoped)"]
+        app -->|"manages"| hr["HTTPRoute\n(namespace-scoped)"]
+    end
+
+    gc --> gw --> hr
+
+    style infra fill:#e53935,color:#fff
+    style platform fill:#fb8c00,color:#fff
+    style app fill:#43a047,color:#fff
+```
+
+Each team can only manage resources within their permission scope. There is no path for arbitrary configuration injection like NGINX Ingress Snippets annotations.
+
+  </TabItem>
+  <TabItem value="code" label="RBAC Code">
 
 ```yaml
 # Infrastructure Team: GatewayClass Management (Cluster-level permissions)
@@ -194,9 +222,42 @@ rules:
   verbs: ["create", "update", "delete"]
 ```
 
+  </TabItem>
+</Tabs>
+
 **2. CRD Schema-Based Structural Validation**
 
 Gateway API pre-defines all fields with OpenAPI schemas, making arbitrary configuration injection fundamentally impossible:
+
+<Tabs>
+  <TabItem value="diagram" label="Concept" default>
+
+```mermaid
+flowchart LR
+    subgraph nginx["NGINX Ingress"]
+        direction TB
+        ann["annotations:\nconfiguration-snippet"]
+        ann -->|"arbitrary string"| inject["Arbitrary NGINX config injection"]
+        inject -->|"no validation"| danger["Security Risk"]
+    end
+
+    subgraph gw["Gateway API"]
+        direction TB
+        crd["HTTPRoute CRD"]
+        crd -->|"OpenAPI schema"| validate["Structural validation"]
+        validate -->|"predefined fields only"| safe["Secure"]
+    end
+
+    style nginx fill:#ffebee,stroke:#c62828
+    style gw fill:#e8f5e9,stroke:#2e7d32
+    style danger fill:#ef5350,color:#fff
+    style safe fill:#66bb6a,color:#fff
+```
+
+NGINX Ingress allows arbitrary string injection via annotations, while Gateway API only allows predefined CRD schema-validated fields, making it structurally secure.
+
+  </TabItem>
+  <TabItem value="code" label="Comparison Code">
 
 ```yaml
 # ❌ NGINX Ingress (arbitrary string injection possible)
@@ -221,9 +282,41 @@ spec:
           value: production
 ```
 
+  </TabItem>
+</Tabs>
+
 **3. Safe Extension via Policy Attachment Pattern**
 
 Gateway API separates extension functionality into separate Policy resources with RBAC control:
+
+<Tabs>
+  <TabItem value="diagram" label="Concept" default>
+
+```mermaid
+flowchart TB
+    gw["Gateway"] --> hr["HTTPRoute"]
+    hr --> svc["Service\n(app: api-gateway)"]
+
+    policy["CiliumNetworkPolicy\n(separate Policy resource)"]
+    policy -.->|"RBAC\ncontrolled"| svc
+
+    subgraph policy_detail["Policy Content"]
+        direction LR
+        l7["L7 Security Policy"]
+        rate["Rate Limiting\n(100 req/s)"]
+        method["HTTP Method Restriction\n(GET /api/*)"]
+    end
+
+    policy --> policy_detail
+
+    style policy fill:#ce93d8,stroke:#7b1fa2
+    style policy_detail fill:#f3e5f5,stroke:#7b1fa2
+```
+
+Extension features (Rate Limiting, L7 policies, etc.) are separated into Policy resources controlled by RBAC. Only the infrastructure team manages Policies while application teams only modify HTTPRoutes.
+
+  </TabItem>
+  <TabItem value="code" label="Policy Code">
 
 ```yaml
 # Cilium's CiliumNetworkPolicy for L7 security policies
@@ -250,6 +343,9 @@ spec:
           rateLimit:
             requestsPerSecond: 100
 ```
+
+  </TabItem>
+</Tabs>
 
 **4. Active Community Support**
 
@@ -432,6 +528,22 @@ flowchart TB
 
 #### GAMMA HTTPRoute Example
 
+<Tabs>
+  <TabItem value="concept" label="Concept" default>
+
+As shown in the mermaid diagram above, in the GAMMA pattern, HTTPRoute references **Service directly as parentRef** instead of Gateway. This enables applying L7 policies to East-West traffic.
+
+**Effects:**
+
+| Item | Value |
+|------|-------|
+| Request timeout | 10 seconds |
+| Max retries | 3 (100ms backoff) |
+| Feature | Direct L7 policy application between Services without Gateway |
+
+  </TabItem>
+  <TabItem value="code" label="HTTPRoute Code">
+
 ```yaml
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
@@ -453,6 +565,9 @@ spec:
         attempts: 3
         backoff: 100ms
 ```
+
+  </TabItem>
+</Tabs>
 
 This configuration applies the following to traffic destined for `service-b`:
 
