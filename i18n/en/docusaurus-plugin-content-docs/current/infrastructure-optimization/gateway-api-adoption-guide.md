@@ -378,58 +378,79 @@ spec:
 
 Gateway API separates responsibilities with the following hierarchy:
 
-![Gateway API Resource Model — Source: gateway-api.sigs.k8s.io](https://gateway-api.sigs.k8s.io/images/resource-model.png)
+<Tabs>
+  <TabItem value="overview" label="Role Overview" default>
 
-*Source: [Kubernetes Gateway API Official Documentation](https://gateway-api.sigs.k8s.io/concepts/api-overview/) — GatewayClass → Gateway → xRoute → Service hierarchy*
+  ![Gateway API Resource Model — Source: gateway-api.sigs.k8s.io](https://gateway-api.sigs.k8s.io/images/resource-model.png)
 
-**Role-Based Permissions and Responsibilities:**
+  *Source: [Kubernetes Gateway API Official Documentation](https://gateway-api.sigs.k8s.io/concepts/api-overview/) — GatewayClass → Gateway → xRoute → Service hierarchy*
 
-<RoleSeparationTable locale="en" />
+  <RoleSeparationTable locale="en" />
 
-**RBAC Example:**
+  </TabItem>
+  <TabItem value="infra" label="Infrastructure (GatewayClass)">
 
-```yaml
----
-# Infrastructure Team: GatewayClass-exclusive permissions
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
-metadata:
-  name: infrastructure-gateway-manager
-rules:
-- apiGroups: ["gateway.networking.k8s.io"]
-  resources: ["gatewayclasses"]
-  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  **Infrastructure Team: GatewayClass-exclusive permissions (ClusterRole)**
 
----
-# Platform Team: Gateway management permissions (specific namespace)
-apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
-metadata:
-  name: platform-gateway-manager
-  namespace: gateway-system
-rules:
-- apiGroups: ["gateway.networking.k8s.io"]
-  resources: ["gateways"]
-  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
-- apiGroups: [""]
-  resources: ["secrets"]  # TLS certificate management
-  verbs: ["get", "list"]
+  GatewayClass is a cluster-scoped resource that only the infrastructure team can create/modify. It controls controller selection and global policies.
 
----
-# Application Team: HTTPRoute only (their own namespace)
-apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
-metadata:
-  name: app-route-manager
-  namespace: production-app
-rules:
-- apiGroups: ["gateway.networking.k8s.io"]
-  resources: ["httproutes", "referencegrants"]
-  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
-- apiGroups: [""]
-  resources: ["services"]
-  verbs: ["get", "list"]
-```
+  ```yaml
+  apiVersion: rbac.authorization.k8s.io/v1
+  kind: ClusterRole
+  metadata:
+    name: infrastructure-gateway-manager
+  rules:
+  - apiGroups: ["gateway.networking.k8s.io"]
+    resources: ["gatewayclasses"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  ```
+
+  </TabItem>
+  <TabItem value="platform" label="Platform (Gateway)">
+
+  **Platform Team: Gateway management permissions (Role — namespace-scoped)**
+
+  Gateway is a namespace-scoped resource. The platform team manages listener configuration, TLS certificates, and load balancer settings.
+
+  ```yaml
+  apiVersion: rbac.authorization.k8s.io/v1
+  kind: Role
+  metadata:
+    name: platform-gateway-manager
+    namespace: gateway-system
+  rules:
+  - apiGroups: ["gateway.networking.k8s.io"]
+    resources: ["gateways"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  - apiGroups: [""]
+    resources: ["secrets"]  # TLS certificate management
+    verbs: ["get", "list"]
+  ```
+
+  </TabItem>
+  <TabItem value="app" label="App Team (HTTPRoute)">
+
+  **Application Team: HTTPRoute only (Role — namespace-scoped)**
+
+  Application teams manage only HTTPRoutes and ReferenceGrants in their own namespace. They cannot access GatewayClass or Gateway resources.
+
+  ```yaml
+  apiVersion: rbac.authorization.k8s.io/v1
+  kind: Role
+  metadata:
+    name: app-route-manager
+    namespace: production-app
+  rules:
+  - apiGroups: ["gateway.networking.k8s.io"]
+    resources: ["httproutes", "referencegrants"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  - apiGroups: [""]
+    resources: ["services"]
+    verbs: ["get", "list"]
+  ```
+
+  </TabItem>
+</Tabs>
 
 ### 3.3 GA Status (v1.4.0)
 
