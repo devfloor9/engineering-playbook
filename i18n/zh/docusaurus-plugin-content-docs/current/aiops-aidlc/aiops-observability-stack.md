@@ -167,7 +167,7 @@ graph TB
         CWAgent["CloudWatch Agent"]
         FluentBit["Fluent Bit"]
         NodeMon["Node Monitoring Agent"]
-        FlowMon["NFM Agent\n（容器网络可观测性）"]
+        FlowMon["NFM Agent<br/>（容器网络可观测性）"]
     end
 
     subgraph Transport["🔄 传输层（传输）"]
@@ -178,25 +178,25 @@ graph TB
     end
 
     subgraph Storage["💾 存储层（存储）"]
-        AMP["AMP\n（托管 Prometheus）"]
+        AMP["AMP<br/>（托管 Prometheus）"]
         CWLogs["CloudWatch Logs"]
         CWMetrics["CloudWatch Metrics"]
         XRay["AWS X-Ray"]
     end
 
     subgraph Analysis["🧠 分析层（AI 分析）"]
-        AMG["AMG\n（托管 Grafana）"]
-        CWAI["CloudWatch AI\nNL 查询"]
-        DevOpsGuru["DevOps Guru\nML 异常检测"]
-        CWInvestigation["CloudWatch\nInvestigations"]
-        AppSignals["Application\nSignals"]
+        AMG["AMG<br/>（托管 Grafana）"]
+        CWAI["CloudWatch AI<br/>NL 查询"]
+        DevOpsGuru["DevOps Guru<br/>ML 异常检测"]
+        CWInvestigation["CloudWatch<br/>Investigations"]
+        AppSignals["Application<br/>Signals"]
     end
 
     subgraph Action["⚡ 操作层（操作）"]
-        MCP["Hosted MCP\nServers"]
-        Kiro["Kiro +\nSpec-driven"]
-        QDev["Amazon Q\nDeveloper"]
-        Kagent["Kagent\nAI Agent"]
+        MCP["Hosted MCP<br/>Servers"]
+        Kiro["Kiro +<br/>Spec-driven"]
+        QDev["Amazon Q<br/>Developer"]
+        Kagent["Kagent<br/>AI Agent"]
     end
 
     ADOT --> OTLP
@@ -780,11 +780,11 @@ CloudWatch Investigations 是一个基于 AI 的根本原因分析工具，当�
 ```mermaid
 graph LR
     subgraph DataSources["📊 数据源"]
-        CW["CloudWatch\n指标/日志"]
-        XR["X-Ray\n跟踪"]
-        EKS_API["EKS API\n集群状态"]
-        DG["DevOps Guru\n洞察"]
-        CI["Container Insights\nPod 指标"]
+        CW["CloudWatch<br/>指标/日志"]
+        XR["X-Ray<br/>跟踪"]
+        EKS_API["EKS API<br/>集群状态"]
+        DG["DevOps Guru<br/>洞察"]
+        CI["Container Insights<br/>Pod 指标"]
     end
 
     subgraph MCP["🔌 Hosted MCP Servers"]
@@ -794,7 +794,7 @@ graph LR
 
     subgraph Clients["🤖 AI 客户端"]
         Kiro["Kiro"]
-        QDev["Amazon Q\nDeveloper"]
+        QDev["Amazon Q<br/>Developer"]
         Kagent2["Kagent"]
     end
 
