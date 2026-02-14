@@ -11,6 +11,7 @@ sidebar_position: 3
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
+import { ChallengeSummary, K8sCoreFeatures, SolutionMapping, ModelServingComparison, InferenceGatewayComparison, ObservabilityComparison, KAgentFeatures, ObservabilityLayerStack, LlmdFeatures, DistributedTrainingStack, GpuInfraStack } from '@site/src/components/AgenticChallengesTables';
 
 > **Written**: 2025-02-05 | **Last modified**: 2026-02-04 | **Reading time**: ~25 min
 
@@ -49,12 +50,7 @@ graph TB
 
 ### Challenge Summary
 
-| Challenge | Core Problem | Limitations of Traditional Infrastructure |
-| --- | --- | --- |
-| **GPU Monitoring & Scheduling** | Lack of multi-cluster GPU visibility, generation-specific workload matching | Manual monitoring, static allocation |
-| **Dynamic Routing & Scaling** | Unpredictable traffic, multi-model serving complexity | Slow provisioning, fixed capacity |
-| **Cost Control** | GPU idle costs, difficulty tracking at token level | No cost visibility, no optimization |
-| **FM Fine-tuning** | Distributed training infrastructure complexity, resource provisioning delays | Manual cluster management, low utilization |
+<ChallengeSummary />
 
 :::warning Limitations of Traditional Infrastructure Approach
 Traditional VM-based infrastructure or manual management approaches cannot effectively respond to Agentic AI's **dynamic and unpredictable workload patterns**. The high cost of GPU resources and complex distributed system requirements make **automated infrastructure management** essential.
@@ -102,14 +98,7 @@ graph LR
 
 Kubernetes is the **ideal foundational platform** to solve all challenges of Agentic AI Platform:
 
-| Kubernetes Core Feature | AI Platform Application | Solved Challenge |
-| --- | --- | --- |
-| **Declarative Resource Management** | Define GPU resources as code with version control | Challenge 1, 4 |
-| **Auto Scaling (HPA/VPA)** | Automatic Pod expansion/contraction based on traffic patterns | Challenge 2 |
-| **Namespace-based Isolation** | Resource quota management by team/project | Challenge 3 |
-| **Operator Pattern** | Automation of complex distributed learning workflows | Challenge 4 |
-| **Service Mesh Integration** | Multi-model routing and traffic management | Challenge 2 |
-| **Metrics-based Orchestration** | GPU utilization-based scheduling decisions | Challenge 1, 3 |
+<K8sCoreFeatures />
 
 ```mermaid
 graph TB
@@ -211,12 +200,7 @@ graph TB
 
 ### Challenge-specific Solution Detailed Mapping
 
-| Challenge | Core Solution | Supporting Solutions | Solves |
-| --- | --- | --- | --- |
-| **GPU Monitoring & Scheduling** | Karpenter | DCGM Exporter, NVIDIA GPU Operator | GPU node auto provisioning, generation-specific workload matching |
-| **Dynamic Routing & Scaling** | Kgateway, LiteLLM | KEDA, vLLM, llm-d | Multi-model routing, traffic-based auto scaling |
-| **Token/Cost Monitoring** | LangFuse, LangSmith | OpenTelemetry, Prometheus | Token-level tracking, cost visibility, quality evaluation |
-| **FM Fine-tuning** | NeMo, Kubeflow | MLflow, Ray | Distributed learning orchestration, pipeline automation |
+<SolutionMapping />
 
 ---
 
@@ -256,10 +240,7 @@ graph LR
     style V3 fill:#3498db
 ```
 
-| Solution | Role | Core Features |
-| --- | --- | --- |
-| **vLLM** | Inference Engine | PagedAttention, Continuous Batching, Speculative Decoding |
-| **llm-d** | Distributed Scheduler | Load balancing, Prefix Caching-aware routing, Failure recovery |
+<ModelServingComparison />
 
 **Kubernetes Integration:**
 
@@ -298,10 +279,7 @@ graph TB
     style LITE fill:#9b59b6
 ```
 
-| Solution | Role | Core Features |
-| --- | --- | --- |
-| **Kgateway** | Traffic Management | Header-based routing, weight distribution, Rate Limiting, Canary deployment |
-| **LiteLLM** | API Abstraction | 100+ LLM provider support, unified API, fallback settings, cost tracking |
+<InferenceGatewayComparison />
 
 **Kubernetes Integration:**
 
@@ -343,10 +321,7 @@ graph LR
     style LS fill:#9b59b6
 ```
 
-| Solution | Deployment | Core Features |
-| --- | --- | --- |
-| **LangFuse** | Self-hosted (K8s) | Token tracking, cost analysis, prompt management, A/B testing |
-| **LangSmith** | Managed SaaS | Tracing, evaluation, dataset management, collaboration features |
+<ObservabilityComparison />
 
 **Kubernetes Integration (LangFuse):**
 
@@ -386,12 +361,7 @@ graph TB
     style CTRL fill:#2ecc71
 ```
 
-| Feature | Description |
-| --- | --- |
-| **Declarative Agent Definition** | Define Agent configuration, tools, memory in YAML |
-| **Automatic Scaling** | Auto-expand Agent instances based on request volume |
-| **Integrated Observability** | Automatic integration with LangFuse/LangSmith |
-| **Tool Management** | Tool integration based on MCP (Model Context Protocol) |
+<KAgentFeatures />
 
 **Kubernetes Integration:**
 
@@ -531,11 +501,7 @@ graph TB
 
 Core tools for **tracking the entire lifecycle and evaluating the quality** of LLM applications.
 
-| Solution | Role | Kubernetes Integration | Core Features |
-| --- | --- | --- | --- |
-| **LangFuse** | LLM Tracing (Self-hosted) | Helm Chart, StatefulSet | Token tracking, cost analysis, prompt version management |
-| **LangSmith** | LLM Tracing (Managed) | SDK integration | Tracing, evaluation, dataset management, collaboration |
-| **RAGAS** | RAG Quality Evaluation | Job/CronJob | Faithfulness, Relevancy, Context Precision evaluation |
+<ObservabilityLayerStack />
 
 ```mermaid
 graph LR
@@ -727,12 +693,7 @@ data:
 
 **llm-d** is a scheduler that **intelligently distributes** LLM inference requests in Kubernetes environments.
 
-| Feature | Description | Kubernetes Integration |
-| --- | --- | --- |
-| **Prefix Caching Awareness** | Routes requests with the same prompt prefix to the same instance | Leverages Service Discovery |
-| **Load Balancing** | Intelligent distribution based on GPU utilization | Prometheus metrics integration |
-| **Failure Recovery** | Automatic re-routing on instance failure | Health Check + Endpoint Slice |
-| **Dynamic Scaling** | Backend expansion based on request volume | KEDA integration |
+<LlmdFeatures />
 
 ```mermaid
 graph LR
@@ -826,10 +787,7 @@ For detailed information, see **[Milvus Vector Database](./milvus-vector-databas
 
 **NVIDIA NeMo** and **Kubeflow** provide **automated distributed training pipelines** for large-scale models.
 
-| Solution | Role | Core Features |
-| --- | --- | --- |
-| **NeMo** | Training Framework | LLM/multimodal training, model parallelism, optimization techniques |
-| **Kubeflow** | ML Orchestration | Pipeline management, experiment tracking, hyperparameter tuning |
+<DistributedTrainingStack />
 
 ```mermaid
 graph LR
@@ -933,11 +891,7 @@ graph TB
     style KARP fill:#ffd93d
 ```
 
-| Component | Role | Detailed Documentation |
-| --- | --- | --- |
-| **DRA (Dynamic Resource Allocation)** | Dynamic GPU resource allocation | [GPU Resource Management](./gpu-resource-management.md) |
-| **DCGM (Data Center GPU Manager)** | GPU metrics collection | [GPU Resource Management](./gpu-resource-management.md) |
-| **NCCL (NVIDIA Collective Communication Library)** | Multi-GPU communication optimization | [NeMo Framework](./nemo-framework.md) |
+<GpuInfraStack />
 
 ---
 
