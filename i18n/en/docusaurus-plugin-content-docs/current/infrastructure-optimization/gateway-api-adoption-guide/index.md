@@ -54,8 +54,8 @@ With the official End-of-Life (EOL) of NGINX Ingress Controller approaching in M
 <DocumentStructureTable locale="en" />
 
 :::info Reading Strategy
-- **Quick Understanding**: Sections 1-3, 9 (approximately 10 minutes)
-- **Technology Selection**: Sections 1-5, 9 (approximately 20 minutes)
+- **Quick Understanding**: Sections 1-3, 6 (approximately 10 minutes)
+- **Technology Selection**: Sections 1-4, 6 (approximately 20 minutes)
 - **Complete Migration**: Full document (approximately 25 minutes)
 :::
 
@@ -466,34 +466,21 @@ Explore the 6 key benefits of Gateway API through visual diagrams and YAML examp
 
 <GatewayApiBenefits />
 
-## 4. GAMMA Initiative — The Future of Service Mesh Integration
-
-Detailed content on GAMMA (Gateway API for Mesh Management and Administration) has been moved to a dedicated document.
-
-:::tip Detailed Guide
-See **[GAMMA Initiative — The Future of Service Mesh Integration](/docs/infrastructure-optimization/gateway-api-adoption-guide/gamma-initiative)** for:
-- GAMMA overview and East-West traffic management
-- Service mesh integration architecture
-- Implementation support status by solution
-:::
-
----
-
-## 5. Gateway API Implementation Comparison - AWS Native vs Open Source
+## 4. Gateway API Implementation Comparison - AWS Native vs Open Source
 
 This section provides detailed comparisons of 5 major Gateway API implementations. Understanding the features, strengths, and weaknesses of each solution helps you make the optimal choice for your organization.
 
-### 5.1 Solution Overview Comparison
+### 4.1 Solution Overview Comparison
 
 The following matrix compares the key features, limitations, and use cases of 5 Gateway API implementations.
 
 <SolutionOverviewMatrix locale="en" />
 
-### 5.2 Comprehensive Comparison Table
+### 4.2 Comprehensive Comparison Table
 
 <FeatureComparisonMatrix locale="en" />
 
-### 5.3 NGINX Feature Mapping
+### 4.3 NGINX Feature Mapping
 
 Compare how 8 key NGINX Ingress Controller features are implemented across Gateway API solutions.
 
@@ -504,11 +491,11 @@ Compare how 8 key NGINX Ingress Controller features are implemented across Gatew
 - ⚠️ Partial support or additional configuration required
 - ❌ Not supported (separate solution needed)
 
-### 5.4 Implementation Difficulty Comparison
+### 4.4 Implementation Difficulty Comparison
 
 <DifficultyComparisonTable locale="en" />
 
-### 5.5 Cost Impact Analysis
+### 4.5 Cost Impact Analysis
 
 #### AWS Native Additional Costs
 
@@ -522,7 +509,7 @@ Compare how 8 key NGINX Ingress Controller features are implemented across Gatew
 If you need 3+ WAF features (IP Allowlist, Rate Limiting, Body Size), AWS Native is cost-effective. For 1-2 features, open source solutions can implement them for free.
 :::
 
-### 5.6 Feature Implementation Code Examples
+### 4.6 Feature Implementation Code Examples
 
 Compare implementation approaches across solutions. Click tabs to view each solution's code.
 
@@ -1152,7 +1139,7 @@ spec:
 </TabItem>
 </Tabs>
 
-### 5.7 Route Selection Decision Tree
+### 4.7 Route Selection Decision Tree
 
 Use the following decision tree to select the optimal solution for your organization.
 
@@ -1189,7 +1176,7 @@ flowchart TD
     style kgw fill:#f0e6ff,stroke:#6600cc
 ```
 
-### 5.8 Scenario-Based Recommendations
+### 4.8 Scenario-Based Recommendations
 
 The following are recommended solutions based on common organizational scenarios.
 
@@ -1197,37 +1184,7 @@ The following are recommended solutions based on common organizational scenarios
 
 ---
 
-## 6. Cilium ENI Mode + Gateway API Advanced Configuration
-
-Detailed content on Cilium ENI mode and Gateway API advanced configuration has been moved to a dedicated document.
-
-:::tip Detailed Guide
-See **[Cilium ENI Mode + Gateway API Advanced Configuration Guide](/docs/infrastructure-optimization/gateway-api-adoption-guide/cilium-eni-gateway-api)** for:
-- ENI mode architecture overview
-- Prerequisites and installation
-- Gateway API resource configuration
-- Performance optimization (eBPF, XDP)
-- Observability with Hubble
-- BGP Control Plane v2
-:::
-
----
-
-## 7. Migration Execution Strategy
-
-Detailed migration execution strategy has been moved to a separate document.
-
-:::tip Detailed Guide
-See **[Migration Execution Strategy](/docs/infrastructure-optimization/gateway-api-adoption-guide/migration-execution-strategy)** for:
-- 5-Phase migration timeline
-- Step-by-step execution guide
-- Validation checklists
-- Troubleshooting procedures
-:::
-
----
-
-## 8. Benchmark Comparison Planning
+## 5. Benchmark Comparison Planning
 
 A systematic benchmark is planned for objective performance comparison of 5 Gateway API implementations. Eight scenarios including throughput, latency, TLS performance, L7 routing, scaling, resource efficiency, failure recovery, and gRPC will be measured in identical EKS environments.
 
@@ -1237,9 +1194,9 @@ For test environment design, detailed scenarios, measurement metrics, and execut
 
 ---
 
-## 9. Conclusion and Future Roadmap
+## 6. Conclusion and Future Roadmap
 
-### 9.1 Conclusion
+### 6.1 Conclusion
 
 <RouteRecommendationTable locale="en" />
 
@@ -1273,16 +1230,16 @@ Select the solution that best fits your organization based on the table above.
 </TabItem>
 <TabItem value="hybrid" label="Hybrid Nodes">
 
-**Cilium Gateway API + llm-d** — When integrating cloud and on-premises GPU nodes with EKS Hybrid Nodes, using Cilium as a unified CNI provides CNI unification + Hubble integrated observability + built-in Gateway API. AI inference traffic is optimized by llm-d with KV Cache-aware routing. See [Cilium ENI + Gateway API Advanced Guide — Section 7](/docs/infrastructure-optimization/gateway-api-adoption-guide/cilium-eni-gateway-api#7-hybrid-node-architecture-and-aiml-workloads) for details.
+**Cilium Gateway API + llm-d** — When integrating cloud and on-premises GPU nodes with EKS Hybrid Nodes, using Cilium as a unified CNI provides CNI unification + Hubble integrated observability + built-in Gateway API. AI inference traffic is optimized by llm-d with KV Cache-aware routing. See [Cilium ENI + Gateway API Advanced Guide](/docs/infrastructure-optimization/gateway-api-adoption-guide/cilium-eni-gateway-api#7-hybrid-node-architecture-and-aiml-workloads) for details.
 
 </TabItem>
 </Tabs>
 
-### 9.2 Future Expansion Roadmap
+### 6.2 Future Expansion Roadmap
 
 <RoadmapTimeline locale="en" />
 
-### 9.3 Key Message
+### 6.3 Key Message
 
 :::info
 **Complete migration before March 2026 NGINX Ingress EOL to eliminate security threats at the source.**
@@ -1295,27 +1252,30 @@ Gateway API is not just an Ingress replacement, but the future of cloud-native t
 
 **Start Now:**
 1. Collect current Ingress inventory (Migration Execution Strategy document)
-2. Select solution matching your workload (Section 9.1)
+2. Select solution matching your workload (Section 6.1)
 3. Build PoC environment (Migration Execution Strategy document)
 4. Execute gradual migration (Migration Execution Strategy document)
-
-**Additional Resources:**
-- [Gateway API Official Documentation](https://gateway-api.sigs.k8s.io/)
-- [Cilium Official Documentation](https://docs.cilium.io/)
-- [NGINX Gateway Fabric](https://docs.nginx.com/nginx-gateway-fabric/)
-- [Envoy Gateway](https://gateway.envoyproxy.io/)
-- [AWS Load Balancer Controller](https://kubernetes-sigs.github.io/aws-load-balancer-controller/)
 
 ---
 
 ## Related Documents
 
-- [2. CoreDNS Monitoring & Optimization](../coredns-monitoring-optimization.md)
-- [3. East-West Traffic Optimization](../east-west-traffic-best-practice.md)
-- [4. Karpenter Ultra-Fast Auto-Scaling](../karpenter-autoscaling.md)
+### Sub-Documents (Advanced Guides)
+
+In-depth coverage of specific topics is provided in separate sub-documents.
+
+- **[1. GAMMA Initiative — The Future of Service Mesh Integration](/docs/infrastructure-optimization/gateway-api-adoption-guide/gamma-initiative)** — GAMMA overview, East-West traffic management, service mesh integration architecture, implementation support status
+- **[2. Cilium ENI Mode + Gateway API Advanced Configuration](/docs/infrastructure-optimization/gateway-api-adoption-guide/cilium-eni-gateway-api)** — ENI mode architecture, installation/configuration, performance optimization (eBPF, XDP), Hubble observability, BGP Control Plane v2, hybrid node architecture
+- **[3. Migration Execution Strategy](/docs/infrastructure-optimization/gateway-api-adoption-guide/migration-execution-strategy)** — 5-Phase migration process, CRD installation, validation scripts, troubleshooting guide
+
+### Related Categories
+
+- [2. CoreDNS Monitoring & Optimization](/docs/infrastructure-optimization/coredns-monitoring-optimization)
+- [3. East-West Traffic Optimization](/docs/infrastructure-optimization/east-west-traffic-best-practice)
+- [4. Karpenter Ultra-Fast Autoscaling](/docs/infrastructure-optimization/karpenter-autoscaling)
+
+### External References
+
 - [Kubernetes Gateway API Official Documentation](https://gateway-api.sigs.k8s.io/)
 - [AWS Load Balancer Controller](https://kubernetes-sigs.github.io/aws-load-balancer-controller/)
 - [Cilium Gateway API Documentation](https://docs.cilium.io/en/stable/network/servicemesh/gateway-api/gateway-api/)
-- [NGINX Gateway Fabric](https://docs.nginx.com/nginx-gateway-fabric/)
-- [Envoy Gateway](https://gateway.envoyproxy.io/)
-- [kGateway](https://k8sgateway.io/)

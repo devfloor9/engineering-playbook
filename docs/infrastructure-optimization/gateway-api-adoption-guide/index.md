@@ -54,9 +54,9 @@ import {
 <DocumentStructureTable />
 
 :::info 읽기 전략
-- **빠른 이해**: 섹션 1-3, 9 (약 10분)
-- **기술 선정**: 섹션 1-5, 9 (약 20분)
-- **전체 마이그레이션**: 전체 문서 (약 25분)
+- **빠른 이해**: 섹션 1-3, 6 (약 10분)
+- **기술 선정**: 섹션 1-4, 6 (약 20분)
+- **전체 마이그레이션**: 전체 문서 + 하위 문서 (약 25분)
 :::
 
 ---
@@ -669,36 +669,23 @@ done | sort | uniq -c
 Gateway API는 `weight` 필드를 통해 어노테이션 없이 Canary 배포를 지원합니다. NGINX Ingress의 `nginx.ingress.kubernetes.io/canary` 어노테이션 조합보다 간결하고 이식성이 높습니다.
 :::
 
-## 4. GAMMA Initiative — 서비스 메시 통합의 미래
-
-GAMMA(Gateway API for Mesh Management and Administration)에 대한 상세 내용은 별도 문서로 분리되었습니다.
-
-:::tip 상세 가이드
-**[GAMMA Initiative — 서비스 메시 통합의 미래](/docs/infrastructure-optimization/gateway-api-adoption-guide/gamma-initiative)**에서 다음 내용을 확인할 수 있습니다:
-- GAMMA 개요 및 East-West 트래픽 관리
-- 서비스 메시 통합 아키텍처
-- 구현체별 GAMMA 지원 현황
-:::
-
----
-
-## 5. Gateway API 구현체 비교 - AWS Native vs Open Source
+## 4. Gateway API 구현체 비교 - AWS Native vs Open Source
 
 이 섹션에서는 5가지 주요 Gateway API 구현체를 상세히 비교합니다. 각 솔루션의 특징, 강점, 약점을 파악하여 조직에 최적의 선택을 할 수 있도록 돕습니다.
 
-### 5.1 솔루션 개요 비교
+### 4.1 솔루션 개요 비교
 
 다음 매트릭스는 5가지 Gateway API 구현체의 핵심 특징, 제약사항, 적합한 사용 사례를 비교합니다.
 
 <SolutionOverviewMatrix />
 
-### 5.2 기능 비교 매트릭스
+### 4.2 기능 비교 매트릭스
 
 다음은 5가지 솔루션의 종합 비교표입니다. 이 표를 통해 각 솔루션의 강점과 약점을 한눈에 파악할 수 있습니다.
 
 <FeatureComparisonMatrix />
 
-### 5.3 NGINX 기능 매핑
+### 4.3 NGINX 기능 매핑
 
 NGINX Ingress Controller에서 사용하던 8가지 주요 기능을 각 Gateway API 구현체에서 어떻게 구현하는지 비교합니다.
 
@@ -709,11 +696,11 @@ NGINX Ingress Controller에서 사용하던 8가지 주요 기능을 각 Gateway
 - ⚠️ 부분 지원 또는 추가 설정 필요
 - ❌ 미지원 (별도 솔루션 필요)
 
-### 5.4 구현 난이도 비교
+### 4.4 구현 난이도 비교
 
 <DifficultyComparisonTable />
 
-### 5.5 비용 영향 분석
+### 4.5 비용 영향 분석
 
 #### AWS Native 추가 비용
 
@@ -727,7 +714,7 @@ NGINX Ingress Controller에서 사용하던 8가지 주요 기능을 각 Gateway
 AWS WAF가 필요한 기능(IP Allowlist, Rate Limiting, Body Size)이 3개 이상이면 AWS Native가 WAF 비용 대비 효율적입니다. 1-2개만 필요하면 오픈소스 솔루션에서 무료로 구현할 수 있습니다.
 :::
 
-### 5.6 기능별 구현 코드 예제
+### 4.6 기능별 구현 코드 예제
 
 #### 1. 인증 (Basic Auth 대체)
 
@@ -1843,7 +1830,7 @@ spec:
 </TabItem>
 </Tabs>
 
-### 5.7 경로 선택 의사결정 트리
+### 4.7 경로 선택 의사결정 트리
 
 다음 의사결정 트리를 통해 조직에 최적의 솔루션을 선택할 수 있습니다.
 
@@ -1880,7 +1867,7 @@ flowchart TD
     style kgw fill:#f0e6ff,stroke:#6600cc
 ```
 
-### 5.8 시나리오별 권장 경로
+### 4.8 시나리오별 권장 경로
 
 다음은 일반적인 조직 시나리오에 따른 권장 솔루션입니다.
 
@@ -1888,38 +1875,7 @@ flowchart TD
 
 ---
 
-## 6. Cilium ENI 모드 + Gateway API 심화 구성
-
-Cilium ENI 모드와 Gateway API의 심화 구성에 대한 상세 내용은 별도 문서로 분리되었습니다.
-
-:::tip 상세 가이드
-**[Cilium ENI 모드 + Gateway API 심화 구성 가이드](/docs/infrastructure-optimization/gateway-api-adoption-guide/cilium-eni-gateway-api)**에서 다음 내용을 확인할 수 있습니다:
-- ENI 모드 아키텍처 및 오버뷰
-- 사전 요구사항 및 설치 흐름
-- Gateway API 리소스 구성
-- 성능 최적화 (eBPF, XDP)
-- 운영 및 관측성 (Hubble)
-- BGP Control Plane v2
-:::
-
----
-
-## 7. 마이그레이션 실행 전략
-
-상세한 마이그레이션 실행 전략은 별도 문서로 이동되었습니다.
-
-:::tip 상세 가이드
-**[마이그레이션 실행 전략](/docs/infrastructure-optimization/gateway-api-adoption-guide/migration-execution-strategy)** 문서에서 다음 내용을 확인할 수 있습니다:
-- CRD 설치 및 컨트롤러 배포
-- 5-Phase 마이그레이션 프로세스
-- Phase별 상세 실행 가이드
-- 검증 스크립트 및 체크리스트
-- 컨트롤러별 트러블슈팅 가이드
-:::
-
----
-
-## 8. 벤치마크 비교 계획
+## 5. 벤치마크 비교 계획
 
 5개 Gateway API 구현체의 객관적인 성능 비교를 위한 체계적인 벤치마크를 계획하고 있습니다. 처리량, 레이턴시, TLS 성능, L7 라우팅, 스케일링, 리소스 효율성, 장애 복구, gRPC 등 8개 시나리오를 동일한 EKS 환경에서 측정합니다.
 
@@ -1929,9 +1885,9 @@ Cilium ENI 모드와 Gateway API의 심화 구성에 대한 상세 내용은 별
 
 ---
 
-## 9. 결론 및 향후 로드맵
+## 6. 결론 및 향후 로드맵
 
-### 9.1 결론
+### 6.1 결론
 
 <RouteRecommendationTable />
 
@@ -1970,11 +1926,11 @@ Cilium ENI 모드와 Gateway API의 심화 구성에 대한 상세 내용은 별
   </TabItem>
 </Tabs>
 
-### 9.2 향후 확장 로드맵
+### 6.2 향후 확장 로드맵
 
 <RoadmapTimeline />
 
-### 9.3 핵심 메시지
+### 6.3 핵심 메시지
 
 :::info
 **2026년 3월 NGINX Ingress EOL 이전에 마이그레이션을 완료하여 보안 위협을 원천 차단하세요.**
@@ -1986,10 +1942,10 @@ Gateway API는 단순한 Ingress 대체가 아닌, 클라우드 네이티브 트
 :::
 
 **지금 시작하세요:**
-1. 현재 Ingress 인벤토리 수집 (Section 7.3.1)
-2. 워크로드에 맞는 솔루션 선택 (Section 9.2)
-3. PoC 환경 구축 (Section 7.3.2)
-4. 점진적 마이그레이션 실행 (Section 7.3.4)
+1. 현재 Ingress 인벤토리 수집 — [마이그레이션 실행 전략](/docs/infrastructure-optimization/gateway-api-adoption-guide/migration-execution-strategy) 참조
+2. 워크로드에 맞는 솔루션 선택 (섹션 4)
+3. PoC 환경 구축 — [마이그레이션 실행 전략](/docs/infrastructure-optimization/gateway-api-adoption-guide/migration-execution-strategy) 참조
+4. 점진적 마이그레이션 실행 — [마이그레이션 실행 전략](/docs/infrastructure-optimization/gateway-api-adoption-guide/migration-execution-strategy) 참조
 
 **추가 리소스:**
 - [Gateway API 공식 문서](https://gateway-api.sigs.k8s.io/)
@@ -2002,15 +1958,22 @@ Gateway API는 단순한 Ingress 대체가 아닌, 클라우드 네이티브 트
 
 ## 관련 문서
 
-- **[Cilium ENI 모드 + Gateway API](/docs/infrastructure-optimization/gateway-api-adoption-guide/cilium-eni-gateway-api)** - Cilium ENI 모드 심화 구성
-- **[마이그레이션 실행 전략](/docs/infrastructure-optimization/gateway-api-adoption-guide/migration-execution-strategy)** - 5-Phase 마이그레이션 가이드
+### 하위 문서 (심화 가이드)
+
+이 가이드의 주제별 심화 내용은 별도 하위 문서로 제공됩니다.
+
+- **[1. GAMMA Initiative — 서비스 메시 통합의 미래](/docs/infrastructure-optimization/gateway-api-adoption-guide/gamma-initiative)** — GAMMA 개요, East-West 트래픽 관리, 서비스 메시 통합 아키텍처, 구현체별 지원 현황
+- **[2. Cilium ENI 모드 + Gateway API 심화 구성](/docs/infrastructure-optimization/gateway-api-adoption-guide/cilium-eni-gateway-api)** — ENI 모드 아키텍처, 설치/구성, 성능 최적화(eBPF, XDP), Hubble 관측성, BGP Control Plane v2, 하이브리드 노드 아키텍처
+- **[3. 마이그레이션 실행 전략](/docs/infrastructure-optimization/gateway-api-adoption-guide/migration-execution-strategy)** — 5-Phase 마이그레이션 프로세스, CRD 설치, 검증 스크립트, 트러블슈팅 가이드
+
+### 관련 카테고리
+
 - [2. CoreDNS 모니터링 & 최적화](/docs/infrastructure-optimization/coredns-monitoring-optimization)
 - [3. East-West 트래픽 최적화](/docs/infrastructure-optimization/east-west-traffic-best-practice)
 - [4. Karpenter 초고속 오토스케일링](/docs/infrastructure-optimization/karpenter-autoscaling)
+
+### 외부 참고 자료
+
 - [Kubernetes Gateway API 공식 문서](https://gateway-api.sigs.k8s.io/)
 - [AWS Load Balancer Controller](https://kubernetes-sigs.github.io/aws-load-balancer-controller/)
 - [Cilium Gateway API 문서](https://docs.cilium.io/en/stable/network/servicemesh/gateway-api/gateway-api/)
-- [NGINX Gateway Fabric](https://docs.nginx.com/nginx-gateway-fabric/)
-- [Envoy Gateway](https://gateway.envoyproxy.io/)
-- [kGateway](https://k8sgateway.io/)
-- [GAMMA Initiative](https://gateway-api.sigs.k8s.io/mesh/gamma/)
