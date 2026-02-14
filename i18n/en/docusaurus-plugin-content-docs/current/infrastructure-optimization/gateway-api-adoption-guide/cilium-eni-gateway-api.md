@@ -637,16 +637,33 @@ When using EKS Hybrid Nodes to integrate cloud and on-premises (or GPU-dedicated
 
 AWS VPC CNI **only works on EC2 instances within the VPC**. When on-premises GPU servers join the cluster via EKS Hybrid Nodes, VPC CNI cannot be used, creating a CNI split between cloud and on-premises nodes.
 
-Cilium **supports both ENI mode (cloud) and VXLAN/native routing (on-premises)**, enabling a single CNI to unify the hybrid environment.
+There are three main approaches to configuring CNI in a hybrid node environment.
 
-| Aspect | VPC CNI + Calico (Mixed) | Cilium (Unified) |
-|--------|-------------------------|------------------|
-| Cloud Node CNI | VPC CNI | Cilium ENI Mode |
-| On-Prem Node CNI | Calico (separate install) | Cilium VXLAN/Native |
-| Network Policy Engine | Dual | Single eBPF Engine |
-| Observability | CloudWatch + separate tools | Hubble Unified |
-| Gateway API | Separate implementation needed | Cilium Built-in |
-| Operational Complexity | High (2 CNIs to manage) | Low (single stack) |
+| Aspect | VPC CNI + Calico | VPC CNI + Cilium | Cilium Unified (Recommended) |
+|--------|-----------------|-----------------|------------------------------|
+| Cloud Node CNI | VPC CNI | VPC CNI | Cilium ENI Mode |
+| On-Prem Node CNI | Calico (separate install) | Cilium (separate install) | Cilium VXLAN/Native |
+| On-Prem Networking | Calico VXLAN/BGP | Cilium VXLAN or BGP | Cilium VXLAN or BGP |
+| CNI Unification | ❌ 2 CNIs | ❌ 2 CNIs | ✅ Single CNI |
+| Network Policy Engine | Dual (VPC CNI + Calico) | Dual (VPC CNI + Cilium) | Single eBPF Engine |
+| Observability | CloudWatch + separate tools | CloudWatch + Hubble (on-prem only) | Hubble Unified (entire cluster) |
+| Gateway API | Separate implementation needed | Cilium Gateway API on-prem only | Cilium Gateway API Built-in |
+| eBPF Acceleration | ❌ Not on cloud nodes | ❌ Not on cloud nodes | ✅ eBPF on all nodes |
+| Operational Complexity | High (2 CNIs + 2 policy engines) | Medium (2 CNIs, leverage Cilium experience) | Low (single stack) |
+
+:::warning Overlay Networking on On-Premises Nodes
+Regardless of CNI choice, **overlay networking (VXLAN/Geneve) is the default configuration for on-premises nodes**. Without AWS VPC routing tables, encapsulation is required for pod CIDR communication.
+
+To eliminate overlay overhead, **BGP peering** is required. Cilium BGP Control Plane v2 can advertise pod CIDRs to on-premises routers for native routing, but this requires BGP support on the on-premises network infrastructure.
+:::
+
+:::tip IPAM Considerations for Cilium Unified
+Cilium's `ipam.mode=eni` **only works on AWS EC2 instances**. For hybrid clusters with on-premises nodes, there are three approaches to implement Cilium unified:
+
+1. **ClusterMesh (Recommended)**: Run separate cloud cluster (ENI mode) + on-prem cluster (cluster-pool mode) and connect via [Cilium ClusterMesh](https://docs.cilium.io/en/stable/network/clustermesh/). Each environment uses optimized IPAM while maintaining unified observability.
+2. **Multi-pool IPAM**: Use node label-based IPAM pool assignment in a single cluster (Cilium 1.15+). ENI pool for cloud nodes, cluster-pool for on-prem nodes.
+3. **Unified Cluster-pool IPAM**: Forgo ENI mode and use `cluster-pool` + VXLAN across the entire cluster. Simplest approach but loses ENI native routing benefits on cloud.
+:::
 
 ### Recommended Architecture: Cilium + Cilium Gateway API + llm-d
 

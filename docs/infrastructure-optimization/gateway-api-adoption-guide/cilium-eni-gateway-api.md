@@ -1666,16 +1666,33 @@ EKS Hybrid Nodes를 활용하여 클라우드와 온프레미스(또는 GPU 전�
 
 AWS VPC CNI는 **VPC 내부의 EC2 인스턴스에서만 동작**합니다. EKS Hybrid Nodes로 온프레미스 GPU 서버를 클러스터에 참여시키면 VPC CNI를 사용할 수 없으므로, 클라우드와 온프레미스 노드 간 CNI가 분리되는 문제가 발생합니다.
 
-Cilium은 **ENI 모드(클라우드)와 VXLAN/네이티브 라우팅(온프레미스) 모두를 지원**하므로, 단일 CNI로 하이브리드 환경을 통합할 수 있습니다.
+하이브리드 노드 환경에서 CNI를 구성하는 방법은 크게 세 가지입니다.
 
-| 구분 | VPC CNI + Calico (혼합) | Cilium (단일) |
-|------|------------------------|--------------|
-| 클라우드 노드 CNI | VPC CNI | Cilium ENI 모드 |
-| 온프레미스 노드 CNI | Calico 별도 설치 | Cilium VXLAN/Native |
-| 네트워크 정책 엔진 | 이원화 | 단일 eBPF 엔진 |
-| 관측성 | CloudWatch + 별도 도구 | Hubble 통합 |
-| Gateway API | 별도 구현체 필요 | Cilium 내장 |
-| 운영 복잡도 | 높음 (2개 CNI 관리) | 낮음 (단일 스택) |
+| 구분 | VPC CNI + Calico | VPC CNI + Cilium | Cilium 단일 (권장) |
+|------|-----------------|-----------------|-------------------|
+| 클라우드 노드 CNI | VPC CNI | VPC CNI | Cilium ENI 모드 |
+| 온프레미스 노드 CNI | Calico 별도 설치 | Cilium 별도 설치 | Cilium VXLAN/Native |
+| 온프레미스 네트워킹 | Calico VXLAN/BGP | Cilium VXLAN 또는 BGP | Cilium VXLAN 또는 BGP |
+| CNI 단일화 | ❌ 2개 CNI | ❌ 2개 CNI | ✅ 단일 CNI |
+| 네트워크 정책 엔진 | 이원화 (VPC CNI + Calico) | 이원화 (VPC CNI + Cilium) | 단일 eBPF 엔진 |
+| 관측성 | CloudWatch + 별도 도구 | CloudWatch + Hubble (온프렘만) | Hubble 통합 (전체 클러스터) |
+| Gateway API | 별도 구현체 필요 | 온프렘에서만 Cilium Gateway API | Cilium Gateway API 내장 |
+| eBPF 가속 | ❌ 클라우드 미지원 | ❌ 클라우드 미지원 | ✅ 전체 노드 eBPF |
+| 운영 복잡도 | 높음 (2개 CNI + 2개 정책 엔진) | 중간 (2개 CNI, Cilium 경험 활용) | 낮음 (단일 스택) |
+
+:::warning 온프레미스 노드의 오버레이 네트워크
+어떤 CNI를 선택하든 **온프레미스 노드에서는 오버레이 네트워크(VXLAN/Geneve)가 기본 구성**입니다. 온프레미스에는 AWS VPC 라우팅 테이블이 없으므로 Pod CIDR 간 통신을 위해 캡슐화가 필요합니다.
+
+오버레이를 제거하려면 **BGP 피어링**이 필요합니다. Cilium BGP Control Plane v2로 Pod CIDR를 온프레미스 라우터에 광고하면 네이티브 라우팅이 가능하지만, 온프레미스 네트워크 장비의 BGP 지원이 전제됩니다.
+:::
+
+:::tip Cilium 단일 구성 시 IPAM 고려사항
+Cilium의 `ipam.mode=eni`는 **AWS EC2 인스턴스에서만 동작**합니다. 온프레미스 노드가 포함된 하이브리드 클러스터에서 Cilium 단일 구성을 구현하는 방법은 세 가지입니다.
+
+1. **ClusterMesh (권장)**: 클라우드 클러스터(ENI 모드) + 온프렘 클러스터(cluster-pool 모드)를 별도로 운영하고 [Cilium ClusterMesh](https://docs.cilium.io/en/stable/network/clustermesh/)로 연결. 각 환경에 최적화된 IPAM을 사용하면서 통합 관측성 확보.
+2. **Multi-pool IPAM**: 단일 클러스터에서 노드 레이블 기반으로 다른 IPAM 풀을 할당 (Cilium 1.15+). 클라우드 노드에는 ENI 풀, 온프렘 노드에는 cluster-pool을 사용.
+3. **Cluster-pool IPAM 통일**: ENI 모드를 포기하고 전체를 `cluster-pool` + VXLAN로 운영. 가장 단순하지만 클라우드에서 ENI 네이티브 라우팅 이점을 잃음.
+:::
 
 ### 9.2 권장 아키텍처: Cilium + Cilium Gateway API + llm-d
 
