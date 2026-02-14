@@ -1,44 +1,264 @@
-import React from 'react';
+import React, { useState } from 'react';
 
-const data = {
+const implementations = {
   ko: [
-    { impl: 'Istio', support: '✅ GA', supportColor: '#4caf50', version: 'v1.22+', notes: 'Ambient Mode + waypoint proxy로 완전한 GAMMA 지원' },
-    { impl: 'Cilium', support: '✅ GA', supportColor: '#4caf50', version: 'v1.16+', notes: 'eBPF 기반 L7 정책, HTTPRoute attach to Service' },
-    { impl: 'Linkerd', support: '✅ Beta', supportColor: '#ff9800', version: 'v2.15+', notes: 'HTTPRoute 기반 메시 정책, Gateway API v1.2+' },
-    { impl: 'Envoy Gateway', support: '⚠️ 제한적', supportColor: '#fbc02d', version: 'v1.7+', notes: '인그레스 중심, 메시는 간접 지원 (Istio 연동 필요)' },
-    { impl: 'kGateway', support: '✅ GA', supportColor: '#4caf50', version: 'v2.1+', notes: '통합 게이트웨이 (인그레스+메시+AI), HTTPRoute/GRPCRoute 메시 지원' },
-    { impl: 'Consul', support: '⚠️ 개발 중', supportColor: '#fbc02d', version: 'v1.19+', notes: 'Gateway API 실험 단계, 기존 Consul Config Entries 병행' },
+    {
+      name: 'AWS VPC Lattice + ACK',
+      status: '✅ GA', statusColor: '#4caf50',
+      dataPlane: 'AWS 관리형 (VPC 레벨)',
+      sidecar: '❌ 불필요',
+      gamma: '✅ Gateway API via ACK',
+      features: {
+        mTLS: '✅ IAM + SigV4',
+        l7Routing: '✅ HTTPRoute',
+        trafficSplit: '✅ 가중치 기반',
+        retryTimeout: '✅ 네이티브',
+        faultInjection: '✅ AWS FIS 연동',
+        observability: 'CloudWatch, X-Ray',
+      },
+      overhead: '없음 (관리형)',
+      strength: 'AWS 네이티브, 사이드카 없음, SLA 보장, ACK로 K8s CRD 관리',
+    },
+    {
+      name: 'Istio Ambient Mode',
+      status: '✅ GA', statusColor: '#4caf50',
+      dataPlane: 'ztunnel (L4) + waypoint (L7)',
+      sidecar: '❌ 불필요 (Ambient)',
+      gamma: '✅ 완전 지원',
+      features: {
+        mTLS: '✅ 자동 (ztunnel)',
+        l7Routing: '✅ HTTPRoute, GRPCRoute',
+        trafficSplit: '✅ 가중치 기반',
+        retryTimeout: '✅ 네이티브',
+        faultInjection: '✅ 네이티브',
+        observability: 'Kiali, Jaeger, Prometheus',
+      },
+      overhead: '낮음 (ztunnel DaemonSet)',
+      strength: '가장 성숙한 GAMMA 구현, Ambient로 사이드카 제거, 풍부한 생태계',
+    },
+    {
+      name: 'Cilium',
+      status: '✅ GA', statusColor: '#4caf50',
+      dataPlane: 'eBPF + Envoy (L7)',
+      sidecar: '❌ 불필요 (eBPF)',
+      gamma: '✅ HTTPRoute → Service',
+      features: {
+        mTLS: '✅ WireGuard/IPsec',
+        l7Routing: '✅ HTTPRoute',
+        trafficSplit: '✅ 가중치 기반',
+        retryTimeout: '✅ CiliumNetworkPolicy',
+        faultInjection: '⚠️ 제한적',
+        observability: 'Hubble (Service Map)',
+      },
+      overhead: '매우 낮음 (커널 레벨)',
+      strength: 'eBPF 최고 성능, L3-L7 통합 정책, Hubble 실시간 관측성',
+    },
+    {
+      name: 'Linkerd',
+      status: '✅ Beta', statusColor: '#ff9800',
+      dataPlane: 'linkerd2-proxy (Rust)',
+      sidecar: '✅ 필요 (경량)',
+      gamma: '✅ HTTPRoute 기반',
+      features: {
+        mTLS: '✅ 자동 (제로 설정)',
+        l7Routing: '✅ HTTPRoute',
+        trafficSplit: '✅ 가중치 기반',
+        retryTimeout: '✅ 네이티브',
+        faultInjection: '⚠️ 제한적',
+        observability: 'Viz 대시보드',
+      },
+      overhead: '낮음 (Rust, ~20MB/proxy)',
+      strength: '경량 Rust 프록시, 자동 mTLS, 최소 설정, 빠른 도입',
+    },
+    {
+      name: 'kGateway (Solo.io)',
+      status: '✅ GA', statusColor: '#4caf50',
+      dataPlane: 'Envoy',
+      sidecar: '❌ 불필요',
+      gamma: '✅ HTTPRoute/GRPCRoute',
+      features: {
+        mTLS: '✅ Envoy 기반',
+        l7Routing: '✅ HTTPRoute, GRPCRoute',
+        trafficSplit: '✅ 가중치 기반',
+        retryTimeout: '✅ 네이티브',
+        faultInjection: '✅ 네이티브',
+        observability: 'Envoy 메트릭',
+      },
+      overhead: '중간',
+      strength: '통합 게이트웨이 (API+메시+AI+MCP), AI/ML 라우팅 네이티브',
+    },
   ],
   en: [
-    { impl: 'Istio', support: '✅ GA', supportColor: '#4caf50', version: 'v1.22+', notes: 'Full GAMMA support with Ambient Mode + waypoint proxy' },
-    { impl: 'Cilium', support: '✅ GA', supportColor: '#4caf50', version: 'v1.16+', notes: 'eBPF-based L7 policies, HTTPRoute attach to Service' },
-    { impl: 'Linkerd', support: '✅ Beta', supportColor: '#ff9800', version: 'v2.15+', notes: 'HTTPRoute-based mesh policies, Gateway API v1.2+' },
-    { impl: 'Envoy Gateway', support: '⚠️ Limited', supportColor: '#fbc02d', version: 'v1.7+', notes: 'Ingress-focused, mesh requires Istio integration' },
-    { impl: 'kGateway', support: '✅ GA', supportColor: '#4caf50', version: 'v2.1+', notes: 'Unified gateway (ingress+mesh+AI), HTTPRoute/GRPCRoute mesh support' },
-    { impl: 'Consul', support: '⚠️ In Development', supportColor: '#fbc02d', version: 'v1.19+', notes: 'Gateway API experimental, existing Consul Config Entries' },
+    {
+      name: 'AWS VPC Lattice + ACK',
+      status: '✅ GA', statusColor: '#4caf50',
+      dataPlane: 'AWS Managed (VPC level)',
+      sidecar: '❌ Not needed',
+      gamma: '✅ Gateway API via ACK',
+      features: {
+        mTLS: '✅ IAM + SigV4',
+        l7Routing: '✅ HTTPRoute',
+        trafficSplit: '✅ Weight-based',
+        retryTimeout: '✅ Native',
+        faultInjection: '✅ AWS FIS integration',
+        observability: 'CloudWatch, X-Ray',
+      },
+      overhead: 'None (managed)',
+      strength: 'AWS native, no sidecar, SLA guaranteed, K8s CRD management via ACK',
+    },
+    {
+      name: 'Istio Ambient Mode',
+      status: '✅ GA', statusColor: '#4caf50',
+      dataPlane: 'ztunnel (L4) + waypoint (L7)',
+      sidecar: '❌ Not needed (Ambient)',
+      gamma: '✅ Full support',
+      features: {
+        mTLS: '✅ Auto (ztunnel)',
+        l7Routing: '✅ HTTPRoute, GRPCRoute',
+        trafficSplit: '✅ Weight-based',
+        retryTimeout: '✅ Native',
+        faultInjection: '✅ Native',
+        observability: 'Kiali, Jaeger, Prometheus',
+      },
+      overhead: 'Low (ztunnel DaemonSet)',
+      strength: 'Most mature GAMMA impl, Ambient removes sidecars, rich ecosystem',
+    },
+    {
+      name: 'Cilium',
+      status: '✅ GA', statusColor: '#4caf50',
+      dataPlane: 'eBPF + Envoy (L7)',
+      sidecar: '❌ Not needed (eBPF)',
+      gamma: '✅ HTTPRoute → Service',
+      features: {
+        mTLS: '✅ WireGuard/IPsec',
+        l7Routing: '✅ HTTPRoute',
+        trafficSplit: '✅ Weight-based',
+        retryTimeout: '✅ CiliumNetworkPolicy',
+        faultInjection: '⚠️ Limited',
+        observability: 'Hubble (Service Map)',
+      },
+      overhead: 'Very low (kernel level)',
+      strength: 'eBPF best performance, L3-L7 unified policy, Hubble real-time observability',
+    },
+    {
+      name: 'Linkerd',
+      status: '✅ Beta', statusColor: '#ff9800',
+      dataPlane: 'linkerd2-proxy (Rust)',
+      sidecar: '✅ Required (lightweight)',
+      gamma: '✅ HTTPRoute-based',
+      features: {
+        mTLS: '✅ Auto (zero-config)',
+        l7Routing: '✅ HTTPRoute',
+        trafficSplit: '✅ Weight-based',
+        retryTimeout: '✅ Native',
+        faultInjection: '⚠️ Limited',
+        observability: 'Viz dashboard',
+      },
+      overhead: 'Low (Rust, ~20MB/proxy)',
+      strength: 'Lightweight Rust proxy, auto mTLS, minimal config, fast adoption',
+    },
+    {
+      name: 'kGateway (Solo.io)',
+      status: '✅ GA', statusColor: '#4caf50',
+      dataPlane: 'Envoy',
+      sidecar: '❌ Not needed',
+      gamma: '✅ HTTPRoute/GRPCRoute',
+      features: {
+        mTLS: '✅ Envoy-based',
+        l7Routing: '✅ HTTPRoute, GRPCRoute',
+        trafficSplit: '✅ Weight-based',
+        retryTimeout: '✅ Native',
+        faultInjection: '✅ Native',
+        observability: 'Envoy metrics',
+      },
+      overhead: 'Medium',
+      strength: 'Unified gateway (API+mesh+AI+MCP), AI/ML routing native',
+    },
   ],
 };
 
+const featureLabels = {
+  ko: { mTLS: 'mTLS', l7Routing: 'L7 라우팅', trafficSplit: '트래픽 분할', retryTimeout: '재시도/타임아웃', faultInjection: '장애 주입', observability: '관측성' },
+  en: { mTLS: 'mTLS', l7Routing: 'L7 Routing', trafficSplit: 'Traffic Split', retryTimeout: 'Retry/Timeout', faultInjection: 'Fault Injection', observability: 'Observability' },
+};
+
+const labels = {
+  ko: { dataPlane: '데이터 플레인', sidecar: '사이드카', overhead: '리소스 오버헤드', strength: '핵심 강점', features: '기능 비교' },
+  en: { dataPlane: 'Data Plane', sidecar: 'Sidecar', overhead: 'Resource Overhead', strength: 'Key Strength', features: 'Feature Comparison' },
+};
+
 export default function GammaSupportTable({ locale = 'ko' }) {
-  const items = data[locale];
+  const items = implementations[locale] || implementations.ko;
+  const fl = featureLabels[locale] || featureLabels.ko;
+  const lb = labels[locale] || labels.ko;
+  const [expanded, setExpanded] = useState(null);
 
   return (
     <div style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', maxWidth: 760, margin: '0 0 1.5rem 0' }}>
-      <div style={{ background: 'linear-gradient(135deg, #4a148c 0%, #6a1b9a 100%)', borderRadius: '12px 12px 0 0', padding: '1rem 1.5rem', color: 'white' }}>
-        <div style={{ fontSize: '0.95rem', fontWeight: 700 }}>🔄 {locale === 'ko' ? 'GAMMA 지원 현황' : 'GAMMA Support Status'}</div>
-        <div style={{ fontSize: '0.72rem', opacity: 0.7, marginTop: 2 }}>{locale === 'ko' ? '주요 구현체별 메시 Gateway API 지원 수준' : 'Gateway API for Mesh support level by implementation'}</div>
+      <div style={{ background: 'linear-gradient(135deg, #4a148c 0%, #6a1b9a 100%)', borderRadius: '12px 12px 0 0', padding: '0.85rem 1.25rem', color: 'white' }}>
+        <div style={{ fontSize: '0.92rem', fontWeight: 700 }}>
+          🔄 {locale === 'ko' ? 'GAMMA 구현체 비교' : 'GAMMA Implementation Comparison'}
+        </div>
+        <div style={{ fontSize: '0.7rem', opacity: 0.7, marginTop: 2 }}>
+          {locale === 'ko'
+            ? '기능, 데이터 플레인, 리소스 오버헤드별 상세 비교 — 클릭하여 상세 보기'
+            : 'Detailed comparison by features, data plane, resource overhead — click to expand'}
+        </div>
       </div>
-      <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderTop: 'none', borderRadius: '0 0 12px 12px', padding: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-        {items.map((item, idx) => (
-          <div key={idx} style={{ border: '1.5px solid #e0e0e0', borderLeft: `4px solid ${item.supportColor}`, borderRadius: 8, padding: '0.7rem 1rem', background: '#fafafa' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.35rem' }}>
-              <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#212121' }}>{item.impl}</span>
-              <span style={{ background: item.supportColor, color: '#fff', borderRadius: 6, padding: '2px 10px', fontSize: '0.72rem', fontWeight: 700 }}>{item.support}</span>
-              <span style={{ marginLeft: 'auto', fontSize: '0.74rem', fontWeight: 600, color: '#616161', background: '#e3f2fd', padding: '2px 8px', borderRadius: 4 }}>{item.version}</span>
+      <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderTop: 'none', borderRadius: '0 0 12px 12px', padding: '0.6rem', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+        {items.map((item, idx) => {
+          const isOpen = expanded === idx;
+          return (
+            <div
+              key={idx}
+              style={{
+                border: `1.5px solid ${isOpen ? item.statusColor : '#e0e0e0'}`,
+                borderLeft: `4px solid ${item.statusColor}`,
+                borderRadius: 8,
+                background: isOpen ? '#fafafa' : '#fff',
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+              }}
+              onClick={() => setExpanded(isOpen ? null : idx)}
+            >
+              {/* Header */}
+              <div style={{ padding: '0.6rem 0.85rem', display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#212121' }}>{item.name}</span>
+                <span style={{ background: item.statusColor, color: '#fff', borderRadius: 6, padding: '1px 8px', fontSize: '0.68rem', fontWeight: 700 }}>{item.status}</span>
+                <span style={{ fontSize: '0.68rem', color: '#757575', background: '#f5f5f5', padding: '1px 6px', borderRadius: 4 }}>{item.dataPlane}</span>
+                <span style={{ fontSize: '0.68rem', color: item.sidecar.startsWith('❌') ? '#4caf50' : '#ff9800', fontWeight: 600 }}>{item.sidecar}</span>
+                <span style={{ marginLeft: 'auto', fontSize: '0.75rem', color: '#9e9e9e', transform: isOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>▼</span>
+              </div>
+
+              {/* Expanded details */}
+              {isOpen && (
+                <div style={{ padding: '0 0.85rem 0.7rem', borderTop: '1px solid #e0e0e0' }}>
+                  {/* Feature grid */}
+                  <div style={{ marginTop: '0.5rem', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.35rem' }}>
+                    {Object.entries(fl).map(([key, label]) => (
+                      <div key={key} style={{ background: '#f5f5f5', borderRadius: 6, padding: '0.35rem 0.5rem' }}>
+                        <div style={{ fontSize: '0.62rem', color: '#9e9e9e', fontWeight: 600, marginBottom: 1 }}>{label}</div>
+                        <div style={{ fontSize: '0.7rem', color: '#424242', fontWeight: 500 }}>{item.features[key]}</div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Meta info */}
+                  <div style={{ marginTop: '0.45rem', display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                    <div style={{ background: '#e8f5e9', borderRadius: 6, padding: '0.3rem 0.6rem', flex: 1, minWidth: 150 }}>
+                      <div style={{ fontSize: '0.6rem', color: '#388e3c', fontWeight: 600 }}>{lb.overhead}</div>
+                      <div style={{ fontSize: '0.7rem', color: '#2e7d32', fontWeight: 500 }}>{item.overhead}</div>
+                    </div>
+                    <div style={{ background: '#e3f2fd', borderRadius: 6, padding: '0.3rem 0.6rem', flex: 2, minWidth: 200 }}>
+                      <div style={{ fontSize: '0.6rem', color: '#1565c0', fontWeight: 600 }}>{lb.strength}</div>
+                      <div style={{ fontSize: '0.7rem', color: '#0d47a1', fontWeight: 500 }}>{item.strength}</div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
-            <div style={{ fontSize: '0.76rem', color: '#6b7280', fontStyle: 'italic' }}>{item.notes}</div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

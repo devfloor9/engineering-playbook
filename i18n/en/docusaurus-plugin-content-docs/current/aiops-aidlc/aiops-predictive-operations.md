@@ -250,21 +250,21 @@ While Karpenter itself reacts to Pending Pods, **combining it with AI prediction
 ```mermaid
 graph TD
     subgraph Prediction["🧠 Prediction Layer"]
-        CW_M["CloudWatch\nMetrics"]
-        ML["ML Model\n(Prophet/ARIMA)"]
-        PRED["Traffic\nPrediction Results"]
+        CW_M["CloudWatch<br/>Metrics"]
+        ML["ML Model<br/>(Prophet/ARIMA)"]
+        PRED["Traffic<br/>Prediction Results"]
     end
 
     subgraph Preemptive["⚡ Proactive Actions"]
-        WARM["Warm Pool\nPod Creation"]
-        PAUSE["Pause\nContainers"]
-        KARP["Karpenter\nNode Provisioning"]
+        WARM["Warm Pool<br/>Pod Creation"]
+        PAUSE["Pause<br/>Containers"]
+        KARP["Karpenter<br/>Node Provisioning"]
     end
 
     subgraph Runtime["🚀 Actual Traffic"]
-        TRAFFIC["Traffic\nInflux"]
-        HPA2["HPA\nImmediate Scale"]
-        READY["Pod\nImmediate Service"]
+        TRAFFIC["Traffic<br/>Influx"]
+        HPA2["HPA<br/>Immediate Scale"]
+        READY["Pod<br/>Immediate Service"]
     end
 
     CW_M --> ML --> PRED
@@ -416,24 +416,24 @@ AI Agents autonomously respond through **context-based judgment**.
 ```mermaid
 graph TD
     subgraph Trigger["🔔 Triggers"]
-        CWA["CloudWatch\nAlarm"]
-        DGA["DevOps Guru\nInsight"]
-        K8SE["K8s\nEvent"]
+        CWA["CloudWatch<br/>Alarm"]
+        DGA["DevOps Guru<br/>Insight"]
+        K8SE["K8s<br/>Event"]
     end
 
     subgraph Agent["🤖 AI Agent"]
-        COLLECT["Data Collection\n(MCP Integration)"]
-        ANALYZE["AI Analysis\n(Root Cause)"]
-        DECIDE["Decision\n(Auto/Manual)"]
-        ACT["Execute\n(Safe Actions)"]
-        REPORT["Report\n(Slack/Jira)"]
+        COLLECT["Data Collection<br/>(MCP Integration)"]
+        ANALYZE["AI Analysis<br/>(Root Cause)"]
+        DECIDE["Decision<br/>(Auto/Manual)"]
+        ACT["Execute<br/>(Safe Actions)"]
+        REPORT["Report<br/>(Slack/Jira)"]
     end
 
     subgraph Actions["⚡ Response Actions"]
-        SCALE["Scaling\nAdjustment"]
-        RESTART["Pod\nRestart"]
-        ROLLBACK["Deployment\nRollback"]
-        ESCALATE["Escalate to\nHumans"]
+        SCALE["Scaling<br/>Adjustment"]
+        RESTART["Pod<br/>Restart"]
+        ROLLBACK["Deployment<br/>Rollback"]
+        ESCALATE["Escalate to<br/>Humans"]
     end
 
     CWA --> COLLECT
@@ -606,22 +606,22 @@ Beyond EventBridge+Lambda, AI context-based autonomous response is possible. By 
 ```mermaid
 graph TD
     subgraph Trigger2["🔔 Issue Detection"]
-        ALERT["CloudWatch\nAlarm"]
-        GURU["DevOps Guru\nInsight"]
+        ALERT["CloudWatch<br/>Alarm"]
+        GURU["DevOps Guru<br/>Insight"]
     end
 
     subgraph Kiro2["🤖 Kiro (Programmatic)"]
-        SPEC["Spec-Based\nDiagnosis Plan"]
-        MCP_Q["MCP Integrated\nData Collection"]
-        ANALYZE2["AI Analysis\nRoot Cause"]
-        FIX["Fix Code\nAuto-Generation"]
-        PR["PR Creation\n+ Validation"]
+        SPEC["Spec-Based<br/>Diagnosis Plan"]
+        MCP_Q["MCP Integrated<br/>Data Collection"]
+        ANALYZE2["AI Analysis<br/>Root Cause"]
+        FIX["Fix Code<br/>Auto-Generation"]
+        PR["PR Creation<br/>+ Validation"]
     end
 
     subgraph Deploy2["🚀 Deployment"]
-        REVIEW["AI Review\n+ Approval"]
-        ARGO2["Argo CD\nAuto-Deploy"]
-        VERIFY["Post-Deploy\nValidation"]
+        REVIEW["AI Review<br/>+ Approval"]
+        ARGO2["Argo CD<br/>Auto-Deploy"]
+        VERIFY["Post-Deploy<br/>Validation"]
     end
 
     ALERT --> SPEC

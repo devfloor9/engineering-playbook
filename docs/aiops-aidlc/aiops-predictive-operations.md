@@ -2,7 +2,7 @@
 title: "예측 스케일링 및 자동 복구 패턴"
 sidebar_label: "4. 예측 스케일링 및 자동 복구"
 description: "ML 기반 예측 오토스케일링, Karpenter+AI 선제 프로비저닝, AI Agent 자율 인시던트 대응, Kiro 프로그래머틱 디버깅 패턴"
-sidebar_position: 7
+sidebar_position: 4
 category: "aiops-aidlc"
 tags: [aiops, predictive-scaling, auto-remediation, karpenter, self-healing, eks, kiro, mcp, ai-agent, chaos-engineering]
 last_update:
@@ -651,21 +651,21 @@ Karpenter 자체는 Pending Pod에 반응하지만, **AI 예측과 결합**하�
 ```mermaid
 graph TD
     subgraph Prediction["🧠 예측 레이어"]
-        CW_M["CloudWatch\nMetrics"]
-        ML["ML 모델\n(Prophet/ARIMA)"]
-        PRED["트래픽\n예측 결과"]
+        CW_M["CloudWatch<br/>Metrics"]
+        ML["ML 모델<br/>(Prophet/ARIMA)"]
+        PRED["트래픽<br/>예측 결과"]
     end
 
     subgraph Preemptive["⚡ 선제 조치"]
-        WARM["Warm Pool\nPod 생성"]
-        PAUSE["Pause\nContainers"]
-        KARP["Karpenter\n노드 프로비저닝"]
+        WARM["Warm Pool<br/>Pod 생성"]
+        PAUSE["Pause<br/>Containers"]
+        KARP["Karpenter<br/>노드 프로비저닝"]
     end
 
     subgraph Runtime["🚀 실제 트래픽"]
-        TRAFFIC["트래픽\n유입"]
-        HPA2["HPA\n즉시 스케일"]
-        READY["Pod\n즉시 서비스"]
+        TRAFFIC["트래픽<br/>유입"]
+        HPA2["HPA<br/>즉시 스케일"]
+        READY["Pod<br/>즉시 서비스"]
     end
 
     CW_M --> ML --> PRED
@@ -1010,24 +1010,24 @@ AI Agent는 **컨텍스트 기반 판단**으로 자율적으로 대응합니다
 ```mermaid
 graph TD
     subgraph Trigger["🔔 트리거"]
-        CWA["CloudWatch\nAlarm"]
-        DGA["DevOps Guru\nInsight"]
-        K8SE["K8s\nEvent"]
+        CWA["CloudWatch<br/>Alarm"]
+        DGA["DevOps Guru<br/>Insight"]
+        K8SE["K8s<br/>Event"]
     end
 
     subgraph Agent["🤖 AI Agent"]
-        COLLECT["데이터 수집\n(MCP 통합)"]
-        ANALYZE["AI 분석\n(근본 원인)"]
-        DECIDE["판단\n(자동/수동)"]
-        ACT["실행\n(안전한 조치)"]
-        REPORT["보고\n(Slack/Jira)"]
+        COLLECT["데이터 수집<br/>(MCP 통합)"]
+        ANALYZE["AI 분석<br/>(근본 원인)"]
+        DECIDE["판단<br/>(자동/수동)"]
+        ACT["실행<br/>(안전한 조치)"]
+        REPORT["보고<br/>(Slack/Jira)"]
     end
 
     subgraph Actions["⚡ 대응 조치"]
-        SCALE["스케일링\n조정"]
-        RESTART["Pod\n재시작"]
-        ROLLBACK["배포\n롤백"]
-        ESCALATE["사람에게\n에스컬레이션"]
+        SCALE["스케일링<br/>조정"]
+        RESTART["Pod<br/>재시작"]
+        ROLLBACK["배포<br/>롤백"]
+        ESCALATE["사람에게<br/>에스컬레이션"]
     end
 
     CWA --> COLLECT
@@ -1169,15 +1169,15 @@ EventBridge+Lambda를 넘어 AI 컨텍스트 기반 자율 대응이 가능합�
 ```mermaid
 graph TD
     subgraph Trigger["🔔 인시던트 감지"]
-        ALARM["CloudWatch\nAlarm"]
-        SIGNAL["Application\nSignals"]
+        ALARM["CloudWatch<br/>Alarm"]
+        SIGNAL["Application<br/>Signals"]
     end
 
     subgraph Investigation["🔍 AI 조사 프로세스"]
-        HYPO["가설 생성\n(AI)"]
-        COLLECT["데이터 수집\n(자동)"]
-        ANALYZE["상관 분석\n(AI)"]
-        ROOT["근본 원인\n추론"]
+        HYPO["가설 생성<br/>(AI)"]
+        COLLECT["데이터 수집<br/>(자동)"]
+        ANALYZE["상관 분석<br/>(AI)"]
+        ROOT["근본 원인<br/>추론"]
     end
 
     subgraph Evidence["📊 증거 수집"]
@@ -1188,8 +1188,8 @@ graph TD
     end
 
     subgraph Output["📝 결과 및 조치"]
-        SUMMARY["조사 결과\n요약"]
-        REMEDIATION["복구 제안\n(Runbook)"]
+        SUMMARY["조사 결과<br/>요약"]
+        REMEDIATION["복구 제안<br/>(Runbook)"]
         REPORT["상세 보고서"]
     end
 
@@ -1678,10 +1678,10 @@ graph TD
     end
 
     subgraph MCP["📡 MCP 서버들"]
-        EKS_MCP["EKS MCP\n(kubectl)"]
-        CW_MCP["CloudWatch MCP\n(메트릭/로그)"]
-        CE_MCP["Cost Explorer MCP\n(비용)"]
-        BEDROCK_MCP["Bedrock MCP\n(AI 분석)"]
+        EKS_MCP["EKS MCP<br/>(kubectl)"]
+        CW_MCP["CloudWatch MCP<br/>(메트릭/로그)"]
+        CE_MCP["Cost Explorer MCP<br/>(비용)"]
+        BEDROCK_MCP["Bedrock MCP<br/>(AI 분석)"]
     end
 
     subgraph AWS["☁️ AWS 서비스"]
@@ -1915,21 +1915,21 @@ Amazon Q Developer는 **자연어 인터페이스**를 통해 EKS 운영의 진�
 ```mermaid
 graph TD
     subgraph Trigger["🔔 이벤트 감지"]
-        EVB["EventBridge\n(Alarm/Insight)"]
-        CWA["CloudWatch\nAlarm"]
+        EVB["EventBridge<br/>(Alarm/Insight)"]
+        CWA["CloudWatch<br/>Alarm"]
     end
 
     subgraph AgentCore["🤖 Bedrock AgentCore"]
-        AGENT["Agent\n(claude-sonnet)"]
-        KB["Knowledge Base\n(Runbook)"]
-        AG["Action Groups\n(Lambda)"]
-        GR["Guardrails\n(안전 범위)"]
+        AGENT["Agent<br/>(claude-sonnet)"]
+        KB["Knowledge Base<br/>(Runbook)"]
+        AG["Action Groups<br/>(Lambda)"]
+        GR["Guardrails<br/>(안전 범위)"]
     end
 
     subgraph Actions["⚡ 복구 조치"]
-        EKS_A["EKS API\n(kubectl)"]
-        AWS_A["AWS API\n(RDS/SQS)"]
-        NOTIFY["Slack/JIRA\n(알림)"]
+        EKS_A["EKS API<br/>(kubectl)"]
+        AWS_A["AWS API<br/>(RDS/SQS)"]
+        NOTIFY["Slack/JIRA<br/>(알림)"]
     end
 
     EVB --> AGENT
@@ -2679,22 +2679,22 @@ Node Readiness Controller는 **반응형 자동화**를 제공하지만, AI와 �
 ```mermaid
 graph TD
     subgraph Trigger2["🔔 이슈 감지"]
-        ALERT["CloudWatch\nAlarm"]
-        GURU["DevOps Guru\nInsight"]
+        ALERT["CloudWatch<br/>Alarm"]
+        GURU["DevOps Guru<br/>Insight"]
     end
 
     subgraph Kiro2["🤖 Kiro (프로그래머틱)"]
-        SPEC["Spec 기반\n진단 계획"]
-        MCP_Q["MCP 통합\n데이터 수집"]
-        ANALYZE2["AI 분석\n근본 원인"]
-        FIX["수정 코드\n자동 생성"]
-        PR["PR 생성\n+ 검증"]
+        SPEC["Spec 기반<br/>진단 계획"]
+        MCP_Q["MCP 통합<br/>데이터 수집"]
+        ANALYZE2["AI 분석<br/>근본 원인"]
+        FIX["수정 코드<br/>자동 생성"]
+        PR["PR 생성<br/>+ 검증"]
     end
 
     subgraph Deploy2["🚀 배포"]
-        REVIEW["AI 리뷰\n+ 승인"]
-        ARGO2["Argo CD\n자동 배포"]
-        VERIFY["배포 후\n검증"]
+        REVIEW["AI 리뷰<br/>+ 승인"]
+        ARGO2["Argo CD<br/>자동 배포"]
+        VERIFY["배포 후<br/>검증"]
     end
 
     ALERT --> SPEC
@@ -4529,18 +4529,18 @@ Karpenter의 Spot 인스턴스 사용과 트래픽 예측을 결합하여, **비
 ```mermaid
 graph TD
     subgraph Prediction["📊 예측 계층"]
-        TRAFFIC["트래픽 예측\n(Prophet)"]
-        SPOT["Spot 중단 예측\n(AWS API)"]
+        TRAFFIC["트래픽 예측<br/>(Prophet)"]
+        SPOT["Spot 중단 예측<br/>(AWS API)"]
     end
 
     subgraph Decision["🤖 AI 의사결정"]
-        ANALYZE["비용-안정성\n트레이드오프 분석"]
-        DECIDE["Spot/OnDemand\n비율 결정"]
+        ANALYZE["비용-안정성<br/>트레이드오프 분석"]
+        DECIDE["Spot/OnDemand<br/>비율 결정"]
     end
 
     subgraph Action["⚡ 자동 조치"]
-        KARP["Karpenter\nNodePool 조정"]
-        HPA_ADJ["HPA 설정\n최적화"]
+        KARP["Karpenter<br/>NodePool 조정"]
+        HPA_ADJ["HPA 설정<br/>최적화"]
     end
 
     TRAFFIC --> ANALYZE

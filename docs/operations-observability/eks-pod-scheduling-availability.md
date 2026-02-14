@@ -4945,7 +4945,6 @@ Node Readiness Controller는 Kubernetes 1.32에서 Alpha 기능입니다:
 **참고 자료:**
 
 - [Kubernetes Blog: Introducing Node Readiness Controller](https://kubernetes.io/blog/2026/02/03/introducing-node-readiness-controller/)
-- [KEP-4811: Node Readiness](https://github.com/kubernetes/enhancements/tree/master/keps/sig-node/4811-node-readiness)
 - [Node Readiness Controller GitHub](https://github.com/kubernetes-sigs/node-readiness-controller)
 
 ---

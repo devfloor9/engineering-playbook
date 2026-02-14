@@ -7,7 +7,7 @@ category: "performance-networking"
 last_update:
   date: 2026-02-09
   author: devfloor9
-sidebar_position: 4
+sidebar_position: 3
 ---
 
 # EKS East-West 트래픽 최적화 가이드

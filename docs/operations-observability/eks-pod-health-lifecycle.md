@@ -3784,7 +3784,6 @@ Node Readiness Controller가 Taint를 적용하면 해당 노드의 Pod이 새�
 - **공식 문서**: [Node Readiness Controller](https://node-readiness-controller.sigs.k8s.io/)
 - **Kubernetes Blog**: [Introducing Node Readiness Controller](https://kubernetes.io/blog/2026/02/03/introducing-node-readiness-controller/)
 - **GitHub Repository**: [kubernetes-sigs/node-readiness-controller](https://github.com/kubernetes-sigs/node-readiness-controller)
-- **KEP (Kubernetes Enhancement Proposal)**: [KEP-4033: Node Readiness Controller](https://github.com/kubernetes/enhancements/tree/master/keps/sig-node/4033-node-readiness-controller)
 
 ---
 

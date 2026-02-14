@@ -6,7 +6,7 @@ tags: [eks, kagent, kubernetes, agent, crd, operator]
 category: "genai-aiml"
 date: 2025-02-05
 authors: [devfloor9]
-sidebar_position: 9
+sidebar_position: 11
 ---
 
 # Kagent - Kubernetes AI Agent Management
@@ -88,8 +88,28 @@ graph TB
     style AgentRuntime fill:#fce4ec
 ```
 
+### Alternative Solutions Comparison
+
+import { SolutionsComparisonTable } from '@site/src/components/KagentTables';
+
+<SolutionsComparisonTable />
+
+{/* Original table preserved for reference
+| Solution | Features | Suitable Use Cases |
+| --- | --- | --- |
+| **Kagent (Reference)** | AI agent-specific CRD, workflow orchestration | Multi-agent systems, complex workflows |
+| **KubeAI** | Lightweight LLM serving, OpenAI-compatible API | Simple model serving, rapid prototyping |
+| **Seldon Core** | MLOps platform, A/B testing, canary deployments | Enterprise ML ops, complex deployment strategies |
+| **KServe** | Serverless inference, auto-scaling | Event-driven inference, cost optimization |
+*/}
+
 ### Component Description
 
+import { ComponentsTable } from '@site/src/components/KagentTables';
+
+<ComponentsTable />
+
+{/* Original table preserved for reference
 | Component | Role | Description |
 | -------- | ---- | ---- |
 | **Kagent Controller** | Reconciliation loop | Detect CRD changes and reconcile resources to desired state |
@@ -98,6 +118,7 @@ graph TB
 | **Agent CRD** | Agent definition | Spec, model, and tool configuration for AI agents |
 | **Tool CRD** | Tool definition | Define tools (API, search, etc.) for agent use |
 | **Workflow CRD** | Workflow definition | Define multi-agent collaboration workflows |
+*/}
 
 ### Component Interaction
 
@@ -1326,12 +1347,18 @@ data:
 
 #### Common Issues Resolution
 
+import { TroubleshootingTable } from '@site/src/components/KagentTables';
+
+<TroubleshootingTable />
+
+{/* Original table preserved for reference
 | Issue | Cause | Solution |
 | ---- | ---- | --------- |
 | Pod CrashLoopBackOff | API key error, insufficient memory | Verify secrets, increase resources |
 | High latency | Model response delay, network issues | Adjust timeout, change model |
 | Tool execution failure | Endpoint error, auth failure | Verify tool config, refresh secret |
 | Scaling not working | Metric collection failed, HPA config error | Check Prometheus connection, validate HPA |
+*/}
 
 #### Debugging Commands
 

@@ -6,7 +6,7 @@ tags: [eks, hybrid-nodes, dgx-h200, sriov, infiniband, networking, mlnx-ofed]
 category: "hybrid-multicloud"
 date: 2025-09-01
 authors: [devfloor9]
-sidebar_position: 3
+sidebar_position: 1
 ---
 
 # DGX H200 SR-IOV Networking Configuration

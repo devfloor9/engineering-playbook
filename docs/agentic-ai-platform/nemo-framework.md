@@ -2,17 +2,19 @@
 title: "NeMo 프레임워크"
 sidebar_label: "8. NeMo 프레임워크"
 description: "NVIDIA NeMo를 활용한 LLM 파인튜닝 및 최적화 파이프라인 구축"
-sidebar_position: 9
+sidebar_position: 8
 category: "genai-aiml"
 last_update:
-  date: 2025-02-05
+  date: 2026-02-13
   author: devfloor9
 tags: [nemo, nvidia, fine-tuning, llm, training, tensorrt, genai]
 ---
 
+import { NemoComponents, GPURequirements, CheckpointSharding, MonitoringMetrics, NCCLImportance } from '@site/src/components/NemoTables';
+
 # NeMo 프레임워크
 
-> 📅 **작성일**: 2025-02-05 | ⏱️ **읽는 시간**: 약 26분
+> 📅 **작성일**: 2026-02-13 | ⏱️ **읽는 시간**: 약 26분
 
 NVIDIA NeMo는 대규모 언어 모델(LLM)의 학습, 파인튜닝, 최적화를 위한 엔드투엔드 프레임워크입니다. Kubernetes 환경에서 분산 학습과 효율적인 모델 배포를 지원합니다.
 
@@ -51,12 +53,7 @@ graph LR
 
 ### NeMo 프레임워크 구성요소
 
-| 컴포넌트 | 역할 | 주요 기능 |
-| --- | --- | --- |
-| NeMo Core | 기본 프레임워크 | 모델 정의, 학습 루프 |
-| NeMo Curator | 데이터 처리 | 데이터 필터링, 중복 제거 |
-| NeMo Aligner | 정렬 학습 | RLHF, DPO, SFT |
-| NeMo Guardrails | 안전성 | 입출력 필터링 |
+<NemoComponents />
 
 ## EKS 배포 아키텍처
 
@@ -116,12 +113,7 @@ graph TB
 
 ### GPU 노드 요구사항
 
-| 모델 크기 | 최소 GPU | 권장 인스턴스 | 메모리 요구 |
-| --- | --- | --- | --- |
-| 7B | 1x A100 80GB | p4d.24xlarge | 80GB+ |
-| 13B | 2x A100 80GB | p4d.24xlarge | 160GB+ |
-| 70B | 8x A100 80GB | p4d.24xlarge | 640GB+ |
-| 405B | 32x H100 | p5.48xlarge x4 | 2.5TB+ |
+<GPURequirements />
 
 ## NeMo 컨테이너 배포
 
@@ -148,7 +140,12 @@ helm install nemo-operator nvidia/nemo-operator \
 
 ### NeMo 학습 Job 정의
 
+:::info 참고
+아래 `NeMoTraining` CRD는 NeMo의 선언적 학습 정의 개념을 보여주는 예시입니다. 실제 배포 시에는 Kubeflow Training Operator의 PyTorchJob을 사용하여 분산 학습을 구성합니다.
+:::
+
 ```yaml
+# NeMo 학습 개념 예시 (실제로는 PyTorchJob 사용)
 apiVersion: nemo.nvidia.com/v1alpha1
 kind: NeMoTraining
 metadata:
@@ -157,7 +154,7 @@ metadata:
 spec:
   # 모델 설정
   model:
-    name: "meta-llama/Llama-2-7b-hf"
+    name: "meta-llama/Llama-3.1-8B-Instruct"
     source: "huggingface"
   
   # 학습 설정
@@ -229,6 +226,12 @@ spec:
               value: "INFO"
             - name: NCCL_IB_DISABLE
               value: "0"
+            - name: FI_PROVIDER
+              value: "efa"
+            - name: FI_EFA_USE_DEVICE_RDMA
+              value: "1"
+            - name: NCCL_PROTO
+              value: "simple"
             resources:
               limits:
                 nvidia.com/gpu: 8
@@ -278,7 +281,7 @@ trainer:
   
 model:
   # 기본 모델
-  restore_from_path: /models/llama-2-7b.nemo
+  restore_from_path: /models/llama-3.1-8b.nemo
   
   # LoRA 설정 (효율적인 파인튜닝)
   peft:
@@ -336,7 +339,7 @@ lora_config = LoRA(
 
 # 파인튜닝 실행
 model = finetune(
-    model_path="/models/llama-2-7b.nemo",
+    model_path="/models/llama-3.1-8b.nemo",
     data_path="/data/train.jsonl",
     peft_config=lora_config,
     trainer_config={
@@ -349,6 +352,42 @@ model = finetune(
 ```
 
 ## 체크포인트 관리
+
+### 대규모 모델 체크포인트 샤딩 (>70B)
+
+70B 이상의 대규모 모델은 단일 체크포인트 파일이 수백 GB에 달할 수 있습니다. NeMo는 체크포인트 샤딩을 통해 이를 효율적으로 관리합니다:
+
+```yaml
+# 대규모 모델 체크포인트 샤딩 설정
+trainer:
+  checkpoint:
+    # 샤딩 활성화
+    save_sharded_checkpoint: true
+    
+    # 샤드 크기 (GB 단위)
+    shard_size_gb: 10
+    
+    # 병렬 저장 워커 수
+    num_workers: 8
+    
+    # 체크포인트 압축
+    compression: "gzip"
+```
+
+**샤딩 전략:**
+
+<CheckpointSharding />
+
+```python
+# 샤딩된 체크포인트 로드
+from nemo.collections.nlp.models import MegatronGPTModel
+
+# 자동으로 모든 샤드를 병렬 로드
+model = MegatronGPTModel.restore_from(
+    restore_path="s3://checkpoints/llama-405b/sharded",
+    trainer=trainer,
+)
+```
 
 ### S3 체크포인트 저장
 
@@ -404,27 +443,23 @@ graph LR
 
 ```python
 # convert_to_trt.py
-from tensorrt_llm import LLM, SamplingParams
-from tensorrt_llm.builder import BuildConfig
+# TensorRT-LLM 0.8+ API 사용
+from tensorrt_llm import LLM
 
-# 빌드 설정
-build_config = BuildConfig(
+# 모델 변환 (from_pretrained API 사용)
+llm = LLM(
+    model="/models/llama-finetuned-hf",
+    # 빌드 설정
     max_input_len=4096,
     max_output_len=2048,
     max_batch_size=64,
     
     # 양자화 설정
-    quantization="fp8",  # FP8 양자화로 메모리 절약
+    dtype="fp8",  # FP8 양자화로 메모리 절약
     
     # 최적화 설정
-    use_paged_kv_cache=True,
-    use_inflight_batching=True,
-)
-
-# 모델 변환
-llm = LLM(
-    model="/models/llama-finetuned-hf",
-    build_config=build_config,
+    enable_paged_kv_cache=True,
+    enable_chunked_context=True,
 )
 
 # 엔진 저장
@@ -607,13 +642,7 @@ spec:
 
 ### 주요 모니터링 메트릭
 
-| 메트릭 | 설명 | 임계값 |
-| --- | --- | --- |
-| training_loss | 학습 손실 | 지속적 감소 |
-| validation_loss | 검증 손실 | 학습 손실과 유사 |
-| gpu_utilization | GPU 사용률 | > 80% |
-| gpu_memory_used | GPU 메모리 사용량 | < 95% |
-| throughput_tokens_per_sec | 처리량 | 모니터링 |
+<MonitoringMetrics />
 
 ---
 
@@ -650,12 +679,7 @@ graph TB
 
 **분산 학습에서 NCCL이 중요한 이유:**
 
-| 항목 | 영향도 | NCCL의 최적화 |
-| --- | --- | --- |
-| **모델 병렬화 (Model Parallelism)** | 높음 | 각 GPU 간 활성화/그래디언트 전송 최적화 |
-| **데이터 병렬화 (Data Parallelism)** | 매우 높음 | AllReduce로 그래디언트 동기화 빠름 |
-| **파이프라인 병렬화 (Pipeline Parallelism)** | 높음 | 스테이지 간 활성화 전송 최적화 |
-| **혼합 정밀도 학습 (Mixed Precision)** | 중간 | 압축된 그래디언트 통신 최적화 |
+<NCCLImportance />
 
 ### 핵심 집합 연산 (Collective Operations)
 

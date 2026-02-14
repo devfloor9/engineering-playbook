@@ -6,8 +6,24 @@ tags: [eks, llm-d, vllm, inference-gateway, gpu, auto-mode, qwen, kv-cache]
 category: "genai-aiml"
 date: 2026-02-10
 authors: [devfloor9]
-sidebar_position: 8
+sidebar_position: 7
 ---
+
+import {
+  WellLitPathTable,
+  VllmComparisonTable,
+  Qwen3SpecsTable,
+  PrerequisitesTable,
+  P5InstanceTable,
+  P5eInstanceTable,
+  GatewayCRDTable,
+  DefaultDeploymentTable,
+  KVCacheEffectsTable,
+  MonitoringMetricsTable,
+  ModelLoadingTable,
+  CostOptimizationTable,
+  TroubleshootingTable
+} from '@site/src/components/LlmdTables';
 
 # llm-d on EKS Auto Mode Inference Deployment Guide
 
@@ -35,11 +51,7 @@ This document covers the entire process of deploying llm-d on an Amazon EKS Auto
 
 llm-d provides three validated deployment paths.
 
-| Well-Lit Path | Description | Suitable Workloads |
-| --- | --- | --- |
-| **Intelligent Inference Scheduling** | Intelligent request distribution with KV Cache-aware routing | General-purpose LLM serving (this guide) |
-| **Prefill/Decode Disaggregation** | Separates Prefill and Decode stages for processing | Large batch processing, long context handling |
-| **Wide Expert-Parallelism** | Distributes MoE model Experts across multiple nodes | MoE models (Mixtral, DeepSeek, etc.) |
+<WellLitPathTable />
 
 ---
 
@@ -92,25 +104,11 @@ flowchart TB
 
 ### llm-d vs Traditional vLLM Deployment Comparison
 
-| Feature | Traditional vLLM Deployment | llm-d Deployment |
-| --- | --- | --- |
-| Routing Method | Round-Robin / Random | KV Cache-aware Intelligent Routing |
-| Gateway Integration | Separate Ingress/Service configuration | Native Gateway API integration |
-| Scaling Management | Manual HPA configuration | Automatic management via InferencePool |
-| KV Cache Utilization | Independent management per Pod | Cross-pod prefix reuse for reduced TTFT |
-| Installation Method | Combining individual Helm charts | Unified helmfile deployment (single command) |
-| Model Definition | Writing Deployment YAML directly | Declarative management via InferenceModel CRD |
+<VllmComparisonTable />
 
 ### Why Qwen3-32B Was Selected
 
-| Item | Details |
-| --- | --- |
-| Model Name | Qwen/Qwen3-32B |
-| Parameters | 32B (Dense) |
-| License | Apache 2.0 |
-| Precision | BF16 (~65GB VRAM) |
-| Context | Up to 32,768 tokens |
-| Features | Official default model for llm-d, excellent multilingual support, most popular among open-source LLMs |
+<Qwen3SpecsTable />
 
 :::info Why Qwen3-32B
 Qwen3-32B is the official default model for llm-d and is freely available for commercial use under the Apache 2.0 license. It requires approximately 65GB VRAM at BF16 precision, allowing stable serving on H100 80GB GPUs with TP=2 (2× GPU).
@@ -120,16 +118,7 @@ Qwen3-32B is the official default model for llm-d and is freely available for co
 
 ## Prerequisites
 
-| Item | Requirement | Notes |
-| --- | --- | --- |
-| AWS Account | p5.48xlarge quota approved | Service Quotas → Running On-Demand P instances ≥ 192 |
-| eksctl | >= 0.200.0 | Version supporting EKS Auto Mode |
-| kubectl | >= 1.31 | Compatible with EKS 1.31 |
-| Helm | >= 3.0 | For Helm chart deployment |
-| helmfile | Latest version | llm-d unified deployment tool |
-| yq | >= 4.0 | YAML processing tool |
-| HuggingFace Token | Access to Qwen3-32B | https://huggingface.co/settings/tokens |
-| AWS CLI | v2 latest | Credentials configured |
+<PrerequisitesTable />
 
 ### Client Tool Installation
 
@@ -245,15 +234,7 @@ EKS Auto Mode automatically installs and manages NVIDIA GPU drivers. There is no
 
 ### p5.48xlarge Instance Specifications
 
-| Item | Specification |
-| --- | --- |
-| GPU | 8× NVIDIA H100 80GB HBM3 |
-| GPU Memory | 640GB total |
-| vCPU | 192 |
-| System Memory | 2,048 GiB |
-| GPU Interconnect | NVSwitch (900 GB/s) |
-| Network | EFA 3,200 Gbps |
-| Storage | 8× 3.84TB NVMe SSD |
+<P5InstanceTable />
 
 ---
 
@@ -307,12 +288,7 @@ kubectl apply -f https://github.com/kubernetes-sigs/gateway-api-inference-extens
 
 Installed CRDs:
 
-| CRD | Role |
-| --- | --- |
-| `Gateway` | Defines Envoy-based proxy instances |
-| `HTTPRoute` | Defines routing rules |
-| `InferencePool` | Defines vLLM Pod groups (serving endpoint pools) |
-| `InferenceModel` | Maps model names to InferencePools |
+<GatewayCRDTable />
 
 ```bash
 # Verify CRD installation
@@ -335,13 +311,7 @@ helmfile apply -n ${NAMESPACE}
 
 Default deployment configuration:
 
-| Setting | Default Value | Description |
-| --- | --- | --- |
-| Model | Qwen/Qwen3-32B | Apache 2.0, BF16 ~65GB VRAM |
-| Tensor Parallelism | TP=2 | 2 GPUs per replica |
-| Replicas | 8 | 16 GPUs total (2× p5.48xlarge) |
-| Max Model Length | 32,768 | Maximum context length |
-| GPU Memory Utilization | 0.90 | KV Cache allocation ratio |
+<DefaultDeploymentTable />
 
 :::tip Resource Adjustment
 The default configuration uses 8 replicas × 2 GPUs = 16 GPUs. For testing purposes, you can reduce the `replicaCount` in `helmfile.yaml` to save costs. For example, setting 4 replicas allows operation on a single p5.48xlarge (8 GPUs).
@@ -520,11 +490,7 @@ sequenceDiagram
 
 ### Effects of KV Cache-aware Routing
 
-| Metric | Cache Miss (Traditional) | Cache Hit (llm-d) | Improvement |
-| --- | --- | --- | --- |
-| TTFT (Time To First Token) | High (full prefill required) | Low (prefill skipped) | 50-80% reduction |
-| GPU Computation | Full prompt processing | Only new tokens processed | Computation savings |
-| Throughput | Baseline | Improved | 1.5-3x improvement |
+<KVCacheEffectsTable />
 
 :::tip Maximizing Cache Hit Rate
 KV Cache-aware routing is most effective in applications that use the same system prompt. For example, in RAG pipelines that repeatedly reference the same context documents, reusing the KV Cache for that prefix can significantly reduce TTFT.
@@ -547,14 +513,7 @@ curl -s http://localhost:9090/metrics | grep -E "vllm_"
 
 ### Key Monitoring Metrics
 
-| Metric | Description | Normal Range |
-| --- | --- | --- |
-| `vllm_num_requests_running` | Number of currently processing requests | Varies by workload |
-| `vllm_num_requests_waiting` | Number of waiting requests | < 50 |
-| `vllm_gpu_cache_usage_perc` | GPU KV Cache utilization | 60-90% |
-| `vllm_avg_generation_throughput_toks_per_s` | Tokens generated per second | Varies by model/GPU |
-| `vllm_avg_prompt_throughput_toks_per_s` | Prompt tokens processed per second | Varies by model/GPU |
-| `vllm_e2e_request_latency_seconds` | End-to-end request latency | P95 < 30s |
+<MonitoringMetricsTable />
 
 ### 8.2 Checking GPU Utilization
 
@@ -612,11 +571,7 @@ env:
     value: "s3://your-bucket/model-cache/qwen3-32b/"
 ```
 
-| Loading Method | Estimated Time | Notes |
-| --- | --- | --- |
-| HuggingFace Hub (initial) | 10-20 min | Varies by network speed |
-| S3 Cache | 3-5 min | Loading from same-region S3 |
-| Node Local Cache | 1-2 min | When redeploying on the same node |
+<ModelLoadingTable />
 
 ### 9.2 HPA (Horizontal Pod Autoscaler) Configuration
 
@@ -664,13 +619,7 @@ When HPA increases vLLM replicas and additional GPUs are needed, Karpenter autom
 
 ### 9.3 Cost Optimization
 
-| Strategy | Description | Estimated Savings |
-| --- | --- | --- |
-| Savings Plans | 1-year/3-year Compute Savings Plans commitment | 30-60% |
-| Off-Peak Scale Down | Reduce replicas during nights/weekends (using CronJob) | 40-60% |
-| Model Quantization | Reduce GPU count with INT8/INT4 | 50% GPU cost |
-| Spot Instances | Apply to fault-tolerant workloads (risk of interruption) | 60-90% |
-| TP Optimization | Use minimum TP value appropriate for model size | Avoid unnecessary GPUs |
+<CostOptimizationTable />
 
 :::warning Cost Warning
 p5.48xlarge costs approximately $98.32 per hour (us-west-2 On-Demand pricing). Running 2 instances costs approximately **$141,580 per month**. Be sure to clean up resources after testing is complete.
@@ -693,16 +642,7 @@ eksctl delete cluster --name llm-d-cluster --region us-west-2
 
 ### Common Issues and Solutions
 
-| Symptom | Cause | Solution |
-| --- | --- | --- |
-| GPU node not provisioning | Insufficient Service Quotas | Check and request increase for P instance quota in AWS Console |
-| Pod stuck in Pending state | NodePool configuration error or insufficient GPUs | Check events with `kubectl describe pod`, verify instance-family in NodePool |
-| CUDA OOM (Out of Memory) | Insufficient GPU memory | Increase TP value or lower `gpu-memory-utilization` (0.85) |
-| Model loading timeout | Slow HuggingFace download | Enable S3 model caching, increase `initialDelaySeconds` |
-| Gateway routing failure | CRDs not installed | Verify Gateway API CRD and Inference Extension CRD installation |
-| HuggingFace token error | Secret not created or insufficient permissions | Check `kubectl get secret -n llm-d`, verify HF token permissions |
-| NCCL communication error | Inter-GPU communication issue | Add `NCCL_DEBUG=INFO` environment variable, verify EFA support |
-| InferencePool not Ready | vLLM Pods not ready | Check Pod status, wait for model loading to complete |
+<TroubleshootingTable />
 
 ### Debugging Command Reference
 

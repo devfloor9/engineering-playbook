@@ -5,14 +5,16 @@ description: "Mixture of Experts 모델의 EKS 기반 배포 및 최적화 전�
 tags: [eks, moe, vllm, tgi, model-serving, gpu, mixtral]
 category: "genai-aiml"
 last_update:
-  date: 2025-02-09
+  date: 2026-02-13
   author: devfloor9
-sidebar_position: 7
+sidebar_position: 6
 ---
+
+import { RoutingMechanisms, MoeVsDense, GpuMemoryRequirements, ParallelizationStrategies, TensorParallelismConfig, VllmVsTgi, KvCacheConfig, BatchOptimization, MonitoringMetrics, GpuVsTrainium2 } from '@site/src/components/MoeModelTables';
 
 # MoE 모델 서빙 가이드
 
-> **📌 현재 버전**: vLLM v0.15.1 (2025-02-04), TGI 2.3.0. 본 문서의 배포 예시는 최신 버전 기준입니다.
+> **📌 현재 버전**: vLLM v0.6.3 / v0.7.x (2025-02 안정 버전), TGI 3.3.5 (유지보수 모드). 본 문서의 배포 예시는 최신 안정 버전 기준입니다.
 
 > 📅 **작성일**: 2025-02-09 | ⏱️ **읽는 시간**: 약 12분
 
@@ -67,12 +69,7 @@ flowchart TB
 
 MoE 모델의 핵심은 입력 토큰에 따라 적절한 Expert를 선택하는 라우팅 메커니즘입니다.
 
-| 라우팅 방식 | 설명 | 대표 모델 |
-| --- | --- | --- |
-| Top-K Routing | 상위 K개의 Expert만 활성화 | Mixtral (K=2) |
-| Expert Choice | Expert가 처리할 토큰을 선택 | Switch Transformer |
-| Soft MoE | 모든 Expert에 가중치 분배 | Soft MoE |
-| Hash Routing | 해시 기반 결정적 라우팅 | Hash Layers |
+<RoutingMechanisms />
 
 :::info 라우팅 동작 원리
 
@@ -85,13 +82,7 @@ MoE 모델의 핵심은 입력 토큰에 따라 적절한 Expert를 선택하는
 
 ### MoE vs Dense 모델 비교
 
-| 특성 | Dense 모델 | MoE 모델 |
-| --- | --- | --- |
-| 파라미터 활성화 | 100% (전체) | 10-25% (일부 Expert) |
-| 추론 연산량 | 높음 | 상대적으로 낮음 |
-| 메모리 요구량 | 파라미터 수에 비례 | 전체 파라미터 로드 필요 |
-| 학습 효율성 | 표준 | 더 많은 데이터로 효율적 학습 |
-| 확장성 | 선형 증가 | Expert 추가로 효율적 확장 |
+<MoeVsDense />
 
 ```mermaid
 flowchart LR
@@ -100,7 +91,7 @@ flowchart LR
         D_ALL --> D_OUT[Output]
     end
     
-    subgraph "MoE Model (8x7B = 47B Active)"
+    subgraph "MoE Model (47B Total, ~13B Active)"
         M_IN[Input] --> M_GATE[Router]
         M_GATE --> M_E1[Expert 1<br/>7B Active]
         M_GATE --> M_E2[Expert 2<br/>7B Active]
@@ -125,15 +116,11 @@ flowchart LR
 
 MoE 모델은 활성화되는 파라미터는 적지만, 전체 Expert를 메모리에 로드해야 합니다.
 
-| 모델 | 총 파라미터 | 활성 파라미터 | FP16 메모리 | INT8 메모리 | 권장 GPU |
-| --- | --- | --- | --- | --- | --- |
-| Mixtral 8x7B | 46.7B | 12.9B | ~94GB | ~47GB | 2x A100 80GB |
-| Mixtral 8x22B | 141B | 39B | ~282GB | ~141GB | 4x H100 80GB |
-| DeepSeek-V3 | 671B | 37B | ~1.3TB | ~671GB | 8x H100 80GB |
-| DeepSeek-MoE 16B | 16.4B | 2.8B | ~33GB | ~17GB | 1x A100 40GB |
-| Qwen2.5-MoE-A14B | ~50B | 14B | ~100GB | ~50GB | 2x A100 80GB |
-| Qwen1.5-MoE-A2.7B | 14.3B | 2.7B | ~29GB | ~15GB | 1x A100 40GB |
-| DBRX | 132B | 36B | ~264GB | ~132GB | 4x H100 80GB |
+<GpuMemoryRequirements />
+
+:::info DeepSeek-V3 메모리 최적화
+DeepSeek-V3는 Multi-head Latent Attention (MLA) 아키텍처를 사용하여 KV 캐시 메모리를 크게 절감합니다. 전통적인 MHA(Multi-Head Attention) 대비 약 40% 메모리 절감 효과가 있어, 실제 메모리 요구량은 표기된 값보다 낮을 수 있습니다. 정확한 메모리 요구량은 배치 크기와 시퀀스 길이에 따라 달라지므로 프로파일링을 권장합니다.
+:::
 
 :::warning 메모리 계산 시 주의사항
 
@@ -174,11 +161,7 @@ flowchart TB
     end
 ```
 
-| 병렬화 전략 | 설명 | 장점 | 단점 |
-| --- | --- | --- | --- |
-| Tensor Parallelism (TP) | 레이어 내 텐서를 GPU 간 분할 | 낮은 지연시간 | 높은 통신 오버헤드 |
-| Expert Parallelism (EP) | Expert를 GPU 간 분산 | MoE에 최적화 | All-to-All 통신 필요 |
-| Pipeline Parallelism (PP) | 레이어를 GPU 간 순차 분할 | 메모리 효율적 | 파이프라인 버블 발생 |
+<ParallelizationStrategies />
 
 ### Expert 활성화 패턴
 
@@ -216,12 +199,16 @@ flowchart LR
 
 ### vLLM MoE 지원 기능
 
-vLLM은 MoE 모델에 대해 다음과 같은 최적화를 제공합니다:
+vLLM v0.6+ 버전은 MoE 모델에 대해 다음과 같은 최적화를 제공합니다:
 
 - **Expert Parallelism**: 다중 GPU에 Expert 분산
 - **Tensor Parallelism**: 레이어 내 텐서 분할
 - **PagedAttention**: 효율적인 KV Cache 관리
 - **Continuous Batching**: 동적 배치 처리
+- **FP8 KV Cache**: 2배 메모리 절감 (v0.6+)
+- **Improved Prefix Caching**: 400%+ 처리량 향상 (v0.6+)
+- **Multi-LoRA Serving**: 단일 기본 모델에서 여러 LoRA 어댑터 동시 서빙 (v0.6+)
+- **GGUF Quantization**: GGUF 형식 양자화 모델 지원 (v0.6+)
 
 ### Mixtral 8x7B Deployment YAML
 
@@ -253,7 +240,7 @@ spec:
           effect: NoSchedule
       containers:
         - name: vllm
-          image: vllm/vllm-openai:v0.15.1
+          image: vllm/vllm-openai:v0.6.3
           ports:
             - name: http
               containerPort: 8000
@@ -278,6 +265,9 @@ spec:
             - "--enable-chunked-prefill"
             - "--max-num-batched-tokens"
             - "32768"
+            - "--enable-prefix-caching"
+            - "--kv-cache-dtype"
+            - "fp8"
             - "--trust-remote-code"
             - "--dtype"
             - "bfloat16"
@@ -350,7 +340,7 @@ spec:
           effect: NoSchedule
       containers:
         - name: vllm
-          image: vllm/vllm-openai:v0.15.1
+          image: vllm/vllm-openai:v0.6.3
           ports:
             - name: http
               containerPort: 8000
@@ -376,6 +366,9 @@ spec:
             - "--enable-chunked-prefill"
             - "--max-num-batched-tokens"
             - "65536"
+            - "--enable-prefix-caching"
+            - "--kv-cache-dtype"
+            - "fp8"
             - "--dtype"
             - "bfloat16"
             - "--enforce-eager"
@@ -407,12 +400,7 @@ spec:
 
 텐서 병렬화(Tensor Parallelism)는 모델의 각 레이어를 여러 GPU에 분할합니다.
 
-| 모델 | 권장 TP 크기 | GPU 구성 | 메모리/GPU |
-| --- | --- | --- | --- |
-| Mixtral 8x7B | 2 | 2x A100 80GB | ~47GB |
-| Mixtral 8x22B | 4 | 4x H100 80GB | ~70GB |
-| DeepSeek-MoE 16B | 1 | 1x A100 40GB | ~33GB |
-| DBRX | 4-8 | 4-8x H100 80GB | ~33-66GB |
+<TensorParallelismConfig />
 
 :::tip 텐서 병렬화 최적화
 
@@ -441,9 +429,27 @@ args:
 
 ---
 
-## TGI 기반 MoE 배포
+## TGI 기반 MoE 배포 (Legacy)
 
-### TGI MoE 지원 기능
+:::danger TGI 유지보수 모드 - 신규 배포 비권장
+Text Generation Inference(TGI)는 2025년부터 유지보수 모드에 진입했습니다. Hugging Face는 향후 vLLM, SGLang 등 다운스트림 추론 엔진 사용을 권장합니다. 
+
+**신규 배포에는 vLLM을 사용하세요.** 기존 TGI 배포는 계속 동작하지만, 새로운 기능 업데이트나 최적화는 제공되지 않습니다.
+:::
+
+### TGI에서 vLLM으로 마이그레이션
+
+TGI를 사용 중이라면 다음 단계로 vLLM으로 마이그레이션할 수 있습니다:
+
+1. **API 호환성**: vLLM은 OpenAI 호환 API를 제공하므로 클라이언트 코드 변경 최소화
+2. **환경 변수 매핑**:
+   - TGI `MODEL_ID` → vLLM `--model`
+   - TGI `NUM_SHARD` → vLLM `--tensor-parallel-size`
+   - TGI `MAX_TOTAL_TOKENS` → vLLM `--max-model-len`
+3. **성능 향상**: vLLM의 PagedAttention과 Continuous Batching으로 2-3배 처리량 향상
+4. **최신 기능**: FP8 KV Cache, Prefix Caching, Multi-LoRA 등 최신 최적화 기법 활용
+
+### TGI MoE 지원 기능 (Legacy)
 
 Text Generation Inference(TGI)는 Hugging Face에서 개발한 고성능 추론 서버입니다.
 
@@ -482,7 +488,7 @@ spec:
           effect: NoSchedule
       containers:
         - name: tgi
-          image: ghcr.io/huggingface/text-generation-inference:2.3.0
+          image: ghcr.io/huggingface/text-generation-inference:3.3.5
           ports:
             - name: http
               containerPort: 8080
@@ -573,7 +579,7 @@ spec:
           effect: NoSchedule
       containers:
         - name: tgi
-          image: ghcr.io/huggingface/text-generation-inference:2.3.0
+          image: ghcr.io/huggingface/text-generation-inference:3.3.5
           ports:
             - name: http
               containerPort: 8080
@@ -606,21 +612,187 @@ spec:
 
 ### vLLM vs TGI 성능 비교
 
-| 특성 | vLLM | TGI |
-| --- | --- | --- |
-| 처리량 (tokens/s) | 높음 | 중상 |
-| 지연시간 (TTFT) | 낮음 | 중간 |
-| 메모리 효율성 | 매우 높음 (PagedAttention) | 높음 |
-| MoE 최적화 | 우수 | 양호 |
-| 양자화 지원 | AWQ, GPTQ, SqueezeLLM | AWQ, GPTQ, EETQ |
-| API 호환성 | OpenAI 호환 | 자체 API + OpenAI 호환 |
-| 커뮤니티 | 활발 | 활발 |
+<VllmVsTgi />
 
 :::tip 추론 엔진 선택 가이드
 
 - **vLLM**: 최고 처리량이 필요한 경우, 대규모 배치 처리
 - **TGI**: Hugging Face 생태계 통합, 간편한 배포
 - **공통**: 두 엔진 모두 MoE 모델을 잘 지원하며, 워크로드에 따라 선택
+
+:::
+
+---
+
+## AWS Trainium2 기반 MoE 배포
+
+### Trainium2 개요
+
+AWS Trainium2는 AWS가 설계한 2세대 ML 가속기로, 대규모 언어 모델 추론에 최적화되어 있습니다. GPU 대비 비용 효율적인 추론을 제공하며, NeuronX SDK를 통해 PyTorch 모델을 쉽게 배포할 수 있습니다.
+
+**주요 특징:**
+- **고성능**: 단일 trn2.48xlarge 인스턴스에서 Llama 3.1 405B 추론 가능
+- **비용 효율**: GPU 대비 최대 50% 비용 절감
+- **NeuronX SDK**: PyTorch 2.5+ 지원, 최소 코드 변경으로 모델 온보딩
+- **NxD Inference**: 대규모 LLM 배포를 단순화하는 PyTorch 기반 라이브러리
+- **FP8 양자화**: 메모리 효율성 향상
+- **Flash Decoding**: Speculative Decoding 지원
+
+### Trainium2 인스턴스 타입 및 비용 비교
+
+<GpuVsTrainium2 />
+
+### NeuronX SDK 설치
+
+```bash
+# Neuron SDK 2.21+ 설치
+pip install neuronx-cc==2.* torch-neuronx torchvision
+
+# NxD Inference 라이브러리 설치
+pip install neuronx-distributed-inference
+
+# Transformers NeuronX 설치
+pip install transformers-neuronx
+```
+
+### Mixtral 8x7B Trainium2 배포
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mixtral-8x7b-trainium2
+  namespace: inference
+  labels:
+    app: mixtral-8x7b
+    accelerator: trainium2
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mixtral-8x7b-trainium2
+  template:
+    metadata:
+      labels:
+        app: mixtral-8x7b-trainium2
+    spec:
+      nodeSelector:
+        node.kubernetes.io/instance-type: trn2.48xlarge
+      tolerations:
+        - key: aws.amazon.com/neuron
+          operator: Exists
+          effect: NoSchedule
+      containers:
+        - name: neuron-inference
+          image: public.ecr.aws/neuron/pytorch-inference-neuronx:2.1.2-neuronx-py310-sdk2.21.0-ubuntu20.04
+          ports:
+            - name: http
+              containerPort: 8000
+          env:
+            - name: HUGGING_FACE_HUB_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: hf-token
+                  key: token
+            - name: NEURON_RT_NUM_CORES
+              value: "16"
+            - name: NEURON_CC_FLAGS
+              value: "--model-type=transformer"
+          command:
+            - python
+            - -m
+            - neuronx_distributed_inference.serve
+          args:
+            - --model_id
+            - mistralai/Mixtral-8x7B-Instruct-v0.1
+            - --batch_size
+            - "4"
+            - --sequence_length
+            - "2048"
+            - --tp_degree
+            - "8"
+            - --amp
+            - "fp16"
+          resources:
+            requests:
+              aws.amazon.com/neuron: 16
+              memory: "400Gi"
+              cpu: "96"
+            limits:
+              aws.amazon.com/neuron: 16
+              memory: "480Gi"
+              cpu: "128"
+          volumeMounts:
+            - name: model-cache
+              mountPath: /root/.cache/huggingface
+            - name: neuron-cache
+              mountPath: /var/tmp/neuron-compile-cache
+      volumes:
+        - name: model-cache
+          persistentVolumeClaim:
+            claimName: model-cache-pvc
+        - name: neuron-cache
+          emptyDir:
+            sizeLimit: 50Gi
+```
+
+### NxD Inference Python 예제
+
+```python
+# neuron_inference.py
+import torch
+from transformers import AutoTokenizer
+from neuronx_distributed_inference import NxDInference
+
+# 모델 및 토크나이저 로드
+model_id = "mistralai/Mixtral-8x7B-Instruct-v0.1"
+tokenizer = AutoTokenizer.from_pretrained(model_id)
+
+# NxD Inference 초기화
+nxd_model = NxDInference(
+    model_id=model_id,
+    tp_degree=8,  # Tensor Parallelism
+    batch_size=4,
+    sequence_length=2048,
+    amp="fp16",
+    neuron_config={
+        "enable_bucketing": True,
+        "enable_saturate_infinity": True,
+    }
+)
+
+# 추론 수행
+prompt = "Explain Mixture of Experts architecture"
+inputs = tokenizer(prompt, return_tensors="pt")
+
+with torch.inference_mode():
+    outputs = nxd_model.generate(
+        input_ids=inputs.input_ids,
+        max_new_tokens=512,
+        temperature=0.7,
+        top_p=0.9,
+    )
+
+response = tokenizer.decode(outputs[0], skip_special_tokens=True)
+print(response)
+```
+
+
+:::tip Trainium2 사용 권장 시나리오
+
+- **비용 최적화**: GPU 대비 50% 이상 비용 절감이 필요한 경우
+- **대규모 배포**: 수십~수백 개의 추론 엔드포인트 운영
+- **안정적인 워크로드**: 실험적 기능보다 안정성과 비용이 중요한 프로덕션 환경
+- **AWS 네이티브**: AWS 생태계 내에서 완전 관리형 솔루션 선호
+
+:::
+
+:::warning Trainium2 제약사항
+
+- **모델 지원**: 모든 모델이 지원되는 것은 아니며, NeuronX SDK 호환성 확인 필요
+- **커스텀 커널**: 일부 커스텀 CUDA 커널은 Neuron으로 포팅 필요
+- **디버깅**: GPU 대비 디버깅 도구가 제한적
+- **리전 가용성**: 일부 AWS 리전에서만 사용 가능
 
 :::
 
@@ -677,7 +849,7 @@ metadata:
 spec:
   parentRefs:
     - name: inference-gateway
-      namespace: gateway-system
+      namespace: kgateway-system
   hostnames:
     - "inference.example.com"
   rules:
@@ -746,12 +918,7 @@ args:
   - "32768"
 ```
 
-| 파라미터 | 설명 | 권장값 |
-| --- | --- | --- |
-| `gpu-memory-utilization` | GPU 메모리 사용 비율 | 0.85-0.92 |
-| `max-model-len` | 최대 컨텍스트 길이 | 모델 지원 범위 내 |
-| `max-num-batched-tokens` | 배치당 최대 토큰 | 메모리에 따라 조정 |
-| `enable-chunked-prefill` | Chunked Prefill 활성화 | 권장 |
+<KvCacheConfig />
 
 ### Speculative Decoding
 
@@ -823,11 +990,7 @@ args:
   - "32768"
 ```
 
-| 최적화 기법 | 설명 | 효과 |
-| --- | --- | --- |
-| Continuous Batching | 요청을 동적으로 배치에 추가/제거 | 처리량 2-3x 향상 |
-| Chunked Prefill | Prefill을 청크로 분할하여 Decode와 병행 | 지연시간 감소 |
-| Dynamic SplitFuse | Prefill/Decode 동적 분리 | GPU 활용률 향상 |
+<BatchOptimization />
 
 ---
 
@@ -856,15 +1019,7 @@ spec:
 
 ### 주요 모니터링 메트릭
 
-| 메트릭 | 설명 | 임계값 |
-| --- | --- | --- |
-| `vllm:num_requests_running` | 현재 처리 중인 요청 수 | - |
-| `vllm:num_requests_waiting` | 대기 중인 요청 수 | > 100 경고 |
-| `vllm:gpu_cache_usage_perc` | KV Cache 사용률 | > 95% 경고 |
-| `vllm:avg_prompt_throughput_toks_per_s` | 프롬프트 처리량 | - |
-| `vllm:avg_generation_throughput_toks_per_s` | 생성 처리량 | - |
-| `DCGM_FI_DEV_GPU_UTIL` | GPU 사용률 | > 90% 경고 |
-| `DCGM_FI_DEV_FB_USED` | GPU 메모리 사용량 | > 95% 위험 |
+<MonitoringMetrics />
 
 ### Prometheus 알림 규칙
 

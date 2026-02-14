@@ -8,28 +8,27 @@ const groups = {
         { num: '1', name: '개요', desc: '문서 구조, 대상 독자' },
         { num: '2', name: 'NGINX Retirement', desc: 'EOL 타임라인, 보안 위험' },
         { num: '3', name: 'Gateway API 아키텍처', desc: '3-Tier 모델, 역할 분리' },
-        { num: '5', name: '솔루션 비교', desc: '5개 구현체 비교' },
-        { num: '10', name: '결론', desc: '로드맵, 권장사항' },
+        { num: '5', name: 'Gateway API 구현체 비교', desc: 'AWS Native vs Open Source, NGINX 매핑, 코드 예제' },
+        { num: '9', name: '결론', desc: '권장사항, 로드맵' },
       ],
     },
     {
       label: '권장', color: '#fb8c00', bg: '#fff8e1',
       items: [
-        { num: '4', name: 'GAMMA Initiative', desc: '서비스 메시, East-West' },
+        { num: '4', name: 'GAMMA Initiative', desc: '별도 문서 (서비스 메시, East-West)' },
       ],
     },
     {
-      label: '선택', color: '#43a047', bg: '#e8f5e9',
+      label: '심화', color: '#43a047', bg: '#e8f5e9',
       items: [
-        { num: '6', name: 'NGINX 기능별 대안', desc: '8가지 기능 매핑' },
-        { num: '7', name: 'Cilium ENI + Gateway API', desc: '설치, 성능 최적화' },
+        { num: '6', name: 'Cilium ENI + Gateway API', desc: '별도 문서 (심화 가이드)' },
       ],
     },
     {
       label: '상황별', color: '#1565c0', bg: '#e3f2fd',
       items: [
-        { num: '8', name: '마이그레이션 실행', desc: '5-Phase 전략' },
-        { num: '9', name: '벤치마크 계획', desc: '테스트 설계' },
+        { num: '7', name: '마이그레이션 실행', desc: '별도 문서 (5-Phase 전략)' },
+        { num: '8', name: '벤치마크 계획', desc: '테스트 설계' },
       ],
     },
   ],
@@ -40,28 +39,27 @@ const groups = {
         { num: '1', name: 'Overview', desc: 'Structure, audience' },
         { num: '2', name: 'NGINX Retirement', desc: 'EOL timeline, security' },
         { num: '3', name: 'Gateway API Architecture', desc: '3-Tier model, roles' },
-        { num: '5', name: 'Solution Comparison', desc: '5 implementations' },
-        { num: '10', name: 'Conclusion', desc: 'Roadmap, recommendations' },
+        { num: '5', name: 'Implementation Comparison', desc: 'AWS Native vs Open Source, NGINX mappings, code' },
+        { num: '9', name: 'Conclusion', desc: 'Recommendations, roadmap' },
       ],
     },
     {
       label: 'Recommended', color: '#fb8c00', bg: '#fff8e1',
       items: [
-        { num: '4', name: 'GAMMA Initiative', desc: 'Service mesh, East-West' },
+        { num: '4', name: 'GAMMA Initiative', desc: 'Separate doc (service mesh, East-West)' },
       ],
     },
     {
-      label: 'Optional', color: '#43a047', bg: '#e8f5e9',
+      label: 'Advanced', color: '#43a047', bg: '#e8f5e9',
       items: [
-        { num: '6', name: 'NGINX Feature Alternatives', desc: '8 feature mappings' },
-        { num: '7', name: 'Cilium ENI + Gateway API', desc: 'Install, tuning' },
+        { num: '6', name: 'Cilium ENI + Gateway API', desc: 'Separate doc (deep dive)' },
       ],
     },
     {
       label: 'Situational', color: '#1565c0', bg: '#e3f2fd',
       items: [
-        { num: '8', name: 'Migration Execution', desc: '5-Phase strategy' },
-        { num: '9', name: 'Benchmark Planning', desc: 'Test design' },
+        { num: '7', name: 'Migration Execution', desc: 'Separate doc (5-Phase strategy)' },
+        { num: '8', name: 'Benchmark Planning', desc: 'Test design' },
       ],
     },
   ],

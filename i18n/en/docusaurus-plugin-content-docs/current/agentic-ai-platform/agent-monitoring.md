@@ -6,8 +6,18 @@ tags: [eks, langfuse, langsmith, monitoring, observability, tracing, opentelemet
 category: "genai-aiml"
 date: 2025-02-05
 authors: [devfloor9]
-sidebar_position: 8
+sidebar_position: 12
 ---
+
+import {
+  LangFuseVsLangSmithTable,
+  LatencyMetricsTable,
+  TokenUsageMetricsTable,
+  ErrorRateMetricsTable,
+  DailyChecksTable,
+  WeeklyChecksTable,
+  MaturityModelTable
+} from '@site/src/components/AgentMonitoringTables';
 
 # AI Agent Monitoring and Operations
 
@@ -30,14 +40,7 @@ This document targets platform operators, MLOps engineers, and AI developers. Ba
 
 ## LangFuse vs LangSmith Comparison
 
-| Feature | LangFuse | LangSmith |
-| ---- | -------- | --------- |
-| **License** | Open source (MIT) | Commercial (free tier) |
-| **Deployment** | Self-hosted / Cloud | Cloud only |
-| **Data Sovereignty** | Full control | LangChain servers |
-| **Integration** | Multiple frameworks | LangChain optimized |
-| **Cost** | Infrastructure only | Usage-based pricing |
-| **Scalability** | Kubernetes native | Managed |
+<LangFuseVsLangSmithTable />
 
 :::tip Selection Guide
 
@@ -694,30 +697,15 @@ graph TB
 
 ### Latency Metrics
 
-| Metric | Description | Target | Alert Threshold |
-| ------ | ---- | ------ | ----------- |
-| `agent_request_duration_seconds` | Total request processing time | P95 < 5s | P99 > 10s |
-| `llm_inference_duration_seconds` | LLM inference time | P95 < 3s | P99 > 8s |
-| `tool_execution_duration_seconds` | Tool execution time | P95 < 1s | P99 > 3s |
-| `vector_search_duration_seconds` | Vector search time | P95 < 200ms | P99 > 500ms |
+<LatencyMetricsTable />
 
 ### Token Usage Metrics
 
-| Metric | Description | Monitoring Purpose |
-| ------ | ---- | ------------- |
-| `llm_input_tokens_total` | Total input tokens | Prompt optimization |
-| `llm_output_tokens_total` | Total output tokens | Response length analysis |
-| `llm_total_tokens_total` | Total tokens | Cost tracking |
-| `llm_cost_dollars_total` | Estimated cost (USD) | Budget management |
+<TokenUsageMetricsTable />
 
 ### Error Rate Metrics
 
-| Metric | Description | Alert Threshold |
-| ------ | ---- | ----------- |
-| `agent_errors_total` | Total agent errors | Error rate > 5% |
-| `llm_rate_limit_errors_total` | Rate limit errors | > 10 per minute |
-| `tool_execution_errors_total` | Tool execution errors | Error rate > 10% |
-| `agent_timeout_total` | Timeout occurrences | > 5 per minute |
+<ErrorRateMetricsTable />
 
 ### Prometheus Metrics Collection Configuration
 
@@ -1084,23 +1072,11 @@ data:
 
 ### Daily Checks
 
-| Check Item | How to Check | Normal Status |
-| --- | --- | --- |
-| GPU Status | `kubectl get nodes -l nvidia.com/gpu.present=true` | All nodes Ready |
-| Model Pods | `kubectl get pods -n inference` | Running state |
-| Error Rate | Grafana dashboard | < 1% |
-| Response Time | P99 latency | < 5 seconds |
-| GPU Utilization | DCGM metrics | 40-80% |
-| Memory Usage | GPU memory | < 90% |
+<DailyChecksTable />
 
 ### Weekly Checks
 
-| Check Item | How to Check | Action |
-| --- | --- | --- |
-| Cost Analysis | Kubecost report | Identify anomalous costs |
-| Capacity Planning | Resource trends | Plan scaling |
-| Security Patches | Image scan | Patch vulnerabilities |
-| Backup Validation | Recovery test | Verify backup policy |
+<WeeklyChecksTable />
 
 
 ## Troubleshooting Guide
@@ -1335,12 +1311,7 @@ AI Agent monitoring is essential for stable operation and continuous improvement
 
 ### Monitoring Maturity Model
 
-| Level | Maturity | Implementation |
-| ---- | ---- | --------- |
-| **Level 1** | Basic | Log collection, basic metrics |
-| **Level 2** | Standard | LangFuse/LangSmith tracing, Grafana dashboard |
-| **Level 3** | Advanced | Cost tracking, quality assessment, automated alerts |
-| **Level 4** | Optimized | A/B testing, auto-tuning, predictive analytics |
+<MaturityModelTable />
 
 :::tip Next Steps
 

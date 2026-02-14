@@ -7,7 +7,7 @@ category: "performance-networking"
 last_update:
   date: 2025-05-20
   author: devfloor9
-sidebar_position: 6
+sidebar_position: 2
 ---
 
 # CoreDNS 모니터링 및 최적화 가이드

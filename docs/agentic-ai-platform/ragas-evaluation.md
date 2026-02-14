@@ -2,17 +2,19 @@
 title: "Ragas RAG 평가 프레임워크"
 sidebar_label: "13. Ragas 평가"
 description: "Ragas를 활용한 RAG 파이프라인 품질 평가 및 지속적 개선 방법"
-sidebar_position: 14
+sidebar_position: 13
 category: "genai-aiml"
 last_update:
-  date: 2025-02-05
+  date: 2026-02-13
   author: devfloor9
 tags: [ragas, rag, evaluation, llm, quality, genai, testing]
 ---
 
+import { RagasVsBedrockComparison, RagasMetrics, CostOptimizationStrategies, CostComparison, ImprovementChecklist } from '@site/src/components/RagasTables';
+
 # Ragas RAG 평가 프레임워크
 
-> 📅 **작성일**: 2025-02-05 | ⏱️ **읽는 시간**: 약 28분
+> 📅 **작성일**: 2026-02-13 | ⏱️ **읽는 시간**: 약 28분
 
 Ragas(RAG Assessment)는 RAG(Retrieval-Augmented Generation) 파이프라인의 품질을 객관적으로 평가하기 위한 오픈소스 프레임워크입니다. Agentic AI 플랫폼에서 RAG 시스템의 성능을 측정하고 지속적으로 개선하는 데 필수적입니다.
 
@@ -33,10 +35,10 @@ graph LR
     end
     
     subgraph "평가 포인트"
-        E1["검색 품질"]
-        E2["컨텍스트 관련성"]
-        E3["답변 정확성"]
-        E4["답변 충실도"]
+        E1["검색 품질<br/>(Precision/Recall)"]
+        E2["답변 충실도<br/>(Faithfulness)"]
+        E3["답변 관련성<br/>(Relevancy)"]
+        E4["답변 정확성<br/>(Correctness)"]
     end
     
     Q --> R
@@ -55,24 +57,36 @@ graph LR
     style E4 fill:#ea4335,stroke:#333
 ```
 
+### Ragas vs AWS Bedrock RAG Evaluation
+
+:::tip AWS Bedrock RAG Evaluation GA
+AWS Bedrock RAG Evaluation은 **2025년 3월 GA**되었습니다. Bedrock 네이티브 통합으로 별도 설정 없이 RAG 평가를 수행할 수 있습니다.
+:::
+
+<RagasVsBedrockComparison />
+
+**AWS Bedrock RAG Evaluation 메트릭:**
+
+- **Context Relevance**: 검색된 컨텍스트가 질문과 관련있는지
+- **Coverage**: 답변이 질문의 모든 측면을 다루는지
+- **Correctness**: 답변이 정확한지 (ground truth 대비)
+- **Faithfulness**: 답변이 컨텍스트에 충실한지
+
 ### Ragas 핵심 메트릭
 
-| 메트릭 | 측정 대상 | 설명 |
-| --- | --- | --- |
-| Faithfulness | 생성 품질 | 답변이 컨텍스트에 충실한지 |
-| Answer Relevancy | 생성 품질 | 답변이 질문과 관련있는지 |
-| Context Precision | 검색 품질 | 검색된 컨텍스트의 정밀도 |
-| Context Recall | 검색 품질 | 필요한 정보가 검색되었는지 |
-| Context Relevancy | 검색 품질 | 컨텍스트가 질문과 관련있는지 |
-| Answer Correctness | 종합 품질 | 답변의 정확성 |
+<RagasMetrics />
+
+:::note Ragas 0.2+ API 변경사항
+Ragas 0.2 이상에서 `context_relevancy` 메트릭은 제거되었습니다. 컨텍스트 품질 평가는 `context_precision`과 `context_recall`을 조합하여 수행하세요.
+:::
 
 ## 설치 및 기본 설정
 
 ### Python 환경 설정
 
 ```bash
-# Ragas 설치
-pip install ragas langchain-openai datasets
+# Ragas 설치 (0.2+ 권장)
+pip install "ragas>=0.2" langchain-openai datasets
 
 # 추가 의존성
 pip install pandas numpy
@@ -112,18 +126,21 @@ eval_data = {
 
 dataset = Dataset.from_dict(eval_data)
 
-# 평가 실행
-results = evaluate(
-    dataset,
-    metrics=[
-        faithfulness,
-        answer_relevancy,
-        context_precision,
-        context_recall,
-    ],
-)
-
-print(results)
+# 평가 실행 (에러 핸들링 포함)
+try:
+    results = evaluate(
+        dataset,
+        metrics=[
+            faithfulness,
+            answer_relevancy,
+            context_precision,
+            context_recall,
+        ],
+    )
+    print(results)
+except Exception as e:
+    print(f"평가 중 오류 발생: {e}")
+    # 로깅 또는 재시도 로직
 ```
 
 ## 핵심 메트릭 상세 설명
@@ -201,7 +218,6 @@ from ragas.metrics import (
     answer_relevancy,
     context_precision,
     context_recall,
-    context_relevancy,
     answer_correctness,
 )
 from datasets import Dataset
@@ -238,7 +254,6 @@ def evaluate_rag_pipeline(questions, rag_chain, ground_truths):
             answer_relevancy,
             context_precision,
             context_recall,
-            context_relevancy,
             answer_correctness,
         ],
     )
@@ -450,7 +465,7 @@ spec:
                   name: openai-credentials
                   key: api-key
             - name: MILVUS_HOST
-              value: "milvus-proxy.milvus.svc.cluster.local"
+              value: "milvus-proxy.ai-data.svc.cluster.local"
             - name: RESULTS_BUCKET
               value: "s3://rag-evaluation-results"
             command:
@@ -507,6 +522,132 @@ data:
 
 ## 평가 결과 해석 및 개선 가이드
 
+### 비용 최적화 전략
+
+RAG 평가는 LLM API 호출이 필요하므로 비용이 발생합니다. 다음 전략으로 비용을 최적화하세요:
+
+<CostOptimizationStrategies />
+
+```python
+import hashlib
+import json
+from functools import lru_cache
+
+class CachedEvaluator:
+    """캐싱을 활용한 비용 최적화 평가기"""
+    
+    def __init__(self, cache_file='eval_cache.json'):
+        self.cache_file = cache_file
+        self.cache = self._load_cache()
+    
+    def _load_cache(self):
+        try:
+            with open(self.cache_file, 'r') as f:
+                return json.load(f)
+        except FileNotFoundError:
+            return {}
+    
+    def _save_cache(self):
+        with open(self.cache_file, 'w') as f:
+            json.dump(self.cache, f)
+    
+    def _get_cache_key(self, question, answer, contexts):
+        """평가 항목의 고유 키 생성"""
+        content = f"{question}|{answer}|{'|'.join(contexts)}"
+        return hashlib.md5(content.encode()).hexdigest()
+    
+    def evaluate_with_cache(self, dataset, metrics):
+        """캐시를 활용한 평가"""
+        cached_results = []
+        new_items = []
+        
+        for item in dataset:
+            cache_key = self._get_cache_key(
+                item['question'], 
+                item['answer'], 
+                item['contexts']
+            )
+            
+            if cache_key in self.cache:
+                cached_results.append(self.cache[cache_key])
+            else:
+                new_items.append(item)
+        
+        # 새로운 항목만 평가
+        if new_items:
+            new_dataset = Dataset.from_dict({
+                k: [item[k] for item in new_items]
+                for k in new_items[0].keys()
+            })
+            
+            new_results = evaluate(new_dataset, metrics=metrics)
+            
+            # 캐시 업데이트
+            for item, result in zip(new_items, new_results):
+                cache_key = self._get_cache_key(
+                    item['question'], 
+                    item['answer'], 
+                    item['contexts']
+                )
+                self.cache[cache_key] = result
+            
+            self._save_cache()
+            cached_results.extend(new_results)
+        
+        return cached_results
+
+# 사용 예시
+evaluator = CachedEvaluator()
+results = evaluator.evaluate_with_cache(dataset, metrics)
+```
+
+### AWS Bedrock RAG Evaluation 사용
+
+AWS Bedrock RAG Evaluation을 사용하면 Bedrock 네이티브 통합으로 더 간편하게 평가할 수 있습니다:
+
+```python
+import boto3
+
+bedrock = boto3.client('bedrock-agent-runtime')
+
+# RAG 평가 실행
+response = bedrock.evaluate_rag(
+    evaluationJobName='rag-eval-2026-02-13',
+    evaluationDatasetLocation={
+        's3Uri': 's3://my-bucket/eval-dataset.jsonl'
+    },
+    evaluationMetrics=[
+        'CONTEXT_RELEVANCE',
+        'COVERAGE',
+        'CORRECTNESS',
+        'FAITHFULNESS'
+    ],
+    modelId='anthropic.claude-3-sonnet-20240229-v1:0',
+    outputDataConfig={
+        's3Uri': 's3://my-bucket/eval-results/'
+    }
+)
+
+job_id = response['evaluationJobId']
+
+# 평가 결과 조회
+result = bedrock.get_evaluation_job(evaluationJobId=job_id)
+print(f"Status: {result['status']}")
+print(f"Metrics: {result['metrics']}")
+```
+
+**Bedrock RAG Evaluation 장점:**
+
+- ✅ Bedrock 모델과 네이티브 통합
+- ✅ S3 기반 대규모 배치 평가
+- ✅ CloudWatch 자동 메트릭 게시
+- ✅ IAM 기반 접근 제어
+- ✅ 별도 인프라 불필요
+
+**비용 비교 (1000개 평가 기준):**
+
+<CostComparison />
+
 ### 메트릭별 개선 방향
 
 ```mermaid
@@ -538,12 +679,7 @@ graph TD
 
 ### 개선 체크리스트
 
-| 문제 | 가능한 원인 | 해결 방안 |
-| --- | --- | --- |
-| Faithfulness < 0.7 | LLM이 컨텍스트 무시 | 프롬프트에 "컨텍스트만 사용" 강조 |
-| Context Precision < 0.6 | 검색 품질 낮음 | 임베딩 모델 업그레이드, 리랭킹 추가 |
-| Context Recall < 0.6 | 관련 문서 누락 | k값 증가, 지식 베이스 보강 |
-| Answer Relevancy < 0.7 | 답변이 산만함 | 프롬프트 구조화, 출력 형식 지정 |
+<ImprovementChecklist />
 
 ## 관련 문서
 

@@ -1,0 +1,160 @@
+/* MetricsTable Component Styles */
+
+.metricsTableWrapper {
+  margin: 1.5rem 0;
+}
+
+/* Metric Cell with Status Indicator */
+.metricCell {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.metricName {
+  font-weight: 500;
+}
+
+/* Status Indicator Dots */
+.statusDot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  transition: all 0.3s ease;
+}
+
+.statusDot.normal {
+  background-color: #28a745;
+  box-shadow: 0 0 4px rgba(40, 167, 69, 0.5);
+}
+
+.statusDot.warning {
+  background-color: #ffc107;
+  box-shadow: 0 0 4px rgba(255, 193, 7, 0.5);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.statusDot.critical {
+  background-color: #dc3545;
+  box-shadow: 0 0 4px rgba(220, 53, 69, 0.5);
+  animation: pulse 1s ease-in-out infinite;
+}
+
+/* Pulse Animation for Warning/Critical States */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.1);
+  }
+}
+
+/* Legend */
+.legend {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 1rem;
+  background: var(--ifm-background-surface-color);
+  border-top: 1px solid var(--ifm-color-emphasis-300);
+  border-radius: 0 0 8px 8px;
+  font-size: 0.875rem;
+}
+
+.legendItem {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.legendLabel {
+  color: var(--ifm-color-content);
+  font-weight: 500;
+}
+
+/* Dark Mode Support */
+[data-theme='dark'] .legend {
+  background: var(--ifm-background-surface-color);
+  border-top-color: var(--ifm-color-emphasis-200);
+}
+
+[data-theme='dark'] .statusDot.normal {
+  background-color: #2ea043;
+}
+
+[data-theme='dark'] .statusDot.warning {
+  background-color: #d29922;
+}
+
+[data-theme='dark'] .statusDot.critical {
+  background-color: #f85149;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .legend {
+    flex-wrap: wrap;
+    gap: 1rem;
+    font-size: 0.8rem;
+  }
+  
+  .statusDot {
+    width: 8px;
+    height: 8px;
+  }
+}
+
+/* Print Styles */
+@media print {
+  .statusDot {
+    border: 1px solid #000;
+  }
+  
+  .statusDot.normal {
+    background-color: #fff;
+  }
+  
+  .statusDot.warning {
+    background-color: #ddd;
+  }
+  
+  .statusDot.critical {
+    background-color: #000;
+  }
+  
+  .legend {
+    page-break-inside: avoid;
+  }
+}
+
+/* Accessibility: High Contrast Mode */
+@media (prefers-contrast: high) {
+  .statusDot {
+    border: 2px solid currentColor;
+  }
+  
+  .statusDot.normal {
+    background-color: #0f0;
+  }
+  
+  .statusDot.warning {
+    background-color: #ff0;
+  }
+  
+  .statusDot.critical {
+    background-color: #f00;
+  }
+}
+
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+  .statusDot {
+    animation: none;
+    transition: none;
+  }
+}

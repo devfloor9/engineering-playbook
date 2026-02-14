@@ -5,7 +5,10 @@ export { default as RoleSeparationTable } from './RoleSeparationTable';
 export { default as GaStatusTable } from './GaStatusTable';
 export { default as GammaEffectsTable } from './GammaEffectsTable';
 export { default as GammaSupportTable } from './GammaSupportTable';
+export { default as GammaMeshDiagram } from './GammaMeshDiagram';
+export { default as GammaInfographic } from './GammaInfographic';
 export { default as FeatureComparisonMatrix } from './FeatureComparisonMatrix';
+export { default as SolutionOverviewMatrix } from './SolutionOverviewMatrix';
 export { default as ScenarioRecommendationTable } from './ScenarioRecommendationTable';
 export { default as FeatureMappingTable } from './FeatureMappingTable';
 export { default as DifficultyComparisonTable } from './DifficultyComparisonTable';
@@ -19,3 +22,4 @@ export { default as MigrationFeatureMappingTable } from './MigrationFeatureMappi
 export { default as TroubleshootingTable } from './TroubleshootingTable';
 export { default as RouteRecommendationTable } from './RouteRecommendationTable';
 export { default as SolutionFeatureTable } from './SolutionFeatureTable';
+export { default as RoadmapTimeline } from './RoadmapTimeline';

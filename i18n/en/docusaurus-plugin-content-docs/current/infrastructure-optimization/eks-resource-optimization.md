@@ -5568,7 +5568,6 @@ spec:
 - [Vertical Pod Autoscaler](https://github.com/kubernetes/autoscaler/tree/master/vertical-pod-autoscaler)
 - [AWS EKS Best Practices - Resource Management](https://docs.aws.amazon.com/eks/latest/best-practices/reliability.html)
 - [Goldilocks](https://github.com/FairwindsOps/goldilocks)
-- [CAST.ai Resource Optimization](https://cast.ai/blog/kubernetes-resource-optimization/)
 
 **Red Hat OpenShift 문서:**
 - [Automatically Scaling Pods with HPA](https://docs.openshift.com/container-platform/4.18/nodes/pods/nodes-pods-autoscaling.html) — HPA 구성 및 운영

@@ -6,8 +6,10 @@ tags: [eks, gpu, karpenter, autoscaling, resource-management, dcgm]
 category: "genai-aiml"
 date: 2025-02-05
 authors: [devfloor9]
-sidebar_position: 5
+sidebar_position: 4
 ---
+
+import { DraLimitationsTable, ScalingDecisionTable } from '@site/src/components/GpuResourceTables';
 
 # Dynamic GPU Cluster Resource Management
 
@@ -176,11 +178,7 @@ Specific procedure for reallocating idle resources from Model B to Model A when 
 
 #### Step 2: Scaling Decision
 
-| Condition | Action |
-|------|------|
-| Model A GPU utilization > 80% | Trigger Model A Pod scale out |
-| Model B GPU utilization < 30% | Model B Pod scale in possible |
-| Elastic Pool available | Allocate resources from Elastic Pool |
+<ScalingDecisionTable />
 
 #### Step 3: Execute Resource Reallocation
 
@@ -732,13 +730,7 @@ Dynamic resource management of GPU clusters is a key factor determining performa
 
 In the early stages of Kubernetes, GPU resource allocation used the **Device Plugin** model. This model has fundamental limitations:
 
-| Limitation | Description | Impact |
-| --- | --- | --- |
-| **Static Allocation** | Resource quantities fixed at node startup | Cannot allocate partial GPU, low utilization |
-| **No Fine-Grained Control** | Can only allocate entire GPU to Pod | No GPU partitioning support (MIG unavailable) |
-| **No Priority Support** | Only first-come-first-served allocation | QoS classes not applied, difficult to ensure fair resource distribution |
-| **No Dynamic Requirements** | Cannot change resources at runtime | Initial request values fixed, difficult to scale |
-| **No Multi-Resource Coordination** | Cannot coordinate multiple resource types | Pod receives 1 GPU but insufficient memory scenario |
+<DraLimitationsTable />
 
 **DRA (Dynamic Resource Allocation)** was introduced in Kubernetes 1.26+ to overcome these limitations.
 

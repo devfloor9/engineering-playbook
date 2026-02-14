@@ -7,7 +7,7 @@ category: "benchmark"
 last_update:
   date: 2026-02-12
   author: devfloor9
-sidebar_position: 6
+sidebar_position: 3
 ---
 
 # Gateway API 구현체 성능 벤치마크 계획

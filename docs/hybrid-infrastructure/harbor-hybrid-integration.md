@@ -7,7 +7,7 @@ category: "hybrid-multicloud"
 last_update:
   date: 2025-08-20
   author: devfloor9
-sidebar_position: 5
+sidebar_position: 4
 ---
 
 # Harbor 2.13과 EKS Hybrid Nodes 통합 가이드

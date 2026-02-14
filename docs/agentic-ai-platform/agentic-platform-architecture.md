@@ -5,14 +5,16 @@ description: "Amazon EKS 기반 프로덕션급 GenAI 플랫폼의 전체 시스
 tags: [eks, architecture, agentic-ai, platform, kubernetes, kagent, kgateway, genai, mlops]
 category: "genai-aiml"
 last_update:
-  date: 2025-02-05
+  date: 2026-02-13
   author: devfloor9
-sidebar_position: 4
+sidebar_position: 3
 ---
+
+import { CoreCapabilities, LayerRoles, ToolTypes, K8sFeatures, RoutingStrategies, TenantIsolation, RequestProcessing, TechnologyStack } from '@site/src/components/ArchitectureTables';
 
 # Agentic AI Platform 아키텍처
 
-> 📅 **작성일**: 2025-02-05 | ⏱️ **읽는 시간**: 약 15분
+> 📅 **작성일**: 2025-02-05 | **수정일**: 2026-02-13 | ⏱️ **읽는 시간**: 약 15분
 
 이 문서는 Amazon EKS 기반 프로덕션급 Agentic AI Platform의 전체 시스템 아키텍처와 핵심 컴포넌트 설계를 다룹니다. 자율적으로 작업을 수행하는 AI 에이전트를 효율적으로 구축하고 운영하기 위한 플랫폼 아키텍처를 제시합니다.
 
@@ -34,14 +36,7 @@ Agentic AI Platform은 자율적인 AI 에이전트가 복잡한 작업을 수�
 
 ### 핵심 기능
 
-| 기능 | 설명 |
-|------|------|
-| **에이전트 오케스트레이션** | Kagent를 통한 AI 에이전트 라이프사이클 관리 |
-| **지능형 라우팅** | Kgateway를 통한 추론 요청의 동적 라우팅 |
-| **벡터 검색** | Milvus를 통한 RAG(Retrieval-Augmented Generation) 지원 |
-| **관측성** | LangFuse를 통한 에이전트 동작 추적 및 분석 |
-| **확장성** | Kubernetes 네이티브 수평적 확장 |
-| **멀티테넌트** | 리소스 격리와 공정한 분배를 통한 다중 팀 지원 |
+<CoreCapabilities />
 
 :::info 대상 독자
 이 문서는 솔루션 아키텍트, 플랫폼 엔지니어, DevOps 엔지니어를 대상으로 합니다. Kubernetes와 AI/ML 워크로드에 대한 기본적인 이해가 필요합니다.
@@ -128,14 +123,7 @@ graph TB
 
 ### 레이어별 역할
 
-| 레이어 | 역할 | 주요 컴포넌트 |
-| ------ | ---- | ------------- |
-| **Client Layer** | 사용자 및 애플리케이션 인터페이스 | API Clients, Web UI, SDK |
-| **Gateway Layer** | 인증, 라우팅, 트래픽 관리 | Kgateway, Auth, Rate Limiter |
-| **Agent Layer** | AI 에이전트 실행 및 오케스트레이션 | Kagent, Agent Instances, Tool Registry |
-| **Model Serving Layer** | LLM 모델 추론 서비스 | vLLM, TGI |
-| **Data Layer** | 데이터 저장 및 검색 | Milvus, Redis, S3 |
-| **Observability Layer** | 모니터링 및 추적 | LangFuse, Prometheus, Grafana |
+<LayerRoles />
 
 ## 핵심 컴포넌트
 
@@ -209,12 +197,7 @@ spec:
 
 #### 도구 유형
 
-| 유형 | 설명 | 예시 |
-| ---- | ---- | ---- |
-| **API** | 외부 REST/gRPC API 호출 | 웹 검색, 티켓 생성 |
-| **Retrieval** | 벡터 저장소 검색 | 문서 검색, FAQ 조회 |
-| **Code** | 코드 실행 (샌드박스) | Python 스크립트, SQL 쿼리 |
-| **Human** | 사람의 승인/입력 대기 | 결제 승인, 민감 작업 확인 |
+<ToolTypes />
 
 ### Memory Store (Milvus)
 
@@ -466,14 +449,36 @@ spec:
 
 #### 라우팅 전략
 
-| 전략 | 설명 | 사용 사례 |
-| ---- | ---- | --------- |
-| **가중치 기반** | 트래픽을 비율로 분배 | A/B 테스트, 카나리 배포 |
-| **헤더 기반** | 요청 헤더로 라우팅 결정 | 모델 선택, 테넌트 분리 |
-| **지연 시간 기반** | 가장 빠른 백엔드로 라우팅 | 성능 최적화 |
-| **폴백** | 실패 시 대체 백엔드로 전환 | 고가용성 |
+<RoutingStrategies />
 
 ## Kubernetes 배포 아키텍처
+
+### Kubernetes 1.33/1.34 주요 기능 활용
+
+Agentic AI Platform은 Kubernetes 1.33 및 1.34의 최신 기능을 활용하여 성능과 안정성을 극대화합니다.
+
+<K8sFeatures />
+
+:::tip Topology-Aware Routing 활용
+Kubernetes 1.33+의 Topology-Aware Routing을 활용하면 동일 AZ 내 Pod 간 통신을 우선시하여 크로스 AZ 데이터 전송 비용을 최대 50% 절감할 수 있습니다.
+
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: vllm-inference
+  namespace: ai-inference
+  annotations:
+    service.kubernetes.io/topology-mode: "Auto"
+spec:
+  selector:
+    app: vllm
+  ports:
+    - port: 8000
+      targetPort: 8000
+  trafficDistribution: PreferClose
+```
+:::
 
 ### 네임스페이스 구성 전략
 
@@ -552,8 +557,6 @@ metadata:
   name: ai-inference
   labels:
     pod-security.kubernetes.io/enforce: privileged
-  annotations:
-    scheduler.alpha.kubernetes.io/defaultTolerations: '[{"key":"nvidia.com/gpu","operator":"Exists"}]'
 ---
 # ai-data 네임스페이스
 apiVersion: v1
@@ -658,7 +661,7 @@ spec:
     # Redis 큐 길이 기반 스케일링
     - type: redis
       metadata:
-        address: redis-master.ai-data.svc:6379
+        address: redis-master.ai-data.svc.cluster.local:6379
         listName: agent-task-queue
         listLength: "10"
     # Prometheus 메트릭 기반 스케일링
@@ -711,7 +714,8 @@ kind: EC2NodeClass
 metadata:
   name: gpu-nodeclass
 spec:
-  amiFamily: AL2
+  amiSelectorTerms:
+    - alias: al2023@latest
   subnetSelectorTerms:
     - tags:
         karpenter.sh/discovery: "ai-cluster"
@@ -770,11 +774,7 @@ graph TB
 
 #### 테넌트 격리 전략
 
-| 격리 수준 | 방법 | 장점 | 단점 |
-| --------- | ---- | ---- | ---- |
-| **네임스페이스** | 테넌트별 네임스페이스 | 간단한 구현, 리소스 격리 | 네트워크 정책 필요 |
-| **노드** | 테넌트별 노드 풀 | 완전한 격리 | 비용 증가 |
-| **클러스터** | 테넌트별 클러스터 | 최고 수준 격리 | 관리 복잡성 |
+<TenantIsolation />
 
 #### 테넌트별 리소스 할당
 
@@ -992,14 +992,7 @@ sequenceDiagram
 
 ### 요청 처리 단계
 
-| 단계 | 컴포넌트 | 설명 |
-| ---- | -------- | ---- |
-| 1-3 | Gateway, Auth | 인증 및 권한 검증 |
-| 4-5 | Kagent, Agent | 에이전트 선택 및 작업 할당 |
-| 6-8 | Agent, Milvus | RAG를 위한 컨텍스트 검색 |
-| 9-11 | Agent, LLM | LLM 추론 수행 |
-| 12 | LangFuse | 관측성 데이터 기록 |
-| 13-15 | 전체 | 응답 반환 |
+<RequestProcessing />
 
 ## 모니터링 및 관측성
 
@@ -1069,31 +1062,17 @@ spec:
 
 ## 기술 스택
 
-### 핵심 인프라
+<TechnologyStack />
 
-| 분야 | 기술 |
-|------|------|
-| Container Orchestration | Amazon EKS (Auto Mode, Pod Identity) |
-| Networking | Cilium CNI, Gateway API, VPC Lattice |
-| Security | OPA/Kyverno, RBAC, Pod Security Standards |
-| GitOps | ArgoCD, Helm, Kustomize |
-
-### GenAI 기술
-
-| 분야 | 기술 |
-|------|------|
-| Model Serving | vLLM, Text Generation Inference (TGI) |
-| Low-Code Platform | Dify (Visual AI Workflow Builder) |
-| Agent Frameworks | LangChain, LangGraph, CrewAI |
-| Vector Databases | Milvus, RAG 통합 패턴 |
-
-### 플랫폼 운영
-
-| 분야 | 기술 |
-|------|------|
-| Observability | OpenTelemetry, Prometheus, Grafana, Hubble |
-| Cost Management | Kubecost, Karpenter optimization |
-| Automation | AWS Controllers for Kubernetes (ACK) |
+:::info 버전 호환성
+- **Kubernetes 1.33+**: Stable sidecar containers, topology-aware routing, in-place resource resizing
+- **Kubernetes 1.34+**: Projected service account tokens, improved DRA, enhanced resource quota
+- **kubectl 1.33+**: 새로운 K8s 1.33/1.34 기능 활용을 위해 필수
+- **Gateway API v1.2.0+**: HTTPRoute 및 GRPCRoute 향상된 기능 지원
+- **Karpenter v1.0+**: GA 상태, 프로덕션 환경에서 안정적 사용 가능
+- **vLLM v0.6+**: CUDA 12.x 지원, H100/H200 GPU 완벽 지원
+- **DCGM Exporter 3.3+**: H100/H200 GPU 메트릭 수집 지원
+:::
 
 ## 결론
 
@@ -1116,7 +1095,7 @@ Agentic AI Platform 아키텍처는 다음과 같은 핵심 원칙을 따릅니�
 ## 참고 자료
 
 - [Kagent GitHub Repository](https://github.com/kagent-dev/kagent)
-- [Kgateway Documentation](https://kgateway.dev/)
+- [Kgateway Documentation](https://kgateway.io/docs/)
 - [Milvus Documentation](https://milvus.io/docs)
 - [LangFuse Documentation](https://langfuse.com/docs)
 - [Kubernetes Gateway API](https://gateway-api.sigs.k8s.io/)

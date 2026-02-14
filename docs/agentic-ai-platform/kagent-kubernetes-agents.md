@@ -5,9 +5,9 @@ description: "Kagent를 활용한 Kubernetes 환경에서의 AI 에이전트 배
 tags: [eks, kagent, kubernetes, agent, crd, operator]
 category: "genai-aiml"
 last_update:
-  date: 2025-02-05
+  date: 2026-02-13
   author: devfloor9
-sidebar_position: 12
+sidebar_position: 11
 ---
 
 # Kagent - Kubernetes AI Agent 관리
@@ -16,7 +16,18 @@ sidebar_position: 12
 
 ## 개요
 
-Kagent는 Kubernetes 네이티브 방식으로 AI 에이전트를 관리하기 위한 오픈소스 프로젝트입니다. Custom Resource Definition(CRD)을 통해 에이전트, 도구, 워크플로우를 선언적으로 정의하고, Operator가 이를 자동으로 배포 및 관리합니다.
+Kagent는 Kubernetes 네이티브 방식으로 AI 에이전트를 관리하기 위한 참조 아키텍처입니다. Custom Resource Definition(CRD)을 통해 에이전트, 도구, 워크플로우를 선언적으로 정의하고, Operator가 이를 자동으로 배포 및 관리합니다.
+
+:::info Kagent 프로젝트 상태
+Kagent는 Kubernetes 기반 AI 에이전트 관리를 위한 참조 아키텍처 및 디자인 패턴입니다. 공식 오픈소스 프로젝트가 아직 공개되지 않았으므로, 본 문서의 예제는 개념적 구현을 기반으로 합니다. 프로덕션 환경에서는 KubeAI, Seldon Core, KServe 등 검증된 대안을 고려하세요.
+:::
+
+### 대안 솔루션 비교
+
+import { SolutionsComparisonTable } from '@site/src/components/KagentTables';
+
+<SolutionsComparisonTable />
+
 
 ### 주요 기능
 
@@ -28,6 +39,19 @@ Kagent는 Kubernetes 네이티브 방식으로 AI 에이전트를 관리하기 �
 
 :::info 대상 독자
 이 문서는 Kubernetes 관리자, 플랫폼 엔지니어, MLOps 엔지니어를 대상으로 합니다. Kubernetes 기본 개념(Pod, Deployment, CRD)에 대한 이해가 필요합니다.
+:::
+
+:::tip re:Invent 2025 관련 세션
+
+**CNS421: Streamline Amazon EKS Operations with Agentic AI** — Kagent와 같은 AI 에이전트를 활용한 EKS 클러스터 자동 관리, 실시간 이슈 진단, 자동 복구 방법을 다루는 코드 토크 세션입니다.
+
+**주요 내용:**
+- **Model Context Protocol (MCP)**: AI 에이전트가 AWS 서비스와 통합하기 위한 표준 프로토콜
+- **자동화된 인시던트 대응**: Pod 장애, 리소스 부족, 네트워크 문제 자동 진단 및 복구
+- **AWS 서비스 통합**: CloudWatch, Systems Manager, EKS API와의 네이티브 연동
+- **실전 데모**: 실시간 클러스터 문제 해결 시연
+
+[세션 영상 보기](https://www.youtube.com/watch?v=4s-a0jY4kSE)
 :::
 
 ## Kagent 아키텍처
@@ -91,14 +115,10 @@ graph TB
 
 ### 컴포넌트 설명
 
-| 컴포넌트 | 역할 | 설명 |
-| -------- | ---- | ---- |
-| **Kagent Controller** | 조정 루프 | CRD 변경을 감지하고 원하는 상태로 리소스를 조정 |
-| **Admission Webhook** | 검증/변환 | CRD 생성/수정 시 유효성 검사 및 기본값 설정 |
-| **Metrics Server** | 메트릭 수집 | 에이전트 상태 및 성능 메트릭 노출 |
-| **Agent CRD** | 에이전트 정의 | AI 에이전트의 스펙, 모델, 도구 설정 |
-| **Tool CRD** | 도구 정의 | 에이전트가 사용할 도구(API, 검색 등) 정의 |
-| **Workflow CRD** | 워크플로우 정의 | 멀티 에이전트 협업 워크플로우 정의 |
+import { ComponentsTable } from '@site/src/components/KagentTables';
+
+<ComponentsTable />
+
 
 ### 컴포넌트 상호작용
 
@@ -530,11 +550,16 @@ spec:
   observability:
     tracing:
       enabled: true
-      provider: langfuse
+      provider: langfuse       # langfuse, langsmith, cloudwatch
       sampleRate: 1.0
     metrics:
       enabled: true
       port: 9090
+    # CloudWatch Generative AI Observability 설정 (선택사항)
+    cloudwatch:
+      enabled: false
+      region: ap-northeast-2
+      namespace: AgenticAI/Agents
   
   # 헬스체크
   healthCheck:
@@ -1327,12 +1352,10 @@ data:
 
 #### 일반적인 문제 해결
 
-| 문제 | 원인 | 해결 방법 |
-| ---- | ---- | --------- |
-| Pod CrashLoopBackOff | API 키 오류, 메모리 부족 | 시크릿 확인, 리소스 증가 |
-| 높은 지연 시간 | 모델 응답 지연, 네트워크 문제 | 타임아웃 조정, 모델 변경 |
-| Tool 실행 실패 | 엔드포인트 오류, 인증 실패 | Tool 설정 확인, 시크릿 갱신 |
-| 스케일링 미작동 | 메트릭 수집 실패, HPA 설정 오류 | Prometheus 연결 확인, HPA 검증 |
+import { TroubleshootingTable } from '@site/src/components/KagentTables';
+
+<TroubleshootingTable />
+
 
 #### 디버깅 명령어
 
@@ -1377,9 +1400,13 @@ Kagent를 활용하면 Kubernetes 환경에서 AI 에이전트를 선언적으�
 
 ## 참고 자료
 
-- [Kagent GitHub Repository](https://github.com/kagent-dev/kagent)
-- [Kagent Documentation](https://kagent.dev/docs)
+- [Kagent 개념 및 디자인 패턴](https://github.com/kagent-dev/kagent) (참조 아키텍처)
+- [KubeAI - Kubernetes AI Platform](https://github.com/substratusai/kubeai)
+- [Seldon Core - MLOps Platform](https://github.com/SeldonIO/seldon-core)
+- [KServe - Serverless Inference](https://github.com/kserve/kserve)
 - [Kubernetes Operator Pattern](https://kubernetes.io/docs/concepts/extend-kubernetes/operator/)
 - [Custom Resource Definitions](https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/)
 - [Horizontal Pod Autoscaler](https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/)
 - [KEDA Documentation](https://keda.sh/docs/)
+- [re:Invent 2025 CNS421 - Streamline EKS Operations with Agentic AI](https://www.youtube.com/watch?v=4s-a0jY4kSE)
+- [CloudWatch Generative AI Observability](https://aws.amazon.com/blogs/mt/launching-amazon-cloudwatch-generative-ai-observability-preview/)

@@ -2,7 +2,7 @@
 title: "Milvus Vector Database Integration"
 sidebar_label: "Milvus Vector DB"
 description: "Guide to deploying and integrating Milvus vector database on Amazon EKS with RAG pipelines"
-sidebar_position: 8
+sidebar_position: 10
 tags:
   - milvus
   - vector-database
@@ -12,6 +12,15 @@ tags:
   - genai
   - embedding
 ---
+
+import {
+  ComponentRolesTable,
+  IndexComparisonTable,
+  MonitoringMetricsTable,
+  GPUInstanceTable,
+  GPUIndexingPerformanceTable,
+  StorageCostComparisonTable
+} from '@site/src/components/MilvusTables';
 
 # Milvus Vector Database Integration
 
@@ -97,16 +106,7 @@ graph TB
 
 ### Component Roles
 
-| Component | Kubernetes Resource | Role | Scaling |
-| --- | --- | --- | --- |
-| **Proxy** | Deployment | Client request handling, routing | Horizontal scaling |
-| **Coordinators** | Deployment | Metadata management, task coordination | Limited scaling |
-| **Query Nodes** | StatefulSet | Vector search execution | Horizontal scaling |
-| **Data Nodes** | StatefulSet | Data insertion/deletion processing | Horizontal scaling |
-| **Index Nodes** | StatefulSet | Index building | Horizontal scaling |
-| **etcd** | StatefulSet | Metadata storage | 3-5 node cluster |
-| **MinIO/S3** | External/StatefulSet | Vector data storage | Unlimited |
-| **Pulsar** | StatefulSet | Message queue for data sync | 3+ node cluster |
+<ComponentRolesTable />
 
 ## EKS Deployment Guide
 
@@ -323,13 +323,7 @@ serviceAccount:
 
 ### Main Index Type Comparison
 
-| Index Type | Search Speed | Accuracy | Memory Usage | Best Use Case |
-| --- | --- | --- | --- | --- |
-| FLAT | Slow | 100% | High | Small datasets, accuracy critical |
-| IVF_FLAT | Fast | High | Medium | General use case |
-| IVF_SQ8 | Very fast | Medium | Low | Large datasets, memory limited |
-| HNSW | Very fast | High | High | Real-time search, high performance |
-| DISKANN | Fast | High | Very low | Ultra-large datasets |
+<IndexComparisonTable />
 
 ### Index Creation Example
 
@@ -618,12 +612,7 @@ spec:
 
 ### Key Monitoring Metrics
 
-| Metric | Description | Threshold |
-| --- | --- | --- |
-| milvus_proxy_search_latency | Search latency | < 100ms |
-| milvus_querynode_search_nq | Queries per second | Monitor |
-| milvus_datanode_flush_duration | Data flush time | < 5s |
-| milvus_indexnode_build_duration | Index build time | Monitor |
+<MonitoringMetricsTable />
 
 ### Grafana Dashboard
 

@@ -7,7 +7,7 @@ category: "benchmark"
 last_update:
   date: 2026-02-09
   author: devfloor9
-sidebar_position: 5
+sidebar_position: 2
 ---
 
 import HttpPerformanceChart from '@site/src/components/HttpPerformanceChart';

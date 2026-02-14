@@ -156,7 +156,7 @@ graph LR
     subgraph Operations["Operations"]
         DEPLOY["Declarative Deployment"]
         OBSERVE["Observability"]
-        AGENT["AI Agent\nAutonomous Ops"]
+        AGENT["AI Agent<br/>Autonomous Ops"]
     end
 
     REQ --> SPEC --> DESIGN --> TASKS
