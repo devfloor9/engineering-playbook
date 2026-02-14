@@ -1686,6 +1686,19 @@ AWS VPC CNI는 **VPC 내부의 EC2 인스턴스에서만 동작**합니다. EKS 
 오버레이를 제거하려면 **BGP 피어링**이 필요합니다. Cilium BGP Control Plane v2로 Pod CIDR를 온프레미스 라우터에 광고하면 네이티브 라우팅이 가능하지만, 온프레미스 네트워크 장비의 BGP 지원이 전제됩니다.
 :::
 
+:::info Admission Webhook 라우팅 문제와 해결 방법
+EKS 컨트롤 플레인(AWS VPC 내)이 하이브리드 노드의 웹훅 파드에 도달하려면 Pod CIDR가 라우팅 가능해야 합니다. [AWS 공식 문서](https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-webhooks.html)에서는 두 가지 접근 방식을 제시합니다.
+
+**Pod CIDR가 라우팅 가능한 경우:**
+
+- BGP (권장), 정적 라우트, 또는 커스텀 라우팅으로 온프레미스 Pod CIDR를 광고
+
+**Pod CIDR가 라우팅 불가능한 경우 (BGP 없이):**
+
+- **웹훅을 클라우드 노드에서 실행** (AWS 공식 권장) — `nodeSelector` 또는 `nodeAffinity`로 웹훅 파드를 클라우드 노드에 고정. API 서버가 VPC 내에서 직접 접근 가능
+- **Cilium 오버레이(VXLAN) 모드를 전체 클러스터에 단일 CNI로 사용** — [참고 아티클](https://medium.com/@the.jfnadeau/eks-cilium-as-the-only-cni-driver-with-simplified-hybrid-nodes-and-admission-webhooks-routing-1f351d11f9dd). 오버레이 모드에서는 노드 IP 간 유니캐스트 통신만 필요하므로, API 서버가 VXLAN 터널을 통해 웹훅 파드에 도달 가능. 단, 클라우드 노드에서 ENI 네이티브 라우팅 이점을 포기해야 함
+:::
+
 :::tip Cilium 단일 구성 시 IPAM 고려사항
 Cilium의 `ipam.mode=eni`는 **AWS EC2 인스턴스에서만 동작**합니다. 온프레미스 노드가 포함된 하이브리드 클러스터에서 Cilium 단일 구성을 구현하는 방법은 세 가지입니다.
 

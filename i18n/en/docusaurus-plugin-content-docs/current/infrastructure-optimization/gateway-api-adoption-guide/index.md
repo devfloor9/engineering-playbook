@@ -1271,6 +1271,11 @@ Select the solution that best fits your organization based on the table above.
 **kGateway** — Unified gateway (API+mesh+AI+MCP), AI/ML workload routing, Solo.io enterprise support. Best for environments needing specialized AI/ML routing.
 
 </TabItem>
+<TabItem value="hybrid" label="Hybrid Nodes">
+
+**Cilium Gateway API + llm-d** — When integrating cloud and on-premises GPU nodes with EKS Hybrid Nodes, using Cilium as a unified CNI provides CNI unification + Hubble integrated observability + built-in Gateway API. AI inference traffic is optimized by llm-d with KV Cache-aware routing. See [Cilium ENI + Gateway API Advanced Guide — Section 7](/docs/infrastructure-optimization/gateway-api-adoption-guide/cilium-eni-gateway-api#7-hybrid-node-architecture-and-aiml-workloads) for details.
+
+</TabItem>
 </Tabs>
 
 ### 9.2 Future Expansion Roadmap
