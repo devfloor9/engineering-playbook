@@ -7,7 +7,7 @@ category: "performance-networking"
 last_update:
   date: 2025-02-09
   author: devfloor9
-sidebar_position: 7
+sidebar_position: 6
 ---
 
 # 대규모 EKS 환경 비용 관리 가이드

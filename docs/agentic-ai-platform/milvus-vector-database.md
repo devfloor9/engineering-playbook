@@ -2,19 +2,28 @@
 title: "Milvus 벡터 데이터베이스 통합"
 sidebar_label: "10. Milvus 벡터 DB"
 description: "Amazon EKS에서 Milvus 벡터 데이터베이스를 배포하고 RAG 파이프라인과 통합하는 방법"
-sidebar_position: 11
+sidebar_position: 10
 category: "genai-aiml"
 last_update:
-  date: 2025-02-05
+  date: 2026-02-13
   author: devfloor9
 tags: [milvus, vector-database, rag, kubernetes, eks, genai, embedding]
 ---
 
+import {
+  ComponentRolesTable,
+  IndexComparisonTable,
+  MonitoringMetricsTable,
+  GPUInstanceTable,
+  GPUIndexingPerformanceTable,
+  StorageCostComparisonTable
+} from '@site/src/components/MilvusTables';
+
 # Milvus 벡터 데이터베이스 통합
 
-> 📅 **작성일**: 2025-02-05 | ⏱️ **읽는 시간**: 약 27분
+> 📅 **작성일**: 2026-02-13 | ⏱️ **읽는 시간**: 약 27분
 
-Milvus는 대규모 벡터 유사도 검색을 위한 오픈소스 벡터 데이터베이스입니다. Agentic AI 플랫폼에서 RAG(Retrieval-Augmented Generation) 파이프라인의 핵심 컴포넌트로 활용됩니다.
+Milvus v2.4.x는 대규모 벡터 유사도 검색을 위한 오픈소스 벡터 데이터베이스입니다. Agentic AI 플랫폼에서 RAG(Retrieval-Augmented Generation) 파이프라인의 핵심 컴포넌트로 활용됩니다.
 
 ## 개요
 
@@ -107,14 +116,7 @@ graph TB
 
 ### 컴포넌트 역할
 
-| 컴포넌트 | 역할 | 스케일링 |
-| --- | --- | --- |
-| Proxy | 클라이언트 요청 라우팅 | 수평 확장 |
-| Query Node | 벡터 검색 수행 | 수평 확장 |
-| Data Node | 데이터 삽입/삭제 처리 | 수평 확장 |
-| Index Node | 인덱스 빌드 | 수평 확장 |
-| etcd | 메타데이터 저장 | 3-5 노드 클러스터 |
-| MinIO/S3 | 벡터 데이터 저장 | 무제한 |
+<ComponentRolesTable />
 
 ## EKS 배포 가이드
 
@@ -131,6 +133,7 @@ kubectl create namespace ai-data
 # 프로덕션 설정으로 설치
 helm install milvus milvus/milvus \
   --namespace ai-data \
+  --version 4.1.x \
   --set cluster.enabled=true \
   --set etcd.replicaCount=3 \
   --set minio.mode=distributed \
@@ -222,7 +225,7 @@ pulsar:
 
 ### Amazon S3를 스토리지로 사용
 
-MinIO 대신 Amazon S3를 직접 사용하면 운영 부담을 줄일 수 있습니다:
+MinIO 대신 Amazon S3를 직접 사용하면 운영 부담을 줄일 수 있습니다. S3 Express One Zone을 사용하면 더 빠른 성능과 낮은 지연 시간을 제공합니다:
 
 ```yaml
 # milvus-s3-values.yaml
@@ -235,6 +238,14 @@ externalS3:
   useIAM: true  # IRSA 사용
   cloudProvider: "aws"
 
+# S3 Express One Zone 사용 (선택사항 - 더 빠른 성능)
+# externalS3:
+#   enabled: true
+#   host: "s3express-ap-northeast-2.amazonaws.com"
+#   bucketName: "milvus-data-bucket--apne2-az1--x-s3"  # S3 Express 버킷 이름 형식
+#   useIAM: true
+#   cloudProvider: "aws"
+
 minio:
   enabled: false  # MinIO 비활성화
 
@@ -244,6 +255,15 @@ serviceAccount:
   annotations:
     eks.amazonaws.com/role-arn: "arn:aws:iam::XXXXXXXXXXXX:role/MilvusS3Role"
 ```
+
+:::tip S3 Express One Zone 장점
+
+- **10배 빠른 성능**: 표준 S3 대비 10배 빠른 데이터 액세스
+- **일관된 밀리초 지연**: 단일 자리 밀리초 지연 시간
+- **비용 효율**: 요청 비용 50% 절감
+- **단일 AZ**: 동일 AZ 내 컴퓨팅 리소스와 함께 사용 시 최적
+
+:::
 
 :::tip S3 IAM 정책
 
@@ -274,13 +294,32 @@ serviceAccount:
 
 ### 주요 인덱스 타입 비교
 
-| 인덱스 타입 | 검색 속도 | 정확도 | 메모리 사용 | 적합한 사용 사례 |
-| --- | --- | --- | --- | --- |
-| FLAT | 느림 | 100% | 높음 | 소규모 데이터, 정확도 중요 |
-| IVF_FLAT | 빠름 | 높음 | 중간 | 일반적인 사용 사례 |
-| IVF_SQ8 | 매우 빠름 | 중간 | 낮음 | 대규모 데이터, 메모리 제한 |
-| HNSW | 매우 빠름 | 높음 | 높음 | 실시간 검색, 고성능 필요 |
-| DISKANN | 빠름 | 높음 | 매우 낮음 | 초대규모 데이터 |
+<IndexComparisonTable />
+
+### SCANN 인덱스 (Milvus 2.4+)
+
+Google의 Scalable Nearest Neighbors(SCANN) 인덱스는 Milvus 2.4에서 추가된 고성능 인덱스입니다:
+
+```python
+# SCANN 인덱스 생성
+index_params = {
+    "metric_type": "COSINE",
+    "index_type": "SCANN",
+    "params": {
+        "nlist": 1024,  # 클러스터 수
+        "with_raw_data": True,  # 원본 데이터 저장 여부
+    }
+}
+
+collection.create_index(field_name="embedding", index_params=index_params)
+collection.load()
+```
+
+**SCANN 장점:**
+- HNSW와 유사한 검색 속도
+- IVF 계열보다 높은 정확도
+- 메모리 사용량이 HNSW보다 낮음
+- 대규모 데이터셋에서 우수한 성능
 
 ### 인덱스 생성 예제
 
@@ -400,7 +439,7 @@ from langchain.prompts import PromptTemplate
 
 # LLM 설정
 llm = ChatOpenAI(
-    model="gpt-4-turbo-preview",
+    model="gpt-4o",
     temperature=0,
 )
 
@@ -498,11 +537,11 @@ pip install milvus-backup
 # 백업 설정 파일
 cat > backup_config.yaml << EOF
 milvus:
-  address: milvus-proxy.milvus.svc.cluster.local
+  address: milvus-proxy.ai-data.svc.cluster.local
   port: 19530
 
 minio:
-  address: minio.milvus.svc.cluster.local
+  address: minio.ai-data.svc.cluster.local
   port: 9000
   accessKeyID: minioadmin
   secretAccessKey: minioadmin
@@ -569,12 +608,7 @@ spec:
 
 ### 주요 모니터링 메트릭
 
-| 메트릭 | 설명 | 임계값 |
-| --- | --- | --- |
-| milvus_proxy_search_latency | 검색 지연 시간 | < 100ms |
-| milvus_querynode_search_nq | 초당 검색 쿼리 수 | 모니터링 |
-| milvus_datanode_flush_duration | 데이터 플러시 시간 | < 5s |
-| milvus_indexnode_build_duration | 인덱스 빌드 시간 | 모니터링 |
+<MonitoringMetricsTable />
 
 ### Grafana 대시보드
 
@@ -618,8 +652,9 @@ Milvus Operator를 사용하면 복잡한 분산 아키텍처를 선언적으로
 
 ```bash
 # Milvus Operator 설치
-helm repo add milvus https://milvus-io.github.io/milvus-helm/
-helm install milvus-operator milvus/milvus-operator -n milvus-operator --create-namespace
+helm repo add milvus-operator https://milvus-io.github.io/milvus-operator/
+helm repo update
+helm install milvus-operator milvus-operator/milvus-operator -n milvus-operator --create-namespace
 ```
 
 ### Milvus 클러스터 CRD 배포
@@ -629,7 +664,7 @@ apiVersion: milvus.io/v1beta1
 kind: Milvus
 metadata:
   name: milvus-cluster
-  namespace: ai-vectordb
+  namespace: ai-data
 spec:
   mode: cluster
   dependencies:
@@ -696,13 +731,13 @@ spec:
           effect: NoSchedule
 ```
 
+**권장 GPU 인스턴스:**
+
+<GPUInstanceTable />
+
 **GPU 인덱싱 성능 비교:**
 
-| 인덱스 타입 | CPU 빌드 시간 | GPU 빌드 시간 | 속도 향상 |
-| --- | --- | --- | --- |
-| IVF_FLAT (1M 벡터) | 45분 | 8분 | 5.6배 |
-| HNSW (1M 벡터) | 120분 | 25분 | 4.8배 |
-| IVF_SQ8 (10M 벡터) | 8시간 | 90분 | 5.3배 |
+<GPUIndexingPerformanceTable />
 
 ---
 
@@ -718,12 +753,25 @@ spec:
 - 프로덕션 환경에서는 최소 3개의 Query Node를 운영하세요
 - 대규모 데이터셋(1억+ 벡터)에서는 DISKANN 인덱스를 고려하세요
 - S3를 스토리지로 사용하면 운영 복잡도를 크게 줄일 수 있습니다
-- GPU를 사용한 인덱싱으로 빌드 시간을 크게 단축할 수 있습니다
+- S3 Express One Zone을 사용하면 10배 빠른 성능과 50% 저렴한 요청 비용을 제공합니다
+- GPU를 사용한 인덱싱으로 빌드 시간을 크게 단축할 수 있습니다 (g5.xlarge 권장)
+- Milvus v2.4.x는 SCANN 인덱스, 하이브리드 검색, 스칼라 필터링, 동적 스키마 등 고급 기능을 제공합니다
+- Helm 차트 버전 4.1.x를 사용하여 Milvus 2.4.x를 배포하세요
 :::
+
+### 스토리지 비용 비교
+
+<StorageCostComparisonTable />
+
+**권장 사항:**
+- **개발/테스트**: MinIO (간편한 설정)
+- **프로덕션 (일반)**: S3 Standard (비용 효율)
+- **프로덕션 (고성능)**: S3 Express One Zone (10배 빠른 성능)
 
 :::warning 주의사항
 
 - 인덱스 빌드는 CPU/메모리를 많이 사용하므로 별도 시간대에 수행하세요
 - 컬렉션 삭제 시 데이터가 영구 삭제되므로 백업을 먼저 확인하세요
 - GPU Index Node는 비용이 높으므로 필요한 경우에만 활성화하세요
+- S3 Express One Zone은 단일 AZ에 제한되므로 고가용성 요구사항을 고려하세요
 :::

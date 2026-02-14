@@ -1,0 +1,97 @@
+/* SpecificationTable Component Styles */
+
+.specTableWrapper {
+  position: relative;
+}
+
+.valueCell {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--ifm-font-family-monospace);
+}
+
+.statusDot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.normal .statusDot {
+  background-color: var(--ifm-color-success);
+}
+
+.warning .statusDot {
+  background-color: var(--ifm-color-warning);
+}
+
+.danger .statusDot {
+  background-color: var(--ifm-color-danger);
+}
+
+.normal {
+  color: var(--ifm-color-success-dark);
+}
+
+.warning {
+  color: var(--ifm-color-warning-dark);
+  font-weight: 600;
+}
+
+.danger {
+  color: var(--ifm-color-danger-dark);
+  font-weight: 700;
+}
+
+/* Dark mode adjustments */
+[data-theme='dark'] .normal {
+  color: var(--ifm-color-success-light);
+}
+
+[data-theme='dark'] .warning {
+  color: var(--ifm-color-warning-light);
+}
+
+[data-theme='dark'] .danger {
+  color: var(--ifm-color-danger-light);
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .valueCell {
+    gap: 0.3rem;
+    font-size: 0.85rem;
+  }
+  
+  .statusDot {
+    width: 6px;
+    height: 6px;
+  }
+}
+
+/* Print styles */
+@media print {
+  .statusDot {
+    border: 1px solid #000;
+  }
+  
+  .normal .statusDot {
+    background-color: white;
+  }
+  
+  .warning .statusDot {
+    background-color: #ddd;
+  }
+  
+  .danger .statusDot {
+    background-color: #666;
+  }
+  
+  .normal,
+  .warning,
+  .danger {
+    color: #000;
+  }
+}

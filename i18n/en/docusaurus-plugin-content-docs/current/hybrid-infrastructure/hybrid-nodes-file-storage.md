@@ -6,7 +6,7 @@ tags: [eks, hybrid-nodes, storage, efs, fsx, nfs, amazon-linux-2023]
 category: "hybrid-multicloud"
 date: 2025-09-15
 authors: [devfloor9]
-sidebar_position: 4
+sidebar_position: 3
 ---
 
 # EKS Hybrid Nodes Shared File Storage Solution

@@ -2,7 +2,7 @@
 title: "Building MLOps Pipeline on EKS"
 sidebar_label: "MLOps Pipeline"
 description: "End-to-end ML lifecycle management based on Kubeflow + MLflow + KServe"
-sidebar_position: 5
+sidebar_position: 15
 category: "aiops-aidlc"
 tags: [mlops, kubeflow, mlflow, kserve, argo-workflows, eks, ml-pipeline]
 last_update:

@@ -2,7 +2,7 @@
 title: "Ragas RAG Evaluation Framework"
 sidebar_label: "Ragas Evaluation"
 description: "Evaluate and continuously improve RAG pipeline quality using Ragas"
-sidebar_position: 9
+sidebar_position: 13
 tags:
   - ragas
   - rag
@@ -12,6 +12,8 @@ tags:
   - genai
   - testing
 ---
+
+import { RagasVsBedrockComparison, RagasMetrics, CostOptimizationStrategies, CostComparison, ImprovementChecklist } from '@site/src/components/RagasTables';
 
 # Ragas RAG Evaluation Framework
 
@@ -58,14 +60,7 @@ graph LR
 
 ### Ragas Core Metrics
 
-| Metric | Measures | Description |
-| --- | --- | --- |
-| Faithfulness | Generation Quality | Whether answer is faithful to context |
-| Answer Relevancy | Generation Quality | Whether answer is relevant to question |
-| Context Precision | Retrieval Quality | Precision of retrieved context |
-| Context Recall | Retrieval Quality | Whether required information is retrieved |
-| Context Relevancy | Retrieval Quality | Whether context is relevant to question |
-| Answer Correctness | Overall Quality | Answer accuracy |
+<RagasMetrics />
 
 ## Installation and Basic Setup
 
@@ -539,12 +534,7 @@ graph TD
 
 ### Improvement Checklist
 
-| Problem | Possible Cause | Solution |
-| --- | --- | --- |
-| Faithfulness < 0.7 | LLM ignores context | Emphasize "use context only" in prompt |
-| Context Precision < 0.6 | Poor retrieval quality | Upgrade embedding model, add re-ranking |
-| Context Recall < 0.6 | Missing relevant docs | Increase k, use hybrid search |
-| Answer Relevancy < 0.7 | Rambling answers | Structure prompt, specify output format |
+<ImprovementChecklist />
 
 ## Related Documentation
 

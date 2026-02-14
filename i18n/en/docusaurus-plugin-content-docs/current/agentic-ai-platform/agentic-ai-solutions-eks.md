@@ -11,6 +11,25 @@ sidebar_position: 4
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
+import {
+  EksKarpenterLayers,
+  ClusterAutoscalerVsKarpenter,
+  KarpenterKeyFeatures,
+  EksAutoModeVsStandard,
+  KarpenterGpuOptimization,
+  SpotInstancePricingInference,
+  SavingsPlansPricingTraining,
+  SmallScaleCostCalculation,
+  MediumScaleCostCalculation,
+  LargeScaleCostCalculation,
+  CostOptimizationStrategies,
+  TroubleshootingGuide,
+  SecurityLayers,
+  CostOptimizationDetails,
+  TrainingCostOptimization,
+  DeploymentTimeComparison,
+  EksIntegrationBenefits
+} from '@site/src/components/AgenticSolutionsTables';
 
 # EKS-Based Agentic AI Solutions
 
@@ -93,16 +112,7 @@ graph TB
 
 ### Why EKS + Karpenter?
 
-| Aspect | Traditional Cluster Autoscaler | Karpenter on EKS |
-|--------|-------------------------------|------------------|
-| **Scaling Speed** | 60-90 seconds (ASG-based) | 10-30 seconds (direct EC2 API) |
-| **Instance Selection** | Limited by ASG pre-configuration | Dynamic selection from 600+ EC2 types |
-| **GPU Workloads** | Requires separate ASGs per GPU type | Single NodePool handles all GPU types |
-| **Spot Optimization** | Manual fallback configuration | Automatic spot-to-on-demand fallback |
-| **Cost Efficiency** | Limited consolidation | Aggressive bin-packing and consolidation |
-| **AWS Integration** | Indirect via ASG | Direct EC2/Spot API calls |
-| **Configuration** | ASG + IAM + Launch Templates | Simple NodePool CRD |
-
+<EksKarpenterLayers />
 **Karpenter Advantages for Agentic AI:**
 
 1. **Heterogeneous Workloads**: Mix CPU-only agents with GPU-intensive LLM pods
@@ -123,14 +133,7 @@ EKS Auto Mode is a fully managed node lifecycle offering that automates:
 
 **Key Benefits for Agentic AI:**
 
-| Feature | Benefit for Agentic AI |
-|---------|------------------------|
-| **Zero-touch Nodes** | No manual AMI updates or node group management |
-| **Automatic Scaling** | Built-in autoscaling without Karpenter configuration |
-| **Security Patching** | Automatic OS and Kubernetes security updates |
-| **Storage Automation** | Dynamic PV provisioning for model caching and vector stores |
-| **Network Policies** | Integrated network security for multi-tenant agents |
-
+<ClusterAutoscalerVsKarpenter />
 **When to Use EKS Auto Mode vs. Karpenter:**
 
 <Tabs>
@@ -212,24 +215,10 @@ sequenceDiagram
     end
 ```
 
-| Comparison | Cluster Autoscaler | Karpenter |
-|------------|-------------------|-----------|
-| **Provisioning Time** | 5-10 min | 2-3 min |
-| **Instance Selection** | Fixed types in Node Group | Dynamic based on workload |
-| **GPU Support** | Manual Node Group config | Automatic NodePool matching |
-| **Cost Optimization** | Limited | Auto Spot, Consolidation |
-
+<KarpenterKeyFeatures />
 **Decision Criteria:**
 
-| Your Situation | Recommendation |
-|----------------|----------------|
-| New EKS cluster for Agentic AI | **Karpenter** (native AWS integration) |
-| Existing cluster with CA | **Migrate to Karpenter** (worth the effort) |
-| Need GPU autoscaling | **Karpenter** (required for GPU efficiency) |
-| Simple CPU-only workloads | **EKS Auto Mode** (easiest option) |
-| Multi-tenant platform | **Karpenter** (better isolation and cost attribution) |
-| Regulated industries | **EKS Auto Mode** (compliance-friendly) |
-
+<EksAutoModeVsStandard />
 ---
 
 ## Detailed Analysis of 4 Key Technical Challenges
@@ -440,15 +429,7 @@ spec:
 
 **Key Karpenter Features for GPU Workloads:**
 
-| Feature | Benefit | Configuration |
-|---------|---------|---------------|
-| **Spot + On-Demand Mix** | 70% cost savings with automatic fallback | `capacity-type: [spot, on-demand]` |
-| **Multi-Instance Support** | Select optimal GPU type per workload | `instance-family: [g5, g6, p4d, p5]` |
-| **Consolidation** | Bin-pack pods to minimize GPU waste | `consolidationPolicy: WhenUnderutilized` |
-| **Graceful Disruption** | Respect PDBs during node replacement | `budgets: nodes: 10%` |
-| **Fast Scaling** | Provision GPU nodes in under 60 seconds | Direct EC2 API calls |
-| **Custom AMIs** | Pre-loaded models and drivers | `amiSelectorTerms` |
-
+<KarpenterGpuOptimization />
 #### 3. Intelligent GPU Scheduling with Karpenter
 
 **Pod Specification with GPU Requirements:**
@@ -617,14 +598,7 @@ aws cloudwatch put-metric-alarm \
 
 **Solution Summary:**
 
-| Component | Purpose | AWS Integration |
-|-----------|---------|-----------------|
-| **DCGM-Exporter** | Collect GPU metrics | CloudWatch Container Insights |
-| **Karpenter GPU NodePool** | Provision GPU nodes | EC2 Spot API, CloudWatch metrics |
-| **CloudWatch Dashboard** | Visualize GPU health | Native AWS service |
-| **CloudWatch Alarms** | Alert on GPU issues | SNS notifications |
-| **IAM Roles (IRSA)** | Secure S3 model access | Pod-level permissions |
-
+<SpotInstancePricingInference />
 ---
 
 ### Challenge 2: Dynamic Routing and Scaling
@@ -1126,24 +1100,10 @@ aws apigatewayv2 create-integration \
 
 **Solution Summary:**
 
-| Component | Purpose | Scaling Trigger |
-|-----------|---------|-----------------|
-| **KEDA** | Pod autoscaling | Redis queue depth, SQS, CloudWatch |
-| **Karpenter** | Node autoscaling | Pod pressure from KEDA scaling |
-| **ALB Ingress** | Multi-model routing | Path-based routing |
-| **Redis Streams** | Task queue | Persistent, distributed queue |
-| **CloudWatch** | Observability | Custom metrics for latency, throughput |
-
+<SavingsPlansPricingTraining />
 **Performance Characteristics:**
 
-| Metric | Without KEDA | With KEDA + Karpenter |
-|--------|--------------|----------------------|
-| **Scale-up latency** | 3-5 minutes (CPU-based HPA) | 30-60 seconds (queue-based) |
-| **Scale-down safety** | Aggressive, may kill tasks | Cooldown + stabilization |
-| **Cold start handling** | minReplicas=0, slow start | minReplicas=1, warm pool |
-| **Burst handling** | Delayed, CPU threshold based | Immediate, queue depth based |
-| **Cost efficiency** | Moderate (always-on capacity) | High (scale to zero capable) |
-
+<SmallScaleCostCalculation />
 ---
 
 ### Challenge 3: Token/Session Cost Control
@@ -1587,23 +1547,10 @@ aws cloudwatch put-metric-data \
 
 **Solution Summary:**
 
-| Strategy | Cost Impact | Implementation |
-|----------|-------------|----------------|
-| **Spot Instances** | 60-90% cheaper than On-Demand | Karpenter `capacity-type: spot` |
-| **Consolidation** | 20-40% reduction in idle nodes | `consolidateAfter: 30s` |
-| **Right-sizing** | 10-30% savings from optimal instances | Diverse `instance-family` |
-| **Scale-to-zero** | 100% savings during idle periods | KEDA `minReplicaCount: 0` |
-| **Token Limits** | 10-50% reduction in LLM costs | Application-level limits |
-
+<MediumScaleCostCalculation />
 **Estimated Cost Breakdown (100 GPU hours/month):**
 
-| Configuration | Monthly Cost | Savings |
-|---------------|--------------|---------|
-| **Baseline (On-Demand g5.2xlarge)** | $12,100 | - |
-| **With Spot (70% coverage)** | $4,235 | 65% |
-| **+ Consolidation (30% idle reduction)** | $2,965 | 75% |
-| **+ Right-sizing (20% better packing)** | $2,372 | 80% |
-
+<LargeScaleCostCalculation />
 ---
 
 ### Challenge 4: FM Fine-tuning Infrastructure
@@ -2083,22 +2030,10 @@ track_training_cost(
 
 **Solution Summary:**
 
-| Component | Purpose | Cost Optimization |
-|-----------|---------|-------------------|
-| **Dedicated NodePool** | Isolate training from inference | Spot instances, right-sized for training |
-| **Kubeflow/AWS Batch** | Distributed training orchestration | Multi-node GPU utilization |
-| **Checkpointing** | Spot interruption recovery | Minimize wasted compute |
-| **FSx for Lustre** | High-throughput data access | Reduce training time |
-| **EFA Networking** | Low-latency GPU communication | Faster distributed training |
-
+<CostOptimizationStrategies />
 **Training Cost Comparison:**
 
-| Configuration | Cost per Job | Time to Complete |
-|---------------|--------------|------------------|
-| **On-Demand p4d.24xlarge (2 nodes)** | $524 | 8 hours |
-| **Spot p4d.24xlarge (2 nodes, 70% discount)** | $157 | 8.5 hours (with 1 interruption) |
-| **Spot p5.48xlarge (1 node, newer gen)** | $196 | 5 hours (faster GPU) |
-
+<TroubleshootingGuide />
 ---
 
 ## Easy Deployment of Agentic AI Platform on EKS
@@ -2392,12 +2327,7 @@ graph TB
 
 To effectively operate Agentic AI workloads, EKS officially supports the following **Integration Capabilities**:
 
-| EKS Capability | Role | Agentic AI Usage | Support Method |
-|----------------|------|------------------|----------------|
-| **ACK (AWS Controllers for Kubernetes)** | Kubernetes-native management of AWS services | S3 model storage, RDS metadata, SageMaker training jobs | EKS Add-on |
-| **KRO (Kubernetes Resource Orchestrator)** | Composite resource abstraction and templating | One-click deployment of AI inference stacks, training pipelines | EKS Add-on |
-| **Argo CD** | GitOps-based continuous deployment | Model serving deployment automation, rollback, environment sync | EKS Add-on |
-
+<SecurityLayers />
 :::warning Argo Workflows Requires Manual Installation
 **Argo Workflows** is NOT officially supported as an EKS Capability, so **manual installation is required**.
 When combined with Argo CD (EKS Capability), it enables powerful ML pipeline automation.
@@ -2448,14 +2378,7 @@ graph LR
 
 **ACK Use Cases for AI Platforms:**
 
-| AWS Service | ACK Controller | Agentic AI Usage |
-|-------------|---------------|------------------|
-| **S3** | `s3.services.k8s.aws` | Model artifact storage, training data buckets |
-| **RDS/Aurora** | `rds.services.k8s.aws` | LangFuse backend, metadata storage |
-| **SageMaker** | `sagemaker.services.k8s.aws` | Model training jobs, endpoint deployment |
-| **Secrets Manager** | `secretsmanager.services.k8s.aws` | API keys, model credentials management |
-| **ECR** | `ecr.services.k8s.aws` | Container image registry |
-
+<CostOptimizationDetails />
 **Example: Creating S3 Bucket with ACK:**
 
 ```yaml
@@ -2751,14 +2674,7 @@ graph TB
     style KARP fill:#ffd93d
 ```
 
-| Component | Role | Automation Scope |
-|-----------|------|------------------|
-| **Argo CD** | GitOps deployment automation | Application deployment, rollback, sync |
-| **Argo Workflows** | ML pipeline orchestration | Training, evaluation, model registration workflows |
-| **KRO** | Composite resource abstraction | Manage K8s + AWS resources as a single unit |
-| **ACK** | Declarative AWS resource management | S3, RDS, SageMaker, and other AWS services |
-| **Karpenter** | GPU node provisioning | Just-in-Time instance provisioning |
-
+<TrainingCostOptimization />
 :::info Benefits of Full Automation
 With this integrated architecture:
 
@@ -2818,22 +2734,10 @@ graph TB
 
 We recommend starting with **EKS Auto Mode** when building a new Agentic AI platform.
 
-| Benefit | Description |
-| --- | --- |
-| **Immediate Start** | Deploy GPU workloads immediately after cluster creation without Karpenter installation/configuration |
-| **Automatic Upgrades** | Automatic updates for core components like Karpenter, CNI, CSI |
-| **Automated Security Patching** | Automatic application of security vulnerability patches |
-| **Extensible with Custom Configuration** | Add custom settings like GPU NodePool, EFA NodeClass when needed |
-
+<DeploymentTimeComparison />
 ### Final Summary of Solutions by Challenge
 
-| Challenge | Kubernetes-Based | EKS Auto Mode + Karpenter | Expected Effect |
-| --- | --- | --- | --- |
-| **GPU Monitoring** | DCGM + Prometheus | NodePool-based integrated management | 40% improved resource utilization |
-| **Dynamic Scaling** | HPA + KEDA | Just-in-Time provisioning (auto-configured) | 50% reduced provisioning time |
-| **Cost Control** | Namespace Quota | Spot + Consolidation (auto-enabled) | 50-70% cost reduction |
-| **FM Fine-tuning** | Kubeflow Operator | Training NodePool + EFA | 30% improved training efficiency |
-
+<EksIntegrationBenefits />
 ### Key Recommendations
 
 1. **Start with EKS Auto Mode**: Create new clusters with Auto Mode to leverage automatic Karpenter configuration

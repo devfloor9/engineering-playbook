@@ -6,7 +6,7 @@ tags: [kubernetes, genai, agentic-ai, gpu, challenges, open-source]
 category: "genai-aiml"
 date: "2025-02-05"
 authors: [devfloor9]
-sidebar_position: 3
+sidebar_position: 1
 ---
 
 import Tabs from '@theme/Tabs';

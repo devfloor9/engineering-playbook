@@ -7,7 +7,7 @@ category: "rosa"
 last_update:
   date: 2025-02-05
   author: devfloor9
-sidebar_position: 3
+sidebar_position: 1
 ---
 
 # ROSA 데모 설치 가이드

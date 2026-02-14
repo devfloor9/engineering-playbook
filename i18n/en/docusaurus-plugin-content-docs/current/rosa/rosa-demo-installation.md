@@ -6,7 +6,7 @@ tags: [rosa, openshift, installation, sts, demo, autoscaling, iam]
 category: "rosa"
 date: 2024-03-06
 authors: [devfloor9]
-sidebar_position: 3
+sidebar_position: 1
 ---
 
 # ROSA Demo Installation Guide

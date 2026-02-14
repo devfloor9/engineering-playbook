@@ -5,9 +5,9 @@ description: "Kgateway 기반 AI 모델 추론 요청의 동적 라우팅 및 �
 tags: [eks, gateway-api, kgateway, routing, load-balancing, inference]
 category: "genai-aiml"
 last_update:
-  date: 2025-02-05
+  date: 2026-02-13
   author: devfloor9
-sidebar_position: 10
+sidebar_position: 9
 ---
 
 # Inference Gateway 및 Dynamic Routing
@@ -88,12 +88,10 @@ flowchart TB
 
 ### 컴포넌트 구조
 
-| 컴포넌트 | 역할 | 설명 |
-|---------|------|------|
-| **GatewayClass** | 게이트웨이 구현체 정의 | Kgateway 컨트롤러 지정 |
-| **Gateway** | 진입점 정의 | 리스너, TLS, 주소 설정 |
-| **HTTPRoute** | 라우팅 규칙 | 경로, 헤더 기반 라우팅 |
-| **Backend** | 모델 서비스 | vLLM, TGI 등 추론 서버 |
+import { ComponentStructureTable } from '@site/src/components/InferenceGatewayTables';
+
+<ComponentStructureTable />
+
 
 ### 트래픽 플로우
 
@@ -118,39 +116,88 @@ sequenceDiagram
 Kgateway는 Kubernetes Gateway API 표준을 구현하여 벤더 중립적인 설정이 가능합니다. 이를 통해 다른 Gateway 구현체로의 마이그레이션이 용이합니다.
 :::
 
+### Topology-Aware Routing (Kubernetes 1.33+)
+
+Kubernetes 1.33+의 topology-aware routing을 활용하면 동일 AZ 내 Pod 간 통신을 우선시하여 크로스 AZ 데이터 전송 비용을 절감하고 지연 시간을 개선할 수 있습니다.
+
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: vllm-inference
+  namespace: ai-inference
+  annotations:
+    # Kubernetes 1.33+ Topology-Aware Routing
+    service.kubernetes.io/topology-mode: "Auto"
+spec:
+  selector:
+    app: vllm
+  ports:
+    - port: 8000
+      targetPort: 8000
+  # 토폴로지 인식 라우팅 활성화
+  trafficDistribution: PreferClose
+```
+
+##### Topology-Aware Routing 효과
+
+import { TopologyEffectsTable } from '@site/src/components/InferenceGatewayTables';
+
+<TopologyEffectsTable />
+
+
+:::tip Topology-Aware Routing 활용 시나리오
+- **멀티 AZ 배포**: 여러 AZ에 분산된 GPU 노드 간 통신 최적화
+- **대규모 추론**: 높은 처리량이 필요한 추론 워크로드
+- **비용 최적화**: 크로스 AZ 데이터 전송 비용 절감이 중요한 경우
+:::
+
 ---
 
 ## Kgateway 설치 및 구성
 
 ### 사전 요구사항
 
-- Kubernetes 1.28 이상
+- Kubernetes 1.33 이상 (topology-aware routing 지원)
 - Helm 3.x
 - Gateway API CRD 설치
+
+:::info Kubernetes 1.33+ 권장
+Kubernetes 1.33+를 사용하면 topology-aware routing을 활용하여 크로스 AZ 트래픽 비용을 절감하고 지연 시간을 개선할 수 있습니다. Kubernetes 1.34+에서는 projected service account tokens로 보안이 더욱 강화됩니다.
+:::
 
 ### Gateway API CRD 설치
 
 ```bash
-# Gateway API 표준 CRD 설치
+# Gateway API 표준 CRD 설치 (v1.2.0+)
 kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.2.0/standard-install.yaml
 
 # 실험적 기능 포함 설치 (HTTPRoute 필터 등)
 kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.2.0/experimental-install.yaml
 ```
 
+:::info Gateway API v1.2.0+ 기능
+Gateway API v1.2.0은 다음과 같은 향상된 기능을 제공합니다:
+- **HTTPRoute 개선**: 더 유연한 라우팅 규칙
+- **GRPCRoute 안정화**: gRPC 서비스 라우팅 지원
+- **BackendTLSPolicy**: 백엔드 TLS 설정 표준화
+- **Kubernetes 1.33+ 통합**: Topology-aware routing 지원
+:::
+
 ### Kgateway Helm 차트 설치
 
 ```bash
 # Helm 저장소 추가
-helm repo add kgateway https://kgateway-dev.github.io/kgateway/
+helm repo add kgateway oci://cr.kgateway.dev/kgateway-dev/charts
 helm repo update
 
 # 네임스페이스 생성
 kubectl create namespace kgateway-system
 
-# Kgateway 설치
+# Kgateway 설치 (v2.0+)
 helm install kgateway kgateway/kgateway \
   --namespace kgateway-system \
+  --version 2.0.5 \
   --set controller.replicaCount=2 \
   --set controller.resources.requests.cpu=500m \
   --set controller.resources.requests.memory=512Mi \
@@ -159,6 +206,13 @@ helm install kgateway kgateway/kgateway \
   --set metrics.enabled=true \
   --set metrics.serviceMonitor.enabled=true
 ```
+
+:::info Kgateway v2.0+ 기능
+Kgateway v2.0+는 다음과 같은 향상된 기능을 제공합니다:
+- **Gateway API v1.2.0+ 지원**: 최신 Gateway API 표준 완벽 지원
+- **향상된 성능**: 더 빠른 라우팅 및 낮은 지연 시간
+- **Kubernetes 1.33+ 최적화**: Topology-aware routing 통합
+:::
 
 ### Helm Values 상세 설정
 
@@ -812,13 +866,10 @@ spec:
 
 Kgateway가 노출하는 주요 메트릭입니다.
 
-| 메트릭 | 설명 | 활용 |
-|--------|------|------|
-| `kgateway_requests_total` | 총 요청 수 | 트래픽 모니터링 |
-| `kgateway_request_duration_seconds` | 요청 처리 시간 | 지연 시간 분석 |
-| `kgateway_upstream_rq_xx` | 백엔드 응답 코드별 수 | 오류율 추적 |
-| `kgateway_upstream_cx_active` | 활성 연결 수 | 용량 계획 |
-| `kgateway_retry_count` | 재시도 횟수 | 안정성 분석 |
+import { MonitoringMetricsTable } from '@site/src/components/InferenceGatewayTables';
+
+<MonitoringMetricsTable />
+
 
 ### ServiceMonitor 설정
 

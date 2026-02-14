@@ -6,7 +6,7 @@ tags: [eks, hybrid-nodes, harbor, container-registry, kubernetes, ssl-tls, nodea
 category: "hybrid-multicloud"
 date: 2025-08-20
 authors: [devfloor9]
-sidebar_position: 5
+sidebar_position: 2
 ---
 
 # Harbor 2.13 and EKS Hybrid Nodes Integration Guide

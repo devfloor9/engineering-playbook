@@ -2,16 +2,17 @@
 title: "Agentic AI Platform"
 sidebar_label: "Agentic AI 플랫폼"
 description: "Amazon EKS에서 생성형 AI 및 AI/ML 워크로드 구축과 운영에 대한 심화 기술 문서"
+tags: [eks, kubernetes, genai, agentic-ai, gpu, llm, platform]
 category: "genai-aiml"
 sidebar_position: 3
 last_update:
-  date: 2025-02-05
+  date: 2026-02-13
   author: devfloor9
 ---
 
 # Agentic AI Platform
 
-> 📅 **작성일**: 2025-02-05 | ⏱️ **읽는 시간**: 약 3분
+> 📅 **작성일**: 2025-02-05 | **수정일**: 2026-02-13 | ⏱️ **읽는 시간**: 약 3분
 
 현대의 생성형 AI 플랫폼은 단순한 모델 서빙을 넘어 복잡한 에이전트 시스템, 동적 리소스 관리, 그리고 비용 효율적인 운영이 요구되는 종합적인 기술 스택을 필요로 합니다. Amazon EKS 기반의 Agentic AI 플랫폼은 Kubernetes의 강력한 오케스트레이션 능력을 활용하여 이러한 요구사항을 충족시키는 현대적인 접근 방식입니다. 이 플랫폼은 GPU 리소스의 동적 할당과 스케일링, 다양한 LLM 프로바이더 간의 지능적 라우팅, 그리고 실시간 모니터링을 통한 비용 최적화를 하나의 통합된 시스템으로 제공합니다.
 
@@ -22,6 +23,10 @@ Kubernetes 네이티브 접근 방식의 핵심 철학은 오픈소스 생태계
 이러한 기술 스택의 조합은 Frontier Model 트래픽 처리에서 발생하는 네 가지 핵심 도전과제를 효과적으로 해결합니다. GPU 스케줄링과 리소스 격리는 MIG와 Time-Slicing을 통해 다중 테넌트 환경에서도 안정적인 성능을 보장하며, 동적 라우팅 계층은 모델 가용성과 비용을 고려한 지능적인 요청 분배를 수행합니다. Agent 라이프사이클 관리는 Kagent CRD를 통해 선언적으로 정의되고, 전체 시스템의 관찰 가능성은 Langfuse와 Prometheus 기반 메트릭으로 확보됩니다. 이 모든 것이 Kubernetes의 자가 치유 능력과 결합되어 24/7 무중단 운영이 가능한 플랫폼을 완성합니다.
 
 ## 주요 문서 (구현 순서)
+
+:::tip 문서 완성도
+이 섹션의 16개 문서가 모두 작성 완료되었으며, 순차적 학습 경로를 제공합니다. 각 문서는 이전 문서의 개념을 기반으로 구축되므로, 순서대로 학습하는 것을 권장합니다.
+:::
 
 ### 이해 및 설계
 
@@ -138,19 +143,20 @@ graph TB
 
 ## 🔧 주요 기술 및 도구
 
-| 기술 | 설명 | 용도 |
-| --- | --- | --- |
-| **Kagent** | Kubernetes Agent 관리 | CRD 기반 Agent 라이프사이클 |
-| **Kgateway** | Inference Gateway | 동적 라우팅 및 로드밸런싱 |
-| **Milvus** | 벡터 데이터베이스 | RAG 파이프라인 지원 |
-| **Ragas** | RAG 평가 프레임워크 | 품질 측정 및 CI/CD 통합 |
-| **NeMo** | LLM 학습 프레임워크 | 파인튜닝 및 최적화 |
-| **LiteLLM** | 다중 LLM 프로바이더 통합 | LLM 라우팅 및 폴백 |
-| **LangGraph** | AI 워크플로우 오케스트레이션 | 복잡한 AI 워크플로우 구현 |
-| **Langfuse** | GenAI 애플리케이션 모니터링 | 추적, 모니터링, 분석 |
-| **NVIDIA GPU Operator** | GPU 리소스 관리 | GPU 드라이버 및 런타임 |
-| **Karpenter** | 노드 자동 스케일링 | 비용 효율적 리소스 관리 |
-| **vLLM** | 고성능 LLM 서빙 | PagedAttention 기반 추론 |
+| 기술 | 버전 | 설명 | 용도 |
+| --- | --- | --- | --- |
+| **Kagent** | v0.3+ | Kubernetes Agent 관리 | CRD 기반 Agent 라이프사이클 |
+| **Kgateway** | v1.2+ | Inference Gateway | 동적 라우팅 및 로드밸런싱 |
+| **Milvus** | v2.4+ | 벡터 데이터베이스 | RAG 파이프라인 지원 |
+| **Ragas** | v0.1+ | RAG 평가 프레임워크 | 품질 측정 및 CI/CD 통합 |
+| **NeMo** | v25.02 | LLM 학습 프레임워크 | 파인튜닝 및 최적화 |
+| **LiteLLM** | v1.50+ | 다중 LLM 프로바이더 통합 | LLM 라우팅 및 폴백 |
+| **LangGraph** | v0.2+ | AI 워크플로우 오케스트레이션 | 복잡한 AI 워크플로우 구현 |
+| **Langfuse** | v2.70+ | GenAI 애플리케이션 모니터링 | 추적, 모니터링, 분석 |
+| **NVIDIA GPU Operator** | v24.9+ | GPU 리소스 관리 | GPU 드라이버 및 런타임 |
+| **Karpenter** | v1.0+ (GA) | 노드 자동 스케일링 | 비용 효율적 리소스 관리 |
+| **vLLM** | v0.6+ | 고성능 LLM 서빙 | PagedAttention 기반 추론 |
+| **llm-d** | v0.2+ | 분산 추론 스케줄러 | Prefix Caching 인식 라우팅 |
 
 ## 💡 핵심 개념
 
@@ -195,11 +201,11 @@ graph TB
 
 | 모델 | 성능 | 비용 | 용도 |
 |------|------|------|------|
-| GPT-4 | 최고 | 높음 | 복잡한 작업 |
-| GPT-4 Turbo | 높음 | 중간 | 균형잡은 선택 |
-| GPT-3.5 Turbo | 중간 | 낮음 | 빠른 응답 필요 시 |
+| GPT-4o | 최고 | 중간 | 복잡한 작업, 균형잡힌 선택 |
+| GPT-4o mini | 중간 | 낮음 | 빠른 응답 필요 시 |
+| Claude 3.5 Sonnet | 매우 높음 | 중간 | 코딩, 분석 작업 |
 | Claude 3 Opus | 매우 높음 | 매우 높음 | 고정확도 필요 시 |
-| Open Source | 다양 | 낮음 | 완전한 제어 필요 시 |
+| Open Source (Llama 3) | 다양 | 낮음 | 완전한 제어 필요 시 |
 
 ### 비용 최적화 전략
 

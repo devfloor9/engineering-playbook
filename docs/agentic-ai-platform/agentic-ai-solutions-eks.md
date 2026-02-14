@@ -5,15 +5,39 @@ description: "Amazon EKS와 AWS 서비스를 활용한 Agentic AI 도전과제 �
 tags: [eks, aws, karpenter, genai, agentic-ai, gpu, solutions]
 category: "genai-aiml"
 last_update:
-  date: 2025-02-05
+  date: 2026-02-13
   author: devfloor9
-sidebar_position: 3
+sidebar_position: 2
 ---
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
+import {
+  EksKarpenterLayers,
+  ClusterAutoscalerVsKarpenter,
+  KarpenterKeyFeatures,
+  EksAutoModeVsStandard,
+  KarpenterGpuOptimization,
+  SpotInstancePricingInference,
+  SavingsPlansPricingTraining,
+  SmallScaleCostCalculation,
+  MediumScaleCostCalculation,
+  LargeScaleCostCalculation,
+  CostOptimizationStrategies,
+  TroubleshootingGuide,
+  SecurityLayers,
+  CostOptimizationDetails,
+  TrainingCostOptimization,
+  DeploymentTimeComparison,
+  EksIntegrationBenefits,
+  EksCapabilities,
+  AckControllers,
+  AutomationComponents,
+  EksAutoModeBenefits,
+  ChallengeSolutionsSummary
+} from '@site/src/components/AgenticSolutionsTables';
 
-> 📅 **작성일**: 2025-02-05 | ⏱️ **읽는 시간**: 약 20분
+> 📅 **작성일**: 2025-02-05 | **수정일**: 2026-02-13 | ⏱️ **읽는 시간**: 약 20분
 
 :::info 선행 문서: 기술적 도전과제
 이 문서를 읽기 전에 [Agentic AI 워크로드의 기술적 도전과제](./agentic-ai-challenges.md)를 먼저 읽어보시기 바랍니다. 해당 문서에서 4가지 핵심 도전과제와 Kubernetes 기반 오픈소스 생태계에 대해 설명합니다.
@@ -73,15 +97,19 @@ graph TB
 
 ### 왜 EKS + Karpenter인가?
 
-| 계층 | 역할 | 제공 가치 |
-| --- | --- | --- |
-| **Amazon EKS** | 관리형 Kubernetes Control Plane | 운영 부담 제거, 고가용성, 보안 |
-| **Karpenter** | 지능형 노드 프로비저닝 | Just-in-Time GPU 프로비저닝, 비용 최적화 |
-| **AWS 인프라** | GPU 인스턴스, 스토리지, 네트워크 | 다양한 GPU 옵션, EFA 고속 네트워크, Spot 인스턴스 |
-
+<EksKarpenterLayers />
 ### Karpenter: AI 인프라 자동화의 핵심
 
 Karpenter는 기존 Cluster Autoscaler의 한계를 극복하고, **AI 워크로드에 최적화된 노드 프로비저닝**을 제공합니다.
+
+:::info Karpenter v1.0+ GA
+Karpenter는 **v1.0 이상에서 GA(Generally Available) 상태**로, 프로덕션 환경에서 안정적으로 사용할 수 있습니다. v1 API는 이전 버전과 호환되지 않으므로, 새로운 배포 시 **v1 API를 사용**하는 것을 권장합니다.
+
+**주요 변경사항:**
+- API 버전: `karpenter.sh/v1beta1` → `karpenter.sh/v1`
+- NodePool과 EC2NodeClass가 안정화된 API로 제공
+- 향후 버전 간 호환성 보장
+:::
 
 ```mermaid
 sequenceDiagram
@@ -117,23 +145,10 @@ sequenceDiagram
     end
 ```
 
-| 비교 항목 | Cluster Autoscaler | Karpenter |
-|----------|-------------------|-----------|
-| **프로비저닝 시간** | 5-10분 | 2-3분 |
-| **인스턴스 선택** | Node Group 내 고정 타입 | 워크로드 기반 동적 선택 |
-| **GPU 지원** | 수동 Node Group 구성 | NodePool 자동 매칭 |
-| **비용 최적화** | 제한적 | Spot, Consolidation 자동 |
-
+<ClusterAutoscalerVsKarpenter />
 ### Karpenter가 제공하는 핵심 가치
 
-| 기능 | 설명 | Agentic AI 적용 |
-| --- | --- | --- |
-| **Just-in-Time 프로비저닝** | 워크로드 요구에 따라 즉시 노드 생성 | GPU 노드 대기 시간 최소화 |
-| **Spot 인스턴스 지원** | 최대 90% 비용 절감 | 추론 워크로드 비용 최적화 |
-| **Consolidation** | 유휴 노드 자동 정리 | GPU 리소스 효율성 극대화 |
-| **다양한 인스턴스 타입** | 워크로드에 최적화된 인스턴스 자동 선택 | 모델 크기별 최적 GPU 매칭 |
-| **Disruption Budgets** | 서비스 영향 최소화하며 노드 관리 | 안정적인 스케일 다운 |
-
+<KarpenterKeyFeatures />
 ### EKS Auto Mode: 완전 자동화의 완성
 
 **EKS Auto Mode**는 Karpenter를 포함한 핵심 컴포넌트들을 자동으로 구성하고 관리하여, AI 인프라 자동화의 마지막 퍼즐을 완성합니다.
@@ -170,16 +185,7 @@ graph TB
 
 #### EKS Auto Mode vs 수동 구성 비교
 
-| 구성 요소 | 수동 구성 (EKS Standard) | EKS Auto Mode |
-| --- | --- | --- |
-| **Karpenter 설치** | Helm 차트 수동 설치, IAM 역할 구성 | ✅ 자동 설치 및 구성 |
-| **NodePool 관리** | 직접 정의 필요 | 기본 제공 + 커스텀 가능 |
-| **VPC CNI** | 수동 설치 및 업그레이드 | ✅ 자동 관리 |
-| **EBS CSI Driver** | 수동 설치, IRSA 구성 | ✅ 자동 관리 |
-| **CoreDNS** | 수동 스케일링 | ✅ 자동 스케일링 |
-| **보안 패치** | 수동 적용 | ✅ 자동 적용 |
-| **버전 업그레이드** | 수동 계획 및 실행 | ✅ 자동 업그레이드 |
-
+<EksAutoModeVsStandard />
 #### EKS Auto Mode의 AI 워크로드 이점
 
 ```mermaid
@@ -260,6 +266,43 @@ EKS Auto Mode는 **새로운 AI 플랫폼 구축 시 권장되는 옵션**입니
 
 :::info EKS Auto Mode와 GPU 지원
 EKS Auto Mode는 NVIDIA GPU를 포함한 가속 컴퓨팅 인스턴스를 완벽히 지원합니다. 기본 NodeClass에 GPU 드라이버가 포함된 AMI가 자동으로 선택되며, 필요시 커스텀 NodeClass로 EFA 네트워크 등 고급 설정을 추가할 수 있습니다.
+
+**re:Invent 2024/2025 신규 기능:**
+- **EKS Hybrid Nodes (GA)**: 온프레미스 GPU 인프라를 EKS 클러스터에 통합하여 하이브리드 AI 워크로드 지원
+- **Enhanced Pod Identity v2**: 크로스 계정 IAM 역할 지원으로 멀티 계정 환경에서 안전한 AWS 서비스 접근, 세션 태그 및 조건부 정책 지원 강화
+- **Native Inferentia/Trainium Support**: EKS Auto Mode에서 AWS Inferentia2 및 Trainium 칩 네이티브 지원, Neuron SDK 자동 구성
+- **CloudWatch GPU Metrics**: GPU 사용률, 메모리, 온도 등 GPU 메트릭 자동 수집 및 CloudWatch 통합, DCGM 메트릭 네이티브 지원
+- **Provisioned Control Plane**: 대규모 AI 학습 워크로드를 위한 사전 프로비저닝된 컨트롤 플레인 용량 (XL, 2XL, 4XL 티어)
+- **Container Network Observability**: Pod 간 통신 패턴 및 네트워크 성능 모니터링, VPC Flow Logs 통합
+- **CloudWatch Control Plane Metrics**: 컨트롤 플레인 헬스 선제적 모니터링, API 서버 응답 시간 및 etcd 성능 메트릭
+:::
+
+:::warning EKS Auto Mode GPU 제한사항
+EKS Auto Mode는 기본 GPU 지원을 제공하지만, 다음 구성은 **수동 설정이 필요**합니다:
+
+**자동 구성되지 않는 항목:**
+- **NVIDIA Device Plugin**: GPU 리소스 스케줄링을 위한 디바이스 플러그인 수동 설치 필요
+- **DCGM Exporter**: GPU 메트릭 수집을 위한 DCGM Exporter 별도 배포 필요
+- **GPU 최적화 AMI**: 특정 GPU 드라이버 버전이나 CUDA 버전이 필요한 경우 커스텀 AMI 구성 필요
+- **MIG (Multi-Instance GPU)**: GPU 파티셔닝을 위한 MIG 모드 수동 활성화 필요
+- **EFA (Elastic Fabric Adapter)**: 분산 학습을 위한 고속 네트워크 인터페이스 수동 구성 필요
+
+**권장 접근 방식:**
+1. EKS Auto Mode로 클러스터 생성
+2. NVIDIA GPU Operator를 통해 GPU 스택 자동 설치
+3. 커스텀 NodeClass로 고급 GPU 설정 추가
+
+```yaml
+# NVIDIA GPU Operator 설치로 GPU 스택 자동화
+helm install gpu-operator nvidia/gpu-operator \
+  --namespace gpu-operator \
+  --create-namespace \
+  --set driver.enabled=true \
+  --set toolkit.enabled=true \
+  --set devicePlugin.enabled=true \
+  --set dcgmExporter.enabled=true \
+  --set migManager.enabled=true
+```
 :::
 
 ### Karpenter vs Cluster Autoscaler 상세 비교
@@ -409,13 +452,7 @@ spec:
 
 ### Karpenter의 GPU 워크로드 최적화 기능
 
-| 기능 | 설명 | 효과 |
-| --- | --- | --- |
-| 인스턴스 타입 자동 선택 | 워크로드 요구사항에 맞는 GPU 인스턴스 자동 선택 | 리소스 낭비 방지 |
-| Spot 인스턴스 폴백 | Spot 불가 시 On-Demand로 자동 전환 | 가용성 보장 |
-| Consolidation | 유휴 GPU 노드 자동 정리 | 비용 30% 절감 |
-| 빠른 프로비저닝 | Node Group 없이 직접 EC2 API 호출 | 프로비저닝 시간 50% 단축 |
-
+<KarpenterGpuOptimization />
 ### 보조 솔루션: NVIDIA GPU Operator
 
 Karpenter와 함께 NVIDIA GPU Operator를 사용하여 GPU 드라이버 및 모니터링 스택을 자동화합니다.
@@ -430,7 +467,7 @@ spec:
     defaultRuntime: containerd
   driver:
     enabled: true
-    version: "535.104.05"
+    version: "550.127.05"  # Latest stable for H100/H200 (driver 550.90.07+ required for H100/H200)
   toolkit:
     enabled: true
   devicePlugin:
@@ -483,14 +520,14 @@ spec:
   triggers:
     - type: prometheus
       metadata:
-        serverAddress: http://prometheus.observability:9090
+        serverAddress: http://prometheus.observability.svc:9090
         metricName: vllm_pending_requests
         threshold: "50"
         query: |
           sum(vllm_pending_requests{namespace="ai-inference"})
     - type: prometheus
       metadata:
-        serverAddress: http://prometheus.observability:9090
+        serverAddress: http://prometheus.observability.svc:9090
         metricName: gpu_utilization
         threshold: "70"
         query: |
@@ -575,6 +612,605 @@ spec:
 
 :::warning 스케일링 주의사항
 GPU 노드 프로비저닝은 일반 CPU 노드보다 시간이 오래 걸립니다. Karpenter의 `consolidationPolicy`를 적절히 설정하여 불필요한 스케일 다운을 방지하세요.
+:::
+
+---
+
+## GPU 워크로드 비용 비교
+
+실제 AWS 가격 기준으로 다양한 GPU 인스턴스 타입의 비용 효율성을 비교합니다.
+
+### 추론 워크로드 비용 비교 (시간당)
+
+<SpotInstancePricingInference />
+### 학습 워크로드 비용 비교 (시간당)
+
+<SavingsPlansPricingTraining />
+### 월간 비용 시나리오 (24/7 운영 기준)
+
+**시나리오 1: 소규모 추론 서비스 (g5.2xlarge x 2)**
+
+<SmallScaleCostCalculation />
+**시나리오 2: 중규모 추론 서비스 (g5.12xlarge x 4)**
+
+<MediumScaleCostCalculation />
+**시나리오 3: 대규모 학습 클러스터 (p4d.24xlarge x 8)**
+
+<LargeScaleCostCalculation />
+### 비용 최적화 전략별 효과
+
+<CostOptimizationStrategies />
+:::tip 비용 최적화 실전 팁
+
+**추론 워크로드:**
+1. Spot 인스턴스를 기본으로 사용 (70% 절감)
+2. Karpenter Consolidation으로 유휴 노드 제거 (추가 20% 절감)
+3. 시간대별 스케줄링으로 비업무 시간 리소스 축소 (추가 30% 절감)
+4. **총 절감 효과: 약 85%**
+
+**학습 워크로드:**
+1. Savings Plans 1년 약정 (35% 절감)
+2. 실험용 학습은 Spot 인스턴스 사용 (추가 40% 절감)
+3. 체크포인트 기반 재시작으로 Spot 중단 대응
+4. **총 절감 효과: 약 60%**
+:::
+
+---
+
+## GPU 워크로드 트러블슈팅
+
+GPU 워크로드 운영 시 자주 발생하는 문제와 해결 방법을 정리합니다.
+
+### 문제 1: GPU가 Pod에 할당되지 않음
+
+**증상:**
+```bash
+kubectl describe pod vllm-pod
+# Events:
+# Warning  FailedScheduling  pod has unbound immediate PersistentVolumeClaims
+# Warning  FailedScheduling  0/5 nodes are available: 5 Insufficient nvidia.com/gpu
+```
+
+**원인:**
+- NVIDIA Device Plugin이 설치되지 않음
+- GPU 노드에 taint가 설정되어 있으나 Pod에 toleration이 없음
+- GPU 리소스가 이미 모두 할당됨
+
+**해결 방법:**
+
+```bash
+# 1. NVIDIA Device Plugin 확인
+kubectl get daemonset -n kube-system nvidia-device-plugin-daemonset
+
+# 2. GPU 노드 확인
+kubectl get nodes -l node.kubernetes.io/instance-type=g5.xlarge
+kubectl describe node <node-name> | grep nvidia.com/gpu
+
+# 3. GPU Operator 설치 (없는 경우)
+helm install gpu-operator nvidia/gpu-operator \
+  --namespace gpu-operator \
+  --create-namespace
+
+# 4. Pod에 toleration 추가
+tolerations:
+  - key: nvidia.com/gpu
+    operator: Exists
+    effect: NoSchedule
+```
+
+### 문제 2: GPU 메모리 부족 (OOM)
+
+**증상:**
+```bash
+# Pod 로그에서 확인
+CUDA out of memory. Tried to allocate 2.00 GiB
+```
+
+**원인:**
+- 모델 크기가 GPU 메모리보다 큼
+- 배치 크기가 너무 큼
+- 여러 프로세스가 동일 GPU 사용
+
+**해결 방법:**
+
+```yaml
+# 1. 더 큰 GPU 인스턴스 사용
+nodeSelector:
+  node.kubernetes.io/instance-type: g5.12xlarge  # 4x A10G 96GB
+
+# 2. vLLM 설정 최적화
+env:
+  - name: VLLM_GPU_MEMORY_UTILIZATION
+    value: "0.9"  # GPU 메모리 90%만 사용
+  - name: VLLM_MAX_NUM_SEQS
+    value: "256"  # 동시 시퀀스 수 제한
+
+# 3. MIG로 GPU 분할 사용
+resources:
+  limits:
+    nvidia.com/mig-3g.40gb: 1  # A100 80GB를 3g.40gb 인스턴스로 분할
+```
+
+### 문제 3: Karpenter가 GPU 노드를 프로비저닝하지 않음
+
+**증상:**
+```bash
+# Pod가 Pending 상태로 유지
+kubectl get pods
+# NAME        READY   STATUS    RESTARTS   AGE
+# vllm-pod    0/1     Pending   0          5m
+```
+
+**원인:**
+- NodePool에 GPU 인스턴스 타입이 정의되지 않음
+- NodePool의 GPU 리소스 limit 초과
+- IAM 권한 부족
+
+**해결 방법:**
+
+```bash
+# 1. NodePool 확인
+kubectl get nodepool gpu-inference-pool -o yaml
+
+# 2. GPU 인스턴스 타입 추가
+spec:
+  template:
+    spec:
+      requirements:
+        - key: karpenter.k8s.aws/instance-gpu-count
+          operator: Gt
+          values: ["0"]
+        - key: node.kubernetes.io/instance-type
+          operator: In
+          values:
+            - g5.xlarge
+            - g5.2xlarge
+            - g5.12xlarge
+
+# 3. GPU limit 확인 및 증가
+spec:
+  limits:
+    nvidia.com/gpu: 100  # 충분한 GPU 리소스 할당
+
+# 4. Karpenter IAM 권한 확인
+aws iam get-role --role-name KarpenterNodeRole-${CLUSTER_NAME}
+```
+
+### 문제 4: GPU 드라이버 버전 불일치
+
+**증상:**
+```bash
+# Pod 로그에서 확인
+Failed to initialize NVML: Driver/library version mismatch
+```
+
+**원인:**
+- 노드의 NVIDIA 드라이버와 컨테이너의 CUDA 버전 불일치
+- GPU Operator 업데이트 후 노드 재시작 필요
+
+**해결 방법:**
+
+```bash
+# 1. 노드의 드라이버 버전 확인
+kubectl debug node/<node-name> -it --image=ubuntu
+nvidia-smi
+
+# 2. GPU Operator 버전 확인
+helm list -n gpu-operator
+
+# 3. GPU Operator 업그레이드
+helm upgrade gpu-operator nvidia/gpu-operator \
+  --namespace gpu-operator \
+  --set driver.version="550.127.05"
+
+# 4. 노드 재시작 (드레인 후)
+kubectl drain <node-name> --ignore-daemonsets --delete-emptydir-data
+kubectl delete node <node-name>
+# Karpenter가 자동으로 새 노드 프로비저닝
+```
+
+### 문제 5: EFA 네트워크가 활성화되지 않음
+
+**증상:**
+```bash
+# 분산 학습 시 네트워크 성능 저하
+# NCCL 로그에서 확인
+NCCL WARN NET/Socket : No EFA device found
+```
+
+**원인:**
+- EFA 드라이버가 로드되지 않음
+- Security Group에서 EFA 트래픽 차단
+- EFA 지원 인스턴스 타입이 아님
+
+**해결 방법:**
+
+```yaml
+# 1. EFA 지원 인스턴스 사용
+spec:
+  requirements:
+    - key: node.kubernetes.io/instance-type
+      operator: In
+      values:
+        - p4d.24xlarge
+        - p5.48xlarge
+
+# 2. NodeClass에서 EFA 활성화
+apiVersion: karpenter.k8s.aws/v1
+kind: EC2NodeClass
+metadata:
+  name: gpu-training-nodeclass
+spec:
+  userData: |
+    #!/bin/bash
+    modprobe efa
+    echo 'export FI_PROVIDER=efa' >> /etc/profile.d/efa.sh
+    echo 'export FI_EFA_USE_DEVICE_RDMA=1' >> /etc/profile.d/efa.sh
+
+# 3. Security Group 규칙 추가
+securityGroupSelectorTerms:
+  - tags:
+      karpenter.sh/discovery: ${CLUSTER_NAME}
+      efa-enabled: "true"
+```
+
+### 문제 6: Spot 인스턴스 중단으로 추론 서비스 중단
+
+**증상:**
+```bash
+# Spot 중단 알림
+Spot instance termination notice received
+```
+
+**원인:**
+- Spot 인스턴스 용량 부족
+- 단일 Spot 풀에만 의존
+
+**해결 방법:**
+
+```yaml
+# 1. 다양한 인스턴스 타입 허용
+spec:
+  template:
+    spec:
+      requirements:
+        - key: node.kubernetes.io/instance-type
+          operator: In
+          values:
+            - g5.xlarge
+            - g5.2xlarge
+            - g5.4xlarge
+            - g5.8xlarge  # 여러 타입으로 분산
+
+# 2. Spot과 On-Demand 혼합
+        - key: karpenter.sh/capacity-type
+          operator: In
+          values: ["spot", "on-demand"]
+
+# 3. PodDisruptionBudget 설정
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: vllm-pdb
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app: vllm
+
+# 4. Graceful shutdown 구현
+lifecycle:
+  preStop:
+    exec:
+      command: ["/bin/sh", "-c", "sleep 120"]  # 2분 대기
+```
+
+### 트러블슈팅 체크리스트
+
+<TroubleshootingGuide />
+:::warning 프로덕션 운영 권장사항
+
+1. **모니터링 필수**: Prometheus + Grafana로 GPU 메트릭 실시간 추적
+2. **알림 설정**: GPU 사용률, 메모리, 온도 임계값 알림 구성
+3. **로그 수집**: CloudWatch Logs로 모든 GPU Pod 로그 중앙 집중화
+4. **정기 점검**: 주간 GPU 노드 헬스 체크 및 드라이버 업데이트 확인
+5. **재해 복구**: 체크포인트 기반 학습 재시작 메커니즘 구현
+:::
+
+---
+
+## GPU 워크로드 보안 강화
+
+GPU 리소스는 고가이며 민감한 AI 모델을 처리하므로, 강력한 보안 정책이 필수적입니다.
+
+### Pod Security Standards for GPU Pods
+
+GPU Pod에 대한 보안 정책을 적용하여 권한 상승 및 호스트 접근을 제한합니다.
+
+```yaml
+# gpu-pod-security-policy.yaml
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ai-inference
+  labels:
+    pod-security.kubernetes.io/enforce: restricted
+    pod-security.kubernetes.io/audit: restricted
+    pod-security.kubernetes.io/warn: restricted
+
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: vllm-pdb
+  namespace: ai-inference
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: vllm
+
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: gpu-quota
+  namespace: ai-inference
+spec:
+  hard:
+    requests.nvidia.com/gpu: "16"
+    limits.nvidia.com/gpu: "16"
+    requests.memory: "512Gi"
+    requests.cpu: "128"
+```
+
+### Network Policies for Model Serving
+
+모델 서빙 Pod 간 네트워크 트래픽을 제한하여 측면 이동(lateral movement)을 방지합니다.
+
+```yaml
+# network-policy-gpu-inference.yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: vllm-network-policy
+  namespace: ai-inference
+spec:
+  podSelector:
+    matchLabels:
+      app: vllm
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    # Gateway에서만 트래픽 허용
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              name: ai-gateway
+        - podSelector:
+            matchLabels:
+              app: kgateway
+      ports:
+        - protocol: TCP
+          port: 8000
+  egress:
+    # S3 모델 다운로드 허용
+    - to:
+        - namespaceSelector: {}
+      ports:
+        - protocol: TCP
+          port: 443
+    # DNS 허용
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              name: kube-system
+        - podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - protocol: UDP
+          port: 53
+```
+
+### S3 Bucket Policies for Model Storage
+
+모델 아티팩트 저장소에 대한 최소 권한 원칙을 적용합니다.
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "AllowVLLMReadModels",
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": "arn:aws:iam::123456789012:role/vllm-pod-role"
+      },
+      "Action": [
+        "s3:GetObject",
+        "s3:ListBucket"
+      ],
+      "Resource": [
+        "arn:aws:s3:::agentic-ai-models/*",
+        "arn:aws:s3:::agentic-ai-models"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "s3:ExistingObjectTag/Environment": "production"
+        }
+      }
+    },
+    {
+      "Sid": "DenyUnencryptedObjectUploads",
+      "Effect": "Deny",
+      "Principal": "*",
+      "Action": "s3:PutObject",
+      "Resource": "arn:aws:s3:::agentic-ai-models/*",
+      "Condition": {
+        "StringNotEquals": {
+          "s3:x-amz-server-side-encryption": "aws:kms"
+        }
+      }
+    }
+  ]
+}
+```
+
+### IAM Roles for GPU Workloads (Pod Identity)
+
+EKS Pod Identity를 사용하여 GPU Pod에 최소 권한 IAM 역할을 할당합니다.
+
+```yaml
+# vllm-pod-identity.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: vllm-sa
+  namespace: ai-inference
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::123456789012:role/vllm-pod-role
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vllm-deployment
+  namespace: ai-inference
+spec:
+  template:
+    spec:
+      serviceAccountName: vllm-sa
+      containers:
+        - name: vllm
+          image: vllm/vllm-openai:latest
+          env:
+            - name: AWS_REGION
+              value: us-west-2
+            - name: MODEL_PATH
+              value: s3://agentic-ai-models/llama-3-70b/
+```
+
+**IAM Policy for vLLM Pod:**
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "s3:GetObject",
+        "s3:ListBucket"
+      ],
+      "Resource": [
+        "arn:aws:s3:::agentic-ai-models/*",
+        "arn:aws:s3:::agentic-ai-models"
+      ]
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "kms:Decrypt",
+        "kms:DescribeKey"
+      ],
+      "Resource": "arn:aws:kms:us-west-2:123456789012:key/model-encryption-key"
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "secretsmanager:GetSecretValue"
+      ],
+      "Resource": "arn:aws:secretsmanager:us-west-2:123456789012:secret:vllm-api-keys-*"
+    }
+  ]
+}
+```
+
+### MIG for Multi-Tenant GPU Isolation
+
+Multi-Instance GPU (MIG)를 사용하여 단일 GPU를 여러 테넌트 간 완전히 격리합니다.
+
+```yaml
+# mig-enabled-nodepool.yaml
+apiVersion: karpenter.sh/v1
+kind: NodePool
+metadata:
+  name: gpu-mig-pool
+spec:
+  template:
+    metadata:
+      labels:
+        node-type: gpu-mig
+        mig-enabled: "true"
+    spec:
+      requirements:
+        - key: node.kubernetes.io/instance-type
+          operator: In
+          values:
+            - p4d.24xlarge  # A100 80GB with MIG support
+        - key: karpenter.k8s.aws/instance-gpu-count
+          operator: Gt
+          values: ["0"]
+      nodeClassRef:
+        group: karpenter.k8s.aws
+        kind: EC2NodeClass
+        name: gpu-mig-nodeclass
+      taints:
+        - key: nvidia.com/gpu
+          value: "true"
+          effect: NoSchedule
+
+---
+apiVersion: karpenter.k8s.aws/v1
+kind: EC2NodeClass
+metadata:
+  name: gpu-mig-nodeclass
+spec:
+  role: KarpenterNodeRole-${CLUSTER_NAME}
+  amiSelectorTerms:
+    - alias: al2023@latest
+  userData: |
+    #!/bin/bash
+    # MIG 모드 활성화
+    nvidia-smi -mig 1
+    
+    # MIG 프로파일 생성 (3g.40gb 인스턴스 2개)
+    nvidia-smi mig -cgi 9,9 -C
+    
+    # Device Plugin 재시작
+    systemctl restart nvidia-device-plugin
+```
+
+**MIG 리소스를 사용하는 Pod:**
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: tenant-a-inference
+  namespace: tenant-a
+spec:
+  containers:
+    - name: vllm
+      image: vllm/vllm-openai:latest
+      resources:
+        limits:
+          nvidia.com/mig-3g.40gb: 1  # MIG 인스턴스 요청
+```
+
+### Security Best Practices Summary
+
+<SecurityLayers />
+:::tip GPU 보안 체크리스트
+
+1. **Pod Security Standards 적용**: 모든 GPU 네임스페이스에 `restricted` 정책 적용
+2. **NetworkPolicy 구성**: GPU Pod 간 불필요한 통신 차단
+3. **S3 암호화 강제**: 모델 저장 시 KMS 암호화 필수
+4. **Pod Identity 사용**: IRSA 대신 EKS Pod Identity로 IAM 역할 할당
+5. **MIG 활성화**: 멀티 테넌트 환경에서 GPU 완전 격리
+6. **감사 로깅**: CloudTrail + GuardDuty로 GPU 리소스 접근 모니터링
 :::
 
 ---
@@ -730,14 +1366,7 @@ spec:
 
 ### 비용 최적화 전략 비교
 
-| 전략 | 구현 방법 | 예상 절감률 | 적용 워크로드 | 위험도 |
-| --- | --- | --- | --- | --- |
-| Spot 인스턴스 | Karpenter NodePool | 60-90% | 추론, 배치 처리 | 중간 (중단 가능) |
-| Consolidation | Karpenter disruption | 20-30% | 모든 워크로드 | 낮음 |
-| Right-sizing | Karpenter 인스턴스 자동 선택 | 15-25% | 모든 워크로드 | 낮음 |
-| 스케줄 기반 | Karpenter budgets | 30-40% | 비업무 시간 | 낮음 |
-| 복합 적용 | 위 전략 조합 | 50-70% | 전체 | 중간 |
-
+<CostOptimizationDetails />
 ### 보조 솔루션: LangFuse 기반 토큰 추적
 
 인프라 비용과 함께 토큰 레벨 비용도 추적해야 완전한 비용 가시성을 확보할 수 있습니다.
@@ -1010,7 +1639,7 @@ spec:
       restartPolicy: OnFailure
       containers:
         - name: nemo
-          image: nvcr.io/nvidia/nemo:24.01
+          image: nvcr.io/nvidia/nemo:25.02
           command:
             - /bin/bash
             - -c
@@ -1086,13 +1715,7 @@ spec:
 
 ### 학습 인프라 비용 최적화 전략
 
-| 전략 | 적용 대상 | 예상 절감률 | 구현 방법 |
-| --- | --- | --- | --- |
-| Spot 실험 클러스터 | 하이퍼파라미터 튜닝 | 60-80% | 별도 NodePool |
-| 자동 노드 정리 | 학습 완료 후 | 20-30% | Consolidation |
-| 체크포인트 기반 재시작 | Spot 중단 대응 | 10-20% | NeMo 체크포인트 |
-| 시간대별 스케줄링 | 비업무 시간 학습 | 15-25% | CronJob + Karpenter |
-
+<TrainingCostOptimization />
 :::tip 학습 인프라 모범 사례
 
 1. **프로덕션 학습**: On-Demand 인스턴스로 안정성 확보
@@ -1137,24 +1760,10 @@ graph LR
     style E3 fill:#4ecdc4
 ```
 
-| 구축 방식 | 소요 시간 | 운영 복잡도 | 비용 효율성 |
-| --- | --- | --- | --- |
-| **전통적 방식** | 6-11주 | 높음 | 낮음 |
-| **EKS 기반** | 1-2주 | 낮음 | 높음 |
-
+<DeploymentTimeComparison />
 ### 솔루션별 EKS 배포 방법
 
-| 솔루션 | 배포 방법 | EKS 통합 이점 |
-| --- | --- | --- |
-| **Karpenter** | EKS Auto Mode (자동) | 설치/구성 불필요, 자동 업그레이드 |
-| **Kgateway** | Helm Chart | ALB Controller 연동, ACM 인증서 자동 관리 |
-| **LiteLLM** | Helm Chart | Secrets Manager 연동, IAM 기반 인증 |
-| **vLLM** | Helm Chart | GPU NodePool 자동 프로비저닝 |
-| **llm-d** | Helm Chart | Karpenter 연동 자동 스케일링 |
-| **LangFuse** | Helm Chart | RDS/Aurora 연동, S3 스토리지 |
-| **KAgent** | Helm Chart | Pod Identity 기반 AWS 서비스 접근 |
-| **KEDA** | EKS Addon | 관리형 설치, CloudWatch 메트릭 연동 |
-
+<EksIntegrationBenefits />
 ### EKS 통합 아키텍처
 
 ```mermaid
@@ -1215,14 +1824,49 @@ helm repo add kgateway https://kgateway.io/charts
 helm repo add litellm https://litellm.github.io/helm
 helm repo add vllm https://vllm-project.github.io/helm
 helm repo add langfuse https://langfuse.github.io/helm
+helm repo update
 
-helm install kgateway kgateway/kgateway -n ai-gateway --create-namespace
-helm install litellm litellm/litellm -n ai-inference --create-namespace
-helm install vllm vllm/vllm -n ai-inference
-helm install langfuse langfuse/langfuse -n observability --create-namespace
+# 4. Kgateway 설치
+helm install kgateway kgateway/kgateway \
+  -n ai-gateway \
+  --create-namespace \
+  --set gateway.replicas=2 \
+  --set gateway.resources.requests.cpu=500m \
+  --set gateway.resources.requests.memory=512Mi
 
-# 4. KEDA 설치 (EKS Addon)
-aws eks create-addon --cluster-name ai-platform --addon-name keda
+# 5. LiteLLM 설치
+helm install litellm litellm/litellm \
+  -n ai-inference \
+  --create-namespace \
+  --set replicaCount=3 \
+  --set resources.requests.cpu=1000m \
+  --set resources.requests.memory=2Gi \
+  --set env.LITELLM_MASTER_KEY="sk-1234" \
+  --set env.DATABASE_URL="postgresql://user:pass@postgres:5432/litellm"
+
+# 6. vLLM 설치
+helm install vllm vllm/vllm \
+  -n ai-inference \
+  --set image.tag=latest \
+  --set resources.limits."nvidia\.com/gpu"=1 \
+  --set model.name="meta-llama/Llama-3-8B-Instruct" \
+  --set model.downloadFrom="s3://my-models/llama-3-8b/" \
+  --set nodeSelector."node-type"="gpu-inference"
+
+# 7. Langfuse 설치
+helm install langfuse langfuse/langfuse \
+  -n observability \
+  --create-namespace \
+  --set postgresql.enabled=true \
+  --set postgresql.auth.password="changeme" \
+  --set ingress.enabled=true \
+  --set ingress.hosts[0].host="langfuse.example.com"
+
+# 8. KEDA 설치 (EKS Addon)
+aws eks create-addon \
+  --cluster-name ai-platform \
+  --addon-name keda \
+  --addon-version v1.0.0-eksbuild.1
 ```
 
 ### EKS 기반 구축의 핵심 이점
@@ -1293,12 +1937,7 @@ graph TB
 
 Agentic AI 워크로드를 효과적으로 운영하기 위해 EKS는 다음 **Integration Capability**를 공식 지원합니다:
 
-| EKS Capability | 역할 | Agentic AI 활용 | 지원 방식 |
-|----------------|------|-----------------|----------|
-| **ACK (AWS Controllers for Kubernetes)** | AWS 서비스의 Kubernetes 네이티브 관리 | S3 모델 저장소, RDS 메타데이터, SageMaker 학습 작업 | EKS Add-on |
-| **KRO (Kubernetes Resource Orchestrator)** | 복합 리소스 추상화 및 템플릿화 | AI 추론 스택, 학습 파이프라인 원클릭 배포 | EKS Add-on |
-| **Argo CD** | GitOps 기반 지속적 배포 | 모델 서빙 배포 자동화, 롤백, 환경 동기화 | EKS Add-on |
-
+<EksCapabilities />
 :::warning Argo Workflows는 별도 설치 필요
 **Argo Workflows**는 EKS Capability로 공식 지원되지 않으므로 **직접 설치가 필요**합니다.
 Argo CD(EKS Capability)와 함께 사용하면 강력한 ML 파이프라인 자동화를 구현할 수 있습니다.
@@ -1306,7 +1945,7 @@ Argo CD(EKS Capability)와 함께 사용하면 강력한 ML 파이프라인 자�
 ```bash
 # Argo Workflows 설치
 kubectl create namespace argo
-kubectl apply -n argo -f https://github.com/argoproj/argo-workflows/releases/download/v3.5.0/install.yaml
+kubectl apply -n argo -f https://github.com/argoproj/argo-workflows/releases/download/v3.6.4/install.yaml
 ```
 
 :::
@@ -1349,14 +1988,7 @@ graph LR
 
 **AI 플랫폼에서 ACK 활용 사례:**
 
-| AWS 서비스 | ACK Controller | Agentic AI 활용 |
-|-----------|---------------|-----------------|
-| **S3** | `s3.services.k8s.aws` | 모델 아티팩트 저장소, 학습 데이터 버킷 |
-| **RDS/Aurora** | `rds.services.k8s.aws` | LangFuse 백엔드, 메타데이터 저장소 |
-| **SageMaker** | `sagemaker.services.k8s.aws` | 모델 학습 작업, 엔드포인트 배포 |
-| **Secrets Manager** | `secretsmanager.services.k8s.aws` | API 키, 모델 자격증명 관리 |
-| **ECR** | `ecr.services.k8s.aws` | 컨테이너 이미지 레지스트리 |
-
+<AckControllers />
 **ACK를 이용한 S3 버킷 생성 예시:**
 
 ```yaml
@@ -1558,7 +2190,7 @@ spec:
     - key: nvidia.com/gpu
       operator: Exists
     container:
-      image: nvcr.io/nvidia/nemo:24.01
+      image: nvcr.io/nvidia/nemo:25.02
       command: [python, train.py]
       resources:
         limits:
@@ -1652,14 +2284,7 @@ graph TB
     style KARP fill:#ffd93d
 ```
 
-| 구성요소 | 역할 | 자동화 범위 |
-|---------|------|------------|
-| **Argo CD** | GitOps 배포 자동화 | 애플리케이션 배포, 롤백, 동기화 |
-| **Argo Workflows** | ML 파이프라인 오케스트레이션 | 학습, 평가, 모델 등록 워크플로 |
-| **KRO** | 복합 리소스 추상화 | K8s + AWS 리소스를 단일 단위로 관리 |
-| **ACK** | AWS 리소스 선언적 관리 | S3, RDS, SageMaker 등 AWS 서비스 |
-| **Karpenter** | GPU 노드 프로비저닝 | Just-in-Time 인스턴스 프로비저닝 |
-
+<AutomationComponents />
 :::info 완전 자동화의 이점
 이 통합 아키텍처를 통해:
 
@@ -1719,22 +2344,10 @@ graph TB
 
 새로운 Agentic AI 플랫폼을 구축한다면 **EKS Auto Mode**로 시작하는 것을 권장합니다.
 
-| 이점 | 설명 |
-| --- | --- |
-| **즉시 시작 가능** | Karpenter 설치/구성 없이 클러스터 생성 즉시 GPU 워크로드 배포 |
-| **자동 업그레이드** | Karpenter, CNI, CSI 등 핵심 컴포넌트 자동 업데이트 |
-| **보안 패치 자동화** | 보안 취약점 패치 자동 적용 |
-| **커스텀 확장 가능** | GPU NodePool, EFA NodeClass 등 필요시 커스텀 설정 추가 |
-
+<EksAutoModeBenefits />
 ### 도전과제별 해결 방안 최종 요약
 
-| 도전과제 | Kubernetes 기반 | EKS Auto Mode + Karpenter | 기대 효과 |
-| --- | --- | --- | --- |
-| **GPU 모니터링** | DCGM + Prometheus | NodePool 기반 통합 관리 | 리소스 활용률 40% 향상 |
-| **동적 스케일링** | HPA + KEDA | Just-in-Time 프로비저닝 (자동 구성) | 프로비저닝 시간 50% 단축 |
-| **비용 컨트롤** | 네임스페이스 Quota | Spot + Consolidation (자동 활성화) | 비용 50-70% 절감 |
-| **FM 파인튜닝** | Kubeflow Operator | Training NodePool + EFA | 학습 효율성 30% 향상 |
-
+<ChallengeSolutionsSummary />
 ### 핵심 권장사항
 
 1. **EKS Auto Mode로 시작**: 새 클러스터는 Auto Mode로 생성하여 Karpenter 자동 구성 활용
@@ -1801,7 +2414,7 @@ graph TB
    - Right-sizing 및 오토스케일링으로 과다 프로비저닝 최소화
 
 4. **엔터프라이즈 보안**
-   - Pod 레벨 IAM 역할 (IRSA)
+   - Pod 레벨 IAM 역할 (Pod Identity / IRSA)
    - VPC 및 Security Groups를 통한 네트워크 격리
    - 규정 준수 인증 (HIPAA, PCI-DSS, SOC 2)
 
@@ -1881,8 +2494,8 @@ kubectl apply -f karpenter-nodepools/
 **아키텍처:**
 
 - Control Plane은 EKS Auto Mode 사용
-- 시스템 워크로드는 관리형 노드 그룹에서 실행
-- GPU 워크로드는 Karpenter NodePool에서 실행
+- 시스템 워크로드는 Auto Mode 기본 NodePool에서 실행
+- GPU 워크로드는 커스텀 GPU NodePool에서 실행
 
 **시작하기:**
 
@@ -1890,10 +2503,7 @@ kubectl apply -f karpenter-nodepools/
 # 1단계: Auto Mode로 EKS 클러스터 생성
 aws eks create-cluster --name agentic-ai --compute-config enabled=true
 
-# 2단계: GPU 노드용 Karpenter 설치
-helm install karpenter oci://public.ecr.aws/karpenter/karpenter
-
-# 3단계: GPU NodePool 배포
+# 2단계: GPU 워크로드용 커스텀 NodePool 배포 (Karpenter는 Auto Mode에 내장)
 kubectl apply -f gpu-nodepools.yaml
 ```
 
@@ -1901,12 +2511,12 @@ kubectl apply -f gpu-nodepools.yaml
 
 - 점진적 복잡도 증가
 - 중요한 부분(GPU 비용)에서 최적화
-- AWS 관리형 Control Plane + 커스텀 Data Plane
+- AWS 관리형 Control Plane + 커스텀 GPU NodePool
 
 **단점:**
 
-- Auto Mode와 Karpenter 모두 관리 필요
-- 잠재적 구성 충돌 가능성
+- 커스텀 NodePool 관리 필요
+- Auto Mode 기본 설정과 커스텀 설정 간 이해 필요
 
 </TabItem>
 </Tabs>

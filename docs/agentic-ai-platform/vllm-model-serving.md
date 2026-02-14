@@ -3,18 +3,21 @@ title: "vLLM 기반 FM 배포 및 성능 최적화"
 sidebar_label: "5. vLLM 모델 서빙"
 description: "vLLM을 활용한 Foundation Model 배포, Kubernetes 통합, 성능 최적화 전략"
 category: "genai-aiml"
-sidebar_position: 6
+sidebar_position: 5
 last_update:
-  date: 2025-02-09
+  date: 2026-02-13
   author: devfloor9
 tags: [vllm, model-serving, gpu, inference, optimization, foundation-model, eks]
 ---
+
+import ComparisonTable from '@site/src/components/tables/ComparisonTable';
+import SpecificationTable from '@site/src/components/tables/SpecificationTable';
 
 # vLLM 기반 Foundation Model 배포 및 성능 최적화
 
 vLLM은 PagedAttention 알고리즘을 통해 KV 캐시 메모리 낭비를 60-80% 줄이고, 연속 배칭(Continuous Batching)으로 기존 대비 2-24배의 처리량 향상을 제공하는 고성능 LLM 추론 엔진이다. Meta, Mistral AI, Cohere, IBM 등 주요 기업들이 프로덕션 환경에서 활용하고 있으며, OpenAI 호환 API를 제공하여 기존 애플리케이션의 마이그레이션이 용이하다.
 
-> **📌 현재 버전**: vLLM v0.15.1 (2025-02-04 릴리즈). 본 문서의 코드 예시는 v0.15.x 기준입니다.
+> **📌 현재 버전**: vLLM v0.6.3 / v0.7.x (2025-02 안정 버전). 본 문서의 코드 예시는 v0.6.x / v0.7.x 기준입니다.
 
 본 문서에서는 Amazon EKS 환경에서 vLLM을 배포하고 운영하기 위한 실무 가이드를 제공한다. GPU 메모리 계산, 병렬화 전략 선택, Kubernetes 배포 패턴, 그리고 프로덕션 환경에서의 성능 튜닝 방법을 다룬다.
 
@@ -42,12 +45,15 @@ vLLM의 연속 배칭은 배치 경계를 완전히 제거한다. 스케줄러�
 
 모델 가중치 메모리는 파라미터 수와 정밀도에 따라 결정된다.
 
-| 정밀도 | 파라미터당 바이트 | 70B 모델 메모리 |
-|--------|------------------|-----------------|
-| FP32 | 4 | 280GB |
-| FP16/BF16 | 2 | 140GB |
-| INT8 | 1 | 70GB |
-| INT4 | 0.5 | 35GB |
+<SpecificationTable
+  headers={['정밀도', '파라미터당 바이트', '70B 모델 메모리']}
+  rows={[
+    { id: '1', cells: ['FP32', '4', '280GB'] },
+    { id: '2', cells: ['FP16/BF16', '2', '140GB'] },
+    { id: '3', cells: ['INT8', '1', '70GB'] },
+    { id: '4', cells: ['INT4', '0.5', '35GB'] }
+  ]}
+/>
 
 70B 파라미터 모델을 FP16으로 배포하려면 가중치만 140GB가 필요하다. 단일 GPU로는 불가능하며, 다중 GPU 텐서 병렬화가 필수다. 동일 모델을 INT4 양자화하면 35GB로 줄어들어 단일 A100 80GB나 H100에서 KV 캐시 여유 공간과 함께 배포 가능하다.
 
@@ -97,17 +103,30 @@ MoE(Mixture-of-Experts) 모델을 위한 특수 전략이다. 토큰이 관련 "
 
 ## 지원 하드웨어 확장
 
-vLLM v0.15.x는 다양한 하드웨어 가속기를 지원합니다:
+vLLM v0.6+ 버전은 다양한 하드웨어 가속기를 지원합니다:
 
-| 하드웨어 | 지원 수준 | 주요 용도 |
-|----------|----------|----------|
-| NVIDIA GPU (A100, H100, H200) | 완전 지원 | 프로덕션 추론 |
-| AMD GPU (MI300X) | 지원 | 대안 GPU 인프라 |
-| Intel GPU (Gaudi 2/3) | 지원 | 비용 효율적 추론 |
-| Google TPU | 지원 | GCP 환경 |
-| AWS Trainium/Inferentia | 지원 | AWS 네이티브 가속 |
+<ComparisonTable
+  headers={['하드웨어', '지원 수준', '주요 용도']}
+  rows={[
+    { id: '1', cells: ['NVIDIA GPU (A100, H100, H200)', '완전 지원', '프로덕션 추론'], recommended: true },
+    { id: '2', cells: ['AMD GPU (MI300X)', '지원', '대안 GPU 인프라'] },
+    { id: '3', cells: ['Intel GPU (Gaudi 2/3)', '지원', '비용 효율적 추론'] },
+    { id: '4', cells: ['Google TPU', '지원', 'GCP 환경'] },
+    { id: '5', cells: ['AWS Trainium/Inferentia', '지원', 'AWS 네이티브 가속'] }
+  ]}
+/>
 
 AWS EKS 환경에서는 NVIDIA GPU가 기본 선택이며, 비용 최적화를 위해 AWS Trainium2 인스턴스(`trn2.48xlarge`)도 고려할 수 있습니다.
+
+### vLLM v0.6+ 주요 신기능
+
+vLLM v0.6 이상 버전에서 추가된 주요 기능:
+
+- **FP8 KV Cache**: KV 캐시 메모리를 2배 절감하여 더 긴 컨텍스트 또는 더 큰 배치 크기 지원
+- **Improved Prefix Caching**: 공통 프리픽스 재사용으로 400%+ 처리량 향상
+- **Multi-LoRA Serving**: 단일 기본 모델에서 여러 LoRA 어댑터 동시 서빙
+- **GGUF Quantization**: GGUF 형식 양자화 모델 네이티브 지원
+- **Enhanced Speculative Decoding**: 더 빠른 토큰 생성을 위한 개선된 추측적 디코딩
 
 ## Kubernetes 배포
 
@@ -135,7 +154,7 @@ spec:
         karpenter.sh/instance-family: g6e
       containers:
         - name: vllm
-          image: vllm/vllm-openai:v0.15.1
+          image: vllm/vllm-openai:v0.6.3
           command: ["vllm", "serve"]
           args:
             - Qwen/Qwen3-32B-FP8
@@ -145,6 +164,8 @@ spec:
             - --max-model-len=32768
             - --enable-auto-tool-choice
             - --tool-call-parser=hermes
+            - --enable-prefix-caching
+            - --kv-cache-dtype=fp8
           env:
             - name: HUGGING_FACE_HUB_TOKEN
               valueFrom:
@@ -228,13 +249,15 @@ spec:
       hostIPC: true
       containers:
         - name: vllm
-          image: vllm/vllm-openai:v0.15.1
+          image: vllm/vllm-openai:v0.6.3
           command: ["vllm", "serve"]
           args:
             - meta-llama/Llama-3.3-70B-Instruct
             - --tensor-parallel-size=4
             - --gpu-memory-utilization=0.90
             - --max-model-len=8192
+            - --enable-prefix-caching
+            - --kv-cache-dtype=fp8
           env:
             - name: HUGGING_FACE_HUB_TOKEN
               valueFrom:
@@ -275,9 +298,26 @@ vllm serve TheBloke/Llama-2-70B-AWQ --quantization awq
 
 # GPTQ 양자화
 vllm serve TheBloke/Llama-2-70B-GPTQ --quantization gptq
+
+# GGUF 양자화 (vLLM v0.6+)
+vllm serve --model TheBloke/Llama-2-70B-GGUF \
+  --quantization gguf \
+  --gguf-file llama-2-70b.Q4_K_M.gguf
 ```
 
-FP8은 품질 저하가 거의 없으면서 메모리를 절반으로 줄인다. INT4(AWQ, GPTQ)는 복잡한 추론 작업에서 품질 저하가 발생할 수 있으므로 워크로드별 프로파일링이 필요하다.
+**양자화 방식 비교:**
+
+<ComparisonTable
+  headers={['양자화', '메모리 절감', '품질 손실', '추론 속도', '지원 (vLLM v0.6+)']}
+  rows={[
+    { id: '1', cells: ['FP8', '50%', '최소', '빠름', '✅'], recommended: true },
+    { id: '2', cells: ['AWQ', '75%', '낮음', '매우 빠름', '✅'] },
+    { id: '3', cells: ['GPTQ', '75%', '낮음', '빠름', '✅'] },
+    { id: '4', cells: ['GGUF', '50-75%', '낮음-중간', '빠름', '✅ (v0.6+)'] }
+  ]}
+/>
+
+FP8은 품질 저하가 거의 없으면서 메모리를 절반으로 줄인다. INT4(AWQ, GPTQ, GGUF)는 복잡한 추론 작업에서 품질 저하가 발생할 수 있으므로 워크로드별 프로파일링이 필요하다.
 
 ### Multi-LoRA 서빙
 
@@ -357,6 +397,44 @@ spec:
 - `vllm:num_requests_waiting`: 대기 중인 요청 수
 - `vllm:gpu_cache_usage_perc`: GPU KV 캐시 사용률
 - `vllm:num_preemptions_total`: 선점된 요청 수 (높으면 메모리 부족)
+- `vllm:avg_prompt_throughput_toks_per_s`: 프롬프트 처리량 (tokens/sec)
+- `vllm:avg_generation_throughput_toks_per_s`: 생성 처리량 (tokens/sec)
+- `vllm:time_to_first_token_seconds`: 첫 토큰까지 시간 (TTFT)
+- `vllm:time_per_output_token_seconds`: 출력 토큰당 시간 (TPOT)
+- `vllm:e2e_request_latency_seconds`: 엔드투엔드 요청 지연 시간
+
+### Grafana 대시보드 예제
+
+```json
+{
+  "dashboard": {
+    "title": "vLLM Performance Dashboard",
+    "panels": [
+      {
+        "title": "Request Throughput",
+        "targets": [{
+          "expr": "rate(vllm:request_success_total[5m])",
+          "legendFormat": "Requests/sec"
+        }]
+      },
+      {
+        "title": "GPU Cache Usage",
+        "targets": [{
+          "expr": "vllm:gpu_cache_usage_perc",
+          "legendFormat": "Cache Usage %"
+        }]
+      },
+      {
+        "title": "Token Generation Speed",
+        "targets": [{
+          "expr": "vllm:avg_generation_throughput_toks_per_s",
+          "legendFormat": "Tokens/sec"
+        }]
+      }
+    ]
+  }
+}
+```
 
 ### 선점(Preemption) 처리
 

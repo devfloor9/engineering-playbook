@@ -6,8 +6,10 @@ tags: [eks, moe, vllm, tgi, model-serving, gpu, mixtral]
 category: "genai-aiml"
 date: 2025-02-05
 authors: [devfloor9]
-sidebar_position: 7
+sidebar_position: 6
 ---
+
+import { RoutingMechanisms, MoeVsDense, GpuMemoryRequirements, ParallelizationStrategies, TensorParallelismConfig, VllmVsTgi, KvCacheConfig, BatchOptimization, MonitoringMetrics, GpuVsTrainium2 } from '@site/src/components/MoeModelTables';
 
 # MoE Model Serving Guide
 
@@ -64,12 +66,7 @@ flowchart TB
 
 The core of MoE models is the routing mechanism that selects appropriate experts based on input tokens.
 
-| Routing Method | Description | Representative Models |
-| --- | --- | --- |
-| Top-K Routing | Activate only top K experts | Mixtral (K=2) |
-| Expert Choice | Expert selects tokens to process | Switch Transformer |
-| Soft MoE | Distribute weights to all experts | Soft MoE |
-| Hash Routing | Hash-based deterministic routing | Hash Layers |
+<RoutingMechanisms />
 
 :::info How Routing Works
 
@@ -82,13 +79,7 @@ The core of MoE models is the routing mechanism that selects appropriate experts
 
 ### MoE vs Dense Model Comparison
 
-| Characteristic | Dense Model | MoE Model |
-| --- | --- | --- |
-| Parameter Activation | 100% (all) | 10-25% (some experts) |
-| Inference Computation | High | Relatively low |
-| Memory Requirements | Proportional to parameter count | Must load all parameters |
-| Learning Efficiency | Standard | Efficient learning with more data |
-| Scalability | Linear growth | Efficient scaling by adding experts |
+<MoeVsDense />
 
 ```mermaid
 flowchart LR
@@ -122,13 +113,7 @@ flowchart LR
 
 MoE models activate fewer parameters, but must load all experts into memory.
 
-| Model | Total Parameters | Active Parameters | FP16 Memory | INT8 Memory | Recommended GPU |
-| --- | --- | --- | --- | --- | --- |
-| Mixtral 8x7B | 46.7B | 12.9B | ~94GB | ~47GB | 2x A100 80GB |
-| Mixtral 8x22B | 141B | 39B | ~282GB | ~141GB | 4x H100 80GB |
-| DeepSeek-MoE 16B | 16.4B | 2.8B | ~33GB | ~17GB | 1x A100 40GB |
-| Qwen1.5-MoE-A2.7B | 14.3B | 2.7B | ~29GB | ~15GB | 1x A100 40GB |
-| DBRX | 132B | 36B | ~264GB | ~132GB | 4x H100 80GB |
+<GpuMemoryRequirements />
 
 :::warning Important Memory Calculation Notes
 
@@ -169,11 +154,7 @@ flowchart TB
     end
 ```
 
-| Parallelization Strategy | Description | Advantages | Disadvantages |
-| --- | --- | --- | --- |
-| Tensor Parallelism (TP) | Split tensors within layers across GPUs | Low latency | High communication overhead |
-| Expert Parallelism (EP) | Distribute experts across GPUs | Optimized for MoE | Requires all-to-all communication |
-| Pipeline Parallelism (PP) | Split layers sequentially across GPUs | Memory efficient | Pipeline bubble overhead |
+<ParallelizationStrategies />
 
 ### Expert Activation Patterns
 
@@ -402,12 +383,7 @@ spec:
 
 Tensor parallelism splits each layer of the model across multiple GPUs.
 
-| Model | Recommended TP Size | GPU Configuration | Memory/GPU |
-| --- | --- | --- | --- |
-| Mixtral 8x7B | 2 | 2x A100 80GB | ~47GB |
-| Mixtral 8x22B | 4 | 4x H100 80GB | ~70GB |
-| DeepSeek-MoE 16B | 1 | 1x A100 40GB | ~33GB |
-| DBRX | 4-8 | 4-8x H100 80GB | ~33-66GB |
+<TensorParallelismConfig />
 
 :::tip Tensor Parallelism Optimization
 
@@ -601,15 +577,7 @@ spec:
 
 ### vLLM vs TGI Performance Comparison
 
-| Characteristic | vLLM | TGI |
-| --- | --- | --- |
-| Throughput (tokens/s) | High | Medium-High |
-| Latency (TTFT) | Low | Medium |
-| Memory Efficiency | Very High (PagedAttention) | High |
-| MoE Optimization | Excellent | Good |
-| Quantization Support | AWQ, GPTQ, SqueezeLLM | AWQ, GPTQ, EETQ |
-| API Compatibility | OpenAI compatible | Custom API + OpenAI compatible |
-| Community | Active | Active |
+<VllmVsTgi />
 
 :::tip Inference Engine Selection Guide
 
@@ -741,12 +709,7 @@ args:
   - "32768"
 ```
 
-| Parameter | Description | Recommended Value |
-| --- | --- | --- |
-| `gpu-memory-utilization` | GPU memory usage ratio | 0.85-0.92 |
-| `max-model-len` | Maximum context length | Within model support range |
-| `max-num-batched-tokens` | Maximum tokens per batch | Adjust based on memory |
-| `enable-chunked-prefill` | Enable chunked prefill | Recommended |
+<KvCacheConfig />
 
 ### Speculative Decoding
 
@@ -818,11 +781,7 @@ args:
   - "32768"
 ```
 
-| Optimization Technique | Description | Effect |
-| --- | --- | --- |
-| Continuous Batching | Dynamically add/remove requests from batch | 2-3x throughput improvement |
-| Chunked Prefill | Split prefill into chunks for concurrent decode | Reduced latency |
-| Dynamic SplitFuse | Dynamically separate/combine prefill and decode | Improved GPU utilization |
+<BatchOptimization />
 
 ---
 
@@ -851,15 +810,7 @@ spec:
 
 ### Key Monitoring Metrics
 
-| Metric | Description | Threshold |
-| --- | --- | --- |
-| `vllm:num_requests_running` | Current requests being processed | - |
-| `vllm:num_requests_waiting` | Requests waiting in queue | > 100 warning |
-| `vllm:gpu_cache_usage_perc` | KV Cache utilization | > 95% warning |
-| `vllm:avg_prompt_throughput_toks_per_s` | Prompt processing throughput | - |
-| `vllm:avg_generation_throughput_toks_per_s` | Generation throughput | - |
-| `DCGM_FI_DEV_GPU_UTIL` | GPU utilization | > 90% warning |
-| `DCGM_FI_DEV_FB_USED` | GPU memory usage | > 95% critical |
+<MonitoringMetrics />
 
 ### Prometheus Alert Rules
 

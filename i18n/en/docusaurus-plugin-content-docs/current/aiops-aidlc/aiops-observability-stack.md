@@ -167,7 +167,7 @@ graph TB
         CWAgent["CloudWatch Agent"]
         FluentBit["Fluent Bit"]
         NodeMon["Node Monitoring Agent"]
-        FlowMon["NFM Agent\n(Container Network Observability)"]
+        FlowMon["NFM Agent<br/>(Container Network Observability)"]
     end
 
     subgraph Transport["🔄 Transport Layer (Transport)"]
@@ -178,25 +178,25 @@ graph TB
     end
 
     subgraph Storage["💾 Storage Layer (Storage)"]
-        AMP["AMP\n(Managed Prometheus)"]
+        AMP["AMP<br/>(Managed Prometheus)"]
         CWLogs["CloudWatch Logs"]
         CWMetrics["CloudWatch Metrics"]
         XRay["AWS X-Ray"]
     end
 
     subgraph Analysis["🧠 Analysis Layer (AI Analysis)"]
-        AMG["AMG\n(Managed Grafana)"]
-        CWAI["CloudWatch AI\nNL Query"]
-        DevOpsGuru["DevOps Guru\nML Anomaly Detection"]
-        CWInvestigation["CloudWatch\nInvestigations"]
-        AppSignals["Application\nSignals"]
+        AMG["AMG<br/>(Managed Grafana)"]
+        CWAI["CloudWatch AI<br/>NL Query"]
+        DevOpsGuru["DevOps Guru<br/>ML Anomaly Detection"]
+        CWInvestigation["CloudWatch<br/>Investigations"]
+        AppSignals["Application<br/>Signals"]
     end
 
     subgraph Action["⚡ Action Layer (Action)"]
-        MCP["Hosted MCP\nServers"]
-        Kiro["Kiro +\nSpec-driven"]
-        QDev["Amazon Q\nDeveloper"]
-        Kagent["Kagent\nAI Agent"]
+        MCP["Hosted MCP<br/>Servers"]
+        Kiro["Kiro +<br/>Spec-driven"]
+        QDev["Amazon Q<br/>Developer"]
+        Kagent["Kagent<br/>AI Agent"]
     end
 
     ADOT --> OTLP
@@ -780,11 +780,11 @@ Previously, diagnosing problems required opening CloudWatch console, Grafana das
 ```mermaid
 graph LR
     subgraph DataSources["📊 Data Sources"]
-        CW["CloudWatch\nMetrics/Logs"]
-        XR["X-Ray\nTraces"]
-        EKS_API["EKS API\nCluster State"]
-        DG["DevOps Guru\nInsights"]
-        CI["Container Insights\nPod Metrics"]
+        CW["CloudWatch<br/>Metrics/Logs"]
+        XR["X-Ray<br/>Traces"]
+        EKS_API["EKS API<br/>Cluster State"]
+        DG["DevOps Guru<br/>Insights"]
+        CI["Container Insights<br/>Pod Metrics"]
     end
 
     subgraph MCP["🔌 Hosted MCP Servers"]
@@ -794,7 +794,7 @@ graph LR
 
     subgraph Clients["🤖 AI Clients"]
         Kiro["Kiro"]
-        QDev["Amazon Q\nDeveloper"]
+        QDev["Amazon Q<br/>Developer"]
         Kagent2["Kagent"]
     end
 

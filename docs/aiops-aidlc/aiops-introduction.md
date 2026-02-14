@@ -2,7 +2,7 @@
 title: "AI로 K8s 운영 혁신하기 — AIOps 전략 가이드"
 sidebar_label: "1. AIOps 전략 가이드"
 description: "K8s 플랫폼의 복잡성을 AI로 낮추고 혁신을 가속하는 AIOps 전략 — AWS 오픈소스 관리형 서비스, Kiro+MCP, AI Agent 확장"
-sidebar_position: 2
+sidebar_position: 1
 category: "aiops-aidlc"
 tags: [aiops, eks, observability, anomaly-detection, monitoring, kiro, mcp, ai-agent]
 last_update:
@@ -1070,7 +1070,6 @@ Node Readiness Controller는 Kubernetes 생태계가 **명령형에서 선언형
 **참고 자료:**
 
 - [Kubernetes Blog: Introducing Node Readiness Controller](https://kubernetes.io/blog/2026/02/03/introducing-node-readiness-controller/)
-- [KEP-4818: Node Readiness Controller](https://github.com/kubernetes/enhancements/tree/master/keps/sig-node/4818-node-readiness-controller)
 
 ### 6.6 멀티 클러스터 AIOps 관리
 

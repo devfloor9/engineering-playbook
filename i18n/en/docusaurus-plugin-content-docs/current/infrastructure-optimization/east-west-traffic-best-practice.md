@@ -6,7 +6,7 @@ tags: [eks, networking, performance, cost-optimization, service-mesh]
 category: "performance-networking"
 date: 2025-05-22
 authors: [devfloor9]
-sidebar_position: 4
+sidebar_position: 3
 ---
 
 # EKS East-West Traffic Optimization Guide

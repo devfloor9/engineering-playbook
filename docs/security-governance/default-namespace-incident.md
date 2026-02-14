@@ -7,7 +7,7 @@ category: "security-compliance"
 last_update:
   date: 2025-01-07
   author: devfloor9
-sidebar_position: 2
+sidebar_position: 1
 ---
 
 # EKS Default Namespace 삭제 시 장애 대응 가이드

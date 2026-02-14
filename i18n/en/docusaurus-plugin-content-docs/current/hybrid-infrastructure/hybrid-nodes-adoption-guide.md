@@ -6,7 +6,7 @@ tags: [eks, hybrid-nodes, nodeadm, kubernetes, harbor, networking, dns, gpu, dra
 category: "hybrid-multicloud"
 date: 2025-08-20
 authors: [devfloor9]
-sidebar_position: 6
+sidebar_position: 4
 ---
 
 # EKS Hybrid Nodes Complete Guide

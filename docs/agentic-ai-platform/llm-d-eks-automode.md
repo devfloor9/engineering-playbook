@@ -5,10 +5,27 @@ description: "llm-d를 활용한 EKS Auto Mode 환경에서의 Kubernetes 네이
 tags: [eks, llm-d, vllm, inference-gateway, gpu, auto-mode, qwen, kv-cache]
 category: "genai-aiml"
 last_update:
-  date: 2026-02-10
+  date: 2026-02-13
   author: devfloor9
-sidebar_position: 8
+sidebar_position: 7
 ---
+
+import { ComparisonTable, SpecificationTable } from '@site/src/components/tables';
+import {
+  WellLitPathTable,
+  VllmComparisonTable,
+  Qwen3SpecsTable,
+  PrerequisitesTable,
+  P5InstanceTable,
+  P5eInstanceTable,
+  GatewayCRDTable,
+  DefaultDeploymentTable,
+  KVCacheEffectsTable,
+  MonitoringMetricsTable,
+  ModelLoadingTable,
+  CostOptimizationTable,
+  TroubleshootingTable
+} from '@site/src/components/LlmdTables';
 
 # llm-d 기반 EKS Auto Mode 추론 배포 가이드
 
@@ -36,11 +53,7 @@ llm-d는 Red Hat이 주도하는 Apache 2.0 라이선스의 Kubernetes 네이티
 
 llm-d는 세 가지 검증된 배포 경로를 제공합니다.
 
-| Well-Lit Path | 설명 | 적합한 워크로드 |
-| --- | --- | --- |
-| **Intelligent Inference Scheduling** | KV Cache-aware 라우팅으로 지능적 요청 분배 | 범용 LLM 서빙 (본 가이드) |
-| **Prefill/Decode Disaggregation** | Prefill과 Decode 단계를 분리하여 처리 | 대규모 배치, 긴 컨텍스트 처리 |
-| **Wide Expert-Parallelism** | MoE 모델의 Expert를 여러 노드에 분산 | MoE 모델 (Mixtral, DeepSeek 등) |
+<WellLitPathTable />
 
 ---
 
@@ -93,25 +106,11 @@ flowchart TB
 
 ### llm-d vs 기존 vLLM 배포 비교
 
-| 특성 | 기존 vLLM 배포 | llm-d 배포 |
-| --- | --- | --- |
-| 라우팅 방식 | Round-Robin / Random | KV Cache-aware Intelligent Routing |
-| Gateway 통합 | 별도 Ingress/Service 구성 | Gateway API 네이티브 통합 |
-| 스케일링 관리 | 수동 HPA 구성 | InferencePool 기반 자동 관리 |
-| KV Cache 활용 | Pod별 독립적 관리 | Cross-pod prefix 재사용으로 TTFT 단축 |
-| 설치 방식 | 개별 Helm chart 조합 | helmfile 통합 배포 (원커맨드) |
-| 모델 정의 | Deployment YAML 직접 작성 | InferenceModel CRD 선언적 관리 |
+<VllmComparisonTable />
 
 ### Qwen3-32B 모델 선정 이유
 
-| 항목 | 내용 |
-| --- | --- |
-| 모델명 | Qwen/Qwen3-32B |
-| 파라미터 | 32B (Dense) |
-| 라이선스 | Apache 2.0 |
-| 정밀도 | BF16 (~65GB VRAM) |
-| 컨텍스트 | 최대 32,768 토큰 |
-| 특징 | llm-d 공식 기본 모델, 다국어 지원 우수, 오픈소스 LLM 중 최고 인기 |
+<Qwen3SpecsTable />
 
 :::info Qwen3-32B 선정 배경
 Qwen3-32B는 llm-d의 공식 기본 모델이며, Apache 2.0 라이선스로 상업적 사용이 자유롭습니다. BF16 기준 약 65GB VRAM이 필요하여 TP=2 (2× GPU)로 H100 80GB에서 안정적으로 서빙할 수 있습니다.
@@ -121,23 +120,13 @@ Qwen3-32B는 llm-d의 공식 기본 모델이며, Apache 2.0 라이선스로 상
 
 ## 사전 요구사항
 
-| 항목 | 요구사항 | 비고 |
-| --- | --- | --- |
-| AWS 계정 | p5.48xlarge 쿼터 승인 | Service Quotas → Running On-Demand P instances ≥ 192 |
-| eksctl | >= 0.200.0 | EKS Auto Mode 지원 버전 |
-| kubectl | >= 1.31 | EKS 1.31 호환 |
-| Helm | >= 3.0 | Helm chart 배포용 |
-| helmfile | 최신 버전 | llm-d 통합 배포 도구 |
-| yq | >= 4.0 | YAML 처리 도구 |
-| HuggingFace Token | Qwen3-32B 접근 권한 | https://huggingface.co/settings/tokens |
-| AWS CLI | v2 최신 | 자격 증명 구성 완료 |
+<PrerequisitesTable />
 
 ### 클라이언트 도구 설치
 
 ```bash
 # eksctl 설치 (macOS)
-brew tap weaveworks/tap
-brew install weaveworks/tap/eksctl
+brew install eksctl
 
 # helmfile 설치
 brew install helmfile
@@ -180,7 +169,7 @@ kind: ClusterConfig
 metadata:
   name: llm-d-cluster
   region: us-west-2
-  version: "1.31"
+  version: "1.33"
 autoModeConfig:
   enabled: true
 ```
@@ -246,15 +235,17 @@ EKS Auto Mode는 NVIDIA GPU 드라이버를 자동으로 설치하고 관리합�
 
 ### p5.48xlarge 인스턴스 사양
 
-| 항목 | 사양 |
-| --- | --- |
-| GPU | 8× NVIDIA H100 80GB HBM3 |
-| GPU 메모리 | 총 640GB |
-| vCPU | 192 |
-| 시스템 메모리 | 2,048 GiB |
-| GPU 인터커넥트 | NVSwitch (900 GB/s) |
-| 네트워크 | EFA 3,200 Gbps |
-| 스토리지 | 8× 3.84TB NVMe SSD |
+<P5InstanceTable />
+
+### p5e.48xlarge 인스턴스 사양 (H200)
+
+<P5eInstanceTable />
+
+:::tip 인스턴스 선택 가이드
+- **p5e.48xlarge (H200)**: 100B+ 파라미터 모델, 최대 메모리 활용
+- **p5.48xlarge (H100)**: 70B+ 파라미터 모델, 최고 성능
+- **g6e family (L40S)**: 13B-70B 모델, 비용 효율적 추론
+:::
 
 ---
 
@@ -299,21 +290,24 @@ guides/inference-scheduling/
 llm-d는 Kubernetes Gateway API와 Inference Extension CRD를 사용합니다.
 
 ```bash
-# Gateway API 표준 CRD 설치
-kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.2.1/standard-install.yaml
+# Gateway API 표준 CRD 설치 (v1.2.0+)
+kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.2.0/standard-install.yaml
 
 # Inference Extension CRD 설치 (InferencePool, InferenceModel)
 kubectl apply -f https://github.com/kubernetes-sigs/gateway-api-inference-extension/releases/download/v0.3.0/manifests.yaml
 ```
 
+:::info Gateway API v1.2.0+ 기능
+Gateway API v1.2.0은 다음과 같은 향상된 기능을 제공합니다:
+- **HTTPRoute 개선**: 더 유연한 라우팅 규칙
+- **GRPCRoute 안정화**: gRPC 서비스 라우팅 지원
+- **BackendTLSPolicy**: 백엔드 TLS 설정 표준화
+- **Kubernetes 1.33+ 통합**: Topology-aware routing 지원
+:::
+
 설치되는 CRD:
 
-| CRD | 역할 |
-| --- | --- |
-| `Gateway` | Envoy 기반 프록시 인스턴스 정의 |
-| `HTTPRoute` | 라우팅 규칙 정의 |
-| `InferencePool` | vLLM Pod 그룹 (서빙 엔드포인트 풀) 정의 |
-| `InferenceModel` | 모델 이름과 InferencePool 매핑 |
+<GatewayCRDTable />
 
 ```bash
 # CRD 설치 확인
@@ -336,13 +330,7 @@ helmfile apply -n ${NAMESPACE}
 
 기본 배포 구성:
 
-| 설정 | 기본값 | 설명 |
-| --- | --- | --- |
-| 모델 | Qwen/Qwen3-32B | Apache 2.0, BF16 ~65GB VRAM |
-| Tensor Parallelism | TP=2 | replica당 2 GPU 사용 |
-| Replicas | 8 | 총 16 GPU (2× p5.48xlarge) |
-| Max Model Length | 32,768 | 최대 컨텍스트 길이 |
-| GPU Memory Utilization | 0.90 | KV Cache 할당 비율 |
+<DefaultDeploymentTable />
 
 :::tip 리소스 조정
 기본 설정은 8 replicas × 2 GPU = 16 GPU를 사용합니다. 테스트 목적이라면 `helmfile.yaml`에서 `replicaCount`를 줄여 비용을 절감할 수 있습니다. 예를 들어 4 replicas로 설정하면 단일 p5.48xlarge (8 GPU)로 운영 가능합니다.
@@ -521,11 +509,7 @@ sequenceDiagram
 
 ### KV Cache-aware 라우팅의 효과
 
-| 지표 | Cache Miss (기존 방식) | Cache Hit (llm-d) | 개선 효과 |
-| --- | --- | --- | --- |
-| TTFT (Time To First Token) | 높음 (전체 prefill 필요) | 낮음 (prefill 스킵) | 50-80% 단축 |
-| GPU 연산량 | 전체 prompt 처리 | 새로운 토큰만 처리 | 연산 절약 |
-| 처리량 (Throughput) | 기본 | 향상 | 1.5-3x 향상 |
+<KVCacheEffectsTable />
 
 :::tip Cache Hit Rate 극대화
 동일한 시스템 프롬프트를 사용하는 애플리케이션에서 KV Cache-aware 라우팅의 효과가 극대화됩니다. 예를 들어 RAG 파이프라인에서 동일한 컨텍스트 문서를 반복 참조하는 경우, 해당 prefix의 KV Cache를 재사용하여 TTFT를 크게 단축할 수 있습니다.
@@ -548,14 +532,7 @@ curl -s http://localhost:9090/metrics | grep -E "vllm_"
 
 ### 주요 모니터링 메트릭
 
-| 메트릭 | 설명 | 정상 범위 |
-| --- | --- | --- |
-| `vllm_num_requests_running` | 현재 처리 중인 요청 수 | 워크로드에 따라 다름 |
-| `vllm_num_requests_waiting` | 대기 중인 요청 수 | < 50 |
-| `vllm_gpu_cache_usage_perc` | GPU KV Cache 사용률 | 60-90% |
-| `vllm_avg_generation_throughput_toks_per_s` | 초당 생성 토큰 수 | 모델/GPU에 따라 다름 |
-| `vllm_avg_prompt_throughput_toks_per_s` | 초당 프롬프트 처리 토큰 수 | 모델/GPU에 따라 다름 |
-| `vllm_e2e_request_latency_seconds` | 요청 전체 지연시간 | P95 < 30s |
+<MonitoringMetricsTable />
 
 ### 8.2 GPU 활용률 확인
 
@@ -613,11 +590,7 @@ env:
     value: "s3://your-bucket/model-cache/qwen3-32b/"
 ```
 
-| 로딩 방식 | 예상 시간 | 비고 |
-| --- | --- | --- |
-| HuggingFace Hub (최초) | 10-20분 | 네트워크 속도에 따라 다름 |
-| S3 캐시 | 3-5분 | 같은 리전 S3에서 로딩 |
-| 노드 로컬 캐시 | 1-2분 | 동일 노드 재배포 시 |
+<ModelLoadingTable />
 
 ### 9.2 HPA (Horizontal Pod Autoscaler) 구성
 
@@ -665,13 +638,7 @@ HPA가 vLLM replica를 증가시키면, 추가 GPU가 필요한 경우 Karpenter
 
 ### 9.3 비용 최적화
 
-| 전략 | 설명 | 예상 절감 |
-| --- | --- | --- |
-| Savings Plans | 1년/3년 Compute Savings Plans 약정 | 30-60% |
-| 비피크 시간 스케일 다운 | 야간/주말 replicas 축소 (CronJob 활용) | 40-60% |
-| 모델 양자화 | INT8/INT4로 GPU 수 절감 | GPU 비용 50% |
-| Spot Instances | 내결함성 워크로드에 적용 (중단 위험 있음) | 60-90% |
-| TP 최적화 | 모델 크기에 맞는 최소 TP 값 사용 | 불필요한 GPU 절약 |
+<CostOptimizationTable />
 
 :::warning 비용 주의
 p5.48xlarge는 시간당 약 $98.32 (us-west-2 On-Demand 기준)입니다. 2대 운영 시 **월 약 $141,580**입니다. 테스트 완료 후 반드시 리소스를 정리하세요.
@@ -694,16 +661,7 @@ eksctl delete cluster --name llm-d-cluster --region us-west-2
 
 ### 일반적인 문제와 해결 방법
 
-| 증상 | 원인 | 해결 방법 |
-| --- | --- | --- |
-| GPU 노드가 프로비저닝되지 않음 | Service Quotas 부족 | AWS Console에서 P instance 쿼터 확인 및 증가 요청 |
-| Pod가 Pending 상태 | NodePool 설정 오류 또는 GPU 부족 | `kubectl describe pod`로 이벤트 확인, NodePool의 instance-family 확인 |
-| CUDA OOM (Out of Memory) | GPU 메모리 부족 | TP 값 증가 또는 `gpu-memory-utilization` 값 낮추기 (0.85) |
-| 모델 로딩 타임아웃 | HuggingFace 다운로드 느림 | S3 모델 캐싱 활성화, `initialDelaySeconds` 증가 |
-| Gateway 라우팅 실패 | CRD 미설치 | Gateway API CRD 및 Inference Extension CRD 설치 확인 |
-| HuggingFace 토큰 오류 | Secret 미생성 또는 권한 부족 | `kubectl get secret -n llm-d` 확인, HF 토큰 권한 확인 |
-| NCCL 통신 오류 | GPU 간 통신 문제 | `NCCL_DEBUG=INFO` 환경 변수 추가, EFA 지원 확인 |
-| InferencePool이 Ready가 아님 | vLLM Pod 미준비 | Pod 상태 확인, 모델 로딩 완료 대기 |
+<TroubleshootingTable />
 
 ### 디버깅 명령어 모음
 
@@ -778,4 +736,4 @@ env:
 - [Gateway API Inference Extension](https://gateway-api.sigs.k8s.io/geps/gep-3567/)
 - [vLLM 공식 문서](https://docs.vllm.ai/)
 - [Qwen3-32B HuggingFace](https://huggingface.co/Qwen/Qwen3-32B)
-- [Kubernetes Gateway API](https://gateway-api.sigs.k8s.io/)
+- [Kubernetes Gateway API v1.4](https://gateway-api.sigs.k8s.io/)

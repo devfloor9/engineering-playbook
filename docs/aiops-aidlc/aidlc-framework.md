@@ -2,7 +2,7 @@
 title: "AIDLC 프레임워크 - AI 주도 개발 라이프사이클"
 sidebar_label: "3. AIDLC 프레임워크"
 description: "AWS AI-DLC 방법론을 EKS 환경에 적용하여 개발과 운영을 AI로 고도화하는 실전 가이드"
-sidebar_position: 4
+sidebar_position: 3
 category: "aiops-aidlc"
 tags: [aidlc, kiro, mcp, gitops, argocd, ack, kro, ddd, ai-agent, eks]
 last_update:
@@ -154,7 +154,7 @@ graph LR
     subgraph Operations["Operations"]
         DEPLOY["선언적 배포"]
         OBSERVE["관찰성"]
-        AGENT["AI Agent\n자율 운영"]
+        AGENT["AI Agent<br/>자율 운영"]
     end
 
     REQ --> SPEC --> DESIGN --> TASKS
@@ -1030,7 +1030,6 @@ AWS IaC MCP Server는 Kiro의 Spec-driven 개발과 결합하여 인프라 코�
 **참고 자료**
 
 - [AWS DevOps Blog: Introducing the AWS IaC MCP Server](https://aws.amazon.com/blogs/devops/introducing-the-aws-infrastructure-as-code-mcp-server-ai-powered-cdk-and-cloudformation-assistance/) (2025-11-28)
-- [AWS IaC MCP Server GitHub Repository](https://github.com/aws/aws-iac-mcp-server)
 
 ---
 
@@ -1656,7 +1655,6 @@ spec:
 **참고 자료**
 
 - [Kagent GitHub Repository](https://github.com/kagent-dev/kagent)
-- [Kubernetes MCP (kmcp) Documentation](https://github.com/kubernetes/community/blob/master/contributors/design-proposals/mcp.md)
 - AWS re:Invent 2025 EKS Research — Section 2.1(CNS421) 참조
 
 #### 5.2.4 Agentic AI for EKS Operations — re:Invent 2025 CNS421

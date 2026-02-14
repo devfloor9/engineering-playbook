@@ -7,7 +7,7 @@ category: "genai-aiml"
 last_update:
   date: 2026-02-13
   author: devfloor9
-sidebar_position: 2
+sidebar_position: 1
 ---
 
 import Tabs from '@theme/Tabs';

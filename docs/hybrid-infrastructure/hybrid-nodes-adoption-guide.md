@@ -7,7 +7,7 @@ category: "hybrid-multicloud"
 last_update:
   date: 2025-08-20
   author: devfloor9
-sidebar_position: 6
+sidebar_position: 1
 ---
 
 # EKS Hybrid Nodes 완전 가이드

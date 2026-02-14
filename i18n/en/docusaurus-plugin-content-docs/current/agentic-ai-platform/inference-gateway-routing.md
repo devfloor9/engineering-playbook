@@ -6,7 +6,7 @@ tags: [eks, gateway-api, kgateway, routing, load-balancing, inference]
 category: "genai-aiml"
 date: 2025-02-05
 authors: [devfloor9]
-sidebar_position: 6
+sidebar_position: 9
 ---
 
 # Inference Gateway and Dynamic Routing
@@ -87,12 +87,18 @@ flowchart TB
 
 ### Component Structure
 
+import { ComponentStructureTable } from '@site/src/components/InferenceGatewayTables';
+
+<ComponentStructureTable />
+
+{/* Original table preserved for reference
 | Component | Role | Description |
 |---------|------|------|
 | **GatewayClass** | Gateway implementation definition | Designate Kgateway controller |
 | **Gateway** | Entry point definition | Configure listeners, TLS, addresses |
 | **HTTPRoute** | Routing rules | Path, header-based routing |
 | **Backend** | Model service | vLLM, TGI and other inference servers |
+*/}
 
 ### Traffic Flow
 
@@ -811,6 +817,11 @@ spec:
 
 Key metrics exposed by Kgateway.
 
+import { MonitoringMetricsTable } from '@site/src/components/InferenceGatewayTables';
+
+<MonitoringMetricsTable />
+
+{/* Original table preserved for reference
 | Metric | Description | Usage |
 |--------|------|------|
 | `kgateway_requests_total` | Total request count | Traffic monitoring |
@@ -818,6 +829,7 @@ Key metrics exposed by Kgateway.
 | `kgateway_upstream_rq_xx` | Backend response codes | Error tracking |
 | `kgateway_upstream_cx_active` | Active connections | Capacity planning |
 | `kgateway_retry_count` | Retry count | Stability analysis |
+*/}
 
 ### ServiceMonitor Configuration
 

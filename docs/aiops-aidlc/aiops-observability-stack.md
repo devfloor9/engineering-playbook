@@ -2,7 +2,7 @@
 title: "EKS 지능형 관찰성 스택 구축"
 sidebar_label: "2. 지능형 관찰성 스택"
 description: "ADOT, AMP, AMG, CloudWatch AI, Hosted MCP를 활용한 EKS 관찰성 아키텍처 구축 가이드"
-sidebar_position: 3
+sidebar_position: 2
 category: "aiops-aidlc"
 tags: [observability, opentelemetry, adot, prometheus, grafana, cloudwatch, devops-guru, mcp, eks]
 last_update:
@@ -309,7 +309,6 @@ NRC는 관찰성 데이터를 바탕으로 자동 조치를 수행하는 **Close
 
 :::info 참조
 - [Kubernetes Blog: Introducing Node Readiness Controller](https://kubernetes.io/blog/2026/02/03/introducing-node-readiness-controller/)
-- [KEP-4868: Node Readiness Controller](https://github.com/kubernetes/enhancements/tree/master/keps/sig-node/4868-node-readiness-controller)
 :::
 
 ### 2.4 Container Network Observability (2025.11)
@@ -524,7 +523,7 @@ graph TB
         CWAgent["CloudWatch Agent"]
         FluentBit["Fluent Bit"]
         NodeMon["Node Monitoring Agent"]
-        FlowMon["NFM Agent\n(Container Network Observability)"]
+        FlowMon["NFM Agent<br/>(Container Network Observability)"]
     end
 
     subgraph Transport["🔄 전송 레이어 (Transport)"]
@@ -535,25 +534,25 @@ graph TB
     end
 
     subgraph Storage["💾 저장 레이어 (Storage)"]
-        AMP["AMP\n(Managed Prometheus)"]
+        AMP["AMP<br/>(Managed Prometheus)"]
         CWLogs["CloudWatch Logs"]
         CWMetrics["CloudWatch Metrics"]
         XRay["AWS X-Ray"]
     end
 
     subgraph Analysis["🧠 분석 레이어 (AI Analysis)"]
-        AMG["AMG\n(Managed Grafana)"]
-        CWAI["CloudWatch AI\nNL 쿼리"]
-        DevOpsGuru["DevOps Guru\nML 이상 탐지"]
-        CWInvestigation["CloudWatch\nInvestigations"]
-        AppSignals["Application\nSignals"]
+        AMG["AMG<br/>(Managed Grafana)"]
+        CWAI["CloudWatch AI<br/>NL 쿼리"]
+        DevOpsGuru["DevOps Guru<br/>ML 이상 탐지"]
+        CWInvestigation["CloudWatch<br/>Investigations"]
+        AppSignals["Application<br/>Signals"]
     end
 
     subgraph Action["⚡ 실행 레이어 (Action)"]
-        MCP["Hosted MCP\nServers"]
-        Kiro["Kiro +\nSpec-driven"]
-        QDev["Amazon Q\nDeveloper"]
-        Kagent["Kagent\nAI Agent"]
+        MCP["Hosted MCP<br/>Servers"]
+        Kiro["Kiro +<br/>Spec-driven"]
+        QDev["Amazon Q<br/>Developer"]
+        Kagent["Kagent<br/>AI Agent"]
     end
 
     ADOT --> OTLP
@@ -2088,21 +2087,21 @@ GuardDuty Extended Threat Detection은 기존 관찰성 스택과 완벽하게 �
 ```mermaid
 graph TB
     subgraph EKS["EKS 클러스터"]
-        RT[Runtime Monitoring\nAgent]
+        RT[Runtime Monitoring<br/>Agent]
         AL[Audit Logs]
         NW[Network Telemetry]
     end
 
     subgraph GuardDuty["GuardDuty Extended Threat Detection"]
         AI[AI/ML 상관 분석]
-        SEQ[Attack Sequence\nEngine]
+        SEQ[Attack Sequence<br/>Engine]
     end
 
     subgraph Response["자동 대응"]
         EB[EventBridge]
-        Lambda[Lambda\n격리 함수]
+        Lambda[Lambda<br/>격리 함수]
         SNS[SNS 알림]
-        CW[CloudWatch\nInvestigations]
+        CW[CloudWatch<br/>Investigations]
     end
 
     RT --> AI
@@ -2432,11 +2431,11 @@ AWS는 CloudWatch AI 자연어 쿼리의 리전 확장을 계속 진행 중입�
 ```mermaid
 graph LR
     subgraph DataSources["📊 데이터 소스"]
-        CW["CloudWatch\nMetrics/Logs"]
-        XR["X-Ray\nTraces"]
-        EKS_API["EKS API\n클러스터 상태"]
-        DG["DevOps Guru\nInsights"]
-        CI["Container Insights\nPod 메트릭"]
+        CW["CloudWatch<br/>Metrics/Logs"]
+        XR["X-Ray<br/>Traces"]
+        EKS_API["EKS API<br/>클러스터 상태"]
+        DG["DevOps Guru<br/>Insights"]
+        CI["Container Insights<br/>Pod 메트릭"]
     end
 
     subgraph MCP["🔌 Hosted MCP Servers"]
@@ -2446,7 +2445,7 @@ graph LR
 
     subgraph Clients["🤖 AI 클라이언트"]
         Kiro["Kiro"]
-        QDev["Amazon Q\nDeveloper"]
+        QDev["Amazon Q<br/>Developer"]
         Kagent2["Kagent"]
     end
 
@@ -3018,26 +3017,26 @@ AWS IaC MCP Server는 Model Context Protocol을 구현한 도구로, AI 클라�
 ```mermaid
 graph TB
     subgraph UserRequest["1️⃣ 사용자 요청"]
-        NL["자연어 요청:\n'EKS 관찰성 스택을 배포해줘'"]
+        NL["자연어 요청:<br/>'EKS 관찰성 스택을 배포해줘'"]
     end
 
     subgraph Kiro["2️⃣ Kiro AI 에이전트"]
-        Parse["요청 분석:\n- AMP 워크스페이스\n- AMG 연결\n- ADOT Collector\n- Container Insights"]
+        Parse["요청 분석:<br/>- AMP 워크스페이스<br/>- AMG 연결<br/>- ADOT Collector<br/>- Container Insights"]
     end
 
     subgraph IaCMCP["3️⃣ IaC MCP Server"]
-        DocSearch["문서 검색:\n- AMP CDK 구성\n- ADOT Helm 차트\n- IAM 역할 정책"]
-        CodeGen["코드 생성:\nCDK TypeScript"]
-        Validate["검증:\n- cdk synth\n- cfn-lint\n- IAM 정책 검사"]
+        DocSearch["문서 검색:<br/>- AMP CDK 구성<br/>- ADOT Helm 차트<br/>- IAM 역할 정책"]
+        CodeGen["코드 생성:<br/>CDK TypeScript"]
+        Validate["검증:<br/>- cdk synth<br/>- cfn-lint<br/>- IAM 정책 검사"]
     end
 
     subgraph Deploy["4️⃣ 배포"]
         GitOps["Managed Argo CD"]
-        Apply["kubectl apply\nhelm install\ncdk deploy"]
+        Apply["kubectl apply<br/>helm install<br/>cdk deploy"]
     end
 
     subgraph Verify["5️⃣ 검증"]
-        Health["헬스체크:\n- AMP 쓰기 가능\n- AMG 데이터소스 연결\n- ADOT 메트릭 수집"]
+        Health["헬스체크:<br/>- AMP 쓰기 가능<br/>- AMG 데이터소스 연결<br/>- ADOT 메트릭 수집"]
     end
 
     NL --> Parse

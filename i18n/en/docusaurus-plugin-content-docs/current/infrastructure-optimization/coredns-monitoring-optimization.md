@@ -6,7 +6,7 @@ tags: [eks, coredns, dns, monitoring, prometheus, performance]
 category: "performance-networking"
 date: 2025-05-20
 authors: [devfloor9]
-sidebar_position: 6
+sidebar_position: 2
 ---
 
 # CoreDNS Monitoring and Optimization Guide

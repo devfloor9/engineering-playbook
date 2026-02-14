@@ -2,7 +2,7 @@
 title: "SageMaker-EKS Hybrid ML Architecture"
 sidebar_label: "SageMaker-EKS Integration"
 description: "Hybrid ML architecture: training on SageMaker and serving on EKS"
-sidebar_position: 6
+sidebar_position: 16
 category: "aiops-aidlc"
 tags: [sagemaker, eks, hybrid, mlops, model-registry, training, inference]
 last_update:

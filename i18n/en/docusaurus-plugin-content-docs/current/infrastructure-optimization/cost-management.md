@@ -6,7 +6,7 @@ tags: [eks, cost-management, finops, karpenter, kubecost, optimization]
 category: "performance-networking"
 date: 2025-07-01
 authors: [devfloor9]
-sidebar_position: 7
+sidebar_position: 6
 ---
 
 # Large-Scale EKS Cost Management Guide

@@ -5,10 +5,20 @@ description: "LangFuse, LangSmith를 활용한 Agentic AI 애플리케이션 모
 tags: [eks, langfuse, langsmith, monitoring, observability, tracing, opentelemetry, operations, troubleshooting, alerting]
 category: "genai-aiml"
 last_update:
-  date: 2025-02-05
+  date: 2026-02-13
   author: devfloor9
-sidebar_position: 13
+sidebar_position: 12
 ---
+
+import {
+  LangFuseVsLangSmithTable,
+  LatencyMetricsTable,
+  TokenUsageMetricsTable,
+  ErrorRateMetricsTable,
+  DailyChecksTable,
+  WeeklyChecksTable,
+  MaturityModelTable
+} from '@site/src/components/AgentMonitoringTables';
 
 # AI Agent 모니터링 및 운영
 
@@ -29,14 +39,7 @@ Agentic AI 애플리케이션은 복잡한 추론 체인과 다양한 도구 호
 
 ## LangFuse vs LangSmith 비교
 
-| 특성 | LangFuse | LangSmith |
-| ---- | -------- | --------- |
-| **라이선스** | 오픈소스 (MIT) | 상용 (무료 티어 제공) |
-| **배포 방식** | Self-hosted / Cloud | Cloud only |
-| **데이터 주권** | 완전한 제어 | LangChain 서버 |
-| **통합** | 다양한 프레임워크 | LangChain 최적화 |
-| **비용** | 인프라 비용만 | 사용량 기반 과금 |
-| **확장성** | Kubernetes 네이티브 | 관리형 |
+<LangFuseVsLangSmithTable />
 
 :::tip 선택 가이드
 
@@ -49,7 +52,7 @@ Agentic AI 애플리케이션은 복잡한 추론 체인과 다양한 도구 호
 
 ### 아키텍처 개요
 
-LangFuse는 다음 컴포넌트로 구성됩니다:
+LangFuse v2.75.0 이상은 다음 컴포넌트로 구성됩니다:
 
 ```mermaid
 graph TB
@@ -246,7 +249,7 @@ spec:
     spec:
       containers:
         - name: langfuse
-          image: langfuse/langfuse:2
+          image: langfuse/langfuse:2.75.0
           ports:
             - containerPort: 3000
               name: http
@@ -399,8 +402,86 @@ spec:
 
 - `NEXTAUTH_SECRET`, `SALT`, `ENCRYPTION_KEY`는 반드시 안전한 랜덤 값으로 설정하세요
 - 프로덕션에서는 AWS Secrets Manager 또는 HashiCorp Vault를 사용하여 시크릿을 관리하세요
-- PostgreSQL은 RDS를 사용하는 것을 권장합니다 (고가용성, 자동 백업)
+- PostgreSQL은 Amazon RDS PostgreSQL을 사용하는 것을 강력히 권장합니다 (고가용성, 자동 백업, 관리형 업데이트)
+- StatefulSet PostgreSQL은 개발/테스트 환경에만 사용하세요
 :::
+
+### AWS Secrets Manager 통합 (권장)
+
+프로덕션 환경에서는 Kubernetes Secret 대신 AWS Secrets Manager와 External Secrets Operator를 사용하세요:
+
+```yaml
+# external-secrets-operator 설치
+helm repo add external-secrets https://charts.external-secrets.io
+helm install external-secrets external-secrets/external-secrets -n external-secrets-system --create-namespace
+
+# SecretStore 설정
+apiVersion: external-secrets.io/v1beta1
+kind: SecretStore
+metadata:
+  name: aws-secrets-manager
+  namespace: observability
+spec:
+  provider:
+    aws:
+      service: SecretsManager
+      region: ap-northeast-2
+      auth:
+        jwt:
+          serviceAccountRef:
+            name: langfuse
+
+# ExternalSecret 설정
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  name: langfuse-secret
+  namespace: observability
+spec:
+  refreshInterval: 1h
+  secretStoreRef:
+    name: aws-secrets-manager
+    kind: SecretStore
+  target:
+    name: langfuse-secret
+    creationPolicy: Owner
+  data:
+    - secretKey: DATABASE_URL
+      remoteRef:
+        key: langfuse/database-url
+    - secretKey: NEXTAUTH_SECRET
+      remoteRef:
+        key: langfuse/nextauth-secret
+    - secretKey: SALT
+      remoteRef:
+        key: langfuse/salt
+    - secretKey: ENCRYPTION_KEY
+      remoteRef:
+        key: langfuse/encryption-key
+```
+
+### Amazon RDS PostgreSQL 사용 (권장)
+
+프로덕션 환경에서는 StatefulSet PostgreSQL 대신 Amazon RDS를 사용하세요:
+
+```yaml
+# RDS PostgreSQL 연결 설정
+apiVersion: v1
+kind: Secret
+metadata:
+  name: langfuse-postgres-secret
+  namespace: observability
+type: Opaque
+stringData:
+  DATABASE_URL: "postgresql://langfuse:password@langfuse-db.xxxxxxxxxxxx.ap-northeast-2.rds.amazonaws.com:5432/langfuse?sslmode=require"
+```
+
+**RDS 장점:**
+- 자동 백업 및 포인트인타임 복구
+- Multi-AZ 고가용성
+- 자동 패치 및 업데이트
+- 성능 인사이트 및 모니터링
+- 읽기 전용 복제본 지원
 
 
 ## LangSmith 통합
@@ -693,30 +774,15 @@ graph TB
 
 ### Latency 메트릭
 
-| 메트릭 | 설명 | 목표값 | 알림 임계값 |
-| ------ | ---- | ------ | ----------- |
-| `agent_request_duration_seconds` | 전체 요청 처리 시간 | P95 < 5s | P99 > 10s |
-| `llm_inference_duration_seconds` | LLM 추론 시간 | P95 < 3s | P99 > 8s |
-| `tool_execution_duration_seconds` | 도구 실행 시간 | P95 < 1s | P99 > 3s |
-| `vector_search_duration_seconds` | 벡터 검색 시간 | P95 < 200ms | P99 > 500ms |
+<LatencyMetricsTable />
 
 ### Token Usage 메트릭
 
-| 메트릭 | 설명 | 모니터링 목적 |
-| ------ | ---- | ------------- |
-| `llm_input_tokens_total` | 입력 토큰 총합 | 프롬프트 최적화 |
-| `llm_output_tokens_total` | 출력 토큰 총합 | 응답 길이 분석 |
-| `llm_total_tokens_total` | 전체 토큰 총합 | 비용 추적 |
-| `llm_cost_dollars_total` | 추정 비용 (USD) | 예산 관리 |
+<TokenUsageMetricsTable />
 
 ### Error Rate 메트릭
 
-| 메트릭 | 설명 | 알림 임계값 |
-| ------ | ---- | ----------- |
-| `agent_errors_total` | 에이전트 오류 총합 | 오류율 > 5% |
-| `llm_rate_limit_errors_total` | Rate Limit 오류 | 분당 10회 이상 |
-| `tool_execution_errors_total` | 도구 실행 오류 | 오류율 > 10% |
-| `agent_timeout_total` | 타임아웃 발생 | 분당 5회 이상 |
+<ErrorRateMetricsTable />
 
 ### Prometheus 메트릭 수집 설정
 
@@ -823,12 +889,12 @@ ACTIVE_SESSIONS = Gauge(
 
 # 모델별 비용 (USD per 1K tokens)
 MODEL_COSTS = {
+    "gpt-4o": {"input": 0.0025, "output": 0.01},
+    "gpt-4o-mini": {"input": 0.00015, "output": 0.0006},
     "gpt-4-turbo": {"input": 0.01, "output": 0.03},
-    "gpt-4": {"input": 0.03, "output": 0.06},
-    "gpt-3.5-turbo": {"input": 0.0005, "output": 0.0015},
+    "claude-sonnet-4": {"input": 0.003, "output": 0.015},
+    "claude-3.5-haiku": {"input": 0.0008, "output": 0.004},
     "claude-3-opus": {"input": 0.015, "output": 0.075},
-    "claude-3-sonnet": {"input": 0.003, "output": 0.015},
-    "claude-3-haiku": {"input": 0.00025, "output": 0.00125},
 }
 
 def record_llm_usage(
@@ -1083,23 +1149,11 @@ data:
 
 ### 일일 점검 항목
 
-| 점검 항목 | 확인 방법 | 정상 기준 |
-| --- | --- | --- |
-| GPU 상태 | `kubectl get nodes -l nvidia.com/gpu.present=true` | 모든 노드 Ready |
-| 모델 Pod | `kubectl get pods -n inference` | Running 상태 |
-| 에러율 | Grafana 대시보드 | < 1% |
-| 응답 시간 | P99 레이턴시 | < 5초 |
-| GPU 사용률 | DCGM 메트릭 | 40-80% |
-| 메모리 사용 | GPU 메모리 | < 90% |
+<DailyChecksTable />
 
 ### 주간 점검 항목
 
-| 점검 항목 | 확인 방법 | 조치 사항 |
-| --- | --- | --- |
-| 비용 분석 | Kubecost 리포트 | 이상 비용 식별 |
-| 용량 계획 | 리소스 트렌드 | 스케일링 계획 |
-| 보안 패치 | 이미지 스캔 | 취약점 패치 |
-| 백업 검증 | 복구 테스트 | 백업 정책 확인 |
+<WeeklyChecksTable />
 
 
 ## 트러블슈팅 가이드
@@ -1211,17 +1265,17 @@ class ModelPricing:
     input_price: float
     output_price: float
 
-# 2024년 기준 모델 가격
+# 2025년 기준 모델 가격
 MODEL_PRICING: Dict[str, ModelPricing] = {
     # OpenAI
+    "gpt-4o": ModelPricing(0.0025, 0.01),
+    "gpt-4o-mini": ModelPricing(0.00015, 0.0006),
     "gpt-4-turbo": ModelPricing(0.01, 0.03),
-    "gpt-4": ModelPricing(0.03, 0.06),
-    "gpt-3.5-turbo": ModelPricing(0.0005, 0.0015),
 
     # Anthropic
+    "claude-sonnet-4": ModelPricing(0.003, 0.015),
+    "claude-3.5-haiku": ModelPricing(0.0008, 0.004),
     "claude-3-opus": ModelPricing(0.015, 0.075),
-    "claude-3-sonnet": ModelPricing(0.003, 0.015),
-    "claude-3-haiku": ModelPricing(0.00025, 0.00125),
 }
 
 @dataclass
@@ -1312,7 +1366,7 @@ tenant_monthly_budget_usd
 
 :::tip 비용 최적화 팁
 
-1. **모델 선택 최적화**: 간단한 작업에는 저렴한 모델(GPT-3.5, Claude Haiku) 사용
+1. **모델 선택 최적화**: 간단한 작업에는 저렴한 모델(GPT-4o-mini, Claude 3.5 Haiku) 사용
 2. **프롬프트 최적화**: 불필요한 컨텍스트 제거로 입력 토큰 절감
 3. **캐싱 활용**: 반복적인 쿼리에 대한 응답 캐싱
 4. **배치 처리**: 가능한 경우 요청을 배치로 처리하여 오버헤드 감소
@@ -1322,6 +1376,24 @@ tenant_monthly_budget_usd
 ## 결론
 
 AI Agent 모니터링은 Agentic AI 애플리케이션의 안정적인 운영과 지속적인 개선을 위해 필수적입니다. 이 문서에서 다룬 핵심 내용을 요약하면:
+
+### AWS 네이티브 관측성: CloudWatch Generative AI Observability
+
+:::tip re:Invent 2025 신규 서비스
+Amazon CloudWatch Generative AI Observability는 2025년 10월 GA로 출시된 AI 워크로드 전용 관측성 서비스입니다. LangFuse/LangSmith와 함께 또는 대안으로 활용할 수 있습니다.
+:::
+
+CloudWatch Generative AI Observability는 LLM 및 AI 에이전트 모니터링을 위한 AWS 네이티브 솔루션입니다:
+
+- **인프라 무관 모니터링**: Bedrock, EKS, ECS, 온프레미스 등 모든 환경의 AI 워크로드 지원
+- **에이전트/도구 추적**: 에이전트, 지식 베이스, 도구 호출에 대한 기본 제공 뷰
+- **엔드투엔드 트레이싱**: 전체 AI 스택에 걸친 추적
+- **토큰 및 지연 메트릭**: 네이티브 LLM 트레이싱
+- **프레임워크 호환**: LangChain, LangGraph, CrewAI 등 외부 프레임워크 지원
+
+LangFuse v2.75.0 (Self-hosted 데이터 주권)와 CloudWatch Gen AI Observability(AWS 네이티브 통합)를 함께 사용하면 가장 포괄적인 관측성을 확보할 수 있습니다.
+
+또한 **CloudWatch Application Signals**를 활용하면 EKS 워크로드의 자동 텔레메트리 수집, 서비스 관계 시각화, SLI/SLO 모니터링이 가능합니다. 코드 변경 없이 ADOT(AWS Distro for OpenTelemetry) 기반 자동 계측을 지원합니다.
 
 ### 핵심 요약
 
@@ -1334,12 +1406,7 @@ AI Agent 모니터링은 Agentic AI 애플리케이션의 안정적인 운영과
 
 ### 모니터링 성숙도 모델
 
-| 단계 | 수준 | 구현 내용 |
-| ---- | ---- | --------- |
-| **Level 1** | 기본 | 로그 수집, 기본 메트릭 |
-| **Level 2** | 표준 | LangFuse/LangSmith 트레이싱, Grafana 대시보드 |
-| **Level 3** | 고급 | 비용 추적, 품질 평가, 자동 알림 |
-| **Level 4** | 최적화 | A/B 테스트, 자동 튜닝, 예측 분석 |
+<MaturityModelTable />
 
 :::tip 다음 단계
 
@@ -1353,6 +1420,8 @@ AI Agent 모니터링은 Agentic AI 애플리케이션의 안정적인 운영과
 - [LangFuse Documentation](https://langfuse.com/docs)
 - [LangFuse GitHub Repository](https://github.com/langfuse/langfuse)
 - [LangSmith Documentation](https://docs.smith.langchain.com/)
+- [CloudWatch Generative AI Observability](https://aws.amazon.com/blogs/mt/launching-amazon-cloudwatch-generative-ai-observability-preview/)
+- [CloudWatch Application Signals](https://aws.amazon.com/blogs/mt/amazon-cloudwatch-application-signals-new-enhancements-for-application-monitoring/)
 - [OpenTelemetry Documentation](https://opentelemetry.io/docs/)
 - [Prometheus Monitoring](https://prometheus.io/docs/)
 - [Grafana Dashboards](https://grafana.com/docs/grafana/latest/dashboards/)

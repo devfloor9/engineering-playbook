@@ -2,7 +2,7 @@
 title: "NeMo Framework"
 sidebar_label: "NeMo Framework"
 description: "Building LLM fine-tuning and optimization pipelines with NVIDIA NeMo"
-sidebar_position: 10
+sidebar_position: 8
 tags:
   - nemo
   - nvidia
@@ -12,6 +12,8 @@ tags:
   - tensorrt
   - genai
 ---
+
+import { NemoComponents, GPURequirements, CheckpointSharding, MonitoringMetrics, NCCLImportance } from '@site/src/components/NemoTables';
 
 # NeMo Framework
 
@@ -52,12 +54,7 @@ graph LR
 
 ### NeMo Framework Components
 
-| Component | Role | Key Features |
-| --- | --- | --- |
-| NeMo Core | Core framework | Model definition, training loop |
-| NeMo Curator | Data processing | Data filtering, deduplication |
-| NeMo Aligner | Alignment training | RLHF, DPO, SFT |
-| NeMo Guardrails | Safety | Input/output filtering |
+<NemoComponents />
 
 ## EKS Deployment Architecture
 
@@ -117,12 +114,7 @@ graph TB
 
 ### GPU Node Requirements
 
-| Model Size | Minimum GPU | Recommended Instance | Memory Required |
-| --- | --- | --- | --- |
-| 7B | 1x A100 80GB | p4d.24xlarge | 80GB+ |
-| 13B | 2x A100 80GB | p4d.24xlarge | 160GB+ |
-| 70B | 8x A100 80GB | p4d.24xlarge | 640GB+ |
-| 405B | 32x H100 | p5.48xlarge x4 | 2.5TB+ |
+<GPURequirements />
 
 ## NeMo Container Deployment
 
@@ -608,13 +600,7 @@ spec:
 
 ### Key Monitoring Metrics
 
-| Metric | Description | Threshold |
-| --- | --- | --- |
-| training_loss | Training loss | Continuous decrease |
-| validation_loss | Validation loss | Similar to training loss |
-| gpu_utilization | GPU utilization | > 80% |
-| gpu_memory_used | GPU memory usage | < 95% |
-| throughput_tokens_per_sec | Processing throughput | Monitor |
+<MonitoringMetrics />
 
 ---
 
@@ -651,12 +637,7 @@ graph TB
 
 **Why NCCL is Critical in Distributed Training:**
 
-| Aspect | Impact Level | NCCL Optimization |
-| --- | --- | --- |
-| **Model Parallelism** | High | Optimize activation/gradient transfer between GPUs |
-| **Data Parallelism** | Very High | Fast gradient synchronization via AllReduce |
-| **Pipeline Parallelism** | High | Optimize activation transfer between stages |
-| **Mixed Precision Training** | Medium | Optimize compressed gradient communication |
+<NCCLImportance />
 
 ### Core Collective Operations
 

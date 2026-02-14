@@ -2,12 +2,14 @@
 title: "Bedrock AgentCore and MCP Integration"
 sidebar_label: "Bedrock AgentCore & MCP"
 description: "Guide to production AI agent operations using Amazon Bedrock AgentCore and MCP protocol integration"
-sidebar_position: 13
+sidebar_position: 14
 tags: [bedrock, agentcore, mcp, ai-agent, eks]
 last_update:
   date: 2025-02-09
   author: devfloor9
 ---
+
+import { EKSMCPFeatures, KagentVsAgentCore, MultiAgentPatterns, MCPServerEcosystem } from '@site/src/components/BedrockMcpTables';
 
 # Bedrock AgentCore and MCP Integration
 
@@ -70,13 +72,7 @@ MCP (Model Context Protocol) is a standard communication protocol between AI age
 
 AWS provides a hosted MCP server dedicated to EKS to support integration between Kubernetes clusters and AI agents:
 
-| Feature | Description |
-|---------|-------------|
-| Pod Log Retrieval | Real-time streaming of specific Pod logs |
-| K8s Event Retrieval | Cluster event search and analysis |
-| CloudWatch Metrics | Cluster metrics retrieval and analysis |
-| Resource Status Check | Resource status retrieval for Deployments, Services, etc. |
-| Troubleshooting | Agent-based automated diagnostics |
+<EKSMCPFeatures />
 
 ### SRE Agent Example
 
@@ -113,14 +109,7 @@ spec:
 
 You can use existing Kagent-based agents together with Bedrock AgentCore:
 
-| Comparison Item | Kagent (Self-managed) | Bedrock AgentCore |
-|-----------------|----------------------|-------------------|
-| Execution Environment | EKS Pod | AWS Managed Runtime |
-| Model Selection | Flexible (vLLM, external API) | Bedrock Models |
-| Tool Protocol | Custom CRD | MCP Standard |
-| Scaling | Karpenter/HPA | Auto-scaling |
-| Cost | GPU Infrastructure Cost | API Call Cost |
-| Best For | GPU availability, custom models | Fast production deployment |
+<KagentVsAgentCore />
 
 **Hybrid Approach**: An effective strategy is to route cost-sensitive high-frequency calls to Kagent + vLLM, and low-frequency calls requiring complex reasoning to Bedrock AgentCore.
 
@@ -206,13 +195,7 @@ span.end(output=response)
 
 AWS provides official MCP servers as open source ([github.com/awslabs/mcp](https://github.com/awslabs/mcp)):
 
-| MCP Server | Purpose |
-|------------|---------|
-| EKS MCP Server | Kubernetes cluster management |
-| CloudWatch MCP Server | Metrics and logs retrieval |
-| IAM Policy Autopilot | Least privilege policy generation |
-| S3 MCP Server | Object storage access |
-| RDS MCP Server | Database management |
+<MCPServerEcosystem />
 
 ## Related Documents
 

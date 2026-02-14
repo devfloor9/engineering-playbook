@@ -6,8 +6,10 @@ tags: [eks, architecture, agentic-ai, platform, kubernetes, kagent, kgateway, ge
 category: "genai-aiml"
 date: 2025-02-05
 authors: [devfloor9]
-sidebar_position: 4
+sidebar_position: 3
 ---
+
+import { CoreCapabilities, LayerRoles, ToolTypes, K8sFeatures, RoutingStrategies, TenantIsolation, RequestProcessing, TechnologyStack } from '@site/src/components/ArchitectureTables';
 
 # Agentic AI Platform Architecture
 
@@ -33,14 +35,7 @@ This guide presents practical strategies to systematically address these challen
 
 ### Core Capabilities
 
-| Capability | Description |
-|------------|-------------|
-| **Agent Orchestration** | Manage AI agent lifecycle through Kagent |
-| **Intelligent Routing** | Dynamic routing of inference requests through Kgateway |
-| **Vector Search** | Support RAG (Retrieval-Augmented Generation) through Milvus |
-| **Observability** | Track and analyze agent behavior through LangFuse |
-| **Scalability** | Horizontal scaling native to Kubernetes |
-| **Multi-Tenancy** | Support multiple teams with resource isolation and fair distribution |
+<CoreCapabilities />
 
 :::info Target Audience
 This document is intended for solution architects, platform engineers, and DevOps engineers. Basic understanding of Kubernetes and AI/ML workloads is required.
@@ -127,14 +122,7 @@ graph TB
 
 ### Role by Layer
 
-| Layer | Role | Key Components |
-| ------ | ---- | ------------- |
-| **Client Layer** | User and application interface | API Clients, Web UI, SDK |
-| **Gateway Layer** | Authentication, routing, traffic management | Kgateway, Auth, Rate Limiter |
-| **Agent Layer** | AI agent execution and orchestration | Kagent, Agent Instances, Tool Registry |
-| **Model Serving Layer** | LLM model inference service | vLLM, TGI |
-| **Data Layer** | Data storage and search | Milvus, Redis, S3 |
-| **Observability Layer** | Monitoring and tracking | LangFuse, Prometheus, Grafana |
+<LayerRoles />
 
 ## Core Components
 
@@ -208,12 +196,7 @@ spec:
 
 #### Tool Types
 
-| Type | Description | Example |
-| ---- | ---- | ---- |
-| **API** | Call external REST/gRPC API | Web search, ticket creation |
-| **Retrieval** | Search vector store | Document search, FAQ lookup |
-| **Code** | Execute code (sandboxed) | Python script, SQL query |
-| **Human** | Wait for human approval/input | Payment approval, sensitive task confirmation |
+<ToolTypes />
 
 ### Memory Store (Milvus)
 
@@ -465,12 +448,7 @@ spec:
 
 #### Routing Strategies
 
-| Strategy | Description | Use Case |
-| ---- | ---- | --------- |
-| **Weight-Based** | Distribute traffic by ratio | A/B testing, canary deployment |
-| **Header-Based** | Routing decision based on request headers | Model selection, tenant separation |
-| **Latency-Based** | Route to fastest backend | Performance optimization |
-| **Fallback** | Switch to alternative backend on failure | High availability |
+<RoutingStrategies />
 
 ## Kubernetes Deployment Architecture
 
@@ -769,11 +747,7 @@ graph TB
 
 #### Tenant Isolation Strategy
 
-| Isolation Level | Method | Advantages | Disadvantages |
-| --------- | ---- | ---- | ---- |
-| **Namespace** | Tenant per namespace | Simple implementation, resource isolation | Network policy required |
-| **Node** | Tenant per node pool | Complete isolation | Cost increase |
-| **Cluster** | Tenant per cluster | Highest level isolation | Management complexity |
+<TenantIsolation />
 
 #### Resource Allocation per Tenant
 
@@ -991,14 +965,7 @@ sequenceDiagram
 
 ### Request Processing Steps
 
-| Step | Component | Description |
-| ---- | -------- | ---- |
-| 1-3 | Gateway, Auth | Authentication and authorization verification |
-| 4-5 | Kagent, Agent | Agent selection and task assignment |
-| 6-8 | Agent, Milvus | Context search for RAG |
-| 9-11 | Agent, LLM | LLM inference execution |
-| 12 | LangFuse | Record observability data |
-| 13-15 | Overall | Response return |
+<RequestProcessing />
 
 ## Monitoring and Observability
 
@@ -1068,31 +1035,7 @@ Key monitoring dashboards:
 
 ## Technology Stack
 
-### Core Infrastructure
-
-| Area | Technology |
-|------|-----------|
-| Container Orchestration | Amazon EKS (Auto Mode, Pod Identity) |
-| Networking | Cilium CNI, Gateway API, VPC Lattice |
-| Security | OPA/Kyverno, RBAC, Pod Security Standards |
-| GitOps | ArgoCD, Helm, Kustomize |
-
-### GenAI Technologies
-
-| Area | Technology |
-|------|-----------|
-| Model Serving | vLLM, Text Generation Inference (TGI) |
-| Low-Code Platform | Dify (Visual AI Workflow Builder) |
-| Agent Frameworks | LangChain, LangGraph, CrewAI |
-| Vector Databases | Milvus, RAG integration patterns |
-
-### Platform Operations
-
-| Area | Technology |
-|------|-----------|
-| Observability | OpenTelemetry, Prometheus, Grafana, Hubble |
-| Cost Management | Kubecost, Karpenter optimization |
-| Automation | AWS Controllers for Kubernetes (ACK) |
+<TechnologyStack />
 
 ## Conclusion
 

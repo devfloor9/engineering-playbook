@@ -1,0 +1,252 @@
+/* TroubleshootingTable Component Styles */
+
+.troubleshootingWrapper {
+  margin: 1.5rem 0;
+}
+
+.searchBox {
+  margin-bottom: 1rem;
+  padding: 1rem;
+  background: var(--ifm-background-surface-color);
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.searchInput {
+  width: 100%;
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--ifm-color-emphasis-300);
+  border-radius: 4px;
+  font-size: 0.9rem;
+  background: var(--ifm-background-color);
+  color: var(--ifm-font-color-base);
+  transition: border-color 0.2s ease;
+}
+
+.searchInput:focus {
+  outline: none;
+  border-color: var(--ifm-color-primary);
+  box-shadow: 0 0 0 2px var(--ifm-color-primary-lightest);
+}
+
+.emptyState {
+  text-align: center;
+  padding: 2rem;
+  color: var(--ifm-color-emphasis-600);
+  font-style: italic;
+}
+
+.issueList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.issueCard {
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  background: var(--ifm-background-surface-color);
+  border-left: 4px solid var(--ifm-color-emphasis-300);
+  transition: all 0.2s ease;
+}
+
+.issueCard:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.issueCard.critical {
+  border-left-color: var(--ifm-color-danger);
+}
+
+.issueCard.high {
+  border-left-color: var(--ifm-color-warning);
+}
+
+.issueCard.medium {
+  border-left-color: var(--ifm-color-info);
+}
+
+.issueCard.low {
+  border-left-color: var(--ifm-color-success);
+}
+
+.issueHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.2s ease;
+}
+
+.issueHeader:hover {
+  background: var(--ifm-color-emphasis-100);
+}
+
+.issueHeader:focus {
+  outline: 2px solid var(--ifm-color-primary);
+  outline-offset: -2px;
+}
+
+.expandIcon {
+  flex-shrink: 0;
+  font-size: 0.75rem;
+  color: var(--ifm-color-emphasis-600);
+  transition: transform 0.2s ease;
+}
+
+.problemText {
+  flex: 1;
+  font-weight: 600;
+  color: var(--ifm-font-color-base);
+}
+
+.severityBadge {
+  flex-shrink: 0;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.severityBadge.critical {
+  background: var(--ifm-color-danger);
+  color: white;
+}
+
+.severityBadge.high {
+  background: var(--ifm-color-warning);
+  color: white;
+}
+
+.severityBadge.medium {
+  background: var(--ifm-color-info);
+  color: white;
+}
+
+.severityBadge.low {
+  background: var(--ifm-color-success);
+  color: white;
+}
+
+.issueDetails {
+  padding: 1rem;
+  background: var(--ifm-color-emphasis-100);
+  border-top: 1px solid var(--ifm-color-emphasis-200);
+  animation: slideDown 0.2s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.detailSection {
+  margin-bottom: 1rem;
+}
+
+.detailSection:last-child {
+  margin-bottom: 0;
+}
+
+.detailLabel {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: var(--ifm-color-emphasis-700);
+  font-size: 0.9rem;
+}
+
+.detailContent {
+  margin: 0;
+  padding: 0.75rem;
+  background: var(--ifm-background-surface-color);
+  border-radius: 4px;
+  color: var(--ifm-font-color-base);
+  line-height: 1.6;
+}
+
+/* Dark mode adjustments */
+[data-theme='dark'] .issueCard {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme='dark'] .issueCard:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+}
+
+[data-theme='dark'] .searchInput {
+  background: var(--ifm-background-color);
+  border-color: var(--ifm-color-emphasis-400);
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .issueHeader {
+    padding: 0.75rem;
+    gap: 0.5rem;
+  }
+  
+  .problemText {
+    font-size: 0.9rem;
+  }
+  
+  .severityBadge {
+    font-size: 0.7rem;
+    padding: 0.2rem 0.5rem;
+  }
+  
+  .issueDetails {
+    padding: 0.75rem;
+  }
+  
+  .detailLabel {
+    font-size: 0.85rem;
+  }
+  
+  .detailContent {
+    padding: 0.5rem;
+    font-size: 0.85rem;
+  }
+}
+
+/* Print styles */
+@media print {
+  .searchBox {
+    display: none;
+  }
+  
+  .issueCard {
+    page-break-inside: avoid;
+    box-shadow: none;
+    border: 1px solid #000;
+  }
+  
+  .issueHeader {
+    background: transparent;
+  }
+  
+  .expandIcon {
+    display: none;
+  }
+  
+  .issueDetails {
+    display: block !important;
+    background: transparent;
+  }
+  
+  .severityBadge {
+    border: 1px solid #000;
+    background: white !important;
+    color: #000 !important;
+  }
+}
