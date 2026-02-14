@@ -1963,6 +1963,11 @@ Cilium ENI 모드와 Gateway API의 심화 구성에 대한 상세 내용은 별
 **kGateway** — 통합 게이트웨이 (API+메시+AI+MCP), AI/ML 워크로드 라우팅, Solo.io 엔터프라이즈 지원. AI/ML 특화 라우팅이 필요한 환경에 최적.
 
   </TabItem>
+  <TabItem value="hybrid" label="하이브리드 노드">
+
+**Cilium Gateway API + llm-d** — EKS Hybrid Nodes로 클라우드와 온프레미스 GPU 노드를 통합 운영하는 경우, Cilium을 단일 CNI로 사용하면 CNI 단일화 + Hubble 통합 관측성 + Gateway API 내장의 이점을 확보할 수 있습니다. AI 추론 트래픽은 llm-d가 KV Cache-aware 라우팅으로 최적화합니다. 자세한 내용은 [Cilium ENI + Gateway API 심화 가이드 — 섹션 9](/docs/infrastructure-optimization/gateway-api-adoption-guide/cilium-eni-gateway-api#9-하이브리드-노드-아키텍처와-aiml-워크로드)를 참조하세요.
+
+  </TabItem>
 </Tabs>
 
 ### 9.2 향후 확장 로드맵

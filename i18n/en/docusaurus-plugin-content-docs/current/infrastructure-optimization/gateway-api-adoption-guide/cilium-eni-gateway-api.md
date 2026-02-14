@@ -657,6 +657,19 @@ Regardless of CNI choice, **overlay networking (VXLAN/Geneve) is the default con
 To eliminate overlay overhead, **BGP peering** is required. Cilium BGP Control Plane v2 can advertise pod CIDRs to on-premises routers for native routing, but this requires BGP support on the on-premises network infrastructure.
 :::
 
+:::info Admission Webhook Routing Problem and Solutions
+For the EKS control plane (in AWS VPC) to reach webhook pods on hybrid nodes, pod CIDRs must be routable. The [AWS official documentation](https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-webhooks.html) presents two approaches.
+
+**When pod CIDRs are routable:**
+
+- BGP (recommended), static routes, or custom routing to advertise on-premises pod CIDRs
+
+**When pod CIDRs are NOT routable (without BGP):**
+
+- **Run webhooks on cloud nodes** (AWS official recommendation) — Pin webhook pods to cloud nodes using `nodeSelector` or `nodeAffinity`. The API server can reach them directly within the VPC.
+- **Use Cilium overlay (VXLAN) mode as the single CNI for the entire cluster** — [Reference article](https://medium.com/@the.jfnadeau/eks-cilium-as-the-only-cni-driver-with-simplified-hybrid-nodes-and-admission-webhooks-routing-1f351d11f9dd). In overlay mode, only node-to-node unicast communication is required, so the API server can reach webhook pods through the VXLAN tunnel. However, this sacrifices ENI native routing benefits on cloud nodes.
+:::
+
 :::tip IPAM Considerations for Cilium Unified
 Cilium's `ipam.mode=eni` **only works on AWS EC2 instances**. For hybrid clusters with on-premises nodes, there are three approaches to implement Cilium unified:
 
