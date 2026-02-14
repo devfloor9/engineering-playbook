@@ -1658,10 +1658,125 @@ Advertised Routes:
 
 ---
 
+## 9. 하이브리드 노드 아키텍처와 AI/ML 워크로드
+
+EKS Hybrid Nodes를 활용하여 클라우드와 온프레미스(또는 GPU 전용 데이터센터)를 통합 운영하는 경우, Cilium은 CNI 단일화와 통합 관측성 측면에서 핵심적인 역할을 수행합니다.
+
+### 9.1 하이브리드 노드에서 Cilium이 필요한 이유
+
+AWS VPC CNI는 **VPC 내부의 EC2 인스턴스에서만 동작**합니다. EKS Hybrid Nodes로 온프레미스 GPU 서버를 클러스터에 참여시키면 VPC CNI를 사용할 수 없으므로, 클라우드와 온프레미스 노드 간 CNI가 분리되는 문제가 발생합니다.
+
+Cilium은 **ENI 모드(클라우드)와 VXLAN/네이티브 라우팅(온프레미스) 모두를 지원**하므로, 단일 CNI로 하이브리드 환경을 통합할 수 있습니다.
+
+| 구분 | VPC CNI + Calico (혼합) | Cilium (단일) |
+|------|------------------------|--------------|
+| 클라우드 노드 CNI | VPC CNI | Cilium ENI 모드 |
+| 온프레미스 노드 CNI | Calico 별도 설치 | Cilium VXLAN/Native |
+| 네트워크 정책 엔진 | 이원화 | 단일 eBPF 엔진 |
+| 관측성 | CloudWatch + 별도 도구 | Hubble 통합 |
+| Gateway API | 별도 구현체 필요 | Cilium 내장 |
+| 운영 복잡도 | 높음 (2개 CNI 관리) | 낮음 (단일 스택) |
+
+### 9.2 권장 아키텍처: Cilium + Cilium Gateway API + llm-d
+
+AI/ML 추론 워크로드를 하이브리드 노드에서 운영할 때, **컴포넌트 수를 최소화하면서 최적의 성능을 달성**하는 구조입니다.
+
+```mermaid
+graph TB
+    subgraph "Cloud Nodes (EKS)"
+        CG[Cilium Gateway API<br/>범용 L7 라우팅]
+        APP[일반 워크로드<br/>API, Web, DB]
+    end
+
+    subgraph "On-Prem / GPU Nodes (Hybrid)"
+        LLMD[llm-d Inference Gateway<br/>KV Cache-aware 라우팅]
+        VLLM[vLLM 인스턴스<br/>GPU 추론 엔진]
+    end
+
+    CLIENT[외부 트래픽] --> CG
+    CG -->|일반 요청| APP
+    CG -->|/v1/completions| LLMD
+    LLMD -->|KV Cache 최적화| VLLM
+
+    HUBBLE[Hubble<br/>통합 관측성] -.->|L3-L7 모니터링| CG
+    HUBBLE -.->|L3-L7 모니터링| LLMD
+
+    style CG fill:#00D4AA
+    style LLMD fill:#AC58E6
+    style HUBBLE fill:#00BFA5
+```
+
+**구성 요소 역할:**
+
+| 컴포넌트 | 역할 | 범위 |
+|----------|------|------|
+| **Cilium CNI** | 클라우드+온프레미스 통합 네트워킹 | 전체 클러스터 |
+| **Cilium Gateway API** | 범용 L7 라우팅 (HTTPRoute, TLS 종료) | North-South 트래픽 |
+| **llm-d** | LLM 추론 전용 게이트웨이 (KV Cache-aware, prefix-aware) | AI 추론 트래픽만 |
+| **Hubble** | 전체 트래픽 L3-L7 관측성 | 전체 클러스터 |
+
+:::warning llm-d는 범용 Gateway API 구현체가 아닙니다
+llm-d의 Envoy 기반 Inference Gateway는 **LLM 추론 요청 전용**으로 설계되었습니다. 일반적인 웹/API 트래픽 라우팅에는 Cilium Gateway API나 다른 범용 Gateway API 구현체를 사용해야 합니다. 자세한 내용은 [llm-d 문서](/docs/agentic-ai-platform/llm-d-eks-automode)를 참조하세요.
+:::
+
+### 9.3 대안 아키텍처 비교
+
+| 옵션 | 구성 | 장점 | 단점 |
+|------|------|------|------|
+| **Option 1 (권장)** | Cilium CNI + Cilium Gateway API + llm-d | 컴포넌트 최소, Hubble 통합 관측성, 단일 벤더 | Cilium Gateway API는 Envoy Gateway 대비 기능이 적을 수 있음 |
+| **Option 2** | Cilium CNI + Envoy Gateway + llm-d | CNCF 표준, 풍부한 L7 기능 | 추가 컴포넌트(Envoy Gateway) 관리 필요 |
+| **Option 3** | Cilium CNI + kgateway + llm-d | kgateway의 AI 라우팅 기능 | 가장 많은 컴포넌트, 라이선스 확인 필요 |
+| **Option 4 (미래)** | Cilium CNI + Gateway API Inference Extension | 단일 Gateway로 통합, 표준화된 InferenceModel/InferencePool CRD | 아직 알파 단계 (2025 Q3 베타 예상) |
+
+### 9.4 Gateway API Inference Extension (미래 방향)
+
+[Gateway API Inference Extension](https://gateway-api.sigs.k8s.io/geps/gep-3567/)은 Gateway API에 AI/ML 추론 전용 리소스를 추가하는 표준화 작업입니다. 이 확장이 GA되면 **범용 Gateway API 구현체 하나로 일반 트래픽과 AI 추론 트래픽을 모두 처리**할 수 있게 됩니다.
+
+**핵심 CRD:**
+
+```yaml
+# InferenceModel: AI 모델 엔드포인트 정의
+apiVersion: inference.gateway.networking.k8s.io/v1alpha1
+kind: InferenceModel
+metadata:
+  name: llama-3-70b
+spec:
+  modelName: meta-llama/Llama-3-70B-Instruct
+  poolRef:
+    name: gpu-pool
+  criticality: Critical
+
+---
+# InferencePool: GPU 백엔드 풀 정의
+apiVersion: inference.gateway.networking.k8s.io/v1alpha1
+kind: InferencePool
+metadata:
+  name: gpu-pool
+spec:
+  targetPortNumber: 8000
+  selector:
+    matchLabels:
+      app: vllm
+```
+
+**현재 상태 (2025년 기준):**
+
+- `InferenceModel`, `InferencePool` CRD: v1alpha1
+- 구현체: llm-d, Envoy Gateway, kgateway 등에서 실험적 지원
+- 예상 GA: 2026년 상반기
+
+:::tip 현재 권장 전략
+Gateway API Inference Extension이 GA되기 전까지는 **Option 1 (Cilium + Cilium Gateway API + llm-d)**을 채택하고, 추후 Inference Extension이 안정화되면 llm-d를 Inference Extension 기반 구성으로 전환하는 점진적 마이그레이션을 권장합니다.
+:::
+
+---
+
 ## 관련 문서
 
 - **[Gateway API 도입 가이드](/docs/infrastructure-optimization/gateway-api-adoption-guide)** - 전체 Gateway API 마이그레이션 가이드
+- **[llm-d + EKS 배포 가이드](/docs/agentic-ai-platform/llm-d-eks-automode)** - llm-d 분산 추론 스택 구성
 - **[Cilium 공식 문서](https://docs.cilium.io/)** - Cilium 프로젝트 공식 문서
 - **[Cilium Gateway API 문서](https://docs.cilium.io/en/stable/network/servicemesh/gateway-api/)** - Cilium의 Gateway API 구현 가이드
+- **[Gateway API Inference Extension](https://gateway-api.sigs.k8s.io/geps/gep-3567/)** - AI/ML 추론 전용 Gateway API 확장
 - **[AWS EKS Best Practices](https://aws.github.io/aws-eks-best-practices/)** - EKS 모범 사례 가이드
 - **[eBPF 소개](https://ebpf.io/)** - eBPF 기술 개요 및 학습 자료
