@@ -5,15 +5,16 @@ description: "Agentic AI 워크로드 운영 시 직면하는 4가지 핵심 도
 tags: [kubernetes, genai, agentic-ai, gpu, challenges, open-source]
 category: "genai-aiml"
 last_update:
-  date: 2025-02-05
+  date: 2026-02-13
   author: devfloor9
 sidebar_position: 2
 ---
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
+import { ChallengeSummary, K8sCoreFeatures, SolutionMapping, ModelServingComparison, InferenceGatewayComparison, ObservabilityComparison, KAgentFeatures, ObservabilityLayerStack, LlmdFeatures, DistributedTrainingStack, GpuInfraStack } from '@site/src/components/AgenticChallengesTables';
 
-> 📅 **작성일**: 2025-02-05 | **수정일**: 2026-02-04 | ⏱️ **읽는 시간**: 약 25분
+> 📅 **작성일**: 2025-02-05 | **수정일**: 2026-02-13 | ⏱️ **읽는 시간**: 약 25분
 
 ## 소개
 
@@ -50,12 +51,7 @@ graph TB
 
 ### 도전과제 요약
 
-| 도전과제 | 핵심 문제 | 기존 인프라의 한계 |
-| --- | --- | --- |
-| **GPU 모니터링 및 스케줄링** | 멀티 클러스터 GPU 가시성 부재, 세대별 워크로드 매칭 | 수동 모니터링, 정적 할당 |
-| **동적 라우팅 및 스케일링** | 예측 불가능한 트래픽, 멀티 모델 서빙 복잡성 | 느린 프로비저닝, 고정 용량 |
-| **비용 컨트롤** | GPU 유휴 비용, 토큰 레벨 추적 어려움 | 비용 가시성 부재, 최적화 불가 |
-| **FM 파인튜닝** | 분산 학습 인프라 복잡성, 리소스 프로비저닝 지연 | 수동 클러스터 관리, 낮은 활용률 |
+<ChallengeSummary />
 
 :::warning 기존 인프라 접근 방식의 한계
 전통적인 VM 기반 인프라나 수동 관리 방식으로는 Agentic AI의 **동적이고 예측 불가능한 워크로드 패턴**에 효과적으로 대응할 수 없습니다. GPU 리소스의 높은 비용과 복잡한 분산 시스템 요구사항은 **자동화된 인프라 관리**를 필수로 만듭니다.
@@ -103,14 +99,7 @@ graph LR
 
 Kubernetes는 Agentic AI 플랫폼의 모든 도전과제를 해결할 수 있는 **이상적인 기반 플랫폼**입니다:
 
-| Kubernetes 핵심 기능 | AI 플랫폼 적용 | 해결되는 도전과제 |
-| --- | --- | --- |
-| **선언적 리소스 관리** | GPU 리소스를 코드로 정의하고 버전 관리 | 도전과제 1, 4 |
-| **자동 스케일링 (HPA/VPA)** | 트래픽 패턴에 따른 Pod 자동 확장/축소 | 도전과제 2 |
-| **네임스페이스 기반 격리** | 팀/프로젝트별 리소스 할당량 관리 | 도전과제 3 |
-| **Operator 패턴** | 복잡한 분산 학습 워크플로우 자동화 | 도전과제 4 |
-| **서비스 메시 통합** | 멀티 모델 라우팅 및 트래픽 관리 | 도전과제 2 |
-| **메트릭 기반 오케스트레이션** | GPU 사용률 기반 스케줄링 결정 | 도전과제 1, 3 |
+<K8sCoreFeatures />
 
 ```mermaid
 graph TB
@@ -212,12 +201,7 @@ graph TB
 
 ### 도전과제별 솔루션 상세 매핑
 
-| 도전과제 | 핵심 솔루션 | 보조 솔루션 | 해결하는 문제 |
-| --- | --- | --- | --- |
-| **GPU 모니터링 및 스케줄링** | Karpenter | DCGM Exporter, NVIDIA GPU Operator | GPU 노드 자동 프로비저닝, 세대별 워크로드 매칭 |
-| **동적 라우팅 및 스케일링** | Kgateway, LiteLLM | KEDA, vLLM, llm-d | 멀티 모델 라우팅, 트래픽 기반 자동 스케일링 |
-| **토큰/비용 모니터링** | LangFuse, LangSmith | OpenTelemetry, Prometheus | 토큰 레벨 추적, 비용 가시성, 품질 평가 |
-| **FM 파인튜닝** | NeMo, Kubeflow | MLflow, Ray | 분산 학습 오케스트레이션, 파이프라인 자동화 |
+<SolutionMapping />
 
 ---
 
@@ -229,7 +213,7 @@ Agentic AI 플랫폼은 다양한 오픈소스 프로젝트들이 Kubernetes를 
 
 ### 1. 모델 서빙: vLLM + llm-d
 
-**vLLM**은 LLM 추론을 위한 고성능 서빙 엔진으로, PagedAttention을 통해 **메모리 효율성을 극대화**합니다.
+**vLLM**은 LLM 추론을 위한 고성능 서빙 엔진으로, PagedAttention을 통해 **메모리 효율성을 극대화**합니다. vLLM v0.6+는 CUDA 12.x와 완벽하게 호환되며, H100/H200 GPU를 완전히 지원합니다.
 
 **llm-d**는 Kubernetes 환경에서 LLM 추론 요청을 **지능적으로 분산**하는 스케줄러입니다.
 
@@ -257,10 +241,7 @@ graph LR
     style V3 fill:#3498db
 ```
 
-| 솔루션 | 역할 | 핵심 기능 |
-| --- | --- | --- |
-| **vLLM** | 추론 엔진 | PagedAttention, Continuous Batching, Speculative Decoding |
-| **llm-d** | 분산 스케줄러 | 로드 밸런싱, Prefix Caching 인식 라우팅, 장애 복구 |
+<ModelServingComparison />
 
 **Kubernetes 통합:**
 
@@ -268,12 +249,13 @@ graph LR
 - Service를 통해 노출
 - 큐 깊이 메트릭 기반 HPA로 스케일링
 - resource requests/limits를 통한 GPU 할당
+- **K8s 1.33+**: In-place resource resizing으로 Pod 재시작 없이 GPU 메모리 조정 가능
 
 ### 2. 추론 게이트웨이: Kgateway + LiteLLM
 
-**Kgateway**는 Kubernetes Gateway API 기반의 AI 추론 게이트웨이로, **멀티 모델 라우팅과 트래픽 관리**를 제공합니다.
+**Kgateway** (v2.0+)는 Kubernetes Gateway API 기반의 AI 추론 게이트웨이로, **멀티 모델 라우팅과 트래픽 관리**를 제공합니다. Gateway API v1.2.0+를 지원하며, HTTPRoute 및 GRPCRoute를 완벽하게 지원합니다.
 
-**LiteLLM**은 다양한 LLM 프로바이더를 **통합 API로 추상화**하여 모델 전환을 용이하게 합니다.
+**LiteLLM** (latest)은 다양한 LLM 프로바이더를 **통합 API로 추상화**하여 모델 전환을 용이하게 합니다.
 
 ```mermaid
 graph TB
@@ -299,17 +281,15 @@ graph TB
     style LITE fill:#9b59b6
 ```
 
-| 솔루션 | 역할 | 핵심 기능 |
-| --- | --- | --- |
-| **Kgateway** | 트래픽 관리 | 헤더 기반 라우팅, 가중치 분배, Rate Limiting, Canary 배포 |
-| **LiteLLM** | API 추상화 | 100+ LLM 프로바이더 지원, 통합 API, 폴백 설정, 비용 추적 |
+<InferenceGatewayComparison />
 
 **Kubernetes 통합:**
 
-- Kubernetes Gateway API 표준 구현
+- Kubernetes Gateway API v1.2.0+ 표준 구현
 - HTTPRoute 리소스를 통한 선언적 라우팅
 - Kubernetes Service와 네이티브 통합
 - 크로스 네임스페이스 라우팅 지원
+- **K8s 1.33+**: Topology-aware routing으로 크로스 AZ 트래픽 비용 절감 및 지연 시간 개선
 
 ### 3. LLM Observability: LangFuse + LangSmith
 
@@ -344,10 +324,7 @@ graph LR
     style LS fill:#9b59b6
 ```
 
-| 솔루션 | 배포 방식 | 핵심 기능 |
-| --- | --- | --- |
-| **LangFuse** | Self-hosted (K8s) | 토큰 추적, 비용 분석, 프롬프트 관리, A/B 테스트 |
-| **LangSmith** | Managed SaaS | 트레이싱, 평가, 데이터셋 관리, 협업 기능 |
+<ObservabilityComparison />
 
 **Kubernetes 통합 (LangFuse):**
 
@@ -355,6 +332,7 @@ graph LR
 - PostgreSQL 백엔드 필요 (관리형 RDS 또는 클러스터 내 구성 가능)
 - Prometheus 형식의 메트릭 노출
 - Pod 환경 변수를 통한 SDK 연동
+- **K8s 1.33+**: Stable sidecar containers로 로깅 및 메트릭 수집 사이드카 안정화
 
 ### 4. Agent 오케스트레이션: KAgent
 
@@ -387,12 +365,7 @@ graph TB
     style CTRL fill:#2ecc71
 ```
 
-| 기능 | 설명 |
-| --- | --- |
-| **선언적 Agent 정의** | YAML로 Agent 구성, 도구, 메모리 정의 |
-| **자동 스케일링** | 요청량에 따른 Agent 인스턴스 자동 확장 |
-| **통합 관측성** | LangFuse/LangSmith와 자동 연동 |
-| **도구 관리** | MCP(Model Context Protocol) 기반 도구 통합 |
+<KAgentFeatures />
 
 **Kubernetes 통합:**
 
@@ -532,11 +505,7 @@ graph TB
 
 LLM 애플리케이션의 **전체 라이프사이클을 추적하고 품질을 평가**하는 핵심 도구들입니다.
 
-| 솔루션 | 역할 | Kubernetes 통합 방식 | 핵심 기능 |
-| --- | --- | --- | --- |
-| **LangFuse** | LLM 트레이싱 (Self-hosted) | Helm Chart, StatefulSet | 토큰 추적, 비용 분석, 프롬프트 버전 관리 |
-| **LangSmith** | LLM 트레이싱 (Managed) | SDK 연동 | 트레이싱, 평가, 데이터셋 관리, 협업 |
-| **RAGAS** | RAG 품질 평가 | Job/CronJob | Faithfulness, Relevancy, Context Precision 평가 |
+<ObservabilityLayerStack />
 
 ```mermaid
 graph LR
@@ -728,12 +697,7 @@ data:
 
 **llm-d**는 Kubernetes 환경에서 LLM 추론 요청을 **지능적으로 분산**하는 스케줄러입니다.
 
-| 기능 | 설명 | Kubernetes 통합 |
-| --- | --- | --- |
-| **Prefix Caching 인식** | 동일 프롬프트 프리픽스를 가진 요청을 같은 인스턴스로 라우팅 | Service Discovery 활용 |
-| **로드 밸런싱** | GPU 사용률 기반 지능형 분배 | Prometheus 메트릭 연동 |
-| **장애 복구** | 인스턴스 장애 시 자동 재라우팅 | Health Check + Endpoint Slice |
-| **동적 스케일링** | 요청량에 따른 백엔드 확장 | KEDA 연동 |
+<LlmdFeatures />
 
 ```mermaid
 graph LR
@@ -827,10 +791,7 @@ RAG 파이프라인의 핵심 컴포넌트인 Milvus는 Kubernetes에서 분산 
 
 **NVIDIA NeMo**와 **Kubeflow**는 대규모 모델의 **분산 학습 파이프라인 자동화**를 제공합니다.
 
-| 솔루션 | 역할 | 핵심 기능 |
-| --- | --- | --- |
-| **NeMo** | 학습 프레임워크 | LLM/멀티모달 학습, 모델 병렬화, 최적화 기법 |
-| **Kubeflow** | ML 오케스트레이션 | 파이프라인 관리, 실험 추적, 하이퍼파라미터 튜닝 |
+<DistributedTrainingStack />
 
 ```mermaid
 graph LR
@@ -894,12 +855,12 @@ GPU 리소스 관리는 Agentic AI 플랫폼의 핵심입니다. 자세한 내�
 graph TB
     subgraph "GPU Infrastructure Stack"
         subgraph "Resource Allocation"
-            DRA["DRA<br/>(Dynamic Resource Allocation)"]
+            DRA["DRA v1beta1<br/>(K8s 1.32+)"]
             DRIVER["NVIDIA Device Plugin"]
         end
 
         subgraph "Monitoring"
-            DCGM["DCGM Exporter"]
+            DCGM["DCGM Exporter 3.3+"]
             PROM["Prometheus"]
             GRAF["Grafana"]
         end
@@ -910,8 +871,8 @@ graph TB
         end
 
         subgraph "Node Management"
-            KARP["Karpenter"]
-            GPU_OP["GPU Operator"]
+            KARP["Karpenter v1.0+"]
+            GPU_OP["GPU Operator v24.x"]
         end
     end
 
@@ -919,13 +880,14 @@ graph TB
         N1["Node 1<br/>8x A100"]
         N2["Node 2<br/>8x A100"]
         N3["Node 3<br/>8x H100"]
+        N4["Node 4<br/>8x H200"]
     end
 
-    DRA --> DRIVER --> N1 & N2 & N3
-    DCGM --> N1 & N2 & N3
+    DRA --> DRIVER --> N1 & N2 & N3 & N4
+    DCGM --> N1 & N2 & N3 & N4
     DCGM --> PROM --> GRAF
-    NCCL --> EFA --> N1 & N2 & N3
-    KARP --> N1 & N2 & N3
+    NCCL --> EFA --> N1 & N2 & N3 & N4
+    KARP --> N1 & N2 & N3 & N4
     GPU_OP --> DRIVER & DCGM
 
     style DRA fill:#326ce5
@@ -934,11 +896,7 @@ graph TB
     style KARP fill:#ffd93d
 ```
 
-| 컴포넌트 | 역할 | 상세 문서 |
-| --- | --- | --- |
-| **DRA (Dynamic Resource Allocation)** | GPU 리소스 동적 할당 | [GPU 리소스 관리](./gpu-resource-management.md) |
-| **DCGM (Data Center GPU Manager)** | GPU 메트릭 수집 | [GPU 리소스 관리](./gpu-resource-management.md) |
-| **NCCL (NVIDIA Collective Communication Library)** | 멀티 GPU 통신 최적화 | [NeMo 프레임워크](./nemo-framework.md) |
+<GpuInfraStack />
 
 ---
 
