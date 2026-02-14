@@ -15,7 +15,7 @@ const sidebars = {
       items: [
         {
           type: 'category',
-          label: 'Gateway API Adoption Guide',
+          label: '1. Gateway API Adoption Guide',
           link: {
             type: 'doc',
             id: 'infrastructure-optimization/gateway-api-adoption-guide/index',
