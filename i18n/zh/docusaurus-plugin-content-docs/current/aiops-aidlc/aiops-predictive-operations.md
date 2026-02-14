@@ -250,21 +250,21 @@ spec:
 ```mermaid
 graph TD
     subgraph Prediction["🧠 预测层"]
-        CW_M["CloudWatch\n指标"]
-        ML["ML 模型\n(Prophet/ARIMA)"]
-        PRED["流量\n预测结果"]
+        CW_M["CloudWatch<br/>指标"]
+        ML["ML 模型<br/>(Prophet/ARIMA)"]
+        PRED["流量<br/>预测结果"]
     end
 
     subgraph Preemptive["⚡ 主动行动"]
-        WARM["Warm Pool\nPod 创建"]
-        PAUSE["Pause\n容器"]
-        KARP["Karpenter\n节点配置"]
+        WARM["Warm Pool<br/>Pod 创建"]
+        PAUSE["Pause<br/>容器"]
+        KARP["Karpenter<br/>节点配置"]
     end
 
     subgraph Runtime["🚀 实际流量"]
-        TRAFFIC["流量\n涌入"]
-        HPA2["HPA\n立即扩展"]
-        READY["Pod\n立即服务"]
+        TRAFFIC["流量<br/>涌入"]
+        HPA2["HPA<br/>立即扩展"]
+        READY["Pod<br/>立即服务"]
     end
 
     CW_M --> ML --> PRED
@@ -416,24 +416,24 @@ AI Agents 通过**基于上下文的判断**自主响应。
 ```mermaid
 graph TD
     subgraph Trigger["🔔 触发器"]
-        CWA["CloudWatch\n告警"]
-        DGA["DevOps Guru\n洞察"]
-        K8SE["K8s\n事件"]
+        CWA["CloudWatch<br/>告警"]
+        DGA["DevOps Guru<br/>洞察"]
+        K8SE["K8s<br/>事件"]
     end
 
     subgraph Agent["🤖 AI Agent"]
-        COLLECT["数据收集\n(MCP 集成)"]
-        ANALYZE["AI 分析\n(根本原因)"]
-        DECIDE["决策\n(自动/手动)"]
-        ACT["执行\n(安全操作)"]
-        REPORT["报告\n(Slack/Jira)"]
+        COLLECT["数据收集<br/>(MCP 集成)"]
+        ANALYZE["AI 分析<br/>(根本原因)"]
+        DECIDE["决策<br/>(自动/手动)"]
+        ACT["执行<br/>(安全操作)"]
+        REPORT["报告<br/>(Slack/Jira)"]
     end
 
     subgraph Actions["⚡ 响应操作"]
-        SCALE["扩展\n调整"]
-        RESTART["Pod\n重启"]
-        ROLLBACK["部署\n回滚"]
-        ESCALATE["升级到\n人工"]
+        SCALE["扩展<br/>调整"]
+        RESTART["Pod<br/>重启"]
+        ROLLBACK["部署<br/>回滚"]
+        ESCALATE["升级到<br/>人工"]
     end
 
     CWA --> COLLECT
@@ -606,22 +606,22 @@ incident_agent = Agent(
 ```mermaid
 graph TD
     subgraph Trigger2["🔔 问题检测"]
-        ALERT["CloudWatch\n告警"]
-        GURU["DevOps Guru\n洞察"]
+        ALERT["CloudWatch<br/>告警"]
+        GURU["DevOps Guru<br/>洞察"]
     end
 
     subgraph Kiro2["🤖 Kiro (程序化)"]
-        SPEC["基于规格\n诊断计划"]
-        MCP_Q["MCP 集成\n数据收集"]
-        ANALYZE2["AI 分析\n根本原因"]
-        FIX["修复代码\n自动生成"]
-        PR["PR 创建\n+ 验证"]
+        SPEC["基于规格<br/>诊断计划"]
+        MCP_Q["MCP 集成<br/>数据收集"]
+        ANALYZE2["AI 分析<br/>根本原因"]
+        FIX["修复代码<br/>自动生成"]
+        PR["PR 创建<br/>+ 验证"]
     end
 
     subgraph Deploy2["🚀 部署"]
-        REVIEW["AI 审查\n+ 批准"]
-        ARGO2["Argo CD\n自动部署"]
-        VERIFY["部署后\n验证"]
+        REVIEW["AI 审查<br/>+ 批准"]
+        ARGO2["Argo CD<br/>自动部署"]
+        VERIFY["部署后<br/>验证"]
     end
 
     ALERT --> SPEC

@@ -79,6 +79,9 @@ jobs:
 
             # Domains that block automated requests (bot protection)
             'https?://milvus\\.io.*',
+            'https?://medium\\.com.*',
+            'https?://.*\\.medium\\.com.*',
+            'https?://.*eksworkshop\\.com.*',
 
             # Documentation placeholders
             'https?://your-.*',
