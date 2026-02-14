@@ -39,6 +39,15 @@ While traditional vLLM deployments rely on simple Round-Robin load balancing, ll
 
 This document covers the entire process of deploying llm-d on an Amazon EKS Auto Mode environment and configuring an inference service with the Qwen3-32B model. EKS Auto Mode provides Karpenter-based automatic node provisioning and automatic NVIDIA GPU driver management, greatly reducing the complexity of GPU infrastructure setup.
 
+:::warning llm-d Inference Gateway ≠ General-Purpose Gateway API Implementation
+llm-d's Envoy-based Inference Gateway is a **special-purpose gateway designed exclusively for LLM inference requests**. It is fundamentally different in purpose and scope from general-purpose Gateway API implementations (AWS LBC v3, Cilium, Envoy Gateway, etc.) that replace NGINX Ingress Controller.
+
+- **llm-d Gateway**: InferenceModel/InferencePool CRD-based, KV Cache-aware routing, inference traffic only
+- **General Gateway API**: HTTPRoute/GRPCRoute-based, TLS/auth/rate limiting, cluster-wide traffic management
+
+For production environments, use a general-purpose Gateway API implementation as the cluster entry point, with llm-d optimizing AI inference traffic underneath. For choosing a general Gateway API implementation, refer to the [Gateway API Adoption Guide](/docs/infrastructure-optimization/gateway-api-adoption-guide).
+:::
+
 ### Key Objectives
 
 - **Understanding llm-d Architecture**: How Inference Gateway and KV Cache-aware routing work

@@ -41,6 +41,15 @@ llm-d는 Red Hat이 주도하는 Apache 2.0 라이선스의 Kubernetes 네이티
 
 본 문서에서는 Amazon EKS Auto Mode 환경에서 llm-d를 배포하고 Qwen3-32B 모델로 추론 서비스를 구성하는 전체 과정을 다룹니다. EKS Auto Mode는 Karpenter 기반 노드 자동 프로비저닝과 NVIDIA GPU 드라이버 자동 관리를 제공하여 GPU 인프라 구성의 복잡성을 크게 줄여줍니다.
 
+:::warning llm-d Inference Gateway ≠ 범용 Gateway API 구현체
+llm-d의 Envoy 기반 Inference Gateway는 **LLM 추론 요청 전용**으로 설계된 특수 목적 게이트웨이입니다. NGINX Ingress Controller를 대체하는 범용 Gateway API 구현체(AWS LBC v3, Cilium, Envoy Gateway 등)와는 **목적과 스코프가 다릅니다**.
+
+- **llm-d Gateway**: InferenceModel/InferencePool CRD 기반, KV Cache-aware 라우팅, 추론 트래픽 전용
+- **범용 Gateway API**: HTTPRoute/GRPCRoute 기반, TLS/인증/Rate Limiting, 클러스터 전체 트래픽 관리
+
+프로덕션 환경에서는 범용 Gateway API 구현체가 클러스터 진입점을 담당하고, llm-d는 그 하위에서 AI 추론 트래픽을 최적화하는 구조를 권장합니다. 범용 Gateway API 구현체 선택은 [Gateway API 도입 가이드](/docs/infrastructure-optimization/gateway-api-adoption-guide)를 참조하세요.
+:::
+
 ### 주요 목표
 
 - **llm-d 아키텍처 이해**: Inference Gateway와 KV Cache-aware 라우팅의 동작 원리

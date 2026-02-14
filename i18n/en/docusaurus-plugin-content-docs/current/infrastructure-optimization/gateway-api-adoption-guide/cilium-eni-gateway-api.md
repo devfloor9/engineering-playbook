@@ -629,8 +629,122 @@ kubectl get gatewayclass,gateway,httproute -A -o yaml > gateway-backup.yaml
 kubectl exec -n kube-system deployment/hubble-relay -- hubble observe -o jsonpb > hubble-flows-backup.json
 ```
 
+## 7. Hybrid Node Architecture and AI/ML Workloads
+
+When using EKS Hybrid Nodes to integrate cloud and on-premises (or GPU-dedicated data center) environments, Cilium plays a critical role in CNI unification and unified observability.
+
+### Why Cilium is Essential for Hybrid Nodes
+
+AWS VPC CNI **only works on EC2 instances within the VPC**. When on-premises GPU servers join the cluster via EKS Hybrid Nodes, VPC CNI cannot be used, creating a CNI split between cloud and on-premises nodes.
+
+Cilium **supports both ENI mode (cloud) and VXLAN/native routing (on-premises)**, enabling a single CNI to unify the hybrid environment.
+
+| Aspect | VPC CNI + Calico (Mixed) | Cilium (Unified) |
+|--------|-------------------------|------------------|
+| Cloud Node CNI | VPC CNI | Cilium ENI Mode |
+| On-Prem Node CNI | Calico (separate install) | Cilium VXLAN/Native |
+| Network Policy Engine | Dual | Single eBPF Engine |
+| Observability | CloudWatch + separate tools | Hubble Unified |
+| Gateway API | Separate implementation needed | Cilium Built-in |
+| Operational Complexity | High (2 CNIs to manage) | Low (single stack) |
+
+### Recommended Architecture: Cilium + Cilium Gateway API + llm-d
+
+For AI/ML inference workloads on hybrid nodes, this architecture **minimizes components while achieving optimal performance**.
+
+```mermaid
+graph TB
+    subgraph "Cloud Nodes (EKS)"
+        CG[Cilium Gateway API<br/>General L7 Routing]
+        APP[General Workloads<br/>API, Web, DB]
+    end
+
+    subgraph "On-Prem / GPU Nodes (Hybrid)"
+        LLMD[llm-d Inference Gateway<br/>KV Cache-aware Routing]
+        VLLM[vLLM Instances<br/>GPU Inference Engine]
+    end
+
+    CLIENT[External Traffic] --> CG
+    CG -->|General requests| APP
+    CG -->|/v1/completions| LLMD
+    LLMD -->|KV Cache optimized| VLLM
+
+    HUBBLE[Hubble<br/>Unified Observability] -.->|L3-L7 Monitoring| CG
+    HUBBLE -.->|L3-L7 Monitoring| LLMD
+
+    style CG fill:#00D4AA
+    style LLMD fill:#AC58E6
+    style HUBBLE fill:#00BFA5
+```
+
+**Component Roles:**
+
+| Component | Role | Scope |
+|-----------|------|-------|
+| **Cilium CNI** | Unified cloud+on-prem networking | Entire cluster |
+| **Cilium Gateway API** | General L7 routing (HTTPRoute, TLS termination) | North-South traffic |
+| **llm-d** | LLM inference-only gateway (KV Cache-aware, prefix-aware) | AI inference traffic only |
+| **Hubble** | Full L3-L7 traffic observability | Entire cluster |
+
+:::warning llm-d is NOT a general-purpose Gateway API implementation
+llm-d's Envoy-based Inference Gateway is designed **exclusively for LLM inference requests**. For general web/API traffic routing, use Cilium Gateway API or another general-purpose Gateway API implementation. See the [llm-d documentation](/docs/agentic-ai-platform/llm-d-eks-automode) for details.
+:::
+
+### Alternative Architecture Comparison
+
+| Option | Stack | Pros | Cons |
+|--------|-------|------|------|
+| **Option 1 (Recommended)** | Cilium CNI + Cilium Gateway API + llm-d | Fewest components, Hubble unified observability, single vendor | Cilium Gateway API may have fewer L7 features than Envoy Gateway |
+| **Option 2** | Cilium CNI + Envoy Gateway + llm-d | CNCF standard, rich L7 features | Additional component (Envoy Gateway) to manage |
+| **Option 3** | Cilium CNI + kgateway + llm-d | kgateway's AI routing features | Most components, license verification needed |
+| **Option 4 (Future)** | Cilium CNI + Gateway API Inference Extension | Single Gateway for all traffic, standardized InferenceModel/InferencePool CRDs | Still in alpha (beta expected Q3 2025) |
+
+### Gateway API Inference Extension (Future Direction)
+
+The [Gateway API Inference Extension](https://gateway-api.sigs.k8s.io/geps/gep-3567/) adds AI/ML inference-specific resources to Gateway API. Once GA, a **single general-purpose Gateway API implementation can handle both regular traffic and AI inference traffic**.
+
+**Key CRDs:**
+
+```yaml
+# InferenceModel: Define AI model endpoint
+apiVersion: inference.gateway.networking.k8s.io/v1alpha1
+kind: InferenceModel
+metadata:
+  name: llama-3-70b
+spec:
+  modelName: meta-llama/Llama-3-70B-Instruct
+  poolRef:
+    name: gpu-pool
+  criticality: Critical
+
+---
+# InferencePool: Define GPU backend pool
+apiVersion: inference.gateway.networking.k8s.io/v1alpha1
+kind: InferencePool
+metadata:
+  name: gpu-pool
+spec:
+  targetPortNumber: 8000
+  selector:
+    matchLabels:
+      app: vllm
+```
+
+**Current Status (2025):**
+
+- `InferenceModel`, `InferencePool` CRDs: v1alpha1
+- Implementations: Experimental support in llm-d, Envoy Gateway, kgateway
+- Expected GA: First half of 2026
+
+:::tip Recommended Current Strategy
+Until Gateway API Inference Extension reaches GA, adopt **Option 1 (Cilium + Cilium Gateway API + llm-d)**, then incrementally migrate llm-d to an Inference Extension-based configuration once the standard stabilizes.
+:::
+
 ## Related Documents
 
 - [Gateway API Adoption Guide](/docs/infrastructure-optimization/gateway-api-adoption-guide) - Complete guide to Gateway API adoption strategies
+- [llm-d + EKS Deployment Guide](/docs/agentic-ai-platform/llm-d-eks-automode) - llm-d distributed inference stack configuration
 - [Cilium Official Documentation](https://docs.cilium.io/) - Cilium installation, configuration, and operations
 - [Gateway API Official Documentation](https://gateway-api.sigs.k8s.io/) - Kubernetes Gateway API specification and resources
+- [Gateway API Inference Extension](https://gateway-api.sigs.k8s.io/geps/gep-3567/) - AI/ML inference-specific Gateway API extension
+- [AWS EKS Best Practices](https://aws.github.io/aws-eks-best-practices/) - EKS best practices guide
