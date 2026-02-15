@@ -246,84 +246,97 @@ export default function GammaInfographic({ locale = 'ko' }) {
 
           <div style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-            gap: '2rem',
-            alignItems: 'center'
+            gridTemplateColumns: '1fr auto 1fr',
+            gap: '1rem',
+            alignItems: 'stretch'
           }}>
             {/* Traditional Approach */}
             <div style={{
-              background: 'linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%)',
-              border: '2px solid #c62828',
+              background: isDark
+                ? 'linear-gradient(135deg, #3a1a1a 0%, #4a2020 100%)'
+                : 'linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%)',
+              border: `2px solid ${isDark ? '#b71c1c' : '#c62828'}`,
               borderRadius: '12px',
-              padding: '1.5rem',
-              textAlign: 'center'
+              padding: '1.25rem',
+              textAlign: 'center',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center'
             }}>
               <div style={{
-                fontSize: '1.1rem',
+                fontSize: '1rem',
                 fontWeight: 700,
-                marginBottom: '1rem',
-                color: '#c62828'
+                marginBottom: '0.75rem',
+                color: isDark ? '#ef9a9a' : '#c62828'
               }}>
                 ❌ {t.meshPattern.traditional.title}
               </div>
               <div style={{
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '1rem'
+                background: isDark ? '#2a1515' : 'white',
+                border: `1px solid ${isDark ? '#c62828' : '#ef5350'}`,
+                borderRadius: '8px',
+                padding: '0.75rem',
+                fontSize: '0.85rem',
+                fontWeight: 600,
+                color: isDark ? '#ef9a9a' : '#c62828',
+                whiteSpace: 'pre-line',
+                marginBottom: '0.5rem'
               }}>
-                <div style={{
-                  background: 'white',
-                  border: '2px solid #ef5350',
-                  borderRadius: '8px',
-                  padding: '1rem',
-                  fontSize: '0.9rem',
-                  fontWeight: 600,
-                  color: '#c62828',
-                  whiteSpace: 'pre-line'
-                }}>
-                  {t.meshPattern.traditional.ingress}
-                </div>
-                <div style={{
-                  background: 'white',
-                  border: '2px solid #ef5350',
-                  borderRadius: '8px',
-                  padding: '1rem',
-                  fontSize: '0.9rem',
-                  fontWeight: 600,
-                  color: '#c62828',
-                  whiteSpace: 'pre-line'
-                }}>
-                  {t.meshPattern.traditional.mesh}
-                </div>
+                {t.meshPattern.traditional.ingress}
               </div>
               <div style={{
-                marginTop: '1rem',
+                background: isDark ? '#2a1515' : 'white',
+                border: `1px solid ${isDark ? '#c62828' : '#ef5350'}`,
+                borderRadius: '8px',
+                padding: '0.75rem',
                 fontSize: '0.85rem',
+                fontWeight: 600,
+                color: isDark ? '#ef9a9a' : '#c62828',
+                whiteSpace: 'pre-line'
+              }}>
+                {t.meshPattern.traditional.mesh}
+              </div>
+              <div style={{
+                marginTop: '0.75rem',
+                fontSize: '0.8rem',
                 fontStyle: 'italic',
-                color: '#d32f2f'
+                color: isDark ? '#e57373' : '#d32f2f'
               }}>
                 {t.meshPattern.traditional.problem}
               </div>
             </div>
 
             {/* Arrow */}
-            <div style={{ textAlign: 'center', fontSize: '2rem', color: '#4a148c' }}>
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '2rem',
+              fontWeight: 700,
+              color: '#4a148c',
+              padding: '0 0.25rem'
+            }}>
               →
             </div>
 
             {/* GAMMA Approach */}
             <div style={{
-              background: 'linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%)',
-              border: '2px solid #2e7d32',
+              background: isDark
+                ? 'linear-gradient(135deg, #1a3a1a 0%, #204a20 100%)'
+                : 'linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%)',
+              border: `2px solid ${isDark ? '#2e7d32' : '#2e7d32'}`,
               borderRadius: '12px',
-              padding: '1.5rem',
-              textAlign: 'center'
+              padding: '1.25rem',
+              textAlign: 'center',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center'
             }}>
               <div style={{
-                fontSize: '1.1rem',
+                fontSize: '1rem',
                 fontWeight: 700,
-                marginBottom: '1rem',
-                color: '#2e7d32'
+                marginBottom: '0.75rem',
+                color: isDark ? '#81c784' : '#2e7d32'
               }}>
                 ✅ {t.meshPattern.gamma.title}
               </div>
@@ -332,49 +345,50 @@ export default function GammaInfographic({ locale = 'ko' }) {
                 color: 'white',
                 border: '2px solid #0d47a1',
                 borderRadius: '8px',
-                padding: '1rem',
-                fontSize: '0.95rem',
+                padding: '0.75rem',
+                fontSize: '0.9rem',
                 fontWeight: 700,
-                marginBottom: '1rem',
+                marginBottom: '0.5rem',
                 whiteSpace: 'pre-line'
               }}>
                 {t.meshPattern.gamma.unified}
               </div>
               <div style={{
                 display: 'flex',
-                flexDirection: 'column',
-                gap: '0.75rem'
+                gap: '0.5rem'
               }}>
                 <div style={{
-                  background: 'white',
-                  border: '2px solid #66bb6a',
+                  flex: 1,
+                  background: isDark ? '#1a2e1a' : 'white',
+                  border: `1px solid ${isDark ? '#4caf50' : '#66bb6a'}`,
                   borderRadius: '8px',
-                  padding: '0.75rem',
-                  fontSize: '0.85rem',
+                  padding: '0.6rem',
+                  fontSize: '0.8rem',
                   fontWeight: 600,
-                  color: '#2e7d32',
+                  color: isDark ? '#81c784' : '#2e7d32',
                   whiteSpace: 'pre-line'
                 }}>
                   {t.meshPattern.gamma.northSouth}
                 </div>
                 <div style={{
-                  background: 'white',
-                  border: '2px solid #66bb6a',
+                  flex: 1,
+                  background: isDark ? '#1a2e1a' : 'white',
+                  border: `1px solid ${isDark ? '#4caf50' : '#66bb6a'}`,
                   borderRadius: '8px',
-                  padding: '0.75rem',
-                  fontSize: '0.85rem',
+                  padding: '0.6rem',
+                  fontSize: '0.8rem',
                   fontWeight: 600,
-                  color: '#2e7d32',
+                  color: isDark ? '#81c784' : '#2e7d32',
                   whiteSpace: 'pre-line'
                 }}>
                   {t.meshPattern.gamma.eastWest}
                 </div>
               </div>
               <div style={{
-                marginTop: '1rem',
-                fontSize: '0.85rem',
+                marginTop: '0.75rem',
+                fontSize: '0.8rem',
                 fontStyle: 'italic',
-                color: '#388e3c'
+                color: isDark ? '#66bb6a' : '#388e3c'
               }}>
                 {t.meshPattern.gamma.benefit}
               </div>
@@ -396,50 +410,50 @@ export default function GammaInfographic({ locale = 'ko' }) {
 
           <div style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-            gap: '2rem'
+            gridTemplateColumns: '1fr 1fr',
+            gap: '1.5rem'
           }}>
             {/* Traditional Config */}
             <div style={{
               background: cardBg,
-              border: `2px solid #ef5350`,
+              border: `2px solid ${isDark ? '#b71c1c' : '#ef5350'}`,
               borderRadius: '12px',
-              padding: '1.5rem'
+              padding: '1.25rem'
             }}>
               <div style={{
-                fontSize: '1.1rem',
+                fontSize: '1rem',
                 fontWeight: 700,
-                marginBottom: '1rem',
-                color: '#c62828',
+                marginBottom: '0.75rem',
+                color: isDark ? '#ef9a9a' : '#c62828',
                 textAlign: 'center'
               }}>
                 {t.comparison.traditional.label}
               </div>
               <div style={{
-                background: '#ffebee',
-                border: '1px solid #ef9a9a',
+                background: isDark ? '#3a1a1a' : '#ffebee',
+                border: `1px solid ${isDark ? '#c62828' : '#ef9a9a'}`,
                 borderRadius: '8px',
-                padding: '1rem',
-                marginBottom: '0.75rem'
+                padding: '0.75rem',
+                marginBottom: '0.5rem'
               }}>
-                <div style={{ fontWeight: 700, fontSize: '0.9rem', marginBottom: '0.25rem', color: '#c62828' }}>
+                <div style={{ fontWeight: 700, fontSize: '0.85rem', marginBottom: '0.25rem', color: isDark ? '#ef9a9a' : '#c62828' }}>
                   {t.comparison.traditional.ingressTitle}
                 </div>
-                <div style={{ fontSize: '0.8rem', color: '#d32f2f' }}>
+                <div style={{ fontSize: '0.8rem', color: isDark ? '#e57373' : '#d32f2f' }}>
                   {t.comparison.traditional.ingressDesc}
                 </div>
               </div>
               <div style={{
-                background: '#ffebee',
-                border: '1px solid #ef9a9a',
+                background: isDark ? '#3a1a1a' : '#ffebee',
+                border: `1px solid ${isDark ? '#c62828' : '#ef9a9a'}`,
                 borderRadius: '8px',
-                padding: '1rem',
-                marginBottom: '0.75rem'
+                padding: '0.75rem',
+                marginBottom: '0.5rem'
               }}>
-                <div style={{ fontWeight: 700, fontSize: '0.9rem', marginBottom: '0.25rem', color: '#c62828' }}>
+                <div style={{ fontWeight: 700, fontSize: '0.85rem', marginBottom: '0.25rem', color: isDark ? '#ef9a9a' : '#c62828' }}>
                   {t.comparison.traditional.meshTitle}
                 </div>
-                <div style={{ fontSize: '0.8rem', color: '#d32f2f' }}>
+                <div style={{ fontSize: '0.8rem', color: isDark ? '#e57373' : '#d32f2f' }}>
                   {t.comparison.traditional.meshDesc}
                 </div>
               </div>
@@ -447,8 +461,8 @@ export default function GammaInfographic({ locale = 'ko' }) {
                 textAlign: 'center',
                 fontSize: '0.85rem',
                 fontWeight: 600,
-                color: '#c62828',
-                marginTop: '1rem'
+                color: isDark ? '#ef9a9a' : '#c62828',
+                marginTop: '0.75rem'
               }}>
                 {t.comparison.traditional.problem}
               </div>
@@ -457,33 +471,33 @@ export default function GammaInfographic({ locale = 'ko' }) {
             {/* GAMMA Config */}
             <div style={{
               background: cardBg,
-              border: `2px solid #66bb6a`,
+              border: `2px solid ${isDark ? '#388e3c' : '#66bb6a'}`,
               borderRadius: '12px',
-              padding: '1.5rem'
+              padding: '1.25rem'
             }}>
               <div style={{
-                fontSize: '1.1rem',
+                fontSize: '1rem',
                 fontWeight: 700,
-                marginBottom: '1rem',
-                color: '#2e7d32',
+                marginBottom: '0.75rem',
+                color: isDark ? '#81c784' : '#2e7d32',
                 textAlign: 'center'
               }}>
                 {t.comparison.gamma.label}
               </div>
               <div style={{
-                background: '#e8f5e9',
-                border: '2px solid #66bb6a',
+                background: isDark ? '#1a3a1a' : '#e8f5e9',
+                border: `2px solid ${isDark ? '#4caf50' : '#66bb6a'}`,
                 borderRadius: '8px',
-                padding: '1rem',
-                marginBottom: '0.75rem'
+                padding: '0.75rem',
+                marginBottom: '0.5rem'
               }}>
-                <div style={{ fontWeight: 700, fontSize: '0.95rem', marginBottom: '0.5rem', color: '#2e7d32' }}>
+                <div style={{ fontWeight: 700, fontSize: '0.9rem', marginBottom: '0.5rem', color: isDark ? '#81c784' : '#2e7d32' }}>
                   {t.comparison.gamma.title}
                 </div>
-                <div style={{ fontSize: '0.85rem', color: '#388e3c', marginBottom: '0.25rem' }}>
+                <div style={{ fontSize: '0.85rem', color: isDark ? '#66bb6a' : '#388e3c', marginBottom: '0.25rem' }}>
                   {t.comparison.gamma.northSouth}
                 </div>
-                <div style={{ fontSize: '0.85rem', color: '#388e3c' }}>
+                <div style={{ fontSize: '0.85rem', color: isDark ? '#66bb6a' : '#388e3c' }}>
                   {t.comparison.gamma.eastWest}
                 </div>
               </div>
@@ -491,8 +505,8 @@ export default function GammaInfographic({ locale = 'ko' }) {
                 textAlign: 'center',
                 fontSize: '0.85rem',
                 fontWeight: 600,
-                color: '#2e7d32',
-                marginTop: '1rem'
+                color: isDark ? '#81c784' : '#2e7d32',
+                marginTop: '0.75rem'
               }}>
                 {t.comparison.gamma.benefit}
               </div>
