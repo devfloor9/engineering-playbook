@@ -339,64 +339,87 @@ spec:
   );
 };
 
-// YAML Code Block with Syntax Highlighting
+// YAML Code Block with Syntax Highlighting (single-pass tokenizer)
 const YAMLCodeBlock = ({ yaml, isDark }) => {
   const highlightYAML = (code) => {
     const lines = code.split('\n');
-    return lines.map((line, index) => {
-      let highlightedLine = line;
-
+    return lines.map((line, lineIndex) => {
       // Comments (green/gray)
       if (line.trim().startsWith('#')) {
         return (
-          <div key={index} style={{ color: isDark ? '#6ee7b7' : '#059669' }}>
+          <div key={lineIndex} style={{ color: isDark ? '#6ee7b7' : '#059669' }}>
             {line}
           </div>
         );
       }
 
-      // Keys (cyan/blue)
-      highlightedLine = line.replace(
-        /^(\s*)([a-zA-Z_][a-zA-Z0-9_-]*):/,
-        (match, indent, key) => {
-          return `${indent}<span style="color: ${isDark ? '#67e8f9' : '#0891b2'}; font-weight: 600;">${key}</span>:`;
-        }
-      );
+      // Single-pass tokenizer: parse the raw YAML line into segments, then render
+      const segments = [];
+      let remaining = line;
 
-      // String values (orange/amber)
-      highlightedLine = highlightedLine.replace(
-        /:\s*"([^"]*)"/g,
-        (match, value) => {
-          return `: <span style="color: ${isDark ? '#fbbf24' : '#d97706'};">"${value}"</span>`;
-        }
-      );
+      // Extract leading whitespace
+      const indentMatch = remaining.match(/^(\s*)/);
+      const indent = indentMatch ? indentMatch[1] : '';
+      if (indent) {
+        segments.push({ type: 'plain', text: indent });
+        remaining = remaining.slice(indent.length);
+      }
 
-      // String values without quotes (yellow)
-      highlightedLine = highlightedLine.replace(
-        /:\s+([a-zA-Z][a-zA-Z0-9_.\-/:]*)(?=\s|$)/g,
-        (match, value) => {
-          return `: <span style="color: ${isDark ? '#fde047' : '#ca8a04'};">${value}</span>`;
-        }
-      );
+      // Check for list dash
+      const dashMatch = remaining.match(/^(-\s)/);
+      if (dashMatch) {
+        segments.push({ type: 'dash', text: '-' });
+        segments.push({ type: 'plain', text: ' ' });
+        remaining = remaining.slice(dashMatch[1].length);
+      }
 
-      // Numbers (purple/violet)
-      highlightedLine = highlightedLine.replace(
-        /:\s+(\d+)/g,
-        (match, number) => {
-          return `: <span style="color: ${isDark ? '#c084fc' : '#9333ea'};">${number}</span>`;
-        }
-      );
+      // Check for key: value pattern
+      const keyMatch = remaining.match(/^([a-zA-Z_][a-zA-Z0-9_-]*):\s*/);
+      if (keyMatch) {
+        segments.push({ type: 'key', text: keyMatch[1] });
+        segments.push({ type: 'plain', text: ': ' });
+        remaining = remaining.slice(keyMatch[0].length);
 
-      // Dashes for list items (pink)
-      highlightedLine = highlightedLine.replace(
-        /^(\s*)(-)(\s)/,
-        (match, indent, dash, space) => {
-          return `${indent}<span style="color: ${isDark ? '#f472b6' : '#db2777'};">${dash}</span>${space}`;
+        // Classify the value part
+        if (remaining.startsWith('"')) {
+          const quoteMatch = remaining.match(/^"([^"]*)"/);
+          if (quoteMatch) {
+            segments.push({ type: 'string', text: `"${quoteMatch[1]}"` });
+            remaining = remaining.slice(quoteMatch[0].length);
+          }
+        } else if (/^\d+$/.test(remaining.trim())) {
+          segments.push({ type: 'number', text: remaining.trim() });
+          remaining = '';
+        } else if (remaining.trim()) {
+          segments.push({ type: 'value', text: remaining.trim() });
+          remaining = '';
         }
-      );
+      }
+
+      // Any leftover text
+      if (remaining) {
+        segments.push({ type: 'plain', text: remaining });
+      }
+
+      // Render segments as React elements
+      const colors = {
+        key: { color: isDark ? '#67e8f9' : '#0891b2', fontWeight: 600 },
+        string: { color: isDark ? '#fbbf24' : '#d97706' },
+        value: { color: isDark ? '#fde047' : '#ca8a04' },
+        number: { color: isDark ? '#c084fc' : '#9333ea' },
+        dash: { color: isDark ? '#f472b6' : '#db2777' },
+      };
 
       return (
-        <div key={index} dangerouslySetInnerHTML={{ __html: highlightedLine }} />
+        <div key={lineIndex}>
+          {segments.map((seg, i) =>
+            colors[seg.type] ? (
+              <span key={i} style={colors[seg.type]}>{seg.text}</span>
+            ) : (
+              <span key={i}>{seg.text}</span>
+            )
+          )}
+        </div>
       );
     });
   };
