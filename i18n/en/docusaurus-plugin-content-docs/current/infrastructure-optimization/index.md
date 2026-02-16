@@ -21,7 +21,7 @@ In the auto-scaling domain, we introduce intelligent node provisioning strategie
 
 ### Step 1: Network Foundation Configuration
 
-**[1. Gateway API Adoption Guide](./gateway-api-adoption-guide.md)**
+**[1. Gateway API Adoption Guide](./gateway-api-adoption-guide/)**
 NGINX Ingress Controller EOL response, Gateway API architecture and GAMMA Initiative, Cilium ENI integration, 5 solution comparison (AWS Native vs open source), migration strategy and benchmark plan
 
 ### Step 2: DNS Setup and Optimization

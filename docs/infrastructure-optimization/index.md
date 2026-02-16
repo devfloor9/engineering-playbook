@@ -23,7 +23,7 @@ last_update:
 
 ### 1단계: 네트워크 기반 구성
 
-**[1. Gateway API 도입 가이드](./gateway-api-adoption-guide.md)**
+**[1. Gateway API 도입 가이드](./gateway-api-adoption-guide/)**
 NGINX Ingress Controller EOL 대응, Gateway API 아키텍처 및 GAMMA Initiative, Cilium ENI + Gateway API 심화, AWS Native vs 오픈소스 5개 솔루션 비교, 마이그레이션 전략 및 벤치마크 계획
 
 ### 2단계: DNS 설정 및 최적화

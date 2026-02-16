@@ -1775,7 +1775,7 @@ aws ec2 create-vpc-endpoint \
 **관련 문서**
 
 - [4. Karpenter 오토스케일링](./karpenter-autoscaling.md)
-- [1. Gateway API 도입 가이드](./gateway-api-adoption-guide.md)
+- [1. Gateway API 도입 가이드](./gateway-api-adoption-guide/)
 - [GitOps 클러스터 운영](../operations-observability/gitops-cluster-operation.md)
 - [하이브리드 노드 가이드](../hybrid-infrastructure/hybrid-nodes-adoption-guide.md)
 
