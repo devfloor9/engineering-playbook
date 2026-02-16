@@ -3,6 +3,10 @@ title: "Infrastructure Optimization"
 sidebar_label: "Infrastructure Optimization"
 description: "Advanced technical documentation on performance optimization and networking for Amazon EKS"
 sidebar_position: 1
+last_update:
+  date: 2026-02-13
+  author: devfloor9
+category: "infrastructure"
 ---
 
 # Infrastructure Optimization

@@ -6,7 +6,7 @@ sidebar_position: 3
 category: "aiops-aidlc"
 tags: [aidlc, kiro, mcp, gitops, argocd, ack, kro, ddd, ai-agent, eks]
 last_update:
-  date: 2026-02-12
+  date: 2026-02-14
   author: devfloor9
 ---
 
@@ -14,7 +14,7 @@ import { AidlcPhaseMapping, EksCapabilities, ProductivityMetrics, AidlcPrinciple
 
 # AIDLC 프레임워크 — EKS 환경에서의 AI 주도 개발·운영 고도화
 
-> 📅 **작성일**: 2026-02-12 | ⏱️ **읽는 시간**: 약 30분 | 📌 **기준 환경**: EKS 1.35+, Kiro, Managed Argo CD
+> 📅 **작성일**: 2026-02-12 | **수정일**: 2026-02-14 | ⏱️ **읽는 시간**: 약 39분
 
 ---
 

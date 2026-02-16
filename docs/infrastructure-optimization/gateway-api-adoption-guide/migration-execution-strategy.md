@@ -5,7 +5,7 @@ description: "Gateway API 마이그레이션 5-Phase 전략, CRD 설치, 단계�
 tags: [eks, gateway-api, migration, nginx, deployment]
 category: "performance-networking"
 last_update:
-  date: 2025-02-12
+  date: 2026-02-14
   author: devfloor9
 sidebar_position: 3
 ---

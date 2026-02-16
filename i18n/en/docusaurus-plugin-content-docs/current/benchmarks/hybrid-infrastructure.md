@@ -1,14 +1,19 @@
 ---
 title: Hybrid Infrastructure Benchmark
-sidebar_position: 3
+sidebar_label: "5. Hybrid Infrastructure"
+sidebar_position: 5
 description: Hybrid cloud infrastructure network and storage performance benchmark
 tags: [benchmark, hybrid, network, storage, sriov]
 last_update:
-  date: 2026-02-09
+  date: 2026-02-14
   author: devfloor9
+category: "benchmarks"
 ---
 
 # Hybrid Infrastructure Benchmark
+
+> 📅 **Written**: 2026-02-14 | **Last Modified**: 2026-02-14 | ⏱️ **Reading Time**: ~1 min
+
 
 We measure the performance of hybrid infrastructure between cloud and on-premises.
 

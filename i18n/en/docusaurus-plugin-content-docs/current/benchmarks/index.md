@@ -3,6 +3,10 @@ title: Benchmark Reports
 sidebar_position: 7
 description: Cloud-native infrastructure performance benchmarks and test reports
 tags: [benchmark, performance, testing, report]
+last_update:
+  date: 2026-02-13
+  author: devfloor9
+category: "benchmarks"
 ---
 
 # Benchmark Reports

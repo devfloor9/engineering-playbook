@@ -5,7 +5,7 @@ description: "Amazon EKS에서 Milvus 벡터 데이터베이스를 배포하고 
 sidebar_position: 10
 category: "genai-aiml"
 last_update:
-  date: 2026-02-13
+  date: 2026-02-14
   author: devfloor9
 tags: [milvus, vector-database, rag, kubernetes, eks, genai, embedding]
 ---
@@ -21,7 +21,7 @@ import {
 
 # Milvus 벡터 데이터베이스 통합
 
-> 📅 **작성일**: 2026-02-13 | ⏱️ **읽는 시간**: 약 27분
+> 📅 **작성일**: 2026-02-13 | **수정일**: 2026-02-14 | ⏱️ **읽는 시간**: 약 4분
 
 Milvus v2.4.x는 대규모 벡터 유사도 검색을 위한 오픈소스 벡터 데이터베이스입니다. Agentic AI 플랫폼에서 RAG(Retrieval-Augmented Generation) 파이프라인의 핵심 컴포넌트로 활용됩니다.
 

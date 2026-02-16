@@ -1,12 +1,12 @@
 ---
 title: "Revolutionizing K8s Operations with AI — AIOps Strategy Guide"
-sidebar_label: "AIOps Strategy Guide"
+sidebar_label: "1. AIOps Strategy Guide"
 description: "AIOps strategy to reduce K8s platform complexity with AI and accelerate innovation — AWS open-source managed services, Kiro+MCP, AI Agent extension"
-sidebar_position: 2
+sidebar_position: 1
 category: "aiops-aidlc"
 tags: [aiops, eks, observability, anomaly-detection, monitoring, kiro, mcp, ai-agent]
 last_update:
-  date: 2026-02-12
+  date: 2026-02-14
   author: devfloor9
 ---
 
@@ -14,7 +14,7 @@ import { AiopsMaturityModel, MonitoringComparison, AwsServicesMap, RoiMetrics, A
 
 # Revolutionizing K8s Operations with AI — AIOps Strategy Guide
 
-> 📅 **Written**: February 12, 2026 | ⏱️ **Reading Time**: Approx. 25 minutes | 📌 **Reference Environment**: EKS 1.35+, AWS CLI v2
+> 📅 **Written**: 2026-02-12 | **Last Modified**: 2026-02-14 | ⏱️ **Reading Time**: ~12 min
 
 ---
 

@@ -5,7 +5,7 @@ description: "AIops & AIDLC guide to maximize K8s platform advantages with AI wh
 sidebar_position: 4
 category: "aiops-aidlc"
 last_update:
-  date: 2026-02-12
+  date: 2026-02-13
   author: devfloor9
 ---
 
@@ -13,7 +13,7 @@ import { PlatformComparison, CoreTechStack } from '@site/src/components/AiopsInt
 
 # AIops & AIDLC for Modern Application Platform
 
-> 📅 **Written**: 2026-02-12 | ⏱️ **Reading Time**: About 5 minutes
+> 📅 **Written**: 2026-02-12 | **Last Modified**: 2026-02-13 | ⏱️ **Reading Time**: ~3 min
 
 Kubernetes has established itself as the standard for container orchestration, but its diverse features and extensibility come at the cost of operational complexity. AIOps (AI for IT Operations) and AIDLC (AI-Driven Development Lifecycle) are approaches that solve this complexity with AI while maximizing the advantages of K8s platforms. Beyond simply applying AI to monitoring, they present a new operational paradigm where AI leads the entire lifecycle from development to deployment, operations, and incident response.
 

@@ -3,6 +3,11 @@ title: "Agentic AI Platform"
 sidebar_label: "Agentic AI Platform"
 description: "Advanced technical documentation on building and operating generative AI and AI/ML workloads on Amazon EKS"
 sidebar_position: 3
+last_update:
+  date: 2026-02-14
+  author: devfloor9
+category: "genai-aiml"
+tags: [eks, kubernetes, genai, agentic-ai, gpu, llm, platform]
 ---
 
 # Agentic AI Platform

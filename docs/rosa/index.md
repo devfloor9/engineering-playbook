@@ -5,13 +5,13 @@ description: "Red Hat OpenShift Service on AWS (ROSA) 구축 및 운영에 대�
 category: "rosa"
 sidebar_position: 6
 last_update:
-  date: 2025-02-05
+  date: 2026-02-13
   author: devfloor9
 ---
 
 # ROSA (Red Hat OpenShift on AWS)
 
-> 📅 **작성일**: 2025-02-05 | ⏱️ **읽는 시간**: 약 3분
+> 📅 **작성일**: 2025-02-05 | **수정일**: 2026-02-13 | ⏱️ **읽는 시간**: 약 6분
 
 이 섹션에서는 Red Hat OpenShift Service on AWS (ROSA) 구축 및 운영에 대한 기술 문서들을 다룹니다. ROSA는 AWS와 Red Hat이 함께 관리하는 완전 관리형 OpenShift 서비스로, 엔터프라이즈급 Kubernetes 플랫폼을 쉽게 구축할 수 있습니다.
 

@@ -6,7 +6,7 @@ category: "genai-aiml"
 sidebar_position: 14
 tags: [bedrock, agentcore, mcp, ai-agent, eks]
 last_update:
-  date: 2026-02-13
+  date: 2026-02-14
   author: devfloor9
 ---
 
@@ -14,7 +14,7 @@ import { EKSMCPFeatures, KagentVsAgentCore, MultiAgentPatterns, MCPServerEcosyst
 
 # Bedrock AgentCore와 MCP 통합
 
-> 📅 **작성일**: 2026-02-13 | ⏱️ **읽는 시간**: 약 15분
+> 📅 **작성일**: 2026-02-13 | **수정일**: 2026-02-14 | ⏱️ **읽는 시간**: 약 4분
 
 ## 개요
 

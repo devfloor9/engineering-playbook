@@ -6,7 +6,7 @@ description: 보안 정책 적용 및 운영 도구 성능 벤치마크
 category: "benchmarks"
 tags: [benchmark, security, operations, monitoring, gitops]
 last_update:
-  date: 2026-02-09
+  date: 2026-02-14
   author: devfloor9
 ---
 

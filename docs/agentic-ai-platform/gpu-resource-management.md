@@ -5,7 +5,7 @@ description: "복수 GPU 클러스터 환경에서의 동적 리소스 할당 �
 tags: [eks, gpu, karpenter, autoscaling, resource-management, dcgm]
 category: "genai-aiml"
 last_update:
-  date: 2026-02-13
+  date: 2026-02-14
   author: devfloor9
 sidebar_position: 4
 ---
@@ -15,7 +15,7 @@ import { DraLimitationsTable, ScalingDecisionTable } from '@site/src/components/
 
 # GPU 클러스터 동적 리소스 관리
 
-> 📅 **작성일**: 2025-02-09 | ⏱️ **읽는 시간**: 약 9분
+> 📅 **작성일**: 2025-02-09 | **수정일**: 2026-02-14 | ⏱️ **읽는 시간**: 약 9분
 
 
 ## 개요

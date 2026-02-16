@@ -5,7 +5,7 @@ description: "Amazon EKS와 AWS 서비스를 활용한 Agentic AI 도전과제 �
 tags: [eks, aws, karpenter, genai, agentic-ai, gpu, solutions]
 category: "genai-aiml"
 last_update:
-  date: 2026-02-13
+  date: 2026-02-14
   author: devfloor9
 sidebar_position: 2
 ---
@@ -37,7 +37,7 @@ import {
   ChallengeSolutionsSummary
 } from '@site/src/components/AgenticSolutionsTables';
 
-> 📅 **작성일**: 2025-02-05 | **수정일**: 2026-02-13 | ⏱️ **읽는 시간**: 약 20분
+> 📅 **작성일**: 2025-02-05 | **수정일**: 2026-02-14 | ⏱️ **읽는 시간**: 약 21분
 
 :::info 선행 문서: 기술적 도전과제
 이 문서를 읽기 전에 [Agentic AI 워크로드의 기술적 도전과제](./agentic-ai-challenges.md)를 먼저 읽어보시기 바랍니다. 해당 문서에서 4가지 핵심 도전과제와 Kubernetes 기반 오픈소스 생태계에 대해 설명합니다.

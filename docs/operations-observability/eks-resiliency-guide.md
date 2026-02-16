@@ -5,14 +5,14 @@ description: "Amazon EKS 환경에서 고가용성과 장애 회복력을 확보
 tags: [eks, kubernetes, resiliency, high-availability, cell-architecture, chaos-engineering, multi-az]
 category: "observability-monitoring"
 last_update:
-  date: 2026-02-10
+  date: 2026-02-13
   author: devfloor9
 sidebar_position: 4
 ---
 
 # EKS 고가용성 아키텍처 가이드
 
-> 📅 **작성일**: 2026-02-10 | ⏱️ **읽는 시간**: 약 20분
+> 📅 **작성일**: 2026-02-10 | **수정일**: 2026-02-13 | ⏱️ **읽는 시간**: 약 20분
 
 > **📌 기준 환경**: EKS 1.30+, Karpenter v1.x, Istio 1.22+
 

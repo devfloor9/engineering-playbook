@@ -5,7 +5,7 @@ description: "NGINX Ingress Controller EOL response, Gateway API architecture, G
 tags: [eks, gateway-api, nginx, cilium, envoy, networking, migration, ebpf, gamma]
 category: "performance-networking"
 last_update:
-  date: 2025-02-12
+  date: 2026-02-14
   author: devfloor9
 sidebar_position: 1
 ---

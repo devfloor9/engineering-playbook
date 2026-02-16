@@ -5,14 +5,14 @@ description: "EKS에서 서비스 간 통신(East-West)의 지연시간을 최�
 tags: [eks, networking, performance, cost-optimization, service-mesh, topology-aware-routing]
 category: "performance-networking"
 last_update:
-  date: 2026-02-09
+  date: 2026-02-14
   author: devfloor9
 sidebar_position: 3
 ---
 
 # EKS East-West 트래픽 최적화 가이드
 
-> 📅 **작성일**: 2026-02-09 | ⏱️ **읽는 시간**: 약 35분
+> 📅 **작성일**: 2026-02-09 | **수정일**: 2026-02-14 | ⏱️ **읽는 시간**: 약 21분
 
 ## 개요
 

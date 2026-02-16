@@ -1,12 +1,13 @@
 ---
 title: "EKS-Based Agentic AI Solutions"
-sidebar_label: "EKS-Based Solutions"
+sidebar_label: "2. EKS-Based Solutions"
 description: "Guide to solving Agentic AI challenges using Amazon EKS and AWS services"
 tags: [eks, aws, karpenter, genai, agentic-ai, gpu, solutions]
 category: "genai-aiml"
-date: 2025-02-05
-authors: [devfloor9]
-sidebar_position: 4
+sidebar_position: 2
+last_update:
+  date: 2026-02-14
+  author: devfloor9
 ---
 
 import Tabs from '@theme/Tabs';
@@ -1985,6 +1986,9 @@ done
 ```python
 # training_cost_tracker.py
 import boto3
+
+> 📅 **Written**: 2025-02-05 | **Last Modified**: 2026-02-14 | ⏱️ **Reading Time**: ~12 min
+
 from datetime import datetime
 
 cloudwatch = boto3.client('cloudwatch')

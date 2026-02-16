@@ -175,16 +175,105 @@ const implementations = {
       strength: 'Unified gateway (API+mesh+AI+MCP), AI/ML routing native',
     },
   ],
+  zh: [
+    {
+      name: 'AWS VPC Lattice + ACK',
+      status: '✅ GA', statusColor: '#4caf50',
+      dataPlane: 'AWS 托管 (VPC 级别)',
+      sidecar: '❌ 无需',
+      gamma: '✅ Gateway API via ACK',
+      features: {
+        mTLS: '✅ IAM + SigV4',
+        l7Routing: '✅ HTTPRoute',
+        trafficSplit: '✅ 基于权重',
+        retryTimeout: '✅ 原生支持',
+        faultInjection: '✅ AWS FIS 集成',
+        observability: 'CloudWatch, X-Ray',
+      },
+      overhead: '无 (托管型)',
+      strength: 'AWS 原生、无 Sidecar、SLA 保障、通过 ACK 管理 K8s CRD',
+    },
+    {
+      name: 'Istio Ambient Mode',
+      status: '✅ GA', statusColor: '#4caf50',
+      dataPlane: 'ztunnel (L4) + waypoint (L7)',
+      sidecar: '❌ 无需 (Ambient)',
+      gamma: '✅ 完全支持',
+      features: {
+        mTLS: '✅ 自动 (ztunnel)',
+        l7Routing: '✅ HTTPRoute, GRPCRoute',
+        trafficSplit: '✅ 基于权重',
+        retryTimeout: '✅ 原生支持',
+        faultInjection: '✅ 原生支持',
+        observability: 'Kiali, Jaeger, Prometheus',
+      },
+      overhead: '低 (ztunnel DaemonSet)',
+      strength: '最成熟的 GAMMA 实现、Ambient 消除 Sidecar、丰富的生态系统',
+    },
+    {
+      name: 'Cilium',
+      status: '✅ GA', statusColor: '#4caf50',
+      dataPlane: 'eBPF + Envoy (L7)',
+      sidecar: '❌ 无需 (eBPF)',
+      gamma: '✅ HTTPRoute → Service',
+      features: {
+        mTLS: '✅ WireGuard/IPsec',
+        l7Routing: '✅ HTTPRoute',
+        trafficSplit: '✅ 基于权重',
+        retryTimeout: '✅ CiliumNetworkPolicy',
+        faultInjection: '⚠️ 有限',
+        observability: 'Hubble (Service Map)',
+      },
+      overhead: '极低 (内核级别)',
+      strength: 'eBPF 最佳性能、L3-L7 统一策略、Hubble 实时可观测性',
+    },
+    {
+      name: 'Linkerd',
+      status: '✅ Beta', statusColor: '#ff9800',
+      dataPlane: 'linkerd2-proxy (Rust)',
+      sidecar: '✅ 需要 (轻量级)',
+      gamma: '✅ 基于 HTTPRoute',
+      features: {
+        mTLS: '✅ 自动 (零配置)',
+        l7Routing: '✅ HTTPRoute',
+        trafficSplit: '✅ 基于权重',
+        retryTimeout: '✅ 原生支持',
+        faultInjection: '⚠️ 有限',
+        observability: 'Viz 仪表板',
+      },
+      overhead: '低 (Rust, ~20MB/proxy)',
+      strength: '轻量级 Rust 代理、自动 mTLS、最少配置、快速采用',
+    },
+    {
+      name: 'kGateway (Solo.io)',
+      status: '✅ GA', statusColor: '#4caf50',
+      dataPlane: 'Envoy',
+      sidecar: '❌ 无需',
+      gamma: '✅ HTTPRoute/GRPCRoute',
+      features: {
+        mTLS: '✅ 基于 Envoy',
+        l7Routing: '✅ HTTPRoute, GRPCRoute',
+        trafficSplit: '✅ 基于权重',
+        retryTimeout: '✅ 原生支持',
+        faultInjection: '✅ 原生支持',
+        observability: 'Envoy 指标',
+      },
+      overhead: '中等',
+      strength: '统一网关 (API+网格+AI+MCP)、AI/ML 路由原生支持',
+    },
+  ],
 };
 
 const featureLabels = {
   ko: { mTLS: 'mTLS', l7Routing: 'L7 라우팅', trafficSplit: '트래픽 분할', retryTimeout: '재시도/타임아웃', faultInjection: '장애 주입', observability: '관측성' },
   en: { mTLS: 'mTLS', l7Routing: 'L7 Routing', trafficSplit: 'Traffic Split', retryTimeout: 'Retry/Timeout', faultInjection: 'Fault Injection', observability: 'Observability' },
+  zh: { mTLS: 'mTLS', l7Routing: 'L7 路由', trafficSplit: '流量分割', retryTimeout: '重试/超时', faultInjection: '故障注入', observability: '可观测性' },
 };
 
 const labels = {
   ko: { dataPlane: '데이터 플레인', sidecar: '사이드카', overhead: '리소스 오버헤드', strength: '핵심 강점', features: '기능 비교' },
   en: { dataPlane: 'Data Plane', sidecar: 'Sidecar', overhead: 'Resource Overhead', strength: 'Key Strength', features: 'Feature Comparison' },
+  zh: { dataPlane: '数据平面', sidecar: 'Sidecar', overhead: '资源开销', strength: '核心优势', features: '功能对比' },
 };
 
 export default function GammaSupportTable({ locale = 'ko' }) {
@@ -197,12 +286,10 @@ export default function GammaSupportTable({ locale = 'ko' }) {
     <div style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', maxWidth: 760, margin: '0 0 1.5rem 0' }}>
       <div style={{ background: 'linear-gradient(135deg, #4a148c 0%, #6a1b9a 100%)', borderRadius: '12px 12px 0 0', padding: '0.85rem 1.25rem', color: 'white' }}>
         <div style={{ fontSize: '0.92rem', fontWeight: 700 }}>
-          🔄 {locale === 'ko' ? 'GAMMA 구현체 비교' : 'GAMMA Implementation Comparison'}
+          🔄 {{ ko: 'GAMMA 구현체 비교', en: 'GAMMA Implementation Comparison', zh: 'GAMMA 实现对比' }[locale] || 'GAMMA Implementation Comparison'}
         </div>
         <div style={{ fontSize: '0.7rem', opacity: 0.7, marginTop: 2 }}>
-          {locale === 'ko'
-            ? '기능, 데이터 플레인, 리소스 오버헤드별 상세 비교 — 클릭하여 상세 보기'
-            : 'Detailed comparison by features, data plane, resource overhead — click to expand'}
+          {{ ko: '기능, 데이터 플레인, 리소스 오버헤드별 상세 비교 — 클릭하여 상세 보기', en: 'Detailed comparison by features, data plane, resource overhead — click to expand', zh: '按功能、数据平面、资源开销详细对比 — 点击展开详情' }[locale] || 'Detailed comparison by features, data plane, resource overhead — click to expand'}
         </div>
       </div>
       <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderTop: 'none', borderRadius: '0 0 12px 12px', padding: '0.6rem', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>

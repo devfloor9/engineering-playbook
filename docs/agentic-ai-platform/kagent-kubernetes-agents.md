@@ -5,7 +5,7 @@ description: "Kagent를 활용한 Kubernetes 환경에서의 AI 에이전트 배
 tags: [eks, kagent, kubernetes, agent, crd, operator]
 category: "genai-aiml"
 last_update:
-  date: 2026-02-13
+  date: 2026-02-14
   author: devfloor9
 sidebar_position: 11
 ---

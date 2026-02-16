@@ -1,12 +1,12 @@
 ---
 title: "AIDLC Framework - AI-Driven Development Lifecycle"
-sidebar_label: "AIDLC Framework"
+sidebar_label: "3. AIDLC Framework"
 description: "Practical guide for applying AWS AI-DLC methodology to EKS environments to enhance development and operations with AI"
-sidebar_position: 4
+sidebar_position: 3
 category: "aiops-aidlc"
 tags: [aidlc, kiro, mcp, gitops, argocd, ack, kro, ddd, ai-agent, eks]
 last_update:
-  date: 2026-02-12
+  date: 2026-02-14
   author: devfloor9
 ---
 
@@ -14,7 +14,7 @@ import { AidlcPhaseMapping, EksCapabilities, ProductivityMetrics, AidlcPrinciple
 
 # AIDLC Framework — AI-Driven Development & Operations Enhancement in EKS Environments
 
-> 📅 **Date**: 2026-02-12 | ⏱️ **Reading Time**: ~30 minutes | 📌 **Target Environment**: EKS 1.35+, Kiro, Managed Argo CD
+> 📅 **Written**: 2026-02-12 | **Last Modified**: 2026-02-14 | ⏱️ **Reading Time**: ~9 min
 
 ---
 

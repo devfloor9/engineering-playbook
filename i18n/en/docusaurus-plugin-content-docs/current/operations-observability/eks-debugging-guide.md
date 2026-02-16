@@ -1,15 +1,19 @@
 ---
 title: "EKS Incident Diagnosis and Response Guide"
-sidebar_label: "EKS Incident Diagnosis & Response"
+sidebar_label: "3. EKS Incident Diagnosis & Response"
 description: "Comprehensive troubleshooting guide for systematically diagnosing and resolving application and infrastructure issues in Amazon EKS environments"
 tags: [eks, kubernetes, debugging, troubleshooting, observability, incident-response]
 category: "observability-monitoring"
-date: 2026-02-10
-authors: [devfloor9]
-sidebar_position: 5
+sidebar_position: 3
+last_update:
+  date: 2026-02-13
+  author: devfloor9
 ---
 
 import { IncidentEscalationTable, ZonalShiftImpactTable, ControlPlaneLogTable, ClusterHealthTable, NodeGroupErrorTable, ErrorQuickRefTable } from '@site/src/components/EksDebugTables';
+
+> 📅 **Written**: 2026-02-10 | **Last Modified**: 2026-02-13 | ⏱️ **Reading Time**: ~20 min
+
 
 # EKS Incident Diagnosis and Response Guide
 

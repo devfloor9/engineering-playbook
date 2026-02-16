@@ -5,7 +5,7 @@ description: "EKS 환경에서 VPC CNI와 Cilium CNI의 네트워크 및 애플�
 tags: [benchmark, cni, cilium, vpc-cni, networking, performance, eks]
 category: "benchmark"
 last_update:
-  date: 2026-02-09
+  date: 2026-02-14
   author: devfloor9
 sidebar_position: 2
 ---
@@ -31,7 +31,7 @@ import CniConclusionInfographic from '@site/src/components/CniConclusionInfograp
 
 # VPC CNI vs Cilium CNI 성능 비교 벤치마크
 
-> 📅 **작성일**: 2026-02-09 | ✍️ **작성자**: devfloor9 | ⏱️ **읽는 시간**: 약 25분
+> 📅 **작성일**: 2026-02-09 | **수정일**: 2026-02-14 | ⏱️ **읽는 시간**: 약 16분
 
 ## 개요
 

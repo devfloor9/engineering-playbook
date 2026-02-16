@@ -5,14 +5,14 @@ description: "AWS EKS 클러스터의 노드 상태를 자동으로 감지하고
 tags: [eks, monitoring, node-monitoring, aws, observability, cloudwatch]
 category: "observability-monitoring"
 last_update:
-  date: 2025-08-26
+  date: 2026-02-13
   author: devfloor9
 sidebar_position: 2
 ---
 
 # EKS Node Monitoring Agent
 
-> 📅 **작성일**: 2025-08-26 | ⏱️ **읽는 시간**: 약 9분
+> 📅 **작성일**: 2025-08-26 | **수정일**: 2026-02-13 | ⏱️ **읽는 시간**: 약 7분
 
 
 ## 개요

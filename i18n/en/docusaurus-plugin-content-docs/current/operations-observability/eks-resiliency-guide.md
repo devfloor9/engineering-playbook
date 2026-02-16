@@ -1,15 +1,19 @@
 ---
 title: "EKS High Availability Architecture Guide"
-sidebar_label: "EKS HA Architecture"
+sidebar_label: "4. EKS HA Architecture"
 description: "Architecture patterns and operational strategies for achieving high availability and fault tolerance in Amazon EKS environments"
 tags: [eks, kubernetes, resiliency, high-availability, cell-architecture, chaos-engineering, multi-az]
 category: "observability-monitoring"
-date: 2026-02-10
-authors: [devfloor9]
-sidebar_position: 6
+sidebar_position: 4
+last_update:
+  date: 2026-02-13
+  author: devfloor9
 ---
 
 # EKS High Availability Architecture Guide
+
+> 📅 **Written**: 2026-02-10 | **Last Modified**: 2026-02-13 | ⏱️ **Reading Time**: ~17 min
+
 
 > 📅 **Published**: 2026-02-10 | ⏱️ **Reading time**: ~20 min
 

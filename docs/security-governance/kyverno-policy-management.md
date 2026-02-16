@@ -6,7 +6,7 @@ category: "security"
 sidebar_position: 4
 tags: [eks, security, kyverno, policy, governance]
 last_update:
-  date: 2025-02-09
+  date: 2026-02-13
   author: devfloor9
 ---
 

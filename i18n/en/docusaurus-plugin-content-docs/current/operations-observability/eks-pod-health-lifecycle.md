@@ -1,112 +1,112 @@
 ---
-title: "EKS Pod 헬스체크 & 라이프사이클 관리"
-sidebar_label: "5. Pod 헬스체크 & 라이프사이클"
-description: "Kubernetes Probe 설정 전략, Graceful Shutdown 패턴, Pod 라이프사이클 관리 모범 사례"
-tags: [eks, kubernetes, probes, health-check, graceful-shutdown, lifecycle, best-practices]
-category: "operations"
+title: "EKS Pod Health Check & Lifecycle Management"
+sidebar_label: "5. Pod Health Check & Lifecycle"
+description: "Comprehensive guide to Kubernetes pod health checks (liveness, readiness, startup probes) and lifecycle management including graceful shutdown patterns"
+sidebar_position: 5
+tags: [EKS, Kubernetes, Pod, Health Check, Lifecycle, Probe, Liveness, Readiness, Startup, Graceful Shutdown]
+category: "observability-monitoring"
 last_update:
   date: 2026-02-14
   author: devfloor9
-sidebar_position: 5
 ---
 
-# EKS Pod 헬스체크 & 라이프사이클 관리
+# EKS Pod Health Check & Lifecycle Management
 
-> 📅 **작성일**: 2026-02-12 | **수정일**: 2026-02-14 | ⏱️ **읽는 시간**: 약 48분
+> 📅 **Written**: 2025-10-15 | **Last Modified**: 2026-02-14 | ⏱️ **Reading Time**: ~28 min
 
-> **📌 기준 환경**: EKS 1.30+, Kubernetes 1.30+, AWS Load Balancer Controller v2.7+
+> **📌 Reference Environment**: EKS 1.30+, Kubernetes 1.30+, AWS Load Balancer Controller v2.7+
 
-## 1. 개요
+## 1. Overview
 
-Pod의 헬스체크와 라이프사이클 관리는 서비스 안정성과 가용성의 핵심입니다. 적절한 Probe 설정과 Graceful Shutdown 구현은 다음을 보장합니다:
+Pod health checks and lifecycle management are fundamental to service stability and availability. Proper Probe configuration and Graceful Shutdown implementation ensure the following:
 
-- **무중단 배포**: 롤링 업데이트 시 트래픽 유실 방지
-- **빠른 장애 감지**: 비정상 Pod 자동 격리 및 재시작
-- **리소스 최적화**: 느린 시작 앱의 조기 재시작 방지
-- **데이터 무결성**: 종료 시 진행 중인 요청 안전하게 완료
+- **Zero-Downtime Deployments**: Prevent traffic loss during rolling updates
+- **Rapid Failure Detection**: Automatic isolation and restart of unhealthy Pods
+- **Resource Optimization**: Prevent premature restarts of slow-starting applications
+- **Data Integrity**: Safely complete in-flight requests during shutdown
 
-본 문서는 Kubernetes Probe의 동작 원리부터 언어별 Graceful Shutdown 구현, Init Container 활용, 컨테이너 이미지 최적화까지 Pod 라이프사이클 전체를 다룹니다.
+This document covers the entire Pod lifecycle, from the operating principles of Kubernetes Probes, to language-specific Graceful Shutdown implementations, Init Container usage, and container image optimization.
 
-:::info 관련 문서 참조
-- **Probe 디버깅**: [EKS 장애 진단 및 대응 가이드](/docs/operations-observability/eks-debugging-guide)의 "Probe 디버깅 및 Best Practices" 섹션
-- **고가용성 설계**: [EKS 고가용성 아키텍처 가이드](/docs/operations-observability/eks-resiliency-guide)의 "Graceful Shutdown", "PDB", "Pod Readiness Gates" 섹션
+:::info Related Documents
+- **Probe Debugging**: See the "Probe Debugging & Best Practices" section in the [EKS Troubleshooting & Incident Response Guide](/docs/operations-observability/eks-debugging-guide)
+- **High Availability Design**: See the "Graceful Shutdown", "PDB", and "Pod Readiness Gates" sections in the [EKS High Availability Architecture Guide](/docs/operations-observability/eks-resiliency-guide)
 :::
 
 ---
 
-## 2. Kubernetes Probe 심층 가이드
+## 2. Kubernetes Probe In-Depth Guide
 
-### 2.1 세 가지 Probe 유형과 동작 원리
+### 2.1 Three Probe Types and How They Work
 
-Kubernetes는 세 가지 유형의 Probe를 제공하여 Pod의 상태를 모니터링합니다.
+Kubernetes provides three types of Probes to monitor Pod status.
 
-| Probe 유형 | 목적 | 실패 시 동작 | 활성화 타이밍 |
+| Probe Type | Purpose | Behavior on Failure | Activation Timing |
 |-----------|------|-------------|-------------|
-| **Startup Probe** | 애플리케이션 초기화 완료 확인 | Pod 재시작 (failureThreshold 도달 시) | Pod 시작 직후 |
-| **Liveness Probe** | 애플리케이션 데드락/교착 상태 감지 | 컨테이너 재시작 | Startup Probe 성공 후 |
-| **Readiness Probe** | 트래픽 수신 준비 상태 확인 | Service Endpoint에서 제거 (재시작 없음) | Startup Probe 성공 후 |
+| **Startup Probe** | Verify application initialization is complete | Restart Pod (when failureThreshold is reached) | Immediately after Pod start |
+| **Liveness Probe** | Detect application deadlocks/hung states | Restart container | After Startup Probe succeeds |
+| **Readiness Probe** | Verify readiness to receive traffic | Remove from Service Endpoints (no restart) | After Startup Probe succeeds |
 
-#### Startup Probe: 느린 시작 앱 보호
+#### Startup Probe: Protecting Slow-Starting Applications
 
-Startup Probe는 애플리케이션이 완전히 시작될 때까지 Liveness/Readiness Probe의 실행을 지연시킵니다. Spring Boot, JVM 애플리케이션, ML 모델 로딩 등 시작이 느린 앱에 필수입니다.
+The Startup Probe delays execution of Liveness/Readiness Probes until the application is fully started. It is essential for slow-starting applications such as Spring Boot, JVM applications, and ML model loading.
 
-**동작 원리:**
-- Startup Probe가 실행 중일 때는 Liveness/Readiness Probe가 비활성화됨
-- Startup Probe 성공 시 → Liveness/Readiness Probe 활성화
-- Startup Probe 실패 (failureThreshold 도달) → 컨테이너 재시작
+**How It Works:**
+- While the Startup Probe is running, Liveness/Readiness Probes are disabled
+- On Startup Probe success → Liveness/Readiness Probes are activated
+- On Startup Probe failure (failureThreshold reached) → Container is restarted
 
-#### Liveness Probe: 데드락 감지
+#### Liveness Probe: Detecting Deadlocks
 
-Liveness Probe는 애플리케이션이 살아있는지 확인합니다. 실패 시 kubelet이 컨테이너를 재시작합니다.
+The Liveness Probe checks whether the application is alive. On failure, kubelet restarts the container.
 
-**사용 사례:**
-- 무한 루프, 데드락 상태 감지
-- 복구 불가능한 애플리케이션 에러
-- 메모리 누수로 인한 응답 불가 상태
+**Use Cases:**
+- Detecting infinite loops and deadlock states
+- Unrecoverable application errors
+- Unresponsive state due to memory leaks
 
-**주의사항:**
-- Liveness Probe에 **외부 의존성을 포함하지 마세요** (DB, Redis 등)
-- 외부 서비스 장애 시 전체 Pod이 재시작되는 cascading failure 발생
+**Cautions:**
+- **Do not include external dependencies** in the Liveness Probe (DB, Redis, etc.)
+- External service failures can cause cascading failure where all Pods restart simultaneously
 
-#### Readiness Probe: 트래픽 수신 제어
+#### Readiness Probe: Controlling Traffic Reception
 
-Readiness Probe는 Pod이 트래픽을 받을 준비가 되었는지 확인합니다. 실패 시 Service의 Endpoints에서 Pod이 제거되지만, 컨테이너는 재시작되지 않습니다.
+The Readiness Probe checks whether a Pod is ready to receive traffic. On failure, the Pod is removed from the Service's Endpoints, but the container is not restarted.
 
-**사용 사례:**
-- 의존 서비스 연결 확인 (DB, 캐시)
-- 초기 데이터 로딩 완료 확인
-- 배포 중 단계적 트래픽 수신
+**Use Cases:**
+- Verifying dependent service connections (DB, cache)
+- Confirming initial data loading is complete
+- Gradual traffic reception during deployments
 
 ```mermaid
 flowchart TB
-    subgraph "Pod 라이프사이클 & Probe 동작"
-        START[Pod 생성] --> INIT[Init Container 실행]
-        INIT --> MAIN[메인 컨테이너 시작]
-        MAIN --> STARTUP{Startup Probe<br/>실행 중}
+    subgraph "Pod Lifecycle & Probe Behavior"
+        START[Pod Created] --> INIT[Init Container Execution]
+        INIT --> MAIN[Main Container Start]
+        MAIN --> STARTUP{Startup Probe<br/>Running}
 
-        STARTUP -->|실패| STARTUP_FAIL[failureThreshold 도달]
-        STARTUP_FAIL --> RESTART[컨테이너 재시작]
+        STARTUP -->|Failure| STARTUP_FAIL[failureThreshold Reached]
+        STARTUP_FAIL --> RESTART[Container Restart]
         RESTART --> MAIN
 
-        STARTUP -->|성공| PROBES_ACTIVE[Liveness/Readiness<br/>Probe 활성화]
+        STARTUP -->|Success| PROBES_ACTIVE[Liveness/Readiness<br/>Probe Activated]
 
         PROBES_ACTIVE --> LIVENESS{Liveness Probe}
         PROBES_ACTIVE --> READINESS{Readiness Probe}
 
-        LIVENESS -->|실패| LIVENESS_FAIL[컨테이너 재시작]
+        LIVENESS -->|Failure| LIVENESS_FAIL[Container Restart]
         LIVENESS_FAIL --> MAIN
-        LIVENESS -->|성공| RUNNING[정상 동작]
+        LIVENESS -->|Success| RUNNING[Normal Operation]
 
-        READINESS -->|실패| EP_REMOVE[Service Endpoint<br/>제거]
-        READINESS -->|성공| EP_ADD[Service Endpoint<br/>추가]
+        READINESS -->|Failure| EP_REMOVE[Service Endpoint<br/>Removed]
+        READINESS -->|Success| EP_ADD[Service Endpoint<br/>Added]
         EP_REMOVE -.-> READINESS
         EP_ADD --> RUNNING
 
-        RUNNING --> TERM[Pod 종료 요청]
+        RUNNING --> TERM[Pod Termination Request]
         TERM --> PRESTOP[preStop Hook]
-        PRESTOP --> SIGTERM[SIGTERM 전송]
+        PRESTOP --> SIGTERM[SIGTERM Sent]
         SIGTERM --> GRACE[Graceful Shutdown]
-        GRACE --> STOPPED[컨테이너 종료]
+        GRACE --> STOPPED[Container Terminated]
     end
 
     style START fill:#4286f4,stroke:#2a6acf,color:#fff
@@ -117,18 +117,18 @@ flowchart TB
     style TERM fill:#ff9900,stroke:#cc7a00,color:#fff
 ```
 
-### 2.2 Probe 메커니즘
+### 2.2 Probe Mechanisms
 
-Kubernetes는 네 가지 Probe 메커니즘을 지원합니다.
+Kubernetes supports four Probe mechanisms.
 
-| 메커니즘 | 설명 | 장점 | 단점 | 적합한 상황 |
+| Mechanism | Description | Advantages | Disadvantages | Best For |
 |----------|------|------|------|------------|
-| **httpGet** | HTTP GET 요청, 200-399 응답 코드 확인 | 표준적, 구현 간단 | HTTP 서버 필요 | REST API, 웹 서비스 |
-| **tcpSocket** | TCP 포트 연결 가능 여부 확인 | 가볍고 빠름 | 애플리케이션 로직 검증 불가 | gRPC, 데이터베이스 |
-| **exec** | 컨테이너 내 명령 실행, exit code 0 확인 | 유연함, 커스텀 로직 가능 | 오버헤드 높음 | 배치 워커, 파일 기반 확인 |
-| **grpc** | gRPC Health Check Protocol 사용 (K8s 1.27+ GA) | 네이티브 gRPC 지원 | gRPC 앱만 사용 가능 | gRPC 마이크로서비스 |
+| **httpGet** | HTTP GET request, checks for 200-399 response code | Standard, simple to implement | Requires HTTP server | REST APIs, web services |
+| **tcpSocket** | Checks TCP port connectivity | Lightweight and fast | Cannot verify application logic | gRPC, databases |
+| **exec** | Executes command inside container, checks for exit code 0 | Flexible, custom logic possible | High overhead | Batch workers, file-based checks |
+| **grpc** | Uses gRPC Health Check Protocol (K8s 1.27+ GA) | Native gRPC support | Only for gRPC apps | gRPC microservices |
 
-#### httpGet 예시
+#### httpGet Example
 
 ```yaml
 livenessProbe:
@@ -138,12 +138,12 @@ livenessProbe:
     httpHeaders:
     - name: X-Custom-Header
       value: HealthCheck
-    scheme: HTTP  # 또는 HTTPS
+    scheme: HTTP  # or HTTPS
   initialDelaySeconds: 30
   periodSeconds: 10
 ```
 
-#### tcpSocket 예시
+#### tcpSocket Example
 
 ```yaml
 livenessProbe:
@@ -153,7 +153,7 @@ livenessProbe:
   periodSeconds: 10
 ```
 
-#### exec 예시
+#### exec Example
 
 ```yaml
 livenessProbe:
@@ -166,57 +166,57 @@ livenessProbe:
   periodSeconds: 5
 ```
 
-#### grpc 예시 (Kubernetes 1.27+)
+#### grpc Example (Kubernetes 1.27+)
 
 ```yaml
 livenessProbe:
   grpc:
     port: 9090
-    service: myservice  # 선택 사항
+    service: myservice  # Optional
   initialDelaySeconds: 10
   periodSeconds: 5
 ```
 
 :::tip gRPC Health Check Protocol
-gRPC 서비스는 [gRPC Health Checking Protocol](https://github.com/grpc/grpc/blob/master/doc/health-checking.md)을 구현해야 합니다. Go는 `google.golang.org/grpc/health`, Java는 `grpc-health-check` 라이브러리를 사용하세요.
+gRPC services must implement the [gRPC Health Checking Protocol](https://github.com/grpc/grpc/blob/master/doc/health-checking.md). Use `google.golang.org/grpc/health` for Go and the `grpc-health-check` library for Java.
 :::
 
-### 2.3 Probe 타이밍 설계
+### 2.3 Probe Timing Design
 
-Probe의 타이밍 파라미터는 장애 감지 속도와 안정성 간의 균형을 결정합니다.
+Probe timing parameters determine the balance between failure detection speed and stability.
 
-| 파라미터 | 설명 | 기본값 | 권장 범위 |
+| Parameter | Description | Default | Recommended Range |
 |----------|------|--------|----------|
-| `initialDelaySeconds` | 컨테이너 시작 후 첫 Probe까지 대기 시간 | 0 | 10-30s (Startup Probe 사용 시 0 가능) |
-| `periodSeconds` | Probe 실행 간격 | 10 | 5-15s |
-| `timeoutSeconds` | Probe 응답 대기 시간 | 1 | 3-10s |
-| `failureThreshold` | 실패 판정까지 연속 실패 횟수 | 3 | Liveness: 3, Readiness: 1-3, Startup: 30+ |
-| `successThreshold` | 성공 판정까지 연속 성공 횟수 (Readiness만 1 이상 가능) | 1 | 1-2 |
+| `initialDelaySeconds` | Wait time from container start to first Probe | 0 | 10-30s (can be 0 when using Startup Probe) |
+| `periodSeconds` | Interval between Probe executions | 10 | 5-15s |
+| `timeoutSeconds` | Probe response wait time | 1 | 3-10s |
+| `failureThreshold` | Consecutive failures before declaring failure | 3 | Liveness: 3, Readiness: 1-3, Startup: 30+ |
+| `successThreshold` | Consecutive successes before declaring success (only Readiness can be >1) | 1 | 1-2 |
 
-#### 타이밍 설계 공식
+#### Timing Design Formulas
 
 ```
-최대 감지 시간 = failureThreshold × periodSeconds
-최소 복구 시간 = successThreshold × periodSeconds
+Maximum detection time = failureThreshold × periodSeconds
+Minimum recovery time = successThreshold × periodSeconds
 ```
 
-**예시:**
-- `failureThreshold: 3, periodSeconds: 10` → 최대 30초 후 장애 감지
-- `successThreshold: 2, periodSeconds: 5` → 최소 10초 후 복구 판정 (Readiness만)
+**Examples:**
+- `failureThreshold: 3, periodSeconds: 10` → Failure detected after 30 seconds at most
+- `successThreshold: 2, periodSeconds: 5` → Recovery determined after at least 10 seconds (Readiness only)
 
-#### 워크로드별 권장 타이밍
+#### Recommended Timing by Workload Type
 
-| 워크로드 유형 | initialDelaySeconds | periodSeconds | failureThreshold | 이유 |
+| Workload Type | initialDelaySeconds | periodSeconds | failureThreshold | Rationale |
 |--------------|-------------------|---------------|-----------------|------|
-| 웹 서비스 (Node.js, Python) | 10 | 5 | 3 | 빠른 시작, 빠른 감지 필요 |
-| JVM 앱 (Spring Boot) | 0 (Startup Probe 사용) | 10 | 3 | 시작 느림, Startup으로 보호 |
-| 데이터베이스 (PostgreSQL) | 30 | 10 | 5 | 초기화 시간 길음 |
-| 배치 워커 | 5 | 15 | 2 | 주기적 작업, 느슨한 감지 |
-| ML 추론 서비스 | 0 (Startup: 60) | 10 | 3 | 모델 로딩 시간 긺 |
+| Web Services (Node.js, Python) | 10 | 5 | 3 | Fast startup, needs fast detection |
+| JVM Apps (Spring Boot) | 0 (use Startup Probe) | 10 | 3 | Slow startup, protected by Startup Probe |
+| Databases (PostgreSQL) | 30 | 10 | 5 | Long initialization time |
+| Batch Workers | 5 | 15 | 2 | Periodic tasks, relaxed detection |
+| ML Inference Services | 0 (Startup: 60) | 10 | 3 | Long model loading time |
 
-### 2.4 워크로드별 Probe 패턴
+### 2.4 Probe Patterns by Workload
 
-#### 패턴 1: 웹 서비스 (REST API)
+#### Pattern 1: Web Service (REST API)
 
 ```yaml
 apiVersion: apps/v1
@@ -246,14 +246,14 @@ spec:
           limits:
             cpu: 500m
             memory: 512Mi
-        # Startup Probe: 30초 이내 시작 완료 확인
+        # Startup Probe: Verify startup completes within 30 seconds
         startupProbe:
           httpGet:
             path: /healthz
             port: 8080
           failureThreshold: 6
           periodSeconds: 5
-        # Liveness Probe: 내부 헬스체크만 (외부 의존성 제외)
+        # Liveness Probe: Internal health check only (exclude external dependencies)
         livenessProbe:
           httpGet:
             path: /healthz
@@ -262,7 +262,7 @@ spec:
           periodSeconds: 10
           timeoutSeconds: 5
           failureThreshold: 3
-        # Readiness Probe: 외부 의존성 포함 가능
+        # Readiness Probe: May include external dependencies
         readinessProbe:
           httpGet:
             path: /ready
@@ -282,12 +282,12 @@ spec:
       terminationGracePeriodSeconds: 60
 ```
 
-**헬스체크 엔드포인트 구현 (Node.js/Express):**
+**Health Check Endpoint Implementation (Node.js/Express):**
 
 ```javascript
-// /healthz - Liveness: 애플리케이션 자체 상태만 확인
+// /healthz - Liveness: Check application's own state only
 app.get('/healthz', (req, res) => {
-  // 내부 상태만 확인 (메모리, CPU 등)
+  // Check internal state only (memory, CPU, etc.)
   const memUsage = process.memoryUsage();
   if (memUsage.heapUsed / memUsage.heapTotal > 0.95) {
     return res.status(500).json({ status: 'unhealthy', reason: 'memory_pressure' });
@@ -295,12 +295,12 @@ app.get('/healthz', (req, res) => {
   res.status(200).json({ status: 'ok' });
 });
 
-// /ready - Readiness: 외부 의존성 포함 확인
+// /ready - Readiness: Check including external dependencies
 app.get('/ready', async (req, res) => {
   try {
-    // DB 연결 확인
+    // Verify DB connection
     await db.ping();
-    // Redis 연결 확인
+    // Verify Redis connection
     await redis.ping();
     res.status(200).json({ status: 'ready' });
   } catch (err) {
@@ -309,7 +309,7 @@ app.get('/ready', async (req, res) => {
 });
 ```
 
-#### 패턴 2: gRPC 서비스
+#### Pattern 2: gRPC Service
 
 ```yaml
 apiVersion: apps/v1
@@ -343,7 +343,7 @@ spec:
         startupProbe:
           grpc:
             port: 9090
-            service: myapp.HealthService  # 선택 사항
+            service: myapp.HealthService  # Optional
           failureThreshold: 30
           periodSeconds: 10
         livenessProbe:
@@ -361,7 +361,7 @@ spec:
       terminationGracePeriodSeconds: 45
 ```
 
-**gRPC Health Check 구현 (Go):**
+**gRPC Health Check Implementation (Go):**
 
 ```go
 package main
@@ -376,25 +376,25 @@ import (
 func main() {
     server := grpc.NewServer()
 
-    // Health 서비스 등록
+    // Register health service
     healthServer := health.NewServer()
     grpc_health_v1.RegisterHealthServer(server, healthServer)
 
-    // 서비스를 SERVING 상태로 설정
+    // Set service to SERVING status
     healthServer.SetServingStatus("myapp.HealthService", grpc_health_v1.HealthCheckResponse_SERVING)
 
-    // 의존성 체크 후 NOT_SERVING으로 변경 가능
+    // Can change to NOT_SERVING after dependency checks
     // healthServer.SetServingStatus("myapp.HealthService", grpc_health_v1.HealthCheckResponse_NOT_SERVING)
 
-    // gRPC 서버 시작
+    // Start gRPC server
     lis, _ := net.Listen("tcp", ":9090")
     server.Serve(lis)
 }
 ```
 
-#### 패턴 3: 워커/배치 처리
+#### Pattern 3: Worker/Batch Processing
 
-배치 워커는 HTTP 서버가 없으므로 `exec` Probe를 사용합니다.
+Batch workers do not have an HTTP server, so they use `exec` Probes.
 
 ```yaml
 apiVersion: apps/v1
@@ -421,7 +421,7 @@ spec:
           limits:
             cpu: 2
             memory: 4Gi
-        # Startup Probe: 워커 초기화 확인
+        # Startup Probe: Verify worker initialization
         startupProbe:
           exec:
             command:
@@ -430,7 +430,7 @@ spec:
             - test -f /tmp/worker-ready
           failureThreshold: 12
           periodSeconds: 5
-        # Liveness Probe: 하트비트 파일 확인
+        # Liveness Probe: Check heartbeat file
         livenessProbe:
           exec:
             command:
@@ -440,7 +440,7 @@ spec:
           initialDelaySeconds: 10
           periodSeconds: 30
           failureThreshold: 3
-        # Readiness Probe: 작업 큐 연결 확인
+        # Readiness Probe: Verify job queue connection
         readinessProbe:
           exec:
             command:
@@ -450,7 +450,7 @@ spec:
       terminationGracePeriodSeconds: 120
 ```
 
-**워커 애플리케이션 (Python):**
+**Worker Application (Python):**
 
 ```python
 import os
@@ -461,28 +461,28 @@ HEARTBEAT_FILE = Path("/tmp/heartbeat")
 READY_FILE = Path("/tmp/worker-ready")
 
 def worker_loop():
-    # 초기화 완료 시그널
+    # Signal initialization complete
     READY_FILE.touch()
 
     while True:
-        # 주기적으로 하트비트 업데이트
+        # Periodically update heartbeat
         HEARTBEAT_FILE.touch()
 
-        # 작업 처리
+        # Process jobs
         process_jobs()
         time.sleep(5)
 
 def process_jobs():
-    # 실제 작업 로직
+    # Actual job logic
     pass
 
 if __name__ == "__main__":
     worker_loop()
 ```
 
-#### 패턴 4: 느린 시작 앱 (Spring Boot, JVM)
+#### Pattern 4: Slow-Starting Applications (Spring Boot, JVM)
 
-JVM 애플리케이션은 시작 시간이 30초 이상 소요될 수 있습니다. Startup Probe로 보호합니다.
+JVM applications can take 30 seconds or more to start. Protect them with a Startup Probe.
 
 ```yaml
 apiVersion: apps/v1
@@ -514,14 +514,14 @@ spec:
         env:
         - name: JAVA_OPTS
           value: "-Xms1g -Xmx3g"
-        # Startup Probe: 최대 5분(30 x 10s) 대기
+        # Startup Probe: Wait up to 5 minutes (30 x 10s)
         startupProbe:
           httpGet:
             path: /actuator/health/liveness
             port: 8080
           failureThreshold: 30
           periodSeconds: 10
-        # Liveness Probe: Startup 성공 후 활성화
+        # Liveness Probe: Activated after Startup succeeds
         livenessProbe:
           httpGet:
             path: /actuator/health/liveness
@@ -529,7 +529,7 @@ spec:
           periodSeconds: 10
           timeoutSeconds: 5
           failureThreshold: 3
-        # Readiness Probe: 외부 의존성 포함
+        # Readiness Probe: Includes external dependencies
         readinessProbe:
           httpGet:
             path: /actuator/health/readiness
@@ -540,7 +540,7 @@ spec:
       terminationGracePeriodSeconds: 60
 ```
 
-**Spring Boot Actuator 설정:**
+**Spring Boot Actuator Configuration:**
 
 ```yaml
 # application.yml
@@ -561,9 +561,9 @@ management:
       show-details: when-authorized
 ```
 
-#### 패턴 5: 사이드카 패턴 (Istio Proxy + 앱)
+#### Pattern 5: Sidecar Pattern (Istio Proxy + App)
 
-사이드카 패턴에서는 메인 컨테이너와 사이드카 모두에 Probe를 설정합니다.
+In the sidecar pattern, Probes should be configured for both the main container and the sidecar.
 
 ```yaml
 apiVersion: apps/v1
@@ -581,7 +581,7 @@ spec:
         app: myapp
     spec:
       containers:
-      # 메인 애플리케이션 컨테이너
+      # Main application container
       - name: app
         image: myapp/app:v1.0.0
         ports:
@@ -602,8 +602,8 @@ spec:
             path: /ready
             port: 8080
           periodSeconds: 5
-      # Istio 사이드카 (자동 주입 시 Istio가 Probe 추가)
-      # 수동 설정 예시:
+      # Istio sidecar (Istio adds Probes automatically during auto-injection)
+      # Manual configuration example:
       - name: istio-proxy
         image: istio/proxyv2:1.22.0
         ports:
@@ -629,28 +629,28 @@ spec:
 ```
 
 :::tip Istio Sidecar Injection
-Istio가 자동 주입을 사용하는 경우 (`istio-injection=enabled` 레이블), Istio가 사이드카에 적절한 Probe를 자동으로 추가합니다. 수동 설정은 불필요합니다.
+When Istio uses auto-injection (`istio-injection=enabled` label), Istio automatically adds appropriate Probes to the sidecar. Manual configuration is unnecessary.
 :::
 
-#### 2.4.6 Windows 컨테이너 Probe 고려사항
+#### 2.4.6 Windows Container Probe Considerations
 
-EKS는 Windows Server 2019/2022 기반 Windows 노드를 지원하며, Windows 컨테이너는 Linux 컨테이너와 다른 Probe 동작 특성을 가집니다.
+EKS supports Windows nodes based on Windows Server 2019/2022, and Windows containers have different Probe behavior characteristics compared to Linux containers.
 
-##### Windows vs Linux Probe 동작 차이
+##### Windows vs Linux Probe Behavior Differences
 
-| 항목 | Linux 컨테이너 | Windows 컨테이너 | 영향 |
+| Item | Linux Containers | Windows Containers | Impact |
 |------|---------------|-----------------|------|
-| **컨테이너 런타임** | containerd | containerd (1.6+) | 동일한 런타임, 다른 OS 레이어 |
-| **exec Probe 실행** | `/bin/sh -c` | `cmd.exe /c` 또는 `powershell.exe` | 스크립트 문법 차이 |
-| **httpGet Probe** | 동일 | 동일 | 차이 없음 |
-| **tcpSocket Probe** | 동일 | 동일 | 차이 없음 |
-| **콜드 스타트 시간** | 빠름 (수초) | 느림 (10-30초) | Startup Probe failureThreshold 증가 필요 |
-| **메모리 오버헤드** | 낮음 (50-100MB) | 높음 (200-500MB) | 리소스 요청 증가 필요 |
-| **Probe 타임아웃** | 일반적으로 1-5초 | 3-10초 권장 | Windows I/O 지연 고려 |
+| **Container Runtime** | containerd | containerd (1.6+) | Same runtime, different OS layer |
+| **exec Probe Execution** | `/bin/sh -c` | `cmd.exe /c` or `powershell.exe` | Script syntax differences |
+| **httpGet Probe** | Same | Same | No difference |
+| **tcpSocket Probe** | Same | Same | No difference |
+| **Cold Start Time** | Fast (a few seconds) | Slow (10-30 seconds) | Startup Probe failureThreshold increase required |
+| **Memory Overhead** | Low (50-100MB) | High (200-500MB) | Resource request increase required |
+| **Probe Timeout** | Typically 1-5 seconds | 3-10 seconds recommended | Consider Windows I/O latency |
 
-##### Windows 워크로드 Probe 설정 예시
+##### Windows Workload Probe Configuration Examples
 
-**IIS/.NET Framework 앱:**
+**IIS/.NET Framework App:**
 
 ```yaml
 apiVersion: apps/v1
@@ -683,7 +683,7 @@ spec:
           limits:
             cpu: 2000m
             memory: 2Gi
-        # Startup Probe: Windows 콜드 스타트 고려
+        # Startup Probe: Account for Windows cold start
         startupProbe:
           httpGet:
             path: /
@@ -692,9 +692,9 @@ spec:
           initialDelaySeconds: 10
           periodSeconds: 5
           timeoutSeconds: 5
-          failureThreshold: 12  # Linux 대비 2배 (최대 60초)
+          failureThreshold: 12  # 2x compared to Linux (up to 60 seconds)
           successThreshold: 1
-        # Liveness Probe: IIS 프로세스 상태
+        # Liveness Probe: IIS process status
         livenessProbe:
           httpGet:
             path: /healthz
@@ -703,7 +703,7 @@ spec:
           periodSeconds: 10
           timeoutSeconds: 5
           failureThreshold: 3
-        # Readiness Probe: ASP.NET 앱 준비 상태
+        # Readiness Probe: ASP.NET app readiness
         readinessProbe:
           httpGet:
             path: /ready
@@ -716,7 +716,7 @@ spec:
       terminationGracePeriodSeconds: 60
 ```
 
-**ASP.NET Core 헬스체크 엔드포인트 구현:**
+**ASP.NET Core Health Check Endpoint Implementation:**
 
 ```csharp
 // Program.cs (ASP.NET Core 6+)
@@ -725,7 +725,7 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// 헬스체크 추가
+// Add health checks
 builder.Services.AddHealthChecks()
     .AddCheck("self", () => HealthCheckResult.Healthy())
     .AddSqlServer(
@@ -736,54 +736,54 @@ builder.Services.AddHealthChecks()
 
 var app = builder.Build();
 
-// /healthz - Liveness: 애플리케이션 자체만
+// /healthz - Liveness: Application itself only
 app.MapHealthChecks("/healthz", new HealthCheckOptions
 {
     Predicate = check => check.Tags.Contains("self") || check.Tags.Count == 0
 });
 
-// /ready - Readiness: 외부 의존성 포함
+// /ready - Readiness: Including external dependencies
 app.MapHealthChecks("/ready", new HealthCheckOptions
 {
-    Predicate = _ => true  // 모든 헬스체크
+    Predicate = _ => true  // All health checks
 });
 
 app.Run();
 ```
 
-##### Windows 워크로드 Probe 타임아웃 주의사항
+##### Windows Workload Probe Timeout Considerations
 
-Windows 컨테이너는 다음 이유로 Probe 타임아웃이 길어질 수 있습니다:
+Windows containers may experience longer Probe timeouts for the following reasons:
 
-1. **Windows 커널 오버헤드**: Windows의 무거운 OS 레이어로 인한 시스템 콜 지연
-2. **디스크 I/O 성능**: NTFS 파일시스템의 메타데이터 오버헤드
-3. **.NET Framework 워밍업**: CLR JIT 컴파일 및 어셈블리 로딩 시간
-4. **Windows Defender**: 실시간 스캔으로 인한 프로세스 시작 지연
+1. **Windows Kernel Overhead**: System call latency due to the heavier Windows OS layer
+2. **Disk I/O Performance**: NTFS filesystem metadata overhead
+3. **.NET Framework Warmup**: CLR JIT compilation and assembly loading time
+4. **Windows Defender**: Process startup delays due to real-time scanning
 
-**권장 Probe 타이밍 (Windows):**
+**Recommended Probe Timing (Windows):**
 
 ```yaml
 startupProbe:
-  timeoutSeconds: 5-10      # Linux: 3-5초
+  timeoutSeconds: 5-10      # Linux: 3-5s
   periodSeconds: 5
   failureThreshold: 12-20   # Linux: 6-10
 
 livenessProbe:
-  timeoutSeconds: 5-10      # Linux: 3-5초
-  periodSeconds: 10-15      # Linux: 10초
+  timeoutSeconds: 5-10      # Linux: 3-5s
+  periodSeconds: 10-15      # Linux: 10s
   failureThreshold: 3
 
 readinessProbe:
-  timeoutSeconds: 5-10      # Linux: 3-5초
-  periodSeconds: 5-10       # Linux: 5초
+  timeoutSeconds: 5-10      # Linux: 3-5s
+  periodSeconds: 5-10       # Linux: 5s
   failureThreshold: 3
 ```
 
 ##### CloudWatch Container Insights for Windows (2025-08)
 
-AWS는 2025년 8월에 Windows 워크로드용 CloudWatch Container Insights 지원을 발표했습니다.
+AWS announced CloudWatch Container Insights support for Windows workloads in August 2025.
 
-**Windows 노드에 Container Insights 설치:**
+**Installing Container Insights on Windows Nodes:**
 
 ```bash
 # CloudWatch Agent ConfigMap (Windows)
@@ -815,14 +815,14 @@ data:
     }
 EOF
 
-# Windows DaemonSet 배포
+# Deploy Windows DaemonSet
 kubectl apply -f https://raw.githubusercontent.com/aws-samples/amazon-cloudwatch-container-insights/latest/k8s-deployment-manifest-templates/deployment-mode/daemonset/container-insights-monitoring/cwagent/cwagent-daemonset-windows.yaml
 ```
 
-**Container Insights 메트릭 확인:**
+**Verifying Container Insights Metrics:**
 
 ```bash
-# Windows 노드 메트릭
+# Windows node metrics
 aws cloudwatch get-metric-statistics \
   --namespace ContainerInsights \
   --metric-name node_memory_utilization \
@@ -832,7 +832,7 @@ aws cloudwatch get-metric-statistics \
   --period 300 \
   --statistics Average
 
-# Windows Pod 메트릭
+# Windows Pod metrics
 aws cloudwatch get-metric-statistics \
   --namespace ContainerInsights \
   --metric-name pod_cpu_utilization \
@@ -843,9 +843,9 @@ aws cloudwatch get-metric-statistics \
   --statistics Average
 ```
 
-##### 혼합 클러스터 (Linux + Windows) 통합 모니터링 전략
+##### Mixed Cluster (Linux + Windows) Unified Monitoring Strategy
 
-**1. 노드 셀렉터 기반 분리:**
+**1. Node Selector Based Separation:**
 
 ```yaml
 apiVersion: v1
@@ -854,7 +854,7 @@ metadata:
   name: unified-app
 spec:
   selector:
-    app: unified-app  # OS 무관
+    app: unified-app  # OS-agnostic
   ports:
   - port: 80
     targetPort: 8080
@@ -914,118 +914,118 @@ spec:
           httpGet:
             path: /ready
             port: 8080
-          periodSeconds: 10      # Windows: 더 긴 간격
-          timeoutSeconds: 10     # Windows: 더 긴 타임아웃
+          periodSeconds: 10      # Windows: longer interval
+          timeoutSeconds: 10     # Windows: longer timeout
 ```
 
-**2. CloudWatch Logs Insights 통합 쿼리:**
+**2. CloudWatch Logs Insights Unified Query:**
 
 ```sql
--- Linux와 Windows Pod 로그를 동시에 검색
+-- Search Linux and Windows Pod logs simultaneously
 fields @timestamp, kubernetes.namespace_name, kubernetes.pod_name, kubernetes.host, @message
 | filter kubernetes.labels.app = "unified-app"
 | sort @timestamp desc
 | limit 100
 ```
 
-**3. Grafana 대시보드 통합:**
+**3. Grafana Dashboard Integration:**
 
 ```yaml
-# Prometheus Query (혼합 클러스터)
-# Linux + Windows Pod CPU 사용률
+# Prometheus Query (Mixed Cluster)
+# Linux + Windows Pod CPU utilization
 sum(rate(container_cpu_usage_seconds_total{namespace="default", pod=~"unified-app-.*"}[5m])) by (pod, node, os)
 
-# OS별 집계
+# Aggregation by OS
 sum(rate(container_cpu_usage_seconds_total{namespace="default", pod=~"unified-app-.*"}[5m])) by (os)
 ```
 
-:::warning Windows 컨테이너 제약사항
-- **이미지 크기**: Windows 이미지는 수 GB (Linux는 수십 MB)
-- **라이선스 비용**: Windows Server 라이선스 비용 발생 (EC2 인스턴스 비용에 포함)
-- **노드 부팅 시간**: Windows 노드는 부팅이 느림 (5-10분)
-- **특권 컨테이너**: Windows는 Linux의 `privileged` 모드 미지원
-- **HostProcess 컨테이너**: Windows Server 2022 (1.22+)부터 지원
+:::warning Windows Container Limitations
+- **Image Size**: Windows images are several GB (Linux is tens of MB)
+- **License Cost**: Windows Server license costs apply (included in EC2 instance cost)
+- **Node Boot Time**: Windows nodes have slow boot times (5-10 minutes)
+- **Privileged Containers**: Windows does not support Linux `privileged` mode
+- **HostProcess Containers**: Supported from Windows Server 2022 (1.22+)
 :::
 
-:::info 참고 자료
+:::info References
 - [AWS Blog: CloudWatch Container Insights for Windows](https://aws.amazon.com/blogs/mt/announcing-amazon-cloudwatch-container-insights-for-amazon-eks-windows-workloads-monitoring)
-- [EKS Windows 컨테이너 공식 문서](https://docs.aws.amazon.com/eks/latest/userguide/windows-support.html)
-- [Kubernetes Windows 컨테이너 가이드](https://kubernetes.io/docs/concepts/windows/)
+- [EKS Windows Containers Official Documentation](https://docs.aws.amazon.com/eks/latest/userguide/windows-support.html)
+- [Kubernetes Windows Containers Guide](https://kubernetes.io/docs/concepts/windows/)
 :::
 
-### 2.5 Probe 안티패턴과 함정
+### 2.5 Probe Anti-Patterns and Pitfalls
 
-#### ❌ 안티패턴 1: Liveness Probe에 외부 의존성 포함
+#### Anti-Pattern 1: Including External Dependencies in Liveness Probe
 
-**문제:**
+**Problem:**
 
 ```yaml
 livenessProbe:
   httpGet:
-    path: /health  # DB, Redis 연결 확인 포함
+    path: /health  # Includes DB, Redis connection checks
     port: 8080
 ```
 
-**결과:**
-- DB 장애 시 모든 Pod이 동시 재시작 → Cascading Failure
-- 일시적인 네트워크 지연으로도 Pod 재시작
+**Result:**
+- All Pods restart simultaneously on DB failure → Cascading Failure
+- Pod restarts even on temporary network latency
 
-**올바른 설정:**
+**Correct Configuration:**
 
 ```yaml
-# Liveness: 애플리케이션 자체 상태만
+# Liveness: Application's own state only
 livenessProbe:
   httpGet:
-    path: /healthz  # 내부 상태만 확인
+    path: /healthz  # Check internal state only
     port: 8080
 
-# Readiness: 외부 의존성 포함
+# Readiness: Include external dependencies
 readinessProbe:
   httpGet:
-    path: /ready  # DB, Redis 등 확인
+    path: /ready  # Check DB, Redis, etc.
     port: 8080
 ```
 
-#### ❌ 안티패턴 2: Startup Probe 없이 높은 initialDelaySeconds
+#### Anti-Pattern 2: High initialDelaySeconds Without Startup Probe
 
-**문제:**
+**Problem:**
 
 ```yaml
 livenessProbe:
   httpGet:
     path: /healthz
     port: 8080
-  initialDelaySeconds: 120  # 2분 대기
+  initialDelaySeconds: 120  # Wait 2 minutes
   periodSeconds: 10
 ```
 
-**결과:**
-- 앱이 30초에 시작 완료해도 90초 동안 헬스체크 없음
-- 시작 중 크래시가 발생해도 2분까지 감지 불가
+**Result:**
+- Even if the app finishes starting in 30 seconds, no health check for 90 seconds
+- Crashes during startup go undetected for up to 2 minutes
 
-**올바른 설정:**
+**Correct Configuration:**
 
 ```yaml
-# Startup Probe로 시작 보호
+# Protect startup with Startup Probe
 startupProbe:
   httpGet:
     path: /healthz
     port: 8080
-  failureThreshold: 12  # 최대 120초 대기
+  failureThreshold: 12  # Wait up to 120 seconds
   periodSeconds: 10
 
-# Liveness는 Startup 성공 후 즉시 활성화
+# Liveness activates immediately after Startup succeeds
 livenessProbe:
   httpGet:
     path: /healthz
     port: 8080
-  initialDelaySeconds: 0  # Startup 성공 후 바로 시작
+  initialDelaySeconds: 0  # Start immediately after Startup succeeds
   periodSeconds: 10
 ```
 
-#### ❌ 안티패턴 3: Liveness와 Readiness에 같은 엔드포인트
+#### Anti-Pattern 3: Same Endpoint for Liveness and Readiness
 
-**문제:**
+**Problem:**
 
 ```yaml
 livenessProbe:
@@ -1035,31 +1035,31 @@ livenessProbe:
 
 readinessProbe:
   httpGet:
-    path: /health  # 동일한 엔드포인트
+    path: /health  # Same endpoint
     port: 8080
 ```
 
-**결과:**
-- `/health`가 외부 의존성을 확인하면 Liveness가 실패하여 불필요한 재시작
-- 역할 구분이 모호하여 디버깅 어려움
+**Result:**
+- If `/health` checks external dependencies, Liveness fails causing unnecessary restarts
+- Ambiguous role separation makes debugging difficult
 
-**올바른 설정:**
+**Correct Configuration:**
 
 ```yaml
 livenessProbe:
   httpGet:
-    path: /healthz  # 내부 상태만
+    path: /healthz  # Internal state only
     port: 8080
 
 readinessProbe:
   httpGet:
-    path: /ready  # 외부 의존성 포함
+    path: /ready  # Include external dependencies
     port: 8080
 ```
 
-#### ❌ 안티패턴 4: 너무 공격적인 failureThreshold
+#### Anti-Pattern 4: Overly Aggressive failureThreshold
 
-**문제:**
+**Problem:**
 
 ```yaml
 livenessProbe:
@@ -1067,14 +1067,14 @@ livenessProbe:
     path: /healthz
     port: 8080
   periodSeconds: 5
-  failureThreshold: 1  # 단 1번 실패로 재시작
+  failureThreshold: 1  # Restart after just 1 failure
 ```
 
-**결과:**
-- 일시적인 네트워크 지연, GC pause 등으로 불필요한 재시작
-- 재시작 루프 발생 가능
+**Result:**
+- Unnecessary restarts due to temporary network latency, GC pauses, etc.
+- Potential restart loops
 
-**올바른 설정:**
+**Correct Configuration:**
 
 ```yaml
 livenessProbe:
@@ -1082,56 +1082,56 @@ livenessProbe:
     path: /healthz
     port: 8080
   periodSeconds: 10
-  failureThreshold: 3  # 30초(3 x 10s) 후 재시작
+  failureThreshold: 3  # Restart after 30 seconds (3 x 10s)
   timeoutSeconds: 5
 ```
 
-#### ❌ 안티패턴 5: 과도하게 긴 timeoutSeconds
+#### Anti-Pattern 5: Excessively Long timeoutSeconds
 
-**문제:**
+**Problem:**
 
 ```yaml
 livenessProbe:
   httpGet:
     path: /healthz
     port: 8080
-  timeoutSeconds: 30  # 30초 대기
+  timeoutSeconds: 30  # Wait 30 seconds
   periodSeconds: 10
 ```
 
-**결과:**
-- Probe가 30초 동안 blocking되어 다음 Probe 실행 지연
-- 장애 감지가 느려짐
+**Result:**
+- Probe blocks for 30 seconds, delaying the next Probe execution
+- Slower failure detection
 
-**올바른 설정:**
+**Correct Configuration:**
 
 ```yaml
 livenessProbe:
   httpGet:
     path: /healthz
     port: 8080
-  timeoutSeconds: 5  # 5초 이내 응답 필요
+  timeoutSeconds: 5  # Require response within 5 seconds
   periodSeconds: 10
   failureThreshold: 3
 ```
 
-### 2.6 ALB/NLB 헬스체크와 Probe 통합
+### 2.6 ALB/NLB Health Check and Probe Integration
 
-AWS Load Balancer Controller를 사용하는 경우, ALB/NLB의 헬스체크와 Kubernetes Readiness Probe를 동기화해야 무중단 배포가 가능합니다.
+When using the AWS Load Balancer Controller, you must synchronize ALB/NLB health checks with Kubernetes Readiness Probes to achieve zero-downtime deployments.
 
-#### ALB Target Group 헬스체크 vs Readiness Probe
+#### ALB Target Group Health Check vs Readiness Probe
 
-| 구분 | ALB/NLB 헬스체크 | Kubernetes Readiness Probe |
+| Category | ALB/NLB Health Check | Kubernetes Readiness Probe |
 |------|-----------------|---------------------------|
-| **실행 주체** | AWS Load Balancer | kubelet |
-| **체크 대상** | Target Group의 IP:Port | Pod 컨테이너 |
-| **실패 시 동작** | Target에서 제거 (트래픽 차단) | Service Endpoints에서 제거 |
-| **기본 간격** | 30초 | 10초 |
-| **타임아웃** | 5초 | 1초 |
+| **Executed By** | AWS Load Balancer | kubelet |
+| **Check Target** | Target Group IP:Port | Pod container |
+| **Behavior on Failure** | Remove from target (block traffic) | Remove from Service Endpoints |
+| **Default Interval** | 30 seconds | 10 seconds |
+| **Timeout** | 5 seconds | 1 second |
 
-#### 헬스체크 타이밍 동기화 전략
+#### Health Check Timing Synchronization Strategy
 
-롤링 업데이트 시 다음 순서로 동작합니다:
+During a rolling update, the following sequence occurs:
 
 ```mermaid
 sequenceDiagram
@@ -1140,26 +1140,26 @@ sequenceDiagram
     participant LB as ALB/NLB
     participant Old as Old Pod
 
-    K8s->>Pod: Pod 생성
-    Pod->>Pod: startupProbe 성공
-    Pod->>Pod: readinessProbe 성공
-    K8s->>K8s: Service Endpoints 추가
-    LB->>Pod: 헬스체크 시작
-    Note over LB,Pod: healthy threshold 도달 대기<br/>(예: 2회 연속 성공)
-    LB->>LB: Target Group에 추가
-    LB->>Pod: 트래픽 전송 시작
+    K8s->>Pod: Create Pod
+    Pod->>Pod: startupProbe succeeds
+    Pod->>Pod: readinessProbe succeeds
+    K8s->>K8s: Add to Service Endpoints
+    LB->>Pod: Begin health checks
+    Note over LB,Pod: Wait for healthy threshold<br/>(e.g., 2 consecutive successes)
+    LB->>LB: Add to Target Group
+    LB->>Pod: Start sending traffic
 
-    K8s->>Old: Pod 종료 요청
+    K8s->>Old: Pod termination request
     Old->>Old: preStop Hook
-    K8s->>K8s: Service Endpoints 제거
-    Old->>Old: SIGTERM 수신
-    LB->>Old: 헬스체크 실패 감지
-    LB->>LB: Target Group에서 제거
+    K8s->>K8s: Remove from Service Endpoints
+    Old->>Old: Receive SIGTERM
+    LB->>Old: Detect health check failure
+    LB->>LB: Remove from Target Group
     Old->>Old: Graceful Shutdown
-    Old->>K8s: 종료 완료
+    Old->>K8s: Termination complete
 ```
 
-**권장 설정:**
+**Recommended Configuration:**
 
 ```yaml
 apiVersion: v1
@@ -1167,7 +1167,7 @@ kind: Service
 metadata:
   name: myapp
   annotations:
-    # ALB 헬스체크 설정
+    # ALB health check configuration
     alb.ingress.kubernetes.io/healthcheck-path: /ready
     alb.ingress.kubernetes.io/healthcheck-interval-seconds: "10"
     alb.ingress.kubernetes.io/healthcheck-timeout-seconds: "5"
@@ -1196,22 +1196,22 @@ spec:
         - containerPort: 8080
         readinessProbe:
           httpGet:
-            path: /ready  # ALB와 동일한 경로
+            path: /ready  # Same path as ALB
             port: 8080
-          periodSeconds: 5  # ALB보다 짧은 간격
+          periodSeconds: 5  # Shorter interval than ALB
           failureThreshold: 2
           successThreshold: 1
       terminationGracePeriodSeconds: 60
 ```
 
-#### Pod Readiness Gates (무중단 배포 보장)
+#### Pod Readiness Gates (Guaranteeing Zero-Downtime Deployments)
 
-AWS Load Balancer Controller v2.5+는 Pod Readiness Gates를 지원하여, Pod이 ALB/NLB 타겟으로 등록되고 헬스체크를 통과할 때까지 `Ready` 상태 전환을 지연시킵니다.
+AWS Load Balancer Controller v2.5+ supports Pod Readiness Gates, which delay the Pod's transition to `Ready` state until the Pod is registered as an ALB/NLB target and passes health checks.
 
-**활성화 방법:**
+**How to Enable:**
 
 ```yaml
-# Namespace에 레이블 추가로 자동 주입 활성화
+# Enable auto-injection by adding a label to the Namespace
 apiVersion: v1
 kind: Namespace
 metadata:
@@ -1220,48 +1220,48 @@ metadata:
     elbv2.k8s.aws/pod-readiness-gate-inject: enabled
 ```
 
-**동작 확인:**
+**Verifying Operation:**
 
 ```bash
-# Pod의 Readiness Gates 확인
+# Check Pod's Readiness Gates
 kubectl get pod myapp-xyz -o yaml | grep -A 10 readinessGates
 
-# 출력 예시:
+# Example output:
 # readinessGates:
 # - conditionType: target-health.alb.ingress.k8s.aws/my-target-group-hash
 
-# Pod Conditions 확인
+# Check Pod Conditions
 kubectl get pod myapp-xyz -o jsonpath='{.status.conditions}' | jq
 ```
 
-**장점:**
-- 롤링 업데이트 시 Old Pod이 타겟에서 제거되기 전까지 유지됨
-- New Pod이 ALB 헬스체크 통과 후에만 트래픽 수신
-- 트래픽 유실 없는 완전한 무중단 배포
+**Advantages:**
+- During rolling updates, Old Pods are maintained until they are removed from the target
+- New Pods only receive traffic after passing ALB health checks
+- Completely zero-downtime deployments with no traffic loss
 
-:::info 상세 정보
-Pod Readiness Gates에 대한 자세한 내용은 [EKS 고가용성 아키텍처 가이드](/docs/operations-observability/eks-resiliency-guide)의 "Pod Readiness Gates" 섹션을 참조하세요.
+:::info Detailed Information
+For more details on Pod Readiness Gates, see the "Pod Readiness Gates" section in the [EKS High Availability Architecture Guide](/docs/operations-observability/eks-resiliency-guide).
 :::
 
-#### 2.6.4 Gateway API 헬스체크 통합 (ALB Controller v2.14+)
+#### 2.6.4 Gateway API Health Check Integration (ALB Controller v2.14+)
 
-AWS Load Balancer Controller v2.14+는 Kubernetes Gateway API v1.4와 네이티브 통합하여, Ingress보다 향상된 경로별 헬스체크 매핑을 제공합니다.
+AWS Load Balancer Controller v2.14+ natively integrates with Kubernetes Gateway API v1.4, providing enhanced per-route health check mapping compared to Ingress.
 
-##### Gateway API vs Ingress 헬스체크 비교
+##### Gateway API vs Ingress Health Check Comparison
 
-| 구분 | Ingress | Gateway API |
+| Category | Ingress | Gateway API |
 |------|---------|-------------|
-| **헬스체크 설정 위치** | Service/Ingress annotation | HealthCheckPolicy CRD |
-| **경로별 헬스체크** | 제한적 (annotation 기반) | 네이티브 지원 (HTTPRoute/GRPCRoute별) |
-| **L4/L7 프로토콜 지원** | HTTP/HTTPS만 | TCP/UDP/TLS/HTTP/GRPC 모두 지원 |
-| **멀티 테넌트 역할 분리** | 단일 Ingress 오브젝트 | Gateway(인프라)/Route(앱) 분리 |
-| **가중치 기반 카나리** | 어렵거나 불가능 | HTTPRoute 네이티브 지원 |
+| **Health Check Configuration Location** | Service/Ingress annotation | HealthCheckPolicy CRD |
+| **Per-Route Health Checks** | Limited (annotation-based) | Natively supported (per HTTPRoute/GRPCRoute) |
+| **L4/L7 Protocol Support** | HTTP/HTTPS only | TCP/UDP/TLS/HTTP/GRPC all supported |
+| **Multi-Tenant Role Separation** | Single Ingress object | Gateway (infra) / Route (app) separation |
+| **Weighted Canary Deployments** | Difficult or impossible | HTTPRoute native support |
 
-##### Gateway API 아키텍처와 헬스체크
+##### Gateway API Architecture and Health Checks
 
 ```mermaid
 flowchart TB
-    subgraph "Gateway API 아키텍처"
+    subgraph "Gateway API Architecture"
         Client[Client] --> Gateway[Gateway<br/>ALB/NLB]
         Gateway --> HTTPRoute1[HTTPRoute<br/>/api/v1]
         Gateway --> HTTPRoute2[HTTPRoute<br/>/api/v2]
@@ -1275,17 +1275,17 @@ flowchart TB
         Service2 --> Pod2[Pods]
         Service3 --> Pod3[Pods]
 
-        Policy[HealthCheckPolicy] -.->|적용| HTTPRoute1
-        Policy -.->|적용| HTTPRoute2
+        Policy[HealthCheckPolicy] -.->|Applied| HTTPRoute1
+        Policy -.->|Applied| HTTPRoute2
     end
 
     style Gateway fill:#ff9900,stroke:#cc7a00,color:#fff
     style Policy fill:#34a853,stroke:#2a8642,color:#fff
 ```
 
-##### L7 헬스체크: HTTPRoute/GRPCRoute with ALB
+##### L7 Health Checks: HTTPRoute/GRPCRoute with ALB
 
-**HealthCheckPolicy CRD 예시:**
+**HealthCheckPolicy CRD Example:**
 
 ```yaml
 apiVersion: gateway.networking.k8s.io/v1
@@ -1329,7 +1329,7 @@ spec:
   targetGroupARN: arn:aws:elasticloadbalancing:region:account:targetgroup/name/id
   healthCheckConfig:
     protocol: HTTP
-    path: /api/v1/healthz  # 경로별 헬스체크
+    path: /api/v1/healthz  # Per-route health check
     port: 8080
     intervalSeconds: 10
     timeoutSeconds: 5
@@ -1339,7 +1339,7 @@ spec:
       httpCode: "200-299"
 ```
 
-**GRPCRoute 헬스체크 예시:**
+**GRPCRoute Health Check Example:**
 
 ```yaml
 apiVersion: gateway.networking.k8s.io/v1alpha2
@@ -1368,7 +1368,7 @@ metadata:
 spec:
   targetGroupARN: arn:aws:elasticloadbalancing:region:account:targetgroup/grpc/id
   healthCheckConfig:
-    protocol: HTTP  # gRPC 헬스체크는 HTTP/2 기반
+    protocol: HTTP  # gRPC health check is based on HTTP/2
     path: /grpc.health.v1.Health/Check
     port: 9090
     intervalSeconds: 10
@@ -1379,7 +1379,7 @@ spec:
       grpcCode: "0"  # gRPC OK status
 ```
 
-##### L4 헬스체크: TCPRoute/UDPRoute with NLB
+##### L4 Health Checks: TCPRoute/UDPRoute with NLB
 
 ```yaml
 apiVersion: gateway.networking.k8s.io/v1alpha2
@@ -1404,7 +1404,7 @@ metadata:
 spec:
   targetGroupARN: arn:aws:elasticloadbalancing:region:account:targetgroup/tcp/id
   healthCheckConfig:
-    protocol: TCP  # TCP 연결만 확인
+    protocol: TCP  # TCP connection check only
     port: 5432
     intervalSeconds: 30
     timeoutSeconds: 10
@@ -1414,7 +1414,7 @@ spec:
 
 ##### Gateway API Pod Readiness Gates
 
-Gateway API는 Ingress와 동일하게 Pod Readiness Gates를 지원합니다:
+Gateway API supports Pod Readiness Gates in the same way as Ingress:
 
 ```yaml
 apiVersion: v1
@@ -1425,31 +1425,31 @@ metadata:
     elbv2.k8s.aws/pod-readiness-gate-inject: enabled
 ```
 
-**동작 확인:**
+**Verifying Operation:**
 
 ```bash
-# Gateway 상태 확인
+# Check Gateway status
 kubectl get gateway prod-gateway -n production
 
-# HTTPRoute 상태 확인
+# Check HTTPRoute status
 kubectl get httproute api-v1-route -n production -o yaml
 
-# Pod의 Readiness Gates 확인
+# Check Pod's Readiness Gates
 kubectl get pod -n production -l app=api-v1 \
   -o jsonpath='{range .items[*]}{.metadata.name}{"\t"}{.status.conditions[?(@.type=="target-health.gateway.networking.k8s.io")].status}{"\n"}{end}'
 ```
 
-##### Ingress에서 Gateway API로 마이그레이션 시 헬스체크 전환 체크리스트
+##### Health Check Migration Checklist: Ingress to Gateway API
 
-| 단계 | Ingress | Gateway API | 확인 항목 |
+| Step | Ingress | Gateway API | Verification Items |
 |------|---------|-------------|----------|
-| 1. 헬스체크 경로 매핑 | Annotation 기반 | HealthCheckPolicy CRD | 경로별 정책 분리 |
-| 2. 프로토콜 설정 | HTTP/HTTPS만 | HTTP/HTTPS/GRPC/TCP/UDP | 프로토콜 타입 확인 |
-| 3. Pod Readiness Gates | Namespace 레이블 | Namespace 레이블 (동일) | 무중단 배포 보장 |
-| 4. 헬스체크 타이밍 | Service annotation | HealthCheckPolicy | interval/timeout 검증 |
-| 5. 멀티 경로 헬스체크 | 단일 경로만 | 경로별 독립 설정 | 각 경로 검증 |
+| 1. Health check path mapping | Annotation-based | HealthCheckPolicy CRD | Per-route policy separation |
+| 2. Protocol configuration | HTTP/HTTPS only | HTTP/HTTPS/GRPC/TCP/UDP | Verify protocol type |
+| 3. Pod Readiness Gates | Namespace label | Namespace label (same) | Zero-downtime deployment guarantee |
+| 4. Health check timing | Service annotation | HealthCheckPolicy | Validate interval/timeout |
+| 5. Multi-path health checks | Single path only | Independent per-route configuration | Verify each route |
 
-**마이그레이션 예시 (Ingress → Gateway API):**
+**Migration Example (Ingress to Gateway API):**
 
 ```yaml
 # Before (Ingress)
@@ -1515,43 +1515,43 @@ spec:
     unhealthyThresholdCount: 2
 ```
 
-:::tip Gateway API 마이그레이션 전략
-- **단계적 마이그레이션**: 동일한 ALB에서 Ingress와 Gateway API를 동시에 사용 가능 (리스너 분리)
-- **카나리 배포**: HTTPRoute의 가중치 기반 트래픽 분할로 안전한 전환
-- **롤백 계획**: Ingress 오브젝트는 마이그레이션 완료 후 일정 기간 유지
+:::tip Gateway API Migration Strategy
+- **Gradual Migration**: You can use both Ingress and Gateway API on the same ALB simultaneously (separate listeners)
+- **Canary Deployment**: Safe transition using HTTPRoute's weight-based traffic splitting
+- **Rollback Plan**: Keep Ingress objects for a period after migration is complete
 :::
 
-:::info 참고 자료
+:::info References
 - [Kubernetes Gateway API v1.4 Release](https://kubernetes.io/blog/2025/11/06/gateway-api-v1-4/)
-- [AWS Load Balancer Controller Gateway API 가이드](https://kubernetes-sigs.github.io/aws-load-balancer-controller/latest/guide/gateway/gateway/)
-- [Gateway API 마이그레이션 실전 가이드](https://medium.com/@gudiwada.chaithu/zero-downtime-migration-from-kubernetes-ingress-to-gateway-api-on-aws-eks-642f3432d394)
+- [AWS Load Balancer Controller Gateway API Guide](https://kubernetes-sigs.github.io/aws-load-balancer-controller/latest/guide/gateway/gateway/)
+- [Gateway API Migration Practical Guide](https://medium.com/@gudiwada.chaithu/zero-downtime-migration-from-kubernetes-ingress-to-gateway-api-on-aws-eks-642f3432d394)
 :::
 
-### 2.7 2025-2026 EKS 신규 기능과 Probe 통합
+### 2.7 2025-2026 EKS New Features and Probe Integration
 
-AWS re:Invent 2025에서 발표된 EKS의 새로운 관찰성 및 제어 기능은 Probe 기반 헬스체크를 더욱 강화합니다. 이 섹션에서는 최신 EKS 기능과 Probe를 통합하여 더 정확하고 선제적인 헬스 모니터링을 구현하는 방법을 다룹니다.
+The new observability and control features announced at AWS re:Invent 2025 further enhance Probe-based health checks. This section covers how to integrate the latest EKS features with Probes to implement more accurate and proactive health monitoring.
 
-#### 2.7.1 Container Network Observability로 Probe 연결성 검증
+#### 2.7.1 Verifying Probe Connectivity with Container Network Observability
 
-**개요:**
+**Overview:**
 
-Container Network Observability(2025년 11월 발표)는 Pod 간 네트워크 통신 패턴, 지연 시간, 패킷 손실 등 세밀한 네트워크 메트릭을 제공합니다. Probe 실패가 네트워크 문제로 인한 것인지, 애플리케이션 자체 문제인지 명확히 구분할 수 있습니다.
+Container Network Observability (announced November 2025) provides granular network metrics including Pod-to-Pod communication patterns, latency, and packet loss. It enables clear distinction between whether Probe failures are caused by network issues or application-level problems.
 
-**주요 기능:**
-- Pod-to-Pod 통신 경로 시각화
-- 네트워크 지연(latency), 패킷 손실(packet loss), 재전송률 모니터링
-- 실시간 네트워크 트래픽 이상 탐지
-- CloudWatch Container Insights와의 통합
+**Key Features:**
+- Pod-to-Pod communication path visualization
+- Network latency, packet loss, and retransmission rate monitoring
+- Real-time network traffic anomaly detection
+- Integration with CloudWatch Container Insights
 
-**활성화 방법:**
+**How to Enable:**
 
 ```bash
-# VPC CNI에서 네트워크 관찰성 활성화
+# Enable network observability in VPC CNI
 kubectl set env daemonset aws-node \
   -n kube-system \
   ENABLE_NETWORK_OBSERVABILITY=true
 
-# 또는 ConfigMap으로 설정
+# Or configure via ConfigMap
 kubectl apply -f - <<EOF
 apiVersion: v1
 kind: ConfigMap
@@ -1563,7 +1563,7 @@ data:
 EOF
 ```
 
-**Probe 연결성 검증 예시:**
+**Probe Connectivity Verification Example:**
 
 ```yaml
 apiVersion: apps/v1
@@ -1571,7 +1571,7 @@ kind: Deployment
 metadata:
   name: api-gateway
   annotations:
-    # 네트워크 관찰성 메트릭 수집 활성화
+    # Enable network observability metric collection
     network-observability.amazonaws.com/enabled: "true"
 spec:
   replicas: 3
@@ -1582,7 +1582,7 @@ spec:
         image: myapp/gateway:v2
         ports:
         - containerPort: 8080
-        # Readiness Probe: 외부 DB 연결 확인
+        # Readiness Probe: Check external DB connection
         readinessProbe:
           httpGet:
             path: /ready
@@ -1598,10 +1598,10 @@ spec:
           failureThreshold: 3
 ```
 
-**CloudWatch Insights 쿼리 - Probe 실패와 네트워크 지연 상관 분석:**
+**CloudWatch Insights Query - Correlating Probe Failures with Network Latency:**
 
 ```sql
--- Probe 실패 시점의 네트워크 지연 확인
+-- Check network latency at the time of Probe failures
 fields @timestamp, pod_name, probe_type, network_latency_ms, packet_loss_percent
 | filter namespace = "production"
 | filter probe_result = "failed"
@@ -1610,10 +1610,10 @@ fields @timestamp, pod_name, probe_type, network_latency_ms, packet_loss_percent
 | limit 100
 ```
 
-**알림 설정 예시:**
+**Alert Configuration Example:**
 
 ```yaml
-# CloudWatch Alarm: Probe 실패와 네트워크 이상 동시 발생
+# CloudWatch Alarm: Simultaneous Probe failure and network anomaly
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -1634,52 +1634,52 @@ data:
         {"Name": "ClusterName", "Value": "production-eks"},
         {"Name": "Namespace", "Value": "production"}
       ],
-      "AlarmDescription": "Readiness Probe 실패 시 네트워크 지연 확인 필요"
+      "AlarmDescription": "Check network latency when Readiness Probe failures occur"
     }
 ```
 
-**진단 워크플로우:**
+**Diagnostic Workflow:**
 
 ```mermaid
 flowchart TD
-    PROBE_FAIL[Readiness Probe 실패 감지]
-    PROBE_FAIL --> CHECK_NET[네트워크 관찰성 메트릭 확인]
-    CHECK_NET --> NET_OK{네트워크<br/>정상?}
+    PROBE_FAIL[Readiness Probe Failure Detected]
+    PROBE_FAIL --> CHECK_NET[Check Network Observability Metrics]
+    CHECK_NET --> NET_OK{Network<br/>Normal?}
 
-    NET_OK -->|지연/손실 높음| NET_ISSUE[네트워크 문제]
-    NET_ISSUE --> CHECK_CNI[CNI 플러그인 상태 확인]
-    NET_ISSUE --> CHECK_SG[보안 그룹 규칙 검증]
-    NET_ISSUE --> CHECK_AZ[AZ 간 트래픽 패턴 분석]
+    NET_OK -->|High Latency/Loss| NET_ISSUE[Network Issue]
+    NET_ISSUE --> CHECK_CNI[Check CNI Plugin Status]
+    NET_ISSUE --> CHECK_SG[Verify Security Group Rules]
+    NET_ISSUE --> CHECK_AZ[Analyze Cross-AZ Traffic Patterns]
 
-    NET_OK -->|정상| APP_ISSUE[애플리케이션 문제]
-    APP_ISSUE --> CHECK_LOGS[Pod 로그 분석]
-    APP_ISSUE --> CHECK_METRICS[CPU/메모리 사용률 확인]
-    APP_ISSUE --> CHECK_DEPS[외부 의존성 상태 검증]
+    NET_OK -->|Normal| APP_ISSUE[Application Issue]
+    APP_ISSUE --> CHECK_LOGS[Analyze Pod Logs]
+    APP_ISSUE --> CHECK_METRICS[Check CPU/Memory Utilization]
+    APP_ISSUE --> CHECK_DEPS[Verify External Dependency Status]
 
     style PROBE_FAIL fill:#ff4444,stroke:#cc3636,color:#fff
     style NET_ISSUE fill:#fbbc04,stroke:#c99603,color:#000
     style APP_ISSUE fill:#fbbc04,stroke:#c99603,color:#000
 ```
 
-:::tip Pod-to-Pod 경로 시각화
-Container Network Observability는 CloudWatch Logs Insights와 통합되어 Probe 요청의 전체 네트워크 경로를 추적할 수 있습니다. Readiness Probe가 외부 데이터베이스를 확인하는 경우, Pod → Service → Endpoint → DB Pod의 전체 경로에서 병목 구간을 식별할 수 있습니다.
+:::tip Pod-to-Pod Path Visualization
+Container Network Observability integrates with CloudWatch Logs Insights to trace the complete network path of Probe requests. When a Readiness Probe checks an external database, you can identify bottleneck segments across the entire path from Pod to Service to Endpoint to DB Pod.
 :::
 
 ---
 
-#### 2.7.2 CloudWatch Observability Operator + Control Plane 메트릭
+#### 2.7.2 CloudWatch Observability Operator + Control Plane Metrics
 
-**개요:**
+**Overview:**
 
-CloudWatch Observability Operator(2025년 12월 발표)는 EKS Control Plane 메트릭을 자동으로 수집하여, API Server 성능 저하가 Probe 응답에 미치는 영향을 사전에 감지합니다.
+The CloudWatch Observability Operator (announced December 2025) automatically collects EKS Control Plane metrics, enabling proactive detection of how API Server performance degradation affects Probe responses.
 
-**설치:**
+**Installation:**
 
 ```bash
-# CloudWatch Observability Operator 설치
+# Install CloudWatch Observability Operator
 kubectl apply -f https://raw.githubusercontent.com/aws-observability/aws-cloudwatch-observability-operator/main/bundle.yaml
 
-# EKS Control Plane 메트릭 수집 활성화
+# Enable EKS Control Plane metric collection
 kubectl apply -f - <<EOF
 apiVersion: cloudwatch.aws.amazon.com/v1alpha1
 kind: EKSControlPlaneMetrics
@@ -1699,17 +1699,17 @@ spec:
 EOF
 ```
 
-**주요 Control Plane 메트릭:**
+**Key Control Plane Metrics:**
 
-| 메트릭 | 설명 | Probe 연관성 | 임계값 예시 |
+| Metric | Description | Probe Relevance | Threshold Example |
 |--------|------|-------------|------------|
-| `apiserver_request_duration_seconds` | API Server 요청 지연 시간 | Probe 요청 처리 속도 | p99 < 1초 |
-| `apiserver_request_total` (code=5xx) | API Server 5xx 에러 수 | Probe 실패율 상승 | < 1% |
-| `apiserver_storage_objects` | etcd 저장 오브젝트 수 | 클러스터 규모 한계 | < 150,000 |
-| `etcd_request_duration_seconds` | etcd 읽기/쓰기 지연 | Pod 상태 업데이트 지연 | p99 < 100ms |
-| `rest_client_requests_total` (code=429) | API Rate Limiting 발생 | kubelet-apiserver 통신 제한 | < 10/min |
+| `apiserver_request_duration_seconds` | API Server request latency | Probe request processing speed | p99 &lt; 1s |
+| `apiserver_request_total` (code=5xx) | API Server 5xx error count | Probe failure rate increase | &lt; 1% |
+| `apiserver_storage_objects` | Number of objects stored in etcd | Cluster scale limits | &lt; 150,000 |
+| `etcd_request_duration_seconds` | etcd read/write latency | Pod status update delays | p99 &lt; 100ms |
+| `rest_client_requests_total` (code=429) | API Rate Limiting occurrences | kubelet-apiserver communication throttling | &lt; 10/min |
 
-**Probe 타임아웃 예측 알림:**
+**Probe Timeout Predictive Alert:**
 
 ```yaml
 apiVersion: cloudwatch.amazonaws.com/v1alpha1
@@ -1733,19 +1733,19 @@ spec:
         stat: p99
     - id: e1
       expression: "IF(m1 > 0.5, 1, 0)"
-      label: "API Server 응답 지연 > 500ms"
+      label: "API Server response latency > 500ms"
   evaluationPeriods: 2
   threshold: 1
   comparisonOperator: GreaterThanOrEqualToThreshold
-  alarmDescription: "API Server 성능 저하로 인한 Probe 타임아웃 위험"
+  alarmDescription: "Risk of Probe timeout due to API Server performance degradation"
   alarmActions:
     - arn:aws:sns:ap-northeast-2:123456789012:eks-ops-alerts
 ```
 
-**대규모 클러스터에서의 Probe 성능 보장:**
+**Ensuring Probe Performance in Large-Scale Clusters:**
 
 ```yaml
-# 1000+ 노드 클러스터의 Probe 설정 최적화
+# Probe configuration optimization for 1000+ node clusters
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -1757,18 +1757,18 @@ spec:
       containers:
       - name: api
         image: myapp/api:v1
-        # Probe 타이밍 조정: API Server 부하 고려
+        # Probe timing adjustment: Account for API Server load
         startupProbe:
           httpGet:
             path: /healthz
             port: 8080
           failureThreshold: 30
-          periodSeconds: 5  # 초기 시작 시간 여유
+          periodSeconds: 5  # Allow extra startup time
         livenessProbe:
           httpGet:
             path: /healthz
             port: 8080
-          periodSeconds: 15  # 대규모에서는 간격 증가
+          periodSeconds: 15  # Increase interval for large scale
           failureThreshold: 3
           timeoutSeconds: 5
         readinessProbe:
@@ -1780,7 +1780,7 @@ spec:
           timeoutSeconds: 3
 ```
 
-**CloudWatch Dashboard - Control Plane & Probe 상관 분석:**
+**CloudWatch Dashboard - Control Plane & Probe Correlation Analysis:**
 
 ```json
 {
@@ -1788,16 +1788,16 @@ spec:
     {
       "type": "metric",
       "properties": {
-        "title": "API Server 지연 vs Probe 실패율",
+        "title": "API Server Latency vs Probe Failure Rate",
         "metrics": [
-          ["AWS/EKS", "apiserver_request_duration_seconds", {"stat": "p99", "label": "API Server p99 지연"}],
+          ["AWS/EKS", "apiserver_request_duration_seconds", {"stat": "p99", "label": "API Server p99 Latency"}],
           ["ContainerInsights", "ReadinessProbeFailure", {"stat": "Sum", "yAxis": "right"}]
         ],
         "period": 60,
         "region": "ap-northeast-2",
         "yAxis": {
-          "left": {"label": "지연 시간 (초)", "min": 0},
-          "right": {"label": "Probe 실패 수", "min": 0}
+          "left": {"label": "Latency (seconds)", "min": 0},
+          "right": {"label": "Probe Failure Count", "min": 0}
         }
       }
     }
@@ -1805,52 +1805,52 @@ spec:
 }
 ```
 
-:::warning 대규모 클러스터의 API Server 부하
-1000개 이상의 노드를 가진 클러스터에서는 모든 kubelet의 Probe 요청이 API Server에 집중될 수 있습니다. `periodSeconds`를 10~15초로 늘리고, `timeoutSeconds`를 5초 이상으로 설정하여 API Server 부하를 분산시키세요. Provisioned Control Plane(Section 2.7.3)을 사용하면 이 문제를 근본적으로 해결할 수 있습니다.
+:::warning API Server Load in Large-Scale Clusters
+In clusters with 1000+ nodes, Probe requests from all kubelets can concentrate on the API Server. Increase `periodSeconds` to 10-15 seconds and set `timeoutSeconds` to 5 seconds or more to distribute the API Server load. Using Provisioned Control Plane (Section 2.7.3) can fundamentally resolve this issue.
 :::
 
 ---
 
-#### 2.7.3 Provisioned Control Plane에서 Probe 성능 보장
+#### 2.7.3 Ensuring Probe Performance with Provisioned Control Plane
 
-**개요:**
+**Overview:**
 
-Provisioned Control Plane(2025년 11월 발표)은 사전 할당된 제어 플레인 용량으로 예측 가능한 고성능 Kubernetes 운영을 보장합니다. 대규모 클러스터에서 Probe 요청이 API Server 성능 저하의 영향을 받지 않도록 합니다.
+Provisioned Control Plane (announced November 2025) guarantees predictable, high-performance Kubernetes operations with pre-allocated control plane capacity. It ensures that Probe requests in large-scale clusters are not affected by API Server performance degradation.
 
-**티어별 성능 특성:**
+**Performance Characteristics by Tier:**
 
-| 티어 | API 동시성 | Pod 스케줄링 속도 | 최대 노드 수 | Probe 처리 보장 | 적합 워크로드 |
+| Tier | API Concurrency | Pod Scheduling Speed | Max Nodes | Probe Processing Guarantee | Suitable Workloads |
 |------|----------|---------------|------------|--------------|-------------|
-| **XL** | 높음 | ~500 Pods/min | 1,000 | 99.9% < 100ms | AI Training, HPC |
-| **2XL** | 매우 높음 | ~1,000 Pods/min | 2,500 | 99.9% < 80ms | 대규모 배치 |
-| **4XL** | 초고속 | ~2,000 Pods/min | 5,000 | 99.9% < 50ms | 초대규모 ML |
+| **XL** | High | ~500 Pods/min | 1,000 | 99.9% &lt; 100ms | AI Training, HPC |
+| **2XL** | Very High | ~1,000 Pods/min | 2,500 | 99.9% &lt; 80ms | Large-scale batch |
+| **4XL** | Ultra-fast | ~2,000 Pods/min | 5,000 | 99.9% &lt; 50ms | Ultra-large ML |
 
 **Standard vs Provisioned Control Plane:**
 
 ```mermaid
 graph LR
     subgraph "Standard Control Plane"
-        STD_LOAD[트래픽 증가]
-        STD_LOAD --> STD_SCALE[동적 스케일링]
-        STD_SCALE --> STD_DELAY[일시적 지연 발생]
-        STD_DELAY -.-> STD_PROBE_FAIL[Probe 타임아웃 가능]
+        STD_LOAD[Traffic Increase]
+        STD_LOAD --> STD_SCALE[Dynamic Scaling]
+        STD_SCALE --> STD_DELAY[Temporary Delay]
+        STD_DELAY -.-> STD_PROBE_FAIL[Probe Timeout Possible]
     end
 
     subgraph "Provisioned Control Plane"
-        PROV_LOAD[트래픽 증가]
-        PROV_LOAD --> PROV_READY[사전 할당된 용량]
-        PROV_READY --> PROV_FAST[즉시 처리]
-        PROV_FAST --> PROV_PROBE_OK[Probe 성능 보장]
+        PROV_LOAD[Traffic Increase]
+        PROV_LOAD --> PROV_READY[Pre-allocated Capacity]
+        PROV_READY --> PROV_FAST[Immediate Processing]
+        PROV_FAST --> PROV_PROBE_OK[Probe Performance Guaranteed]
     end
 
     style STD_PROBE_FAIL fill:#ff4444,stroke:#cc3636,color:#fff
     style PROV_PROBE_OK fill:#34a853,stroke:#2a8642,color:#fff
 ```
 
-**Provisioned Control Plane 생성:**
+**Creating a Provisioned Control Plane:**
 
 ```bash
-# Provisioned Control Plane 클러스터 생성 (AWS CLI)
+# Create Provisioned Control Plane cluster (AWS CLI)
 aws eks create-cluster \
   --name production-provisioned \
   --region ap-northeast-2 \
@@ -1861,16 +1861,16 @@ aws eks create-cluster \
   --control-plane-tier XL
 ```
 
-**대규모 Probe 최적화 예시:**
+**Large-Scale Probe Optimization Example:**
 
 ```yaml
-# AI/ML Training 클러스터 (1000+ GPU 노드)
+# AI/ML Training cluster (1000+ GPU nodes)
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: training-coordinator
   annotations:
-    # Provisioned Control Plane에서 최적화된 Probe 설정
+    # Optimized Probe configuration for Provisioned Control Plane
     eks.amazonaws.com/control-plane-tier: "XL"
 spec:
   replicas: 50
@@ -1883,18 +1883,18 @@ spec:
           requests:
             cpu: 4
             memory: 16Gi
-        # Provisioned Control Plane에서는 짧은 간격 설정 가능
+        # Shorter intervals possible with Provisioned Control Plane
         startupProbe:
           httpGet:
             path: /healthz
             port: 9090
           failureThreshold: 30
-          periodSeconds: 3  # 빠른 감지
+          periodSeconds: 3  # Fast detection
         livenessProbe:
           httpGet:
             path: /healthz
             port: 9090
-          periodSeconds: 5  # Standard보다 짧게
+          periodSeconds: 5  # Shorter than Standard
           failureThreshold: 2
           timeoutSeconds: 2
         readinessProbe:
@@ -1906,46 +1906,46 @@ spec:
           timeoutSeconds: 2
 ```
 
-**사용 사례: AI/ML Training 클러스터**
+**Use Case: AI/ML Training Cluster**
 
-- **문제**: 1,000개의 GPU 노드에서 동시에 수백 개의 Training Pod 시작 시, Standard Control Plane에서 API Server 응답 지연 발생
-- **해결**: Provisioned Control Plane XL 티어 사용
-- **결과**:
-  - Pod 스케줄링 시간 70% 단축 (평균 45초 → 13초)
-  - Readiness Probe 타임아웃 99.8% 감소
-  - Training Job 시작 안정성 향상
+- **Problem**: When starting hundreds of Training Pods simultaneously across 1,000 GPU nodes, the Standard Control Plane experiences API Server response latency
+- **Solution**: Use Provisioned Control Plane XL tier
+- **Results**:
+  - 70% reduction in Pod scheduling time (average 45s to 13s)
+  - 99.8% reduction in Readiness Probe timeouts
+  - Improved Training Job startup reliability
 
-**Cost vs Performance 고려사항:**
+**Cost vs Performance Considerations:**
 
 ```yaml
-# Provisioned Control Plane 비용 최적화 전략
-# 1. 평상시: Standard Control Plane
-# 2. Training 기간: Provisioned Control Plane XL로 업그레이드
-# (현재는 클러스터 생성 시 선택, 향후 동적 변경 지원 예정)
+# Provisioned Control Plane cost optimization strategy
+# 1. Normal operations: Standard Control Plane
+# 2. Training period: Upgrade to Provisioned Control Plane XL
+# (Currently selected at cluster creation; dynamic switching planned for the future)
 ```
 
-:::tip HPC 및 대규모 배치 워크로드
-Provisioned Control Plane은 짧은 시간 내에 수천 개의 Pod을 동시에 시작하는 워크로드에 최적화되어 있습니다. AI/ML Training, 과학 시뮬레이션, 대규모 데이터 처리 등에서 Probe 성능을 보장하여 Job 시작 시간을 단축할 수 있습니다.
+:::tip HPC and Large-Scale Batch Workloads
+Provisioned Control Plane is optimized for workloads that start thousands of Pods simultaneously within a short time. It guarantees Probe performance for AI/ML Training, scientific simulations, and large-scale data processing, reducing Job startup time.
 :::
 
 ---
 
-#### 2.7.4 GuardDuty Extended Threat Detection 연계
+#### 2.7.4 GuardDuty Extended Threat Detection Integration
 
-**개요:**
+**Overview:**
 
-GuardDuty Extended Threat Detection(EKS 지원: 2025년 6월)은 Probe 엔드포인트의 비정상 접근 패턴을 탐지하여, 악의적인 워크로드가 헬스체크를 우회하거나 조작하는 공격을 식별합니다.
+GuardDuty Extended Threat Detection (EKS support: June 2025) detects abnormal access patterns to Probe endpoints, identifying attacks where malicious workloads attempt to bypass or manipulate health checks.
 
-**주요 기능:**
-- EKS 감사 로그 + 런타임 행동 + 맬웨어 실행 + AWS API 활동 상관 분석
-- AI/ML 기반 다단계 공격 시퀀스 탐지
-- Probe 엔드포인트 비정상 접근 패턴 식별
-- 크립토마이닝 등 악의적 워크로드 자동 탐지
+**Key Features:**
+- Correlation analysis of EKS audit logs + runtime behavior + malware execution + AWS API activity
+- AI/ML-based multi-stage attack sequence detection
+- Identification of abnormal access patterns to Probe endpoints
+- Automatic detection of malicious workloads such as cryptomining
 
-**활성화:**
+**Enabling:**
 
 ```bash
-# GuardDuty Extended Threat Detection for EKS 활성화 (AWS CLI)
+# Enable GuardDuty Extended Threat Detection for EKS (AWS CLI)
 aws guardduty update-detector \
   --detector-id <detector-id> \
   --features '[
@@ -1966,7 +1966,7 @@ aws guardduty update-detector \
   ]'
 ```
 
-**Probe 엔드포인트 보안 패턴:**
+**Probe Endpoint Security Pattern:**
 
 ```yaml
 apiVersion: apps/v1
@@ -1982,7 +1982,7 @@ spec:
         image: myapp/secure-api:v2
         ports:
         - containerPort: 8080
-        # 헬스체크 엔드포인트
+        # Health check endpoints
         livenessProbe:
           httpGet:
             path: /healthz
@@ -2007,28 +2007,28 @@ spec:
               key: health-token
 ```
 
-**GuardDuty 탐지 시나리오:**
+**GuardDuty Detection Scenarios:**
 
 ```mermaid
 flowchart TD
-    MALICIOUS[악의적 Pod 배포]
-    MALICIOUS --> PROBE_FAKE[헬스체크 위조 시도]
-    PROBE_FAKE --> GUARDDUTY[GuardDuty 탐지]
+    MALICIOUS[Malicious Pod Deployment]
+    MALICIOUS --> PROBE_FAKE[Health Check Spoofing Attempt]
+    PROBE_FAKE --> GUARDDUTY[GuardDuty Detection]
 
-    GUARDDUTY --> AUDIT[EKS 감사 로그 분석]
-    GUARDDUTY --> RUNTIME[런타임 행동 분석]
-    GUARDDUTY --> API[AWS API 활동 분석]
+    GUARDDUTY --> AUDIT[EKS Audit Log Analysis]
+    GUARDDUTY --> RUNTIME[Runtime Behavior Analysis]
+    GUARDDUTY --> API[AWS API Activity Analysis]
 
-    AUDIT --> FINDING[복합 탐지 결과 생성]
+    AUDIT --> FINDING[Composite Finding Generated]
     RUNTIME --> FINDING
     API --> FINDING
 
-    FINDING --> ALERT[CloudWatch 알림]
-    FINDING --> RESPONSE[자동 대응]
+    FINDING --> ALERT[CloudWatch Alert]
+    FINDING --> RESPONSE[Automated Response]
 
-    RESPONSE --> ISOLATE[Pod 격리]
-    RESPONSE --> TERMINATE[Pod 종료]
-    RESPONSE --> NOTIFY[보안팀 알림]
+    RESPONSE --> ISOLATE[Pod Isolation]
+    RESPONSE --> TERMINATE[Pod Termination]
+    RESPONSE --> NOTIFY[Security Team Notification]
 
     style MALICIOUS fill:#ff4444,stroke:#cc3636,color:#fff
     style GUARDDUTY fill:#fbbc04,stroke:#c99603,color:#000
@@ -2036,19 +2036,19 @@ flowchart TD
     style RESPONSE fill:#34a853,stroke:#2a8642,color:#fff
 ```
 
-**실제 탐지 사례 - Cryptomining Campaign:**
+**Real-World Detection Case - Cryptomining Campaign:**
 
-2025년 11월 2일부터 GuardDuty가 탐지한 크립토마이닝 캠페인에서는 공격자가 다음과 같이 헬스체크를 우회했습니다:
+In a cryptomining campaign detected by GuardDuty starting November 2, 2025, the attackers bypassed health checks as follows:
 
-1. 정상 컨테이너 이미지로 위장
-2. startupProbe 성공 후 악성 바이너리 다운로드
-3. livenessProbe는 정상 응답, 백그라운드에서 마이닝 실행
-4. GuardDuty가 비정상적인 네트워크 트래픽 + CPU 사용 패턴 탐지
+1. Disguised as a legitimate container image
+2. Downloaded malicious binary after startupProbe succeeded
+3. livenessProbe returned normal responses while mining ran in the background
+4. GuardDuty detected abnormal network traffic + CPU usage patterns
 
-**탐지 후 자동 대응:**
+**Automated Response After Detection:**
 
 ```yaml
-# EventBridge Rule: GuardDuty Finding → Lambda → Pod 격리
+# EventBridge Rule: GuardDuty Finding → Lambda → Pod Isolation
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -2071,7 +2071,7 @@ data:
     eks = boto3.client('eks')
 
     def isolate_pod(cluster_name, namespace, pod_name):
-        # NetworkPolicy로 Pod 격리
+        # Isolate Pod with NetworkPolicy
         kubectl_command = f"""
         kubectl apply -f - <<EOF
         apiVersion: networking.k8s.io/v1
@@ -2088,13 +2088,13 @@ data:
           - Egress
         EOF
         """
-        # 실행 로직...
+        # Execution logic...
 ```
 
-**보안 모니터링 대시보드:**
+**Security Monitoring Dashboard:**
 
 ```yaml
-# CloudWatch Dashboard: GuardDuty + Probe 상태
+# CloudWatch Dashboard: GuardDuty + Probe Status
 apiVersion: cloudwatch.amazonaws.com/v1alpha1
 kind: Dashboard
 metadata:
@@ -2102,7 +2102,7 @@ metadata:
 spec:
   widgets:
     - type: metric
-      title: "GuardDuty 탐지 vs Probe 실패"
+      title: "GuardDuty Detections vs Probe Failures"
       metrics:
         - namespace: AWS/GuardDuty
           metricName: FindingCount
@@ -2116,28 +2116,27 @@ spec:
               value: production
 ```
 
-:::warning 헬스체크 엔드포인트 보안
-Probe 엔드포인트(`/healthz`, `/ready`)는 인증 없이 공개되는 경우가 많아 공격 표면이 될 수 있습니다. GuardDuty Extended Threat Detection을 활성화하고, 가능하면 헬스체크 요청에 간단한 토큰 헤더를 추가하여 무단 접근을 제한하세요.
+:::warning Health Check Endpoint Security
+Probe endpoints (`/healthz`, `/ready`) are often publicly exposed without authentication, which can become an attack surface. Enable GuardDuty Extended Threat Detection and, where possible, add a simple token header to health check requests to restrict unauthorized access.
 :::
 
-**관련 문서:**
+**Related Documents:**
 - [AWS Blog: GuardDuty Extended Threat Detection for EKS](https://aws.amazon.com/blogs/aws/amazon-guardduty-expands-extended-threat-detection-coverage-to-amazon-eks-clusters/)
 - [AWS Blog: Cryptomining Campaign Detection](https://aws.amazon.com/blogs/security/cryptomining-campaign-targeting-amazon-ec2-and-amazon-ecs/)
-- [EKS 보안 Best Practices](https://docs.aws.amazon.com/eks/latest/best-practices/security.html)
+- [EKS Security Best Practices](https://docs.aws.amazon.com/eks/latest/best-practices/security.html)
 
 ---
+## 3. Complete Guide to Graceful Shutdown
 
-## 3. Graceful Shutdown 완벽 가이드
+Graceful Shutdown is a pattern that safely completes in-flight requests and stops accepting new requests when a Pod is terminating. It is essential for zero-downtime deployments and data integrity.
 
-Graceful Shutdown은 Pod 종료 시 진행 중인 요청을 안전하게 완료하고, 새로운 요청 수신을 중단하는 패턴입니다. 무중단 배포와 데이터 무결성의 핵심입니다.
+### 3.1 Pod Termination Sequence in Detail
 
-### 3.1 Pod 종료 시퀀스 상세
-
-Kubernetes에서 Pod 종료는 다음 순서로 진행됩니다.
+In Kubernetes, Pod termination proceeds in the following order.
 
 ```mermaid
 sequenceDiagram
-    participant User as 사용자/시스템
+    participant User as User/System
     participant API as API Server
     participant EP as Endpoint Controller
     participant Kubelet as kubelet
@@ -2145,52 +2144,52 @@ sequenceDiagram
     participant App as Application
 
     User->>API: kubectl delete pod
-    API->>API: Pod 상태 → Terminating
+    API->>API: Pod status → Terminating
 
-    par Endpoint 제거 (비동기)
-        API->>EP: Pod 삭제 이벤트
-        EP->>EP: Service Endpoints에서<br/>Pod IP 제거
-        Note over EP: kube-proxy가 iptables 업데이트<br/>(최대 몇 초 소요)
-    and preStop Hook 실행 (비동기)
-        API->>Kubelet: Pod 종료 요청
-        Kubelet->>Container: preStop Hook 실행
-        Note over Container: sleep 5<br/>(Endpoints 제거 대기)
+    par Endpoint Removal (Async)
+        API->>EP: Pod deletion event
+        EP->>EP: Remove Pod IP from<br/>Service Endpoints
+        Note over EP: kube-proxy updates iptables<br/>(may take a few seconds)
+    and preStop Hook Execution (Async)
+        API->>Kubelet: Pod termination request
+        Kubelet->>Container: Execute preStop Hook
+        Note over Container: sleep 5<br/>(Wait for Endpoints removal)
     end
 
-    Container->>App: SIGTERM 전송
-    App->>App: 새 요청 수신 중단
-    App->>App: 진행 중인 요청 완료
-    Note over App: Graceful Shutdown<br/>(최대 terminationGracePeriodSeconds - preStop 시간)
+    Container->>App: Send SIGTERM
+    App->>App: Stop accepting new requests
+    App->>App: Complete in-flight requests
+    Note over App: Graceful Shutdown<br/>(up to terminationGracePeriodSeconds - preStop duration)
 
-    alt Graceful 종료 성공
+    alt Graceful Shutdown Succeeds
         App->>Kubelet: exit 0
-        Kubelet->>API: Pod 종료 완료
-    else Timeout 초과
-        Kubelet->>Container: SIGKILL (강제 종료)
-        Container->>API: Pod 강제 종료됨
+        Kubelet->>API: Pod termination complete
+    else Timeout Exceeded
+        Kubelet->>Container: SIGKILL (forced termination)
+        Container->>API: Pod forcefully terminated
     end
 
-    API->>API: Pod 삭제
+    API->>API: Pod deleted
 ```
 
-**타이밍 세부 사항:**
+**Timing Details:**
 
-1. **T+0초**: `kubectl delete pod` 또는 롤링 업데이트로 Pod 삭제 요청
-2. **T+0초**: API Server가 Pod 상태를 `Terminating`으로 변경
-3. **T+0초**: **비동기적으로** 두 작업 동시 시작:
-   - Endpoint Controller가 Service Endpoints에서 Pod IP 제거
-   - kubelet이 preStop Hook 실행
-4. **T+0~5초**: preStop Hook의 `sleep 5` 실행 (Endpoints 제거 대기)
-5. **T+5초**: preStop Hook이 `kill -TERM 1` 실행 → SIGTERM 전송
-6. **T+5초**: 애플리케이션이 SIGTERM 수신, Graceful Shutdown 시작
-7. **T+5~60초**: 애플리케이션이 진행 중인 요청 완료, 정리 작업 수행
-8. **T+60초**: `terminationGracePeriodSeconds` 도달 시 SIGKILL (강제 종료)
+1. **T+0s**: Pod deletion requested via `kubectl delete pod` or rolling update
+2. **T+0s**: API Server changes Pod status to `Terminating`
+3. **T+0s**: Two operations start **asynchronously** in parallel:
+   - Endpoint Controller removes the Pod IP from Service Endpoints
+   - kubelet executes the preStop Hook
+4. **T+0~5s**: preStop Hook executes `sleep 5` (waiting for Endpoints removal)
+5. **T+5s**: preStop Hook executes `kill -TERM 1` → sends SIGTERM
+6. **T+5s**: Application receives SIGTERM, begins Graceful Shutdown
+7. **T+5~60s**: Application completes in-flight requests and performs cleanup tasks
+8. **T+60s**: SIGKILL (forced termination) when `terminationGracePeriodSeconds` is reached
 
-:::tip preStop sleep이 필요한 이유
-Endpoint 제거와 preStop Hook 실행은 **비동기**로 발생합니다. preStop에 5초 sleep을 추가하면, Endpoint Controller와 kube-proxy가 iptables를 업데이트하여 새로운 트래픽이 종료 중인 Pod으로 유입되지 않도록 보장합니다. 이 패턴 없이는 종료 중인 Pod으로 트래픽이 계속 전송되어 502/503 에러가 발생할 수 있습니다.
+:::tip Why preStop sleep Is Necessary
+Endpoint removal and preStop Hook execution occur **asynchronously**. Adding a 5-second sleep in preStop ensures that the Endpoint Controller and kube-proxy have time to update iptables so that new traffic is no longer routed to the terminating Pod. Without this pattern, traffic may continue to be sent to the terminating Pod, resulting in 502/503 errors.
 :::
 
-### 3.2 언어별 SIGTERM 처리 패턴
+### 3.2 SIGTERM Handling Patterns by Language
 
 #### Node.js (Express)
 
@@ -2199,10 +2198,10 @@ const express = require('express');
 const app = express();
 const server = app.listen(8080);
 
-// 상태 플래그
+// Status flag
 let isShuttingDown = false;
 
-// 헬스체크 엔드포인트
+// Health check endpoint
 app.get('/healthz', (req, res) => {
   res.status(200).json({ status: 'ok' });
 });
@@ -2214,46 +2213,46 @@ app.get('/ready', (req, res) => {
   res.status(200).json({ status: 'ready' });
 });
 
-// 비즈니스 로직
+// Business logic
 app.get('/api/data', (req, res) => {
   if (isShuttingDown) {
     return res.status(503).send('Service Unavailable');
   }
-  // 실제 로직
+  // Actual logic
   res.json({ data: 'example' });
 });
 
-// Graceful Shutdown 처리
+// Graceful Shutdown handler
 function gracefulShutdown(signal) {
   console.log(`${signal} received, starting graceful shutdown`);
   isShuttingDown = true;
 
-  // 새 연결 거부
+  // Reject new connections
   server.close(() => {
     console.log('HTTP server closed');
 
-    // DB 연결 종료
+    // Close DB connections
     // db.close();
 
-    // 프로세스 종료
+    // Exit process
     process.exit(0);
   });
 
-  // Timeout 설정 (SIGKILL 전에 완료)
+  // Set timeout (complete before SIGKILL)
   setTimeout(() => {
     console.error('Graceful shutdown timeout, forcing exit');
     process.exit(1);
-  }, 50000); // terminationGracePeriodSeconds - preStop 시간 - 여유 5초
+  }, 50000); // terminationGracePeriodSeconds - preStop duration - 5s buffer
 }
 
-// SIGTERM, SIGINT 처리
+// Handle SIGTERM, SIGINT
 process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
 process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 
 console.log('Server started on port 8080');
 ```
 
-**Deployment 설정:**
+**Deployment Configuration:**
 
 ```yaml
 apiVersion: apps/v1
@@ -2283,17 +2282,17 @@ spec:
 
 #### Java/Spring Boot
 
-Spring Boot 2.3+는 Graceful Shutdown을 네이티브로 지원합니다.
+Spring Boot 2.3+ natively supports Graceful Shutdown.
 
 **application.yml:**
 
 ```yaml
 server:
-  shutdown: graceful  # Graceful Shutdown 활성화
+  shutdown: graceful  # Enable Graceful Shutdown
 
 spring:
   lifecycle:
-    timeout-per-shutdown-phase: 50s  # 최대 대기 시간
+    timeout-per-shutdown-phase: 50s  # Maximum wait time
 management:
   endpoints:
     web:
@@ -2310,7 +2309,7 @@ management:
       enabled: true
 ```
 
-**커스텀 종료 로직 (필요 시):**
+**Custom Shutdown Logic (if needed):**
 
 ```java
 import org.springframework.context.event.ContextClosedEvent;
@@ -2324,10 +2323,10 @@ public class GracefulShutdownListener {
     public void onApplicationEvent(ContextClosedEvent event) {
         System.out.println("Graceful shutdown initiated");
 
-        // 커스텀 정리 작업
-        // 예: 메시지 큐 정리, 배치 작업 완료 대기
+        // Custom cleanup tasks
+        // e.g., flush message queues, wait for batch jobs to complete
         try {
-            // 최대 50초 대기
+            // Wait up to 50 seconds
             cleanupResources();
         } catch (Exception e) {
             System.err.println("Cleanup error: " + e.getMessage());
@@ -2335,14 +2334,14 @@ public class GracefulShutdownListener {
     }
 
     private void cleanupResources() throws InterruptedException {
-        // 리소스 정리 로직
-        Thread.sleep(5000); // 예시: 5초 정리 작업
+        // Resource cleanup logic
+        Thread.sleep(5000); // Example: 5-second cleanup task
         System.out.println("Cleanup completed");
     }
 }
 ```
 
-**Deployment 설정:**
+**Deployment Configuration:**
 
 ```yaml
 apiVersion: apps/v1
@@ -2392,7 +2391,7 @@ import (
 var isShuttingDown = false
 
 func main() {
-    // HTTP 서버 설정
+    // HTTP server setup
     mux := http.NewServeMux()
 
     mux.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) {
@@ -2415,7 +2414,7 @@ func main() {
             w.WriteHeader(http.StatusServiceUnavailable)
             return
         }
-        // 비즈니스 로직
+        // Business logic
         fmt.Fprintln(w, `{"data":"example"}`)
     })
 
@@ -2424,7 +2423,7 @@ func main() {
         Handler: mux,
     }
 
-    // 별도 고루틴에서 서버 시작
+    // Start server in a separate goroutine
     go func() {
         log.Println("Server starting on :8080")
         if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
@@ -2432,7 +2431,7 @@ func main() {
         }
     }()
 
-    // SIGTERM/SIGINT 대기
+    // Wait for SIGTERM/SIGINT
     quit := make(chan os.Signal, 1)
     signal.Notify(quit, syscall.SIGTERM, syscall.SIGINT)
     <-quit
@@ -2452,7 +2451,7 @@ func main() {
 }
 ```
 
-**Deployment 설정:**
+**Deployment Configuration:**
 
 ```yaml
 apiVersion: apps/v1
@@ -2513,13 +2512,13 @@ def graceful_shutdown(signum, frame):
     print(f"Signal {signum} received, starting graceful shutdown")
     is_shutting_down = True
 
-    # 정리 작업 (예: DB 연결 종료)
+    # Cleanup tasks (e.g., close DB connections)
     # db.close()
 
     print("Graceful shutdown completed")
     sys.exit(0)
 
-# SIGTERM 핸들러 등록
+# Register SIGTERM handler
 signal.signal(signal.SIGTERM, graceful_shutdown)
 signal.signal(signal.SIGINT, graceful_shutdown)
 
@@ -2527,7 +2526,7 @@ if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8080)
 ```
 
-**Deployment 설정:**
+**Deployment Configuration:**
 
 ```yaml
 apiVersion: apps/v1
@@ -2555,11 +2554,11 @@ spec:
       terminationGracePeriodSeconds: 60
 ```
 
-### 3.3 Connection Draining 패턴
+### 3.3 Connection Draining Patterns
 
-Connection Draining은 종료 시 기존 연결을 안전하게 정리하는 패턴입니다.
+Connection Draining is a pattern for safely cleaning up existing connections during shutdown.
 
-#### HTTP Keep-Alive 연결 처리
+#### HTTP Keep-Alive Connection Handling
 
 ```javascript
 // Node.js Express with Connection Draining
@@ -2570,7 +2569,7 @@ const server = app.listen(8080);
 let isShuttingDown = false;
 const activeConnections = new Set();
 
-// 연결 추적
+// Track connections
 server.on('connection', (conn) => {
   activeConnections.add(conn);
   conn.on('close', () => {
@@ -2582,18 +2581,18 @@ function gracefulShutdown(signal) {
   console.log(`${signal} received`);
   isShuttingDown = true;
 
-  // 새 연결 거부
+  // Reject new connections
   server.close(() => {
     console.log('Server closed, no new connections');
   });
 
-  // 기존 연결 종료
+  // Close existing connections
   console.log(`Closing ${activeConnections.size} active connections`);
   activeConnections.forEach((conn) => {
-    conn.destroy(); // 강제 종료 (또는 conn.end()로 graceful)
+    conn.destroy(); // Force close (or use conn.end() for graceful)
   });
 
-  // 정리 작업 후 종료
+  // Exit after cleanup
   setTimeout(() => {
     console.log('Graceful shutdown complete');
     process.exit(0);
@@ -2603,7 +2602,7 @@ function gracefulShutdown(signal) {
 process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
 ```
 
-#### WebSocket 연결 정리
+#### WebSocket Connection Cleanup
 
 ```javascript
 // WebSocket graceful shutdown
@@ -2620,7 +2619,7 @@ wss.on('connection', (ws) => {
   });
 
   ws.on('message', (message) => {
-    // 메시지 처리
+    // Handle message
   });
 });
 
@@ -2628,7 +2627,7 @@ function gracefulShutdown() {
   console.log(`Closing ${clients.size} WebSocket connections`);
 
   clients.forEach((ws) => {
-    // 클라이언트에게 종료 알림
+    // Notify clients of shutdown
     ws.send(JSON.stringify({ type: 'server_shutdown' }));
     ws.close(1001, 'Server shutting down');
   });
@@ -2680,32 +2679,32 @@ func main() {
         }
     }()
 
-    // SIGTERM 대기
+    // Wait for SIGTERM
     quit := make(chan os.Signal, 1)
     signal.Notify(quit, syscall.SIGTERM, syscall.SIGINT)
     <-quit
 
     log.Println("Graceful shutdown initiated")
 
-    // GracefulStop: 진행 중인 RPC 완료 대기
+    // GracefulStop: wait for in-flight RPCs to complete
     done := make(chan struct{})
     go func() {
         s.GracefulStop()
         close(done)
     }()
 
-    // Timeout 처리
+    // Handle timeout
     select {
     case <-done:
         log.Println("gRPC server stopped gracefully")
     case <-time.After(50 * time.Second):
         log.Println("Graceful stop timeout, forcing stop")
-        s.Stop() // 강제 종료
+        s.Stop() // Force stop
     }
 }
 ```
 
-#### 데이터베이스 연결 풀 정리
+#### Database Connection Pool Cleanup
 
 ```python
 # Python with psycopg2 connection pool
@@ -2727,7 +2726,7 @@ db_pool = psycopg2.pool.SimpleConnectionPool(
 def graceful_shutdown(signum, frame):
     print("Closing database connections...")
 
-    # 모든 연결 종료
+    # Close all connections
     db_pool.closeall()
 
     print("Database connections closed")
@@ -2735,7 +2734,7 @@ def graceful_shutdown(signum, frame):
 
 signal.signal(signal.SIGTERM, graceful_shutdown)
 
-# 애플리케이션 로직
+# Application logic
 def query_database():
     conn = db_pool.getconn()
     try:
@@ -2746,11 +2745,11 @@ def query_database():
         db_pool.putconn(conn)
 ```
 
-### 3.4 Karpenter/Node Drain과의 상호작용
+### 3.4 Interaction with Karpenter/Node Drain
 
-Karpenter가 노드를 통합(consolidation)하거나 Spot 인스턴스가 종료될 때, 노드의 모든 Pod이 안전하게 이동해야 합니다.
+When Karpenter consolidates nodes or Spot instances are terminated, all Pods on the node must be safely migrated.
 
-#### Karpenter Disruption과 Graceful Shutdown
+#### Karpenter Disruption and Graceful Shutdown
 
 ```mermaid
 sequenceDiagram
@@ -2759,30 +2758,30 @@ sequenceDiagram
     participant Kubelet as kubelet
     participant Pod as Pod
 
-    Karpenter->>Karpenter: 노드 통합 필요 감지<br/>(미사용 또는 저사용)
+    Karpenter->>Karpenter: Detect node consolidation needed<br/>(unused or underutilized)
     Karpenter->>Node: Node Cordon
-    Karpenter->>Node: Node Drain 시작
-    Node->>Kubelet: Pod 종료 요청
+    Karpenter->>Node: Begin Node Drain
+    Node->>Kubelet: Pod termination request
 
-    Kubelet->>Pod: preStop Hook 실행
+    Kubelet->>Pod: Execute preStop Hook
     Note over Pod: sleep 5
 
-    Kubelet->>Pod: SIGTERM 전송
-    Pod->>Pod: Graceful Shutdown<br/>(최대 terminationGracePeriodSeconds)
+    Kubelet->>Pod: Send SIGTERM
+    Pod->>Pod: Graceful Shutdown<br/>(up to terminationGracePeriodSeconds)
 
-    alt Graceful 종료 성공
+    alt Graceful Shutdown Succeeds
         Pod->>Kubelet: exit 0
-        Kubelet->>Karpenter: Pod 종료 완료
+        Kubelet->>Karpenter: Pod termination complete
     else Timeout
         Kubelet->>Pod: SIGKILL
-        Pod->>Kubelet: 강제 종료
+        Pod->>Kubelet: Forcefully terminated
     end
 
-    Karpenter->>Karpenter: 모든 Pod 이동 완료
-    Karpenter->>Node: 노드 종료
+    Karpenter->>Karpenter: All Pods migrated
+    Karpenter->>Node: Terminate node
 ```
 
-**Karpenter NodePool 설정:**
+**Karpenter NodePool Configuration:**
 
 ```yaml
 apiVersion: karpenter.sh/v1
@@ -2793,95 +2792,95 @@ spec:
   disruption:
     consolidationPolicy: WhenEmptyOrUnderutilized
     consolidateAfter: 5m
-    # Disruption budget: 동시 중단 노드 제한
+    # Disruption budget: limit concurrent node disruptions
     budgets:
     - nodes: "20%"
-      schedule: "0 9-17 * * MON-FRI"  # 업무 시간 20%
+      schedule: "0 9-17 * * MON-FRI"  # 20% during business hours
     - nodes: "50%"
-      schedule: "0 0-8,18-23 * * *"   # 비업무 시간 50%
+      schedule: "0 0-8,18-23 * * *"   # 50% during off-hours
 ```
 
-:::warning PDB와 Karpenter 상호작용
-PodDisruptionBudget이 너무 엄격하면 (예: `minAvailable`이 replica 수와 같음) Karpenter가 노드를 drain할 수 없습니다. PDB는 `minAvailable: replica - 1` 또는 `maxUnavailable: 1`로 설정하여 최소 1개 Pod은 이동 가능하도록 하세요.
+:::warning PDB and Karpenter Interaction
+If a PodDisruptionBudget is too strict (e.g., `minAvailable` equals the replica count), Karpenter cannot drain the node. Set the PDB to `minAvailable: replica - 1` or `maxUnavailable: 1` to ensure at least one Pod can be migrated.
 :::
 
-#### 3.4.3 ARC + Karpenter 통합 AZ 대피 패턴
+#### 3.4.3 ARC + Karpenter Integrated AZ Evacuation Pattern
 
-**개요:**
+**Overview:**
 
-AWS Application Recovery Controller(ARC)와 Karpenter의 통합(2025년 발표)은 Availability Zone(AZ) 장애 시 자동으로 워크로드를 다른 AZ로 이동시키는 고가용성 패턴을 제공합니다. 이를 통해 AZ 장애 또는 Gray Failure 상황에서도 Graceful Shutdown을 보장하며 서비스 중단을 최소화할 수 있습니다.
+The integration of AWS Application Recovery Controller (ARC) with Karpenter (announced in 2025) provides a high-availability pattern that automatically migrates workloads to a different AZ during an Availability Zone (AZ) failure. This ensures Graceful Shutdown during AZ failures or Gray Failure scenarios, minimizing service disruption.
 
-**ARC Zonal Shift란:**
+**What Is ARC Zonal Shift:**
 
-Zonal Shift는 특정 AZ에서 발생한 장애나 성능 저하를 감지했을 때, 해당 AZ의 트래픽을 자동으로 다른 정상 AZ로 전환하는 기능입니다. EKS와 통합 시 Pod의 안전한 이동까지 자동화됩니다.
+Zonal Shift is a capability that automatically redirects traffic from a failing or degraded AZ to other healthy AZs. When integrated with EKS, it also automates the safe migration of Pods.
 
-**아키텍처 구성 요소:**
+**Architecture Components:**
 
-| 컴포넌트 | 역할 | 동작 |
-|----------|------|------|
-| **ARC Zonal Autoshift** | AZ 장애 자동 감지 및 트래픽 전환 결정 | CloudWatch Alarms 기반 자동 Shift |
-| **Karpenter** | 새 AZ에 노드 프로비저닝 | NodePool 설정에 따라 정상 AZ에 노드 생성 |
-| **AWS Load Balancer** | 트래픽 라우팅 제어 | 장애 AZ의 Target 제거 |
-| **PodDisruptionBudget** | Pod 이동 시 가용성 보장 | 최소 가용 Pod 수 유지 |
+| Component | Role | Behavior |
+|-----------|------|----------|
+| **ARC Zonal Autoshift** | Automatic AZ failure detection and traffic switching decisions | Automatic Shift based on CloudWatch Alarms |
+| **Karpenter** | Provision nodes in the new AZ | Create nodes in healthy AZs based on NodePool configuration |
+| **AWS Load Balancer** | Traffic routing control | Remove targets in the failing AZ |
+| **PodDisruptionBudget** | Ensure availability during Pod migration | Maintain minimum available Pod count |
 
-**AZ 대피 시퀀스:**
+**AZ Evacuation Sequence:**
 
 ```mermaid
 sequenceDiagram
-    participant AZ_A as AZ-A (장애)
+    participant AZ_A as AZ-A (Failing)
     participant ARC as ARC Zonal Autoshift
     participant Karpenter
-    participant AZ_B as AZ-B (정상)
+    participant AZ_B as AZ-B (Healthy)
     participant LB as ALB/NLB
     participant Pod_Old as Pod (AZ-A)
     participant Pod_New as Pod (AZ-B)
 
-    Note over AZ_A: AZ 성능 저하 감지<br/>(네트워크 지연, 패킷 손실)
+    Note over AZ_A: AZ performance degradation detected<br/>(network latency, packet loss)
 
-    AZ_A->>ARC: CloudWatch Alarm 트리거
-    ARC->>ARC: Zonal Shift 결정
-    ARC->>LB: AZ-A Target 제거 시작
+    AZ_A->>ARC: CloudWatch Alarm triggered
+    ARC->>ARC: Zonal Shift decision
+    ARC->>LB: Begin removing AZ-A targets
 
-    par Karpenter 노드 프로비저닝
-        ARC->>Karpenter: AZ-A 노드 Cordon
-        Karpenter->>AZ_B: 새 노드 프로비저닝
-        AZ_B->>Karpenter: 노드 Ready
-    and Pod 재스케줄링
+    par Karpenter Node Provisioning
+        ARC->>Karpenter: Cordon AZ-A nodes
+        Karpenter->>AZ_B: Provision new nodes
+        AZ_B->>Karpenter: Node Ready
+    and Pod Rescheduling
         Karpenter->>Pod_Old: Pod Eviction (Graceful)
-        Pod_Old->>Pod_Old: preStop Hook 실행
-        Pod_Old->>Pod_Old: SIGTERM 수신
+        Pod_Old->>Pod_Old: Execute preStop Hook
+        Pod_Old->>Pod_Old: Receive SIGTERM
         Pod_Old->>Pod_Old: Graceful Shutdown
-        Note over Pod_Old: 진행 중인 요청 완료<br/>(terminationGracePeriodSeconds)
+        Note over Pod_Old: Complete in-flight requests<br/>(terminationGracePeriodSeconds)
     end
 
-    Pod_New->>AZ_B: Pod 시작
-    Pod_New->>Pod_New: startupProbe 성공
-    Pod_New->>Pod_New: readinessProbe 성공
-    LB->>Pod_New: Health Check 통과
-    LB->>Pod_New: 트래픽 전송 시작
+    Pod_New->>AZ_B: Pod starts
+    Pod_New->>Pod_New: startupProbe succeeds
+    Pod_New->>Pod_New: readinessProbe succeeds
+    LB->>Pod_New: Health Check passed
+    LB->>Pod_New: Begin sending traffic
 
-    Pod_Old->>AZ_A: 안전 종료
-    Karpenter->>AZ_A: 빈 노드 종료
+    Pod_Old->>AZ_A: Safe shutdown
+    Karpenter->>AZ_A: Terminate empty nodes
 
-    Note over AZ_B: 모든 워크로드 AZ-B로 이동 완료
+    Note over AZ_B: All workloads migrated to AZ-B
 ```
 
-**설정 예시:**
+**Configuration Examples:**
 
-**1. ARC Zonal Autoshift 활성화:**
+**1. Enable ARC Zonal Autoshift:**
 
 ```bash
-# Load Balancer에 Zonal Autoshift 활성화
+# Enable Zonal Autoshift on Load Balancer
 aws arc-zonal-shift create-autoshift-observer-notification-configuration \
   --resource-identifier arn:aws:elasticloadbalancing:ap-northeast-2:123456789012:loadbalancer/app/production-alb/1234567890abcdef
 
-# Zonal Autoshift 설정
+# Configure Zonal Autoshift
 aws arc-zonal-shift update-zonal-autoshift-configuration \
   --resource-identifier arn:aws:elasticloadbalancing:ap-northeast-2:123456789012:loadbalancer/app/production-alb/1234567890abcdef \
   --zonal-autoshift-status ENABLED
 ```
 
-**2. Karpenter NodePool - AZ 인식 설정:**
+**2. Karpenter NodePool - AZ-Aware Configuration:**
 
 ```yaml
 apiVersion: karpenter.sh/v1
@@ -2892,11 +2891,11 @@ spec:
   disruption:
     consolidationPolicy: WhenEmptyOrUnderutilized
     consolidateAfter: 30s
-    # AZ 장애 시 빠른 대응
+    # Fast response during AZ failure
     budgets:
     - nodes: "100%"
       reasons:
-      - "Drifted"  # AZ Cordon 시 즉시 교체
+      - "Drifted"  # Immediate replacement when AZ is cordoned
   template:
     spec:
       requirements:
@@ -2909,7 +2908,7 @@ spec:
       - key: karpenter.sh/capacity-type
         operator: In
         values:
-        - on-demand  # AZ 장애 대응은 On-Demand 권장
+        - on-demand  # On-Demand recommended for AZ failure response
       nodeClassRef:
         name: default
 ---
@@ -2926,13 +2925,13 @@ spec:
   securityGroupSelectorTerms:
   - tags:
       karpenter.sh/discovery: "production-eks"
-  # AZ 장애 시 자동 감지
+  # Automatic detection during AZ failure
   metadataOptions:
     httpTokens: required
     httpPutResponseHopLimit: 2
 ```
 
-**3. Deployment with PDB - AZ 분산:**
+**3. Deployment with PDB - AZ Distribution:**
 
 ```yaml
 apiVersion: apps/v1
@@ -2949,7 +2948,7 @@ spec:
       labels:
         app: critical-api
     spec:
-      # AZ 분산 보장
+      # Ensure AZ distribution
       topologySpreadConstraints:
       - maxSkew: 1
         topologyKey: topology.kubernetes.io/zone
@@ -2957,7 +2956,7 @@ spec:
         labelSelector:
           matchLabels:
             app: critical-api
-      # 동일 노드 배치 방지
+      # Prevent co-location on the same node
       affinity:
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
@@ -3001,13 +3000,13 @@ kind: PodDisruptionBudget
 metadata:
   name: critical-api-pdb
 spec:
-  minAvailable: 4  # 6개 중 최소 4개 유지 (AZ 장애 시 2개 AZ에서 운영)
+  minAvailable: 4  # Maintain at least 4 out of 6 (operate from 2 AZs during AZ failure)
   selector:
     matchLabels:
       app: critical-api
 ```
 
-**4. CloudWatch Alarm - AZ 성능 저하 감지:**
+**4. CloudWatch Alarm - AZ Performance Degradation Detection:**
 
 ```yaml
 apiVersion: v1
@@ -3029,19 +3028,19 @@ data:
       "Dimensions": [
         {"Name": "AvailabilityZone", "Value": "ap-northeast-2a"}
       ],
-      "AlarmDescription": "AZ-A 네트워크 지연 증가 - Zonal Shift 트리거",
+      "AlarmDescription": "AZ-A network latency increase - Zonal Shift trigger",
       "AlarmActions": [
         "arn:aws:arc-zonal-shift:ap-northeast-2:123456789012:autoshift-observer-notification"
       ]
     }
 ```
 
-**Istio 서비스 메시 기반 End-to-End AZ 복구:**
+**End-to-End AZ Recovery with Istio Service Mesh:**
 
-Istio 서비스 메시와 통합하면 AZ 대피 시 더욱 정교한 트래픽 제어가 가능합니다:
+Integrating with Istio service mesh enables more sophisticated traffic control during AZ evacuation:
 
 ```yaml
-# Istio DestinationRule: AZ 기반 트래픽 라우팅
+# Istio DestinationRule: AZ-based traffic routing
 apiVersion: networking.istio.io/v1beta1
 kind: DestinationRule
 metadata:
@@ -3071,7 +3070,7 @@ spec:
       baseEjectionTime: 30s
       maxEjectionPercent: 50
 ---
-# VirtualService: AZ 장애 시 자동 재라우팅
+# VirtualService: Automatic rerouting during AZ failure
 apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
 metadata:
@@ -3098,21 +3097,21 @@ spec:
       perTryTimeout: 1s
 ```
 
-**Gray Failure 처리 전략:**
+**Gray Failure Handling Strategy:**
 
-Gray Failure는 완전한 장애가 아닌 성능 저하 상태로, 감지가 어렵습니다. ARC + Karpenter + Istio 조합으로 대응:
+Gray Failure is a degraded performance state rather than a complete outage, making it difficult to detect. It can be addressed using the ARC + Karpenter + Istio combination:
 
-| Gray Failure 증상 | 감지 방법 | 자동 대응 |
-|------------------|----------|----------|
-| 네트워크 지연 증가 (50-200ms) | Container Network Observability | Istio Outlier Detection → 트래픽 우회 |
-| 간헐적 패킷 손실 (1-5%) | CloudWatch Network Metrics | ARC Zonal Shift 트리거 |
-| 디스크 I/O 저하 | EBS CloudWatch Metrics | Karpenter 노드 교체 |
-| API Server 응답 지연 | Control Plane Metrics | Provisioned Control Plane 자동 스케일링 |
+| Gray Failure Symptom | Detection Method | Automated Response |
+|---------------------|-----------------|-------------------|
+| Increased network latency (50-200ms) | Container Network Observability | Istio Outlier Detection → traffic bypass |
+| Intermittent packet loss (1-5%) | CloudWatch Network Metrics | ARC Zonal Shift trigger |
+| Disk I/O degradation | EBS CloudWatch Metrics | Karpenter node replacement |
+| API Server response delay | Control Plane Metrics | Provisioned Control Plane auto-scaling |
 
-**테스트 및 검증:**
+**Testing and Validation:**
 
 ```bash
-# AZ 장애 시뮬레이션 (Chaos Engineering)
+# AZ failure simulation (Chaos Engineering)
 kubectl apply -f - <<EOF
 apiVersion: v1
 kind: ConfigMap
@@ -3121,32 +3120,32 @@ metadata:
   namespace: chaos
 data:
   experiment: |
-    # 1. AZ-A의 모든 노드에 Taint 추가 (AZ 장애 시뮬레이션)
+    # 1. Add Taint to all nodes in AZ-A (simulating AZ failure)
     kubectl taint nodes -l topology.kubernetes.io/zone=ap-northeast-2a \
       az-failure=true:NoSchedule
 
-    # 2. Karpenter가 AZ-B, AZ-C에 새 노드 생성 확인
+    # 2. Verify Karpenter creates new nodes in AZ-B, AZ-C
     kubectl get nodes -l topology.kubernetes.io/zone=ap-northeast-2b,ap-northeast-2c
 
-    # 3. Pod 이동 모니터링
+    # 3. Monitor Pod migration
     kubectl get pods -o wide --watch
 
-    # 4. PDB 준수 확인 (minAvailable 유지)
+    # 4. Verify PDB compliance (minAvailable maintained)
     kubectl get pdb critical-api-pdb
 
-    # 5. Graceful Shutdown 로그 확인
+    # 5. Check Graceful Shutdown logs
     kubectl logs <pod-name> --previous
 
-    # 6. 복구 (Taint 제거)
+    # 6. Recovery (remove Taint)
     kubectl taint nodes -l topology.kubernetes.io/zone=ap-northeast-2a \
       az-failure-
 EOF
 ```
 
-**모니터링 대시보드:**
+**Monitoring Dashboard:**
 
 ```yaml
-# Grafana Dashboard: AZ 헬스 및 대피 상태
+# Grafana Dashboard: AZ health and evacuation status
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -3157,7 +3156,7 @@ data:
     {
       "panels": [
         {
-          "title": "AZ별 Pod 분포",
+          "title": "Pod Distribution by AZ",
           "targets": [
             {
               "expr": "count(kube_pod_info) by (node, zone)"
@@ -3165,7 +3164,7 @@ data:
           ]
         },
         {
-          "title": "AZ별 네트워크 지연",
+          "title": "Network Latency by AZ",
           "targets": [
             {
               "expr": "avg(container_network_latency_ms) by (availability_zone)"
@@ -3173,7 +3172,7 @@ data:
           ]
         },
         {
-          "title": "Karpenter 노드 프로비저닝 속도",
+          "title": "Karpenter Node Provisioning Rate",
           "targets": [
             {
               "expr": "rate(karpenter_nodes_created_total[5m])"
@@ -3181,7 +3180,7 @@ data:
           ]
         },
         {
-          "title": "Graceful Shutdown 성공률",
+          "title": "Graceful Shutdown Success Rate",
           "targets": [
             {
               "expr": "rate(pod_termination_graceful_total[5m]) / rate(pod_termination_total[5m])"
@@ -3192,20 +3191,20 @@ data:
     }
 ```
 
-**관련 자료:**
-- [AWS Blog: ARC + Karpenter 고가용성 통합](https://aws.amazon.com/blogs/containers/enhance-kubernetes-high-availability-with-amazon-application-recovery-controller-and-karpenter-integration/)
-- [AWS Blog: Istio 기반 End-to-end AZ 복구](https://aws.amazon.com/blogs/containers/)
+**Related Resources:**
+- [AWS Blog: ARC + Karpenter High Availability Integration](https://aws.amazon.com/blogs/containers/enhance-kubernetes-high-availability-with-amazon-application-recovery-controller-and-karpenter-integration/)
+- [AWS Blog: Istio-based End-to-end AZ Recovery](https://aws.amazon.com/blogs/containers/)
 - [AWS re:Invent 2025: Supercharge your Karpenter](https://www.youtube.com/watch?v=kUQ4Q11F4iQ)
 
-:::tip 운영 Best Practice
-AZ 대피는 자동화되지만, 정기적인 Chaos Engineering 테스트로 검증하세요. 매 분기 1회 이상 AZ 장애 시뮬레이션을 수행하여 PDB, Karpenter, Graceful Shutdown이 예상대로 동작하는지 확인합니다. 특히 `terminationGracePeriodSeconds`가 실제 Shutdown 시간보다 충분히 긴지 프로덕션 환경에서 측정하세요.
+:::tip Operational Best Practice
+AZ evacuation is automated, but validate it with regular Chaos Engineering tests. Perform AZ failure simulations at least once per quarter to verify that PDB, Karpenter, and Graceful Shutdown behave as expected. In particular, measure in your production environment whether `terminationGracePeriodSeconds` is sufficiently longer than the actual shutdown time.
 :::
 
-#### Spot 인스턴스 2분 경고 처리
+#### Spot Instance 2-Minute Warning Handling
 
-AWS Spot 인스턴스는 종료 2분 전에 경고를 보냅니다. 이를 처리하여 Graceful Shutdown을 보장합니다.
+AWS Spot instances provide a 2-minute warning before termination. Handle this to ensure Graceful Shutdown.
 
-**AWS Node Termination Handler 설치:**
+**Install AWS Node Termination Handler:**
 
 ```bash
 helm repo add eks https://aws.github.io/eks-charts
@@ -3218,74 +3217,74 @@ helm install aws-node-termination-handler \
   --set enableScheduledEventDraining=true
 ```
 
-**동작 방식:**
-1. Spot 종료 2분 경고 감지
-2. 노드를 즉시 Cordon (새 Pod 스케줄링 차단)
-3. 노드의 모든 Pod을 Drain
-4. Pod의 `terminationGracePeriodSeconds` 내에 Graceful Shutdown 완료
+**How It Works:**
+1. Detects the 2-minute Spot termination warning
+2. Immediately cordons the node (blocks new Pod scheduling)
+3. Drains all Pods on the node
+4. Completes Graceful Shutdown within the Pod's `terminationGracePeriodSeconds`
 
-**권장 terminationGracePeriodSeconds:**
-- 일반 웹 서비스: 30-60초
-- 장기 실행 작업 (배치, ML 추론): 90-120초
-- 최대 2분 이내로 설정 (Spot 경고 시간 고려)
+**Recommended terminationGracePeriodSeconds:**
+- General web services: 30-60 seconds
+- Long-running tasks (batch, ML inference): 90-120 seconds
+- Set to under 2 minutes maximum (considering Spot warning time)
 
 ---
 
-### 3.4.4 Node Readiness Controller — 노드 수준 Readiness 관리
+### 3.4.4 Node Readiness Controller -- Node-Level Readiness Management
 
-#### 개요
+#### Overview
 
-Node Readiness Controller(NRC)는 2026년 2월 Kubernetes 공식 블로그에서 발표된 알파 기능(v0.1.1)으로, 노드 수준의 인프라 준비 상태를 선언적으로 관리하는 새로운 메커니즘입니다.
+Node Readiness Controller (NRC) is an alpha feature (v0.1.1) announced on the official Kubernetes blog in February 2026. It is a new mechanism for declaratively managing node-level infrastructure readiness states.
 
-기존 Kubernetes의 노드 `Ready` 조건은 단순한 바이너리 상태(Ready/NotReady)만 제공하여, CNI 플러그인 초기화, GPU 드라이버 로딩, 스토리지 드라이버 준비 등 복잡한 인프라 의존성을 정확히 반영하지 못했습니다. NRC는 이러한 한계를 해결하기 위해 커스텀 readiness gate를 선언적으로 정의할 수 있는 `NodeReadinessRule` CRD를 제공합니다.
+The existing Kubernetes node `Ready` condition provides only a simple binary state (Ready/NotReady), which cannot accurately reflect complex infrastructure dependencies such as CNI plugin initialization, GPU driver loading, and storage driver readiness. NRC addresses these limitations by providing the `NodeReadinessRule` CRD, which allows declarative definition of custom readiness gates.
 
-**핵심 가치:**
-- **세밀한 노드 상태 제어**: 인프라 컴포넌트별 준비 상태를 독립적으로 관리
-- **자동화된 Taint 관리**: 조건이 충족되지 않으면 자동으로 NoSchedule Taint 적용
-- **유연한 모니터링 모드**: 부트스트랩 전용, 지속 모니터링, Dry-run 모드 지원
-- **선택적 적용**: nodeSelector로 특정 노드 그룹에만 규칙 적용
+**Core Value:**
+- **Fine-grained node state control**: Independently manage readiness state per infrastructure component
+- **Automated Taint management**: Automatically apply NoSchedule Taints when conditions are not met
+- **Flexible monitoring modes**: Support for bootstrap-only, continuous monitoring, and dry-run modes
+- **Selective application**: Apply rules to specific node groups only using nodeSelector
 
-**API 정보:**
+**API Information:**
 - API Group: `readiness.node.x-k8s.io/v1alpha1`
 - Kind: `NodeReadinessRule`
-- 공식 문서: https://node-readiness-controller.sigs.k8s.io/
+- Official documentation: https://node-readiness-controller.sigs.k8s.io/
 
-#### 핵심 기능
+#### Core Features
 
-##### 1. Continuous 모드 - 지속 모니터링
+##### 1. Continuous Mode - Ongoing Monitoring
 
-노드 라이프사이클 전체에서 지정된 조건을 지속적으로 모니터링합니다. 인프라 컴포넌트가 런타임 중 실패할 경우 (예: GPU 드라이버 크래시) 즉시 Taint를 적용하여 새로운 Pod 스케줄링을 차단합니다.
+Continuously monitors specified conditions throughout the entire node lifecycle. If an infrastructure component fails at runtime (e.g., GPU driver crash), it immediately applies a Taint to block new Pod scheduling.
 
-**사용 사례:**
-- GPU 드라이버 상태 모니터링
-- 네트워크 플러그인 지속 헬스체크
-- 스토리지 드라이버 가용성 확인
+**Use Cases:**
+- GPU driver status monitoring
+- Network plugin continuous health checks
+- Storage driver availability verification
 
-##### 2. Bootstrap-only 모드 - 초기화 전용
+##### 2. Bootstrap-only Mode - Initialization Only
 
-노드 초기화 단계에서만 조건을 확인하고, 조건이 충족되면 모니터링을 중단합니다. 부트스트랩 이후에는 조건 변경에 반응하지 않습니다.
+Checks conditions only during the node initialization phase, and stops monitoring once conditions are met. After bootstrap, it does not react to condition changes.
 
-**사용 사례:**
-- CNI 플러그인 초기 부트스트랩
-- 컨테이너 이미지 프리풀 완료 확인
-- 초기 보안 스캔 완료 대기
+**Use Cases:**
+- CNI plugin initial bootstrap
+- Container image pre-pull completion verification
+- Waiting for initial security scan completion
 
-##### 3. Dry-run 모드 - 안전한 검증
+##### 3. Dry-run Mode - Safe Validation
 
-실제 Taint 적용 없이 규칙 동작을 시뮬레이션합니다. 프로덕션 배포 전 규칙 검증에 유용합니다.
+Simulates rule behavior without actually applying Taints. Useful for validating rules before production deployment.
 
-**사용 사례:**
-- 새로운 NodeReadinessRule 테스트
-- 조건 변경 영향 분석
-- 디버깅 및 문제 진단
+**Use Cases:**
+- Testing new NodeReadinessRules
+- Analyzing the impact of condition changes
+- Debugging and problem diagnosis
 
-##### 4. nodeSelector - 타겟 노드 선택
+##### 4. nodeSelector - Target Node Selection
 
-라벨 기반으로 특정 노드 그룹에만 규칙을 적용합니다. GPU 노드와 범용 노드에 서로 다른 readiness 규칙을 적용할 수 있습니다.
+Applies rules only to specific node groups based on labels. Different readiness rules can be applied to GPU nodes versus general-purpose nodes.
 
-#### YAML 예시
+#### YAML Examples
 
-##### CNI 부트스트랩 - Bootstrap-only 모드
+##### CNI Bootstrap - Bootstrap-only Mode
 
 ```yaml
 apiVersion: readiness.node.x-k8s.io/v1alpha1
@@ -3294,33 +3293,33 @@ metadata:
   name: network-readiness-rule
   namespace: kube-system
 spec:
-  # 확인할 노드 조건
+  # Node condition to check
   conditions:
     - type: "cniplugin.example.net/NetworkReady"
       requiredStatus: "True"
 
-  # 조건 미충족 시 적용할 Taint
+  # Taint to apply when condition is not met
   taint:
     key: "readiness.k8s.io/acme.com/network-unavailable"
     effect: "NoSchedule"
     value: "pending"
 
-  # 부트스트랩 완료 후 모니터링 중단
+  # Stop monitoring after bootstrap completion
   enforcementMode: "bootstrap-only"
 
-  # 워커 노드에만 적용
+  # Apply only to worker nodes
   nodeSelector:
     matchLabels:
       node-role.kubernetes.io/worker: ""
 ```
 
-**동작 흐름:**
-1. 새 노드가 클러스터에 조인하면 NRC가 자동으로 Taint 적용
-2. CNI 플러그인이 초기화 완료 후 `NetworkReady=True` 조건 설정
-3. NRC가 조건 확인 후 Taint 제거
-4. Pod 스케줄링 가능 (이후 CNI 상태 변경 무시)
+**Behavior Flow:**
+1. When a new node joins the cluster, NRC automatically applies the Taint
+2. After the CNI plugin completes initialization, it sets the `NetworkReady=True` condition
+3. NRC verifies the condition and removes the Taint
+4. Pod scheduling becomes possible (subsequent CNI state changes are ignored)
 
-##### GPU 노드 Continuous 모니터링
+##### GPU Node Continuous Monitoring
 
 ```yaml
 apiVersion: readiness.node.x-k8s.io/v1alpha1
@@ -3338,25 +3337,25 @@ spec:
     effect: "NoSchedule"
     value: "driver-not-ready"
 
-  # 런타임 중에도 지속 모니터링
+  # Continuous monitoring during runtime
   enforcementMode: "continuous"
 
-  # GPU 노드에만 적용
+  # Apply only to GPU nodes
   nodeSelector:
     matchLabels:
       nvidia.com/gpu.present: "true"
 ```
 
-**동작 흐름:**
-1. GPU 노드 시작 시 Taint 자동 적용
-2. NVIDIA 드라이버 데몬이 GPU 초기화 완료 후 조건 설정
-3. NRC가 Taint 제거, AI 워크로드 스케줄링 가능
-4. **런타임 중 드라이버 크래시 발생 시:**
-   - 조건이 `False`로 변경
-   - NRC가 즉시 Taint 재적용
-   - 기존 Pod는 유지, 신규 Pod 스케줄링 차단
+**Behavior Flow:**
+1. Taint is automatically applied when GPU node starts
+2. NVIDIA driver daemon sets the condition after GPU initialization completes
+3. NRC removes the Taint, enabling AI workload scheduling
+4. **If a driver crash occurs at runtime:**
+   - Condition changes to `False`
+   - NRC immediately reapplies the Taint
+   - Existing Pods are maintained, but new Pod scheduling is blocked
 
-##### EBS CSI 드라이버 준비 확인
+##### EBS CSI Driver Readiness Check
 
 ```yaml
 apiVersion: readiness.node.x-k8s.io/v1alpha1
@@ -3376,13 +3375,13 @@ spec:
 
   enforcementMode: "bootstrap-only"
 
-  # 스토리지 워크로드 전용 노드에만 적용
+  # Apply only to nodes dedicated to storage workloads
   nodeSelector:
     matchLabels:
       workload-type: "stateful"
 ```
 
-##### Dry-run 모드 - 테스트 규칙
+##### Dry-run Mode - Test Rules
 
 ```yaml
 apiVersion: readiness.node.x-k8s.io/v1alpha1
@@ -3400,7 +3399,7 @@ spec:
     effect: "NoSchedule"
     value: "testing"
 
-  # Taint 적용 없이 동작만 로깅
+  # Log behavior only without applying Taints
   enforcementMode: "dry-run"
 
   nodeSelector:
@@ -3408,14 +3407,14 @@ spec:
       environment: "staging"
 ```
 
-#### EKS 적용 시나리오
+#### EKS Application Scenarios
 
-##### 1. VPC CNI 초기화 대기
+##### 1. VPC CNI Initialization Wait
 
-**문제:**
-노드가 클러스터에 조인한 직후 VPC CNI 플러그인이 완전히 초기화되기 전에 Pod이 스케줄링되면 네트워크 연결 실패가 발생합니다.
+**Problem:**
+If Pods are scheduled immediately after a node joins the cluster, before the VPC CNI plugin is fully initialized, network connectivity failures occur.
 
-**해결:**
+**Solution:**
 ```yaml
 apiVersion: readiness.node.x-k8s.io/v1alpha1
 kind: NodeReadinessRule
@@ -3433,9 +3432,9 @@ spec:
   enforcementMode: "bootstrap-only"
 ```
 
-**VPC CNI 데몬셋에서 조건 설정:**
+**Setting the Condition in the VPC CNI DaemonSet:**
 ```yaml
-# aws-node DaemonSet의 init container
+# Init container in the aws-node DaemonSet
 initContainers:
 - name: set-node-condition
   image: bitnami/kubectl:latest
@@ -3443,13 +3442,13 @@ initContainers:
   - /bin/sh
   - -c
   - |
-    # CNI 초기화 대기
+    # Wait for CNI initialization
     until [ -f /host/etc/cni/net.d/10-aws.conflist ]; do
       echo "Waiting for CNI config..."
       sleep 2
     done
 
-    # Node Condition 설정
+    # Set Node Condition
     kubectl patch node $NODE_NAME --type=json -p='[
       {
         "op": "add",
@@ -3470,12 +3469,12 @@ initContainers:
         fieldPath: spec.nodeName
 ```
 
-##### 2. GPU 노드 NVIDIA 드라이버 준비
+##### 2. GPU Node NVIDIA Driver Readiness
 
-**문제:**
-GPU 워크로드가 NVIDIA 드라이버 로딩 완료 전에 스케줄링되면 CUDA 초기화 실패로 Pod이 CrashLoopBackOff 상태에 빠집니다.
+**Problem:**
+If GPU workloads are scheduled before NVIDIA driver loading completes, CUDA initialization fails and Pods enter a CrashLoopBackOff state.
 
-**해결:**
+**Solution:**
 ```yaml
 apiVersion: readiness.node.x-k8s.io/v1alpha1
 kind: NodeReadinessRule
@@ -3498,35 +3497,35 @@ spec:
       node.kubernetes.io/instance-type: "g5.xlarge"
 ```
 
-**NVIDIA Device Plugin에서 조건 설정:**
+**Setting Conditions in the NVIDIA Device Plugin:**
 ```go
-// NVIDIA Device Plugin의 헬스체크 로직
+// Health check logic in the NVIDIA Device Plugin
 func updateNodeCondition(nodeName string) error {
-    // GPU 드라이버 상태 확인
+    // Check GPU driver status
     version, err := nvml.SystemGetDriverVersion()
     if err != nil {
         return setCondition(nodeName, "nvidia.com/gpu-driver-ready", "False")
     }
 
-    // Device Plugin 상태 확인
+    // Check Device Plugin status
     devices, err := nvml.DeviceGetCount()
     if err != nil || devices == 0 {
         return setCondition(nodeName, "nvidia.com/gpu-device-plugin-ready", "False")
     }
 
-    // 모두 정상이면 True로 설정
+    // Set to True if everything is healthy
     setCondition(nodeName, "nvidia.com/gpu-driver-ready", "True")
     setCondition(nodeName, "nvidia.com/gpu-device-plugin-ready", "True")
     return nil
 }
 ```
 
-##### 3. Node Problem Detector 통합
+##### 3. Node Problem Detector Integration
 
-**문제:**
-노드에서 하드웨어 오류, 커널 데드락, 네트워크 문제 등이 발생해도 Kubernetes가 자동으로 Pod 스케줄링을 차단하지 않습니다.
+**Problem:**
+Even when hardware errors, kernel deadlocks, or network issues occur on a node, Kubernetes does not automatically block Pod scheduling.
 
-**해결:**
+**Solution:**
 ```yaml
 apiVersion: readiness.node.x-k8s.io/v1alpha1
 kind: NodeReadinessRule
@@ -3536,7 +3535,7 @@ metadata:
 spec:
   conditions:
     - type: "KernelDeadlock"
-      requiredStatus: "False"  # False이어야 정상
+      requiredStatus: "False"  # False means healthy
     - type: "DiskPressure"
       requiredStatus: "False"
     - type: "NetworkUnavailable"
@@ -3548,63 +3547,63 @@ spec:
   enforcementMode: "continuous"
 ```
 
-#### 워크플로우 다이어그램
+#### Workflow Diagram
 
 ```mermaid
 sequenceDiagram
-    participant Node as 새 노드
+    participant Node as New Node
     participant NRC as Node Readiness<br/>Controller
     participant CNI as CNI Plugin
     participant Scheduler as kube-scheduler
     participant Pod as Pod
 
-    Note over Node: 노드 클러스터 조인
+    Note over Node: Node joins cluster
 
-    Node->>NRC: 노드 등록 이벤트
-    NRC->>NRC: NodeReadinessRule 확인
-    NRC->>Node: Taint 자동 적용<br/>(network-unavailable=pending:NoSchedule)
+    Node->>NRC: Node registration event
+    NRC->>NRC: Check NodeReadinessRules
+    NRC->>Node: Automatically apply Taint<br/>(network-unavailable=pending:NoSchedule)
 
-    Note over Node,CNI: 인프라 컴포넌트 초기화 중
+    Note over Node,CNI: Infrastructure components initializing
 
-    CNI->>CNI: VPC CNI 초기화 시작
-    CNI->>CNI: ENI 할당 완료
-    CNI->>CNI: IP 주소 풀 준비
-    CNI->>Node: Node Condition 업데이트<br/>(CNIReady=True)
+    CNI->>CNI: VPC CNI initialization starts
+    CNI->>CNI: ENI allocation complete
+    CNI->>CNI: IP address pool ready
+    CNI->>Node: Update Node Condition<br/>(CNIReady=True)
 
-    NRC->>Node: Condition 변경 감지
-    NRC->>NRC: requiredStatus 확인 (True == True)
-    NRC->>Node: Taint 제거
+    NRC->>Node: Detect Condition change
+    NRC->>NRC: Verify requiredStatus (True == True)
+    NRC->>Node: Remove Taint
 
-    Note over Node: Pod 스케줄링 가능 상태
+    Note over Node: Node ready for Pod scheduling
 
-    Scheduler->>Node: Pod 스케줄링 가능 확인
-    Scheduler->>Pod: Pod를 노드에 할당
-    Pod->>Node: Pod 시작 및 네트워크 연결 성공
+    Scheduler->>Node: Confirm Pod scheduling available
+    Scheduler->>Pod: Assign Pod to node
+    Pod->>Node: Pod starts and network connection succeeds
 
-    Note over Node,Pod: 정상 운영 중
+    Note over Node,Pod: Normal operation
 
-    alt Continuous 모드인 경우
-        CNI->>CNI: 런타임 중 드라이버 크래시
-        CNI->>Node: Condition 변경<br/>(CNIReady=False)
-        NRC->>Node: Condition 변경 감지
-        NRC->>Node: Taint 재적용
-        Note over Scheduler: 신규 Pod 스케줄링 차단<br/>(기존 Pod는 유지)
-    else Bootstrap-only 모드인 경우
-        Note over NRC: Condition 변경 무시<br/>(모니터링 중단됨)
+    alt Continuous Mode
+        CNI->>CNI: Runtime driver crash
+        CNI->>Node: Condition change<br/>(CNIReady=False)
+        NRC->>Node: Detect Condition change
+        NRC->>Node: Reapply Taint
+        Note over Scheduler: New Pod scheduling blocked<br/>(existing Pods maintained)
+    else Bootstrap-only Mode
+        Note over NRC: Condition change ignored<br/>(monitoring stopped)
     end
 ```
 
-#### Pod Readiness와의 관계
+#### Relationship with Pod Readiness
 
-Kubernetes의 Readiness 메커니즘은 이제 3계층 구조로 완성됩니다:
+Kubernetes Readiness mechanisms now form a complete 3-layer structure:
 
-| 계층 | 메커니즘 | 범위 | 실패 시 동작 | 사용 사례 |
-|------|---------|------|-------------|----------|
-| **1. 컨테이너** | Readiness Probe | 컨테이너 내부 헬스체크 | Service Endpoint 제거 | 애플리케이션 준비 상태 확인 |
-| **2. Pod** | Readiness Gate | Pod 수준 외부 조건 | Service Endpoint 제거 | ALB/NLB 헬스체크 통합 |
-| **3. 노드** | Node Readiness Controller | 노드 인프라 조건 | Pod 스케줄링 차단 (Taint) | CNI, GPU, 스토리지 준비 확인 |
+| Layer | Mechanism | Scope | Failure Behavior | Use Case |
+|-------|-----------|-------|-----------------|----------|
+| **1. Container** | Readiness Probe | Container-internal health check | Remove from Service Endpoint | Verify application readiness |
+| **2. Pod** | Readiness Gate | Pod-level external condition | Remove from Service Endpoint | ALB/NLB health check integration |
+| **3. Node** | Node Readiness Controller | Node infrastructure condition | Block Pod scheduling (Taint) | CNI, GPU, storage readiness verification |
 
-**통합 시나리오 - 완전한 트래픽 안전성:**
+**Integration Scenario - Complete Traffic Safety:**
 
 ```yaml
 apiVersion: apps/v1
@@ -3615,11 +3614,11 @@ spec:
   replicas: 3
   template:
     spec:
-      # 3계층 Readiness 적용
+      # 3-layer Readiness applied
       containers:
       - name: app
         image: myapp:v2
-        # 1계층: 컨테이너 Readiness Probe
+        # Layer 1: Container Readiness Probe
         readinessProbe:
           httpGet:
             path: /ready
@@ -3627,37 +3626,37 @@ spec:
           periodSeconds: 5
           failureThreshold: 2
 
-      # 2계층: Pod Readiness Gate
+      # Layer 2: Pod Readiness Gate
       readinessGates:
       - conditionType: "target-health.alb.ingress.k8s.aws/production-alb"
 
-      # 3계층: Node Readiness (NodeReadinessRule로 자동 처리)
-      # - 노드의 CNI, GPU, 스토리지 준비 상태 확인
-      # - Taint가 없는 노드에만 스케줄링됨
+      # Layer 3: Node Readiness (automatically handled by NodeReadinessRule)
+      # - Checks CNI, GPU, storage readiness state on the node
+      # - Pods are only scheduled on nodes without Taints
 ```
 
-**트래픽 수신 체크리스트:**
+**Traffic Reception Checklist:**
 
 ```mermaid
 flowchart TD
-    START[Pod 생성]
+    START[Pod Created]
 
-    START --> NODE_CHECK{노드 준비 완료?<br/>Node Readiness}
-    NODE_CHECK -->|Taint 있음| WAIT_NODE[스케줄링 대기]
+    START --> NODE_CHECK{Node Ready?<br/>Node Readiness}
+    NODE_CHECK -->|Taint Present| WAIT_NODE[Waiting for Scheduling]
     WAIT_NODE --> NODE_CHECK
-    NODE_CHECK -->|Taint 없음| SCHEDULE[Pod 스케줄링]
+    NODE_CHECK -->|No Taint| SCHEDULE[Pod Scheduled]
 
-    SCHEDULE --> POD_START[Pod 시작]
-    POD_START --> CONTAINER_CHECK{컨테이너 준비?<br/>Readiness Probe}
-    CONTAINER_CHECK -->|실패| WAIT_CONTAINER[Endpoint 미등록]
+    SCHEDULE --> POD_START[Pod Starts]
+    POD_START --> CONTAINER_CHECK{Container Ready?<br/>Readiness Probe}
+    CONTAINER_CHECK -->|Failed| WAIT_CONTAINER[Endpoint Not Registered]
     WAIT_CONTAINER --> CONTAINER_CHECK
-    CONTAINER_CHECK -->|성공| GATE_CHECK{Pod Gate 통과?<br/>Readiness Gate}
+    CONTAINER_CHECK -->|Succeeded| GATE_CHECK{Pod Gate Passed?<br/>Readiness Gate}
 
-    GATE_CHECK -->|실패| WAIT_GATE[Endpoint 미등록]
+    GATE_CHECK -->|Failed| WAIT_GATE[Endpoint Not Registered]
     WAIT_GATE --> GATE_CHECK
-    GATE_CHECK -->|성공| READY[Service Endpoint 등록]
+    GATE_CHECK -->|Succeeded| READY[Service Endpoint Registered]
 
-    READY --> TRAFFIC[트래픽 수신 시작]
+    READY --> TRAFFIC[Traffic Reception Begins]
 
     style NODE_CHECK fill:#fbbc04,stroke:#c99603,color:#000
     style CONTAINER_CHECK fill:#fbbc04,stroke:#c99603,color:#000
@@ -3666,12 +3665,12 @@ flowchart TD
     style TRAFFIC fill:#4286f4,stroke:#2a6acf,color:#fff
 ```
 
-#### 설치 및 설정
+#### Installation and Configuration
 
-##### 1. Node Readiness Controller 설치
+##### 1. Install Node Readiness Controller
 
 ```bash
-# Helm으로 설치
+# Install via Helm
 helm repo add node-readiness-controller https://node-readiness-controller.sigs.k8s.io
 helm repo update
 
@@ -3680,54 +3679,54 @@ helm install node-readiness-controller \
   --namespace kube-system \
   --create-namespace
 
-# 또는 Kustomize로 설치
+# Or install via Kustomize
 kubectl apply -k https://github.com/kubernetes-sigs/node-readiness-controller/config/default
 ```
 
-##### 2. 설치 확인
+##### 2. Verify Installation
 
 ```bash
-# Controller Pod 상태 확인
+# Check Controller Pod status
 kubectl get pods -n kube-system -l app=node-readiness-controller
 
-# CRD 확인
+# Verify CRD
 kubectl get crd nodereadinessrules.readiness.node.x-k8s.io
 
-# 샘플 규칙 적용
+# Apply sample rule
 kubectl apply -f https://raw.githubusercontent.com/kubernetes-sigs/node-readiness-controller/main/examples/basic-rule.yaml
 
-# 규칙 목록 확인
+# List rules
 kubectl get nodereadinessrules -A
 ```
 
-##### 3. 노드 상태 확인
+##### 3. Verify Node Status
 
 ```bash
-# 특정 노드의 Condition 확인
+# Check Conditions for a specific node
 kubectl get node <node-name> -o jsonpath='{.status.conditions}' | jq
 
-# 특정 Condition만 필터링
+# Filter for a specific Condition
 kubectl get node <node-name> -o jsonpath='{.status.conditions[?(@.type=="CNIReady")]}' | jq
 
-# 모든 노드의 Taint 확인
+# Check Taints on all nodes
 kubectl get nodes -o custom-columns=NAME:.metadata.name,TAINTS:.spec.taints
 ```
 
-#### 디버깅 및 트러블슈팅
+#### Debugging and Troubleshooting
 
-##### Taint가 제거되지 않는 경우
+##### When a Taint Is Not Removed
 
 ```bash
-# 1. NodeReadinessRule 이벤트 확인
+# 1. Check NodeReadinessRule events
 kubectl describe nodereadinessrule <rule-name> -n kube-system
 
-# 2. 노드 Condition 상태 확인
+# 2. Check node Condition status
 kubectl get node <node-name> -o yaml | grep -A 10 conditions
 
-# 3. Controller 로그 확인
+# 3. Check Controller logs
 kubectl logs -n kube-system -l app=node-readiness-controller --tail=100
 
-# 4. 수동으로 Condition 설정 (테스트용)
+# 4. Manually set Condition (for testing)
 kubectl patch node <node-name> --type=json -p='[
   {
     "op": "add",
@@ -3743,60 +3742,60 @@ kubectl patch node <node-name> --type=json -p='[
 ]'
 ```
 
-##### Dry-run 모드로 규칙 테스트
+##### Test Rules with Dry-run Mode
 
 ```bash
-# 기존 규칙을 dry-run으로 변경
+# Change existing rule to dry-run
 kubectl patch nodereadinessrule <rule-name> -n kube-system \
   --type=merge \
   -p '{"spec":{"enforcementMode":"dry-run"}}'
 
-# Controller 로그에서 동작 확인
+# Verify behavior in Controller logs
 kubectl logs -n kube-system -l app=node-readiness-controller -f | grep "dry-run"
 
-# 테스트 완료 후 원래 모드로 복구
+# Restore original mode after testing
 kubectl patch nodereadinessrule <rule-name> -n kube-system \
   --type=merge \
   -p '{"spec":{"enforcementMode":"continuous"}}'
 ```
 
-:::info 알파 기능 주의사항
-Node Readiness Controller는 현재 v0.1.1 알파 버전입니다. 프로덕션 환경에 적용하기 전에:
-- 스테이징 환경에서 충분한 테스트 수행
-- Dry-run 모드로 규칙 동작 검증
-- Controller 로그 모니터링 설정
-- 문제 발생 시 수동으로 Taint 제거할 수 있는 절차 준비
+:::info Alpha Feature Notice
+Node Readiness Controller is currently at v0.1.1 alpha. Before applying to production environments:
+- Perform thorough testing in staging environments
+- Validate rule behavior using dry-run mode
+- Set up Controller log monitoring
+- Prepare procedures to manually remove Taints in case of issues
 :::
 
-:::tip 운영 Best Practice
-1. **Bootstrap-only 우선 사용**: 대부분의 경우 부트스트랩 전용 모드로 충분합니다. Continuous 모드는 런타임 중 장애가 빈번한 컴포넌트(GPU 드라이버 등)에만 사용하세요.
-2. **nodeSelector 적극 활용**: 모든 노드에 동일한 규칙을 적용하지 말고, 워크로드 유형별로 세분화하세요.
-3. **Node Problem Detector 통합**: NRC와 NPD를 함께 사용하면 하드웨어/OS 수준 문제까지 자동 대응할 수 있습니다.
-4. **모니터링 및 알림**: Taint 적용/제거 이벤트를 CloudWatch나 Prometheus로 수집하고, 장시간 Taint가 유지되면 알림을 받도록 설정하세요.
+:::tip Operational Best Practice
+1. **Prefer bootstrap-only**: In most cases, bootstrap-only mode is sufficient. Use continuous mode only for components that frequently fail at runtime (such as GPU drivers).
+2. **Make active use of nodeSelector**: Do not apply the same rules to all nodes; instead, segment by workload type.
+3. **Integrate with Node Problem Detector**: Using NRC together with NPD enables automated response to hardware/OS-level issues.
+4. **Monitoring and alerting**: Collect Taint apply/remove events in CloudWatch or Prometheus, and configure alerts when a Taint persists for an extended period.
 :::
 
-:::warning PDB와의 충돌 주의
-Node Readiness Controller가 Taint를 적용하면 해당 노드의 Pod이 새로 생성되지 않습니다. 만약 여러 노드에서 동시에 Taint가 적용되고 PodDisruptionBudget이 엄격하게 설정되어 있으면, 클러스터 전체의 워크로드 배치가 블로킹될 수 있습니다. 규칙 설계 시 PDB 정책을 함께 검토하세요.
+:::warning Watch for PDB Conflicts
+When the Node Readiness Controller applies a Taint, new Pods will not be created on that node. If Taints are applied to multiple nodes simultaneously and PodDisruptionBudgets are configured strictly, workload placement across the entire cluster may be blocked. Review PDB policies alongside rule design.
 :::
 
-#### 참조 자료
+#### References
 
-- **공식 문서**: [Node Readiness Controller](https://node-readiness-controller.sigs.k8s.io/)
+- **Official Documentation**: [Node Readiness Controller](https://node-readiness-controller.sigs.k8s.io/)
 - **Kubernetes Blog**: [Introducing Node Readiness Controller](https://kubernetes.io/blog/2026/02/03/introducing-node-readiness-controller/)
 - **GitHub Repository**: [kubernetes-sigs/node-readiness-controller](https://github.com/kubernetes-sigs/node-readiness-controller)
 
 ---
 
-### 3.5 Fargate Pod 라이프사이클 특수 고려사항
+### 3.5 Fargate Pod Lifecycle Special Considerations
 
-AWS Fargate는 서버리스 컴퓨팅 엔진으로, 노드 관리 없이 Pod을 실행합니다. Fargate Pod은 EC2 기반 Pod과 다른 라이프사이클 특성을 가집니다.
+AWS Fargate is a serverless compute engine that runs Pods without node management. Fargate Pods have different lifecycle characteristics compared to EC2-based Pods.
 
-#### Fargate vs EC2 vs Auto Mode 아키텍처 비교
+#### Fargate vs EC2 vs Auto Mode Architecture Comparison
 
 ```mermaid
 flowchart TB
     subgraph EC2["EC2 Managed Node Group"]
-        EC2Node[EC2 인스턴스]
+        EC2Node[EC2 Instance]
         EC2Kubelet[kubelet]
         EC2Pod1[Pod 1]
         EC2Pod2[Pod 2]
@@ -3809,19 +3808,19 @@ flowchart TB
     end
 
     subgraph Fargate["Fargate"]
-        FGPod1[Pod 1<br/>전용 MicroVM]
-        FGPod2[Pod 2<br/>전용 MicroVM]
-        FGPod3[Pod 3<br/>전용 MicroVM]
+        FGPod1[Pod 1<br/>Dedicated MicroVM]
+        FGPod2[Pod 2<br/>Dedicated MicroVM]
+        FGPod3[Pod 3<br/>Dedicated MicroVM]
     end
 
     subgraph AutoMode["EKS Auto Mode"]
-        AutoNode[AWS 관리형 인스턴스]
-        AutoKubelet[kubelet<br/>자동 관리]
+        AutoNode[AWS Managed Instance]
+        AutoKubelet[kubelet<br/>Auto-managed]
         AutoPod1[Pod 1]
         AutoPod2[Pod 2]
         AutoPod3[Pod 3]
 
-        AutoNode -.->|AWS 소유| AutoKubelet
+        AutoNode -.->|AWS Owned| AutoKubelet
         AutoKubelet --> AutoPod1
         AutoKubelet --> AutoPod2
         AutoKubelet --> AutoPod3
@@ -3832,24 +3831,24 @@ flowchart TB
     style AutoMode fill:#34a853,stroke:#2a8642
 ```
 
-#### Fargate Pod OS 패치 자동 Eviction
+#### Fargate Pod OS Patch Auto-Eviction
 
-Fargate는 보안 패치를 위해 주기적으로 Pod을 자동 evict합니다.
+Fargate periodically auto-evicts Pods for security patching.
 
-**동작 방식:**
+**How It Works:**
 
-1. **패치 가용성 감지**: AWS가 새로운 OS/런타임 패치 감지
-2. **Graceful Eviction**: Fargate가 Pod에 SIGTERM 전송 → `terminationGracePeriodSeconds` 내에 종료 대기
-3. **강제 종료**: Timeout 시 SIGKILL 전송
-4. **재스케줄링**: Kubernetes가 새로운 Fargate Pod에 재스케줄링 (업데이트된 런타임 사용)
+1. **Patch availability detection**: AWS detects a new OS/runtime patch
+2. **Graceful Eviction**: Fargate sends SIGTERM to the Pod → waits for shutdown within `terminationGracePeriodSeconds`
+3. **Forced termination**: Sends SIGKILL on timeout
+4. **Rescheduling**: Kubernetes reschedules to a new Fargate Pod (using the updated runtime)
 
-**주요 특징:**
+**Key Characteristics:**
 
-- **예측 불가능한 타이밍**: 사용자가 제어할 수 없음 (AWS 관리)
-- **사전 알림 없음**: EC2 Scheduled Events와 달리 사전 경고 없음
-- **자동 재시작**: PodDisruptionBudget(PDB) 존중하지만, 보안 패치는 우선순위 높음
+- **Unpredictable timing**: Users cannot control it (AWS managed)
+- **No advance notice**: Unlike EC2 Scheduled Events, there is no prior warning
+- **Automatic restart**: Respects PodDisruptionBudget (PDB), but security patches have higher priority
 
-**대응 전략:**
+**Mitigation Strategy:**
 
 ```yaml
 apiVersion: apps/v1
@@ -3858,7 +3857,7 @@ metadata:
   name: fargate-app
   namespace: fargate-namespace
 spec:
-  replicas: 3  # 최소 3개 이상 권장 (자동 eviction 대비)
+  replicas: 3  # Recommend at least 3 (to handle auto-eviction)
   selector:
     matchLabels:
       app: fargate-app
@@ -3896,11 +3895,11 @@ spec:
               command:
               - /bin/sh
               - -c
-              - sleep 10  # Fargate eviction 대비 더 긴 대기
-      # Fargate는 시작 시간이 길 수 있음
+              - sleep 10  # Longer wait for Fargate eviction
+      # Fargate may have longer startup times
       terminationGracePeriodSeconds: 60
 ---
-# PDB로 동시 eviction 제한 (최선 노력, 보안 패치 시 무시될 수 있음)
+# PDB to limit concurrent eviction (best effort; may be ignored for security patches)
 apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
@@ -3913,22 +3912,22 @@ spec:
       app: fargate-app
 ```
 
-:::warning Fargate PDB 제한
-Fargate는 PDB를 **최선 노력(best effort)** 으로만 존중합니다. 중요한 보안 패치의 경우 PDB를 무시하고 강제 eviction할 수 있습니다. 따라서 Fargate 환경에서는 **최소 3개 이상의 replica**로 고가용성을 보장해야 합니다.
+:::warning Fargate PDB Limitations
+Fargate respects PDB on a **best effort** basis only. For critical security patches, it may ignore PDB and force eviction. Therefore, in Fargate environments, ensure high availability with **at least 3 replicas**.
 :::
 
-#### Fargate Pod 시작 시간 특성
+#### Fargate Pod Startup Time Characteristics
 
-Fargate Pod은 EC2 기반 Pod보다 시작 시간이 깁니다.
+Fargate Pods have longer startup times than EC2-based Pods.
 
-| 단계 | EC2 (Managed Node) | Fargate | 이유 |
-|------|-------------------|---------|------|
-| **노드 프로비저닝** | 0초 (이미 실행 중) | 20-40초 | MicroVM 생성 + ENI 연결 |
-| **이미지 풀** | 5-30초 | 10-60초 | 레이어 캐시 없음 (첫 실행 시) |
-| **컨테이너 시작** | 1-5초 | 1-5초 | 동일 |
-| **총 시작 시간** | 6-35초 | 31-105초 | Fargate 오버헤드 추가 |
+| Stage | EC2 (Managed Node) | Fargate | Reason |
+|-------|-------------------|---------|--------|
+| **Node provisioning** | 0s (already running) | 20-40s | MicroVM creation + ENI attachment |
+| **Image pull** | 5-30s | 10-60s | No layer cache (on first run) |
+| **Container start** | 1-5s | 1-5s | Same |
+| **Total startup time** | 6-35s | 31-105s | Additional Fargate overhead |
 
-**Startup Probe 조정 예시:**
+**Startup Probe Adjustment Example:**
 
 ```yaml
 # EC2 Pod
@@ -3936,19 +3935,19 @@ startupProbe:
   httpGet:
     path: /healthz
     port: 8080
-  failureThreshold: 6   # 6 × 5초 = 30초
+  failureThreshold: 6   # 6 x 5s = 30s
   periodSeconds: 5
 
-# Fargate Pod (더 긴 시간 허용)
+# Fargate Pod (allow longer time)
 startupProbe:
   httpGet:
     path: /healthz
     port: 8080
-  failureThreshold: 20  # 20 × 5초 = 100초
+  failureThreshold: 20  # 20 x 5s = 100s
   periodSeconds: 5
 ```
 
-**이미지 풀 최적화 (Fargate):**
+**Image Pull Optimization (Fargate):**
 
 ```yaml
 apiVersion: v1
@@ -3960,29 +3959,29 @@ spec:
   containers:
   - name: app
     image: 123456789012.dkr.ecr.us-east-1.amazonaws.com/myapp:v1
-    imagePullPolicy: IfNotPresent  # Always 대신 IfNotPresent 권장
+    imagePullPolicy: IfNotPresent  # Recommend IfNotPresent instead of Always
   imagePullSecrets:
   - name: ecr-secret
 ```
 
-:::tip Fargate 이미지 캐싱
-Fargate는 동일 이미지를 반복 사용 시 레이어 캐싱을 수행하지만, **Pod이 evict되면 캐시가 사라집니다**. ECR Image Scanning과 Image Replication을 활용하여 이미지 풀 시간을 단축하세요.
+:::tip Fargate Image Caching
+Fargate performs layer caching when the same image is used repeatedly, but **the cache is lost when the Pod is evicted**. Use ECR Image Scanning and Image Replication to reduce image pull times.
 :::
 
-#### Fargate DaemonSet 미지원으로 인한 사이드카 패턴
+#### Sidecar Pattern Due to Fargate DaemonSet Limitation
 
-Fargate는 DaemonSet을 지원하지 않으므로, 노드 레벨 에이전트가 필요한 경우 사이드카 패턴을 사용해야 합니다.
+Fargate does not support DaemonSets, so the sidecar pattern must be used when node-level agents are needed.
 
-**EC2 vs Fargate 모니터링 패턴 비교:**
+**EC2 vs Fargate Monitoring Pattern Comparison:**
 
-| 기능 | EC2 (DaemonSet) | Fargate (Sidecar) |
-|------|----------------|-------------------|
-| **로그 수집** | Fluent Bit DaemonSet | Fluent Bit Sidecar + FireLens |
-| **메트릭 수집** | CloudWatch Agent DaemonSet | CloudWatch Agent Sidecar |
-| **보안 스캔** | Falco DaemonSet | Fargate는 AWS 관리 (사용자 제어 불가) |
-| **네트워크 정책** | Calico/Cilium DaemonSet | NetworkPolicy 미지원 (Security Groups for Pods 사용) |
+| Feature | EC2 (DaemonSet) | Fargate (Sidecar) |
+|---------|----------------|-------------------|
+| **Log collection** | Fluent Bit DaemonSet | Fluent Bit Sidecar + FireLens |
+| **Metrics collection** | CloudWatch Agent DaemonSet | CloudWatch Agent Sidecar |
+| **Security scanning** | Falco DaemonSet | Fargate is AWS managed (no user control) |
+| **Network policies** | Calico/Cilium DaemonSet | NetworkPolicy not supported (use Security Groups for Pods) |
 
-**Fargate 로깅 패턴 (FireLens):**
+**Fargate Logging Pattern (FireLens):**
 
 ```yaml
 apiVersion: apps/v1
@@ -4001,7 +4000,7 @@ spec:
         app: logging-app
     spec:
       containers:
-      # 메인 애플리케이션
+      # Main application
       - name: app
         image: myapp:v1
         ports:
@@ -4010,7 +4009,7 @@ spec:
           requests:
             cpu: 500m
             memory: 512Mi
-      # FireLens 로그 라우터 (사이드카)
+      # FireLens log router (sidecar)
       - name: log-router
         image: public.ecr.aws/aws-observability/aws-for-fluent-bit:stable
         resources:
@@ -4030,7 +4029,7 @@ spec:
 ```
 
 :::info CloudWatch Container Insights on Fargate
-Fargate는 CloudWatch Container Insights를 **네이티브 지원**하며, 별도 사이드카 없이 메트릭을 자동 수집합니다. Fargate 프로파일 생성 시 자동으로 활성화됩니다.
+Fargate **natively supports** CloudWatch Container Insights and automatically collects metrics without a separate sidecar. It is automatically enabled when creating a Fargate profile.
 
 ```bash
 aws eks create-fargate-profile \
@@ -4042,18 +4041,18 @@ aws eks create-fargate-profile \
 ```
 :::
 
-#### Fargate Graceful Shutdown 타이밍 권장사항
+#### Fargate Graceful Shutdown Timing Recommendations
 
-Fargate는 자동 eviction 및 긴 시작 시간으로 인해 EC2와 다른 Graceful Shutdown 전략이 필요합니다.
+Due to auto-eviction and longer startup times, Fargate requires a different Graceful Shutdown strategy compared to EC2.
 
-| 시나리오 | terminationGracePeriodSeconds | preStop sleep | 이유 |
-|---------|------------------------------|---------------|------|
-| **EC2 Pod** | 30-60초 | 5초 | Endpoints 제거 대기 |
-| **Fargate Pod (일반)** | 60-90초 | 10-15초 | 더 긴 네트워크 전파 시간 |
-| **Fargate + ALB** | 90-120초 | 15-20초 | ALB deregistration delay 고려 |
-| **Fargate 장기 작업** | 120-300초 | 10초 | 배치 작업 완료 시간 확보 |
+| Scenario | terminationGracePeriodSeconds | preStop sleep | Reason |
+|----------|------------------------------|---------------|--------|
+| **EC2 Pod** | 30-60s | 5s | Wait for Endpoints removal |
+| **Fargate Pod (general)** | 60-90s | 10-15s | Longer network propagation time |
+| **Fargate + ALB** | 90-120s | 15-20s | Account for ALB deregistration delay |
+| **Fargate long-running tasks** | 120-300s | 10s | Allow time for batch job completion |
 
-**Fargate 최적화 예시:**
+**Fargate Optimization Example:**
 
 ```yaml
 apiVersion: apps/v1
@@ -4090,55 +4089,55 @@ spec:
               - /bin/sh
               - -c
               - |
-                # Fargate는 네트워크 전파가 느릴 수 있음
+                # Fargate may have slower network propagation
                 echo "PreStop: Waiting for network propagation..."
                 sleep 15
 
-                # Readiness 실패 신호 (선택 사항)
+                # Readiness failure signal (optional)
                 # curl -X POST http://localhost:8080/shutdown
 
                 echo "PreStop: Graceful shutdown initiated"
-      terminationGracePeriodSeconds: 90  # EC2는 60초, Fargate는 90초
+      terminationGracePeriodSeconds: 90  # EC2 uses 60s, Fargate uses 90s
 ```
 
-#### Fargate vs EC2 vs Auto Mode 비교표: Probe 관점
+#### Fargate vs EC2 vs Auto Mode Comparison: Probe Perspective
 
-| 항목 | EC2 Managed Node Group | Fargate | EKS Auto Mode |
+| Item | EC2 Managed Node Group | Fargate | EKS Auto Mode |
 |------|------------------------|---------|---------------|
-| **노드 관리** | 사용자 관리 | AWS 관리 | AWS 관리 |
-| **Pod 밀도** | 높음 (여러 Pod/노드) | 낮음 (1 Pod = 1 MicroVM) | 중간 (AWS 최적화) |
-| **시작 시간** | 빠름 (5-35초) | 느림 (30-105초) | 빠름 (10-40초) |
+| **Node management** | User managed | AWS managed | AWS managed |
+| **Pod density** | High (multiple Pods/node) | Low (1 Pod = 1 MicroVM) | Medium (AWS optimized) |
+| **Startup time** | Fast (5-35s) | Slow (30-105s) | Fast (10-40s) |
 | **Startup Probe failureThreshold** | 6-10 | 15-20 | 8-12 |
-| **terminationGracePeriodSeconds** | 30-60초 | 60-120초 | 30-60초 |
-| **preStop sleep** | 5초 | 10-15초 | 5-10초 |
-| **자동 OS 패치** | 수동 (AMI 업데이트) | 자동 (예측 불가 eviction) | 자동 (계획된 eviction) |
-| **PDB 지원** | 완전 지원 | 제한적 (최선 노력) | 완전 지원 |
-| **DaemonSet 지원** | 완전 지원 | 미지원 (사이드카 필요) | 제한적 (AWS 관리) |
-| **비용 모델** | 인스턴스당 (항상 실행) | Pod당 (실행 시간만) | Pod당 (최적화됨) |
-| **Spot 지원** | 완전 지원 (Termination Handler) | Fargate Spot 제한적 | 자동 최적화 |
-| **네트워크 정책** | Calico/Cilium 지원 | Security Groups for Pods만 | AWS 관리 네트워크 정책 |
+| **terminationGracePeriodSeconds** | 30-60s | 60-120s | 30-60s |
+| **preStop sleep** | 5s | 10-15s | 5-10s |
+| **Auto OS patching** | Manual (AMI update) | Automatic (unpredictable eviction) | Automatic (planned eviction) |
+| **PDB support** | Full support | Limited (best effort) | Full support |
+| **DaemonSet support** | Full support | Not supported (sidecar required) | Limited (AWS managed) |
+| **Cost model** | Per instance (always running) | Per Pod (runtime only) | Per Pod (optimized) |
+| **Spot support** | Full support (Termination Handler) | Fargate Spot limited | Auto-optimized |
+| **Network policies** | Calico/Cilium supported | Security Groups for Pods only | AWS managed network policies |
 
-**선택 가이드:**
+**Selection Guide:**
 
 ```mermaid
 flowchart TD
-    Start[워크로드 특성 분석]
+    Start[Analyze Workload Characteristics]
 
-    Start --> Q1{노드 관리를<br/>완전히 위임?}
-    Q1 -->|예| Q2{배치 또는<br/>버스트 워크로드?}
-    Q1 -->|아니오| EC2[EC2 Managed<br/>Node Group]
+    Start --> Q1{Fully delegate<br/>node management?}
+    Q1 -->|Yes| Q2{Batch or<br/>burst workload?}
+    Q1 -->|No| EC2[EC2 Managed<br/>Node Group]
 
-    Q2 -->|예| Fargate[Fargate]
-    Q2 -->|아니오| Q3{최신 EKS 기능<br/>필요?}
+    Q2 -->|Yes| Fargate[Fargate]
+    Q2 -->|No| Q3{Need latest EKS<br/>features?}
 
-    Q3 -->|예| AutoMode[EKS Auto Mode]
-    Q3 -->|아니오| Fargate
+    Q3 -->|Yes| AutoMode[EKS Auto Mode]
+    Q3 -->|No| Fargate
 
-    EC2 --> EC2Details[<b>EC2 특징</b><br/>✓ 완전한 제어<br/>✓ DaemonSet 지원<br/>✓ 최저 레이턴시<br/>✗ 운영 오버헤드]
+    EC2 --> EC2Details[<b>EC2 Characteristics</b><br/>✓ Full control<br/>✓ DaemonSet support<br/>✓ Lowest latency<br/>✗ Operational overhead]
 
-    Fargate --> FargateDetails[<b>Fargate 특징</b><br/>✓ 노드 관리 불필요<br/>✓ 격리된 보안<br/>✗ 긴 시작 시간<br/>✗ DaemonSet 미지원]
+    Fargate --> FargateDetails[<b>Fargate Characteristics</b><br/>✓ No node management<br/>✓ Isolated security<br/>✗ Long startup time<br/>✗ No DaemonSet support]
 
-    AutoMode --> AutoDetails[<b>Auto Mode 특징</b><br/>✓ 자동 최적화<br/>✓ EC2 유연성<br/>✓ 예측 가능한 패치<br/>○ 베타/GA 전환 중]
+    AutoMode --> AutoDetails[<b>Auto Mode Characteristics</b><br/>✓ Auto-optimized<br/>✓ EC2 flexibility<br/>✓ Predictable patching<br/>○ Beta/GA transition]
 
     style Start fill:#4286f4,stroke:#2a6acf,color:#fff
     style EC2 fill:#ff9900,stroke:#cc7a00,color:#fff
@@ -4146,47 +4145,47 @@ flowchart TD
     style AutoMode fill:#34a853,stroke:#2a8642,color:#fff
 ```
 
-:::tip Fargate 프로덕션 체크리스트
-- [ ] **Replica 수**: 최소 3개 이상 (자동 eviction 대비)
-- [ ] **Startup Probe**: failureThreshold 15-20 설정 (긴 시작 시간 고려)
-- [ ] **terminationGracePeriodSeconds**: 60-120초 설정
-- [ ] **preStop sleep**: 10-15초 설정 (네트워크 전파 대기)
-- [ ] **PDB**: minAvailable 설정 (최선 노력이지만 권장)
-- [ ] **이미지 최적화**: ECR 사용, 레이어 최소화
-- [ ] **로깅**: FireLens 사이드카 또는 CloudWatch Logs 통합
-- [ ] **모니터링**: CloudWatch Container Insights 활성화
-- [ ] **비용 최적화**: Fargate Spot 검토 (장애 허용 워크로드)
+:::tip Fargate Production Checklist
+- [ ] **Replica count**: At least 3 (to handle auto-eviction)
+- [ ] **Startup Probe**: Set failureThreshold to 15-20 (accounting for longer startup time)
+- [ ] **terminationGracePeriodSeconds**: Set to 60-120 seconds
+- [ ] **preStop sleep**: Set to 10-15 seconds (wait for network propagation)
+- [ ] **PDB**: Configure minAvailable (best effort but recommended)
+- [ ] **Image optimization**: Use ECR, minimize layers
+- [ ] **Logging**: FireLens sidecar or CloudWatch Logs integration
+- [ ] **Monitoring**: Enable CloudWatch Container Insights
+- [ ] **Cost optimization**: Consider Fargate Spot (for fault-tolerant workloads)
 :::
 
-:::info 참고 자료
-- [AWS Fargate on EKS 공식 문서](https://docs.aws.amazon.com/eks/latest/userguide/fargate.html)
-- [Fargate Pod 패칭 및 보안 업데이트](https://docs.aws.amazon.com/eks/latest/userguide/fargate-pod-patching.html)
-- [EKS Auto Mode 개요](https://aws.amazon.com/blogs/aws/streamline-kubernetes-cluster-management-with-new-amazon-eks-auto-mode/)
-- [Fargate와 EC2 비교 가이드](https://aws.amazon.com/blogs/containers/)
+:::info References
+- [AWS Fargate on EKS Official Documentation](https://docs.aws.amazon.com/eks/latest/userguide/fargate.html)
+- [Fargate Pod Patching and Security Updates](https://docs.aws.amazon.com/eks/latest/userguide/fargate-pod-patching.html)
+- [EKS Auto Mode Overview](https://aws.amazon.com/blogs/aws/streamline-kubernetes-cluster-management-with-new-amazon-eks-auto-mode/)
+- [Fargate vs EC2 Comparison Guide](https://aws.amazon.com/blogs/containers/)
 :::
 
 ---
 
-## 4. Init Container 모범 사례
+## 4. Init Container Best Practices
 
-Init Container는 메인 컨테이너가 시작되기 전에 실행되어 초기화 작업을 수행합니다.
+Init Containers run before the main containers start and perform initialization tasks.
 
-### 4.1 Init Container 동작 원리
+### 4.1 How Init Containers Work
 
-- Init Container는 **순차적으로 실행**됩니다 (동시 실행 불가)
-- 각 Init Container는 성공적으로 종료해야 다음 Init Container가 시작됩니다
-- 모든 Init Container가 완료되어야 메인 컨테이너가 시작됩니다
-- Init Container 실패 시 Pod의 `restartPolicy`에 따라 재시작됩니다
+- Init Containers are executed **sequentially** (no concurrent execution)
+- Each Init Container must exit successfully before the next Init Container starts
+- All Init Containers must complete before the main containers start
+- If an Init Container fails, it restarts according to the Pod's `restartPolicy`
 
 ```mermaid
 flowchart LR
-    START[Pod 생성] --> INIT1[Init Container 1]
-    INIT1 -->|성공| INIT2[Init Container 2]
-    INIT1 -->|실패| RESTART1[재시작]
+    START[Pod Created] --> INIT1[Init Container 1]
+    INIT1 -->|Success| INIT2[Init Container 2]
+    INIT1 -->|Failure| RESTART1[Restart]
     RESTART1 --> INIT1
 
-    INIT2 -->|성공| MAIN[메인 컨테이너 시작]
-    INIT2 -->|실패| RESTART2[재시작]
+    INIT2 -->|Success| MAIN[Main Container Starts]
+    INIT2 -->|Failure| RESTART2[Restart]
     RESTART2 --> INIT1
 
     MAIN --> RUNNING[Pod Running]
@@ -4196,9 +4195,9 @@ flowchart LR
     style MAIN fill:#34a853,stroke:#2a8642,color:#fff
 ```
 
-### 4.2 Init Container 사용 사례
+### 4.2 Init Container Use Cases
 
-#### 사례 1: 데이터베이스 마이그레이션
+#### Use Case 1: Database Migration
 
 ```yaml
 apiVersion: apps/v1
@@ -4209,7 +4208,7 @@ spec:
   replicas: 3
   template:
     spec:
-      # Init Container: DB 마이그레이션
+      # Init Container: DB migration
       initContainers:
       - name: db-migration
         image: myapp/migrator:v1
@@ -4226,7 +4225,7 @@ spec:
             secretKeyRef:
               name: db-secret
               key: url
-      # 메인 애플리케이션
+      # Main application
       containers:
       - name: app
         image: myapp/web-app:v1
@@ -4234,7 +4233,7 @@ spec:
         - containerPort: 8080
 ```
 
-#### 사례 2: 설정 파일 생성 (ConfigMap 변환)
+#### Use Case 2: Configuration File Generation (ConfigMap Transformation)
 
 ```yaml
 apiVersion: v1
@@ -4263,7 +4262,7 @@ spec:
         - /bin/sh
         - -c
         - |
-          # 템플릿에서 실제 설정 파일 생성
+          # Generate actual config file from template
           sed -e "s/{{ PORT }}/$PORT/g" \
               -e "s/{{ HOST }}/$HOST/g" \
               -e "s|{{ DB_URL }}|$DB_URL|g" \
@@ -4299,7 +4298,7 @@ spec:
         emptyDir: {}
 ```
 
-#### 사례 3: 종속 서비스 대기
+#### Use Case 3: Waiting for Dependent Services
 
 ```yaml
 apiVersion: apps/v1
@@ -4310,7 +4309,7 @@ spec:
   template:
     spec:
       initContainers:
-      # Init Container 1: DB 연결 대기
+      # Init Container 1: Wait for DB connection
       - name: wait-for-db
         image: busybox
         command:
@@ -4323,7 +4322,7 @@ spec:
             sleep 2
           done
           echo "Database is ready"
-      # Init Container 2: Redis 연결 대기
+      # Init Container 2: Wait for Redis connection
       - name: wait-for-redis
         image: busybox
         command:
@@ -4343,11 +4342,11 @@ spec:
         - containerPort: 8080
 ```
 
-:::tip 더 나은 대안: readinessProbe
-종속 서비스 대기는 Init Container보다 메인 컨테이너의 Readiness Probe에서 처리하는 것이 더 유연합니다. Init Container는 한 번만 실행되므로, 메인 컨테이너 실행 중 종속 서비스가 다운되면 대응할 수 없습니다.
+:::tip A Better Alternative: readinessProbe
+Waiting for dependent services is more flexible when handled via the main container's Readiness Probe rather than Init Containers. Since Init Containers run only once, they cannot respond if a dependent service goes down while the main container is running.
 :::
 
-#### 사례 4: 볼륨 권한 설정
+#### Use Case 4: Volume Permission Setup
 
 ```yaml
 apiVersion: apps/v1
@@ -4374,7 +4373,7 @@ spec:
         - name: data
           mountPath: /data
         securityContext:
-          runAsUser: 0  # root로 실행 (권한 변경 위해)
+          runAsUser: 0  # Run as root (for permission changes)
       containers:
       - name: app
         image: myapp/app:v1
@@ -4392,16 +4391,16 @@ spec:
 
 ### 4.3 Init Container vs Sidecar Container (Kubernetes 1.29+)
 
-Kubernetes 1.29+에서는 Native Sidecar Container가 도입되었습니다.
+Native Sidecar Containers were introduced in Kubernetes 1.29+.
 
-| 특성 | Init Container | Sidecar Container (1.29+) |
-|------|---------------|---------------------------|
-| **실행 타이밍** | 메인 컨테이너 전 순차 실행 | 메인 컨테이너와 동시 실행 |
-| **라이프사이클** | 완료 후 종료 | 메인 컨테이너와 함께 실행 |
-| **재시작** | 실패 시 Pod 전체 재시작 | 개별 재시작 가능 |
-| **사용 사례** | 일회성 초기화 작업 | 지속적인 보조 작업 (로그 수집, 프록시) |
+| Characteristic | Init Container | Sidecar Container (1.29+) |
+|----------------|---------------|---------------------------|
+| **Execution timing** | Sequential execution before main containers | Concurrent execution with main containers |
+| **Lifecycle** | Exits after completion | Runs alongside main containers |
+| **Restart** | Pod-wide restart on failure | Individual restart possible |
+| **Use case** | One-time initialization tasks | Ongoing auxiliary tasks (log collection, proxy) |
 
-**Sidecar Container 예시 (K8s 1.29+):**
+**Sidecar Container Example (K8s 1.29+):**
 
 ```yaml
 apiVersion: v1
@@ -4410,10 +4409,10 @@ metadata:
   name: app-with-sidecar
 spec:
   initContainers:
-  # Native sidecar: restartPolicy를 Always로 설정
+  # Native sidecar: set restartPolicy to Always
   - name: log-collector
     image: fluent/fluent-bit:2.0
-    restartPolicy: Always  # Sidecar로 동작
+    restartPolicy: Always  # Operates as a sidecar
     volumeMounts:
     - name: logs
       mountPath: /var/log/app
@@ -4429,19 +4428,18 @@ spec:
 ```
 
 ---
-
 ## 5. Pod Lifecycle Hooks
 
-Lifecycle Hooks는 컨테이너의 특정 시점에 커스텀 로직을 실행합니다.
+Lifecycle Hooks execute custom logic at specific points in a container's lifecycle.
 
 ### 5.1 PostStart Hook
 
-PostStart Hook은 컨테이너가 생성된 직후 실행됩니다.
+The PostStart Hook is executed immediately after a container is created.
 
-**특징:**
-- 컨테이너의 ENTRYPOINT와 **비동기적으로** 실행됩니다
-- Hook이 실패하면 컨테이너가 종료됩니다
-- Hook 완료를 기다리지 않고 컨테이너는 `Running` 상태가 됩니다
+**Characteristics:**
+- Runs **asynchronously** with the container's ENTRYPOINT
+- If the Hook fails, the container is terminated
+- The container enters the `Running` state without waiting for the Hook to complete
 
 ```yaml
 apiVersion: v1
@@ -4460,28 +4458,28 @@ spec:
           - -c
           - |
             echo "Container started at $(date)" >> /var/log/lifecycle.log
-            # 초기 설정 작업
+            # Initial setup tasks
             mkdir -p /app/cache
             chown -R nginx:nginx /app/cache
 ```
 
-**사용 사례:**
-- 애플리케이션 시작 알림 전송
-- 초기 캐시 warming
-- 메타데이터 기록
+**Use Cases:**
+- Sending application start notifications
+- Initial cache warming
+- Recording metadata
 
-:::warning PostStart Hook 주의사항
-PostStart Hook은 컨테이너 시작과 **비동기**로 실행되므로, Hook이 완료되기 전에 애플리케이션이 시작될 수 있습니다. 애플리케이션이 Hook의 작업에 의존한다면 Init Container를 사용하세요.
+:::warning PostStart Hook Considerations
+The PostStart Hook runs **asynchronously** with container startup, so the application may start before the Hook completes. If your application depends on the Hook's work, use an Init Container instead.
 :::
 
 ### 5.2 PreStop Hook
 
-PreStop Hook은 컨테이너 종료 요청 시, SIGTERM 전에 실행됩니다.
+The PreStop Hook is executed before SIGTERM when a container termination is requested.
 
-**특징:**
-- **동기적으로** 실행됩니다 (완료될 때까지 SIGTERM 전송 지연)
-- Hook 실행 시간은 `terminationGracePeriodSeconds`에 포함됩니다
-- Hook 실패 여부와 무관하게 SIGTERM이 전송됩니다
+**Characteristics:**
+- Runs **synchronously** (SIGTERM delivery is delayed until completion)
+- Hook execution time is included in `terminationGracePeriodSeconds`
+- SIGTERM is sent regardless of whether the Hook succeeds or fails
 
 ```yaml
 apiVersion: v1
@@ -4499,36 +4497,36 @@ spec:
           - /bin/sh
           - -c
           - |
-            # 1. Endpoint 제거 대기
+            # 1. Wait for Endpoint removal
             sleep 5
 
-            # 2. 애플리케이션 상태 저장
+            # 2. Save application state
             curl -X POST http://localhost:8080/admin/save-state
 
-            # 3. 로그 플러시
-            kill -USR1 1  # 애플리케이션에 USR1 시그널 전송
+            # 3. Flush logs
+            kill -USR1 1  # Send USR1 signal to the application
 
-            # 4. SIGTERM 전송 (PID 1)
+            # 4. Send SIGTERM (PID 1)
             kill -TERM 1
   terminationGracePeriodSeconds: 60
 ```
 
-**사용 사례:**
-- Endpoint 제거 대기 (무중단 배포)
-- 진행 중인 작업 상태 저장
-- 외부 시스템에 종료 알림
-- 로그 버퍼 플러시
+**Use Cases:**
+- Waiting for Endpoint removal (zero-downtime deployments)
+- Saving in-progress work state
+- Notifying external systems of shutdown
+- Flushing log buffers
 
-### 5.3 Hook 실행 메커니즘
+### 5.3 Hook Execution Mechanisms
 
-Kubernetes는 두 가지 방식으로 Hook을 실행합니다.
+Kubernetes executes Hooks using two mechanisms.
 
-| 메커니즘 | 설명 | 장점 | 단점 |
-|----------|------|------|------|
-| **exec** | 컨테이너 내부에서 명령 실행 | 컨테이너 파일시스템 접근 가능 | 오버헤드 높음 |
-| **httpGet** | HTTP GET 요청 전송 | 네트워크 기반, 가벼움 | 애플리케이션이 HTTP 지원 필요 |
+| Mechanism | Description | Advantages | Disadvantages |
+|-----------|-------------|------------|---------------|
+| **exec** | Executes a command inside the container | Can access the container filesystem | Higher overhead |
+| **httpGet** | Sends an HTTP GET request | Network-based, lightweight | Application must support HTTP |
 
-#### exec Hook 예시
+#### exec Hook Example
 
 ```yaml
 lifecycle:
@@ -4542,7 +4540,7 @@ lifecycle:
         /app/cleanup.sh
 ```
 
-#### httpGet Hook 예시
+#### httpGet Hook Example
 
 ```yaml
 lifecycle:
@@ -4556,24 +4554,24 @@ lifecycle:
         value: "secret-token"
 ```
 
-:::warning Hook 실행은 "At Least Once"
-Kubernetes는 Hook이 최소 한 번 실행되도록 보장하지만, 여러 번 실행될 수 있습니다. Hook 로직은 **멱등성(idempotent)**을 보장해야 합니다.
+:::warning Hook Execution is "At Least Once"
+Kubernetes guarantees that a Hook is executed at least once, but it may be executed multiple times. Hook logic must be **idempotent**.
 :::
 
 ---
 
-## 6. 컨테이너 이미지 최적화와 시작 시간
+## 6. Container Image Optimization and Startup Time
 
-컨테이너 이미지 크기와 구조는 Pod 시작 시간에 직접적인 영향을 미칩니다.
+Container image size and structure directly impact Pod startup time.
 
-### 6.1 멀티스테이지 빌드
+### 6.1 Multi-Stage Builds
 
-멀티스테이지 빌드를 사용하여 최종 이미지 크기를 최소화합니다.
+Use multi-stage builds to minimize the final image size.
 
-#### Go 애플리케이션
+#### Go Application
 
 ```dockerfile
-# 빌드 스테이지
+# Build stage
 FROM golang:1.22-alpine AS builder
 
 WORKDIR /app
@@ -4583,7 +4581,7 @@ RUN go mod download
 COPY . .
 RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -ldflags="-s -w" -o main .
 
-# 실행 스테이지 (scratch: 5MB 이하)
+# Runtime stage (scratch: under 5MB)
 FROM scratch
 
 COPY --from=builder /app/main /main
@@ -4593,15 +4591,15 @@ USER 65534:65534
 ENTRYPOINT ["/main"]
 ```
 
-**결과:**
-- 빌드 이미지: 300MB+
-- 최종 이미지: 5-10MB
-- 시작 시간: 1초 미만
+**Results:**
+- Build image: 300MB+
+- Final image: 5-10MB
+- Startup time: under 1 second
 
-#### Node.js 애플리케이션
+#### Node.js Application
 
 ```dockerfile
-# 빌드 스테이지
+# Build stage
 FROM node:20-alpine AS builder
 
 WORKDIR /app
@@ -4610,16 +4608,16 @@ RUN npm ci --only=production
 
 COPY . .
 
-# 실행 스테이지
+# Runtime stage
 FROM node:20-alpine
 
-# 보안: non-root 사용자
+# Security: non-root user
 RUN addgroup -g 1001 -S nodejs && \
     adduser -S nodejs -u 1001
 
 WORKDIR /app
 
-# 프로덕션 의존성만 복사
+# Copy only production dependencies
 COPY --from=builder --chown=nodejs:nodejs /app/node_modules ./node_modules
 COPY --chown=nodejs:nodejs . .
 
@@ -4629,15 +4627,15 @@ EXPOSE 8080
 CMD ["node", "server.js"]
 ```
 
-**최적화 팁:**
-- `npm ci` 사용 (npm install보다 빠르고 안정적)
-- `--only=production`으로 devDependencies 제외
-- 레이어 캐싱 활용 (COPY package*.json 먼저)
+**Optimization Tips:**
+- Use `npm ci` (faster and more reliable than npm install)
+- Exclude devDependencies with `--only=production`
+- Leverage layer caching (COPY package*.json first)
 
-#### Java/Spring Boot 애플리케이션
+#### Java/Spring Boot Application
 
 ```dockerfile
-# 빌드 스테이지
+# Build stage
 FROM maven:3.9-eclipse-temurin-21 AS builder
 
 WORKDIR /app
@@ -4647,7 +4645,7 @@ RUN mvn dependency:go-offline
 COPY src ./src
 RUN mvn clean package -DskipTests
 
-# 실행 스테이지
+# Runtime stage
 FROM eclipse-temurin:21-jre-alpine
 
 RUN addgroup -S spring && adduser -S spring -G spring
@@ -4660,11 +4658,11 @@ EXPOSE 8080
 ENTRYPOINT ["java", "-Xms512m", "-Xmx1g", "-jar", "app.jar"]
 ```
 
-### 6.2 이미지 프리풀 전략
+### 6.2 Image Pre-Pull Strategy
 
-EKS에서 이미지 프리풀(pre-pull)을 활용하여 Pod 시작 시간을 단축합니다.
+Leverage image pre-pulling in EKS to reduce Pod startup time.
 
-#### Karpenter 이미지 프리풀
+#### Karpenter Image Pre-Pull
 
 ```yaml
 apiVersion: karpenter.k8s.aws/v1beta1
@@ -4675,14 +4673,14 @@ spec:
   amiFamily: AL2
   userData: |
     #!/bin/bash
-    # 자주 사용하는 이미지 프리풀
+    # Pre-pull frequently used images
     docker pull myapp/backend:v2.1.0
     docker pull myapp/frontend:v1.5.3
     docker pull redis:7-alpine
     docker pull postgres:16-alpine
 ```
 
-#### DaemonSet으로 이미지 프리풀
+#### Image Pre-Pull with DaemonSet
 
 ```yaml
 apiVersion: apps/v1
@@ -4700,7 +4698,7 @@ spec:
         app: image-prepuller
     spec:
       initContainers:
-      # 프리풀할 이미지마다 init container 추가
+      # Add an init container for each image to pre-pull
       - name: prepull-backend
         image: myapp/backend:v2.1.0
         command: ["sh", "-c", "echo 'Image pulled'"]
@@ -4716,11 +4714,11 @@ spec:
             memory: 1Mi
 ```
 
-### 6.3 distroless와 scratch 이미지
+### 6.3 Distroless and Scratch Images
 
-Google의 distroless 이미지는 애플리케이션 실행에 필요한 최소한의 파일만 포함합니다.
+Google's distroless images contain only the minimal files required to run an application.
 
-#### distroless 예시
+#### Distroless Example
 
 ```dockerfile
 FROM golang:1.22-alpine AS builder
@@ -4736,100 +4734,100 @@ USER 65534:65534
 ENTRYPOINT ["/main"]
 ```
 
-**distroless 장점:**
-- 최소 공격 표면 (쉘, 패키지 매니저 없음)
-- 작은 이미지 크기
-- CVE 취약점 감소
+**Distroless Advantages:**
+- Minimal attack surface (no shell, no package manager)
+- Small image size
+- Reduced CVE vulnerabilities
 
 **scratch vs distroless:**
 
-| 이미지 | 크기 | 포함 사항 | 적합한 경우 |
-|--------|------|-----------|------------|
-| **scratch** | 0MB | 빈 파일시스템 | 완전 정적 바이너리 (Go, Rust) |
-| **distroless/static** | ~2MB | CA certificates, tzdata | 정적 바이너리 + TLS/타임존 필요 |
-| **distroless/base** | ~20MB | glibc, libssl | 동적 링크 바이너리 |
+| Image | Size | Includes | Best For |
+|-------|------|----------|----------|
+| **scratch** | 0MB | Empty filesystem | Fully static binaries (Go, Rust) |
+| **distroless/static** | ~2MB | CA certificates, tzdata | Static binaries needing TLS/timezone |
+| **distroless/base** | ~20MB | glibc, libssl | Dynamically linked binaries |
 
-### 6.4 시작 시간 벤치마크
+### 6.4 Startup Time Benchmarks
 
-다양한 이미지 전략의 시작 시간 비교 (EKS 1.30, m6i.xlarge):
+Startup time comparison across various image strategies (EKS 1.30, m6i.xlarge):
 
-| 애플리케이션 | 베이스 이미지 | 이미지 크기 | Pull 시간 | 시작 시간 | 총 시간 |
-|-------------|--------------|-----------|----------|----------|---------|
-| Go API | ubuntu:22.04 | 150MB | 8초 | 0.5초 | **8.5초** |
-| Go API | alpine:3.19 | 15MB | 2초 | 0.5초 | **2.5초** |
-| Go API | distroless/static | 5MB | 1초 | 0.5초 | **1.5초** |
-| Go API | scratch | 3MB | 0.8초 | 0.5초 | **1.3초** |
-| Node.js API | node:20 | 350MB | 15초 | 2초 | **17초** |
-| Node.js API | node:20-alpine | 120MB | 6초 | 2초 | **8초** |
-| Spring Boot | eclipse-temurin:21 | 450MB | 20초 | 15초 | **35초** |
-| Spring Boot | eclipse-temurin:21-jre-alpine | 180MB | 10초 | 15초 | **25초** |
-| Python Flask | python:3.12 | 400MB | 18초 | 3초 | **21초** |
-| Python Flask | python:3.12-slim | 130MB | 7초 | 3초 | **10초** |
-| Python Flask | python:3.12-alpine | 50MB | 3초 | 3초 | **6초** |
+| Application | Base Image | Image Size | Pull Time | Startup Time | Total Time |
+|-------------|------------|------------|-----------|--------------|------------|
+| Go API | ubuntu:22.04 | 150MB | 8s | 0.5s | **8.5s** |
+| Go API | alpine:3.19 | 15MB | 2s | 0.5s | **2.5s** |
+| Go API | distroless/static | 5MB | 1s | 0.5s | **1.5s** |
+| Go API | scratch | 3MB | 0.8s | 0.5s | **1.3s** |
+| Node.js API | node:20 | 350MB | 15s | 2s | **17s** |
+| Node.js API | node:20-alpine | 120MB | 6s | 2s | **8s** |
+| Spring Boot | eclipse-temurin:21 | 450MB | 20s | 15s | **35s** |
+| Spring Boot | eclipse-temurin:21-jre-alpine | 180MB | 10s | 15s | **25s** |
+| Python Flask | python:3.12 | 400MB | 18s | 3s | **21s** |
+| Python Flask | python:3.12-slim | 130MB | 7s | 3s | **10s** |
+| Python Flask | python:3.12-alpine | 50MB | 3s | 3s | **6s** |
 
-**최적화 권장사항:**
-1. **멀티스테이지 빌드** 사용 → 50-90% 크기 감소
-2. **alpine 또는 distroless** 선택 → Pull 시간 50-80% 단축
-3. **이미지 캐싱** 활성화 → 재배포 시 Pull 시간 거의 0
-4. **Startup Probe** 설정 → 느린 시작 앱 보호
+**Optimization Recommendations:**
+1. Use **multi-stage builds** — 50-90% size reduction
+2. Choose **alpine or distroless** — 50-80% pull time reduction
+3. Enable **image caching** — nearly zero pull time on redeployments
+4. Configure **Startup Probes** — protect slow-starting applications
 
 ---
 
-## 7. 종합 체크리스트 & 참고 자료
+## 7. Comprehensive Checklist & References
 
-### 7.1 프로덕션 배포 전 체크리스트
+### 7.1 Pre-Production Deployment Checklist
 
-#### Pod 헬스체크
+#### Pod Health Checks
 
-| 항목 | 확인 사항 | 우선순위 |
-|------|----------|---------|
-| **Startup Probe** | 시작이 느린 앱(30초+)에 Startup Probe 설정 | 높음 |
-| **Liveness Probe** | 외부 의존성 제외, 내부 상태만 확인 | 필수 |
-| **Readiness Probe** | 외부 의존성 포함, 트래픽 수신 준비 확인 | 필수 |
-| **Probe 타이밍** | failureThreshold × periodSeconds가 적절한지 확인 | 중간 |
-| **Probe 경로** | `/healthz` (liveness), `/ready` (readiness) 분리 | 높음 |
-| **ALB 헬스체크** | Readiness Probe와 경로 일치 확인 | 높음 |
-| **Pod Readiness Gates** | ALB/NLB 사용 시 활성화 | 중간 |
+| Item | Verification | Priority |
+|------|-------------|----------|
+| **Startup Probe** | Configure Startup Probe for slow-starting apps (30s+) | High |
+| **Liveness Probe** | Exclude external dependencies, check internal state only | Required |
+| **Readiness Probe** | Include external dependencies, verify traffic readiness | Required |
+| **Probe Timing** | Verify failureThreshold x periodSeconds is appropriate | Medium |
+| **Probe Paths** | Separate `/healthz` (liveness) and `/ready` (readiness) | High |
+| **ALB Health Check** | Confirm path matches Readiness Probe | High |
+| **Pod Readiness Gates** | Enable when using ALB/NLB | Medium |
 
 #### Graceful Shutdown
 
-| 항목 | 확인 사항 | 우선순위 |
-|------|----------|---------|
-| **preStop Hook** | `sleep 5` 추가로 Endpoint 제거 대기 | 필수 |
-| **SIGTERM 처리** | 애플리케이션에 SIGTERM 핸들러 구현 | 필수 |
-| **terminationGracePeriodSeconds** | preStop + Shutdown 시간 고려하여 설정 (30-120초) | 필수 |
-| **Connection Draining** | HTTP Keep-Alive, WebSocket 연결 정리 로직 | 높음 |
-| **데이터 정리** | DB 연결, 메시지 큐, 파일 핸들 정리 | 높음 |
-| **Readiness 실패** | Shutdown 시작 시 Readiness Probe 실패 응답 | 중간 |
+| Item | Verification | Priority |
+|------|-------------|----------|
+| **preStop Hook** | Add `sleep 5` to wait for Endpoint removal | Required |
+| **SIGTERM Handling** | Implement SIGTERM handler in the application | Required |
+| **terminationGracePeriodSeconds** | Set considering preStop + shutdown time (30-120s) | Required |
+| **Connection Draining** | HTTP Keep-Alive, WebSocket connection cleanup logic | High |
+| **Data Cleanup** | Clean up DB connections, message queues, file handles | High |
+| **Readiness Failure** | Return Readiness Probe failure when shutdown begins | Medium |
 
-#### 리소스 및 이미지
+#### Resources and Images
 
-| 항목 | 확인 사항 | 우선순위 |
-|------|----------|---------|
-| **리소스 requests/limits** | CPU/메모리 requests 설정 (HPA, VPA 기준) | 필수 |
-| **이미지 크기** | 멀티스테이지 빌드로 최소화 (100MB 이하 목표) | 중간 |
-| **이미지 태그** | `latest` 태그 사용 금지, semantic versioning 사용 | 필수 |
-| **보안 스캔** | Trivy, Grype로 CVE 스캔 | 높음 |
-| **non-root 사용자** | 컨테이너를 non-root로 실행 | 높음 |
+| Item | Verification | Priority |
+|------|-------------|----------|
+| **Resource requests/limits** | Set CPU/memory requests (basis for HPA, VPA) | Required |
+| **Image Size** | Minimize with multi-stage builds (target under 100MB) | Medium |
+| **Image Tags** | Do not use `latest` tag, use semantic versioning | Required |
+| **Security Scanning** | CVE scanning with Trivy, Grype | High |
+| **Non-root User** | Run containers as non-root | High |
 
-#### 고가용성
+#### High Availability
 
-| 항목 | 확인 사항 | 우선순위 |
-|------|----------|---------|
-| **PodDisruptionBudget** | minAvailable 또는 maxUnavailable 설정 | 필수 |
-| **Topology Spread** | Multi-AZ 분산 설정 | 높음 |
-| **Replica 수** | 최소 2개 이상 (프로덕션 3개+) | 필수 |
-| **Affinity/Anti-Affinity** | 동일 노드 배치 방지 | 중간 |
+| Item | Verification | Priority |
+|------|-------------|----------|
+| **PodDisruptionBudget** | Configure minAvailable or maxUnavailable | Required |
+| **Topology Spread** | Configure Multi-AZ distribution | High |
+| **Replica Count** | Minimum 2 (3+ for production) | Required |
+| **Affinity/Anti-Affinity** | Prevent co-location on the same node | Medium |
 
-### 7.2 관련 문서
+### 7.2 Related Documents
 
-- [EKS 장애 진단 및 대응 가이드](/docs/operations-observability/eks-debugging-guide) — Probe 디버깅, Pod 트러블슈팅
-- [EKS 고가용성 아키텍처 가이드](/docs/operations-observability/eks-resiliency-guide) — PDB, Graceful Shutdown, Pod Readiness Gates
-- [Karpenter를 활용한 초고속 오토스케일링](/docs/infrastructure-optimization/karpenter-autoscaling) — Karpenter Disruption, Spot 인스턴스 관리
+- [EKS Troubleshooting and Incident Response Guide](/docs/operations-observability/eks-debugging-guide) — Probe debugging, Pod troubleshooting
+- [EKS High Availability Architecture Guide](/docs/operations-observability/eks-resiliency-guide) — PDB, Graceful Shutdown, Pod Readiness Gates
+- [Ultra-Fast Autoscaling with Karpenter](/docs/infrastructure-optimization/karpenter-autoscaling) — Karpenter Disruption, Spot instance management
 
-### 7.3 외부 참조
+### 7.3 External References
 
-#### Kubernetes 공식 문서
+#### Kubernetes Official Documentation
 
 - [Configure Liveness, Readiness and Startup Probes](https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/)
 - [Pod Lifecycle](https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/)
@@ -4837,61 +4835,61 @@ ENTRYPOINT ["/main"]
 - [Container Lifecycle Hooks](https://kubernetes.io/docs/concepts/containers/container-lifecycle-hooks/)
 - [Termination of Pods](https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/#pod-termination)
 
-#### AWS 공식 문서
+#### AWS Official Documentation
 
 - [EKS Best Practices - Application Health Checks](https://docs.aws.amazon.com/eks/latest/best-practices/reliability.html)
 - [AWS Load Balancer Controller - Pod Readiness Gate](https://kubernetes-sigs.github.io/aws-load-balancer-controller/v2.7/deploy/pod_readiness_gate/)
 - [EKS Workshop - Health Checks](https://www.eksworkshop.com/docs/fundamentals/managed-node-groups/health-checks/)
 
-#### Red Hat OpenShift 문서
+#### Red Hat OpenShift Documentation
 
-- [Monitoring Application Health by Using Health Checks](https://docs.openshift.com/container-platform/4.18/applications/application-health.html) — Liveness, Readiness, Startup Probe 구성
-- [Using Init Containers](https://docs.openshift.com/container-platform/4.18/nodes/containers/nodes-containers-init.html) — Init Container 패턴 및 운영
-- [Graceful Cluster Shutdown](https://docs.openshift.com/container-platform/4.18/backup_and_restore/graceful-cluster-shutdown.html) — Graceful Shutdown 절차
+- [Monitoring Application Health by Using Health Checks](https://docs.openshift.com/container-platform/4.18/applications/application-health.html) — Liveness, Readiness, Startup Probe configuration
+- [Using Init Containers](https://docs.openshift.com/container-platform/4.18/nodes/containers/nodes-containers-init.html) — Init Container patterns and operations
+- [Graceful Cluster Shutdown](https://docs.openshift.com/container-platform/4.18/backup_and_restore/graceful-cluster-shutdown.html) — Graceful Shutdown procedures
 
-#### 추가 참고 자료
+#### Additional References
 
 - [gRPC Health Checking Protocol](https://github.com/grpc/grpc/blob/master/doc/health-checking.md)
 - [Google Distroless Images](https://github.com/GoogleContainerTools/distroless)
 - [AWS Prescriptive Guidance - Container Image Optimization](https://docs.aws.amazon.com/prescriptive-guidance/latest/patterns/optimize-docker-images-for-eks.html)
 - [Learnk8s - Graceful Shutdown](https://learnk8s.io/graceful-shutdown)
 
-### 7.4 EKS Auto Mode 환경 체크리스트
+### 7.4 EKS Auto Mode Environment Checklist
 
-EKS Auto Mode는 Kubernetes 운영을 자동화하여 인프라 관리 부담을 줄입니다. 하지만 Probe 설정과 Pod 라이프사이클 관리에서는 Auto Mode 특유의 고려사항이 있습니다.
+EKS Auto Mode automates Kubernetes operations to reduce infrastructure management overhead. However, there are Auto Mode-specific considerations for Probe configuration and Pod lifecycle management.
 
-#### EKS Auto Mode란?
+#### What is EKS Auto Mode?
 
-EKS Auto Mode(2024년 12월 발표, 지속 개선 중)는 다음을 자동화합니다:
-- 컴퓨팅 인스턴스 선택 및 프로비저닝
-- 동적 리소스 스케일링
-- OS 패치 및 보안 업데이트
-- 코어 애드온 관리 (VPC CNI, CoreDNS, kube-proxy 등)
-- Graviton + Spot 최적화
+EKS Auto Mode (announced December 2024, continuously improving) automates the following:
+- Compute instance selection and provisioning
+- Dynamic resource scaling
+- OS patches and security updates
+- Core add-on management (VPC CNI, CoreDNS, kube-proxy, etc.)
+- Graviton + Spot optimization
 
-#### Auto Mode 특성이 Probe에 미치는 영향
+#### How Auto Mode Characteristics Affect Probes
 
-| 항목 | Auto Mode | 수동 관리 | Probe 설정 권장 사항 |
-|------|----------|----------|---------------------|
-| **노드 교체 주기** | 빈번함 (OS 패치, 최적화) | 명시적 업그레이드 시만 | `terminationGracePeriodSeconds`: 90초 이상 |
-| **노드 다양성** | 자동 인스턴스 선택 (다양한 타입) | 고정 타입 | `startupProbe` failureThreshold 높게 (인스턴스별 시작 시간 차이) |
-| **Spot 통합** | 자동 Spot/On-Demand 혼합 | 수동 설정 | Spot 중단 대비 `preStop` sleep 필수 |
-| **네트워크 최적화** | VPC CNI 자동 튜닝 | 수동 설정 | Container Network Observability 활성화 권장 |
+| Item | Auto Mode | Manual Management | Probe Configuration Recommendations |
+|------|----------|-------------------|-------------------------------------|
+| **Node replacement frequency** | Frequent (OS patches, optimization) | Only during explicit upgrades | `terminationGracePeriodSeconds`: 90 seconds or more |
+| **Node diversity** | Automatic instance selection (various types) | Fixed types | Set `startupProbe` failureThreshold high (startup time varies by instance type) |
+| **Spot integration** | Automatic Spot/On-Demand mix | Manual configuration | `preStop` sleep is mandatory for Spot interruption handling |
+| **Network optimization** | Automatic VPC CNI tuning | Manual configuration | Enable Container Network Observability recommended |
 
-#### Auto Mode 환경 Probe 체크리스트
+#### Auto Mode Environment Probe Checklist
 
-| 항목 | 확인 사항 | 우선순위 | Auto Mode 특이사항 |
-|------|----------|---------|-------------------|
-| **Startup Probe failureThreshold** | 30 이상 설정 (인스턴스 다양성 고려) | 높음 | Auto Mode는 인스턴스 타입을 자동 선택하므로 시작 시간 편차 큼 |
-| **terminationGracePeriodSeconds** | 90초 이상 (빈번한 노드 교체 대비) | 필수 | OS 패치 시 자동 eviction 발생 빈도 높음 |
-| **readinessProbe periodSeconds** | 5초 (빠른 트래픽 전환) | 높음 | 노드 교체 시 신속한 Pod Ready 상태 전환 필요 |
-| **Container Network Observability** | 활성화 (네트워크 이상 조기 감지) | 중간 | VPC CNI 자동 튜닝 효과 검증 |
-| **PodDisruptionBudget** | 필수 설정 (노드 교체 중 가용성 보장) | 필수 | Auto Mode 노드 교체 중 PDB 준수 |
-| **Topology Spread Constraints** | 노드/AZ 분산 명시 | 높음 | Auto Mode가 인스턴스 선택하지만 분산은 사용자 책임 |
+| Item | Verification | Priority | Auto Mode Specifics |
+|------|-------------|---------|---------------------|
+| **Startup Probe failureThreshold** | Set to 30 or higher (considering instance diversity) | High | Auto Mode automatically selects instance types, leading to significant startup time variance |
+| **terminationGracePeriodSeconds** | 90 seconds or more (for frequent node replacements) | Required | Higher frequency of automatic eviction during OS patching |
+| **readinessProbe periodSeconds** | 5 seconds (fast traffic switching) | High | Rapid Pod Ready state transition needed during node replacements |
+| **Container Network Observability** | Enable (early detection of network anomalies) | Medium | Verify VPC CNI auto-tuning effectiveness |
+| **PodDisruptionBudget** | Required (ensure availability during node replacement) | Required | PDB compliance during Auto Mode node replacement |
+| **Topology Spread Constraints** | Explicitly specify node/AZ distribution | High | Auto Mode selects instances but distribution is the user's responsibility |
 
-#### Auto Mode vs 수동 관리 시 Probe 설정 차이
+#### Probe Configuration Differences: Auto Mode vs Manual Management
 
-**수동 관리 클러스터:**
+**Manually Managed Cluster:**
 
 ```yaml
 apiVersion: apps/v1
@@ -4903,16 +4901,16 @@ spec:
   template:
     spec:
       nodeSelector:
-        node.kubernetes.io/instance-type: m5.xlarge  # 고정 타입
+        node.kubernetes.io/instance-type: m5.xlarge  # Fixed type
       containers:
       - name: api
         image: myapp/api:v1
-        # 인스턴스 타입 고정으로 예측 가능한 시작 시간
+        # Predictable startup time due to fixed instance type
         startupProbe:
           httpGet:
             path: /healthz
             port: 8080
-          failureThreshold: 10  # 낮게 설정 가능
+          failureThreshold: 10  # Can be set low
           periodSeconds: 5
         readinessProbe:
           httpGet:
@@ -4923,10 +4921,10 @@ spec:
           preStop:
             exec:
               command: ["/bin/sh", "-c", "sleep 5"]
-      terminationGracePeriodSeconds: 60  # 표준 설정
+      terminationGracePeriodSeconds: 60  # Standard setting
 ```
 
-**Auto Mode 클러스터:**
+**Auto Mode Cluster:**
 
 ```yaml
 apiVersion: apps/v1
@@ -4934,7 +4932,7 @@ kind: Deployment
 metadata:
   name: api-auto-mode
   annotations:
-    # Auto Mode 최적화 힌트
+    # Auto Mode optimization hint
     eks.amazonaws.com/compute-type: "auto"
 spec:
   replicas: 3
@@ -4942,9 +4940,9 @@ spec:
     metadata:
       labels:
         app: api
-        # Auto Mode는 자동으로 최적 인스턴스 선택
+        # Auto Mode automatically selects the optimal instance
     spec:
-      # nodeSelector 없음 - Auto Mode가 자동 선택
+      # No nodeSelector - Auto Mode selects automatically
       topologySpreadConstraints:
       - maxSkew: 1
         topologyKey: topology.kubernetes.io/zone
@@ -4959,13 +4957,13 @@ spec:
           requests:
             cpu: 500m
             memory: 1Gi
-          # Auto Mode가 최적 인스턴스 선택
-        # 인스턴스 다양성 고려한 긴 시작 시간
+          # Auto Mode selects the optimal instance
+        # Longer startup time considering instance diversity
         startupProbe:
           httpGet:
             path: /healthz
             port: 8080
-          failureThreshold: 30  # 높게 설정 (다양한 인스턴스 타입 대응)
+          failureThreshold: 30  # Set high (to handle various instance types)
           periodSeconds: 5
         readinessProbe:
           httpGet:
@@ -4982,178 +4980,178 @@ spec:
         lifecycle:
           preStop:
             exec:
-              command: ["/bin/sh", "-c", "sleep 10"]  # 여유 있게
-      terminationGracePeriodSeconds: 90  # OS 패치 자동 eviction 대비
+              command: ["/bin/sh", "-c", "sleep 10"]  # Allow extra time
+      terminationGracePeriodSeconds: 90  # For automatic OS patch eviction
 ---
 apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
   name: api-pdb
 spec:
-  minAvailable: 2  # Auto Mode 노드 교체 중 가용성 보장
+  minAvailable: 2  # Ensure availability during Auto Mode node replacement
   selector:
     matchLabels:
       app: api
 ```
 
-#### Auto Mode 환경의 OS 패치 자동 eviction 대응
+#### Handling Automatic OS Patch Eviction in Auto Mode
 
-Auto Mode는 주기적으로 OS 패치를 위해 노드를 교체합니다. 이 과정에서 Pod Eviction이 자동으로 발생합니다.
+Auto Mode periodically replaces nodes for OS patching. Pod Eviction occurs automatically during this process.
 
-**OS 패치 eviction 시나리오:**
+**OS Patch Eviction Scenario:**
 
 ```mermaid
 sequenceDiagram
     participant AutoMode as EKS Auto Mode
-    participant Node_Old as 기존 노드
-    participant Node_New as 새 노드
+    participant Node_Old as Old Node
+    participant Node_New as New Node
     participant Pod as Pod
 
-    Note over AutoMode: OS 패치 필요 감지
+    Note over AutoMode: OS patch needed detected
 
-    AutoMode->>Node_New: 새 노드 프로비저닝
-    Node_New->>AutoMode: 노드 Ready
+    AutoMode->>Node_New: Provision new node
+    Node_New->>AutoMode: Node Ready
 
-    AutoMode->>Node_Old: Cordon (스케줄링 차단)
-    AutoMode->>Pod: Pod Eviction 시작
+    AutoMode->>Node_Old: Cordon (block scheduling)
+    AutoMode->>Pod: Begin Pod Eviction
 
-    Pod->>Pod: preStop Hook 실행
-    Note over Pod: sleep 10<br/>(트래픽 드레인 대기)
+    Pod->>Pod: Execute preStop Hook
+    Note over Pod: sleep 10<br/>(wait for traffic drain)
 
-    Pod->>Pod: SIGTERM 수신
+    Pod->>Pod: Receive SIGTERM
     Pod->>Pod: Graceful Shutdown
-    Note over Pod: terminationGracePeriodSeconds<br/>(최대 90초)
+    Note over Pod: terminationGracePeriodSeconds<br/>(up to 90 seconds)
 
-    Pod->>Node_New: 새 노드에 재스케줄링
-    Pod->>Pod: startupProbe 성공
-    Pod->>Pod: readinessProbe 성공
+    Pod->>Node_New: Reschedule on new node
+    Pod->>Pod: startupProbe succeeds
+    Pod->>Pod: readinessProbe succeeds
 
-    AutoMode->>Node_Old: 노드 종료
+    AutoMode->>Node_Old: Terminate node
 
-    Note over AutoMode: OS 패치 완료
+    Note over AutoMode: OS patch complete
 ```
 
-**모니터링 예시:**
+**Monitoring Examples:**
 
 ```bash
-# Auto Mode 노드 교체 이벤트 추적
+# Track Auto Mode node replacement events
 kubectl get events --field-selector reason=Evicted --watch
 
-# 노드별 OS 버전 확인
+# Check OS version per node
 kubectl get nodes -o custom-columns=\
 NAME:.metadata.name,\
 OS_IMAGE:.status.nodeInfo.osImage,\
 KERNEL:.status.nodeInfo.kernelVersion
 
-# Auto Mode 관리 상태 확인
+# Check Auto Mode management status
 kubectl get nodes -L eks.amazonaws.com/compute-type
 ```
 
-:::tip Auto Mode 노드 교체 빈도
-Auto Mode는 보안 패치, 성능 최적화, 비용 절감을 위해 수동 관리보다 노드 교체가 빈번합니다(평균 2주 1회). `terminationGracePeriodSeconds`를 90초 이상으로 설정하고, PDB를 반드시 구성하여 서비스 중단 없이 노드 교체가 가능하도록 하세요.
+:::tip Auto Mode Node Replacement Frequency
+Auto Mode replaces nodes more frequently than manual management for security patches, performance optimization, and cost reduction (on average once every 2 weeks). Set `terminationGracePeriodSeconds` to 90 seconds or more and always configure PDB to enable node replacement without service disruption.
 :::
 
-#### Auto Mode 활성화 확인
+#### Verifying Auto Mode Activation
 
 ```bash
-# 클러스터가 Auto Mode인지 확인
+# Check if the cluster is in Auto Mode
 aws eks describe-cluster --name production-eks \
   --query 'cluster.computeConfig.enabled' \
   --output text
 
-# Auto Mode 노드 확인
+# Check Auto Mode nodes
 kubectl get nodes -L eks.amazonaws.com/compute-type
-# 출력 예시:
+# Example output:
 # NAME                    COMPUTE-TYPE
 # ip-10-0-1-100.ec2.internal   auto
 # ip-10-0-2-200.ec2.internal   auto
 ```
 
-**관련 문서:**
+**Related Documentation:**
 - [AWS Blog: Getting started with EKS Auto Mode](https://aws.amazon.com/blogs/containers/getting-started-with-amazon-eks-auto-mode)
 - [AWS Blog: How to build highly available Kubernetes applications with EKS Auto Mode](https://aws.amazon.com/blogs/containers/how-to-build-highly-available-kubernetes-applications-with-amazon-eks-auto-mode/)
 - [AWS Blog: Maximize EKS efficiency - Auto Mode, Graviton, and Spot](https://aws.amazon.com/blogs/containers/maximize-amazon-eks-efficiency-how-auto-mode-graviton-and-spot-work-together/)
 
 ---
 
-### 7.5 AI/Agentic 기반 Probe 최적화
+### 7.5 AI/Agentic-Based Probe Optimization
 
-AWS re:Invent 2025 CNS421 세션에서 소개된 Agentic AI 기반 EKS 운영 패턴을 활용하여 Probe 설정을 자동으로 최적화하고 실패를 자동 진단하는 방법을 다룹니다.
+This section covers how to automatically optimize Probe configurations and diagnose failures using the Agentic AI-based EKS operational patterns introduced in the AWS re:Invent 2025 CNS421 session.
 
-#### CNS421 세션 핵심 - Agentic AI for EKS Operations
+#### CNS421 Session Highlights - Agentic AI for EKS Operations
 
-**세션 개요:**
+**Session Overview:**
 
-"Streamline Amazon EKS Operations with Agentic AI" 세션에서는 Model Context Protocol(MCP)과 AI 에이전트를 활용하여 EKS 클러스터 관리를 자동화하는 방법을 코드 시연과 함께 소개했습니다.
+The "Streamline Amazon EKS Operations with Agentic AI" session demonstrated with live code how to automate EKS cluster management using Model Context Protocol (MCP) and AI agents.
 
-**주요 기능:**
-- 실시간 이슈 진단 (Probe 실패 원인 자동 분석)
-- Guided Remediation (단계별 해결 가이드)
-- Tribal Knowledge 활용 (과거 이슈 패턴 학습)
-- Auto-Remediation (단순 이슈 자동 해결)
+**Key Capabilities:**
+- Real-time issue diagnosis (automatic Probe failure root cause analysis)
+- Guided Remediation (step-by-step resolution guides)
+- Tribal Knowledge utilization (learning from past issue patterns)
+- Auto-Remediation (automatic resolution of simple issues)
 
-**아키텍처:**
+**Architecture:**
 
 ```mermaid
 flowchart LR
-    PROBE_FAIL[Probe 실패 감지]
+    PROBE_FAIL[Probe Failure Detected]
     PROBE_FAIL --> MCP[EKS MCP Server]
 
-    MCP --> CONTEXT[컨텍스트 수집]
+    MCP --> CONTEXT[Context Collection]
     CONTEXT --> LOGS[Pod Logs]
     CONTEXT --> METRICS[CloudWatch Metrics]
     CONTEXT --> EVENTS[Kubernetes Events]
     CONTEXT --> NETWORK[Network Observability]
 
     CONTEXT --> AI[Agentic AI<br/>Amazon Bedrock]
-    AI --> ANALYZE[근본 원인 분석]
+    AI --> ANALYZE[Root Cause Analysis]
 
-    ANALYZE --> DECISION{자동 해결<br/>가능?}
+    ANALYZE --> DECISION{Auto-Resolution<br/>Possible?}
 
-    DECISION -->|Yes| AUTO[자동 Remediation]
-    AUTO --> FIX_PROBE[Probe 설정 조정]
-    AUTO --> FIX_APP[애플리케이션 재시작]
-    AUTO --> FIX_NETWORK[네트워크 정책 수정]
+    DECISION -->|Yes| AUTO[Auto-Remediation]
+    AUTO --> FIX_PROBE[Adjust Probe Settings]
+    AUTO --> FIX_APP[Restart Application]
+    AUTO --> FIX_NETWORK[Modify Network Policy]
 
-    DECISION -->|No| GUIDE[해결 가이드 제공]
-    GUIDE --> HUMAN[운영자 개입]
+    DECISION -->|No| GUIDE[Provide Resolution Guide]
+    GUIDE --> HUMAN[Operator Intervention]
 
-    HUMAN --> LEARN[해결 패턴 학습]
-    LEARN --> TRIBAL[Tribal Knowledge<br/>업데이트]
+    HUMAN --> LEARN[Learn Resolution Pattern]
+    LEARN --> TRIBAL[Tribal Knowledge<br/>Update]
 
     style PROBE_FAIL fill:#ff4444,stroke:#cc3636,color:#fff
     style AI fill:#4286f4,stroke:#2a6acf,color:#fff
     style AUTO fill:#34a853,stroke:#2a8642,color:#fff
 ```
 
-#### Kiro + EKS MCP를 활용한 Probe 자동 최적화
+#### Automatic Probe Optimization with Kiro + EKS MCP
 
-**Kiro란:**
+**What is Kiro:**
 
-Kiro는 AWS의 AI 기반 운영 도구로, MCP(Model Context Protocol) 서버를 통해 AWS 리소스와 상호작용합니다.
+Kiro is an AWS AI-powered operations tool that interacts with AWS resources through MCP (Model Context Protocol) servers.
 
-**설치 및 설정:**
+**Installation and Setup:**
 
 ```bash
-# Kiro CLI 설치 (macOS)
+# Install Kiro CLI (macOS)
 brew install aws/tap/kiro
 
-# EKS MCP Server 설정
+# Configure EKS MCP Server
 kiro mcp add eks \
   --server-type eks \
   --cluster-name production-eks \
   --region ap-northeast-2
 
-# Probe 최적화 에이전트 활성화
+# Activate Probe optimization agent
 kiro agent create probe-optimizer \
   --type eks-health-check \
   --auto-remediate true
 ```
 
-**Probe 실패 자동 진단 워크플로우:**
+**Probe Failure Automatic Diagnosis Workflow:**
 
 ```yaml
-# Kiro Agent 설정 - Probe 실패 자동 대응
+# Kiro Agent Configuration - Automatic Probe Failure Response
 apiVersion: kiro.aws/v1alpha1
 kind: Agent
 metadata:
@@ -5272,10 +5270,10 @@ spec:
               Context: ${context}
 ```
 
-**실제 사용 예시 - Probe 타임아웃 자동 최적화:**
+**Practical Example - Automatic Probe Timeout Optimization:**
 
 ```bash
-# Kiro를 통한 대화형 Probe 최적화
+# Interactive Probe optimization through Kiro
 $ kiro chat --agent probe-optimizer
 
 User: My readiness probe is failing intermittently on pod api-gateway-xyz.
@@ -5316,14 +5314,14 @@ Kiro: ✅ Applied Probe Optimization
           to reduce network latency permanently.
 ```
 
-#### Amazon Q Developer를 활용한 Probe 이슈 디버깅
+#### Debugging Probe Issues with Amazon Q Developer
 
-Amazon Q Developer는 IDE 통합 AI 어시스턴트로, Probe 설정 코드 리뷰와 실시간 디버깅을 지원합니다.
+Amazon Q Developer is an IDE-integrated AI assistant that supports Probe configuration code reviews and real-time debugging.
 
-**VS Code 통합 예시:**
+**VS Code Integration Example:**
 
 ```yaml
-# 개발자가 작성 중인 Deployment YAML
+# Deployment YAML being written by a developer
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -5336,39 +5334,39 @@ spec:
         image: myapp:v1
         readinessProbe:
           httpGet:
-            path: /health  # ⚠️ Q Developer 경고
+            path: /health  # ⚠️ Q Developer warning
             port: 8080
           periodSeconds: 10
-          timeoutSeconds: 1  # ⚠️ Q Developer 경고
+          timeoutSeconds: 1  # ⚠️ Q Developer warning
 ```
 
-**Q Developer 제안:**
+**Q Developer Suggestions:**
 
 ```
 💡 Amazon Q Developer Suggestion
 
-Issue 1: Liveness와 Readiness가 같은 엔드포인트를 사용합니다.
+Issue 1: Liveness and Readiness use the same endpoint.
 Recommendation:
-- Liveness Probe: /healthz (내부 상태만)
-- Readiness Probe: /ready (외부 의존성 포함)
+- Liveness Probe: /healthz (internal state only)
+- Readiness Probe: /ready (including external dependencies)
 
-Issue 2: timeoutSeconds가 너무 짧습니다.
+Issue 2: timeoutSeconds is too short.
 Recommendation:
-- timeoutSeconds를 3-5초로 증가
-- EKS 환경에서 1초는 네트워크 지연 시 타임아웃 위험
+- Increase timeoutSeconds to 3-5 seconds
+- 1 second risks timeout due to network latency in EKS environments
 
-Issue 3: Startup Probe가 없습니다.
+Issue 3: Startup Probe is missing.
 Recommendation:
-- 앱 시작 시간이 30초 이상이면 Startup Probe 추가
+- Add Startup Probe if app startup takes 30+ seconds
 - failureThreshold: 30, periodSeconds: 10
 
 Apply Suggestions? [Yes] [No] [Explain More]
 ```
 
-**실시간 코드 실행 검증 (Amazon Q Developer):**
+**Real-Time Code Execution Validation (Amazon Q Developer):**
 
 ```bash
-# Q Developer가 로컬에서 Probe 설정 검증
+# Q Developer validates Probe configuration locally
 $ q-dev validate deployment.yaml --cluster production-eks
 
 ✅ Syntax Valid
@@ -5386,14 +5384,14 @@ $ q-dev validate deployment.yaml --cluster production-eks
     Apply Q Developer's suggested configuration? (Y/n)
 ```
 
-#### Tribal Knowledge 기반 Probe 패턴 학습
+#### Tribal Knowledge-Based Probe Pattern Learning
 
-Agentic AI는 과거 Probe 이슈 해결 패턴을 학습하여 유사 상황에서 즉시 대응합니다.
+Agentic AI learns from past Probe issue resolution patterns to respond immediately in similar situations.
 
-**Tribal Knowledge 예시:**
+**Tribal Knowledge Example:**
 
 ```yaml
-# 조직의 Probe 해결 패턴 라이브러리
+# Organization's Probe resolution pattern library
 apiVersion: kiro.aws/v1alpha1
 kind: TribalKnowledge
 metadata:
@@ -5451,10 +5449,10 @@ spec:
       lastSeen: "2026-02-08"
 ```
 
-**자동 패턴 매칭:**
+**Automatic Pattern Matching:**
 
 ```bash
-# 새로운 Probe 실패 발생 시 자동 매칭
+# Automatic matching when a new Probe failure occurs
 $ kiro diagnose probe-failure \
   --pod api-backend-abc \
   --namespace production
@@ -5473,10 +5471,10 @@ $ kiro diagnose probe-failure \
 🤖 Auto-Apply? (yes/no)
 ```
 
-#### Probe 최적화 통합 대시보드
+#### Probe Optimization Integrated Dashboard
 
 ```yaml
-# Grafana Dashboard - AI 기반 Probe 최적화 현황
+# Grafana Dashboard - AI-driven Probe optimization status
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -5488,26 +5486,26 @@ data:
       "title": "AI-Driven Probe Optimization",
       "panels": [
         {
-          "title": "Auto-Remediation 성공률",
+          "title": "Auto-Remediation Success Rate",
           "targets": [{
             "expr": "rate(kiro_auto_remediation_success[1h]) / rate(kiro_auto_remediation_total[1h])"
           }]
         },
         {
-          "title": "Tribal Knowledge 패턴 매칭",
+          "title": "Tribal Knowledge Pattern Matching",
           "targets": [{
             "expr": "kiro_pattern_match_count"
           }]
         },
         {
-          "title": "Probe 실패율 트렌드 (AI 도입 전후)",
+          "title": "Probe Failure Rate Trend (Before/After AI)",
           "targets": [
             {"expr": "rate(probe_failures_total[1h])", "legendFormat": "Before AI"},
             {"expr": "rate(probe_failures_ai_optimized_total[1h])", "legendFormat": "After AI"}
           ]
         },
         {
-          "title": "평균 문제 해결 시간 (MTTR)",
+          "title": "Mean Time to Resolution (MTTR)",
           "targets": [{
             "expr": "avg(kiro_remediation_duration_seconds)"
           }]
@@ -5516,20 +5514,20 @@ data:
     }
 ```
 
-**ROI 측정 예시:**
+**ROI Measurement Example:**
 
-| 지표 | AI 도입 전 | AI 도입 후 | 개선율 |
-|------|----------|-----------|--------|
-| Probe 실패 건수 | 120건/주 | 12건/주 | 90% 감소 |
-| 평균 해결 시간 (MTTR) | 45분 | 3분 | 93% 단축 |
-| 운영자 개입 필요 건수 | 120건/주 | 12건/주 | 90% 감소 |
-| Probe 설정 최적화 소요 시간 | 2시간/건 | 5분/건 | 96% 단축 |
+| Metric | Before AI | After AI | Improvement |
+|--------|-----------|----------|-------------|
+| Probe failure count | 120/week | 12/week | 90% reduction |
+| Mean Time to Resolution (MTTR) | 45 min | 3 min | 93% reduction |
+| Cases requiring operator intervention | 120/week | 12/week | 90% reduction |
+| Time to optimize Probe configuration | 2 hours/case | 5 min/case | 96% reduction |
 
-:::tip Agentic AI 도입 Best Practice
-Agentic AI는 즉시 100% 자동화를 목표로 하지 마세요. 처음 3개월은 "Suggest Mode"로 운영하여 AI 제안을 운영자가 검토하고 승인하는 방식으로 시작하세요. Tribal Knowledge가 충분히 쌓이고 신뢰도가 90% 이상이 되면 "Auto-Remediation Mode"로 전환합니다.
+:::tip Best Practices for Adopting Agentic AI
+Do not aim for 100% automation from the start with Agentic AI. Operate in "Suggest Mode" for the first 3 months, where operators review and approve AI suggestions. Once Tribal Knowledge is sufficiently accumulated and confidence reaches 90% or higher, transition to "Auto-Remediation Mode".
 :::
 
-**관련 자료:**
+**Related Resources:**
 - [YouTube: CNS421 - Streamline Amazon EKS operations with Agentic AI](https://www.youtube.com/watch?v=4s-a0jY4kSE)
 - [AWS Blog: Agentic Cloud Modernization with Kiro](https://aws.amazon.com/blogs/migration-and-modernization/agentic-cloud-modernization-accelerating-modernization-with-aws-mcps-and-kiro/)
 - [AWS Blog: AWS IaC MCP Server](https://aws.amazon.com/blogs/devops/introducing-the-aws-infrastructure-as-code-mcp-server-ai-powered-cdk-and-cloudformation-assistance/)
@@ -5537,4 +5535,4 @@ Agentic AI는 즉시 100% 자동화를 목표로 하지 마세요. 처음 3개�
 
 ---
 
-**문서 기여**: 이 문서에 대한 피드백, 오류 신고, 개선 제안은 GitHub Issues를 통해 제출해 주세요.
+**Document Contributions**: Please submit feedback, error reports, and improvement suggestions for this document through GitHub Issues.

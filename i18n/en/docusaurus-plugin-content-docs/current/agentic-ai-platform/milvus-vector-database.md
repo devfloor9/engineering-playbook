@@ -1,6 +1,6 @@
 ---
 title: "Milvus Vector Database Integration"
-sidebar_label: "Milvus Vector DB"
+sidebar_label: "10. Milvus Vector DB"
 description: "Guide to deploying and integrating Milvus vector database on Amazon EKS with RAG pipelines"
 sidebar_position: 10
 tags:
@@ -11,6 +11,10 @@ tags:
   - eks
   - genai
   - embedding
+last_update:
+  date: 2026-02-14
+  author: devfloor9
+category: "genai-aiml"
 ---
 
 import {
@@ -21,6 +25,8 @@ import {
   GPUIndexingPerformanceTable,
   StorageCostComparisonTable
 } from '@site/src/components/MilvusTables';
+
+> 📅 **Written**: 2026-02-13 | **Last Modified**: 2026-02-14 | ⏱️ **Reading Time**: ~2 min
 
 # Milvus Vector Database Integration
 

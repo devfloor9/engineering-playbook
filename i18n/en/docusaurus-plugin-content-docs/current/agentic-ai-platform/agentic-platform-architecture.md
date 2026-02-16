@@ -1,19 +1,20 @@
 ---
 title: "Agentic AI Platform Architecture"
-sidebar_label: "Platform Architecture"
+sidebar_label: "3. Platform Architecture"
 description: "Comprehensive guide covering complete system architecture, core component design, and implementation strategies for production-grade GenAI platform based on Amazon EKS"
 tags: [eks, architecture, agentic-ai, platform, kubernetes, kagent, kgateway, genai, mlops]
 category: "genai-aiml"
-date: 2025-02-05
-authors: [devfloor9]
 sidebar_position: 3
+last_update:
+  date: 2026-02-14
+  author: devfloor9
 ---
 
 import { CoreCapabilities, LayerRoles, ToolTypes, K8sFeatures, RoutingStrategies, TenantIsolation, RequestProcessing, TechnologyStack } from '@site/src/components/ArchitectureTables';
 
 # Agentic AI Platform Architecture
 
-> 📅 **Date**: 2025-02-05 | ⏱️ **Reading Time**: ~15 minutes
+> 📅 **Written**: 2025-02-05 | **Last Modified**: 2026-02-14 | ⏱️ **Reading Time**: ~4 min
 
 This document covers the complete system architecture and key component design of a production-grade Agentic AI Platform based on Amazon EKS. It presents a platform architecture to efficiently build and operate autonomous AI agents that can perform complex tasks.
 

@@ -5,14 +5,14 @@ description: "Amazon EKS Hybrid Nodes 도입을 위한 완전한 가이드: 아�
 tags: [eks, hybrid-nodes, nodeadm, kubernetes, harbor, networking, dns, gpu, dra, cost-optimization, architecture]
 category: "hybrid-multicloud"
 last_update:
-  date: 2025-08-20
+  date: 2026-02-14
   author: devfloor9
 sidebar_position: 1
 ---
 
 # EKS Hybrid Nodes 완전 가이드
 
-> 📅 **작성일**: 2025-08-20 | ⏱️ **읽는 시간**: 약 15분
+> 📅 **작성일**: 2025-08-20 | **수정일**: 2026-02-14 | ⏱️ **읽는 시간**: 약 8분
 
 ## 목차
 

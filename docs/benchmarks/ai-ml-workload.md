@@ -5,7 +5,7 @@ description: "vLLM 기반 Llama 4 모델 서빙에서 GPU 인스턴스(p5, p4d, 
 tags: [benchmark, ai, ml, gpu, inference, vllm, llama4, trainium, inferentia, eks]
 category: "benchmark"
 last_update:
-  date: 2026-02-10
+  date: 2026-02-14
   author: devfloor9
 sidebar_position: 4
 ---
@@ -23,7 +23,7 @@ import MLRecommendationChart from '@site/src/components/MLRecommendationChart';
 
 # Llama 4 FM 서빙 벤치마크: GPU vs AWS Custom Silicon
 
-> 📅 **작성일**: 2026-02-10 | ✍️ **작성자**: devfloor9 | ⏱️ **읽는 시간**: 약 20분
+> 📅 **작성일**: 2026-02-10 | **수정일**: 2026-02-14 | ⏱️ **읽는 시간**: 약 9분
 
 ## 개요
 

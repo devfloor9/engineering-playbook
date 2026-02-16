@@ -6,7 +6,7 @@ sidebar_position: 2
 category: "aiops-aidlc"
 tags: [observability, opentelemetry, adot, prometheus, grafana, cloudwatch, devops-guru, mcp, eks]
 last_update:
-  date: 2026-02-12
+  date: 2026-02-14
   author: devfloor9
 ---
 
@@ -14,7 +14,7 @@ import { ArchitectureLayers, ManagedAddons, ServiceComparison, ObservabilityPill
 
 # EKS 지능형 관찰성 스택 구축
 
-> 📅 **작성일**: 2026-02-12 | ⏱️ **읽는 시간**: 약 35분 | 📌 **기준 환경**: EKS 1.35+, ADOT v0.40+, AMP, AMG
+> 📅 **작성일**: 2026-02-12 | **수정일**: 2026-02-14 | ⏱️ **읽는 시간**: 약 45분
 
 ---
 

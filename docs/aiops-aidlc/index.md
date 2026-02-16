@@ -5,7 +5,7 @@ description: "K8s 플랫폼의 장점을 AI로 극대화하면서 복잡도는 �
 sidebar_position: 4
 category: "aiops-aidlc"
 last_update:
-  date: 2026-02-12
+  date: 2026-02-13
   author: devfloor9
 ---
 
@@ -13,7 +13,7 @@ import { PlatformComparison, CoreTechStack } from '@site/src/components/AiopsInt
 
 # AIops & AIDLC for Modern Application Platform
 
-> 📅 **작성일**: 2026-02-12 | ⏱️ **읽는 시간**: 약 5분
+> 📅 **작성일**: 2026-02-12 | **수정일**: 2026-02-13 | ⏱️ **읽는 시간**: 약 3분
 
 Kubernetes는 컨테이너 오케스트레이션의 표준으로 자리 잡았지만, 그 다양한 기능과 확장성은 운영 복잡도라는 대가를 수반합니다. AIOps(AI for IT Operations)와 AIDLC(AI-Driven Development Lifecycle)는 이 복잡도를 AI로 해결하면서 K8s 플랫폼의 장점을 극대화하는 접근입니다. 단순히 AI를 모니터링에 적용하는 수준을 넘어, 개발부터 배포, 운영, 장애 대응까지 전체 수명주기를 AI가 주도하는 새로운 운영 패러다임을 제시합니다.
 

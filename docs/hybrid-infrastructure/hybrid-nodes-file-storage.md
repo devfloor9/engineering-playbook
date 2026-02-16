@@ -5,14 +5,14 @@ description: "EKS Hybrid Nodes 환경에서 공유 파일 스토리지 구현을
 tags: [eks, hybrid-nodes, storage, efs, fsx, nfs, amazon-linux-2023]
 category: "hybrid-multicloud"
 last_update:
-  date: 2025-09-15
+  date: 2026-02-14
   author: devfloor9
 sidebar_position: 3
 ---
 
 # EKS Hybrid Nodes 공유 파일 스토리지 솔루션
 
-> 📅 **작성일**: 2025-09-15 | ⏱️ **읽는 시간**: 약 17분
+> 📅 **작성일**: 2025-09-15 | **수정일**: 2026-02-14 | ⏱️ **읽는 시간**: 약 11분
 
 
 ## 개요

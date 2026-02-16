@@ -5,7 +5,7 @@ description: "vLLM을 활용한 Foundation Model 배포, Kubernetes 통합, 성�
 category: "genai-aiml"
 sidebar_position: 5
 last_update:
-  date: 2026-02-13
+  date: 2026-02-14
   author: devfloor9
 tags: [vllm, model-serving, gpu, inference, optimization, foundation-model, eks]
 ---

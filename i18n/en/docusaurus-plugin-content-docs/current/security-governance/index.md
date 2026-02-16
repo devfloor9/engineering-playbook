@@ -3,6 +3,10 @@ title: "Security & Governance"
 sidebar_label: "Security & Governance"
 description: "Advanced technical documentation on security hardening and compliance management in Amazon EKS environments"
 sidebar_position: 5
+last_update:
+  date: 2026-02-13
+  author: devfloor9
+category: "security"
 ---
 
 # Security & Governance

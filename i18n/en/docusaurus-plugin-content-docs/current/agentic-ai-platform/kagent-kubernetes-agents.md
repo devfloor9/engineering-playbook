@@ -1,15 +1,19 @@
 ---
 title: "Kagent - Kubernetes AI Agent Management"
-sidebar_label: "Kagent Agent Management"
+sidebar_label: "11. Kagent Agent Management"
 description: "Guide to deploying and managing AI agents in Kubernetes environments using Kagent"
 tags: [eks, kagent, kubernetes, agent, crd, operator]
 category: "genai-aiml"
-date: 2025-02-05
-authors: [devfloor9]
 sidebar_position: 11
+last_update:
+  date: 2026-02-14
+  author: devfloor9
 ---
 
 # Kagent - Kubernetes AI Agent Management
+
+> 📅 **Written**: 2026-02-14 | **Last Modified**: 2026-02-14 | ⏱️ **Reading Time**: ~5 min
+
 
 This document covers how to efficiently deploy and manage AI agents in Kubernetes environments using Kagent. Kagent is an open-source tool based on the Kubernetes Operator pattern that enables declarative management of the complete lifecycle of AI agents.
 

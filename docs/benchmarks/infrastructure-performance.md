@@ -6,7 +6,7 @@ description: EKS 클러스터 인프라 성능 벤치마크 - 네트워크, DNS,
 category: "benchmarks"
 tags: [benchmark, infrastructure, performance, network, dns]
 last_update:
-  date: 2026-02-09
+  date: 2026-02-13
   author: devfloor9
 ---
 

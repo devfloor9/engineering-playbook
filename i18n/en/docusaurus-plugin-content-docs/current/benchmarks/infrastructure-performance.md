@@ -1,14 +1,19 @@
 ---
 title: Infrastructure Performance Benchmark
+sidebar_label: "1. Infrastructure Performance"
 sidebar_position: 1
 description: EKS cluster infrastructure performance benchmark - network, DNS, autoscaling
 tags: [benchmark, infrastructure, performance, network, dns]
 last_update:
-  date: 2026-02-09
+  date: 2026-02-13
   author: devfloor9
+category: "benchmarks"
 ---
 
 # Infrastructure Performance Benchmark
+
+> 📅 **Written**: 2026-02-13 | **Last Modified**: 2026-02-13 | ⏱️ **Reading Time**: ~1 min
+
 
 We measure and analyze key performance metrics of EKS cluster infrastructure.
 

@@ -139,13 +139,82 @@ const i18n = {
       comment1: '# Attach to Service, not Gateway',
       comment2: '# Apply retry/timeout to traffic destined for Service B'
     }
+  },
+  zh: {
+    title: 'GAMMA Initiative 核心概念',
+    subtitle: '4大核心目标 & 网格配置模式',
+    objectives: {
+      title: '4大核心目标',
+      items: [
+        {
+          icon: '🎯',
+          title: '统一 API',
+          desc: '使用相同的 Gateway API 资源管理入口流量和服务网格'
+        },
+        {
+          icon: '👥',
+          title: '基于角色的配置',
+          desc: '将 Gateway API 的角色分离原则同样应用于网格流量'
+        },
+        {
+          icon: '⚡',
+          title: '最小 API 变更',
+          desc: '仅对现有 Gateway API 进行最少的更改即可支持网格功能'
+        },
+        {
+          icon: '🔄',
+          title: '跨实现一致性',
+          desc: '在 Istio、Cilium、Linkerd 等多种网格中使用相同的 API'
+        }
+      ]
+    },
+    meshPattern: {
+      title: '网格配置模式',
+      traditional: {
+        title: '传统方式',
+        ingress: 'Ingress Controller\n(仅 North-South)',
+        mesh: 'Service Mesh\n(仅 East-West)',
+        problem: '独立的配置体系'
+      },
+      gamma: {
+        title: 'GAMMA 方式',
+        unified: 'Gateway API\n(统一 API)',
+        northSouth: 'North-South\n(parentRef: Gateway)',
+        eastWest: 'East-West\n(parentRef: Service)',
+        benefit: '统一为单一 API'
+      }
+    },
+    comparison: {
+      title: '配置方式对比',
+      traditional: {
+        label: '传统方式',
+        ingressTitle: 'Ingress (独立 CRD)',
+        ingressDesc: 'Ingress/VirtualService 等',
+        meshTitle: 'Mesh (独立 CRD)',
+        meshDesc: 'ServiceEntry/DestinationRule 等',
+        problem: '→ 需要学习2种 API'
+      },
+      gamma: {
+        label: 'GAMMA 方式',
+        title: 'HTTPRoute (统一)',
+        northSouth: '• parentRef: Gateway',
+        eastWest: '• parentRef: Service',
+        benefit: '→ 统一为1种 API'
+      }
+    },
+    example: {
+      title: 'GAMMA HTTPRoute 示例',
+      subtitle: '直接对 Service 应用 L7 策略',
+      comment1: '# 附加到 Service 而非 Gateway',
+      comment2: '# 对发往 Service B 的流量应用重试/超时策略'
+    }
   }
 };
 
 export default function GammaInfographic({ locale = 'ko' }) {
   const { colorMode } = useColorMode();
   const isDark = colorMode === 'dark';
-  const t = i18n[locale];
+  const t = i18n[locale] || i18n.ko;
 
   const bgColor = isDark ? '#1a1a1a' : '#ffffff';
   const borderColor = isDark ? '#333' : '#e2e8f0';
@@ -232,7 +301,7 @@ export default function GammaInfographic({ locale = 'ko' }) {
           </div>
         </div>
 
-        {/* Section 2: Mesh Configuration Pattern */}
+        {/* Section 2: Mesh Configuration Pattern - Vertical Before/After */}
         <div style={{ marginBottom: '3rem' }}>
           <h3 style={{
             fontSize: '1.3rem',
@@ -245,98 +314,99 @@ export default function GammaInfographic({ locale = 'ko' }) {
           </h3>
 
           <div style={{
-            display: 'grid',
-            gridTemplateColumns: '1fr auto 1fr',
-            gap: '1rem',
-            alignItems: 'stretch'
+            border: `2px solid ${borderColor}`,
+            borderRadius: '12px',
+            overflow: 'hidden'
           }}>
-            {/* Traditional Approach */}
+            {/* Traditional Approach - Top */}
             <div style={{
               background: isDark
                 ? 'linear-gradient(135deg, #3a1a1a 0%, #4a2020 100%)'
                 : 'linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%)',
-              border: `2px solid ${isDark ? '#b71c1c' : '#c62828'}`,
-              borderRadius: '12px',
-              padding: '1.25rem',
-              textAlign: 'center',
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'center'
+              padding: '1.25rem'
             }}>
               <div style={{
                 fontSize: '1rem',
                 fontWeight: 700,
                 marginBottom: '0.75rem',
-                color: isDark ? '#ef9a9a' : '#c62828'
+                color: isDark ? '#ef9a9a' : '#c62828',
+                textAlign: 'center'
               }}>
                 ❌ {t.meshPattern.traditional.title}
               </div>
               <div style={{
-                background: isDark ? '#2a1515' : 'white',
-                border: `1px solid ${isDark ? '#c62828' : '#ef5350'}`,
-                borderRadius: '8px',
-                padding: '0.75rem',
-                fontSize: '0.85rem',
-                fontWeight: 600,
-                color: isDark ? '#ef9a9a' : '#c62828',
-                whiteSpace: 'pre-line',
-                marginBottom: '0.5rem'
+                display: 'flex',
+                gap: '0.75rem',
+                justifyContent: 'center'
               }}>
-                {t.meshPattern.traditional.ingress}
-              </div>
-              <div style={{
-                background: isDark ? '#2a1515' : 'white',
-                border: `1px solid ${isDark ? '#c62828' : '#ef5350'}`,
-                borderRadius: '8px',
-                padding: '0.75rem',
-                fontSize: '0.85rem',
-                fontWeight: 600,
-                color: isDark ? '#ef9a9a' : '#c62828',
-                whiteSpace: 'pre-line'
-              }}>
-                {t.meshPattern.traditional.mesh}
+                <div style={{
+                  flex: 1,
+                  maxWidth: '280px',
+                  background: isDark ? '#2a1515' : 'white',
+                  border: `1px solid ${isDark ? '#c62828' : '#ef5350'}`,
+                  borderRadius: '8px',
+                  padding: '0.75rem',
+                  fontSize: '0.85rem',
+                  fontWeight: 600,
+                  color: isDark ? '#ef9a9a' : '#c62828',
+                  whiteSpace: 'pre-line',
+                  textAlign: 'center'
+                }}>
+                  {t.meshPattern.traditional.ingress}
+                </div>
+                <div style={{
+                  flex: 1,
+                  maxWidth: '280px',
+                  background: isDark ? '#2a1515' : 'white',
+                  border: `1px solid ${isDark ? '#c62828' : '#ef5350'}`,
+                  borderRadius: '8px',
+                  padding: '0.75rem',
+                  fontSize: '0.85rem',
+                  fontWeight: 600,
+                  color: isDark ? '#ef9a9a' : '#c62828',
+                  whiteSpace: 'pre-line',
+                  textAlign: 'center'
+                }}>
+                  {t.meshPattern.traditional.mesh}
+                </div>
               </div>
               <div style={{
                 marginTop: '0.75rem',
                 fontSize: '0.8rem',
                 fontStyle: 'italic',
-                color: isDark ? '#e57373' : '#d32f2f'
+                color: isDark ? '#e57373' : '#d32f2f',
+                textAlign: 'center'
               }}>
                 {t.meshPattern.traditional.problem}
               </div>
             </div>
 
-            {/* Arrow */}
+            {/* Transition Arrow */}
             <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '2rem',
+              background: 'linear-gradient(135deg, #4a148c 0%, #6a1b9a 100%)',
+              padding: '0.5rem',
+              textAlign: 'center',
+              color: 'white',
+              fontSize: '0.9rem',
               fontWeight: 700,
-              color: '#4a148c',
-              padding: '0 0.25rem'
+              letterSpacing: '0.05em'
             }}>
-              →
+              ▼ GAMMA Initiative ▼
             </div>
 
-            {/* GAMMA Approach */}
+            {/* GAMMA Approach - Bottom */}
             <div style={{
               background: isDark
                 ? 'linear-gradient(135deg, #1a3a1a 0%, #204a20 100%)'
                 : 'linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%)',
-              border: `2px solid ${isDark ? '#2e7d32' : '#2e7d32'}`,
-              borderRadius: '12px',
-              padding: '1.25rem',
-              textAlign: 'center',
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'center'
+              padding: '1.25rem'
             }}>
               <div style={{
                 fontSize: '1rem',
                 fontWeight: 700,
                 marginBottom: '0.75rem',
-                color: isDark ? '#81c784' : '#2e7d32'
+                color: isDark ? '#81c784' : '#2e7d32',
+                textAlign: 'center'
               }}>
                 ✅ {t.meshPattern.gamma.title}
               </div>
@@ -348,17 +418,23 @@ export default function GammaInfographic({ locale = 'ko' }) {
                 padding: '0.75rem',
                 fontSize: '0.9rem',
                 fontWeight: 700,
+                textAlign: 'center',
                 marginBottom: '0.5rem',
-                whiteSpace: 'pre-line'
+                whiteSpace: 'pre-line',
+                maxWidth: '320px',
+                marginLeft: 'auto',
+                marginRight: 'auto'
               }}>
                 {t.meshPattern.gamma.unified}
               </div>
               <div style={{
                 display: 'flex',
-                gap: '0.5rem'
+                gap: '0.75rem',
+                justifyContent: 'center'
               }}>
                 <div style={{
                   flex: 1,
+                  maxWidth: '280px',
                   background: isDark ? '#1a2e1a' : 'white',
                   border: `1px solid ${isDark ? '#4caf50' : '#66bb6a'}`,
                   borderRadius: '8px',
@@ -366,12 +442,14 @@ export default function GammaInfographic({ locale = 'ko' }) {
                   fontSize: '0.8rem',
                   fontWeight: 600,
                   color: isDark ? '#81c784' : '#2e7d32',
-                  whiteSpace: 'pre-line'
+                  whiteSpace: 'pre-line',
+                  textAlign: 'center'
                 }}>
                   {t.meshPattern.gamma.northSouth}
                 </div>
                 <div style={{
                   flex: 1,
+                  maxWidth: '280px',
                   background: isDark ? '#1a2e1a' : 'white',
                   border: `1px solid ${isDark ? '#4caf50' : '#66bb6a'}`,
                   borderRadius: '8px',
@@ -379,7 +457,8 @@ export default function GammaInfographic({ locale = 'ko' }) {
                   fontSize: '0.8rem',
                   fontWeight: 600,
                   color: isDark ? '#81c784' : '#2e7d32',
-                  whiteSpace: 'pre-line'
+                  whiteSpace: 'pre-line',
+                  textAlign: 'center'
                 }}>
                   {t.meshPattern.gamma.eastWest}
                 </div>
@@ -388,7 +467,8 @@ export default function GammaInfographic({ locale = 'ko' }) {
                 marginTop: '0.75rem',
                 fontSize: '0.8rem',
                 fontStyle: 'italic',
-                color: isDark ? '#66bb6a' : '#388e3c'
+                color: isDark ? '#66bb6a' : '#388e3c',
+                textAlign: 'center'
               }}>
                 {t.meshPattern.gamma.benefit}
               </div>

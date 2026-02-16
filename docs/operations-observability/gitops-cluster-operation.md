@@ -5,14 +5,14 @@ description: "대규모 EKS 클러스터의 안정적인 운영을 위한 GitOps
 tags: [eks, gitops, argocd, kro, ack, kubernetes, automation, infrastructure-as-code]
 category: "observability-monitoring"
 last_update:
-  date: 2025-02-09
+  date: 2026-02-13
   author: devfloor9
 sidebar_position: 1
 ---
 
 # GitOps 기반 EKS 클러스터 운영
 
-> 📅 **작성일**: 2025-02-09 | ⏱️ **읽는 시간**: 약 7분
+> 📅 **작성일**: 2025-02-09 | **수정일**: 2026-02-13 | ⏱️ **읽는 시간**: 약 6분
 
 > **📌 기준 버전**: ArgoCD v2.13+ / v3 (프리릴리즈), Kubernetes 1.32
 

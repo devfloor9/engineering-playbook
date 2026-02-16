@@ -1,6 +1,6 @@
 ---
 title: "NeMo Framework"
-sidebar_label: "NeMo Framework"
+sidebar_label: "8. NeMo Framework"
 description: "Building LLM fine-tuning and optimization pipelines with NVIDIA NeMo"
 sidebar_position: 8
 tags:
@@ -11,6 +11,10 @@ tags:
   - training
   - tensorrt
   - genai
+last_update:
+  date: 2026-02-14
+  author: devfloor9
+category: "genai-aiml"
 ---
 
 import { NemoComponents, GPURequirements, CheckpointSharding, MonitoringMetrics, NCCLImportance } from '@site/src/components/NemoTables';
@@ -849,6 +853,9 @@ export NCCL_COMM_WAIT_TIMEOUT=0 # 0 = infinite wait
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
+
+> 📅 **Written**: 2026-02-13 | **Last Modified**: 2026-02-14 | ⏱️ **Reading Time**: ~3 min
+
 
 <Tabs>
 <TabItem value="config" label="NCCL Configuration" default>

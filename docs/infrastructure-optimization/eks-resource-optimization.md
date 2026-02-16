@@ -5,14 +5,14 @@ description: "Kubernetes Pod의 CPU/Memory 리소스 설정, QoS 클래스, VPA/
 tags: [eks, kubernetes, resources, cpu, memory, qos, vpa, hpa, right-sizing, optimization]
 category: "performance-networking"
 last_update:
-  date: 2026-02-12
+  date: 2026-02-14
   author: devfloor9
 sidebar_position: 5
 ---
 
 # EKS Pod 리소스 최적화 가이드
 
-> 📅 **작성일**: 2026-02-12 | ⏱️ **읽는 시간**: 약 20분
+> 📅 **작성일**: 2026-02-12 | **수정일**: 2026-02-14 | ⏱️ **읽는 시간**: 약 46분
 
 > **📌 기준 환경**: EKS 1.30+, Kubernetes 1.30+, Metrics Server v0.7+
 

@@ -5,14 +5,14 @@ description: "Kgateway 기반 AI 모델 추론 요청의 동적 라우팅 및 �
 tags: [eks, gateway-api, kgateway, routing, load-balancing, inference]
 category: "genai-aiml"
 last_update:
-  date: 2026-02-13
+  date: 2026-02-14
   author: devfloor9
 sidebar_position: 9
 ---
 
 # Inference Gateway 및 Dynamic Routing
 
-> 📅 **작성일**: 2025-02-05 | ⏱️ **읽는 시간**: 약 12분
+> 📅 **작성일**: 2025-02-05 | **수정일**: 2026-02-14 | ⏱️ **읽는 시간**: 약 6분
 
 ## 개요
 

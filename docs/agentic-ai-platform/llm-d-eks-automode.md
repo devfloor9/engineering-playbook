@@ -5,7 +5,7 @@ description: "llm-d를 활용한 EKS Auto Mode 환경에서의 Kubernetes 네이
 tags: [eks, llm-d, vllm, inference-gateway, gpu, auto-mode, qwen, kv-cache]
 category: "genai-aiml"
 last_update:
-  date: 2026-02-13
+  date: 2026-02-14
   author: devfloor9
 sidebar_position: 7
 ---
@@ -31,7 +31,7 @@ import {
 
 > **📌 현재 버전**: llm-d v0.4 (2025). 본 문서의 배포 예시는 Intelligent Inference Scheduling well-lit path 기준입니다.
 
-> 📅 **작성일**: 2026-02-10 | ⏱️ **읽는 시간**: 약 15분
+> 📅 **작성일**: 2026-02-10 | **수정일**: 2026-02-14 | ⏱️ **읽는 시간**: 약 8분
 
 ## 개요
 

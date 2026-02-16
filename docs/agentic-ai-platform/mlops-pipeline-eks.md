@@ -6,7 +6,7 @@ sidebar_position: 15
 category: "genai-aiml"
 tags: [mlops, kubeflow, mlflow, kserve, argo-workflows, eks, ml-pipeline]
 last_update:
-  date: 2026-02-13
+  date: 2026-02-14
   author: devfloor9
 ---
 
@@ -15,7 +15,7 @@ import { PipelineComponents, KServeVsSeldon } from '@site/src/components/MlOpsTa
 
 # EKS 기반 MLOps 파이프라인 구축
 
-> 📅 **작성일**: 2026-02-13 | ⏱️ **읽는 시간**: 약 18분
+> 📅 **작성일**: 2026-02-13 | **수정일**: 2026-02-14 | ⏱️ **읽는 시간**: 약 3분
 
 ## 개요
 

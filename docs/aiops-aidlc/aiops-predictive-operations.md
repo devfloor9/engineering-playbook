@@ -6,7 +6,7 @@ sidebar_position: 4
 category: "aiops-aidlc"
 tags: [aiops, predictive-scaling, auto-remediation, karpenter, self-healing, eks, kiro, mcp, ai-agent, chaos-engineering]
 last_update:
-  date: 2026-02-12
+  date: 2026-02-14
   author: devfloor9
 ---
 
@@ -14,7 +14,7 @@ import { ScalingComparison, ResponsePatterns, MaturityTable, EvolutionStages, ML
 
 # 예측 스케일링 및 자동 복구 패턴
 
-> 📅 **작성일**: 2026-02-12 | ⏱️ **읽는 시간**: 약 30분 | 📌 **기준 환경**: EKS 1.35+, Karpenter v1.1+, CloudWatch, Kiro
+> 📅 **작성일**: 2026-02-12 | **수정일**: 2026-02-14 | ⏱️ **읽는 시간**: 약 29분
 
 ---
 

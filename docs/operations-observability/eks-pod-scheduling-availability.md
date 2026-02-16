@@ -5,7 +5,7 @@ description: "Kubernetes Pod 스케줄링 전략, Affinity/Anti-Affinity, PDB, P
 tags: [eks, kubernetes, scheduling, affinity, pdb, priority, taints, tolerations, descheduler]
 category: "operations"
 last_update:
-  date: 2026-02-12
+  date: 2026-02-14
   author: devfloor9
   changes: "Section 10.5 추가 (Node Readiness Controller), Section 10 추가 (2025-2026 AWS 혁신), Section 8.4.1 추가 (Descheduler+Karpenter 조합), Section 9.2 추가 (AI/ML 워크로드)"
 sidebar_position: 6
@@ -13,7 +13,7 @@ sidebar_position: 6
 
 # EKS Pod 스케줄링 & 가용성 패턴
 
-> 📅 **작성일**: 2026-02-12 | ⏱️ **읽는 시간**: 약 17분
+> 📅 **작성일**: 2026-02-12 | **수정일**: 2026-02-14 | ⏱️ **읽는 시간**: 약 54분
 
 > **📌 기준 환경**: EKS 1.30+, Karpenter v1.x, Kubernetes 1.30+
 

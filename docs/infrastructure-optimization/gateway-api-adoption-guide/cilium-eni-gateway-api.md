@@ -5,7 +5,7 @@ description: "Cilium ENI 모드 아키텍처, Gateway API 리소스 구성, 성�
 tags: [eks, cilium, eni, gateway-api, ebpf, networking, bgp]
 category: "performance-networking"
 last_update:
-  date: 2025-02-12
+  date: 2026-02-14
   author: devfloor9
 sidebar_position: 2
 ---

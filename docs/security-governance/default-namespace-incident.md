@@ -5,14 +5,14 @@ description: "EKS 클러스터에서 default namespace 삭제로 인한 Control 
 tags: [eks, security, incident-response, namespace, troubleshooting]
 category: "security-compliance"
 last_update:
-  date: 2025-01-07
+  date: 2026-02-14
   author: devfloor9
 sidebar_position: 1
 ---
 
 # EKS Default Namespace 삭제 시 장애 대응 가이드
 
-> 📅 **작성일**: 2025-01-07 | ⏱️ **읽는 시간**: 약 18분
+> 📅 **작성일**: 2025-01-07 | **수정일**: 2026-02-14 | ⏱️ **읽는 시간**: 약 12분
 
 
 ## 1. 개요 (TL;DR)

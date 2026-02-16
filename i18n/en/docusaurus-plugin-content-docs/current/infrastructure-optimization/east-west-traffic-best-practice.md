@@ -1,15 +1,19 @@
 ---
 title: "East-West Traffic Optimization: Balancing Performance and Cost"
-sidebar_label: "East-West Traffic Optimization"
+sidebar_label: "3. East-West Traffic Optimization"
 description: "In-depth optimization strategies for minimizing latency in service-to-service communication on EKS and reducing cross-AZ costs. From Topology Hints to Cilium ClusterMesh and Istio Ambient"
 tags: [eks, networking, performance, cost-optimization, service-mesh]
 category: "performance-networking"
-date: 2025-05-22
-authors: [devfloor9]
 sidebar_position: 3
+last_update:
+  date: 2026-02-14
+  author: devfloor9
 ---
 
 # EKS East-West Traffic Optimization Guide
+
+> 📅 **Written**: 2026-02-09 | **Last Modified**: 2026-02-14 | ⏱️ **Reading Time**: ~3 min
+
 
 When East-West (service-to-service) hops increase from 1 to 2, p99 latency increases by milliseconds, and crossing availability zones incurs AWS bandwidth charges ($0.01/GB). This article explores layer-by-layer options from Kubernetes-native features (Topology Hints, InternalTrafficPolicy) through Cilium ClusterMesh, AWS VPC Lattice, and Istio Ambient—comparing p99/p999 latency, CPU/memory overhead, and costs assuming 10 TB/month of same-AZ traffic.
 

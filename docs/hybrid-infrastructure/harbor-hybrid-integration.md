@@ -5,14 +5,14 @@ description: "Harbor 2.13 프라이빗 컨테이너 레지스트리를 Amazon EK
 tags: [eks, hybrid-nodes, harbor, container-registry, kubernetes, ssl-tls, nodeadm]
 category: "hybrid-multicloud"
 last_update:
-  date: 2025-08-20
+  date: 2026-02-14
   author: devfloor9
 sidebar_position: 4
 ---
 
 # Harbor 2.13과 EKS Hybrid Nodes 통합 가이드
 
-> 📅 **작성일**: 2025-08-20 | ⏱️ **읽는 시간**: 약 3분
+> 📅 **작성일**: 2025-08-20 | **수정일**: 2026-02-14 | ⏱️ **읽는 시간**: 약 3분
 
 
 ## 개요

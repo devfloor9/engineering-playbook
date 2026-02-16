@@ -5,7 +5,7 @@ description: "Mixture of Experts 모델의 EKS 기반 배포 및 최적화 전�
 tags: [eks, moe, vllm, tgi, model-serving, gpu, mixtral]
 category: "genai-aiml"
 last_update:
-  date: 2026-02-13
+  date: 2026-02-14
   author: devfloor9
 sidebar_position: 6
 ---
@@ -16,7 +16,7 @@ import { RoutingMechanisms, MoeVsDense, GpuMemoryRequirements, ParallelizationSt
 
 > **📌 현재 버전**: vLLM v0.6.3 / v0.7.x (2025-02 안정 버전), TGI 3.3.5 (유지보수 모드). 본 문서의 배포 예시는 최신 안정 버전 기준입니다.
 
-> 📅 **작성일**: 2025-02-09 | ⏱️ **읽는 시간**: 약 12분
+> 📅 **작성일**: 2025-02-09 | **수정일**: 2026-02-14 | ⏱️ **읽는 시간**: 약 9분
 
 ## 개요
 

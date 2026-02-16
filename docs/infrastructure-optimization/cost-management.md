@@ -5,7 +5,7 @@ description: "Amazon EKS 환경에서 30-90%의 획기적 비용 절감을 달�
 tags: [eks, cost-management, finops, karpenter, kubecost, optimization]
 category: "performance-networking"
 last_update:
-  date: 2025-02-09
+  date: 2026-02-14
   author: devfloor9
 sidebar_position: 6
 ---
@@ -14,7 +14,7 @@ sidebar_position: 6
 
 > **📌 업데이트**: 2025-02-09 - Karpenter v1.6 GA 및 EKS Auto Mode 비용 분석 반영
 
-> 📅 **작성일**: 2025-02-05 | ⏱️ **읽는 시간**: 약 25분
+> 📅 **작성일**: 2025-02-05 | **수정일**: 2026-02-14 | ⏱️ **읽는 시간**: 약 11분
 
 ## 개요
 

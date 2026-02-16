@@ -1,15 +1,19 @@
 ---
 title: "Ultra-Fast Autoscaling with Karpenter"
-sidebar_label: "Karpenter Autoscaling"
+sidebar_label: "4. Karpenter Autoscaling"
 description: "How to achieve sub-10 second autoscaling in Amazon EKS with Karpenter and high-resolution metrics. Includes CloudWatch vs Prometheus architecture comparison, HPA configuration, and production patterns"
 tags: [eks, karpenter, autoscaling, performance, cloudwatch, prometheus, spot-instances]
 category: "performance-networking"
-date: 2025-06-30
-authors: [devfloor9]
 sidebar_position: 4
+last_update:
+  date: 2026-02-13
+  author: devfloor9
 ---
 
 # Ultra-Fast EKS Autoscaling with Karpenter
+
+> 📅 **Written**: 2025-02-09 | **Last Modified**: 2026-02-13 | ⏱️ **Reading Time**: ~5 min
+
 
 > 📅 **Published**: June 30, 2025 | ⏱️ **Reading Time**: ~10 minutes
 

@@ -1,15 +1,19 @@
 ---
 title: "EKS Hybrid Nodes Shared File Storage Solution"
-sidebar_label: "File Storage"
+sidebar_label: "3. File Storage"
 description: "Comprehensive guide for implementing shared file storage in EKS Hybrid Nodes environments, covering AWS managed services, enterprise storage integration, and Amazon Linux 2023 alternative approaches"
 tags: [eks, hybrid-nodes, storage, efs, fsx, nfs, amazon-linux-2023]
 category: "hybrid-multicloud"
-date: 2025-09-15
-authors: [devfloor9]
 sidebar_position: 3
+last_update:
+  date: 2026-02-14
+  author: devfloor9
 ---
 
 # EKS Hybrid Nodes Shared File Storage Solution
+
+> 📅 **Written**: 2025-09-15 | **Last Modified**: 2026-02-14 | ⏱️ **Reading Time**: ~9 min
+
 
 ## Overview
 

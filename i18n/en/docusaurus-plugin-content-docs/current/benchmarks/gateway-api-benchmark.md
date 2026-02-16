@@ -5,14 +5,14 @@ description: "Performance comparison benchmark plan for 5 Gateway API implementa
 tags: [benchmark, gateway-api, cilium, envoy, nginx, performance, eks]
 category: "benchmark"
 last_update:
-  date: 2026-02-12
+  date: 2026-02-14
   author: devfloor9
-sidebar_position: 6
+sidebar_position: 3
 ---
 
 # Gateway API Implementation Performance Benchmark Plan
 
-> 📅 **Date**: 2026-02-12 | ✍️ **Author**: devfloor9 | ⏱️ **Reading Time**: ~10 minutes
+> 📅 **Written**: 2026-02-12 | **Last Modified**: 2026-02-14 | ⏱️ **Reading Time**: ~4 min
 
 A systematic benchmark plan to objectively compare 5 Gateway API implementations in identical Amazon EKS environments. Quantitatively identify each solution's strengths and weaknesses to make data-driven architectural decisions.
 

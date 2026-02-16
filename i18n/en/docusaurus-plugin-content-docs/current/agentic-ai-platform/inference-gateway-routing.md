@@ -1,17 +1,18 @@
 ---
 title: "Inference Gateway and Dynamic Routing"
-sidebar_label: "Inference Gateway"
+sidebar_label: "9. Inference Gateway"
 description: "Dynamic routing and load balancing configuration for AI model inference requests using Kgateway"
 tags: [eks, gateway-api, kgateway, routing, load-balancing, inference]
 category: "genai-aiml"
-date: 2025-02-05
-authors: [devfloor9]
 sidebar_position: 9
+last_update:
+  date: 2026-02-14
+  author: devfloor9
 ---
 
 # Inference Gateway and Dynamic Routing
 
-> **Written**: 2025-02-05 | **Reading time**: ~12 min
+> 📅 **Written**: 2025-02-05 | **Last Modified**: 2026-02-14 | ⏱️ **Reading Time**: ~4 min
 
 In large-scale AI model serving environments, efficiently routing and managing inference requests across various models is crucial. This document covers how to configure dynamic routing, load balancing, and failure response strategies for AI model inference requests using Kubernetes Gateway API and Kgateway.
 

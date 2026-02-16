@@ -4,7 +4,7 @@ sidebar_label: "1. GAMMA Initiative"
 description: "GAMMA (Gateway API for Mesh Management and Administration) 소개, East-West 트래픽 관리, 서비스 메시 통합"
 tags: [gateway-api, gamma, service-mesh, east-west]
 last_update:
-  date: 2025-02-12
+  date: 2026-02-14
   author: devfloor9
 sidebar_position: 1
 ---

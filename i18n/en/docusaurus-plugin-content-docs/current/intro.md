@@ -2,6 +2,11 @@
 title: Introduction
 description: Cloud Native Architecture Engineering Playbook & Benchmark Reports — Amazon EKS infrastructure optimization, Agentic AI platform, AIOps/AIDLC, performance benchmarks
 tags: [cloud-native, kubernetes, introduction, getting-started]
+sidebar_position: 1
+last_update:
+  date: 2026-02-13
+  author: devfloor9
+category: "getting-started"
 ---
 
 # Engineering Playbook

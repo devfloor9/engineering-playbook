@@ -1,12 +1,13 @@
 ---
 title: "AI Agent Monitoring and Operations"
-sidebar_label: "Agent Monitoring & Operations"
+sidebar_label: "12. Agent Monitoring & Operations"
 description: "Comprehensive guide for monitoring, alerting, and troubleshooting Agentic AI applications using LangFuse and LangSmith"
 tags: [eks, langfuse, langsmith, monitoring, observability, tracing, opentelemetry, operations, troubleshooting, alerting]
 category: "genai-aiml"
-date: 2025-02-05
-authors: [devfloor9]
 sidebar_position: 12
+last_update:
+  date: 2026-02-14
+  author: devfloor9
 ---
 
 import {
@@ -21,7 +22,7 @@ import {
 
 # AI Agent Monitoring and Operations
 
-> **Written**: 2025-02-05 | **Reading time**: ~20 min
+> 📅 **Written**: 2025-02-05 | **Last Modified**: 2026-02-14 | ⏱️ **Reading Time**: ~4 min
 
 This document covers comprehensive methods for effectively tracking and monitoring the performance and behavior of Agentic AI applications using LangFuse and LangSmith. We provide a complete operational guide from deployment in Kubernetes environments to Grafana dashboard configuration, alert setup, and troubleshooting.
 

@@ -5,7 +5,7 @@ description: "Amazon EKS 기반 프로덕션급 GenAI 플랫폼의 전체 시스
 tags: [eks, architecture, agentic-ai, platform, kubernetes, kagent, kgateway, genai, mlops]
 category: "genai-aiml"
 last_update:
-  date: 2026-02-13
+  date: 2026-02-14
   author: devfloor9
 sidebar_position: 3
 ---
@@ -14,7 +14,7 @@ import { CoreCapabilities, LayerRoles, ToolTypes, K8sFeatures, RoutingStrategies
 
 # Agentic AI Platform 아키텍처
 
-> 📅 **작성일**: 2025-02-05 | **수정일**: 2026-02-13 | ⏱️ **읽는 시간**: 약 15분
+> 📅 **작성일**: 2025-02-05 | **수정일**: 2026-02-14 | ⏱️ **읽는 시간**: 약 6분
 
 이 문서는 Amazon EKS 기반 프로덕션급 Agentic AI Platform의 전체 시스템 아키텍처와 핵심 컴포넌트 설계를 다룹니다. 자율적으로 작업을 수행하는 AI 에이전트를 효율적으로 구축하고 운영하기 위한 플랫폼 아키텍처를 제시합니다.
 

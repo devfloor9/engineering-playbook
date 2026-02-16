@@ -1,11 +1,19 @@
 ---
 title: "vLLM-based Foundation Model Deployment and Performance Optimization"
-sidebar_label: "vLLM Model Serving"
+sidebar_label: "5. vLLM Model Serving"
 description: "Foundation Model deployment using vLLM, Kubernetes integration, and performance optimization strategies"
 sidebar_position: 5
+last_update:
+  date: 2026-02-14
+  author: devfloor9
+category: "genai-aiml"
+tags: [vllm, model-serving, gpu, inference, optimization, foundation-model, eks]
 ---
 
 # vLLM-based Foundation Model Deployment and Performance Optimization
+
+> 📅 **Written**: 2026-02-14 | **Last Modified**: 2026-02-14 | ⏱️ **Reading Time**: ~6 min
+
 
 vLLM is a high-performance LLM inference engine that reduces KV cache memory waste by 60-80% through the PagedAttention algorithm and achieves 2-24x higher throughput than conventional approaches through Continuous Batching. Major companies such as Meta, Mistral AI, Cohere, and IBM use vLLM in production environments, and it provides OpenAI-compatible APIs for easy migration of existing applications.
 

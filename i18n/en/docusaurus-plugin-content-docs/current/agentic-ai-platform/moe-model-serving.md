@@ -1,19 +1,20 @@
 ---
 title: "MoE Model Serving Guide"
-sidebar_label: "MoE Model Serving"
+sidebar_label: "6. MoE Model Serving"
 description: "EKS-based deployment and optimization strategies for Mixture of Experts models"
 tags: [eks, moe, vllm, tgi, model-serving, gpu, mixtral]
 category: "genai-aiml"
-date: 2025-02-05
-authors: [devfloor9]
 sidebar_position: 6
+last_update:
+  date: 2026-02-14
+  author: devfloor9
 ---
 
 import { RoutingMechanisms, MoeVsDense, GpuMemoryRequirements, ParallelizationStrategies, TensorParallelismConfig, VllmVsTgi, KvCacheConfig, BatchOptimization, MonitoringMetrics, GpuVsTrainium2 } from '@site/src/components/MoeModelTables';
 
 # MoE Model Serving Guide
 
-> **Written**: 2025-02-05 | **Reading time**: ~12 min
+> 📅 **Written**: 2025-02-05 | **Last Modified**: 2026-02-14 | ⏱️ **Reading Time**: ~5 min
 
 ## Overview
 

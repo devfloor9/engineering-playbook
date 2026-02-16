@@ -1,15 +1,19 @@
 ---
 title: "Large-Scale EKS Cost Management: 30-90% Savings Strategies"
-sidebar_label: "EKS Cost Management"
+sidebar_label: "6. EKS Cost Management"
 description: "FinOps strategies to achieve revolutionary 30-90% cost savings in Amazon EKS environments. Includes cost structure analysis, Karpenter optimization, tool selection, and real-world success case studies"
 tags: [eks, cost-management, finops, karpenter, kubecost, optimization]
 category: "performance-networking"
-date: 2025-07-01
-authors: [devfloor9]
 sidebar_position: 6
+last_update:
+  date: 2026-02-14
+  author: devfloor9
 ---
 
 # Large-Scale EKS Cost Management Guide
+
+> 📅 **Written**: 2025-02-05 | **Last Modified**: 2026-02-14 | ⏱️ **Reading Time**: ~8 min
+
 
 ## Executive Overview
 

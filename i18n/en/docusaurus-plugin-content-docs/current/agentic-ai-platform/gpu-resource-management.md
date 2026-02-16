@@ -1,19 +1,20 @@
 ---
 title: "Dynamic GPU Cluster Resource Management"
-sidebar_label: "GPU Resource Management"
+sidebar_label: "4. GPU Resource Management"
 description: "Dynamic resource allocation and Karpenter-based auto-scaling in multi-GPU cluster environments"
 tags: [eks, gpu, karpenter, autoscaling, resource-management, dcgm]
 category: "genai-aiml"
-date: 2025-02-05
-authors: [devfloor9]
 sidebar_position: 4
+last_update:
+  date: 2026-02-14
+  author: devfloor9
 ---
 
 import { DraLimitationsTable, ScalingDecisionTable } from '@site/src/components/GpuResourceTables';
 
 # Dynamic GPU Cluster Resource Management
 
-> **Written**: 2025-02-05 | **Reading time**: ~9 min
+> 📅 **Written**: 2025-02-05 | **Last Modified**: 2026-02-14 | ⏱️ **Reading Time**: ~8 min
 
 ## Overview
 

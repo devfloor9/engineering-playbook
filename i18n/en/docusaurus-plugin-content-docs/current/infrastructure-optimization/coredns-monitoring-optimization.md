@@ -1,15 +1,19 @@
 ---
 title: "CoreDNS Monitoring and Performance Optimization Guide"
-sidebar_label: "CoreDNS Monitoring & Optimization"
+sidebar_label: "2. CoreDNS Monitoring & Optimization"
 description: "Systematic methods for monitoring and optimizing CoreDNS performance on Amazon EKS. Includes Prometheus metrics, TTL tuning, monitoring architecture, and real-world troubleshooting case studies"
 tags: [eks, coredns, dns, monitoring, prometheus, performance]
 category: "performance-networking"
-date: 2025-05-20
-authors: [devfloor9]
 sidebar_position: 2
+last_update:
+  date: 2026-02-14
+  author: devfloor9
 ---
 
 # CoreDNS Monitoring and Optimization Guide
+
+> 📅 **Written**: 2025-05-20 | **Last Modified**: 2026-02-14 | ⏱️ **Reading Time**: ~10 min
+
 
 In Amazon EKS and modern Kubernetes clusters, **CoreDNS** is a critical component responsible for all in-cluster service discovery and external domain name resolution. CoreDNS performance and availability directly impact application response times and system stability. Establishing **effective monitoring and optimization architecture** is essential. This article analyzes **CoreDNS performance monitoring metrics**, **TTL configuration guidelines**, **monitoring architecture best practices**, and **AWS recommendations with real-world case studies**. Each section includes Prometheus metrics and practical examples for EKS environments.
 

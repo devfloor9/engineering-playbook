@@ -1,12 +1,12 @@
 ---
 title: "Predictive Scaling and Auto-Remediation Patterns"
-sidebar_label: "Predictive Scaling & Auto-Remediation"
+sidebar_label: "4. Predictive Scaling & Auto-Remediation"
 description: "ML-based predictive autoscaling, Karpenter+AI proactive provisioning, AI Agent autonomous incident response, Kiro programmatic debugging patterns"
-sidebar_position: 7
+sidebar_position: 4
 category: "aiops-aidlc"
 tags: [aiops, predictive-scaling, auto-remediation, karpenter, self-healing, eks, kiro, mcp, ai-agent, chaos-engineering]
 last_update:
-  date: 2026-02-12
+  date: 2026-02-14
   author: devfloor9
 ---
 
@@ -14,7 +14,7 @@ import { ScalingComparison, ResponsePatterns, MaturityTable, EvolutionStages, ML
 
 # Predictive Scaling and Auto-Remediation Patterns
 
-> 📅 **Written**: 2026-02-12 | ⏱️ **Reading Time**: Approx. 30 minutes | 📌 **Reference Environment**: EKS 1.35+, Karpenter v1.1+, CloudWatch, Kiro
+> 📅 **Written**: 2026-02-12 | **Last Modified**: 2026-02-14 | ⏱️ **Reading Time**: ~5 min
 
 ---
 

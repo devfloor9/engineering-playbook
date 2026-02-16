@@ -5,12 +5,15 @@ description: "Cilium ENI mode architecture, Gateway API resource configuration, 
 tags: [eks, cilium, eni, gateway-api, ebpf, networking, bgp]
 category: "performance-networking"
 last_update:
-  date: 2025-02-12
+  date: 2026-02-14
   author: devfloor9
 sidebar_position: 2
 ---
 
 import { EksRequirementsTable } from '@site/src/components/GatewayApiTables';
+
+> 📅 **Written**: 2026-02-14 | **Last Modified**: 2026-02-14 | ⏱️ **Reading Time**: ~10 min
+
 
 :::info
 This document is an advanced guide extracted from the [Gateway API Adoption Guide](/docs/infrastructure-optimization/gateway-api-adoption-guide).

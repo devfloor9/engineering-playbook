@@ -1,6 +1,6 @@
 ---
 title: "Ragas RAG Evaluation Framework"
-sidebar_label: "Ragas Evaluation"
+sidebar_label: "13. Ragas Evaluation"
 description: "Evaluate and continuously improve RAG pipeline quality using Ragas"
 sidebar_position: 13
 tags:
@@ -11,6 +11,10 @@ tags:
   - quality
   - genai
   - testing
+last_update:
+  date: 2026-02-14
+  author: devfloor9
+category: "genai-aiml"
 ---
 
 import { RagasVsBedrockComparison, RagasMetrics, CostOptimizationStrategies, CostComparison, ImprovementChecklist } from '@site/src/components/RagasTables';
@@ -384,6 +388,9 @@ jobs:
 # scripts/check_quality_gates.py
 import json
 import sys
+
+> 📅 **Written**: 2026-02-13 | **Last Modified**: 2026-02-14 | ⏱️ **Reading Time**: ~2 min
+
 
 QUALITY_GATES = {
     "faithfulness": 0.8,

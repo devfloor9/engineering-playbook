@@ -3,6 +3,10 @@ title: "ROSA (Red Hat OpenShift on AWS)"
 sidebar_label: "ROSA"
 description: "Technical documentation on ROSA (Red Hat OpenShift Service on AWS) cluster deployment and operations"
 sidebar_position: 6
+last_update:
+  date: 2026-02-13
+  author: devfloor9
+category: "rosa"
 ---
 
 # ROSA (Red Hat OpenShift on AWS)

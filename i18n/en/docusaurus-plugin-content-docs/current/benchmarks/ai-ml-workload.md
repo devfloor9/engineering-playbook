@@ -1,14 +1,12 @@
 ---
 title: "Llama 4 FM Serving Benchmark: GPU vs AWS Custom Silicon"
-sidebar_label: "AI/ML Serving Benchmark"
+sidebar_label: "4. AI/ML Serving Benchmark"
 description: "Performance and cost efficiency comparison of GPU instances (p5, p4d, g6e) vs AWS custom silicon (Trainium2, Inferentia2) for Llama 4 model serving with vLLM"
 tags: [benchmark, ai, ml, gpu, inference, vllm, llama4, trainium, inferentia, eks]
 category: "benchmark"
-date: 2026-02-10
-authors: [devfloor9]
-sidebar_position: 2
+sidebar_position: 4
 last_update:
-  date: 2026-02-10
+  date: 2026-02-14
   author: devfloor9
 ---
 
@@ -25,7 +23,7 @@ import MLRecommendationChart from '@site/src/components/MLRecommendationChart';
 
 # Llama 4 FM Serving Benchmark: GPU vs AWS Custom Silicon
 
-> 📅 **Date**: 2026-02-10 | ✍️ **Author**: devfloor9 | ⏱️ **Reading time**: ~20 min
+> 📅 **Written**: 2026-02-10 | **Last Modified**: 2026-02-14 | ⏱️ **Reading Time**: ~7 min
 
 ## Overview
 

@@ -5,7 +5,7 @@ description: "NVIDIA NeMo를 활용한 LLM 파인튜닝 및 최적화 파이프�
 sidebar_position: 8
 category: "genai-aiml"
 last_update:
-  date: 2026-02-13
+  date: 2026-02-14
   author: devfloor9
 tags: [nemo, nvidia, fine-tuning, llm, training, tensorrt, genai]
 ---
@@ -14,7 +14,7 @@ import { NemoComponents, GPURequirements, CheckpointSharding, MonitoringMetrics,
 
 # NeMo 프레임워크
 
-> 📅 **작성일**: 2026-02-13 | ⏱️ **읽는 시간**: 약 26분
+> 📅 **작성일**: 2026-02-13 | **수정일**: 2026-02-14 | ⏱️ **읽는 시간**: 약 4분
 
 NVIDIA NeMo는 대규모 언어 모델(LLM)의 학습, 파인튜닝, 최적화를 위한 엔드투엔드 프레임워크입니다. Kubernetes 환경에서 분산 학습과 효율적인 모델 배포를 지원합니다.
 

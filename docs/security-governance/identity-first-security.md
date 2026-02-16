@@ -6,7 +6,7 @@ category: "security"
 sidebar_position: 2
 tags: [eks, security, pod-identity, irsa, zero-trust]
 last_update:
-  date: 2025-02-09
+  date: 2026-02-13
   author: devfloor9
 ---
 

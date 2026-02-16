@@ -6,13 +6,13 @@ tags: [eks, kubernetes, genai, agentic-ai, gpu, llm, platform]
 category: "genai-aiml"
 sidebar_position: 3
 last_update:
-  date: 2026-02-13
+  date: 2026-02-14
   author: devfloor9
 ---
 
 # Agentic AI Platform
 
-> 📅 **작성일**: 2025-02-05 | **수정일**: 2026-02-13 | ⏱️ **읽는 시간**: 약 3분
+> 📅 **작성일**: 2025-02-05 | **수정일**: 2026-02-14 | ⏱️ **읽는 시간**: 약 9분
 
 현대의 생성형 AI 플랫폼은 단순한 모델 서빙을 넘어 복잡한 에이전트 시스템, 동적 리소스 관리, 그리고 비용 효율적인 운영이 요구되는 종합적인 기술 스택을 필요로 합니다. Amazon EKS 기반의 Agentic AI 플랫폼은 Kubernetes의 강력한 오케스트레이션 능력을 활용하여 이러한 요구사항을 충족시키는 현대적인 접근 방식입니다. 이 플랫폼은 GPU 리소스의 동적 할당과 스케일링, 다양한 LLM 프로바이더 간의 지능적 라우팅, 그리고 실시간 모니터링을 통한 비용 최적화를 하나의 통합된 시스템으로 제공합니다.
 

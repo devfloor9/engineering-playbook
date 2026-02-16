@@ -5,13 +5,16 @@ description: "Gateway API migration 5-phase strategy, step-by-step execution gui
 tags: [eks, gateway-api, migration, nginx, deployment]
 category: "performance-networking"
 last_update:
-  date: 2025-02-12
+  date: 2026-02-14
   author: devfloor9
 sidebar_position: 3
 ---
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
+
+> 📅 **Written**: 2026-02-14 | **Last Modified**: 2026-02-14 | ⏱️ **Reading Time**: ~3 min
+
 
 :::info
 This document is an advanced guide to the [Gateway API Adoption Guide](/docs/infrastructure-optimization/gateway-api-adoption-guide). It provides practical migration strategies from NGINX Ingress to Gateway API.

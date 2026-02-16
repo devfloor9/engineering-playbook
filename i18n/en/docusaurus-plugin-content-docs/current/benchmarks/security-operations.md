@@ -1,14 +1,19 @@
 ---
 title: Security and Operations Benchmark
-sidebar_position: 4
+sidebar_label: "6. Security & Operations"
+sidebar_position: 6
 description: Security policy enforcement and operational tool performance benchmark
 tags: [benchmark, security, operations, monitoring, gitops]
 last_update:
-  date: 2026-02-09
+  date: 2026-02-14
   author: devfloor9
+category: "benchmarks"
 ---
 
 # Security and Operations Benchmark
+
+> 📅 **Written**: 2026-02-14 | **Last Modified**: 2026-02-14 | ⏱️ **Reading Time**: ~1 min
+
 
 We measure the performance overhead and efficiency of security policies, monitoring, and GitOps tools.
 

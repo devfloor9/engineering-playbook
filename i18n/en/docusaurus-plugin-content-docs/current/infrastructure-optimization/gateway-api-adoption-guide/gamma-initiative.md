@@ -5,7 +5,7 @@ description: "Introduction to GAMMA (Gateway API for Mesh Management and Adminis
 tags: [gateway-api, gamma, service-mesh, east-west]
 sidebar_position: 1
 last_update:
-  date: 2025-02-12
+  date: 2026-02-14
   author: devfloor9
 ---
 
@@ -15,6 +15,8 @@ import {
 } from '@site/src/components/GatewayApiTables';
 
 # GAMMA Initiative — The Future of Service Mesh Integration
+
+> 📅 **Written**: 2026-02-14 | **Last Modified**: 2026-02-14 | ⏱️ **Reading Time**: ~2 min
 
 ## 4.1 What is GAMMA?
 

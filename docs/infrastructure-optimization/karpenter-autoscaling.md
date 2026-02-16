@@ -5,14 +5,14 @@ description: "Amazon EKS에서 Karpenter와 고해상도 메트릭으로 10초 �
 tags: [eks, karpenter, autoscaling, performance, cloudwatch, prometheus, spot-instances]
 category: "performance-networking"
 last_update:
-  date: 2025-02-09
+  date: 2026-02-13
   author: devfloor9
 sidebar_position: 4
 ---
 
 # Karpenter를 활용한 초고속 오토스케일링
 
-> 📅 **작성일**: 2025-02-09 | ⏱️ **읽는 시간**: 약 10분
+> 📅 **작성일**: 2025-02-09 | **수정일**: 2026-02-13 | ⏱️ **읽는 시간**: 약 24분
 
 ## 개요
 

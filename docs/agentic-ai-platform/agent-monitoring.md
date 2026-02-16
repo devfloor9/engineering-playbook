@@ -5,7 +5,7 @@ description: "LangFuse, LangSmith를 활용한 Agentic AI 애플리케이션 모
 tags: [eks, langfuse, langsmith, monitoring, observability, tracing, opentelemetry, operations, troubleshooting, alerting]
 category: "genai-aiml"
 last_update:
-  date: 2026-02-13
+  date: 2026-02-14
   author: devfloor9
 sidebar_position: 12
 ---

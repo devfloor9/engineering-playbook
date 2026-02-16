@@ -1,12 +1,13 @@
 ---
 title: "llm-d on EKS Auto Mode Inference Deployment Guide"
-sidebar_label: "llm-d EKS Auto Mode"
+sidebar_label: "7. llm-d EKS Auto Mode"
 description: "Guide for deploying Kubernetes-native distributed inference with llm-d on EKS Auto Mode"
 tags: [eks, llm-d, vllm, inference-gateway, gpu, auto-mode, qwen, kv-cache]
 category: "genai-aiml"
-date: 2026-02-10
-authors: [devfloor9]
 sidebar_position: 7
+last_update:
+  date: 2026-02-14
+  author: devfloor9
 ---
 
 import {
@@ -26,6 +27,8 @@ import {
 } from '@site/src/components/LlmdTables';
 
 # llm-d on EKS Auto Mode Inference Deployment Guide
+
+> 📅 **Written**: 2026-02-10 | **Last Modified**: 2026-02-14 | ⏱️ **Reading Time**: ~7 min
 
 > **📌 Current Version**: llm-d v0.4 (2025). The deployment examples in this document are based on the Intelligent Inference Scheduling well-lit path.
 

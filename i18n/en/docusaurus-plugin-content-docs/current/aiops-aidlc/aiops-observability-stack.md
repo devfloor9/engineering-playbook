@@ -1,12 +1,12 @@
 ---
 title: "Building an Intelligent Observability Stack for EKS"
-sidebar_label: "Intelligent Observability Stack"
+sidebar_label: "2. Intelligent Observability Stack"
 description: "Guide to building EKS observability architecture with ADOT, AMP, AMG, CloudWatch AI, and Hosted MCP"
-sidebar_position: 3
+sidebar_position: 2
 category: "aiops-aidlc"
 tags: [observability, opentelemetry, adot, prometheus, grafana, cloudwatch, devops-guru, mcp, eks]
 last_update:
-  date: 2026-02-12
+  date: 2026-02-14
   author: devfloor9
 ---
 
@@ -14,7 +14,7 @@ import { ArchitectureLayers, ManagedAddons, ServiceComparison, ObservabilityPill
 
 # Building an Intelligent Observability Stack for EKS
 
-> 📅 **Written**: 2026-02-12 | ⏱️ **Reading Time**: ~35 minutes | 📌 **Reference Environment**: EKS 1.35+, ADOT v0.40+, AMP, AMG
+> 📅 **Written**: 2026-02-12 | **Last Modified**: 2026-02-14 | ⏱️ **Reading Time**: ~10 min
 
 ---
 

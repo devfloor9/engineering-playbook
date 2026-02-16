@@ -1,19 +1,20 @@
 ---
 title: "Technical Challenges of Agentic AI Workloads"
-sidebar_label: "Technical Challenges"
+sidebar_label: "1. Technical Challenges"
 description: "4 key technical challenges in operating Agentic AI workloads and the Kubernetes-based open source ecosystem"
 tags: [kubernetes, genai, agentic-ai, gpu, challenges, open-source]
 category: "genai-aiml"
-date: "2025-02-05"
-authors: [devfloor9]
 sidebar_position: 1
+last_update:
+  date: 2026-02-14
+  author: devfloor9
 ---
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 import { ChallengeSummary, K8sCoreFeatures, SolutionMapping, ModelServingComparison, InferenceGatewayComparison, ObservabilityComparison, KAgentFeatures, ObservabilityLayerStack, LlmdFeatures, DistributedTrainingStack, GpuInfraStack } from '@site/src/components/AgenticChallengesTables';
 
-> **Written**: 2025-02-05 | **Last modified**: 2026-02-04 | **Reading time**: ~25 min
+> 📅 **Written**: 2025-02-05 | **Last Modified**: 2026-02-14 | ⏱️ **Reading Time**: ~7 min
 
 ## Introduction
 

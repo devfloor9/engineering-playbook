@@ -3,6 +3,10 @@ title: "Operations & Observability"
 sidebar_label: "Operations & Observability"
 description: "Advanced technical documentation on observability and monitoring in Amazon EKS environments"
 sidebar_position: 2
+last_update:
+  date: 2026-02-13
+  author: devfloor9
+category: "operations"
 ---
 
 # Operations & Observability

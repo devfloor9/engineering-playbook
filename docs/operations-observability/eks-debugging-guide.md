@@ -5,7 +5,7 @@ description: "Amazon EKS 환경에서 애플리케이션 및 인프라 문제를
 tags: [eks, kubernetes, debugging, troubleshooting, observability, incident-response]
 category: "observability-monitoring"
 last_update:
-  date: 2026-02-10
+  date: 2026-02-13
   author: devfloor9
 sidebar_position: 3
 ---
@@ -14,7 +14,7 @@ import { IncidentEscalationTable, ZonalShiftImpactTable, ControlPlaneLogTable, C
 
 # EKS 장애 진단 및 대응 가이드
 
-> 📅 **작성일**: 2026-02-10 | ⏱️ **읽는 시간**: 약 25분
+> 📅 **작성일**: 2026-02-10 | **수정일**: 2026-02-13 | ⏱️ **읽는 시간**: 약 23분
 
 > **📌 기준 환경**: EKS 1.30+, kubectl 1.30+, AWS CLI v2
 

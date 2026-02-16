@@ -6,7 +6,7 @@ sidebar_position: 16
 category: "genai-aiml"
 tags: [sagemaker, eks, hybrid, mlops, model-registry, training, inference]
 last_update:
-  date: 2026-02-13
+  date: 2026-02-14
   author: devfloor9
 ---
 
@@ -15,7 +15,7 @@ import { HybridComparison, CostOptimization } from '@site/src/components/Sagemak
 
 # SageMaker-EKS 하이브리드 ML 아키텍처
 
-> 📅 **작성일**: 2026-02-13 | ⏱️ **읽는 시간**: 약 22분
+> 📅 **작성일**: 2026-02-13 | **수정일**: 2026-02-14 | ⏱️ **읽는 시간**: 약 3분
 
 ## 개요
 
