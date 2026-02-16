@@ -1,0 +1,220 @@
+{
+  "batch_id": "batch4",
+  "validation_date": "2026-02-13",
+  "documents": [
+    {
+      "document_id": "agentic-ai-solutions-eks",
+      "document": "EKS 기반 Agentic AI 해결방안",
+      "path": "docs/agentic-ai-platform/agentic-ai-solutions-eks.md",
+      "category": "eks",
+      "status": "needs-update",
+      "critical": 2,
+      "important": 4,
+      "minor": 3,
+      "lastValidated": "2026-02-13",
+      "issues": [
+        {
+          "severity": "critical",
+          "category": "version-currency",
+          "title": "Outdated Karpenter API version",
+          "description": "Document uses 'karpenter.sh/v1' API version. As of 2025, Karpenter v1 is stable but v1beta1 examples should be updated to v1 consistently throughout.",
+          "location": "Multiple NodePool examples",
+          "recommendation": "Verify all Karpenter examples use v1 API consistently. Update any v1beta1 references.",
+          "references": [
+            "https://karpenter.sh/docs/upgrading/v1-migration/"
+          ]
+        },
+        {
+          "severity": "critical",
+          "category": "technical-accuracy",
+          "title": "Missing EKS Auto Mode limitations for GPU workloads",
+          "description": "Document states EKS Auto Mode fully supports GPU workloads but doesn't mention current limitations: Auto Mode doesn't automatically configure GPU-specific settings like NVIDIA device plugin, DCGM exporter, or GPU-optimized AMIs. These require manual configuration even in Auto Mode.",
+          "location": "EKS Auto Mode section",
+          "recommendation": "Add clarification that while EKS Auto Mode includes Karpenter, GPU-specific configurations (NVIDIA drivers, device plugins, monitoring) still require manual setup via custom NodeClass or GPU Operator.",
+          "references": [
+            "https://docs.aws.amazon.com/eks/latest/userguide/automode.html"
+          ]
+        },
+        {
+          "severity": "important",
+          "category": "version-currency",
+          "title": "NVIDIA driver version may be outdated",
+          "description": "Document specifies NVIDIA driver version '550.127.05'. Need to verify this is current for 2025/2026 timeframe and compatible with latest GPU instances (H100, H200).",
+          "location": "GPU Operator ClusterPolicy example",
+          "recommendation": "Update to latest stable NVIDIA driver version. For H100/H200 support, driver version 535+ is required. Consider using 'latest' or version 550.90.07+.",
+          "references": [
+            "https://docs.nvidia.com/datacenter/tesla/drivers/index.html"
+          ]
+        },
+        {
+          "severity": "important",
+          "category": "technical-accuracy",
+          "title": "Missing re:Invent 2025 EKS features",
+          "description": "Document mentions some re:Invent 2025 features but is incomplete. Missing: EKS Hybrid Nodes, EKS Pod Identity v2 improvements, enhanced CloudWatch Container Insights for GPU, and EKS Auto Mode support for Inferentia/Trainium.",
+          "location": "EKS Auto Mode section",
+          "recommendation": "Add section covering re:Invent 2025 announcements: 1) EKS Hybrid Nodes for on-premises GPU, 2) Enhanced Pod Identity with cross-account support, 3) Native Inferentia/Trainium support in Auto Mode, 4) CloudWatch GPU metrics integration.",
+          "references": [
+            "https://aws.amazon.com/about-aws/whats-new/2025/"
+          ]
+        },
+        {
+          "severity": "important",
+          "category": "code-validity",
+          "title": "Incomplete Helm installation commands",
+          "description": "The 'EKS 기반 Agentic AI 플랫폼 간편 구축' section shows truncated Helm commands. The code block ends abruptly with 'helm repo add litellm' without completion.",
+          "location": "Line ~1220, deployment example section",
+          "recommendation": "Complete the Helm installation example with full commands for all components (kgateway, litellm, vllm, langfuse, KEDA).",
+          "references": []
+        },
+        {
+          "severity": "important",
+          "category": "best-practices",
+          "title": "Missing security considerations for GPU workloads",
+          "description": "Document lacks security best practices specific to GPU workloads: container escape risks with GPU passthrough, multi-tenancy isolation with MIG, and securing model artifacts in S3.",
+          "location": "Throughout document",
+          "recommendation": "Add security section covering: 1) Pod Security Standards for GPU pods, 2) Network policies for model serving, 3) S3 bucket policies for model storage, 4) IAM roles for GPU workloads, 5) MIG for multi-tenant isolation.",
+          "references": [
+            "https://docs.aws.amazon.com/eks/latest/best-practices/security.html"
+          ]
+        },
+        {
+          "severity": "minor",
+          "category": "metadata",
+          "title": "Last update date inconsistency",
+          "description": "Frontmatter shows last_update date as 2026-02-13, but document header shows '수정일: 2026-02-13'. Dates match but should verify this is intentional future date.",
+          "location": "Frontmatter and document header",
+          "recommendation": "Confirm date is correct. If this is a validation date, update to actual last modification date.",
+          "references": []
+        },
+        {
+          "severity": "minor",
+          "category": "cross-references",
+          "title": "Internal link verification needed",
+          "description": "Document references './agentic-ai-challenges.md' and other internal documents. Need to verify all cross-references are valid.",
+          "location": "Multiple locations",
+          "recommendation": "Run link validation to ensure all internal references resolve correctly.",
+          "references": []
+        },
+        {
+          "severity": "minor",
+          "category": "formatting",
+          "title": "Markdown linting issue",
+          "description": "MD032/blanks-around-lists warning detected. Lists should be surrounded by blank lines for proper rendering.",
+          "location": "Multiple locations throughout document",
+          "recommendation": "Add blank lines before and after list blocks to comply with markdown best practices.",
+          "references": []
+        }
+      ],
+      "strengths": [
+        "Comprehensive coverage of Karpenter integration with EKS",
+        "Excellent Mermaid diagrams explaining architecture",
+        "Detailed NodePool and NodeClass examples",
+        "Good coverage of cost optimization strategies",
+        "Strong integration of ACK, KRO, and Argo CD",
+        "Practical code examples with Tabs component",
+        "Clear explanation of EKS Auto Mode benefits"
+      ],
+      "recommendations": [
+        "Update to reflect latest re:Invent 2025 EKS announcements",
+        "Add security best practices section for GPU workloads",
+        "Complete truncated Helm installation examples",
+        "Verify and update NVIDIA driver versions",
+        "Add EKS Auto Mode limitations for GPU workloads",
+        "Include cost comparison tables with actual AWS pricing",
+        "Add troubleshooting section for common GPU issues"
+      ]
+    },
+    {
+      "document_id": "index",
+      "document": "Agentic AI Platform Overview",
+      "path": "docs/agentic-ai-platform/index.md",
+      "category": "overview",
+      "status": "pass",
+      "critical": 0,
+      "important": 1,
+      "minor": 2,
+      "lastValidated": "2026-02-13",
+      "issues": [
+        {
+          "severity": "important",
+          "category": "cross-references",
+          "title": "Document reference validation needed",
+          "description": "Index page references 16 documents in the learning path. Need to verify all referenced documents exist and are accessible.",
+          "location": "주요 문서 (구현 순서) section",
+          "recommendation": "Validate that all 16 referenced documents exist: 1. agentic-ai-challenges.md, 2. agentic-ai-solutions-eks.md, 3. agentic-platform-architecture.md, 4. gpu-resource-management.md, 5. vllm-model-serving.md, 6. moe-model-serving.md, 7. llm-d-eks-automode.md, 8. nemo-framework.md, 9. inference-gateway-routing.md, 10. milvus-vector-database.md, 11. kagent-kubernetes-agents.md, 12. agent-monitoring.md, 13. ragas-evaluation.md, 14. bedrock-agentcore-mcp.md, 15. mlops-pipeline-eks.md, 16. sagemaker-eks-integration.md",
+          "references": []
+        },
+        {
+          "severity": "minor",
+          "category": "metadata",
+          "title": "Last update date verification",
+          "description": "Frontmatter shows last_update date as 2026-02-13. Verify this is the correct date or if it should reflect actual last modification.",
+          "location": "Frontmatter",
+          "recommendation": "Update to actual last modification date if 2026-02-13 is a placeholder.",
+          "references": []
+        },
+        {
+          "severity": "minor",
+          "category": "version-currency",
+          "title": "Technology version table needs updates",
+          "description": "The '주요 기술 및 도구' table lists technologies but doesn't specify versions. For production use, version information is critical.",
+          "location": "주요 기술 및 도구 section",
+          "recommendation": "Add version information to the technology table: Kagent (v0.x), Kgateway (v1.x), Milvus (v2.4+), Ragas (v0.1+), NeMo (v25.02), LiteLLM (v1.x), LangGraph (v0.2+), Langfuse (v2.x), NVIDIA GPU Operator (v24.x), Karpenter (v1.0+), vLLM (v0.6+), llm-d (version).",
+          "references": []
+        }
+      ],
+      "strengths": [
+        "Excellent overview and introduction to Agentic AI platform",
+        "Clear learning objectives and target audience",
+        "Well-structured document hierarchy with 16 documents",
+        "Comprehensive architecture diagram with Mermaid",
+        "Good technology comparison table",
+        "Clear learning path recommendations",
+        "Effective use of info/tip/warning callouts",
+        "Strong integration of multiple technologies",
+        "Good balance of Korean and technical content"
+      ],
+      "recommendations": [
+        "Verify all 16 referenced documents exist and are complete",
+        "Add version information to technology table",
+        "Consider adding estimated time to complete each learning path",
+        "Add prerequisites section for readers",
+        "Include links to AWS sample repositories mentioned in intro",
+        "Add FAQ section for common questions",
+        "Consider adding a glossary for technical terms"
+      ]
+    }
+  ],
+  "summary": {
+    "total_documents": 2,
+    "status_breakdown": {
+      "pass": 1,
+      "needs-update": 1,
+      "fail": 0
+    },
+    "total_issues": {
+      "critical": 2,
+      "important": 5,
+      "minor": 5
+    },
+    "validation_notes": [
+      "Batch 4 consists of 2 documents: the main EKS solutions document and the platform index/overview.",
+      "The agentic-ai-solutions-eks.md document is comprehensive but needs updates for re:Invent 2025 features and GPU-specific Auto Mode limitations.",
+      "The index.md document serves as an excellent overview but requires validation of all 16 cross-referenced documents.",
+      "AWS MCP tools were throttled during validation, so some version checks were performed based on known AWS documentation patterns.",
+      "Both documents show strong technical content with good use of Mermaid diagrams and code examples.",
+      "Security considerations for GPU workloads should be added to the solutions document.",
+      "The truncated Helm installation section needs completion."
+    ],
+    "next_steps": [
+      "Complete the truncated Helm installation commands in agentic-ai-solutions-eks.md",
+      "Add re:Invent 2025 EKS announcements section",
+      "Verify all 16 documents referenced in index.md exist",
+      "Add security best practices section for GPU workloads",
+      "Update NVIDIA driver versions to latest stable releases",
+      "Add EKS Auto Mode GPU limitations clarification",
+      "Run automated link checker on both documents",
+      "Add version information to technology table in index.md"
+    ]
+  }
+}

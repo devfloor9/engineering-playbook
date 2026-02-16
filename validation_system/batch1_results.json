@@ -1,0 +1,327 @@
+{
+  "validation_date": "2026-02-13",
+  "batch": "batch1",
+  "documents_validated": 5,
+  "summary": {
+    "pass": 0,
+    "needs_update": 5,
+    "fail": 0,
+    "total_critical": 8,
+    "total_important": 12,
+    "total_minor": 7
+  },
+  "documents": [
+    {
+      "document_id": "agentic-ai-challenges",
+      "document": "Agentic AI 워크로드의 기술적 도전과제",
+      "path": "docs/agentic-ai-platform/agentic-ai-challenges.md",
+      "category": "overview",
+      "status": "needs_update",
+      "critical": 2,
+      "important": 3,
+      "minor": 2,
+      "lastValidated": "2026-02-13",
+      "issues": [
+        {
+          "severity": "critical",
+          "type": "version_outdated",
+          "location": "Line 1 (frontmatter)",
+          "description": "Document references Kubernetes 1.31 but AWS now supports Kubernetes 1.33 (released May 2025) and 1.34 (released October 2025)",
+          "recommendation": "Update Kubernetes version references to 1.33 or 1.34. EKS 1.33 includes stable sidecar containers, topology-aware routing, and DRA for network interfaces. EKS 1.34 adds projected service account tokens and improved DRA prioritized alternatives.",
+          "reference": "https://aws.amazon.com/about-aws/whats-new/2025/05/amazon-eks-distro-kubernetes-version-1-33/"
+        },
+        {
+          "severity": "critical",
+          "type": "missing_feature",
+          "location": "GPU 인프라 스택 개요 section",
+          "description": "Missing EKS 1.33+ DRA (Dynamic Resource Allocation) for network interfaces which is now stable",
+          "recommendation": "Add section on DRA network interface support in K8s 1.33+, which enables dynamic allocation of network resources for GPU workloads",
+          "reference": "https://aws.amazon.com/about-aws/whats-new/2025/05/amazon-eks-distro-kubernetes-version-1-33/"
+        },
+        {
+          "severity": "important",
+          "type": "version_outdated",
+          "location": "vLLM 모델 서빙 section",
+          "description": "vLLM version not specified - should reference latest stable version",
+          "recommendation": "Specify vLLM version (e.g., v0.6.x or later) and note compatibility with CUDA 12.x",
+          "reference": "https://docs.vllm.ai/"
+        },
+        {
+          "severity": "important",
+          "type": "incomplete_info",
+          "location": "Karpenter 설정 section",
+          "description": "Karpenter version not specified, should reference v1.0+ stable release",
+          "recommendation": "Update to Karpenter v1.0+ which is now GA and includes improved GPU node provisioning",
+          "reference": "https://karpenter.sh/docs/"
+        },
+        {
+          "severity": "important",
+          "type": "missing_best_practice",
+          "location": "GPU 리소스 관리 section",
+          "description": "Missing guidance on EKS 1.33+ in-place resource resizing for vertical scaling",
+          "recommendation": "Add section on in-place pod resource resizing (stable in K8s 1.33) for GPU workloads to avoid pod restarts",
+          "reference": "https://aws.amazon.com/about-aws/whats-new/2025/05/amazon-eks-distro-kubernetes-version-1-33/"
+        },
+        {
+          "severity": "minor",
+          "type": "outdated_reference",
+          "location": "NVIDIA GPU Operator section",
+          "description": "GPU Operator version not specified",
+          "recommendation": "Reference NVIDIA GPU Operator v24.x or later for CUDA 12.x support",
+          "reference": "https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/latest/"
+        },
+        {
+          "severity": "minor",
+          "type": "incomplete_info",
+          "location": "DCGM Exporter section",
+          "description": "DCGM Exporter version not specified",
+          "recommendation": "Specify DCGM Exporter version (e.g., 3.3.x or later) for H100/H200 support",
+          "reference": "https://github.com/NVIDIA/dcgm-exporter"
+        }
+      ]
+    },
+    {
+      "document_id": "agentic-platform-architecture",
+      "document": "Agentic AI Platform 아키텍처",
+      "path": "docs/agentic-ai-platform/agentic-platform-architecture.md",
+      "category": "overview",
+      "status": "needs_update",
+      "critical": 1,
+      "important": 3,
+      "minor": 1,
+      "lastValidated": "2026-02-13",
+      "issues": [
+        {
+          "severity": "critical",
+          "type": "version_outdated",
+          "location": "Line 1 (frontmatter), EKS 버전 references",
+          "description": "Document references EKS 1.31 but should reference 1.33 or 1.34 for latest features",
+          "recommendation": "Update all EKS version references to 1.33 (stable sidecar containers, topology-aware routing) or 1.34 (projected service account tokens, improved DRA)",
+          "reference": "https://aws.amazon.com/about-aws/whats-new/2025/10/amazon-eks-distro-kubernetes-version-1-34/"
+        },
+        {
+          "severity": "important",
+          "type": "missing_feature",
+          "location": "Kubernetes 배포 아키텍처 section",
+          "description": "Missing EKS 1.33+ stable sidecar containers feature which is critical for agent architectures",
+          "recommendation": "Add section on stable sidecar containers (K8s 1.33+) for agent sidecar patterns, logging, and observability",
+          "reference": "https://aws.amazon.com/about-aws/whats-new/2025/05/amazon-eks-distro-kubernetes-version-1-33/"
+        },
+        {
+          "severity": "important",
+          "type": "incomplete_info",
+          "location": "보안 아키텍처 section",
+          "description": "Missing EKS 1.34+ projected service account tokens for improved security",
+          "recommendation": "Add section on projected service account tokens (stable in K8s 1.34) for enhanced security in agent-to-service authentication",
+          "reference": "https://aws.amazon.com/about-aws/whats-new/2025/10/amazon-eks-distro-kubernetes-version-1-34/"
+        },
+        {
+          "severity": "important",
+          "type": "missing_best_practice",
+          "location": "확장성 설계 section",
+          "description": "Missing EKS 1.33+ topology-aware routing for improved performance",
+          "recommendation": "Add guidance on topology-aware routing (stable in K8s 1.33) to reduce cross-AZ traffic costs and improve latency",
+          "reference": "https://aws.amazon.com/about-aws/whats-new/2025/05/amazon-eks-distro-kubernetes-version-1-33/"
+        },
+        {
+          "severity": "minor",
+          "type": "outdated_reference",
+          "location": "Gateway API references",
+          "description": "Gateway API version not specified",
+          "recommendation": "Specify Gateway API version (v1.2.0 or later) for HTTPRoute and GRPCRoute support",
+          "reference": "https://gateway-api.sigs.k8s.io/"
+        }
+      ]
+    },
+    {
+      "document_id": "llm-d-eks-automode",
+      "document": "llm-d 기반 EKS Auto Mode 추론 배포 가이드",
+      "path": "docs/agentic-ai-platform/llm-d-eks-automode.md",
+      "category": "model-serving",
+      "status": "needs_update",
+      "critical": 3,
+      "important": 2,
+      "minor": 2,
+      "lastValidated": "2026-02-13",
+      "issues": [
+        {
+          "severity": "critical",
+          "type": "version_outdated",
+          "location": "Line 1 (frontmatter), 사전 요구사항 section",
+          "description": "Document specifies kubectl >= 1.31 but should recommend 1.33 or 1.34 for latest features",
+          "recommendation": "Update kubectl version requirement to >= 1.33 to match EKS 1.33/1.34 support",
+          "reference": "https://aws.amazon.com/about-aws/whats-new/2025/05/amazon-eks-distro-kubernetes-version-1-33/"
+        },
+        {
+          "severity": "critical",
+          "type": "version_outdated",
+          "location": "EKS Auto Mode 클러스터 생성 section",
+          "description": "Cluster config specifies version 1.31 which is outdated",
+          "recommendation": "Update cluster version to 1.33 or 1.34. Use 1.33 for stable sidecar containers and topology-aware routing, or 1.34 for projected service account tokens and improved DRA.",
+          "reference": "https://aws.amazon.com/about-aws/whats-new/2025/10/amazon-eks-distro-kubernetes-version-1-34/"
+        },
+        {
+          "severity": "critical",
+          "type": "api_version_outdated",
+          "location": "GPU NodePool 생성 section",
+          "description": "Uses Karpenter v1 API but should specify stable version",
+          "recommendation": "Confirm Karpenter API version (karpenter.sh/v1 is correct for v1.0+) and add note about Karpenter v1.0+ GA status",
+          "reference": "https://karpenter.sh/docs/"
+        },
+        {
+          "severity": "important",
+          "type": "missing_instance_type",
+          "location": "p5.48xlarge 인스턴스 사양 section",
+          "description": "Missing p5e.48xlarge (H200) instance type which is newer and more powerful",
+          "recommendation": "Add p5e.48xlarge instance type with 8× H200 141GB HBM3 GPUs to the comparison table",
+          "reference": "AWS EC2 instance types documentation"
+        },
+        {
+          "severity": "important",
+          "type": "incomplete_info",
+          "location": "Gateway API CRD 설치 section",
+          "description": "Gateway API version 1.4.0 specified but should use latest stable version",
+          "recommendation": "Update Gateway API to v1.2.0 or later (check latest stable release) for improved HTTPRoute and GRPCRoute support",
+          "reference": "https://gateway-api.sigs.k8s.io/"
+        },
+        {
+          "severity": "minor",
+          "type": "outdated_reference",
+          "location": "llm-d 버전 section",
+          "description": "Document states llm-d v0.4 (2025) but should verify latest version",
+          "recommendation": "Verify llm-d latest version from GitHub releases and update if newer version available",
+          "reference": "https://github.com/llm-d/llm-d"
+        },
+        {
+          "severity": "minor",
+          "type": "incomplete_info",
+          "location": "vLLM 배포 section",
+          "description": "vLLM version not specified in deployment examples",
+          "recommendation": "Specify vLLM version (e.g., v0.6.x or later) in container image tags",
+          "reference": "https://docs.vllm.ai/"
+        }
+      ]
+    },
+    {
+      "document_id": "gpu-resource-management",
+      "document": "GPU 클러스터 동적 리소스 관리",
+      "path": "docs/agentic-ai-platform/gpu-resource-management.md",
+      "category": "gpu",
+      "status": "needs_update",
+      "critical": 1,
+      "important": 2,
+      "minor": 1,
+      "lastValidated": "2026-02-13",
+      "issues": [
+        {
+          "severity": "critical",
+          "type": "api_version_critical",
+          "location": "DRA 심층 분석 section",
+          "description": "DRA API version information is outdated. Document mentions K8s 1.31 Beta but doesn't cover 1.32+ v1beta1 API changes or 1.33+ stability improvements",
+          "recommendation": "Update DRA section to reflect: K8s 1.32 introduces v1beta1 API with new implementation (KEP #4381), K8s 1.33 stabilizes v1beta1 with performance improvements, K8s 1.34 adds DRA prioritized alternatives. Add warning that v1alpha2 examples are for K8s 1.31 and below.",
+          "reference": "https://aws.amazon.com/about-aws/whats-new/2025/10/amazon-eks-distro-kubernetes-version-1-34/"
+        },
+        {
+          "severity": "important",
+          "type": "missing_instance_type",
+          "location": "GPU 인스턴스 타입 비교 section",
+          "description": "Missing p5e.48xlarge (H200) and g6e instance family",
+          "recommendation": "Add p5e.48xlarge (8× H200 141GB) and g6e.xlarge~48xlarge (NVIDIA L40S) instance types to comparison table with specifications and use cases",
+          "reference": "AWS EC2 instance types documentation"
+        },
+        {
+          "severity": "important",
+          "type": "version_outdated",
+          "location": "DCGM Exporter 설정 section",
+          "description": "DCGM Exporter image version 4.2.2-4.1.3 may be outdated",
+          "recommendation": "Verify and update DCGM Exporter to latest version (3.3.x or 4.x series) for H100/H200 support",
+          "reference": "https://github.com/NVIDIA/dcgm-exporter"
+        },
+        {
+          "severity": "minor",
+          "type": "incomplete_info",
+          "location": "Karpenter 기반 노드 스케일링 section",
+          "description": "Karpenter API version not explicitly stated",
+          "recommendation": "Add note that examples use Karpenter v1 API (karpenter.sh/v1) which is GA in Karpenter v1.0+",
+          "reference": "https://karpenter.sh/docs/"
+        }
+      ]
+    },
+    {
+      "document_id": "inference-gateway-routing",
+      "document": "Inference Gateway 및 Dynamic Routing",
+      "path": "docs/agentic-ai-platform/inference-gateway-routing.md",
+      "category": "inference",
+      "status": "needs_update",
+      "critical": 1,
+      "important": 2,
+      "minor": 1,
+      "lastValidated": "2026-02-13",
+      "issues": [
+        {
+          "severity": "critical",
+          "type": "version_outdated",
+          "location": "사전 요구사항 section",
+          "description": "Specifies Kubernetes 1.28+ but should recommend 1.33+ for topology-aware routing",
+          "recommendation": "Update Kubernetes version requirement to 1.33+ to leverage topology-aware routing and traffic distribution (stable in K8s 1.33) for improved gateway performance",
+          "reference": "https://aws.amazon.com/about-aws/whats-new/2025/05/amazon-eks-distro-kubernetes-version-1-33/"
+        },
+        {
+          "severity": "important",
+          "type": "version_outdated",
+          "location": "Gateway API CRD 설치 section",
+          "description": "Gateway API version 1.3.0 specified but should use latest stable version",
+          "recommendation": "Update Gateway API to v1.2.0 or later (verify latest stable release) for improved HTTPRoute, GRPCRoute, and experimental features",
+          "reference": "https://gateway-api.sigs.k8s.io/"
+        },
+        {
+          "severity": "important",
+          "type": "incomplete_info",
+          "location": "Kgateway Helm 차트 설치 section",
+          "description": "Kgateway version 2.0.5 may be outdated, should verify latest version",
+          "recommendation": "Verify Kgateway latest version from Helm repository and update installation command if newer version available",
+          "reference": "https://kgateway.dev/docs/"
+        },
+        {
+          "severity": "minor",
+          "type": "missing_best_practice",
+          "location": "Gateway 리소스 정의 section",
+          "description": "Missing guidance on topology-aware routing configuration",
+          "recommendation": "Add section on configuring topology-aware routing (K8s 1.33+) to reduce cross-AZ traffic costs and improve latency for inference workloads",
+          "reference": "https://aws.amazon.com/about-aws/whats-new/2025/05/amazon-eks-distro-kubernetes-version-1-33/"
+        }
+      ]
+    }
+  ],
+  "recommendations": {
+    "immediate_actions": [
+      "Update all Kubernetes version references from 1.31 to 1.33 or 1.34 across all documents",
+      "Add DRA v1beta1 API documentation for K8s 1.32+ with migration guide from v1alpha2",
+      "Update GPU instance type tables to include p5e.48xlarge (H200) and g6e family (L40S)",
+      "Verify and update all component versions (vLLM, Karpenter, Gateway API, DCGM Exporter, etc.)"
+    ],
+    "important_updates": [
+      "Add sections on EKS 1.33+ stable features: sidecar containers, topology-aware routing, in-place resource resizing",
+      "Add sections on EKS 1.34+ features: projected service account tokens, improved DRA prioritized alternatives",
+      "Update Karpenter examples to reference v1.0+ GA status and stable API",
+      "Add best practices for topology-aware routing in inference gateway configurations"
+    ],
+    "minor_improvements": [
+      "Specify exact versions for all container images and Helm charts",
+      "Add version compatibility matrices for component combinations",
+      "Update external documentation links to latest versions",
+      "Add migration guides for version upgrades"
+    ]
+  },
+  "validation_notes": [
+    "AWS EKS now supports Kubernetes 1.32 (January 2025), 1.33 (May 2025), and 1.34 (October 2025)",
+    "K8s 1.33 brings stable sidecar containers, topology-aware routing, and DRA for network interfaces",
+    "K8s 1.34 adds projected service account tokens and improved DRA prioritized alternatives",
+    "DRA API has evolved: v1alpha2 (K8s 1.26-1.31), v1beta1 (K8s 1.32+), with new implementation in 1.32",
+    "p5e.48xlarge instances with H200 GPUs (141GB HBM3) are now available and should be documented",
+    "g6e instance family with L40S GPUs provides cost-effective inference option",
+    "Gateway API has evolved to v1.2.0+ with improved HTTPRoute and GRPCRoute support",
+    "Karpenter v1.0+ is now GA with stable API (karpenter.sh/v1)",
+    "All documents need version updates to reflect 2025-2026 AWS and CNCF ecosystem changes"
+  ]
+}

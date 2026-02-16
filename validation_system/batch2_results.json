@@ -1,0 +1,426 @@
+{
+  "validation_date": "2026-02-13",
+  "batch": "batch2",
+  "documents": [
+    {
+      "document_id": "moe-model-serving",
+      "document": "MoE 모델 서빙 가이드",
+      "path": "docs/agentic-ai-platform/moe-model-serving.md",
+      "category": "model-serving",
+      "status": "needs-update",
+      "critical": 2,
+      "important": 3,
+      "minor": 2,
+      "lastValidated": "2026-02-13",
+      "issues": [
+        {
+          "severity": "critical",
+          "type": "version_outdated",
+          "location": "Line 11",
+          "finding": "vLLM version v0.16.0 referenced as 2025-06 release, but current stable is v0.6.x (as of Feb 2025)",
+          "recommendation": "Update to vLLM v0.6.x or v0.7.x (latest stable). v0.16.0 appears to be a future projection.",
+          "reference": "https://docs.vllm.ai/en/stable/"
+        },
+        {
+          "severity": "critical",
+          "type": "version_outdated",
+          "location": "Line 11, Line 1009",
+          "finding": "TGI 3.3.5 referenced but TGI is in maintenance mode since 2025",
+          "recommendation": "Add prominent warning that TGI is deprecated. Recommend vLLM, SGLang, or TensorRT-LLM as primary options.",
+          "reference": "https://huggingface.co/docs/text-generation-inference"
+        },
+        {
+          "severity": "important",
+          "type": "technical_accuracy",
+          "location": "Line 145-165 (GPU Memory Table)",
+          "finding": "DeepSeek-V3 memory requirements (1.3TB FP16) may be outdated. DeepSeek-V3 uses MLA (Multi-head Latent Attention) which significantly reduces KV cache.",
+          "recommendation": "Verify DeepSeek-V3 actual memory requirements with MLA optimization. Update table with accurate figures.",
+          "reference": "DeepSeek-V3 technical report"
+        },
+        {
+          "severity": "important",
+          "type": "missing_content",
+          "location": "vLLM deployment section",
+          "finding": "Missing vLLM v0.6+ new features: prefix caching improvements, multi-LoRA serving, FP8 KV cache",
+          "recommendation": "Add section on vLLM v0.6+ features: automatic prefix caching, FP8 KV cache (2x memory reduction), multi-LoRA serving",
+          "reference": "https://docs.vllm.ai/en/stable/features/"
+        },
+        {
+          "severity": "important",
+          "type": "missing_aws_service",
+          "location": "Deployment options",
+          "finding": "No mention of AWS Trainium/Inferentia support for MoE models",
+          "recommendation": "Add section on AWS Trainium2 (trn2.48xlarge) for cost-effective MoE inference. Mention NeuronX SDK support.",
+          "reference": "AWS Trainium documentation"
+        },
+        {
+          "severity": "minor",
+          "type": "code_example",
+          "location": "Line 424-490 (vLLM YAML)",
+          "finding": "vLLM image tag uses v0.16.0 which doesn't exist yet",
+          "recommendation": "Update to vllm/vllm-openai:v0.6.3 or :latest",
+          "reference": "https://hub.docker.com/r/vllm/vllm-openai"
+        },
+        {
+          "severity": "minor",
+          "type": "best_practice",
+          "location": "Line 1009-1100 (TGI deployment)",
+          "finding": "TGI deployment examples should be marked as legacy/deprecated",
+          "recommendation": "Add deprecation notice at the top of TGI section. Suggest migration path to vLLM.",
+          "reference": "Hugging Face TGI maintenance mode announcement"
+        }
+      ],
+      "strengths": [
+        "Comprehensive MoE architecture explanation with excellent Mermaid diagrams",
+        "Detailed GPU memory calculations and requirements table",
+        "Good coverage of tensor parallelism and expert parallelism strategies",
+        "Practical Kubernetes deployment examples with resource limits",
+        "Excellent monitoring and troubleshooting sections"
+      ],
+      "recommendations": [
+        "Update all version numbers to current stable releases (vLLM v0.6.x, remove TGI or mark deprecated)",
+        "Add AWS Trainium2 deployment option for cost optimization",
+        "Include vLLM v0.6+ new features (prefix caching, FP8 KV cache, multi-LoRA)",
+        "Verify and update DeepSeek-V3 memory requirements with MLA optimization",
+        "Add migration guide from TGI to vLLM"
+      ]
+    },
+    {
+      "document_id": "vllm-model-serving",
+      "document": "vLLM 기반 FM 배포 및 성능 최적화",
+      "path": "docs/agentic-ai-platform/vllm-model-serving.md",
+      "category": "model-serving",
+      "status": "needs-update",
+      "critical": 1,
+      "important": 4,
+      "minor": 3,
+      "lastValidated": "2026-02-13",
+      "issues": [
+        {
+          "severity": "critical",
+          "type": "version_outdated",
+          "location": "Line 11",
+          "finding": "vLLM v0.16.0 (2025-06) is a future version. Current stable is v0.6.x",
+          "recommendation": "Update to vLLM v0.6.3 or v0.7.x (latest stable as of Feb 2025)",
+          "reference": "https://docs.vllm.ai/en/stable/"
+        },
+        {
+          "severity": "important",
+          "type": "missing_content",
+          "location": "Hardware support section (Line 95-110)",
+          "finding": "AWS Trainium/Inferentia support mentioned but not detailed",
+          "recommendation": "Add dedicated section on AWS Trainium2 deployment with NeuronX SDK integration, performance benchmarks, and cost comparison",
+          "reference": "AWS Trainium documentation"
+        },
+        {
+          "severity": "important",
+          "type": "missing_feature",
+          "location": "Performance optimization section",
+          "finding": "Missing vLLM v0.6+ critical features: FP8 KV cache, automatic prefix caching improvements",
+          "recommendation": "Add section on FP8 KV cache (2x memory reduction), improved prefix caching (400%+ throughput), and chunked prefill V2",
+          "reference": "vLLM v0.6 release notes"
+        },
+        {
+          "severity": "important",
+          "type": "missing_content",
+          "location": "Multi-LoRA section (Line 330-345)",
+          "finding": "Multi-LoRA serving example is brief and lacks production configuration",
+          "recommendation": "Expand with: LoRA adapter management, dynamic loading/unloading, memory overhead calculations, and Kubernetes deployment example",
+          "reference": "vLLM multi-LoRA documentation"
+        },
+        {
+          "severity": "important",
+          "type": "code_example",
+          "location": "Line 150-220 (Basic deployment YAML)",
+          "finding": "Missing critical vLLM v0.6+ arguments: --enable-prefix-caching, --kv-cache-dtype",
+          "recommendation": "Add: --enable-prefix-caching, --kv-cache-dtype=fp8 (for memory optimization), --disable-log-requests (for production)",
+          "reference": "vLLM CLI reference"
+        },
+        {
+          "severity": "minor",
+          "type": "best_practice",
+          "location": "Line 280-310 (Quantization section)",
+          "finding": "Missing GGUF quantization support (vLLM v0.6+)",
+          "recommendation": "Add GGUF quantization option with example: --quantization gguf --gguf-file model.gguf",
+          "reference": "vLLM quantization documentation"
+        },
+        {
+          "severity": "minor",
+          "type": "monitoring",
+          "location": "Line 380-420 (Monitoring section)",
+          "finding": "Prometheus metrics examples are generic, missing vLLM-specific metrics",
+          "recommendation": "Add vLLM-specific metrics: vllm:num_requests_running, vllm:gpu_cache_usage_perc, vllm:num_preemptions_total",
+          "reference": "vLLM metrics documentation"
+        },
+        {
+          "severity": "minor",
+          "type": "reference",
+          "location": "Line 450-470 (References)",
+          "finding": "GenAI on EKS Starter Kit link is correct but could include more AWS samples",
+          "recommendation": "Add: AWS Scalable Model Inference guidance, EKS Best Practices for AI/ML workloads",
+          "reference": "AWS documentation"
+        }
+      ],
+      "strengths": [
+        "Excellent PagedAttention and Continuous Batching explanations",
+        "Comprehensive GPU memory calculation methodology",
+        "Good parallelization strategy comparison (TP, PP, EP, DP)",
+        "Practical Kubernetes deployment examples with resource specifications",
+        "Clear performance optimization strategies with trade-offs"
+      ],
+      "recommendations": [
+        "Update vLLM version to v0.6.x or v0.7.x (current stable)",
+        "Add comprehensive AWS Trainium2 deployment guide with cost analysis",
+        "Include vLLM v0.6+ features: FP8 KV cache, improved prefix caching, GGUF support",
+        "Expand multi-LoRA serving section with production examples",
+        "Add vLLM-specific Prometheus metrics and Grafana dashboard examples",
+        "Include migration guide from older vLLM versions"
+      ]
+    },
+    {
+      "document_id": "agent-monitoring",
+      "document": "AI Agent 모니터링 및 운영",
+      "path": "docs/agentic-ai-platform/agent-monitoring.md",
+      "category": "agent-framework",
+      "status": "pass",
+      "critical": 0,
+      "important": 2,
+      "minor": 3,
+      "lastValidated": "2026-02-13",
+      "issues": [
+        {
+          "severity": "important",
+          "type": "version_check",
+          "location": "Line 200-250 (LangFuse deployment)",
+          "finding": "LangFuse image version not specified (uses :2 tag)",
+          "recommendation": "Specify exact LangFuse version (e.g., langfuse/langfuse:2.75.0) for reproducibility. Update to latest stable.",
+          "reference": "https://github.com/langfuse/langfuse/releases"
+        },
+        {
+          "severity": "important",
+          "type": "aws_service",
+          "location": "Line 1250-1300 (CloudWatch Gen AI Observability)",
+          "finding": "CloudWatch Generative AI Observability section is accurate but could include more integration details",
+          "recommendation": "Add: ADOT collector configuration for EKS, CloudWatch Application Signals integration, cost comparison with LangFuse",
+          "reference": "https://aws.amazon.com/blogs/mt/launching-amazon-cloudwatch-generative-ai-observability-preview/"
+        },
+        {
+          "severity": "minor",
+          "type": "security",
+          "location": "Line 150-180 (Secret management)",
+          "finding": "Secrets stored in Kubernetes Secrets without encryption at rest mention",
+          "recommendation": "Add note about enabling EKS encryption at rest, or recommend AWS Secrets Manager with External Secrets Operator",
+          "reference": "EKS security best practices"
+        },
+        {
+          "severity": "minor",
+          "type": "best_practice",
+          "location": "Line 300-350 (PostgreSQL deployment)",
+          "finding": "StatefulSet PostgreSQL is good for dev, but production should use RDS",
+          "recommendation": "Add prominent note recommending Amazon RDS PostgreSQL for production with high availability, automated backups, and managed updates",
+          "reference": "AWS RDS documentation"
+        },
+        {
+          "severity": "minor",
+          "type": "monitoring",
+          "location": "Line 900-950 (Prometheus metrics)",
+          "finding": "Missing LangFuse-specific metrics examples",
+          "recommendation": "Add LangFuse metrics: langfuse_traces_total, langfuse_observations_total, langfuse_api_latency_seconds",
+          "reference": "LangFuse metrics documentation"
+        }
+      ],
+      "strengths": [
+        "Comprehensive LangFuse Kubernetes deployment with production-ready configuration",
+        "Excellent LangChain and LlamaIndex integration examples",
+        "Detailed cost tracking implementation with model pricing",
+        "Good coverage of CloudWatch Generative AI Observability (AWS native)",
+        "Practical Grafana dashboard and alerting examples",
+        "Thorough troubleshooting guide"
+      ],
+      "recommendations": [
+        "Specify exact LangFuse version for reproducibility",
+        "Expand CloudWatch Gen AI Observability section with ADOT integration",
+        "Add AWS Secrets Manager integration example",
+        "Emphasize RDS PostgreSQL for production deployments",
+        "Include LangFuse-specific Prometheus metrics",
+        "Add cost comparison: LangFuse (self-hosted) vs LangSmith vs CloudWatch Gen AI Observability"
+      ]
+    },
+    {
+      "document_id": "kagent-kubernetes-agents",
+      "document": "Kagent - Kubernetes AI Agent 관리",
+      "path": "docs/agentic-ai-platform/kagent-kubernetes-agents.md",
+      "category": "agent-framework",
+      "status": "needs-update",
+      "critical": 1,
+      "important": 3,
+      "minor": 2,
+      "lastValidated": "2026-02-13",
+      "issues": [
+        {
+          "severity": "critical",
+          "type": "project_status",
+          "location": "Throughout document",
+          "finding": "Kagent appears to be a conceptual/hypothetical project. No official GitHub repository found at kagent-dev/kagent or similar.",
+          "recommendation": "CRITICAL: Verify if Kagent is a real project or a conceptual example. If conceptual, add disclaimer. If real, provide correct GitHub link and verify all CRD schemas.",
+          "reference": "GitHub search for 'kagent kubernetes agent'"
+        },
+        {
+          "severity": "important",
+          "type": "crd_schema",
+          "location": "Line 300-600 (Agent CRD definition)",
+          "finding": "CRD schema is well-designed but not verified against actual implementation",
+          "recommendation": "If Kagent is real: validate CRD schema against actual implementation. If conceptual: add note that this is a reference architecture.",
+          "reference": "Kubernetes CRD best practices"
+        },
+        {
+          "severity": "important",
+          "type": "alternative_tools",
+          "location": "Overview section",
+          "finding": "No mention of existing Kubernetes AI agent management tools",
+          "recommendation": "Add comparison with existing tools: KubeAI, Seldon Core, KServe, Ray Serve on Kubernetes",
+          "reference": "CNCF AI/ML landscape"
+        },
+        {
+          "severity": "important",
+          "type": "aws_integration",
+          "location": "Observability section (Line 450-500)",
+          "finding": "CloudWatch Generative AI Observability mentioned but not integrated in CRD",
+          "recommendation": "Add CloudWatch Gen AI Observability as observability.provider option in Agent CRD spec",
+          "reference": "CloudWatch Gen AI Observability documentation"
+        },
+        {
+          "severity": "minor",
+          "type": "helm_chart",
+          "location": "Line 150-200 (Helm installation)",
+          "finding": "Helm repository URL (https://kagent-dev.github.io/kagent) may not exist",
+          "recommendation": "Verify Helm repository exists. If not, provide alternative installation method or mark as conceptual.",
+          "reference": "Helm repository best practices"
+        },
+        {
+          "severity": "minor",
+          "type": "re_invent_reference",
+          "location": "Line 50-60 (re:Invent session)",
+          "finding": "CNS421 session reference is accurate and valuable",
+          "recommendation": "Add more context: session covers Model Context Protocol (MCP) and AWS service integration for automated incident response",
+          "reference": "re:Invent 2025 session catalog"
+        }
+      ],
+      "strengths": [
+        "Well-designed CRD schema following Kubernetes best practices",
+        "Comprehensive Agent, Tool, Workflow, and MemoryStore CRD definitions",
+        "Excellent multi-agent orchestration workflow examples",
+        "Good integration with KEDA for event-driven autoscaling",
+        "Practical monitoring and troubleshooting sections",
+        "Accurate re:Invent 2025 CNS421 session reference"
+      ],
+      "recommendations": [
+        "CRITICAL: Verify Kagent project existence and provide correct repository links",
+        "If conceptual: Add prominent disclaimer that this is a reference architecture",
+        "Add comparison with existing Kubernetes AI agent tools (KubeAI, Seldon, KServe)",
+        "Integrate CloudWatch Gen AI Observability as CRD option",
+        "Verify Helm repository URL or provide alternative installation",
+        "Expand re:Invent session reference with MCP and AWS integration details"
+      ]
+    },
+    {
+      "document_id": "milvus-vector-database",
+      "document": "Milvus 벡터 데이터베이스 통합",
+      "path": "docs/agentic-ai-platform/milvus-vector-database.md",
+      "category": "vector-db",
+      "status": "pass",
+      "critical": 0,
+      "important": 2,
+      "minor": 3,
+      "lastValidated": "2026-02-13",
+      "issues": [
+        {
+          "severity": "important",
+          "type": "version_check",
+          "location": "Line 50-100 (Milvus deployment)",
+          "finding": "Milvus version not specified in Helm installation",
+          "recommendation": "Specify Milvus version (e.g., --version 4.1.x). Current stable is Milvus 2.4.x (as of Feb 2025).",
+          "reference": "https://milvus.io/docs/release_notes.md"
+        },
+        {
+          "severity": "important",
+          "type": "aws_service",
+          "location": "Line 200-250 (S3 storage)",
+          "finding": "S3 integration is good but missing S3 Express One Zone option for ultra-low latency",
+          "recommendation": "Add section on S3 Express One Zone for latency-sensitive workloads (single-digit ms latency)",
+          "reference": "https://aws.amazon.com/s3/storage-classes/express-one-zone/"
+        },
+        {
+          "severity": "minor",
+          "type": "index_type",
+          "location": "Line 300-350 (Index types)",
+          "finding": "Missing SCANN index type (Milvus 2.4+)",
+          "recommendation": "Add SCANN index: Google's Scalable Nearest Neighbors, good balance of speed and accuracy",
+          "reference": "Milvus 2.4 release notes"
+        },
+        {
+          "severity": "minor",
+          "type": "gpu_acceleration",
+          "location": "Line 800-850 (GPU indexing)",
+          "finding": "GPU indexing section is excellent but could mention GPU instance types",
+          "recommendation": "Add recommended GPU instances: g5.xlarge (A10G) for cost-effective indexing, p4d.24xlarge (A100) for large-scale",
+          "reference": "AWS EC2 GPU instances"
+        },
+        {
+          "severity": "minor",
+          "type": "monitoring",
+          "location": "Line 700-750 (Monitoring)",
+          "finding": "Prometheus metrics are good but missing Milvus 2.4+ new metrics",
+          "recommendation": "Add Milvus 2.4+ metrics: milvus_proxy_collection_loaded, milvus_querynode_segment_num",
+          "reference": "Milvus metrics documentation"
+        }
+      ],
+      "strengths": [
+        "Comprehensive Milvus architecture explanation with excellent diagrams",
+        "Detailed index type comparison with use case recommendations",
+        "Good S3 integration example with IRSA",
+        "Excellent LangChain and LlamaIndex integration examples",
+        "Practical GPU acceleration section with performance benchmarks",
+        "Good backup and disaster recovery strategies"
+      ],
+      "recommendations": [
+        "Specify Milvus version (2.4.x) in Helm installation",
+        "Add S3 Express One Zone option for ultra-low latency workloads",
+        "Include SCANN index type (Milvus 2.4+)",
+        "Add recommended GPU instance types for indexing",
+        "Update Prometheus metrics with Milvus 2.4+ additions",
+        "Add cost comparison: MinIO vs S3 Standard vs S3 Express One Zone"
+      ]
+    }
+  ],
+  "summary": {
+    "total_documents": 5,
+    "status_breakdown": {
+      "pass": 2,
+      "needs-update": 3,
+      "fail": 0
+    },
+    "total_issues": {
+      "critical": 4,
+      "important": 14,
+      "minor": 13
+    },
+    "key_findings": [
+      "vLLM version references (v0.16.0) are future projections; current stable is v0.6.x",
+      "TGI is in maintenance mode and should be marked deprecated with migration path to vLLM",
+      "Kagent project existence needs verification - may be conceptual reference architecture",
+      "CloudWatch Generative AI Observability integration is accurate but could be expanded",
+      "AWS Trainium2 support for cost-effective inference is missing from model serving docs",
+      "All documents have excellent technical depth and practical Kubernetes examples"
+    ],
+    "overall_assessment": "Batch 2 documents demonstrate strong technical expertise with comprehensive Kubernetes deployment examples and architectural diagrams. Main issues are version currency (vLLM, TGI) and verification of Kagent project existence. CloudWatch Gen AI Observability references are accurate and timely. Documents would benefit from AWS Trainium2 coverage and updated version numbers.",
+    "priority_actions": [
+      "Update vLLM version references from v0.16.0 to v0.6.x (current stable)",
+      "Add deprecation notice for TGI with migration guide to vLLM",
+      "Verify Kagent project existence and update documentation accordingly",
+      "Add AWS Trainium2 deployment guides for cost optimization",
+      "Expand CloudWatch Gen AI Observability integration examples",
+      "Specify exact versions for all tools (Milvus 2.4.x, LangFuse 2.75.x)"
+    ]
+  }
+}

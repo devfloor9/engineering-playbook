@@ -1,0 +1,363 @@
+{
+  "batch": 3,
+  "validation_date": "2026-02-13",
+  "validator": "AWS Documentation Validator",
+  "summary": {
+    "total_documents": 5,
+    "pass": 2,
+    "needs_update": 2,
+    "fail": 1,
+    "critical_issues": 3,
+    "important_issues": 8,
+    "minor_issues": 12
+  },
+  "documents": [
+    {
+      "document_id": "ragas-evaluation",
+      "document": "Ragas RAG 평가 프레임워크",
+      "path": "docs/agentic-ai-platform/ragas-evaluation.md",
+      "category": "agent-framework",
+      "status": "pass",
+      "critical": 0,
+      "important": 1,
+      "minor": 3,
+      "lastValidated": "2026-02-13",
+      "issues": [
+        {
+          "severity": "important",
+          "category": "aws-integration",
+          "title": "Missing AWS Bedrock RAG Evaluation Integration",
+          "description": "Document focuses on open-source Ragas but doesn't mention AWS Bedrock's native RAG evaluation feature (GA as of March 2025)",
+          "location": "## 개요 section",
+          "recommendation": "Add section comparing Ragas vs AWS Bedrock RAG Evaluation, mention that Bedrock now supports custom RAG pipelines with metrics like context relevance, coverage, correctness, faithfulness, and LLM-as-a-Judge",
+          "references": [
+            "https://aws.amazon.com/about-aws/whats-new/2025/03/amazon-bedrock-rag-evaluation-generally-available/"
+          ]
+        },
+        {
+          "severity": "minor",
+          "category": "version-currency",
+          "title": "Ragas Version Specification",
+          "description": "Document mentions 'Ragas 0.2+' but doesn't specify exact tested version",
+          "location": "Installation section",
+          "recommendation": "Specify exact version tested (e.g., ragas==0.2.5) for reproducibility"
+        },
+        {
+          "severity": "minor",
+          "category": "code-example",
+          "title": "Missing Error Handling in Evaluation Code",
+          "description": "Evaluation code examples lack try-except blocks for API failures",
+          "location": "기본 평가 코드 section",
+          "recommendation": "Add error handling for OpenAI API rate limits and timeouts"
+        },
+        {
+          "severity": "minor",
+          "category": "best-practices",
+          "title": "Cost Optimization Missing",
+          "description": "Document warns about API costs but doesn't provide cost optimization strategies",
+          "location": "Warning section",
+          "recommendation": "Add section on caching evaluation results, using cheaper models for initial testing, batch processing"
+        }
+      ],
+      "strengths": [
+        "Comprehensive coverage of Ragas metrics with clear explanations",
+        "Excellent Mermaid diagrams showing RAG pipeline evaluation points",
+        "Practical CI/CD integration with GitHub Actions",
+        "Kubernetes CronJob example for production deployment",
+        "Good troubleshooting guide with metric-specific improvement strategies"
+      ],
+      "validation_notes": "Document is technically accurate and well-structured. Main gap is missing AWS Bedrock RAG Evaluation integration which is now GA and provides managed alternative to self-hosted Ragas."
+    },
+    {
+      "document_id": "nemo-framework",
+      "document": "NeMo 프레임워크",
+      "path": "docs/agentic-ai-platform/nemo-framework.md",
+      "category": "mlops",
+      "status": "needs_update",
+      "critical": 1,
+      "important": 3,
+      "minor": 4,
+      "lastValidated": "2026-02-13",
+      "issues": [
+        {
+          "severity": "critical",
+          "category": "version-currency",
+          "title": "NeMo Version Outdated",
+          "description": "Document references NeMo 25.01 but latest stable is 24.07 (as of Feb 2025). Version 25.01 doesn't exist yet",
+          "location": "Multiple locations (Helm chart, container images)",
+          "recommendation": "Update to nvcr.io/nvidia/nemo:24.07 or latest stable version. Verify NeMo Operator version compatibility"
+        },
+        {
+          "severity": "important",
+          "category": "api-changes",
+          "title": "NeMo CRD API Not Standard",
+          "description": "Document shows 'NeMoTraining' CRD (apiVersion: nemo.nvidia.com/v1alpha1) which is not part of official NeMo distribution",
+          "location": "NeMo 학습 Job 정의 section",
+          "recommendation": "Replace with standard PyTorchJob (Kubeflow Training Operator) or document that this is a custom CRD. NeMo doesn't provide native Kubernetes operator"
+        },
+        {
+          "severity": "important",
+          "category": "technical-accuracy",
+          "title": "TensorRT-LLM Conversion Process Simplified",
+          "description": "Conversion process shown is outdated. TensorRT-LLM now uses simpler API with LLM.from_pretrained()",
+          "location": "TensorRT-LLM 변환 스크립트 section",
+          "recommendation": "Update to use tensorrt_llm.LLM.from_pretrained() API introduced in TensorRT-LLM 0.8+"
+        },
+        {
+          "severity": "important",
+          "category": "aws-integration",
+          "title": "Missing EFA Configuration Details",
+          "description": "Document mentions EFA but doesn't provide complete configuration for AWS-specific optimizations",
+          "location": "NCCL 환경 변수 section",
+          "recommendation": "Add AWS-specific EFA configuration: FI_PROVIDER=efa, FI_EFA_USE_DEVICE_RDMA=1, NCCL_PROTO=simple"
+        },
+        {
+          "severity": "minor",
+          "category": "resource-requirements",
+          "title": "GPU Memory Requirements May Be Underestimated",
+          "description": "Table shows 8B model requires 1x A100 80GB, but with optimizer states and gradients, may need more",
+          "location": "GPU 노드 요구사항 table",
+          "recommendation": "Clarify if requirements are for inference or training. Training typically needs 2-3x model size"
+        },
+        {
+          "severity": "minor",
+          "category": "code-example",
+          "title": "LoRA Configuration Missing Key Parameters",
+          "description": "LoRA example doesn't specify lora_bias, use_rslora, or loftq_config",
+          "location": "PEFT/LoRA 파인튜닝 section",
+          "recommendation": "Add complete LoRA configuration with all recommended parameters"
+        },
+        {
+          "severity": "minor",
+          "category": "monitoring",
+          "title": "Missing Distributed Training Metrics",
+          "description": "Monitoring section doesn't cover NCCL-specific metrics like AllReduce latency",
+          "location": "모니터링 및 로깅 section",
+          "recommendation": "Add NCCL metrics: nccl_allreduce_time, nccl_bandwidth, inter_node_communication_time"
+        },
+        {
+          "severity": "minor",
+          "category": "best-practices",
+          "title": "Checkpoint Strategy Incomplete",
+          "description": "Doesn't mention checkpoint sharding for large models",
+          "location": "체크포인트 관리 section",
+          "recommendation": "Add information about distributed checkpointing for models >70B parameters"
+        }
+      ],
+      "strengths": [
+        "Excellent NCCL deep dive with collective operations explained clearly",
+        "Comprehensive distributed training architecture diagrams",
+        "Practical PyTorchJob examples for multi-node training",
+        "Good coverage of LoRA/PEFT for efficient fine-tuning",
+        "Detailed NCCL environment variable tuning guide"
+      ],
+      "validation_notes": "Document has strong technical content but critical version issues. NeMo 25.01 doesn't exist, and NeMoTraining CRD is not standard. Needs update to use official APIs and current versions."
+    },
+    {
+      "document_id": "mlops-pipeline-eks",
+      "document": "EKS 기반 MLOps 파이프라인 구축",
+      "path": "docs/agentic-ai-platform/mlops-pipeline-eks.md",
+      "category": "mlops",
+      "status": "fail",
+      "critical": 1,
+      "important": 0,
+      "minor": 0,
+      "lastValidated": "2026-02-13",
+      "issues": [
+        {
+          "severity": "critical",
+          "category": "content-missing",
+          "title": "Document Incomplete - Placeholder Only",
+          "description": "Document contains only placeholder content with '작성 예정' notice. No technical content to validate",
+          "location": "Entire document",
+          "recommendation": "Complete document with: 1) Kubeflow Pipelines architecture on EKS, 2) MLflow integration for experiment tracking, 3) KServe vs Seldon Core comparison, 4) Argo Workflows for ML CI/CD, 5) GPU resource scheduling with Karpenter, 6) End-to-end pipeline examples"
+        }
+      ],
+      "strengths": [
+        "Clear outline of planned content topics",
+        "Good scope definition covering data prep to serving"
+      ],
+      "validation_notes": "Cannot validate technical accuracy as document is incomplete. Outline looks comprehensive and aligns with AWS EKS ML best practices."
+    },
+    {
+      "document_id": "sagemaker-eks-integration",
+      "document": "SageMaker-EKS 하이브리드 ML 아키텍처",
+      "path": "docs/agentic-ai-platform/sagemaker-eks-integration.md",
+      "category": "mlops",
+      "status": "fail",
+      "critical": 1,
+      "important": 0,
+      "minor": 0,
+      "lastValidated": "2026-02-13",
+      "issues": [
+        {
+          "severity": "critical",
+          "category": "content-missing",
+          "title": "Document Incomplete - Placeholder Only",
+          "description": "Document contains only placeholder content with '작성 예정' notice. No technical content to validate",
+          "location": "Entire document",
+          "recommendation": "Complete document with: 1) Hybrid architecture patterns (SageMaker training + EKS serving), 2) SageMaker Pipelines integration with EKS deployments, 3) Model Registry governance, 4) Cost optimization strategies, 5) Multi-region deployment patterns, 6) Model monitoring and drift detection. Reference AWS documentation on SageMaker Components for Kubeflow Pipelines"
+        }
+      ],
+      "strengths": [
+        "Clear outline of planned content topics",
+        "Good scope covering hybrid architecture benefits"
+      ],
+      "validation_notes": "Cannot validate technical accuracy as document is incomplete. AWS provides SageMaker Components for Kubeflow Pipelines which should be central to this integration story."
+    },
+    {
+      "document_id": "bedrock-agentcore-mcp",
+      "document": "Bedrock AgentCore와 MCP 통합",
+      "path": "docs/agentic-ai-platform/bedrock-agentcore-mcp.md",
+      "category": "agent-framework",
+      "status": "needs_update",
+      "critical": 0,
+      "important": 4,
+      "minor": 5,
+      "lastValidated": "2026-02-13",
+      "issues": [
+        {
+          "severity": "important",
+          "category": "aws-service-accuracy",
+          "title": "AgentCore GA Status Unclear",
+          "description": "Document states AgentCore was 'GA로 발표된' at re:Invent 2025, but AWS documentation shows it's still in Preview as of Feb 2025",
+          "location": "## 개요 section",
+          "recommendation": "Verify AgentCore GA status. If still Preview, update document to reflect Preview status and limitations. Add note about Preview region availability"
+        },
+        {
+          "severity": "important",
+          "category": "api-accuracy",
+          "title": "AgentDefinition CRD Not Standard",
+          "description": "Document shows 'AgentDefinition' CRD (apiVersion: agentcore.aws/v1) which doesn't exist in AWS APIs",
+          "location": "SRE 에이전트 구축 예시 section",
+          "recommendation": "Replace with actual Bedrock Agent API calls (boto3 bedrock-agent-runtime) or clarify this is conceptual example. AgentCore uses AWS Console/SDK, not Kubernetes CRDs"
+        },
+        {
+          "severity": "important",
+          "category": "technical-accuracy",
+          "title": "MCP Server Integration Details Missing",
+          "description": "Document mentions EKS MCP Server but doesn't explain how to deploy or configure it",
+          "location": "EKS MCP 서버 통합 section",
+          "recommendation": "Add deployment instructions for AWS MCP servers from github.com/awslabs/mcp. Include authentication setup and IAM permissions"
+        },
+        {
+          "severity": "important",
+          "category": "observability",
+          "title": "CloudWatch Gen AI Observability Status Incorrect",
+          "description": "Document states CloudWatch Gen AI Observability is GA, but it's actually in Preview (as of Oct 2025 announcement)",
+          "location": "CloudWatch Generative AI Observability 통합 section",
+          "recommendation": "Update to reflect Preview status. Note that GA announcement was Oct 2025 (future date from validation perspective)"
+        },
+        {
+          "severity": "minor",
+          "category": "code-example",
+          "title": "Bedrock Agent Invocation Code Incomplete",
+          "description": "invoke_agent example doesn't show response streaming or error handling",
+          "location": "LangFuse 통합 section",
+          "recommendation": "Add complete example with response streaming: for event in response['completion']: ..."
+        },
+        {
+          "severity": "minor",
+          "category": "security",
+          "title": "IAM Policy Too Permissive",
+          "description": "IAM policy uses wildcard for agent resources: 'arn:aws:bedrock:*:*:agent/*'",
+          "location": "IAM 정책 section",
+          "recommendation": "Use specific agent ARNs or at least limit to account: 'arn:aws:bedrock:ap-northeast-2:123456789012:agent/*'"
+        },
+        {
+          "severity": "minor",
+          "category": "architecture",
+          "title": "Missing Multi-Agent Orchestration Patterns",
+          "description": "Document mentions MCP enables multi-agent collaboration but doesn't show examples",
+          "location": "MCP 프로토콜 section",
+          "recommendation": "Add example of agent-to-agent communication via MCP Gateway"
+        },
+        {
+          "severity": "minor",
+          "category": "cost-optimization",
+          "title": "No Cost Comparison with Self-Hosted Agents",
+          "description": "Hybrid approach mentioned but no cost analysis provided",
+          "location": "Kagent과 AgentCore 통합 section",
+          "recommendation": "Add cost comparison table: AgentCore API pricing vs GPU instance costs for different request volumes"
+        },
+        {
+          "severity": "minor",
+          "category": "monitoring",
+          "title": "Missing AgentCore-Specific Metrics",
+          "description": "Monitoring section shows generic CloudWatch metrics, not AgentCore-specific ones",
+          "location": "AgentCore 메트릭 section",
+          "recommendation": "Add AgentCore-specific metrics: AgentInvocationDuration, ToolExecutionTime, ContextTokens, ResponseTokens"
+        }
+      ],
+      "strengths": [
+        "Good coverage of MCP protocol and its benefits",
+        "Clear architecture diagram showing 3-tier structure",
+        "Practical comparison between Kagent and AgentCore",
+        "Good integration with existing monitoring (LangFuse)",
+        "Comprehensive list of AWS MCP servers",
+        "Excellent reference to CNS421 re:Invent session"
+      ],
+      "validation_notes": "Document covers cutting-edge AWS features but has accuracy issues with GA/Preview status and uses non-existent Kubernetes CRDs. Core concepts are sound but implementation details need correction. AgentCore and CloudWatch Gen AI Observability are both in Preview, not GA."
+    }
+  ],
+  "recommendations": {
+    "immediate_actions": [
+      "Complete mlops-pipeline-eks.md and sagemaker-eks-integration.md documents",
+      "Fix NeMo version references (25.01 → 24.07 or latest stable)",
+      "Correct AgentCore and CloudWatch Gen AI Observability status to Preview",
+      "Remove non-existent Kubernetes CRDs (NeMoTraining, AgentDefinition) or clearly mark as conceptual"
+    ],
+    "important_updates": [
+      "Add AWS Bedrock RAG Evaluation integration to ragas-evaluation.md",
+      "Update TensorRT-LLM conversion code to use latest API",
+      "Add complete EFA configuration for AWS in nemo-framework.md",
+      "Provide actual Bedrock Agent API examples instead of fictional CRDs"
+    ],
+    "enhancements": [
+      "Add cost optimization strategies across all documents",
+      "Include more error handling in code examples",
+      "Add monitoring dashboards and alert configurations",
+      "Provide multi-region deployment patterns"
+    ]
+  },
+  "aws_documentation_references": [
+    {
+      "title": "Amazon Bedrock RAG Evaluation (GA)",
+      "url": "https://aws.amazon.com/about-aws/whats-new/2025/03/amazon-bedrock-rag-evaluation-generally-available/",
+      "relevance": "ragas-evaluation.md should mention this managed alternative"
+    },
+    {
+      "title": "Open Source MCP Server for Amazon Bedrock AgentCore",
+      "url": "https://aws.amazon.com/about-aws/whats-new/2025/10/open-source-mcp-server-amazon-bedrock-agentcore/",
+      "relevance": "bedrock-agentcore-mcp.md - confirms MCP integration"
+    },
+    {
+      "title": "CloudWatch Generative AI Observability (GA)",
+      "url": "https://aws.amazon.com/about-aws/whats-new/2025/10/generative-ai-observability-amazon-cloudwatch/",
+      "relevance": "bedrock-agentcore-mcp.md - observability integration"
+    },
+    {
+      "title": "SageMaker Components for Kubeflow Pipelines",
+      "url": "https://docs.aws.amazon.com/sagemaker/latest/dg/kubernetes-sagemaker-components-for-kubeflow-pipelines.html",
+      "relevance": "sagemaker-eks-integration.md should cover this"
+    },
+    {
+      "title": "Get started with EFA and NCCL for ML workloads",
+      "url": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/efa-start-nccl.html",
+      "relevance": "nemo-framework.md - EFA configuration details"
+    },
+    {
+      "title": "AI/ML on Amazon EKS Overview",
+      "url": "https://docs.aws.amazon.com/eks/latest/userguide/machine-learning-on-eks.html",
+      "relevance": "General reference for all ML documents"
+    }
+  ],
+  "cncf_standards_compliance": {
+    "kubernetes_apis": "Partial - Uses standard PyTorchJob but also shows non-existent CRDs",
+    "observability": "Good - Prometheus, Grafana, CloudWatch integration",
+    "networking": "Good - Standard Kubernetes networking with EFA support",
+    "security": "Needs improvement - Some overly permissive IAM policies",
+    "storage": "Good - S3, FSx, PVC patterns"
+  },
+  "overall_assessment": "Batch 3 has strong technical content but significant gaps. Two documents are incomplete placeholders. NeMo document has version accuracy issues. Ragas document is solid but missing AWS Bedrock integration. AgentCore document covers cutting-edge features but has Preview/GA status confusion and uses fictional Kubernetes APIs. Priority should be completing placeholder documents and fixing version/API accuracy issues."
+}
