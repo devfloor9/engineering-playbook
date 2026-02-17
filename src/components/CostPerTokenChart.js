@@ -39,7 +39,7 @@ const maverickData = [
 ];
 
 export default function CostPerTokenChart({ locale = 'en' }) {
-  const t = i18n[locale];
+  const t = i18n[locale] || i18n.en;
   const { colorMode } = useColorMode();
   const isDark = colorMode === 'dark';
   const theme = {

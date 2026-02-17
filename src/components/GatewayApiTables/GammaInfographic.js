@@ -214,7 +214,7 @@ const i18n = {
 export default function GammaInfographic({ locale = 'ko' }) {
   const { colorMode } = useColorMode();
   const isDark = colorMode === 'dark';
-  const t = i18n[locale] || i18n.ko;
+  const t = i18n[locale] || i18n.en;
 
   const bgColor = isDark ? '#1a1a1a' : '#ffffff';
   const borderColor = isDark ? '#333' : '#e2e8f0';

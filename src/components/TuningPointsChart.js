@@ -35,7 +35,7 @@ export default function TuningPointsChart({ locale = 'en' }) {
     }
   };
 
-  const t = i18n[locale];
+  const t = i18n[locale] || i18n.en;
 
   const data = [
     {

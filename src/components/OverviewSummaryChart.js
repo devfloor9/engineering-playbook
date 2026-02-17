@@ -57,7 +57,7 @@ export default function OverviewSummaryChart({ locale = 'en' }) {
     }
   };
 
-  const t = i18n[locale];
+  const t = i18n[locale] || i18n.en;
 
   const data = [
     { metric: t.tcpThroughput, vpcCni: '12.41 Gbps', cilium: '12.40 Gbps', improvement: t.identical, color: '#6b7280' },

@@ -60,7 +60,7 @@ const i18n = {
 const findingColors = ['#10b981', '#64748b', '#3b82f6', '#8b5cf6', '#f59e0b'];
 
 export default function KeyFindingsMLChart({ locale = 'en' }) {
-  const t = i18n[locale];
+  const t = i18n[locale] || i18n.en;
   const { colorMode } = useColorMode();
   const isDark = colorMode === 'dark';
   const theme = {
