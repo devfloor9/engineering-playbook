@@ -1038,3 +1038,2013 @@ AWS IaC MCP Server, combined with Kiro's Spec-driven development, automatically 
 - [AWS DevOps Blog: Introducing the AWS IaC MCP Server](https://aws.amazon.com/blogs/devops/introducing-the-aws-infrastructure-as-code-mcp-server-ai-powered-cdk-and-cloudformation-assistance/) (2025-11-28)
 
 ---
+
+## 5. Operations Phase — From Deployment to Autonomous Operations
+
+### 5.1 Observability Foundation
+
+The data foundation of the Operations phase is the 5-Layer architecture built in [2. Intelligent Observability Stack](./aiops-observability-stack.md).
+
+```
+[Observability Stack → Operations Connection]
+
+Collection Layer (ADOT, CloudWatch Agent, NFM Agent)
+      ↓
+Transport Layer (OTLP, Prometheus Remote Write)
+      ↓
+Storage Layer (AMP, CloudWatch, X-Ray)
+      ↓
+Analysis Layer (AMG, CloudWatch AI, DevOps Guru)
+      ↓
+Action Layer ← AIDLC Operations is located here
+  ├── MCP-based integrated analysis
+  ├── AI Agent automated response
+  └── Predictive scaling
+```
+
+Metrics, logs, and traces collected in [2. Intelligent Observability Stack](./aiops-observability-stack.md) are delivered to AI tools and Agents through MCP, forming the decision-making foundation of the Operations phase.
+
+#### 5.1.3 2025-2026 Observability Innovations — Strengthening AIDLC Operations
+
+AWS announced **two major innovations** in the EKS observability domain from November 2025 through early 2026. These **significantly strengthen the data foundation** of the AIDLC Operations phase, enabling AI Agents to proactively detect and respond to network issues and control plane problems.
+
+**Container Network Observability (November 19, 2025)**
+
+AWS announced **Container Network Observability**, providing granular visibility into the network layer of EKS clusters. This complements the existing CloudWatch Container Insights' focus on the application and container layers by **combining network traffic patterns with Kubernetes context**.
+
+**Key Features**
+
+1. **Pod-to-Pod Communication Pattern Analysis**
+   - Real-time visualization of traffic flows between namespaces and services
+   - Automatic generation of dependency maps for microservice architectures
+   - Example: Payment Service → DynamoDB call patterns, communication frequency with Notification Service
+
+2. **Cross-AZ Traffic Visibility**
+   - Tracking data transfer volume and costs between Availability Zones
+   - Identifying services with high Cross-AZ traffic to provide cost optimization opportunities
+   - Example: Pod in AZ-a calling DynamoDB endpoint in AZ-b → $200/month unnecessary cost
+
+3. **Network Anomaly Detection**
+   - AI-based automatic detection of unusual traffic patterns
+   - Example: Sudden large-volume traffic to external IPs → suspected data exfiltration
+   - Example: Spike in connection attempt failure rate for a specific Pod → NetworkPolicy error or service failure
+
+**Usage in AIDLC Operations Phase**
+
+Container Network Observability **strengthens the Collection Layer**, enabling AI Agents to automatically identify and respond to network issues:
+
+- **Automatic Root Cause Analysis**: When a Pod is unresponsive, AI Agent analyzes network metrics to automatically determine whether it's "traffic blocked by NetworkPolicy" or "target service failure"
+- **Cost Optimization Suggestions**: Analyzes Cross-AZ traffic patterns to provide specific suggestions like "Save $500/month by modifying Pod Topology Spread Constraints"
+- **Security Anomaly Detection**: Integrates with GuardDuty Extended Threat Detection for early detection of network-level attack patterns
+
+**Implementation Example: Network Issue Analysis via Kiro + MCP**
+
+```bash
+# Query Container Network Observability metrics through CloudWatch MCP
+kiro diagnose --issue "payment-service high latency"
+
+# AI Agent's analysis process (internal operations):
+# 1. CloudWatch MCP → Query Container Network Observability metrics
+#    - payment-service → dynamodb-endpoint: P99 latency 500ms (normally 50ms)
+#    - Cross-AZ traffic ratio: 80% (normally 20%)
+#
+# 2. EKS MCP → Check Pod placement status
+#    - payment-service Pods: all 5 placed in AZ-a
+#    - DynamoDB endpoint: exists only in AZ-b, AZ-c
+#
+# 3. Root cause inference
+#    - Pod Topology Spread is not working properly
+#    - All traffic being sent Cross-AZ → network latency + cost increase
+#
+# 4. Recovery suggestion
+#    - Modify Pod Topology Spread Constraints
+#    - Force AZ distribution in Karpenter NodePool
+#    - Expected effect: P99 latency recovery to 50ms, $400/month cost savings
+
+# Output example:
+# Network issue detected: Excessive Cross-AZ traffic
+# Current state: payment-service Pods 100% concentrated in AZ-a
+# Suggestion: Pod Topology Spread + Karpenter AZ distribution
+# Expected effect: 90% improvement in P99 latency, $400/month savings
+# Proceed with automatic fix? [Y/n]
+```
+
+**CloudWatch Control Plane Metrics (December 19, 2025)**
+
+AWS announced **EKS Control Plane Metrics** along with the **CloudWatch Observability Operator**. This enables proactive monitoring of the health and performance of the Kubernetes API server, etcd, scheduler, and controller manager.
+
+**Key Features**
+
+1. **API Server Latency Monitoring**
+   - Tracks API request latency for `kubectl` commands, Deployment updates, HPA scaling, etc.
+   - Example: When API server P99 latency exceeds 500ms → early detection of cluster overload
+
+2. **etcd Performance Tracking**
+   - Monitors etcd disk sync latency, leader election time, and database size
+   - Example: When etcd disk latency increases → suspected excessive creation of cluster resources (ConfigMap, Secret)
+
+3. **Scheduler Status Monitoring**
+   - Tracks pending Pod count, scheduling latency, and scheduling failure reasons
+   - Example: When scheduling failures spike → insufficient node capacity or Affinity constraint errors
+
+**Usage in AIDLC Operations Phase**
+
+CloudWatch Control Plane Metrics **strengthens the Analysis Layer**, enabling AI Agents to proactively respond to infrastructure-level issues:
+
+- **Proactive Scaling**: When API server latency shows an increasing trend, AI Agent suggests upgrading to Provisioned Control Plane
+- **Resource Cleanup Automation**: When etcd database size reaches threshold, automatically identifies unused ConfigMaps/Secrets and suggests cleanup
+- **Scheduling Optimization**: Analyzes Pending Pod causes to provide specific improvement suggestions like "NodeSelector constraints are too strict"
+
+**Implementation Example: CloudWatch Observability Operator Configuration**
+
+```yaml
+# cloudwatch-operator-config.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cloudwatch-operator-config
+  namespace: amazon-cloudwatch
+data:
+  config.yaml: |
+    enableControlPlaneMetrics: true
+    controlPlaneMetrics:
+      - apiserver_request_duration_seconds
+      - apiserver_request_total
+      - etcd_disk_backend_commit_duration_seconds
+      - etcd_disk_wal_fsync_duration_seconds
+      - scheduler_pending_pods
+      - scheduler_schedule_attempts_total
+
+    # AI Agent integration settings
+    alerting:
+      - metric: apiserver_request_duration_seconds_p99
+        threshold: 500ms
+        action: trigger_ai_agent_analysis
+        context: |
+          API server latency is increasing.
+          AI Agent will analyze the root cause and suggest response measures.
+
+      - metric: etcd_mvcc_db_total_size_in_bytes
+        threshold: 8GB
+        action: trigger_ai_agent_cleanup
+        context: |
+          etcd database size is approaching the threshold.
+          AI Agent will identify cleanable resources.
+```
+
+**Integration in Operations Phase: Kiro + DevOps Agent Automated Response**
+
+Container Network Observability and Control Plane Metrics enable **Kiro + DevOps Agent (Kagent/Strands)** to automatically respond based on observability data:
+
+```mermaid
+graph TB
+    subgraph Collection["Collection Layer"]
+        CNO["Container Network<br/>Observability<br/>(Pod-to-Pod traffic)"]
+        CPM["Control Plane<br/>Metrics<br/>(API/etcd/Scheduler)"]
+        ADOT["ADOT<br/>(App metrics/traces)"]
+    end
+
+    subgraph Storage["Storage Layer"]
+        CW["CloudWatch"]
+        AMP["Prometheus"]
+        XRAY["X-Ray"]
+    end
+
+    subgraph Analysis["Analysis Layer"]
+        AI_ANALYZE["AI Analysis<br/>Anomaly Detection<br/>Root Cause Inference"]
+    end
+
+    subgraph Action["Action Layer - AIDLC Operations"]
+        KIRO["Kiro<br/>MCP Integration<br/>Context Collection"]
+        AGENT["DevOps Agent<br/>(Kagent/Strands)<br/>Automated Response"]
+    end
+
+    subgraph Remediation["Recovery Execution"]
+        NET_FIX["Network Issue Fix<br/>NetworkPolicy<br/>Pod Redistribution"]
+        CP_FIX["Control Plane Optimization<br/>Resource Cleanup<br/>Provisioned Transition"]
+        APP_FIX["Application Fix<br/>Memory Increase<br/>Restart"]
+    end
+
+    CNO --> CW
+    CPM --> CW
+    ADOT --> AMP
+    ADOT --> XRAY
+
+    CW --> AI_ANALYZE
+    AMP --> AI_ANALYZE
+    XRAY --> AI_ANALYZE
+
+    AI_ANALYZE --> KIRO
+    KIRO --> AGENT
+
+    AGENT -->|Network issue| NET_FIX
+    AGENT -->|Control plane issue| CP_FIX
+    AGENT -->|Application issue| APP_FIX
+
+    style CNO fill:#e8f5e9,stroke:#4caf50
+    style CPM fill:#e8f5e9,stroke:#4caf50
+    style AI_ANALYZE fill:#fff3e0,stroke:#ff9800
+    style AGENT fill:#e3f2fd,stroke:#2196f3
+```
+
+**Real-World Scenarios: Integrated Response Workflow**
+
+```bash
+# Scenario 1: Automatic network issue detection and fix
+# [15:00] Container Network Observability: Cross-AZ traffic spike
+# [15:01] Kiro + EKS MCP: Pod placement status analysis
+# [15:02] AI Agent determination: Pod Topology Spread error
+# [15:03] Automatic fix: Add topologySpreadConstraints to Deployment
+# [15:10] Verification: Cross-AZ traffic reduced 80% → 20%, P99 latency improved 90%
+
+# Scenario 2: Proactive control plane performance degradation response
+# [09:00] Control Plane Metrics: API server P99 latency increasing trend
+# [09:05] Kiro analysis: Currently 300ms, expected to reach 500ms in 10 minutes
+# [09:10] AI Agent suggestion: Switch to Provisioned Control Plane (XL tier)
+# [09:11] Operator approval (Slack button click)
+# [09:30] Transition complete: API server latency stabilized at 50ms
+
+# Scenario 3: etcd capacity management automation
+# [18:00] Control Plane Metrics: etcd DB size 7.5GB (threshold 8GB)
+# [18:05] Kiro + EKS MCP: Unused resource scan
+#         - ConfigMaps unused for 90+ days: 250
+#         - Secrets from deleted Namespaces: 120
+# [18:10] AI Agent suggestion: Free 1.2GB by cleaning 370 resources
+# [18:11] Automatic execution (safe pattern): Backup then cleanup
+# [18:20] Complete: etcd DB size 6.3GB, free space secured
+```
+
+:::warning Production Deployment Considerations
+Container Network Observability and Control Plane Metrics incur **additional costs**:
+- Container Network Observability: Log collection costs based on VPC Flow Logs
+- Control Plane Metrics: CloudWatch custom metric charges apply
+
+Evaluate the cost impact before production deployment and gradually enable starting with critical clusters. You can calculate estimated costs using the AWS Cost Calculator.
+:::
+
+**References**
+
+- [AWS News Blog: Monitor network performance with Container Network Observability](https://aws.amazon.com/blogs/aws/monitor-network-performance-and-traffic-across-your-eks-clusters-with-container-network-observability/) (2025-11-19)
+- [Container Blog: Proactive EKS monitoring with CloudWatch Operator](https://aws.amazon.com/blogs/containers/proactive-amazon-eks-monitoring-with-amazon-cloudwatch-operator-and-aws-control-plane-metrics/) (2025-12-19)
+- AWS re:Invent 2025 EKS Research — See Section 1.1 (Network Obs), 1.3 (Control Plane)
+
+### 5.2 AI Agent Operations Automation
+
+<AiAgentEcosystem />
+
+#### 5.2.1 Amazon Q Developer (GA)
+
+The most mature production pattern. Immediately usable in CloudWatch Investigations and EKS troubleshooting.
+
+- **CloudWatch Investigations**: AI detects metric anomalies and analyzes root causes
+- **EKS Troubleshooting**: Diagnoses cluster status, Pod failures, and node issues using natural language
+- **Security Scan**: Code vulnerability detection + automatic fix suggestions
+
+#### 5.2.2 Strands Agents (OSS)
+
+A production-proven agent SDK from AWS that defines **Agent SOPs (Standard Operating Procedures)** in natural language.
+
+```python
+# Strands Agent SOP: Pod CrashLoopBackOff Response
+from strands import Agent
+from strands.tools import eks_tool, cloudwatch_tool, slack_tool
+
+ops_agent = Agent(
+    name="eks-incident-responder",
+    model="bedrock/anthropic.claude-sonnet",
+    tools=[eks_tool, cloudwatch_tool, slack_tool],
+    sop="""
+    ## Pod CrashLoopBackOff Response SOP
+
+    1. Identify Failed Pods
+       - kubectl get pods --field-selector=status.phase!=Running
+       - Record namespace, Pod name, restart count
+
+    2. Log Analysis
+       - kubectl logs <pod> --previous
+       - Classify error patterns: OOM, ConfigError, DependencyFailure
+
+    3. Root Cause Diagnosis
+       - OOM → Check memory limits
+       - ConfigError → Check ConfigMap/Secret
+       - DependencyFailure → Check dependent service status
+
+    4. Automated Response
+       - OOM and limits < 2Gi → Patch limits to 1.5x (automatic)
+       - ConfigError → Slack alert + mention assignee (manual)
+       - DependencyFailure → Attempt dependent service restart (automatic)
+
+    5. Post-Incident Report
+       - Post incident report to Slack #incidents channel
+    """
+)
+```
+
+#### 5.2.3 Kagent (K8s Native)
+
+Declaratively manages AI agents as K8s CRDs. Supports MCP integration (kmcp) but is still in early stages.
+
+```yaml
+# Kagent Agent Definition
+apiVersion: kagent.dev/v1alpha1
+kind: Agent
+metadata:
+  name: eks-ops-agent
+  namespace: kagent-system
+spec:
+  description: "EKS operations automation agent"
+  modelConfig:
+    provider: bedrock
+    model: anthropic.claude-sonnet
+    region: ap-northeast-2
+  systemPrompt: |
+    This is an EKS cluster operations agent.
+    It automatically diagnoses and responds to Pod failures, node issues, and scaling problems.
+    It only performs safe actions, and requests approval for risky changes.
+  tools:
+    - name: kubectl
+      type: kmcp
+      config:
+        server: kubernetes.default.svc
+        namespace: "*"
+        allowedVerbs: ["get", "describe", "logs", "top"]
+    - name: cloudwatch
+      type: kmcp
+      config:
+        region: ap-northeast-2
+        actions: ["GetMetricData", "DescribeAlarms"]
+```
+
+#### 5.2.5 Kagent Maturity Reassessment and Latest Features (2025-2026)
+
+Kagent started at an early stage in 2024, but during 2025-2026 **acquired numerous production-ready features**, significantly improving its maturity. Along with its unique value of Kubernetes-native declarative AI Agent management, MCP integration and multi-agent orchestration capabilities were added.
+
+**Current Maturity Assessment**
+
+| Assessment Area | 2024 Early | 2025-2026 Current | Change |
+|----------------|------------|-------------------|--------|
+| **CRD Stability** | Alpha (v1alpha1) | Alpha (v1alpha1, stable API) | CRD schema stabilized |
+| **MCP Integration** | Experimental | kmcp production support | kubectl, CloudWatch, Prometheus native |
+| **Custom Tool** | Not supported | Declarative definition in CRD | Extensibility greatly improved |
+| **Multi-Agent** | Single Agent | Multiple Agent collaboration patterns | Complex issue resolution possible |
+| **Production Use** | Not recommended | Pilot possible (with checklist compliance) | Gradual adoption path provided |
+
+**Latest Feature Updates**
+
+1. **kmcp (Kubernetes MCP) Integration**
+
+Kagent enables natural language cluster management without kubectl commands through **Kubernetes MCP (kmcp)**.
+
+```yaml
+# Natural language cluster management via kmcp
+apiVersion: kagent.dev/v1alpha1
+kind: Agent
+metadata:
+  name: cluster-manager
+spec:
+  tools:
+    - name: kubernetes
+      type: kmcp
+      config:
+        # Converts kubectl get pods, kubectl describe, kubectl logs, etc.
+        # into natural language requests
+        operations:
+          - get
+          - describe
+          - logs
+          - top
+          - events
+        # Write operations require explicit approval
+        writeOperations:
+          - patch
+          - delete
+          - scale
+        approvalRequired: true  # Risky operations require approval
+```
+
+**kmcp Usage Example**:
+- Agent request: "Check recent logs for payment-service"
+- kmcp conversion: `kubectl logs -l app=payment-service --tail=100`
+- Agent analysis: OOM pattern detected in logs → suggests memory limits increase
+
+2. **Custom Tool Definition**
+
+Custom tools can be declaratively defined in Kagent CRDs. This is a key feature for integrating a team's unique operational scripts into AI Agents.
+
+```yaml
+# Custom Tool Example: DynamoDB Table Analysis Tool
+apiVersion: kagent.dev/v1alpha1
+kind: Tool
+metadata:
+  name: dynamodb-analyzer
+  namespace: kagent-system
+spec:
+  description: "Analyzes DynamoDB table capacity, throttling, and costs"
+  type: script
+  script:
+    language: python
+    code: |
+      import boto3
+      import json
+
+      def analyze_table(table_name):
+          dynamodb = boto3.client('dynamodb')
+          cloudwatch = boto3.client('cloudwatch')
+
+          # Query table metrics
+          response = dynamodb.describe_table(TableName=table_name)
+          table = response['Table']
+
+          # CloudWatch metrics: ThrottledRequests
+          metrics = cloudwatch.get_metric_statistics(
+              Namespace='AWS/DynamoDB',
+              MetricName='ThrottledRequests',
+              Dimensions=[{'Name': 'TableName', 'Value': table_name}],
+              StartTime=datetime.now() - timedelta(hours=1),
+              EndTime=datetime.now(),
+              Period=300,
+              Statistics=['Sum']
+          )
+
+          return {
+              'table_name': table_name,
+              'billing_mode': table['BillingModeSummary']['BillingMode'],
+              'item_count': table['ItemCount'],
+              'size_bytes': table['TableSizeBytes'],
+              'throttled_requests': sum(m['Sum'] for m in metrics['Datapoints'])
+          }
+---
+# Agent using Custom Tool
+apiVersion: kagent.dev/v1alpha1
+kind: Agent
+metadata:
+  name: dynamodb-ops-agent
+spec:
+  tools:
+    - name: dynamodb-analyzer
+      type: custom
+      ref:
+        name: dynamodb-analyzer
+        namespace: kagent-system
+  systemPrompt: |
+    This is a DynamoDB operations agent.
+    It automatically diagnoses table performance issues and provides optimization suggestions.
+```
+
+3. **Multi-Agent Orchestration**
+
+Multiple Kagent agents collaborate to resolve complex issues. Each Agent focuses on its area of expertise while a higher-level Orchestrator Agent coordinates the workflow.
+
+```yaml
+# Orchestrator Agent: Overall incident response coordination
+apiVersion: kagent.dev/v1alpha1
+kind: Agent
+metadata:
+  name: incident-orchestrator
+spec:
+  description: "Analyzes incidents and delegates tasks to specialist Agents"
+  systemPrompt: |
+    Analyzes incidents and delegates tasks to specialist Agents.
+    - network-agent: Network issues
+    - resource-agent: CPU/Memory issues
+    - storage-agent: Storage issues
+  delegates:
+    - name: network-agent
+      namespace: kagent-system
+    - name: resource-agent
+      namespace: kagent-system
+    - name: storage-agent
+      namespace: kagent-system
+---
+# Network Specialist Agent
+apiVersion: kagent.dev/v1alpha1
+kind: Agent
+metadata:
+  name: network-agent
+spec:
+  description: "Network issue specialist Agent"
+  tools:
+    - name: kubernetes
+      type: kmcp
+    - name: network-troubleshoot
+      type: custom
+      ref:
+        name: network-troubleshoot-tool
+  systemPrompt: |
+    Diagnoses network issues:
+    - Pod-to-Pod communication failures
+    - NetworkPolicy errors
+    - DNS resolution issues
+```
+
+**Multi-Agent Workflow Example**:
+1. **Orchestrator**: "payment-service Pod is unresponsive"
+2. **Orchestrator → Resource Agent**: Check CPU/Memory status
+3. **Resource Agent**: "Resources are normal"
+4. **Orchestrator → Network Agent**: Check network connectivity
+5. **Network Agent**: "Egress block found in NetworkPolicy" → suggests fix
+6. **Orchestrator**: Requests operator approval → applies → verifies
+
+4. **Prometheus Metrics Direct Query**
+
+Kagent integrates Prometheus via MCP to automatically convert natural language queries to PromQL.
+
+```yaml
+apiVersion: kagent.dev/v1alpha1
+kind: Agent
+metadata:
+  name: metrics-analyst
+spec:
+  tools:
+    - name: prometheus
+      type: kmcp
+      config:
+        endpoint: http://prometheus.monitoring.svc:9090
+        queryLanguage: promql
+        autoTranslate: true  # Natural language → PromQL auto conversion
+```
+
+**Usage Example**:
+- Agent request: "P99 latency for payment-service over the last 1 hour"
+- kmcp conversion: `histogram_quantile(0.99, rate(http_request_duration_seconds_bucket{service="payment-service"}[1h]))`
+- Agent analysis: P99 exceeds 200ms threshold → begins root cause analysis
+
+**Production Use Checklist**
+
+Check the following before introducing Kagent to production:
+
+| Checklist | Description | Example |
+|-----------|-------------|---------|
+| **RBAC Least Privilege** | Grant only minimum required permissions to Agent's ServiceAccount | Allow only `get`, `list`, `watch`; `delete` requires approval |
+| **Limit Automatic Action Scope** | Only execute safe actions automatically via `allowedActions` field | Allow `patch` (memory increase), prohibit `delete` (Pod deletion) |
+| **Enable Audit Logging** | Record all Agent actions in Kubernetes Audit Log | Log Kagent namespace in `auditPolicy` |
+| **Start with Dry-run Mode** | Start initial deployment in read-only mode | Set `dryRun: true`, generate suggestions only |
+| **Gradually Expand Automation** | Gradually expand automatic action scope after verifying safe patterns | 1 week dry-run → automate memory patch → automate scaling |
+
+**Example: Production-Ready Kagent Configuration**
+
+```yaml
+apiVersion: kagent.dev/v1alpha1
+kind: Agent
+metadata:
+  name: production-ops-agent
+  namespace: kagent-system
+spec:
+  description: "Production EKS cluster operations agent"
+  modelConfig:
+    provider: bedrock
+    model: anthropic.claude-sonnet
+
+  # Principle of least privilege
+  rbac:
+    serviceAccount: kagent-ops-sa
+    permissions:
+      - apiGroups: [""]
+        resources: ["pods", "services"]
+        verbs: ["get", "list", "watch"]
+      - apiGroups: ["apps"]
+        resources: ["deployments"]
+        verbs: ["get", "list", "watch", "patch"]  # Only patch allowed
+
+  # Limit automatic action scope
+  allowedActions:
+    automatic:
+      - name: increase_memory
+        description: "Increase memory limits by 1.5x (max 4Gi)"
+        condition: "OOMKilled && limits < 4Gi"
+      - name: scale_up
+        description: "Replicas +1 when no HPA (max 10)"
+        condition: "HighCPU && replicas < 10"
+    requiresApproval:
+      - name: delete_pod
+        description: "Force delete Pod"
+      - name: restart_deployment
+        description: "Restart Deployment"
+
+  # Audit logging
+  audit:
+    enabled: true
+    logLevel: detailed
+    destinations:
+      - cloudwatch
+      - s3
+
+  # Start with dry-run for initial deployment
+  dryRun: true  # Change to false after approval
+```
+
+**Kagent vs Strands vs Q Developer Comparison Update**
+
+| Item | Kagent (2025-2026) | Strands | Q Developer |
+|------|-------------------|---------|-------------|
+| **Deployment Method** | K8s CRD (declarative) | Python SDK (code) | AWS managed |
+| **MCP Integration** | kmcp native | MCP server integration | AWS Hosted MCP |
+| **Custom Tool** | Declared via CRD | Python functions | Q API extension |
+| **Multi-Agent** | Orchestrator + specialist Agents | SOP chains | Single Agent |
+| **Prometheus** | kmcp natural language query | Python client | CloudWatch integration |
+| **Production Maturity** | Pilot possible (with checklist compliance) | Production proven | GA |
+| **Learning Curve** | K8s CRD knowledge required | Python development knowledge | None (fully managed) |
+| **Extensibility** | High (unlimited CRD extension) | Medium (Python ecosystem) | Limited (AWS-provided features) |
+
+:::tip Kagent Adoption Scenario
+**Pilot Stage**: Start with Q Developer (GA) → Expand to Strands (production) → Transition to Kagent (K8s Native)
+
+**When Kagent is Suitable**:
+- When you want to integrate Agent definitions into GitOps workflows
+- When you need to orchestrate multiple specialist Agents
+- When you want to integrate a team's unique operational tools into Agents
+- Platform teams that prefer the Kubernetes-native approach
+
+**Caution**: Still in Alpha stage, so thorough testing and gradual rollout are required before production adoption
+:::
+
+**References**
+
+- [Kagent GitHub Repository](https://github.com/kagent-dev/kagent)
+- AWS re:Invent 2025 EKS Research — See Section 2.1 (CNS421)
+
+#### 5.2.4 Agentic AI for EKS Operations — re:Invent 2025 CNS421
+
+The **CNS421 session** at AWS re:Invent 2025, titled "Streamline Amazon EKS Operations with Agentic AI," demonstrated practical patterns for AI Agent-based EKS operations automation with actual working code. This session presents the key technologies for the **Level 3 (Predictive) → Level 4 (Autonomous)** transition of the AIDLC Operations phase.
+
+**CNS421 Session Core Content: 3-Stage Automation Pattern**
+
+CNS421 proposes an approach to **evolve EKS operations automation in stages**:
+
+1. **Real-Time Issue Diagnosis**
+   - AI Agent performs integrated analysis of CloudWatch, EKS API, and Prometheus metrics
+   - Automatically detects anomalies and infers root causes
+   - Example: When Pod CrashLoopBackOff occurs → log pattern analysis → classify as OOM/ConfigError/DependencyFailure
+
+2. **Guided Remediation**
+   - AI **clearly presents recovery steps** based on diagnostic results
+   - Operators review and approve each step before execution
+   - Example: "1) Increase memory limits from 1Gi → 1.5Gi, 2) Restart Deployment, 3) Monitor for 5 minutes"
+
+3. **Auto-Remediation**
+   - Safe patterns are **automatically executed by AI without human intervention**
+   - Risky changes (production node termination, etc.) still require approval
+   - Example: OOM detected → automatic limits patch → Deployment rolling update → Slack notification
+
+This 3-stage pattern aligns exactly with AIDLC's **Loss Function concept** — automating safe actions while having humans verify risky actions to prevent error propagation.
+
+**MCP-Based Integrated Architecture**
+
+The architecture demonstrated in CNS421 **integrates multiple MCP servers** to provide context to AI Agents:
+
+```mermaid
+graph TB
+    subgraph Trigger["Issue Occurrence"]
+        EVENT["CloudWatch Alarm<br/>Pod CrashLoopBackOff<br/>High CPU Alert"]
+    end
+
+    subgraph MCP_Layer["MCP Data Collection"]
+        EKS_MCP["EKS MCP Server<br/>Cluster Status<br/>Pod/Node Info"]
+        CW_MCP["CloudWatch MCP<br/>Metrics/Logs<br/>Alarm History"]
+        XRAY_MCP["X-Ray MCP<br/>Traces<br/>Service Map"]
+        COST_MCP["Cost Analysis MCP<br/>Resource Costs<br/>Optimization Suggestions"]
+    end
+
+    subgraph AI_Agent["AI Agent Analysis"]
+        ANALYZE["Integrated Data Analysis<br/>Root Cause Inference<br/>Tribal Knowledge Application"]
+        DECISION["Recovery Strategy Decision<br/>Safety Assessment<br/>Auto/Manual Determination"]
+    end
+
+    subgraph Remediation["Recovery Execution"]
+        AUTO["Auto Recovery<br/>Safe Patterns"]
+        GUIDED["Guided Recovery<br/>Operator Approval"]
+    end
+
+    subgraph Verification["Verification"]
+        VERIFY["Recovery Result Check<br/>Metric Normalization<br/>Alarm Clearance"]
+        REPORT["Incident Report<br/>Slack/PagerDuty<br/>Context Memory Storage"]
+    end
+
+    EVENT --> EKS_MCP
+    EVENT --> CW_MCP
+    EVENT --> XRAY_MCP
+    EVENT --> COST_MCP
+
+    EKS_MCP --> ANALYZE
+    CW_MCP --> ANALYZE
+    XRAY_MCP --> ANALYZE
+    COST_MCP --> ANALYZE
+
+    ANALYZE --> DECISION
+    DECISION -->|Safe| AUTO
+    DECISION -->|Risky| GUIDED
+    AUTO --> VERIFY
+    GUIDED --> VERIFY
+    VERIFY --> REPORT
+
+    style ANALYZE fill:#fff3e0,stroke:#ff9800
+    style DECISION fill:#e8f5e9,stroke:#4caf50
+    style AUTO fill:#e3f2fd,stroke:#2196f3
+    style VERIFY fill:#fce4ec,stroke:#e91e63
+```
+
+**Tribal Knowledge Utilization: Transferring Team Operational Know-How to AI**
+
+One of the key innovations of CNS421 is the method of **providing Tribal Knowledge (team tacit knowledge) as context to AI Agents**. AI leverages the operational know-how accumulated by teams over time to perform **customized troubleshooting**.
+
+**Tribal Knowledge Example: Payment Service Operational Know-How**
+
+```yaml
+# tribal-knowledge/payment-service.yaml
+service: payment-service
+namespace: production
+tribal_knowledge:
+  known_issues:
+    - pattern: "OOM Killed"
+      root_cause: "Memory leak during spike traffic"
+      context: |
+        Discovered during January 2025 Black Friday.
+        Redis connection pool is not released when payment requests exceed 1000/sec.
+      remediation:
+        - "Increase memory limits by 1.5x (temporary)"
+        - "Set Redis connection pool maxIdle=50 (permanent)"
+        - "Monitor metrics for 10 minutes after deployment"
+      safe_to_auto_remediate: false
+      requires_approval: true
+
+    - pattern: "DynamoDB ThrottlingException"
+      root_cause: "Write capacity exceeded during promotion period"
+      context: |
+        Recurring at the start of monthly promotions on the 1st.
+        DynamoDB table is in provisioned mode, not on-demand.
+      remediation:
+        - "Switch DynamoDB table to on-demand (automatic)"
+        - "Verify exponential backoff retry logic"
+      safe_to_auto_remediate: true
+      cost_impact: "Expected $50/month increase"
+
+  dependencies:
+    - service: notification-service
+      impact_if_down: "Payment completion notification failure, degraded user experience"
+      fallback: "Queued in notification queue, resent after recovery"
+
+    - service: fraud-detection
+      impact_if_down: "Payment approval impossible, business disruption"
+      fallback: "None - immediate oncall required"
+
+  escalation_rules:
+    - condition: "Error rate > 10% for 5 min"
+      action: "Slack #payments-oncall + PagerDuty"
+    - condition: "Revenue impact > $10,000"
+      action: "Slack #executive-alerts + CTO"
+```
+
+AI Agent reads this Tribal Knowledge and, upon detecting the same pattern, performs recovery considering the team's operational history. For example, upon detecting "DynamoDB ThrottlingException," it **automatically switches to on-demand mode** based on past promotion period experience and notifies the cost impact ($50/month) to Slack.
+
+**AIDLC Operations Phase Mapping: Level 3 → Level 4 Transition**
+
+The Agentic AI pattern from CNS421 is the key technology for elevating the maturity of the AIDLC Operations phase from **Level 3 (Predictive) to Level 4 (Autonomous)**:
+
+| Maturity | Characteristics | CNS421 Pattern Mapping |
+|----------|----------------|----------------------|
+| **Level 2: Reactive** | Alarm fires → humans respond manually | Traditional CloudWatch alarm-based operations |
+| **Level 3: Predictive** | AI predicts anomalies → notifies humans | **Real-time issue diagnosis** — automatic root cause inference through MCP integrated analysis |
+| **Level 4: Autonomous** | AI automatically executes safe actions + requests approval for risky actions | **Guided remediation + auto-remediation** — customized response based on Tribal Knowledge |
+
+AIDLC's **Loss Function** concept is important here — even at Level 4, **not everything is automated**. Patterns with verified safety (memory limits increase, on-demand transition) are automatically executed, while risky changes (node termination, database schema changes) are verified by humans. This is the core of **Guided Remediation**.
+
+**Implementation Example via Kiro + MCP**
+
+An actual workflow implementing the patterns demonstrated in CNS421 with Kiro and MCP:
+
+```bash
+# 1. Load Tribal Knowledge into Kiro Context Memory
+kiro context add tribal-knowledge/payment-service.yaml
+
+# 2. Activate MCP servers
+kiro mcp add eks
+kiro mcp add cloudwatch
+kiro mcp add xray
+
+# 3. Start monitoring in Agentic AI mode
+kiro monitor --namespace production --agent-mode enabled
+
+# Real-time log output example:
+# [12:05:30] CloudWatch alarm: payment-service Pod OOM
+# [12:05:31] MCP data collection: EKS Pod status, CloudWatch metrics, X-Ray traces
+# [12:05:35] AI analysis: Tribal Knowledge match - "Memory leak during spike traffic"
+# [12:05:36] Recovery approval required (safe_to_auto_remediate: false)
+# [12:05:36] Suggested recovery steps:
+#            1) Increase memory limits from 1Gi → 1.5Gi
+#            2) Restart Deployment
+#            3) Set Redis connection pool maxIdle=50
+# [12:05:40] Approval received (operator approved via Slack)
+# [12:05:45] Applying Deployment patch...
+# [12:06:00] Recovery complete. Metric normalization confirmed.
+# [12:06:01] Incident report → Slack #payments-oncall
+
+# 4. Auto-recovery log (DynamoDB Throttling example)
+# [14:30:00] CloudWatch alarm: DynamoDB ThrottlingException
+# [14:30:02] AI analysis: Tribal Knowledge match - "Write capacity exceeded during promotion period"
+# [14:30:03] Auto-recovery possible (safe_to_auto_remediate: true)
+# [14:30:05] DynamoDB table → switching to on-demand mode
+# [14:30:20] Recovery complete. Cost impact: $50/month increase (Slack notification sent)
+```
+
+:::info Practicality of CNS421
+CNS421 was rated as the **most practical AIOps session** at re:Invent 2025. This is because it demonstrated **actual working code and MCP server integration patterns** rather than theoretical concepts. The session video ([YouTube Link](https://www.youtube.com/watch?v=4s-a0jY4kSE)) shows the **entire process of an AI Agent diagnosing and recovering an EKS cluster through natural language conversation** instead of Terraform, kubectl, or AWS CLI.
+:::
+
+**References**
+
+- [CNS421 Session Video: Streamline Amazon EKS Operations with Agentic AI](https://www.youtube.com/watch?v=4s-a0jY4kSE) — re:Invent 2025
+- AWS re:Invent 2025 EKS Research — See Section 2.1
+
+:::tip Adoption Order
+**First adopt** Q Developer (GA)'s fully managed analysis, then add Strands (OSS) SOP-based workflows, and gradually expand Kagent (early stage) K8s native approach. The Agentic AI pattern from CNS421 can be implemented with the **Strands + MCP combination**, and Tribal Knowledge is managed as Strands SOP files. This connects with the maturity model Level 3→4 transition in [1. AIOps Strategy Guide](./aiops-introduction.md).
+:::
+
+### 5.3 From CI/CD to AI/CD — Leveraging Bedrock AgentCore
+
+In AIDLC, deployment pipelines evolve from traditional CI/CD to **AI/CD**, enhanced by AI.
+
+```
+[CI/CD → AI/CD Transition]
+
+Traditional CI/CD:
+  Code commit → Build → Test → Manual approval → Deploy
+
+AI/CD:
+  Spec commit → AI code generation → AI security scan → AI review
+     → Loss Function verification (human) → Argo CD auto deployment
+     → AI observability monitoring → AI Agent automated response
+```
+
+Key transition points:
+- **Code commit** → **Spec commit** (requirements.md is the trigger)
+- **Manual approval** → **AI review + Loss Function verification** (humans focus on decision-making)
+- **Manual monitoring** → **AI Agent autonomous response** (MCP-based integrated analysis)
+
+:::info Operations Deep Dive
+Advanced Operations phase patterns such as ML-based predictive scaling, Karpenter + AI prediction, and Chaos Engineering + AI learning are covered in [4. Predictive Scaling and Auto-Recovery](./aiops-predictive-operations.md).
+:::
+
+Bedrock AgentCore is AWS's managed agent framework that enables the pattern of **delegating deployment pipeline decisions to AI**. Traditional CI/CD executes linearly according to predefined rules, but AgentCore-based pipelines **analyze real-time metrics to autonomously determine deployment progression/rollback**.
+
+#### 5.3.1 Agent-Based Canary Deployment Decision
+
+Traditional canary deployments judge success/failure with fixed thresholds (e.g., error rate > 1%, P99 latency > 500ms). AgentCore performs **context-aware dynamic judgment**.
+
+```yaml
+# bedrock-agent-canary-deployment.yaml
+apiVersion: bedrock.aws/v1
+kind: Agent
+metadata:
+  name: canary-deployment-agent
+  namespace: cicd-system
+spec:
+  modelArn: arn:aws:bedrock:ap-northeast-2::foundation-model/anthropic.claude-sonnet-3-5-v2
+  instruction: |
+    You are an AI agent managing EKS canary deployments.
+    Analyze metrics to determine whether to promote or rollback the deployment.
+
+    Decision criteria:
+    1. Error rate: If new version increases 20%+ over existing → immediate rollback
+    2. Latency: If P99 exceeds threshold BUT caused by traffic spike → wait 5 minutes and re-evaluate
+    3. Business metrics: If payment success rate drops → rollback even if technical metrics are normal
+    4. Gradual risk: 3 consecutive normal checks → auto-promote traffic 10% → 25% → 50% → 100%
+
+    Note: Be conservative for financial services, aggressive for internal tools.
+
+  actionGroups:
+    - name: metrics-analysis
+      description: "CloudWatch metrics query and analysis"
+      tools:
+        - name: get_cloudwatch_metrics
+          type: aws-service
+          service: cloudwatch
+          actions:
+            - GetMetricData
+            - GetMetricStatistics
+        - name: get_application_signals
+          type: aws-service
+          service: application-signals
+          actions:
+            - GetServiceLevelIndicator
+
+    - name: deployment-control
+      description: "Argo Rollouts control"
+      tools:
+        - name: promote_canary
+          type: lambda
+          functionArn: arn:aws:lambda:ap-northeast-2:123456789012:function:promote-canary
+        - name: rollback_canary
+          type: lambda
+          functionArn: arn:aws:lambda:ap-northeast-2:123456789012:function:rollback-canary
+
+    - name: notification
+      description: "Slack notification"
+      tools:
+        - name: send_slack
+          type: lambda
+          functionArn: arn:aws:lambda:ap-northeast-2:123456789012:function:send-slack
+
+  # Automated execution workflow
+  triggers:
+    - type: EventBridge
+      schedule: rate(2 minutes)  # Evaluate canary status every 2 minutes
+      condition: |
+        Execute only when Argo Rollouts has a canary deployment in progress
+```
+
+**Execution Flow**:
+
+```
+[Canary deployment start]
+  ↓
+[EventBridge: Trigger every 2 minutes]
+  ↓
+[AgentCore evaluation start]
+  ├─→ CloudWatch Metrics query
+  │   - Error rate: stable 0.1%, canary 0.15% (50% increase)
+  │   - P99 latency: stable 80ms, canary 120ms
+  │   - Traffic: 10% of total
+  │
+  ├─→ Application Signals SLI query
+  │   - Payment success rate: 99.8% → 99.7% (0.1%p decrease)
+  │
+  ├─→ AI judgment (context-aware)
+  │   "Error rate increased 50% but absolute value is still low (0.15%).
+  │    Latency increase is estimated to be initialization delay of new version.
+  │    Payment success rate decrease is not statistically significant.
+  │    → Recommend waiting 5 minutes and re-evaluating"
+  │
+  └─→ Slack notification
+      "Canary deployment in progress - re-evaluating in 5 minutes"
+
+[After 5 minutes]
+  ↓
+[AgentCore re-evaluation]
+  ├─→ Metrics query
+  │   - Error rate: stable 0.1%, canary 0.12% (20% increase)
+  │   - P99 latency: stable 80ms, canary 85ms (stabilized)
+  │
+  ├─→ AI judgment
+  │   "Latency has stabilized and error rate is within acceptable range.
+  │    → Approve traffic increase to 25%"
+  │
+  └─→ promote_canary execution
+      Argo Rollouts setWeight 25%
+
+[After 10 minutes: 25% traffic evaluation → 50% promotion]
+[After 15 minutes: 50% traffic evaluation → 100% promotion]
+```
+
+#### 5.3.2 CodePipeline + Bedrock Agent Integration Pattern
+
+CodePipeline can be configured to invoke Bedrock Agent so that **AI decides deployment approval**.
+
+```yaml
+# codepipeline-with-bedrock-agent.yaml
+AWSTemplateFormatVersion: '2010-09-09'
+Resources:
+  DeploymentPipeline:
+    Type: AWS::CodePipeline::Pipeline
+    Properties:
+      Name: ai-controlled-deployment
+      Stages:
+        - Name: Source
+          Actions:
+            - Name: GitHubSource
+              ActionTypeId:
+                Category: Source
+                Owner: ThirdParty
+                Provider: GitHub
+                Version: 1
+              Configuration:
+                Repo: payment-service
+                Branch: main
+
+        - Name: Build
+          Actions:
+            - Name: BuildImage
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: 1
+
+        - Name: DeployToStaging
+          Actions:
+            - Name: DeployStaging
+              ActionTypeId:
+                Category: Deploy
+                Owner: AWS
+                Provider: ECS  # or EKS
+                Version: 1
+
+        - Name: AIGatekeeper
+          Actions:
+            - Name: BedrockAgentApproval
+              ActionTypeId:
+                Category: Invoke
+                Owner: AWS
+                Provider: Lambda
+                Version: 1
+              Configuration:
+                FunctionName: !Ref BedrockAgentInvoker
+                UserParameters: |
+                  {
+                    "agentId": "AGENT_ID",
+                    "agentAliasId": "ALIAS_ID",
+                    "decision": "approve_production_deployment",
+                    "context": {
+                      "service": "payment-service",
+                      "environment": "staging",
+                      "evaluationPeriod": "15m"
+                    }
+                  }
+
+        - Name: DeployToProduction
+          Actions:
+            - Name: DeployProd
+              ActionTypeId:
+                Category: Deploy
+                Owner: AWS
+                Provider: EKS
+                Version: 1
+
+  BedrockAgentInvoker:
+    Type: AWS::Lambda::Function
+    Properties:
+      Runtime: python3.12
+      Handler: index.handler
+      Code:
+        ZipFile: |
+          import json
+          import boto3
+
+          bedrock_agent = boto3.client('bedrock-agent-runtime')
+          codepipeline = boto3.client('codepipeline')
+
+          def handler(event, context):
+              # CodePipeline job information
+              job_id = event['CodePipeline.job']['id']
+              user_params = json.loads(
+                  event['CodePipeline.job']['data']['actionConfiguration']['configuration']['UserParameters']
+              )
+
+              # Invoke Bedrock Agent
+              response = bedrock_agent.invoke_agent(
+                  agentId=user_params['agentId'],
+                  agentAliasId=user_params['agentAliasId'],
+                  sessionId=job_id,
+                  inputText=f"""
+                  Evaluate {user_params['context']['service']} deployed to the staging environment
+                  for {user_params['context']['evaluationPeriod']} and determine whether to approve
+                  production deployment.
+
+                  Evaluation items:
+                  1. Has the error rate increased compared to existing?
+                  2. Is latency violating the SLO?
+                  3. Have business metrics (payment success rate, etc.) declined?
+                  4. Have security vulnerabilities been found?
+
+                  If approval criteria are met, return "APPROVE"; otherwise return "REJECT" and explain the reason.
+                  """
+              )
+
+              # Parse Agent response
+              decision = parse_agent_response(response)
+
+              if decision['action'] == 'APPROVE':
+                  codepipeline.put_job_success_result(jobId=job_id)
+              else:
+                  codepipeline.put_job_failure_result(
+                      jobId=job_id,
+                      failureDetails={
+                          'type': 'JobFailed',
+                          'message': decision['reason']
+                      }
+                  )
+```
+
+#### 5.3.3 AgentCore vs Strands SOPs Comparison (CI/CD Perspective)
+
+| Comparison Item | Bedrock AgentCore | Strands SOPs |
+|----------------|-------------------|--------------|
+| **Deployment Method** | AWS managed (serverless) | Self-hosted (container/Lambda) |
+| **Cost Model** | Per Agent invocation | Compute resource-based |
+| **CI/CD Integration** | CodePipeline native | Custom Lambda/Webhook |
+| **State Management** | Agent session auto-managed | External storage required (DynamoDB, etc.) |
+| **Tool Extensibility** | Declared via ActionGroups | Implemented as Python functions |
+| **Multi-Step Workflows** | Built-in support | Implemented via SOP chains |
+| **Observability** | CloudWatch Logs automatic | Must implement directly |
+| **Production Maturity** | GA (released 2024.11) | Production proven |
+| **Learning Curve** | Low (declarative YAML) | Medium (Python + framework) |
+
+:::tip CI/CD Automation Selection Guide
+**Recommend AgentCore**:
+- Teams using CodePipeline as primary
+- Prefer serverless architecture
+- Rapid prototyping and experimentation are important
+
+**Recommend Strands**:
+- Complex custom logic needed
+- Existing Python-based automation infrastructure
+- Fine-grained cost optimization needed (Agent invocation cost vs compute cost)
+
+**Combination Pattern**:
+- AgentCore: Deployment approval gate (high-level judgment)
+- Strands: Detailed recovery automation (low-level execution)
+:::
+
+### 5.4 Multi-Region AIDLC Patterns
+
+In multi-region EKS environments, AIDLC must balance **gradual deployment strategies** with **per-region automation control**. Based on GitOps (Argo CD), it ensures consistency across regions while adjusting deployments to each region's characteristics (traffic patterns, compliance requirements).
+
+#### 5.4.1 Multi-Region EKS AIDLC Workflow
+
+```mermaid
+graph TB
+    subgraph Development
+        DEV_CLUSTER[Development Cluster<br/>ap-northeast-2]
+    end
+
+    subgraph Staging
+        STG_AP[Staging AP<br/>ap-northeast-2]
+    end
+
+    subgraph Production
+        PROD_AP[Production AP<br/>ap-northeast-2<br/>Primary]
+        PROD_EU[Production EU<br/>eu-west-1<br/>Secondary]
+        PROD_US[Production US<br/>us-east-1<br/>Secondary]
+    end
+
+    subgraph GitOps
+        ARGOCD[Argo CD<br/>Hub Cluster]
+        GIT[Git Repository<br/>manifests/]
+    end
+
+    DEV_CLUSTER -->|Tests passed| STG_AP
+    STG_AP -->|AI Quality Gate| ARGOCD
+
+    ARGOCD -->|Sync Wave 1| PROD_AP
+    PROD_AP -->|Canary success<br/>15 min evaluation| ARGOCD
+
+    ARGOCD -->|Sync Wave 2| PROD_EU
+    PROD_EU -->|Canary success<br/>30 min evaluation| ARGOCD
+
+    ARGOCD -->|Sync Wave 3| PROD_US
+
+    GIT -.->|ApplicationSet| ARGOCD
+
+    style PROD_AP fill:#e8f5e9,stroke:#4caf50
+    style PROD_EU fill:#fff3e0,stroke:#ff9800
+    style PROD_US fill:#fff3e0,stroke:#ff9800
+```
+
+#### 5.4.2 GitOps Multi-Region Gradual Deployment
+
+Using Argo CD ApplicationSet to automate **sequential deployment per region**, controlling next region deployment based on each region's canary evaluation results.
+
+```yaml
+# argocd-multi-region-applicationset.yaml
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: payment-service-multi-region
+  namespace: argocd
+spec:
+  generators:
+    - list:
+        elements:
+          - region: ap-northeast-2
+            cluster: prod-ap-cluster
+            syncWave: "1"
+            canaryDuration: "15m"
+            trafficWeight: "10,25,50,100"
+            primary: "true"
+          - region: eu-west-1
+            cluster: prod-eu-cluster
+            syncWave: "2"
+            canaryDuration: "30m"
+            trafficWeight: "20,50,100"
+            primary: "false"
+          - region: us-east-1
+            cluster: prod-us-cluster
+            syncWave: "3"
+            canaryDuration: "30m"
+            trafficWeight: "20,50,100"
+            primary: "false"
+
+  template:
+    metadata:
+      name: payment-service-{{region}}
+      annotations:
+        # Sync Wave ensures order between regions
+        argocd.argoproj.io/sync-wave: "{{syncWave}}"
+        # Proceed only after previous Wave succeeds
+        argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+    spec:
+      project: production
+      source:
+        repoURL: https://github.com/company/k8s-manifests
+        targetRevision: HEAD
+        path: apps/payment-service/overlays/{{region}}
+        helm:
+          parameters:
+            - name: region
+              value: "{{region}}"
+            - name: canary.duration
+              value: "{{canaryDuration}}"
+            - name: canary.trafficWeight
+              value: "{{trafficWeight}}"
+      destination:
+        server: "{{cluster}}"
+        namespace: payment-service
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+        # Canary evaluation hook
+        postSync:
+          - hook: Job
+            hookType: PostSync
+            manifest: |
+              apiVersion: batch/v1
+              kind: Job
+              metadata:
+                name: canary-evaluation-{{region}}
+              spec:
+                template:
+                  spec:
+                    containers:
+                    - name: bedrock-agent-evaluator
+                      image: aws-bedrock-agent-evaluator:latest
+                      env:
+                      - name: REGION
+                        value: "{{region}}"
+                      - name: SERVICE
+                        value: payment-service
+                      - name: DURATION
+                        value: "{{canaryDuration}}"
+                      - name: IS_PRIMARY
+                        value: "{{primary}}"
+                      command:
+                      - /bin/sh
+                      - -c
+                      - |
+                        # Invoke Bedrock Agent for canary evaluation
+                        DECISION=$(aws bedrock-agent-runtime invoke-agent \
+                          --agent-id $AGENT_ID \
+                          --agent-alias-id $AGENT_ALIAS_ID \
+                          --session-id "argo-$ARGOCD_APP_NAME-$REGION" \
+                          --input-text "Evaluate the payment-service canary deployment in {{region}} region for {{canaryDuration}}. Primary region: {{primary}}" \
+                          | jq -r '.decision')
+
+                        if [ "$DECISION" = "APPROVE" ]; then
+                          echo "Canary evaluation success: {{region}} region deployment complete"
+                          exit 0
+                        else
+                          echo "Canary evaluation failed: {{region}} region rollback required"
+                          # Rollback Argo CD Application to previous version
+                          argocd app rollback $ARGOCD_APP_NAME --prune
+                          exit 1
+                        fi
+                    restartPolicy: Never
+```
+
+#### 5.4.3 Per-Region Test Strategy
+
+In multi-region environments, **differentiated testing tailored to regional characteristics** is required.
+
+| Test Stage | Primary Region (AP) | Secondary Regions (EU, US) | Purpose |
+|------------|-------------------|------------------------|---------|
+| **Canary** | 10% → 25% → 50% → 100% (15 min) | 20% → 50% → 100% (30 min) | Verify in Primary first |
+| **SLO Verification** | P99 < 200ms, error rate < 0.1% | P99 < 300ms (considering cross-region latency) | Differentiated thresholds per region |
+| **Load Testing** | Actual traffic pattern (peak: 10K rps) | Half level (peak: 5K rps) | Consider per-region traffic |
+| **Fault Injection** | Chaos Mesh weekly execution | Chaos Mesh biweekly execution | Primary-first verification |
+| **Security Scan** | Same across all regions (Q Developer Security Scan) | Same across all regions | Consistent security policy |
+
+**Per-Region AI Quality Gate Example**:
+
+```yaml
+# quality-gate-regional-config.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: quality-gate-config
+  namespace: cicd-system
+data:
+  ap-northeast-2: |
+    # Primary region: Strict criteria
+    slo:
+      p99_latency_ms: 200
+      error_rate_pct: 0.1
+      availability_pct: 99.95
+    canary:
+      duration: 15m
+      traffic: [10, 25, 50, 100]
+      autoPromote: true
+    chaos:
+      enabled: true
+      frequency: weekly
+
+  eu-west-1: |
+    # Secondary region: Considering cross-region latency
+    slo:
+      p99_latency_ms: 300
+      error_rate_pct: 0.15
+      availability_pct: 99.9
+    canary:
+      duration: 30m
+      traffic: [20, 50, 100]
+      autoPromote: true
+    chaos:
+      enabled: true
+      frequency: biweekly
+
+  us-east-1: |
+    # Secondary region: Same as eu-west-1
+    slo:
+      p99_latency_ms: 300
+      error_rate_pct: 0.15
+      availability_pct: 99.9
+    canary:
+      duration: 30m
+      traffic: [20, 50, 100]
+      autoPromote: true
+    chaos:
+      enabled: true
+      frequency: biweekly
+```
+
+#### 5.4.4 DR (Disaster Recovery) Scenario AIDLC Integration
+
+Multi-region AIDLC **integrates disaster recovery scenarios into the normal deployment process**, making DR transitions a verified workflow.
+
+**DR Transition Scenario**:
+
+```
+[Normal State]
+Primary (AP): 100% traffic
+Secondary (EU, US): 0% traffic (Standby)
+
+[AP Region Failure Detected]
+  ↓
+[AI Agent Automatic Determination]
+  - CloudWatch Synthetics: AP region endpoint failed 3 consecutive times
+  - Container Network Observability: AP region Pod-to-Pod communication severed
+  - Control Plane Metrics: AP API server not responding
+  ↓
+[DR Transition Decision]
+  AI Agent: "AP region control plane failure confirmed. Failover to EU region recommended."
+  ↓
+[Automatic Execution]
+  1. Route 53 Health Check failure detected
+  2. Route 53 weighted routing change: EU 100%, AP 0%
+  3. EU region HPA scale out: 2 → 10 replicas
+  4. EU region Karpenter NodePool expansion
+  5. Slack notification: "DR transition complete. EU region promoted to Primary."
+  ↓
+[After AP Region Recovery]
+  1. AI Agent detects AP region health check normalization
+  2. Gradual traffic return: EU 100% → EU 50%, AP 50% → AP 100%
+  3. Verify AP region stability with canary pattern (30 min)
+  4. Return to normal state
+```
+
+**DR Transition Argo CD Configuration**:
+
+```yaml
+# argocd-dr-failover-application.yaml
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: payment-service-dr-controller
+  namespace: argocd
+spec:
+  project: production
+  source:
+    repoURL: https://github.com/company/k8s-manifests
+    path: dr-controller
+    helm:
+      parameters:
+        - name: primary.region
+          value: ap-northeast-2
+        - name: secondary.regions
+          value: "eu-west-1,us-east-1"
+        - name: failover.automatic
+          value: "true"
+        - name: failover.healthCheckFailureThreshold
+          value: "3"
+        - name: failback.canaryDuration
+          value: "30m"
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: dr-system
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+```
+
+:::warning Production Considerations for DR Transitions
+**Be cautious with automatic DR transitions**:
+- Disable automatic transitions during initial adoption (`failover.automatic: false`)
+- Repeat manual DR transition drills (quarterly DR drills)
+- Add human approval step to AI Agent decisions (Slack Approval Workflow)
+- Verify data consistency after transition (check RDS Cross-Region Replication Lag)
+
+**Database DR**:
+- RDS Aurora Global Database: Automatic failover support (RPO < 1 second)
+- DynamoDB Global Tables: Multi-region automatic replication
+- ElastiCache Global Datastore: Redis multi-region replication
+:::
+
+---
+
+## 6. Quality Gates — Quality Assurance Across All Phases
+
+In AI-DLC, human verification is a **Loss Function** — catching errors early at each stage to prevent downstream propagation. Quality Gates systematize this Loss Function.
+
+```
+Inception          Construction          Operations
+    │                   │                    │
+    ▼                   ▼                    ▼
+[Mob Elaboration    [DDD Model         [Pre-deployment
+ artifact            verification]      verification]
+ verification]
+    │                   │                    │
+    ▼                   ▼                    ▼
+[Spec consistency]  [Code + Security    [SLO-based
+                     scan]               monitoring]
+    │                   │                    │
+    ▼                   ▼                    ▼
+[NFR fulfillment]   [Test coverage]     [AI Agent response
+                                         verification]
+```
+
+<QualityGates />
+
+### 6.1 AI-Based PR Review Automation
+
+Traditional code reviews rely on lint rules and static analysis, but **AI-based reviews verify architecture patterns, security best practices, and business logic consistency**.
+
+```yaml
+# .github/workflows/ai-review.yml
+name: AI Code Review
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  ai-review:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Q Developer Security Scan
+        uses: aws/amazon-q-developer-action@v1
+        with:
+          scan-type: security
+          source-path: .
+
+      - name: K8s Manifest Validation
+        run: |
+          kube-linter lint deploy/ --config .kube-linter.yaml
+
+      - name: Terraform Validation
+        if: contains(github.event.pull_request.changed_files, 'terraform/')
+        run: |
+          cd terraform/
+          terraform init -backend=false
+          terraform validate
+          tflint --recursive
+```
+
+### 6.2 LLM-Based Code Review Automation (Beyond Lint)
+
+An advanced quality gate where **LLMs verify architecture patterns and business logic** beyond lint tools.
+
+#### 6.2.1 Architecture Pattern Verification
+
+Uses Q Developer to automatically verify that code adheres to the team's architecture principles.
+
+```yaml
+# .github/workflows/architecture-review.yml
+name: AI Architecture Review
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  architecture-review:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Extract Changed Files
+        id: changed-files
+        run: |
+          git diff --name-only origin/${{ github.base_ref }}..HEAD > changed_files.txt
+          echo "files=$(cat changed_files.txt | tr '\n' ' ')" >> $GITHUB_OUTPUT
+
+      - name: Q Developer Architecture Review
+        id: q-review
+        run: |
+          # Verify architecture using Q Developer CLI
+          aws q-developer review \
+            --files "${{ steps.changed-files.outputs.files }}" \
+            --review-type architecture \
+            --context-file ARCHITECTURE.md \
+            --output review-result.json
+
+          # Verification criteria
+          VIOLATIONS=$(jq -r '.violations | length' review-result.json)
+          if [ "$VIOLATIONS" -gt 0 ]; then
+            echo "Architecture violations found: $VIOLATIONS"
+            jq -r '.violations[] | "- [\(.severity)] \(.file):\(.line) - \(.message)"' review-result.json
+            exit 1
+          fi
+
+      - name: Post Review Comments
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const review = JSON.parse(fs.readFileSync('review-result.json', 'utf8'));
+
+            for (const violation of review.violations) {
+              await github.rest.pulls.createReviewComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: context.issue.number,
+                body: `**${violation.severity}**: ${violation.message}\n\n**Suggestion**: ${violation.suggestion}`,
+                commit_id: context.payload.pull_request.head.sha,
+                path: violation.file,
+                line: violation.line
+              });
+            }
+```
+
+**Verification Example (ARCHITECTURE.md)**:
+
+```markdown
+# Architecture Principles
+
+## DDD Pattern Compliance
+- Aggregates are defined in a single file (e.g., `user_aggregate.go`)
+- Entities can only be modified within an Aggregate
+- Value Objects are implemented as immutable objects
+
+## Microservice Communication
+- Synchronous calls: Use gRPC
+- Asynchronous events: Use SQS/SNS
+- External APIs: HTTP REST (OpenAPI spec required)
+
+## Observability
+- OpenTelemetry instrumentation on all handlers
+- Business metrics exposed as Prometheus custom metrics
+- Structured logging (JSON format, including contextual fields)
+
+## Security
+- Authentication: JWT (HS256 prohibited, use RS256)
+- Sensitive information: Retrieved from AWS Secrets Manager
+- SQL queries: Use Prepared Statements (string concatenation prohibited)
+```
+
+**Q Developer Detection Example**:
+
+```go
+// Violation: Direct Entity modification outside Aggregate
+func UpdateUserEmail(userID string, email string) error {
+    user, _ := userRepo.FindByID(userID)
+    user.Email = email  // Violation: Direct Entity modification
+    return userRepo.Save(user)
+}
+
+// Recommended: Modification through Aggregate method
+func UpdateUserEmail(userID string, email string) error {
+    user, _ := userRepo.FindByID(userID)
+    return user.ChangeEmail(email)  // Aggregate method used
+}
+```
+
+**AI Review Comment**:
+
+> **MEDIUM**: `user.Email = email` violates Aggregate encapsulation.
+>
+> **Suggestion**: Add a `ChangeEmail(email string) error` method to the `User` Aggregate and move email format validation logic inside the Aggregate.
+>
+> **Reference**: ARCHITECTURE.md - DDD Pattern Compliance
+
+#### 6.2.2 AI-Based Test Case Auto-Generation
+
+Uses Q Developer to **automatically generate test cases when code changes**, preventing coverage gaps.
+
+```yaml
+# .github/workflows/test-generation.yml
+name: AI Test Generation
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  generate-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Q Developer Test Generation
+        run: |
+          # Auto-generate tests for changed files
+          for file in $(git diff --name-only origin/${{ github.base_ref }}..HEAD | grep '\.go$'); do
+            # Generate if no existing test file
+            test_file="${file%.*}_test.go"
+            if [ ! -f "$test_file" ]; then
+              aws q-developer generate-tests \
+                --source-file "$file" \
+                --output "$test_file" \
+                --framework "testify" \
+                --coverage-target 80
+            fi
+
+            # Add missing cases to existing tests
+            aws q-developer augment-tests \
+              --source-file "$file" \
+              --test-file "$test_file" \
+              --coverage-analysis
+          done
+
+      - name: Run Tests and Check Coverage
+        run: |
+          go test ./... -coverprofile=coverage.out
+          COVERAGE=$(go tool cover -func=coverage.out | grep total | awk '{print $3}' | sed 's/%//')
+
+          if (( $(echo "$COVERAGE < 80" | bc -l) )); then
+            echo "Test coverage insufficient: $COVERAGE% (target: 80%)"
+
+            # Analyze uncovered functions
+            aws q-developer analyze-coverage \
+              --coverage-file coverage.out \
+              --recommend-tests
+
+            exit 1
+          fi
+
+      - name: Commit Generated Tests
+        if: success()
+        run: |
+          git config user.name "Q Developer Bot"
+          git config user.email "q-developer@aws.amazon.com"
+          git add "*_test.go"
+          git commit -m "chore: add AI-generated tests [skip ci]" || true
+          git push
+```
+
+**Generated Test Example**:
+
+```go
+// user_service_test.go (AI-generated)
+package service
+
+import (
+    "testing"
+    "github.com/stretchr/testify/assert"
+    "github.com/stretchr/testify/mock"
+)
+
+func TestUserService_ChangeEmail_Success(t *testing.T) {
+    // Arrange
+    mockRepo := new(MockUserRepository)
+    service := NewUserService(mockRepo)
+
+    user := &User{ID: "user-123", Email: "old@example.com"}
+    mockRepo.On("FindByID", "user-123").Return(user, nil)
+    mockRepo.On("Save", mock.Anything).Return(nil)
+
+    // Act
+    err := service.ChangeEmail("user-123", "new@example.com")
+
+    // Assert
+    assert.NoError(t, err)
+    assert.Equal(t, "new@example.com", user.Email)
+    mockRepo.AssertExpectations(t)
+}
+
+func TestUserService_ChangeEmail_InvalidFormat(t *testing.T) {
+    // Arrange
+    mockRepo := new(MockUserRepository)
+    service := NewUserService(mockRepo)
+
+    user := &User{ID: "user-123", Email: "old@example.com"}
+    mockRepo.On("FindByID", "user-123").Return(user, nil)
+
+    // Act
+    err := service.ChangeEmail("user-123", "invalid-email")
+
+    // Assert
+    assert.Error(t, err)
+    assert.Contains(t, err.Error(), "invalid email format")
+}
+
+func TestUserService_ChangeEmail_UserNotFound(t *testing.T) {
+    // Arrange
+    mockRepo := new(MockUserRepository)
+    service := NewUserService(mockRepo)
+
+    mockRepo.On("FindByID", "nonexistent").Return(nil, ErrUserNotFound)
+
+    // Act
+    err := service.ChangeEmail("nonexistent", "new@example.com")
+
+    // Assert
+    assert.ErrorIs(t, err, ErrUserNotFound)
+}
+```
+
+### 6.3 Security Vulnerability AI Analysis
+
+Combines Q Developer Security Scan and CodeGuru to perform **multi-layer security verification**.
+
+```yaml
+# .github/workflows/security-scan.yml
+name: Multi-Layer Security Scan
+on:
+  pull_request:
+    types: [opened, synchronize]
+  schedule:
+    - cron: '0 2 * * *'  # Full scan daily at 02:00
+
+jobs:
+  security-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Q Developer Security Scan
+        id: q-security
+        run: |
+          aws q-developer scan \
+            --scan-type security \
+            --source-path . \
+            --output q-security-report.json \
+            --severity-threshold MEDIUM
+
+          CRITICAL=$(jq -r '.findings[] | select(.severity=="CRITICAL") | .id' q-security-report.json | wc -l)
+          HIGH=$(jq -r '.findings[] | select(.severity=="HIGH") | .id' q-security-report.json | wc -l)
+
+          echo "critical=$CRITICAL" >> $GITHUB_OUTPUT
+          echo "high=$HIGH" >> $GITHUB_OUTPUT
+
+      - name: CodeGuru Reviewer
+        run: |
+          # CodeGuru Reviewer integration
+          aws codeguru-reviewer create-code-review \
+            --name "${{ github.event.pull_request.title }}" \
+            --repository-association-arn $CODEGURU_ARN \
+            --type '{"RepositoryAnalysis":{"RepositoryHead":{"BranchName":"${{ github.head_ref }}"}}}'
+
+      - name: Container Image Scan (ECR)
+        if: contains(github.event.pull_request.changed_files, 'Dockerfile')
+        run: |
+          # Build Docker image
+          docker build -t ${{ github.repository }}:${{ github.sha }} .
+
+          # Push to ECR and scan
+          aws ecr get-login-password | docker login --username AWS --password-stdin $ECR_REGISTRY
+          docker push $ECR_REGISTRY/${{ github.repository }}:${{ github.sha }}
+
+          # Wait for scan results and verify
+          aws ecr wait image-scan-complete \
+            --repository-name ${{ github.repository }} \
+            --image-id imageTag=${{ github.sha }}
+
+          FINDINGS=$(aws ecr describe-image-scan-findings \
+            --repository-name ${{ github.repository }} \
+            --image-id imageTag=${{ github.sha }} \
+            --query 'imageScanFindings.findingSeverityCounts')
+
+          CRITICAL=$(echo $FINDINGS | jq -r '.CRITICAL // 0')
+          if [ "$CRITICAL" -gt 0 ]; then
+            echo "Critical vulnerabilities found in container image"
+            exit 1
+          fi
+
+      - name: Security Gate Decision
+        run: |
+          CRITICAL=${{ steps.q-security.outputs.critical }}
+          HIGH=${{ steps.q-security.outputs.high }}
+
+          if [ "$CRITICAL" -gt 0 ]; then
+            echo "CRITICAL vulnerabilities found - PR merge blocked"
+            exit 1
+          elif [ "$HIGH" -gt 3 ]; then
+            echo "HIGH vulnerabilities exceed 3 - Security team approval required"
+            # Slack notification
+            curl -X POST $SLACK_WEBHOOK_URL -d '{
+              "text": "Security approval required: PR #${{ github.event.pull_request.number }}\nHIGH vulnerabilities: '"$HIGH"'",
+              "channel": "#security-approvals"
+            }'
+            exit 1
+          else
+            echo "Security verification passed"
+          fi
+```
+
+### 6.4 Quality Gate Scoring System
+
+Sets **auto-approval thresholds** based on AI confidence, enabling immediate merge for high-quality changes while requiring manual review for risky changes.
+
+```yaml
+# quality-gate-scoring.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: quality-gate-config
+  namespace: cicd-system
+data:
+  scoring-rules: |
+    # Quality Gate Scoring System (0-100)
+
+    ## 1. Code Quality (40 points)
+    - No lint violations: +10
+    - Test coverage 80% or above: +15
+    - AI architecture review passed: +15
+
+    ## 2. Security (30 points)
+    - 0 Critical vulnerabilities: +15
+    - 3 or fewer High vulnerabilities: +10
+    - No sensitive information exposure: +5
+
+    ## 3. Performance (20 points)
+    - Build time < 5 minutes: +10
+    - Image size increase < 10%: +5
+    - Memory usage increase < 20%: +5
+
+    ## 4. Documentation (10 points)
+    - README updated: +5
+    - OpenAPI spec updated on API change: +5
+
+  auto-approval-threshold: "85"  # Auto-approve at 85+ points
+  manual-review-threshold: "70"  # Manual review required below 70 points
+```
+
+**GitHub Actions Integration**:
+
+```yaml
+# .github/workflows/quality-gate.yml
+name: Quality Gate Scoring
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  quality-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Calculate Quality Score
+        id: score
+        run: |
+          SCORE=0
+
+          # Code Quality (40 points)
+          LINT_VIOLATIONS=$(golangci-lint run --out-format json | jq '.Issues | length')
+          [ "$LINT_VIOLATIONS" -eq 0 ] && SCORE=$((SCORE + 10))
+
+          COVERAGE=$(go test ./... -coverprofile=coverage.out | grep coverage | awk '{print $2}' | sed 's/%//')
+          (( $(echo "$COVERAGE >= 80" | bc -l) )) && SCORE=$((SCORE + 15))
+
+          ARCH_REVIEW=$(jq -r '.violations | length' architecture-review.json)
+          [ "$ARCH_REVIEW" -eq 0 ] && SCORE=$((SCORE + 15))
+
+          # Security (30 points)
+          CRITICAL=$(jq -r '[.findings[] | select(.severity=="CRITICAL")] | length' q-security-report.json)
+          [ "$CRITICAL" -eq 0 ] && SCORE=$((SCORE + 15))
+
+          HIGH=$(jq -r '[.findings[] | select(.severity=="HIGH")] | length' q-security-report.json)
+          [ "$HIGH" -le 3 ] && SCORE=$((SCORE + 10))
+
+          SECRETS=$(gitleaks detect --no-git --report-format json | jq '.findings | length')
+          [ "$SECRETS" -eq 0 ] && SCORE=$((SCORE + 5))
+
+          # Performance (20 points)
+          BUILD_TIME=$(cat build-metrics.json | jq -r '.duration_seconds')
+          (( $(echo "$BUILD_TIME < 300" | bc -l) )) && SCORE=$((SCORE + 10))
+
+          # Documentation (10 points)
+          README_UPDATED=$(git diff --name-only origin/${{ github.base_ref }}..HEAD | grep -c README.md)
+          [ "$README_UPDATED" -gt 0 ] && SCORE=$((SCORE + 5))
+
+          echo "score=$SCORE" >> $GITHUB_OUTPUT
+
+      - name: Quality Gate Decision
+        run: |
+          SCORE=${{ steps.score.outputs.score }}
+
+          if [ "$SCORE" -ge 85 ]; then
+            echo "Quality Score: $SCORE/100 - Auto-approved"
+            gh pr review ${{ github.event.pull_request.number }} --approve --body "AI Quality Gate auto-approved (Score: $SCORE/100)"
+          elif [ "$SCORE" -ge 70 ]; then
+            echo "Quality Score: $SCORE/100 - Manual review recommended"
+            gh pr comment ${{ github.event.pull_request.number }} --body "Quality Score: $SCORE/100\nPlease merge after team review."
+          else
+            echo "Quality Score: $SCORE/100 - Manual review required"
+            gh pr review ${{ github.event.pull_request.number }} --request-changes --body "Quality Score is low ($SCORE/100). Please improve and re-submit for review."
+            exit 1
+          fi
+```
+
+:::tip Quality Gate Score Usage
+**Auto-Approval (85+ points)**:
+- Lint, tests, and security all passed
+- Documentation complete
+- No performance degradation
+- Eligible for automatic deployment after merge
+
+**Manual Review Recommended (70-84 points)**:
+- Mostly passed but some improvements needed
+- Merge decision after team review
+- Deployment requires manual approval
+
+**Manual Review Required (below 70 points)**:
+- Quality criteria not met
+- Re-review after code improvement
+- Merge blocked
+:::
+
+---
+
+---
+
+## 7. Measurement Metrics
+
+### 7.1 AIDLC Productivity Metrics
+
+Key metrics for measuring the effectiveness of AIDLC adoption.
+
+<ProductivityMetrics />
+
+### 7.2 Detailed Measurement Items and DORA Mapping
+
+<DetailedMetrics />
+
+---
+
+## 8. Conclusion
+
+### 8.1 Adoption Roadmap
+
+```
+Phase 1: AI Coding Tool Adoption
+  └── Start code generation and review with Q Developer/Copilot
+      (AIOps Maturity Level 2)
+
+Phase 2: Spec-Driven Development
+  └── Systematic requirements → code workflow with Kiro + MCP
+      Pilot Mob Elaboration ritual
+      (AIOps Maturity Level 3)
+
+Phase 3: Declarative Automation
+  └── Complete GitOps with Managed Argo CD + ACK + KRO
+      AI/CD pipeline transition
+      (AIOps Maturity Level 3→4)
+
+Phase 4: AI Agent Expansion
+  └── Autonomous operations with Q Developer + Strands + Kagent
+      Spread Mob Construction ritual
+      (AIOps Maturity Level 4)
+```
+
+### 8.2 Next Steps
+
+- **[4. Predictive Scaling and Auto-Recovery](./aiops-predictive-operations.md)** — Operations phase deep dive: ML-based predictive scaling, AI Agent automatic incident response, Chaos Engineering
+- **[2. Intelligent Observability Stack](./aiops-observability-stack.md)** — Data foundation for the Operations phase: ADOT, AMP/AMG, CloudWatch AI setup
+- **[1. AIOps Strategy Guide](./aiops-introduction.md)** — Technology foundation for AIDLC: AWS open-source strategy, MCP integration, AI tool ecosystem
+
+### 8.3 Learning Path
+
+```
+[Previous] 1. AIOps Strategy Guide — Understanding the technology foundation (MCP, Kiro, AI Agent)
+     ↓
+[Previous] 2. Intelligent Observability Stack — Building the data foundation (ADOT, AMP/AMG)
+     ↓
+[Current] 3. AIDLC Framework — Practicing the methodology (this document)
+     ↓
+[Next] 4. Predictive Scaling and Auto-Recovery — Deep dive into autonomous operations
+```
+
+:::info References
+- [AWS AI-DLC Method Definition](https://prod.d13rzhkk8cj2z0.amplifyapp.com/) — AIDLC original (Raja SP, AWS)
+- [AWS AI-Driven Development Life Cycle Blog](https://aws.amazon.com/blogs/devops/ai-driven-development-life-cycle/)
+- [AWS Labs AIDLC Workflows (GitHub)](https://github.com/awslabs/aidlc-workflows)
+- [EKS Capabilities (2025.11)](https://aws.amazon.com/blogs/containers/)
+- [Strands Agents SDK](https://github.com/strands-agents/sdk-python)
+- [Kagent - Kubernetes AI Agent](https://github.com/kagent-dev/kagent)
+:::

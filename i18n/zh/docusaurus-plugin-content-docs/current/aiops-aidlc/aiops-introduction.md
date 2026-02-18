@@ -997,3 +997,1310 @@ NRC与AI驱动的预测分析结合，使**主动式节点管理**成为可能�
 
 [Phase 2] AI Agent 更新 Node Condition
   Kagent/Strands Agent 设置自定义 Node Condition：
+  kubectl annotate node ip-10-0-1-42 predicted-failure=high-risk
+
+[Phase 3] NRC 自动管理 taint
+  NodeReadinessRule 检测到该 Condition → 自动添加 taint
+  ├─ 阻止新 Pod 调度 (NoSchedule)
+  ├─ 现有工作负载保持正常运行（宽限期）
+  └─ Karpenter 预配替代节点
+
+[Phase 4] 渐进式工作负载迁移
+  AI Agent 根据工作负载特性确定优先级：
+  1. 先迁移 Stateless 应用（无停机时间）
+  2. Stateful 工作负载等待维护窗口
+  3. 所有工作负载迁移完成后移除节点
+```
+
+**核心价值：**
+
+| 传统方式 | NRC + AIOps 方式 |
+|------------|------------------|
+| 故障发生**后**响应 | 故障发生**前**先行处理 |
+| 手动 cordon/drain | 声明式策略自动处理 |
+| 不一致的响应 | 通过 CRD 标准化响应 |
+| 审计追踪困难 | 通过 Git 进行策略版本管理 |
+| 可能出现停机 | 通过渐进式工作负载迁移实现零停机 |
+
+#### DevOps Agent 集成模式
+
+**模式 1：Node Problem Detector + NRC**
+
+```
+Node Problem Detector 检测到硬件异常
+  → Node Condition 更新（DiskPressure、MemoryPressure 等）
+     → NRC 自动添加 taint
+        → Karpenter 预配替代节点
+```
+
+**模式 2：AI 预测 + NRC（主动式）**
+
+```
+CloudWatch Agent 收集指标
+  → AI 模型预测故障
+     → DevOps Agent 设置自定义 Node Condition
+        → NRC 应用声明式策略
+           → 零停机迁移工作负载
+```
+
+**模式 3：基于安全事件的自动隔离**
+
+```
+GuardDuty 在节点上检测到异常进程
+  → EventBridge → Lambda → 为 Node 添加 security-risk Condition
+     → NRC 立即应用 NoExecute taint
+        → 所有 Pod 驱逐（防止安全事件扩散）
+           → 节点保持隔离状态以进行取证分析
+```
+
+#### AIOps 成熟度模型中的定位
+
+| 成熟度级别 | 节点管理方式 | NRC 应用 |
+|------------|---------------|---------|
+| **Level 0（手动）** | 手动 cordon/drain | 未应用 |
+| **Level 1（反应式）** | Node Problem Detector + 手动响应 | 未应用 |
+| **Level 2（声明式）** | NRC 基于条件自动管理 taint | ✅ **引入 NRC** |
+| **Level 3（预测式）** | AI 预测节点故障 + NRC 先行隔离 | ✅ AI + NRC 集成 |
+| **Level 4（自治式）** | DevOps Agent + NRC 完全自治节点生命周期管理 | ✅ Agent + NRC 自动化 |
+
+:::info K8s 生态系统的演进
+Node Readiness Controller 展示了 Kubernetes 生态系统正在**从命令式向声明式、从反应式向预测式演进**。将 NRC 与 AI 驱动的预测分析相结合，可以在节点故障发生**之前**先行迁移工作负载，实现零停机运营。这是在节点管理领域实现 AIOps 核心价值——"在人工介入之前 AI 就解决问题"的典型案例。
+:::
+
+**参考资料：**
+
+- [Kubernetes Blog: Introducing Node Readiness Controller](https://kubernetes.io/blog/2026/02/03/introducing-node-readiness-controller/)
+
+### 6.6 多集群 AIOps 管理
+
+大规模组织运营着开发、预发布、生产等多个 EKS 集群。要在多集群环境中有效实施 AIOps，需要**统一可观测性、集中式 AI 洞察和组织级治理**。
+
+#### 多集群 AIOps 策略
+
+**核心挑战：**
+
+| 挑战 | 说明 | 解决方案 |
+|------|------|----------|
+| **分散的可观测性** | 每个集群拥有独立的监控栈 | 通过 CloudWatch Cross-Account Observability 集中管理 |
+| **重复告警** | 同一问题在多个集群中产生独立告警 | 通过 Amazon Q Developer 进行关联分析和统一洞察 |
+| **不一致的响应** | 不同集群采用不同的事件响应流程 | 通过 Bedrock Agent + Strands SOPs 实现标准化工作流 |
+| **治理缺失** | 集群间策略不一致 | 通过 AWS Organizations + OPA/Kyverno 实现统一策略 |
+| **成本可视性不足** | 难以跨集群比较成本 | CloudWatch + Cost Explorer 集成仪表板 |
+
+#### 1. 利用 CloudWatch Cross-Account Observability 实现集中监控
+
+**CloudWatch Cross-Account Observability** 将多个 AWS 账户的指标、日志、追踪整合到单一可观测性账户中。
+
+**架构：**
+
+```
+[Development Account]        [Staging Account]        [Production Account]
+  EKS Cluster A               EKS Cluster B            EKS Cluster C
+  └─ CloudWatch Agent         └─ CloudWatch Agent      └─ CloudWatch Agent
+  └─ ADOT Collector           └─ ADOT Collector        └─ ADOT Collector
+         ↓                            ↓                         ↓
+         └────────────────────────────┴─────────────────────────┘
+                                      ↓
+                    [Observability Account (Central)]
+                    ├─ Amazon Managed Prometheus (AMP)
+                    ├─ Amazon Managed Grafana (AMG)
+                    ├─ CloudWatch Logs Insights（统一日志）
+                    ├─ X-Ray（统一追踪）
+                    └─ Amazon Q Developer（统一洞察）
+```
+
+**配置方法：**
+
+```bash
+# Step 1: 在 Observability 账户中配置 Monitoring Account
+aws oam create-sink \
+  --name multi-cluster-observability \
+  --tags Key=Environment,Value=Production
+
+# Step 2: 在每个源账户（dev/staging/prod）中创建 Link
+aws oam create-link \
+  --resource-types "AWS::CloudWatch::Metric" \
+  "AWS::Logs::LogGroup" \
+  "AWS::XRay::Trace" \
+  --sink-identifier "arn:aws:oam:us-east-1:123456789012:sink/sink-id" \
+  --label-template '$AccountName-$Region'
+
+# Step 3: 在 AMG 中创建统一仪表板（整合所有集群指标）
+```
+
+**统一仪表板示例（AMG）：**
+
+```yaml
+# Grafana Dashboard JSON — 多集群 Pod 状态整合
+{
+  "title": "Multi-Cluster EKS Overview",
+  "panels": [
+    {
+      "title": "Pod Status Across All Clusters",
+      "targets": [
+        {
+          "expr": "sum by (cluster, namespace, phase) (kube_pod_status_phase{cluster=~\".*\"})",
+          "datasource": "AMP-Cross-Account"
+        }
+      ]
+    },
+    {
+      "title": "Node Health by Cluster",
+      "targets": [
+        {
+          "expr": "sum by (cluster, condition) (kube_node_status_condition{condition=\"Ready\",cluster=~\".*\"})",
+          "datasource": "AMP-Cross-Account"
+        }
+      ]
+    }
+  ]
+}
+```
+
+#### 2. Amazon Q Developer 的多集群洞察
+
+Amazon Q Developer 基于统一的可观测性数据执行**跨集群关联分析**。
+
+**使用场景：**
+
+| 问题 | Q Developer 分析 | 价值 |
+|------|-----------------|------|
+| "昨天下午3点多个集群同时出现延迟增加的原因是什么？" | 分析 X-Ray 追踪识别出公共 RDS 实例的 CPU 峰值 | 无需逐集群调查，即时识别根本原因 |
+| "为什么生产和预发布集群的成本差异这么大？" | 分析 Cost Explorer 数据发现生产环境过多的 NAT Gateway 费用 | 发现成本优化机会 |
+| "所有集群都应用了相同的安全策略吗？" | 比较 GuardDuty Findings 检测到开发集群的薄弱 RBAC 配置 | 强化安全治理 |
+
+**实战示例：多集群故障关联分析**
+
+```
+开发者："今天上午10点所有生产集群同时出现 Pod CrashLoopBackOff 状态，为什么？"
+
+Q Developer 分析：
+  1. 通过 CloudWatch Logs Insights 统一分析所有集群日志
+     → 共同模式："Failed to pull image: registry.example.com/app:v2.1"
+
+  2. 通过 X-Ray 追踪分析镜像注册表访问
+     → registry.example.com DNS 查询失败（Route 53）
+
+  3. 通过 CloudWatch 指标确认 Route 53 健康检查
+     → registry.example.com 健康检查在上午 9:58 变为 UNHEALTHY
+
+  4. 识别根本原因
+     → 镜像注册表服务器的 TLS 证书过期
+
+  5. 建议措施
+     → 续期证书后在所有集群中重启 Pod
+```
+
+#### 3. 组织级 AIOps 治理框架
+
+在多集群环境中，**一致的策略执行和标准化的响应流程**是必不可少的。
+
+##### 治理层次
+
+```
+[Layer 1] AWS Organizations — 定义账户和集群层次结构
+         ↓
+[Layer 2] Service Control Policies (SCPs) — 组织级安全策略
+         ↓
+[Layer 3] OPA/Kyverno — 集群级 K8s 策略（Pod Security、Network Policy）
+         ↓
+[Layer 4] Bedrock Agent Guardrails — AI 自动响应安全防护
+         ↓
+[Layer 5] CloudTrail + CloudWatch Logs — 审计追踪和合规验证
+```
+
+##### 标准化事件响应工作流
+
+**通过 Bedrock Agent + Strands SOPs 实现多集群响应自动化：**
+
+```python
+# Strands SOP：多集群 Pod CrashLoopBackOff 响应
+from strands import Agent, sop
+
+@sop(name="multi_cluster_crash_response")
+def handle_multi_cluster_crash(event):
+    """
+    多个集群出现相同问题时的统一响应
+    """
+    affected_clusters = event['clusters']  # ['dev', 'staging', 'prod']
+
+    # Step 1: 确认所有集群中的相同模式
+    common_error = analyze_common_pattern(affected_clusters)
+
+    if common_error:
+        # Step 2: 识别共同根本原因（例如：外部依赖故障）
+        root_cause = identify_shared_dependency(common_error)
+
+        # Step 3: 从中心解决根本原因
+        fix_shared_dependency(root_cause)
+
+        # Step 4: 向所有集群自动传播恢复
+        for cluster in affected_clusters:
+            restart_affected_pods(cluster)
+            verify_recovery(cluster)
+
+        return {
+            'status': 'resolved',
+            'root_cause': root_cause,
+            'affected_clusters': affected_clusters
+        }
+    else:
+        # Step 5: 需要逐集群单独响应
+        return {
+            'status': 'escalated',
+            'message': 'No common pattern found, escalating to ops team'
+        }
+```
+
+##### 多集群策略标准化（OPA）
+
+```rego
+# OPA Policy：对所有集群应用相同的 Pod Security Standards
+package kubernetes.admission
+
+deny[msg] {
+  input.request.kind.kind == "Pod"
+  not input.request.object.spec.securityContext.runAsNonRoot
+
+  msg := sprintf("Pod %v must run as non-root user (Organization Policy)", [input.request.object.metadata.name])
+}
+
+deny[msg] {
+  input.request.kind.kind == "Pod"
+  container := input.request.object.spec.containers[_]
+  not container.securityContext.allowPrivilegeEscalation == false
+
+  msg := sprintf("Container %v must set allowPrivilegeEscalation to false (Organization Policy)", [container.name])
+}
+```
+
+#### 4. 多集群成本优化
+
+**CloudWatch + Cost Explorer 集成分析：**
+
+```sql
+-- CloudWatch Logs Insights：按集群分析成本驱动因素
+fields @timestamp, cluster_name, namespace, pod_name, node_type, cost_per_hour
+| filter event_type = "pod_usage"
+| stats sum(cost_per_hour) as total_cost by cluster_name, namespace
+| sort total_cost desc
+| limit 10
+```
+
+**基于 AI 的成本优化洞察（Q Developer）：**
+
+```
+问题："分析上个月各集群的成本增长率，并提出优化建议"
+
+Q Developer 分析：
+  1. Cost Explorer 数据分析
+     - Cluster A（dev）：+5%（正常范围）
+     - Cluster B（staging）：+120%（异常激增）
+     - Cluster C（prod）：+15%（因流量增长在预期范围内）
+
+  2. Cluster B 成本激增原因分析
+     - CloudWatch 指标：GPU 实例（g5.xlarge）使用量激增
+     - 日志分析：ML 团队在 staging 中长期运行实验性工作负载
+
+  3. 优化建议
+     - 将 ML 工作负载转为 Spot Instances（预计节省 70% 成本）
+     - 在预发布集群中应用 Karpenter 自动移除空闲节点
+     - 开发集群在非工作时间（夜间/周末）自动缩减
+```
+
+:::info 核心价值
+多集群 AIOps 的核心是以**统一视角管理分散的基础设施**。通过 CloudWatch Cross-Account Observability 集中数据，Amazon Q Developer 分析跨集群关联关系，Bedrock Agent 和 Strands 实现标准化自动响应，即使集群数量增加，运营复杂度也不会线性增长。
+:::
+
+### 6.7 基于 EventBridge 的 AI 自动响应模式
+
+Amazon EventBridge 是一个无服务器事件总线，用于连接 AWS 服务、应用程序和 SaaS 提供商的事件，构建事件驱动架构。与 EKS 集成后，可以构建**对集群事件自动响应的 AI Agent 工作流**。
+
+#### EventBridge + EKS 事件集成架构
+
+可以将 EKS 集群的 Kubernetes 事件发送到 EventBridge，触发自动化响应工作流。
+
+```
+[EKS 集群]
+  ├─ Pod 状态变更（CrashLoopBackOff、OOMKilled、ImagePullBackOff）
+  ├─ 节点状态变更（NotReady、DiskPressure、MemoryPressure）
+  ├─ 扩缩容事件（HPA 扩容/缩容、Karpenter 节点添加/移除）
+  └─ 安全告警（GuardDuty Findings、异常 API 调用）
+         ↓
+[EventBridge Event Bus]
+  事件收集和路由
+         ↓
+[EventBridge Rules]
+  事件模式匹配 + 过滤
+         ↓
+[响应工作流]
+  ├─ Lambda → Kagent/Strands Agent 调用 → 自动诊断·恢复
+  ├─ Step Functions → 多阶段自动响应工作流
+  ├─ SNS/SQS → 通知或异步处理
+  └─ CloudWatch Logs → 审计和分析
+```
+
+#### 主要事件类型和响应模式
+
+| 事件类型 | 检测条件 | 自动响应模式 |
+|------------|----------|---------------|
+| **Pod CrashLoopBackOff** | Pod 重启次数 > 5 次 | AI Agent 分析日志 → 识别根本原因 → 自动回滚或修改配置 |
+| **节点 NotReady** | 节点状态变更 | 触发 Karpenter → 预配新节点，对现有 Pod 执行 drain |
+| **OOMKilled** | 因内存不足终止 Pod | AI Agent 分析内存使用模式 → 自动调整 HPA/VPA 设置 |
+| **ImagePullBackOff** | 镜像拉取失败 | Lambda 验证 ECR 权限 → 自动修复或发送通知 |
+| **DiskPressure** | 节点磁盘使用率 > 85% | Lambda 清理镜像缓存 → 删除临时文件 |
+| **GuardDuty Finding** | 检测到安全威胁 | Step Functions → Pod 隔离 → 取证数据收集 → 通知 |
+
+#### AI Agent 集成模式
+
+##### 模式 1：EventBridge → Lambda → AI Agent（Kagent/Strands）
+
+**工作流：**
+
+```
+1. EKS 事件发生：Pod CrashLoopBackOff
+         ↓
+2. EventBridge Rule 匹配："Pod.status.phase == 'CrashLoopBackOff'"
+         ↓
+3. Lambda 函数执行：
+   - 通过 EKS MCP 收集 Pod 日志
+   - 通过 CloudWatch MCP 收集指标
+   - 通过 X-Ray MCP 收集追踪
+         ↓
+4. 调用 Kagent/Strands Agent：
+   - AI 分析收集的上下文
+   - 识别根本原因（例如：ConfigMap 缺失、环境变量错误）
+   - 执行自动恢复或通知运维团队
+         ↓
+5. 记录结果：
+   - 将诊断结果保存到 CloudWatch Logs
+   - 恢复成功时结束事件
+   - 恢复失败时升级处理
+```
+
+**Lambda 函数示例（Python）：**
+
+```python
+import boto3
+import json
+from kagent import KagentClient
+
+eks_client = boto3.client('eks')
+logs_client = boto3.client('logs')
+kagent = KagentClient()
+
+def lambda_handler(event, context):
+    # 从 EventBridge 事件中提取 Pod 信息
+    detail = event['detail']
+    pod_name = detail['pod_name']
+    namespace = detail['namespace']
+    cluster_name = detail['cluster_name']
+
+    # 收集 Pod 日志（最近 100 行）
+    logs = get_pod_logs(cluster_name, namespace, pod_name, tail=100)
+
+    # 向 Kagent 请求诊断
+    diagnosis = kagent.diagnose(
+        context={
+            'pod_name': pod_name,
+            'namespace': namespace,
+            'logs': logs,
+            'event_type': 'CrashLoopBackOff'
+        },
+        instruction="Analyze the root cause and suggest remediation"
+    )
+
+    # 执行 AI 建议的恢复操作
+    if diagnosis.confidence > 0.8:
+        apply_remediation(diagnosis.remediation_steps)
+        return {'status': 'auto_remediated', 'diagnosis': diagnosis}
+    else:
+        # 置信度较低时通知运维团队
+        notify_ops_team(diagnosis)
+        return {'status': 'escalated', 'diagnosis': diagnosis}
+```
+
+##### 模式 2：EventBridge → Step Functions → 多阶段自动响应
+
+**工作流（Node NotReady 响应）：**
+
+```json
+{
+  "Comment": "EKS 节点故障自动恢复工作流",
+  "StartAt": "VerifyNodeStatus",
+  "States": {
+    "VerifyNodeStatus": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:...:function:VerifyNodeStatus",
+      "Next": "IsNodeRecoverable"
+    },
+    "IsNodeRecoverable": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Variable": "$.recoverable",
+          "BooleanEquals": true,
+          "Next": "AttemptNodeRestart"
+        },
+        {
+          "Variable": "$.recoverable",
+          "BooleanEquals": false,
+          "Next": "CordonAndDrainNode"
+        }
+      ]
+    },
+    "AttemptNodeRestart": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:...:function:RestartNode",
+      "Next": "WaitForNodeReady"
+    },
+    "WaitForNodeReady": {
+      "Type": "Wait",
+      "Seconds": 60,
+      "Next": "CheckNodeRecovered"
+    },
+    "CheckNodeRecovered": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:...:function:CheckNodeStatus",
+      "Next": "NodeRecovered"
+    },
+    "NodeRecovered": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Variable": "$.status",
+          "StringEquals": "Ready",
+          "Next": "Success"
+        },
+        {
+          "Variable": "$.status",
+          "StringEquals": "NotReady",
+          "Next": "CordonAndDrainNode"
+        }
+      ]
+    },
+    "CordonAndDrainNode": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:...:function:CordonAndDrain",
+      "Next": "TriggerKarpenter"
+    },
+    "TriggerKarpenter": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:...:function:TriggerNodeReplacement",
+      "Next": "Success"
+    },
+    "Success": {
+      "Type": "Succeed"
+    }
+  }
+}
+```
+
+#### ML 推理工作负载网络性能可观测性
+
+ML 推理工作负载（Ray、vLLM、Triton、PyTorch 等）由于 **GPU 间通信、模型并行化、分布式推理**，具有与一般工作负载不同的网络特性。
+
+**ML 工作负载的特有可观测性需求：**
+
+| 指标 | 一般工作负载 | ML 推理工作负载 |
+|--------|-------------|-----------------|
+| **网络带宽** | 中等（API 调用） | 非常高（模型权重、张量传输） |
+| **延迟敏感度** | 高（面向用户） | 非常高（实时推理 SLA） |
+| **丢包影响** | 重传后恢复 | 推理失败或超时 |
+| **East-West 流量** | 低（大部分为 North-South） | 非常高（GPU 节点间通信） |
+| **网络模式** | 请求-响应 | Burst + Sustained（模型加载、推理、结果聚合） |
+
+**Container Network Observability 数据应用：**
+
+EKS Container Network Observability 收集以下网络指标：
+
+- **Pod 间网络吞吐量**（bytes/sec）
+- **网络延迟**（p50、p99）
+- **丢包率**
+- **重传率**
+- **TCP 连接状态**
+
+**ML 推理工作负载监控示例：**
+
+```yaml
+# Prometheus 查询示例 — vLLM 工作负载网络瓶颈检测
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ml-network-alerts
+data:
+  alerts.yaml: |
+    groups:
+    - name: ml_inference_network
+      rules:
+      # GPU 节点间网络延迟异常
+      - alert: HighInterGPULatency
+        expr: |
+          container_network_latency_p99{
+            workload="vllm-inference",
+            direction="pod-to-pod"
+          } > 10
+        for: 5m
+        annotations:
+          summary: "GPU 节点间网络延迟激增"
+          description: "vLLM 推理工作负载的节点间延迟超过 10ms。可能影响模型并行化性能。"
+
+      # 网络带宽饱和
+      - alert: NetworkBandwidthSaturation
+        expr: |
+          rate(container_network_transmit_bytes{
+            workload="ray-cluster"
+          }[5m]) > 9e9  # 9GB/s (10GbE的 90%)
+        for: 2m
+        annotations:
+          summary: "Ray 集群网络带宽饱和"
+          description: "网络带宽已超过 90%。请考虑启用 ENA Express 或 EFA。"
+```
+
+**EventBridge 规则：ML 网络异常自动响应**
+
+```json
+{
+  "source": ["aws.cloudwatch"],
+  "detail-type": ["CloudWatch Alarm State Change"],
+  "detail": {
+    "alarmName": ["HighInterGPULatency", "NetworkBandwidthSaturation"],
+    "state": {
+      "value": ["ALARM"]
+    }
+  }
+}
+```
+
+自动响应操作：
+1. **Lambda 函数**：分析 Container Network Observability 数据 → 识别瓶颈区间
+2. **AI Agent**：诊断根本原因（CNI 配置、ENI 分配、跨 AZ 通信等）
+3. **自动优化**：启用 ENA Express、配置 Prefix Delegation、调整 Pod 拓扑
+
+:::info GPU 工作负载的特殊性
+基于 GPU 的 ML 推理工作负载中，**网络是性能瓶颈的主要原因**。由于模型权重（数 GB）、中间张量（数百 MB）、结果聚合等，需要比一般工作负载高 10-100 倍的网络带宽。通过 Container Network Observability 可视化这些模式，并通过基于 EventBridge 的自动优化实现实时响应。
+:::
+
+#### EventBridge Rule 示例：Pod CrashLoopBackOff 自动响应
+
+**EventBridge 规则定义（JSON）：**
+
+```json
+{
+  "source": ["aws.eks"],
+  "detail-type": ["EKS Pod State Change"],
+  "detail": {
+    "clusterName": ["production-cluster"],
+    "namespace": ["default", "production"],
+    "eventType": ["Warning"],
+    "reason": ["BackOff", "CrashLoopBackOff"],
+    "involvedObject": {
+      "kind": ["Pod"]
+    }
+  }
+}
+```
+
+**响应工作流（Lambda + AI Agent）：**
+
+```python
+# Lambda 函数：EKS 事件 → AI Agent 自动诊断
+import boto3
+import json
+from strands import StrandsAgent
+
+def lambda_handler(event, context):
+    detail = event['detail']
+
+    # 提取事件信息
+    cluster_name = detail['clusterName']
+    namespace = detail['namespace']
+    pod_name = detail['involvedObject']['name']
+    reason = detail['reason']
+
+    # 初始化 Strands Agent（MCP 集成）
+    agent = StrandsAgent(
+        mcp_servers=['eks-mcp', 'cloudwatch-mcp', 'xray-mcp']
+    )
+
+    # 向 AI Agent 请求诊断
+    diagnosis_result = agent.run(
+        sop_name="eks_pod_crashloop_diagnosis",
+        context={
+            'cluster': cluster_name,
+            'namespace': namespace,
+            'pod': pod_name,
+            'reason': reason
+        }
+    )
+
+    # 根据诊断结果自动恢复或升级处理
+    if diagnosis_result.auto_remediable:
+        # 执行自动恢复
+        remediation_result = agent.run(
+            sop_name="eks_pod_auto_remediation",
+            context=diagnosis_result.remediation_plan
+        )
+
+        # 将结果记录到 CloudWatch Logs
+        log_remediation(diagnosis_result, remediation_result)
+
+        return {
+            'statusCode': 200,
+            'body': json.dumps({
+                'status': 'auto_remediated',
+                'diagnosis': diagnosis_result.summary,
+                'remediation': remediation_result.summary
+            })
+        }
+    else:
+        # 通知运维团队（SNS）
+        notify_ops_team(diagnosis_result)
+
+        return {
+            'statusCode': 200,
+            'body': json.dumps({
+                'status': 'escalated',
+                'diagnosis': diagnosis_result.summary,
+                'reason': diagnosis_result.escalation_reason
+            })
+        }
+```
+
+**Strands Agent SOP 示例（YAML）：**
+
+```yaml
+# eks_pod_crashloop_diagnosis.yaml
+name: eks_pod_crashloop_diagnosis
+description: "EKS Pod CrashLoopBackOff 自动诊断"
+version: "1.0"
+
+steps:
+  - name: collect_pod_logs
+    action: mcp_call
+    mcp_server: eks-mcp
+    tool: get_pod_logs
+    params:
+      cluster: "{{context.cluster}}"
+      namespace: "{{context.namespace}}"
+      pod: "{{context.pod}}"
+      tail_lines: 100
+    output: pod_logs
+
+  - name: collect_pod_events
+    action: mcp_call
+    mcp_server: eks-mcp
+    tool: get_pod_events
+    params:
+      cluster: "{{context.cluster}}"
+      namespace: "{{context.namespace}}"
+      pod: "{{context.pod}}"
+    output: pod_events
+
+  - name: collect_metrics
+    action: mcp_call
+    mcp_server: cloudwatch-mcp
+    tool: get_pod_metrics
+    params:
+      cluster: "{{context.cluster}}"
+      namespace: "{{context.namespace}}"
+      pod: "{{context.pod}}"
+      duration: "15m"
+    output: pod_metrics
+
+  - name: analyze_root_cause
+    action: llm_analyze
+    model: claude-opus-4
+    prompt: |
+      Analyze the following EKS Pod CrashLoopBackOff incident:
+
+      Pod Logs:
+      {{pod_logs}}
+
+      Pod Events:
+      {{pod_events}}
+
+      Metrics:
+      {{pod_metrics}}
+
+      Identify the root cause and suggest remediation.
+      Format: JSON with fields 'root_cause', 'confidence', 'remediation_steps', 'auto_remediable'
+    output: diagnosis
+
+  - name: return_result
+    action: return
+    value: "{{diagnosis}}"
+```
+
+:::tip EventBridge + AI Agent 的价值
+基于 EventBridge 的自动响应模式能够**在无人工介入的情况下，以秒级速度完成事件的检测、诊断和恢复**。与 AI Agent（Kagent、Strands）集成后，可以超越简单的规则型响应，实现理解上下文并识别根本原因的智能自动化。这就是传统自动化（Runbook-as-Code）与 AIOps 之间的核心区别。
+:::
+
+---
+
+## 7. AWS AIOps 服务地图
+
+<AwsServicesMap />
+
+### 服务间集成流程
+
+AWS AIOps 服务独立使用时也很有价值，但**集成使用时协同效应最大化**：
+
+1. **CloudWatch Observability Agent** → 收集指标/日志/追踪
+2. **Application Signals** → 服务地图 + SLI/SLO 自动生成
+3. **DevOps Guru** → ML 异常检测 + 建议措施
+4. **CloudWatch Investigations** → AI 根本原因分析
+5. **Q Developer** → 基于自然语言的故障排除
+6. **Hosted MCP** → AI 工具直接访问 AWS 资源
+
+:::tip 使用第三方可观测性栈的情况
+在使用 Datadog、Sumo Logic、Splunk 等第三方解决方案的环境中，也可以将 ADOT（OpenTelemetry）作为收集层，将与上述服务相同的数据发送到第三方后端。MCP 集成层抽象了后端选择，因此 AI 工具和 Agent 在任何可观测性栈上都能一致地工作。
+:::
+
+### 7.7 CloudWatch Generative AI Observability
+
+**发布**：2025年7月 Preview，2025年10月 GA
+
+**核心价值**：超越传统可观测性的 3-Pillar（Metrics/Logs/Traces），添加了 **AI 工作负载专用可观测性**这一第四个 Pillar。
+
+#### LLM 和 AI Agent 工作负载监控
+
+CloudWatch Generative AI Observability **统一监控在 Amazon Bedrock、EKS、ECS、本地环境等任何基础设施上运行的 LLM 和 AI Agent 工作负载**。
+
+**主要功能**：
+
+| 功能 | 说明 |
+|------|------|
+| **Token 消耗追踪** | 实时追踪 Prompt Token、Completion Token、总 Token 使用量 |
+| **延迟分析** | 测量 LLM 调用、Agent 工具执行、整个链路的延迟时间 |
+| **端到端追踪** | 追踪 AI 栈全流程（Prompt → LLM → 工具调用 → 响应） |
+| **幻觉风险路径检测** | 识别发生幻觉（Hallucination）风险高的执行路径 |
+| **Retrieval Miss 识别** | 检测 RAG 管道中知识库检索失败 |
+| **Rate-Limit 重试监控** | 追踪因 API 限制导致的重试模式 |
+| **模型切换决策追踪** | 在多模型策略中可视化模型选择逻辑 |
+
+#### Amazon Bedrock AgentCore 和外部框架兼容性
+
+**原生集成**：
+- Amazon Bedrock Data Automation MCP Server 联动
+- 通过 AgentCore Gateway 自动注入监测
+- 通过 GitHub Action 自动将可观测性数据注入到 PR
+
+**外部框架支持**：
+- LangChain
+- LangGraph
+- CrewAI
+- 其他基于 OpenTelemetry 的 Agent 框架
+
+#### AI 可观测性的特有需求
+
+与传统应用监控不同，AI 工作负载需要以下特有指标：
+
+```
+传统监控：
+  CPU/内存/网络 → 请求数 → 响应时间 → 错误率
+
+AI 工作负载监控：
+  以上项目 + Token 消耗 + 模型延迟 + 工具执行成功率 +
+  Retrieval 准确度 + Hallucination 频率 + Context Window 利用率
+```
+
+**在 EKS 中的应用场景**：
+
+```yaml
+# 在 EKS 上运行的 AI Agent 工作负载
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ai-customer-support-agent
+spec:
+  template:
+    spec:
+      containers:
+      - name: agent
+        image: my-ai-agent:latest
+        env:
+        - name: OTEL_EXPORTER_OTLP_ENDPOINT
+          value: "http://adot-collector:4317"
+        - name: CLOUDWATCH_AI_OBSERVABILITY_ENABLED
+          value: "true"
+```
+
+Agent 运行后，CloudWatch 将自动收集以下内容：
+- 客户咨询 → LLM 调用 → 知识库检索 → 响应生成的完整追踪
+- 每个步骤的 Token 消耗和成本
+- 可能发生 Hallucination 的路径（例如：Retrieval Miss 后 LLM 使用通用知识回答）
+
+:::info AI 可观测性是成本优化的关键
+LLM API 调用按 Token 计费。CloudWatch Gen AI Observability 可以可视化**哪些 Prompt 消耗了过多 Token**、**哪些工具组合效率低下**，从而将 AI 工作负载成本降低 20-40%。
+:::
+
+**参考资料**：
+- [CloudWatch Gen AI Observability Preview 发布](https://aws.amazon.com/blogs/mt/launching-amazon-cloudwatch-generative-ai-observability-preview/)
+- [Agentic AI Observability with CloudWatch](https://www.goml.io/blog/cloudwatch-for-agentic-ai-observability)
+
+### 7.8 GuardDuty Extended Threat Detection — EKS 安全可观测性
+
+**发布**：2025年6月 EKS 支持，2025年12月 EC2/ECS 扩展
+
+**核心价值**：将安全异常检测与运营异常检测集成，实现**全面可观测性（Holistic Observability）**。
+
+#### AI/ML 驱动的多阶段攻击检测
+
+GuardDuty Extended Threat Detection 通过**多数据源关联分析**，检测传统安全监控容易遗漏的精密攻击。
+
+**关联分析数据源**：
+
+| 数据源 | 检测内容 |
+|------------|----------|
+| **EKS 审计日志** | 异常 API 调用模式（例如：权限提升尝试、未授权 Secret 访问） |
+| **运行时行为** | 容器内异常进程执行、意外网络连接 |
+| **恶意软件执行** | 已知/未知恶意软件签名检测 |
+| **AWS API 活动** | CloudTrail 事件与 EKS 活动的时间关联分析 |
+
+#### Attack Sequence Findings — 多资源威胁识别
+
+**单事件检测的局限性**：
+
+```
+传统安全监控：
+  事件 1：Pod 连接到外部 IP → 告警
+  事件 2：IAM 角色临时凭证请求 → 告警
+  事件 3：S3 桶对象列举 → 告警
+
+问题：每个事件单独来看可能是正常的 → 产生误报
+```
+
+**Attack Sequence Findings 方式**：
+
+```
+GuardDuty AI 分析：
+  事件 1 + 事件 2 + 事件 3 在时间和逻辑上关联
+  → 检测到"数据窃取（Data Exfiltration）攻击序列"
+  → 生成单个 Critical Severity Finding
+```
+
+GuardDuty **自动识别跨多个资源（Pod、节点、IAM 角色、S3 桶）和数据源（EKS 日志、CloudTrail、VPC Flow Logs）的攻击链**。
+
+#### 实际案例：2025年11月加密挖矿活动检测
+
+**背景**：自2025年11月2日起的大规模加密挖矿攻击活动以 Amazon EC2 和 ECS 为目标。
+
+**攻击序列**：
+1. **初始入侵**：利用公开的脆弱容器镜像
+2. **权限获取**：通过 IMDS（Instance Metadata Service）窃取 IAM 凭证
+3. **横向移动**：使用获取的凭证启动其他 EC2 实例/ECS 任务
+4. **执行加密挖矿**：在高性能实例上部署挖矿软件
+
+**GuardDuty 检测机制**：
+
+| 检测阶段 | 方法 |
+|-----------|------|
+| **异常行为识别** | 容器尝试连接到意外的外部矿池 |
+| **凭证滥用检测** | IMDS 调用频率激增 + 异常时段的 API 调用 |
+| **资源峰值关联分析** | CPU 100% 使用 + 已知挖矿进程签名 |
+| **攻击链重建** | 按时间顺序关联事件，呈现完整攻击场景 |
+
+**结果**：GuardDuty 自动检测到攻击，AWS 向客户发送了警告，从而防止了数百万美元的潜在成本损失。
+
+**参考资料**：
+- [AWS Security Blog: Cryptomining Campaign Detection](https://aws.amazon.com/blogs/security/cryptomining-campaign-targeting-amazon-ec2-and-amazon-ecs/)
+
+#### AIOps 视角：安全可观测性的融合
+
+**传统分离模式**：
+
+```
+安全团队 → GuardDuty、Security Hub
+运维团队 → CloudWatch、Prometheus
+结果：安全异常和运营异常分别报告 → 关联分析延迟
+```
+
+**AIOps 融合模式**：
+
+```
+GuardDuty Extended Threat Detection（安全异常）
+            ↓
+CloudWatch Investigations（AI 根本原因分析）
+            ↓
+运营指标（CPU、内存、网络）+ 安全事件 集成分析
+            ↓
+"CPU 激增的原因不是正常流量，而是加密挖矿" 自动判定
+```
+
+**在 EKS 环境中的应用**：
+
+```bash
+# 为 EKS 启用 GuardDuty Extended Threat Detection
+aws guardduty create-detector \
+  --enable \
+  --features '[{"Name":"EKS_RUNTIME_MONITORING","Status":"ENABLED"}]'
+
+# 将检测到的威胁发送到 CloudWatch Events
+aws events put-rule \
+  --name guardduty-eks-threats \
+  --event-pattern '{"source":["aws.guardduty"],"detail-type":["GuardDuty Finding"]}'
+```
+
+启用后，GuardDuty 将持续监控 EKS 集群的所有工作负载，**由 AI 自动执行第一阶段分析**，大幅缩短运维团队的响应时间。
+
+:::warning 安全可观测性 = 运营可观测性
+安全异常（例如：加密挖矿）通常首先表现为运营异常（例如：CPU 激增、网络流量异常）。将 GuardDuty Extended Threat Detection 与 CloudWatch 集成后，运维团队可以即时获得"为什么这个 Pod 的 CPU 是 100%？"这个问题的答案——"安全威胁"。
+:::
+
+**参考资料**：
+- [GuardDuty Extended Threat Detection for EKS 发布](https://aws.amazon.com/blogs/aws/amazon-guardduty-expands-extended-threat-detection-coverage-to-amazon-eks-clusters/)
+- [GuardDuty Extended Threat Detection for EC2/ECS](https://aws.amazon.com/about-aws/whats-new/2025/12/guardduty-extended-threat-detection-ec2-ecs/)
+
+详细的可观测性栈构建方法和栈选择模式请参考 [2. 智能可观测性栈](./aiops-observability-stack.md)。
+
+---
+
+## 8. AIOps 成熟度模型
+
+<AiopsMaturityModel />
+
+### 各成熟度级别转型指南
+
+#### Level 0 → Level 1 转型（最快 ROI）
+
+仅需引入 Managed Add-ons 和 AMP/AMG 即可建立可观测性基础。通过 `aws eks create-addon` 命令部署 ADOT、CloudWatch Observability Agent，并使用 AMP/AMG 构建集中式仪表板。
+
+```bash
+# Level 1 起步：部署核心可观测性 Add-ons
+aws eks create-addon --cluster-name my-cluster --addon-name adot
+aws eks create-addon --cluster-name my-cluster --addon-name amazon-cloudwatch-observability
+aws eks create-addon --cluster-name my-cluster --addon-name eks-node-monitoring-agent
+```
+
+#### Level 1 → Level 2 转型（自动化基础）
+
+通过 Managed Argo CD 引入 GitOps，通过 ACK 将 AWS 资源作为 K8s CRD 进行声明式管理。使用 KRO 将复合资源组成单一部署单元后，基础设施变更的一致性和可追溯性将大幅提升。
+
+#### Level 2 → Level 3 转型（智能分析）
+
+激活 CloudWatch AI 和 DevOps Guru，开始 ML 驱动的异常检测和预测分析。通过 CloudWatch Investigations 引入 AI 根本原因分析，利用 Q Developer 进行基于自然语言的故障排除。
+
+#### Level 3 → Level 4 转型（自治运营）
+
+通过 Kiro + Hosted MCP 构建程序化运营体系，部署 Kagent/Strands Agent，使 AI 自主执行事件响应、部署验证和资源优化。
+
+:::warning 建议渐进式引入
+不要试图一次从 Level 0 跳到 Level 4。在每个级别积累足够的运营经验和数据后再过渡到下一级别，成功概率更高。特别是 Level 3 → Level 4 的过渡，**AI 自主恢复的安全性验证**是核心。
+:::
+
+---
+
+## 9. ROI 评估
+
+<RoiMetrics />
+
+### ROI 评估框架
+
+用于系统评估 AIOps 引入 ROI 的框架。
+
+#### 定量指标
+
+<RoiQuantitativeMetrics />
+
+#### 定性指标
+
+- **运维团队满意度**：减少重复工作，专注于战略性工作
+- **部署信心**：通过自动验证提升部署质量
+- **事件响应质量**：根本原因解决率提升
+- **知识管理**：AI Agent 学习响应模式，积累组织知识
+
+### 成本结构考量
+
+<CostStructure />
+
+### 9.1 AIOps ROI 深度分析模型
+
+用于定量和定性评估 AIOps 引入价值的深度分析模型。不仅限于简单的成本节约，还涵盖组织敏捷性和创新能力的提升。
+
+#### 定量 ROI 计算公式
+
+**1. 事件响应成本节约**
+
+```
+因 MTTR 降低而带来的年度节约 = (原 MTTR - 新 MTTR) × 年度事件数 × 每小时响应成本
+
+实战示例：
+- 原 MTTR：平均 2 小时
+- AIOps 引入后 MTTR：平均 20 分钟（0.33 小时）
+- 年度 P1/P2 事件：120 件
+- 每小时响应成本：$150（运维团队 3 人 × $50/小时）
+
+节约额 = (2 - 0.33) × 120 × $150 = $30,060/年
+```
+
+**2. 因故障导致的业务损失减少**
+
+```
+年度停机损失减少 = (原年度停机时间 - 新年度停机时间) × 每小时收入损失
+
+实战示例：
+- 原年度停机时间：8 小时（MTTR 2 小时 × 每月 2 次 × 12 个月 ÷ 6 次重大故障）
+- AIOps 引入后：1.3 小时（MTTR 20 分钟 × 相同频率）
+- 每小时收入损失：$50,000（假设电商平台）
+
+损失减少 = (8 - 1.3) × $50,000 = $335,000/年
+```
+
+**3. 运营自动化带来的人力效率提升**
+
+```
+运维团队生产力提升价值 = 节省的重复工作时间 × 每小时人力成本 × 战略工作价值系数
+
+实战示例：
+- 自动化的重复工作：每周 40 小时（4 人 × 每周 10 小时）
+- 每小时人力成本：$50
+- 战略工作价值系数：1.5 倍（战略工作的价值比重复工作高 50%）
+
+年度价值 = 40 × 52 × $50 × 1.5 = $156,000/年
+```
+
+**4. 预测性扩缩容带来的基础设施成本节约**
+
+```
+年度基础设施成本节约 = 不必要的过度预配成本 - 基于预测优化后的成本
+
+实战示例：
+- 原来：为应对峰值始终 3 倍过度预配 → 每月 $30,000
+- AIOps 预测性扩缩容：峰值前 5 分钟自动扩容 → 平均 1.2 倍预配 → 每月 $12,000
+
+节约额 = ($30,000 - $12,000) × 12 = $216,000/年
+```
+
+**综合定量 ROI：**
+
+| 项目 | 年度节约/价值 |
+|------|--------------|
+| 事件响应成本节约 | $30,060 |
+| 停机损失减少 | $335,000 |
+| 运维团队生产力提升 | $156,000 |
+| 基础设施成本节约 | $216,000 |
+| **总年度价值** | **$737,060** |
+
+**AIOps 引入成本：**
+
+| 项目 | 年度成本 |
+|------|----------|
+| AWS 托管服务（AMP/AMG/DevOps Guru） | $50,000 |
+| Bedrock Agent API 调用成本 | $20,000 |
+| 额外 CloudWatch 日志/指标存储 | $10,000 |
+| 初始建设咨询（一次性） | $30,000 |
+| **总年度成本** | **$110,000** |
+
+**ROI 计算：**
+
+```
+ROI = (总年度价值 - 总年度成本) / 总年度成本 × 100%
+    = ($737,060 - $110,000) / $110,000 × 100%
+    = 570%
+
+投资回收期 = 总年度成本 / 月均价值
+           = $110,000 / ($737,060 / 12)
+           = 1.8 个月
+```
+
+:::warning ROI 计算注意事项
+上述公式是基于**中型组织（员工 100-500 人，年营收 $50M-$200M）**的示例。实际 ROI 会因以下因素而有较大差异：
+
+- 组织规模和事件频率
+- 业务停机的实际影响（电商 vs SaaS vs 内部工具）
+- 现有运营成熟度（从 Level 0 vs Level 2 起步）
+- 集群数量和复杂度
+
+**小型初创企业**（员工 &lt;50 人）绝对金额较小但相对 ROI 可能更高，**大型企业**（员工 &gt;1000 人）绝对金额可能增加 10 倍以上。
+:::
+
+#### 定性价值：团队倦怠减少、开发者体验提升
+
+虽然难以用定量指标衡量，但对组织长期绩效有决定性影响的定性价值。
+
+**1. 运维团队倦怠减少**
+
+| 指标 | AIOps 引入前 | AIOps 引入后 | 改善效果 |
+|------|-------------|-------------|----------|
+| **夜间告警频率** | 每周平均 8 次 | 每周平均 1 次 | AI Agent 自动响应减少 85% |
+| **周末紧急响应** | 每月平均 4 次 | 每月平均 0.5 次 | 通过预测分析先行处理 |
+| **重复工作占比** | 工作时间的 60% | 工作时间的 15% | 自动化减少 45 个百分点 |
+| **运维团队离职率** | 年 25% | 年 8% | 工作满意度提升 |
+| **值班压力评分** | 7.8/10（高） | 3.2/10（低） | 自主恢复大幅降低压力 |
+
+**业务影响：**
+- 运维专家离职率降低 → 年度招聘/培训成本节约：$120,000（假设平均年薪的 40%）
+- 防止因倦怠导致的生产力下降 → 难以量化但增强组织健康度
+
+**2. 开发者体验（DX）提升**
+
+| 指标 | AIOps 引入前 | AIOps 引入后 | 改善效果 |
+|------|-------------|-------------|----------|
+| **部署信心** | 50%（不安感高） | 90%（高信任） | 自动验证和回滚 |
+| **故障原因定位时间** | 平均 45 分钟 | 平均 5 分钟 | AI 根本原因分析 |
+| **基础设施咨询响应时间** | 平均 2 小时 | 即时（Q Developer） | 可自助服务 |
+| **部署频率** | 每周 2 次 | 每天 3 次 | 安全性提升支持更频繁的部署 |
+| **开发者满意度** | 6.2/10 | 8.7/10 | 基础设施复杂性被抽象化 |
+
+**业务影响：**
+- 部署频率增加 → 功能发布速度提升 → 市场竞争力增强
+- 开发者专注于业务逻辑而非基础设施调试 → 产品质量提升
+
+**3. 知识管理和组织学习**
+
+| 指标 | AIOps 引入前 | AIOps 引入后 | 改善效果 |
+|------|-------------|-------------|----------|
+| **事件响应模式文档化** | 手动，不完整 | AI Agent 自动学习 | 防止知识流失 |
+| **新运维人员入职周期** | 3 个月 | 1 个月 | AI 助手实时指导 |
+| **重复故障发生率** | 40% | 5% | 自动应用已学习的响应模式 |
+| **最佳实践应用率** | 30% | 85% | AI 自动应用 |
+
+**业务影响：**
+- 组织知识积累在系统中 → 降低对核心人员的依赖
+- 新团队成员快速发挥生产力 → 增强组织可扩展性
+
+**4. 创新能力提升**
+
+AIOps 引入使运维团队从**重复工作中解放**后，可以专注于战略性工作。
+
+| 转化后的时间用途 | 组织价值 |
+|---------------|----------|
+| **新服务实验** | 新功能发布速度提升 2 倍 |
+| **架构优化** | 基础设施效率提升 20% |
+| **安全强化** | 漏洞响应时间缩短 70% |
+| **成本优化分析** | 年度基础设施成本节约 15% |
+| **团队能力发展** | 云原生专业能力提升 |
+
+:::tip 定性价值的实际影响
+Netflix 的 Chaos Engineering 团队将运营自动化节省的 60% 时间投入到系统韧性改善中，最终**将年度可用性从 99.9% 提升到 99.99%**（[Netflix 案例](https://netflixtechblog.com/tagged/chaos-engineering)）。这是定性投资转化为定量成果的典型示例。
+:::
+
+#### 按阶段投资效益分析（按成熟度级别）
+
+按照 AIOps 成熟度模型（第8节）的各级别分析投资规模和预期效果。
+
+##### Level 0 → Level 1 转型
+
+**投资项目：**
+
+| 项目 | 成本 | 备注 |
+|------|------|------|
+| Managed Add-ons 部署（ADOT、CloudWatch Agent） | $0 | Add-on 本身免费，仅产生数据收集成本 |
+| AMP/AMG 初始配置 | $5,000 | 仪表板构建咨询 |
+| CloudWatch 日志/指标增长 | $3,000/月 | 可观测性数据收集成本 |
+| **总初始投资** | **$5,000 + $3,000/月** | |
+
+**预期效果：**
+
+| 效果 | 衡量指标 | 预期改善 |
+|------|----------|----------|
+| **可观测性可视化** | 指标覆盖率 | 30% → 95% |
+| **事件检测时间** | 故障感知速度 | 平均 30 分钟 → 5 分钟 |
+| **仪表板构建时间** | 新服务监控 | 2 天 → 2 小时（利用 AMG 模板） |
+
+**ROI：** 投资回收期约 **3-4 个月**。消除因缺乏可观测性而产生的盲点是核心价值。
+
+##### Level 1 → Level 2 转型
+
+**投资项目：**
+
+| 项目 | 成本 | 备注 |
+|------|------|------|
+| Managed Argo CD 配置 | $2,000 | GitOps 工作流构建 |
+| ACK + KRO 引入 | $3,000 | IaC 转型咨询 |
+| 将现有手动部署转为 IaC | $10,000 | Terraform/Pulumi 迁移 |
+| **总初始投资** | **$15,000** | |
+
+**预期效果：**
+
+| 效果 | 衡量指标 | 预期改善 |
+|------|----------|----------|
+| **部署时间缩短** | 基础设施变更所需时间 | 平均 2 小时 → 10 分钟 |
+| **部署错误减少** | 配置不一致导致的故障 | 每月 3 次 → 每月 0.2 次 |
+| **回滚速度** | 问题发生时恢复时间 | 平均 45 分钟 → 5 分钟 |
+
+**ROI：** 投资回收期约 **2-3 个月**。部署自动化大幅减少人为错误。
+
+##### Level 2 → Level 3 转型
+
+**投资项目：**
+
+| 项目 | 成本 | 备注 |
+|------|------|------|
+| CloudWatch AI + DevOps Guru 激活 | $8,000/月 | ML 异常检测服务计费 |
+| Q Developer 集成 | $5,000 | 初始配置和 MCP 联动 |
+| Kiro + EKS MCP 服务器构建 | $15,000 | Spec-driven 工作流构建 |
+| **总初始投资** | **$20,000 + $8,000/月** | |
+
+**预期效果：**
+
+| 效果 | 衡量指标 | 预期改善 |
+|------|----------|----------|
+| **根本原因分析速度** | RCA 所需时间 | 平均 2 小时 → 10 分钟 |
+| **预测准确度** | 故障事前检测率 | 0% → 60% |
+| **事件响应 MTTR** | 平均恢复时间 | 2 小时 → 30 分钟 |
+
+**ROI：** 投资回收期约 **4-6 个月**。ML 驱动的预测分析是核心价值。
+
+##### Level 3 → Level 4 转型
+
+**投资项目：**
+
+| 项目 | 成本 | 备注 |
+|------|------|------|
+| Bedrock Agent 构建 | $25,000 | 自治运营 Agent 开发 |
+| Strands/Kagent SOPs 开发 | $20,000 | 自动恢复场景实现 |
+| Bedrock Agent API 调用成本 | $10,000/月 | 生产工作负载计费 |
+| 安全性验证和测试 | $15,000 | 生产应用前的彻底验证 |
+| **总初始投资** | **$60,000 + $10,000/月** | |
+
+**预期效果：**
+
+| 效果 | 衡量指标 | 预期改善 |
+|------|----------|----------|
+| **自动恢复率** | Agent 自主解决比率 | 0% → 70% |
+| **事件响应 MTTR** | 平均恢复时间 | 30 分钟 → 5 分钟 |
+| **夜间/周末告警** | 值班负担 | 每周 8 次 → 每周 1 次 |
+
+**ROI：** 投资回收期约 **6-9 个月**。初始投资较大，但自治运营带来的长期成本节约效果最为显著。
+
+**各级别累积 ROI 对比：**
+
+| 成熟度级别 | 累积初始投资 | 月运营成本 | 年度节约/价值 | 投资回收期 |
+|-----------|-------------|-----------|--------------|--------------|
+| **Level 1** | $5,000 | $3,000 | $100,000 | 3-4 个月 |
+| **Level 2** | $20,000 | $3,000 | $250,000 | 2-3 个月（累积） |
+| **Level 3** | $40,000 | $11,000 | $500,000 | 4-6 个月（累积） |
+| **Level 4** | $100,000 | $21,000 | $737,000 | 6-9 个月（累积） |
+
+:::info 渐进式投资策略
+Level 0 → Level 1 具有**快速 ROI 和低风险**，可以立即开始。Level 2 → Level 3 在组织的自动化能力达到一定程度后再进行，Level 4 则在**充分积累数据并完成安全性验证后**引入较为安全。建议在每个级别积累至少 6 个月以上的运营经验后再过渡到下一阶段。
+:::
+
+---
+
+## 10. 总结
+
+AIOps 是一种运营范式，通过 AI 最大化 K8s 平台的强大功能和可扩展性，同时降低运营复杂度并加速创新。
+
+### 核心要点
+
+1. **AWS 开源战略**：Managed Add-ons + 托管开源（AMP/AMG/ADOT） → 消除运营复杂性
+2. **EKS Capabilities**：Managed Argo CD + ACK + KRO → 声明式自动化的核心组件
+3. **Kiro + Hosted MCP**：Spec-driven 程序化运营 → 高效且快速响应
+4. **AI Agent 扩展**：Q Developer(GA) + Strands(OSS) + Kagent(早期) → 渐进式自治运营
+
+### 下一步
+
+<NextSteps />
+
+### 参考资料
+
+- [AWS AI-Driven Development Life Cycle](https://aws.amazon.com/blogs/devops/ai-driven-development-life-cycle/)
+- [Amazon EKS Add-ons](https://docs.aws.amazon.com/eks/latest/userguide/eks-add-ons.html)
+- [EKS Capabilities](https://docs.aws.amazon.com/eks/latest/userguide/eks-capabilities.html)
+- [AWS Hosted MCP Servers](https://github.com/awslabs/mcp)
+- [Kagent - Kubernetes AI Agent](https://github.com/kagent-dev/kagent)
+- [Strands Agents SDK](https://github.com/strands-agents/sdk-python)
+- [Kiro IDE](https://kiro.dev/)
