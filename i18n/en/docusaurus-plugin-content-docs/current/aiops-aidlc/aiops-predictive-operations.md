@@ -58,9 +58,9 @@ Pod count ██████████░░░░█████████�
 ↑ scaleout start
 | (delay occurrence)
 usage ✓✓✓✓✓✓✓✓✗✗✗✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓
-experience ↑ performance thatdo interval
+experience ↑ performance do interval
 
-[ML prediction scalering]
+[ML predictive scaling]
 
 traffic ████████████████████████░░░░░░░░░
 ↑ prediction point (30 minutes before)
@@ -69,7 +69,7 @@ Pod count ███████████████████████�
 ↑ proactive scaleout
 |
 usage ✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓
-experience (performance thatdo none)
+experience (performance do none)
 ```
 
 ### 2.2 Time Series Forecasting Models
@@ -84,7 +84,7 @@ Representative ML models for predicting EKS workload traffic patterns:
 # Prophet based on EKS traffic prediction
 import boto3
 from prophet import Prophet
-import p and as as pd
+import p and as pd
 from datetime import datetime, timedelta
 
 def fetch_metrics_from_amp(workspace_id, query, hours=168):
@@ -129,7 +129,7 @@ return forecast[['ds', 'yhat', 'yhat_upper', 'yhat_lower']]
 
 def calculate_required_pods(predicted_rps, pod_capacity_rps=100):
 """prediction RPS based on necessary Pod count calculation"""
-# upper limitvalue(yhat_upper) usagewith safe deviltrue allocated
+# upper limitvalue(yhat_upper) usagewith safe true allocated
 required = int(predicted_rps / pod_capacity_rps) + 1
 return max(required, 2) # minimum 2unit maintenance
 
@@ -144,7 +144,7 @@ print(f"Scaled {deployment} to {target_replicas} replicas")
 ### 2.4 CronJob-Based Predictive Scaling Automation
 
 ```yaml
-# prediction scalering periodwith execution CronJob
+# predictive scaling periodwith execution CronJob
 apiVersion: batch/v1
 kind: CronJob
 metadata:
@@ -181,7 +181,7 @@ restartPolicy: OnFailure
 
 ### 2.5 Network Performance Prediction and ML Inference Workload Optimization
 
-EKS's **Container Network Observability** enables fine-grained monitoring of Pod-to-Pod communication patterns, allowing proactive prediction of network bottlenecks and optimization of ML inference workload performance.
+EKS's **Container Network Observability** enables fine-ged monitoring of Pod-to-Pod communication patterns, allowing proactive prediction of network bottlenecks and optimization of ML inference workload performance.
 
 #### Using Container Network Observability Data
 
@@ -191,11 +191,11 @@ EKS's **Container Network Observability** enables fine-grained monitoring of Pod
 # Container Network Observability metric based on bottleneck prediction
 import boto3
 from prophet import Prophet
-import p and as as pd
+import p and as pd
 
 def predict_network_bottleneck(cluster_name, namespace):
 """
-Pod-to-Pod network delay prediction bottleneck possiblesex judgment.
+Pod-to-Pod network delay prediction bottleneck possible judgment.
 """
 cloudwatch = boto3.client('cloudwatch')
 
@@ -263,7 +263,7 @@ return {
 return {'bottleneck_risk': 'LOW'}
 ```
 
-**2. Cross-AZ traffic inferthis → cost optimization prediction**
+**2. Cross-AZ traffic infer → cost optimization prediction**
 
 ```promql
 # Cross-AZ network traffic cost tracking
@@ -278,7 +278,7 @@ source_az!=dest_az
 
 - **topology personexpression scheduling**: Kubernetes Topology Aware Hints utilizing eastone AZ my communication linenumber
 - **service mesh optimization**: Istio locality load balancingwith Cross-AZ traffic minimize
-- **prediction based placement**: ML modelthis communication pattern learning optimal AZ placement suggestion
+- **prediction based placement**: ML model communication pattern learning optimal AZ placement suggestion
 
 ```yaml
 # Topology Aware Hints active
@@ -350,7 +350,7 @@ async def __call__(, request):
 start_time = time.time()
 
 # Rayof minutemountainference call
-result = await.model.generate(request.prompt)
+result = await.model.gene rate(request.prompt)
 
 network_latency = time.time() - start_time
 
@@ -367,7 +367,7 @@ return result
 **2. inference layerturn → scale out treething prediction**
 
 ```python
-# ML inference layerturn based on prediction scalering
+# ML inference layerturn based on predictive scaling
 def predict_inference_scaling(service_name, forecast_hours=2):
 """
 inference layerturn pattern learning scale out necessary point prediction.
@@ -429,13 +429,13 @@ threshold_requests
 return {'scale_out_recommended': False}
 ```
 
-**3. GPU usagerate + network b and width correlationrelationship analysis**
+**3. GPU usage rate + network b and width correlationrelationship analysis**
 
 ```promql
-# GPU usagerate and network b and widthof correlationrelationship
+# GPU usage rate and network b and widthof correlationrelationship
 # (NVIDIA DCGM Exporter metric + Container Network Observability)
 
-# GPU usagerate
+# GPU usage rate
 DCGM_FI_DEV_GPU_UTIL{
 namespace="ml-inference",
 pod=~"vllm-.*"
@@ -447,8 +447,8 @@ namespace="ml-inference",
 pod=~"vllm-.*"
 }[1m])) by (pod)
 
-# correlationrelationship analysis: GPU usagerate < 50% && network b and width > 100MB/s
-# → network bottleneckthis GPU utilization thatsun and havesound
+# correlationrelationship analysis: GPU usage rate < 50% && network b and width > 100MB/s
+# → network bottleneck GPU utilization sun and havesound
 ```
 
 **optimization introduction**:
@@ -491,26 +491,25 @@ sysctl -p
 
 #### EKS Auto Mode Automatic Recovery/Self-Healing
 
-**EKS Auto Mode** node failure automatically detection and recovery, **MTTR(Mean Time To Recovery)** significantly improvement.
+**EKS Auto Mode** node failure automatedally detection and recovery, **MTTR(Mean Time To Recovery)** significantly improvement.
 
-**1. automatic node failure detection and replacement**
+**1. automated node failure detection and replacement**
 
 ```mermaid
 graph TD
 A[node healthcheck] -->|failure| B[Auto Mode detection]
 B --> C{chapterchild type analysis}
-C -->|hardware chapterchild| D[new node immediately prorainthatning]
+C -->|hardware chapterchild| D[new node immediately proning]
 C -->|network chapterchild| E[network wealthconfiguration attempt]
-C -->|software chapterchild| F[automatic reboot]
-D --> G[Pod automatic shift]
+C -->|software chapterchild| F[automated reboot]
+D --> G[Pod automated shift]
 E --> G
-F --> G
-G --> H[service recovery verification]
+F --> G --> H[service recovery verification]
 H -->|failure| B
 H -->|success| I[recovery completion]
 ```
 
-**automatic recovery treething**:
+**automated recovery treething**:
 
 - **NodeNotReady**: node 5 minutes anomaly NotReady status
 - **NetworkUnavailable**: network plugin failure
@@ -519,11 +518,11 @@ H -->|success| I[recovery completion]
 
 **2. OS patching automation**
 
-Auto Mode **firstwith alllucktime OS patching** automatically execution:
+Auto Mode **firstwith alllucktime OS patching** automatedally execution:
 
 ```yaml
-# Auto Mode node automatic update policy (usage configuration necessary)
-# AWS automatically managementdoing internal policy examplehour
+# Auto Mode node automated update policy (usage configuration necessary)
+# AWS automatedally managementdoing internal policy examplehour
 nodeMaintenance:
 autoUpdate: true
 maintenanceWindow:
@@ -544,15 +543,15 @@ respectPodDisruptionBudget: true
 
 **3. security service integration**
 
-Auto Mode AWS security service and automatic integration **security incident automatic response**this possible:
+Auto Mode AWS security service and automated integration **security incident automated response** possible:
 
 ```
 GuardDuty Extended Threat Detection
 ↓ (cancernumberlung gathercave detection)
-Auto Mode automatic response
+Auto Mode automated response
 ↓
 1. impactreceive node isolation (Taint: NoSchedule)
-2. new node prorainthatning
+2. new node proning
 3. sesameendone nodewith Pod shift
 4. reductionsalt node termination and gunlenexpression data collection
 5. CloudWatch Logsat incident record
@@ -560,22 +559,22 @@ Auto Mode automatic response
 
 **4. predictionly relatedpoint: Auto Modeof MTTR improvement**existing shift operation vs Auto Mode compared to**:
 
-| failure scenario | shift operation MTTR | Auto Mode MTTR | improvementrate |
+| failure scenario | shift operation MTTR | Auto Mode MTTR | improvement rate |
 |--------------|----------------|----------------|--------|
 | node hardware failure | 15-30 minutes | 2-5 minutes | **83% reduction** |
 | OS security defeathit | count time (totalstroke alllucktime) | 0 minutes (firstwith alllucktime) | **100% improvement** |
 | network plugin failure | 10-20 minutes | 1-3 minutes | **85% reduction** |
-| evilsexcode reductionsalt | 30 minutes-1time | 5-10 minutes | **80% reduction** |
+| evilcode reductionsalt | 30 minutes-1time | 5-10 minutes | **80% reduction** |
 
 **prediction operation relatedpointof Auto Mode value**:
 
-- **proactively replacement**: node performance thatdo detection failure beforeat replacement
-- **automatic capacity management**: workload pattern learning optimal node type automatic choice
-- **nothingduring maintenanceseecount**: usage unitmouth not existthis security defeathit and upthatlayerrare automatic execution
-- **cost optimization**: Spot instance during automatically On-Dem and with failfive
+- **proactively replacement**: node performance do detection failure beforeat replacement
+- **automated capacity management**: workload pattern learning optimal node type automated choice
+- **during maintenanceseecount**: usage unitmouth not exist security defeathit and uplayerrare automated execution
+- **cost optimization**: Spot instance during automatedally On-Dem and with failfive
 
-:::tip Auto Mode + prediction operationof houryouearth
-Auto Modeof automatic recovery features **reactionly(Reactive)**thisearthonly, Container Network Observability data and as a result **predictionly(Predictive)** operationthis possible. network performance thatdo pattern detection failure occurrencedoperiod beforeat node replacementdoor, ML inference workloadof network bottleneck proactively resolutiondo is possible.
+:::tip Auto Mode + prediction operation houryouearth
+Auto Modeof automated recovery features **reactionly(Reactive)**earthonly, Container Network Observability data and as a result **predictionly(Predictive)** operation possible. network performance do pattern detection failure occurrencedoperiod beforeat node replacementdoor, ML inference workloadof network bottleneck proactively resolutiondo is possible.
 :::
 
 ---
@@ -584,7 +583,7 @@ Auto Modeof automatic recovery features **reactionly(Reactive)**thisearthonly, C
 
 ### 3.1 Karpenter Basic Operation
 
-Karpenter detects Pending Pods and **automatically selects suitable instance types** for provisioning.
+Karpenter detects Pending Pods and **automatedally selects suitable instance types** for provisioning.
 
 ```yaml
 # Karpenter NodePool configuration
@@ -657,7 +656,7 @@ end
 subgraph Preemptive["⚡ linefirst action"]
 WARM["Warm Pool<br/>Pod creation"]
 PAUSE["Pause<br/>Containers"]
-KARP["Karpenter<br/>node prorainthatning"]
+KARP["Karpenter<br/>node proning"]
 end
 
 subgraph Runtime["🚀 actual traffic"]
@@ -666,8 +665,7 @@ HPA2["HPA<br/>immediately scale"]
 READY["Pod<br/>immediately service"]
 end
 
-CW_M --> ML --> PRED
-PRED --> WARM --> KARP
+CW_M --> ML --> PRED --> WARM --> KARP
 PRED --> PAUSE --> KARP
 TRAFFIC --> HPA2 --> READY
 KARP -.->|node preparation completion| READY
@@ -709,22 +707,22 @@ metadata:
 name: capacity-reservation
 value: -10
 globalDefault: false
-description: "Karpenter node linefirst prorainthatninguse"
+description: "Karpenter node proactive provisioninguse"
 ```
 
 :::tip proactive provisioningof principle
 
-1. ML modelthis 30 minutes after traffic increase prediction
+1. ML model 30 minutes after traffic increase prediction
 2. Placeholder Pod(pause container)of replicas alwaysrim
 3. Karpenter Pending Pod detection node provisioning
-4. actual trafficthis fiveif HPA actual Pod creation
+4. actual traffic fiveif HPA actual Pod creation
 5. Placeholder Pod daemonset prioritywith immediately eviction
 6. node immediately preparation allows Pod immediately scheduling
 :::
 
 ### 3.5 ARC + Karpenter Integrated Automatic AZ Evacuation
 
-**ARC(Application Recovery Controller)** AWSof andavailability servicewith, AZ failure automatically detection and traffic healthyone AZwith shiftmaintain. Karpenter and integration **node levelof automatic recovery**until possible.
+**ARC(Application Recovery Controller)** AWSof andavailability servicewith, AZ failure automatedally detection and traffic healthyone AZwith shiftmaintain. Karpenter and integration **node levelof automated recovery**until possible.
 
 #### ARC Overview
 
@@ -732,12 +730,12 @@ Application Recovery Controller the following 3 key features provides:
 
 - **Readiness Check**: application health status continuouslywith monitoring
 - **Routing Control**: Route 53 ALB throughsun traffic routing control
-- **Zonal Shift**: AZ unit traffic automatically shiftwith shift
+- **Zonal Shift**: AZ unit traffic automatedally shiftwith shift
 
 #### Karpenter Integration Pattern
 
 ```yaml
-# ARC Zonal Shift hourthatyou detectiondoing Controller
+# ARC Zonal Shift houryou detectiondoing Controller
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -775,7 +773,7 @@ ARC->>ARC: Gray Failure pattern detection
 ARC->>R53: Zonal Shift start (AZ-A OUT)
 ARC->>K8s: Node Taint addition (NoSchedule)
 K8s->>Karp: Pending Pod event occurrence
-Karp->>AZ_B: alternative node prorainthatning
+Karp->>AZ_B: alternative node proning
 AZ_B-->>K8s: new node etcrecord completion
 K8s->>Pod: Pod safe shift (PDB preparecount)
 Pod-->>AZ_B: service recovery completion
@@ -785,7 +783,7 @@ K8s->>AZ_A: node cleanup and removal
 
 #### Gray Failure H and ling
 
-**Gray Failure** before failure ahnin performance thatdo status of. ARC the following pattern detection:
+**Gray Failure** before failure ahnin performance do status of. ARC the following pattern detection:
 
 - **network delay increase**: normal 5ms → 50ms anomaly
 - **betweenhully timeout**: requestof 1-5% failure
@@ -846,7 +844,7 @@ RoutingControlState='Off' # AZ-A traffic blocking
 Istio service mesh usagedoif **L7 levelof traffic control** possible:
 
 ```yaml
-# Istio DestinationRule: AZ chapterchild automatic failfive
+# Istio DestinationRule: AZ chapterchild automated failfive
 apiVersion: networking.istio.io/v1beta1
 kind: DestinationRule
 metadata:
@@ -874,14 +872,14 @@ to: ap-northeast-2c
 3. **Istio Envoy** → AZ-A internal Podwith going East-West traffic blocking
 4. **Karpenter** → AZ-Cat alternative node provisioning
 5. **Kubernetes** → PDB preparecountdo and Pod safe shift
-6. **Istio** → new Podwith traffic automatic routing
+6. **Istio** → new Podwith traffic automated routing
 
 #### Predictive AZ Management
 
 Container Network Observability data utilizing **AZ performance anomaly proactivelywith detection:
 
 ```promql
-# AZstar network errorrate inferthis
+# AZstar network error rate infer
 sum(rate(pod_network_rx_errors_total[5m])) by (availability_zone)
 / sum(rate(pod_network_rx_packets_total[5m])) by (availability_zone)
 * 100
@@ -896,7 +894,7 @@ sum(rate(pod_network_latency_bucket[5m])) by (availability_zone, le)
 
 - **tracklenrare analysis**: past 7onebetween AZstar performance pattern learning
 - **threshold alarm**: performance degradationbased compared to 20% exceeded notification
-- **proactively Shift**: 30% exceeded automatic Zonal Shift consideration
+- **proactively Shift**: 30% exceeded automated Zonal Shift consideration
 - **cost optimization**: Cross-AZ traffic cost considerationone optimal placement
 
 :::warning ARC + Karpenter integration weekoffourport
@@ -921,7 +919,7 @@ app: payment-service
 
 ### 4.1 Anomaly Detection B and s
 
-CloudWatch Anomaly Detection uses ML to automatically learn the **normal range b and s** of metrics and detect anomalies outside these b ands.
+CloudWatch Anomaly Detection uses ML to automatedally learn the **normal range b and s** of metrics and detect anomalies outside these b ands.
 
 ```bash
 # Anomaly Detection model creation
@@ -989,12 +987,12 @@ aws cloudwatch put-metric-alarm \
 EventBridge + Lambda-based automation is **rule-based** and has limitations:
 
 ```
-[existing approach: rule based on automatic]
+[existing approach: rule based on automated]
 CloudWatch Alarm → EventBridge Rule → Lambda → andstop action
 
 problempoint:
-✗ "CPU > 80%thisif scaleout" — causethis memory leak count havesound
-✗ "Pod restart > 5thisif notification" — causestar response allrm
+✗ "CPU > 80%if scaleout" — cause memory leak count havesound
+✗ "Pod restart > 5if notification" — causestar response allrm
 ✗ threshold chapterchild response 
 ✗ new patternat lyyes 
 ```
@@ -1016,7 +1014,7 @@ end
 subgraph Agent["🤖 AI Agent"]
 COLLECT["data collection<br/>(MCP integration)"]
 ANALYZE["AI analysis<br/>(root cause)"]
-DECIDE["judgment<br/>(automatic/shift)"]
+DECIDE["judgment<br/>(automated/shift)"]
 ACT["execution<br/>(safeone action)"]
 REPORT["report<br/>(Slack/Jira)"]
 end
@@ -1025,14 +1023,12 @@ subgraph Actions["⚡ response action"]
 SCALE["scalering<br/>adjustment"]
 RESTART["Pod<br/>restart"]
 ROLLBACK["deployment<br/>rollback"]
-ESCALATE["fourpersonatso that<br/>atscurllayertion"]
+ESCALATE["fourpersonatso <br/>atscurllayertion"]
 end
 
 CWA --> COLLECT
 DGA --> COLLECT
-K8SE --> COLLECT
-COLLECT --> ANALYZE --> DECIDE
-DECIDE --> ACT --> REPORT
+K8SE --> COLLECT --> ANALYZE --> DECIDE --> ACT --> REPORT
 ACT --> SCALE
 ACT --> RESTART
 ACT --> ROLLBACK
@@ -1042,14 +1038,14 @@ ACT --> ESCALATE
 ### 5.3 Kagent Automated Incident Response
 
 ```yaml
-# Kagent: automatic incident response atprevioustrack
+# Kagent: automated incident response atprevioustrack
 apiVersion: kagent.dev/v1alpha1
 kind: Agent
 metadata:
 name: incident-responder
 namespace: kagent-system
 spec:
-description: "EKS incident automatic response atprevioustrack"
+description: "EKS incident automated response atprevioustrack"
 modelConfig:
 provider: bedrock
 model: anthropic.claude-sonnet
@@ -1058,19 +1054,19 @@ systemPrompt: |
 partygod EKS incident response atprevioustrackis.
 
 ## response circlerule
-1. safeline: riskone change fourpersonatso thatscurllayertion
-2. root causeline: symptomthis ahnin causeat response
+1. safeline: riskone change fourpersonatso scurllayertion
+2. root causeline: symptom ahnin causeat response
 3. minimum unitmouth: necessaryone minimumoneof actiononly execution
-4. all action record: Slack and JIRAat automatic report
+4. all action record: Slack and JIRAat automated report
 
-## automatic action permission scope
+## automated action permission scope
 - Pod restart (CrashLoopBackOff, 5times anomaly)
 - HPA min/max adjustment (currentvalueof ±50% scope)
 - Deployment rollback (previous versionwith)
 - node d (MemoryPressure/DiskPressure)
 
 ## atscurllayertion target
-- data h and thread possiblesexthis have action
+- data h and thread possible have action
 - 50% anomalyof replicas impact
 - StatefulSet relatedrelated change
 - network policy change
@@ -1103,7 +1099,7 @@ reason: ["CrashLoopBackOff", "OOMKilled", "FailedScheduling"]
 ### 5.4 Strands Agent SOP: Complex Failure Response
 
 ```python
-# Strands Agent: threshold chapterchild automatic response
+# Strands Agent: threshold chapterchild automated response
 from str and s import Agent
 from str ands.tools import eks_tool, cloudwatch_tool, slack_tool, jira_tool
 
@@ -1114,23 +1110,23 @@ tools=[eks_tool, cloudwatch_tool, slack_tool, jira_tool],
 sop="""
 ## threshold chapterchild response SOP
 
-### Phase 1: situation underst and ing (30 seconds thismy)
+### Phase 1: situation underst and ing (30 seconds my)
 1. CloudWatch alarm and DevOps Guru personbetweentrack query
 2. relatedrelated serviceof Pod status confirmation
-3. node status and resource usagerate confirmation
-4. recent deployment history confirmation (10 minutes thismy change fourport)
+3. node status and resource usage rate confirmation
+4. recent deployment history confirmation (10 minutes my change fourport)
 
-### Phase 2: root cause analysis (2 minutes thismy)
+### Phase 2: root cause analysis (2 minutes my)
 1. log in error pattern inferexit
 2. metric correlation analysis (CPU, Memory, Network, Disk)
 3. deployment change and of timely correlationrelationship analysis
 4. dependency service status confirmation
 
-### Phase 3: automatic response
-causestar automatic action:
+### Phase 3: automated response
+causestar automated action:
 
 **deployment relatedrelated chapterchild:**
-- recent 10 minutes thismy deployment existence → automatic rollback
+- recent 10 minutes my deployment existence → automated rollback
 - rollback after status confirmation → normalbecomeif completion
 
 **resource parttribe:**
@@ -1142,25 +1138,25 @@ causestar automatic action:
 - SQS delay → DLQ confirmation, small scaleout
 
 **cause name:**
-- fourpersonatso thatscurllayertion
+- fourpersonatso scurllayertion
 - collection all data Slackat publicexist
 
 ### Phase 4: post processing
 1. incident timebased creation
 2. JIRA incident teaket creation
-3. Slack #incidents channelat reportwest so thathour
+3. Slack #incidents channelat reportwest so hour
 4. learning datawith storage (feedback loop)
 """
 )
 ```
 
 :::info AI Agentof core value
-EventBridge+Lambda exceed AI context based autonomous responsethis possible. **allamountone data source**(CloudWatch, EKS API, X-Ray, deployment history) **MCPwith integration query**, rulewith responsedo count without threshold failure root cause analysis and lytempleone action automatically execution.
+EventBridge+Lambda exceed AI context based autonomous response possible. **allamountone data source**(CloudWatch, EKS API, X-Ray, deployment history) **MCPwith integration query**, rulewith responsedo count without threshold failure root cause analysis and lytempleone action automatedally execution.
 :::
 
 ### 5.5 CloudWatch Investigations — AI-Based Automatic Root Cause Analysis
 
-**CloudWatch Investigations** AWS 17yearbetween axislyone operation experience basedwith constructionone **creationshape AI based automatic investigation system**is. incident occurrence AI automatically hypothesis creationand, data collectiondoand, verificationdoing investigation workflow execution.
+**CloudWatch Investigations** AWS 17yearbetween axislyone operation experience basedwith constructionone **creation AI based automated investigation system**is. incident occurrence AI automatedally hypothesis creationand, data collectiondoand, verificationdoing investigation workflow execution.
 
 #### CloudWatch Investigations Overview
 
@@ -1173,7 +1169,7 @@ end
 
 subgraph Investigation["🔍 AI investigation prothrees"]
 HYPO["hypothesis creation<br/>(AI)"]
-COLLECT["data collection<br/>(automatic)"]
+COLLECT["data collection<br/>(automated)"]
 ANALYZE["correlation analysis<br/>(AI)"]
 ROOT["root cause<br/>inference"]
 end
@@ -1192,51 +1188,47 @@ REPORT["detail reportwest"]
 end
 
 ALARM --> HYPO
-SIGNAL --> HYPO
-HYPO --> COLLECT
-COLLECT --> METRICS
+SIGNAL --> HYPO --> COLLECT --> METRICS
 COLLECT --> LOGS
 COLLECT --> TRACES
 COLLECT --> DEPLOY
 METRICS --> ANALYZE
 LOGS --> ANALYZE
 TRACES --> ANALYZE
-DEPLOY --> ANALYZE
-ANALYZE --> ROOT
-ROOT --> SUMMARY
+DEPLOY --> ANALYZE --> ROOT --> SUMMARY
 ROOT --> REMEDIATION
 ROOT --> REPORT
 ```
 
 #### key features
 
-**1. Application Signals integration: service map based impact automatic analysis**
+**1. Application Signals integration: service map based impact automated analysis**
 
-CloudWatch Investigations Application Signals automatic creationone service map utilizing **failure beforegreen path** tracking:
+CloudWatch Investigations Application Signals automated creationone service map utilizing **failure beforegreen path** tracking:
 
 ```yaml
-# Application Signals automatic service map examplehour
-payment-gateway (errorrate increase 25%)
+# Application Signals automated service map examplehour
+payment-gateway (error rate increase 25%)
 └─> payment-service (layerturn increase 300%)
 ├─> postgres-db (connection pool exhaustion)
 └─> redis-cache (normal)
 └─> dynamodb (normal)
 ```
 
-Investigations this map analysis:
+Investigations map analysis:
 - **Root Cause**: `postgres-db` connection pool exhaustion
 - **Impacted Services**: `payment-service`, `payment-gateway`
 - **Propagation Path**: DB → Service → Gateway
 
-**2. related metric/log/tracklayers automatic correlation analysis**
+**2. related metric/log/tracklayers automated correlation analysis**
 
 ```python
-# Investigations execution automatic correlation analysis examplehour
+# Investigations execution automated correlation analysis examplehour
 
 # timely correlationrelationship
 payment_service_errors.spike_at = "2026-02-12 14:23:00"
 db_connection_pool.exhausted_at = "2026-02-12 14:22:55"
-# → 5 seconds difference: DB problem service errorthan farthat occurrence
+# → 5 seconds difference: DB problem service errorthan far occurrence
 
 # metric correlationrelationship
 db_active_connections = 100 (max_connections arrival)
@@ -1251,16 +1243,16 @@ logs.frequency = 1,234 occurrences in last 5 minutes
 
 **3. hypothesis based root cause inference**
 
-Investigations the following and same hypothesis automatic creation and verification:
+Investigations the following and same hypothesis automated creation and verification:
 
 | hypothesis | verification method | results |
 |------|----------|------|
 | DB connection pool exhaustion | `db_connections` metric confirmation | ✓ confirmation |
 | network delay | VPC Flow Logs analysis | ✗ normal |
 | OOM(memory parttribe) | container memory metric confirmation | ✗ normal |
-| deployment afterthat | recent deployment history query | ✓ 10 minutes before deployment confirmation |
+| deployment after | recent deployment history query | ✓ 10 minutes before deployment confirmation |
 
-**final conclusion**: recent deploymentfrom/at DB connection pool configurationthis `maxPoolSize=50`from/at `maxPoolSize=10`with wellcannot change.
+**final conclusion**: recent deploymentfrom/at DB connection pool configuration `maxPoolSize=50`from/at `maxPoolSize=10`with wellcannot change.
 
 **4. investigation results summary and recovery suggestion**
 
@@ -1274,7 +1266,7 @@ payment-serviceof DB connection pool configuration error
 (maxPoolSize: 50 → 10with wellcannot change)
 
 📊 impact (Impact):
-- payment-gateway: errorrate 25% increase
+- payment-gateway: error rate 25% increase
 - payment-service: layerturn 300% increase
 - impactreceive request: approximately 15,000case
 
@@ -1282,13 +1274,13 @@ payment-serviceof DB connection pool configuration error
 14:10 - deployment start (v1.2.3 → v1.2.4)
 14:22 - DB connection pool exhaustion start
 14:23 - service error classincrease alarm occurrence
-14:25 - Investigations automatic start
+14:25 - Investigations automated start
 
 💡 recommended action:
 1. immediately rollback: kubectl rollout undo deployment/payment-service
 2. DB connection pool configuration recovery: maxPoolSize=50
 3. deployment before environment variable verification stage addition
-4. ConfigMap change automatic verification sbigliptrack application
+4. ConfigMap change automated verification sbigliptrack application
 
 📋 relatedrelated resource:
 - Runbook: https://wiki/db-connection-pool-issue
@@ -1301,11 +1293,11 @@ payment-serviceof DB connection pool configuration error
 
 | sideif | CloudWatch Investigations | Kagent / Strands Agent |
 |------|--------------------------|------------------------|
-| **operation approach** | AWS managementshape (configuration necessary) | usage installation·operation |
-| **analysis scope** | AWS beforestation data automatic collection | configured data sourceonly |
-| **root cause analysis** | AI based automatic hypothesis creation·verification | SOP based rule execution |
+| **operation approach** | AWS management (configuration necessary) | usage installation and operation |
+| **analysis scope** | AWS beforestation data automated collection | configured data sourceonly |
+| **root cause analysis** | AI based automated hypothesis creation and verification | SOP based rule execution |
 | **binsights** | limitations (AWS programmable) | high (before self-managed) |
-| **automatic recovery** | suggestiononly provision (execution inside do) | automatic execution possible |
+| **automated recovery** | suggestiononly provision (execution inside do) | automated execution possible |
 | **cost** | CloudWatch fourcapacity based | infrastructure costonly |
 | **learning curveline** | none (immediately usage possible) | duringbetween (YAML creation necessary) |
 
@@ -1317,7 +1309,7 @@ A[CloudWatch Alarm] --> B[Investigations]
 B --> C{root cause identification}
 C -->|namecertainone cause| D[EventBridge]
 C -->|namecertain| E[fourperson atscurllayertion]
-D --> F[Kagent automatic recovery]
+D --> F[Kagent automated recovery]
 F --> G[recovery completion]
 G --> H[Investigations wealthverification]
 ```
@@ -1337,11 +1329,11 @@ G --> H[Investigations wealthverification]
 ```
 
 ```python
-# EventBridge → Kagent automatic recovery Lambda
+# EventBridge → Kagent automated recovery Lambda
 def lambda_h and ler(event, context):
 """
 CloudWatch Investigations result receiveah
-Kagent throughsun automatic recovery treething.
+Kagent throughsun automated recovery treething.
 """
 investigation = event['detail']
 root_cause = investigation['conclusion']['rootCauseType']
@@ -1363,11 +1355,11 @@ target_replicas=calculate_required_replicas()
 ```
 
 :::tip CloudWatch Investigations utilization introduction
-CloudWatch Investigations configuration not existthis outsidewith usagedo count have managementshape AI analysisis. custom automation necessaryone case Kagent/Strands Agent and doto usagedothree.
+CloudWatch Investigations configuration not exist outsidewith usagedo count have management AI analysisis. custom automation necessaryone case Kagent/Strands Agent and doto usagedothree.
 
 **recommended workflow**:
-1. **1car analysis**: CloudWatch Investigationswith root cause automatic identification
-2. **2car response**: namecertainone causeperson case → Kagent/Strandswith automatic recovery
+1. **1car analysis**: CloudWatch Investigationswith root cause automated identification
+2. **2car response**: namecertainone causeperson case → Kagent/Strandswith automated recovery
 3. **atscurllayertion**: namecertainone case → fourpersonto investigation results beforemoon
 :::
 
@@ -1376,7 +1368,7 @@ CloudWatch Investigations configuration not existthis outsidewith usagedo count 
 ```
 [incident] 14:45 - payment-service Pod OOMKilled
 
-[Investigations automatic investigation]
+[Investigations automated investigation]
 
 stage 1: hypothesis creation
 - hypothesis A: memory count
@@ -1384,8 +1376,8 @@ stage 1: hypothesis creation
 - hypothesis C: memory limits configuration error
 
 stage 2: data collection
-- Pod memory usage inferthis: 100Mi → 512Mi (4time)
-- traffic inferthis: change none (stablely)
+- Pod memory usage infer: 100Mi → 512Mi (4time)
+- traffic infer: change none (stablely)
 - Heap dump analysis: Redis connection objectsystem 10,000unit ly
 
 stage 3: root cause identification
@@ -1411,17 +1403,17 @@ modification PR: https://github.com/...
 
 ### 5.6 Amazon Q Developer Natural Language-Based Operations Automation
 
-**Amazon Q Developer** AWSof carthreeversus AIhoursturntrackwith, **selfyear interface** throughsun EKS operation revolutiongodlywith betweensmcomprehensively. console searchcolorthisI complexone comm and not existthis, onetop in language qualitydoor and action requestdo is possible.
+**Amazon Q Developer** AWSof carthreeversus AIhoursturntrackwith, **selfyear interface** throughsun EKS operation revolutiongodlywith betweensmcomprehensively. console searchcolorI complexone comm and not exist, onetop in language qualitydoor and action requestdo is possible.
 
 #### Natural Language Interface-Based EKS Troubleshooting
 
-Amazon Q Developer **selfyear quality of** AWS API call and kubectl comm and with automatic conversion execution:
+Amazon Q Developer **selfyear quality of** AWS API call and kubectl comm and with automated conversion execution:
 
 **scenario 1: OOM occurrence Pod findperiod**
 
 ```
 [usage qualitydoor]
-"this cluster in OOMthis occurrencedoing Pod findahgive"
+" cluster in OOM occurrencedoing Pod findahgive"
 
 [Amazon Q Developer response]
 analysis duringis...
@@ -1439,11 +1431,11 @@ footview OOM event:
 
 execution command:
 $ kubectl get events --all-namespaces --field-selector reason=OOMKilled
-$ kubectl top pod -n payment payment-service-7d8f9c4b-xyz
-$ kubectl describe pod -n payment payment-service-7d8f9c4b-xyz
+$ kubectl top pod -n payment-service-7d8f9c4b-xyz
+$ kubectl describe pod -n payment-service-7d8f9c4b-xyz
 
 the following action circledohourI?
-1. memory limits automatic adjustment (VPA application)
+1. memory limits automated adjustment (VPA application)
 2. detail memory profilering start
 3. relatedrelated log introduction analysis
 ```
@@ -1452,7 +1444,7 @@ the following action circledohourI?
 
 ```
 [usage qualitydoor]
-"past 1time eastinside CPU usageratethis 80% anomalyperson node?"
+"past 1time eastinside CPU usage rate 80% anomalyperson node?"
 
 [Amazon Q Developer response]
 CloudWatch Container Insights data query and exists...
@@ -1480,8 +1472,8 @@ period: 1h
 threshold: > 80%
 
 the following action executiondoto?
-1. Karpenterwith new node automatic prorainthatning
-2. high load Pod allbecome nodewith shift shift
+1. Karpenterwith new node automated proning
+2. high load Pod allbecome nodewith shift
 3. HPA configuration checkearth and adjustment
 ```
 
@@ -1489,7 +1481,7 @@ the following action executiondoto?
 
 ```
 [usage qualitydoor]
-"this Deployment rollbacksungive"
+" Deployment rollbacksungive"
 
 [Amazon Q Developer response]
 payment-service Deploymentof rollback preparation and exists...
@@ -1497,8 +1489,8 @@ payment-service Deploymentof rollback preparation and exists...
 current deployment status:
 - Revision: 15
 - deployment time: 2026-02-12 14:30:00 (15 minutes before)
-- errorrate: 12.3% (normal 0.5% compared to classincrease)
-- previous stable version: Revision 14 (errorrate 0.4%)
+- error rate: 12.3% (normal 0.5% compared to classincrease)
+- previous stable version: Revision 14 (error rate 0.4%)
 
 rollback target:
 - current: payment-service:v2.3.1 (Revision 15)
@@ -1519,7 +1511,7 @@ rollback executiondoto? (yes/no)
 
 ```
 [usage qualitydoor]
-"payment-service databaseat connectiondo count without thisexist findahgive"
+"payment-service databaseat connectiondo count without thiist findahgive"
 
 [Amazon Q Developer response]
 network connection problem diagnosis and exists...
@@ -1547,7 +1539,7 @@ $ kubectl edit networkpolicy database-access-policy -n payment
 
 the following ingress.from.podSelectorat addition:
 matchLabels:
-app: payment-service # ← this addition
+app: payment-service # ← addition
 
 modified YAML summary:
 ---
@@ -1570,7 +1562,7 @@ matchLabels:
 app: order-service
 ---
 
-automatically modificationdoto? (yes/no)
+automatedally modificationdoto? (yes/no)
 ```
 
 #### Cost Explorer Integration
@@ -1581,7 +1573,7 @@ Amazon Q Developer **AWS Cost Explorer** and integration allows cost quality of 
 
 ```
 [usage qualitydoor]
-"thistime moon EKS costthis why increasedid?"
+"time moon EKS cost why increasedid?"
 
 [Amazon Q Developer response]
 Cost Explorer data analysis and exists...
@@ -1594,17 +1586,17 @@ increase cause:
 1. computing cost increase: +$3,200 (52% periodsix)
 - m5.4xlarge instance usage increase
 - cause: ML inference workload increase (vLLM deployment)
-- recommended: Graviton (m7g) devilthisthatlayertionwith 40% cost reduction possible
+- recommended: Graviton (m7g) layertionwith 40% cost reduction possible
 
 2. data beforesong cost increase: +$1,800 (29% periodsix)
 - Cross-AZ traffic increase (150GB → 450GB)
-- cause: new devilthisbigwithservice between communication pattern
+- cause: new bigwithservice between communication pattern
 - recommended: Topology Aware Hintswith eastone AZ communication linenumber
 
 3. EBS searthearth cost increase: +$950 (15% periodsix)
 - gp3 volume fourcapacity increase (500GB → 1,200GB)
 - cause: Prometheus metric storage period yearchapter (7one → 30one)
-- recommended: S3with chapterperiod storage data thisrelated
+- recommended: S3with chapterperiod storage data related
 
 4. load valcertainwest cost increase: +$250 (4% periodsix)
 - ALB LCU usage increase
@@ -1618,7 +1610,7 @@ cost optimization suggestion reportwest creation during...
 
 ```
 [usage qualitydoor]
-"Spot instancewith transitiondoif facedevilI cost reductiondo count have?"
+"Spot instancewith transitiondoif faceI cost reductiondo count have?"
 
 [Amazon Q Developer response]
 Spot cost reduction hourmulelayertion execution and exists...
@@ -1635,24 +1627,24 @@ scenario A: seecountly transition (Stateless workloadonly)
 - On-Dem and node: 13unit (30%)
 - example month cost: $3,200
 - cost reductionliquid: $5,300/month (62% cost reduction)
-- riskalso: daysound (Stateful workload On-Dem and maintenance)
+- risk: daysound (Stateful workload On-Dem and maintenance)
 
 scenario B: lyextremely transition (versuspart Spot)
 - Spot node: 40unit (89%)
 - On-Dem and node: 5unit (11%)
 - example month cost: $1,900
 - cost reductionliquid: $6,600/month (78% cost reduction)
-- riskalso: duringbetween (Spot during partial service impact)
+- risk: duringbetween (Spot during partial service impact)
 
 Spot during response:
-- Karpenter automatic wealthprorainthatning: average 90 seconds
+- Karpenter automated wealthproning: average 90 seconds
 - Spot Instance Interruption Warning: 2 minutes before notification
 - PDBwith minimum availability guarantee
 
 recommended fourport:
-1. scenario Awith start (stablesexline)
+1. scenario Awith start (stableline)
 2. 2week eastinside monitoring
-3. stablelythisif scenario Bwith expansion
+3. stablelyif scenario Bwith expansion
 
 Spot transition totalstrokewest creation during...
 ```
@@ -1672,7 +1664,7 @@ end
 subgraph QDev["🤖 Amazon Q Developer"]
 INTENT["of analysis"]
 ORCHESTRATE["MCP server fivecasestracklayertion"]
-SYNTHESIZE["response sumsex"]
+SYNTHESIZE["response sum"]
 end
 
 subgraph MCP["📡 MCP serverplural"]
@@ -1689,9 +1681,7 @@ CE["Cost Explorer"]
 BEDROCK["Bedrock"]
 end
 
-NL --> INTENT
-INTENT --> ORCHESTRATE
-ORCHESTRATE --> EKS_MCP
+NL --> INTENT --> ORCHESTRATE --> EKS_MCP
 ORCHESTRATE --> CW_MCP
 ORCHESTRATE --> CE_MCP
 ORCHESTRATE --> BEDROCK_MCP
@@ -1702,8 +1692,7 @@ BEDROCK_MCP --> BEDROCK
 EKS --> SYNTHESIZE
 CW --> SYNTHESIZE
 CE --> SYNTHESIZE
-BEDROCK --> SYNTHESIZE
-SYNTHESIZE --> NL
+BEDROCK --> SYNTHESIZE --> NL
 ```
 
 **integration operation view examplehour**:
@@ -1731,11 +1720,11 @@ PAYMENT-SERVICE status (2026-02-12 15:30)
 - P50 Latency: 45ms
 - P99 Latency: 280ms (SLO: 500ms) ✓
 - Error Rate: 0.3% (SLO: 1%) ✓
-- CPU usagerate: 65% (average)
-- Memory usagerate: 72% (average)
+- CPU usage rate: 65% (average)
+- Memory usage rate: 72% (average)
 
 3. cost (Cost Explorer MCP)
-- thistime moon cost: $1,245
+- time moon cost: $1,245
 - beforemonth compared to: +12%
 - week cost: computing (m5.xlarge x 5)
 - optimization opportunity: Spot transition $750 cost reduction possible
@@ -1757,16 +1746,16 @@ sortsum evaluation: 🟢 normal
 the following action necessary: none
 observation continue: CPU/Memory trend monitoring
 
-detail seein order to portthroatthis haveI? (1-5)
+detail seein order to portthroat haveI? (1-5)
 ```
 
-**selfyear → MCP call → results analysis → action suggestionof automatic loop**:
+**selfyear → MCP call → results analysis → action suggestionof automated loop**:
 
 ```python
 # Amazon Q Developerof internal operation (unitconceptly)
 class QDeveloperAIOpsLoop:
 def process_query(, user_query: str):
-"""selfyear quality of processingdoing automatic loop"""
+"""selfyear quality of processingdoing automated loop"""
 
 # 1. of analysis
 intent =.analyze_intent(user_query)
@@ -1793,7 +1782,7 @@ model="anthropic.claude-sonnet-4.0"
 actions =.generate_actions(analysis)
 # example: ["HPA adjustment", "Spot transition consideration", "log monitoring strength"]
 
-# 6. usageatso that response
+# 6. usageatso response
 return.format_response(analysis, actions)
 ```
 
@@ -1802,19 +1791,19 @@ return.format_response(analysis, actions)
 | qualitydoor type | usage MCP server | integration analysis |
 |----------|----------------|----------|
 | "Pod why restartdoI?" | EKS MCP + CloudWatch Logs MCP | event + log correlation analysis |
-| "costthis why increasedidI?" | Cost Explorer MCP + EKS MCP | cost increase + resource change correlation analysis |
-| "network delaythis occurrencedoI?" | CloudWatch MCP + EKS MCP | metric + network policy analysis |
-| "security topcooperatethis haveI?" | GuardDuty MCP + EKS MCP | topcooperate detection + Pod status analysis |
+| "cost why increasedidI?" | Cost Explorer MCP + EKS MCP | cost increase + resource change correlation analysis |
+| "network delay occurrencedoI?" | CloudWatch MCP + EKS MCP | metric + network policy analysis |
+| "security topcoope rate haveI?" | GuardDuty MCP + EKS MCP | topcoope rate detection + Pod status analysis |
 
 #### Differences from Kagent/Strands
 
 | sideif | Amazon Q Developer | Kagent / Strands |
 |------|-------------------|------------------|
-| **operation approach** | versusshape alsoold (Interactive) | automation atprevioustrack (Autonomous) |
+| **operation approach** | versus old (Interactive) | automation atprevioustrack (Autonomous) |
 | **treething** | usage qualitydoor (On-demand) | event based (Event-driven) |
-| **week usealso** | shift investigation and analysis | automatic response and recovery |
-| **execution authorityone** | readperiod duringheart (partial write) | write authorityone necessary (automatic action) |
-| **configuration complexalso** | daysound (immediately usage) | duringbetween (YAML configuration necessary) |
+| **week use** | shift investigation and analysis | automated response and recovery |
+| **execution authorityone** | readperiod duringheart (partial write) | write authorityone necessary (automated action) |
+| **configuration complex** | daysound (immediately usage) | duringbetween (YAML configuration necessary) |
 | **binsights** | limitations (AWS programmable) | high (SOP based before control) |
 | **cost** | Q Developer subscription cost | infrastructure costonly |
 | **learning curveline** | none (selfyear) | duringbetween (Kubernetes earthexpression necessary) |
@@ -1824,32 +1813,32 @@ return.format_response(analysis, actions)
 ```
 [scenario 1: incident occurrence]
 
-1. Kagent/Strands (automatic response)
-- alarm detection → immediately automatic action start
+1. Kagent/Strands (automated response)
+- alarm detection → immediately automated action start
 - example: Pod restart, scalering, rollback
 
 2. Amazon Q Developer (shift investigation)
-- complexone cause analysisthis necessaryone case
-- example: "why this Pod continue restartdoI?"
+- complexone cause analysis necessaryone case
+- example: "why Pod continue restartdoI?"
 
 [scenario 2: regular inspection]
 
 1. Amazon Q Developer (shift investigation)
-- "thistime week cost increase cause analysissungive"
-- "performance thatdo have service findahgive"
+- "time week cost increase cause analysissungive"
+- "performance do have service findahgive"
 
-2. Kagent/Strands (automatic response)
-- Q Developerof suggestion receiveah automatic application
+2. Kagent/Strands (automated response)
+- Q Developerof suggestion receiveah automated application
 - example: VPA adjustment, HPA configuration change
 
 [scenario 3: prediction operation]
 
 1. CloudWatch Anomaly Detection
-- anomaly signafter automatic detection
+- anomaly signafter automated detection
 
 2. Amazon Q Developer (analysis)
-- "this anomaly signafter nothingcrooked ofdoI?"
-- "andat existfourone patternthis havepast tenseI?"
+- " anomaly signafter crooked ofdoI?"
+- "andat existfourone pattern havepast tenseI?"
 
 3. Kagent/Strands (linefirstly action)
 - prediction problemat versusone linefirstly scalering
@@ -1858,13 +1847,13 @@ return.format_response(analysis, actions)
 **integration workflow examplehour**:
 
 ```yaml
-# Kagent Agent: Amazon Q Developer suggestion automatic execution
+# Kagent Agent: Amazon Q Developer suggestion automated execution
 apiVersion: kagent.dev/v1alpha1
 kind: Agent
 metadata:
 name: q-developer-executor
 spec:
-description: "Amazon Q Developerof suggestion automatic execution"
+description: "Amazon Q Developerof suggestion automated execution"
 triggers:
 - type: slack-command
 filter:
@@ -1877,9 +1866,9 @@ type: custom
 config:
 endpoint: "https://q.aws.amazon.com/api"
 workflow: |
-## Q Developer suggestion automatic execution workflow
+## Q Developer suggestion automated execution workflow
 
-1. Slack in Q Developeratso that qualitydoor
+1. Slack in Q Developeratso qualitydoor
 example: "@q payment-service optimization roominside suggestionsungive"
 
 2. Q Developer suggestion creation
@@ -1888,25 +1877,25 @@ example: "HPA maxReplicas 10with increase, VPA application"
 3. usage winperson
 command: "/q-execute suggestionnumber"
 
-4. Kagent automatic execution
+4. Kagent automated execution
 - HPA configuration change
 - VPA creation and application
 - execution result Slackat report
 ```
 
 :::tip Amazon Q Developerof core value
-Amazon Q Developer **selfyear interface** throughsun EKS operationof entry chapterwall significantly daycoldyoucomprehensively. kubectl comm and I CloudWatch query doorlaw don't knowalso, onetop in language qualitydoor and action requestdo is possible. **MCP server integration** throughsun multiple data source automatically combination, **low-code AIOps brushlooption** constructiondo is possible.
+Amazon Q Developer **selfyear interface** throughsun EKS operation entry chapterwall significantly daycoldyoucomprehensively. kubectl comm and I CloudWatch query doorlaw don't know, onetop in language qualitydoor and action requestdo is possible. **MCP server integration** throughsun multiple data source automatedally combination, **low-code AIOps brushlooption** constructiondo is possible.
 
 **recommended usage scenario**:
 1. **shift investigation**: complexone problemof root cause analysis
 2. **cost optimization**: Cost Explorer and integrationone cost personbetweentrack
-3. **learning alsoold**: new teamcircleof EKS operation learning
-4. **Kagent/Strands combination**: Q Developer(investigation) + Kagent(automatic response)
+3. **learning old**: new teamcircleof EKS operation learning
+4. **Kagent/Strands combination**: Q Developer(investigation) + Kagent(automated response)
 :::
 
 ### 5.7 Bedrock AgentCore-Based Autonomous Operations
 
-**Amazon Bedrock AgentCore** Bedrock Agentsof core enginewith, provirtuetion environmentfrom/at **before autonomous operation atprevioustrack** constructiondo count haveso that. Kagent/Strands Kubernetes yesthisteab accessthisif, Bedrock AgentCore AWS yesthisteab accesswith **guardrails** and **action groups** throughsun safeone automation scope namecertain controls.
+**Amazon Bedrock AgentCore** Bedrock Agentsof core enginewith, provirtuetion environmentfrom/at **before autonomous operation atprevioustrack** constructiondo count haveso. Kagent/Strands Kubernetes yesteab accessif, Bedrock AgentCore AWS yesteab accesswith **guardrails** and **action groups** throughsun safeone automation scope namecertain controls.
 
 #### 5.6.1 Bedrock AgentCore Architecture
 
@@ -1931,11 +1920,8 @@ NOTIFY["Slack/JIRA<br/>(notification)"]
 end
 
 EVB --> AGENT
-CWA --> AGENT
-AGENT --> KB
-AGENT --> AG
-AG --> GR
-GR --> EKS_A
+CWA --> AGENT --> KB
+AGENT --> AG --> GR --> EKS_A
 GR --> AWS_A
 GR --> NOTIFY
 
@@ -1945,7 +1931,7 @@ style AgentCore fill:#fff3cd,stroke:#ff9800
 #### 5.6.2 Bedrock Agent Definition — incident autonomous recovery
 
 ```python
-# Bedrock Agent creation — incident automatic response
+# Bedrock Agent creation — incident automated response
 import boto3
 
 bedrock = boto3.client('bedrock-agent', region_name='ap-northeast-2')
@@ -1954,36 +1940,36 @@ response = bedrock.create_agent(
 agentName='incident-auto-remediation',
 foundationModel='anthropic.claude-sonnet-v3',
 instruction="""
-partygod EKS incident automatic recovery atprevioustrackis.
+partygod EKS incident automated recovery atprevioustrackis.
 
 ## nucleusheart circlerule
 1. safeline: guardrails scope my in only action
-2. root cause analysis: symptomthis ahnin cause solution
+2. root cause analysis: symptom ahnin cause solution
 3. minimum unitmouth: necessaryone minimumoneof changeonly execution
-4. before transparentsex: all action Slack and JIRAat immediately report
+4. before transparent: all action Slack and JIRAat immediately report
 
-## automatic recovery workflow
-Phase 1: detection (30 seconds thismy)
+## automated recovery workflow
+Phase 1: detection (30 seconds my)
 - CloudWatch Alarm analysis
 - DevOps Guru Insight collection
 - relatedrelated EKS resource status query
 
-Phase 2: diagnosis (2 minutes thismy)
+Phase 2: diagnosis (2 minutes my)
 - Pod log and event analysis
 - metric correlation analysis (CPU/Memory/Network)
 - deployment history confirmation (recent 10 minutes change fourport)
 - Knowledge Base in existfour case checkcolor
 
-Phase 3: automatic recovery (5 minutes thismy)
-- deployment chapterchild → automatic rollback (to previous stable revision)
+Phase 3: automated recovery (5 minutes my)
+- deployment chapterchild → automated rollback (to previous stable revision)
 - resource parttribe → HPA adjustment Pod restart
 - dependency service chapterchild → restart connection wealthconfiguration
-- cause name → fourpersonatso thatscurllayertion
+- cause name → fourpersonatso scurllayertion
 
 Phase 4: verification and report
 - recovery after status confirmation (metric normal confirmation)
 - incident timebased creation
-- Slack/JIRA automatic report
+- Slack/JIRA automated report
 """,
 idleSessionTTLInSeconds=600,
 agentResourceRoleArn='arn:aws:iam::ACCOUNT_ID:role/BedrockAgentRole'
@@ -2163,17 +2149,17 @@ apiSchema={
 #### 5.6.4 Guardrails — safe scope limitation
 
 ```python
-# Guardrails definition — safeone automatic scope limitation
+# Guardrails definition — safeone automated scope limitation
 bedrock_guardrails = boto3.client('bedrock', region_name='ap-northeast-2')
 
 guardrail_response = bedrock_guardrails.create_guardrail(
 name='incident-remediation-guardrails',
-description='incident automatic recovery safe scope limitation',
+description='incident automated recovery safe scope limitation',
 topicPolicyConfig={
 'topicsConfig': [
 {
 'name': 'data-deletion',
-'definition': 'Any action that deletes persistent data, such as PV, StatefulSet, or database',
+'definition': 'Any action deletes persistent data, such as PV, StatefulSet, or database',
 'type': 'DENY'
 },
 {
@@ -2217,7 +2203,7 @@ guardrailVersion='DRAFT'
 )
 ```
 
-#### 5.6.5 Knowledge Base integration — Runbook automatic reference
+#### 5.6.5 Knowledge Base integration — Runbook automated reference
 
 ```python
 # Knowledge Base creation — Runbook storagesmall
@@ -2250,7 +2236,7 @@ bedrock.associate_agent_knowledge_base(
 agentId=agent_id,
 agentVersion='DRAFT',
 knowledgeBaseId='KB_ID',
-description='incident response Runbook automatic reference',
+description='incident response Runbook automated reference',
 knowledgeBaseState='ENABLED'
 )
 ```
@@ -2270,7 +2256,7 @@ knowledgeBaseState='ENABLED'
 2. memory count pattern confirmation (pointtruely increase vs classincrease)
 3. log in versuscapacity data processing confirmation
 
-## automatic recovery action
+## automated recovery action
 1. action: memory limits 2ship increase (maximum 4Gi)
 2. Pod restart
 3. memory fourcapacity monitoring (30 minutes)
@@ -2281,7 +2267,7 @@ knowledgeBaseState='ENABLED'
 3. wellcannot limits: Right-sizing recommended
 ```
 
-#### 5.6.6 EventBridge integration — automatic treething
+#### 5.6.6 EventBridge integration — automated treething
 
 ```json
 {
@@ -2314,13 +2300,13 @@ agentId='AGENT_ID',
 agentAliasId='PROD',
 sessionId=f"incident-{alarm_name}-{event['time']}",
 inputText=f"""
-CloudWatch alarmthis occurrencedidpracticeyoucomprehensively.
+CloudWatch alarm occurrencedidpracticeyoucomprehensively.
 
-alarm thisrm: {alarm_name}
+alarm rm: {alarm_name}
 description: {alarm_description}
 occurrence time: {event['time']}
 
-this incident automatically diagnosis and recoverydothree.
+ incident automatedally diagnosis and recoverydothree.
 all action Slack #incidents channelat reportdothree.
 """
 )
@@ -2331,9 +2317,9 @@ return {
 }
 ```
 
-#### 5.6.7 Kagent + Bedrock Agent dothisbrare pattern
+#### 5.6.7 Kagent + Bedrock Agent dobrare pattern
 
-Kagent(K8s yesthisteab) and Bedrock Agent(AWS yesthisteab) as a result besttopof autonomous operation implementationdo is possible.
+Kagent(K8s yesteab) and Bedrock Agent(AWS yesteab) as a result besttopof autonomous operation implementationdo is possible.
 
 | sideif | Kagent | Bedrock Agent | recommended usage |
 |------|--------|---------------|----------|
@@ -2344,10 +2330,10 @@ Kagent(K8s yesthisteab) and Bedrock Agent(AWS yesthisteab) as a result besttopof
 | **Knowledge Base** | ConfigMap/Custom | OpenSearch Serverless | Bedrock: versusscale Runbook |
 | **cost** | infrastructure costonly | Bedrock API call cost | Kagent: emptytimeone action<br/>Bedrock: complexone analysis |
 
-**dothisbrare pattern examplehour**:
+**dobrare pattern examplehour**:
 
 ```yaml
-# Kagent: K8s resource automatic recovery
+# Kagent: K8s resource automated recovery
 apiVersion: kagent.dev/v1alpha1
 kind: Agent
 metadata:
@@ -2361,7 +2347,7 @@ tools:
 - name: kubectl
 type: kmcp
 workflow: |
-## K8s resource automatic recovery
+## K8s resource automated recovery
 1. Pod restart
 2. HPA adjustment
 3. VPA application
@@ -2382,13 +2368,13 @@ workflow: |
 ```
 [incident occurrence]
 ↓
-[K8s Event?] YES → Kagent automatic response (Pod/Deployment action)
+[K8s Event?] YES → Kagent automated response (Pod/Deployment action)
 ↓ NO
 [CloudWatch Alarm?] YES → Bedrock Agent call (AWS resource action)
 ↓
 [complexone root cause analysis necessary?]
 ↓ YES
-Bedrock Agentof Knowledge Base reference → Runbook automatic application
+Bedrock Agentof Knowledge Base reference → Runbook automated application
 ↓
 [Kagent + Bedrock Agent cooperateup]
 Kagent: K8s resource recovery
@@ -2396,14 +2382,14 @@ Bedrock Agent: RDS/SQS/Lambda adjustment + Slack report
 ```
 
 :::info Bedrock AgentCoreof core value
-Bedrock AgentCore **guardrails** and **action groups** throughsun provirtuetion environmentfrom/at safedoso that before autonomous operation implementationdo is possible. Kagent/Strands K8s yesthisteab accessthisif, Bedrock AgentCore AWS yesthisteab accesswith **AWS resource(RDS, SQS, Lambda)**until integration automationdo is possible. **Knowledge Base integration** throughsun and Runbook automatically reference, personbetween operationselfof offourresultstop pattern learning and wealthpresent.
+Bedrock AgentCore **guardrails** and **action groups** throughsun provirtuetion environmentfrom/at safedoso before autonomous operation implementationdo is possible. Kagent/Strands K8s yesteab accessif, Bedrock AgentCore AWS yesteab accesswith **AWS resource(RDS, SQS, Lambda)**until integration automationdo is possible. **Knowledge Base integration** throughsun and Runbook automatedally reference, personbetween operationselfof offourresultstop pattern learning and wealthpresent.
 :::
 
 #### 5.7.1 Node Readiness Controller and predictionly node management
 
-**Node Readiness Controller(NRC)** Kubernetes 1.33+from/at provision node preparation status automatic management also. node container condition(Node Condition) changes detection automatically taint/cordon task execution, **reactive operation predictive operationwith transition**doing core elementis.
+**Node Readiness Controller(NRC)** Kubernetes 1.33+from/at provision node preparation status automated management. node container condition(Node Condition) changes detection automatedally taint/cordon task execution, **reactive operation predictive operationwith transition**doing core elementis.
 
-**predictionly operationof NRC role**:
+**predictionly operation NRC role**:
 
 ```
 [reactive operation]
@@ -2412,8 +2398,8 @@ node chapterchild occurrence → shiftwith kubectl cordon → shift d → shift 
 • shift unitmouth: needcount
 • MTTR: 20-30 minutes
 
-[NRC based on halfautomatic operation]
-Node Condition change → NRC automatic taint application → new Pod scheduling blocking
+[NRC based on halfautomated operation]
+Node Condition change → NRC automated taint application → new Pod scheduling blocking
 • detection delay: 30 seconds
 • shift unitmouth: recovery houratonly
 • MTTR: 5-10 minutes
@@ -2425,9 +2411,9 @@ AI chapterchild prediction → Node Condition proactive update → NRC proactive
 • MTTR: 2-5 minutes (proactive migration)
 ```
 
-**Continuous allrare and automatic recovery loop**:
+**Continuous allrare and automated recovery loop**:
 
-NRC **Continuous allrare** support Node Conditionthis recoverybecomeif taint automatically removal.
+NRC **Continuous allrare** support Node Condition recoverybecomeif taint automatedally removal.
 
 ```yaml
 apiVersion: nrc.k8s.io/v1alpha1
@@ -2435,7 +2421,7 @@ kind: NodeReadinessRule
 metadata:
 name: gpu-driver-health
 spec:
-mode: Continuous # nucleusheart: automatic recovery
+mode: Continuous # nucleusheart: automated recovery
 conditions:
 - type: GPUDriverHealthy
 status: "False"
@@ -2445,31 +2431,31 @@ key: gpu-driver-unhealthy
 effect: NoSchedule
 ```
 
-**automatic recovery sequence**:
+**automated recovery sequence**:
 
 ```mermaid
 graph LR
-A[GPU rarethis bigsincehour] --> B[NPD Condition False]
+A[GPU rare bigsincehour] --> B[NPD Condition False]
 B --> C[NRC NoSchedule taint]
 C --> D[new Pod scheduling blocking]
-D --> E[rarethis automatic restart]
+D --> E[rare automated restart]
 E --> F[NPD Condition True]
 F --> G[NRC taint removal]
 G --> H[service normal]
 ```
 
-**actual scenario: GPU node automatic recovery**:
+**actual scenario: GPU node automated recovery**:
 
 ```bash
-# 1. chapterchild detection (NPD GPU rarethis bigsince detection)
+# 1. chapterchild detection (NPD GPU rare bigsince detection)
 kubectl get node gpu-node-1 -o jsonpath='{.status.conditions[?(@.type=="GPUDriverHealthy")]}'
 # Output: {"type":"GPUDriverHealthy","status":"False","reason":"DriverCrash"}
 
-# 2. NRC automatic taint application (30 seconds thismy)
+# 2. NRC automated taint application (30 seconds my)
 kubectl describe node gpu-node-1 | grep Taints
 # Output: gpu-driver-unhealthy:NoSchedule
 
-# 3. rarethis automatic recovery (DaemonSet watchdog)
+# 3. rare automated recovery (DaemonSet watchdog)
 kubectl logs -n kube-system nvidia-driver-watchdog-xxx
 # Output: "Restarting nvidia-driver.service..."
 
@@ -2477,12 +2463,12 @@ kubectl logs -n kube-system nvidia-driver-watchdog-xxx
 kubectl get node gpu-node-1 -o jsonpath='{.status.conditions[?(@.type=="GPUDriverHealthy")]}'
 # Output: {"type":"GPUDriverHealthy","status":"True","reason":"DriverHealthy"}
 
-# 5. NRC taint automatic removal
+# 5. NRC taint automated removal
 kubectl describe node gpu-node-1 | grep Taints
 # Output: <none>
 ```
 
-**core: shift unitmouth without before automatic recovery**is.
+**core: shift unitmouth without before automated recovery**is.
 
 **Chaos Engineering integration**:
 
@@ -2495,7 +2481,7 @@ kind: ExperimentTemplate
 metadata:
 name: nrc-response-test
 spec:
-description: "NRCof automatic taint reaction speed measurement"
+description: "NRCof automated taint reaction speed measurement"
 actions:
 - name: inject-node-condition-failure
 actionId: aws:eks:inject-node-condition
@@ -2522,7 +2508,7 @@ kind: NodeReadinessRule
 metadata:
 name: memory-pressure-dryrun
 spec:
-mode: DryRun # actual taint application not existthis logonly record
+mode: DryRun # actual taint application not exist logonly record
 conditions:
 - type: MemoryPressure
 status: "True"
@@ -2552,7 +2538,7 @@ fields @timestamp, node_name, condition_type, taint_key, pods_affected
 """
 
 # AI learning dataset creation
-import p and as as pd
+import p and as pd
 
 nrc_events = cloudwatch_logs.query(query)
 df = pd.DataFrame(nrc_events)
@@ -2578,7 +2564,7 @@ condition_type='GPUDriverHealthy',
 status='False',
 reason='PredictedFailure'
 )
-# NRC automatically proactive taint application
+# NRC automatedally proactive taint application
 ```
 
 **Karpenter + NRC autonomous node management**:
@@ -2619,17 +2605,17 @@ effect: NoSchedule
 **autonomous node replacement sequence**:
 
 ```
-1. NRC gpu-node-1at taint application (GPU rarethis chapterchild)
-2. Karpenter alternative node automatic prorainthatning (gpu-node-2)
+1. NRC gpu-node-1at taint application (GPU rare chapterchild)
+2. Karpenter alternative node automated proning (gpu-node-2)
 3. gpu-node-2at NRC bootstrap rule application
- → GPU rarethis secondperiod completion beforeuntil gpu-not-ready:NoSchedule
+ → GPU rare secondperiod completion beforeuntil gpu-not-ready:NoSchedule
 4. NPD GPU preparation completion confirmation → Condition True
 5. NRC gpu-not-ready taint removal
 6. Scheduler workload gpu-node-2with shift
 7. gpu-node-1of all Pod termination after Karpenter node deletion
 ```
 
-**introduction andstop automatic: detection → isolation → alternative → recovery → cleanup**
+**introduction andstop automated: detection → isolation → alternative → recovery → cleanup**
 
 :::tip NRC + AIof core value
 Node Readiness Controller **reactive automation** provisionnot only, AI and as a result **predictive automation**with actually. AI and NRC event pattern learning failure prediction and, NRC proactively taint application **failure occurrence beforeat workload migration**maintain. Karpenter and integration node lifecycle introduction before autonomous operation is possible.
@@ -2657,7 +2643,7 @@ operationself: (AWS console in RDS confirmation)
 
 total small: 15-30 minutes, shift task allcount
 
-[programlogsincetick response] — automatic, systemly, cost efficiencyly
+[programlogsincetick response] — automated, systemly, cost efficiencyly
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 notification: "payment-service 500 error occurrence"
 
@@ -2666,10 +2652,10 @@ Kiro Spec:
 2. error log collection and analysis
 3. relatedrelated AWS service (RDS, SQS) status confirmation
 4. root cause diagnosis
-5. automatic modification code creation
+5. automated remediation code creation
 6. PR creation and verification
 
-total small: 2-5 minutes, automatic
+total small: 2-5 minutes, automated
 ```
 
 ### 6.2 Kiro + MCP Debugging Workflow
@@ -2685,29 +2671,26 @@ subgraph Kiro2["🤖 Kiro (programlogsincetick)"]
 SPEC["Spec based on<br/>diagnosis totalstroke"]
 MCP_Q["MCP integration<br/>data collection"]
 ANALYZE2["AI analysis<br/>root cause"]
-FIX["modification code<br/>automatic creation"]
+FIX["modification code<br/>automated creation"]
 PR["PR creation<br/>+ verification"]
 end
 
 subgraph Deploy2["🚀 deployment"]
 REVIEW["AI review<br/>+ winperson"]
-ARGO2["Argo CD<br/>automatic deployment"]
+ARGO2["Argo CD<br/>automated deployment"]
 VERIFY["deployment after<br/>verification"]
 end
 
 ALERT --> SPEC
-GURU --> SPEC
-SPEC --> MCP_Q --> ANALYZE2 --> FIX --> PR
-PR --> REVIEW --> ARGO2 --> VERIFY
-VERIFY -.->|problem earthinside| SPEC
+GURU --> SPEC --> MCP_Q --> ANALYZE2 --> FIX --> PR --> REVIEW --> ARGO2 --> VERIFY -.->|problem earthinside| SPEC
 
 style Kiro2 fill:#e3f2fd,stroke:#2196f3
 ```
 
-### 6.3 Concrete Scenario: OOMKilled automatic response
+### 6.3 Concrete Scenario: OOMKilled automated response
 
 ```
-[Kiro programlogsincetick letter dbugging: OOMKilled]
+[Kiro programmatic debugging: OOMKilled]
 
 1. detection: payment-service Pod OOMKilled event
 
@@ -2717,11 +2700,11 @@ style Kiro2 fill:#e3f2fd,stroke:#2196f3
  → CloudWatch MCP: query_metrics("pod_memory_utilization", last="1h")
 
 3. AI analysis:
-"payment-serviceof memory fourcapacitythis start after 2timeevery
+"payment-serviceof memory fourcapacity start after 2timeevery
 256Mieach increasedoing memory count pattern detection.
-log in Redis connectionthis firstversuswith terminationnot become not thing confirmation."
+log in Redis connection firstversuswith terminationnot become not thing confirmation."
 
-4. automatic modification:
+4. automated remediation:
 - memory limits 256Mi → 512Mi (action)
 - Redis connection pool cleanup code defeathit creation
 - memory profilering configuration addition
@@ -2734,7 +2717,7 @@ Title: "fix: payment-service Redis connection leak"
 ```
 
 :::tip programlogsincetick debuggingof core
-Kiro + EKS MCP throughsun issue **programlogsincetickdoso that analysis·solution**. letter dlecting approachof shift response compared to **cost efficiencylythis and fastbecome automation** possibledoand, eastoneone issue iterationwill become time learning Spec wealthusagedo is possible.
+Kiro + EKS MCP throughsun issue **programlogsincetickdoso analysis and solution**. letter dlecting approachof shift response compared to **cost efficiencyly and fastbecome automation** possibledoand, eastoneone issue iterationwill become time learning Spec wealthusagedo is possible.
 :::
 
 ---
@@ -2794,29 +2777,29 @@ controlledResources: ["cpu", "memory"]
 <RightSizingResults />
 
 :::tip K8s 1.35: In-Place Pod Resource Updates
-K8s 1.35(2026.01, EKS support)from **In-Place Pod Resource Updates** featuresthis alsomouth, Pod restartnot do not and CPU and memory dynamicwith adjustmentdo is possible. this VPAof chapter big limitationspast tenseused to "resource change Pod restart" problem solution. StatefulSetthisI restartup peoplereductionone workloadfrom/at safedoso that countdirect scaleringthis possiblesunpracticeyoucomprehensively.
+K8s 1.35(2026.01, EKS support)from **In-Place Pod Resource Updates** features mouth, Pod restartnot do not and CPU and memory dynamicwith adjustmentdo is possible. VPAof chapter big limitationspast tenseused to "resource change Pod restart" problem solution. StatefulSetI restartup peoplereductionone workloadfrom/at safedoso countdirect scalering possiblesunpracticeyoucomprehensively.
 :::
 
-:::warning VPA weekoffourport (K8s 1.34 thisdo)
-K8s 1.34 thisdofrom/at VPA `Auto` allrare Pod restart resource adjustment. StatefulSetthisI restartup peoplereductionone workloadat `Off` allrarewith inferthous and valueonly confirmationand, shiftwith applicationdoing thingthis safe. VPA and HPA eastone metric(CPU/Memory)with concurrentat usagedoif conflictthis occurrencedo is possible.
+:::warning VPA weekoffourport (K8s 1.34 do)
+K8s 1.34 dofrom/at VPA `Auto` allrare Pod restart resource adjustment. StatefulSetI restartup peoplereductionone workloadat `Off` allrarewith inferthous and valueonly confirmationand, shiftwith applicationdoing thing safe. VPA and HPA eastone metric(CPU/Memory)with concurrentat usagedoif conflict occurrencedo is possible.
 :::
 
 ### 7.4 In-Place Pod Vertical Scaling (K8s 1.33+)
 
-Kubernetes 1.33from **In-Place Pod Vertical Scaling**this Betawith entrydoifwest, VPAof chapter big butpointthispast tenseused to **Pod restart problem** solutionpracticeyoucomprehensively. thisfirst execution duringperson Podof CPU and memory restart not existthis dynamicwith adjustmentdo is possible.
+Kubernetes 1.33from **In-Place Pod Vertical Scaling** Betawith entrydoifwest, VPAof chapter big butpointpast tenseused to **Pod restart problem** solutionpracticeyoucomprehensively. first execution duringperson Podof CPU and memory restart not exist dynamicwith adjustmentdo is possible.
 
 #### In-Place Pod Resize Overview
 
 existing VPAof problempoint:
 - Pod resource change **halfrare restart** necessary
 - StatefulSet, datadegradation, dig etc **status maintenance duringone workload**from/at usagein order toshift
-- restart during service during possiblesex
+- restart during service during possible
 - PDB(Pod Disruption Budget)andof conflict
 
 In-Place Resizeof solutionbook:
 - **execution duringperson Podof resource dynamicwith adjustment**
 - cgroup limitation threadtimewith change
-- restart not existthis resource increase/decrease
+- restart not exist resource increase/decrease
 - **QoS Class maintenance** restart necessary
 
 #### Kubernetes versionstar status
@@ -2838,13 +2821,13 @@ aws eks create-cluster \
 --name my-cluster \
 --kubernetes-version 1.33 \
 --kubernetes-network-config '{"serviceIpv4Cidr":"10.100.0.0/16"}' \
---role-arn arn:aws:iam::ACCOUNT_ID:role/EKSClusterRole \
+--role-arn:aws:iam::ACCOUNT_ID:role/EKSClusterRole \
 --resources-vpc-config subnetIds=subnet-xxx,subnet-yyy \
 --feature-gates InPlacePodVerticalScaling=true
 ```
 
 :::info EKS Feature Gate support
-EKS Kubernetes versionthis GA after onestop period afterat Feature Gate support. 1.33 Beta features EKS 1.33 release and concurrentat activenot become not count allows, AWS publicexpression documents please check.
+EKS Kubernetes version GA after onestop period afterat Feature Gate support. 1.33 Beta features EKS 1.33 release and concurrentat activenot become not count allows, AWS publicexpression documents please check.
 :::
 
 #### operation approach
@@ -2880,23 +2863,23 @@ cpu: "1.5" # new requestvalue
 memory: 3Gi
 ```
 
-**Resize status beforethis**:
+**Resize status before**:
 
 ```
 Proposed (suggestion)
 ↓
-InProgress (progress during) — kubeletthis cgroup limitation change
+InProgress (progress during) — kubelet cgroup limitation change
 ↓
 [success] Pod.spec.resources == Pod.status.allocatedResources
 
-[failure] Deferred (delay) — resource parttribe, Iduringat wealthattempt
+[failure] Deferred (delay) — resource parttribe, Iduringat wealtempt
 
 [failure] Infeasible (possible) — QoS Class change necessary, restart necessary
 ```
 
 #### VPA Auto allrare and integration
 
-VPA In-Place Resize possibleone case **automatically restart not existthis resource adjustment**:
+VPA In-Place Resize possibleone case **automatedally restart not exist resource adjustment**:
 
 ```yaml
 apiVersion: autoscaling.k8s.io/v1
@@ -2909,7 +2892,7 @@ apiVersion: apps/v1
 kind: Deployment
 name: payment-service
 updatePolicy:
-updateMode: "Auto" # In-Place Resize support restart not existthis adjustment
+updateMode: "Auto" # In-Place Resize support restart not exist adjustment
 resourcePolicy:
 containerPolicies:
 - containerName: app
@@ -2920,7 +2903,7 @@ maxAllowed:
 cpu: "4"
 memory: 8Gi
 controlledResources: ["cpu", "memory"]
-mode: Auto # In-Place Resize automatic application
+mode: Auto # In-Place Resize automated application
 ```
 
 **VPA operation flow**:
@@ -2930,14 +2913,14 @@ graph TD
 A[VPA Recommender] -->|resource inferthousand| B{In-Place Resize possible?}
 B -->|Yes| C[resize subresource update]
 B -->|No| D[Pod wealthcreation]
-C --> E[kubeletthis cgroup change]
+C --> E[kubelet cgroup change]
 E --> F[Pod execution maintenance]
 D --> G[Pod restart]
 ```
 
-#### constraintfourport
+#### consttfourport
 
-1. **CPU selfexistseemso that resize possible**
+1. **CPU selfexistseemso resize possible**
 - CPU shares, CPU quota dynamic change possible
 - cgroup CPU control threadtime change support
 
@@ -2960,7 +2943,7 @@ memory: 4Gi → 2Gi # Infeasible, Pod wealthcreation necessary
 
 3. **QoS Class change restart necessary**
 
-QoS Class Podof resource guarantee countprepare resultstopdosowith, change restartthis necessary:
+QoS Class Podof resource guarantee countprepare resultstopdosowith, change restart necessary:
 
 | existing QoS | new QoS | In-Place Resize possible? |
 |----------|------------|---------------------|
@@ -3166,7 +3149,7 @@ limits:
 cpu: "1"
 memory: 4Gi
 ---
-# VPAwith automatic memory increase
+# VPAwith automated memory increase
 apiVersion: autoscaling.k8s.io/v1
 kind: VerticalPodAutoscaler
 metadata:
@@ -3201,7 +3184,7 @@ Container Name: redis
 Target:
 Memory: 8Gi # 4Gi → 8Gi increase recommended
 
-# 2. VPA automatically In-Place Resize execution
+# 2. VPA automatedally In-Place Resize execution
 $ kubectl get pod redis-cluster-0 -n cache -o yaml
 status:
 resize: InProgress
@@ -3212,15 +3195,15 @@ resources:
 requests:
 memory: 8Gi # new requestvalue
 
-# 3. Kubeletthis cgroup change completion
+# 3. Kubelet cgroup change completion
 $ kubectl get pod redis-cluster-0 -n cache -o yaml
 status:
-resize: "" # completionbecomeif rainworkluggage
+resize: "" # completionbecomeif workluggage
 containerStatuses:
 - allocatedResources:
 memory: 8Gi # new resource allocation completion
 
-# 4. Pod restart not existthis memory increase confirmation
+# 4. Pod restart not exist memory increase confirmation
 $ kubectl exec redis-cluster-0 -n cache -- redis-cli INFO memory
 used_memory:8589934592 # 8GB
 maxmemory:8589934592
@@ -3232,16 +3215,16 @@ redis-cluster-0 1/1 Running 0 15d # 15onebetween restart none
 ```
 
 :::warning In-Place Pod Vertical Scaling ahdirect Beta stepsis
-In-Place Pod Vertical Scaling Kubernetes 1.33from/at Betawith entrydidpracticeyoucomprehensively. provirtuetion environmentfrom/at **Kubernetes 1.35+ Stable after alsomouth** recommended. Beta period eastinside API change possiblesexthis haveand, EKS Kubernetes GA after onestop period afterat supportdo is possible.
+In-Place Pod Vertical Scaling Kubernetes 1.33from/at Betawith entrydidpracticeyoucomprehensively. provirtuetion environmentfrom/at **Kubernetes 1.35+ Stable after mouth** recommended. Beta period eastinside API change possible haveand, EKS Kubernetes GA after onestop period afterat supportdo is possible.
 
 **recommended fourport**:
 - **K8s 1.33-1.34**: development/stable environmentfrom/at testing
-- **K8s 1.35+**: provirtuetion environment alsomouth consideration
+- **K8s 1.35+**: provirtuetion environment mouth consideration
 - **EKS usage**: AWS publicexpression documentsfrom/at Feature Gate support point confirmation
 :::
 
 :::tip In-Place Resizeof core value
-VPAof chapter big butpointthispast tenseused to **Pod restart problem** solutionbecomeifwest, StatefulSet, datadegradation, dighour, ML inference service etc **status maintenance duringone workload**from/at safedoso that countdirect scalering applicationdo count haveso that practiceyoucomprehensively. special memory increase restart not existthis immediately halfzerobecomesowith, traffic spike fastbecome responsethis possible.
+VPAof chapter big butpointpast tenseused to **Pod restart problem** solutionbecomeifwest, StatefulSet, datadegradation, dighour, ML inference service etc **status maintenance duringone workload**from/at safedoso countdirect scalering applicationdo count haveso practiceyoucomprehensively. special memory increase restart not exist immediately halfzerobecomesowith, traffic spike fastbecome response possible.
 :::
 
 ---
@@ -3251,7 +3234,7 @@ VPAof chapter big butpointthispast tenseused to **Pod restart problem** solution
 ### 8.1 Measuring Prediction Accuracy
 
 ```python
-# prediction accurate measurement and model wealthlearning
+# prediction accu rate measurement and model wealthlearning
 import numpy as np
 
 def calculate_accuracy(predicted, actual):
@@ -3264,22 +3247,22 @@ return {
 'under_prediction_rate': np.mean(predicted < actual) * 100
 }
 
-def should_retrain(accuracy_history, threshold=85):
+def should_ret(accuracy_history, threshold=85):
 """wealthlearning necessary sixpart judgment"""
 recent_accuracy = np.mean(accuracy_history[-10:])
 if recent_accuracy < threshold:
-return True, f"recent accurate {recent_accuracy:.1f}% < threshold {threshold}%"
-return False, f"accurate amountnumber: {recent_accuracy:.1f}%"
+return True, f"recent accu rate {recent_accuracy:.1f}% < threshold {threshold}%"
+return False, f"accu rate amountnumber: {recent_accuracy:.1f}%"
 ```
 
-### 8.2 Automated Retraining Pipeline
+### 8.2 Automated Reting Pipeline
 
 ```yaml
-# prediction model automatic wealthlearning CronJob
+# prediction model automated wealthlearning CronJob
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-name: model-retrainer
+name: model-reter
 namespace: scaling
 spec:
 schedule: "0 2 * * 0" # everyweek oneone 02:00
@@ -3288,8 +3271,8 @@ spec:
 template:
 spec:
 containers:
-- name: retrainer
-image: my-registry/model-retrainer:latest
+- name: reter
+image: my-registry/model-reter:latest
 env:
 - name: AMP_WORKSPACE_ID
 value: "ws-xxxxx"
@@ -3405,12 +3388,12 @@ sop="""
 ```
 
 :::tip Chaos Engineering + AI feedback loop
-FISwith failure weekmouthand, AI system reaction pattern learningdoif, AI Agentof automatic response abilitypowerthis continuouslywith improvementbecomes. "failure weekmouth → observation → learning → response improvement"of feedback loop autonomous operationof coreis.
+FISwith failure weekmouthand, AI system reaction pattern learningdoif, AI Agentof automated response abilitypower continuouslywith improvementbecomes. "failure weekmouth → observation → learning → response improvement"of feedback loop autonomous operation coreis.
 :::
 
 ### 9.4 AWS FIS latest features and provirtuetion safe chapterhit
 
-AWS Fault Injection Service(FIS) 2025-2026year criterionwith **EKS beforeuse action type** and **automatic during memobigyouism** provision, provirtuetion environmentfrom/at safedoso that Chaos Engineering executiondo is possible.
+AWS Fault Injection Service(FIS) 2025-2026year criterionwith **EKS beforeuse action type** and **automated during memobigyouism** provision, provirtuetion environmentfrom/at safedoso Chaos Engineering executiondo is possible.
 
 #### FIS latest EKS action type
 
@@ -3421,7 +3404,7 @@ FIS EKS workloadat special failure weekmouth action provides:
 | `aws:eks:pod-delete` | specific Pod deletion | Pod | Pod restart timesluckpower testing |
 | `aws:eks:pod-network-latency` | Pod network delay weekmouth | Pod | network delay application operation verification |
 | `aws:eks:pod-network-packet-loss` | Pod network defeatkit h and thread weekmouth | Pod | stableone network environment hourmulelayertion |
-| `aws:eks:node-drain` | node rarelevelperson (safeone Pod shift) | Node | node maintenanceseecount scenario testing |
+| `aws:eks:node-d` | node rarelevelperson (safeone Pod shift) | Node | node maintenanceseecount scenario testing |
 | `aws:eks:terminate-nodegroup-instances` | node group instance termination | Node Group | versusscale node failure recovery testing |
 
 **Pod deletion action detail**:
@@ -3484,7 +3467,7 @@ FIS EKS workloadat special failure weekmouth action provides:
 
 ```json
 {
-"actionId": "aws:eks:node-drain",
+"actionId": "aws:eks:node-d",
 "description": "node safe rarelevelperson (PDB preparecount)",
 "targets": {
 "Nodes": "eks-worker-nodes"
@@ -3497,9 +3480,9 @@ FIS EKS workloadat special failure weekmouth action provides:
 }
 ```
 
-#### stopConditions based automatic during
+#### stopConditions based automated during
 
-FISof **stopConditions** features SLO violation experiment automatically during provirtuetion safesex guarantee:
+FISof **stopConditions** features SLO violation experiment automatedally during provirtuetion safe guarantee:
 
 ```json
 {
@@ -3524,7 +3507,7 @@ FISof **stopConditions** features SLO violation experiment automatically during 
 **CloudWatch Alarm configuration examplehour**:
 
 ```bash
-# Error Rate SLO Alarm (errorrate > 5%)
+# Error Rate SLO Alarm (error rate > 5%)
 aws cloudwatch put-metric-alarm \
 --alarm-name "PaymentService-ErrorRate-SLO" \
 --alarm-description "Stop FIS if error rate exceeds 5%" \
@@ -3582,7 +3565,7 @@ selector:
 matchLabels:
 app: payment-service
 ---
-# FIS Experiment Template (PDB automatic preparecount)
+# FIS Experiment Template (PDB automated preparecount)
 {
 "description": "Pod deletion experiment (PDB preparecount)",
 "targets": {
@@ -3648,7 +3631,7 @@ payment-pod-3 1/1 Running 0 5m
 $ aws fis start-experiment --experiment-template-id EXT123456
 
 # Kubernetes PDB confirmation and denial
-# minAvailable=2, current=2 → 1unit deletion 1unitonly southsound → PDB violation
+# minAvailable=2, current=2 → 1unit deletion 1unitonly Remainingsound → PDB violation
 # → FIS experiment failure (PDB Disruption blocking)
 
 # FIS experiment log
@@ -3658,7 +3641,7 @@ $ aws fis start-experiment --experiment-template-id EXT123456
 }
 ```
 
-**pattern 2: partial limitation — tag/yesspagethisswith experiment scope limitation**
+**pattern 2: partial limitation — tag/yesspageswith experiment scope limitation**
 
 ```json
 {
@@ -3695,13 +3678,13 @@ $ aws fis start-experiment --experiment-template-id EXT123456
 
 | limitation approach | configuration method | example |
 |----------|----------|------|
-| **yesspagethiss** | `filters.Namespace` | `payment-staging` (provirtuetion exclusion) |
+| **yesspages** | `filters.Namespace` | `payment-staging` (provirtuetion exclusion) |
 | **label choice** | `filters.Labels` | `version=canary` (cardI deploymentonly) |
 | **tag based** | `resourceTags` | `chaos-experiment=enabled` (namehourly optiontrackperson) |
 | **ratio limitation** | `selectionMode: PERCENT(N)` | `PERCENT(25)` (maximum 25%only impact) |
 | **unitcount limitation** | `selectionMode: COUNT(N)` | `COUNT(2)` (maximum 2unitonly) |
 
-**pattern 3: pointtruely certainchapter — 1unit Pod → 10% Pod → 25% Pod stepsstar certainchapter**
+**pattern 3: pointtruely integration — 1unit Pod → 10% Pod → 25% Pod stepsstar integration**
 
 ```json
 {
@@ -3766,7 +3749,7 @@ $ aws fis start-experiment --experiment-template-id EXT123456
 }
 ```
 
-**pointtruely certainchapter flow**:
+**pointtruely integration flow**:
 
 ```
 Phase 1: 1unit Pod deletion
@@ -3776,14 +3759,14 @@ Phase 2: 10% Pod deletion
 Phase 3: 25% Pod deletion
 ↓
 [success] all stage through → system timesluckpower verification completion
-[failure] SLO violation → automatic during, rollback
+[failure] SLO violation → automated during, rollback
 ```
 
-**pattern 4: rollback condition — latency P99 > 500ms error rate > 5% automatic during**
+**pattern 4: rollback condition — latency P99 > 500ms error rate > 5% automated during**
 
 ```json
 {
-"description": "network delay experiment with automatic rollback",
+"description": "network delay experiment with automated rollback",
 "actions": {
 "inject-latency": {
 "actionId": "aws:eks:pod-network-latency",
@@ -3818,7 +3801,7 @@ Phase 3: 25% Pod deletion
 }
 ```
 
-**automatic rollback scenario**:
+**automated rollback scenario**:
 
 ```
 [00:00] FIS experiment start — 200ms network delay weekmouth
@@ -3828,8 +3811,8 @@ Phase 3: 25% Pod deletion
 [00:03] Latency P99 increase detection: 450ms
 [00:05] Latency P99 SLO violation: 520ms > 500ms
 [00:05] CloudWatch Alarm treething: "PaymentService-Latency-P99-SLO"
-[00:05] FIS automatic during (stopConditionlytribe)
-[00:05] network delay removal (automatic rollback)
+[00:05] FIS automated during (stopConditionlytribe)
+[00:05] network delay removal (automated rollback)
 [00:06] Latency P99 recovery: 280ms
 [00:08] system normal status recovery
 ```
@@ -3947,22 +3930,22 @@ Name:!Sub '${AWS::StackName}-ExperimentTemplateId'
 ```
 
 :::tip FIS provirtuetion safe chapterhitof core
-AWS FISof **stopConditions** and **PDB integration** provirtuetion environmentfrom/at safedoso that Chaos Engineering executiondo count have key featuresis. SLO violation automatic during, pointtruely certainchapter, partial limitation combinationdoif, **usage impact not existthis** system timesluckpower verificationdo is possible.
+AWS FISof **stopConditions** and **PDB integration** provirtuetion environmentfrom/at safedoso Chaos Engineering executiondo count have key featuresis. SLO violation automated during, pointtruely integration, partial limitation combinationdoif, **usage impact not exist** system timesluckpower verificationdo is possible.
 
 **recommended fourport**:
-1. **porttop stopConditions configuration**: CloudWatch Alarm and integration SLO violation automatic during
+1. **porttop stopConditions configuration**: CloudWatch Alarm and integration SLO violation automated during
 2. **PDB needcount configuration**: all provirtuetion workloadat PDB application
-3. **pointtruely certainchapter**: 1unit → 10% → 25% stepsstar certainchapterwith safesex allocated
-4. **rainprovirtuetion environmentline**: stable environmentfrom/at loyalminute testing after provirtuetion application
+3. **pointtruely integration**: 1unit → 10% → 25% stepsstar integrationwith safe allocated
+4. **provirtuetion environmentline**: stable environmentfrom/at loyalminute testing after provirtuetion application
 :::
 
 ### 9.5 AI based andclass Chaos Engineering
 
-AI utilizationdoif Chaos Engineeringthis **shift experiment design → earthabilityshape automatic design**with actually. and failure pattern learning, Steady State Hypothesis automatic definition, GameDay automation throughsun system timesluckpower systemlywith improvementhourkill is possible.
+AI utilizationdoif Chaos Engineering **shift experiment design → observ automated design**with actually. and failure pattern learning, Steady State Hypothesis automated definition, GameDay automation throughsun system timesluckpower systemlywith improvementhourkill is possible.
 
-#### 9.5.1 and failure pattern learning → new chaos scenario automatic suggestion
+#### 9.5.1 and failure pattern learning → new chaos scenario automated suggestion
 
-AI and incident data learning, actual occurrence possiblesexthis high chaos scenario automatically suggestion.
+AI and incident data learning, actual occurrence possible high chaos scenario automatedally suggestion.
 
 ```python
 # AI based on chaos scenario creationperiod
@@ -3976,7 +3959,7 @@ chaos_designer = Agent(
 name="chaos-scenario-designer",
 model="bedrock/anthropic.claude-sonnet",
 sop="""
-## AI based on chaos scenario automatic design
+## AI based on chaos scenario automated design
 
 ### Phase 1: and incident analysis (learning)
 1. CloudWatch Logs Insightswith and 6unitmonth incident collection
@@ -3987,24 +3970,24 @@ sop="""
 2. incident pattern inferexit
 - iteration occurrence pattern identification
 - totaltemplely/timeversusstar pattern analysis
-- dependencysex based on yearprint chapterchild pattern
+- dependency based on yearprint chapterchild pattern
 
-### Phase 2: chaos scenario automatic creation
-1. chapterchild patternstar FIS experiment template automatic creation
+### Phase 2: chaos scenario automated creation
+1. chapterchild patternstar FIS experiment template automated creation
 - Pod OOMKilled pattern → memory pressureoutside experiment
 - network timeout pattern → layerturn weekmouth experiment
 - node chapterchild pattern → node termination experiment
 
-2. Steady State Hypothesis automatic definition
+2. Steady State Hypothesis automated definition
 - and SLO data based on normal status definition
-- CloudWatch Alarm based on during condition automatic creation
+- CloudWatch Alarm based on during condition automated creation
 
 3. experimentlinepuretop suggestion
 - frequency × impact based onlinepuretop calculation
 - verification chapterchild scenarioline suggestion
 
-### Phase 3: experiment automatic execution and analysis
-1. FIS experiment automatic execution (scheduling)
+### Phase 3: experiment automated execution and analysis
+1. FIS experiment automated execution (scheduling)
 2. system reaction observation and metric collection
 3. example compared to actual result compared to analysis
 4. inhaleone timesluckpower area identification and improvement recommended
@@ -4012,7 +3995,7 @@ sop="""
 )
 ```
 
-**threadbefore examplehour: and incident based chaos scenario automatic creation**
+**threadbefore examplehour: and incident based chaos scenario automated creation**
 
 ```python
 # Step 1: and incident data collection
@@ -4058,16 +4041,16 @@ scenario_prompt = f"""
 and 6unitmonthbetween occurrenceone incident pattern:
 {json.dumps(incident_patterns, indent=2)}
 
-this pattern based onwith the following executiondothree:
+ pattern based onwith the following executiondothree:
 1. chapter emptytimeone chapterchild pattern Top 5 identification
 2. each patternat versusone AWS FIS experiment template creation
 3. Steady State Hypothesis definition (SLO based on)
-4. experimentlinepuretop suggestion (frequency × impactalso)
+4. experimentlinepuretop suggestion (frequency × impact)
 """
 
 response = chaos_designer.run(scenario_prompt)
 
-# Step 3: AI suggestionone FIS experiment template automatic creation
+# Step 3: AI suggestionone FIS experiment template automated creation
 # example output:
 """
 [AI analysis result]
@@ -4104,17 +4087,17 @@ linepuretop: high (frequency 18 × impact 10 = 180)
 """
 ```
 
-#### 9.5.2 Steady State Hypothesisof AI automatic definition
+#### 9.5.2 Steady State Hypothesisof AI automated definition
 
-Chaos Engineeringof coreperson **Steady State Hypothesis**(normal status hypothesis) AI and metric data basedwith automatic definition.
+Chaos Engineeringof coreperson **Steady State Hypothesis**(normal status hypothesis) AI and metric data basedwith automated definition.
 
 ```python
-# Steady State Hypothesis automatic creation
+# Steady State Hypothesis automated creation
 steady_state_agent = Agent(
 name="steady-state-generator",
 model="bedrock/anthropic.claude-sonnet",
 sop="""
-## Steady State Hypothesis automatic definition
+## Steady State Hypothesis automated definition
 
 ### input data
 1. and 30one CloudWatch metric (normal status period)
@@ -4140,7 +4123,7 @@ sop="""
 - Latency: min(SLO threshold, average + 2σ)
 
 3. CloudWatch Alarmwith conversion
-- Steady State violation FIS experiment automatic during
+- Steady State violation FIS experiment automated during
 
 ### output
 - Steady State Hypothesis YAML
@@ -4149,11 +4132,11 @@ sop="""
 )
 ```
 
-**threadbefore examplehour: Steady State automatic creation**
+**threadbefore examplehour: Steady State automated creation**
 
 ```python
 def generate_steady_state_hypothesis(service_name: str, lookback_days: int = 30):
-"""AI based on Steady State Hypothesis automatic creation"""
+"""AI based on Steady State Hypothesis automated creation"""
 
 # Step 1: and metric collection
 end_time = datetime.now()
@@ -4218,7 +4201,7 @@ response = steady_state_agent.run(prompt)
 - Alert Threshold: 99.8%
  → FIS stopCondition: availability < 99.8%
 
-4. Pod Restart Count (5 minutes winalso)
+4. Pod Restart Count (5 minutes win)
 - Baseline: 0.1times
 - Acceptable Range: 0 - 1times
 - Alert Threshold: 3times
@@ -4249,32 +4232,32 @@ return response
 
 #### 9.5.3 GameDay automation — AI scenario creation + execution + analysis
 
-**GameDay**(wealthI recovery trainingrelated) AI before automation. scenario creationfrom execution, results analysisuntil autonomous execution.
+**GameDay**(wealthI recovery tingrelated) AI before automation. scenario creationfrom execution, results analysisuntil autonomous execution.
 
 ```python
-# GameDay automatic atprevioustrack
+# GameDay automated atprevioustrack
 gameday_orchestrator = Agent(
 name="gameday-orchestrator",
 model="bedrock/anthropic.claude-opus", # complexone offourresultstop → Opus usage
 sop="""
-## GameDay automatic workflow
+## GameDay automated workflow
 
 ### Phase 1: proactive totalstroke (D-7)
 1. and incident analysis → presentthreadlyperson scenario creation
-2. true team and role definition (automatic notification)
+2. true team and role definition (automated notification)
 3. Steady State Hypothesis definition
 4. Rollback Plan preparation
 
 ### Phase 2: execution preparation (D-1)
 1. stable environment status confirmation
 2. Monitoring Dashboard preparation (AMG)
-3. trueselfatso that GameDay bping beforesong (Slack)
+3. trueselfatso GameDay bping beforesong (Slack)
 4. stopConditions verification
 
 ### Phase 3: GameDay execution (D-Day)
 1. scenario 1: Pod chapterchild weekmouth (FIS execution)
 - observation time: 10 minutes
-- automatic recovery verification
+- automated recovery verification
 - metric collection
 
 2. scenario 2: network delay weekmouth
@@ -4291,7 +4274,7 @@ sop="""
 1. timebased wealthconfiguration
 2. recovery time analysis (MTTR)
 3. getapproximatelypoint identification and improvement recommended
-4. Post-Mortem reportwest automatic creation
+4. Post-Mortem reportwest automated creation
 5. JIRA teaket creation (improvement andfirst)
 """
 )
@@ -4302,7 +4285,7 @@ sop="""
 ```python
 # GameDay scenario definition
 gameday_scenario = {
-"name": "EKS threshold chapterchild response trainingrelated",
+"name": "EKS threshold chapterchild response tingrelated",
 "date": "2026-02-20",
 "environment": "staging",
 "scenarios": [
@@ -4311,7 +4294,7 @@ gameday_scenario = {
 "name": "Pod versusamount termination (25% concurrent chapterchild)",
 "fis_template_id": "EXT-pod-termination-25pct",
 "duration": "10m",
-"expected_behavior": "HPA automatic scaleout, 60 seconds thismy recovery",
+"expected_behavior": "HPA automated scaleout, 60 seconds my recovery",
 "success_criteria": "error_rate < 2%, p99_latency < 800ms"
 },
 {
@@ -4333,9 +4316,9 @@ gameday_scenario = {
 ]
 }
 
-# GameDay automatic execution
+# GameDay automated execution
 def run_automated_gameday(scenario):
-"""AI based on GameDay automatic execution"""
+"""AI based on GameDay automated execution"""
 
 # Phase 1: proactive preparation
 print("[Phase 1] GameDay proactive preparation start...")
@@ -4344,7 +4327,7 @@ GameDay scenario:
 {json.dumps(scenario, indent=2)}
 
 the following executiondothree:
-1. true teamatso that Slack notification beforesong (daymake, scenario Overview)
+1. true teamatso Slack notification beforesong (daymake, scenario Overview)
 2. AMG versushourseerare creation (threadtime monitoring)
 3. stopConditions verification
 """)
@@ -4408,7 +4391,7 @@ final_report_prompt = f"""
 GameDay introduction result:
 {json.dumps(results, indent=2)}
 
-the following inclusionone Post-Mortem reportwest creationdothree:
+the following with Post-Mortem reportwest creationdothree:
 1. Executive Summary (casezerotrueuse summary)
 2. scenariostar detail result
 3. timebased wealthconfiguration
@@ -4425,7 +4408,7 @@ Channel='#gameday-results',
 Message=final_report
 )
 
-# JIRA teaket automatic creation
+# JIRA teaket automated creation
 create_jira_tickets_from_report(final_report)
 
 return final_report
@@ -4449,9 +4432,9 @@ Date: 2026-02-20 | Environment: Staging | Duration: 45 minutes
 week footview: Circuit Breaker timeout configuration inhale
 
 ## scenario 1: Pod versusamount termination
-goal: 25% Pod concurrent termination automatic recovery verification
+goal: 25% Pod concurrent termination automated recovery verification
 result: ✅ success
-- recovery time: 45 seconds (goal: 60 seconds thismy)
+- recovery time: 45 seconds (goal: 60 seconds my)
 - Error Rate: 1.2% (goal: < 2%)
 - P99 Latency: 680ms (goal: < 800ms)
 
@@ -4468,36 +4451,36 @@ result: ⚠️ part success
 
 footview fourport:
 - Circuit Breaker operation normal
-- not only timeout configurationthis younothing shortsound (current: 500ms)
+- not only timeout configuration you shortsound (current: 500ms)
 - recommended: timeout 800mswith increase
 
 getapproximatelypoint:
 - order-serviceof payment-api call timeout configuration inhale
-- wealthattempt withdirect none (503 error immediately return)
+- wealtempt withdirect none (503 error immediately return)
 
 ## scenario 3: RDS Failover
-goal: RDS Failover connection wealthattempt verification
+goal: RDS Failover connection wealtempt verification
 result: ✅ success
 - Failover time: 18 seconds
 - Connection Retry Success: 100%
 - Data Consistency: 100%
 
 footview fourport:
-- Connection Poolthis automatically wealthconnection success
-- transaction during request automatic wealthattempt success
+- Connection Pool automatedally wealthconnection success
+- transaction during request automated wealtempt success
 
 ## improvement andfirst (linepuretopstar)
 
 ### P0 (longclass)
 - [] order-service: payment-api timeout 500ms → 800ms increase
-- [] order-service: wealthattempt withdirect addition (exponential backoff)
+- [] order-service: wealtempt withdirect addition (exponential backoff)
 
 ### P1 (high)
 - [] Circuit Breaker configuration tableprepare document creation
 - [] beforefour service timeout configuration checkearth
 
 ### P2 (duringbetween)
-- [] GameDay automatic sbigliptrack improvement (more many scenario)
+- [] GameDay automated sbigliptrack improvement (more many scenario)
 - [] Observability versushourseerareat Circuit Breaker status addition
 
 ## JIRA teaket creation
@@ -4507,22 +4490,22 @@ footview fourport:
 ```
 
 :::tip AI based andclass Chaos Engineeringof core
-AI utilizationdoif Chaos Engineeringthis **shift experiment design → earthabilityshape automatic design**with actually. and failure pattern learning throughsun actual occurrence possiblesexthis high scenario automatic suggestionand, Steady State Hypothesis data basedwith definitiondoand, GameDay before automation systemlywith system timesluckpower improvementhourkill is possible.
+AI utilizationdoif Chaos Engineering **shift experiment design → observ automated design**with actually. and failure pattern learning throughsun actual occurrence possible high scenario automated suggestionand, Steady State Hypothesis data basedwith definitiondoand, GameDay before automation systemlywith system timesluckpower improvementhourkill is possible.
 
 **core value**:
 1. **data based scenario**: and incident analysis → presentthreadlyperson chaos scenario
-2. **automatic normal status definition**: metric based Steady State Hypothesis automatic creation
+2. **automated normal status definition**: metric based Steady State Hypothesis automated creation
 3. **GameDay automation**: scenario creation → execution → analysis → reportwest creation introduction automation
 4. **continuously improvement**: AI experiment results learning → the following experiment improvement
 :::
 
 ### 9.6 prediction based cost optimization
 
-prediction scalering and AI analysis as a result, **performance maintenance + cost optimization** concurrentat moonsexdo is possible. traffic prediction and Spot instance during prediction resultsum, On-Dem and compared to Spot ratio dynamicwith adjustmentand, examplemountain seconds proactively prevention.
+predictive scaling and AI analysis as a result, **performance maintenance + cost optimization** concurrentat moondo is possible. traffic prediction and Spot instance during prediction resultsum, On-Dem and compared to Spot ratio dynamicwith adjustmentand, examplemountain seconds proactively prevention.
 
 #### 9.6.1 traffic prediction + Spot during prediction resultsum
 
-Karpenterof Spot instance usage and traffic prediction resultsum, **cost efficiencysex and stablesex** balancehaveso that maintenance.
+Karpenterof Spot instance usage and traffic prediction resultsum, **cost efficiency and stable** balancehaveso maintenance.
 
 ```mermaid
 graph TD
@@ -4532,19 +4515,17 @@ SPOT["Spot during prediction<br/>(AWS API)"]
 end
 
 subgraph Decision["🤖 AI offourresultstop"]
-ANALYZE["cost-stablesex<br/>tracklayerrarefiveprogram analysis"]
+ANALYZE["cost-stable<br/>tracklayerrarefiveprogram analysis"]
 DECIDE["Spot/OnDemand<br/>ratio resultstop"]
 end
 
-subgraph Action["⚡ automatic action"]
+subgraph Action["⚡ automated action"]
 KARP["Karpenter<br/>NodePool adjustment"]
 HPA_ADJ["HPA configuration<br/>optimization"]
 end
 
 TRAFFIC --> ANALYZE
-SPOT --> ANALYZE
-ANALYZE --> DECIDE
-DECIDE --> KARP
+SPOT --> ANALYZE --> DECIDE --> KARP
 DECIDE --> HPA_ADJ
 
 style Decision fill:#fff3cd,stroke:#ff9800
@@ -4596,7 +4577,7 @@ def calculate_optimal_spot_ratio(traffic_prediction: dict, spot_risk: dict) -> d
 predicted_rps = traffic_prediction['predicted_rps']
 prediction_confidence = traffic_prediction['confidence'] # 0.0 - 1.0
 
-# average Spot during riskalso
+# average Spot during risk
 avg_spot_risk = sum(spot_risk.values()) / len(spot_risk) if spot_risk else 0.0
 
 # resultstop withdirect
@@ -4607,7 +4588,7 @@ ondem and _ratio = 0.7
 reason = "Spot during risk high (>5%)"
 
 elif prediction_confidence < 0.7: # prediction trust daysound
-# certainthreadsex high: On-Dem and ratio increase (stablesexline)
+# certainthread high: On-Dem and ratio increase (stableline)
 spot_ratio = 0.5
 ondem and _ratio = 0.5
 reason = "traffic prediction trust daysound (<70%)"
@@ -4632,10 +4613,10 @@ return {
 }
 
 def calculate_cost_saving(spot_ratio: float) -> float:
-"""Spot ratio based on cost cost reductionliquid estimation"""
-# stop: Spot instance On-Dem and compared to 70% thatlium
+"""Spot ratio based on cost reductionliquid estimation"""
+# stop: Spot instance On-Dem and compared to 70% lium
 spot_discount = 0.7
-return spot_ratio * spot_discount * 100 # whiteminuterate
+return spot_ratio * spot_discount * 100 # whiteminute rate
 
 # execution examplehour
 spot_risk = predict_spot_interruption_risk(
@@ -4652,7 +4633,7 @@ optimal_ratio = calculate_optimal_spot_ratio(traffic_pred, spot_risk)
 
 print(f"""
 [prediction based on Spot ratio adjustment]
-traffic prediction: {traffic_pred['predicted_rps']} RPS (trustalso: {traffic_pred['confidence']:.0%})
+traffic prediction: {traffic_pred['predicted_rps']} RPS (trust: {traffic_pred['confidence']:.0%})
 Spot during risk: {sum(spot_risk.values()) / len(spot_risk):.2%}
 
 recommended ratio:
@@ -4660,13 +4641,13 @@ recommended ratio:
 - On-Demand: {optimal_ratio['ondem and _ratio']:.0%}
 
 thing: {optimal_ratio['reason']}
-example cost cost reduction: {optimal_ratio['estimated_cost_saving']:.1f}%
+example cost reduction: {optimal_ratio['estimated_cost_saving']:.1f}%
 """)
 ```
 
-#### 9.6.2 prediction scaleringwith On-Dem and compared to Spot ratio dynamic adjustment
+#### 9.6.2 predictive scalingwith On-Dem and compared to Spot ratio dynamic adjustment
 
-Karpenter NodePool configuration dynamicwith adjustment, prediction traffic and Spot riskalsoat according to optimal ratio maintenance.
+Karpenter NodePool configuration dynamicwith adjustment, prediction traffic and Spot riskat according to optimal ratio maintenance.
 
 ```yaml
 # Karpenter NodePool: dynamic Spot ratio adjustment
@@ -4779,11 +4760,11 @@ if abs(optimal_ratio['spot_ratio'] - 0.7) > 0.1: # periodmainvalue compared to 1
 send_slack_notification(
 channel='#cost-optimization',
 message=f"""
-🔄 Karpenter Spot ratio automatic adjustment
+🔄 Karpenter Spot ratio automated adjustment
 
 **adjustment thing**: {optimal_ratio['reason']}
 **new ratio**: Spot {optimal_ratio['spot_ratio']:.0%}, On-Dem and {optimal_ratio['ondem and _ratio']:.0%}
-**example cost cost reduction**: {optimal_ratio['estimated_cost_saving']:.1f}%
+**example cost reduction**: {optimal_ratio['estimated_cost_saving']:.1f}%
 
 traffic prediction: {traffic_pred['predicted_rps']} RPS (trust {traffic_pred['confidence']:.0%})
 Spot during risk: {sum(spot_risk.values()) / len(spot_risk):.2%}
@@ -4798,7 +4779,7 @@ return {
 
 #### 9.6.3 CloudWatch metric based cost anomaly detection
 
-CloudWatch Anomaly Detection utilizing examplemountain seconds proactively detection and automatic notification.
+CloudWatch Anomaly Detection utilizing examplemountain seconds proactively detection and automated notification.
 
 ```python
 # cost anomaly searchearth configuration
@@ -4815,7 +4796,7 @@ def record_daily_cost_to_cloudwatch():
 yesterday = (datetime.now() - timedelta(days=1)).strftime('%Y-%m-%d')
 today = datetime.now().strftime('%Y-%m-%d')
 
-response = ce_client.get_cost_ and _usage(
+response = ce_client.get_cost_and _usage(
 TimePeriod={
 'Start': yesterday,
 'End': today
@@ -4900,7 +4881,7 @@ ML model utilizing since resource fourcapacity prediction and, Reserved Instance
 ```python
 # RI/Savings Plans oldevery optimization
 from prophet import Prophet
-import p and as as pd
+import p and as pd
 
 def predict_baseline_capacity(historical_data: pd.DataFrame) -> dict:
 """ and resource fourcapacity based on Baseline capacity prediction"""
@@ -4923,7 +4904,7 @@ forecast = model.predict(future)
 # Baseline calculation: lower 20% percentile (porttop necessaryone minimum capacity)
 baseline_capacity = forecast['yhat'].quantile(0.20)
 
-# peak capacity: toptop 95% percentile
+# peak capacity: 95% percentile
 peak_capacity = forecast['yhat'].quantile(0.95)
 
 return {
@@ -4946,11 +4927,11 @@ print(f"""
 Baseline capacity (lower 20%): {prediction['baseline_capacity']:.0f} instance
  → recommended: {prediction['baseline_capacity']:.0f}unit instanceat versussun 1year RI oldevery
 
-Peak capacity (toptop 95%): {prediction['peak_capacity']:.0f} instance
+Peak capacity (95%): {prediction['peak_capacity']:.0f} instance
  → Baseline secondsminute: {prediction['peak_capacity'] - prediction['baseline_capacity']:.0f}unit
  → secondsminute Spot + On-Dem and combination usage
 
-example cost cost reduction:
+example cost reduction:
 - RI application: 30-40% cost reduction
 - Spot application: 60-70% cost reduction (peak timeversus)
 - total example cost reduction: approximately 45% (total introduction)
@@ -4972,7 +4953,7 @@ dashboard.json: |
 {
 "type": "metric",
 "properties": {
-"title": "oneone EKS cost inferthis",
+"title": "oneone EKS cost infer",
 "metrics": [
 ["AWS/Billing", "DailyEKSCost", {"stat": "Sum"}],
 [".", ".", {"stat": "Sum", "id": "ad1", "expression": "ANOMALY_DETECTION_BAND(m1, 2)"}]
@@ -4996,7 +4977,7 @@ dashboard.json: |
 {
 "type": "metric",
 "properties": {
-"title": "ly cost cost reductionliquid",
+"title": "ly cost reductionliquid",
 "metrics": [
 ["Karpenter/CostOptimization", "EstimatedCostSaving"]
 ],
@@ -5021,18 +5002,18 @@ dashboard.json: |
 ```
 
 :::info prediction based cost optimizationof core
-traffic prediction and Spot during prediction as a result, **performance thatdo not existthis** cost significantly cost reductiondo is possible. Karpenterof dynamic Spot ratio adjustmentwith cost efficiencysex extremeversusand, CloudWatch Anomaly Detectionwith examplemountain seconds proactively preventiondoand, ML based capacity predictionwith RI/Savings Plans oldevery optimization.
+traffic prediction and Spot during prediction as a result, **performance do not exist** cost significantly cost reductiondo is possible. Karpenterof dynamic Spot ratio adjustmentwith cost efficiency extremeversusand, CloudWatch Anomaly Detectionwith examplemountain seconds proactively preventiondoand, ML based capacity predictionwith RI/Savings Plans oldevery optimization.
 
-**cost cost reduction introduction**:
+**cost reduction introduction**:
 1. **Spot ratio maximize**: normal timeversus 80% Spot, peak timeversus 40% Spot
 2. **Baseline RI oldevery**: lower 20% percentile capacityat versussun 1year RI
 3. **anomaly detection**: CloudWatch Anomaly Detectionwith examplemountain seconds proactive warning
 4. **dynamic adjustment**: 5 minutesevery traffic prediction + Spot risk based ratio adjustment
 
 **example effectand**:
-- Spot utilization: 60-70% cost cost reduction (On-Dem and compared to)
-- RI utilization: 30-40% cost cost reduction (On-Dem and compared to)
-- total introduction: total 45-50% cost cost reduction (prediction based optimization)
+- Spot utilization: 60-70% cost reduction (On-Dem and compared to)
+- RI utilization: 30-40% cost reduction (On-Dem and compared to)
+- total introduction: total 45-50% cost reduction (prediction based optimization)
 :::
 
 ---
@@ -5096,32 +5077,32 @@ Integrated Operations Dashboard prediction data and actual data doto tablehour.
 }
 },
 {
-"title": "Error Budget cupamount",
+"title": "Error Budget remaining",
 "type": "stat",
 "targets": [
 {
 "expr": "error_budget_remaining_percent{service='payment'}",
-"legendFormat": "south Error Budget"
+"legendFormat": "Remaining Error Budget"
 }
 ]
 },
 {
-"title": "prediction accuratealso",
+"title": "prediction accuracy",
 "type": "stat",
 "targets": [
 {
 "expr": "prediction_accuracy_percent",
-"legendFormat": "accuratealso"
+"legendFormat": "accuracy"
 }
 ]
 },
 {
-"title": "incident automatic responserate",
+"title": "incident automated response rate",
 "type": "stat",
 "targets": [
 {
 "expr": "auto_remediation_success_rate",
-"legendFormat": "automatic response successrate"
+"legendFormat": "automated response success rate"
 }
 ]
 }
@@ -5136,48 +5117,48 @@ Integrated Operations Dashboard prediction data and actual data doto tablehour.
 
 ---
 
-## 11. devilnothing
+## 11. Conclusion
 
 ### 11.1 Adoption Roadmap
 
 ```
-Phase 1: observationsex based on construction
+Phase 1: observability infrastructure
 └── AMP/AMG + CloudWatch + Anomaly Detection
 
-Phase 2: prediction scalering
-└── Prophet/ARIMA + Karpenter linefirst prorainthatning
+Phase 2: predictive scaling
+└── Prophet/ARIMA + Karpenter proactive provisioning
 
-Phase 3: AI Agent certainchapter
+Phase 3: AI Agent integration
 └── Q Developer + Strands + Kagent + MCP integration
 
-Phase 4: Kiro programlogsincetick letter dbugging
-└── Kiro Spec → automatic diagnosis → automatic modification
+Phase 4: Kiro programmatic debugging
+└── Kiro Spec → automated diagnosis → automated remediation
 
 Phase 5: Chaos Engineering + feedback loop
-└── FIS experiment → AI learning → autonomous operation true
+└── FIS experiment → AI learning → autonomous operations
 ```
 
 ### 11.2 Next Steps
 
-- **[1. AIOps introduction document](./aiops-introduction.md)**: prediction operationof toptop introduction — AIOps introduction context
-- **[2. earthabilityshape observationsex schoice](./aiops-observability-stack.md)**: prediction operationof data based — observationsex construction
-- **[3. AIDLC programlevelwork](./aidlc-framework.md)**: prediction operation inclusionone AI developmentthisprogrambetweenclick
+- **[1. AIOps introduction document](./aiops-introduction.md)**: predictive operations introduction — AIOps context
+- **[2. Observability Stack](./aiops-observability-stack.md)**: predictive operations data foundation — observability infrastructure
+- **[3. AIDLC framework](./aidlc-framework.md)**: predictive operations with AI development lifecycle
 
 ### 11.3 Learning Path
 
 ```
-[previous] 1. AIOps introduction document — introduction and direction document
+[previous] 1. AIOps introduction document — overview and direction
 ↓
-[previous] 2. earthabilityshape observationsex schoice — data collection·analysis based on construction
+[previous] 2. Observability Stack — data collection and analysis infrastructure
 ↓
-[previous] 3. AIDLC programlevelwork — AI week development methodtheory
+[previous] 3. AIDLC framework — AI-driven development methodology
 ↓
-[current document] 4. prediction scalering and automatic recovery — autonomous operation threadpresent
+[current document] 4. predictive scaling and automated recovery — autonomous operations implementation
 ```
 
 :::info Related Documents
 
-- [1. AIOps introduction document](./aiops-introduction.md) — AIOps introduction introduction
-- [2. earthabilityshape observationsex schoice](./aiops-observability-stack.md) — observationsex based infrastructure
-- [3. AIDLC programlevelwork](./aidlc-framework.md) — AI week development methodtheory
+- [1. AIOps introduction document](./aiops-introduction.md) — AIOps overview
+- [2. Observability Stack](./aiops-observability-stack.md) — observability infrastructure
+- [3. AIDLC framework](./aidlc-framework.md) — AI-driven development methodology
 :::
