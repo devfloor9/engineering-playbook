@@ -2,7 +2,7 @@
 title: "为 EKS 构建智能可观测性栈"
 sidebar_label: "智能可观测性栈"
 description: "使用 ADOT、AMP、AMG、CloudWatch AI 和 Hosted MCP 构建 EKS 可观测性架构指南"
-sidebar_position: 3
+sidebar_position: 2
 category: "aiops-aidlc"
 tags: [observability, opentelemetry, adot, prometheus, grafana, cloudwatch, devops-guru, mcp, eks]
 last_update:

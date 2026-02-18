@@ -10,6 +10,8 @@ last_update:
 sidebar_position: 3
 ---
 
+import { ServiceTypeComparison, LatencyCostComparison, CostSimulation, ScenarioMatrix } from '@site/src/components/EastWestTrafficTables';
+
 # EKS East-West 트래픽 최적화 가이드
 
 > 📅 **작성일**: 2026-02-09 | **수정일**: 2026-02-14 | ⏱️ **읽는 시간**: 약 21분
@@ -159,12 +161,7 @@ graph LR
 
 서비스 간 통신을 어떻게 연결하느냐에 따라 성능과 비용에 차이가 있습니다:
 
-| 서비스 유형 | 특징 및 동작 | 장점 | 단점 |
-|------------|-------------|------|------|
-| **ClusterIP** | 클러스터 내 가상 IP, kube-proxy NAT 분산 (iptables=랜덤, IPVS=라운드로빈) | 간편성, DNS 자동 할당, 추가 비용 없음, sticky session 지원 | Cross-AZ 무작위 분산, NAT 오버헤드 |
-| **Headless** | clusterIP 없이 DNS로 모든 Pod IP 직접 노출, 프록시 미경유 | 직접 연결(지연 최소), gRPC DNS 라운드로빈, StatefulSet 필수 | 클라이언트 LB 로직 필요, DNS 갱신 지연, AZ 제어 한계 |
-| **Internal NLB** | AWS NLB Controller, L4 동작, Instance/IP 모드 선택 | 멀티 AZ 고가용성, L4 초저지연, 고정 IP | NLB 시간당 비용, Instance 모드 cross-AZ 비용 |
-| **Internal ALB** | AWS ALB Controller, L7 동작, IP 모드 전용 | L7 기능(경로 라우팅, WAF, gRPC), Cross-Zone 무료 | ALB 시간당 + LCU 비용, 수~수십ms 추가 지연 |
+<ServiceTypeComparison />
 
 :::tip 서비스 유형 선택 지침
 
@@ -572,29 +569,13 @@ spec:
 
 ### 옵션별 성능·비용 비교표
 
-| 옵션 | 추가 지연 특성 | 비용 구조 및 효율 |
-|------|--------------|-----------------|
-| **ClusterIP** | kube-proxy NAT 처리 (µs~ms 단위). 직접 연결 대비 미세한 오버헤드 | 별도 비용 없음. Cross-AZ 시 $0.01/GB |
-| **Headless** | 프록시 미경유, 추가 지연 거의 0. DNS 조회에만 시간 소요 | 별도 비용 없음. Cross-AZ 비용 동일 |
-| **Internal NLB (Instance)** | 수ms + NodePort 1홉 추가 + kube-proxy 추가 홉 가능 | NLB 시간당 + 데이터 GB당 + cross-AZ 비용 증가 |
-| **Internal NLB (IP)** | 수ms. Pod로 직접 연결되어 NodePort 홉 없음 | NLB 비용 발생, 교차 AZ 트래픽 회피로 비용 절감 |
-| **Internal ALB** | 수~수십ms (L7 규칙 처리, 요청 크기/규칙 수에 비례) | ALB 시간당($0.0225/h) + LCU 비용. Cross-Zone 무료 |
-| **Istio Sidecar** | ~5ms 증가 (클라이언트+서버 2회 프록시) | 오픈소스, 프록시당 0.2 vCPU/60MB per 1000rps |
-| **Cilium ClusterMesh** | Pod→Pod 직접. VXLAN 캡슐화 오버헤드 수십µs | AWS 서비스 비용 없음. 데이터 전송 비용만 |
-| **VPC Lattice** | Managed proxy 경유, HTTP 요청당 수ms | $0.025/h + $0.025/GB + $0.1/1M 요청 |
-| **Route53 + NLB** | DNS 조회 수십ms (캐시 시 ~0) + NLB 수ms | Route53 저렴($0.40/1M건), NLB + cross-AZ 추가 |
+<LatencyCostComparison />
 
 ### 10 TB/월 East-West 트래픽 비용 시뮬레이션
 
 가정: 동일 리전 3-AZ EKS 클러스터, 총 10 TB (= 10,240 GB) 서비스 간 트래픽
 
-| 구성 | 월간 예상 비용 | 설명 |
-|------|-------------|------|
-| **InternalTrafficPolicy Local** | **$0** | 노드 로컬 통신, cross-AZ 완전 제거 |
-| **ClusterIP + Topology Hints** | **~$30** | cross-AZ ~30%로 감소 |
-| **ClusterIP (기본, AZ 인식 없음)** | **~$68** | cross-AZ ~66% (3-AZ 균등분산) |
-| **Internal ALB 경유** | **~$98** | ALB 시간당 + LCU + cross-AZ |
-| **VPC Lattice** | **$400+** | 서비스당 시간과금 + GB당 + 요청당 |
+<CostSimulation />
 
 :::tip 비용 최적화 핵심 인사이트
 
@@ -694,17 +675,7 @@ Kubecost를 설치하면 네임스페이스별 cross-AZ 트래픽 비용을 시�
 
 서비스 특성, 보안 요구사항, 운영 복잡도에 따른 권장 솔루션 조합입니다:
 
-| 서비스 시나리오 | 권장 솔루션 조합 |
-|---------------|----------------|
-| **단순 내부 마이크로서비스** (HTTP/gRPC, 지연 민감) – Single Cluster | ClusterIP + Topology Aware Routing + NodeLocal DNSCache. 필요 시 InternalTrafficPolicy(Local)로 동일 노드 최적화 |
-| **StatefulSet** (DB 등 TCP, 세션 필요) – Single Cluster | Headless 서비스 + 클라이언트 DNS 라운드로빈. 클라이언트와 같은 AZ에 리더-팔로워 스케줄링 |
-| **대용량 L7 트래픽** (라우팅/WAF 필요) – Single Cluster | Internal ALB (IP 모드) + ClusterIP 서비스 연결. ALB는 필요한 서비스에만 사용 |
-| **보안 민감** (mTLS/Zero-Trust 필수) – Single/Multi Cluster | Istio 서비스 메쉬. mTLS + AuthorizationPolicy. 레이턴시 요구와 트래픽량 검토 |
-| **멀티 AZ 비용 최적화** (트래픽 많음, 메쉬 미사용) | Topology Hints + IP 모드 LB + Pod Spread + NAT GW AZ별 분리 |
-| **멀티 클러스터** (동일 계정, 낮은 운영 복잡도) | Cilium ClusterMesh. Pod 직접 통신, 추가 비용 없이 저지연 |
-| **멀티 계정/조직** (IAM 통제, 운영 인력 적음) | AWS VPC Lattice. IAM Policy 기반 접근 제어, 통합 모니터링 |
-| **멀티 클러스터 메쉬** (이미 Istio 사용, 최고 보안/관찰성) | Istio 멀티클러스터 메쉬. 전담 운영팀이 있는 경우에만 권장 |
-| **간단한 DR 클러스터** (트래픽 적음) | DNS + Internal NLB (Route53 + ExternalDNS). DR 시 DNS 스위칭 |
+<ScenarioMatrix />
 
 :::info 하이브리드 전략
 현실적인 환경에서는 한 가지 전략만 사용하기보다 **혼합하여 사용**하는 경우가 많습니다. 예를 들어:

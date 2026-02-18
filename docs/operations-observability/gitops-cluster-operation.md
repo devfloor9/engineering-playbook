@@ -5,16 +5,16 @@ description: "대규모 EKS 클러스터의 안정적인 운영을 위한 GitOps
 tags: [eks, gitops, argocd, kro, ack, kubernetes, automation, infrastructure-as-code]
 category: "observability-monitoring"
 last_update:
-  date: 2026-02-13
+  date: 2026-02-18
   author: devfloor9
 sidebar_position: 1
 ---
 
 # GitOps 기반 EKS 클러스터 운영
 
-> 📅 **작성일**: 2025-02-09 | **수정일**: 2026-02-13 | ⏱️ **읽는 시간**: 약 6분
+> 📅 **작성일**: 2025-02-09 | **수정일**: 2026-02-18 | ⏱️ **읽는 시간**: 약 6분
 
-> **📌 기준 버전**: ArgoCD v2.13+ / v3 (프리릴리즈), Kubernetes 1.32
+> **📌 기준 버전**: ArgoCD v2.13+ / v3 (프리릴리즈), EKS Capability for Argo CD (GA), Kubernetes 1.32
 
 
 ## 개요
@@ -42,8 +42,21 @@ sidebar_position: 1
 - ArgoCD ApplicationSets를 활용한 멀티 클러스터 관리
 - Progressive Delivery를 위한 Flagger 통합
 
-:::tip ArgoCD as EKS Add-on
-ArgoCD는 EKS Add-on으로도 제공됩니다. `aws eks create-addon`을 통해 설치하면 AWS가 버전 호환성을 관리합니다.
+:::tip ArgoCD as EKS Capability (re:Invent 2025)
+ArgoCD는 **EKS Capability**로 제공됩니다. 기존 EKS Add-on과 달리, EKS Capability는 워커 노드 **외부**의 AWS 관리 계정에서 실행되며, 설치·업그레이드·스케일링·HA를 AWS가 완전 관리합니다. EKS 콘솔의 **Capabilities** 탭에서 활성화하거나 AWS CLI/API로 생성할 수 있습니다.
+
+```bash
+# EKS Capability로 ArgoCD 생성
+aws eks create-capability \
+  --cluster-name my-cluster \
+  --capability-type ARGOCD \
+  --role-arn arn:aws:iam::123456789012:role/eks-argocd-capability-role
+```
+
+**주요 차이점 (Add-on vs Capability):**
+- **Add-on**: 클러스터 내부에서 실행, 사용자가 리소스 관리
+- **Capability**: AWS 관리 계정에서 실행, 제로 운영 오버헤드
+- AWS Identity Center 통합 SSO, Secrets Manager·ECR·CodeConnections 네이티브 연동
 :::
 
 **2. Infrastructure as Code 전략**
@@ -246,43 +259,134 @@ AWS Secrets Manager와 함께 사용하면 조직의 보안 정책을 효과적�
 다음은 KRO를 사용한 EKS 클러스터 및 노드 그룹 정의의 예시입니다.
 
 ```yaml
-apiVersion: kro.io/v1alpha1
+apiVersion: kro.run/v1alpha1
 kind: ResourceGroup
 metadata:
   name: eks-cluster-us-east-1-prod
 spec:
+  schema:
+    apiVersion: v1alpha1
+    kind: EKSClusterStack
+    spec:
+      clusterName: string
+      region: string | default="us-east-1"
+      version: string | default="1.32"
   resources:
-    # EKS 클러스터 정의
-    - apiVersion: eks.aws.crossplane.io/v1beta1
-      kind: Cluster
-      metadata:
-        name: prod-cluster-01
-      spec:
-        forProvider:
-          region: us-east-1
-          version: "1.29"
-          roleArnRef:
-            name: eks-cluster-role
-          resourcesVpcConfig:
-            - subnetIdRefs:
-                - name: private-subnet-1a
-                - name: private-subnet-1b
+    # EKS 클러스터 정의 (ACK EKS Controller)
+    - id: cluster
+      template:
+        apiVersion: eks.services.k8s.aws/v1alpha1
+        kind: Cluster
+        metadata:
+          name: ${schema.spec.clusterName}
+        spec:
+          name: ${schema.spec.clusterName}
+          version: ${schema.spec.version}
+          roleARN: arn:aws:iam::123456789012:role/eks-cluster-role
+          resourcesVPCConfig:
+            subnetIDs:
+              - subnet-0a1b2c3d4e5f00001
+              - subnet-0a1b2c3d4e5f00002
+            endpointPrivateAccess: true
+            endpointPublicAccess: false
 
-    # 노드 그룹 정의
-    - apiVersion: eks.aws.crossplane.io/v1alpha1
-      kind: NodeGroup
-      metadata:
-        name: prod-nodegroup-01
-      spec:
-        forProvider:
-          clusterNameRef:
-            name: prod-cluster-01
+    # 노드 그룹 정의 (ACK EKS Controller)
+    - id: nodegroup
+      template:
+        apiVersion: eks.services.k8s.aws/v1alpha1
+        kind: Nodegroup
+        metadata:
+          name: ${schema.spec.clusterName}-nodegroup
+        spec:
+          clusterName: ${schema.spec.clusterName}
+          nodegroupName: ${schema.spec.clusterName}-ng-01
           instanceTypes:
             - c7i.8xlarge
           scalingConfig:
-            - minSize: 3
-              maxSize: 50
-              desiredSize: 10
+            minSize: 3
+            maxSize: 50
+            desiredSize: 10
+          amiType: AL2023_x86_64_STANDARD
+```
+
+## EKS Capabilities: 완전 관리형 플랫폼 기능 (re:Invent 2025)
+
+AWS re:Invent 2025에서 발표된 **EKS Capabilities**는 Kubernetes 네이티브 플랫폼 기능을 AWS가 완전 관리하는 새로운 접근 방식입니다. 기존 EKS Add-on이 클러스터 내부에서 실행되는 것과 달리, EKS Capabilities는 **AWS 관리 계정에서 워커 노드 외부에서 실행**됩니다.
+
+### 출시 시점의 3가지 핵심 Capability
+
+| Capability | 기반 프로젝트 | 역할 |
+|-----------|------------|------|
+| **Argo CD** | CNCF Argo CD | 선언적 GitOps 기반 지속적 배포 |
+| **ACK** | AWS Controllers for Kubernetes | Kubernetes 네이티브 AWS 리소스 관리 |
+| **kro** | Kube Resource Orchestrator | 상위 수준 Kubernetes/AWS 리소스 구성 |
+
+### EKS Capability for Argo CD 주요 특징
+
+**운영 오버헤드 제로:**
+- AWS가 설치, 업그레이드, 패치, HA, 스케일링을 모두 관리
+- Argo CD 컨트롤러, Redis, Application Controller 관리 불필요
+- 자동 백업 및 재해 복구
+
+**Hub-and-Spoke 아키텍처:**
+- 전용 허브 클러스터에서 Argo CD Capability 생성
+- 여러 스포크 클러스터를 중앙에서 관리
+- 크로스클러스터 통신을 AWS가 처리
+
+**AWS 서비스 네이티브 통합:**
+- **AWS Identity Center**: SSO 기반 인증, RBAC 역할 매핑
+- **AWS Secrets Manager**: 시크릿 자동 동기화
+- **Amazon ECR**: 프라이빗 레지스트리 네이티브 접근
+- **AWS CodeConnections**: Git 리포지토리 연결
+
+### Self-managed vs EKS Capability 비교
+
+| 항목 | Self-managed ArgoCD | EKS Capability for ArgoCD |
+|------|-------------------|--------------------------|
+| 설치 및 업그레이드 | 직접 관리 (Helm/Kustomize) | AWS 완전 관리 |
+| 실행 위치 | 클러스터 내부 (워커 노드) | AWS 관리 계정 (외부) |
+| HA 구성 | 직접 설정 (Redis HA 등) | 자동 (Multi-AZ) |
+| 인증 | 직접 구성 (Dex, OIDC 등) | AWS Identity Center 통합 |
+| 멀티클러스터 | kubeconfig 직접 관리 | AWS 네이티브 크로스클러스터 |
+| 시크릿 관리 | ESO 별도 설치 | Secrets Manager 네이티브 연동 |
+| 비용 | EC2 리소스 소비 | 별도 Capability 요금 |
+
+:::warning Self-managed에서 마이그레이션
+기존 Self-managed ArgoCD에서 EKS Capability로 마이그레이션할 때, 기존 Application/ApplicationSet 리소스는 호환됩니다. 단, Custom Resource Definition 확장이나 커스텀 플러그인을 사용하는 경우 호환성을 사전에 확인하세요.
+:::
+
+### EKS Capability 활성화 방법
+
+**콘솔:**
+1. EKS 콘솔 → 클러스터 → **Capabilities** 탭
+2. **Create capabilities** 클릭
+3. Argo CD 체크박스 선택 → Capability Role 지정
+4. AWS Identity Center 인증 설정
+
+**CLI:**
+```bash
+# Argo CD Capability 생성
+aws eks create-capability \
+  --cluster-name prod-hub-cluster \
+  --capability-type ARGOCD \
+  --role-arn arn:aws:iam::123456789012:role/eks-argocd-role \
+  --configuration '{
+    "identityCenterConfig": {
+      "instanceArn": "arn:aws:sso:::instance/ssoins-xxxxxxxxx"
+    }
+  }'
+
+# ACK Capability 생성
+aws eks create-capability \
+  --cluster-name prod-hub-cluster \
+  --capability-type ACK \
+  --role-arn arn:aws:iam::123456789012:role/eks-ack-role
+
+# kro Capability 생성
+aws eks create-capability \
+  --cluster-name prod-hub-cluster \
+  --capability-type KRO \
+  --role-arn arn:aws:iam::123456789012:role/eks-kro-role
 ```
 
 ## ArgoCD v3 업데이트 (2025)
@@ -320,15 +424,16 @@ GitOps 기반 대규모 EKS 클러스터 운영 전략은 수동 관리 부담�
 
 :::tip 핵심 권장사항
 
-**1. ACK/KRO를 통한 인프라 관리 통합**
+**1. EKS Capabilities 활용 (ArgoCD + ACK + kro)**
 
-- Kubernetes 네이티브 인프라 관리
-- 기존 Terraform 상태와의 호환성
+- ArgoCD를 EKS Capability로 운영하여 운영 오버헤드 제거
+- ACK/kro를 통한 Kubernetes 네이티브 인프라 관리
+- AWS Identity Center 통합으로 SSO 기반 접근 제어
 
 **2. ArgoCD ApplicationSets를 활용한 멀티클러스터 관리**
 
-- 클러스터 간 일관된 배포
-- 환경별 커스터마이징
+- Hub-and-Spoke 아키텍처로 중앙 관리
+- 클러스터 간 일관된 배포 및 환경별 커스터마이징
 
 **3. 자동화된 Blue/Green 업그레이드 전략 활용**
 

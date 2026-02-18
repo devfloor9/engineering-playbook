@@ -6,13 +6,15 @@ tags: [eks, gitops, argocd, kro, ack, kubernetes, automation, infrastructure-as-
 category: "observability-monitoring"
 sidebar_position: 1
 last_update:
-  date: 2026-02-13
+  date: 2026-02-18
   author: devfloor9
 ---
 
 # GitOps-Based EKS Cluster Operations
 
-> 📅 **Written**: 2025-02-09 | **Last Modified**: 2026-02-13 | ⏱️ **Reading Time**: ~4 min
+> 📅 **Written**: 2025-02-09 | **Last Modified**: 2026-02-18 | ⏱️ **Reading Time**: ~6 min
+
+> **📌 Reference Versions**: ArgoCD v2.13+ / v3 (pre-release), EKS Capability for Argo CD (GA), Kubernetes 1.32
 
 
 ## Overview
@@ -39,6 +41,23 @@ This architecture was designed to address these issues.
 
 - Multi-cluster management using ArgoCD ApplicationSets
 - Flagger integration for Progressive Delivery
+
+:::tip ArgoCD as EKS Capability (re:Invent 2025)
+ArgoCD is available as an **EKS Capability**. Unlike traditional EKS Add-ons, EKS Capabilities run **outside** your worker nodes in AWS-managed accounts, with AWS fully managing installation, upgrades, scaling, and HA. You can activate it from the **Capabilities** tab in the EKS console or via AWS CLI/API.
+
+```bash
+# Create ArgoCD as EKS Capability
+aws eks create-capability \
+  --cluster-name my-cluster \
+  --capability-type ARGOCD \
+  --role-arn arn:aws:iam::123456789012:role/eks-argocd-capability-role
+```
+
+**Key Differences (Add-on vs Capability):**
+- **Add-on**: Runs inside the cluster, user manages resources
+- **Capability**: Runs in AWS-managed account, zero operational overhead
+- Native integration with AWS Identity Center SSO, Secrets Manager, ECR, and CodeConnections
+:::
 
 **2. Infrastructure as Code Strategy**
 
@@ -240,43 +259,163 @@ Gradually transition from existing Terraform environments to KRO. This approach 
 The following is an example of EKS cluster and node group definition using KRO.
 
 ```yaml
-apiVersion: kro.io/v1alpha1
+apiVersion: kro.run/v1alpha1
 kind: ResourceGroup
 metadata:
   name: eks-cluster-us-east-1-prod
 spec:
+  schema:
+    apiVersion: v1alpha1
+    kind: EKSClusterStack
+    spec:
+      clusterName: string
+      region: string | default="us-east-1"
+      version: string | default="1.32"
   resources:
-    # EKS cluster definition
-    - apiVersion: eks.aws.crossplane.io/v1beta1
-      kind: Cluster
-      metadata:
-        name: prod-cluster-01
-      spec:
-        forProvider:
-          region: us-east-1
-          version: "1.29"
-          roleArnRef:
-            name: eks-cluster-role
-          resourcesVpcConfig:
-            - subnetIdRefs:
-                - name: private-subnet-1a
-                - name: private-subnet-1b
+    # EKS cluster definition (ACK EKS Controller)
+    - id: cluster
+      template:
+        apiVersion: eks.services.k8s.aws/v1alpha1
+        kind: Cluster
+        metadata:
+          name: ${schema.spec.clusterName}
+        spec:
+          name: ${schema.spec.clusterName}
+          version: ${schema.spec.version}
+          roleARN: arn:aws:iam::123456789012:role/eks-cluster-role
+          resourcesVPCConfig:
+            subnetIDs:
+              - subnet-0a1b2c3d4e5f00001
+              - subnet-0a1b2c3d4e5f00002
+            endpointPrivateAccess: true
+            endpointPublicAccess: false
 
-    # Node group definition
-    - apiVersion: eks.aws.crossplane.io/v1alpha1
-      kind: NodeGroup
-      metadata:
-        name: prod-nodegroup-01
-      spec:
-        forProvider:
-          clusterNameRef:
-            name: prod-cluster-01
+    # Node group definition (ACK EKS Controller)
+    - id: nodegroup
+      template:
+        apiVersion: eks.services.k8s.aws/v1alpha1
+        kind: Nodegroup
+        metadata:
+          name: ${schema.spec.clusterName}-nodegroup
+        spec:
+          clusterName: ${schema.spec.clusterName}
+          nodegroupName: ${schema.spec.clusterName}-ng-01
           instanceTypes:
             - c7i.8xlarge
           scalingConfig:
-            - minSize: 3
-              maxSize: 50
-              desiredSize: 10
+            minSize: 3
+            maxSize: 50
+            desiredSize: 10
+          amiType: AL2023_x86_64_STANDARD
+```
+
+## ArgoCD v3 Update (2025)
+
+ArgoCD v3 was pre-released at KubeCon EU 2025, with the following major improvements:
+
+### Scalability Improvements
+
+- **Large-scale cluster support**: Improved performance managing thousands of Application resources
+- **Sharding improvements**: Enhanced horizontal scaling of Application Controller
+- **Memory optimization**: Reduced memory usage when processing large manifests
+
+### Security Enhancements
+
+- **RBAC improvements**: More fine-grained permission controls
+- **Audit Logging**: Enhanced audit logs for all operations
+- **Secret management**: Improved integration with External Secrets Operator
+
+### Migration Guide
+
+Migrating from ArgoCD v2.x to v3:
+
+1. Upgrade to v2.13 first (confirm compatibility)
+2. Check and update deprecated APIs
+3. Test features on v3 pre-release
+4. Execute production upgrade
+
+:::warning Caution
+ArgoCD v3 is in pre-release status as of early 2025. Use the stable version (v2.13+) in production environments, and migrate after confirming the v3 GA release.
+:::
+
+## EKS Capabilities: Fully Managed Platform Features (re:Invent 2025)
+
+**EKS Capabilities**, announced at AWS re:Invent 2025, is a new approach where AWS fully manages Kubernetes-native platform features. Unlike traditional EKS Add-ons that run inside your cluster, EKS Capabilities run **outside your worker nodes in AWS-managed accounts**.
+
+### Three Core Capabilities at Launch
+
+| Capability | Based On | Role |
+|-----------|----------|------|
+| **Argo CD** | CNCF Argo CD | Declarative GitOps-based continuous deployment |
+| **ACK** | AWS Controllers for Kubernetes | Kubernetes-native AWS resource management |
+| **kro** | Kube Resource Orchestrator | Higher-level Kubernetes/AWS resource composition |
+
+### EKS Capability for Argo CD Key Features
+
+**Zero Operational Overhead:**
+- AWS manages all installation, upgrades, patches, HA, and scaling
+- No need to manage Argo CD controllers, Redis, or Application Controller
+- Automated backup and disaster recovery
+
+**Hub-and-Spoke Architecture:**
+- Create Argo CD Capability on a dedicated hub cluster
+- Centrally manage multiple spoke clusters
+- AWS handles cross-cluster communication
+
+**Native AWS Service Integration:**
+- **AWS Identity Center**: SSO-based authentication with RBAC role mapping
+- **AWS Secrets Manager**: Automatic secret synchronization
+- **Amazon ECR**: Native private registry access
+- **AWS CodeConnections**: Git repository connectivity
+
+### Self-managed vs EKS Capability Comparison
+
+| Aspect | Self-managed ArgoCD | EKS Capability for ArgoCD |
+|--------|-------------------|--------------------------|
+| Installation & Upgrades | Manual (Helm/Kustomize) | Fully managed by AWS |
+| Execution Location | Inside cluster (worker nodes) | AWS-managed account (external) |
+| HA Configuration | Manual setup (Redis HA, etc.) | Automatic (Multi-AZ) |
+| Authentication | Manual config (Dex, OIDC, etc.) | AWS Identity Center integration |
+| Multi-cluster | Manual kubeconfig management | AWS-native cross-cluster |
+| Secret Management | Separate ESO installation | Native Secrets Manager integration |
+| Cost | EC2 resource consumption | Separate Capability pricing |
+
+:::warning Migration from Self-managed
+When migrating from self-managed ArgoCD to EKS Capability, existing Application/ApplicationSet resources are compatible. However, verify compatibility beforehand if you use Custom Resource Definition extensions or custom plugins.
+:::
+
+### Enabling EKS Capabilities
+
+**Console:**
+1. EKS Console → Cluster → **Capabilities** tab
+2. Click **Create capabilities**
+3. Select Argo CD checkbox → Assign Capability Role
+4. Configure AWS Identity Center authentication
+
+**CLI:**
+```bash
+# Create Argo CD Capability
+aws eks create-capability \
+  --cluster-name prod-hub-cluster \
+  --capability-type ARGOCD \
+  --role-arn arn:aws:iam::123456789012:role/eks-argocd-role \
+  --configuration '{
+    "identityCenterConfig": {
+      "instanceArn": "arn:aws:sso:::instance/ssoins-xxxxxxxxx"
+    }
+  }'
+
+# Create ACK Capability
+aws eks create-capability \
+  --cluster-name prod-hub-cluster \
+  --capability-type ACK \
+  --role-arn arn:aws:iam::123456789012:role/eks-ack-role
+
+# Create kro Capability
+aws eks create-capability \
+  --cluster-name prod-hub-cluster \
+  --capability-type KRO \
+  --role-arn arn:aws:iam::123456789012:role/eks-kro-role
 ```
 
 ## Conclusion
@@ -285,15 +424,16 @@ GitOps-based large-scale EKS cluster operations strategy can dramatically reduce
 
 :::tip Core Recommendations
 
-**1. Unified Infrastructure Management via ACK/KRO**
+**1. Leverage EKS Capabilities (ArgoCD + ACK + kro)**
 
-- Kubernetes-native infrastructure management
-- Compatibility with existing Terraform state
+- Eliminate operational overhead by running ArgoCD as EKS Capability
+- Kubernetes-native infrastructure management via ACK/kro
+- SSO-based access control through AWS Identity Center integration
 
 **2. Multi-Cluster Management Using ArgoCD ApplicationSets**
 
-- Consistent deployment across clusters
-- Environment-specific customization
+- Hub-and-Spoke architecture for centralized management
+- Consistent deployment across clusters with environment-specific customization
 
 **3. Automated Blue/Green Upgrade Strategy**
 

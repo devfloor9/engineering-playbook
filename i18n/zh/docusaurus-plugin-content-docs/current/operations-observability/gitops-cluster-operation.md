@@ -5,16 +5,16 @@ description: "为大规模 EKS 集群的稳定运维提供 GitOps 架构、KRO/A
 tags: [eks, gitops, argocd, kro, ack, kubernetes, automation, infrastructure-as-code]
 category: "observability-monitoring"
 last_update:
-  date: 2025-02-09
+  date: 2026-02-18
   author: devfloor9
 sidebar_position: 1
 ---
 
 # 基于 GitOps 的 EKS 集群运维
 
-> 📅 **作成日期**: 2025-02-09 | ⏱️ **阅读时间**: 约 7 分钟
+> 📅 **撰写日期**: 2025-02-09 | **修改日期**: 2026-02-13 | ⏱️ **阅读时间**: 约 7 分钟
 
-> **📌 基准版本**: ArgoCD v2.13+ / v3（预发布版），Kubernetes 1.32
+> **📌 基准版本**: ArgoCD v2.13+ / v3（预发布版），EKS Capability for Argo CD (GA)，Kubernetes 1.32
 
 ## 概述
 
@@ -41,8 +41,21 @@ sidebar_position: 1
 - 使用 ArgoCD ApplicationSets 进行多集群管理
 - 集成 Flagger 实现渐进式交付
 
-:::tip ArgoCD 作为 EKS Add-on
-ArgoCD 也作为 EKS Add-on 提供。通过 `aws eks create-addon` 安装后，AWS 会管理版本兼容性。
+:::tip ArgoCD 作为 EKS Capability（re:Invent 2025）
+ArgoCD 以 **EKS Capability** 形式提供。与传统 EKS Add-on 不同，EKS Capability 在 AWS 托管账户中**工作节点外部**运行，安装、升级、扩缩容和高可用性均由 AWS 完全管理。可通过 EKS 控制台的 **Capabilities** 选项卡或 AWS CLI/API 激活。
+
+```bash
+# 创建 ArgoCD EKS Capability
+aws eks create-capability \
+  --cluster-name my-cluster \
+  --capability-type ARGOCD \
+  --role-arn arn:aws:iam::123456789012:role/eks-argocd-capability-role
+```
+
+**核心区别（Add-on vs Capability）：**
+- **Add-on**：在集群内部运行，用户管理资源
+- **Capability**：在 AWS 托管账户中运行，零运维开销
+- 原生集成 AWS Identity Center SSO、Secrets Manager、ECR 和 CodeConnections
 :::
 
 **2. Infrastructure as Code 策略**
@@ -245,43 +258,134 @@ ArgoCD ApplicationSets 是在多集群环境中管理一致部署的核心工具
 以下是使用 KRO 的 EKS 集群和节点组定义示例。
 
 ```yaml
-apiVersion: kro.io/v1alpha1
+apiVersion: kro.run/v1alpha1
 kind: ResourceGroup
 metadata:
   name: eks-cluster-us-east-1-prod
 spec:
+  schema:
+    apiVersion: v1alpha1
+    kind: EKSClusterStack
+    spec:
+      clusterName: string
+      region: string | default="us-east-1"
+      version: string | default="1.32"
   resources:
-    # EKS 集群定义
-    - apiVersion: eks.aws.crossplane.io/v1beta1
-      kind: Cluster
-      metadata:
-        name: prod-cluster-01
-      spec:
-        forProvider:
-          region: us-east-1
-          version: "1.29"
-          roleArnRef:
-            name: eks-cluster-role
-          resourcesVpcConfig:
-            - subnetIdRefs:
-                - name: private-subnet-1a
-                - name: private-subnet-1b
+    # EKS 集群定义（ACK EKS Controller）
+    - id: cluster
+      template:
+        apiVersion: eks.services.k8s.aws/v1alpha1
+        kind: Cluster
+        metadata:
+          name: ${schema.spec.clusterName}
+        spec:
+          name: ${schema.spec.clusterName}
+          version: ${schema.spec.version}
+          roleARN: arn:aws:iam::123456789012:role/eks-cluster-role
+          resourcesVPCConfig:
+            subnetIDs:
+              - subnet-0a1b2c3d4e5f00001
+              - subnet-0a1b2c3d4e5f00002
+            endpointPrivateAccess: true
+            endpointPublicAccess: false
 
-    # 节点组定义
-    - apiVersion: eks.aws.crossplane.io/v1alpha1
-      kind: NodeGroup
-      metadata:
-        name: prod-nodegroup-01
-      spec:
-        forProvider:
-          clusterNameRef:
-            name: prod-cluster-01
+    # 节点组定义（ACK EKS Controller）
+    - id: nodegroup
+      template:
+        apiVersion: eks.services.k8s.aws/v1alpha1
+        kind: Nodegroup
+        metadata:
+          name: ${schema.spec.clusterName}-nodegroup
+        spec:
+          clusterName: ${schema.spec.clusterName}
+          nodegroupName: ${schema.spec.clusterName}-ng-01
           instanceTypes:
             - c7i.8xlarge
           scalingConfig:
-            - minSize: 3
-              maxSize: 50
-              desiredSize: 10
+            minSize: 3
+            maxSize: 50
+            desiredSize: 10
+          amiType: AL2023_x86_64_STANDARD
+```
+
+## EKS Capabilities：完全托管的平台功能（re:Invent 2025）
+
+在 AWS re:Invent 2025 上发布的 **EKS Capabilities** 是一种由 AWS 完全管理 Kubernetes 原生平台功能的新方式。与在集群内部运行的传统 EKS Add-on 不同，EKS Capabilities **在 AWS 托管账户中在工作节点外部运行**。
+
+### 发布时的 3 个核心 Capability
+
+| Capability | 基础项目 | 角色 |
+|-----------|---------|------|
+| **Argo CD** | CNCF Argo CD | 声明式 GitOps 持续部署 |
+| **ACK** | AWS Controllers for Kubernetes | Kubernetes 原生 AWS 资源管理 |
+| **kro** | Kube Resource Orchestrator | 高级 Kubernetes/AWS 资源编排 |
+
+### EKS Capability for Argo CD 主要特点
+
+**零运维开销：**
+- AWS 管理所有安装、升级、补丁、高可用性和扩缩容
+- 无需管理 Argo CD 控制器、Redis 或 Application Controller
+- 自动备份和灾难恢复
+
+**Hub-and-Spoke 架构：**
+- 在专用 Hub 集群上创建 Argo CD Capability
+- 从中心集中管理多个 Spoke 集群
+- AWS 处理跨集群通信
+
+**AWS 服务原生集成：**
+- **AWS Identity Center**：基于 SSO 的身份验证，RBAC 角色映射
+- **AWS Secrets Manager**：自动密钥同步
+- **Amazon ECR**：原生私有注册表访问
+- **AWS CodeConnections**：Git 仓库连接
+
+### Self-managed vs EKS Capability 比较
+
+| 项目 | Self-managed ArgoCD | EKS Capability for ArgoCD |
+|------|-------------------|--------------------------|
+| 安装和升级 | 手动管理（Helm/Kustomize） | AWS 完全管理 |
+| 运行位置 | 集群内部（工作节点） | AWS 托管账户（外部） |
+| HA 配置 | 手动设置（Redis HA 等） | 自动（Multi-AZ） |
+| 身份验证 | 手动配置（Dex、OIDC 等） | AWS Identity Center 集成 |
+| 多集群 | 手动管理 kubeconfig | AWS 原生跨集群 |
+| 密钥管理 | 单独安装 ESO | 原生 Secrets Manager 集成 |
+| 成本 | EC2 资源消耗 | 单独 Capability 定价 |
+
+:::warning 从 Self-managed 迁移
+从 Self-managed ArgoCD 迁移到 EKS Capability 时，现有 Application/ApplicationSet 资源兼容。但如果使用了自定义 CRD 扩展或自定义插件，请事先验证兼容性。
+:::
+
+### 启用 EKS Capabilities
+
+**控制台：**
+1. EKS 控制台 → 集群 → **Capabilities** 选项卡
+2. 点击 **Create capabilities**
+3. 选择 Argo CD 复选框 → 指定 Capability Role
+4. 配置 AWS Identity Center 身份验证
+
+**CLI：**
+```bash
+# 创建 Argo CD Capability
+aws eks create-capability \
+  --cluster-name prod-hub-cluster \
+  --capability-type ARGOCD \
+  --role-arn arn:aws:iam::123456789012:role/eks-argocd-role \
+  --configuration '{
+    "identityCenterConfig": {
+      "instanceArn": "arn:aws:sso:::instance/ssoins-xxxxxxxxx"
+    }
+  }'
+
+# 创建 ACK Capability
+aws eks create-capability \
+  --cluster-name prod-hub-cluster \
+  --capability-type ACK \
+  --role-arn arn:aws:iam::123456789012:role/eks-ack-role
+
+# 创建 kro Capability
+aws eks create-capability \
+  --cluster-name prod-hub-cluster \
+  --capability-type KRO \
+  --role-arn arn:aws:iam::123456789012:role/eks-kro-role
 ```
 
 ## ArgoCD v3 更新（2025）
@@ -319,15 +423,16 @@ ArgoCD v3 在 2025 年上半年处于预发布状态。在生产环境中使用�
 
 :::tip 核心建议
 
-**1. 通过 ACK/KRO 整合基础设施管理**
+**1. 利用 EKS Capabilities（ArgoCD + ACK + kro）**
 
-- Kubernetes 原生基础设施管理
-- 与现有 Terraform 状态的兼容性
+- 通过 EKS Capability 运行 ArgoCD，消除运维开销
+- 通过 ACK/kro 实现 Kubernetes 原生基础设施管理
+- 通过 AWS Identity Center 集成实现基于 SSO 的访问控制
 
 **2. 使用 ArgoCD ApplicationSets 进行多集群管理**
 
-- 集群间一致的部署
-- 按环境自定义
+- Hub-and-Spoke 架构实现集中管理
+- 集群间一致的部署及按环境自定义
 
 **3. 使用自动化 Blue/Green 升级策略**
 

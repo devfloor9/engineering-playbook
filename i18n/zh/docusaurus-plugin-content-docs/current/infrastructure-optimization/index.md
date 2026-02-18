@@ -1,7 +1,7 @@
 ---
 title: "基础设施优化"
 sidebar_label: "基础设施优化"
-sidebar_position: 4
+sidebar_position: 1
 description: "通过先进的Kubernetes基础设施优化技术获得最大的性能和成本效益"
 ---
 
