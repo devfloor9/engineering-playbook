@@ -18,18 +18,18 @@ import { ServiceTypeComparison, LatencyCostComparison, CostSimulation, ScenarioM
 
 ## 概述
 
-本文整理了从**延迟（latency）最小化**和**成本效率化**角度优化 Amazon EKS 内部服务间通信（East-West 流量）的方案。从单集群开始，逐步覆盖多 AZ（Availability Zone）配置，以及多集群/多账户环境的扩展场景。
+本指南整理了从**延迟（latency）最小化**和**成本效率化**角度优化 Amazon EKS 内部服务间通信（East-West 流量）的方案。从单集群开始，逐步覆盖多 AZ（Availability Zone）配置，以及多集群/多账户环境的扩展场景。
 
 East-West（服务↔服务）的跳数从 1 增加到 2 时，p99 延迟会以毫秒级增加，跨 AZ 通信会产生 AWS 带宽费用（每 GB $0.01）。本指南分析了从 **Kubernetes 原生功能（Topology Aware Routing·InternalTrafficPolicy）到 Cilium ClusterMesh、AWS VPC Lattice、Istio 服务网格**各层级的选项，并定量比较延迟、开销和成本。
 
 ### 背景与问题
 
-默认 Kubernetes 网络中 East-West 流量面临的问题：
+默认 Kubernetes 网络中 East-West 流量面临的问题如下：
 
 - **缺乏 AZ 感知**：默认 ClusterIP 服务将流量随机（iptables）或轮询（IPVS）分发到集群所有 Pod，不考虑 AZ
 - **不必要的跨 AZ 流量**：当 Pod 分布在多个 AZ 时，流量随机发送到其他 AZ，导致延迟增加和费用产生
 - **跨 AZ 数据传输费用**：同区域内 AZ 间每 GB 约 $0.01 双向收费
-- **DNS 查询延迟**：对集中式 CoreDNS 的跨 AZ DNS 查询及 QPS 限制问题
+- **DNS 查询延迟**：对集中式 CoreDNS 的跨 AZ DNS 查询及 QPS 限制超出问题
 - **经 LB 时的额外跳数**：在 East-West 使用 Internal ALB/NLB 会产生不必要的网络跳数和固定成本
 
 ### 核心收益
@@ -39,7 +39,7 @@ East-West（服务↔服务）的跳数从 1 增加到 2 时，p99 延迟会以�
 | 项目 | 改善效果 |
 |------|----------|
 | 网络延迟 | 通过 Topology Aware Routing 实现同 AZ 路由，达到 p99 sub-ms |
-| 成本节省 | 消除跨 AZ 流量，10 TB/月基准约节省 $100 |
+| 成本节省 | 消除跨 AZ 流量时，10 TB/月基准约节省 $100 |
 | 运维简化 | 基于 ClusterIP 无需 LB 即可优化服务间通信 |
 | DNS 性能 | 通过 NodeLocal DNSCache 将 DNS 查询延迟从数 ms 降至 sub-ms |
 | 扩展性 | 提供向多集群/多账户环境一致的扩展路径 |
@@ -48,7 +48,7 @@ East-West（服务↔服务）的跳数从 1 增加到 2 时，p99 延迟会以�
 
 East-West 流量优化在传输层（L4）和应用层（L7）需要不同的方法：
 
-- **L4 流量（TCP/UDP）**：核心是在无额外协议处理的情况下确保直接连接路径。设计为 Pod 间 1-hop 通信而不经过不必要的代理或负载均衡器，可最小化延迟。对于数据库等 StatefulSet 服务，适合通过 Headless Service 让客户端以 DNS 轮询直连目标 Pod 的模式。
+- **L4 流量（TCP/UDP）**：核心是在无额外协议处理的情况下确保直接连接路径。设计 Pod 间 1-hop 通信而不经过不必要的代理或负载均衡器，可最小化延迟。对于数据库等 StatefulSet 服务，适合通过 Headless Service 让客户端以 DNS 轮询直连目标 Pod 的模式。
 
 - **L7 流量（HTTP/gRPC）**：当需要基于内容的路由、重试等高级流量控制时，使用应用层代理。通过 ALB 或 Istio sidecar 可以应用路径路由、gRPC 方法路由、熔断器等 L7 功能。但 L7 代理由于数据包检查和处理会增加负载和延迟，对简单流量可能过度。
 
@@ -120,8 +120,8 @@ graph TB
 
 :::info 核心差异
 
-- **ClusterIP 路径**: Pod → kube-proxy (iptables/IPVS NAT) → target Pod（1 hop）
-- **Internal ALB 路径**: Pod → AZ-local ALB ENI → target Pod（2 hops）
+- **ClusterIP 路径**：Pod → kube-proxy (iptables/IPVS NAT) → target Pod（1 hop）
+- **Internal ALB 路径**：Pod → AZ-local ALB ENI → target Pod（2 hops）
 - 应用 Topology Aware Routing 后，ClusterIP 路径在同 AZ 内完成
 :::
 
@@ -162,6 +162,14 @@ graph LR
 服务间通信的连接方式不同，性能和成本也有差异：
 
 <ServiceTypeComparison />
+
+:::tip 服务类型选择指南
+
+- **默认选择**：ClusterIP + Topology Aware Routing
+- **StatefulSet**：Headless 服务
+- **需要 L7 功能时**：Internal ALB（IP 模式）
+- **需要 L4 外部暴露时**：Internal NLB（IP 模式）
+:::
 
 ### Instance 模式 vs IP 模式
 
@@ -241,7 +249,7 @@ kubectl get endpointslices -l kubernetes.io/service-name=my-service -o yaml
 
 ### 步骤 2：设置 InternalTrafficPolicy Local
 
-比 Topology Aware Routing 范围更窄的功能，仅将流量发送到同一节点（Local Node）上运行的端点。完全消除节点间（当然也包括 AZ 间）的网络跳数，使延迟最小化，跨 AZ 成本也趋近于 0。
+比 Topology Aware Routing 范围更窄的功能，仅将流量发送到同一节点（Local Node）上运行的端点。完全消除节点间（当然也包括 AZ 间）的网络跳数，使延迟最小化，跨 AZ 成本也趋近于零。
 
 ```yaml
 apiVersion: v1
@@ -559,7 +567,7 @@ spec:
 
 ## 主要选项延迟与成本比较
 
-### 各选项性能·成本比较
+### 各选项性能·成本比较表
 
 <LatencyCostComparison />
 
@@ -879,7 +887,7 @@ kubectl exec -it test-pod -- cat /etc/resolv.conf
 **4. 全企业 Zero-Trust，多集群**
 
 - Istio Ambient → Sidecar 转换仅对需要的工作负载缩小范围
-- Sidecar → 节点代理（Ambient） → Sidecar-less（eBPF） 顺序减少开销
+- Sidecar → 节点代理（Ambient）→ Sidecar-less（eBPF）顺序减少开销
 
 **5. 多账户·服务 > 50 个**
 

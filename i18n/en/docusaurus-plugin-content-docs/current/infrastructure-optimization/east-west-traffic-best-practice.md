@@ -5,7 +5,7 @@ description: "In-depth optimization strategies for minimizing latency in service
 tags: [eks, networking, performance, cost-optimization, service-mesh, topology-aware-routing]
 category: "performance-networking"
 last_update:
-  date: 2026-02-18
+  date: 2026-02-14
   author: devfloor9
 sidebar_position: 3
 ---
@@ -14,43 +14,43 @@ import { ServiceTypeComparison, LatencyCostComparison, CostSimulation, ScenarioM
 
 # EKS East-West Traffic Optimization Guide
 
-> 📅 **Written**: 2026-02-09 | **Last Modified**: 2026-02-18 | ⏱️ **Reading Time**: ~21 min
+> 📅 **Written**: 2026-02-09 | **Last Modified**: 2026-02-14 | ⏱️ **Reading Time**: ~21 min
 
 ## Overview
 
-This guide summarizes how to optimize internal service-to-service communication (East-West traffic) in Amazon EKS from the perspectives of **latency minimization** and **cost efficiency**. It progressively covers scenarios starting from a single cluster, expanding to multi-AZ (Availability Zone) configurations, and further extending to multi-cluster and multi-account environments.
+This guide covers how to optimize internal service-to-service communication (East-West traffic) in Amazon EKS from the perspectives of **latency minimization** and **cost efficiency**. It progressively addresses scenarios from a single cluster to multi-AZ (Availability Zone) configurations, and further to multi-cluster/multi-account environments.
 
-When East-West (service↔service) hops increase from 1 to 2, p99 latency increases by milliseconds, and crossing AZs incurs AWS bandwidth charges (GB unit price $0.01). This guide analyzes layer-by-layer options from **Kubernetes-native features (Topology Aware Routing, InternalTrafficPolicy) to Cilium ClusterMesh, AWS VPC Lattice, and Istio service mesh**, providing quantitative comparisons of latency, overhead, and costs.
+When East-West (service↔service) hops increase from 1 to 2, p99 latency rises by milliseconds, and crossing AZs incurs AWS bandwidth charges ($0.01 per GB). This guide analyzes layer-by-layer options from **Kubernetes-native features (Topology Aware Routing · InternalTrafficPolicy) to Cilium ClusterMesh, AWS VPC Lattice, and Istio service mesh**, providing quantitative comparisons of latency, overhead, and cost.
 
 ### Background and Challenges
 
-The challenges faced by East-West traffic in default Kubernetes networking include:
+The challenges faced by East-West traffic in default Kubernetes networking are as follows:
 
 - **Lack of AZ awareness**: Default ClusterIP services distribute traffic randomly (iptables) or round-robin (IPVS) across all Pods in the cluster without considering AZs
-- **Unnecessary Cross-AZ traffic**: When Pods are distributed across multiple AZs, traffic is randomly forwarded to other AZs, increasing latency and costs
-- **Cross-AZ data transfer costs**: Approximately $0.01 per GB is charged bidirectionally between AZs within the same region
-- **DNS lookup latency**: Cross-AZ DNS lookups to centralized CoreDNS and QPS limit issues
-- **Additional hops via LB**: Using Internal ALB/NLB for East-West traffic introduces unnecessary network hops and fixed costs
+- **Unnecessary Cross-AZ traffic**: When Pods are distributed across multiple AZs, traffic is randomly forwarded to other AZs, increasing latency and incurring costs
+- **Cross-AZ data transfer costs**: Approximately $0.01 per GB charged bidirectionally between AZs within the same region
+- **DNS lookup latency**: Cross-AZ DNS lookups to centralized CoreDNS and QPS limit exceeded issues
+- **Additional hops via LB**: Using Internal ALB/NLB for East-West introduces unnecessary network hops and fixed costs
 
 ### Key Benefits
 
-By applying the optimization strategies in this guide, you can expect the following improvements:
+Applying the optimization strategies in this guide can yield the following improvements:
 
-| Item | Improvement Effect |
-|------|----------|
+| Item | Improvement |
+|------|-----------|
 | Network Latency | Same-AZ routing with Topology Aware Routing, achieving p99 sub-ms |
-| Cost Savings | Approximately $100 savings per month for 10 TB/month baseline when eliminating Cross-AZ traffic |
-| Operational Simplification | Optimize service-to-service communication based on ClusterIP without LBs |
-| DNS Performance | DNS lookup latency from ms → sub-ms with NodeLocal DNSCache |
+| Cost Savings | ~$100/month savings at 10 TB/month baseline by eliminating Cross-AZ traffic |
+| Operational Simplification | Optimize service-to-service communication with ClusterIP without LBs |
+| DNS Performance | DNS lookup latency from several ms → sub-ms with NodeLocal DNSCache |
 | Scalability | Consistent expansion path to multi-cluster/account environments |
 
 ### L4 vs L7 Traffic Optimization Strategies
 
-East-West traffic optimization approaches differ at the transport layer (L4) and application layer (L7):
+East-West traffic optimization differs at the transport layer (L4) and application layer (L7):
 
-- **L4 Traffic (TCP/UDP)**: The key is to establish direct connection paths without additional protocol processing. Designing 1-hop Pod-to-Pod communication without going through unnecessary proxies or load balancers minimizes latency. For StatefulSet services like databases, a pattern where clients connect directly to target Pods via DNS round-robin using Headless Services is appropriate.
+- **L4 Traffic (TCP/UDP)**: The key is establishing direct connection paths without additional protocol processing. Designing Pod-to-Pod 1-hop communication without going through unnecessary proxies or load balancers minimizes latency. For StatefulSet services such as databases, a pattern where clients connect directly to target Pods via DNS round-robin using Headless Services is appropriate.
 
-- **L7 Traffic (HTTP/gRPC)**: When advanced traffic control such as content-based routing and retries is needed, application layer proxies are utilized. Using ALB or Istio sidecars enables applying L7 features like path-based routing, gRPC method-level routing, and circuit breakers. However, L7 proxies increase load and latency due to packet inspection and processing, which can be excessive for simple traffic.
+- **L7 Traffic (HTTP/gRPC)**: When advanced traffic control such as content-based routing and retries is needed, application layer proxies are used. Using ALB or Istio sidecars enables L7 features like path-based routing, gRPC method-level routing, and circuit breakers. However, L7 proxies increase load and latency due to packet inspection and processing, which can be excessive for simple traffic.
 
 ---
 
@@ -65,7 +65,7 @@ East-West traffic optimization approaches differ at the transport layer (L4) and
 ### Required Tools
 
 | Tool | Version | Purpose |
-|------|------|------|
+|------|---------|---------|
 | kubectl | 1.27+ | Cluster resource management |
 | eksctl | 0.170+ | EKS cluster creation and management |
 | AWS CLI | 2.x | AWS resource verification |
@@ -75,7 +75,7 @@ East-West traffic optimization approaches differ at the transport layer (L4) and
 ### Environment Requirements
 
 | Item | Requirement |
-|------|----------|
+|------|-------------|
 | EKS Version | 1.27+ (Topology Aware Routing support) |
 | VPC CNI | v1.12+ or Cilium (ClusterMesh scenario) |
 | AZ Configuration | Minimum 2 AZs within the same region |
@@ -122,7 +122,7 @@ graph TB
 
 - **ClusterIP path**: Pod → kube-proxy (iptables/IPVS NAT) → target Pod (1 hop)
 - **Internal ALB path**: Pod → AZ-local ALB ENI → target Pod (2 hops)
-- With Topology Aware Routing applied, ClusterIP path completes within the same AZ
+- With Topology Aware Routing applied, the ClusterIP path completes within the same AZ
 :::
 
 ### Multi-Cluster Connectivity Options Comparison
@@ -159,14 +159,14 @@ graph LR
 
 ### Kubernetes Service Type Comparison
 
-Performance and costs differ depending on how service-to-service communication is connected:
+Performance and cost differ depending on how service-to-service communication is connected:
 
 <ServiceTypeComparison />
 
 :::tip Service Type Selection Guidelines
 
 - **Default choice**: ClusterIP + Topology Aware Routing
-- **StatefulSet**: Headless service
+- **StatefulSet**: Headless Service
 - **When L7 features needed**: Internal ALB (IP mode)
 - **When L4 external exposure needed**: Internal NLB (IP mode)
 :::
@@ -176,7 +176,7 @@ Performance and costs differ depending on how service-to-service communication i
 When using Internal LBs, understanding the difference between Instance mode and IP mode is important:
 
 - **Instance mode**: LB → NodePort → kube-proxy → Pod. When kube-proxy on the node receiving NodePort forwards packets to another AZ node where the target Pod is located, **cross-AZ communication occurs**
-- **IP mode**: LB → Pod IP direct connection. Traffic is forwarded directly to Pod IPs from each AZ, **connecting to Pods in the same AZ without going through intermediate Nodes**
+- **IP mode**: LB → Pod IP direct connection. Traffic is delivered directly to Pod IPs from each AZ, **connecting to Pods in the same AZ without going through intermediate Nodes**
 
 :::warning Instance Mode Caution
 In Instance mode, cross-AZ traffic increases via NodePort routing. AWS best practices recommend setting to **IP mode** when using internal LBs whenever possible to reduce unnecessary inter-AZ traffic. AWS Load Balancer Controller is required to use IP mode.
@@ -188,15 +188,15 @@ In Instance mode, cross-AZ traffic increases via NodePort routing. AWS best prac
 
 **Why choose ClusterIP as the default?**
 
-- No additional cost with native Kubernetes functionality
+- Native Kubernetes functionality with no additional cost
 - Lowest latency with 1-hop communication
-- AZ awareness possible when combined with Topology Aware Routing
+- AZ awareness when combined with Topology Aware Routing
 - Easy integration with service mesh and Gateway API
 
 **Why use Internal ALB selectively?**
 
 - Hourly cost ($0.0225/h) + LCU charges continuously incurred
-- 2-3ms RTT overhead with additional network hops
+- 2-3ms RTT overhead from additional network hops
 - Suitable for transitional use such as EC2→EKS migration
 :::
 
@@ -206,7 +206,7 @@ In Instance mode, cross-AZ traffic increases via NodePort routing. AWS best prac
 
 ### Step 1: Enable Topology Aware Routing
 
-The key to reducing latency and costs in multi-AZ environments is to ensure traffic is processed within the same AZ as much as possible. Enabling Topology Aware Routing in Kubernetes 1.27+ versions records AZ information (hints) for each endpoint in EndpointSlices, and kube-proxy routes traffic only to Pods in the same Zone as the client.
+The key to reducing latency and cost in multi-AZ environments is ensuring traffic is processed within the same AZ as much as possible. Enabling Topology Aware Routing in Kubernetes 1.27+ records AZ information (hints) for each endpoint in EndpointSlices, and kube-proxy routes traffic only to Pods in the same Zone as the client.
 
 ```yaml
 apiVersion: v1
@@ -243,13 +243,13 @@ kubectl get endpointslices -l kubernetes.io/service-name=my-service -o yaml
 :::warning Topology Aware Routing Operating Conditions
 
 - **Sufficient endpoints** must exist in each AZ
-- If Pods are skewed to only certain AZs, that service disables hints and routes globally
-- If EndpointSlice controller determines Pod ratios by AZ are not balanced, hints are not generated
+- If Pods are skewed to certain AZs only, the service disables hints and routes globally
+- If the EndpointSlice controller determines Pod ratios per AZ are not balanced, hints are not generated
 :::
 
 ### Step 2: Set InternalTrafficPolicy Local
 
-This feature has a narrower scope than Topology Aware Routing, forwarding traffic only to endpoints running on the same node (Local Node). Network hops between nodes (and naturally between AZs) are completely eliminated, minimizing latency and bringing Cross-AZ costs to zero.
+This feature has a narrower scope than Topology Aware Routing, forwarding traffic only to endpoints running on the same node (Local Node). Network hops between nodes (and naturally between AZs) are completely eliminated, minimizing latency and bringing Cross-AZ costs to near zero.
 
 ```yaml
 apiVersion: v1
@@ -270,19 +270,19 @@ spec:
 ```
 
 :::danger InternalTrafficPolicy: Local Caution
-If there are no target Pods on the local node, **traffic is dropped**. Services using this policy must have at least one Pod deployed on all nodes (or at least nodes where service calls occur). Always use Pod Topology Spread or PodAffinity together.
+If there are no target Pods on the local node, **traffic is dropped**. Services using this policy must have at least one Pod deployed on all nodes (or at minimum on nodes where service calls originate). Always use Pod Topology Spread or PodAffinity together.
 :::
 
 :::info Topology Aware Routing vs InternalTrafficPolicy
 These two features **cannot be used simultaneously** and must be applied selectively:
 
-- **Multi-AZ environment**: Consider Topology Aware Routing which ensures AZ-level distribution first
-- **Frequent calls within same node**: Utilize InternalTrafficPolicy(Local) + Pod co-location for strongly coupled communication between paired pods
+- **Multi-AZ environment**: Consider Topology Aware Routing first, which ensures AZ-level distribution
+- **Frequent calls within same node**: Use InternalTrafficPolicy(Local) + Pod co-location for strongly coupled communication between paired pods
 :::
 
 ### Step 3: Pod Topology Spread Constraints
 
-The placement strategy of application replicas is important to achieve the effects of topology-based optimization. For Topology Aware Routing to work properly, sufficient endpoints must exist in each AZ.
+The placement strategy of application replicas is critical for topology-based optimization to be effective. For Topology Aware Routing to work properly, sufficient endpoints must exist in each AZ.
 
 ```yaml
 apiVersion: apps/v1
@@ -308,7 +308,7 @@ spec:
           labelSelector:
             matchLabels:
               app: my-app
-        # Node distribution (optional)
+        # Per-node distribution (optional)
         - maxSkew: 1
           topologyKey: kubernetes.io/hostname
           whenUnsatisfiable: ScheduleAnyway
@@ -328,13 +328,13 @@ spec:
 
 **Co-location using Pod Affinity:**
 
-PodAffinity rules can be applied to place frequently communicating services A and B on the same node or same AZ:
+PodAffinity rules can be applied to place frequently communicating Services A and B on the same node or same AZ:
 
 ```yaml
 spec:
   affinity:
     podAffinity:
-      # Prefer placement on nodes where service B exists
+      # Prefer placement on nodes where Service B exists
       preferredDuringSchedulingIgnoredDuringExecution:
         - weight: 100
           podAffinityTerm:
@@ -345,7 +345,7 @@ spec:
 ```
 
 :::tip Autoscaling Caution
-When scaling out with HPA, new pods can be spread according to Spread Constraints, but **during scale-in, the controller removes arbitrary pods without considering AZ balance**, potentially disrupting the balance. It's recommended to use Descheduler to rebalance when imbalances occur.
+When scaling out with HPA, new pods can be spread according to Spread Constraints. However, **during scale-in, the controller removes arbitrary pods without considering AZ balance**, potentially disrupting equilibrium. Using Descheduler to rebalance when imbalances occur is recommended.
 :::
 
 ### Step 4: Deploy NodeLocal DNSCache
@@ -357,7 +357,7 @@ DNS lookup latency and failures can unexpectedly increase latency in microservic
 kubectl apply -f https://raw.githubusercontent.com/kubernetes/kubernetes/master/cluster/addons/dns/nodelocaldns/nodelocaldns.yaml
 ```
 
-Or use Helm chart:
+Or use a Helm chart:
 
 ```bash
 helm repo add deliveryhero https://charts.deliveryhero.io/
@@ -376,18 +376,18 @@ helm install node-local-dns deliveryhero/node-local-dns \
 
 **Effects:**
 
-- p99 DNS lookup latency: ms → sub-ms
+- p99 DNS lookup latency: several ms → sub-ms
 - CoreDNS QPS load reduction
 - Saves tens of ms DNS wait time in environments with 10,000+ Pods
 - Reduced cross-AZ DNS charges
 
 :::tip NodeLocal DNSCache Application Criteria
-AWS official blog recommends using NodeLocal DNSCache in **clusters with many nodes** and advises using it together with CoreDNS scale-out. Consider the resource consumption (CPU/memory) of additional daemons per node according to workload scale when applying.
+The AWS official blog recommends using NodeLocal DNSCache in **clusters with many nodes** and advises using it alongside CoreDNS scale-out. Consider the resource consumption (CPU/memory) of additional per-node daemons based on workload scale before applying.
 :::
 
-### Step 5: Configure Internal LB IP Mode (if needed)
+### Step 5: Configure Internal LB IP Mode (If Needed)
 
-When L7 features are needed or during EC2→EKS migration transition, configure Internal ALB in IP mode:
+When L7 features are required or during EC2→EKS migration transitions, configure Internal ALB in IP mode:
 
 **Internal NLB (IP mode):**
 
@@ -448,26 +448,26 @@ When security requirements (mTLS, Zero-Trust) exist or advanced traffic manageme
 
 **Key Benefits of Istio:**
 
-- **Locality-based routing**: Route to instances in the same AZ or same region using locality information between Envoy sidecars
+- **Locality-based routing**: Route to instances in the same AZ or region using locality information between Envoy sidecars
 - **Transparent mTLS**: Mutual TLS encryption without modifying application code
 - **Advanced traffic management**: Retries, timeouts, circuit breakers, canary deployments
 
 **Performance Overhead (Istio 1.24 baseline):**
 
 | Metric | Value |
-|--------|------|
-| CPU per sidecar | ~0.2 vCPU (1000 rps baseline) |
-| Memory per sidecar | ~60 MB (1000 rps baseline) |
-| Additional latency (p99) | ~5ms (2 proxy passes: client+server) |
+|--------|-------|
+| CPU per sidecar | ~0.2 vCPU (at 1000 rps) |
+| Memory per sidecar | ~60 MB (at 1000 rps) |
+| Additional latency (p99) | ~5ms (2 proxy passes: client + server) |
 | Performance impact | Average 5-10% throughput reduction |
 
 :::warning Considerations When Introducing Istio
 
 - EC2 costs may increase due to sidecar resource consumption
 - CPU usage further increases when mTLS is enabled
-- Control plane (Istiod) management, need to learn CRDs (VirtualService, DestinationRule)
-- Increased debugging difficulty (tracking through sidecars, control plane)
-- **Carefully decide mesh application for services with very high latency sensitivity**
+- Control plane (Istiod) management and CRD learning (VirtualService, DestinationRule) required
+- Increased debugging difficulty (tracing through sidecars and control plane)
+- **Carefully evaluate mesh adoption for services with very high latency sensitivity**
 :::
 
 ```yaml
@@ -497,7 +497,7 @@ When services are distributed across multiple clusters or multiple AWS accounts,
 
 #### Cilium ClusterMesh
 
-Cilium ClusterMesh is a multi-cluster networking feature provided by Cilium CNI, connecting multiple clusters like a single network. Direct Pod-to-Pod communication based on eBPF is possible without going through separate gateways or proxies.
+Cilium ClusterMesh is a multi-cluster networking feature provided by the Cilium CNI that connects multiple clusters as a single network. eBPF-based direct Pod-to-Pod communication is possible without going through separate gateways or proxies.
 
 ```bash
 # Enable ClusterMesh (Cilium CLI)
@@ -516,7 +516,7 @@ cilium clustermesh status --context cluster1
 
 #### AWS VPC Lattice
 
-Amazon VPC Lattice is a fully managed application networking service providing consistent service connectivity, IAM-based authentication, and monitoring across multiple VPCs and accounts.
+Amazon VPC Lattice is a fully managed application networking service that provides consistent service connectivity, IAM-based authentication, and monitoring across multiple VPCs and accounts.
 
 ```yaml
 # Lattice integration via Kubernetes Gateway API
@@ -535,18 +535,18 @@ spec:
 ```
 
 **Cost structure:** $0.025/hour per service + $0.025/GB + $0.10 per million requests
-**Suitable when:** Dozens+ microservices distributed across multiple accounts, centralized security control needed
+**Suitable when:** Dozens or more microservices distributed across multiple accounts, centralized security control needed
 
-#### Istio Multi-cluster Mesh
+#### Istio Multi-Cluster Mesh
 
-If already using Istio, you can expand to multi-cluster service mesh. In flat network environments, direct Envoy-to-Envoy communication is possible, while in separated networks, traffic goes through East-West Gateway.
+If already using Istio, you can expand to a multi-cluster service mesh. In flat network environments, direct Envoy-to-Envoy communication is possible; in isolated networks, traffic goes through the East-West Gateway.
 
-**Advantages:** Use full service mesh features across cluster boundaries, global mTLS, inter-cluster failover
-**Disadvantages:** Highest operational complexity among 4 options, challenges like certificate management/sidecar synchronization
+**Advantages:** Full service mesh features beyond cluster boundaries, global mTLS, inter-cluster failover
+**Disadvantages:** Highest operational complexity among the 4 options, challenges including certificate management and sidecar synchronization
 
 #### Route53 + ExternalDNS
 
-The simplest multi-cluster connectivity method, registering services from each cluster in Route53 Private Hosted Zone and accessing via DNS.
+The simplest multi-cluster connectivity method: register services from each cluster in a Route53 Private Hosted Zone and access them via DNS.
 
 ```yaml
 # ExternalDNS configuration example
@@ -565,7 +565,7 @@ spec:
 
 ---
 
-## Key Options Latency and Cost Comparison
+## Key Options: Latency and Cost Comparison
 
 ### Performance and Cost Comparison by Option
 
@@ -573,15 +573,15 @@ spec:
 
 ### 10 TB/Month East-West Traffic Cost Simulation
 
-Assumption: Same region 3-AZ EKS cluster, total 10 TB (= 10,240 GB) service-to-service traffic
+Assumptions: Same-region 3-AZ EKS cluster, total 10 TB (= 10,240 GB) service-to-service traffic
 
 <CostSimulation />
 
 :::tip Cost Optimization Key Insights
 
-- **InternalTrafficPolicy Local** ensures node-local, achieving cost $0 with lowest latency. However, Pod Affinity and proximity placement are essential
-- **20+ services, multi-account** Lattice provides operational convenience (accepting additional cost)
-- **Hybrid strategy** is most economical for most workloads: Deploy ALB as spot investment only for specific paths needing L7/WAF, maintain ClusterIP path for the rest
+- **InternalTrafficPolicy Local** guarantees node-local routing, achieving $0 cost with lowest latency. However, Pod Affinity and proximity placement are essential
+- **20+ services, multi-account**: Lattice provides operational convenience (at additional cost)
+- **Hybrid strategy** is most economical for most workloads: Deploy ALB as a spot investment only for specific paths needing L7/WAF, and maintain ClusterIP paths for the rest
 :::
 
 ---
@@ -602,7 +602,7 @@ kubectl get endpointslices -l kubernetes.io/service-name=my-service \
 ```
 
 ```bash
-# Check if Pods are evenly distributed by AZ
+# Verify Pods are evenly distributed by AZ
 kubectl get pods -l app=my-app -o wide | awk '{print $7}' | sort | uniq -c
 
 # Expected output:
@@ -616,15 +616,15 @@ kubectl get pods -l app=my-app -o wide | awk '{print $7}' | sort | uniq -c
 For services using ALB, monitor with CloudWatch metrics:
 
 | Metric | Target | Warning | Critical |
-|--------|------|------|------|
+|--------|--------|---------|----------|
 | `TargetResponseTime` | < 100ms | 100-300ms | > 300ms |
 | `HTTPCode_ELB_5XX_Count` | 0 | 1-10/min | > 10/min |
 | `HTTPCode_Target_5XX_Count` | 0 | 1-5/min | > 5/min |
 | `ActiveConnectionCount` | Normal range | 80% capacity | 90% capacity |
 
 ```bash
-# Analyze 5xx error causes in ALB access log
-# Identify 502/504 root cause with error_reason field
+# Analyze 5xx error causes from ALB access logs
+# Identify 502/504 root cause via error_reason field
 aws logs filter-log-events \
   --log-group-name /aws/alb/my-internal-alb \
   --filter-pattern "elb_status_code=5*"
@@ -634,9 +634,9 @@ aws logs filter-log-events \
 
 ClusterIP services have no ELB metrics, so separate instrumentation is needed:
 
-- **Service mesh**: L7 metrics through Istio/Linkerd or Envoy sidecars
-- **eBPF-based tools**: TCP reset and 5xx statistics through Hubble, Cilium, Pixie
-- **Application level**: 5xx counts through Prometheus/OpenTelemetry
+- **Service mesh**: L7 metrics via Istio/Linkerd or Envoy sidecars
+- **eBPF-based tools**: TCP reset and 5xx statistics via Hubble, Cilium, Pixie
+- **Application level**: 5xx counts via Prometheus/OpenTelemetry
 
 ```yaml
 # Prometheus ServiceMonitor example
@@ -665,8 +665,8 @@ aws ce get-cost-and-usage \
   --filter '{"Dimensions":{"Key":"USAGE_TYPE","Values":["APN2-DataTransfer-Regional-Bytes"]}}'
 ```
 
-:::tip Utilize Kubecost
-Installing Kubecost allows you to visualize cross-AZ traffic costs per namespace. The `RegionalDataTransferCost` metric helps identify which service-to-service communications cause the most cross-AZ costs.
+:::tip Using Kubecost
+Installing Kubecost enables visualization of cross-AZ traffic costs per namespace. The `RegionalDataTransferCost` metric helps identify which service-to-service communications cause the most cross-AZ costs.
 :::
 
 ---
@@ -678,19 +678,19 @@ Recommended solution combinations based on service characteristics, security req
 <ScenarioMatrix />
 
 :::info Hybrid Strategy
-In realistic environments, **mixed use** of strategies is more common than using just one. For example:
+In real-world environments, **mixing strategies** is more common than using just one. For example:
 
 - Within cluster: ClusterIP + Topology Hints
 - Services without mesh: Optimize with InternalTrafficPolicy
 - Between multi-clusters: Connect with Lattice
-- Specific L7 paths: Deploy ALB as spot investment
+- Specific L7 paths: Deploy ALB as a spot investment
 :::
 
 ---
 
 ## EC2→EKS Migration Guide
 
-### Migration Stage Strategy
+### Stage-by-Stage Migration Strategy
 
 During the transition period of migrating services from EC2 to EKS, gradual transition using Internal ALB is recommended:
 
@@ -721,13 +721,13 @@ spec:
 
 **Stage 3: Remove ALB after 100% EKS transition**
 
-After complete transition to EKS, remove ALB and return to ClusterIP to eliminate ongoing ALB costs.
+After complete transition to EKS, remove the ALB and revert to ClusterIP to eliminate ongoing ALB costs.
 
 :::tip Migration Core Principles
 
 - **Steady state**: Maintain lowest cost and latency with ClusterIP
 - **Transition period**: Dual routing EC2/EKS with Internal ALB (weighted target groups)
-- **After transition complete**: Remove ALB to eliminate the cost line item itself
+- **After transition complete**: Remove ALB to eliminate the cost line item entirely
 :::
 
 ---
@@ -760,9 +760,9 @@ kubectl get pods -l app=my-app -o json | \
 
 **Solution:**
 
-1. Confirm Pods are **evenly distributed across all AZs** (minimum 2+/AZ)
-2. Add `topologySpreadConstraints` to Deployment
-3. Verify conditions for EndpointSlice controller to generate hints:
+1. Verify Pods are **evenly distributed across all AZs** (minimum 2+/AZ)
+2. Add `topologySpreadConstraints` to the Deployment
+3. Check the conditions for EndpointSlice controller to generate hints:
    - Endpoint ratios in each AZ must be approximately balanced
    - Hints are not generated if one AZ concentrates 50%+ of total endpoints
 
@@ -787,8 +787,8 @@ kubectl get endpoints my-local-service -o yaml
 
 **Solution:**
 
-1. Deploy target service to all nodes as DaemonSet
-2. Force caller and target to be on same node with PodAffinity
+1. Deploy target service to all nodes as a DaemonSet
+2. Force caller and target onto the same node with PodAffinity
 3. Or remove InternalTrafficPolicy and switch to Topology Aware Routing (AZ level)
 
 ```yaml
@@ -805,7 +805,7 @@ spec:
     app: my-app
 ```
 
-### Problem: Cross-AZ Costs Not Reducing
+### Problem: Cross-AZ Costs Not Decreasing
 
 **Symptoms:**
 
@@ -828,9 +828,9 @@ kubectl exec -it test-pod -- traceroute target-service.production.svc.cluster.lo
 **Solution:**
 
 1. **Deploy NAT Gateway separately per AZ** (prevent cross-AZ for external communication)
-2. Confirm NLB/ALB is set to **IP mode**
+2. Verify NLB/ALB is set to **IP mode**
 3. Check if CoreDNS is running cross-AZ → Apply NodeLocal DNSCache
-4. Identify cross-AZ traffic causes per namespace with Kubecost
+4. Identify per-namespace cross-AZ traffic causes with Kubecost
 
 ### Problem: NodeLocal DNSCache Related Issues
 
@@ -857,14 +857,14 @@ kubectl exec -it test-pod -- cat /etc/resolv.conf
 ```
 
 :::danger Production Environment Caution
-When changing network settings in production environments, always apply in **canary deployment** style starting with small-scale services, and compare performance metrics before and after changes. Changes to Topology Aware Routing or InternalTrafficPolicy immediately alter traffic paths, so proceed with enhanced monitoring in place.
+When changing network settings in production environments, always apply in a **canary deployment** fashion starting with small-scale services, and compare performance metrics before and after changes. Changes to Topology Aware Routing or InternalTrafficPolicy immediately alter traffic paths, so proceed with enhanced monitoring in place.
 :::
 
 ---
 
 ## Conclusion
 
-### Key Takeaways Summary
+### Key Takeaways
 
 :::tip Architecture Selection Guide
 
@@ -872,7 +872,7 @@ When changing network settings in production environments, always apply in **can
 
 - ClusterIP + Topology Aware Routing + NodeLocal DNSCache
 - Add InternalTrafficPolicy(Local) if needed
-- 10 TB/month baseline: Save approximately $98 vs ALB, $400+ vs VPC Lattice
+- 10 TB/month baseline: ~$98 savings vs ALB, $400+ savings vs VPC Lattice
 
 **2. L4 Stability and Fixed IP Needed**
 
@@ -889,7 +889,7 @@ When changing network settings in production environments, always apply in **can
 - Istio Ambient → Scope down sidecar transition to necessary workloads only
 - Overhead decreases in order: sidecar → node proxy (Ambient) → sidecar-less (eBPF)
 
-**5. Multi-Account, Services > 50**
+**5. Multi-Account, 50+ Services**
 
 - Reduce complexity with managed VPC Lattice + IAM policies
 

@@ -26,6 +26,7 @@ import {
   DifficultyComparisonTable,
   AwsCostTable,
   OpenSourceCostTable,
+  CostComparisonTable,
   LatencyComparisonTable,
   RouteRecommendationTable,
   SolutionFeatureTable,
@@ -497,16 +498,13 @@ Compare how 8 key NGINX Ingress Controller features are implemented across Gatew
 
 ### 4.5 Cost Impact Analysis
 
-#### AWS Native Additional Costs
+<CostComparisonTable locale="en" />
 
-<AwsCostTable locale="en" />
-
-#### Open Source Additional Costs
-
-<OpenSourceCostTable locale="en" />
-
-:::tip Cost Optimization
-If you need 3+ WAF features (IP Allowlist, Rate Limiting, Body Size), AWS Native is cost-effective. For 1-2 features, open source solutions can implement them for free.
+:::tip Cost Optimization Tips
+- **If 3+ WAF features are needed**, AWS Native is cost-effective. Multiple rules can be bundled into a single WebACL
+- **If only 1-2 are needed**, open source solutions (Cilium, Envoy Gateway) can implement them at no additional cost
+- **For latency-sensitive workloads**, open source is advantageous as processing happens at the kernel/eBPF level without WAF rule evaluation overhead
+- **When using Lambda Authorizer**, watch out for p99 latency spikes from cold starts. Consider configuring Provisioned Concurrency
 :::
 
 ### 4.6 Feature Implementation Code Examples
@@ -638,26 +636,149 @@ spec:
 <Tabs>
 <TabItem value="aws" label="AWS Native (LBC v3)" default>
 
+:::warning Limitation
+AWS Native (LBC v3) does not support native gateway-level Rate Limiting. Use AWS WAF Rate-based Rules to implement IP-based request throttling.
+:::
+
 ```yaml
-# AWS Native uses AWS WAF for rate limiting
+# Associate WAF Rate-based Rule with ALB
 apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
 metadata:
   name: production-gateway
   annotations:
-    # Associate WAF Web ACL with rate-based rules
-    alb.ingress.kubernetes.io/wafv2-acl-arn: arn:aws:wafv2:us-west-2:123456789012:regional/webacl/rate-limit-acl/a1b2c3d4
+    # Rate limiting WAF ACL ARN
+    aws.load-balancer.waf-acl-arn: arn:aws:wafv2:us-west-2:123456789012:regional/webacl/rate-limit/a1b2c3d4
 spec:
   gatewayClassName: aws-alb
   listeners:
-  - name: http
-    port: 80
-    protocol: HTTP
-
----
-# AWS WAF Rate-based Rule (created via AWS Console or CLI)
-# Rule: Block IP if > 2000 requests in 5 minutes
+    - name: http
+      port: 80
+      protocol: HTTP
 ```
+
+**Create WAF Rate-based Rule with ACK (AWS Controllers for Kubernetes):**
+
+The ACK WAFv2 controller enables declarative management of WAF resources via Kubernetes manifests.
+
+**Enable ACK via EKS Capabilities (Recommended):**
+
+With EKS Capabilities (GA November 2025), ACK controllers run as a fully managed AWS service. Controllers execute on AWS-managed infrastructure, so no additional Pods are deployed to your worker nodes.
+
+```bash
+# 1. Create IAM Capability Role
+aws iam create-role \
+  --role-name EKS-ACK-Capability-Role \
+  --assume-role-policy-document '{
+    "Version": "2012-10-17",
+    "Statement": [{
+      "Effect": "Allow",
+      "Principal": { "Service": "eks.amazonaws.com" },
+      "Action": "sts:AssumeRole",
+      "Condition": {
+        "StringEquals": { "aws:SourceAccount": "<ACCOUNT_ID>" }
+      }
+    }]
+  }'
+
+# Attach WAFv2 permissions policy
+aws iam put-role-policy \
+  --role-name EKS-ACK-Capability-Role \
+  --policy-name ACK-WAFv2-Policy \
+  --policy-document '{
+    "Version": "2012-10-17",
+    "Statement": [{
+      "Effect": "Allow",
+      "Action": ["wafv2:*"],
+      "Resource": "*"
+    }]
+  }'
+
+# 2. Create ACK Capability on EKS cluster
+aws eks create-capability \
+  --cluster-name my-eks-cluster \
+  --capability-type ACK \
+  --capability-configuration '{
+    "capabilityRoleArn": "arn:aws:iam::<ACCOUNT_ID>:role/EKS-ACK-Capability-Role"
+  }'
+
+# 3. Verify CRD registration
+kubectl get crds | grep wafv2
+```
+
+<details>
+<summary>Alternative: Direct Helm Installation (Non-EKS Environments)</summary>
+
+For non-EKS environments or when you need direct control over the controller, install via Helm.
+
+```bash
+helm install ack-wafv2-controller \
+  oci://public.ecr.aws/aws-controllers-k8s/wafv2-chart \
+  --namespace ack-system \
+  --create-namespace \
+  --set aws.region=ap-northeast-2
+```
+
+This approach deploys controllers as Pods on your worker nodes and uses IRSA (IAM Roles for Service Accounts) for permission management.
+
+</details>
+
+```yaml
+# ACK WAFv2 WebACL - Rate-based Rule definition
+apiVersion: wafv2.services.k8s.aws/v1alpha1
+kind: WebACL
+metadata:
+  name: rate-limit-acl
+  namespace: production
+spec:
+  name: rate-limit-acl
+  scope: REGIONAL
+  defaultAction:
+    allow: {}
+  rules:
+    - name: ip-rate-limit
+      priority: 1
+      action:
+        block: {}
+      statement:
+        rateBasedStatement:
+          limit: 500            # Max requests per 5-minute window (100~2,000,000,000)
+          aggregateKeyType: IP  # IP-based aggregation
+      visibilityConfig:
+        sampledRequestsEnabled: true
+        cloudWatchMetricsEnabled: true
+        metricName: ip-rate-limit
+  visibilityConfig:
+    sampledRequestsEnabled: true
+    cloudWatchMetricsEnabled: true
+    metricName: rate-limit-acl
+```
+
+```yaml
+# Connect created WebACL ARN to Gateway
+# After WebACL creation, get ARN from status.ackResourceMetadata.arn:
+#   kubectl get webacl rate-limit-acl -n production \
+#     -o jsonpath='{.status.ackResourceMetadata.arn}'
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: production-gateway
+  annotations:
+    aws.load-balancer.waf-acl-arn: <WebACL ARN>
+spec:
+  gatewayClassName: aws-alb
+  listeners:
+    - name: http
+      port: 80
+      protocol: HTTP
+```
+
+:::note ACK WAFv2 Controller Requirements
+- The ACK WAFv2 controller requires IAM permissions such as `wafv2:CreateWebACL`, `wafv2:UpdateWebACL`, `wafv2:DeleteWebACL`, `wafv2:GetWebACL`
+- **EKS Capabilities**: Attach WAFv2 permissions to the IAM Capability Role. Controllers run on AWS-managed infrastructure
+- **Helm installation**: Grant least-privilege access via IRSA (IAM Roles for Service Accounts) or EKS Pod Identity
+- WebACL and ALB must be in the same region
+:::
 
 </TabItem>
 <TabItem value="cilium" label="Cilium">
@@ -755,24 +876,99 @@ spec:
 <TabItem value="aws" label="AWS Native (LBC v3)" default>
 
 ```yaml
+# Associate WAF with ALB (LBC v3)
 apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
 metadata:
   name: production-gateway
   annotations:
-    # Associate WAF Web ACL
-    alb.ingress.kubernetes.io/wafv2-acl-arn: arn:aws:wafv2:us-west-2:123456789012:regional/webacl/api-acl/a1b2c3d4
+    aws.load-balancer.waf-acl-arn: arn:aws:wafv2:us-west-2:123456789012:regional/webacl/ip-allowlist/a1b2c3d4
 spec:
   gatewayClassName: aws-alb
   listeners:
-  - name: http
-    port: 80
-    protocol: HTTP
-
----
-# AWS WAF IP Set (created via AWS Console or CLI)
-# IP allowlist: 203.0.113.0/24, 198.51.100.0/24
+    - name: http
+      port: 80
+      protocol: HTTP
 ```
+
+**Create WAF IP Allowlist with ACK (AWS Controllers for Kubernetes):**
+
+The ACK WAFv2 controller enables declarative management of IPSet and WebACL via Kubernetes manifests.
+
+```yaml
+# 1. ACK WAFv2 IPSet - Define allowed IP list
+apiVersion: wafv2.services.k8s.aws/v1alpha1
+kind: IPSet
+metadata:
+  name: allowed-ips
+  namespace: production
+spec:
+  name: allowed-ips
+  scope: REGIONAL
+  ipAddressVersion: IPV4
+  addresses:
+    - "10.0.0.0/8"        # VPC internal
+    - "192.168.1.0/24"    # Office network
+    - "203.0.113.100/32"  # Specific allowed IP
+```
+
+```yaml
+# 2. ACK WAFv2 WebACL - IPSet-based Allowlist rule
+# After IPSet creation, get ARN from status.ackResourceMetadata.arn:
+#   kubectl get ipset allowed-ips -n production \
+#     -o jsonpath='{.status.ackResourceMetadata.arn}'
+apiVersion: wafv2.services.k8s.aws/v1alpha1
+kind: WebACL
+metadata:
+  name: ip-allowlist-acl
+  namespace: production
+spec:
+  name: ip-allowlist-acl
+  scope: REGIONAL
+  defaultAction:
+    block: {}  # Block by default, only allowlisted IPs pass
+  rules:
+    - name: allow-trusted-ips
+      priority: 1
+      action:
+        allow: {}
+      statement:
+        ipSetReferenceStatement:
+          arn: <IPSet ARN>  # ARN of the allowed-ips IPSet
+      visibilityConfig:
+        sampledRequestsEnabled: true
+        cloudWatchMetricsEnabled: true
+        metricName: allow-trusted-ips
+  visibilityConfig:
+    sampledRequestsEnabled: true
+    cloudWatchMetricsEnabled: true
+    metricName: ip-allowlist-acl
+```
+
+```yaml
+# 3. Connect created WebACL ARN to Gateway
+# After WebACL creation, get ARN from status.ackResourceMetadata.arn:
+#   kubectl get webacl ip-allowlist-acl -n production \
+#     -o jsonpath='{.status.ackResourceMetadata.arn}'
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: production-gateway
+  annotations:
+    aws.load-balancer.waf-acl-arn: <WebACL ARN>
+spec:
+  gatewayClassName: aws-alb
+  listeners:
+    - name: http
+      port: 80
+      protocol: HTTP
+```
+
+:::note ACK WAFv2 IPSet Management Tips
+- Updating the `addresses` field in IPSet causes the ACK controller to automatically sync the AWS WAF IPSet
+- Combined with GitOps (ArgoCD/Flux), IP changes can be managed via PR-based workflows
+- IPSet and WebACL must be in the same region; `wafv2:*IPSet*`, `wafv2:*WebACL*` permissions are required (EKS Capabilities: IAM Capability Role / Helm: IRSA)
+:::
 
 </TabItem>
 <TabItem value="cilium" label="Cilium">
@@ -876,11 +1072,68 @@ spec:
 <Tabs>
 <TabItem value="aws" label="AWS Native (LBC v3)" default>
 
+:::warning Limitation
+Use AWS WAF Rules to limit request body size.
+:::
+
 ```yaml
-# AWS WAF Rule for body size limit
-# Created via AWS Console or CLI
-# Rule: Block requests with body size > 8KB
+# Associate WAF Body Size Limit Rule with ALB
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: production-gateway
+  annotations:
+    aws.load-balancer.waf-acl-arn: arn:aws:wafv2:us-west-2:123456789012:regional/webacl/body-size-limit/a1b2c3d4
+spec:
+  gatewayClassName: aws-alb
+  listeners:
+    - name: http
+      port: 80
+      protocol: HTTP
 ```
+
+**Create WAF Body Size Rule with ACK (AWS Controllers for Kubernetes):**
+
+```yaml
+# ACK WAFv2 WebACL - Body Size Limit Rule definition
+apiVersion: wafv2.services.k8s.aws/v1alpha1
+kind: WebACL
+metadata:
+  name: body-size-limit-acl
+  namespace: production
+spec:
+  name: body-size-limit-acl
+  scope: REGIONAL
+  defaultAction:
+    allow: {}
+  rules:
+    - name: block-large-body
+      priority: 1
+      action:
+        block: {}
+      statement:
+        sizeConstraintStatement:
+          fieldToMatch:
+            body:
+              oversizeHandling: MATCH  # Also match oversized bodies
+          comparisonOperator: GT
+          size: 10485760              # 10MB (in bytes)
+          textTransformations:
+            - priority: 0
+              type: NONE
+      visibilityConfig:
+        sampledRequestsEnabled: true
+        cloudWatchMetricsEnabled: true
+        metricName: block-large-body
+  visibilityConfig:
+    sampledRequestsEnabled: true
+    cloudWatchMetricsEnabled: true
+    metricName: body-size-limit-acl
+```
+
+:::note Consolidate Rules into a Single WebACL
+If using IP Allowlist, Rate Limiting, and Body Size limits together, you don't need separate WebACLs for each — **consolidate multiple rules in a single WebACL differentiated by `priority`**. Only one WebACL can be associated per ALB, so consolidated management is essential.
+:::
 
 </TabItem>
 <TabItem value="cilium" label="Cilium">

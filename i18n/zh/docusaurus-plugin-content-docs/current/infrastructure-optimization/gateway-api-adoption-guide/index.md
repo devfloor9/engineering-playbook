@@ -26,6 +26,7 @@ import {
   DifficultyComparisonTable,
   AwsCostTable,
   OpenSourceCostTable,
+  CostComparisonTable,
   LatencyComparisonTable,
   RouteRecommendationTable,
   SolutionFeatureTable,
@@ -497,16 +498,13 @@ Alpha 状态的资源**不保证 API 兼容性**，在次版本升级时可能�
 
 ### 4.5 成本影响分析
 
-#### AWS 原生额外成本
+<CostComparisonTable locale="zh" />
 
-<AwsCostTable locale="en" />
-
-#### 开源额外成本
-
-<OpenSourceCostTable locale="en" />
-
-:::tip 成本优化
-如果需要 3 个以上 WAF 功能（IP 白名单、速率限制、请求体大小限制），AWS 原生方案更具成本效益。对于 1-2 个功能，开源方案可以免费实现。
+:::tip 成本优化建议
+- **需要 3 个以上 WAF 功能时**，AWS Native 具有成本效益。可以在单个 WebACL 中整合多个规则
+- **仅需 1-2 个功能时**，开源方案（Cilium、Envoy Gateway）可免费实现
+- **延迟敏感型工作负载**推荐开源方案，在内核/eBPF 层处理，无 WAF 规则评估开销
+- **使用 Lambda Authorizer 时**，注意冷启动导致的 p99 延迟飙升。建议配置 Provisioned Concurrency
 :::
 
 ### 4.6 功能实现代码示例
@@ -638,26 +636,149 @@ spec:
 <Tabs>
 <TabItem value="aws" label="AWS Native (LBC v3)" default>
 
+:::warning 限制
+AWS Native（LBC v3）不支持网关级别的原生速率限制。使用 AWS WAF Rate-based Rule 实现基于 IP 的请求限制。
+:::
+
 ```yaml
-# AWS 原生使用 AWS WAF 进行速率限制
+# 将 WAF Rate-based Rule 关联到 ALB
 apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
 metadata:
   name: production-gateway
   annotations:
-    # 关联包含速率限制规则的 WAF Web ACL
-    alb.ingress.kubernetes.io/wafv2-acl-arn: arn:aws:wafv2:us-west-2:123456789012:regional/webacl/rate-limit-acl/a1b2c3d4
+    # 速率限制 WAF ACL ARN
+    aws.load-balancer.waf-acl-arn: arn:aws:wafv2:us-west-2:123456789012:regional/webacl/rate-limit/a1b2c3d4
 spec:
   gatewayClassName: aws-alb
   listeners:
-  - name: http
-    port: 80
-    protocol: HTTP
-
----
-# AWS WAF 基于速率的规则（通过 AWS 控制台或 CLI 创建）
-# 规则：如果 5 分钟内超过 2000 次请求则封锁 IP
+    - name: http
+      port: 80
+      protocol: HTTP
 ```
+
+**使用 ACK（AWS Controllers for Kubernetes）创建 WAF Rate-based Rule：**
+
+ACK WAFv2 控制器支持通过 Kubernetes 清单声明式管理 WAF 资源。
+
+**通过 EKS Capabilities 启用 ACK（推荐）：**
+
+使用 EKS Capabilities（2025 年 11 月 GA），ACK 控制器作为 AWS 完全托管服务运行。控制器在 AWS 托管基础设施上执行，不会在工作节点上部署额外的 Pod。
+
+```bash
+# 1. 创建 IAM Capability Role
+aws iam create-role \
+  --role-name EKS-ACK-Capability-Role \
+  --assume-role-policy-document '{
+    "Version": "2012-10-17",
+    "Statement": [{
+      "Effect": "Allow",
+      "Principal": { "Service": "eks.amazonaws.com" },
+      "Action": "sts:AssumeRole",
+      "Condition": {
+        "StringEquals": { "aws:SourceAccount": "<ACCOUNT_ID>" }
+      }
+    }]
+  }'
+
+# 附加 WAFv2 权限策略
+aws iam put-role-policy \
+  --role-name EKS-ACK-Capability-Role \
+  --policy-name ACK-WAFv2-Policy \
+  --policy-document '{
+    "Version": "2012-10-17",
+    "Statement": [{
+      "Effect": "Allow",
+      "Action": ["wafv2:*"],
+      "Resource": "*"
+    }]
+  }'
+
+# 2. 在 EKS 集群上创建 ACK Capability
+aws eks create-capability \
+  --cluster-name my-eks-cluster \
+  --capability-type ACK \
+  --capability-configuration '{
+    "capabilityRoleArn": "arn:aws:iam::<ACCOUNT_ID>:role/EKS-ACK-Capability-Role"
+  }'
+
+# 3. 验证 CRD 注册
+kubectl get crds | grep wafv2
+```
+
+<details>
+<summary>替代方案：Helm 直接安装（非 EKS 环境）</summary>
+
+对于非 EKS 环境或需要直接管理控制器的场景，可通过 Helm 安装。
+
+```bash
+helm install ack-wafv2-controller \
+  oci://public.ecr.aws/aws-controllers-k8s/wafv2-chart \
+  --namespace ack-system \
+  --create-namespace \
+  --set aws.region=ap-northeast-2
+```
+
+此方式会将控制器作为 Pod 部署到工作节点上，通过 IRSA（IAM Roles for Service Accounts）管理权限。
+
+</details>
+
+```yaml
+# ACK WAFv2 WebACL - Rate-based Rule 定义
+apiVersion: wafv2.services.k8s.aws/v1alpha1
+kind: WebACL
+metadata:
+  name: rate-limit-acl
+  namespace: production
+spec:
+  name: rate-limit-acl
+  scope: REGIONAL
+  defaultAction:
+    allow: {}
+  rules:
+    - name: ip-rate-limit
+      priority: 1
+      action:
+        block: {}
+      statement:
+        rateBasedStatement:
+          limit: 500            # 5 分钟内最大请求数（100~2,000,000,000）
+          aggregateKeyType: IP  # 基于 IP 聚合
+      visibilityConfig:
+        sampledRequestsEnabled: true
+        cloudWatchMetricsEnabled: true
+        metricName: ip-rate-limit
+  visibilityConfig:
+    sampledRequestsEnabled: true
+    cloudWatchMetricsEnabled: true
+    metricName: rate-limit-acl
+```
+
+```yaml
+# 将创建的 WebACL ARN 连接到 Gateway
+# WebACL 创建后从 status.ackResourceMetadata.arn 获取 ARN：
+#   kubectl get webacl rate-limit-acl -n production \
+#     -o jsonpath='{.status.ackResourceMetadata.arn}'
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: production-gateway
+  annotations:
+    aws.load-balancer.waf-acl-arn: <WebACL ARN>
+spec:
+  gatewayClassName: aws-alb
+  listeners:
+    - name: http
+      port: 80
+      protocol: HTTP
+```
+
+:::note ACK WAFv2 控制器要求
+- ACK WAFv2 控制器需要 `wafv2:CreateWebACL`、`wafv2:UpdateWebACL`、`wafv2:DeleteWebACL`、`wafv2:GetWebACL` 等 IAM 权限
+- **EKS Capabilities**：将 WAFv2 权限附加到 IAM Capability Role。控制器在 AWS 托管基础设施上运行
+- **Helm 安装**：通过 IRSA（IAM Roles for Service Accounts）或 EKS Pod Identity 授予最小权限
+- WebACL 和 ALB 必须在同一区域
+:::
 
 </TabItem>
 <TabItem value="cilium" label="Cilium">
@@ -755,24 +876,99 @@ spec:
 <TabItem value="aws" label="AWS Native (LBC v3)" default>
 
 ```yaml
+# 将 WAF 关联到 ALB（LBC v3）
 apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
 metadata:
   name: production-gateway
   annotations:
-    # 关联 WAF Web ACL
-    alb.ingress.kubernetes.io/wafv2-acl-arn: arn:aws:wafv2:us-west-2:123456789012:regional/webacl/api-acl/a1b2c3d4
+    aws.load-balancer.waf-acl-arn: arn:aws:wafv2:us-west-2:123456789012:regional/webacl/ip-allowlist/a1b2c3d4
 spec:
   gatewayClassName: aws-alb
   listeners:
-  - name: http
-    port: 80
-    protocol: HTTP
-
----
-# AWS WAF IP 集（通过 AWS 控制台或 CLI 创建）
-# IP 白名单：203.0.113.0/24, 198.51.100.0/24
+    - name: http
+      port: 80
+      protocol: HTTP
 ```
+
+**使用 ACK（AWS Controllers for Kubernetes）创建 WAF IP 白名单：**
+
+ACK WAFv2 控制器支持通过 Kubernetes 清单声明式管理 IPSet 和 WebACL。
+
+```yaml
+# 1. ACK WAFv2 IPSet - 定义允许的 IP 列表
+apiVersion: wafv2.services.k8s.aws/v1alpha1
+kind: IPSet
+metadata:
+  name: allowed-ips
+  namespace: production
+spec:
+  name: allowed-ips
+  scope: REGIONAL
+  ipAddressVersion: IPV4
+  addresses:
+    - "10.0.0.0/8"        # VPC 内部
+    - "192.168.1.0/24"    # 办公网络
+    - "203.0.113.100/32"  # 特定允许 IP
+```
+
+```yaml
+# 2. ACK WAFv2 WebACL - 基于 IPSet 的白名单规则
+# IPSet 创建后从 status.ackResourceMetadata.arn 获取 ARN：
+#   kubectl get ipset allowed-ips -n production \
+#     -o jsonpath='{.status.ackResourceMetadata.arn}'
+apiVersion: wafv2.services.k8s.aws/v1alpha1
+kind: WebACL
+metadata:
+  name: ip-allowlist-acl
+  namespace: production
+spec:
+  name: ip-allowlist-acl
+  scope: REGIONAL
+  defaultAction:
+    block: {}  # 默认阻止，仅白名单 IP 通过
+  rules:
+    - name: allow-trusted-ips
+      priority: 1
+      action:
+        allow: {}
+      statement:
+        ipSetReferenceStatement:
+          arn: <IPSet ARN>  # allowed-ips IPSet 的 ARN
+      visibilityConfig:
+        sampledRequestsEnabled: true
+        cloudWatchMetricsEnabled: true
+        metricName: allow-trusted-ips
+  visibilityConfig:
+    sampledRequestsEnabled: true
+    cloudWatchMetricsEnabled: true
+    metricName: ip-allowlist-acl
+```
+
+```yaml
+# 3. 将创建的 WebACL ARN 连接到 Gateway
+# WebACL 创建后从 status.ackResourceMetadata.arn 获取 ARN：
+#   kubectl get webacl ip-allowlist-acl -n production \
+#     -o jsonpath='{.status.ackResourceMetadata.arn}'
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: production-gateway
+  annotations:
+    aws.load-balancer.waf-acl-arn: <WebACL ARN>
+spec:
+  gatewayClassName: aws-alb
+  listeners:
+    - name: http
+      port: 80
+      protocol: HTTP
+```
+
+:::note ACK WAFv2 IPSet 管理提示
+- 更新 IPSet 的 `addresses` 字段后，ACK 控制器会自动同步 AWS WAF IPSet
+- 结合 GitOps（ArgoCD/Flux）可通过 PR 方式管理 IP 变更
+- IPSet 和 WebACL 必须在同一区域，需要 `wafv2:*IPSet*`、`wafv2:*WebACL*` 权限（EKS Capabilities：IAM Capability Role / Helm：IRSA）
+:::
 
 </TabItem>
 <TabItem value="cilium" label="Cilium">
@@ -876,11 +1072,68 @@ spec:
 <Tabs>
 <TabItem value="aws" label="AWS Native (LBC v3)" default>
 
+:::warning 限制
+使用 AWS WAF Rule 限制请求体大小。
+:::
+
 ```yaml
-# AWS WAF 请求体大小限制规则
-# 通过 AWS 控制台或 CLI 创建
-# 规则：阻止请求体大小超过 8KB 的请求
+# 将 WAF Body Size Limit Rule 关联到 ALB
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: production-gateway
+  annotations:
+    aws.load-balancer.waf-acl-arn: arn:aws:wafv2:us-west-2:123456789012:regional/webacl/body-size-limit/a1b2c3d4
+spec:
+  gatewayClassName: aws-alb
+  listeners:
+    - name: http
+      port: 80
+      protocol: HTTP
 ```
+
+**使用 ACK（AWS Controllers for Kubernetes）创建 WAF Body Size Rule：**
+
+```yaml
+# ACK WAFv2 WebACL - Body Size Limit Rule 定义
+apiVersion: wafv2.services.k8s.aws/v1alpha1
+kind: WebACL
+metadata:
+  name: body-size-limit-acl
+  namespace: production
+spec:
+  name: body-size-limit-acl
+  scope: REGIONAL
+  defaultAction:
+    allow: {}
+  rules:
+    - name: block-large-body
+      priority: 1
+      action:
+        block: {}
+      statement:
+        sizeConstraintStatement:
+          fieldToMatch:
+            body:
+              oversizeHandling: MATCH  # 也匹配超大请求体
+          comparisonOperator: GT
+          size: 10485760              # 10MB（字节单位）
+          textTransformations:
+            - priority: 0
+              type: NONE
+      visibilityConfig:
+        sampledRequestsEnabled: true
+        cloudWatchMetricsEnabled: true
+        metricName: block-large-body
+  visibilityConfig:
+    sampledRequestsEnabled: true
+    cloudWatchMetricsEnabled: true
+    metricName: body-size-limit-acl
+```
+
+:::note 将规则整合到单个 WebACL
+如果同时使用 IP 白名单、速率限制和请求体大小限制，无需为每个功能创建单独的 WebACL——**在一个 WebACL 中通过 `priority` 区分多个规则即可整合管理**。每个 ALB 只能关联一个 WebACL，因此整合管理是必须的。
+:::
 
 </TabItem>
 <TabItem value="cilium" label="Cilium">

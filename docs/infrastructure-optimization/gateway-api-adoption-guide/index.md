@@ -26,6 +26,7 @@ import {
   DifficultyComparisonTable,
   AwsCostTable,
   OpenSourceCostTable,
+  CostComparisonTable,
   MigrationFeatureMappingTable,
   TroubleshootingTable,
   RouteRecommendationTable,
@@ -702,16 +703,13 @@ NGINX Ingress Controller에서 사용하던 8가지 주요 기능을 각 Gateway
 
 ### 4.5 비용 영향 분석
 
-#### AWS Native 추가 비용
-
-<AwsCostTable />
-
-#### 오픈소스 추가 비용
-
-<OpenSourceCostTable />
+<CostComparisonTable />
 
 :::tip 비용 최적화 팁
-AWS WAF가 필요한 기능(IP Allowlist, Rate Limiting, Body Size)이 3개 이상이면 AWS Native가 WAF 비용 대비 효율적입니다. 1-2개만 필요하면 오픈소스 솔루션에서 무료로 구현할 수 있습니다.
+- **WAF 기능이 3개 이상 필요하면** AWS Native가 비용 대비 효율적입니다. 단일 WebACL에 여러 규칙을 묶어 관리할 수 있습니다
+- **1-2개만 필요하면** 오픈소스 솔루션(Cilium, Envoy Gateway)에서 추가 비용 없이 구현 가능합니다
+- **성능 민감 워크로드**는 오픈소스가 유리합니다. WAF 규칙 평가 지연 없이 커널/eBPF 레벨에서 처리됩니다
+- **Lambda Authorizer 사용 시** 콜드스타트로 인한 p99 지연 급증에 주의하세요. Provisioned Concurrency 설정을 검토하세요
 :::
 
 ### 4.6 기능별 구현 코드 예제
@@ -961,12 +959,127 @@ spec:
       protocol: HTTP
 ```
 
-:::note WAF Rate-based Rule 예시
-AWS Console 또는 CloudFormation에서 다음과 같이 생성합니다:
-- Rule type: Rate-based rule
-- Rate limit: 100 requests per 5 minutes
-- Aggregation: IP address
-- Action: Block
+**ACK(AWS Controllers for Kubernetes)로 WAF Rate-based Rule 생성:**
+
+ACK WAFv2 컨트롤러를 사용하면 WAF 리소스를 Kubernetes 매니페스트로 선언적 관리할 수 있습니다.
+
+**EKS Capabilities로 ACK 활성화 (권장):**
+
+EKS Capabilities(2025년 11월 GA)를 사용하면 ACK 컨트롤러를 AWS 완전 관리형으로 운영할 수 있습니다. 컨트롤러가 AWS 관리 인프라에서 실행되므로 워커 노드에 별도 Pod가 배포되지 않습니다.
+
+```bash
+# 1. IAM Capability Role 생성
+aws iam create-role \
+  --role-name EKS-ACK-Capability-Role \
+  --assume-role-policy-document '{
+    "Version": "2012-10-17",
+    "Statement": [{
+      "Effect": "Allow",
+      "Principal": { "Service": "eks.amazonaws.com" },
+      "Action": "sts:AssumeRole",
+      "Condition": {
+        "StringEquals": { "aws:SourceAccount": "<ACCOUNT_ID>" }
+      }
+    }]
+  }'
+
+# WAFv2 권한 정책 연결
+aws iam put-role-policy \
+  --role-name EKS-ACK-Capability-Role \
+  --policy-name ACK-WAFv2-Policy \
+  --policy-document '{
+    "Version": "2012-10-17",
+    "Statement": [{
+      "Effect": "Allow",
+      "Action": ["wafv2:*"],
+      "Resource": "*"
+    }]
+  }'
+
+# 2. EKS 클러스터에 ACK Capability 생성
+aws eks create-capability \
+  --cluster-name my-eks-cluster \
+  --capability-type ACK \
+  --capability-configuration '{
+    "capabilityRoleArn": "arn:aws:iam::<ACCOUNT_ID>:role/EKS-ACK-Capability-Role"
+  }'
+
+# 3. CRD 등록 확인
+kubectl get crds | grep wafv2
+```
+
+<details>
+<summary>대안: Helm으로 직접 설치 (비 EKS 환경)</summary>
+
+EKS가 아닌 환경이나 컨트롤러를 직접 관리해야 하는 경우 Helm으로 설치할 수 있습니다.
+
+```bash
+helm install ack-wafv2-controller \
+  oci://public.ecr.aws/aws-controllers-k8s/wafv2-chart \
+  --namespace ack-system \
+  --create-namespace \
+  --set aws.region=ap-northeast-2
+```
+
+이 방식은 컨트롤러가 워커 노드에 Pod로 배포되며, IRSA(IAM Roles for Service Accounts)로 권한을 관리합니다.
+
+</details>
+
+```yaml
+# ACK WAFv2 WebACL - Rate-based Rule 정의
+apiVersion: wafv2.services.k8s.aws/v1alpha1
+kind: WebACL
+metadata:
+  name: rate-limit-acl
+  namespace: production
+spec:
+  name: rate-limit-acl
+  scope: REGIONAL
+  defaultAction:
+    allow: {}
+  rules:
+    - name: ip-rate-limit
+      priority: 1
+      action:
+        block: {}
+      statement:
+        rateBasedStatement:
+          limit: 500            # 5분간 최대 요청 수 (100~2,000,000,000)
+          aggregateKeyType: IP  # IP 기반 집계
+      visibilityConfig:
+        sampledRequestsEnabled: true
+        cloudWatchMetricsEnabled: true
+        metricName: ip-rate-limit
+  visibilityConfig:
+    sampledRequestsEnabled: true
+    cloudWatchMetricsEnabled: true
+    metricName: rate-limit-acl
+```
+
+```yaml
+# 생성된 WebACL ARN을 Gateway에 연결
+# WebACL 생성 후 status.ackResourceMetadata.arn 에서 ARN 확인:
+#   kubectl get webacl rate-limit-acl -n production \
+#     -o jsonpath='{.status.ackResourceMetadata.arn}'
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: production-gateway
+  annotations:
+    aws.load-balancer.waf-acl-arn: <WebACL ARN>
+spec:
+  gatewayClassName: aws-alb
+  listeners:
+    - name: http
+      port: 80
+      protocol: HTTP
+```
+
+:::note ACK WAFv2 컨트롤러 요구사항
+- ACK WAFv2 컨트롤러에 `wafv2:CreateWebACL`, `wafv2:UpdateWebACL`, `wafv2:DeleteWebACL`, `wafv2:GetWebACL` 등의 IAM 권한이 필요합니다
+- **EKS Capabilities** 사용 시: IAM Capability Role에 WAFv2 권한을 연결합니다. 컨트롤러는 AWS 관리 인프라에서 실행됩니다
+- **Helm 설치** 사용 시: IRSA(IAM Roles for Service Accounts) 또는 EKS Pod Identity를 통해 최소 권한을 부여하세요
+- WebACL과 ALB는 동일 리전에 있어야 합니다
 :::
 
 </TabItem>
@@ -1102,8 +1215,83 @@ spec:
       protocol: HTTP
 ```
 
-:::note
-AWS WAF IP Set은 AWS Console 또는 CloudFormation으로 생성하고, IP Set ARN을 위 annotation에 지정합니다.
+**ACK(AWS Controllers for Kubernetes)로 WAF IP Allowlist 생성:**
+
+ACK WAFv2 컨트롤러를 사용하면 IPSet과 WebACL을 Kubernetes 매니페스트로 선언적 관리할 수 있습니다.
+
+```yaml
+# 1. ACK WAFv2 IPSet - 허용할 IP 목록 정의
+apiVersion: wafv2.services.k8s.aws/v1alpha1
+kind: IPSet
+metadata:
+  name: allowed-ips
+  namespace: production
+spec:
+  name: allowed-ips
+  scope: REGIONAL
+  ipAddressVersion: IPV4
+  addresses:
+    - "10.0.0.0/8"        # VPC 내부
+    - "192.168.1.0/24"    # 사무실 네트워크
+    - "203.0.113.100/32"  # 특정 허용 IP
+```
+
+```yaml
+# 2. ACK WAFv2 WebACL - IPSet 기반 Allowlist 규칙
+# IPSet 생성 후 status.ackResourceMetadata.arn 에서 ARN 확인:
+#   kubectl get ipset allowed-ips -n production \
+#     -o jsonpath='{.status.ackResourceMetadata.arn}'
+apiVersion: wafv2.services.k8s.aws/v1alpha1
+kind: WebACL
+metadata:
+  name: ip-allowlist-acl
+  namespace: production
+spec:
+  name: ip-allowlist-acl
+  scope: REGIONAL
+  defaultAction:
+    block: {}  # 기본 차단, 허용 목록만 통과
+  rules:
+    - name: allow-trusted-ips
+      priority: 1
+      action:
+        allow: {}
+      statement:
+        ipSetReferenceStatement:
+          arn: <IPSet ARN>  # allowed-ips IPSet의 ARN
+      visibilityConfig:
+        sampledRequestsEnabled: true
+        cloudWatchMetricsEnabled: true
+        metricName: allow-trusted-ips
+  visibilityConfig:
+    sampledRequestsEnabled: true
+    cloudWatchMetricsEnabled: true
+    metricName: ip-allowlist-acl
+```
+
+```yaml
+# 3. 생성된 WebACL ARN을 Gateway에 연결
+# WebACL 생성 후 status.ackResourceMetadata.arn 에서 ARN 확인:
+#   kubectl get webacl ip-allowlist-acl -n production \
+#     -o jsonpath='{.status.ackResourceMetadata.arn}'
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: production-gateway
+  annotations:
+    aws.load-balancer.waf-acl-arn: <WebACL ARN>
+spec:
+  gatewayClassName: aws-alb
+  listeners:
+    - name: http
+      port: 80
+      protocol: HTTP
+```
+
+:::note ACK WAFv2 IPSet 관리 팁
+- IPSet의 `addresses` 필드를 업데이트하면 ACK 컨트롤러가 자동으로 AWS WAF IPSet을 동기화합니다
+- GitOps(ArgoCD/Flux)와 결합하면 IP 변경을 PR 기반으로 관리할 수 있습니다
+- IPSet과 WebACL은 동일 리전에 있어야 하며, `wafv2:*IPSet*`, `wafv2:*WebACL*` 권한이 필요합니다 (EKS Capabilities: IAM Capability Role / Helm: IRSA)
 :::
 
 </TabItem>
@@ -1465,13 +1653,68 @@ spec:
       protocol: HTTP
 ```
 
-:::note WAF Body Size Rule 예시
-AWS Console에서 다음과 같이 생성합니다:
-- Rule type: Size constraint
-- Inspect: Body
-- Match type: Size greater than
-- Size: 10485760 (10MB)
-- Action: Block
+**ACK(AWS Controllers for Kubernetes)로 WAF Body Size Rule 생성:**
+
+ACK WAFv2 컨트롤러를 사용하면 Body Size 제한 규칙을 Kubernetes 매니페스트로 선언적 관리할 수 있습니다.
+
+```yaml
+# ACK WAFv2 WebACL - Body Size Limit Rule 정의
+apiVersion: wafv2.services.k8s.aws/v1alpha1
+kind: WebACL
+metadata:
+  name: body-size-limit-acl
+  namespace: production
+spec:
+  name: body-size-limit-acl
+  scope: REGIONAL
+  defaultAction:
+    allow: {}
+  rules:
+    - name: block-large-body
+      priority: 1
+      action:
+        block: {}
+      statement:
+        sizeConstraintStatement:
+          fieldToMatch:
+            body:
+              oversizeHandling: MATCH  # 오버사이즈 본문도 매칭
+          comparisonOperator: GT
+          size: 10485760              # 10MB (바이트 단위)
+          textTransformations:
+            - priority: 0
+              type: NONE
+      visibilityConfig:
+        sampledRequestsEnabled: true
+        cloudWatchMetricsEnabled: true
+        metricName: block-large-body
+  visibilityConfig:
+    sampledRequestsEnabled: true
+    cloudWatchMetricsEnabled: true
+    metricName: body-size-limit-acl
+```
+
+```yaml
+# 생성된 WebACL ARN을 Gateway에 연결
+# WebACL 생성 후 status.ackResourceMetadata.arn 에서 ARN 확인:
+#   kubectl get webacl body-size-limit-acl -n production \
+#     -o jsonpath='{.status.ackResourceMetadata.arn}'
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: production-gateway
+  annotations:
+    aws.load-balancer.waf-acl-arn: <WebACL ARN>
+spec:
+  gatewayClassName: aws-alb
+  listeners:
+    - name: http
+      port: 80
+      protocol: HTTP
+```
+
+:::note 단일 WebACL로 규칙 통합
+IP Allowlist, Rate Limiting, Body Size 제한을 모두 사용한다면, 별도의 WebACL을 각각 만들 필요 없이 **하나의 WebACL에 여러 규칙을 `priority`로 구분하여 통합**할 수 있습니다. ALB당 WebACL은 하나만 연결 가능하므로 통합 관리가 필수입니다.
 :::
 
 </TabItem>

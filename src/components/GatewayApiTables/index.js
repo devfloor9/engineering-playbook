@@ -14,6 +14,7 @@ export { default as FeatureMappingTable } from './FeatureMappingTable';
 export { default as DifficultyComparisonTable } from './DifficultyComparisonTable';
 export { default as AwsCostTable } from './AwsCostTable';
 export { default as OpenSourceCostTable } from './OpenSourceCostTable';
+export { default as CostComparisonTable } from './CostComparisonTable';
 export { default as EksRequirementsTable } from './EksRequirementsTable';
 export { default as LatencyComparisonTable } from './LatencyComparisonTable';
 export { default as AlgorithmComparisonTable } from './AlgorithmComparisonTable';
