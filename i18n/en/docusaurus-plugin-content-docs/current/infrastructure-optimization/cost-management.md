@@ -1392,7 +1392,7 @@ Payback Period: {result['payback_months']:.1f} months
 - [ ] Spot instance ratio 50%+
 - [ ] CPU efficiency 60%+
 - [ ] Memory efficiency 70%+
-- [ ] Unallocated costs <5%
+- [ ] Unallocated costs &lt;5%
 - [ ] Automated rightsizing policy operational
 
 **180-Day Verification**
