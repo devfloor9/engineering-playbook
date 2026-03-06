@@ -126,8 +126,7 @@ jobs:
             --no-progress
             --cache
             --max-cache-age 1d
-            --scheme https
-            --scheme http
+            --include 'https?://.*'
             --exclude-path './.github'
             --exclude-path './node_modules'
             --exclude-path './SUMMARY.md'
@@ -137,6 +136,7 @@ jobs:
             --exclude 'https?://.*envoyproxy\.io.*'
             --exclude 'https?://netflixtechblog\.com.*'
             --exclude 'https?://aws\.amazon\.com/blogs/aws/investigate-and-remediate.*'
+            --exclude 'https?://opentelemetry\.io.*'
             'docs/**/*.md'
             'docs/**/*.mdx'
 
