@@ -981,8 +981,7 @@ Shared Monitoring 账户
   └── 按团队路由的告警
 ```
 
-
-
+```hcl
 // OpenTelemetry 跟踪接收
 otelcol.receiver.otlp "default" {
   grpc {
