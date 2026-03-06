@@ -135,7 +135,7 @@ jobs:
             --exclude 'https?://.*envoyproxy\.io.*'
             --exclude 'https?://netflixtechblog\.com.*'
             --exclude 'https?://aws\.amazon\.com/blogs/aws/investigate-and-remediate.*'
-            --base 'https://devfloor9.github.io/engineering-playbook'
+            --base '.'
             'docs/**/*.md'
             'docs/**/*.mdx'
 
