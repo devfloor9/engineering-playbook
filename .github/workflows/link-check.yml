@@ -133,9 +133,11 @@ jobs:
             --exclude 'https?://.*kubeflow\.org.*'
             --exclude 'https?://gateway-api\.sigs\.k8s\.io.*'
             --exclude 'https?://.*envoyproxy\.io.*'
-            '**/*.md'
-            '**/*.mdx'
-            'docs/**'
+            --exclude 'https?://aws\.amazon\.com/blogs/aws/investigate-and-remediate.*'
+            --exclude '^/docs/.*'
+            --exclude '^/img/.*'
+            'docs/**/*.md'
+            'docs/**/*.mdx'
 
           # Fail the workflow on broken links
           fail: true

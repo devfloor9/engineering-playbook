@@ -48,7 +48,7 @@ Kubernetes 네이티브 접근 방식의 핵심 철학은 오픈소스 생태계
 - [10. Milvus 벡터 DB](./gateway-agents/milvus-vector-database.md) — 벡터 저장소 구축
 - [11. Kagent Agent 관리](./gateway-agents/kagent-kubernetes-agents.md) — CRD 기반 에이전트 관리
 - [14. Bedrock AgentCore & MCP](./gateway-agents/bedrock-agentcore-mcp.md) — AWS Bedrock 에이전트 통합
-- [17. OpenClaw AI Gateway](./gateway-agents/openclaw-ai-gateway.md) — OpenClaw + LiteLLM Auto-Router + Full Observability
+- [17. OpenClaw AI Gateway](./gateway-agents/openclaw-ai-gateway.mdx) — OpenClaw + LiteLLM Auto-Router + Full Observability
 
 ### [운영 & MLOps](./operations-mlops/index.md)
 
