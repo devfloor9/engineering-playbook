@@ -126,6 +126,7 @@ jobs:
             --no-progress
             --cache
             --max-cache-age 1d
+            --root-dir '${{ github.workspace }}'
             --include 'https?://.*'
             --exclude-path './.github'
             --exclude-path './node_modules'
