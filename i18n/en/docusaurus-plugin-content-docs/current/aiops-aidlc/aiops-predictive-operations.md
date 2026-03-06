@@ -6,8 +6,8 @@ sidebar_position: 4
 category: "aiops-aidlc"
 tags: [aiops, predictive-scaling, auto-remediation, karpenter, self-healing, eks, kiro, mcp, ai-agent, chaos-engineering]
 last_update:
-date: 2026-02-14
-author: devfloor9
+  date: 2026-02-14
+  author: devfloor9
 ---
 
 import { ScalingComparison, ResponsePatterns, MaturityTable, EvolutionStages, MLModelComparison, AnomalyMetrics, RightSizingResults, ChaosExperiments, DashboardPanels } from '@site/src/components/PredictiveOpsTables';
