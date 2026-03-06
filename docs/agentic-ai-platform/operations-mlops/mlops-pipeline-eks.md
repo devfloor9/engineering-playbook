@@ -1391,7 +1391,7 @@ EKS 기반 MLOps 파이프라인은 Kubeflow, MLflow, KServe를 통합하여 완
 ### 다음 단계
 
 - [SageMaker-EKS 통합](./sagemaker-eks-integration.md) - 하이브리드 ML 아키텍처
-- [GPU 리소스 관리](./gpu-resource-management.md) - GPU 클러스터 최적화
+- [GPU 리소스 관리](../model-serving/gpu-resource-management.md) - GPU 클러스터 최적화
 - [모델 모니터링](./agent-monitoring.md) - 프로덕션 모델 관찰성
 
 ---

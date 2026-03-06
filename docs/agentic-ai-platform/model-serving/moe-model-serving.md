@@ -1131,8 +1131,8 @@ MoE 모델 서빙은 대규모 언어 모델의 효율적인 배포를 가능하
 ### 다음 단계
 
 - [GPU 리소스 관리](./gpu-resource-management.md) - GPU 클러스터 동적 리소스 할당
-- [Inference Gateway 라우팅](./inference-gateway-routing.md) - 다중 모델 라우팅 전략
-- [Agentic AI 플랫폼 아키텍처](./agentic-platform-architecture.md) - 전체 플랫폼 구성
+- [Inference Gateway 라우팅](../gateway-agents/inference-gateway-routing.md) - 다중 모델 라우팅 전략
+- [Agentic AI 플랫폼 아키텍처](../design-architecture/agentic-platform-architecture.md) - 전체 플랫폼 구성
 
 ---
 

@@ -31,11 +31,13 @@
     "@docusaurus/theme-search-algolia": "^3.9.2",
     "@easyops-cn/docusaurus-search-local": "^0.52.3",
     "@mdx-js/react": "^3.0.0",
+    "@xyflow/react": "^12.10.1",
     "clsx": "^2.0.0",
     "prism-react-renderer": "^2.4.1",
     "prismjs": "^1.30.0",
     "react": "^18.0.0",
-    "react-dom": "^18.0.0"
+    "react-dom": "^18.0.0",
+    "roughjs": "^4.6.6"
   },
   "devDependencies": {
     "@docusaurus/module-type-aliases": "^3.9.2",

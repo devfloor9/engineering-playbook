@@ -743,10 +743,10 @@ spec:
 
 ## 관련 문서
 
-- [Agentic AI 플랫폼 아키텍처](./agentic-platform-architecture.md)
-- [Agentic AI 기술 도전과제](./agentic-ai-challenges.md)
-- [Ragas RAG 평가 프레임워크](./ragas-evaluation.md)
-- [Agent 모니터링](./agent-monitoring.md)
+- [Agentic AI 플랫폼 아키텍처](../design-architecture/agentic-platform-architecture.md)
+- [Agentic AI 기술 도전과제](../design-architecture/agentic-ai-challenges.md)
+- [Ragas RAG 평가 프레임워크](../operations-mlops/ragas-evaluation.md)
+- [Agent 모니터링](../operations-mlops/agent-monitoring.md)
 
 :::info 권장 사항
 

@@ -893,7 +893,7 @@ export NCCL_COMM_WAIT_TIMEOUT=0 # 0 = 무한 대기
 
 - [GPU 리소스 관리](./gpu-resource-management.md)
 - [MoE 모델 서빙](./moe-model-serving.md)
-- [Inference Gateway](./inference-gateway-routing.md)
+- [Inference Gateway](../gateway-agents/inference-gateway-routing.md)
 
 :::tip 권장 사항
 

@@ -778,7 +778,7 @@ spec:
 
 RAG 파이프라인의 핵심 컴포넌트인 Milvus는 Kubernetes에서 분산 아키텍처로 운영됩니다.
 
-자세한 내용은 **[Milvus 벡터 데이터베이스](./milvus-vector-database.md)** 문서를 참조하세요.
+자세한 내용은 **[Milvus 벡터 데이터베이스](../gateway-agents/milvus-vector-database.md)** 문서를 참조하세요.
 
 **Milvus의 주요 특징:**
 
@@ -839,8 +839,8 @@ graph LR
 
 GPU 리소스 관리는 Agentic AI 플랫폼의 핵심입니다. 자세한 내용은 다음 문서를 참조하세요:
 
-- **[GPU 리소스 관리](./gpu-resource-management.md)**: Device Plugin, DRA(Dynamic Resource Allocation), GPU 토폴로지 인식 스케줄링
-- **[NeMo 프레임워크](./nemo-framework.md)**: 분산 학습과 NCCL 최적화
+- **[GPU 리소스 관리](../model-serving/gpu-resource-management.md)**: Device Plugin, DRA(Dynamic Resource Allocation), GPU 토폴로지 인식 스케줄링
+- **[NeMo 프레임워크](../model-serving/nemo-framework.md)**: 분산 학습과 NCCL 최적화
 
 :::tip GPU 관리의 핵심 개념
 

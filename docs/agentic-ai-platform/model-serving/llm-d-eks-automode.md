@@ -732,7 +732,7 @@ env:
 
 - [vLLM 기반 FM 배포 및 성능 최적화](./vllm-model-serving.md) — vLLM 기본 개념 및 배포
 - [MoE 모델 서빙 가이드](./moe-model-serving.md) — Mixture of Experts 모델 서빙
-- [Inference Gateway 및 동적 라우팅](./inference-gateway-routing.md) — 추론 라우팅 전략
+- [Inference Gateway 및 동적 라우팅](../gateway-agents/inference-gateway-routing.md) — 추론 라우팅 전략
 - [GPU 리소스 관리](./gpu-resource-management.md) — GPU 클러스터 리소스 관리
 
 ---

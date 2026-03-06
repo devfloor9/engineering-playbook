@@ -1746,7 +1746,7 @@ graph TB
 | **Hubble** | 전체 트래픽 L3-L7 관측성 | 전체 클러스터 |
 
 :::warning llm-d는 범용 Gateway API 구현체가 아닙니다
-llm-d의 Envoy 기반 Inference Gateway는 **LLM 추론 요청 전용**으로 설계되었습니다. 일반적인 웹/API 트래픽 라우팅에는 Cilium Gateway API나 다른 범용 Gateway API 구현체를 사용해야 합니다. 자세한 내용은 [llm-d 문서](/docs/agentic-ai-platform/llm-d-eks-automode)를 참조하세요.
+llm-d의 Envoy 기반 Inference Gateway는 **LLM 추론 요청 전용**으로 설계되었습니다. 일반적인 웹/API 트래픽 라우팅에는 Cilium Gateway API나 다른 범용 Gateway API 구현체를 사용해야 합니다. 자세한 내용은 [llm-d 문서](/docs/agentic-ai-platform/model-serving/llm-d-eks-automode)를 참조하세요.
 :::
 
 ### 9.3 대안 아키텍처 비교
@@ -1804,7 +1804,7 @@ Gateway API Inference Extension이 GA되기 전까지는 **Option 1 (Cilium + Ci
 ## 관련 문서
 
 - **[Gateway API 도입 가이드](/docs/infrastructure-optimization/gateway-api-adoption-guide)** - 전체 Gateway API 마이그레이션 가이드
-- **[llm-d + EKS 배포 가이드](/docs/agentic-ai-platform/llm-d-eks-automode)** - llm-d 분산 추론 스택 구성
+- **[llm-d + EKS 배포 가이드](/docs/agentic-ai-platform/model-serving/llm-d-eks-automode)** - llm-d 분산 추론 스택 구성
 - **[Cilium 공식 문서](https://docs.cilium.io/)** - Cilium 프로젝트 공식 문서
 - **[Cilium Gateway API 문서](https://docs.cilium.io/en/stable/network/servicemesh/gateway-api/)** - Cilium의 Gateway API 구현 가이드
 - **[Gateway API Inference Extension](https://gateway-api.sigs.k8s.io/geps/gep-3567/)** - AI/ML 추론 전용 Gateway API 확장
