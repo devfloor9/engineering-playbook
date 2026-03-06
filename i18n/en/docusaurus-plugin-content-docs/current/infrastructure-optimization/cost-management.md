@@ -1296,7 +1296,7 @@ aws ce get-cost-and-usage \
 | CPU Efficiency | Actual usage/requests ratio | 60%+ |
 | Memory Efficiency | Actual usage/requests ratio | 70%+ |
 | Spot Usage Ratio | Spot nodes/total nodes | 50%+ |
-| Unallocated Cost | Untagged costs | <5% |
+| Unallocated Cost | Untagged costs | &lt;5% |
 
 #### 2. Weekly Tracking
 

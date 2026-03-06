@@ -24,39 +24,39 @@ This combination of technology stacks effectively addresses the four core challe
 
 ### Phase 1: Understanding and Design
 
-- [Technical Challenges and Kubernetes Necessity](./agentic-ai-challenges.md) - Understanding core challenges of Agentic AI platforms
-- [Agentic AI Platform Architecture](./agentic-platform-architecture.md) - Overall architecture design
+- [Technical Challenges and Kubernetes Necessity](./design-architecture/agentic-ai-challenges.md) - Understanding core challenges of Agentic AI platforms
+- [Agentic AI Platform Architecture](./design-architecture/agentic-platform-architecture.md) - Overall architecture design
 
 ### Phase 2: GPU Infrastructure Configuration
 
-- [GPU Resource Management](./gpu-resource-management.md) - GPU resource settings including MIG, Time-Slicing
+- [GPU Resource Management](./model-serving/gpu-resource-management.md) - GPU resource settings including MIG, Time-Slicing
 
 ### Phase 3: Model Serving (Basic → Advanced)
 
-- [vLLM-based FM Deployment and Performance Optimization](./vllm-model-serving.md) - Basic model serving configuration
-- [MoE Model Serving](./moe-model-serving.md) - Mixture of Experts model serving
-- [llm-d EKS Auto Mode Deployment](./llm-d-eks-automode.md) - Kubernetes-native distributed inference
-- [NeMo Framework](./nemo-framework.md) - Training and serving framework
+- [vLLM-based FM Deployment and Performance Optimization](./model-serving/vllm-model-serving.md) - Basic model serving configuration
+- [MoE Model Serving](./model-serving/moe-model-serving.md) - Mixture of Experts model serving
+- [llm-d EKS Auto Mode Deployment](./model-serving/llm-d-eks-automode.md) - Kubernetes-native distributed inference
+- [NeMo Framework](./model-serving/nemo-framework.md) - Training and serving framework
 
 ### Phase 4: Inference Routing and Gateway
 
-- [Inference Gateway and Dynamic Routing](./inference-gateway-routing.md) - Intelligent request routing
+- [Inference Gateway and Dynamic Routing](./gateway-agents/inference-gateway-routing.md) - Intelligent request routing
 
 ### Phase 5: RAG Data Layer
 
-- [Milvus Vector Database](./milvus-vector-database.md) - Building vector storage
+- [Milvus Vector Database](./gateway-agents/milvus-vector-database.md) - Building vector storage
 
 ### Phase 6: AI Agent Deployment
 
-- [Kagent Kubernetes Agent Management](./kagent-kubernetes-agents.md) - CRD-based agent management
+- [Kagent Kubernetes Agent Management](./gateway-agents/kagent-kubernetes-agents.md) - CRD-based agent management
 
 ### Phase 7: Operations and Monitoring
 
-- [Agent Monitoring](./agent-monitoring.md) - Agent status and performance monitoring
+- [Agent Monitoring](./operations-mlops/agent-monitoring.md) - Agent status and performance monitoring
 
 ### Phase 8: Evaluation and Validation
 
-- [Ragas RAG Evaluation](./ragas-evaluation.md) - RAG pipeline quality evaluation
+- [Ragas RAG Evaluation](./operations-mlops/ragas-evaluation.md) - RAG pipeline quality evaluation
 
 ## 🎯 Learning Objectives
 

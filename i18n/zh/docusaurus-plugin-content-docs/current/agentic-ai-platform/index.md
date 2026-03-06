@@ -30,49 +30,49 @@ Kubernetes 原生方法的核心理念是积极利用开源生态系统，同时
 
 ### 理解与设计
 
-- [1. 技术挑战](./agentic-ai-challenges.md) - 理解 Agentic AI 平台的核心挑战
-- [2. 基于 EKS 的解决方案](./agentic-ai-solutions-eks.md) - Kubernetes 基础解决方案方法
-- [3. 平台架构](./agentic-platform-architecture.md) - 整体架构设计
+- [1. 技术挑战](./design-architecture/agentic-ai-challenges.md) - 理解 Agentic AI 平台的核心挑战
+- [2. 基于 EKS 的解决方案](./design-architecture/agentic-ai-solutions-eks.md) - Kubernetes 基础解决方案方法
+- [3. 平台架构](./design-architecture/agentic-platform-architecture.md) - 整体架构设计
 
 ### GPU 基础设施配置
 
-- [4. GPU 资源管理](./gpu-resource-management.md) - MIG、Time-Slicing 等 GPU 资源设置
+- [4. GPU 资源管理](./model-serving/gpu-resource-management.md) - MIG、Time-Slicing 等 GPU 资源设置
 
 ### 模型服务（基础 → 高级）
 
-- [5. vLLM 模型服务](./vllm-model-serving.md) - 基础模型服务配置
-- [6. MoE 模型服务](./moe-model-serving.md) - Mixture of Experts 模型服务
-- [7. llm-d EKS Auto Mode](./llm-d-eks-automode.md) - Kubernetes 原生分布式推理
-- [8. NeMo 框架](./nemo-framework.md) - 训练和服务框架
+- [5. vLLM 模型服务](./model-serving/vllm-model-serving.md) - 基础模型服务配置
+- [6. MoE 模型服务](./model-serving/moe-model-serving.md) - Mixture of Experts 模型服务
+- [7. llm-d EKS Auto Mode](./model-serving/llm-d-eks-automode.md) - Kubernetes 原生分布式推理
+- [8. NeMo 框架](./model-serving/nemo-framework.md) - 训练和服务框架
 
 ### 推理路由和网关
 
-- [9. Inference Gateway](./inference-gateway-routing.md) - 智能请求路由
+- [9. Inference Gateway](./gateway-agents/inference-gateway-routing.md) - 智能请求路由
 
 ### RAG 数据层
 
-- [10. Milvus 向量 DB](./milvus-vector-database.md) - 向量存储构建
+- [10. Milvus 向量 DB](./gateway-agents/milvus-vector-database.md) - 向量存储构建
 
 ### AI 代理部署
 
-- [11. Kagent 代理管理](./kagent-kubernetes-agents.md) - 基于 CRD 的代理管理
+- [11. Kagent 代理管理](./gateway-agents/kagent-kubernetes-agents.md) - 基于 CRD 的代理管理
 
 ### 运营和监控
 
-- [12. 代理监控与运营](./agent-monitoring.md) - 代理状态和性能监控
+- [12. 代理监控与运营](./operations-mlops/agent-monitoring.md) - 代理状态和性能监控
 
 ### 评估与验证
 
-- [13. Ragas 评估](./ragas-evaluation.md) - RAG 管道质量评估
+- [13. Ragas 评估](./operations-mlops/ragas-evaluation.md) - RAG 管道质量评估
 
 ### Bedrock AgentCore 集成
 
-- [14. Bedrock AgentCore & MCP](./bedrock-agentcore-mcp.md) - AWS Bedrock 代理集成
+- [14. Bedrock AgentCore & MCP](./gateway-agents/bedrock-agentcore-mcp.md) - AWS Bedrock 代理集成
 
 ### MLOps 管道
 
-- [15. MLOps 管道](./mlops-pipeline-eks.md) - Kubeflow + MLflow + KServe 端到端 ML 生命周期
-- [16. SageMaker-EKS 集成](./sagemaker-eks-integration.md) - SageMaker 训练 + EKS 服务混合配置
+- [15. MLOps 管道](./operations-mlops/mlops-pipeline-eks.md) - Kubeflow + MLflow + KServe 端到端 ML 生命周期
+- [16. SageMaker-EKS 集成](./operations-mlops/sagemaker-eks-integration.md) - SageMaker 训练 + EKS 服务混合配置
 
 ## 🎯 学习目标
 
