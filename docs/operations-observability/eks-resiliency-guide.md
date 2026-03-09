@@ -97,7 +97,7 @@ Multi-AZ 배포는 EKS 레질리언시의 가장 기본적이면서도 강력한
 
 ### Pod Topology Spread Constraints
 
-Topology Spread Constraints는 Pod를 AZ, 노드, 커스텀 토폴로지 도메인에 걸쳐 균등하게 분산시킵니다. K8s 1.30+에서는 `minDomains` 파라미터를 통해 최소 분산 도메인 수를 지정할 수 있습니다.
+Topology Spread Constraints는 Pod를 AZ, 노드, 커스텀 토폴로지 도메인에 걸쳐 균등하게 분산시킵니다. `minDomains` 파라미터(K8s 1.24 alpha → 1.30 GA)를 통해 최소 분산 도메인 수를 지정할 수 있습니다.
 
 | 파라미터 | 설명 | 권장값 |
 |----------|------|--------|
@@ -162,6 +162,10 @@ spec:
     # Disruption budget: 동시에 20% 이상의 노드가 중단되지 않도록 제한
     budgets:
     - nodes: "20%"
+    # 업무 시간에는 더 보수적으로 운영 (선택 사항)
+    # - nodes: "10%"
+    #   schedule: "0 9 * * MON-FRI"  # 평일 09:00-17:00
+    #   duration: 8h
   template:
     spec:
       requirements:
@@ -870,9 +874,9 @@ spec:
         lifecycle:
           preStop:
             exec:
-              # 1. sleep으로 Endpoint 제거 대기 (Kubelet과 Endpoint Controller 경합 방지)
-              # 2. SIGTERM 전송으로 애플리케이션 Graceful Shutdown 시작
-              command: ["/bin/sh", "-c", "sleep 5 && kill -TERM 1"]
+              # sleep으로 Endpoint 제거 대기 (Kubelet과 Endpoint Controller 경합 방지)
+              # SIGTERM은 preStop Hook 완료 후 kubelet이 자동으로 전송
+              command: ["/bin/sh", "-c", "sleep 5"]
         readinessProbe:
           httpGet:
             path: /ready
@@ -978,6 +982,25 @@ spec:
 
 :::warning Rate Limiting 도입 시 주의
 Rate Limiting은 Circuit Breaker, Retry와 함께 레질리언시의 핵심 요소이지만, 잘못된 설정은 정상 트래픽을 차단할 수 있습니다. Istio의 EnvoyFilter 또는 외부 Rate Limiter(예: Redis 기반)를 사용하여 구현하되, **반드시 단계적으로 도입**하세요: 모니터링 모드 → 경고 모드 → 차단 모드 순서로 진행하는 것을 권장합니다.
+:::
+
+### EKS Auto Mode 환경의 레질리언시 고려사항
+
+EKS Auto Mode는 인프라 관리를 자동화하지만, 레질리언시 설계에서 고려해야 할 특성이 있습니다.
+
+| 항목 | Auto Mode 특성 | 레질리언시 영향 | 권장 대응 |
+|------|---------------|---------------|---------|
+| **노드 교체** | OS 패치, 최적화를 위한 빈번한 노드 교체 | Pod 이동 빈도 증가 | PDB 필수 설정, `terminationGracePeriodSeconds` 90초+ |
+| **인스턴스 다양성** | Graviton + x86, Spot + On-Demand 자동 혼합 | 인스턴스별 성능 차이 | Startup Probe failureThreshold 높게 설정 (30+) |
+| **Spot 중단** | 자동 Spot Fallback 처리 | 2분 전 알림 후 종료 | Graceful Shutdown + preStop sleep 필수 |
+| **AZ 분산** | Auto Mode가 인스턴스를 자동 선택 | AZ 분산은 사용자 책임 | Topology Spread Constraints 명시 필수 |
+
+:::tip Auto Mode + 레질리언시 체크리스트
+Auto Mode 환경에서는 **인프라 수준 자동화**와 **애플리케이션 수준 레질리언시**를 구분하세요:
+- **Auto Mode가 담당**: 노드 프로비저닝, Spot Fallback, OS 패치, 인스턴스 선택
+- **사용자가 담당**: PDB, Topology Spread, Graceful Shutdown, Probe 설정, Circuit Breaker
+
+상세한 Auto Mode 환경의 Probe 및 리소스 설정은 [EKS Pod 헬스체크 & 라이프사이클 관리](/docs/operations-observability/eks-pod-health-lifecycle)와 [EKS Pod 리소스 최적화 가이드](/docs/infrastructure-optimization/eks-resource-optimization)를 참조하세요.
 :::
 
 ---

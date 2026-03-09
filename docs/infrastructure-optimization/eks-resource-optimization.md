@@ -469,7 +469,7 @@ graph TB
 ```yaml
 # Auto Mode는 이러한 NodePool을 자동 생성하지만,
 # 참고를 위해 수동 설정 시 Graviton + Spot 패턴을 보여줍니다
-apiVersion: karpenter.sh/v1beta1
+apiVersion: karpenter.sh/v1
 kind: NodePool
 metadata:
   name: graviton-spot-pool
@@ -493,6 +493,8 @@ spec:
         values: ["m7g.medium", "m7g.large", "m7g.xlarge", "m7g.2xlarge"]
 
       nodeClassRef:
+        group: karpenter.k8s.aws
+        kind: EC2NodeClass
         name: default
 
   # Spot 중단 처리
@@ -507,7 +509,7 @@ spec:
 
 ---
 # Fallback: x86 On-Demand (Spot 불가 시)
-apiVersion: karpenter.sh/v1beta1
+apiVersion: karpenter.sh/v1
 kind: NodePool
 metadata:
   name: x86-ondemand-fallback
@@ -529,6 +531,8 @@ spec:
         values: ["m6i.large", "m6i.xlarge", "m6i.2xlarge"]
 
       nodeClassRef:
+        group: karpenter.k8s.aws
+        kind: EC2NodeClass
         name: default
 ```
 
@@ -661,7 +665,7 @@ jobs:
 
 ```yaml
 # Graviton4 우선 NodePool 예시 (Karpenter)
-apiVersion: karpenter.sh/v1beta1
+apiVersion: karpenter.sh/v1
 kind: NodePool
 metadata:
   name: graviton4-spot-pool
@@ -693,6 +697,8 @@ spec:
         values: ["spot", "on-demand"]
 
       nodeClassRef:
+        group: karpenter.k8s.aws
+        kind: EC2NodeClass
         name: default
 
   disruption:
@@ -739,6 +745,10 @@ curl -s http://localhost:9090/api/v1/query?query=rate(http_request_duration_seco
 - [ ] **NodePool 우선순위**: Graviton4 → Graviton3 → x86 순서 설정
 - [ ] **성능 벤치마크**: P99 레이턴시, 처리량, CPU 사용률 측정
 - [ ] **비용 분석**: Graviton3 대비 가격/성능 비율 계산
+:::
+
+:::warning Graviton4 리전 가용성
+Graviton4 기반 인스턴스(M8g, C8g, R8g)는 아직 모든 리전에서 가용하지 않을 수 있습니다. 프로덕션 배포 전 대상 리전의 인스턴스 가용성을 확인하세요: `aws ec2 describe-instance-type-offerings --location-type availability-zone --filters Name=instance-type,Values=m8g.* --region <region>`
 :::
 
 #### 2.5.4 Auto Mode 환경의 리소스 설정 권장사항
@@ -1954,6 +1964,10 @@ containers:
 - 트래픽 패턴 변화 반영에 시간 소요
 :::
 
+:::tip In-Place Pod Vertical Scaling (KEP-1287)
+Kubernetes 1.27에서 alpha로 도입되고 1.33에서 beta로 승격된 In-Place Pod Vertical Scaling은 Pod 재시작 없이 CPU/Memory requests와 limits를 동적으로 변경할 수 있는 기능입니다. 이 기능이 GA되면 VPA의 가장 큰 단점인 "리소스 변경 시 Pod 재시작"이 해결됩니다. EKS에서는 해당 기능의 GA 이후 지원이 예상되며, 현재는 VPA Off 모드 + 수동 적용 방식을 권장합니다.
+:::
+
 ## HPA 고급 패턴
 
 ### 5.1 HPA Behavior 설정
@@ -2393,7 +2407,7 @@ kubectl get nodes -o json | jq '.items[] | {
 
 ```yaml
 # Karpenter NodePool with NRC
-apiVersion: karpenter.sh/v1beta1
+apiVersion: karpenter.sh/v1
 kind: NodePool
 metadata:
   name: optimized-pool
@@ -4408,6 +4422,8 @@ spec:
         operator: In
         values: ["spot", "on-demand"]
       nodeClassRef:
+        group: karpenter.k8s.aws
+        kind: EC2NodeClass
         name: a100-nodeclass
   disruption:
     consolidationPolicy: WhenEmptyOrUnderutilized
@@ -5259,7 +5275,7 @@ create_pr_with_ai_context(response.content)
 
 ```yaml
 # Production API - Graviton 우선, Spot/On-Demand 혼합
-apiVersion: karpenter.sh/v1beta1
+apiVersion: karpenter.sh/v1
 kind: NodePool
 metadata:
   name: production-api-pool
@@ -5283,6 +5299,8 @@ spec:
         values: ["m7g.large", "m7g.xlarge", "m7g.2xlarge"]
 
       nodeClassRef:
+        group: karpenter.k8s.aws
+        kind: EC2NodeClass
         name: default
 
   # Spot 중단 시 자동 교체
@@ -5298,7 +5316,7 @@ spec:
 
 ---
 # Batch Jobs - Graviton Spot 100%
-apiVersion: karpenter.sh/v1beta1
+apiVersion: karpenter.sh/v1
 kind: NodePool
 metadata:
   name: batch-jobs-pool
@@ -5319,6 +5337,8 @@ spec:
         values: ["c7g.large", "c7g.xlarge", "c7g.2xlarge", "c7g.4xlarge"]
 
       nodeClassRef:
+        group: karpenter.k8s.aws
+        kind: EC2NodeClass
         name: default
 
       # Batch 작업용 Taints
@@ -5338,7 +5358,7 @@ spec:
 
 ---
 # Database - Graviton On-Demand 100%
-apiVersion: karpenter.sh/v1beta1
+apiVersion: karpenter.sh/v1
 kind: NodePool
 metadata:
   name: database-pool
@@ -5360,6 +5380,8 @@ spec:
         values: ["r7g.xlarge", "r7g.2xlarge", "r7g.4xlarge"]
 
       nodeClassRef:
+        group: karpenter.k8s.aws
+        kind: EC2NodeClass
         name: default
 
       taints:

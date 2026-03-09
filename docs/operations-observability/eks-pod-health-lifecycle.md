@@ -258,7 +258,7 @@ spec:
           httpGet:
             path: /healthz
             port: 8080
-          initialDelaySeconds: 10
+          initialDelaySeconds: 0  # Startup Probe 사용 시 0으로 설정
           periodSeconds: 10
           timeoutSeconds: 5
           failureThreshold: 3
@@ -278,8 +278,12 @@ spec:
               command:
               - /bin/sh
               - -c
-              - sleep 5 && kill -TERM 1
+              - sleep 5
       terminationGracePeriodSeconds: 60
+
+:::tip preStop에서 kill -TERM 1이 불필요한 이유
+Kubernetes는 preStop Hook 완료 후 자동으로 컨테이너의 PID 1에 SIGTERM을 전송합니다. preStop에서 별도로 `kill -TERM 1`을 실행하면 SIGTERM이 중복 전송되며, PID 1이 init 프로세스(tini, dumb-init)인 경우 예상과 다르게 동작할 수 있습니다. 따라서 preStop에서는 `sleep 5`만으로 Endpoint 제거 시간을 확보하고, SIGTERM 전송은 kubelet에 맡기는 것이 안전합니다.
+:::
 ```
 
 **헬스체크 엔드포인트 구현 (Node.js/Express):**
@@ -631,6 +635,48 @@ spec:
 :::tip Istio Sidecar Injection
 Istio가 자동 주입을 사용하는 경우 (`istio-injection=enabled` 레이블), Istio가 사이드카에 적절한 Probe를 자동으로 추가합니다. 수동 설정은 불필요합니다.
 :::
+
+#### Native Sidecar Containers (K8s 1.28+ GA)
+
+Kubernetes 1.28부터 GA된 Native Sidecar Container는 Init Container에 `restartPolicy: Always`를 설정하여 사이드카로 동작시키는 공식 기능입니다. 이를 통해 기존 사이드카 패턴의 **종료 순서 문제**를 해결합니다.
+
+**기존 문제**: 일반 사이드카는 메인 컨테이너와 동시에 SIGTERM을 수신하므로, Istio proxy가 먼저 종료되면 메인 앱의 네트워크가 끊기는 문제가 발생합니다.
+
+**Native Sidecar 해결**: Init Container로 정의된 사이드카는 모든 일반 컨테이너가 종료된 **후에** 종료됩니다.
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-with-native-sidecar
+spec:
+  template:
+    spec:
+      initContainers:
+      # Native Sidecar: 메인 컨테이너보다 먼저 시작, 나중에 종료
+      - name: log-collector
+        image: fluentbit:latest
+        restartPolicy: Always  # 이 설정이 Native Sidecar로 동작하게 함
+        ports:
+        - containerPort: 2020
+        resources:
+          requests:
+            cpu: 50m
+            memory: 64Mi
+      containers:
+      - name: app
+        image: myapp:v1
+        ports:
+        - containerPort: 8080
+```
+
+**종료 순서 보장:**
+1. 일반 컨테이너(app)에 SIGTERM 전송
+2. 일반 컨테이너 종료 완료 대기
+3. Native Sidecar(log-collector)에 SIGTERM 전송
+4. Native Sidecar 종료
+
+이 패턴은 Istio 사이드카, 로그 수집기, 모니터링 에이전트 등 메인 앱보다 오래 살아있어야 하는 보조 컨테이너에 적합합니다.
 
 #### 2.4.6 Windows 컨테이너 Probe 고려사항
 

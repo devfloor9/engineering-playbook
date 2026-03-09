@@ -1315,7 +1315,7 @@ kubectl describe sa ebs-csi-controller-sa -n kube-system
 |-------------|------|----------|
 | `could not create volume` | IAM 권한 부족 | IRSA Role에 `ec2:CreateVolume`, `ec2:AttachVolume` 등 추가 |
 | `volume is already attached to another node` | 이전 노드에서 미분리 | 이전 Pod/노드 정리, EBS 볼륨 detach 대기 (~6분) |
-| `could not attach volume: already at max` | 인스턴스 EBS 볼륨 수 제한 초과 | 더 큰 인스턴스 타입 사용 (Nitro 인스턴스: 최대 128개) |
+| `could not attach volume: already at max` | 인스턴스 EBS 볼륨 수 제한 초과 | 더 큰 인스턴스 타입 사용 (Nitro 인스턴스: 타입별 상이, 최대 128개. `aws ec2 describe-instance-types --instance-types <type> --query 'InstanceTypes[].EbsInfo.MaximumVolumeCount'`로 확인) |
 | `failed to provision volume with StorageClass` | StorageClass 미존재 또는 설정 오류 | StorageClass 이름/파라미터 확인 |
 
 **권장 StorageClass 설정:**
@@ -1777,8 +1777,8 @@ spec:
             - name: varlog
               mountPath: /var/log
               readOnly: true
-            - name: varlibdockercontainers
-              mountPath: /var/lib/docker/containers
+            - name: varlogpods
+              mountPath: /var/log/pods
               readOnly: true
             - name: fluent-bit-config
               mountPath: /fluent-bit/etc/
@@ -1786,9 +1786,9 @@ spec:
         - name: varlog
           hostPath:
             path: /var/log
-        - name: varlibdockercontainers
+        - name: varlogpods
           hostPath:
-            path: /var/lib/docker/containers
+            path: /var/log/pods
         - name: fluent-bit-config
           configMap:
             name: fluent-bit-config
