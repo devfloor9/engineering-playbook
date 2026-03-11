@@ -65,10 +65,36 @@ export function FlowDiagram({ nodes, edges, width = 800, height = 400, title }: 
           const toW = to.width || 140;
           const toH = to.height || 50;
 
-          const x1 = from.x + fromW / 2;
-          const y1 = from.y + fromH / 2;
-          const x2 = to.x + toW / 2;
-          const y2 = to.y + toH / 2;
+          const fromCx = from.x + fromW / 2;
+          const fromCy = from.y + fromH / 2;
+          const toCx = to.x + toW / 2;
+          const toCy = to.y + toH / 2;
+
+          const dx = toCx - fromCx;
+          const dy = toCy - fromCy;
+          const angle = Math.atan2(dy, dx);
+
+          const intersectRect = (cx: number, cy: number, w: number, h: number, a: number) => {
+            const hw = w / 2;
+            const hh = h / 2;
+            const absCos = Math.abs(Math.cos(a));
+            const absSin = Math.abs(Math.sin(a));
+            let d: number;
+            if (hw * absSin <= hh * absCos) {
+              d = hw / absCos;
+            } else {
+              d = hh / absSin;
+            }
+            return { x: cx + d * Math.cos(a), y: cy + d * Math.sin(a) };
+          };
+
+          const p1 = intersectRect(fromCx, fromCy, fromW, fromH, angle);
+          const p2 = intersectRect(toCx, toCy, toW, toH, angle + Math.PI);
+
+          const x1 = p1.x;
+          const y1 = p1.y;
+          const x2 = p2.x;
+          const y2 = p2.y;
 
           const edgeColor = edge.color || 'gray';
           const strokeColor = defaultColors[edgeColor] || edgeColor;
