@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EKS Ops & Observability Training</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #0a0e1a;
+      color: #e0e0e0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 60px 20px;
+    }
+    h1 {
+      font-size: 2.5rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #06b6d4, #8b5cf6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 8px;
+    }
+    .subtitle {
+      color: #888;
+      font-size: 1.1rem;
+      margin-bottom: 48px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 20px;
+      max-width: 1100px;
+      width: 100%;
+    }
+    .card {
+      background: #111827;
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 16px;
+      padding: 28px;
+      text-decoration: none;
+      color: inherit;
+      transition: all 0.25s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    .card:hover {
+      border-color: rgba(255,255,255,0.15);
+      transform: translateY(-4px);
+      box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+    }
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+    }
+    .card:nth-child(1)::before { background: linear-gradient(90deg, #3b82f6, #8b5cf6); }
+    .card:nth-child(2)::before { background: linear-gradient(90deg, #10b981, #06b6d4); }
+    .card:nth-child(3)::before { background: linear-gradient(90deg, #ef4444, #f97316); }
+    .card:nth-child(4)::before { background: linear-gradient(90deg, #3b82f6, #06b6d4); }
+    .card:nth-child(5)::before { background: linear-gradient(90deg, #10b981, #84cc16); }
+    .card:nth-child(6)::before { background: linear-gradient(90deg, #8b5cf6, #ec4899); }
+    .badge {
+      display: inline-block;
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 20px;
+      margin-bottom: 12px;
+    }
+    .card:nth-child(1) .badge { background: rgba(59,130,246,0.15); color: #60a5fa; }
+    .card:nth-child(2) .badge { background: rgba(16,185,129,0.15); color: #34d399; }
+    .card:nth-child(3) .badge { background: rgba(239,68,68,0.15); color: #f87171; }
+    .card:nth-child(4) .badge { background: rgba(59,130,246,0.15); color: #60a5fa; }
+    .card:nth-child(5) .badge { background: rgba(16,185,129,0.15); color: #34d399; }
+    .card:nth-child(6) .badge { background: rgba(139,92,246,0.15); color: #a78bfa; }
+    .card h2 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .card p {
+      font-size: 0.9rem;
+      color: #9ca3af;
+      line-height: 1.5;
+    }
+    .meta {
+      display: flex;
+      gap: 12px;
+      margin-top: 16px;
+      font-size: 0.8rem;
+      color: #6b7280;
+    }
+    .meta span {
+      background: rgba(255,255,255,0.04);
+      padding: 2px 8px;
+      border-radius: 6px;
+    }
+    footer {
+      margin-top: 60px;
+      color: #4b5563;
+      font-size: 0.85rem;
+    }
+  </style>
+</head>
+<body>
+  <h1>EKS Ops & Observability Training</h1>
+  <p class="subtitle">YoungJoon Jeong, GTM SSA, Container</p>
+
+  <div class="grid">
+    <a class="card" href="./block1/">
+      <span class="badge">Block 1</span>
+      <h2>GitOps 기반 EKS 클러스터 운영</h2>
+      <p>ArgoCD Capability, Hub-Spoke 아키텍처, ApplicationSets, Blue/Green 업그레이드, KRO, ESO, Policy as Code</p>
+      <div class="meta"><span>16 slides</span><span>35분</span></div>
+    </a>
+    <a class="card" href="./block2/">
+      <span class="badge">Block 2</span>
+      <h2>EKS Node Monitoring Agent</h2>
+      <p>NMA 아키텍처, 5가지 모니터, Node Conditions, Auto/Manual Mode, 다층 모니터링 통합 전략</p>
+      <div class="meta"><span>17 slides</span><span>30분</span></div>
+    </a>
+    <a class="card" href="./block3/">
+      <span class="badge">Block 3</span>
+      <h2>EKS 장애 진단 및 대응 가이드</h2>
+      <p>6-Layer 디버깅 프레임워크, First 5 Minutes, AZ 장애 대응, Control Plane/Node/Workload 디버깅</p>
+      <div class="meta"><span>18 slides</span><span>40분</span></div>
+    </a>
+    <a class="card" href="./block4/">
+      <span class="badge">Block 4</span>
+      <h2>EKS 고가용성 아키텍처</h2>
+      <p>Failure Domain, Topology Spread, ARC Zonal Shift, Cell Architecture, PDB, Circuit Breaker, Chaos Engineering</p>
+      <div class="meta"><span>20 slides</span><span>40분</span></div>
+    </a>
+    <a class="card" href="./block5/">
+      <span class="badge">Block 5</span>
+      <h2>Pod 헬스체크 & 라이프사이클</h2>
+      <p>Probe 3종 비교, 워크로드별 패턴, Graceful Shutdown, SIGTERM 핸들링, Native Sidecar, ALB 연동</p>
+      <div class="meta"><span>18 slides</span><span>35분</span></div>
+    </a>
+    <a class="card" href="./block6/">
+      <span class="badge">Block 6</span>
+      <h2>Pod 스케줄링 & 가용성 패턴</h2>
+      <p>스케줄링 3단계, Node Affinity, Taints/Tolerations, PDB, PriorityClass, Descheduler, Karpenter 통합</p>
+      <div class="meta"><span>18 slides</span><span>35분</span></div>
+    </a>
+  </div>
+
+  <footer>EKS Operations & Observability Training - Interactive React Slides</footer>
+</body>
+</html>
