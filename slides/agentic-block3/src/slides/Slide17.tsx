@@ -23,7 +23,7 @@ export default function Slide17() {
           <h2 className="text-5xl font-bold text-blue-400">NeMo Framework</h2>
         </div>
 
-        <Card className="p-8 bg-gradient-to-br from-blue-900/40 to-purple-900/40 mb-8">
+        <Card color="blue" className="p-8 mb-8">
           <p className="text-2xl text-gray-300 leading-relaxed">
             NVIDIA NeMo는 <span className="text-blue-400 font-semibold">대규모 언어 모델(LLM)</span>의
             학습, 파인튜닝, 최적화를 위한 <span className="text-purple-400 font-semibold">엔드투엔드 프레임워크</span>입니다.
@@ -35,14 +35,14 @@ export default function Slide17() {
 
         <div className="grid grid-cols-3 gap-6 mb-8">
           {components.map((comp, idx) => (
-            <Card key={idx} className={`p-6 bg-gradient-to-br from-${comp.color}-900/40 to-gray-900/40`}>
+            <Card key={idx} color={comp.color as any} className="p-6">
               <div className="flex flex-col items-center text-center gap-4">
                 <div className={`w-16 h-16 rounded-xl bg-${comp.color}-500/20 flex items-center justify-center`}>
                   <comp.icon className={`w-10 h-10 text-${comp.color}-400`} />
                 </div>
                 <div>
                   <h4 className="text-xl font-bold text-white mb-2">{comp.name}</h4>
-                  <p className="text-sm text-gray-400">{comp.desc}</p>
+                  <p className="text-sm text-gray-300">{comp.desc}</p>
                 </div>
               </div>
             </Card>
@@ -50,7 +50,7 @@ export default function Slide17() {
         </div>
 
         <div className="grid grid-cols-2 gap-6">
-          <Card className="p-6 bg-gradient-to-r from-purple-900/40 to-cyan-900/40">
+          <Card color="purple" className="p-6">
             <h3 className="text-2xl font-semibold text-purple-400 mb-4">주요 기능</h3>
             <ul className="space-y-2">
               {features.map((feature, idx) => (
@@ -62,7 +62,7 @@ export default function Slide17() {
             </ul>
           </Card>
 
-          <Card className="p-6 bg-gradient-to-r from-cyan-900/40 to-emerald-900/40">
+          <Card color="cyan" className="p-6">
             <h3 className="text-2xl font-semibold text-cyan-400 mb-4">사용 사례</h3>
             <ul className="space-y-2 text-gray-300">
               <li>• 도메인 특화 모델 파인튜닝</li>
@@ -74,9 +74,9 @@ export default function Slide17() {
         </div>
 
         <div className="mt-6 flex items-center justify-center gap-3">
-          <Badge className="text-lg px-6 py-3 bg-blue-600">NeMo 24.07</Badge>
-          <Badge className="text-lg px-6 py-3 bg-purple-600">PyTorch</Badge>
-          <Badge className="text-lg px-6 py-3 bg-cyan-600">NCCL</Badge>
+          <Badge color="blue" size="lg">NeMo 24.07</Badge>
+          <Badge color="purple" size="lg">PyTorch</Badge>
+          <Badge color="cyan" size="lg">NCCL</Badge>
         </div>
       </div>
     </SlideWrapper>

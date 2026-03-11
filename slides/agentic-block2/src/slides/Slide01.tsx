@@ -12,7 +12,7 @@ export default function Slide01() {
         <h1 className="text-7xl font-bold bg-gradient-to-r from-blue-400 via-cyan-400 to-emerald-400 bg-clip-text text-transparent">
           게이트웨이 &amp; 에이전트
         </h1>
-        <p className="text-3xl text-gray-400">Block 2: Gateway &amp; Agent Orchestration</p>
+        <p className="text-3xl text-gray-300">Block 2: Gateway &amp; Agent Orchestration</p>
       </div>
     </SlideWrapper>
   );

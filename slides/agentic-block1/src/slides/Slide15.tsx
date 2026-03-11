@@ -28,7 +28,7 @@ export default function Slide15() {
           <Card className="p-6">
             <Database className="w-9 h-9 text-cyan-400 mb-3" />
             <h4 className="text-xl font-semibold mb-3 text-cyan-300">Milvus (Vector Database)</h4>
-            <ul className="text-base text-gray-400 space-y-2">
+            <ul className="text-base text-gray-300 space-y-2">
               <li>• 분산 아키텍처: Query/Index/Data Nodes</li>
               <li>• HNSW 인덱스: 고성능 벡터 검색</li>
               <li>• GPU 가속: Index Node GPU 활용</li>
@@ -39,7 +39,7 @@ export default function Slide15() {
           <Card className="p-6">
             <Zap className="w-9 h-9 text-amber-400 mb-3" />
             <h4 className="text-xl font-semibold mb-3 text-amber-300">Redis (Cache &amp; Session)</h4>
-            <ul className="text-base text-gray-400 space-y-2">
+            <ul className="text-base text-gray-300 space-y-2">
               <li>• 세션 메모리: Agent 대화 컨텍스트</li>
               <li>• 큐 관리: KEDA 스케일링 소스</li>
               <li>• Cluster Mode: 고가용성 및 확장</li>
@@ -52,21 +52,21 @@ export default function Slide15() {
           <Card className="p-5">
             <HardDrive className="w-8 h-8 text-blue-400 mb-2" />
             <h4 className="text-lg font-semibold mb-2 text-blue-300">컬렉션 설계</h4>
-            <p className="text-sm text-gray-400">
+            <p className="text-sm text-gray-300">
               임베딩 필드 (FLOAT_VECTOR), 메타데이터 (JSON), 테넌트 ID
             </p>
           </Card>
 
           <Card className="p-5">
             <h4 className="text-lg font-semibold mb-2 text-emerald-300">Kubernetes 통합</h4>
-            <p className="text-sm text-gray-400">
+            <p className="text-sm text-gray-300">
               Milvus Operator (CRD), StatefulSet 배포, PVC 관리
             </p>
           </Card>
 
-          <Card className="p-5 bg-purple-900/20 border-purple-700">
+          <Card color="purple" className="p-5">
             <h4 className="text-lg font-semibold mb-2 text-purple-300">확장 전략</h4>
-            <p className="text-sm text-gray-400">
+            <p className="text-sm text-gray-300">
               Query/Index Nodes 독립 스케일링, 부하 분산
             </p>
           </Card>

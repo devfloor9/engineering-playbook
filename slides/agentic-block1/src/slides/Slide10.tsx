@@ -25,7 +25,7 @@ export default function Slide10() {
           <Card className="p-6">
             <Zap className="w-9 h-9 text-amber-400 mb-3" />
             <h4 className="text-xl font-semibold mb-3 text-amber-300">Karpenter 중심 자동화</h4>
-            <ul className="text-base text-gray-400 space-y-2">
+            <ul className="text-base text-gray-300 space-y-2">
               <li>• GPU 노드 2-3분 내 프로비저닝</li>
               <li>• 워크로드 분석 후 최적 인스턴스 선택</li>
               <li>• Consolidation으로 비용 20-30% 절감</li>
@@ -35,7 +35,7 @@ export default function Slide10() {
           <Card className="p-6">
             <Shield className="w-9 h-9 text-blue-400 mb-3" />
             <h4 className="text-xl font-semibold mb-3 text-blue-300">EKS Auto Mode</h4>
-            <ul className="text-base text-gray-400 space-y-2">
+            <ul className="text-base text-gray-300 space-y-2">
               <li>• Karpenter 자동 구성 및 관리</li>
               <li>• 핵심 컴포넌트 자동 업그레이드</li>
               <li>• 초기 구축 시간 80% 단축</li>
@@ -45,16 +45,16 @@ export default function Slide10() {
           <Card className="p-6">
             <DollarSign className="w-9 h-9 text-emerald-400 mb-3" />
             <h4 className="text-xl font-semibold mb-3 text-emerald-300">비용 최적화</h4>
-            <ul className="text-base text-gray-400 space-y-2">
+            <ul className="text-base text-gray-300 space-y-2">
               <li>• Spot 인스턴스로 추론 비용 50-70% 절감</li>
               <li>• Savings Plans로 학습 비용 절감</li>
               <li>• 유휴 리소스 자동 정리</li>
             </ul>
           </Card>
 
-          <Card className="p-6 bg-orange-900/20 border-orange-700">
+          <Card color="orange" className="p-6">
             <h4 className="text-xl font-semibold mb-3 text-orange-300">AWS 통합</h4>
-            <ul className="text-base text-gray-400 space-y-2">
+            <ul className="text-base text-gray-300 space-y-2">
               <li>• Amazon S3: 모델 및 데이터 저장</li>
               <li>• CloudWatch: 통합 모니터링</li>
               <li>• IAM: 세밀한 권한 관리</li>

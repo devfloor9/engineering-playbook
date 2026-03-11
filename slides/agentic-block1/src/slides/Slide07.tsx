@@ -5,7 +5,7 @@ export default function Slide07() {
   return (
     <SlideWrapper>
       <h2 className="text-4xl font-bold mb-8 text-center">
-        <Badge className="bg-emerald-500/20 text-emerald-300 text-2xl px-4 py-2">도전과제 4</Badge>
+        <Badge color="emerald" size="lg" className="text-2xl px-4 py-2">도전과제 4</Badge>
       </h2>
       <h3 className="text-4xl font-bold mb-8 text-center text-emerald-300">
         FM 파인튜닝과 자동화 파이프라인
@@ -28,7 +28,7 @@ export default function Slide07() {
           <Card className="p-5">
             <Workflow className="w-9 h-9 text-purple-400 mb-3" />
             <h4 className="text-xl font-semibold mb-2 text-purple-300">분산 학습</h4>
-            <p className="text-sm text-gray-400">
+            <p className="text-sm text-gray-300">
               멀티 GPU/멀티 노드 분산 학습 자동 구성
             </p>
           </Card>
@@ -36,7 +36,7 @@ export default function Slide07() {
           <Card className="p-5">
             <Zap className="w-9 h-9 text-blue-400 mb-3" />
             <h4 className="text-xl font-semibold mb-2 text-blue-300">고속 통신</h4>
-            <p className="text-sm text-gray-400">
+            <p className="text-sm text-gray-300">
               NCCL + EFA를 통한 GPU 간 고속 통신 최적화
             </p>
           </Card>
@@ -44,15 +44,15 @@ export default function Slide07() {
           <Card className="p-5">
             <GitBranch className="w-9 h-9 text-amber-400 mb-3" />
             <h4 className="text-xl font-semibold mb-2 text-amber-300">파이프라인 자동화</h4>
-            <p className="text-sm text-gray-400">
+            <p className="text-sm text-gray-300">
               데이터 준비부터 배포까지 End-to-End 자동화
             </p>
           </Card>
         </div>
 
-        <Card className="p-6 bg-emerald-900/20 border-emerald-700">
+        <Card color="emerald" className="p-6">
           <h4 className="text-xl font-semibold mb-3 text-emerald-300">솔루션 스택</h4>
-          <ul className="text-base text-gray-400 space-y-2">
+          <ul className="text-base text-gray-300 space-y-2">
             <li>• NVIDIA NeMo: 대규모 모델 학습 프레임워크</li>
             <li>• Kubeflow Training Operators: PyTorchJob, MPIJob 자동화</li>
             <li>• Karpenter Training NodePool: EFA 네트워크 최적화</li>

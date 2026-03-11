@@ -38,8 +38,8 @@ export default function Slide20() {
 
         <div className="grid grid-cols-2 gap-5">
           <Card className="p-5">
-            <Badge className="mb-3 bg-amber-500/20 text-amber-300">핵심 솔루션</Badge>
-            <ul className="text-base text-gray-400 space-y-2">
+            <Badge color="amber" size="lg" className="mb-3">핵심 솔루션</Badge>
+            <ul className="text-base text-gray-300 space-y-2">
               <li>• EKS Auto Mode + Karpenter 자동화</li>
               <li>• Kgateway + vLLM 추론 스택</li>
               <li>• LangFuse + Prometheus 관측성</li>
@@ -48,8 +48,8 @@ export default function Slide20() {
           </Card>
 
           <Card className="p-5">
-            <Badge className="mb-3 bg-purple-500/20 text-purple-300">비용 최적화</Badge>
-            <ul className="text-base text-gray-400 space-y-2">
+            <Badge color="purple" size="lg" className="mb-3">비용 최적화</Badge>
+            <ul className="text-base text-gray-300 space-y-2">
               <li>• Spot 인스턴스: 50-70% 절감</li>
               <li>• Consolidation: 20-30% 절감</li>
               <li>• 유휴 리소스 자동 정리</li>
@@ -63,7 +63,7 @@ export default function Slide20() {
             <ArrowRight className="w-10 h-10 text-pink-400" />
             <h3 className="text-2xl font-semibold text-pink-300">다음 단계</h3>
           </div>
-          <div className="grid grid-cols-3 gap-4 text-base text-gray-400">
+          <div className="grid grid-cols-3 gap-4 text-base text-gray-300">
             <div>
               <strong className="text-gray-300">Block 2:</strong>
               <p className="text-sm">Gateway &amp; Agents (Kgateway, Kagent, Milvus)</p>

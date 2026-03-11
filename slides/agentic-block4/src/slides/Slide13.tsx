@@ -34,15 +34,15 @@ export default function Slide13() {
             모델 파일 및 실험 아티팩트를 S3에 버전별로 저장
           </p>
           <div className="space-y-2">
-            <div className="bg-emerald-500/10 border border-emerald-500/30 rounded p-2 text-sm">
+            <div className="bg-gray-800 border border-emerald-500/30 rounded p-2 text-sm">
               <div className="text-emerald-300 font-bold">모델 파일</div>
-              <div className="text-xs text-gray-400 font-mono mt-1">
+              <div className="text-xs text-gray-300 font-mono mt-1">
                 s3://models/fraud-detection/v1/model.tar.gz
               </div>
             </div>
-            <div className="bg-blue-500/10 border border-blue-500/30 rounded p-2 text-sm">
+            <div className="bg-gray-800 border border-blue-500/30 rounded p-2 text-sm">
               <div className="text-blue-300 font-bold">메타데이터</div>
-              <div className="text-xs text-gray-400 font-mono mt-1">
+              <div className="text-xs text-gray-300 font-mono mt-1">
                 accuracy: 0.95, precision: 0.93
               </div>
             </div>
@@ -50,31 +50,31 @@ export default function Slide13() {
         </Card>
       </div>
 
-      <Card className="bg-gray-800/50">
+      <Card color="gray" className="p-6">
         <h3 className="text-2xl font-bold text-white mb-4 flex items-center gap-3">
           <Tag className="w-8 h-8 text-amber-400" />
           모델 라이프사이클 Stage
         </h3>
         <div className="grid grid-cols-4 gap-3">
-          <div className="bg-gray-500/20 border border-gray-500/30 rounded-lg p-3 text-center">
+          <div className="bg-gray-800 border border-gray-500/30 rounded-lg p-3 text-center">
             <div className="text-2xl mb-2">🔬</div>
             <div className="text-sm font-bold text-gray-300">None</div>
-            <div className="text-xs text-gray-400 mt-1">실험 단계</div>
+            <div className="text-xs text-gray-300 mt-1">실험 단계</div>
           </div>
-          <div className="bg-amber-500/20 border border-amber-500/30 rounded-lg p-3 text-center">
+          <div className="bg-gray-800 border border-amber-500/30 rounded-lg p-3 text-center">
             <div className="text-2xl mb-2">🧪</div>
             <div className="text-sm font-bold text-amber-300">Staging</div>
-            <div className="text-xs text-gray-400 mt-1">검증 중</div>
+            <div className="text-xs text-gray-300 mt-1">검증 중</div>
           </div>
-          <div className="bg-emerald-500/20 border border-emerald-500/30 rounded-lg p-3 text-center">
+          <div className="bg-gray-800 border border-emerald-500/30 rounded-lg p-3 text-center">
             <div className="text-2xl mb-2">✅</div>
             <div className="text-sm font-bold text-emerald-300">Production</div>
-            <div className="text-xs text-gray-400 mt-1">프로덕션</div>
+            <div className="text-xs text-gray-300 mt-1">프로덕션</div>
           </div>
-          <div className="bg-red-500/20 border border-red-500/30 rounded-lg p-3 text-center">
+          <div className="bg-gray-800 border border-red-500/30 rounded-lg p-3 text-center">
             <div className="text-2xl mb-2">📦</div>
             <div className="text-sm font-bold text-red-300">Archived</div>
-            <div className="text-xs text-gray-400 mt-1">아카이브</div>
+            <div className="text-xs text-gray-300 mt-1">아카이브</div>
           </div>
         </div>
       </Card>

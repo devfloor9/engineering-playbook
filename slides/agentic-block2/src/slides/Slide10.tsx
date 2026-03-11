@@ -67,14 +67,14 @@ spec:
     <SlideWrapper>
       <div className="flex-1 flex flex-col p-12">
         <h2 className="text-5xl font-bold mb-6 text-purple-400">Tool Registry</h2>
-        <p className="text-xl text-gray-400 mb-6">CRD 기반 도구 관리</p>
+        <p className="text-xl text-gray-300 mb-6">CRD 기반 도구 관리</p>
 
         <div className="grid grid-cols-3 gap-4 mb-6">
           <Card className="p-5">
             <Database className="w-8 h-8 text-blue-400 mb-3" />
             <h4 className="text-lg font-semibold mb-2 text-blue-300">Retrieval</h4>
-            <p className="text-sm text-gray-400 mb-2">벡터 DB 기반 검색</p>
-            <ul className="text-xs text-gray-400 space-y-1">
+            <p className="text-sm text-gray-300 mb-2">벡터 DB 기반 검색</p>
+            <ul className="text-xs text-gray-300 space-y-1">
               <li>• Milvus 벡터 스토어</li>
               <li>• 임베딩 모델 설정</li>
               <li>• topK, 임계값 조정</li>
@@ -84,8 +84,8 @@ spec:
           <Card className="p-5">
             <Wrench className="w-8 h-8 text-emerald-400 mb-3" />
             <h4 className="text-lg font-semibold mb-2 text-emerald-300">API</h4>
-            <p className="text-sm text-gray-400 mb-2">외부 서비스 호출</p>
-            <ul className="text-xs text-gray-400 space-y-1">
+            <p className="text-sm text-gray-300 mb-2">외부 서비스 호출</p>
+            <ul className="text-xs text-gray-300 space-y-1">
               <li>• REST API 엔드포인트</li>
               <li>• 인증 (Bearer, API Key)</li>
               <li>• 재시도 및 타임아웃</li>
@@ -95,8 +95,8 @@ spec:
           <Card className="p-5">
             <Code className="w-8 h-8 text-amber-400 mb-3" />
             <h4 className="text-lg font-semibold mb-2 text-amber-300">Code</h4>
-            <p className="text-sm text-gray-400 mb-2">코드 실행 도구</p>
-            <ul className="text-xs text-gray-400 space-y-1">
+            <p className="text-sm text-gray-300 mb-2">코드 실행 도구</p>
+            <ul className="text-xs text-gray-300 space-y-1">
               <li>• Python/JavaScript 실행</li>
               <li>• 샌드박스 환경</li>
               <li>• 의존성 관리</li>
@@ -117,7 +117,7 @@ spec:
           />
         </div>
 
-        <div className="mt-4 p-4 bg-purple-900/20 rounded-lg border border-purple-500/30">
+        <div className="mt-4 p-4 bg-gray-800/50 rounded-lg border border-purple-500/30">
           <p className="text-sm text-purple-300">
             <span className="font-semibold">중앙 관리:</span> Tool CRD로 도구를 정의하면 여러 에이전트가 재사용 가능하며, 버전 관리와 접근 제어가 용이
           </p>

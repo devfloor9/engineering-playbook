@@ -16,7 +16,7 @@ export default function Slide04() {
         <h2 className="text-5xl font-bold text-purple-400 mb-8">vLLM 핵심 기술</h2>
 
         <div className="grid grid-cols-2 gap-8">
-          <Card className="p-8 bg-gradient-to-br from-purple-900/40 to-blue-900/40">
+          <Card color="purple" className="p-8">
             <div className="flex items-center gap-4 mb-6">
               <Repeat className="w-12 h-12 text-purple-400" />
               <h3 className="text-3xl font-semibold text-white">Continuous Batching</h3>
@@ -41,7 +41,7 @@ export default function Slide04() {
             </ul>
           </Card>
 
-          <Card className="p-8 bg-gradient-to-br from-cyan-900/40 to-emerald-900/40">
+          <Card color="cyan" className="p-8">
             <div className="flex items-center gap-4 mb-6">
               <Database className="w-12 h-12 text-cyan-400" />
               <h3 className="text-3xl font-semibold text-white">KV Cache 최적화</h3>

@@ -52,7 +52,7 @@ export default function Slide17() {
           <GitBranch className="w-12 h-12 text-purple-400" />
           <div>
             <h2 className="text-5xl font-bold text-purple-400">Kagent vs AgentCore</h2>
-            <p className="text-xl text-gray-400">하이브리드 접근 전략 비교</p>
+            <p className="text-xl text-gray-300">하이브리드 접근 전략 비교</p>
           </div>
         </div>
 
@@ -63,9 +63,9 @@ export default function Slide17() {
         />
 
         <div className="mt-6 grid grid-cols-2 gap-6">
-          <div className="p-5 bg-blue-900/20 rounded-lg border border-blue-500/30">
+          <div className="p-5 bg-gray-800/50 rounded-lg border border-blue-500/30">
             <h4 className="text-lg font-semibold text-blue-300 mb-3">Kagent 선택 시</h4>
-            <ul className="space-y-2 text-sm text-gray-400">
+            <ul className="space-y-2 text-sm text-gray-300">
               <li>• 커스텀 모델 (오픈소스 LLM) 사용 필요</li>
               <li>• 완전한 인프라 제어 요구</li>
               <li>• 비용 최적화 (고빈도 호출)</li>
@@ -73,9 +73,9 @@ export default function Slide17() {
             </ul>
           </div>
 
-          <div className="p-5 bg-orange-900/20 rounded-lg border border-orange-500/30">
+          <div className="p-5 bg-gray-800/50 rounded-lg border border-orange-500/30">
             <h4 className="text-lg font-semibold text-orange-300 mb-3">AgentCore 선택 시</h4>
-            <ul className="space-y-2 text-sm text-gray-400">
+            <ul className="space-y-2 text-sm text-gray-300">
               <li>• 빠른 프로토타입 및 MVP 구축</li>
               <li>• 운영 부담 최소화</li>
               <li>• 서버리스 오토스케일링 필요</li>
@@ -84,9 +84,9 @@ export default function Slide17() {
           </div>
         </div>
 
-        <div className="mt-6 p-5 bg-purple-900/20 rounded-lg border border-purple-500/30">
+        <div className="mt-6 p-5 bg-gray-800/50 rounded-lg border border-purple-500/30">
           <h4 className="text-lg font-semibold text-purple-300 mb-3">하이브리드 전략 (권장)</h4>
-          <p className="text-sm text-gray-400 mb-2">
+          <p className="text-sm text-gray-300 mb-2">
             비용이 중요한 고빈도 호출은 <span className="text-blue-400 font-semibold">Kagent + vLLM</span>으로,
             복잡한 추론이 필요한 저빈도 호출은 <span className="text-orange-400 font-semibold">Bedrock AgentCore</span>로 라우팅
           </p>

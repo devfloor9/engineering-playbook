@@ -12,7 +12,7 @@ export default function Slide01() {
         <h1 className="text-7xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-cyan-400 bg-clip-text text-transparent">
           모델 서빙 &amp; 추론 최적화
         </h1>
-        <p className="text-3xl text-gray-400">Block 3: Model Serving &amp; Inference</p>
+        <p className="text-3xl text-gray-300">Block 3: Model Serving &amp; Inference</p>
       </div>
     </SlideWrapper>
   );

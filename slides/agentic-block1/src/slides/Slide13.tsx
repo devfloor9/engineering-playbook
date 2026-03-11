@@ -28,7 +28,7 @@ export default function Slide13() {
           <Card className="p-5">
             <Settings className="w-9 h-9 text-blue-400 mb-3" />
             <h4 className="text-xl font-semibold mb-2 text-blue-300">Kagent Controller</h4>
-            <ul className="text-sm text-gray-400 space-y-1">
+            <ul className="text-sm text-gray-300 space-y-1">
               <li>• Agent CRD 조정 (Reconcile)</li>
               <li>• Deployment/Service 자동 생성</li>
               <li>• HPA 자동 구성</li>
@@ -38,7 +38,7 @@ export default function Slide13() {
           <Card className="p-5">
             <Package className="w-9 h-9 text-purple-400 mb-3" />
             <h4 className="text-xl font-semibold mb-2 text-purple-300">Tool Registry</h4>
-            <ul className="text-sm text-gray-400 space-y-1">
+            <ul className="text-sm text-gray-300 space-y-1">
               <li>• Tool CRD로 도구 정의</li>
               <li>• API/Function/Retrieval 유형</li>
               <li>• 에이전트 간 도구 공유</li>
@@ -48,7 +48,7 @@ export default function Slide13() {
           <Card className="p-5">
             <Workflow className="w-9 h-9 text-amber-400 mb-3" />
             <h4 className="text-xl font-semibold mb-2 text-amber-300">Agent Runtime</h4>
-            <ul className="text-sm text-gray-400 space-y-1">
+            <ul className="text-sm text-gray-300 space-y-1">
               <li>• 상태 관리 (메모리)</li>
               <li>• 도구 비동기 실행</li>
               <li>• 오류 복구 및 재시도</li>
@@ -56,9 +56,9 @@ export default function Slide13() {
           </Card>
         </div>
 
-        <Card className="p-6 bg-emerald-900/20 border-emerald-700">
+        <Card color="emerald" className="p-6">
           <h4 className="text-xl font-semibold mb-3 text-emerald-300">Agent CRD 예시</h4>
-          <div className="grid grid-cols-2 gap-4 text-base text-gray-400">
+          <div className="grid grid-cols-2 gap-4 text-base text-gray-300">
             <div>
               <strong className="text-gray-300">모델 설정:</strong>
               <p className="text-sm">provider, name, temperature, maxTokens</p>

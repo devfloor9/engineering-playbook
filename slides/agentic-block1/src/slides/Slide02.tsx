@@ -24,7 +24,7 @@ export default function Slide02() {
           <Card className="p-6">
             <Zap className="w-10 h-10 text-amber-400 mb-4" />
             <h4 className="text-2xl font-semibold mb-3 text-amber-300">핵심 특징</h4>
-            <ul className="text-lg text-gray-400 space-y-2">
+            <ul className="text-lg text-gray-300 space-y-2">
               <li>• 자율적 의사결정 및 작업 수행</li>
               <li>• 도구 및 리소스 동적 활용</li>
               <li>• 멀티모달 LLM 통합</li>
@@ -34,7 +34,7 @@ export default function Slide02() {
           <Card className="p-6">
             <Target className="w-10 h-10 text-emerald-400 mb-4" />
             <h4 className="text-2xl font-semibold mb-3 text-emerald-300">플랫폼 목표</h4>
-            <ul className="text-lg text-gray-400 space-y-2">
+            <ul className="text-lg text-gray-300 space-y-2">
               <li>• 확장 가능한 AI 인프라</li>
               <li>• 자동화된 리소스 관리</li>
               <li>• 비용 효율적 운영</li>

@@ -72,11 +72,11 @@ def ml_pipeline(
         title="ml_pipeline.py"
       />
 
-      <div className="mt-4 bg-blue-500/10 border border-blue-500/30 rounded-lg p-3">
+      <Card color="blue" className="p-3 mt-4">
         <p className="text-blue-300 text-sm">
           <strong>장점</strong>: 파이프라인을 코드로 관리 → 버전 관리, 재현성, 협업 용이
         </p>
-      </div>
+      </Card>
     </SlideWrapper>
   );
 }

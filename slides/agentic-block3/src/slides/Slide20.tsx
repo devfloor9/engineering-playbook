@@ -61,7 +61,7 @@ export default function Slide20() {
 
         <div className="grid grid-cols-3 gap-6 mb-8">
           {keyPoints.slice(0, 3).map((section, idx) => (
-            <Card key={idx} className="p-6 bg-gradient-to-br from-blue-900/40 to-purple-900/40">
+            <Card key={idx} color="blue" className="p-6">
               <h3 className="text-2xl font-bold text-cyan-400 mb-4">{section.title}</h3>
               <ul className="space-y-2">
                 {section.points.map((point, pidx) => (
@@ -77,7 +77,7 @@ export default function Slide20() {
 
         <div className="grid grid-cols-2 gap-6 mb-8">
           {keyPoints.slice(3, 5).map((section, idx) => (
-            <Card key={idx} className="p-6 bg-gradient-to-br from-purple-900/40 to-cyan-900/40">
+            <Card key={idx} color="purple" className="p-6">
               <h3 className="text-2xl font-bold text-purple-400 mb-4">{section.title}</h3>
               <ul className="space-y-2">
                 {section.points.map((point, pidx) => (
@@ -91,14 +91,14 @@ export default function Slide20() {
           ))}
         </div>
 
-        <Card className="p-8 bg-gradient-to-r from-emerald-900/40 to-blue-900/40">
+        <Card color="emerald" className="p-8">
           <div className="flex items-center gap-4 mb-6">
             <ArrowRight className="w-12 h-12 text-emerald-400" />
             <h3 className="text-3xl font-bold text-emerald-400">다음 단계</h3>
           </div>
           <div className="grid grid-cols-2 gap-4">
             {nextSteps.map((step, idx) => (
-              <div key={idx} className="flex items-center gap-3 p-4 bg-gray-800/50 rounded-lg">
+              <div key={idx} className="flex items-center gap-3 p-4 bg-gray-800 rounded-lg">
                 <div className="w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center text-white font-bold">
                   {idx + 1}
                 </div>

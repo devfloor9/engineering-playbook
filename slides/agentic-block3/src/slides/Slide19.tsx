@@ -26,7 +26,7 @@ export default function Slide19() {
         </div>
 
         <div className="grid grid-cols-2 gap-6">
-          <Card className="p-6 bg-gradient-to-r from-blue-900/40 to-purple-900/40">
+          <Card color="blue" className="p-6">
             <div className="flex items-center gap-3 mb-4">
               <TrendingUp className="w-10 h-10 text-blue-400" />
               <h3 className="text-2xl font-semibold text-white">vLLM 장점</h3>
@@ -40,7 +40,7 @@ export default function Slide19() {
             </ul>
           </Card>
 
-          <Card className="p-6 bg-gradient-to-r from-cyan-900/40 to-emerald-900/40">
+          <Card color="cyan" className="p-6">
             <div className="flex items-center gap-3 mb-4">
               <TrendingUp className="w-10 h-10 text-cyan-400" />
               <h3 className="text-2xl font-semibold text-white">llm-d 장점</h3>
@@ -55,7 +55,7 @@ export default function Slide19() {
           </Card>
         </div>
 
-        <div className="mt-6 text-center p-4 bg-amber-900/30 rounded-lg">
+        <div className="mt-6 text-center p-4 bg-gray-800 rounded-lg border border-amber-500/30">
           <p className="text-xl text-gray-300">
             <span className="text-amber-400 font-semibold">권장:</span> vLLM을 기본 엔진으로, llm-d를 분산 라우팅 계층으로 조합
           </p>

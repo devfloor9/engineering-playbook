@@ -25,10 +25,10 @@ export default function Slide08() {
           <Card className="p-6">
             <Layers className="w-9 h-9 text-purple-400 mb-3" />
             <h4 className="text-xl font-semibold mb-3 text-purple-300">선언적 리소스 관리</h4>
-            <p className="text-base text-gray-400 mb-3">
+            <p className="text-base text-gray-300 mb-3">
               YAML/CRD를 통한 Infrastructure as Code
             </p>
-            <ul className="text-sm text-gray-500 space-y-1">
+            <ul className="text-sm text-gray-400 space-y-1">
               <li>• GPU Device Plugin으로 GPU 추상화</li>
               <li>• 버전 관리 및 재현 가능한 배포</li>
             </ul>
@@ -37,10 +37,10 @@ export default function Slide08() {
           <Card className="p-6">
             <RefreshCw className="w-9 h-9 text-emerald-400 mb-3" />
             <h4 className="text-xl font-semibold mb-3 text-emerald-300">자동 스케일링 및 복구</h4>
-            <p className="text-base text-gray-400 mb-3">
+            <p className="text-base text-gray-300 mb-3">
               HPA, KEDA를 통한 메트릭 기반 자동 확장
             </p>
-            <ul className="text-sm text-gray-500 space-y-1">
+            <ul className="text-sm text-gray-400 space-y-1">
               <li>• Self-healing: Pod 자동 재시작</li>
               <li>• Rolling Update: 무중단 배포</li>
             </ul>
@@ -49,21 +49,21 @@ export default function Slide08() {
           <Card className="p-6">
             <Shield className="w-9 h-9 text-amber-400 mb-3" />
             <h4 className="text-xl font-semibold mb-3 text-amber-300">풍부한 AI/ML 생태계</h4>
-            <p className="text-base text-gray-400 mb-3">
+            <p className="text-base text-gray-300 mb-3">
               Kubeflow, vLLM, NVIDIA GPU Operator 등
             </p>
-            <ul className="text-sm text-gray-500 space-y-1">
+            <ul className="text-sm text-gray-400 space-y-1">
               <li>• Kubernetes Native 설계</li>
               <li>• 활발한 커뮤니티 및 지원</li>
             </ul>
           </Card>
 
-          <Card className="p-6 bg-blue-900/20 border-blue-700">
+          <Card color="blue" className="p-6">
             <h4 className="text-xl font-semibold mb-3 text-blue-300">클라우드 이식성</h4>
-            <p className="text-base text-gray-400 mb-3">
+            <p className="text-base text-gray-300 mb-3">
               AWS, GCP, Azure, 온프레미스 모두 지원
             </p>
-            <ul className="text-sm text-gray-500 space-y-1">
+            <ul className="text-sm text-gray-400 space-y-1">
               <li>• 벤더 종속 최소화</li>
               <li>• 하이브리드/멀티 클라우드 전략</li>
             </ul>

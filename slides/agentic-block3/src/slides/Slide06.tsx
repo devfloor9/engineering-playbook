@@ -45,14 +45,14 @@ spec:
           </div>
 
           <div className="space-y-6">
-            <Card className="p-6 bg-gradient-to-r from-purple-900/40 to-blue-900/40">
+            <Card color="purple" className="p-6">
               <div className="flex items-center gap-3 mb-4">
                 <Gauge className="w-10 h-10 text-purple-400" />
                 <h3 className="text-2xl font-semibold text-white">주요 메트릭</h3>
               </div>
               <div className="space-y-3">
                 {metrics.map((m, idx) => (
-                  <div key={idx} className="p-3 bg-gray-800/50 rounded">
+                  <div key={idx} className="p-3 bg-gray-800 rounded">
                     <div className="text-cyan-400 font-mono text-sm">{m.name}</div>
                     <div className="text-gray-300 text-sm mt-1">{m.desc}</div>
                   </div>
@@ -60,7 +60,7 @@ spec:
               </div>
             </Card>
 
-            <Card className="p-6 bg-gradient-to-r from-cyan-900/40 to-emerald-900/40">
+            <Card color="cyan" className="p-6">
               <h3 className="text-xl font-semibold text-white mb-3">스케일링 트리거</h3>
               <ul className="space-y-2 text-gray-300">
                 <li className="flex items-center gap-2">

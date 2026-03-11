@@ -33,7 +33,7 @@ export default function Slide11() {
 
         <div className="space-y-6 mb-8">
           {strategies.map((strategy, idx) => (
-            <Card key={idx} className={`p-6 bg-gradient-to-r from-${strategy.color}-900/40 to-blue-900/40`}>
+            <Card key={idx} color={strategy.color as any} className="p-6">
               <div className="flex items-start gap-6">
                 <div className={`w-16 h-16 rounded-xl bg-${strategy.color}-500/20 flex items-center justify-center flex-shrink-0`}>
                   <strategy.icon className={`w-10 h-10 text-${strategy.color}-400`} />
@@ -42,8 +42,8 @@ export default function Slide11() {
                   <h3 className="text-2xl font-bold text-white mb-2">{strategy.title}</h3>
                   <p className="text-lg text-gray-300 mb-3">{strategy.desc}</p>
                   <div className="flex items-center gap-2">
-                    <Badge className="bg-gray-800 text-gray-300">적용 시점</Badge>
-                    <span className="text-gray-400">{strategy.use}</span>
+                    <Badge color="gray">적용 시점</Badge>
+                    <span className="text-gray-300">{strategy.use}</span>
                   </div>
                 </div>
               </div>
@@ -51,18 +51,18 @@ export default function Slide11() {
           ))}
         </div>
 
-        <Card className="p-6 bg-gradient-to-r from-amber-900/40 to-purple-900/40">
+        <Card color="amber" className="p-6">
           <h3 className="text-2xl font-semibold text-amber-400 mb-4">병렬화 조합 예시</h3>
           <div className="grid grid-cols-2 gap-4 text-gray-300">
-            <div className="p-4 bg-gray-800/50 rounded-lg">
+            <div className="p-4 bg-gray-800 rounded-lg">
               <div className="font-semibold text-purple-400 mb-2">Mixtral 8x7B (47B)</div>
               <div className="text-sm">TP=2 (2× GPU) + EP 자동</div>
-              <div className="text-xs text-gray-500 mt-1">p4d.24xlarge (A100 2개)</div>
+              <div className="text-xs text-gray-400 mt-1">p4d.24xlarge (A100 2개)</div>
             </div>
-            <div className="p-4 bg-gray-800/50 rounded-lg">
+            <div className="p-4 bg-gray-800 rounded-lg">
               <div className="font-semibold text-cyan-400 mb-2">Mixtral 8x22B (141B)</div>
               <div className="text-sm">TP=4 (4× GPU) + EP 자동</div>
-              <div className="text-xs text-gray-500 mt-1">p5.48xlarge (H100 4개)</div>
+              <div className="text-xs text-gray-400 mt-1">p5.48xlarge (H100 4개)</div>
             </div>
           </div>
         </Card>

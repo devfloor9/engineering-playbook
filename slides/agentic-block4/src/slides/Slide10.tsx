@@ -53,16 +53,16 @@ spec:
             <h3 className="text-xl font-bold text-white">품질 게이트</h3>
           </div>
           <div className="space-y-2">
-            <div className="bg-emerald-500/10 border border-emerald-500/30 rounded p-2 text-sm">
+            <div className="bg-gray-800 border border-emerald-500/30 rounded p-2 text-sm">
               <strong className="text-emerald-300">Faithfulness</strong>: ≥ 0.8
             </div>
-            <div className="bg-blue-500/10 border border-blue-500/30 rounded p-2 text-sm">
+            <div className="bg-gray-800 border border-blue-500/30 rounded p-2 text-sm">
               <strong className="text-blue-300">Answer Relevancy</strong>: ≥ 0.75
             </div>
-            <div className="bg-amber-500/10 border border-amber-500/30 rounded p-2 text-sm">
+            <div className="bg-gray-800 border border-amber-500/30 rounded p-2 text-sm">
               <strong className="text-amber-300">Context Precision</strong>: ≥ 0.7
             </div>
-            <div className="bg-purple-500/10 border border-purple-500/30 rounded p-2 text-sm">
+            <div className="bg-gray-800 border border-purple-500/30 rounded p-2 text-sm">
               <strong className="text-purple-300">Context Recall</strong>: ≥ 0.7
             </div>
           </div>

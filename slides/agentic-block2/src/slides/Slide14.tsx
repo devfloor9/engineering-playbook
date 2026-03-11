@@ -40,13 +40,13 @@ print(result['result'])`;
     <SlideWrapper>
       <div className="flex-1 flex flex-col p-12">
         <h2 className="text-5xl font-bold mb-6 text-emerald-400">Milvus RAG 파이프라인 통합</h2>
-        <p className="text-xl text-gray-400 mb-6">LangChain/LlamaIndex 연동</p>
+        <p className="text-xl text-gray-300 mb-6">LangChain/LlamaIndex 연동</p>
 
         <div className="grid grid-cols-3 gap-4 mb-6">
           <Card className="p-5">
             <Database className="w-8 h-8 text-blue-400 mb-3" />
             <h4 className="text-lg font-semibold mb-2 text-blue-300">1. 벡터화</h4>
-            <p className="text-sm text-gray-400">
+            <p className="text-sm text-gray-300">
               문서를 청크로 분할하고 임베딩 모델로 벡터화하여 Milvus에 저장
             </p>
           </Card>
@@ -54,7 +54,7 @@ print(result['result'])`;
           <Card className="p-5">
             <Search className="w-8 h-8 text-purple-400 mb-3" />
             <h4 className="text-lg font-semibold mb-2 text-purple-300">2. 검색</h4>
-            <p className="text-sm text-gray-400">
+            <p className="text-sm text-gray-300">
               사용자 쿼리를 벡터화하여 유사한 문서를 Milvus에서 검색 (MMR, topK)
             </p>
           </Card>
@@ -62,7 +62,7 @@ print(result['result'])`;
           <Card className="p-5">
             <Brain className="w-8 h-8 text-amber-400 mb-3" />
             <h4 className="text-lg font-semibold mb-2 text-amber-300">3. 생성</h4>
-            <p className="text-sm text-gray-400">
+            <p className="text-sm text-gray-300">
               검색된 컨텍스트와 쿼리를 LLM에 전달하여 답변 생성
             </p>
           </Card>
@@ -75,17 +75,17 @@ print(result['result'])`;
         />
 
         <div className="mt-4 grid grid-cols-2 gap-4">
-          <div className="p-4 bg-blue-900/20 rounded-lg border border-blue-500/30">
+          <div className="p-4 bg-gray-800/50 rounded-lg border border-blue-500/30">
             <h5 className="text-sm font-semibold text-blue-300 mb-2">검색 최적화</h5>
-            <ul className="text-xs text-gray-400 space-y-1">
+            <ul className="text-xs text-gray-300 space-y-1">
               <li>• <span className="text-blue-400">MMR:</span> 다양성을 고려한 검색 결과</li>
               <li>• <span className="text-cyan-400">topK:</span> 반환할 문서 수 조정</li>
               <li>• <span className="text-emerald-400">scoreThreshold:</span> 유사도 임계값</li>
             </ul>
           </div>
-          <div className="p-4 bg-emerald-900/20 rounded-lg border border-emerald-500/30">
+          <div className="p-4 bg-gray-800/50 rounded-lg border border-emerald-500/30">
             <h5 className="text-sm font-semibold text-emerald-300 mb-2">지원 프레임워크</h5>
-            <ul className="text-xs text-gray-400 space-y-1">
+            <ul className="text-xs text-gray-300 space-y-1">
               <li>• <span className="text-emerald-400">LangChain:</span> 포괄적 RAG 프레임워크</li>
               <li>• <span className="text-purple-400">LlamaIndex:</span> 데이터 중심 RAG</li>
               <li>• <span className="text-amber-400">Haystack:</span> NLP 파이프라인</li>

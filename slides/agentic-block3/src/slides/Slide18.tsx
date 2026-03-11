@@ -47,7 +47,7 @@ spec:
           </div>
 
           <div className="space-y-6">
-            <Card className="p-6 bg-gradient-to-r from-purple-900/40 to-blue-900/40">
+            <Card color="purple" className="p-6">
               <div className="flex items-center gap-3 mb-4">
                 <Users className="w-10 h-10 text-purple-400" />
                 <h3 className="text-2xl font-semibold text-white">Gang Scheduling</h3>
@@ -56,14 +56,14 @@ spec:
                 분산 학습에서 모든 Worker Pod이 동시에 시작되어야 합니다.
                 Kubeflow Training Operator가 Gang Scheduling을 자동 처리합니다.
               </p>
-              <ul className="space-y-2 text-sm text-gray-400">
+              <ul className="space-y-2 text-sm text-gray-300">
                 <li>• Master 1개 + Worker 3개 = 총 4개 Pod</li>
                 <li>• 모든 Pod 준비 완료 후 학습 시작</li>
                 <li>• NCCL 통신으로 gradient 동기화</li>
               </ul>
             </Card>
 
-            <Card className="p-6 bg-gradient-to-r from-cyan-900/40 to-emerald-900/40">
+            <Card color="cyan" className="p-6">
               <h3 className="text-xl font-semibold text-cyan-400 mb-3">환경 변수</h3>
               <div className="space-y-2 font-mono text-sm text-gray-300">
                 <div><span className="text-purple-400">NCCL_DEBUG</span>: INFO</div>
@@ -73,7 +73,7 @@ spec:
               </div>
             </Card>
 
-            <Card className="p-6 bg-gradient-to-r from-blue-900/40 to-purple-900/40">
+            <Card color="blue" className="p-6">
               <h3 className="text-xl font-semibold text-blue-400 mb-3">GPU 리소스</h3>
               <div className="space-y-2 text-gray-300">
                 <div>• Master: 8× GPU (p5.48xlarge)</div>

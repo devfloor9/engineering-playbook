@@ -16,39 +16,39 @@ export default function Slide18() {
           </div>
           <div className="space-y-3">
             <div className="flex items-start gap-3">
-              <div className="w-8 h-8 bg-blue-500/20 rounded flex items-center justify-center flex-shrink-0 mt-1">
+              <div className="w-8 h-8 bg-gray-800 rounded flex items-center justify-center flex-shrink-0 mt-1 border border-blue-500/30">
                 <span className="text-blue-400 font-bold">1</span>
               </div>
               <div>
                 <div className="text-white font-bold">Agent 모니터링</div>
-                <div className="text-sm text-gray-400">LangFuse로 전체 추론 체인 가시화</div>
+                <div className="text-sm text-gray-300">LangFuse로 전체 추론 체인 가시화</div>
               </div>
             </div>
             <div className="flex items-start gap-3">
-              <div className="w-8 h-8 bg-purple-500/20 rounded flex items-center justify-center flex-shrink-0 mt-1">
+              <div className="w-8 h-8 bg-gray-800 rounded flex items-center justify-center flex-shrink-0 mt-1 border border-purple-500/30">
                 <span className="text-purple-400 font-bold">2</span>
               </div>
               <div>
                 <div className="text-white font-bold">RAG 평가</div>
-                <div className="text-sm text-gray-400">RAGAS로 품질 메트릭 자동화</div>
+                <div className="text-sm text-gray-300">RAGAS로 품질 메트릭 자동화</div>
               </div>
             </div>
             <div className="flex items-start gap-3">
-              <div className="w-8 h-8 bg-cyan-500/20 rounded flex items-center justify-center flex-shrink-0 mt-1">
+              <div className="w-8 h-8 bg-gray-800 rounded flex items-center justify-center flex-shrink-0 mt-1 border border-cyan-500/30">
                 <span className="text-cyan-400 font-bold">3</span>
               </div>
               <div>
                 <div className="text-white font-bold">MLOps 파이프라인</div>
-                <div className="text-sm text-gray-400">Kubeflow + MLflow + KServe 통합</div>
+                <div className="text-sm text-gray-300">Kubeflow + MLflow + KServe 통합</div>
               </div>
             </div>
             <div className="flex items-start gap-3">
-              <div className="w-8 h-8 bg-emerald-500/20 rounded flex items-center justify-center flex-shrink-0 mt-1">
+              <div className="w-8 h-8 bg-gray-800 rounded flex items-center justify-center flex-shrink-0 mt-1 border border-emerald-500/30">
                 <span className="text-emerald-400 font-bold">4</span>
               </div>
               <div>
                 <div className="text-white font-bold">하이브리드 아키텍처</div>
-                <div className="text-sm text-gray-400">SageMaker 학습 + EKS 서빙</div>
+                <div className="text-sm text-gray-300">SageMaker 학습 + EKS 서빙</div>
               </div>
             </div>
           </div>
@@ -60,25 +60,25 @@ export default function Slide18() {
             <h3 className="text-2xl font-bold text-white">다음 단계</h3>
           </div>
           <div className="space-y-4">
-            <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-3">
+            <div className="bg-gray-800 border border-blue-500/30 rounded-lg p-3">
               <div className="text-blue-300 font-bold mb-1">1. 모니터링 구축</div>
-              <div className="text-xs text-gray-400">
+              <div className="text-xs text-gray-300">
                 • LangFuse EKS 배포<br/>
                 • Grafana 대시보드 구성<br/>
                 • 알림 규칙 설정
               </div>
             </div>
-            <div className="bg-purple-500/10 border border-purple-500/30 rounded-lg p-3">
+            <div className="bg-gray-800 border border-purple-500/30 rounded-lg p-3">
               <div className="text-purple-300 font-bold mb-1">2. 품질 평가 자동화</div>
-              <div className="text-xs text-gray-400">
+              <div className="text-xs text-gray-300">
                 • RAGAS 테스트 세트 구축<br/>
                 • CronJob 정기 평가<br/>
                 • 품질 게이트 설정
               </div>
             </div>
-            <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-lg p-3">
+            <div className="bg-gray-800 border border-emerald-500/30 rounded-lg p-3">
               <div className="text-emerald-300 font-bold mb-1">3. MLOps 파이프라인</div>
-              <div className="text-xs text-gray-400">
+              <div className="text-xs text-gray-300">
                 • Kubeflow Pipelines 구축<br/>
                 • MLflow 모델 레지스트리<br/>
                 • KServe 배포 자동화
@@ -88,14 +88,14 @@ export default function Slide18() {
         </Card>
       </div>
 
-      <div className="bg-gradient-to-r from-emerald-500/20 to-cyan-500/20 border border-emerald-500/30 rounded-lg p-6 text-center">
+      <Card color="emerald" className="p-6 text-center">
         <p className="text-2xl font-bold text-white mb-2">
           안정적 운영과 지속적 개선
         </p>
         <p className="text-gray-300">
           모니터링 → 평가 → 학습 → 배포 → 운영의 완전한 순환 구조
         </p>
-      </div>
+      </Card>
     </SlideWrapper>
   );
 }

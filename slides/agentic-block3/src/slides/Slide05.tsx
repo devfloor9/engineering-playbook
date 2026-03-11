@@ -43,7 +43,7 @@ spec:
         />
 
         <div className="grid grid-cols-2 gap-6 mt-6">
-          <div className="p-6 bg-gray-800/50 rounded-lg">
+          <div className="p-6 bg-gray-800 rounded-lg">
             <h3 className="text-xl font-semibold text-purple-400 mb-4">핵심 파라미터</h3>
             <ul className="space-y-2 text-gray-300">
               <li><span className="text-cyan-400 font-mono">--gpu-memory-utilization</span>: KV 캐시 VRAM 비율</li>
@@ -53,7 +53,7 @@ spec:
             </ul>
           </div>
 
-          <div className="p-6 bg-gray-800/50 rounded-lg">
+          <div className="p-6 bg-gray-800 rounded-lg">
             <h3 className="text-xl font-semibold text-emerald-400 mb-4">NodeSelector</h3>
             <ul className="space-y-2 text-gray-300">
               <li><span className="text-amber-400">g6e</span>: NVIDIA L40S GPU</li>

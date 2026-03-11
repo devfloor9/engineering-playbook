@@ -23,54 +23,54 @@ export default function Slide17() {
 
         <div className="grid grid-cols-2 gap-4">
           <Card className="p-5">
-            <Badge className="mb-2 bg-amber-500/20 text-amber-300">ai-gateway</Badge>
+            <Badge color="amber" size="lg">ai-gateway</Badge>
             <h4 className="text-lg font-semibold mb-2 text-amber-300">Gateway 네임스페이스</h4>
-            <p className="text-sm text-gray-400 mb-2">Kgateway, Auth Service, Rate Limiter</p>
-            <div className="text-xs text-gray-500">
+            <p className="text-sm text-gray-300 mb-2">Kgateway, Auth Service, Rate Limiter</p>
+            <div className="text-xs text-gray-400">
               Pod Security: restricted, Istio injection: enabled
             </div>
           </Card>
 
           <Card className="p-5">
-            <Badge className="mb-2 bg-emerald-500/20 text-emerald-300">ai-agents</Badge>
+            <Badge color="emerald" size="lg">ai-agents</Badge>
             <h4 className="text-lg font-semibold mb-2 text-emerald-300">Agents 네임스페이스</h4>
-            <p className="text-sm text-gray-400 mb-2">Kagent Controller, Agent Pods, Tool Registry</p>
-            <div className="text-xs text-gray-500">
+            <p className="text-sm text-gray-300 mb-2">Kagent Controller, Agent Pods, Tool Registry</p>
+            <div className="text-xs text-gray-400">
               Pod Security: baseline, Istio injection: enabled
             </div>
           </Card>
 
           <Card className="p-5">
-            <Badge className="mb-2 bg-pink-500/20 text-pink-300">ai-inference</Badge>
+            <Badge color="rose" size="lg">ai-inference</Badge>
             <h4 className="text-lg font-semibold mb-2 text-pink-300">Inference 네임스페이스</h4>
-            <p className="text-sm text-gray-400 mb-2">vLLM Deployments, TGI, GPU Nodes</p>
-            <div className="text-xs text-gray-500">
+            <p className="text-sm text-gray-300 mb-2">vLLM Deployments, TGI, GPU Nodes</p>
+            <div className="text-xs text-gray-400">
               Pod Security: privileged (GPU 접근)
             </div>
           </Card>
 
           <Card className="p-5">
-            <Badge className="mb-2 bg-purple-500/20 text-purple-300">ai-data</Badge>
+            <Badge color="purple" size="lg">ai-data</Badge>
             <h4 className="text-lg font-semibold mb-2 text-purple-300">Data 네임스페이스</h4>
-            <p className="text-sm text-gray-400 mb-2">Milvus Cluster, Redis Cluster</p>
-            <div className="text-xs text-gray-500">
+            <p className="text-sm text-gray-300 mb-2">Milvus Cluster, Redis Cluster</p>
+            <div className="text-xs text-gray-400">
               Pod Security: baseline, StatefulSet 기반
             </div>
           </Card>
 
           <Card className="p-5">
-            <Badge className="mb-2 bg-cyan-500/20 text-cyan-300">observability</Badge>
+            <Badge color="cyan" size="lg">observability</Badge>
             <h4 className="text-lg font-semibold mb-2 text-cyan-300">Observability 네임스페이스</h4>
-            <p className="text-sm text-gray-400 mb-2">LangFuse, Prometheus, Grafana, OTEL Collector</p>
-            <div className="text-xs text-gray-500">
+            <p className="text-sm text-gray-300 mb-2">LangFuse, Prometheus, Grafana, OTEL Collector</p>
+            <div className="text-xs text-gray-400">
               Pod Security: baseline, 메트릭 통합
             </div>
           </Card>
 
-          <Card className="p-5 bg-blue-900/20 border-blue-700">
+          <Card color="blue" className="p-5">
             <Shield className="w-8 h-8 text-blue-400 mb-2" />
             <h4 className="text-lg font-semibold mb-2 text-blue-300">리소스 격리</h4>
-            <p className="text-sm text-gray-400">
+            <p className="text-sm text-gray-300">
               ResourceQuota, NetworkPolicy로 네임스페이스 간 격리 및 할당량 관리
             </p>
           </Card>

@@ -4,6 +4,7 @@ interface BadgeProps {
   children: ReactNode;
   color?: string;
   size?: 'sm' | 'md' | 'lg';
+  className?: string;
 }
 
 const colorMap: Record<string, string> = {
@@ -15,6 +16,7 @@ const colorMap: Record<string, string> = {
   cyan: 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30',
   orange: 'bg-orange-500/20 text-orange-400 border-orange-500/30',
   gray: 'bg-gray-500/20 text-gray-400 border-gray-500/30',
+  red: 'bg-red-500/20 text-red-400 border-red-500/30',
 };
 
 const sizeMap: Record<string, string> = {
@@ -23,9 +25,9 @@ const sizeMap: Record<string, string> = {
   lg: 'px-4 py-1.5 text-base',
 };
 
-export function Badge({ children, color = 'blue', size = 'md' }: BadgeProps) {
+export function Badge({ children, color = 'blue', size = 'md', className = '' }: BadgeProps) {
   return (
-    <span className={`inline-flex items-center rounded-full border font-medium ${colorMap[color] || colorMap.blue} ${sizeMap[size]}`}>
+    <span className={`inline-flex items-center rounded-full border font-medium ${colorMap[color] || colorMap.blue} ${sizeMap[size]} ${className}`}>
       {children}
     </span>
   );

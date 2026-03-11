@@ -10,7 +10,7 @@ export default function Slide15() {
           <h2 className="text-5xl font-bold text-purple-400">GPU 토폴로지 인식 스케줄링</h2>
         </div>
 
-        <Card className="p-8 bg-gradient-to-br from-purple-900/40 to-blue-900/40 mb-8">
+        <Card color="purple" className="p-8 mb-8">
           <p className="text-xl text-gray-300 leading-relaxed">
             Kubernetes 1.33+의 <span className="text-cyan-400 font-semibold">Topology-Aware Routing</span>으로
             GPU 간 물리적 연결을 인식하여 <span className="text-purple-400 font-semibold">최적 경로 선택</span>.
@@ -34,7 +34,7 @@ export default function Slide15() {
         </div>
 
         <div className="grid grid-cols-2 gap-6">
-          <Card className="p-6 bg-gradient-to-r from-cyan-900/40 to-emerald-900/40">
+          <Card color="cyan" className="p-6">
             <div className="flex items-center gap-3 mb-4">
               <Zap className="w-10 h-10 text-cyan-400" />
               <h4 className="text-2xl font-semibold text-white">자동 경로 선택</h4>
@@ -47,7 +47,7 @@ export default function Slide15() {
             </ul>
           </Card>
 
-          <Card className="p-6 bg-gradient-to-r from-purple-900/40 to-amber-900/40">
+          <Card color="purple" className="p-6">
             <div className="flex items-center gap-3 mb-4">
               <Network className="w-10 h-10 text-purple-400" />
               <h4 className="text-2xl font-semibold text-white">Service 설정</h4>

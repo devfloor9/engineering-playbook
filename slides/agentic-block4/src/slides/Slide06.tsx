@@ -15,8 +15,8 @@ export default function Slide06() {
             <h3 className="text-2xl font-bold text-white">토큰 사용량</h3>
           </div>
           <div className="space-y-3">
-            <div className="bg-emerald-500/10 border border-emerald-500/30 rounded p-3">
-              <div className="text-sm text-gray-400 mb-1">입력/출력 토큰</div>
+            <div className="bg-gray-800 border border-emerald-500/30 rounded p-3">
+              <div className="text-sm text-gray-300 mb-1">입력/출력 토큰</div>
               <div className="text-2xl font-bold text-emerald-300">{"llm_tokens_total{type}"}</div>
             </div>
             <ul className="text-sm text-gray-300 space-y-1 ml-4">
@@ -33,8 +33,8 @@ export default function Slide06() {
             <h3 className="text-2xl font-bold text-white">지연시간</h3>
           </div>
           <div className="space-y-3">
-            <div className="bg-blue-500/10 border border-blue-500/30 rounded p-3">
-              <div className="text-sm text-gray-400 mb-1">E2E + LLM 추론</div>
+            <div className="bg-gray-800 border border-blue-500/30 rounded p-3">
+              <div className="text-sm text-gray-300 mb-1">E2E + LLM 추론</div>
               <div className="text-2xl font-bold text-blue-300">P50/P95/P99</div>
             </div>
             <ul className="text-sm text-gray-300 space-y-1 ml-4">
@@ -51,8 +51,8 @@ export default function Slide06() {
             <h3 className="text-2xl font-bold text-white">오류율</h3>
           </div>
           <div className="space-y-3">
-            <div className="bg-amber-500/10 border border-amber-500/30 rounded p-3">
-              <div className="text-sm text-gray-400 mb-1">에러 타입별 집계</div>
+            <div className="bg-gray-800 border border-amber-500/30 rounded p-3">
+              <div className="text-sm text-gray-300 mb-1">에러 타입별 집계</div>
               <div className="text-2xl font-bold text-amber-300">{"agent_errors_total"}</div>
             </div>
             <ul className="text-sm text-gray-300 space-y-1 ml-4">
@@ -69,8 +69,8 @@ export default function Slide06() {
             <h3 className="text-2xl font-bold text-white">비용 추적</h3>
           </div>
           <div className="space-y-3">
-            <div className="bg-purple-500/10 border border-purple-500/30 rounded p-3">
-              <div className="text-sm text-gray-400 mb-1">USD 기준 누적 비용</div>
+            <div className="bg-gray-800 border border-purple-500/30 rounded p-3">
+              <div className="text-sm text-gray-300 mb-1">USD 기준 누적 비용</div>
               <div className="text-2xl font-bold text-purple-300">{"llm_cost_dollars_total"}</div>
             </div>
             <ul className="text-sm text-gray-300 space-y-1 ml-4">

@@ -49,11 +49,11 @@ export default function Slide07() {
         </Card>
       </div>
 
-      <Card className="bg-gray-800/50">
+      <Card color="gray" className="p-6">
         <h3 className="text-2xl font-bold text-white mb-4">주요 알림 규칙</h3>
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
-            <div className="bg-red-500/20 border border-red-500/30 rounded p-3">
+            <div className="bg-gray-800 border border-red-500/30 rounded p-3">
               <div className="text-red-300 font-bold text-sm mb-1">Critical</div>
               <ul className="text-xs text-gray-300 space-y-1">
                 <li>• 오류율 {">"} 5% (5분간)</li>
@@ -63,7 +63,7 @@ export default function Slide07() {
             </div>
           </div>
           <div className="space-y-2">
-            <div className="bg-amber-500/20 border border-amber-500/30 rounded p-3">
+            <div className="bg-gray-800 border border-amber-500/30 rounded p-3">
               <div className="text-amber-300 font-bold text-sm mb-1">Warning</div>
               <ul className="text-xs text-gray-300 space-y-1">
                 <li>• P99 지연 {">"} 10초 (5분간)</li>

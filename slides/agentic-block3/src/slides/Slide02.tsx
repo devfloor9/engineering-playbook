@@ -29,7 +29,7 @@ export default function Slide02() {
                   <item.icon className="w-8 h-8 text-amber-400" />
                   <div>
                     <div className="text-xl font-semibold text-white">{item.title}</div>
-                    <div className="text-gray-400">{item.desc}</div>
+                    <div className="text-gray-300">{item.desc}</div>
                   </div>
                 </div>
               ))}
@@ -40,7 +40,7 @@ export default function Slide02() {
             <h3 className="text-3xl font-semibold text-cyan-400 mb-6">솔루션 스택</h3>
             <div className="space-y-3">
               {solutions.map((sol, idx) => (
-                <Card key={idx} className="p-4 bg-gradient-to-r from-blue-900/30 to-purple-900/30">
+                <Card key={idx} color="blue" className="p-4">
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center text-white font-bold">
                       {idx + 1}
@@ -53,7 +53,7 @@ export default function Slide02() {
           </div>
         </div>
 
-        <div className="mt-auto text-center text-gray-500 text-lg">
+        <div className="mt-auto text-center text-gray-400 text-lg">
           고성능 LLM 추론을 위한 포괄적 아키텍처
         </div>
       </div>

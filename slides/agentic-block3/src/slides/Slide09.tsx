@@ -17,14 +17,14 @@ export default function Slide09() {
           <h2 className="text-5xl font-bold text-emerald-400">llm-d EKS Auto Mode 통합</h2>
         </div>
 
-        <Card className="p-8 bg-gradient-to-br from-emerald-900/40 to-cyan-900/40 mb-8">
+        <Card color="emerald" className="p-8 mb-8">
           <div className="flex items-center gap-4 mb-6">
             <Sparkles className="w-12 h-12 text-amber-400" />
             <h3 className="text-3xl font-semibold text-white">EKS Auto Mode 장점</h3>
           </div>
           <div className="grid grid-cols-2 gap-6">
             {benefits.map((benefit, idx) => (
-              <div key={idx} className="flex items-start gap-3 p-4 bg-gray-800/50 rounded-lg">
+              <div key={idx} className="flex items-start gap-3 p-4 bg-gray-800 rounded-lg">
                 <Zap className="w-6 h-6 text-amber-400 flex-shrink-0 mt-1" />
                 <span className="text-lg text-gray-300">{benefit}</span>
               </div>
@@ -33,7 +33,7 @@ export default function Slide09() {
         </Card>
 
         <div className="grid grid-cols-2 gap-8">
-          <Card className="p-6 bg-gradient-to-r from-blue-900/40 to-purple-900/40">
+          <Card color="blue" className="p-6">
             <h3 className="text-2xl font-semibold text-cyan-400 mb-4">Karpenter NodePool</h3>
             <ul className="space-y-2 text-gray-300">
               <li>• <span className="text-purple-400 font-mono">instance-family: p5</span></li>
@@ -43,7 +43,7 @@ export default function Slide09() {
             </ul>
           </Card>
 
-          <Card className="p-6 bg-gradient-to-r from-purple-900/40 to-cyan-900/40">
+          <Card color="purple" className="p-6">
             <h3 className="text-2xl font-semibold text-purple-400 mb-4">GPU 인스턴스</h3>
             <ul className="space-y-2 text-gray-300">
               <li>• <strong className="text-emerald-400">p5.48xlarge</strong>: 8x H100 80GB</li>
@@ -55,9 +55,9 @@ export default function Slide09() {
         </div>
 
         <div className="mt-8 flex items-center justify-center gap-4">
-          <Badge className="text-lg px-6 py-3 bg-emerald-600">EKS Auto Mode</Badge>
-          <Badge className="text-lg px-6 py-3 bg-blue-600">Karpenter v1.0+</Badge>
-          <Badge className="text-lg px-6 py-3 bg-purple-600">GPU Auto-provisioning</Badge>
+          <Badge color="emerald" size="lg">EKS Auto Mode</Badge>
+          <Badge color="blue" size="lg">Karpenter v1.0+</Badge>
+          <Badge color="purple" size="lg">GPU Auto-provisioning</Badge>
         </div>
       </div>
     </SlideWrapper>

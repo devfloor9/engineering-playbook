@@ -17,7 +17,7 @@ export default function Slide03() {
           <h2 className="text-5xl font-bold text-blue-400">vLLM 개요</h2>
         </div>
 
-        <Card className="p-8 bg-gradient-to-br from-blue-900/40 to-purple-900/40 mb-8">
+        <Card color="blue" className="p-8 mb-8">
           <p className="text-2xl text-gray-300 leading-relaxed">
             vLLM은 <span className="text-cyan-400 font-semibold">PagedAttention 알고리즘</span>을 통해
             KV 캐시 메모리 낭비를 60-80% 줄이고,
@@ -28,10 +28,10 @@ export default function Slide03() {
 
         <div className="grid grid-cols-2 gap-6 mb-8">
           {features.map((item, idx) => (
-            <Card key={idx} className="p-6 bg-gray-800/50 hover:bg-gray-800/70 transition-all">
+            <Card key={idx} className="p-6 hover:bg-gray-800/70 transition-all">
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="text-lg text-gray-400 mb-2">{item.label}</div>
+                  <div className="text-lg text-gray-300 mb-2">{item.label}</div>
                   <div className="text-2xl font-bold text-white">{item.value}</div>
                 </div>
                 <Zap className="w-12 h-12 text-amber-400 opacity-30" />
@@ -41,10 +41,10 @@ export default function Slide03() {
         </div>
 
         <div className="flex items-center justify-center gap-3">
-          <Badge className="text-lg px-6 py-3 bg-blue-600">v0.6.3 / v0.7.x</Badge>
-          <Badge className="text-lg px-6 py-3 bg-purple-600">Meta</Badge>
-          <Badge className="text-lg px-6 py-3 bg-cyan-600">Mistral AI</Badge>
-          <Badge className="text-lg px-6 py-3 bg-emerald-600">IBM</Badge>
+          <Badge color="blue" size="lg">v0.6.3 / v0.7.x</Badge>
+          <Badge color="purple" size="lg">Meta</Badge>
+          <Badge color="cyan" size="lg">Mistral AI</Badge>
+          <Badge color="emerald" size="lg">IBM</Badge>
         </div>
       </div>
     </SlideWrapper>

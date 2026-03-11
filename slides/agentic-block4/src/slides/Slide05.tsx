@@ -52,17 +52,17 @@ spec:
       </div>
 
       <div className="grid grid-cols-3 gap-4 mt-6">
-        <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-lg p-3">
+        <div className="bg-gray-800 border border-emerald-500/30 rounded-lg p-3">
           <h4 className="text-sm font-bold text-emerald-300 mb-1">PostgreSQL</h4>
-          <p className="text-xs text-gray-400">메타데이터 저장소</p>
+          <p className="text-xs text-gray-300">메타데이터 저장소</p>
         </div>
-        <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-3">
+        <div className="bg-gray-800 border border-blue-500/30 rounded-lg p-3">
           <h4 className="text-sm font-bold text-blue-300 mb-1">HPA</h4>
-          <p className="text-xs text-gray-400">자동 스케일링 (2-10)</p>
+          <p className="text-xs text-gray-300">자동 스케일링 (2-10)</p>
         </div>
-        <div className="bg-purple-500/10 border border-purple-500/30 rounded-lg p-3">
+        <div className="bg-gray-800 border border-purple-500/30 rounded-lg p-3">
           <h4 className="text-sm font-bold text-purple-300 mb-1">Ingress</h4>
-          <p className="text-xs text-gray-400">ALB + HTTPS</p>
+          <p className="text-xs text-gray-300">ALB + HTTPS</p>
         </div>
       </div>
     </SlideWrapper>

@@ -25,7 +25,7 @@ export default function Slide18() {
           <Card className="p-5">
             <Maximize2 className="w-9 h-9 text-blue-400 mb-3" />
             <h4 className="text-xl font-semibold mb-2 text-blue-300">Agent 확장</h4>
-            <ul className="text-sm text-gray-400 space-y-1">
+            <ul className="text-sm text-gray-300 space-y-1">
               <li>• HPA: CPU/Memory 기반</li>
               <li>• KEDA: Redis 큐 길이</li>
               <li>• Prometheus 메트릭 기반</li>
@@ -36,7 +36,7 @@ export default function Slide18() {
           <Card className="p-5">
             <Zap className="w-9 h-9 text-purple-400 mb-3" />
             <h4 className="text-xl font-semibold mb-2 text-purple-300">Inference 확장</h4>
-            <ul className="text-sm text-gray-400 space-y-1">
+            <ul className="text-sm text-gray-300 space-y-1">
               <li>• HPA: GPU Utilization</li>
               <li>• Karpenter: 노드 자동 프로비저닝</li>
               <li>• Spot + On-Demand 혼합</li>
@@ -47,7 +47,7 @@ export default function Slide18() {
           <Card className="p-5">
             <ArrowRightLeft className="w-9 h-9 text-amber-400 mb-3" />
             <h4 className="text-xl font-semibold mb-2 text-amber-300">Data 확장</h4>
-            <ul className="text-sm text-gray-400 space-y-1">
+            <ul className="text-sm text-gray-300 space-y-1">
               <li>• Milvus: Query/Index Nodes</li>
               <li>• Redis: Cluster Mode</li>
               <li>• S3: 무제한 스토리지</li>
@@ -56,9 +56,9 @@ export default function Slide18() {
           </Card>
         </div>
 
-        <Card className="p-6 bg-emerald-900/20 border-emerald-700">
+        <Card color="emerald" className="p-6">
           <h4 className="text-xl font-semibold mb-3 text-emerald-300">End-to-End 자동화</h4>
-          <div className="grid grid-cols-2 gap-4 text-base text-gray-400">
+          <div className="grid grid-cols-2 gap-4 text-base text-gray-300">
             <div>
               <strong className="text-gray-300">트래픽 급증:</strong>
               <p className="text-sm">KEDA → HPA → Pod 확장 → Karpenter → Node 프로비저닝</p>

@@ -19,7 +19,7 @@ export default function Slide08() {
         </div>
 
         <div className="grid grid-cols-2 gap-8 mb-8">
-          <div className="p-8 bg-gradient-to-br from-blue-900/40 to-purple-900/40 rounded-xl">
+          <div className="p-8 bg-gray-800 rounded-xl border border-blue-500/30">
             <div className="flex items-center gap-3 mb-6">
               <Share2 className="w-10 h-10 text-cyan-400" />
               <h3 className="text-2xl font-semibold text-white">Router 계층</h3>
@@ -44,7 +44,7 @@ export default function Slide08() {
             </ul>
           </div>
 
-          <div className="p-8 bg-gradient-to-br from-purple-900/40 to-cyan-900/40 rounded-xl">
+          <div className="p-8 bg-gray-800 rounded-xl border border-purple-500/30">
             <div className="flex items-center gap-3 mb-6">
               <Layers className="w-10 h-10 text-purple-400" />
               <h3 className="text-2xl font-semibold text-white">Backend 계층</h3>
@@ -72,7 +72,7 @@ export default function Slide08() {
 
         <FlowDiagram steps={flowSteps} title="Request Flow: Client → Gateway → vLLM Backend" />
 
-        <div className="mt-6 text-center text-gray-500 text-lg">
+        <div className="mt-6 text-center text-gray-400 text-lg">
           Router + vLLM Backend 구성으로 KV Cache-Aware 지능형 라우팅
         </div>
       </div>

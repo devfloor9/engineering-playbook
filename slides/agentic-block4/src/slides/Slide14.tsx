@@ -18,8 +18,8 @@ export default function Slide14() {
             신규 모델에 트래픽을 점진적으로 전환
           </p>
           <div className="space-y-2">
-            <div className="bg-cyan-500/10 border border-cyan-500/30 rounded p-2">
-              <div className="text-xs text-gray-400 mb-1">단계</div>
+            <div className="bg-gray-800 border border-cyan-500/30 rounded p-2">
+              <div className="text-xs text-gray-300 mb-1">단계</div>
               <div className="text-sm text-cyan-300">
                 5% → 25% → 50% → 100%
               </div>
@@ -41,8 +41,8 @@ export default function Slide14() {
             두 개의 동일한 환경을 유지하며 즉시 전환
           </p>
           <div className="space-y-2">
-            <div className="bg-blue-500/10 border border-blue-500/30 rounded p-2">
-              <div className="text-xs text-gray-400 mb-1">방식</div>
+            <div className="bg-gray-800 border border-blue-500/30 rounded p-2">
+              <div className="text-xs text-gray-300 mb-1">방식</div>
               <div className="text-sm text-blue-300">
                 Blue (현재) ↔ Green (신규)
               </div>
@@ -64,8 +64,8 @@ export default function Slide14() {
             신규 모델에 복제된 트래픽을 전송하여 테스트
           </p>
           <div className="space-y-2">
-            <div className="bg-purple-500/10 border border-purple-500/30 rounded p-2">
-              <div className="text-xs text-gray-400 mb-1">방식</div>
+            <div className="bg-gray-800 border border-purple-500/30 rounded p-2">
+              <div className="text-xs text-gray-300 mb-1">방식</div>
               <div className="text-sm text-purple-300">
                 프로덕션 트래픽 복제
               </div>
@@ -79,10 +79,10 @@ export default function Slide14() {
         </Card>
       </div>
 
-      <Card className="bg-gray-800/50 mt-6">
+      <Card color="gray" className="p-6 mt-6">
         <h3 className="text-xl font-bold text-white mb-4">KServe InferenceService 트래픽 분배</h3>
         <div className="grid grid-cols-2 gap-4">
-          <div className="bg-cyan-500/10 border border-cyan-500/30 rounded p-3">
+          <div className="bg-gray-800 border border-cyan-500/30 rounded p-3">
             <div className="text-sm font-bold text-cyan-300 mb-2">Canary 설정</div>
             <div className="text-xs font-mono text-gray-300">
               canaryTrafficPercent: 20<br/>
@@ -90,7 +90,7 @@ export default function Slide14() {
               errorRateThreshold: 5%
             </div>
           </div>
-          <div className="bg-blue-500/10 border border-blue-500/30 rounded p-3">
+          <div className="bg-gray-800 border border-blue-500/30 rounded p-3">
             <div className="text-sm font-bold text-blue-300 mb-2">자동 롤백</div>
             <div className="text-xs font-mono text-gray-300">
               if error_rate {">"} 5%:<br/>

@@ -9,12 +9,12 @@ export default function Slide11() {
       </h2>
 
       <div className="flex-1 flex flex-col justify-center space-y-4">
-        <Card className="p-4 bg-blue-900/20 border-blue-700">
+        <Card color="blue" className="p-4">
           <div className="flex items-center gap-3">
-            <Badge className="bg-blue-500/30 text-blue-300">Layer 1</Badge>
+            <Badge color="blue" size="md">Layer 1</Badge>
             <Layers className="w-6 h-6 text-blue-400" />
             <h3 className="text-xl font-semibold text-blue-300">Client Layer</h3>
-            <span className="text-sm text-gray-400 ml-auto">API Clients, Web UI, Agent SDK</span>
+            <span className="text-sm text-gray-300 ml-auto">API Clients, Web UI, Agent SDK</span>
           </div>
         </Card>
 
@@ -22,12 +22,12 @@ export default function Slide11() {
           <ArrowDown className="w-6 h-6 text-gray-600" />
         </div>
 
-        <Card className="p-4 bg-amber-900/20 border-amber-700">
+        <Card color="amber" className="p-4">
           <div className="flex items-center gap-3">
-            <Badge className="bg-amber-500/30 text-amber-300">Layer 2</Badge>
+            <Badge color="amber" size="md">Layer 2</Badge>
             <Layers className="w-6 h-6 text-amber-400" />
             <h3 className="text-xl font-semibold text-amber-300">Gateway Layer</h3>
-            <span className="text-sm text-gray-400 ml-auto">Kgateway, Authentication, Rate Limiter</span>
+            <span className="text-sm text-gray-300 ml-auto">Kgateway, Authentication, Rate Limiter</span>
           </div>
         </Card>
 
@@ -35,12 +35,12 @@ export default function Slide11() {
           <ArrowDown className="w-6 h-6 text-gray-600" />
         </div>
 
-        <Card className="p-4 bg-emerald-900/20 border-emerald-700">
+        <Card color="emerald" className="p-4">
           <div className="flex items-center gap-3">
-            <Badge className="bg-emerald-500/30 text-emerald-300">Layer 3</Badge>
+            <Badge color="emerald" size="md">Layer 3</Badge>
             <Layers className="w-6 h-6 text-emerald-400" />
             <h3 className="text-xl font-semibold text-emerald-300">Agent Layer</h3>
-            <span className="text-sm text-gray-400 ml-auto">Kagent Controller, Agent Instances, Tool Registry</span>
+            <span className="text-sm text-gray-300 ml-auto">Kagent Controller, Agent Instances, Tool Registry</span>
           </div>
         </Card>
 
@@ -49,27 +49,27 @@ export default function Slide11() {
         </div>
 
         <div className="grid grid-cols-3 gap-4">
-          <Card className="p-4 bg-pink-900/20 border-pink-700">
+          <Card color="rose" className="p-4">
             <div className="flex flex-col gap-2">
-              <Badge className="bg-pink-500/30 text-pink-300 w-fit">Layer 4</Badge>
+              <Badge color="rose" size="md" className="w-fit">Layer 4</Badge>
               <h3 className="text-lg font-semibold text-pink-300">Model Serving</h3>
-              <span className="text-xs text-gray-400">vLLM, TGI, llm-d</span>
+              <span className="text-xs text-gray-300">vLLM, TGI, llm-d</span>
             </div>
           </Card>
 
-          <Card className="p-4 bg-purple-900/20 border-purple-700">
+          <Card color="purple" className="p-4">
             <div className="flex flex-col gap-2">
-              <Badge className="bg-purple-500/30 text-purple-300 w-fit">Layer 5</Badge>
+              <Badge color="purple" size="md" className="w-fit">Layer 5</Badge>
               <h3 className="text-lg font-semibold text-purple-300">Data Layer</h3>
-              <span className="text-xs text-gray-400">Milvus, Redis, S3</span>
+              <span className="text-xs text-gray-300">Milvus, Redis, S3</span>
             </div>
           </Card>
 
-          <Card className="p-4 bg-cyan-900/20 border-cyan-700">
+          <Card color="cyan" className="p-4">
             <div className="flex flex-col gap-2">
-              <Badge className="bg-cyan-500/30 text-cyan-300 w-fit">Layer 6</Badge>
+              <Badge color="cyan" size="md" className="w-fit">Layer 6</Badge>
               <h3 className="text-lg font-semibold text-cyan-300">Observability</h3>
-              <span className="text-xs text-gray-400">LangFuse, Prometheus, Grafana</span>
+              <span className="text-xs text-gray-300">LangFuse, Prometheus, Grafana</span>
             </div>
           </Card>
         </div>

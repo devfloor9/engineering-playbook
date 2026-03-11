@@ -42,7 +42,7 @@ export default function Slide12() {
 
         <div className="space-y-6">
           {optimizations.map((opt, idx) => (
-            <Card key={idx} className={`p-6 bg-gradient-to-r from-${opt.color}-900/40 to-blue-900/40`}>
+            <Card key={idx} color={opt.color as any} className="p-6">
               <div className="flex items-start gap-6">
                 <div className={`w-14 h-14 rounded-xl bg-${opt.color}-500/20 flex items-center justify-center flex-shrink-0`}>
                   <opt.icon className={`w-8 h-8 text-${opt.color}-400`} />
@@ -63,7 +63,7 @@ export default function Slide12() {
           ))}
         </div>
 
-        <Card className="mt-8 p-6 bg-gradient-to-r from-amber-900/40 to-purple-900/40">
+        <Card color="amber" className="mt-8 p-6">
           <h3 className="text-2xl font-semibold text-amber-400 mb-4">전체 Expert 메모리 로드 필요</h3>
           <p className="text-lg text-gray-300">
             MoE 모델은 활성화되는 파라미터는 적지만, <span className="text-purple-400 font-semibold">전체 Expert를 메모리에 로드</span>해야 합니다.

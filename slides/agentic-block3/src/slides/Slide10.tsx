@@ -17,7 +17,7 @@ export default function Slide10() {
           <h2 className="text-5xl font-bold text-purple-400">MoE 모델 서빙 개요</h2>
         </div>
 
-        <Card className="p-8 bg-gradient-to-br from-purple-900/40 to-blue-900/40 mb-8">
+        <Card color="purple" className="p-8 mb-8">
           <div className="flex items-center gap-4 mb-4">
             <Cpu className="w-12 h-12 text-cyan-400" />
             <h3 className="text-3xl font-semibold text-white">Mixture of Experts (MoE)</h3>
@@ -32,18 +32,18 @@ export default function Slide10() {
 
         <div className="grid grid-cols-2 gap-6">
           {models.map((model, idx) => (
-            <Card key={idx} className="p-6 bg-gray-800/50 hover:bg-gray-800/70 transition-all">
+            <Card key={idx} className="p-6 hover:bg-gray-800/70 transition-all">
               <div className="flex items-center gap-3 mb-3">
                 <Zap className="w-8 h-8 text-amber-400" />
                 <h4 className="text-2xl font-bold text-white">{model.name}</h4>
               </div>
               <div className="space-y-2 text-gray-300">
                 <div className="flex justify-between">
-                  <span className="text-gray-400">Parameters:</span>
+                  <span className="text-gray-300">Parameters:</span>
                   <span className="text-cyan-400 font-semibold">{model.params}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-400">Architecture:</span>
+                  <span className="text-gray-300">Architecture:</span>
                   <span className="text-purple-400 font-semibold">{model.experts}</span>
                 </div>
               </div>
@@ -51,7 +51,7 @@ export default function Slide10() {
           ))}
         </div>
 
-        <div className="mt-8 text-center text-gray-500 text-lg">
+        <div className="mt-8 text-center text-gray-400 text-lg">
           전체 파라미터 중 일부만 활성화하여 효율적인 추론
         </div>
       </div>

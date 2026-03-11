@@ -25,7 +25,7 @@ export default function Slide19() {
           <Card className="p-5">
             <Key className="w-9 h-9 text-blue-400 mb-3" />
             <h4 className="text-xl font-semibold mb-2 text-blue-300">인증/인가</h4>
-            <ul className="text-sm text-gray-400 space-y-1">
+            <ul className="text-sm text-gray-300 space-y-1">
               <li>• OIDC Provider (Cognito/Okta)</li>
               <li>• JWT 토큰 검증</li>
               <li>• API Key 관리</li>
@@ -36,7 +36,7 @@ export default function Slide19() {
           <Card className="p-5">
             <Lock className="w-9 h-9 text-purple-400 mb-3" />
             <h4 className="text-xl font-semibold mb-2 text-purple-300">네트워크 보안</h4>
-            <ul className="text-sm text-gray-400 space-y-1">
+            <ul className="text-sm text-gray-300 space-y-1">
               <li>• mTLS (Istio)</li>
               <li>• NetworkPolicy 격리</li>
               <li>• Security Group 제어</li>
@@ -47,7 +47,7 @@ export default function Slide19() {
           <Card className="p-5">
             <ShieldCheck className="w-9 h-9 text-emerald-400 mb-3" />
             <h4 className="text-xl font-semibold mb-2 text-emerald-300">데이터 보안</h4>
-            <ul className="text-sm text-gray-400 space-y-1">
+            <ul className="text-sm text-gray-300 space-y-1">
               <li>• At-rest 암호화 (EBS, S3)</li>
               <li>• In-transit 암호화 (TLS)</li>
               <li>• Secrets Manager 통합</li>
@@ -56,9 +56,9 @@ export default function Slide19() {
           </Card>
         </div>
 
-        <Card className="p-6 bg-red-900/20 border-red-700">
+        <Card color="red" className="p-6">
           <h4 className="text-xl font-semibold mb-3 text-red-300">보안 모범 사례</h4>
-          <div className="grid grid-cols-2 gap-4 text-base text-gray-400">
+          <div className="grid grid-cols-2 gap-4 text-base text-gray-300">
             <div>
               <strong className="text-gray-300">네임스페이스 격리:</strong>
               <p className="text-sm">NetworkPolicy로 네임스페이스 간 통신 제한</p>

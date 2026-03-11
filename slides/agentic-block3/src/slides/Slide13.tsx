@@ -26,7 +26,7 @@ export default function Slide13() {
         </div>
 
         <div className="grid grid-cols-2 gap-6">
-          <div className="p-6 bg-gradient-to-br from-blue-900/40 to-purple-900/40 rounded-xl">
+          <div className="p-6 bg-gray-800 rounded-xl border border-blue-500/30">
             <div className="flex items-center gap-3 mb-4">
               <Cpu className="w-10 h-10 text-blue-400" />
               <h4 className="text-2xl font-semibold text-white">Device Plugin</h4>
@@ -39,7 +39,7 @@ export default function Slide13() {
             </ul>
           </div>
 
-          <div className="p-6 bg-gradient-to-br from-cyan-900/40 to-emerald-900/40 rounded-xl">
+          <div className="p-6 bg-gray-800 rounded-xl border border-cyan-500/30">
             <div className="flex items-center gap-3 mb-4">
               <Sparkles className="w-10 h-10 text-cyan-400" />
               <h4 className="text-2xl font-semibold text-white">DRA (1.33+)</h4>

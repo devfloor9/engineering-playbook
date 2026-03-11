@@ -28,7 +28,7 @@ export default function Slide16() {
           <Card className="p-5">
             <Activity className="w-9 h-9 text-blue-400 mb-3" />
             <h4 className="text-xl font-semibold mb-2 text-blue-300">LangFuse</h4>
-            <ul className="text-sm text-gray-400 space-y-1">
+            <ul className="text-sm text-gray-300 space-y-1">
               <li>• LLM 요청 전체 Trace</li>
               <li>• 토큰 사용량 추적</li>
               <li>• 비용 계산</li>
@@ -39,7 +39,7 @@ export default function Slide16() {
           <Card className="p-5">
             <BarChart3 className="w-9 h-9 text-emerald-400 mb-3" />
             <h4 className="text-xl font-semibold mb-2 text-emerald-300">Prometheus</h4>
-            <ul className="text-sm text-gray-400 space-y-1">
+            <ul className="text-sm text-gray-300 space-y-1">
               <li>• 인프라 메트릭 수집</li>
               <li>• GPU 메트릭 (DCGM)</li>
               <li>• ServiceMonitor 기반</li>
@@ -50,7 +50,7 @@ export default function Slide16() {
           <Card className="p-5">
             <AlertCircle className="w-9 h-9 text-amber-400 mb-3" />
             <h4 className="text-xl font-semibold mb-2 text-amber-300">Grafana</h4>
-            <ul className="text-sm text-gray-400 space-y-1">
+            <ul className="text-sm text-gray-300 space-y-1">
               <li>• 대시보드 시각화</li>
               <li>• 알람 설정</li>
               <li>• 멀티 데이터소스</li>
@@ -59,9 +59,9 @@ export default function Slide16() {
           </Card>
         </div>
 
-        <Card className="p-6 bg-cyan-900/20 border-cyan-700">
+        <Card color="cyan" className="p-6">
           <h4 className="text-xl font-semibold mb-3 text-cyan-300">핵심 대시보드</h4>
-          <div className="grid grid-cols-2 gap-4 text-base text-gray-400">
+          <div className="grid grid-cols-2 gap-4 text-base text-gray-300">
             <div>
               <strong className="text-gray-300">Agent Overview:</strong>
               <p className="text-sm">에이전트별 요청 수, 지연 시간, 오류율</p>

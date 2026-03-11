@@ -16,7 +16,7 @@ export default function Slide01() {
         <p className="text-4xl text-gray-300 max-w-3xl">
           설계 &amp; 아키텍처
         </p>
-        <p className="text-2xl text-gray-500">
+        <p className="text-2xl text-gray-400">
           Block 1: Design &amp; Architecture
         </p>
       </div>

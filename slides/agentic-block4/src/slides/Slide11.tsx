@@ -31,23 +31,23 @@ export default function Slide11() {
             <h3 className="text-2xl font-bold text-white">핵심 컴포넌트</h3>
           </div>
           <div className="space-y-3">
-            <div className="bg-blue-500/10 border border-blue-500/30 rounded p-2">
+            <div className="bg-gray-800 border border-blue-500/30 rounded p-2">
               <strong className="text-blue-300">Kubeflow Pipelines</strong>
-              <p className="text-xs text-gray-400 mt-1">재사용 가능 컴포넌트 기반 워크플로우</p>
+              <p className="text-xs text-gray-300 mt-1">재사용 가능 컴포넌트 기반 워크플로우</p>
             </div>
-            <div className="bg-emerald-500/10 border border-emerald-500/30 rounded p-2">
+            <div className="bg-gray-800 border border-emerald-500/30 rounded p-2">
               <strong className="text-emerald-300">MLflow</strong>
-              <p className="text-xs text-gray-400 mt-1">실험 추적 및 모델 레지스트리</p>
+              <p className="text-xs text-gray-300 mt-1">실험 추적 및 모델 레지스트리</p>
             </div>
-            <div className="bg-purple-500/10 border border-purple-500/30 rounded p-2">
+            <div className="bg-gray-800 border border-purple-500/30 rounded p-2">
               <strong className="text-purple-300">KServe</strong>
-              <p className="text-xs text-gray-400 mt-1">프로덕션 모델 서빙</p>
+              <p className="text-xs text-gray-300 mt-1">프로덕션 모델 서빙</p>
             </div>
           </div>
         </Card>
       </div>
 
-      <Card className="bg-gray-800/50">
+      <Card color="gray" className="p-6">
         <h3 className="text-xl font-bold text-white mb-4">ML 라이프사이클</h3>
         <FlowDiagram
           steps={[

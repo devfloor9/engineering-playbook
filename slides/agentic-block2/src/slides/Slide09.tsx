@@ -63,30 +63,30 @@ spec:
           <FileCode className="w-12 h-12 text-blue-400" />
           <div>
             <h2 className="text-5xl font-bold text-blue-400">Agent CRD 정의</h2>
-            <p className="text-xl text-gray-400">선언적 에이전트 관리</p>
+            <p className="text-xl text-gray-300">선언적 에이전트 관리</p>
           </div>
         </div>
 
         <div className="grid grid-cols-3 gap-4 mb-6">
-          <div className="p-4 bg-blue-900/20 rounded-lg border border-blue-500/30">
+          <div className="p-4 bg-gray-800/50 rounded-lg border border-blue-500/30">
             <h4 className="text-sm font-semibold text-blue-300 mb-2">모델 설정</h4>
-            <ul className="text-xs text-gray-400 space-y-1">
+            <ul className="text-xs text-gray-300 space-y-1">
               <li>• Provider (openai, anthropic, bedrock)</li>
               <li>• 모델 이름 및 파라미터</li>
               <li>• API 키 Secret 참조</li>
             </ul>
           </div>
-          <div className="p-4 bg-emerald-900/20 rounded-lg border border-emerald-500/30">
+          <div className="p-4 bg-gray-800/50 rounded-lg border border-emerald-500/30">
             <h4 className="text-sm font-semibold text-emerald-300 mb-2">도구 통합</h4>
-            <ul className="text-xs text-gray-400 space-y-1">
+            <ul className="text-xs text-gray-300 space-y-1">
               <li>• Tool CRD 참조</li>
               <li>• API/Retrieval/Code 타입</li>
               <li>• 동적 도구 검색</li>
             </ul>
           </div>
-          <div className="p-4 bg-purple-900/20 rounded-lg border border-purple-500/30">
+          <div className="p-4 bg-gray-800/50 rounded-lg border border-purple-500/30">
             <h4 className="text-sm font-semibold text-purple-300 mb-2">운영 설정</h4>
-            <ul className="text-xs text-gray-400 space-y-1">
+            <ul className="text-xs text-gray-300 space-y-1">
               <li>• 자동 스케일링 (HPA/KEDA)</li>
               <li>• 메모리 (Redis/Postgres)</li>
               <li>• 관측성 (LangFuse/CloudWatch)</li>
@@ -100,7 +100,7 @@ spec:
           title="Agent CRD 예시"
         />
 
-        <div className="mt-4 p-4 bg-cyan-900/20 rounded-lg border border-cyan-500/30">
+        <div className="mt-4 p-4 bg-gray-800/50 rounded-lg border border-cyan-500/30">
           <p className="text-sm text-cyan-300">
             <span className="font-semibold">선언적 관리:</span> YAML 파일로 에이전트 정의하면 Kagent Controller가 자동으로 Deployment, Service, HPA 등을 생성
           </p>

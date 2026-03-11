@@ -19,16 +19,16 @@ export default function Slide03() {
           </p>
           <div className="space-y-3">
             <div className="flex items-center gap-2">
-              <Badge color="blue">트레이스</Badge>
-              <span className="text-sm text-gray-400">LLM 호출 체인 추적</span>
+              <Badge color="blue" size="lg">트레이스</Badge>
+              <span className="text-sm text-gray-300">LLM 호출 체인 추적</span>
             </div>
             <div className="flex items-center gap-2">
-              <Badge color="green">토큰</Badge>
-              <span className="text-sm text-gray-400">사용량 및 비용 분석</span>
+              <Badge color="emerald" size="lg">토큰</Badge>
+              <span className="text-sm text-gray-300">사용량 및 비용 분석</span>
             </div>
             <div className="flex items-center gap-2">
-              <Badge color="purple">품질</Badge>
-              <span className="text-sm text-gray-400">응답 품질 평가</span>
+              <Badge color="purple" size="lg">품질</Badge>
+              <span className="text-sm text-gray-300">응답 품질 평가</span>
             </div>
           </div>
         </Card>
@@ -43,32 +43,32 @@ export default function Slide03() {
               <span className="text-emerald-400 mt-1">▸</span>
               <div>
                 <strong>전체 추론 체인 가시화</strong>
-                <p className="text-sm text-gray-400">Agent → Tool → LLM 흐름</p>
+                <p className="text-sm text-gray-300">Agent → Tool → LLM 흐름</p>
               </div>
             </li>
             <li className="flex items-start gap-2">
               <span className="text-emerald-400 mt-1">▸</span>
               <div>
                 <strong>실시간 디버깅</strong>
-                <p className="text-sm text-gray-400">프롬프트 및 응답 내용 검토</p>
+                <p className="text-sm text-gray-300">프롬프트 및 응답 내용 검토</p>
               </div>
             </li>
             <li className="flex items-start gap-2">
               <span className="text-emerald-400 mt-1">▸</span>
               <div>
                 <strong>비용 추적</strong>
-                <p className="text-sm text-gray-400">모델/테넌트별 비용 분석</p>
+                <p className="text-sm text-gray-300">모델/테넌트별 비용 분석</p>
               </div>
             </li>
           </ul>
         </Card>
       </div>
 
-      <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4">
+      <Card color="blue" className="p-4">
         <p className="text-blue-300 text-center">
           <strong>Self-hosted 배포</strong>로 데이터 주권 확보 + 비용 최적화
         </p>
-      </div>
+      </Card>
     </SlideWrapper>
   );
 }
