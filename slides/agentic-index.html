@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>EKS Operations Training Slides</title>
+  <title>Agentic AI Platform Training Slides</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
@@ -19,7 +19,7 @@
     h1 {
       font-size: 2.5rem;
       font-weight: 800;
-      background: linear-gradient(135deg, #60a5fa, #a78bfa, #f472b6);
+      background: linear-gradient(135deg, #f472b6, #a78bfa, #60a5fa);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       margin-bottom: 0.5rem;
@@ -48,9 +48,9 @@
       overflow: hidden;
     }
     .card:hover {
-      border-color: #3b82f6;
+      border-color: #a78bfa;
       transform: translateY(-4px);
-      box-shadow: 0 12px 40px rgba(59, 130, 246, 0.15);
+      box-shadow: 0 12px 40px rgba(167, 139, 250, 0.15);
     }
     .badge {
       display: inline-block;
@@ -60,12 +60,10 @@
       font-weight: 600;
       margin-bottom: 1rem;
     }
-    .badge-1 { background: #1e3a5f; color: #60a5fa; }
-    .badge-2 { background: #1a3d2e; color: #34d399; }
+    .badge-1 { background: #2d1f4e; color: #a78bfa; }
+    .badge-2 { background: #1e3a5f; color: #60a5fa; }
     .badge-3 { background: #3b1f1f; color: #f87171; }
-    .badge-4 { background: #2d1f4e; color: #a78bfa; }
-    .badge-5 { background: #1f3044; color: #38bdf8; }
-    .badge-6 { background: #3d2f1a; color: #fbbf24; }
+    .badge-4 { background: #1a3d2e; color: #34d399; }
     .card h2 {
       font-size: 1.25rem;
       font-weight: 700;
@@ -86,62 +84,48 @@
       color: #4b5563;
       font-size: 0.85rem;
     }
-    footer a { color: #60a5fa; text-decoration: none; }
+    footer a { color: #a78bfa; text-decoration: none; }
     footer a:hover { text-decoration: underline; }
   </style>
 </head>
 <body>
-  <h1>EKS Operations Training</h1>
-  <p class="subtitle">Amazon EKS Best Practice - Interactive React Slides</p>
+  <h1>Agentic AI Platform</h1>
+  <p class="subtitle">EKS 기반 Agentic AI 플랫폼 구축 - Interactive React Slides</p>
 
   <div class="grid">
-    <a class="card" href="./block1/">
+    <a class="card" href="./agentic-block1/">
       <span class="badge badge-1">Block 1</span>
-      <h2>GitOps 기반 EKS 클러스터 운영</h2>
-      <p>ArgoCD, Flux, Kustomize 오버레이, 멀티 클러스터 관리, Progressive Delivery, Secret 관리</p>
-      <div class="slides-count">16 slides</div>
-    </a>
-
-    <a class="card" href="./block2/">
-      <span class="badge badge-2">Block 2</span>
-      <h2>EKS Node Monitoring Agent</h2>
-      <p>Node Problem Detector, 시스템 모니터, Node Termination Handler, Spot 인스턴스, Prometheus 통합</p>
-      <div class="slides-count">17 slides</div>
-    </a>
-
-    <a class="card" href="./block3/">
-      <span class="badge badge-3">Block 3</span>
-      <h2>EKS 장애 진단 6-Layer Framework</h2>
-      <p>인프라/컨트롤플레인/노드/네트워크/워크로드/앱 6계층 진단, 트리아지 프로세스</p>
-      <div class="slides-count">18 slides</div>
-    </a>
-
-    <a class="card" href="./block4/">
-      <span class="badge badge-4">Block 4</span>
-      <h2>고가용성 아키텍처</h2>
-      <p>Failure Domain, Topology Spread, Zonal Shift, Cell Architecture, PDB, Chaos Engineering</p>
+      <h2>설계 &amp; 아키텍처</h2>
+      <p>4가지 핵심 도전과제, Kubernetes 솔루션 생태계, 6-Layer 플랫폼 아키텍처, 네임스페이스 전략, 보안 설계</p>
       <div class="slides-count">20 slides</div>
     </a>
 
-    <a class="card" href="./block5/">
-      <span class="badge badge-5">Block 5</span>
-      <h2>Pod Health &amp; Graceful Shutdown</h2>
-      <p>Probe 3종, 워크로드별 패턴, SIGTERM, preStop Hook, Native Sidecar, ALB 연동</p>
+    <a class="card" href="./agentic-block2/">
+      <span class="badge badge-2">Block 2</span>
+      <h2>게이트웨이 &amp; 에이전트</h2>
+      <p>Kgateway 동적 라우팅, Kagent CRD 기반 Agent 관리, Milvus 벡터 DB, Bedrock AgentCore &amp; MCP 통합</p>
       <div class="slides-count">18 slides</div>
     </a>
 
-    <a class="card" href="./block6/">
-      <span class="badge badge-6">Block 6</span>
-      <h2>Pod Scheduling 전략</h2>
-      <p>스케줄링 3단계, Affinity, Taints/Tolerations, TSC, PDB, PriorityClass, Descheduler</p>
+    <a class="card" href="./agentic-block3/">
+      <span class="badge badge-3">Block 3</span>
+      <h2>모델 서빙 &amp; 추론</h2>
+      <p>vLLM PagedAttention, llm-d 분산 추론, MoE 모델 서빙, GPU 리소스 관리(DRA), NeMo 분산 학습</p>
+      <div class="slides-count">20 slides</div>
+    </a>
+
+    <a class="card" href="./agentic-block4/">
+      <span class="badge badge-4">Block 4</span>
+      <h2>운영 &amp; MLOps</h2>
+      <p>LangFuse Agent 모니터링, RAGAS RAG 평가, Kubeflow MLOps 파이프라인, SageMaker + EKS 통합</p>
       <div class="slides-count">18 slides</div>
     </a>
   </div>
 
   <footer>
     <a href="https://devfloor9.github.io/engineering-playbook/">Engineering Playbook</a> |
-    <a href="../agentic-ai-platform/slide/">Agentic AI Platform</a> |
-    EKS Operations Training
+    <a href="../operations-observability/slide/">EKS Operations Training</a> |
+    Agentic AI Platform
   </footer>
 </body>
 </html>
