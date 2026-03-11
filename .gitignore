@@ -65,4 +65,5 @@ navbar-current.png
 .playwright-mcp/
 
 # OS
-Thumbs.db
+Thumbs.dbslides/**/node_modules/
+slides/**/dist/
