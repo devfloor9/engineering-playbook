@@ -46,7 +46,7 @@ import ValidationResultsTable from '@site/src/components/ValidationResultsTable'
   },
   {
     id: "llm-d-eks-automode",
-    document: "llm-d 기반 EKS Auto Mode 추론 배포",
+    document: "llm-d 기반 EKS 분산 추론 배포",
     path: "docs/agentic-ai-platform/llm-d-eks-automode.md",
     category: "eks",
     status: "needs-update",

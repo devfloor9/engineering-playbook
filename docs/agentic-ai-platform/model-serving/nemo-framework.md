@@ -30,25 +30,23 @@ Agentic AI 플랫폼에서 도메인 특화 모델이 필요한 경우:
 - **데이터 프라이버시**: 민감한 데이터로 온프레미스 학습
 
 ```mermaid
-graph LR
-    subgraph "NeMo Pipeline"
-        Data["데이터 준비"]
-        Pretrain["사전학습<br/>(선택)"]
-        Finetune["파인튜닝"]
-        Eval["평가"]
-        Export["TensorRT 변환"]
-        Deploy["배포"]
-    end
-    
+flowchart LR
+    Data[데이터<br/>준비]
+    Pretrain[사전학습<br/>선택사항]
+    Finetune[파인튜닝]
+    Eval[평가]
+    Export[TensorRT<br/>변환]
+    Deploy[배포]
+
     Data --> Pretrain
     Pretrain --> Finetune
-    Data --> Finetune
+    Data -.-> Finetune
     Finetune --> Eval
     Eval --> Export
     Export --> Deploy
-    
-    style Finetune fill:#76b900,stroke:#333,stroke-width:2px
-    style Export fill:#76b900,stroke:#333,stroke-width:2px
+
+    style Finetune fill:#76b900
+    style Export fill:#76b900
 ```
 
 ### NeMo 프레임워크 구성요소
@@ -60,55 +58,45 @@ graph LR
 ### 분산 학습 아키텍처
 
 ```mermaid
-graph TB
-    subgraph "Control Plane"
-        Launcher["NeMo Launcher"]
-        Scheduler["Kubernetes Scheduler"]
+flowchart TB
+    subgraph Control["컨트롤 플레인"]
+        Launcher[NeMo<br/>Launcher]
+        Scheduler[K8s<br/>Scheduler]
     end
-    
-    subgraph "Worker Nodes"
-        subgraph "Node 1"
-            W1["Worker Pod"]
-            G1["GPU 0-7"]
-        end
-        subgraph "Node 2"
-            W2["Worker Pod"]
-            G2["GPU 0-7"]
-        end
-        subgraph "Node 3"
-            W3["Worker Pod"]
-            G3["GPU 0-7"]
-        end
+
+    subgraph Workers["Worker Nodes"]
+        W1[Worker Pod<br/>Node 1]
+        W2[Worker Pod<br/>Node 2]
+        W3[Worker Pod<br/>Node 3]
+        G1[GPU 0-7]
+        G2[GPU 0-7]
+        G3[GPU 0-7]
     end
-    
-    subgraph "Storage"
-        S3["S3 / FSx"]
-        Checkpoint["체크포인트"]
+
+    subgraph Storage["스토리지"]
+        S3[S3 / FSx]
+        CP[체크포인트]
     end
-    
-    subgraph "Communication"
-        NCCL["NCCL / EFA"]
-    end
-    
+
+    NCCL[NCCL / EFA<br/>통신]
+
     Launcher --> Scheduler
-    Scheduler --> W1
-    Scheduler --> W2
-    Scheduler --> W3
-    
-    W1 <--> NCCL
-    W2 <--> NCCL
-    W3 <--> NCCL
-    
-    W1 --> S3
-    W2 --> S3
-    W3 --> S3
-    
-    W1 --> Checkpoint
-    W2 --> Checkpoint
-    W3 --> Checkpoint
-    
-    style Launcher fill:#76b900,stroke:#333
-    style NCCL fill:#4285f4,stroke:#333
+    Scheduler -.->|배포| W1
+    Scheduler -.->|배포| W2
+    Scheduler -.->|배포| W3
+
+    W1 <-->|고속 통신| NCCL
+    W2 <-->|고속 통신| NCCL
+    W3 <-->|고속 통신| NCCL
+
+    W1 -->|저장| S3
+    W2 -->|저장| CP
+
+    style Launcher fill:#76b900
+    style NCCL fill:#326ce5
+    style G1 fill:#76b900
+    style G2 fill:#76b900
+    style G3 fill:#76b900
 ```
 
 ### GPU 노드 요구사항
@@ -426,17 +414,18 @@ python -m nemo.collections.llm.scripts.convert_nemo_to_hf \
 ### 모델 변환 파이프라인
 
 ```mermaid
-graph LR
-    NeMo["NeMo<br/>Checkpoint"]
-    HF["HuggingFace<br/>Format"]
-    TRT["TensorRT-LLM<br/>Engine"]
-    Triton["Triton<br/>Server"]
-    
-    NeMo --> HF
-    HF --> TRT
-    TRT --> Triton
-    
-    style TRT fill:#76b900,stroke:#333,stroke-width:2px
+flowchart LR
+    NeMo[NeMo<br/>Checkpoint]
+    HF[HuggingFace<br/>Format]
+    TRT[TensorRT-LLM<br/>Engine]
+    Triton[Triton<br/>Server]
+
+    NeMo -->|변환| HF
+    HF -->|빌드| TRT
+    TRT -->|배포| Triton
+
+    style TRT fill:#76b900
+    style Triton fill:#326ce5
 ```
 
 ### TensorRT-LLM 변환 스크립트
@@ -653,27 +642,34 @@ spec:
 NCCL (**NVIDIA Collective Communication Library**)는 분산 GPU 학습에서 **multi-GPU 간 고속 통신**을 담당하는 핵심 라이브러리입니다. 딥러닝 모델의 성능은 NCCL의 최적화 정도에 직접적으로 영향을 미칩니다.
 
 ```mermaid
-graph TB
-    subgraph "분산 학습 성능 분석"
-        A["전체 학습 시간"] --> B["계산 시간 60%"]
-        A --> C["통신 시간 40%"]
+flowchart TB
+    subgraph Perf["분산 학습 성능"]
+        A[전체<br/>학습 시간]
+        B[계산 60%]
+        C[통신 40%]
 
-        C --> D["NCCL이 최적화하는 영역"]
-        D --> E["Collective 연산 시간"]
-        E --> F["동기화 오버헤드"]
+        A --> B
+        A --> C
 
-        B --> G["GPU 계산 (커널)"]
+        C --> D[NCCL<br/>최적화 영역]
+        D --> E[Collective<br/>연산]
+        D --> F[동기화<br/>오버헤드]
 
         style D fill:#326ce5
         style E fill:#76b900
         style F fill:#ff6b6b
     end
 
-    subgraph "NCCL이 해결하는 문제"
-        H["Raw 네트워크 대비<br/>3-10배 개선"]
-        I["CPU 오버헤드 제거"]
-        J["GPU 메모리 효율성"]
-        K["NVLink/EFA 자동 활용"]
+    subgraph Benefits["NCCL 효과"]
+        H[3-10배<br/>성능 개선]
+        I[CPU 오버헤드<br/>제거]
+        J[메모리<br/>효율성]
+        K[NVLink/EFA<br/>자동 활용]
+
+        style H fill:#76b900
+        style I fill:#76b900
+        style J fill:#76b900
+        style K fill:#76b900
     end
 ```
 
@@ -819,24 +815,27 @@ model.load_state_dict(model_state)
 NCCL은 GPU 간 물리적 연결 토폴로지를 자동으로 감지하고 최적의 경로를 선택합니다:
 
 ```mermaid
-graph TB
-    subgraph "토폴로지 계층 (위에서 아래로 빠름)"
-        L1["1. NVSwitch (같은 노드 내)<br/>최대 600GB/s"]
-        L2["2. NVLink (같은 노드 내)<br/>최대 200GB/s"]
-        L3["3. EFA/InfiniBand (노드 간)<br/>최대 100GB/s"]
-        L4["4. Ethernet (노드 간)<br/>최대 10-100GB/s"]
+flowchart TB
+    subgraph Topo["토폴로지 계층 (빠름 → 느림)"]
+        L1[NVSwitch<br/>노드 내<br/>600GB/s]
+        L2[NVLink<br/>노드 내<br/>200GB/s]
+        L3[EFA/IB<br/>노드 간<br/>100GB/s]
+        L4[Ethernet<br/>노드 간<br/>10-100GB/s]
+
+        L1 --> L2 --> L3 --> L4
     end
 
-    L1 --> L2 --> L3 --> L4
+    subgraph NCCL["NCCL 자동 선택"]
+        A[토폴로지<br/>분석]
+        B[알고리즘<br/>선택]
+        C[채널<br/>구성]
 
-    subgraph "NCCL 자동 경로 선택"
-        A["토폴로지 분석"] --> B["최적 알고리즘 선택"]
-        B --> C["채널 구성"]
+        A --> B --> C
     end
 
     style L1 fill:#76b900
     style L2 fill:#76b900
-    style L3 fill:#4ecdc4
+    style L3 fill:#ffd93d
     style L4 fill:#ff6b6b
 ```
 

@@ -25,36 +25,37 @@ Ragas(RAG Assessment)는 RAG(Retrieval-Augmented Generation) 파이프라인의 
 RAG 시스템은 여러 컴포넌트(검색, 생성, 컨텍스트 처리)로 구성되어 있어 전체 품질을 측정하기 어렵습니다:
 
 ```mermaid
-graph LR
-    subgraph "RAG Pipeline"
-        Q["질문"]
-        R["검색<br/>(Retrieval)"]
-        C["컨텍스트<br/>(Context)"]
-        G["생성<br/>(Generation)"]
-        A["답변"]
-    end
-    
-    subgraph "평가 포인트"
-        E1["검색 품질<br/>(Precision/Recall)"]
-        E2["답변 충실도<br/>(Faithfulness)"]
-        E3["답변 관련성<br/>(Relevancy)"]
-        E4["답변 정확성<br/>(Correctness)"]
-    end
-    
+flowchart LR
+    Q[질문]
+    R[검색<br/>Retrieval]
+    C[컨텍스트<br/>Context]
+    G[생성<br/>Generation]
+    A[답변]
+
+    E1[검색 품질<br/>Precision/Recall]
+    E2[답변 충실도<br/>Faithfulness]
+    E3[답변 관련성<br/>Relevancy]
+    E4[답변 정확성<br/>Correctness]
+
     Q --> R
     R --> C
     C --> G
     G --> A
-    
-    R -.-> E1
-    C -.-> E2
-    A -.-> E3
-    A -.-> E4
-    
-    style E1 fill:#4285f4,stroke:#333
-    style E2 fill:#34a853,stroke:#333
-    style E3 fill:#fbbc04,stroke:#333
-    style E4 fill:#ea4335,stroke:#333
+
+    R -.->|평가| E1
+    C -.->|평가| E2
+    A -.->|평가| E3
+    A -.->|평가| E4
+
+    style Q fill:#f5f5f5
+    style R fill:#4285f4
+    style C fill:#34a853
+    style G fill:#fbbc04
+    style A fill:#9c27b0
+    style E1 fill:#4285f4
+    style E2 fill:#34a853
+    style E3 fill:#fbbc04
+    style E4 fill:#ea4335
 ```
 
 ### Ragas vs AWS Bedrock RAG Evaluation
@@ -651,30 +652,35 @@ print(f"Metrics: {result['metrics']}")
 ### 메트릭별 개선 방향
 
 ```mermaid
-graph TD
-    subgraph "낮은 Faithfulness"
-        F1["프롬프트에 컨텍스트 강조 추가"]
-        F2["Temperature 낮추기"]
-        F3["더 강력한 LLM 사용"]
+flowchart TB
+    subgraph Faith["낮은 Faithfulness 개선"]
+        F1[프롬프트에<br/>컨텍스트 강조]
+        F2[Temperature<br/>낮추기]
+        F3[더 강력한<br/>LLM 사용]
     end
-    
-    subgraph "낮은 Context Precision"
-        CP1["임베딩 모델 개선"]
-        CP2["청킹 전략 조정"]
-        CP3["리랭킹 모델 추가"]
+
+    subgraph Precision["낮은 Context Precision 개선"]
+        CP1[임베딩 모델<br/>개선]
+        CP2[청킹 전략<br/>조정]
+        CP3[리랭킹 모델<br/>추가]
     end
-    
-    subgraph "낮은 Context Recall"
-        CR1["검색 k값 증가"]
-        CR2["하이브리드 검색 적용"]
-        CR3["지식 베이스 확장"]
+
+    subgraph Recall["낮은 Context Recall 개선"]
+        CR1[검색 k값<br/>증가]
+        CR2[하이브리드<br/>검색 적용]
+        CR3[지식 베이스<br/>확장]
     end
-    
-    subgraph "낮은 Answer Relevancy"
-        AR1["프롬프트 명확화"]
-        AR2["Few-shot 예제 추가"]
-        AR3["출력 형식 지정"]
+
+    subgraph Relevancy["낮은 Answer Relevancy 개선"]
+        AR1[프롬프트<br/>명확화]
+        AR2[Few-shot<br/>예제 추가]
+        AR3[출력 형식<br/>지정]
     end
+
+    style Faith fill:#34a853
+    style Precision fill:#4285f4
+    style Recall fill:#fbbc04
+    style Relevancy fill:#ea4335
 ```
 
 ### 개선 체크리스트

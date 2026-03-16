@@ -39,7 +39,7 @@ Kubernetes 네이티브 접근 방식의 핵심 철학은 오픈소스 생태계
 - [4. GPU 리소스 관리](./model-serving/gpu-resource-management.md) — MIG, Time-Slicing 등 GPU 리소스 설정
 - [5. vLLM 모델 서빙](./model-serving/vllm-model-serving.md) — 기본 모델 서빙 구성
 - [6. MoE 모델 서빙](./model-serving/moe-model-serving.md) — Mixture of Experts 모델 서빙
-- [7. llm-d EKS Auto Mode](./model-serving/llm-d-eks-automode.md) — Kubernetes 네이티브 분산 추론
+- [7. llm-d 분산 추론](./model-serving/llm-d-eks-automode.md) — Kubernetes 네이티브 분산 추론 (Auto Mode & Karpenter)
 - [8. NeMo 프레임워크](./model-serving/nemo-framework.md) — 학습 및 서빙 프레임워크
 
 ### [게이트웨이 & 에이전트](./gateway-agents/index.md)
@@ -75,37 +75,37 @@ Kubernetes 네이티브 접근 방식의 핵심 철학은 오픈소스 생태계
 ## 🏗️ 아키텍처 패턴
 
 ```mermaid
-graph TB
-    subgraph Client["Client Layer"]
-        WebUI["Web UI"]
-        API["API Gateway"]
+flowchart TB
+    subgraph Client["클라이언트 계층"]
+        WebUI[Web UI]
+        APIGateway[API Gateway]
     end
-    
-    subgraph Orchestration["Orchestration Layer"]
-        LangGraph["LangGraph"]
-        Workflow["Workflow Engine"]
+
+    subgraph Orchestration["오케스트레이션"]
+        LangGraph[LangGraph]
+        Workflow[Workflow<br/>Engine]
     end
-    
-    subgraph LLMIntegration["LLM Integration Layer"]
-        LiteLLM["LiteLLM Router"]
-        OpenAI["OpenAI"]
-        Anthropic["Anthropic Claude"]
-        Google["Google Gemini"]
-        Custom["Custom Models"]
+
+    subgraph LLM["LLM 통합"]
+        LiteLLM[LiteLLM<br/>Router]
+        OpenAI[OpenAI]
+        Anthropic[Anthropic<br/>Claude]
+        Google[Google<br/>Gemini]
+        Custom[Custom<br/>Models]
     end
-    
-    subgraph Compute["Compute Layer"]
-        GPU["GPU Nodes"]
-        CPU["CPU Nodes"]
+
+    subgraph Compute["컴퓨팅"]
+        GPU[GPU<br/>Nodes]
+        CPU[CPU<br/>Nodes]
     end
-    
-    subgraph Observability["Observability"]
-        Langfuse["Langfuse Monitoring"]
-        Metrics["Metrics & Logging"]
+
+    subgraph Observability["관찰성"]
+        Langfuse[Langfuse]
+        Metrics[Metrics &<br/>Logging]
     end
-    
-    Client --> API
-    API --> Orchestration
+
+    Client --> APIGateway
+    APIGateway --> Orchestration
     Orchestration --> LiteLLM
     LiteLLM --> OpenAI
     LiteLLM --> Anthropic
@@ -116,10 +116,10 @@ graph TB
     Workflow --> Langfuse
     GPU --> Metrics
     CPU --> Metrics
-    
+
     style Client fill:#34a853
-    style Orchestration fill:#4286f4
-    style LLMIntegration fill:#ea4335
+    style Orchestration fill:#4285f4
+    style LLM fill:#ea4335
     style Compute fill:#fbbc04
     style Observability fill:#9c27b0
 ```

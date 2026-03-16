@@ -60,57 +60,48 @@ Kagent는 Kubernetes Operator 패턴을 따르며, Controller, CRD, Webhook으�
 
 
 ```mermaid
-graph TB
-    subgraph ControlPlane["Control Plane"]
-        CONTROLLER["Kagent Controller<br/>(Reconciliation Loop)"]
-        WEBHOOK["Admission Webhook<br/>(Validation/Mutation)"]
-        METRICS["Metrics Server<br/>(Prometheus)"]
+flowchart TB
+    subgraph CP["Control Plane"]
+        CTRL[Controller<br/>Reconcile]
+        WH[Webhook<br/>Validate]
+        MET[Metrics]
     end
-    
-    subgraph CRDs["Custom Resource Definitions"]
-        AGENT_CRD["Agent CRD<br/>(에이전트 정의)"]
-        TOOL_CRD["Tool CRD<br/>(도구 정의)"]
-        WORKFLOW_CRD["Workflow CRD<br/>(워크플로우 정의)"]
-        MEMORY_CRD["MemoryStore CRD<br/>(메모리 설정)"]
+
+    subgraph CRD["CRDs"]
+        A_CRD[Agent]
+        T_CRD[Tool]
+        W_CRD[Workflow]
+        M_CRD[Memory]
     end
-    
-    subgraph ManagedResources["Managed Resources"]
-        DEPLOY["Deployments"]
-        SVC["Services"]
-        HPA["HPA/KEDA"]
-        CM["ConfigMaps"]
-        SECRET["Secrets"]
+
+    subgraph RES["Managed Resources"]
+        DEP[Deployments]
+        SVC[Services]
+        HPA[HPA/KEDA]
+        CM[ConfigMaps]
+        SEC[Secrets]
     end
-    
-    subgraph AgentRuntime["Agent Runtime"]
-        POD1["Agent Pod 1"]
-        POD2["Agent Pod 2"]
-        PODN["Agent Pod N"]
+
+    subgraph RT["Agent Runtime"]
+        P1[Pod 1]
+        P2[Pod 2]
+        PN[Pod N]
     end
-    
-    CONTROLLER --> AGENT_CRD
-    CONTROLLER --> TOOL_CRD
-    CONTROLLER --> WORKFLOW_CRD
-    CONTROLLER --> MEMORY_CRD
-    WEBHOOK --> AGENT_CRD
-    WEBHOOK --> TOOL_CRD
-    
-    AGENT_CRD --> DEPLOY
-    AGENT_CRD --> SVC
-    AGENT_CRD --> HPA
-    AGENT_CRD --> CM
-    TOOL_CRD --> SECRET
-    
-    DEPLOY --> POD1
-    DEPLOY --> POD2
-    DEPLOY --> PODN
-    
-    METRICS --> CONTROLLER
-    
-    style ControlPlane fill:#e8f5e9
-    style CRDs fill:#fff3e0
-    style ManagedResources fill:#e3f2fd
-    style AgentRuntime fill:#fce4ec
+
+    CTRL --> A_CRD & T_CRD & W_CRD & M_CRD
+    WH --> A_CRD & T_CRD
+
+    A_CRD --> DEP & SVC & HPA & CM
+    T_CRD --> SEC
+
+    DEP --> P1 & P2 & PN
+
+    MET --> CTRL
+
+    style CP fill:#326ce5,stroke:#333
+    style CRD fill:#ffd93d,stroke:#333
+    style RES fill:#ff9900,stroke:#333
+    style RT fill:#76b900,stroke:#333
 ```
 
 ### 컴포넌트 설명
@@ -124,25 +115,26 @@ import { ComponentsTable } from '@site/src/components/KagentTables';
 
 ```mermaid
 sequenceDiagram
-    participant User as 사용자
-    participant API as Kubernetes API
-    participant Webhook as Admission Webhook
-    participant Controller as Kagent Controller
-    participant Runtime as Agent Runtime
-    
-    User->>API: 1. Agent CRD 생성
-    API->>Webhook: 2. 유효성 검사 요청
-    Webhook-->>API: 3. 검증 결과 (승인/거부)
-    API-->>User: 4. CRD 생성 완료
-    
-    Note over Controller: 5. Watch 이벤트 수신
-    Controller->>API: 6. Deployment 생성
-    Controller->>API: 7. Service 생성
-    Controller->>API: 8. HPA 생성
-    
-    API->>Runtime: 9. Pod 스케줄링
-    Runtime-->>Controller: 10. 상태 보고
-    Controller->>API: 11. Agent Status 업데이트
+    participant U as User
+    participant A as K8s API
+    participant W as Webhook
+    participant C as Controller
+    participant R as Runtime
+
+    U->>A: Agent CRD 생성
+    A->>W: 유효성 검사
+    W-->>A: 검증 결과
+    A-->>U: 생성 완료
+
+    Note over C: Watch 이벤트
+
+    C->>A: Deployment 생성
+    C->>A: Service 생성
+    C->>A: HPA 생성
+
+    A->>R: Pod 스케줄링
+    R-->>C: 상태 보고
+    C->>A: Status 업데이트
 ```
 
 ## Kagent 설치
@@ -1031,34 +1023,30 @@ kubectl apply -f agents/customer-support-agent.yaml
 ### 에이전트 간 통신
 
 ```mermaid
-graph LR
-    subgraph Orchestrator["Orchestrator Agent"]
-        ORCH["작업 분배<br/>결과 통합"]
+flowchart TB
+    subgraph ORC["Orchestrator"]
+        O[작업 분배<br/>결과 통합]
     end
-    
-    subgraph Workers["Worker Agents"]
-        RESEARCH["Research Agent<br/>(정보 수집)"]
-        ANALYSIS["Analysis Agent<br/>(데이터 분석)"]
-        WRITER["Writer Agent<br/>(문서 작성)"]
+
+    subgraph WRK["Workers"]
+        R[Research<br/>정보 수집]
+        A[Analysis<br/>데이터 분석]
+        W[Writer<br/>문서 작성]
     end
-    
-    subgraph Communication["통신 방식"]
-        QUEUE["Message Queue<br/>(Redis/Kafka)"]
-        GRPC["gRPC<br/>(Direct Call)"]
+
+    subgraph COM["Communication"]
+        Q[Message Queue<br/>Redis/Kafka]
+        G[gRPC<br/>Direct Call]
     end
-    
-    ORCH --> QUEUE
-    QUEUE --> RESEARCH
-    QUEUE --> ANALYSIS
-    QUEUE --> WRITER
-    RESEARCH --> GRPC
-    ANALYSIS --> GRPC
-    WRITER --> GRPC
-    GRPC --> ORCH
-    
-    style Orchestrator fill:#e8f5e9
-    style Workers fill:#fff3e0
-    style Communication fill:#e3f2fd
+
+    O --> Q
+    Q --> R & A & W
+    R & A & W --> G
+    G --> O
+
+    style ORC fill:#326ce5,stroke:#333
+    style WRK fill:#ffd93d,stroke:#333
+    style COM fill:#76b900,stroke:#333
 ```
 
 

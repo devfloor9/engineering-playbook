@@ -31,42 +31,42 @@ SageMaker의 관리형 학습 환경과 EKS의 유연한 서빙 인프라를 결
 ### 전체 아키텍처 개요
 
 ```mermaid
-flowchart TB
-    subgraph "SageMaker Training"
-        SM_NB[SageMaker Notebooks<br/>Development]
-        SM_TRAIN[SageMaker Training Jobs<br/>Managed Training]
-        SM_PIPE[SageMaker Pipelines<br/>Orchestration]
-        SM_REG[SageMaker Model Registry<br/>Central Governance]
+flowchart LR
+    subgraph SageMaker["SageMaker 학습"]
+        SM_NB[Notebooks<br/>개발]
+        SM_TRAIN[Training Jobs<br/>관리형 학습]
+        SM_PIPE[Pipelines<br/>오케스트레이션]
+        SM_REG[Model Registry<br/>중앙 거버넌스]
     end
-    
-    subgraph "EKS Serving"
-        KSERVE[KServe<br/>Model Serving]
-        TRITON[Triton Inference Server<br/>GPU Optimization]
-        GATEWAY[Inference Gateway<br/>Traffic Management]
-        MONITOR[Prometheus + Grafana<br/>Monitoring]
+
+    subgraph Storage["공유 스토리지"]
+        S3[S3<br/>모델 아티팩트]
+        ECR[ECR<br/>컨테이너]
     end
-    
-    subgraph "Shared Storage"
-        S3[S3 Model Artifacts<br/>Versioned Storage]
-        ECR[ECR Container Registry<br/>Custom Images]
+
+    subgraph EKS["EKS 서빙"]
+        KSERVE[KServe<br/>모델 서빙]
+        TRITON[Triton<br/>GPU 최적화]
+        GATEWAY[Gateway<br/>트래픽 관리]
+        MONITOR[Monitoring<br/>관찰성]
     end
-    
+
     SM_NB --> SM_TRAIN
     SM_TRAIN --> SM_PIPE
     SM_PIPE --> SM_REG
-    SM_REG --> S3
-    
-    S3 --> KSERVE
-    ECR --> KSERVE
+    SM_REG -->|모델 저장| S3
+
+    S3 -->|모델 로드| KSERVE
+    ECR -->|이미지 로드| KSERVE
     KSERVE --> TRITON
     TRITON --> GATEWAY
     GATEWAY --> MONITOR
-    
-    SM_PIPE -.->|Trigger Deployment| KSERVE
-    
-    style SM_TRAIN fill:#ff9900
-    style KSERVE fill:#326ce5
-    style S3 fill:#569a31
+
+    SM_PIPE -.->|배포 트리거| KSERVE
+
+    style SageMaker fill:#ff9900
+    style Storage fill:#569a31
+    style EKS fill:#326ce5
 ```
 
 ### 패턴 1: SageMaker 학습 → EKS 서빙
@@ -308,39 +308,42 @@ def hybrid_ml_pipeline(
 SageMaker Model Registry는 모든 모델의 중앙 저장소 역할을 하며, EKS 서빙 환경에서도 동일한 거버넌스를 적용할 수 있습니다.
 
 ```mermaid
-flowchart TB
-    subgraph "Model Lifecycle"
-        DEV[개발 환경<br/>실험 모델]
+flowchart LR
+    subgraph Lifecycle["모델 라이프사이클"]
+        DEV[개발<br/>실험 모델]
         STAGING[스테이징<br/>검증 중]
-        PROD[프로덕션<br/>승인된 모델]
-        ARCHIVED[아카이브<br/>폐기된 모델]
+        PROD[프로덕션<br/>승인됨]
+        ARCHIVED[아카이브<br/>폐기됨]
     end
-    
-    subgraph "Approval Process"
+
+    subgraph Approval["승인 프로세스"]
         AUTO[자동 승인<br/>메트릭 기반]
         MANUAL[수동 승인<br/>리뷰 필요]
     end
-    
-    subgraph "Deployment Targets"
-        SM_EP[SageMaker Endpoint]
-        EKS_KSERVE[EKS KServe]
-        BATCH[Batch Transform]
+
+    subgraph Deploy["배포 타겟"]
+        SM_EP[SageMaker<br/>Endpoint]
+        EKS_KSERVE[EKS<br/>KServe]
+        BATCH[Batch<br/>Transform]
     end
-    
+
     DEV --> STAGING
     STAGING --> AUTO
     STAGING --> MANUAL
     AUTO --> PROD
     MANUAL --> PROD
     PROD --> ARCHIVED
-    
-    PROD --> SM_EP
-    PROD --> EKS_KSERVE
-    PROD --> BATCH
-    
-    style PROD fill:#34a853
+
+    PROD -->|배포| SM_EP
+    PROD -->|배포| EKS_KSERVE
+    PROD -->|배포| BATCH
+
+    style DEV fill:#f5f5f5
     style STAGING fill:#fbbc04
+    style PROD fill:#34a853
     style ARCHIVED fill:#ea4335
+    style Approval fill:#4285f4
+    style Deploy fill:#326ce5
 ```
 
 ### Model Registry 설정
@@ -595,48 +598,49 @@ def get_eks_serving_costs(cluster_name: str, days=30):
 
 ```mermaid
 flowchart TB
-    subgraph "Primary Region (us-west-2)"
-        SM_TRAIN[SageMaker Training]
-        SM_REG[Model Registry<br/>Primary]
-        S3_PRIMARY[S3 Model Artifacts<br/>Primary]
+    subgraph Primary["Primary (us-west-2)"]
+        SM_TRAIN[SageMaker<br/>Training]
+        SM_REG[Model<br/>Registry]
+        S3_PRIMARY[S3<br/>Primary]
     end
-    
-    subgraph "Secondary Region (ap-northeast-2)"
-        S3_REPLICA[S3 Model Artifacts<br/>Replica]
-        EKS_AP[EKS Cluster<br/>Seoul]
-        KSERVE_AP[KServe<br/>Asia Pacific]
+
+    subgraph APNE2["Seoul (ap-northeast-2)"]
+        S3_REPLICA[S3<br/>Replica]
+        EKS_AP[EKS<br/>Seoul]
+        KSERVE_AP[KServe<br/>APNE2]
     end
-    
-    subgraph "Secondary Region (eu-west-1)"
-        S3_EU[S3 Model Artifacts<br/>Replica]
-        EKS_EU[EKS Cluster<br/>Ireland]
-        KSERVE_EU[KServe<br/>Europe]
+
+    subgraph EUW1["Ireland (eu-west-1)"]
+        S3_EU[S3<br/>Replica]
+        EKS_EU[EKS<br/>Ireland]
+        KSERVE_EU[KServe<br/>EUW1]
     end
-    
-    subgraph "Global Traffic Management"
+
+    subgraph Global["글로벌 트래픽"]
+        CLOUDFRONT[CloudFront<br/>Edge Cache]
         R53[Route 53<br/>Geo Routing]
-        CLOUDFRONT[CloudFront<br/>Edge Caching]
     end
-    
+
     SM_TRAIN --> SM_REG
     SM_REG --> S3_PRIMARY
-    
-    S3_PRIMARY -->|S3 Cross-Region Replication| S3_REPLICA
-    S3_PRIMARY -->|S3 Cross-Region Replication| S3_EU
-    
+
+    S3_PRIMARY -->|복제| S3_REPLICA
+    S3_PRIMARY -->|복제| S3_EU
+
     S3_REPLICA --> EKS_AP
     EKS_AP --> KSERVE_AP
-    
+
     S3_EU --> EKS_EU
     EKS_EU --> KSERVE_EU
-    
-    R53 --> KSERVE_AP
-    R53 --> KSERVE_EU
+
     CLOUDFRONT --> R53
-    
-    style SM_TRAIN fill:#ff9900
-    style KSERVE_AP fill:#326ce5
-    style KSERVE_EU fill:#326ce5
+    R53 -->|라우팅| KSERVE_AP
+    R53 -->|라우팅| KSERVE_EU
+
+    style Primary fill:#ff9900
+    style APNE2 fill:#326ce5
+    style EUW1 fill:#326ce5
+    style Global fill:#9c27b0
 ```
 
 ### S3 Cross-Region Replication 설정
@@ -824,47 +828,49 @@ print(results)
 ### 통합 모니터링 아키텍처
 
 ```mermaid
-flowchart TB
-    subgraph "Data Collection"
-        KSERVE[KServe Predictor<br/>Inference Requests]
-        LOGGER[Request Logger<br/>Sidecar]
+flowchart LR
+    subgraph Collection["데이터 수집"]
+        KSERVE[KServe<br/>Predictor]
+        LOGGER[Logger<br/>Sidecar]
     end
-    
-    subgraph "SageMaker Model Monitor"
-        DATA_QUALITY[Data Quality Monitor<br/>Input Drift]
-        MODEL_QUALITY[Model Quality Monitor<br/>Prediction Drift]
-        BIAS[Bias Monitor<br/>Fairness]
-        EXPLAINABILITY[Explainability Monitor<br/>Feature Attribution]
+
+    subgraph Storage["저장 & 분석"]
+        S3_LOGS[S3<br/>추론 로그]
+        ATHENA[Athena<br/>SQL 분석]
     end
-    
-    subgraph "Storage & Analysis"
-        S3_LOGS[S3 Inference Logs<br/>Structured Data]
-        ATHENA[Amazon Athena<br/>SQL Analysis]
+
+    subgraph Monitor["모델 모니터"]
+        DATA_QUALITY[Data<br/>Quality]
+        MODEL_QUALITY[Model<br/>Quality]
+        BIAS[Bias<br/>Monitor]
+        EXPLAINABILITY[Explain<br/>Monitor]
     end
-    
-    subgraph "Alerting"
-        CW_ALARMS[CloudWatch Alarms<br/>Threshold Violations]
-        SNS[SNS Topics<br/>Notifications]
-        LAMBDA[Lambda Functions<br/>Auto-remediation]
+
+    subgraph Alert["알림"]
+        CW_ALARMS[CloudWatch<br/>Alarms]
+        SNS[SNS<br/>Topics]
+        LAMBDA[Lambda<br/>Auto-fix]
     end
-    
-    KSERVE --> LOGGER
+
+    KSERVE -->|요청/응답| LOGGER
     LOGGER --> S3_LOGS
-    
-    S3_LOGS --> DATA_QUALITY
-    S3_LOGS --> MODEL_QUALITY
-    S3_LOGS --> BIAS
-    S3_LOGS --> EXPLAINABILITY
-    
-    S3_LOGS --> ATHENA
-    
-    DATA_QUALITY --> CW_ALARMS
-    MODEL_QUALITY --> CW_ALARMS
+
+    S3_LOGS -->|입력 분석| DATA_QUALITY
+    S3_LOGS -->|예측 분석| MODEL_QUALITY
+    S3_LOGS -->|편향 분석| BIAS
+    S3_LOGS -->|해석성 분석| EXPLAINABILITY
+
+    S3_LOGS -->|쿼리| ATHENA
+
+    DATA_QUALITY -->|위반| CW_ALARMS
+    MODEL_QUALITY -->|위반| CW_ALARMS
     CW_ALARMS --> SNS
     SNS --> LAMBDA
-    
-    style DATA_QUALITY fill:#ff9900
-    style MODEL_QUALITY fill:#ff9900
+
+    style Collection fill:#326ce5
+    style Storage fill:#569a31
+    style Monitor fill:#ff9900
+    style Alert fill:#ea4335
 ```
 
 ### KServe Logger Sidecar 설정

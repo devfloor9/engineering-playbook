@@ -39,30 +39,36 @@ MoE 모델은 여러 개의 "Expert" 네트워크와 이를 선택하는 "Router
 
 ```mermaid
 flowchart TB
-    subgraph "MoE Layer"
-        INPUT[Input Token<br/>Hidden State]
-        
-        subgraph "Router Network"
-            GATE[Gating Network<br/>Softmax Router]
-        end
-        
-        subgraph "Expert Networks"
-            E1[Expert 1<br/>FFN]
-            E2[Expert 2<br/>FFN]
-            E3[Expert 3<br/>FFN]
-            E4[Expert 4<br/>FFN]
-            EN[Expert N<br/>FFN]
-        end
-        
-        COMBINE[Weighted<br/>Combination]
-        OUTPUT[Output<br/>Hidden State]
+    INPUT[Input Token<br/>Hidden State]
+
+    GATE[Router<br/>Softmax]
+
+    subgraph Experts["Expert Networks"]
+        E1[Expert 1<br/>FFN]
+        E2[Expert 2<br/>FFN]
+        E3[Expert 3<br/>FFN]
+        E4[Expert 4<br/>FFN]
+        EN[Expert N<br/>FFN]
     end
-    
+
+    COMBINE[Weighted<br/>Combination]
+    OUTPUT[Output<br/>Hidden State]
+
     INPUT --> GATE
-    GATE -->|"Top-K Selection<br/>(K=2)"| E1 & E2
-    GATE -.->|"Not Selected"| E3 & E4 & EN
-    E1 & E2 --> COMBINE
+    GATE -->|Top-K=2<br/>선택| E1
+    GATE -->|Top-K=2<br/>선택| E2
+    GATE -.->|미선택| E3
+    GATE -.->|미선택| E4
+    GATE -.->|미선택| EN
+    E1 --> COMBINE
+    E2 --> COMBINE
     COMBINE --> OUTPUT
+
+    style GATE fill:#326ce5
+    style E1 fill:#76b900
+    style E2 fill:#76b900
+    style E3 fill:#f5f5f5
+    style COMBINE fill:#ffd93d
 ```
 
 ### 라우팅 메커니즘
@@ -86,18 +92,24 @@ MoE 모델의 핵심은 입력 토큰에 따라 적절한 Expert를 선택하는
 
 ```mermaid
 flowchart LR
-    subgraph "Dense Model (70B)"
-        D_IN[Input] --> D_ALL[All 70B<br/>Parameters<br/>Active]
+    subgraph Dense["Dense Model (70B)"]
+        D_IN[Input] --> D_ALL[70B<br/>전체 활성화]
         D_ALL --> D_OUT[Output]
     end
-    
-    subgraph "MoE Model (47B Total, ~13B Active)"
+
+    subgraph MoE["MoE Model (47B Total, 13B Active)"]
         M_IN[Input] --> M_GATE[Router]
-        M_GATE --> M_E1[Expert 1<br/>7B Active]
-        M_GATE --> M_E2[Expert 2<br/>7B Active]
-        M_E1 & M_E2 --> M_OUT[Output]
-        M_GATE -.-> M_E3[Expert 3-8<br/>Inactive]
+        M_GATE --> M_E1[Expert 1<br/>7B 활성]
+        M_GATE --> M_E2[Expert 2<br/>7B 활성]
+        M_E1 --> M_OUT[Output]
+        M_E2 --> M_OUT
+        M_GATE -.-> M_E3[Expert 3-8<br/>비활성]
     end
+
+    style D_ALL fill:#ff6b6b
+    style M_E1 fill:#76b900
+    style M_E2 fill:#76b900
+    style M_E3 fill:#f5f5f5
 ```
 
 :::tip MoE 모델의 장점
@@ -137,28 +149,34 @@ DeepSeek-V3는 Multi-head Latent Attention (MLA) 아키텍처를 사용하여 KV
 
 ```mermaid
 flowchart TB
-    subgraph "Tensor Parallelism (TP=4)"
-        direction LR
-        TP1[GPU 0<br/>Layer 1-N<br/>Shard 1/4]
-        TP2[GPU 1<br/>Layer 1-N<br/>Shard 2/4]
-        TP3[GPU 2<br/>Layer 1-N<br/>Shard 3/4]
-        TP4[GPU 3<br/>Layer 1-N<br/>Shard 4/4]
-        TP1 <--> TP2 <--> TP3 <--> TP4
+    subgraph TP["Tensor Parallelism (TP=4)"]
+        TP1[GPU 0<br/>Shard 1/4]
+        TP2[GPU 1<br/>Shard 2/4]
+        TP3[GPU 2<br/>Shard 3/4]
+        TP4[GPU 3<br/>Shard 4/4]
+        TP1 <-->|All-Reduce| TP2
+        TP2 <-->|All-Reduce| TP3
+        TP3 <-->|All-Reduce| TP4
     end
-    
-    subgraph "Expert Parallelism (EP=2)"
-        direction LR
+
+    subgraph EP["Expert Parallelism (EP=2)"]
         EP1[GPU 0-1<br/>Expert 1-4]
         EP2[GPU 2-3<br/>Expert 5-8]
-        EP1 <-.-> EP2
+        EP1 -.->|라우팅| EP2
     end
-    
-    subgraph "Pipeline Parallelism (PP=2)"
-        direction TB
+
+    subgraph PP["Pipeline Parallelism (PP=2)"]
         PP1[GPU 0-3<br/>Layer 1-16]
         PP2[GPU 4-7<br/>Layer 17-32]
-        PP1 --> PP2
+        PP1 -->|순차| PP2
     end
+
+    style TP1 fill:#76b900
+    style TP2 fill:#76b900
+    style EP1 fill:#326ce5
+    style EP2 fill:#326ce5
+    style PP1 fill:#ffd93d
+    style PP2 fill:#ffd93d
 ```
 
 <ParallelizationStrategies />
@@ -168,21 +186,27 @@ flowchart TB
 MoE 모델의 성능 최적화를 위해 Expert 활성화 패턴을 이해해야 합니다.
 
 ```mermaid
-flowchart LR
-    subgraph "Token Distribution"
+flowchart TB
+    subgraph Dist["Token Distribution"]
         T1[Token 1] --> E1[Expert 1]
         T2[Token 2] --> E3[Expert 3]
-        T3[Token 3] --> E1[Expert 1]
+        T3[Token 3] --> E1
         T4[Token 4] --> E2[Expert 2]
         T5[Token 5] --> E4[Expert 4]
     end
-    
-    subgraph "Load Imbalance"
-        E1_LOAD[Expert 1<br/>40% Load]
-        E2_LOAD[Expert 2<br/>20% Load]
-        E3_LOAD[Expert 3<br/>25% Load]
-        E4_LOAD[Expert 4<br/>15% Load]
+
+    subgraph Load["Load Imbalance"]
+        E1_LOAD[Expert 1: 40%]
+        E2_LOAD[Expert 2: 20%]
+        E3_LOAD[Expert 3: 25%]
+        E4_LOAD[Expert 4: 15%]
     end
+
+    style E1 fill:#ff6b6b
+    style E1_LOAD fill:#ff6b6b
+    style E2_LOAD fill:#76b900
+    style E3_LOAD fill:#ffd93d
+    style E4_LOAD fill:#76b900
 ```
 
 :::info Expert 로드 밸런싱
@@ -885,18 +909,24 @@ KV Cache는 추론 성능에 큰 영향을 미치는 핵심 요소입니다.
 
 ```mermaid
 flowchart LR
-    subgraph "Traditional KV Cache"
-        T1[Token 1 KV] --> T2[Token 2 KV] --> T3[Token 3 KV]
+    subgraph Trad["Traditional KV Cache"]
+        T1[Token 1<br/>KV] --> T2[Token 2<br/>KV]
+        T2 --> T3[Token 3<br/>KV]
         T3 --> WASTE[Wasted<br/>Memory]
     end
-    
-    subgraph "PagedAttention (vLLM)"
+
+    subgraph Paged["PagedAttention (vLLM)"]
         P1[Page 1<br/>Token 1-4]
         P2[Page 2<br/>Token 5-8]
         P3[Page 3<br/>Token 9-12]
-        POOL[Memory Pool<br/>Dynamic Allocation]
-        P1 & P2 & P3 --> POOL
+        POOL[Memory Pool<br/>동적 할당]
+        P1 -.-> POOL
+        P2 -.-> POOL
+        P3 -.-> POOL
     end
+
+    style WASTE fill:#ff6b6b
+    style POOL fill:#76b900
 ```
 
 #### vLLM KV Cache 설정
@@ -926,21 +956,21 @@ Speculative Decoding은 작은 드래프트 모델을 사용하여 추론 속도
 
 ```mermaid
 sequenceDiagram
-    participant Draft as Draft Model<br/>(Small)
-    participant Target as Target Model<br/>(Mixtral 8x7B)
-    participant Output as Output
-    
-    Note over Draft,Output: Speculative Decoding 과정
-    
-    Draft->>Draft: K개 토큰 빠르게 생성
-    Draft->>Target: K개 토큰 검증 요청
-    Target->>Target: 병렬로 K개 토큰 검증
-    
-    alt 모든 토큰 승인
-        Target->>Output: K개 토큰 출력
-    else 일부 토큰 거부
-        Target->>Output: 승인된 토큰만 출력
-        Target->>Draft: 거부 지점부터 재생성
+    participant Draft as Draft<br/>Model
+    participant Target as Target<br/>Model
+    participant Out as Output
+
+    Note over Draft,Out: Speculative Decoding
+
+    Draft->>Draft: K개 토큰 생성
+    Draft->>Target: 검증 요청
+    Target->>Target: 병렬 검증
+
+    alt 승인
+        Target->>Out: K개 출력
+    else 거부
+        Target->>Out: 일부 출력
+        Target->>Draft: 재생성
     end
 ```
 

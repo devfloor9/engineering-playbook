@@ -31,35 +31,35 @@ Amazon Bedrock AgentCore는 완전 관리형 AI 에이전트 프로덕션 런타
 ### AgentCore 3계층 구조
 
 ```mermaid
-graph TB
-    subgraph "AgentCore Runtime"
-        Agent["AI 에이전트<br/>(Strands/LangGraph)"]
-        Runtime["AgentCore Runtime<br/>관리형 실행 환경"]
+flowchart TB
+    subgraph RT["AgentCore Runtime"]
+        A[AI Agent<br/>Strands/LangGraph]
+        R[Runtime<br/>관리형]
     end
 
-    subgraph "AgentCore Gateway"
-        GW["MCP Gateway<br/>프로토콜 라우터"]
-        Auth["Cognito JWT<br/>인증/인가"]
-        Discovery["도구 검색<br/>서비스"]
+    subgraph GW["Gateway"]
+        M[MCP Gateway<br/>라우터]
+        AU[Cognito JWT<br/>인증]
+        D[도구 검색]
     end
 
-    subgraph "MCP Tools"
-        Lambda["Lambda Functions<br/>(MCP 서버)"]
-        EKS_MCP["EKS MCP 서버<br/>(K8s 통합)"]
-        Custom["커스텀 MCP 서버"]
+    subgraph TOOL["MCP Tools"]
+        L[Lambda<br/>MCP 서버]
+        E[EKS MCP<br/>K8s 통합]
+        C[Custom<br/>MCP 서버]
     end
 
-    Agent --> Runtime
-    Runtime --> GW
-    GW --> Auth
-    GW --> Discovery
-    Discovery --> Lambda
-    Discovery --> EKS_MCP
-    Discovery --> Custom
+    A --> R
+    R --> M
+    M --> AU
+    M --> D
+    D --> L & E & C
 
-    style Agent fill:#ff9900
-    style GW fill:#4286f4
-    style Lambda fill:#34a853
+    style A fill:#ff9900,stroke:#333
+    style M fill:#326ce5,stroke:#333
+    style L fill:#76b900,stroke:#333
+    style E fill:#ffd93d,stroke:#333
+    style C fill:#e53935,stroke:#333
 ```
 
 ### MCP 프로토콜
@@ -189,24 +189,23 @@ response = bedrock_runtime.invoke_agent(
 <MultiAgentPatterns />
 
 ```mermaid
-graph TB
-    Master["마스터 에이전트"]
-    
-    subgraph "전문 에이전트"
-        Diag["진단 에이전트<br/>(EKS MCP)"]
-        Analyze["분석 에이전트<br/>(CloudWatch)"]
-        Remedy["해결 에이전트<br/>(Runbook)"]
+flowchart TB
+    M[마스터<br/>에이전트]
+
+    subgraph SPEC["전문 에이전트"]
+        D[진단<br/>EKS MCP]
+        A[분석<br/>CloudWatch]
+        R[해결<br/>Runbook]
     end
-    
-    Master --> Diag
-    Master --> Analyze
-    Diag --> Remedy
-    Analyze --> Remedy
-    
-    style Master fill:#ff9900
-    style Diag fill:#4286f4
-    style Analyze fill:#34a853
-    style Remedy fill:#ea4335
+
+    M --> D & A
+    D --> R
+    A --> R
+
+    style M fill:#ff9900,stroke:#333
+    style D fill:#326ce5,stroke:#333
+    style A fill:#76b900,stroke:#333
+    style R fill:#e53935,stroke:#333
 ```
 
 ## 보안 및 접근 제어
