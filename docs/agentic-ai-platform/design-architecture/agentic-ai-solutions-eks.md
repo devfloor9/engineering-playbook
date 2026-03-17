@@ -37,15 +37,15 @@ import {
   ChallengeSolutionsSummary
 } from '@site/src/components/AgenticSolutionsTables';
 
-> 📅 **작성일**: 2025-02-05 | **수정일**: 2026-02-14 | ⏱️ **읽는 시간**: 약 21분
+> 📅 **작성일**: 2025-02-05 | **수정일**: 2026-03-17 | ⏱️ **읽는 시간**: 약 21분
 
 :::info 선행 문서: 기술적 도전과제
-이 문서를 읽기 전에 [Agentic AI 워크로드의 기술적 도전과제](./agentic-ai-challenges.md)를 먼저 읽어보시기 바랍니다. 해당 문서에서 4가지 핵심 도전과제와 Kubernetes 기반 오픈소스 생태계에 대해 설명합니다.
+이 문서를 읽기 전에 [Agentic AI 워크로드의 기술적 도전과제](./agentic-ai-challenges.md)를 먼저 읽어보시기 바랍니다. 해당 문서에서 5가지 핵심 도전과제와 Kubernetes 기반 오픈소스 생태계에 대해 설명합니다.
 :::
 
 ## 개요
 
-Agentic AI 플랫폼의 4가지 핵심 도전과제(GPU 모니터링, 동적 스케일링, 비용 컨트롤, FM 파인튜닝)는 **Amazon EKS와 AWS 관리형 서비스의 통합**을 통해 효과적으로 해결할 수 있습니다.
+Agentic AI 플랫폼의 5가지 핵심 도전과제(GPU 리소스 관리, 추론 라우팅, LLMOps 관찰성, Agent 오케스트레이션, 모델 공급망)는 **Amazon EKS와 AWS 관리형 서비스의 통합**을 통해 효과적으로 해결할 수 있습니다.
 
 이 문서에서는 **EKS Auto Mode + Karpenter 중심의 구체적인 해결 방안**과 AWS 인프라와의 통합 아키텍처를 다룹니다.
 
@@ -319,44 +319,51 @@ Karpenter는 Node Group 없이 워크로드 요구사항을 직접 분석하여 
 
 ```mermaid
 flowchart TD
-    subgraph Challenges["4가지 핵심 도전과제"]
-        C1["GPU 모니터링 및<br/>리소스 스케줄링"]
-        C2["Agentic AI 요청<br/>동적 라우팅/스케일링"]
-        C3["토큰/세션 수준<br/>모니터링/비용 컨트롤"]
-        C4["FM 파인튜닝과<br/>자동화 파이프라인"]
+    subgraph Challenges["5가지 핵심 도전과제"]
+        C1["GPU 리소스 관리 및<br/>비용 최적화"]
+        C2["지능형 추론 라우팅 및<br/>게이트웨이"]
+        C3["LLMOps 관찰성 및<br/>비용 거버넌스"]
+        C4["Agent 오케스트레이션 및<br/>안전성"]
+        C5["모델 공급망 관리"]
     end
 
     subgraph KarpenterSolutions["Karpenter 중심 해결 방안"]
         S1["Karpenter NodePool<br/>GPU 자동 선택"]
         S2["Karpenter + KEDA<br/>E2E 스케일링"]
         S3["Spot + Consolidation<br/>비용 50-70% 절감"]
-        S4["Training NodePool<br/>EFA 최적화"]
+        S4["Agent Pod<br/>자동 스케일링"]
+        S5["Training NodePool<br/>EFA 최적화"]
     end
 
     subgraph AuxSolutions["보조 솔루션"]
         A1["DCGM Exporter<br/>GPU 메트릭"]
-        A2["Gateway API<br/>동적 라우팅"]
-        A3["LangSmith + Langfuse<br/>토큰 추적"]
-        A4["NeMo + Kubeflow<br/>학습 파이프라인"]
+        A2["kgateway + LiteLLM<br/>동적 라우팅"]
+        A3["LangSmith (Dev) + Langfuse (Prod)<br/>하이브리드 Observability"]
+        A4["LangGraph + NeMo Guardrails<br/>Agent 안전성"]
+        A5["MLflow + Kubeflow + ArgoCD<br/>모델 파이프라인"]
     end
 
     C1 --> S1
     C2 --> S2
     C3 --> S3
     C4 --> S4
+    C5 --> S5
     S1 --> A1
     S2 --> A2
     S3 --> A3
     S4 --> A4
+    S5 --> A5
 
     style C1 fill:#ffe1e1
     style C2 fill:#e1f5ff
     style C3 fill:#fff4e1
-    style C4 fill:#e1ffe1
+    style C4 fill:#f0e1ff
+    style C5 fill:#e1ffe1
     style S1 fill:#ffd93d
     style S2 fill:#ffd93d
     style S3 fill:#ffd93d
     style S4 fill:#ffd93d
+    style S5 fill:#ffd93d
 ```
 
 :::info 대상 독자
@@ -365,7 +372,7 @@ flowchart TD
 
 ---
 
-## 도전과제 1: GPU 모니터링 및 리소스 스케줄링
+## 도전과제 1: GPU 리소스 관리 및 비용 최적화
 
 ### Karpenter 기반 해결 방안
 
@@ -484,7 +491,7 @@ spec:
 
 ---
 
-## 도전과제 2: Agentic AI 요청 동적 라우팅 및 스케일링
+## 도전과제 2: 지능형 추론 라우팅 및 게이트웨이
 
 ### Karpenter + KEDA 연동 해결 방안
 
@@ -1219,7 +1226,7 @@ spec:
 
 ---
 
-## 도전과제 3: 토큰/세션 수준 모니터링 및 비용 컨트롤
+## 도전과제 3: LLMOps 관찰성 및 비용 거버넌스
 
 ### Karpenter 기반 비용 최적화 전략
 
@@ -1462,7 +1469,21 @@ spec:
 
 ---
 
-## 도전과제 4: FM 파인튜닝과 자동화 파이프라인
+## 도전과제 4: Agent 오케스트레이션 및 안전성
+
+Agent 오케스트레이션 및 안전성에 대한 EKS 기반 해결 방안은 다음 문서를 참조하세요:
+
+- [Kagent - Kubernetes 기반 Agent 관리](../gateway-agents/kagent-kubernetes-agents.md) — CRD 기반 에이전트 라이프사이클 관리
+- [Bedrock AgentCore & MCP](../gateway-agents/bedrock-agentcore-mcp.md) — AWS Bedrock 에이전트 통합 및 MCP/A2A 표준
+- [기술적 도전과제 - Agent 오케스트레이션](./agentic-ai-challenges.md#4-agent-오케스트레이션-및-안전성) — LangGraph, NeMo Guardrails, MCP/A2A 상세
+
+:::tip EKS에서의 Agent 안전성
+EKS 환경에서 Agent Pod는 Kubernetes RBAC, Network Policy, Pod Security Standards를 통해 격리됩니다. NeMo Guardrails는 FastAPI 미들웨어로 통합되어 입출력 필터링을 수행하며, LangGraph의 상태 관리는 Redis (ElastiCache)를 checkpointer로 활용합니다.
+:::
+
+---
+
+## 도전과제 5: 모델 공급망 관리 (FM 파인튜닝과 자동화 파이프라인)
 
 ### Karpenter 기반 학습 인프라 구성
 
@@ -2302,12 +2323,12 @@ graph TB
 
 ## 결론: Kubernetes + EKS Auto Mode로 완성하는 AI 인프라 자동화
 
-Agentic AI Platform 구축의 4가지 핵심 도전과제는 **클라우드 인프라 자동화와 AI 플랫폼의 유기적 통합**을 통해 효과적으로 해결할 수 있습니다. 특히 **EKS Auto Mode**는 Karpenter를 포함한 핵심 컴포넌트를 자동으로 관리하여 **완전 자동화의 마지막 퍼즐**을 완성합니다.
+Agentic AI Platform 구축의 5가지 핵심 도전과제는 **클라우드 인프라 자동화와 AI 플랫폼의 유기적 통합**을 통해 효과적으로 해결할 수 있습니다. 특히 **EKS Auto Mode**는 Karpenter를 포함한 핵심 컴포넌트를 자동으로 관리하여 **완전 자동화의 마지막 퍼즐**을 완성합니다.
 
 ```mermaid
 graph TB
     subgraph "문제 인식"
-        P["Agentic AI 플랫폼<br/>4가지 도전과제"]
+        P["Agentic AI 플랫폼<br/>5가지 도전과제"]
     end
 
     subgraph "해결 프레임워크"
@@ -2433,7 +2454,7 @@ spec:
 
 ### LLM Observability
 
-- [LangFuse Documentation](https://langfuse.com/docs)
+- [Langfuse Documentation](https://langfuse.com/docs)
 - [LangSmith Documentation](https://docs.smith.langchain.com/)
 
 ### Agent 프레임워크 및 학습

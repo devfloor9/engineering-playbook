@@ -61,7 +61,7 @@ Kubernetes 네이티브 접근 방식의 핵심 철학은 오픈소스 생태계
 
 이 섹션을 통해 다음을 학습할 수 있습니다:
 
-- Agentic AI 플랫폼 구축 시 4가지 핵심 기술적 도전과제 이해
+- Agentic AI 플랫폼 구축 시 5가지 핵심 기술적 도전과제 이해
 - EKS에서 확장 가능한 GenAI 플랫폼 구축 방법
 - 여러 LLM 제공자(OpenAI, Anthropic, Google 등) 통합
 - 복잡한 AI 워크플로우 설계 및 구현

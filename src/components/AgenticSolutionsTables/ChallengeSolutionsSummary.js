@@ -12,54 +12,66 @@ const ChallengeSolutionsSummary = () => {
   const data = isKo
     ? [
       [
-            "**GPU 모니터링**",
+            "**GPU 리소스 관리**",
             "DCGM + Prometheus",
-            "NodePool 기반 통합 관리",
+            "NodePool 기반 통합 관리 + MIG",
             "리소스 활용률 40% 향상"
       ],
       [
-            "**동적 스케일링**",
-            "HPA + KEDA",
-            "Just-in-Time 프로비저닝 (자동 구성)",
+            "**추론 라우팅**",
+            "kgateway + LiteLLM",
+            "llm-d KV Cache-aware 라우팅",
             "프로비저닝 시간 50% 단축"
       ],
       [
-            "**비용 컨트롤**",
-            "네임스페이스 Quota",
+            "**LLMOps 관찰성**",
+            "LangSmith (Dev) + Langfuse (Prod)",
             "Spot + Consolidation (자동 활성화)",
             "비용 50-70% 절감"
       ],
       [
-            "**FM 파인튜닝**",
-            "Kubeflow Operator",
+            "**Agent 오케스트레이션**",
+            "LangGraph + NeMo Guardrails",
+            "Agent Pod 자동 스케일링",
+            "안전성 및 확장성 확보"
+      ],
+      [
+            "**모델 공급망**",
+            "MLflow + Kubeflow + ArgoCD",
             "Training NodePool + EFA",
             "학습 효율성 30% 향상"
       ]
 ]
     : [
       [
-            "**GPU 모니터링**",
+            "**GPU Resource Mgmt**",
             "DCGM + Prometheus",
-            "NodePool 기반 통합 관리",
-            "리소스 활용률 40% 향상"
+            "NodePool + MIG",
+            "40% utilization improvement"
       ],
       [
-            "**동적 스케일링**",
-            "HPA + KEDA",
-            "Just-in-Time 프로비저닝 (자동 구성)",
-            "프로비저닝 시간 50% 단축"
+            "**Inference Routing**",
+            "kgateway + LiteLLM",
+            "llm-d KV Cache-aware routing",
+            "50% faster provisioning"
       ],
       [
-            "**비용 컨트롤**",
-            "네임스페이스 Quota",
-            "Spot + Consolidation (자동 활성화)",
-            "비용 50-70% 절감"
+            "**LLMOps Observability**",
+            "LangSmith (Dev) + Langfuse (Prod)",
+            "Spot + Consolidation",
+            "50-70% cost reduction"
       ],
       [
-            "**FM 파인튜닝**",
-            "Kubeflow Operator",
+            "**Agent Orchestration**",
+            "LangGraph + NeMo Guardrails",
+            "Agent Pod auto-scaling",
+            "Safety & scalability"
+      ],
+      [
+            "**Model Supply Chain**",
+            "MLflow + Kubeflow + ArgoCD",
             "Training NodePool + EFA",
-            "학습 효율성 30% 향상"
+            "30% training efficiency"
       ]
 ];
 

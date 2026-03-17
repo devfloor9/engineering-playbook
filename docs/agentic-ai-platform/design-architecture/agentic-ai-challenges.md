@@ -121,7 +121,8 @@ flowchart TD
         S1["GPU 리소스<br/>통합 관리"]
         S2["동적 스케일링"]
         S3["리소스 할당량<br/>관리"]
-        S4["분산 학습<br/>자동화"]
+        S4["Agent 워크플로우<br/>관리"]
+        S5["분산 학습<br/>자동화"]
     end
 
     API --> GPU
@@ -132,6 +133,7 @@ flowchart TD
     HPA --> S2
     API --> S3
     OP --> S4
+    OP --> S5
 
     style API fill:#326ce5,color:#fff
     style SCHED fill:#326ce5,color:#fff
@@ -978,7 +980,7 @@ spec:
       targetPort: 8080
 ```
 
-### 5. 벡터 데이터베이스 계층: Milvus
+#### 벡터 데이터베이스 계층: Milvus
 
 RAG 파이프라인의 핵심 컴포넌트인 Milvus는 Kubernetes에서 분산 아키텍처로 운영됩니다.
 
@@ -1116,12 +1118,6 @@ Agentic AI 플랫폼을 구축하는 조직을 위한 권장 사항:
 3. **클라우드 통합**: 오픈소스와 관리형 서비스 결합
 4. **인프라 자동화**: 자동 스케일링 및 프로비저닝 구현
 5. **전면적 관측성**: 첫날부터 포괄적인 관측성 확보
-
-:::info 다음 단계: EKS 기반 솔루션
-이러한 도전과제를 해결하기 위한 **Amazon EKS와 AWS 서비스** 활용 방법은 [EKS 기반 Agentic AI 솔루션](./agentic-ai-solutions-eks.md)을 참조하세요.
-:::
-
----
 
 ## 다음 단계
 
