@@ -126,10 +126,12 @@ kgateway 하단에 작은 텍스트: "Path 분기: /api/* → FastAPI, /ws/* →
 | 2 | Redis (Session + Cache) | #FF6B6B | LangGraph checkpointer |
 
 **Agent Framework (중앙):**
-| 박스 | 라벨 | 배경색 |
-|------|------|--------|
-| 1 | LangChain (Agent Runtime) | #FFD93D |
-| 2 | LangGraph (Workflow + ReAct + Tool Registry) | #FFD93D |
+| 박스 | 라벨 | 배경색 | 비고 |
+|------|------|--------|------|
+| 1 | LangChain (Agent Runtime) | #FFD93D | |
+| 2 | LangGraph (Workflow + ReAct + Tool Registry) | #FFD93D | MCP/A2A 프로토콜 지원 |
+
+> Agent Ready 앱은 MCP/A2A 표준 프로토콜로 LangGraph와 연결됩니다.
 
 **RAG Pipeline (우측 상단):**
 | 박스 | 라벨 | 배경색 |
@@ -142,9 +144,11 @@ kgateway 하단에 작은 텍스트: "Path 분기: /api/* → FastAPI, /ws/* →
 | 1 | NeMo Guardrails (Input/Output 필터) | #FF6B6B |
 
 **LLM Router (하단, 전체 폭):**
-| 박스 | 라벨 | 배경색 |
-|------|------|--------|
-| 1 | LiteLLM (LLM Router / 폴백 / 비용 추적) | #FF9900 |
+| 박스 | 라벨 | 배경색 | 비고 |
+|------|------|--------|------|
+| 1 | LiteLLM (LLM Router / 폴백 / 비용 추적) (또는 Bifrost — Rust 기반 고성능 대안) | #FF9900 | 인프라 레벨 비용 집계 |
+
+> LiteLLM은 100+ LLM 프로바이더 통합 및 비용 추적을 제공합니다. 고성능이 필요한 경우 Rust 기반 Bifrost를 대안으로 고려할 수 있습니다.
 
 ---
 
@@ -162,13 +166,15 @@ kgateway 하단에 작은 텍스트: "Path 분기: /api/* → FastAPI, /ws/* →
 llm-d 박스는 전체 폭의 80% 차지, 중앙 배치.
 
 **2단 (Serving Engines):**
-| 박스 | 라벨 | 배경색 | 크기 |
-|------|------|--------|------|
-| 1 | vLLM - Large (Qwen3-72B, TP=4, H100x4) | #FFD93D | 넓게 |
-| 2 | vLLM - Medium (Qwen3-32B, TP=2, H100x2) | #FFD93D | 중간 |
-| 3 | vLLM - Small (EXAONE-32B, TP=2) | #FFD93D | 중간 |
-| 4 | vLLM - LoRA (7B + LoRA, MIG) | #FFD93D | 작게 |
-| 5 | Triton (Whisper / Embedding / Reranker) | #9C27B0 | 중간 |
+| 박스 | 라벨 | 배경색 | 크기 | 비고 |
+|------|------|--------|------|------|
+| 1 | vLLM - Large (Qwen3-72B, TP=4, H100x4) | #FFD93D | 넓게 | LLM 텍스트 생성 |
+| 2 | vLLM - Medium (Qwen3-32B, TP=2, H100x2) | #FFD93D | 중간 | LLM 텍스트 생성 |
+| 3 | vLLM - Small (EXAONE-32B, TP=2) | #FFD93D | 중간 | LLM 텍스트 생성 |
+| 4 | vLLM - LoRA (7B + LoRA, MIG) | #FFD93D | 작게 | LLM 텍스트 생성 |
+| 5 | Triton Inference Server (Whisper STT / BGE-M3 Embedding / Reranker) | #9C27B0 | 중간 | 비-LLM 추론 |
+
+> Triton은 음성인식(Whisper), 임베딩(BGE-M3), 리랭킹 등 비-LLM 추론을 처리합니다.
 
 하단에 가로 막대 박스:
 - "GPU: NVIDIA H100/L40s (EKS Auto Mode + Karpenter)" — 배경 #76B900
@@ -197,13 +203,15 @@ llm-d 박스는 전체 폭의 80% 차지, 중앙 배치.
 컨테이너 제목: "⑤ Data Foundry Layer (RAG Pipeline)"
 
 내부 박스 (가로 배치):
-| 박스 | 라벨 | 배경색 |
-|------|------|--------|
-| 1 | Unstructured.io (문서 파싱 / 청킹) | #00BCD4 |
-| 2 | Milvus (Vector DB) | #326CE5 |
-| 3 | Glue Catalog (Metadata) | #FF9900 |
-| 4 | Label Studio (Data Labeling) | #FF6B6B |
-| 5 | Langfuse (Feedback Loop) | #9C27B0 |
+| 박스 | 라벨 | 배경색 | 비고 |
+|------|------|--------|------|
+| 1 | Unstructured.io (문서 파싱 / 청킹) | #00BCD4 | |
+| 2 | Milvus (Vector DB) | #326CE5 | |
+| 3 | Glue Catalog (Metadata) (선택사항 — 거버넌스 요구 시) | #FF9900 | 점선 테두리 |
+| 4 | Label Studio (Data Labeling) | #FF6B6B | |
+| 5 | Langfuse (Feedback Loop) | #9C27B0 | |
+
+> Glue Catalog은 데이터 거버넌스가 필요한 경우에만 사용하며, 선택 사항입니다.
 
 ---
 
@@ -290,7 +298,7 @@ llm-d 박스는 전체 폭의 80% 차지, 중앙 배치.
 5. kgateway → LiteLLM (/v1/* AI 트래픽)
 6. FastAPI → LangChain / LangGraph (에이전트 요청)
 7. LangChain → LiteLLM (LLM 호출)
-8. LangChain → RAG Chain → Milvus (RAG 검색)
+8. LangChain → RAG Chain → Triton (Embedding) → Milvus (RAG 검색)
 9. LangChain → NeMo Guardrails (Input/Output 필터링, 양방향 화살표)
 10. LiteLLM → llm-d Inference Gateway (자체 모델)
 11. llm-d → vLLM Large / Medium / Small / LoRA (KV Cache-aware 분배)
@@ -300,17 +308,19 @@ llm-d 박스는 전체 폭의 80% 차지, 중앙 배치.
 13. On-Premise (코랩코) --점선화살표--> S3 (모델 아티팩트)
 14. S3 → MLflow (모델 등록)
 15. MLflow → DeepEval → ArgoCD → vLLM (배포 파이프라인)
-16. Unstructured.io → Triton Embedding → Milvus (RAG 인덱싱)
+16. Unstructured.io → Triton (BGE-M3 Embedding) → Milvus (RAG 인덱싱)
+17. RAG Chain → Triton (Embedding) → Milvus (검색 시 임베딩)
 
 ### 모니터링 흐름 (점선, #9C27B0 보라)
-17. vLLM/llm-d --점선--> ADOT --점선--> AMP → AMG
-18. FastAPI --점선--> LangSmith (Dev/Staging 트레이스, 라벨: "Dev 트레이스")
-19. FastAPI --점선--> Langfuse (Production 트레이스, 라벨: "Prod 트레이스")
-20. Langfuse --점선--> Label Studio (피드백 루프)
+18. vLLM/llm-d --점선--> ADOT --점선--> AMP → AMG
+19. FastAPI --점선--> LangSmith (Dev/Staging 트레이스, 라벨: "애플리케이션 레벨")
+20. FastAPI --점선--> Langfuse (Production 트레이스, 라벨: "애플리케이션 레벨")
+21. LiteLLM --점선--> LiteLLM 자체 비용 집계 (라벨: "인프라 레벨")
+22. Langfuse --점선--> Label Studio (피드백 루프)
 
 ### On-Premise 연결 (점선, #E91E63 분홍)
-21. On-Premise (상암) --점선--> LiteLLM (자체 추론 서버 등록)
-22. On-Premise (코랩코) --점선--> S3 (학습 결과 업로드)
+23. On-Premise (상암) --점선--> LiteLLM (자체 추론 서버 등록)
+24. On-Premise (코랩코) --점선--> S3 (학습 결과 업로드)
 
 ---
 
@@ -323,7 +333,7 @@ llm-d 박스는 전체 폭의 80% 차지, 중앙 배치.
 - 분홍 점선: On-Premise 연결
 
 캔버스 우하단에 버전 정보:
-- "v3.0 | 2026-03-17 | 52→26 컴포넌트 + 하이브리드 Observability"
+- "v3.1 | 2026-03-17 | MCP/A2A + Triton + 2-Tier 비용 추적 + Bifrost 대안"
 
 ---
 
@@ -350,6 +360,11 @@ llm-d 박스는 전체 폭의 80% 차지, 중앙 배치.
 - LangSmith + Langfuse: "HYBRID (LangSmith Dev + Langfuse Prod)"
 - Unstructured.io: "NEW"
 - NeMo Guardrails: 4 서브그룹 Safety로 분리 표시
+- Triton Inference Server: "NEW (비-LLM 추론)"
+- MCP/A2A: "NEW (Agent 표준 프로토콜)"
+- Bifrost: "NEW (LiteLLM 대안)"
+- 2-Tier 비용 추적: "NEW (애플리케이션 + 인프라)"
+- Glue Catalog: "OPTIONAL (점선 테두리)"
 - 제거된 컴포넌트는 표시하지 않음
 
 이 사양으로 draw.io XML을 생성해줘.
@@ -391,4 +406,8 @@ draw.io MCP 서버가 설정되어 있다면:
 | 화살표 #5 (구) | kgateway → WebSocket | **제거** (FastAPI에 통합) | 중복 제거 |
 | 화살표 #9 (신규) | — | LangChain → NeMo Guardrails | Safety 서브그룹 명시 |
 | 변경 뱃지 | Langfuse: "CHANGED" | **"HYBRID (LangSmith Dev + Langfuse Prod)"** | 하이브리드 전략 표현 |
-| 버전 | v2.0 | **v3.0** | 52→26 컴포넌트 + 하이브리드 Observability |
+| 비용 추적 | 단일 레이어 | **2-Tier (애플리케이션: Langfuse, 인프라: LiteLLM)** | 계층별 비용 집계 |
+| Triton | 미포함 | **Triton Inference Server 추가** | 비-LLM 추론 (Whisper, BGE-M3, Rerank) |
+| MCP/A2A | 미언급 | **Agent Framework에 MCP/A2A 프로토콜 명시** | 표준 프로토콜 지원 |
+| Glue Catalog | 필수 | **선택사항 (거버넌스 요구 시)** | 유연한 아키텍처 |
+| 버전 | v2.0 | **v3.0** | 52→26 컴포넌트 + 하이브리드 Observability + 2-Tier 비용 추적 |

@@ -69,9 +69,10 @@ flowchart TD
     end
 
     subgraph ModelLayer["Model Serving"]
-        VLLM1["vLLM<br/>GPT-4"]
-        VLLM2["vLLM<br/>Claude"]
-        VLLM3["vLLM<br/>Mixtral"]
+        VLLM1["vLLM<br/>LLM 추론<br/>(Qwen, EXAONE)"]
+        VLLM2["vLLM<br/>LLM 추론<br/>(Claude)"]
+        VLLM3["vLLM<br/>LLM 추론<br/>(Mixtral)"]
+        TRITON["Triton<br/>비-LLM 추론<br/>(Embedding BGE-M3,<br/>Reranking, Whisper STT)"]
     end
 
     subgraph DataLayer["Data Layer"]
@@ -104,6 +105,8 @@ flowchart TD
     AGENT1 --> MILVUS
     AGENT2 --> MILVUS
     AGENTN --> MILVUS
+    AGENT1 --> TRITON
+    AGENT2 --> TRITON
     AGENT1 --> REDIS
     AGENT2 --> REDIS
     MILVUS --> S3
@@ -122,6 +125,15 @@ flowchart TD
     style DataLayer fill:#f0e1ff
     style ObsLayer fill:#e1f5ff
 ```
+
+:::info 2-Tier Cost Tracking
+플랫폼은 두 가지 수준의 비용 가시성을 제공합니다:
+
+- **인프라 레벨 (LiteLLM)**: 모델 가격 × 토큰 사용량 추적, 팀별 예산 관리
+- **애플리케이션 레벨 (Langfuse)**: 에이전트 단계별 비용, 체인 레이턴시 분석
+
+이 두 레이어의 결합으로 전체 비용 가시성을 확보할 수 있습니다.
+:::
 
 ### 레이어별 역할
 
@@ -160,9 +172,13 @@ flowchart LR
 #### 주요 기능
 
 - **상태 관리**: 에이전트의 대화 컨텍스트 및 작업 상태 유지
-- **도구 실행**: 등록된 도구를 비동기적으로 실행
+- **도구 실행**: 등록된 도구를 비동기적으로 실행 (MCP/A2A 프로토콜 지원)
 - **메모리 관리**: 단기/장기 메모리를 통한 컨텍스트 유지
 - **오류 복구**: 실패한 작업의 자동 재시도 및 폴백
+
+:::tip MCP/A2A 프로토콜
+Agent Runtime은 MCP (Model Context Protocol)와 A2A (Agent-to-Agent) 프로토콜을 표준으로 지원합니다. MCP는 에이전트와 외부 도구 간의 통합을 단순화하며, A2A는 에이전트 간 협업을 위한 표준 인터페이스를 제공합니다.
+:::
 
 ### Tool Registry
 
@@ -176,6 +192,7 @@ metadata:
   namespace: ai-agents
 spec:
   type: api
+  protocol: mcp  # MCP 프로토콜 지원
   description: "웹 검색을 수행하여 최신 정보를 가져옵니다"
   config:
     endpoint: http://search-service/api/search

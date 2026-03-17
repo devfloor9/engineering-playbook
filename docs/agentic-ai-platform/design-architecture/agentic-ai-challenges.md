@@ -335,6 +335,10 @@ flowchart TD
 | 기능 범위 | Fallback, Cost tracking, Rate limiting | 고처리량 라우팅 특화 |
 | 권장 시나리오 | 범용, 다양한 프로바이더 | 초저지연, 대규모 트래픽 |
 
+:::tip Bifrost: Rust 기반 고성능 대안
+**Bifrost**는 Rust로 작성된 고성능 LLM 게이트웨이로, LiteLLM 대비 약 50배 빠른 라우팅 성능을 제공합니다. 초저지연이 중요하거나 대규모 트래픽을 처리해야 하는 환경에서 LiteLLM의 대안으로 고려할 수 있습니다. 다만 프로바이더 범위는 주요 프로바이더에 집중되어 있어, 다양한 프로바이더 지원이 필요한 경우 LiteLLM이 더 적합합니다.
+:::
+
 > 자세한 게이트웨이 아키텍처는 **[LLM Gateway 아키텍처](../gateway-agents/inference-gateway-routing.md)** 문서를 참조하세요.
 
 <InferenceGatewayComparison />
@@ -412,6 +416,67 @@ flowchart TD
 
 <ObservabilityComparison />
 
+#### 2-Tier 비용 추적 아키텍처
+
+LLM 애플리케이션의 비용 추적은 **인프라 레벨**과 **애플리케이션 레벨**에서 이중으로 관리되어야 합니다.
+
+```mermaid
+flowchart TD
+    subgraph Application["Application Layer"]
+        LANGGRAPH["LangGraph Agent"]
+        LANGCHAIN["LangChain<br/>ChatOpenAI"]
+    end
+
+    subgraph InfraLayer["Infrastructure Layer (LiteLLM)"]
+        LITELLM["LiteLLM Proxy<br/>OpenAI-compatible"]
+        BUDGET["Budget Tracking<br/>팀/API키별 한도"]
+        CASCADE["Cascade Routing<br/>cheap → premium"]
+        TOKEN["토큰 단가 계산"]
+    end
+
+    subgraph AppLayer["Application Layer (Langfuse)"]
+        LANGFUSE["Langfuse"]
+        STEP_COST["Agent 스텝별 비용"]
+        CHAIN_LAT["체인 전체 latency"]
+        PROMPT_Q["프롬프트 품질 추적"]
+    end
+
+    subgraph Backends["Model Backends"]
+        VLLM["vLLM<br/>(저비용)"]
+        BEDROCK["Bedrock<br/>(중비용)"]
+        OPENAI["OpenAI<br/>(고비용)"]
+    end
+
+    LANGGRAPH -->|callback| LANGFUSE
+    LANGGRAPH --> LANGCHAIN
+    LANGCHAIN -->|"base_url=litellm"| LITELLM
+    LITELLM -->|토큰/비용 집계| TOKEN
+    LITELLM --> BUDGET
+    LITELLM --> CASCADE
+    CASCADE --> VLLM
+    CASCADE --> BEDROCK
+    CASCADE --> OPENAI
+
+    style LITELLM fill:#f0e1ff
+    style LANGFUSE fill:#fff4e1
+    style CASCADE fill:#ffe1e1
+    style InfraLayer fill:#f0f0f0
+    style AppLayer fill:#f0f0f0
+```
+
+**2-Tier 비용 추적 구성 요소:**
+
+| 계층 | 도구 | 추적 대상 | 목적 |
+|------|------|----------|------|
+| 인프라 | LiteLLM | 모델별 토큰 단가, 팀/API키별 budget, Cascade Routing 비용 | 인프라 레벨 비용 제어 및 최적화 |
+| 애플리케이션 | Langfuse | Agent 스텝별 비용, 체인 전체 latency, 프롬프트 품질 | 애플리케이션 레벨 품질 및 비용 추적 |
+
+**통합 패턴:**
+
+- **LangChain → LiteLLM 연결**: `ChatOpenAI(base_url="http://litellm:4000/v1")`로 OpenAI-compatible 엔드포인트 호출
+- **Langfuse Callback**: LangGraph/LangChain의 콜백으로 애플리케이션 레벨 추적
+- **LiteLLM Metrics**: Prometheus 메트릭으로 인프라 레벨 비용 노출
+
 **Kubernetes 통합 (Langfuse):**
 
 - StatefulSet 또는 Deployment로 배포
@@ -468,8 +533,13 @@ flowchart TD
 
 - **LangGraph**: 멀티스텝 Agent 워크플로우 정의, 조건부 분기, 병렬 실행
 - **NeMo Guardrails**: 프롬프트 인젝션 방어, 토픽 제한, 출력 검증
-- **MCP (Model Context Protocol)**: 표준화된 Tool/Context 연결 프로토콜
-- **A2A (Agent-to-Agent)**: Agent 간 표준 통신 프로토콜
+- **MCP (Model Context Protocol)**: 도구 연결 표준 프로토콜
+  - Agent가 외부 시스템(DB, API, 파일 시스템)에 접근하는 표준화된 방법 제공
+  - Agent Ready 애플리케이션(영업, 법무, 빌링, AICC 등)이 MCP를 통해 도구 노출
+  - 각 시스템은 MCP 서버로 동작하며, Agent는 MCP 클라이언트로 도구 호출
+- **A2A (Agent-to-Agent)**: Agent 간 통신 표준 프로토콜
+  - 멀티에이전트 시스템에서 Agent 간 작업 위임 및 결과 전달을 표준화
+  - 분산 Agent 시스템의 상호운용성 확보
 - **Redis Checkpointer**: 장기 실행 Agent의 상태 저장 및 복구
 - **Ragas**: Agent 응답 품질 평가 (Faithfulness, Relevance, Correctness)
 
@@ -551,7 +621,11 @@ flowchart LR
 - **레지스트리**: MLflow Model Registry — 모델 버전 관리, 실험 추적
 - **배포**: ArgoCD GitOps — 선언적 모델 배포, Canary/Blue-Green 전략
 - **하이브리드 전송**: On-Prem ↔ Cloud 간 모델 전송 (S3 Sync, Harbor Registry)
-- **RAG 데이터 파이프라인**: Unstructured.io → 임베딩 → Milvus 벡터 저장
+- **RAG 데이터 파이프라인**:
+  - 문서 처리: Unstructured.io로 다양한 포맷(PDF, Word, HTML) 파싱
+  - 임베딩 생성: **Triton Inference Server**에서 BGE-M3, E5 등 임베딩 모델 실행 (비-LLM 추론 전용)
+  - 벡터 저장: Milvus에 임베딩 저장 및 검색
+  - Triton은 Embedding과 Reranking 같은 경량 모델 서빙에 특화
 - **피드백 루프**: Langfuse 프로덕션 추적 → Label Studio 레이블링 → 재학습
 
 **Kubernetes 통합:**

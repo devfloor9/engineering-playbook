@@ -599,6 +599,20 @@ spec:
 </TabItem>
 </Tabs>
 
+:::info 모델 서빙 스택 구성
+**vLLM vs Triton 역할 분리:**
+
+- **vLLM**: LLM 추론 전용 (GPT, Claude, Llama 등)
+  - PagedAttention 기반 KV Cache 최적화
+  - llm-d가 KV Cache 상태를 고려한 지능형 라우팅 제공
+- **Triton Inference Server**: 비-LLM 추론 담당
+  - 임베딩 모델 (BGE-M3)
+  - 리랭킹 모델
+  - Whisper STT (음성-텍스트 변환)
+
+이 구성으로 각 서빙 엔진이 최적화된 워크로드에만 집중하여 전체 플랫폼 효율성을 극대화합니다.
+:::
+
 ### Karpenter Disruption 정책으로 안정성 확보
 
 트래픽 급증 시에도 서비스 안정성을 보장하기 위한 Karpenter 설정입니다.
@@ -1423,6 +1437,38 @@ spec:
               cpu: "500m"
 ```
 
+#### 2-Tier 비용 추적 전략
+
+완전한 비용 가시성을 위해서는 **인프라 레벨**과 **애플리케이션 레벨** 비용을 모두 추적해야 합니다.
+
+```mermaid
+flowchart LR
+    subgraph "Infrastructure Layer"
+        LITE["LiteLLM<br/>인프라 비용 추적"]
+        METRICS["모델별 단가 × 토큰<br/>팀별 Budget 관리"]
+    end
+
+    subgraph "Application Layer"
+        LANGFUSE["Langfuse<br/>애플리케이션 비용 추적"]
+        APP_METRICS["Agent 스텝별 비용<br/>체인 Latency<br/>Trace 분석"]
+    end
+
+    LITE --> METRICS
+    LANGFUSE --> APP_METRICS
+```
+
+**LiteLLM (인프라 레벨):**
+- 모델별 토큰 단가 설정 (GPT-4: $0.03/1K, Claude: $0.015/1K)
+- 팀/프로젝트별 예산 할당 및 실시간 모니터링
+- 월간 비용 리포트 및 알림
+
+**Langfuse (애플리케이션 레벨):**
+- Agent 워크플로우 각 단계별 토큰 소비 추적
+- 체인 전체의 end-to-end latency 및 비용
+- Trace 기반 성능 병목 분석
+
+이 2-Tier 전략으로 "어떤 모델이 얼마나 사용되었는가"(인프라)와 "어떤 기능이 비용을 유발하는가"(애플리케이션)를 동시에 파악할 수 있습니다.
+
 ### 비용 모니터링 대시보드 구성
 
 ```yaml
@@ -1471,7 +1517,183 @@ spec:
 
 ## 도전과제 4: Agent 오케스트레이션 및 안전성
 
-Agent 오케스트레이션 및 안전성에 대한 EKS 기반 해결 방안은 다음 문서를 참조하세요:
+### EKS 기반 Agent 오케스트레이션 아키텍처
+
+Agentic AI 플랫폼에서 Agent 워크플로우는 **LangGraph 기반 오케스트레이션**, **NeMo Guardrails 안전성 레이어**, **MCP/A2A 표준 통신**으로 구성됩니다.
+
+```mermaid
+flowchart LR
+    subgraph "Agent Ready Apps"
+        SALES["영업 Agent"]
+        LEGAL["법무 Agent"]
+        BILLING["빌링 Agent"]
+        AICC["AICC Agent"]
+    end
+
+    subgraph "EKS Agent Platform"
+        MCP["MCP Server<br/>(Tool 연결)"]
+        A2A["A2A Gateway<br/>(Agent 간 통신)"]
+        LG["LangGraph<br/>(Workflow)"]
+        GUARD["NeMo Guardrails<br/>(Safety)"]
+        REDIS["Redis<br/>(State Store)"]
+    end
+
+    SALES & LEGAL & BILLING & AICC --> MCP
+    MCP --> LG
+    LG --> GUARD
+    LG <--> REDIS
+    LG <--> A2A
+```
+
+### 핵심 구성 요소
+
+#### 1. LangGraph - Agent 워크플로우 오케스트레이션
+
+LangGraph는 Agent 워크플로우를 상태 그래프로 정의하고 실행합니다.
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: langgraph-agent
+  namespace: ai-agents
+spec:
+  replicas: 3
+  template:
+    spec:
+      containers:
+        - name: agent
+          image: langchain/langgraph:latest
+          env:
+            - name: REDIS_URL
+              value: "redis://elasticache.ai-agents.svc:6379"
+            - name: LANGCHAIN_TRACING_V2
+              value: "true"
+            - name: LANGCHAIN_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: langchain-secrets
+                  key: api-key
+          resources:
+            requests:
+              cpu: "500m"
+              memory: "1Gi"
+```
+
+#### 2. NeMo Guardrails - 안전성 레이어
+
+NeMo Guardrails는 Agent 입출력을 필터링하여 안전성을 보장합니다.
+
+```yaml
+# ConfigMap for NeMo Guardrails
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: guardrails-config
+  namespace: ai-agents
+data:
+  config.yml: |
+    rails:
+      input:
+        flows:
+          - check prompt injection
+          - check jailbreak attempts
+      output:
+        flows:
+          - check PII leakage
+          - check toxic content
+```
+
+#### 3. MCP (Model Context Protocol) - 표준화된 Tool 연결
+
+MCP는 Agent Ready 애플리케이션(영업/법무/빌링/AICC)이 표준화된 방식으로 Tool을 제공합니다.
+
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: mcp-server
+  namespace: ai-agents
+spec:
+  selector:
+    app: mcp-server
+  ports:
+    - port: 8080
+      targetPort: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mcp-server
+  namespace: ai-agents
+spec:
+  replicas: 2
+  template:
+    spec:
+      containers:
+        - name: mcp-server
+          image: mcp/server:latest
+          env:
+            - name: MCP_TOOLS_DIR
+              value: "/tools"
+          volumeMounts:
+            - name: tools-config
+              mountPath: /tools
+      volumes:
+        - name: tools-config
+          configMap:
+            name: mcp-tools-config
+```
+
+#### 4. A2A (Agent-to-Agent) - 멀티 Agent 통신
+
+A2A는 Agent 간 안전하고 효율적인 통신을 제공합니다.
+
+```yaml
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: a2a-routing
+  namespace: ai-agents
+spec:
+  parentRefs:
+    - name: ai-gateway
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /a2a/
+      backendRefs:
+        - name: a2a-gateway
+          port: 8080
+```
+
+### Kubernetes 통합: KEDA 기반 Agent 자동 스케일링
+
+Agent Pod는 Redis 큐 길이를 기반으로 자동 스케일링됩니다.
+
+```yaml
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: agent-scaler
+  namespace: ai-agents
+spec:
+  scaleTargetRef:
+    name: langgraph-agent
+  minReplicaCount: 2
+  maxReplicaCount: 20
+  triggers:
+    - type: redis
+      metadata:
+        address: elasticache.ai-agents.svc:6379
+        listName: agent_tasks
+        listLength: "5"
+```
+
+### 상세 문서
+
+Agent 오케스트레이션 및 안전성에 대한 상세 내용은 다음 문서를 참조하세요:
 
 - [Kagent - Kubernetes 기반 Agent 관리](../gateway-agents/kagent-kubernetes-agents.md) — CRD 기반 에이전트 라이프사이클 관리
 - [Bedrock AgentCore & MCP](../gateway-agents/bedrock-agentcore-mcp.md) — AWS Bedrock 에이전트 통합 및 MCP/A2A 표준
