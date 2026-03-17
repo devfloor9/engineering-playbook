@@ -7,7 +7,6 @@ category: "performance-networking"
 last_update:
   date: 2026-02-14
   author: devfloor9
-sidebar_position: 1
 ---
 
 import Tabs from '@theme/Tabs';
