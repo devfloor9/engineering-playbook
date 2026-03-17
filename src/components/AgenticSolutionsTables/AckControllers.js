@@ -19,7 +19,7 @@ const AckControllers = () => {
       [
             "**RDS/Aurora**",
             "`rds.services.k8s.aws`",
-            "LangFuse 백엔드, 메타데이터 저장소"
+            "Langfuse 백엔드, 메타데이터 저장소"
       ],
       [
             "**SageMaker**",
@@ -46,7 +46,7 @@ const AckControllers = () => {
       [
             "**RDS/Aurora**",
             "`rds.services.k8s.aws`",
-            "LangFuse 백엔드, 메타데이터 저장소"
+            "Langfuse 백엔드, 메타데이터 저장소"
       ],
       [
             "**SageMaker**",

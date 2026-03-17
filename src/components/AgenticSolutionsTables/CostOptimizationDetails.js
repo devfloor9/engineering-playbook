@@ -56,7 +56,7 @@ const CostOptimizationDetails = () => {
       [
             "**RDS/Aurora**",
             "`rds.services.k8s.aws`",
-            "LangFuse backend, metadata storage"
+            "Langfuse backend, metadata storage"
       ],
       [
             "**SageMaker**",

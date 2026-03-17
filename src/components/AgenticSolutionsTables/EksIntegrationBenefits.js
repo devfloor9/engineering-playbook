@@ -37,7 +37,7 @@ const EksIntegrationBenefits = () => {
             "Karpenter 연동 자동 스케일링"
       ],
       [
-            "**LangFuse**",
+            "**Langfuse**",
             "Helm Chart",
             "RDS/Aurora 연동, S3 스토리지"
       ],

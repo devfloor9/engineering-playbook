@@ -15,7 +15,7 @@ import { HybridComparison, CostOptimization } from '@site/src/components/Sagemak
 
 # SageMaker-EKS 하이브리드 ML 아키텍처
 
-> 📅 **작성일**: 2026-02-13 | **수정일**: 2026-02-14 | ⏱️ **읽는 시간**: 약 3분
+> 📅 **작성일**: 2026-02-13 | **수정일**: 2026-03-17 | ⏱️ **읽는 시간**: 약 15분
 
 ## 개요
 
@@ -749,7 +749,7 @@ class MultiRegionDeployer:
         self,
         model_package_arn: str,
         model_name: str,
-        namespace: str = "kserve-inference"
+        namespace: str = "vllm-inference"
     ):
         """모든 리전에 모델 배포"""
         deployment_results = {}

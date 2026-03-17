@@ -15,7 +15,7 @@ import { PipelineComponents, GitOpsDeployment } from '@site/src/components/MlOps
 
 # EKS 기반 MLOps 파이프라인 구축
 
-> 📅 **작성일**: 2026-02-13 | **수정일**: 2026-03-17 | ⏱️ **읽는 시간**: 약 3분
+> 📅 **작성일**: 2026-02-13 | **수정일**: 2026-03-17 | ⏱️ **읽는 시간**: 약 15분
 
 ## 개요
 
@@ -571,6 +571,16 @@ spec:
                 configMapKeyRef:
                   name: mlflow-config
                   key: AWS_DEFAULT_REGION
+            - name: MLFLOW_DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: mlflow-db-credentials
+                  key: username
+            - name: MLFLOW_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mlflow-db-credentials
+                  key: password
           command:
             - mlflow
             - server
@@ -579,7 +589,7 @@ spec:
             - --port
             - "5000"
             - --backend-store-uri
-            - "postgresql://mlflow:password@postgres-service.mlflow.svc.cluster.local:5432/mlflow"
+            - "postgresql://$(MLFLOW_DB_USER):$(MLFLOW_DB_PASSWORD)@postgres-service.mlflow.svc.cluster.local:5432/mlflow"
             - --default-artifact-root
             - "s3://my-mlflow-artifacts/"
             - --serve-artifacts
@@ -1172,7 +1182,7 @@ flowchart TB
 ### Karpenter NodePool 설정
 
 ```yaml
-apiVersion: karpenter.sh/v1beta1
+apiVersion: karpenter.sh/v1
 kind: NodePool
 metadata:
   name: gpu-training
@@ -1212,12 +1222,12 @@ spec:
   
   weight: 10
 ---
-apiVersion: karpenter.k8s.aws/v1beta1
+apiVersion: karpenter.k8s.aws/v1
 kind: EC2NodeClass
 metadata:
   name: gpu-node-class
 spec:
-  amiFamily: AL2
+  amiFamily: AL2023
   role: KarpenterNodeRole-ml-cluster
   
   subnetSelectorTerms:
