@@ -55,7 +55,7 @@ const LangFuseVsLangSmithTable = () => {
         fontWeight: '600',
         fontSize: '16px'
       }}>
-        {isKo ? 'LangFuse vs LangSmith 비교' : 'LangFuse vs LangSmith Comparison'}
+        {isKo ? 'Langfuse vs LangSmith 비교' : 'Langfuse vs LangSmith Comparison'}
       </div>
 
       <div style={{
@@ -86,7 +86,7 @@ const LangFuseVsLangSmithTable = () => {
                 minWidth: '200px',
                 background: '#f0fdf4'
               }}>
-                LangFuse
+                Langfuse
               </th>
               <th style={{
                 padding: '12px 16px',

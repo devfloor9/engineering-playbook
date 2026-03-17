@@ -37,7 +37,7 @@ const RequestProcessing = () => {
     },
     {
       step: '12',
-      component: 'LangFuse',
+      component: 'Langfuse',
       description: isKo ? '관측성 데이터 기록' : isZh ? '记录可观测性数据' : 'Record observability data',
       color: '#06b6d4',
       icon: '📊'

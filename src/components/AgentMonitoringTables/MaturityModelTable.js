@@ -16,7 +16,7 @@ const MaturityModelTable = () => {
     {
       level: 'Level 2',
       maturity: isKo ? '표준' : 'Standard',
-      implementation: isKo ? 'LangFuse/LangSmith 트레이싱, Grafana 대시보드' : 'LangFuse/LangSmith tracing, Grafana dashboard',
+      implementation: isKo ? 'Langfuse/LangSmith 트레이싱, Grafana 대시보드' : 'Langfuse/LangSmith tracing, Grafana dashboard',
       color: '#3b82f6'
     },
     {

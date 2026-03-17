@@ -41,7 +41,7 @@ const ObservabilityComparison = () => {
           {isKo ? '📊 관찰성 솔루션 비교' : isZh ? '📊 可观测性解决方案比较' : '📊 Observability Solutions'}
         </div>
         <div style={{ fontSize: '14px', opacity: 0.9 }}>
-          {isKo ? 'LangFuse vs LangSmith 배포 방식과 기능' : isZh ? 'LangFuse vs LangSmith 部署方式和功能' : 'LangFuse vs LangSmith deployment and capabilities'}
+          {isKo ? 'Langfuse vs LangSmith 배포 방식과 기능' : isZh ? 'Langfuse vs LangSmith 部署方式和功能' : 'Langfuse vs LangSmith deployment and capabilities'}
         </div>
       </div>
 
@@ -138,7 +138,7 @@ const ObservabilityComparison = () => {
           }}>
             <span style={{ fontSize: '16px' }}>💡</span>
             <span>
-              {isKo ? 'LangFuse는 온프레미스 제어를, LangSmith는 편의성을 제공하며 선택은 보안 요구사항에 따라 달라집니다.' : isZh ? 'LangFuse 提供本地控制，LangSmith 提供便利性，选择取决于安全要求。' : 'LangFuse offers on-premise control while LangSmith provides convenience; choice depends on security requirements.'}
+              {isKo ? 'Langfuse는 온프레미스 제어를, LangSmith는 편의성을 제공하며 선택은 보안 요구사항에 따라 달라집니다.' : isZh ? 'Langfuse 提供本地控制，LangSmith 提供便利性，选择取决于安全要求。' : 'Langfuse offers on-premise control while LangSmith provides convenience; choice depends on security requirements.'}
             </span>
           </div>
         </div>

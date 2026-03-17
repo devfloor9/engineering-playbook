@@ -24,7 +24,7 @@ const CoreCapabilities = () => {
     },
     {
       name: isKo ? '관측성' : isZh ? '可观测性' : 'Observability',
-      description: isKo ? 'LangFuse를 통한 에이전트 동작 추적 및 분석' : isZh ? '通过 LangFuse 跟踪和分析代理行为' : 'Track and analyze agent behavior through LangFuse',
+      description: isKo ? 'Langfuse를 통한 에이전트 동작 추적 및 분석' : isZh ? '通过 Langfuse 跟踪和分析代理行为' : 'Track and analyze agent behavior through Langfuse',
       color: '#96ceb4'
     },
     {
