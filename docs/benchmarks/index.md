@@ -29,6 +29,7 @@ last_update:
 - GPU 활용률 및 처리량 (throughput)
 - 배치 처리 성능
 - 멀티 모델 서빙 비교
+- [추론 플랫폼 비교: Bedrock AgentCore vs EKS 자체 구축](./agentcore-vs-eks-inference.md)
 
 ### 하이브리드 인프라
 
