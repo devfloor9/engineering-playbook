@@ -87,8 +87,12 @@ const VllmVsTgi = () => {
         }}>
           <div></div>
           <div>{isKo ? '특성' : isZh ? '特性' : 'Characteristic'}</div>
-          <div style={{ color: '#3b82f6' }}>vLLM</div>
-          <div style={{ color: '#8b5cf6' }}>TGI</div>
+          <div style={{ color: '#3b82f6', fontWeight: '700' }}>
+            vLLM <span style={{ fontSize: '11px', padding: '2px 6px', background: '#3b82f6', color: 'white', borderRadius: '3px', marginLeft: '6px' }}>{isKo ? '권장' : isZh ? '推荐' : 'Recommended'}</span>
+          </div>
+          <div style={{ color: '#8b5cf6', fontSize: '13px' }}>
+            TGI <span style={{ fontSize: '10px', opacity: 0.7, marginLeft: '6px' }}>{isKo ? '(Legacy 참고용)' : isZh ? '(旧版参考)' : '(Legacy Reference)'}</span>
+          </div>
         </div>
 
         {comparisons.map((comp, index) => (

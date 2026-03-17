@@ -14,7 +14,7 @@ const TechnologyStack = () => {
   ];
 
   const genai = [
-    { area: isKo ? '모델 서빙' : isZh ? '模型服务' : 'Model Serving', tech: 'vLLM, Text Generation Inference (TGI)' },
+    { area: isKo ? '모델 서빙' : isZh ? '模型服务' : 'Model Serving', tech: 'vLLM, llm-d (분산 추론)' },
     { area: isKo ? '로우코드 플랫폼' : isZh ? '低代码平台' : 'Low-Code Platform', tech: 'Dify (Visual AI Workflow Builder)' },
     { area: isKo ? '에이전트 프레임워크' : isZh ? '代理框架' : 'Agent Frameworks', tech: 'LangChain, LangGraph, CrewAI' },
     { area: isKo ? '벡터 데이터베이스' : isZh ? '向量数据库' : 'Vector Databases', tech: isKo ? 'Milvus, RAG 통합 패턴' : isZh ? 'Milvus、RAG 集成模式' : 'Milvus, RAG integration patterns' }

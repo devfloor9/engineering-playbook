@@ -8,10 +8,10 @@ const ObservabilityLayerStack = () => {
 
   const solutions = [
     {
-      name: 'LangFuse',
+      name: 'Langfuse',
       color: '#45b7d1',
       bgColor: '#e8f8fc',
-      role: isKo ? 'LLM 트레이싱 (Self-hosted)' : isZh ? 'LLM 跟踪（自托管）' : 'LLM Tracing (Self-hosted)',
+      role: isKo ? 'LLM 트레이싱 (Production)' : isZh ? 'LLM 跟踪（生产）' : 'LLM Tracing (Production)',
       integration: isKo ? 'Helm Chart, StatefulSet' : isZh ? 'Helm Chart, StatefulSet' : 'Helm Chart, StatefulSet',
       features: isKo ? '토큰 추적, 비용 분석, 프롬프트 버전 관리' : isZh ? '令牌跟踪、成本分析、提示版本管理' : 'Token tracking, cost analysis, prompt version management'
     },
@@ -19,7 +19,7 @@ const ObservabilityLayerStack = () => {
       name: 'LangSmith',
       color: '#9b59b6',
       bgColor: '#f3ebf8',
-      role: isKo ? 'LLM 트레이싱 (Managed)' : isZh ? 'LLM 跟踪（托管）' : 'LLM Tracing (Managed)',
+      role: isKo ? 'LLM 트레이싱 (Dev/Staging)' : isZh ? 'LLM 跟踪（开发/预发）' : 'LLM Tracing (Dev/Staging)',
       integration: isKo ? 'SDK 연동' : isZh ? 'SDK 集成' : 'SDK integration',
       features: isKo ? '트레이싱, 평가, 데이터셋 관리, 협업' : isZh ? '跟踪、评估、数据集管理、协作' : 'Tracing, evaluation, dataset management, collaboration'
     },

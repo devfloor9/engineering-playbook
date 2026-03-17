@@ -5,7 +5,7 @@ description: "Amazon EKS 기반 프로덕션급 GenAI 플랫폼의 전체 시스
 tags: [eks, architecture, agentic-ai, platform, kubernetes, kagent, kgateway, genai, mlops]
 category: "genai-aiml"
 last_update:
-  date: 2026-02-14
+  date: 2026-03-17
   author: devfloor9
 sidebar_position: 3
 ---
@@ -14,7 +14,7 @@ import { CoreCapabilities, LayerRoles, ToolTypes, K8sFeatures, RoutingStrategies
 
 # Agentic AI Platform 아키텍처
 
-> 📅 **작성일**: 2025-02-05 | **수정일**: 2026-02-14 | ⏱️ **읽는 시간**: 약 6분
+> 📅 **작성일**: 2025-02-05 | **수정일**: 2026-03-17 | ⏱️ **읽는 시간**: 약 6분
 
 이 문서는 Amazon EKS 기반 프로덕션급 Agentic AI Platform의 전체 시스템 아키텍처와 핵심 컴포넌트 설계를 다룹니다. 자율적으로 작업을 수행하는 AI 에이전트를 효율적으로 구축하고 운영하기 위한 플랫폼 아키텍처를 제시합니다.
 
@@ -71,7 +71,7 @@ flowchart TD
     subgraph ModelLayer["Model Serving"]
         VLLM1["vLLM<br/>GPT-4"]
         VLLM2["vLLM<br/>Claude"]
-        TGI["TGI<br/>Mixtral"]
+        VLLM3["vLLM<br/>Mixtral"]
     end
 
     subgraph DataLayer["Data Layer"]
@@ -82,8 +82,8 @@ flowchart TD
 
     subgraph ObsLayer["Observability"]
         LANGFUSE["LangFuse<br/>Tracing"]
-        PROM["Prometheus<br/>Metrics"]
-        GRAFANA["Grafana<br/>Dashboard"]
+        AMP["AMP<br/>Metrics"]
+        AMG["AMG<br/>Dashboard"]
         OTEL["OpenTelemetry<br/>Collector"]
     end
 
@@ -99,7 +99,7 @@ flowchart TD
     KAGENT --> TOOLS
     AGENT1 --> VLLM1
     AGENT2 --> VLLM2
-    AGENTN --> TGI
+    AGENTN --> VLLM3
     AGENT1 --> MILVUS
     AGENT2 --> MILVUS
     AGENTN --> MILVUS
@@ -108,10 +108,10 @@ flowchart TD
     MILVUS --> S3
     VLLM1 --> LANGFUSE
     VLLM2 --> LANGFUSE
-    TGI --> LANGFUSE
+    VLLM3 --> LANGFUSE
     LANGFUSE --> OTEL
-    OTEL --> PROM
-    PROM --> GRAFANA
+    OTEL --> AMP
+    AMP --> AMG
 
     style ClientLayer fill:#e1f5ff
     style GatewayLayer fill:#fff4e1
@@ -376,7 +376,7 @@ flowchart LR
     subgraph Models["Model Backends"]
         M1["vLLM<br/>GPT-4"]
         M2["vLLM<br/>Claude"]
-        M3["TGI<br/>Mixtral"]
+        M3["vLLM<br/>Mixtral"]
     end
 
     C1 --> LB
@@ -443,8 +443,8 @@ spec:
             - name: x-model-id
               value: "mixtral-8x7b"
       backendRefs:
-        - name: tgi-mixtral
-          port: 8080
+        - name: vllm-mixtral
+          port: 8000
 ```
 
 #### 라우팅 전략
@@ -500,7 +500,6 @@ flowchart TD
 
         subgraph NSInference["ai-inference"]
             VLLM["vLLM<br/>Deploy"]
-            TGI["TGI<br/>Deploy"]
             GPU["GPU<br/>Nodes"]
         end
 
@@ -511,8 +510,8 @@ flowchart TD
 
         subgraph NSObs["observability"]
             LANGFUSE["LangFuse"]
-            PROM["Prometheus"]
-            GRAFANA["Grafana"]
+            AMP["AMP"]
+            AMG["AMG"]
         end
     end
 
@@ -835,7 +834,7 @@ Agentic AI Platform은 다층 보안 모델을 적용합니다.
 flowchart LR
     subgraph Security["보안 레이어"]
         subgraph External["외부 접근"]
-            OIDC["OIDC Provider<br/>Cognito/Okta"]
+            OIDC["OIDC Provider<br/>IAM Identity Center"]
             JWT["JWT<br/>Validation"]
         end
 
@@ -980,7 +979,7 @@ sequenceDiagram
     Agent->>Milvus: 7. 벡터 검색 쿼리
     Milvus-->>Agent: 8. 관련 문서 반환
 
-    Note over Agent: 9. LLM 추론
+    Note over Agent: 9. vLLM 추론
     Agent->>LLM: 10. 프롬프트<br/>+ 컨텍스트
     LLM-->>Agent: 11. 생성된 응답
 
@@ -999,12 +998,16 @@ sequenceDiagram
 ### 핵심 메트릭
 
 ```yaml
-# Prometheus ServiceMonitor
+# ServiceMonitor for AMP (Amazon Managed Prometheus)
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
   name: agent-metrics
   namespace: observability
+  annotations:
+    # AMP compatible configuration
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "metrics"
 spec:
   selector:
     matchLabels:
@@ -1017,12 +1020,15 @@ spec:
       interval: 15s
       path: /metrics
 ---
-# PrometheusRule for Alerts
+# PrometheusRule for Alerts (AMP compatible)
 apiVersion: monitoring.coreos.com/v1
 kind: PrometheusRule
 metadata:
   name: agent-alerts
   namespace: observability
+  annotations:
+    # AMP alert manager configuration
+    prometheus.io/rule-group: "agent-alerts"
 spec:
   groups:
     - name: agent-alerts
@@ -1051,7 +1057,7 @@ spec:
             description: "오류율이 5%를 초과했습니다"
 ```
 
-### Grafana 대시보드 구성
+### AMG (Amazon Managed Grafana) 대시보드 구성
 
 주요 모니터링 대시보드:
 
@@ -1059,6 +1065,10 @@ spec:
 - **LLM Performance**: 모델별 토큰 처리량, 추론 시간
 - **Resource Usage**: CPU, 메모리, GPU 사용률
 - **Cost Tracking**: 테넌트별, 모델별 비용 추적
+
+:::tip AMP/AMG 통합
+Amazon Managed Prometheus와 Amazon Managed Grafana를 사용하면 운영 오버헤드를 크게 줄일 수 있습니다. AMP는 자동 스케일링과 고가용성을 제공하며, AMG는 AWS 서비스와의 네이티브 통합을 지원합니다.
+:::
 
 ## 기술 스택
 

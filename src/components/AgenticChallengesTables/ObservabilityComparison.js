@@ -8,16 +8,16 @@ const ObservabilityComparison = () => {
 
   const solutions = [
     {
-      name: 'LangFuse',
+      name: 'Langfuse',
       version: 'latest',
-      deployment: isKo ? 'Self-hosted (K8s)' : isZh ? '自托管 (K8s)' : 'Self-hosted (K8s)',
+      deployment: isKo ? 'Self-hosted (K8s) - 프로덕션 (데이터 주권)' : isZh ? '自托管 (K8s) - 生产（数据主权）' : 'Self-hosted (K8s) - Production (Data Sovereignty)',
       features: isKo ? '토큰 추적, 비용 분석, 프롬프트 관리, A/B 테스트' : isZh ? '令牌跟踪，成本分析，提示管理，A/B 测试' : 'Token tracking, cost analysis, prompt management, A/B testing',
       color: '#45b7d1'
     },
     {
       name: 'LangSmith',
       version: 'latest',
-      deployment: isKo ? 'Managed SaaS' : isZh ? '托管 SaaS' : 'Managed SaaS',
+      deployment: isKo ? 'Managed SaaS - 개발/스테이징 (LangGraph Studio)' : isZh ? '托管 SaaS - 开发/预发（LangGraph Studio）' : 'Managed SaaS - Dev/Staging (LangGraph Studio)',
       features: isKo ? '트레이싱, 평가, 데이터셋 관리, 협업 기능' : isZh ? '追踪，评估，数据集管理，协作功能' : 'Tracing, evaluation, dataset management, collaboration features',
       color: '#9b59b6'
     }

@@ -8,58 +8,66 @@ const KServeVsSeldon = () => {
 
   const comparisons = [
     {
-      feature: isKo ? '아키텍처' : isZh ? '架构' : 'Architecture',
-      kserve: isKo ? 'Knative 기반, 서버리스' : isZh ? '基于 Knative，无服务器' : 'Knative-based, Serverless',
-      seldon: isKo ? 'Kubernetes 네이티브' : isZh ? 'Kubernetes 原生' : 'Kubernetes Native',
-      icon: '🏗️'
+      feature: isKo ? '배포 방식' : isZh ? '部署方式' : 'Deployment Method',
+      argocd: isKo ? 'Git 저장소 기반 선언적 배포' : isZh ? '基于 Git 仓库的声明式部署' : 'Git repo-based declarative deployment',
+      flux: isKo ? 'Git 저장소 기반 선언적 배포' : isZh ? '基于 Git 仓库的声明式部署' : 'Git repo-based declarative deployment',
+      kubectl: isKo ? '명령형/수동 적용' : isZh ? '命令式/手动应用' : 'Imperative/manual apply',
+      icon: '🚀'
     },
     {
-      feature: isKo ? '오토스케일링' : isZh ? '自动扩展' : 'Auto-scaling',
-      kserve: 'Knative Autoscaler (KPA)',
-      seldon: 'HPA, KEDA ' + (isKo ? '지원' : isZh ? '支持' : 'Support'),
-      icon: '📈'
-    },
-    {
-      feature: isKo ? '프로토콜' : isZh ? '协议' : 'Protocol',
-      kserve: 'HTTP/gRPC, V1/V2 API',
-      seldon: 'REST, gRPC, Kafka',
-      icon: '🔌'
-    },
-    {
-      feature: isKo ? '트랜스포머' : isZh ? '转换器' : 'Transformer',
-      kserve: isKo ? '내장 Pre/Post Processing' : isZh ? '内置预处理/后处理' : 'Built-in Pre/Post Processing',
-      seldon: isKo ? 'Python/Java 커스텀' : isZh ? 'Python/Java 自定义' : 'Python/Java Custom',
+      feature: isKo ? '동기화 방식' : isZh ? '同步方式' : 'Sync Method',
+      argocd: isKo ? 'Pull 기반 + 자동 Sync' : isZh ? 'Pull 拉取 + 自动同步' : 'Pull-based + Auto Sync',
+      flux: isKo ? 'Pull 기반 + Reconciliation' : isZh ? 'Pull 拉取 + 调谐' : 'Pull-based + Reconciliation',
+      kubectl: isKo ? 'Push 기반 (CI에서 실행)' : isZh ? 'Push 推送（从 CI 执行）' : 'Push-based (from CI)',
       icon: '🔄'
     },
     {
-      feature: 'Explainability',
-      kserve: isKo ? 'Alibi Explain 통합' : isZh ? 'Alibi Explain 集成' : 'Alibi Explain Integration',
-      seldon: isKo ? 'Alibi Explain 통합' : isZh ? 'Alibi Explain 集成' : 'Alibi Explain Integration',
-      icon: '🔍'
+      feature: isKo ? 'UI/대시보드' : isZh ? 'UI/仪表板' : 'UI/Dashboard',
+      argocd: isKo ? '풍부한 웹 UI, 앱 토폴로지 시각화' : isZh ? '丰富的 Web UI，应用拓扑可视化' : 'Rich Web UI, app topology visualization',
+      flux: isKo ? 'Weave GitOps (별도 설치)' : isZh ? 'Weave GitOps（单独安装）' : 'Weave GitOps (separate install)',
+      kubectl: isKo ? '없음 (CLI만)' : isZh ? '无（仅 CLI）' : 'None (CLI only)',
+      icon: '🖥️'
     },
     {
-      feature: isKo ? '멀티 프레임워크' : isZh ? '多框架' : 'Multi-framework',
-      kserve: 'TensorFlow, PyTorch, SKLearn, XGBoost',
-      seldon: isKo ? '동일 + Custom Servers' : isZh ? '相同 + 自定义服务器' : 'Same + Custom Servers',
-      icon: '🎯'
+      feature: isKo ? '롤백' : isZh ? '回滚' : 'Rollback',
+      argocd: isKo ? 'Git 히스토리 기반 원클릭 롤백' : isZh ? '基于 Git 历史一键回滚' : 'One-click rollback via Git history',
+      flux: isKo ? 'Git revert 기반 자동 롤백' : isZh ? '基于 Git revert 自动回滚' : 'Auto rollback via Git revert',
+      kubectl: isKo ? 'kubectl rollout undo (수동)' : isZh ? 'kubectl rollout undo（手动）' : 'kubectl rollout undo (manual)',
+      icon: '⏪'
     },
     {
-      feature: isKo ? '배포 복잡도' : isZh ? '部署复杂度' : 'Deployment Complexity',
-      kserve: isKo ? '중간 (Knative 필요)' : isZh ? '中等（需要 Knative）' : 'Medium (Knative Required)',
-      seldon: isKo ? '낮음 (Kubernetes만 필요)' : isZh ? '低（仅需 Kubernetes）' : 'Low (Kubernetes Only)',
-      icon: '⚙️'
+      feature: isKo ? '멀티 클러스터' : isZh ? '多集群' : 'Multi-cluster',
+      argocd: isKo ? 'ApplicationSet으로 네이티브 지원' : isZh ? '通过 ApplicationSet 原生支持' : 'Native via ApplicationSet',
+      flux: isKo ? 'Kustomization 기반 지원' : isZh ? '基于 Kustomization 支持' : 'Supported via Kustomization',
+      kubectl: isKo ? 'kubeconfig 전환 (수동)' : isZh ? 'kubeconfig 切换（手动）' : 'kubeconfig switching (manual)',
+      icon: '🌐'
     },
     {
-      feature: isKo ? '커뮤니티' : isZh ? '社区' : 'Community',
-      kserve: 'CNCF Incubating',
-      seldon: isKo ? '활발한 오픈소스' : isZh ? '活跃的开源社区' : 'Active Open Source',
+      feature: isKo ? 'Helm 지원' : isZh ? 'Helm 支持' : 'Helm Support',
+      argocd: isKo ? 'Helm 차트 네이티브 렌더링' : isZh ? 'Helm Chart 原生渲染' : 'Native Helm chart rendering',
+      flux: 'HelmRelease CRD',
+      kubectl: 'helm install/upgrade (CLI)',
+      icon: '⎈'
+    },
+    {
+      feature: isKo ? '보안/RBAC' : isZh ? '安全/RBAC' : 'Security/RBAC',
+      argocd: isKo ? '프로젝트 기반 세분화된 RBAC' : isZh ? '基于项目的细粒度 RBAC' : 'Fine-grained project-based RBAC',
+      flux: isKo ? 'Kubernetes RBAC 위임' : isZh ? '委托 Kubernetes RBAC' : 'Delegates to Kubernetes RBAC',
+      kubectl: isKo ? 'kubeconfig 권한에 의존' : isZh ? '依赖 kubeconfig 权限' : 'Depends on kubeconfig permissions',
+      icon: '🔒'
+    },
+    {
+      feature: isKo ? '커뮤니티/성숙도' : isZh ? '社区/成熟度' : 'Community/Maturity',
+      argocd: 'CNCF Graduated',
+      flux: 'CNCF Graduated',
+      kubectl: isKo ? 'Kubernetes 내장' : isZh ? 'Kubernetes 内置' : 'Kubernetes built-in',
       icon: '👥'
     }
   ];
 
   return (
     <div style={{
-      maxWidth: '1000px',
+      maxWidth: '1100px',
       margin: '0 auto',
       fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
       fontSize: '15px',
@@ -72,10 +80,10 @@ const KServeVsSeldon = () => {
         borderRadius: '8px 8px 0 0'
       }}>
         <div style={{ fontSize: '20px', fontWeight: '600', marginBottom: '4px' }}>
-          {isKo ? '⚖️ KServe vs Seldon Core 비교' : isZh ? '⚖️ KServe vs Seldon Core 比较' : '⚖️ KServe vs Seldon Core Comparison'}
+          {isKo ? '⚖️ GitOps 배포 방식 비교' : isZh ? '⚖️ GitOps 部署方式比较' : '⚖️ GitOps Deployment Comparison'}
         </div>
         <div style={{ fontSize: '14px', opacity: 0.9 }}>
-          {isKo ? '두 모델 서빙 프레임워크의 기능 비교' : isZh ? '两个模型服务框架的功能比较' : 'Feature Comparison of Two Model Serving Frameworks'}
+          {isKo ? 'ArgoCD vs Flux vs 수동 kubectl 배포 전략 비교' : isZh ? 'ArgoCD vs Flux vs 手动 kubectl 部署策略比较' : 'ArgoCD vs Flux vs Manual kubectl Deployment Strategy Comparison'}
         </div>
       </div>
 
@@ -98,8 +106,8 @@ const KServeVsSeldon = () => {
                 padding: '16px',
                 borderRadius: '6px',
                 display: 'grid',
-                gridTemplateColumns: '40px 180px 1fr 1fr',
-                gap: '16px',
+                gridTemplateColumns: '40px 150px 1fr 1fr 1fr',
+                gap: '12px',
                 alignItems: 'center',
                 border: '1px solid var(--ifm-color-emphasis-200)'
               }}
@@ -114,19 +122,28 @@ const KServeVsSeldon = () => {
 
               <div>
                 <div style={{ fontSize: '11px', fontWeight: '600', color: '#3b82f6', marginBottom: '4px' }}>
-                  KServe
+                  ArgoCD
                 </div>
-                <div style={{ fontSize: '14px', color: '#374151' }}>
-                  {item.kserve}
+                <div style={{ fontSize: '13px', color: 'var(--ifm-font-color-base)' }}>
+                  {item.argocd}
                 </div>
               </div>
 
               <div>
                 <div style={{ fontSize: '11px', fontWeight: '600', color: '#8b5cf6', marginBottom: '4px' }}>
-                  Seldon Core
+                  Flux
                 </div>
-                <div style={{ fontSize: '14px', color: '#374151' }}>
-                  {item.seldon}
+                <div style={{ fontSize: '13px', color: 'var(--ifm-font-color-base)' }}>
+                  {item.flux}
+                </div>
+              </div>
+
+              <div>
+                <div style={{ fontSize: '11px', fontWeight: '600', color: '#6b7280', marginBottom: '4px' }}>
+                  kubectl
+                </div>
+                <div style={{ fontSize: '13px', color: 'var(--ifm-font-color-base)' }}>
+                  {item.kubectl}
                 </div>
               </div>
             </div>

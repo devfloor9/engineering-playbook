@@ -6,7 +6,7 @@ tags: [eks, kubernetes, genai, agentic-ai, gpu, llm, platform]
 category: "genai-aiml"
 sidebar_position: 3
 last_update:
-  date: 2026-02-14
+  date: 2026-03-17
   author: devfloor9
 ---
 
@@ -54,7 +54,7 @@ Kubernetes 네이티브 접근 방식의 핵심 철학은 오픈소스 생태계
 
 - [12. Agent 모니터링 & 운영](./operations-mlops/agent-monitoring.md) — 에이전트 상태 및 성능 모니터링
 - [13. Ragas 평가](./operations-mlops/ragas-evaluation.md) — RAG 파이프라인 품질 평가
-- [15. MLOps 파이프라인](./operations-mlops/mlops-pipeline-eks.md) — Kubeflow + MLflow + KServe
+- [15. MLOps 파이프라인](./operations-mlops/mlops-pipeline-eks.md) — Kubeflow + MLflow + ArgoCD GitOps
 - [16. SageMaker-EKS 통합](./operations-mlops/sagemaker-eks-integration.md) — SageMaker 학습 + EKS 서빙 하이브리드
 
 ## 🎯 학습 목표
@@ -129,17 +129,17 @@ flowchart TB
 | 기술 | 버전 | 설명 | 용도 |
 | --- | --- | --- | --- |
 | **Kagent** | v0.3+ | Kubernetes Agent 관리 | CRD 기반 Agent 라이프사이클 |
-| **Kgateway** | v1.2+ | Inference Gateway | 동적 라우팅 및 로드밸런싱 |
+| **Kgateway** | v2.0+ | Inference Gateway | 동적 라우팅 및 로드밸런싱 |
 | **Milvus** | v2.4+ | 벡터 데이터베이스 | RAG 파이프라인 지원 |
 | **Ragas** | v0.1+ | RAG 평가 프레임워크 | 품질 측정 및 CI/CD 통합 |
 | **NeMo** | v25.02 | LLM 학습 프레임워크 | 파인튜닝 및 최적화 |
-| **LiteLLM** | v1.50+ | 다중 LLM 프로바이더 통합 | LLM 라우팅 및 폴백 |
+| **LiteLLM** | v1.60+ | 다중 LLM 프로바이더 통합 | LLM 라우팅 및 폴백 |
 | **LangGraph** | v0.2+ | AI 워크플로우 오케스트레이션 | 복잡한 AI 워크플로우 구현 |
-| **Langfuse** | v2.70+ | GenAI 애플리케이션 모니터링 | 추적, 모니터링, 분석 |
+| **Langfuse** | v3.x | GenAI 애플리케이션 모니터링 | 추적, 모니터링, 분석 |
 | **NVIDIA GPU Operator** | v24.9+ | GPU 리소스 관리 | GPU 드라이버 및 런타임 |
-| **Karpenter** | v1.0+ (GA) | 노드 자동 스케일링 | 비용 효율적 리소스 관리 |
-| **vLLM** | v0.6+ | 고성능 LLM 서빙 | PagedAttention 기반 추론 |
-| **llm-d** | v0.2+ | 분산 추론 스케줄러 | Prefix Caching 인식 라우팅 |
+| **Karpenter** | v1.2+ | 노드 자동 스케일링 | 비용 효율적 리소스 관리 |
+| **vLLM** | v0.7.x | 고성능 LLM 서빙 | PagedAttention 기반 추론 |
+| **llm-d** | v0.3+ | 분산 추론 스케줄러 | Prefix Caching 인식 라우팅 |
 
 ## 💡 핵심 개념
 
@@ -184,10 +184,11 @@ flowchart TB
 
 | 모델 | 성능 | 비용 | 용도 |
 |------|------|------|------|
-| GPT-4o | 최고 | 중간 | 복잡한 작업, 균형잡힌 선택 |
+| GPT-4.1 | 최고 | 중간 | 복잡한 작업, 균형잡힌 선택 |
 | GPT-4o mini | 중간 | 낮음 | 빠른 응답 필요 시 |
-| Claude 3.5 Sonnet | 매우 높음 | 중간 | 코딩, 분석 작업 |
-| Claude 3 Opus | 매우 높음 | 매우 높음 | 고정확도 필요 시 |
+| Claude 4.x Sonnet | 매우 높음 | 중간 | 코딩, 분석 작업 |
+| Claude 4.x Opus | 매우 높음 | 매우 높음 | 고정확도 필요 시 |
+| Gemini 2.5 | 매우 높음 | 중간 | 멀티모달 작업 |
 | Open Source (Llama 3) | 다양 | 낮음 | 완전한 제어 필요 시 |
 
 ### 비용 최적화 전략

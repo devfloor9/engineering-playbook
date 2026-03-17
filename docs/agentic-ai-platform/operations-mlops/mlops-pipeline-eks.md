@@ -1,31 +1,31 @@
 ---
 title: "EKS 기반 MLOps 파이프라인 구축"
 sidebar_label: "15. MLOps 파이프라인"
-description: "Kubeflow + MLflow + KServe 기반 엔드투엔드 ML 라이프사이클 관리"
+description: "Kubeflow + MLflow + vLLM + ArgoCD GitOps 기반 엔드투엔드 ML 라이프사이클 관리"
 sidebar_position: 15
 category: "genai-aiml"
-tags: [mlops, kubeflow, mlflow, kserve, argo-workflows, eks, ml-pipeline]
+tags: [mlops, kubeflow, mlflow, vllm, argocd, gitops, argo-workflows, eks, ml-pipeline]
 last_update:
-  date: 2026-02-14
+  date: 2026-03-17
   author: devfloor9
 ---
 
 import SpecificationTable from '@site/src/components/tables/SpecificationTable';
-import { PipelineComponents, KServeVsSeldon } from '@site/src/components/MlOpsTables';
+import { PipelineComponents, GitOpsDeployment } from '@site/src/components/MlOpsTables';
 
 # EKS 기반 MLOps 파이프라인 구축
 
-> 📅 **작성일**: 2026-02-13 | **수정일**: 2026-02-14 | ⏱️ **읽는 시간**: 약 3분
+> 📅 **작성일**: 2026-02-13 | **수정일**: 2026-03-17 | ⏱️ **읽는 시간**: 약 3분
 
 ## 개요
 
-MLOps는 머신러닝 모델의 개발, 배포, 운영을 자동화하고 표준화하는 실천 방법론입니다. 이 문서에서는 Amazon EKS 환경에서 Kubeflow Pipelines, MLflow, KServe를 활용하여 데이터 준비부터 모델 서빙까지 엔드투엔드 ML 라이프사이클을 구축하는 방법을 다룹니다.
+MLOps는 머신러닝 모델의 개발, 배포, 운영을 자동화하고 표준화하는 실천 방법론입니다. 이 문서에서는 Amazon EKS 환경에서 Kubeflow Pipelines, MLflow, vLLM 모델 서빙, ArgoCD GitOps 배포를 활용하여 데이터 준비부터 모델 서빙까지 엔드투엔드 ML 라이프사이클을 구축하는 방법을 다룹니다.
 
 ### 주요 목표
 
 - **완전 자동화**: 데이터 수집부터 모델 배포까지 자동화된 파이프라인 구축
 - **실험 추적**: MLflow를 통한 체계적인 실험 관리 및 모델 버전 관리
-- **확장 가능한 서빙**: KServe 기반 고성능 모델 서빙 인프라
+- **확장 가능한 서빙**: vLLM 기반 고성능 모델 서빙 + ArgoCD GitOps 배포
 - **GPU 최적화**: Karpenter를 활용한 동적 GPU 리소스 관리
 
 ---
@@ -55,9 +55,9 @@ flowchart LR
     end
 
     subgraph Serving["서빙 계층"]
-        PREDICTOR[Predictor]
-        TRANSFORMER[Transformer]
-        EXPLAINER[Explainer]
+        VLLM[vLLM<br/>Model Server]
+        ARGOCD[ArgoCD<br/>GitOps Deploy]
+        LB[Load Balancer<br/>Ingress]
     end
 
     subgraph Monitor["모니터링"]
@@ -76,13 +76,13 @@ flowchart LR
     TRAIN --> EVAL
     EVAL -->|검증 통과| REGISTER
 
-    REGISTER -->|모델 배포| PREDICTOR
-    PREDICTOR --> TRANSFORMER
-    TRANSFORMER --> EXPLAINER
+    REGISTER -->|모델 등록| ARGOCD
+    ARGOCD -->|GitOps 배포| VLLM
+    VLLM --> LB
 
-    PREDICTOR -->|메트릭| PROMETHEUS
+    VLLM -->|메트릭| PROMETHEUS
     PROMETHEUS --> GRAFANA
-    PREDICTOR -->|예측 데이터| DRIFT
+    VLLM -->|예측 데이터| DRIFT
 
     style Data fill:#569a31
     style Dev fill:#ffd93d
@@ -138,8 +138,9 @@ flowchart TB
         TRAINING_OP[Training Op<br/>TFJob/PyTorch]
     end
 
-    subgraph Serving["서빙"]
-        KSERVE[KServe]
+    subgraph Serving["서빙 & 배포"]
+        VLLM_SERVE[vLLM]
+        ARGOCD_DEPLOY[ArgoCD]
     end
 
     subgraph Metadata["메타데이터"]
@@ -151,7 +152,8 @@ flowchart TB
     KFP_API --> KFP_ENGINE
     KFP_ENGINE --> KFP_DB
     KFP_ENGINE --> TRAINING_OP
-    TRAINING_OP --> KSERVE
+    TRAINING_OP --> ARGOCD_DEPLOY
+    ARGOCD_DEPLOY --> VLLM_SERVE
     KFP_ENGINE --> MLMD
 
     style Pipelines fill:#4285f4
@@ -686,185 +688,232 @@ spec:
 
 ---
 
-## KServe vs Seldon Core 비교
+## GitOps 배포 패턴 비교
 
-### 기능 비교
+### ArgoCD vs Flux vs 수동 배포 비교
 
-<KServeVsSeldon />
+<GitOpsDeployment />
 
-### KServe 아키텍처
+### ArgoCD GitOps 배포 아키텍처
 
 ```mermaid
 flowchart LR
-    INGRESS[Istio<br/>Gateway]
+    GIT[Git Repository<br/>매니페스트 저장소]
 
-    subgraph DataPlane["데이터 플레인"]
-        TRANSFORMER[Transformer<br/>전처리/후처리]
-        PREDICTOR[Predictor<br/>모델 서버]
-        EXPLAINER[Explainer<br/>해석 가능성]
+    subgraph ArgoCD["ArgoCD 컨트롤 플레인"]
+        REPO_SERVER[Repo Server<br/>매니페스트 렌더링]
+        APP_CONTROLLER[Application<br/>Controller]
+        API_SERVER[API Server<br/>+ Web UI]
     end
 
-    subgraph ControlPlane["컨트롤 플레인"]
-        CONTROLLER[KServe<br/>Controller]
-        KNATIVE[Knative<br/>Serving]
+    subgraph Target["EKS 클러스터"]
+        VLLM_DEPLOY[vLLM<br/>Deployment]
+        HPA[HPA<br/>오토스케일링]
+        SVC[Service<br/>Ingress]
     end
 
-    INGRESS -->|요청| TRANSFORMER
-    TRANSFORMER --> PREDICTOR
-    PREDICTOR --> EXPLAINER
+    GIT -->|Poll/Webhook| REPO_SERVER
+    REPO_SERVER --> APP_CONTROLLER
+    APP_CONTROLLER -->|Sync| VLLM_DEPLOY
+    APP_CONTROLLER -->|Sync| HPA
+    APP_CONTROLLER -->|Sync| SVC
+    API_SERVER -->|관리| APP_CONTROLLER
 
-    CONTROLLER -->|관리| KNATIVE
-    KNATIVE -->|스케일링| PREDICTOR
-
-    style DataPlane fill:#326ce5
-    style ControlPlane fill:#9c27b0
-    style INGRESS fill:#ff9900
+    style ArgoCD fill:#326ce5
+    style Target fill:#9c27b0
+    style GIT fill:#ff9900
 ```
 
-### KServe 설치
+### ArgoCD 설치 및 설정
 
 ```bash
-# Knative Serving 설치 (KServe 의존성)
-kubectl apply -f https://github.com/knative/serving/releases/download/knative-v1.12.0/serving-crds.yaml
-kubectl apply -f https://github.com/knative/serving/releases/download/knative-v1.12.0/serving-core.yaml
+# ArgoCD 네임스페이스 생성 및 설치
+kubectl create namespace argocd
+kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
 
-# Istio 네트워킹 레이어
-kubectl apply -f https://github.com/knative/net-istio/releases/download/knative-v1.12.0/net-istio.yaml
+# ArgoCD CLI 설치
+curl -sSL -o argocd https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
+chmod +x argocd && sudo mv argocd /usr/local/bin/
 
-# KServe 설치
-kubectl apply -f https://github.com/kserve/kserve/releases/download/v0.12.0/kserve.yaml
-kubectl apply -f https://github.com/kserve/kserve/releases/download/v0.12.0/kserve-runtimes.yaml
+# 초기 관리자 비밀번호 확인
+argocd admin initial-password -n argocd
+
+# ArgoCD 서버 로그인
+argocd login argocd-server.argocd.svc.cluster.local --username admin --password <password>
 ```
 
-### KServe InferenceService 예제
+### ArgoCD Application 예제 (vLLM 모델 서빙 배포)
 
 ```yaml
-apiVersion: serving.kserve.io/v1beta1
-kind: InferenceService
+apiVersion: argoproj.io/v1alpha1
+kind: Application
 metadata:
-  name: sklearn-iris
-  namespace: kserve-inference
+  name: vllm-model-serving
+  namespace: argocd
 spec:
-  predictor:
-    model:
-      modelFormat:
-        name: sklearn
-      storageUri: s3://my-models/sklearn/iris
-      resources:
-        requests:
-          cpu: "1"
-          memory: "2Gi"
-        limits:
-          cpu: "2"
-          memory: "4Gi"
-  transformer:
-    containers:
-      - name: transformer
-        image: my-registry/iris-transformer:v1
-        env:
-          - name: STORAGE_URI
-            value: s3://my-models/sklearn/iris
-        resources:
-          requests:
-            cpu: "500m"
-            memory: "1Gi"
+  project: ml-platform
+  source:
+    repoURL: https://github.com/myorg/ml-manifests.git
+    targetRevision: main
+    path: deployments/vllm-serving
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: model-serving
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
 ---
-apiVersion: serving.kserve.io/v1beta1
-kind: InferenceService
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
 metadata:
-  name: pytorch-bert
-  namespace: kserve-inference
+  name: vllm-multi-model
+  namespace: argocd
 spec:
-  predictor:
-    pytorch:
-      storageUri: s3://my-models/pytorch/bert
-      resources:
-        requests:
-          nvidia.com/gpu: 1
-          memory: "8Gi"
-        limits:
-          nvidia.com/gpu: 1
-          memory: "16Gi"
-      env:
-        - name: TORCH_SERVE_WORKERS
-          value: "2"
-  minReplicas: 1
-  maxReplicas: 10
-  scaleTarget: 80
-  scaleMetric: concurrency
+  generators:
+    - list:
+        elements:
+          - model: llama-3-70b
+            gpu: "4"
+            memory: "128Gi"
+          - model: mistral-7b
+            gpu: "1"
+            memory: "32Gi"
+          - model: codellama-34b
+            gpu: "2"
+            memory: "64Gi"
+  template:
+    metadata:
+      name: 'vllm-{{model}}'
+    spec:
+      project: ml-platform
+      source:
+        repoURL: https://github.com/myorg/ml-manifests.git
+        targetRevision: main
+        path: 'deployments/vllm/{{model}}'
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: model-serving
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
 ```
 
-### Seldon Core 배포 예제
+### vLLM 모델 서빙 Deployment 예제
 
 ```yaml
-apiVersion: machinelearning.seldon.io/v1
-kind: SeldonDeployment
+apiVersion: apps/v1
+kind: Deployment
 metadata:
-  name: sklearn-iris-seldon
-  namespace: seldon-system
+  name: vllm-llama3-70b
+  namespace: model-serving
+  labels:
+    app: vllm-serving
+    model: llama-3-70b
 spec:
-  name: iris-model
-  predictors:
-    - name: default
-      replicas: 2
-      graph:
-        name: classifier
-        implementation: SKLEARN_SERVER
-        modelUri: s3://my-models/sklearn/iris
-        parameters:
-          - name: method
-            value: predict_proba
-            type: STRING
-      componentSpecs:
-        - spec:
-            containers:
-              - name: classifier
-                resources:
-                  requests:
-                    cpu: "1"
-                    memory: "2Gi"
-                  limits:
-                    cpu: "2"
-                    memory: "4Gi"
-      svcOrchSpec:
-        env:
-          - name: SELDON_LOG_LEVEL
-            value: INFO
+  replicas: 2
+  selector:
+    matchLabels:
+      app: vllm-serving
+      model: llama-3-70b
+  template:
+    metadata:
+      labels:
+        app: vllm-serving
+        model: llama-3-70b
+    spec:
+      tolerations:
+        - key: nvidia.com/gpu
+          operator: Exists
+          effect: NoSchedule
+      containers:
+        - name: vllm
+          image: vllm/vllm-openai:v0.7.3
+          ports:
+            - name: http
+              containerPort: 8000
+          args:
+            - --model
+            - meta-llama/Llama-3-70B-Instruct
+            - --tensor-parallel-size
+            - "4"
+            - --max-model-len
+            - "8192"
+            - --gpu-memory-utilization
+            - "0.90"
+            - --enable-prefix-caching
+          env:
+            - name: HUGGING_FACE_HUB_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: hf-secret
+                  key: token
+          resources:
+            requests:
+              nvidia.com/gpu: 4
+              memory: "128Gi"
+              cpu: "16"
+            limits:
+              nvidia.com/gpu: 4
+              memory: "160Gi"
+              cpu: "32"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 120
+            periodSeconds: 15
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 60
+            periodSeconds: 10
 ---
-apiVersion: machinelearning.seldon.io/v1
-kind: SeldonDeployment
+apiVersion: v1
+kind: Service
 metadata:
-  name: pytorch-transformer
-  namespace: seldon-system
+  name: vllm-llama3-70b
+  namespace: model-serving
 spec:
-  name: bert-model
-  predictors:
-    - name: default
-      replicas: 1
-      graph:
-        name: transformer
-        type: TRANSFORMER
-        endpoint:
-          type: REST
-        children:
-          - name: model
-            implementation: PYTORCH_SERVER
-            modelUri: s3://my-models/pytorch/bert
-            parameters:
-              - name: model_name
-                value: bert-base-uncased
-                type: STRING
-      componentSpecs:
-        - spec:
-            containers:
-              - name: model
-                resources:
-                  requests:
-                    nvidia.com/gpu: 1
-                    memory: "8Gi"
-                  limits:
-                    nvidia.com/gpu: 1
-                    memory: "16Gi"
+  type: ClusterIP
+  ports:
+    - port: 8000
+      targetPort: 8000
+      protocol: TCP
+  selector:
+    app: vllm-serving
+    model: llama-3-70b
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: vllm-llama3-70b
+  namespace: model-serving
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: vllm-llama3-70b
+  minReplicas: 2
+  maxReplicas: 8
+  metrics:
+    - type: Pods
+      pods:
+        metric:
+          name: vllm_requests_running
+        target:
+          type: AverageValue
+          averageValue: "10"
 ```
 
 ---
@@ -884,11 +933,11 @@ flowchart LR
         TEST[테스트<br/>실행]
         TRAIN[모델<br/>학습]
         VALIDATE[모델<br/>검증]
-        DEPLOY[KServe<br/>배포]
+        DEPLOY[ArgoCD<br/>GitOps 배포]
     end
 
     REGISTRY[Container<br/>Registry]
-    KSERVE[KServe<br/>Production]
+    VLLM_PROD[vLLM<br/>Production]
 
     GIT -->|코드 푸시| TRIGGER
     TRIGGER --> WORKFLOW
@@ -899,12 +948,12 @@ flowchart LR
     VALIDATE --> DEPLOY
 
     BUILD -->|이미지 푸시| REGISTRY
-    DEPLOY -->|서빙 시작| KSERVE
+    DEPLOY -->|서빙 시작| VLLM_PROD
 
     style GIT fill:#f5f5f5
     style Argo fill:#4285f4
     style REGISTRY fill:#ff9900
-    style KSERVE fill:#326ce5
+    style VLLM_PROD fill:#326ce5
 ```
 
 ### Argo Workflow 예제
@@ -949,7 +998,7 @@ spec:
             template: model-validation
         
         - - name: deploy-model
-            template: kserve-deployment
+            template: argocd-deployment
             when: "{{steps.validate-model.outputs.result}} == passed"
     
     - name: git-clone
@@ -1047,28 +1096,32 @@ spec:
           else:
               print("failed")
     
-    - name: kserve-deployment
-      resource:
-        action: apply
-        manifest: |
-          apiVersion: serving.kserve.io/v1beta1
-          kind: InferenceService
-          metadata:
-            name: {{workflow.parameters.model-name}}
-            namespace: kserve-inference
-          spec:
-            predictor:
-              pytorch:
-                storageUri: {{workflow.parameters.s3-model-path}}
-                resources:
-                  requests:
-                    nvidia.com/gpu: 1
-                    memory: "8Gi"
-                  limits:
-                    nvidia.com/gpu: 1
-                    memory: "16Gi"
-            minReplicas: 2
-            maxReplicas: 10
+    - name: argocd-deployment
+      script:
+        image: argoproj/argocd:v2.13
+        command: [sh]
+        source: |
+          # Git 저장소의 매니페스트를 업데이트하여 ArgoCD 자동 배포 트리거
+          argocd login $ARGOCD_SERVER --username admin --password $ARGOCD_PASSWORD --insecure
+
+          # vLLM 모델 서빙 매니페스트의 이미지/모델 경로 업데이트
+          argocd app set vllm-{{workflow.parameters.model-name}} \
+            --parameter model.storageUri={{workflow.parameters.s3-model-path}} \
+            --parameter model.image=my-registry/{{workflow.parameters.model-name}}:{{workflow.uid}}
+
+          # ArgoCD Sync 트리거
+          argocd app sync vllm-{{workflow.parameters.model-name}} --force --prune
+
+          # 배포 완료 대기
+          argocd app wait vllm-{{workflow.parameters.model-name}} --health --timeout 600
+        env:
+          - name: ARGOCD_SERVER
+            value: "argocd-server.argocd.svc.cluster.local"
+          - name: ARGOCD_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: argocd-secret
+                key: admin.password
   
   volumeClaimTemplates:
     - metadata:
@@ -1323,11 +1376,11 @@ def production_ml_pipeline(
             mlflow_tracking_uri="http://mlflow-server.mlflow.svc.cluster.local:5000"
         )
         
-        # 7. KServe 배포
-        deployment = deploy_to_kserve(
+        # 7. ArgoCD GitOps 배포 (vLLM 서빙)
+        deployment = deploy_via_argocd(
             model_name=model_name,
             model_uri=registration.outputs["registered_model_uri"],
-            namespace="kserve-inference"
+            namespace="model-serving"
         )
 
 if __name__ == "__main__":
@@ -1390,15 +1443,16 @@ spec:
 
 ## 요약
 
-EKS 기반 MLOps 파이프라인은 Kubeflow, MLflow, KServe를 통합하여 완전 자동화된 ML 라이프사이클을 제공합니다.
+EKS 기반 MLOps 파이프라인은 Kubeflow, MLflow, vLLM, ArgoCD를 통합하여 완전 자동화된 ML 라이프사이클을 제공합니다.
 
 ### 핵심 포인트
 
 1. **Kubeflow Pipelines**: 재사용 가능한 컴포넌트 기반 ML 워크플로우
 2. **MLflow**: 실험 추적 및 모델 레지스트리로 거버넌스 강화
-3. **KServe**: 프로덕션급 모델 서빙 with 오토스케일링
-4. **Karpenter**: GPU 리소스 동적 프로비저닝으로 비용 최적화
-5. **Argo Workflows**: CI/CD 자동화로 배포 주기 단축
+3. **vLLM**: 고성능 LLM 서빙 (PagedAttention, Prefix Caching)
+4. **ArgoCD GitOps**: 선언적 배포, 자동 동기화, 원클릭 롤백
+5. **Karpenter**: GPU 리소스 동적 프로비저닝으로 비용 최적화
+6. **Argo Workflows**: CI/CD 자동화로 배포 주기 단축
 
 ### 다음 단계
 
@@ -1412,6 +1466,7 @@ EKS 기반 MLOps 파이프라인은 Kubeflow, MLflow, KServe를 통합하여 완
 
 - [Kubeflow 공식 문서](https://www.kubeflow.org/docs/)
 - [MLflow 공식 문서](https://mlflow.org/docs/latest/index.html)
-- [KServe 공식 문서](https://kserve.github.io/website/)
+- [vLLM 공식 문서](https://docs.vllm.ai/)
+- [ArgoCD 공식 문서](https://argo-cd.readthedocs.io/)
 - [Karpenter 공식 문서](https://karpenter.sh/)
 - [Argo Workflows 공식 문서](https://argoproj.github.io/workflows/)

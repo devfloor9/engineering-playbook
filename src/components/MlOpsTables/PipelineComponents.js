@@ -22,9 +22,9 @@ const PipelineComponents = () => {
       bgColor: '#f0fdfa'
     },
     {
-      name: 'KServe',
-      role: isKo ? '모델 서빙 인프라' : isZh ? '模型服务基础设施' : 'Model Serving Infrastructure',
-      stack: 'Knative, Istio, Transformer',
+      name: 'vLLM + ArgoCD',
+      role: isKo ? '모델 서빙 및 GitOps 배포' : isZh ? '模型服务与 GitOps 部署' : 'Model Serving & GitOps Deployment',
+      stack: 'vLLM, ArgoCD, GitOps',
       color: '#45b7d1',
       bgColor: '#eff6ff'
     },

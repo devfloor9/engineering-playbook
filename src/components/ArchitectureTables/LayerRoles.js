@@ -28,7 +28,7 @@ const LayerRoles = () => {
     {
       layer: isKo ? 'Model Serving Layer' : isZh ? '模型服务层' : 'Model Serving Layer',
       role: isKo ? 'LLM 모델 추론 서비스' : isZh ? 'LLM 模型推理服务' : 'LLM model inference service',
-      components: 'vLLM, TGI',
+      components: 'vLLM, llm-d',
       color: '#fce4ec'
     },
     {
@@ -40,7 +40,7 @@ const LayerRoles = () => {
     {
       layer: isKo ? 'Observability Layer' : isZh ? '可观测性层' : 'Observability Layer',
       role: isKo ? '모니터링 및 추적' : isZh ? '监控和跟踪' : 'Monitoring and tracking',
-      components: 'LangFuse, Prometheus, Grafana',
+      components: 'Langfuse, AMP, AMG',
       color: '#e0f7fa'
     }
   ];

@@ -6,7 +6,7 @@ sidebar_position: 16
 category: "genai-aiml"
 tags: [sagemaker, eks, hybrid, mlops, model-registry, training, inference]
 last_update:
-  date: 2026-02-14
+  date: 2026-03-17
   author: devfloor9
 ---
 
@@ -45,7 +45,7 @@ flowchart LR
     end
 
     subgraph EKS["EKS 서빙"]
-        KSERVE[KServe<br/>모델 서빙]
+        VLLM[vLLM<br/>모델 서빙]
         TRITON[Triton<br/>GPU 최적화]
         GATEWAY[Gateway<br/>트래픽 관리]
         MONITOR[Monitoring<br/>관찰성]
@@ -56,13 +56,13 @@ flowchart LR
     SM_PIPE --> SM_REG
     SM_REG -->|모델 저장| S3
 
-    S3 -->|모델 로드| KSERVE
-    ECR -->|이미지 로드| KSERVE
-    KSERVE --> TRITON
+    S3 -->|모델 로드| VLLM
+    ECR -->|이미지 로드| VLLM
+    VLLM --> TRITON
     TRITON --> GATEWAY
     GATEWAY --> MONITOR
 
-    SM_PIPE -.->|배포 트리거| KSERVE
+    SM_PIPE -.->|배포 트리거| VLLM
 
     style SageMaker fill:#ff9900
     style Storage fill:#569a31
@@ -188,66 +188,97 @@ def register_model_to_registry(
 
 @dsl.component(
     base_image="python:3.10",
-    packages_to_install=["kubernetes", "boto3"]
+    packages_to_install=["kubernetes", "boto3", "pyyaml"]
 )
-def deploy_to_kserve(
+def deploy_to_vllm(
     model_package_arn: str,
     model_name: str,
-    namespace: str = "kserve-inference"
+    namespace: str = "vllm-inference"
 ) -> str:
-    """KServe InferenceService 배포"""
+    """vLLM Deployment 배포 (ArgoCD GitOps)"""
     import boto3
-    from kubernetes import client, config
-    
+    import yaml
+    import tempfile
+    import subprocess
+
     # SageMaker Model Registry에서 모델 정보 조회
     sm_client = boto3.client('sagemaker')
     model_package = sm_client.describe_model_package(
         ModelPackageName=model_package_arn
     )
-    
+
     model_data_url = model_package['InferenceSpecification']['Containers'][0]['ModelDataUrl']
-    
-    # KServe InferenceService 생성
-    config.load_incluster_config()
-    custom_api = client.CustomObjectsApi()
-    
-    inference_service = {
-        "apiVersion": "serving.kserve.io/v1beta1",
-        "kind": "InferenceService",
+
+    # vLLM Deployment YAML 생성
+    deployment_manifest = {
+        "apiVersion": "apps/v1",
+        "kind": "Deployment",
         "metadata": {
-            "name": model_name,
-            "namespace": namespace
+            "name": f"vllm-{model_name}",
+            "namespace": namespace,
+            "labels": {
+                "app": f"vllm-{model_name}",
+                "model": model_name
+            }
         },
         "spec": {
-            "predictor": {
-                "pytorch": {
-                    "storageUri": model_data_url,
-                    "resources": {
-                        "requests": {
-                            "nvidia.com/gpu": "1",
-                            "memory": "8Gi"
-                        },
-                        "limits": {
-                            "nvidia.com/gpu": "1",
-                            "memory": "16Gi"
-                        }
-                    }
+            "replicas": 2,
+            "selector": {
+                "matchLabels": {
+                    "app": f"vllm-{model_name}"
                 }
             },
-            "minReplicas": 2,
-            "maxReplicas": 10
+            "template": {
+                "metadata": {
+                    "labels": {
+                        "app": f"vllm-{model_name}"
+                    }
+                },
+                "spec": {
+                    "containers": [
+                        {
+                            "name": "vllm-server",
+                            "image": "vllm/vllm-openai:latest",
+                            "args": [
+                                "--model", model_data_url,
+                                "--tensor-parallel-size", "1",
+                                "--max-model-len", "4096"
+                            ],
+                            "ports": [
+                                {"containerPort": 8000, "name": "http"}
+                            ],
+                            "resources": {
+                                "requests": {
+                                    "nvidia.com/gpu": "1",
+                                    "memory": "16Gi"
+                                },
+                                "limits": {
+                                    "nvidia.com/gpu": "1",
+                                    "memory": "32Gi"
+                                }
+                            },
+                            "env": [
+                                {"name": "VLLM_LOGGING_LEVEL", "value": "INFO"}
+                            ]
+                        }
+                    ]
+                }
+            }
         }
     }
-    
-    custom_api.create_namespaced_custom_object(
-        group="serving.kserve.io",
-        version="v1beta1",
-        namespace=namespace,
-        plural="inferenceservices",
-        body=inference_service
-    )
-    
-    return f"Deployed {model_name} to KServe"
+
+    # ArgoCD Application으로 배포
+    with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml', delete=False) as f:
+        yaml.dump(deployment_manifest, f)
+        manifest_path = f.name
+
+    # kubectl apply via ArgoCD
+    subprocess.run([
+        "kubectl", "apply", "-f", manifest_path,
+        "-n", namespace
+    ], check=True)
+
+    return f"Deployed {model_name} to vLLM"
 
 
 @dsl.pipeline(
@@ -288,13 +319,13 @@ def hybrid_ml_pipeline(
     )
     registry_task.apply(use_aws_secret('aws-secret', 'AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY'))
     
-    # 3. EKS KServe에 배포
-    deploy_task = deploy_to_kserve(
+    # 3. EKS vLLM에 배포
+    deploy_task = deploy_to_vllm(
         model_package_arn=registry_task.output,
         model_name="fraud-detection-v1",
-        namespace="kserve-inference"
+        namespace="vllm-inference"
     )
-    
+
     return deploy_task.output
 ```
 
@@ -323,7 +354,7 @@ flowchart LR
 
     subgraph Deploy["배포 타겟"]
         SM_EP[SageMaker<br/>Endpoint]
-        EKS_KSERVE[EKS<br/>KServe]
+        EKS_VLLM[EKS<br/>vLLM]
         BATCH[Batch<br/>Transform]
     end
 
@@ -335,7 +366,7 @@ flowchart LR
     PROD --> ARCHIVED
 
     PROD -->|배포| SM_EP
-    PROD -->|배포| EKS_KSERVE
+    PROD -->|배포| EKS_VLLM
     PROD -->|배포| BATCH
 
     style DEV fill:#f5f5f5
@@ -432,34 +463,40 @@ def get_approved_model_from_registry(model_package_group_name: str) -> str:
     return model_data_url
 
 
-def update_kserve_with_latest_model(model_name: str, namespace: str):
-    """KServe InferenceService를 최신 승인 모델로 업데이트"""
+def update_vllm_with_latest_model(model_name: str, namespace: str):
+    """vLLM Deployment를 최신 승인 모델로 업데이트"""
     config.load_incluster_config()
-    custom_api = client.CustomObjectsApi()
-    
+    apps_api = client.AppsV1Api()
+
     # Model Registry에서 최신 모델 조회
     model_url = get_approved_model_from_registry("fraud-detection-models")
-    
-    # InferenceService 업데이트
+
+    # Deployment 업데이트
     patch_body = {
         "spec": {
-            "predictor": {
-                "pytorch": {
-                    "storageUri": model_url
+            "template": {
+                "spec": {
+                    "containers": [
+                        {
+                            "name": "vllm-server",
+                            "args": [
+                                "--model", model_url,
+                                "--tensor-parallel-size", "1",
+                                "--max-model-len", "4096"
+                            ]
+                        }
+                    ]
                 }
             }
         }
     }
-    
-    custom_api.patch_namespaced_custom_object(
-        group="serving.kserve.io",
-        version="v1beta1",
+
+    apps_api.patch_namespaced_deployment(
+        name=f"vllm-{model_name}",
         namespace=namespace,
-        plural="inferenceservices",
-        name=model_name,
         body=patch_body
     )
-    
+
     print(f"Updated {model_name} with model from {model_url}")
 ```
 
@@ -607,13 +644,13 @@ flowchart TB
     subgraph APNE2["Seoul (ap-northeast-2)"]
         S3_REPLICA[S3<br/>Replica]
         EKS_AP[EKS<br/>Seoul]
-        KSERVE_AP[KServe<br/>APNE2]
+        VLLM_AP[vLLM<br/>APNE2]
     end
 
     subgraph EUW1["Ireland (eu-west-1)"]
         S3_EU[S3<br/>Replica]
         EKS_EU[EKS<br/>Ireland]
-        KSERVE_EU[KServe<br/>EUW1]
+        VLLM_EU[vLLM<br/>EUW1]
     end
 
     subgraph Global["글로벌 트래픽"]
@@ -628,14 +665,14 @@ flowchart TB
     S3_PRIMARY -->|복제| S3_EU
 
     S3_REPLICA --> EKS_AP
-    EKS_AP --> KSERVE_AP
+    EKS_AP --> VLLM_AP
 
     S3_EU --> EKS_EU
-    EKS_EU --> KSERVE_EU
+    EKS_EU --> VLLM_EU
 
     CLOUDFRONT --> R53
-    R53 -->|라우팅| KSERVE_AP
-    R53 -->|라우팅| KSERVE_EU
+    R53 -->|라우팅| VLLM_AP
+    R53 -->|라우팅| VLLM_EU
 
     style Primary fill:#ff9900
     style APNE2 fill:#326ce5
@@ -772,39 +809,64 @@ class MultiRegionDeployer:
         # 리전별 kubeconfig 로드
         config.load_kube_config(context=f"eks-{region}")
         
-        custom_api = client.CustomObjectsApi()
-        
-        inference_service = {
-            "apiVersion": "serving.kserve.io/v1beta1",
-            "kind": "InferenceService",
+        apps_api = client.AppsV1Api()
+
+        vllm_deployment = {
+            "apiVersion": "apps/v1",
+            "kind": "Deployment",
             "metadata": {
-                "name": f"{model_name}-{region}",
-                "namespace": namespace
+                "name": f"vllm-{model_name}-{region}",
+                "namespace": namespace,
+                "labels": {
+                    "app": f"vllm-{model_name}",
+                    "region": region
+                }
             },
             "spec": {
-                "predictor": {
-                    "pytorch": {
-                        "storageUri": model_url,
-                        "resources": {
-                            "requests": {"nvidia.com/gpu": "1"},
-                            "limits": {"nvidia.com/gpu": "1"}
-                        }
+                "replicas": 2,
+                "selector": {
+                    "matchLabels": {
+                        "app": f"vllm-{model_name}",
+                        "region": region
                     }
                 },
-                "minReplicas": 2,
-                "maxReplicas": 10
+                "template": {
+                    "metadata": {
+                        "labels": {
+                            "app": f"vllm-{model_name}",
+                            "region": region
+                        }
+                    },
+                    "spec": {
+                        "containers": [
+                            {
+                                "name": "vllm-server",
+                                "image": "vllm/vllm-openai:latest",
+                                "args": [
+                                    "--model", model_url,
+                                    "--tensor-parallel-size", "1",
+                                    "--max-model-len", "4096"
+                                ],
+                                "ports": [
+                                    {"containerPort": 8000, "name": "http"}
+                                ],
+                                "resources": {
+                                    "requests": {"nvidia.com/gpu": "1"},
+                                    "limits": {"nvidia.com/gpu": "1"}
+                                }
+                            }
+                        ]
+                    }
+                }
             }
         }
-        
-        custom_api.create_namespaced_custom_object(
-            group="serving.kserve.io",
-            version="v1beta1",
+
+        apps_api.create_namespaced_deployment(
             namespace=namespace,
-            plural="inferenceservices",
-            body=inference_service
+            body=vllm_deployment
         )
         
-        return f"https://{model_name}-{region}.{namespace}.svc.cluster.local"
+        return f"http://vllm-{model_name}-{region}.{namespace}.svc.cluster.local:8000"
 
 
 # 사용 예시
@@ -830,12 +892,13 @@ print(results)
 ```mermaid
 flowchart LR
     subgraph Collection["데이터 수집"]
-        KSERVE[KServe<br/>Predictor]
-        LOGGER[Logger<br/>Sidecar]
+        VLLM[vLLM<br/>Predictor]
+        OTEL[OTEL<br/>Sidecar]
     end
 
     subgraph Storage["저장 & 분석"]
         S3_LOGS[S3<br/>추론 로그]
+        LANGFUSE[Langfuse<br/>관찰성]
         ATHENA[Athena<br/>SQL 분석]
     end
 
@@ -852,8 +915,9 @@ flowchart LR
         LAMBDA[Lambda<br/>Auto-fix]
     end
 
-    KSERVE -->|요청/응답| LOGGER
-    LOGGER --> S3_LOGS
+    VLLM -->|요청/응답| OTEL
+    OTEL --> LANGFUSE
+    OTEL --> S3_LOGS
 
     S3_LOGS -->|입력 분석| DATA_QUALITY
     S3_LOGS -->|예측 분석| MODEL_QUALITY
@@ -873,79 +937,145 @@ flowchart LR
     style Alert fill:#ea4335
 ```
 
-### KServe Logger Sidecar 설정
+### vLLM OTEL Sidecar 설정
 
 ```yaml
-apiVersion: serving.kserve.io/v1beta1
-kind: InferenceService
-metadata:
-  name: fraud-detection-monitored
-  namespace: kserve-inference
-spec:
-  predictor:
-    pytorch:
-      storageUri: s3://my-models/fraud-detection/model.tar.gz
-      resources:
-        requests:
-          nvidia.com/gpu: 1
-        limits:
-          nvidia.com/gpu: 1
-    
-    # Logger Sidecar 추가
-    logger:
-      mode: all  # request, response, all
-      url: http://logger-service.monitoring.svc.cluster.local:8080/log
-  
-  minReplicas: 2
-  maxReplicas: 10
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: logger-service
-  namespace: monitoring
-spec:
-  selector:
-    app: inference-logger
-  ports:
-    - port: 8080
-      targetPort: 8080
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: inference-logger
-  namespace: monitoring
+  name: vllm-fraud-detection-monitored
+  namespace: vllm-inference
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: inference-logger
+      app: vllm-fraud-detection
   template:
     metadata:
       labels:
-        app: inference-logger
+        app: vllm-fraud-detection
     spec:
-      serviceAccountName: inference-logger-sa
+      serviceAccountName: vllm-sa
       containers:
-        - name: logger
-          image: my-registry/inference-logger:latest
+        # vLLM 서버
+        - name: vllm-server
+          image: vllm/vllm-openai:latest
+          args:
+            - --model
+            - s3://my-models/fraud-detection/model.tar.gz
+            - --tensor-parallel-size
+            - "1"
+            - --max-model-len
+            - "4096"
           ports:
-            - containerPort: 8080
-          env:
-            - name: S3_BUCKET
-              value: "my-inference-logs"
-            - name: S3_PREFIX
-              value: "fraud-detection/"
-            - name: AWS_REGION
-              value: "us-west-2"
+            - containerPort: 8000
+              name: http
           resources:
             requests:
+              nvidia.com/gpu: 1
+              memory: 16Gi
+            limits:
+              nvidia.com/gpu: 1
+              memory: 32Gi
+          env:
+            - name: VLLM_LOGGING_LEVEL
+              value: "INFO"
+
+        # OpenTelemetry Collector Sidecar
+        - name: otel-collector
+          image: otel/opentelemetry-collector-contrib:latest
+          args:
+            - --config=/conf/otel-collector-config.yaml
+          ports:
+            - containerPort: 4317  # OTLP gRPC
+            - containerPort: 4318  # OTLP HTTP
+          volumeMounts:
+            - name: otel-config
+              mountPath: /conf
+          env:
+            - name: LANGFUSE_PUBLIC_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: langfuse-credentials
+                  key: public-key
+            - name: LANGFUSE_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: langfuse-credentials
+                  key: secret-key
+            - name: LANGFUSE_HOST
+              value: "https://langfuse.example.com"
+          resources:
+            requests:
+              cpu: "200m"
+              memory: "512Mi"
+            limits:
               cpu: "500m"
               memory: "1Gi"
-            limits:
-              cpu: "1"
-              memory: "2Gi"
+
+      volumes:
+        - name: otel-config
+          configMap:
+            name: otel-collector-config
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: otel-collector-config
+  namespace: vllm-inference
+data:
+  otel-collector-config.yaml: |
+    receivers:
+      otlp:
+        protocols:
+          grpc:
+            endpoint: 0.0.0.0:4317
+          http:
+            endpoint: 0.0.0.0:4318
+
+    processors:
+      batch:
+        timeout: 10s
+        send_batch_size: 1024
+
+      resource:
+        attributes:
+          - key: service.name
+            value: vllm-fraud-detection
+            action: upsert
+
+    exporters:
+      # Langfuse exporter
+      otlphttp/langfuse:
+        endpoint: ${LANGFUSE_HOST}/api/public/ingestion
+        headers:
+          Authorization: Bearer ${LANGFUSE_SECRET_KEY}
+
+      # S3 exporter (추론 로그)
+      awss3:
+        s3uploader:
+          region: us-west-2
+          s3_bucket: my-inference-logs
+          s3_prefix: fraud-detection/
+          s3_partition: hour
+
+      # CloudWatch Logs exporter
+      awscloudwatchlogs:
+        log_group_name: /aws/vllm/fraud-detection
+        log_stream_name: inference-logs
+        region: us-west-2
+
+    service:
+      pipelines:
+        traces:
+          receivers: [otlp]
+          processors: [batch, resource]
+          exporters: [otlphttp/langfuse]
+
+        logs:
+          receivers: [otlp]
+          processors: [batch, resource]
+          exporters: [awss3, awscloudwatchlogs]
 ```
 
 ### SageMaker Model Monitor 통합
@@ -1094,7 +1224,7 @@ SageMaker-EKS 하이브리드 아키텍처는 관리형 학습과 유연한 서�
 
 ### 다음 단계
 
-- [EKS 기반 MLOps 파이프라인](./mlops-pipeline-eks.md) - Kubeflow + MLflow + KServe
+- [EKS 기반 MLOps 파이프라인](./mlops-pipeline-eks.md) - Kubeflow + MLflow + vLLM + ArgoCD GitOps
 - [GPU 리소스 관리](../model-serving/gpu-resource-management.md) - GPU 클러스터 최적화
 - [모델 모니터링](./agent-monitoring.md) - 프로덕션 모델 관찰성
 
@@ -1105,6 +1235,10 @@ SageMaker-EKS 하이브리드 아키텍처는 관리형 학습과 유연한 서�
 - [SageMaker Components for Kubeflow Pipelines](https://docs.aws.amazon.com/sagemaker/latest/dg/kubernetes-sagemaker-components-for-kubeflow-pipelines.html)
 - [SageMaker Model Registry](https://docs.aws.amazon.com/sagemaker/latest/dg/model-registry.html)
 - [SageMaker Model Monitor](https://docs.aws.amazon.com/sagemaker/latest/dg/model-monitor.html)
-- [KServe Documentation](https://kserve.github.io/website/)
+- [vLLM Documentation](https://docs.vllm.ai/)
+- [vLLM Deployment Guide](https://docs.vllm.ai/en/latest/serving/deploying_with_docker.html)
+- [ArgoCD Documentation](https://argo-cd.readthedocs.io/)
+- [OpenTelemetry Collector](https://opentelemetry.io/docs/collector/)
+- [Langfuse Self-Hosting](https://langfuse.com/docs/deployment/self-host)
 - [AWS Multi-Region Architecture](https://aws.amazon.com/solutions/implementations/multi-region-application-architecture/)
 

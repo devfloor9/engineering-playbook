@@ -18,7 +18,7 @@ last_update:
 
 ## 전체 레이아웃
 
-- 제목: "LG U+ Agentic AI Platform - EKS 기반 개선 아키텍처 (v2)"
+- 제목: "LG U+ Agentic AI Platform - EKS 기반 개선 아키텍처 (v3)"
 - 캔버스 크기: 가로 1400px, 세로 1000px
 - 배경: 흰색
 - 폰트: 맑은 고딕 (또는 Noto Sans KR)
@@ -91,13 +91,18 @@ ALB에서 EKS 클러스터 내부로 화살표 진입.
 컨테이너 제목: "① Portal Layer"
 
 내부 박스 (가로 배치):
-| 박스 | 라벨 | 배경색 |
-|------|------|--------|
-| 1 | Portal UI (Next.js) | #326CE5 |
-| 2 | Langfuse (Prompt Mgmt + Observability) | #9C27B0 |
-| 3 | OpenSearch (Metadata) | #FF9900 |
-| 4 | JupyterHub (Notebook) | #FFD93D |
-| 5 | ArgoCD (EKS Add-on) | #FF6B6B |
+| 박스 | 라벨 | 배경색 | 비고 |
+|------|------|--------|------|
+| 1 | Portal UI (Next.js) | #326CE5 | |
+| 2 | LangSmith (Dev/Staging Observability) | #FFD93D | "Dev/Staging" 라벨 표시 |
+| 3 | Langfuse (Prod Observability + Prompt Mgmt) | #9C27B0 | "Production" 라벨 표시 |
+| 4 | OpenSearch (Metadata) | #FF9900 | |
+| 5 | JupyterHub (Notebook) | #FFD93D | |
+| 6 | ArgoCD (EKS Add-on) | #FF6B6B | |
+
+> LangSmith와 Langfuse를 나란히 배치하여 하이브리드 Observability 전략을 시각적으로 표현.
+> LangSmith 박스 하단에 작은 텍스트: "LangGraph Studio 네이티브 통합"
+> Langfuse 박스 하단에 작은 텍스트: "Self-host, 데이터 주권, MIT"
 
 ---
 
@@ -105,28 +110,41 @@ ALB에서 EKS 클러스터 내부로 화살표 진입.
 
 컨테이너 제목: "② Orchestration Layer (LangChain + LangGraph)"
 
-내부를 3단 구조로 배치:
+내부를 **4 서브그룹 구조**로 배치:
 
-**1단 (Gateway Tier):**
+**Gateway Tier (최상단, 전체 폭):**
+| 박스 | 라벨 | 배경색 | 비고 |
+|------|------|--------|------|
+| 1 | kgateway (Gateway API / 인증 / Rate Limit / TLS / WebSocket·SSE 네이티브) | #326CE5 | Envoy HTTP/1.1 Upgrade 지원 명시 |
+
+kgateway 하단에 작은 텍스트: "Path 분기: /api/* → FastAPI, /ws/* → WebSocket, /v1/* → LiteLLM (AI)"
+
+**Core Services (좌측):**
+| 박스 | 라벨 | 배경색 | 비고 |
+|------|------|--------|------|
+| 1 | FastAPI (API + WebSocket + SSE) | #34A853 | 통합 박스 1개 (API Server + WebSocket 병합) |
+| 2 | Redis (Session + Cache) | #FF6B6B | LangGraph checkpointer |
+
+**Agent Framework (중앙):**
 | 박스 | 라벨 | 배경색 |
 |------|------|--------|
-| 1 | kgateway (Gateway API / 인증 / Rate Limit / TLS) | #326CE5 |
+| 1 | LangChain (Agent Runtime) | #FFD93D |
+| 2 | LangGraph (Workflow + ReAct + Tool Registry) | #FFD93D |
 
-**2단 (Core + Agent):**
+**RAG Pipeline (우측 상단):**
 | 박스 | 라벨 | 배경색 |
 |------|------|--------|
-| 1 | API Server (FastAPI) | #34A853 |
-| 2 | WebSocket (FastAPI) | #34A853 |
-| 3 | Redis (Session / Cache) | #FF6B6B |
-| 4 | LangChain (Agent Runtime) | #FFD93D |
-| 5 | LangGraph (Workflow Engine) | #FFD93D |
+| 1 | RAG Chain | #00BCD4 |
 
-**3단 (RAG + Safety + Router):**
+**Safety (우측 하단):**
 | 박스 | 라벨 | 배경색 |
 |------|------|--------|
-| 1 | LiteLLM (LLM Router / 폴백 / 비용) | #FF9900 |
-| 2 | RAG Chain | #00BCD4 |
-| 3 | NeMo Guardrails (Input/Output 필터) | #FF6B6B |
+| 1 | NeMo Guardrails (Input/Output 필터) | #FF6B6B |
+
+**LLM Router (하단, 전체 폭):**
+| 박스 | 라벨 | 배경색 |
+|------|------|--------|
+| 1 | LiteLLM (LLM Router / 폴백 / 비용 추적) | #FF9900 |
 
 ---
 
@@ -268,28 +286,31 @@ llm-d 박스는 전체 폭의 80% 차지, 중앙 배치.
 3. IAM Identity Center → kgateway (EKS 내부 진입)
 
 ### EKS 내부 흐름 (실선, #326CE5 파랑)
-4. kgateway → API Server (일반 트래픽)
+4. kgateway → FastAPI (REST + WebSocket + SSE) (/api/*, /ws/*)
 5. kgateway → LiteLLM (/v1/* AI 트래픽)
-6. API Server → LangChain / LangGraph (에이전트 요청)
+6. FastAPI → LangChain / LangGraph (에이전트 요청)
 7. LangChain → LiteLLM (LLM 호출)
 8. LangChain → RAG Chain → Milvus (RAG 검색)
-9. LiteLLM → llm-d Inference Gateway (자체 모델)
-10. llm-d → vLLM Large / Medium / Small / LoRA (KV Cache-aware 분배)
-11. LiteLLM → External LLMs (외부 모델, 우측으로 화살표)
+9. LangChain → NeMo Guardrails (Input/Output 필터링, 양방향 화살표)
+10. LiteLLM → llm-d Inference Gateway (자체 모델)
+11. llm-d → vLLM Large / Medium / Small / LoRA (KV Cache-aware 분배)
+12. LiteLLM → External LLMs (외부 모델, 우측으로 화살표)
 
 ### 데이터 흐름 (점선, #00BCD4 청록)
-12. On-Premise (코랩코) --점선화살표--> S3 (모델 아티팩트)
-13. S3 → MLflow (모델 등록)
-14. MLflow → DeepEval → ArgoCD → vLLM (배포 파이프라인)
-15. Unstructured.io → Triton Embedding → Milvus (RAG 인덱싱)
+13. On-Premise (코랩코) --점선화살표--> S3 (모델 아티팩트)
+14. S3 → MLflow (모델 등록)
+15. MLflow → DeepEval → ArgoCD → vLLM (배포 파이프라인)
+16. Unstructured.io → Triton Embedding → Milvus (RAG 인덱싱)
 
 ### 모니터링 흐름 (점선, #9C27B0 보라)
-16. vLLM/llm-d --점선--> ADOT --점선--> AMP → AMG
-17. Langfuse --점선--> Label Studio (피드백 루프)
+17. vLLM/llm-d --점선--> ADOT --점선--> AMP → AMG
+18. FastAPI --점선--> LangSmith (Dev/Staging 트레이스, 라벨: "Dev 트레이스")
+19. FastAPI --점선--> Langfuse (Production 트레이스, 라벨: "Prod 트레이스")
+20. Langfuse --점선--> Label Studio (피드백 루프)
 
 ### On-Premise 연결 (점선, #E91E63 분홍)
-18. On-Premise (상암) --점선--> LiteLLM (자체 추론 서버 등록)
-19. On-Premise (코랩코) --점선--> S3 (학습 결과 업로드)
+21. On-Premise (상암) --점선--> LiteLLM (자체 추론 서버 등록)
+22. On-Premise (코랩코) --점선--> S3 (학습 결과 업로드)
 
 ---
 
@@ -302,7 +323,7 @@ llm-d 박스는 전체 폭의 80% 차지, 중앙 배치.
 - 분홍 점선: On-Premise 연결
 
 캔버스 우하단에 버전 정보:
-- "v2.0 | 2026-03-17 | 컴포넌트 52→26개 통합"
+- "v3.0 | 2026-03-17 | 52→26 컴포넌트 + 하이브리드 Observability"
 
 ---
 
@@ -319,14 +340,16 @@ llm-d 박스는 전체 폭의 80% 차지, 중앙 배치.
 
 ## 변경 하이라이트 (선택사항)
 
-원본 대비 변경된 부분에 작은 별표(*) 또는 "NEW", "CHANGED", "REMOVED" 뱃지를 추가:
-- kgateway: "CHANGED (Kong→kgateway)"
+원본 대비 변경된 부분에 작은 별표(*) 또는 "NEW", "CHANGED", "REMOVED", "HYBRID" 뱃지를 추가:
+- kgateway: "CHANGED (Kong→kgateway, WebSocket/SSE 네이티브)"
 - IAM Identity Center: "CHANGED (Cognito+Keycloak→IAM IdC)"
+- FastAPI: "CHANGED (API Server+WebSocket 통합)"
 - llm-d: "NEW"
 - AMP/AMG: "CHANGED (Self-hosted→Managed)"
 - ArgoCD: "CHANGED (Self-hosted→EKS Add-on)"
-- Langfuse: "CHANGED (LangSmith→Langfuse)"
+- LangSmith + Langfuse: "HYBRID (LangSmith Dev + Langfuse Prod)"
 - Unstructured.io: "NEW"
+- NeMo Guardrails: 4 서브그룹 Safety로 분리 표시
 - 제거된 컴포넌트는 표시하지 않음
 
 이 사양으로 draw.io XML을 생성해줘.
@@ -338,7 +361,7 @@ llm-d 박스는 전체 폭의 80% 차지, 중앙 배치.
 
 ### 방법 1: Claude에게 draw.io XML 생성 요청
 
-위 프롬프트를 Claude에게 붙여넣으면 `.drawio` XML을 생성합니다. 생성된 XML을 `architecture-v2.drawio` 파일로 저장 후 draw.io에서 열면 됩니다.
+위 프롬프트를 Claude에게 붙여넣으면 `.drawio` XML을 생성합니다. 생성된 XML을 `architecture-v3.drawio` 파일로 저장 후 draw.io에서 열면 됩니다.
 
 ### 방법 2: draw.io에서 직접 작업
 
@@ -352,3 +375,20 @@ draw.io MCP 서버가 설정되어 있다면:
 ```
 /architecture-diagram 위 프롬프트 내용으로 다이어그램 생성
 ```
+
+---
+
+## v2 → v3 변경 요약
+
+| 영역 | v2 | v3 | 변경 이유 |
+|------|----|----|-----------|
+| Orchestration 구조 | 3단 (Gateway / Core+Agent / RAG+Safety+Router) | 4 서브그룹 (Core Services / Agent Framework / RAG Pipeline / Safety) | 아키텍처 리포트 정합 |
+| API Server + WebSocket | 별도 박스 2개 | **FastAPI** 통합 박스 1개 | API+WebSocket+SSE 단일 서비스 |
+| kgateway | 기본 Gateway | WebSocket/SSE 네이티브 지원 명시 | Envoy HTTP/1.1 Upgrade |
+| Observability | Langfuse 단독 | **LangSmith (Dev) + Langfuse (Prod)** 하이브리드 | 환경별 역할 분담 |
+| 모니터링 화살표 | Langfuse 1개 | LangSmith (Dev 트레이스) + Langfuse (Prod 트레이스) 분리 | 하이브리드 전략 시각화 |
+| 화살표 #4 | kgateway → API Server | kgateway → FastAPI (REST+WS+SSE) | 통합 반영 |
+| 화살표 #5 (구) | kgateway → WebSocket | **제거** (FastAPI에 통합) | 중복 제거 |
+| 화살표 #9 (신규) | — | LangChain → NeMo Guardrails | Safety 서브그룹 명시 |
+| 변경 뱃지 | Langfuse: "CHANGED" | **"HYBRID (LangSmith Dev + Langfuse Prod)"** | 하이브리드 전략 표현 |
+| 버전 | v2.0 | **v3.0** | 52→26 컴포넌트 + 하이브리드 Observability |

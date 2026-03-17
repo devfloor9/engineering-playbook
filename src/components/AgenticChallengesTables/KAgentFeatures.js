@@ -20,7 +20,7 @@ const KAgentFeatures = () => {
     {
       icon: '🔍',
       name: isKo ? '통합 관측성' : isZh ? '集成可观测性' : 'Integrated Observability',
-      description: isKo ? 'LangFuse/LangSmith와 자동 연동' : isZh ? '与 LangFuse/LangSmith 自动集成' : 'Automatic integration with LangFuse/LangSmith'
+      description: isKo ? 'Langfuse/LangSmith 연동' : isZh ? '与 Langfuse/LangSmith 集成' : 'Integration with Langfuse/LangSmith'
     },
     {
       icon: '🛠️',

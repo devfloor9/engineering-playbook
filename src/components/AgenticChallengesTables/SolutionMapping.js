@@ -27,12 +27,20 @@ const SolutionMapping = () => {
       challenge: isKo ? '토큰/비용 모니터링' : isZh ? '令牌/成本监控' : 'Token/Cost Monitoring',
       color: '#45b7d1',
       bgColor: '#eff6ff',
-      coreSolution: 'LangFuse, LangSmith',
+      coreSolution: 'LangSmith (개발) + Langfuse (프로덕션)',
       supportingSolutions: ['OpenTelemetry', 'Prometheus'],
       solves: isKo ? '토큰 레벨 추적, 비용 가시성, 품질 평가' : isZh ? '令牌级别跟踪，成本可见性，质量评估' : 'Token-level tracking, cost visibility, quality evaluation'
     },
     {
-      challenge: isKo ? 'FM 파인튜닝' : isZh ? 'FM 微调' : 'FM Fine-tuning',
+      challenge: isKo ? 'Agent 오케스트레이션 및 안전성' : isZh ? 'Agent 编排和安全性' : 'Agent Orchestration & Safety',
+      color: '#9b59b6',
+      bgColor: '#f3ebf8',
+      coreSolution: 'LangGraph, NeMo Guardrails',
+      supportingSolutions: ['MCP/A2A', 'Ragas'],
+      solves: isKo ? 'Agent 워크플로우 오케스트레이션, 안전성 가드레일, 도구 통합' : isZh ? 'Agent 工作流编排，安全防护栏，工具集成' : 'Agent workflow orchestration, safety guardrails, tool integration'
+    },
+    {
+      challenge: isKo ? '모델 공급망 관리' : isZh ? '模型供应链管理' : 'Model Supply Chain Management',
       color: '#96ceb4',
       bgColor: '#f0fdf4',
       coreSolution: 'NeMo, Kubeflow',

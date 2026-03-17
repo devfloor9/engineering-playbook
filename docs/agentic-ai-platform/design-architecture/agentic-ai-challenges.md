@@ -1,11 +1,11 @@
 ---
 title: "Agentic AI 워크로드의 기술적 도전과제"
 sidebar_label: "1. 기술적 도전과제"
-description: "Agentic AI 워크로드 운영 시 직면하는 4가지 핵심 도전과제와 Kubernetes 기반 오픈소스 생태계"
+description: "Agentic AI 워크로드 운영 시 직면하는 5가지 핵심 도전과제와 Kubernetes 기반 오픈소스 생태계"
 tags: [kubernetes, genai, agentic-ai, gpu, challenges, open-source]
 category: "genai-aiml"
 last_update:
-  date: 2026-02-14
+  date: 2026-03-17
   author: devfloor9
 sidebar_position: 1
 ---
@@ -14,23 +14,24 @@ import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 import { ChallengeSummary, K8sCoreFeatures, SolutionMapping, ModelServingComparison, InferenceGatewayComparison, ObservabilityComparison, KAgentFeatures, ObservabilityLayerStack, LlmdFeatures, DistributedTrainingStack, GpuInfraStack } from '@site/src/components/AgenticChallengesTables';
 
-> 📅 **작성일**: 2025-02-05 | **수정일**: 2026-02-14 | ⏱️ **읽는 시간**: 약 8분
+> 📅 **작성일**: 2025-02-05 | **수정일**: 2026-03-17 | ⏱️ **읽는 시간**: 약 12분
 
 ## 소개
 
-Agentic AI 플랫폼을 구축하고 운영할 때, 플랫폼 엔지니어와 아키텍트는 기존 웹 애플리케이션과는 근본적으로 다른 기술적 도전에 직면합니다. 이 문서에서는 **4가지 핵심 도전과제**를 분석하고, 이를 해결하기 위한 **Kubernetes 기반 오픈소스 생태계**를 탐구합니다.
+Agentic AI 플랫폼을 구축하고 운영할 때, 플랫폼 엔지니어와 아키텍트는 기존 웹 애플리케이션과는 근본적으로 다른 기술적 도전에 직면합니다. 이 문서에서는 **5가지 핵심 도전과제**를 분석하고, 이를 해결하기 위한 **Kubernetes 기반 오픈소스 생태계**를 탐구합니다.
 
-## Agentic AI 플랫폼의 4가지 핵심 도전과제
+## Agentic AI 플랫폼의 5가지 핵심 도전과제
 
 Frontier Model(최신 대규모 언어 모델)을 활용한 Agentic AI 시스템은 기존 웹 애플리케이션과는 **근본적으로 다른 인프라 요구사항**을 가집니다.
 
 ```mermaid
 flowchart TD
-    subgraph Challenges["4가지 핵심 도전과제"]
-        C1["도전과제 1<br/>GPU 모니터링 및<br/>리소스 스케줄링"]
-        C2["도전과제 2<br/>Agentic AI 요청<br/>동적 라우팅 및 스케일링"]
-        C3["도전과제 3<br/>토큰/세션 수준<br/>모니터링 및 비용 컨트롤"]
-        C4["도전과제 4<br/>FM 파인튜닝과<br/>자동화 파이프라인"]
+    subgraph Challenges["5가지 핵심 도전과제"]
+        C1["도전과제 1<br/>GPU 리소스 관리 및<br/>비용 최적화"]
+        C2["도전과제 2<br/>지능형 추론 라우팅 및<br/>게이트웨이"]
+        C3["도전과제 3<br/>LLMOps 관찰성 및<br/>비용 거버넌스"]
+        C4["도전과제 4<br/>Agent 오케스트레이션 및<br/>안전성"]
+        C5["도전과제 5<br/>모델 공급망 관리<br/>(Model Supply Chain)"]
     end
 
     COMMON["공통 특성<br/>- GPU 리소스 집약적<br/>- 예측 불가능한 워크로드<br/>- 높은 인프라 비용<br/>- 복잡한 분산 시스템"]
@@ -39,11 +40,13 @@ flowchart TD
     C2 --> COMMON
     C3 --> COMMON
     C4 --> COMMON
+    C5 --> COMMON
 
     style C1 fill:#ffe1e1
     style C2 fill:#e1f5ff
     style C3 fill:#fff4e1
-    style C4 fill:#e1ffe1
+    style C4 fill:#f0e1ff
+    style C5 fill:#e1ffe1
     style COMMON fill:#f0f0f0
 ```
 
@@ -155,18 +158,20 @@ Kubernetes 생태계에는 Agentic AI 플랫폼의 각 도전과제를 해결하
 
 ```mermaid
 flowchart TD
-    subgraph Challenges["4가지 핵심 도전과제"]
-        C1["GPU 모니터링 및<br/>리소스 스케줄링"]
-        C2["동적 라우팅 및<br/>스케일링"]
-        C3["토큰/세션 모니터링<br/>및 비용 컨트롤"]
-        C4["FM 파인튜닝과<br/>자동화 파이프라인"]
+    subgraph Challenges["5가지 핵심 도전과제"]
+        C1["GPU 리소스 관리 및<br/>비용 최적화"]
+        C2["지능형 추론 라우팅 및<br/>게이트웨이"]
+        C3["LLMOps 관찰성 및<br/>비용 거버넌스"]
+        C4["Agent 오케스트레이션<br/>및 안전성"]
+        C5["모델 공급망 관리"]
     end
 
     subgraph K8sSolutions["Kubernetes 네이티브 솔루션"]
-        S1["Karpenter<br/>GPU 노드<br/>자동 프로비저닝"]
-        S2["Kgateway<br/>+<br/>LiteLLM"]
-        S3["LangFuse<br/>/<br/>LangSmith"]
-        S4["NeMo<br/>+<br/>Kubeflow"]
+        S1["Karpenter + GPU Operator<br/>MIG / Time-Slicing"]
+        S2["Kgateway + LiteLLM<br/>llm-d KV Cache Routing"]
+        S3["LangSmith + Langfuse<br/>하이브리드 Observability"]
+        S4["LangGraph + NeMo Guardrails<br/>MCP / A2A"]
+        S5["MLflow + Kubeflow<br/>ArgoCD GitOps"]
     end
 
     subgraph ModelServing["모델 서빙"]
@@ -180,6 +185,7 @@ flowchart TD
     C2 --> S2
     C3 --> S3
     C4 --> S4
+    C5 --> S5
 
     S2 --> VLLM
     S2 --> LLMD
@@ -189,11 +195,13 @@ flowchart TD
     style C1 fill:#ffe1e1
     style C2 fill:#e1f5ff
     style C3 fill:#fff4e1
-    style C4 fill:#e1ffe1
+    style C4 fill:#f0e1ff
+    style C5 fill:#e1ffe1
     style S1 fill:#ffd93d
     style S2 fill:#e1f5ff
     style S3 fill:#f0e1ff
-    style S4 fill:#e1ffe1
+    style S4 fill:#f0e1ff
+    style S5 fill:#e1ffe1
     style VLLM fill:#ffe1e1
     style LLMD fill:#ffe1e1
     style KAGENT fill:#e1ffe1
@@ -209,34 +217,54 @@ flowchart TD
 
 ## 오픈소스 생태계와 Kubernetes 통합 아키텍처
 
-Agentic AI 플랫폼은 다양한 오픈소스 프로젝트들이 Kubernetes를 중심으로 유기적으로 통합되어 구성됩니다. 이 섹션에서는 **LLM Observability, 모델 서빙, 벡터 데이터베이스, GPU 인프라** 영역의 핵심 오픈소스들이 어떻게 협력하여 완전한 Agentic AI 플랫폼을 형성하는지 설명합니다.
+Agentic AI 플랫폼은 다양한 오픈소스 프로젝트들이 Kubernetes를 중심으로 유기적으로 통합되어 구성됩니다. 이 섹션에서는 **GPU 리소스 관리, 추론 라우팅, LLMOps 관찰성, Agent 오케스트레이션, 모델 공급망** 영역의 핵심 오픈소스들이 어떻게 협력하여 완전한 Agentic AI 플랫폼을 형성하는지 설명합니다.
 
-### 1. 모델 서빙: vLLM + llm-d
+### 1. GPU 리소스 관리 및 비용 최적화
 
-**vLLM**은 LLM 추론을 위한 고성능 서빙 엔진으로, PagedAttention을 통해 **메모리 효율성을 극대화**합니다. vLLM v0.6+는 CUDA 12.x와 완벽하게 호환되며, H100/H200 GPU를 완전히 지원합니다.
+GPU는 Agentic AI 플랫폼에서 가장 비용이 높은 리소스입니다. 모델 크기와 워크로드 특성에 따라 **MIG(Multi-Instance GPU)와 Time-Slicing** 전략을 적절히 조합해야 합니다.
 
-**llm-d**는 Kubernetes 환경에서 LLM 추론 요청을 **지능적으로 분산**하는 스케줄러입니다.
+**GPU 할당 전략:**
+
+| 모델 크기 | GPU 전략 | 예시 |
+|-----------|----------|------|
+| 70B+ 파라미터 | Full GPU (H100/A100) | Llama 3.1 70B, Mixtral 8x22B |
+| 7B~30B 파라미터 | MIG (Multi-Instance GPU) | Llama 3.1 8B, Mistral 7B |
+| 3B 이하 파라미터 | Time-Slicing | Phi-3 Mini, Gemma 2B |
+
+**노드 관리 선택 기준:**
+
+| 기준 | EKS Auto Mode | Karpenter + GPU Operator |
+|------|---------------|--------------------------|
+| 운영 복잡도 | 낮음 (관리형) | 높음 (직접 관리) |
+| GPU 세밀 제어 | 제한적 | MIG/Time-Slicing 완전 제어 |
+| 비용 최적화 | 기본 수준 | Spot 인스턴스, 커스텀 NodePool |
+| 권장 시나리오 | 빠른 시작, 소규모 | 대규모, 세밀한 GPU 관리 필요 |
 
 ```mermaid
 flowchart LR
-    REQ["Client Request"]
-    LLMD["llm-d<br/>Request Router"]
+    REQ["추론 요청"]
 
-    subgraph VllmInstances["vLLM Instances"]
-        V1["vLLM Pod 1<br/>GPU: A100"]
-        V2["vLLM Pod 2<br/>GPU: A100"]
-        V3["vLLM Pod 3<br/>GPU: H100"]
+    subgraph GPUStrategy["GPU 할당 전략"]
+        FULL["Full GPU<br/>70B+ 모델"]
+        MIG["MIG Partition<br/>7B~30B 모델"]
+        TS["Time-Slicing<br/>3B 이하 모델"]
     end
 
-    REQ --> LLMD
-    LLMD --> V1
-    LLMD --> V2
-    LLMD --> V3
+    subgraph NodeMgmt["노드 관리"]
+        AUTO["EKS Auto Mode<br/>관리형"]
+        KARP["Karpenter +<br/>GPU Operator"]
+    end
 
-    style LLMD fill:#ffe1e1
-    style V1 fill:#e1f5ff
-    style V2 fill:#e1f5ff
-    style V3 fill:#e1f5ff
+    REQ --> GPUStrategy
+    FULL --> NodeMgmt
+    MIG --> NodeMgmt
+    TS --> NodeMgmt
+
+    style FULL fill:#ffe1e1
+    style MIG fill:#fff4e1
+    style TS fill:#e1ffe1
+    style AUTO fill:#e1f5ff
+    style KARP fill:#ffd93d
 ```
 
 <ModelServingComparison />
@@ -249,38 +277,63 @@ flowchart LR
 - resource requests/limits를 통한 GPU 할당
 - **K8s 1.33+**: In-place resource resizing으로 Pod 재시작 없이 GPU 메모리 조정 가능
 
-### 2. 추론 게이트웨이: Kgateway + LiteLLM
+### 2. 지능형 추론 라우팅 및 게이트웨이
 
-**Kgateway** (v2.0+)는 Kubernetes Gateway API 기반의 AI 추론 게이트웨이로, **멀티 모델 라우팅과 트래픽 관리**를 제공합니다. Gateway API v1.2.0+를 지원하며, HTTPRoute 및 GRPCRoute를 완벽하게 지원합니다.
+Agentic AI 워크로드는 다양한 모델과 프로바이더를 활용합니다. **2-Tier Gateway 아키텍처**(kgateway + LiteLLM)와 **KV Cache-aware 라우팅**(llm-d)을 결합하여 최적의 성능과 비용 효율성을 달성합니다.
 
-**LiteLLM** (latest)은 다양한 LLM 프로바이더를 **통합 API로 추상화**하여 모델 전환을 용이하게 합니다.
+**2-Tier Gateway 아키텍처:**
 
 ```mermaid
 flowchart TD
     CLIENT["Client Applications"]
 
-    subgraph Gateway["Gateway 계층"]
-        KGW["Kgateway<br/>Inference Gateway"]
-        LITE["LiteLLM<br/>Provider Abstraction"]
+    subgraph Tier1["Tier 1: Ingress Gateway"]
+        KGW["Kgateway<br/>Gateway API 기반<br/>트래픽 관리 / 인증"]
+    end
+
+    subgraph Tier2["Tier 2: LLM Router"]
+        LITE["LiteLLM<br/>모델 추상화 / Fallback"]
+        LLMD["llm-d<br/>KV Cache-aware<br/>라우팅"]
     end
 
     subgraph Backends["모델 백엔드"]
-        SELF["Self-hosted<br/>vLLM / TGI"]
+        SELF["Self-hosted<br/>vLLM"]
         BEDROCK["Amazon<br/>Bedrock"]
         OPENAI["OpenAI API"]
     end
 
     CLIENT --> KGW
     KGW --> LITE
-    LITE --> SELF
+    LITE --> LLMD
+    LLMD --> SELF
     LITE --> BEDROCK
     LITE --> OPENAI
 
     style KGW fill:#e1f5ff
     style LITE fill:#f0e1ff
-    style Gateway fill:#fff4e1
+    style LLMD fill:#ffe1e1
+    style Tier1 fill:#fff4e1
+    style Tier2 fill:#f0f0f0
     style Backends fill:#f0f0f0
 ```
+
+**주요 라우팅 패턴:**
+
+- **KV Cache-aware Routing (llm-d)**: Prefix cache 히트율을 극대화하여 TTFT(Time To First Token) 단축
+- **Cascade Routing**: 저비용 모델 우선 시도 후 실패 시 고성능 모델로 자동 전환 (cheap → premium)
+- **Semantic Caching**: 의미적으로 유사한 요청에 대해 캐시된 응답 반환으로 비용 절감
+
+**LiteLLM vs Bifrost 비교:**
+
+| 항목 | LiteLLM (기본 권장) | Bifrost (고성능 대안) |
+|------|---------------------|----------------------|
+| 언어 | Python | Rust |
+| 프로바이더 수 | 100+ | 주요 프로바이더 집중 |
+| 성능 | 표준 | ~50x 빠른 라우팅 |
+| 기능 범위 | Fallback, Cost tracking, Rate limiting | 고처리량 라우팅 특화 |
+| 권장 시나리오 | 범용, 다양한 프로바이더 | 초저지연, 대규모 트래픽 |
+
+> 자세한 게이트웨이 아키텍처는 **[LLM Gateway 아키텍처](../gateway-agents/inference-gateway-routing.md)** 문서를 참조하세요.
 
 <InferenceGatewayComparison />
 
@@ -292,48 +345,72 @@ flowchart TD
 - 크로스 네임스페이스 라우팅 지원
 - **K8s 1.33+**: Topology-aware routing으로 크로스 AZ 트래픽 비용 절감 및 지연 시간 개선
 
-### 3. LLM Observability: LangFuse + LangSmith
+### 3. LLMOps 관찰성 및 비용 거버넌스
 
-**LangFuse**와 **LangSmith**는 LLM 애플리케이션의 **전체 라이프사이클을 추적**하는 관측성 플랫폼입니다.
+#### LangSmith + Langfuse 하이브리드 전략
+
+LLM 애플리케이션의 관찰성은 단일 도구로 해결하기 어렵습니다. **개발/스테이징 환경에서는 LangSmith**, **프로덕션 환경에서는 Langfuse**를 활용하는 하이브리드 전략이 효과적입니다.
 
 ```mermaid
-flowchart LR
-    subgraph Application["LLM Application"]
-        APP["Agent<br/>Application"]
-        CHAIN["LangChain<br/>LlamaIndex"]
-    end
-
-    subgraph Platform["Observability Platform"]
-        LF["LangFuse<br/>Self-hosted"]
+flowchart TD
+    subgraph DevStaging["Dev / Staging 환경"]
+        DEV_APP["Agent App<br/>(개발)"]
         LS["LangSmith<br/>Managed"]
+        STUDIO["LangGraph<br/>Studio"]
+        PLAYGROUND["Prompt<br/>Playground"]
     end
 
-    subgraph Features["분석 기능"]
-        TRACE["Trace<br/>분석"]
-        COST["비용<br/>추적"]
-        EVAL["품질<br/>평가"]
-        DEBUG["디버깅"]
+    subgraph Production["Production 환경"]
+        PROD_APP["Agent App<br/>(프로덕션)"]
+        LF["Langfuse<br/>Self-hosted"]
+        AMP["Amazon Managed<br/>Prometheus"]
+        AMG["Amazon Managed<br/>Grafana"]
     end
 
-    APP --> CHAIN
-    CHAIN --> LF
-    CHAIN --> LS
-    LF --> TRACE
-    LF --> COST
-    LF --> EVAL
-    LF --> DEBUG
-    LS --> TRACE
-    LS --> COST
-    LS --> EVAL
-    LS --> DEBUG
+    DEV_APP --> LS
+    LS --> STUDIO
+    LS --> PLAYGROUND
 
-    style LF fill:#fff4e1
+    PROD_APP --> LF
+    LF --> AMP
+    AMP --> AMG
+
     style LS fill:#f0e1ff
+    style LF fill:#fff4e1
+    style STUDIO fill:#f0e1ff
+    style AMP fill:#e1f5ff
+    style AMG fill:#e1f5ff
+    style DevStaging fill:#f0f0f0
+    style Production fill:#f0f0f0
 ```
+
+**LangSmith vs Langfuse 비교:**
+
+| 항목 | LangSmith | Langfuse |
+|------|-----------|----------|
+| 환경 | Dev / Staging | Production |
+| 목적 | 개발 디버깅, 프롬프트 실험 | 프로덕션 모니터링, 비용 추적 |
+| 라이선스 | 상용 (무료 티어 있음) | MIT (오픈소스) |
+| 데이터 위치 | LangChain 클라우드 | Self-hosted (데이터 주권) |
+| LangGraph 통합 | Studio, 실시간 trace 디버깅 | 기본 trace 지원 |
+| 인프라 모니터링 | - | AMP/AMG 연동 |
+
+**LangSmith 핵심 강점:**
+
+- **LangGraph Studio 통합**: Agent 그래프 시각화, 단계별 실시간 디버깅
+- **Prompt Playground**: 프롬프트 A/B 테스트 및 버전 관리
+- **실시간 Trace 디버깅**: 개발 중 LLM 호출 체인 즉시 추적
+
+**Langfuse 핵심 강점:**
+
+- **Self-hosted (데이터 주권)**: 민감한 프로덕션 데이터가 외부로 유출되지 않음
+- **MIT 라이선스**: 커스터마이징 및 확장 자유
+- **커스텀 대시보드**: 비용, 품질, 지연 시간 등 프로덕션 KPI 맞춤 모니터링
+- **AMP/AMG 통합**: Prometheus 메트릭 노출로 인프라 모니터링과 통합
 
 <ObservabilityComparison />
 
-**Kubernetes 통합 (LangFuse):**
+**Kubernetes 통합 (Langfuse):**
 
 - StatefulSet 또는 Deployment로 배포
 - PostgreSQL 백엔드 필요 (관리형 RDS 또는 클러스터 내 구성 가능)
@@ -341,39 +418,55 @@ flowchart LR
 - Pod 환경 변수를 통한 SDK 연동
 - **K8s 1.33+**: Stable sidecar containers로 로깅 및 메트릭 수집 사이드카 안정화
 
-### 4. Agent 오케스트레이션: KAgent
+### 4. Agent 오케스트레이션 및 안전성
 
-**KAgent**는 Kubernetes 네이티브 AI Agent 프레임워크로, **Agent 워크플로우를 CRD로 정의**하고 관리합니다.
+Agentic AI 시스템에서 Agent는 자율적으로 도구를 호출하고, 외부 시스템과 상호작용합니다. 이러한 자율성은 **안전성과 통제 가능성** 측면에서 새로운 도전과제를 만듭니다.
+
+#### LangGraph 워크플로우
+
+**LangGraph**는 Agent의 실행 흐름을 **방향성 그래프(DAG)**로 정의하여, 복잡한 멀티스텝 워크플로우를 안전하게 관리합니다.
 
 ```mermaid
 flowchart TD
-    subgraph KAgent["KAgent Architecture"]
-        CRD["Agent CRD<br/>선언적 정의"]
-        CTRL["KAgent Controller<br/>상태 관리"]
-
-        subgraph Components["Agent Components"]
-            TOOL["Tool<br/>Definitions"]
-            MEM["Memory<br/>Store"]
-            LLM["LLM<br/>Backend"]
-        end
+    subgraph AgentOrch["Agent 오케스트레이션"]
+        LG["LangGraph<br/>워크플로우 엔진"]
+        GUARD["NeMo Guardrails<br/>안전성 제어"]
+        STATE["Redis Checkpointer<br/>상태 관리"]
     end
 
-    subgraph Integration["통합"]
-        KGW["Kgateway"]
-        OBS["LangFuse"]
+    subgraph Standards["표준 프로토콜"]
+        MCP["MCP<br/>Model Context Protocol"]
+        A2A["A2A<br/>Agent-to-Agent"]
     end
 
-    CRD --> CTRL
-    CTRL --> TOOL
-    CTRL --> MEM
-    CTRL --> LLM
-    CTRL --> KGW
-    CTRL --> OBS
+    subgraph Evaluation["평가 및 관리"]
+        RAGAS["Ragas<br/>Agent 평가"]
+        KAGENT["KAgent<br/>K8s 네이티브 관리"]
+    end
 
-    style CRD fill:#e1ffe1
-    style CTRL fill:#e1ffe1
-    style KAgent fill:#f0f0f0
+    LG --> GUARD
+    LG --> STATE
+    LG --> MCP
+    LG --> A2A
+    RAGAS --> LG
+    KAGENT --> LG
+
+    style LG fill:#f0e1ff
+    style GUARD fill:#ffe1e1
+    style STATE fill:#e1f5ff
+    style MCP fill:#e1ffe1
+    style A2A fill:#e1ffe1
+    style KAGENT fill:#e1ffe1
 ```
+
+**핵심 구성 요소:**
+
+- **LangGraph**: 멀티스텝 Agent 워크플로우 정의, 조건부 분기, 병렬 실행
+- **NeMo Guardrails**: 프롬프트 인젝션 방어, 토픽 제한, 출력 검증
+- **MCP (Model Context Protocol)**: 표준화된 Tool/Context 연결 프로토콜
+- **A2A (Agent-to-Agent)**: Agent 간 표준 통신 프로토콜
+- **Redis Checkpointer**: 장기 실행 Agent의 상태 저장 및 복구
+- **Ragas**: Agent 응답 품질 평가 (Faithfulness, Relevance, Correctness)
 
 <KAgentFeatures />
 
@@ -383,6 +476,80 @@ flowchart TD
 - Controller 패턴을 통한 상태 조정
 - Kubernetes RBAC와 네이티브 통합
 - Kubernetes Secrets를 활용한 API 키 관리
+
+> 자세한 내용은 **[Kagent Agent 관리](../gateway-agents/kagent-kubernetes-agents.md)** 및 **[Bedrock AgentCore & MCP](../gateway-agents/bedrock-agentcore-mcp.md)** 문서를 참조하세요.
+
+### 5. 모델 공급망 관리 (Model Supply Chain)
+
+모델의 파인튜닝뿐만 아니라, **전체 모델 라이프사이클**(학습 → 레지스트리 → 배포 → 피드백)을 체계적으로 관리해야 합니다.
+
+#### MLflow + Kubeflow + ArgoCD GitOps 배포 패턴
+
+```mermaid
+flowchart LR
+    subgraph DataPipeline["데이터 파이프라인"]
+        DATA["학습<br/>데이터"]
+        UNSTRUCTURED["Unstructured.io<br/>문서 처리"]
+        MILVUS["Milvus<br/>벡터 저장"]
+    end
+
+    subgraph Training["학습 및 레지스트리"]
+        NEMO["NeMo<br/>Framework"]
+        KUBEFLOW["Kubeflow<br/>파이프라인"]
+        MLFLOW["MLflow<br/>모델 레지스트리"]
+    end
+
+    subgraph Deployment["GitOps 배포"]
+        ARGOCD["ArgoCD<br/>GitOps"]
+        CANARY["Canary<br/>배포"]
+        SERVE["vLLM<br/>서빙"]
+    end
+
+    subgraph Feedback["피드백 루프"]
+        LANGFUSE["Langfuse<br/>프로덕션 추적"]
+        LABEL["Label Studio<br/>데이터 레이블링"]
+    end
+
+    DATA --> UNSTRUCTURED
+    UNSTRUCTURED --> MILVUS
+    DATA --> NEMO
+    NEMO --> KUBEFLOW
+    KUBEFLOW --> MLFLOW
+    MLFLOW --> ARGOCD
+    ARGOCD --> CANARY
+    CANARY --> SERVE
+
+    SERVE --> LANGFUSE
+    LANGFUSE --> LABEL
+    LABEL --> DATA
+
+    style NEMO fill:#e1ffe1
+    style KUBEFLOW fill:#e1ffe1
+    style MLFLOW fill:#fff4e1
+    style ARGOCD fill:#e1f5ff
+    style LANGFUSE fill:#fff4e1
+    style MILVUS fill:#e1f5ff
+```
+
+<DistributedTrainingStack />
+
+**모델 공급망 핵심 패턴:**
+
+- **학습**: NeMo Framework + Kubeflow Training Operators (PyTorchJob, MPIJob)
+- **레지스트리**: MLflow Model Registry — 모델 버전 관리, 실험 추적
+- **배포**: ArgoCD GitOps — 선언적 모델 배포, Canary/Blue-Green 전략
+- **하이브리드 전송**: On-Prem ↔ Cloud 간 모델 전송 (S3 Sync, Harbor Registry)
+- **RAG 데이터 파이프라인**: Unstructured.io → 임베딩 → Milvus 벡터 저장
+- **피드백 루프**: Langfuse 프로덕션 추적 → Label Studio 레이블링 → 재학습
+
+**Kubernetes 통합:**
+
+- Kubeflow Training Operators (PyTorchJob, MPIJob 등)
+- 분산 워크로드를 위한 Gang 스케줄링
+- 토폴로지 인식 스케줄링 (노드 어피니티, 안티 어피니티)
+- 공유 스토리지를 위한 CSI 드라이버 연동 (FSx for Lustre)
+
+---
 
 ### 솔루션 스택 통합 아키텍처
 
@@ -419,7 +586,7 @@ flowchart TD
     end
 
     subgraph Obs["Observability"]
-        LF["LangFuse"]
+        LF["Langfuse"]
         PROM["Prometheus"]
         GRAF["Grafana"]
     end
@@ -469,7 +636,7 @@ flowchart TD
     end
 
     subgraph ObsLayer["LLM Observability"]
-        LF["LangFuse"]
+        LF["Langfuse"]
         LS["LangSmith"]
         RAGAS["RAGAS"]
     end
@@ -522,7 +689,7 @@ flowchart TD
 
 ### 계층별 오픈소스 역할과 통합
 
-#### LLM Observability 계층: LangFuse, LangSmith, RAGAS
+#### LLM Observability 계층: Langfuse, LangSmith, RAGAS
 
 LLM 애플리케이션의 **전체 라이프사이클을 추적하고 품질을 평가**하는 핵심 도구들입니다.
 
@@ -532,14 +699,14 @@ LLM 애플리케이션의 **전체 라이프사이클을 추적하고 품질을 
 flowchart LR
     subgraph Application["LLM Application"]
         APP["Agent App"]
-        SDK1["LangFuse<br/>SDK"]
+        SDK1["Langfuse<br/>SDK"]
         SDK2["LangSmith<br/>SDK"]
     end
 
     subgraph K8s["Kubernetes Cluster"]
-        subgraph LFStack["LangFuse Stack"]
-            LF_WEB["LangFuse<br/>Web"]
-            LF_WORKER["LangFuse<br/>Worker"]
+        subgraph LFStack["Langfuse Stack"]
+            LF_WEB["Langfuse<br/>Web"]
+            LF_WORKER["Langfuse<br/>Worker"]
             LF_DB["PostgreSQL"]
             LF_REDIS["Redis"]
         end
@@ -561,7 +728,7 @@ flowchart LR
     style RAGAS_JOB fill:#fff4e1
 ```
 
-**LangFuse Kubernetes 배포 예시:**
+**Langfuse Kubernetes 배포 예시:**
 
 ```yaml
 apiVersion: apps/v1
@@ -629,7 +796,7 @@ flowchart TD
     end
 
     subgraph Backends["LLM Backends"]
-        SELF["Self-hosted<br/>vLLM/TGI"]
+        SELF["Self-hosted<br/>vLLM"]
         BEDROCK["Amazon<br/>Bedrock"]
         OPENAI["OpenAI<br/>API"]
         ANTHROPIC["Anthropic<br/>API"]
@@ -824,53 +991,6 @@ RAG 파이프라인의 핵심 컴포넌트인 Milvus는 Kubernetes에서 분산 
 - **GPU 가속**: Index Node에서 GPU를 활용한 빠른 인덱스 빌드
 - **S3 통합**: Amazon S3를 영구 스토리지로 사용 가능
 
-### 6. 분산 학습: NeMo + Kubeflow
-
-**NVIDIA NeMo**와 **Kubeflow**는 대규모 모델의 **분산 학습 파이프라인 자동화**를 제공합니다.
-
-<DistributedTrainingStack />
-
-```mermaid
-flowchart LR
-    subgraph DataPipeline["데이터 파이프라인"]
-        DATA["학습<br/>데이터"]
-        PREP["데이터<br/>전처리"]
-    end
-
-    subgraph TrainingCluster["학습 클러스터"]
-        NEMO["NeMo<br/>Framework"]
-        DIST["분산<br/>학습"]
-    end
-
-    subgraph ModelRegistry["모델 레지스트리"]
-        CKPT["체크포인트<br/>저장"]
-        MLFLOW["MLflow<br/>Registry"]
-    end
-
-    subgraph Deployment["배포"]
-        SERVE["모델<br/>서빙"]
-        CANARY["Canary<br/>배포"]
-    end
-
-    DATA --> PREP
-    PREP --> NEMO
-    NEMO --> DIST
-    DIST --> CKPT
-    CKPT --> MLFLOW
-    MLFLOW --> SERVE
-    SERVE --> CANARY
-
-    style NEMO fill:#e1ffe1
-    style DIST fill:#e1ffe1
-```
-
-**Kubernetes 통합:**
-
-- Kubeflow Training Operators (PyTorchJob, MPIJob 등)
-- 분산 워크로드를 위한 Gang 스케줄링
-- 토폴로지 인식 스케줄링 (노드 어피니티, 안티 어피니티)
-- 공유 스토리지를 위한 CSI 드라이버 연동 (FSx for Lustre)
-
 ---
 
 ## GPU 인프라 및 리소스 관리
@@ -909,7 +1029,7 @@ flowchart TD
         end
 
         subgraph NodeMgmt["Node Management"]
-            KARP["Karpenter<br/>v1.0+"]
+            KARP["Karpenter<br/>v1.2+"]
             GPU_OP["GPU<br/>Operator"]
         end
     end
@@ -992,7 +1112,7 @@ flowchart LR
 Agentic AI 플랫폼을 구축하는 조직을 위한 권장 사항:
 
 1. **Kubernetes로 시작**: 팀 내 Kubernetes 전문성 확보
-2. **오픈소스 활용**: 검증된 솔루션 도입 (vLLM, LangFuse 등)
+2. **오픈소스 활용**: 검증된 솔루션 도입 (vLLM, Langfuse 등)
 3. **클라우드 통합**: 오픈소스와 관리형 서비스 결합
 4. **인프라 자동화**: 자동 스케일링 및 프로비저닝 구현
 5. **전면적 관측성**: 첫날부터 포괄적인 관측성 확보
@@ -1005,7 +1125,7 @@ Agentic AI 플랫폼을 구축하는 조직을 위한 권장 사항:
 
 ## 다음 단계
 
-이 문서에서는 Agentic AI 워크로드의 4가지 핵심 도전과제와 Kubernetes 기반 오픈소스 생태계를 살펴보았습니다.
+이 문서에서는 Agentic AI 워크로드의 5가지 핵심 도전과제와 Kubernetes 기반 오픈소스 생태계를 살펴보았습니다.
 
 :::info 다음 단계: EKS 기반 해결방안
 이 문서에서 소개한 도전과제들을 **Amazon EKS와 AWS 서비스**를 활용하여 해결하는 구체적인 방법은 [EKS 기반 Agentic AI 해결방안](./agentic-ai-solutions-eks.md)을 참조하세요.
@@ -1037,12 +1157,20 @@ Agentic AI 플랫폼을 구축하는 조직을 위한 권장 사항:
 - [llm-d Project](https://github.com/llm-d/llm-d)
 - [Kgateway Documentation](https://kgateway.io/docs/)
 - [LiteLLM Documentation](https://docs.litellm.ai/)
+- [Bifrost - High-performance LLM Gateway](https://github.com/maximhq/bifrost)
 
 ### LLM Observability
 
-- [LangFuse Documentation](https://langfuse.com/docs)
+- [Langfuse Documentation](https://langfuse.com/docs)
+- [Langfuse v3 Release](https://langfuse.com/blog/langfuse-v3)
 - [LangSmith Documentation](https://docs.smith.langchain.com/)
 - [RAGAS Documentation](https://docs.ragas.io/)
+
+### Agent 오케스트레이션
+
+- [LangGraph Documentation](https://langchain-ai.github.io/langgraph/)
+- [NeMo Guardrails](https://github.com/NVIDIA/NeMo-Guardrails)
+- [Model Context Protocol (MCP)](https://modelcontextprotocol.io/)
 
 ### 벡터 데이터베이스
 

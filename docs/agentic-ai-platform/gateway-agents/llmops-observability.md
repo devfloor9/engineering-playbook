@@ -1180,7 +1180,7 @@ langfuse.add_to_annotation_queue(
 
 Ragas는 RAG 시스템 전용 평가 프레임워크로, Langfuse와 통합하여 더 정교한 평가를 제공합니다.
 
-자세한 내용은 [RAG Evaluation with Ragas](./ragas-evaluation.md) 문서를 참조하세요.
+자세한 내용은 [RAG Evaluation with Ragas](../operations-mlops/ragas-evaluation.md) 문서를 참조하세요.
 
 #### 간단한 Ragas + Langfuse 예시
 
@@ -1509,10 +1509,10 @@ Langfuse 대시보드에서 "Cascade Routing 성공률"과 "평균 비용 절감
 - [Ragas Documentation](https://docs.ragas.io)
 
 ### 관련 문서
-- [Bifrost Gateway 구성 가이드](./bifrost-gateway.md)
-- [kgateway 기반 Kong API Gateway 통합](./kgateway-integration.md)
-- [RAG Evaluation with Ragas](./ragas-evaluation.md)
-- [Cascade Routing 전략](./cascade-routing.md)
+- [Bifrost Gateway 구성 가이드](./llm-gateway-architecture.md)
+- [kgateway 기반 Kong API Gateway 통합](./inference-gateway-routing.md)
+- [RAG Evaluation with Ragas](../operations-mlops/ragas-evaluation.md)
+- [Cascade Routing 전략](./llm-gateway-architecture.md)
 
 ### GitHub 리포지토리
 - [Langfuse](https://github.com/langfuse/langfuse)
