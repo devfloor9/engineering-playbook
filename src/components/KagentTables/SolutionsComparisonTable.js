@@ -22,17 +22,17 @@ const SolutionsComparisonTable = () => {
       color: '#3b82f6'
     },
     {
-      id: 'seldon',
-      solution: isKo ? 'Seldon Core' : isZh ? 'Seldon Core' : 'Seldon Core',
-      features: isKo ? 'MLOps 플랫폼, A/B 테스트, 카나리 배포' : isZh ? 'MLOps 平台，A/B 测试，金丝雀部署' : 'MLOps platform, A/B testing, canary deployments',
-      useCase: isKo ? '엔터프라이즈 ML 운영, 복잡한 배포 전략' : isZh ? '企业 ML 运维，复杂部署策略' : 'Enterprise ML ops, complex deployment strategies',
+      id: 'agentcore',
+      solution: isKo ? 'Bedrock AgentCore' : isZh ? 'Bedrock AgentCore' : 'Bedrock AgentCore',
+      features: isKo ? 'AWS 관리형 Agent 런타임, MCP/A2A 네이티브, 자동 스케일링' : isZh ? 'AWS 托管 Agent 运行时，MCP/A2A 原生，自动扩展' : 'AWS managed Agent runtime, MCP/A2A native, auto-scaling',
+      useCase: isKo ? 'AWS 네이티브 Agent 배포, 관리형 인프라 선호 시' : isZh ? 'AWS 原生 Agent 部署，偏好托管基础设施' : 'AWS-native Agent deployment, managed infrastructure preferred',
       color: '#10b981'
     },
     {
-      id: 'kserve',
-      solution: isKo ? 'KServe' : isZh ? 'KServe' : 'KServe',
-      features: isKo ? '서버리스 추론, 자동 스케일링' : isZh ? '无服务器推理，自动扩展' : 'Serverless inference, auto-scaling',
-      useCase: isKo ? '이벤트 기반 추론, 비용 최적화' : isZh ? '事件驱动推理，成本优化' : 'Event-driven inference, cost optimization',
+      id: 'langgraph',
+      solution: isKo ? 'LangGraph Platform' : isZh ? 'LangGraph Platform' : 'LangGraph Platform',
+      features: isKo ? 'Agent 워크플로우 프레임워크, 상태 관리, LangSmith 네이티브 통합' : isZh ? 'Agent 工作流框架，状态管理，LangSmith 原生集成' : 'Agent workflow framework, state management, LangSmith native integration',
+      useCase: isKo ? '복잡한 멀티스텝 Agent, 상태 기반 워크플로우' : isZh ? '复杂多步骤 Agent，基于状态的工作流' : 'Complex multi-step agents, stateful workflows',
       color: '#f59e0b'
     }
   ];
