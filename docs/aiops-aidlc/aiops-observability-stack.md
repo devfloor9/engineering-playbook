@@ -1,8 +1,7 @@
 ---
 title: "EKS 지능형 관찰성 스택 구축"
-sidebar_label: "2. 지능형 관찰성 스택"
+sidebar_label: "지능형 관찰성 스택"
 description: "ADOT, AMP, AMG, CloudWatch AI, Hosted MCP를 활용한 EKS 관찰성 아키텍처 구축 가이드"
-sidebar_position: 2
 category: "aiops-aidlc"
 tags: [observability, opentelemetry, adot, prometheus, grafana, cloudwatch, devops-guru, mcp, eks]
 last_update:

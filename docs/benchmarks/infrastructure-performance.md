@@ -1,7 +1,6 @@
 ---
 title: 인프라 성능 벤치마크
-sidebar_label: "1. 인프라 성능"
-sidebar_position: 1
+sidebar_label: "인프라 성능"
 description: EKS 클러스터 인프라 성능 벤치마크 - 네트워크, DNS, 오토스케일링
 category: "benchmarks"
 tags: [benchmark, infrastructure, performance, network, dns]

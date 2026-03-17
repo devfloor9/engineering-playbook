@@ -1,13 +1,12 @@
 ---
 title: "EKS Pod 헬스체크 & 라이프사이클 관리"
-sidebar_label: "5. Pod 헬스체크 & 라이프사이클"
+sidebar_label: "Pod 헬스체크 & 라이프사이클"
 description: "Kubernetes Probe 설정 전략, Graceful Shutdown 패턴, Pod 라이프사이클 관리 모범 사례"
 tags: [eks, kubernetes, probes, health-check, graceful-shutdown, lifecycle, best-practices]
 category: "operations"
 last_update:
   date: 2026-02-14
   author: devfloor9
-sidebar_position: 5
 ---
 
 # EKS Pod 헬스체크 & 라이프사이클 관리

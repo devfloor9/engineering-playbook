@@ -1,13 +1,12 @@
 ---
 title: "Karpenter 기반 EKS 스케일링 전략 종합 가이드"
-sidebar_label: "4. Karpenter 스케일링 전략"
+sidebar_label: "Karpenter 스케일링 전략"
 description: "Amazon EKS에서 Karpenter를 활용한 스케일링 전략 종합 가이드. 반응형/예측형/아키텍처적 복원력 접근법 비교, CloudWatch와 Prometheus 아키텍처 비교, HPA 구성, 프로덕션 패턴 포함"
 tags: [eks, karpenter, autoscaling, performance, cloudwatch, prometheus, spot-instances]
 category: "performance-networking"
 last_update:
   date: 2026-02-13
   author: devfloor9
-sidebar_position: 4
 ---
 
 import { ScalingLatencyBreakdown, ControlPlaneComparison, WarmPoolCostAnalysis, AutoModeComparison, ScalingBenchmark, PracticalGuide } from '@site/src/components/KarpenterTables';

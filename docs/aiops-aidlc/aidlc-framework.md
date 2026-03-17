@@ -1,8 +1,7 @@
 ---
 title: "AIDLC 프레임워크 - AI 주도 개발 라이프사이클"
-sidebar_label: "3. AIDLC 프레임워크"
+sidebar_label: "AIDLC 프레임워크"
 description: "AWS AI-DLC 방법론을 EKS 환경에 적용하여 개발과 운영을 AI로 고도화하는 실전 가이드"
-sidebar_position: 3
 category: "aiops-aidlc"
 tags: [aidlc, kiro, mcp, gitops, argocd, ack, kro, ddd, ai-agent, eks]
 last_update:

@@ -1,9 +1,8 @@
 ---
 title: "컨테이너 공급망 보안"
-sidebar_label: "5. 공급망 보안"
+sidebar_label: "공급망 보안"
 description: "컨테이너 이미지 서명, SBOM, CI/CD 보안 게이트를 통한 공급망 보안 강화"
 category: "security"
-sidebar_position: 5
 tags: [eks, security, supply-chain, ecr, sigstore, sbom]
 last_update:
   date: 2026-02-13

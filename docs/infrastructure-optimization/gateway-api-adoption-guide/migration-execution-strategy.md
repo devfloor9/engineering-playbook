@@ -1,13 +1,12 @@
 ---
 title: "마이그레이션 실행 전략"
-sidebar_label: "3. 마이그레이션 실행"
+sidebar_label: "마이그레이션 실행"
 description: "Gateway API 마이그레이션 5-Phase 전략, CRD 설치, 단계별 실행 가이드, 검증 스크립트, 트러블슈팅"
 tags: [eks, gateway-api, migration, nginx, deployment]
 category: "performance-networking"
 last_update:
   date: 2026-02-14
   author: devfloor9
-sidebar_position: 3
 ---
 
 import Tabs from '@theme/Tabs';

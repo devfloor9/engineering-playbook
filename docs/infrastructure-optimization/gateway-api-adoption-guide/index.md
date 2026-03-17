@@ -1,6 +1,6 @@
 ---
 title: "Gateway API 도입 가이드: NGINX Ingress에서 차세대 트래픽 관리로"
-sidebar_label: "1. Gateway API 도입 가이드"
+sidebar_label: "Gateway API 도입 가이드"
 description: "NGINX Ingress Controller EOL 대응, Gateway API 아키텍처, GAMMA Initiative, AWS Native vs 오픈소스 솔루션 비교, Cilium ENI 통합, 마이그레이션 전략 및 벤치마크 계획"
 tags: [eks, gateway-api, nginx, cilium, envoy, networking, migration, ebpf, gamma]
 category: "performance-networking"

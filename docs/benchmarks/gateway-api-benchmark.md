@@ -1,13 +1,12 @@
 ---
 title: "Gateway API 구현체 성능 벤치마크 계획"
-sidebar_label: "3. Gateway API 벤치마크"
+sidebar_label: "Gateway API 벤치마크"
 description: "5개 Gateway API 구현체(AWS LBC v3, Cilium, NGINX Gateway Fabric, Envoy Gateway, kGateway)의 EKS 환경 성능 비교 벤치마크 계획"
 tags: [benchmark, gateway-api, cilium, envoy, nginx, performance, eks]
 category: "benchmark"
 last_update:
   date: 2026-02-14
   author: devfloor9
-sidebar_position: 3
 ---
 
 # Gateway API 구현체 성능 벤치마크 계획

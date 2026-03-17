@@ -1,8 +1,7 @@
 ---
 title: "AI로 K8s 운영 혁신하기 — AIOps 전략 가이드"
-sidebar_label: "1. AIOps 전략 가이드"
+sidebar_label: "AIOps 전략 가이드"
 description: "K8s 플랫폼의 복잡성을 AI로 낮추고 혁신을 가속하는 AIOps 전략 — AWS 오픈소스 관리형 서비스, Kiro+MCP, AI Agent 확장"
-sidebar_position: 1
 category: "aiops-aidlc"
 tags: [aiops, eks, observability, anomaly-detection, monitoring, kiro, mcp, ai-agent]
 last_update:

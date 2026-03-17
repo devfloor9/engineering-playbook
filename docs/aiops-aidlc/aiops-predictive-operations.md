@@ -1,8 +1,7 @@
 ---
 title: "예측 스케일링 및 자동 복구 패턴"
-sidebar_label: "4. 예측 스케일링 및 자동 복구"
+sidebar_label: "예측 스케일링 및 자동 복구"
 description: "ML 기반 예측 오토스케일링, Karpenter+AI 선제 프로비저닝, AI Agent 자율 인시던트 대응, Kiro 프로그래머틱 디버깅 패턴"
-sidebar_position: 4
 category: "aiops-aidlc"
 tags: [aiops, predictive-scaling, auto-remediation, karpenter, self-healing, eks, kiro, mcp, ai-agent, chaos-engineering]
 last_update:
