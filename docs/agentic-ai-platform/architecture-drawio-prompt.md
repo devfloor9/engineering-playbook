@@ -18,7 +18,7 @@ last_update:
 
 ## 전체 레이아웃
 
-- 제목: "LG U+ Agentic AI Platform - EKS 기반 개선 아키텍처 (v3)"
+- 제목: "LG U+ Agentic AI Platform - EKS 기반 개선 아키텍처 (v4)"
 - 캔버스 크기: 가로 1400px, 세로 1000px
 - 배경: 흰색
 - 폰트: 맑은 고딕 (또는 Noto Sans KR)
@@ -50,16 +50,21 @@ last_update:
 - 라벨: "사용자"
 - 하위 라벨: "모델러 / 서비스팀 / 관리자"
 
-### Agent Ready 박스 (하단)
+### Agent Ready 박스 (중단)
 - 컨테이너 박스, 테두리: #326CE5, 배경: #E8F0FE
 - 제목: "Agent Ready"
-- 내부 박스 (각각 작은 둥근 사각형):
+- 내부 박스 (각각 작은 둥근 사각형, 2열 배치):
   - "ixi-Enterprise" (배경 #326CE5, 흰 글자)
   - "영업 Agent" (배경 #FFD93D, 검정 글자)
   - "법무 Agent" (배경 #FFD93D, 검정 글자)
   - "빌링 Agent" (배경 #FFD93D, 검정 글자)
   - "AICC Agent" (배경 #FFD93D, 검정 글자)
   - "Agent Builder" (배경 #FFD93D, 검정 글자)
+
+### ArgoCD (하단, Agent Ready 아래)
+- 배경: #FF6B6B, 흰 글자
+- 라벨: "ArgoCD (EKS Add-on)"
+- 비고: GitOps 배포 — EKS 클러스터 외부에서 관리
 
 ---
 
@@ -73,6 +78,7 @@ last_update:
 5. **IAM Identity Center** (보안 빨강, 라벨: "IAM IdC / SSO")
 
 ALB에서 EKS 클러스터 내부로 화살표 진입.
+ArgoCD (좌측 하단)에서 EKS 클러스터로 점선 화살표 (GitOps 배포).
 
 ---
 
@@ -96,13 +102,12 @@ ALB에서 EKS 클러스터 내부로 화살표 진입.
 | 1 | Portal UI (Next.js) | #326CE5 | |
 | 2 | LangSmith (Dev/Staging Observability) | #FFD93D | "Dev/Staging" 라벨 표시 |
 | 3 | Langfuse (Prod Observability + Prompt Mgmt) | #9C27B0 | "Production" 라벨 표시 |
-| 4 | OpenSearch (Metadata) | #FF9900 | |
-| 5 | JupyterHub (Notebook) | #FFD93D | |
-| 6 | ArgoCD (EKS Add-on) | #FF6B6B | |
+| 4 | JupyterHub (Notebook) | #FFD93D | |
 
 > LangSmith와 Langfuse를 나란히 배치하여 하이브리드 Observability 전략을 시각적으로 표현.
 > LangSmith 박스 하단에 작은 텍스트: "LangGraph Studio 네이티브 통합"
 > Langfuse 박스 하단에 작은 텍스트: "Self-host, 데이터 주권, MIT"
+> OpenSearch는 우측 AWS Storage & DB 영역으로 이동, ArgoCD는 좌측 진입점 영역으로 이동.
 
 ---
 
@@ -230,6 +235,8 @@ llm-d 박스는 전체 폭의 80% 차지, 중앙 배치.
 | 6 | Llama 3 | #E0E0E0 |
 | 7 | Mistral | #E0E0E0 |
 | 8 | EXAONE | #E0E0E0 |
+| 9 | Qwen | #E0E0E0 |
+| 10 | DeepSeek | #E0E0E0 |
 
 ---
 
@@ -318,9 +325,12 @@ llm-d 박스는 전체 폭의 80% 차지, 중앙 배치.
 21. LiteLLM --점선--> LiteLLM 자체 비용 집계 (라벨: "인프라 레벨")
 22. Langfuse --점선--> Label Studio (피드백 루프)
 
+### GitOps 배포 (점선, #FF6B6B 빨강)
+23. ArgoCD --점선--> EKS Cluster (GitOps 배포, vLLM/Agent 서비스 등)
+
 ### On-Premise 연결 (점선, #E91E63 분홍)
-23. On-Premise (상암) --점선--> LiteLLM (자체 추론 서버 등록)
-24. On-Premise (코랩코) --점선--> S3 (학습 결과 업로드)
+24. On-Premise (상암) --점선--> LiteLLM (자체 추론 서버 등록)
+25. On-Premise (코랩코) --점선--> S3 (학습 결과 업로드)
 
 ---
 
@@ -330,10 +340,11 @@ llm-d 박스는 전체 폭의 80% 차지, 중앙 배치.
 - 실선 화살표: 요청/응답 흐름
 - 파란 점선: 데이터 흐름
 - 보라 점선: 모니터링/메트릭
+- 빨강 점선: GitOps 배포 (ArgoCD)
 - 분홍 점선: On-Premise 연결
 
 캔버스 우하단에 버전 정보:
-- "v3.1 | 2026-03-17 | MCP/A2A + Triton + 2-Tier 비용 추적 + Bifrost 대안"
+- "v4.0 | 2026-03-17 | Portal 경량화 + ArgoCD 외부 배치 + Qwen/DeepSeek 추가"
 
 ---
 
@@ -356,7 +367,7 @@ llm-d 박스는 전체 폭의 80% 차지, 중앙 배치.
 - FastAPI: "CHANGED (API Server+WebSocket 통합)"
 - llm-d: "NEW"
 - AMP/AMG: "CHANGED (Self-hosted→Managed)"
-- ArgoCD: "CHANGED (Self-hosted→EKS Add-on)"
+- ArgoCD: "MOVED (Portal→좌측 진입점, EKS Add-on)"
 - LangSmith + Langfuse: "HYBRID (LangSmith Dev + Langfuse Prod)"
 - Unstructured.io: "NEW"
 - NeMo Guardrails: 4 서브그룹 Safety로 분리 표시
@@ -365,6 +376,8 @@ llm-d 박스는 전체 폭의 80% 차지, 중앙 배치.
 - Bifrost: "NEW (LiteLLM 대안)"
 - 2-Tier 비용 추적: "NEW (애플리케이션 + 인프라)"
 - Glue Catalog: "OPTIONAL (점선 테두리)"
+- OpenSearch: "MOVED (Portal→AWS Storage & DB)"
+- Qwen, DeepSeek: "NEW (External LLMs)"
 - 제거된 컴포넌트는 표시하지 않음
 
 이 사양으로 draw.io XML을 생성해줘.
@@ -376,7 +389,7 @@ llm-d 박스는 전체 폭의 80% 차지, 중앙 배치.
 
 ### 방법 1: Claude에게 draw.io XML 생성 요청
 
-위 프롬프트를 Claude에게 붙여넣으면 `.drawio` XML을 생성합니다. 생성된 XML을 `architecture-v3.drawio` 파일로 저장 후 draw.io에서 열면 됩니다.
+위 프롬프트를 Claude에게 붙여넣으면 `.drawio` XML을 생성합니다. 생성된 XML을 `architecture-v4.drawio` 파일로 저장 후 draw.io에서 열면 됩니다.
 
 ### 방법 2: draw.io에서 직접 작업
 
@@ -393,7 +406,16 @@ draw.io MCP 서버가 설정되어 있다면:
 
 ---
 
-## v2 → v3 변경 요약
+## v3 → v4 변경 요약
+
+| 영역 | v3 | v4 | 변경 이유 |
+|------|----|----|-----------|
+| Portal Layer | 6개 (Portal UI, LangSmith, Langfuse, OpenSearch, JupyterHub, ArgoCD) | **4개** (Portal UI, LangSmith, Langfuse, JupyterHub) | Portal 경량화 |
+| ArgoCD 위치 | Portal Layer 내부 | **좌측 진입점 영역** (EKS 외부, GitOps 배포) | 클러스터 외부 관리 도구로 재배치 |
+| OpenSearch 위치 | Portal Layer 내부 | **AWS Storage & DB** 영역으로 이동 | AWS 관리형 서비스로 분류 |
+| External LLMs | 8개 (Bedrock~EXAONE) | **10개** (Qwen, DeepSeek 추가) | 중국 오픈소스 모델 생태계 반영 |
+
+### v2 → v3 변경 요약 (이전)
 
 | 영역 | v2 | v3 | 변경 이유 |
 |------|----|----|-----------|
@@ -401,11 +423,6 @@ draw.io MCP 서버가 설정되어 있다면:
 | API Server + WebSocket | 별도 박스 2개 | **FastAPI** 통합 박스 1개 | API+WebSocket+SSE 단일 서비스 |
 | kgateway | 기본 Gateway | WebSocket/SSE 네이티브 지원 명시 | Envoy HTTP/1.1 Upgrade |
 | Observability | Langfuse 단독 | **LangSmith (Dev) + Langfuse (Prod)** 하이브리드 | 환경별 역할 분담 |
-| 모니터링 화살표 | Langfuse 1개 | LangSmith (Dev 트레이스) + Langfuse (Prod 트레이스) 분리 | 하이브리드 전략 시각화 |
-| 화살표 #4 | kgateway → API Server | kgateway → FastAPI (REST+WS+SSE) | 통합 반영 |
-| 화살표 #5 (구) | kgateway → WebSocket | **제거** (FastAPI에 통합) | 중복 제거 |
-| 화살표 #9 (신규) | — | LangChain → NeMo Guardrails | Safety 서브그룹 명시 |
-| 변경 뱃지 | Langfuse: "CHANGED" | **"HYBRID (LangSmith Dev + Langfuse Prod)"** | 하이브리드 전략 표현 |
 | 비용 추적 | 단일 레이어 | **2-Tier (애플리케이션: Langfuse, 인프라: LiteLLM)** | 계층별 비용 집계 |
 | Triton | 미포함 | **Triton Inference Server 추가** | 비-LLM 추론 (Whisper, BGE-M3, Rerank) |
 | MCP/A2A | 미언급 | **Agent Framework에 MCP/A2A 프로토콜 명시** | 표준 프로토콜 지원 |
