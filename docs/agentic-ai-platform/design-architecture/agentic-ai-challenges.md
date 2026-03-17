@@ -441,9 +441,12 @@ flowchart TD
         A2A["A2A<br/>Agent-to-Agent"]
     end
 
-    subgraph Evaluation["평가 및 관리"]
+    subgraph Evaluation["평가"]
         RAGAS["Ragas<br/>Agent 평가"]
-        KAGENT["KAgent<br/>K8s 네이티브 관리"]
+    end
+
+    subgraph Future["발전 방향"]
+        KAGENT["KAgent<br/>K8s 네이티브 관리"]:::future
     end
 
     LG --> GUARD
@@ -451,14 +454,14 @@ flowchart TD
     LG --> MCP
     LG --> A2A
     RAGAS --> LG
-    KAGENT --> LG
+    KAGENT -.->|"CRD 기반<br/>라이프사이클"| LG
 
     style LG fill:#f0e1ff
     style GUARD fill:#ffe1e1
     style STATE fill:#e1f5ff
     style MCP fill:#e1ffe1
     style A2A fill:#e1ffe1
-    style KAGENT fill:#e1ffe1
+    classDef future fill:#f5f5f5,stroke:#999,stroke-dasharray: 5 5
 ```
 
 **핵심 구성 요소:**
@@ -470,16 +473,23 @@ flowchart TD
 - **Redis Checkpointer**: 장기 실행 Agent의 상태 저장 및 복구
 - **Ragas**: Agent 응답 품질 평가 (Faithfulness, Relevance, Correctness)
 
+**현재 배포 방식:** LangGraph 기반 Agent를 표준 Kubernetes Deployment + KEDA + ArgoCD GitOps로 배포합니다.
+
 <KAgentFeatures />
 
 **Kubernetes 통합:**
 
-- Custom Resource Definitions (CRD)로 Kubernetes 확장
-- Controller 패턴을 통한 상태 조정
+- 표준 Deployment/StatefulSet으로 Agent Pod 배포
+- KEDA 기반 메트릭 드리븐 오토스케일링
+- ArgoCD GitOps를 통한 선언적 배포 관리
 - Kubernetes RBAC와 네이티브 통합
 - Kubernetes Secrets를 활용한 API 키 관리
 
-> 자세한 내용은 **[Kagent Agent 관리](../gateway-agents/kagent-kubernetes-agents.md)** 및 **[Bedrock AgentCore & MCP](../gateway-agents/bedrock-agentcore-mcp.md)** 문서를 참조하세요.
+:::tip 발전 방향: Kagent (K8s 네이티브 Agent 관리)
+현재는 표준 K8s 리소스로 Agent를 배포하지만, **Kagent 패턴**은 Agent 전용 CRD와 Operator를 통해 라이프사이클을 선언적으로 관리하는 발전된 접근입니다. 프로젝트가 성숙하면, `Agent` CRD로 도구 연결·스케일링·헬스체크를 단일 YAML에 정의할 수 있어 대규모 멀티에이전트 시스템 관리가 크게 단순화됩니다. 자세한 디자인 패턴은 **[Kagent Agent 관리](../gateway-agents/kagent-kubernetes-agents.md)** 문서를 참조하세요.
+:::
+
+> AWS 관리형 대안으로는 **[Bedrock AgentCore & MCP](../gateway-agents/bedrock-agentcore-mcp.md)**를 참조하세요.
 
 ### 5. 모델 공급망 관리 (Model Supply Chain)
 
