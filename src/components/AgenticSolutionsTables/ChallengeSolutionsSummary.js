@@ -19,7 +19,7 @@ const ChallengeSolutionsSummary = () => {
       ],
       [
             "**추론 라우팅**",
-            "kgateway + LiteLLM",
+            "kgateway + Bifrost",
             "llm-d KV Cache-aware 라우팅",
             "프로비저닝 시간 50% 단축"
       ],
@@ -51,7 +51,7 @@ const ChallengeSolutionsSummary = () => {
       ],
       [
             "**Inference Routing**",
-            "kgateway + LiteLLM",
+            "kgateway + Bifrost",
             "llm-d KV Cache-aware routing",
             "50% faster provisioning"
       ],

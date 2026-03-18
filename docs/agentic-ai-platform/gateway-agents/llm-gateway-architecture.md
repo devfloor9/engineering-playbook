@@ -1,18 +1,18 @@
 ---
 title: "LLM Gateway 2-Tier 아키텍처"
 sidebar_label: "18. LLM Gateway 아키텍처"
-description: "kgateway + Bifrost/LiteLLM 기반 2-Tier LLM Gateway 아키텍처 및 솔루션 선택 가이드"
+description: "kgateway + Bifrost 기반 2-Tier LLM Gateway 아키텍처 및 솔루션 선택 가이드 (LiteLLM 대안 포함)"
 tags: [eks, gateway, llm, bifrost, litellm, kgateway, agentgateway, routing]
 category: "genai-aiml"
 last_update:
-  date: 2026-03-16
+  date: 2026-03-18
   author: devfloor9
 sidebar_position: 18
 ---
 
 # LLM Gateway 2-Tier 아키텍처
 
-> 작성일: 2026-03-16 | 읽는 시간: 약 20분
+> 작성일: 2026-03-16 | 수정일: 2026-03-18 | 읽는 시간: 약 20분
 
 ## 개요
 
@@ -30,7 +30,7 @@ LLM 서빙 환경에서는 인프라 레벨의 트래픽 관리와 LLM 프로바
 
 **Tier 1 (인프라 Gateway)**: Kubernetes Gateway API 표준 구현체(kgateway)로 트래픽 제어, 라우팅, 보안, 네트워크 정책을 처리합니다. Envoy 기반의 성능과 Kubernetes 생태계 네이티브 통합을 제공합니다.
 
-**Tier 2 (LLM Gateway)**: LLM 프로바이더 추상화에 특화된 경량 게이트웨이(Bifrost, LiteLLM 등)로 100+ 프로바이더 통합, 비용 추적, 시맨틱 캐싱, cascade routing을 담당합니다.
+**Tier 2 (LLM Gateway)**: LLM 프로바이더 추상화에 특화된 경량 게이트웨이로 100+ 프로바이더 통합, 비용 추적, 시맨틱 캐싱, cascade routing을 담당합니다. Bifrost(고성능 Go/Rust 기반)를 기본으로 하며, Python 생태계에서는 LiteLLM을 대안으로 사용할 수 있습니다.
 
 이 분리를 통해:
 
@@ -68,7 +68,7 @@ flowchart TB
     end
 
     subgraph T2A["Tier 2-A: External"]
-        BIFROST[Bifrost/LiteLLM]
+        BIFROST[Bifrost]
         OPENAI[OpenAI]
         ANTHROPIC[Anthropic]
         BEDROCK[Bedrock]
@@ -114,7 +114,7 @@ flowchart TB
 | Tier | 컴포넌트 | 책임 | 프로토콜 |
 |------|----------|------|----------|
 | **Tier 1** | kgateway (Envoy 기반) | 트래픽 라우팅, mTLS, rate limiting, 네트워크 정책, LoadBalancing | HTTP/HTTPS, gRPC |
-| **Tier 2-A** | Bifrost / LiteLLM | 외부 LLM 프로바이더 통합, 비용 추적, cascade routing, semantic caching | OpenAI-compatible API |
+| **Tier 2-A** | Bifrost (또는 LiteLLM) | 외부 LLM 프로바이더 통합, 비용 추적, cascade routing, semantic caching | OpenAI-compatible API |
 | **Tier 2-B** | kgateway + agentgateway | 자체 추론 인프라 라우팅, MCP/A2A 세션, Tool Poisoning 방지 | HTTP, JSON-RPC, MCP, A2A |
 
 ### 트래픽 플로우
@@ -362,7 +362,7 @@ spec:
 - 셀프호스트 중심 환경
 - Kubernetes 네이티브 배포
 
-#### LiteLLM
+#### LiteLLM (Python 생태계 대안)
 
 **장점:**
 - 100+ 프로바이더 지원: OpenAI, Anthropic, Bedrock, Azure, GCP, Cohere, Hugging Face 등
@@ -372,11 +372,11 @@ spec:
 - Virtual Keys, Budget Control, Rate Limiting 내장
 
 **단점:**
-- Python 기반으로 Bifrost 대비 낮은 throughput
+- Python 기반으로 Bifrost 대비 낮은 throughput (50배 차이)
 - 메모리 사용량 높음 (특히 대규모 concurrent 요청 시)
 
 **적합 시나리오:**
-- Python 생태계 (LangChain, LlamaIndex) 사용
+- Python 생태계 (LangChain, LlamaIndex) 중심 환경
 - 100+ 프로바이더 중 다양한 선택지 필요
 - 빠른 프로토타이핑
 
@@ -742,7 +742,7 @@ routing:
           startModel: premium
 ```
 
-### LiteLLM의 Cascade Routing 설정
+### LiteLLM의 Cascade Routing 설정 (Python 생태계 대안)
 
 ```yaml
 # litellm-config.yaml
@@ -835,7 +835,7 @@ flowchart TB
 | Namespace | 용도 | 리소스 |
 |-----------|------|--------|
 | **ai-gateway** | Tier 1 인프라 Gateway | kgateway, HTTPRoute, Certificate |
-| **ai-external** | Tier 2-A 외부 LLM | Bifrost/LiteLLM, Redis Cache |
+| **ai-external** | Tier 2-A 외부 LLM | Bifrost (또는 LiteLLM), Redis Cache |
 | **ai-inference** | Tier 2-B 자체 추론 | agentgateway, vLLM, llm-d |
 | **ai-observability** | 관측성 스택 | Langfuse, Hubble UI, Prometheus |
 
@@ -1220,7 +1220,7 @@ rules:
 2. **agentgateway**: AI 워크로드 전용 데이터 플레인, MCP/A2A 네이티브, Tool Poisoning 방지
 3. **Semantic Caching**: 임베딩 기반 유사 프롬프트 캐싱으로 30-40% 비용 절감
 4. **Cascade Routing**: 복잡도 기반 모델 자동 선택으로 70% 비용 절감
-5. **솔루션 선택**: 성능 중심(Bifrost), 생태계 중심(LiteLLM), 엔터프라이즈(Portkey), 통합(Helicone), 호스티드(OpenRouter)
+5. **솔루션 선택**: 기본 권장(Bifrost - 고성능, 저비용), Python 생태계(LiteLLM), 엔터프라이즈(Portkey), 통합(Helicone), 호스티드(OpenRouter)
 
 ### 다음 단계
 

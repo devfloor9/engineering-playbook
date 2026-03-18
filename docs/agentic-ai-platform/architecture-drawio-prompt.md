@@ -14,7 +14,7 @@ last_update:
 This architecture serves as a **reference architecture** for building a telecom-scale Agentic AI Platform on Amazon EKS. The core design principles are:
 
 - **Kubernetes Native**: All AI workloads are declaratively managed on EKS with GPU node auto-scaling via Karpenter.
-- **2-Tier Gateway**: Separates kgateway (authentication, routing, traffic control) from LiteLLM (LLM provider aggregation, fallback, cost tracking) to isolate concerns.
+- **2-Tier Gateway**: Separates kgateway (authentication, routing, traffic control) from Bifrost (LLM provider aggregation, fallback, cost tracking) to isolate concerns.
 - **Hybrid Observability**: Dev/staging uses LangSmith (LangGraph Studio native integration), while production uses Langfuse (self-hosted, data sovereignty).
 - **On-Premise ↔ Cloud Integration**: Bridges on-premise GPU resources (Colab-Co for training, Sangam for inference) with cloud-based ML pipelines.
 - **Standard Protocols**: Adopts MCP (tool connectivity) and A2A (agent-to-agent communication) standards for agent extensibility.
@@ -24,7 +24,7 @@ This architecture serves as a **reference architecture** for building a telecom-
 | Layer | Role | Key Components |
 |-------|------|----------------|
 | **Portal Layer** | User interface, observability dashboards, notebook environment | Portal UI, LangSmith, Langfuse, JupyterHub |
-| **Orchestration Layer** | Agent workflow execution, API serving, RAG chain, safety filtering, LLM routing | kgateway, FastAPI, LangChain, LangGraph, RAG Chain, NeMo Guardrails, LiteLLM |
+| **Orchestration Layer** | Agent workflow execution, API serving, RAG chain, safety filtering, LLM routing | kgateway, FastAPI, LangChain, LangGraph, RAG Chain, NeMo Guardrails, Bifrost |
 | **Model Serving Layer** | LLM text generation (vLLM) and non-LLM inference (Triton), KV Cache-aware intelligent distribution | llm-d, vLLM (Large/Medium/Small/LoRA), Triton (Embedding/Reranking/STT) |
 | **Model Pipeline Layer** | Model registry, experiment tracking, offline evaluation, training pipeline orchestration | MLflow, ECR, DeepEval, Kubeflow Pipelines |
 | **Data Foundry Layer** | Document parsing for RAG, vector indexing, data labeling, feedback loop | Unstructured.io, Milvus, Label Studio, Langfuse |
@@ -156,7 +156,7 @@ ArgoCD (좌측 하단)에서 EKS 클러스터로 점선 화살표 (GitOps 배포
 |------|------|--------|------|
 | 1 | kgateway (Gateway API / 인증 / Rate Limit / TLS / WebSocket·SSE 네이티브) | #326CE5 | Envoy HTTP/1.1 Upgrade 지원 명시 |
 
-kgateway 하단에 작은 텍스트: "Path 분기: /api/* → FastAPI, /ws/* → WebSocket, /v1/* → LiteLLM (AI)"
+kgateway 하단에 작은 텍스트: "Path 분기: /api/* → FastAPI, /ws/* → WebSocket, /v1/* → Bifrost (AI)"
 
 **Core Services (좌측):**
 | 박스 | 라벨 | 배경색 | 비고 |
@@ -185,9 +185,9 @@ kgateway 하단에 작은 텍스트: "Path 분기: /api/* → FastAPI, /ws/* →
 **LLM Router (하단, 전체 폭):**
 | 박스 | 라벨 | 배경색 | 비고 |
 |------|------|--------|------|
-| 1 | LiteLLM (LLM Router / 폴백 / 비용 추적) (또는 Bifrost — Rust 기반 고성능 대안) | #FF9900 | 인프라 레벨 비용 집계 |
+| 1 | Bifrost (LLM Router / 폴백 / 비용 추적) (또는 LiteLLM — Python 생태계 대안) | #FF9900 | 인프라 레벨 비용 집계 |
 
-> LiteLLM은 100+ LLM 프로바이더 통합 및 비용 추적을 제공합니다. 고성능이 필요한 경우 Rust 기반 Bifrost를 대안으로 고려할 수 있습니다.
+> Bifrost는 Rust 기반 고성능 라우터로 20+ LLM 프로바이더 통합 및 비용 추적을 제공하며, LiteLLM 대비 50배 빠른 성능을 제공합니다. Python 생태계 통합이 필요한 경우 LiteLLM (100+ 프로바이더)을 대안으로 고려할 수 있습니다.
 
 ---
 
@@ -336,14 +336,14 @@ llm-d 박스는 전체 폭의 80% 차지, 중앙 배치.
 
 ### EKS 내부 흐름 (실선, #326CE5 파랑)
 4. kgateway → FastAPI (REST + WebSocket + SSE) (/api/*, /ws/*)
-5. kgateway → LiteLLM (/v1/* AI 트래픽)
+5. kgateway → Bifrost (/v1/* AI 트래픽)
 6. FastAPI → LangChain / LangGraph (에이전트 요청)
-7. LangChain → LiteLLM (LLM 호출)
+7. LangChain → Bifrost (LLM 호출)
 8. LangChain → RAG Chain → Triton (Embedding) → Milvus (RAG 검색)
 9. LangChain → NeMo Guardrails (Input/Output 필터링, 양방향 화살표)
-10. LiteLLM → llm-d Inference Gateway (자체 모델)
+10. Bifrost → llm-d Inference Gateway (자체 모델)
 11. llm-d → vLLM Large / Medium / Small / LoRA (KV Cache-aware 분배)
-12. LiteLLM → External LLMs (외부 모델, 우측으로 화살표)
+12. Bifrost → External LLMs (외부 모델, 우측으로 화살표)
 
 ### 데이터 흐름 (점선, #00BCD4 청록)
 13. On-Premise (코랩코) --점선화살표--> S3 (모델 아티팩트)
@@ -356,14 +356,14 @@ llm-d 박스는 전체 폭의 80% 차지, 중앙 배치.
 18. vLLM/llm-d --점선--> ADOT --점선--> AMP → AMG
 19. FastAPI --점선--> LangSmith (Dev/Staging 트레이스, 라벨: "애플리케이션 레벨")
 20. FastAPI --점선--> Langfuse (Production 트레이스, 라벨: "애플리케이션 레벨")
-21. LiteLLM --점선--> LiteLLM 자체 비용 집계 (라벨: "인프라 레벨")
+21. Bifrost --점선--> Bifrost 자체 비용 집계 (라벨: "인프라 레벨")
 22. Langfuse --점선--> Label Studio (피드백 루프)
 
 ### GitOps 배포 (점선, #FF6B6B 빨강)
 23. ArgoCD --점선--> EKS Cluster (GitOps 배포, vLLM/Agent 서비스 등)
 
 ### On-Premise 연결 (점선, #E91E63 분홍)
-24. On-Premise (상암) --점선--> LiteLLM (자체 추론 서버 등록)
+24. On-Premise (상암) --점선--> Bifrost (자체 추론 서버 등록)
 25. On-Premise (코랩코) --점선--> S3 (학습 결과 업로드)
 
 ---
@@ -407,7 +407,7 @@ llm-d 박스는 전체 폭의 80% 차지, 중앙 배치.
 - NeMo Guardrails: 4 서브그룹 Safety로 분리 표시
 - Triton Inference Server: "NEW (비-LLM 추론)"
 - MCP/A2A: "NEW (Agent 표준 프로토콜)"
-- Bifrost: "NEW (LiteLLM 대안)"
+- LiteLLM: "ALTERNATIVE (Python 생태계 대안)"
 - 2-Tier 비용 추적: "NEW (애플리케이션 + 인프라)"
 - Glue Catalog: "OPTIONAL (점선 테두리)"
 - OpenSearch: "MOVED (Portal→AWS Storage & DB)"
@@ -457,7 +457,7 @@ draw.io MCP 서버가 설정되어 있다면:
 | API Server + WebSocket | 별도 박스 2개 | **FastAPI** 통합 박스 1개 | API+WebSocket+SSE 단일 서비스 |
 | kgateway | 기본 Gateway | WebSocket/SSE 네이티브 지원 명시 | Envoy HTTP/1.1 Upgrade |
 | Observability | Langfuse 단독 | **LangSmith (Dev) + Langfuse (Prod)** 하이브리드 | 환경별 역할 분담 |
-| 비용 추적 | 단일 레이어 | **2-Tier (애플리케이션: Langfuse, 인프라: LiteLLM)** | 계층별 비용 집계 |
+| 비용 추적 | 단일 레이어 | **2-Tier (애플리케이션: Langfuse, 인프라: Bifrost)** | 계층별 비용 집계 |
 | Triton | 미포함 | **Triton Inference Server 추가** | 비-LLM 추론 (Whisper, BGE-M3, Rerank) |
 | MCP/A2A | 미언급 | **Agent Framework에 MCP/A2A 프로토콜 명시** | 표준 프로토콜 지원 |
 | Glue Catalog | 필수 | **선택사항 (거버넌스 요구 시)** | 유연한 아키텍처 |

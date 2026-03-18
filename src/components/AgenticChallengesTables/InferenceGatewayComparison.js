@@ -15,11 +15,18 @@ const InferenceGatewayComparison = () => {
       color: '#4286f4'
     },
     {
-      name: 'LiteLLM',
-      version: 'latest',
-      role: isKo ? 'API 추상화' : isZh ? 'API 抽象' : 'API Abstraction',
-      features: isKo ? '100+ LLM 프로바이더 지원, 통합 API, 폴백 설정, 비용 추적' : isZh ? '支持 100+ LLM 提供商，统一 API，回退设置，成本跟踪' : '100+ LLM provider support, unified API, fallback settings, cost tracking',
+      name: 'Bifrost',
+      version: 'v1.x',
+      role: isKo ? 'API 추상화 (Primary)' : isZh ? 'API 抽象 (主要)' : 'API Abstraction (Primary)',
+      features: isKo ? 'Rust 기반 50x 빠른 성능, 100+ LLM 프로바이더 지원, 통합 API, 폴백 설정, 비용 추적' : isZh ? '基于 Rust 快 50 倍，支持 100+ LLM 提供商，统一 API，回退设置，成本跟踪' : 'Rust-based 50x faster, 100+ LLM provider support, unified API, fallback settings, cost tracking',
       color: '#9b59b6'
+    },
+    {
+      name: 'LiteLLM',
+      version: 'v1.60+',
+      role: isKo ? 'API 추상화 (Alternative)' : isZh ? 'API 抽象 (备选)' : 'API Abstraction (Alternative)',
+      features: isKo ? 'Python 기반, 100+ LLM 프로바이더 지원, 통합 API, 폴백 설정, 비용 추적' : isZh ? '基于 Python，支持 100+ LLM 提供商，统一 API，回退设置，成本跟踪' : 'Python-based, 100+ LLM provider support, unified API, fallback settings, cost tracking',
+      color: '#7c3aed'
     }
   ];
 
@@ -138,7 +145,7 @@ const InferenceGatewayComparison = () => {
           }}>
             <span style={{ fontSize: '16px' }}>💡</span>
             <span>
-              {isKo ? 'Kgateway는 트래픽 제어를, LiteLLM은 멀티 프로바이더 통합을 담당하여 함께 사용 가능합니다.' : isZh ? 'Kgateway 负责流量控制，LiteLLM 负责多提供商集成，两者可以一起使用。' : 'Kgateway handles traffic control while LiteLLM manages multi-provider integration, and they can be used together.'}
+              {isKo ? 'Kgateway는 트래픽 제어를, Bifrost는 멀티 프로바이더 통합을 담당하여 함께 사용 가능합니다. LiteLLM은 대안으로 사용할 수 있습니다.' : isZh ? 'Kgateway 负责流量控制，Bifrost 负责多提供商集成，两者可以一起使用。LiteLLM 可作为备选。' : 'Kgateway handles traffic control while Bifrost manages multi-provider integration, and they can be used together. LiteLLM is available as an alternative.'}
             </span>
           </div>
         </div>

@@ -22,7 +22,7 @@ const EksIntegrationBenefits = () => {
             "ALB Controller 연동, ACM 인증서 자동 관리"
       ],
       [
-            "**LiteLLM**",
+            "**Bifrost**",
             "Helm Chart",
             "Secrets Manager 연동, IAM 기반 인증"
       ],

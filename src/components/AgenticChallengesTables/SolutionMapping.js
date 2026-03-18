@@ -19,8 +19,8 @@ const SolutionMapping = () => {
       challenge: isKo ? '동적 라우팅 및 스케일링' : isZh ? '动态路由和扩展' : 'Dynamic Routing & Scaling',
       color: '#4ecdc4',
       bgColor: '#f0fdfa',
-      coreSolution: 'Kgateway, LiteLLM',
-      supportingSolutions: ['KEDA', 'vLLM', 'llm-d'],
+      coreSolution: 'Kgateway, Bifrost',
+      supportingSolutions: ['KEDA', 'vLLM', 'llm-d', 'LiteLLM'],
       solves: isKo ? '멀티 모델 라우팅, 트래픽 기반 자동 스케일링' : isZh ? '多模型路由，基于流量的自动扩展' : 'Multi-model routing, traffic-based auto scaling'
     },
     {

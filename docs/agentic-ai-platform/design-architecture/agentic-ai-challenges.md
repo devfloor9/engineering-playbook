@@ -5,7 +5,7 @@ description: "Agentic AI 워크로드 운영 시 직면하는 5가지 핵심 도
 tags: [kubernetes, genai, agentic-ai, gpu, challenges, open-source]
 category: "genai-aiml"
 last_update:
-  date: 2026-03-17
+  date: 2026-03-18
   author: devfloor9
 sidebar_position: 1
 ---
@@ -14,7 +14,7 @@ import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 import { ChallengeSummary, K8sCoreFeatures, SolutionMapping, ModelServingComparison, InferenceGatewayComparison, ObservabilityComparison, KAgentFeatures, ObservabilityLayerStack, LlmdFeatures, DistributedTrainingStack, GpuInfraStack } from '@site/src/components/AgenticChallengesTables';
 
-> 📅 **작성일**: 2025-02-05 | **수정일**: 2026-03-17 | ⏱️ **읽는 시간**: 약 12분
+> 📅 **작성일**: 2025-02-05 | **수정일**: 2026-03-18 | ⏱️ **읽는 시간**: 약 12분
 
 ## 소개
 
@@ -170,7 +170,7 @@ flowchart TD
 
     subgraph K8sSolutions["Kubernetes 네이티브 솔루션"]
         S1["Karpenter + GPU Operator<br/>MIG / Time-Slicing"]
-        S2["Kgateway + LiteLLM<br/>llm-d KV Cache Routing"]
+        S2["Kgateway + Bifrost<br/>llm-d KV Cache Routing"]
         S3["LangSmith + Langfuse<br/>하이브리드 Observability"]
         S4["LangGraph + NeMo Guardrails<br/>MCP / A2A"]
         S5["MLflow + Kubeflow<br/>ArgoCD GitOps"]
@@ -281,7 +281,7 @@ flowchart LR
 
 ### 2. 지능형 추론 라우팅 및 게이트웨이
 
-Agentic AI 워크로드는 다양한 모델과 프로바이더를 활용합니다. **2-Tier Gateway 아키텍처**(kgateway + LiteLLM)와 **KV Cache-aware 라우팅**(llm-d)을 결합하여 최적의 성능과 비용 효율성을 달성합니다.
+Agentic AI 워크로드는 다양한 모델과 프로바이더를 활용합니다. **2-Tier Gateway 아키텍처**(kgateway + Bifrost)와 **KV Cache-aware 라우팅**(llm-d)을 결합하여 최적의 성능과 비용 효율성을 달성합니다.
 
 **2-Tier Gateway 아키텍처:**
 
@@ -294,7 +294,7 @@ flowchart TD
     end
 
     subgraph Tier2["Tier 2: LLM Router"]
-        LITE["LiteLLM<br/>모델 추상화 / Fallback"]
+        BIFROST["Bifrost<br/>모델 추상화 / Fallback"]
         LLMD["llm-d<br/>KV Cache-aware<br/>라우팅"]
     end
 
@@ -305,14 +305,14 @@ flowchart TD
     end
 
     CLIENT --> KGW
-    KGW --> LITE
-    LITE --> LLMD
+    KGW --> BIFROST
+    BIFROST --> LLMD
     LLMD --> SELF
-    LITE --> BEDROCK
-    LITE --> OPENAI
+    BIFROST --> BEDROCK
+    BIFROST --> OPENAI
 
     style KGW fill:#e1f5ff
-    style LITE fill:#f0e1ff
+    style BIFROST fill:#f0e1ff
     style LLMD fill:#ffe1e1
     style Tier1 fill:#fff4e1
     style Tier2 fill:#f0f0f0
@@ -325,18 +325,18 @@ flowchart TD
 - **Cascade Routing**: 저비용 모델 우선 시도 후 실패 시 고성능 모델로 자동 전환 (cheap → premium)
 - **Semantic Caching**: 의미적으로 유사한 요청에 대해 캐시된 응답 반환으로 비용 절감
 
-**LiteLLM vs Bifrost 비교:**
+**Bifrost vs LiteLLM 비교:**
 
-| 항목 | LiteLLM (기본 권장) | Bifrost (고성능 대안) |
-|------|---------------------|----------------------|
-| 언어 | Python | Rust |
-| 프로바이더 수 | 100+ | 주요 프로바이더 집중 |
-| 성능 | 표준 | ~50x 빠른 라우팅 |
-| 기능 범위 | Fallback, Cost tracking, Rate limiting | 고처리량 라우팅 특화 |
-| 권장 시나리오 | 범용, 다양한 프로바이더 | 초저지연, 대규모 트래픽 |
+| 항목 | Bifrost (기본 권장) | LiteLLM (Python 생태계 대안) |
+|------|---------------------|------------------------------|
+| 언어 | Rust | Python |
+| 프로바이더 수 | 주요 프로바이더 집중 | 100+ |
+| 성능 | ~50x 빠른 라우팅 | 표준 |
+| 기능 범위 | 고처리량 라우팅 특화 | Fallback, Cost tracking, Rate limiting |
+| 권장 시나리오 | 프로덕션, 초저지연, 대규모 트래픽 | Python 생태계 통합, 다양한 프로바이더 필요 시 |
 
-:::tip Bifrost: Rust 기반 고성능 대안
-**Bifrost**는 Rust로 작성된 고성능 LLM 게이트웨이로, LiteLLM 대비 약 50배 빠른 라우팅 성능을 제공합니다. 초저지연이 중요하거나 대규모 트래픽을 처리해야 하는 환경에서 LiteLLM의 대안으로 고려할 수 있습니다. 다만 프로바이더 범위는 주요 프로바이더에 집중되어 있어, 다양한 프로바이더 지원이 필요한 경우 LiteLLM이 더 적합합니다.
+:::tip Bifrost: 프로덕션 기본 권장
+**Bifrost**는 Rust로 작성된 고성능 LLM 게이트웨이로, 약 50배 빠른 라우팅 성능과 낮은 지연 시간을 제공합니다. 프로덕션 환경에서 기본 권장 솔루션입니다. 다만 Python 생태계와의 긴밀한 통합이나 100개 이상의 프로바이더 지원이 필요한 경우 **LiteLLM**을 대안으로 고려할 수 있습니다.
 :::
 
 > 자세한 게이트웨이 아키텍처는 **[LLM Gateway 아키텍처](../gateway-agents/inference-gateway-routing.md)** 문서를 참조하세요.
@@ -427,8 +427,8 @@ flowchart TD
         LANGCHAIN["LangChain<br/>ChatOpenAI"]
     end
 
-    subgraph InfraLayer["Infrastructure Layer (LiteLLM)"]
-        LITELLM["LiteLLM Proxy<br/>OpenAI-compatible"]
+    subgraph InfraLayer["Infrastructure Layer (Bifrost)"]
+        BIFROST["Bifrost Proxy<br/>OpenAI-compatible"]
         BUDGET["Budget Tracking<br/>팀/API키별 한도"]
         CASCADE["Cascade Routing<br/>cheap → premium"]
         TOKEN["토큰 단가 계산"]
@@ -449,15 +449,15 @@ flowchart TD
 
     LANGGRAPH -->|callback| LANGFUSE
     LANGGRAPH --> LANGCHAIN
-    LANGCHAIN -->|"base_url=litellm"| LITELLM
-    LITELLM -->|토큰/비용 집계| TOKEN
-    LITELLM --> BUDGET
-    LITELLM --> CASCADE
+    LANGCHAIN -->|"base_url=bifrost"| BIFROST
+    BIFROST -->|토큰/비용 집계| TOKEN
+    BIFROST --> BUDGET
+    BIFROST --> CASCADE
     CASCADE --> VLLM
     CASCADE --> BEDROCK
     CASCADE --> OPENAI
 
-    style LITELLM fill:#f0e1ff
+    style BIFROST fill:#f0e1ff
     style LANGFUSE fill:#fff4e1
     style CASCADE fill:#ffe1e1
     style InfraLayer fill:#f0f0f0
@@ -468,14 +468,14 @@ flowchart TD
 
 | 계층 | 도구 | 추적 대상 | 목적 |
 |------|------|----------|------|
-| 인프라 | LiteLLM | 모델별 토큰 단가, 팀/API키별 budget, Cascade Routing 비용 | 인프라 레벨 비용 제어 및 최적화 |
+| 인프라 | Bifrost | 모델별 토큰 단가, 팀/API키별 budget, Cascade Routing 비용 | 인프라 레벨 비용 제어 및 최적화 |
 | 애플리케이션 | Langfuse | Agent 스텝별 비용, 체인 전체 latency, 프롬프트 품질 | 애플리케이션 레벨 품질 및 비용 추적 |
 
 **통합 패턴:**
 
-- **LangChain → LiteLLM 연결**: `ChatOpenAI(base_url="http://litellm:4000/v1")`로 OpenAI-compatible 엔드포인트 호출
+- **LangChain → Bifrost 연결**: `ChatOpenAI(base_url="http://bifrost:4000/v1")`로 OpenAI-compatible 엔드포인트 호출
 - **Langfuse Callback**: LangGraph/LangChain의 콜백으로 애플리케이션 레벨 추적
-- **LiteLLM Metrics**: Prometheus 메트릭으로 인프라 레벨 비용 노출
+- **Bifrost Metrics**: Prometheus 메트릭으로 인프라 레벨 비용 노출
 
 **Kubernetes 통합 (Langfuse):**
 
@@ -649,7 +649,7 @@ flowchart TD
 
     subgraph Gateway["Gateway Layer"]
         KGW["Kgateway"]
-        LITE["LiteLLM"]
+        BIFROST["Bifrost"]
     end
 
     subgraph Orchestration["Orchestration"]
@@ -680,8 +680,8 @@ flowchart TD
     WEB --> KGW
     API --> KGW
     AGENT --> KGW
-    KGW --> LITE
-    LITE --> KAGENT
+    KGW --> BIFROST
+    BIFROST --> KAGENT
     KAGENT --> LLMD
     LLMD --> VLLM1
     LLMD --> VLLM2
@@ -728,7 +728,7 @@ flowchart TD
     end
 
     subgraph GatewayLayer["Inference Gateway"]
-        LITE["LiteLLM"]
+        BIFROST["Bifrost"]
         KGW["Kgateway"]
     end
 
@@ -750,10 +750,10 @@ flowchart TD
 
     AGENT --> LF
     AGENT --> LS
-    AGENT --> LITE
+    AGENT --> BIFROST
     RAG --> MILVUS
     RAG --> RAGAS
-    LITE --> KGW
+    BIFROST --> KGW
     KGW --> LLMD
     LLMD --> VLLM
     VLLM --> DRA
@@ -764,7 +764,7 @@ flowchart TD
     style LF fill:#fff4e1
     style LS fill:#f0e1ff
     style RAGAS fill:#fff4e1
-    style LITE fill:#f0e1ff
+    style BIFROST fill:#f0e1ff
     style LLMD fill:#ffe1e1
     style MILVUS fill:#e1f5ff
     style DRA fill:#326ce5,color:#fff
@@ -869,14 +869,14 @@ spec:
           restartPolicy: OnFailure
 ```
 
-#### Inference Gateway 계층: LiteLLM
+#### Inference Gateway 계층: Bifrost
 
-**LiteLLM**은 100개 이상의 LLM 프로바이더를 **통합 OpenAI 호환 API로 추상화**합니다.
+**Bifrost**는 주요 LLM 프로바이더를 **고성능 OpenAI 호환 API로 추상화**합니다.
 
 ```mermaid
 flowchart TD
-    subgraph Gateway["LiteLLM Gateway"]
-        PROXY["LiteLLM<br/>Proxy"]
+    subgraph Gateway["Bifrost Gateway"]
+        PROXY["Bifrost<br/>Proxy"]
         CONFIG["Config<br/>ConfigMap"]
         CACHE["Redis<br/>Cache"]
     end
@@ -910,31 +910,31 @@ flowchart TD
     style Gateway fill:#f0f0f0
 ```
 
-**LiteLLM Kubernetes 배포 예시:**
+**Bifrost Kubernetes 배포 예시:**
 
 ```yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: litellm-proxy
+  name: bifrost-proxy
   namespace: ai-gateway
 spec:
   replicas: 3
   selector:
     matchLabels:
-      app: litellm
+      app: bifrost
   template:
     spec:
       containers:
-        - name: litellm
-          image: ghcr.io/berriai/litellm:main-latest
+        - name: bifrost
+          image: ghcr.io/maximhq/bifrost:latest
           ports:
             - containerPort: 4000
           env:
-            - name: LITELLM_MASTER_KEY
+            - name: BIFROST_MASTER_KEY
               valueFrom:
                 secretKeyRef:
-                  name: litellm-secrets
+                  name: bifrost-secrets
                   key: master-key
             - name: REDIS_HOST
               value: "redis-cache"
@@ -945,26 +945,26 @@ spec:
       volumes:
         - name: config
           configMap:
-            name: litellm-config
+            name: bifrost-config
 ---
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: litellm-config
+  name: bifrost-config
   namespace: ai-gateway
 data:
   config.yaml: |
     model_list:
       - model_name: gpt-4
-        litellm_params:
+        bifrost_params:
           model: openai/gpt-4
           api_key: os.environ/OPENAI_API_KEY
       - model_name: claude-3
-        litellm_params:
+        bifrost_params:
           model: anthropic/claude-3-opus
           api_key: os.environ/ANTHROPIC_API_KEY
       - model_name: llama-70b
-        litellm_params:
+        bifrost_params:
           model: openai/llama-70b
           api_base: http://vllm-llama:8000/v1
 
@@ -973,7 +973,7 @@ data:
       enable_fallbacks: true
 
     general_settings:
-      master_key: os.environ/LITELLM_MASTER_KEY
+      master_key: os.environ/BIFROST_MASTER_KEY
 ```
 
 #### 분산 추론 계층: llm-d
@@ -1236,8 +1236,8 @@ Agentic AI 플랫폼을 구축하는 조직을 위한 권장 사항:
 - [vLLM Documentation](https://docs.vllm.ai/)
 - [llm-d Project](https://github.com/llm-d/llm-d)
 - [Kgateway Documentation](https://kgateway.io/docs/)
-- [LiteLLM Documentation](https://docs.litellm.ai/)
 - [Bifrost - High-performance LLM Gateway](https://github.com/maximhq/bifrost)
+- [LiteLLM Documentation](https://docs.litellm.ai/)
 
 ### LLM Observability
 

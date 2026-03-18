@@ -144,7 +144,7 @@ function draw(svgEl, isDark) {
     addText(257, 80, 'OpenClaw\n:18789', { fs: 11, color: '#1e1e1e' });
 
     rRect(355, 58, 190, 55, { fill: '#d0bfff', stroke: '#7048e8' });
-    addText(450, 80, 'LiteLLM Proxy\n:4000 (Auto-Router)', { fs: 9, color: '#1e1e1e' });
+    addText(450, 80, 'Bifrost Proxy\n:4000 (Auto-Router)', { fs: 9, color: '#1e1e1e' });
 
     // Redis (below Gateway Pod, to the right)
     rRect(575, 150, 135, 48, { fill: '#ffc9c9', stroke: '#e03131' });
@@ -195,14 +195,14 @@ function draw(svgEl, isDark) {
 
     // ═══ ARROWS (left-to-right flow, no crossings) ═══
 
-    // Main data flow: Client → OpenClaw → LiteLLM
+    // Main data flow: Client → OpenClaw → Bifrost
     addArrow([[123, 84], [180, 85]], { color: '#2f9e44', sw: 2, animated: true });
     addArrow([[335, 85], [355, 85]], { color: '#1c7ed6', sw: 2, animated: true });
 
-    // LiteLLM → Redis (elbow: right then down)
+    // Bifrost → Redis (elbow: right then down)
     addArrow([[530, 113], [642, 113], [642, 150]], { color: '#e03131', sw: 1.5, animated: true });
 
-    // LiteLLM → Bedrock models (elbow: right through gap, then to each model)
+    // Bifrost → Bedrock models (elbow: right through gap, then to each model)
     addArrow([[545, 72], [850, 72], [850, 76], [890, 76]], { color: '#e8590c', sw: 2, animated: true });
     addArrow([[545, 80], [850, 80], [850, 162], [890, 162]], { color: '#e8590c', sw: 2, animated: true });
     addArrow([[545, 88], [850, 88], [850, 248], [890, 248]], { color: '#e8590c', sw: 2, animated: true });
@@ -210,7 +210,7 @@ function draw(svgEl, isDark) {
     // Observability: OpenClaw → OTEL (near-vertical down)
     addArrow([[257, 113], [237, 250]], { color: '#099268', sw: 1.5, animated: true });
 
-    // Observability: LiteLLM → Langfuse (elbow: down, right, down)
+    // Observability: Bifrost → Langfuse (elbow: down, right, down)
     addArrow([[450, 113], [450, 208], [685, 208], [685, 250]], { color: '#7048e8', sw: 1.5, animated: true });
 
     // OTEL → Prometheus
