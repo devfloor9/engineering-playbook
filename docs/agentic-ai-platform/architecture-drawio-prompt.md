@@ -14,8 +14,8 @@ last_update:
 This architecture serves as a **reference architecture** for building a telecom-scale Agentic AI Platform on Amazon EKS. The core design principles are:
 
 - **Kubernetes Native**: All AI workloads are declaratively managed on EKS with GPU node auto-scaling via Karpenter.
-- **2-Tier Gateway**: Separates kgateway (authentication, routing, traffic control) from Bifrost (LLM provider aggregation, fallback, cost tracking) to isolate concerns.
-- **Hybrid Observability**: Dev/staging uses LangSmith (LangGraph Studio native integration), while production uses Langfuse (self-hosted, data sovereignty).
+- **2-Tier Gateway**: Separates kgateway (authentication, routing, traffic control) from Bifrost (LLM provider aggregation, fallback, cost tracking) to isolate concerns. Bifrost is a Go-based high-performance gateway (~11µs overhead at 5k RPS).
+- **Hybrid Observability**: Dev/staging uses LangSmith (LangGraph Studio native integration), while production uses Langfuse (self-hosted, data sovereignty). Bifrost integrates with Langfuse via OpenTelemetry for gateway-level traces.
 - **On-Premise ↔ Cloud Integration**: Bridges on-premise GPU resources (Colab-Co for training, Sangam for inference) with cloud-based ML pipelines.
 - **Standard Protocols**: Adopts MCP (tool connectivity) and A2A (agent-to-agent communication) standards for agent extensibility.
 
@@ -52,7 +52,7 @@ This architecture serves as a **reference architecture** for building a telecom-
 
 ## 전체 레이아웃
 
-- 제목: "LG U+ Agentic AI Platform - EKS 기반 개선 아키텍처 (v4)"
+- 제목: "LG U+ Agentic AI Platform - EKS 기반 개선 아키텍처 (v5)"
 - 캔버스 크기: 가로 1400px, 세로 1000px
 - 배경: 흰색
 - 폰트: 맑은 고딕 (또는 Noto Sans KR)
@@ -185,9 +185,9 @@ kgateway 하단에 작은 텍스트: "Path 분기: /api/* → FastAPI, /ws/* →
 **LLM Router (하단, 전체 폭):**
 | 박스 | 라벨 | 배경색 | 비고 |
 |------|------|--------|------|
-| 1 | Bifrost (LLM Router / 폴백 / 비용 추적) (또는 LiteLLM — Python 생태계 대안) | #FF9900 | 인프라 레벨 비용 집계 |
+| 1 | Bifrost (LLM Router / 폴백 / 비용 추적 / OTel) (또는 LiteLLM — 성숙한 에코시스템 대안) | #FF9900 | 인프라 레벨 비용 집계, OTel→Langfuse 연동 |
 
-> Bifrost는 Rust 기반 고성능 라우터로 20+ LLM 프로바이더 통합 및 비용 추적을 제공하며, LiteLLM 대비 50배 빠른 성능을 제공합니다. Python 생태계 통합이 필요한 경우 LiteLLM (100+ 프로바이더)을 대안으로 고려할 수 있습니다.
+> Bifrost는 Go 기반 고성능 라우터로 20+ LLM 프로바이더 네이티브 지원, 계층형 비용 추적(키/팀/고객), 시맨틱 캐싱, MCP 도구 필터링을 제공하며, LiteLLM 대비 40~50배 빠른 게이트웨이 성능(~11µs/req at 5k RPS)을 제공합니다. Langfuse와는 OpenTelemetry를 통해 연동됩니다. 100+ 롱테일 프로바이더 지원 또는 Langfuse 네이티브 플러그인이 필요한 경우 LiteLLM을 대안으로 고려할 수 있습니다.
 
 ---
 
@@ -357,6 +357,7 @@ llm-d 박스는 전체 폭의 80% 차지, 중앙 배치.
 19. FastAPI --점선--> LangSmith (Dev/Staging 트레이스, 라벨: "애플리케이션 레벨")
 20. FastAPI --점선--> Langfuse (Production 트레이스, 라벨: "애플리케이션 레벨")
 21. Bifrost --점선--> Bifrost 자체 비용 집계 (라벨: "인프라 레벨")
+21-1. Bifrost (OTel Plugin) --점선--> Langfuse (라벨: "OTel→Langfuse 게이트웨이 트레이스")
 22. Langfuse --점선--> Label Studio (피드백 루프)
 
 ### GitOps 배포 (점선, #FF6B6B 빨강)
@@ -378,7 +379,7 @@ llm-d 박스는 전체 폭의 80% 차지, 중앙 배치.
 - 분홍 점선: On-Premise 연결
 
 캔버스 우하단에 버전 정보:
-- "v4.0 | 2026-03-17 | Portal 경량화 + ArgoCD 외부 배치 + Qwen/DeepSeek 추가"
+- "v5.0 | 2026-03-18 | Bifrost Go 기반 수정 + OTel→Langfuse 연동 + 게이트웨이 선택 기준 명확화"
 
 ---
 
@@ -407,8 +408,10 @@ llm-d 박스는 전체 폭의 80% 차지, 중앙 배치.
 - NeMo Guardrails: 4 서브그룹 Safety로 분리 표시
 - Triton Inference Server: "NEW (비-LLM 추론)"
 - MCP/A2A: "NEW (Agent 표준 프로토콜)"
-- LiteLLM: "ALTERNATIVE (Python 생태계 대안)"
-- 2-Tier 비용 추적: "NEW (애플리케이션 + 인프라)"
+- Bifrost: "CHANGED (Rust→Go 수정, OTel→Langfuse 연동 추가, 기능 상세화)"
+- LiteLLM: "ALTERNATIVE (100+ 프로바이더, Langfuse 네이티브 플러그인)"
+- 2-Tier 비용 추적: "NEW (애플리케이션: Langfuse + 인프라: Bifrost)"
+- Bifrost OTel→Langfuse: "NEW (게이트웨이 레벨 트레이스)"
 - Glue Catalog: "OPTIONAL (점선 테두리)"
 - OpenSearch: "MOVED (Portal→AWS Storage & DB)"
 - Qwen, DeepSeek: "NEW (External LLMs)"
@@ -423,7 +426,7 @@ llm-d 박스는 전체 폭의 80% 차지, 중앙 배치.
 
 ### 방법 1: Claude에게 draw.io XML 생성 요청
 
-위 프롬프트를 Claude에게 붙여넣으면 `.drawio` XML을 생성합니다. 생성된 XML을 `architecture-v4.drawio` 파일로 저장 후 draw.io에서 열면 됩니다.
+위 프롬프트를 Claude에게 붙여넣으면 `.drawio` XML을 생성합니다. 생성된 XML을 `architecture-v5.drawio` 파일로 저장 후 draw.io에서 열면 됩니다.
 
 ### 방법 2: draw.io에서 직접 작업
 
@@ -440,7 +443,17 @@ draw.io MCP 서버가 설정되어 있다면:
 
 ---
 
-## v3 → v4 변경 요약
+## v4 → v5 변경 요약
+
+| 영역 | v4 | v5 | 변경 이유 |
+|------|----|----|-----------|
+| Bifrost 기술 스택 | "Rust 기반" 표기 | **Go 기반** 수정 (~11µs/req at 5k RPS) | 실제 구현 언어 정정 |
+| Bifrost 기능 설명 | LLM Router / 폴백 / 비용 추적 | **계층형 비용 추적(키/팀/고객), 시맨틱 캐싱, MCP 도구 필터링** 추가 | 기능 상세화 |
+| Bifrost → Langfuse | 미연결 | **OTel Plugin → Langfuse** 게이트웨이 트레이스 연동 | 옵저버빌리티 파이프라인 완성 |
+| LiteLLM 대안 기준 | "Python 생태계 대안" | **100+ 롱테일 프로바이더, Langfuse 네이티브 플러그인** 필요 시 | 선택 기준 명확화 |
+| 모니터링 흐름 | Bifrost 자체 비용 집계만 | **Bifrost OTel → Langfuse** 흐름 추가 (21-1번) | 게이트웨이 레벨 트레이스 |
+
+### v3 → v4 변경 요약 (이전)
 
 | 영역 | v3 | v4 | 변경 이유 |
 |------|----|----|-----------|
