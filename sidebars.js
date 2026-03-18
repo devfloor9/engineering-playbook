@@ -70,6 +70,7 @@ const sidebars = {
             'agentic-ai-platform/design-architecture/agentic-ai-challenges',
             'agentic-ai-platform/design-architecture/agentic-ai-solutions-eks',
             'agentic-ai-platform/design-architecture/agentic-platform-architecture',
+            'agentic-ai-platform/design-architecture/aws-native-agentic-platform',
           ],
         },
         {
