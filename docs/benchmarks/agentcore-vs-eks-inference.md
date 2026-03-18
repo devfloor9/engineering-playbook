@@ -326,12 +326,12 @@ flowchart TD
     Q2 -->|"No\n(추론 엔진 커스터마이징,\n지원 외 양자화 등)"| Q3{"월 트래픽이\n손익분기점 이하?"}
     Q3 -->|Yes| Hybrid["AgentCore +\n외부 엔드포인트 연결"]
     Q3 -->|No| Q4{"프롬프트 반복\n패턴이 높은가?"}
-    Q4 -->|Yes| Q5B{"Langfuse 파이프라인이\n이미 구축되어 있는가?"}
-    Q4 -->|No| Q5A{"Langfuse 파이프라인이\n이미 구축되어 있는가?"}
-    Q5A -->|Yes| AltA1["대안 A-1\nLiteLLM + vLLM"]
-    Q5A -->|No| AltA2["대안 A-2\nBifrost + vLLM"]
-    Q5B -->|Yes| AltB1["대안 B-1\nLiteLLM + llm-d + vLLM"]
-    Q5B -->|No| AltB2["대안 B-2\nBifrost + llm-d + vLLM"]
+    Q4 -->|Yes| Q5{"고동시성/멀티 테넌트\n거버넌스가 필요한가?"}
+    Q4 -->|No| Q6{"고동시성/멀티 테넌트\n거버넌스가 필요한가?"}
+    Q5 -->|Yes| AltB2["대안 B-2\nBifrost + llm-d + vLLM"]
+    Q5 -->|"No\n(롱테일 프로바이더/\n성숙한 에코시스템 선호)"| AltB1["대안 B-1\nLiteLLM + llm-d + vLLM"]
+    Q6 -->|Yes| AltA2["대안 A-2\nBifrost + vLLM"]
+    Q6 -->|"No\n(롱테일 프로바이더/\n성숙한 에코시스템 선호)"| AltA1["대안 A-1\nLiteLLM + vLLM"]
 
     style Start fill:#232F3E,color:#fff
     style Baseline fill:#FF9900,color:#fff
