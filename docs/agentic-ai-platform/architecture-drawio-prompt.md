@@ -14,6 +14,7 @@ last_update:
 This architecture serves as a **reference architecture** for building a telecom-scale Agentic AI Platform on Amazon EKS. The core design principles are:
 
 - **Kubernetes Native**: All AI workloads are declaratively managed on EKS with GPU node auto-scaling via Karpenter.
+- **Streamlined Ingress**: CloudFront → WAF → NLB (auto-provisioned by kgateway Service) → kgateway. ALB is eliminated to reduce latency hops. AWS Shield Advanced protects the NLB endpoint.
 - **2-Tier Gateway**: Separates kgateway (authentication, routing, traffic control) from Bifrost (LLM provider aggregation, fallback, cost tracking) to isolate concerns. Bifrost is a Go-based high-performance gateway (~11µs overhead at 5k RPS).
 - **Hybrid Observability**: Dev/staging uses LangSmith (LangGraph Studio native integration), while production uses Langfuse (self-hosted, data sovereignty). Bifrost integrates with Langfuse via OpenTelemetry for gateway-level traces.
 - **On-Premise ↔ Cloud Integration**: Bridges on-premise GPU resources (Colab-Co for training, Sangam for inference) with cloud-based ML pipelines.
@@ -106,13 +107,15 @@ Generate a draw.io XML for the LG U+ Agentic AI Platform architecture on EKS wit
 
 Stacked vertically top-to-bottom, connected by arrows:
 1. **Route 53** (AWS orange, small box)
-2. **CloudFront** (AWS orange)
+2. **CloudFront + Shield Advanced** (AWS orange, label: "CloudFront + Shield")
 3. **WAF** (security red)
-4. **ALB** (AWS orange)
+4. **NLB** (AWS orange, label: "NLB (auto-provisioned)", small text below: "kgateway Service type: LoadBalancer")
 5. **IAM Identity Center** (security red, label: "IAM IdC / SSO")
 
-Arrow from ALB enters the EKS cluster.
+Arrow from NLB enters the EKS cluster → kgateway.
 Dashed arrow from ArgoCD (bottom-left) to EKS cluster (GitOps deployment).
+
+> ALB is removed. NLB is auto-provisioned by kgateway's Kubernetes Service (type: LoadBalancer). This eliminates one L7 hop, reducing latency. WAF is enforced at CloudFront level. Shield Advanced protects CloudFront + NLB endpoints. IAM Identity Center authentication is handled by kgateway (OIDC integration).
 
 ---
 
@@ -331,8 +334,8 @@ Internal boxes:
 
 ### Ingress Flow (solid, black)
 1. Users → Route 53
-2. Route 53 → CloudFront → WAF → ALB → IAM Identity Center
-3. IAM Identity Center → kgateway (enters EKS cluster)
+2. Route 53 → CloudFront (+ Shield Advanced) → WAF → NLB (auto-provisioned)
+3. NLB → kgateway (enters EKS cluster, OIDC auth via IAM Identity Center)
 
 ### EKS Internal Flow (solid, #326CE5 blue)
 4. kgateway → FastAPI (REST + WebSocket + SSE) (/api/*, /ws/*)
@@ -379,7 +382,7 @@ Bottom-left legend box:
 - Pink dashed: On-Premise connections
 
 Bottom-right version info:
-- "v5.0 | 2026-03-18 | Bifrost Go-based correction + OTel→Langfuse integration + Gateway selection criteria clarified"
+- "v5.1 | 2026-03-18 | ALB removed, NLB auto-provisioned by kgateway + Shield Advanced + Streamlined ingress"
 
 ---
 
@@ -397,8 +400,11 @@ Bottom-right version info:
 ## Change Highlights (optional)
 
 Add small badges ("NEW", "CHANGED", "REMOVED", "HYBRID", "MOVED", "ALTERNATIVE", "OPTIONAL") to components changed from the original:
-- kgateway: "CHANGED (Kong→kgateway, WebSocket/SSE native)"
-- IAM Identity Center: "CHANGED (Cognito+Keycloak→IAM IdC)"
+- ALB: "REMOVED (replaced by NLB auto-provisioned via kgateway Service)"
+- NLB: "NEW (auto-provisioned, L4 only, Shield Advanced protected)"
+- CloudFront: "CHANGED (added Shield Advanced, WAF enforcement point)"
+- kgateway: "CHANGED (Kong→kgateway, WebSocket/SSE native, OIDC auth)"
+- IAM Identity Center: "CHANGED (Cognito+Keycloak→IAM IdC, OIDC via kgateway)"
 - FastAPI: "CHANGED (API Server+WebSocket unified)"
 - llm-d: "NEW"
 - AMP/AMG: "CHANGED (Self-hosted→Managed)"
