@@ -2,10 +2,44 @@
 title: "개선된 아키텍처 Draw.io 작성 프롬프트"
 sidebar_label: "Draw.io 작성 프롬프트"
 last_update:
-  date: 2026-03-17
+  date: 2026-03-18
 ---
 
 # LG U+ Agentic AI Platform - 개선 아키텍처 Draw.io 프롬프트
+
+## Architecture Overview
+
+### Design Goals
+
+This architecture serves as a **reference architecture** for building a telecom-scale Agentic AI Platform on Amazon EKS. The core design principles are:
+
+- **Kubernetes Native**: All AI workloads are declaratively managed on EKS with GPU node auto-scaling via Karpenter.
+- **2-Tier Gateway**: Separates kgateway (authentication, routing, traffic control) from LiteLLM (LLM provider aggregation, fallback, cost tracking) to isolate concerns.
+- **Hybrid Observability**: Dev/staging uses LangSmith (LangGraph Studio native integration), while production uses Langfuse (self-hosted, data sovereignty).
+- **On-Premise ↔ Cloud Integration**: Bridges on-premise GPU resources (Colab-Co for training, Sangam for inference) with cloud-based ML pipelines.
+- **Standard Protocols**: Adopts MCP (tool connectivity) and A2A (agent-to-agent communication) standards for agent extensibility.
+
+### Layer Roles
+
+| Layer | Role | Key Components |
+|-------|------|----------------|
+| **Portal Layer** | User interface, observability dashboards, notebook environment | Portal UI, LangSmith, Langfuse, JupyterHub |
+| **Orchestration Layer** | Agent workflow execution, API serving, RAG chain, safety filtering, LLM routing | kgateway, FastAPI, LangChain, LangGraph, RAG Chain, NeMo Guardrails, LiteLLM |
+| **Model Serving Layer** | LLM text generation (vLLM) and non-LLM inference (Triton), KV Cache-aware intelligent distribution | llm-d, vLLM (Large/Medium/Small/LoRA), Triton (Embedding/Reranking/STT) |
+| **Model Pipeline Layer** | Model registry, experiment tracking, offline evaluation, training pipeline orchestration | MLflow, ECR, DeepEval, Kubeflow Pipelines |
+| **Data Foundry Layer** | Document parsing for RAG, vector indexing, data labeling, feedback loop | Unstructured.io, Milvus, Label Studio, Langfuse |
+
+### External Integrations
+
+| Area | Role |
+|------|------|
+| **External LLMs** | 10+ model providers including Bedrock, SageMaker, OpenAI, Claude, Gemini, Qwen, DeepSeek |
+| **AWS Storage & DB** | S3, DynamoDB, OpenSearch, ElastiCache, RDS, EFS, FSx Lustre |
+| **Monitoring & Security** | AMP/AMG (infra metrics), CloudWatch, X-Ray (ADOT), Secrets Manager, KMS, GuardDuty |
+| **On-Premise** | Colab-Co (H100/H200 training), Sangam (H200/H100/L40s inference) |
+| **GitOps** | ArgoCD — declarative deployment management from outside the EKS cluster |
+
+---
 
 아래 프롬프트를 draw.io AI 또는 Claude에게 제공하여 아키텍처 다이어그램을 생성하세요.
 
