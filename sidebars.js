@@ -192,6 +192,7 @@ const sidebars = {
         'benchmarks/cni-performance-comparison',
         'benchmarks/gateway-api-benchmark',
         'benchmarks/ai-ml-workload',
+        'benchmarks/agentcore-vs-eks-inference',
         'benchmarks/hybrid-infrastructure',
         'benchmarks/security-operations',
       ],
