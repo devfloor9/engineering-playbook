@@ -14,7 +14,7 @@ last_update:
 This architecture serves as a **reference architecture** for building a telecom-scale Agentic AI Platform on Amazon EKS. The core design principles are:
 
 - **Kubernetes Native**: All AI workloads are declaratively managed on EKS with GPU node auto-scaling via Karpenter.
-- **Streamlined Ingress**: CloudFront → WAF → NLB (auto-provisioned by kgateway Service) → kgateway. ALB is eliminated to reduce latency hops. AWS Shield Advanced protects the NLB endpoint.
+- **Streamlined Ingress**: CloudFront → WAF → NLB (auto-provisioned by kgateway Service) → kgateway. ALB is eliminated to reduce latency hops and cost (50~75% LB cost reduction). AWS Shield Advanced protects the NLB endpoint. Authentication uses kgateway in-memory JWT validation (~µs) with IAM Identity Center OIDC, requiring no additional auth proxy Pods.
 - **2-Tier Gateway**: Separates kgateway (authentication, routing, traffic control) from Bifrost (LLM provider aggregation, fallback, cost tracking) to isolate concerns. Bifrost is a Go-based high-performance gateway (~11µs overhead at 5k RPS).
 - **Hybrid Observability**: Dev/staging uses LangSmith (LangGraph Studio native integration), while production uses Langfuse (self-hosted, data sovereignty). Bifrost integrates with Langfuse via OpenTelemetry for gateway-level traces.
 - **On-Premise ↔ Cloud Integration**: Bridges on-premise GPU resources (Colab-Co for training, Sangam for inference) with cloud-based ML pipelines.
@@ -110,12 +110,17 @@ Stacked vertically top-to-bottom, connected by arrows:
 2. **CloudFront + Shield Advanced** (AWS orange, label: "CloudFront + Shield")
 3. **WAF** (security red)
 4. **NLB** (AWS orange, label: "NLB (auto-provisioned)", small text below: "kgateway Service type: LoadBalancer")
-5. **IAM Identity Center** (security red, label: "IAM IdC / SSO")
-
 Arrow from NLB enters the EKS cluster → kgateway.
 Dashed arrow from ArgoCD (bottom-left) to EKS cluster (GitOps deployment).
 
-> ALB is removed. NLB is auto-provisioned by kgateway's Kubernetes Service (type: LoadBalancer). This eliminates one L7 hop, reducing latency. WAF is enforced at CloudFront level. Shield Advanced protects CloudFront + NLB endpoints. IAM Identity Center authentication is handled by kgateway (OIDC integration).
+> **Auth Architecture (JWT Validation)**:
+> - ALB is removed. NLB is auto-provisioned by kgateway's Kubernetes Service (type: LoadBalancer).
+> - WAF is enforced at CloudFront level. Shield Advanced protects CloudFront + NLB endpoints.
+> - **Web browsers**: Portal UI → IAM Identity Center (OIDC login) → JWT issued → kgateway validates JWT in-memory (~µs, no external call).
+> - **API/Agent (M2M)**: Client → IAM Identity Center (Client Credentials Grant) → JWT issued → kgateway validates JWT.
+> - kgateway caches JWKS (public keys) from IAM Identity Center and validates tokens in-process. No additional Pod (e.g., OAuth2 Proxy) is required.
+> - JWT claims (team, role) are mapped to Bifrost Virtual Keys for budget/permission control.
+> - **IAM Identity Center** is shown as a dashed connection to kgateway (label: "OIDC / JWKS"), not as an inline entry point box.
 
 ---
 
@@ -337,8 +342,13 @@ Internal boxes:
 2. Route 53 → CloudFront (+ Shield Advanced) → WAF → NLB (auto-provisioned)
 3. NLB → kgateway (enters EKS cluster, OIDC auth via IAM Identity Center)
 
+### Auth Flow (dashed, #FF6B6B red)
+3-1. IAM Identity Center --dashed--> kgateway (label: "OIDC / JWKS cache", bidirectional)
+3-2. Portal UI --dashed--> IAM Identity Center (label: "OIDC Login → JWT")
+3-3. API/Agent Client --dashed--> IAM Identity Center (label: "Client Credentials → JWT")
+
 ### EKS Internal Flow (solid, #326CE5 blue)
-4. kgateway → FastAPI (REST + WebSocket + SSE) (/api/*, /ws/*)
+4. kgateway (JWT validated) → FastAPI (REST + WebSocket + SSE) (/api/*, /ws/*)
 5. kgateway → Bifrost (/v1/* AI traffic)
 6. FastAPI → LangChain / LangGraph (agent requests)
 7. LangChain → Bifrost (LLM calls)
@@ -378,7 +388,7 @@ Bottom-left legend box:
 - Solid arrow: Request/Response flow
 - Blue dashed: Data flow
 - Purple dashed: Monitoring/Metrics
-- Red dashed: GitOps deployment (ArgoCD)
+- Red dashed: Auth flow (OIDC/JWT) & GitOps deployment (ArgoCD)
 - Pink dashed: On-Premise connections
 
 Bottom-right version info:
