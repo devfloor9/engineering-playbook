@@ -1,5 +1,5 @@
 import { SlideWrapper, Card } from '@shared/components';
-import { TrendingUp, DollarSign, Clock, AlertTriangle } from 'lucide-react';
+import { TrendingUp, DollarSign, Clock, Cpu } from 'lucide-react';
 
 export default function Slide06() {
   return (
@@ -29,6 +29,24 @@ export default function Slide06() {
 
         <Card>
           <div className="flex items-center gap-3 mb-4">
+            <Cpu className="w-8 h-8 text-cyan-400" />
+            <h3 className="text-2xl font-bold text-white">GPU 인프라</h3>
+          </div>
+          <div className="space-y-3">
+            <div className="bg-gray-800 border border-cyan-500/30 rounded p-3">
+              <div className="text-sm text-gray-300 mb-1">DCGM Exporter → AMP → AMG</div>
+              <div className="text-2xl font-bold text-cyan-300">GPU Metrics</div>
+            </div>
+            <ul className="text-sm text-gray-300 space-y-1 ml-4">
+              <li>• GPU 사용률, 메모리, 온도</li>
+              <li>• SM(Streaming Multiprocessor) 효율</li>
+              <li>• NVLink 대역폭</li>
+            </ul>
+          </div>
+        </Card>
+
+        <Card>
+          <div className="flex items-center gap-3 mb-4">
             <Clock className="w-8 h-8 text-blue-400" />
             <h3 className="text-2xl font-bold text-white">지연시간</h3>
           </div>
@@ -47,35 +65,17 @@ export default function Slide06() {
 
         <Card>
           <div className="flex items-center gap-3 mb-4">
-            <AlertTriangle className="w-8 h-8 text-amber-400" />
-            <h3 className="text-2xl font-bold text-white">오류율</h3>
-          </div>
-          <div className="space-y-3">
-            <div className="bg-gray-800 border border-amber-500/30 rounded p-3">
-              <div className="text-sm text-gray-300 mb-1">에러 타입별 집계</div>
-              <div className="text-2xl font-bold text-amber-300">{"agent_errors_total"}</div>
-            </div>
-            <ul className="text-sm text-gray-300 space-y-1 ml-4">
-              <li>• LLM API 오류</li>
-              <li>• 도구 실행 실패</li>
-              <li>• Rate Limit 초과</li>
-            </ul>
-          </div>
-        </Card>
-
-        <Card>
-          <div className="flex items-center gap-3 mb-4">
             <DollarSign className="w-8 h-8 text-purple-400" />
             <h3 className="text-2xl font-bold text-white">비용 추적</h3>
           </div>
           <div className="space-y-3">
             <div className="bg-gray-800 border border-purple-500/30 rounded p-3">
-              <div className="text-sm text-gray-300 mb-1">USD 기준 누적 비용</div>
-              <div className="text-2xl font-bold text-purple-300">{"llm_cost_dollars_total"}</div>
+              <div className="text-sm text-gray-300 mb-1">Bifrost + Kubecost</div>
+              <div className="text-2xl font-bold text-purple-300">계층적 비용 추적</div>
             </div>
             <ul className="text-sm text-gray-300 space-y-1 ml-4">
-              <li>• 모델별 단가 적용</li>
-              <li>• 테넌트별 과금</li>
+              <li>• Bifrost: key/team/customer별 LLM 비용</li>
+              <li>• Kubecost: Pod-level 인프라 비용 귀속</li>
               <li>• 예산 알림 설정</li>
             </ul>
           </div>

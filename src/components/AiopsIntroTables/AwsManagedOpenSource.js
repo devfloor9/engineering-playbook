@@ -11,42 +11,42 @@ const AwsManagedOpenSource = () => {
       icon: '🗄️',
       label: isKo ? '데이터베이스' : isZh ? '数据库' : 'Database',
       color: '#2563eb',
-      bg: '#eff6ff',
+      bg: 'var(--ifm-color-emphasis-100)',
       items: ['DocumentDB (MongoDB)', 'ElastiCache (Redis/Valkey)', 'MemoryDB (Redis)', 'Keyspaces (Cassandra)', 'Neptune (Graph)']
     },
     {
       icon: '📡',
       label: isKo ? '스트리밍·메시징' : isZh ? '流式处理·消息' : 'Streaming·Messaging',
       color: '#dc2626',
-      bg: '#fef2f2',
+      bg: 'var(--ifm-color-emphasis-100)',
       items: ['MSK (Kafka)', 'MQ (ActiveMQ/RabbitMQ)']
     },
     {
       icon: '🔍',
       label: isKo ? '검색·분석' : isZh ? '搜索·分析' : 'Search·Analytics',
       color: '#059669',
-      bg: '#ecfdf5',
+      bg: 'var(--ifm-color-emphasis-100)',
       items: ['OpenSearch (Elasticsearch)', 'EMR (Spark/Flink)', 'MWAA (Airflow)']
     },
     {
       icon: '📊',
       label: isKo ? '관찰성' : isZh ? '可观测性' : 'Observability',
       color: '#7c3aed',
-      bg: '#f5f3ff',
+      bg: 'var(--ifm-color-emphasis-100)',
       items: ['AMP (Prometheus)', 'AMG (Grafana)', 'ADOT (OpenTelemetry)']
     },
     {
       icon: '📦',
       label: isKo ? '컨테이너' : isZh ? '容器' : 'Container',
       color: '#ea580c',
-      bg: '#fff7ed',
+      bg: 'var(--ifm-color-emphasis-100)',
       items: ['EKS (Kubernetes)', 'ECR (OCI Registry)', 'App Mesh (Envoy)']
     },
     {
       icon: '🤖',
       label: 'ML·AI',
       color: '#0891b2',
-      bg: '#ecfeff',
+      bg: 'var(--ifm-color-emphasis-100)',
       items: ['SageMaker (PyTorch/TF)', 'Bedrock (Foundation Models)']
     },
   ];
@@ -74,8 +74,8 @@ const AwsManagedOpenSource = () => {
       </div>
 
       <div style={{
-        background: 'white',
-        border: '1px solid #e5e7eb',
+        background: 'var(--ifm-background-surface-color)',
+        border: '1px solid var(--ifm-color-emphasis-200)',
         borderTop: 'none',
         borderRadius: '0 0 8px 8px',
         padding: '20px'
@@ -108,7 +108,7 @@ const AwsManagedOpenSource = () => {
                 {cat.items.map((item) => (
                   <span key={item} style={{
                     fontSize: '11px',
-                    color: '#4b5563',
+                    color: 'var(--ifm-font-color-base)',
                     lineHeight: '1.4'
                   }}>
                     {item}
@@ -121,8 +121,8 @@ const AwsManagedOpenSource = () => {
 
         {/* Summary bar */}
         <div style={{
-          background: '#f8fafc',
-          border: '1px solid #e2e8f0',
+          background: 'var(--ifm-background-surface-color)',
+          border: '1px solid var(--ifm-color-emphasis-200)',
           borderRadius: '6px',
           padding: '12px 16px',
           display: 'flex',
@@ -130,24 +130,24 @@ const AwsManagedOpenSource = () => {
           alignItems: 'center',
           fontSize: '13px'
         }}>
-          <span style={{ color: '#64748b' }}>
+          <span style={{ color: 'var(--ifm-color-emphasis-600)' }}>
             {isKo ? (
               <>
-                <strong style={{ color: '#334155' }}>6개 영역</strong>에 걸친 <strong style={{ color: '#334155' }}>18+ 관리형 오픈소스 서비스</strong>
+                <strong style={{ color: 'var(--ifm-font-color-base)' }}>6개 영역</strong>에 걸친 <strong style={{ color: 'var(--ifm-font-color-base)' }}>18+ 관리형 오픈소스 서비스</strong>
               </>
             ) : isZh ? (
               <>
-                跨 <strong style={{ color: '#334155' }}>6 个领域</strong>的 <strong style={{ color: '#334155' }}>18+ 托管开源服务</strong>
+                跨 <strong style={{ color: 'var(--ifm-font-color-base)' }}>6 个领域</strong>的 <strong style={{ color: 'var(--ifm-font-color-base)' }}>18+ 托管开源服务</strong>
               </>
             ) : (
               <>
-                <strong style={{ color: '#334155' }}>18+ managed open source services</strong> across <strong style={{ color: '#334155' }}>6 domains</strong>
+                <strong style={{ color: 'var(--ifm-font-color-base)' }}>18+ managed open source services</strong> across <strong style={{ color: 'var(--ifm-font-color-base)' }}>6 domains</strong>
               </>
             )}
           </span>
           <span style={{
-            background: '#dbeafe',
-            color: '#1e40af',
+            background: 'var(--ifm-color-emphasis-100)',
+            color: '#2563eb',
             padding: '3px 10px',
             borderRadius: '4px',
             fontSize: '12px',

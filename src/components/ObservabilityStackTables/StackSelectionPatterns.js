@@ -52,8 +52,8 @@ const StackSelectionPatterns = () => {
 
       {/* Table */}
       <div style={{
-        background: 'white',
-        border: '1px solid #e5e7eb',
+        background: 'var(--ifm-background-surface-color)',
+        border: '1px solid var(--ifm-color-emphasis-200)',
         borderTop: 'none',
         borderRadius: '0 0 8px 8px',
         overflow: 'hidden'
@@ -62,41 +62,41 @@ const StackSelectionPatterns = () => {
         <div style={{
           display: 'grid',
           gridTemplateColumns: '130px 180px 200px 1fr',
-          borderBottom: '2px solid #e5e7eb',
-          background: '#f8fafc'
+          borderBottom: '2px solid var(--ifm-color-emphasis-200)',
+          background: 'var(--ifm-background-surface-color)'
         }}>
           <div style={{
             padding: '12px 14px',
             fontWeight: '600',
             fontSize: '12px',
-            color: '#6b7280'
+            color: 'var(--ifm-color-emphasis-600)'
           }}>
             {isKo ? '패턴' : isZh ? '模式' : 'Pattern'}
           </div>
           <div style={{
             padding: '12px 14px',
-            borderLeft: '1px solid #e5e7eb',
+            borderLeft: '1px solid var(--ifm-color-emphasis-200)',
             fontWeight: '600',
             fontSize: '12px',
-            color: '#6b7280'
+            color: 'var(--ifm-color-emphasis-600)'
           }}>
             {isKo ? '수집 레이어' : isZh ? '采集层' : 'Collection Layer'}
           </div>
           <div style={{
             padding: '12px 14px',
-            borderLeft: '1px solid #e5e7eb',
+            borderLeft: '1px solid var(--ifm-color-emphasis-200)',
             fontWeight: '600',
             fontSize: '12px',
-            color: '#6b7280'
+            color: 'var(--ifm-color-emphasis-600)'
           }}>
             {isKo ? '백엔드' : isZh ? '后端' : 'Backend'}
           </div>
           <div style={{
             padding: '12px 14px',
-            borderLeft: '1px solid #e5e7eb',
+            borderLeft: '1px solid var(--ifm-color-emphasis-200)',
             fontWeight: '600',
             fontSize: '12px',
-            color: '#6b7280'
+            color: 'var(--ifm-color-emphasis-600)'
           }}>
             {isKo ? '적합한 환경' : isZh ? '适合的环境' : 'Suitable Environment'}
           </div>
@@ -111,9 +111,9 @@ const StackSelectionPatterns = () => {
           }}>
             <div style={{
               padding: '14px',
-              background: '#f8fafc',
+              background: 'var(--ifm-background-surface-color)',
               fontWeight: '700',
-              color: '#1f2937',
+              color: 'var(--ifm-font-color-base)',
               display: 'flex',
               alignItems: 'center'
             }}>
@@ -122,7 +122,7 @@ const StackSelectionPatterns = () => {
             <div style={{
               padding: '14px',
               fontSize: '13px',
-              color: '#4b5563',
+              color: 'var(--ifm-font-color-base)',
               borderLeft: '1px solid #f3f4f6',
               display: 'flex',
               alignItems: 'center'
@@ -132,7 +132,7 @@ const StackSelectionPatterns = () => {
             <div style={{
               padding: '14px',
               fontSize: '13px',
-              color: '#4b5563',
+              color: 'var(--ifm-font-color-base)',
               borderLeft: '1px solid #f3f4f6',
               display: 'flex',
               alignItems: 'center'
@@ -142,7 +142,7 @@ const StackSelectionPatterns = () => {
             <div style={{
               padding: '14px',
               fontSize: '13px',
-              color: '#4b5563',
+              color: 'var(--ifm-font-color-base)',
               borderLeft: '1px solid #f3f4f6',
               display: 'flex',
               alignItems: 'center'
@@ -154,11 +154,11 @@ const StackSelectionPatterns = () => {
 
         {/* Footer */}
         <div style={{
-          background: '#fffbeb',
+          background: 'var(--ifm-color-emphasis-100)',
           borderTop: '1px solid #fde68a',
           padding: '12px 16px',
           fontSize: '12px',
-          color: '#92400e',
+          color: 'var(--ifm-color-emphasis-700)',
           lineHeight: '1.6'
         }}>
           💡 <strong>{isKo ? '핵심:' : isZh ? '关键点:' : 'Key Point:'}</strong> {isKo ? 'ADOT(OpenTelemetry)를 수집 레이어로 사용하면 백엔드 교체가 자유롭습니다. 이것이 AWS가 자체 에이전트 대신 OpenTelemetry를 Managed Add-on으로 제공하는 이유입니다.' : isZh ? '使用 ADOT (OpenTelemetry) 作为采集层可实现灵活的后端切换。这就是 AWS 提供 OpenTelemetry 作为 Managed Add-on 而非自有代理的原因。' : 'Using ADOT (OpenTelemetry) as the collection layer allows flexible backend switching. This is why AWS provides OpenTelemetry as a Managed Add-on instead of their own agent.'}

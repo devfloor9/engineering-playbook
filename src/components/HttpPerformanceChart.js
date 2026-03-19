@@ -1,7 +1,7 @@
 import React from 'react';
 
 const scenarios = [
-  { id: 'A', label: 'VPC CNI', color: '#64748b', p99: 10.92, qps: 4104 },
+  { id: 'A', label: 'VPC CNI', color: 'var(--ifm-color-emphasis-600)', p99: 10.92, qps: 4104 },
   { id: 'B', label: 'Cilium+kp', color: '#8b5cf6', p99: 9.87, qps: 4045 },
   { id: 'C', label: 'kp-less', color: '#10b981', p99: 8.91, qps: 4019 },
   { id: 'D', label: 'ENI', color: '#3b82f6', p99: 8.75, qps: 4026 },
@@ -24,14 +24,14 @@ function Bar({ value, max, color, label, scenarioId, isBest, bestLabel, directio
         textAlign: 'right',
         fontSize: '0.8rem',
         fontWeight: 500,
-        color: '#475569',
+        color: 'var(--ifm-color-emphasis-600)',
         flexShrink: 0,
       }}>
         {scenarioId}: {label}
       </div>
       <div style={{
         flex: 1,
-        background: '#f1f5f9',
+        background: 'var(--ifm-color-emphasis-100)',
         borderRadius: '6px',
         height: '28px',
         position: 'relative',
@@ -94,8 +94,8 @@ export default function HttpPerformanceChart() {
     }}>
       {/* p99 Latency Section */}
       <div style={{
-        background: '#fff',
-        border: '1px solid #e2e8f0',
+        background: 'var(--ifm-background-surface-color)',
+        border: '1px solid var(--ifm-color-emphasis-200)',
         borderRadius: '10px',
         padding: '1.2rem 1.5rem',
         marginBottom: '1rem',
@@ -106,10 +106,10 @@ export default function HttpPerformanceChart() {
           alignItems: 'baseline',
           marginBottom: '1rem',
         }}>
-          <h4 style={{ margin: 0, fontSize: '0.95rem', color: '#334155' }}>
+          <h4 style={{ margin: 0, fontSize: '0.95rem', color: 'var(--ifm-font-color-base)' }}>
             HTTP p99 Latency @QPS=1000 (ms)
           </h4>
-          <span style={{ fontSize: '0.75rem', color: '#94a3b8', fontStyle: 'italic' }}>
+          <span style={{ fontSize: '0.75rem', color: 'var(--ifm-color-emphasis-500)', fontStyle: 'italic' }}>
             Lower is better
           </span>
         </div>
@@ -132,8 +132,8 @@ export default function HttpPerformanceChart() {
 
       {/* Max QPS Section */}
       <div style={{
-        background: '#fff',
-        border: '1px solid #e2e8f0',
+        background: 'var(--ifm-background-surface-color)',
+        border: '1px solid var(--ifm-color-emphasis-200)',
         borderRadius: '10px',
         padding: '1.2rem 1.5rem',
       }}>
@@ -143,10 +143,10 @@ export default function HttpPerformanceChart() {
           alignItems: 'baseline',
           marginBottom: '1rem',
         }}>
-          <h4 style={{ margin: 0, fontSize: '0.95rem', color: '#334155' }}>
+          <h4 style={{ margin: 0, fontSize: '0.95rem', color: 'var(--ifm-font-color-base)' }}>
             Maximum Achieved QPS
           </h4>
-          <span style={{ fontSize: '0.75rem', color: '#94a3b8', fontStyle: 'italic' }}>
+          <span style={{ fontSize: '0.75rem', color: 'var(--ifm-color-emphasis-500)', fontStyle: 'italic' }}>
             Higher is better
           </span>
         </div>
@@ -171,7 +171,7 @@ export default function HttpPerformanceChart() {
       <p style={{
         textAlign: 'center',
         fontSize: '0.72rem',
-        color: '#94a3b8',
+        color: 'var(--ifm-color-emphasis-500)',
         fontStyle: 'italic',
         marginTop: '0.75rem',
         marginBottom: 0,

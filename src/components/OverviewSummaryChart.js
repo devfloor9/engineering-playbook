@@ -5,12 +5,12 @@ export default function OverviewSummaryChart({ locale = 'en' }) {
   const isDark = colorMode === 'dark';
 
   const theme = {
-    text: isDark ? '#e2e8f0' : '#1f2937',
+    text: isDark ? 'var(--ifm-color-emphasis-200)' : '#1f2937',
     textSecondary: isDark ? '#94a3b8' : '#6b7280',
     textMono: isDark ? '#cbd5e1' : '#6b7280',
     bgSurface: isDark ? '#1e293b' : '#ffffff',
-    bgHeader: isDark ? '#0f172a' : '#f9fafb',
-    border: isDark ? '#334155' : '#e5e7eb',
+    bgHeader: isDark ? '#0f172a' : 'var(--ifm-background-surface-color)',
+    border: isDark ? '#334155' : 'var(--ifm-color-emphasis-200)',
     borderLight: isDark ? '#1e293b' : '#f1f5f9',
   };
 
@@ -60,7 +60,7 @@ export default function OverviewSummaryChart({ locale = 'en' }) {
   const t = i18n[locale] || i18n.en;
 
   const data = [
-    { metric: t.tcpThroughput, vpcCni: '12.41 Gbps', cilium: '12.40 Gbps', improvement: t.identical, color: '#6b7280' },
+    { metric: t.tcpThroughput, vpcCni: '12.41 Gbps', cilium: '12.40 Gbps', improvement: t.identical, color: 'var(--ifm-color-emphasis-600)' },
     { metric: t.udpPacketLoss, vpcCni: '20.39%', cilium: '0.03%', improvement: t.reductionBwMgr, color: '#10b981' },
     { metric: t.podToPodRtt, vpcCni: '4,894 µs', cilium: '3,135 µs', improvement: t.lower36, color: '#10b981' },
     { metric: t.httpP99, vpcCni: '10.92 ms', cilium: '8.75 ms*', improvement: t.lower20, color: '#10b981' },
@@ -155,7 +155,7 @@ export default function OverviewSummaryChart({ locale = 'en' }) {
                     fontSize: '13px',
                     fontWeight: '500',
                     backgroundColor: row.color === '#10b981' ? '#d1fae5' : (isDark ? '#374151' : '#f3f4f6'),
-                    color: row.color === '#10b981' ? '#065f46' : (isDark ? '#d1d5db' : '#374151')
+                    color: row.color === '#10b981' ? '#065f46' : (isDark ? 'var(--ifm-color-emphasis-300)' : '#374151')
                   }}>{row.improvement}</span>
                 </td>
               </tr>

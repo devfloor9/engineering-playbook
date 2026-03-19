@@ -105,11 +105,11 @@ export default function MLRecommendationChart({ locale = 'en' }) {
   const { colorMode } = useColorMode();
   const isDark = colorMode === 'dark';
   const theme = {
-    text: isDark ? '#e2e8f0' : '#1f2937',
+    text: isDark ? 'var(--ifm-color-emphasis-200)' : '#1f2937',
     textSecondary: isDark ? '#cbd5e1' : '#475569',
     bgSurface: isDark ? '#1e293b' : '#ffffff',
-    bgHeader: isDark ? '#0f172a' : '#f9fafb',
-    border: isDark ? '#334155' : '#e5e7eb'
+    bgHeader: isDark ? '#0f172a' : 'var(--ifm-background-surface-color)',
+    border: isDark ? '#334155' : 'var(--ifm-color-emphasis-200)'
   };
   const t = i18n[locale] || i18n.en;
 
@@ -125,7 +125,7 @@ export default function MLRecommendationChart({ locale = 'en' }) {
       workload: t.row2Workload,
       recommended: t.row2Recommended,
       rationale: t.row2Rationale,
-      badgeColor: '#e2e8f0',
+      badgeColor: 'var(--ifm-color-emphasis-200)',
       badgeTextColor: '#1e293b'
     },
     {
@@ -265,7 +265,7 @@ export default function MLRecommendationChart({ locale = 'en' }) {
                   <td style={{
                     padding: '12px 16px',
                     fontSize: '14px',
-                    color: isDark ? '#e2e8f0' : '#334155'
+                    color: isDark ? 'var(--ifm-color-emphasis-200)' : '#334155'
                   }}>
                     {row.workload}
                   </td>
@@ -274,8 +274,8 @@ export default function MLRecommendationChart({ locale = 'en' }) {
                     fontSize: '14px'
                   }}>
                     <span style={{
-                      backgroundColor: row.badgeColor === '#e2e8f0' ? (isDark ? '#334155' : '#e2e8f0') : row.badgeColor,
-                      color: row.badgeColor === '#e2e8f0' ? (isDark ? '#e2e8f0' : '#1e293b') : row.badgeTextColor,
+                      backgroundColor: row.badgeColor === 'var(--ifm-color-emphasis-200)' ? (isDark ? '#334155' : 'var(--ifm-color-emphasis-200)') : row.badgeColor,
+                      color: row.badgeColor === 'var(--ifm-color-emphasis-200)' ? (isDark ? 'var(--ifm-color-emphasis-200)' : '#1e293b') : row.badgeTextColor,
                       padding: '4px 10px',
                       borderRadius: '6px',
                       fontSize: '13px',

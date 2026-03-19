@@ -1,48 +1,352 @@
-.heroBanner {
-  padding: 8rem 0;
-  text-align: center;
+/* ── Hero Section ── */
+.hero {
+  background: var(--ep-surface);
+  padding: 5rem 0 4rem;
   position: relative;
   overflow: hidden;
 }
 
-@media screen and (max-width: 996px) {
-  .heroBanner {
-    padding: 4rem 2rem;
-  }
+.heroInner {
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4rem;
+  align-items: center;
 }
 
-.heroImage {
-  max-width: 720px;
-  width: 100%;
-  border-radius: 12px;
-  margin-bottom: 2rem;
+.heroContent {
+  z-index: 1;
+}
+
+.heroBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 2rem;
+  background: #6EFAD5;
+  color: #00725C;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  margin-bottom: 1.5rem;
+}
+
+.heroTitle {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 3.5rem;
+  font-weight: 800;
+  color: var(--ep-on-surface);
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  margin-bottom: 1.5rem;
+}
+
+.heroTitleAccent {
+  color: #005DAC;
+}
+
+.heroSubtitle {
+  font-size: 1.125rem;
+  color: var(--ep-on-surface-variant);
+  line-height: 1.7;
+  margin-bottom: 2.5rem;
+  max-width: 32rem;
+}
+
+.heroButtons {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.btnPrimary {
+  background: linear-gradient(135deg, #005DAC 0%, #1976D2 100%);
+  color: white;
+  padding: 0.875rem 2rem;
+  border-radius: 0.5rem;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-weight: 600;
+  font-size: 0.95rem;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s ease;
+  border: none;
+  cursor: pointer;
+}
+
+.btnPrimary:hover {
+  box-shadow: 0 12px 24px rgba(0, 93, 172, 0.25);
+  color: white;
+  text-decoration: none;
+  transform: translateY(-1px);
+}
+
+.btnSecondary {
+  background: var(--ep-surface-container-high);
+  color: var(--ep-on-surface);
+  padding: 0.875rem 2rem;
+  border-radius: 0.5rem;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-weight: 600;
+  font-size: 0.95rem;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  transition: all 0.2s ease;
+  border: none;
+  cursor: pointer;
+}
+
+.btnSecondary:hover {
+  background: var(--ep-surface-container-highest);
+  color: var(--ep-on-surface);
+  text-decoration: none;
+}
+
+.heroVisual {
+  position: relative;
+}
+
+.heroImageWrapper {
+  position: relative;
+  border-radius: 1rem;
+  overflow: hidden;
+  background: var(--ep-surface-container);
+  aspect-ratio: 4 / 3;
+  box-shadow: var(--ep-shadow-ambient);
+}
+
+.heroOverlay {
+  position: absolute;
+  bottom: 1.5rem;
+  left: 1.5rem;
+  right: 1.5rem;
+  background: rgba(20, 23, 28, 0.85);
+  backdrop-filter: blur(12px);
+  padding: 1rem 1.25rem;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
 }
 
-.buttons {
+.heroOverlayLabel {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #9AA0AD;
+}
+
+.heroOverlayCode {
+  font-family: 'SFMono-Regular', 'JetBrains Mono', monospace;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #6DB3F8;
+}
+
+/* ── Bento Grid Section ── */
+.topics {
+  background: var(--ep-surface-container-low);
+  padding: 5rem 0;
+}
+
+.topicsInner {
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+.topicsHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 3rem;
+  gap: 1.5rem;
+}
+
+.topicsTitle {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 1.875rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  letter-spacing: -0.02em;
+}
+
+.topicsSubtitle {
+  color: var(--ep-on-surface-variant);
+  max-width: 36rem;
+}
+
+.viewAll {
+  color: #005DAC;
+  font-weight: 700;
+  font-size: 0.9rem;
+  text-decoration: none;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.viewAll:hover {
+  text-decoration: underline;
+  color: #005DAC;
+}
+
+.bentoGrid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 1.5rem;
+}
+
+.bentoCard {
+  background: var(--ep-surface-container-lowest);
+  border-radius: 0.75rem;
+  padding: 2rem;
+  transition: all 0.25s ease;
+  text-decoration: none;
+  color: inherit;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+}
+
+.bentoCard:hover {
+  background: var(--ep-surface-bright);
+  box-shadow: 0 20px 40px rgba(0, 28, 58, 0.06);
+  transform: translateY(-2px);
+  text-decoration: none;
+  color: inherit;
+}
+
+.bentoLarge { grid-column: span 8; }
+.bentoSmall { grid-column: span 4; }
+.bentoWide { grid-column: span 6; }
+.bentoThird { grid-column: span 4; }
+
+.bentoAccent {
+  background: #005DAC;
+  color: white;
+}
+
+.bentoAccent:hover {
+  background: #1976D2;
+  color: white;
+}
+
+.bentoAccent .bentoDescription {
+  color: rgba(212, 227, 255, 0.8);
+}
+
+.bentoIcon {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 0.5rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-top: 2rem;
+  margin-bottom: 1.5rem;
+  font-size: 1.5rem;
 }
 
-.heroBanner .hero__title {
-  font-size: 3rem;
+.bentoCardTitle {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+  letter-spacing: -0.01em;
+}
+
+.bentoDescription {
+  color: var(--ep-on-surface-variant);
+  font-size: 0.9rem;
+  line-height: 1.6;
+  flex: 1;
+}
+
+.bentoTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 1.5rem;
+}
+
+.bentoTag {
+  padding: 0.25rem 0.75rem;
+  border-radius: 2rem;
+  background: var(--ep-surface-container);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--ep-outline);
+}
+
+.bentoLink {
+  color: #005DAC;
+  font-weight: 700;
+  font-size: 0.875rem;
+  margin-top: 1.5rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.bentoAccent .bentoLink {
+  color: white;
+}
+
+/* ── CTA Section ── */
+.cta {
+  padding: 5rem 0;
+  background: var(--ep-surface);
+  text-align: center;
+}
+
+.ctaInner {
+  max-width: 48rem;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+.ctaTitle {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 2.5rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
   margin-bottom: 1rem;
 }
 
-.heroBanner .hero__subtitle {
-  font-size: 1.25rem;
-  margin-bottom: 0;
-  opacity: 0.9;
+.ctaSubtitle {
+  color: var(--ep-on-surface-variant);
+  font-size: 1.125rem;
+  margin-bottom: 2.5rem;
+}
+
+.ctaButtons {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+/* ── Responsive ── */
+@media screen and (max-width: 996px) {
+  .heroInner { grid-template-columns: 1fr; gap: 2rem; }
+  .heroTitle { font-size: 2.5rem; }
+  .heroVisual { display: none; }
+  .bentoLarge, .bentoSmall, .bentoWide, .bentoThird { grid-column: span 12; }
 }
 
 @media screen and (max-width: 768px) {
-  .heroBanner .hero__title {
-    font-size: 2rem;
-  }
-
-  .heroBanner .hero__subtitle {
-    font-size: 1rem;
-  }
+  .hero { padding: 3rem 0 2rem; }
+  .heroTitle { font-size: 2rem; }
+  .topics { padding: 3rem 0; }
+  .topicsHeader { flex-direction: column; align-items: flex-start; }
+  .ctaTitle { font-size: 1.75rem; }
 }

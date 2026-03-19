@@ -18,7 +18,7 @@ const ObservabilityLayerStack = () => {
     {
       name: 'LangSmith',
       color: '#9b59b6',
-      bgColor: '#f3ebf8',
+      bgColor: 'var(--ifm-color-emphasis-100)',
       role: isKo ? 'LLM 트레이싱 (Dev/Staging)' : isZh ? 'LLM 跟踪（开发/预发）' : 'LLM Tracing (Dev/Staging)',
       integration: isKo ? 'SDK 연동' : isZh ? 'SDK 集成' : 'SDK integration',
       features: isKo ? '트레이싱, 평가, 데이터셋 관리, 협업' : isZh ? '跟踪、评估、数据集管理、协作' : 'Tracing, evaluation, dataset management, collaboration'
@@ -56,8 +56,8 @@ const ObservabilityLayerStack = () => {
       </div>
 
       <div style={{
-        background: 'white',
-        border: '1px solid #e5e7eb',
+        background: 'var(--ifm-background-surface-color)',
+        border: '1px solid var(--ifm-color-emphasis-200)',
         borderTop: 'none',
         borderRadius: '0 0 8px 8px',
         padding: '24px'
@@ -93,7 +93,7 @@ const ObservabilityLayerStack = () => {
                 <div style={{
                   fontSize: '12px',
                   fontWeight: '600',
-                  color: '#64748b',
+                  color: 'var(--ifm-color-emphasis-600)',
                   textTransform: 'uppercase',
                   marginBottom: '4px'
                 }}>
@@ -101,7 +101,7 @@ const ObservabilityLayerStack = () => {
                 </div>
                 <div style={{
                   fontSize: '14px',
-                  color: '#1e293b',
+                  color: 'var(--ifm-font-color-base)',
                   fontWeight: '500'
                 }}>
                   {solution.role}
@@ -112,7 +112,7 @@ const ObservabilityLayerStack = () => {
                 <div style={{
                   fontSize: '12px',
                   fontWeight: '600',
-                  color: '#64748b',
+                  color: 'var(--ifm-color-emphasis-600)',
                   textTransform: 'uppercase',
                   marginBottom: '4px'
                 }}>
@@ -135,7 +135,7 @@ const ObservabilityLayerStack = () => {
                 <div style={{
                   fontSize: '12px',
                   fontWeight: '600',
-                  color: '#64748b',
+                  color: 'var(--ifm-color-emphasis-600)',
                   textTransform: 'uppercase',
                   marginBottom: '4px'
                 }}>
@@ -143,7 +143,7 @@ const ObservabilityLayerStack = () => {
                 </div>
                 <div style={{
                   fontSize: '13px',
-                  color: '#334155',
+                  color: 'var(--ifm-font-color-base)',
                   lineHeight: '1.5'
                 }}>
                   {solution.features}

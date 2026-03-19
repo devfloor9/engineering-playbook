@@ -33,8 +33,8 @@ const AidlcPipeline = () => {
       opacity: 0.9
     },
     pipelineContainer: {
-      background: 'white',
-      border: '1px solid #e5e7eb',
+      background: 'var(--ifm-background-surface-color)',
+      border: '1px solid var(--ifm-color-emphasis-200)',
       borderRadius: '8px',
       padding: '1.5rem',
       boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
@@ -47,8 +47,8 @@ const AidlcPipeline = () => {
     },
     column: {
       flex: 1,
-      background: '#f9fafb',
-      border: '1px solid #e5e7eb',
+      background: 'var(--ifm-background-surface-color)',
+      border: '1px solid var(--ifm-color-emphasis-200)',
       borderRadius: '6px',
       padding: '1rem',
       display: 'flex',
@@ -57,7 +57,7 @@ const AidlcPipeline = () => {
     columnTitle: {
       fontSize: '0.8125rem',
       fontWeight: '600',
-      color: '#111827',
+      color: 'var(--ifm-font-color-base)',
       marginBottom: '0.75rem',
       textAlign: 'center',
       lineHeight: '1.3'
@@ -67,7 +67,7 @@ const AidlcPipeline = () => {
       padding: 0,
       listStyle: 'none',
       fontSize: '0.75rem',
-      color: '#4b5563',
+      color: 'var(--ifm-font-color-base)',
       lineHeight: '1.6'
     },
     item: {
@@ -91,8 +91,8 @@ const AidlcPipeline = () => {
     },
     stageCard: {
       flex: 1,
-      background: 'white',
-      border: '1px solid #e5e7eb',
+      background: 'var(--ifm-background-surface-color)',
+      border: '1px solid var(--ifm-color-emphasis-200)',
       borderRadius: '6px',
       overflow: 'hidden'
     },
@@ -105,14 +105,14 @@ const AidlcPipeline = () => {
     },
     stageBody: {
       padding: '1rem',
-      background: '#f9fafb'
+      background: 'var(--ifm-background-surface-color)'
     },
     stageList: {
       margin: 0,
       padding: 0,
       listStyle: 'none',
       fontSize: '0.75rem',
-      color: '#4b5563',
+      color: 'var(--ifm-font-color-base)',
       lineHeight: '1.6'
     },
     stageItem: {
@@ -123,22 +123,22 @@ const AidlcPipeline = () => {
     loopback: {
       marginTop: '0.75rem',
       padding: '0.625rem',
-      background: '#fef3c7',
+      background: 'var(--ifm-color-emphasis-100)',
       border: '1px solid #fbbf24',
       borderRadius: '4px',
       fontSize: '0.7rem',
-      color: '#92400e',
+      color: 'var(--ifm-color-emphasis-700)',
       textAlign: 'center',
       fontWeight: '500'
     },
     footer: {
       marginTop: '1.5rem',
       padding: '1rem',
-      background: '#fef3c7',
+      background: 'var(--ifm-color-emphasis-100)',
       borderLeft: '4px solid #f59e0b',
       borderRadius: '4px',
       fontSize: '0.8125rem',
-      color: '#78350f',
+      color: 'var(--ifm-color-emphasis-700)',
       lineHeight: '1.5'
     },
     footerTitle: {

@@ -15,16 +15,16 @@ export default function ControlPlaneLogTable() {
         <div style={{ fontSize: '0.95rem', fontWeight: 700 }}>📋 EKS 컨트롤 플레인 로그 타입</div>
         <div style={{ fontSize: '0.72rem', opacity: 0.7, marginTop: 2 }}>로그 그룹: /aws/eks/&lt;cluster-name&gt;/cluster</div>
       </div>
-      <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderTop: 'none', borderRadius: '0 0 12px 12px', padding: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+      <div style={{ background: 'var(--ifm-background-surface-color)', border: '1px solid var(--ifm-color-emphasis-200)', borderTop: 'none', borderRadius: '0 0 12px 12px', padding: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
         {logs.map((l) => (
           <div key={l.type} style={{ border: `1.5px solid ${l.color}30`, borderLeft: `4px solid ${l.color}`, borderRadius: 8, padding: '0.6rem 1rem', background: `${l.color}06` }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.3rem' }}>
               <code style={{ background: `${l.color}18`, color: l.color, padding: '2px 8px', borderRadius: 6, fontSize: '0.78rem', fontWeight: 700 }}>{l.type}</code>
-              <span style={{ fontSize: '0.76rem', color: '#475569', fontWeight: 600 }}>{l.component}</span>
+              <span style={{ fontSize: '0.76rem', color: 'var(--ifm-color-emphasis-600)', fontWeight: 600 }}>{l.component}</span>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.72rem' }}>
-              <span style={{ color: '#6b7280' }}>{l.purpose}</span>
-              <code style={{ color: '#94a3b8', fontSize: '0.68rem' }}>{l.stream}</code>
+              <span style={{ color: 'var(--ifm-color-emphasis-600)' }}>{l.purpose}</span>
+              <code style={{ color: 'var(--ifm-color-emphasis-500)', fontSize: '0.68rem' }}>{l.stream}</code>
             </div>
           </div>
         ))}

@@ -56,8 +56,8 @@ const CostStructure = () => {
       </div>
 
       <div style={{
-        background: 'white',
-        border: '1px solid #e5e7eb',
+        background: 'var(--ifm-background-surface-color)',
+        border: '1px solid var(--ifm-color-emphasis-200)',
         borderTop: 'none',
         borderRadius: '0 0 8px 8px',
         overflow: 'hidden'
@@ -65,34 +65,34 @@ const CostStructure = () => {
         <div style={{
           display: 'grid',
           gridTemplateColumns: '140px 140px 1fr',
-          borderBottom: '2px solid #e5e7eb'
+          borderBottom: '2px solid var(--ifm-color-emphasis-200)'
         }}>
           <div style={{
             padding: '12px 14px',
-            background: '#f8fafc',
+            background: 'var(--ifm-background-surface-color)',
             fontWeight: '600',
             fontSize: '12px',
-            color: '#6b7280'
+            color: 'var(--ifm-color-emphasis-600)'
           }}>
             {isKo ? '비용 항목' : isZh ? '成本项目' : 'Cost Item'}
           </div>
           <div style={{
             padding: '12px 14px',
-            background: '#f8fafc',
-            borderLeft: '1px solid #e5e7eb',
+            background: 'var(--ifm-background-surface-color)',
+            borderLeft: '1px solid var(--ifm-color-emphasis-200)',
             fontWeight: '600',
             fontSize: '12px',
-            color: '#6b7280'
+            color: 'var(--ifm-color-emphasis-600)'
           }}>
             {isKo ? '설명' : isZh ? '说明' : 'Description'}
           </div>
           <div style={{
             padding: '12px 14px',
-            background: '#f8fafc',
-            borderLeft: '1px solid #e5e7eb',
+            background: 'var(--ifm-background-surface-color)',
+            borderLeft: '1px solid var(--ifm-color-emphasis-200)',
             fontWeight: '600',
             fontSize: '12px',
-            color: '#6b7280'
+            color: 'var(--ifm-color-emphasis-600)'
           }}>
             {isKo ? '최적화 방법' : isZh ? '优化方法' : 'Optimization Method'}
           </div>
@@ -118,7 +118,7 @@ const CostStructure = () => {
             <div style={{
               padding: '12px 14px',
               fontSize: '12px',
-              color: '#4b5563',
+              color: 'var(--ifm-font-color-base)',
               borderLeft: '1px solid #f3f4f6',
               display: 'flex',
               alignItems: 'center'
@@ -128,7 +128,7 @@ const CostStructure = () => {
             <div style={{
               padding: '12px 14px',
               fontSize: '12px',
-              color: '#4b5563',
+              color: 'var(--ifm-font-color-base)',
               borderLeft: '1px solid #f3f4f6',
               display: 'flex',
               alignItems: 'center'
@@ -139,11 +139,11 @@ const CostStructure = () => {
         ))}
 
         <div style={{
-          background: '#fffbeb',
+          background: 'var(--ifm-color-emphasis-100)',
           borderTop: '1px solid #fde68a',
           padding: '12px 16px',
           fontSize: '12px',
-          color: '#92400e'
+          color: 'var(--ifm-color-emphasis-700)'
         }}>
           <strong>{isKo ? '비용 최적화 전략:' : isZh ? '成本优化策略：' : 'Cost Optimization Strategy:'}</strong> {isKo
             ? '초기에는 전체 활성화로 가치를 검증한 후, 데이터 기반으로 불필요한 메트릭과 로그를 필터링하여 비용을 점진적으로 최적화하세요. AWS Cost Explorer와 CloudWatch Contributor Insights로 비용 구조를 분석할 수 있습니다.'

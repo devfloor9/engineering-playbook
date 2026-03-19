@@ -86,8 +86,8 @@ const ManagedAddonsOverview = () => {
 
       {/* Category Cards */}
       <div style={{
-        background: 'white',
-        border: '1px solid #e5e7eb',
+        background: 'var(--ifm-background-surface-color)',
+        border: '1px solid var(--ifm-color-emphasis-200)',
         borderTop: 'none',
         borderRadius: '0 0 8px 8px',
         overflow: 'hidden'
@@ -101,7 +101,7 @@ const ManagedAddonsOverview = () => {
             {/* Category Label */}
             <div style={{
               padding: '14px 16px',
-              background: '#f8fafc',
+              background: 'var(--ifm-background-surface-color)',
               display: 'flex',
               flexDirection: 'column',
               justifyContent: 'center',
@@ -155,7 +155,7 @@ const ManagedAddonsOverview = () => {
               {/* Description */}
               <div style={{
                 fontSize: '12px',
-                color: '#6b7280',
+                color: 'var(--ifm-color-emphasis-600)',
                 lineHeight: '1.4'
               }}>
                 {cat.desc}
@@ -166,11 +166,11 @@ const ManagedAddonsOverview = () => {
 
         {/* Footer */}
         <div style={{
-          background: '#fffbeb',
+          background: 'var(--ifm-color-emphasis-100)',
           borderTop: '1px solid #fde68a',
           padding: '12px 16px',
           fontSize: '12px',
-          color: '#92400e',
+          color: 'var(--ifm-color-emphasis-700)',
           lineHeight: '1.6'
         }}>
           <strong>{isKo ? '핵심:' : isZh ? '核心:' : 'Key:'}</strong> {isKo
@@ -179,7 +179,7 @@ const ManagedAddonsOverview = () => {
             ? 'AWS 管理 Managed Add-on 的安装、升级和安全补丁。'
             : 'AWS manages installation, upgrades, and security patches for Managed Add-ons.'}
           <code style={{
-            background: '#1f2937',
+            background: 'var(--ifm-color-emphasis-800)',
             color: '#10b981',
             padding: '2px 6px',
             borderRadius: '3px',

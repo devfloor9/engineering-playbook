@@ -139,8 +139,8 @@ const GpuInfraStack = () => {
       </div>
 
       <div style={{
-        background: 'white',
-        border: '1px solid #e5e7eb',
+        background: 'var(--ifm-background-surface-color)',
+        border: '1px solid var(--ifm-color-emphasis-200)',
         borderTop: 'none',
         borderRadius: '0 0 8px 8px',
         padding: '16px'
@@ -149,7 +149,7 @@ const GpuInfraStack = () => {
           <div
             key={index}
             style={{
-              background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
+              background: 'var(--ifm-color-emphasis-100)',
               padding: '18px',
               marginBottom: index < components.length - 1 ? '12px' : '0',
               borderRadius: '8px',
@@ -169,17 +169,17 @@ const GpuInfraStack = () => {
                 <div style={{
                   fontSize: '16px',
                   fontWeight: '700',
-                  color: '#1e293b',
+                  color: 'var(--ifm-font-color-base)',
                   marginBottom: '6px'
                 }}>
                   {component.name}
                 </div>
                 <div style={{
                   fontSize: '13px',
-                  color: '#64748b',
+                  color: 'var(--ifm-color-emphasis-600)',
                   marginBottom: '8px',
                   fontFamily: 'monospace',
-                  background: '#f8fafc',
+                  background: 'var(--ifm-background-surface-color)',
                   padding: '4px 8px',
                   borderRadius: '4px',
                   display: 'inline-block'
@@ -205,7 +205,7 @@ const GpuInfraStack = () => {
 
             <div style={{
               fontSize: '14px',
-              color: '#334155',
+              color: 'var(--ifm-font-color-base)',
               marginTop: '8px',
               lineHeight: '1.5'
             }}>

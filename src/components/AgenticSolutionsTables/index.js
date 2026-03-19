@@ -22,3 +22,4 @@ export { default as AckControllers } from './AckControllers';
 export { default as AutomationComponents } from './AutomationComponents';
 export { default as EksAutoModeBenefits } from './EksAutoModeBenefits';
 export { default as ChallengeSolutionsSummary } from './ChallengeSolutionsSummary';
+export { default as EksClusterConfiguration } from './EksClusterConfiguration';

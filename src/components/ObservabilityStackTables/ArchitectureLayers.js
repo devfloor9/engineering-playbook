@@ -67,8 +67,8 @@ const ArchitectureLayers = () => {
   };
 
   const layersContainerStyle = {
-    background: 'white',
-    border: '1px solid #e5e7eb',
+    background: 'var(--ifm-background-surface-color)',
+    border: '1px solid var(--ifm-color-emphasis-200)',
     borderRadius: '0 0 8px 8px',
     padding: '1rem'
   };
@@ -77,7 +77,7 @@ const ArchitectureLayers = () => {
     borderLeft: `4px solid ${color}`,
     padding: '1rem',
     marginBottom: '1rem',
-    background: '#f9fafb',
+    background: 'var(--ifm-background-surface-color)',
     borderRadius: '4px'
   });
 
@@ -94,7 +94,7 @@ const ArchitectureLayers = () => {
 
   const descriptionStyle = {
     fontSize: '0.875rem',
-    color: '#6b7280',
+    color: 'var(--ifm-color-emphasis-600)',
     marginBottom: '0.75rem'
   };
 
@@ -105,18 +105,18 @@ const ArchitectureLayers = () => {
   };
 
   const componentTagStyle = {
-    background: 'white',
-    border: '1px solid #d1d5db',
+    background: 'var(--ifm-background-surface-color)',
+    border: '1px solid var(--ifm-color-emphasis-200)',
     padding: '0.25rem 0.5rem',
     borderRadius: '4px',
     fontSize: '0.75rem',
-    color: '#374151'
+    color: 'var(--ifm-font-color-base)'
   };
 
   const arrowStyle = {
     textAlign: 'center',
     fontSize: '1.5rem',
-    color: '#9ca3af',
+    color: 'var(--ifm-color-emphasis-500)',
     margin: '0.5rem 0'
   };
 

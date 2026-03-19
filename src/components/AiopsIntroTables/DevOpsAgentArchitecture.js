@@ -11,7 +11,7 @@ const DevOpsAgentArchitecture = () => {
       title: isKo ? '관찰성 데이터 소스' : isZh ? '可观测性数据源' : 'Observability Data Sources',
       subtitle: isKo ? 'AWS 네이티브 · OSS · 3rd Party 모두 지원' : isZh ? 'AWS 原生 · OSS · 第三方均支持' : 'AWS native · OSS · 3rd party all supported',
       color: '#0d9488',
-      bg: '#f0fdfa',
+      bg: 'var(--ifm-color-emphasis-100)',
       items: [
         { icon: '📈', name: isKo ? '메트릭' : isZh ? '指标' : 'Metrics', desc: isKo ? 'AMP · CloudWatch · Datadog 등' : isZh ? 'AMP · CloudWatch · Datadog 等' : 'AMP · CloudWatch · Datadog, etc.' },
         { icon: '🔗', name: isKo ? '트레이스' : isZh ? '追踪' : 'Traces', desc: isKo ? 'X-Ray · Jaeger · Datadog APM 등' : isZh ? 'X-Ray · Jaeger · Datadog APM 等' : 'X-Ray · Jaeger · Datadog APM, etc.' },
@@ -23,7 +23,7 @@ const DevOpsAgentArchitecture = () => {
       title: isKo ? 'MCP 통합 레이어 (50+ 서버)' : isZh ? 'MCP 集成层 (50+ 服务器)' : 'MCP Integration Layer (50+ servers)',
       subtitle: isKo ? '관찰성 백엔드에 무관하게 단일 인터페이스 제공' : isZh ? '无论可观测性后端如何，提供统一接口' : 'Single interface regardless of observability backend',
       color: '#2563eb',
-      bg: '#eff6ff',
+      bg: 'var(--ifm-color-emphasis-100)',
       items: [
         { icon: '☸️', name: 'EKS MCP', desc: isKo ? '클러스터 제어' : isZh ? '集群控制' : 'Cluster control' },
         { icon: '📈', name: 'CloudWatch MCP', desc: isKo ? '메트릭 · 알람 · 로그' : isZh ? '指标 · 告警 · 日志' : 'Metrics · alarms · logs' },
@@ -38,7 +38,7 @@ const DevOpsAgentArchitecture = () => {
     {
       title: isKo ? 'AI 도구 (프로덕션 레디)' : isZh ? 'AI 工具 (生产就绪)' : 'AI Tools (Production Ready)',
       color: '#7c3aed',
-      bg: '#f5f3ff',
+      bg: 'var(--ifm-color-emphasis-100)',
       items: [
         { icon: '🤖', name: 'Q Developer', desc: isKo ? 'CloudWatch Investigations · 트러블슈팅 (GA)' : isZh ? 'CloudWatch Investigations · 故障排查 (GA)' : 'CloudWatch Investigations · troubleshooting (GA)' },
         { icon: '🔧', name: 'Kiro', desc: isKo ? 'Spec-driven 개발 · MCP 네이티브' : isZh ? 'Spec 驱动开发 · MCP 原生' : 'Spec-driven dev · MCP native' },
@@ -47,8 +47,8 @@ const DevOpsAgentArchitecture = () => {
     },
     {
       title: isKo ? 'Agent 확장 (점진적 도입)' : isZh ? 'Agent 扩展 (逐步采用)' : 'Agent Extension (Gradual Adoption)',
-      color: '#9ca3af',
-      bg: '#f9fafb',
+      color: 'var(--ifm-color-emphasis-500)',
+      bg: 'var(--ifm-color-emphasis-100)',
       items: [
         { icon: '📋', name: 'Strands SDK', desc: isKo ? 'Agent SOPs — 자연어 워크플로우 (OSS)' : isZh ? 'Agent SOPs — 自然语言工作流 (OSS)' : 'Agent SOPs — natural language workflows (OSS)' },
         { icon: '⚙️', name: 'Kagent', desc: isKo ? 'K8s 네이티브 Agent — kmcp (초기 단계)' : isZh ? 'K8s 原生 Agent — kmcp (早期阶段)' : 'K8s-native Agent — kmcp (early stage)' },
@@ -62,17 +62,17 @@ const DevOpsAgentArchitecture = () => {
         <div key={item.name} style={{
           flex: '1 1 0',
           minWidth: '100px',
-          background: 'white',
+          background: 'var(--ifm-background-surface-color)',
           border: `1px solid ${color}30`,
           borderRadius: '6px',
           padding: '10px',
           textAlign: 'center'
         }}>
           <div style={{ fontSize: '20px', marginBottom: '4px' }}>{item.icon}</div>
-          <div style={{ fontSize: '13px', fontWeight: '600', color: '#111827', marginBottom: '2px' }}>
+          <div style={{ fontSize: '13px', fontWeight: '600', color: 'var(--ifm-font-color-base)', marginBottom: '2px' }}>
             {item.name}
           </div>
-          <div style={{ fontSize: '11px', color: '#6b7280' }}>{item.desc}</div>
+          <div style={{ fontSize: '11px', color: 'var(--ifm-color-emphasis-600)' }}>{item.desc}</div>
         </div>
       ))}
     </div>
@@ -97,7 +97,7 @@ const DevOpsAgentArchitecture = () => {
         {layer.title}
       </div>
       {layer.subtitle && (
-        <div style={{ fontSize: '11px', color: '#6b7280', marginBottom: '10px' }}>
+        <div style={{ fontSize: '11px', color: 'var(--ifm-color-emphasis-600)', marginBottom: '10px' }}>
           {layer.subtitle}
         </div>
       )}
@@ -128,8 +128,8 @@ const DevOpsAgentArchitecture = () => {
       </div>
 
       <div style={{
-        background: 'white',
-        border: '1px solid #e5e7eb',
+        background: 'var(--ifm-background-surface-color)',
+        border: '1px solid var(--ifm-color-emphasis-200)',
         borderTop: 'none',
         borderRadius: '0 0 8px 8px',
         padding: '20px'
@@ -138,7 +138,7 @@ const DevOpsAgentArchitecture = () => {
         {renderLayer(layers[0])}
 
         {/* Arrow */}
-        <div style={{ textAlign: 'center', padding: '6px 0', fontSize: '20px', color: '#9ca3af' }}>▼</div>
+        <div style={{ textAlign: 'center', padding: '6px 0', fontSize: '20px', color: 'var(--ifm-color-emphasis-500)' }}>▼</div>
 
         {/* MCP Layer */}
         {renderLayer(layers[1])}
@@ -151,8 +151,8 @@ const DevOpsAgentArchitecture = () => {
           padding: '6px 0',
           gap: '80px'
         }}>
-          <span style={{ fontSize: '20px', color: '#9ca3af' }}>↙</span>
-          <span style={{ fontSize: '20px', color: '#9ca3af' }}>↘</span>
+          <span style={{ fontSize: '20px', color: 'var(--ifm-color-emphasis-500)' }}>↙</span>
+          <span style={{ fontSize: '20px', color: 'var(--ifm-color-emphasis-500)' }}>↘</span>
         </div>
 
         {/* AI Tools + AI Agents side by side */}
@@ -178,17 +178,17 @@ const DevOpsAgentArchitecture = () => {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 {c.items.map((item) => (
                   <div key={item.name} style={{
-                    background: 'white',
+                    background: 'var(--ifm-background-surface-color)',
                     border: `1px solid ${c.color}20`,
                     borderRadius: '6px',
                     padding: '10px',
                     textAlign: 'center'
                   }}>
                     <div style={{ fontSize: '18px', marginBottom: '2px' }}>{item.icon}</div>
-                    <div style={{ fontSize: '13px', fontWeight: '600', color: '#111827' }}>
+                    <div style={{ fontSize: '13px', fontWeight: '600', color: 'var(--ifm-font-color-base)' }}>
                       {item.name}
                     </div>
-                    <div style={{ fontSize: '11px', color: '#6b7280' }}>{item.desc}</div>
+                    <div style={{ fontSize: '11px', color: 'var(--ifm-color-emphasis-600)' }}>{item.desc}</div>
                   </div>
                 ))}
               </div>
@@ -204,8 +204,8 @@ const DevOpsAgentArchitecture = () => {
           padding: '6px 0',
           gap: '80px'
         }}>
-          <span style={{ fontSize: '20px', color: '#9ca3af' }}>↘</span>
-          <span style={{ fontSize: '20px', color: '#9ca3af' }}>↙</span>
+          <span style={{ fontSize: '20px', color: 'var(--ifm-color-emphasis-500)' }}>↘</span>
+          <span style={{ fontSize: '20px', color: 'var(--ifm-color-emphasis-500)' }}>↙</span>
         </div>
 
         {/* Action output */}
@@ -216,7 +216,7 @@ const DevOpsAgentArchitecture = () => {
           padding: '16px',
           textAlign: 'center'
         }}>
-          <div style={{ fontSize: '15px', fontWeight: '700', color: '#92400e', marginBottom: '6px' }}>
+          <div style={{ fontSize: '15px', fontWeight: '700', color: 'var(--ifm-color-emphasis-700)', marginBottom: '6px' }}>
             {isKo ? '자동화 액션' : isZh ? '自动化操作' : 'Automation Actions'}
           </div>
           <div style={{
@@ -231,9 +231,9 @@ const DevOpsAgentArchitecture = () => {
               : ['Auto Incident Response', 'Deployment Validation', 'Resource Optimization', 'Cost Reduction', 'Root Cause Analysis']
             ).map((action) => (
               <span key={action} style={{
-                background: 'white',
+                background: 'var(--ifm-background-surface-color)',
                 border: '1px solid #f59e0b',
-                color: '#78350f',
+                color: 'var(--ifm-color-emphasis-700)',
                 padding: '3px 10px',
                 borderRadius: '4px',
                 fontSize: '12px',

@@ -154,7 +154,7 @@ const ValidationResultsTable = ({ validationData }) => {
             </div>
           )}
         </div>
-        <div style={{ fontSize: '11px', color: '#6b7280' }}>
+        <div style={{ fontSize: '11px', color: 'var(--ifm-color-emphasis-600)' }}>
           Total: {total} issues
         </div>
       </div>
@@ -178,19 +178,19 @@ const ValidationResultsTable = ({ validationData }) => {
     <div style={{ fontFamily: 'system-ui, -apple-system, sans-serif', padding: '20px' }}>
       {/* Summary Cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginBottom: '24px' }}>
-        <div style={{ padding: '16px', backgroundColor: '#f9fafb', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
-          <div style={{ fontSize: '14px', color: '#6b7280', marginBottom: '4px' }}>Total Documents</div>
-          <div style={{ fontSize: '32px', fontWeight: '700', color: '#111827' }}>{summary.total}</div>
+        <div style={{ padding: '16px', backgroundColor: 'var(--ifm-background-surface-color)', borderRadius: '8px', border: '1px solid var(--ifm-color-emphasis-200)' }}>
+          <div style={{ fontSize: '14px', color: 'var(--ifm-color-emphasis-600)', marginBottom: '4px' }}>Total Documents</div>
+          <div style={{ fontSize: '32px', fontWeight: '700', color: 'var(--ifm-font-color-base)' }}>{summary.total}</div>
         </div>
-        <div style={{ padding: '16px', backgroundColor: '#ecfdf5', borderRadius: '8px', border: '1px solid #10b981' }}>
+        <div style={{ padding: '16px', backgroundColor: 'var(--ifm-color-emphasis-100)', borderRadius: '8px', border: '1px solid var(--ifm-color-emphasis-200)' }}>
           <div style={{ fontSize: '14px', color: '#059669', marginBottom: '4px' }}>Passed</div>
           <div style={{ fontSize: '32px', fontWeight: '700', color: '#059669' }}>{summary.passed}</div>
         </div>
-        <div style={{ padding: '16px', backgroundColor: '#fef3c7', borderRadius: '8px', border: '1px solid #f59e0b' }}>
+        <div style={{ padding: '16px', backgroundColor: 'var(--ifm-color-emphasis-100)', borderRadius: '8px', border: '1px solid #f59e0b' }}>
           <div style={{ fontSize: '14px', color: '#d97706', marginBottom: '4px' }}>Needs Update</div>
           <div style={{ fontSize: '32px', fontWeight: '700', color: '#d97706' }}>{summary.needsUpdate}</div>
         </div>
-        <div style={{ padding: '16px', backgroundColor: '#fee2e2', borderRadius: '8px', border: '1px solid #ef4444' }}>
+        <div style={{ padding: '16px', backgroundColor: 'var(--ifm-color-emphasis-100)', borderRadius: '8px', border: '1px solid var(--ifm-color-emphasis-200)' }}>
           <div style={{ fontSize: '14px', color: '#dc2626', marginBottom: '4px' }}>Critical Issues</div>
           <div style={{ fontSize: '32px', fontWeight: '700', color: '#dc2626' }}>{summary.criticalIssues}</div>
         </div>
@@ -204,7 +204,7 @@ const ValidationResultsTable = ({ validationData }) => {
           style={{
             padding: '8px 12px',
             borderRadius: '6px',
-            border: '1px solid #d1d5db',
+            border: '1px solid var(--ifm-color-emphasis-200)',
             fontSize: '14px',
             cursor: 'pointer'
           }}
@@ -221,7 +221,7 @@ const ValidationResultsTable = ({ validationData }) => {
           style={{
             padding: '8px 12px',
             borderRadius: '6px',
-            border: '1px solid #d1d5db',
+            border: '1px solid var(--ifm-color-emphasis-200)',
             fontSize: '14px',
             cursor: 'pointer'
           }}
@@ -239,10 +239,10 @@ const ValidationResultsTable = ({ validationData }) => {
       </div>
 
       {/* Table */}
-      <div style={{ overflowX: 'auto', backgroundColor: '#fff', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
+      <div style={{ overflowX: 'auto', backgroundColor: '#fff', borderRadius: '8px', border: '1px solid var(--ifm-color-emphasis-200)' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
-            <tr style={{ backgroundColor: '#f9fafb', borderBottom: '2px solid #e5e7eb' }}>
+            <tr style={{ backgroundColor: 'var(--ifm-background-surface-color)', borderBottom: '2px solid var(--ifm-color-emphasis-200)' }}>
               <th
                 onClick={() => handleSort('document')}
                 style={{
@@ -250,7 +250,7 @@ const ValidationResultsTable = ({ validationData }) => {
                   textAlign: 'left',
                   fontSize: '12px',
                   fontWeight: '600',
-                  color: '#374151',
+                  color: 'var(--ifm-font-color-base)',
                   cursor: 'pointer',
                   userSelect: 'none'
                 }}
@@ -264,7 +264,7 @@ const ValidationResultsTable = ({ validationData }) => {
                   textAlign: 'left',
                   fontSize: '12px',
                   fontWeight: '600',
-                  color: '#374151',
+                  color: 'var(--ifm-font-color-base)',
                   cursor: 'pointer',
                   userSelect: 'none'
                 }}
@@ -278,17 +278,17 @@ const ValidationResultsTable = ({ validationData }) => {
                   textAlign: 'left',
                   fontSize: '12px',
                   fontWeight: '600',
-                  color: '#374151',
+                  color: 'var(--ifm-font-color-base)',
                   cursor: 'pointer',
                   userSelect: 'none'
                 }}
               >
                 Status {sortConfig.key === 'status' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
               </th>
-              <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '12px', fontWeight: '600', color: '#374151' }}>
+              <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '12px', fontWeight: '600', color: 'var(--ifm-font-color-base)' }}>
                 Issues Breakdown
               </th>
-              <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '12px', fontWeight: '600', color: '#374151' }}>
+              <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '12px', fontWeight: '600', color: 'var(--ifm-font-color-base)' }}>
                 Last Validated
               </th>
             </tr>
@@ -298,15 +298,15 @@ const ValidationResultsTable = ({ validationData }) => {
               <tr
                 key={item.id}
                 style={{
-                  borderBottom: '1px solid #e5e7eb',
-                  backgroundColor: index % 2 === 0 ? '#fff' : '#f9fafb'
+                  borderBottom: '1px solid var(--ifm-color-emphasis-200)',
+                  backgroundColor: index % 2 === 0 ? '#fff' : 'var(--ifm-background-surface-color)'
                 }}
               >
                 <td style={{ padding: '12px 16px' }}>
-                  <div style={{ fontWeight: '500', color: '#111827', marginBottom: '4px' }}>
+                  <div style={{ fontWeight: '500', color: 'var(--ifm-font-color-base)', marginBottom: '4px' }}>
                     {item.document}
                   </div>
-                  <div style={{ fontSize: '12px', color: '#6b7280' }}>
+                  <div style={{ fontSize: '12px', color: 'var(--ifm-color-emphasis-600)' }}>
                     {item.path}
                   </div>
                 </td>
@@ -319,7 +319,7 @@ const ValidationResultsTable = ({ validationData }) => {
                 <td style={{ padding: '12px 16px' }}>
                   {getSeverityBar(item.critical, item.important, item.minor)}
                 </td>
-                <td style={{ padding: '12px 16px', fontSize: '13px', color: '#6b7280' }}>
+                <td style={{ padding: '12px 16px', fontSize: '13px', color: 'var(--ifm-color-emphasis-600)' }}>
                   {item.lastValidated}
                 </td>
               </tr>
@@ -329,7 +329,7 @@ const ValidationResultsTable = ({ validationData }) => {
       </div>
 
       {/* Legend */}
-      <div style={{ marginTop: '16px', padding: '12px', backgroundColor: '#f9fafb', borderRadius: '6px', fontSize: '12px', color: '#6b7280' }}>
+      <div style={{ marginTop: '16px', padding: '12px', backgroundColor: 'var(--ifm-background-surface-color)', borderRadius: '6px', fontSize: '12px', color: 'var(--ifm-color-emphasis-600)' }}>
         <strong>Issue Severity:</strong>
         <span style={{ marginLeft: '12px', color: '#ef4444' }}>■ Critical</span>
         <span style={{ marginLeft: '12px', color: '#f59e0b' }}>■ Important</span>

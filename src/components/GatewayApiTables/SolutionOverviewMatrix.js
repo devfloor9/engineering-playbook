@@ -153,7 +153,7 @@ const categories = [
   {
     id: 'bestFor',
     title: { ko: '적합한 사용 사례', en: 'Best Use Cases' },
-    color: '#1b5e20'
+    color: '#2e7d32'
   },
   {
     id: 'notFor',
@@ -179,9 +179,9 @@ export default function SolutionOverviewMatrix({ locale = 'ko' }) {
   };
 
   const bgColor = isDark ? '#1e1e1e' : '#fff';
-  const borderColor = isDark ? '#333' : '#e2e8f0';
+  const borderColor = isDark ? '#333' : 'var(--ifm-color-emphasis-200)';
   const headerBg = isDark ? '#2a2a2a' : '#f8fafc';
-  const cellBg = isDark ? '#252525' : '#fafafa';
+  const cellBg = isDark ? '#252525' : 'var(--ifm-color-emphasis-100)';
 
   return (
     <div style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', maxWidth: '100%', margin: '0 0 1.5rem 0', overflowX: 'auto' }}>
@@ -262,7 +262,7 @@ export default function SolutionOverviewMatrix({ locale = 'ko' }) {
                   {cat.id === 'features' && (
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '0.5rem', padding: '0.75rem' }}>
                       {solutions.map((sol, i) => (
-                        <div key={i} style={{ border: `2px solid ${sol.color}`, borderRadius: 8, padding: '0.75rem', background: isDark ? '#252525' : '#fafafa' }}>
+                        <div key={i} style={{ border: `2px solid ${sol.color}`, borderRadius: 8, padding: '0.75rem', background: isDark ? '#252525' : 'var(--ifm-color-emphasis-100)' }}>
                           <div style={{ fontWeight: 700, fontSize: '0.8rem', marginBottom: '0.5rem', color: sol.color }}>{sol.name}</div>
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
                             {sol.keyFeatures[locale].map((feat, idx) => (
@@ -328,7 +328,7 @@ export default function SolutionOverviewMatrix({ locale = 'ko' }) {
               )}
 
               {!expanded[cat.id] && (
-                <div style={{ padding: '0.6rem 1rem', fontSize: '0.72rem', color: '#64748b', fontStyle: 'italic', background: cellBg }}>
+                <div style={{ padding: '0.6rem 1rem', fontSize: '0.72rem', color: 'var(--ifm-color-emphasis-600)', fontStyle: 'italic', background: cellBg }}>
                   {locale === 'ko' ? '클릭하여 펼치기' : 'Click to expand'}
                 </div>
               )}

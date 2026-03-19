@@ -97,7 +97,7 @@ const InferenceGatewayComparison = () => {
               <div style={{
                 fontSize: '12px',
                 fontWeight: '600',
-                color: '#6b7280',
+                color: 'var(--ifm-color-emphasis-600)',
                 marginBottom: '4px'
               }}>
                 {isKo ? '역할' : isZh ? '角色' : 'Role'}
@@ -115,14 +115,14 @@ const InferenceGatewayComparison = () => {
               <div style={{
                 fontSize: '12px',
                 fontWeight: '600',
-                color: '#6b7280',
+                color: 'var(--ifm-color-emphasis-600)',
                 marginBottom: '6px'
               }}>
                 {isKo ? '핵심 기능' : isZh ? '核心功能' : 'Key Features'}
               </div>
               <div style={{
                 fontSize: '14px',
-                color: '#374151',
+                color: 'var(--ifm-font-color-base)',
                 lineHeight: '1.5'
               }}>
                 {solution.features}
@@ -133,12 +133,12 @@ const InferenceGatewayComparison = () => {
 
         <div style={{
           padding: '16px 20px',
-          background: '#eff6ff',
+          background: 'var(--ifm-color-emphasis-100)',
           borderTop: '1px solid var(--ifm-color-emphasis-200)'
         }}>
           <div style={{
             fontSize: '13px',
-            color: '#1e40af',
+            color: '#2563eb',
             display: 'flex',
             alignItems: 'center',
             gap: '8px'

@@ -6,3 +6,4 @@ export { FlowDiagram } from './FlowDiagram';
 export { Badge } from './Badge';
 export { SlideNav } from './SlideNav';
 export { Minimap } from './Minimap';
+export { SlideSearch } from './SlideSearch';

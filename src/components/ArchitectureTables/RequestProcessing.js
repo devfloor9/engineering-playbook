@@ -115,7 +115,7 @@ const RequestProcessing = () => {
                     fontSize: '14px',
                     fontWeight: '600',
                     color: step.color,
-                    background: 'white',
+                    background: 'var(--ifm-background-surface-color)',
                     padding: '2px 10px',
                     borderRadius: '12px'
                   }}>

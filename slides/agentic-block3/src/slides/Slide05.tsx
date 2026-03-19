@@ -11,6 +11,7 @@ spec:
   replicas: 1
   template:
     spec:
+      terminationGracePeriodSeconds: 300
       nodeSelector:
         karpenter.sh/instance-family: g6e
       containers:
@@ -22,11 +23,23 @@ spec:
             - --max-model-len=32768
             - --enable-prefix-caching
             - --kv-cache-dtype=fp8
+            - --shutdown-timeout=240
           resources:
             requests:
               nvidia.com/gpu: 1
             limits:
-              nvidia.com/gpu: 1`;
+              nvidia.com/gpu: 1
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: qwen3-32b-fp8-pdb
+  namespace: vllm
+spec:
+  maxUnavailable: 1
+  selector:
+    matchLabels:
+      app: qwen3-32b-fp8`;
 
   return (
     <SlideWrapper>
@@ -39,27 +52,34 @@ spec:
         <CodeBlock
           code={deploymentYaml}
           language="yaml"
-          title="Deployment YAML - GPU 리소스 설정"
+          title="Deployment YAML - Graceful Drain 설정"
         />
 
-        <div className="grid grid-cols-2 gap-6 mt-6">
-          <div className="p-6 bg-gray-800 rounded-lg">
-            <h3 className="text-xl font-semibold text-purple-400 mb-4">핵심 파라미터</h3>
-            <ul className="space-y-2 text-gray-300">
-              <li><span className="text-cyan-400 font-mono">--gpu-memory-utilization</span>: KV 캐시 VRAM 비율</li>
-              <li><span className="text-cyan-400 font-mono">--max-model-len</span>: 최대 시퀀스 길이</li>
+        <div className="grid grid-cols-3 gap-4 mt-6">
+          <div className="p-4 bg-gray-800 rounded-lg">
+            <h3 className="text-lg font-semibold text-purple-400 mb-3">핵심 파라미터</h3>
+            <ul className="space-y-2 text-sm text-gray-300">
+              <li><span className="text-cyan-400 font-mono">--gpu-memory-utilization</span>: KV 캐시 VRAM</li>
               <li><span className="text-cyan-400 font-mono">--enable-prefix-caching</span>: 프리픽스 재사용</li>
-              <li><span className="text-cyan-400 font-mono">--kv-cache-dtype</span>: FP8로 메모리 절감</li>
+              <li><span className="text-cyan-400 font-mono">--shutdown-timeout=240</span>: Graceful drain</li>
             </ul>
           </div>
 
-          <div className="p-6 bg-gray-800 rounded-lg">
-            <h3 className="text-xl font-semibold text-emerald-400 mb-4">NodeSelector</h3>
-            <ul className="space-y-2 text-gray-300">
-              <li><span className="text-amber-400">g6e</span>: NVIDIA L40S GPU</li>
-              <li>비용 효율적 추론</li>
-              <li>13B-70B 파라미터 모델 최적</li>
-              <li>Karpenter 자동 프로비저닝</li>
+          <div className="p-4 bg-gray-800 rounded-lg">
+            <h3 className="text-lg font-semibold text-emerald-400 mb-3">Graceful Shutdown</h3>
+            <ul className="space-y-2 text-sm text-gray-300">
+              <li><span className="text-amber-400">terminationGracePeriod: 300s</span></li>
+              <li>진행 중인 요청 완료 대기</li>
+              <li>Karpenter consolidation 대응</li>
+            </ul>
+          </div>
+
+          <div className="p-4 bg-gray-800 rounded-lg">
+            <h3 className="text-lg font-semibold text-cyan-400 mb-3">PodDisruptionBudget</h3>
+            <ul className="space-y-2 text-sm text-gray-300">
+              <li><span className="text-purple-400">maxUnavailable: 1</span></li>
+              <li>동시 중단 Pod 제한</li>
+              <li>가용성 보장</li>
             </ul>
           </div>
         </div>

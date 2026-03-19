@@ -60,9 +60,9 @@ const MonitoringMetrics = () => {
 
   const getSeverityBadge = (severity) => {
     const badges = {
-      info: { bg: '#eff6ff', color: '#3b82f6', label: isKo ? '정보' : isZh ? '信息' : 'Info' },
-      warning: { bg: '#fffbeb', color: '#f59e0b', label: isKo ? '경고' : isZh ? '警告' : 'Warning' },
-      critical: { bg: '#fef2f2', color: '#ef4444', label: isKo ? '위험' : isZh ? '危险' : 'Critical' }
+      info: { bg: 'var(--ifm-color-emphasis-100)', color: '#3b82f6', label: isKo ? '정보' : isZh ? '信息' : 'Info' },
+      warning: { bg: 'var(--ifm-color-emphasis-100)', color: '#f59e0b', label: isKo ? '경고' : isZh ? '警告' : 'Warning' },
+      critical: { bg: 'var(--ifm-color-emphasis-100)', color: '#ef4444', label: isKo ? '위험' : isZh ? '危险' : 'Critical' }
     };
     const badge = badges[severity];
     return (

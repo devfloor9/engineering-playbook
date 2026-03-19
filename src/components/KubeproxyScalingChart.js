@@ -75,7 +75,7 @@ function TripleBar({ metric, colors, svcLabels }) {
         display: 'flex', justifyContent: 'space-between', alignItems: 'center',
         marginBottom: '0.3rem',
       }}>
-        <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#1f2937' }}>{metric.label}</span>
+        <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--ifm-font-color-base)' }}>{metric.label}</span>
         <span style={{
           fontSize: '0.7rem', fontWeight: 600, color: metric.diffColor,
           padding: '1px 8px', borderRadius: '10px',
@@ -95,11 +95,11 @@ function TripleBar({ metric, colors, svcLabels }) {
           }}>
             <div style={{
               width: '52px', textAlign: 'right', fontSize: '0.68rem',
-              color: '#6b7280', flexShrink: 0, fontWeight: i === 2 ? 600 : 400,
+              color: 'var(--ifm-color-emphasis-600)', flexShrink: 0, fontWeight: i === 2 ? 600 : 400,
             }}>
               {svcLabels[i]}
             </div>
-            <div style={{ flex: 1, background: '#f1f5f9', borderRadius: '5px', height: '22px' }}>
+            <div style={{ flex: 1, background: 'var(--ifm-color-emphasis-100)', borderRadius: '5px', height: '22px' }}>
               {metric.isConstant ? (
                 <div style={{
                   width: '100%', height: '100%', borderRadius: '5px',
@@ -136,7 +136,7 @@ function TripleBar({ metric, colors, svcLabels }) {
 function Section({ title, metrics: sectionMetrics, colors, svcLabels, borderColor }) {
   return (
     <div style={{
-      background: '#fff', border: `1px solid ${borderColor || '#e2e8f0'}`,
+      background: 'var(--ifm-background-surface-color)', border: `1px solid ${borderColor || 'var(--ifm-color-emphasis-200)'}`,
       borderRadius: '10px', padding: '1rem 1.3rem', marginBottom: '0.6rem',
     }}>
       <h4 style={{
@@ -172,8 +172,8 @@ export default function KubeproxyScalingChart({ locale = 'en' }) {
       {/* Legend */}
       <div style={{
         display: 'flex', justifyContent: 'flex-end', gap: '0.8rem',
-        padding: '0.5rem 1.3rem', background: '#fafbfc',
-        border: '1px solid #e2e8f0', borderTop: 'none',
+        padding: '0.5rem 1.3rem', background: 'var(--ifm-background-surface-color)',
+        border: '1px solid var(--ifm-color-emphasis-200)', borderTop: 'none',
       }}>
         {t.svcLabels.map((label, i) => (
           <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
@@ -181,16 +181,16 @@ export default function KubeproxyScalingChart({ locale = 'en' }) {
               width: '12px', height: '10px', background: barColors[i],
               borderRadius: '2px',
             }} />
-            <span style={{ fontSize: '0.7rem', color: '#374151' }}>{label}</span>
+            <span style={{ fontSize: '0.7rem', color: 'var(--ifm-font-color-base)' }}>{label}</span>
           </div>
         ))}
-        <div style={{ fontSize: '0.68rem', color: '#94a3b8', fontStyle: 'italic' }}>{t.note}</div>
+        <div style={{ fontSize: '0.68rem', color: 'var(--ifm-color-emphasis-500)', fontStyle: 'italic' }}>{t.note}</div>
       </div>
 
       {/* Content area */}
       <div style={{
-        padding: '0.8rem 1.3rem 1rem', background: '#f8fafc',
-        border: '1px solid #e2e8f0', borderTop: 'none',
+        padding: '0.8rem 1.3rem 1rem', background: 'var(--ifm-background-surface-color)',
+        border: '1px solid var(--ifm-color-emphasis-200)', borderTop: 'none',
         borderRadius: '0 0 12px 12px',
       }}>
         <Section
@@ -221,26 +221,26 @@ export default function KubeproxyScalingChart({ locale = 'en' }) {
 
         {/* Insight box */}
         <div style={{
-          background: '#eff6ff', border: '2px solid #3b82f6',
+          background: 'var(--ifm-color-emphasis-100)', border: '2px solid #3b82f6',
           borderRadius: '8px', padding: '0.7rem 1rem', marginBottom: '0.5rem',
         }}>
-          <div style={{ fontSize: '0.8rem', fontWeight: 600, color: '#1e40af', marginBottom: '0.2rem' }}>
+          <div style={{ fontSize: '0.8rem', fontWeight: 600, color: '#2563eb', marginBottom: '0.2rem' }}>
             {t.insight.title}
           </div>
-          <div style={{ fontSize: '0.73rem', color: '#1e40af', lineHeight: 1.6 }}>
+          <div style={{ fontSize: '0.73rem', color: '#2563eb', lineHeight: 1.6 }}>
             {t.insight.text}
           </div>
         </div>
 
         {/* Threshold warning */}
         <div style={{
-          background: '#fef3c7', border: '1px solid #f59e0b',
+          background: 'var(--ifm-color-emphasis-100)', border: '1px solid #f59e0b',
           borderRadius: '8px', padding: '0.6rem 1rem',
         }}>
-          <div style={{ fontSize: '0.78rem', fontWeight: 600, color: '#92400e', marginBottom: '0.15rem' }}>
+          <div style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--ifm-color-emphasis-700)', marginBottom: '0.15rem' }}>
             {t.threshold.title}
           </div>
-          <div style={{ fontSize: '0.7rem', color: '#92400e', lineHeight: 1.5 }}>
+          <div style={{ fontSize: '0.7rem', color: 'var(--ifm-color-emphasis-700)', lineHeight: 1.5 }}>
             {t.threshold.text}
           </div>
         </div>

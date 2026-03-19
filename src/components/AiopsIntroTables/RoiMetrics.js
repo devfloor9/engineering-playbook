@@ -57,8 +57,8 @@ const RoiMetrics = () => {
       </div>
 
       <div style={{
-        background: 'white',
-        border: '1px solid #e5e7eb',
+        background: 'var(--ifm-background-surface-color)',
+        border: '1px solid var(--ifm-color-emphasis-200)',
         borderTop: 'none',
         borderRadius: '0 0 8px 8px',
         padding: '20px'
@@ -72,10 +72,10 @@ const RoiMetrics = () => {
             <div
               key={index}
               style={{
-                background: '#f9fafb',
+                background: 'var(--ifm-background-surface-color)',
                 padding: '20px',
                 borderRadius: '8px',
-                border: '1px solid #e5e7eb',
+                border: '1px solid var(--ifm-color-emphasis-200)',
                 textAlign: 'center'
               }}
             >
@@ -91,7 +91,7 @@ const RoiMetrics = () => {
               <div style={{
                 fontSize: '16px',
                 fontWeight: '600',
-                color: '#111827',
+                color: 'var(--ifm-font-color-base)',
                 marginBottom: '12px'
               }}>
                 {metric.name}
@@ -103,10 +103,10 @@ const RoiMetrics = () => {
                 justifyContent: 'center',
                 gap: '8px',
                 fontSize: '13px',
-                color: '#6b7280'
+                color: 'var(--ifm-color-emphasis-600)'
               }}>
                 <span style={{
-                  background: '#fee2e2',
+                  background: 'var(--ifm-color-emphasis-100)',
                   color: '#dc2626',
                   padding: '2px 8px',
                   borderRadius: '4px'
@@ -115,7 +115,7 @@ const RoiMetrics = () => {
                 </span>
                 <span>→</span>
                 <span style={{
-                  background: '#dcfce7',
+                  background: 'var(--ifm-color-emphasis-100)',
                   color: '#059669',
                   padding: '2px 8px',
                   borderRadius: '4px'

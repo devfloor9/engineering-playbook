@@ -41,7 +41,7 @@ const RightSizingResults = () => {
     maxWidth: '760px',
     margin: '2rem auto',
     fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-    backgroundColor: '#ffffff',
+    backgroundColor: 'var(--ifm-background-surface-color)',
     borderRadius: '12px',
     boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
     overflow: 'hidden',
@@ -81,7 +81,7 @@ const RightSizingResults = () => {
 
   const cardStyle = (color) => ({
     borderLeft: `4px solid ${color}`,
-    backgroundColor: '#f9fafb',
+    backgroundColor: 'var(--ifm-background-surface-color)',
     borderRadius: '8px',
     padding: '1.25rem',
     boxShadow: '0 2px 4px rgba(0, 0, 0, 0.05)'
@@ -90,7 +90,7 @@ const RightSizingResults = () => {
   const metricLabelStyle = {
     fontSize: '0.8125rem',
     fontWeight: '700',
-    color: '#111827',
+    color: 'var(--ifm-font-color-base)',
     textTransform: 'uppercase',
     letterSpacing: '0.025em',
     marginBottom: '1rem'
@@ -114,12 +114,12 @@ const RightSizingResults = () => {
   const valueStyle = {
     fontSize: '1.125rem',
     fontWeight: '700',
-    color: '#111827'
+    color: 'var(--ifm-font-color-base)'
   };
 
   const labelStyle = {
     fontSize: '0.75rem',
-    color: '#6b7280',
+    color: 'var(--ifm-color-emphasis-600)',
     marginTop: '0.25rem'
   };
 
@@ -143,17 +143,17 @@ const RightSizingResults = () => {
   });
 
   const footerStyle = {
-    backgroundColor: '#fef3c7',
+    backgroundColor: 'var(--ifm-color-emphasis-100)',
     padding: '1rem 1.5rem',
     fontSize: '0.875rem',
-    color: '#92400e',
+    color: 'var(--ifm-color-emphasis-700)',
     borderTop: '2px solid #fbbf24',
     lineHeight: '1.6'
   };
 
   const footerLabelStyle = {
     fontWeight: '700',
-    color: '#78350f'
+    color: 'var(--ifm-color-emphasis-700)'
   };
 
   return (

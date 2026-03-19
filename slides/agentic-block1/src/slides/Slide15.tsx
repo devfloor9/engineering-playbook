@@ -1,5 +1,5 @@
 import { SlideWrapper, Card } from '@shared/components';
-import { Database, Zap, HardDrive } from 'lucide-react';
+import { Database, Network, Zap, FileText } from 'lucide-react';
 
 export default function Slide15() {
   return (
@@ -8,7 +8,7 @@ export default function Slide15() {
         Data Layer
       </h2>
       <h3 className="text-3xl font-semibold mb-8 text-center text-gray-400">
-        Milvus 벡터 DB + Redis 캐시
+        Knowledge Feature Store
       </h3>
 
       <div className="flex-1 flex flex-col justify-center space-y-5">
@@ -16,9 +16,9 @@ export default function Slide15() {
           <div className="flex items-start gap-4 mb-4">
             <Database className="w-10 h-10 text-purple-400 flex-shrink-0 mt-1" />
             <div>
-              <h3 className="text-2xl font-semibold mb-2 text-purple-300">역할: RAG 및 세션 데이터 저장</h3>
+              <h3 className="text-2xl font-semibold mb-2 text-purple-300">역할: LLM Feature Store + Ontology 확장</h3>
               <p className="text-lg text-gray-300">
-                Milvus로 벡터 검색, Redis로 세션 캐시 및 에이전트 메모리 관리
+                Vector RAG (유사도) + GraphRAG (관계 추론)로 환각 감소 및 사실 검증
               </p>
             </div>
           </div>
@@ -26,48 +26,49 @@ export default function Slide15() {
 
         <div className="grid grid-cols-2 gap-5">
           <Card className="p-6">
-            <Database className="w-9 h-9 text-cyan-400 mb-3" />
-            <h4 className="text-xl font-semibold mb-3 text-cyan-300">Milvus (Vector Database)</h4>
+            <Network className="w-9 h-9 text-cyan-400 mb-3" />
+            <h4 className="text-xl font-semibold mb-3 text-cyan-300">Knowledge Graph</h4>
             <ul className="text-base text-gray-300 space-y-2">
-              <li>• 분산 아키텍처: Query/Index/Data Nodes</li>
-              <li>• HNSW 인덱스: 고성능 벡터 검색</li>
-              <li>• GPU 가속: Index Node GPU 활용</li>
-              <li>• S3 통합: 영구 스토리지</li>
+              <li>• Neo4j/Neptune: 엔티티 관계 그래프</li>
+              <li>• OWL/RDF: 온톨로지 스키마</li>
+              <li>• 관계 기반 추론 (GraphRAG)</li>
+              <li>• Fact-chain 검증</li>
             </ul>
           </Card>
 
           <Card className="p-6">
-            <Zap className="w-9 h-9 text-amber-400 mb-3" />
-            <h4 className="text-xl font-semibold mb-3 text-amber-300">Redis (Cache &amp; Session)</h4>
+            <Database className="w-9 h-9 text-amber-400 mb-3" />
+            <h4 className="text-xl font-semibold mb-3 text-amber-300">Vector Database (Milvus)</h4>
             <ul className="text-base text-gray-300 space-y-2">
-              <li>• 세션 메모리: Agent 대화 컨텍스트</li>
-              <li>• 큐 관리: KEDA 스케일링 소스</li>
-              <li>• Cluster Mode: 고가용성 및 확장</li>
-              <li>• TTL 기반 데이터 관리</li>
+              <li>• HNSW 인덱스: 고성능 벡터 검색</li>
+              <li>• GPU 가속 Index Node</li>
+              <li>• 분산 아키텍처 (Query/Index/Data Nodes)</li>
+              <li>• S3 영구 스토리지</li>
             </ul>
           </Card>
         </div>
 
         <div className="grid grid-cols-3 gap-4">
           <Card className="p-5">
-            <HardDrive className="w-8 h-8 text-blue-400 mb-2" />
-            <h4 className="text-lg font-semibold mb-2 text-blue-300">컬렉션 설계</h4>
+            <Zap className="w-8 h-8 text-emerald-400 mb-2" />
+            <h4 className="text-lg font-semibold mb-2 text-emerald-300">Semantic Cache</h4>
             <p className="text-sm text-gray-300">
-              임베딩 필드 (FLOAT_VECTOR), 메타데이터 (JSON), 테넌트 ID
+              Redis 기반 유사 쿼리 캐싱, TTL 관리
             </p>
           </Card>
 
           <Card className="p-5">
-            <h4 className="text-lg font-semibold mb-2 text-emerald-300">Kubernetes 통합</h4>
+            <FileText className="w-8 h-8 text-blue-400 mb-2" />
+            <h4 className="text-lg font-semibold mb-2 text-blue-300">문서 파이프라인</h4>
             <p className="text-sm text-gray-300">
-              Milvus Operator (CRD), StatefulSet 배포, PVC 관리
+              Unstructured.io: PDF/HTML/Docx 파싱 및 청크 분할
             </p>
           </Card>
 
           <Card color="purple" className="p-5">
-            <h4 className="text-lg font-semibold mb-2 text-purple-300">확장 전략</h4>
+            <h4 className="text-lg font-semibold mb-2 text-purple-300">Hybrid RAG</h4>
             <p className="text-sm text-gray-300">
-              Query/Index Nodes 독립 스케일링, 부하 분산
+              Vector + Graph 결합으로 정확도 향상
             </p>
           </Card>
         </div>

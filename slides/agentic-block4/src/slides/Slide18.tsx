@@ -20,26 +20,26 @@ export default function Slide18() {
                 <span className="text-blue-400 font-bold">1</span>
               </div>
               <div>
-                <div className="text-white font-bold">Agent 모니터링</div>
-                <div className="text-sm text-gray-300">LangFuse로 전체 추론 체인 가시화</div>
-              </div>
-            </div>
-            <div className="flex items-start gap-3">
-              <div className="w-8 h-8 bg-gray-800 rounded flex items-center justify-center flex-shrink-0 mt-1 border border-purple-500/30">
-                <span className="text-purple-400 font-bold">2</span>
-              </div>
-              <div>
-                <div className="text-white font-bold">RAG 평가</div>
-                <div className="text-sm text-gray-300">RAGAS로 품질 메트릭 자동화</div>
+                <div className="text-white font-bold">Hybrid Observability</div>
+                <div className="text-sm text-gray-300">Prod: Langfuse (데이터 주권), Dev: LangSmith (LangGraph Studio)</div>
               </div>
             </div>
             <div className="flex items-start gap-3">
               <div className="w-8 h-8 bg-gray-800 rounded flex items-center justify-center flex-shrink-0 mt-1 border border-cyan-500/30">
-                <span className="text-cyan-400 font-bold">3</span>
+                <span className="text-cyan-400 font-bold">2</span>
               </div>
               <div>
-                <div className="text-white font-bold">MLOps 파이프라인</div>
-                <div className="text-sm text-gray-300">Kubeflow + MLflow + KServe 통합</div>
+                <div className="text-white font-bold">GPU 인프라 모니터링</div>
+                <div className="text-sm text-gray-300">DCGM → AMP → AMG + Kubecost Pod 비용 귀속</div>
+              </div>
+            </div>
+            <div className="flex items-start gap-3">
+              <div className="w-8 h-8 bg-gray-800 rounded flex items-center justify-center flex-shrink-0 mt-1 border border-purple-500/30">
+                <span className="text-purple-400 font-bold">3</span>
+              </div>
+              <div>
+                <div className="text-white font-bold">RAG 평가 &amp; 비용 추적</div>
+                <div className="text-sm text-gray-300">RAGAS 자동 평가 + Bifrost 계층적 비용 추적</div>
               </div>
             </div>
             <div className="flex items-start gap-3">
@@ -47,8 +47,8 @@ export default function Slide18() {
                 <span className="text-emerald-400 font-bold">4</span>
               </div>
               <div>
-                <div className="text-white font-bold">하이브리드 아키텍처</div>
-                <div className="text-sm text-gray-300">SageMaker 학습 + EKS 서빙</div>
+                <div className="text-white font-bold">MLOps 파이프라인</div>
+                <div className="text-sm text-gray-300">Kubeflow + MLflow + SageMaker-EKS 하이브리드</div>
               </div>
             </div>
           </div>
@@ -61,19 +61,19 @@ export default function Slide18() {
           </div>
           <div className="space-y-4">
             <div className="bg-gray-800 border border-blue-500/30 rounded-lg p-3">
-              <div className="text-blue-300 font-bold mb-1">1. 모니터링 구축</div>
+              <div className="text-blue-300 font-bold mb-1">1. Hybrid Observability 구축</div>
               <div className="text-xs text-gray-300">
-                • LangFuse EKS 배포<br/>
-                • Grafana 대시보드 구성<br/>
-                • 알림 규칙 설정
+                • Prod: Langfuse EKS 배포 + Bifrost OTel 연동<br/>
+                • Dev: LangSmith + LangGraph Studio<br/>
+                • DCGM → AMP → AMG 파이프라인
               </div>
             </div>
             <div className="bg-gray-800 border border-purple-500/30 rounded-lg p-3">
-              <div className="text-purple-300 font-bold mb-1">2. 품질 평가 자동화</div>
+              <div className="text-purple-300 font-bold mb-1">2. 비용 가시성 확보</div>
               <div className="text-xs text-gray-300">
-                • RAGAS 테스트 세트 구축<br/>
-                • CronJob 정기 평가<br/>
-                • 품질 게이트 설정
+                • Bifrost: key/team/customer별 LLM 비용<br/>
+                • Kubecost: Pod-level 인프라 비용<br/>
+                • 예산 알림 &amp; 최적화 자동화
               </div>
             </div>
             <div className="bg-gray-800 border border-emerald-500/30 rounded-lg p-3">
@@ -93,7 +93,7 @@ export default function Slide18() {
           안정적 운영과 지속적 개선
         </p>
         <p className="text-gray-300">
-          모니터링 → 평가 → 학습 → 배포 → 운영의 완전한 순환 구조
+          Hybrid Observability → 품질 평가 → 비용 최적화 → 모델 개선의 완전한 순환 구조
         </p>
       </Card>
     </SlideWrapper>

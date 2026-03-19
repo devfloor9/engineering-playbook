@@ -66,8 +66,8 @@ const CostSimulation = () => {
       </div>
 
       <div style={{
-        background: 'white',
-        border: '1px solid #e5e7eb',
+        background: 'var(--ifm-background-surface-color)',
+        border: '1px solid var(--ifm-color-emphasis-200)',
         borderTop: 'none',
         borderRadius: '0 0 8px 8px',
         overflow: 'hidden',
@@ -76,13 +76,13 @@ const CostSimulation = () => {
         {scenarios.map((s, idx) => (
           <div key={idx} style={{ marginBottom: idx < scenarios.length - 1 ? '14px' : '0' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-              <span style={{ fontSize: '13px', fontWeight: '600', color: '#1f2937' }}>{s.name}</span>
+              <span style={{ fontSize: '13px', fontWeight: '600', color: 'var(--ifm-font-color-base)' }}>{s.name}</span>
               <span style={{ fontSize: '15px', fontWeight: '700', color: s.color }}>{s.cost}</span>
             </div>
             <div style={{
               width: '100%',
               height: '20px',
-              background: '#f3f4f6',
+              background: 'var(--ifm-color-emphasis-100)',
               borderRadius: '4px',
               overflow: 'hidden',
               marginBottom: '2px'
@@ -96,7 +96,7 @@ const CostSimulation = () => {
                 transition: 'width 0.3s'
               }} />
             </div>
-            <div style={{ fontSize: '11px', color: '#9ca3af' }}>{s.description}</div>
+            <div style={{ fontSize: '11px', color: 'var(--ifm-color-emphasis-500)' }}>{s.description}</div>
           </div>
         ))}
       </div>

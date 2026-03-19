@@ -108,8 +108,8 @@ const ScalingBenchmark = () => {
       </div>
 
       <div style={{
-        background: 'white',
-        border: '1px solid #e5e7eb',
+        background: 'var(--ifm-background-surface-color)',
+        border: '1px solid var(--ifm-color-emphasis-200)',
         borderTop: 'none',
         padding: '16px 20px'
       }}>
@@ -117,10 +117,10 @@ const ScalingBenchmark = () => {
           <div key={idx} style={{ marginBottom: idx < configs.length - 1 ? '14px' : '0' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
               <div>
-                <span style={{ fontSize: '13px', fontWeight: '700', color: '#1f2937' }}>{c.name}</span>
+                <span style={{ fontSize: '13px', fontWeight: '700', color: 'var(--ifm-font-color-base)' }}>{c.name}</span>
                 <span style={{
-                  background: '#f3f4f6',
-                  color: '#6b7280',
+                  background: 'var(--ifm-color-emphasis-100)',
+                  color: 'var(--ifm-color-emphasis-600)',
                   padding: '1px 6px',
                   borderRadius: '3px',
                   fontSize: '10px',
@@ -133,7 +133,7 @@ const ScalingBenchmark = () => {
             <div style={{
               width: '100%',
               height: '22px',
-              background: '#f3f4f6',
+              background: 'var(--ifm-color-emphasis-100)',
               borderRadius: '4px',
               overflow: 'hidden',
               position: 'relative'
@@ -161,13 +161,13 @@ const ScalingBenchmark = () => {
 
       {/* Selection Guide */}
       <div style={{
-        background: '#f8fafc',
-        border: '1px solid #e5e7eb',
+        background: 'var(--ifm-background-surface-color)',
+        border: '1px solid var(--ifm-color-emphasis-200)',
         borderTop: 'none',
         borderRadius: '0 0 8px 8px',
         padding: '16px 20px'
       }}>
-        <div style={{ fontSize: '14px', fontWeight: '700', color: '#1f2937', marginBottom: '10px' }}>
+        <div style={{ fontSize: '14px', fontWeight: '700', color: 'var(--ifm-font-color-base)', marginBottom: '10px' }}>
           {isKo ? '🎯 선택 가이드' : isZh ? '🎯 选择指南' : '🎯 Selection Guide'}
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '8px' }}>
@@ -177,14 +177,14 @@ const ScalingBenchmark = () => {
               alignItems: 'center',
               gap: '8px',
               padding: '8px 10px',
-              background: 'white',
+              background: 'var(--ifm-background-surface-color)',
               borderRadius: '6px',
-              border: '1px solid #e5e7eb'
+              border: '1px solid var(--ifm-color-emphasis-200)'
             }}>
               <span style={{ fontSize: '16px' }}>{g.icon}</span>
               <div>
-                <div style={{ fontSize: '11px', color: '#6b7280' }}>{g.req}</div>
-                <div style={{ fontSize: '12px', fontWeight: '700', color: '#1f2937' }}>{g.rec}</div>
+                <div style={{ fontSize: '11px', color: 'var(--ifm-color-emphasis-600)' }}>{g.req}</div>
+                <div style={{ fontSize: '12px', fontWeight: '700', color: 'var(--ifm-font-color-base)' }}>{g.rec}</div>
               </div>
             </div>
           ))}

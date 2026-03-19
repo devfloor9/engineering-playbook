@@ -112,8 +112,8 @@ const ServiceTypeComparison = () => {
       </div>
 
       <div style={{
-        background: 'white',
-        border: '1px solid #e5e7eb',
+        background: 'var(--ifm-background-surface-color)',
+        border: '1px solid var(--ifm-color-emphasis-200)',
         borderTop: 'none',
         overflow: 'hidden'
       }}>
@@ -124,7 +124,7 @@ const ServiceTypeComparison = () => {
             background: svc.recommended ? '#f0f9ff' : 'white'
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px', flexWrap: 'wrap' }}>
-              <span style={{ fontWeight: '700', fontSize: '15px', color: '#1f2937' }}>{svc.name}</span>
+              <span style={{ fontWeight: '700', fontSize: '15px', color: 'var(--ifm-font-color-base)' }}>{svc.name}</span>
               <span style={{
                 background: svc.badgeColor,
                 color: 'white',
@@ -144,15 +144,15 @@ const ServiceTypeComparison = () => {
                 }}>{isKo ? '기본 권장' : isZh ? '默认推荐' : 'Recommended'}</span>
               )}
             </div>
-            <div style={{ fontSize: '13px', color: '#4b5563', marginBottom: '8px', lineHeight: '1.5' }}>{svc.behavior}</div>
+            <div style={{ fontSize: '13px', color: 'var(--ifm-font-color-base)', marginBottom: '8px', lineHeight: '1.5' }}>{svc.behavior}</div>
             <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
               <div style={{ fontSize: '12px' }}>
                 <span style={{ color: '#059669', fontWeight: '600' }}>+</span>{' '}
-                <span style={{ color: '#374151' }}>{svc.pros}</span>
+                <span style={{ color: 'var(--ifm-font-color-base)' }}>{svc.pros}</span>
               </div>
               <div style={{ fontSize: '12px' }}>
                 <span style={{ color: '#dc2626', fontWeight: '600' }}>-</span>{' '}
-                <span style={{ color: '#6b7280' }}>{svc.cons}</span>
+                <span style={{ color: 'var(--ifm-color-emphasis-600)' }}>{svc.cons}</span>
               </div>
             </div>
           </div>
@@ -160,12 +160,12 @@ const ServiceTypeComparison = () => {
       </div>
 
       <div style={{
-        background: '#eff6ff',
+        background: 'var(--ifm-color-emphasis-100)',
         border: '1px solid #bfdbfe',
         borderRadius: '0 0 8px 8px',
         padding: '12px 16px',
         fontSize: '12px',
-        color: '#1e40af',
+        color: '#2563eb',
         lineHeight: '1.6'
       }}>
         💡 <strong>{isKo ? '선택 지침:' : isZh ? '选择指南:' : 'Selection Guide:'}</strong>{' '}

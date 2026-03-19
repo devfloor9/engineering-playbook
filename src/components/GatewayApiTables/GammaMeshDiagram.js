@@ -27,12 +27,12 @@ export default function GammaMeshDiagram({ locale = 'ko' }) {
         </div>
       </div>
 
-      <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderTop: 'none', borderRadius: '0 0 12px 12px', padding: '1.25rem' }}>
+      <div style={{ background: 'var(--ifm-background-surface-color)', border: '1px solid var(--ifm-color-emphasis-200)', borderTop: 'none', borderRadius: '0 0 12px 12px', padding: '1.25rem' }}>
         <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', justifyContent: 'center' }}>
 
           {/* North-South */}
           <div style={{ flex: '1 1 240px', maxWidth: 300 }}>
-            <div style={{ background: '#e3f2fd', border: '2px solid #1565c0', borderRadius: 10, padding: '0.85rem' }}>
+            <div style={{ background: 'var(--ifm-color-emphasis-100)', border: '2px solid #1565c0', borderRadius: 10, padding: '0.85rem' }}>
               <div style={{ fontSize: '0.76rem', fontWeight: 700, color: '#0d47a1', marginBottom: '0.6rem', textAlign: 'center' }}>
                 {isKo ? '🌐 North-South (인그레스)' : '🌐 North-South (Ingress)'}
               </div>
@@ -58,7 +58,7 @@ export default function GammaMeshDiagram({ locale = 'ko' }) {
 
           {/* East-West */}
           <div style={{ flex: '1 1 240px', maxWidth: 300 }}>
-            <div style={{ background: '#fff3e0', border: '2px solid #e65100', borderRadius: 10, padding: '0.85rem' }}>
+            <div style={{ background: 'var(--ifm-color-emphasis-100)', border: '2px solid #e65100', borderRadius: 10, padding: '0.85rem' }}>
               <div style={{ fontSize: '0.76rem', fontWeight: 700, color: '#e65100', marginBottom: '0.6rem', textAlign: 'center' }}>
                 {isKo ? '🔄 East-West (GAMMA 메시)' : '🔄 East-West (GAMMA Mesh)'}
               </div>
@@ -72,7 +72,7 @@ export default function GammaMeshDiagram({ locale = 'ko' }) {
               <Arrow color="#e65100" />
               <Box bg="#bf360c" label="Pod B" />
 
-              <div style={{ marginTop: '0.6rem', background: '#fbe9e7', border: '1px dashed #e65100', borderRadius: 8, padding: '0.4rem', textAlign: 'center' }}>
+              <div style={{ marginTop: '0.6rem', background: 'var(--ifm-color-emphasis-100)', border: '1px dashed #e65100', borderRadius: 8, padding: '0.4rem', textAlign: 'center' }}>
                 <div style={{ fontSize: '0.68rem', fontWeight: 600, color: '#bf360c', marginBottom: '0.25rem' }}>
                   {isKo ? 'L7 정책 적용' : 'L7 Policies'}
                 </div>
@@ -90,7 +90,7 @@ export default function GammaMeshDiagram({ locale = 'ko' }) {
         </div>
 
         {/* Legend */}
-        <div style={{ marginTop: '0.85rem', background: '#f5f5f5', borderRadius: 8, padding: '0.5rem 0.8rem', display: 'flex', gap: '1.2rem', flexWrap: 'wrap', justifyContent: 'center' }}>
+        <div style={{ marginTop: '0.85rem', background: 'var(--ifm-color-emphasis-100)', borderRadius: 8, padding: '0.5rem 0.8rem', display: 'flex', gap: '1.2rem', flexWrap: 'wrap', justifyContent: 'center' }}>
           <span style={{ fontSize: '0.68rem', color: '#616161' }}>
             <strong style={{ color: '#1565c0' }}>North-South</strong>: HTTPRoute → <strong>Gateway</strong> (parentRef)
           </span>

@@ -38,7 +38,7 @@ const CoreTechStack = () => {
     {
       title: isKo ? '지능형 운영' : isZh ? '智能运维' : 'Intelligent Ops',
       color: '#2563eb',
-      bgColor: '#eff6ff',
+      bgColor: 'var(--ifm-color-emphasis-100)',
       items: [
         { icon: '🧠', area: 'AI Agent', aws: 'Q Developer, Strands', oss: 'Kagent' },
         { icon: '📈', area: isKo ? '예측 스케일링' : isZh ? '预测性扩展' : 'Predictive Scaling', aws: 'CloudWatch Anomaly Detection', oss: 'Prophet, ARIMA' },
@@ -72,7 +72,7 @@ const CoreTechStack = () => {
 
       {/* Body */}
       <div style={{
-        background: '#ffffff',
+        background: 'var(--ifm-background-surface-color)',
         borderRadius: '0 0 12px 12px',
         padding: '1.25rem',
         boxShadow: '0 2px 8px rgba(0,0,0,0.08)'
@@ -126,7 +126,7 @@ const CoreTechStack = () => {
                     <span style={{
                       fontSize: '0.8125rem',
                       fontWeight: '700',
-                      color: '#111827'
+                      color: 'var(--ifm-font-color-base)'
                     }}>
                       {item.area}
                     </span>
@@ -134,12 +134,12 @@ const CoreTechStack = () => {
                   <div style={{
                     fontSize: '0.75rem',
                     lineHeight: '1.5',
-                    color: '#374151'
+                    color: 'var(--ifm-font-color-base)'
                   }}>
                     <div style={{ marginBottom: '0.25rem' }}>
                       <span style={{
                         display: 'inline-block',
-                        background: '#fff7ed',
+                        background: 'var(--ifm-color-emphasis-100)',
                         color: '#ea580c',
                         border: '1px solid #fed7aa',
                         padding: '0 0.375rem',
@@ -155,7 +155,7 @@ const CoreTechStack = () => {
                       <div>
                         <span style={{
                           display: 'inline-block',
-                          background: '#f0fdf4',
+                          background: 'var(--ifm-color-emphasis-100)',
                           color: '#059669',
                           border: '1px solid #bbf7d0',
                           padding: '0 0.375rem',
@@ -179,12 +179,12 @@ const CoreTechStack = () => {
         <div style={{
           marginTop: '1rem',
           padding: '0.75rem 1rem',
-          background: '#f8fafc',
+          background: 'var(--ifm-background-surface-color)',
           borderRadius: '8px',
-          border: '1px solid #e2e8f0',
+          border: '1px solid var(--ifm-color-emphasis-200)',
           textAlign: 'center',
           fontSize: '0.75rem',
-          color: '#64748b',
+          color: 'var(--ifm-color-emphasis-600)',
           fontFamily: 'Menlo, Monaco, Courier New, monospace'
         }}>
           {isKo ? '관찰성 → 이상 탐지 → AI Agent 대응 → 예측 스케일링 → 자동 복구' : isZh ? '可观测性 → 异常检测 → AI Agent 响应 → 预测性扩展 → 自动修复' : 'Observability → Anomaly Detection → AI Agent Response → Predictive Scaling → Auto-Remediation'}

@@ -67,8 +67,8 @@ const MonitoringComparison = () => {
       </div>
 
       <div style={{
-        background: 'white',
-        border: '1px solid #e5e7eb',
+        background: 'var(--ifm-background-surface-color)',
+        border: '1px solid var(--ifm-color-emphasis-200)',
         borderTop: 'none',
         borderRadius: '0 0 8px 8px'
       }}>
@@ -84,7 +84,7 @@ const MonitoringComparison = () => {
             }}
           >
             <div style={{
-              background: '#fef2f2',
+              background: 'var(--ifm-color-emphasis-100)',
               padding: '16px',
               borderRadius: '6px',
               borderLeft: '3px solid #dc2626'
@@ -106,7 +106,7 @@ const MonitoringComparison = () => {
             </div>
 
             <div style={{
-              background: '#ecfdf5',
+              background: 'var(--ifm-color-emphasis-100)',
               padding: '16px',
               borderRadius: '6px',
               borderLeft: '3px solid #059669'

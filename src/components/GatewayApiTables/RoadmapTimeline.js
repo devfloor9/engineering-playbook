@@ -130,7 +130,7 @@ export default function RoadmapTimeline({ locale = 'ko' }) {
       </div>
 
       {/* Timeline container */}
-      <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderTop: 'none', borderRadius: '0 0 12px 12px', padding: '1rem' }}>
+      <div style={{ background: 'var(--ifm-background-surface-color)', border: '1px solid var(--ifm-color-emphasis-200)', borderTop: 'none', borderRadius: '0 0 12px 12px', padding: '1rem' }}>
         <div style={{ position: 'relative' }}>
           {phases.map((phase, idx) => {
             const isOpen = expanded === idx;
@@ -157,10 +157,10 @@ export default function RoadmapTimeline({ locale = 'ko' }) {
                 <div
                   style={{
                     position: 'relative',
-                    border: `1.5px solid ${isOpen ? phase.color : '#e0e0e0'}`,
+                    border: `1.5px solid ${isOpen ? phase.color : 'var(--ifm-color-emphasis-200)'}`,
                     borderLeft: `4px solid ${phase.color}`,
                     borderRadius: 8,
-                    background: isOpen ? '#fafafa' : '#fff',
+                    background: isOpen ? 'var(--ifm-color-emphasis-100)' : '#fff',
                     cursor: 'pointer',
                     transition: 'all 0.2s',
                     boxShadow: isOpen ? '0 4px 12px rgba(0,0,0,0.1)' : '0 2px 4px rgba(0,0,0,0.05)',
@@ -200,7 +200,7 @@ export default function RoadmapTimeline({ locale = 'ko' }) {
 
                   {/* Expanded items */}
                   {isOpen && (
-                    <div style={{ padding: '0 0.9rem 0.8rem', borderTop: '1px solid #e0e0e0' }}>
+                    <div style={{ padding: '0 0.9rem 0.8rem', borderTop: '1px solid var(--ifm-color-emphasis-200)' }}>
                       <div style={{ marginTop: '0.6rem', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
                         {phase.items.map((item, itemIdx) => (
                           <div
@@ -209,14 +209,14 @@ export default function RoadmapTimeline({ locale = 'ko' }) {
                               display: 'flex',
                               alignItems: 'flex-start',
                               gap: '0.5rem',
-                              background: '#f5f5f5',
+                              background: 'var(--ifm-color-emphasis-100)',
                               borderRadius: 6,
                               padding: '0.5rem 0.6rem',
                               borderLeft: `3px solid ${phase.color}`,
                             }}
                           >
                             <span style={{ fontSize: '0.7rem', color: phase.color, marginTop: 1 }}>✓</span>
-                            <span style={{ fontSize: '0.75rem', color: '#424242', fontWeight: 500, lineHeight: 1.4 }}>
+                            <span style={{ fontSize: '0.75rem', color: 'var(--ifm-font-color-base)', fontWeight: 500, lineHeight: 1.4 }}>
                               {item}
                             </span>
                           </div>

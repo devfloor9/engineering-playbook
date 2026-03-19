@@ -137,61 +137,61 @@ function draw(svgEl, isDark) {
 
     // Client (left side)
     rRect(15, 57, 108, 55, { fill: '#b2f2bb', stroke: '#2f9e44' });
-    addText(69, 84, 'Client', { fs: 16, bold: true, color: '#1e1e1e' });
+    addText(69, 84, 'Client', { fs: 16, bold: true, color: 'var(--ifm-font-color-base)' });
 
     // Gateway Pod nodes
     rRect(180, 58, 155, 55, { fill: '#a5d8ff', stroke: '#1c7ed6' });
-    addText(257, 80, 'OpenClaw\n:18789', { fs: 11, color: '#1e1e1e' });
+    addText(257, 80, 'OpenClaw\n:18789', { fs: 11, color: 'var(--ifm-font-color-base)' });
 
     rRect(355, 58, 190, 55, { fill: '#d0bfff', stroke: '#7048e8' });
-    addText(450, 80, 'Bifrost Proxy\n:4000 (Auto-Router)', { fs: 9, color: '#1e1e1e' });
+    addText(450, 80, 'Bifrost Proxy\n:4000 (Auto-Router)', { fs: 9, color: 'var(--ifm-font-color-base)' });
 
     // Redis (below Gateway Pod, to the right)
     rRect(575, 150, 135, 48, { fill: '#ffc9c9', stroke: '#e03131' });
-    addText(642, 174, 'Redis\nSemantic Cache', { fs: 9, color: '#1e1e1e' });
+    addText(642, 174, 'Redis\nSemantic Cache', { fs: 9, color: 'var(--ifm-font-color-base)' });
 
     // Observability nodes
     rRect(180, 250, 115, 48, { fill: '#96f2d7', stroke: '#099268' });
-    addText(237, 274, 'OTEL Collector\n:4317', { fs: 9, color: '#1e1e1e' });
+    addText(237, 274, 'OTEL Collector\n:4317', { fs: 9, color: 'var(--ifm-font-color-base)' });
 
     rRect(330, 250, 115, 48, { fill: '#ffd8a8', stroke: '#e8590c' });
-    addText(387, 274, 'Prometheus', { fs: 11, color: '#1e1e1e' });
+    addText(387, 274, 'Prometheus', { fs: 11, color: 'var(--ifm-font-color-base)' });
 
     rRect(480, 250, 115, 48, { fill: '#ffec99', stroke: '#f08c00' });
-    addText(537, 274, 'Grafana', { fs: 11, color: '#1e1e1e' });
+    addText(537, 274, 'Grafana', { fs: 11, color: 'var(--ifm-font-color-base)' });
 
     rRect(630, 250, 110, 48, { fill: '#ffd8a8', stroke: '#e8590c' });
-    addText(685, 274, 'Langfuse\nLLM Traces', { fs: 9, color: '#1e1e1e' });
+    addText(685, 274, 'Langfuse\nLLM Traces', { fs: 9, color: 'var(--ifm-font-color-base)' });
 
     rRect(480, 312, 135, 38, { fill: '#eebefa', stroke: '#9c36b5' });
-    addText(547, 331, 'Hubble UI\nL7 Service Map', { fs: 8, color: '#1e1e1e' });
+    addText(547, 331, 'Hubble UI\nL7 Service Map', { fs: 8, color: 'var(--ifm-font-color-base)' });
 
     // Worker Node nodes
     rRect(180, 435, 150, 48, { fill: '#b2f2bb', stroke: '#2f9e44' });
-    addText(255, 459, 'Cilium CNI\nENI + eBPF', { fs: 9, color: '#1e1e1e' });
+    addText(255, 459, 'Cilium CNI\nENI + eBPF', { fs: 9, color: 'var(--ifm-font-color-base)' });
 
     rRect(355, 435, 165, 48, { fill: '#dee2e6', stroke: '#495057' });
-    addText(437, 459, 'Node Monitoring\nAgent', { fs: 9, color: '#1e1e1e' });
+    addText(437, 459, 'Node Monitoring\nAgent', { fs: 9, color: 'var(--ifm-font-color-base)' });
 
     // AWS Bedrock models
     rRect(890, 42, 158, 68, { fill: '#ffd8a8', stroke: '#e8590c' });
-    addText(969, 72, 'Bedrock\nClaude Sonnet 4.6\n(Default)', { fs: 9, color: '#1e1e1e' });
+    addText(969, 72, 'Bedrock\nClaude Sonnet 4.6\n(Default)', { fs: 9, color: 'var(--ifm-font-color-base)' });
 
     rRect(890, 128, 158, 68, { fill: '#ffd8a8', stroke: '#e8590c' });
-    addText(969, 158, 'Bedrock\nGLM-4.7\n(Coding)', { fs: 9, color: '#1e1e1e' });
+    addText(969, 158, 'Bedrock\nGLM-4.7\n(Coding)', { fs: 9, color: 'var(--ifm-font-color-base)' });
 
     rRect(890, 214, 158, 68, { fill: '#ffd8a8', stroke: '#e8590c' });
-    addText(969, 244, 'Bedrock\nSolar Pro 3\n(Korean)', { fs: 9, color: '#1e1e1e' });
+    addText(969, 244, 'Bedrock\nSolar Pro 3\n(Korean)', { fs: 9, color: 'var(--ifm-font-color-base)' });
 
     // AWS infra services
     rRect(1068, 42, 148, 68, { fill: '#ffec99', stroke: '#f08c00' });
-    addText(1142, 72, 'VPC Endpoint\nBedrock Runtime', { fs: 9, color: '#1e1e1e' });
+    addText(1142, 72, 'VPC Endpoint\nBedrock Runtime', { fs: 9, color: 'var(--ifm-font-color-base)' });
 
     rRect(1068, 128, 148, 68, { fill: '#ffec99', stroke: '#f08c00' });
-    addText(1142, 158, 'CloudTrail\nAudit Log', { fs: 9, color: '#1e1e1e' });
+    addText(1142, 158, 'CloudTrail\nAudit Log', { fs: 9, color: 'var(--ifm-font-color-base)' });
 
     rRect(1068, 214, 148, 68, { fill: '#ffec99', stroke: '#f08c00' });
-    addText(1142, 244, 'IAM\nPod Identity', { fs: 9, color: '#1e1e1e' });
+    addText(1142, 244, 'IAM\nPod Identity', { fs: 9, color: 'var(--ifm-font-color-base)' });
 
     // ═══ ARROWS (left-to-right flow, no crossings) ═══
 
@@ -245,7 +245,7 @@ export default function OpenClawArchitecture() {
     <div style={{
       width: '100%',
       overflowX: 'auto',
-      border: `1px solid ${isDark ? '#333' : '#e0e0e0'}`,
+      border: `1px solid ${isDark ? '#333' : 'var(--ifm-color-emphasis-200)'}`,
       borderRadius: 12,
       marginBottom: 24,
       background: isDark ? '#1a1a1a' : '#ffffff',

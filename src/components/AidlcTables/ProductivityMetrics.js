@@ -120,8 +120,8 @@ const ProductivityMetrics = () => {
       gap: '1.5rem'
     },
     categorySection: {
-      background: 'white',
-      border: '1px solid #e5e7eb',
+      background: 'var(--ifm-background-surface-color)',
+      border: '1px solid var(--ifm-color-emphasis-200)',
       borderRadius: '8px',
       padding: '1.25rem',
       boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
@@ -146,19 +146,19 @@ const ProductivityMetrics = () => {
       gap: '1rem',
       alignItems: 'center',
       padding: '0.75rem',
-      background: '#f9fafb',
+      background: 'var(--ifm-background-surface-color)',
       borderRadius: '6px',
       fontSize: '0.875rem'
     },
     metricName: {
       fontWeight: '500',
-      color: '#111827'
+      color: 'var(--ifm-font-color-base)'
     },
     metricValue: {
-      color: '#4b5563'
+      color: 'var(--ifm-font-color-base)'
     },
     beforeValue: {
-      color: '#6b7280'
+      color: 'var(--ifm-color-emphasis-600)'
     },
     afterValue: {
       color: '#059669',
@@ -187,10 +187,10 @@ const ProductivityMetrics = () => {
       padding: '0.5rem 0.75rem',
       fontSize: '0.75rem',
       fontWeight: '600',
-      color: '#6b7280',
+      color: 'var(--ifm-color-emphasis-600)',
       textTransform: 'uppercase',
       letterSpacing: '0.05em',
-      borderBottom: '1px solid #e5e7eb',
+      borderBottom: '1px solid var(--ifm-color-emphasis-200)',
       marginBottom: '0.5rem'
     }
   };

@@ -160,7 +160,7 @@ export default function CostComparisonTable({ locale = 'ko' }) {
         <div style={{ fontSize: '0.95rem', fontWeight: 700 }}>{title}</div>
         <div style={{ fontSize: '0.72rem', opacity: 0.7, marginTop: 2 }}>{subtitle}</div>
       </div>
-      <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderTop: 'none', borderRadius: '0 0 12px 12px', overflow: 'hidden' }}>
+      <div style={{ background: 'var(--ifm-background-surface-color)', border: '1px solid var(--ifm-color-emphasis-200)', borderTop: 'none', borderRadius: '0 0 12px 12px', overflow: 'hidden' }}>
         {/* Header */}
         <div style={{ display: 'grid', gridTemplateColumns: '130px 1fr 1fr 1fr', background: '#e8eaf6', padding: '0.6rem 1rem', gap: '0.5rem', fontWeight: 700, fontSize: '0.78rem', color: '#1a237e' }}>
           <div>{headers.feature}</div>
@@ -180,8 +180,8 @@ export default function CostComparisonTable({ locale = 'ko' }) {
                 gridTemplateColumns: '130px 1fr 1fr 1fr',
                 padding: '0.7rem 1rem',
                 gap: '0.5rem',
-                borderTop: '1px solid #e2e8f0',
-                background: isLast ? '#e8eaf6' : idx % 2 === 0 ? '#fafafa' : '#fff',
+                borderTop: '1px solid var(--ifm-color-emphasis-200)',
+                background: isLast ? '#e8eaf6' : idx % 2 === 0 ? 'var(--ifm-color-emphasis-100)' : '#fff',
               }}
             >
               <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#1a237e', display: 'flex', alignItems: 'flex-start' }}>
@@ -198,10 +198,10 @@ export default function CostComparisonTable({ locale = 'ko' }) {
                 </div>
               </div>
               <div>
-                <div style={{ fontSize: '0.73rem', color: '#424242', whiteSpace: 'pre-line', lineHeight: 1.5, marginBottom: '0.3rem' }}>
+                <div style={{ fontSize: '0.73rem', color: 'var(--ifm-font-color-base)', whiteSpace: 'pre-line', lineHeight: 1.5, marginBottom: '0.3rem' }}>
                   {item.perfImpact}
                 </div>
-                <div style={{ fontSize: '0.72rem', color: hop.color, background: '#f5f5f5', padding: '0.25rem 0.5rem', borderRadius: 4, whiteSpace: 'pre-line', lineHeight: 1.4, borderLeft: `3px solid ${hop.color}` }}>
+                <div style={{ fontSize: '0.72rem', color: hop.color, background: 'var(--ifm-color-emphasis-100)', padding: '0.25rem 0.5rem', borderRadius: 4, whiteSpace: 'pre-line', lineHeight: 1.4, borderLeft: `3px solid ${hop.color}` }}>
                   {hop.icon} {item.hopNote}
                 </div>
               </div>

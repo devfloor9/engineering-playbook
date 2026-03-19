@@ -149,23 +149,23 @@ export default function CniConclusionInfographic({ locale = 'ko' }) {
     fontSize: '1rem',
     fontWeight: '600',
     marginBottom: '0.5rem',
-    color: isDark ? '#e5e7eb' : '#374151'
+    color: isDark ? 'var(--ifm-color-emphasis-200)' : '#374151'
   };
 
   const subStyle = {
     fontSize: '0.875rem',
     lineHeight: '1.4',
-    color: isDark ? '#d1d5db' : '#6b7280'
+    color: isDark ? 'var(--ifm-color-emphasis-300)' : '#6b7280'
   };
 
   const takeawayStyle = {
     backgroundColor: isDark ? 'rgba(55, 65, 81, 0.5)' : 'rgba(243, 244, 246, 0.8)',
-    border: `1px solid ${isDark ? '#4b5563' : '#d1d5db'}`,
+    border: `1px solid ${isDark ? '#4b5563' : 'var(--ifm-color-emphasis-300)'}`,
     borderRadius: '8px',
     padding: '1.25rem',
     fontSize: '0.95rem',
     lineHeight: '1.6',
-    color: isDark ? '#e5e7eb' : '#374151',
+    color: isDark ? 'var(--ifm-color-emphasis-200)' : '#374151',
     textAlign: 'center',
     fontWeight: '500'
   };

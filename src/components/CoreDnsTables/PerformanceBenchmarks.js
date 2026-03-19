@@ -89,8 +89,8 @@ const PerformanceBenchmarks = () => {
       </div>
 
       <div style={{
-        background: 'white',
-        border: '1px solid #e5e7eb',
+        background: 'var(--ifm-background-surface-color)',
+        border: '1px solid var(--ifm-color-emphasis-200)',
         borderTop: 'none',
         overflow: 'hidden'
       }}>
@@ -98,8 +98,8 @@ const PerformanceBenchmarks = () => {
         <div style={{
           display: 'grid',
           gridTemplateColumns: '1fr 80px 80px 1fr',
-          borderBottom: '2px solid #e5e7eb',
-          background: '#f8fafc'
+          borderBottom: '2px solid var(--ifm-color-emphasis-200)',
+          background: 'var(--ifm-background-surface-color)'
         }}>
           {[
             isKo ? '지표' : isZh ? '指标' : 'Metric',
@@ -111,9 +111,9 @@ const PerformanceBenchmarks = () => {
               padding: '10px 14px',
               fontWeight: '600',
               fontSize: '12px',
-              color: '#6b7280',
+              color: 'var(--ifm-color-emphasis-600)',
               textTransform: 'uppercase',
-              borderLeft: i > 0 ? '1px solid #e5e7eb' : 'none'
+              borderLeft: i > 0 ? '1px solid var(--ifm-color-emphasis-200)' : 'none'
             }}>{h}</div>
           ))}
         </div>
@@ -123,9 +123,9 @@ const PerformanceBenchmarks = () => {
           <div key={idx} style={{
             display: 'grid',
             gridTemplateColumns: '1fr 80px 80px 1fr',
-            borderBottom: idx < benchmarks.length - 1 ? '1px solid #f3f4f6' : '1px solid #e5e7eb'
+            borderBottom: idx < benchmarks.length - 1 ? '1px solid #f3f4f6' : '1px solid var(--ifm-color-emphasis-200)'
           }}>
-            <div style={{ padding: '10px 14px', fontWeight: '600', fontSize: '13px', color: '#1f2937', display: 'flex', alignItems: 'center' }}>
+            <div style={{ padding: '10px 14px', fontWeight: '600', fontSize: '13px', color: 'var(--ifm-font-color-base)', display: 'flex', alignItems: 'center' }}>
               {b.metric}
             </div>
             <div style={{ padding: '10px 14px', borderLeft: '1px solid #f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -134,7 +134,7 @@ const PerformanceBenchmarks = () => {
             <div style={{ padding: '10px 14px', borderLeft: '1px solid #f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <span style={{ color: '#dc2626', fontWeight: '600', fontSize: '12px' }}>{b.critical}</span>
             </div>
-            <div style={{ padding: '10px 14px', borderLeft: '1px solid #f3f4f6', fontSize: '12px', color: '#4b5563', display: 'flex', alignItems: 'center' }}>
+            <div style={{ padding: '10px 14px', borderLeft: '1px solid #f3f4f6', fontSize: '12px', color: 'var(--ifm-font-color-base)', display: 'flex', alignItems: 'center' }}>
               {b.note}
             </div>
           </div>
@@ -143,11 +143,11 @@ const PerformanceBenchmarks = () => {
         {/* Tuning section */}
         <div style={{
           padding: '10px 20px',
-          background: '#f8fafc',
-          borderBottom: '1px solid #e5e7eb',
+          background: 'var(--ifm-background-surface-color)',
+          borderBottom: '1px solid var(--ifm-color-emphasis-200)',
           fontSize: '12px',
           fontWeight: '600',
-          color: '#6b7280',
+          color: 'var(--ifm-color-emphasis-600)',
           textTransform: 'uppercase'
         }}>
           {isKo ? '튜닝 파라미터' : isZh ? '调优参数' : 'Tuning Parameters'}
@@ -160,15 +160,15 @@ const PerformanceBenchmarks = () => {
             borderBottom: idx < tuning.length - 1 ? '1px solid #f3f4f6' : 'none'
           }}>
             <div style={{ padding: '10px 14px', display: 'flex', alignItems: 'center' }}>
-              <code style={{ fontSize: '12px', color: '#1e40af', fontWeight: '600' }}>{t.param}</code>
+              <code style={{ fontSize: '12px', color: '#2563eb', fontWeight: '600' }}>{t.param}</code>
             </div>
-            <div style={{ padding: '10px 14px', borderLeft: '1px solid #f3f4f6', fontSize: '12px', color: '#6b7280', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ padding: '10px 14px', borderLeft: '1px solid #f3f4f6', fontSize: '12px', color: 'var(--ifm-color-emphasis-600)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               {t.defaultVal}
             </div>
             <div style={{ padding: '10px 14px', borderLeft: '1px solid #f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <span style={{ color: '#059669', fontWeight: '700', fontSize: '12px' }}>{t.tuned}</span>
             </div>
-            <div style={{ padding: '10px 14px', borderLeft: '1px solid #f3f4f6', fontSize: '12px', color: '#4b5563', display: 'flex', alignItems: 'center' }}>
+            <div style={{ padding: '10px 14px', borderLeft: '1px solid #f3f4f6', fontSize: '12px', color: 'var(--ifm-font-color-base)', display: 'flex', alignItems: 'center' }}>
               {t.note}
             </div>
           </div>
@@ -177,7 +177,7 @@ const PerformanceBenchmarks = () => {
 
       {/* Footer */}
       <div style={{
-        background: '#f5f3ff',
+        background: 'var(--ifm-color-emphasis-100)',
         border: '1px solid #ddd6fe',
         borderRadius: '0 0 8px 8px',
         padding: '12px 16px',

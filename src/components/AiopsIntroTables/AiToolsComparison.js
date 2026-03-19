@@ -50,8 +50,8 @@ const AiToolsComparison = () => {
       </div>
 
       <div style={{
-        background: 'white',
-        border: '1px solid #e5e7eb',
+        background: 'var(--ifm-background-surface-color)',
+        border: '1px solid var(--ifm-color-emphasis-200)',
         borderTop: 'none',
         borderRadius: '0 0 8px 8px',
         overflow: 'hidden'
@@ -59,34 +59,34 @@ const AiToolsComparison = () => {
         <div style={{
           display: 'grid',
           gridTemplateColumns: '140px 1fr 1fr',
-          borderBottom: '2px solid #e5e7eb'
+          borderBottom: '2px solid var(--ifm-color-emphasis-200)'
         }}>
           <div style={{
             padding: '12px 14px',
-            background: '#f8fafc',
+            background: 'var(--ifm-background-surface-color)',
             fontWeight: '600',
             fontSize: '12px',
-            color: '#6b7280'
+            color: 'var(--ifm-color-emphasis-600)'
           }}>
             {isKo ? 'AI 도구' : isZh ? 'AI 工具' : 'AI Tool'}
           </div>
           <div style={{
             padding: '12px 14px',
-            background: '#f8fafc',
-            borderLeft: '1px solid #e5e7eb',
+            background: 'var(--ifm-background-surface-color)',
+            borderLeft: '1px solid var(--ifm-color-emphasis-200)',
             fontWeight: '600',
             fontSize: '12px',
-            color: '#6b7280'
+            color: 'var(--ifm-color-emphasis-600)'
           }}>
             {isKo ? 'MCP 활용 방식' : isZh ? 'MCP 使用方式' : 'MCP Usage'}
           </div>
           <div style={{
             padding: '12px 14px',
-            background: '#f8fafc',
-            borderLeft: '1px solid #e5e7eb',
+            background: 'var(--ifm-background-surface-color)',
+            borderLeft: '1px solid var(--ifm-color-emphasis-200)',
             fontWeight: '600',
             fontSize: '12px',
-            color: '#6b7280'
+            color: 'var(--ifm-color-emphasis-600)'
           }}>
             {isKo ? '강점' : isZh ? '优势' : 'Strengths'}
           </div>
@@ -112,7 +112,7 @@ const AiToolsComparison = () => {
             <div style={{
               padding: '12px 14px',
               fontSize: '12px',
-              color: '#4b5563',
+              color: 'var(--ifm-font-color-base)',
               borderLeft: '1px solid #f3f4f6',
               display: 'flex',
               alignItems: 'center'
@@ -122,7 +122,7 @@ const AiToolsComparison = () => {
             <div style={{
               padding: '12px 14px',
               fontSize: '12px',
-              color: '#4b5563',
+              color: 'var(--ifm-font-color-base)',
               borderLeft: '1px solid #f3f4f6',
               display: 'flex',
               alignItems: 'center'
@@ -133,11 +133,11 @@ const AiToolsComparison = () => {
         ))}
 
         <div style={{
-          background: '#fffbeb',
+          background: 'var(--ifm-color-emphasis-100)',
           borderTop: '1px solid #fde68a',
           padding: '12px 16px',
           fontSize: '12px',
-          color: '#92400e'
+          color: 'var(--ifm-color-emphasis-700)'
         }}>
           <strong>{isKo ? '핵심:' : isZh ? '关键：' : 'Key:'}</strong> {isKo
             ? '각 AI 도구는 MCP를 통해 AWS 서비스에 접근하지만, 활용 방식과 통합 수준이 다릅니다. Q Developer는 AWS 콘솔 통합, Claude Code는 자율 에이전트, Copilot은 IDE 통합이 각각의 강점입니다.'

@@ -59,18 +59,18 @@ export default function DnsResourceChart({ locale = 'en' }) {
     }}>
       {/* DNS Section */}
       <div style={{
-        background: '#fff', border: '1px solid #e2e8f0',
+        background: 'var(--ifm-background-surface-color)', border: '1px solid var(--ifm-color-emphasis-200)',
         borderRadius: '10px', overflow: 'hidden',
       }}>
         <div style={{
-          background: '#f8fafc', padding: '0.8rem 1.2rem',
-          borderBottom: '1px solid #e2e8f0',
+          background: 'var(--ifm-background-surface-color)', padding: '0.8rem 1.2rem',
+          borderBottom: '1px solid var(--ifm-color-emphasis-200)',
           display: 'flex', justifyContent: 'space-between', alignItems: 'baseline',
         }}>
-          <span style={{ fontSize: '0.88rem', fontWeight: 700, color: '#334155' }}>
+          <span style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--ifm-font-color-base)' }}>
             🌐 {t.dnsTitle}
           </span>
-          <span style={{ fontSize: '0.7rem', color: '#94a3b8', fontStyle: 'italic' }}>
+          <span style={{ fontSize: '0.7rem', color: 'var(--ifm-color-emphasis-500)', fontStyle: 'italic' }}>
             {t.dnsSubtitle}
           </span>
         </div>
@@ -78,7 +78,7 @@ export default function DnsResourceChart({ locale = 'en' }) {
           <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '0.8rem' }}>
             {scenarios.map((s, i) => (
               <div key={i} style={{
-                flex: 1, minWidth: '110px', background: '#fafbfc',
+                flex: 1, minWidth: '110px', background: 'var(--ifm-background-surface-color)',
                 border: '1px solid #f1f5f9', borderRadius: '8px',
                 padding: '0.6rem 0.5rem', textAlign: 'center',
               }}>
@@ -89,17 +89,17 @@ export default function DnsResourceChart({ locale = 'en' }) {
                   {s}
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'center', gap: '0.3rem', marginBottom: '0.2rem' }}>
-                  <span style={{ fontSize: '0.65rem', color: '#94a3b8' }}>{t.p50}:</span>
+                  <span style={{ fontSize: '0.65rem', color: 'var(--ifm-color-emphasis-500)' }}>{t.p50}:</span>
                   <DnsPill value={dnsData.p50[i]} best={false} />
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'center', gap: '0.3rem' }}>
-                  <span style={{ fontSize: '0.65rem', color: '#94a3b8' }}>{t.p99}:</span>
+                  <span style={{ fontSize: '0.65rem', color: 'var(--ifm-color-emphasis-500)' }}>{t.p99}:</span>
                   <DnsPill value={dnsData.p99[i]} best={dnsData.p99[i] === minP99} />
                 </div>
               </div>
             ))}
           </div>
-          <div style={{ fontSize: '0.72rem', color: '#64748b', lineHeight: 1.5 }}>
+          <div style={{ fontSize: '0.72rem', color: 'var(--ifm-color-emphasis-600)', lineHeight: 1.5 }}>
             {t.dnsSummary}
           </div>
         </div>
@@ -107,18 +107,18 @@ export default function DnsResourceChart({ locale = 'en' }) {
 
       {/* Resource Section */}
       <div style={{
-        background: '#fff', border: '1px solid #e2e8f0',
+        background: 'var(--ifm-background-surface-color)', border: '1px solid var(--ifm-color-emphasis-200)',
         borderRadius: '10px', overflow: 'hidden',
       }}>
         <div style={{
-          background: '#f8fafc', padding: '0.8rem 1.2rem',
-          borderBottom: '1px solid #e2e8f0',
+          background: 'var(--ifm-background-surface-color)', padding: '0.8rem 1.2rem',
+          borderBottom: '1px solid var(--ifm-color-emphasis-200)',
           display: 'flex', justifyContent: 'space-between', alignItems: 'baseline',
         }}>
-          <span style={{ fontSize: '0.88rem', fontWeight: 700, color: '#334155' }}>
+          <span style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--ifm-font-color-base)' }}>
             📊 {t.resourceTitle}
           </span>
-          <span style={{ fontSize: '0.7rem', color: '#94a3b8', fontStyle: 'italic' }}>
+          <span style={{ fontSize: '0.7rem', color: 'var(--ifm-color-emphasis-500)', fontStyle: 'italic' }}>
             {t.resourceSubtitle}
           </span>
         </div>
@@ -126,7 +126,7 @@ export default function DnsResourceChart({ locale = 'en' }) {
           <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '0.8rem' }}>
             {scenarios.map((s, i) => (
               <div key={i} style={{
-                flex: 1, minWidth: '110px', background: '#fafbfc',
+                flex: 1, minWidth: '110px', background: 'var(--ifm-background-surface-color)',
                 border: '1px solid #f1f5f9', borderRadius: '8px',
                 padding: '0.6rem 0.5rem', textAlign: 'center',
               }}>
@@ -136,14 +136,14 @@ export default function DnsResourceChart({ locale = 'en' }) {
                 }}>
                   {s}
                 </div>
-                <div style={{ fontSize: '0.72rem', color: '#475569', marginBottom: '0.15rem' }}>
-                  <span style={{ color: '#94a3b8', fontSize: '0.65rem' }}>{t.cpu}: </span>
+                <div style={{ fontSize: '0.72rem', color: 'var(--ifm-color-emphasis-600)', marginBottom: '0.15rem' }}>
+                  <span style={{ color: 'var(--ifm-color-emphasis-500)', fontSize: '0.65rem' }}>{t.cpu}: </span>
                   <span style={{ fontWeight: 600 }}>
                     {resourceData.cpu[i] || t.nm}
                   </span>
                 </div>
-                <div style={{ fontSize: '0.72rem', color: '#475569' }}>
-                  <span style={{ color: '#94a3b8', fontSize: '0.65rem' }}>{t.memory}: </span>
+                <div style={{ fontSize: '0.72rem', color: 'var(--ifm-color-emphasis-600)' }}>
+                  <span style={{ color: 'var(--ifm-color-emphasis-500)', fontSize: '0.65rem' }}>{t.memory}: </span>
                   <span style={{
                     fontWeight: 600,
                     color: resourceData.memory[i] === '129Mi' ? '#f59e0b' : '#475569',
@@ -154,7 +154,7 @@ export default function DnsResourceChart({ locale = 'en' }) {
               </div>
             ))}
           </div>
-          <div style={{ fontSize: '0.72rem', color: '#64748b', lineHeight: 1.5 }}>
+          <div style={{ fontSize: '0.72rem', color: 'var(--ifm-color-emphasis-600)', lineHeight: 1.5 }}>
             {t.resourceSummary}
           </div>
         </div>

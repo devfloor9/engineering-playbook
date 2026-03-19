@@ -65,7 +65,7 @@ const ResponsePatterns = () => {
     maxWidth: '760px',
     margin: '2rem auto',
     fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-    backgroundColor: '#ffffff',
+    backgroundColor: 'var(--ifm-background-surface-color)',
     borderRadius: '12px',
     boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
     overflow: 'hidden'
@@ -103,7 +103,7 @@ const ResponsePatterns = () => {
 
   const columnStyle = (color) => ({
     borderLeft: `4px solid ${color}`,
-    backgroundColor: '#f9fafb',
+    backgroundColor: 'var(--ifm-background-surface-color)',
     borderRadius: '8px',
     padding: '1.25rem',
     boxShadow: '0 2px 4px rgba(0, 0, 0, 0.05)'
@@ -148,23 +148,23 @@ const ResponsePatterns = () => {
   });
 
   const stepTextStyle = {
-    color: '#374151',
+    color: 'var(--ifm-font-color-base)',
     paddingTop: '2px'
   };
 
   const summaryStyle = {
     marginTop: '1rem',
     paddingTop: '1rem',
-    borderTop: '2px solid #e5e7eb',
+    borderTop: '2px solid var(--ifm-color-emphasis-200)',
     fontSize: '0.875rem',
-    color: '#4b5563',
+    color: 'var(--ifm-font-color-base)',
     lineHeight: '1.5',
     fontWeight: '500'
   };
 
   const summaryLabelStyle = {
     fontWeight: '700',
-    color: '#111827',
+    color: 'var(--ifm-font-color-base)',
     marginBottom: '0.375rem'
   };
 

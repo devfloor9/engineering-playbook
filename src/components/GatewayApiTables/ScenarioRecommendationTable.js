@@ -45,9 +45,9 @@ export default function ScenarioRecommendationTable({ locale = 'ko' }) {
         <div style={{ fontSize: '0.95rem', fontWeight: 700 }}>🎯 {locale === 'ko' ? '시나리오별 추천 솔루션' : 'Scenario-based Solution Recommendations'}</div>
         <div style={{ fontSize: '0.72rem', opacity: 0.7, marginTop: 2 }}>{locale === 'ko' ? '사용 사례에 따른 최적 Gateway API 구현체 선택 가이드' : 'Optimal Gateway API implementation selection guide by use case'}</div>
       </div>
-      <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderTop: 'none', borderRadius: '0 0 12px 12px', padding: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+      <div style={{ background: 'var(--ifm-background-surface-color)', border: '1px solid var(--ifm-color-emphasis-200)', borderTop: 'none', borderRadius: '0 0 12px 12px', padding: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
         {items.map((item, idx) => (
-          <div key={idx} style={{ border: '1.5px solid #e0e0e0', borderRadius: 8, padding: '0.8rem 1rem', background: '#fafafa' }}>
+          <div key={idx} style={{ border: '1.5px solid var(--ifm-color-emphasis-200)', borderRadius: 8, padding: '0.8rem 1rem', background: 'var(--ifm-background-surface-color)' }}>
             <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#1a237e', marginBottom: '0.4rem' }}>{item.scenario}</div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.4rem', flexWrap: 'wrap' }}>
               <span style={{ fontSize: '0.7rem', fontWeight: 600, color: '#757575' }}>{locale === 'ko' ? '1순위' : '1st'}</span>
@@ -55,7 +55,7 @@ export default function ScenarioRecommendationTable({ locale = 'ko' }) {
               <span style={{ fontSize: '0.7rem', fontWeight: 600, color: '#757575', marginLeft: '0.5rem' }}>{locale === 'ko' ? '2순위' : '2nd'}</span>
               <span style={{ background: solutionColors[item.second], color: '#fff', borderRadius: 6, padding: '3px 10px', fontSize: '0.74rem', fontWeight: 700 }}>{item.second}</span>
             </div>
-            <div style={{ fontSize: '0.76rem', color: '#6b7280', fontStyle: 'italic' }}>{item.reason}</div>
+            <div style={{ fontSize: '0.76rem', color: 'var(--ifm-color-emphasis-600)', fontStyle: 'italic' }}>{item.reason}</div>
           </div>
         ))}
       </div>

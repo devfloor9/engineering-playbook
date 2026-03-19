@@ -21,7 +21,7 @@ const i18n = {
 };
 
 const scoutData = [
-  { id: 'A', label: 'p5/H100', color: '#64748b', value: 4200 },
+  { id: 'A', label: 'p5/H100', color: 'var(--ifm-color-emphasis-600)', value: 4200 },
   { id: 'B', label: 'p4d/A100', color: '#8b5cf6', value: 1800 },
   { id: 'C', label: 'g6e/L40S', color: '#f59e0b', value: 1400 },
   { id: 'D', label: 'trn2', color: '#3b82f6', value: 3500 },
@@ -29,7 +29,7 @@ const scoutData = [
 ];
 
 const maverickData = [
-  { id: 'A', label: 'p5/H100', color: '#64748b', value: 2800 },
+  { id: 'A', label: 'p5/H100', color: 'var(--ifm-color-emphasis-600)', value: 2800 },
   { id: 'D', label: 'trn2', color: '#3b82f6', value: 2200 },
 ];
 
@@ -43,7 +43,7 @@ function Bar({ value, max, color, label, scenarioId, isBest, bestLabel, isDark }
         textAlign: 'right',
         fontSize: '0.8rem',
         fontWeight: 500,
-        color: isDark ? '#e2e8f0' : '#475569',
+        color: isDark ? 'var(--ifm-color-emphasis-200)' : '#475569',
         flexShrink: 0,
       }}>
         {scenarioId}: {label}
@@ -108,11 +108,11 @@ export default function InferenceThroughputChart({ locale = 'en' }) {
   const isDark = colorMode === 'dark';
 
   const theme = {
-    text: isDark ? '#e2e8f0' : '#1f2937',
+    text: isDark ? 'var(--ifm-color-emphasis-200)' : '#1f2937',
     textSecondary: isDark ? '#cbd5e1' : '#475569',
     bgSurface: isDark ? '#1e293b' : '#ffffff',
-    bgHeader: isDark ? '#0f172a' : '#f9fafb',
-    border: isDark ? '#334155' : '#e5e7eb',
+    bgHeader: isDark ? '#0f172a' : 'var(--ifm-background-surface-color)',
+    border: isDark ? '#334155' : 'var(--ifm-color-emphasis-200)',
   };
 
   const highestScout = Math.max(...scoutData.map(s => s.value));

@@ -30,20 +30,20 @@ export default function TroubleshootingTable({ locale = 'ko' }) {
         <div style={{ fontSize: '0.95rem', fontWeight: 700 }}>{title}</div>
         <div style={{ fontSize: '0.72rem', opacity: 0.7, marginTop: 2 }}>{subtitle}</div>
       </div>
-      <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderTop: 'none', borderRadius: '0 0 12px 12px', padding: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+      <div style={{ background: 'var(--ifm-background-surface-color)', border: '1px solid var(--ifm-color-emphasis-200)', borderTop: 'none', borderRadius: '0 0 12px 12px', padding: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
         {rows.map((row, idx) => (
-          <div key={idx} style={{ border: '1.5px solid #c6282820', borderLeft: '4px solid #c62828', borderRadius: 8, padding: '0.7rem 1rem', background: '#fff' }}>
+          <div key={idx} style={{ border: '1.5px solid #c6282820', borderLeft: '4px solid #c62828', borderRadius: 8, padding: '0.7rem 1rem', background: 'var(--ifm-background-surface-color)' }}>
             <div style={{ marginBottom: '0.4rem' }}>
-              <span style={{ background: '#ffebee', color: '#c62828', padding: '3px 10px', borderRadius: 6, fontSize: '0.75rem', fontWeight: 700 }}>
+              <span style={{ background: 'var(--ifm-color-emphasis-100)', color: '#c62828', padding: '3px 10px', borderRadius: 6, fontSize: '0.75rem', fontWeight: 700 }}>
                 ❌ {row.symptom}
               </span>
             </div>
             <div style={{ marginBottom: '0.4rem' }}>
-              <span style={{ background: '#fff3e0', color: '#e65100', padding: '2px 8px', borderRadius: 4, fontSize: '0.74rem', fontWeight: 600 }}>
+              <span style={{ background: 'var(--ifm-color-emphasis-100)', color: '#e65100', padding: '2px 8px', borderRadius: 4, fontSize: '0.74rem', fontWeight: 600 }}>
                 원인: {row.cause}
               </span>
             </div>
-            <div style={{ fontSize: '0.76rem', color: '#374151', paddingLeft: '0.5rem', borderLeft: '3px solid #4caf50', marginLeft: '0.2rem' }}>
+            <div style={{ fontSize: '0.76rem', color: 'var(--ifm-font-color-base)', paddingLeft: '0.5rem', borderLeft: '3px solid #4caf50', marginLeft: '0.2rem' }}>
               <strong style={{ color: '#2e7d32' }}>해결:</strong> {row.solution}
             </div>
           </div>

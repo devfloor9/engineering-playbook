@@ -67,8 +67,8 @@ const RoiQuantitativeMetrics = () => {
       </div>
 
       <div style={{
-        background: 'white',
-        border: '1px solid #e5e7eb',
+        background: 'var(--ifm-background-surface-color)',
+        border: '1px solid var(--ifm-color-emphasis-200)',
         borderTop: 'none',
         borderRadius: '0 0 8px 8px',
         overflow: 'hidden'
@@ -76,34 +76,34 @@ const RoiQuantitativeMetrics = () => {
         <div style={{
           display: 'grid',
           gridTemplateColumns: '120px 1fr 100px',
-          borderBottom: '2px solid #e5e7eb'
+          borderBottom: '2px solid var(--ifm-color-emphasis-200)'
         }}>
           <div style={{
             padding: '12px 14px',
-            background: '#f8fafc',
+            background: 'var(--ifm-background-surface-color)',
             fontWeight: '600',
             fontSize: '12px',
-            color: '#6b7280'
+            color: 'var(--ifm-color-emphasis-600)'
           }}>
             {isKo ? '지표' : isZh ? '指标' : 'Metric'}
           </div>
           <div style={{
             padding: '12px 14px',
-            background: '#f8fafc',
-            borderLeft: '1px solid #e5e7eb',
+            background: 'var(--ifm-background-surface-color)',
+            borderLeft: '1px solid var(--ifm-color-emphasis-200)',
             fontWeight: '600',
             fontSize: '12px',
-            color: '#6b7280'
+            color: 'var(--ifm-color-emphasis-600)'
           }}>
             {isKo ? '측정 방법' : isZh ? '测量方法' : 'Measurement Method'}
           </div>
           <div style={{
             padding: '12px 14px',
-            background: '#f8fafc',
-            borderLeft: '1px solid #e5e7eb',
+            background: 'var(--ifm-background-surface-color)',
+            borderLeft: '1px solid var(--ifm-color-emphasis-200)',
             fontWeight: '600',
             fontSize: '12px',
-            color: '#6b7280'
+            color: 'var(--ifm-color-emphasis-600)'
           }}>
             {isKo ? '목표 개선율' : isZh ? '目标改善率' : 'Target Improvement'}
           </div>
@@ -131,7 +131,7 @@ const RoiQuantitativeMetrics = () => {
               </div>
               <div style={{
                 fontSize: '10px',
-                color: '#6b7280'
+                color: 'var(--ifm-color-emphasis-600)'
               }}>
                 {metric.fullName}
               </div>
@@ -139,7 +139,7 @@ const RoiQuantitativeMetrics = () => {
             <div style={{
               padding: '12px 14px',
               fontSize: '12px',
-              color: '#4b5563',
+              color: 'var(--ifm-font-color-base)',
               borderLeft: '1px solid #f3f4f6',
               display: 'flex',
               alignItems: 'center'
@@ -169,11 +169,11 @@ const RoiQuantitativeMetrics = () => {
         ))}
 
         <div style={{
-          background: '#fffbeb',
+          background: 'var(--ifm-color-emphasis-100)',
           borderTop: '1px solid #fde68a',
           padding: '12px 16px',
           fontSize: '12px',
-          color: '#92400e'
+          color: 'var(--ifm-color-emphasis-700)'
         }}>
           <strong>{isKo ? '측정 기준:' : isZh ? '测量基线:' : 'Measurement Baseline:'}</strong> {isKo
             ? 'AIOps 도입 전 3개월 평균 vs 도입 후 3개월 평균을 비교하여 개선율을 산출합니다. 정성적 지표(운영팀 만족도, 배포 자신감 등)도 함께 추적하세요.'

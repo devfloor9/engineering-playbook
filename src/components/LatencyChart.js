@@ -1,7 +1,7 @@
 import React from 'react';
 
 const scenarios = [
-  { id: 'A', label: 'VPC CNI', color: '#64748b', rtt: 4894 },
+  { id: 'A', label: 'VPC CNI', color: 'var(--ifm-color-emphasis-600)', rtt: 4894 },
   { id: 'B', label: 'Cilium+kp', color: '#8b5cf6', rtt: 4955 },
   { id: 'C', label: 'kp-less', color: '#10b981', rtt: 5092 },
   { id: 'D', label: 'ENI', color: '#3b82f6', rtt: 4453 },
@@ -16,12 +16,12 @@ function Bar({ value, max, color, label, scenarioId, isBest }) {
     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.6rem' }}>
       <div style={{
         width: '90px', textAlign: 'right', fontSize: '0.8rem',
-        fontWeight: 500, color: '#475569', flexShrink: 0,
+        fontWeight: 500, color: 'var(--ifm-color-emphasis-600)', flexShrink: 0,
       }}>
         {scenarioId}: {label}
       </div>
       <div style={{
-        flex: 1, background: '#f1f5f9', borderRadius: '6px',
+        flex: 1, background: 'var(--ifm-color-emphasis-100)', borderRadius: '6px',
         height: '28px', position: 'relative', overflow: 'visible',
       }}>
         <div style={{
@@ -64,17 +64,17 @@ export default function LatencyChart() {
       maxWidth: '720px',
     }}>
       <div style={{
-        background: '#fff', border: '1px solid #e2e8f0',
+        background: 'var(--ifm-background-surface-color)', border: '1px solid var(--ifm-color-emphasis-200)',
         borderRadius: '10px', padding: '1.2rem 1.5rem',
       }}>
         <div style={{
           display: 'flex', justifyContent: 'space-between',
           alignItems: 'baseline', marginBottom: '1rem',
         }}>
-          <h4 style={{ margin: 0, fontSize: '0.95rem', color: '#334155' }}>
+          <h4 style={{ margin: 0, fontSize: '0.95rem', color: 'var(--ifm-font-color-base)' }}>
             Pod-to-Pod RTT (µs)
           </h4>
-          <span style={{ fontSize: '0.75rem', color: '#94a3b8', fontStyle: 'italic' }}>
+          <span style={{ fontSize: '0.75rem', color: 'var(--ifm-color-emphasis-500)', fontStyle: 'italic' }}>
             Lower is better
           </span>
         </div>
@@ -97,19 +97,19 @@ export default function LatencyChart() {
           borderTop: '1px solid #f1f5f9',
           display: 'flex', gap: '1.5rem', flexWrap: 'wrap',
         }}>
-          <div style={{ fontSize: '0.78rem', color: '#64748b' }}>
+          <div style={{ fontSize: '0.78rem', color: 'var(--ifm-color-emphasis-600)' }}>
             <span style={{ fontWeight: 600, color: '#059669' }}>-36%</span> vs Baseline (A→E)
           </div>
-          <div style={{ fontSize: '0.78rem', color: '#64748b' }}>
+          <div style={{ fontSize: '0.78rem', color: 'var(--ifm-color-emphasis-600)' }}>
             <span style={{ fontWeight: 600, color: '#3b82f6' }}>-9%</span> ENI native routing (A→D)
           </div>
-          <div style={{ fontSize: '0.78rem', color: '#64748b' }}>
+          <div style={{ fontSize: '0.78rem', color: 'var(--ifm-color-emphasis-600)' }}>
             <span style={{ fontWeight: 600, color: '#059669' }}>-30%</span> Tuning effect (D→E)
           </div>
         </div>
       </div>
       <p style={{
-        textAlign: 'center', fontSize: '0.72rem', color: '#94a3b8',
+        textAlign: 'center', fontSize: '0.72rem', color: 'var(--ifm-color-emphasis-500)',
         fontStyle: 'italic', marginTop: '0.75rem', marginBottom: 0,
       }}>
         Median of 3+ measurements · Single AZ (ap-northeast-2a) · m6i.xlarge nodes

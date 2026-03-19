@@ -52,8 +52,8 @@ const KAgentFeatures = () => {
       </div>
 
       <div style={{
-        background: 'white',
-        border: '1px solid #e5e7eb',
+        background: 'var(--ifm-background-surface-color)',
+        border: '1px solid var(--ifm-color-emphasis-200)',
         borderTop: 'none',
         borderRadius: '0 0 8px 8px',
         padding: '16px'
@@ -67,7 +67,7 @@ const KAgentFeatures = () => {
             <div
               key={index}
               style={{
-                background: 'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)',
+                background: 'var(--ifm-color-emphasis-100)',
                 padding: '20px',
                 borderRadius: '8px',
                 border: '1px solid #2ecc71',

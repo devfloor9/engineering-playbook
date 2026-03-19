@@ -39,7 +39,11 @@ export default function Slide08() {
               </li>
               <li className="flex items-start gap-3">
                 <span className="text-emerald-400 mt-1">▸</span>
-                <span><strong>Prefix-Aware</strong>: KV 캐시 상태 인식</span>
+                <span><strong>Prefix-Aware</strong>: KV 캐시 상태 인식 라우팅</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="text-amber-400 mt-1">▸</span>
+                <span><strong>Drain-Aware</strong>: 종료 중인 인스턴스 감지</span>
               </li>
             </ul>
           </div>
@@ -64,6 +68,10 @@ export default function Slide08() {
               </li>
               <li className="flex items-start gap-3">
                 <span className="text-emerald-400 mt-1">▸</span>
+                <span><strong>Weight-Based Shift</strong>: Blue/Green 배포</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="text-blue-400 mt-1">▸</span>
                 <span><strong>Karpenter</strong>: GPU 노드 자동 프로비저닝</span>
               </li>
             </ul>
@@ -73,7 +81,7 @@ export default function Slide08() {
         <FlowDiagram steps={flowSteps} title="Request Flow: Client → Gateway → vLLM Backend" />
 
         <div className="mt-6 text-center text-gray-400 text-lg">
-          Router + vLLM Backend 구성으로 KV Cache-Aware 지능형 라우팅
+          Drain-aware + Prefix-aware 지능형 라우팅으로 무중단 운영
         </div>
       </div>
     </SlideWrapper>

@@ -66,8 +66,8 @@ const AidlcPhaseMapping = () => {
       gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))'
     },
     phaseCard: {
-      background: 'white',
-      border: '1px solid #e5e7eb',
+      background: 'var(--ifm-background-surface-color)',
+      border: '1px solid var(--ifm-color-emphasis-200)',
       borderRadius: '8px',
       padding: '1.25rem',
       boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
@@ -98,19 +98,19 @@ const AidlcPhaseMapping = () => {
     },
     phaseNameKo: {
       fontSize: '0.75rem',
-      color: '#6b7280',
+      color: 'var(--ifm-color-emphasis-600)',
       fontWeight: '400'
     },
     description: {
       fontSize: '0.875rem',
-      color: '#4b5563',
+      color: 'var(--ifm-font-color-base)',
       marginBottom: '1rem',
       lineHeight: '1.4'
     },
     sectionLabel: {
       fontSize: '0.75rem',
       fontWeight: '600',
-      color: '#6b7280',
+      color: 'var(--ifm-color-emphasis-600)',
       marginBottom: '0.5rem',
       textTransform: 'uppercase',
       letterSpacing: '0.05em'
@@ -122,8 +122,8 @@ const AidlcPhaseMapping = () => {
       marginBottom: '1rem'
     },
     toolBadge: {
-      background: '#f3f4f6',
-      color: '#374151',
+      background: 'var(--ifm-color-emphasis-100)',
+      color: 'var(--ifm-font-color-base)',
       padding: '0.25rem 0.625rem',
       borderRadius: '4px',
       fontSize: '0.75rem',
@@ -133,7 +133,7 @@ const AidlcPhaseMapping = () => {
       margin: 0,
       paddingLeft: '1.25rem',
       fontSize: '0.8125rem',
-      color: '#4b5563'
+      color: 'var(--ifm-font-color-base)'
     },
     outputItem: {
       marginBottom: '0.25rem'

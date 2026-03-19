@@ -79,8 +79,8 @@ const OperationPatternsComparison = () => {
       </div>
 
       <div style={{
-        background: 'white',
-        border: '1px solid #e5e7eb',
+        background: 'var(--ifm-background-surface-color)',
+        border: '1px solid var(--ifm-color-emphasis-200)',
         borderTop: 'none',
         borderRadius: '0 0 8px 8px',
         overflow: 'hidden'
@@ -88,14 +88,14 @@ const OperationPatternsComparison = () => {
         <div style={{
           display: 'grid',
           gridTemplateColumns: '110px 1fr 1fr 1fr',
-          borderBottom: '2px solid #e5e7eb'
+          borderBottom: '2px solid var(--ifm-color-emphasis-200)'
         }}>
           <div style={{
             padding: '12px 14px',
-            background: '#f8fafc',
+            background: 'var(--ifm-background-surface-color)',
             fontWeight: '600',
             fontSize: '12px',
-            color: '#6b7280'
+            color: 'var(--ifm-color-emphasis-600)'
           }}>
             항목
           </div>
@@ -103,7 +103,7 @@ const OperationPatternsComparison = () => {
             <div key={p.name} style={{
               padding: '12px 14px',
               background: `${p.color}08`,
-              borderLeft: '1px solid #e5e7eb',
+              borderLeft: '1px solid var(--ifm-color-emphasis-200)',
               textAlign: 'center'
             }}>
               <div style={{
@@ -125,10 +125,10 @@ const OperationPatternsComparison = () => {
           }}>
             <div style={{
               padding: '10px 14px',
-              background: '#f8fafc',
+              background: 'var(--ifm-background-surface-color)',
               fontSize: '12px',
               fontWeight: '600',
-              color: '#374151',
+              color: 'var(--ifm-font-color-base)',
               display: 'flex',
               alignItems: 'center'
             }}>
@@ -138,7 +138,7 @@ const OperationPatternsComparison = () => {
               <div key={`${row.key}-${p.name}`} style={{
                 padding: '10px 14px',
                 fontSize: '12px',
-                color: '#4b5563',
+                color: 'var(--ifm-font-color-base)',
                 borderLeft: '1px solid #f3f4f6',
                 display: 'flex',
                 alignItems: 'center'
@@ -150,11 +150,11 @@ const OperationPatternsComparison = () => {
         ))}
 
         <div style={{
-          background: '#fffbeb',
+          background: 'var(--ifm-color-emphasis-100)',
           borderTop: '1px solid #fde68a',
           padding: '12px 16px',
           fontSize: '12px',
-          color: '#92400e'
+          color: 'var(--ifm-color-emphasis-700)'
         }}>
           <strong>{isKo ? '실전 조합:' : isZh ? '实战组合:' : 'Real-world Combination:'}</strong> {isKo
             ? '세 패턴은 상호 보완적입니다. 새로운 장애를 Prompt-Driven으로 탐색한 뒤, 반복 패턴을 Spec-Driven으로 코드화하고, 최종적으로 Agent-Driven으로 자율화하는 점진적 성숙 과정을 거칩니다.'

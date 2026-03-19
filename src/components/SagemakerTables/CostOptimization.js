@@ -116,9 +116,9 @@ const CostOptimization = () => {
                   </div>
                   <div style={{
                     fontSize: '14px',
-                    color: '#374151',
+                    color: 'var(--ifm-font-color-base)',
                     padding: '8px 12px',
-                    background: '#fef3c7',
+                    background: 'var(--ifm-color-emphasis-100)',
                     borderRadius: '6px'
                   }}>
                     {item.sagemaker}
@@ -138,9 +138,9 @@ const CostOptimization = () => {
                   </div>
                   <div style={{
                     fontSize: '14px',
-                    color: '#374151',
+                    color: 'var(--ifm-font-color-base)',
                     padding: '8px 12px',
-                    background: '#dbeafe',
+                    background: 'var(--ifm-color-emphasis-100)',
                     borderRadius: '6px'
                   }}>
                     {item.eks}
@@ -160,7 +160,7 @@ const CostOptimization = () => {
                   </div>
                   <div style={{
                     fontSize: '14px',
-                    color: '#374151',
+                    color: 'var(--ifm-font-color-base)',
                     fontWeight: '600',
                     padding: '8px 12px',
                     background: `${item.color}20`,

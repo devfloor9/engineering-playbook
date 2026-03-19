@@ -55,12 +55,12 @@ const TokenUsageMetricsTable = () => {
       }}>
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
-            <tr style={{ background: '#f9fafb' }}>
+            <tr style={{ background: 'var(--ifm-background-surface-color)' }}>
               <th style={{
                 padding: '12px 16px',
                 textAlign: 'left',
                 fontWeight: '600',
-                color: '#374151',
+                color: 'var(--ifm-font-color-base)',
                 borderBottom: '2px solid var(--ifm-color-emphasis-200)',
                 minWidth: '220px'
               }}>
@@ -70,7 +70,7 @@ const TokenUsageMetricsTable = () => {
                 padding: '12px 16px',
                 textAlign: 'left',
                 fontWeight: '600',
-                color: '#374151',
+                color: 'var(--ifm-font-color-base)',
                 borderBottom: '2px solid var(--ifm-color-emphasis-200)',
                 minWidth: '180px'
               }}>
@@ -80,7 +80,7 @@ const TokenUsageMetricsTable = () => {
                 padding: '12px 16px',
                 textAlign: 'left',
                 fontWeight: '600',
-                color: '#374151',
+                color: 'var(--ifm-font-color-base)',
                 borderBottom: '2px solid var(--ifm-color-emphasis-200)',
                 minWidth: '180px'
               }}>
@@ -110,7 +110,7 @@ const TokenUsageMetricsTable = () => {
                 </td>
                 <td style={{
                   padding: '12px 16px',
-                  color: '#6b7280',
+                  color: 'var(--ifm-color-emphasis-600)',
                   borderBottom: index < metrics.length - 1 ? '1px solid var(--ifm-color-emphasis-200)' : 'none'
                 }}>
                   {metric.purpose}

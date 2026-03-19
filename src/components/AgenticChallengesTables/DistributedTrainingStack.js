@@ -44,8 +44,8 @@ const DistributedTrainingStack = () => {
       </div>
 
       <div style={{
-        background: 'white',
-        border: '1px solid #e5e7eb',
+        background: 'var(--ifm-background-surface-color)',
+        border: '1px solid var(--ifm-color-emphasis-200)',
         borderTop: 'none',
         borderRadius: '0 0 8px 8px',
         padding: '24px'
@@ -59,7 +59,7 @@ const DistributedTrainingStack = () => {
             <div
               key={index}
               style={{
-                background: 'linear-gradient(135deg, #f7fef0 0%, #e8f8d8 100%)',
+                background: 'var(--ifm-color-emphasis-100)',
                 padding: '28px',
                 borderRadius: '12px',
                 border: '3px solid #76b900',

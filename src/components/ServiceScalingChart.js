@@ -10,18 +10,18 @@ const metrics = [
 function MetricRow({ metric }) {
   return (
     <div style={{ marginBottom: '1rem' }}>
-      <div style={{ fontSize: '0.85rem', fontWeight: 500, color: '#1f2937', marginBottom: '0.4rem' }}>
+      <div style={{ fontSize: '0.85rem', fontWeight: 500, color: 'var(--ifm-font-color-base)', marginBottom: '0.4rem' }}>
         {metric.label}
       </div>
       {/* 4 Services bar */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
-        <div style={{ width: '80px', textAlign: 'right', fontSize: '0.72rem', color: '#6b7280', flexShrink: 0 }}>
+        <div style={{ width: '80px', textAlign: 'right', fontSize: '0.72rem', color: 'var(--ifm-color-emphasis-600)', flexShrink: 0 }}>
           4 Svc
         </div>
-        <div style={{ flex: 1, background: '#f1f5f9', borderRadius: '4px', height: '22px' }}>
+        <div style={{ flex: 1, background: 'var(--ifm-color-emphasis-100)', borderRadius: '4px', height: '22px' }}>
           <div style={{
             width: `${metric.pct4}%`,
-            background: '#93c5fd',
+            background: '#3b82f6',
             height: '100%',
             borderRadius: '4px',
             display: 'flex',
@@ -36,10 +36,10 @@ function MetricRow({ metric }) {
       </div>
       {/* 104 Services bar */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-        <div style={{ width: '80px', textAlign: 'right', fontSize: '0.72rem', color: '#6b7280', flexShrink: 0 }}>
+        <div style={{ width: '80px', textAlign: 'right', fontSize: '0.72rem', color: 'var(--ifm-color-emphasis-600)', flexShrink: 0 }}>
           104 Svc
         </div>
-        <div style={{ flex: 1, background: '#f1f5f9', borderRadius: '4px', height: '22px', position: 'relative' }}>
+        <div style={{ flex: 1, background: 'var(--ifm-color-emphasis-100)', borderRadius: '4px', height: '22px', position: 'relative' }}>
           <div style={{
             width: `${metric.pct104}%`,
             background: '#3b82f6',
@@ -78,8 +78,8 @@ export default function ServiceScalingChart() {
       maxWidth: '720px',
     }}>
       <div style={{
-        background: '#fff',
-        border: '1px solid #e2e8f0',
+        background: 'var(--ifm-background-surface-color)',
+        border: '1px solid var(--ifm-color-emphasis-200)',
         borderRadius: '10px',
         padding: '1.2rem 1.5rem',
       }}>
@@ -92,17 +92,17 @@ export default function ServiceScalingChart() {
           flexWrap: 'wrap',
           gap: '0.5rem',
         }}>
-          <span style={{ fontSize: '0.8rem', color: '#6b7280' }}>
+          <span style={{ fontSize: '0.8rem', color: 'var(--ifm-color-emphasis-600)' }}>
             4 Services vs 104 Services — eBPF O(1) hash map lookup
           </span>
           <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-              <div style={{ width: '14px', height: '10px', background: '#93c5fd', borderRadius: '2px' }} />
-              <span style={{ fontSize: '0.75rem', color: '#374151' }}>4 Services</span>
+              <div style={{ width: '14px', height: '10px', background: '#3b82f6', borderRadius: '2px' }} />
+              <span style={{ fontSize: '0.75rem', color: 'var(--ifm-font-color-base)' }}>4 Services</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
               <div style={{ width: '14px', height: '10px', background: '#3b82f6', borderRadius: '2px' }} />
-              <span style={{ fontSize: '0.75rem', color: '#374151' }}>104 Services</span>
+              <span style={{ fontSize: '0.75rem', color: 'var(--ifm-font-color-base)' }}>104 Services</span>
             </div>
           </div>
         </div>
@@ -114,7 +114,7 @@ export default function ServiceScalingChart() {
 
       {/* Insight box */}
       <div style={{
-        background: '#f0fdf4',
+        background: 'var(--ifm-color-emphasis-100)',
         border: '2px solid #10b981',
         borderRadius: '8px',
         padding: '0.8rem 1rem',

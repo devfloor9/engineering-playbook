@@ -8,7 +8,7 @@ interface SlideNavProps {
 
 export function SlideNav({ current, total, onNavigate }: SlideNavProps) {
   return (
-    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-4 bg-gray-900/90 backdrop-blur-sm rounded-full px-6 py-3 border border-gray-700/50 z-50">
+    <div className="flex items-center justify-center gap-4 bg-gray-900 px-6 py-3 border-t border-gray-800">
       <button
         onClick={() => onNavigate(Math.max(0, current - 1))}
         disabled={current === 0}

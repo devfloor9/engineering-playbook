@@ -5,12 +5,12 @@ export default function NetworkPolicyChart({ locale = 'en' }) {
   const isDark = colorMode === 'dark';
 
   const theme = {
-    text: isDark ? '#e2e8f0' : '#1f2937',
+    text: isDark ? 'var(--ifm-color-emphasis-200)' : '#1f2937',
     textSecondary: isDark ? '#94a3b8' : '#6b7280',
     textMono: isDark ? '#cbd5e1' : '#6b7280',
     bgSurface: isDark ? '#1e293b' : '#ffffff',
-    bgHeader: isDark ? '#0f172a' : '#f9fafb',
-    border: isDark ? '#334155' : '#e5e7eb',
+    bgHeader: isDark ? '#0f172a' : 'var(--ifm-background-surface-color)',
+    border: isDark ? '#334155' : 'var(--ifm-color-emphasis-200)',
     borderLight: isDark ? '#1e293b' : '#f1f5f9',
   };
 

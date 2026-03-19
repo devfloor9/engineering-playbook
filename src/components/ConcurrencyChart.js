@@ -17,7 +17,7 @@ const i18n = {
 };
 
 const scenarios = [
-  { id: 'A', label: 'p5/H100', color: '#64748b' },
+  { id: 'A', label: 'p5/H100', color: 'var(--ifm-color-emphasis-600)' },
   { id: 'B', label: 'p4d/A100', color: '#8b5cf6' },
   { id: 'C', label: 'g6e/L40S', color: '#f59e0b' },
   { id: 'D', label: 'trn2', color: '#3b82f6' },
@@ -38,11 +38,11 @@ export default function ConcurrencyChart({ locale = 'en' }) {
   const isDark = colorMode === 'dark';
 
   const theme = {
-    text: isDark ? '#e2e8f0' : '#1f2937',
+    text: isDark ? 'var(--ifm-color-emphasis-200)' : '#1f2937',
     textSecondary: isDark ? '#cbd5e1' : '#475569',
     bgSurface: isDark ? '#1e293b' : '#ffffff',
-    bgHeader: isDark ? '#0f172a' : '#f9fafb',
-    border: isDark ? '#334155' : '#e5e7eb',
+    bgHeader: isDark ? '#0f172a' : 'var(--ifm-background-surface-color)',
+    border: isDark ? '#334155' : 'var(--ifm-color-emphasis-200)',
   };
 
   return (

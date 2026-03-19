@@ -121,8 +121,8 @@ const AiCodingAgentComparison = () => {
       opacity: 0.95
     },
     section: {
-      background: 'white',
-      border: '1px solid #e5e7eb',
+      background: 'var(--ifm-background-surface-color)',
+      border: '1px solid var(--ifm-color-emphasis-200)',
       borderLeft: '4px solid #ea580c',
       borderRadius: '0 8px 8px 0',
       padding: '1.5rem',
@@ -133,14 +133,14 @@ const AiCodingAgentComparison = () => {
       margin: '0 0 1.25rem 0',
       fontSize: '1.25rem',
       fontWeight: '600',
-      color: '#111827'
+      color: 'var(--ifm-font-color-base)'
     },
     featureRow: {
       display: 'grid',
       gridTemplateColumns: '2fr 3fr',
       gap: '1rem',
       padding: '0.875rem',
-      background: '#f9fafb',
+      background: 'var(--ifm-background-surface-color)',
       borderRadius: '6px',
       fontSize: '0.875rem',
       marginBottom: '0.5rem'
@@ -154,10 +154,10 @@ const AiCodingAgentComparison = () => {
     card: {
       flex: '1 1 calc(50% - 0.5rem)',
       minWidth: '280px',
-      background: 'white',
+      background: 'var(--ifm-background-surface-color)',
       borderRadius: '10px',
       overflow: 'hidden',
-      border: '1px solid #e5e7eb',
+      border: '1px solid var(--ifm-color-emphasis-200)',
       boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
     },
     cardHeader: {
@@ -172,7 +172,7 @@ const AiCodingAgentComparison = () => {
     cardMeta: {
       marginBottom: '1rem',
       fontSize: '0.8125rem',
-      color: '#6b7280',
+      color: 'var(--ifm-color-emphasis-600)',
       lineHeight: '1.6'
     },
     ratingRow: {
@@ -183,7 +183,7 @@ const AiCodingAgentComparison = () => {
       fontSize: '0.8125rem'
     },
     ratingLabel: {
-      color: '#374151',
+      color: 'var(--ifm-font-color-base)',
       fontWeight: '500'
     },
     ratingStars: {
@@ -193,18 +193,18 @@ const AiCodingAgentComparison = () => {
     },
     cardFooter: {
       paddingTop: '0.75rem',
-      borderTop: '1px solid #e5e7eb',
+      borderTop: '1px solid var(--ifm-color-emphasis-200)',
       fontSize: '0.8125rem',
-      color: '#6b7280',
+      color: 'var(--ifm-color-emphasis-600)',
       lineHeight: '1.6'
     },
     footer: {
       marginTop: '1.5rem',
       padding: '1rem',
-      background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
+      background: 'var(--ifm-color-emphasis-100)',
       borderRadius: '8px',
       fontSize: '0.875rem',
-      color: '#78350f',
+      color: 'var(--ifm-color-emphasis-700)',
       lineHeight: '1.6'
     }
   };
@@ -220,8 +220,8 @@ const AiCodingAgentComparison = () => {
         <h3 style={styles.sectionTitle}>{isKo ? 'Amazon Q Developer 주요 기능' : isZh ? 'Amazon Q Developer 核心功能' : 'Amazon Q Developer Key Features'}</h3>
         {qDeveloperFeatures.map((item, idx) => (
           <div key={idx} style={styles.featureRow}>
-            <div style={{ fontWeight: '600', color: '#111827' }}>{item.feature}</div>
-            <div style={{ color: '#4b5563', lineHeight: '1.5' }}>{item.description}</div>
+            <div style={{ fontWeight: '600', color: 'var(--ifm-font-color-base)' }}>{item.feature}</div>
+            <div style={{ color: 'var(--ifm-font-color-base)', lineHeight: '1.5' }}>{item.description}</div>
           </div>
         ))}
       </div>

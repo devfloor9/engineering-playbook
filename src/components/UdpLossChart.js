@@ -1,7 +1,7 @@
 import React from 'react';
 
 const scenarios = [
-  { id: 'A', label: 'VPC CNI', color: '#64748b', loss: 20.39, throughput: 10.00 },
+  { id: 'A', label: 'VPC CNI', color: 'var(--ifm-color-emphasis-600)', loss: 20.39, throughput: 10.00 },
   { id: 'B', label: 'Cilium+kp', color: '#8b5cf6', loss: 0.94, throughput: 7.92 },
   { id: 'C', label: 'kp-less', color: '#10b981', loss: 0.69, throughput: 7.92 },
   { id: 'D', label: 'ENI', color: '#3b82f6', loss: 20.42, throughput: 10.00 },
@@ -19,12 +19,12 @@ function LossBar({ scenario, isBest, isWorst }) {
     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.6rem' }}>
       <div style={{
         width: '90px', textAlign: 'right', fontSize: '0.8rem',
-        fontWeight: 500, color: '#475569', flexShrink: 0,
+        fontWeight: 500, color: 'var(--ifm-color-emphasis-600)', flexShrink: 0,
       }}>
         {id}: {label}
       </div>
       <div style={{
-        flex: 1, background: '#f1f5f9', borderRadius: '6px',
+        flex: 1, background: 'var(--ifm-color-emphasis-100)', borderRadius: '6px',
         height: '28px', position: 'relative', overflow: 'visible',
       }}>
         <div style={{
@@ -80,12 +80,12 @@ function ThroughputBar({ scenario }) {
     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.6rem' }}>
       <div style={{
         width: '90px', textAlign: 'right', fontSize: '0.8rem',
-        fontWeight: 500, color: '#475569', flexShrink: 0,
+        fontWeight: 500, color: 'var(--ifm-color-emphasis-600)', flexShrink: 0,
       }}>
         {id}: {label}
       </div>
       <div style={{
-        flex: 1, background: '#f1f5f9', borderRadius: '6px',
+        flex: 1, background: 'var(--ifm-color-emphasis-100)', borderRadius: '6px',
         height: '28px', position: 'relative', overflow: 'visible',
       }}>
         <div style={{
@@ -118,17 +118,17 @@ export default function UdpLossChart() {
     }}>
       {/* UDP Packet Loss */}
       <div style={{
-        background: '#fff', border: '1px solid #e2e8f0',
+        background: 'var(--ifm-background-surface-color)', border: '1px solid var(--ifm-color-emphasis-200)',
         borderRadius: '10px', padding: '1.2rem 1.5rem', marginBottom: '1rem',
       }}>
         <div style={{
           display: 'flex', justifyContent: 'space-between',
           alignItems: 'baseline', marginBottom: '1rem',
         }}>
-          <h4 style={{ margin: 0, fontSize: '0.95rem', color: '#334155' }}>
+          <h4 style={{ margin: 0, fontSize: '0.95rem', color: 'var(--ifm-font-color-base)' }}>
             UDP Packet Loss (%)
           </h4>
-          <span style={{ fontSize: '0.75rem', color: '#94a3b8', fontStyle: 'italic' }}>
+          <span style={{ fontSize: '0.75rem', color: 'var(--ifm-color-emphasis-500)', fontStyle: 'italic' }}>
             Lower is better
           </span>
         </div>
@@ -147,10 +147,10 @@ export default function UdpLossChart() {
           borderTop: '1px solid #f1f5f9',
           display: 'flex', gap: '1.5rem', flexWrap: 'wrap',
         }}>
-          <div style={{ fontSize: '0.78rem', color: '#64748b' }}>
+          <div style={{ fontSize: '0.78rem', color: 'var(--ifm-color-emphasis-600)' }}>
             <span style={{ fontWeight: 600, color: '#059669' }}>Bandwidth Manager + BBR</span> enabled (E)
           </div>
-          <div style={{ fontSize: '0.78rem', color: '#64748b' }}>
+          <div style={{ fontSize: '0.78rem', color: 'var(--ifm-color-emphasis-600)' }}>
             <span style={{ fontWeight: 600, color: '#ef4444' }}>20%+</span> loss without Bandwidth Manager (A, D)
           </div>
         </div>
@@ -158,17 +158,17 @@ export default function UdpLossChart() {
 
       {/* UDP Throughput */}
       <div style={{
-        background: '#fff', border: '1px solid #e2e8f0',
+        background: 'var(--ifm-background-surface-color)', border: '1px solid var(--ifm-color-emphasis-200)',
         borderRadius: '10px', padding: '1.2rem 1.5rem',
       }}>
         <div style={{
           display: 'flex', justifyContent: 'space-between',
           alignItems: 'baseline', marginBottom: '1rem',
         }}>
-          <h4 style={{ margin: 0, fontSize: '0.95rem', color: '#334155' }}>
+          <h4 style={{ margin: 0, fontSize: '0.95rem', color: 'var(--ifm-font-color-base)' }}>
             UDP Throughput (Gbps)
           </h4>
-          <span style={{ fontSize: '0.75rem', color: '#94a3b8', fontStyle: 'italic' }}>
+          <span style={{ fontSize: '0.75rem', color: 'var(--ifm-color-emphasis-500)', fontStyle: 'italic' }}>
             Higher is better · but check loss rate
           </span>
         </div>
@@ -180,7 +180,7 @@ export default function UdpLossChart() {
         <div style={{
           marginTop: '0.8rem', paddingTop: '0.8rem',
           borderTop: '1px solid #f1f5f9',
-          fontSize: '0.78rem', color: '#64748b', lineHeight: 1.6,
+          fontSize: '0.78rem', color: 'var(--ifm-color-emphasis-600)', lineHeight: 1.6,
         }}>
           ⚠ High throughput with high loss (A, D) means lower effective data transfer.
           Bandwidth Manager + BBR (E) optimizes for reliable delivery.
@@ -188,7 +188,7 @@ export default function UdpLossChart() {
       </div>
 
       <p style={{
-        textAlign: 'center', fontSize: '0.72rem', color: '#94a3b8',
+        textAlign: 'center', fontSize: '0.72rem', color: 'var(--ifm-color-emphasis-500)',
         fontStyle: 'italic', marginTop: '0.75rem', marginBottom: 0,
       }}>
         iperf3 UDP test · 10s duration · Median of 3+ measurements

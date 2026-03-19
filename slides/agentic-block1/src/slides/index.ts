@@ -18,6 +18,10 @@ import Slide17 from './Slide17';
 import Slide18 from './Slide18';
 import Slide19 from './Slide19';
 import Slide20 from './Slide20';
+import Slide21 from './Slide21';
+import Slide22 from './Slide22';
+import Slide23 from './Slide23';
+import Slide24 from './Slide24';
 
 export const slides = [
   Slide01,
@@ -40,4 +44,8 @@ export const slides = [
   Slide18,
   Slide19,
   Slide20,
+  Slide21,
+  Slide22,
+  Slide23,
+  Slide24,
 ];

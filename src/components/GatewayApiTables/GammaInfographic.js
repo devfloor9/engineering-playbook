@@ -217,8 +217,8 @@ export default function GammaInfographic({ locale = 'ko' }) {
   const t = i18n[locale] || i18n.en;
 
   const bgColor = isDark ? '#1a1a1a' : '#ffffff';
-  const borderColor = isDark ? '#333' : '#e2e8f0';
-  const textColor = isDark ? '#e0e0e0' : '#1a202c';
+  const borderColor = isDark ? '#333' : 'var(--ifm-color-emphasis-200)';
+  const textColor = isDark ? 'var(--ifm-color-emphasis-200)' : '#1a202c';
   const mutedColor = isDark ? '#a0a0a0' : '#64748b';
   const cardBg = isDark ? '#2a2a2a' : '#f8fafc';
   const accentBg = isDark ? '#3a2a5a' : '#f3e5f5';
@@ -620,7 +620,7 @@ export default function GammaInfographic({ locale = 'ko' }) {
           </div>
           <pre style={{
             background: isDark ? '#1a1a1a' : '#2d2d2d',
-            color: '#e0e0e0',
+            color: 'var(--ifm-color-emphasis-200)',
             padding: '1.25rem',
             borderRadius: '8px',
             fontSize: '0.85rem',

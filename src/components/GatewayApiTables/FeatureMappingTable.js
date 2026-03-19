@@ -40,31 +40,31 @@ export default function FeatureMappingTable({ locale = 'ko' }) {
         <div style={{ fontSize: '0.95rem', fontWeight: 700 }}>🔀 {locale === 'ko' ? 'NGINX 기능 → Gateway API 매핑' : 'NGINX Features → Gateway API Mapping'}</div>
         <div style={{ fontSize: '0.72rem', opacity: 0.7, marginTop: 2 }}>{locale === 'ko' ? '구현체별 NGINX 기능 재현 방식' : 'NGINX feature implementation by solution'}</div>
       </div>
-      <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderTop: 'none', borderRadius: '0 0 12px 12px', padding: '0.75rem', overflowX: 'auto' }}>
+      <div style={{ background: 'var(--ifm-background-surface-color)', border: '1px solid var(--ifm-color-emphasis-200)', borderTop: 'none', borderRadius: '0 0 12px 12px', padding: '0.75rem', overflowX: 'auto' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.78rem' }}>
           <thead>
             <tr>
-              <th style={{ padding: '0.6rem 0.5rem', textAlign: 'center', background: '#f5f5f5', borderBottom: '2px solid #e0e0e0', fontWeight: 700, fontSize: '0.7rem', color: '#424242', width: '40px' }}>#</th>
-              <th style={{ padding: '0.6rem 0.8rem', textAlign: 'left', background: '#f5f5f5', borderBottom: '2px solid #e0e0e0', fontWeight: 700, fontSize: '0.76rem', color: '#424242', minWidth: '120px' }}>{locale === 'ko' ? 'NGINX 기능' : 'NGINX Feature'}</th>
-              <th style={{ padding: '0.6rem 0.8rem', textAlign: 'left', borderBottom: `3px solid ${solutionColors['AWS Native']}`, background: '#fff8f0', fontWeight: 700, fontSize: '0.74rem', color: '#424242', minWidth: '140px' }}>AWS Native</th>
-              <th style={{ padding: '0.6rem 0.8rem', textAlign: 'left', borderBottom: `3px solid ${solutionColors['Cilium']}`, background: '#f0f7ff', fontWeight: 700, fontSize: '0.74rem', color: '#424242', minWidth: '140px' }}>Cilium</th>
-              <th style={{ padding: '0.6rem 0.8rem', textAlign: 'left', borderBottom: `3px solid ${solutionColors['NGINX Fabric']}`, background: '#f1f8f4', fontWeight: 700, fontSize: '0.74rem', color: '#424242', minWidth: '140px' }}>NGINX Fabric</th>
-              <th style={{ padding: '0.6rem 0.8rem', textAlign: 'left', borderBottom: `3px solid ${solutionColors['Envoy GW']}`, background: '#fff5f5', fontWeight: 700, fontSize: '0.74rem', color: '#424242', minWidth: '140px' }}>Envoy GW</th>
-              <th style={{ padding: '0.6rem 0.8rem', textAlign: 'left', borderBottom: `3px solid ${solutionColors['kGateway']}`, background: '#f8f5fa', fontWeight: 700, fontSize: '0.74rem', color: '#424242', minWidth: '140px' }}>kGateway</th>
+              <th style={{ padding: '0.6rem 0.5rem', textAlign: 'center', background: 'var(--ifm-color-emphasis-100)', borderBottom: '2px solid var(--ifm-color-emphasis-200)', fontWeight: 700, fontSize: '0.7rem', color: 'var(--ifm-font-color-base)', width: '40px' }}>#</th>
+              <th style={{ padding: '0.6rem 0.8rem', textAlign: 'left', background: 'var(--ifm-color-emphasis-100)', borderBottom: '2px solid var(--ifm-color-emphasis-200)', fontWeight: 700, fontSize: '0.76rem', color: 'var(--ifm-font-color-base)', minWidth: '120px' }}>{locale === 'ko' ? 'NGINX 기능' : 'NGINX Feature'}</th>
+              <th style={{ padding: '0.6rem 0.8rem', textAlign: 'left', borderBottom: `3px solid ${solutionColors['AWS Native']}`, background: 'var(--ifm-color-emphasis-100)', fontWeight: 700, fontSize: '0.74rem', color: 'var(--ifm-font-color-base)', minWidth: '140px' }}>AWS Native</th>
+              <th style={{ padding: '0.6rem 0.8rem', textAlign: 'left', borderBottom: `3px solid ${solutionColors['Cilium']}`, background: 'var(--ifm-color-emphasis-100)', fontWeight: 700, fontSize: '0.74rem', color: 'var(--ifm-font-color-base)', minWidth: '140px' }}>Cilium</th>
+              <th style={{ padding: '0.6rem 0.8rem', textAlign: 'left', borderBottom: `3px solid ${solutionColors['NGINX Fabric']}`, background: 'var(--ifm-color-emphasis-100)', fontWeight: 700, fontSize: '0.74rem', color: 'var(--ifm-font-color-base)', minWidth: '140px' }}>NGINX Fabric</th>
+              <th style={{ padding: '0.6rem 0.8rem', textAlign: 'left', borderBottom: `3px solid ${solutionColors['Envoy GW']}`, background: 'var(--ifm-color-emphasis-100)', fontWeight: 700, fontSize: '0.74rem', color: 'var(--ifm-font-color-base)', minWidth: '140px' }}>Envoy GW</th>
+              <th style={{ padding: '0.6rem 0.8rem', textAlign: 'left', borderBottom: `3px solid ${solutionColors['kGateway']}`, background: 'var(--ifm-color-emphasis-100)', fontWeight: 700, fontSize: '0.74rem', color: 'var(--ifm-font-color-base)', minWidth: '140px' }}>kGateway</th>
             </tr>
           </thead>
           <tbody>
             {items.map((item, idx) => (
-              <tr key={idx} style={{ background: idx % 2 === 0 ? '#fafafa' : '#fff' }}>
-                <td style={{ padding: '0.7rem 0.5rem', textAlign: 'center', borderBottom: '1px solid #e0e0e0' }}>
+              <tr key={idx} style={{ background: idx % 2 === 0 ? 'var(--ifm-color-emphasis-100)' : 'var(--ifm-background-surface-color)' }}>
+                <td style={{ padding: '0.7rem 0.5rem', textAlign: 'center', borderBottom: '1px solid var(--ifm-color-emphasis-200)' }}>
                   <div style={{ width: 24, height: 24, borderRadius: '50%', background: '#e65100', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.72rem', fontWeight: 700, margin: '0 auto' }}>{item.num}</div>
                 </td>
-                <td style={{ padding: '0.7rem 0.8rem', fontWeight: 600, color: '#212121', borderBottom: '1px solid #e0e0e0' }}>{item.feature}</td>
-                <td style={{ padding: '0.7rem 0.8rem', color: '#424242', borderBottom: '1px solid #e0e0e0', background: '#fff8f0' }}>{item.aws}</td>
-                <td style={{ padding: '0.7rem 0.8rem', color: '#424242', borderBottom: '1px solid #e0e0e0', background: '#f0f7ff' }}>{item.cilium}</td>
-                <td style={{ padding: '0.7rem 0.8rem', color: '#424242', borderBottom: '1px solid #e0e0e0', background: '#f1f8f4' }}>{item.nginx}</td>
-                <td style={{ padding: '0.7rem 0.8rem', color: '#424242', borderBottom: '1px solid #e0e0e0', background: '#fff5f5' }}>{item.envoy}</td>
-                <td style={{ padding: '0.7rem 0.8rem', color: '#424242', borderBottom: '1px solid #e0e0e0', background: '#f8f5fa' }}>{item.kgateway}</td>
+                <td style={{ padding: '0.7rem 0.8rem', fontWeight: 600, color: 'var(--ifm-font-color-base)', borderBottom: '1px solid var(--ifm-color-emphasis-200)' }}>{item.feature}</td>
+                <td style={{ padding: '0.7rem 0.8rem', color: 'var(--ifm-font-color-base)', borderBottom: '1px solid var(--ifm-color-emphasis-200)', background: 'var(--ifm-color-emphasis-100)' }}>{item.aws}</td>
+                <td style={{ padding: '0.7rem 0.8rem', color: 'var(--ifm-font-color-base)', borderBottom: '1px solid var(--ifm-color-emphasis-200)', background: 'var(--ifm-color-emphasis-100)' }}>{item.cilium}</td>
+                <td style={{ padding: '0.7rem 0.8rem', color: 'var(--ifm-font-color-base)', borderBottom: '1px solid var(--ifm-color-emphasis-200)', background: 'var(--ifm-color-emphasis-100)' }}>{item.nginx}</td>
+                <td style={{ padding: '0.7rem 0.8rem', color: 'var(--ifm-font-color-base)', borderBottom: '1px solid var(--ifm-color-emphasis-200)', background: 'var(--ifm-color-emphasis-100)' }}>{item.envoy}</td>
+                <td style={{ padding: '0.7rem 0.8rem', color: 'var(--ifm-font-color-base)', borderBottom: '1px solid var(--ifm-color-emphasis-200)', background: 'var(--ifm-color-emphasis-100)' }}>{item.kgateway}</td>
               </tr>
             ))}
           </tbody>

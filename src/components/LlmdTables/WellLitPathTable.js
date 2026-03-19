@@ -87,7 +87,7 @@ const WellLitPathTable = () => {
                 </span>
               )}
             </div>
-            <div style={{ color: '#6b7280', marginBottom: '6px' }}>
+            <div style={{ color: 'var(--ifm-color-emphasis-600)', marginBottom: '6px' }}>
               {row.description}
             </div>
             <div style={{

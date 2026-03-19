@@ -224,7 +224,7 @@ spec:
     gap: '0.5rem',
     marginBottom: '2rem',
     paddingBottom: '0.5rem',
-    borderBottom: `2px solid ${isDark ? '#374151' : '#e5e7eb'}`,
+    borderBottom: `2px solid ${isDark ? '#374151' : 'var(--ifm-color-emphasis-200)'}`,
   };
 
   const topTabStyle = (isActive) => ({
@@ -236,7 +236,7 @@ spec:
       : isDark
       ? '#374151'
       : '#f3f4f6',
-    color: isActive ? '#fff' : isDark ? '#d1d5db' : '#4b5563',
+    color: isActive ? '#fff' : isDark ? 'var(--ifm-color-emphasis-300)' : '#4b5563',
     cursor: 'pointer',
     fontSize: '0.9375rem',
     fontWeight: '600',
@@ -267,7 +267,7 @@ spec:
     display: 'flex',
     gap: '0.75rem',
     marginBottom: '1.75rem',
-    borderBottom: `2px solid ${isDark ? '#374151' : '#e5e7eb'}`,
+    borderBottom: `2px solid ${isDark ? '#374151' : 'var(--ifm-color-emphasis-200)'}`,
     paddingBottom: '0.5rem',
   };
 
@@ -458,7 +458,7 @@ const YAMLCodeBlock = ({ yaml, isDark }) => {
     fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
     fontSize: '0.875rem',
     lineHeight: '1.75',
-    color: isDark ? '#e2e8f0' : '#1e293b',
+    color: isDark ? 'var(--ifm-color-emphasis-200)' : '#1e293b',
     margin: 0,
     whiteSpace: 'pre',
     paddingRight: '4rem',
@@ -538,7 +538,7 @@ const RBACDiagram = ({ isDark }) => {
 
   const separatorStyle = {
     height: '2px',
-    background: `linear-gradient(90deg, transparent 0%, ${isDark ? '#6b7280' : '#d1d5db'} 50%, transparent 100%)`,
+    background: `linear-gradient(90deg, transparent 0%, ${isDark ? '#6b7280' : 'var(--ifm-color-emphasis-300)'} 50%, transparent 100%)`,
     margin: '0.5rem 0',
     position: 'relative',
   };
@@ -554,7 +554,7 @@ const RBACDiagram = ({ isDark }) => {
     color: isDark ? '#9ca3af' : '#6b7280',
     fontWeight: '600',
     borderRadius: '999px',
-    border: `2px solid ${isDark ? '#374151' : '#e5e7eb'}`,
+    border: `2px solid ${isDark ? '#374151' : 'var(--ifm-color-emphasis-200)'}`,
     whiteSpace: 'nowrap',
   };
 
@@ -625,9 +625,9 @@ const ExpressiveRoutingDiagram = ({ isDark }) => {
     padding: '2rem 3rem',
     background: isDark
       ? 'linear-gradient(135deg, #374151 0%, #1f2937 100%)'
-      : 'linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%)',
+      : 'linear-gradient(135deg, #f3f4f6 0%, var(--ifm-color-emphasis-200) 100%)',
     borderRadius: '16px',
-    border: `3px solid ${isDark ? '#6b7280' : '#d1d5db'}`,
+    border: `3px solid ${isDark ? '#6b7280' : 'var(--ifm-color-emphasis-300)'}`,
     fontWeight: 'bold',
     fontSize: '1.5rem',
     boxShadow: isDark
@@ -783,9 +783,9 @@ const ExtensibleDesignDiagram = ({ isDark }) => {
     padding: '2rem 3rem',
     background: isDark
       ? 'linear-gradient(135deg, #374151 0%, #1f2937 100%)'
-      : 'linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%)',
+      : 'linear-gradient(135deg, #f3f4f6 0%, var(--ifm-color-emphasis-200) 100%)',
     borderRadius: '16px',
-    border: `3px solid ${isDark ? '#6b7280' : '#d1d5db'}`,
+    border: `3px solid ${isDark ? '#6b7280' : 'var(--ifm-color-emphasis-300)'}`,
     fontWeight: 'bold',
     fontSize: '1.5rem',
     boxShadow: isDark
@@ -898,9 +898,9 @@ const MultiProtocolDiagram = ({ isDark }) => {
     padding: '2rem 3rem',
     background: isDark
       ? 'linear-gradient(135deg, #374151 0%, #1f2937 100%)'
-      : 'linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%)',
+      : 'linear-gradient(135deg, #f3f4f6 0%, var(--ifm-color-emphasis-200) 100%)',
     borderRadius: '16px',
-    border: `3px solid ${isDark ? '#6b7280' : '#d1d5db'}`,
+    border: `3px solid ${isDark ? '#6b7280' : 'var(--ifm-color-emphasis-300)'}`,
     fontWeight: 'bold',
     fontSize: '1.5rem',
     boxShadow: isDark
@@ -1041,9 +1041,9 @@ const PortabilityDiagram = ({ isDark }) => {
     padding: '0.5rem 1rem',
     background: isDark
       ? 'linear-gradient(135deg, #374151 0%, #1f2937 100%)'
-      : 'linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%)',
+      : 'linear-gradient(135deg, #f3f4f6 0%, var(--ifm-color-emphasis-200) 100%)',
     borderRadius: '12px',
-    border: `2px solid ${isDark ? '#4b5563' : '#d1d5db'}`,
+    border: `2px solid ${isDark ? '#4b5563' : 'var(--ifm-color-emphasis-300)'}`,
   };
 
   const resourceBoxStyle = (color, highlight, icon) => ({
@@ -1054,9 +1054,9 @@ const PortabilityDiagram = ({ isDark }) => {
         : `linear-gradient(135deg, ${color}40 0%, ${color}20 100%)`
       : isDark
       ? 'linear-gradient(135deg, #374151 0%, #1f2937 100%)'
-      : 'linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%)',
+      : 'linear-gradient(135deg, #f3f4f6 0%, var(--ifm-color-emphasis-200) 100%)',
     borderRadius: '12px',
-    border: `3px solid ${highlight ? color : isDark ? '#4b5563' : '#d1d5db'}`,
+    border: `3px solid ${highlight ? color : isDark ? '#4b5563' : 'var(--ifm-color-emphasis-300)'}`,
     fontSize: '0.9375rem',
     textAlign: 'center',
     fontWeight: highlight ? '700' : '600',
@@ -1244,7 +1244,7 @@ const TypeSafetyDiagram = ({ isDark }) => {
           isDark ? '#374151' : '#475569'
         )}>
           <div style={{ color: '#67e8f9' }}>annotations:</div>
-          <div style={{ color: '#e2e8f0', marginLeft: '1rem' }}>
+          <div style={{ color: 'var(--ifm-color-emphasis-200)', marginLeft: '1rem' }}>
             nginx.ingress.kubernetes.io/
           </div>
           <div style={{ ...strikethroughStyle, marginLeft: '2rem' }}>

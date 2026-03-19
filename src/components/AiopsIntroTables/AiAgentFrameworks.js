@@ -56,8 +56,8 @@ const AiAgentFrameworks = () => {
       </div>
 
       <div style={{
-        background: 'white',
-        border: '1px solid #e5e7eb',
+        background: 'var(--ifm-background-surface-color)',
+        border: '1px solid var(--ifm-color-emphasis-200)',
         borderTop: 'none',
         borderRadius: '0 0 8px 8px',
         overflow: 'hidden'
@@ -65,34 +65,34 @@ const AiAgentFrameworks = () => {
         <div style={{
           display: 'grid',
           gridTemplateColumns: '160px 1fr 120px',
-          borderBottom: '2px solid #e5e7eb'
+          borderBottom: '2px solid var(--ifm-color-emphasis-200)'
         }}>
           <div style={{
             padding: '12px 14px',
-            background: '#f8fafc',
+            background: 'var(--ifm-background-surface-color)',
             fontWeight: '600',
             fontSize: '12px',
-            color: '#6b7280'
+            color: 'var(--ifm-color-emphasis-600)'
           }}>
             {isKo ? '도구' : isZh ? '工具' : 'Tool'}
           </div>
           <div style={{
             padding: '12px 14px',
-            background: '#f8fafc',
-            borderLeft: '1px solid #e5e7eb',
+            background: 'var(--ifm-background-surface-color)',
+            borderLeft: '1px solid var(--ifm-color-emphasis-200)',
             fontWeight: '600',
             fontSize: '12px',
-            color: '#6b7280'
+            color: 'var(--ifm-color-emphasis-600)'
           }}>
             {isKo ? '성격' : isZh ? '性质' : 'Nature'}
           </div>
           <div style={{
             padding: '12px 14px',
-            background: '#f8fafc',
-            borderLeft: '1px solid #e5e7eb',
+            background: 'var(--ifm-background-surface-color)',
+            borderLeft: '1px solid var(--ifm-color-emphasis-200)',
             fontWeight: '600',
             fontSize: '12px',
-            color: '#6b7280'
+            color: 'var(--ifm-color-emphasis-600)'
           }}>
             {isKo ? '성숙도' : isZh ? '成熟度' : 'Maturity'}
           </div>
@@ -118,7 +118,7 @@ const AiAgentFrameworks = () => {
             <div style={{
               padding: '12px 14px',
               fontSize: '12px',
-              color: '#4b5563',
+              color: 'var(--ifm-font-color-base)',
               borderLeft: '1px solid #f3f4f6',
               display: 'flex',
               alignItems: 'center'
@@ -146,7 +146,7 @@ const AiAgentFrameworks = () => {
               </span>
               <span style={{
                 fontSize: '10px',
-                color: '#6b7280',
+                color: 'var(--ifm-color-emphasis-600)',
                 textAlign: 'center'
               }}>
                 {fw.status}
@@ -156,11 +156,11 @@ const AiAgentFrameworks = () => {
         ))}
 
         <div style={{
-          background: '#fffbeb',
+          background: 'var(--ifm-color-emphasis-100)',
           borderTop: '1px solid #fde68a',
           padding: '12px 16px',
           fontSize: '12px',
-          color: '#92400e'
+          color: 'var(--ifm-color-emphasis-700)'
         }}>
           <strong>{isKo ? '권장 접근:' : isZh ? '推荐方法：' : 'Recommended Approach:'}</strong> {isKo
             ? 'Q Developer(GA)로 시작 → Strands(OSS)로 워크플로우 자동화 → Kagent(초기)로 K8s 네이티브 자율 운영 탐색'

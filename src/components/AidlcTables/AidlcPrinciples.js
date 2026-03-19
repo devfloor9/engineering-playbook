@@ -89,8 +89,8 @@ const AidlcPrinciples = () => {
       marginTop: '1.5rem'
     },
     principleCard: {
-      background: 'white',
-      border: '1px solid #e5e7eb',
+      background: 'var(--ifm-background-surface-color)',
+      border: '1px solid var(--ifm-color-emphasis-200)',
       borderRadius: '8px',
       padding: '1.25rem',
       boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
@@ -105,12 +105,12 @@ const AidlcPrinciples = () => {
       margin: '0 0 0.5rem 0',
       fontSize: '1rem',
       fontWeight: '600',
-      color: '#111827'
+      color: 'var(--ifm-font-color-base)'
     },
     principleDescription: {
       margin: 0,
       fontSize: '0.875rem',
-      color: '#6b7280',
+      color: 'var(--ifm-color-emphasis-600)',
       lineHeight: '1.5'
     }
   };

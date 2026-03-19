@@ -220,7 +220,7 @@ const GpuVsTrainium2 = () => {
       </div>
 
       <div style={{
-        background: '#ecfdf5',
+        background: 'var(--ifm-color-emphasis-100)',
         border: '2px solid #10b981',
         borderRadius: '8px',
         padding: '16px 20px',

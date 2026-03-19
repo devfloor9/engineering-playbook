@@ -105,39 +105,45 @@ const config = {
         disableInDev: false,
       },
     ],
-    [
-      '@docusaurus/plugin-pwa',
-      {
-        debug: false,
-        offlineModeActivationStrategies: [
-          'appInstalled',
-          'standalone',
-          'queryString',
-        ],
-        pwaHead: [
-          {
-            tagName: 'link',
-            rel: 'icon',
-            href: '/engineering-playbook/img/logo.svg',
-          },
-          {
-            tagName: 'link',
-            rel: 'manifest',
-            href: '/engineering-playbook/manifest.json',
-          },
-          {
-            tagName: 'meta',
-            name: 'theme-color',
-            content: 'rgb(37, 194, 160)',
-          },
-        ],
-      },
-    ],
+    // PWA plugin disabled — causes @theme/PwaReloadPopup resolution error
+    // [
+    //   '@docusaurus/plugin-pwa',
+    //   {
+    //     debug: false,
+    //     offlineModeActivationStrategies: ['appInstalled', 'standalone', 'queryString'],
+    //     pwaHead: [
+    //       { tagName: 'link', rel: 'icon', href: '/engineering-playbook/img/logo.svg' },
+    //       { tagName: 'link', rel: 'manifest', href: '/engineering-playbook/manifest.json' },
+    //       { tagName: 'meta', name: 'theme-color', content: 'rgb(37, 194, 160)' },
+    //     ],
+    //   },
+    // ],
   ],
 
   themeConfig:
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     ({
+      // Mermaid theme for light/dark mode
+      mermaid: {
+        theme: {
+          light: 'neutral',
+          dark: 'dark',
+        },
+        options: {
+          themeVariables: {
+            darkMode: true,
+            primaryColor: '#2C3038',
+            primaryTextColor: '#ECEEF4',
+            primaryBorderColor: '#9AA0AD',
+            lineColor: '#9AA0AD',
+            secondaryColor: '#22262D',
+            tertiaryColor: '#1B1F25',
+            noteBkgColor: '#22262D',
+            noteTextColor: '#B4BAC8',
+            fontFamily: 'Inter, sans-serif',
+          },
+        },
+      },
       // Enable hideable sidebar for focus reading mode
       docs: {
         sidebar: {

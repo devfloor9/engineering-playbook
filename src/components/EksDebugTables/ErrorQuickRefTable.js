@@ -48,13 +48,13 @@ export default function ErrorQuickRefTable() {
         <div style={{ fontSize: '0.95rem', fontWeight: 700 }}>🔍 에러 패턴 Quick Reference</div>
         <div style={{ fontSize: '0.72rem', opacity: 0.7, marginTop: 2 }}>에러 패턴 → 원인 → 해결 빠른 참조 ({filtered.length}건)</div>
       </div>
-      <div style={{ background: '#f8fafc', borderLeft: '1px solid #e2e8f0', borderRight: '1px solid #e2e8f0', padding: '0.6rem 1rem', display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
+      <div style={{ background: 'var(--ifm-background-surface-color)', borderLeft: '1px solid var(--ifm-color-emphasis-200)', borderRight: '1px solid var(--ifm-color-emphasis-200)', padding: '0.6rem 1rem', display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
         {categories.map((c) => (
           <button
             key={c.key}
             onClick={() => setFilter(c.key)}
             style={{
-              border: filter === c.key ? '2px solid #3b82f6' : '1px solid #d1d5db',
+              border: filter === c.key ? '2px solid #3b82f6' : '1px solid var(--ifm-color-emphasis-300)',
               borderRadius: 20, padding: '3px 12px', fontSize: '0.72rem', fontWeight: 600,
               background: filter === c.key ? '#eff6ff' : '#fff', color: filter === c.key ? '#2563eb' : '#6b7280',
               cursor: 'pointer', transition: 'all 0.15s',
@@ -64,16 +64,16 @@ export default function ErrorQuickRefTable() {
           </button>
         ))}
       </div>
-      <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderTop: 'none', borderRadius: '0 0 12px 12px', padding: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.3rem', maxHeight: 600, overflowY: 'auto' }}>
+      <div style={{ background: 'var(--ifm-background-surface-color)', border: '1px solid var(--ifm-color-emphasis-200)', borderTop: 'none', borderRadius: '0 0 12px 12px', padding: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.3rem', maxHeight: 600, overflowY: 'auto' }}>
         {filtered.map((e) => {
           const c = catColors[e.cat] || '#6b7280';
           return (
             <div key={e.id} style={{ borderLeft: `4px solid ${c}`, borderRadius: 8, padding: '0.5rem 0.8rem', background: `${c}05`, border: `1px solid ${c}15` }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: 3 }}>
-                <span style={{ background: '#1e293b', color: '#fff', borderRadius: '50%', width: 20, height: 20, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.65rem', fontWeight: 700, flexShrink: 0 }}>{e.id}</span>
+                <span style={{ background: 'var(--ifm-color-emphasis-800)', color: '#fff', borderRadius: '50%', width: 20, height: 20, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.65rem', fontWeight: 700, flexShrink: 0 }}>{e.id}</span>
                 <code style={{ fontSize: '0.76rem', fontWeight: 700, color: c }}>{e.pattern}</code>
               </div>
-              <div style={{ fontSize: '0.72rem', color: '#6b7280' }}>{e.cause}</div>
+              <div style={{ fontSize: '0.72rem', color: 'var(--ifm-color-emphasis-600)' }}>{e.cause}</div>
               <div style={{ fontSize: '0.72rem', color: '#059669', fontWeight: 500, marginTop: 2 }}>→ {e.fix}</div>
             </div>
           );

@@ -75,8 +75,8 @@ const GoldenSignals = () => {
       </div>
 
       <div style={{
-        background: 'white',
-        border: '1px solid #e5e7eb',
+        background: 'var(--ifm-background-surface-color)',
+        border: '1px solid var(--ifm-color-emphasis-200)',
         borderTop: 'none',
         borderRadius: '0 0 8px 8px',
         overflow: 'hidden'
@@ -104,9 +104,9 @@ const GoldenSignals = () => {
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                <span style={{ fontWeight: '700', fontSize: '15px', color: '#1f2937' }}>{signal.name}</span>
+                <span style={{ fontWeight: '700', fontSize: '15px', color: 'var(--ifm-font-color-base)' }}>{signal.name}</span>
                 <code style={{
-                  background: '#f3f4f6',
+                  background: 'var(--ifm-color-emphasis-100)',
                   padding: '2px 6px',
                   borderRadius: '4px',
                   fontSize: '11px',
@@ -114,7 +114,7 @@ const GoldenSignals = () => {
                   fontWeight: '600'
                 }}>{signal.metric}</code>
               </div>
-              <div style={{ fontSize: '13px', color: '#4b5563', lineHeight: '1.5' }}>
+              <div style={{ fontSize: '13px', color: 'var(--ifm-font-color-base)', lineHeight: '1.5' }}>
                 {signal.description}
               </div>
             </div>

@@ -38,7 +38,7 @@ export default function Slide09() {
             <h4 className="text-lg font-semibold mb-2 text-cyan-300">동적 라우팅 및 스케일링</h4>
             <div className="flex items-center gap-2 text-sm text-gray-300 mb-1">
               <Package className="w-4 h-4 text-blue-400" />
-              <span>Kgateway + LiteLLM: 추론 게이트웨이</span>
+              <span>Kgateway + Bifrost: 2-Tier 게이트웨이</span>
             </div>
             <div className="flex items-center gap-2 text-sm text-gray-300">
               <Package className="w-4 h-4 text-red-400" />

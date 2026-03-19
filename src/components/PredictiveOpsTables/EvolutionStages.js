@@ -31,7 +31,7 @@ const EvolutionStages = () => {
     maxWidth: '760px',
     margin: '2rem auto',
     fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-    backgroundColor: '#ffffff',
+    backgroundColor: 'var(--ifm-background-surface-color)',
     borderRadius: '12px',
     boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
     overflow: 'hidden',
@@ -66,19 +66,19 @@ const EvolutionStages = () => {
   };
 
   const thStyle = {
-    backgroundColor: '#f3f4f6',
-    color: '#111827',
+    backgroundColor: 'var(--ifm-color-emphasis-100)',
+    color: 'var(--ifm-font-color-base)',
     padding: '1rem',
     textAlign: 'left',
     fontWeight: '700',
-    borderBottom: '2px solid #e5e7eb',
+    borderBottom: '2px solid var(--ifm-color-emphasis-200)',
     fontSize: '0.9375rem'
   };
 
   const tdStyle = {
     padding: '1rem',
-    borderBottom: '1px solid #e5e7eb',
-    color: '#374151',
+    borderBottom: '1px solid var(--ifm-color-emphasis-200)',
+    color: 'var(--ifm-font-color-base)',
     fontSize: '15px'
   };
 
@@ -93,17 +93,17 @@ const EvolutionStages = () => {
   };
 
   const footerStyle = {
-    backgroundColor: '#fef3c7',
+    backgroundColor: 'var(--ifm-color-emphasis-100)',
     padding: '1rem 1.5rem',
     fontSize: '0.875rem',
-    color: '#92400e',
+    color: 'var(--ifm-color-emphasis-700)',
     borderTop: '2px solid #fbbf24',
     lineHeight: '1.6'
   };
 
   const footerLabelStyle = {
     fontWeight: '700',
-    color: '#78350f'
+    color: 'var(--ifm-color-emphasis-700)'
   };
 
   return (
@@ -128,7 +128,7 @@ const EvolutionStages = () => {
                   <div style={stageBadgeStyle}>
                     {item.stage}
                   </div>
-                  <div style={{ fontSize: '0.8125rem', color: '#6b7280', marginTop: '0.375rem' }}>
+                  <div style={{ fontSize: '0.8125rem', color: 'var(--ifm-color-emphasis-600)', marginTop: '0.375rem' }}>
                     {item.stageEn}
                   </div>
                 </td>

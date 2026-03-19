@@ -292,17 +292,17 @@ export default function GammaSupportTable({ locale = 'ko' }) {
           {{ ko: '기능, 데이터 플레인, 리소스 오버헤드별 상세 비교 — 클릭하여 상세 보기', en: 'Detailed comparison by features, data plane, resource overhead — click to expand', zh: '按功能、数据平面、资源开销详细对比 — 点击展开详情' }[locale] || 'Detailed comparison by features, data plane, resource overhead — click to expand'}
         </div>
       </div>
-      <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderTop: 'none', borderRadius: '0 0 12px 12px', padding: '0.6rem', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+      <div style={{ background: 'var(--ifm-background-surface-color)', border: '1px solid var(--ifm-color-emphasis-200)', borderTop: 'none', borderRadius: '0 0 12px 12px', padding: '0.6rem', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
         {items.map((item, idx) => {
           const isOpen = expanded === idx;
           return (
             <div
               key={idx}
               style={{
-                border: `1.5px solid ${isOpen ? item.statusColor : '#e0e0e0'}`,
+                border: `1.5px solid ${isOpen ? item.statusColor : 'var(--ifm-color-emphasis-200)'}`,
                 borderLeft: `4px solid ${item.statusColor}`,
                 borderRadius: 8,
-                background: isOpen ? '#fafafa' : '#fff',
+                background: isOpen ? 'var(--ifm-color-emphasis-100)' : '#fff',
                 cursor: 'pointer',
                 transition: 'all 0.2s',
               }}
@@ -312,31 +312,31 @@ export default function GammaSupportTable({ locale = 'ko' }) {
               <div style={{ padding: '0.6rem 0.85rem', display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
                 <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#212121' }}>{item.name}</span>
                 <span style={{ background: item.statusColor, color: '#fff', borderRadius: 6, padding: '1px 8px', fontSize: '0.68rem', fontWeight: 700 }}>{item.status}</span>
-                <span style={{ fontSize: '0.68rem', color: '#757575', background: '#f5f5f5', padding: '1px 6px', borderRadius: 4 }}>{item.dataPlane}</span>
+                <span style={{ fontSize: '0.68rem', color: '#757575', background: 'var(--ifm-color-emphasis-100)', padding: '1px 6px', borderRadius: 4 }}>{item.dataPlane}</span>
                 <span style={{ fontSize: '0.68rem', color: item.sidecar.startsWith('❌') ? '#4caf50' : '#ff9800', fontWeight: 600 }}>{item.sidecar}</span>
                 <span style={{ marginLeft: 'auto', fontSize: '0.75rem', color: '#9e9e9e', transform: isOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>▼</span>
               </div>
 
               {/* Expanded details */}
               {isOpen && (
-                <div style={{ padding: '0 0.85rem 0.7rem', borderTop: '1px solid #e0e0e0' }}>
+                <div style={{ padding: '0 0.85rem 0.7rem', borderTop: '1px solid var(--ifm-color-emphasis-200)' }}>
                   {/* Feature grid */}
                   <div style={{ marginTop: '0.5rem', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.35rem' }}>
                     {Object.entries(fl).map(([key, label]) => (
-                      <div key={key} style={{ background: '#f5f5f5', borderRadius: 6, padding: '0.35rem 0.5rem' }}>
+                      <div key={key} style={{ background: 'var(--ifm-color-emphasis-100)', borderRadius: 6, padding: '0.35rem 0.5rem' }}>
                         <div style={{ fontSize: '0.62rem', color: '#9e9e9e', fontWeight: 600, marginBottom: 1 }}>{label}</div>
-                        <div style={{ fontSize: '0.7rem', color: '#424242', fontWeight: 500 }}>{item.features[key]}</div>
+                        <div style={{ fontSize: '0.7rem', color: 'var(--ifm-font-color-base)', fontWeight: 500 }}>{item.features[key]}</div>
                       </div>
                     ))}
                   </div>
 
                   {/* Meta info */}
                   <div style={{ marginTop: '0.45rem', display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                    <div style={{ background: '#e8f5e9', borderRadius: 6, padding: '0.3rem 0.6rem', flex: 1, minWidth: 150 }}>
+                    <div style={{ background: 'var(--ifm-color-emphasis-100)', borderRadius: 6, padding: '0.3rem 0.6rem', flex: 1, minWidth: 150 }}>
                       <div style={{ fontSize: '0.6rem', color: '#388e3c', fontWeight: 600 }}>{lb.overhead}</div>
                       <div style={{ fontSize: '0.7rem', color: '#2e7d32', fontWeight: 500 }}>{item.overhead}</div>
                     </div>
-                    <div style={{ background: '#e3f2fd', borderRadius: 6, padding: '0.3rem 0.6rem', flex: 2, minWidth: 200 }}>
+                    <div style={{ background: 'var(--ifm-color-emphasis-100)', borderRadius: 6, padding: '0.3rem 0.6rem', flex: 2, minWidth: 200 }}>
                       <div style={{ fontSize: '0.6rem', color: '#1565c0', fontWeight: 600 }}>{lb.strength}</div>
                       <div style={{ fontSize: '0.7rem', color: '#0d47a1', fontWeight: 500 }}>{item.strength}</div>
                     </div>

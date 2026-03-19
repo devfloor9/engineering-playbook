@@ -55,7 +55,7 @@ const categories = [
   {
     id: 'performance',
     title: { ko: '성능', en: 'Performance' },
-    color: '#1b5e20',
+    color: '#2e7d32',
     rows: [
       { label: { ko: '처리량', en: 'Throughput' }, values: ['AWS 관리형 (고성능)', '✅✅✅ 최고 (eBPF)', '✅✅ 높음', '✅✅ 높음', '✅✅ 높음'] },
       { label: { ko: '지연시간', en: 'Latency' }, values: ['낮음', '✅ 가장 낮음', '낮음', '낮음', '낮음'] },
@@ -179,14 +179,14 @@ export default function FeatureComparisonMatrix({ locale = 'ko' }) {
         </div>
       </div>
 
-      <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderTop: 'none', padding: '0.75rem' }}>
+      <div style={{ background: 'var(--ifm-background-surface-color)', border: '1px solid var(--ifm-color-emphasis-200)', borderTop: 'none', padding: '0.75rem' }}>
         <button onClick={toggleAll} style={{ marginBottom: '0.75rem', padding: '0.4rem 0.8rem', background: '#4a148c', color: '#fff', border: 'none', borderRadius: 6, fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}>
           {allExpanded ? (locale === 'ko' ? '모두 접기' : 'Collapse All') : (locale === 'ko' ? '모두 펼치기' : 'Expand All')}
         </button>
 
         <div style={{ minWidth: 900 }}>
           {categories.map((cat) => (
-            <div key={cat.id} style={{ marginBottom: '0.5rem', border: '1px solid #e2e8f0', borderRadius: 8, overflow: 'hidden' }}>
+            <div key={cat.id} style={{ marginBottom: '0.5rem', border: '1px solid var(--ifm-color-emphasis-200)', borderRadius: 8, overflow: 'hidden' }}>
               <div onClick={() => toggleCategory(cat.id)} style={{ background: cat.color, color: '#fff', padding: '0.6rem 1rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.85rem', fontWeight: 700 }}>
                 <span>{cat.title[locale]} ({cat.rows.length}개)</span>
                 <span style={{ fontSize: '1rem' }}>{expanded[cat.id] ? '▼' : '▶'}</span>
@@ -196,8 +196,8 @@ export default function FeatureComparisonMatrix({ locale = 'ko' }) {
                 <div style={{ overflowX: 'auto' }}>
                   <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.75rem' }}>
                     <thead>
-                      <tr style={{ background: '#f8fafc', borderBottom: '2px solid #e2e8f0' }}>
-                        <th style={{ padding: '0.5rem', textAlign: 'left', fontWeight: 600, minWidth: 150, position: 'sticky', left: 0, background: '#f8fafc', zIndex: 1 }}>{locale === 'ko' ? '비교 항목' : 'Feature'}</th>
+                      <tr style={{ background: 'var(--ifm-background-surface-color)', borderBottom: '2px solid var(--ifm-color-emphasis-200)' }}>
+                        <th style={{ padding: '0.5rem', textAlign: 'left', fontWeight: 600, minWidth: 150, position: 'sticky', left: 0, background: 'var(--ifm-background-surface-color)', zIndex: 1 }}>{locale === 'ko' ? '비교 항목' : 'Feature'}</th>
                         {solutions.map((sol, i) => (
                           <th key={i} style={{ padding: '0.5rem', textAlign: 'left', fontWeight: 600, fontSize: '0.75rem', minWidth: 140 }}>{sol}</th>
                         ))}
@@ -206,7 +206,7 @@ export default function FeatureComparisonMatrix({ locale = 'ko' }) {
                     <tbody>
                       {cat.rows.map((row, idx) => (
                         <tr key={idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                          <td style={{ padding: '0.5rem', fontWeight: 600, background: '#fafafa', position: 'sticky', left: 0, zIndex: 1 }}>{row.label[locale]}</td>
+                          <td style={{ padding: '0.5rem', fontWeight: 600, background: 'var(--ifm-background-surface-color)', position: 'sticky', left: 0, zIndex: 1 }}>{row.label[locale]}</td>
                           {row.values.map((val, i) => (
                             <td key={i} style={{ padding: '0.5rem', background: getCellBg(val), whiteSpace: 'nowrap' }}>{val}</td>
                           ))}
@@ -218,7 +218,7 @@ export default function FeatureComparisonMatrix({ locale = 'ko' }) {
               )}
 
               {!expanded[cat.id] && (
-                <div style={{ padding: '0.6rem 1rem', fontSize: '0.72rem', color: '#64748b', fontStyle: 'italic', background: '#fafafa' }}>
+                <div style={{ padding: '0.6rem 1rem', fontSize: '0.72rem', color: 'var(--ifm-color-emphasis-600)', fontStyle: 'italic', background: 'var(--ifm-background-surface-color)' }}>
                   {locale === 'ko' ? '클릭하여 펼치기' : 'Click to expand'} · {cat.rows.length}개 항목
                 </div>
               )}

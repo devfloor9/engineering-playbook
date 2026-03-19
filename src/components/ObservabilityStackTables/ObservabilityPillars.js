@@ -54,8 +54,8 @@ const ObservabilityPillars = () => {
 
       {/* Table */}
       <div style={{
-        background: 'white',
-        border: '1px solid #e5e7eb',
+        background: 'var(--ifm-background-surface-color)',
+        border: '1px solid var(--ifm-color-emphasis-200)',
         borderTop: 'none',
         borderRadius: '0 0 8px 8px',
         overflow: 'hidden'
@@ -64,32 +64,32 @@ const ObservabilityPillars = () => {
         <div style={{
           display: 'grid',
           gridTemplateColumns: '140px 200px 1fr',
-          borderBottom: '2px solid #e5e7eb',
-          background: '#f8fafc'
+          borderBottom: '2px solid var(--ifm-color-emphasis-200)',
+          background: 'var(--ifm-background-surface-color)'
         }}>
           <div style={{
             padding: '12px 14px',
             fontWeight: '600',
             fontSize: '12px',
-            color: '#6b7280'
+            color: 'var(--ifm-color-emphasis-600)'
           }}>
             {isKo ? '필러' : isZh ? '支柱' : 'Pillar'}
           </div>
           <div style={{
             padding: '12px 14px',
-            borderLeft: '1px solid #e5e7eb',
+            borderLeft: '1px solid var(--ifm-color-emphasis-200)',
             fontWeight: '600',
             fontSize: '12px',
-            color: '#6b7280'
+            color: 'var(--ifm-color-emphasis-600)'
           }}>
             {isKo ? '역할' : isZh ? '作用' : 'Role'}
           </div>
           <div style={{
             padding: '12px 14px',
-            borderLeft: '1px solid #e5e7eb',
+            borderLeft: '1px solid var(--ifm-color-emphasis-200)',
             fontWeight: '600',
             fontSize: '12px',
-            color: '#6b7280'
+            color: 'var(--ifm-color-emphasis-600)'
           }}>
             {isKo ? 'AWS 서비스' : isZh ? 'AWS 服务' : 'AWS Services'}
           </div>
@@ -104,9 +104,9 @@ const ObservabilityPillars = () => {
           }}>
             <div style={{
               padding: '14px',
-              background: '#f8fafc',
+              background: 'var(--ifm-background-surface-color)',
               fontWeight: '700',
-              color: '#1f2937',
+              color: 'var(--ifm-font-color-base)',
               display: 'flex',
               alignItems: 'center'
             }}>
@@ -115,7 +115,7 @@ const ObservabilityPillars = () => {
             <div style={{
               padding: '14px',
               fontSize: '13px',
-              color: '#4b5563',
+              color: 'var(--ifm-font-color-base)',
               borderLeft: '1px solid #f3f4f6',
               display: 'flex',
               alignItems: 'center'
@@ -125,7 +125,7 @@ const ObservabilityPillars = () => {
             <div style={{
               padding: '14px',
               fontSize: '13px',
-              color: '#4b5563',
+              color: 'var(--ifm-font-color-base)',
               borderLeft: '1px solid #f3f4f6',
               display: 'flex',
               alignItems: 'center'

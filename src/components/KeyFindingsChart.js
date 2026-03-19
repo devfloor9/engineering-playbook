@@ -165,7 +165,7 @@ const i18n = {
 function FindingCard({ number, title, tag, tagColor, borderColor, bgColor, isDark, children }) {
   return (
     <div style={{
-      border: `1px solid ${isDark ? '#475569' : '#e2e8f0'}`,
+      border: `1px solid ${isDark ? '#475569' : 'var(--ifm-color-emphasis-200)'}`,
       borderLeft: `4px solid ${borderColor}`,
       borderRadius: '8px',
       padding: '20px',
@@ -228,7 +228,7 @@ function MetricTable({ headers, rows, locale, isDark }) {
                 textAlign: 'left',
                 fontWeight: '600',
                 color: isDark ? '#cbd5e1' : '#475569',
-                borderBottom: isDark ? '2px solid #334155' : '2px solid #e2e8f0'
+                borderBottom: isDark ? '2px solid #334155' : '2px solid var(--ifm-color-emphasis-200)'
               }}>
                 {h}
               </th>
@@ -239,7 +239,7 @@ function MetricTable({ headers, rows, locale, isDark }) {
           {rows.map((row, i) => (
             <tr key={i} style={{ borderBottom: i < rows.length - 1 ? (isDark ? '1px solid #334155' : '1px solid #f1f5f9') : 'none' }}>
               {Object.keys(row).filter(k => k !== 'highlight' && k !== 'bold' && k !== 'vxlanGreen' && k !== 'eniRed' && k !== 'baseRed' && k !== 'boldTuned' && k !== 'semiboldTuned').map((key, j) => {
-                let color = isDark ? '#e2e8f0' : '#334155';
+                let color = isDark ? 'var(--ifm-color-emphasis-200)' : '#334155';
                 let fontWeight = '400';
                 let bgColor = 'transparent';
 
@@ -333,7 +333,7 @@ function MetricBox({ label, value, change, color = '#64748b', isDark }) {
       flex: 1,
       padding: '16px',
       background: isDark ? '#1e293b' : 'white',
-      border: isDark ? '1px solid #334155' : '1px solid #e2e8f0',
+      border: isDark ? '1px solid #334155' : '1px solid var(--ifm-color-emphasis-200)',
       borderRadius: '6px',
       textAlign: 'center'
     }}>
@@ -355,8 +355,8 @@ function MetricBox({ label, value, change, color = '#64748b', isDark }) {
 // Helper: Metric Grid Card (for kube-proxy removal)
 function MetricGridCard({ label, value, detail, highlight, isDark }) {
   const colors = {
-    green: { bg: '#ecfdf5', text: '#059669' },
-    gray: { bg: '#f8fafc', text: '#64748b' }
+    green: { bg: 'var(--ifm-color-emphasis-100)', text: '#059669' },
+    gray: { bg: 'var(--ifm-color-emphasis-100)', text: 'var(--ifm-color-emphasis-600)' }
   };
   const c = colors[highlight] || colors.gray;
 
@@ -364,7 +364,7 @@ function MetricGridCard({ label, value, detail, highlight, isDark }) {
     <div style={{
       padding: '16px',
       background: isDark ? '#1e293b' : 'white',
-      border: isDark ? '1px solid #334155' : '1px solid #e2e8f0',
+      border: isDark ? '1px solid #334155' : '1px solid var(--ifm-color-emphasis-200)',
       borderRadius: '6px'
     }}>
       <div style={{ fontSize: '13px', color: isDark ? '#94a3b8' : '#64748b', marginBottom: '8px' }}>{label}</div>
@@ -540,10 +540,10 @@ export default function KeyFindingsChart({ locale = 'en' }) {
           marginTop: '16px',
           padding: '16px',
           background: isDark ? '#0f172a' : 'white',
-          border: isDark ? '1px solid #334155' : '1px solid #e2e8f0',
+          border: isDark ? '1px solid #334155' : '1px solid var(--ifm-color-emphasis-200)',
           borderRadius: '6px'
         }}>
-          <div style={{ fontSize: '13px', fontWeight: '600', color: isDark ? '#e2e8f0' : '#334155', marginBottom: '8px' }}>
+          <div style={{ fontSize: '13px', fontWeight: '600', color: isDark ? 'var(--ifm-color-emphasis-200)' : '#334155', marginBottom: '8px' }}>
             {locale === 'en' ? 'Most Impactful Tunings:' : '가장 영향력 있는 튜닝:'}
           </div>
           <ol style={{ margin: '0', paddingLeft: '20px', fontSize: '13px', color: isDark ? '#94a3b8' : '#64748b', lineHeight: '1.8' }}>

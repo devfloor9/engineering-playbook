@@ -31,18 +31,18 @@ export default function ArchitectureComparisonTable({ locale = 'ko' }) {
         <div style={{ fontSize: '0.95rem', fontWeight: 700 }}>{title}</div>
         <div style={{ fontSize: '0.72rem', opacity: 0.7, marginTop: 2 }}>{subtitle}</div>
       </div>
-      <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderTop: 'none', borderRadius: '0 0 12px 12px', padding: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+      <div style={{ background: 'var(--ifm-background-surface-color)', border: '1px solid var(--ifm-color-emphasis-200)', borderTop: 'none', borderRadius: '0 0 12px 12px', padding: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
         {data.map((item, idx) => (
-          <div key={idx} style={{ border: '1.5px solid #e2e8f0', borderRadius: 8, padding: '0.7rem 1rem', background: '#fafafa' }}>
-            <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#1f2937', marginBottom: '0.5rem' }}>{item.aspect}</div>
+          <div key={idx} style={{ border: '1.5px solid var(--ifm-color-emphasis-200)', borderRadius: 8, padding: '0.7rem 1rem', background: 'var(--ifm-background-surface-color)' }}>
+            <div style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--ifm-font-color-base)', marginBottom: '0.5rem' }}>{item.aspect}</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
               <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'flex-start' }}>
                 <span style={{ background: '#ef5350', color: '#fff', borderRadius: 6, padding: '2px 8px', fontSize: '0.7rem', fontWeight: 700, flexShrink: 0 }}>{labels.nginx}</span>
-                <span style={{ fontSize: '0.76rem', color: '#6b7280', lineHeight: 1.4 }}>{item.nginx}</span>
+                <span style={{ fontSize: '0.76rem', color: 'var(--ifm-color-emphasis-600)', lineHeight: 1.4 }}>{item.nginx}</span>
               </div>
               <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'flex-start' }}>
                 <span style={{ background: '#66bb6a', color: '#fff', borderRadius: 6, padding: '2px 8px', fontSize: '0.7rem', fontWeight: 700, flexShrink: 0 }}>{labels.gateway}</span>
-                <span style={{ fontSize: '0.76rem', color: '#6b7280', lineHeight: 1.4 }}>{item.gateway}</span>
+                <span style={{ fontSize: '0.76rem', color: 'var(--ifm-color-emphasis-600)', lineHeight: 1.4 }}>{item.gateway}</span>
               </div>
             </div>
           </div>

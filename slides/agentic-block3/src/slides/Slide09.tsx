@@ -34,30 +34,30 @@ export default function Slide09() {
 
         <div className="grid grid-cols-2 gap-8">
           <Card color="blue" className="p-6">
-            <h3 className="text-2xl font-semibold text-cyan-400 mb-4">Karpenter NodePool</h3>
+            <h3 className="text-2xl font-semibold text-cyan-400 mb-4">Blue/Green NodePool 전략</h3>
             <ul className="space-y-2 text-gray-300">
-              <li>• <span className="text-purple-400 font-mono">instance-family: p5</span></li>
-              <li>• <span className="text-cyan-400 font-mono">capacity-type: on-demand</span></li>
-              <li>• GPU taint: <span className="text-amber-400 font-mono">nvidia.com/gpu</span></li>
-              <li>• Consolidation: <span className="text-emerald-400 font-mono">WhenEmpty</span></li>
+              <li>• <span className="text-emerald-400">GREEN NodePool 생성</span> → 새 K8s 버전</li>
+              <li>• <span className="text-purple-400">모델 Pre-load</span> → warmup 완료</li>
+              <li>• <span className="text-cyan-400">HTTPRoute weight shift</span> (30/70 → 0/100)</li>
+              <li>• <span className="text-amber-400">BLUE NodePool 삭제</span> → 완전 전환</li>
             </ul>
           </Card>
 
           <Card color="purple" className="p-6">
-            <h3 className="text-2xl font-semibold text-purple-400 mb-4">GPU 인스턴스</h3>
+            <h3 className="text-2xl font-semibold text-purple-400 mb-4">Karpenter 제어</h3>
             <ul className="space-y-2 text-gray-300">
-              <li>• <strong className="text-emerald-400">p5.48xlarge</strong>: 8x H100 80GB</li>
-              <li>• vCPU: 192, Memory: 2048 GiB</li>
-              <li>• Network: 3200 Gbps EFA</li>
-              <li>• 용도: 70B+ 파라미터 모델</li>
+              <li>• <span className="text-cyan-400 font-mono">budgets: nodes=1</span></li>
+              <li>• 동시 노드 consolidation 제한</li>
+              <li>• llm-d drain-aware routing 연계</li>
+              <li>• 무중단 스케일 다운</li>
             </ul>
           </Card>
         </div>
 
         <div className="mt-8 flex items-center justify-center gap-4">
-          <Badge color="emerald" size="lg">EKS Auto Mode</Badge>
-          <Badge color="blue" size="lg">Karpenter v1.0+</Badge>
-          <Badge color="purple" size="lg">GPU Auto-provisioning</Badge>
+          <Badge color="emerald" size="lg">Blue/Green Upgrade</Badge>
+          <Badge color="blue" size="lg">Weight-Based Shift</Badge>
+          <Badge color="purple" size="lg">Zero Downtime</Badge>
         </div>
       </div>
     </SlideWrapper>

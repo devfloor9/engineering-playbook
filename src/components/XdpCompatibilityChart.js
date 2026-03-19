@@ -139,7 +139,7 @@ export default function XdpCompatibilityChart({ locale = 'en' }) {
 
   const sectionStyle = {
     marginBottom: '24px',
-    borderBottom: '1px solid ' + (isDark ? '#334155' : '#e5e7eb'),
+    borderBottom: '1px solid ' + (isDark ? '#334155' : 'var(--ifm-color-emphasis-200)'),
     paddingBottom: '16px'
   };
 
@@ -159,15 +159,15 @@ export default function XdpCompatibilityChart({ locale = 'en' }) {
     padding: '12px',
     textAlign: 'left',
     fontWeight: '600',
-    borderBottom: isDark ? '2px solid #334155' : '2px solid #e0e0e0',
+    borderBottom: isDark ? '2px solid #334155' : '2px solid var(--ifm-color-emphasis-200)',
     color: isDark ? '#cbd5e1' : '#333'
   };
 
   const tdStyle = {
     padding: '12px',
-    borderBottom: isDark ? '1px solid #334155' : '1px solid #e0e0e0',
+    borderBottom: isDark ? '1px solid #334155' : '1px solid var(--ifm-color-emphasis-200)',
     verticalAlign: 'top',
-    color: isDark ? '#e2e8f0' : 'inherit'
+    color: isDark ? 'var(--ifm-color-emphasis-200)' : 'inherit'
   };
 
   const pillStyle = (color) => ({

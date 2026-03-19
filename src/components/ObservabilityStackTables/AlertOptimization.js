@@ -59,8 +59,8 @@ const AlertOptimization = () => {
 
       {/* Table */}
       <div style={{
-        background: 'white',
-        border: '1px solid #e5e7eb',
+        background: 'var(--ifm-background-surface-color)',
+        border: '1px solid var(--ifm-color-emphasis-200)',
         borderTop: 'none',
         borderRadius: '0 0 8px 8px',
         overflow: 'hidden'
@@ -69,32 +69,32 @@ const AlertOptimization = () => {
         <div style={{
           display: 'grid',
           gridTemplateColumns: '150px 1fr 150px',
-          borderBottom: '2px solid #e5e7eb',
-          background: '#f8fafc'
+          borderBottom: '2px solid var(--ifm-color-emphasis-200)',
+          background: 'var(--ifm-background-surface-color)'
         }}>
           <div style={{
             padding: '12px 14px',
             fontWeight: '600',
             fontSize: '12px',
-            color: '#6b7280'
+            color: 'var(--ifm-color-emphasis-600)'
           }}>
             {isKo ? '항목' : isZh ? '项目' : 'Item'}
           </div>
           <div style={{
             padding: '12px 14px',
-            borderLeft: '1px solid #e5e7eb',
+            borderLeft: '1px solid var(--ifm-color-emphasis-200)',
             fontWeight: '600',
             fontSize: '12px',
-            color: '#6b7280'
+            color: 'var(--ifm-color-emphasis-600)'
           }}>
             {isKo ? '전략' : isZh ? '策略' : 'Strategy'}
           </div>
           <div style={{
             padding: '12px 14px',
-            borderLeft: '1px solid #e5e7eb',
+            borderLeft: '1px solid var(--ifm-color-emphasis-200)',
             fontWeight: '600',
             fontSize: '12px',
-            color: '#6b7280'
+            color: 'var(--ifm-color-emphasis-600)'
           }}>
             {isKo ? '기대 효과' : isZh ? '预期效果' : 'Expected Effect'}
           </div>
@@ -109,9 +109,9 @@ const AlertOptimization = () => {
           }}>
             <div style={{
               padding: '14px',
-              background: '#f8fafc',
+              background: 'var(--ifm-background-surface-color)',
               fontWeight: '700',
-              color: '#1f2937',
+              color: 'var(--ifm-font-color-base)',
               display: 'flex',
               alignItems: 'center'
             }}>
@@ -120,7 +120,7 @@ const AlertOptimization = () => {
             <div style={{
               padding: '14px',
               fontSize: '13px',
-              color: '#4b5563',
+              color: 'var(--ifm-font-color-base)',
               borderLeft: '1px solid #f3f4f6',
               display: 'flex',
               alignItems: 'center'
@@ -144,11 +144,11 @@ const AlertOptimization = () => {
 
         {/* Footer */}
         <div style={{
-          background: '#fffbeb',
+          background: 'var(--ifm-color-emphasis-100)',
           borderTop: '1px solid #fde68a',
           padding: '12px 16px',
           fontSize: '12px',
-          color: '#92400e',
+          color: 'var(--ifm-color-emphasis-700)',
           lineHeight: '1.6'
         }}>
           💡 <strong>{isKo ? 'Alert Fatigue 문제:' : isZh ? '告警疲劳问题:' : 'Alert Fatigue Problem:'}</strong> {isKo ? '평균적인 EKS 클러스터는 일 50-200개의 알림이 발생하지만, 실제 조치가 필요한 알림은 10-15%에 불과합니다. SLO 기반 알림과 ML 이상 탐지를 결합하면 노이즈를 대폭 줄일 수 있습니다.' : isZh ? '典型的 EKS 集群每天会产生 50-200 个告警，但实际需要处理的告警只有 10-15%。结合基于 SLO 的告警和 ML 异常检测可以显著减少噪声。' : 'A typical EKS cluster generates 50-200 alerts per day, but only 10-15% require actual action. Combining SLO-based alerts with ML anomaly detection can significantly reduce noise.'}

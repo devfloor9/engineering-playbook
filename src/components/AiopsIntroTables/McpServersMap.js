@@ -145,8 +145,8 @@ const McpServersMap = () => {
 
       {/* Category Sections */}
       <div style={{
-        background: 'white',
-        border: '1px solid #e5e7eb',
+        background: 'var(--ifm-background-surface-color)',
+        border: '1px solid var(--ifm-color-emphasis-200)',
         borderTop: 'none',
         padding: '24px'
       }}>
@@ -206,7 +206,7 @@ const McpServersMap = () => {
                     </div>
                     <div style={{
                       fontSize: '11px',
-                      color: '#6b7280',
+                      color: 'var(--ifm-color-emphasis-600)',
                       lineHeight: '1.4'
                     }}>
                       {server.desc}
@@ -222,10 +222,10 @@ const McpServersMap = () => {
         <div style={{
           marginTop: '20px',
           padding: '12px',
-          background: '#f8fafc',
+          background: 'var(--ifm-background-surface-color)',
           borderRadius: '6px',
           fontSize: '12px',
-          color: '#4b5563',
+          color: 'var(--ifm-font-color-base)',
           textAlign: 'center'
         }}>
           {isKo
@@ -238,16 +238,16 @@ const McpServersMap = () => {
 
       {/* Hosting Comparison */}
       <div style={{
-        background: 'white',
-        border: '1px solid #e5e7eb',
-        borderTop: '1px solid #e5e7eb',
+        background: 'var(--ifm-background-surface-color)',
+        border: '1px solid var(--ifm-color-emphasis-200)',
+        borderTop: '1px solid var(--ifm-color-emphasis-200)',
         padding: '24px',
         marginTop: '2px'
       }}>
         <div style={{
           fontSize: '14px',
           fontWeight: '600',
-          color: '#374151',
+          color: 'var(--ifm-font-color-base)',
           marginBottom: '16px',
           textAlign: 'center'
         }}>
@@ -279,7 +279,7 @@ const McpServersMap = () => {
                 </div>
                 <div style={{
                   fontSize: '11px',
-                  color: '#4b5563',
+                  color: 'var(--ifm-font-color-base)',
                   lineHeight: '1.5'
                 }}>
                   {option.items.map((item, i) => (
@@ -295,7 +295,7 @@ const McpServersMap = () => {
                   alignItems: 'center',
                   padding: '0 8px',
                   fontSize: '20px',
-                  color: '#9ca3af',
+                  color: 'var(--ifm-color-emphasis-500)',
                   fontWeight: '700'
                 }}>
                   →
@@ -308,7 +308,7 @@ const McpServersMap = () => {
         <div style={{
           marginTop: '16px',
           fontSize: '11px',
-          color: '#6b7280',
+          color: 'var(--ifm-color-emphasis-600)',
           textAlign: 'center',
           lineHeight: '1.5'
         }}>
@@ -322,13 +322,13 @@ const McpServersMap = () => {
 
       {/* Footer */}
       <div style={{
-        background: '#dbeafe',
-        border: '1px solid #e5e7eb',
+        background: 'var(--ifm-color-emphasis-100)',
+        border: '1px solid var(--ifm-color-emphasis-200)',
         borderTop: 'none',
         borderRadius: '0 0 8px 8px',
         padding: '12px 16px',
         fontSize: '12px',
-        color: '#1e40af',
+        color: '#2563eb',
         textAlign: 'center'
       }}>
         {isKo ? '전체 목록: github.com/awslabs/mcp | 서버 추가는 지속 업데이트 중' : isZh ? '完整列表: github.com/awslabs/mcp | 持续更新新服务器' : 'Full list: github.com/awslabs/mcp | Continuously updated with new servers'}

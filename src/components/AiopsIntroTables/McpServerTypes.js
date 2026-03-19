@@ -80,8 +80,8 @@ const McpServerTypes = () => {
       </div>
 
       <div style={{
-        background: 'white',
-        border: '1px solid #e5e7eb',
+        background: 'var(--ifm-background-surface-color)',
+        border: '1px solid var(--ifm-color-emphasis-200)',
         borderTop: 'none',
         borderRadius: '0 0 8px 8px',
         overflow: 'hidden'
@@ -90,20 +90,20 @@ const McpServerTypes = () => {
         <div style={{
           display: 'grid',
           gridTemplateColumns: '110px 1fr 1fr 1fr',
-          borderBottom: '2px solid #e5e7eb'
+          borderBottom: '2px solid var(--ifm-color-emphasis-200)'
         }}>
           <div style={{
             padding: '12px 14px',
-            background: '#f8fafc',
+            background: 'var(--ifm-background-surface-color)',
             fontWeight: '600',
             fontSize: '12px',
-            color: '#6b7280'
+            color: 'var(--ifm-color-emphasis-600)'
           }} />
           {types.map((t) => (
             <div key={t.name} style={{
               padding: '12px 14px',
               background: `${t.color}08`,
-              borderLeft: '1px solid #e5e7eb',
+              borderLeft: '1px solid var(--ifm-color-emphasis-200)',
               textAlign: 'center'
             }}>
               <div style={{
@@ -149,10 +149,10 @@ const McpServerTypes = () => {
           }}>
             <div style={{
               padding: '10px 14px',
-              background: '#f8fafc',
+              background: 'var(--ifm-background-surface-color)',
               fontSize: '12px',
               fontWeight: '600',
-              color: '#374151',
+              color: 'var(--ifm-font-color-base)',
               display: 'flex',
               alignItems: 'center'
             }}>
@@ -162,14 +162,14 @@ const McpServerTypes = () => {
               <div key={`${row.key}-${t.name}`} style={{
                 padding: '10px 14px',
                 fontSize: '12px',
-                color: '#4b5563',
+                color: 'var(--ifm-font-color-base)',
                 borderLeft: '1px solid #f3f4f6',
                 display: 'flex',
                 alignItems: 'center'
               }}>
                 {row.key === 'install' ? (
                   <code style={{
-                    background: '#f3f4f6',
+                    background: 'var(--ifm-color-emphasis-100)',
                     padding: '2px 6px',
                     borderRadius: '3px',
                     fontSize: '11px',
@@ -187,11 +187,11 @@ const McpServerTypes = () => {
 
         {/* Footer */}
         <div style={{
-          background: '#fffbeb',
+          background: 'var(--ifm-color-emphasis-100)',
           borderTop: '1px solid #fde68a',
           padding: '12px 16px',
           fontSize: '12px',
-          color: '#92400e'
+          color: 'var(--ifm-color-emphasis-700)'
         }}>
           <strong>{isKo ? '권장 시작점:' : isZh ? '推荐起点:' : 'Recommended Start:'}</strong> {isKo
             ? '개별 로컬 MCP 서버(GA)로 시작하여 Kiro+MCP 패턴을 검증한 후, 엔터프라이즈 보안 요구사항에 따라 Fully Managed로 전환하세요. AWS MCP Server(통합)는 멀티 서비스 복합 작업에 적합합니다.'

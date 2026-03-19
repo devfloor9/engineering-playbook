@@ -53,8 +53,8 @@ const NextSteps = () => {
       </div>
 
       <div style={{
-        background: 'white',
-        border: '1px solid #e5e7eb',
+        background: 'var(--ifm-background-surface-color)',
+        border: '1px solid var(--ifm-color-emphasis-200)',
         borderTop: 'none',
         borderRadius: '0 0 8px 8px',
         overflow: 'hidden'
@@ -62,34 +62,34 @@ const NextSteps = () => {
         <div style={{
           display: 'grid',
           gridTemplateColumns: '80px 200px 1fr',
-          borderBottom: '2px solid #e5e7eb'
+          borderBottom: '2px solid var(--ifm-color-emphasis-200)'
         }}>
           <div style={{
             padding: '12px 14px',
-            background: '#f8fafc',
+            background: 'var(--ifm-background-surface-color)',
             fontWeight: '600',
             fontSize: '12px',
-            color: '#6b7280'
+            color: 'var(--ifm-color-emphasis-600)'
           }}>
             {isKo ? '순서' : isZh ? '顺序' : 'Order'}
           </div>
           <div style={{
             padding: '12px 14px',
-            background: '#f8fafc',
-            borderLeft: '1px solid #e5e7eb',
+            background: 'var(--ifm-background-surface-color)',
+            borderLeft: '1px solid var(--ifm-color-emphasis-200)',
             fontWeight: '600',
             fontSize: '12px',
-            color: '#6b7280'
+            color: 'var(--ifm-color-emphasis-600)'
           }}>
             {isKo ? '문서' : isZh ? '文档' : 'Document'}
           </div>
           <div style={{
             padding: '12px 14px',
-            background: '#f8fafc',
-            borderLeft: '1px solid #e5e7eb',
+            background: 'var(--ifm-background-surface-color)',
+            borderLeft: '1px solid var(--ifm-color-emphasis-200)',
             fontWeight: '600',
             fontSize: '12px',
-            color: '#6b7280'
+            color: 'var(--ifm-color-emphasis-600)'
           }}>
             {isKo ? '핵심 내용' : isZh ? '核心内容' : 'Key Content'}
           </div>
@@ -131,7 +131,7 @@ const NextSteps = () => {
             <div style={{
               padding: '12px 14px',
               fontSize: '12px',
-              color: '#4b5563',
+              color: 'var(--ifm-font-color-base)',
               borderLeft: '1px solid #f3f4f6',
               display: 'flex',
               alignItems: 'center'
@@ -142,11 +142,11 @@ const NextSteps = () => {
         ))}
 
         <div style={{
-          background: '#fffbeb',
+          background: 'var(--ifm-color-emphasis-100)',
           borderTop: '1px solid #fde68a',
           padding: '12px 16px',
           fontSize: '12px',
-          color: '#92400e'
+          color: 'var(--ifm-color-emphasis-700)'
         }}>
           <strong>{isKo ? '학습 팁:' : isZh ? '学习提示:' : 'Learning Tip:'}</strong> {isKo
             ? '각 문서는 이전 내용을 기반으로 구성되어 있으므로, 순서대로 학습하는 것을 권장합니다. 실제 구축 시에는 관찰성 스택 구축 → AIDLC 적용 → 예측 운영 확장 순서로 진행하세요.'

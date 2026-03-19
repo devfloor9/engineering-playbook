@@ -18,14 +18,14 @@ export default function ZonalShiftImpactTable() {
         <div style={{ fontSize: '0.95rem', fontWeight: 700 }}>⚡ ARC Zonal Shift 영향 범위</div>
         <div style={{ fontSize: '0.72rem', opacity: 0.7, marginTop: 2 }}>Zonal Shift는 트래픽 라우팅만 변경합니다 — 각 계층별 영향 확인</div>
       </div>
-      <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderTop: 'none', borderRadius: '0 0 12px 12px', overflow: 'hidden' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr auto auto', gap: 0, fontSize: '0.72rem', fontWeight: 700, color: '#64748b', background: '#f8fafc', padding: '0.6rem 1rem', borderBottom: '1px solid #e2e8f0' }}>
+      <div style={{ background: 'var(--ifm-background-surface-color)', border: '1px solid var(--ifm-color-emphasis-200)', borderTop: 'none', borderRadius: '0 0 12px 12px', overflow: 'hidden' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr auto auto', gap: 0, fontSize: '0.72rem', fontWeight: 700, color: 'var(--ifm-color-emphasis-600)', background: 'var(--ifm-background-surface-color)', padding: '0.6rem 1rem', borderBottom: '1px solid var(--ifm-color-emphasis-200)' }}>
           <span>계층</span><span>Zonal Shift 영향</span><span style={{ textAlign: 'center' }}>자동 조정</span><span>수동 작업</span>
         </div>
         {rows.map((r, i) => (
           <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr 2fr auto auto', gap: 0, padding: '0.6rem 1rem', borderBottom: i < rows.length - 1 ? '1px solid #f1f5f9' : 'none', alignItems: 'center', fontSize: '0.78rem', background: i % 2 === 0 ? '#fff' : '#fafbfc' }}>
-            <span style={{ fontWeight: 600, color: '#1e293b' }}>{r.icon} {r.layer}</span>
-            <span style={{ color: '#475569' }}>{r.impact}</span>
+            <span style={{ fontWeight: 600, color: 'var(--ifm-font-color-base)' }}>{r.icon} {r.layer}</span>
+            <span style={{ color: 'var(--ifm-color-emphasis-600)' }}>{r.impact}</span>
             <span style={{ textAlign: 'center', fontSize: '0.85rem' }}>{r.auto ? '✅' : '❌'}</span>
             <span style={{ color: r.manual === '-' ? '#94a3b8' : '#b45309', fontSize: '0.72rem', fontWeight: r.manual !== '-' ? 600 : 400 }}>{r.manual}</span>
           </div>

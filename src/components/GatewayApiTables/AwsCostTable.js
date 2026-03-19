@@ -26,14 +26,14 @@ export default function AwsCostTable({ locale = 'ko' }) {
         <div style={{ fontSize: '0.95rem', fontWeight: 700 }}>💰 {locale === 'ko' ? 'AWS Native 추가 비용' : 'AWS Native Additional Costs'}</div>
         <div style={{ fontSize: '0.72rem', opacity: 0.7, marginTop: 2 }}>{locale === 'ko' ? 'WAF 및 Lambda 기반 기능별 예상 비용' : 'Estimated costs for WAF and Lambda-based features'}</div>
       </div>
-      <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderTop: 'none', borderRadius: '0 0 12px 12px', padding: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+      <div style={{ background: 'var(--ifm-background-surface-color)', border: '1px solid var(--ifm-color-emphasis-200)', borderTop: 'none', borderRadius: '0 0 12px 12px', padding: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
         {items.map((item, idx) => (
-          <div key={idx} style={{ border: '1.5px solid #e0e0e0', borderLeft: '4px solid #2e7d32', borderRadius: 8, padding: '0.7rem 1rem', background: idx === items.length - 1 ? '#f1f8e9' : '#fafafa' }}>
+          <div key={idx} style={{ border: '1.5px solid var(--ifm-color-emphasis-200)', borderLeft: '4px solid #2e7d32', borderRadius: 8, padding: '0.7rem 1rem', background: idx === items.length - 1 ? '#f1f8e9' : 'var(--ifm-color-emphasis-100)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.3rem' }}>
-              <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#1b5e20' }}>{item.feature}</span>
+              <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#2e7d32' }}>{item.feature}</span>
             </div>
-            <div style={{ fontSize: '0.76rem', color: '#424242', marginBottom: '0.2rem' }}>{item.cost}</div>
-            <div style={{ fontSize: '0.78rem', fontWeight: 600, color: '#2e7d32', background: '#e8f5e9', padding: '0.3rem 0.6rem', borderRadius: 6, display: 'inline-block' }}>
+            <div style={{ fontSize: '0.76rem', color: 'var(--ifm-font-color-base)', marginBottom: '0.2rem' }}>{item.cost}</div>
+            <div style={{ fontSize: '0.78rem', fontWeight: 600, color: '#2e7d32', background: 'var(--ifm-color-emphasis-100)', padding: '0.3rem 0.6rem', borderRadius: 6, display: 'inline-block' }}>
               {item.estimate}
             </div>
           </div>

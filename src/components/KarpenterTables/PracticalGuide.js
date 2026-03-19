@@ -71,8 +71,8 @@ const PracticalGuide = () => {
       </div>
 
       <div style={{
-        background: 'white',
-        border: '1px solid #e5e7eb',
+        background: 'var(--ifm-background-surface-color)',
+        border: '1px solid var(--ifm-color-emphasis-200)',
         borderTop: 'none',
         borderRadius: '0 0 8px 8px',
         overflow: 'hidden'
@@ -89,8 +89,8 @@ const PracticalGuide = () => {
           }}>
             <span style={{ fontSize: '20px', flex: '0 0 30px' }}>{s.icon}</span>
             <div style={{ flex: '1', minWidth: '140px' }}>
-              <div style={{ fontSize: '13px', fontWeight: '700', color: '#1f2937' }}>{s.scenario}</div>
-              <div style={{ fontSize: '12px', color: '#6b7280', marginTop: '2px' }}>{s.strategy}</div>
+              <div style={{ fontSize: '13px', fontWeight: '700', color: 'var(--ifm-font-color-base)' }}>{s.scenario}</div>
+              <div style={{ fontSize: '12px', color: 'var(--ifm-color-emphasis-600)', marginTop: '2px' }}>{s.strategy}</div>
             </div>
             <div style={{
               display: 'flex',
@@ -99,18 +99,18 @@ const PracticalGuide = () => {
             }}>
               <div style={{ textAlign: 'center' }}>
                 <div style={{ fontSize: '14px', fontWeight: '700', color: s.color }}>{s.time}</div>
-                <div style={{ fontSize: '10px', color: '#9ca3af' }}>
+                <div style={{ fontSize: '10px', color: 'var(--ifm-color-emphasis-500)' }}>
                   {isKo ? '스케일링' : isZh ? '扩缩时间' : 'Scaling'}
                 </div>
               </div>
               <div style={{
                 width: '1px',
                 height: '24px',
-                background: '#e5e7eb'
+                background: 'var(--ifm-color-emphasis-200)'
               }} />
               <div style={{ textAlign: 'center', minWidth: '70px' }}>
-                <div style={{ fontSize: '14px', fontWeight: '700', color: '#1f2937' }}>{s.cost}</div>
-                <div style={{ fontSize: '10px', color: '#9ca3af' }}>
+                <div style={{ fontSize: '14px', fontWeight: '700', color: 'var(--ifm-font-color-base)' }}>{s.cost}</div>
+                <div style={{ fontSize: '10px', color: 'var(--ifm-color-emphasis-500)' }}>
                   {isKo ? '월 추가' : isZh ? '月额外' : 'Monthly extra'}
                 </div>
               </div>

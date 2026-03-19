@@ -12,28 +12,28 @@ const PipelineComponents = () => {
       role: isKo ? 'ML 워크플로우 오케스트레이션' : isZh ? 'ML 工作流编排' : 'ML Workflow Orchestration',
       stack: 'Argo Workflows, Tekton',
       color: '#ff6b6b',
-      bgColor: '#fff5f5'
+      bgColor: 'var(--ifm-color-emphasis-100)'
     },
     {
       name: 'MLflow',
       role: isKo ? '실험 추적, 모델 레지스트리' : isZh ? '实验跟踪，模型注册表' : 'Experiment Tracking, Model Registry',
       stack: 'MLflow Tracking Server, S3 Backend',
       color: '#4ecdc4',
-      bgColor: '#f0fdfa'
+      bgColor: 'var(--ifm-color-emphasis-100)'
     },
     {
       name: 'vLLM + ArgoCD',
       role: isKo ? '모델 서빙 및 GitOps 배포' : isZh ? '模型服务与 GitOps 部署' : 'Model Serving & GitOps Deployment',
       stack: 'vLLM, ArgoCD, GitOps',
       color: '#45b7d1',
-      bgColor: '#eff6ff'
+      bgColor: 'var(--ifm-color-emphasis-100)'
     },
     {
       name: 'Karpenter',
       role: isKo ? '동적 GPU 노드 프로비저닝' : isZh ? '动态 GPU 节点配置' : 'Dynamic GPU Node Provisioning',
       stack: 'AWS EC2, Spot Instances',
       color: '#96ceb4',
-      bgColor: '#f0fdf4'
+      bgColor: 'var(--ifm-color-emphasis-100)'
     },
     {
       name: 'Argo Workflows',
@@ -97,19 +97,19 @@ const PipelineComponents = () => {
               </div>
 
               <div>
-                <div style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '4px' }}>
+                <div style={{ fontSize: '12px', fontWeight: '600', color: 'var(--ifm-color-emphasis-600)', marginBottom: '4px' }}>
                   {isKo ? '역할' : isZh ? '角色' : 'Role'}
                 </div>
-                <div style={{ fontSize: '14px', color: '#374151' }}>
+                <div style={{ fontSize: '14px', color: 'var(--ifm-font-color-base)' }}>
                   {component.role}
                 </div>
               </div>
 
               <div>
-                <div style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '4px' }}>
+                <div style={{ fontSize: '12px', fontWeight: '600', color: 'var(--ifm-color-emphasis-600)', marginBottom: '4px' }}>
                   {isKo ? '기술 스택' : isZh ? '技术栈' : 'Tech Stack'}
                 </div>
-                <div style={{ fontSize: '14px', color: '#374151', fontFamily: 'monospace' }}>
+                <div style={{ fontSize: '14px', color: 'var(--ifm-font-color-base)', fontFamily: 'monospace' }}>
                   {component.stack}
                 </div>
               </div>

@@ -26,7 +26,7 @@ const i18n = {
 };
 
 const scoutData = [
-  { label: "A: p5/H100", costPerHr: "$98.32", throughput: "4,200", costPerToken: 0.85, color: '#64748b' },
+  { label: "A: p5/H100", costPerHr: "$98.32", throughput: "4,200", costPerToken: 0.85, color: 'var(--ifm-color-emphasis-600)' },
   { label: "B: p4d/A100", costPerHr: "$21.96", throughput: "1,800", costPerToken: 0.72, color: '#8b5cf6' },
   { label: "C: g6e/L40S", costPerHr: "$54.91", throughput: "1,400", costPerToken: 0.52, color: '#f59e0b' },
   { label: "D: trn2", costPerHr: "$45.00", throughput: "3,500", costPerToken: 0.35, color: '#3b82f6' },
@@ -34,7 +34,7 @@ const scoutData = [
 ];
 
 const maverickData = [
-  { label: "A: p5/H100", costPerHr: "$98.32", throughput: "2,800", costPerToken: 1.28, color: '#64748b' },
+  { label: "A: p5/H100", costPerHr: "$98.32", throughput: "2,800", costPerToken: 1.28, color: 'var(--ifm-color-emphasis-600)' },
   { label: "D: trn2", costPerHr: "$45.00", throughput: "2,200", costPerToken: 0.74, color: '#3b82f6' }
 ];
 
@@ -43,11 +43,11 @@ export default function CostPerTokenChart({ locale = 'en' }) {
   const { colorMode } = useColorMode();
   const isDark = colorMode === 'dark';
   const theme = {
-    text: isDark ? '#e2e8f0' : '#1f2937',
+    text: isDark ? 'var(--ifm-color-emphasis-200)' : '#1f2937',
     textSecondary: isDark ? '#cbd5e1' : '#475569',
     bgSurface: isDark ? '#1e293b' : '#ffffff',
-    bgHeader: isDark ? '#0f172a' : '#f9fafb',
-    border: isDark ? '#334155' : '#e5e7eb'
+    bgHeader: isDark ? '#0f172a' : 'var(--ifm-background-surface-color)',
+    border: isDark ? '#334155' : 'var(--ifm-color-emphasis-200)'
   };
 
   const maxCost = Math.max(...scoutData.map(d => d.costPerToken));

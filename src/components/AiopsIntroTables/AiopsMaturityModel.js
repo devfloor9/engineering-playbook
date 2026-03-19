@@ -10,7 +10,7 @@ const AiopsMaturityModel = () => {
     {
       level: 0,
       name: isKo ? '수동' : isZh ? '手动' : 'Manual',
-      color: '#6b7280',
+      color: 'var(--ifm-color-emphasis-600)',
       description: isKo ? '수동 모니터링, kubectl 기반, 장애 발생 후 대응' : isZh ? '手动监控、基于 kubectl、故障后响应' : 'Manual monitoring, kubectl-based, reactive to failures',
       tools: isKo ? ['kubectl', '수동 대시보드', '수동 알림'] : isZh ? ['kubectl', '手动仪表板', '手动告警'] : ['kubectl', 'Manual dashboards', 'Manual alerts']
     },
@@ -67,8 +67,8 @@ const AiopsMaturityModel = () => {
       </div>
 
       <div style={{
-        background: 'white',
-        border: '1px solid #e5e7eb',
+        background: 'var(--ifm-background-surface-color)',
+        border: '1px solid var(--ifm-color-emphasis-200)',
         borderTop: 'none',
         borderRadius: '0 0 8px 8px'
       }}>
@@ -95,14 +95,14 @@ const AiopsMaturityModel = () => {
               <div style={{
                 fontSize: '17px',
                 fontWeight: '600',
-                color: '#111827'
+                color: 'var(--ifm-font-color-base)'
               }}>
                 {level.name}
               </div>
             </div>
 
             <div style={{
-              color: '#4b5563',
+              color: 'var(--ifm-font-color-base)',
               marginBottom: '12px'
             }}>
               {level.description}
@@ -113,8 +113,8 @@ const AiopsMaturityModel = () => {
                 <span
                   key={i}
                   style={{
-                    background: '#f3f4f6',
-                    color: '#6b7280',
+                    background: 'var(--ifm-color-emphasis-100)',
+                    color: 'var(--ifm-color-emphasis-600)',
                     padding: '2px 8px',
                     borderRadius: '4px',
                     fontSize: '13px'

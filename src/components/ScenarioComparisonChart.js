@@ -57,7 +57,7 @@ export default function ScenarioComparisonChart({ locale = 'en' }) {
         <div style={{ fontSize: '0.72rem', opacity: 0.7, marginTop: '2px' }}>{t.subtitle}</div>
       </div>
       <div style={{
-        background: '#fff', border: '1px solid #e2e8f0', borderTop: 'none',
+        background: 'var(--ifm-background-surface-color)', border: '1px solid var(--ifm-color-emphasis-200)', borderTop: 'none',
         borderRadius: '0 0 12px 12px', padding: '1rem',
         display: 'flex', flexDirection: 'column', gap: '0.6rem',
       }}>
@@ -80,11 +80,11 @@ export default function ScenarioComparisonChart({ locale = 'en' }) {
               }}>
                 {s.id}
               </span>
-              <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#1e293b' }}>
+              <span style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--ifm-font-color-base)' }}>
                 {s.name}
               </span>
               <span style={{
-                marginLeft: 'auto', fontSize: '0.68rem', color: '#64748b',
+                marginLeft: 'auto', fontSize: '0.68rem', color: 'var(--ifm-color-emphasis-600)',
                 fontStyle: 'italic',
               }}>
                 {s.purpose}

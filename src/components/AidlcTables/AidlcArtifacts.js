@@ -85,8 +85,8 @@ const AidlcArtifacts = () => {
         <div
           key={index}
           style={{
-            background: 'white',
-            border: '1px solid #e5e7eb',
+            background: 'var(--ifm-background-surface-color)',
+            border: '1px solid var(--ifm-color-emphasis-200)',
             borderLeft: `4px solid ${artifact.color}`,
             borderRadius: '8px',
             padding: '1.25rem',
@@ -110,14 +110,14 @@ const AidlcArtifacts = () => {
                 margin: 0,
                 fontSize: '1.125rem',
                 fontWeight: '600',
-                color: '#1f2937'
+                color: 'var(--ifm-font-color-base)'
               }}>
                 {artifact.name}
               </h3>
             </div>
             <span style={{
-              background: '#f3f4f6',
-              color: '#4b5563',
+              background: 'var(--ifm-color-emphasis-100)',
+              color: 'var(--ifm-font-color-base)',
               padding: '0.25rem 0.75rem',
               borderRadius: '12px',
               fontSize: '0.875rem',
@@ -131,7 +131,7 @@ const AidlcArtifacts = () => {
             margin: 0,
             fontSize: '0.95rem',
             lineHeight: '1.6',
-            color: '#4b5563'
+            color: 'var(--ifm-font-color-base)'
           }}>
             {artifact.description}
           </p>
@@ -141,15 +141,15 @@ const AidlcArtifacts = () => {
       <div style={{
         marginTop: '2rem',
         padding: '1.25rem',
-        background: '#f9fafb',
-        border: '1px solid #e5e7eb',
+        background: 'var(--ifm-background-surface-color)',
+        border: '1px solid var(--ifm-color-emphasis-200)',
         borderRadius: '8px'
       }}>
         <h3 style={{
           margin: '0 0 1rem 0',
           fontSize: '1rem',
           fontWeight: '600',
-          color: '#1f2937'
+          color: 'var(--ifm-font-color-base)'
         }}>
           {isKo ? '산출물 흐름' : isZh ? '产出物流程' : 'Artifact Flow'}
         </h3>
@@ -165,7 +165,7 @@ const AidlcArtifacts = () => {
           </div>
           <div style={{
             fontSize: '0.95rem',
-            color: '#4b5563',
+            color: 'var(--ifm-font-color-base)',
             fontFamily: 'Menlo, Monaco, Courier New, monospace'
           }}>
             Intent → Unit → Bolt
@@ -183,7 +183,7 @@ const AidlcArtifacts = () => {
           </div>
           <div style={{
             fontSize: '0.95rem',
-            color: '#4b5563',
+            color: 'var(--ifm-font-color-base)',
             fontFamily: 'Menlo, Monaco, Courier New, monospace'
           }}>
             Domain Design → Logical Design → Deployment Unit

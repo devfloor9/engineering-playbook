@@ -53,7 +53,7 @@ const P5InstanceTable = () => {
           >
             <div style={{
               fontWeight: '600',
-              color: '#374151'
+              color: 'var(--ifm-font-color-base)'
             }}>
               {spec.label}
             </div>

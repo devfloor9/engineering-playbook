@@ -85,8 +85,8 @@ const ServiceComparison = () => {
   };
 
   const tableContainerStyle = {
-    background: 'white',
-    border: '1px solid #e5e7eb',
+    background: 'var(--ifm-background-surface-color)',
+    border: '1px solid var(--ifm-color-emphasis-200)',
     borderRadius: '0 0 8px 8px',
     overflow: 'hidden'
   };
@@ -97,8 +97,8 @@ const ServiceComparison = () => {
   };
 
   const headerRowStyle = {
-    background: '#f3f4f6',
-    borderBottom: '2px solid #d1d5db'
+    background: 'var(--ifm-color-emphasis-100)',
+    borderBottom: '2px solid var(--ifm-color-emphasis-300)'
   };
 
   const headerCellStyle = {
@@ -106,18 +106,18 @@ const ServiceComparison = () => {
     textAlign: 'left',
     fontSize: '0.75rem',
     fontWeight: 'bold',
-    color: '#374151',
+    color: 'var(--ifm-font-color-base)',
     textTransform: 'uppercase'
   };
 
   const rowStyle = (index) => ({
-    borderBottom: index < services.length - 1 ? '1px solid #e5e7eb' : 'none'
+    borderBottom: index < services.length - 1 ? '1px solid var(--ifm-color-emphasis-200)' : 'none'
   });
 
   const cellStyle = {
     padding: '0.75rem',
     fontSize: '0.875rem',
-    color: '#1f2937'
+    color: 'var(--ifm-font-color-base)'
   };
 
   const serviceNameStyle = {
@@ -136,7 +136,7 @@ const ServiceComparison = () => {
   });
 
   const costStyle = {
-    color: '#6b7280',
+    color: 'var(--ifm-color-emphasis-600)',
     fontSize: '0.8125rem'
   };
 

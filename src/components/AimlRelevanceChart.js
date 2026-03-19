@@ -12,7 +12,7 @@ const i18n = {
       { metric: 'HTTP p99 Latency', value: '-20%', note: 'Inference serving', color: '#10b981' },
       { metric: 'Pod-to-Pod RTT', value: '-36%', note: 'Pipeline hops', color: '#3b82f6' },
       { metric: 'Service Scaling', value: 'O(1)', note: 'Model endpoints', color: '#8b5cf6' },
-      { metric: 'EFA Training', value: 'N/A', note: 'Bypasses CNI', color: '#94a3b8' },
+      { metric: 'EFA Training', value: 'N/A', note: 'Bypasses CNI', color: 'var(--ifm-color-emphasis-500)' },
     ],
     workloads: [
       { label: 'Real-time Inference Serving', reason: 'HTTP/gRPC based · Service scaling directly applies', icon: '⚡', relevance: 'high', pct: 95 },
@@ -34,7 +34,7 @@ const i18n = {
       { metric: 'HTTP p99 Latency', value: '-20%', note: 'Inference 서빙', color: '#10b981' },
       { metric: 'Pod-to-Pod RTT', value: '-36%', note: 'Pipeline hop 누적', color: '#3b82f6' },
       { metric: 'Service Scaling', value: 'O(1)', note: 'Model Endpoint', color: '#8b5cf6' },
-      { metric: 'EFA Training', value: 'N/A', note: 'CNI 우회', color: '#94a3b8' },
+      { metric: 'EFA Training', value: 'N/A', note: 'CNI 우회', color: 'var(--ifm-color-emphasis-500)' },
     ],
     workloads: [
       { label: '실시간 Inference 서빙', reason: 'HTTP/gRPC 기반 · Service Scaling 결과 직접 적용', icon: '⚡', relevance: 'high', pct: 95 },
@@ -48,10 +48,10 @@ const i18n = {
 };
 
 const colorMap = {
-  high: { bar: '#10b981', bg: '#d1fae5', text: '#065f46' },
-  medium: { bar: '#f59e0b', bg: '#fef3c7', text: '#92400e' },
-  low: { bar: '#94a3b8', bg: '#f1f5f9', text: '#475569' },
-  none: { bar: '#cbd5e1', bg: '#f8fafc', text: '#94a3b8' },
+  high: { bar: '#10b981', bg: 'var(--ifm-color-emphasis-100)', text: 'var(--ifm-font-color-base)' },
+  medium: { bar: '#f59e0b', bg: 'var(--ifm-color-emphasis-100)', text: 'var(--ifm-font-color-base)' },
+  low: { bar: '#94a3b8', bg: 'var(--ifm-color-emphasis-100)', text: 'var(--ifm-color-emphasis-600)' },
+  none: { bar: '#cbd5e1', bg: 'var(--ifm-color-emphasis-100)', text: 'var(--ifm-color-emphasis-500)' },
 };
 
 export default function AimlRelevanceChart({ locale = 'en' }) {
@@ -77,27 +77,27 @@ export default function AimlRelevanceChart({ locale = 'en' }) {
       {/* Key metrics row */}
       <div style={{
         display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0',
-        border: '1px solid #e2e8f0', borderTop: 'none',
+        border: '1px solid var(--ifm-color-emphasis-200)', borderTop: 'none',
       }}>
         {t.keyFindings.map((kf, i) => (
           <div key={i} style={{
             padding: '0.8rem 0.6rem', textAlign: 'center',
-            borderRight: i < 3 ? '1px solid #e2e8f0' : 'none',
-            background: '#fafbfc',
+            borderRight: i < 3 ? '1px solid var(--ifm-color-emphasis-200)' : 'none',
+            background: 'var(--ifm-background-surface-color)',
           }}>
             <div style={{ fontSize: '1.3rem', fontWeight: 800, color: kf.color }}>{kf.value}</div>
-            <div style={{ fontSize: '0.72rem', fontWeight: 600, color: '#334155', marginTop: '2px' }}>{kf.metric}</div>
-            <div style={{ fontSize: '0.65rem', color: '#94a3b8' }}>{kf.note}</div>
+            <div style={{ fontSize: '0.72rem', fontWeight: 600, color: 'var(--ifm-font-color-base)', marginTop: '2px' }}>{kf.metric}</div>
+            <div style={{ fontSize: '0.65rem', color: 'var(--ifm-color-emphasis-500)' }}>{kf.note}</div>
           </div>
         ))}
       </div>
 
       {/* Relevance bars */}
       <div style={{
-        background: '#fff', border: '1px solid #e2e8f0', borderTop: 'none',
+        background: 'var(--ifm-background-surface-color)', border: '1px solid var(--ifm-color-emphasis-200)', borderTop: 'none',
         borderRadius: '0 0 12px 12px', padding: '1.2rem 1.5rem',
       }}>
-        <div style={{ fontSize: '0.82rem', fontWeight: 600, color: '#334155', marginBottom: '0.8rem' }}>
+        <div style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--ifm-font-color-base)', marginBottom: '0.8rem' }}>
           {t.sectionTitle}
         </div>
 
@@ -111,7 +111,7 @@ export default function AimlRelevanceChart({ locale = 'en' }) {
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                   <span style={{ fontSize: '0.85rem' }}>{w.icon}</span>
-                  <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#1e293b' }}>{w.label}</span>
+                  <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--ifm-font-color-base)' }}>{w.label}</span>
                 </div>
                 <span style={{
                   fontSize: '0.65rem', fontWeight: 600, padding: '1px 8px',
@@ -121,7 +121,7 @@ export default function AimlRelevanceChart({ locale = 'en' }) {
                 </span>
               </div>
               <div style={{
-                background: '#f1f5f9', borderRadius: '6px', height: '22px',
+                background: 'var(--ifm-color-emphasis-100)', borderRadius: '6px', height: '22px',
                 position: 'relative', overflow: 'hidden',
               }}>
                 <div style={{
@@ -130,7 +130,7 @@ export default function AimlRelevanceChart({ locale = 'en' }) {
                   minWidth: w.pct > 0 ? '4px' : '0',
                 }} />
               </div>
-              <div style={{ fontSize: '0.7rem', color: '#64748b', marginTop: '2px', lineHeight: 1.4 }}>
+              <div style={{ fontSize: '0.7rem', color: 'var(--ifm-color-emphasis-600)', marginTop: '2px', lineHeight: 1.4 }}>
                 {w.reason}
               </div>
             </div>
@@ -140,8 +140,8 @@ export default function AimlRelevanceChart({ locale = 'en' }) {
         {/* Caveat */}
         <div style={{
           marginTop: '1rem', padding: '0.7rem 1rem',
-          background: '#fffbeb', border: '1px solid #fde68a',
-          borderRadius: '8px', fontSize: '0.72rem', color: '#92400e', lineHeight: 1.6,
+          background: 'var(--ifm-color-emphasis-100)', border: '1px solid #fde68a',
+          borderRadius: '8px', fontSize: '0.72rem', color: 'var(--ifm-color-emphasis-700)', lineHeight: 1.6,
         }}>
           <strong>{t.note}</strong> {t.caveat}
         </div>

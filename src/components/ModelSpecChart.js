@@ -5,10 +5,10 @@ export default function ModelSpecChart({ locale = 'en' }) {
   const isDark = colorMode === 'dark';
 
   const theme = {
-    text: isDark ? '#e2e8f0' : '#1f2937',
+    text: isDark ? 'var(--ifm-color-emphasis-200)' : '#1f2937',
     textSecondary: isDark ? '#cbd5e1' : '#475569',
     bgSurface: isDark ? '#1e293b' : '#ffffff',
-    border: isDark ? '#334155' : '#e2e8f0'
+    border: isDark ? '#334155' : 'var(--ifm-color-emphasis-200)'
   };
 
   const i18n = {

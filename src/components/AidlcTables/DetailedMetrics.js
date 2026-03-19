@@ -116,8 +116,8 @@ const DetailedMetrics = () => {
       opacity: 0.9
     },
     section: {
-      background: 'white',
-      border: '1px solid #e5e7eb',
+      background: 'var(--ifm-background-surface-color)',
+      border: '1px solid var(--ifm-color-emphasis-200)',
       borderRadius: '8px',
       padding: '1.5rem',
       marginTop: '1.5rem',
@@ -127,8 +127,8 @@ const DetailedMetrics = () => {
       margin: '0 0 1.25rem 0',
       fontSize: '1.25rem',
       fontWeight: '600',
-      color: '#111827',
-      borderBottom: '2px solid #e5e7eb',
+      color: 'var(--ifm-font-color-base)',
+      borderBottom: '2px solid var(--ifm-color-emphasis-200)',
       paddingBottom: '0.75rem'
     },
     metricsGrid: {
@@ -141,7 +141,7 @@ const DetailedMetrics = () => {
       gridTemplateColumns: '2fr 2fr 1.5fr 1.5fr 1.5fr',
       gap: '1rem',
       padding: '1rem',
-      background: '#f9fafb',
+      background: 'var(--ifm-background-surface-color)',
       borderRadius: '6px',
       borderLeft: '4px solid',
       fontSize: '0.875rem',
@@ -149,17 +149,17 @@ const DetailedMetrics = () => {
     },
     metricName: {
       fontWeight: '600',
-      color: '#111827'
+      color: 'var(--ifm-font-color-base)'
     },
     metricDescription: {
-      color: '#6b7280',
+      color: 'var(--ifm-color-emphasis-600)',
       fontSize: '0.8125rem'
     },
     metricValue: {
-      color: '#4b5563'
+      color: 'var(--ifm-font-color-base)'
     },
     beforeValue: {
-      color: '#9ca3af'
+      color: 'var(--ifm-color-emphasis-500)'
     },
     afterValue: {
       color: '#059669',
@@ -187,11 +187,11 @@ const DetailedMetrics = () => {
       gridTemplateColumns: '0.5fr 2fr 2fr 2fr',
       gap: '1rem',
       padding: '1rem',
-      background: '#f9fafb',
+      background: 'var(--ifm-background-surface-color)',
       borderRadius: '6px',
       fontSize: '0.875rem',
       alignItems: 'center',
-      border: '1px solid #e5e7eb'
+      border: '1px solid var(--ifm-color-emphasis-200)'
     },
     doraIcon: {
       fontSize: '1.5rem',
@@ -199,13 +199,13 @@ const DetailedMetrics = () => {
     },
     doraMetric: {
       fontWeight: '600',
-      color: '#111827'
+      color: 'var(--ifm-font-color-base)'
     },
     doraContribution: {
-      color: '#4b5563'
+      color: 'var(--ifm-font-color-base)'
     },
     doraMethod: {
-      color: '#6b7280',
+      color: 'var(--ifm-color-emphasis-600)',
       fontSize: '0.8125rem'
     },
     tableHeader: {
@@ -213,11 +213,11 @@ const DetailedMetrics = () => {
       gridTemplateColumns: '2fr 2fr 1.5fr 1.5fr 1.5fr',
       gap: '1rem',
       padding: '0.75rem 1rem',
-      background: '#f9fafb',
+      background: 'var(--ifm-background-surface-color)',
       borderRadius: '6px',
       fontSize: '0.75rem',
       fontWeight: '600',
-      color: '#6b7280',
+      color: 'var(--ifm-color-emphasis-600)',
       textTransform: 'uppercase',
       letterSpacing: '0.05em',
       marginBottom: '0.75rem'
@@ -227,11 +227,11 @@ const DetailedMetrics = () => {
       gridTemplateColumns: '0.5fr 2fr 2fr 2fr',
       gap: '1rem',
       padding: '0.75rem 1rem',
-      background: '#f9fafb',
+      background: 'var(--ifm-background-surface-color)',
       borderRadius: '6px',
       fontSize: '0.75rem',
       fontWeight: '600',
-      color: '#6b7280',
+      color: 'var(--ifm-color-emphasis-600)',
       textTransform: 'uppercase',
       letterSpacing: '0.05em',
       marginBottom: '0.75rem'

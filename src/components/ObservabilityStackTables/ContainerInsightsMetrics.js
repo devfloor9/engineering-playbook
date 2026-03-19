@@ -64,8 +64,8 @@ const ContainerInsightsMetrics = () => {
 
       {/* Table */}
       <div style={{
-        background: 'white',
-        border: '1px solid #e5e7eb',
+        background: 'var(--ifm-background-surface-color)',
+        border: '1px solid var(--ifm-color-emphasis-200)',
         borderTop: 'none',
         borderRadius: '0 0 8px 8px',
         overflow: 'hidden'
@@ -74,32 +74,32 @@ const ContainerInsightsMetrics = () => {
         <div style={{
           display: 'grid',
           gridTemplateColumns: '140px 1fr 1fr',
-          borderBottom: '2px solid #e5e7eb',
-          background: '#f8fafc'
+          borderBottom: '2px solid var(--ifm-color-emphasis-200)',
+          background: 'var(--ifm-background-surface-color)'
         }}>
           <div style={{
             padding: '12px 14px',
             fontWeight: '600',
             fontSize: '12px',
-            color: '#6b7280'
+            color: 'var(--ifm-color-emphasis-600)'
           }}>
             {isKo ? '카테고리' : isZh ? '类别' : 'Category'}
           </div>
           <div style={{
             padding: '12px 14px',
-            borderLeft: '1px solid #e5e7eb',
+            borderLeft: '1px solid var(--ifm-color-emphasis-200)',
             fontWeight: '600',
             fontSize: '12px',
-            color: '#6b7280'
+            color: 'var(--ifm-color-emphasis-600)'
           }}>
             {isKo ? '메트릭 예시' : isZh ? '指标示例' : 'Metric Examples'}
           </div>
           <div style={{
             padding: '12px 14px',
-            borderLeft: '1px solid #e5e7eb',
+            borderLeft: '1px solid var(--ifm-color-emphasis-200)',
             fontWeight: '600',
             fontSize: '12px',
-            color: '#6b7280'
+            color: 'var(--ifm-color-emphasis-600)'
           }}>
             {isKo ? '설명' : isZh ? '描述' : 'Description'}
           </div>
@@ -114,9 +114,9 @@ const ContainerInsightsMetrics = () => {
           }}>
             <div style={{
               padding: '14px',
-              background: '#f8fafc',
+              background: 'var(--ifm-background-surface-color)',
               fontWeight: '700',
-              color: '#1f2937',
+              color: 'var(--ifm-font-color-base)',
               display: 'flex',
               alignItems: 'center'
             }}>
@@ -126,7 +126,7 @@ const ContainerInsightsMetrics = () => {
               padding: '14px',
               fontSize: '12px',
               fontFamily: 'Monaco, Consolas, monospace',
-              color: '#4b5563',
+              color: 'var(--ifm-font-color-base)',
               borderLeft: '1px solid #f3f4f6',
               display: 'flex',
               alignItems: 'center'
@@ -136,7 +136,7 @@ const ContainerInsightsMetrics = () => {
             <div style={{
               padding: '14px',
               fontSize: '13px',
-              color: '#4b5563',
+              color: 'var(--ifm-font-color-base)',
               borderLeft: '1px solid #f3f4f6',
               display: 'flex',
               alignItems: 'center'

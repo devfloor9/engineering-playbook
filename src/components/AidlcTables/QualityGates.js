@@ -102,8 +102,8 @@ const QualityGates = () => {
       opacity: 0.9
     },
     section: {
-      background: 'white',
-      border: '1px solid #e5e7eb',
+      background: 'var(--ifm-background-surface-color)',
+      border: '1px solid var(--ifm-color-emphasis-200)',
       borderRadius: '8px',
       padding: '1.5rem',
       marginTop: '1.5rem',
@@ -113,8 +113,8 @@ const QualityGates = () => {
       margin: '0 0 1.25rem 0',
       fontSize: '1.25rem',
       fontWeight: '600',
-      color: '#111827',
-      borderBottom: '2px solid #e5e7eb',
+      color: 'var(--ifm-font-color-base)',
+      borderBottom: '2px solid var(--ifm-color-emphasis-200)',
       paddingBottom: '0.75rem'
     },
     gatesGrid: {
@@ -126,18 +126,18 @@ const QualityGates = () => {
       gridTemplateColumns: '1.5fr 2fr 2.5fr',
       gap: '1rem',
       padding: '1rem',
-      background: '#f9fafb',
+      background: 'var(--ifm-background-surface-color)',
       borderRadius: '6px',
       borderLeft: '4px solid',
       fontSize: '0.875rem'
     },
     gateCell: {
-      color: '#374151',
+      color: 'var(--ifm-font-color-base)',
       lineHeight: '1.5'
     },
     gateName: {
       fontWeight: '600',
-      color: '#111827'
+      color: 'var(--ifm-font-color-base)'
     },
     approvalTable: {
       display: 'flex',
@@ -149,11 +149,11 @@ const QualityGates = () => {
       gridTemplateColumns: '2fr 2fr 2fr',
       gap: '0.75rem',
       padding: '0.75rem',
-      background: '#f9fafb',
+      background: 'var(--ifm-background-surface-color)',
       borderRadius: '6px',
       fontSize: '0.75rem',
       fontWeight: '600',
-      color: '#6b7280',
+      color: 'var(--ifm-color-emphasis-600)',
       textTransform: 'uppercase',
       letterSpacing: '0.05em'
     },
@@ -168,7 +168,7 @@ const QualityGates = () => {
     },
     conditionCell: {
       fontWeight: '500',
-      color: '#111827'
+      color: 'var(--ifm-font-color-base)'
     },
     approveCell: {
       color: '#059669',
@@ -192,24 +192,24 @@ const QualityGates = () => {
       textTransform: 'uppercase'
     },
     critical: {
-      background: '#fee2e2',
+      background: 'var(--ifm-color-emphasis-100)',
       color: '#991b1b'
     },
     high: {
-      background: '#fed7aa',
+      background: 'var(--ifm-color-emphasis-100)',
       color: '#9a3412'
     },
     medium: {
-      background: '#fef3c7',
-      color: '#92400e'
+      background: 'var(--ifm-color-emphasis-100)',
+      color: 'var(--ifm-color-emphasis-700)'
     },
     footer: {
       marginTop: '1.5rem',
       padding: '1rem',
-      background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
+      background: 'var(--ifm-color-emphasis-100)',
       borderRadius: '6px',
       fontSize: '0.875rem',
-      color: '#78350f',
+      color: 'var(--ifm-color-emphasis-700)',
       lineHeight: '1.6'
     }
   };

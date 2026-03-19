@@ -90,7 +90,7 @@ const K8sCoreFeatures = () => {
                 background: 'var(--ifm-background-surface-color)',
                 padding: '18px',
                 borderRadius: '8px',
-                border: '1px solid #e5e7eb',
+                border: '1px solid var(--ifm-color-emphasis-200)',
                 boxShadow: '0 2px 4px rgba(0,0,0,0.04)',
                 borderLeft: '4px solid #326ce5'
               }}
@@ -110,7 +110,7 @@ const K8sCoreFeatures = () => {
                   }}>
                     {isKo ? 'K8s 기능' : isZh ? 'K8s 功能' : 'K8s Feature'}
                   </div>
-                  <div style={{ fontSize: '15px', fontWeight: '600', color: '#1e293b' }}>
+                  <div style={{ fontSize: '15px', fontWeight: '600', color: 'var(--ifm-font-color-base)' }}>
                     {item.feature}
                   </div>
                 </div>
@@ -119,12 +119,12 @@ const K8sCoreFeatures = () => {
                   <div style={{
                     fontSize: '13px',
                     fontWeight: '600',
-                    color: '#6b7280',
+                    color: 'var(--ifm-color-emphasis-600)',
                     marginBottom: '4px'
                   }}>
                     {isKo ? 'AI 플랫폼 적용' : isZh ? 'AI 平台应用' : 'AI Platform Application'}
                   </div>
-                  <div style={{ fontSize: '14px', color: '#374151' }}>
+                  <div style={{ fontSize: '14px', color: 'var(--ifm-font-color-base)' }}>
                     {item.application}
                   </div>
                 </div>
@@ -133,7 +133,7 @@ const K8sCoreFeatures = () => {
                   <div style={{
                     fontSize: '13px',
                     fontWeight: '600',
-                    color: '#6b7280',
+                    color: 'var(--ifm-color-emphasis-600)',
                     marginBottom: '6px'
                   }}>
                     {isKo ? '해결 도전과제' : isZh ? '解决挑战' : 'Resolves'}
@@ -166,11 +166,11 @@ const K8sCoreFeatures = () => {
         <div style={{
           marginTop: '20px',
           padding: '16px',
-          background: '#f9fafb',
+          background: 'var(--ifm-background-surface-color)',
           borderRadius: '6px',
-          border: '1px solid #e5e7eb'
+          border: '1px solid var(--ifm-color-emphasis-200)'
         }}>
-          <div style={{ fontSize: '13px', fontWeight: '600', color: '#6b7280', marginBottom: '8px' }}>
+          <div style={{ fontSize: '13px', fontWeight: '600', color: 'var(--ifm-color-emphasis-600)', marginBottom: '8px' }}>
             {isKo ? '도전과제 범례' : isZh ? '挑战图例' : 'Challenge Legend'}
           </div>
           <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
@@ -183,7 +183,7 @@ const K8sCoreFeatures = () => {
                   borderRadius: '4px',
                   backgroundColor: challengeColors[num]
                 }}></span>
-                <span style={{ fontSize: '13px', color: '#374151' }}>
+                <span style={{ fontSize: '13px', color: 'var(--ifm-font-color-base)' }}>
                   #{num} {label}
                 </span>
               </div>

@@ -122,7 +122,7 @@ const TopologyEffectsTable = () => {
                   <span style={{
                     padding: '4px 12px',
                     borderRadius: '6px',
-                    background: '#fee2e2',
+                    background: 'var(--ifm-color-emphasis-100)',
                     color: '#dc2626',
                     fontSize: '13px',
                     fontWeight: '500'
@@ -138,7 +138,7 @@ const TopologyEffectsTable = () => {
                   <span style={{
                     padding: '4px 12px',
                     borderRadius: '6px',
-                    background: '#dcfce7',
+                    background: 'var(--ifm-color-emphasis-100)',
                     color: '#16a34a',
                     fontSize: '13px',
                     fontWeight: '500'

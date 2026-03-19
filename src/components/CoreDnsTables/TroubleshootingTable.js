@@ -117,8 +117,8 @@ const TroubleshootingTable = () => {
       </div>
 
       <div style={{
-        background: 'white',
-        border: '1px solid #e5e7eb',
+        background: 'var(--ifm-background-surface-color)',
+        border: '1px solid var(--ifm-color-emphasis-200)',
         borderTop: 'none',
         overflow: 'hidden'
       }}>
@@ -134,7 +134,7 @@ const TroubleshootingTable = () => {
             <div style={{ fontSize: '20px', flexShrink: 0, marginTop: '2px' }}>{bp.icon}</div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px', flexWrap: 'wrap' }}>
-                <span style={{ fontWeight: '700', fontSize: '14px', color: '#1f2937' }}>{bp.title}</span>
+                <span style={{ fontWeight: '700', fontSize: '14px', color: 'var(--ifm-font-color-base)' }}>{bp.title}</span>
                 <span style={{
                   background: bp.impactColor,
                   color: 'white',
@@ -144,7 +144,7 @@ const TroubleshootingTable = () => {
                   fontWeight: '600'
                 }}>{bp.impact}</span>
               </div>
-              <div style={{ fontSize: '13px', color: '#4b5563', lineHeight: '1.5' }}>{bp.description}</div>
+              <div style={{ fontSize: '13px', color: 'var(--ifm-font-color-base)', lineHeight: '1.5' }}>{bp.description}</div>
             </div>
           </div>
         ))}
@@ -152,12 +152,12 @@ const TroubleshootingTable = () => {
         {/* Divider */}
         <div style={{
           padding: '10px 20px',
-          background: '#f8fafc',
-          borderTop: '1px solid #e5e7eb',
-          borderBottom: '1px solid #e5e7eb',
+          background: 'var(--ifm-background-surface-color)',
+          borderTop: '1px solid var(--ifm-color-emphasis-200)',
+          borderBottom: '1px solid var(--ifm-color-emphasis-200)',
           fontSize: '12px',
           fontWeight: '600',
-          color: '#6b7280',
+          color: 'var(--ifm-color-emphasis-600)',
           textTransform: 'uppercase'
         }}>
           {isKo ? '실무 장애 대응 사례' : isZh ? '实战故障应对案例' : 'Real-World Incident Cases'}
@@ -170,25 +170,25 @@ const TroubleshootingTable = () => {
             borderBottom: idx < cases.length - 1 ? '1px solid #f3f4f6' : 'none',
             borderLeft: `3px solid ${c.color}`
           }}>
-            <div style={{ fontWeight: '700', fontSize: '14px', color: '#1f2937', marginBottom: '8px' }}>{c.title}</div>
+            <div style={{ fontWeight: '700', fontSize: '14px', color: 'var(--ifm-font-color-base)', marginBottom: '8px' }}>{c.title}</div>
             <div style={{ display: 'grid', gap: '4px' }}>
               <div style={{ fontSize: '12px', lineHeight: '1.5' }}>
                 <span style={{ color: '#dc2626', fontWeight: '600' }}>
                   {isKo ? '증상: ' : isZh ? '症状：' : 'Symptom: '}
                 </span>
-                <span style={{ color: '#4b5563' }}>{c.symptom}</span>
+                <span style={{ color: 'var(--ifm-font-color-base)' }}>{c.symptom}</span>
               </div>
               <div style={{ fontSize: '12px', lineHeight: '1.5' }}>
                 <span style={{ color: '#f59e0b', fontWeight: '600' }}>
                   {isKo ? '원인: ' : isZh ? '原因：' : 'Cause: '}
                 </span>
-                <span style={{ color: '#4b5563' }}>{c.cause}</span>
+                <span style={{ color: 'var(--ifm-font-color-base)' }}>{c.cause}</span>
               </div>
               <div style={{ fontSize: '12px', lineHeight: '1.5' }}>
                 <span style={{ color: '#059669', fontWeight: '600' }}>
                   {isKo ? '해결: ' : isZh ? '解决：' : 'Solution: '}
                 </span>
-                <span style={{ color: '#4b5563' }}>{c.solution}</span>
+                <span style={{ color: 'var(--ifm-font-color-base)' }}>{c.solution}</span>
               </div>
             </div>
           </div>
@@ -197,7 +197,7 @@ const TroubleshootingTable = () => {
 
       {/* Footer */}
       <div style={{
-        background: '#fef2f2',
+        background: 'var(--ifm-color-emphasis-100)',
         border: '1px solid #fecaca',
         borderRadius: '0 0 8px 8px',
         padding: '12px 16px',

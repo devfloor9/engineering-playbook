@@ -123,7 +123,7 @@ const MaturityTable = () => {
     maxWidth: '760px',
     margin: '2rem auto',
     fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-    backgroundColor: '#ffffff',
+    backgroundColor: 'var(--ifm-background-surface-color)',
     borderRadius: '12px',
     boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
     overflow: 'hidden'
@@ -161,7 +161,7 @@ const MaturityTable = () => {
 
   const cardStyle = (color) => ({
     borderLeft: `4px solid ${color}`,
-    backgroundColor: '#f9fafb',
+    backgroundColor: 'var(--ifm-background-surface-color)',
     borderRadius: '8px',
     padding: '1.25rem',
     boxShadow: '0 2px 4px rgba(0, 0, 0, 0.05)'
@@ -185,7 +185,7 @@ const MaturityTable = () => {
   const sectionTitleStyle = {
     fontSize: '0.8125rem',
     fontWeight: '700',
-    color: '#111827',
+    color: 'var(--ifm-font-color-base)',
     marginBottom: '0.625rem',
     textTransform: 'uppercase',
     letterSpacing: '0.025em'
@@ -199,7 +199,7 @@ const MaturityTable = () => {
 
   const listItemStyle = {
     fontSize: '0.875rem',
-    color: '#374151',
+    color: 'var(--ifm-font-color-base)',
     lineHeight: '1.6',
     marginBottom: '0.5rem',
     paddingLeft: '1rem',
@@ -213,7 +213,7 @@ const MaturityTable = () => {
     width: '4px',
     height: '4px',
     borderRadius: '50%',
-    backgroundColor: '#9ca3af'
+    backgroundColor: 'var(--ifm-color-emphasis-400)'
   };
 
   return (

@@ -127,8 +127,8 @@ const CoreDnsMetricsTable = () => {
       </div>
 
       <div style={{
-        background: 'white',
-        border: '1px solid #e5e7eb',
+        background: 'var(--ifm-background-surface-color)',
+        border: '1px solid var(--ifm-color-emphasis-200)',
         borderTop: 'none',
         borderRadius: '0 0 8px 8px',
         overflow: 'hidden'
@@ -137,16 +137,16 @@ const CoreDnsMetricsTable = () => {
         <div style={{
           display: 'grid',
           gridTemplateColumns: '1fr 80px 1fr',
-          borderBottom: '2px solid #e5e7eb',
-          background: '#f8fafc'
+          borderBottom: '2px solid var(--ifm-color-emphasis-200)',
+          background: 'var(--ifm-background-surface-color)'
         }}>
-          <div style={{ padding: '10px 14px', fontWeight: '600', fontSize: '12px', color: '#6b7280', textTransform: 'uppercase' }}>
+          <div style={{ padding: '10px 14px', fontWeight: '600', fontSize: '12px', color: 'var(--ifm-color-emphasis-600)', textTransform: 'uppercase' }}>
             {isKo ? '메트릭' : isZh ? '指标' : 'Metric'}
           </div>
-          <div style={{ padding: '10px 14px', fontWeight: '600', fontSize: '12px', color: '#6b7280', textTransform: 'uppercase', borderLeft: '1px solid #e5e7eb' }}>
+          <div style={{ padding: '10px 14px', fontWeight: '600', fontSize: '12px', color: 'var(--ifm-color-emphasis-600)', textTransform: 'uppercase', borderLeft: '1px solid var(--ifm-color-emphasis-200)' }}>
             {isKo ? '시그널' : isZh ? '信号' : 'Signal'}
           </div>
-          <div style={{ padding: '10px 14px', fontWeight: '600', fontSize: '12px', color: '#6b7280', textTransform: 'uppercase', borderLeft: '1px solid #e5e7eb' }}>
+          <div style={{ padding: '10px 14px', fontWeight: '600', fontSize: '12px', color: 'var(--ifm-color-emphasis-600)', textTransform: 'uppercase', borderLeft: '1px solid var(--ifm-color-emphasis-200)' }}>
             {isKo ? '설명 / PromQL' : isZh ? '说明 / PromQL' : 'Description / PromQL'}
           </div>
         </div>
@@ -159,8 +159,8 @@ const CoreDnsMetricsTable = () => {
             borderBottom: idx < metrics.length - 1 ? '1px solid #f3f4f6' : 'none'
           }}>
             <div style={{ padding: '12px 14px' }}>
-              <code style={{ fontSize: '12px', color: '#1e40af', fontWeight: '600', wordBreak: 'break-all' }}>{m.name}</code>
-              <div style={{ fontSize: '11px', color: '#9ca3af', marginTop: '2px' }}>{m.type}</div>
+              <code style={{ fontSize: '12px', color: '#2563eb', fontWeight: '600', wordBreak: 'break-all' }}>{m.name}</code>
+              <div style={{ fontSize: '11px', color: 'var(--ifm-color-emphasis-500)', marginTop: '2px' }}>{m.type}</div>
             </div>
             <div style={{
               padding: '12px 14px',
@@ -180,8 +180,8 @@ const CoreDnsMetricsTable = () => {
               }}>{m.signal}</span>
             </div>
             <div style={{ padding: '12px 14px', borderLeft: '1px solid #f3f4f6' }}>
-              <div style={{ fontSize: '13px', color: '#4b5563', marginBottom: '4px' }}>{m.description}</div>
-              <code style={{ fontSize: '11px', color: '#7c3aed', background: '#f5f3ff', padding: '2px 6px', borderRadius: '3px', wordBreak: 'break-all' }}>{m.query}</code>
+              <div style={{ fontSize: '13px', color: 'var(--ifm-font-color-base)', marginBottom: '4px' }}>{m.description}</div>
+              <code style={{ fontSize: '11px', color: '#7c3aed', background: 'var(--ifm-color-emphasis-100)', padding: '2px 6px', borderRadius: '3px', wordBreak: 'break-all' }}>{m.query}</code>
             </div>
           </div>
         ))}

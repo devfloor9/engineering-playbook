@@ -39,18 +39,18 @@ export default function GaStatusTable({ locale = 'ko' }) {
         <div style={{ fontSize: '0.95rem', fontWeight: 700 }}>{title}</div>
         <div style={{ fontSize: '0.72rem', opacity: 0.7, marginTop: 2 }}>{subtitle}</div>
       </div>
-      <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderTop: 'none', borderRadius: '0 0 12px 12px', padding: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+      <div style={{ background: 'var(--ifm-background-surface-color)', border: '1px solid var(--ifm-color-emphasis-200)', borderTop: 'none', borderRadius: '0 0 12px 12px', padding: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
         {data.map((item) => (
-          <div key={item.resource} style={{ border: `1.5px solid ${item.statusColor}30`, borderLeft: `4px solid ${item.statusColor}`, borderRadius: 8, padding: '0.7rem 1rem', background: '#fafafa' }}>
+          <div key={item.resource} style={{ border: `1.5px solid ${item.statusColor}30`, borderLeft: `4px solid ${item.statusColor}`, borderRadius: 8, padding: '0.7rem 1rem', background: 'var(--ifm-background-surface-color)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.35rem', flexWrap: 'wrap' }}>
-              <span style={{ fontWeight: 700, fontSize: '0.82rem', color: '#1f2937' }}>{item.resource}</span>
+              <span style={{ fontWeight: 700, fontSize: '0.82rem', color: 'var(--ifm-font-color-base)' }}>{item.resource}</span>
               <span style={{ background: '#64748b', color: '#fff', borderRadius: 6, padding: '2px 8px', fontSize: '0.7rem', fontWeight: 600 }}>{item.channel}</span>
               <div style={{ marginLeft: 'auto', display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
                 <span style={{ background: item.statusColor, color: '#fff', borderRadius: 6, padding: '2px 8px', fontSize: '0.72rem', fontWeight: 700 }}>{item.status}</span>
                 <span style={{ fontSize: '1rem' }}>{item.recommended}</span>
               </div>
             </div>
-            <div style={{ fontSize: '0.76rem', color: '#6b7280' }}>{item.notes}</div>
+            <div style={{ fontSize: '0.76rem', color: 'var(--ifm-color-emphasis-600)' }}>{item.notes}</div>
           </div>
         ))}
       </div>

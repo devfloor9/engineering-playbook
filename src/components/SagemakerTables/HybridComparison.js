@@ -114,7 +114,7 @@ const HybridComparison = () => {
                   <div style={{ fontSize: '11px', fontWeight: '600', color: '#ff9900', marginBottom: '6px' }}>
                     SageMaker {isKo ? '학습' : isZh ? '训练' : 'Training'}
                   </div>
-                  <div style={{ fontSize: '14px', color: '#374151' }}>
+                  <div style={{ fontSize: '14px', color: 'var(--ifm-font-color-base)' }}>
                     {aspect.sagemaker}
                   </div>
                 </div>
@@ -123,7 +123,7 @@ const HybridComparison = () => {
                   <div style={{ fontSize: '11px', fontWeight: '600', color: '#326ce5', marginBottom: '6px' }}>
                     EKS {isKo ? '서빙' : isZh ? '服务' : 'Serving'}
                   </div>
-                  <div style={{ fontSize: '14px', color: '#374151' }}>
+                  <div style={{ fontSize: '14px', color: 'var(--ifm-font-color-base)' }}>
                     {aspect.eks}
                   </div>
                 </div>
@@ -132,7 +132,7 @@ const HybridComparison = () => {
                   <div style={{ fontSize: '11px', fontWeight: '600', color: aspect.color, marginBottom: '6px' }}>
                     {isKo ? '하이브리드 이점' : isZh ? '混合优势' : 'Hybrid Benefit'}
                   </div>
-                  <div style={{ fontSize: '14px', color: '#374151', fontWeight: '600' }}>
+                  <div style={{ fontSize: '14px', color: 'var(--ifm-font-color-base)', fontWeight: '600' }}>
                     {aspect.hybrid}
                   </div>
                 </div>

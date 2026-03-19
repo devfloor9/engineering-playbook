@@ -95,8 +95,8 @@ const MonitoringArchitecture = () => {
       </div>
 
       <div style={{
-        background: 'white',
-        border: '1px solid #e5e7eb',
+        background: 'var(--ifm-background-surface-color)',
+        border: '1px solid var(--ifm-color-emphasis-200)',
         borderTop: 'none',
         overflow: 'hidden'
       }}>
@@ -107,7 +107,7 @@ const MonitoringArchitecture = () => {
             borderBottom: '1px solid #f3f4f6'
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-              <span style={{ fontWeight: '700', fontSize: '15px', color: '#1f2937' }}>{approach.name}</span>
+              <span style={{ fontWeight: '700', fontSize: '15px', color: 'var(--ifm-font-color-base)' }}>{approach.name}</span>
               <span style={{
                 display: 'inline-block',
                 background: approach.badgeColor,
@@ -118,7 +118,7 @@ const MonitoringArchitecture = () => {
                 fontWeight: '600'
               }}>{approach.badge}</span>
             </div>
-            <div style={{ fontSize: '13px', color: '#4b5563', marginBottom: '10px', lineHeight: '1.5' }}>
+            <div style={{ fontSize: '13px', color: 'var(--ifm-font-color-base)', marginBottom: '10px', lineHeight: '1.5' }}>
               {approach.description}
             </div>
             <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
@@ -127,7 +127,7 @@ const MonitoringArchitecture = () => {
                   {isKo ? '장점' : isZh ? '优点' : 'Pros'}
                 </div>
                 {approach.pros.map((p, i) => (
-                  <div key={i} style={{ fontSize: '12px', color: '#374151', lineHeight: '1.6' }}>+ {p}</div>
+                  <div key={i} style={{ fontSize: '12px', color: 'var(--ifm-font-color-base)', lineHeight: '1.6' }}>+ {p}</div>
                 ))}
               </div>
               <div>
@@ -135,7 +135,7 @@ const MonitoringArchitecture = () => {
                   {isKo ? '고려사항' : isZh ? '注意事项' : 'Considerations'}
                 </div>
                 {approach.cons.map((c, i) => (
-                  <div key={i} style={{ fontSize: '12px', color: '#6b7280', lineHeight: '1.6' }}>- {c}</div>
+                  <div key={i} style={{ fontSize: '12px', color: 'var(--ifm-color-emphasis-600)', lineHeight: '1.6' }}>- {c}</div>
                 ))}
               </div>
             </div>
@@ -144,7 +144,7 @@ const MonitoringArchitecture = () => {
 
         {/* Architecture layers */}
         <div style={{ padding: '16px 20px' }}>
-          <div style={{ fontSize: '13px', fontWeight: '600', color: '#6b7280', marginBottom: '10px', textTransform: 'uppercase' }}>
+          <div style={{ fontSize: '13px', fontWeight: '600', color: 'var(--ifm-color-emphasis-600)', marginBottom: '10px', textTransform: 'uppercase' }}>
             {isKo ? '파이프라인 레이어' : isZh ? '管道层次' : 'Pipeline Layers'}
           </div>
           {layers.map((layer, idx) => (
@@ -153,7 +153,7 @@ const MonitoringArchitecture = () => {
                 borderLeft: `3px solid ${layer.color}`,
                 padding: '8px 12px',
                 marginBottom: idx < layers.length - 1 ? '4px' : '0',
-                background: '#f9fafb',
+                background: 'var(--ifm-background-surface-color)',
                 borderRadius: '0 4px 4px 0'
               }}>
                 <span style={{
@@ -166,12 +166,12 @@ const MonitoringArchitecture = () => {
                   fontWeight: '600',
                   marginRight: '8px'
                 }}>{layer.name}</span>
-                <span style={{ fontSize: '12px', color: '#4b5563' }}>
+                <span style={{ fontSize: '12px', color: 'var(--ifm-font-color-base)' }}>
                   {layer.items.join(' · ')}
                 </span>
               </div>
               {idx < layers.length - 1 && (
-                <div style={{ textAlign: 'center', color: '#d1d5db', fontSize: '14px', lineHeight: '1.2' }}>↓</div>
+                <div style={{ textAlign: 'center', color: 'var(--ifm-color-emphasis-300)', fontSize: '14px', lineHeight: '1.2' }}>↓</div>
               )}
             </React.Fragment>
           ))}
@@ -180,13 +180,13 @@ const MonitoringArchitecture = () => {
 
       {/* Footer */}
       <div style={{
-        background: '#eff6ff',
+        background: 'var(--ifm-color-emphasis-100)',
         borderTop: '1px solid #bfdbfe',
         border: '1px solid #bfdbfe',
         borderRadius: '0 0 8px 8px',
         padding: '12px 16px',
         fontSize: '12px',
-        color: '#1e40af',
+        color: '#2563eb',
         lineHeight: '1.6'
       }}>
         💡 <strong>{isKo ? '권장:' : isZh ? '推荐:' : 'Recommended:'}</strong>{' '}

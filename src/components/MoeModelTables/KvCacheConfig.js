@@ -116,7 +116,7 @@ const KvCacheConfig = () => {
               </div>
 
               <div style={{
-                background: 'white',
+                background: 'var(--ifm-background-surface-color)',
                 padding: '8px 16px',
                 borderRadius: '6px',
                 border: `2px solid ${param.color}`,

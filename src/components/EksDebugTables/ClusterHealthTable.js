@@ -11,9 +11,9 @@ const issues = [
 ];
 
 const statusMap = {
-  ok: { icon: '✅', label: '복구 가능', color: '#059669', bg: '#ecfdf5' },
-  warn: { icon: '⚠️', label: '조건부 복구', color: '#d97706', bg: '#fffbeb' },
-  no: { icon: '❌', label: '복구 불가', color: '#dc2626', bg: '#fef2f2' },
+  ok: { icon: '✅', label: '복구 가능', color: '#059669', bg: 'var(--ifm-color-emphasis-100)' },
+  warn: { icon: '⚠️', label: '조건부 복구', color: '#d97706', bg: 'var(--ifm-color-emphasis-100)' },
+  no: { icon: '❌', label: '복구 불가', color: '#dc2626', bg: 'var(--ifm-color-emphasis-100)' },
 };
 
 export default function ClusterHealthTable() {
@@ -23,15 +23,15 @@ export default function ClusterHealthTable() {
         <div style={{ fontSize: '0.95rem', fontWeight: 700 }}>🏥 클러스터 헬스 이슈 코드</div>
         <div style={{ fontSize: '0.72rem', opacity: 0.7, marginTop: 2 }}>aws eks describe-cluster --query 'cluster.health'</div>
       </div>
-      <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderTop: 'none', borderRadius: '0 0 12px 12px', padding: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+      <div style={{ background: 'var(--ifm-background-surface-color)', border: '1px solid var(--ifm-color-emphasis-200)', borderTop: 'none', borderRadius: '0 0 12px 12px', padding: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
         {issues.map((item) => {
           const st = statusMap[item.recoverable];
           return (
             <div key={item.code} style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '0.5rem', padding: '0.55rem 0.8rem', borderRadius: 8, background: st.bg, border: `1px solid ${st.color}20`, alignItems: 'center' }}>
               <div>
-                <code style={{ fontSize: '0.76rem', fontWeight: 700, color: '#1e293b' }}>{item.code}</code>
-                <div style={{ fontSize: '0.72rem', color: '#6b7280', marginTop: 2 }}>{item.msg}</div>
-                <div style={{ fontSize: '0.72rem', color: '#475569', marginTop: 2 }}>→ {item.fix}</div>
+                <code style={{ fontSize: '0.76rem', fontWeight: 700, color: 'var(--ifm-font-color-base)' }}>{item.code}</code>
+                <div style={{ fontSize: '0.72rem', color: 'var(--ifm-color-emphasis-600)', marginTop: 2 }}>{item.msg}</div>
+                <div style={{ fontSize: '0.72rem', color: 'var(--ifm-color-emphasis-600)', marginTop: 2 }}>→ {item.fix}</div>
               </div>
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: `${st.color}15`, color: st.color, padding: '3px 10px', borderRadius: 10, fontSize: '0.7rem', fontWeight: 600, whiteSpace: 'nowrap' }}>
                 {st.icon} {st.label}

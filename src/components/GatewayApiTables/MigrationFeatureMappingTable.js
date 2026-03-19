@@ -24,12 +24,12 @@ const data = {
 };
 
 const statusColors = {
-  direct: { bg: '#e8f5e9', text: '#2e7d32', label: { ko: '직접 매핑', en: 'Direct' } },
-  identical: { bg: '#e8f5e9', text: '#2e7d32', label: { ko: '동일', en: 'Identical' } },
-  standardized: { bg: '#e3f2fd', text: '#1565c0', label: { ko: '표준화됨', en: 'Standardized' } },
-  'in-progress': { bg: '#fff3e0', text: '#e65100', label: { ko: '진행 중', en: 'In Progress' } },
-  external: { bg: '#fff3e0', text: '#e65100', label: { ko: '외부', en: 'External' } },
-  automated: { bg: '#e0f2f1', text: '#00695c', label: { ko: '자동화됨', en: 'Automated' } },
+  direct: { bg: 'var(--ifm-color-emphasis-100)', text: '#2e7d32', label: { ko: '직접 매핑', en: 'Direct' } },
+  identical: { bg: 'var(--ifm-color-emphasis-100)', text: '#2e7d32', label: { ko: '동일', en: 'Identical' } },
+  standardized: { bg: 'var(--ifm-color-emphasis-100)', text: '#1565c0', label: { ko: '표준화됨', en: 'Standardized' } },
+  'in-progress': { bg: 'var(--ifm-color-emphasis-100)', text: '#e65100', label: { ko: '진행 중', en: 'In Progress' } },
+  external: { bg: 'var(--ifm-color-emphasis-100)', text: '#e65100', label: { ko: '외부', en: 'External' } },
+  automated: { bg: 'var(--ifm-color-emphasis-100)', text: '#00695c', label: { ko: '자동화됨', en: 'Automated' } },
 };
 
 export default function MigrationFeatureMappingTable({ locale = 'ko' }) {
@@ -43,21 +43,21 @@ export default function MigrationFeatureMappingTable({ locale = 'ko' }) {
         <div style={{ fontSize: '0.95rem', fontWeight: 700 }}>{title}</div>
         <div style={{ fontSize: '0.72rem', opacity: 0.7, marginTop: 2 }}>{subtitle}</div>
       </div>
-      <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderTop: 'none', borderRadius: '0 0 12px 12px', padding: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+      <div style={{ background: 'var(--ifm-background-surface-color)', border: '1px solid var(--ifm-color-emphasis-200)', borderTop: 'none', borderRadius: '0 0 12px 12px', padding: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
         {rows.map((row, idx) => {
           const statusStyle = statusColors[row.status];
           return (
-            <div key={idx} style={{ border: '1.5px solid #5d403720', borderRadius: 8, padding: '0.7rem 1rem', background: '#fafafa' }}>
+            <div key={idx} style={{ border: '1.5px solid var(--ifm-color-emphasis-200)', borderRadius: 8, padding: '0.7rem 1rem', background: 'var(--ifm-background-surface-color)' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.4rem', flexWrap: 'wrap' }}>
-                <code style={{ background: '#ffebee', color: '#c62828', padding: '3px 8px', borderRadius: 4, fontSize: '0.74rem', fontWeight: 600 }}>{row.nginx}</code>
-                <span style={{ fontSize: '1rem', color: '#5d4037' }}>→</span>
-                <code style={{ background: '#e3f2fd', color: '#1565c0', padding: '3px 8px', borderRadius: 4, fontSize: '0.74rem', fontWeight: 600, flex: 1, minWidth: 180 }}>{row.gateway}</code>
+                <code style={{ background: 'var(--ifm-color-emphasis-100)', color: '#c62828', padding: '3px 8px', borderRadius: 4, fontSize: '0.74rem', fontWeight: 600 }}>{row.nginx}</code>
+                <span style={{ fontSize: '1rem', color: 'var(--ifm-color-emphasis-600)' }}>→</span>
+                <code style={{ background: 'var(--ifm-color-emphasis-100)', color: '#1565c0', padding: '3px 8px', borderRadius: 4, fontSize: '0.74rem', fontWeight: 600, flex: 1, minWidth: 180 }}>{row.gateway}</code>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.76rem' }}>
                 <span style={{ background: statusStyle.bg, color: statusStyle.text, padding: '2px 8px', borderRadius: 10, fontWeight: 600, fontSize: '0.72rem' }}>
                   {statusStyle.label[locale]}
                 </span>
-                <span style={{ color: '#6b7280', fontStyle: 'italic' }}>{row.notes}</span>
+                <span style={{ color: 'var(--ifm-color-emphasis-600)', fontStyle: 'italic' }}>{row.notes}</span>
               </div>
             </div>
           );

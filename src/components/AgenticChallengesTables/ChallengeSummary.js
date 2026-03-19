@@ -11,7 +11,7 @@ const ChallengeSummary = () => {
       name: isKo ? 'GPU 리소스 관리 및 비용 최적화' : isZh ? 'GPU 资源管理和成本优化' : 'GPU Resource Management & Cost Optimization',
       icon: '🎯',
       color: '#ff6b6b',
-      bgColor: '#fff5f5',
+      bgColor: 'var(--ifm-color-emphasis-100)',
       problem: isKo ? '멀티 클러스터 GPU 가시성 부재, 세대별 워크로드 매칭, GPU 유휴 비용' : isZh ? '缺乏多集群 GPU 可见性，代际工作负载匹配，GPU 闲置成本' : 'Lack of multi-cluster GPU visibility, generation-specific workload matching, GPU idle costs',
       limitation: isKo ? '수동 모니터링, 정적 할당, 비용 가시성 부재' : isZh ? '手动监控，静态分配，缺乏成本可见性' : 'Manual monitoring, static allocation, no cost visibility'
     },
@@ -19,7 +19,7 @@ const ChallengeSummary = () => {
       name: isKo ? '지능형 추론 라우팅 및 게이트웨이' : isZh ? '智能推理路由和网关' : 'Intelligent Inference Routing & Gateway',
       icon: '🔀',
       color: '#4ecdc4',
-      bgColor: '#f0fdfa',
+      bgColor: 'var(--ifm-color-emphasis-100)',
       problem: isKo ? '예측 불가능한 트래픽, 멀티 모델 라우팅, 동적 스케일링' : isZh ? '不可预测的流量，多模型路由，动态扩展' : 'Unpredictable traffic, multi-model routing, dynamic scaling',
       limitation: isKo ? '느린 프로비저닝, 고정 용량, 수동 라우팅' : isZh ? '缓慢的配置，固定容量，手动路由' : 'Slow provisioning, fixed capacity, manual routing'
     },
@@ -27,7 +27,7 @@ const ChallengeSummary = () => {
       name: isKo ? 'LLMOps 관찰성 및 비용 거버넌스' : isZh ? 'LLMOps 可观测性和成本治理' : 'LLMOps Observability & Cost Governance',
       icon: '💰',
       color: '#45b7d1',
-      bgColor: '#eff6ff',
+      bgColor: 'var(--ifm-color-emphasis-100)',
       problem: isKo ? '토큰 레벨 추적 어려움, 비용 가시성 부재, 품질 평가 체계 미흡' : isZh ? '令牌级别跟踪困难，缺乏成本可见性，质量评估体系不足' : 'Difficulty tracking at token level, no cost visibility, inadequate quality evaluation',
       limitation: isKo ? '수동 추적, 최적화 불가, 사후 분석만 가능' : isZh ? '手动跟踪，无法优化，仅事后分析' : 'Manual tracking, no optimization, only post-analysis'
     },
@@ -35,7 +35,7 @@ const ChallengeSummary = () => {
       name: isKo ? 'Agent 오케스트레이션 및 안전성' : isZh ? 'Agent 编排和安全性' : 'Agent Orchestration & Safety',
       icon: '🤖',
       color: '#9b59b6',
-      bgColor: '#f3ebf8',
+      bgColor: 'var(--ifm-color-emphasis-100)',
       problem: isKo ? 'Agent 워크플로우 복잡성, 도구 통합 어려움, 안전성 보장 미흡' : isZh ? 'Agent 工作流复杂性，工具集成困难，安全性保障不足' : 'Agent workflow complexity, tool integration challenges, inadequate safety guarantees',
       limitation: isKo ? '수동 오케스트레이션, 표준화 부재, 가드레일 미흡' : isZh ? '手动编排，缺乏标准化，防护栏不足' : 'Manual orchestration, lack of standardization, insufficient guardrails'
     },
@@ -43,7 +43,7 @@ const ChallengeSummary = () => {
       name: isKo ? '모델 공급망 관리 (Model Supply Chain)' : isZh ? '模型供应链管理' : 'Model Supply Chain Management',
       icon: '🔧',
       color: '#96ceb4',
-      bgColor: '#f0fdf4',
+      bgColor: 'var(--ifm-color-emphasis-100)',
       problem: isKo ? '분산 학습 인프라 복잡성, 리소스 프로비저닝 지연, 모델 배포 파이프라인' : isZh ? '分布式训练基础设施复杂性，资源配置延迟，模型部署流水线' : 'Distributed training infrastructure complexity, resource provisioning delays, model deployment pipeline',
       limitation: isKo ? '수동 클러스터 관리, 낮은 활용률, 파이프라인 자동화 부재' : isZh ? '手动集群管理，低利用率，缺乏流水线自动化' : 'Manual cluster management, low utilization, no pipeline automation'
     }
@@ -107,16 +107,16 @@ const ChallengeSummary = () => {
               </div>
 
               <div style={{ marginBottom: '12px' }}>
-                <div style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '4px' }}>
+                <div style={{ fontSize: '12px', fontWeight: '600', color: 'var(--ifm-color-emphasis-600)', marginBottom: '4px' }}>
                   {isKo ? '핵심 문제' : isZh ? '核心问题' : 'Core Problem'}
                 </div>
-                <div style={{ fontSize: '14px', color: '#374151' }}>
+                <div style={{ fontSize: '14px', color: 'var(--ifm-font-color-base)' }}>
                   {challenge.problem}
                 </div>
               </div>
 
               <div>
-                <div style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '4px' }}>
+                <div style={{ fontSize: '12px', fontWeight: '600', color: 'var(--ifm-color-emphasis-600)', marginBottom: '4px' }}>
                   {isKo ? '기존 인프라의 한계' : isZh ? '现有基础设施限制' : 'Legacy Limitation'}
                 </div>
                 <div style={{ fontSize: '14px', color: '#dc2626', fontWeight: '500' }}>

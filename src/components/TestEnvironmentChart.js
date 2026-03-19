@@ -48,7 +48,7 @@ export default function TestEnvironmentChart({ locale = 'en' }) {
         <div style={{ fontSize: '0.72rem', opacity: 0.7, marginTop: '2px' }}>{t.subtitle}</div>
       </div>
       <div style={{
-        background: '#fff', border: '1px solid #e2e8f0', borderTop: 'none',
+        background: 'var(--ifm-background-surface-color)', border: '1px solid var(--ifm-color-emphasis-200)', borderTop: 'none',
         borderRadius: '0 0 12px 12px', overflow: 'hidden',
       }}>
         {t.rows.map((row, i) => (
@@ -58,13 +58,13 @@ export default function TestEnvironmentChart({ locale = 'en' }) {
           }}>
             <div style={{
               width: '140px', flexShrink: 0, padding: '0.6rem 1rem',
-              background: '#f8fafc', fontWeight: 600, color: '#475569',
+              background: 'var(--ifm-background-surface-color)', fontWeight: 600, color: 'var(--ifm-color-emphasis-600)',
               borderRight: '1px solid #f1f5f9',
             }}>
               {row.label}
             </div>
             <div style={{
-              flex: 1, padding: '0.6rem 1rem', color: '#1e293b',
+              flex: 1, padding: '0.6rem 1rem', color: 'var(--ifm-font-color-base)',
               fontFamily: 'SFMono-Regular, Menlo, monospace',
               fontSize: '0.78rem',
             }}>

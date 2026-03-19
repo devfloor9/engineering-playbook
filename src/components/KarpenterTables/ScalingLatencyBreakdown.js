@@ -62,8 +62,8 @@ const ScalingLatencyBreakdown = () => {
       </div>
 
       <div style={{
-        background: 'white',
-        border: '1px solid #e5e7eb',
+        background: 'var(--ifm-background-surface-color)',
+        border: '1px solid var(--ifm-color-emphasis-200)',
         borderTop: 'none',
         borderRadius: '0 0 8px 8px',
         overflow: 'hidden',
@@ -76,9 +76,9 @@ const ScalingLatencyBreakdown = () => {
           gap: '8px',
           marginBottom: '12px',
           paddingBottom: '8px',
-          borderBottom: '2px solid #e5e7eb'
+          borderBottom: '2px solid var(--ifm-color-emphasis-200)'
         }}>
-          <div style={{ fontSize: '12px', fontWeight: '700', color: '#6b7280', textTransform: 'uppercase' }}>
+          <div style={{ fontSize: '12px', fontWeight: '700', color: 'var(--ifm-color-emphasis-600)', textTransform: 'uppercase' }}>
             {isKo ? '단계' : isZh ? '阶段' : 'Stage'}
           </div>
           <div style={{ fontSize: '12px', fontWeight: '700', color: '#3b82f6', textAlign: 'center' }}>P50</div>
@@ -119,7 +119,7 @@ const ScalingLatencyBreakdown = () => {
                 <div style={{
                   width: '100%',
                   height: '6px',
-                  background: '#f3f4f6',
+                  background: 'var(--ifm-color-emphasis-100)',
                   borderRadius: '3px',
                   overflow: 'hidden'
                 }}>

@@ -18,9 +18,9 @@ const errors = [
 ];
 
 const sevColors = {
-  high: { color: '#dc2626', bg: '#fef2f2', dot: '🔴' },
-  med: { color: '#d97706', bg: '#fffbeb', dot: '🟡' },
-  low: { color: '#6b7280', bg: '#f9fafb', dot: '⚪' },
+  high: { color: '#dc2626', bg: 'var(--ifm-color-emphasis-100)', dot: '🔴' },
+  med: { color: '#d97706', bg: 'var(--ifm-color-emphasis-100)', dot: '🟡' },
+  low: { color: 'var(--ifm-color-emphasis-600)', bg: 'var(--ifm-color-emphasis-100)', dot: '⚪' },
 };
 
 export default function NodeGroupErrorTable() {
@@ -30,16 +30,16 @@ export default function NodeGroupErrorTable() {
         <div style={{ fontSize: '0.95rem', fontWeight: 700 }}>🖥️ Managed Node Group 에러 코드</div>
         <div style={{ fontSize: '0.72rem', opacity: 0.7, marginTop: 2 }}>aws eks describe-nodegroup --query 'nodegroup.health'</div>
       </div>
-      <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderTop: 'none', borderRadius: '0 0 12px 12px', padding: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+      <div style={{ background: 'var(--ifm-background-surface-color)', border: '1px solid var(--ifm-color-emphasis-200)', borderTop: 'none', borderRadius: '0 0 12px 12px', padding: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
         {errors.map((e) => {
           const s = sevColors[e.severity];
           return (
             <div key={e.code} style={{ display: 'grid', gridTemplateColumns: '1fr', padding: '0.5rem 0.8rem', borderRadius: 8, background: s.bg, border: `1px solid ${s.color}15` }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: 3 }}>
                 <span style={{ fontSize: '0.65rem' }}>{s.dot}</span>
-                <code style={{ fontSize: '0.74rem', fontWeight: 700, color: '#1e293b' }}>{e.code}</code>
+                <code style={{ fontSize: '0.74rem', fontWeight: 700, color: 'var(--ifm-font-color-base)' }}>{e.code}</code>
               </div>
-              <div style={{ fontSize: '0.72rem', color: '#6b7280' }}>{e.cause}</div>
+              <div style={{ fontSize: '0.72rem', color: 'var(--ifm-color-emphasis-600)' }}>{e.cause}</div>
               <div style={{ fontSize: '0.72rem', color: '#059669', fontWeight: 500, marginTop: 2 }}>→ {e.fix}</div>
             </div>
           );

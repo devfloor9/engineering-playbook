@@ -35,10 +35,10 @@ export default function InstanceTypeTable({ locale = 'ko' }) {
         <div style={{ fontSize: '0.95rem', fontWeight: 700 }}>{title}</div>
         <div style={{ fontSize: '0.72rem', opacity: 0.7, marginTop: 2 }}>{subtitle}</div>
       </div>
-      <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderTop: 'none', borderRadius: '0 0 12px 12px', overflow: 'auto' }}>
+      <div style={{ background: 'var(--ifm-background-surface-color)', border: '1px solid var(--ifm-color-emphasis-200)', borderTop: 'none', borderRadius: '0 0 12px 12px', overflow: 'auto' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.78rem' }}>
           <thead>
-            <tr style={{ background: '#e3f2fd' }}>
+            <tr style={{ background: 'var(--ifm-color-emphasis-100)' }}>
               <th style={{ padding: '0.75rem 0.8rem', textAlign: 'left', fontSize: '0.78rem', fontWeight: 600, color: '#0d47a1', borderBottom: '2px solid #1565c0', whiteSpace: 'nowrap' }}>{headers.type}</th>
               <th style={{ padding: '0.75rem 0.6rem', textAlign: 'center', fontSize: '0.78rem', fontWeight: 600, color: '#0d47a1', borderBottom: '2px solid #1565c0' }}>{headers.vcpu}</th>
               <th style={{ padding: '0.75rem 0.6rem', textAlign: 'center', fontSize: '0.78rem', fontWeight: 600, color: '#0d47a1', borderBottom: '2px solid #1565c0' }}>{headers.memory}</th>
@@ -56,23 +56,23 @@ export default function InstanceTypeTable({ locale = 'ko' }) {
               const barWidth = (bandwidthNum / maxBandwidth) * 100;
 
               return (
-                <tr key={idx} style={{ background: bgColor, borderBottom: '1px solid #e2e8f0' }}>
+                <tr key={idx} style={{ background: bgColor, borderBottom: '1px solid var(--ifm-color-emphasis-200)' }}>
                   <td style={{ padding: '0.7rem 0.8rem', whiteSpace: 'nowrap' }}>
                     <code style={{ background: isNetworkOptimized ? '#1565c0' : '#2e7d32', color: '#fff', padding: '3px 8px', borderRadius: 4, fontSize: '0.76rem', fontWeight: 600 }}>{row.type}</code>
                   </td>
-                  <td style={{ padding: '0.7rem 0.6rem', textAlign: 'center', color: '#374151', fontWeight: 600 }}>{row.vcpu}</td>
-                  <td style={{ padding: '0.7rem 0.6rem', textAlign: 'center', color: '#374151' }}>{row.memory}</td>
+                  <td style={{ padding: '0.7rem 0.6rem', textAlign: 'center', color: 'var(--ifm-font-color-base)', fontWeight: 600 }}>{row.vcpu}</td>
+                  <td style={{ padding: '0.7rem 0.6rem', textAlign: 'center', color: 'var(--ifm-font-color-base)' }}>{row.memory}</td>
                   <td style={{ padding: '0.7rem 0.8rem' }}>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                      <span style={{ fontSize: '0.76rem', color: '#374151' }}>{row.bandwidth}</span>
-                      <div style={{ width: '100%', maxWidth: 120, height: 6, background: '#e2e8f0', borderRadius: 3, overflow: 'hidden' }}>
+                      <span style={{ fontSize: '0.76rem', color: 'var(--ifm-font-color-base)' }}>{row.bandwidth}</span>
+                      <div style={{ width: '100%', maxWidth: 120, height: 6, background: 'var(--ifm-color-emphasis-200)', borderRadius: 3, overflow: 'hidden' }}>
                         <div style={{ width: `${barWidth}%`, height: '100%', background: isNetworkOptimized ? 'linear-gradient(90deg, #1565c0 0%, #42a5f5 100%)' : 'linear-gradient(90deg, #2e7d32 0%, #66bb6a 100%)' }}></div>
                       </div>
                     </div>
                   </td>
-                  <td style={{ padding: '0.7rem 0.6rem', textAlign: 'center', color: '#374151' }}>{row.eni}</td>
-                  <td style={{ padding: '0.7rem 0.6rem', textAlign: 'center', color: '#374151' }}>{row.ipPerEni}</td>
-                  <td style={{ padding: '0.7rem 0.8rem', fontSize: '0.76rem', color: '#6b7280' }}>{row.usage}</td>
+                  <td style={{ padding: '0.7rem 0.6rem', textAlign: 'center', color: 'var(--ifm-font-color-base)' }}>{row.eni}</td>
+                  <td style={{ padding: '0.7rem 0.6rem', textAlign: 'center', color: 'var(--ifm-font-color-base)' }}>{row.ipPerEni}</td>
+                  <td style={{ padding: '0.7rem 0.8rem', fontSize: '0.76rem', color: 'var(--ifm-color-emphasis-600)' }}>{row.usage}</td>
                 </tr>
               );
             })}

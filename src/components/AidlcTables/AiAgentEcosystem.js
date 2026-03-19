@@ -69,8 +69,8 @@ const AiAgentEcosystem = () => {
       marginTop: '1.5rem'
     },
     agentCard: {
-      background: 'white',
-      border: '1px solid #e5e7eb',
+      background: 'var(--ifm-background-surface-color)',
+      border: '1px solid var(--ifm-color-emphasis-200)',
       borderRadius: '8px',
       padding: '1.5rem',
       boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
@@ -80,11 +80,11 @@ const AiAgentEcosystem = () => {
       margin: '0 0 0.5rem 0',
       fontSize: '1.25rem',
       fontWeight: '600',
-      color: '#111827'
+      color: 'var(--ifm-font-color-base)'
     },
     characteristics: {
       fontSize: '0.875rem',
-      color: '#6b7280',
+      color: 'var(--ifm-color-emphasis-600)',
       fontWeight: '500',
       marginBottom: '1rem',
       paddingBottom: '0.75rem',
@@ -93,7 +93,7 @@ const AiAgentEcosystem = () => {
     featuresTitle: {
       fontSize: '0.75rem',
       fontWeight: '600',
-      color: '#6b7280',
+      color: 'var(--ifm-color-emphasis-600)',
       textTransform: 'uppercase',
       letterSpacing: '0.05em',
       marginBottom: '0.75rem'
@@ -102,7 +102,7 @@ const AiAgentEcosystem = () => {
       margin: 0,
       paddingLeft: '1.25rem',
       fontSize: '0.8125rem',
-      color: '#4b5563',
+      color: 'var(--ifm-font-color-base)',
       lineHeight: '1.8'
     },
     featureItem: {
@@ -111,16 +111,16 @@ const AiAgentEcosystem = () => {
     footer: {
       marginTop: '2rem',
       padding: '1.25rem',
-      background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
+      background: 'var(--ifm-color-emphasis-100)',
       borderRadius: '8px',
       fontSize: '0.875rem',
-      color: '#78350f',
+      color: 'var(--ifm-color-emphasis-700)',
       lineHeight: '1.7'
     },
     footerTitle: {
       fontWeight: '600',
       marginBottom: '0.5rem',
-      color: '#92400e'
+      color: 'var(--ifm-color-emphasis-700)'
     }
   };
 

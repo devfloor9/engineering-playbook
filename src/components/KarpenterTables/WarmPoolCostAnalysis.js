@@ -95,8 +95,8 @@ const WarmPoolCostAnalysis = () => {
       </div>
 
       <div style={{
-        background: 'white',
-        border: '1px solid #e5e7eb',
+        background: 'var(--ifm-background-surface-color)',
+        border: '1px solid var(--ifm-color-emphasis-200)',
         borderTop: 'none',
         borderRadius: '0 0 8px 8px',
         overflow: 'hidden',
@@ -107,10 +107,10 @@ const WarmPoolCostAnalysis = () => {
             <div style={{
               fontSize: '14px',
               fontWeight: '700',
-              color: '#1f2937',
+              color: 'var(--ifm-font-color-base)',
               marginBottom: '10px',
               paddingBottom: '6px',
-              borderBottom: '1px solid #e5e7eb'
+              borderBottom: '1px solid var(--ifm-color-emphasis-200)'
             }}>
               {scenario.title}
             </div>
@@ -144,17 +144,17 @@ const WarmPoolCostAnalysis = () => {
                 )}
                 <div style={{ flex: '0 0 100px' }}>
                   <div style={{ fontSize: '12px', fontWeight: '700', color: row.color }}>{row.config}</div>
-                  <div style={{ fontSize: '11px', color: '#9ca3af' }}>{row.poolSize}</div>
+                  <div style={{ fontSize: '11px', color: 'var(--ifm-color-emphasis-500)' }}>{row.poolSize}</div>
                 </div>
                 <div style={{
                   flex: '0 0 70px',
                   fontSize: '15px',
                   fontWeight: '700',
-                  color: '#1f2937',
+                  color: 'var(--ifm-font-color-base)',
                   textAlign: 'center'
                 }}>
                   {row.cost}
-                  <div style={{ fontSize: '10px', color: '#9ca3af', fontWeight: '400' }}>
+                  <div style={{ fontSize: '10px', color: 'var(--ifm-color-emphasis-500)', fontWeight: '400' }}>
                     {isKo ? '/월' : isZh ? '/月' : '/mo'}
                   </div>
                 </div>
@@ -162,7 +162,7 @@ const WarmPoolCostAnalysis = () => {
                   <div style={{
                     width: '100%',
                     height: '20px',
-                    background: '#f3f4f6',
+                    background: 'var(--ifm-color-emphasis-100)',
                     borderRadius: '4px',
                     overflow: 'hidden',
                     position: 'relative'
@@ -182,7 +182,7 @@ const WarmPoolCostAnalysis = () => {
                     </div>
                   </div>
                 </div>
-                <div style={{ flex: '0 0 100px', fontSize: '11px', color: '#6b7280', textAlign: 'right' }}>
+                <div style={{ flex: '0 0 100px', fontSize: '11px', color: 'var(--ifm-color-emphasis-600)', textAlign: 'right' }}>
                   {row.fit}
                 </div>
               </div>

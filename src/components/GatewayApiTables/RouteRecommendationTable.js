@@ -28,7 +28,7 @@ export default function RouteRecommendationTable({ locale = 'ko' }) {
         <div style={{ fontSize: '0.95rem', fontWeight: 700 }}>{title}</div>
         <div style={{ fontSize: '0.72rem', opacity: 0.7, marginTop: 2 }}>{subtitle}</div>
       </div>
-      <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderTop: 'none', borderRadius: '0 0 12px 12px', padding: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+      <div style={{ background: 'var(--ifm-background-surface-color)', border: '1px solid var(--ifm-color-emphasis-200)', borderTop: 'none', borderRadius: '0 0 12px 12px', padding: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
         {rows.map((row, idx) => {
           const bgColor = `${row.color}10`;
           const borderColor = `${row.color}40`;
@@ -38,9 +38,9 @@ export default function RouteRecommendationTable({ locale = 'ko' }) {
                 <span style={{ background: row.color, color: '#fff', padding: '4px 12px', borderRadius: 6, fontSize: '0.8rem', fontWeight: 700 }}>
                   {row.route}
                 </span>
-                <span style={{ fontSize: '0.76rem', color: '#6b7280', fontStyle: 'italic' }}>→ {row.bestFor}</span>
+                <span style={{ fontSize: '0.76rem', color: 'var(--ifm-color-emphasis-600)', fontStyle: 'italic' }}>→ {row.bestFor}</span>
               </div>
-              <div style={{ fontSize: '0.78rem', color: '#374151', paddingLeft: '0.5rem', borderLeft: `3px solid ${row.color}`, marginLeft: '0.2rem' }}>
+              <div style={{ fontSize: '0.78rem', color: 'var(--ifm-font-color-base)', paddingLeft: '0.5rem', borderLeft: `3px solid ${row.color}`, marginLeft: '0.2rem' }}>
                 <strong style={{ color: row.color }}>✓</strong> {row.advantages}
               </div>
             </div>

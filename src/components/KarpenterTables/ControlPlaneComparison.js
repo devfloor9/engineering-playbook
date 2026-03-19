@@ -9,7 +9,7 @@ const ControlPlaneComparison = () => {
   const tiers = [
     {
       name: 'Standard',
-      color: '#6b7280',
+      color: 'var(--ifm-color-emphasis-600)',
       apiThrottling: isKo ? '공유 제한' : isZh ? '共享限制' : 'Shared limit',
       podTps: '10 TPS',
       nodeUpdate: '5 TPS',
@@ -84,8 +84,8 @@ const ControlPlaneComparison = () => {
       </div>
 
       <div style={{
-        background: 'white',
-        border: '1px solid #e5e7eb',
+        background: 'var(--ifm-background-surface-color)',
+        border: '1px solid var(--ifm-color-emphasis-200)',
         borderTop: 'none',
         borderRadius: '0 0 8px 8px',
         overflow: 'hidden'
@@ -94,9 +94,9 @@ const ControlPlaneComparison = () => {
         <div style={{
           display: 'grid',
           gridTemplateColumns: '120px repeat(4, 1fr)',
-          borderBottom: '2px solid #e5e7eb'
+          borderBottom: '2px solid var(--ifm-color-emphasis-200)'
         }}>
-          <div style={{ padding: '10px 12px', fontSize: '12px', fontWeight: '700', color: '#6b7280' }}>
+          <div style={{ padding: '10px 12px', fontSize: '12px', fontWeight: '700', color: 'var(--ifm-color-emphasis-600)' }}>
             {isKo ? '항목' : isZh ? '项目' : 'Feature'}
           </div>
           {tiers.map((t, i) => (
@@ -127,13 +127,13 @@ const ControlPlaneComparison = () => {
             display: 'grid',
             gridTemplateColumns: '120px repeat(4, 1fr)',
             borderBottom: idx < 5 ? '1px solid #f3f4f6' : 'none',
-            background: idx % 2 === 0 ? '#fafafa' : 'white'
+            background: idx % 2 === 0 ? 'var(--ifm-color-emphasis-100)' : 'white'
           }}>
             <div style={{
               padding: '8px 12px',
               fontSize: '12px',
               fontWeight: '600',
-              color: '#4b5563',
+              color: 'var(--ifm-font-color-base)',
               display: 'flex',
               alignItems: 'center'
             }}>

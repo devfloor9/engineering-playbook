@@ -90,8 +90,8 @@ const EvolutionDiagram = () => {
       </div>
 
       <div style={{
-        background: 'white',
-        border: '1px solid #e5e7eb',
+        background: 'var(--ifm-background-surface-color)',
+        border: '1px solid var(--ifm-color-emphasis-200)',
         borderTop: 'none',
         borderRadius: '0 0 8px 8px',
         padding: '24px 20px'
@@ -130,7 +130,7 @@ const EvolutionDiagram = () => {
               {/* Subtitle */}
               <div style={{
                 padding: '10px 18px 6px',
-                color: '#6b7280',
+                color: 'var(--ifm-color-emphasis-600)',
                 fontSize: '13px',
                 fontStyle: 'italic',
                 borderBottom: '1px solid #f3f4f6'
@@ -159,7 +159,7 @@ const EvolutionDiagram = () => {
                     }}>
                       {item.label}
                     </span>
-                    <span style={{ fontSize: '13px', color: '#4b5563' }}>
+                    <span style={{ fontSize: '13px', color: 'var(--ifm-font-color-base)' }}>
                       {item.detail}
                     </span>
                   </div>
@@ -185,7 +185,7 @@ const EvolutionDiagram = () => {
                 textAlign: 'center',
                 padding: '8px 0',
                 fontSize: '24px',
-                color: '#9ca3af',
+                color: 'var(--ifm-color-emphasis-500)',
                 lineHeight: 1
               }}>
                 ▼
@@ -203,10 +203,10 @@ const EvolutionDiagram = () => {
           padding: '16px 18px',
           textAlign: 'center'
         }}>
-          <div style={{ fontSize: '14px', fontWeight: '700', color: '#92400e', marginBottom: '4px' }}>
+          <div style={{ fontSize: '14px', fontWeight: '700', color: 'var(--ifm-color-emphasis-700)', marginBottom: '4px' }}>
             {isKo ? '누적적 진화 모델' : isZh ? '累积演进模型' : 'Cumulative Evolution Model'}
           </div>
-          <div style={{ fontSize: '13px', color: '#78350f' }}>
+          <div style={{ fontSize: '13px', color: 'var(--ifm-color-emphasis-700)' }}>
             {isKo
               ? '각 단계가 이전 단계 위에 쌓입니다 — 운영 복잡성 제거 → 자동화 컴포넌트 강화 → AI 활용 운영 → 자율 운영'
               : isZh

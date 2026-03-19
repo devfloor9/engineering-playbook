@@ -87,7 +87,7 @@ const ImprovementChecklist = () => {
                   <div style={{
                     fontSize: '12px',
                     fontWeight: '600',
-                    color: '#6b7280',
+                    color: 'var(--ifm-color-emphasis-600)',
                     marginBottom: '4px'
                   }}>
                     {isKo ? '가능한 원인' : isZh ? '可能原因' : 'Possible Cause'}
@@ -100,7 +100,7 @@ const ImprovementChecklist = () => {
                   <div style={{
                     fontSize: '12px',
                     fontWeight: '600',
-                    color: '#6b7280',
+                    color: 'var(--ifm-color-emphasis-600)',
                     marginBottom: '4px'
                   }}>
                     {isKo ? '해결 방안' : isZh ? '解决方案' : 'Solution'}

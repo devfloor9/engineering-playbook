@@ -89,8 +89,8 @@ const ManagedAddons = () => {
 
       {/* Table */}
       <div style={{
-        background: 'white',
-        border: '1px solid #e5e7eb',
+        background: 'var(--ifm-background-surface-color)',
+        border: '1px solid var(--ifm-color-emphasis-200)',
         borderTop: 'none',
         borderRadius: '0 0 8px 8px',
         overflow: 'hidden'
@@ -99,41 +99,41 @@ const ManagedAddons = () => {
         <div style={{
           display: 'grid',
           gridTemplateColumns: '180px 1fr 1.2fr 1fr',
-          borderBottom: '2px solid #e5e7eb',
-          background: '#f8fafc'
+          borderBottom: '2px solid var(--ifm-color-emphasis-200)',
+          background: 'var(--ifm-background-surface-color)'
         }}>
           <div style={{
             padding: '12px 14px',
             fontWeight: '600',
             fontSize: '12px',
-            color: '#6b7280'
+            color: 'var(--ifm-color-emphasis-600)'
           }}>
             Add-on
           </div>
           <div style={{
             padding: '12px 14px',
-            borderLeft: '1px solid #e5e7eb',
+            borderLeft: '1px solid var(--ifm-color-emphasis-200)',
             fontWeight: '600',
             fontSize: '12px',
-            color: '#6b7280'
+            color: 'var(--ifm-color-emphasis-600)'
           }}>
             {isKo ? '수집 대상' : isZh ? '采集目标' : 'Collection Targets'}
           </div>
           <div style={{
             padding: '12px 14px',
-            borderLeft: '1px solid #e5e7eb',
+            borderLeft: '1px solid var(--ifm-color-emphasis-200)',
             fontWeight: '600',
             fontSize: '12px',
-            color: '#6b7280'
+            color: 'var(--ifm-color-emphasis-600)'
           }}>
             {isKo ? '핵심 특징' : isZh ? '核心特性' : 'Key Features'}
           </div>
           <div style={{
             padding: '12px 14px',
-            borderLeft: '1px solid #e5e7eb',
+            borderLeft: '1px solid var(--ifm-color-emphasis-200)',
             fontWeight: '600',
             fontSize: '12px',
-            color: '#6b7280'
+            color: 'var(--ifm-color-emphasis-600)'
           }}>
             {isKo ? '설치 명령' : isZh ? '安装命令' : 'Install Command'}
           </div>
@@ -149,7 +149,7 @@ const ManagedAddons = () => {
             {/* Add-on Column */}
             <div style={{
               padding: '14px',
-              background: '#f8fafc',
+              background: 'var(--ifm-background-surface-color)',
               display: 'flex',
               flexDirection: 'column',
               gap: '6px'
@@ -158,7 +158,7 @@ const ManagedAddons = () => {
                 fontFamily: 'Monaco, Consolas, monospace',
                 fontSize: '13px',
                 fontWeight: '700',
-                color: '#1f2937'
+                color: 'var(--ifm-font-color-base)'
               }}>
                 {addon.displayName}
               </div>
@@ -186,7 +186,7 @@ const ManagedAddons = () => {
               </div>
               <div style={{
                 fontSize: '11px',
-                color: '#6b7280',
+                color: 'var(--ifm-color-emphasis-600)',
                 lineHeight: '1.4'
               }}>
                 {addon.purpose}
@@ -197,7 +197,7 @@ const ManagedAddons = () => {
             <div style={{
               padding: '14px',
               fontSize: '12px',
-              color: '#4b5563',
+              color: 'var(--ifm-font-color-base)',
               borderLeft: '1px solid #f3f4f6',
               display: 'flex',
               alignItems: 'center'
@@ -209,7 +209,7 @@ const ManagedAddons = () => {
             <div style={{
               padding: '14px',
               fontSize: '12px',
-              color: '#4b5563',
+              color: 'var(--ifm-font-color-base)',
               borderLeft: '1px solid #f3f4f6',
               display: 'flex',
               alignItems: 'center'
@@ -225,7 +225,7 @@ const ManagedAddons = () => {
               alignItems: 'center'
             }}>
               <code style={{
-                background: '#1f2937',
+                background: 'var(--ifm-color-emphasis-800)',
                 color: '#10b981',
                 padding: '6px 8px',
                 borderRadius: '4px',
@@ -242,11 +242,11 @@ const ManagedAddons = () => {
 
         {/* Footer */}
         <div style={{
-          background: '#fffbeb',
+          background: 'var(--ifm-color-emphasis-100)',
           borderTop: '1px solid #fde68a',
           padding: '12px 16px',
           fontSize: '12px',
-          color: '#92400e',
+          color: 'var(--ifm-color-emphasis-700)',
           lineHeight: '1.6'
         }}>
           💡 <strong>{isKo ? '권장:' : isZh ? '建议:' : 'Recommendation:'}</strong> {isKo ? '5개 Add-on을 모두 활성화하면 인프라·네트워크·애플리케이션·보안 전 레이어의 관찰성이 확보됩니다. 모든 Add-on은 AWS가 버전 관리와 보안 패치를 담당합니다.' : isZh ? '启用所有 5 个 Add-on 可提供覆盖所有层次的可观测性：基础设施、网络、应用和安全。AWS 负责管理所有 Add-on 的版本控制和安全补丁。' : 'Enabling all 5 Add-ons provides observability across all layers: infrastructure, network, application, and security. AWS manages version control and security patches for all Add-ons.'}

@@ -71,8 +71,8 @@ const AidlcPhaseActivities = () => {
       marginTop: '1.5rem'
     },
     phaseSection: {
-      background: 'white',
-      border: '1px solid #e5e7eb',
+      background: 'var(--ifm-background-surface-color)',
+      border: '1px solid var(--ifm-color-emphasis-200)',
       borderRadius: '8px',
       overflow: 'hidden',
       boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
@@ -91,11 +91,11 @@ const AidlcPhaseActivities = () => {
       gridTemplateColumns: '2fr 2fr 2fr',
       gap: '1rem',
       padding: '0.75rem',
-      background: '#f9fafb',
+      background: 'var(--ifm-background-surface-color)',
       borderRadius: '6px',
       fontSize: '0.75rem',
       fontWeight: '600',
-      color: '#6b7280',
+      color: 'var(--ifm-color-emphasis-600)',
       textTransform: 'uppercase',
       letterSpacing: '0.05em',
       marginBottom: '0.5rem'
@@ -110,11 +110,11 @@ const AidlcPhaseActivities = () => {
       lineHeight: '1.5'
     },
     activityCell: {
-      color: '#374151'
+      color: 'var(--ifm-font-color-base)'
     },
     activityName: {
       fontWeight: '500',
-      color: '#111827'
+      color: 'var(--ifm-font-color-base)'
     }
   };
 

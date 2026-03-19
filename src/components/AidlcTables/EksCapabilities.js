@@ -67,8 +67,8 @@ const EksCapabilities = () => {
       gap: '1rem'
     },
     capabilityCard: {
-      background: 'white',
-      border: '1px solid #e5e7eb',
+      background: 'var(--ifm-background-surface-color)',
+      border: '1px solid var(--ifm-color-emphasis-200)',
       borderRadius: '8px',
       padding: '1.25rem',
       boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
@@ -84,7 +84,7 @@ const EksCapabilities = () => {
       margin: 0,
       fontSize: '1.125rem',
       fontWeight: '600',
-      color: '#111827'
+      color: 'var(--ifm-font-color-base)'
     },
     statusBadge: {
       padding: '0.25rem 0.75rem',
@@ -94,16 +94,16 @@ const EksCapabilities = () => {
       flexShrink: 0
     },
     statusGA: {
-      background: '#d1fae5',
+      background: 'var(--ifm-color-emphasis-100)',
       color: '#065f46'
     },
     statusPreview: {
-      background: '#fef3c7',
-      color: '#92400e'
+      background: 'var(--ifm-color-emphasis-100)',
+      color: 'var(--ifm-color-emphasis-700)'
     },
     description: {
       fontSize: '0.875rem',
-      color: '#6b7280',
+      color: 'var(--ifm-color-emphasis-600)',
       marginBottom: '0.875rem'
     },
     featuresContainer: {
@@ -112,12 +112,12 @@ const EksCapabilities = () => {
       gap: '0.5rem'
     },
     featureTag: {
-      background: '#f9fafb',
-      color: '#374151',
+      background: 'var(--ifm-background-surface-color)',
+      color: 'var(--ifm-font-color-base)',
       padding: '0.375rem 0.75rem',
       borderRadius: '6px',
       fontSize: '0.8125rem',
-      border: '1px solid #e5e7eb'
+      border: '1px solid var(--ifm-color-emphasis-200)'
     }
   };
 

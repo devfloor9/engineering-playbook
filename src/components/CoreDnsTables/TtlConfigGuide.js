@@ -79,8 +79,8 @@ const TtlConfigGuide = () => {
       </div>
 
       <div style={{
-        background: 'white',
-        border: '1px solid #e5e7eb',
+        background: 'var(--ifm-background-surface-color)',
+        border: '1px solid var(--ifm-color-emphasis-200)',
         borderTop: 'none',
         borderRadius: '0 0 8px 8px',
         overflow: 'hidden'
@@ -91,42 +91,42 @@ const TtlConfigGuide = () => {
             borderBottom: idx < configs.length - 1 ? '1px solid #f3f4f6' : 'none'
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', flexWrap: 'wrap' }}>
-              <span style={{ fontWeight: '700', fontSize: '14px', color: '#1f2937' }}>{cfg.scope}</span>
-              <code style={{ background: '#ecfdf5', color: '#065f46', padding: '2px 8px', borderRadius: '4px', fontSize: '12px', fontWeight: '600' }}>
+              <span style={{ fontWeight: '700', fontSize: '14px', color: 'var(--ifm-font-color-base)' }}>{cfg.scope}</span>
+              <code style={{ background: 'var(--ifm-color-emphasis-100)', color: '#065f46', padding: '2px 8px', borderRadius: '4px', fontSize: '12px', fontWeight: '600' }}>
                 {cfg.plugin}
               </code>
             </div>
             <div style={{ display: 'flex', gap: '12px', marginBottom: '8px', flexWrap: 'wrap' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                <span style={{ fontSize: '12px', color: '#9ca3af' }}>
+                <span style={{ fontSize: '12px', color: 'var(--ifm-color-emphasis-500)' }}>
                   {isKo ? '설정:' : isZh ? '配置:' : 'Setting:'}
                 </span>
-                <code style={{ fontSize: '12px', color: '#1e40af', fontWeight: '600' }}>{cfg.setting}</code>
+                <code style={{ fontSize: '12px', color: '#2563eb', fontWeight: '600' }}>{cfg.setting}</code>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                <span style={{ fontSize: '12px', color: '#9ca3af' }}>
+                <span style={{ fontSize: '12px', color: 'var(--ifm-color-emphasis-500)' }}>
                   {isKo ? '기본값:' : isZh ? '默认值:' : 'Default:'}
                 </span>
-                <span style={{ fontSize: '12px', color: '#6b7280' }}>{cfg.defaultVal}</span>
+                <span style={{ fontSize: '12px', color: 'var(--ifm-color-emphasis-600)' }}>{cfg.defaultVal}</span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                <span style={{ fontSize: '12px', color: '#9ca3af' }}>
+                <span style={{ fontSize: '12px', color: 'var(--ifm-color-emphasis-500)' }}>
                   {isKo ? '권장:' : isZh ? '推荐:' : 'Recommended:'}
                 </span>
                 <span style={{ fontSize: '12px', color: '#059669', fontWeight: '700' }}>{cfg.recommended}</span>
               </div>
             </div>
-            <div style={{ fontSize: '13px', color: '#4b5563', lineHeight: '1.5' }}>{cfg.note}</div>
+            <div style={{ fontSize: '13px', color: 'var(--ifm-font-color-base)', lineHeight: '1.5' }}>{cfg.note}</div>
           </div>
         ))}
 
         {/* Footer */}
         <div style={{
-          background: '#fffbeb',
+          background: 'var(--ifm-color-emphasis-100)',
           borderTop: '1px solid #fde68a',
           padding: '12px 16px',
           fontSize: '12px',
-          color: '#92400e',
+          color: 'var(--ifm-color-emphasis-700)',
           lineHeight: '1.6'
         }}>
           💡 <strong>{isKo ? 'TTL 튜닝 원칙:' : isZh ? 'TTL 调优原则:' : 'TTL Tuning Principle:'}</strong>{' '}

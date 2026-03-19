@@ -16,8 +16,8 @@ const risks = {
 };
 
 const severityColors = {
-  Critical: { color: '#dc2626', bg: '#fef2f2' },
-  High: { color: '#ea580c', bg: '#fff7ed' },
+  Critical: { color: '#dc2626', bg: 'var(--ifm-color-emphasis-100)' },
+  High: { color: '#ea580c', bg: 'var(--ifm-color-emphasis-100)' },
 };
 
 export default function RiskAssessmentTable({ locale = 'ko' }) {
@@ -34,20 +34,20 @@ export default function RiskAssessmentTable({ locale = 'ko' }) {
         <div style={{ fontSize: '0.95rem', fontWeight: 700 }}>{title}</div>
         <div style={{ fontSize: '0.72rem', opacity: 0.7, marginTop: 2 }}>{subtitle}</div>
       </div>
-      <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderTop: 'none', borderRadius: '0 0 12px 12px', padding: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+      <div style={{ background: 'var(--ifm-background-surface-color)', border: '1px solid var(--ifm-color-emphasis-200)', borderTop: 'none', borderRadius: '0 0 12px 12px', padding: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
         {data.map((risk, idx) => {
           const sColor = severityColors[risk.severity];
           return (
             <div key={idx} style={{ border: `1.5px solid ${sColor.color}30`, borderLeft: `4px solid ${sColor.color}`, borderRadius: 8, padding: '0.7rem 1rem', background: sColor.bg }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.35rem', flexWrap: 'wrap' }}>
-                <span style={{ fontWeight: 700, fontSize: '0.82rem', color: '#1f2937', flex: '1 1 auto' }}>{risk.vulnerability}</span>
+                <span style={{ fontWeight: 700, fontSize: '0.82rem', color: 'var(--ifm-font-color-base)', flex: '1 1 auto' }}>{risk.vulnerability}</span>
                 <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
                   <span style={{ background: sColor.color, color: '#fff', borderRadius: 6, padding: '2px 10px', fontSize: '0.72rem', fontWeight: 700 }}>{risk.severity}</span>
                   <span style={{ background: '#334155', color: '#fff', borderRadius: 6, padding: '2px 10px', fontSize: '0.72rem', fontWeight: 700 }}>CVSS: {risk.cvss}</span>
                 </div>
               </div>
-              <div style={{ fontSize: '0.76rem', color: '#6b7280', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-                <span style={{ fontWeight: 600, color: '#374151' }}>{headers.impact}:</span>
+              <div style={{ fontSize: '0.76rem', color: 'var(--ifm-color-emphasis-600)', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                <span style={{ fontWeight: 600, color: 'var(--ifm-font-color-base)' }}>{headers.impact}:</span>
                 <span>{risk.impact}</span>
               </div>
             </div>

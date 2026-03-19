@@ -60,12 +60,12 @@ const GPUIndexingPerformanceTable = () => {
       }}>
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
-            <tr style={{ background: '#f9fafb' }}>
+            <tr style={{ background: 'var(--ifm-background-surface-color)' }}>
               <th style={{
                 padding: '12px 16px',
                 textAlign: 'left',
                 fontWeight: '600',
-                color: '#374151',
+                color: 'var(--ifm-font-color-base)',
                 borderBottom: '2px solid var(--ifm-color-emphasis-200)',
                 minWidth: '200px'
               }}>
@@ -75,7 +75,7 @@ const GPUIndexingPerformanceTable = () => {
                 padding: '12px 16px',
                 textAlign: 'left',
                 fontWeight: '600',
-                color: '#374151',
+                color: 'var(--ifm-font-color-base)',
                 borderBottom: '2px solid var(--ifm-color-emphasis-200)',
                 minWidth: '140px'
               }}>
@@ -88,7 +88,7 @@ const GPUIndexingPerformanceTable = () => {
                 color: '#059669',
                 borderBottom: '2px solid var(--ifm-color-emphasis-200)',
                 minWidth: '180px',
-                background: '#f0fdf4'
+                background: 'var(--ifm-color-emphasis-100)'
               }}>
                 {isKo ? 'GPU 빌드 시간 (A10G)' : 'GPU Build Time (A10G)'}
               </th>
@@ -96,7 +96,7 @@ const GPUIndexingPerformanceTable = () => {
                 padding: '12px 16px',
                 textAlign: 'left',
                 fontWeight: '600',
-                color: '#374151',
+                color: 'var(--ifm-font-color-base)',
                 borderBottom: '2px solid var(--ifm-color-emphasis-200)',
                 minWidth: '120px'
               }}>
@@ -116,7 +116,7 @@ const GPUIndexingPerformanceTable = () => {
                 </td>
                 <td style={{
                   padding: '12px 16px',
-                  color: '#6b7280',
+                  color: 'var(--ifm-color-emphasis-600)',
                   borderBottom: index < comparisons.length - 1 ? '1px solid var(--ifm-color-emphasis-200)' : 'none'
                 }}>
                   {comp.cpuTime}
@@ -125,7 +125,7 @@ const GPUIndexingPerformanceTable = () => {
                   padding: '12px 16px',
                   color: '#059669',
                   fontWeight: '600',
-                  background: '#f0fdf4',
+                  background: 'var(--ifm-color-emphasis-100)',
                   borderBottom: index < comparisons.length - 1 ? '1px solid var(--ifm-color-emphasis-200)' : 'none'
                 }}>
                   {comp.gpuTime}

@@ -66,12 +66,12 @@ const DefaultDeploymentTable = () => {
       }}>
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
-            <tr style={{ background: '#f9fafb' }}>
+            <tr style={{ background: 'var(--ifm-background-surface-color)' }}>
               <th style={{
                 padding: '12px 16px',
                 textAlign: 'left',
                 fontWeight: '600',
-                color: '#374151',
+                color: 'var(--ifm-font-color-base)',
                 borderBottom: '2px solid var(--ifm-color-emphasis-200)',
                 minWidth: '180px'
               }}>
@@ -81,7 +81,7 @@ const DefaultDeploymentTable = () => {
                 padding: '12px 16px',
                 textAlign: 'left',
                 fontWeight: '600',
-                color: '#374151',
+                color: 'var(--ifm-font-color-base)',
                 borderBottom: '2px solid var(--ifm-color-emphasis-200)',
                 minWidth: '140px'
               }}>
@@ -91,7 +91,7 @@ const DefaultDeploymentTable = () => {
                 padding: '12px 16px',
                 textAlign: 'left',
                 fontWeight: '600',
-                color: '#374151',
+                color: 'var(--ifm-font-color-base)',
                 borderBottom: '2px solid var(--ifm-color-emphasis-200)',
                 minWidth: '250px'
               }}>
@@ -120,7 +120,7 @@ const DefaultDeploymentTable = () => {
                 </td>
                 <td style={{
                   padding: '12px 16px',
-                  color: '#6b7280',
+                  color: 'var(--ifm-color-emphasis-600)',
                   borderBottom: index < settings.length - 1 ? '1px solid var(--ifm-color-emphasis-200)' : 'none'
                 }}>
                   {setting.description}

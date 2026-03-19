@@ -93,7 +93,7 @@ const ScenarioMatrix = () => {
         : isZh
         ? 'DNS + Internal NLB（Route53 + ExternalDNS）。DR 时 DNS 切换'
         : 'DNS + Internal NLB (Route53 + ExternalDNS). DNS switching for DR',
-      color: '#6b7280'
+      color: 'var(--ifm-color-emphasis-600)'
     }
   ];
 
@@ -119,8 +119,8 @@ const ScenarioMatrix = () => {
       </div>
 
       <div style={{
-        background: 'white',
-        border: '1px solid #e5e7eb',
+        background: 'var(--ifm-background-surface-color)',
+        border: '1px solid var(--ifm-color-emphasis-200)',
         borderTop: 'none',
         borderRadius: '0 0 8px 8px',
         overflow: 'hidden'
@@ -133,17 +133,17 @@ const ScenarioMatrix = () => {
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px', flexWrap: 'wrap' }}>
               <span style={{ fontSize: '16px' }}>{s.icon}</span>
-              <span style={{ fontWeight: '700', fontSize: '13px', color: '#1f2937' }}>{s.scenario}</span>
+              <span style={{ fontWeight: '700', fontSize: '13px', color: 'var(--ifm-font-color-base)' }}>{s.scenario}</span>
               <span style={{
-                background: '#f3f4f6',
-                color: '#6b7280',
+                background: 'var(--ifm-color-emphasis-100)',
+                color: 'var(--ifm-color-emphasis-600)',
                 padding: '1px 6px',
                 borderRadius: '3px',
                 fontSize: '10px',
                 fontWeight: '600'
               }}>{s.scope}</span>
             </div>
-            <div style={{ fontSize: '12px', color: '#4b5563', lineHeight: '1.5', paddingLeft: '28px' }}>
+            <div style={{ fontSize: '12px', color: 'var(--ifm-font-color-base)', lineHeight: '1.5', paddingLeft: '28px' }}>
               {s.solution}
             </div>
           </div>

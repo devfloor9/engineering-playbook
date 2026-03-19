@@ -79,6 +79,11 @@
       font-size: 0.8rem;
       margin-top: 1rem;
     }
+    .updated {
+      color: #34d399;
+      font-size: 0.7rem;
+      margin-left: 0.5rem;
+    }
     footer {
       margin-top: 4rem;
       color: #4b5563;
@@ -96,29 +101,29 @@
     <a class="card" href="./agentic-block1/">
       <span class="badge badge-1">Block 1</span>
       <h2>설계 &amp; 아키텍처</h2>
-      <p>4가지 핵심 도전과제, Kubernetes 솔루션 생태계, 6-Layer 플랫폼 아키텍처, 네임스페이스 전략, 보안 설계</p>
-      <div class="slides-count">20 slides</div>
+      <p>2-Tier Gateway (Bifrost), Knowledge Feature Store, EKS 클러스터 구성, AgentCore 하이브리드, Graceful Operations, 환경 분리 전략</p>
+      <div class="slides-count">24 slides <span class="updated">Updated</span></div>
     </a>
 
     <a class="card" href="./agentic-block2/">
       <span class="badge badge-2">Block 2</span>
       <h2>게이트웨이 &amp; 에이전트</h2>
-      <p>Kgateway 동적 라우팅, Kagent CRD 기반 Agent 관리, Milvus 벡터 DB, Bedrock AgentCore &amp; MCP 통합</p>
-      <div class="slides-count">18 slides</div>
+      <p>2-Tier Gateway (Kgateway + Bifrost), Kagent CRD, Milvus 벡터 DB, 표준 프로토콜 (MCP + A2A + AG-UI), AgentCore 하이브리드</p>
+      <div class="slides-count">18 slides <span class="updated">Updated</span></div>
     </a>
 
     <a class="card" href="./agentic-block3/">
       <span class="badge badge-3">Block 3</span>
       <h2>모델 서빙 &amp; 추론</h2>
-      <p>vLLM PagedAttention, llm-d 분산 추론, MoE 모델 서빙, GPU 리소스 관리(DRA), NeMo 분산 학습</p>
-      <div class="slides-count">20 slides</div>
+      <p>vLLM Graceful Drain, llm-d Drain-Aware 라우팅, Blue/Green NodePool, MoE 모델 서빙, GPU 리소스 관리, 무중단 운영</p>
+      <div class="slides-count">21 slides <span class="updated">Updated</span></div>
     </a>
 
     <a class="card" href="./agentic-block4/">
       <span class="badge badge-4">Block 4</span>
       <h2>운영 &amp; MLOps</h2>
-      <p>LangFuse Agent 모니터링, RAGAS RAG 평가, Kubeflow MLOps 파이프라인, SageMaker + EKS 통합</p>
-      <div class="slides-count">18 slides</div>
+      <p>Hybrid Observability (Langfuse/LangSmith), DCGM + Kubecost, Bifrost 비용 추적, RAGAS 평가, MLOps 파이프라인</p>
+      <div class="slides-count">18 slides <span class="updated">Updated</span></div>
     </a>
   </div>
 

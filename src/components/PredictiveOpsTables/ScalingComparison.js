@@ -53,7 +53,7 @@ const ScalingComparison = () => {
     maxWidth: '760px',
     margin: '2rem auto',
     fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-    backgroundColor: '#ffffff',
+    backgroundColor: 'var(--ifm-background-surface-color)',
     borderRadius: '12px',
     boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
     overflow: 'hidden'
@@ -91,7 +91,7 @@ const ScalingComparison = () => {
 
   const cardStyle = (color) => ({
     borderLeft: `4px solid ${color}`,
-    backgroundColor: '#f9fafb',
+    backgroundColor: 'var(--ifm-background-surface-color)',
     borderRadius: '8px',
     padding: '1.25rem',
     boxShadow: '0 2px 4px rgba(0, 0, 0, 0.05)'
@@ -112,24 +112,24 @@ const ScalingComparison = () => {
     display: 'flex',
     justifyContent: 'space-between',
     padding: '0.625rem 0',
-    borderBottom: '1px solid #e5e7eb',
+    borderBottom: '1px solid var(--ifm-color-emphasis-200)',
     fontSize: '0.875rem'
   };
 
   const labelStyle = {
     fontWeight: '600',
-    color: '#374151'
+    color: 'var(--ifm-font-color-base)'
   };
 
   const valueStyle = {
-    color: '#6b7280'
+    color: 'var(--ifm-color-emphasis-600)'
   };
 
   const descriptionStyle = {
     marginTop: '0.75rem',
     paddingTop: '0.75rem',
     fontSize: '0.875rem',
-    color: '#4b5563',
+    color: 'var(--ifm-font-color-base)',
     lineHeight: '1.5'
   };
 

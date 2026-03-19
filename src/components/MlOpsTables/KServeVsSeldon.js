@@ -139,7 +139,7 @@ const KServeVsSeldon = () => {
               </div>
 
               <div>
-                <div style={{ fontSize: '11px', fontWeight: '600', color: '#6b7280', marginBottom: '4px' }}>
+                <div style={{ fontSize: '11px', fontWeight: '600', color: 'var(--ifm-color-emphasis-600)', marginBottom: '4px' }}>
                   kubectl
                 </div>
                 <div style={{ fontSize: '13px', color: 'var(--ifm-font-color-base)' }}>

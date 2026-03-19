@@ -49,8 +49,8 @@ const ErrorBudget = () => {
 
       {/* Table */}
       <div style={{
-        background: 'white',
-        border: '1px solid #e5e7eb',
+        background: 'var(--ifm-background-surface-color)',
+        border: '1px solid var(--ifm-color-emphasis-200)',
         borderTop: 'none',
         borderRadius: '0 0 8px 8px',
         overflow: 'hidden'
@@ -59,32 +59,32 @@ const ErrorBudget = () => {
         <div style={{
           display: 'grid',
           gridTemplateColumns: '1fr 1fr 1fr',
-          borderBottom: '2px solid #e5e7eb',
-          background: '#f8fafc'
+          borderBottom: '2px solid var(--ifm-color-emphasis-200)',
+          background: 'var(--ifm-background-surface-color)'
         }}>
           <div style={{
             padding: '12px 14px',
             fontWeight: '600',
             fontSize: '12px',
-            color: '#6b7280'
+            color: 'var(--ifm-color-emphasis-600)'
           }}>
             SLO
           </div>
           <div style={{
             padding: '12px 14px',
-            borderLeft: '1px solid #e5e7eb',
+            borderLeft: '1px solid var(--ifm-color-emphasis-200)',
             fontWeight: '600',
             fontSize: '12px',
-            color: '#6b7280'
+            color: 'var(--ifm-color-emphasis-600)'
           }}>
             {isKo ? '월간 Error Budget' : isZh ? '月度 Error Budget' : 'Monthly Error Budget'}
           </div>
           <div style={{
             padding: '12px 14px',
-            borderLeft: '1px solid #e5e7eb',
+            borderLeft: '1px solid var(--ifm-color-emphasis-200)',
             fontWeight: '600',
             fontSize: '12px',
-            color: '#6b7280'
+            color: 'var(--ifm-color-emphasis-600)'
           }}>
             {isKo ? '허용 다운타임' : isZh ? '允许的停机时间' : 'Allowed Downtime'}
           </div>
@@ -99,10 +99,10 @@ const ErrorBudget = () => {
           }}>
             <div style={{
               padding: '14px',
-              background: '#f8fafc',
+              background: 'var(--ifm-background-surface-color)',
               fontWeight: '700',
               fontSize: '16px',
-              color: '#1f2937',
+              color: 'var(--ifm-font-color-base)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center'
@@ -112,7 +112,7 @@ const ErrorBudget = () => {
             <div style={{
               padding: '14px',
               fontSize: '14px',
-              color: '#4b5563',
+              color: 'var(--ifm-font-color-base)',
               borderLeft: '1px solid #f3f4f6',
               display: 'flex',
               alignItems: 'center',
@@ -137,11 +137,11 @@ const ErrorBudget = () => {
 
         {/* Footer */}
         <div style={{
-          background: '#fffbeb',
+          background: 'var(--ifm-color-emphasis-100)',
           borderTop: '1px solid #fde68a',
           padding: '12px 16px',
           fontSize: '12px',
-          color: '#92400e',
+          color: 'var(--ifm-color-emphasis-700)',
           lineHeight: '1.6'
         }}>
           💡 <strong>{isKo ? 'Error Budget 기반 알림:' : isZh ? '基于 Error Budget 的告警:' : 'Error Budget-based Alerts:'}</strong> {isKo ? '단순 임계값 대신 Error Budget 소진율로 알림하면 Alert Fatigue를 70% 감소시킬 수 있습니다.' : isZh ? '基于 Error Budget 消耗率进行告警而非简单阈值，可将告警疲劳减少 70%。' : 'Alerting based on Error Budget burn rate instead of simple thresholds can reduce Alert Fatigue by 70%.'}

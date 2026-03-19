@@ -6,7 +6,7 @@ interface MinimapProps {
 
 export function Minimap({ current, total, onSelect }: MinimapProps) {
   return (
-    <div className="fixed right-4 top-1/2 -translate-y-1/2 flex flex-col gap-1.5 z-50">
+    <div className="absolute right-3 top-1/2 -translate-y-1/2 flex flex-col gap-1.5 z-50">
       {Array.from({ length: total }, (_, i) => (
         <button
           key={i}

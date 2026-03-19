@@ -74,7 +74,7 @@ const LatencyCostComparison = () => {
           width: '8px',
           height: '8px',
           borderRadius: '50%',
-          background: i < score ? '#059669' : '#e5e7eb',
+          background: i < score ? '#059669' : 'var(--ifm-color-emphasis-200)',
           marginRight: '2px'
         }} />
       );
@@ -104,8 +104,8 @@ const LatencyCostComparison = () => {
       </div>
 
       <div style={{
-        background: 'white',
-        border: '1px solid #e5e7eb',
+        background: 'var(--ifm-background-surface-color)',
+        border: '1px solid var(--ifm-color-emphasis-200)',
         borderTop: 'none',
         borderRadius: '0 0 8px 8px',
         overflow: 'hidden'
@@ -114,8 +114,8 @@ const LatencyCostComparison = () => {
         <div style={{
           display: 'grid',
           gridTemplateColumns: '140px 1fr 60px 60px',
-          borderBottom: '2px solid #e5e7eb',
-          background: '#f8fafc'
+          borderBottom: '2px solid var(--ifm-color-emphasis-200)',
+          background: 'var(--ifm-background-surface-color)'
         }}>
           {[
             isKo ? '옵션' : isZh ? '选项' : 'Option',
@@ -127,9 +127,9 @@ const LatencyCostComparison = () => {
               padding: '10px 12px',
               fontWeight: '600',
               fontSize: '11px',
-              color: '#6b7280',
+              color: 'var(--ifm-color-emphasis-600)',
               textTransform: 'uppercase',
-              borderLeft: i > 0 ? '1px solid #e5e7eb' : 'none'
+              borderLeft: i > 0 ? '1px solid var(--ifm-color-emphasis-200)' : 'none'
             }}>{h}</div>
           ))}
         </div>
@@ -144,16 +144,16 @@ const LatencyCostComparison = () => {
               padding: '10px 12px',
               fontWeight: '600',
               fontSize: '13px',
-              color: '#1f2937',
-              background: '#f8fafc',
+              color: 'var(--ifm-font-color-base)',
+              background: 'var(--ifm-background-surface-color)',
               display: 'flex',
               alignItems: 'center'
             }}>
               {opt.name}
             </div>
             <div style={{ padding: '10px 12px', borderLeft: '1px solid #f3f4f6' }}>
-              <div style={{ fontSize: '12px', color: '#4b5563', marginBottom: '2px' }}>{opt.latency}</div>
-              <div style={{ fontSize: '11px', color: '#9ca3af' }}>{opt.cost}</div>
+              <div style={{ fontSize: '12px', color: 'var(--ifm-font-color-base)', marginBottom: '2px' }}>{opt.latency}</div>
+              <div style={{ fontSize: '11px', color: 'var(--ifm-color-emphasis-500)' }}>{opt.cost}</div>
             </div>
             <div style={{
               padding: '10px 12px',

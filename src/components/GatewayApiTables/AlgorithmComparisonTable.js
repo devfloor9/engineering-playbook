@@ -25,10 +25,10 @@ export default function AlgorithmComparisonTable({ locale = 'ko' }) {
         <div style={{ fontSize: '0.95rem', fontWeight: 700 }}>{title}</div>
         <div style={{ fontSize: '0.72rem', opacity: 0.7, marginTop: 2 }}>{subtitle}</div>
       </div>
-      <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderTop: 'none', borderRadius: '0 0 12px 12px', overflow: 'hidden' }}>
+      <div style={{ background: 'var(--ifm-background-surface-color)', border: '1px solid var(--ifm-color-emphasis-200)', borderTop: 'none', borderRadius: '0 0 12px 12px', overflow: 'hidden' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
-            <tr style={{ background: '#e3f2fd' }}>
+            <tr style={{ background: 'var(--ifm-color-emphasis-100)' }}>
               <th style={{ padding: '0.75rem 1rem', textAlign: 'left', fontSize: '0.8rem', fontWeight: 600, color: '#0d47a1', borderBottom: '2px solid #1565c0' }}>{headers.algorithm}</th>
               <th style={{ padding: '0.75rem 1rem', textAlign: 'center', fontSize: '0.8rem', fontWeight: 600, color: '#0d47a1', borderBottom: '2px solid #1565c0' }}>{headers.affinity}</th>
               <th style={{ padding: '0.75rem 1rem', textAlign: 'center', fontSize: '0.8rem', fontWeight: 600, color: '#0d47a1', borderBottom: '2px solid #1565c0' }}>{headers.addition}</th>
@@ -38,16 +38,16 @@ export default function AlgorithmComparisonTable({ locale = 'ko' }) {
           </thead>
           <tbody>
             {rows.map((row, idx) => (
-              <tr key={idx} style={{ background: row.recommended ? '#e3f2fd' : '#fff', borderBottom: '1px solid #e2e8f0' }}>
+              <tr key={idx} style={{ background: row.recommended ? '#e3f2fd' : '#fff', borderBottom: '1px solid var(--ifm-color-emphasis-200)' }}>
                 <td style={{ padding: '0.7rem 1rem', fontSize: '0.82rem', fontWeight: 700 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                     <code style={{ background: row.recommended ? '#1565c0' : '#64b5f6', color: '#fff', padding: '2px 8px', borderRadius: 4, fontSize: '0.78rem' }}>{row.algorithm}</code>
                     {row.recommended && <span style={{ background: '#4caf50', color: '#fff', fontSize: '0.7rem', padding: '2px 6px', borderRadius: 4, fontWeight: 600 }}>추천</span>}
                   </div>
                 </td>
-                <td style={{ padding: '0.7rem 1rem', textAlign: 'center', fontSize: '0.78rem', color: '#374151', fontWeight: row.recommended ? 600 : 400 }}>{row.affinity}</td>
-                <td style={{ padding: '0.7rem 1rem', textAlign: 'center', fontSize: '0.78rem', color: '#374151' }}>{row.addition}</td>
-                <td style={{ padding: '0.7rem 1rem', textAlign: 'center', fontSize: '0.78rem', color: '#374151' }}>{row.removal}</td>
+                <td style={{ padding: '0.7rem 1rem', textAlign: 'center', fontSize: '0.78rem', color: 'var(--ifm-font-color-base)', fontWeight: row.recommended ? 600 : 400 }}>{row.affinity}</td>
+                <td style={{ padding: '0.7rem 1rem', textAlign: 'center', fontSize: '0.78rem', color: 'var(--ifm-font-color-base)' }}>{row.addition}</td>
+                <td style={{ padding: '0.7rem 1rem', textAlign: 'center', fontSize: '0.78rem', color: 'var(--ifm-font-color-base)' }}>{row.removal}</td>
                 <td style={{ padding: '0.7rem 1rem', textAlign: 'center', fontSize: '0.78rem', color: '#2e7d32', fontWeight: 600 }}>{row.cpu}</td>
               </tr>
             ))}

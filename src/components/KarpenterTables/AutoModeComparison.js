@@ -96,8 +96,8 @@ const AutoModeComparison = () => {
       </div>
 
       <div style={{
-        background: 'white',
-        border: '1px solid #e5e7eb',
+        background: 'var(--ifm-background-surface-color)',
+        border: '1px solid var(--ifm-color-emphasis-200)',
         borderTop: 'none',
         borderRadius: '0 0 8px 8px',
         overflow: 'hidden'
@@ -106,10 +106,10 @@ const AutoModeComparison = () => {
         <div style={{
           display: 'grid',
           gridTemplateColumns: '30px 1fr 1fr 1fr',
-          borderBottom: '2px solid #e5e7eb'
+          borderBottom: '2px solid var(--ifm-color-emphasis-200)'
         }}>
           <div style={{ padding: '10px 4px' }} />
-          <div style={{ padding: '10px 12px', fontSize: '12px', fontWeight: '700', color: '#6b7280' }}>
+          <div style={{ padding: '10px 12px', fontSize: '12px', fontWeight: '700', color: 'var(--ifm-color-emphasis-600)' }}>
             {isKo ? '항목' : isZh ? '项目' : 'Feature'}
           </div>
           <div style={{
@@ -139,30 +139,30 @@ const AutoModeComparison = () => {
             display: 'grid',
             gridTemplateColumns: '30px 1fr 1fr 1fr',
             borderBottom: idx < rows.length - 1 ? '1px solid #f3f4f6' : 'none',
-            background: idx % 2 === 0 ? '#fafafa' : 'white'
+            background: idx % 2 === 0 ? 'var(--ifm-color-emphasis-100)' : 'white'
           }}>
             <div style={{ padding: '10px 4px', textAlign: 'center', fontSize: '14px' }}>{row.icon}</div>
-            <div style={{ padding: '10px 12px', fontSize: '12px', fontWeight: '600', color: '#1f2937' }}>
+            <div style={{ padding: '10px 12px', fontSize: '12px', fontWeight: '600', color: 'var(--ifm-font-color-base)' }}>
               {row.label}
             </div>
             <div style={{
               padding: '10px 12px',
               fontSize: '12px',
-              color: '#1f2937',
+              color: 'var(--ifm-font-color-base)',
               borderLeft: '1px solid #f3f4f6'
             }}>
               <div>{row.self}</div>
-              {row.selfNote && <div style={{ fontSize: '10px', color: '#9ca3af', marginTop: '2px' }}>{row.selfNote}</div>}
+              {row.selfNote && <div style={{ fontSize: '10px', color: 'var(--ifm-color-emphasis-500)', marginTop: '2px' }}>{row.selfNote}</div>}
             </div>
             <div style={{
               padding: '10px 12px',
               fontSize: '12px',
-              color: '#1f2937',
+              color: 'var(--ifm-font-color-base)',
               borderLeft: '1px solid #f3f4f6',
               background: row.autoHighlight ? '#fff7ed' : 'transparent'
             }}>
               <div>{row.auto}</div>
-              {row.autoNote && <div style={{ fontSize: '10px', color: '#9ca3af', marginTop: '2px' }}>{row.autoNote}</div>}
+              {row.autoNote && <div style={{ fontSize: '10px', color: 'var(--ifm-color-emphasis-500)', marginTop: '2px' }}>{row.autoNote}</div>}
             </div>
           </div>
         ))}

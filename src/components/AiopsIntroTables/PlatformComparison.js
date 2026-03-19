@@ -20,13 +20,13 @@ const PlatformComparison = () => {
   const titleStyle = {
     fontSize: '1.5rem',
     fontWeight: '600',
-    color: '#1f2937',
+    color: 'var(--ifm-font-color-base)',
     marginBottom: '0.5rem',
   };
 
   const subtitleStyle = {
     fontSize: '0.95rem',
-    color: '#6b7280',
+    color: 'var(--ifm-color-emphasis-600)',
     lineHeight: '1.6',
   };
 
@@ -38,8 +38,8 @@ const PlatformComparison = () => {
   };
 
   const cardStyle = {
-    backgroundColor: '#ffffff',
-    border: '1px solid #e5e7eb',
+    backgroundColor: 'var(--ifm-background-surface-color)',
+    border: '1px solid var(--ifm-color-emphasis-200)',
     borderRadius: '8px',
     boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)',
     overflow: 'hidden',
@@ -87,18 +87,18 @@ const PlatformComparison = () => {
 
   const textStyle = {
     fontSize: '0.9375rem',
-    color: '#374151',
+    color: 'var(--ifm-font-color-base)',
     lineHeight: '1.5',
   };
 
   const summaryStyle = {
     textAlign: 'center',
     padding: '1rem',
-    backgroundColor: '#f9fafb',
-    border: '1px solid #e5e7eb',
+    backgroundColor: 'var(--ifm-background-surface-color)',
+    border: '1px solid var(--ifm-color-emphasis-200)',
     borderRadius: '8px',
     fontSize: '0.9375rem',
-    color: '#6b7280',
+    color: 'var(--ifm-color-emphasis-600)',
     fontWeight: '500',
   };
 

@@ -111,9 +111,9 @@ const K8sOpenSourceEcosystem = () => {
       {/* Tab Bar */}
       <div style={{
         display: 'flex',
-        background: '#f8fafc',
-        borderLeft: '1px solid #e5e7eb',
-        borderRight: '1px solid #e5e7eb',
+        background: 'var(--ifm-background-surface-color)',
+        borderLeft: '1px solid var(--ifm-color-emphasis-200)',
+        borderRight: '1px solid var(--ifm-color-emphasis-200)',
         overflow: 'hidden'
       }}>
         {categories.map((cat, idx) => (
@@ -140,7 +140,7 @@ const K8sOpenSourceEcosystem = () => {
           >
             <span>{cat.shortTitle}</span>
             <span style={{
-              background: activeTab === idx ? `${cat.color}15` : '#e5e7eb',
+              background: activeTab === idx ? `${cat.color}15` : 'var(--ifm-color-emphasis-200)',
               color: activeTab === idx ? cat.color : '#9ca3af',
               padding: '1px 6px',
               borderRadius: '10px',
@@ -155,15 +155,15 @@ const K8sOpenSourceEcosystem = () => {
 
       {/* Active Tab Content */}
       <div style={{
-        background: 'white',
-        border: '1px solid #e5e7eb',
+        background: 'var(--ifm-background-surface-color)',
+        border: '1px solid var(--ifm-color-emphasis-200)',
         borderTop: 'none',
         borderRadius: '0 0 8px 8px'
       }}>
         {/* Category Description */}
         <div style={{
           padding: '14px 20px',
-          borderBottom: '1px solid #e5e7eb',
+          borderBottom: '1px solid var(--ifm-color-emphasis-200)',
           background: `${activeCat.color}05`
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '4px' }}>
@@ -177,11 +177,11 @@ const K8sOpenSourceEcosystem = () => {
             }}>
               {activeCat.badge}
             </span>
-            <span style={{ fontWeight: '600', color: '#111827', fontSize: '15px' }}>
+            <span style={{ fontWeight: '600', color: 'var(--ifm-font-color-base)', fontSize: '15px' }}>
               {activeCat.title}
             </span>
           </div>
-          <div style={{ color: '#6b7280', fontSize: '13px', paddingLeft: '2px' }}>
+          <div style={{ color: 'var(--ifm-color-emphasis-600)', fontSize: '13px', paddingLeft: '2px' }}>
             {activeCat.subtitle}
           </div>
         </div>
@@ -192,16 +192,16 @@ const K8sOpenSourceEcosystem = () => {
           gridTemplateColumns: '1fr 1.1fr 1.4fr',
           gap: '8px',
           padding: '8px 20px',
-          borderBottom: '1px solid #e5e7eb',
-          background: '#fafafa'
+          borderBottom: '1px solid var(--ifm-color-emphasis-200)',
+          background: 'var(--ifm-background-surface-color)'
         }}>
-          <div style={{ fontSize: '11px', fontWeight: '600', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+          <div style={{ fontSize: '11px', fontWeight: '600', color: 'var(--ifm-color-emphasis-500)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
             {isKo ? '오픈소스' : isZh ? '开源' : 'Open Source'}
           </div>
-          <div style={{ fontSize: '11px', fontWeight: '600', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+          <div style={{ fontSize: '11px', fontWeight: '600', color: 'var(--ifm-color-emphasis-500)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
             {isKo ? 'AWS 관리형' : isZh ? 'AWS 托管' : 'AWS Managed'}
           </div>
-          <div style={{ fontSize: '11px', fontWeight: '600', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+          <div style={{ fontSize: '11px', fontWeight: '600', color: 'var(--ifm-color-emphasis-500)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
             {isKo ? '역할' : isZh ? '角色' : 'Role'}
           </div>
         </div>
@@ -220,7 +220,7 @@ const K8sOpenSourceEcosystem = () => {
               alignItems: 'center'
             }}
           >
-            <div style={{ fontSize: '13px', color: '#374151', fontWeight: '500' }}>
+            <div style={{ fontSize: '13px', color: 'var(--ifm-font-color-base)', fontWeight: '500' }}>
               {item.oss}
             </div>
             <div style={{
@@ -230,7 +230,7 @@ const K8sOpenSourceEcosystem = () => {
             }}>
               {item.managed}
             </div>
-            <div style={{ fontSize: '12px', color: '#6b7280' }}>
+            <div style={{ fontSize: '12px', color: 'var(--ifm-color-emphasis-600)' }}>
               {item.desc}
             </div>
           </div>
@@ -238,11 +238,11 @@ const K8sOpenSourceEcosystem = () => {
 
         {/* Tab Footer Summary */}
         <div style={{
-          background: '#fffbeb',
+          background: 'var(--ifm-color-emphasis-100)',
           borderTop: '1px solid #fde68a',
           padding: '12px 16px',
           fontSize: '12px',
-          color: '#92400e',
+          color: 'var(--ifm-color-emphasis-700)',
           lineHeight: '1.6'
         }}>
           {isKo ? (

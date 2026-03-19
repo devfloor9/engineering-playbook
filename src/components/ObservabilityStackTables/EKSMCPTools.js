@@ -64,8 +64,8 @@ const EKSMCPTools = () => {
 
       {/* Table */}
       <div style={{
-        background: 'white',
-        border: '1px solid #e5e7eb',
+        background: 'var(--ifm-background-surface-color)',
+        border: '1px solid var(--ifm-color-emphasis-200)',
         borderTop: 'none',
         borderRadius: '0 0 8px 8px',
         overflow: 'hidden'
@@ -74,32 +74,32 @@ const EKSMCPTools = () => {
         <div style={{
           display: 'grid',
           gridTemplateColumns: '180px 180px 1fr',
-          borderBottom: '2px solid #e5e7eb',
-          background: '#f8fafc'
+          borderBottom: '2px solid var(--ifm-color-emphasis-200)',
+          background: 'var(--ifm-background-surface-color)'
         }}>
           <div style={{
             padding: '12px 14px',
             fontWeight: '600',
             fontSize: '12px',
-            color: '#6b7280'
+            color: 'var(--ifm-color-emphasis-600)'
           }}>
             {isKo ? '도구' : isZh ? '工具' : 'Tool'}
           </div>
           <div style={{
             padding: '12px 14px',
-            borderLeft: '1px solid #e5e7eb',
+            borderLeft: '1px solid var(--ifm-color-emphasis-200)',
             fontWeight: '600',
             fontSize: '12px',
-            color: '#6b7280'
+            color: 'var(--ifm-color-emphasis-600)'
           }}>
             {isKo ? '기능' : isZh ? '功能' : 'Function'}
           </div>
           <div style={{
             padding: '12px 14px',
-            borderLeft: '1px solid #e5e7eb',
+            borderLeft: '1px solid var(--ifm-color-emphasis-200)',
             fontWeight: '600',
             fontSize: '12px',
-            color: '#6b7280'
+            color: 'var(--ifm-color-emphasis-600)'
           }}>
             {isKo ? '활용 시나리오' : isZh ? '使用场景' : 'Use Case Scenario'}
           </div>
@@ -114,11 +114,11 @@ const EKSMCPTools = () => {
           }}>
             <div style={{
               padding: '14px',
-              background: '#f8fafc',
+              background: 'var(--ifm-background-surface-color)',
               fontFamily: 'Monaco, Consolas, monospace',
               fontSize: '12px',
               fontWeight: '700',
-              color: '#1f2937',
+              color: 'var(--ifm-font-color-base)',
               display: 'flex',
               alignItems: 'center'
             }}>
@@ -127,7 +127,7 @@ const EKSMCPTools = () => {
             <div style={{
               padding: '14px',
               fontSize: '13px',
-              color: '#4b5563',
+              color: 'var(--ifm-font-color-base)',
               borderLeft: '1px solid #f3f4f6',
               display: 'flex',
               alignItems: 'center'
@@ -137,7 +137,7 @@ const EKSMCPTools = () => {
             <div style={{
               padding: '14px',
               fontSize: '13px',
-              color: '#4b5563',
+              color: 'var(--ifm-font-color-base)',
               borderLeft: '1px solid #f3f4f6',
               display: 'flex',
               alignItems: 'center'
@@ -149,11 +149,11 @@ const EKSMCPTools = () => {
 
         {/* Footer */}
         <div style={{
-          background: '#fffbeb',
+          background: 'var(--ifm-color-emphasis-100)',
           borderTop: '1px solid #fde68a',
           padding: '12px 16px',
           fontSize: '12px',
-          color: '#92400e',
+          color: 'var(--ifm-color-emphasis-700)',
           lineHeight: '1.6'
         }}>
           💡 <strong>{isKo ? '통합 분석:' : isZh ? '统一分析:' : 'Unified Analysis:'}</strong> {isKo ? 'MCP를 통해 CloudWatch, X-Ray, EKS API를 단일 인터페이스로 조회. AI 에이전트가 여러 콘솔을 오가지 않고 자동으로 근본 원인을 분석합니다.' : isZh ? '通过 MCP 以单一接口查询 CloudWatch、X-Ray 和 EKS API。AI 代理无需在多个控制台之间切换即可自动分析根因。' : 'Query CloudWatch, X-Ray, and EKS API through a single MCP interface. AI agents automatically analyze root causes without switching between multiple consoles.'}
