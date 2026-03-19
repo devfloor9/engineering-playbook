@@ -20,14 +20,14 @@ export default function Slide05() {
               </div>
               <div>
                 <p className="text-sm text-blue-400 font-semibold">기둥 1</p>
-                <h4 className="text-2xl font-bold text-blue-300">클라우드 네이티브 AI 플랫폼</h4>
+                <h4 className="text-2xl font-bold text-blue-300">Cloud Native LLMOps</h4>
               </div>
             </div>
             <ul className="text-base text-gray-300 space-y-2 flex-1">
-              <li>EKS Auto Mode + PCP</li>
+              <li>EKS + GPU Operator + run.ai</li>
               <li>vLLM + llm-d 모델 서빙</li>
-              <li>GPU 최적화 (MIG/DRA)</li>
-              <li>Karpenter 자동 스케일링</li>
+              <li>MIG/DRA + Karpenter 최적화</li>
+              <li>비용 최적화 & 운영 안정성</li>
             </ul>
             <div className="mt-4 bg-blue-500/10 rounded-lg px-3 py-2 border border-blue-500/20">
               <p className="text-sm text-blue-300">50 req/s 기준 월 $4,900</p>
@@ -45,10 +45,10 @@ export default function Slide05() {
               </div>
             </div>
             <ul className="text-base text-gray-300 space-y-2 flex-1">
-              <li>Bedrock AgentCore + MCP</li>
-              <li>15+ Pod 제거 (매니지드)</li>
-              <li>DevOps → AgentOps 진화</li>
-              <li>AI 도구 연계 (Kiro 등)</li>
+              <li>Bedrock AgentCore 런타임</li>
+              <li>Hosted MCP 서버</li>
+              <li>DevOps Agent (매니지드)</li>
+              <li>매니지드 에이전트 생태계</li>
             </ul>
             <div className="mt-4 bg-emerald-500/10 rounded-lg px-3 py-2 border border-emerald-500/20">
               <p className="text-sm text-emerald-300">운영 복잡도 80% 감소</p>
@@ -79,9 +79,9 @@ export default function Slide05() {
 
         <div className="rounded-xl px-8 py-4 border-2 border-white/20 text-center" style={{background: 'linear-gradient(135deg, rgba(59,130,246,0.15), rgba(16,185,129,0.15), rgba(139,92,246,0.15))', boxShadow: '0 0 40px rgba(99, 102, 241, 0.15)'}}>
           <p className="text-lg text-white font-semibold">
-            AWS만 <span className="text-blue-300 font-bold">컨트롤 플레인(PCP)</span> +{' '}
-            <span className="text-emerald-300 font-bold">데이터 플레인(Auto Mode)</span> +{' '}
-            <span className="text-purple-300 font-bold">AI 런타임(AgentCore)</span>까지 풀스택 제공
+            <span className="text-blue-300 font-bold">EKS 기반 LLMOps</span> +{' '}
+            <span className="text-emerald-300 font-bold">매니지드 에이전트(AgentCore + Hosted MCP)</span> +{' '}
+            <span className="text-purple-300 font-bold">마이그레이션(Transform)</span> 통합 경로
           </p>
         </div>
       </div>

@@ -22,16 +22,16 @@ export default function Slide12() {
         <div className="grid grid-cols-3 gap-5 w-full max-w-4xl mt-4">
           <Card color="blue" className="p-5 text-center">
             <Server className="w-14 h-14 text-blue-400 mx-auto mb-3" />
-            <h4 className="text-xl font-bold text-blue-300 mb-2">AI Platform Track</h4>
-            <p className="text-sm text-gray-300">EKS + vLLM PoC</p>
+            <h4 className="text-xl font-bold text-blue-300 mb-2">LLMOps Track</h4>
+            <p className="text-sm text-gray-300">EKS + GPU Operator + vLLM PoC</p>
             <p className="text-xs text-gray-500 mt-2">2주 PoC → 프로덕션 로드맵</p>
           </Card>
 
           <Card color="emerald" className="p-5 text-center">
             <Bot className="w-14 h-14 text-emerald-400 mx-auto mb-3" />
             <h4 className="text-xl font-bold text-emerald-300 mb-2">AgentOps Track</h4>
-            <p className="text-sm text-gray-300">Bedrock AgentCore PoC</p>
-            <p className="text-xs text-gray-500 mt-2">에이전트 운영 자동화</p>
+            <p className="text-sm text-gray-300">AgentCore + Hosted MCP PoC</p>
+            <p className="text-xs text-gray-500 mt-2">매니지드 에이전트 운영</p>
           </Card>
 
           <Card color="purple" className="p-5 text-center">
