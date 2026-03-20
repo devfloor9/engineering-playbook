@@ -1216,7 +1216,7 @@ Agentic AI 플랫폼을 구축하는 조직을 위한 권장 사항:
 - Bedrock, AgentCore, Step Functions 등 AWS 서비스 활용
 - 소규모 팀, 빠른 출시가 우선일 때 적합
 
-**경로 B: [EKS 기반 해결방안](./agentic-ai-solutions-eks.md)** — 오픈소스 기반 완전 제어
+**경로 B: [EKS 기반 오픈 아키텍처](./agentic-ai-solutions-eks.md)** — 오픈소스 기반 완전 제어
 - vLLM, LangGraph, Bifrost 등 오픈소스로 세밀한 제어
 - GPU 리소스, 추론 엔진, 라우팅을 직접 최적화
 - 전담 플랫폼팀 보유, 완전한 인프라 제어가 필요할 때 적합

@@ -1658,7 +1658,7 @@ flowchart TD
 
 - [GPU 리소스 관리](./gpu-resource-management.md) - Karpenter, DCGM, KEDA 기반 스케일링
 - [llm-d 분산 추론](./llm-d-eks-automode.md) - Kubernetes 네이티브 분산 추론 (Auto Mode & Karpenter)
-- [EKS 기반 해결방안](../design-architecture/agentic-ai-solutions-eks.md) - 전체 플랫폼 아키텍처
+- [EKS 기반 오픈 아키텍처](../design-architecture/agentic-ai-solutions-eks.md) - 전체 플랫폼 아키텍처
 
 ---
 

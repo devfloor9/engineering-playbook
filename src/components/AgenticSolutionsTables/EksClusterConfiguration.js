@@ -69,22 +69,24 @@ const EksClusterConfiguration = () => {
 
   const controlPlaneData = isKo
     ? [
-        ['**스케일링**', '동적 오토스케일링 (AWS 관리)', '고정 티어 (사전 프로비저닝, 오토스케일링 없음)'],
-        ['**성능 예측성**', '가변적 (트래픽에 따라 지연 발생 가능)', '일관된 성능 보장'],
-        ['**티어 옵션**', '단일 (자동)', 'tier-xl / tier-2xl / tier-4xl / tier-8xl / tier-ultra'],
-        ['**API 서버 성능**', '공유 리소스 기반', '전용 리소스 할당'],
-        ['**비용**', '$0.10/hr ($73/월)', '티어별 프리미엄 과금'],
-        ['**적합한 규모**', '일반 워크로드 (~1,000 노드)', '대규모 AI/ML (10,000+ 노드)'],
-        ['**K8s 버전**', 'EKS 지원 전체 (1.29~1.33)', 'EKS 지원 전체 (1.29~1.33)'],
+        ['**스케일링**', '동적 오토스케일링 (AWS 관리)', '고정 티어 (사전 프로비저닝)'],
+        ['**API 동시성 (seats)**', '1,200 ~ 1,700 (동적)', 'XL: 1,700 / 2XL: 3,400 / 4XL: 6,800 / 8XL: 13,600'],
+        ['**Pod 스케줄링 속도**', '50 ~ 100 pods/sec', 'XL: 100 / 2XL: 200 / 4XL~8XL: 400 pods/sec'],
+        ['**Controller Manager**', '20 ~ 100 work/sec', 'XL: 100 / 2XL: 200 / 4XL~8XL: 400 work/sec'],
+        ['**etcd DB 크기**', '10 GB', '20 GB'],
+        ['**SLA**', '99.95%', '99.99%'],
+        ['**비용**', '$0.10/hr ($73/월)', 'XL: $1.75 / 2XL: $3.50 / 4XL: $7.00 / 8XL: $14.00/hr'],
+        ['**Tier 선택 기준**', '-', 'API Inflight Seats + Pod Scheduling Rate + etcd DB Size (노드 수 아님)'],
       ]
     : [
-        ['**Scaling**', 'Dynamic auto-scaling (AWS managed)', 'Fixed tier (pre-provisioned, no auto-scaling)'],
-        ['**Performance**', 'Variable (latency spikes possible)', 'Consistent, guaranteed performance'],
-        ['**Tier Options**', 'Single (automatic)', 'tier-xl / tier-2xl / tier-4xl / tier-8xl / tier-ultra'],
-        ['**API Server**', 'Shared resource pool', 'Dedicated resource allocation'],
-        ['**Cost**', '$0.10/hr ($73/mo)', 'Premium pricing per tier'],
-        ['**Scale**', 'General workloads (~1,000 nodes)', 'Large-scale AI/ML (10,000+ nodes)'],
-        ['**K8s Version**', 'All supported (1.29–1.33)', 'All supported (1.29–1.33)'],
+        ['**Scaling**', 'Dynamic auto-scaling (AWS managed)', 'Fixed tier (pre-provisioned)'],
+        ['**API Concurrency (seats)**', '1,200–1,700 (dynamic)', 'XL: 1,700 / 2XL: 3,400 / 4XL: 6,800 / 8XL: 13,600'],
+        ['**Pod Scheduling Rate**', '50–100 pods/sec', 'XL: 100 / 2XL: 200 / 4XL–8XL: 400 pods/sec'],
+        ['**Controller Manager**', '20–100 work/sec', 'XL: 100 / 2XL: 200 / 4XL–8XL: 400 work/sec'],
+        ['**etcd DB Size**', '10 GB', '20 GB'],
+        ['**SLA**', '99.95%', '99.99%'],
+        ['**Cost**', '$0.10/hr ($73/mo)', 'XL: $1.75 / 2XL: $3.50 / 4XL: $7.00 / 8XL: $14.00/hr'],
+        ['**Tier Selection Criteria**', '-', 'API Inflight Seats + Pod Scheduling Rate + etcd DB Size (NOT node count)'],
       ];
 
   const dataPlaneHeaders = isKo
@@ -119,14 +121,14 @@ const EksClusterConfiguration = () => {
     ? [
         ['일반 AI 서비스', 'Standard', 'Auto Mode', '소~중규모 추론 서비스, 운영 최소화'],
         ['GPU 최적화 플랫폼', 'Standard', 'Karpenter', '멀티 GPU, Spot 활용, 비용 최적화'],
-        ['**대규모 AI 플랫폼**', '**PCP (tier-xl+)**', '**Auto Mode**', '**10K+ 노드, API 성능 보장 + 운영 자동화**'],
-        ['초대규모 학습 클러스터', 'PCP (tier-4xl+)', 'Karpenter', '100K+ 노드, GPU 세밀 제어 필요'],
+        ['**대규모 AI 플랫폼**', '**PCP (tier-xl+)**', '**Auto Mode**', '**API 성능 보장 (1,700+ seats) + 운영 자동화**'],
+        ['초대규모 학습 클러스터', 'PCP (tier-4xl+)', 'Karpenter', 'API 동시성 6,800+, GPU 세밀 제어 필요'],
       ]
     : [
         ['General AI Service', 'Standard', 'Auto Mode', 'Small-mid inference, minimal ops'],
         ['GPU-Optimized Platform', 'Standard', 'Karpenter', 'Multi-GPU, Spot, cost optimization'],
-        ['**Large AI Platform**', '**PCP (tier-xl+)**', '**Auto Mode**', '**10K+ nodes, API perf + auto ops**'],
-        ['Ultra-Scale Training', 'PCP (tier-4xl+)', 'Karpenter', '100K+ nodes, fine GPU control'],
+        ['**Large AI Platform**', '**PCP (tier-xl+)**', '**Auto Mode**', '**API perf guaranteed (1,700+ seats) + auto ops**'],
+        ['Ultra-Scale Training', 'PCP (tier-4xl+)', 'Karpenter', 'API concurrency 6,800+, fine GPU control'],
       ];
 
   return (

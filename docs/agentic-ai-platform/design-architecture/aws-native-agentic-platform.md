@@ -553,5 +553,5 @@ AgentCore 기반 플랫폼의 비용은 **사용한 만큼만 과금**되는 서
 
 ## 다음 단계
 
-- EKS 기반 오픈소스 아키텍처가 필요하다면 → [EKS 기반 해결방안](./agentic-ai-solutions-eks.md)
+- EKS 기반 오픈소스 아키텍처가 필요하다면 → [EKS 기반 오픈 아키텍처](./agentic-ai-solutions-eks.md)
 - 전체 플랫폼 설계 → [플랫폼 아키텍처](./agentic-platform-architecture.md)

@@ -1,7 +1,7 @@
 ---
-title: "EKS 기반 Agentic AI 해결방안"
-sidebar_label: "EKS 기반 해결방안"
-description: "Amazon EKS와 AWS 서비스를 활용한 Agentic AI 도전과제 해결 가이드"
+title: "EKS 기반 Agentic AI 오픈 아키텍처"
+sidebar_label: "EKS 기반 오픈 아키텍처"
+description: "Amazon EKS와 오픈소스 생태계를 활용한 Agentic AI 플랫폼 구축 가이드"
 tags: [eks, aws, karpenter, genai, agentic-ai, gpu, solutions]
 category: "genai-aiml"
 last_update:
@@ -100,8 +100,32 @@ apiVersion: eks.amazonaws.com/v1
 kind: Cluster
 spec:
   controlPlaneScalingConfig:
-    tier: tier-xl  # tier-xl / tier-2xl / tier-4xl / tier-8xl / tier-ultra
+    tier: tier-xl  # tier-xl / tier-2xl / tier-4xl / tier-8xl
 ```
+
+#### PCP 티어 스펙
+
+| Tier | API 동시성 (seats) | Pod 스케줄링 | Controller Manager | etcd DB | SLA | 비용 |
+|------|:-----------------:|:----------:|:-----------------:|:------:|:---:|-----:|
+| **Standard** | 1,200~1,700 | 50~100/sec | 20~100/sec | 10GB | 99.95% | $0.10/hr |
+| **XL** | 1,700 | 100/sec | 100/sec | 20GB | 99.99% | $1.75/hr |
+| **2XL** | 3,400 | 200/sec | 200/sec | 20GB | 99.99% | $3.50/hr |
+| **4XL** | 6,800 | 400/sec | 400/sec | 20GB | 99.99% | $7.00/hr |
+| **8XL** | 13,600 | 400/sec | 400/sec | 20GB | 99.99% | $14.00/hr |
+
+#### 티어 선택 기준: 메트릭 기반 판단
+
+:::warning 워커 노드 수는 PCP 티어 선택 기준이 아닙니다
+PCP 티어는 **Kubernetes 컨트롤 플레인 메트릭**을 기반으로 선택해야 합니다. 워커 노드 수나 Pod 수는 Tier의 속성이 아니며, AWS 내부 인프라 보호 목적으로만 사용됩니다. 설계 원칙은 "고객이 관측 가능한 메트릭(inflight seats 등)에서 먼저 한계에 도달"하도록 설정되어 있습니다.
+:::
+
+**핵심 모니터링 메트릭:**
+
+| 메트릭 | Prometheus 쿼리 | 판단 기준 |
+|--------|----------------|----------|
+| **API Inflight Seats** (가장 중요) | `apiserver_flowcontrol_current_executing_seats_total` | 1,200 seats 지속 초과 → XL 이상 |
+| **Pod Scheduling Rate** | `scheduler_schedule_attempts_SCHEDULED` | 100/sec 이상 → XL, 200/sec 이상 → 2XL |
+| **etcd DB Size** | `apiserver_storage_size_bytes` | 10GB 초과 → XL 이상 필요 |
 
 :::info PCP vs Auto Mode — 서로 다른 레이어
 **PCP**는 컨트롤 플레인 용량 옵션이고, **Auto Mode**는 데이터 플레인 관리 옵션입니다. 두 기능은 서로 다른 레이어에서 독립적으로 작동하며, **조합하여 사용할 수 있습니다**. 예를 들어, 대규모 AI 플랫폼에서는 PCP로 API 서버 성능을 보장하면서 Auto Mode로 노드 운영을 자동화하는 구성이 가능합니다.
@@ -112,10 +136,10 @@ spec:
 <EksClusterConfiguration />
 
 :::tip AI 플랫폼 규모별 권장 구성
-- **소규모 (PoC/데모)**: Standard + Auto Mode — 최소 운영 부담
-- **중규모 (프로덕션 추론)**: Standard + Karpenter — GPU 비용 최적화
-- **대규모 (엔터프라이즈 AI)**: PCP (tier-xl) + Auto Mode — 성능 보장 + 자동화
-- **초대규모 (학습 클러스터)**: PCP (tier-4xl+) + Karpenter — API 성능 + GPU 세밀 제어
+- **소규모 (PoC/데모)**: Standard + Auto Mode — API seats < 1,200, 최소 운영 부담
+- **중규모 (프로덕션 추론)**: Standard + Karpenter — API seats < 1,200, GPU 비용 최적화
+- **대규모 (엔터프라이즈 AI)**: PCP XL ($1.75/hr) + Auto Mode — API seats ≤ 1,700, 99.99% SLA
+- **초대규모 (학습 클러스터)**: PCP 4XL+ ($7.00+/hr) + Karpenter — API seats > 3,400, GPU 세밀 제어
 :::
 
 ---
@@ -345,7 +369,7 @@ EKS Auto Mode는 NVIDIA GPU를 포함한 가속 컴퓨팅 인스턴스를 완벽
 - **Enhanced Pod Identity v2**: 크로스 계정 IAM 역할 지원으로 멀티 계정 환경에서 안전한 AWS 서비스 접근, 세션 태그 및 조건부 정책 지원 강화
 - **Native Inferentia/Trainium Support**: EKS Auto Mode에서 AWS Inferentia2 및 Trainium 칩 네이티브 지원, Neuron SDK 자동 구성
 - **CloudWatch GPU Metrics**: GPU 사용률, 메모리, 온도 등 GPU 메트릭 자동 수집 및 CloudWatch 통합, DCGM 메트릭 네이티브 지원
-- **Provisioned Control Plane**: 대규모 AI 학습 워크로드를 위한 사전 프로비저닝된 컨트롤 플레인 용량 (XL, 2XL, 4XL 티어)
+- **Provisioned Control Plane**: 대규모 AI 학습 워크로드를 위한 사전 프로비저닝된 컨트롤 플레인 용량 (XL~8XL 티어, API 동시성 1,700~13,600 seats)
 - **Container Network Observability**: Pod 간 통신 패턴 및 네트워크 성능 모니터링, VPC Flow Logs 통합
 - **CloudWatch Control Plane Metrics**: 컨트롤 플레인 헬스 선제적 모니터링, API 서버 응답 시간 및 etcd 성능 메트릭
 :::
