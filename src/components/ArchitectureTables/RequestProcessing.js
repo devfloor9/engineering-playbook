@@ -16,14 +16,14 @@ const RequestProcessing = () => {
     },
     {
       step: '4-5',
-      component: 'Kagent, Agent',
+      component: 'Controller, Agent',
       description: isKo ? '에이전트 선택 및 작업 할당' : isZh ? '代理选择和任务分配' : 'Agent selection and task assignment',
       color: '#8b5cf6',
       icon: '🤖'
     },
     {
       step: '6-8',
-      component: 'Agent, Milvus',
+      component: 'Agent, Vector DB',
       description: isKo ? 'RAG를 위한 컨텍스트 검색' : isZh ? 'RAG 上下文搜索' : 'Context search for RAG',
       color: '#10b981',
       icon: '🔍'
@@ -37,7 +37,7 @@ const RequestProcessing = () => {
     },
     {
       step: '12',
-      component: 'Langfuse',
+      component: 'Tracing',
       description: isKo ? '관측성 데이터 기록' : isZh ? '记录可观测性数据' : 'Record observability data',
       color: '#06b6d4',
       icon: '📊'

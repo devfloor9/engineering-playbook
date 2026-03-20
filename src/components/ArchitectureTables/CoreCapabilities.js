@@ -9,22 +9,22 @@ const CoreCapabilities = () => {
   const capabilities = [
     {
       name: isKo ? '에이전트 오케스트레이션' : isZh ? '代理编排' : 'Agent Orchestration',
-      description: isKo ? 'Kagent를 통한 AI 에이전트 라이프사이클 관리' : isZh ? '通过 Kagent 管理 AI 代理生命周期' : 'Manage AI agent lifecycle through Kagent',
+      description: isKo ? 'AI 에이전트 라이프사이클 선언적 관리' : isZh ? '声明式管理 AI 代理生命周期' : 'Declarative AI agent lifecycle management',
       color: '#4ecdc4'
     },
     {
       name: isKo ? '지능형 라우팅' : isZh ? '智能路由' : 'Intelligent Routing',
-      description: isKo ? 'Kgateway를 통한 추론 요청의 동적 라우팅' : isZh ? '通过 Kgateway 动态路由推理请求' : 'Dynamic routing of inference requests through Kgateway',
+      description: isKo ? '추론 요청의 지능형 동적 라우팅' : isZh ? '推理请求的智能动态路由' : 'Intelligent dynamic routing of inference requests',
       color: '#ff6b6b'
     },
     {
       name: isKo ? '벡터 검색' : isZh ? '向量搜索' : 'Vector Search',
-      description: isKo ? 'Milvus를 통한 RAG(Retrieval-Augmented Generation) 지원' : isZh ? '通过 Milvus 支持 RAG（检索增强生成）' : 'Support RAG (Retrieval-Augmented Generation) through Milvus',
+      description: isKo ? '벡터 DB 기반 RAG(Retrieval-Augmented Generation) 지원' : isZh ? '基于向量数据库支持 RAG（检索增强生成）' : 'Vector DB-based RAG (Retrieval-Augmented Generation) support',
       color: '#45b7d1'
     },
     {
       name: isKo ? '관측성' : isZh ? '可观测性' : 'Observability',
-      description: isKo ? 'Langfuse를 통한 에이전트 동작 추적 및 분석' : isZh ? '通过 Langfuse 跟踪和分析代理行为' : 'Track and analyze agent behavior through Langfuse',
+      description: isKo ? '에이전트 동작 추적, LLM 트레이싱, 비용 분석' : isZh ? '代理行为跟踪、LLM 追踪、成本分析' : 'Agent behavior tracking, LLM tracing, and cost analysis',
       color: '#96ceb4'
     },
     {

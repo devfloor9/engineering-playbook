@@ -16,31 +16,31 @@ const LayerRoles = () => {
     {
       layer: isKo ? 'Gateway Layer' : isZh ? '网关层' : 'Gateway Layer',
       role: isKo ? '인증, 라우팅, 트래픽 관리' : isZh ? '认证、路由、流量管理' : 'Authentication, routing, traffic management',
-      components: isKo ? 'Kgateway, Auth, Rate Limiter' : isZh ? 'Kgateway、认证、速率限制器' : 'Kgateway, Auth, Rate Limiter',
+      components: isKo ? 'Inference Gateway, Auth, Rate Limiter' : isZh ? '推理网关、认证、速率限制器' : 'Inference Gateway, Auth, Rate Limiter',
       color: '#fff3e0'
     },
     {
       layer: isKo ? 'Agent Layer' : isZh ? '代理层' : 'Agent Layer',
       role: isKo ? 'AI 에이전트 실행 및 오케스트레이션' : isZh ? 'AI 代理执行和编排' : 'AI agent execution and orchestration',
-      components: isKo ? 'Kagent, Agent Instances, Tool Registry' : isZh ? 'Kagent、代理实例、工具注册表' : 'Kagent, Agent Instances, Tool Registry',
+      components: isKo ? 'Agent Controller, Agent Instances, Tool Registry' : isZh ? '代理控制器、代理实例、工具注册表' : 'Agent Controller, Agent Instances, Tool Registry',
       color: '#e8f5e9'
     },
     {
       layer: isKo ? 'Model Serving Layer' : isZh ? '模型服务层' : 'Model Serving Layer',
       role: isKo ? 'LLM 모델 추론 서비스' : isZh ? 'LLM 模型推理服务' : 'LLM model inference service',
-      components: 'vLLM, llm-d',
+      components: isKo ? 'LLM Serving Engine, 분산 추론 스케줄러' : isZh ? 'LLM 服务引擎、分布式推理调度器' : 'LLM Serving Engine, Distributed Inference Scheduler',
       color: '#fce4ec'
     },
     {
       layer: isKo ? 'Data Layer' : isZh ? '数据层' : 'Data Layer',
       role: isKo ? '데이터 저장 및 검색' : isZh ? '数据存储和搜索' : 'Data storage and search',
-      components: 'Milvus, Redis, S3',
+      components: isKo ? 'Vector DB, Cache, Object Storage' : isZh ? '向量数据库、缓存、对象存储' : 'Vector DB, Cache, Object Storage',
       color: '#f3e5f5'
     },
     {
       layer: isKo ? 'Observability Layer' : isZh ? '可观测性层' : 'Observability Layer',
       role: isKo ? '모니터링 및 추적' : isZh ? '监控和跟踪' : 'Monitoring and tracking',
-      components: 'Langfuse, AMP, AMG',
+      components: isKo ? 'LLM Tracing, Metrics, Dashboard' : isZh ? 'LLM 追踪、指标、仪表盘' : 'LLM Tracing, Metrics, Dashboard',
       color: '#e0f7fa'
     }
   ];
