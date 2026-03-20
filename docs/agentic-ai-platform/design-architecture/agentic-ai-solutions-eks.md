@@ -387,11 +387,11 @@ flowchart LR
 
 Agent Pod는 KEDA를 통해 Redis 큐 길이 기반으로 자동 스케일링됩니다.
 
-> 상세 내용은 [Kagent Agent 관리](../gateway-agents/kagent-kubernetes-agents.md) 및 [Bedrock AgentCore & MCP](../gateway-agents/bedrock-agentcore-mcp.md)를 참조하세요.
+> 상세 내용은 [Kagent Agent 관리](../agent-data/kagent-kubernetes-agents.md) 및 [AWS Native 플랫폼 — AgentCore & MCP](./aws-native-agentic-platform.md#mcp-프로토콜과-eks-통합)를 참조하세요.
 
 #### RAG + 옵저버빌리티
 
-- **Milvus**: 벡터 DB — RAG 시스템 핵심 ([상세](../gateway-agents/milvus-vector-database.md))
+- **Milvus**: 벡터 DB — RAG 시스템 핵심 ([상세](../agent-data/milvus-vector-database.md))
 - **Langfuse**: 프로덕션 LLM 트레이싱, 토큰 비용 추적 (Self-hosted, MIT 라이선스)
 - **Prometheus + Grafana**: 인프라 메트릭 모니터링
 

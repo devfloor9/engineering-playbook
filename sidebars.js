@@ -92,19 +92,27 @@ const sidebars = {
         },
         {
           type: 'category',
-          label: '게이트웨이 & 에이전트',
+          label: '추론 게이트웨이 & 라우팅',
           link: {
             type: 'doc',
             id: 'agentic-ai-platform/gateway-agents/index',
           },
           items: [
             'agentic-ai-platform/gateway-agents/inference-gateway-routing',
-            'agentic-ai-platform/gateway-agents/milvus-vector-database',
-            'agentic-ai-platform/gateway-agents/kagent-kubernetes-agents',
-            'agentic-ai-platform/gateway-agents/bedrock-agentcore-mcp',
-            'agentic-ai-platform/gateway-agents/openclaw-ai-gateway',
             'agentic-ai-platform/gateway-agents/llm-gateway-architecture',
-            'agentic-ai-platform/gateway-agents/llmops-observability',
+            'agentic-ai-platform/gateway-agents/openclaw-ai-gateway',
+          ],
+        },
+        {
+          type: 'category',
+          label: '에이전트 & 데이터',
+          link: {
+            type: 'doc',
+            id: 'agentic-ai-platform/agent-data/index',
+          },
+          items: [
+            'agentic-ai-platform/agent-data/kagent-kubernetes-agents',
+            'agentic-ai-platform/agent-data/milvus-vector-database',
           ],
         },
         {
@@ -117,6 +125,7 @@ const sidebars = {
           items: [
             'agentic-ai-platform/operations-mlops/agent-monitoring',
             'agentic-ai-platform/operations-mlops/ragas-evaluation',
+            'agentic-ai-platform/operations-mlops/llmops-observability',
             'agentic-ai-platform/operations-mlops/mlops-pipeline-eks',
             'agentic-ai-platform/operations-mlops/sagemaker-eks-integration',
           ],

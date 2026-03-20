@@ -1407,7 +1407,7 @@ Langfuse v2.75.0 (Self-hosted 데이터 주권)와 CloudWatch Gen AI Observabili
 :::tip 다음 단계
 
 - [Agentic AI Platform 아키텍처](../design-architecture/agentic-platform-architecture.md) - 전체 플랫폼 설계
-- [Kagent Kubernetes Agent 관리](../gateway-agents/kagent-kubernetes-agents.md) - 에이전트 배포 및 운영
+- [Kagent Kubernetes Agent 관리](../agent-data/kagent-kubernetes-agents.md) - 에이전트 배포 및 운영
 - [RAG 평가 프레임워크](./ragas-evaluation.md) - Ragas를 활용한 품질 평가
 :::
 

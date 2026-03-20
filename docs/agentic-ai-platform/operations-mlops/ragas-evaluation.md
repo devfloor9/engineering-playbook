@@ -689,7 +689,7 @@ flowchart TB
 
 ## 관련 문서
 
-- [Milvus 벡터 데이터베이스](../gateway-agents/milvus-vector-database.md)
+- [Milvus 벡터 데이터베이스](../agent-data/milvus-vector-database.md)
 - [Agent 모니터링](./agent-monitoring.md)
 - [Agentic AI 플랫폼 아키텍처](../design-architecture/agentic-platform-architecture.md)
 
