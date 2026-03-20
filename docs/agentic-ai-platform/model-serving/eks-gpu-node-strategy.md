@@ -7,7 +7,7 @@ category: "genai-aiml"
 last_update:
   date: 2026-03-16
   author: devfloor9
-sidebar_position: 6
+sidebar_position: 1
 ---
 
 # EKS GPU 노드 전략: Auto Mode + Karpenter + Hybrid Node
