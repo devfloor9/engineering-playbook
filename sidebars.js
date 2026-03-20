@@ -67,10 +67,10 @@ const sidebars = {
             id: 'agentic-ai-platform/design-architecture/index',
           },
           items: [
+            'agentic-ai-platform/design-architecture/agentic-platform-architecture',
             'agentic-ai-platform/design-architecture/agentic-ai-challenges',
             'agentic-ai-platform/design-architecture/aws-native-agentic-platform',
             'agentic-ai-platform/design-architecture/agentic-ai-solutions-eks',
-            'agentic-ai-platform/design-architecture/agentic-platform-architecture',
           ],
         },
         {
