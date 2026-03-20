@@ -162,6 +162,7 @@ const config = {
         items: [
           { to: '/docs/intro', label: 'Documentation', position: 'left' },
           { to: '/docs/benchmarks', label: 'Benchmark Reports', position: 'left' },
+          { to: '/slides', label: 'Slides', position: 'left' },
           {
             type: 'html',
             position: 'right',
