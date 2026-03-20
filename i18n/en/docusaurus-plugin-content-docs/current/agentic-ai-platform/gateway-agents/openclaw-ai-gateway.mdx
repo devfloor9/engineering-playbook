@@ -1,0 +1,473 @@
+---
+title: "OpenClaw AI Agent Gateway Deployment and Full Observability"
+sidebar_label: "OpenClaw AI Gateway"
+description: "Deploy OpenClaw AI agent gateway to EKS with cost optimization and implement Full Observability with Bifrost Auto-Router + Cilium Hubble + Langfuse"
+tags: [eks, openclaw, bifrost, langfuse, cilium, hubble, bedrock, graviton, pod-identity, observability]
+category: "genai-aiml"
+sidebar_position: 5
+last_update:
+  date: 2026-02-25
+  author: devfloor9
+---
+
+# OpenClaw AI Agent Gateway Deployment and Full Observability
+
+> 📅 **Created**: 2026-02-25 | ⏱️ **Reading time**: Approximately 15 minutes
+
+## Overview
+
+OpenClaw (226k+ GitHub stars) is a general-purpose AI agent framework providing autonomous agent workflows leveraging various LLMs. On AWS, the `aws-samples/sample-OpenClaw-on-AWS-with-Bedrock` sample provides a quick start guide based on EC2 + CloudFormation, with a simple configuration connecting a single Bedrock model on a single instance. While sufficient for prototyping or personal use, enterprise environments require a different approach.
+
+This document covers **deploying OpenClaw on an existing EKS cluster** and constructing a production-ready structure by combining multi-model routing and 3-tier observability.
+
+| | EC2 Standalone Deployment | EKS-Based Deployment (This Document) |
+|---|---|---|
+| **Infrastructure** | EC2 + CloudFormation, instance-level management | Add Pods to existing EKS cluster, Karpenter auto-scaling |
+| **LLM Integration** | Single Bedrock model | Bifrost Auto-Router → Query-based Bedrock multi-model (Claude/GLM/Solar) |
+| **Observability** | CloudWatch basic metrics | 3-Layer: Network (Hubble) + LLM (Langfuse) + System (OTEL/Prometheus) |
+| **Cost Control** | Instance size adjustment | Graviton4 ARM + Spot + semantic caching + budget control |
+| **Scalability** | Manual scaling | HPA/Karpenter auto-scaling, Spot instance native interruption handling |
+
+### Related Documents
+
+| Document | Content | Relationship |
+|------|------|------|
+| [Inference Gateway](./inference-gateway-routing.md) | Kgateway-based routing | Theoretical foundation |
+| [Agent Monitoring](../operations-mlops/agent-monitoring.md) | Langfuse/LangSmith monitoring | Monitoring theory |
+| **17. OpenClaw AI Gateway** (This Document) | OpenClaw practical deployment + Full o11y | **Hands-on Implementation** |
+
+---
+
+## Architecture Design
+
+This configuration simultaneously achieves **cost efficiency**, **observability**, and **operational automation** required in enterprise environments, based on 6 core design decisions.
+
+import OpenClawArchitecture from '@site/src/components/OpenClawArchitecture';
+
+<OpenClawArchitecture />
+
+### Core Design Decision Summary
+
+Each layer of this architecture is based on the following design decisions:
+
+| Decision Area | Selection | Alternative | Key Rationale |
+|-----------|------|------|-----------|
+| **Hosting Platform** | EKS | EC2 Standalone / AgentCore | Karpenter auto-scaling, o11y stack freedom, Spot/Graviton combination possible. AgentCore is Experimental with no cron support, limited o11y customization |
+| **LLM Gateway** | Bifrost Proxy | LiteLLM / llm-d | Optimal for Bedrock multi-model structure. Rust-based 50x faster performance, 100+ providers, budget control, `success_callback: ["langfuse"]` single-line integration. When adding self-hosted vLLM, `Bifrost → llm-d → vLLM` hybrid possible. LiteLLM available as alternative |
+| **LLM Observability** | Langfuse (self-hosted) | Tempo / Loki | LLM native: token usage, cost, tool call chain, prompt/completion content tracking. Tempo/Loki are general infrastructure o11y, cannot track prompt-level |
+| **Network Observability** | Cilium Hubble (ENI mode) | CW Network Flow Monitor | L3/L4/L7 visibility (HTTP path, status code, DNS), interactive service map, $0. CW NFM supports only L3/L4, $20-45/month |
+| **IAM Authentication** | EKS Pod Identity | IRSA | No OIDC provider needed, one-line mapping with `aws eks create-pod-identity-association` |
+| **Computing** | Graviton4 M8g + Spot | x86 On-Demand | ARM64 20-40% cheaper, Spot additional savings, Karpenter native interruption handling |
+
+---
+
+## Technology Stack
+
+### Compute
+
+OpenClaw (TypeScript/Node.js) and Bifrost (Rust) are fully ARM64 compatible and use multi-arch images.
+
+| Item | Configuration | Details |
+|------|------|------|
+| **Instance** | Graviton4 **M8g** | GA, 20-40% cost savings vs x86, 60% improved energy efficiency |
+| **Future Migration** | Graviton5 **M9g** | 25% performance improvement vs M8g, GA expected 2026. Additional performance at same cost after GA migration |
+| **Purchase Option** | **Spot Instance** Priority | 60-90% savings vs On-Demand. Karpenter native interruption handling + NMA node health monitoring |
+
+#### Spot Instance Stable Operations
+
+OpenClaw gateway is a stateless workload, making it suitable for Spot Instances. For stable operations, combine 3 layers:
+
+| Layer | Tool | Role |
+|------|------|------|
+| **Spot Interruption Handling** | Karpenter v1.0+ | Detect 2-minute warning → Provision replacement node → Reschedule Pods |
+| **Node Health Monitoring** | NMA (EKS Add-on) | Detect kernel/containerd/disk/network issues → Update Node Condition |
+| **Auto Recovery** | Node Auto Repair | Automatically replace abnormal nodes reported by NMA |
+
+Karpenter NodePool, EC2NodeClass, and NMA configuration are covered in detail in [5.1 Infrastructure](#51-infrastructure).
+
+**Pod Configuration — graceful shutdown + AZ distribution:**
+
+```yaml
+spec:
+  terminationGracePeriodSeconds: 120  # Wait for in-progress LLM responses to complete
+  topologySpreadConstraints:
+    - maxSkew: 1
+      topologyKey: topology.kubernetes.io/zone
+      whenUnsatisfiable: DoNotSchedule
+      labelSelector:
+        matchLabels:
+          app: openclaw-gateway
+```
+
+`terminationGracePeriodSeconds: 120` secures time for in-progress LLM responses to complete during Spot interruptions, and `topologySpreadConstraints` distributes Pods across AZs to prepare for single AZ failures.
+
+### LLM Models — Content-Based Routing
+
+| Query Type | Model | Provider | Rationale |
+|-----------|------|-----------|------|
+| General (Default) | **Claude Sonnet 4.6** | Bedrock | 1M context, best agent performance |
+| Coding / Programming | **GLM-4.7** | Bedrock | 102B MoE, optimized for code generation |
+| Korean / Korea-related | **Solar Pro 3** | Bedrock | 128K context, Korean optimized, MoE 12B active |
+
+### Networking
+
+| Component | Technology |
+|-----------|-----------|
+| CNI | Cilium (ENI mode) |
+| Service Map | Hubble UI + Grafana |
+| Bedrock Connection | VPC Endpoint (`com.amazonaws.<region>.bedrock-runtime`) |
+
+### Observability (3-Layer)
+
+| Layer | Tool | Tracks |
+|-------|------|--------|
+| **Network** | Cilium Hubble | L7 HTTP flow, DNS, service map |
+| **LLM** | Langfuse | Prompt/response, token cost, tool call chain |
+| **System** | OTEL → Prometheus/Grafana | CPU, memory, Pod health, custom metrics |
+
+---
+
+## Cost Analysis
+
+| Item | Estimated Monthly Cost |
+|------|-------------|
+| Gateway + Bifrost (ARM) | ~$30 |
+| Bedrock API (Claude/GLM/Solar) | ~$15-40 |
+| Langfuse (self-hosted) | ~$10 |
+| Redis (cache) | ~$5 |
+| Cilium + Hubble | $0 |
+| Prometheus/Grafana | $0 (existing stack) |
+| **Total** | **$60-85/month** |
+
+### Cost Optimization Strategies
+
+| Strategy | Detail | Savings |
+|----------|--------|---------|
+| Graviton4 ARM | vs x86 | 20-40% |
+| Spot Instance | vs On-Demand, Karpenter native interruption handling | 60-90% (compute) |
+| Auto-Router | Cost/quality optimization through specialized model routing | Model-specific optimal |
+| Semantic Caching | Redis-based, cache identical/similar requests | ~90% for repeated requests |
+| Budget Control | Monthly budget per virtual key, rate limiting | Prevent overcharges |
+| VPC Endpoint | Eliminate Bedrock NAT Gateway cost | Data transfer cost savings |
+
+---
+
+## Deployment Guide
+
+### 5.1 Infrastructure
+
+#### EKS Cluster Prerequisites
+
+| Requirement | Details |
+|----------|------|
+| EKS Version | 1.30+ |
+| Karpenter | v1.0+ (includes Spot native interruption handling) |
+| EKS Add-ons | Pod Identity Agent, EKS Node Monitoring Agent |
+| VPC | Bedrock VPC Endpoint (`com.amazonaws.<region>.bedrock-runtime`) |
+| CNI | Cilium ENI mode (if Hubble L7 visibility needed) or VPC CNI |
+
+For new cluster creation, EKS Auto Mode is recommended. For existing clusters, just meet the above requirements.
+
+#### Karpenter — Cost-Optimized Node Configuration
+
+Configure Graviton4 M8g Spot priority to minimize compute costs.
+
+```yaml
+# EC2NodeClass — Graviton4 ARM64 node configuration
+apiVersion: karpenter.k8s.aws/v1
+kind: EC2NodeClass
+metadata:
+  name: openclaw-arm64
+spec:
+  role: "KarpenterNodeRole-${CLUSTER_NAME}"
+  amiSelectorTerms:
+    - alias: al2023@latest     # Amazon Linux 2023, auto-select ARM64
+  subnetSelectorTerms:
+    - tags:
+        karpenter.sh/discovery: "${CLUSTER_NAME}"
+  securityGroupSelectorTerms:
+    - tags:
+        karpenter.sh/discovery: "${CLUSTER_NAME}"
+  blockDeviceMappings:
+    - deviceName: /dev/xvda
+      ebs:
+        volumeSize: 30Gi
+        volumeType: gp3
+        deleteOnTermination: true
+```
+
+```yaml
+# NodePool — All Graviton 4th gen+, Spot priority, On-Demand fallback
+apiVersion: karpenter.sh/v1
+kind: NodePool
+metadata:
+  name: openclaw-gateway
+spec:
+  template:
+    metadata:
+      labels:
+        workload-type: ai-gateway
+    spec:
+      requirements:
+        - key: kubernetes.io/arch
+          operator: In
+          values: ["arm64"]
+        - key: karpenter.sh/capacity-type
+          operator: In
+          values: ["spot", "on-demand"]  # Spot priority, when available
+        - key: karpenter.k8s.aws/instance-generation
+          operator: Gt
+          values: ["3"]                   # 4th gen+ → includes all m8g, c8g, r8g, m9g, etc.
+        - key: karpenter.k8s.aws/instance-size
+          operator: In
+          values: ["medium", "large"]
+      nodeClassRef:
+        group: karpenter.k8s.aws
+        kind: EC2NodeClass
+        name: openclaw-arm64
+  disruption:
+    consolidationPolicy: WhenEmptyOrUnderutilized
+    budgets:
+      - nodes: "1"  # Evict max 1 node at a time → ensure availability
+  limits:
+    cpu: "8"        # Max 8 vCPU — cost ceiling
+    memory: 16Gi
+```
+
+:::tip Automatic Graviton Generation Transition
+By specifying `instance-generation: Gt "3"` + `arch: arm64` without specifying `instance-family`, **all families** of Graviton 4th gen+ (m8g, c8g, r8g, m9g, etc.) are included as candidates. When new Graviton generations become GA, Karpenter automatically selects the optimal instance based on price/performance without NodePool modification.
+:::
+
+#### Node Monitoring Agent — Node Health Monitoring
+
+Karpenter handles Spot interruption events, but doesn't detect **system-level issues** on the nodes themselves (kernel problems, containerd failures, disk/network issues, etc.). Enabling the EKS Node Monitoring Agent (NMA) as an EKS Add-on complements this area.
+
+| Detection Area | Karpenter | NMA |
+|-----------|-----------|-----|
+| Spot interruption 2-min warning | **Detect + Provision replacement node** | - |
+| Kernel/containerd failures | - | **Detect → Update Node Condition** |
+| Disk/network issues | - | **Detect → Generate Kubernetes Event** |
+| Node Auto Repair integration | - | **Trigger abnormal node auto replacement** |
+
+```bash
+# Enable NMA EKS Add-on
+aws eks create-addon \
+  --cluster-name ${CLUSTER_NAME} \
+  --addon-name eks-node-monitoring-agent
+```
+
+Combining Karpenter (Spot interruption handling) + NMA (node health monitoring) + Node Auto Repair (auto replacement) ensures high availability even in Spot instance environments.
+
+#### IAM — EKS Pod Identity
+
+```bash
+# After enabling Pod Identity Agent add-on:
+aws eks create-pod-identity-association \
+  --cluster-name ${CLUSTER_NAME} \
+  --namespace openclaw \
+  --service-account openclaw-sa \
+  --role-arn arn:aws:iam::${ACCOUNT_ID}:role/openclaw-bedrock-role
+```
+
+Required permissions for IAM Role:
+
+- `bedrock:InvokeModel`
+- `bedrock:InvokeModelWithResponseStream`
+
+OpenClaw and Bifrost use the same ServiceAccount.
+
+### 5.2 Bifrost AI Gateway
+
+#### Config — Multi-Model + Auto-Router
+
+```yaml
+model_list:
+  - model_name: claude-sonnet
+    litellm_params:
+      model: bedrock/anthropic.claude-sonnet-4-6
+
+  - model_name: glm-4.7
+    litellm_params:
+      model: bedrock/zhipu.glm-4.7
+
+  - model_name: solar-pro-3
+    litellm_params:
+      model: bedrock/upstage.solar-pro-3
+
+router_settings:
+  routing_strategy: "content-based"
+  auto_router:
+    encoder_type: openai
+    encoder_name: text-embedding-3-small
+    routes:
+      - name: korean-queries
+        model: solar-pro-3
+        utterances:
+          - "Answer in Korean"
+          - "Korea-related question"
+          - "Korean language query"
+          - "Korean news"
+          - "Korean translation"
+        description: "Korean language or Korea-related queries"
+        score_threshold: 0.5
+      - name: coding-queries
+        model: glm-4.7
+        utterances:
+          - "write code"
+          - "debug this function"
+          - "Write code for me"
+          - "programming"
+          - "fix this bug"
+        description: "Coding, programming, debugging queries"
+        score_threshold: 0.5
+    default_route: claude-sonnet
+
+litellm_settings:
+  cache: true
+  cache_params:
+    type: redis
+    host: redis
+    port: 6379
+  success_callback: ["langfuse"]
+  failure_callback: ["langfuse"]
+
+general_settings:
+  master_key: os.environ/LITELLM_MASTER_KEY
+```
+
+#### Create Secrets
+
+```bash
+kubectl create secret generic bifrost-secrets \
+  --from-literal=BIFROST_MASTER_KEY=<your-master-key>
+```
+
+Since all models are called through Bedrock, no separate API keys are needed. IAM authentication is automatically handled through EKS Pod Identity.
+
+- Redis sidecar: Auto-Router embedding cache + semantic cache
+- Service: ClusterIP (port 4000, OpenAI-compatible API)
+
+### 5.3 OpenClaw Gateway
+
+#### Deployment
+
+- Image: `ghcr.io/openclaw/openclaw:latest`
+- Resources: 512Mi memory, 250m CPU
+- NodeSelector: `kubernetes.io/arch: arm64`
+- Service: ClusterIP (port 18789)
+
+#### Config (`openclaw.json`)
+
+```json
+{
+  "ai": {
+    "provider": "openai",
+    "baseUrl": "http://bifrost-proxy:4000",
+    "model": "claude-sonnet"
+  },
+  "diagnostics": {
+    "enabled": true,
+    "otel": {
+      "enabled": true,
+      "endpoint": "http://otel-collector:4317",
+      "serviceName": "openclaw-gateway",
+      "traces": true,
+      "metrics": true,
+      "logs": true
+    }
+  }
+}
+```
+
+### 5.4 Cilium CNI (ENI Mode) + Hubble
+
+**Cilium ENI Mode** — Complete VPC CNI replacement, single eBPF datapath
+
+- Allocate Pod IPs directly from ENI
+- Full NetworkPolicy support
+- Optimal performance single datapath
+
+**Hubble UI** Features:
+
+- Interactive service map: Visualize HTTP request flow between Pods
+- L7 HTTP flow: Verify `POST /v1/chat/completions → 200 OK (320ms)`
+- DNS query tracking: Real-time visibility of external API calls
+- Hubble Grafana dashboard: Prometheus metrics integration
+- Cost: **$0**
+
+### 5.5 LLM Observability (Langfuse)
+
+- Langfuse self-hosted Helm chart (PostgreSQL + Langfuse server)
+- Auto-integration with Bifrost `success_callback: ["langfuse"]`
+
+**Tracked Items:**
+
+- Prompt/completion content
+- Token usage
+- Cost per model
+- Tool call chain
+- Latency
+
+### 5.6 System Observability (OTEL + Prometheus/Grafana)
+
+- **OTEL Collector**: Receivers OTLP (gRPC :4317), Exporters Prometheus
+- If existing kube-prometheus-stack exists, reuse; otherwise deploy new with Helm
+- OpenClaw metrics: `openclaw.tokens`, `openclaw.cost.usd`, `openclaw.run.duration_ms`, `openclaw.message.*`
+
+---
+
+## Dashboards & Alerts
+
+### Langfuse (LLM Level)
+
+- **Agent Trace Explorer**: Message → LLM call → Tool execution → Response chain
+- **Token Usage**: Token consumption by model/time
+- **Cost Analytics**: Daily/weekly cost trends
+- **Prompt/Completion Inspector**: Verify actual input/output
+
+### Hubble (Network Level)
+
+- **Interactive Service Map**: HTTP request flow between Pods
+- **L7 Visibility**: `POST /v1/chat/completions → 200 OK (320ms)`
+- **DNS Query Tracking**: Which external APIs are being called
+
+### Grafana (System Level)
+
+- **Gateway Health**: Uptime, connections, memory, CPU
+- **Bifrost**: Cache hit rate, request throughput, latency
+- **Pod/Node Resource Usage**
+
+### Alert Rules
+
+| Alert | Condition |
+|-------|-----------|
+| Budget exceeded imminent | Bifrost budget > 80% |
+| Gateway down | Pod restart > 3 in 5min |
+| LLM response delay | Latency > 5s |
+| Cache hit rate drop | Cache hit < 30% |
+| Error rate | Error rate > 5% |
+
+---
+
+## Verification Checklist
+
+| # | Check | Command / Action |
+|---|-------|-----------------|
+| 1 | All Pods Running | `kubectl get pods` |
+| 2 | Gateway status | `openclaw status` (after port-forward) |
+| 3 | Auto-Router routing | Check model list + routing in Bifrost UI |
+| 4 | Service map | Check HTTP flow between Pods in Hubble UI |
+| 5 | LLM trace | Check prompt→tool→response trace in Langfuse UI |
+| 6 | System metrics | Check Grafana dashboard |
+| 7 | Bedrock audit | Check CloudTrail logs |
+| 8 | Routing verification | Test Korean/coding/general queries separately |
+| 9 | Spot stability | Verify Karpenter node transition events with `kubectl get events`, verify replacement node provisioning with `kubectl get nodeclaims` |
+
+---
+
+:::tip Next Steps
+- When adding self-hosted vLLM: Refer to [llm-d distributed inference](../model-serving/llm-d-eks-automode.md) for `Bifrost → llm-d → vLLM` hybrid configuration
+- Using LiteLLM alternative: Can replace with LiteLLM if Bifrost doesn't meet requirements (Python-based, same OpenAI-compatible API)
+- Add vector search RAG: Refer to [Milvus Vector DB](./milvus-vector-database.md)
+- Agent evaluation: Measure response quality with [Ragas Evaluation](../operations-mlops/ragas-evaluation.md)
+:::
