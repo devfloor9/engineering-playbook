@@ -1,7 +1,7 @@
 ---
 title: "NVIDIA GPU 소프트웨어 스택"
 sidebar_label: "NVIDIA GPU 스택"
-sidebar_position: 3
+sidebar_position: 6
 description: "GPU Operator, DCGM 모니터링, MIG/Time-Slicing 파티셔닝, NVIDIA Dynamo 분산 추론 최적화"
 tags: [nvidia, gpu-operator, dcgm, mig, time-slicing, dynamo, run-ai]
 category: "genai-aiml"

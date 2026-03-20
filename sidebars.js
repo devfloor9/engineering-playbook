@@ -83,10 +83,10 @@ const sidebars = {
           items: [
             'agentic-ai-platform/model-serving/eks-gpu-node-strategy',
             'agentic-ai-platform/model-serving/gpu-resource-management',
-            'agentic-ai-platform/model-serving/nvidia-gpu-stack',
             'agentic-ai-platform/model-serving/vllm-model-serving',
-            'agentic-ai-platform/model-serving/moe-model-serving',
             'agentic-ai-platform/model-serving/llm-d-eks-automode',
+            'agentic-ai-platform/model-serving/moe-model-serving',
+            'agentic-ai-platform/model-serving/nvidia-gpu-stack',
             'agentic-ai-platform/model-serving/nemo-framework',
           ],
         },

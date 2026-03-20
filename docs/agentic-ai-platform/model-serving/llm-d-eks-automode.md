@@ -7,7 +7,7 @@ category: "genai-aiml"
 last_update:
   date: 2026-03-20
   author: devfloor9
-sidebar_position: 6
+sidebar_position: 4
 ---
 
 import { ComparisonTable, SpecificationTable } from '@site/src/components/tables';
@@ -875,6 +875,88 @@ spec:
 - **Decode**: 토큰 생성에 GPU 메모리를 집중 (memory-bound)
 - 각 단계를 독립적으로 스케일링하여 GPU 활용률 극대화
 - Dynamo의 NIXL과 달리 표준 네트워크를 통한 KV Cache 전송 (성능은 낮지만 설정 간편)
+:::
+
+### EKS Auto Mode에서의 Disaggregated Serving
+
+EKS Auto Mode에서는 GPU Operator/MIG가 불가능하므로, **인스턴스(노드) 단위로 Prefill/Decode 역할을 분리**합니다.
+
+```
+Prefill NodePool (compute-heavy):
+  p5.48xlarge × N대 → Prefill Pod (각 TP=4, GPU 4개)
+  → 프롬프트 처리에 집중
+
+Decode NodePool (memory-heavy):
+  p5.48xlarge × N대 → Decode Pod (각 TP=2, GPU 2개 × 4 Pod/노드)
+  → 토큰 생성에 집중
+```
+
+**NodePool을 역할별로 분리**하고 taint/toleration으로 Pod 배치를 제어합니다.
+
+```yaml
+# Prefill 전용 NodePool
+apiVersion: karpenter.sh/v1
+kind: NodePool
+metadata:
+  name: gpu-prefill
+spec:
+  template:
+    metadata:
+      labels:
+        llm-d-role: prefill
+    spec:
+      requirements:
+        - key: eks.amazonaws.com/instance-family
+          operator: In
+          values: ["p5"]
+      nodeClassRef:
+        group: eks.amazonaws.com
+        kind: NodeClass
+        name: default
+      taints:
+        - key: llm-d-role
+          value: prefill
+          effect: NoSchedule
+---
+# Decode 전용 NodePool
+apiVersion: karpenter.sh/v1
+kind: NodePool
+metadata:
+  name: gpu-decode
+spec:
+  template:
+    metadata:
+      labels:
+        llm-d-role: decode
+    spec:
+      requirements:
+        - key: eks.amazonaws.com/instance-family
+          operator: In
+          values: ["p5"]
+      nodeClassRef:
+        group: eks.amazonaws.com
+        kind: NodeClass
+        name: default
+      taints:
+        - key: llm-d-role
+          value: decode
+          effect: NoSchedule
+```
+
+**Auto Mode vs Karpenter + GPU Operator 트레이드오프:**
+
+| 항목 | Auto Mode (노드 분리) | Karpenter + GPU Operator (MIG 분리) |
+|------|----------------------|-------------------------------------|
+| **분리 단위** | 인스턴스(노드) | GPU 단위 (MIG 파티션) |
+| **최소 비용** | p5 × 2대 (~$197/hr) | p5 × 1대 (~$98/hr) + MIG 분할 |
+| **GPU 활용률** | Decode Pod TP=2 × 4개/노드로 최적화 가능 | MIG로 한 GPU 내 분할, 높은 활용률 |
+| **운영 복잡도** | 낮음 | 중간 (GPU Operator + MIG 설정) |
+| **스케일링** | Prefill/Decode 독립 스케일링 용이 | 노드 내 MIG 재설정 시 중단 발생 |
+
+:::tip GPU 유휴 최소화
+Decode Pod에 TP=2만 사용하면, p5.48xlarge(8 GPU) 한 노드에 Decode Pod 4개를 배치하여 GPU 활용률을 높일 수 있습니다. Prefill Pod도 TP=4로 한 노드에 2개 배치가 가능합니다.
+
+**권장 전략**: Auto Mode로 먼저 검증한 후, 비용 최적화가 필요하면 Karpenter + GPU Operator + MIG로 전환하세요.
 :::
 
 ---
