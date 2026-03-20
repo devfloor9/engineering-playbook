@@ -1,0 +1,29 @@
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: efs-dynamo
+  labels:
+    app.kubernetes.io/part-of: nvidia-dynamo
+provisioner: efs.csi.aws.com
+parameters:
+  provisioningMode: efs-ap
+  fileSystemId: fs-REPLACE_ME
+  directoryPerms: "755"
+  basePath: "/dynamo"
+reclaimPolicy: Retain
+volumeBindingMode: Immediate
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: dynamo-shared-storage
+  namespace: dynamo-system
+  labels:
+    app.kubernetes.io/part-of: nvidia-dynamo
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: efs-dynamo
+  resources:
+    requests:
+      storage: 500Gi

@@ -1,0 +1,53 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: model-download
+  namespace: dynamo-system
+  labels:
+    app.kubernetes.io/part-of: nvidia-dynamo
+spec:
+  backoffLimit: 3
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: downloader
+          image: python:3.11-slim
+          command:
+            - bash
+            - -c
+            - |
+              pip install -q huggingface_hub
+              python -c "
+              from huggingface_hub import snapshot_download
+              import os
+              snapshot_download(
+                  repo_id=os.environ['MODEL_NAME'],
+                  local_dir='/models/' + os.environ['MODEL_NAME'].split('/')[-1],
+                  token=os.environ['HF_TOKEN'],
+                  ignore_patterns=['*.md', '*.txt', 'LICENSE*']
+              )
+              print('Download complete.')
+              "
+          env:
+            - name: MODEL_NAME
+              value: "Qwen/Qwen3-30B-A3B-FP8"
+            - name: HF_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: hf-token
+                  key: token
+          volumeMounts:
+            - name: model-storage
+              mountPath: /models
+          resources:
+            requests:
+              cpu: "2"
+              memory: 8Gi
+      volumes:
+        - name: model-storage
+          persistentVolumeClaim:
+            claimName: dynamo-shared-storage
+      tolerations:
+        - key: "eks.amazonaws.com/compute-type"
+          operator: "Exists"

@@ -1,0 +1,63 @@
+{
+  "annotations": { "list": [] },
+  "description": "NVIDIA Dynamo Platform Overview",
+  "editable": true,
+  "panels": [
+    {
+      "title": "Active Workers",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 0 },
+      "targets": [
+        { "expr": "count(dynamo_worker_status{status='running'})" }
+      ]
+    },
+    {
+      "title": "Request Rate",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 4 },
+      "targets": [
+        {
+          "expr": "rate(dynamo_requests_total[5m])",
+          "legendFormat": "{{endpoint}}"
+        }
+      ]
+    },
+    {
+      "title": "KV Cache Hit Rate",
+      "type": "gauge",
+      "gridPos": { "h": 8, "w": 6, "x": 12, "y": 4 },
+      "targets": [
+        {
+          "expr": "rate(dynamo_kv_cache_hits_total[5m]) / rate(dynamo_kv_cache_requests_total[5m]) * 100"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "steps": [
+              { "color": "red", "value": 0 },
+              { "color": "yellow", "value": 50 },
+              { "color": "green", "value": 80 }
+            ]
+          },
+          "unit": "percent"
+        }
+      }
+    },
+    {
+      "title": "NIXL Transfer Rate",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 6, "x": 18, "y": 4 },
+      "targets": [
+        {
+          "expr": "rate(dynamo_nixl_bytes_transferred_total[5m])",
+          "legendFormat": "{{src}} → {{dst}}"
+        }
+      ]
+    }
+  ],
+  "schemaVersion": 39,
+  "tags": ["dynamo", "platform"],
+  "title": "Dynamo Platform Overview",
+  "uid": "dynamo-platform-overview"
+}

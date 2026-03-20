@@ -1,0 +1,88 @@
+# Dynamo vLLM — Disaggregated Serving Mode
+# Separate prefill and decode workers with KV Router + NIXL transfer
+apiVersion: nvidia.com/v1alpha1
+kind: DynamoDeployment
+metadata:
+  name: vllm-disaggregated
+  namespace: dynamo-system
+  labels:
+    app.kubernetes.io/part-of: nvidia-dynamo
+    dynamo.nvidia.com/mode: disaggregated
+spec:
+  model:
+    name: Qwen/Qwen3-30B-A3B-FP8
+    source:
+      type: huggingface
+      secretRef:
+        name: hf-token
+        key: token
+    storage:
+      pvcName: dynamo-shared-storage
+      subPath: models
+  serving:
+    mode: disaggregated
+    engine: vllm
+    components:
+      router:
+        replicas: 1
+        resources:
+          requests:
+            cpu: "4"
+            memory: 8Gi
+        env:
+          - name: DYNAMO_ROUTER_MODE
+            value: "kv-aware"
+          - name: DYNAMO_CACHE_AWARE_ROUTING
+            value: "true"
+      prefill:
+        replicas: 2
+        resources:
+          limits:
+            nvidia.com/gpu: "4"
+            memory: 96Gi
+          requests:
+            nvidia.com/gpu: "4"
+            memory: 64Gi
+            cpu: "16"
+        env:
+          - name: VLLM_ENGINE_ARGS
+            value: "--max-model-len 32768 --tensor-parallel-size 4 --gpu-memory-utilization 0.9"
+          - name: DYNAMO_NIXL_ENABLED
+            value: "true"
+        tolerations:
+          - key: "nvidia.com/gpu"
+            operator: "Exists"
+            effect: "NoSchedule"
+        nodeSelector:
+          node.kubernetes.io/instance-type: p4d.24xlarge
+      decode:
+        replicas: 4
+        resources:
+          limits:
+            nvidia.com/gpu: "2"
+            memory: 48Gi
+          requests:
+            nvidia.com/gpu: "2"
+            memory: 32Gi
+            cpu: "8"
+        env:
+          - name: VLLM_ENGINE_ARGS
+            value: "--max-model-len 32768 --tensor-parallel-size 2 --gpu-memory-utilization 0.9 --enable-prefix-caching"
+          - name: DYNAMO_NIXL_ENABLED
+            value: "true"
+          - name: DYNAMO_KV_OFFLOAD
+            value: "gpu,cpu,ssd"
+        tolerations:
+          - key: "nvidia.com/gpu"
+            operator: "Exists"
+            effect: "NoSchedule"
+        nodeSelector:
+          node.kubernetes.io/instance-type: g6e.12xlarge
+    kvCache:
+      offloading:
+        enabled: true
+        tiers: ["gpu", "cpu", "ssd"]
+        ssdPath: /mnt/nvme/kv-cache
+  service:
+    type: ClusterIP
+    port: 8000

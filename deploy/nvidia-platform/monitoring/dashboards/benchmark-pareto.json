@@ -1,0 +1,58 @@
+{
+  "annotations": { "list": [] },
+  "description": "AIPerf Benchmark Pareto Dashboard — TTFT vs TPS vs Cost",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "panels": [
+    {
+      "title": "Pareto: TTFT vs Throughput",
+      "type": "scatter",
+      "gridPos": { "h": 12, "w": 12, "x": 0, "y": 0 },
+      "targets": [
+        {
+          "expr": "benchmark_ttft_p50{job='pushgateway'}",
+          "legendFormat": "{{model}} - {{mode}} (TTFT p50)"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "axisLabel": "TTFT (ms)",
+            "scaleDistribution": { "type": "log", "log": 2 }
+          }
+        }
+      }
+    },
+    {
+      "title": "Cost per 1M Tokens",
+      "type": "bargauge",
+      "gridPos": { "h": 12, "w": 12, "x": 12, "y": 0 },
+      "targets": [
+        {
+          "expr": "benchmark_cost_per_million_tokens{job='pushgateway'}",
+          "legendFormat": "{{model}} - {{mode}}"
+        }
+      ]
+    },
+    {
+      "title": "Throughput Timeline",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 12 },
+      "targets": [
+        {
+          "expr": "benchmark_throughput_tps{job='pushgateway'}",
+          "legendFormat": "{{model}} concurrency={{concurrency}}"
+        }
+      ]
+    }
+  ],
+  "schemaVersion": 39,
+  "tags": ["dynamo", "benchmark", "pareto"],
+  "templating": { "list": [] },
+  "time": { "from": "now-6h", "to": "now" },
+  "title": "Dynamo Benchmark — Pareto Analysis",
+  "uid": "dynamo-benchmark-pareto"
+}

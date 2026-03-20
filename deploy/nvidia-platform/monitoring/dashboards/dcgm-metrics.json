@@ -1,0 +1,55 @@
+{
+  "annotations": { "list": [] },
+  "description": "NVIDIA DCGM GPU Metrics Dashboard",
+  "editable": true,
+  "panels": [
+    {
+      "title": "GPU Utilization",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "targets": [
+        {
+          "expr": "DCGM_FI_DEV_GPU_UTIL",
+          "legendFormat": "{{gpu}} - {{Hostname}}"
+        }
+      ]
+    },
+    {
+      "title": "GPU Memory Used",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "targets": [
+        {
+          "expr": "DCGM_FI_DEV_FB_USED / (DCGM_FI_DEV_FB_USED + DCGM_FI_DEV_FB_FREE) * 100",
+          "legendFormat": "{{gpu}} mem%"
+        }
+      ]
+    },
+    {
+      "title": "GPU Temperature",
+      "type": "gauge",
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 8 },
+      "targets": [
+        {
+          "expr": "DCGM_FI_DEV_GPU_TEMP",
+          "legendFormat": "{{gpu}}"
+        }
+      ]
+    },
+    {
+      "title": "GPU Power Usage (W)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 16, "x": 8, "y": 8 },
+      "targets": [
+        {
+          "expr": "DCGM_FI_DEV_POWER_USAGE",
+          "legendFormat": "{{gpu}}"
+        }
+      ]
+    }
+  ],
+  "schemaVersion": 39,
+  "tags": ["dcgm", "gpu", "nvidia"],
+  "title": "DCGM GPU Metrics",
+  "uid": "dcgm-gpu-metrics"
+}

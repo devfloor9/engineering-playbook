@@ -1,0 +1,63 @@
+# AIConfigurator — DGDR (Dynamo GPU Deployment Recommendation) Template
+# Quick estimate for GPU requirements based on model and SLA
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: aiconfigurator-dgdr
+  namespace: dynamo-system
+  labels:
+    app.kubernetes.io/part-of: nvidia-dynamo
+data:
+  dgdr-config.yaml: |
+    # Model profiles
+    models:
+      Qwen3-30B-A3B-FP8:
+        parameters: 30B
+        active_parameters: 3B
+        precision: FP8
+        architecture: MoE
+        min_gpu_memory_gb: 32
+        recommended_tp: 4
+        kv_cache_per_token_bytes: 512
+
+      Llama-4-Scout-17B-16E:
+        parameters: 109B
+        active_parameters: 17B
+        precision: FP8
+        architecture: MoE
+        min_gpu_memory_gb: 80
+        recommended_tp: 8
+        kv_cache_per_token_bytes: 1024
+
+    # SLA tiers
+    sla_tiers:
+      realtime:
+        ttft_p99_ms: 200
+        tps_min: 50
+        max_concurrency: 64
+      standard:
+        ttft_p99_ms: 1000
+        tps_min: 20
+        max_concurrency: 32
+      batch:
+        ttft_p99_ms: 5000
+        tps_min: 10
+        max_concurrency: 128
+
+    # GPU profiles
+    gpus:
+      A100-80GB:
+        memory_gb: 80
+        instance_type: p4d.24xlarge
+        gpu_per_node: 8
+        cost_per_hour: 32.77
+      H100-80GB:
+        memory_gb: 80
+        instance_type: p5.48xlarge
+        gpu_per_node: 8
+        cost_per_hour: 98.32
+      L40S-48GB:
+        memory_gb: 48
+        instance_type: g6e.12xlarge
+        gpu_per_node: 4
+        cost_per_hour: 7.42

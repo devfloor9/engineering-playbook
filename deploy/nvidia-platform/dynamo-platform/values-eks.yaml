@@ -1,0 +1,36 @@
+# Dynamo Platform Helm values — EKS optimized
+global:
+  storageClass: gp3
+
+etcd:
+  persistence:
+    enabled: true
+    storageClass: gp3
+    size: 10Gi
+  resources:
+    requests:
+      cpu: 500m
+      memory: 1Gi
+    limits:
+      cpu: 2
+      memory: 4Gi
+
+nats:
+  jetstream:
+    enabled: true
+    memStorage:
+      enabled: true
+      size: 1Gi
+    fileStorage:
+      enabled: true
+      storageClassName: gp3
+      size: 20Gi
+
+operator:
+  serviceAccount:
+    annotations:
+      eks.amazonaws.com/role-arn: "arn:aws:iam::ACCOUNT_ID:role/dynamo-operator-role"
+
+tolerations:
+  - key: "eks.amazonaws.com/compute-type"
+    operator: "Exists"

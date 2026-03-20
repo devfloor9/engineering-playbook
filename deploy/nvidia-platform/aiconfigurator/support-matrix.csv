@@ -1,0 +1,6 @@
+model,parameters,active_params,precision,architecture,min_gpu,recommended_gpu,tp_size,pp_size,aggregated_gpus,disagg_prefill_gpus,disagg_decode_gpus,notes
+Qwen3-30B-A3B-FP8,30B,3B,FP8,MoE,L40S-48GB,A100-80GB,4,1,4,4,2,"MoE sparse; efficient on L40S for decode"
+Llama-4-Scout-17B-16E,109B,17B,FP8,MoE,A100-80GB,H100-80GB,8,1,8,8,4,"Large MoE; needs NVLink for TP"
+Llama-4-Maverick-17B-128E,400B,17B,FP8,MoE,H100-80GB,H100-80GB,8,2,16,8,8,"Requires multi-node"
+Llama-3.3-70B-FP8,70B,70B,FP8,Dense,A100-80GB,H100-80GB,8,1,8,8,4,"Dense model; high memory"
+DeepSeek-R1-Distill-Qwen-32B,32B,32B,BF16,Dense,A100-80GB,A100-80GB,4,1,4,4,2,"Dense 32B; fits on 4x A100"

@@ -1,0 +1,50 @@
+# kube-prometheus-stack values for EKS + Dynamo monitoring
+prometheus:
+  prometheusSpec:
+    serviceMonitorSelectorNilUsesHelmValues: false
+    podMonitorSelectorNilUsesHelmValues: false
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: gp3
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 50Gi
+    retention: 30d
+    additionalScrapeConfigs:
+      - job_name: pushgateway
+        honor_labels: true
+        static_configs:
+          - targets: ["prometheus-pushgateway:9091"]
+
+grafana:
+  enabled: true
+  adminPassword: "dynamo-bench"  # Change in production
+  ingress:
+    enabled: true
+    ingressClassName: alb
+    annotations:
+      alb.ingress.kubernetes.io/scheme: internal
+      alb.ingress.kubernetes.io/target-type: ip
+      alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS":443}]'
+    hosts:
+      - grafana.internal.example.com
+  dashboardProviders:
+    dashboardproviders.yaml:
+      apiVersion: 1
+      providers:
+        - name: dynamo
+          orgId: 1
+          folder: "Dynamo Benchmarks"
+          type: file
+          disableDeletion: false
+          editable: true
+          options:
+            path: /var/lib/grafana/dashboards/dynamo
+
+# Pushgateway for benchmark result collection
+prometheus-pushgateway:
+  enabled: true
+  serviceMonitor:
+    enabled: true

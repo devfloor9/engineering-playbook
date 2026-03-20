@@ -1,0 +1,52 @@
+{
+  "annotations": { "list": [] },
+  "description": "KV Block Manager Metrics — Cache allocation, eviction, and transfer",
+  "editable": true,
+  "panels": [
+    {
+      "title": "KV Block Allocation",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "targets": [
+        {
+          "expr": "dynamo_kv_blocks_allocated",
+          "legendFormat": "{{worker}} allocated"
+        },
+        {
+          "expr": "dynamo_kv_blocks_free",
+          "legendFormat": "{{worker}} free"
+        }
+      ]
+    },
+    {
+      "title": "Eviction Rate",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "targets": [
+        {
+          "expr": "rate(dynamo_kv_blocks_evicted_total[5m])",
+          "legendFormat": "{{worker}} evictions/s"
+        }
+      ]
+    },
+    {
+      "title": "Offload: GPU → CPU → SSD",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 8 },
+      "targets": [
+        {
+          "expr": "dynamo_kv_offload_gpu_to_cpu_bytes",
+          "legendFormat": "GPU→CPU {{worker}}"
+        },
+        {
+          "expr": "dynamo_kv_offload_cpu_to_ssd_bytes",
+          "legendFormat": "CPU→SSD {{worker}}"
+        }
+      ]
+    }
+  ],
+  "schemaVersion": 39,
+  "tags": ["dynamo", "kv-cache", "kvbm"],
+  "title": "KV Block Manager",
+  "uid": "dynamo-kvbm"
+}

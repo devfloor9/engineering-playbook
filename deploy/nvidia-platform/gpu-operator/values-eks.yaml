@@ -1,0 +1,38 @@
+# NVIDIA GPU Operator — EKS Auto Mode optimized values
+operator:
+  defaultRuntime: containerd
+
+driver:
+  enabled: false  # EKS Auto Mode manages GPU drivers
+
+toolkit:
+  enabled: true
+
+devicePlugin:
+  enabled: true
+
+dcgm:
+  enabled: true
+
+dcgmExporter:
+  enabled: true
+  serviceMonitor:
+    enabled: true
+    additionalLabels:
+      release: prometheus
+
+gfd:
+  enabled: true
+
+migManager:
+  enabled: false
+
+nodeStatusExporter:
+  enabled: true
+
+tolerations:
+  - key: "eks.amazonaws.com/compute-type"
+    operator: "Exists"
+  - key: "nvidia.com/gpu"
+    operator: "Exists"
+    effect: "NoSchedule"

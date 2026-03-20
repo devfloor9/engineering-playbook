@@ -1,0 +1,47 @@
+# Dynamo vLLM — Aggregated Serving Mode
+# Single worker handles both prefill and decode
+apiVersion: nvidia.com/v1alpha1
+kind: DynamoDeployment
+metadata:
+  name: vllm-aggregated
+  namespace: dynamo-system
+  labels:
+    app.kubernetes.io/part-of: nvidia-dynamo
+    dynamo.nvidia.com/mode: aggregated
+spec:
+  model:
+    name: Qwen/Qwen3-30B-A3B-FP8
+    source:
+      type: huggingface
+      secretRef:
+        name: hf-token
+        key: token
+    storage:
+      pvcName: dynamo-shared-storage
+      subPath: models
+  serving:
+    mode: aggregated
+    engine: vllm
+    replicas: 2
+    resources:
+      limits:
+        nvidia.com/gpu: "4"
+        memory: 96Gi
+      requests:
+        nvidia.com/gpu: "4"
+        memory: 64Gi
+        cpu: "16"
+    env:
+      - name: VLLM_ENGINE_ARGS
+        value: "--max-model-len 32768 --tensor-parallel-size 4 --gpu-memory-utilization 0.9 --enable-prefix-caching"
+    tolerations:
+      - key: "eks.amazonaws.com/compute-type"
+        operator: "Exists"
+      - key: "nvidia.com/gpu"
+        operator: "Exists"
+        effect: "NoSchedule"
+    nodeSelector:
+      node.kubernetes.io/instance-type: p4d.24xlarge
+  service:
+    type: ClusterIP
+    port: 8000

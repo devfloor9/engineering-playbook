@@ -1,0 +1,59 @@
+# AIPerf Benchmark — Multi-turn Conversation Mode
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: benchmark-multi-turn
+  namespace: dynamo-system
+  labels:
+    app.kubernetes.io/part-of: nvidia-dynamo
+    benchmark-mode: multi-turn
+spec:
+  backoffLimit: 1
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: aiperf
+          image: nvcr.io/nvidia/ai-dynamo/aiperf:0.9.1
+          command:
+            - bash
+            - -c
+            - |
+              aiperf benchmark \
+                --target "http://vllm-aggregated:8000/v1" \
+                --model "${MODEL_NAME}" \
+                --mode multi-turn \
+                --turns "${TURNS}" \
+                --concurrency "${CONCURRENCY}" \
+                --input-seq-len "${ISL}" \
+                --output-seq-len "${OSL}" \
+                --duration "${DURATION}" \
+                --output-dir "/results/multi-turn" \
+                --output-format json
+          env:
+            - name: MODEL_NAME
+              value: "Qwen3-30B-A3B-FP8"
+            - name: TURNS
+              value: "5"
+            - name: CONCURRENCY
+              value: "8"
+            - name: ISL
+              value: "512"
+            - name: OSL
+              value: "256"
+            - name: DURATION
+              value: "300"
+          volumeMounts:
+            - name: results
+              mountPath: /results
+          resources:
+            requests:
+              cpu: "4"
+              memory: 8Gi
+      volumes:
+        - name: results
+          persistentVolumeClaim:
+            claimName: dynamo-shared-storage
+      tolerations:
+        - key: "eks.amazonaws.com/compute-type"
+          operator: "Exists"

@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: dynamo-system
+  labels:
+    app.kubernetes.io/part-of: nvidia-dynamo
+    app.kubernetes.io/managed-by: manual
