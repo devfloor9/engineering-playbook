@@ -43,6 +43,15 @@ export default function Slide12() {
             200명 한정 | 지금 등록하세요
           </p>
         </div>
+
+        <a
+          href="https://devfloor9.github.io/engineering-playbook/docs/sales/mrc-talking-points"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-sm text-gray-500 hover:text-blue-400 transition-colors"
+        >
+          📋 MRC 토킹포인트 보기 →
+        </a>
       </div>
     </SlideWrapper>
   );
