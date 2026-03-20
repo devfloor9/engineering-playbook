@@ -1,7 +1,7 @@
 ---
 title: "AWS Native Agentic AI Platform: 매니지드 서비스 기반 Agent 중심 접근"
 sidebar_label: "AWS Native 플랫폼"
-sidebar_position: 2
+sidebar_position: 3
 description: "Amazon Bedrock, Strands Agents SDK, AgentCore를 활용하여 인프라 운영 부담을 줄이고 Agent 개발에 집중하는 플랫폼 접근"
 tags: [agentcore, bedrock, strands, aws-native, mcp]
 category: "genai-aiml"
@@ -28,6 +28,22 @@ AWS Agentic AI 스택은 세 개의 축(Pillar)으로 구성됩니다.
 
 :::info 핵심 관점
 이 문서는 AWS 매니지드 서비스가 제공하는 **Agent 개발 최적화 접근**을 다룹니다. 매니지드 서비스로 충분한 영역은 AWS에 맡기고, 팀의 역량을 Agent 비즈니스 로직에 집중하는 전략입니다.
+:::
+
+### 도전과제 해결 매핑
+
+[기술적 도전과제](./agentic-ai-challenges.md)에서 다룬 5가지 핵심 과제를 AWS Native 접근으로 해결하는 방법:
+
+| 도전과제 | AWS Native 해결 방안 |
+|---------|---------------------|
+| GPU 리소스 관리 및 비용 최적화 | Bedrock 서버리스 추론 — GPU 관리 불필요 |
+| 지능형 추론 라우팅 및 게이트웨이 | Bedrock Cross-Region Inference + AgentCore Gateway |
+| LLMOps 관찰성 및 비용 거버넌스 | AgentCore Observability + CloudWatch |
+| Agent 오케스트레이션 및 안전성 | Strands SDK + Bedrock Guardrails + AgentCore Policy |
+| 모델 공급망 관리 | Bedrock Model Evaluation + Prompt Management |
+
+:::tip AWS Native의 핵심 가치
+GPU 인프라 관리, 스케일링, 가용성, 보안을 AWS가 처리하므로 팀은 Agent 비즈니스 로직에만 집중할 수 있습니다. 더 세밀한 제어가 필요한 경우 [EKS 기반 오픈 아키텍처](./agentic-ai-solutions-eks.md)와 조합할 수 있습니다.
 :::
 
 ---

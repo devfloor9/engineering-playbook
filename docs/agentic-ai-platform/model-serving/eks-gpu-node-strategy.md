@@ -5,10 +5,12 @@ description: "EKS Auto Mode, Karpenter, Self-Managed Node Group, Hybrid Node의 
 tags: [eks, gpu, auto-mode, karpenter, hybrid-node, gpu-operator, nvidia, run-ai]
 category: "genai-aiml"
 last_update:
-  date: 2026-03-16
+  date: 2026-03-20
   author: devfloor9
 sidebar_position: 1
 ---
+
+import { TroubleshootingGuide, SecurityLayers } from '@site/src/components/AgenticSolutionsTables';
 
 # EKS GPU 노드 전략: Auto Mode + Karpenter + Hybrid Node
 
@@ -1602,9 +1604,569 @@ flowchart TD
 
 ---
 
-## 10. 다음 단계 & 참고 자료
+## 11. GPU 워크로드 보안 강화
 
-### 10.1 다음 단계
+GPU 리소스는 고가이며 민감한 AI 모델을 처리하므로, 강력한 보안 정책이 필수적입니다.
+
+### 11.1 Pod Security Standards for GPU Pods
+
+GPU Pod에 대한 보안 정책을 적용하여 권한 상승 및 호스트 접근을 제한합니다.
+
+```yaml
+# gpu-pod-security-policy.yaml
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ai-inference
+  labels:
+    pod-security.kubernetes.io/enforce: restricted
+    pod-security.kubernetes.io/audit: restricted
+    pod-security.kubernetes.io/warn: restricted
+
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: vllm-pdb
+  namespace: ai-inference
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: vllm
+
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: gpu-quota
+  namespace: ai-inference
+spec:
+  hard:
+    requests.nvidia.com/gpu: "16"
+    limits.nvidia.com/gpu: "16"
+    requests.memory: "512Gi"
+    requests.cpu: "128"
+```
+
+### 11.2 Network Policies for Model Serving
+
+모델 서빙 Pod 간 네트워크 트래픽을 제한하여 측면 이동(lateral movement)을 방지합니다.
+
+```yaml
+# network-policy-gpu-inference.yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: vllm-network-policy
+  namespace: ai-inference
+spec:
+  podSelector:
+    matchLabels:
+      app: vllm
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    # Gateway에서만 트래픽 허용
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              name: ai-gateway
+        - podSelector:
+            matchLabels:
+              app: kgateway
+      ports:
+        - protocol: TCP
+          port: 8000
+  egress:
+    # S3 모델 다운로드 허용
+    - to:
+        - namespaceSelector: {}
+      ports:
+        - protocol: TCP
+          port: 443
+    # DNS 허용
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              name: kube-system
+        - podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - protocol: UDP
+          port: 53
+```
+
+### 11.3 S3 Bucket Policies for Model Storage
+
+모델 아티팩트 저장소에 대한 최소 권한 원칙을 적용합니다.
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "AllowVLLMReadModels",
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": "arn:aws:iam::123456789012:role/vllm-pod-role"
+      },
+      "Action": [
+        "s3:GetObject",
+        "s3:ListBucket"
+      ],
+      "Resource": [
+        "arn:aws:s3:::agentic-ai-models/*",
+        "arn:aws:s3:::agentic-ai-models"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "s3:ExistingObjectTag/Environment": "production"
+        }
+      }
+    },
+    {
+      "Sid": "DenyUnencryptedObjectUploads",
+      "Effect": "Deny",
+      "Principal": "*",
+      "Action": "s3:PutObject",
+      "Resource": "arn:aws:s3:::agentic-ai-models/*",
+      "Condition": {
+        "StringNotEquals": {
+          "s3:x-amz-server-side-encryption": "aws:kms"
+        }
+      }
+    }
+  ]
+}
+```
+
+### 11.4 IAM Roles for GPU Workloads (Pod Identity)
+
+EKS Pod Identity를 사용하여 GPU Pod에 최소 권한 IAM 역할을 할당합니다.
+
+```yaml
+# vllm-pod-identity.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: vllm-sa
+  namespace: ai-inference
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::123456789012:role/vllm-pod-role
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vllm-deployment
+  namespace: ai-inference
+spec:
+  template:
+    spec:
+      serviceAccountName: vllm-sa
+      containers:
+        - name: vllm
+          image: vllm/vllm-openai:latest
+          env:
+            - name: AWS_REGION
+              value: us-west-2
+            - name: MODEL_PATH
+              value: s3://agentic-ai-models/llama-3-70b/
+```
+
+**IAM Policy for vLLM Pod:**
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "s3:GetObject",
+        "s3:ListBucket"
+      ],
+      "Resource": [
+        "arn:aws:s3:::agentic-ai-models/*",
+        "arn:aws:s3:::agentic-ai-models"
+      ]
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "kms:Decrypt",
+        "kms:DescribeKey"
+      ],
+      "Resource": "arn:aws:kms:us-west-2:123456789012:key/model-encryption-key"
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "secretsmanager:GetSecretValue"
+      ],
+      "Resource": "arn:aws:secretsmanager:us-west-2:123456789012:secret:vllm-api-keys-*"
+    }
+  ]
+}
+```
+
+### 11.5 MIG for Multi-Tenant GPU Isolation
+
+Multi-Instance GPU (MIG)를 사용하여 단일 GPU를 여러 테넌트 간 완전히 격리합니다.
+
+```yaml
+# mig-enabled-nodepool.yaml
+apiVersion: karpenter.sh/v1
+kind: NodePool
+metadata:
+  name: gpu-mig-pool
+spec:
+  template:
+    metadata:
+      labels:
+        node-type: gpu-mig
+        mig-enabled: "true"
+    spec:
+      requirements:
+        - key: node.kubernetes.io/instance-type
+          operator: In
+          values:
+            - p4d.24xlarge  # A100 80GB with MIG support
+        - key: karpenter.k8s.aws/instance-gpu-count
+          operator: Gt
+          values: ["0"]
+      nodeClassRef:
+        group: karpenter.k8s.aws
+        kind: EC2NodeClass
+        name: gpu-mig-nodeclass
+      taints:
+        - key: nvidia.com/gpu
+          value: "true"
+          effect: NoSchedule
+
+---
+apiVersion: karpenter.k8s.aws/v1
+kind: EC2NodeClass
+metadata:
+  name: gpu-mig-nodeclass
+spec:
+  role: KarpenterNodeRole-${CLUSTER_NAME}
+  amiSelectorTerms:
+    - alias: al2023@latest
+  userData: |
+    #!/bin/bash
+    # MIG 모드 활성화
+    nvidia-smi -mig 1
+
+    # MIG 프로파일 생성 (3g.40gb 인스턴스 2개)
+    nvidia-smi mig -cgi 9,9 -C
+
+    # Device Plugin 재시작
+    systemctl restart nvidia-device-plugin
+```
+
+**MIG 리소스를 사용하는 Pod:**
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: tenant-a-inference
+  namespace: tenant-a
+spec:
+  containers:
+    - name: vllm
+      image: vllm/vllm-openai:latest
+      resources:
+        limits:
+          nvidia.com/mig-3g.40gb: 1  # MIG 인스턴스 요청
+```
+
+### 11.6 Security Best Practices Summary
+
+<SecurityLayers />
+
+:::tip GPU 보안 체크리스트
+
+1. **Pod Security Standards 적용**: 모든 GPU 네임스페이스에 `restricted` 정책 적용
+2. **NetworkPolicy 구성**: GPU Pod 간 불필요한 통신 차단
+3. **S3 암호화 강제**: 모델 저장 시 KMS 암호화 필수
+4. **Pod Identity 사용**: IRSA 대신 EKS Pod Identity로 IAM 역할 할당
+5. **MIG 활성화**: 멀티 테넌트 환경에서 GPU 완전 격리
+6. **감사 로깅**: CloudTrail + GuardDuty로 GPU 리소스 접근 모니터링
+:::
+
+---
+
+## 12. GPU 워크로드 트러블슈팅
+
+GPU 워크로드 운영 시 자주 발생하는 문제와 해결 방법을 정리합니다.
+
+### 문제 1: GPU가 Pod에 할당되지 않음
+
+**증상:**
+```bash
+kubectl describe pod vllm-pod
+# Events:
+# Warning  FailedScheduling  pod has unbound immediate PersistentVolumeClaims
+# Warning  FailedScheduling  0/5 nodes are available: 5 Insufficient nvidia.com/gpu
+```
+
+**원인:**
+- NVIDIA Device Plugin이 설치되지 않음
+- GPU 노드에 taint가 설정되어 있으나 Pod에 toleration이 없음
+- GPU 리소스가 이미 모두 할당됨
+
+**해결 방법:**
+
+```bash
+# 1. NVIDIA Device Plugin 확인
+kubectl get daemonset -n kube-system nvidia-device-plugin-daemonset
+
+# 2. GPU 노드 확인
+kubectl get nodes -l node.kubernetes.io/instance-type=g5.xlarge
+kubectl describe node <node-name> | grep nvidia.com/gpu
+
+# 3. GPU Operator 설치 (없는 경우)
+helm install gpu-operator nvidia/gpu-operator \
+  --namespace gpu-operator \
+  --create-namespace
+
+# 4. Pod에 toleration 추가
+tolerations:
+  - key: nvidia.com/gpu
+    operator: Exists
+    effect: NoSchedule
+```
+
+### 문제 2: GPU 메모리 부족 (OOM)
+
+**증상:**
+```bash
+# Pod 로그에서 확인
+CUDA out of memory. Tried to allocate 2.00 GiB
+```
+
+**원인:**
+- 모델 크기가 GPU 메모리보다 큼
+- 배치 크기가 너무 큼
+- 여러 프로세스가 동일 GPU 사용
+
+**해결 방법:**
+
+```yaml
+# 1. 더 큰 GPU 인스턴스 사용
+nodeSelector:
+  node.kubernetes.io/instance-type: g5.12xlarge  # 4x A10G 96GB
+
+# 2. vLLM 설정 최적화
+env:
+  - name: VLLM_GPU_MEMORY_UTILIZATION
+    value: "0.9"  # GPU 메모리 90%만 사용
+  - name: VLLM_MAX_NUM_SEQS
+    value: "256"  # 동시 시퀀스 수 제한
+
+# 3. MIG로 GPU 분할 사용
+resources:
+  limits:
+    nvidia.com/mig-3g.40gb: 1  # A100 80GB를 3g.40gb 인스턴스로 분할
+```
+
+### 문제 3: Karpenter가 GPU 노드를 프로비저닝하지 않음
+
+**증상:**
+```bash
+# Pod가 Pending 상태로 유지
+kubectl get pods
+# NAME        READY   STATUS    RESTARTS   AGE
+# vllm-pod    0/1     Pending   0          5m
+```
+
+**원인:**
+- NodePool에 GPU 인스턴스 타입이 정의되지 않음
+- NodePool의 GPU 리소스 limit 초과
+- IAM 권한 부족
+
+**해결 방법:**
+
+```bash
+# 1. NodePool 확인
+kubectl get nodepool gpu-inference-pool -o yaml
+
+# 2. GPU 인스턴스 타입 추가
+spec:
+  template:
+    spec:
+      requirements:
+        - key: karpenter.k8s.aws/instance-gpu-count
+          operator: Gt
+          values: ["0"]
+        - key: node.kubernetes.io/instance-type
+          operator: In
+          values:
+            - g5.xlarge
+            - g5.2xlarge
+            - g5.12xlarge
+
+# 3. GPU limit 확인 및 증가
+spec:
+  limits:
+    nvidia.com/gpu: 100  # 충분한 GPU 리소스 할당
+
+# 4. Karpenter IAM 권한 확인
+aws iam get-role --role-name KarpenterNodeRole-${CLUSTER_NAME}
+```
+
+### 문제 4: GPU 드라이버 버전 불일치
+
+**증상:**
+```bash
+# Pod 로그에서 확인
+Failed to initialize NVML: Driver/library version mismatch
+```
+
+**원인:**
+- 노드의 NVIDIA 드라이버와 컨테이너의 CUDA 버전 불일치
+- GPU Operator 업데이트 후 노드 재시작 필요
+
+**해결 방법:**
+
+```bash
+# 1. 노드의 드라이버 버전 확인
+kubectl debug node/<node-name> -it --image=ubuntu
+nvidia-smi
+
+# 2. GPU Operator 버전 확인
+helm list -n gpu-operator
+
+# 3. GPU Operator 업그레이드
+helm upgrade gpu-operator nvidia/gpu-operator \
+  --namespace gpu-operator \
+  --set driver.version="550.127.05"
+
+# 4. 노드 재시작 (드레인 후)
+kubectl drain <node-name> --ignore-daemonsets --delete-emptydir-data
+kubectl delete node <node-name>
+# Karpenter가 자동으로 새 노드 프로비저닝
+```
+
+### 문제 5: EFA 네트워크가 활성화되지 않음
+
+**증상:**
+```bash
+# 분산 학습 시 네트워크 성능 저하
+# NCCL 로그에서 확인
+NCCL WARN NET/Socket : No EFA device found
+```
+
+**원인:**
+- EFA 드라이버가 로드되지 않음
+- Security Group에서 EFA 트래픽 차단
+- EFA 지원 인스턴스 타입이 아님
+
+**해결 방법:**
+
+```yaml
+# 1. EFA 지원 인스턴스 사용
+spec:
+  requirements:
+    - key: node.kubernetes.io/instance-type
+      operator: In
+      values:
+        - p4d.24xlarge
+        - p5.48xlarge
+
+# 2. NodeClass에서 EFA 활성화
+apiVersion: karpenter.k8s.aws/v1
+kind: EC2NodeClass
+metadata:
+  name: gpu-training-nodeclass
+spec:
+  userData: |
+    #!/bin/bash
+    modprobe efa
+    echo 'export FI_PROVIDER=efa' >> /etc/profile.d/efa.sh
+    echo 'export FI_EFA_USE_DEVICE_RDMA=1' >> /etc/profile.d/efa.sh
+
+# 3. Security Group 규칙 추가
+securityGroupSelectorTerms:
+  - tags:
+      karpenter.sh/discovery: ${CLUSTER_NAME}
+      efa-enabled: "true"
+```
+
+### 문제 6: Spot 인스턴스 중단으로 추론 서비스 중단
+
+**증상:**
+```bash
+# Spot 중단 알림
+Spot instance termination notice received
+```
+
+**원인:**
+- Spot 인스턴스 용량 부족
+- 단일 Spot 풀에만 의존
+
+**해결 방법:**
+
+```yaml
+# 1. 다양한 인스턴스 타입 허용
+spec:
+  template:
+    spec:
+      requirements:
+        - key: node.kubernetes.io/instance-type
+          operator: In
+          values:
+            - g5.xlarge
+            - g5.2xlarge
+            - g5.4xlarge
+            - g5.8xlarge  # 여러 타입으로 분산
+
+# 2. Spot과 On-Demand 혼합
+        - key: karpenter.sh/capacity-type
+          operator: In
+          values: ["spot", "on-demand"]
+
+# 3. PodDisruptionBudget 설정
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: vllm-pdb
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app: vllm
+
+# 4. Graceful shutdown 구현
+lifecycle:
+  preStop:
+    exec:
+      command: ["/bin/sh", "-c", "sleep 120"]  # 2분 대기
+```
+
+### 트러블슈팅 체크리스트
+
+<TroubleshootingGuide />
+
+:::warning 프로덕션 운영 권장사항
+
+1. **모니터링 필수**: Prometheus + Grafana로 GPU 메트릭 실시간 추적
+2. **알림 설정**: GPU 사용률, 메모리, 온도 임계값 알림 구성
+3. **로그 수집**: CloudWatch Logs로 모든 GPU Pod 로그 중앙 집중화
+4. **정기 점검**: 주간 GPU 노드 헬스 체크 및 드라이버 업데이트 확인
+5. **재해 복구**: 체크포인트 기반 학습 재시작 메커니즘 구현
+:::
+
+---
+
+## 13. 다음 단계 & 참고 자료
+
+### 13.1 다음 단계
 
 1. **EKS Auto Mode 테스트**
    ```bash
@@ -1629,7 +2191,7 @@ flowchart TD
    sudo ./hybrid-installer.sh --cluster-name test-cluster
    ```
 
-### 10.2 참고 자료
+### 13.2 참고 자료
 
 **AWS 공식 문서**
 
