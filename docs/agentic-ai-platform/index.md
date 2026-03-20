@@ -6,26 +6,26 @@ tags: [eks, kubernetes, genai, agentic-ai, gpu, llm, platform]
 category: "genai-aiml"
 sidebar_position: 3
 last_update:
-  date: 2026-03-17
+  date: 2026-03-20
   author: devfloor9
 ---
 
 # Agentic AI Platform
 
-> 📅 **작성일**: 2025-02-05 | **수정일**: 2026-02-14 | ⏱️ **읽는 시간**: 약 9분
+> 📅 **작성일**: 2025-02-05 | **수정일**: 2026-03-20 | ⏱️ **읽는 시간**: 약 9분
 
-현대의 생성형 AI 플랫폼은 단순한 모델 서빙을 넘어 복잡한 에이전트 시스템, 동적 리소스 관리, 그리고 비용 효율적인 운영이 요구되는 종합적인 기술 스택을 필요로 합니다. Amazon EKS 기반의 Agentic AI 플랫폼은 Kubernetes의 강력한 오케스트레이션 능력을 활용하여 이러한 요구사항을 충족시키는 현대적인 접근 방식입니다. 이 플랫폼은 GPU 리소스의 동적 할당과 스케일링, 다양한 LLM 프로바이더 간의 지능적 라우팅, 그리고 실시간 모니터링을 통한 비용 최적화를 하나의 통합된 시스템으로 제공합니다.
+Agentic AI Platform은 자율적인 AI 에이전트가 복잡한 작업을 수행할 수 있도록 지원하는 통합 플랫폼입니다. 이 문서 시리즈는 플랫폼의 아키텍처를 이해하고, 구축 시 직면하는 **5가지 핵심 도전과제**(GPU 리소스 관리, 추론 라우팅, LLMOps 관찰성, Agent 오케스트레이션, 모델 공급망)를 파악한 후, 이를 해결하는 **두 가지 접근 방식**을 제시합니다.
 
-Kubernetes 네이티브 접근 방식의 핵심 철학은 오픈소스 생태계를 적극 활용하면서도 엔터프라이즈급 안정성을 확보하는 것입니다. Bifrost와 vLLM을 통한 LLM 서빙, Triton Inference Server를 통한 비-LLM 추론(Embedding, Reranking, STT), LangGraph 기반의 복잡한 에이전트 워크플로우, Milvus를 활용한 벡터 데이터베이스 통합, 그리고 Langfuse를 통한 전체 파이프라인 모니터링이 Kubernetes 클러스터 위에서 조화롭게 작동합니다. 특히 Karpenter를 통한 노드 자동 스케일링과 NVIDIA GPU Operator를 결합하면 워크로드 패턴에 따라 GPU 리소스를 동적으로 프로비저닝하고 해제함으로써 클라우드 비용을 극적으로 절감할 수 있습니다.
+**AWS Native 접근**은 Amazon Bedrock, Strands Agents SDK, AgentCore를 활용하여 인프라 운영 부담을 최소화하고 Agent 개발에 집중하는 전략입니다. GPU 관리가 불필요하며, 서버리스 추론과 매니지드 RAG를 통해 빠르게 시작할 수 있습니다.
 
-프로덕션 환경 구축을 위한 실전 출발점으로 AWS는 두 가지 핵심 샘플 저장소를 제공합니다. GenAI on EKS Starter Kit (aws-samples/sample-genai-on-eks-starter-kit)은 Bifrost, vLLM, SGLang, Langfuse, Milvus, Open WebUI, n8n, Strands Agents, Agno 등 필수 컴포넌트들의 통합 구성을 제공하여 빠른 프로토타이핑과 개발을 지원합니다. 한편 Scalable Model Inference and Agentic AI (aws-solutions-library-samples/guidance-for-scalable-model-inference-and-agentic-ai-on-amazon-eks)는 Karpenter 자동 스케일링, llm-d 기반 분산 추론, Bifrost 게이트웨이, OpenSearch 기반 RAG 시스템, 그리고 멀티 에이전트 시스템 구축에 필요한 프로덕션급 아키텍처 패턴을 제시합니다.
+**EKS 기반 오픈 아키텍처**는 Amazon EKS와 오픈소스 생태계(vLLM, Bifrost, LangGraph, Langfuse, Milvus 등)를 활용하여 Open Weight 모델 자체 호스팅, 하이브리드 아키텍처, 세밀한 GPU 비용 최적화를 달성하는 전략입니다. EKS Auto Mode로 빠르게 시작하고, Karpenter와 EKS Capability(ACK, KRO, ArgoCD)로 운영 부담을 최소화합니다.
 
-이러한 기술 스택의 조합은 Frontier Model 트래픽 처리에서 발생하는 네 가지 핵심 도전과제를 효과적으로 해결합니다. GPU 스케줄링과 리소스 격리는 MIG와 Time-Slicing을 통해 다중 테넌트 환경에서도 안정적인 성능을 보장하며, 동적 라우팅 계층은 모델 가용성과 비용을 고려한 지능적인 요청 분배를 수행합니다. Agent 라이프사이클 관리는 Kagent CRD를 통해 선언적으로 정의되고, 전체 시스템의 관찰 가능성은 Langfuse와 Prometheus 기반 메트릭으로 확보됩니다. 이 모든 것이 Kubernetes의 자가 치유 능력과 결합되어 24/7 무중단 운영이 가능한 플랫폼을 완성합니다.
+두 접근은 **상호 보완적**이며, AWS Native로 시작하여 필요에 따라 EKS로 확장하는 점진적 여정을 권장합니다.
 
-## 주요 문서 (구현 순서)
+## 주요 문서
 
-:::tip 문서 완성도
-이 섹션의 22개 문서가 4개 서브카테고리로 구성됩니다.
+:::tip 문서 구성
+이 섹션의 문서들이 4개 서브카테고리로 구성됩니다.
 :::
 
 ### [설계 & 아키텍처](./design-architecture/index.md)
