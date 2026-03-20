@@ -1,6 +1,6 @@
 ---
 title: "GAMMA Initiative — The Future of Service Mesh Integration"
-sidebar_label: "1. GAMMA Initiative"
+sidebar_label: "GAMMA Initiative"
 description: "Introduction to GAMMA (Gateway API for Mesh Management and Administration), East-West traffic management, service mesh integration"
 tags: [gateway-api, gamma, service-mesh, east-west]
 sidebar_position: 1

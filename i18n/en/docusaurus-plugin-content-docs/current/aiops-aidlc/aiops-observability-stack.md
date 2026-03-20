@@ -1,6 +1,6 @@
 ---
 title: "Building an EKS Intelligent Observability Stack"
-sidebar_label: "2. Intelligent Observability Stack"
+sidebar_label: "Intelligent Observability Stack"
 description: "Guide to building an EKS observability architecture using ADOT, AMP, AMG, CloudWatch AI, and Hosted MCP"
 sidebar_position: 2
 category: "aiops-aidlc"

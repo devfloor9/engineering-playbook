@@ -1,6 +1,6 @@
 ---
 title: "ROSA Security Compliance Console Access Control"
-sidebar_label: "2. Console Access Control"
+sidebar_label: "Console Access Control"
 description: "Red Hat Hybrid Cloud Console access control strategy to meet financial sector security requirements. Safe administrator access control through IdP, MFA, and IP-based access control."
 tags: [rosa, openshift, security, compliance, idp, mfa, financial]
 category: "rosa"

@@ -1,6 +1,6 @@
 ---
 title: "EKS Pod Resource Optimization Guide"
-sidebar_label: "5. Pod Resource Optimization"
+sidebar_label: "Pod Resource Optimization"
 description: "Kubernetes Pod CPU/Memory resource configuration, QoS classes, VPA/HPA autoscaling, and resource right-sizing strategies"
 tags: [eks, kubernetes, resources, cpu, memory, qos, vpa, hpa, right-sizing, optimization]
 category: "performance-networking"

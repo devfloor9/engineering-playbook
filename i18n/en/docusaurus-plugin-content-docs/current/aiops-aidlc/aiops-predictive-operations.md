@@ -1,6 +1,6 @@
 ---
 title: "Predictive Scaling and Auto-Remediation Patterns"
-sidebar_label: "4. Predictive Scaling & Auto-Remediation"
+sidebar_label: "Predictive Scaling & Auto-Remediation"
 description: "ML based prediction autoscaling, Karpenter+AI proactive provisioning, AI Agent autonomous incident response, Kiro Programmatic Debugging pattern"
 sidebar_position: 4
 category: "aiops-aidlc"

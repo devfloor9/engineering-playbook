@@ -1,6 +1,6 @@
 ---
 title: "Container Supply Chain Security"
-sidebar_label: "5. Supply Chain Security"
+sidebar_label: "Supply Chain Security"
 description: "Strengthening supply chain security through container image signing, SBOM, and CI/CD security gates"
 sidebar_position: 5
 tags: [eks, security, supply-chain, ecr, sigstore, sbom]

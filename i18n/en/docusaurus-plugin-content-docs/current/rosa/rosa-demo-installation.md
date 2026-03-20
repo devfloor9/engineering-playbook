@@ -1,6 +1,6 @@
 ---
 title: "ROSA Demo Installation Guide"
-sidebar_label: "1. Installation Demo"
+sidebar_label: "Installation Demo"
 description: "ROSA cluster installation demo - STS-based cluster creation, IAM role configuration, auto-scaling setup, and admin access configuration guide"
 tags: [rosa, openshift, installation, sts, demo, autoscaling, iam]
 category: "rosa"

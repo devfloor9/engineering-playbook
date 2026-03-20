@@ -1,6 +1,6 @@
 ---
 title: "EKS Node Monitoring Agent"
-sidebar_label: "2. Node Monitoring Agent"
+sidebar_label: "Node Monitoring Agent"
 description: "Covers the architecture, deployment strategies, limitations, and best practices of the Node Monitoring Agent that automatically detects and reports node state in AWS EKS clusters."
 tags: [eks, monitoring, node-monitoring, aws, observability, cloudwatch]
 category: "observability-monitoring"

@@ -1,6 +1,6 @@
 ---
 title: "Kyverno-based Policy Management"
-sidebar_label: "4. Kyverno Policy Management"
+sidebar_label: "Kyverno Policy Management"
 description: "Kubernetes policy management and governance using Kyverno v1.16"
 sidebar_position: 4
 tags: [eks, security, kyverno, policy, governance]

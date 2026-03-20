@@ -1,6 +1,6 @@
 ---
 title: Hybrid Infrastructure Benchmark
-sidebar_label: "Report 7. Hybrid Infrastructure [Upcoming]"
+sidebar_label: "Hybrid Infrastructure [Upcoming]"
 sidebar_position: 7
 description: Hybrid cloud infrastructure network and storage performance benchmark
 category: "benchmarks"

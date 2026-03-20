@@ -1,6 +1,6 @@
 ---
 title: "EKS Default Namespace Deletion Incident Response Guide"
-sidebar_label: "1. Default Namespace Incident"
+sidebar_label: "Default Namespace Incident"
 description: "Root cause analysis, recovery procedures, and prevention strategies for Control Plane access failures caused by default namespace deletion in EKS clusters."
 tags: [eks, security, incident-response, namespace, troubleshooting]
 category: "security-compliance"

@@ -1,6 +1,6 @@
 ---
 title: "Cilium ENI Mode + Gateway API Advanced Configuration"
-sidebar_label: "2. Cilium ENI + Gateway API"
+sidebar_label: "Cilium ENI + Gateway API"
 description: "Cilium ENI mode architecture, Gateway API resource configuration, performance optimization, Hubble observability, and BGP Control Plane v2 advanced guide"
 tags: [eks, cilium, eni, gateway-api, ebpf, networking, bgp]
 category: "performance-networking"

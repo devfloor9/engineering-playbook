@@ -1,6 +1,6 @@
 ---
 title: Infrastructure Performance Benchmark
-sidebar_label: "Report 6. Infrastructure Performance [Upcoming]"
+sidebar_label: "Infrastructure Performance [Upcoming]"
 sidebar_position: 6
 description: EKS cluster infrastructure performance benchmark - network, DNS, autoscaling
 category: "benchmarks"

@@ -1,6 +1,6 @@
 ---
 title: Security and Operations Benchmark
-sidebar_label: "Report 8. Security and Operations [Upcoming]"
+sidebar_label: "Security and Operations [Upcoming]"
 sidebar_position: 8
 description: Security policy enforcement and operations tool performance benchmark
 category: "benchmarks"

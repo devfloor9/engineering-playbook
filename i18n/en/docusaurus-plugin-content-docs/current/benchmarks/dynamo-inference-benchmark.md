@@ -1,6 +1,6 @@
 ---
 title: "NVIDIA Dynamo Inference Benchmark"
-sidebar_label: "Report 5. Dynamo Inference [New]"
+sidebar_label: "Dynamo Inference [New]"
 sidebar_position: 5
 description: "NVIDIA Dynamo-based Aggregated/Disaggregated LLM serving performance comparison benchmark — EKS environment AIPerf 4 modes execution"
 tags: [benchmark, nvidia, dynamo, vllm, inference, gpu, disaggregated-serving, eks, kv-cache, nixl]

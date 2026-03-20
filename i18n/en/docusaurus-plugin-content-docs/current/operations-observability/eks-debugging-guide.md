@@ -1,6 +1,6 @@
 ---
 title: "EKS Incident Diagnosis and Response Guide"
-sidebar_label: "3. EKS Incident Diagnosis & Response"
+sidebar_label: "EKS Incident Diagnosis & Response"
 description: "Comprehensive troubleshooting guide for systematically diagnosing and resolving application and infrastructure issues in Amazon EKS environments"
 tags: [eks, kubernetes, debugging, troubleshooting, observability, incident-response]
 category: "observability-monitoring"

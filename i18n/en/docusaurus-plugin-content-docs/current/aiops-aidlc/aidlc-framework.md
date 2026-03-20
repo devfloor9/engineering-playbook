@@ -1,6 +1,6 @@
 ---
 title: "AIDLC Framework - AI-Driven Development Lifecycle"
-sidebar_label: "3. AIDLC Framework"
+sidebar_label: "AIDLC Framework"
 description: "A practical guide to applying the AWS AI-DLC methodology in EKS environments to enhance development and operations with AI"
 sidebar_position: 3
 category: "aiops-aidlc"

@@ -1,6 +1,6 @@
 ---
 title: "Comprehensive Guide to Karpenter-Based EKS Scaling Strategies"
-sidebar_label: "4. Karpenter Scaling Strategies"
+sidebar_label: "Karpenter Scaling Strategies"
 description: "Comprehensive guide to scaling strategies using Karpenter on Amazon EKS. Comparison of reactive, predictive, and architectural resilience approaches, CloudWatch vs Prometheus architecture comparison, HPA configuration, and production patterns"
 tags: [eks, karpenter, autoscaling, performance, cloudwatch, prometheus, spot-instances]
 category: "performance-networking"

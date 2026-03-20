@@ -1,6 +1,6 @@
 ---
 title: "Migration Execution Strategy"
-sidebar_label: "3. Migration Execution"
+sidebar_label: "Migration Execution"
 description: "Gateway API migration 5-phase strategy, step-by-step execution guide, validation scripts, and troubleshooting"
 tags: [eks, gateway-api, migration, nginx, deployment]
 category: "performance-networking"

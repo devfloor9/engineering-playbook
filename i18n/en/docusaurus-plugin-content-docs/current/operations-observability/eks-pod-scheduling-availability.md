@@ -1,6 +1,6 @@
 ---
 title: "EKS Pod Scheduling & Availability Management"
-sidebar_label: "6. Pod Scheduling & Availability"
+sidebar_label: "Pod Scheduling & Availability"
 description: "Comprehensive guide to Kubernetes pod scheduling mechanisms and availability management including affinity, topology spread, PDB, and priority-based scheduling"
 sidebar_position: 6
 tags: [EKS, Kubernetes, Pod, Scheduling, Availability, Affinity, TopologySpread, PDB, Priority, Preemption]

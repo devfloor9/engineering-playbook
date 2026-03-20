@@ -1,6 +1,6 @@
 ---
 title: "East-West Traffic Optimization: Balancing Performance and Cost"
-sidebar_label: "3. East-West Traffic Optimization"
+sidebar_label: "East-West Traffic Optimization"
 description: "In-depth optimization strategies for minimizing latency in service-to-service communication (East-West) on EKS and reducing cross-AZ costs. From Topology Aware Routing and InternalTrafficPolicy to Cilium ClusterMesh, AWS VPC Lattice, and Istio multi-cluster"
 tags: [eks, networking, performance, cost-optimization, service-mesh, topology-aware-routing]
 category: "performance-networking"

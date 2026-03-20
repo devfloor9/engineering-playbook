@@ -1,6 +1,6 @@
 ---
 title: "Inference Platform Benchmark: Bedrock AgentCore vs EKS Self-Hosted"
-sidebar_label: "Report 4. AgentCore vs EKS [Planned]"
+sidebar_label: "AgentCore vs EKS [Planned]"
 sidebar_position: 4
 description: "Benchmark plan comparing Bedrock AgentCore as default vs EKS self-hosted (vLLM, llm-d, Bifrost/LiteLLM) for features, performance, and cost"
 tags: [benchmark, bedrock, agentcore, eks, vllm, llm-d, bifrost, litellm, inference, cost]

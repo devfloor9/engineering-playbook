@@ -1,6 +1,6 @@
 ---
 title: "Identity-First Security Architecture"
-sidebar_label: "2. Identity-First Security"
+sidebar_label: "Identity-First Security"
 description: "Zero-trust access control based on EKS Pod Identity and IRSA migration guide"
 sidebar_position: 2
 tags: [eks, security, pod-identity, irsa, zero-trust]

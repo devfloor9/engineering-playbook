@@ -1,6 +1,6 @@
 ---
 title: "EKS Pod Health Check & Lifecycle Management"
-sidebar_label: "5. Pod Health Check & Lifecycle"
+sidebar_label: "Pod Health Check & Lifecycle"
 description: "Comprehensive guide to Kubernetes pod health checks (liveness, readiness, startup probes) and lifecycle management including graceful shutdown patterns"
 sidebar_position: 5
 tags: [EKS, Kubernetes, Pod, Health Check, Lifecycle, Probe, Liveness, Readiness, Startup, Graceful Shutdown]

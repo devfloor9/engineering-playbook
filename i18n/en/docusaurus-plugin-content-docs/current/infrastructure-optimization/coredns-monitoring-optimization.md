@@ -1,6 +1,6 @@
 ---
 title: "CoreDNS Monitoring and Performance Optimization Complete Guide"
-sidebar_label: "2. CoreDNS Monitoring & Optimization"
+sidebar_label: "CoreDNS Monitoring & Optimization"
 description: "Systematic methods for monitoring and optimizing CoreDNS performance on Amazon EKS. Includes Prometheus metrics, TTL tuning, monitoring architecture, and real-world troubleshooting case studies"
 tags: [eks, coredns, dns, monitoring, prometheus, performance]
 category: "performance-networking"

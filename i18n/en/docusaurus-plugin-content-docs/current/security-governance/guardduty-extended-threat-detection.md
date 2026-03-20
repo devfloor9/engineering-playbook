@@ -1,6 +1,6 @@
 ---
 title: "GuardDuty Extended Threat Detection"
-sidebar_label: "3. GuardDuty Extended"
+sidebar_label: "GuardDuty Extended"
 description: "EKS threat detection and response using Amazon GuardDuty Extended Threat Detection"
 sidebar_position: 3
 tags: [eks, security, guardduty, threat-detection, mitre]

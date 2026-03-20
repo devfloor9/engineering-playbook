@@ -1,6 +1,6 @@
 ---
 title: "Gateway API Adoption Guide: From NGINX Ingress to Next-Generation Traffic Management"
-sidebar_label: "1. Gateway API Adoption Guide"
+sidebar_label: "Gateway API Adoption Guide"
 description: "NGINX Ingress Controller EOL response, Gateway API architecture, GAMMA Initiative, AWS Native vs open-source comparison, Cilium ENI integration, migration strategy and benchmark planning"
 tags: [eks, gateway-api, nginx, cilium, envoy, networking, migration, ebpf, gamma]
 category: "performance-networking"

@@ -1,6 +1,6 @@
 ---
 title: "Innovating K8s Operations with AI — AIOps Strategy Guide"
-sidebar_label: "1. AIOps Strategy Guide"
+sidebar_label: "AIOps Strategy Guide"
 description: "AIOps strategy to reduce K8s platform complexity with AI and accelerate innovation — AWS open-source managed services, Kiro+MCP, AI Agent extension"
 sidebar_position: 1
 category: "aiops-aidlc"
