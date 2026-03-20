@@ -70,22 +70,20 @@ const EksClusterConfiguration = () => {
   const controlPlaneData = isKo
     ? [
         ['**스케일링**', '동적 오토스케일링 (AWS 관리)', '고정 티어 (사전 프로비저닝)'],
-        ['**API 동시성 (seats)**', '1,200 ~ 1,700 (동적)', 'XL: 1,700 / 2XL: 3,400 / 4XL: 6,800 / 8XL: 13,600'],
-        ['**Pod 스케줄링 속도**', '50 ~ 100 pods/sec', 'XL: 100 / 2XL: 200 / 4XL~8XL: 400 pods/sec'],
-        ['**Controller Manager**', '20 ~ 100 work/sec', 'XL: 100 / 2XL: 200 / 4XL~8XL: 400 work/sec'],
-        ['**etcd DB 크기**', '10 GB', '20 GB'],
+        ['**API 동시성 (seats)**', '동적 (AWS 자동 조정)', 'XL: 1,700 / 2XL: 3,400 / 4XL: 6,800 / 8XL: 13,600'],
+        ['**Pod 스케줄링 속도**', '동적', 'XL: 167 / 2XL: 283 / 4XL~8XL: 400 pods/sec'],
+        ['**etcd DB 크기**', '8 GB', '16 GB'],
         ['**SLA**', '99.95%', '99.99%'],
-        ['**비용**', '$0.10/hr ($73/월)', 'XL: $1.75 / 2XL: $3.50 / 4XL: $7.00 / 8XL: $14.00/hr'],
+        ['**비용**', '$0.10/hr ($73/월)', '티어별 과금 (AWS 가격 페이지 참조)'],
         ['**Tier 선택 기준**', '-', 'API Inflight Seats + Pod Scheduling Rate + etcd DB Size (노드 수 아님)'],
       ]
     : [
         ['**Scaling**', 'Dynamic auto-scaling (AWS managed)', 'Fixed tier (pre-provisioned)'],
-        ['**API Concurrency (seats)**', '1,200–1,700 (dynamic)', 'XL: 1,700 / 2XL: 3,400 / 4XL: 6,800 / 8XL: 13,600'],
-        ['**Pod Scheduling Rate**', '50–100 pods/sec', 'XL: 100 / 2XL: 200 / 4XL–8XL: 400 pods/sec'],
-        ['**Controller Manager**', '20–100 work/sec', 'XL: 100 / 2XL: 200 / 4XL–8XL: 400 work/sec'],
-        ['**etcd DB Size**', '10 GB', '20 GB'],
+        ['**API Concurrency (seats)**', 'Dynamic (AWS auto-adjusted)', 'XL: 1,700 / 2XL: 3,400 / 4XL: 6,800 / 8XL: 13,600'],
+        ['**Pod Scheduling Rate**', 'Dynamic', 'XL: 167 / 2XL: 283 / 4XL–8XL: 400 pods/sec'],
+        ['**etcd DB Size**', '8 GB', '16 GB'],
         ['**SLA**', '99.95%', '99.99%'],
-        ['**Cost**', '$0.10/hr ($73/mo)', 'XL: $1.75 / 2XL: $3.50 / 4XL: $7.00 / 8XL: $14.00/hr'],
+        ['**Cost**', '$0.10/hr ($73/mo)', 'Per-tier pricing (see AWS pricing page)'],
         ['**Tier Selection Criteria**', '-', 'API Inflight Seats + Pod Scheduling Rate + etcd DB Size (NOT node count)'],
       ];
 
