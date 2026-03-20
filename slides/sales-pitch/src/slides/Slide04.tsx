@@ -8,7 +8,7 @@ export default function Slide04() {
         고객이 직면한 Pain Points
       </h2>
       <p className="text-xl text-gray-400 text-center mb-6">
-        컨테이너화는 했지만, AI 워크로드는 차원이 다릅니다
+        디지털 전환은 했지만, AI 워크로드는 차원이 다릅니다
       </p>
 
       <div className="flex-1 flex flex-col justify-center">

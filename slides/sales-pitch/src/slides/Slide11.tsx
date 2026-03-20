@@ -59,7 +59,7 @@ export default function Slide11() {
 
         <div className="flex items-center justify-center gap-3 text-gray-400">
           <Users className="w-6 h-6" />
-          <p className="text-lg">200명 한정 | CTO, VP Engineering, 인프라 리더 대상</p>
+          <p className="text-lg">200명 한정 | CTO, VP Engineering, 플랫폼 엔지니어링 리더, IT 의사결정자 대상</p>
         </div>
       </div>
     </SlideWrapper>

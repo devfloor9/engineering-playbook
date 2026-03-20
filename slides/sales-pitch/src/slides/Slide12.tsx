@@ -16,7 +16,7 @@ export default function Slide12() {
         <p className="text-2xl text-gray-300 max-w-3xl">
           컨테이너, Kubernetes, 클라우드 네이티브 인프라 —
           <br />
-          <span className="text-white font-semibold">앱 현대화를 잘 해온 기업이 Agentic AI도 잘 합니다</span>
+          <span className="text-white font-semibold">디지털 전환에 성공한 기업이 Agentic AI도 잘 합니다</span>
         </p>
 
         <div className="grid grid-cols-3 gap-5 w-full max-w-4xl mt-4">

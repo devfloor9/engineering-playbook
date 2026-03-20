@@ -27,6 +27,7 @@ export default function Slide01() {
         <div className="space-y-2 mt-4">
           <p className="text-2xl text-white font-semibold">Modern Agentic Applications Day</p>
           <p className="text-xl text-gray-300">2026.4.9 | 센터필드 18층 | 200명 한정</p>
+          <p className="text-sm text-gray-500 mt-2">MRC 고객 초대용 세일즈 피치</p>
         </div>
       </div>
     </SlideWrapper>
