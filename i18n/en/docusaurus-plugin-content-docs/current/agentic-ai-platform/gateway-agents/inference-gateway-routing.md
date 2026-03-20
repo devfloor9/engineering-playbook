@@ -1160,7 +1160,7 @@ Inference Gateway is a core component of traffic management in AI model serving 
 ### Next Steps
 
 - [LLM Gateway 2-Tier Architecture](./llm-gateway-architecture.md) - 2-Tier Gateway design and solution selection
-- [LLMOps Observability](./llmops-observability.md) - Langfuse/LangSmith-based LLM observability
+- [LLMOps Observability](../operations-mlops/llmops-observability.md) - Langfuse/LangSmith-based LLM observability
 - [GPU Resource Management](../model-serving/gpu-resource-management.md) - Dynamic resource allocation strategies
 - [MoE Model Serving](../model-serving/moe-model-serving.md) - Mixture of Experts model deployment
 - [Agent Monitoring](../operations-mlops/agent-monitoring.md) - Langfuse integration guide

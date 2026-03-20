@@ -1,5 +1,6 @@
 import React from 'react';
 import Link from '@docusaurus/Link';
+import useBaseUrl from '@docusaurus/useBaseUrl';
 
 const ICONS = {
   architecture: '🏗️',
@@ -27,9 +28,10 @@ const ICONS = {
 };
 
 function DocCard({ to, icon, title, description, color }) {
+  const url = useBaseUrl(to);
   return (
     <Link
-      to={to}
+      to={url}
       style={{ textDecoration: 'none', color: 'inherit' }}
     >
       <div style={{

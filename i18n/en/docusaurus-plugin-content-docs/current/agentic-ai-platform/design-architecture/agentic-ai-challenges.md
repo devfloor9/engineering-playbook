@@ -1,40 +1,42 @@
 ---
-title: "Technical Challenges of Agentic AI Workloads"
-sidebar_label: "Technical Challenges"
-description: "Five core challenges faced when operating Agentic AI workloads and the Kubernetes-based open source ecosystem"
-tags: [kubernetes, genai, agentic-ai, gpu, challenges, open-source]
+title: "Agentic AI 워크로드의 기술적 도전과제"
+sidebar_label: "기술적 도전과제"
+description: "Agentic AI 워크로드 운영 시 직면하는 5가지 핵심 도전과제"
+tags: [genai, agentic-ai, gpu, challenges]
 category: "genai-aiml"
 last_update:
-  date: 2026-03-18
+  date: 2026-03-20
   author: devfloor9
-sidebar_position: 1
+sidebar_position: 2
 ---
 
-import Tabs from '@theme/Tabs';
-import TabItem from '@theme/TabItem';
-import { ChallengeSummary, K8sCoreFeatures, SolutionMapping, ModelServingComparison, InferenceGatewayComparison, ObservabilityComparison, KAgentFeatures, ObservabilityLayerStack, LlmdFeatures, DistributedTrainingStack, GpuInfraStack } from '@site/src/components/AgenticChallengesTables';
+import { ChallengeSummary } from '@site/src/components/AgenticChallengesTables';
 
-> 📅 **Written**: 2025-02-05 | **Updated**: 2026-03-18 | ⏱️ **Reading Time**: About 12 minutes
+> 📅 **작성일**: 2025-02-05 | **수정일**: 2026-03-20 | ⏱️ **읽는 시간**: 약 5분
 
-## Introduction
+## 소개
 
-When building and operating an Agentic AI platform, platform engineers and architects face fundamentally different technical challenges than traditional web applications. This document analyzes **five core challenges** and explores the **Kubernetes-based open source ecosystem** to address them.
+Agentic AI 플랫폼을 구축하고 운영할 때, 플랫폼 엔지니어와 아키텍트는 기존 웹 애플리케이션과는 근본적으로 다른 기술적 도전에 직면합니다. 이 문서에서는 **5가지 핵심 도전과제**를 분석합니다.
 
-## Five Core Challenges of Agentic AI Platforms
+:::info 선행 문서
+이 문서를 읽기 전에 [플랫폼 아키텍처](./agentic-platform-architecture.md)에서 Agentic AI Platform의 전체 구조를 먼저 확인하세요.
+:::
 
-Agentic AI systems leveraging Frontier Models (latest large-scale language models) have **fundamentally different infrastructure requirements** than traditional web applications.
+## Agentic AI 플랫폼의 5가지 핵심 도전과제
+
+Frontier Model(최신 대규모 언어 모델)을 활용한 Agentic AI 시스템은 기존 웹 애플리케이션과는 **근본적으로 다른 인프라 요구사항**을 가집니다.
 
 ```mermaid
 flowchart TD
-    subgraph Challenges["5 Core Challenges"]
-        C1["Challenge 1<br/>GPU Resource Management<br/>and Cost Optimization"]
-        C2["Challenge 2<br/>Intelligent Inference Routing<br/>and Gateway"]
-        C3["Challenge 3<br/>LLMOps Observability<br/>and Cost Governance"]
-        C4["Challenge 4<br/>Agent Orchestration<br/>and Safety"]
-        C5["Challenge 5<br/>Model Supply Chain<br/>Management"]
+    subgraph Challenges["5가지 핵심 도전과제"]
+        C1["도전과제 1<br/>GPU 리소스 관리 및<br/>비용 최적화"]
+        C2["도전과제 2<br/>지능형 추론 라우팅 및<br/>게이트웨이"]
+        C3["도전과제 3<br/>LLMOps 관찰성 및<br/>비용 거버넌스"]
+        C4["도전과제 4<br/>Agent 오케스트레이션 및<br/>안전성"]
+        C5["도전과제 5<br/>모델 공급망 관리<br/>(Model Supply Chain)"]
     end
 
-    COMMON["Common Characteristics<br/>- GPU Resource Intensive<br/>- Unpredictable Workloads<br/>- High Infrastructure Costs<br/>- Complex Distributed Systems"]
+    COMMON["공통 특성<br/>- GPU 리소스 집약적<br/>- 예측 불가능한 워크로드<br/>- 높은 인프라 비용<br/>- 복잡한 분산 시스템"]
 
     C1 --> COMMON
     C2 --> COMMON
@@ -50,1225 +52,179 @@ flowchart TD
     style COMMON fill:#f0f0f0
 ```
 
-### Challenge Summary
+### 도전과제 요약
 
 <ChallengeSummary />
 
-:::warning Limitations of Traditional Infrastructure Approaches
-Traditional VM-based infrastructure or manual management cannot effectively respond to the **dynamic and unpredictable workload patterns** of Agentic AI. The high cost of GPU resources and complex distributed system requirements make **automated infrastructure management** essential.
+:::warning 기존 인프라 접근 방식의 한계
+전통적인 VM 기반 인프라나 수동 관리 방식으로는 Agentic AI의 **동적이고 예측 불가능한 워크로드 패턴**에 효과적으로 대응할 수 없습니다. GPU 리소스의 높은 비용과 복잡한 분산 시스템 요구사항은 **자동화된 인프라 관리**를 필수로 만듭니다.
 :::
 
 ---
 
-## The Solution Core: Integration of Cloud Infrastructure Automation and AI Platform
+## 도전과제 1: GPU 리소스 관리 및 비용 최적화
 
-The key to solving Agentic AI platform challenges is the **organic integration of cloud infrastructure automation and AI workloads**. This integration is important for the following reasons:
+GPU는 Agentic AI 플랫폼에서 **가장 비용이 높은 리소스**입니다. 모델 크기와 워크로드 특성에 따라 적절한 GPU 할당 전략이 필요합니다.
+
+**왜 어려운가:**
+
+- **높은 비용**: GPU 인스턴스는 CPU 대비 10~100배 비싼 비용 (H100 8장 기준 시간당 ~$98)
+- **다양한 모델 크기**: 3B 파라미터 모델부터 70B+ 모델까지 요구하는 GPU 메모리가 극단적으로 다름
+- **동적 워크로드**: 추론 트래픽이 시간대에 따라 10배 이상 변동
+- **유휴 낭비**: GPU 프로비저닝 후 활용률이 낮으면 막대한 비용 낭비
+- **멀티 테넌트**: 여러 모델과 팀이 제한된 GPU를 공유해야 함
+
+| 모델 크기 | GPU 요구사항 | 비용 압박 |
+|-----------|-------------|----------|
+| 70B+ 파라미터 | Full GPU (H100/A100) 8장 | 시간당 $30~$98 |
+| 7B~30B 파라미터 | GPU 1~2장 또는 MIG 파티션 | 시간당 $1~$10 |
+| 3B 이하 파라미터 | Time-Slicing 또는 공유 GPU | 시간당 $0.5~$2 |
+
+---
+
+## 도전과제 2: 지능형 추론 라우팅 및 게이트웨이
+
+Agentic AI 워크로드는 **다양한 모델과 프로바이더**를 동시에 활용합니다. 단순한 로드밸런싱이 아닌, 모델 특성을 이해하는 지능형 라우팅이 필요합니다.
+
+**왜 어려운가:**
+
+- **멀티 모델 운영**: 하나의 플랫폼에서 Llama, Qwen, Claude, GPT 등 다양한 모델을 동시 운영
+- **KV Cache 효율성**: LLM의 KV Cache 상태를 고려하지 않은 라우팅은 성능을 크게 저하시킴
+- **비용-성능 트레이드오프**: 작업 복잡도에 따라 저비용 모델과 고성능 모델을 동적으로 선택해야 함
+- **프로바이더 다변화**: Self-hosted 모델과 외부 API (Bedrock, OpenAI) 를 통합 관리해야 함
+- **Canary/A-B 배포**: 새 모델 버전을 안전하게 트래픽 전환해야 함
 
 ```mermaid
 flowchart LR
-    subgraph AIWorkload["AI Workload Characteristics"]
-        AI1["Dynamic Resource<br/>Requirements"]
-        AI2["Unpredictable<br/>Traffic"]
-        AI3["High-Cost<br/>GPU Resources"]
-        AI4["Complex Distributed<br/>Processing"]
+    REQ["추론 요청"]
+
+    subgraph Challenge["라우팅 복잡성"]
+        Q1["어떤 모델?<br/>(모델 선택)"]
+        Q2["어떤 인스턴스?<br/>(KV Cache 히트)"]
+        Q3["어떤 프로바이더?<br/>(비용 vs 성능)"]
+        Q4["Fallback은?<br/>(장애 대응)"]
     end
 
-    PLATFORM["Kubernetes<br/>Container<br/>Orchestration"]
+    REQ --> Q1 --> Q2 --> Q3 --> Q4
 
-    subgraph InfraAuto["Infrastructure Automation Requirements"]
-        INF1["Real-time<br/>Provisioning"]
-        INF2["Auto Scaling"]
-        INF3["Cost Optimization"]
-        INF4["Declarative<br/>Management"]
-    end
-
-    AI1 --> PLATFORM
-    AI2 --> PLATFORM
-    AI3 --> PLATFORM
-    AI4 --> PLATFORM
-    PLATFORM --> INF1
-    PLATFORM --> INF2
-    PLATFORM --> INF3
-    PLATFORM --> INF4
-
-    style PLATFORM fill:#326ce5,color:#fff
-    style AIWorkload fill:#e1f5ff
-    style InfraAuto fill:#e1ffe1
+    style Challenge fill:#e1f5ff
 ```
 
-## Why Kubernetes?
+---
 
-Kubernetes is the **ideal foundational platform** that can solve all challenges of Agentic AI platforms:
+## 도전과제 3: LLMOps 관찰성 및 비용 거버넌스
 
-<K8sCoreFeatures />
+LLM 기반 시스템은 기존 애플리케이션과 **근본적으로 다른 관찰성 요구사항**을 가집니다. 토큰 단위 비용 추적, Agent 워크플로우 디버깅, 프롬프트 품질 모니터링이 필요합니다.
+
+**왜 어려운가:**
+
+- **비결정적 출력**: 동일 입력에도 다른 출력이 나오므로 전통적 테스트/모니터링이 불충분
+- **토큰 비용 추적**: 인프라 비용(GPU)과 애플리케이션 비용(토큰)을 이중으로 추적해야 함
+- **멀티스텝 디버깅**: Agent가 여러 도구를 호출하는 복잡한 체인에서 병목 지점 파악이 어려움
+- **프롬프트 품질**: 프로덕션에서 프롬프트 성능이 저하되는 것을 실시간으로 감지해야 함
+- **팀별 예산**: 여러 팀이 공유하는 AI 인프라에서 팀별 비용 할당과 한도 관리가 필요
+
+| 관찰성 영역 | 기존 애플리케이션 | LLM 애플리케이션 |
+|------------|----------------|----------------|
+| 비용 추적 | 인프라 비용만 | 인프라 + 토큰 비용 이중 추적 |
+| 디버깅 | 요청-응답 로그 | 멀티스텝 Agent Trace |
+| 품질 모니터링 | 에러율, 지연 시간 | Faithfulness, Relevance, Hallucination |
+| 예산 관리 | 리소스 기반 | 모델별/팀별 토큰 예산 |
+
+---
+
+## 도전과제 4: Agent 오케스트레이션 및 안전성
+
+Agentic AI 시스템에서 Agent는 **자율적으로 도구를 호출하고 외부 시스템과 상호작용**합니다. 이러한 자율성은 안전성과 통제 가능성 측면에서 새로운 도전과제를 만듭니다.
+
+**왜 어려운가:**
+
+- **자율적 행동**: Agent가 스스로 판단하여 도구를 호출하므로 예상치 못한 행동 가능
+- **프롬프트 인젝션**: 악의적 입력으로 Agent가 의도하지 않은 작업을 수행할 위험
+- **도구 연결 표준화**: 다양한 외부 시스템(DB, API, 파일)을 Agent에 안전하게 연결하는 표준 필요
+- **멀티 Agent 통신**: 여러 Agent가 협업할 때 안전하고 효율적인 통신 프로토콜 필요
+- **상태 관리**: 장기 실행 Agent의 상태 저장, 복구, 체크포인팅이 필요
+- **스케일링**: Agent 워크로드는 CPU 기반이지만 트래픽 패턴이 불규칙하여 효율적 스케일링이 어려움
 
 ```mermaid
 flowchart TD
-    subgraph K8sCore["Kubernetes Core Components"]
-        API["API Server<br/>Declarative Resource Management"]
-        SCHED["Scheduler<br/>GPU-aware Scheduling"]
-        CTRL["Controller Manager<br/>State Reconciliation Loop"]
-        ETCD["etcd<br/>Cluster State Storage"]
+    subgraph Risks["안전성 위험"]
+        R1["프롬프트 인젝션"]
+        R2["PII 유출"]
+        R3["무한 루프"]
+        R4["권한 상승"]
     end
 
-    subgraph AISupport["AI Workload Support"]
-        GPU["GPU Device Plugin<br/>GPU Resource Abstraction"]
-        HPA["HPA/KEDA<br/>Metrics-based Scaling"]
-        OP["Operators<br/>Workflow Automation"]
+    subgraph Needs["필요 역량"]
+        N1["입출력 필터링"]
+        N2["도구 권한 제한"]
+        N3["실행 시간 제한"]
+        N4["감사 로깅"]
     end
 
-    subgraph Solutions["Challenge Solutions"]
-        S1["GPU Resource<br/>Unified Management"]
-        S2["Dynamic Scaling"]
-        S3["Resource Quota<br/>Management"]
-        S4["Agent Workflow<br/>Management"]
-        S5["Distributed Training<br/>Automation"]
-    end
+    R1 --> N1
+    R2 --> N1
+    R3 --> N3
+    R4 --> N2
 
-    API --> GPU
-    SCHED --> GPU
-    CTRL --> HPA
-    CTRL --> OP
-    GPU --> S1
-    HPA --> S2
-    API --> S3
-    OP --> S4
-    OP --> S5
-
-    style API fill:#326ce5,color:#fff
-    style SCHED fill:#326ce5,color:#fff
-    style CTRL fill:#326ce5,color:#fff
-    style ETCD fill:#326ce5,color:#fff
-    style K8sCore fill:#e1f5ff
-    style AISupport fill:#fff4e1
-    style Solutions fill:#e1ffe1
+    style Risks fill:#ffe1e1
+    style Needs fill:#e1ffe1
 ```
 
-:::info Kubernetes AI Workload Support
-Kubernetes provides rich integration with the AI/ML ecosystem including NVIDIA GPU Operator, Kubeflow, and KEDA. This enables **unified management of GPU resource management, distributed training, and model serving on a single platform**.
+---
+
+## 도전과제 5: 모델 공급망 관리 (Model Supply Chain)
+
+단순히 모델을 배포하는 것이 아니라, **전체 모델 라이프사이클**(학습 → 평가 → 레지스트리 → 배포 → 피드백)을 체계적으로 관리해야 합니다.
+
+**왜 어려운가:**
+
+- **모델 버전 관리**: 파운데이션 모델, 파인튜닝 모델, 어댑터(LoRA) 등 다양한 아티팩트 관리
+- **분산 학습 인프라**: 대규모 모델 파인튜닝에는 멀티 노드 GPU 클러스터와 고속 네트워크(EFA) 필요
+- **평가 파이프라인**: 모델 품질을 자동으로 평가하고 배포 게이트를 설정해야 함
+- **안전한 배포**: Canary/Blue-Green 배포로 모델 업데이트 시 서비스 영향 최소화
+- **하이브리드 환경**: 온프레미스 GPU와 클라우드 GPU 간 모델 전송 및 동기화
+- **RAG 데이터 파이프라인**: 문서 처리, 임베딩 생성, 벡터 저장의 지속적 업데이트 파이프라인 필요
+- **피드백 루프**: 프로덕션 추적 데이터를 재학습에 반영하는 지속적 개선 체계
+
+```mermaid
+flowchart LR
+    subgraph Lifecycle["모델 라이프사이클"]
+        TRAIN["학습/파인튜닝"]
+        EVAL["평가"]
+        REG["레지스트리"]
+        DEPLOY["배포"]
+        MONITOR["모니터링"]
+        FEEDBACK["피드백"]
+    end
+
+    TRAIN --> EVAL --> REG --> DEPLOY --> MONITOR --> FEEDBACK
+    FEEDBACK --> TRAIN
+
+    style Lifecycle fill:#e1ffe1
+```
+
+---
+
+## 다음 단계: 도전과제 해결 접근
+
+이 5가지 도전과제를 해결하기 위한 두 가지 접근 방식을 제시합니다:
+
+1. **[AWS Native 플랫폼](./aws-native-agentic-platform.md)**: AWS 매니지드 서비스(Bedrock, AgentCore)를 활용하여 인프라 운영 부담을 최소화하고 Agent 개발에 집중하는 접근
+2. **[EKS 기반 오픈 아키텍처](./agentic-ai-solutions-eks.md)**: Amazon EKS와 오픈소스 생태계를 활용하여 세밀한 제어와 비용 최적화를 달성하는 접근
+
+두 접근은 **상호 보완적**이며, 워크로드 특성에 따라 조합하여 사용할 수 있습니다.
+
+| 기준 | AWS Native | EKS 기반 오픈 아키텍처 |
+|------|-----------|----------------------|
+| GPU 관리 | 불필요 (서버리스) | Karpenter 자동 프로비저닝 |
+| 모델 선택 | Bedrock 지원 모델 | 모든 Open Weight 모델 |
+| 운영 부담 | 최소 | 중간 (Auto Mode로 절감) |
+| 비용 최적화 | 사용량 기반 과금 | Spot, Consolidation 등 세밀 제어 |
+| 커스터마이징 | 제한적 | 완전한 유연성 |
+
+:::tip 어떤 접근을 선택할까?
+- **빠르게 시작하고 Agent 로직에 집중**: AWS Native 플랫폼
+- **Open Weight 모델 + 하이브리드 + 비용 최적화**: EKS 기반 오픈 아키텍처
+- **현실적 최적해**: 두 접근의 조합 (AWS Native로 시작, 필요 시 EKS로 확장)
 :::
-
----
-
-Now that we understand why Kubernetes is suitable for AI workloads, let's examine **specific open source solutions that solve each challenge**.
-
-## Bird's Eye View of Kubernetes Ecosystem Agentic AI Solutions
-
-The Kubernetes ecosystem has **specialized open source solutions** to address each challenge of Agentic AI platforms. These solutions are designed Kubernetes-native to fully leverage the benefits of **declarative management, auto-scaling, and high availability**.
-
-### Solution Mapping Overview
-
-```mermaid
-flowchart TD
-    subgraph Challenges["5 Core Challenges"]
-        C1["GPU Resource Management<br/>and Cost Optimization"]
-        C2["Intelligent Inference Routing<br/>and Gateway"]
-        C3["LLMOps Observability<br/>and Cost Governance"]
-        C4["Agent Orchestration<br/>and Safety"]
-        C5["Model Supply Chain<br/>Management"]
-    end
-
-    subgraph K8sSolutions["Kubernetes Native Solutions"]
-        S1["Karpenter + GPU Operator<br/>MIG / Time-Slicing"]
-        S2["Kgateway + Bifrost<br/>llm-d KV Cache Routing"]
-        S3["LangSmith + Langfuse<br/>Hybrid Observability"]
-        S4["LangGraph + NeMo Guardrails<br/>MCP / A2A"]
-        S5["MLflow + Kubeflow<br/>ArgoCD GitOps"]
-    end
-
-    subgraph ModelServing["Model Serving"]
-        VLLM["vLLM<br/>Inference Engine"]
-        LLMD["llm-d<br/>Scheduler"]
-    end
-
-    KAGENT["KAgent<br/>Agent Framework"]
-
-    C1 --> S1
-    C2 --> S2
-    C3 --> S3
-    C4 --> S4
-    C5 --> S5
-
-    S2 --> VLLM
-    S2 --> LLMD
-    KAGENT --> S2
-    KAGENT --> S3
-
-    style C1 fill:#ffe1e1
-    style C2 fill:#e1f5ff
-    style C3 fill:#fff4e1
-    style C4 fill:#f0e1ff
-    style C5 fill:#e1ffe1
-    style S1 fill:#ffd93d
-    style S2 fill:#e1f5ff
-    style S3 fill:#f0e1ff
-    style S4 fill:#f0e1ff
-    style S5 fill:#e1ffe1
-    style VLLM fill:#ffe1e1
-    style LLMD fill:#ffe1e1
-    style KAGENT fill:#e1ffe1
-```
-
-### Detailed Solution Mapping by Challenge
-
-<SolutionMapping />
-
----
-
-We've now examined various solutions in the Kubernetes ecosystem. Let's delve into **how these solutions actually integrate and operate** from an open source architecture perspective.
-
-## Open Source Ecosystem and Kubernetes Integration Architecture
-
-Agentic AI platforms are composed of various open source projects organically integrated around Kubernetes. This section explains how core open source tools in **GPU resource management, inference routing, LLMOps observability, agent orchestration, and model supply chain** areas cooperate to form a complete Agentic AI platform.
-
-### 1. GPU Resource Management and Cost Optimization
-
-GPUs are the most expensive resource in Agentic AI platforms. **MIG (Multi-Instance GPU) and Time-Slicing** strategies must be appropriately combined based on model size and workload characteristics.
-
-**GPU Allocation Strategy:**
-
-| Model Size | GPU Strategy | Example |
-|-----------|----------|------|
-| 70B+ parameters | Full GPU (H100/A100) | Llama 3.1 70B, Mixtral 8x22B |
-| 7B~30B parameters | MIG (Multi-Instance GPU) | Llama 3.1 8B, Mistral 7B |
-| 3B or less parameters | Time-Slicing | Phi-3 Mini, Gemma 2B |
-
-**Node Management Selection Criteria:**
-
-| Criteria | EKS Auto Mode | Karpenter + GPU Operator |
-|------|---------------|--------------------------|
-| Operational Complexity | Low (managed) | High (self-managed) |
-| GPU Fine Control | Limited | Complete MIG/Time-Slicing control |
-| Cost Optimization | Basic level | Spot instances, custom NodePool |
-| Recommended Scenario | Quick start, small scale | Large scale, fine GPU management needed |
-
-```mermaid
-flowchart LR
-    REQ["Inference Request"]
-
-    subgraph GPUStrategy["GPU Allocation Strategy"]
-        FULL["Full GPU<br/>70B+ models"]
-        MIG["MIG Partition<br/>7B~30B models"]
-        TS["Time-Slicing<br/>3B or less models"]
-    end
-
-    subgraph NodeMgmt["Node Management"]
-        AUTO["EKS Auto Mode<br/>Managed"]
-        KARP["Karpenter +<br/>GPU Operator"]
-    end
-
-    REQ --> GPUStrategy
-    FULL --> NodeMgmt
-    MIG --> NodeMgmt
-    TS --> NodeMgmt
-
-    style FULL fill:#ffe1e1
-    style MIG fill:#fff4e1
-    style TS fill:#e1ffe1
-    style AUTO fill:#e1f5ff
-    style KARP fill:#ffd93d
-```
-
-<ModelServingComparison />
-
-**Kubernetes Integration:**
-
-- Deploy as Kubernetes Deployment
-- Expose through Service
-- Scale with HPA based on queue depth metrics
-- GPU allocation through resource requests/limits
-- **K8s 1.33+**: In-place resource resizing enables GPU memory adjustment without Pod restart
-
-### 2. Intelligent Inference Routing and Gateway
-
-Agentic AI workloads utilize various models and providers. Combining **2-Tier Gateway Architecture** (kgateway + Bifrost) with **KV Cache-aware routing** (llm-d) achieves optimal performance and cost efficiency.
-
-**2-Tier Gateway Architecture:**
-
-```mermaid
-flowchart TD
-    CLIENT["Client Applications"]
-
-    subgraph Tier1["Tier 1: Ingress Gateway"]
-        KGW["Kgateway<br/>Gateway API-based<br/>Traffic Management / Auth"]
-    end
-
-    subgraph Tier2["Tier 2: LLM Router"]
-        BIFROST["Bifrost<br/>Model Abstraction / Fallback"]
-        LLMD["llm-d<br/>KV Cache-aware<br/>Routing"]
-    end
-
-    subgraph Backends["Model Backends"]
-        SELF["Self-hosted<br/>vLLM"]
-        BEDROCK["Amazon<br/>Bedrock"]
-        OPENAI["OpenAI API"]
-    end
-
-    CLIENT --> KGW
-    KGW --> BIFROST
-    BIFROST --> LLMD
-    LLMD --> SELF
-    BIFROST --> BEDROCK
-    BIFROST --> OPENAI
-
-    style KGW fill:#e1f5ff
-    style BIFROST fill:#f0e1ff
-    style LLMD fill:#ffe1e1
-    style Tier1 fill:#fff4e1
-    style Tier2 fill:#f0f0f0
-    style Backends fill:#f0f0f0
-```
-
-**Key Routing Patterns:**
-
-- **KV Cache-aware Routing (llm-d)**: Maximize prefix cache hit rate to reduce TTFT (Time To First Token)
-- **Cascade Routing**: Try low-cost models first, auto-switch to high-performance models on failure (cheap → premium)
-- **Semantic Caching**: Return cached responses for semantically similar requests to reduce costs
-
-**Bifrost vs LiteLLM Comparison:**
-
-| Item | Bifrost (Default Recommended) | LiteLLM (Python Ecosystem Alternative) |
-|------|---------------------|------------------------------|
-| Language | Rust | Python |
-| Provider Count | Focus on major providers | 100+ |
-| Performance | ~50x faster routing | Standard |
-| Feature Scope | Specialized for high-throughput routing | Fallback, Cost tracking, Rate limiting |
-| Recommended Scenario | Production, ultra-low latency, large-scale traffic | Python ecosystem integration, many providers needed |
-
-:::tip Bifrost: Production Default Recommendation
-**Bifrost** is a high-performance LLM gateway written in Rust, providing about 50x faster routing performance and low latency. It is the default recommended solution for production environments. However, if tight Python ecosystem integration or support for 100+ providers is needed, **LiteLLM** can be considered as an alternative.
-:::
-
-> See **[LLM Gateway Architecture](../gateway-agents/inference-gateway-routing.md)** for detailed gateway architecture.
-
-<InferenceGatewayComparison />
-
-**Kubernetes Integration:**
-
-- Kubernetes Gateway API v1.2.0+ standard implementation
-- Declarative routing through HTTPRoute resources
-- Native integration with Kubernetes Service
-- Cross-namespace routing support
-- **K8s 1.33+**: Topology-aware routing reduces cross-AZ traffic costs and improves latency
-
-### 3. LLMOps Observability and Cost Governance
-
-#### LangSmith + Langfuse Hybrid Strategy
-
-LLM application observability is difficult to solve with a single tool. A hybrid strategy using **LangSmith in dev/staging environments** and **Langfuse in production environments** is effective.
-
-```mermaid
-flowchart TD
-    subgraph DevStaging["Dev / Staging Environment"]
-        DEV_APP["Agent App<br/>(Development)"]
-        LS["LangSmith<br/>Managed"]
-        STUDIO["LangGraph<br/>Studio"]
-        PLAYGROUND["Prompt<br/>Playground"]
-    end
-
-    subgraph Production["Production Environment"]
-        PROD_APP["Agent App<br/>(Production)"]
-        LF["Langfuse<br/>Self-hosted"]
-        AMP["Amazon Managed<br/>Prometheus"]
-        AMG["Amazon Managed<br/>Grafana"]
-    end
-
-    DEV_APP --> LS
-    LS --> STUDIO
-    LS --> PLAYGROUND
-
-    PROD_APP --> LF
-    LF --> AMP
-    AMP --> AMG
-
-    style LS fill:#f0e1ff
-    style LF fill:#fff4e1
-    style STUDIO fill:#f0e1ff
-    style AMP fill:#e1f5ff
-    style AMG fill:#e1f5ff
-    style DevStaging fill:#f0f0f0
-    style Production fill:#f0f0f0
-```
-
-**LangSmith vs Langfuse Comparison:**
-
-| Item | LangSmith | Langfuse |
-|------|-----------|----------|
-| Environment | Dev / Staging | Production |
-| Purpose | Development debugging, prompt experimentation | Production monitoring, cost tracking |
-| License | Commercial (free tier available) | MIT (open source) |
-| Data Location | LangChain cloud | Self-hosted (data sovereignty) |
-| LangGraph Integration | Studio, real-time trace debugging | Basic trace support |
-| Infrastructure Monitoring | - | AMP/AMG integration |
-
-**LangSmith Core Strengths:**
-
-- **LangGraph Studio Integration**: Agent graph visualization, step-by-step real-time debugging
-- **Prompt Playground**: Prompt A/B testing and version management
-- **Real-time Trace Debugging**: Immediate tracking of LLM call chains during development
-
-**Langfuse Core Strengths:**
-
-- **Self-hosted (Data Sovereignty)**: Sensitive production data doesn't leak externally
-- **MIT License**: Free for customization and extension
-- **Custom Dashboards**: Customized production KPI monitoring for cost, quality, latency
-- **AMP/AMG Integration**: Integration with infrastructure monitoring through Prometheus metrics exposure
-
-<ObservabilityComparison />
-
-#### 2-Tier Cost Tracking Architecture
-
-LLM application cost tracking must be managed at both **infrastructure level** and **application level**.
-
-```mermaid
-flowchart TD
-    subgraph Application["Application Layer"]
-        LANGGRAPH["LangGraph Agent"]
-        LANGCHAIN["LangChain<br/>ChatOpenAI"]
-    end
-
-    subgraph InfraLayer["Infrastructure Layer (Bifrost)"]
-        BIFROST["Bifrost Proxy<br/>OpenAI-compatible"]
-        BUDGET["Budget Tracking<br/>Per-team/API-key limits"]
-        CASCADE["Cascade Routing<br/>cheap → premium"]
-        TOKEN["Token Unit Price<br/>Calculation"]
-    end
-
-    subgraph AppLayer["Application Layer (Langfuse)"]
-        LANGFUSE["Langfuse"]
-        STEP_COST["Per-agent-step Cost"]
-        CHAIN_LAT["Full Chain Latency"]
-        PROMPT_Q["Prompt Quality<br/>Tracking"]
-    end
-
-    subgraph Backends["Model Backends"]
-        VLLM["vLLM<br/>(Low-cost)"]
-        BEDROCK["Bedrock<br/>(Mid-cost)"]
-        OPENAI["OpenAI<br/>(High-cost)"]
-    end
-
-    LANGGRAPH -->|callback| LANGFUSE
-    LANGGRAPH --> LANGCHAIN
-    LANGCHAIN -->|"base_url=bifrost"| BIFROST
-    BIFROST -->|Token/cost aggregation| TOKEN
-    BIFROST --> BUDGET
-    BIFROST --> CASCADE
-    CASCADE --> VLLM
-    CASCADE --> BEDROCK
-    CASCADE --> OPENAI
-
-    style BIFROST fill:#f0e1ff
-    style LANGFUSE fill:#fff4e1
-    style CASCADE fill:#ffe1e1
-    style InfraLayer fill:#f0f0f0
-    style AppLayer fill:#f0f0f0
-```
-
-**2-Tier Cost Tracking Components:**
-
-| Layer | Tool | Tracking Target | Purpose |
-|------|------|----------|------|
-| Infrastructure | Bifrost | Per-model token unit price, per-team/API-key budget, Cascade Routing cost | Infrastructure-level cost control and optimization |
-| Application | Langfuse | Per-agent-step cost, full chain latency, prompt quality | Application-level quality and cost tracking |
-
-**Integration Pattern:**
-
-- **LangChain → Bifrost Connection**: Call OpenAI-compatible endpoint with `ChatOpenAI(base_url="http://bifrost:4000/v1")`
-- **Langfuse Callback**: Application-level tracking via LangGraph/LangChain callbacks
-- **Bifrost Metrics**: Expose infrastructure-level costs as Prometheus metrics
-
-**Kubernetes Integration (Langfuse):**
-
-- Deploy as StatefulSet or Deployment
-- Requires PostgreSQL backend (can use managed RDS or cluster configuration)
-- Expose Prometheus-format metrics
-- SDK integration through Pod environment variables
-- **K8s 1.33+**: Stable sidecar containers for stabilized logging and metrics collection sidecars
-
-### 4. Agent Orchestration and Safety
-
-In Agentic AI systems, agents autonomously call tools and interact with external systems. This autonomy creates new challenges in terms of **safety and controllability**.
-
-#### LangGraph Workflow
-
-**LangGraph** manages complex multi-step workflows safely by defining agent execution flow as a **directed graph (DAG)**.
-
-```mermaid
-flowchart TD
-    subgraph AgentOrch["Agent Orchestration"]
-        LG["LangGraph<br/>Workflow Engine"]
-        GUARD["NeMo Guardrails<br/>Safety Control"]
-        STATE["Redis Checkpointer<br/>State Management"]
-    end
-
-    subgraph Standards["Standard Protocols"]
-        MCP["MCP<br/>Model Context Protocol"]
-        A2A["A2A<br/>Agent-to-Agent"]
-    end
-
-    subgraph Evaluation["Evaluation"]
-        RAGAS["Ragas<br/>Agent Evaluation"]
-    end
-
-    subgraph Future["Future Direction"]
-        KAGENT["KAgent<br/>K8s Native Management"]:::future
-    end
-
-    LG --> GUARD
-    LG --> STATE
-    LG --> MCP
-    LG --> A2A
-    RAGAS --> LG
-    KAGENT -.->|"CRD-based<br/>Lifecycle"| LG
-
-    style LG fill:#f0e1ff
-    style GUARD fill:#ffe1e1
-    style STATE fill:#e1f5ff
-    style MCP fill:#e1ffe1
-    style A2A fill:#e1ffe1
-    classDef future fill:#f5f5f5,stroke:#999,stroke-dasharray: 5 5
-```
-
-**Core Components:**
-
-- **LangGraph**: Multi-step agent workflow definition, conditional branching, parallel execution
-- **NeMo Guardrails**: Prompt injection defense, topic restrictions, output validation
-- **MCP (Model Context Protocol)**: Standard protocol for tool connections
-  - Provides standardized way for agents to access external systems (DB, API, file system)
-  - Agent Ready applications (sales, legal, billing, AICC, etc.) expose tools through MCP
-  - Each system operates as MCP server, agents call tools as MCP clients
-- **A2A (Agent-to-Agent)**: Standard protocol for inter-agent communication
-  - Standardizes task delegation and result delivery between agents in multi-agent systems
-  - Ensures interoperability of distributed agent systems
-- **Redis Checkpointer**: State storage and recovery for long-running agents
-- **Ragas**: Agent response quality evaluation (Faithfulness, Relevance, Correctness)
-
-**Current Deployment Method:** Deploy LangGraph-based agents with standard Kubernetes Deployment + KEDA + ArgoCD GitOps.
-
-<KAgentFeatures />
-
-**Kubernetes Integration:**
-
-- Deploy agent Pods as standard Deployment/StatefulSet
-- KEDA-based metric-driven auto-scaling
-- Declarative deployment management through ArgoCD GitOps
-- Native integration with Kubernetes RBAC
-- API key management using Kubernetes Secrets
-
-:::tip Future Direction: Kagent (K8s Native Agent Management)
-Currently agents are deployed as standard K8s resources, but the **Kagent pattern** is an advanced approach that declaratively manages agent lifecycles through dedicated CRDs and Operators. As projects mature, defining tool connections, scaling, and health checks in a single YAML with `Agent` CRD can greatly simplify large-scale multi-agent system management. See **[Kagent Agent Management](../gateway-agents/kagent-kubernetes-agents.md)** for detailed design patterns.
-:::
-
-> For AWS managed alternatives, see **[Bedrock AgentCore & MCP](../gateway-agents/bedrock-agentcore-mcp.md)**.
-
-### 5. Model Supply Chain Management
-
-Not just model fine-tuning, but **the entire model lifecycle** (training → registry → deployment → feedback) must be systematically managed.
-
-#### MLflow + Kubeflow + ArgoCD GitOps Deployment Pattern
-
-```mermaid
-flowchart LR
-    subgraph DataPipeline["Data Pipeline"]
-        DATA["Training<br/>Data"]
-        UNSTRUCTURED["Unstructured.io<br/>Document Processing"]
-        MILVUS["Milvus<br/>Vector Storage"]
-    end
-
-    subgraph Training["Training and Registry"]
-        NEMO["NeMo<br/>Framework"]
-        KUBEFLOW["Kubeflow<br/>Pipeline"]
-        MLFLOW["MLflow<br/>Model Registry"]
-    end
-
-    subgraph Deployment["GitOps Deployment"]
-        ARGOCD["ArgoCD<br/>GitOps"]
-        CANARY["Canary<br/>Deployment"]
-        SERVE["vLLM<br/>Serving"]
-    end
-
-    subgraph Feedback["Feedback Loop"]
-        LANGFUSE["Langfuse<br/>Production Tracking"]
-        LABEL["Label Studio<br/>Data Labeling"]
-    end
-
-    DATA --> UNSTRUCTURED
-    UNSTRUCTURED --> MILVUS
-    DATA --> NEMO
-    NEMO --> KUBEFLOW
-    KUBEFLOW --> MLFLOW
-    MLFLOW --> ARGOCD
-    ARGOCD --> CANARY
-    CANARY --> SERVE
-
-    SERVE --> LANGFUSE
-    LANGFUSE --> LABEL
-    LABEL --> DATA
-
-    style NEMO fill:#e1ffe1
-    style KUBEFLOW fill:#e1ffe1
-    style MLFLOW fill:#fff4e1
-    style ARGOCD fill:#e1f5ff
-    style LANGFUSE fill:#fff4e1
-    style MILVUS fill:#e1f5ff
-```
-
-<DistributedTrainingStack />
-
-**Model Supply Chain Core Patterns:**
-
-- **Training**: NeMo Framework + Kubeflow Training Operators (PyTorchJob, MPIJob)
-- **Registry**: MLflow Model Registry — Model version management, experiment tracking
-- **Deployment**: ArgoCD GitOps — Declarative model deployment, Canary/Blue-Green strategies
-- **Hybrid Transfer**: Model transfer between On-Prem ↔ Cloud (S3 Sync, Harbor Registry)
-- **RAG Data Pipeline**:
-  - Document Processing: Parse various formats (PDF, Word, HTML) with Unstructured.io
-  - Embedding Generation: Run embedding models like BGE-M3, E5 in **Triton Inference Server** (dedicated non-LLM inference)
-  - Vector Storage: Store and search embeddings in Milvus
-  - Triton specializes in serving lightweight models like Embedding and Reranking
-- **Feedback Loop**: Langfuse production tracking → Label Studio labeling → Retraining
-
-**Kubernetes Integration:**
-
-- Kubeflow Training Operators (PyTorchJob, MPIJob, etc.)
-- Gang scheduling for distributed workloads
-- Topology-aware scheduling (node affinity, anti-affinity)
-- CSI driver integration for shared storage (FSx for Lustre)
-
----
-
-### Solution Stack Integration Architecture
-
-```mermaid
-flowchart TD
-    subgraph Client["Client Layer"]
-        WEB["Web App"]
-        API["API Clients"]
-        AGENT["Agents"]
-    end
-
-    subgraph Gateway["Gateway Layer"]
-        KGW["Kgateway"]
-        BIFROST["Bifrost"]
-    end
-
-    subgraph Orchestration["Orchestration"]
-        KAGENT["KAgent"]
-        KEDA["KEDA"]
-    end
-
-    subgraph Serving["Model Serving"]
-        LLMD["llm-d"]
-        VLLM1["vLLM-1"]
-        VLLM2["vLLM-2"]
-        VLLM3["vLLM-3"]
-    end
-
-    subgraph Infra["Infrastructure"]
-        KARP["Karpenter"]
-        GPU1["GPU<br/>Node 1"]
-        GPU2["GPU<br/>Node 2"]
-        GPU3["GPU<br/>Node 3"]
-    end
-
-    subgraph Obs["Observability"]
-        LF["Langfuse"]
-        PROM["Prometheus"]
-        GRAF["Grafana"]
-    end
-
-    WEB --> KGW
-    API --> KGW
-    AGENT --> KGW
-    KGW --> BIFROST
-    BIFROST --> KAGENT
-    KAGENT --> LLMD
-    LLMD --> VLLM1
-    LLMD --> VLLM2
-    LLMD --> VLLM3
-    VLLM1 --> GPU1
-    VLLM2 --> GPU2
-    VLLM3 --> GPU3
-    KARP --> GPU1
-    KARP --> GPU2
-    KARP --> GPU3
-    KEDA --> VLLM1
-    KEDA --> VLLM2
-    KEDA --> VLLM3
-
-    KAGENT -.-> LF
-    VLLM1 -.-> PROM
-    VLLM2 -.-> PROM
-    VLLM3 -.-> PROM
-    PROM --> GRAF
-    LF --> GRAF
-
-    style KGW fill:#e1f5ff
-    style KAGENT fill:#e1ffe1
-    style KARP fill:#ffd93d
-    style LF fill:#fff4e1
-    style LLMD fill:#ffe1e1
-```
-
----
-
-### Open Source Integration Complete Architecture
-
-```mermaid
-flowchart TD
-    subgraph App["Application Layer"]
-        AGENT["Agentic AI<br/>Application"]
-        RAG["RAG Pipeline"]
-    end
-
-    subgraph ObsLayer["LLM Observability"]
-        LF["Langfuse"]
-        LS["LangSmith"]
-        RAGAS["RAGAS"]
-    end
-
-    subgraph GatewayLayer["Inference Gateway"]
-        BIFROST["Bifrost"]
-        KGW["Kgateway"]
-    end
-
-    subgraph ServingLayer["Model Serving"]
-        LLMD["llm-d"]
-        VLLM["vLLM"]
-    end
-
-    subgraph VectorDB["Vector DB"]
-        MILVUS["Milvus"]
-    end
-
-    subgraph GPUInfra["GPU Infrastructure"]
-        DRA["DRA"]
-        DCGM["DCGM"]
-        NCCL["NCCL"]
-        KARP["Karpenter"]
-    end
-
-    AGENT --> LF
-    AGENT --> LS
-    AGENT --> BIFROST
-    RAG --> MILVUS
-    RAG --> RAGAS
-    BIFROST --> KGW
-    KGW --> LLMD
-    LLMD --> VLLM
-    VLLM --> DRA
-    DRA --> DCGM
-    VLLM --> NCCL
-    KARP --> DRA
-
-    style LF fill:#fff4e1
-    style LS fill:#f0e1ff
-    style RAGAS fill:#fff4e1
-    style BIFROST fill:#f0e1ff
-    style LLMD fill:#ffe1e1
-    style MILVUS fill:#e1f5ff
-    style DRA fill:#326ce5,color:#fff
-    style DCGM fill:#e1ffe1
-    style NCCL fill:#e1ffe1
-    style KARP fill:#ffd93d
-```
-
-### Layer-by-Layer Open Source Roles and Integration
-
-#### LLM Observability Layer: Langfuse, LangSmith, RAGAS
-
-Core tools for **tracking and evaluating the entire lifecycle** of LLM applications.
-
-<ObservabilityLayerStack />
-
-```mermaid
-flowchart LR
-    subgraph Application["LLM Application"]
-        APP["Agent App"]
-        SDK1["Langfuse<br/>SDK"]
-        SDK2["LangSmith<br/>SDK"]
-    end
-
-    subgraph K8s["Kubernetes Cluster"]
-        subgraph LFStack["Langfuse Stack"]
-            LF_WEB["Langfuse<br/>Web"]
-            LF_WORKER["Langfuse<br/>Worker"]
-            LF_DB["PostgreSQL"]
-            LF_REDIS["Redis"]
-        end
-
-        subgraph Evaluation["RAGAS Evaluation"]
-            RAGAS_JOB["RAGAS<br/>Job"]
-        end
-    end
-
-    APP --> SDK1
-    SDK1 --> LF_WEB
-    APP --> SDK2
-    LF_WEB --> LF_WORKER
-    LF_WORKER --> LF_DB
-    LF_WORKER --> LF_REDIS
-    RAGAS_JOB --> LF_DB
-
-    style LF_WEB fill:#fff4e1
-    style RAGAS_JOB fill:#fff4e1
-```
-
-**Langfuse Kubernetes Deployment Example:**
-
-```yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: langfuse-web
-  namespace: observability
-spec:
-  replicas: 2
-  selector:
-    matchLabels:
-      app: langfuse-web
-  template:
-    spec:
-      containers:
-        - name: langfuse
-          image: langfuse/langfuse:latest
-          env:
-            - name: DATABASE_URL
-              valueFrom:
-                secretKeyRef:
-                  name: langfuse-secrets
-                  key: database-url
-            - name: NEXTAUTH_SECRET
-              valueFrom:
-                secretKeyRef:
-                  name: langfuse-secrets
-                  key: nextauth-secret
-          resources:
-            requests:
-              memory: "512Mi"
-              cpu: "250m"
----
-apiVersion: batch/v1
-kind: CronJob
-metadata:
-  name: ragas-evaluation
-  namespace: observability
-spec:
-  schedule: "0 */6 * * *"  # Run every 6 hours
-  jobTemplate:
-    spec:
-      template:
-        spec:
-          containers:
-            - name: ragas
-              image: ragas/ragas:latest
-              command: ["python", "-m", "ragas.evaluate"]
-              env:
-                - name: LANGFUSE_HOST
-                  value: "http://langfuse-web:3000"
-          restartPolicy: OnFailure
-```
-
-#### Inference Gateway Layer: Bifrost
-
-**Bifrost** abstracts major LLM providers into a **high-performance OpenAI-compatible API**.
-
-```mermaid
-flowchart TD
-    subgraph Gateway["Bifrost Gateway"]
-        PROXY["Bifrost<br/>Proxy"]
-        CONFIG["Config<br/>ConfigMap"]
-        CACHE["Redis<br/>Cache"]
-    end
-
-    subgraph Backends["LLM Backends"]
-        SELF["Self-hosted<br/>vLLM"]
-        BEDROCK["Amazon<br/>Bedrock"]
-        OPENAI["OpenAI<br/>API"]
-        ANTHROPIC["Anthropic<br/>API"]
-    end
-
-    subgraph Features["Features"]
-        LB["Load<br/>Balancing"]
-        FALLBACK["Fallback<br/>Logic"]
-        COST["Cost<br/>Tracking"]
-        RATE["Rate<br/>Limiting"]
-    end
-
-    CONFIG --> PROXY
-    CACHE --> PROXY
-    PROXY --> SELF
-    PROXY --> BEDROCK
-    PROXY --> OPENAI
-    PROXY --> ANTHROPIC
-    PROXY --> LB
-    PROXY --> FALLBACK
-    PROXY --> COST
-    PROXY --> RATE
-
-    style PROXY fill:#f0e1ff
-    style Gateway fill:#f0f0f0
-```
-
-**Bifrost Kubernetes Deployment Example:**
-
-```yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: bifrost-proxy
-  namespace: ai-gateway
-spec:
-  replicas: 3
-  selector:
-    matchLabels:
-      app: bifrost
-  template:
-    spec:
-      containers:
-        - name: bifrost
-          image: ghcr.io/maximhq/bifrost:latest
-          ports:
-            - containerPort: 4000
-          env:
-            - name: BIFROST_MASTER_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: bifrost-secrets
-                  key: master-key
-            - name: REDIS_HOST
-              value: "redis-cache"
-          volumeMounts:
-            - name: config
-              mountPath: /app/config.yaml
-              subPath: config.yaml
-      volumes:
-        - name: config
-          configMap:
-            name: bifrost-config
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: bifrost-config
-  namespace: ai-gateway
-data:
-  config.yaml: |
-    model_list:
-      - model_name: gpt-4
-        bifrost_params:
-          model: openai/gpt-4
-          api_key: os.environ/OPENAI_API_KEY
-      - model_name: claude-3
-        bifrost_params:
-          model: anthropic/claude-3-opus
-          api_key: os.environ/ANTHROPIC_API_KEY
-      - model_name: llama-70b
-        bifrost_params:
-          model: openai/llama-70b
-          api_base: http://vllm-llama:8000/v1
-
-    router_settings:
-      routing_strategy: least-busy
-      enable_fallbacks: true
-
-    general_settings:
-      master_key: os.environ/BIFROST_MASTER_KEY
-```
-
-#### Distributed Inference Layer: llm-d
-
-**llm-d** is a scheduler that **intelligently distributes** LLM inference requests in Kubernetes environments.
-
-<LlmdFeatures />
-
-```mermaid
-flowchart LR
-    subgraph LlmdArch["llm-d Architecture"]
-        ROUTER["llm-d<br/>Router"]
-        SCHED["Scheduler<br/>Logic"]
-        CACHE["Prefix<br/>Cache"]
-    end
-
-    subgraph VllmBackends["vLLM Backends"]
-        V1["vLLM-1<br/>A100"]
-        V2["vLLM-2<br/>A100"]
-        V3["vLLM-3<br/>H100"]
-    end
-
-    subgraph K8sResources["Kubernetes Resources"]
-        SVC["Service"]
-        EP["Endpoint<br/>Slice"]
-        HPA["HPA/<br/>KEDA"]
-    end
-
-    ROUTER --> SCHED
-    SCHED --> CACHE
-    SCHED --> V1
-    SCHED --> V2
-    SCHED --> V3
-    SVC --> ROUTER
-    EP --> V1
-    EP --> V2
-    EP --> V3
-    HPA --> V1
-    HPA --> V2
-    HPA --> V3
-
-    style ROUTER fill:#ffe1e1
-    style SCHED fill:#ffe1e1
-```
-
-**llm-d Kubernetes Deployment Example:**
-
-```yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: llm-d-router
-  namespace: ai-inference
-spec:
-  replicas: 2
-  selector:
-    matchLabels:
-      app: llm-d
-  template:
-    spec:
-      containers:
-        - name: llm-d
-          image: ghcr.io/llm-d/llm-d:latest
-          ports:
-            - containerPort: 8080
-          env:
-            - name: BACKENDS
-              value: "vllm-0.vllm:8000,vllm-1.vllm:8000,vllm-2.vllm:8000"
-            - name: ROUTING_STRATEGY
-              value: "prefix-aware"
-            - name: PROMETHEUS_ENDPOINT
-              value: "http://prometheus:9090"
-          resources:
-            requests:
-              memory: "256Mi"
-              cpu: "500m"
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: llm-d
-  namespace: ai-inference
-spec:
-  selector:
-    app: llm-d
-  ports:
-    - port: 8080
-      targetPort: 8080
-```
-
-#### Vector Database Layer: Milvus
-
-Milvus, the core component of RAG pipelines, operates with a distributed architecture on Kubernetes.
-
-See **[Milvus Vector Database](../gateway-agents/milvus-vector-database.md)** for details.
-
-**Key Features of Milvus:**
-
-- **Distributed Architecture**: Independently scale Query/Data/Index Nodes
-- **Kubernetes Operator**: CRD-based declarative management
-- **GPU Acceleration**: Fast index building with GPUs in Index Nodes
-- **S3 Integration**: Can use Amazon S3 as persistent storage
-
----
-
-## GPU Infrastructure and Resource Management
-
-GPU resource management is the core of Agentic AI platforms. See the following documents for details:
-
-- **[GPU Resource Management](../model-serving/gpu-resource-management.md)**: Device Plugin, DRA (Dynamic Resource Allocation), GPU topology-aware scheduling
-- **[NeMo Framework](../model-serving/nemo-framework.md)**: Distributed training and NCCL optimization
-
-:::tip Key Concepts in GPU Management
-
-- **Device Plugin**: Kubernetes' basic GPU allocation mechanism
-- **DRA (Dynamic Resource Allocation)**: Flexible resource management in Kubernetes 1.26+
-- **NCCL**: High-performance communication library for distributed GPU training
-:::
-
-### GPU Infrastructure Stack Overview
-
-```mermaid
-flowchart TD
-    subgraph InfraStack["GPU Infrastructure Stack"]
-        subgraph ResourceAlloc["Resource Allocation"]
-            DRA["DRA<br/>K8s 1.32+"]
-            DRIVER["NVIDIA<br/>Device Plugin"]
-        end
-
-        subgraph Monitoring["Monitoring"]
-            DCGM["DCGM<br/>Exporter"]
-            PROM["Prometheus"]
-            GRAF["Grafana"]
-        end
-
-        subgraph Communication["Communication"]
-            NCCL["NCCL<br/>GPU Comm"]
-            EFA["EFA Driver"]
-        end
-
-        subgraph NodeMgmt["Node Management"]
-            KARP["Karpenter<br/>v1.2+"]
-            GPU_OP["GPU<br/>Operator"]
-        end
-    end
-
-    subgraph GPUNodes["GPU Nodes"]
-        N1["Node 1<br/>8x A100"]
-        N2["Node 2<br/>8x A100"]
-        N3["Node 3<br/>8x H100"]
-        N4["Node 4<br/>8x H200"]
-    end
-
-    DRA --> DRIVER
-    DRIVER --> N1
-    DRIVER --> N2
-    DRIVER --> N3
-    DRIVER --> N4
-    DCGM --> N1
-    DCGM --> N2
-    DCGM --> N3
-    DCGM --> N4
-    DCGM --> PROM
-    PROM --> GRAF
-    NCCL --> EFA
-    EFA --> N1
-    EFA --> N2
-    EFA --> N3
-    EFA --> N4
-    KARP --> N1
-    KARP --> N2
-    KARP --> N3
-    KARP --> N4
-    GPU_OP --> DRIVER
-    GPU_OP --> DCGM
-
-    style DRA fill:#326ce5,color:#fff
-    style DCGM fill:#e1ffe1
-    style NCCL fill:#e1ffe1
-    style KARP fill:#ffd93d
-```
-
-<GpuInfraStack />
-
----
-
-## Conclusion: Why Kubernetes for Agentic AI?
-
-Kubernetes provides the **fundamental infrastructure layer** that makes modern Agentic AI platforms possible:
-
-### Key Advantages
-
-1. **Unified Platform**: Single platform for inference, training, and orchestration
-2. **Declarative Management**: Version-controlled Infrastructure as Code
-3. **Rich Ecosystem**: Extensive open source solutions for AI workloads
-4. **Cloud Portability**: Runs anywhere (on-premises, AWS, GCP, Azure)
-5. **Mature Tooling**: kubectl, Helm, operators, monitoring stacks
-6. **Active Community**: Kubernetes AI/ML SIG drives innovation
-
-### Future Direction
-
-```mermaid
-flowchart LR
-    START["Agentic AI<br/>Requirements"]
-    K8S["Kubernetes-based<br/>Platform"]
-    OSS["Open Source<br/>Ecosystem"]
-    CLOUD["Cloud Provider<br/>Integration"]
-    SOLUTION["Complete<br/>AI Platform"]
-
-    START --> K8S
-    K8S --> OSS
-    OSS --> CLOUD
-    CLOUD --> SOLUTION
-
-    style START fill:#ffe1e1
-    style K8S fill:#326ce5,color:#fff
-    style OSS fill:#e1ffe1
-    style CLOUD fill:#ff9900,color:#fff
-    style SOLUTION fill:#e1f5ff
-```
-
-Recommendations for organizations building Agentic AI platforms:
-
-1. **Start with Kubernetes**: Establish Kubernetes expertise within the team
-2. **Leverage Open Source**: Adopt proven solutions (vLLM, Langfuse, etc.)
-3. **Cloud Integration**: Combine open source and managed services
-4. **Infrastructure Automation**: Implement auto-scaling and provisioning
-5. **Comprehensive Observability**: Ensure comprehensive observability from day one
-
-## Next Steps
-
-This document examined five core challenges of Agentic AI workloads and the Kubernetes-based open source ecosystem.
-
-:::info Next Steps: Two Approach Paths
-
-Compare and choose between two approaches to solving the challenges:
-
-**Path A: [AWS Native Platform](./aws-native-agentic-platform.md)** — Managed service-centric
-- Focus on agent development and business logic instead of infrastructure operations
-- Leverage AWS services like Bedrock, AgentCore, Step Functions
-- Suitable when small team, fast launch is priority
-
-**Path B: [EKS-Based Solutions](./agentic-ai-solutions-eks.md)** — Open source-based complete control
-- Fine control with open source tools like vLLM, LangGraph, Bifrost
-- Directly optimize GPU resources, inference engines, routing
-- Suitable when dedicated platform team, complete infrastructure control needed
-:::
-
----
-
-## References
-
-### Kubernetes and Infrastructure
-
-- [Kubernetes Official Documentation](https://kubernetes.io/docs/)
-- [Karpenter Official Documentation](https://karpenter.sh/docs/)
-- [Amazon EKS Best Practices Guide](https://docs.aws.amazon.com/eks/latest/best-practices/introduction.html)
-- [NVIDIA GPU Operator Documentation](https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/overview.html)
-- [KEDA - Kubernetes Event-driven Autoscaling](https://keda.sh/)
-
-### Model Serving and Inference
-
-- [vLLM Documentation](https://docs.vllm.ai/)
-- [llm-d Project](https://github.com/llm-d/llm-d)
-- [Kgateway Documentation](https://kgateway.io/docs/)
-- [Bifrost - High-performance LLM Gateway](https://github.com/maximhq/bifrost)
-- [LiteLLM Documentation](https://docs.litellm.ai/)
-
-### LLM Observability
-
-- [Langfuse Documentation](https://langfuse.com/docs)
-- [Langfuse v3 Release](https://langfuse.com/blog/langfuse-v3)
-- [LangSmith Documentation](https://docs.smith.langchain.com/)
-- [RAGAS Documentation](https://docs.ragas.io/)
-
-### Agent Orchestration
-
-- [LangGraph Documentation](https://langchain-ai.github.io/langgraph/)
-- [NeMo Guardrails](https://github.com/NVIDIA/NeMo-Guardrails)
-- [Model Context Protocol (MCP)](https://modelcontextprotocol.io/)
-
-### Vector Database
-
-- [Milvus Documentation](https://milvus.io/docs)
-- [Milvus Operator](https://github.com/milvus-io/milvus-operator)
-
-### GPU Infrastructure
-
-- [NVIDIA GPU Operator Documentation](https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/latest/)
-- [DCGM Exporter](https://github.com/NVIDIA/dcgm-exporter)
-- [NCCL Documentation](https://docs.nvidia.com/deeplearning/nccl/user-guide/docs/index.html)
-- [AWS EFA Documentation](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/efa.html)
-
-### Agent Framework and Training
-
-- [KAgent - Kubernetes Agent Framework](https://github.com/kagent-dev/kagent)
-- [NVIDIA NeMo Framework](https://docs.nvidia.com/nemo-framework/user-guide/latest/overview.html)
-- [Kubeflow Documentation](https://www.kubeflow.org/docs/)

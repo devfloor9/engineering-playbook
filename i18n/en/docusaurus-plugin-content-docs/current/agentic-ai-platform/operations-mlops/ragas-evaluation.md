@@ -689,7 +689,7 @@ flowchart TB
 
 ## Related Documents
 
-- [Milvus Vector Database](../gateway-agents/milvus-vector-database.md)
+- [Milvus Vector Database](../agent-data/milvus-vector-database.md)
 - [Agent Monitoring](./agent-monitoring.md)
 - [Agentic AI Platform Architecture](../design-architecture/agentic-platform-architecture.md)
 

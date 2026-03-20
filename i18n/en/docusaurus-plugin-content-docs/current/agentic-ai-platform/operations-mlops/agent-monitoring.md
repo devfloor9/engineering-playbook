@@ -1407,7 +1407,7 @@ Additionally, **CloudWatch Application Signals** enables automatic telemetry col
 :::tip Next Steps
 
 - [Agentic AI Platform Architecture](../design-architecture/agentic-platform-architecture.md) - Overall platform design
-- [Kagent Kubernetes Agent Management](../gateway-agents/kagent-kubernetes-agents.md) - Agent deployment and operations
+- [Kagent Kubernetes Agent Management](../agent-data/kagent-kubernetes-agents.md) - Agent deployment and operations
 - [RAG Evaluation Framework](./ragas-evaluation.md) - Quality evaluation using Ragas
 :::
 

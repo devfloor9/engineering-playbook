@@ -1180,7 +1180,7 @@ Team members open the Queue in Langfuse UI to review each Trace and assign score
 
 Ragas is a specialized evaluation framework for RAG systems that integrates with Langfuse to provide more sophisticated evaluation.
 
-For details, see [RAG Evaluation with Ragas](../operations-mlops/ragas-evaluation.md) documentation.
+For details, see [RAG Evaluation with Ragas](./ragas-evaluation.md) documentation.
 
 #### Simple Ragas + Langfuse Example
 
@@ -1509,10 +1509,10 @@ Essential check items before deployment:
 - [Ragas Documentation](https://docs.ragas.io)
 
 ### Related Documentation
-- [Bifrost Gateway Configuration Guide](./llm-gateway-architecture.md)
-- [kgateway-based Kong API Gateway Integration](./inference-gateway-routing.md)
-- [RAG Evaluation with Ragas](../operations-mlops/ragas-evaluation.md)
-- [Cascade Routing Strategy](./llm-gateway-architecture.md)
+- [Bifrost Gateway Configuration Guide](../gateway-agents/llm-gateway-architecture.md)
+- [kgateway-based Kong API Gateway Integration](../gateway-agents/inference-gateway-routing.md)
+- [RAG Evaluation with Ragas](./ragas-evaluation.md)
+- [Cascade Routing Strategy](../gateway-agents/llm-gateway-architecture.md)
 
 ### GitHub Repositories
 - [Langfuse](https://github.com/langfuse/langfuse)
