@@ -96,7 +96,7 @@ const slideDecks = [
         title: 'MRC Sales Pitch — Modern Agentic Applications Day',
         description: 'AI 에이전트 시대의 클라우드 네이티브 인프라, 3대 기둥(LLMOps, AgentOps, Migration), 산업별 시나리오',
         badge: 'Sales Pitch',
-        slides: 12,
+        slides: 11,
         href: '/sales-pitch/',
       },
     ],
