@@ -5,7 +5,7 @@ description: "llm-d를 활용한 EKS 환경에서의 Kubernetes 네이티브 분
 tags: [eks, llm-d, vllm, inference-gateway, gpu, auto-mode, karpenter, qwen, kv-cache]
 category: "genai-aiml"
 last_update:
-  date: 2026-03-16
+  date: 2026-03-20
   author: devfloor9
 sidebar_position: 6
 ---
@@ -29,7 +29,7 @@ import {
 
 # llm-d 기반 EKS 분산 추론 배포 가이드
 
-> **📌 현재 버전**: llm-d v0.4 (2025). 본 문서의 배포 예시는 Intelligent Inference Scheduling well-lit path 기준입니다.
+> **📌 현재 버전**: llm-d v0.5+ (2026.03). 본 문서의 배포 예시는 Intelligent Inference Scheduling well-lit path 기준입니다.
 
 > 📅 **작성일**: 2026-02-10 | **수정일**: 2026-03-16 | ⏱️ **읽는 시간**: 약 10분
 
@@ -780,15 +780,106 @@ env:
 
 ---
 
+## llm-d vs NVIDIA Dynamo
+
+llm-d와 NVIDIA Dynamo는 모두 LLM 추론 라우팅/스케줄링을 제공하지만 접근 방식이 다릅니다. 상세 비교는 [NVIDIA GPU 스택 — llm-d vs Dynamo](./nvidia-gpu-stack.md#llm-d-vs-dynamo-선택-가이드)를 참조하세요.
+
+| 항목 | llm-d | NVIDIA Dynamo |
+|------|-------|---------------|
+| **주도** | Red Hat (Apache 2.0) | NVIDIA (Apache 2.0) |
+| **아키텍처** | Aggregated + Disaggregated | Disaggregated 중심 |
+| **KV Cache 전송** | Pod 간 네트워크 전송 | NIXL (NVLink/RDMA 초고속) |
+| **스케줄링** | Gateway API + Envoy | KAI Scheduler |
+| **오토스케일링** | HPA/KEDA 연동 | KAI Scheduler 내장 |
+| **K8s 통합** | Gateway API 네이티브 (InferencePool/InferenceModel CRD) | Operator + CRD (DGDR) |
+| **GPU Operator 필요** | 불필요 (EKS Auto Mode 호환) | 필요 |
+| **복잡도** | 낮음 | 높음 |
+| **강점** | K8s 네이티브, 경량, 빠른 도입 | GPU 간 초고속 전송(NIXL), SLA 기반 스케줄링 |
+
+:::tip 선택 가이드
+- **EKS Auto Mode + 빠른 시작**: llm-d (GPU Operator 불필요)
+- **소규모~중규모 (GPU 16개 이하)**: llm-d
+- **대규모 (GPU 16개+), 최대 처리량**: Dynamo (NIXL + KAI Scheduler)
+- **긴 컨텍스트 (128K+)**: Dynamo (3-tier KV Cache: GPU→CPU→SSD)
+- **K8s Gateway API 표준 준수**: llm-d
+
+llm-d로 시작하여 규모가 커지면 Dynamo로 전환하는 것이 현실적입니다. Dynamo 1.0은 llm-d를 내부 컴포넌트로 통합할 수 있어, 완전한 대안 관계라기보다 Dynamo가 llm-d를 포함하는 상위 집합으로 볼 수 있습니다.
+:::
+
+---
+
+## llm-d v0.5+ 주요 기능
+
+본 가이드는 Intelligent Inference Scheduling path를 다루었습니다. llm-d v0.5+에서 지원하는 추가 기능입니다.
+
+| 기능 | 설명 | 상태 |
+|------|------|:----:|
+| **Prefill/Decode Disaggregation** | Prefill과 Decode를 별도 Pod 그룹으로 분리, 대규모 배치와 긴 컨텍스트 처리량 극대화 | GA |
+| **Expert Parallelism** | MoE 모델(Mixtral, DeepSeek)의 Expert를 여러 노드에 분산 서빙 | GA |
+| **LoRA 어댑터 핫스왑** | 단일 기본 모델에 여러 LoRA 어댑터를 동적 로드/언로드 | GA |
+| **멀티 모델 서빙** | 하나의 클러스터에서 여러 모델을 InferenceModel CRD로 동시 서빙 | GA |
+| **Gateway API Inference Extension** | InferencePool/InferenceModel CRD 기반 K8s 네이티브 라우팅 | GA |
+
+### Disaggregated Serving 배포 예시
+
+```yaml
+# Prefill Pod 그룹
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vllm-prefill
+  namespace: llm-d
+spec:
+  replicas: 2
+  template:
+    spec:
+      containers:
+        - name: vllm
+          image: vllm/vllm-openai:latest
+          args:
+            - "--model"
+            - "Qwen/Qwen3-32B"
+            - "--tensor-parallel-size"
+            - "4"
+            - "--disaggregated-prefill"   # Prefill 전용 모드
+          resources:
+            limits:
+              nvidia.com/gpu: 4
+---
+# Decode Pod 그룹
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vllm-decode
+  namespace: llm-d
+spec:
+  replicas: 4
+  template:
+    spec:
+      containers:
+        - name: vllm
+          image: vllm/vllm-openai:latest
+          args:
+            - "--model"
+            - "Qwen/Qwen3-32B"
+            - "--tensor-parallel-size"
+            - "2"
+            - "--disaggregated-decode"    # Decode 전용 모드
+          resources:
+            limits:
+              nvidia.com/gpu: 2
+```
+
+:::info Disaggregated Serving의 이점
+- **Prefill**: 프롬프트 처리에 GPU 컴퓨팅을 집중 (compute-bound)
+- **Decode**: 토큰 생성에 GPU 메모리를 집중 (memory-bound)
+- 각 단계를 독립적으로 스케일링하여 GPU 활용률 극대화
+- Dynamo의 NIXL과 달리 표준 네트워크를 통한 KV Cache 전송 (성능은 낮지만 설정 간편)
+:::
+
+---
+
 ## 다음 단계
-
-본 가이드에서는 llm-d의 Intelligent Inference Scheduling path를 다루었습니다. 다음 단계로 고급 기능을 탐색할 수 있습니다.
-
-- **Prefill/Decode Disaggregation**: Prefill과 Decode 단계를 별도 Pod 그룹으로 분리하여 대규모 배치 처리와 긴 컨텍스트 워크로드의 처리량을 극대화
-- **Expert Parallelism**: MoE 모델(Mixtral, DeepSeek 등)의 Expert를 여러 노드에 분산하여 초대규모 모델 서빙
-- **LoRA 어댑터 핫스왑**: 단일 기본 모델에 여러 LoRA 어댑터를 동적으로 로드/언로드하여 다중 태스크 서빙
-- **Prometheus + Grafana 대시보드**: vLLM 메트릭 기반 실시간 모니터링 대시보드 구성
-- **멀티 모델 서빙**: 하나의 llm-d 클러스터에서 여러 모델을 InferenceModel CRD로 동시 서빙
 
 ### 관련 문서
 
