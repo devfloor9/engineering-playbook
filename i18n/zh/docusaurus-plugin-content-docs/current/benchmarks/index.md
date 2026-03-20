@@ -1,7 +1,7 @@
 ---
-title: 基准测试报告
+title: "EKS 性能基准测试报告"
 sidebar_position: 7
-description: 云原生基础设施性能基准测试和测试报告
+description: "EKS 性能基准测试报告合集 — 网络、AI/ML 推理、基础设施与运维"
 category: "benchmarks"
 tags: [benchmark, performance, testing, report]
 ---

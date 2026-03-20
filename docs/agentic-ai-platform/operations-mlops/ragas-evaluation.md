@@ -1,8 +1,8 @@
 ---
 title: "Ragas RAG 평가 프레임워크"
-sidebar_label: "13. Ragas 평가"
+sidebar_label: "Ragas 평가"
 description: "Ragas를 활용한 RAG 파이프라인 품질 평가 및 지속적 개선 방법"
-sidebar_position: 13
+sidebar_position: 2
 category: "genai-aiml"
 last_update:
   date: 2026-02-14

@@ -1,7 +1,7 @@
 ---
 title: 混合基础设施基准测试
-sidebar_label: "4. 混合基础设施"
-sidebar_position: 5
+sidebar_label: "Report 7. 混合基础设施 [预定]"
+sidebar_position: 7
 description: 混合云基础设施网络和存储性能基准测试
 category: "benchmarks"
 tags: [benchmark, hybrid, network, storage, sriov]

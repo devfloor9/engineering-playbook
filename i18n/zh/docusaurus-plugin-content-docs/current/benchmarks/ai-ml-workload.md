@@ -1,13 +1,13 @@
 ---
 title: "Llama 4 FM 服务基准测试：GPU vs AWS Custom Silicon"
-sidebar_label: "3. AI/ML 服务基准测试"
+sidebar_label: "Report 3. AI/ML 服务"
 description: "基于 vLLM 的 Llama 4 模型服务中 GPU 实例（p5、p4d、g6e）和 AWS 定制芯片（Trainium2、Inferentia2）的性能及成本效率比较基准测试"
 tags: [benchmark, ai, ml, gpu, inference, vllm, llama4, trainium, inferentia, eks]
 category: "benchmark"
 last_update:
   date: 2026-02-10
   author: devfloor9
-sidebar_position: 4
+sidebar_position: 3
 ---
 
 import MLOverviewChart from '@site/src/components/MLOverviewChart';

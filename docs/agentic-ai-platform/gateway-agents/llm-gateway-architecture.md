@@ -1,13 +1,13 @@
 ---
 title: "LLM Gateway 2-Tier 아키텍처"
-sidebar_label: "18. LLM Gateway 아키텍처"
+sidebar_label: "LLM Gateway 아키텍처"
 description: "kgateway + Bifrost 기반 2-Tier LLM Gateway 아키텍처 및 솔루션 선택 가이드 (LiteLLM 대안 포함)"
 tags: [eks, gateway, llm, bifrost, litellm, kgateway, agentgateway, routing]
 category: "genai-aiml"
 last_update:
   date: 2026-03-18
   author: devfloor9
-sidebar_position: 18
+sidebar_position: 6
 ---
 
 # LLM Gateway 2-Tier 아키텍처
@@ -1224,9 +1224,9 @@ rules:
 
 ### 다음 단계
 
-- [9. Inference Gateway 및 Dynamic Routing](./inference-gateway-routing.md) - kgateway 라우팅 상세
-- [17. OpenClaw AI Gateway 배포](./openclaw-ai-gateway.mdx) - 실전 배포 예시
-- [12. Agent 모니터링](../operations-mlops/agent-monitoring.md) - Langfuse/LangSmith 통합
+- [Inference Gateway 및 Dynamic Routing](./inference-gateway-routing.md) - kgateway 라우팅 상세
+- [OpenClaw AI Gateway 배포](./openclaw-ai-gateway.mdx) - 실전 배포 예시
+- [Agent 모니터링](../operations-mlops/agent-monitoring.md) - Langfuse/LangSmith 통합
 
 ---
 

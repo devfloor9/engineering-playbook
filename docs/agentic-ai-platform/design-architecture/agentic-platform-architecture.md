@@ -1,13 +1,13 @@
 ---
 title: "Agentic AI Platform 아키텍처"
-sidebar_label: "3. 플랫폼 아키텍처"
+sidebar_label: "플랫폼 아키텍처"
 description: "Amazon EKS 기반 프로덕션급 GenAI 플랫폼의 전체 시스템 아키텍처, 핵심 컴포넌트 설계, 그리고 구현 전략을 다루는 종합 가이드"
 tags: [eks, architecture, agentic-ai, platform, kubernetes, kagent, kgateway, genai, mlops]
 category: "genai-aiml"
 last_update:
   date: 2026-03-17
   author: devfloor9
-sidebar_position: 3
+sidebar_position: 4
 ---
 
 import { CoreCapabilities, LayerRoles, ToolTypes, K8sFeatures, RoutingStrategies, TenantIsolation, RequestProcessing, TechnologyStack } from '@site/src/components/ArchitectureTables';

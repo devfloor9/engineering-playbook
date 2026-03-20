@@ -1,13 +1,13 @@
 ---
 title: "llm-d 기반 EKS 분산 추론 배포 가이드"
-sidebar_label: "7. llm-d 분산 추론"
+sidebar_label: "llm-d 분산 추론"
 description: "llm-d를 활용한 EKS 환경에서의 Kubernetes 네이티브 분산 추론 배포 및 운영 가이드 — Auto Mode와 Karpenter 배포 전략 비교"
 tags: [eks, llm-d, vllm, inference-gateway, gpu, auto-mode, karpenter, qwen, kv-cache]
 category: "genai-aiml"
 last_update:
   date: 2026-03-16
   author: devfloor9
-sidebar_position: 7
+sidebar_position: 4
 ---
 
 import { ComparisonTable, SpecificationTable } from '@site/src/components/tables';

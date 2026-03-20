@@ -1,47 +1,40 @@
 ---
-title: Benchmark Reports
+title: "EKS 성능 벤치마크 보고서"
 sidebar_position: 7
-description: 클라우드 네이티브 인프라 성능 벤치마크 및 테스트 리포트
+description: "EKS 환경 성능 벤치마크 보고서 모음 — 네트워킹, AI/ML 추론, 인프라 & 운영"
 category: "benchmarks"
-tags: [benchmark, performance, testing, report]
+tags: [benchmark, performance, testing, report, eks]
 last_update:
-  date: 2026-02-13
+  date: 2026-03-20
   author: devfloor9
 ---
 
-# Benchmark Reports
+# EKS 성능 벤치마크 보고서
 
-각 기술 도메인에 대한 성능 벤치마크 및 테스트 리포트를 제공합니다. 실제 워크로드 기반의 측정 결과를 통해 아키텍처 결정과 최적화 방향을 데이터로 검증할 수 있습니다.
+EKS 환경에서 실제 워크로드 기반으로 측정한 성능 벤치마크 보고서입니다. 아키텍처 결정과 최적화 방향을 데이터로 검증합니다.
 
-## 벤치마크 영역
+## 네트워킹
 
-### 인프라 성능
+| # | 보고서 | 상태 |
+|---|--------|------|
+| 1 | [VPC CNI vs Cilium 네트워크 성능 비교](./cni-performance-comparison.md) | ✅ 완성 |
+| 2 | [Gateway API 구현체 성능 비교](./gateway-api-benchmark.md) | 📋 계획 |
 
-- 네트워크 처리량 및 지연 시간
-- DNS 해석 성능
-- 오토스케일링 반응 속도
-- 비용 효율성 분석
-- Gateway API 구현체 성능 비교
+## AI/ML 추론
 
-### AI/ML 워크로드
+| # | 보고서 | 상태 |
+|---|--------|------|
+| 3 | [Llama 4 FM 서빙: GPU vs Custom Silicon](./ai-ml-workload.md) | ✅ 완성 |
+| 4 | [추론 플랫폼: AgentCore vs EKS 자체 구축](./agentcore-vs-eks-inference.md) | 📋 계획 |
+| 5 | [NVIDIA Dynamo 추론 벤치마크](./dynamo-inference-benchmark.md) | 🆕 신규 |
 
-- 모델 추론 지연 시간 (latency)
-- GPU 활용률 및 처리량 (throughput)
-- 배치 처리 성능
-- 멀티 모델 서빙 비교
-- [추론 플랫폼 비교: Bedrock AgentCore vs EKS 자체 구축](./agentcore-vs-eks-inference.md)
+## 인프라 & 운영
 
-### 하이브리드 인프라
-
-- 클라우드-온프레미스 네트워크 성능
-- 스토리지 I/O 벤치마크
-- SR-IOV 네트워크 가속 효과
-
-### 보안 및 운영
-
-- 정책 적용 오버헤드
-- 모니터링 에이전트 리소스 사용량
-- GitOps 동기화 성능
+| # | 보고서 | 상태 |
+|---|--------|------|
+| 6 | [인프라 성능](./infrastructure-performance.md) | 🔜 예정 |
+| 7 | [하이브리드 인프라](./hybrid-infrastructure.md) | 🔜 예정 |
+| 8 | [보안 및 운영](./security-operations.md) | 🔜 예정 |
 
 ## 벤치마크 방법론
 

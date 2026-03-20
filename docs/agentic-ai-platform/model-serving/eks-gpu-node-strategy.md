@@ -1,13 +1,13 @@
 ---
 title: "EKS GPU 노드 전략: Auto Mode + Karpenter + Hybrid Node"
-sidebar_label: "20. EKS GPU 노드 전략"
+sidebar_label: "EKS GPU 노드 전략"
 description: "EKS Auto Mode, Karpenter, Self-Managed Node Group, Hybrid Node의 GPU 워크로드별 최적 노드 전략"
 tags: [eks, gpu, auto-mode, karpenter, hybrid-node, gpu-operator, nvidia, run-ai]
 category: "genai-aiml"
 last_update:
   date: 2026-03-16
   author: devfloor9
-sidebar_position: 20
+sidebar_position: 6
 ---
 
 # EKS GPU 노드 전략: Auto Mode + Karpenter + Hybrid Node

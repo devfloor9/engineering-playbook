@@ -1,6 +1,7 @@
 ---
 title: "추론 플랫폼 벤치마크: Bedrock AgentCore vs EKS 자체 구축"
-sidebar_label: "AgentCore vs EKS 추론"
+sidebar_label: "Report 4. AgentCore vs EKS [계획]"
+sidebar_position: 4
 description: "Bedrock AgentCore를 기본으로 EKS 자체 구축(vLLM, llm-d, Bifrost/LiteLLM) 대비 기능, 성능, 비용을 비교하는 벤치마크 계획"
 tags: [benchmark, bedrock, agentcore, eks, vllm, llm-d, bifrost, litellm, inference, cost]
 category: "benchmark"

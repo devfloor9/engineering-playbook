@@ -1,13 +1,13 @@
 ---
 title: "Gateway API Implementation Performance Benchmark Plan"
-sidebar_label: "3. Gateway API Benchmark"
+sidebar_label: "Report 2. Gateway API [Plan]"
 description: "Performance comparison benchmark plan for 5 Gateway API implementations (AWS LBC v3, Cilium, NGINX Gateway Fabric, Envoy Gateway, kGateway) in EKS environments"
 tags: [benchmark, gateway-api, cilium, envoy, nginx, performance, eks]
 category: "benchmark"
 last_update:
-  date: 2026-02-14
+  date: 2026-03-20
   author: devfloor9
-sidebar_position: 3
+sidebar_position: 2
 ---
 
 # Gateway API Implementation Performance Benchmark Plan

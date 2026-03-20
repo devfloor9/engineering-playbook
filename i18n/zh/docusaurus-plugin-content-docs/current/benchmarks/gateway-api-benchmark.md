@@ -1,13 +1,13 @@
 ---
 title: "Gateway API 实现性能基准测试计划"
-sidebar_label: "3. Gateway API 基准测试"
+sidebar_label: "Report 2. Gateway API [计划]"
 description: "5个 Gateway API 实现（AWS LBC v3、Cilium、NGINX Gateway Fabric、Envoy Gateway、kGateway）在 EKS 环境中的性能比较基准测试计划"
 tags: [benchmark, gateway-api, cilium, envoy, nginx, performance, eks]
 category: "benchmark"
 last_update:
   date: 2026-02-12
   author: devfloor9
-sidebar_position: 3
+sidebar_position: 2
 ---
 
 # Gateway API 实现性能基准测试计划

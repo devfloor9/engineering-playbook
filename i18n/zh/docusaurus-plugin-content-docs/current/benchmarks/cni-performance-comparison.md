@@ -1,13 +1,13 @@
 ---
 title: "VPC CNI vs Cilium CNI 性能比较基准测试"
-sidebar_label: "2. CNI 性能比较"
+sidebar_label: "Report 1. CNI 性能比较"
 description: "EKS 环境中 VPC CNI 和 Cilium CNI 的网络及应用性能通过5个场景（kube-proxy、kube-proxy-less、ENI、调优）比较的基准测试报告"
 tags: [benchmark, cni, cilium, vpc-cni, networking, performance, eks]
 category: "benchmark"
 last_update:
   date: 2026-02-09
   author: devfloor9
-sidebar_position: 2
+sidebar_position: 1
 ---
 
 import HttpPerformanceChart from '@site/src/components/HttpPerformanceChart';

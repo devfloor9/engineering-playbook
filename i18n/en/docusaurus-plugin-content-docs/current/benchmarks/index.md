@@ -1,10 +1,10 @@
 ---
-title: Benchmark Reports
+title: "EKS Performance Benchmark Reports"
 sidebar_position: 7
-description: Cloud-native infrastructure performance benchmarks and test reports
+description: "EKS performance benchmark report collection — Networking, AI/ML Inference, Infrastructure & Operations"
 tags: [benchmark, performance, testing, report]
 last_update:
-  date: 2026-02-13
+  date: 2026-03-20
   author: devfloor9
 category: "benchmarks"
 ---

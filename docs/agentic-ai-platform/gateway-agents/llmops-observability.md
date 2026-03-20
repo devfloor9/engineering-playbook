@@ -1,13 +1,13 @@
 ---
 title: "LLMOps Observability 비교 가이드"
-sidebar_label: "19. LLMOps Observability"
+sidebar_label: "LLMOps Observability"
 description: "Langfuse, LangSmith, Helicone 비교 및 하이브리드 Observability 아키텍처 구성 가이드"
 tags: [eks, observability, langfuse, langsmith, helicone, llmops, monitoring]
 category: "genai-aiml"
 last_update:
   date: 2026-03-16
   author: devfloor9
-sidebar_position: 19
+sidebar_position: 7
 ---
 
 # LLMOps Observability 비교 가이드

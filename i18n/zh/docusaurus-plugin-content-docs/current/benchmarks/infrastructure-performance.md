@@ -1,7 +1,7 @@
 ---
 title: 基础设施性能基准测试
-sidebar_label: "1. 基础设施性能"
-sidebar_position: 1
+sidebar_label: "Report 6. 基础设施 [预定]"
+sidebar_position: 6
 description: EKS 集群基础设施性能基准测试 - 网络、DNS、自动扩展
 category: "benchmarks"
 tags: [benchmark, infrastructure, performance, network, dns]

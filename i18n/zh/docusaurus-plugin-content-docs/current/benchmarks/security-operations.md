@@ -1,7 +1,7 @@
 ---
 title: 安全和运维基准测试
-sidebar_label: "5. 安全和运维"
-sidebar_position: 6
+sidebar_label: "Report 8. 安全与运维 [预定]"
+sidebar_position: 8
 description: 安全策略应用和运维工具性能基准测试
 category: "benchmarks"
 tags: [benchmark, security, operations, monitoring, gitops]

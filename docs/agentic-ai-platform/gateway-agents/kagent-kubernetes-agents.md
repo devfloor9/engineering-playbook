@@ -1,13 +1,13 @@
 ---
 title: "Kagent - Kubernetes AI Agent 관리"
-sidebar_label: "11. Kagent Agent 관리"
+sidebar_label: "Kagent Agent 관리"
 description: "Kagent를 활용한 Kubernetes 환경에서의 AI 에이전트 배포 및 라이프사이클 관리"
 tags: [eks, kagent, kubernetes, agent, crd, operator]
 category: "genai-aiml"
 last_update:
   date: 2026-03-17
   author: devfloor9
-sidebar_position: 11
+sidebar_position: 3
 ---
 
 # Kagent - Kubernetes AI Agent 관리

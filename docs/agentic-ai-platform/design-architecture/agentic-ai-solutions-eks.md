@@ -1,13 +1,13 @@
 ---
 title: "EKS 기반 Agentic AI 해결방안"
-sidebar_label: "2. EKS 기반 해결방안"
+sidebar_label: "EKS 기반 해결방안"
 description: "Amazon EKS와 AWS 서비스를 활용한 Agentic AI 도전과제 해결 가이드"
 tags: [eks, aws, karpenter, genai, agentic-ai, gpu, solutions]
 category: "genai-aiml"
 last_update:
   date: 2026-03-18
   author: devfloor9
-sidebar_position: 2
+sidebar_position: 3
 ---
 
 import Tabs from '@theme/Tabs';
@@ -34,13 +34,16 @@ import {
   AckControllers,
   AutomationComponents,
   EksAutoModeBenefits,
-  ChallengeSolutionsSummary
+  ChallengeSolutionsSummary,
+  EksClusterConfiguration
 } from '@site/src/components/AgenticSolutionsTables';
 
 > 📅 **작성일**: 2025-02-05 | **수정일**: 2026-03-18 | ⏱️ **읽는 시간**: 약 21분
 
-:::info 선행 문서: 기술적 도전과제
-이 문서를 읽기 전에 [Agentic AI 워크로드의 기술적 도전과제](./agentic-ai-challenges.md)를 먼저 읽어보시기 바랍니다. 해당 문서에서 5가지 핵심 도전과제와 Kubernetes 기반 오픈소스 생태계에 대해 설명합니다.
+:::info 선행 문서
+이 문서를 읽기 전에 다음 문서를 먼저 참조하세요:
+- [기술적 도전과제](./agentic-ai-challenges.md) — 5가지 핵심 도전과제와 Kubernetes 기반 오픈소스 생태계
+- [AWS Native 플랫폼](./aws-native-agentic-platform.md) — 매니지드 서비스 기반 대안 접근 (비교 참고)
 :::
 
 ## 개요
@@ -48,6 +51,72 @@ import {
 Agentic AI 플랫폼의 5가지 핵심 도전과제(GPU 리소스 관리, 추론 라우팅, LLMOps 관찰성, Agent 오케스트레이션, 모델 공급망)는 **Amazon EKS와 AWS 관리형 서비스의 통합**을 통해 효과적으로 해결할 수 있습니다.
 
 이 문서에서는 **EKS Auto Mode + Karpenter 중심의 구체적인 해결 방안**과 AWS 인프라와의 통합 아키텍처를 다룹니다.
+
+---
+
+## EKS 클러스터 구성 옵션: 컨트롤 플레인과 데이터 플레인
+
+EKS 클러스터 구성은 **두 개의 독립된 레이어**로 나뉩니다. 각 레이어에서 워크로드 규모와 운영 요구사항에 맞는 옵션을 선택하고, 이를 조합하여 최적의 클러스터를 구성합니다.
+
+```mermaid
+flowchart TD
+    subgraph ControlPlane["컨트롤 플레인 (API Server, etcd, Scheduler)"]
+        CP_STD["Standard<br/>동적 오토스케일링<br/>$0.10/hr"]
+        CP_PCP["Provisioned (PCP)<br/>고정 티어 프로비저닝<br/>프리미엄 과금"]
+    end
+
+    subgraph DataPlane["데이터 플레인 (Worker Nodes)"]
+        DP_MNG["Managed<br/>Node Groups<br/>수동 관리"]
+        DP_KARP["Karpenter<br/>자동 프로비저닝<br/>GPU 최적화"]
+        DP_AUTO["Auto Mode<br/>AWS 완전 관리<br/>운영 최소화"]
+    end
+
+    CP_STD -.->|조합 가능| DP_MNG
+    CP_STD -.->|조합 가능| DP_KARP
+    CP_STD -.->|조합 가능| DP_AUTO
+    CP_PCP -.->|조합 가능| DP_KARP
+    CP_PCP -.->|조합 가능| DP_AUTO
+
+    style CP_STD fill:#232f3e,color:#fff
+    style CP_PCP fill:#527fff,color:#fff
+    style DP_MNG fill:#ffd93d
+    style DP_KARP fill:#ff9900,color:#fff
+    style DP_AUTO fill:#ff9900,color:#fff
+```
+
+### Provisioned Control Plane (PCP)
+
+2025년 11월에 발표된 **Provisioned Control Plane (PCP)**은 컨트롤 플레인 용량을 사전에 고정 티어로 프로비저닝하여, API 서버 성능의 일관성을 보장하는 프리미엄 옵션입니다.
+
+**전제 조건:**
+- AWS CLI v2, EKS IAM Role + Service-linked Role + CloudFormation 권한
+- VPC: 최소 2개 AZ에 걸친 서브넷
+- Kubernetes: EKS 지원 버전 (1.29~1.33)
+- 리전: 모든 EKS 상용 리전에서 사용 가능
+
+```yaml
+# PCP 클러스터 생성 예시
+apiVersion: eks.amazonaws.com/v1
+kind: Cluster
+spec:
+  controlPlaneScalingConfig:
+    tier: tier-xl  # tier-xl / tier-2xl / tier-4xl / tier-8xl / tier-ultra
+```
+
+:::info PCP vs Auto Mode — 서로 다른 레이어
+**PCP**는 컨트롤 플레인 용량 옵션이고, **Auto Mode**는 데이터 플레인 관리 옵션입니다. 두 기능은 서로 다른 레이어에서 독립적으로 작동하며, **조합하여 사용할 수 있습니다**. 예를 들어, 대규모 AI 플랫폼에서는 PCP로 API 서버 성능을 보장하면서 Auto Mode로 노드 운영을 자동화하는 구성이 가능합니다.
+:::
+
+### 컨트롤 플레인 × 데이터 플레인 비교 및 조합
+
+<EksClusterConfiguration />
+
+:::tip AI 플랫폼 규모별 권장 구성
+- **소규모 (PoC/데모)**: Standard + Auto Mode — 최소 운영 부담
+- **중규모 (프로덕션 추론)**: Standard + Karpenter — GPU 비용 최적화
+- **대규모 (엔터프라이즈 AI)**: PCP (tier-xl) + Auto Mode — 성능 보장 + 자동화
+- **초대규모 (학습 클러스터)**: PCP (tier-4xl+) + Karpenter — API 성능 + GPU 세밀 제어
+:::
 
 ---
 

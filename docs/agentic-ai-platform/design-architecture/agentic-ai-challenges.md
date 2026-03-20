@@ -1,6 +1,6 @@
 ---
 title: "Agentic AI 워크로드의 기술적 도전과제"
-sidebar_label: "1. 기술적 도전과제"
+sidebar_label: "기술적 도전과제"
 description: "Agentic AI 워크로드 운영 시 직면하는 5가지 핵심 도전과제와 Kubernetes 기반 오픈소스 생태계"
 tags: [kubernetes, genai, agentic-ai, gpu, challenges, open-source]
 category: "genai-aiml"
@@ -1207,16 +1207,19 @@ Agentic AI 플랫폼을 구축하는 조직을 위한 권장 사항:
 
 이 문서에서는 Agentic AI 워크로드의 5가지 핵심 도전과제와 Kubernetes 기반 오픈소스 생태계를 살펴보았습니다.
 
-:::info 다음 단계: EKS 기반 해결방안
-이 문서에서 소개한 도전과제들을 **Amazon EKS와 AWS 서비스**를 활용하여 해결하는 구체적인 방법은 [EKS 기반 Agentic AI 해결방안](./agentic-ai-solutions-eks.md)을 참조하세요.
+:::info 다음 단계: 두 가지 접근 경로
 
-다음 문서에서 다룰 내용:
+도전과제를 해결하는 두 가지 접근 방식을 비교하고 선택하세요:
 
-- EKS Auto Mode로 완전 자동화된 클러스터 구축
-- Karpenter를 통한 GPU 노드 자동 프로비저닝
-- AWS 서비스와의 통합 (Bedrock, S3, CloudWatch)
-- 프로덕션 환경을 위한 보안 및 운영 전략
-- 실전 배포 가이드 및 트러블슈팅
+**경로 A: [AWS Native 플랫폼](./aws-native-agentic-platform.md)** — 매니지드 서비스 중심
+- 인프라 운영 대신 Agent 개발과 비즈니스 로직에 집중
+- Bedrock, AgentCore, Step Functions 등 AWS 서비스 활용
+- 소규모 팀, 빠른 출시가 우선일 때 적합
+
+**경로 B: [EKS 기반 해결방안](./agentic-ai-solutions-eks.md)** — 오픈소스 기반 완전 제어
+- vLLM, LangGraph, Bifrost 등 오픈소스로 세밀한 제어
+- GPU 리소스, 추론 엔진, 라우팅을 직접 최적화
+- 전담 플랫폼팀 보유, 완전한 인프라 제어가 필요할 때 적합
 :::
 
 ---

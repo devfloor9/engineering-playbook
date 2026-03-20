@@ -1,13 +1,13 @@
 ---
 title: "Inference Gateway 및 Dynamic Routing"
-sidebar_label: "9. Inference Gateway"
+sidebar_label: "Inference Gateway"
 description: "Kgateway 기반 AI 모델 추론 요청의 동적 라우팅 및 로드 밸런싱 구성"
 tags: [eks, gateway-api, kgateway, routing, load-balancing, inference]
 category: "genai-aiml"
 last_update:
   date: 2026-03-16
   author: devfloor9
-sidebar_position: 9
+sidebar_position: 1
 ---
 
 # Inference Gateway 및 Dynamic Routing

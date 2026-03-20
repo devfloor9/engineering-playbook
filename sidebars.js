@@ -68,9 +68,9 @@ const sidebars = {
           },
           items: [
             'agentic-ai-platform/design-architecture/agentic-ai-challenges',
+            'agentic-ai-platform/design-architecture/aws-native-agentic-platform',
             'agentic-ai-platform/design-architecture/agentic-ai-solutions-eks',
             'agentic-ai-platform/design-architecture/agentic-platform-architecture',
-            'agentic-ai-platform/design-architecture/aws-native-agentic-platform',
           ],
         },
         {
@@ -86,6 +86,7 @@ const sidebars = {
             'agentic-ai-platform/model-serving/moe-model-serving',
             'agentic-ai-platform/model-serving/llm-d-eks-automode',
             'agentic-ai-platform/model-serving/nemo-framework',
+            'agentic-ai-platform/model-serving/eks-gpu-node-strategy',
           ],
         },
         {
@@ -101,6 +102,8 @@ const sidebars = {
             'agentic-ai-platform/gateway-agents/kagent-kubernetes-agents',
             'agentic-ai-platform/gateway-agents/bedrock-agentcore-mcp',
             'agentic-ai-platform/gateway-agents/openclaw-ai-gateway',
+            'agentic-ai-platform/gateway-agents/llm-gateway-architecture',
+            'agentic-ai-platform/gateway-agents/llmops-observability',
           ],
         },
         {
@@ -181,19 +184,38 @@ const sidebars = {
   ],
   benchmarks: [
     {
+      type: 'doc',
+      id: 'benchmarks/index',
+      label: '개요',
+    },
+    {
       type: 'category',
-      label: 'Benchmark Reports',
+      label: '네트워킹',
+      collapsible: true,
       collapsed: false,
-      link: {
-        type: 'doc',
-        id: 'benchmarks/index',
-      },
       items: [
-        'benchmarks/infrastructure-performance',
         'benchmarks/cni-performance-comparison',
         'benchmarks/gateway-api-benchmark',
+      ],
+    },
+    {
+      type: 'category',
+      label: 'AI/ML 추론',
+      collapsible: true,
+      collapsed: false,
+      items: [
         'benchmarks/ai-ml-workload',
         'benchmarks/agentcore-vs-eks-inference',
+        'benchmarks/dynamo-inference-benchmark',
+      ],
+    },
+    {
+      type: 'category',
+      label: '인프라 & 운영',
+      collapsible: true,
+      collapsed: false,
+      items: [
+        'benchmarks/infrastructure-performance',
         'benchmarks/hybrid-infrastructure',
         'benchmarks/security-operations',
       ],
