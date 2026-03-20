@@ -5,7 +5,6 @@ import Slide04 from './Slide04';
 import Slide05 from './Slide05';
 import Slide06 from './Slide06';
 import Slide07 from './Slide07';
-import Slide08 from './Slide08';
 import Slide09 from './Slide09';
 import Slide10 from './Slide10';
 import Slide11 from './Slide11';
@@ -19,7 +18,6 @@ export const slides = [
   Slide05,
   Slide06,
   Slide07,
-  Slide08,
   Slide09,
   Slide10,
   Slide11,

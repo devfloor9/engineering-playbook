@@ -1,5 +1,5 @@
 import { SlideWrapper, Card } from '@shared/components';
-import { Rocket, Server, Bot, ArrowRightLeft } from 'lucide-react';
+import { Rocket, Server, Bot } from 'lucide-react';
 
 export default function Slide12() {
   return (
@@ -19,26 +19,19 @@ export default function Slide12() {
           <span className="text-white font-semibold">디지털 전환에 성공한 기업이 Agentic AI도 잘 합니다</span>
         </p>
 
-        <div className="grid grid-cols-3 gap-5 w-full max-w-4xl mt-4">
-          <Card color="blue" className="p-5 text-center">
+        <div className="grid grid-cols-2 gap-8 w-full max-w-3xl mt-4">
+          <Card color="blue" className="p-6 text-center">
             <Server className="w-14 h-14 text-blue-400 mx-auto mb-3" />
-            <h4 className="text-xl font-bold text-blue-300 mb-2">LLMOps Track</h4>
-            <p className="text-sm text-gray-300">EKS + GPU Operator + vLLM PoC</p>
+            <h4 className="text-xl font-bold text-blue-300 mb-2">Modern Agentic Infra</h4>
+            <p className="text-sm text-gray-300">EKS + GPU Operator + vLLM + Hybrid Nodes</p>
             <p className="text-xs text-gray-500 mt-2">2주 PoC → 프로덕션 로드맵</p>
           </Card>
 
-          <Card color="emerald" className="p-5 text-center">
+          <Card color="emerald" className="p-6 text-center">
             <Bot className="w-14 h-14 text-emerald-400 mx-auto mb-3" />
-            <h4 className="text-xl font-bold text-emerald-300 mb-2">AgentOps Track</h4>
-            <p className="text-sm text-gray-300">AgentCore + Hosted MCP PoC</p>
-            <p className="text-xs text-gray-500 mt-2">매니지드 에이전트 운영</p>
-          </Card>
-
-          <Card color="purple" className="p-5 text-center">
-            <ArrowRightLeft className="w-14 h-14 text-purple-400 mx-auto mb-3" />
-            <h4 className="text-xl font-bold text-purple-300 mb-2">Migration Track</h4>
-            <p className="text-sm text-gray-300">AWS Transform 어세스먼트</p>
-            <p className="text-xs text-gray-500 mt-2">레거시 → AI-ready 전환</p>
+            <h4 className="text-xl font-bold text-emerald-300 mb-2">Modern Agentic Apps</h4>
+            <p className="text-sm text-gray-300">AgentCore + Hosted MCP + DevOps Agent</p>
+            <p className="text-xs text-gray-500 mt-2">에이전트 구축 & 운영 자동화</p>
           </Card>
         </div>
 

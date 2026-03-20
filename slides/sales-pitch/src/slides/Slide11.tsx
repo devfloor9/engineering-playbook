@@ -41,25 +41,21 @@ export default function Slide11() {
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-4 mt-4">
-            <Card color="blue" className="p-4">
-              <h4 className="text-base font-semibold text-blue-300 mb-1">Session 1</h4>
-              <p className="text-sm text-gray-300">클라우드 네이티브 AI 플랫폼 Deep Dive</p>
+          <div className="grid grid-cols-2 gap-6 mt-4">
+            <Card color="blue" className="p-5">
+              <h4 className="text-lg font-semibold text-blue-300 mb-1">Track 1: Modern Agentic Infra</h4>
+              <p className="text-sm text-gray-300">EKS + GPU + vLLM + Hybrid Nodes — AI 인프라 Deep Dive</p>
             </Card>
-            <Card color="emerald" className="p-4">
-              <h4 className="text-base font-semibold text-emerald-300 mb-1">Session 2</h4>
-              <p className="text-sm text-gray-300">AgentOps 실전 가이드</p>
-            </Card>
-            <Card color="purple" className="p-4">
-              <h4 className="text-base font-semibold text-purple-300 mb-1">Session 3</h4>
-              <p className="text-sm text-gray-300">마이그레이션 성공 사례</p>
+            <Card color="emerald" className="p-5">
+              <h4 className="text-lg font-semibold text-emerald-300 mb-1">Track 2: Modern Agentic Apps</h4>
+              <p className="text-sm text-gray-300">AgentCore + Hosted MCP — 에이전트 개발 & 운영 실전 가이드</p>
             </Card>
           </div>
         </div>
 
         <div className="flex items-center justify-center gap-3 text-gray-400">
           <Users className="w-6 h-6" />
-          <p className="text-lg">200명 한정 | CTO, VP Engineering, 플랫폼 엔지니어링 리더, IT 의사결정자 대상</p>
+          <p className="text-lg">200명 한정 | 2개 트랙 | CTO, VP Engineering, 플랫폼 엔지니어링 리더 대상</p>
         </div>
       </div>
     </SlideWrapper>

@@ -5,11 +5,11 @@ export default function Slide07() {
   return (
     <SlideWrapper>
       <div className="flex items-center gap-4 mb-4">
-        <Badge color="emerald" size="lg" className="text-2xl px-5 py-2">기둥 2</Badge>
-        <h2 className="text-5xl font-bold text-emerald-300">AgentOps</h2>
+        <Badge color="emerald" size="lg" className="text-2xl px-5 py-2">Track 2</Badge>
+        <h2 className="text-5xl font-bold text-emerald-300">Modern Agentic Apps</h2>
       </div>
       <p className="text-xl text-gray-400 mb-4">
-        매니지드 에이전트 생태계로 AI 에이전트 운영을 자동화합니다
+        매니지드 에이전트 생태계로 AI 에이전트 개발과 운영을 자동화합니다
       </p>
 
       <div className="flex-1 flex flex-col justify-center space-y-5">
