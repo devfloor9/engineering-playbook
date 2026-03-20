@@ -1,10 +1,10 @@
 ---
-title: "DG Rep 토킹포인트 - Modern Agentic Applications Day"
-sidebar_label: "DG 토킹포인트"
-description: "2026.4.9 Modern Agentic Applications Day 고객 초대를 위한 DG Rep 세일즈 피치 가이드"
+title: "MRC 토킹포인트 - Modern Agentic Applications Day"
+sidebar_label: "MRC 토킹포인트"
+description: "2026.4.9 Modern Agentic Applications Day 고객 초대를 위한 MRC(Marketing Representative for Customers) 세일즈 피치 가이드"
 ---
 
-# DG Rep 토킹포인트
+# MRC 토킹포인트
 
 > **핵심 테제**: "앱 현대화를 잘 해온 기업이 Agentic AI도 잘 합니다."
 
