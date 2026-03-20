@@ -1,21 +1,18 @@
 ---
 title: Infrastructure Performance Benchmark
-sidebar_label: "Report 6. Infrastructure [Planned]"
+sidebar_label: "Report 6. Infrastructure Performance [Upcoming]"
 sidebar_position: 6
 description: EKS cluster infrastructure performance benchmark - network, DNS, autoscaling
+category: "benchmarks"
 tags: [benchmark, infrastructure, performance, network, dns]
 last_update:
-  date: 2026-03-20
+  date: 2026-02-13
   author: devfloor9
-category: "benchmarks"
 ---
 
 # Infrastructure Performance Benchmark
 
-> 📅 **Written**: 2026-02-13 | **Last Modified**: 2026-02-13 | ⏱️ **Reading Time**: ~1 min
-
-
-We measure and analyze key performance metrics of EKS cluster infrastructure.
+Measures and analyzes key performance metrics of EKS cluster infrastructure.
 
 ## Network Performance
 
@@ -23,7 +20,7 @@ We measure and analyze key performance metrics of EKS cluster infrastructure.
 
 A detailed quantitative comparison of VPC CNI and Cilium CNI across multiple modes (kube-proxy, kube-proxy-less, ENI, with tuning applied) is covered in a separate dedicated document.
 
-For detailed benchmark results, refer to [CNI Performance Comparison Benchmark](./cni-performance-comparison.md).
+For detailed benchmark results, refer to [2. CNI Performance Comparison](./cni-performance-comparison.md).
 
 **Comparison Scenarios (5):**
 
@@ -38,12 +35,12 @@ For detailed benchmark results, refer to [CNI Performance Comparison Benchmark](
 **Metrics**
 
 - Request processing latency (P50, P95, P99)
-- Requests per second (RPS) throughput
+- Requests per second (RPS)
 - TLS handshake overhead
 
 ## DNS Performance
 
-### CoreDNS Before/After Optimization
+### CoreDNS Optimization Before/After Comparison
 
 **Metrics**
 

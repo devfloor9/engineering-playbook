@@ -1,34 +1,31 @@
 ---
 title: Security and Operations Benchmark
-sidebar_label: "Report 8. Security & Ops [Planned]"
+sidebar_label: "Report 8. Security and Operations [Upcoming]"
 sidebar_position: 8
-description: Security policy enforcement and operational tool performance benchmark
+description: Security policy enforcement and operations tool performance benchmark
+category: "benchmarks"
 tags: [benchmark, security, operations, monitoring, gitops]
 last_update:
-  date: 2026-03-20
+  date: 2026-02-14
   author: devfloor9
-category: "benchmarks"
 ---
 
 # Security and Operations Benchmark
 
-> 📅 **Written**: 2026-02-14 | **Last Modified**: 2026-02-14 | ⏱️ **Reading Time**: ~1 min
-
-
-We measure the performance overhead and efficiency of security policies, monitoring, and GitOps tools.
+Measures performance overhead and efficiency of security policies, monitoring, and GitOps tools.
 
 ## Security Policy Overhead
 
 ### Network Policy Performance Impact
 
-:::note Scheduled for Testing
+:::note Testing Upcoming
 This benchmark is currently in preparation.
 :::
 
 **Metrics**
 
 - Latency change when Network Policy is applied
-- Performance scale based on number of policy rules
+- Performance scaling by number of policy rules
 - Cilium vs Calico policy engine comparison
 
 ## Monitoring Resource Usage
@@ -48,5 +45,5 @@ This benchmark is currently in preparation.
 **Metrics**
 
 - Git synchronization latency
-- Large-scale manifest processing speed
+- Large manifest processing speed
 - Concurrent deployment throughput

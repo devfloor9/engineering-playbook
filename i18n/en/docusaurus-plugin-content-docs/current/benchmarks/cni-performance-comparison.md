@@ -29,36 +29,35 @@ import XdpCompatibilityChart from '@site/src/components/XdpCompatibilityChart';
 import NetworkPolicyChart from '@site/src/components/NetworkPolicyChart';
 import CniConclusionInfographic from '@site/src/components/CniConclusionInfographic';
 
-> 📅 **Written**: 2026-02-09 | **Last Modified**: 2026-02-14 | ⏱️ **Reading Time**: ~14 min
-
-
 # VPC CNI vs Cilium CNI Performance Comparison Benchmark
 
-> 📅 **Published**: 2026-02-09 | ✍️ **Author**: devfloor9 | ⏱️ **Reading Time**: ~25 min
+> 📅 **Written**: 2026-02-09 | **Last Modified**: 2026-02-14 | ⏱️ **Reading Time**: ~16 min
 
-## Executive Summary
+## Overview
 
-A quantitative benchmark comparing VPC CNI and Cilium CNI performance across 5 scenarios on Amazon EKS 1.31.
+A benchmark report quantitatively comparing VPC CNI and Cilium CNI performance across 5 scenarios in Amazon EKS 1.31 environment.
 
 <CniConclusionInfographic locale="en" />
 
 **5 Scenarios**:
 
-- **A** VPC CNI Baseline
-- **B** Cilium + kube-proxy (migration impact)
+- **A** VPC CNI Baseline (baseline)
+- **B** Cilium + kube-proxy (measuring migration impact)
 - **C** Cilium kube-proxy-less (kube-proxy removal effect)
 - **D** Cilium ENI Mode (Overlay vs Native Routing)
-- **E** Cilium ENI + Full Tuning (cumulative optimization)
+- **E** Cilium ENI + Full Tuning (cumulative optimization effect)
 
-<OverviewSummaryChart />
+**Key Insights**:
 
-<AimlRelevanceChart />
+<OverviewSummaryChart locale="en" />
+
+<AimlRelevanceChart locale="en" />
 
 ---
 
 ## Test Environment
 
-<TestEnvironmentChart />
+<TestEnvironmentChart locale="en" />
 
 **Cluster Configuration**: See `scripts/benchmarks/cni-benchmark/cluster.yaml`
 **Workload Deployment**: See `scripts/benchmarks/cni-benchmark/workloads.yaml`
@@ -69,14 +68,14 @@ A quantitative benchmark comparing VPC CNI and Cilium CNI performance across 5 s
 
 The 5 scenarios are designed to isolate the independent impact of each variable: CNI type, kube-proxy mode, IP allocation method, and tuning application.
 
-<ScenarioComparisonChart />
+<ScenarioComparisonChart locale="en" />
 
 ### Scenario E Tuning Points
 
-<TuningPointsChart />
+<TuningPointsChart locale="en" />
 
-:::warning XDP and DSR Compatibility
-On m6i.xlarge with the ENA driver, XDP native acceleration (`loadBalancer.acceleration=native`) failed with a "bpf_link is not supported" error. Even `acceleration=best-effort` mode failed. DSR (`loadBalancer.mode=dsr`) caused pod crashes and was reverted to `mode=snat`. Scenario E therefore represents partial tuning: Socket LB, BPF Host Routing, BPF Masquerade, Bandwidth Manager, BBR, Native Routing, CT Table expansion, and Hubble disabled were successfully applied.
+:::warning XDP and DSR Compatibility Constraints
+The ENA driver on m6i.xlarge instances does not support the XDP `bpf_link` feature, making XDP acceleration (native/best-effort) unavailable. DSR mode also caused Pod crashes and was reverted to the default SNAT mode. Scenario E represents results with the remaining 8 tunings applied.
 :::
 
 ---
@@ -159,8 +158,8 @@ See script comments for detailed test procedures.
 
 ## Benchmark Results
 
-:::info Data Collection
-Benchmark data collected on 2026-02-09 on Amazon EKS 1.31 with m6i.xlarge nodes (Amazon Linux 2023, single AZ: ap-northeast-2a). Each measurement represents the median of 3+ test runs.
+:::info Data Collection Complete
+The results below were measured in an EKS 1.31 environment (m6i.xlarge, Amazon Linux 2023, single AZ) on 2026-02-09. Each metric uses the median after at least 3 repeated measurements.
 :::
 
 ### Network Performance
@@ -195,7 +194,12 @@ TCP shows no difference across all scenarios (saturated at NIC bandwidth of 12.5
 | TCP Throughput (Gbps) | 12.41 | 12.34 | 12.34 | 12.41 | 12.40 |
 | UDP Throughput (Gbps) | 10.00 | 7.92 | 7.92 | 10.00 | 7.96 |
 | UDP Loss (%) | 20.39 | 0.94 | 0.69 | 20.42 | 0.03 |
-| Pod-to-Pod RTT (µs) | 4894 | 4955 | 5092 | 4453 | 3135 |
+| Pod-to-Pod RTT p50 (µs) | 4894 | 4955 | 5092 | 4453 | 3135 |
+| Pod-to-Pod RTT p99 (µs) | 4894 | 4955 | 5092 | 4453 | 3135 |
+
+:::note TCP Throughput Saturation
+The baseline network bandwidth of m6i.xlarge is 12.5 Gbps. TCP throughput reached this limit in all scenarios, showing no CNI-specific differences.
+:::
 
 </details>
 

@@ -1,158 +1,168 @@
 ---
 title: "Agentic AI Platform"
 sidebar_label: "Agentic AI Platform"
-description: "Advanced technical documentation on building and operating generative AI and AI/ML workloads on Amazon EKS"
+description: "In-depth technical documentation on building and operating generative AI and AI/ML workloads on Amazon EKS"
+tags: [eks, kubernetes, genai, agentic-ai, gpu, llm, platform]
+category: "genai-aiml"
 sidebar_position: 3
 last_update:
-  date: 2026-02-14
+  date: 2026-03-17
   author: devfloor9
-category: "genai-aiml"
-tags: [eks, kubernetes, genai, agentic-ai, gpu, llm, platform]
 ---
 
 # Agentic AI Platform
 
-Modern generative AI platforms require a comprehensive technology stack that goes beyond simple model serving to encompass complex agent systems, dynamic resource management, and cost-efficient operations. An Agentic AI platform built on Amazon EKS represents a contemporary approach that leverages Kubernetes' powerful orchestration capabilities to meet these demanding requirements. This platform delivers dynamic GPU resource allocation and scaling, intelligent routing across diverse LLM providers, and cost optimization through real-time monitoring as a unified, integrated system.
+> 📅 **Created**: 2025-02-05 | **Updated**: 2026-02-14 | ⏱️ **Reading time**: Approx. 9 minutes
 
-The core philosophy of the Kubernetes-native approach is to aggressively leverage the open-source ecosystem while maintaining enterprise-grade stability. Model serving through LiteLLM and vLLM, complex agent workflows based on LangGraph, vector database integration via Milvus, and end-to-end pipeline monitoring with Langfuse all operate harmoniously atop a Kubernetes cluster. Particularly when combining Karpenter-based node auto-scaling with the NVIDIA GPU Operator, GPU resources can be dynamically provisioned and released according to workload patterns, dramatically reducing cloud costs.
+Modern generative AI platforms require a comprehensive technology stack that goes beyond simple model serving to encompass complex agent systems, dynamic resource management, and cost-efficient operations. An Amazon EKS-based Agentic AI Platform is a contemporary approach that leverages Kubernetes' powerful orchestration capabilities to meet these requirements. This platform provides dynamic GPU resource allocation and scaling, intelligent routing between various LLM providers, and cost optimization through real-time monitoring as a single integrated system.
 
-As practical starting points for production environment construction, AWS provides two essential sample repositories. The GenAI on EKS Starter Kit (aws-samples/sample-genai-on-eks-starter-kit) offers integrated configurations of essential components including LiteLLM, vLLM, SGLang, Langfuse, Milvus, Open WebUI, n8n, Strands Agents, and Agno to support rapid prototyping and development. Meanwhile, Scalable Model Inference and Agentic AI (aws-solutions-library-samples/guidance-for-scalable-model-inference-and-agentic-ai-on-amazon-eks) presents production-grade architectural patterns necessary for building Karpenter auto-scaling, llm-d-based distributed inference, LiteLLM gateway, OpenSearch-based RAG systems, and multi-agent systems.
+The core philosophy of the Kubernetes-native approach is to actively leverage the open source ecosystem while ensuring enterprise-grade stability. LLM serving through Bifrost and vLLM, non-LLM inference through Triton Inference Server (Embedding, Reranking, STT), complex agent workflows based on LangGraph, vector database integration using Milvus, and full pipeline monitoring through Langfuse all work harmoniously on Kubernetes clusters. In particular, combining node auto-scaling via Karpenter with the NVIDIA GPU Operator enables dramatic cloud cost reduction by dynamically provisioning and releasing GPU resources according to workload patterns.
 
-This combination of technology stacks effectively addresses the four core challenges that arise in handling Frontier Model traffic. GPU scheduling and resource isolation ensure stable performance even in multi-tenant environments through MIG and Time-Slicing, while the dynamic routing layer performs intelligent request distribution considering model availability and cost. Agent lifecycle management is declaratively defined through Kagent CRDs, and system-wide observability is secured through Langfuse and Prometheus-based metrics. All of this combines with Kubernetes' self-healing capabilities to complete a platform capable of 24/7 uninterrupted operations.
+AWS provides two core sample repositories as practical starting points for production environment construction. The GenAI on EKS Starter Kit (aws-samples/sample-genai-on-eks-starter-kit) provides integrated configurations of essential components including Bifrost, vLLM, SGLang, Langfuse, Milvus, Open WebUI, n8n, Strands Agents, and Agno to support rapid prototyping and development. Meanwhile, Scalable Model Inference and Agentic AI (aws-solutions-library-samples/guidance-for-scalable-model-inference-and-agentic-ai-on-amazon-eks) presents production-grade architectural patterns required for Karpenter auto-scaling, llm-d-based distributed inference, Bifrost gateway, OpenSearch-based RAG systems, and multi-agent system construction.
 
-## Key Documentation (Implementation Order)
+This combination of technology stacks effectively addresses four core challenges that arise in handling Frontier Model traffic. GPU scheduling and resource isolation ensure stable performance even in multi-tenant environments through MIG and Time-Slicing, while the dynamic routing layer performs intelligent request distribution considering model availability and cost. Agent lifecycle management is declaratively defined through Kagent CRDs, and system-wide observability is secured through Langfuse and Prometheus-based metrics. All of this combines with Kubernetes' self-healing capabilities to complete a platform capable of 24/7 uninterrupted operations.
 
-### Phase 1: Understanding and Design
+## Key Documents (Implementation Order)
 
-- [Technical Challenges and Kubernetes Necessity](./design-architecture/agentic-ai-challenges.md) - Understanding core challenges of Agentic AI platforms
-- [Agentic AI Platform Architecture](./design-architecture/agentic-platform-architecture.md) - Overall architecture design
+:::tip Document Completion Status
+All 17 documents in this section are complete, organized into 4 subcategories.
+:::
 
-### Phase 2: GPU Infrastructure Configuration
+### [Design & Architecture](./design-architecture/index.md)
 
-- [GPU Resource Management](./model-serving/gpu-resource-management.md) - GPU resource settings including MIG, Time-Slicing
+- [Technical Challenges](./design-architecture/agentic-ai-challenges.md) — Understanding core challenges
+- [EKS-Based Solutions](./design-architecture/agentic-ai-solutions-eks.md) — Kubernetes solutions
+- [Platform Architecture](./design-architecture/agentic-platform-architecture.md) — Overall architecture design
 
-### Phase 3: Model Serving (Basic → Advanced)
+### [Model Serving & Inference Infrastructure](./model-serving/index.md)
 
-- [vLLM-based FM Deployment and Performance Optimization](./model-serving/vllm-model-serving.md) - Basic model serving configuration
-- [MoE Model Serving](./model-serving/moe-model-serving.md) - Mixture of Experts model serving
-- [llm-d EKS Auto Mode Deployment](./model-serving/llm-d-eks-automode.md) - Kubernetes-native distributed inference
-- [NeMo Framework](./model-serving/nemo-framework.md) - Training and serving framework
+- [GPU Resource Management](./model-serving/gpu-resource-management.md) — GPU resource configuration including MIG, Time-Slicing
+- [vLLM Model Serving](./model-serving/vllm-model-serving.md) — Basic model serving configuration
+- [MoE Model Serving](./model-serving/moe-model-serving.md) — Mixture of Experts model serving
+- [llm-d Distributed Inference](./model-serving/llm-d-eks-automode.md) — Kubernetes-native distributed inference (Auto Mode & Karpenter)
+- [NeMo Framework](./model-serving/nemo-framework.md) — Training and serving framework
 
-### Phase 4: Inference Routing and Gateway
+### [Gateway & Agents](./gateway-agents/index.md)
 
-- [Inference Gateway and Dynamic Routing](./gateway-agents/inference-gateway-routing.md) - Intelligent request routing
+- [Inference Gateway](./gateway-agents/inference-gateway-routing.md) — Intelligent request routing
+- [Milvus Vector DB](./gateway-agents/milvus-vector-database.md) — Vector store construction
+- [Kagent Agent Management](./gateway-agents/kagent-kubernetes-agents.md) — CRD-based agent management
+- [Bedrock AgentCore & MCP](./gateway-agents/bedrock-agentcore-mcp.md) — AWS Bedrock agent integration
+- [OpenClaw AI Gateway](./gateway-agents/openclaw-ai-gateway.mdx) — OpenClaw + Bifrost Auto-Router + Full Observability
 
-### Phase 5: RAG Data Layer
+### [Operations & MLOps](./operations-mlops/index.md)
 
-- [Milvus Vector Database](./gateway-agents/milvus-vector-database.md) - Building vector storage
-
-### Phase 6: AI Agent Deployment
-
-- [Kagent Kubernetes Agent Management](./gateway-agents/kagent-kubernetes-agents.md) - CRD-based agent management
-
-### Phase 7: Operations and Monitoring
-
-- [Agent Monitoring](./operations-mlops/agent-monitoring.md) - Agent status and performance monitoring
-
-### Phase 8: Evaluation and Validation
-
-- [Ragas RAG Evaluation](./operations-mlops/ragas-evaluation.md) - RAG pipeline quality evaluation
+- [Agent Monitoring & Operations](./operations-mlops/agent-monitoring.md) — Agent status and performance monitoring
+- [Ragas / DeepEval Evaluation](./operations-mlops/ragas-evaluation.md) — RAG pipeline quality evaluation
+- [MLOps Pipeline](./operations-mlops/mlops-pipeline-eks.md) — Kubeflow + MLflow + ArgoCD GitOps
+- [SageMaker-EKS Integration](./operations-mlops/sagemaker-eks-integration.md) — SageMaker training + EKS serving hybrid
 
 ## 🎯 Learning Objectives
 
 Through this section, you will learn:
 
-- How to build scalable GenAI platforms on EKS
-- Integration with multiple LLM providers (OpenAI, Anthropic, Google, etc.)
-- Complex AI workflow design and implementation
-- Efficient GPU resource utilization and optimization strategy
+- Understanding 5 core technical challenges in building Agentic AI platforms
+- Methods for building scalable GenAI platforms on EKS
+- Integration of multiple LLM providers (OpenAI, Anthropic, Google, etc.)
+- Designing and implementing complex AI workflows
+- Efficient GPU resource utilization and optimization strategies
 - Auto-scaling and resource management for AI/ML workloads
 - AI model deployment and operations in production environments
+- Utilizing open source tools like Kagent, Kgateway, Milvus, Ragas, NeMo
 - Cost tracking and optimization
 - Performance monitoring and analysis
 
-## 🏗️ Architecture Pattern
+## 🏗️ Architecture Patterns
 
 ```mermaid
-graph TB
+flowchart TB
     subgraph Client["Client Layer"]
-        WebUI["Web UI"]
-        API["API Gateway"]
+        WebUI[Web UI]
+        APIGateway[API Gateway]
     end
 
-    subgraph Orchestration["Orchestration Layer"]
-        LangGraph["LangGraph"]
-        Workflow["Workflow Engine"]
+    subgraph Orchestration["Orchestration"]
+        LangGraph[LangGraph]
+        Workflow[Workflow<br/>Engine]
     end
 
-    subgraph LLMIntegration["LLM Integration Layer"]
-        LiteLLM["LiteLLM Router"]
-        OpenAI["OpenAI"]
-        Anthropic["Anthropic Claude"]
-        Google["Google Gemini"]
-        Custom["Custom Models"]
+    subgraph LLM["LLM Integration"]
+        Bifrost[Bifrost<br/>Router]
+        OpenAI[OpenAI]
+        Anthropic[Anthropic<br/>Claude]
+        Google[Google<br/>Gemini]
+        Custom[Custom<br/>Models]
     end
 
-    subgraph Compute["Compute Layer"]
-        GPU["GPU Nodes"]
-        CPU["CPU Nodes"]
+    subgraph Compute["Computing"]
+        GPU[GPU<br/>Nodes]
+        CPU[CPU<br/>Nodes]
     end
 
     subgraph Observability["Observability"]
-        Langfuse["Langfuse Monitoring"]
-        Metrics["Metrics & Logging"]
+        Langfuse[Langfuse]
+        Metrics[Metrics &<br/>Logging]
     end
 
-    Client --> API
-    API --> Orchestration
-    Orchestration --> LiteLLM
-    LiteLLM --> OpenAI
-    LiteLLM --> Anthropic
-    LiteLLM --> Google
-    LiteLLM --> Custom
-    LiteLLM --> GPU
-    LiteLLM --> CPU
+    Client --> APIGateway
+    APIGateway --> Orchestration
+    Orchestration --> Bifrost
+    Bifrost --> OpenAI
+    Bifrost --> Anthropic
+    Bifrost --> Google
+    Bifrost --> Custom
+    Bifrost --> GPU
+    Bifrost --> CPU
     Workflow --> Langfuse
     GPU --> Metrics
     CPU --> Metrics
 
     style Client fill:#34a853
-    style Orchestration fill:#4286f4
-    style LLMIntegration fill:#ea4335
+    style Orchestration fill:#4285f4
+    style LLM fill:#ea4335
     style Compute fill:#fbbc04
     style Observability fill:#9c27b0
 ```
 
 ## 🔧 Key Technologies and Tools
 
-| Technology | Description | Purpose |
-|------------|-------------|---------|
-| **LiteLLM** | Multi-LLM provider integration | LLM routing and fallback |
-| **LangGraph** | AI workflow orchestration | Complex AI workflow implementation |
-| **Langfuse** | GenAI application monitoring | Tracking, monitoring, analysis |
-| **NVIDIA GPU Operator** | GPU resource management | GPU driver and runtime |
-| **Karpenter** | Node auto-scaling | Cost-efficient resource management |
-| **Ray** | Distributed machine learning | Large-scale model serving |
+| Technology | Version | Description | Purpose |
+| --- | --- | --- | --- |
+| **Kagent** | v0.3+ | Kubernetes Agent Management | CRD-based Agent Lifecycle |
+| **Kgateway** | v2.0+ | Inference Gateway | Dynamic Routing and Load Balancing |
+| **Milvus** | v2.4+ | Vector Database | RAG Pipeline Support |
+| **Ragas / DeepEval** | v0.1+ / v1.x | RAG Evaluation Framework | Quality Measurement & CI/CD Integration |
+| **NeMo** | v25.02 | LLM Training Framework | Fine-tuning and Optimization |
+| **Bifrost** | v1.x | Multi-LLM Provider Integration | LLM Routing and Fallback (Rust-based) |
+| **LangGraph** | v0.2+ | AI Workflow Orchestration | Complex AI Workflow Implementation |
+| **Langfuse** | v3.x | GenAI Application Monitoring | Tracking, Monitoring, Analytics |
+| **NVIDIA GPU Operator** | v24.9+ | GPU Resource Management | GPU Drivers and Runtime |
+| **Karpenter** | v1.2+ | Node Auto-scaling | Cost-efficient Resource Management |
+| **vLLM** | v0.7.x | High-performance LLM Serving | PagedAttention-based Inference |
+| **Triton Inference Server** | v2.x+ | Non-LLM Inference Server | Embedding, Reranking, STT |
+| **llm-d** | v0.3+ | Distributed Inference Scheduler | Prefix Caching-aware Routing |
+| **MCP/A2A** | v1.0+ | Agent Protocol | Agent Tool Connection & Communication Standard |
 
 ## 💡 Core Concepts
 
-### LiteLLM Routing
+### Bifrost Routing
 
-- **Provider Abstraction**: Use various LLM APIs through unified interface
-- **Fallback Mechanism**: Automatically switch to another provider on failure
+- **Provider Abstraction**: Use various LLM APIs through a unified interface
+- **Fallback Mechanism**: Automatically switch to another provider if one fails
 - **Load Balancing**: Distribute requests across multiple models
 - **Cost Optimization**: Automatically select cost-effective models
+- **High Performance**: Rust-based, 50x faster than LiteLLM
 
-### LangGraph Workflow
+### LangGraph Workflows
 
 - **State Management**: Clearly manage state at each step
 - **Conditional Branching**: Dynamic flow control based on results
 - **Parallel Processing**: Concurrent execution of independent tasks
-- **Error Handling**: Robust exception handling mechanism
+- **Error Handling**: Reliable exception handling mechanisms
 
 ### Langfuse Monitoring
 
-- **Request Tracking**: Record entire process of each API call
+- **Request Tracking**: Record the entire process of each API call
 - **Cost Analysis**: Track costs by model and project
 - **Performance Analysis**: Analyze metrics like response time and accuracy
 - **User Feedback**: Collect feedback on generated results
@@ -161,33 +171,34 @@ graph TB
 
 #### MIG (Multi-Instance GPU)
 
-- **GPU Partitioning**: Divide single GPU into multiple instances
-- **Resource Isolation**: Provide complete computing isolation
+- **Single GPU Partitioning**: Divide one GPU into multiple instances
+- **Resource Isolation**: Provide complete compute isolation
 - **Efficiency**: Stable in multi-tenant environments
 
 #### Time-Slicing
 
 - **Time Sharing**: Multiple tasks share GPU time
-- **Flexibility**: Suitable for dev/test environments
-- **Cost**: Less expensive than MIG but shares performance
+- **Flexibility**: Suitable for development/test environments
+- **Cost**: Cheaper than MIG but shares performance
 
 ## 📊 Performance and Cost Optimization
 
 ### Model Selection Criteria
 
 | Model | Performance | Cost | Use Case |
-|-------|-------------|------|----------|
-| GPT-4 | Highest | High | Complex tasks |
-| GPT-4 Turbo | High | Medium | Balanced choice |
-| GPT-3.5 Turbo | Medium | Low | Fast response needed |
-| Claude 3 Opus | Very High | Very High | High accuracy required |
-| Open Source | Varied | Low | Complete control needed |
+|------|------|------|------|
+| GPT-4.1 | Highest | Medium | Complex tasks, balanced choice |
+| GPT-4o mini | Medium | Low | When fast response needed |
+| Claude 4.x Sonnet | Very High | Medium | Coding, analytical tasks |
+| Claude 4.x Opus | Very High | Very High | When high accuracy needed |
+| Gemini 2.5 | Very High | Medium | Multimodal tasks |
+| Open Source (Llama 3) | Varies | Low | When full control needed |
 
 ### Cost Optimization Strategies
 
-- **Prompt Caching**: Cache repeated prompts
-- **Batch Processing**: Process non-critical tasks in batches
-- **Model Tiering**: Use different models by complexity
+- **Prompt Caching**: Cache repetitive prompts
+- **Batch Processing**: Batch non-business-critical tasks
+- **Model Tiering**: Use different models based on complexity
 - **Context Minimization**: Remove unnecessary tokens
 
 ## 🔗 Related Categories
@@ -199,18 +210,29 @@ graph TB
 ---
 
 :::tip Tip
-GenAI workloads consume significant GPU resources. To optimize costs, actively use Spot instances and auto-scaling. Also continuously track and monitor costs through Langfuse.
+GenAI workloads consume significant GPU resources, so actively utilize Spot instances and auto-scaling for cost optimization. Also, track costs through Langfuse and monitor continuously.
 :::
 
 :::info Recommended Learning Path
 
-1. Basic LiteLLM configuration and routing
-2. Simple workflow using LangGraph
-3. Langfuse monitoring integration
-4. GPU resource optimization
-5. Complete platform integration and operations
+**Agentic AI Platform Construction Path:**
+
+1. [Technical Challenges](./design-architecture/agentic-ai-challenges.md) - Understanding core challenges
+2. [EKS-Based Solutions](./design-architecture/agentic-ai-solutions-eks.md) - Kubernetes solutions
+3. [Platform Architecture](./design-architecture/agentic-platform-architecture.md) - Architecture design
+4. [GPU Resource Management](./model-serving/gpu-resource-management.md) - GPU infrastructure setup
+5. [Inference Gateway](./gateway-agents/inference-gateway-routing.md) - Dynamic routing configuration
+6. [Agent Monitoring & Operations](./operations-mlops/agent-monitoring.md) - Operations framework construction
+
+**GenAI Application Development Path:**
+
+1. [vLLM Model Serving](./model-serving/vllm-model-serving.md) - Basic model serving
+2. [Inference Gateway](./gateway-agents/inference-gateway-routing.md) - Bifrost routing
+3. [Milvus Vector DB](./gateway-agents/milvus-vector-database.md) - RAG data layer
+4. [Kagent Agent Management](./gateway-agents/kagent-kubernetes-agents.md) - Agent deployment
+5. [Ragas / DeepEval Evaluation](./operations-mlops/ragas-evaluation.md) - Quality evaluation
 :::
 
-:::warning Caution - Cost Management
-Generative AI services can quickly accumulate API call costs. Initially set rate limiting and continuously monitor costs through Langfuse.
+:::warning Note - Cost Management
+Generative AI service API call costs can accumulate quickly. Initially set rate limiting and continuously monitor costs with Langfuse.
 :::
