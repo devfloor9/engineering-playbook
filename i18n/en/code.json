@@ -449,5 +449,73 @@
   "homepage.quickstart.benchmarks": {
     "message": "View Benchmarks",
     "description": "Benchmarks button"
+  },
+  "hero.badge": {
+    "message": "Engineering Playbook",
+    "description": "Hero badge text"
+  },
+  "hero.subtitle": {
+    "message": "A hands-on engineering guide to Amazon EKS infrastructure, AI/ML workflows, security, and automated operations",
+    "description": "Hero subtitle"
+  },
+  "hero.startReading": {
+    "message": "Start Reading",
+    "description": "Hero CTA button"
+  },
+  "hero.exploreTopics": {
+    "message": "Explore Topics",
+    "description": "Hero secondary button"
+  },
+  "topics.title": {
+    "message": "Core Knowledge Domains",
+    "description": "Topics section title"
+  },
+  "topics.subtitle": {
+    "message": "A curated collection of in-depth guides covering essential cloud engineering domains",
+    "description": "Topics section subtitle"
+  },
+  "topics.viewAll": {
+    "message": "View all modules",
+    "description": "View all link"
+  },
+  "topic.agentic.desc": {
+    "message": "EKS-based Agentic AI platform design, 2-Tier Gateway, Knowledge Feature Store, model serving, MLOps pipelines",
+    "description": "Agentic AI Platform topic description"
+  },
+  "topic.infra.desc": {
+    "message": "Amazon EKS control plane, data plane, multi-region networking, Karpenter cost optimization",
+    "description": "Infrastructure Optimization topic description"
+  },
+  "topic.ops.desc": {
+    "message": "Full-stack observability with Prometheus, Grafana, OpenTelemetry and automated incident response",
+    "description": "Operations & Observability topic description"
+  },
+  "topic.security.desc": {
+    "message": "Zero-Trust networking, IAM role management, automated container security scanning",
+    "description": "Security & Governance topic description"
+  },
+  "topic.aiops.desc": {
+    "message": "AI-driven operations automation, AI development lifecycle management, intelligent monitoring",
+    "description": "AIOps & AIDLC topic description"
+  },
+  "topic.hybrid.desc": {
+    "message": "On-premises to cloud hybrid architecture, ROSA, multi-cloud strategies",
+    "description": "Hybrid Infrastructure topic description"
+  },
+  "topic.benchmarks.desc": {
+    "message": "Performance benchmarks, cost analysis, architecture comparison reports",
+    "description": "Benchmarks topic description"
+  },
+  "cta.title": {
+    "message": "Ready to architect for scale?",
+    "description": "CTA section title"
+  },
+  "cta.subtitle": {
+    "message": "Build more reliable systems with the Engineering Playbook.",
+    "description": "CTA section subtitle"
+  },
+  "cta.getGuide": {
+    "message": "Get the Full Guide",
+    "description": "CTA button"
   }
 }

@@ -9,6 +9,7 @@ import styles from './index.module.css';
 const topics = [
   {
     title: 'Agentic AI Platform',
+    descriptionId: 'topic.agentic.desc',
     description: 'EKS 기반 Agentic AI 플랫폼 설계, 2-Tier Gateway, Knowledge Feature Store, 모델 서빙, MLOps 파이프라인',
     href: '/docs/agentic-ai-platform',
     icon: '🧠',
@@ -18,6 +19,7 @@ const topics = [
   },
   {
     title: 'Infrastructure Optimization',
+    descriptionId: 'topic.infra.desc',
     description: 'Amazon EKS 컨트롤 플레인, 데이터 플레인, 멀티 리전 네트워킹, Karpenter 비용 최적화',
     href: '/docs/infrastructure-optimization',
     icon: '🏗️',
@@ -28,6 +30,7 @@ const topics = [
   },
   {
     title: 'Operations & Observability',
+    descriptionId: 'topic.ops.desc',
     description: 'Prometheus, Grafana, OpenTelemetry 기반 풀스택 관측성과 장애 대응 자동화',
     href: '/docs/operations-observability',
     icon: '📊',
@@ -36,6 +39,7 @@ const topics = [
   },
   {
     title: 'Security & Governance',
+    descriptionId: 'topic.security.desc',
     description: 'Zero-Trust 네트워킹, IAM 역할 관리, 컨테이너 보안 스캐닝 자동화',
     href: '/docs/security-governance',
     icon: '🔒',
@@ -44,6 +48,7 @@ const topics = [
   },
   {
     title: 'AIOps & AIDLC',
+    descriptionId: 'topic.aiops.desc',
     description: 'AI 기반 운영 자동화, AI 개발 생명주기 관리, 지능형 모니터링',
     href: '/docs/aiops-aidlc',
     icon: '🤖',
@@ -52,6 +57,7 @@ const topics = [
   },
   {
     title: 'Hybrid Infrastructure',
+    descriptionId: 'topic.hybrid.desc',
     description: '온프레미스-클라우드 하이브리드 아키텍처, ROSA, 멀티 클라우드 전략',
     href: '/docs/hybrid-infrastructure',
     icon: '☁️',
@@ -60,6 +66,7 @@ const topics = [
   },
   {
     title: 'Benchmarks',
+    descriptionId: 'topic.benchmarks.desc',
     description: '성능 벤치마크, 비용 분석, 아키텍처 비교 리포트',
     href: '/docs/benchmarks',
     icon: '📈',
@@ -115,7 +122,7 @@ function HeroSection() {
   );
 }
 
-function TopicCard({title, description, href, icon, iconBg, tags, size, accent}) {
+function TopicCard({title, description, descriptionId, href, icon, iconBg, tags, size, accent}) {
   const sizeClass = {
     large: styles.bentoLarge,
     small: styles.bentoSmall,
@@ -135,7 +142,9 @@ function TopicCard({title, description, href, icon, iconBg, tags, size, accent})
         {icon}
       </div>
       <h3 className={styles.bentoCardTitle}>{title}</h3>
-      <p className={styles.bentoDescription}>{description}</p>
+      <p className={styles.bentoDescription}>
+        <Translate id={descriptionId}>{description}</Translate>
+      </p>
       {tags && (
         <div className={styles.bentoTags}>
           {tags.map((tag) => (
