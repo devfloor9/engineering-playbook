@@ -25,21 +25,24 @@ This combination of technology stacks effectively addresses four core challenges
 ## Key Documents (Implementation Order)
 
 :::tip Document Completion Status
-All 17 documents in this section are complete, organized into 4 subcategories.
+This section contains 22 documents organized into 4 subcategories.
 :::
 
 ### [Design & Architecture](./design-architecture/index.md)
 
 - [Technical Challenges](./design-architecture/agentic-ai-challenges.md) — Understanding core challenges
-- [EKS-Based Solutions](./design-architecture/agentic-ai-solutions-eks.md) — Kubernetes solutions
+- [AWS Native Platform](./design-architecture/aws-native-agentic-platform.md) — Agent development with managed services
+- [EKS-Based Solutions](./design-architecture/agentic-ai-solutions-eks.md) — Open architecture based on open source
 - [Platform Architecture](./design-architecture/agentic-platform-architecture.md) — Overall architecture design
 
 ### [Model Serving & Inference Infrastructure](./model-serving/index.md)
 
-- [GPU Resource Management](./model-serving/gpu-resource-management.md) — GPU resource configuration including MIG, Time-Slicing
+- [EKS GPU Node Strategy](./model-serving/eks-gpu-node-strategy.md) — Auto Mode + Karpenter + Hybrid Node configuration
+- [GPU Resource Management](./model-serving/gpu-resource-management.md) — Karpenter scaling, KEDA, DRA, cost optimization
 - [vLLM Model Serving](./model-serving/vllm-model-serving.md) — Basic model serving configuration
+- [llm-d Distributed Inference](./model-serving/llm-d-eks-automode.md) — Kubernetes-native distributed inference, Disaggregated Serving
 - [MoE Model Serving](./model-serving/moe-model-serving.md) — Mixture of Experts model serving
-- [llm-d Distributed Inference](./model-serving/llm-d-eks-automode.md) — Kubernetes-native distributed inference (Auto Mode & Karpenter)
+- [NVIDIA GPU Stack](./model-serving/nvidia-gpu-stack.md) — GPU Operator, DCGM, MIG/Time-Slicing, Dynamo
 - [NeMo Framework](./model-serving/nemo-framework.md) — Training and serving framework
 
 ### [Gateway & Agents](./gateway-agents/index.md)
@@ -49,11 +52,13 @@ All 17 documents in this section are complete, organized into 4 subcategories.
 - [Kagent Agent Management](./gateway-agents/kagent-kubernetes-agents.md) — CRD-based agent management
 - [Bedrock AgentCore & MCP](./gateway-agents/bedrock-agentcore-mcp.md) — AWS Bedrock agent integration
 - [OpenClaw AI Gateway](./gateway-agents/openclaw-ai-gateway.mdx) — OpenClaw + Bifrost Auto-Router + Full Observability
+- [LLM Gateway Architecture](./gateway-agents/llm-gateway-architecture.md) — 2-Tier Gateway design and solution selection
+- [LLMOps Observability](./gateway-agents/llmops-observability.md) — Langfuse/LangSmith/Helicone comparison guide
 
 ### [Operations & MLOps](./operations-mlops/index.md)
 
 - [Agent Monitoring & Operations](./operations-mlops/agent-monitoring.md) — Agent status and performance monitoring
-- [Ragas / DeepEval Evaluation](./operations-mlops/ragas-evaluation.md) — RAG pipeline quality evaluation
+- [Ragas Evaluation](./operations-mlops/ragas-evaluation.md) — RAG pipeline quality evaluation
 - [MLOps Pipeline](./operations-mlops/mlops-pipeline-eks.md) — Kubeflow + MLflow + ArgoCD GitOps
 - [SageMaker-EKS Integration](./operations-mlops/sagemaker-eks-integration.md) — SageMaker training + EKS serving hybrid
 
@@ -218,19 +223,21 @@ GenAI workloads consume significant GPU resources, so actively utilize Spot inst
 **Agentic AI Platform Construction Path:**
 
 1. [Technical Challenges](./design-architecture/agentic-ai-challenges.md) - Understanding core challenges
-2. [EKS-Based Solutions](./design-architecture/agentic-ai-solutions-eks.md) - Kubernetes solutions
+2. [AWS Native Platform](./design-architecture/aws-native-agentic-platform.md) or [EKS-Based Solutions](./design-architecture/agentic-ai-solutions-eks.md) - Choose approach
 3. [Platform Architecture](./design-architecture/agentic-platform-architecture.md) - Architecture design
-4. [GPU Resource Management](./model-serving/gpu-resource-management.md) - GPU infrastructure setup
-5. [Inference Gateway](./gateway-agents/inference-gateway-routing.md) - Dynamic routing configuration
-6. [Agent Monitoring & Operations](./operations-mlops/agent-monitoring.md) - Operations framework construction
+4. [EKS GPU Node Strategy](./model-serving/eks-gpu-node-strategy.md) - Node provisioning
+5. [GPU Resource Management](./model-serving/gpu-resource-management.md) - Karpenter, KEDA, DRA
+6. [Inference Gateway](./gateway-agents/inference-gateway-routing.md) - Dynamic routing configuration
+7. [Agent Monitoring & Operations](./operations-mlops/agent-monitoring.md) - Operations framework
 
 **GenAI Application Development Path:**
 
-1. [vLLM Model Serving](./model-serving/vllm-model-serving.md) - Basic model serving
-2. [Inference Gateway](./gateway-agents/inference-gateway-routing.md) - Bifrost routing
-3. [Milvus Vector DB](./gateway-agents/milvus-vector-database.md) - RAG data layer
-4. [Kagent Agent Management](./gateway-agents/kagent-kubernetes-agents.md) - Agent deployment
-5. [Ragas / DeepEval Evaluation](./operations-mlops/ragas-evaluation.md) - Quality evaluation
+1. [vLLM Model Serving](./model-serving/vllm-model-serving.md) - Inference engine deployment
+2. [llm-d Distributed Inference](./model-serving/llm-d-eks-automode.md) - KV Cache-aware routing
+3. [Inference Gateway](./gateway-agents/inference-gateway-routing.md) - Traffic routing
+4. [Milvus Vector DB](./gateway-agents/milvus-vector-database.md) - RAG data layer
+5. [Kagent Agent Management](./gateway-agents/kagent-kubernetes-agents.md) - Agent deployment
+6. [Ragas Evaluation](./operations-mlops/ragas-evaluation.md) - Quality evaluation
 :::
 
 :::warning Note - Cost Management

@@ -25,23 +25,23 @@ Security is not a one-time configuration but an area requiring continuous evalua
 
 **Operations Security & Incident Management**
 
-[1. Default Namespace Incident Response](./default-namespace-incident.md) - Default namespace security threat analysis, incident detection and response procedures, post-incident analysis and improvement measures, security monitoring automation
+[Default Namespace Incident Response](./default-namespace-incident.md) - Default namespace security threat analysis, incident detection and response procedures, post-incident analysis and improvement measures, security monitoring automation
 
 **Identity & Access Management**
 
-[2. Identity-First Security Architecture](./identity-first-security.md) - EKS Pod Identity-based zero-trust access control, migration from IRSA to Pod Identity, least privilege principle automation
+[Identity-First Security Architecture](./identity-first-security.md) - EKS Pod Identity-based zero-trust access control, migration from IRSA to Pod Identity, least privilege principle automation
 
 **Threat Detection & Response**
 
-[3. GuardDuty Extended Threat Detection](./guardduty-extended-threat-detection.md) - EC2/ECS host and container signal correlation analysis, MITRE ATT&CK mapping, automated threat response
+[GuardDuty Extended Threat Detection](./guardduty-extended-threat-detection.md) - EC2/ECS host and container signal correlation analysis, MITRE ATT&CK mapping, automated threat response
 
 **Policy Management**
 
-[4. Kyverno-based Policy Management](./kyverno-policy-management.md) - Kyverno v1.16 CEL-based policies, namespace-level policies, policy exception management, OPA Gatekeeper comparison
+[Kyverno-based Policy Management](./kyverno-policy-management.md) - Kyverno v1.16 CEL-based policies, namespace-level policies, policy exception management, OPA Gatekeeper comparison
 
 **Supply Chain Security**
 
-[5. Container Supply Chain Security](./supply-chain-security.md) - ECR image scanning and signing, Sigstore/Cosign integration, SBOM generation and management, CI/CD security gates
+[Container Supply Chain Security](./supply-chain-security.md) - ECR image scanning and signing, Sigstore/Cosign integration, SBOM generation and management, CI/CD security gates
 
 ## Architecture Patterns
 
