@@ -91,7 +91,7 @@ flowchart TB
 
 Role of each layer:
 
-- **GPU Operator** (Driver): Foundation layer connecting GPUs to Kubernetes. Manages driver installation, container toolkit, device plugin, and MIG manager as DaemonSets.
+- **GPU Operator** (Orchestrator): Orchestration layer that bundles the entire GPU stack via **ClusterPolicy CRD**. Each component (Driver, Container Toolkit, Device Plugin, DCGM Exporter, NFD, GFD, MIG Manager) can be **independently enabled/disabled**. Can be installed on EKS Auto Mode — only Device Plugin is disabled via node labels while other components (DCGM Exporter, NFD, GFD, etc.) operate normally.
 - **DCGM** (Sensor): Monitoring engine that reads GPU status. Collects SM Utilization, Tensor Core Activity, Memory, Power, Temperature, ECC Errors, etc.
 - **Run:ai** (Control Tower): Scheduling/management layer operating on top of GPU Operator and DCGM. Provides Fractional GPU, Dynamic MIG, Gang Scheduling, and Quota management.
 
@@ -102,14 +102,14 @@ Role of each layer:
 | GPU Operator Only | Yes | Basic GPU inference, manual MIG setup, DCGM metrics |
 | GPU Operator + Run:ai | Yes | Enterprise GPU cluster management (recommended) |
 | DCGM Only (manual driver install) | Yes | Bare metal, single server monitoring |
-| Run:ai Only (without GPU Operator) | **No** | GPU Operator is required dependency |
-| EKS Auto Mode + Run:ai | **No** | GPU Operator cannot be installed |
+| Run:ai Only (without GPU Operator) | **No** | GPU Operator ClusterPolicy is required dependency |
+| EKS Auto Mode + Run:ai | **Yes** | Install GPU Operator, disable Device Plugin via label |
 
 ### GPU Management by EKS Environment
 
 | Node Type | GPU Driver | GPU Operator | MIG Support | Run:ai Support |
 |---|---|---|---|---|
-| Auto Mode | AWS auto-install | Cannot install | Not supported | Not supported |
+| Auto Mode | AWS auto-install | Installable (Device Plugin disabled via label) | Not supported | Supported (Device Plugin disabled via label) |
 | Karpenter (Self-Managed) | GPU Operator install | Full support | Full support | Full support |
 | Managed Node Group | GPU Operator install | Full support | Full support | Full support |
 | Hybrid Node (on-premises) | GPU Operator required | Required | Full support | Full support |
@@ -147,20 +147,28 @@ flowchart TB
     style GPUOperator fill:#f0f0f0
 ```
 
-**Helm Installation Example:**
+:::caution GPU Driver Constraints by AMI
+- **AL2023 / Bottlerocket**: GPU drivers are pre-installed in the AMI, so GPU Operator's `driver` component must be set to `enabled: false`.
+- **AL2 (Custom AMI)**: GPU Operator can install drivers directly.
+- **EKS Auto Mode**: AWS manages drivers automatically, so both `driver` and `toolkit` must be set to `enabled: false`.
+:::
+
+**Helm Installation Example (Karpenter + Self-Managed):**
 
 ```bash
 # Add NVIDIA Helm repository
 helm repo add nvidia https://helm.ngc.nvidia.com/nvidia
 helm repo update
 
-# Install GPU Operator
+# Install GPU Operator (AL2023/Bottlerocket — disable driver/toolkit)
 helm install gpu-operator nvidia/gpu-operator \
   --namespace gpu-operator --create-namespace \
-  --set driver.version=580.126.18 \
+  --set driver.enabled=false \
+  --set toolkit.enabled=false \
   --set dcgmExporter.serviceMonitor.enabled=true \
   --set migManager.enabled=true \
-  --set gfd.enabled=true
+  --set gfd.enabled=true \
+  --set nfd.enabled=true
 ```
 
 **ClusterPolicy CRD Example:**
@@ -174,10 +182,9 @@ spec:
   operator:
     defaultRuntime: containerd
   driver:
-    enabled: true
-    version: "580.126.18"
+    enabled: false          # AL2023/Bottlerocket: pre-installed in AMI
   toolkit:
-    enabled: true
+    enabled: false          # AL2023/Bottlerocket: pre-installed in AMI
   devicePlugin:
     enabled: true
   dcgmExporter:
@@ -191,15 +198,42 @@ spec:
       name: default-mig-parted-config
   gfd:
     enabled: true
-  nodeStatusExporter:
+  nfd:
     enabled: true
+  nodeStatusExporter:
+    enabled: false
+```
+
+**EKS Auto Mode NodePool Labels (Device Plugin Disabled):**
+
+On Auto Mode, install GPU Operator but disable only the Device Plugin via node labels. GPU Operator installation is required for projects like KAI Scheduler that depend on ClusterPolicy.
+
+```yaml
+apiVersion: karpenter.sh/v1
+kind: NodePool
+metadata:
+  name: gpu-auto-mode
+spec:
+  template:
+    metadata:
+      labels:
+        nvidia.com/gpu.deploy.device-plugin: "false"  # Disable Device Plugin
+    spec:
+      requirements:
+        - key: eks.amazonaws.com/instance-family
+          operator: In
+          values: ["p5", "p4d"]
+      nodeClassRef:
+        group: eks.amazonaws.com
+        kind: NodeClass
+        name: default
 ```
 
 ### GPU Operator Configuration by EKS Environment
 
 | Environment | GPU Operator | Driver Management | MIG | Limitations |
 |------|-------------|-------------|-----|---------|
-| EKS Auto Mode | Cannot install | AWS automatic | Not supported | AWS managed, customization limited |
+| EKS Auto Mode | Installable (Device Plugin disabled) | AWS automatic (AMI pre-installed) | Not supported | Device Plugin disabled via label, DCGM/NFD/GFD operate normally |
 | EKS + Karpenter | Helm install | Operator managed | Full support | GPU AMI required in NodePool |
 | EKS Managed Node Group | Helm install | Operator managed | Full support | Node group-level management |
 | EKS Hybrid Nodes | Helm install (required) | Operator required | Full support | On-premises GPU farm, network setup required |
@@ -564,14 +598,15 @@ spec:
 
 :::info Dynamo v1.0 (2026.03 GA)
 - **Supported Backends**: vLLM, SGLang, TensorRT-LLM
-- **Core Technologies**: Disaggregated Serving, KV Cache Routing, NIXL, KAI Scheduler
+- **Serving Modes**: Both Aggregated + Disaggregated equally supported
+- **Core Technologies**: Flash Indexer (radix tree KV indexing), NIXL (common KV transfer), KAI Scheduler (GPU-aware Pod placement), Planner (SLO-based autoscaling), EPP (Gateway API integration)
 - **Deployment**: Kubernetes Operator + CRD based
 - **License**: Apache 2.0
 :::
 
 ### Core Architecture
 
-Dynamo adopts a **Disaggregated Serving** architecture that separates Prefill (prompt processing) and Decode (token generation).
+Dynamo **equally supports both Aggregated Serving and Disaggregated Serving**. In Disaggregated mode, it separates Prefill (prompt processing) and Decode (token generation) for independent scaling per stage. The latest release introduces **radix tree-based Flash Indexer** for indexing KV cache per worker to optimize prefix matching.
 
 ```mermaid
 flowchart TD
@@ -604,29 +639,38 @@ flowchart TD
     DC2 --> KVBM
     DC3 --> KVBM
 
-    subgraph Scheduler["KAI Scheduler"]
-        KAI["Request Scheduling<br/>+ Autoscaling"]
+    subgraph Scheduler["Scheduling & Autoscaling"]
+        KAI["KAI Scheduler<br/>GPU-aware Pod Placement"]
+        PLANNER["Planner<br/>SLO-based Autoscaling"]
+        EPP["EPP<br/>Gateway API Integration"]
     end
 
-    KAI -.-> ROUTER
     KAI -.-> Prefill
     KAI -.-> Decode
+    PLANNER -.-> Prefill
+    PLANNER -.-> Decode
+    EPP -.-> ROUTER
 
     style ROUTER fill:#76b900,color:#fff
     style NIXL fill:#326ce5,color:#fff
     style KVBM fill:#ff9900,color:#fff
     style KAI fill:#9c27b0,color:#fff
+    style PLANNER fill:#e91e63,color:#fff
+    style EPP fill:#00bcd4,color:#fff
 ```
 
 ### Core Components
 
 | Component | Role | Benefits |
 |----------|------|------|
-| **Disaggregated Serving** | Separate Prefill/Decode workers | Independent scaling per stage, maximize GPU utilization |
+| **Disaggregated Serving** | Separate Prefill/Decode workers (Aggregated also supported) | Independent scaling per stage, maximize GPU utilization |
 | **KV Cache Routing** | Prefix-aware request routing | Improve KV Cache hit rate, reduce TTFT |
-| **KVBM (KV Block Manager)** | GPU -> CPU -> SSD 3-tier cache | Maximize memory efficiency, support large contexts |
-| **NIXL** | NVIDIA Inference Transfer Library | Ultra-fast KV Cache transfer between GPUs (NVLink/RDMA) |
-| **KAI Scheduler** | Request scheduling + autoscaling | SLA-based scheduling, optimal resource placement |
+| **Flash Indexer** | Radix tree-based KV cache indexing per worker | Optimize prefix matching, maximize KV reuse rate |
+| **KVBM (KV Block Manager)** | GPU → CPU → SSD 3-tier cache | Maximize memory efficiency, support large contexts |
+| **NIXL** | NVIDIA Inference Transfer Library (common KV transfer engine) | Ultra-fast KV Cache transfer between GPUs (NVLink/RDMA). Used by Dynamo, llm-d, production-stack, aibrix, and most other projects |
+| **KAI Scheduler** | GPU-aware K8s Pod scheduler | GPU topology, MIG slice-aware Pod placement. Depends on ClusterPolicy |
+| **Planner** | SLO-based autoscaling | Run profiling → supply results to Planner → automatic scaling based on SLO targets |
+| **EPP (Endpoint Picker Protocol)** | Gateway API integration | Dynamo's own EPP implementation for native K8s Gateway API integration |
 
 ### EKS Deployment
 
@@ -708,16 +752,17 @@ Both llm-d and NVIDIA Dynamo handle LLM inference routing/scheduling, but they a
 
 | Item | llm-d | NVIDIA Dynamo |
 |------|-------|---------------|
-| **Architecture** | Supports both Aggregated + Disaggregated | Disaggregated-focused (also supports Aggregated) |
-| **KV Cache Routing** | Prefix-aware routing | Prefix-aware + NIXL GPU-to-GPU transfer |
-| **KV Cache Transfer** | Network transfer between Pods | NIXL (NVLink/RDMA ultra-fast transfer) |
-| **Scheduling** | Built-in scheduler | KAI Scheduler |
-| **Autoscaling** | KEDA integration | KAI Scheduler built-in |
+| **Architecture** | Aggregated + Disaggregated | Aggregated + Disaggregated (equally supported) |
+| **KV Cache Routing** | Prefix-aware routing | Prefix-aware + Flash Indexer (radix tree) |
+| **KV Cache Transfer** | NIXL (network also supported) | NIXL (NVLink/RDMA ultra-fast transfer) |
+| **Routing** | Gateway API + Envoy EPP | Dynamo Router + own EPP (Gateway API integration) |
+| **Pod Scheduling** | Default K8s scheduler (no built-in) | KAI Scheduler (GPU-aware Pod placement) |
+| **Autoscaling** | HPA/KEDA integration | Planner (SLO-based: profiling → autoscale) + KEDA/HPA |
 | **vLLM Backend** | Supported | Supported (also SGLang, TRT-LLM) |
-| **Kubernetes Integration** | Gateway API based | Operator + CRD (DGDR) |
+| **Kubernetes Integration** | Gateway API native | Operator + CRD (DGDR) + Gateway API EPP |
 | **Complexity** | Low -- add router to existing vLLM | High -- replace entire serving stack |
-| **Performance Gain** | Reduce TTFT via prefix hit | Up to 7x throughput via Disaggregated |
-| **Maturity** | v0.3+ (early stage) | v1.0 GA (2026.03) |
+| **Performance Gain** | Reduce TTFT via prefix hit | Flash Indexer + Disaggregated for up to 7x throughput |
+| **Maturity** | v0.5+ | v1.0 GA (2026.03) |
 
 ### Why Difficult to Use Together
 
@@ -745,7 +790,7 @@ Dynamo 1.0 can integrate llm-d as an internal component. In this case, llm-d act
 | Fast adoption, low operational complexity | **llm-d** |
 
 :::tip Migration Path
-Starting with llm-d and transitioning to Dynamo as scale grows is practical. Both use vLLM as backend, and llm-d's Disaggregated Serving experience helps when transitioning to Dynamo. Key differences are Dynamo's NIXL (ultra-fast KV transfer between GPUs) and KAI Scheduler (SLA-based autoscaling).
+Starting with llm-d and transitioning to Dynamo as scale grows is practical. Both use vLLM as backend and leverage NIXL for KV transfer. Key differences are Dynamo's Flash Indexer (radix tree KV indexing), KAI Scheduler (GPU-aware Pod placement), and Planner (SLO-based autoscaling).
 :::
 
 ---

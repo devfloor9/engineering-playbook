@@ -44,13 +44,15 @@ llm-d can be deployed across various node management methods in EKS, and the opt
 :::caution Deployment Strategy Selection: Auto Mode vs Karpenter
 llm-d's core value of KV Cache-aware routing **works identically regardless of deployment environment**. However, when **GPU resource partitioning (MIG, Time-Slicing)** is needed, you must choose Karpenter + GPU Operator environment instead of EKS Auto Mode.
 
-| Criteria | EKS Auto Mode | Karpenter + GPU Operator |
-|------|:---:|:---:|
-| **Suitable Model Size** | 70B+ (Full GPU utilization) | 7B~30B (Partitionable with MIG) |
-| **GPU Driver Management** | AWS automatic | Direct installation (GPU Operator) |
-| **MIG / Time-Slicing** | Not possible | Possible |
-| **Operational Complexity** | Low | Medium |
-| **GPU Cost Efficiency** | Optimal for large models | Optimal for small models |
+| Criteria | EKS Auto Mode | Auto Mode + GPU Operator | Karpenter + GPU Operator |
+|------|:---:|:---:|:---:|
+| **Suitable Model Size** | 70B+ (Full GPU) | 70B+ (Full GPU) | 7B~30B (MIG partitionable) |
+| **GPU Driver Management** | AWS automatic | AWS automatic | Manual (GPU Operator) |
+| **GPU Operator** | Not installed | Installed (Device Plugin disabled) | Installed (full control) |
+| **DCGM Exporter** | Not available | Available | Available |
+| **MIG / Time-Slicing** | Not possible | Not possible | Possible |
+| **Operational Complexity** | Low | Low-Medium | Medium |
+| **GPU Cost Efficiency** | Optimal for large models | Optimal for large models | Optimal for small models |
 
 For detailed cost analysis by model size and decision flowchart, refer to [EKS GPU Node Strategy](./eks-gpu-node-strategy.md).
 :::
@@ -206,15 +208,21 @@ flowchart TD
 ### When Auto Mode is Suitable
 
 - **70B+ Large Models**: Models that fully utilize GPUs like Qwen3-32B(TP=2), Llama-3-70B(TP=4), DeepSeek-V3(TP=8)
-- **Fast Prototyping**: When you want to deploy immediately without GPU driver/AMI management
+- **Fast Prototyping**: When you want to deploy immediately with AWS-managed GPU driver/AMI
 - **Operational Simplification Priority**: When you want to reduce GPU Operator installation/update burden
 
 ### When Karpenter + GPU Operator is Suitable
 
 - **7B~13B Small Models**: 75% cost savings by partitioning H100 into 7 instances with MIG
 - **Multi-tenancy**: When GPU slices need to be isolated and allocated per team
-- **DCGM Monitoring**: When fine-grained GPU-level metric collection is needed
+- **MIG/Time-Slicing**: When GPU partitioning features unavailable in Auto Mode are required
 - **Custom AMI/Driver**: When specific CUDA version or driver pinning is required
+
+:::info GPU Operator on Auto Mode
+GPU Operator **can be installed on EKS Auto Mode** by disabling the Device Plugin via node label (`nvidia.com/gpu.deploy.device-plugin=false`). This allows DCGM Exporter to be used for GPU-level monitoring on Auto Mode. However, GPU Operator's MIG/Time-Slicing features remain unavailable on Auto Mode due to AWS-managed driver constraints.
+
+For detailed GPU Operator installation on Auto Mode, refer to [GPU Resource Management — GPU Operator on Auto Mode](./gpu-resource-management.md#gpu-operator-on-auto-mode).
+:::
 
 :::info Karpenter Deployment Example
 For llm-d deployment in Karpenter + GPU Operator environments, only change the following from the Auto Mode examples in this document:
@@ -299,9 +307,11 @@ kubectl get nodepool gpu-p5
 ```
 
 :::info EKS Auto Mode GPU Support
-EKS Auto Mode automatically installs and manages NVIDIA GPU drivers. No separate GPU Operator or NVIDIA Device Plugin installation is required. Using NodeClass `default` allows Auto Mode to automatically select optimal AMI and driver versions.
+EKS Auto Mode automatically installs and manages NVIDIA GPU drivers. By default, no separate GPU Operator or NVIDIA Device Plugin installation is required. Using NodeClass `default` allows Auto Mode to automatically select optimal AMI and driver versions.
 
-**Constraint**: Auto Mode's NodeClass is AWS-managed (read-only), making GPU partitioning settings like MIG and Time-Slicing impossible. GPU efficiency may be low with small models (7B~13B). If GPU partitioning is needed, refer to [Karpenter + GPU Operator Strategy](./eks-gpu-node-strategy.md).
+**GPU Operator Installation (Optional)**: GPU Operator can be installed on Auto Mode by disabling the Device Plugin via node label (`nvidia.com/gpu.deploy.device-plugin=false`). This enables DCGM Exporter for GPU-level monitoring while keeping Auto Mode's driver management.
+
+**Constraint**: Auto Mode's NodeClass is AWS-managed (read-only), making GPU partitioning settings like MIG and Time-Slicing impossible even with GPU Operator installed. GPU efficiency may be low with small models (7B~13B). If GPU partitioning is needed, refer to [Karpenter + GPU Operator Strategy](./eks-gpu-node-strategy.md).
 :::
 
 ### p5.48xlarge Instance Specifications
