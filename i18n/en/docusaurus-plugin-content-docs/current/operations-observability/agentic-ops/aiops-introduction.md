@@ -3,7 +3,7 @@ title: "Innovating K8s Operations with AI — AIOps Strategy Guide"
 sidebar_label: "AIOps Strategy Guide"
 description: "AIOps strategy to reduce K8s platform complexity with AI and accelerate innovation — AWS open-source managed services, Kiro+MCP, AI Agent extension"
 sidebar_position: 1
-category: "aiops"
+category: "agentic-ops"
 tags: [aiops, eks, observability, anomaly-detection, monitoring, kiro, mcp, ai-agent]
 last_update:
   date: 2026-02-14
@@ -37,7 +37,7 @@ The Kubernetes platform provides powerful features and scalability such as decla
 :::info Learning Path
 This document is the first in the AIops & AIDLC series. Complete learning path:
 
-1. **[1. AIOps Strategy Guide](./aiops-introduction.md)** (current document) → 2. **[2. Intelligent Observability Stack](./aiops-observability-stack.md)** → 3. **[3. AIDLC Framework](../aidlc/aidlc-framework.md)** → 4. **[4. Predictive Scaling and Auto-Remediation](./aiops-predictive-operations.md)**
+1. **[1. AIOps Strategy Guide](./aiops-introduction.md)** (current document) → 2. **[2. Intelligent Observability Stack](./aiops-observability-stack.md)** → 3. **[3. AIDLC Framework](../../aidlc/aidlc-framework.md)** → 4. **[4. Predictive Scaling and Auto-Remediation](./aiops-predictive-operations.md)**
 
 :::
 

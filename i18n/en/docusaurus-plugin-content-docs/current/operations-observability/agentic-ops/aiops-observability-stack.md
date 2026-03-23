@@ -3,7 +3,7 @@ title: "Building an EKS Intelligent Observability Stack"
 sidebar_label: "Intelligent Observability Stack"
 description: "Guide to building an EKS observability architecture using ADOT, AMP, AMG, CloudWatch AI, and Hosted MCP"
 sidebar_position: 2
-category: "aiops"
+category: "agentic-ops"
 tags: [observability, opentelemetry, adot, prometheus, grafana, cloudwatch, devops-guru, mcp, eks]
 last_update:
   date: 2026-02-14
@@ -3400,7 +3400,7 @@ Phase 6: Alert Optimization
 
 Based on this observability stack, study the following topics:
 
-- **[3. AIDLC Framework](../aidlc/aidlc-framework.md)**: AI-driven development lifecycle and the development feedback loop with observability data
+- **[3. AIDLC Framework](../../aidlc/aidlc-framework.md)**: AI-driven development lifecycle and the development feedback loop with observability data
 - **[4. Predictive Scaling and Automated Recovery](./aiops-predictive-operations.md)**: ML prediction and automated recovery patterns based on observability data
 - **[1. AIOps Strategy Guide](./aiops-introduction.md)**: Overall AIOps strategy and the role of observability
 
@@ -3417,6 +3417,6 @@ Based on this observability stack, study the following topics:
 :::info Related Documents
 
 - [1. AIOps Strategy Guide](./aiops-introduction.md) — Overall AIOps Context
-- [3. AIDLC Framework](../aidlc/aidlc-framework.md) — AI-Driven Development Methodology
+- [3. AIDLC Framework](../../aidlc/aidlc-framework.md) — AI-Driven Development Methodology
 - [4. Predictive Scaling and Automated Recovery](./aiops-predictive-operations.md) — Predictive Operations Based on Observability
 :::

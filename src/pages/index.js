@@ -56,15 +56,6 @@ const topics = [
     size: 'third',
   },
   {
-    title: 'AIOps',
-    descriptionId: 'topic.aiops.desc',
-    description: 'AI 기반 운영 피드백 루프, 지능형 관찰성, 예측 스케일링',
-    href: '/docs/aiops',
-    icon: '🤖',
-    iconBg: '#FFF3E0',
-    size: 'third',
-  },
-  {
     title: 'Hybrid Infrastructure',
     descriptionId: 'topic.hybrid.desc',
     description: '온프레미스-클라우드 하이브리드 아키텍처, ROSA, 멀티 클라우드 전략',

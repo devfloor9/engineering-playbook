@@ -48,6 +48,19 @@ const sidebars = {
         'operations-observability/eks-resiliency-guide',
         'operations-observability/eks-pod-health-lifecycle',
         'operations-observability/eks-pod-scheduling-availability',
+        {
+          type: 'category',
+          label: 'AgenticOps',
+          link: {
+            type: 'doc',
+            id: 'operations-observability/agentic-ops/index',
+          },
+          items: [
+            'operations-observability/agentic-ops/aiops-introduction',
+            'operations-observability/agentic-ops/aiops-observability-stack',
+            'operations-observability/agentic-ops/aiops-predictive-operations',
+          ],
+        },
       ],
     },
     {
@@ -142,20 +155,6 @@ const sidebars = {
       },
       items: [
         'aidlc/aidlc-framework',
-      ],
-    },
-    {
-      type: 'category',
-      label: 'AIOps',
-      collapsed: true,
-      link: {
-        type: 'doc',
-        id: 'aiops/index',
-      },
-      items: [
-        'aiops/aiops-introduction',
-        'aiops/aiops-observability-stack',
-        'aiops/aiops-predictive-operations',
       ],
     },
     {

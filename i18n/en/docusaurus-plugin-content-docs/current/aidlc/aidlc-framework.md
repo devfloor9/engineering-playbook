@@ -41,7 +41,7 @@ Sequential handoffs                      Continuous flow + Loss Function verific
 
 ### 1.2 Connection to AIOps Strategy
 
-The AWS open-source strategy → MCP integration → AI tools → Kiro orchestration covered in [1. AIOps Strategy Guide](../aiops/aiops-introduction.md) is the **technology foundation** for realizing AIDLC. The 3-Pillar + AI analysis layer built in [2. Intelligent Observability Stack](../aiops/aiops-observability-stack.md) is the **data foundation** for the Operations phase. This document presents the **methodology for systematically enhancing development and operations** on top of that technology and data foundation.
+The AWS open-source strategy → MCP integration → AI tools → Kiro orchestration covered in [1. AIOps Strategy Guide](../operations-observability/agentic-ops/aiops-introduction.md) is the **technology foundation** for realizing AIDLC. The 3-Pillar + AI analysis layer built in [2. Intelligent Observability Stack](../operations-observability/agentic-ops/aiops-observability-stack.md) is the **data foundation** for the Operations phase. This document presents the **methodology for systematically enhancing development and operations** on top of that technology and data foundation.
 
 ```
 [1] AIOps Strategy Guide ──── Technology Foundation (MCP, Kiro, AI Agent)
@@ -133,57 +133,6 @@ AI: Generate Level 1 Plan ◀──── Human: Verify · Modify
 
 Human verification at each stage is a **Loss Function** — catching errors early to prevent downstream propagation. Rather than prescribing fixed workflows per path (new development, refactoring, defect fixing), AI proposes flexible Level 1 Plans suited to the situation.
 
-#### Structured Feedback Loop Architecture
-
-To maximize the effectiveness of the recursive workflow, **3-layer feedback loops** must be explicitly designed.
-
-```mermaid
-graph TD
-    subgraph Inner["Inner Loop (Minutes)"]
-        GEN["AI Code Generation"] --> TEST["Test Execution"]
-        TEST -->|Fail| REFINE["Prompt Refinement"]
-        REFINE --> GEN
-        TEST -->|Pass| NEXT["Next Task"]
-    end
-
-    subgraph Middle["Middle Loop (Days)"]
-        PR["PR Review"] --> METRIC["Metric Collection"]
-        METRIC --> GATE["Quality Gate Adjustment"]
-        GATE --> PR
-    end
-
-    subgraph Outer["Outer Loop (Weeks)"]
-        OBS["Operational Observability"] --> ONT["Ontology Update"]
-        ONT --> SPEC["Spec Improvement"]
-        SPEC --> OBS
-    end
-
-    Inner --> Middle
-    Middle --> Outer
-    Outer -.->|"AIOps → AIDLC"| Inner
-
-    style Inner fill:#e3f2fd,stroke:#2196f3
-    style Middle fill:#fff3e0,stroke:#ff9800
-    style Outer fill:#fce4ec,stroke:#e91e63
-```
-
-| Layer | Cycle | Trigger | Improvement Target |
-|-------|-------|---------|-------------------|
-| **Inner Loop** | Minutes | Test failures, build errors | Prompts, code generation parameters |
-| **Middle Loop** | Days | PR review feedback, metric threshold breaches | Quality Gate criteria, review rules |
-| **Outer Loop** | Weeks | Operational incidents, SLO violations, user feedback | Domain ontology, Spec templates, architecture patterns |
-
-:::info HITL (Human-in-the-Loop) is a Feature, Not a Bug
-Deploy HITL as a **strategic design element**, not a transitional step toward full autonomy. Research shows HITL integration yields 31% accuracy improvement and 67% reduction in false positives. Without feedback loops, 90% of ML models never reach production.
-
-**Case Study**: Without feedback loops — $28K cost, error rate improved marginally from 8.3% to 7.9%. With structured feedback loops — error rate dropped to 1.2% within 31 days.
-:::
-
-**References:**
-- [How to Build an AI Agent Feedback Loop](https://www.braincuber.com/blog/how-to-build-feedback-loop-ai-agent-improvement) — Braincuber, 2026.03
-- [Human-in-the-Loop in Agentic AI](https://atalupadhyay.wordpress.com/2026/03/16/human-in-the-loop-in-agentic-ai/) — 2026.03
-- [AI Agent Feedback Loops: Monitor and Validate](https://jduncan.io/blog/2025-10-26-feedback-loops-ai-agents/) — JDuncan.io, 2025.10
-
 ### 2.4 AIDLC 3-Phase Overview
 
 AIDLC consists of 3 phases: **Inception**, **Construction**, and **Operations**.
@@ -224,41 +173,51 @@ graph LR
 
 <AidlcPhaseActivities />
 
-### 2.5 AIDLC Reliability Triangle
+### 2.5 AIDLC Reliability Dual Axis: Ontology × Harness
 
-To systematically ensure the reliability of AI-generated code, AIDLC introduces the **Reliability Triangle** framework — extending the existing Loss Function concept into three axes.
+To systematically ensure the reliability of AI-generated code, AIDLC introduces a two-axis reliability framework based on **Ontology** and **Harness Engineering**.
 
 ```mermaid
-graph TD
-    ONT["Ontology<br/><b>WHAT</b><br/>Domain Constraint Definition"]
-    HAR["Harness Engineering<br/><b>HOW</b><br/>Structured Validation"]
-    FB["Feedback Loop<br/><b>WHEN</b><br/>Continuous Improvement Cycle"]
+graph LR
+    subgraph Ontology["Ontology (WHAT + WHEN)"]
+        DEF["Domain Constraint Definition"]
+        FB["Feedback Loop<br/>(Self-Evolution)"]
+        DEF -->|"Operational Data"| FB
+        FB -->|"Refinement"| DEF
+    end
 
-    ONT -->|"Deliver Constraints"| HAR
-    HAR -->|"Collect Validation Results"| FB
-    FB -->|"Refine Ontology"| ONT
+    subgraph Harness["Harness Engineering (HOW)"]
+        VAL["Structured Validation"]
+        ARCH["Architectural Constraints"]
+    end
 
-    style ONT fill:#4caf50,color:#fff
-    style HAR fill:#2196f3,color:#fff
-    style FB fill:#ff9800,color:#fff
+    Ontology -->|"Deliver Constraints"| Harness
+    Harness -->|"Validation Results → Ontology Evolution"| Ontology
+
+    style Ontology fill:#4caf50,color:#fff
+    style Harness fill:#2196f3,color:#fff
 ```
 
-**Three Axes:**
+**Two Axes:**
 
-- **Ontology** — A "typed world model" that formalizes domain knowledge. Elevates DDD's Ubiquitous Language into a structured schema that AI can understand. The key mechanism for preventing AI hallucinations.
-- **Harness Engineering** — An architectural structure for validating and constraining AI agent outputs. The key lesson of 2026: "The agent isn't the hard part — the harness is."
-- **Feedback Loop** — A structured cyclical mechanism for continuously improving AI-generated artifacts. Operates across Inner/Middle/Outer 3 layers.
+- **Ontology** — A "typed world model" that formalizes domain knowledge. Elevates DDD's Ubiquitous Language into a structured schema that AI can understand. Ontology is not a static schema but a **living model that continuously evolves through its own feedback loops**. As operational data, incidents, and edge cases are discovered, the ontology is refined, improving AI agent behavior.
+- **Harness Engineering** — An architectural structure for validating and enforcing the constraints defined by the ontology. The key lesson of 2026: "The agent isn't the hard part — the harness is." Harness validation results drive ontology evolution.
 
 **Mapping to AIDLC 3 Phases:**
 
-| Phase | Ontology | Harness | Feedback Loop |
-|-------|----------|---------|---------------|
-| **Inception** | Define domain ontology (Entity, Aggregate, relationship constraints) | Spec consistency validation harness | Requirements refinement loop (Mob Elaboration) |
-| **Construction** | Code generation constraints (type schemas, business rules) | Build/test/security scan harness | Code quality improvement loop (PR review → metrics) |
-| **Operations** | Operational context model (SLO, Tribal Knowledge) | Runtime guardrails, circuit breakers | Observability → development feedback (AIOps → AIDLC) |
+| Phase | Ontology (Definition + Feedback Loop) | Harness (Validation + Constraints) |
+|-------|--------------------------------------|-----------------------------------|
+| **Inception** | Define domain ontology → Requirements refinement loop via Mob Elaboration | Spec consistency validation harness |
+| **Construction** | Code generation constraints → Ontology updates via PR review/metrics | Build/test/security scan harness |
+| **Operations** | Operational context model → Ontology evolution via observability data (AIOps → AIDLC) | Runtime guardrails, circuit breakers |
 
-:::info Reliability Triangle and Loss Function
-The existing AIDLC Loss Function (human verification at each stage) corresponds to the **Harness** axis of the Reliability Triangle. Ontology defines **what** the Loss Function validates, and Feedback Loops structure **how** Loss Function results are incorporated into improvements.
+:::info Ontology's Self-Feedback Loop
+Feedback loops are an **intrinsic property** of ontology. Ontology evolves across 3 layers:
+- **Inner Loop** (minutes): Test failures → refine prompts/ontology constraints
+- **Middle Loop** (days): PR review feedback → update ontology schema
+- **Outer Loop** (weeks): Operational incidents/SLO violations → redesign domain ontology structure
+
+HITL (Human-in-the-Loop) is a **strategic design element** in this evolution process. HITL integration yields 31% accuracy improvement and 67% reduction in false positives.
 :::
 
 ---
@@ -399,7 +358,7 @@ Kiro: "Analyze current workloads"
   → Response: { deployments: [...], resource_usage: {...} }
 ```
 
-This enables **designs that reflect the current cluster state and costs** when generating design.md. For details on MCP integration architecture, refer to [1. AIOps Strategy Guide](../aiops/aiops-introduction.md).
+This enables **designs that reflect the current cluster state and costs** when generating design.md. For details on MCP integration architecture, refer to [1. AIOps Strategy Guide](../operations-observability/agentic-ops/aiops-introduction.md).
 
 ---
 
@@ -507,6 +466,52 @@ Materializing ontology as a Knowledge Graph enables the SemanticForge pattern �
 - [Why Ontology Matters for Agentic AI in 2026](https://kenhuangus.substack.com/p/why-ontology-matters-for-agentic) — Ken Huang & Bhavya Gupta
 - [Why AI Agents Fail Without Ontologies](https://medium.com/@itznihal/why-ai-agents-fail-without-ontologies-production-lessons-beb9fe9c3af9) — Nihal Parmar, 2026.03
 - [SemanticForge: Knowledge Graph-based Hallucination Prevention](https://arxiv.org/html/2511.07584v1)
+- [How to Build an AI Agent Feedback Loop](https://www.braincuber.com/blog/how-to-build-feedback-loop-ai-agent-improvement) — Braincuber, 2026.03
+- [Human-in-the-Loop in Agentic AI](https://atalupadhyay.wordpress.com/2026/03/16/human-in-the-loop-in-agentic-ai/) — 2026.03
+
+#### Ontology Feedback Loop: A Living Model
+
+Ontology is not a static schema defined once and forgotten. It is a **living model that continuously evolves through operational data and development experience**. This self-feedback loop fundamentally ensures AIDLC reliability.
+
+```mermaid
+graph TD
+    subgraph Inner["Inner Loop (Minutes)"]
+        GEN["AI Code Generation"] --> TEST["Test/Harness Execution"]
+        TEST -->|"Failure: Ontology Constraint Violation"| REFINE["Refine Ontology Constraints"]
+        REFINE --> GEN
+    end
+
+    subgraph Middle["Middle Loop (Days)"]
+        PR["PR Review"] --> METRIC["Metric Collection"]
+        METRIC -->|"Recurring Patterns Found"| SCHEMA["Update Ontology Schema"]
+        SCHEMA --> PR
+    end
+
+    subgraph Outer["Outer Loop (Weeks)"]
+        OBS["Operational Observability<br/>(AIOps)"] -->|"Incidents/SLO Violations"| REDESIGN["Redesign Domain<br/>Ontology Structure"]
+        REDESIGN --> SPEC["Spec Improvement"]
+        SPEC --> OBS
+    end
+
+    Inner --> Middle
+    Middle --> Outer
+
+    style Inner fill:#e3f2fd,stroke:#2196f3
+    style Middle fill:#fff3e0,stroke:#ff9800
+    style Outer fill:#fce4ec,stroke:#e91e63
+```
+
+| Loop | Cycle | Trigger | Ontology Change |
+|------|-------|---------|----------------|
+| **Inner** | Minutes | Test failures, harness violations | Add/modify constraints (e.g., discover missing invariants) |
+| **Middle** | Days | Recurring patterns in PR reviews | Update entity/relationship schemas (e.g., add new Value Objects) |
+| **Outer** | Weeks | Operational incidents, SLO violations | Redesign domain model structure (e.g., redefine Aggregate boundaries) |
+
+:::info HITL is a Core Mechanism of Ontology Evolution
+Deploy HITL (Human-in-the-Loop) as a **strategic design element of ontology evolution**, not a transitional step toward autonomy. HITL integration yields 31% accuracy improvement and 67% reduction in false positives. Without feedback loops, 90% of ML models never reach production.
+
+**Case Study**: Without feedback loops — $28K cost, error rate improved marginally from 8.3% to 7.9%. With structured ontology feedback loops — error rate dropped to 1.2% within 31 days.
+:::
 
 ### 4.2 Mob Construction
 
@@ -1182,7 +1187,7 @@ AWS IaC MCP Server, combined with Kiro's Spec-driven development, automatically 
 
 ### 5.1 Observability Foundation
 
-The data foundation of the Operations phase is the 5-Layer architecture built in [2. Intelligent Observability Stack](../aiops/aiops-observability-stack.md).
+The data foundation of the Operations phase is the 5-Layer architecture built in [2. Intelligent Observability Stack](../operations-observability/agentic-ops/aiops-observability-stack.md).
 
 ```
 [Observability Stack → Operations Connection]
@@ -1201,7 +1206,7 @@ Action Layer ← AIDLC Operations is located here
   └── Predictive scaling
 ```
 
-Metrics, logs, and traces collected in [2. Intelligent Observability Stack](../aiops/aiops-observability-stack.md) are delivered to AI tools and Agents through MCP, forming the decision-making foundation of the Operations phase.
+Metrics, logs, and traces collected in [2. Intelligent Observability Stack](../operations-observability/agentic-ops/aiops-observability-stack.md) are delivered to AI tools and Agents through MCP, forming the decision-making foundation of the Operations phase.
 
 #### 5.1.3 2025-2026 Observability Innovations — Strengthening AIDLC Operations
 
@@ -1995,7 +2000,7 @@ CNS421 was rated as the **most practical AIOps session** at re:Invent 2025. This
 - AWS re:Invent 2025 EKS Research — See Section 2.1
 
 :::tip Adoption Order
-**First adopt** Q Developer (GA)'s fully managed analysis, then add Strands (OSS) SOP-based workflows, and gradually expand Kagent (early stage) K8s native approach. The Agentic AI pattern from CNS421 can be implemented with the **Strands + MCP combination**, and Tribal Knowledge is managed as Strands SOP files. This connects with the maturity model Level 3→4 transition in [1. AIOps Strategy Guide](../aiops/aiops-introduction.md).
+**First adopt** Q Developer (GA)'s fully managed analysis, then add Strands (OSS) SOP-based workflows, and gradually expand Kagent (early stage) K8s native approach. The Agentic AI pattern from CNS421 can be implemented with the **Strands + MCP combination**, and Tribal Knowledge is managed as Strands SOP files. This connects with the maturity model Level 3→4 transition in [1. AIOps Strategy Guide](../operations-observability/agentic-ops/aiops-introduction.md).
 :::
 
 ### 5.3 From CI/CD to AI/CD — Leveraging Bedrock AgentCore
@@ -2020,7 +2025,7 @@ Key transition points:
 - **Manual monitoring** → **AI Agent autonomous response** (MCP-based integrated analysis)
 
 :::info Operations Deep Dive
-Advanced Operations phase patterns such as ML-based predictive scaling, Karpenter + AI prediction, and Chaos Engineering + AI learning are covered in [4. Predictive Scaling and Auto-Recovery](../aiops/aiops-predictive-operations.md).
+Advanced Operations phase patterns such as ML-based predictive scaling, Karpenter + AI prediction, and Chaos Engineering + AI learning are covered in [4. Predictive Scaling and Auto-Recovery](../operations-observability/agentic-ops/aiops-predictive-operations.md).
 :::
 
 Bedrock AgentCore is AWS's managed agent framework that enables the pattern of **delegating deployment pipeline decisions to AI**. Traditional CI/CD executes linearly according to predefined rules, but AgentCore-based pipelines **analyze real-time metrics to autonomously determine deployment progression/rollback**.
@@ -3200,9 +3205,9 @@ Phase 4: AI Agent Expansion
 
 ### 8.2 Next Steps
 
-- **[4. Predictive Scaling and Auto-Recovery](../aiops/aiops-predictive-operations.md)** — Operations phase deep dive: ML-based predictive scaling, AI Agent automatic incident response, Chaos Engineering
-- **[2. Intelligent Observability Stack](../aiops/aiops-observability-stack.md)** — Data foundation for the Operations phase: ADOT, AMP/AMG, CloudWatch AI setup
-- **[1. AIOps Strategy Guide](../aiops/aiops-introduction.md)** — Technology foundation for AIDLC: AWS open-source strategy, MCP integration, AI tool ecosystem
+- **[4. Predictive Scaling and Auto-Recovery](../operations-observability/agentic-ops/aiops-predictive-operations.md)** — Operations phase deep dive: ML-based predictive scaling, AI Agent automatic incident response, Chaos Engineering
+- **[2. Intelligent Observability Stack](../operations-observability/agentic-ops/aiops-observability-stack.md)** — Data foundation for the Operations phase: ADOT, AMP/AMG, CloudWatch AI setup
+- **[1. AIOps Strategy Guide](../operations-observability/agentic-ops/aiops-introduction.md)** — Technology foundation for AIDLC: AWS open-source strategy, MCP integration, AI tool ecosystem
 
 ### 8.3 Learning Path
 

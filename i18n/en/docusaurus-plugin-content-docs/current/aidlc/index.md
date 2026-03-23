@@ -23,13 +23,12 @@ AIDLC is built on three pillars:
 - **Unit**: AI decomposes intent into actionable unit tasks. Quality is ensured by combining DDD (Domain-Driven Design) with BDD/TDD.
 - **Bolt**: AI automatically executes code generation, test writing, and deployment pipeline configuration.
 
-## Reliability Triangle
+## Reliability Dual Axis: Ontology × Harness
 
-To systematically ensure the reliability of AI-generated code, AIDLC introduces a three-axis **Reliability Triangle**:
+To systematically ensure the reliability of AI-generated code, AIDLC introduces a two-axis reliability framework:
 
-- **Ontology (WHAT)**: A typed world model formalizing domain knowledge — prevents AI hallucinations
-- **Harness Engineering (HOW)**: Architectural structure for validating/constraining AI outputs
-- **Feedback Loops (WHEN)**: Inner (minutes) / Middle (days) / Outer (weeks) 3-layer continuous improvement cycles
+- **Ontology (WHAT + WHEN)**: A typed world model formalizing domain knowledge. A living model that continuously evolves through its own feedback loops (Inner/Middle/Outer), preventing AI hallucinations.
+- **Harness Engineering (HOW)**: Architectural structure for validating and enforcing constraints defined by the ontology
 
 ## 10 AIDLC Principles
 
@@ -37,7 +36,7 @@ The AIDLC framework defines 10 principles for systematizing AI-driven developmen
 
 ## After Development: Operations and Feedback Loops
 
-After developing software with AIDLC, **continuous improvement and feedback loops** in the production environment are essential. See [AIOps](/docs/aiops) for an approach to this. AIOps is a methodology for systematically building feedback loops for operational efficiency including observability, predictive scaling, and auto-remediation using AI.
+After developing software with AIDLC, **continuous improvement and feedback loops** in the production environment are essential. See [AIOps](/docs/operations-observability/agentic-ops) for an approach to this. AIOps is a methodology for systematically building feedback loops for operational efficiency including observability, predictive scaling, and auto-remediation using AI.
 
 ```mermaid
 flowchart LR
@@ -62,7 +61,7 @@ flowchart LR
 
 :::info Learning Path
 1. [AIDLC Framework](./aidlc-framework.md) — 10 principles, Intent→Unit→Bolt model, DDD integration, EKS capabilities mapping
-2. [AIOps](/docs/aiops) — Building operational feedback loops after development
+2. [AIOps](/docs/operations-observability/agentic-ops) — Building operational feedback loops after development
 :::
 
 ## References
