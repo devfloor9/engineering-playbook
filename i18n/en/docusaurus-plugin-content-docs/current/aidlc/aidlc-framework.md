@@ -133,6 +133,57 @@ AI: Generate Level 1 Plan ◀──── Human: Verify · Modify
 
 Human verification at each stage is a **Loss Function** — catching errors early to prevent downstream propagation. Rather than prescribing fixed workflows per path (new development, refactoring, defect fixing), AI proposes flexible Level 1 Plans suited to the situation.
 
+#### Structured Feedback Loop Architecture
+
+To maximize the effectiveness of the recursive workflow, **3-layer feedback loops** must be explicitly designed.
+
+```mermaid
+graph TD
+    subgraph Inner["Inner Loop (Minutes)"]
+        GEN["AI Code Generation"] --> TEST["Test Execution"]
+        TEST -->|Fail| REFINE["Prompt Refinement"]
+        REFINE --> GEN
+        TEST -->|Pass| NEXT["Next Task"]
+    end
+
+    subgraph Middle["Middle Loop (Days)"]
+        PR["PR Review"] --> METRIC["Metric Collection"]
+        METRIC --> GATE["Quality Gate Adjustment"]
+        GATE --> PR
+    end
+
+    subgraph Outer["Outer Loop (Weeks)"]
+        OBS["Operational Observability"] --> ONT["Ontology Update"]
+        ONT --> SPEC["Spec Improvement"]
+        SPEC --> OBS
+    end
+
+    Inner --> Middle
+    Middle --> Outer
+    Outer -.->|"AIOps → AIDLC"| Inner
+
+    style Inner fill:#e3f2fd,stroke:#2196f3
+    style Middle fill:#fff3e0,stroke:#ff9800
+    style Outer fill:#fce4ec,stroke:#e91e63
+```
+
+| Layer | Cycle | Trigger | Improvement Target |
+|-------|-------|---------|-------------------|
+| **Inner Loop** | Minutes | Test failures, build errors | Prompts, code generation parameters |
+| **Middle Loop** | Days | PR review feedback, metric threshold breaches | Quality Gate criteria, review rules |
+| **Outer Loop** | Weeks | Operational incidents, SLO violations, user feedback | Domain ontology, Spec templates, architecture patterns |
+
+:::info HITL (Human-in-the-Loop) is a Feature, Not a Bug
+Deploy HITL as a **strategic design element**, not a transitional step toward full autonomy. Research shows HITL integration yields 31% accuracy improvement and 67% reduction in false positives. Without feedback loops, 90% of ML models never reach production.
+
+**Case Study**: Without feedback loops — $28K cost, error rate improved marginally from 8.3% to 7.9%. With structured feedback loops — error rate dropped to 1.2% within 31 days.
+:::
+
+**References:**
+- [How to Build an AI Agent Feedback Loop](https://www.braincuber.com/blog/how-to-build-feedback-loop-ai-agent-improvement) — Braincuber, 2026.03
+- [Human-in-the-Loop in Agentic AI](https://atalupadhyay.wordpress.com/2026/03/16/human-in-the-loop-in-agentic-ai/) — 2026.03
+- [AI Agent Feedback Loops: Monitor and Validate](https://jduncan.io/blog/2025-10-26-feedback-loops-ai-agents/) — JDuncan.io, 2025.10
+
 ### 2.4 AIDLC 3-Phase Overview
 
 AIDLC consists of 3 phases: **Inception**, **Construction**, and **Operations**.
@@ -172,6 +223,43 @@ graph LR
 ```
 
 <AidlcPhaseActivities />
+
+### 2.5 AIDLC Reliability Triangle
+
+To systematically ensure the reliability of AI-generated code, AIDLC introduces the **Reliability Triangle** framework — extending the existing Loss Function concept into three axes.
+
+```mermaid
+graph TD
+    ONT["Ontology<br/><b>WHAT</b><br/>Domain Constraint Definition"]
+    HAR["Harness Engineering<br/><b>HOW</b><br/>Structured Validation"]
+    FB["Feedback Loop<br/><b>WHEN</b><br/>Continuous Improvement Cycle"]
+
+    ONT -->|"Deliver Constraints"| HAR
+    HAR -->|"Collect Validation Results"| FB
+    FB -->|"Refine Ontology"| ONT
+
+    style ONT fill:#4caf50,color:#fff
+    style HAR fill:#2196f3,color:#fff
+    style FB fill:#ff9800,color:#fff
+```
+
+**Three Axes:**
+
+- **Ontology** — A "typed world model" that formalizes domain knowledge. Elevates DDD's Ubiquitous Language into a structured schema that AI can understand. The key mechanism for preventing AI hallucinations.
+- **Harness Engineering** — An architectural structure for validating and constraining AI agent outputs. The key lesson of 2026: "The agent isn't the hard part — the harness is."
+- **Feedback Loop** — A structured cyclical mechanism for continuously improving AI-generated artifacts. Operates across Inner/Middle/Outer 3 layers.
+
+**Mapping to AIDLC 3 Phases:**
+
+| Phase | Ontology | Harness | Feedback Loop |
+|-------|----------|---------|---------------|
+| **Inception** | Define domain ontology (Entity, Aggregate, relationship constraints) | Spec consistency validation harness | Requirements refinement loop (Mob Elaboration) |
+| **Construction** | Code generation constraints (type schemas, business rules) | Build/test/security scan harness | Code quality improvement loop (PR review → metrics) |
+| **Operations** | Operational context model (SLO, Tribal Knowledge) | Runtime guardrails, circuit breakers | Observability → development feedback (AIOps → AIDLC) |
+
+:::info Reliability Triangle and Loss Function
+The existing AIDLC Loss Function (human verification at each stage) corresponds to the **Harness** axis of the Reliability Triangle. Ontology defines **what** the Loss Function validates, and Feedback Loops structure **how** Loss Function results are incorporated into improvements.
+:::
 
 ---
 
@@ -368,6 +456,57 @@ graph LR
    - Circuit Breaker → Envoy sidecar + Istio
 
 Developers **verify and adjust** the models generated by AI at each stage. This verification serves as the Loss Function.
+
+### 4.1.1 Ontology-Driven Development: From DDD to Formal Ontology
+
+> "Prompt engineering is ontology engineering in denial" — 2026 AI Community Consensus
+
+DDD's Ubiquitous Language is an informal agreement for team communication. **Ontology-driven development** elevates this to a **formal schema (typed world model)** that AI can mechanically understand and enforce.
+
+**Why Ontology?**
+
+The root cause of AI agent failures is not weak models or inaccurate prompts, but the **absence of semantic structure in the architecture**. When definitions of users, orders, tasks, and rules are scattered across prompts, AI loses context and generates hallucinations.
+
+**Kiro Spec + Ontology Integration:**
+
+```yaml
+# Domain ontology section in requirements.md
+domain_ontology:
+  aggregates:
+    Payment:
+      invariants:
+        - "amount must be greater than 0"
+        - "status transition: CREATED → PROCESSING → COMPLETED | FAILED"
+      entities:
+        - PaymentMethod: { type: "enum", values: ["CARD", "BANK", "WALLET"] }
+        - Customer: { attributes: ["customerId", "tier"] }
+      value_objects:
+        - Money: { currency: "ISO 4217", amount: "decimal(19,4)" }
+      domain_events:
+        - PaymentCreated: { trigger: "payment request received", data: ["paymentId", "amount"] }
+        - PaymentCompleted: { trigger: "PG approval completed" }
+        - PaymentFailed: { trigger: "PG rejection or timeout" }
+  relationships:
+    - "Payment CONTAINS PaymentMethod (1:1)"
+    - "Customer INITIATES Payment (1:N)"
+  constraints:
+    - "Maximum 3 concurrent payments per Customer"
+    - "Maximum 2 retries from FAILED state"
+```
+
+This ontology is **injected into the AI agent's context window** to:
+1. Automatically enforce entity relationships and invariants during code generation
+2. Auto-derive boundary cases based on domain event transition paths during test generation
+3. Auto-detect ontology violations (e.g., creating payments with negative amounts) during code review
+
+:::tip Connection to Knowledge Graphs
+Materializing ontology as a Knowledge Graph enables the SemanticForge pattern — the Knowledge Graph serves as a constraint satisfaction harness that prevents logical and structural hallucinations in AI-generated code at the source.
+:::
+
+**References:**
+- [Why Ontology Matters for Agentic AI in 2026](https://kenhuangus.substack.com/p/why-ontology-matters-for-agentic) — Ken Huang & Bhavya Gupta
+- [Why AI Agents Fail Without Ontologies](https://medium.com/@itznihal/why-ai-agents-fail-without-ontologies-production-lessons-beb9fe9c3af9) — Nihal Parmar, 2026.03
+- [SemanticForge: Knowledge Graph-based Hallucination Prevention](https://arxiv.org/html/2511.07584v1)
 
 ### 4.2 Mob Construction
 
@@ -2484,6 +2623,43 @@ Inception          Construction          Operations
 ```
 
 <QualityGates />
+
+### Harness Engineering: An Architectural Approach to Quality Assurance
+
+> "The agent isn't the hard part — the harness is" — NxCode, 2026
+
+The key lesson of 2026 AI development is the rise of **Harness Engineering**. When OpenAI Codex generated 1 million lines of code, human engineers wrote zero lines. The engineer's role shifted from **writing code to designing the harness**.
+
+**Harness vs Guardrails:**
+
+| Aspect | Guardrails | Harness |
+|--------|-----------|---------|
+| **Scope** | Runtime I/O filtering | Entire architecture design |
+| **Role** | PII masking, prompt injection defense | Retry budgets, timeouts, output gates, circuit breakers |
+| **Timing** | During execution | From design time |
+| **Failure Mode** | Block individual requests | Protect entire system |
+
+:::caution The Same-Agent Testing Trap
+"Tests written by the same AI agent cannot catch that agent's errors" — this is the AI equivalent of marking your own homework. Tests pass, CI is green, merge... but 3 days later the feature is half-wired. The cause: tests were optimized for 'done', not 'correct'.
+
+**Solution**: Independent verification harness — validation must be performed by a different agent (or human) than the one that generated the code.
+:::
+
+**AIDLC Harness Patterns:**
+
+| Phase | Harness Type | Validation Target | Implementation |
+|-------|-------------|-------------------|---------------|
+| **Inception** | Spec validation harness | Requirements completeness, conflicts, NFR fulfillment | Ontology-based Spec consistency auto-verification |
+| **Construction** | Build/test harness | Code correctness, security, architecture compliance | Independent agent review + ontology violation detection |
+| **Operations** | Runtime harness | AI Agent behavior constraints, cost limits | Circuit breakers, retry budgets, output gates |
+
+**Fintech Runaway Case**: An AI agent operating without a harness executed **847 API retries** in a single loop, incurring $2,200 in costs and sending 14 incomplete emails. The cause was not the model or prompt but an **architectural failure** — no retry budget, timeout, output gate, or circuit breaker.
+
+**References:**
+- [Harness Engineering: Governing AI Agents through Architectural Rigor](https://harness-engineering.ai/blog/harness-engineering-governing-ai-agents-through-architectural-rigor/) — Kai Renner, 2026.03
+- [Harness Engineering Complete Guide](https://www.nxcode.io/resources/news/harness-engineering-complete-guide-ai-agent-codex-2026) — NxCode, 2026.03
+- [Specwright: Closes the Loop](https://obsidian-owl.github.io/engineering-blog/posts/specwright-spec-driven-development-that-closes-the-loop/) — Obsidian Owl, 2026.02
+- [EleutherAI LM Evaluation Harness](https://github.com/EleutherAI/lm-evaluation-harness) — GitHub 11.7k+ stars
 
 ### 6.1 AI-Based PR Review Automation
 

@@ -23,6 +23,14 @@ AIDLC is built on three pillars:
 - **Unit**: AI decomposes intent into actionable unit tasks. Quality is ensured by combining DDD (Domain-Driven Design) with BDD/TDD.
 - **Bolt**: AI automatically executes code generation, test writing, and deployment pipeline configuration.
 
+## Reliability Triangle
+
+To systematically ensure the reliability of AI-generated code, AIDLC introduces a three-axis **Reliability Triangle**:
+
+- **Ontology (WHAT)**: A typed world model formalizing domain knowledge — prevents AI hallucinations
+- **Harness Engineering (HOW)**: Architectural structure for validating/constraining AI outputs
+- **Feedback Loops (WHEN)**: Inner (minutes) / Middle (days) / Outer (weeks) 3-layer continuous improvement cycles
+
 ## 10 AIDLC Principles
 
 The AIDLC framework defines 10 principles for systematizing AI-driven development. See [AIDLC Framework](./aidlc-framework.md) for details.

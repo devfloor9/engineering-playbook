@@ -23,6 +23,14 @@ AIDLC는 세 가지 핵심 축으로 구성됩니다:
 - **Unit(단위)**: AI가 의도를 실행 가능한 단위 작업으로 분해합니다. DDD(Domain-Driven Design)와 BDD/TDD를 결합하여 품질을 보장합니다.
 - **Bolt(실행)**: AI가 코드 생성, 테스트 작성, 배포 파이프라인 구성까지 자동으로 실행합니다.
 
+## 신뢰성 삼각형 (Reliability Triangle)
+
+AI 생성 코드의 신뢰성을 체계적으로 보장하기 위해 AIDLC는 세 가지 축의 **신뢰성 삼각형**을 도입합니다:
+
+- **온톨로지(WHAT)**: 도메인 지식을 형식화한 typed world model — AI 환각 방지
+- **하네스 엔지니어링(HOW)**: AI 출력을 아키텍처적으로 검증/제약하는 구조
+- **피드백 루프(WHEN)**: Inner(분)/Middle(일)/Outer(주) 3계층 지속적 개선 사이클
+
 ## AIDLC 10가지 원칙
 
 AIDLC 프레임워크는 AI 기반 개발을 체계화하는 10가지 원칙을 정의합니다. 상세 내용은 [AIDLC 프레임워크](./aidlc-framework.md)에서 다룹니다.

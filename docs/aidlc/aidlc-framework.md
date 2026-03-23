@@ -129,6 +129,57 @@ AI: Level 1 Plan 생성 ◀──── 사람: 검증 · 수정
 
 각 단계의 사람 검증은 **Loss Function**입니다 — 오류를 조기에 포착하여 하류 전파를 방지합니다. AI가 경로별(신규 개발, 리팩터링, 결함 수정) 고정 워크플로우를 규정하지 않고, 상황에 맞는 Level 1 Plan을 제안하는 유연한 접근입니다.
 
+#### 구조화된 피드백 루프 아키텍처
+
+재귀적 워크플로우의 효과를 극대화하려면 **3계층 피드백 루프**를 명시적으로 설계해야 합니다.
+
+```mermaid
+graph TD
+    subgraph Inner["Inner Loop (분 단위)"]
+        GEN["AI 코드 생성"] --> TEST["테스트 실행"]
+        TEST -->|실패| REFINE["프롬프트 정제"]
+        REFINE --> GEN
+        TEST -->|성공| NEXT["다음 태스크"]
+    end
+
+    subgraph Middle["Middle Loop (일 단위)"]
+        PR["PR 리뷰"] --> METRIC["메트릭 수집"]
+        METRIC --> GATE["Quality Gate 조정"]
+        GATE --> PR
+    end
+
+    subgraph Outer["Outer Loop (주 단위)"]
+        OBS["운영 관찰성"] --> ONT["온톨로지 업데이트"]
+        ONT --> SPEC["Spec 개선"]
+        SPEC --> OBS
+    end
+
+    Inner --> Middle
+    Middle --> Outer
+    Outer -.->|"AIOps → AIDLC"| Inner
+
+    style Inner fill:#e3f2fd,stroke:#2196f3
+    style Middle fill:#fff3e0,stroke:#ff9800
+    style Outer fill:#fce4ec,stroke:#e91e63
+```
+
+| 계층 | 주기 | 트리거 | 개선 대상 |
+|------|------|--------|----------|
+| **Inner Loop** | 분 단위 | 테스트 실패, 빌드 에러 | 프롬프트, 코드 생성 파라미터 |
+| **Middle Loop** | 일 단위 | PR 리뷰 피드백, 메트릭 임계값 초과 | Quality Gate 기준, 리뷰 규칙 |
+| **Outer Loop** | 주 단위 | 운영 인시던트, SLO 위반, 사용자 피드백 | 도메인 온톨로지, Spec 템플릿, 아키텍처 패턴 |
+
+:::info HITL(Human-in-the-Loop)은 버그가 아니라 기능이다
+HITL을 자율성의 과도기적 단계가 아닌 **전략적 설계 요소**로 배치하세요. 연구에 따르면 HITL 통합 시 정확도 31% 향상, False Positive 67% 감소 효과가 확인되었습니다. 피드백 루프 없이 운영하면 ML 모델의 90%가 프로덕션에 도달하지 못합니다.
+
+**사례**: 피드백 루프 미적용 시 $28K 비용에 에러율 8.3%→7.9% 미미한 개선. 구조화된 피드백 루프 적용 시 31일 만에 에러율 1.2%까지 감소.
+:::
+
+**참고 자료:**
+- [How to Build an AI Agent Feedback Loop](https://www.braincuber.com/blog/how-to-build-feedback-loop-ai-agent-improvement) — Braincuber, 2026.03
+- [Human-in-the-Loop in Agentic AI](https://atalupadhyay.wordpress.com/2026/03/16/human-in-the-loop-in-agentic-ai/) — 2026.03
+- [AI Agent Feedback Loops: Monitor and Validate](https://jduncan.io/blog/2025-10-26-feedback-loops-ai-agents/) — JDuncan.io, 2025.10
+
 ### 2.4 AIDLC 3단계 개관
 
 AIDLC는 **Inception**, **Construction**, **Operations** 3단계로 구성됩니다.
@@ -168,6 +219,43 @@ graph LR
 ```
 
 <AidlcPhaseActivities />
+
+### 2.5 AIDLC 신뢰성 삼각형
+
+AI 생성 코드의 신뢰성을 체계적으로 보장하기 위해, AIDLC는 **신뢰성 삼각형(Reliability Triangle)** 프레임워크를 도입합니다. 기존 Loss Function 개념을 세 가지 축으로 확장한 것입니다.
+
+```mermaid
+graph TD
+    ONT["온톨로지<br/><b>WHAT</b><br/>도메인 제약 정의"]
+    HAR["하네스 엔지니어링<br/><b>HOW</b><br/>구조화된 검증"]
+    FB["피드백 루프<br/><b>WHEN</b><br/>지속적 개선 사이클"]
+
+    ONT -->|"제약 조건 전달"| HAR
+    HAR -->|"검증 결과 수집"| FB
+    FB -->|"온톨로지 정제"| ONT
+
+    style ONT fill:#4caf50,color:#fff
+    style HAR fill:#2196f3,color:#fff
+    style FB fill:#ff9800,color:#fff
+```
+
+**세 축의 역할:**
+
+- **온톨로지(Ontology)** — 도메인 지식을 형식화한 "typed world model". DDD의 Ubiquitous Language를 AI가 이해할 수 있는 구조화된 스키마로 격상합니다. AI 환각(hallucination)을 방지하는 핵심 메커니즘입니다.
+- **하네스 엔지니어링(Harness Engineering)** — AI 에이전트의 출력을 아키텍처적으로 검증하고 제약하는 구조. "에이전트가 어려운 게 아니라, 하네스가 어렵다"는 2026년의 핵심 교훈입니다.
+- **피드백 루프(Feedback Loop)** — AI 생성물의 품질을 지속적으로 개선하는 구조화된 순환 메커니즘. Inner/Middle/Outer 3계층으로 운영됩니다.
+
+**AIDLC 3단계별 매핑:**
+
+| 단계 | 온톨로지 | 하네스 | 피드백 루프 |
+|------|---------|--------|-----------|
+| **Inception** | 도메인 온톨로지 정의 (Entity, Aggregate, 관계 제약) | Spec 일관성 검증 하네스 | 요구사항 정제 루프 (Mob Elaboration) |
+| **Construction** | 코드 생성 제약 (타입 스키마, 비즈니스 규칙) | 빌드/테스트/보안 스캔 하네스 | 코드 품질 개선 루프 (PR 리뷰 → 메트릭) |
+| **Operations** | 운영 컨텍스트 모델 (SLO, Tribal Knowledge) | 런타임 가드레일, 서킷 브레이커 | 관찰성 → 개발 피드백 (AIOps → AIDLC) |
+
+:::info 신뢰성 삼각형과 Loss Function
+기존 AIDLC의 Loss Function(각 단계 사람 검증)은 신뢰성 삼각형의 **하네스** 축에 해당합니다. 온톨로지는 Loss Function이 **무엇을** 검증할지 정의하고, 피드백 루프는 Loss Function의 결과를 **어떻게** 개선에 반영할지 구조화합니다.
+:::
 
 ---
 
@@ -361,6 +449,57 @@ graph LR
    - Circuit Breaker → Envoy sidecar + Istio
 
 개발자는 각 단계에서 AI가 생성한 모델을 **검증·조정**합니다. 이 검증이 Loss Function 역할을 합니다.
+
+### 4.1.1 온톨로지 기반 개발: DDD에서 형식 온톨로지로
+
+> "프롬프트 엔지니어링은 온톨로지 엔지니어링이다" — 2026 AI 커뮤니티 컨센서스
+
+DDD의 Ubiquitous Language는 팀 내 소통을 위한 비형식적 합의입니다. **온톨로지 기반 개발**은 이를 AI가 기계적으로 이해하고 준수할 수 있는 **형식 스키마(typed world model)**로 격상합니다.
+
+**왜 온톨로지인가?**
+
+AI 에이전트가 실패하는 근본 원인은 모델의 약함이나 프롬프트의 부정확함이 아니라, **아키텍처에 의미 구조(semantic structure)가 없기 때문**입니다. 사용자, 주문, 태스크, 규칙의 정의가 프롬프트 안에 흩어져 있으면 AI는 맥락을 잃고 환각(hallucination)을 생성합니다.
+
+**Kiro Spec + 온톨로지 통합:**
+
+```yaml
+# requirements.md 내 도메인 온톨로지 섹션
+domain_ontology:
+  aggregates:
+    Payment:
+      invariants:
+        - "amount는 0보다 커야 한다"
+        - "status 전이: CREATED → PROCESSING → COMPLETED | FAILED"
+      entities:
+        - PaymentMethod: { type: "enum", values: ["CARD", "BANK", "WALLET"] }
+        - Customer: { attributes: ["customerId", "tier"] }
+      value_objects:
+        - Money: { currency: "ISO 4217", amount: "decimal(19,4)" }
+      domain_events:
+        - PaymentCreated: { trigger: "결제 요청 수신", data: ["paymentId", "amount"] }
+        - PaymentCompleted: { trigger: "PG 승인 완료" }
+        - PaymentFailed: { trigger: "PG 거부 또는 타임아웃" }
+  relationships:
+    - "Payment CONTAINS PaymentMethod (1:1)"
+    - "Customer INITIATES Payment (1:N)"
+  constraints:
+    - "동일 Customer의 동시 결제는 최대 3건"
+    - "FAILED 상태에서 재시도는 최대 2회"
+```
+
+이 온톨로지는 AI 에이전트의 **컨텍스트 윈도우에 주입**되어:
+1. 코드 생성 시 엔티티 관계와 불변 조건(invariant)을 자동 준수
+2. 테스트 생성 시 도메인 이벤트의 전이 경로를 기반으로 경계 케이스 자동 도출
+3. 코드 리뷰 시 온톨로지 위반(예: 금액이 음수인 결제 생성)을 자동 탐지
+
+:::tip Knowledge Graph와의 연결
+온톨로지를 Knowledge Graph로 구체화하면 SemanticForge 패턴을 적용할 수 있습니다 — Knowledge Graph가 constraint satisfaction 하네스 역할을 하여 AI가 생성하는 코드의 논리적/구조적 환각을 원천 차단합니다.
+:::
+
+**참고 자료:**
+- [Why Ontology Matters for Agentic AI in 2026](https://kenhuangus.substack.com/p/why-ontology-matters-for-agentic) — Ken Huang & Bhavya Gupta
+- [Why AI Agents Fail Without Ontologies](https://medium.com/@itznihal/why-ai-agents-fail-without-ontologies-production-lessons-beb9fe9c3af9) — Nihal Parmar, 2026.03
+- [SemanticForge: Knowledge Graph 기반 환각 방지](https://arxiv.org/html/2511.07584v1)
 
 ### 4.2 Mob Construction
 
@@ -2476,6 +2615,43 @@ Inception          Construction          Operations
 ```
 
 <QualityGates />
+
+### 하네스 엔지니어링: 품질 보증의 아키텍처적 접근
+
+> "에이전트가 어려운 게 아니라, 하네스가 어렵다" — NxCode, 2026
+
+2026년 AI 개발의 핵심 교훈은 **하네스 엔지니어링(Harness Engineering)**의 부상입니다. OpenAI Codex가 100만 줄의 코드를 생성할 때, 인간 엔지니어가 작성한 코드는 0줄이었습니다. 엔지니어의 역할은 **코드를 쓰는 것이 아니라 하네스를 설계하는 것**으로 전환되었습니다.
+
+**하네스 vs 가드레일:**
+
+| 구분 | 가드레일(Guardrails) | 하네스(Harness) |
+|------|---------------------|----------------|
+| **범위** | 런타임 입출력 필터링 | 아키텍처 전체 설계 |
+| **역할** | PII 마스킹, 프롬프트 인젝션 방어 | 재시도 예산, 타임아웃, 출력 게이트, 서킷 브레이커 |
+| **시점** | 실행 중 | 설계 시점부터 |
+| **실패 모드** | 개별 요청 차단 | 시스템 전체 보호 |
+
+:::caution 같은 에이전트의 테스트 함정
+"같은 AI 에이전트가 작성한 테스트는 같은 에이전트의 오류를 잡지 못한다" — 이는 AI가 숙제를 스스로 채점하는 것과 같습니다. 테스트가 통과하고, CI가 녹색이고, 머지했지만… 3일 후 기능이 반만 동작하는 상황이 발생합니다. 원인은 테스트가 '완료'에 최적화되었지 '정확성'에 최적화되지 않았기 때문입니다.
+
+**해결**: 독립적 검증 하네스 — 코드를 생성하는 에이전트와 다른 에이전트(또는 인간)가 검증을 수행해야 합니다.
+:::
+
+**AIDLC 하네스 패턴:**
+
+| 단계 | 하네스 유형 | 검증 대상 | 구현 방법 |
+|------|-----------|----------|----------|
+| **Inception** | Spec 검증 하네스 | 요구사항 완전성, 상충 여부, NFR 충족 | 온톨로지 기반 Spec 일관성 자동 검증 |
+| **Construction** | 빌드/테스트 하네스 | 코드 정확성, 보안, 아키텍처 준수 | 독립 에이전트 리뷰 + 온톨로지 위반 탐지 |
+| **Operations** | 런타임 하네스 | AI Agent 행동 제약, 비용 제한 | 서킷 브레이커, 재시도 예산, 출력 게이트 |
+
+**Fintech Runaway 사례**: 하네스 없이 운영된 AI 에이전트가 하나의 루프에서 **847번의 API 재시도**를 실행하여 $2,200의 비용을 발생시키고 14개의 불완전한 이메일을 전송했습니다. 원인은 모델이나 프롬프트가 아니라 **아키텍처적 실패** — 재시도 예산, 타임아웃, 출력 게이트, 서킷 브레이커가 없었습니다.
+
+**참고 자료:**
+- [Harness Engineering: Governing AI Agents through Architectural Rigor](https://harness-engineering.ai/blog/harness-engineering-governing-ai-agents-through-architectural-rigor/) — Kai Renner, 2026.03
+- [Harness Engineering Complete Guide](https://www.nxcode.io/resources/news/harness-engineering-complete-guide-ai-agent-codex-2026) — NxCode, 2026.03
+- [Specwright: Closes the Loop](https://obsidian-owl.github.io/engineering-blog/posts/specwright-spec-driven-development-that-closes-the-loop/) — Obsidian Owl, 2026.02
+- [EleutherAI LM Evaluation Harness](https://github.com/EleutherAI/lm-evaluation-harness) — GitHub 11.7k+ stars
 
 ### 6.1 AI 기반 PR 리뷰 자동화
 
