@@ -134,17 +134,28 @@ const sidebars = {
     },
     {
       type: 'category',
-      label: 'AIops & AIDLC',
+      label: 'AIDLC',
       collapsed: true,
       link: {
         type: 'doc',
-        id: 'aiops-aidlc/index',
+        id: 'aidlc/index',
       },
       items: [
-        'aiops-aidlc/aiops-introduction',
-        'aiops-aidlc/aiops-observability-stack',
-        'aiops-aidlc/aidlc-framework',
-        'aiops-aidlc/aiops-predictive-operations',
+        'aidlc/aidlc-framework',
+      ],
+    },
+    {
+      type: 'category',
+      label: 'AIOps',
+      collapsed: true,
+      link: {
+        type: 'doc',
+        id: 'aiops/index',
+      },
+      items: [
+        'aiops/aiops-introduction',
+        'aiops/aiops-observability-stack',
+        'aiops/aiops-predictive-operations',
       ],
     },
     {

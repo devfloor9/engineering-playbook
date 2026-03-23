@@ -2,7 +2,7 @@
 title: "EKS 지능형 관찰성 스택 구축"
 sidebar_label: "지능형 관찰성 스택"
 description: "ADOT, AMP, AMG, CloudWatch AI, Hosted MCP를 활용한 EKS 관찰성 아키텍처 구축 가이드"
-category: "aiops-aidlc"
+category: "aiops"
 tags: [observability, opentelemetry, adot, prometheus, grafana, cloudwatch, devops-guru, mcp, eks]
 last_update:
   date: 2026-02-14
@@ -3399,7 +3399,7 @@ Kiro는 IaC MCP Server를 활용하여 인프라 배포뿐만 아니라 **지속
 
 이 관찰성 스택을 기반으로 다음 주제를 학습하세요:
 
-- **[3. AIDLC 프레임워크](./aidlc-framework.md)**: AI 주도 개발 라이프사이클과 관찰성 데이터의 개발 피드백 루프
+- **[3. AIDLC 프레임워크](../aidlc/aidlc-framework.md)**: AI 주도 개발 라이프사이클과 관찰성 데이터의 개발 피드백 루프
 - **[4. 예측 스케일링 및 자동 복구](./aiops-predictive-operations.md)**: 관찰성 데이터를 기반으로 한 ML 예측 및 자동 복구 패턴
 - **[1. AIOps 전략 가이드](./aiops-introduction.md)**: AIOps 전체 전략과 관찰성의 역할
 
@@ -3416,6 +3416,6 @@ Kiro는 IaC MCP Server를 활용하여 인프라 배포뿐만 아니라 **지속
 :::info 관련 문서
 
 - [1. AIOps 전략 가이드](./aiops-introduction.md) — AIOps 전체 맥락
-- [3. AIDLC 프레임워크](./aidlc-framework.md) — AI 주도 개발 방법론
+- [3. AIDLC 프레임워크](../aidlc/aidlc-framework.md) — AI 주도 개발 방법론
 - [4. 예측 스케일링 및 자동 복구](./aiops-predictive-operations.md) — 관찰성 기반 예측 운영
 :::

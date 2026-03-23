@@ -2,7 +2,7 @@
 title: "예측 스케일링 및 자동 복구 패턴"
 sidebar_label: "예측 스케일링 및 자동 복구"
 description: "ML 기반 예측 오토스케일링, Karpenter+AI 선제 프로비저닝, AI Agent 자율 인시던트 대응, Kiro 프로그래머틱 디버깅 패턴"
-category: "aiops-aidlc"
+category: "aiops"
 tags: [aiops, predictive-scaling, auto-remediation, karpenter, self-healing, eks, kiro, mcp, ai-agent, chaos-engineering]
 last_update:
   date: 2026-02-14
@@ -5162,7 +5162,7 @@ Phase 5: Chaos Engineering + 피드백 루프
 
 - **[1. AIOps 전략 가이드](./aiops-introduction.md)**: 예측 운영의 상위 전략 — AIOps 전체 맥락
 - **[2. 지능형 관찰성 스택](./aiops-observability-stack.md)**: 예측 운영의 데이터 기반 — 관찰성 구축
-- **[3. AIDLC 프레임워크](./aidlc-framework.md)**: 예측 운영을 포함한 AI 개발 라이프사이클
+- **[3. AIDLC 프레임워크](../aidlc/aidlc-framework.md)**: 예측 운영을 포함한 AI 개발 라이프사이클
 
 ### 11.3 학습 경로
 
@@ -5180,5 +5180,5 @@ Phase 5: Chaos Engineering + 피드백 루프
 
 - [1. AIOps 전략 가이드](./aiops-introduction.md) — AIOps 전체 전략
 - [2. 지능형 관찰성 스택](./aiops-observability-stack.md) — 관찰성 기반 인프라
-- [3. AIDLC 프레임워크](./aidlc-framework.md) — AI 주도 개발 방법론
+- [3. AIDLC 프레임워크](../aidlc/aidlc-framework.md) — AI 주도 개발 방법론
 :::

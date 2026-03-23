@@ -3,7 +3,7 @@ title: "AIDLC Framework - AI-Driven Development Lifecycle"
 sidebar_label: "AIDLC Framework"
 description: "A practical guide to applying the AWS AI-DLC methodology in EKS environments to enhance development and operations with AI"
 sidebar_position: 3
-category: "aiops-aidlc"
+category: "aidlc"
 tags: [aidlc, kiro, mcp, gitops, argocd, ack, kro, ddd, ai-agent, eks]
 last_update:
   date: 2026-02-14
@@ -41,7 +41,7 @@ Sequential handoffs                      Continuous flow + Loss Function verific
 
 ### 1.2 Connection to AIOps Strategy
 
-The AWS open-source strategy → MCP integration → AI tools → Kiro orchestration covered in [1. AIOps Strategy Guide](./aiops-introduction.md) is the **technology foundation** for realizing AIDLC. The 3-Pillar + AI analysis layer built in [2. Intelligent Observability Stack](./aiops-observability-stack.md) is the **data foundation** for the Operations phase. This document presents the **methodology for systematically enhancing development and operations** on top of that technology and data foundation.
+The AWS open-source strategy → MCP integration → AI tools → Kiro orchestration covered in [1. AIOps Strategy Guide](../aiops/aiops-introduction.md) is the **technology foundation** for realizing AIDLC. The 3-Pillar + AI analysis layer built in [2. Intelligent Observability Stack](../aiops/aiops-observability-stack.md) is the **data foundation** for the Operations phase. This document presents the **methodology for systematically enhancing development and operations** on top of that technology and data foundation.
 
 ```
 [1] AIOps Strategy Guide ──── Technology Foundation (MCP, Kiro, AI Agent)
@@ -311,7 +311,7 @@ Kiro: "Analyze current workloads"
   → Response: { deployments: [...], resource_usage: {...} }
 ```
 
-This enables **designs that reflect the current cluster state and costs** when generating design.md. For details on MCP integration architecture, refer to [1. AIOps Strategy Guide](./aiops-introduction.md).
+This enables **designs that reflect the current cluster state and costs** when generating design.md. For details on MCP integration architecture, refer to [1. AIOps Strategy Guide](../aiops/aiops-introduction.md).
 
 ---
 
@@ -1043,7 +1043,7 @@ AWS IaC MCP Server, combined with Kiro's Spec-driven development, automatically 
 
 ### 5.1 Observability Foundation
 
-The data foundation of the Operations phase is the 5-Layer architecture built in [2. Intelligent Observability Stack](./aiops-observability-stack.md).
+The data foundation of the Operations phase is the 5-Layer architecture built in [2. Intelligent Observability Stack](../aiops/aiops-observability-stack.md).
 
 ```
 [Observability Stack → Operations Connection]
@@ -1062,7 +1062,7 @@ Action Layer ← AIDLC Operations is located here
   └── Predictive scaling
 ```
 
-Metrics, logs, and traces collected in [2. Intelligent Observability Stack](./aiops-observability-stack.md) are delivered to AI tools and Agents through MCP, forming the decision-making foundation of the Operations phase.
+Metrics, logs, and traces collected in [2. Intelligent Observability Stack](../aiops/aiops-observability-stack.md) are delivered to AI tools and Agents through MCP, forming the decision-making foundation of the Operations phase.
 
 #### 5.1.3 2025-2026 Observability Innovations — Strengthening AIDLC Operations
 
@@ -1856,7 +1856,7 @@ CNS421 was rated as the **most practical AIOps session** at re:Invent 2025. This
 - AWS re:Invent 2025 EKS Research — See Section 2.1
 
 :::tip Adoption Order
-**First adopt** Q Developer (GA)'s fully managed analysis, then add Strands (OSS) SOP-based workflows, and gradually expand Kagent (early stage) K8s native approach. The Agentic AI pattern from CNS421 can be implemented with the **Strands + MCP combination**, and Tribal Knowledge is managed as Strands SOP files. This connects with the maturity model Level 3→4 transition in [1. AIOps Strategy Guide](./aiops-introduction.md).
+**First adopt** Q Developer (GA)'s fully managed analysis, then add Strands (OSS) SOP-based workflows, and gradually expand Kagent (early stage) K8s native approach. The Agentic AI pattern from CNS421 can be implemented with the **Strands + MCP combination**, and Tribal Knowledge is managed as Strands SOP files. This connects with the maturity model Level 3→4 transition in [1. AIOps Strategy Guide](../aiops/aiops-introduction.md).
 :::
 
 ### 5.3 From CI/CD to AI/CD — Leveraging Bedrock AgentCore
@@ -1881,7 +1881,7 @@ Key transition points:
 - **Manual monitoring** → **AI Agent autonomous response** (MCP-based integrated analysis)
 
 :::info Operations Deep Dive
-Advanced Operations phase patterns such as ML-based predictive scaling, Karpenter + AI prediction, and Chaos Engineering + AI learning are covered in [4. Predictive Scaling and Auto-Recovery](./aiops-predictive-operations.md).
+Advanced Operations phase patterns such as ML-based predictive scaling, Karpenter + AI prediction, and Chaos Engineering + AI learning are covered in [4. Predictive Scaling and Auto-Recovery](../aiops/aiops-predictive-operations.md).
 :::
 
 Bedrock AgentCore is AWS's managed agent framework that enables the pattern of **delegating deployment pipeline decisions to AI**. Traditional CI/CD executes linearly according to predefined rules, but AgentCore-based pipelines **analyze real-time metrics to autonomously determine deployment progression/rollback**.
@@ -3024,9 +3024,9 @@ Phase 4: AI Agent Expansion
 
 ### 8.2 Next Steps
 
-- **[4. Predictive Scaling and Auto-Recovery](./aiops-predictive-operations.md)** — Operations phase deep dive: ML-based predictive scaling, AI Agent automatic incident response, Chaos Engineering
-- **[2. Intelligent Observability Stack](./aiops-observability-stack.md)** — Data foundation for the Operations phase: ADOT, AMP/AMG, CloudWatch AI setup
-- **[1. AIOps Strategy Guide](./aiops-introduction.md)** — Technology foundation for AIDLC: AWS open-source strategy, MCP integration, AI tool ecosystem
+- **[4. Predictive Scaling and Auto-Recovery](../aiops/aiops-predictive-operations.md)** — Operations phase deep dive: ML-based predictive scaling, AI Agent automatic incident response, Chaos Engineering
+- **[2. Intelligent Observability Stack](../aiops/aiops-observability-stack.md)** — Data foundation for the Operations phase: ADOT, AMP/AMG, CloudWatch AI setup
+- **[1. AIOps Strategy Guide](../aiops/aiops-introduction.md)** — Technology foundation for AIDLC: AWS open-source strategy, MCP integration, AI tool ecosystem
 
 ### 8.3 Learning Path
 

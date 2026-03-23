@@ -75,7 +75,8 @@ docs/
 ├── infrastructure-optimization/      # Infrastructure Optimization
 ├── operations-observability/         # Operations & Observability
 ├── agentic-ai-platform/             # Agentic AI Platform
-├── aiops-aidlc/                     # AIops & AIDLC
+├── aidlc/                           # AIDLC (AI-Driven Development Lifecycle)
+├── aiops/                           # AIOps (운영 피드백 루프)
 ├── hybrid-infrastructure/            # Hybrid Infrastructure
 ├── security-governance/              # Security & Governance
 ├── rosa/                             # ROSA

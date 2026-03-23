@@ -3,7 +3,7 @@ title: "Predictive Scaling and Auto-Remediation Patterns"
 sidebar_label: "Predictive Scaling & Auto-Remediation"
 description: "ML based prediction autoscaling, Karpenter+AI proactive provisioning, AI Agent autonomous incident response, Kiro Programmatic Debugging pattern"
 sidebar_position: 4
-category: "aiops-aidlc"
+category: "aiops"
 tags: [aiops, predictive-scaling, auto-remediation, karpenter, self-healing, eks, kiro, mcp, ai-agent, chaos-engineering]
 last_update:
   date: 2026-02-14
@@ -5142,7 +5142,7 @@ Phase 5: Chaos Engineering + feedback loop
 
 - **[1. AIOps introduction document](./aiops-introduction.md)**: predictive operations introduction — AIOps context
 - **[2. Observability Stack](./aiops-observability-stack.md)**: predictive operations data foundation — observability infrastructure
-- **[3. AIDLC framework](./aidlc-framework.md)**: predictive operations with AI development lifecycle
+- **[3. AIDLC framework](../aidlc/aidlc-framework.md)**: predictive operations with AI development lifecycle
 
 ### 11.3 Learning Path
 
@@ -5160,5 +5160,5 @@ Phase 5: Chaos Engineering + feedback loop
 
 - [1. AIOps introduction document](./aiops-introduction.md) — AIOps overview
 - [2. Observability Stack](./aiops-observability-stack.md) — observability infrastructure
-- [3. AIDLC framework](./aidlc-framework.md) — AI-driven development methodology
+- [3. AIDLC framework](../aidlc/aidlc-framework.md) — AI-driven development methodology
 :::
