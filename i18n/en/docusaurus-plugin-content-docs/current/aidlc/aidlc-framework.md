@@ -462,6 +462,25 @@ This ontology is **injected into the AI agent's context window** to:
 Materializing ontology as a Knowledge Graph enables the SemanticForge pattern — the Knowledge Graph serves as a constraint satisfaction harness that prevents logical and structural hallucinations in AI-generated code at the source.
 :::
 
+:::caution Lesson Learned: Official Documentation Alone is Not Enough
+When building ontology, **if you only reference official documentation, AI confuses "logically plausible reasoning" with "verified facts."** Real-world case:
+
+- **Problem**: AWS EKS Auto Mode docs state "AWS manages GPU drivers" → AI extrapolated "GPU Operator cannot be installed" → comparison tables, architecture, recommendations all contaminated
+- **Cause**: Reasoning from official docs' generalities without checking actual implementation repos ([awslabs/ai-on-eks PR #288](https://github.com/awslabs/ai-on-eks/pull/288))
+- **Result**: The false premise "technically impossible" propagated across the entire document, corrupting 12+ comparison tables and architecture recommendations
+
+**Knowledge source hierarchy for ontology:**
+
+| Priority | Source | Example | Reliability |
+|----------|--------|---------|-------------|
+| 1 | **Actual implementation code/PRs** | awslabs/ai-on-eks, Helm chart source | Highest — working code |
+| 2 | **Project GitHub issues/releases** | NVIDIA/KAI-Scheduler, ai-dynamo/dynamo | High — factual exchange between developers |
+| 3 | **Official documentation** | docs.nvidia.com, docs.aws.amazon.com | Medium — generalities, may lag updates |
+| 4 | **Blogs/tutorials** | Medium, AWS Blog | Low — snapshot of a specific point in time |
+
+**Principle**: AI-generated technical documents must be **cross-validated against actual implementation code**. "Cannot do" in official docs may mean "not yet documented."
+:::
+
 **References:**
 - [Why Ontology Matters for Agentic AI in 2026](https://kenhuangus.substack.com/p/why-ontology-matters-for-agentic) — Ken Huang & Bhavya Gupta
 - [Why AI Agents Fail Without Ontologies](https://medium.com/@itznihal/why-ai-agents-fail-without-ontologies-production-lessons-beb9fe9c3af9) — Nihal Parmar, 2026.03
@@ -3222,9 +3241,37 @@ Phase 4: AI Agent Expansion
 ```
 
 :::info References
+
+**AIDLC Original:**
 - [AWS AI-DLC Method Definition](https://prod.d13rzhkk8cj2z0.amplifyapp.com/) — AIDLC original (Raja SP, AWS)
 - [AWS AI-Driven Development Life Cycle Blog](https://aws.amazon.com/blogs/devops/ai-driven-development-life-cycle/)
 - [AWS Labs AIDLC Workflows (GitHub)](https://github.com/awslabs/aidlc-workflows)
+- [Open-Sourcing Adaptive Workflows for AI-DLC](https://aws.amazon.com/blogs/devops/open-sourcing-adaptive-workflows-for-ai-driven-development-life-cycle-ai-dlc/) — AWS, 2025.11
+
+**Ontology:**
+- [Why Ontology Matters for Agentic AI in 2026](https://kenhuangus.substack.com/p/why-ontology-matters-for-agentic) — Ken Huang & Bhavya Gupta
+- [Why AI Agents Fail Without Ontologies](https://medium.com/@itznihal/why-ai-agents-fail-without-ontologies-production-lessons-beb9fe9c3af9) — Nihal Parmar, 2026.03
+- [SemanticForge: Knowledge Graph-based Hallucination Prevention](https://arxiv.org/html/2511.07584v1)
+
+**Harness Engineering:**
+- [Harness Engineering: Governing AI Agents through Architectural Rigor](https://harness-engineering.ai/blog/harness-engineering-governing-ai-agents-through-architectural-rigor/) — Kai Renner, 2026.03
+- [Harness Engineering Complete Guide](https://www.nxcode.io/resources/news/harness-engineering-complete-guide-ai-agent-codex-2026) — NxCode, 2026.03
+- [Specwright: Closes the Loop](https://obsidian-owl.github.io/engineering-blog/posts/specwright-spec-driven-development-that-closes-the-loop/) — Obsidian Owl, 2026.02
+- [EleutherAI LM Evaluation Harness](https://github.com/EleutherAI/lm-evaluation-harness) — GitHub 11.7k+ stars
+
+**Feedback Loops:**
+- [How to Build an AI Agent Feedback Loop](https://www.braincuber.com/blog/how-to-build-feedback-loop-ai-agent-improvement) — Braincuber, 2026.03
+- [Human-in-the-Loop in Agentic AI](https://atalupadhyay.wordpress.com/2026/03/16/human-in-the-loop-in-agentic-ai/) — 2026.03
+- [AI Agent Feedback Loops: Monitor and Validate](https://jduncan.io/blog/2025-10-26-feedback-loops-ai-agents/) — JDuncan.io, 2025.10
+
+**Cross-Validation Essential Sources (Actual Implementation Repos):**
+- [awslabs/ai-on-eks](https://github.com/awslabs/ai-on-eks) — EKS GPU workload implementation patterns
+- [ai-dynamo/dynamo](https://github.com/ai-dynamo/dynamo) — NVIDIA Dynamo source code
+- [ai-dynamo/nixl](https://github.com/ai-dynamo/nixl) — NIXL KV transfer engine
+- [NVIDIA/KAI-Scheduler](https://github.com/NVIDIA/KAI-Scheduler) — KAI Scheduler source code
+- [llm-d/llm-d](https://github.com/llm-d/llm-d) — LLM-D distributed inference
+
+**AWS Ecosystem:**
 - [EKS Capabilities (2025.11)](https://aws.amazon.com/blogs/containers/)
 - [Strands Agents SDK](https://github.com/strands-agents/sdk-python)
 - [Kagent - Kubernetes AI Agent](https://github.com/kagent-dev/kagent)

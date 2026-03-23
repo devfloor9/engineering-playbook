@@ -455,6 +455,25 @@ domain_ontology:
 온톨로지를 Knowledge Graph로 구체화하면 SemanticForge 패턴을 적용할 수 있습니다 — Knowledge Graph가 constraint satisfaction 하네스 역할을 하여 AI가 생성하는 코드의 논리적/구조적 환각을 원천 차단합니다.
 :::
 
+:::caution 실전 교훈: 공식 문서만으로는 부족하다
+온톨로지 구축 시 **공식 문서(Official Documentation)만 참조하면 AI는 "논리적으로 그럴듯한 추론"을 "검증된 사실"로 혼동**합니다. 실제 사례:
+
+- **문제**: AWS EKS Auto Mode 공식 문서에 "AWS가 GPU 드라이버를 관리한다"고 기술 → AI가 "GPU Operator 설치 불가"로 비약 → 비교표, 아키텍처, 권장사항 전체가 오염
+- **원인**: 실제 구현 레포([awslabs/ai-on-eks PR #288](https://github.com/awslabs/ai-on-eks/pull/288))를 확인하지 않고 공식 문서의 일반론만으로 추론
+- **결과**: "기술적 불가능"이라는 잘못된 전제가 문서 전체로 전파되어 12개 이상의 비교표와 아키텍처 권장사항이 모두 틀림
+
+**온톨로지에 포함해야 할 지식 소스 계층:**
+
+| 우선순위 | 소스 | 예시 | 신뢰도 |
+|---------|------|------|--------|
+| 1 | **실제 구현 코드/PR** | awslabs/ai-on-eks, Helm chart 소스코드 | 최고 — 실제 동작하는 코드 |
+| 2 | **프로젝트 GitHub 이슈/릴리스** | NVIDIA/KAI-Scheduler, ai-dynamo/dynamo | 높음 — 개발자 간 사실 교환 |
+| 3 | **공식 문서** | docs.nvidia.com, docs.aws.amazon.com | 중간 — 일반론, 업데이트 지연 가능 |
+| 4 | **블로그/튜토리얼** | Medium, AWS Blog | 낮음 — 특정 시점의 스냅샷 |
+
+**원칙**: AI가 생성한 기술 문서는 반드시 **실제 구현 코드와 교차 검증(cross-validation)**해야 합니다. 공식 문서의 "할 수 없다"는 "아직 문서화되지 않았다"일 수 있습니다.
+:::
+
 #### 온톨로지의 피드백 루프: 살아있는 모델
 
 온톨로지는 한 번 정의하면 끝나는 정적 스키마가 아닙니다. **운영 데이터와 개발 경험을 통해 지속적으로 진화**하는 살아있는 모델입니다. 이 자체 피드백 루프가 AIDLC의 신뢰성을 근본적으로 보장합니다.
@@ -3214,9 +3233,37 @@ Phase 4: AI Agent 확장
 ```
 
 :::info 참고 자료
+
+**AIDLC 원문:**
 - [AWS AI-DLC Method Definition](https://prod.d13rzhkk8cj2z0.amplifyapp.com/) — AIDLC 원문 (Raja SP, AWS)
 - [AWS AI-Driven Development Life Cycle Blog](https://aws.amazon.com/blogs/devops/ai-driven-development-life-cycle/)
 - [AWS Labs AIDLC Workflows (GitHub)](https://github.com/awslabs/aidlc-workflows)
+- [Open-Sourcing Adaptive Workflows for AI-DLC](https://aws.amazon.com/blogs/devops/open-sourcing-adaptive-workflows-for-ai-driven-development-life-cycle-ai-dlc/) — AWS, 2025.11
+
+**온톨로지:**
+- [Why Ontology Matters for Agentic AI in 2026](https://kenhuangus.substack.com/p/why-ontology-matters-for-agentic) — Ken Huang & Bhavya Gupta
+- [Why AI Agents Fail Without Ontologies](https://medium.com/@itznihal/why-ai-agents-fail-without-ontologies-production-lessons-beb9fe9c3af9) — Nihal Parmar, 2026.03
+- [SemanticForge: Knowledge Graph 기반 환각 방지](https://arxiv.org/html/2511.07584v1)
+
+**하네스 엔지니어링:**
+- [Harness Engineering: Governing AI Agents through Architectural Rigor](https://harness-engineering.ai/blog/harness-engineering-governing-ai-agents-through-architectural-rigor/) — Kai Renner, 2026.03
+- [Harness Engineering Complete Guide](https://www.nxcode.io/resources/news/harness-engineering-complete-guide-ai-agent-codex-2026) — NxCode, 2026.03
+- [Specwright: Closes the Loop](https://obsidian-owl.github.io/engineering-blog/posts/specwright-spec-driven-development-that-closes-the-loop/) — Obsidian Owl, 2026.02
+- [EleutherAI LM Evaluation Harness](https://github.com/EleutherAI/lm-evaluation-harness) — GitHub 11.7k+ stars
+
+**피드백 루프:**
+- [How to Build an AI Agent Feedback Loop](https://www.braincuber.com/blog/how-to-build-feedback-loop-ai-agent-improvement) — Braincuber, 2026.03
+- [Human-in-the-Loop in Agentic AI](https://atalupadhyay.wordpress.com/2026/03/16/human-in-the-loop-in-agentic-ai/) — 2026.03
+- [AI Agent Feedback Loops: Monitor and Validate](https://jduncan.io/blog/2025-10-26-feedback-loops-ai-agents/) — JDuncan.io, 2025.10
+
+**교차 검증 필수 소스 (실제 구현 레포):**
+- [awslabs/ai-on-eks](https://github.com/awslabs/ai-on-eks) — EKS GPU 워크로드 실제 구현 패턴
+- [ai-dynamo/dynamo](https://github.com/ai-dynamo/dynamo) — NVIDIA Dynamo 소스코드
+- [ai-dynamo/nixl](https://github.com/ai-dynamo/nixl) — NIXL KV 전송 엔진
+- [NVIDIA/KAI-Scheduler](https://github.com/NVIDIA/KAI-Scheduler) — KAI Scheduler 소스코드
+- [llm-d/llm-d](https://github.com/llm-d/llm-d) — LLM-D 분산 추론
+
+**AWS 생태계:**
 - [EKS Capabilities (2025.11)](https://aws.amazon.com/blogs/containers/)
 - [Strands Agents SDK](https://github.com/strands-agents/sdk-python)
 - [Kagent - Kubernetes AI Agent](https://github.com/kagent-dev/kagent)
