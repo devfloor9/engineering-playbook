@@ -5,7 +5,7 @@ description: "EKS Auto Mode, Karpenter, Self-Managed Node Group, Hybrid Node의 
 tags: [eks, gpu, auto-mode, karpenter, hybrid-node, gpu-operator, nvidia, run-ai]
 category: "genai-aiml"
 last_update:
-  date: 2026-03-20
+  date: 2026-03-23
   author: devfloor9
 sidebar_position: 1
 ---
@@ -34,7 +34,7 @@ AWS EKS는 GPU 워크로드를 위해 4가지 노드 타입을 제공합니다:
 
 ### 주요 목표
 
-- Auto Mode의 제약사항 이해 (특히 GPU Operator 불가 이유)
+- Auto Mode의 특성 이해 (GPU Operator 설치 가능, Device Plugin만 레이블 비활성화)
 - Karpenter + GPU Operator 조합의 장점
 - Run:ai, DCGM, GPU Operator 의존 관계
 - 하이브리드 아키텍처 설계 (Auto Mode + Karpenter + Hybrid Node)
@@ -50,20 +50,21 @@ AWS EKS는 GPU 워크로드를 위해 4가지 노드 타입을 제공합니다:
 | **Custom AMI** | 불가 | 가능 | 가능 | 가능 |
 | **SSH 접근** | 불가 | 가능 | 가능 | 가능 |
 | **GPU 드라이버** | 사전 설치 (AWS) | 사용자 설치 | 사용자 설치 | 사용자 설치 |
-| **GPU Operator 호환** | **불가** | **가능** | 가능 | 가능 |
+| **GPU Operator 호환** | **가능** (Device Plugin 레이블 비활성화) | **가능** | 가능 | 가능 |
 | **Privileged DaemonSet** | 제한적 | 가능 | 가능 | 가능 |
 | **Root Filesystem** | Read-Only | Read-Write | Read-Write | Read-Write |
 | **SELinux** | Enforcing | Permissive | Permissive | 사용자 설정 |
-| **MIG 지원** | 불가 (GPU Operator 필요) | 가능 | 가능 | 가능 |
-| **DCGM Exporter** | 수동 설치 가능 | GPU Operator 포함 | 수동 설치 | GPU Operator 포함 |
-| **Run:ai 호환** | **불가** | **가능** | 가능 | 가능 |
+| **MIG 지원** | 불가 (NodeClass read-only) | 가능 | 가능 | 가능 |
+| **DCGM Exporter** | GPU Operator로 자동 설치 | GPU Operator 포함 | 수동 설치 | GPU Operator 포함 |
+| **Run:ai 호환** | **가능** (Device Plugin 레이블 비활성화) | **가능** | 가능 | 가능 |
 | **비용** | 낮음 (관리 불필요) | 중간 | 중간 | 낮음 (Capex) |
 | **적합 워크로드** | 단순 추론 | 고급 GPU 기능 | 정적 워크로드 | 온프레미스 통합 |
 
 **핵심 인사이트**:
 
-- **Auto Mode**: GPU 드라이버가 사전 설치되어 즉시 사용 가능하지만, **GPU Operator를 설치할 수 없음**
-- **Karpenter**: Auto Mode의 자동 스케일링 장점 + GPU Operator 설치 가능
+- **Auto Mode**: GPU 드라이버가 사전 설치되어 즉시 사용 가능. GPU Operator 설치 가능하되 Device Plugin만 레이블로 비활성화 (DCGM, NFD, GFD 정상 동작)
+- **Auto Mode + GPU Operator**: KAI Scheduler, Run:ai 등 ClusterPolicy 의존 프로젝트 사용 가능. MIG는 NodeClass read-only 제약으로 불가
+- **Karpenter + GPU Operator**: MIG, Custom AMI 등 최대 유연성
 - **Hybrid Node**: 온프레미스 GPU 서버를 EKS로 통합 (GPU Operator 필수)
 
 ---
@@ -113,163 +114,94 @@ spec:
     karpenter.sh/nodepool: auto-mode-gpu  # Auto Mode NodePool
 ```
 
-### 3.2 Auto Mode에서 GPU Operator를 설치할 수 없는 이유
+### 3.2 Auto Mode에서 GPU Operator 설치: Device Plugin 비활성화 패턴
 
-**핵심: "안 하는 게 아니라 못 하는 것"**
+GPU Operator는 Auto Mode에서 **설치 가능**합니다. 핵심은 **Device Plugin만 노드 레이블로 비활성화**하고 나머지 컴포넌트(DCGM Exporter, NFD, GFD, MIG Manager)는 정상 운영하는 것입니다. 이 패턴은 [awslabs/ai-on-eks PR #288](https://github.com/awslabs/ai-on-eks/pull/288)에서 검증되었습니다.
 
-많은 사용자가 "Auto Mode에서 GPU Operator를 설치하면 되지 않나?"라고 질문합니다. 하지만 **기술적으로 불가능**합니다.
+#### Auto Mode에서의 GPU Operator 컴포넌트 상태
 
-#### 구조적 제약 사항
+| GPU Operator 컴포넌트 | Auto Mode 설정 | 이유 |
+|---------------------|--------------|------|
+| **Driver** | `enabled: false` | AMI에 사전 설치 (AL2023/Bottlerocket) |
+| **Container Toolkit** | `enabled: false` | AMI에 사전 설치 |
+| **Device Plugin** | 레이블로 비활성화 | AWS가 자체 Device Plugin 관리 |
+| **DCGM Exporter** | `enabled: true` | 세밀한 GPU 메트릭 수집 |
+| **NFD** | `enabled: true` | 하드웨어 기능 탐지 |
+| **GFD** | `enabled: true` | GPU 속성 레이블링 |
+| **MIG Manager** | `enabled: true` | ClusterPolicy 제공 (실제 MIG 분할은 NodeClass 제약으로 불가) |
 
-| GPU Operator 동작 | 필요 권한 | Auto Mode 상태 | 결과 |
-|-------------------|----------|---------------|------|
-| **Driver DaemonSet** | Host `/lib/modules` 쓰기 | Read-Only Filesystem | **FAIL** |
-| **Container Toolkit** | Host `/usr/bin`, `/etc/containerd` 쓰기 | Read-Only + AWS 관리 | **FAIL** |
-| **Device Plugin** | Privileged DaemonSet | 이미 AWS가 등록 | **CONFLICT** |
-| **MIG Manager** | `nvidia-smi` 호스트 실행 | Read-Only + No SSH | **FAIL** |
-| **DCGM Exporter** | GPU 디바이스 접근 | Partially Possible | **PARTIAL** |
-
-#### 1) Read-Only Root Filesystem
-
-```bash
-# Auto Mode 노드에 접근 불가 (SSH/SSM 차단)
-# 만약 접근 가능했다면 다음과 같은 상태:
-
-$ mount | grep "/ "
-/dev/nvme0n1p1 on / type ext4 (ro,relatime)
-# ↑ "ro" = read-only
-
-# GPU Operator Driver DaemonSet가 시도하는 작업:
-$ nvidia-installer --kernel-module-only
-ERROR: Unable to write to /lib/modules/5.15.0-1234-aws/
-ERROR: Filesystem is read-only
-```
-
-**GPU Operator의 Driver DaemonSet은 호스트 `/lib/modules`에 커널 모듈을 설치해야 하는데, Auto Mode는 루트 파일시스템이 Read-Only입니다.**
-
-#### 2) SELinux Enforcing
-
-```bash
-$ getenforce
-Enforcing
-
-# GPU Operator Container Toolkit이 시도하는 작업:
-$ ln -s /usr/bin/nvidia-container-toolkit /host/usr/bin/
-ln: failed to create symbolic link: SELinux policy denies access
-```
-
-**Auto Mode는 SELinux Enforcing 모드로 고정되어 GPU Operator의 호스트 파일 수정이 차단됩니다.**
-
-#### 3) Device Plugin 이중 등록 충돌
+#### NodePool 레이블 설정
 
 ```yaml
-# Auto Mode는 이미 AWS가 관리하는 Device Plugin 실행 중
-
-$ kubectl get pods -n kube-system | grep device-plugin
-nvidia-device-plugin-daemonset-aws-managed-xxxxx   1/1  Running
-
-# GPU Operator를 설치하면:
-$ helm install gpu-operator nvidia/gpu-operator
-
-# 결과: 두 개의 Device Plugin이 동일한 리소스 등록 시도
-nvidia.com/gpu (AWS)
-nvidia.com/gpu (GPU Operator)
-
-# Kubelet 에러 발생:
-E0316 12:34:56.789012  kubelet.go:2345] Failed to register resource provider:
-duplicate resource name "nvidia.com/gpu"
-```
-
-**Auto Mode의 AWS 관리 Device Plugin과 GPU Operator의 Device Plugin이 동일한 리소스를 등록하려고 하면 충돌이 발생합니다.**
-
-#### 4) No SSH / No SSM Access
-
-```bash
-# Auto Mode 노드는 SSH, SSM Session Manager 모두 차단
-$ aws ssm start-session --target i-0123456789abcdef
-An error occurred (TargetNotConnected): The specified target instance is not connected.
-
-# MIG 설정, 드라이버 업그레이드, 디버깅 모두 불가
-$ nvidia-smi -mig 1
-ERROR: Cannot access node shell
-```
-
-**GPU Operator의 MIG Manager는 노드 셸 접근이 필요하지만, Auto Mode는 보안상 모든 접근을 차단합니다.**
-
-### 3.3 "driver: false 로 설치하면?" — 그래도 안 되는 이유
-
-일부 사용자는 다음과 같이 시도합니다:
-
-```yaml
-# GPU Operator Helm Values
-driver:
-  enabled: false  # AWS가 이미 설치했으니 드라이버 스킵
-
-toolkit:
-  enabled: false  # Container Toolkit도 스킵
-
-devicePlugin:
-  enabled: true  # Device Plugin만 사용
-
-migManager:
-  enabled: true  # MIG 관리 활성화
-
-dcgm:
-  enabled: true  # 모니터링 활성화
-```
-
-**이 방법도 실패합니다. 이유:**
-
-#### 1) Device Plugin 이중 등록 충돌 (위와 동일)
-
-```yaml
-# AWS Device Plugin vs GPU Operator Device Plugin
-# 동일한 nvidia.com/gpu 리소스 등록 시도 → 충돌
-```
-
-#### 2) MIG Manager 호스트 접근 불가
-
-```yaml
-# MIG Manager DaemonSet이 시도하는 작업:
-apiVersion: apps/v1
-kind: DaemonSet
+apiVersion: karpenter.sh/v1
+kind: NodePool
 metadata:
-  name: nvidia-mig-manager
+  name: gpu-auto-mode
 spec:
   template:
+    metadata:
+      labels:
+        nvidia.com/gpu.deploy.device-plugin: "false"  # Device Plugin 비활성화
     spec:
-      hostPID: true  # 호스트 PID 네임스페이스 접근
-      containers:
-      - name: mig-manager
-        securityContext:
-          privileged: true
-        command:
-        - nvidia-smi
-        - -mig
-        - 1
-        volumeMounts:
-        - name: host-root
-          mountPath: /host
-          readOnly: false  # ← 쓰기 필요
+      requirements:
+        - key: eks.amazonaws.com/instance-family
+          operator: In
+          values: ["p5", "p4d", "g6e", "g5"]
+      nodeClassRef:
+        group: eks.amazonaws.com
+        kind: NodeClass
+        name: default
 ```
 
-**Auto Mode의 Read-Only Filesystem 때문에 MIG 설정 파일을 `/etc/nvidia/mig/` 에 쓸 수 없습니다.**
-
-#### 3) 노드 교체 시 설정 초기화
+#### Helm Values (Auto Mode용)
 
 ```yaml
-# Auto Mode는 노드를 자주 교체 (Spot, Scale-down)
-# GPU Operator 설정은 영속성 없음
-
-Node auto-mode-gpu-node-1 (RUNNING)
-  ├── GPU Operator DaemonSet 배포
-  └── MIG 프로파일 설정 (메모리에만 존재)
-
-Node auto-mode-gpu-node-1 (TERMINATED)  # Auto Mode가 노드 교체
-Node auto-mode-gpu-node-2 (NEW)         # 새 노드: 설정 초기화됨
+driver:
+  enabled: false          # AMI 사전 설치
+toolkit:
+  enabled: false          # AMI 사전 설치
+devicePlugin:
+  enabled: true           # 전역 활성화, 노드 레이블로 선택적 비활성화
+dcgmExporter:
+  enabled: true
+  serviceMonitor:
+    enabled: true
+nfd:
+  enabled: true
+gfd:
+  enabled: true
+migManager:
+  enabled: true
+nodeStatusExporter:
+  enabled: false
+sandboxDevicePlugin:
+  enabled: false
 ```
 
-**Auto Mode는 노드를 Stateless로 관리하므로, GPU Operator의 설정이 유지되지 않습니다.**
+:::caution Auto Mode의 실제 제약
+GPU Operator 설치는 가능하지만, 다음은 Auto Mode NodeClass가 read-only이므로 불가합니다:
+- **MIG 파티셔닝**: NodeClass에서 MIG 프로파일 설정 불가 (GPU Operator의 MIG Manager가 설치되어 ClusterPolicy는 제공하지만, 실제 GPU 분할 적용 불가)
+- **Custom AMI**: 특정 드라이버 버전 핀 불가
+- **SSH/SSM 접근**: 노드 직접 디버깅 불가
+
+MIG 기반 GPU 분할이 필요하면 Karpenter + GPU Operator로 전환하세요.
+:::
+
+### 3.3 왜 KAI Scheduler와 Run:ai에 GPU Operator가 필요한가
+
+KAI Scheduler, Run:ai 등 여러 프로젝트는 GPU Operator의 **ClusterPolicy CRD**에 의존합니다. ClusterPolicy 없이는 이들 프로젝트가 시작조차 하지 못합니다.
+
+```
+ClusterPolicy CRD (GPU Operator)
+  ↓ depends on
+KAI Scheduler (GPU-aware Pod 배치)
+Run:ai (Fractional GPU, Gang Scheduling)
+  ↓ reads
+DCGM Exporter (GPU 메트릭)
+NFD/GFD (하드웨어 레이블)
+```
+
+이것이 Auto Mode에서도 GPU Operator를 설치해야 하는 핵심 이유입니다. Device Plugin만 비활성화하면 나머지 컴포넌트가 정상 동작하여 ClusterPolicy가 생성되고, 의존 프로젝트들이 정상 작동합니다.
 
 ---
 
@@ -282,11 +214,11 @@ Karpenter는 Auto Mode의 자동 스케일링 장점을 유지하면서, GPU Ope
 | 기능 | Auto Mode | Karpenter | Self-Managed Node Group |
 |------|-----------|-----------|------------------------|
 | **자동 스케일링** | 자동 (AWS 제어) | 자동 (NodePool 기반) | 수동 (ASG 기반) |
-| **GPU Operator** | 불가 | 가능 | 가능 |
+| **GPU Operator** | 가능 (Device Plugin 비활성화) | 가능 | 가능 |
 | **Custom AMI** | 불가 | 가능 | 가능 |
 | **Root Filesystem** | Read-Only | Read-Write | Read-Write |
-| **MIG 지원** | 불가 | 가능 | 가능 |
-| **Run:ai 호환** | 불가 | 가능 | 가능 |
+| **MIG 지원** | 불가 (NodeClass read-only) | 가능 | 가능 |
+| **Run:ai 호환** | 가능 (Device Plugin 비활성화) | 가능 | 가능 |
 | **Spot Instance** | 제한적 | 완전 지원 | 제한적 |
 | **노드 교체 속도** | 빠름 | 매우 빠름 | 느림 (ASG) |
 | **비용 최적화** | AWS 자동 | 사용자 제어 | 사용자 제어 |
@@ -503,36 +435,11 @@ spec:
 
 # 1. Driver 설정
 driver:
-  enabled: true
-  version: "550.90.07"  # CUDA 12.4 호환
-  repository: nvcr.io/nvidia
-  image: driver
-
-  # Karpenter 노드에만 배포
-  nodeSelector:
-    gpu-operator: enabled
-
-  tolerations:
-    - key: nvidia.com/gpu
-      operator: Exists
-      effect: NoSchedule
-
-  # 라이선스 설정 (vGPU 사용 시)
-  licensingConfig:
-    configMapName: ""  # 일반 GPU는 불필요
+  enabled: false  # AL2023/Bottlerocket: AMI 사전 설치
 
 # 2. Toolkit 설정
 toolkit:
-  enabled: true
-  version: 1.14.6-ubuntu22.04
-
-  nodeSelector:
-    gpu-operator: enabled
-
-  tolerations:
-    - key: nvidia.com/gpu
-      operator: Exists
-      effect: NoSchedule
+  enabled: false  # AL2023/Bottlerocket: AMI 사전 설치
 
 # 3. Device Plugin 설정
 devicePlugin:
@@ -901,13 +808,13 @@ Job Queueing:
 | **GPU Operator + Run:ai** | YES | 엔터프라이즈 GPU 관리 (권장) |
 | **DCGM만** | YES | 베어메탈 환경 GPU 모니터링 |
 | **Run:ai만** | NO | GPU Operator 필수 (Driver, Plugin 필요) |
-| **Auto Mode + Run:ai** | NO | GPU Operator 설치 불가 |
+| **Auto Mode + Run:ai** | YES | GPU Operator 설치 후 Device Plugin 레이블 비활성화 |
 | **Auto Mode + DCGM Exporter** | YES | 수동 설치 가능 (제한적) |
 
 **핵심 인사이트**:
 
 - **Run:ai는 GPU Operator 위에서만 동작** (Driver, Device Plugin 필요)
-- **Auto Mode는 GPU Operator를 설치할 수 없으므로 Run:ai 불가**
+- **Auto Mode에서도 GPU Operator 설치 가능 (Device Plugin 레이블 비활성화) → Run:ai 사용 가능**
 - **Karpenter + GPU Operator + Run:ai = 엔터프라이즈 GPU 플랫폼 최적 구성**
 
 ---
@@ -975,7 +882,7 @@ flowchart TB
 | **시스템 컴포넌트** | Auto Mode | 불필요 | 관리 불필요, 비용 최소화 |
 | **API Gateway** | Auto Mode | 불필요 | CPU 워크로드 |
 | **Agent Orchestration** | Auto Mode | 불필요 | CPU 워크로드 |
-| **간단한 GPU 추론** | Auto Mode | 불필요 | MIG 불필요, 빠른 스케일링 |
+| **간단한 GPU 추론** | Auto Mode | 선택사항 (DCGM 모니터링 시 필요) | MIG 불필요, 빠른 스케일링 |
 | **MIG 기반 추론** | Karpenter | 필수 | MIG Manager 필요 |
 | **Fractional GPU** | Karpenter | 필수 | Run:ai 필요 |
 | **모델 훈련** | Karpenter | 필수 | Gang Scheduling 필요 |
@@ -1061,7 +968,7 @@ spec:
 ```yaml
 # GPU Operator Helm Values
 operator:
-  # Auto Mode 노드 제외 (핵심 설정)
+  # GPU Operator는 Auto Mode + Karpenter 모두에서 동작
   affinity:
     nodeAffinity:
       requiredDuringSchedulingIgnoredDuringExecution:
@@ -1071,14 +978,16 @@ operator:
               - key: gpu-operator
                 operator: In
                 values: [enabled]
-              # Auto Mode 노드 제외
-              - key: eks.amazonaws.com/compute-type
-                operator: NotIn
-                values: [auto]
 
+# Auto Mode 노드: driver/toolkit은 AMI 사전 설치, Device Plugin은 레이블 비활성화
 driver:
-  nodeSelector:
-    gpu-operator: enabled
+  enabled: false  # AL2023/Bottlerocket: AMI 사전 설치
+
+toolkit:
+  enabled: false  # AL2023/Bottlerocket: AMI 사전 설치
+
+devicePlugin:
+  enabled: true   # 전역 활성화, Auto Mode 노드는 레이블로 선택적 비활성화
 
 migManager:
   enabled: true
@@ -1299,7 +1208,7 @@ spec:
 | Pod/노드 자동 스케일링 | 동작 | 동작 |
 | MIG로 GPU 분할 후 Pod 배치 | **불가** | 동작 |
 | Fractional GPU (0.5 GPU) | **불가** | 동작 |
-| DCGM 상세 GPU 메트릭 | 제한적 | 동작 |
+| DCGM 상세 GPU 메트릭 | GPU Operator 설치 시 동작 | 동작 |
 
 그러나 **GPU fraction을 제어할 수 없으므로, 모델 크기에 따라 GPU 활용 효율이 크게 달라집니다.**
 
@@ -1506,7 +1415,7 @@ flowchart TD
 
 | 시나리오 | 노드 타입 | GPU Operator | Run:ai | 설정 복잡도 | 비용 |
 |----------|-----------|--------------|--------|------------|------|
-| **단순 GPU 추론** | Auto Mode | 불필요 | 불가 | 낮음 | 낮음 |
+| **단순 GPU 추론** | Auto Mode | 선택사항 | 가능 (Device Plugin 비활성화) | 낮음 | 낮음 |
 | **MIG 기반 추론** | Karpenter | 필수 | 선택 | 중간 | 중간 |
 | **Fractional GPU** | Karpenter | 필수 | 필수 | 높음 | 중간 |
 | **모델 훈련** | Karpenter | 필수 | 선택 | 중간 | 높음 |
@@ -1519,16 +1428,17 @@ flowchart TD
 **1. Auto Mode의 제약을 이해하라**
 
 ```yaml
-# Auto Mode는 GPU Operator를 설치할 수 없음 (기술적 불가능)
-이유:
-  - Read-Only Root Filesystem
-  - SELinux Enforcing
-  - Device Plugin 이중 등록 충돌
-  - No SSH / SSM Access
+# Auto Mode에서 GPU Operator 설치 가능 (Device Plugin만 레이블 비활성화)
+패턴:
+  - driver.enabled: false (AMI 사전 설치)
+  - toolkit.enabled: false (AMI 사전 설치)
+  - NodePool 레이블: nvidia.com/gpu.deploy.device-plugin: "false"
+  - DCGM Exporter, NFD, GFD: 정상 동작
 
-결론:
-  → MIG, Run:ai, DCGM 자동 설치 불가
-  → 간단한 GPU 추론만 가능
+제약:
+  → MIG 파티셔닝 불가 (NodeClass read-only)
+  → Custom AMI 불가
+  → SSH/SSM 접근 불가
 ```
 
 **2. Karpenter는 최적의 균형점**
@@ -2224,6 +2134,6 @@ lifecycle:
 
 ---
 
-**마지막 업데이트**: 2026-03-16
+**마지막 업데이트**: 2026-03-23
 **작성자**: devfloor9
 **태그**: `eks` `gpu` `auto-mode` `karpenter` `hybrid-node` `gpu-operator` `nvidia` `run-ai`
