@@ -464,7 +464,7 @@ migManager:
   enabled: true
   version: v0.7.0
 
-  # MIG 전략 (Auto Mode에서는 불가능)
+  # MIG 전략 (Auto Mode에서는 MIG 분할 적용 불가, Karpenter 노드 전용)
   config:
     name: mig-parted-config
     default: "all-balanced"  # 모든 GPU를 균등 분할
@@ -532,7 +532,7 @@ operator:
 **핵심 설정**:
 
 1. **nodeSelector: gpu-operator: enabled**: Auto Mode 노드 제외
-2. **MIG Manager 활성화**: Auto Mode에서는 불가능했던 MIG 기능
+2. **MIG Manager 활성화**: Auto Mode에서는 MIG 분할 적용이 불가하므로 Karpenter 노드에서 MIG 기능 활용
 3. **DCGM Exporter**: GPU 메트릭 자동 수집 (Prometheus 통합)
 
 ---
@@ -1483,7 +1483,7 @@ flowchart TD
 구성: Auto Mode Only
   - 간단한 GPU 추론
   - 관리 오버헤드 최소화
-  - GPU Operator 불필요
+  - GPU Operator 선택사항 (DCGM 모니터링 시 권장)
 
 비용: $5,000 - $15,000/월
 복잡도: 낮음

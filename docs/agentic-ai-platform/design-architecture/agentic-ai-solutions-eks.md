@@ -726,8 +726,8 @@ EKS Auto Mode는 일반 워크로드와 기본 GPU 추론에 최적이지만, GP
 | API Gateway, Agent Framework | 적합 | Non-GPU, 자동 스케일링 충분 |
 | Observability Stack | 적합 | Non-GPU, 관리 부담 최소화 |
 | 기본 GPU 추론 (전체 GPU) | 적합 | AWS 관리 GPU 스택으로 충분 |
-| MIG 파티셔닝 필요 | **부적합** | GPU Operator 설치 불가 |
-| Run:ai GPU 스케줄링 | **부적합** | GPU Operator 의존성 |
+| MIG 파티셔닝 필요 | **부적합** | NodeClass read-only로 MIG 분할 불가 (GPU Operator 자체는 설치 가능) |
+| Run:ai GPU 스케줄링 | **가능** | GPU Operator 설치 후 Device Plugin 레이블 비활성화 |
 
 **권장 하이브리드 구성**: Auto Mode(일반 워크로드) + Karpenter(GPU 고급 기능)를 하나의 클러스터에서 운영합니다. 상세 구성은 [EKS GPU 노드 전략](../model-serving/eks-gpu-node-strategy.md)을 참조하세요.
 
