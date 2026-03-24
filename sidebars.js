@@ -6,31 +6,74 @@ const sidebars = {
     'intro',
     {
       type: 'category',
-      label: 'Infrastructure Optimization',
+      label: 'EKS Best Practices',
       collapsed: true,
       link: {
         type: 'doc',
-        id: 'infrastructure-optimization/index',
+        id: 'eks-best-practices/index',
       },
       items: [
         {
           type: 'category',
-          label: 'Gateway API Adoption Guide',
+          label: '네트워크 & 성능',
           link: {
             type: 'doc',
-            id: 'infrastructure-optimization/gateway-api-adoption-guide/index',
+            id: 'eks-best-practices/networking-performance/index',
           },
           items: [
-            'infrastructure-optimization/gateway-api-adoption-guide/gamma-initiative',
-            'infrastructure-optimization/gateway-api-adoption-guide/cilium-eni-gateway-api',
-            'infrastructure-optimization/gateway-api-adoption-guide/migration-execution-strategy',
+            {
+              type: 'category',
+              label: 'Gateway API Adoption Guide',
+              link: {
+                type: 'doc',
+                id: 'eks-best-practices/networking-performance/gateway-api-adoption-guide/index',
+              },
+              items: [
+                'eks-best-practices/networking-performance/gateway-api-adoption-guide/gamma-initiative',
+                'eks-best-practices/networking-performance/gateway-api-adoption-guide/cilium-eni-gateway-api',
+                'eks-best-practices/networking-performance/gateway-api-adoption-guide/migration-execution-strategy',
+              ],
+            },
+            'eks-best-practices/networking-performance/coredns-monitoring-optimization',
+            'eks-best-practices/networking-performance/east-west-traffic-best-practice',
           ],
         },
-        'infrastructure-optimization/coredns-monitoring-optimization',
-        'infrastructure-optimization/east-west-traffic-best-practice',
-        'infrastructure-optimization/karpenter-autoscaling',
-        'infrastructure-optimization/eks-resource-optimization',
-        'infrastructure-optimization/cost-management',
+        {
+          type: 'category',
+          label: 'Control Plane & 확장',
+          link: {
+            type: 'doc',
+            id: 'eks-best-practices/control-plane-scaling/index',
+          },
+          items: [
+            'eks-best-practices/control-plane-scaling/eks-control-plane-crd-scaling',
+            'eks-best-practices/control-plane-scaling/cross-cluster-object-replication',
+          ],
+        },
+        {
+          type: 'category',
+          label: '보안 & 인증',
+          link: {
+            type: 'doc',
+            id: 'eks-best-practices/security-authn/index',
+          },
+          items: [
+            'eks-best-practices/security-authn/eks-api-server-authn-authz',
+          ],
+        },
+        {
+          type: 'category',
+          label: '리소스 & 비용',
+          link: {
+            type: 'doc',
+            id: 'eks-best-practices/resource-cost/index',
+          },
+          items: [
+            'eks-best-practices/resource-cost/karpenter-autoscaling',
+            'eks-best-practices/resource-cost/eks-resource-optimization',
+            'eks-best-practices/resource-cost/cost-management',
+          ],
+        },
       ],
     },
     {
