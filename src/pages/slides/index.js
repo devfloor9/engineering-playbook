@@ -88,6 +88,20 @@ const slideDecks = [
     ],
   },
   {
+    category: 'EKS Best Practices',
+    categoryIcon: '🚀',
+    categoryColor: '#34d399',
+    items: [
+      {
+        title: 'EKS Control Plane & CRD Best Practices',
+        description: 'Control Plane 모니터링, CRD 영향도 분석, Provisioned Control Plane, DR 아키텍처, Gateway API, 멀티 클러스터 운영',
+        badge: 'Best Practices',
+        slides: 19,
+        href: '/docs/eks-best-practices/slide/eks-best-practices/',
+      },
+    ],
+  },
+  {
     category: 'Sales Resources',
     categoryIcon: '📊',
     categoryColor: '#f472b6',
