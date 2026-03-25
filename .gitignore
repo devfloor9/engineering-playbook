@@ -65,5 +65,14 @@ navbar-current.png
 .playwright-mcp/
 
 # OS
-Thumbs.dbslides/**/node_modules/
-slides/**/dist/
+Thumbs.db
+
+# Slides build artifacts
+**/node_modules/
+**/node_modules
+**/dist/
+**/package-lock.json
+**/tsconfig.app.tsbuildinfo
+
+# Deploy artifacts
+deploy/
