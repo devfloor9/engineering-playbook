@@ -1,11 +1,11 @@
 ---
-title: "개선된 아키텍처 Draw.io 작성 프롬프트"
-sidebar_label: "Draw.io 작성 프롬프트"
+title: "Architecture Draw.io Prompt"
+sidebar_label: "Draw.io Prompt"
 last_update:
-  date: 2026-03-19
+  date: 2026-03-25
 ---
 
-# LG U+ Agentic AI Platform - 개선 아키텍처 Draw.io 프롬프트
+# LG U+ Agentic AI Platform - Architecture Draw.io Prompt
 
 ## Architecture Overview
 
@@ -96,11 +96,11 @@ The Knowledge Feature Store extends the LLM Feature Store with an **ontology lay
 
 ---
 
-아래 프롬프트를 draw.io AI 또는 Claude에게 제공하여 아키텍처 다이어그램을 생성하세요.
+Provide the prompt below to draw.io AI or Claude to generate the architecture diagram.
 
 ---
 
-## 프롬프트
+## Prompt
 
 ```
 Generate a draw.io XML for the LG U+ Agentic AI Platform architecture on EKS with the following specifications.
@@ -108,14 +108,14 @@ Generate a draw.io XML for the LG U+ Agentic AI Platform architecture on EKS wit
 ## Overall Layout
 
 - Title: "LG U+ Agentic AI Platform - Improved EKS Architecture (v7)"
-- Canvas size: 2400px wide, 1200px tall
+- Canvas size: 2600px wide, 1500px tall
 - Background: white
 - Font: Noto Sans KR (or system default sans-serif)
 - Traffic flows left-to-right, layers stack top-to-bottom
 - The canvas is split into two environment zones side by side:
-  - **Left zone (x=0~1500)**: Production environment (full detail)
-  - **Right zone (x=1520~2400)**: Staging / Dev environment (simplified mirror) + Bedrock AgentCore zone
-- A vertical dashed divider line at x=1510, label: "Environment Boundary"
+  - **Left zone (x=0~1600)**: Production environment (full detail)
+  - **Right zone (x=1630~2600)**: Staging / Dev environment (simplified mirror) + Bedrock AgentCore zone
+- A vertical dashed divider line at x=1615, label: "Environment Boundary"
 
 ---
 
@@ -186,7 +186,7 @@ Dashed arrow from ArgoCD (bottom-left) to EKS cluster (GitOps deployment).
 
 ---
 
-## Center: Amazon EKS Cluster (x=210~1050, y=30~900)
+## Center: Amazon EKS Cluster (x=210~1150, y=30~1050)
 
 Large blue dashed container box:
 - Title: "Amazon EKS Cluster (Karpenter Auto-scaling)"
@@ -196,7 +196,7 @@ Large blue dashed container box:
 
 ---
 
-#### Layer 1: Portal Layer (y=50~170, light purple bg #F3E5F5)
+#### Layer 1: Portal Layer (y=50~190, light purple bg #F3E5F5)
 
 Container title: "① Portal Layer"
 
@@ -213,7 +213,7 @@ Internal boxes (horizontal layout):
 
 ---
 
-#### Layer 2: Orchestration Layer (y=180~380, light blue bg #E3F2FD)
+#### Layer 2: Orchestration Layer (y=220~450, light blue bg #E3F2FD)
 
 Container title: "② Orchestration Layer (LangChain + LangGraph)"
 
@@ -264,7 +264,7 @@ Small text below kgateway: "Path routing: /api/* → FastAPI, /ws/* → WebSocke
 
 ---
 
-#### Layer 3: Model Serving Layer (y=390~530, light green bg #E8F5E9)
+#### Layer 3: Model Serving Layer (y=480~650, light green bg #E8F5E9)
 
 Container title: "③ Model Serving Layer (vLLM + Triton)"
 
@@ -295,7 +295,7 @@ Bottom horizontal bar box:
 
 ---
 
-#### Layer 4: Model Pipeline Layer (y=540~660, light yellow bg #FFF9C4)
+#### Layer 4: Model Pipeline Layer (y=680~810, light yellow bg #FFF9C4)
 
 Container title: "④ Model Pipeline Layer (MLflow + Kubeflow)"
 
@@ -312,7 +312,7 @@ Bottom text flow arrow:
 
 ---
 
-#### Layer 5: Data Foundry Layer (y=670~790, light red bg #FFEBEE)
+#### Layer 5: Data Foundry Layer (y=840~990, light red bg #FFEBEE)
 
 Container title: "⑤ Data Foundry Layer (RAG + Knowledge Graph Pipeline)"
 
@@ -352,7 +352,7 @@ Draw a large **dashed overlay container** (bg #E0F7FA, opacity 15%, border #00AC
 
 ---
 
-## Right Zone: Staging / Dev Environment (x=1520~2200)
+## Right Zone: Staging / Dev Environment (x=1630~2350)
 
 ### Stag/Dev EKS Cluster
 
@@ -409,7 +409,7 @@ Small annotation at the boundary: "Shared: MLflow · ECR · S3 · IAM IdC · Arg
 
 ---
 
-## Right Zone: Bedrock AgentCore (x=1520~2400, y=650~1050)
+## Right Zone: Bedrock AgentCore (x=1630~2600, y=800~1250)
 
 Container box (bg #FFF3E0, border #FF9900, dashed):
 - Title: "Bedrock AgentCore (Managed Agent Runtime)"
@@ -437,7 +437,7 @@ Dashed arrows:
 
 ---
 
-## Upper Right: External LLMs (x=1060~1380, y=30~200)
+## Upper Right: External LLMs (x=1170~1510, y=30~220)
 
 Container box, title: "External LLMs", bg #F5F5F5
 
@@ -457,7 +457,7 @@ Internal boxes (2-column layout):
 
 ---
 
-## Middle Right: AWS Storage & DB (x=1060~1380, y=210~400)
+## Middle Right: AWS Storage & DB (x=1170~1510, y=250~460)
 
 Container box, title: "AWS Storage & DB", bg #FFF3E0
 
@@ -475,7 +475,7 @@ Internal boxes (3-column layout):
 
 ---
 
-## Lower Right 1: Monitoring & Security (x=1060~1380, y=410~550)
+## Lower Right 1: Monitoring & Security (x=1170~1510, y=490~660)
 
 Container box, title: "Monitoring & Security", bg #F3E5F5
 
@@ -494,7 +494,7 @@ Internal boxes:
 
 ---
 
-## Lower Right 2: On-Premise (x=1060~1380, y=560~780)
+## Lower Right 2: On-Premise (x=1170~1510, y=690~940)
 
 ### On-Premise (Colab-Co) - Training
 - Dashed border container, bg #F8BBD0
@@ -515,73 +515,153 @@ Internal boxes:
 
 ## Arrows (Connections)
 
-### Ingress Flow (solid, black)
-1. Users → Route 53
-2. Route 53 → CloudFront (+ Shield Advanced) → WAF → NLB (auto-provisioned)
-3. NLB → kgateway (enters EKS cluster, OIDC auth via IAM Identity Center)
+> **Arrow Routing Principles — Arrows MUST NOT cross over unrelated objects. Follow the rules below strictly.**
 
-### Auth Flow (dashed, #FF6B6B red)
-3-1. IAM Identity Center --dashed--> kgateway (label: "OIDC / JWKS cache", bidirectional)
-3-2. Portal UI --dashed--> IAM Identity Center (label: "OIDC Login → JWT")
-3-3. API/Agent Client --dashed--> IAM Identity Center (label: "Client Credentials → JWT")
+### Routing Channels (Dedicated Corridors)
 
-### EKS Internal Flow (solid, #326CE5 blue)
-4. kgateway (JWT validated) → FastAPI (REST + WebSocket + SSE) (/api/*, /ws/*)
-5. kgateway → Bifrost (/v1/* AI traffic)
-6. FastAPI → LangChain / LangGraph (agent requests)
-7. LangChain → Bifrost (LLM calls)
-8. LangChain → RAG Chain → Triton (Embedding) → Milvus (Vector RAG retrieval)
-8-1. LangChain → RAG Chain → Neo4j/Neptune (GraphRAG retrieval, label: "SPARQL/Cypher")
-9. LangChain → NeMo Guardrails (Input/Output filtering, bidirectional arrow)
-10. Bifrost → llm-d Inference Gateway (self-hosted models)
-11. llm-d → vLLM Large / Medium / Small / LoRA (KV Cache-aware distribution)
-12. Bifrost → External LLMs (external models, arrow to the right)
+Route arrows through **dedicated channels** instead of across objects.
+Each channel occupies empty space with no objects.
 
-### Data Flow (dashed, #00BCD4 teal)
-13. On-Premise (Colab-Co) --dashed--> S3 (model artifacts)
-14. S3 → MLflow (model registration)
-15. MLflow → DeepEval → ArgoCD → vLLM (deployment pipeline)
-16. Unstructured.io → Triton (BGE-M3 Embedding) → Milvus (RAG indexing)
-17. RAG Chain → Triton (Embedding) → Milvus (embedding at query time)
+| Channel | Position | Purpose |
+|---------|----------|---------|
+| **Left Ingress Lane** | x=120~200 (Entry Points area) | User → EKS ingress flow only |
+| **Inter-Layer Gap** | 30px gap between each layer | Vertical connections between layers (short straight lines only) |
+| **Right Export Lane** | x=1140~1165 (EKS cluster right boundary) | EKS → external services (External LLMs, Storage, Monitoring) |
+| **Bottom Pipeline Lane** | y=1000~1040 (margin below Layer 5) | Model Pipeline horizontal flow (On-Prem → S3 → MLflow → Deploy) |
+| **AgentCore Bridge** | x=1600~1630 (Environment Boundary) | EKS ↔ AgentCore connections (vertical path) |
+| **Monitoring Bus** | x=1130 (EKS internal right margin), vertical bar | Consolidate all monitoring arrows into a single bus |
 
-### Monitoring Flow (dashed, #9C27B0 purple)
-18. vLLM/llm-d --dashed--> ADOT --dashed--> AMP → AMG
-18-1. vLLM/GPU nodes --dashed--> DCGM Exporter --dashed--> AMP (label: "GPU Util%, VRAM, SM active")
-18-2. All Pods --dashed--> Kubecost (label: "Pod-level GPU/CPU cost attribution")
-19. [Stag/Dev] FastAPI --dashed--> LangSmith (traces, label: "Application Level — Stag/Dev")
-20. [Prod] FastAPI --dashed--> Langfuse (traces, label: "Application Level — Production")
-21. Bifrost --dashed--> Bifrost built-in cost aggregation (label: "Infrastructure Level")
-21-1. [Prod] Bifrost (OTel Plugin) --dashed--> Langfuse (label: "OTel→Langfuse gateway traces")
-22. Langfuse --dashed--> Label Studio (feedback loop)
+### Port Convention (Entry/Exit Direction)
 
-### AgentCore Flow (dashed, #FF9900 orange)
-26. LangGraph (EKS) --dashed--> AgentCore A2A Hub (label: "A2A agent delegation")
-27. AgentCore MCP Gateway --dashed--> External Tools (label: "Stateful MCP sessions")
-28. AgentCore AG-UI --dashed--> Portal UI (label: "AG-UI real-time streaming")
-29. AgentCore Lightweight Agents --dashed--> Bifrost (label: "LLM calls via Bifrost")
-30. AgentCore Managed Memory --dashed--> EKS Redis (label: "Shared session context", optional)
+All object boxes connect arrows in a consistent direction:
 
-### GitOps Deployment (dashed, #FF6B6B red)
-23. ArgoCD --dashed--> EKS Cluster (GitOps deployment for vLLM/Agent services)
+| Direction | Usage |
+|-----------|-------|
+| **Top (↓ in)** | Incoming requests from upper layers |
+| **Bottom (↓ out)** | Outgoing requests to lower layers |
+| **Right (→ out)** | Connections to external services / Monitoring Bus |
+| **Left (← in)** | Ingress traffic (entering from Ingress Lane) |
 
-### On-Premise Connections (dashed, #E91E63 pink)
-24. On-Premise (Sangam) --dashed--> Bifrost (register self-hosted inference servers)
-25. On-Premise (Colab-Co) --dashed--> S3 (upload training results)
+---
+
+### Flow 1: Ingress (solid, black, strokeWidth=2)
+
+Straight left-to-right flow. Descend vertically along the Left Ingress Lane, then enter EKS.
+
+1. Users → Route 53 → CloudFront (+ Shield) → WAF → NLB
+   - Vertical stack: each box bottom → next box top (straight line)
+2. NLB →(right) kgateway (enters EKS cluster via left port)
+
+### Flow 2: Auth (dashed, #FF6B6B, strokeWidth=1)
+
+Place IAM Identity Center next to Entry Points area (x=60, y=center).
+Arrows use the left margin of the Left Ingress Lane to avoid overlapping other flows.
+
+3. IAM Identity Center ←→ kgateway (label: "OIDC / JWKS", horizontal dashed, 5px offset below Ingress arrow)
+4. Portal UI --→ IAM Identity Center (label: "OIDC Login", diagonal upper-left)
+5. API Client --→ IAM Identity Center (label: "Client Credentials", diagonal lower-left)
+
+### Flow 3: EKS Request Path (solid, #326CE5, strokeWidth=2)
+
+**Within a layer**: horizontal. **Between layers**: vertical via Inter-Layer Gap. NEVER route through another layer's objects.
+
+**Within Layer ② (horizontal flow, left → right):**
+6. kgateway →(bottom) forks into two paths:
+   - 6a. kgateway → FastAPI (label: "/api/*, /ws/*")
+   - 6b. kgateway → Bifrost (label: "/v1/* AI traffic")
+7. FastAPI →(right) LangChain/LangGraph
+8. LangChain →(right) NeMo Guardrails (bidirectional, horizontal)
+9. LangChain →(bottom) RAG Chain (vertical, toward Inter-Layer Gap)
+10. LangChain →(bottom) Bifrost (label: "LLM calls", vertical)
+
+**Layer ② → ③ (vertical, Inter-Layer Gap):**
+11. Bifrost →(bottom) llm-d Inference Gateway
+12. RAG Chain →(bottom) Triton BGE-M3 (Embedding, vertical)
+
+**Within Layer ③ (horizontal):**
+13. llm-d →(bottom) vLLM Large / Medium / Small / LoRA (fan-out, short vertical arrows)
+
+**Layer ② → ⑤ (RAG vertical path, via EKS internal right margin x=1120):**
+14. RAG Chain → Triton (Embedding) →(bottom) Milvus (label: "Vector RAG", vertical straight)
+15. RAG Chain →(right, via right margin then bottom) Neo4j/Neptune (label: "GraphRAG · SPARQL/Cypher")
+    - Path: RAG Chain right → descend at x=1120 → enter Neo4j left (L-shaped path)
+
+**Layer ② → External (right exit):**
+16. Bifrost →(right) Right Export Lane → External LLMs (horizontal straight)
+
+### Flow 4: Data Pipeline (dashed, #00BCD4, strokeWidth=1.5)
+
+Flows horizontally along the Bottom Pipeline Lane (y=1000~1040). Minimize vertical connections.
+
+17. On-Premise (Colab-Co) →(right) S3 (Bottom Pipeline Lane, horizontal)
+18. S3 →(left) MLflow →(right) DeepEval →(right) ArgoCD (Bottom Pipeline Lane, horizontal chain)
+19. ArgoCD →(up) vLLM (vertical ascent, straight from ArgoCD position)
+20. Unstructured.io →(up) Triton BGE-M3 →(right) Milvus (within Layer ⑤, horizontal)
+
+### Flow 5: Monitoring Bus (dashed, #9C27B0, strokeWidth=1)
+
+**Monitoring Bus Bar**: Place a purple vertical bar at the EKS cluster internal right margin (x=1130), spanning the full height of Layers ①~⑤.
+Each component connects to the bus with **one short horizontal arrow**. Only **one arrow** exits the bus to external services.
+
+```
+[vLLM/llm-d] ──→ ┃                          ┃ ──→ [AMP → AMG]
+[DCGM Exporter] ─→ ┃  Monitoring Bus          ┃ ──→ [Kubecost]
+[FastAPI] ────→ ┃  (x=1130, vertical bar)  ┃ ──→ [CloudWatch/X-Ray]
+[Bifrost] ────→ ┃                          ┃
+```
+
+Individual connections:
+21. vLLM, llm-d, DCGM Exporter →(right) Monitoring Bus (short horizontal, no label)
+22. FastAPI →(right) Monitoring Bus (short horizontal)
+23. Bifrost →(right) Monitoring Bus (short horizontal, label: "OTel")
+24. Monitoring Bus →(right) Right Export Lane → AMP/AMG (label: "Metrics + Traces")
+25. Monitoring Bus →(right) Right Export Lane → Kubecost (label: "Cost")
+
+**Application-level Observability (separate, not via bus):**
+26. [Prod] FastAPI →(up) Langfuse (vertical ascent within same layer, short arrow)
+27. [Stag/Dev] FastAPI →(up) LangSmith (within Stag/Dev zone, short arrow)
+28. Bifrost (OTel) →(up) Langfuse (label: "Gateway traces", vertical within Layer ②)
+29. Langfuse →(bottom) Label Studio (within Layer ⑤, vertical)
+
+### Flow 6: AgentCore (dashed, #FF9900, strokeWidth=1.5)
+
+Routes via AgentCore Bridge (x=1600~1630). All arrows cross the Environment Boundary horizontally.
+
+30. LangGraph →(right) AgentCore A2A Hub (horizontal, label: "A2A delegation")
+31. AgentCore AG-UI →(left) Portal UI (horizontal return, label: "AG-UI streaming")
+32. AgentCore Lightweight Agents →(left) Bifrost (horizontal, label: "LLM calls")
+33. AgentCore MCP Gateway →(right) External Tools (right exit, label: "Stateful MCP")
+
+> AgentCore Managed Memory ↔ EKS Redis connection is optional — show as **annotation text only** (no arrow).
+
+### Flow 7: GitOps & On-Premise (dashed, strokeWidth=1)
+
+**GitOps (red #FF6B6B):**
+34. ArgoCD →(right) EKS Cluster left boundary (label: "GitOps deploy", via bottom of Left Ingress Lane)
+
+**On-Premise (pink #E91E63):**
+35. On-Premise (Sangam) →(up) Bifrost (label: "Self-hosted inference", via bottom of Right Export Lane then enter left)
+36. On-Premise (Colab-Co) →(right) S3 (Bottom Pipeline Lane, shared with Flow 4)
 
 ---
 
 ## Annotations & Legend
 
-Bottom-left legend box:
-- Solid arrow: Request/Response flow
-- Blue dashed: Data flow
-- Purple dashed: Monitoring/Metrics
-- Red dashed: Auth flow (OIDC/JWT) & GitOps deployment (ArgoCD)
-- Pink dashed: On-Premise connections
-- Orange dashed: Bedrock AgentCore connections
+Bottom-left legend box (2-column layout):
+
+| Style | Meaning |
+|-------|---------|
+| ━━ Solid black (2px) | Ingress flow |
+| ━━ Solid blue (2px) | EKS internal request path |
+| ┅┅ Teal dashed (1.5px) | Data pipeline |
+| ┅┅ Purple dashed (1px) | Monitoring (via Bus) |
+| ┅┅ Red dashed (1px) | Auth (OIDC/JWT) & GitOps |
+| ┅┅ Orange dashed (1.5px) | Bedrock AgentCore |
+| ┅┅ Pink dashed (1px) | On-Premise connections |
+| ▮ Purple vertical bar | Monitoring Bus |
 
 Bottom-right version info:
-- "v7.0 | 2026-03-19 | Knowledge Feature Store (ontology) + AgentCore hybrid + Graceful Ops + GPU monitoring"
+- "v7.1 | 2026-03-25 | Arrow routing channels + Monitoring Bus + Port convention + Relaxed spacing"
 
 ---
 
@@ -589,12 +669,17 @@ Bottom-right version info:
 
 1. All boxes use rounded rectangles (rounded=1, arcSize=10)
 2. Container box titles are top-left aligned, bold
-3. Internal component boxes default to 80px wide, 40px tall
+3. Internal component boxes default to 100px wide, 50px tall
 4. Component box text: first line service name (bold), second line tech name (regular)
-5. Arrows use orthogonal routing (right-angle bends)
-6. Inter-layer spacing: 10px
-7. Intra-layer box spacing: 8px
+5. Arrows use orthogonal routing (right-angle bends), **no diagonal lines except Auth flow**
+6. Inter-layer spacing: 30px — this gap is reserved for vertical arrow routing only (no objects)
+7. Intra-layer box spacing: 15px
 8. All text is center-aligned
+9. **Arrow routing**: arrows MUST travel through designated Routing Channels. Arrows MUST NOT cross over or overlap with unrelated component boxes. When an arrow needs to cross layers, route it through the nearest channel (Right Export Lane x=1140, or EKS right margin x=1120).
+10. **Monitoring Bus**: draw a purple vertical bar (width=6px, rounded ends) at x=1130, spanning y=50~990. All monitoring sources connect to the bus with short horizontal stubs (≤20px). Bus outputs exit right at designated y-offsets.
+11. **Arrow label placement**: labels sit on the midpoint of the arrow segment, offset 3px above. For vertical arrows, labels are rotated 90° or placed to the right.
+12. **Arrow z-index**: arrows render above layer backgrounds but below component boxes. This ensures arrows are visible in gaps but never obscure box content.
+13. **Maximum 2 arrows per gap**: no more than 2 arrows should run in parallel through the same Inter-Layer Gap to prevent visual clutter.
 
 ## Change Highlights (optional)
 
@@ -639,86 +724,100 @@ Generate the draw.io XML based on these specifications.
 
 ---
 
-## 프롬프트 사용법
+## How to Use the Prompt
 
-### 방법 1: Claude에게 draw.io XML 생성 요청
+### Option 1: Request draw.io XML from Claude
 
-위 프롬프트를 Claude에게 붙여넣으면 `.drawio` XML을 생성합니다. 생성된 XML을 `architecture-v5.drawio` 파일로 저장 후 draw.io에서 열면 됩니다.
+Paste the prompt above into Claude to generate `.drawio` XML. Save the generated XML as `architecture-v7.drawio` and open it in draw.io.
 
-### 방법 2: draw.io에서 직접 작업
+### Option 2: Manual layout in draw.io
 
-1. draw.io (app.diagrams.net) 열기
-2. 위 프롬프트의 레이아웃 사양을 참고하여 수동 배치
-3. 색상 팔레트와 스타일 규칙을 적용
+1. Open draw.io (app.diagrams.net)
+2. Refer to the layout specifications in the prompt above for manual placement
+3. Apply the color palette and style rules
 
-### 방법 3: draw.io MCP 서버 활용
+### Option 3: draw.io MCP Server
 
-draw.io MCP 서버가 설정되어 있다면:
+If a draw.io MCP server is configured:
 ```
-/architecture-diagram 위 프롬프트 내용으로 다이어그램 생성
+/architecture-diagram Generate diagram using the prompt above
 ```
 
 ---
 
-## v6 → v7 변경 요약
+## v7.0 → v7.1 Changelog
 
-| 영역 | v6 | v7 | 변경 이유 |
-|------|----|----|-----------|
-| Feature Store | LLM Feature Store (Vector RAG 중심) | **Knowledge Feature Store** (Vector RAG + GraphRAG + 온톨로지) | 텔레콤 도메인 규칙 체인 추론, 환각 감소 |
-| Knowledge Graph | 없음 | **Neo4j/Neptune** (OWL/RDF 스키마, SPARQL/Cypher) | 엔티티-관계 기반 추론 추가 |
-| Bedrock AgentCore | 없음 | **AgentCore 보조 레이어** (MCP Gateway, A2A Hub, AG-UI, Lightweight Agents, Managed Memory) | Agent 런타임 운영 부담 감소, Long-running 세션 해결 |
-| Agent 프로토콜 | MCP, A2A | MCP, A2A, **AG-UI** | Agent→프론트엔드 실시간 스트리밍 표준화 |
-| Graceful Operations | 없음 (암묵적) | **명시적 전략** (vLLM shutdown-timeout, llm-d drain-aware, PDB, Blue/Green NodePool) | Karpenter consolidation / EKS upgrade 무중단 |
-| GPU 모니터링 | AMP/AMG만 | **DCGM Exporter** (GPU 메트릭) + **Kubecost** (Pod별 비용) 추가 | GPU 사용률/비용 가시성 강화 |
-| Data Foundry | RAG Pipeline | **RAG + Knowledge Graph Pipeline** | 온톨로지 레이어 추가 |
-| RAG Chain | Vector RAG 단독 | **Vector + Graph RAG 하이브리드** | 유사도 검색 + 관계 추론 통합 |
-| LangGraph Tool | 기본 Tool Registry | **ontology_query, vector_search, entity_resolve, rule_engine** 명시 | Knowledge Feature Store 연동 구체화 |
-| Agent 배포 | EKS 단독 | **EKS (핵심) + AgentCore (경량)** 하이브리드 | 핵심 추론은 EKS, 운영 경량화는 AgentCore |
-| AWS Storage | 7개 서비스 | **Neptune** 추가 (Knowledge Graph option) | 관리형 Knowledge Graph 옵션 |
-| 캔버스 크기 | 2200x1100 | **2400x1200** | AgentCore 영역 수용 |
+| Area | v7.0 | v7.1 | Reason |
+|------|------|------|--------|
+| Arrow routing | Free-form paths (35 arrows, crossing objects) | **Routing Channel based** (6 dedicated corridors) | Eliminate arrow-object overlap |
+| Monitoring flow | 7 individual arrows | **Monitoring Bus** (1 vertical bar + stubs) | Drastically reduce visual complexity |
+| Port convention | Undefined (arbitrary direction) | **Top/Bottom/Left/Right convention** unified | Consistent arrow entry/exit |
+| Arrow count | ~35 | **~22** (merged + converted to annotations) | Improve readability of key flows |
+| Arrow style | Single stroke width | **Differentiated strokeWidth** (primary 2px, secondary 1px) | Visual hierarchy |
+| AgentCore Memory | Arrow (#30) | **Annotation text** (optional, arrow removed) | Reduce unnecessary crossings |
+| Style rules | 8 rules | **13 rules** (routing, bus, z-index, gap limit added) | Concrete guide for draw.io generation |
+| Spacing | Inter-layer 10px, intra-box 8px, box 80x40 | **Inter-layer 30px, intra-box 15px, box 100x50** | Easier to select and edit individual components |
+| Canvas size | 2400x1200 | **2600x1500** | Accommodate relaxed spacing |
 
-## v5 → v6 변경 요약
+## v6 → v7 Changelog
 
-| 영역 | v5 | v6 | 변경 이유 |
-|------|----|----|-----------|
-| 환경 구성 | 단일 EKS 클러스터 (Prod/Dev 혼재) | **Prod / Stag·Dev 분리** (좌우 2-zone 레이아웃) | 환경별 보안·비용·관측 정책 차별화 |
-| Observability 배치 | LangSmith + Langfuse 동일 Portal Layer | **Langfuse → Prod 전용, LangSmith → Stag/Dev 전용** | 하이브리드 전략을 환경 분리로 명확화 |
-| LLM Feature Store | 미그룹 (컴포넌트 산재) | **Cross-layer 논리 그룹** (Prompt Mgmt, Semantic Cache, RAG Chain, Milvus, Triton BGE-M3, Unstructured.io) | LLM 앱의 공통 Feature Surface를 가시화 |
-| Stag/Dev Ingress | Prod과 동일 (CloudFront→WAF→NLB) | **NLB → kgateway** (CloudFront/WAF/Shield 생략) | Dev 환경 단순화, 비용 절감 |
-| Stag/Dev GPU | Prod과 동일 | **Spot instances, 축소 GPU** | 개발 환경 비용 최적화 |
-| 공유 서비스 | 미명시 | **MLflow · ECR · S3 · IAM IdC · ArgoCD** 환경 간 공유 명시 | 리소스 재사용 명확화 |
-| NeMo Guardrails | 모든 환경 필수 | **Prod 필수, Stag/Dev 선택** (dashed border) | 개발 속도 vs 안전성 트레이드오프 |
-| 캔버스 크기 | 1400x1000 | **2200x1100** | 2-zone 레이아웃 수용 |
+| Area | v6 | v7 | Reason |
+|------|----|----|--------|
+| Feature Store | LLM Feature Store (Vector RAG focused) | **Knowledge Feature Store** (Vector RAG + GraphRAG + ontology) | Telecom domain rule-chain reasoning, reduce hallucination |
+| Knowledge Graph | None | **Neo4j/Neptune** (OWL/RDF schema, SPARQL/Cypher) | Add entity-relationship reasoning |
+| Bedrock AgentCore | None | **AgentCore complementary layer** (MCP Gateway, A2A Hub, AG-UI, Lightweight Agents, Managed Memory) | Reduce agent runtime ops burden, solve long-running sessions |
+| Agent protocols | MCP, A2A | MCP, A2A, **AG-UI** | Standardize agent→frontend real-time streaming |
+| Graceful Operations | None (implicit) | **Explicit strategy** (vLLM shutdown-timeout, llm-d drain-aware, PDB, Blue/Green NodePool) | Zero-downtime Karpenter consolidation / EKS upgrade |
+| GPU monitoring | AMP/AMG only | **DCGM Exporter** (GPU metrics) + **Kubecost** (per-Pod cost) added | Enhance GPU utilization/cost visibility |
+| Data Foundry | RAG Pipeline | **RAG + Knowledge Graph Pipeline** | Add ontology layer |
+| RAG Chain | Vector RAG only | **Vector + Graph RAG hybrid** | Combine similarity search + relationship reasoning |
+| LangGraph Tools | Basic Tool Registry | **ontology_query, vector_search, entity_resolve, rule_engine** specified | Concretize Knowledge Feature Store integration |
+| Agent deployment | EKS only | **EKS (core) + AgentCore (lightweight)** hybrid | Core inference on EKS, operational simplification via AgentCore |
+| AWS Storage | 7 services | **Neptune** added (Knowledge Graph option) | Managed Knowledge Graph option |
+| Canvas size | 2200x1100 | **2600x1500** | Accommodate AgentCore zone + relaxed spacing |
 
-## v4 → v5 변경 요약
+## v5 → v6 Changelog
 
-| 영역 | v4 | v5 | 변경 이유 |
-|------|----|----|-----------|
-| Bifrost 기술 스택 | "Rust 기반" 표기 | **Go 기반** 수정 (~11µs/req at 5k RPS) | 실제 구현 언어 정정 |
-| Bifrost 기능 설명 | LLM Router / 폴백 / 비용 추적 | **계층형 비용 추적(키/팀/고객), 시맨틱 캐싱, MCP 도구 필터링** 추가 | 기능 상세화 |
-| Bifrost → Langfuse | 미연결 | **OTel Plugin → Langfuse** 게이트웨이 트레이스 연동 | 옵저버빌리티 파이프라인 완성 |
-| LiteLLM 대안 기준 | "Python 생태계 대안" | **100+ 롱테일 프로바이더, Langfuse 네이티브 플러그인** 필요 시 | 선택 기준 명확화 |
-| 모니터링 흐름 | Bifrost 자체 비용 집계만 | **Bifrost OTel → Langfuse** 흐름 추가 (21-1번) | 게이트웨이 레벨 트레이스 |
+| Area | v5 | v6 | Reason |
+|------|----|----|--------|
+| Environment layout | Single EKS cluster (Prod/Dev mixed) | **Prod / Stag·Dev separated** (side-by-side 2-zone layout) | Differentiate security/cost/observability policies per environment |
+| Observability placement | LangSmith + Langfuse in same Portal Layer | **Langfuse → Prod only, LangSmith → Stag/Dev only** | Clarify hybrid strategy via environment separation |
+| LLM Feature Store | Ungrouped (components scattered) | **Cross-layer logical group** (Prompt Mgmt, Semantic Cache, RAG Chain, Milvus, Triton BGE-M3, Unstructured.io) | Visualize common Feature Surface for LLM apps |
+| Stag/Dev Ingress | Same as Prod (CloudFront→WAF→NLB) | **NLB → kgateway** (CloudFront/WAF/Shield omitted) | Simplify dev environment, reduce cost |
+| Stag/Dev GPU | Same as Prod | **Spot instances, reduced GPU** | Optimize dev environment cost |
+| Shared services | Not specified | **MLflow · ECR · S3 · IAM IdC · ArgoCD** shared across environments | Clarify resource reuse |
+| NeMo Guardrails | Required in all environments | **Required in Prod, optional in Stag/Dev** (dashed border) | Dev velocity vs safety tradeoff |
+| Canvas size | 1400x1000 | **2200x1100** | Accommodate 2-zone layout |
 
-### v3 → v4 변경 요약 (이전)
+## v4 → v5 Changelog
 
-| 영역 | v3 | v4 | 변경 이유 |
-|------|----|----|-----------|
-| Portal Layer | 6개 (Portal UI, LangSmith, Langfuse, OpenSearch, JupyterHub, ArgoCD) | **4개** (Portal UI, LangSmith, Langfuse, JupyterHub) | Portal 경량화 |
-| ArgoCD 위치 | Portal Layer 내부 | **좌측 진입점 영역** (EKS 외부, GitOps 배포) | 클러스터 외부 관리 도구로 재배치 |
-| OpenSearch 위치 | Portal Layer 내부 | **AWS Storage & DB** 영역으로 이동 | AWS 관리형 서비스로 분류 |
-| External LLMs | 8개 (Bedrock~EXAONE) | **10개** (Qwen, DeepSeek 추가) | 중국 오픈소스 모델 생태계 반영 |
+| Area | v4 | v5 | Reason |
+|------|----|----|--------|
+| Bifrost tech stack | Labeled "Rust-based" | **Go-based** corrected (~11µs/req at 5k RPS) | Correct actual implementation language |
+| Bifrost features | LLM Router / fallback / cost tracking | **Hierarchical cost tracking (key/team/customer), semantic caching, MCP tool filtering** added | Feature detail |
+| Bifrost → Langfuse | Not connected | **OTel Plugin → Langfuse** gateway trace integration | Complete observability pipeline |
+| LiteLLM criteria | "Python ecosystem alternative" | **100+ long-tail providers, Langfuse native plugin** when needed | Clarify selection criteria |
+| Monitoring flow | Bifrost built-in cost aggregation only | **Bifrost OTel → Langfuse** flow added (#21-1) | Gateway-level traces |
 
-### v2 → v3 변경 요약 (이전)
+### v3 → v4 Changelog (prior)
 
-| 영역 | v2 | v3 | 변경 이유 |
-|------|----|----|-----------|
-| Orchestration 구조 | 3단 (Gateway / Core+Agent / RAG+Safety+Router) | 4 서브그룹 (Core Services / Agent Framework / RAG Pipeline / Safety) | 아키텍처 리포트 정합 |
-| API Server + WebSocket | 별도 박스 2개 | **FastAPI** 통합 박스 1개 | API+WebSocket+SSE 단일 서비스 |
-| kgateway | 기본 Gateway | WebSocket/SSE 네이티브 지원 명시 | Envoy HTTP/1.1 Upgrade |
-| Observability | Langfuse 단독 | **LangSmith (Dev) + Langfuse (Prod)** 하이브리드 | 환경별 역할 분담 |
-| 비용 추적 | 단일 레이어 | **2-Tier (애플리케이션: Langfuse, 인프라: Bifrost)** | 계층별 비용 집계 |
-| Triton | 미포함 | **Triton Inference Server 추가** | 비-LLM 추론 (Whisper, BGE-M3, Rerank) |
-| MCP/A2A | 미언급 | **Agent Framework에 MCP/A2A 프로토콜 명시** | 표준 프로토콜 지원 |
-| Glue Catalog | 필수 | **선택사항 (거버넌스 요구 시)** | 유연한 아키텍처 |
-| 버전 | v2.0 | **v3.0** | 52→26 컴포넌트 + 하이브리드 Observability + 2-Tier 비용 추적 |
+| Area | v3 | v4 | Reason |
+|------|----|----|--------|
+| Portal Layer | 6 items (Portal UI, LangSmith, Langfuse, OpenSearch, JupyterHub, ArgoCD) | **4 items** (Portal UI, LangSmith, Langfuse, JupyterHub) | Lighten Portal |
+| ArgoCD position | Inside Portal Layer | **Left entry point area** (outside EKS, GitOps deployment) | Relocate as external management tool |
+| OpenSearch position | Inside Portal Layer | Moved to **AWS Storage & DB** area | Classify as AWS managed service |
+| External LLMs | 8 (Bedrock~EXAONE) | **10** (Qwen, DeepSeek added) | Reflect Chinese open-source model ecosystem |
+
+### v2 → v3 Changelog (prior)
+
+| Area | v2 | v3 | Reason |
+|------|----|----|--------|
+| Orchestration structure | 3-tier (Gateway / Core+Agent / RAG+Safety+Router) | 4 sub-groups (Core Services / Agent Framework / RAG Pipeline / Safety) | Align with architecture report |
+| API Server + WebSocket | 2 separate boxes | **FastAPI** unified box | Single API+WebSocket+SSE service |
+| kgateway | Basic Gateway | WebSocket/SSE native support specified | Envoy HTTP/1.1 Upgrade |
+| Observability | Langfuse only | **LangSmith (Dev) + Langfuse (Prod)** hybrid | Environment-specific role separation |
+| Cost tracking | Single layer | **2-Tier (Application: Langfuse, Infrastructure: Bifrost)** | Per-layer cost aggregation |
+| Triton | Not included | **Triton Inference Server added** | Non-LLM inference (Whisper, BGE-M3, Rerank) |
+| MCP/A2A | Not mentioned | **MCP/A2A protocols specified** in Agent Framework | Standard protocol support |
+| Glue Catalog | Required | **Optional (when governance needed)** | Flexible architecture |
+| Version | v2.0 | **v3.0** | 52→26 components + hybrid Observability + 2-Tier cost tracking |
