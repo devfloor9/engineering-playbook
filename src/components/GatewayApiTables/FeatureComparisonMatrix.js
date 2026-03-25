@@ -169,7 +169,7 @@ export default function FeatureComparisonMatrix({ locale = 'ko' }) {
   };
 
   return (
-    <div style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', maxWidth: '100%', margin: '0 0 1.5rem 0', overflowX: 'auto' }}>
+    <div style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', maxWidth: '100%', margin: '0 0 1.5rem 0' }}>
       <div style={{ background: 'linear-gradient(135deg, #4a148c 0%, #6a1b9a 100%)', borderRadius: '12px 12px 0 0', padding: '1rem 1.5rem', color: 'white' }}>
         <div style={{ fontSize: '0.95rem', fontWeight: 700 }}>
           {locale === 'ko' ? 'Gateway API 솔루션 종합 비교' : 'Gateway API Solution Comprehensive Comparison'}
@@ -184,7 +184,7 @@ export default function FeatureComparisonMatrix({ locale = 'ko' }) {
           {allExpanded ? (locale === 'ko' ? '모두 접기' : 'Collapse All') : (locale === 'ko' ? '모두 펼치기' : 'Expand All')}
         </button>
 
-        <div style={{ minWidth: 900 }}>
+        <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
           {categories.map((cat) => (
             <div key={cat.id} style={{ marginBottom: '0.5rem', border: '1px solid var(--ifm-color-emphasis-200)', borderRadius: 8, overflow: 'hidden' }}>
               <div onClick={() => toggleCategory(cat.id)} style={{ background: cat.color, color: '#fff', padding: '0.6rem 1rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.85rem', fontWeight: 700 }}>
@@ -208,7 +208,7 @@ export default function FeatureComparisonMatrix({ locale = 'ko' }) {
                         <tr key={idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
                           <td style={{ padding: '0.5rem', fontWeight: 600, background: 'var(--ifm-background-surface-color)', position: 'sticky', left: 0, zIndex: 1 }}>{row.label[locale]}</td>
                           {row.values.map((val, i) => (
-                            <td key={i} style={{ padding: '0.5rem', background: getCellBg(val), whiteSpace: 'nowrap' }}>{val}</td>
+                            <td key={i} style={{ padding: '0.5rem', background: getCellBg(val), minWidth: 130 }}>{val}</td>
                           ))}
                         </tr>
                       ))}

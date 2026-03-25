@@ -184,7 +184,7 @@ export default function SolutionOverviewMatrix({ locale = 'ko' }) {
   const cellBg = isDark ? '#252525' : 'var(--ifm-color-emphasis-100)';
 
   return (
-    <div style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', maxWidth: '100%', margin: '0 0 1.5rem 0', overflowX: 'auto' }}>
+    <div style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', maxWidth: '100%', margin: '0 0 1.5rem 0' }}>
       <div style={{ background: 'linear-gradient(135deg, #5e35b1 0%, #7e57c2 100%)', borderRadius: '12px 12px 0 0', padding: '1rem 1.5rem', color: 'white' }}>
         <div style={{ fontSize: '0.95rem', fontWeight: 700 }}>
           {locale === 'ko' ? 'Gateway API 솔루션 개요 비교' : 'Gateway API Solution Overview Comparison'}
@@ -199,7 +199,7 @@ export default function SolutionOverviewMatrix({ locale = 'ko' }) {
           {allExpanded ? (locale === 'ko' ? '모두 접기' : 'Collapse All') : (locale === 'ko' ? '모두 펼치기' : 'Expand All')}
         </button>
 
-        <div style={{ minWidth: 900 }}>
+        <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
           {categories.map((cat) => (
             <div key={cat.id} style={{ marginBottom: '0.5rem', border: `1px solid ${borderColor}`, borderRadius: 8, overflow: 'hidden' }}>
               <div onClick={() => toggleCategory(cat.id)} style={{ background: cat.color, color: '#fff', padding: '0.6rem 1rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.85rem', fontWeight: 700 }}>
@@ -260,7 +260,7 @@ export default function SolutionOverviewMatrix({ locale = 'ko' }) {
                   )}
 
                   {cat.id === 'features' && (
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '0.5rem', padding: '0.75rem' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '0.5rem', padding: '0.75rem' }}>
                       {solutions.map((sol, i) => (
                         <div key={i} style={{ border: `2px solid ${sol.color}`, borderRadius: 8, padding: '0.75rem', background: isDark ? '#252525' : 'var(--ifm-color-emphasis-100)' }}>
                           <div style={{ fontWeight: 700, fontSize: '0.8rem', marginBottom: '0.5rem', color: sol.color }}>{sol.name}</div>
@@ -275,7 +275,7 @@ export default function SolutionOverviewMatrix({ locale = 'ko' }) {
                   )}
 
                   {cat.id === 'limitations' && (
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '0.5rem', padding: '0.75rem' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '0.5rem', padding: '0.75rem' }}>
                       {solutions.map((sol, i) => (
                         <div key={i} style={{ border: `2px solid ${sol.color}`, borderRadius: 8, padding: '0.75rem', background: isDark ? '#252525' : '#fff3e0' }}>
                           <div style={{ fontWeight: 700, fontSize: '0.8rem', marginBottom: '0.5rem', color: sol.color }}>{sol.name}</div>
@@ -290,7 +290,7 @@ export default function SolutionOverviewMatrix({ locale = 'ko' }) {
                   )}
 
                   {cat.id === 'bestFor' && (
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '0.5rem', padding: '0.75rem' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '0.5rem', padding: '0.75rem' }}>
                       {solutions.map((sol, i) => (
                         <div key={i} style={{ border: `2px solid ${sol.color}`, borderRadius: 8, padding: '0.75rem', background: isDark ? '#252525' : '#e8f5e9' }}>
                           <div style={{ fontWeight: 700, fontSize: '0.8rem', marginBottom: '0.5rem', color: sol.color }}>{sol.name}</div>
@@ -308,7 +308,7 @@ export default function SolutionOverviewMatrix({ locale = 'ko' }) {
                   )}
 
                   {cat.id === 'notFor' && (
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '0.5rem', padding: '0.75rem' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '0.5rem', padding: '0.75rem' }}>
                       {solutions.map((sol, i) => (
                         <div key={i} style={{ border: `2px solid ${sol.color}`, borderRadius: 8, padding: '0.75rem', background: isDark ? '#252525' : '#ffebee' }}>
                           <div style={{ fontWeight: 700, fontSize: '0.8rem', marginBottom: '0.5rem', color: sol.color }}>{sol.name}</div>
