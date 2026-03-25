@@ -74,34 +74,20 @@ const sidebars = {
             'eks-best-practices/resource-cost/cost-management',
           ],
         },
-      ],
-    },
-    {
-      type: 'category',
-      label: 'Operations & Observability',
-      collapsed: true,
-      link: {
-        type: 'doc',
-        id: 'operations-observability/index',
-      },
-      items: [
-        'operations-observability/gitops-cluster-operation',
-        'operations-observability/node-monitoring-agent',
-        'operations-observability/eks-debugging-guide',
-        'operations-observability/eks-resiliency-guide',
-        'operations-observability/eks-pod-health-lifecycle',
-        'operations-observability/eks-pod-scheduling-availability',
         {
           type: 'category',
-          label: 'AgenticOps',
+          label: '운영 & 안정성',
           link: {
             type: 'doc',
-            id: 'operations-observability/agentic-ops/index',
+            id: 'eks-best-practices/operations-reliability/index',
           },
           items: [
-            'operations-observability/agentic-ops/aiops-introduction',
-            'operations-observability/agentic-ops/aiops-observability-stack',
-            'operations-observability/agentic-ops/aiops-predictive-operations',
+            'eks-best-practices/operations-reliability/gitops-cluster-operation',
+            'eks-best-practices/operations-reliability/node-monitoring-agent',
+            'eks-best-practices/operations-reliability/eks-debugging-guide',
+            'eks-best-practices/operations-reliability/eks-resiliency-guide',
+            'eks-best-practices/operations-reliability/eks-pod-health-lifecycle',
+            'eks-best-practices/operations-reliability/eks-pod-scheduling-availability',
           ],
         },
       ],
@@ -198,6 +184,19 @@ const sidebars = {
       },
       items: [
         'aidlc/aidlc-framework',
+        {
+          type: 'category',
+          label: 'AgenticOps',
+          link: {
+            type: 'doc',
+            id: 'aidlc/agentic-ops/index',
+          },
+          items: [
+            'aidlc/agentic-ops/aiops-introduction',
+            'aidlc/agentic-ops/aiops-observability-stack',
+            'aidlc/agentic-ops/aiops-predictive-operations',
+          ],
+        },
       ],
     },
     {

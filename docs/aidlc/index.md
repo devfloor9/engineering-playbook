@@ -36,7 +36,7 @@ AIDLC 프레임워크는 AI 기반 개발을 체계화하는 10가지 원칙을 
 
 ## 개발 이후: 운영과 피드백 루프
 
-AIDLC로 소프트웨어를 개발한 이후, 실제 운영 환경에서의 **지속적 개선과 피드백 루프**가 필요합니다. 이를 위한 접근 방법으로 [AIOps](/docs/operations-observability/agentic-ops)를 참조하세요. AIOps는 AI를 활용하여 운영 관찰성, 예측 스케일링, 자동 복구 등 운영 효율화를 위한 피드백 루프를 체계적으로 구축하는 방법론입니다.
+AIDLC로 소프트웨어를 개발한 이후, 실제 운영 환경에서의 **지속적 개선과 피드백 루프**가 필요합니다. 이를 위한 접근 방법으로 [AIOps](/docs/aidlc/agentic-ops)를 참조하세요. AIOps는 AI를 활용하여 운영 관찰성, 예측 스케일링, 자동 복구 등 운영 효율화를 위한 피드백 루프를 체계적으로 구축하는 방법론입니다.
 
 ```mermaid
 flowchart LR
@@ -61,7 +61,7 @@ flowchart LR
 
 :::info 학습 경로
 1. [AIDLC 프레임워크](./aidlc-framework.md) — 10가지 원칙, Intent→Unit→Bolt 모델, DDD 통합, EKS 역량 매핑
-2. [AIOps](/docs/operations-observability/agentic-ops) — 개발 이후 운영 피드백 루프 구축
+2. [AIOps](/docs/aidlc/agentic-ops) — 개발 이후 운영 피드백 루프 구축
 :::
 
 ## 참고 자료
