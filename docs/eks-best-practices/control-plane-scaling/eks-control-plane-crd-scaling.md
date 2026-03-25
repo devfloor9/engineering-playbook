@@ -523,9 +523,33 @@ EKS Console → Cluster 선택 → Observability 탭
 ---
 
 :::info 참고 자료
-- [Amazon EKS Provisioned Control Plane 공식 문서](https://docs.aws.amazon.com/eks/latest/userguide/provisioned-control-plane.html)
+
+**AWS 공식 문서:**
+- [Amazon EKS Provisioned Control Plane](https://docs.aws.amazon.com/eks/latest/userguide/provisioned-control-plane.html)
 - [EKS Control Plane Metrics](https://docs.aws.amazon.com/eks/latest/userguide/control-plane-metrics.html)
+- [EKS Best Practices — Control Plane](https://docs.aws.amazon.com/eks/latest/best-practices/control-plane.html)
 - [EKS Cluster Insights](https://docs.aws.amazon.com/eks/latest/userguide/cluster-insights.html)
-- [Kubernetes API Priority and Fairness](https://kubernetes.io/docs/concepts/cluster-administration/flow-control/)
+- [EKS Pricing](https://aws.amazon.com/eks/pricing/)
+
+**AWS 블로그:**
+- [Amazon EKS Introduces Provisioned Control Plane](https://aws.amazon.com/blogs/containers/amazon-eks-introduces-provisioned-control-plane/)
+- [Managing etcd Database Size on Amazon EKS Clusters](https://aws.amazon.com/blogs/containers/managing-etcd-database-size-on-amazon-eks-clusters)
+- [Amazon EKS Enhances Kubernetes Control Plane Observability](https://aws.amazon.com/blogs/containers/amazon-eks-enhances-kubernetes-control-plane-observability/)
+- [Proactive EKS Monitoring with CloudWatch Operator](https://aws.amazon.com/blogs/containers/proactive-amazon-eks-monitoring-with-amazon-cloudwatch-operator-and-aws-control-plane-metrics/)
+
+**re:Invent 2025:**
+- [CNS429: Under the Hood — Architecting EKS for Scale and Performance](https://www.youtube.com/watch?v=eFrSL5efkk0) — Control Plane 내부 아키텍처, 100k 노드 스케일링
+
+**Kubernetes upstream:**
+- [API Priority and Fairness](https://kubernetes.io/docs/concepts/cluster-administration/flow-control/)
+- [Consistent Reads from Cache (v1.31 Beta)](https://kubernetes.io/blog/2024/08/15/consistent-read-from-cache-beta/) — etcd 부하 감소
+- [API Streaming (v1.31)](https://kubernetes.io/blog/2024/12/17/kube-apiserver-api-streaming/) — LIST 메모리 오버헤드 해결
+- [CRD Watch 10-15x Memory Issue (#124680)](https://github.com/kubernetes/kubernetes/issues/124680) — CRD Watch가 built-in 대비 10-15배 메모리 사용
+
+**etcd:**
 - [etcd Performance Best Practices](https://etcd.io/docs/v3.5/op-guide/performance/)
+- [etcd System Limits (1.5MB)](https://etcd.io/docs/v3.5/dev-guide/limit/)
+
+**모니터링:**
+- [Grafana Dashboard: EKS Control Plane](https://grafana.com/grafana/dashboards/21192-eks-control-plane/)
 :::
