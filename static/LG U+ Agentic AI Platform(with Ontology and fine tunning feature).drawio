@@ -28,7 +28,7 @@
         <mxCell id="700" value="Monitoring &amp; Security" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F3E5F5;strokeColor=#9C27B0;verticalAlign=top;fontStyle=1;fontSize=10;align=left;spacingLeft=5;arcSize=9;" parent="1" vertex="1">
           <mxGeometry x="590" y="727.5" width="338" height="102.5" as="geometry" />
         </mxCell>
-        <mxCell id="100" value="Amazon EKS Cluster (Karpenter Auto-scaling · 3 NodePools: GPU/HighMem/CPU)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F0F4FF;strokeColor=#326CE5;strokeWidth=2;dashed=1;verticalAlign=top;fontStyle=1;fontSize=11;align=left;spacingLeft=10;arcSize=3;" parent="1" vertex="1">
+        <mxCell id="100" value="Amazon EKS Cluster (Auto Mode · managed Karpenter · 3 NodePools: GPU/HighMem/CPU)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F0F4FF;strokeColor=#326CE5;strokeWidth=2;dashed=1;verticalAlign=top;fontStyle=1;fontSize=11;align=left;spacingLeft=10;arcSize=3;" parent="1" vertex="1">
           <mxGeometry x="331" y="20" width="609" height="690" as="geometry" />
         </mxCell>
         <mxCell id="120" value="② Orchestration Layer (FastAPI + LangGraph) [CPU]" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E3F2FD;strokeColor=#326CE5;verticalAlign=top;fontStyle=1;fontSize=10;align=left;spacingLeft=5;arcSize=6;" parent="1" vertex="1">
@@ -123,7 +123,7 @@
         <mxCell id="134" value="vLLM-Large&#xa;(Qwen3-72B)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFD93D;strokeColor=#CCB030;fontColor=#333333;fontSize=8;" parent="1" vertex="1">
           <mxGeometry x="396" y="437" width="85" height="40" as="geometry" />
         </mxCell>
-        <mxCell id="139" value="GPU: NVIDIA H100/L40s (EKS Auto Mode + Karpenter) | DCGM→AMP→AMG | Kubecost" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#76B900;strokeColor=#5E9400;fontColor=#FFFFFF;fontSize=8;" parent="1" vertex="1">
+        <mxCell id="139" value="GPU: NVIDIA H100/L40s (EKS Auto Mode) | DRA (GPU partitioning) | DCGM→AMP→AMG | Kubecost" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#76B900;strokeColor=#5E9400;fontColor=#FFFFFF;fontSize=8;" parent="1" vertex="1">
           <mxGeometry x="357" y="485" width="563" height="20" as="geometry" />
         </mxCell>
         <mxCell id="140" value="④ Model Pipeline Layer (MLflow + Kubeflow) [CPU]" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF9C4;strokeColor=#CCB030;verticalAlign=top;fontStyle=1;fontSize=10;align=left;spacingLeft=5;arcSize=6;" parent="1" vertex="1">
@@ -271,14 +271,72 @@
         <mxCell id="960" style="edgeStyle=orthogonalEdgeStyle;html=1;exitX=1;exitY=0.5;entryX=0;entryY=0.5;endArrow=classic;strokeWidth=2;" parent="1" source="10" target="40" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="961" value="" style="group" vertex="1" connectable="0" parent="1">
-          <mxGeometry x="140" y="698" width="190" height="130" as="geometry" />
+        <!-- Legend (colored) -->
+        <mxCell id="950" value="Legend" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#333333;verticalAlign=top;fontStyle=1;fontSize=10;align=left;spacingLeft=5;" parent="1" vertex="1">
+          <mxGeometry x="10" y="698" width="300" height="150" as="geometry" />
         </mxCell>
-        <mxCell id="950" value="Legend" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#333333;verticalAlign=top;fontStyle=1;fontSize=10;align=left;spacingLeft=5;" parent="961" vertex="1">
-          <mxGeometry width="164" height="130" as="geometry" />
+        <mxCell id="9501" value="" style="endArrow=classic;html=1;strokeWidth=2;strokeColor=#000000;" parent="1" edge="1">
+          <mxGeometry relative="1" as="geometry"><mxPoint x="20" y="723" as="sourcePoint" /><mxPoint x="50" y="723" as="targetPoint" /></mxGeometry>
         </mxCell>
-        <mxCell id="951" value="━━ Solid (2px): Ingress / Request flow&#xa;━━ Blue (1.5px): EKS internal&#xa;┅┅ Teal dashed: Data pipeline&#xa;┅┅ Purple dashed: Monitoring&#xa;┅┅ Red dashed: Auth/GitOps&#xa;┅┅ Orange dashed: AgentCore&#xa;┅┅ Pink dashed: On-Premise&#xa;▮ Purple bar: Monitoring Bus" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=8;spacingLeft=5;" parent="961" vertex="1">
-          <mxGeometry x="10" y="20" width="180" height="105" as="geometry" />
+        <mxCell id="9511" value="Solid black (2px): Ingress flow" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=8;" parent="1" vertex="1">
+          <mxGeometry x="55" y="715" width="130" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="9502" value="" style="endArrow=classic;html=1;strokeWidth=1.5;strokeColor=#326CE5;" parent="1" edge="1">
+          <mxGeometry relative="1" as="geometry"><mxPoint x="20" y="738" as="sourcePoint" /><mxPoint x="50" y="738" as="targetPoint" /></mxGeometry>
+        </mxCell>
+        <mxCell id="9512" value="Blue (1.5px): EKS internal" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=8;" parent="1" vertex="1">
+          <mxGeometry x="55" y="730" width="130" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="9503" value="" style="endArrow=classic;html=1;strokeWidth=1.5;strokeColor=#00BCD4;dashed=1;" parent="1" edge="1">
+          <mxGeometry relative="1" as="geometry"><mxPoint x="20" y="753" as="sourcePoint" /><mxPoint x="50" y="753" as="targetPoint" /></mxGeometry>
+        </mxCell>
+        <mxCell id="9513" value="Teal dashed: Data pipeline" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=8;" parent="1" vertex="1">
+          <mxGeometry x="55" y="745" width="130" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="9504" value="" style="endArrow=classic;html=1;strokeWidth=1;strokeColor=#9C27B0;dashed=1;" parent="1" edge="1">
+          <mxGeometry relative="1" as="geometry"><mxPoint x="20" y="768" as="sourcePoint" /><mxPoint x="50" y="768" as="targetPoint" /></mxGeometry>
+        </mxCell>
+        <mxCell id="9514" value="Purple dashed: Monitoring" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=8;" parent="1" vertex="1">
+          <mxGeometry x="55" y="760" width="130" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="9509" value="" style="endArrow=classic;html=1;strokeWidth=1.5;strokeColor=#34A853;" parent="1" edge="1">
+          <mxGeometry relative="1" as="geometry"><mxPoint x="20" y="783" as="sourcePoint" /><mxPoint x="50" y="783" as="targetPoint" /></mxGeometry>
+        </mxCell>
+        <mxCell id="9519" value="Green (1.5px): Tier 1 direct LLM" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=8;" parent="1" vertex="1">
+          <mxGeometry x="55" y="775" width="130" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="9505" value="" style="endArrow=classic;html=1;strokeWidth=1;strokeColor=#FF6B6B;dashed=1;" parent="1" edge="1">
+          <mxGeometry relative="1" as="geometry"><mxPoint x="170" y="723" as="sourcePoint" /><mxPoint x="200" y="723" as="targetPoint" /></mxGeometry>
+        </mxCell>
+        <mxCell id="9515" value="Red dashed: Auth / GitOps" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=8;" parent="1" vertex="1">
+          <mxGeometry x="205" y="715" width="100" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="9506" value="" style="endArrow=classic;html=1;strokeWidth=1.5;strokeColor=#FF9900;dashed=1;" parent="1" edge="1">
+          <mxGeometry relative="1" as="geometry"><mxPoint x="170" y="738" as="sourcePoint" /><mxPoint x="200" y="738" as="targetPoint" /></mxGeometry>
+        </mxCell>
+        <mxCell id="9516" value="Orange dashed: AgentCore" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=8;" parent="1" vertex="1">
+          <mxGeometry x="205" y="730" width="100" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="9507" value="" style="endArrow=classic;html=1;strokeWidth=1;strokeColor=#E91E63;dashed=1;" parent="1" edge="1">
+          <mxGeometry relative="1" as="geometry"><mxPoint x="170" y="753" as="sourcePoint" /><mxPoint x="200" y="753" as="targetPoint" /></mxGeometry>
+        </mxCell>
+        <mxCell id="9517" value="Pink dashed: On-Premise" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=8;" parent="1" vertex="1">
+          <mxGeometry x="205" y="745" width="100" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="9508" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#9C27B0;strokeColor=#7B1FA2;" parent="1" vertex="1">
+          <mxGeometry x="170" y="762" width="30" height="6" as="geometry" />
+        </mxCell>
+        <mxCell id="9518" value="Purple bar: Monitoring Bus" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=8;" parent="1" vertex="1">
+          <mxGeometry x="205" y="758" width="100" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="95091" value="" style="endArrow=classic;html=1;strokeWidth=1.5;strokeColor=#1565C0;dashed=1;" parent="1" edge="1">
+          <mxGeometry relative="1" as="geometry"><mxPoint x="170" y="783" as="sourcePoint" /><mxPoint x="200" y="783" as="targetPoint" /></mxGeometry>
+        </mxCell>
+        <mxCell id="95191" value="Dark blue dashed: GraphRAG" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=8;" parent="1" vertex="1">
+          <mxGeometry x="205" y="775" width="100" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="952" value="v7.5 | 2026-03-26 | Auto Mode + DRA + Agent Ready in Orchestration Layer" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=7;fontColor=#999999;" parent="1" vertex="1">
+          <mxGeometry x="10" y="835" width="300" height="14" as="geometry" />
         </mxCell>
         <mxCell id="705" value="CloudWatch" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FF9900;strokeColor=#CC7A00;fontColor=#FFFFFF;fontSize=8;" parent="1" vertex="1">
           <mxGeometry x="682" y="788" width="70" height="30" as="geometry" />

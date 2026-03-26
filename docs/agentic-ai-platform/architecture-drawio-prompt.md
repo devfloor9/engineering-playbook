@@ -231,7 +231,7 @@ Dashed arrow from ArgoCD (bottom-left) to EKS cluster (GitOps deployment).
 ## Center: Amazon EKS Cluster (x=280~1220, y=30~1050)
 
 Large blue dashed container box:
-- Title: "Amazon EKS Cluster (Karpenter Auto-scaling · 3 NodePools)"
+- Title: "Amazon EKS Cluster (Auto Mode · managed Karpenter · 3 NodePools)"
 - Border: #326CE5, dashed, background: #F0F4FF (very light blue)
 - Small text below title: "NodePool: GPU (p5/g6) · HighMem (r7i) · CPU (m7i) — Same AZ co-location"
 
@@ -351,7 +351,7 @@ Small text below: "Common: NIXL (KV Transfer) · EPP (Gateway API) · OpenAI-com
 **Tier 3 (Infrastructure Bar):**
 
 Bottom horizontal bar box:
-- "GPU: NVIDIA H100/L40s (EKS Auto Mode + Karpenter)" — bg #76B900
+- "GPU: NVIDIA H100/L40s (EKS Auto Mode) | DRA (GPU partitioning)" — bg #76B900
 - Small text line 1: "Graceful Ops: vLLM --shutdown-timeout=240 · drain-aware routing (llm-d or Dynamo Planner) · PDB maxUnavailable=1 · LoRA hot-swap"
 - Small text line 2: "GPU Monitoring: DCGM Exporter → AMP → AMG · Kubecost (Pod-level cost)"
 - Small text line 3: "Dynamo option adds: GPU Operator + KAI Scheduler + Planner (SLO autoscaling, replaces KEDA)"
