@@ -12,14 +12,14 @@ sidebar_position: 3
 
 # Kagent - Kubernetes AI Agent 관리
 
-이 문서에서는 Kagent를 활용하여 Kubernetes 환경에서 AI 에이전트를 효율적으로 배포하고 관리하는 방법을 다룹니다. Kagent는 Kubernetes Operator 패턴을 기반으로 AI 에이전트의 전체 라이프사이클을 선언적으로 관리할 수 있게 해주는 오픈소스 도구입니다.
+다중 모델 생태계에서 AI 에이전트는 여러 LLM/SLM을 호출하고, MCP/A2A 프로토콜로 도구와 다른 에이전트에 연결되며, 트래픽에 따라 동적으로 스케일링되어야 합니다. Kubernetes의 **Operator 패턴**은 이러한 에이전트를 CRD로 선언적으로 정의하고 자동으로 라이프사이클을 관리하는 가장 자연스러운 방식입니다. Kagent는 이 패턴을 AI 에이전트에 적용한 참조 아키텍처입니다.
 
 ## 개요
 
-Kagent는 Kubernetes 네이티브 방식으로 AI 에이전트를 관리하기 위한 참조 아키텍처입니다. Custom Resource Definition(CRD)을 통해 에이전트, 도구, 워크플로우를 선언적으로 정의하고, Operator가 이를 자동으로 배포 및 관리합니다.
+Kagent는 Custom Resource Definition(CRD)을 통해 에이전트, 도구, 워크플로우를 선언적으로 정의하고, Operator가 이를 자동으로 배포 및 관리합니다. Deployment, Service, ConfigMap을 직접 작성하는 대신 `Agent` CRD 하나로 모델 연결, 도구 바인딩, 스케일링 정책을 통합 관리할 수 있습니다.
 
-:::info Kagent 프로젝트 상태
-Kagent는 Kubernetes 기반 AI 에이전트 관리를 위한 참조 아키텍처 및 디자인 패턴입니다. 공식 오픈소스 프로젝트가 아직 공개되지 않았으므로, 본 문서의 예제는 개념적 구현을 기반으로 합니다. 프로덕션 환경에서는 Bedrock AgentCore, KubeAI, LangGraph Platform 등 검증된 대안을 고려하세요.
+:::warning Kagent 프로젝트 상태
+Kagent는 현재 참조 아키텍처 및 디자인 패턴 단계이며, 공식 오픈소스 프로젝트가 아직 공개되지 않았습니다. 본 문서의 예제는 개념적 구현을 기반으로 합니다. 프로덕션 환경에서는 **Bedrock AgentCore**, **KubeAI**, **LangGraph Platform** 등 검증된 대안을 고려하세요.
 :::
 
 ### 대안 솔루션 비교
