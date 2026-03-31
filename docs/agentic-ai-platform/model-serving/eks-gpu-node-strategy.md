@@ -5,7 +5,7 @@ description: "EKS Auto Mode, Karpenter, Self-Managed Node Group, Hybrid Node의 
 tags: [eks, gpu, auto-mode, karpenter, hybrid-node, gpu-operator, nvidia, run-ai]
 category: "genai-aiml"
 last_update:
-  date: 2026-03-23
+  date: 2026-03-30
   author: devfloor9
 sidebar_position: 1
 ---
@@ -55,6 +55,7 @@ AWS EKS는 GPU 워크로드를 위해 4가지 노드 타입을 제공합니다:
 | **Root Filesystem** | Read-Only | Read-Write | Read-Write | Read-Write |
 | **SELinux** | Enforcing | Permissive | Permissive | 사용자 설정 |
 | **MIG 지원** | 불가 (NodeClass read-only) | 가능 | 가능 | 가능 |
+| **DRA 호환** | **불가** (내부 Karpenter 기반) | **불가** ([#1231](https://github.com/kubernetes-sigs/karpenter/issues/1231)) | **가능** (권장) | 가능 |
 | **DCGM Exporter** | GPU Operator로 자동 설치 | GPU Operator 포함 | 수동 설치 | GPU Operator 포함 |
 | **Run:ai 호환** | **가능** (Device Plugin 레이블 비활성화) | **가능** | 가능 | 가능 |
 | **비용** | 낮음 (관리 불필요) | 중간 | 중간 | 낮음 (Capex) |
@@ -65,6 +66,7 @@ AWS EKS는 GPU 워크로드를 위해 4가지 노드 타입을 제공합니다:
 - **Auto Mode**: GPU 드라이버가 사전 설치되어 즉시 사용 가능. GPU Operator 설치 가능하되 Device Plugin만 레이블로 비활성화 (DCGM, NFD, GFD 정상 동작)
 - **Auto Mode + GPU Operator**: KAI Scheduler, Run:ai 등 ClusterPolicy 의존 프로젝트 사용 가능. MIG는 NodeClass read-only 제약으로 불가
 - **Karpenter + GPU Operator**: MIG, Custom AMI 등 최대 유연성
+- **Managed Node Group**: DRA(Dynamic Resource Allocation) 사용 시 유일한 선택지. Karpenter와 Auto Mode는 DRA 미지원
 - **Hybrid Node**: 온프레미스 GPU 서버를 EKS로 통합 (GPU Operator 필수)
 
 ---
@@ -819,6 +821,118 @@ Job Queueing:
 
 ---
 
+## 5.6 DRA 워크로드를 위한 Managed Node Group 전략
+
+DRA(Dynamic Resource Allocation)는 K8s 1.34에서 GA로 승격되었으며, GPU 메모리 세밀 할당, MIG/MPS/Time-Slicing 선택, NVLink 토폴로지 인식 스케줄링 등 Device Plugin을 넘어서는 고급 GPU 관리를 제공합니다. **단, DRA는 Karpenter와 EKS Auto Mode에서 사용할 수 없습니다.**
+
+:::danger DRA + Karpenter/Auto Mode 비호환
+Karpenter는 Pod의 `spec.resourceClaims`를 감지하면 노드 프로비저닝을 skip합니다 ([PR #2384](https://github.com/kubernetes-sigs/karpenter/pull/2384)). EKS Auto Mode도 내부적으로 Karpenter를 사용하므로 동일한 제약이 적용됩니다. DRA 워크로드의 노드 관리는 **Managed Node Group**이 유일한 정식 지원 방법입니다.
+
+이것은 단순한 CRD 해석 문제가 아닙니다. Karpenter는 Pod 요구사항을 시뮬레이션해서 최적 인스턴스를 계산하는데, DRA의 ResourceSlice는 노드가 존재한 후에야 DRA Driver가 발행하므로 **노드 생성 전 시뮬레이션이 불가능**합니다(닭과 달걀 문제). 반면 Cluster Autoscaler는 "Pending Pod이 있으니 MNG를 스케일업해"라는 단순 판단만 하므로 DRA를 해석할 필요 없이 동작합니다.
+
+**참고**: [AWS EKS 공식 문서 — Manage hardware devices](https://docs.aws.amazon.com/eks/latest/userguide/device-management.html)
+:::
+
+#### Karpenter `IGNORE_DRA_REQUESTS` 워크어라운드 (PoC 용도)
+
+Karpenter의 `IGNORE_DRA_REQUESTS` 플래그를 활성화하면, DRA 요구사항을 무시하고 nodeSelector/라벨 기반으로 노드를 프로비저닝할 수 있습니다.
+
+```yaml
+# Karpenter에서 DRA 무시 활성화
+env:
+  - name: IGNORE_DRA_REQUESTS
+    value: "true"
+
+---
+# NodePool: GPU 라벨 매칭
+apiVersion: karpenter.sh/v1
+kind: NodePool
+metadata:
+  name: gpu-dra-h100
+spec:
+  template:
+    metadata:
+      labels:
+        gpu-class: h100-80gb
+    spec:
+      requirements:
+        - key: node.kubernetes.io/instance-type
+          operator: In
+          values: ["p5.48xlarge"]
+
+---
+# DRA Pod: 라벨로 인스턴스 힌트 + ResourceClaim으로 GPU 할당
+apiVersion: v1
+kind: Pod
+spec:
+  nodeSelector:
+    gpu-class: h100-80gb          # Karpenter가 이걸 보고 프로비저닝
+  resourceClaims:
+    - name: gpu
+      resourceClaimTemplateName: gpu-claim  # kube-scheduler가 처리
+```
+
+**동작**: Karpenter가 ResourceClaim을 무시 → nodeSelector로 NodePool 매칭 → 노드 프로비저닝 → DRA Driver 배포 → kube-scheduler가 DRA 매칭 → Pod 배치
+
+:::warning 프로덕션 비권장
+
+| 위험 | 설명 |
+|---|---|
+| **Bin-packing 오류** | Karpenter가 DRA 리소스 소비를 모르므로 GPU 용량 초과 Pod 배치 가능 |
+| **스케일다운 오판** | DRA 리소스 미인식으로 사용 중 노드를 빈 노드로 판단 |
+| **임시 플래그** | 정식 DRA 지원 시 제거 예정 |
+
+PoC/단일 Pod-per-Node 구성에서만 사용하고, **프로덕션은 MNG + Cluster Autoscaler를 권장**합니다.
+:::
+
+### DRA 하이브리드 아키텍처
+
+```mermaid
+flowchart TB
+    subgraph Cluster["EKS Cluster (K8s 1.34+)"]
+        subgraph MNG["Managed Node Group (GPU)"]
+            DRA_D[NVIDIA DRA Driver]
+            GPU_OP[GPU Operator]
+            RS[ResourceSlice]
+            LLMD_P[llm-d Prefill Pod<br/>ResourceClaim]
+            LLMD_D[llm-d Decode Pod<br/>ResourceClaim]
+        end
+
+        subgraph Karp["Karpenter / Auto Mode"]
+            API[API Gateway]
+            AGENT[Agent Framework]
+            MON[Observability]
+            VLLM[vLLM Pod<br/>nvidia.com/gpu]
+        end
+    end
+
+    CA[Cluster Autoscaler] -.->|스케일아웃| MNG
+    KEDA_OP[KEDA] -.->|Pod 스케일링| LLMD_D
+
+    style MNG fill:#76b900
+    style Karp fill:#ff9900
+    style CA fill:#326ce5
+```
+
+**핵심 구성 원칙:**
+
+| 워크로드 | 노드 타입 | GPU 할당 방식 | 스케일링 |
+|---|---|---|---|
+| DRA 워크로드 (llm-d, P6e-GB200) | **Managed Node Group** | ResourceClaim (DRA) | Cluster Autoscaler |
+| 일반 GPU 추론 (vLLM 단독) | Karpenter / Auto Mode | `nvidia.com/gpu` (Device Plugin) | Karpenter 동적 프로비저닝 |
+| 비GPU 워크로드 | Karpenter / Auto Mode | - | Karpenter 동적 프로비저닝 |
+
+### DRA 스케일아웃: KEDA + Cluster Autoscaler
+
+GPU 노드 프로비저닝은 수 분이 소요되므로, Pod Pending 전에 LLM 메트릭으로 미리 스케일아웃을 시작해야 합니다:
+
+1. **Proactive**: KEDA가 KV Cache 사용률, TTFT, 대기 요청 수를 감시 → Pod 스케일아웃
+2. **Reactive**: Pod Pending 발생 → Cluster Autoscaler가 MNG desired capacity 증가 → GPU 노드 프로비저닝
+
+상세 설정은 [GPU 리소스 관리 — DRA 스케일아웃 전략](./gpu-resource-management.md#dra-워크로드의-gpu-스케일아웃-전략)을 참조하세요.
+
+---
+
 ## 6. 권장 하이브리드 아키텍처
 
 하나의 EKS 클러스터에서 3가지 노드 타입을 동시에 운영하는 전략입니다.
@@ -1401,11 +1515,13 @@ flowchart TD
 | GPU 불필요 | - | Auto Mode | 불필요 | 비용 최소화 |
 | 간단한 GPU 추론 | MIG 불필요 | Auto Mode GPU | 불필요 | 빠른 배포 |
 | MIG 필요 | - | Karpenter | 필수 | MIG Manager 필요 |
+| **DRA 필요** | - | **Managed Node Group** | **필수** | **Karpenter/Auto Mode 미지원** |
 | Fractional GPU | - | Karpenter | 필수 | Run:ai 필요 |
 | Run:ai 스케줄링 | - | Karpenter | 필수 | GPU Operator 기반 |
 | 온프레미스 GPU | - | Hybrid Node | 필수 | AWS 드라이버 없음 |
 | 비용 최소화 | Spot 허용 | Karpenter Spot | 필수 | 유연한 Spot 관리 |
 | 대규모 훈련 | Gang Scheduling | Karpenter + Run:ai | 필수 | 동시 시작 보장 |
+| **P6e-GB200** | DRA 필수 | **Managed Node Group** | **필수** | Device Plugin 미지원 |
 
 ---
 
@@ -1417,9 +1533,11 @@ flowchart TD
 |----------|-----------|--------------|--------|------------|------|
 | **단순 GPU 추론** | Auto Mode | 선택사항 | 가능 (Device Plugin 비활성화) | 낮음 | 낮음 |
 | **MIG 기반 추론** | Karpenter | 필수 | 선택 | 중간 | 중간 |
+| **DRA 기반 GPU 관리** | **Managed Node Group** | 필수 | 선택 | 중간 | 중간 |
 | **Fractional GPU** | Karpenter | 필수 | 필수 | 높음 | 중간 |
 | **모델 훈련** | Karpenter | 필수 | 선택 | 중간 | 높음 |
 | **Gang Scheduling** | Karpenter | 필수 | 필수 | 높음 | 높음 |
+| **P6e-GB200 UltraServer** | **Managed Node Group** | 필수 | 선택 | 높음 | 높음 |
 | **온프레미스 GPU** | Hybrid Node | 필수 | 선택 | 높음 | 낮음 (Capex) |
 | **하이브리드 클라우드** | Auto + Karpenter + Hybrid | 부분 필수 | 선택 | 매우 높음 | 혼합 |
 
@@ -1475,15 +1593,63 @@ flowchart TD
   → 클라우드 + 온프레미스 하이브리드 전략
 ```
 
-### 9.3 권장 아키텍처
+### 10.3 현시점 최적 구성 (2026.03)
+
+대부분의 LLM 서빙 환경에서는 DRA가 아직 필수가 아닙니다. Device Plugin + MIG 조합으로 GPU 분할, 토폴로지 배치를 충분히 커버할 수 있으며, Karpenter의 빠른 스케일아웃이 MNG + Cluster Autoscaler보다 LLM 서빙 SLO에 유리합니다.
+
+#### 권장: Karpenter + GPU Operator (Device Plugin)
+
+```mermaid
+flowchart TB
+    subgraph Cluster["EKS Cluster (K8s 1.33+)"]
+        subgraph KarpGPU["Karpenter + GPU Operator"]
+            NP_PF[NodePool: gpu-prefill<br/>p5.48xlarge]
+            NP_DC[NodePool: gpu-decode<br/>p5.48xlarge]
+            NP_SM[NodePool: gpu-small<br/>g6e.12xlarge]
+            PF[Prefill Pod<br/>nvidia.com/gpu: 4]
+            DC[Decode Pod<br/>nvidia.com/gpu: 2]
+            SM[소형 모델 Pod<br/>nvidia.com/mig-3g.40gb]
+        end
+
+        subgraph AutoMode["Auto Mode (비GPU)"]
+            GW[Gateway]
+            AGENT[Agent Framework]
+            MON[Observability]
+        end
+    end
+
+    KEDA[KEDA<br/>KV Cache / TTFT] -.->|Pod 스케일링| DC
+    DCGM[DCGM Exporter] -.->|메트릭| KEDA
+
+    NP_PF --> PF
+    NP_DC --> DC
+    NP_SM --> SM
+
+    style KarpGPU fill:#326ce5
+    style AutoMode fill:#ff9900
+    style KEDA fill:#9c27b0
+```
+
+**이 구성이 최적인 이유:**
+
+| 기준 | Karpenter + Device Plugin | MNG + DRA |
+|---|---|---|
+| **스케일아웃 속도** | 빠름 (Karpenter) | 느림 (Cluster Autoscaler) |
+| **GPU 분할** | MIG 지원 (GPU Operator) | DRA 네이티브 |
+| **운영 복잡도** | 단일 스택 | MNG + Karpenter 혼용 |
+| **llm-d 호환** | Device Plugin 완전 지원 | DRA 지원 (MNG 한정) |
+| **K8s 버전** | 1.32+ | 1.34+ (DRA GA) |
+| **생태계 성숙도** | 프로덕션 검증 | 초기 단계 |
+
+#### 규모별 권장 구성
 
 **소규모 스타트업 (< 32 GPU)**
 
 ```yaml
-구성: Auto Mode Only
-  - 간단한 GPU 추론
-  - 관리 오버헤드 최소화
-  - GPU Operator 선택사항 (DCGM 모니터링 시 권장)
+구성: Auto Mode + Karpenter (GPU 전용)
+  - Auto Mode: 일반 워크로드
+  - Karpenter: GPU 추론 (Device Plugin)
+  - GPU Operator: DCGM 모니터링
 
 비용: $5,000 - $15,000/월
 복잡도: 낮음
@@ -1492,9 +1658,10 @@ flowchart TD
 **중규모 기업 (32 - 128 GPU)**
 
 ```yaml
-구성: Auto Mode + Karpenter
-  - Auto Mode: 일반 워크로드 + 간단한 추론
-  - Karpenter: MIG 기반 추론, DCGM 모니터링
+구성: Karpenter + GPU Operator + KEDA
+  - Karpenter NodePool: Prefill / Decode / 소형 모델 분리
+  - GPU Operator: MIG, DCGM, NFD/GFD
+  - KEDA: KV Cache / TTFT 기반 Pod 스케일링
 
 비용: $15,000 - $80,000/월
 복잡도: 중간
@@ -1503,14 +1670,32 @@ flowchart TD
 **대규모 엔터프라이즈 (> 128 GPU)**
 
 ```yaml
-구성: Auto Mode + Karpenter + Hybrid Node
-  - Auto Mode: 시스템 워크로드
-  - Karpenter: GPU Operator + Run:ai
-  - Hybrid Node: 온프레미스 GPU 팜
+구성: Karpenter + GPU Operator + Run:ai + Hybrid Node
+  - Karpenter: GPU Operator + Run:ai (Fractional GPU, Gang Scheduling)
+  - Hybrid Node: 온프레미스 GPU 팜 통합
+  - P6e-GB200 도입 시: MNG + DRA 추가 (하이브리드)
 
 비용: $80,000 - $500,000/월 (클라우드) + Capex (온프레미스)
 복잡도: 높음
 ```
+
+#### DRA 전환 시점
+
+| 조건 | 전환 필요 |
+|---|---|
+| **P6e-GB200 UltraServer 도입** | 필수 (Device Plugin 미지원) |
+| **Multi-Node NVLink / IMEX 필요** | 필수 (ComputeDomain은 DRA 전용) |
+| **CEL 기반 세밀한 GPU 속성 선택** | 권장 |
+| **GPU 공유 (MPS)** | 권장 |
+| **Karpenter DRA 지원 GA** | 전환 최적 시점 (MNG 불필요해짐) |
+
+:::tip 전환 전략
+**지금**: Karpenter + GPU Operator (Device Plugin + MIG) — 가장 빠르고 운영 가능한 프로덕션 구성
+
+**P6e-GB200 도입 시**: MNG (DRA, GPU) + Karpenter (비GPU) 하이브리드
+
+**Karpenter DRA GA 후**: Karpenter + DRA 통합 — 최종 목표 구성
+:::
 
 ---
 
@@ -2134,6 +2319,6 @@ lifecycle:
 
 ---
 
-**마지막 업데이트**: 2026-03-23
+**마지막 업데이트**: 2026-03-30
 **작성자**: devfloor9
 **태그**: `eks` `gpu` `auto-mode` `karpenter` `hybrid-node` `gpu-operator` `nvidia` `run-ai`

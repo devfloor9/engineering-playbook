@@ -1,11 +1,11 @@
 ---
 title: "EKS GPU 클러스터 동적 리소스 관리"
 sidebar_label: "GPU 리소스 관리"
-description: "Amazon EKS 환경에서 Karpenter 기반 GPU 노드 스케일링, KEDA 자동 스케일링, DRA 동적 리소스 할당, 비용 최적화 전략"
-tags: [eks, gpu, karpenter, autoscaling, resource-management, dra, keda]
+description: "Amazon EKS 환경에서 GPU 노드 스케일링, KEDA 자동 스케일링, DRA 동적 리소스 할당(MNG 필수), 비용 최적화 전략"
+tags: [eks, gpu, karpenter, autoscaling, resource-management, dra, keda, managed-node-group]
 category: "genai-aiml"
 last_update:
-  date: 2026-03-20
+  date: 2026-03-30
   author: devfloor9
 sidebar_position: 2
 ---
@@ -28,7 +28,7 @@ import {
 
 # EKS GPU 클러스터 동적 리소스 관리
 
-> 📅 **작성일**: 2025-02-09 | **수정일**: 2026-03-20 | ⏱️ **읽는 시간**: 약 8분
+> 📅 **작성일**: 2025-02-09 | **수정일**: 2026-03-30 | ⏱️ **읽는 시간**: 약 10분
 
 
 ## 개요
@@ -320,10 +320,76 @@ Kubernetes 1.33과 1.34 버전에서는 GPU 워크로드 관리를 위한 여러
 - **K8s 1.26-1.30**: Alpha (feature gate 필요, `v1alpha2` API)
 - **K8s 1.31**: Beta로 승격, 기본 활성화 (`v1alpha2` API)
 - **K8s 1.32**: 새로운 구현(KEP #4381)으로 전환, `v1beta1` API (기본 비활성화)
-- **K8s 1.33+**: `v1beta1` API 안정화, 성능 대폭 개선, 프로덕션 준비 완료
-- **K8s 1.34+**: DRA 우선순위 대안(prioritized alternatives) 지원, 향상된 스케줄링
+- **K8s 1.33+**: `v1beta1` API 안정화, 성능 대폭 개선
+- **K8s 1.34+**: **DRA GA (Stable)**, 기본 활성화, 우선순위 대안(prioritized alternatives) 지원
 - EKS 1.32+에서 DRA를 사용하려면 `DynamicResourceAllocation` feature gate를 명시적으로 활성화해야 합니다.
-- EKS 1.33+에서는 DRA가 기본 활성화되며, 안정적인 프로덕션 사용이 가능합니다.
+- EKS 1.33+에서는 DRA가 기본 활성화됩니다. **프로덕션 사용은 K8s 1.34+ (DRA GA)를 권장합니다.**
+:::
+
+:::danger DRA 노드 호환성 제약 (2026.03 기준)
+
+**DRA는 Karpenter 및 EKS Auto Mode와 호환되지 않습니다.** DRA를 사용하려면 반드시 **EKS Managed Node Group** 또는 **Self-Managed Node Group**을 사용해야 합니다.
+
+| 노드 프로비저닝 | DRA 호환 | 비고 |
+|---|---|---|
+| **Managed Node Group** | ✅ 지원 | 권장 |
+| **Self-Managed Node Group** | ✅ 지원 | 수동 구성 필요 |
+| **Karpenter** | ❌ 미지원 | `ResourceClaim`이 있는 Pod를 skip ([#1231](https://github.com/kubernetes-sigs/karpenter/issues/1231)) |
+| **EKS Auto Mode** | ❌ 미지원 | 내부 Karpenter 기반으로 동일 제약 |
+
+**참고**: [AWS EKS 공식 문서 — Manage hardware devices](https://docs.aws.amazon.com/eks/latest/userguide/device-management.html)
+:::
+
+#### Karpenter가 DRA를 지원할 수 없는 기술적 이유
+
+단순히 CRD 해석 문제가 아니라, **노드 프로비저닝의 아키텍처적 한계**입니다.
+
+**스케줄링 vs 프로비저닝의 차이:**
+
+| 단계 | 역할 | DRA 지원 |
+|---|---|---|
+| **Pod 스케줄링** (kube-scheduler) | 기존 노드에 Pod 배치 | ✅ 네이티브 지원 |
+| **노드 프로비저닝** (Karpenter) | 새 노드 생성 | ❌ 시뮬레이션 불가 |
+
+Karpenter는 Pod 요구사항을 분석해서 **"아직 존재하지 않는 노드"**에 대해 최적 인스턴스를 계산합니다. DRA에서는 이 계산이 불가능합니다:
+
+1. **ResourceSlice는 노드가 존재해야 생성됨**: DRA Driver가 노드에서 GPU를 탐지한 후 ResourceSlice를 발행하는데, Karpenter는 노드 생성 전에 이 정보가 필요합니다 (닭과 달걀 문제)
+2. **인스턴스→ResourceSlice 매핑 부재**: Device Plugin에서는 `p5.48xlarge → nvidia.com/gpu: 8`을 정적으로 알 수 있지만, DRA에서는 Driver 구현에 따라 ResourceSlice 내용이 달라집니다
+3. **CEL 표현식 시뮬레이션 불가**: DRA는 CEL로 디바이스를 선택하는데, 평가에 필요한 ResourceSlice 속성값이 노드 생성 전에는 존재하지 않습니다
+
+반면 **Cluster Autoscaler는 DRA를 해석하지 않아도 동작**합니다. CA는 "Pending Pod이 있으니 미리 정의된 MNG를 스케일업해"라는 단순한 판단만 하므로, 어떤 인스턴스가 필요한지 시뮬레이션할 필요가 없습니다.
+
+#### Karpenter `IGNORE_DRA_REQUESTS` 워크어라운드
+
+Karpenter에는 `IGNORE_DRA_REQUESTS` 플래그가 있습니다. 이를 활성화하면 Karpenter가 DRA 요구사항을 무시하고, nodeSelector/라벨 등 나머지 조건으로 노드를 프로비저닝합니다.
+
+```yaml
+# Karpenter 설정에서 DRA 무시 활성화
+env:
+  - name: IGNORE_DRA_REQUESTS
+    value: "true"
+```
+
+**동작 흐름:**
+
+```
+Pod (ResourceClaim + nodeSelector: gpu-class=h100)
+  → Karpenter: ResourceClaim 무시, nodeSelector 확인
+    → NodePool 매칭 → p5.48xlarge 프로비저닝
+      → DRA Driver 배포 → ResourceSlice 발행
+        → kube-scheduler: ResourceClaim ↔ ResourceSlice 매칭 → Pod 배치
+```
+
+:::warning IGNORE_DRA_REQUESTS의 제약
+
+이 플래그는 **PoC/테스트 용도**이며 프로덕션에서는 주의가 필요합니다:
+
+- **Bin-packing 오류**: Karpenter가 DRA 리소스 소비를 모르므로 한 노드에 GPU 용량 초과 Pod을 배치할 수 있음
+- **스케일다운 오판**: DRA 리소스를 인식 못해 사용 중인 노드를 빈 노드로 판단할 수 있음
+- **임시 플래그**: 정식 DRA 지원 시 제거 예정
+- **이중 관리**: DRA(ResourceClaim)와 라벨(nodeSelector) 두 곳에서 GPU 의도를 관리해야 하므로 불일치 위험
+
+**프로덕션 권장**: MNG + Cluster Autoscaler
 :::
 
 Kubernetes 초기 단계에서 GPU 리소스 할당은 **Device Plugin** 모델을 사용했습니다. 이 모델은 다음과 같은 근본적인 한계를 가집니다:
@@ -338,21 +404,29 @@ DRA는 **선언적 리소스 요청과 즉시 할당**을 분리하는 새로운
 
 ```mermaid
 flowchart LR
-    A[Pod 생성<br/>ResourceClaim] -->|Pending| B[Karpenter<br/>분석]
-    B -->|리소스 부족| C[노드<br/>프로비저닝]
-    C -->|준비| D[DRA<br/>Controller]
+    A[Pod 생성<br/>ResourceClaim] -->|Pending| B[kube-scheduler<br/>DRA 분석]
+    B -->|노드 선택| D[DRA<br/>Driver]
     D -->|Allocated| E[Pod<br/>Binding]
     E -->|Reserved| F[Pod<br/>스케줄링]
     F -->|InUse| G[Pod<br/>실행]
 
     H[Quota] -.->|확인| D
-    I[파티셔닝<br/>정책] -.->|적용| D
+    I[DeviceClass<br/>정책] -.->|적용| D
+
+    B -.->|용량 부족 시| CA[Cluster<br/>Autoscaler]
+    CA -->|MNG 스케일아웃| N[GPU 노드<br/>프로비저닝]
+    N -->|DRA Driver 배포| D
 
     style A fill:#f5f5f5
     style D fill:#326ce5
     style E fill:#76b900
     style G fill:#ffd93d
+    style CA fill:#ff9900
 ```
+
+:::warning Karpenter/Auto Mode에서는 이 흐름이 동작하지 않습니다
+DRA Pod가 Pending 상태가 되어도 Karpenter는 `ResourceClaim`이 있는 Pod를 skip합니다. DRA 워크로드의 노드 스케일아웃은 **Managed Node Group + Cluster Autoscaler** 조합에서만 동작합니다.
+:::
 
 #### ResourceClaim 라이프사이클
 
@@ -446,19 +520,101 @@ status:
 :::tip DRA 선택 가이드
 **DRA를 사용해야 할 때:**
 
-- GPU 파티셔닝이 필요한 경우 (MIG, time-slicing)
-- 멀티 테넌트 환경에서 공정한 리소스 배분 필요
-- 리소스 우선순위를 적용해야 하는 경우
-- 동적 스케일링이 중요한 경우
-- **K8s 1.33+ 환경**: DRA `v1beta1` API 안정화, 프로덕션 사용 권장
-- **K8s 1.34+ 환경**: DRA 우선순위 대안으로 향상된 스케줄링 활용
+- GPU 파티셔닝이 필요한 경우 (MIG, time-slicing, MPS)
+- 멀티 테넌트 환경에서 속성 기반(CEL) GPU 선택 필요
+- 토폴로지 인식 스케줄링 (NVLink, NUMA, IMEX)
+- P6e-GB200 UltraServer 환경 (DRA 필수, Device Plugin 미지원)
+- **K8s 1.34+ 환경**: DRA GA, 프로덕션 사용 권장
+
+**DRA 사용 전 확인사항:**
+
+- **노드 프로비저닝**: Managed Node Group 또는 Self-Managed Node Group 필수
+- **Karpenter/Auto Mode 사용 불가**: DRA Pod를 skip하므로 스케일아웃 불가
+- **NVIDIA DRA Driver (v25.3.0+)** 및 **GPU Operator (v25.3.0+)** 설치 필요
 
 **Device Plugin이 충분한 경우:**
 
 - 단순히 GPU를 전체 단위로만 할당
+- **Karpenter 또는 EKS Auto Mode**로 노드를 관리하는 경우
+- Kubernetes 버전이 1.33 이하
 - 레거시 시스템과의 호환성 중요
-- Kubernetes 버전이 1.32 이하
 :::
+
+### DRA 워크로드의 GPU 스케일아웃 전략
+
+DRA 워크로드는 Karpenter/Auto Mode의 동적 프로비저닝을 사용할 수 없으므로, **MNG + Cluster Autoscaler + KEDA** 조합으로 스케일아웃을 구성해야 합니다.
+
+#### 스케일아웃 판단 기준: 2단계 전략
+
+LLM 서빙 워크로드에서는 Pod Pending이 발생하기 **전에** 미리 스케일아웃을 시작해야 합니다. GPU 노드 프로비저닝은 수 분이 소요되므로, reactive 방식만으로는 SLO를 보장할 수 없습니다.
+
+**1단계 (Proactive): KEDA + LLM 메트릭 → Pod 스케일아웃**
+
+```yaml
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: llm-decode-scaler
+spec:
+  scaleTargetRef:
+    name: llm-decode
+  minReplicaCount: 2
+  maxReplicaCount: 8
+  triggers:
+    # KV Cache 포화 — LLM 서빙의 가장 민감한 시그널
+    - type: prometheus
+      metadata:
+        query: |
+          avg(vllm_gpu_cache_usage_perc{model="exaone"})
+        threshold: "80"
+    # 대기 중인 요청 수
+    - type: prometheus
+      metadata:
+        query: |
+          sum(vllm_num_requests_waiting{model="exaone"})
+        threshold: "10"
+    # TTFT SLO 위반 근접
+    - type: prometheus
+      metadata:
+        query: |
+          histogram_quantile(0.95,
+            rate(vllm_time_to_first_token_seconds_bucket[5m]))
+        threshold: "2"
+```
+
+**2단계 (Reactive): Cluster Autoscaler → MNG 노드 스케일아웃**
+
+Pod가 Pending 상태가 되면 Cluster Autoscaler가 MNG의 desired capacity를 증가시킵니다.
+
+```yaml
+# Cluster Autoscaler 설정 (DRA GPU 노드용)
+- --expander=priority          # GPU 노드그룹 우선순위 지정
+- --scale-down-enabled=false   # GPU 노드 축소 비활성화 (CBR 환경)
+- --max-node-provision-time=15m # GPU 노드 프로비저닝 시간 고려
+```
+
+**스케일링 체인:**
+
+```
+LLM 메트릭 (KV Cache, TTFT, Queue)
+  → KEDA: Pod 스케일아웃
+    → kube-scheduler: ResourceClaim 매칭 시도
+      ├─ 성공 → 기존 노드에 배치
+      └─ 실패 → Pod Pending
+           → Cluster Autoscaler: MNG +1
+             → 새 GPU 노드 → DRA Driver 설치
+               → ResourceSlice 생성 → Pod 배치
+```
+
+#### Disaggregated Serving의 스케일아웃 기준
+
+Prefill과 Decode를 분리 운영하는 경우, 각 역할의 병목 시그널이 다릅니다:
+
+| | Prefill | Decode |
+|---|---|---|
+| **병목 시그널** | TTFT 증가, 입력 큐 적체 | TPS 감소, KV Cache 포화 |
+| **스케일 기준** | 입력 토큰 처리 대기시간 | 동시 생성 세션 수 |
+| **스케일 단위** | GPU compute 집약 | GPU memory 집약 |
 
 ### Topology-Aware Routing 활용
 
@@ -1111,10 +1267,10 @@ EKS GPU 클러스터의 동적 리소스 관리는 GenAI 서비스의 성능과 
 
 ### 핵심 포인트
 
-1. **Karpenter 활용**: GPU 노드의 자동 프로비저닝 및 정리로 리소스 효율성 극대화
-2. **DRA 기반 관리**: Dynamic Resource Allocation으로 GPU 리소스의 동적 할당 및 파티셔닝
-3. **KEDA 연동**: GPU 메트릭 기반 워크로드 자동 스케일링
-4. **Spot 인스턴스**: 적절한 워크로드에 Spot 활용으로 비용 절감
+1. **노드 전략 분리**: DRA 워크로드는 Managed Node Group, 일반 워크로드는 Karpenter/Auto Mode
+2. **DRA 호환성**: DRA는 Karpenter/Auto Mode 미지원 — MNG + Cluster Autoscaler 필수
+3. **KEDA 연동**: GPU 메트릭 기반 워크로드 자동 스케일링 (KV Cache, TTFT, 큐 깊이)
+4. **Spot 인스턴스**: 적절한 워크로드에 Spot 활용으로 비용 절감 (non-DRA 워크로드)
 5. **Consolidation**: 유휴 리소스 자동 정리로 비용 최적화
 
 ### 다음 단계

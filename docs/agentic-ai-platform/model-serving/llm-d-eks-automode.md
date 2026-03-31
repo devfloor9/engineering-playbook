@@ -5,7 +5,7 @@ description: "llm-d를 활용한 EKS 환경에서의 Kubernetes 네이티브 분
 tags: [eks, llm-d, vllm, inference-gateway, gpu, auto-mode, karpenter, qwen, kv-cache]
 category: "genai-aiml"
 last_update:
-  date: 2026-03-20
+  date: 2026-03-30
   author: devfloor9
 sidebar_position: 4
 ---
@@ -631,6 +631,20 @@ spec:
 - llm-d도 Disaggregated Serving sidecar에서 **NIXL**을 사용하여 KV Cache 전송 가능 (NIXL은 Dynamo, llm-d, production-stack, aibrix 등 대부분의 프로젝트가 사용하는 공통 전송 엔진)
 :::
 
+:::danger llm-d + DRA 사용 시 노드 제약
+llm-d ModelService가 **DRA (ResourceClaim)** 방식으로 GPU를 요청하는 경우, Karpenter와 EKS Auto Mode에서는 노드 프로비저닝이 동작하지 않습니다. Karpenter는 `spec.resourceClaims`가 있는 Pod를 skip합니다 ([PR #2384](https://github.com/kubernetes-sigs/karpenter/pull/2384)).
+
+이는 단순 CRD 해석 문제가 아니라 아키텍처적 한계입니다 — DRA의 ResourceSlice는 노드 생성 후 DRA Driver가 발행하므로, Karpenter가 노드 생성 전에 필요한 시뮬레이션이 불가능합니다.
+
+**DRA를 사용하는 llm-d 배포 시**: 반드시 **Managed Node Group + Cluster Autoscaler**로 GPU 노드를 관리해야 합니다. Prefill/Decode 모두 DRA를 사용한다면 둘 다 MNG에서 운영해야 합니다 (Karpenter 혼용 시 KV Cache 전송 토폴로지 불일치 위험).
+
+**DRA 없이 배포하는 경우** (`nvidia.com/gpu` Device Plugin 방식): Auto Mode와 Karpenter에서 정상 동작합니다. 본 문서의 배포 예시는 Device Plugin 방식을 사용합니다.
+
+**PoC 워크어라운드**: Karpenter의 `IGNORE_DRA_REQUESTS` 플래그를 활성화하면 DRA 요구사항을 무시하고 nodeSelector/라벨 기반으로 프로비저닝 가능하나, bin-packing 오류와 스케일다운 오판 위험이 있어 프로덕션에서는 비권장입니다.
+
+상세: [EKS GPU 노드 전략 — DRA 워크로드를 위한 MNG 전략](./eks-gpu-node-strategy.md#56-dra-워크로드를-위한-managed-node-group-전략)
+:::
+
 ### EKS Auto Mode에서의 Disaggregated Serving
 
 EKS Auto Mode에서는 MIG 파티셔닝이 불가능하므로(NodeClass read-only), **인스턴스(노드) 단위로 Prefill/Decode 역할을 분리**합니다. GPU Operator는 설치 가능하지만 MIG 분할은 Karpenter 환경에서만 지원됩니다.
@@ -811,10 +825,18 @@ flowchart LR
 - DCGM Exporter로 세밀한 GPU 메트릭을 수집하고, KAI Scheduler로 GPU-aware Pod 배치를 활성화합니다.
 - 적합 대상: Auto Mode의 편의성을 유지하면서 모니터링/스케줄링을 강화하려는 환경
 
-**Phase 2: Karpenter + llm-d Disaggregated (본격 운영)**
+**Phase 2a: Karpenter + llm-d Disaggregated (MIG 활용, Device Plugin 방식)**
 - Karpenter + GPU Operator로 전환하여 MIG 기반 GPU 분할을 활성화합니다.
 - llm-d의 Disaggregated Serving + NIXL로 Prefill/Decode를 분리하여 처리량을 극대화합니다.
+- GPU 할당은 Device Plugin 방식 (`nvidia.com/gpu`, `nvidia.com/mig-*`)을 사용합니다.
 - 적합 대상: 중규모 프로덕션, 비용 최적화가 중요한 환경
+
+**Phase 2b: MNG + DRA + llm-d (고급 GPU 관리)**
+- DRA(ResourceClaim) 방식으로 전환하여 속성 기반 GPU 선택, 토폴로지 인식 스케줄링을 활용합니다.
+- **DRA는 Karpenter/Auto Mode 미지원** — GPU 노드는 Managed Node Group + Cluster Autoscaler로 관리합니다.
+- 비GPU 워크로드는 Karpenter/Auto Mode로 유지하는 하이브리드 구성입니다.
+- P6e-GB200 UltraServer 환경에서는 DRA가 필수입니다 (Device Plugin 미지원).
+- 적합 대상: DRA 고급 기능 필요, P6e-GB200 환경, K8s 1.34+ 클러스터
 
 **Phase 3: Karpenter + Dynamo (최대 성능, 대규모)**
 - Dynamo Platform을 설치하여 Flash Indexer(radix tree KV 인덱싱)와 Planner(SLO 기반 오토스케일링)를 활성화합니다.
