@@ -337,9 +337,59 @@ Kubernetes 1.33과 1.34 버전에서는 GPU 워크로드 관리를 위한 여러
 | **Karpenter** | ❌ 미지원 | `ResourceClaim`이 있는 Pod를 skip ([#1231](https://github.com/kubernetes-sigs/karpenter/issues/1231)) |
 | **EKS Auto Mode** | ❌ 미지원 | 내부 Karpenter 기반으로 동일 제약 |
 
-Karpenter는 Pod의 `spec.resourceClaims`를 감지하면 노드 프로비저닝 자체를 건너뜁니다. 기존 노드에 DRA 드라이버가 설치되어 있어도 **새 노드 스케일아웃이 불가능**합니다.
-
 **참고**: [AWS EKS 공식 문서 — Manage hardware devices](https://docs.aws.amazon.com/eks/latest/userguide/device-management.html)
+:::
+
+#### Karpenter가 DRA를 지원할 수 없는 기술적 이유
+
+단순히 CRD 해석 문제가 아니라, **노드 프로비저닝의 아키텍처적 한계**입니다.
+
+**스케줄링 vs 프로비저닝의 차이:**
+
+| 단계 | 역할 | DRA 지원 |
+|---|---|---|
+| **Pod 스케줄링** (kube-scheduler) | 기존 노드에 Pod 배치 | ✅ 네이티브 지원 |
+| **노드 프로비저닝** (Karpenter) | 새 노드 생성 | ❌ 시뮬레이션 불가 |
+
+Karpenter는 Pod 요구사항을 분석해서 **"아직 존재하지 않는 노드"**에 대해 최적 인스턴스를 계산합니다. DRA에서는 이 계산이 불가능합니다:
+
+1. **ResourceSlice는 노드가 존재해야 생성됨**: DRA Driver가 노드에서 GPU를 탐지한 후 ResourceSlice를 발행하는데, Karpenter는 노드 생성 전에 이 정보가 필요합니다 (닭과 달걀 문제)
+2. **인스턴스→ResourceSlice 매핑 부재**: Device Plugin에서는 `p5.48xlarge → nvidia.com/gpu: 8`을 정적으로 알 수 있지만, DRA에서는 Driver 구현에 따라 ResourceSlice 내용이 달라집니다
+3. **CEL 표현식 시뮬레이션 불가**: DRA는 CEL로 디바이스를 선택하는데, 평가에 필요한 ResourceSlice 속성값이 노드 생성 전에는 존재하지 않습니다
+
+반면 **Cluster Autoscaler는 DRA를 해석하지 않아도 동작**합니다. CA는 "Pending Pod이 있으니 미리 정의된 MNG를 스케일업해"라는 단순한 판단만 하므로, 어떤 인스턴스가 필요한지 시뮬레이션할 필요가 없습니다.
+
+#### Karpenter `IGNORE_DRA_REQUESTS` 워크어라운드
+
+Karpenter에는 `IGNORE_DRA_REQUESTS` 플래그가 있습니다. 이를 활성화하면 Karpenter가 DRA 요구사항을 무시하고, nodeSelector/라벨 등 나머지 조건으로 노드를 프로비저닝합니다.
+
+```yaml
+# Karpenter 설정에서 DRA 무시 활성화
+env:
+  - name: IGNORE_DRA_REQUESTS
+    value: "true"
+```
+
+**동작 흐름:**
+
+```
+Pod (ResourceClaim + nodeSelector: gpu-class=h100)
+  → Karpenter: ResourceClaim 무시, nodeSelector 확인
+    → NodePool 매칭 → p5.48xlarge 프로비저닝
+      → DRA Driver 배포 → ResourceSlice 발행
+        → kube-scheduler: ResourceClaim ↔ ResourceSlice 매칭 → Pod 배치
+```
+
+:::warning IGNORE_DRA_REQUESTS의 제약
+
+이 플래그는 **PoC/테스트 용도**이며 프로덕션에서는 주의가 필요합니다:
+
+- **Bin-packing 오류**: Karpenter가 DRA 리소스 소비를 모르므로 한 노드에 GPU 용량 초과 Pod을 배치할 수 있음
+- **스케일다운 오판**: DRA 리소스를 인식 못해 사용 중인 노드를 빈 노드로 판단할 수 있음
+- **임시 플래그**: 정식 DRA 지원 시 제거 예정
+- **이중 관리**: DRA(ResourceClaim)와 라벨(nodeSelector) 두 곳에서 GPU 의도를 관리해야 하므로 불일치 위험
+
+**프로덕션 권장**: MNG + Cluster Autoscaler
 :::
 
 Kubernetes 초기 단계에서 GPU 리소스 할당은 **Device Plugin** 모델을 사용했습니다. 이 모델은 다음과 같은 근본적인 한계를 가집니다:

@@ -826,9 +826,63 @@ Job Queueing:
 DRA(Dynamic Resource Allocation)는 K8s 1.34에서 GA로 승격되었으며, GPU 메모리 세밀 할당, MIG/MPS/Time-Slicing 선택, NVLink 토폴로지 인식 스케줄링 등 Device Plugin을 넘어서는 고급 GPU 관리를 제공합니다. **단, DRA는 Karpenter와 EKS Auto Mode에서 사용할 수 없습니다.**
 
 :::danger DRA + Karpenter/Auto Mode 비호환
-Karpenter는 Pod의 `spec.resourceClaims`를 감지하면 노드 프로비저닝을 skip합니다. EKS Auto Mode도 내부적으로 Karpenter를 사용하므로 동일한 제약이 적용됩니다. DRA 워크로드의 노드 관리는 **Managed Node Group**이 유일한 정식 지원 방법입니다.
+Karpenter는 Pod의 `spec.resourceClaims`를 감지하면 노드 프로비저닝을 skip합니다 ([PR #2384](https://github.com/kubernetes-sigs/karpenter/pull/2384)). EKS Auto Mode도 내부적으로 Karpenter를 사용하므로 동일한 제약이 적용됩니다. DRA 워크로드의 노드 관리는 **Managed Node Group**이 유일한 정식 지원 방법입니다.
+
+이것은 단순한 CRD 해석 문제가 아닙니다. Karpenter는 Pod 요구사항을 시뮬레이션해서 최적 인스턴스를 계산하는데, DRA의 ResourceSlice는 노드가 존재한 후에야 DRA Driver가 발행하므로 **노드 생성 전 시뮬레이션이 불가능**합니다(닭과 달걀 문제). 반면 Cluster Autoscaler는 "Pending Pod이 있으니 MNG를 스케일업해"라는 단순 판단만 하므로 DRA를 해석할 필요 없이 동작합니다.
 
 **참고**: [AWS EKS 공식 문서 — Manage hardware devices](https://docs.aws.amazon.com/eks/latest/userguide/device-management.html)
+:::
+
+#### Karpenter `IGNORE_DRA_REQUESTS` 워크어라운드 (PoC 용도)
+
+Karpenter의 `IGNORE_DRA_REQUESTS` 플래그를 활성화하면, DRA 요구사항을 무시하고 nodeSelector/라벨 기반으로 노드를 프로비저닝할 수 있습니다.
+
+```yaml
+# Karpenter에서 DRA 무시 활성화
+env:
+  - name: IGNORE_DRA_REQUESTS
+    value: "true"
+
+---
+# NodePool: GPU 라벨 매칭
+apiVersion: karpenter.sh/v1
+kind: NodePool
+metadata:
+  name: gpu-dra-h100
+spec:
+  template:
+    metadata:
+      labels:
+        gpu-class: h100-80gb
+    spec:
+      requirements:
+        - key: node.kubernetes.io/instance-type
+          operator: In
+          values: ["p5.48xlarge"]
+
+---
+# DRA Pod: 라벨로 인스턴스 힌트 + ResourceClaim으로 GPU 할당
+apiVersion: v1
+kind: Pod
+spec:
+  nodeSelector:
+    gpu-class: h100-80gb          # Karpenter가 이걸 보고 프로비저닝
+  resourceClaims:
+    - name: gpu
+      resourceClaimTemplateName: gpu-claim  # kube-scheduler가 처리
+```
+
+**동작**: Karpenter가 ResourceClaim을 무시 → nodeSelector로 NodePool 매칭 → 노드 프로비저닝 → DRA Driver 배포 → kube-scheduler가 DRA 매칭 → Pod 배치
+
+:::warning 프로덕션 비권장
+
+| 위험 | 설명 |
+|---|---|
+| **Bin-packing 오류** | Karpenter가 DRA 리소스 소비를 모르므로 GPU 용량 초과 Pod 배치 가능 |
+| **스케일다운 오판** | DRA 리소스 미인식으로 사용 중 노드를 빈 노드로 판단 |
+| **임시 플래그** | 정식 DRA 지원 시 제거 예정 |
+
+PoC/단일 Pod-per-Node 구성에서만 사용하고, **프로덕션은 MNG + Cluster Autoscaler를 권장**합니다.
 :::
 
 ### DRA 하이브리드 아키텍처
