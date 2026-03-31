@@ -3,17 +3,61 @@
     "message": "Next",
     "description": "The label for version current"
   },
-  "sidebar.docs.category.Infrastructure Optimization": {
-    "message": "Infrastructure Optimization",
-    "description": "The label for category 'Infrastructure Optimization' in sidebar 'docs'"
+  "sidebar.docs.category.EKS Best Practices": {
+    "message": "EKS Best Practices",
+    "description": "The label for category 'EKS Best Practices' in sidebar 'docs'"
   },
-  "sidebar.docs.category.Operations & Observability": {
-    "message": "Operations & Observability",
-    "description": "The label for category 'Operations & Observability' in sidebar 'docs'"
+  "sidebar.docs.category.네트워크 & 성능": {
+    "message": "Networking & Performance",
+    "description": "The label for category '네트워크 & 성능' in sidebar 'docs'"
+  },
+  "sidebar.docs.category.Control Plane & 확장": {
+    "message": "Control Plane & Scaling",
+    "description": "The label for category 'Control Plane & 확장' in sidebar 'docs'"
+  },
+  "sidebar.docs.category.보안 & 인증": {
+    "message": "Security & Authentication",
+    "description": "The label for category '보안 & 인증' in sidebar 'docs'"
+  },
+  "sidebar.docs.category.리소스 & 비용": {
+    "message": "Resources & Cost",
+    "description": "The label for category '리소스 & 비용' in sidebar 'docs'"
+  },
+  "sidebar.docs.category.운영 & 안정성": {
+    "message": "Operations & Reliability",
+    "description": "The label for category '운영 & 안정성' in sidebar 'docs'"
   },
   "sidebar.docs.category.Agentic AI Platform": {
     "message": "Agentic AI Platform",
     "description": "The label for category 'Agentic AI Platform' in sidebar 'docs'"
+  },
+  "sidebar.docs.category.설계 & 아키텍처": {
+    "message": "Design & Architecture",
+    "description": "The label for category '설계 & 아키텍처' in sidebar 'docs'"
+  },
+  "sidebar.docs.category.모델 서빙 & 추론 인프라": {
+    "message": "Model Serving & Inference",
+    "description": "The label for category '모델 서빙 & 추론 인프라' in sidebar 'docs'"
+  },
+  "sidebar.docs.category.추론 게이트웨이 & 라우팅": {
+    "message": "Inference Gateway & Routing",
+    "description": "The label for category '추론 게이트웨이 & 라우팅' in sidebar 'docs'"
+  },
+  "sidebar.docs.category.에이전트 & 데이터": {
+    "message": "Agents & Data",
+    "description": "The label for category '에이전트 & 데이터' in sidebar 'docs'"
+  },
+  "sidebar.docs.category.운영 & MLOps": {
+    "message": "Operations & MLOps",
+    "description": "The label for category '운영 & MLOps' in sidebar 'docs'"
+  },
+  "sidebar.docs.category.AIDLC": {
+    "message": "AIDLC",
+    "description": "The label for category 'AIDLC' in sidebar 'docs'"
+  },
+  "sidebar.docs.category.AgenticOps": {
+    "message": "AgenticOps",
+    "description": "The label for category 'AgenticOps' in sidebar 'docs'"
   },
   "sidebar.docs.category.Hybrid Infrastructure": {
     "message": "Hybrid Infrastructure",
@@ -27,29 +71,13 @@
     "message": "ROSA (OpenShift on AWS)",
     "description": "The label for category 'ROSA (OpenShift on AWS)' in sidebar 'docs'"
   },
-  "sidebar.docs.category.설계 & 아키텍처": {
-    "message": "Design & Architecture",
-    "description": "The label for category '설계 & 아키텍처' in sidebar 'docs'"
-  },
-  "sidebar.docs.category.모델 서빙 & 추론 인프라": {
-    "message": "Model Serving & Inference",
-    "description": "The label for category '모델 서빙 & 추론 인프라' in sidebar 'docs'"
-  },
-  "sidebar.docs.category.게이트웨이 & 에이전트": {
-    "message": "Gateway & Agents",
-    "description": "The label for category '게이트웨이 & 에이전트' in sidebar 'docs'"
-  },
-  "sidebar.docs.category.운영 & MLOps": {
-    "message": "Operations & MLOps",
-    "description": "The label for category '운영 & MLOps' in sidebar 'docs'"
-  },
-  "sidebar.docs.category.AIops & AIDLC": {
-    "message": "AIOps & AIDLC",
-    "description": "The label for category 'AIops & AIDLC' in sidebar 'docs'"
-  },
   "sidebar.docs.category.Gateway API Adoption Guide": {
     "message": "Gateway API Adoption Guide",
     "description": "The label for category 'Gateway API Adoption Guide' in sidebar 'docs'"
+  },
+  "sidebar.benchmarks.doc.개요": {
+    "message": "Overview",
+    "description": "The label for doc '개요' in sidebar 'benchmarks'"
   },
   "sidebar.benchmarks.category.네트워킹": {
     "message": "Networking",
@@ -62,9 +90,5 @@
   "sidebar.benchmarks.category.인프라 & 운영": {
     "message": "Infrastructure & Operations",
     "description": "The label for category '인프라 & 운영' in sidebar 'benchmarks'"
-  },
-  "sidebar.docs.doc.개요": {
-    "message": "Overview",
-    "description": "The label for doc '개요' in sidebar 'docs'"
   }
 }
