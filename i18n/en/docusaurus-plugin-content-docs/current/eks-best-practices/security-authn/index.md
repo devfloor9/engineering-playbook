@@ -1,7 +1,7 @@
 ---
-title: "보안 & 인증"
+title: "Security & Authentication"
 sidebar_label: "Security & AuthN"
-description: "EKS API Server 인증/인가, IAM 통합, Pod Identity 등 보안 관련 베스트 프랙티스"
+description: "Best practices for EKS API Server authentication/authorization, IAM integration, and Pod Identity"
 tags: [eks, security, authentication, authorization, iam]
 sidebar_position: 3
 last_update:
@@ -11,9 +11,9 @@ last_update:
 
 import { DocCard, DocCardGrid } from '@site/src/components/DocCards';
 
-# 보안 & 인증
+# Security & Authentication
 
-EKS 클러스터의 인증/인가 체계와 보안 베스트 프랙티스를 다룹니다.
+Covers EKS cluster authentication/authorization systems and security best practices.
 
 ---
 
@@ -22,7 +22,7 @@ EKS 클러스터의 인증/인가 체계와 보안 베스트 프랙티스를 다
     to="/docs/eks-best-practices/security-authn/eks-api-server-authn-authz"
     icon="🔐"
     title="EKS API Server AuthN/AuthZ"
-    description="Non-Standard Caller(CI/CD, 모니터링, 자동화)의 EKS API Server 접근을 위한 인증/인가 가이드. Access Entry, Pod Identity, OIDC, TokenRequest API 활용법."
+    description="Authentication/authorization guide for Non-Standard Callers (CI/CD, monitoring, automation) accessing EKS API Server. How to use Access Entry, Pod Identity, OIDC, and TokenRequest API."
     color="#e63946"
   />
 </DocCardGrid>

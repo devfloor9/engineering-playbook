@@ -1,7 +1,7 @@
 ---
-title: "리소스 & 비용 최적화"
+title: "Resources & Cost Optimization"
 sidebar_label: "Resources & Cost"
-description: "Karpenter 오토스케일링, Pod 리소스 최적화, EKS 비용 관리 전략"
+description: "Karpenter autoscaling, Pod resource optimization, and EKS cost management strategies"
 tags: [eks, karpenter, cost-management, resource-optimization, finops]
 sidebar_position: 4
 last_update:
@@ -11,9 +11,9 @@ last_update:
 
 import { DocCard, DocCardGrid } from '@site/src/components/DocCards';
 
-# 리소스 & 비용 최적화
+# Resources & Cost Optimization
 
-EKS 클러스터의 리소스 효율화와 비용 절감을 위한 실전 전략을 다룹니다. Karpenter 기반 지능형 노드 프로비저닝, Pod 리소스 Rightsizing, FinOps 기반 비용 관리를 포함합니다.
+Practical strategies for resource efficiency and cost reduction in EKS clusters. Includes Karpenter-based intelligent node provisioning, Pod resource right-sizing, and FinOps-based cost management.
 
 ---
 
@@ -21,22 +21,22 @@ EKS 클러스터의 리소스 효율화와 비용 절감을 위한 실전 전략
   <DocCard
     to="/docs/eks-best-practices/resource-cost/karpenter-autoscaling"
     icon="⚡"
-    title="Karpenter 오토스케일링"
-    description="Karpenter 기반 지능형 노드 프로비저닝, Spot 인스턴스 활용, 비용 최적화 전략"
+    title="Karpenter Autoscaling"
+    description="Karpenter-based intelligent node provisioning, Spot instance utilization, cost optimization strategies"
     color="#ff6b35"
   />
   <DocCard
     to="/docs/eks-best-practices/resource-cost/eks-resource-optimization"
     icon="📊"
-    title="EKS 리소스 최적화"
-    description="Pod 리소스 Rightsizing, Request/Limit 튜닝, VPA/HPA 활용 전략"
+    title="EKS Resource Optimization"
+    description="Pod resource right-sizing, Request/Limit tuning, VPA/HPA utilization strategies"
     color="#4a90d9"
   />
   <DocCard
     to="/docs/eks-best-practices/resource-cost/cost-management"
     icon="💰"
-    title="대규모 EKS 비용 관리"
-    description="FinOps 기반 비용 구조 분석, Kubecost 활용, 30-90% 비용 절감 전략"
+    title="Large-scale EKS Cost Management"
+    description="FinOps-based cost structure analysis, Kubecost utilization, 30-90% cost reduction strategies"
     color="#34a853"
   />
 </DocCardGrid>

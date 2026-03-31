@@ -944,7 +944,7 @@ This is not simply a CRD parsing issue but an architectural limitation — DRA's
 
 **PoC Workaround**: Enabling Karpenter's `IGNORE_DRA_REQUESTS` flag allows provisioning based on nodeSelector/labels while ignoring DRA requirements, but is not recommended for production due to bin-packing errors and scale-down misjudgment risks.
 
-Details: [EKS GPU Node Strategy — MNG Strategy for DRA Workloads](./eks-gpu-node-strategy.md#56-dra-워크로드를-위한-managed-node-group-전략)
+Details: [EKS GPU Node Strategy — MNG Strategy for DRA Workloads](./eks-gpu-node-strategy.md#managed-node-group-strategy-for-dra-workloads)
 :::
 
 ### Disaggregated Serving on EKS Auto Mode
@@ -1033,7 +1033,7 @@ Using only TP=2 for Decode Pods allows placing 4 Decode Pods per p5.48xlarge (8 
 
 ## llm-d vs NVIDIA Dynamo
 
-llm-d and NVIDIA Dynamo both provide LLM inference routing/scheduling but with different approaches. For detailed comparison, refer to [NVIDIA GPU Stack — llm-d vs Dynamo](./nvidia-gpu-stack.md#llm-d-vs-dynamo-선택-가이드).
+llm-d and NVIDIA Dynamo both provide LLM inference routing/scheduling but with different approaches. For detailed comparison, refer to [NVIDIA GPU Stack — llm-d vs Dynamo](./nvidia-gpu-stack.md#llm-d-vs-dynamo-selection-guide).
 
 | Item | llm-d | NVIDIA Dynamo |
 |------|-------|---------------|

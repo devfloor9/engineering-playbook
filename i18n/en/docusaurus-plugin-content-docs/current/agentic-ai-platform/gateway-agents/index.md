@@ -1,39 +1,39 @@
 ---
-title: "추론 게이트웨이 & 라우팅"
+title: "Inference Gateway & Routing"
 sidebar_label: "Inference Gateway & Routing"
 sidebar_position: 3
 ---
 
 import { DocCard, DocCardGrid } from '@site/src/components/DocCards';
 
-# 추론 게이트웨이 & 라우팅
+# Inference Gateway & Routing
 
-Self-hosted LLM과 External AI Provider를 통합하는 지능형 라우팅 레이어를 구성합니다. 2-Tier Gateway 아키텍처, 모델별 라우팅, Cascade Routing, 비용 추적 전략을 다룹니다.
+Configure an intelligent routing layer that integrates self-hosted LLMs and external AI providers. Covers 2-Tier Gateway architecture, model-specific routing, Cascade Routing, and cost tracking strategies.
 
 <DocCardGrid columns={2}>
   <DocCard
     to="/docs/agentic-ai-platform/gateway-agents/inference-gateway-routing"
     icon="🌐"
     title="Inference Gateway"
-    description="kgateway 기반 지능형 요청 라우팅. Gateway API 표준, 모델별 라우팅, Canary 배포, Health Check 전략."
+    description="Intelligent request routing based on kgateway. Gateway API standards, model-specific routing, Canary deployment, Health Check strategies."
     color="#3b82f6"
   />
   <DocCard
     to="/docs/agentic-ai-platform/gateway-agents/llm-gateway-architecture"
     icon="🔄"
-    title="LLM Gateway 아키텍처"
-    description="2-Tier Gateway 설계(kgateway + Bifrost/LiteLLM). 솔루션 비교, Cascade Routing, 비용 추적 패턴."
+    title="LLM Gateway Architecture"
+    description="2-Tier Gateway design (kgateway + Bifrost/LiteLLM). Solution comparison, Cascade Routing, cost tracking patterns."
     color="#8b5cf6"
   />
   <DocCard
     to="/docs/agentic-ai-platform/gateway-agents/openclaw-ai-gateway"
     icon="🦞"
     title="OpenClaw AI Gateway"
-    description="OpenClaw + Bifrost Auto-Router 기반 올인원 AI Gateway. 실전 배포 예시와 Full Observability 통합."
+    description="All-in-one AI Gateway based on OpenClaw + Bifrost Auto-Router. Production deployment examples and full observability integration."
     color="#ec4899"
   />
 </DocCardGrid>
 
-:::tip 학습 순서
-**Inference Gateway**(기본 라우팅) → **LLM Gateway 아키텍처**(2-Tier 설계) → **OpenClaw**(실전 배포) 순서로 읽으면 추론 라우팅의 이론부터 실전까지 이해할 수 있습니다.
+:::tip Learning Sequence
+Reading in the sequence **Inference Gateway** (basic routing) → **LLM Gateway Architecture** (2-Tier design) → **OpenClaw** (production deployment) will help you understand inference routing from theory to practice.
 :::

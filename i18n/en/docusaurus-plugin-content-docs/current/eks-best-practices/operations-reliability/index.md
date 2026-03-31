@@ -1,7 +1,7 @@
 ---
-title: "운영 & 안정성"
+title: "Operations & Reliability"
 sidebar_label: "Operations & Reliability"
-description: "EKS 클러스터의 안정적인 운영을 위한 GitOps, 장애 진단, 고가용성, Pod 라이프사이클 관리 베스트 프랙티스"
+description: "Best practices for reliable EKS cluster operations including GitOps, incident diagnosis, high availability, and Pod lifecycle management"
 tags: [eks, operations, reliability, gitops, debugging, ha, pod-lifecycle]
 sidebar_position: 5
 last_update:
@@ -11,9 +11,9 @@ last_update:
 
 import { DocCard, DocCardGrid } from '@site/src/components/DocCards';
 
-# 운영 & 안정성
+# Operations & Reliability
 
-EKS 클러스터의 안정적인 운영을 위한 실전 가이드입니다. GitOps 기반 운영 자동화부터 장애 진단, 고가용성 아키텍처, Pod 라이프사이클 관리까지를 다룹니다.
+Practical guide for reliable EKS cluster operations. Covers GitOps-based operational automation, incident diagnosis, high availability architecture, and Pod lifecycle management.
 
 ---
 
@@ -21,42 +21,42 @@ EKS 클러스터의 안정적인 운영을 위한 실전 가이드입니다. Git
   <DocCard
     to="/docs/eks-best-practices/operations-reliability/gitops-cluster-operation"
     icon="🔄"
-    title="GitOps 기반 EKS 클러스터 운영"
-    description="GitOps 아키텍처, KRO/ACK 활용, 멀티클러스터 관리 전략 및 자동화"
+    title="GitOps-based EKS Cluster Operations"
+    description="GitOps architecture, KRO/ACK utilization, multi-cluster management strategies and automation"
     color="#667eea"
   />
   <DocCard
     to="/docs/eks-best-practices/operations-reliability/node-monitoring-agent"
     icon="📡"
     title="EKS Node Monitoring Agent"
-    description="노드 상태 자동 감지, 아키텍처, 배포 전략, 모범 사례"
+    description="Automatic node status detection, architecture, deployment strategies, best practices"
     color="#4a90d9"
   />
   <DocCard
     to="/docs/eks-best-practices/operations-reliability/eks-debugging-guide"
     icon="🔍"
-    title="EKS 장애 진단 및 대응"
-    description="애플리케이션 및 인프라 문제의 체계적 진단과 트러블슈팅"
+    title="EKS Incident Diagnosis and Response"
+    description="Systematic diagnosis and troubleshooting of application and infrastructure issues"
     color="#e63946"
   />
   <DocCard
     to="/docs/eks-best-practices/operations-reliability/eks-resiliency-guide"
     icon="🛡️"
-    title="EKS 고가용성 아키텍처"
-    description="고가용성과 장애 회복력을 확보하기 위한 아키텍처 패턴과 운영 전략"
+    title="EKS High Availability Architecture"
+    description="Architecture patterns and operational strategies for ensuring high availability and fault tolerance"
     color="#34a853"
   />
   <DocCard
     to="/docs/eks-best-practices/operations-reliability/eks-pod-health-lifecycle"
     icon="💓"
-    title="Pod 헬스체크 & 라이프사이클"
-    description="Probe 설정 전략, Graceful Shutdown, Pod 라이프사이클 관리"
+    title="Pod Health Checks & Lifecycle"
+    description="Probe configuration strategies, Graceful Shutdown, Pod lifecycle management"
     color="#ff6b35"
   />
   <DocCard
     to="/docs/eks-best-practices/operations-reliability/eks-pod-scheduling-availability"
     icon="📋"
-    title="Pod 스케줄링 & 가용성 패턴"
+    title="Pod Scheduling & Availability Patterns"
     description="Affinity/Anti-Affinity, PDB, Priority/Preemption, Taints/Tolerations"
     color="#9b59b6"
   />

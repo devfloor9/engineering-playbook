@@ -1,46 +1,46 @@
 ---
-title: "설계 & 아키텍처"
+title: "Design & Architecture"
 sidebar_label: "Design & Architecture"
 sidebar_position: 1
 ---
 
 import { DocCard, DocCardGrid } from '@site/src/components/DocCards';
 
-# 설계 & 아키텍처
+# Design & Architecture
 
-Agentic AI 플랫폼의 아키텍처를 이해하고, 기술적 도전과제를 파악한 후, AWS Native 매니지드 접근과 EKS 기반 오픈 아키텍처로 해결하는 점진적 여정을 안내합니다. 플랫폼이 **무엇**인지 이해한 뒤, **왜** 어려운지 파악하고, **어떻게** 구축할지 두 가지 접근을 비교합니다.
+This guide walks you through understanding the Agentic AI platform architecture, identifying technical challenges, and exploring solutions through both AWS Native managed services and EKS-based open architecture. You'll understand **what** the platform is, **why** it's challenging, and **how** to build it with two complementary approaches.
 
 <DocCardGrid columns={2}>
   <DocCard
     to="/docs/agentic-ai-platform/design-architecture/agentic-platform-architecture"
     icon="🏗️"
-    title="플랫폼 아키텍처"
-    description="Agentic AI Platform의 6개 핵심 레이어(Client, Gateway, Agent, Model Serving, Data, Observability)와 설계 원칙. 특정 구현에 독립적인 플랫폼 청사진을 제시합니다."
+    title="Platform Architecture"
+    description="The 6 core layers of Agentic AI Platform (Client, Gateway, Agent, Model Serving, Data, Observability) and design principles. A platform blueprint independent of specific implementations."
     color="#667eea"
   />
   <DocCard
     to="/docs/agentic-ai-platform/design-architecture/agentic-ai-challenges"
     icon="⚡"
-    title="기술적 도전과제"
-    description="GPU 리소스 관리, 추론 라우팅, LLMOps 관찰성, Agent 오케스트레이션, 모델 공급망 — 플랫폼 구축 시 직면하는 5가지 핵심 과제를 분석합니다."
+    title="Technical Challenges"
+    description="Analyzing 5 key challenges faced when building the platform: GPU resource management, inference routing, LLMOps observability, Agent orchestration, and model supply chain."
     color="#f59e0b"
   />
   <DocCard
     to="/docs/agentic-ai-platform/design-architecture/aws-native-agentic-platform"
     icon="☁️"
-    title="AWS Native 플랫폼"
-    description="Amazon Bedrock, Strands Agents SDK, AgentCore를 활용하여 GPU 관리 없이 Agent 개발에 집중하는 매니지드 서비스 접근. 빠른 시작에 최적입니다."
+    title="AWS Native Platform"
+    description="Managed service approach leveraging Amazon Bedrock, Strands Agents SDK, and AgentCore to focus on Agent development without GPU management. Optimal for quick starts."
     color="#ff9900"
   />
   <DocCard
     to="/docs/agentic-ai-platform/design-architecture/agentic-ai-solutions-eks"
     icon="🔧"
-    title="EKS 기반 오픈 아키텍처"
-    description="Amazon EKS Auto Mode + 오픈소스 생태계로 Open Weight 모델 자체 호스팅, 하이브리드 아키텍처, 세밀한 GPU 비용 최적화를 달성하는 접근."
+    title="EKS-Based Open Architecture"
+    description="Approach to achieve self-hosted Open Weight models, hybrid architecture, and granular GPU cost optimization with Amazon EKS Auto Mode + open-source ecosystem."
     color="#10b981"
   />
 </DocCardGrid>
 
-:::tip 권장 학습 순서
-**플랫폼 아키텍처**(무엇) → **기술적 도전과제**(왜) → **AWS Native** 또는 **EKS 오픈 아키텍처**(어떻게) 순서로 읽으면 전체 맥락을 가장 효과적으로 이해할 수 있습니다. 두 구현 접근은 상호 보완적이며 조합하여 사용할 수 있습니다.
+:::tip Recommended Learning Path
+For the most effective understanding of the full context, read in this order: **Platform Architecture** (what) → **Technical Challenges** (why) → **AWS Native** or **EKS Open Architecture** (how). The two implementation approaches are complementary and can be combined.
 :::

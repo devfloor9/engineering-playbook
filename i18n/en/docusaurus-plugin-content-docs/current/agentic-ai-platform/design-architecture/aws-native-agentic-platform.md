@@ -1,8 +1,8 @@
 ---
-title: "AWS Native Agentic AI Platform: 매니지드 서비스 기반 Agent 중심 접근"
+title: "AWS Native Agentic AI Platform: Agent-Centric Approach with Managed Services"
 sidebar_label: "AWS Native Platform"
 sidebar_position: 3
-description: "Amazon Bedrock, Strands Agents SDK, AgentCore를 활용하여 인프라 운영 부담을 줄이고 Agent 개발에 집중하는 플랫폼 접근"
+description: "Platform approach leveraging Amazon Bedrock, Strands Agents SDK, and AgentCore to reduce infrastructure overhead and focus on Agent development"
 tags: [agentcore, bedrock, strands, aws-native, mcp, a2a]
 category: "genai-aiml"
 last_update:
@@ -14,70 +14,70 @@ import { EKSMCPFeatures, KagentVsAgentCore, MultiAgentPatterns, MCPServerEcosyst
 
 # AWS Native Agentic AI Platform
 
-> **작성일**: 2026-03-18 | **수정일**: 2026-03-20 | **상태**: Draft
+> **Created**: 2026-03-18 | **Updated**: 2026-03-20 | **Status**: Draft
 
-## 개요
+## Overview
 
-AWS 매니지드 서비스를 활용하면 **인프라 운영이 아닌 Agent의 비즈니스 로직에 집중**할 수 있습니다. GPU 관리, 스케일링, 가용성, 보안을 AWS가 처리하고, 개발팀은 Agent가 해결할 문제에만 역량을 투입합니다.
+Using AWS managed services allows you to **focus on Agent business logic rather than infrastructure operations**. AWS handles GPU management, scaling, availability, and security, while development teams invest their capabilities solely in problems that Agents solve.
 
-AWS Agentic AI 스택은 세 개의 축(Pillar)으로 구성됩니다.
+The AWS Agentic AI stack consists of three pillars.
 
-| Pillar | 서비스 | 역할 |
+| Pillar | Service | Role |
 |--------|--------|------|
-| **기반(Foundation)** | Amazon Bedrock | 모델 액세스, RAG, 가드레일, 프롬프트 캐싱 |
-| **개발(Development)** | Strands Agents SDK | 에이전트 프레임워크, MCP 네이티브, 도구 통합 |
-| **운영(Operations)** | Amazon Bedrock AgentCore | 서버리스 배포, 메모리, 게이트웨이, 정책, 평가 |
+| **Foundation** | Amazon Bedrock | Model access, RAG, guardrails, prompt caching |
+| **Development** | Strands Agents SDK | Agent framework, MCP native, tool integration |
+| **Operations** | Amazon Bedrock AgentCore | Serverless deployment, memory, gateway, policy, evaluation |
 
-:::info 핵심 관점
-이 문서는 AWS 매니지드 서비스가 제공하는 **Agent 개발 최적화 접근**을 다룹니다. 매니지드 서비스로 충분한 영역은 AWS에 맡기고, 팀의 역량을 Agent 비즈니스 로직에 집중하는 전략입니다.
+:::info Core Perspective
+This document covers the **Agent development optimization approach** provided by AWS managed services. The strategy is to delegate areas sufficient with managed services to AWS and focus team capabilities on Agent business logic.
 :::
 
-### 도전과제 해결 매핑
+### Challenge Solution Mapping
 
-[기술적 도전과제](./agentic-ai-challenges.md)에서 다룬 5가지 핵심 과제를 AWS Native 접근으로 해결하는 방법:
+How AWS Native approach solves the 5 key challenges covered in [Technical Challenges](./agentic-ai-challenges.md):
 
-| 도전과제 | AWS Native 해결 방안 |
+| Challenge | AWS Native Solution |
 |---------|---------------------|
-| GPU 리소스 관리 및 비용 최적화 | Bedrock 서버리스 추론 — GPU 관리 불필요 |
-| 지능형 추론 라우팅 및 게이트웨이 | Bedrock Cross-Region Inference + AgentCore Gateway |
-| LLMOps 관찰성 및 비용 거버넌스 | AgentCore Observability + CloudWatch |
-| Agent 오케스트레이션 및 안전성 | Strands SDK + Bedrock Guardrails + AgentCore Policy |
-| 모델 공급망 관리 | Bedrock Model Evaluation + Prompt Management |
+| GPU Resource Management and Cost Optimization | Bedrock serverless inference — no GPU management required |
+| Intelligent Inference Routing and Gateway | Bedrock Cross-Region Inference + AgentCore Gateway |
+| LLMOps Observability and Cost Governance | AgentCore Observability + CloudWatch |
+| Agent Orchestration and Safety | Strands SDK + Bedrock Guardrails + AgentCore Policy |
+| Model Supply Chain Management | Bedrock Model Evaluation + Prompt Management |
 
-:::tip AWS Native의 핵심 가치
-GPU 인프라 관리, 스케일링, 가용성, 보안을 AWS가 처리하므로 팀은 Agent 비즈니스 로직에만 집중할 수 있습니다. 더 세밀한 제어가 필요한 경우 [EKS 기반 오픈 아키텍처](./agentic-ai-solutions-eks.md)와 조합할 수 있습니다.
+:::tip Core Value of AWS Native
+AWS handles GPU infrastructure management, scaling, availability, and security, allowing teams to focus solely on Agent business logic. It can be combined with [EKS-Based Open Architecture](./agentic-ai-solutions-eks.md) when more granular control is needed.
 :::
 
 ---
 
-## AWS Agentic AI 서비스 아키텍처
+## AWS Agentic AI Service Architecture
 
-### 3-Pillar 아키텍처
+### 3-Pillar Architecture
 
 ```mermaid
 graph TB
     subgraph Pillar1["Pillar 1: Amazon Bedrock — Foundation"]
-        B1["100+ 모델 액세스<br/>Claude · Nova · Llama"]
-        B2["Knowledge Bases<br/>매니지드 RAG"]
-        B3["Guardrails<br/>PII · 프롬프트 인젝션 방어"]
-        B4["Prompt Caching<br/>비용 90%↓ · 지연 85%↓"]
-        B5["Cross-Region Inference<br/>리전 간 자동 분산"]
+        B1["100+ Model Access<br/>Claude · Nova · Llama"]
+        B2["Knowledge Bases<br/>Managed RAG"]
+        B3["Guardrails<br/>PII · Prompt Injection Defense"]
+        B4["Prompt Caching<br/>Cost 90%↓ · Latency 85%↓"]
+        B5["Cross-Region Inference<br/>Auto-distribution Across Regions"]
     end
 
     subgraph Pillar2["Pillar 2: Strands Agents SDK — Development"]
-        S1["최소 코드 Agent 구현"]
+        S1["Minimal Code Agent Implementation"]
         S2["Model-agnostic · Framework-agnostic"]
-        S3["MCP 네이티브 지원"]
-        S4["도구 통합 패턴"]
+        S3["MCP Native Support"]
+        S4["Tool Integration Patterns"]
     end
 
     subgraph Pillar3["Pillar 3: Amazon Bedrock AgentCore — Operations"]
-        A1["Runtime — 서버리스 배포"]
-        A2["Memory — 단기/장기 기억"]
-        A3["Gateway — REST→MCP 변환"]
-        A4["Identity — 위임 인증"]
-        A5["Policy — 자연어 정책"]
-        A6["Observability — 트레이스"]
+        A1["Runtime — Serverless Deployment"]
+        A2["Memory — Short/Long-term"]
+        A3["Gateway — REST→MCP Conversion"]
+        A4["Identity — Delegated Auth"]
+        A5["Policy — Natural Language Policy"]
+        A6["Observability — Tracing"]
         A7["Evaluation — LLM-as-judge"]
     end
 
@@ -92,118 +92,118 @@ graph TB
 
 ---
 
-## Amazon Bedrock: 기반 레이어
+## Amazon Bedrock: Foundation Layer
 
-Amazon Bedrock은 Agentic AI 플랫폼의 **기반 인프라**를 제공합니다. 100개 이상의 파운데이션 모델에 단일 API로 접근하고, RAG, 가드레일, 프롬프트 캐싱까지 매니지드로 지원합니다.
+Amazon Bedrock provides the **foundational infrastructure** for Agentic AI platforms. It offers single-API access to over 100 foundation models and managed support for RAG, guardrails, and prompt caching.
 
-### 핵심 기능
+### Core Features
 
-| 기능 | 설명 | 핵심 가치 |
+| Feature | Description | Core Value |
 |------|------|----------|
-| **모델 액세스** | Claude, Nova, Llama, Mistral 등 100+ 모델 | 단일 API, 모델 전환 코드 변경 불필요 |
-| **Knowledge Bases** | 문서 파싱 → 청킹 → 임베딩 → 인덱싱 → 검색 | 원클릭 RAG 파이프라인, S3 업로드만으로 완료 |
-| **Guardrails** | PII 필터링, 프롬프트 인젝션 방어, 토픽 제한 | 콘솔에서 정책 설정, 코드 변경 없음 |
-| **Prompt Caching** | 반복 컨텍스트 캐싱 | 비용 최대 90% 절감, 지연 최대 85% 단축 |
-| **Cross-Region Inference** | 리전 간 자동 트래픽 분산 | 용량 한계 시 자동 폴백, 가용성 향상 |
-| **Prompt Management** | 프롬프트 버전 관리, A/B 테스트 | 프롬프트 이력 추적, 롤백 지원 |
-| **Model Evaluation** | 자동화된 모델 평가, 배치 처리 | LLM-as-a-judge, 사람 평가 워크플로우 |
+| **Model Access** | 100+ models including Claude, Nova, Llama, Mistral | Single API, no code changes for model switching |
+| **Knowledge Bases** | Document parsing → chunking → embedding → indexing → search | One-click RAG pipeline, complete with S3 upload only |
+| **Guardrails** | PII filtering, prompt injection defense, topic restrictions | Policy configuration in console, no code changes |
+| **Prompt Caching** | Repetitive context caching | Up to 90% cost reduction, up to 85% latency reduction |
+| **Cross-Region Inference** | Automatic traffic distribution across regions | Auto-fallback at capacity limits, improved availability |
+| **Prompt Management** | Prompt version management, A/B testing | Prompt history tracking, rollback support |
+| **Model Evaluation** | Automated model evaluation, batch processing | LLM-as-a-judge, human evaluation workflows |
 
-:::tip Prompt Caching 활용
-긴 시스템 프롬프트나 반복적인 도구 정의를 사용하는 Agent는 Prompt Caching을 활성화하면 비용과 지연을 대폭 줄일 수 있습니다. 특히 RAG 컨텍스트가 자주 반복되는 패턴에 효과적입니다.
+:::tip Leveraging Prompt Caching
+Agents using long system prompts or repetitive tool definitions can significantly reduce costs and latency by enabling Prompt Caching. Particularly effective for patterns with frequently repeated RAG contexts.
 :::
 
 ---
 
-## Strands Agents SDK: 개발 프레임워크
+## Strands Agents SDK: Development Framework
 
-**Strands Agents SDK**는 AWS가 Apache 2.0으로 공개한 오픈소스 에이전트 프레임워크입니다. 최소한의 코드로 프로덕션급 Agent를 구현하며, Model-agnostic 설계로 Bedrock 외에도 다양한 모델 프로바이더를 지원합니다.
+**Strands Agents SDK** is an open-source agent framework released by AWS under Apache 2.0. It implements production-grade Agents with minimal code and supports various model providers beyond Bedrock with a Model-agnostic design.
 
-### 최소 코드 Agent 구현
+### Minimal Code Agent Implementation
 
 ```python
 from strands import Agent
 from strands.models import BedrockModel
 
-# 기본 Agent — 3줄로 완성
+# Basic Agent — Complete in 3 lines
 agent = Agent(
     model=BedrockModel(model_id="anthropic.claude-sonnet-4-20250514"),
     tools=["calculator", "web_search"],
 )
-result = agent("서울의 현재 기온을 섭씨와 화씨로 변환해줘")
+result = agent("Convert Seoul's current temperature to Celsius and Fahrenheit")
 ```
 
-### MCP 네이티브 지원
+### MCP Native Support
 
 ```python
 from strands import Agent
 from strands.tools.mcp import MCPClient
 
-# MCP 서버 연결 — 외부 도구를 자동 탐색하여 Agent에 통합
+# Connect MCP server — Auto-discover external tools and integrate into Agent
 mcp_client = MCPClient(server_url="http://mcp-server:8080")
 
 agent = Agent(
     model=BedrockModel(model_id="anthropic.claude-sonnet-4-20250514"),
-    tools=[mcp_client],  # MCP 도구 자동 탐색 및 등록
+    tools=[mcp_client],  # Auto-discover and register MCP tools
 )
-result = agent("최근 주문 내역을 조회하고 배송 상태를 확인해줘")
+result = agent("Check recent order history and verify delivery status")
 ```
 
-### 커스텀 도구 정의
+### Custom Tool Definition
 
 ```python
 from strands import Agent, tool
 
 @tool
 def lookup_customer(customer_id: str) -> dict:
-    """고객 정보를 조회합니다."""
-    # 비즈니스 로직 구현
-    return {"name": "홍길동", "tier": "GOLD", "since": "2023-01"}
+    """Lookup customer information."""
+    # Business logic implementation
+    return {"name": "John Doe", "tier": "GOLD", "since": "2023-01"}
 
 @tool
 def create_ticket(title: str, priority: str, description: str) -> dict:
-    """고객 문의 티켓을 생성합니다."""
+    """Create customer inquiry ticket."""
     return {"ticket_id": "TK-2026-0042", "status": "OPEN"}
 
 agent = Agent(
     model=BedrockModel(model_id="anthropic.claude-sonnet-4-20250514"),
     tools=[lookup_customer, create_ticket],
-    system_prompt="당신은 고객 서비스 Agent입니다. 고객 정보를 조회하고 필요 시 티켓을 생성합니다.",
+    system_prompt="You are a customer service Agent. Look up customer information and create tickets as needed.",
 )
 ```
 
-### Strands SDK 핵심 특성
+### Strands SDK Core Features
 
-| 특성 | 설명 |
+| Feature | Description |
 |------|------|
-| **Apache 2.0** | 상업적 사용 자유, 포크 가능 |
-| **Model-agnostic** | Bedrock, OpenAI, Anthropic API, Ollama 등 다양한 백엔드 지원 |
-| **Framework-agnostic** | FastAPI, Flask, Lambda 등 어떤 런타임에서든 실행 |
-| **MCP 네이티브** | Model Context Protocol 빌트인 지원, 별도 어댑터 불필요 |
-| **AgentCore 통합** | `agentcore deploy` 한 줄로 프로덕션 배포 |
-| **스트리밍 응답** | 토큰 단위 스트리밍, 실시간 UX 지원 |
+| **Apache 2.0** | Free for commercial use, forkable |
+| **Model-agnostic** | Supports various backends including Bedrock, OpenAI, Anthropic API, Ollama |
+| **Framework-agnostic** | Runs on any runtime such as FastAPI, Flask, Lambda |
+| **MCP Native** | Built-in Model Context Protocol support, no separate adapter required |
+| **AgentCore Integration** | Production deployment with a single `agentcore deploy` command |
+| **Streaming Responses** | Token-level streaming, real-time UX support |
 
 ---
 
-## Amazon Bedrock AgentCore: 운영 플랫폼
+## Amazon Bedrock AgentCore: Operations Platform
 
-AgentCore는 **Agent의 프로덕션 운영에 필요한 모든 것**을 매니지드로 제공하는 플랫폼입니다. 2025년 GA(General Availability)로 출시되었으며, 7개의 핵심 서비스로 구성됩니다.
+AgentCore is a platform that provides **everything needed for production Agent operations** as a managed service. It was released as GA (General Availability) in 2025 and consists of 7 core services.
 
-### 7대 핵심 서비스
+### 7 Core Services
 
-#### 1. Runtime — 서버리스 Agent 배포
+#### 1. Runtime — Serverless Agent Deployment
 
-AgentCore Runtime은 **Firecracker MicroVM** 기반의 격리된 실행 환경을 제공합니다.
+AgentCore Runtime provides an isolated execution environment based on **Firecracker MicroVM**.
 
-| 항목 | 사양 |
+| Item | Specification |
 |------|------|
-| 격리 수준 | Firecracker MicroVM (하드웨어 수준 격리) |
-| 세션 지속 | 최대 8시간 연속 세션 |
-| 스케일링 | 0에서 자동 확장, 요청 없으면 0으로 축소 |
-| 배포 | `agentcore deploy` CLI 또는 CloudFormation |
-| 콜드 스타트 | 수 초 이내 |
+| Isolation Level | Firecracker MicroVM (hardware-level isolation) |
+| Session Persistence | Maximum 8-hour continuous sessions |
+| Scaling | Auto-scale from 0, scale down to 0 when no requests |
+| Deployment | `agentcore deploy` CLI or CloudFormation |
+| Cold Start | Within seconds |
 
 ```bash
-# Strands Agent를 AgentCore에 배포
+# Deploy Strands Agent to AgentCore
 agentcore deploy \
   --agent-name "customer-service" \
   --entry-point "agent.py" \
@@ -212,102 +212,102 @@ agentcore deploy \
   --timeout 3600
 ```
 
-#### 2. Memory — 단기/장기 기억 관리
+#### 2. Memory — Short/Long-term Memory Management
 
-Agent가 대화 컨텍스트와 사용자 선호를 기억하도록 하는 매니지드 메모리 서비스입니다.
+A managed memory service that enables Agents to remember conversation context and user preferences.
 
-| 메모리 유형 | 설명 | 활용 예시 |
+| Memory Type | Description | Use Case |
 |------------|------|----------|
-| **단기 메모리** | 세션 내 대화 기록 | 멀티턴 대화에서 이전 질문 참조 |
-| **장기 메모리** | 세션 간 지속 정보 | 사용자 선호, 과거 상호작용 패턴 |
-| **자동 요약** | 긴 대화를 자동 요약하여 저장 | 컨텍스트 윈도우 초과 시 핵심 정보 유지 |
-| **사용자 프로파일** | 개인화 정보 학습 | "이 사용자는 간결한 답변을 선호" |
+| **Short-term Memory** | In-session conversation history | Reference previous questions in multi-turn conversations |
+| **Long-term Memory** | Persistent information across sessions | User preferences, past interaction patterns |
+| **Auto-summarization** | Automatically summarize and save long conversations | Maintain key information when context window is exceeded |
+| **User Profile** | Learn personalization information | "This user prefers concise answers" |
 
-#### 3. Gateway — 지능형 도구 라우팅
+#### 3. Gateway — Intelligent Tool Routing
 
-AgentCore Gateway는 **REST API를 MCP 프로토콜로 자동 변환**하고, 시맨틱 도구 검색으로 수백 개의 도구 중 관련 있는 도구만 선별합니다.
+AgentCore Gateway **automatically converts REST APIs to MCP protocol** and uses semantic tool search to select only relevant tools from hundreds of available tools.
 
-:::info 시맨틱 도구 검색
-Agent에 300개의 도구가 등록되어 있어도 Gateway가 사용자 요청을 분석하여 관련 있는 4개 도구만 Agent에 전달합니다. 이를 통해 LLM 컨텍스트 윈도우를 절약하고 도구 선택 정확도를 높입니다.
+:::info Semantic Tool Search
+Even when 300 tools are registered with an Agent, Gateway analyzes user requests and delivers only the 4 relevant tools to the Agent. This saves LLM context window and improves tool selection accuracy.
 :::
 
-| 기능 | 설명 |
+| Feature | Description |
 |------|------|
-| **REST → MCP 변환** | 기존 REST API를 MCP 도구로 자동 래핑 |
-| **시맨틱 검색** | 300개 도구 → 관련 4개 자동 필터링 |
-| **도구 레지스트리** | 중앙 집중식 도구 등록 및 버전 관리 |
-| **인증 전파** | 사용자 인증 정보를 도구까지 안전하게 전달 |
+| **REST → MCP Conversion** | Auto-wrap existing REST APIs as MCP tools |
+| **Semantic Search** | Auto-filter 300 tools → 4 relevant ones |
+| **Tool Registry** | Centralized tool registration and version management |
+| **Auth Propagation** | Safely propagate user authentication to tools |
 
-#### 4. Identity — 위임 인증
+#### 4. Identity — Delegated Authentication
 
-| 기능 | 설명 |
+| Feature | Description |
 |------|------|
-| **IdP 통합** | Okta, Amazon Cognito, OIDC 호환 프로바이더 |
-| **위임 인증** | Agent가 사용자 대신 도구에 인증 (OAuth 2.0 토큰 교환) |
-| **세분화된 권한** | 도구별, 리소스별 접근 제어 |
-| **감사 로그** | 모든 인증 이벤트 CloudTrail 기록 |
+| **IdP Integration** | Okta, Amazon Cognito, OIDC-compatible providers |
+| **Delegated Auth** | Agent authenticates to tools on user's behalf (OAuth 2.0 token exchange) |
+| **Granular Permissions** | Per-tool, per-resource access control |
+| **Audit Logs** | CloudTrail recording of all authentication events |
 
-#### 5. Policy — 자연어 정책 정의
+#### 5. Policy — Natural Language Policy Definition
 
-자연어로 정책을 정의하면 **결정론적 런타임으로 컴파일**되어 일관된 정책 적용을 보장합니다.
+Defining policies in natural language **compiles them to deterministic runtime**, ensuring consistent policy enforcement.
 
 ```text
-# 자연어 정책 예시
-정책: "골드 등급 이상 고객만 환불 처리를 허용한다"
-→ 컴파일 → 결정론적 룰 엔진으로 실행 (LLM 호출 없이)
+# Natural language policy examples
+Policy: "Allow refund processing only for Gold tier or higher customers"
+→ Compile → Execute with deterministic rule engine (without LLM calls)
 
-정책: "외부 API 호출 시 반드시 PII를 마스킹한다"
-→ 컴파일 → Gateway 레벨에서 자동 적용
+Policy: "Always mask PII when calling external APIs"
+→ Compile → Auto-apply at Gateway level
 ```
 
-| 특성 | 설명 |
+| Characteristic | Description |
 |------|------|
-| **자연어 입력** | 비개발자도 정책 정의 가능 |
-| **결정론적 실행** | 컴파일된 정책은 LLM 없이 확정적으로 적용 |
-| **실시간 강제** | 런타임에서 매 요청마다 정책 검증 |
-| **감사 추적** | 정책 적용/거부 이력 전체 기록 |
+| **Natural Language Input** | Non-developers can define policies |
+| **Deterministic Execution** | Compiled policies apply deterministically without LLM |
+| **Real-time Enforcement** | Policy verification on every request at runtime |
+| **Audit Trail** | Complete recording of policy application/rejection history |
 
-#### 6. Observability — 통합 모니터링
+#### 6. Observability — Integrated Monitoring
 
-| 기능 | 설명 |
+| Feature | Description |
 |------|------|
-| **CloudWatch 통합** | 메트릭, 로그, 알람 자동 수집 |
-| **OpenTelemetry** | 표준 계측으로 기존 모니터링 도구와 호환 |
-| **스텝별 트레이스** | Agent 추론 → 도구 호출 → 응답 전 과정 추적 |
-| **비용 대시보드** | 모델별, Agent별, 세션별 비용 시각화 |
+| **CloudWatch Integration** | Auto-collection of metrics, logs, alarms |
+| **OpenTelemetry** | Standard instrumentation compatible with existing monitoring tools |
+| **Step-by-step Tracing** | Track entire process: Agent reasoning → tool calls → response |
+| **Cost Dashboard** | Visualize costs by model, Agent, session |
 
-#### 7. Evaluation — 지속적 품질 모니터링
+#### 7. Evaluation — Continuous Quality Monitoring
 
-| 기능 | 설명 |
+| Feature | Description |
 |------|------|
-| **LLM-as-judge** | LLM이 Agent 응답 품질을 자동 평가 |
-| **13개 평가 기준** | 정확성, 관련성, 유해성, 일관성 등 |
-| **A/B 테스트** | 프롬프트/모델 변경의 품질 영향을 정량 측정 |
-| **지속적 모니터링** | 프로덕션 트래픽에서 실시간 품질 추적 |
-| **사람 평가 워크플로우** | 자동 평가와 전문가 평가 병행 |
+| **LLM-as-judge** | LLM automatically evaluates Agent response quality |
+| **13 Evaluation Criteria** | Accuracy, relevance, harmfulness, consistency, etc. |
+| **A/B Testing** | Quantitatively measure quality impact of prompt/model changes |
+| **Continuous Monitoring** | Real-time quality tracking in production traffic |
+| **Human Evaluation Workflow** | Combine automated and expert evaluation |
 
 ---
 
-## 아키텍처 패턴
+## Architecture Patterns
 
-### Build → Deploy → Operate 워크플로우
+### Build → Deploy → Operate Workflow
 
 ```mermaid
 graph LR
-    subgraph Build["Build (개발)"]
-        B1["Strands SDK로<br/>Agent 구현"] --> B2["로컬 테스트<br/>& 디버깅"]
-        B2 --> B3["MCP 도구<br/>통합"]
+    subgraph Build["Build (Development)"]
+        B1["Implement Agent<br/>with Strands SDK"] --> B2["Local Testing<br/>& Debugging"]
+        B2 --> B3["MCP Tool<br/>Integration"]
     end
 
-    subgraph Deploy["Deploy (배포)"]
-        D1["agentcore deploy<br/>CLI 배포"] --> D2["CloudFormation<br/>IaC 배포"]
-        D2 --> D3["Runtime<br/>MicroVM 프로비저닝"]
+    subgraph Deploy["Deploy (Deployment)"]
+        D1["agentcore deploy<br/>CLI Deployment"] --> D2["CloudFormation<br/>IaC Deployment"]
+        D2 --> D3["Runtime<br/>MicroVM Provisioning"]
     end
 
-    subgraph Operate["Operate (운영)"]
-        O1["Gateway<br/>도구 라우팅"] --> O2["Policy<br/>정책 적용"]
-        O2 --> O3["Observability<br/>모니터링"]
-        O3 --> O4["Evaluation<br/>품질 평가"]
+    subgraph Operate["Operate (Operations)"]
+        O1["Gateway<br/>Tool Routing"] --> O2["Policy<br/>Policy Enforcement"]
+        O2 --> O3["Observability<br/>Monitoring"]
+        O3 --> O4["Evaluation<br/>Quality Assessment"]
     end
 
     Build --> Deploy --> Operate
@@ -317,40 +317,40 @@ graph LR
     style Operate fill:#232F3E,color:#fff
 ```
 
-### 단순 Agent 패턴
+### Simple Agent Pattern
 
-FAQ, 빌링 조회, 상태 확인 등 단일 작업을 수행하는 Agent에 적합합니다.
+Suitable for Agents performing single tasks such as FAQ, billing inquiry, status check.
 
 ```mermaid
 graph LR
-    User["사용자"] --> Runtime["AgentCore Runtime"]
+    User["User"] --> Runtime["AgentCore Runtime"]
     Runtime --> Agent["Strands Agent"]
     Agent --> Bedrock["Bedrock<br/>Claude/Nova"]
-    Agent --> KB["Knowledge Bases<br/>매니지드 RAG"]
-    Agent --> Tools["MCP 도구<br/>외부 API"]
+    Agent --> KB["Knowledge Bases<br/>Managed RAG"]
+    Agent --> Tools["MCP Tools<br/>External API"]
 
     style Runtime fill:#146EB4,color:#fff
     style Agent fill:#FF9900,color:#232F3E
     style Bedrock fill:#232F3E,color:#fff
 ```
 
-### 복잡 Agent 패턴 (멀티스텝)
+### Complex Agent Pattern (Multi-step)
 
-여러 도구를 순차/병렬로 호출하고, 중간 결과에 따라 분기하는 Agent에 적합합니다.
+Suitable for Agents that call multiple tools sequentially/in parallel and branch based on intermediate results.
 
 ```mermaid
 graph TD
-    User["사용자"] --> Runtime["AgentCore Runtime"]
-    Runtime --> Orchestrator["오케스트레이터 Agent"]
-    Orchestrator --> Classifier["의도 분류"]
-    Classifier -->|"RAG 질의"| RAGAgent["RAG Agent"]
-    Classifier -->|"작업 수행"| TaskAgent["Task Agent"]
-    Classifier -->|"분석 요청"| AnalysisAgent["분석 Agent"]
+    User["User"] --> Runtime["AgentCore Runtime"]
+    Runtime --> Orchestrator["Orchestrator Agent"]
+    Orchestrator --> Classifier["Intent Classification"]
+    Classifier -->|"RAG Query"| RAGAgent["RAG Agent"]
+    Classifier -->|"Task Execution"| TaskAgent["Task Agent"]
+    Classifier -->|"Analysis Request"| AnalysisAgent["Analysis Agent"]
 
     RAGAgent --> KB["Knowledge Bases"]
     TaskAgent --> Gateway["AgentCore Gateway"]
-    Gateway --> Tool1["도구 A"]
-    Gateway --> Tool2["도구 B"]
+    Gateway --> Tool1["Tool A"]
+    Gateway --> Tool2["Tool B"]
     AnalysisAgent --> Bedrock["Bedrock"]
 
     RAGAgent --> Memory["AgentCore Memory"]
@@ -362,54 +362,54 @@ graph TD
     style Gateway fill:#232F3E,color:#fff
 ```
 
-### 멀티 에이전트 패턴
+### Multi-Agent Pattern
 
-독립적인 Agent들이 협업하여 복잡한 비즈니스 프로세스를 처리합니다.
+Independent Agents collaborate to handle complex business processes.
 
 ```python
 from strands import Agent
 from strands.models import BedrockModel
 from strands.multiagent import MultiAgentOrchestrator
 
-# 전문 Agent 정의
+# Define specialist Agents
 research_agent = Agent(
     model=BedrockModel(model_id="anthropic.claude-sonnet-4-20250514"),
-    system_prompt="당신은 리서치 전문가입니다.",
+    system_prompt="You are a research specialist.",
     tools=["web_search", "document_reader"],
 )
 
 analysis_agent = Agent(
     model=BedrockModel(model_id="anthropic.claude-sonnet-4-20250514"),
-    system_prompt="당신은 데이터 분석 전문가입니다.",
+    system_prompt="You are a data analysis specialist.",
     tools=["calculator", "chart_generator"],
 )
 
 writer_agent = Agent(
     model=BedrockModel(model_id="anthropic.claude-sonnet-4-20250514"),
-    system_prompt="당신은 보고서 작성 전문가입니다.",
+    system_prompt="You are a report writing specialist.",
     tools=["document_writer"],
 )
 
-# 멀티 에이전트 오케스트레이션
+# Multi-agent orchestration
 orchestrator = MultiAgentOrchestrator(
     agents=[research_agent, analysis_agent, writer_agent],
-    strategy="sequential",  # 순차 실행: 리서치 → 분석 → 작성
+    strategy="sequential",  # Sequential execution: Research → Analysis → Writing
 )
-result = orchestrator("2026년 1분기 시장 동향 보고서를 작성해줘")
+result = orchestrator("Create a Q1 2026 market trends report")
 ```
 
 ---
 
-## 배포 가이드
+## Deployment Guide
 
-### Strands + AgentCore CLI 배포
+### Strands + AgentCore CLI Deployment
 
 ```bash
-# 1. 프로젝트 초기화
+# 1. Initialize project
 mkdir my-agent && cd my-agent
 pip install strands-agents strands-agents-tools
 
-# 2. Agent 코드 작성 (agent.py)
+# 2. Write Agent code (agent.py)
 cat << 'EOF' > agent.py
 from strands import Agent
 from strands.models import BedrockModel
@@ -417,29 +417,29 @@ from strands.models import BedrockModel
 agent = Agent(
     model=BedrockModel(model_id="anthropic.claude-sonnet-4-20250514"),
     tools=["calculator"],
-    system_prompt="당신은 수학 도우미입니다.",
+    system_prompt="You are a math assistant.",
 )
 
 def handler(event, context):
     return agent(event["prompt"])
 EOF
 
-# 3. AgentCore에 배포
+# 3. Deploy to AgentCore
 agentcore deploy \
   --agent-name "math-helper" \
   --entry-point "agent.py:handler" \
   --runtime python3.12
 
-# 4. 테스트 호출
+# 4. Test invocation
 agentcore invoke --agent-name "math-helper" \
-  --payload '{"prompt": "피보나치 수열의 20번째 항을 구해줘"}'
+  --payload '{"prompt": "Calculate the 20th term of the Fibonacci sequence"}'
 ```
 
-### CloudFormation 기반 IaC 배포
+### CloudFormation-based IaC Deployment
 
 ```yaml
 AWSTemplateFormatVersion: '2010-09-09'
-Description: AgentCore Agent 배포
+Description: AgentCore Agent Deployment
 
 Resources:
   CustomerServiceAgent:
@@ -481,131 +481,131 @@ Resources:
       BucketName: !Sub "agent-docs-${AWS::AccountId}"
 ```
 
-### FAST 풀스택 템플릿
+### FAST Full-stack Template
 
-AWS에서 제공하는 **FAST(Full-stack Agent Starter Template)**를 사용하면 Agent 프로젝트를 빠르게 부트스트랩할 수 있습니다.
+AWS provides **FAST (Full-stack Agent Starter Template)** to quickly bootstrap Agent projects.
 
 ```bash
-# FAST 템플릿으로 프로젝트 생성
+# Create project with FAST template
 npx create-agent-app my-agent --template fast
 
-# 프로젝트 구조
+# Project structure
 my-agent/
-├── agent/           # Strands Agent 코드
-├── api/             # FastAPI 엔드포인트
+├── agent/           # Strands Agent code
+├── api/             # FastAPI endpoints
 ├── frontend/        # React UI
 ├── infra/           # CDK/CloudFormation
-├── tests/           # 테스트
-└── agentcore.yaml   # AgentCore 배포 설정
+├── tests/           # Tests
+└── agentcore.yaml   # AgentCore deployment config
 ```
 
-:::tip FAST 템플릿 활용
-FAST는 Agent 코드, API, 프론트엔드, 인프라 코드를 모두 포함한 풀스택 템플릿입니다. CDK 기반 배포 파이프라인이 내장되어 있어 `cdk deploy` 한 줄로 전체 스택을 배포할 수 있습니다.
+:::tip Using FAST Template
+FAST is a full-stack template that includes Agent code, API, frontend, and infrastructure code. It has a built-in CDK-based deployment pipeline, allowing you to deploy the entire stack with a single `cdk deploy` command.
 :::
 
 ---
 
-## 엔터프라이즈 적용 사례
+## Enterprise Use Cases
 
-### Baemin(배달의민족): RAG 기반 지식 Agent
+### Baemin (Baemin): RAG-based Knowledge Agent
 
-| 항목 | 내용 |
+| Item | Details |
 |------|------|
-| **과제** | 고객센터 상담사의 내부 정책 검색 시간 단축 |
-| **구성** | Strands Agent + Bedrock Knowledge Bases + Claude |
-| **성과** | 상담 효율 **30% 향상**, 정책 검색 시간 90% 단축 |
-| **핵심 가치** | RAG 파이프라인 구축 없이 S3 문서 업로드만으로 지식 Agent 완성 |
+| **Challenge** | Reduce internal policy search time for customer service representatives |
+| **Architecture** | Strands Agent + Bedrock Knowledge Bases + Claude |
+| **Results** | **30% improvement** in consultation efficiency, 90% reduction in policy search time |
+| **Key Value** | Complete knowledge Agent with just S3 document upload, no RAG pipeline required |
 
-### CJ OnStyle: 멀티에이전트 라이브커머스
+### CJ OnStyle: Multi-agent Live Commerce
 
-| 항목 | 내용 |
+| Item | Details |
 |------|------|
-| **과제** | 라이브 방송 중 실시간 고객 질문 응답 자동화 |
-| **구성** | 멀티에이전트 (상품 정보 Agent + 주문 Agent + 추천 Agent) |
-| **성과** | 고객 응답률 **3배 향상**, 실시간 처리 지연 2초 이내 |
-| **핵심 가치** | AgentCore Runtime의 자동 스케일링으로 방송 트래픽 급증 대응 |
+| **Challenge** | Automate real-time customer question responses during live broadcasts |
+| **Architecture** | Multi-agent (Product Info Agent + Order Agent + Recommendation Agent) |
+| **Results** | **3x improvement** in customer response rate, real-time processing latency under 2 seconds |
+| **Key Value** | Handle broadcast traffic spikes with AgentCore Runtime auto-scaling |
 
-### Amazon Devices: 제조 Agent
+### Amazon Devices: Manufacturing Agent
 
-| 항목 | 내용 |
+| Item | Details |
 |------|------|
-| **과제** | 제조 라인 품질 검사 모델 파인튜닝 자동화 |
-| **구성** | Strands Agent + Bedrock Fine-tuning + AgentCore |
-| **성과** | 파인튜닝 소요 시간 **수일 → 1시간**으로 단축 |
-| **핵심 가치** | Agent가 데이터 전처리 → 파인튜닝 → 평가를 자동 오케스트레이션 |
+| **Challenge** | Automate fine-tuning of manufacturing line quality inspection models |
+| **Architecture** | Strands Agent + Bedrock Fine-tuning + AgentCore |
+| **Results** | Fine-tuning time reduced from **days → 1 hour** |
+| **Key Value** | Agent automatically orchestrates data preprocessing → fine-tuning → evaluation |
 
 ---
 
-## 비용 구조
+## Cost Structure
 
-AgentCore 기반 플랫폼의 비용은 **사용한 만큼만 과금**되는 서버리스 모델을 따릅니다.
+AgentCore-based platform costs follow a **pay-as-you-go** serverless model.
 
-### 과금 체계
+### Pricing Model
 
-| 서비스 | 과금 기준 | 특징 |
+| Service | Pricing Basis | Features |
 |--------|----------|------|
-| **Bedrock 추론** | 입력/출력 토큰 수 | 온디맨드, 프로비저닝 처리량 선택 가능 |
-| **AgentCore Runtime** | 세션 시간 + 메모리 사용량 | 요청 없으면 0 과금, 최대 8시간 세션 |
-| **Knowledge Bases** | 스토리지 + 쿼리 수 | OpenSearch Serverless 기반 |
-| **Guardrails** | 처리된 텍스트 단위 | 입력/출력 각각 과금 |
-| **Prompt Caching** | 캐시 히트 시 90% 할인 | 반복 패턴이 많을수록 절감 |
+| **Bedrock Inference** | Input/output token count | On-demand or provisioned throughput options |
+| **AgentCore Runtime** | Session time + memory usage | Zero cost when idle, max 8-hour sessions |
+| **Knowledge Bases** | Storage + query count | Based on OpenSearch Serverless |
+| **Guardrails** | Processed text units | Separate pricing for input/output |
+| **Prompt Caching** | 90% discount on cache hits | Greater savings with more repetitive patterns |
 
-### 운영 비용 절감 포인트
+### Operational Cost Reduction Points
 
-| 영역 | 절감 요소 |
+| Area | Cost Reduction Elements |
 |------|----------|
-| **GPU 관리** | GPU 인스턴스 프로비저닝, 패치, 스케일링 운영 인력 불필요 |
-| **인프라 운영** | 서버리스 아키텍처로 클러스터 관리 부담 제거 |
-| **보안 컴플라이언스** | AWS의 SOC 2, HIPAA, ISO 27001 인증 활용 |
-| **가용성 관리** | 멀티 AZ 자동 배치, Cross-Region Inference로 DR 내장 |
-| **모니터링 구축** | CloudWatch 네이티브 통합으로 별도 모니터링 스택 불필요 |
+| **GPU Management** | No need for operational staff for GPU instance provisioning, patching, scaling |
+| **Infrastructure Operations** | Eliminates cluster management burden with serverless architecture |
+| **Security Compliance** | Leverage AWS SOC 2, HIPAA, ISO 27001 certifications |
+| **Availability Management** | Built-in DR with automatic multi-AZ deployment and Cross-Region Inference |
+| **Monitoring Setup** | No separate monitoring stack needed with native CloudWatch integration |
 
-:::info 비용 최적화 팁
-- **Prompt Caching**: 시스템 프롬프트가 긴 Agent는 반드시 활성화하세요
-- **프로비저닝 처리량**: 안정적인 트래픽이 있다면 온디맨드 대비 최대 50% 절감됩니다
-- **Cross-Region Inference**: 특정 리전 용량 한계 시 자동 폴백으로 throttling을 방지합니다
-- **Batch Inference**: 실시간이 불필요한 평가/분석 작업은 배치 모드로 비용을 절감하세요
+:::info Cost Optimization Tips
+- **Prompt Caching**: Must enable for Agents with long system prompts
+- **Provisioned Throughput**: Up to 50% savings compared to on-demand with steady traffic
+- **Cross-Region Inference**: Prevents throttling with automatic fallback when specific region capacity limits are reached
+- **Batch Inference**: Reduce costs by using batch mode for evaluation/analysis tasks that don't require real-time processing
 :::
 
 ---
 
-## MCP 프로토콜과 EKS 통합
+## MCP Protocol and EKS Integration
 
-### MCP (Model Context Protocol) 개요
+### MCP (Model Context Protocol) Overview
 
-MCP는 AI 에이전트와 도구 간의 **표준 통신 프로토콜**입니다:
+MCP is a **standard communication protocol** between AI agents and tools:
 
-- **도구 검색**: 에이전트가 사용 가능한 도구를 동적으로 검색
-- **컨텍스트 전달**: 실행 컨텍스트와 상태를 표준화된 형식으로 전달
-- **결과 반환**: 도구 실행 결과를 구조화된 형식으로 반환
-- **에이전트 간 통신**: A2A 프로토콜을 통한 멀티 에이전트 협업
+- **Tool Discovery**: Agents dynamically discover available tools
+- **Context Passing**: Pass execution context and state in standardized format
+- **Result Return**: Return tool execution results in structured format
+- **Inter-agent Communication**: Multi-agent collaboration through A2A protocol
 
-### EKS MCP 서버 통합
+### EKS MCP Server Integration
 
-AWS는 EKS 전용 호스팅 MCP 서버를 제공하여 Kubernetes 클러스터와 AI 에이전트 간의 통합을 지원합니다:
+AWS provides EKS-dedicated hosted MCP servers to support integration between Kubernetes clusters and AI agents:
 
 <EKSMCPFeatures />
 
-**EKS MCP 서버 배포:**
+**Deploy EKS MCP Server:**
 
 ```bash
-# AWS MCP 서버 저장소 클론
+# Clone AWS MCP server repository
 git clone https://github.com/awslabs/mcp.git
 cd mcp/servers/eks
 
-# Docker 이미지 빌드 및 EKS 배포
+# Build Docker image and deploy to EKS
 docker build -t eks-mcp-server:latest .
 kubectl apply -f k8s/deployment.yaml
 ```
 
-**AgentCore에서 MCP 도구 연결 (boto3):**
+**Connect MCP Tools in AgentCore (boto3):**
 
 ```python
 import boto3, json
 
 bedrock_agent = boto3.client('bedrock-agent')
 
-# 에이전트 생성
+# Create agent
 response = bedrock_agent.create_agent(
     agentName='sre-agent',
     foundationModel='anthropic.claude-sonnet-4-20250514',
@@ -613,7 +613,7 @@ response = bedrock_agent.create_agent(
     agentResourceRoleArn='arn:aws:iam::ACCOUNT:role/BedrockAgentRole',
 )
 
-# MCP 도구 연결 (Action Group)
+# Connect MCP tools (Action Group)
 bedrock_agent.create_agent_action_group(
     agentId=response['agent']['agentId'],
     agentVersion='DRAFT',
@@ -632,28 +632,28 @@ bedrock_agent.create_agent_action_group(
 )
 ```
 
-### Self-hosted Agent와의 하이브리드 전략
+### Hybrid Strategy with Self-hosted Agents
 
-EKS 기반 Self-hosted Agent와 Bedrock AgentCore를 함께 활용할 수 있습니다:
+EKS-based Self-hosted Agents and Bedrock AgentCore can be used together:
 
 <KagentVsAgentCore />
 
-**하이브리드 접근**: 비용이 중요한 고빈도 호출은 EKS Self-hosted Agent로, 복잡한 추론이 필요한 저빈도 호출은 Bedrock AgentCore로 라우팅하는 전략이 효과적입니다.
+**Hybrid Approach**: An effective strategy is to route high-frequency calls where cost is critical to EKS Self-hosted Agents, and low-frequency calls requiring complex reasoning to Bedrock AgentCore.
 
-### 멀티 에이전트 오케스트레이션
+### Multi-Agent Orchestration
 
-AgentCore는 MCP/A2A를 통한 에이전트 간 협업을 지원합니다:
+AgentCore supports inter-agent collaboration through MCP/A2A:
 
 <MultiAgentPatterns />
 
 ```mermaid
 flowchart TB
-    M[마스터<br/>에이전트]
+    M[Master<br/>Agent]
 
-    subgraph SPEC["전문 에이전트"]
-        D[진단<br/>EKS MCP]
-        A[분석<br/>CloudWatch]
-        R[해결<br/>Runbook]
+    subgraph SPEC["Specialist Agents"]
+        D[Diagnosis<br/>EKS MCP]
+        A[Analysis<br/>CloudWatch]
+        R[Resolution<br/>Runbook]
     end
 
     M --> D & A
@@ -666,34 +666,34 @@ flowchart TB
     style R fill:#e53935,stroke:#333
 ```
 
-### AWS MCP 서버 에코시스템
+### AWS MCP Server Ecosystem
 
-AWS는 공식 MCP 서버를 오픈소스로 제공합니다 ([github.com/awslabs/mcp](https://github.com/awslabs/mcp)):
+AWS provides official MCP servers as open source ([github.com/awslabs/mcp](https://github.com/awslabs/mcp)):
 
 <MCPServerEcosystem />
 
-### CloudWatch Gen AI Observability 통합
+### CloudWatch Gen AI Observability Integration
 
 :::tip CloudWatch Gen AI Observability GA
-CloudWatch Generative AI Observability는 **2025년 10월 GA**되었습니다. AgentCore와 네이티브로 통합되어 별도 설정 없이 에이전트 호출, 도구 실행, 토큰 사용량이 자동으로 CloudWatch에 기록됩니다.
+CloudWatch Generative AI Observability **reached GA in October 2025**. It integrates natively with AgentCore, automatically recording agent invocations, tool executions, and token usage in CloudWatch without additional configuration.
 :::
 
-- **에이전트 실행 추적**: 엔드투엔드 트레이싱으로 전체 추론 흐름 가시화
-- **도구 호출 모니터링**: MCP 서버별 호출 횟수, 지연, 오류율 추적
-- **토큰 소비 분석**: 모델별 입출력 토큰 사용량 및 비용 추적
-- **이상 탐지**: CloudWatch Anomaly Detection과 연동하여 비정상 패턴 자동 감지
+- **Agent Execution Tracking**: Visualize entire reasoning flow with end-to-end tracing
+- **Tool Call Monitoring**: Track call count, latency, and error rate per MCP server
+- **Token Consumption Analysis**: Track model-specific input/output token usage and costs
+- **Anomaly Detection**: Automatically detect abnormal patterns through CloudWatch Anomaly Detection integration
 
 ---
 
-## 다음 단계
+## Next Steps
 
-- EKS 기반 오픈소스 아키텍처가 필요하다면 → [EKS 기반 오픈 아키텍처](./agentic-ai-solutions-eks.md)
-- 전체 플랫폼 설계 → [플랫폼 아키텍처](./agentic-platform-architecture.md)
+- If you need EKS-based open-source architecture → [EKS-Based Open Architecture](./agentic-ai-solutions-eks.md)
+- Complete platform design → [Platform Architecture](./agentic-platform-architecture.md)
 
-## 참고 자료
+## References
 
-- [Amazon Bedrock AgentCore 문서](https://docs.aws.amazon.com/bedrock/latest/userguide/agents.html)
+- [Amazon Bedrock AgentCore Documentation](https://docs.aws.amazon.com/bedrock/latest/userguide/agents.html)
 - [AWS MCP Servers (GitHub)](https://github.com/awslabs/mcp)
-- [Model Context Protocol 사양](https://modelcontextprotocol.io/)
+- [Model Context Protocol Specification](https://modelcontextprotocol.io/)
 - [CloudWatch Generative AI Observability](https://aws.amazon.com/blogs/mt/launching-amazon-cloudwatch-generative-ai-observability-preview/)
 - [CNS421: Streamline EKS Operations with Agentic AI (re:Invent 2025)](https://www.youtube.com/watch?v=4s-a0jY4kSE)

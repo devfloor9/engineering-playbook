@@ -1,7 +1,7 @@
 ---
-title: "Agentic AI 워크로드의 기술적 도전과제"
+title: "Technical Challenges of Agentic AI Workloads"
 sidebar_label: "Technical Challenges"
-description: "Agentic AI 워크로드 운영 시 직면하는 5가지 핵심 도전과제"
+description: "Five key technical challenges when operating Agentic AI workloads"
 tags: [genai, agentic-ai, gpu, challenges]
 category: "genai-aiml"
 last_update:
@@ -12,31 +12,31 @@ sidebar_position: 2
 
 import { ChallengeSummary } from '@site/src/components/AgenticChallengesTables';
 
-> 📅 **작성일**: 2025-02-05 | **수정일**: 2026-03-20 | ⏱️ **읽는 시간**: 약 5분
+> 📅 **Created**: 2025-02-05 | **Updated**: 2026-03-20 | ⏱️ **Reading Time**: ~5 minutes
 
-## 소개
+## Introduction
 
-Agentic AI 플랫폼을 구축하고 운영할 때, 플랫폼 엔지니어와 아키텍트는 기존 웹 애플리케이션과는 근본적으로 다른 기술적 도전에 직면합니다. 이 문서에서는 **5가지 핵심 도전과제**를 분석합니다.
+When building and operating Agentic AI platforms, platform engineers and architects face technical challenges fundamentally different from traditional web applications. This document analyzes **5 key challenges**.
 
-:::info 선행 문서
-이 문서를 읽기 전에 [플랫폼 아키텍처](./agentic-platform-architecture.md)에서 Agentic AI Platform의 전체 구조를 먼저 확인하세요.
+:::info Prerequisites
+Before reading this document, review the overall structure of the Agentic AI Platform in [Platform Architecture](./agentic-platform-architecture.md).
 :::
 
-## Agentic AI 플랫폼의 5가지 핵심 도전과제
+## Five Key Challenges of Agentic AI Platform
 
-Frontier Model(최신 대규모 언어 모델)을 활용한 Agentic AI 시스템은 기존 웹 애플리케이션과는 **근본적으로 다른 인프라 요구사항**을 가집니다.
+Agentic AI systems leveraging Frontier Models (cutting-edge large language models) have **fundamentally different infrastructure requirements** compared to traditional web applications.
 
 ```mermaid
 flowchart TD
-    subgraph Challenges["5가지 핵심 도전과제"]
-        C1["도전과제 1<br/>GPU 리소스 관리 및<br/>비용 최적화"]
-        C2["도전과제 2<br/>지능형 추론 라우팅 및<br/>게이트웨이"]
-        C3["도전과제 3<br/>LLMOps 관찰성 및<br/>비용 거버넌스"]
-        C4["도전과제 4<br/>Agent 오케스트레이션 및<br/>안전성"]
-        C5["도전과제 5<br/>모델 공급망 관리<br/>(Model Supply Chain)"]
+    subgraph Challenges["Five Key Challenges"]
+        C1["Challenge 1<br/>GPU Resource Management<br/>& Cost Optimization"]
+        C2["Challenge 2<br/>Intelligent Inference Routing<br/>& Gateway"]
+        C3["Challenge 3<br/>LLMOps Observability<br/>& Cost Governance"]
+        C4["Challenge 4<br/>Agent Orchestration<br/>& Safety"]
+        C5["Challenge 5<br/>Model Supply Chain<br/>Management"]
     end
 
-    COMMON["공통 특성<br/>- GPU 리소스 집약적<br/>- 예측 불가능한 워크로드<br/>- 높은 인프라 비용<br/>- 복잡한 분산 시스템"]
+    COMMON["Common Characteristics<br/>- GPU Resource Intensive<br/>- Unpredictable Workloads<br/>- High Infrastructure Costs<br/>- Complex Distributed Systems"]
 
     C1 --> COMMON
     C2 --> COMMON
@@ -52,57 +52,57 @@ flowchart TD
     style COMMON fill:#f0f0f0
 ```
 
-### 도전과제 요약
+### Challenge Summary
 
 <ChallengeSummary />
 
-:::warning 기존 인프라 접근 방식의 한계
-전통적인 VM 기반 인프라나 수동 관리 방식으로는 Agentic AI의 **동적이고 예측 불가능한 워크로드 패턴**에 효과적으로 대응할 수 없습니다. GPU 리소스의 높은 비용과 복잡한 분산 시스템 요구사항은 **자동화된 인프라 관리**를 필수로 만듭니다.
+:::warning Limitations of Traditional Infrastructure Approaches
+Traditional VM-based infrastructure or manual management approaches cannot effectively respond to Agentic AI's **dynamic and unpredictable workload patterns**. The high cost of GPU resources and complex distributed system requirements make **automated infrastructure management** essential.
 :::
 
 ---
 
-## 도전과제 1: GPU 리소스 관리 및 비용 최적화
+## Challenge 1: GPU Resource Management and Cost Optimization
 
-GPU는 Agentic AI 플랫폼에서 **가장 비용이 높은 리소스**입니다. 모델 크기와 워크로드 특성에 따라 적절한 GPU 할당 전략이 필요합니다.
+GPUs are the **most expensive resource** in Agentic AI platforms. Appropriate GPU allocation strategies are needed based on model size and workload characteristics.
 
-**왜 어려운가:**
+**Why is it difficult:**
 
-- **높은 비용**: GPU 인스턴스는 CPU 대비 10~100배 비싼 비용 (H100 8장 기준 시간당 ~$98)
-- **다양한 모델 크기**: 3B 파라미터 모델부터 70B+ 모델까지 요구하는 GPU 메모리가 극단적으로 다름
-- **동적 워크로드**: 추론 트래픽이 시간대에 따라 10배 이상 변동
-- **유휴 낭비**: GPU 프로비저닝 후 활용률이 낮으면 막대한 비용 낭비
-- **멀티 테넌트**: 여러 모델과 팀이 제한된 GPU를 공유해야 함
+- **High Cost**: GPU instances are 10~100x more expensive than CPU (H100 8-GPU ~$98/hour)
+- **Diverse Model Sizes**: GPU memory requirements vary drastically from 3B parameter models to 70B+ models
+- **Dynamic Workloads**: Inference traffic fluctuates by 10x or more depending on time of day
+- **Idle Waste**: Provisioned GPUs with low utilization result in massive cost waste
+- **Multi-tenancy**: Multiple models and teams must share limited GPUs
 
-| 모델 크기 | GPU 요구사항 | 비용 압박 |
+| Model Size | GPU Requirements | Cost Pressure |
 |-----------|-------------|----------|
-| 70B+ 파라미터 | Full GPU (H100/A100) 8장 | 시간당 $30~$98 |
-| 7B~30B 파라미터 | GPU 1~2장 또는 MIG 파티션 | 시간당 $1~$10 |
-| 3B 이하 파라미터 | Time-Slicing 또는 공유 GPU | 시간당 $0.5~$2 |
+| 70B+ parameters | Full GPU (H100/A100) 8 cards | $30~$98/hour |
+| 7B~30B parameters | 1~2 GPUs or MIG partitions | $1~$10/hour |
+| 3B or less parameters | Time-Slicing or shared GPU | $0.5~$2/hour |
 
 ---
 
-## 도전과제 2: 지능형 추론 라우팅 및 게이트웨이
+## Challenge 2: Intelligent Inference Routing and Gateway
 
-Agentic AI 워크로드는 **다양한 모델과 프로바이더**를 동시에 활용합니다. 단순한 로드밸런싱이 아닌, 모델 특성을 이해하는 지능형 라우팅이 필요합니다.
+Agentic AI workloads utilize **multiple models and providers** simultaneously. Intelligent routing that understands model characteristics is needed, not just simple load balancing.
 
-**왜 어려운가:**
+**Why is it difficult:**
 
-- **멀티 모델 운영**: 하나의 플랫폼에서 Llama, Qwen, Claude, GPT 등 다양한 모델을 동시 운영
-- **KV Cache 효율성**: LLM의 KV Cache 상태를 고려하지 않은 라우팅은 성능을 크게 저하시킴
-- **비용-성능 트레이드오프**: 작업 복잡도에 따라 저비용 모델과 고성능 모델을 동적으로 선택해야 함
-- **프로바이더 다변화**: Self-hosted 모델과 외부 API (Bedrock, OpenAI) 를 통합 관리해야 함
-- **Canary/A-B 배포**: 새 모델 버전을 안전하게 트래픽 전환해야 함
+- **Multi-model Operations**: Operating diverse models (Llama, Qwen, Claude, GPT) on a single platform simultaneously
+- **KV Cache Efficiency**: Routing without considering LLM KV Cache state significantly degrades performance
+- **Cost-Performance Tradeoff**: Dynamically selecting between low-cost and high-performance models based on task complexity
+- **Provider Diversification**: Unified management of self-hosted models and external APIs (Bedrock, OpenAI)
+- **Canary/A-B Deployment**: Safe traffic shifting for new model versions
 
 ```mermaid
 flowchart LR
-    REQ["추론 요청"]
+    REQ["Inference Request"]
 
-    subgraph Challenge["라우팅 복잡성"]
-        Q1["어떤 모델?<br/>(모델 선택)"]
-        Q2["어떤 인스턴스?<br/>(KV Cache 히트)"]
-        Q3["어떤 프로바이더?<br/>(비용 vs 성능)"]
-        Q4["Fallback은?<br/>(장애 대응)"]
+    subgraph Challenge["Routing Complexity"]
+        Q1["Which Model?<br/>(Model Selection)"]
+        Q2["Which Instance?<br/>(KV Cache Hit)"]
+        Q3["Which Provider?<br/>(Cost vs Performance)"]
+        Q4["Fallback?<br/>(Failure Handling)"]
     end
 
     REQ --> Q1 --> Q2 --> Q3 --> Q4
@@ -112,54 +112,54 @@ flowchart LR
 
 ---
 
-## 도전과제 3: LLMOps 관찰성 및 비용 거버넌스
+## Challenge 3: LLMOps Observability and Cost Governance
 
-LLM 기반 시스템은 기존 애플리케이션과 **근본적으로 다른 관찰성 요구사항**을 가집니다. 토큰 단위 비용 추적, Agent 워크플로우 디버깅, 프롬프트 품질 모니터링이 필요합니다.
+LLM-based systems have **fundamentally different observability requirements** compared to traditional applications. Token-level cost tracking, Agent workflow debugging, and prompt quality monitoring are necessary.
 
-**왜 어려운가:**
+**Why is it difficult:**
 
-- **비결정적 출력**: 동일 입력에도 다른 출력이 나오므로 전통적 테스트/모니터링이 불충분
-- **토큰 비용 추적**: 인프라 비용(GPU)과 애플리케이션 비용(토큰)을 이중으로 추적해야 함
-- **멀티스텝 디버깅**: Agent가 여러 도구를 호출하는 복잡한 체인에서 병목 지점 파악이 어려움
-- **프롬프트 품질**: 프로덕션에서 프롬프트 성능이 저하되는 것을 실시간으로 감지해야 함
-- **팀별 예산**: 여러 팀이 공유하는 AI 인프라에서 팀별 비용 할당과 한도 관리가 필요
+- **Non-deterministic Output**: Same input produces different outputs, making traditional testing/monitoring insufficient
+- **Token Cost Tracking**: Dual tracking of infrastructure costs (GPU) and application costs (tokens) required
+- **Multi-step Debugging**: Difficult to identify bottlenecks in complex chains where Agents call multiple tools
+- **Prompt Quality**: Real-time detection of prompt performance degradation in production
+- **Team Budgets**: Per-team cost allocation and limit management in shared AI infrastructure
 
-| 관찰성 영역 | 기존 애플리케이션 | LLM 애플리케이션 |
+| Observability Area | Traditional Apps | LLM Applications |
 |------------|----------------|----------------|
-| 비용 추적 | 인프라 비용만 | 인프라 + 토큰 비용 이중 추적 |
-| 디버깅 | 요청-응답 로그 | 멀티스텝 Agent Trace |
-| 품질 모니터링 | 에러율, 지연 시간 | Faithfulness, Relevance, Hallucination |
-| 예산 관리 | 리소스 기반 | 모델별/팀별 토큰 예산 |
+| Cost Tracking | Infrastructure only | Dual: Infrastructure + Token costs |
+| Debugging | Request-response logs | Multi-step Agent Traces |
+| Quality Monitoring | Error rate, latency | Faithfulness, Relevance, Hallucination |
+| Budget Management | Resource-based | Model/Team token budgets |
 
 ---
 
-## 도전과제 4: Agent 오케스트레이션 및 안전성
+## Challenge 4: Agent Orchestration and Safety
 
-Agentic AI 시스템에서 Agent는 **자율적으로 도구를 호출하고 외부 시스템과 상호작용**합니다. 이러한 자율성은 안전성과 통제 가능성 측면에서 새로운 도전과제를 만듭니다.
+In Agentic AI systems, Agents **autonomously call tools and interact with external systems**. This autonomy creates new challenges in terms of safety and controllability.
 
-**왜 어려운가:**
+**Why is it difficult:**
 
-- **자율적 행동**: Agent가 스스로 판단하여 도구를 호출하므로 예상치 못한 행동 가능
-- **프롬프트 인젝션**: 악의적 입력으로 Agent가 의도하지 않은 작업을 수행할 위험
-- **도구 연결 표준화**: 다양한 외부 시스템(DB, API, 파일)을 Agent에 안전하게 연결하는 표준 필요
-- **멀티 Agent 통신**: 여러 Agent가 협업할 때 안전하고 효율적인 통신 프로토콜 필요
-- **상태 관리**: 장기 실행 Agent의 상태 저장, 복구, 체크포인팅이 필요
-- **스케일링**: Agent 워크로드는 CPU 기반이지만 트래픽 패턴이 불규칙하여 효율적 스케일링이 어려움
+- **Autonomous Behavior**: Agents make autonomous decisions to call tools, potentially leading to unexpected actions
+- **Prompt Injection**: Risk of malicious input causing Agents to perform unintended tasks
+- **Tool Connection Standardization**: Need for standards to safely connect diverse external systems (DB, API, files) to Agents
+- **Multi-Agent Communication**: Safe and efficient communication protocols needed when multiple Agents collaborate
+- **State Management**: Long-running Agents need state persistence, recovery, and checkpointing
+- **Scaling**: Agent workloads are CPU-based but irregular traffic patterns make efficient scaling difficult
 
 ```mermaid
 flowchart TD
-    subgraph Risks["안전성 위험"]
-        R1["프롬프트 인젝션"]
-        R2["PII 유출"]
-        R3["무한 루프"]
-        R4["권한 상승"]
+    subgraph Risks["Safety Risks"]
+        R1["Prompt Injection"]
+        R2["PII Leakage"]
+        R3["Infinite Loop"]
+        R4["Privilege Escalation"]
     end
 
-    subgraph Needs["필요 역량"]
-        N1["입출력 필터링"]
-        N2["도구 권한 제한"]
-        N3["실행 시간 제한"]
-        N4["감사 로깅"]
+    subgraph Needs["Required Capabilities"]
+        N1["Input/Output Filtering"]
+        N2["Tool Permission Limits"]
+        N3["Execution Time Limits"]
+        N4["Audit Logging"]
     end
 
     R1 --> N1
@@ -173,29 +173,29 @@ flowchart TD
 
 ---
 
-## 도전과제 5: 모델 공급망 관리 (Model Supply Chain)
+## Challenge 5: Model Supply Chain Management
 
-단순히 모델을 배포하는 것이 아니라, **전체 모델 라이프사이클**(학습 → 평가 → 레지스트리 → 배포 → 피드백)을 체계적으로 관리해야 합니다.
+Beyond simply deploying models, the **entire model lifecycle** (training → evaluation → registry → deployment → feedback) must be systematically managed.
 
-**왜 어려운가:**
+**Why is it difficult:**
 
-- **모델 버전 관리**: 파운데이션 모델, 파인튜닝 모델, 어댑터(LoRA) 등 다양한 아티팩트 관리
-- **분산 학습 인프라**: 대규모 모델 파인튜닝에는 멀티 노드 GPU 클러스터와 고속 네트워크(EFA) 필요
-- **평가 파이프라인**: 모델 품질을 자동으로 평가하고 배포 게이트를 설정해야 함
-- **안전한 배포**: Canary/Blue-Green 배포로 모델 업데이트 시 서비스 영향 최소화
-- **하이브리드 환경**: 온프레미스 GPU와 클라우드 GPU 간 모델 전송 및 동기화
-- **RAG 데이터 파이프라인**: 문서 처리, 임베딩 생성, 벡터 저장의 지속적 업데이트 파이프라인 필요
-- **피드백 루프**: 프로덕션 추적 데이터를 재학습에 반영하는 지속적 개선 체계
+- **Model Version Management**: Managing diverse artifacts including foundation models, fine-tuned models, adapters (LoRA)
+- **Distributed Training Infrastructure**: Large-scale model fine-tuning requires multi-node GPU clusters and high-speed networks (EFA)
+- **Evaluation Pipeline**: Automatically evaluating model quality and setting deployment gates
+- **Safe Deployment**: Minimizing service impact during model updates with Canary/Blue-Green deployments
+- **Hybrid Environments**: Model transfer and synchronization between on-premises and cloud GPUs
+- **RAG Data Pipeline**: Continuous update pipeline for document processing, embedding generation, vector storage
+- **Feedback Loop**: Continuous improvement system reflecting production trace data in retraining
 
 ```mermaid
 flowchart LR
-    subgraph Lifecycle["모델 라이프사이클"]
-        TRAIN["학습/파인튜닝"]
-        EVAL["평가"]
-        REG["레지스트리"]
-        DEPLOY["배포"]
-        MONITOR["모니터링"]
-        FEEDBACK["피드백"]
+    subgraph Lifecycle["Model Lifecycle"]
+        TRAIN["Training/Fine-tuning"]
+        EVAL["Evaluation"]
+        REG["Registry"]
+        DEPLOY["Deployment"]
+        MONITOR["Monitoring"]
+        FEEDBACK["Feedback"]
     end
 
     TRAIN --> EVAL --> REG --> DEPLOY --> MONITOR --> FEEDBACK
@@ -206,25 +206,25 @@ flowchart LR
 
 ---
 
-## 다음 단계: 도전과제 해결 접근
+## Next Steps: Approaches to Solving Challenges
 
-이 5가지 도전과제를 해결하기 위한 두 가지 접근 방식을 제시합니다:
+Two approaches to solving these 5 challenges are presented:
 
-1. **[AWS Native 플랫폼](./aws-native-agentic-platform.md)**: AWS 매니지드 서비스(Bedrock, AgentCore)를 활용하여 인프라 운영 부담을 최소화하고 Agent 개발에 집중하는 접근
-2. **[EKS 기반 오픈 아키텍처](./agentic-ai-solutions-eks.md)**: Amazon EKS와 오픈소스 생태계를 활용하여 세밀한 제어와 비용 최적화를 달성하는 접근
+1. **[AWS Native Platform](./aws-native-agentic-platform.md)**: Minimize infrastructure operational burden and focus on Agent development using AWS managed services (Bedrock, AgentCore)
+2. **[EKS-Based Open Architecture](./agentic-ai-solutions-eks.md)**: Achieve granular control and cost optimization using Amazon EKS and the open-source ecosystem
 
-두 접근은 **상호 보완적**이며, 워크로드 특성에 따라 조합하여 사용할 수 있습니다.
+The two approaches are **complementary** and can be combined based on workload characteristics.
 
-| 기준 | AWS Native | EKS 기반 오픈 아키텍처 |
+| Criteria | AWS Native | EKS-Based Open Architecture |
 |------|-----------|----------------------|
-| GPU 관리 | 불필요 (서버리스) | Karpenter 자동 프로비저닝 |
-| 모델 선택 | Bedrock 지원 모델 | 모든 Open Weight 모델 |
-| 운영 부담 | 최소 | 중간 (Auto Mode로 절감) |
-| 비용 최적화 | 사용량 기반 과금 | Spot, Consolidation 등 세밀 제어 |
-| 커스터마이징 | 제한적 | 완전한 유연성 |
+| GPU Management | Not required (serverless) | Karpenter auto-provisioning |
+| Model Selection | Bedrock-supported models | All Open Weight models |
+| Operational Burden | Minimal | Medium (reduced with Auto Mode) |
+| Cost Optimization | Usage-based pricing | Granular control: Spot, Consolidation, etc. |
+| Customization | Limited | Full flexibility |
 
-:::tip 어떤 접근을 선택할까?
-- **빠르게 시작하고 Agent 로직에 집중**: AWS Native 플랫폼
-- **Open Weight 모델 + 하이브리드 + 비용 최적화**: EKS 기반 오픈 아키텍처
-- **현실적 최적해**: 두 접근의 조합 (AWS Native로 시작, 필요 시 EKS로 확장)
+:::tip Which Approach to Choose?
+- **Quick start and focus on Agent logic**: AWS Native Platform
+- **Open Weight models + hybrid + cost optimization**: EKS-Based Open Architecture
+- **Realistic optimal solution**: Combination of both (start with AWS Native, expand to EKS as needed)
 :::
