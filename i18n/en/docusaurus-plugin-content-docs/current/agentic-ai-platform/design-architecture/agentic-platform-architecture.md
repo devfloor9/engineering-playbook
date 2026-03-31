@@ -1,6 +1,6 @@
 ---
 title: "Agentic AI Platform 아키텍처"
-sidebar_label: "플랫폼 아키텍처"
+sidebar_label: "Platform Architecture"
 description: "프로덕션급 Agentic AI 플랫폼의 전체 시스템 아키텍처, 핵심 레이어, 설계 원칙"
 tags: [architecture, agentic-ai, platform, kubernetes]
 category: "genai-aiml"

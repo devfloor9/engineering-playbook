@@ -1,6 +1,6 @@
 ---
 title: "보안 & 인증"
-sidebar_label: "보안 & 인증"
+sidebar_label: "Security & AuthN"
 description: "EKS API Server 인증/인가, IAM 통합, Pod Identity 등 보안 관련 베스트 프랙티스"
 tags: [eks, security, authentication, authorization, iam]
 sidebar_position: 3

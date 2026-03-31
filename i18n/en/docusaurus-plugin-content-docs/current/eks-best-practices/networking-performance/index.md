@@ -1,6 +1,6 @@
 ---
 title: "네트워크 & 성능 최적화"
-sidebar_label: "네트워크 & 성능"
+sidebar_label: "Networking & Performance"
 description: "EKS 환경에서의 DNS 최적화, East-West 트래픽, Gateway API 도입 등 네트워크 및 성능 관련 베스트 프랙티스"
 tags: [eks, networking, performance, dns, gateway-api]
 sidebar_position: 1

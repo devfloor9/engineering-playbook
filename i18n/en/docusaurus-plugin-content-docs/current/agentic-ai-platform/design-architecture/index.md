@@ -1,6 +1,6 @@
 ---
 title: "설계 & 아키텍처"
-sidebar_label: "설계 & 아키텍처"
+sidebar_label: "Design & Architecture"
 sidebar_position: 1
 ---
 

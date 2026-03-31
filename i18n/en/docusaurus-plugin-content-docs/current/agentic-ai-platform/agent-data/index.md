@@ -1,6 +1,6 @@
 ---
 title: "에이전트 & 데이터"
-sidebar_label: "에이전트 & 데이터"
+sidebar_label: "Agents & Data"
 sidebar_position: 4
 ---
 

@@ -1,6 +1,6 @@
 ---
 title: "AWS Native Agentic AI Platform: 매니지드 서비스 기반 Agent 중심 접근"
-sidebar_label: "AWS Native 플랫폼"
+sidebar_label: "AWS Native Platform"
 sidebar_position: 3
 description: "Amazon Bedrock, Strands Agents SDK, AgentCore를 활용하여 인프라 운영 부담을 줄이고 Agent 개발에 집중하는 플랫폼 접근"
 tags: [agentcore, bedrock, strands, aws-native, mcp, a2a]

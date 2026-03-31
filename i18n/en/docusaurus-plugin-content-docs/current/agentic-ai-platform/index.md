@@ -1,6 +1,6 @@
 ---
 title: "Agentic AI Platform"
-sidebar_label: "Agentic AI 플랫폼"
+sidebar_label: "Agentic AI Platform"
 description: "Agentic AI 플랫폼의 아키텍처, 구축, 운영에 대한 심화 기술 문서"
 tags: [eks, kubernetes, genai, agentic-ai, gpu, llm, platform]
 category: "genai-aiml"

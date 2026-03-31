@@ -1,6 +1,6 @@
 ---
 title: "리소스 & 비용 최적화"
-sidebar_label: "리소스 & 비용"
+sidebar_label: "Resources & Cost"
 description: "Karpenter 오토스케일링, Pod 리소스 최적화, EKS 비용 관리 전략"
 tags: [eks, karpenter, cost-management, resource-optimization, finops]
 sidebar_position: 4

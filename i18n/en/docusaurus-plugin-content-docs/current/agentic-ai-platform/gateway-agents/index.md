@@ -1,6 +1,6 @@
 ---
 title: "추론 게이트웨이 & 라우팅"
-sidebar_label: "추론 게이트웨이 & 라우팅"
+sidebar_label: "Inference Gateway & Routing"
 sidebar_position: 3
 ---
 

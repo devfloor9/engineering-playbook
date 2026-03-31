@@ -1,6 +1,6 @@
 ---
 title: "운영 & 안정성"
-sidebar_label: "운영 & 안정성"
+sidebar_label: "Operations & Reliability"
 description: "EKS 클러스터의 안정적인 운영을 위한 GitOps, 장애 진단, 고가용성, Pod 라이프사이클 관리 베스트 프랙티스"
 tags: [eks, operations, reliability, gitops, debugging, ha, pod-lifecycle]
 sidebar_position: 5

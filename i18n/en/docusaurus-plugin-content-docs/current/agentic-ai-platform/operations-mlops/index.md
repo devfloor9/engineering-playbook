@@ -1,6 +1,6 @@
 ---
 title: "운영 & MLOps"
-sidebar_label: "운영 & MLOps"
+sidebar_label: "Operations & MLOps"
 sidebar_position: 5
 ---
 

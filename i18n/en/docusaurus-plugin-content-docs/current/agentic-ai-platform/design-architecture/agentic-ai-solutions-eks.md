@@ -1,6 +1,6 @@
 ---
 title: "EKS 기반 Agentic AI 오픈 아키텍처"
-sidebar_label: "EKS 기반 오픈 아키텍처"
+sidebar_label: "EKS Open Architecture"
 description: "Amazon EKS와 오픈소스 생태계를 활용한 Agentic AI 플랫폼 구축 가이드"
 tags: [eks, aws, karpenter, genai, agentic-ai, gpu, solutions]
 category: "genai-aiml"

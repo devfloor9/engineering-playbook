@@ -1,6 +1,6 @@
 ---
 title: "Control Plane & 확장"
-sidebar_label: "Control Plane & 확장"
+sidebar_label: "Control Plane & Scaling"
 description: "EKS Control Plane 동작 원리, CRD 스케일링 전략, 멀티 클러스터 고가용성 아키텍처"
 tags: [eks, control-plane, crd, scaling, multi-cluster, ha]
 sidebar_position: 2

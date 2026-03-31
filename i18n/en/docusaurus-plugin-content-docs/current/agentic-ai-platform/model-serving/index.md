@@ -1,6 +1,6 @@
 ---
 title: "모델 서빙 & 추론 인프라"
-sidebar_label: "모델 서빙 & 추론 인프라"
+sidebar_label: "Model Serving & Inference"
 sidebar_position: 2
 ---
 
