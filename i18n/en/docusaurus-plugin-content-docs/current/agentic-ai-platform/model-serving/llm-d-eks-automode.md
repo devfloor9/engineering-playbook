@@ -5,7 +5,7 @@ description: "Kubernetes-native distributed inference deployment and operation g
 tags: [eks, llm-d, vllm, inference-gateway, gpu, auto-mode, karpenter, qwen, kv-cache]
 category: "genai-aiml"
 last_update:
-  date: 2026-03-16
+  date: 2026-03-30
   author: devfloor9
 sidebar_position: 4
 ---
@@ -29,9 +29,9 @@ import {
 
 # llm-d-based EKS Distributed Inference Deployment Guide
 
-> **📌 Current Version**: llm-d v0.4 (2025). Deployment examples in this document are based on the Intelligent Inference Scheduling well-lit path.
+> **Current Version**: llm-d v0.5+ (2026.03). Deployment examples in this document are based on the Intelligent Inference Scheduling well-lit path.
 
-> 📅 **Written**: 2026-02-10 | **Updated**: 2026-03-16 | ⏱️ **Reading Time**: Approximately 10 minutes
+> **Written**: 2026-02-10 | **Updated**: 2026-03-20 | **Reading Time**: Approximately 10 minutes
 
 ## Overview
 
@@ -41,21 +41,43 @@ While existing vLLM deployments rely on simple Round-Robin load balancing, llm-d
 
 llm-d can be deployed across various node management methods in EKS, and the optimal deployment method varies depending on model size and GPU utilization strategy. This document primarily covers deployment examples in **EKS Auto Mode** environments while also explaining differences and selection criteria for **Karpenter self-managed** environments.
 
-:::caution Deployment Strategy Selection: Auto Mode vs Karpenter
-llm-d's core value of KV Cache-aware routing **works identically regardless of deployment environment**. However, when **GPU resource partitioning (MIG, Time-Slicing)** is needed, you must choose Karpenter + GPU Operator environment instead of EKS Auto Mode.
+### Auto Mode Advantages and Limitations
 
-| Criteria | EKS Auto Mode | Auto Mode + GPU Operator | Karpenter + GPU Operator |
+EKS Auto Mode has the following advantages and limitations for GPU workloads.
+
+**Advantages:**
+
+- **Automatic GPU Driver Management**: AWS automatically installs and updates NVIDIA GPU drivers. Device Plugin is also managed by AWS.
+- **Automatic NodeClass Selection**: Using `default` NodeClass allows Auto Mode to automatically select optimal AMI and driver versions.
+- **Operational Simplification**: Removes operational burden of driver installation, CUDA version management, driver compatibility verification, etc.
+- **GPU Operator Installation Available**: GPU Operator can be installed on Auto Mode. Only disable Device Plugin with node label (`nvidia.com/gpu.deploy.device-plugin: "false"`), while DCGM Exporter, NFD, GFD, etc. operate normally. GPU Operator installation is recommended for projects depending on ClusterPolicy such as KAI Scheduler.
+
+**Limitations:**
+
+- **No MIG/Time-Slicing**: Auto Mode's NodeClass is AWS-managed (read-only), making GPU partitioning configuration impossible. GPU efficiency may be low with small models (7B~13B).
+- **No Custom AMI**: Cannot accommodate specific CUDA versions or driver pinning requirements with Auto Mode.
+
+:::tip GPU Operator + Auto Mode Hybrid Configuration
+Even on Auto Mode, installing GPU Operator allows collecting detailed GPU metrics (SM utilization, NVLink bandwidth, etc.) with DCGM Exporter. Refer to [ai-on-eks PR #288](https://github.com/awslabs/ai-on-eks/pull/288) pattern:
+- `driver.enabled: false`, `toolkit.enabled: false` (pre-installed in AMI)
+- NodePool label: `nvidia.com/gpu.deploy.device-plugin: "false"`
+- DCGM Exporter, NFD, GFD, MIG Manager: `enabled: true`
+:::
+
+**Auto Mode vs Karpenter + GPU Operator Comparison:**
+
+| Criteria | EKS Auto Mode | EKS Auto Mode + GPU Operator | Karpenter + GPU Operator |
 |------|:---:|:---:|:---:|
-| **Suitable Model Size** | 70B+ (Full GPU) | 70B+ (Full GPU) | 7B~30B (MIG partitionable) |
-| **GPU Driver Management** | AWS automatic | AWS automatic | Manual (GPU Operator) |
-| **GPU Operator** | Not installed | Installed (Device Plugin disabled) | Installed (full control) |
-| **DCGM Exporter** | Not available | Available | Available |
+| **Suitable Model Size** | 70B+ (Full GPU utilization) | 70B+ (Full GPU utilization) | 7B~30B (MIG partitionable) |
+| **GPU Driver Management** | AWS automatic | AWS automatic | Pre-installed in AMI (driver.enabled=false) |
+| **Device Plugin** | AWS managed | Disabled via label | GPU Operator managed |
+| **DCGM Monitoring** | Basic metrics only | DCGM Exporter detailed metrics | DCGM Exporter detailed metrics |
 | **MIG / Time-Slicing** | Not possible | Not possible | Possible |
-| **Operational Complexity** | Low | Low-Medium | Medium |
+| **KAI Scheduler** | Not possible | Possible (ClusterPolicy dependent) | Possible |
+| **Operational Complexity** | Low | Medium | Medium |
 | **GPU Cost Efficiency** | Optimal for large models | Optimal for large models | Optimal for small models |
 
-For detailed cost analysis by model size and decision flowchart, refer to [EKS GPU Node Strategy](./eks-gpu-node-strategy.md).
-:::
+For detailed cost analysis by model size, refer to [EKS GPU Node Strategy](./eks-gpu-node-strategy.md).
 
 :::warning llm-d Inference Gateway ≠ General-purpose Gateway API Implementation
 llm-d's Envoy-based Inference Gateway is a special-purpose gateway designed **exclusively for LLM inference requests**. Its purpose and scope differ from general-purpose Gateway API implementations (AWS LBC v3, Cilium, Envoy Gateway, etc.) that replace NGINX Ingress Controller.
@@ -80,6 +102,46 @@ In production environments, it's recommended that general-purpose Gateway API im
 llm-d provides three validated deployment paths.
 
 <WellLitPathTable />
+
+---
+
+## Prerequisites
+
+<PrerequisitesTable />
+
+### Client Tools Installation
+
+```bash
+# Install eksctl (macOS)
+brew install eksctl
+
+# Install helmfile
+brew install helmfile
+
+# Install yq
+brew install yq
+
+# Verify versions
+eksctl version
+kubectl version --client
+helm version
+helmfile --version
+yq --version
+```
+
+:::warning p5.48xlarge Quota Check
+p5.48xlarge uses 192 vCPUs. Verify that **Running On-Demand P instances** limit in AWS Service Quotas is at least 192. Quota increase requests may take 1-3 business days for approval.
+
+```bash
+# Check current P instance quota
+aws service-quotas get-service-quota \
+  --service-code ec2 \
+  --quota-code L-417A185B \
+  --region us-west-2 \
+  --query 'Quota.Value'
+```
+
+:::
 
 ---
 
@@ -231,6 +293,18 @@ For llm-d deployment in Karpenter + GPU Operator environments, only change the f
 3. **GPU Operator Installation**: `helm install gpu-operator nvidia/gpu-operator`
 
 For detailed configuration, refer to [EKS GPU Node Strategy — Karpenter + GPU Operator](./eks-gpu-node-strategy.md#4-karpenter--gpu-operator-optimal-combination).
+:::
+
+### llm-d vs Existing vLLM Deployment Comparison
+
+<VllmComparisonTable />
+
+### Reasons for Selecting Qwen3-32B Model
+
+<Qwen3SpecsTable />
+
+:::info Background for Selecting Qwen3-32B
+Qwen3-32B is llm-d's official default model and is commercially usable with Apache 2.0 license. It requires approximately 65GB VRAM with BF16 precision, allowing stable serving on H100 80GB with TP=2 (2× GPU).
 :::
 
 ---
@@ -790,15 +864,295 @@ env:
 
 ---
 
+## llm-d v0.5+ Major Features
+
+This guide covered the Intelligent Inference Scheduling path. Additional features supported in llm-d v0.5+:
+
+| Feature | Description | Status |
+|---------|-------------|:------:|
+| **Prefill/Decode Disaggregation** | Separate Prefill and Decode into separate Pod groups, maximizing throughput for large batches and long contexts | GA |
+| **Expert Parallelism** | Distribute Experts of MoE models (Mixtral, DeepSeek) across multiple nodes for serving | GA |
+| **LoRA Adapter Hot-swapping** | Dynamically load/unload multiple LoRA adapters on a single base model | GA |
+| **Multi-model Serving** | Simultaneously serve multiple models in one cluster using InferenceModel CRD | GA |
+| **Gateway API Inference Extension** | K8s-native routing based on InferencePool/InferenceModel CRD | GA |
+
+### Disaggregated Serving
+
+```yaml
+# Prefill Pod Group
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vllm-prefill
+  namespace: llm-d
+spec:
+  replicas: 2
+  template:
+    spec:
+      containers:
+        - name: vllm
+          image: vllm/vllm-openai:latest
+          args:
+            - "--model"
+            - "Qwen/Qwen3-32B"
+            - "--tensor-parallel-size"
+            - "4"
+            - "--disaggregated-prefill"   # Prefill-only mode
+          resources:
+            limits:
+              nvidia.com/gpu: 4
+---
+# Decode Pod Group
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vllm-decode
+  namespace: llm-d
+spec:
+  replicas: 4
+  template:
+    spec:
+      containers:
+        - name: vllm
+          image: vllm/vllm-openai:latest
+          args:
+            - "--model"
+            - "Qwen/Qwen3-32B"
+            - "--tensor-parallel-size"
+            - "2"
+            - "--disaggregated-decode"    # Decode-only mode
+          resources:
+            limits:
+              nvidia.com/gpu: 2
+```
+
+:::info Benefits of Disaggregated Serving
+- **Prefill**: Focus GPU computing on prompt processing (compute-bound)
+- **Decode**: Focus GPU memory on token generation (memory-bound)
+- Independently scale each stage to maximize GPU utilization
+- llm-d can also use **NIXL** in Disaggregated Serving sidecar for KV Cache transfer (NIXL is the common transfer engine used by most projects including Dynamo, llm-d, production-stack, aibrix)
+:::
+
+:::danger llm-d + DRA Node Constraints
+When llm-d ModelService requests GPUs using **DRA (ResourceClaim)** method, node provisioning does not work in Karpenter and EKS Auto Mode. Karpenter skips Pods with `spec.resourceClaims` ([PR #2384](https://github.com/kubernetes-sigs/karpenter/pull/2384)).
+
+This is not simply a CRD parsing issue but an architectural limitation — DRA's ResourceSlice is published by the DRA Driver after node creation, making it impossible for Karpenter to perform necessary simulations before node creation.
+
+**When deploying llm-d with DRA**: You must manage GPU nodes with **Managed Node Group + Cluster Autoscaler**. If both Prefill/Decode use DRA, both must run on MNG (mixing with Karpenter risks KV Cache transfer topology mismatch).
+
+**When deploying without DRA** (`nvidia.com/gpu` Device Plugin method): Works normally on Auto Mode and Karpenter. The deployment examples in this document use the Device Plugin method.
+
+**PoC Workaround**: Enabling Karpenter's `IGNORE_DRA_REQUESTS` flag allows provisioning based on nodeSelector/labels while ignoring DRA requirements, but is not recommended for production due to bin-packing errors and scale-down misjudgment risks.
+
+Details: [EKS GPU Node Strategy — MNG Strategy for DRA Workloads](./eks-gpu-node-strategy.md#56-dra-워크로드를-위한-managed-node-group-전략)
+:::
+
+### Disaggregated Serving on EKS Auto Mode
+
+Since MIG partitioning is not possible on EKS Auto Mode (NodeClass read-only), **separate Prefill/Decode roles at the instance (node) level**. GPU Operator can be installed, but MIG partitioning is only supported in Karpenter environments.
+
+```
+Prefill NodePool (compute-heavy):
+  p5.48xlarge × N nodes → Prefill Pods (each TP=4, 4 GPUs)
+  → Focus on prompt processing
+
+Decode NodePool (memory-heavy):
+  p5.48xlarge × N nodes → Decode Pods (each TP=2, 2 GPUs × 4 Pods/node)
+  → Focus on token generation
+```
+
+**Separate NodePools by role** and control Pod placement with taint/toleration.
+
+```yaml
+# Prefill-only NodePool
+apiVersion: karpenter.sh/v1
+kind: NodePool
+metadata:
+  name: gpu-prefill
+spec:
+  template:
+    metadata:
+      labels:
+        llm-d-role: prefill
+    spec:
+      requirements:
+        - key: eks.amazonaws.com/instance-family
+          operator: In
+          values: ["p5"]
+      nodeClassRef:
+        group: eks.amazonaws.com
+        kind: NodeClass
+        name: default
+      taints:
+        - key: llm-d-role
+          value: prefill
+          effect: NoSchedule
+---
+# Decode-only NodePool
+apiVersion: karpenter.sh/v1
+kind: NodePool
+metadata:
+  name: gpu-decode
+spec:
+  template:
+    metadata:
+      labels:
+        llm-d-role: decode
+    spec:
+      requirements:
+        - key: eks.amazonaws.com/instance-family
+          operator: In
+          values: ["p5"]
+      nodeClassRef:
+        group: eks.amazonaws.com
+        kind: NodeClass
+        name: default
+      taints:
+        - key: llm-d-role
+          value: decode
+          effect: NoSchedule
+```
+
+**Auto Mode vs Karpenter + GPU Operator Tradeoffs:**
+
+| Item | Auto Mode (Node Separation) | Karpenter + GPU Operator (MIG Separation) |
+|------|----------------------------|-------------------------------------------|
+| **Separation Unit** | Instance (node) | GPU unit (MIG partition) |
+| **Minimum Cost** | p5 × 2 nodes (~$197/hr) | p5 × 1 node (~$98/hr) + MIG partitioning |
+| **GPU Utilization** | Can optimize with Decode Pod TP=2 × 4 per node | MIG partitions within one GPU, high utilization |
+| **Operational Complexity** | Low | Medium (GPU Operator + MIG configuration) |
+| **Scaling** | Easy independent Prefill/Decode scaling | Interruption occurs when reconfiguring MIG within node |
+
+:::tip Minimize GPU Idle Time
+Using only TP=2 for Decode Pods allows placing 4 Decode Pods per p5.48xlarge (8 GPU) node to increase GPU utilization. Prefill Pods can also place 2 per node with TP=4.
+
+**Recommended Strategy**: First validate with Auto Mode, then transition to Karpenter + GPU Operator + MIG if cost optimization is needed.
+:::
+
+---
+
+## llm-d vs NVIDIA Dynamo
+
+llm-d and NVIDIA Dynamo both provide LLM inference routing/scheduling but with different approaches. For detailed comparison, refer to [NVIDIA GPU Stack — llm-d vs Dynamo](./nvidia-gpu-stack.md#llm-d-vs-dynamo-선택-가이드).
+
+| Item | llm-d | NVIDIA Dynamo |
+|------|-------|---------------|
+| **Led by** | Red Hat (Apache 2.0) | NVIDIA (Apache 2.0) |
+| **Architecture** | Aggregated + Disaggregated | Aggregated + Disaggregated (equal support) |
+| **KV Cache Transfer** | NIXL (network also supported) | NIXL (NVLink/RDMA ultra-fast) |
+| **KV Cache Indexing** | Prefix-aware routing | Flash Indexer (radix tree-based) |
+| **Routing** | Gateway API + Envoy EPP | Dynamo Router + custom EPP (Gateway API integration) |
+| **Pod Scheduling** | K8s default scheduler (no built-in) | KAI Scheduler (GPU-aware Pod placement) |
+| **Autoscaling** | HPA/KEDA integration | Planner (SLO-based: profiling → autoscale) + KEDA/HPA |
+| **K8s Integration** | Gateway API native (InferencePool/InferenceModel CRD) | Operator + CRD (DGDR) + Gateway API EPP |
+| **GPU Operator Required** | Optional (Auto Mode compatible) | Required (KAI Scheduler depends on ClusterPolicy) |
+| **Complexity** | Low | High |
+| **Strengths** | K8s native, lightweight, quick adoption | Flash Indexer, KAI Scheduler, Planner SLO autoscaling |
+
+:::tip Selection Guide
+- **EKS Auto Mode + Quick Start**: llm-d (GPU Operator optional, recommended for DCGM monitoring)
+- **Small-to-Medium Scale (≤16 GPUs)**: llm-d
+- **Large Scale (16+ GPUs), Maximum Throughput**: Dynamo (Flash Indexer + Planner SLO autoscaling)
+- **Long Context (128K+)**: Dynamo (3-tier KV Cache: GPU→CPU→SSD)
+- **K8s Gateway API Standards Compliance**: llm-d
+
+It's practical to start with llm-d and transition to Dynamo as scale increases. Both use NIXL for KV transfer. Dynamo 1.0 can integrate llm-d as an internal component, so rather than being complete alternatives, Dynamo can be viewed as a superset containing llm-d.
+:::
+
+### Leveraging Full Dynamo Features: Karpenter Transition
+
+GPU Operator can be installed on Auto Mode (only disable Device Plugin via label), but for Dynamo's **MIG-based GPU partitioning** and **maximum performance**, **Karpenter + GPU Operator** environment is recommended. KAI Scheduler (GPU-aware Pod placement) depends on ClusterPolicy so GPU Operator is required, and it can be used even on Auto Mode with GPU Operator installed.
+
+#### Why Karpenter is Needed
+
+NIXL (NVIDIA Inference Xfer Library) is the common KV transfer engine used by most projects including Dynamo, llm-d, production-stack, aibrix. It transfers KV Cache ultra-fast via direct GPU-to-GPU communication (NVLink/RDMA). To fully utilize GPUDirect RDMA, NCCL/EFA configuration provided by GPU Operator is needed, and this configuration is possible by installing GPU Operator even on Auto Mode. However, if MIG-based GPU partitioning is needed, transition to Karpenter is necessary.
+
+KAI Scheduler is a GPU-aware K8s Pod scheduler that performs optimal Pod placement by recognizing GPU topology and MIG slices (unrelated to autoscaling). It requires GPU Operator installation as it depends on ClusterPolicy. Even on Auto Mode, KAI Scheduler can be used by installing GPU Operator. Dynamo's autoscaling is handled by a separate **Planner** component — Run Profiling and provide results to Planner for automatic scaling based on SLO targets.
+
+#### Transition Checklist
+
+Steps for transition to leverage full Dynamo features.
+
+- [ ] **Create Karpenter-based EKS Cluster**: Install Karpenter on existing cluster or create new Karpenter-based cluster. Include custom AMI and GPU driver configuration in `EC2NodeClass`.
+- [ ] **Install GPU Operator**: Install GPU Operator with `helm install gpu-operator nvidia/gpu-operator --namespace gpu-operator --create-namespace --set driver.enabled=false --set toolkit.enabled=false` (AL2023/Bottlerocket AMI has pre-installed driver). DCGM Exporter, NFD, GFD, MIG Manager are automatically deployed.
+- [ ] **Enable DCGM Exporter**: Enabled by default when installing GPU Operator. Configure Prometheus ServiceMonitor to collect detailed GPU metrics (SM utilization, NVLink bandwidth, memory usage, etc.).
+- [ ] **Configure MIG (if needed)**: Configure MIG profiles when separating Prefill/Decode for small models. On H100, configure `3g.40gb` profile for Prefill-only, `1g.10gb` for Decode-only partitions.
+- [ ] **Install Dynamo Platform**: Install Dynamo Operator, KAI Scheduler, Planner, NIXL runtime with `helm install dynamo-platform nvidia/dynamo-platform --namespace dynamo-system --create-namespace`.
+- [ ] **Deploy Workloads with DGDR CRD**: Define workloads in Aggregated or Disaggregated mode using `DynamoGraphDeploymentRequest` CRD and enable ultra-fast KV Cache transfer via NIXL.
+- [ ] **Configure Planner**: Run Profiling and provide results to Planner to configure SLO-based autoscaling.
+
+#### Architecture Comparison
+
+```mermaid
+flowchart LR
+    subgraph AutoMode["Auto Mode + llm-d"]
+        direction TB
+        C1[Client] --> GW1[llm-d Gateway]
+        GW1 --> VP1[vLLM Pod 1]
+        GW1 --> VP2[vLLM Pod 2]
+        VP1 -.->|Network KV Transfer| VP2
+    end
+
+    subgraph KarpenterDynamo["Karpenter + Dynamo"]
+        direction TB
+        C2[Client] --> DR[Dynamo Router]
+        DR --> PW1[Prefill Worker 1]
+        DR --> PW2[Prefill Worker 2]
+        PW1 -->|NIXL/NVLink| DW1[Decode Worker 1]
+        PW2 -->|NIXL/NVLink| DW2[Decode Worker 2]
+        DW1 -.->|KVBM| SSD1[GPU→CPU→SSD]
+        KAI[KAI Scheduler<br/>GPU-aware Pod Placement] -.-> PW1
+        PLAN[Planner<br/>SLO Autoscaling] -.-> DR
+    end
+
+    style AutoMode fill:#f0f4ff,stroke:#326ce5
+    style KarpenterDynamo fill:#f0fff0,stroke:#76b900
+    style GW1 fill:#326ce5,color:#fff
+    style DR fill:#76b900,color:#fff
+    style KAI fill:#ff9900,color:#fff
+    style PLAN fill:#e91e63,color:#fff
+```
+
+#### Migration Path
+
+Step-by-step transition path to minimize operational risk while gradually improving performance.
+
+**Phase 1: Auto Mode + llm-d (Validation and Prototyping)**
+- Deploy llm-d on EKS Auto Mode to validate effects of KV Cache-aware routing.
+- Start quickly without GPU Operator, building model serving pipeline and monitoring system.
+- Suitable for: PoC, development environments, small production (≤16 GPUs)
+
+**Phase 1.5: Auto Mode + GPU Operator + llm-d (Enhanced Monitoring)**
+- Add GPU Operator installation on Auto Mode (disable Device Plugin via label).
+- Collect detailed GPU metrics with DCGM Exporter and enable GPU-aware Pod placement with KAI Scheduler.
+- Suitable for: Environments wanting to enhance monitoring/scheduling while maintaining Auto Mode convenience
+
+**Phase 2a: Karpenter + llm-d Disaggregated (MIG Utilization, Device Plugin Method)**
+- Transition to Karpenter + GPU Operator to enable MIG-based GPU partitioning.
+- Maximize throughput by separating Prefill/Decode with llm-d's Disaggregated Serving + NIXL.
+- Use Device Plugin method for GPU allocation (`nvidia.com/gpu`, `nvidia.com/mig-*`).
+- Suitable for: Medium production, environments where cost optimization is important
+
+**Phase 2b: MNG + DRA + llm-d (Advanced GPU Management)**
+- Transition to DRA (ResourceClaim) method to utilize attribute-based GPU selection and topology-aware scheduling.
+- **DRA not supported by Karpenter/Auto Mode** — Manage GPU nodes with Managed Node Group + Cluster Autoscaler.
+- Hybrid configuration maintaining non-GPU workloads on Karpenter/Auto Mode.
+- DRA is required for P6e-GB200 UltraServer environments (Device Plugin not supported).
+- Suitable for: DRA advanced features needed, P6e-GB200 environments, K8s 1.34+ clusters
+
+**Phase 3: Karpenter + Dynamo (Maximum Performance, Large Scale)**
+- Install Dynamo Platform to enable Flash Indexer (radix tree KV indexing) and Planner (SLO-based autoscaling).
+- GPU-aware Pod placement with KAI Scheduler, efficient handling of 128K+ long contexts with 3-tier KV Cache management (GPU→CPU→SSD).
+- Native integration with Gateway API via Dynamo's own EPP.
+- Suitable for: Large production (16+ GPUs), maximum throughput/lowest latency requirements
+
+:::caution Transition Considerations
+When transitioning from Phase 1 to Phase 2, cluster recreation may be needed. Auto Mode and Karpenter self-management can be mixed in the same cluster. In Phase 1.5, add `nvidia.com/gpu.deploy.device-plugin: "false"` label to Auto Mode NodePool to prevent Device Plugin conflicts.
+:::
+
+---
+
 ## Next Steps
-
-This guide covered llm-d's Intelligent Inference Scheduling path. You can explore advanced features as next steps.
-
-- **Prefill/Decode Disaggregation**: Separate Prefill and Decode stages into separate Pod groups to maximize throughput for large-batch processing and long-context workloads
-- **Expert Parallelism**: Distribute Experts of MoE models (Mixtral, DeepSeek, etc.) across multiple nodes for ultra-large model serving
-- **LoRA Adapter Hot-swapping**: Dynamically load/unload multiple LoRA adapters on single base model for multi-task serving
-- **Prometheus + Grafana Dashboard**: Configure real-time monitoring dashboard based on vLLM metrics
-- **Multi-model Serving**: Simultaneously serve multiple models in one llm-d cluster using InferenceModel CRD
 
 ### Related Documentation
 

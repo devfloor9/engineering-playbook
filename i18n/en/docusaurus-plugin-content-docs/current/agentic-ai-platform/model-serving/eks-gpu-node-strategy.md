@@ -5,7 +5,7 @@ description: "Optimal GPU workload-specific node strategies for EKS Auto Mode, K
 tags: [eks, gpu, auto-mode, karpenter, hybrid-node, gpu-operator, nvidia, run-ai]
 category: "genai-aiml"
 last_update:
-  date: 2026-03-16
+  date: 2026-03-30
   author: devfloor9
 sidebar_position: 6
 ---
@@ -52,16 +52,19 @@ AWS EKS provides 4 node types for GPU workloads:
 | **Privileged DaemonSet** | Limited | Possible | Possible | Possible |
 | **Root Filesystem** | Read-Only | Read-Write | Read-Write | Read-Write |
 | **SELinux** | Enforcing | Permissive | Permissive | User Configuration |
-| **MIG Support** | Not possible (GPU Operator needed) | Possible | Possible | Possible |
-| **DCGM Exporter** | Manual installation possible | Included in GPU Operator | Manual installation | Included in GPU Operator |
-| **Run:ai Compatible** | **Not possible** | **Possible** | Possible | Possible |
+| **MIG Support** | Not possible (NodeClass read-only) | Possible | Possible | Possible |
+| **DRA Compatible** | **Not possible** (internal Karpenter-based) | **Not possible** ([#1231](https://github.com/kubernetes-sigs/karpenter/issues/1231)) | **Possible** (Recommended) | Possible |
+| **DCGM Exporter** | GPU Operator auto-installs | Included in GPU Operator | Manual installation | Included in GPU Operator |
+| **Run:ai Compatible** | **Possible** (Device Plugin label disable) | **Possible** | Possible | Possible |
 | **Cost** | Low (no management needed) | Medium | Medium | Low (Capex) |
 | **Suitable Workload** | Simple Inference | Advanced GPU Features | Static Workload | On-Premises Integration |
 
 **Core Insights**:
 
-- **Auto Mode**: GPU drivers pre-installed for immediate use, but **cannot install GPU Operator**
-- **Karpenter**: Auto Mode's auto-scaling advantages + GPU Operator installation possible
+- **Auto Mode**: GPU drivers pre-installed for immediate use. GPU Operator installation possible but Device Plugin only disabled by label (DCGM, NFD, GFD work normally)
+- **Auto Mode + GPU Operator**: Can use KAI Scheduler, Run:ai, and other ClusterPolicy-dependent projects. MIG not possible due to NodeClass read-only constraint
+- **Karpenter + GPU Operator**: Maximum flexibility with MIG, Custom AMI, etc.
+- **Managed Node Group**: The only option for DRA (Dynamic Resource Allocation) workloads. Karpenter and Auto Mode don't support DRA
 - **Hybrid Node**: Integrate on-premises GPU servers into EKS (GPU Operator required)
 
 ---
@@ -111,163 +114,94 @@ spec:
     karpenter.sh/nodepool: auto-mode-gpu  # Auto Mode NodePool
 ```
 
-### 3.2 Why GPU Operator Cannot Be Installed on Auto Mode
+### 3.2 GPU Operator Installation on Auto Mode: Device Plugin Disable Pattern
 
-**Core: "It's not that we don't, it's that we can't"**
+GPU Operator can be **installed** on Auto Mode. The key is to **disable only the Device Plugin with node labels** while running the remaining components (DCGM Exporter, NFD, GFD, MIG Manager) normally. This pattern was validated in [awslabs/ai-on-eks PR #288](https://github.com/awslabs/ai-on-eks/pull/288).
 
-Many users ask "Can't I just install GPU Operator on Auto Mode?" But it's **technically impossible**.
+#### GPU Operator Component Status on Auto Mode
 
-#### Structural Constraints
+| GPU Operator Component | Auto Mode Setting | Reason |
+|---------------------|--------------|------|
+| **Driver** | `enabled: false` | Pre-installed in AMI (AL2023/Bottlerocket) |
+| **Container Toolkit** | `enabled: false` | Pre-installed in AMI |
+| **Device Plugin** | Label disable | AWS manages its own Device Plugin |
+| **DCGM Exporter** | `enabled: true` | Collect detailed GPU metrics |
+| **NFD** | `enabled: true` | Hardware feature detection |
+| **GFD** | `enabled: true` | GPU property labeling |
+| **MIG Manager** | `enabled: true` | Provides ClusterPolicy (actual MIG partitioning not possible due to NodeClass constraint) |
 
-| GPU Operator Operation | Required Permission | Auto Mode Status | Result |
-|-------------------|----------|---------------|------|
-| **Driver DaemonSet** | Write to host `/lib/modules` | Read-Only Filesystem | **FAIL** |
-| **Container Toolkit** | Write to host `/usr/bin`, `/etc/containerd` | Read-Only + AWS Managed | **FAIL** |
-| **Device Plugin** | Privileged DaemonSet | Already registered by AWS | **CONFLICT** |
-| **MIG Manager** | Execute `nvidia-smi` on host | Read-Only + No SSH | **FAIL** |
-| **DCGM Exporter** | GPU device access | Partially Possible | **PARTIAL** |
-
-#### 1) Read-Only Root Filesystem
-
-```bash
-# Cannot access Auto Mode nodes (SSH/SSM blocked)
-# If access were possible, would see state like:
-
-$ mount | grep "/ "
-/dev/nvme0n1p1 on / type ext4 (ro,relatime)
-# ↑ "ro" = read-only
-
-# GPU Operator Driver DaemonSet attempts:
-$ nvidia-installer --kernel-module-only
-ERROR: Unable to write to /lib/modules/5.15.0-1234-aws/
-ERROR: Filesystem is read-only
-```
-
-**GPU Operator's Driver DaemonSet must install kernel modules in host `/lib/modules`, but Auto Mode has Read-Only root filesystem.**
-
-#### 2) SELinux Enforcing
-
-```bash
-$ getenforce
-Enforcing
-
-# GPU Operator Container Toolkit attempts:
-$ ln -s /usr/bin/nvidia-container-toolkit /host/usr/bin/
-ln: failed to create symbolic link: SELinux policy denies access
-```
-
-**Auto Mode is fixed in SELinux Enforcing mode, blocking GPU Operator's host file modifications.**
-
-#### 3) Device Plugin Dual Registration Conflict
+#### NodePool Label Configuration
 
 ```yaml
-# Auto Mode already has AWS-managed Device Plugin running
-
-$ kubectl get pods -n kube-system | grep device-plugin
-nvidia-device-plugin-daemonset-aws-managed-xxxxx   1/1  Running
-
-# Installing GPU Operator:
-$ helm install gpu-operator nvidia/gpu-operator
-
-# Result: Two Device Plugins attempt to register same resource
-nvidia.com/gpu (AWS)
-nvidia.com/gpu (GPU Operator)
-
-# Kubelet error:
-E0316 12:34:56.789012  kubelet.go:2345] Failed to register resource provider:
-duplicate resource name "nvidia.com/gpu"
-```
-
-**Auto Mode's AWS-managed Device Plugin and GPU Operator's Device Plugin conflict when attempting to register same resource.**
-
-#### 4) No SSH / No SSM Access
-
-```bash
-# Auto Mode nodes block both SSH and SSM Session Manager
-$ aws ssm start-session --target i-0123456789abcdef
-An error occurred (TargetNotConnected): The specified target instance is not connected.
-
-# MIG configuration, driver upgrades, debugging all impossible
-$ nvidia-smi -mig 1
-ERROR: Cannot access node shell
-```
-
-**GPU Operator's MIG Manager requires node shell access, but Auto Mode blocks all access for security.**
-
-### 3.3 "What if I install with driver: false?" — Still doesn't work
-
-Some users try:
-
-```yaml
-# GPU Operator Helm Values
-driver:
-  enabled: false  # Skip driver since AWS already installed
-
-toolkit:
-  enabled: false  # Skip Container Toolkit
-
-devicePlugin:
-  enabled: true  # Use Device Plugin only
-
-migManager:
-  enabled: true  # Enable MIG management
-
-dcgm:
-  enabled: true  # Enable monitoring
-```
-
-**This method also fails. Reasons:**
-
-#### 1) Device Plugin Dual Registration Conflict (same as above)
-
-```yaml
-# AWS Device Plugin vs GPU Operator Device Plugin
-# Both attempt to register same nvidia.com/gpu resource → conflict
-```
-
-#### 2) MIG Manager Host Access Impossible
-
-```yaml
-# MIG Manager DaemonSet attempts:
-apiVersion: apps/v1
-kind: DaemonSet
+apiVersion: karpenter.sh/v1
+kind: NodePool
 metadata:
-  name: nvidia-mig-manager
+  name: gpu-auto-mode
 spec:
   template:
+    metadata:
+      labels:
+        nvidia.com/gpu.deploy.device-plugin: "false"  # Disable Device Plugin
     spec:
-      hostPID: true  # Host PID namespace access
-      containers:
-      - name: mig-manager
-        securityContext:
-          privileged: true
-        command:
-        - nvidia-smi
-        - -mig
-        - 1
-        volumeMounts:
-        - name: host-root
-          mountPath: /host
-          readOnly: false  # ← Requires write
+      requirements:
+        - key: eks.amazonaws.com/instance-family
+          operator: In
+          values: ["p5", "p4d", "g6e", "g5"]
+      nodeClassRef:
+        group: eks.amazonaws.com
+        kind: NodeClass
+        name: default
 ```
 
-**Cannot write MIG configuration files to `/etc/nvidia/mig/` due to Auto Mode's Read-Only Filesystem.**
-
-#### 3) Configuration Reset on Node Replacement
+#### Helm Values (for Auto Mode)
 
 ```yaml
-# Auto Mode frequently replaces nodes (Spot, Scale-down)
-# GPU Operator configuration has no persistence
-
-Node auto-mode-gpu-node-1 (RUNNING)
-  ├── GPU Operator DaemonSet deployed
-  └── MIG profile configured (exists only in memory)
-
-Node auto-mode-gpu-node-1 (TERMINATED)  # Auto Mode replaces node
-Node auto-mode-gpu-node-2 (NEW)         # New node: configuration reset
+driver:
+  enabled: false          # Pre-installed in AMI
+toolkit:
+  enabled: false          # Pre-installed in AMI
+devicePlugin:
+  enabled: true           # Global enable, selectively disable by node label
+dcgmExporter:
+  enabled: true
+  serviceMonitor:
+    enabled: true
+nfd:
+  enabled: true
+gfd:
+  enabled: true
+migManager:
+  enabled: true
+nodeStatusExporter:
+  enabled: false
+sandboxDevicePlugin:
+  enabled: false
 ```
 
-**Auto Mode manages nodes as Stateless, so GPU Operator configurations aren't maintained.**
+:::caution Actual Auto Mode Constraints
+GPU Operator installation is possible, but the following are not possible because Auto Mode NodeClass is read-only:
+- **MIG Partitioning**: Cannot set MIG profile in NodeClass (GPU Operator's MIG Manager installs and provides ClusterPolicy, but actual GPU partitioning cannot be applied)
+- **Custom AMI**: Cannot pin specific driver version
+- **SSH/SSM Access**: Cannot directly debug nodes
+
+If you need MIG-based GPU partitioning, switch to Karpenter + GPU Operator.
+:::
+
+### 3.3 Why KAI Scheduler and Run:ai Need GPU Operator
+
+KAI Scheduler, Run:ai, and several other projects depend on GPU Operator's **ClusterPolicy CRD**. Without ClusterPolicy, these projects won't even start.
+
+```
+ClusterPolicy CRD (GPU Operator)
+  ↓ depends on
+KAI Scheduler (GPU-aware Pod placement)
+Run:ai (Fractional GPU, Gang Scheduling)
+  ↓ reads
+DCGM Exporter (GPU metrics)
+NFD/GFD (hardware labels)
+```
+
+This is why GPU Operator must be installed even on Auto Mode. If you disable only the Device Plugin, the remaining components work normally, ClusterPolicy is created, and dependent projects operate correctly.
 
 ---
 
@@ -280,11 +214,11 @@ Karpenter maintains Auto Mode's auto-scaling advantages while fully utilizing GP
 | Feature | Auto Mode | Karpenter | Self-Managed Node Group |
 |------|-----------|-----------|------------------------|
 | **Auto Scaling** | Automatic (AWS Control) | Automatic (NodePool Based) | Manual (ASG Based) |
-| **GPU Operator** | Not possible | Possible | Possible |
+| **GPU Operator** | Possible (Device Plugin disable) | Possible | Possible |
 | **Custom AMI** | Not possible | Possible | Possible |
 | **Root Filesystem** | Read-Only | Read-Write | Read-Write |
-| **MIG Support** | Not possible | Possible | Possible |
-| **Run:ai Compatible** | Not possible | Possible | Possible |
+| **MIG Support** | Not possible (NodeClass read-only) | Possible | Possible |
+| **Run:ai Compatible** | Possible (Device Plugin disable) | Possible | Possible |
 | **Spot Instance** | Limited | Full Support | Limited |
 | **Node Replacement Speed** | Fast | Very Fast | Slow (ASG) |
 | **Cost Optimization** | AWS Automatic | User Control | User Control |
@@ -899,14 +833,126 @@ Job Queueing:
 | **GPU Operator + Run:ai** | YES | Enterprise GPU management (recommended) |
 | **DCGM Only** | YES | Bare-metal environment GPU monitoring |
 | **Run:ai Only** | NO | GPU Operator required (Driver, Plugin needed) |
-| **Auto Mode + Run:ai** | NO | Cannot install GPU Operator |
-| **Auto Mode + DCGM Exporter** | YES | Manual installation possible (limited) |
+| **Auto Mode + Run:ai** | YES | GPU Operator installation + Device Plugin label disable |
+| **Auto Mode + DCGM Exporter** | YES | GPU Operator installation (limited features) |
 
 **Core Insights**:
 
 - **Run:ai operates only above GPU Operator** (Driver, Device Plugin required)
-- **Auto Mode cannot install GPU Operator, so Run:ai impossible**
+- **Auto Mode can install GPU Operator with Device Plugin label disable → Run:ai usable**
 - **Karpenter + GPU Operator + Run:ai = Optimal enterprise GPU platform configuration**
+
+---
+
+## 5.6 DRA Workloads with Managed Node Group Strategy
+
+DRA (Dynamic Resource Allocation) was promoted to GA in K8s 1.34, providing advanced GPU management beyond Device Plugin including fine-grained GPU memory allocation, MIG/MPS/Time-Slicing selection, and NVLink topology-aware scheduling. **However, DRA cannot be used with Karpenter and EKS Auto Mode.**
+
+:::danger DRA + Karpenter/Auto Mode Incompatibility
+Karpenter skips node provisioning when it detects `spec.resourceClaims` in Pods ([PR #2384](https://github.com/kubernetes-sigs/karpenter/pull/2384)). EKS Auto Mode uses Karpenter internally, so the same constraint applies. Node management for DRA workloads is only officially supported with **Managed Node Group**.
+
+This isn't just a CRD interpretation issue. Karpenter simulates Pod requirements to calculate optimal instances, but DRA's ResourceSlice is only published by the DRA Driver after nodes exist, making **pre-node-creation simulation impossible** (chicken-and-egg problem). In contrast, Cluster Autoscaler makes simple decisions like "Pending Pod exists, scale up MNG" without needing to interpret DRA.
+
+**Reference**: [AWS EKS Official Documentation — Manage hardware devices](https://docs.aws.amazon.com/eks/latest/userguide/device-management.html)
+:::
+
+#### Karpenter `IGNORE_DRA_REQUESTS` Workaround (PoC Use Only)
+
+Enabling Karpenter's `IGNORE_DRA_REQUESTS` flag allows ignoring DRA requirements and provisioning nodes based on nodeSelector/labels.
+
+```yaml
+# Enable DRA ignore in Karpenter
+env:
+  - name: IGNORE_DRA_REQUESTS
+    value: "true"
+
+---
+# NodePool: GPU label matching
+apiVersion: karpenter.sh/v1
+kind: NodePool
+metadata:
+  name: gpu-dra-h100
+spec:
+  template:
+    metadata:
+      labels:
+        gpu-class: h100-80gb
+    spec:
+      requirements:
+        - key: node.kubernetes.io/instance-type
+          operator: In
+          values: ["p5.48xlarge"]
+
+---
+# DRA Pod: instance hint via label + GPU allocation via ResourceClaim
+apiVersion: v1
+kind: Pod
+spec:
+  nodeSelector:
+    gpu-class: h100-80gb          # Karpenter provisions based on this
+  resourceClaims:
+    - name: gpu
+      resourceClaimTemplateName: gpu-claim  # kube-scheduler handles this
+```
+
+**Operation**: Karpenter ignores ResourceClaim → matches NodePool by nodeSelector → provisions node → DRA Driver deploys → kube-scheduler matches DRA → Pod placement
+
+:::warning Not Recommended for Production
+
+| Risk | Description |
+|---|---|
+| **Bin-packing errors** | Karpenter doesn't know DRA resource consumption, may overcommit GPU capacity |
+| **Scale-down misjudgment** | May consider nodes using DRA resources as empty |
+| **Temporary flag** | Will be removed when official DRA support arrives |
+
+Use only for PoC/single Pod-per-Node configurations. **For production, use MNG + Cluster Autoscaler.**
+:::
+
+### DRA Hybrid Architecture
+
+```mermaid
+flowchart TB
+    subgraph Cluster["EKS Cluster (K8s 1.34+)"]
+        subgraph MNG["Managed Node Group (GPU)"]
+            DRA_D[NVIDIA DRA Driver]
+            GPU_OP[GPU Operator]
+            RS[ResourceSlice]
+            LLMD_P[llm-d Prefill Pod<br/>ResourceClaim]
+            LLMD_D[llm-d Decode Pod<br/>ResourceClaim]
+        end
+
+        subgraph Karp["Karpenter / Auto Mode"]
+            API[API Gateway]
+            AGENT[Agent Framework]
+            MON[Observability]
+            VLLM[vLLM Pod<br/>nvidia.com/gpu]
+        end
+    end
+
+    CA[Cluster Autoscaler] -.->|Scale-out| MNG
+    KEDA_OP[KEDA] -.->|Pod Scaling| LLMD_D
+
+    style MNG fill:#76b900
+    style Karp fill:#ff9900
+    style CA fill:#326ce5
+```
+
+**Core Configuration Principles:**
+
+| Workload | Node Type | GPU Allocation | Scaling |
+|---|---|---|---|
+| DRA workloads (llm-d, P6e-GB200) | **Managed Node Group** | ResourceClaim (DRA) | Cluster Autoscaler |
+| General GPU inference (vLLM standalone) | Karpenter / Auto Mode | `nvidia.com/gpu` (Device Plugin) | Karpenter dynamic provisioning |
+| Non-GPU workloads | Karpenter / Auto Mode | - | Karpenter dynamic provisioning |
+
+### DRA Scale-out: KEDA + Cluster Autoscaler
+
+GPU node provisioning takes several minutes, so scale-out should start proactively based on LLM metrics before Pods go Pending:
+
+1. **Proactive**: KEDA monitors KV Cache usage, TTFT, queued requests → Pod scale-out
+2. **Reactive**: Pod Pending occurs → Cluster Autoscaler increases MNG desired capacity → GPU node provisioning
+
+For detailed configuration, see [GPU Resource Management — DRA Scale-out Strategy](./gpu-resource-management.md#dra-scale-out-strategy).
 
 ---
 
@@ -1490,11 +1536,13 @@ flowchart TD
 | GPU Not Needed | - | Auto Mode | Not needed | Minimize cost |
 | Simple GPU Inference | MIG unnecessary | Auto Mode GPU | Not needed | Fast deployment |
 | MIG Needed | - | Karpenter | Required | MIG Manager needed |
+| **DRA Needed** | - | **Managed Node Group** | **Required** | **Karpenter/Auto Mode unsupported** |
 | Fractional GPU | - | Karpenter | Required | Run:ai needed |
 | Run:ai Scheduling | - | Karpenter | Required | GPU Operator based |
 | On-Premises GPU | - | Hybrid Node | Required | No AWS driver |
 | Minimize Cost | Allow Spot | Karpenter Spot | Required | Flexible Spot management |
 | Large-scale Training | Gang Scheduling | Karpenter + Run:ai | Required | Guarantee simultaneous start |
+| **P6e-GB200** | DRA required | **Managed Node Group** | **Required** | Device Plugin unsupported |
 
 ---
 
@@ -1504,29 +1552,32 @@ flowchart TD
 
 | Scenario | Node Type | GPU Operator | Run:ai | Configuration Complexity | Cost |
 |----------|-----------|--------------|--------|------------|------|
-| **Simple GPU Inference** | Auto Mode | Not needed | Not possible | Low | Low |
+| **Simple GPU Inference** | Auto Mode | Optional | Optional (Device Plugin disable) | Low | Low |
 | **MIG-based Inference** | Karpenter | Required | Optional | Medium | Medium |
+| **DRA-based GPU Management** | **Managed Node Group** | Required | Optional | Medium | Medium |
 | **Fractional GPU** | Karpenter | Required | Required | High | Medium |
 | **Model Training** | Karpenter | Required | Optional | Medium | High |
 | **Gang Scheduling** | Karpenter | Required | Required | High | High |
+| **P6e-GB200 UltraServer** | **Managed Node Group** | Required | Optional | High | High |
 | **On-Premises GPU** | Hybrid Node | Required | Optional | High | Low (Capex) |
 | **Hybrid Cloud** | Auto + Karpenter + Hybrid | Partially Required | Optional | Very High | Mixed |
 
 ### 10.2 Core Principles
 
-**1. Understand Auto Mode Constraints**
+**1. Understand Auto Mode Characteristics**
 
 ```yaml
-# Auto Mode cannot install GPU Operator (technically impossible)
-Reasons:
-  - Read-Only Root Filesystem
-  - SELinux Enforcing
-  - Device Plugin dual registration conflict
-  - No SSH / SSM Access
+# Auto Mode can install GPU Operator (Device Plugin disable pattern)
+Pattern:
+  - driver.enabled: false (pre-installed in AMI)
+  - toolkit.enabled: false (pre-installed in AMI)
+  - NodePool label: nvidia.com/gpu.deploy.device-plugin: "false"
+  - DCGM Exporter, NFD, GFD: work normally
 
-Conclusion:
-  → MIG, Run:ai, automatic DCGM installation impossible
-  → Only simple GPU inference possible
+Constraints:
+  → MIG partitioning not possible (NodeClass read-only)
+  → Custom AMI not possible
+  → SSH/SSM access not possible
 ```
 
 **2. Karpenter is the Optimal Balance Point**
@@ -1563,15 +1614,63 @@ Conclusion:
   → Cloud + on-premises hybrid strategy
 ```
 
-### 9.3 Recommended Architecture
+### 10.3 Current Optimal Configuration (2026.03)
+
+For most LLM serving environments, DRA is not yet essential. Device Plugin + MIG combination sufficiently covers GPU partitioning and topology placement, and Karpenter's fast scale-out is more advantageous for LLM serving SLO than MNG + Cluster Autoscaler.
+
+#### Recommended: Karpenter + GPU Operator (Device Plugin)
+
+```mermaid
+flowchart TB
+    subgraph Cluster["EKS Cluster (K8s 1.33+)"]
+        subgraph KarpGPU["Karpenter + GPU Operator"]
+            NP_PF[NodePool: gpu-prefill<br/>p5.48xlarge]
+            NP_DC[NodePool: gpu-decode<br/>p5.48xlarge]
+            NP_SM[NodePool: gpu-small<br/>g6e.12xlarge]
+            PF[Prefill Pod<br/>nvidia.com/gpu: 4]
+            DC[Decode Pod<br/>nvidia.com/gpu: 2]
+            SM[Small Model Pod<br/>nvidia.com/mig-3g.40gb]
+        end
+
+        subgraph AutoMode["Auto Mode (Non-GPU)"]
+            GW[Gateway]
+            AGENT[Agent Framework]
+            MON[Observability]
+        end
+    end
+
+    KEDA[KEDA<br/>KV Cache / TTFT] -.->|Pod Scaling| DC
+    DCGM[DCGM Exporter] -.->|Metrics| KEDA
+
+    NP_PF --> PF
+    NP_DC --> DC
+    NP_SM --> SM
+
+    style KarpGPU fill:#326ce5
+    style AutoMode fill:#ff9900
+    style KEDA fill:#9c27b0
+```
+
+**Why This Configuration is Optimal:**
+
+| Criterion | Karpenter + Device Plugin | MNG + DRA |
+|---|---|---|
+| **Scale-out Speed** | Fast (Karpenter) | Slow (Cluster Autoscaler) |
+| **GPU Partitioning** | MIG support (GPU Operator) | DRA native |
+| **Operational Complexity** | Single stack | MNG + Karpenter mixed |
+| **llm-d Compatibility** | Device Plugin fully supported | DRA supported (MNG only) |
+| **K8s Version** | 1.32+ | 1.34+ (DRA GA) |
+| **Ecosystem Maturity** | Production validated | Early stage |
+
+#### Scale-based Recommendations
 
 **Small Startup (< 32 GPUs)**
 
 ```yaml
-Configuration: Auto Mode Only
-  - Simple GPU inference
-  - Minimize management overhead
-  - GPU Operator unnecessary
+Configuration: Auto Mode + Karpenter (GPU dedicated)
+  - Auto Mode: General workloads
+  - Karpenter: GPU inference (Device Plugin)
+  - GPU Operator: DCGM monitoring
 
 Cost: $5,000 - $15,000/month
 Complexity: Low
@@ -1580,9 +1679,10 @@ Complexity: Low
 **Medium Enterprise (32 - 128 GPUs)**
 
 ```yaml
-Configuration: Auto Mode + Karpenter
-  - Auto Mode: General workload + simple inference
-  - Karpenter: MIG-based inference, DCGM monitoring
+Configuration: Karpenter + GPU Operator + KEDA
+  - Karpenter NodePool: Separate Prefill / Decode / Small models
+  - GPU Operator: MIG, DCGM, NFD/GFD
+  - KEDA: Pod scaling based on KV Cache / TTFT
 
 Cost: $15,000 - $80,000/month
 Complexity: Medium
@@ -1591,20 +1691,38 @@ Complexity: Medium
 **Large Enterprise (> 128 GPUs)**
 
 ```yaml
-Configuration: Auto Mode + Karpenter + Hybrid Node
-  - Auto Mode: System workload
-  - Karpenter: GPU Operator + Run:ai
-  - Hybrid Node: On-premises GPU farm
+Configuration: Karpenter + GPU Operator + Run:ai + Hybrid Node
+  - Karpenter: GPU Operator + Run:ai (Fractional GPU, Gang Scheduling)
+  - Hybrid Node: On-premises GPU farm integration
+  - When introducing P6e-GB200: Add MNG + DRA (hybrid)
 
 Cost: $80,000 - $500,000/month (cloud) + Capex (on-premises)
 Complexity: High
 ```
 
+#### DRA Transition Timing
+
+| Condition | Transition Required |
+|---|---|
+| **P6e-GB200 UltraServer introduction** | Required (Device Plugin unsupported) |
+| **Multi-Node NVLink / IMEX needed** | Required (ComputeDomain DRA-only) |
+| **CEL-based fine-grained GPU attribute selection** | Recommended |
+| **GPU sharing (MPS)** | Recommended |
+| **Karpenter DRA support GA** | Optimal transition point (MNG unnecessary) |
+
+:::tip Transition Strategy
+**Now**: Karpenter + GPU Operator (Device Plugin + MIG) — fastest production-ready configuration
+
+**When introducing P6e-GB200**: MNG (DRA, GPU) + Karpenter (non-GPU) hybrid
+
+**After Karpenter DRA GA**: Karpenter + DRA integration — final target configuration
+:::
+
 ---
 
-## 10. Next Steps & References
+## 11. Next Steps & References
 
-### 10.1 Next Steps
+### 11.1 Next Steps
 
 1. **Test EKS Auto Mode**
    ```bash
@@ -1629,7 +1747,7 @@ Complexity: High
    sudo ./hybrid-installer.sh --cluster-name test-cluster
    ```
 
-### 10.2 References
+### 11.2 References
 
 **AWS Official Documentation**
 
@@ -1662,6 +1780,6 @@ Complexity: High
 
 ---
 
-**Last Updated**: 2026-03-16
+**Last Updated**: 2026-03-30
 **Author**: devfloor9
 **Tags**: `eks` `gpu` `auto-mode` `karpenter` `hybrid-node` `gpu-operator` `nvidia` `run-ai`

@@ -1,11 +1,11 @@
 ---
 title: "EKS GPU Cluster Dynamic Resource Management"
 sidebar_label: "GPU Resource Management"
-description: "Karpenter-based GPU node scaling, KEDA autoscaling, DRA dynamic resource allocation, and cost optimization strategies in Amazon EKS environment"
-tags: [eks, gpu, karpenter, autoscaling, resource-management, dra, keda]
+description: "GPU node scaling in Amazon EKS with Karpenter, KEDA autoscaling, DRA dynamic resource allocation (MNG required), and cost optimization strategies"
+tags: [eks, gpu, karpenter, autoscaling, resource-management, dra, keda, managed-node-group]
 category: "genai-aiml"
 last_update:
-  date: 2026-03-20
+  date: 2026-03-30
   author: devfloor9
 sidebar_position: 2
 ---
@@ -14,10 +14,21 @@ import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 import { SpecificationTable, ComparisonTable } from '@site/src/components/tables';
 import { DraLimitationsTable, ScalingDecisionTable } from '@site/src/components/GpuResourceTables';
+import {
+  SpotInstancePricingInference,
+  SavingsPlansPricingTraining,
+  SmallScaleCostCalculation,
+  MediumScaleCostCalculation,
+  LargeScaleCostCalculation,
+  CostOptimizationStrategies,
+  CostOptimizationDetails,
+  TrainingCostOptimization,
+  KarpenterGpuOptimization
+} from '@site/src/components/AgenticSolutionsTables';
 
 # EKS GPU Cluster Dynamic Resource Management
 
-> 📅 **Created**: 2025-02-09 | **Updated**: 2026-03-20 | ⏱️ **Reading Time**: Approximately 8 minutes
+> 📅 **Created**: 2025-02-09 | **Updated**: 2026-03-30 | ⏱️ **Reading Time**: Approximately 10 minutes
 
 
 ## Overview
@@ -309,10 +320,24 @@ Kubernetes versions 1.33 and 1.34 introduced several important features for GPU 
 - **K8s 1.26-1.30**: Alpha (feature gate required, `v1alpha2` API)
 - **K8s 1.31**: Promoted to Beta, enabled by default (`v1alpha2` API)
 - **K8s 1.32**: Transition to new implementation (KEP #4381), `v1beta1` API (disabled by default)
-- **K8s 1.33+**: `v1beta1` API stabilization, significant performance improvements, production-ready
-- **K8s 1.34+**: DRA prioritized alternatives support, enhanced scheduling
+- **K8s 1.33+**: `v1beta1` API stabilization, significant performance improvements
+- **K8s 1.34+**: **DRA GA (Stable)**, enabled by default, prioritized alternatives support
 - In EKS 1.32+, you must explicitly enable the `DynamicResourceAllocation` feature gate to use DRA.
-- In EKS 1.33+, DRA is enabled by default and ready for stable production use.
+- In EKS 1.33+, DRA is enabled by default. **Production use is recommended with K8s 1.34+ (DRA GA).**
+:::
+
+:::danger DRA Node Compatibility Constraints (As of March 2026)
+
+**DRA is not compatible with Karpenter and EKS Auto Mode.** To use DRA, you must use **EKS Managed Node Group** or **Self-Managed Node Group**.
+
+| Node Provisioning | DRA Compatible | Notes |
+|---|---|---|
+| **Managed Node Group** | ✅ Supported | Recommended |
+| **Self-Managed Node Group** | ✅ Supported | Manual configuration required |
+| **Karpenter** | ❌ Not Supported | Skips Pods with `ResourceClaim` ([#1231](https://github.com/kubernetes-sigs/karpenter/issues/1231)) |
+| **EKS Auto Mode** | ❌ Not Supported | Same limitation (Karpenter-based internally) |
+
+**Reference**: [AWS EKS Official Documentation — Manage hardware devices](https://docs.aws.amazon.com/eks/latest/userguide/device-management.html)
 :::
 
 In early Kubernetes, GPU resource allocation used the **Device Plugin** model. This model has the following fundamental limitations:
@@ -321,27 +346,87 @@ In early Kubernetes, GPU resource allocation used the **Device Plugin** model. T
 
 **DRA (Dynamic Resource Allocation)** was introduced as Alpha in Kubernetes 1.26 and promoted to Beta in 1.31+, overcoming these limitations.
 
+#### Technical Reason Why Karpenter Cannot Support DRA
+
+This is not simply a CRD interpretation issue, but an **architectural limitation of node provisioning**.
+
+**Difference Between Scheduling vs Provisioning:**
+
+| Stage | Role | DRA Support |
+|---|---|---|
+| **Pod Scheduling** (kube-scheduler) | Place Pod on existing node | ✅ Native support |
+| **Node Provisioning** (Karpenter) | Create new node | ❌ Simulation impossible |
+
+Karpenter analyzes Pod requirements to calculate the optimal instance for **"nodes that don't yet exist"**. This calculation is impossible with DRA:
+
+1. **ResourceSlice requires node existence**: DRA Driver publishes ResourceSlice after detecting GPU on the node, but Karpenter needs this information before node creation (chicken-and-egg problem)
+2. **No instance→ResourceSlice mapping**: With Device Plugin, we can statically know `p5.48xlarge → nvidia.com/gpu: 8`, but with DRA, ResourceSlice content varies by Driver implementation
+3. **Cannot simulate CEL expressions**: DRA uses CEL to select devices, but the ResourceSlice attribute values needed for evaluation don't exist before node creation
+
+In contrast, **Cluster Autoscaler works without interpreting DRA**. CA makes a simple decision: "There's a Pending Pod, so scale up the pre-defined MNG," so it doesn't need to simulate which instance is required.
+
+#### Karpenter `IGNORE_DRA_REQUESTS` Workaround
+
+Karpenter has an `IGNORE_DRA_REQUESTS` flag. When enabled, Karpenter ignores DRA requirements and provisions nodes based on remaining conditions like nodeSelector/labels.
+
+```yaml
+# Enable DRA ignore in Karpenter configuration
+env:
+  - name: IGNORE_DRA_REQUESTS
+    value: "true"
+```
+
+**Workflow:**
+
+```
+Pod (ResourceClaim + nodeSelector: gpu-class=h100)
+  → Karpenter: Ignore ResourceClaim, check nodeSelector
+    → NodePool matching → Provision p5.48xlarge
+      → Deploy DRA Driver → Publish ResourceSlice
+        → kube-scheduler: Match ResourceClaim ↔ ResourceSlice → Place Pod
+```
+
+:::warning IGNORE_DRA_REQUESTS Limitations
+
+This flag is for **PoC/testing purposes** and requires caution in production:
+
+- **Bin-packing errors**: Karpenter doesn't know DRA resource consumption, so may place more Pods on one node than GPU capacity allows
+- **Scale-down misjudgment**: May judge nodes in use as empty because it doesn't recognize DRA resources
+- **Temporary flag**: Will be removed when formal DRA support is added
+- **Dual management**: Must manage GPU intent in two places (DRA ResourceClaim and nodeSelector labels), risking inconsistency
+
+**Production recommendation**: MNG + Cluster Autoscaler
+:::
+
 #### DRA Core Concepts
 
 DRA is a new paradigm that separates **declarative resource requests from immediate allocation**:
 
 ```mermaid
 flowchart LR
-    A[Pod Creation<br/>ResourceClaim] -->|Pending| B[Karpenter<br/>Analysis]
-    B -->|Resource Shortage| C[Node<br/>Provisioning]
-    C -->|Ready| D[DRA<br/>Controller]
+    A[Pod Creation<br/>ResourceClaim] -->|Pending| B[kube-scheduler<br/>DRA Analysis]
+    B -->|Select Node| D[DRA<br/>Driver]
     D -->|Allocated| E[Pod<br/>Binding]
     E -->|Reserved| F[Pod<br/>Scheduling]
     F -->|InUse| G[Pod<br/>Running]
 
     H[Quota] -.->|Check| D
-    I[Partitioning<br/>Policy] -.->|Apply| D
+    I[DeviceClass<br/>Policy] -.->|Apply| D
+
+    B -.->|Capacity Shortage| CA[Cluster<br/>Autoscaler]
+    CA -->|MNG Scale-out| N[GPU Node<br/>Provisioning]
+    N -->|Deploy DRA Driver| D
 
     style A fill:#f5f5f5
     style D fill:#326ce5
     style E fill:#76b900
     style G fill:#ffd93d
+    style CA fill:#ff9900
 ```
+
+:::warning This flow does not work with Karpenter/Auto Mode
+Even when DRA Pods enter Pending state, Karpenter skips Pods with `ResourceClaim`. Node scale-out for DRA workloads only works with **Managed Node Group + Cluster Autoscaler** combination.
+:::
 
 #### ResourceClaim Lifecycle
 
@@ -435,19 +520,101 @@ To transition from one state to the next, specific conditions must be met:
 :::tip DRA Selection Guide
 **When to use DRA:**
 
-- When GPU partitioning is needed (MIG, time-slicing)
-- Fair resource distribution required in multi-tenant environments
-- When resource priority needs to be applied
-- When dynamic scaling is critical
-- **K8s 1.33+ environment**: DRA `v1beta1` API stabilization, production use recommended
-- **K8s 1.34+ environment**: Leverage enhanced scheduling with DRA prioritized alternatives
+- GPU partitioning needed (MIG, time-slicing, MPS)
+- Multi-tenant environment requiring attribute-based (CEL) GPU selection
+- Topology-aware scheduling (NVLink, NUMA, IMEX)
+- P6e-GB200 UltraServer environment (DRA required, Device Plugin not supported)
+- **K8s 1.34+ environment**: DRA GA, production use recommended
+
+**Before using DRA, verify:**
+
+- **Node Provisioning**: Managed Node Group or Self-Managed Node Group required
+- **Cannot use Karpenter/Auto Mode**: Skips DRA Pods, scale-out impossible
+- **NVIDIA DRA Driver (v25.3.0+)** and **GPU Operator (v25.3.0+)** installation required
 
 **When Device Plugin is sufficient:**
 
 - Simply allocating GPUs in whole units
+- **Using Karpenter or EKS Auto Mode** for node management
+- Kubernetes version is 1.33 or earlier
 - Legacy system compatibility is important
-- Kubernetes version is 1.32 or earlier
 :::
+
+### DRA Workload GPU Scale-out Strategy
+
+DRA workloads cannot use Karpenter/Auto Mode's dynamic provisioning, so you must configure scale-out with **MNG + Cluster Autoscaler + KEDA** combination.
+
+#### Scale-out Decision Criteria: 2-Stage Strategy
+
+In LLM serving workloads, you must start scale-out **before** Pod Pending occurs. GPU node provisioning takes several minutes, so a purely reactive approach cannot guarantee SLO.
+
+**Stage 1 (Proactive): KEDA + LLM Metrics → Pod Scale-out**
+
+```yaml
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: llm-decode-scaler
+spec:
+  scaleTargetRef:
+    name: llm-decode
+  minReplicaCount: 2
+  maxReplicaCount: 8
+  triggers:
+    # KV Cache saturation — Most sensitive signal for LLM serving
+    - type: prometheus
+      metadata:
+        query: |
+          avg(vllm_gpu_cache_usage_perc{model="exaone"})
+        threshold: "80"
+    # Number of waiting requests
+    - type: prometheus
+      metadata:
+        query: |
+          sum(vllm_num_requests_waiting{model="exaone"})
+        threshold: "10"
+    # Approaching TTFT SLO violation
+    - type: prometheus
+      metadata:
+        query: |
+          histogram_quantile(0.95,
+            rate(vllm_time_to_first_token_seconds_bucket[5m]))
+        threshold: "2"
+```
+
+**Stage 2 (Reactive): Cluster Autoscaler → MNG Node Scale-out**
+
+When Pods enter Pending state, Cluster Autoscaler increases the MNG's desired capacity.
+
+```yaml
+# Cluster Autoscaler configuration (for DRA GPU nodes)
+- --expander=priority          # Specify GPU node group priority
+- --scale-down-enabled=false   # Disable GPU node scale-down (CBR environment)
+- --max-node-provision-time=15m # Consider GPU node provisioning time
+```
+
+**Scaling Chain:**
+
+```
+LLM Metrics (KV Cache, TTFT, Queue)
+  → KEDA: Pod scale-out
+    → kube-scheduler: Attempt ResourceClaim matching
+      ├─ Success → Place on existing node
+      └─ Failure → Pod Pending
+           → Cluster Autoscaler: MNG +1
+             → New GPU node → Install DRA Driver
+               → Create ResourceSlice → Place Pod
+```
+
+#### Disaggregated Serving Scale-out Criteria
+
+When operating separate Prefill and Decode, each role has different bottleneck signals:
+
+| | Prefill | Decode |
+|---|---|---|
+| **Bottleneck Signal** | TTFT increase, input queue backlog | TPS decrease, KV Cache saturation |
+| **Scale Criteria** | Input token processing wait time | Number of concurrent generation sessions |
+| **Scale Unit** | GPU compute intensive | GPU memory intensive |
 
 ### Topology-Aware Routing Utilization
 
@@ -654,17 +821,72 @@ To ensure Model B's minimum SLA during resource reallocation, you must set `minR
 
 ## Cost Optimization Strategies
 
-### Spot Instance Utilization
+### GPU Workload Cost Comparison
 
-Reduce costs by up to 90% by utilizing GPU Spot instances.
+Compare cost efficiency of various GPU instance types based on actual AWS pricing.
+
+#### Inference Workload Cost Comparison (Hourly)
+
+<SpotInstancePricingInference />
+
+#### Training Workload Cost Comparison (Hourly)
+
+<SavingsPlansPricingTraining />
+
+#### Monthly Cost Scenarios (24/7 Operation)
+
+**Scenario 1: Small-scale Inference Service (g5.2xlarge x 2)**
+
+<SmallScaleCostCalculation />
+
+**Scenario 2: Medium-scale Inference Service (g5.12xlarge x 4)**
+
+<MediumScaleCostCalculation />
+
+**Scenario 3: Large-scale Training Cluster (p4d.24xlarge x 8)**
+
+<LargeScaleCostCalculation />
+
+#### Cost Optimization Strategy Effects
+
+<CostOptimizationStrategies />
+
+:::tip Practical Cost Optimization Tips
+
+**Inference Workloads:**
+1. Use Spot instances by default (70% savings)
+2. Remove idle nodes with Karpenter Consolidation (additional 20% savings)
+3. Schedule-based resource reduction during off-hours (additional 30% savings)
+4. **Total savings effect: approximately 85%**
+
+**Training Workloads:**
+1. 1-year Savings Plans commitment (35% savings)
+2. Use Spot instances for experimental training (additional 40% savings)
+3. Checkpoint-based restart for Spot interruptions
+4. **Total savings effect: approximately 60%**
+:::
+
+### Karpenter-based Cost Optimization Strategies
+
+Karpenter is the **key lever** for GPU infrastructure cost optimization. Maximum benefits can be achieved by combining the following 4 strategies.
+
+<KarpenterGpuOptimization />
+
+#### Strategy 1: Prioritize Spot Instance Utilization
+
+Utilizing Karpenter's Spot instance support can reduce GPU costs by **up to 90%**.
 
 ```yaml
 apiVersion: karpenter.sh/v1
 kind: NodePool
 metadata:
-  name: gpu-spot-pool
+  name: gpu-spot-inference
 spec:
   template:
+    metadata:
+      labels:
+        cost-tier: spot
+        workload: inference
     spec:
       requirements:
         - key: karpenter.sh/capacity-type
@@ -676,6 +898,7 @@ spec:
             - g5.12xlarge
             - g5.24xlarge
             - g5.48xlarge
+            - p4d.24xlarge
       nodeClassRef:
         group: karpenter.k8s.aws
         kind: EC2NodeClass
@@ -692,8 +915,109 @@ spec:
   disruption:
     consolidationPolicy: WhenEmpty
     consolidateAfter: 30s
-  weight: 50
+  weight: 50  # Prefer over On-Demand
 ```
+
+#### Strategy 2: Schedule-based Cost Management
+
+Apply differentiated resource policies based on business and off-business hours.
+
+```yaml
+apiVersion: karpenter.sh/v1
+kind: NodePool
+metadata:
+  name: gpu-scheduled-pool
+spec:
+  template:
+    spec:
+      requirements:
+        - key: karpenter.sh/capacity-type
+          operator: In
+          values: ["on-demand", "spot"]
+        - key: node.kubernetes.io/instance-type
+          operator: In
+          values:
+            - g5.12xlarge
+            - g5.24xlarge
+      nodeClassRef:
+        group: karpenter.k8s.aws
+        kind: EC2NodeClass
+        name: gpu-nodeclass
+  limits:
+    nvidia.com/gpu: 16
+  disruption:
+    consolidationPolicy: WhenEmptyOrUnderutilized
+    consolidateAfter: 30s
+    budgets:
+      # Business hours: Prioritize stability (minimize node disruption)
+      - nodes: "10%"
+        schedule: "0 9 * * 1-5"
+        duration: 9h
+      # Off-hours: Prioritize cost (aggressive consolidation)
+      - nodes: "50%"
+        schedule: "0 18 * * 1-5"
+        duration: 15h
+      # Weekends: Maintain minimum resources
+      - nodes: "80%"
+        schedule: "0 0 * * 0,6"
+        duration: 24h
+```
+
+#### Strategy 3: Remove Idle Resources Through Consolidation
+
+```yaml
+apiVersion: karpenter.sh/v1
+kind: NodePool
+metadata:
+  name: gpu-consolidation-pool
+spec:
+  disruption:
+    # Consolidate when nodes are empty or underutilized
+    consolidationPolicy: WhenEmptyOrUnderutilized
+    # Quick consolidation for cost savings (consolidate after 30s wait)
+    consolidateAfter: 30s
+```
+
+#### Strategy 4: Workload-specific Instance Optimization
+
+```yaml
+# For small models (7B and below) - Cost efficient
+apiVersion: karpenter.sh/v1
+kind: NodePool
+metadata:
+  name: gpu-small-models
+spec:
+  template:
+    spec:
+      requirements:
+        - key: node.kubernetes.io/instance-type
+          operator: In
+          values:
+            - g5.xlarge      # 1x A10G - $1.01/hr
+            - g5.2xlarge     # 1x A10G - $1.21/hr
+  weight: 100  # Top priority
+
+---
+# For large models (70B+) - Performance priority
+apiVersion: karpenter.sh/v1
+kind: NodePool
+metadata:
+  name: gpu-large-models
+spec:
+  template:
+    spec:
+      requirements:
+        - key: node.kubernetes.io/instance-type
+          operator: In
+          values:
+            - p4d.24xlarge   # 8x A100 - $32.77/hr
+            - p5.48xlarge    # 8x H100 - $98.32/hr
+  weight: 10   # Select only when necessary
+```
+
+#### Cost Optimization Strategy Detailed Comparison
+
+<CostOptimizationDetails />
 
 :::warning Spot Instance Cautions
 
@@ -702,6 +1026,7 @@ spec:
 - **Availability**: Spot availability for specific instance types may be low, so specifying various types is recommended
 
 :::
+
 
 ### Spot Interruption Handling
 
@@ -758,6 +1083,83 @@ spec:
         duration: 8h
 ```
 
+### LLMOps Cost Governance
+
+Complete cost visibility requires tracking both infrastructure costs and token-level costs. A hybrid strategy using **LangSmith for development/staging environments** and **Langfuse for production environments** is recommended.
+
+#### 2-Tier Cost Tracking Strategy
+
+Complete cost visibility requires tracking both **infrastructure level** and **application level** costs.
+
+```mermaid
+flowchart LR
+    subgraph "Infrastructure Layer"
+        LITE["Bifrost<br/>Infrastructure Cost Tracking"]
+        METRICS["Model Unit Price × Tokens<br/>Team Budget Management"]
+    end
+
+    subgraph "Application Layer"
+        LANGFUSE["Langfuse<br/>Application Cost Tracking"]
+        APP_METRICS["Agent Step-by-step Cost<br/>Chain Latency<br/>Trace Analysis"]
+    end
+
+    LITE --> METRICS
+    LANGFUSE --> APP_METRICS
+```
+
+**Bifrost (Infrastructure Level):**
+- Set model token unit price (GPT-4: $0.03/1K, Claude: $0.015/1K)
+- Team/project budget allocation and real-time monitoring
+- Monthly cost reporting and alerts
+
+**Langfuse (Application Level):**
+- Track token consumption for each step in Agent workflows
+- End-to-end latency and cost for entire chains
+- Trace-based performance bottleneck analysis
+
+This 2-Tier strategy enables simultaneous understanding of "which models are being used and how much" (infrastructure) and "which features are driving costs" (application).
+
+#### Cost Monitoring Dashboard Configuration
+
+```yaml
+# Prometheus cost-related metrics collection rules
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: gpu-cost-rules
+  namespace: monitoring
+spec:
+  groups:
+    - name: gpu-cost
+      rules:
+        - record: gpu:hourly_cost:sum
+          expr: |
+            sum(
+              karpenter_nodes_total_pod_requests{resource_type="nvidia.com/gpu"}
+              * on(instance_type) group_left()
+              aws_ec2_instance_hourly_cost
+            )
+        - alert: HighGPUCostAlert
+          expr: gpu:hourly_cost:sum > 100
+          for: 1h
+          labels:
+            severity: warning
+          annotations:
+            summary: "Hourly GPU cost exceeded $100"
+```
+
+### Training Infrastructure Cost Optimization
+
+<TrainingCostOptimization />
+
+:::tip Training Infrastructure Best Practices
+
+1. **Production Training**: Ensure stability with On-Demand instances
+2. **Experimentation/Tuning**: Cost savings with Spot instances
+3. **Checkpointing**: Periodic saves to FSx for Lustre
+4. **Monitoring**: Track training progress with TensorBoard + Prometheus
+:::
+
 ### Cost Optimization Checklist
 
 <SpecificationTable
@@ -769,6 +1171,21 @@ spec:
     { id: '4', cells: ['Schedule-based Scaling', 'Reduce resources during off-hours', '30-40%'] }
   ]}
 />
+
+:::tip Cost Optimization Execution Checklist
+
+1. **Spot Instance Ratio**: Operate 70%+ of inference workloads on Spot
+2. **Enable Consolidation**: Clean up idle nodes within 30 seconds
+3. **Schedule-based Policy**: Reduce resources by 50%+ during off-hours
+4. **Right-sizing**: Automatic selection of instance types matching model size
+:::
+
+:::warning Cost Optimization Cautions
+
+- Graceful shutdown implementation required to minimize service impact during Spot instance interruptions
+- Excessive Consolidation can cause scale-out delays
+- Balance between cost savings and SLA compliance needs to be established
+:::
 
 :::tip Cost Monitoring
 
@@ -851,10 +1268,10 @@ Dynamic resource management of EKS GPU clusters is a critical factor determining
 
 ### Key Points
 
-1. **Karpenter Utilization**: Maximize resource efficiency through automatic provisioning and cleanup of GPU nodes
-2. **DRA-based Management**: Dynamic allocation and partitioning of GPU resources with Dynamic Resource Allocation
-3. **KEDA Integration**: Workload autoscaling based on GPU metrics
-4. **Spot Instances**: Cost reduction by utilizing Spot for appropriate workloads
+1. **Node Strategy Separation**: DRA workloads use Managed Node Group, general workloads use Karpenter/Auto Mode
+2. **DRA Compatibility**: DRA not supported on Karpenter/Auto Mode — MNG + Cluster Autoscaler required
+3. **KEDA Integration**: GPU metrics-based workload autoscaling (KV Cache, TTFT, queue depth)
+4. **Spot Instances**: Cost reduction by utilizing Spot for appropriate workloads (non-DRA workloads)
 5. **Consolidation**: Cost optimization through automatic cleanup of idle resources
 
 ### Next Steps
