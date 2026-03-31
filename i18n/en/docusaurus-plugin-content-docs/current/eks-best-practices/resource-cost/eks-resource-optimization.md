@@ -259,10 +259,10 @@ Actual Usage > Memory Limit
 # Check OOM Score per process
 cat /proc/<PID>/oom_score
 
-# OOM Score Calculation 요소
+# OOM Score Calculation factors
 # 1. Memory usage (higher usage = higher score)
 # 2. oom_score_adj value (varies by QoS class)
-# 3. 루트 Process 보호 (-1000 = 절대 Kill 안 함)
+# 3. root process protection (-1000 = never killed)
 ```
 
 :::danger Memory Limits Must Be Set
@@ -273,13 +273,13 @@ Memory is an incompressible resource, so **limits must be set**:
 - Possibility of Kernel Panic
 - Affects other Pods (node eviction)
 
-**Recommended 설정:**
+**Recommended settings:**
 - `requests = limits` (Guaranteed QoS)
 - or `limits = requests * 1.5` (Burstable QoS)
 - JVM applications: Set heap size to 75% of limits
 :::
 
-#### Memory 리소스 설정 Example
+#### Memory Resource Configuration Example
 
 ```yaml
 # Pattern 1: Guaranteed QoS (Stability First)
@@ -360,7 +360,7 @@ spec:
     image: busybox
     resources:
       requests:
-        ephemeral-storage: "2Gi"    # 최소 Guarantee
+        ephemeral-storage: "2Gi"    # minimum guaranteed
       limits:
         ephemeral-storage: "4Gi"    # Maximum usage
     volumeMounts:
@@ -375,7 +375,7 @@ spec:
 **Ephemeral Storage Includes:**
 - Container layer writes
 - Log files (`/var/log`)
-- emptyDir 볼륨
+- emptyDir volumes
 - Temporary files
 
 **Node Eviction Threshold:**
@@ -502,24 +502,24 @@ spec:
       nodeClassRef:
         name: default
 
-  # Spot 중단 처리
+  # Spot interruption handling
   disruption:
     consolidationPolicy: WhenUnderutilized
     expireAfter: 720h
 
-  # 리소스 제한
+  # Resource limits
   limits:
     cpu: "1000"
     memory: "1000Gi"
 
 ---
-# Fallback: x86 On-Demand (Spot 불가 시)
+# Fallback: x86 On-Demand (when Spot unavailable)
 apiVersion: karpenter.sh/v1beta1
 kind: NodePool
 metadata:
   name: x86-ondemand-fallback
 spec:
-  weight: 10  # 낮은 우선순위
+  weight: 10  # low priority
   template:
     spec:
       requirements:
@@ -539,12 +539,12 @@ spec:
         name: default
 ```
 
-**Auto Mode에서의 자동 처리:**
+**Automatic handling in Auto Mode:**
 
-Auto Mode는 위와 같은 NodePool 구성을 수동으로 작성할 필요 없이, Pod의 리소스 요구사항과 워크로드 특성을 분석하여 자동으로 최적 인스턴스를 선택합니다.
+Auto Mode automatically selects optimal instances by analyzing Pod resource requirements and workload characteristics, without requiring manual NodePool configuration.
 
 ```yaml
-# Auto Mode 환경에서 개발자가 작성하는 Deployment
+# Deployment written by developer in Auto Mode environment
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -556,7 +556,7 @@ spec:
     spec:
       containers:
       - name: nginx
-        image: nginx:1.25-arm64  # Graviton용 이미지
+        image: nginx:1.25-arm64  # Graviton image
         resources:
           requests:
             cpu: "250m"
@@ -564,51 +564,51 @@ spec:
           limits:
             memory: "1Gi"
 
-      # Auto Mode가 자동으로:
-      # 1. Graviton Spot 인스턴스 선택 시도
-      # 2. Spot 불가 시 Graviton On-Demand로 Fallback
-      # 3. 인스턴스 타입 자동 선택 (m7g.large 등)
-      # 4. 노드 프로비저닝 및 Pod 배치
+      # Auto Mode automatically:
+      # 1. Try Graviton Spot instance selection
+      # 2. Fallback to Graviton On-Demand when Spot unavailable
+      # 3. Automatic instance type selection (m7g.large, etc.)
+      # 4. Node provisioning and Pod placement
 ```
 
-:::tip Graviton 이미지 준비
-Graviton 인스턴스를 활용하려면 **arm64 아키텍처 컨테이너 이미지**가 필요합니다. 대부분의 공식 이미지는 multi-arch를 지원하므로, 동일한 이미지 태그로 Graviton과 x86 모두에서 Executing 가능합니다.
+:::tip Preparing Graviton Images
+To utilize Graviton instances, **arm64 architecture container images** are required. Since most official images support multi-arch, the same image tag can run on both Graviton and x86.
 
 ```bash
-# multi-arch 이미지 확인
+# Check multi-arch image
 docker manifest inspect nginx:1.25 | jq '.manifests[].platform'
 
-# 출력 Example:
+# Output example:
 # { "architecture": "amd64", "os": "linux" }
 # { "architecture": "arm64", "os": "linux" }
 ```
 :::
 
-**실제 비용 절감 Example:**
+**Actual Cost Savings Example:**
 
-| 시나리오 | 인스턴스 타입 | 시간당 비용 | 월간 비용 (730시간) | 절감률 |
+| Scenario | Instance Type | Hourly Cost | Monthly Cost (730 hours) | Savings |
 |---------|-------------|-----------|-------------------|--------|
 | x86 On-Demand | m6i.2xlarge | $0.384 | $280.32 | - |
 | Graviton On-Demand | m7g.2xlarge | $0.3264 | $238.27 | 15% |
 | Graviton Spot | m7g.2xlarge | $0.0979 | $71.47 | 75% |
 
-10개 노드 기준:
-- x86 On-Demand: $2,803/월
-- Graviton On-Demand: $2,383/월 (15% 절감)
-- **Graviton Spot: $715/월 (75% 절감)** ⭐
+10 nodes baseline:
+- x86 On-Demand: $2,803/month
+- Graviton On-Demand: $2,383/month (15% savings)
+- **Graviton Spot: $715/month (75% savings)** ⭐
 
-**Graviton4 특화 최적화:**
+**Graviton4-Specific Optimization:**
 
-Graviton4 (R8g, M8g, C8g) 인스턴스는 Graviton3 대비 **30% 향상된 컴퓨팅 성능**과 **75% 향상된 메모리 대역폭**을 제공합니다.
+Graviton4 (R8g, M8g, C8g) instances provide **30% improved computing performance** and **75% improved memory bandwidth** compared to Graviton3.
 
-| 세대 | 인스턴스 패밀리 | 성능 개선 | 주요 워크로드 |
+| Generation | Instance Family | Performance Improvement | Primary Workloads |
 |------|---------------|---------|-------------|
-| Graviton3 | m7g, c7g, r7g | 기준 | 범용 웹/API, 컨테이너 |
-| **Graviton4** | **m8g, c8g, r8g** | **+30% 컴퓨팅, +75% 메모리** | **고성능 데이터베이스, ML 추론, 실시간 분석** |
+| Graviton3 | m7g, c7g, r7g | baseline | general-purpose web/API, containers |
+| **Graviton4** | **m8g, c8g, r8g** | **+30% computing, +75% memory** | **high-performance databases, ML inference, real-time analytics** |
 
-**ARM64 Multi-Arch 빌드 파이프라인:**
+**ARM64 Multi-Arch Build Pipeline:**
 
-Graviton 인스턴스를 최대한 활용하려면 ARM64와 AMD64를 모두 지원하는 multi-arch 컨테이너 이미지가 필요합니다.
+To fully utilize Graviton instances, multi-arch container images supporting both ARM64 and AMD64 are required.
 
 ```dockerfile
 # Multi-arch Dockerfile Example
@@ -618,16 +618,16 @@ ARG TARGETOS TARGETARCH
 WORKDIR /app
 COPY . .
 
-# 타겟 아키텍처에 맞게 빌드
+# Build for target architecture
 RUN GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -o app .
 
-# 런타임 이미지
+# Runtime image
 FROM alpine:3.19
 COPY --from=builder /app/app /usr/local/bin/app
 ENTRYPOINT ["/usr/local/bin/app"]
 ```
 
-**GitHub Actions CI/CD에서 multi-arch 빌드:**
+**Multi-arch build in GitHub Actions CI/CD:**
 
 ```yaml
 # .github/workflows/build.yml
@@ -655,7 +655,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          platforms: linux/amd64,linux/arm64  # ARM64 포함
+          platforms: linux/amd64,linux/arm64  # Include ARM64
           push: true
           tags: |
             ${{ secrets.ECR_REGISTRY }}/myapp:${{ github.sha }}
@@ -664,10 +664,10 @@ jobs:
           cache-to: type=gha,mode=max
 ```
 
-**Graviton3 → Graviton4 마이그레이션 벤치마크 포인트:**
+**Graviton3 → Graviton4 Migration Benchmark Points:**
 
 ```yaml
-# Graviton4 우선 NodePool Example (Karpenter)
+# Graviton4 priority NodePool Example (Karpenter)
 apiVersion: karpenter.sh/v1beta1
 kind: NodePool
 metadata:
@@ -676,11 +676,11 @@ spec:
   template:
     spec:
       requirements:
-      # Graviton4 우선, Graviton3 Fallback
+      # Graviton4 priority, Graviton3 Fallback
       - key: node.kubernetes.io/instance-type
         operator: In
         values:
-          # Graviton4 (최우선)
+          # Graviton4 (highest priority)
           - "m8g.medium"
           - "m8g.large"
           - "m8g.xlarge"
@@ -711,157 +711,157 @@ spec:
     memory: "2000Gi"
 ```
 
-**Graviton4 성능 벤치마크 체크포인트:**
+**Graviton4 Performance Benchmark Checkpoints:**
 
-마이그레이션 시 다음 메트릭을 모니터링하여 성능 개선을 검증합니다:
+Monitor these metrics during migration to verify performance improvements:
 
-| 메트릭 | Graviton3 기준 | Graviton4 목표 | 측정 방법 |
+| Metric | Graviton3 Baseline | Graviton4 Target | Measurement Method |
 |-------|--------------|--------------|---------|
-| **P99 응답 시간** | 100ms | 70ms (-30%) | Prometheus `http_request_duration_seconds` |
-| **처리량 (RPS)** | 1000 req/s | 1300 req/s (+30%) | Load testing (k6, Locust) |
-| **메모리 대역폭** | 205 GB/s | 358 GB/s (+75%) | `sysbench memory` |
-| **CPU 사용률** | 60% | 45% (-25%) | `node_cpu_seconds_total` |
+| **P99 response time** | 100ms | 70ms (-30%) | Prometheus `http_request_duration_seconds` |
+| **Throughput (RPS)** | 1000 req/s | 1300 req/s (+30%) | Load testing (k6, Locust) |
+| **Memory bandwidth** | 205 GB/s | 358 GB/s (+75%) | `sysbench memory` |
+| **CPU utilization** | 60% | 45% (-25%) | `node_cpu_seconds_total` |
 
 ```bash
-# Graviton4 성능 테스트 스크립트
+# Graviton4 performance test script
 #!/bin/bash
-# 1. 메모리 대역폭 테스트
+# 1. Memory bandwidth test
 sysbench memory --memory-total-size=100G --memory-oper=write run
 
-# 2. CPU 벤치마크
+# 2. CPU benchmark
 sysbench cpu --cpu-max-prime=20000 --threads=8 run
 
-# 3. 애플리케이션 부하 테스트 (k6)
+# 3. Application load test (k6)
 k6 run --vus 100 --duration 5m loadtest.js
 
-# 4. Prometheus 메트릭 수집
+# 4. Prometheus metrics collection
 curl -s http://localhost:9090/api/v1/query?query=rate(http_request_duration_seconds_sum[5m]) | jq .
 ```
 
-:::tip Graviton4 마이그레이션 체크리스트
+:::tip Graviton4 Migration Checklist
 
-- [ ] **컨테이너 이미지**: ARM64 지원 확인 (`docker manifest inspect`)
-- [ ] **의존성 라이브러리**: ARM64 호환성 검증
-- [ ] **CI/CD 파이프라인**: Multi-arch 빌드 활성화
-- [ ] **NodePool 우선순위**: Graviton4 → Graviton3 → x86 순서 설정
-- [ ] **성능 벤치마크**: P99 레이턴시, 처리량, CPU 사용률 측정
-- [ ] **비용 분석**: Graviton3 대비 가격/성능 비율 계산
+- [ ] **Container images**: Verify ARM64 support (`docker manifest inspect`)
+- [ ] **Dependency libraries**: Verify ARM64 compatibility
+- [ ] **CI/CD pipeline**: Enable multi-arch builds
+- [ ] **NodePool priority**: Set Graviton4 → Graviton3 → x86 order
+- [ ] **Performance benchmark**: Measure P99 latency, throughput, CPU utilization
+- [ ] **Cost analysis**: Calculate price/performance ratio compared to Graviton3
 :::
 
-#### 2.5.4 Auto Mode 환경의 리소스 설정 Recommended사항
+#### 2.5.4 Resource Configuration Recommendations in Auto Mode
 
-Auto Mode는 많은 부분을 자동화하지만, 개발자는 여전히 애플리케이션의 리소스 요구사항을 정확히 설정해야 합니다.
+Auto Mode automates many aspects, but developers must still accurately configure application resource requirements.
 
-**Auto Mode가 자동 처리하는 항목:**
+**Items Auto Mode handles automatically:**
 
 | Item | Manual Management | Auto Mode |
 |------|----------|-----------|
-| 노드 프로비저닝 | Karpenter, Managed Node Group 설정 | 자동 |
-| 인스턴스 타입 선택 | NodePool에서 수동 지정 | Pod requests 기반 자동 선택 |
-| Spot/On-Demand 전환 | 수동 or Karpenter 설정 | 자동 Fallback |
-| 노드 스케일링 | HPA + Cluster Autoscaler/Karpenter | 자동 |
-| OS 패치 | 수동 or 자동화 스크립트 | 자동 (무중단) |
+| Node provisioning | Karpenter, Managed Node Group configuration | Automatic |
+| Instance type selection | Manual specification in NodePool | Automatic selection based on Pod requests |
+| Spot/On-Demand switching | Manual or Karpenter configuration | Automatic Fallback |
+| Node scaling | HPA + Cluster Autoscaler/Karpenter | Automatic |
+| OS patching | Manual or automation scripts | Automatic (zero-downtime) |
 
-**개발자가 여전히 설정해야 하는 항목:**
+**Items developers must still configure:**
 
-| 항목 | Reasons | Recommended 방법 |
+| Item | Reasons | Recommended Method |
 |------|------|----------|
-| **CPU Requests** | 스케줄링 결정 기준 | P95 사용량 + 20% |
-| **Memory Requests** | 스케줄링 및 OOM 방지 | P95 사용량 + 20% |
-| **Memory Limits** | OOM Kill 방지 (필수) | Requests × 1.5~2 |
-| **CPU Limits** | 일반 워크로드는 미설정 Recommended | 배치 작업만 설정 |
-| **HPA 메트릭** | 수평 확장 기준 | CPU 70%, Custom Metrics |
+| **CPU Requests** | Scheduling decision criteria | P95 usage + 20% |
+| **Memory Requests** | Scheduling and OOM prevention | P95 usage + 20% |
+| **Memory Limits** | OOM Kill prevention (required) | Requests × 1.5~2 |
+| **CPU Limits** | Not recommended for general workloads | Set for batch jobs only |
+| **HPA metrics** | Horizontal scaling criteria | CPU 70%, Custom Metrics |
 
-**Auto Mode 환경에서의 VPA Role 변화:**
+**VPA Role Changes in Auto Mode:**
 
 ```mermaid
 graph TB
-    subgraph "수동 관리 클러스터"
-        A1[VPA Recommender] --> A2[Recommended사항 생성]
+    subgraph "Manual Management Cluster"
+        A1[VPA Recommender] --> A2[Generate Recommendations]
         A2 --> A3[VPA Updater]
-        A3 --> A4[Pod 재시작으로 리소스 변경]
+        A3 --> A4[Change resources via Pod restart]
     end
 
-    subgraph "Auto Mode 클러스터"
-        B1[Built-in Right-Sizing 엔진] --> B2[지속적 사용량 분석]
-        B2 --> B3[자동 리소스 최적화]
-        B3 --> B4[개발자 Recommended사항 제공]
-        B4 --> B5[개발자가 Deployment 업데이트]
+    subgraph "Auto Mode Cluster"
+        B1[Built-in Right-Sizing Engine] --> B2[Continuous usage analysis]
+        B2 --> B3[Automatic resource optimization]
+        B3 --> B4[Provide recommendations to developers]
+        B4 --> B5[Developer updates Deployment]
     end
 
     style A4 fill:#ffa94d
     style B3 fill:#51cf66
 ```
 
-**Auto Mode에서 VPA는:**
-- 별도 설치 불필요
-- Built-in Right-Sizing 엔진이 지속적으로 워크로드 분석
-- 개발자에게 Recommended사항 제공 (자동 적용 대신)
-- 개발자가 검토 후 Deployment 매니페스트에 반영
+**VPA in Auto Mode:**
+- No separate installation required
+- Built-in Right-Sizing engine continuously analyzes workloads
+- Provides recommendations to developers (instead of automatic application)
+- Developers review and apply to Deployment manifests
 
-**Recommended 워크플로우:**
+**Recommended Workflow:**
 
 ```bash
-# 1. Auto Mode 클러스터에 배포
+# 1. Deploy to Auto Mode cluster
 kubectl apply -f deployment.yaml
 
-# 2. 7-14일 후 Auto Mode 대시보드에서 Recommended사항 확인
+# 2. Check recommendations in Auto Mode dashboard after 7-14 days
 # (AWS Console → EKS → Clusters → <cluster-name> → Insights)
 
-# 3. Recommended사항을 Deployment에 반영
+# 3. Apply recommendations to Deployment
 kubectl set resources deployment web-app \
   --requests=cpu=300m,memory=512Mi \
   --limits=memory=1Gi
 
-# 4. GitOps로 매니페스트 업데이트
+# 4. Update manifest via GitOps
 git add deployment.yaml
 git commit -m "chore: apply Auto Mode resource recommendations"
 git push
 ```
 
-:::tip Auto Mode Recommended 시나리오
-Auto Mode는 다음과 같은 경우에 특히 유용합니다:
+:::tip Recommended Auto Mode Scenarios
+Auto Mode is particularly useful in the following cases:
 
-- **신규 클러스터**: 기존 인프라 없이 빠르게 시작
-- **운영 리소스 부족**: 소규모 팀에서 Kubernetes 전문가 없이 운영
-- **비용 최적화 우선**: Graviton + Spot 자동 활용으로 즉시 절감
-- **표준화된 워크로드**: 일반적인 웹/API 서버, 마이크로서비스
+- **New clusters**: Quick start without existing infrastructure
+- **Limited operational resources**: Operate without Kubernetes experts in small teams
+- **Cost optimization priority**: Immediate savings through automatic Graviton + Spot utilization
+- **Standardized workloads**: Typical web/API servers, microservices
 
-**수동 관리 Recommended 시나리오:**
-- **세밀한 제어 필요**: 특정 인스턴스 타입, AZ 배치, 네트워크 구성
-- **기존 Karpenter 투자**: 고도화된 NodePool 정책 보유
-- **규제 요구사항**: 특정 하드웨어, 보안 그룹 Enforcement
+**Recommended Manual Management Scenarios:**
+- **Fine-grained control required**: Specific instance types, AZ placement, network configuration
+- **Existing Karpenter investment**: Advanced NodePool policies in place
+- **Regulatory requirements**: Specific hardware, security group enforcement
 :::
 
-**Auto Mode + 수동 Right-Sizing 비교:**
+**Auto Mode vs Manual Right-Sizing Comparison:**
 
-| 항목 | 수동 Right-Sizing (VPA Off) | Auto Mode |
+| Item | Manual Right-Sizing (VPA Off) | Auto Mode |
 |------|---------------------------|-----------|
-| 초기 설정 복잡도 | 높음 (VPA 설치, Prometheus 구성) | 낮음 (클러스터 생성 시 플래그만) |
-| Recommended사항 생성 시간 | 7-14일 | 7-14일 (동일) |
-| Recommended사항 정확도 | 높음 (Prometheus 기반) | 높음 (Built-in 분석 엔진) |
-| 적용 방식 | 수동 (개발자가 매니페스트 수정) | 수동 (개발자가 매니페스트 수정) |
-| 지속적 모니터링 | 수동 (주기적 VPA 확인) | 자동 (대시보드 알림) |
-| 인프라 최적화 | 수동 (Karpenter 설정) | 자동 (Graviton + Spot) |
-| 총 운영 오버헤드 | 높음 | 낮음 |
+| Initial setup complexity | High (VPA installation, Prometheus configuration) | Low (just flag at cluster creation) |
+| Recommendation generation time | 7-14 days | 7-14 days (same) |
+| Recommendation accuracy | High (Prometheus-based) | High (Built-in analysis engine) |
+| Application method | Manual (developer modifies manifest) | Manual (developer modifies manifest) |
+| Continuous monitoring | Manual (periodic VPA checks) | Automatic (dashboard alerts) |
+| Infrastructure optimization | Manual (Karpenter configuration) | Automatic (Graviton + Spot) |
+| Total operational overhead | High | Low |
 
-**결론:**
+**Conclusion:**
 
-Auto Mode는 **리소스 최적화의 복잡성을 제거**하지만, **리소스 설Definition 책임은 제거하지 않습니다**. 개발자는 여전히 애플리케이션의 requests/limits를 설정해야 하며, Auto Mode는 이를 기반으로 최적의 인프라를 자동으로 프로비저닝합니다.
+Auto Mode **removes the complexity of resource optimization** but **does not remove the responsibility for resource definition**. Developers must still configure application requests/limits, and Auto Mode automatically provisions optimal infrastructure based on these.
 
-이는 **"개발자는 애플리케이션 요구사항 Definition, AWS는 인프라 관리"**라는 명확한 책임 분리를 통해, 양측 모두가 자신의 전문 분야에 집중할 수 있게 합니다.
+This enables both parties to focus on their expertise through clear separation of responsibilities: **"Developers define application requirements, AWS manages infrastructure"**.
 
 ## QoS (Quality of Service) Classes
 
-### 3.1 세 가지 QoS 클래스
+### 3.1 Three QoS Classes
 
-Kubernetes는 리소스 설정에 따라 Pod를 3가지 QoS 클래스로 분류합니다:
+Kubernetes classifies Pods into 3 QoS classes based on resource configuration:
 
-#### Guaranteed (최고 우선순위)
+#### Guaranteed (Highest Priority)
 
-**조건:**
-- 모든 컨테이너에 CPU와 Memory requests와 limits 설정
-- **requests == limits** (동일 값)
+**Conditions:**
+- CPU and Memory requests and limits set for all containers
+- **requests == limits** (same values)
 
 ```yaml
 apiVersion: v1
@@ -892,16 +892,16 @@ spec:
         memory: "128Mi"
 ```
 
-**특징:**
-- oom_score_adj: **-997** (가장 낮음, OOM Kill 우선순위 최하)
-- 노드 압박 시에도 마지막에 Eviction
-- CPU 스케줄링 우선순위 높음
+**Characteristics:**
+- oom_score_adj: **-997** (lowest, lowest OOM Kill priority)
+- Evicted last even under node pressure
+- High CPU scheduling priority
 
-#### Burstable (중간 우선순위)
+#### Burstable (Medium Priority)
 
-**조건:**
-- 최소 1개 컨테이너에 CPU or Memory requests 설정
-- Guaranteed 조건을 만족하지 않음
+**Conditions:**
+- At least 1 container has CPU or Memory requests set
+- Does not satisfy Guaranteed conditions
 
 ```yaml
 apiVersion: v1
@@ -919,27 +919,27 @@ spec:
         cpu: "250m"
         memory: "512Mi"
       limits:
-        cpu: "1000m"       # requests보다 큼 (Burstable)
-        memory: "1Gi"      # requests보다 큼
+        cpu: "1000m"       # greater than requests (Burstable)
+        memory: "1Gi"      # greater than requests
 
   - name: cache
     image: redis:7
     resources:
       requests:
-        memory: "256Mi"    # CPU requests 없음 (Burstable)
+        memory: "256Mi"    # no CPU requests (Burstable)
       limits:
         memory: "512Mi"
 ```
 
-**특징:**
+**Characteristics:**
 - oom_score_adj: **min(max(2, 1000 - (1000 * memoryRequestBytes) / machineMemoryCapacityBytes), 999)**
-- 사용량에 따라 동적으로 조정
-- 여유 있을 때 burst 가능
+- Dynamically adjusted based on usage
+- Can burst when resources available
 
-#### BestEffort (최저 우선순위)
+#### BestEffort (Lowest Priority)
 
-**조건:**
-- 모든 컨테이너에 requests와 limits 미설정
+**Conditions:**
+- No requests and limits set for all containers
 
 ```yaml
 apiVersion: v1
@@ -952,33 +952,33 @@ spec:
   containers:
   - name: app
     image: test-app:latest
-    # resources 섹션 없음 or 비어있음
+    # resources section missing or empty
 ```
 
-**특징:**
-- oom_score_adj: **1000** (가장 높음, OOM Kill 최우선)
-- 노드 압박 시 가장 먼저 Eviction
-- 개발/테스트 환경에서만 사용 Recommended
+**Characteristics:**
+- oom_score_adj: **1000** (highest, highest OOM Kill priority)
+- Evicted first under node pressure
+- Recommended only for development/test environments
 
-### 3.2 QoS와 Eviction 우선순위
+### 3.2 QoS and Eviction Priority
 
-노드 리소스 압박 시 kubelet은 다음 순서로 Pod를 Eviction합니다:
+When node resources are under pressure, kubelet evicts Pods in the following order:
 
 ```mermaid
 graph TB
-    A[노드 리소스 압박] --> B{Eviction 결정}
+    A[Node resource pressure] --> B{Eviction decision}
 
-    B --> C[1단계: BestEffort Pod]
-    C --> D{리소스 확보?}
-    D -->|No| E[2단계: Burstable Pod<br/>requests exceeded 사용 중]
-    D -->|Yes| Z[Eviction 중단]
+    B --> C[Stage 1: BestEffort Pod]
+    C --> D{Resources freed?}
+    D -->|No| E[Stage 2: Burstable Pod<br/>using more than requests]
+    D -->|Yes| Z[Stop eviction]
 
-    E --> F{리소스 확보?}
-    F -->|No| G[3단계: Burstable Pod<br/>requests 이하 사용 중]
+    E --> F{Resources freed?}
+    F -->|No| G[Stage 3: Burstable Pod<br/>using less than requests]
     F -->|Yes| Z
 
-    G --> H{리소스 확보?}
-    H -->|No| I[4단계: Guaranteed Pod<br/>필수 시스템 Pod만 제외]
+    G --> H{Resources freed?}
+    H -->|No| I[Stage 4: Guaranteed Pod<br/>except essential system Pods]
     H -->|Yes| Z
 
     I --> Z
@@ -990,48 +990,48 @@ graph TB
     style Z fill:#51cf66
 ```
 
-**Eviction 순서 요약:**
+**Eviction Order Summary:**
 
-| 순위 | QoS 클래스 | 조건 | oom_score_adj |
+| Priority | QoS Class | Condition | oom_score_adj |
 |------|-----------|------|---------------|
-| 1 (최우선) | BestEffort | 모든 Pod | 1000 |
-| 2 | Burstable | requests exceeded 사용 중 | 2-999 (사용량 비례) |
-| 3 | Burstable | requests 이하 사용 중 | 2-999 (사용량 비례) |
-| 4 (최후) | Guaranteed | 시스템 중요 Pod 제외 | -997 |
+| 1 (highest) | BestEffort | All Pods | 1000 |
+| 2 | Burstable | using more than requests | 2-999 (proportional to usage) |
+| 3 | Burstable | using less than requests | 2-999 (proportional to usage) |
+| 4 (last) | Guaranteed | except system-critical Pods | -997 |
 
-**oom_score_adj 확인 방법:**
+**How to Check oom_score_adj:**
 
 ```bash
-# Pod의 메인 컨테이너 Process 찾기
+# Find main container process of Pod
 kubectl get pod <pod-name> -o jsonpath='{.status.containerStatuses[0].containerID}'
 
-# 노드에서 oom_score_adj 확인
+# Check oom_score_adj on node
 docker inspect <container-id> | grep Pid
 cat /proc/<pid>/oom_score_adj
 
-# Example 출력
+# Example output
 # BestEffort: 1000
-# Burstable: 500 (사용량에 따라 변동)
+# Burstable: 500 (varies by usage)
 # Guaranteed: -997
 ```
 
-### 3.3 실전 QoS 전략
+### 3.3 Practical QoS Strategies
 
-Select QoS classes appropriate for workload characteristics 가이드:
+Guide to selecting QoS classes appropriate for workload characteristics:
 
-| 워크로드 유형 | Recommended QoS | 설정 패턴 | Reasons |
+| Workload Type | Recommended QoS | Configuration Pattern | Reasons |
 |-------------|---------|----------|------|
-| **프로덕션 API** | Guaranteed | requests = limits | 안정성 최우선, Eviction 방지 |
-| **데이터베이스** | Guaranteed | requests = limits | 메모리 압박 시에도 보호 |
-| **배치 작업** | Burstable | limits > requests | 유휴 시 리소스 활용, 비용 효율 |
-| **큐 워커** | Burstable | limits > requests | 부하 변동 대응 |
-| **개발/테스트** | BestEffort | 설정 없음 | 리소스 효율 (운영 환경 금지) |
-| **모니터링 Agent** | Guaranteed | 낮은 값으로 설정 | 시스템 안정성 |
+| **Production API** | Guaranteed | requests = limits | Stability first, prevent eviction |
+| **Database** | Guaranteed | requests = limits | Protected even under memory pressure |
+| **Batch jobs** | Burstable | limits > requests | Resource utilization when idle, cost efficient |
+| **Queue workers** | Burstable | limits > requests | Handle load variations |
+| **Dev/Test** | BestEffort | no configuration | Resource efficient (prohibited in production) |
+| **Monitoring Agent** | Guaranteed | set low values | System stability |
 
-**프로덕션 Recommended 설정:**
+**Production Recommended Configuration:**
 
 ```yaml
-# 패턴 1: 미션 크리티컬 서비스 (Guaranteed)
+# Pattern 1: Mission-critical service (Guaranteed)
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -1055,10 +1055,10 @@ spec:
           limits:
             cpu: "1000m"
             memory: "2Gi"
-      priorityClassName: system-cluster-critical  # 추가 보호
+      priorityClassName: system-cluster-critical  # additional protection
 
 ---
-# 패턴 2: 일반 웹 서비스 (Burstable)
+# Pattern 2: General web service (Burstable)
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -1073,14 +1073,14 @@ spec:
         image: web-frontend:v1.5
         resources:
           requests:
-            cpu: "200m"       # P50 사용량
+            cpu: "200m"       # P50 usage
             memory: "256Mi"
           limits:
-            cpu: "500m"       # P95 사용량
-            memory: "512Mi"   # OOM 방지
+            cpu: "500m"       # P95 usage
+            memory: "512Mi"   # OOM prevention
 
 ---
-# 패턴 3: 배치 워커 (Burstable)
+# Pattern 3: Batch worker (Burstable)
 apiVersion: batch/v1
 kind: CronJob
 metadata:
@@ -1099,37 +1099,37 @@ spec:
                 cpu: "500m"
                 memory: "1Gi"
               limits:
-                cpu: "4000m"     # 야간 시간대 리소스 활용
+                cpu: "4000m"     # nighttime resource utilization
                 memory: "8Gi"
           restartPolicy: OnFailure
 ```
 
 ## VPA (Vertical Pod Autoscaler) Detailed Guide
 
-### 4.1 VPA 아키텍처
+### 4.1 VPA Architecture
 
-VPA는 3개의 컴포넌트로 구성됩니다:
+VPA consists of 3 components:
 
 ```mermaid
 graph TB
-    subgraph "VPA 아키텍처"
-        subgraph "메트릭 수집"
-            MS[Metrics Server] -->|리소스 메트릭| PROM[Prometheus]
-            PROM -->|시계열 데이터| REC[VPA Recommender]
+    subgraph "VPA Architecture"
+        subgraph "Metrics Collection"
+            MS[Metrics Server] -->|resource metrics| PROM[Prometheus]
+            PROM -->|time-series data| REC[VPA Recommender]
         end
 
-        subgraph "VPA 컴포넌트"
-            REC -->|Recommended사항 계산| VPA_OBJ[VPA CRD Object]
-            VPA_OBJ -->|모드 확인| UPD[VPA Updater]
-            VPA_OBJ -->|새 Pod 검증| ADM[VPA Admission Controller]
+        subgraph "VPA Components"
+            REC -->|calculate recommendations| VPA_OBJ[VPA CRD Object]
+            VPA_OBJ -->|check mode| UPD[VPA Updater]
+            VPA_OBJ -->|validate new Pods| ADM[VPA Admission Controller]
 
-            UPD -->|Pod 재시작| POD[Running Pods]
-            ADM -->|리소스 주입| NEW_POD[New Pods]
+            UPD -->|restart Pod| POD[Running Pods]
+            ADM -->|inject resources| NEW_POD[New Pods]
         end
 
-        subgraph "워크로드"
-            POD -->|사용량 보고| MS
-            NEW_POD -->|사용량 보고| MS
+        subgraph "Workload"
+            POD -->|report usage| MS
+            NEW_POD -->|report usage| MS
         end
     end
 
@@ -1138,48 +1138,48 @@ graph TB
     style ADM fill:#51cf66
 ```
 
-**컴포넌트 Role:**
+**Component Roles:**
 
-| 컴포넌트 | Role | 데이터 소스 |
+| Component | Role | Data Source |
 |---------|------|-----------|
-| **Recommender** | 과거 사용량 분석, Recommended사항 계산 | Metrics Server, Prometheus |
-| **Updater** | Auto 모드에서 Pod 재시작 | VPA CRD 상태 |
-| **Admission Controller** | 새 Pod에 리소스 자동 주입 | VPA CRD Recommended사항 |
+| **Recommender** | Analyze historical usage, calculate recommendations | Metrics Server, Prometheus |
+| **Updater** | Restart Pod in Auto mode | VPA CRD status |
+| **Admission Controller** | Auto-inject resources to new Pods | VPA CRD recommendations |
 
-#### 4.1.4 VPA Recommender ML 알고리즘 상세
+#### 4.1.4 VPA Recommender ML Algorithm Details
 
-VPA Recommender는 단순한 평균 계산이 아닌, 머신러닝 기반의 정교한 알고리즘으로 리소스 추천값을 산출합니다.
+VPA Recommender calculates resource recommendations using a sophisticated machine learning-based algorithm, not simple averaging.
 
-##### 지수 가중 히스토그램 (Exponentially-weighted Histogram)
+##### Exponentially-weighted Histogram
 
-VPA Recommender의 핵심은 시간에 따라 가중치가 감소하는 히스토그램입니다:
+The core of VPA Recommender is a histogram with weights that decay over time:
 
 ```
-최근 데이터 → 높은 가중치
-오래된 데이터 → 낮은 가중치 (지수적 감소)
+Recent data → high weight
+Old data → low weight (exponential decay)
 ```
 
-**알고리즘 동작:**
+**Algorithm Operation:**
 
-1. **메트릭 수집 주기**: 1분마다 Pod 리소스 사용량 수집
-2. **히스토그램 업데이트**: 각 측정값을 히스토그램 버킷에 누적
-3. **가중치 적용**: 오래된 데이터는 `e^(-t/decay_half_life)` 가중치로 감소
-4. **추천값 계산**: 히스토그램에서 백분위수 기반 추천
+1. **Metrics collection interval**: Collect Pod resource usage every 1 minute
+2. **Histogram update**: Accumulate each measurement into histogram buckets
+3. **Weight application**: Old data uses `e^(-t/decay_half_life)` weight decay
+4. **Recommendation calculation**: Percentile-based recommendation from histogram
 
 ```mermaid
 graph TB
-    subgraph "VPA Recommender 알고리즘"
-        A[Metrics Server] -->|1분마다| B[메트릭 수집]
-        B --> C[히스토그램 버킷 업데이트]
-        C --> D[지수 가중치 적용]
-        D --> E[백분위수 계산]
+    subgraph "VPA Recommender Algorithm"
+        A[Metrics Server] -->|every 1 minute| B[metrics collection]
+        B --> C[update histogram buckets]
+        C --> D[apply exponential weights]
+        D --> E[calculate percentiles]
 
         E --> F[Lower Bound<br/>P5]
         E --> G[Target<br/>P95]
         E --> H[Upper Bound<br/>P99]
-        E --> I[Uncapped Target<br/>제약 없는 P95]
+        E --> I[Uncapped Target<br/>Unconstrained P95]
 
-        F --> J[VPA CRD 업데이트]
+        F --> J[Update VPA CRD]
         G --> J
         H --> J
         I --> J
@@ -1189,138 +1189,138 @@ graph TB
     style J fill:#4dabf7
 ```
 
-##### 4가지 추천값 계산 방법
+##### Four Recommendation Calculation Methods
 
-| 추천값 | 계산 방법 | 의미 |
+| Recommendation | Calculation Method | Meaning |
 |--------|----------|------|
-| **Lower Bound** | P5 (5번째 백분위수) | 최소 필요 리소스 - 95% 시간 동안 충분 |
-| **Target** | P95 (95번째 백분위수) | **Recommended 설정값** - 5% 피크 부하 대응 |
-| **Upper Bound** | P99 (99번째 백분위수) | 최대 관찰 사용량 - Limits 설정 참고 |
-| **Uncapped Target** | maxAllowed 제약 없이 계산한 P95 | 실제 필요량 확인용 |
+| **Lower Bound** | P5 (5th percentile) | Minimum required resources - sufficient 95% of time |
+| **Target** | P95 (95th percentile) | **Recommended setting** - handles 5% peak load |
+| **Upper Bound** | P99 (99th percentile) | Maximum observed usage - reference for Limits setting |
+| **Uncapped Target** | P95 calculated without maxAllowed constraint | For verifying actual needs |
 
-**백분위수 계산 Example:**
+**calculate percentiles Example:**
 
 ```python
-# 가상의 CPU 사용량 히스토그램 (1일 = 1440분)
+# Hypothetical CPU usage histogram (1 day = 1440 minutes)
 cpu_samples = [100m, 150m, 200m, 250m, 300m, 350m, 400m, 450m, 500m, ...]
 
-# 지수 가중치 적용 (decay_half_life = 24시간)
+# apply exponential weights (decay_half_life = 24 hours)
 weighted_samples = [
-    (100m, weight=1.0),    # 최근 (1시간 전)
-    (150m, weight=0.97),   # 2시간 전
-    (200m, weight=0.92),   # 5시간 전
-    (250m, weight=0.71),   # 12시간 전
-    (300m, weight=0.50),   # 24시간 전 (반감기)
-    (350m, weight=0.25),   # 48시간 전
+    (100m, weight=1.0),    # recent (1 hour ago)
+    (150m, weight=0.97),   # 2hours ago
+    (200m, weight=0.92),   # 5hours ago
+    (250m, weight=0.71),   # 12hours ago
+    (300m, weight=0.50),   # 24hours ago (half-life)
+    (350m, weight=0.25),   # 48hours ago
     ...
 ]
 
-# 백분위수 계산
+# calculate percentiles
 P5  = 150m  # Lower Bound
 P95 = 450m  # Target ⭐
 P99 = 500m  # Upper Bound
 ```
 
-##### Confidence Multiplier: 신뢰도 기반 조정
+##### Confidence Multiplier: Confidence-based Adjustment
 
-데이터 수집 기간이 짧을수록 안전하게 높은 값을 추천합니다:
+Shorter data collection periods result in safer, higher recommended values:
 
 ```
-Confidence Multiplier = f(데이터_수집_기간)
+Confidence Multiplier = f(data_collection_period)
 
-0-24시간:  multiplier = 1.5  (50% 안전 마진)
-1-3일:     multiplier = 1.3  (30% 안전 마진)
-3-7일:     multiplier = 1.1  (10% 안전 마진)
-7일 이상:  multiplier = 1.0  (신뢰도 충분)
+0-24 hours:  multiplier = 1.5  (50% safety margin)
+1-3 days:     multiplier = 1.3  (30% safety margin)
+3-7 days:     multiplier = 1.1  (10% safety margin)
+7+ days:  multiplier = 1.0  (sufficient confidence)
 ```
 
-**실제 적용 Example:**
+**Actual Application Example:**
 
 ```yaml
-# 데이터 수집 2일차
-원본 P95: 450m
+# Day 2 of data collection
+Original P95: 450m
 Confidence Multiplier: 1.3
-최종 Target: 450m × 1.3 = 585m ≈ 600m
+Final Target: 450m × 1.3 = 585m ≈ 600m
 
-# 데이터 수집 10일차
-원본 P95: 450m
+# Day 10 of data collection
+Original P95: 450m
 Confidence Multiplier: 1.0
-최종 Target: 450m × 1.0 = 450m
+Final Target: 450m × 1.0 = 450m
 ```
 
-:::info 데이터 수집 기간의 중요성
-VPA가 정확한 추천을 제공하려면 **최소 7일, Recommended 14일**의 데이터 수집이 필요합니다. 주간 패턴(평일 vs 주말)을 포착하려면 최소 2주 이상의 관찰이 필수적입니다.
+:::info Importance of Data Collection Period
+For VPA to provide accurate recommendations, **minimum 7 days, recommended 14 days** of data collection is required. To capture weekly patterns (weekday vs weekend), at least 2 weeks of observation is essential.
 :::
 
-##### Memory 추천: OOM 이벤트 기반 Bump-Up
+##### Memory Recommendations: OOM Event-based Bump-Up
 
-Memory는 CPU와 다르게 OOM Kill 이벤트를 특별히 고려합니다:
+Memory recommendations specially consider OOM Kill events, unlike CPU:
 
-**OOM 이벤트 감지 시:**
+**When OOM Event Detected:**
 
 ```
-현재 Memory Target: 500Mi
-OOM Kill 발생 시점 메모리: 600Mi
-→ 새로운 Target: 600Mi × 1.2 = 720Mi (20% 안전 마진 추가)
+Current Memory Target: 500Mi
+Memory at OOM Kill time: 600Mi
+→ New Target: 600Mi × 1.2 = 720Mi (add 20% safety margin)
 ```
 
-**OOM Bump-Up 로직:**
+**OOM Bump-Up Logic:**
 
 ```python
 if oom_kill_detected:
     oom_memory = get_memory_at_oom_time()
     new_target = max(
         current_target,
-        oom_memory * 1.2  # 20% 안전 마진
+        oom_memory * 1.2  # 20% safety margin
     )
 
-    # 급격한 변경 방지 (최대 2배)
+    # Prevent sudden changes (max 2x)
     new_target = min(new_target, current_target * 2)
 ```
 
-:::warning OOM Kill은 즉시 반영
-CPU throttling과 달리, OOM Kill 이벤트는 **즉시 Memory Target을 상향 조정**합니다. 이는 Service disruption을 방지하기 위한 안전 장치입니다.
+:::warning OOM Kill Immediately Reflected
+Unlike CPU throttling, OOM Kill events **immediately increase Memory Target**. This is a safety mechanism to prevent service disruption.
 :::
 
-##### CPU 추천: P95/P99 사용량 기반
+##### CPU Recommendations: Based on P95/P99 Usage
 
-CPU는 압축 가능한 리소스이므로 보수적으로 접근합니다:
+CPU is a compressible resource, so VPA takes a conservative approach:
 
 ```
-CPU Target = P95 사용량
-CPU Upper Bound = P99 사용량
+CPU Target = P95 usage
+CPU Upper Bound = P99 usage
 
-Throttling 발생 시:
-→ 추천값은 변경하지 않음 (HPA로 해결 Recommended)
+When Throttling occurs:
+→ Recommendations not changed (resolve with HPA recommended)
 ```
 
-**CPU Throttling 감지 시:**
+**When CPU Throttling Detected:**
 
 ```python
 if cpu_throttling_detected:
     throttled_percentage = get_throttled_time_percentage()
 
     if throttled_percentage > 10:
-        # VPA 자체 추천값은 유지
-        # 대신 다음을 제안:
-        # 1. HPA 추가로 수평 확장
-        # 2. CPU limits 제거 (Google, Datadog 패턴)
-        # 3. or Target을 P99로 상향 (수동 조정)
+        # VPA keeps its own recommendation
+        # Instead suggests:
+        # 1. Add HPA for horizontal scaling
+        # 2. Remove CPU limits (Google, Datadog pattern)
+        # 3. or manually raise Target to P99
         pass
 ```
 
 :::tip CPU Throttling vs HPA
-VPA는 CPU throttling을 감지하면 추천값을 크게 올리지 않습니다. 대신 **HPA로 수평 확장**하는 것이 Kubernetes 모범 사례입니다.
+When VPA detects CPU throttling, it does not significantly increase recommendations. Instead, **horizontal scaling with HPA** is the Kubernetes best practice.
 :::
 
-##### VPA와 Prometheus 데이터 소스 통합
+##### VPA and Prometheus Data Source Integration
 
-VPA Recommender는 Metrics Server만으로도 동작하지만, Prometheus와 통합하면 더욱 정교한 추천이 가능합니다:
+While VPA Recommender works with Metrics Server alone, integration with Prometheus enables more sophisticated recommendations:
 
-**Prometheus 메트릭 활용:**
+**Prometheus Metrics Utilization:**
 
 ```yaml
-# VPA Recommender에 Prometheus 연동 설정
+# VPA Recommender Prometheus integration configuration
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -1328,59 +1328,59 @@ metadata:
   namespace: vpa-system
 data:
   recommender-config.yaml: |
-    # Prometheus 메트릭 소스 활성화
+    # Enable Prometheus metrics source
     metrics-provider: prometheus
     prometheus-url: http://prometheus-server.monitoring.svc:9090
 
-    # 히스토그램 설정
+    # Histogram configuration
     histogram-decay-half-life: 24h
     histogram-bucket-size-growth: 1.05
 
-    # CPU 추천 설정
+    # CPU recommendation settings
     cpu-histogram-decay-half-life: 24h
-    memory-histogram-decay-half-life: 48h  # Memory는 더 긴 관찰
+    memory-histogram-decay-half-life: 48h  # Longer observation for Memory
 
-    # OOM 이벤트 처리
-    oom-min-bump-up: 1.2  # 최소 20% 증가
-    oom-bump-up-ratio: 0.5  # 50% 안전 마진
+    # OOM event handling
+    oom-min-bump-up: 1.2  # minimum 20% increase
+    oom-bump-up-ratio: 0.5  # 50% safety margin
 ```
 
-**Prometheus Custom Metrics API 연동:**
+**Prometheus Custom Metrics API Integration:**
 
 ```bash
-# Custom Metrics API 어댑터 배포 (Prometheus Adapter)
+# Deploy Custom Metrics API adapter (Prometheus Adapter)
 helm install prometheus-adapter prometheus-community/prometheus-adapter \
   --namespace monitoring \
   --set prometheus.url=http://prometheus-server.monitoring.svc \
   --set rules.default=true
 
-# VPA가 Custom Metrics API 사용하도록 설정
+# Configure VPA to use Custom Metrics API
 kubectl edit deploy vpa-recommender -n vpa-system
 
-# 환경 변수 추가:
+# Add environment variables:
 # - PROMETHEUS_ADDRESS=http://prometheus-server.monitoring.svc:9090
 # - USE_CUSTOM_METRICS=true
 ```
 
-**연동 확인:**
+**Verify Integration:**
 
 ```bash
-# VPA Recommender가 Prometheus 메트릭 사용 중인지 확인
+# Check if VPA Recommender is using Prometheus metrics
 kubectl logs -n vpa-system deploy/vpa-recommender | grep prometheus
 
-# 출력 Example:
+# Output example:
 # I0212 10:15:30.123456  1 metrics_client.go:45] Using Prometheus metrics provider
 # I0212 10:15:31.234567  1 prometheus_client.go:78] Connected to Prometheus at http://prometheus-server.monitoring.svc:9090
 ```
 
-##### VPA 추천 품질 검증 방법
+##### VPA Recommendation Quality Validation
 
-추천값이 실제로 적절한지 검증하는 PromQL 쿼리:
+PromQL queries to validate whether recommendations are appropriate:
 
-**1. CPU 추천값 vs Actual Usage 비교:**
+**1. Compare CPU recommendations vs Actual Usage:**
 
 ```promql
-# VPA Target vs 실제 P95 사용량 비교
+# Compare VPA Target vs actual P95 usage
 (
   kube_verticalpodautoscaler_status_recommendation_containerrecommendations_target{resource="cpu"}
   -
@@ -1390,16 +1390,16 @@ kubectl logs -n vpa-system deploy/vpa-recommender | grep prometheus
 ) /
 kube_verticalpodautoscaler_status_recommendation_containerrecommendations_target{resource="cpu"} * 100
 
-# 출력: 추천값과 실제 P95 차이 (%)
-# 10-20% 범위: 적절 ✅
-# >30%: 과다 프로비저닝 ⚠️
-# <0%: 과소 프로비저닝 (즉시 조정 필요) 🚨
+# Output: Difference between recommendation and actual P95 (%)
+# 10-20% range: Appropriate ✅
+# >30%: Over-provisioning ⚠️
+# <0%: Under-provisioning (immediate adjustment needed) 🚨
 ```
 
-**2. Memory 추천값 검증:**
+**2. Memory Recommendation Validation:**
 
 ```promql
-# VPA Target vs 실제 P99 사용량
+# VPA Target vs actual P99 usage
 (
   kube_verticalpodautoscaler_status_recommendation_containerrecommendations_target{resource="memory"}
   -
@@ -1409,40 +1409,40 @@ kube_verticalpodautoscaler_status_recommendation_containerrecommendations_target
 ) /
 kube_verticalpodautoscaler_status_recommendation_containerrecommendations_target{resource="memory"} * 100
 
-# 20-30% 여유: 이상적 ✅
-# <10% 여유: OOM 위험 🚨
+# 20-30% headroom: Ideal ✅
+# <10% headroom: OOM risk 🚨
 ```
 
-**3. OOM Kill 빈도 모니터링:**
+**3. OOM Kill Frequency Monitoring:**
 
 ```promql
-# 최근 7일 OOM Kill 이벤트 수
+# OOM Kill events in last 7 days
 increase(
   kube_pod_container_status_terminated_reason{reason="OOMKilled"}[7d]
 )
 
-# 0건: VPA 추천 정확 ✅
-# 1-2건: 수용 가능 (피크 부하)
-# >3건: VPA Target 수동 상향 필요 🚨
+# 0 events: VPA recommendation accurate ✅
+# 1-2 events: Acceptable (peak load)
+# >3 events: Manual VPA Target increase needed 🚨
 ```
 
-**4. CPU Throttling 비율:**
+**4. CPU Throttling Ratio:**
 
 ```promql
-# CPU Throttling 시간 비율 (%)
+# CPU Throttling time ratio (%)
 rate(container_cpu_cfs_throttled_seconds_total{pod=~"web-app-.*"}[5m])
 /
 rate(container_cpu_cfs_periods_total{pod=~"web-app-.*"}[5m]) * 100
 
-# <5%: 정상 ✅
-# 5-10%: 모니터링 필요 ⚠️
-# >10%: HPA 추가 or CPU limits 제거 고려 🚨
+# <5%: Normal ✅
+# 5-10%: Monitoring needed ⚠️
+# >10%: Consider adding HPA or removing CPU limits 🚨
 ```
 
-**Grafana 대시보드 Example:**
+**Grafana Dashboard Example:**
 
 ```yaml
-# VPA 추천 품질 모니터링 대시보드
+# VPA recommendation quality monitoring dashboard
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -1461,7 +1461,7 @@ data:
             },
             {
               "expr": "quantile_over_time(0.95, container_cpu_usage_seconds_total[7d]) * 1000",
-              "legendFormat": "실제 P95"
+              "legendFormat": "Actual P95"
             }
           ]
         },
@@ -1474,12 +1474,12 @@ data:
             },
             {
               "expr": "quantile_over_time(0.99, container_memory_working_set_bytes[7d])",
-              "legendFormat": "실제 P99"
+              "legendFormat": "Actual P99"
             }
           ]
         },
         {
-          "title": "OOM Kill 이벤트 (7일)",
+          "title": "OOM Kill Events (7 days)",
           "targets": [
             {
               "expr": "increase(kube_pod_container_status_terminated_reason{reason=\"OOMKilled\"}[7d])"
@@ -1490,32 +1490,32 @@ data:
     }
 ```
 
-:::tip VPA 추천의 한계
-VPA는 과거 데이터 기반 추천이므로 다음 상황에서는 한계가 있습니다:
-- **갑작스러운 트래픽 패턴 변화**: 과거에 없던 피크 부하
-- **계절성 워크로드**: 월말 배치, 연말 결산 등
-- **초기 부트스트랩**: 애플리케이션 시작 시 높은 메모리 사용
+:::tip Limitations of VPA Recommendations
+Since VPA recommendations are based on historical data, they have limitations in the following situations:
+- **Sudden traffic pattern changes**: Peak loads not seen in the past
+- **Seasonal workloads**: End-of-month batches, year-end settlements, etc.
+- **Initial bootstrap**: High memory usage during application startup
 
-이러한 경우 **수동 조정** or **HPA와의 조합**이 필요합니다.
+In these cases, **manual adjustment** or **combination with HPA** is necessary.
 :::
 
-### 4.2 VPA 설치 및 구성
+### 4.2 VPA Installation and Configuration
 
-#### Helm을 통한 설치
+#### Installation via Helm
 
 ```bash
-# 1. Metrics Server 설치 (사전 요구사항)
+# 1. Install Metrics Server (prerequisite)
 kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
 
-# 2. Metrics Server 확인
+# 2. Verify Metrics Server
 kubectl get deployment metrics-server -n kube-system
 kubectl top nodes
 
-# 3. VPA Helm 레포지토리 추가
+# 3. Add VPA Helm repository
 helm repo add fairwinds-stable https://charts.fairwinds.com/stable
 helm repo update
 
-# 4. VPA 설치
+# 4. Install VPA
 helm install vpa fairwinds-stable/vpa \
   --namespace vpa-system \
   --create-namespace \
@@ -1523,34 +1523,34 @@ helm install vpa fairwinds-stable/vpa \
   --set updater.enabled=true \
   --set admissionController.enabled=true
 
-# 5. 설치 확인
+# 5. Verify installation
 kubectl get pods -n vpa-system
-# 예상 출력:
+# Expected output:
 # NAME                                      READY   STATUS    RESTARTS   AGE
 # vpa-admission-controller-xxx              1/1     Running   0          1m
 # vpa-recommender-xxx                       1/1     Running   0          1m
 # vpa-updater-xxx                           1/1     Running   0          1m
 ```
 
-#### 수동 설치 (공식 방법)
+#### Manual Installation (Official Method)
 
 ```bash
-# VPA 공식 레포지토리 클론
+# Clone VPA official repository
 git clone https://github.com/kubernetes/autoscaler.git
 cd autoscaler/vertical-pod-autoscaler
 
-# VPA 설치
+# Install VPA
 ./hack/vpa-up.sh
 
-# 설치 확인
+# Verify installation
 kubectl get crd | grep verticalpodautoscaler
 ```
 
-### 4.3 VPA 모드
+### 4.3 VPA Modes
 
-VPA는 3가지 모드로 동작합니다:
+VPA operates in 3 modes:
 
-#### Off 모드 (Recommended사항만 제공)
+#### Off Mode (Recommendations Only)
 
 ```yaml
 apiVersion: autoscaling.k8s.io/v1
@@ -1564,28 +1564,28 @@ spec:
     kind: Deployment
     name: web-app
   updatePolicy:
-    updateMode: "Off"    # Recommended사항만 표시, 자동 적용 안 함
+    updateMode: "Off"    # Show recommendations only, no auto-application
 ```
 
-**사용 시나리오:**
-- VPA를 처음 도입할 때
-- 프로덕션 워크로드 분석
-- 수동 검토 후 적용 원할 때
+**Use Cases:**
+- When first introducing VPA
+- Production workload analysis
+- When manual review before application is desired
 
-**Recommended사항 확인:**
+**Check Recommendations:**
 
 ```bash
-# VPA 상태 확인
+# Check VPA status
 kubectl describe vpa web-app-vpa -n production
 
-# 출력 Example:
+# Output example:
 # Recommendation:
 #   Container Recommendations:
 #     Container Name: web-app
 #     Lower Bound:
 #       Cpu:     150m
 #       Memory:  200Mi
-#     Target:          # ← 이 값 사용 Recommended
+#     Target:          # ← Use this value (recommended)
 #       Cpu:     250m
 #       Memory:  300Mi
 #     Uncapped Target:
@@ -1596,7 +1596,7 @@ kubectl describe vpa web-app-vpa -n production
 #       Memory:  600Mi
 ```
 
-#### Initial 모드 (Pod 생성 시에만 적용)
+#### Initial Mode (Apply Only on Pod Creation)
 
 ```yaml
 apiVersion: autoscaling.k8s.io/v1
@@ -1610,7 +1610,7 @@ spec:
     kind: Deployment
     name: batch-worker
   updatePolicy:
-    updateMode: "Initial"    # Pod 생성 시에만 리소스 설정
+    updateMode: "Initial"    # Set resources only on Pod creation
   resourcePolicy:
     containerPolicies:
     - containerName: worker
@@ -1622,17 +1622,17 @@ spec:
         memory: "16Gi"
 ```
 
-**사용 시나리오:**
-- CronJob, Job 워크로드
-- 재시작이 허용되지 않는 StatefulSet
-- 수동 스케일링을 원하는 경우
+**Use Cases:**
+- CronJob, Job workloads
+- StatefulSets where restart is not allowed
+- When manual scaling is desired
 
-**동작 방식:**
-1. 새 Pod Creation Request
-2. VPA Admission Controller가 Recommended 리소스 주입
-3. 기존 Executing 중인 Pod는 그대로 유지
+**How It Works:**
+1. New Pod creation request
+2. VPA Admission Controller injects recommended resources
+3. Existing running Pods remain unchanged
 
-#### Auto 모드 (완전 자동화)
+#### Auto Mode (Fully Automated)
 
 ```yaml
 apiVersion: autoscaling.k8s.io/v1
@@ -1646,8 +1646,8 @@ spec:
     kind: Deployment
     name: api-server
   updatePolicy:
-    updateMode: "Auto"    # 자동으로 Pod 재시작 및 리소스 조정
-    minReplicas: 2        # 최소 2개 Pod 유지
+    updateMode: "Auto"    # Automatically restart Pods and adjust resources
+    minReplicas: 2        # Maintain minimum 2 Pods
   resourcePolicy:
     containerPolicies:
     - containerName: api
@@ -1660,32 +1660,32 @@ spec:
       controlledResources:
       - cpu
       - memory
-      controlledValues: RequestsAndLimits  # requests와 limits 모두 조정
+      controlledValues: RequestsAndLimits  # Adjust both requests and limits
 ```
 
-**사용 시나리오:**
-- 개발/스테이징 환경
-- Stateless 애플리케이션
-- PodDisruptionBudget 설정된 워크로드
+**Use Cases:**
+- Development/staging environments
+- Stateless applications
+- Workloads with PodDisruptionBudget configured
 
-:::warning Auto 모드 주의사항
-Auto 모드는 **Pod를 재시작**합니다:
-- Eviction API를 통한 재시작
-- 다운타임 발생 가능
-- PodDisruptionBudget (PDB) 필수 설정
-- 프로덕션 환경에서는 신중히 사용
+:::warning Auto Mode Cautions
+Auto mode **restarts Pods**:
+- Restart via Eviction API
+- Potential downtime
+- PodDisruptionBudget (PDB) configuration required
+- Use cautiously in production
 
-**Recommended:** 프로덕션에서는 **Off or Initial 모드** 사용
+**Recommended:** Use **Off or Initial mode** in production
 :::
 
-### 4.4 VPA + HPA 공존 전략
+### 4.4 VPA + HPA Coexistence Strategy
 
-VPA와 HPA를 함께 사용할 때는 충돌을 방지해야 합니다.
+When using VPA and HPA together, conflicts must be prevented.
 
-#### 충돌 시나리오 (❌ 금지)
+#### Conflict Scenario (❌ Prohibited)
 
 ```yaml
-# ❌ 잘못된 설정: VPA Auto + HPA CPU 동시 사용
+# ❌ Incorrect configuration: VPA Auto + HPA CPU simultaneous use
 ---
 apiVersion: autoscaling.k8s.io/v1
 kind: VerticalPodAutoscaler
@@ -1697,12 +1697,12 @@ spec:
     kind: Deployment
     name: web-app
   updatePolicy:
-    updateMode: "Auto"    # ❌ Auto 모드
+    updateMode: "Auto"    # ❌ Auto mode
   resourcePolicy:
     containerPolicies:
     - containerName: app
       controlledResources:
-      - cpu                # ❌ CPU 제어
+      - cpu                # ❌ CPU control
       - memory
 
 ---
@@ -1720,20 +1720,20 @@ spec:
   metrics:
   - type: Resource
     resource:
-      name: cpu          # ❌ CPU 메트릭 사용
+      name: cpu          # ❌ CPU metrics usage
       target:
         type: Utilization
         averageUtilization: 70
 ```
 
-**문제:**
-- VPA가 CPU requests를 변경 → HPA의 CPU 사용률 계산이 변경됨
-- HPA가 스케일 아웃 → VPA가 다시 리소스 조정 → 무한 루프
+**Problem:**
+- VPA changes CPU requests → HPA's CPU utilization calculation changes
+- HPA scales out → VPA adjusts resources again → infinite loop
 
-#### 패턴 1: VPA Off + HPA (✅ Recommended)
+#### Pattern 1: VPA Off + HPA (✅ Recommended)
 
 ```yaml
-# ✅ 올바른 설정: VPA는 Recommended만, HPA로 스케일링
+# ✅ Correct configuration: VPA recommendations only, HPA for scaling
 ---
 apiVersion: autoscaling.k8s.io/v1
 kind: VerticalPodAutoscaler
@@ -1746,7 +1746,7 @@ spec:
     kind: Deployment
     name: web-app
   updatePolicy:
-    updateMode: "Off"    # ✅ Recommended사항만 제공
+    updateMode: "Off"    # ✅ Provide recommendations only
   resourcePolicy:
     containerPolicies:
     - containerName: app
@@ -1789,16 +1789,16 @@ spec:
         periodSeconds: 60
 ```
 
-**운영 워크플로우:**
-1. VPA가 Recommended사항 생성
-2. 주간 리뷰에서 VPA Recommended사항 확인
-3. Deployment 매니페스트에 수동 반영
-4. HPA가 부하에 따라 수평 확장
+**Operational Workflow:**
+1. VPA generates recommendations
+2. Review VPA recommendations in weekly review
+3. Manually apply to Deployment manifests
+4. HPA scales horizontally based on load
 
-#### 패턴 2: VPA Memory + HPA CPU (✅ Recommended)
+#### Pattern 2: VPA Memory + HPA CPU (✅ Recommended)
 
 ```yaml
-# ✅ 메트릭 분리: VPA는 Memory, HPA는 CPU
+# ✅ Separate metrics: VPA for Memory, HPA for CPU
 ---
 apiVersion: autoscaling.k8s.io/v1
 kind: VerticalPodAutoscaler
@@ -1811,12 +1811,12 @@ spec:
     kind: Deployment
     name: api-server
   updatePolicy:
-    updateMode: "Auto"    # Memory만 자동 조정
+    updateMode: "Auto"    # Auto-adjust Memory only
   resourcePolicy:
     containerPolicies:
     - containerName: api
       controlledResources:
-      - memory            # ✅ Memory만 제어
+      - memory            # ✅ Control Memory only
       minAllowed:
         memory: "256Mi"
       maxAllowed:
@@ -1838,21 +1838,21 @@ spec:
   metrics:
   - type: Resource
     resource:
-      name: cpu          # ✅ CPU 메트릭만 사용
+      name: cpu          # ✅ Use CPU metrics only
       target:
         type: Utilization
         averageUtilization: 60
 ```
 
-**장점:**
-- VPA가 Memory 최적화 (Vertical)
-- HPA가 부하에 따라 수평 확장 (Horizontal)
-- 충돌 없음
+**Advantages:**
+- VPA optimizes Memory (Vertical)
+- HPA scales horizontally based on load (Horizontal)
+- No conflicts
 
-#### 패턴 3: VPA + HPA + Custom Metrics (✅ 고급)
+#### Pattern 3: VPA + HPA + Custom Metrics (✅ Advanced)
 
 ```yaml
-# ✅ HPA는 커스텀 메트릭 사용
+# ✅ HPA uses custom metrics
 ---
 apiVersion: autoscaling.k8s.io/v1
 kind: VerticalPodAutoscaler
@@ -1888,7 +1888,7 @@ spec:
   - type: External
     external:
       metric:
-        name: sqs_queue_depth    # ✅ 커스텀 메트릭 (CPU/Memory 아님)
+        name: sqs_queue_depth    # ✅ Custom metric (not CPU/Memory)
         selector:
           matchLabels:
             queue: "tasks"
@@ -1897,39 +1897,39 @@ spec:
         averageValue: "30"
 ```
 
-**적용 사례:**
-- 큐 기반 워크로드 (SQS, RabbitMQ, Kafka)
-- 이벤트 드리븐 아키텍처
-- 비즈니스 메트릭 기반 스케일링
+**Use Cases:**
+- Queue-based workloads (SQS, RabbitMQ, Kafka)
+- Event-driven architectures
+- Business metric-based scaling
 
-### 4.5 VPA 제한사항과 주의점
+### 4.5 VPA Limitations and Cautions
 
-:::danger VPA 사용 시 주의사항
+:::danger VPA Usage Cautions
 
-**1. Pod 재시작 필요 (Auto/Recreate 모드)**
-- VPA는 Executing 중인 Pod의 리소스를 **in-place 변경 불가**
-- Pod를 Evict하고 새로 생성 (다운타임 발생)
-- 해결: PodDisruptionBudget 설정 필수
+**1. Pod restart required (Auto/Recreate mode)**
+- VPA **cannot change resources in-place** for running Pods
+- Evicts Pod and creates new one (downtime occurs)
+- Solution: PodDisruptionBudget configuration required
 
-**2. JVM 힙 사이즈 불일치**
+**2. JVM heap size mismatch**
 ```yaml
-# 문제 시나리오
+# Problem scenario
 containers:
 - name: java-app
   env:
   - name: JAVA_OPTS
-    value: "-Xmx2g"    # 고정값
+    value: "-Xmx2g"    # fixed value
   resources:
     requests:
-      memory: "3Gi"    # VPA가 나중에 4Gi로 변경
+      memory: "3Gi"    # VPA later changes to 4Gi
     limits:
-      memory: "3Gi"    # VPA가 나중에 4Gi로 변경
+      memory: "3Gi"    # VPA later changes to 4Gi
 
-# VPA가 memory를 4Gi로 변경해도 JVM은 여전히 2Gi 힙 사용
-# → 리소스 낭비
+# Even if VPA changes memory to 4Gi, JVM still uses 2Gi heap
+# → Resource waste
 ```
 
-**해결:**
+**Solution:**
 ```yaml
 containers:
 - name: java-app
@@ -1939,7 +1939,7 @@ containers:
       resourceFieldRef:
         resource: limits.memory
   - name: JAVA_OPTS
-    value: "-XX:MaxRAMPercentage=75.0"  # 동적 계산
+    value: "-XX:MaxRAMPercentage=75.0"  # dynamic calculation
   resources:
     requests:
       memory: "2Gi"
@@ -1947,25 +1947,25 @@ containers:
       memory: "2Gi"
 ```
 
-**3. StatefulSet 주의**
-- StatefulSet Pod는 순차적 재시작
-- 데이터 손실 위험
-- Recommended: **Initial 모드만 사용**
+**3. StatefulSet caution**
+- StatefulSet Pods restart sequentially
+- Risk of data loss
+- Recommended: **Use Initial mode only**
 
-**4. Metrics Server 의존성**
-- VPA는 Metrics Server 필수
-- Metrics Server 장애 시 Recommended사항 업데이트 중단
+**4. Metrics Server dependency**
+- VPA requires Metrics Server
+- Recommendation updates stop if Metrics Server fails
 
-**5. Recommended사항 계산 시간**
-- 최소 24시간 데이터 필요
-- 트래픽 패턴 변화 반영에 시간 소요
+**5. Recommendation calculation time**
+- Minimum 24 hours of data required
+- Time needed to reflect traffic pattern changes
 :::
 
 ## Advanced HPA Patterns
 
-### 5.1 HPA Behavior 설정
+### 5.1 HPA Behavior Configuration
 
-HPA v2는 스케일링 동작을 세밀하게 제어할 수 있습니다:
+HPA v2 allows fine-grained control of scaling behavior:
 
 ```yaml
 apiVersion: autoscaling/v2
@@ -1991,48 +1991,48 @@ spec:
 
   behavior:
     scaleUp:
-      stabilizationWindowSeconds: 0    # 즉시 스케일 업
+      stabilizationWindowSeconds: 0    # immediate scale up
       policies:
       - type: Percent
-        value: 100                     # 100% 증가 허용 (2배)
-        periodSeconds: 15              # 15초마다 평가
+        value: 100                     # allow 100% increase (2x)
+        periodSeconds: 15              # evaluate every 15 seconds
       - type: Pods
-        value: 10                      # or 10개 Pod 증가
+        value: 10                      # or increase 10 Pods
         periodSeconds: 15
-      selectPolicy: Max                # 더 큰 값 선택
+      selectPolicy: Max                # select larger value
 
     scaleDown:
-      stabilizationWindowSeconds: 300  # 5분 안정화 (급격한 감소 방지)
+      stabilizationWindowSeconds: 300  # 5 minute stabilization (prevent rapid decrease)
       policies:
       - type: Percent
-        value: 10                      # 10% 감소
-        periodSeconds: 60              # 1분마다 평가
+        value: 10                      # 10% decrease
+        periodSeconds: 60              # evaluate every 1 minute
       - type: Pods
-        value: 5                       # or 5개 Pod 감소
+        value: 5                       # or decrease 5 Pods
         periodSeconds: 60
-      selectPolicy: Min                # 더 작은 값 선택 (보수적)
+      selectPolicy: Min                # select smaller value (conservative)
 ```
 
-**파라미터 설명:**
+**Parameter Explanation:**
 
-| 파라미터 | 설명 | Recommended값 |
+| Parameter | Description | Recommended Value |
 |---------|------|--------|
-| `stabilizationWindowSeconds` | 메트릭 안정화 대기 시간 | ScaleUp: 0-30s, ScaleDown: 300-600s |
-| `type: Percent` | 현재 레플리카의 %로 증감 | ScaleUp: 100%, ScaleDown: 10-25% |
-| `type: Pods` | 절대 Pod 수로 증감 | 워크로드 크기에 따라 조정 |
-| `periodSeconds` | 정책 평가 주기 | 15-60초 |
-| `selectPolicy` | Max(공격적), Min(보수적), Disabled | ScaleUp: Max, ScaleDown: Min |
+| `stabilizationWindowSeconds` | Metric stabilization wait time | ScaleUp: 0-30s, ScaleDown: 300-600s |
+| `type: Percent` | Increase/decrease by % of current replicas | ScaleUp: 100%, ScaleDown: 10-25% |
+| `type: Pods` | Increase/decrease by absolute Pod count | Adjust based on workload size |
+| `periodSeconds` | Policy evaluation period | 15-60 seconds |
+| `selectPolicy` | Max (aggressive), Min (conservative), Disabled | ScaleUp: Max, ScaleDown: Min |
 
-:::info karpenter-autoscaling.md 참조
-HPA와 Karpenter를 함께 사용하는 전체 아키텍처는 [Karpenter 오토스케일링 가이드](/docs/infrastructure-optimization/karpenter-autoscaling)를 참조하세요.
+:::info Reference karpenter-autoscaling.md
+For the complete architecture of using HPA and Karpenter together, see [Karpenter Autoscaling Guide](/docs/infrastructure-optimization/karpenter-autoscaling).
 :::
 
-### 5.2 커스텀 메트릭 기반 HPA
+### 5.2 Custom Metrics-based HPA
 
-#### Prometheus Adapter 사용
+#### Using Prometheus Adapter
 
 ```bash
-# Prometheus Adapter 설치
+# Install Prometheus Adapter
 helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
 helm repo update
 
@@ -2042,7 +2042,7 @@ helm install prometheus-adapter prometheus-community/prometheus-adapter \
   --set prometheus.port=80
 ```
 
-**커스텀 메트릭 설정:**
+**Custom Metrics Configuration:**
 
 ```yaml
 # values.yaml for prometheus-adapter
@@ -2060,7 +2060,7 @@ rules:
     metricsQuery: 'sum(rate(<<.Series>>{<<.LabelMatchers>>}[2m])) by (<<.GroupBy>>)'
 ```
 
-**HPA 설정:**
+**HPA Configuration:**
 
 ```yaml
 apiVersion: autoscaling/v2
@@ -2081,13 +2081,13 @@ spec:
         name: http_requests_per_second
       target:
         type: AverageValue
-        averageValue: "1000"    # Pod당 1000 req/s
+        averageValue: "1000"    # 1000 req/s per Pod
 ```
 
 #### KEDA ScaledObject
 
 ```bash
-# KEDA 설치
+# Install KEDA
 helm repo add kedacore https://kedacore.github.io/charts
 helm install keda kedacore/keda --namespace keda --create-namespace
 ```
@@ -2111,9 +2111,9 @@ spec:
       query: sum(rate(http_requests_total{app="api-server"}[2m]))
 ```
 
-### 5.3 다중 메트릭 HPA
+### 5.3 Multi-Metric HPA
 
-여러 메트릭을 조합하여 스케일링:
+Scaling based on multiple metrics:
 
 ```yaml
 apiVersion: autoscaling/v2
@@ -2130,7 +2130,7 @@ spec:
   maxReplicas: 100
 
   metrics:
-  # 1. CPU 메트릭
+  # 1. CPU metric
   - type: Resource
     resource:
       name: cpu
@@ -2138,7 +2138,7 @@ spec:
         type: Utilization
         averageUtilization: 70
 
-  # 2. Memory 메트릭
+  # 2. Memory metric
   - type: Resource
     resource:
       name: memory
@@ -2146,7 +2146,7 @@ spec:
         type: Utilization
         averageUtilization: 80
 
-  # 3. 커스텀 메트릭 - RPS
+  # 3. Custom metric - RPS
   - type: Pods
     pods:
       metric:
@@ -2155,7 +2155,7 @@ spec:
         type: AverageValue
         averageValue: "1000"
 
-  # 4. 외부 메트릭 - ALB Target Response Time
+  # 4. External metric - ALB Target Response Time
   - type: External
     external:
       metric:
@@ -2182,75 +2182,75 @@ spec:
         periodSeconds: 60
 ```
 
-**다중 메트릭 평가:**
-- HPA는 **각 메트릭을 독립적으로 평가**
-- **가장 높은 레플리카 수**를 선택 (보수적 접근)
-- 예: CPU 기준 10개, Memory 기준 15개, RPS 기준 20개 → **20개 선택**
+**Multi-metric Evaluation:**
+- HPA **evaluates each metric independently**
+- Selects **highest replica count** (conservative approach)
+- Example: CPU suggests 10, Memory suggests 15, RPS suggests 20 → **selects 20**
 
 ## Node Readiness Controller and Resource Optimization
 
-### 5.3 준비되지 않은 노드에서의 리소스 낭비
+### 5.3 Resource Waste in Unready Nodes
 
-Kubernetes 클러스터에서 새 노드가 프로비저닝되면, CNI 플러그인, CSI 드라이버, GPU 드라이버 등의 인프라 컴포넌트가 준비되기 전에 Pod가 스케줄링되는 문제가 발생할 수 있습니다. 이는 다음과 같은 리소스 낭비를 초래합니다:
+When new nodes are provisioned in a Kubernetes cluster, Pods may be scheduled before infrastructure components like CNI plugins, CSI drivers, and GPU drivers are ready. This causes the following resource waste:
 
-**리소스 낭비 시나리오:**
+**Resource Waste Scenarios:**
 
-1. **CrashLoopBackOff 반복**
-   - 준비되지 않은 노드에 Pod 스케줄링 → 실패 → 재시작 반복
-   - 불필요한 CPU/메모리 사용 및 컨테이너 이미지 재다운로드
+1. **CrashLoopBackOff Cycles**
+   - Pods scheduled to unready nodes → fail → restart repeatedly
+   - Unnecessary CPU/memory usage and container image re-downloads
 
-2. **불필요한 노드 프로비저닝**
-   - Pod가 Pending 상태로 대기 → Karpenter/Cluster Autoscaler가 추가 노드 생성
-   - 실제로는 기존 노드가 준비되면 수용 가능한 상황
+2. **Unnecessary Node Provisioning**
+   - Pods wait in Pending state → Karpenter/Cluster Autoscaler creates additional nodes
+   - Situation where existing nodes could accommodate once ready
 
-3. **재스케줄링 오버헤드**
-   - 실패한 Pod를 다른 노드로 이동 → 네트워크/스토리지 리소스 낭비
-   - 애플리케이션 초기화 비용 중복 발생
+3. **Rescheduling Overhead**
+   - Failed Pods moved to other nodes → network/storage resource waste
+   - Duplicate application initialization costs
 
-### 5.4 Node Readiness Controller (NRC) 개요
+### 5.4 Node Readiness Controller (NRC) Overview
 
-Node Readiness Controller는 Kubernetes 1.32에 도입된 기능으로, 인프라 준비 완료 전까지 Pod 스케줄링을 차단하여 리소스 효율성을 향상시킵니다.
+Node Readiness Controller is a feature introduced in Kubernetes 1.32 that improves resource efficiency by blocking Pod scheduling until infrastructure is ready.
 
-**핵심 기능:**
+**Key Features:**
 
-| 기능 | 설명 | 리소스 최적화 효과 |
+| Feature | Description | Resource Optimization Effect |
 |------|------|-------------------|
-| **Readiness Gate** | 특정 조건 충족 전 노드를 NotReady 상태로 유지 | Pod 스케줄링 차단으로 CrashLoop 방지 |
-| **Custom Taint** | 준비되지 않은 노드에 자동 taint 추가 | 리소스 낭비 방지 (NoSchedule 효과) |
-| **Enforcement Mode** | `bootstrap-only` or `continuous` 모드 선택 | 초기 부트스트랩 시에만 or 지속적 검증 |
+| **Readiness Gate** | Keep node in NotReady state until conditions met | Prevent CrashLoop by blocking Pod scheduling |
+| **Custom Taint** | Automatically add taint to unready nodes | Prevent resource waste (NoSchedule effect) |
+| **Enforcement Mode** | Choose `bootstrap-only` or `continuous` mode | Only initial bootstrap or continuous validation |
 
-**API 구조:**
+**API Structure:**
 
 ```yaml
 apiVersion: readiness.node.x-k8s.io/v1alpha1
 kind: NodeReadinessRule
 ```
 
-### 5.5 Karpenter 연동 최적화
+### 5.5 Karpenter Integration Optimization
 
-Karpenter와 Node Readiness Controller를 함께 사용하면 노드 프로비저닝 효율성이 크게 향상됩니다.
+Using Karpenter with Node Readiness Controller significantly improves node provisioning efficiency.
 
-**최적화 패턴:**
+**Optimization Pattern:**
 
 ```mermaid
 graph TB
-    A[Karpenter: 새 노드 프로비저닝] --> B[NRC: Taint 자동 추가]
-    B --> C{CNI/CSI 준비 완료?}
-    C -->|No| D[Pod Pending 유지]
-    D --> E[Karpenter: 추가 노드 생성 안 함]
-    C -->|Yes| F[NRC: Taint 제거]
-    F --> G[Pod 스케줄링 시작]
-    G --> H[리소스 효율적 배치]
+    A[Karpenter: Provision new node] --> B[NRC: Auto-add taint]
+    B --> C{CNI/CSI ready?}
+    C -->|No| D[Keep Pod Pending]
+    D --> E[Karpenter: Do not create additional nodes]
+    C -->|Yes| F[NRC: Remove taint]
+    F --> G[Start Pod scheduling]
+    G --> H[Resource-efficient placement]
 
     style B fill:#a8dadc
     style E fill:#457b9d
     style H fill:#1d3557
 ```
 
-**Karpenter NodePool과 NRC 연동:**
+**Karpenter NodePool and NRC Integration:**
 
 ```yaml
-# 1. CSI Driver 준비 확인 (EBS)
+# 1. Check CSI Driver readiness (EBS)
 apiVersion: readiness.node.x-k8s.io/v1alpha1
 kind: NodeReadinessRule
 metadata:
@@ -2263,10 +2263,10 @@ spec:
     key: "readiness.k8s.io/storage-unavailable"
     effect: "NoSchedule"
     value: "pending"
-  enforcementMode: "bootstrap-only"  # 초기 부트스트랩만 검증
+  enforcementMode: "bootstrap-only"  # Validate initial bootstrap only
 
 ---
-# 2. VPC CNI 준비 확인
+# 2. Check VPC CNI readiness
 apiVersion: readiness.node.x-k8s.io/v1alpha1
 kind: NodeReadinessRule
 metadata:
@@ -2282,7 +2282,7 @@ spec:
   enforcementMode: "bootstrap-only"
 
 ---
-# 3. GPU Driver 준비 확인 (GPU 노드용)
+# 3. Check GPU Driver readiness (for GPU nodes)
 apiVersion: readiness.node.x-k8s.io/v1alpha1
 kind: NodeReadinessRule
 metadata:
@@ -2298,53 +2298,53 @@ spec:
     effect: "NoSchedule"
     value: "pending"
   enforcementMode: "bootstrap-only"
-  # GPU 드라이버 로딩은 시간이 오래 걸림 (30-60초)
-  # NRC로 이 시간 동안 Pod 스케줄링 차단
+  # GPU driver loading takes time (30-60 seconds)
+  # NRC blocks Pod scheduling during this time
 ```
 
-### 5.6 리소스 효율성 개선 효과
+### 5.6 Resource Efficiency Improvement Effects
 
-Node Readiness Controller 적용 전후 비교:
+Before and after Node Readiness Controller implementation:
 
-| 지표 | 적용 전 | 적용 후 | 개선율 |
+| Metric | Before | After | Improvement |
 |------|---------|---------|--------|
-| **CrashLoopBackOff 발생률** | 15-20% | < 2% | 90% 감소 |
-| **불필요한 노드 프로비저닝** | 평균 2-3개/시간 | < 0.5개/시간 | 75% 감소 |
-| **Pod 시작 실패율** | 8-12% | < 1% | 90% 감소 |
-| **컨테이너 이미지 재다운로드** | 100-200GB/일 | 20-30GB/일 | 80% 감소 |
+| **CrashLoopBackOff Rate** | 15-20% | < 2% | 90% reduction |
+| **Unnecessary Node Provisioning** | Average 2-3/hour | < 0.5/hour | 75% reduction |
+| **Pod Startup Failure Rate** | 8-12% | < 1% | 90% reduction |
+| **Container Image Re-downloads** | 100-200GB/day | 20-30GB/day | 80% reduction |
 
-**비용 영향 (100개 노드 클러스터 기준):**
+**Cost Impact (100-node cluster baseline):**
 
 ```
-적용 전:
-- 불필요한 노드 프로비저닝: 평균 3개 × $0.384/시간 × 24시간 × 30일 = $829/월
-- 이미지 재다운로드 데이터 전송 비용: 150GB/일 × 30일 × $0.09/GB = $405/월
-- 총 낭비 비용: $1,234/월
+Before:
+- Unnecessary node provisioning: Average 3 × $0.384/hour × 24 hours × 30 days = $829/month
+- Image re-download data transfer cost: 150GB/day × 30 days × $0.09/GB = $405/month
+- Total waste cost: $1,234/month
 
-적용 후:
-- 불필요한 노드 프로비저닝: 평균 0.5개 × $0.384/시간 × 24시간 × 30일 = $138/월
-- 이미지 재다운로드 데이터 전송 비용: 25GB/일 × 30일 × $0.09/GB = $67.5/월
-- 총 비용: $205.5/월
+After:
+- Unnecessary node provisioning: Average 0.5 × $0.384/hour × 24 hours × 30 days = $138/month
+- Image re-download data transfer cost: 25GB/day × 30 days × $0.09/GB = $67.5/month
+- Total cost: $205.5/month
 
-절감액: $1,234 - $205.5 = $1,028.5/월 (83% 절감)
+Savings: $1,234 - $205.5 = $1,028.5/month (83% reduction)
 ```
 
-### 5.7 실전 구현 가이드
+### 5.7 Practical Implementation Guide
 
-#### Step 1: Feature Gate 활성화
+#### Step 1: Enable Feature Gate
 
 ```bash
-# EKS 1.32+ 클러스터에서 Feature Gate 확인
+# Check Feature Gate in EKS 1.32+ cluster
 kubectl get --raw /metrics | grep node_readiness_controller
 
-# Karpenter 설정에서 Feature Gate 활성화
+# Enable Feature Gate in Karpenter configuration
 # values.yaml (Karpenter Helm Chart)
 controller:
   featureGates:
     NodeReadinessController: true
 ```
 
-#### Step 2: NodeReadinessRule 적용
+#### Step 2: Apply NodeReadinessRule
 
 ```yaml
 # production-nrc.yaml
@@ -2353,7 +2353,7 @@ kind: NodeReadinessRule
 metadata:
   name: production-readiness
 spec:
-  # 여러 조건을 AND로 검증
+  # Validate multiple conditions with AND
   conditions:
     - type: "ebs.csi.aws.com/driver-ready"
       requiredStatus: "True"
@@ -2365,23 +2365,23 @@ spec:
     effect: "NoSchedule"
     value: "pending"
 
-  # bootstrap-only: 노드 초기 부트스트랩만 검증
-  # continuous: 지속적으로 검증 (드라이버 재시작 시에도 대응)
+  # bootstrap-only: Validate initial node bootstrap only
+  # continuous: Continuously validate (respond to driver restarts too)
   enforcementMode: "bootstrap-only"
 ```
 
 ```bash
 kubectl apply -f production-nrc.yaml
 
-# 적용 확인
+# Verify application
 kubectl get nodereadinessrule
 kubectl describe nodereadinessrule production-readiness
 ```
 
-#### Step 3: 노드 조건 모니터링
+#### Step 3: Monitor Node Conditions
 
 ```bash
-# 새 노드가 프로비저닝되면 조건 확인
+# Check conditions when new node is provisioned
 kubectl get nodes -o json | jq '.items[] | {
   name: .metadata.name,
   conditions: [.status.conditions[] | select(.type |
@@ -2389,14 +2389,14 @@ kubectl get nodes -o json | jq '.items[] | {
     {type: .type, status: .status}]
 }'
 
-# Taint 상태 확인
+# Check taint status
 kubectl get nodes -o json | jq '.items[] | {
   name: .metadata.name,
   taints: .spec.taints
 }'
 ```
 
-#### Step 4: Karpenter NodePool 최적화
+#### Step 4: Optimize Karpenter NodePool
 
 ```yaml
 # Karpenter NodePool with NRC
@@ -2415,29 +2415,29 @@ spec:
           operator: In
           values: ["spot", "on-demand"]
 
-      # NRC가 taint를 자동 관리하므로 여기서는 제외
-      # taints: []  # NRC가 관리
+      # Exclude taints here as NRC manages them automatically
+      # taints: []  # Managed by NRC
 
-      # 노드 부트스트랩 완료 대기 시간 증가
+      # Increase node bootstrap completion wait time
       kubelet:
         maxPods: 110
-        # NRC로 인해 노드 Ready까지 시간 증가 (30초 → 60초)
-        # Karpenter가 너무 빨리 타임아웃하지 않도록 설정
+        # Node Ready time increases due to NRC (30s → 60s)
+        # Configure to prevent Karpenter timeout too early
         systemReserved:
           cpu: 100m
           memory: 512Mi
 
   disruption:
     consolidationPolicy: WhenUnderutilized
-    # NRC로 인해 노드 시작이 느려지므로 consolidation 간격 증가
-    consolidateAfter: 60s  # 기본 30s → 60s
+    # Increase consolidation interval as node startup is slower due to NRC
+    consolidateAfter: 60s  # default 30s → 60s
 ```
 
-:::warning GPU 노드 특별 고려사항
-GPU 드라이버 로딩은 30-60초 소요되므로, GPU NodePool에는 반드시 NRC를 적용해야 합니다. 그렇지 않으면 GPU를 사용할 수 없는 상태에서 Pod가 스케줄링되어 지속적으로 실패합니다.
+:::warning GPU Node Special Considerations
+GPU driver loading takes 30-60 seconds, so NRC must be applied to GPU NodePools. Otherwise, Pods are scheduled when GPU is unavailable and continuously fail.
 
 ```yaml
-# GPU 전용 NRC
+# GPU-specific NRC
 apiVersion: readiness.node.x-k8s.io/v1alpha1
 kind: NodeReadinessRule
 metadata:
@@ -2457,34 +2457,34 @@ spec:
 ```
 :::
 
-### 5.8 문제 해결 및 모니터링
+### 5.8 Troubleshooting and Monitoring
 
-#### 일반적인 문제
+#### Common Issues
 
-**1. 노드가 계속 NotReady 상태:**
+**1. Node remains in NotReady state:**
 
 ```bash
-# 노드 조건 상세 확인
+# Check node conditions in detail
 kubectl describe node <node-name> | grep -A 10 "Conditions:"
 
-# NRC 이벤트 확인
+# Check NRC events
 kubectl get events --all-namespaces --field-selector involvedObject.kind=Node,involvedObject.name=<node-name>
 
-# 드라이버 DaemonSet 상태 확인
+# Check driver DaemonSet status
 kubectl get pods -n kube-system | grep -E "aws-node|ebs-csi|nvidia"
 ```
 
-**2. Taint가 제거되지 않음:**
+**2. Taint not removed:**
 
 ```bash
-# NRC가 동작 중인지 확인
+# Check if NRC is running
 kubectl logs -n kube-system -l app=karpenter -c controller | grep "NodeReadiness"
 
-# 수동으로 taint 제거 (임시 해결)
+# Manually remove taint (temporary solution)
 kubectl taint nodes <node-name> readiness.k8s.io/not-ready:NoSchedule-
 ```
 
-#### Prometheus 메트릭
+#### Prometheus Metrics
 
 ```yaml
 # ServiceMonitor for NRC metrics
@@ -2502,50 +2502,50 @@ spec:
       path: /metrics
       interval: 30s
 
-# 주요 메트릭:
+# Key metrics:
 # - node_readiness_controller_reconcile_duration_seconds
 # - node_readiness_controller_condition_evaluation_total
 # - node_readiness_controller_taint_operations_total
 ```
 
-:::tip 참고 자료
-- **공식 블로그**: [Introducing Node Readiness Controller](https://kubernetes.io/blog/2026/02/03/introducing-node-readiness-controller/)
+:::tip References
+- **Official Blog**: [Introducing Node Readiness Controller](https://kubernetes.io/blog/2026/02/03/introducing-node-readiness-controller/)
 - **KEP (Kubernetes Enhancement Proposal)**: KEP-4403
-- **API 문서**: `readiness.node.x-k8s.io/v1alpha1`
+- **API Documentation**: `readiness.node.x-k8s.io/v1alpha1`
 :::
 
 ## Right-Sizing Methodology
 
-### 6.1 현재 리소스 사용량 분석
+### 6.1 Current Resource Usage Analysis
 
-#### kubectl top 사용
+#### Using kubectl top
 
 ```bash
-# 노드별 리소스 사용량
+# Node resource usage
 kubectl top nodes
 
-# 네임스페이스별 Pod 리소스 사용량
+# Pod resource usage by namespace
 kubectl top pods -n production --sort-by=cpu
 kubectl top pods -n production --sort-by=memory
 
-# 특정 Pod의 컨테이너별 사용량
+# Container-specific usage for a Pod
 kubectl top pods <pod-name> --containers -n production
 ```
 
-#### Metrics Server API 직접 쿼리
+#### Direct Metrics Server API Query
 
 ```bash
-# CPU 사용량
+# CPU usage
 kubectl get --raw /apis/metrics.k8s.io/v1beta1/namespaces/production/pods | jq '.items[] | {name: .metadata.name, cpu: .containers[0].usage.cpu}'
 
-# Memory 사용량
+# Memory usage
 kubectl get --raw /apis/metrics.k8s.io/v1beta1/namespaces/production/pods | jq '.items[] | {name: .metadata.name, memory: .containers[0].usage.memory}'
 ```
 
 #### Container Insights (AWS)
 
 ```bash
-# CloudWatch Logs Insights 쿼리
+# CloudWatch Logs Insights query
 fields @timestamp, PodName, ContainerName, pod_cpu_utilization, pod_memory_utilization
 | filter Namespace = "production"
 | stats avg(pod_cpu_utilization) as avg_cpu,
@@ -2556,28 +2556,28 @@ fields @timestamp, PodName, ContainerName, pod_cpu_utilization, pod_memory_utili
 | sort max_cpu desc
 ```
 
-#### 6.1.5 CloudWatch Observability Operator 기반 자동 분석
+#### 6.1.5 CloudWatch Observability Operator-based Automated Analysis
 
-AWS는 2025년 12월 **CloudWatch Observability Operator**를 통해 EKS Control Plane 메트릭 모니터링 기능을 추가했습니다. 이를 통해 리소스 병목을 선제적으로 감지하고 자동화된 분석이 가능합니다.
+AWS added EKS Control Plane metrics monitoring functionality in December 2025 through **CloudWatch Observability Operator**. This enables proactive detection of resource bottlenecks and automated analysis.
 
-**CloudWatch Observability Operator 설치:**
+**CloudWatch Observability Operator Installation:**
 
 ```bash
-# 1. Helm 레포지토리 추가
+# 1. Add Helm repository
 helm repo add eks https://aws.github.io/eks-charts
 helm repo update
 
-# 2. Operator 설치 (Amazon CloudWatch Observability namespace)
+# 2. Install Operator (Amazon CloudWatch Observability namespace)
 helm install amazon-cloudwatch-observability eks/amazon-cloudwatch-observability \
   --namespace amazon-cloudwatch \
   --create-namespace \
   --set clusterName=<cluster-name> \
   --set region=<region>
 
-# 3. 설치 확인
+# 3. Verify installation
 kubectl get pods -n amazon-cloudwatch
 
-# 예상 출력:
+# Expected output:
 # NAME                                                     READY   STATUS    RESTARTS   AGE
 # amazon-cloudwatch-observability-controller-manager-xxx   2/2     Running   0          2m
 # cloudwatch-agent-xxx                                     1/1     Running   0          2m
@@ -2585,24 +2585,24 @@ kubectl get pods -n amazon-cloudwatch
 # fluent-bit-xxx                                           1/1     Running   0          2m
 ```
 
-**Container Insights Enhanced 기능:**
+**Container Insights Enhanced Features:**
 
-CloudWatch Observability Operator는 다음과 같은 고급 분석 기능을 제공합니다:
+CloudWatch Observability Operator provides the following advanced analysis capabilities:
 
-| 기능 | 설명 | 활용 |
+| Feature | Description | Usage |
 |------|------|------|
-| **이상 탐지** | CloudWatch Anomaly Detection으로 비정상 패턴 자동 식별 | CPU/Memory 스파이크 사전 감지 |
-| **메모리 누수 시각화** | 시계열 그래프에서 지속적 증가 패턴 강조 표시 | 메모리 누수 조기 발견 |
-| **드릴다운 분석** | Namespace → Deployment → Pod → Container 계층 탐색 | 리소스 병목 근본 원인 분석 |
-| **Control Plane 메트릭** | API Server, etcd, Scheduler 성능 메트릭 | 클러스터 스케일링 병목 사전 감지 |
-| **알람 자동 생성** | Recommended 임계값 기반 CloudWatch 알람 자동 구성 | 운영 자동화 |
+| **Anomaly Detection** | Automatically identify abnormal patterns with CloudWatch Anomaly Detection | Proactive detection of CPU/Memory spikes |
+| **Memory Leak Visualization** | Highlight continuous increase patterns in time-series graphs | Early detection of memory leaks |
+| **Drill-down Analysis** | Navigate Namespace → Deployment → Pod → Container hierarchy | Root cause analysis of resource bottlenecks |
+| **Control Plane Metrics** | API Server, etcd, Scheduler performance metrics | Proactive detection of cluster scaling bottlenecks |
+| **Automatic Alarm Creation** | Auto-configure CloudWatch alarms based on recommended thresholds | Operations automation |
 
-**EKS Control Plane 메트릭으로 리소스 병목 선제 감지:**
+**Proactive Resource Bottleneck Detection with EKS Control Plane Metrics:**
 
-Control Plane 메트릭을 통해 Pod 스케줄링 지연, API Server 과부하 등 리소스 최적화에 영향을 미치는 클러스터 수준 문제를 사전에 감지할 수 있습니다.
+Control Plane metrics enable proactive detection of cluster-level issues affecting resource optimization, such as Pod scheduling delays and API Server overload.
 
 ```bash
-# CloudWatch Insights 쿼리 - Control Plane API Server 부하 분석
+# CloudWatch Insights query - Control Plane API Server load analysis
 fields @timestamp, apiserver_request_duration_seconds_sum, apiserver_request_total
 | filter @logStream like /kube-apiserver/
 | stats avg(apiserver_request_duration_seconds_sum) as avg_latency,
@@ -2611,63 +2611,63 @@ fields @timestamp, apiserver_request_duration_seconds_sum, apiserver_request_tot
 | sort @timestamp desc
 ```
 
-**주요 Control Plane 메트릭:**
+**Key Control Plane Metrics:**
 
-| 메트릭 | 의미 | 임계값 | 대응 |
+| Metric | Meaning | Threshold | Action |
 |--------|------|--------|------|
-| `apiserver_request_duration_seconds` | API 요청 레이턴시 | P95 > 1초 | Provisioned Control Plane 고려 |
-| `etcd_request_duration_seconds` | etcd 응답 시간 | P95 > 100ms | 노드/Pod 수 줄이기 |
-| `scheduler_schedule_attempts_total` | 스케줄링 시도 횟수 | 실패율 > 5% | 리소스 부족, Node Affinity 검토 |
-| `workqueue_depth` | Control Plane 작업 큐 깊이 | > 100 | 클러스터 과부하 신호 |
+| `apiserver_request_duration_seconds` | API request latency | P95 > 1s | Consider Provisioned Control Plane |
+| `etcd_request_duration_seconds` | etcd response time | P95 > 100ms | Reduce node/Pod count |
+| `scheduler_schedule_attempts_total` | Scheduling attempt count | Failure rate > 5% | Review resource shortage, Node Affinity |
+| `workqueue_depth` | Control Plane work queue depth | > 100 | Cluster overload signal |
 
-**Data-Driven 최적화의 3가지 낭비 패턴 (AWS 공식 가이드):**
+**3 Waste Patterns in Data-Driven Optimization (AWS Official Guide):**
 
-AWS가 2025년 11월 공개한 [Data-driven Amazon EKS cost optimization](https://aws.amazon.com/blogs/containers/data-driven-amazon-eks-cost-optimization-a-practical-guide-to-workload-analysis/) 가이드에서는 실제 데이터 분석을 통해 다음 3가지 주요 낭비 패턴을 식별했습니다:
+AWS's [Data-driven Amazon EKS cost optimization](https://aws.amazon.com/blogs/containers/data-driven-amazon-eks-cost-optimization-a-practical-guide-to-workload-analysis/) guide published in November 2025 identified the following 3 major waste patterns through actual data analysis:
 
 ```mermaid
 graph TB
-    A[리소스 낭비 패턴 분석] --> B[1. Greedy Workloads]
+    A[Resource Waste Pattern Analysis] --> B[1. Greedy Workloads]
     A --> C[2. Pet Workloads]
     A --> D[3. Isolated Workloads]
 
-    B --> B1[과도한 리소스 요청]
-    B1 --> B2[Actual Usage의 3-5배 requests]
-    B2 --> B3[노드 파편화 유발]
+    B --> B1[Excessive resource requests]
+    B1 --> B2[Requests 3-5x of Actual Usage]
+    B2 --> B3[Causes node fragmentation]
 
-    C --> C1[엄격한 PodDisruptionBudget]
-    C1 --> C2[노드 드레이닝 차단]
-    C2 --> C3[클러스터 스케일 다운 방해]
+    C --> C1[Strict PodDisruptionBudget]
+    C1 --> C2[Blocks node draining]
+    C2 --> C3[Prevents cluster scale down]
 
-    D --> D1[특정 노드에 고정된 워크로드]
-    D1 --> D2[Node Affinity/Selector 과다 사용]
-    D2 --> D3[노드 풀 파편화]
+    D --> D1[Workloads pinned to specific nodes]
+    D1 --> D2[Excessive Node Affinity/Selector use]
+    D2 --> D3[Node pool fragmentation]
 
     style B fill:#ff6b6b
     style C fill:#ffa94d
     style D fill:#ffd43b
 ```
 
-**1. Greedy Workloads (탐욕스러운 워크로드):**
+**1. Greedy Workloads:**
 
-과도하게 리소스를 요청하는 Pod로 인해 노드 활용률이 낮아지는 패턴입니다.
+Pattern where Pods request excessive resources, resulting in low node utilization.
 
 ```bash
-# CloudWatch Insights 쿼리 - Over-requesting 컨테이너 식별
+# CloudWatch Insights query - Identify over-requesting containers
 fields @timestamp, PodName, ContainerName, pod_cpu_request, pod_cpu_utilization_over_pod_limit
 | filter Namespace = "production"
 | stats avg(pod_cpu_request) as avg_requested,
         avg(pod_cpu_utilization_over_pod_limit) as avg_utilization
   by PodName
-| filter avg_utilization < 30  # 요청량의 30% 미만 사용
+| filter avg_utilization < 30  # Using less than 30% of requests
 | sort avg_requested desc
 ```
 
-**식별 기준:**
-- CPU requests의 30% 미만 사용
-- Memory requests의 50% 미만 사용
-- 지속 기간: 7일 이상
+**Identification Criteria:**
+- Using less than 30% of CPU requests
+- Using less than 50% of Memory requests
+- Duration: 7+ days
 
-**대응 방법:**
+**Remediation:**
 ```yaml
 # Before (Greedy)
 resources:
@@ -2684,27 +2684,27 @@ resources:
     memory: "2Gi"
 ```
 
-**2. Pet Workloads (애완동물 워크로드):**
+**2. Pet Workloads:**
 
-엄격한 PodDisruptionBudget(PDB)로 인해 클러스터 스케일 다운이 차단되는 패턴입니다.
+Pattern where cluster scale down is blocked due to strict PodDisruptionBudget (PDB).
 
 ```bash
-# PDB로 인한 노드 드레이닝 실패 확인
+# Check node draining failures due to PDB
 kubectl get events --all-namespaces \
   --field-selector reason=EvictionFailed \
   --sort-by='.lastTimestamp'
 
-# 예상 출력:
+# Expected output:
 # NAMESPACE   LAST SEEN   TYPE      REASON           MESSAGE
 # production  5m          Warning   EvictionFailed   Cannot evict pod as it would violate the pod's disruption budget
 ```
 
-**식별 기준:**
-- `minAvailable: 100%` or `maxUnavailable: 0` 설정
-- 장기간(>30분) Pending 상태 노드 존재
-- Karpenter/Cluster Autoscaler 스케일 다운 실패 로그
+**Identification Criteria:**
+- `minAvailable: 100%` or `maxUnavailable: 0` configured
+- Long-term (>30min) Pending state nodes exist
+- Karpenter/Cluster Autoscaler scale down failure logs
 
-**대응 방법:**
+**Remediation:**
 ```yaml
 # Before (Pet)
 apiVersion: policy/v1
@@ -2712,7 +2712,7 @@ kind: PodDisruptionBudget
 metadata:
   name: critical-app-pdb
 spec:
-  minAvailable: 100%  # 모든 Pod 보호 → 스케일 다운 불가
+  minAvailable: 100%  # Protect all Pods → no scale down
 
 # After (Balanced)
 apiVersion: policy/v1
@@ -2720,18 +2720,18 @@ kind: PodDisruptionBudget
 metadata:
   name: critical-app-pdb
 spec:
-  minAvailable: 80%   # 20% 여유로 스케일 다운 허용
+  minAvailable: 80%   # Allow scale down with 20% headroom
   selector:
     matchLabels:
       app: critical-app
 ```
 
-**3. Isolated Workloads (고립된 워크로드):**
+**3. Isolated Workloads:**
 
-과도한 Node Affinity, Taints/Tolerations로 인해 노드 풀이 파편화되는 패턴입니다.
+Pattern where node pools become fragmented due to excessive Node Affinity and Taints/Tolerations.
 
 ```bash
-# 노드별 Pod 수와 활용률 분석
+# Analyze Pod count and utilization per node
 kubectl get nodes -o json | jq -r '
   .items[] |
   {
@@ -2743,12 +2743,12 @@ kubectl get nodes -o json | jq -r '
 ' | jq -s 'sort_by(.pods) | .[]'
 ```
 
-**식별 기준:**
-- 노드당 평균 Pod 수 < 10개
-- 노드 수 > 필요 용량의 150%
-- NodeSelector/Affinity 사용률 > 50%
+**Identification Criteria:**
+- Average Pod count per node < 10
+- Node count > 150% of required capacity
+- NodeSelector/Affinity usage rate > 50%
 
-**대응 방법:**
+**Remediation:**
 ```yaml
 # Before (Isolated)
 affinity:
@@ -2759,7 +2759,7 @@ affinity:
         - key: workload-type
           operator: In
           values:
-          - api-server-v2  # 너무 구체적 → 노드 파편화
+          - api-server-v2  # Too specific → node fragmentation
 
 # After (Flexible)
 affinity:
@@ -2771,19 +2771,19 @@ affinity:
         - key: workload-class
           operator: In
           values:
-          - compute-optimized  # 더 넓은 범주
+          - compute-optimized  # Broader category
 ```
 
-**Data-Driven 최적화 플로우:**
+**Data-Driven Optimization Flow:**
 
 ```mermaid
 graph LR
-    A[1. 데이터 수집] --> B[2. 패턴 분석]
-    B --> C[3. 낭비 식별]
-    C --> D[4. 최적화 적용]
-    D --> E[5. 검증]
-    E --> F{목표 달성?}
-    F -->|Yes| G[지속적 모니터링]
+    A[1. Data Collection] --> B[2. Pattern Analysis]
+    B --> C[3. Waste Identification]
+    C --> D[4. Apply Optimization]
+    D --> E[5. Verification]
+    E --> F{Goal Achieved?}
+    F -->|Yes| G[Continuous Monitoring]
     F -->|No| B
 
     A1[CloudWatch Container Insights] --> A
@@ -2795,8 +2795,8 @@ graph LR
     C3[Isolated Workloads] --> C
 
     D1[Right-Sizing] --> D
-    D2[PDB 완화] --> D
-    D3[Affinity 최적화] --> D
+    D2[PDB Relaxation] --> D
+    D3[Affinity Optimization] --> D
 
     style A fill:#e3f2fd
     style C fill:#fff3e0
@@ -2804,25 +2804,25 @@ graph LR
     style G fill:#c8e6c9
 ```
 
-**실제 효과 사례 (AWS 공식 가이드):**
+**Real-world Impact Examples (AWS Official Guide):**
 
-| 조직 | 낭비 패턴 | 적용 조치 | 절감 효과 |
+| Organization | Waste Pattern | Applied Action | Savings Effect |
 |------|----------|----------|----------|
-| 핀테크 스타트업 | Greedy Workloads 40% | VPA Recommended사항 적용 | 노드 수 35% 감소 |
-| 이커머스 기업 | Pet Workloads 25% | PDB minAvailable 80%로 완화 | 스케일 다운 속도 3배 향상 |
-| SaaS 플랫폼 | Isolated Workloads 30% | NodeSelector 제거, Spot 활용 | 비용 45% 절감 |
+| Fintech Startup | Greedy Workloads 40% | Applied VPA recommendations | 35% reduction in node count |
+| E-commerce Company | Pet Workloads 25% | Relaxed PDB minAvailable to 80% | 3x faster scale down |
+| SaaS Platform | Isolated Workloads 30% | Removed NodeSelector, utilized Spot | 45% cost reduction |
 
-:::tip 자동화된 낭비 패턴 탐지
-CloudWatch Contributor Insights를 사용하면 위 3가지 패턴을 자동으로 탐지하는 규칙을 생성할 수 있습니다:
+:::tip Automated Waste Pattern Detection
+CloudWatch Contributor Insights can be used to create rules that automatically detect these 3 patterns:
 
 ```bash
-# Contributor Insights 규칙 생성 (Greedy Workloads)
+# Create Contributor Insights rule (Greedy Workloads)
 aws cloudwatch put-insight-rule \
   --rule-name "EKS-GreedyWorkloads" \
   --rule-definition file://greedy-workloads-rule.json
 ```
 
-규칙 Definition Example:
+Rule Definition Example:
 ```json
 {
   "Schema": {
@@ -2850,42 +2850,42 @@ aws cloudwatch put-insight-rule \
 ```
 :::
 
-#### Prometheus 쿼리
+#### Prometheus Queries
 
 ```promql
-# CPU 사용량 (P95, 7일간)
+# CPU Usage (P95, 7 days)
 quantile_over_time(0.95,
   sum by (pod, namespace) (
     rate(container_cpu_usage_seconds_total{namespace="production"}[5m])
   )[7d:5m]
 )
 
-# Memory 사용량 (P95, 7일간)
+# Memory Usage (P95, 7 days)
 quantile_over_time(0.95,
   sum by (pod, namespace) (
     container_memory_working_set_bytes{namespace="production"}
   )[7d:5m]
 )
 
-# CPU Requests와 Actual Usage 비교
+# Compare CPU Requests vs Actual Usage
 sum by (pod) (rate(container_cpu_usage_seconds_total[5m]))
 /
 sum by (pod) (kube_pod_container_resource_requests{resource="cpu"})
 
-# Memory Requests와 Actual Usage 비교
+# Compare Memory Requests vs Actual Usage
 sum by (pod) (container_memory_working_set_bytes)
 /
 sum by (pod) (kube_pod_container_resource_requests{resource="memory"})
 ```
 
-### 6.2 Goldilocks를 활용한 자동 Right-Sizing
+### 6.2 Automated Right-Sizing with Goldilocks
 
-Goldilocks는 VPA Recommender를 기반으로 대시보드를 제공합니다.
+Goldilocks provides a dashboard based on VPA Recommender.
 
-#### 설치
+#### Installation
 
 ```bash
-# Helm으로 설치
+# Install via Helm
 helm repo add fairwinds-stable https://charts.fairwinds.com/stable
 helm repo update
 
@@ -2895,59 +2895,59 @@ helm install goldilocks fairwinds-stable/goldilocks \
   --set dashboard.service.type=LoadBalancer
 ```
 
-#### 네임스페이스 활성화
+#### Enable Namespace
 
 ```bash
-# 네임스페이스에 레이블 추가
+# Add label to namespace
 kubectl label namespace production goldilocks.fairwinds.com/enabled=true
 kubectl label namespace staging goldilocks.fairwinds.com/enabled=true
 
-# Goldilocks가 자동으로 VPA 생성 (Off 모드)
+# Goldilocks automatically creates VPA (Off mode)
 kubectl get vpa -n production
 ```
 
-#### 대시보드 접근
+#### Access Dashboard
 
 ```bash
-# 대시보드 URL 확인
+# Check dashboard URL
 kubectl get svc -n goldilocks goldilocks-dashboard
 
-# 포트 포워딩
+# Port forwarding
 kubectl port-forward -n goldilocks svc/goldilocks-dashboard 8080:80
 
-# 브라우저에서 http://localhost:8080 접속
+# Access http://localhost:8080 in browser
 ```
 
-**대시보드 기능:**
-- 네임스페이스별 리소스 Recommended사항
-- VPA Lower Bound, Target, Upper Bound 표시
-- 현재 설정과 Recommended값 비교
-- QoS 클래스 표시
+**Dashboard Features:**
+- Resource recommendations per namespace
+- Display VPA Lower Bound, Target, Upper Bound
+- Compare current settings vs recommended values
+- Display QoS classes
 
-### 6.3 Container Insights Enhanced 이상 탐지 활용
+### 6.3 Using Container Insights Enhanced Anomaly Detection
 
-AWS Container Insights Enhanced는 기존 Container Insights보다 향상된 관찰성 기능을 제공하며, 특히 **자동 이상 탐지**와 **드릴다운 분석** 기능을 통해 리소스 문제를 조기에 발견할 수 있습니다.
+AWS Container Insights Enhanced provides improved observability features over standard Container Insights, particularly through **automatic anomaly detection** and **drill-down analysis** capabilities for early resource problem detection.
 
-#### 6.3.1 Container Insights Enhanced 개요
+#### 6.3.1 Container Insights Enhanced Overview
 
-**기존 Container Insights 대비 향상된 기능:**
+**Enhanced Features Compared to Standard Container Insights:**
 
-| 기능 | 기존 Container Insights | Enhanced |
+| Feature | Standard Container Insights | Enhanced |
 |------|------------------------|----------|
-| **메트릭 수집** | Pod/Container 레벨 | Pod/Container + 네트워크 세분화 |
-| **이상 탐지** | 수동 (사용자가 임계값 설정) | **자동 (ML 기반 anomaly detection)** |
-| **드릴다운** | 제한적 | **완전한 계층 구조 (Cluster → Node → Pod → Container)** |
-| **메모리 누수 감지** | 수동 분석 필요 | **시각적 패턴 자동 식별** |
-| **CPU Throttling** | 메트릭만 제공 | **자동 경고 + 원인 분석** |
-| **네트워크 관찰성** | 기본 | **Pod-to-Pod 흐름 분석** |
+| **Metrics collection** | Pod/Container level | Pod/Container + network granularity |
+| **Anomaly detection** | Manual (user-set thresholds) | **Automatic (ML-based anomaly detection)** |
+| **Drill-down** | Limited | **Complete hierarchy (Cluster → Node → Pod → Container)** |
+| **Memory leak detection** | Manual analysis required | **Automatic visual pattern identification** |
+| **CPU Throttling** | Metrics only | **Automatic alerts + root cause analysis** |
+| **Network observability** | Basic | **Pod-to-Pod flow analysis** |
 
-**활성화 방법:**
+**Activation Method:**
 
 ```bash
-# CloudWatch Observability Operator 배포
+# Deploy CloudWatch Observability Operator
 kubectl apply -f https://raw.githubusercontent.com/aws-observability/aws-cloudwatch-observability-operator/main/deploy/operator.yaml
 
-# Container Insights Enhanced 활성화
+# Enable Container Insights Enhanced
 cat <<EOF | kubectl apply -f -
 apiVersion: cloudwatch.aws.amazon.com/v1alpha1
 kind: CloudWatchObservability
@@ -2955,37 +2955,37 @@ metadata:
   name: cloudwatch-observability
 spec:
   enableContainerInsights: true
-  enableEnhancedContainerInsights: true  # Enhanced 활성화
+  enableEnhancedContainerInsights: true  # Enable Enhanced
   enableAutoInstrumentation: true
 EOF
 
-# 활성화 확인
+# Verify activation
 kubectl get cloudwatchobservability cloudwatch-observability -o yaml
 ```
 
-#### 6.3.2 메모리 누수 시각적 식별 패턴
+#### 6.3.2 Visual Memory Leak Identification Patterns
 
-Container Insights Enhanced는 메모리 사용량의 **점진적 증가 패턴**을 자동으로 감지합니다.
+Container Insights Enhanced automatically detects **gradual increase patterns** in memory usage.
 
-**메모리 누수 탐지 시나리오:**
+**Memory Leak Detection Scenario:**
 
 ```mermaid
 graph TB
-    subgraph "Container Insights Enhanced 메모리 누수 탐지"
-        A[메모리 메트릭 수집] --> B[CloudWatch Anomaly Detection]
-        B --> C{이상 패턴 감지?}
+    subgraph "Container Insights Enhanced Memory Leak Detection"
+        A[Memory metrics collection] --> B[CloudWatch Anomaly Detection]
+        B --> C{Abnormal pattern detected?}
 
-        C -->|정상| D[정상 모니터링 지속]
-        C -->|메모리 점진적 증가| E[메모리 누수 의심]
+        C -->|Normal| D[Continue normal monitoring]
+        C -->|Gradual memory increase| E[Suspect memory leak]
 
-        E --> F[자동 알림 발송<br/>SNS/Slack/PagerDuty]
-        F --> G[드릴다운 분석 시작]
+        E --> F[Send automatic alerts<br/>SNS/Slack/PagerDuty]
+        F --> G[Start drill-down analysis]
 
-        G --> H[Pod 레벨 메트릭 확인]
-        H --> I[Container 레벨 상세 분석]
-        I --> J[원인 Container 식별]
+        G --> H[Check Pod-level metrics]
+        H --> I[Detailed Container-level analysis]
+        I --> J[Identify culprit Container]
 
-        J --> K[리소스 Right-Sizing or<br/>애플리케이션 수정]
+        J --> K[Resource Right-Sizing or<br/>Application fix]
     end
 
     style E fill:#ff6b6b
@@ -2993,15 +2993,15 @@ graph TB
     style K fill:#51cf66
 ```
 
-**CloudWatch Console에서 메모리 누수 확인:**
+**Check Memory Leak in CloudWatch Console:**
 
 1. **CloudWatch → Container Insights → Performance monitoring**
-2. **View: EKS Pods** 선택
-3. **메트릭: Memory Utilization (%)** 선택
-4. **Anomaly Detection Band 활성화**
+2. Select **View: EKS Pods**
+3. Select **Metric: Memory Utilization (%)**
+4. Enable **Anomaly Detection Band**
 
 ```
-정상 패턴:
+Normal pattern:
 Memory (%) ▲
 100% |                    ┌────┐
      |        ┌────┐  ┌──┘    └──┐
@@ -3010,7 +3010,7 @@ Memory (%) ▲
   0% +──────────────────────────────────►
      0h    6h   12h   18h   24h        Time
 
-메모리 누수 패턴 (🚨):
+Memory leak pattern (🚨):
 Memory (%) ▲
 100% |                          ┌────OOM Kill
      |                    ┌────┤
@@ -3018,10 +3018,10 @@ Memory (%) ▲
      |      ┌────┤       │     │
   0% +──────┤────────────────────────────►
      0h    6h   12h   18h   24h        Time
-     점진적 상승 (Anomaly Detection이 자동 감지)
+     Gradual increase (automatically detected by Anomaly Detection)
 ```
 
-**자동 알림 설정 Example:**
+**Automatic Alert Configuration Example:**
 
 ```yaml
 # CloudWatch Alarm with Anomaly Detection
@@ -3068,10 +3068,10 @@ data:
     }
 ```
 
-**AWS CLI로 알림 생성:**
+**Create Alert with AWS CLI:**
 
 ```bash
-# Anomaly Detection 기반 메모리 알림
+# Memory alert based on Anomaly Detection
 aws cloudwatch put-metric-alarm \
   --alarm-name eks-memory-leak-detection \
   --alarm-description "Detects memory leak patterns in EKS pods" \
@@ -3102,27 +3102,27 @@ aws cloudwatch put-metric-alarm \
   --alarm-actions arn:aws:sns:us-east-1:123456789012:ops-alerts
 ```
 
-#### 6.3.3 CPU Throttling 자동 탐지
+#### 6.3.3 Automatic CPU Throttling Detection
 
-Container Insights Enhanced는 CPU throttling을 자동으로 감지하고, **과도한 CPU limit 설정**을 경고합니다.
+Container Insights Enhanced automatically detects CPU throttling and warns about **excessive CPU limit configuration**.
 
-**CPU Throttling 메트릭:**
+**CPU Throttling Metrics:**
 
 ```
 throttled_time_percentage = (container_cpu_cfs_throttled_seconds_total / container_cpu_cfs_periods_total) * 100
 
-정상: <5%
-주의: 5-10% ⚠️
-심각: >10% 🚨 (HPA or CPU limits 제거 필요)
+Normal: <5%
+Warning: 5-10% ⚠️
+Critical: >10% 🚨 (Add HPA or remove CPU limits)
 ```
 
-**CloudWatch Insights 쿼리로 Throttling 분석:**
+**Throttling Analysis with CloudWatch Insights Query:**
 
 ```sql
-# CloudWatch Logs Insights �ery
+# CloudWatch Logs Insights query
 fields @timestamp, kubernetes.pod_name, cpu_limit_millicores, cpu_usage_millicores, throttled_time_ms
 | filter kubernetes.namespace_name = "production"
-| filter throttled_time_ms > 100  # 100ms 이상 throttling
+| filter throttled_time_ms > 100  # Throttling > 100ms
 | stats
     avg(cpu_usage_millicores) as avg_cpu,
     max(cpu_usage_millicores) as max_cpu,
@@ -3132,13 +3132,13 @@ fields @timestamp, kubernetes.pod_name, cpu_limit_millicores, cpu_usage_millicor
 | sort throttling_count desc
 | limit 20
 
-# 결과 Example:
+# Result example:
 # pod_name            avg_cpu  max_cpu  avg_throttled  throttling_count
 # web-app-abc123      450m     800m     250ms          150
 # api-server-def456   600m     1000m    180ms          120
 ```
 
-**Throttling 자동 경고 CloudWatch Alarm:**
+**Throttling Automatic Alert CloudWatch Alarm:**
 
 ```bash
 aws cloudwatch put-metric-alarm \
@@ -3155,57 +3155,57 @@ aws cloudwatch put-metric-alarm \
   --alarm-actions arn:aws:sns:us-east-1:123456789012:ops-alerts
 ```
 
-#### 6.3.4 이상 탐지 밴드 (Anomaly Detection Band) 설정
+#### 6.3.4 Anomaly Detection Band Configuration
 
-CloudWatch Anomaly Detection은 ML 모델을 사용하여 Normal Range를 자동으로 학습합니다.
+CloudWatch Anomaly Detection uses ML models to automatically learn normal ranges.
 
-**Anomaly Detection 작동 원리:**
+**How Anomaly Detection Works:**
 
 ```
-1. 학습 기간: 최소 2주 데이터 수집
-2. ML 모델 훈련: 시간대별, 요일별 패턴 학습
-3. 예측 범위 생성: 예상 상한/하한 계산
-4. 실시간 비교: 실제값이 범위 밖이면 알림
+1. Learning period: Minimum 2 weeks data collection
+2. ML model training: Learn patterns by hour/day of week
+3. Generate prediction range: Calculate expected upper/lower bounds
+4. Real-time comparison: Alert if actual value is outside range
 ```
 
-**밴드 폭 조정 (Standard Deviation):**
+**Band Width Adjustment (Standard Deviation):**
 
 ```yaml
-# 2 Standard Deviations (기본, 95% 신뢰구간)
+# 2 Standard Deviations (default, 95% confidence interval)
 Expression: ANOMALY_DETECTION_BAND(m1, 2)
 
-# 3 Standard Deviations (99.7% 신뢰구간, 더 보수적)
+# 3 Standard Deviations (99.7% confidence interval, more conservative)
 Expression: ANOMALY_DETECTION_BAND(m1, 3)
 
-# 1 Standard Deviation (68% 신뢰구간, 민감하게 감지)
+# 1 Standard Deviation (68% confidence interval, more sensitive)
 Expression: ANOMALY_DETECTION_BAND(m1, 1)
 ```
 
-**시각적 Example:**
+**Visual Example:**
 
 ```
-리소스 사용량 ▲
-              |     ┌──── Upper Band (예측 상한)
+Resource Usage ▲
+              |     ┌──── Upper Band (predicted upper bound)
               |    /
-         100% | ──●────  Actual Usage (이상 없음)
+         100% | ──●────  Actual Usage (no anomaly)
               |  / │
               | /  │
-          50% |────●────  Actual Usage (정상)
+          50% |────●────  Actual Usage (normal)
               | \  │
               |  \ │
-           0% | ──●────  Lower Band (예측 하한)
+           0% | ──●────  Lower Band (predicted lower bound)
               +──────────────────────────►
               0h   6h   12h   18h   24h
 ```
 
-#### 6.3.5 실전 워크플로우: 이상 탐지 → 조사 → Right-Sizing
+#### 6.3.5 Practical Workflow: Anomaly Detection → Investigation → Right-Sizing
 
-**Step 1: CloudWatch Alarm 트리거**
+**Step 1: CloudWatch Alarm Trigger**
 
 ```
 [CloudWatch Alarm] → [SNS Topic] → [Slack Webhook]
 
-알림 Example:
+Alert Example:
 🚨 EKS Memory Anomaly Detected
 Cluster: production-eks
 Pod: web-app-7d8c9f-abc123
@@ -3214,15 +3214,15 @@ Duration: 15 minutes
 Action: Investigate memory leak
 ```
 
-**Step 2: Container Insights 드릴다운 분석**
+**Step 2: Container Insights Drill-down Analysis**
 
 ```bash
-# 1. CloudWatch Console에서 해당 Pod 선택
-# 2. "View in Container Insights" 클릭
-# 3. 계층 구조 드릴다운:
+# 1. Select the Pod in CloudWatch Console
+# 2. Click "View in Container Insights"
+# 3. Drill down hierarchy:
 #    Cluster → Node → Pod → Container
 
-# or AWS CLI로 메트릭 조회:
+# or Query metrics with AWS CLI:
 aws cloudwatch get-metric-statistics \
   --namespace ContainerInsights \
   --metric-name pod_memory_utilization \
@@ -3236,23 +3236,23 @@ aws cloudwatch get-metric-statistics \
   --statistics Average,Maximum
 ```
 
-**Step 3: 원인 식별**
+**Step 3: Identify Root Cause**
 
 ```bash
-# 메모리 누수 확인
+# Check memory leak
 kubectl top pod web-app-7d8c9f-abc123 -n production --containers
 
-# 로그 확인 (OOM 경고)
+# Check logs (OOM warnings)
 kubectl logs web-app-7d8c9f-abc123 -n production | grep -i "memory\|heap\|oom"
 
-# 애플리케이션 프로파일링 (Java Example)
+# Application profiling (Java example)
 kubectl exec web-app-7d8c9f-abc123 -n production -- jmap -heap 1
 ```
 
-**Step 4: Right-Sizing 적용**
+**Step 4: Apply Right-Sizing**
 
 ```yaml
-# VPA Off 모드로 Recommended사항 확인
+# Check recommendations with VPA Off mode
 apiVersion: autoscaling.k8s.io/v1
 kind: VerticalPodAutoscaler
 metadata:
@@ -3266,55 +3266,55 @@ spec:
   updatePolicy:
     updateMode: "Off"
 
-# VPA Recommended사항 확인 후 Deployment 업데이트
+# Update Deployment after checking VPA recommendations
 resources:
   requests:
-    memory: "2Gi"    # VPA Target 1.8Gi + 20% 버퍼
+    memory: "2Gi"    # VPA Target 1.8Gi + 20% buffer
   limits:
-    memory: "3Gi"    # Upper Bound 2.5Gi + 여유
+    memory: "3Gi"    # Upper Bound 2.5Gi + headroom
 ```
 
-**Step 5: 지속적 모니터링**
+**Step 5: Continuous Monitoring**
 
 ```bash
-# CloudWatch Alarm 상태 확인
+# Check CloudWatch Alarm status
 aws cloudwatch describe-alarms \
   --alarm-names eks-memory-leak-detection \
   --query 'MetricAlarms[0].StateValue'
 
-# 출력: "OK" (정상) or "ALARM" (이상)
+# Output: "OK" (normal) or "ALARM" (anomaly)
 ```
 
 :::tip Container Insights Enhanced vs Prometheus
-Container Insights Enhanced는 **AWS 네이티브 통합**과 **제로 설정 이상 탐지**가 강점입니다. Prometheus는 더 세밀한 커스터마이징이 가능하지만, 이상 탐지 ML 모델을 직접 구축해야 합니다. 두 도구를 병행하면 최상의 관찰성을 확보할 수 있습니다.
+Container Insights Enhanced excels in **AWS native integration** and **zero-configuration anomaly detection**. Prometheus allows more granular customization but requires building ML models for anomaly detection. Using both tools provides best observability.
 :::
 
-:::warning 이상 탐지의 한계
-ML 기반 이상 탐지는 **과거 패턴**을 학습하므로, 다음 상황에서는 오탐(False Positive)이 발생할 수 있습니다:
-- 신규 배포 직후 (학습 데이터 부족)
-- 마케팅 캠페인 등 계획된 트래픽 증가
-- 계절성 이벤트 (블랙 프라이데이, 연말 결산 등)
+:::warning Limitations of Anomaly Detection
+ML-based anomaly detection learns from **historical patterns**, so false positives may occur in the following situations:
+- Immediately after new deployment (insufficient training data)
+- Planned traffic increases such as marketing campaigns
+- Seasonal events (Black Friday, year-end settlements, etc.)
 
-이러한 경우 **일시적으로 알림을 음소거**하거나, **예상 이벤트를 Anomaly Detection 모델에 반영**해야 합니다.
+In these cases, **temporarily mute alerts** or **reflect expected events in the Anomaly Detection model**.
 :::
 
 ### 6.4 Right-Sizing Process
 
-5단계 체계적 Right-Sizing Process:
+5-step systematic Right-Sizing Process:
 
 ```mermaid
 graph TB
-    A[1단계: 베이스라인 수립] --> B[2단계: VPA Off 모드 배포]
-    B --> C[3단계: 7-14일 데이터 수집]
-    C --> D[4단계: Recommended사항 분석]
-    D --> E[5단계: 단계적 적용]
+    A[Stage 1: Establish Baseline] --> B[Stage 2: Deploy VPA Off Mode]
+    B --> C[Stage 3: Collect 7-14 days data]
+    C --> D[Stage 4: Analyze Recommendations]
+    D --> E[Stage 5: Gradual Application]
 
-    E --> F{검증}
-    F -->|성능 이슈| G[롤백]
-    F -->|정상| H[다음 워크로드]
+    E --> F{Validation}
+    F -->|Performance Issues| G[Rollback]
+    F -->|Normal| H[Next Workload]
 
     G --> D
-    H --> I[지속적 모니터링]
+    H --> I[Continuous Monitoring]
 
     style A fill:#e3f2fd
     style C fill:#fff3e0
@@ -3322,17 +3322,17 @@ graph TB
     style H fill:#c8e6c9
 ```
 
-#### 1단계: 베이스라인 수립
+#### Stage 1: Establish Baseline
 
 ```bash
-# 현재 리소스 설정 백업
+# Backup current resource configuration
 kubectl get deploy -n production -o yaml > deployments-backup.yaml
 
-# 현재 사용량 스냅샷
+# Snapshot current usage
 kubectl top pods -n production --containers > baseline-usage.txt
 ```
 
-#### 2단계: VPA Off 모드 배포
+#### Stage 2: Deploy VPA Off Mode
 
 ```yaml
 apiVersion: autoscaling.k8s.io/v1
@@ -3349,7 +3349,7 @@ spec:
     updateMode: "Off"
   resourcePolicy:
     containerPolicies:
-    - containerName: '*'    # 모든 컨테이너
+    - containerName: '*'    # All containers
       minAllowed:
         cpu: "50m"
         memory: "64Mi"
@@ -3358,23 +3358,23 @@ spec:
         memory: "32Gi"
 ```
 
-#### 3단계: 7-14일 데이터 수집
+#### Stage 3: Collect 7-14 Days Data
 
 ```bash
-# VPA 상태 모니터링
+# Monitor VPA status
 watch kubectl describe vpa web-app-vpa -n production
 
-# 최소 7일, Recommended 14일 대기
-# 트래픽 패턴이 주간 사이클을 가지는 경우 14일 필수
+# Wait minimum 7 days, recommended 14 days
+# 14 days required if traffic patterns have weekly cycles
 ```
 
-#### 4단계: Recommended사항 분석
+#### Stage 4: Analyze Recommendations
 
 ```bash
-# VPA Recommended사항 추출
+# Extract VPA recommendations
 kubectl get vpa web-app-vpa -n production -o jsonpath='{.status.recommendation.containerRecommendations[0]}' | jq .
 
-# 출력 Example:
+# Output example:
 # {
 #   "containerName": "web-app",
 #   "lowerBound": {
@@ -3396,22 +3396,22 @@ kubectl get vpa web-app-vpa -n production -o jsonpath='{.status.recommendation.c
 # }
 ```
 
-**Recommended사항 해석:**
+**Interpreting Recommendations:**
 
-| 항목 | 의미 | 사용 시점 |
+| Item | Meaning | When to Use |
 |------|------|----------|
-| **Lower Bound** | 최소 필요 리소스 | 극단적 비용 절감 (위험) |
-| **Target** | **Recommended 설정값** | **기본 사용** ⭐ |
-| **Uncapped Target** | 제약 없는 Recommended값 | maxAllowed 조정 참고 |
-| **Upper Bound** | 최대 관찰된 사용량 | Limits 설정 참고 |
+| **Lower Bound** | Minimum required resources | Extreme cost savings (risky) |
+| **Target** | **Recommended setting** | **Default use** ⭐ |
+| **Uncapped Target** | Unconstrained recommendation | Reference for maxAllowed adjustment |
+| **Upper Bound** | Maximum observed usage | Reference for Limits setting |
 
-:::tip Requests 계산 공식
-**Recommended 공식**: `Requests = VPA Target + 20% 버퍼`
+:::tip Requests Calculation Formula
+**Recommended formula**: `Requests = VPA Target + 20% buffer`
 
 Reasons:
-- P95 기반 Recommended사항 (5% 트래픽 스파이크 대비)
-- 배포, 초기화 등 일시적 사용량 증가 대응
-- Throttling, OOM 리스크 최소화
+- P95-based recommendations (handle 5% traffic spikes)
+- Handle temporary usage increases from deployment, initialization
+- Minimize throttling and OOM risks
 
 **Example:**
 ```
@@ -3419,17 +3419,17 @@ VPA Target CPU: 250m
 → Requests: 250m * 1.2 = 300m
 
 VPA Target Memory: 350Mi
-→ Requests: 350Mi * 1.2 = 420Mi (반올림 512Mi)
+→ Requests: 350Mi * 1.2 = 420Mi (round to 512Mi)
 ```
 :::
 
-#### 5단계: 단계적 적용
+#### Stage 5: Gradual Application
 
 ```yaml
-# 기존 설정
+# Current configuration
 resources:
   requests:
-    cpu: "1000m"       # 과다 프로비저닝
+    cpu: "1000m"       # Over-provisioned
     memory: "2Gi"
   limits:
     cpu: "2000m"
@@ -3437,20 +3437,20 @@ resources:
 
 # VPA Target: CPU 250m, Memory 350Mi
 
-# Right-Sized 설정
+# Right-Sized configuration
 resources:
   requests:
     cpu: "300m"        # Target 250m + 20% = 300m
     memory: "512Mi"    # Target 350Mi + 20% ≈ 420Mi → 512Mi
   limits:
-    # CPU limits 제거 (압축 가능 리소스)
-    memory: "1Gi"      # Upper Bound 700Mi + 여유 = 1Gi
+    # Remove CPU limits (compressible resource)
+    memory: "1Gi"      # Upper Bound 700Mi + headroom = 1Gi
 ```
 
-**적용 전략:**
+**Application Strategy:**
 
 ```bash
-# 1. Canary 배포 (10% 트래픽)
+# 1. Canary deployment (10% traffic)
 kubectl patch deploy web-app -n production -p '
 {
   "spec": {
@@ -3464,49 +3464,49 @@ kubectl patch deploy web-app -n production -p '
   }
 }'
 
-# 2. 리소스 변경 적용
+# 2. Apply resource changes
 kubectl set resources deploy web-app -n production \
   --limits=memory=1Gi \
   --requests=cpu=300m,memory=512Mi
 
-# 3. 모니터링 (1-3일)
+# 3. Monitor (1-3 days)
 kubectl top pods -n production -l app=web-app
 kubectl get events -n production --field-selector involvedObject.name=web-app
 
-# 4. 이상 없으면 전체 적용
-# 이상 있으면 즉시 롤백
+# 4. Full rollout if no issues
+# Immediate rollback if issues
 kubectl rollout undo deploy web-app -n production
 ```
 
-### 6.5 AI 기반 리소스 추천 자동화 (고급)
+### 6.5 AI-based Resource Recommendation Automation (Advanced)
 
-AI와 LLM을 활용하여 리소스 최적화 Process를 자동화할 수 있습니다. 이 섹션에서는 Amazon Bedrock, Kiro, Amazon Q Developer를 활용한 최신 패턴을 소개합니다.
+Resource optimization processes can be automated using AI and LLMs. This section introduces latest patterns using Amazon Bedrock, Kiro, and Amazon Q Developer.
 
-#### 6.5.1 Amazon Bedrock + Prometheus → 자동 Right-Sizing PR 생성
+#### 6.5.1 Amazon Bedrock + Prometheus → Automatic Right-Sizing PR Generation
 
-전통적인 수동 Right-Sizing Process를 AI로 자동화하는 엔드투엔드 워크플로우입니다.
+End-to-end workflow automating traditional manual Right-Sizing process with AI.
 
-**아키텍처 개요:**
+**Architecture Overview:**
 
 ```mermaid
 graph TB
-    subgraph "데이터 수집"
-        A[EKS Cluster] -->|메트릭| B[Prometheus/AMP]
-        A -->|VPA Recommended사항| C[VPA Recommender]
+    subgraph "Data Collection"
+        A[EKS Cluster] -->|metrics| B[Prometheus/AMP]
+        A -->|VPA Recommendations| C[VPA Recommender]
     end
 
-    subgraph "AI 분석"
+    subgraph "AI Analysis"
         B --> D[Lambda Function]
         C --> D
-        D -->|메트릭 쿼리| E[Amazon Bedrock<br/>Claude/Titan]
-        E -->|분석 결과| F[Right-Sizing Recommended사항]
+        D -->|metric query| E[Amazon Bedrock<br/>Claude/Titan]
+        E -->|analysis result| F[Right-Sizing Recommendations]
     end
 
-    subgraph "자동 적용"
+    subgraph "Auto Application"
         F --> G[GitHub API]
-        G -->|Pull Request 생성| H[GitHub Repository]
-        H -->|자동 승인/병합| I[ArgoCD/Flux]
-        I -->|GitOps 배포| A
+        G -->|Create Pull Request| H[GitHub Repository]
+        H -->|auto approve/merge| I[ArgoCD/Flux]
+        I -->|GitOps deploy| A
     end
 
     style E fill:#4dabf7
@@ -3514,10 +3514,10 @@ graph TB
     style I fill:#ffa94d
 ```
 
-**구현 Example:**
+**Implementation Example:**
 
 ```python
-# Lambda Function: AI 기반 Right-Sizing 추천
+# Lambda Function: AI-based Right-Sizing recommendations
 import boto3
 import json
 import requests
@@ -3527,36 +3527,36 @@ bedrock = boto3.client('bedrock-runtime', region_name='us-east-1')
 amp_query_url = "https://aps-workspaces.us-east-1.amazonaws.com/workspaces/ws-xxx/api/v1/query"
 
 def lambda_handler(event, context):
-    # 1. Prometheus 메트릭 수집 (7일)
+    # 1. Prometheus metrics collection (7 days)
     metrics = collect_prometheus_metrics(
         namespace="production",
         deployment="web-app",
         period_days=7
     )
 
-    # 2. VPA Recommended사항 수집
+    # 2. Collect VPA recommendations
     vpa_recommendations = get_vpa_recommendations("web-app-vpa", "production")
 
-    # 3. Amazon Bedrock로 분석
+    # 3. Analyze with Amazon Bedrock
     analysis_prompt = f"""
-    다음 Kubernetes Deployment의 리소스 최적화를 분석하세요:
+    Analyze resource optimization for the following Kubernetes Deployment:
 
-    현재 설정:
+    Current configuration:
     {json.dumps(metrics['current_resources'], indent=2)}
 
-    7일간 Actual Usage (P50/P95/P99):
+    7-day Actual Usage (P50/P95/P99):
     CPU: {metrics['cpu_p50']}m / {metrics['cpu_p95']}m / {metrics['cpu_p99']}m
     Memory: {metrics['mem_p50']}Mi / {metrics['mem_p95']}Mi / {metrics['mem_p99']}Mi
 
-    VPA Recommended사항:
+    VPA Recommendations:
     {json.dumps(vpa_recommendations, indent=2)}
 
-    다음을 포함한 분석을 제공하세요:
-    1. 현재 리소스 낭비 or 부족 여부
-    2. Recommended requests/limits 값 (구체적 수치)
-    3. 예상 비용 절감액
-    4. 위험 요소 및 주의사항
-    5. 단계적 적용 계획
+    Provide analysis including:
+    1. Whether current resources are wasted or insufficient
+    2. Recommended requests/limits values (specific numbers)
+    3. Expected cost savings
+    4. Risk factors and precautions
+    5. Phased application plan
     """
 
     response = bedrock.invoke_model(
@@ -3575,7 +3575,7 @@ def lambda_handler(event, context):
 
     analysis = json.loads(response['body'].read())['content'][0]['text']
 
-    # 4. GitHub Pull Request 생성
+    # 4. Create GitHub Pull Request
     create_right_sizing_pr(
         deployment="web-app",
         namespace="production",
@@ -3589,7 +3589,7 @@ def lambda_handler(event, context):
     }
 
 def collect_prometheus_metrics(namespace, deployment, period_days):
-    """Prometheus에서 리소스 사용량 수집"""
+    """Collect resource usage from Prometheus"""
     end_time = datetime.now()
     start_time = end_time - timedelta(days=period_days)
 
@@ -3610,35 +3610,35 @@ def collect_prometheus_metrics(namespace, deployment, period_days):
     return results
 
 def create_right_sizing_pr(deployment, namespace, analysis, recommended_resources):
-    """GitHub에 Right-Sizing PR 생성"""
+    """Create Right-Sizing PR in GitHub"""
     github_token = get_secret('github-token')
     repo_owner = "my-org"
     repo_name = "k8s-manifests"
 
-    # Deployment YAML 수정
+    # Modify Deployment YAML
     updated_yaml = update_deployment_resources(
         deployment=deployment,
         namespace=namespace,
         resources=recommended_resources
     )
 
-    # Pull Request 생성
+    # Create Pull Request
     pr_body = f"""
 ## 🤖 AI-based Resource Right-Sizing Recommendations
 
-### 분석 결과
+### Analysis Results
 {analysis}
 
-### 변경 사항
+### Changes
 - Deployment: `{namespace}/{deployment}`
-- 리소스 requests/limits 업데이트
+- Update resource requests/limits
 
-### 검증 체크리스트
-- [ ] Staging 환경에서 테스트 완료
-- [ ] 성능 메트릭 정상 확인
-- [ ] 비용 절감액 검증
+### Validation Checklist
+- [ ] Testing completed in staging environment
+- [ ] Performance metrics verified normal
+- [ ] Cost savings validated
 
-### 자동 생성 정보
+### Auto-generation Information
 - Generator: Amazon Bedrock + VPA Analysis
 - Timestamp: {datetime.now().isoformat()}
 """
@@ -3648,10 +3648,10 @@ def create_right_sizing_pr(deployment, namespace, analysis, recommended_resource
         'Accept': 'application/vnd.github.v3+json'
     }
 
-    # 브랜치 생성 및 커밋
+    # Create branch and commit
     create_branch_and_commit(repo_owner, repo_name, updated_yaml, headers)
 
-    # PR 생성
+    # Create PR
     pr_data = {
         'title': f'[AI] Right-Size {namespace}/{deployment}',
         'head': f'right-size-{deployment}-{datetime.now().strftime("%Y%m%d")}',
@@ -3668,17 +3668,17 @@ def create_right_sizing_pr(deployment, namespace, analysis, recommended_resource
     return response.json()
 ```
 
-**EventBridge 스케줄로 자동화:**
+**Automate with EventBridge Schedule:**
 
 ```yaml
-# CloudFormation 템플릿 Example
+# CloudFormation Template Example
 Resources:
   RightSizingSchedule:
     Type: AWS::Events::Rule
     Properties:
       Name: weekly-right-sizing-analysis
       Description: "Weekly AI-based right-sizing analysis"
-      ScheduleExpression: "cron(0 9 ? * MON *)"  # 매주 월요일 오전 9시
+      ScheduleExpression: "cron(0 9 ? * MON *)"  # Every Monday at 9am
       State: ENABLED
       Targets:
         - Arn: !GetAtt RightSizingLambda.Arn
@@ -3691,84 +3691,84 @@ Resources:
             }
 ```
 
-#### 6.5.2 Kiro + EKS MCP를 활용한 리소스 최적화
+#### 6.5.2 Resource Optimization with Kiro + EKS MCP
 
-**Kiro**는 AWS의 AI 기반 클라우드 운영 도구로, **자연어 질의**로 EKS 리소스 최적화를 수행할 수 있습니다.
+**Kiro** is AWS's AI-based cloud operations tool that enables EKS resource optimization through **natural language queries**.
 
-**Kiro 설치 및 설정:**
+**Kiro Installation and Setup:**
 
 ```bash
-# Kiro CLI 설치
+# Install Kiro CLI
 curl -sL https://kiro.aws.dev/install.sh | bash
 
-# EKS MCP (Model Context Protocol) 연결
+# Connect EKS MCP (Model Context Protocol)
 kiro mcp connect eks --cluster production-eks --region us-east-1
 
-# 연결 확인
+# Verify connection
 kiro mcp list
-# 출력:
+# Output:
 # ✓ eks-production (connected)
 # ✓ cloudwatch-insights (connected)
 # ✓ cost-explorer (connected)
 ```
 
-**자연어 질의 Example:**
+**Natural Language Query Examples:**
 
 ```bash
-# 1. 리소스 최적화가 필요한 Pod 찾기
-kiro ask "production 네임스페이스에서 CPU 사용률이 30% 미만인 Pod를 찾아서 Right-Sizing Recommended사항을 알려줘"
+# 1. Find Pods requiring resource optimization
+kiro ask "Find Pods with CPU utilization below 30% in production namespace and provide Right-Sizing recommendations"
 
-# Kiro 응답 Example:
-# 📊 분석 결과: 12개 Pod가 과다 프로비저닝 상태입니다.
+# Kiro Response Example:
+# 📊 Analysis Result: 12 Pods are over-provisioned.
 #
-# 상위 5개:
-# 1. web-app-7d8c9f (현재: 2 CPU / 실제 P95: 0.4 CPU) → Recommended: 0.5 CPU
-# 2. api-server-abc123 (현재: 4 CPU / 실제 P95: 0.8 CPU) → Recommended: 1 CPU
-# 3. worker-def456 (현재: 1 CPU / 실제 P95: 0.2 CPU) → Recommended: 0.3 CPU
+# Top 5:
+# 1. web-app-7d8c9f (Current: 2 CPU / Actual P95: 0.4 CPU) → Recommended: 0.5 CPU
+# 2. api-server-abc123 (Current: 4 CPU / Actual P95: 0.8 CPU) → Recommended: 1 CPU
+# 3. worker-def456 (Current: 1 CPU / Actual P95: 0.2 CPU) → Recommended: 0.3 CPU
 #
-# 💰 예상 절감액: $450/월 (45% 리소스 감소)
+# 💰 Expected Savings: $450/month (45% resource reduction)
 #
-# 적용하시겠습니까? (y/n)
+# Would you like to apply? (y/n)
 
-# 2. 메모리 누수 의심 Pod 식별
-kiro ask "지난 7일간 메모리 사용량이 지속적으로 증가한 Pod를 찾아줘"
+# 2. Identify Pods with suspected memory leaks
+kiro ask "Find Pods with continuously increasing memory usage over the last 7 days"
 
-# Kiro 응답:
-# 🔍 메모리 증가 패턴 감지:
+# Kiro Response:
+# 🔍 Memory Growth Pattern Detected:
 #
 # ⚠️ cache-service-xyz789
-# - 시작: 500Mi → 현재: 1.8Gi (260% 증가)
-# - 추세: 하루 150Mi씩 증가
-# - 예상 OOM까지: 3일
-# - Recommended 조치: 메모리 누수 조사 + 임시로 limits 2.5Gi로 상향
+# - Start: 500Mi → Current: 1.8Gi (260% increase)
+# - Trend: 150Mi increase per day
+# - Estimated time to OOM: 3 days
+# - Recommended Action: Investigate memory leak + temporarily increase limits to 2.5Gi
 #
-# 📋 상세 분석 보고서를 생성하시겠습니까? (y/n)
+# 📋 Generate detailed analysis report? (y/n)
 
-# 3. 클러스터 전체 효율성 분석
-kiro ask "production 클러스터의 리소스 효율성을 분석하고 최적화 우선순위를 알려줘"
+# 3. Cluster-wide efficiency analysis
+kiro ask "Analyze resource efficiency of production cluster and provide optimization priorities"
 
-# Kiro 응답:
-# 📈 클러스터 효율성 보고서
+# Kiro Response:
+# 📈 Cluster Efficiency Report
 #
-# 전체 효율성: 52% (업계 평균: 65%)
+# Overall Efficiency: 52% (Industry Average: 65%)
 #
-# 최적화 우선순위:
-# 1. 🔴 High Priority (즉시 조치)
-#    - 10개 Deployment가 CPU의 70% 미사용
-#    - 예상 절감: $1,200/월
+# Optimization Priorities:
+# 1. 🔴 High Priority (Immediate Action)
+#    - 10 Deployments have 70% unused CPU
+#    - Expected Savings: $1,200/month
 #
-# 2. 🟡 Medium Priority (1주 내)
-#    - 5개 StatefulSet의 PVC 사이즈 과다
-#    - 예상 절감: $300/월
+# 2. 🟡 Medium Priority (Within 1 week)
+#    - 5 StatefulSets have oversized PVCs
+#    - Expected Savings: $300/month
 #
-# 3. 🟢 Low Priority (계획 단계)
-#    - HPA 미설정 Deployment 15개
-#    - 트래픽 패턴 분석 후 적용 Recommended
+# 3. 🟢 Low Priority (Planning Phase)
+#    - 15 Deployments without HPA
+#    - Recommended to apply after traffic pattern analysis
 #
-# 자동 Right-Sizing PR을 생성하시겠습니까? (y/n)
+# Would you like to generate automatic Right-Sizing PR? (y/n)
 ```
 
-**Kiro 워크플로우 자동화:**
+**Kiro Workflow Automation:**
 
 ```yaml
 # kiro-workflow.yaml
@@ -3777,11 +3777,11 @@ kind: Workflow
 metadata:
   name: weekly-optimization
 spec:
-  schedule: "0 9 * * MON"  # 매주 월요일 오전 9시
+  schedule: "0 9 * * MON"  # Every Monday at 9am
   steps:
     - name: analyze-underutilized
       action: analyze
-      query: "CPU 사용률 30% 미만 or Memory 사용률 40% 미만인 모든 Pod 분석"
+      query: "Analyze all Pods with CPU utilization < 30% or Memory utilization < 40%"
       outputFormat: json
 
     - name: generate-recommendations
@@ -3796,97 +3796,97 @@ spec:
       branch: kiro-right-sizing-{{ date }}
       title: "[Kiro] Weekly Right-Sizing Recommendations"
       body: ${{ steps.generate-recommendations.output }}
-      autoMerge: false  # 수동 검토 필요
+      autoMerge: false  # Manual review required
 
     - name: notify
       action: slack
       webhook: ${{ secrets.SLACK_WEBHOOK }}
       message: |
-        📊 주간 Right-Sizing 분석 완료
+        📊 Weekly Right-Sizing Analysis Complete
         PR: ${{ steps.create-pr.pr_url }}
-        예상 절감: ${{ steps.generate-recommendations.estimated_savings }}
+        Expected Savings: ${{ steps.generate-recommendations.estimated_savings }}
 ```
 
-#### 6.5.3 Amazon Q Developer를 활용한 대화형 최적화
+#### 6.5.3 Interactive Optimization with Amazon Q Developer
 
-Amazon Q Developer는 IDE와 CLI에서 직접 리소스 최적화 조언을 제공합니다.
+Amazon Q Developer provides resource optimization recommendations directly in IDE and CLI.
 
-**VS Code에서 사용:**
+**Using in VS Code:**
 
 ```yaml
-# deployment.yaml을 열고 Q Developer에게 질문
+# Open deployment.yaml and ask Q Developer
 # /q optimize-resources
 
-# Q Developer 응답:
-# 현재 Deployment의 리소스 설정을 분석했습니다:
+# Q Developer Response:
+# Analyzed current Deployment resource configuration:
 #
-# 🔍 발견된 문제:
-# 1. CPU requests가 Actual Usage보다 3배 높습니다 (1000m → 350m Recommended)
-# 2. Memory limits가 없어 OOM 위험이 있습니다
-# 3. QoS 클래스: Burstable (Guaranteed Recommended)
+# 🔍 Issues Found:
+# 1. CPU requests are 3x higher than Actual Usage (1000m → 350m Recommended)
+# 2. Missing Memory limits creates OOM risk
+# 3. QoS Class: Burstable (Guaranteed Recommended)
 #
-# 💡 최적화된 설정:
+# 💡 Optimized Configuration:
 resources:
   requests:
-    cpu: "350m"      # 실제 P95 + 20% 버퍼
-    memory: "512Mi"  # 실제 P95 400Mi + 20%
+    cpu: "350m"      # Actual P95 + 20% buffer
+    memory: "512Mi"  # Actual P95 400Mi + 20%
   limits:
-    memory: "1Gi"    # Upper Bound + 여유
-    # CPU limits 제거 (Google/Datadog 패턴)
+    memory: "1Gi"    # Upper Bound + headroom
+    # Remove CPU limits (Google/Datadog pattern)
 #
-# 이 변경사항을 적용하시겠습니까? (Apply / Dismiss)
+# Would you like to apply these changes? (Apply / Dismiss)
 ```
 
-**CLI에서 사용:**
+**Using in CLI:**
 
 ```bash
-# Amazon Q CLI를 통한 질의
-q ask "이 Deployment의 리소스를 최적화해줘" --file deployment.yaml
+# Query via Amazon Q CLI
+q ask "Optimize resources for this Deployment" --file deployment.yaml
 
-# 출력:
-# 분석 중... ✓
+# Output:
+# Analyzing... ✓
 #
-# 현재 설정 문제:
+# Current Configuration Issues:
 # - CPU over-provisioned by 65%
 # - Memory under-provisioned (OOM risk)
 #
-# Recommended 변경사항이 deployment-optimized.yaml에 저장되었습니다.
-# 차이점을 확인하시겠습니까? (y/n)
+# Recommended changes saved to deployment-optimized.yaml.
+# Would you like to view the diff? (y/n)
 
-# y 입력 시:
+# When entering y:
 diff deployment.yaml deployment-optimized.yaml
 ```
 
-#### 6.5.4 주의사항 및 한계
+#### 6.5.4 Limitations and Caveats
 
-AI 기반 리소스 추천은 강력하지만, 다음 한계를 이해해야 합니다:
+AI-based resource recommendations are powerful, but you must understand the following limitations:
 
-| 한계 | 설명 | 대응 방법 |
+| Limitation | Description | Mitigation |
 |------|------|----------|
-| **과거 데이터 의존** | 과거에 없던 트래픽 패턴 예측 불가 | HPA 병행, 여유 버퍼 확보 |
-| **컨텍스트 부족** | 비즈니스 요구사항 (SLA, 규제) 미반영 | 수동 검토 단계 필수 |
-| **일시적 스파이크** | 마케팅 캠페인 등 계획된 부하 미고려 | 이벤트 기간 수동 스케일 업 |
-| **비용 최적화 편향** | 안정성보다 비용 절감 우선 가능성 | Critical 워크로드 제외 설정 |
+| **Historical Data Dependency** | Cannot predict unprecedented traffic patterns | Use HPA in parallel, ensure buffer headroom |
+| **Lack of Context** | Business requirements (SLA, compliance) not reflected | Mandatory manual review stage |
+| **Temporary Spikes** | Planned loads (marketing campaigns) not considered | Manual scale-up during event periods |
+| **Cost Optimization Bias** | May prioritize cost savings over stability | Exclude critical workloads from automation |
 
-:::warning AI 추천은 보조 도구로 활용
-AI 기반 리소스 추천은 **최종 의사결정 도구가 아닌 보조 도구**입니다. 프로덕션 적용 전 반드시:
+:::warning Use AI Recommendations as Supporting Tools
+AI-based resource recommendations are **supporting tools, not final decision-making tools**. Before production application, always:
 
-1. **Staging 환경에서 검증** (최소 3일)
-2. **성능 메트릭 모니터링** (Latency P99, Error Rate)
-3. **점진적 롤아웃** (Canary 10% → 50% → 100%)
-4. **롤백 계획 수립** (1분 내 이전 버전 복구 가능)
+1. **Validate in Staging Environment** (minimum 3 days)
+2. **Monitor Performance Metrics** (Latency P99, Error Rate)
+3. **Gradual Rollout** (Canary 10% → 50% → 100%)
+4. **Establish Rollback Plan** (recover to previous version within 1 minute)
 
-특히 다음 워크로드는 **AI 추천을 적용하지 말고 수동으로 관리**하세요:
-- 금융 거래 시스템
-- 의료 정보 시스템
-- 실시간 스트리밍 서비스
-- Stateful 데이터베이스
+Especially for the following workloads, **manage manually without applying AI recommendations**:
+- Financial transaction systems
+- Healthcare information systems
+- Real-time streaming services
+- Stateful databases
 :::
 
-**AI 추천 검증 체크리스트:**
+**AI Recommendation Validation Checklist:**
 
 ```yaml
-# 프로덕션 적용 전 필수 검증
+# Mandatory validation before production application
 ai_recommendation_validation:
   staging_test:
     duration_days: 3
@@ -3901,32 +3901,32 @@ ai_recommendation_validation:
     increment_percentage: 20
     increment_interval_hours: 6
     auto_rollback_threshold:
-      error_rate: 1.0  # 1% 에러율 exceeded 시 자동 롤백
-      latency_p99_ms: 500  # P99 지연 500ms exceeded 시 롤백
+      error_rate: 1.0  # Auto rollback when error rate exceeds 1%
+      latency_p99_ms: 500  # Rollback when P99 latency exceeds 500ms
 
   monitoring:
     dashboard_url: "https://grafana.example.com/d/right-sizing"
     alert_channels: ["slack://ops-team", "pagerduty://oncall"]
-    review_required: true  # 자동 병합 금지, 수동 검토 필수
+    review_required: true  # Prevent auto-merge, manual review required
 ```
 
-:::tip AI + Human 하이브리드 접근
-최상의 결과는 **AI 추천 + 인간 전문가 검토**의 조합에서 나옵니다:
+:::tip AI + Human Hybrid Approach
+Best results come from combining **AI recommendations + human expert review**:
 
-1. AI가 수천 개 Pod 중 최적화 대상 선별 (속도)
-2. 인간이 Critical 워크로드 제외 및 검증 (신뢰성)
-3. AI가 초안 PR 생성 (자동화)
-4. 인간이 Staging 테스트 후 승인 (안전성)
-5. GitOps가 점진적 배포 (운영 효율)
+1. AI identifies optimization candidates from thousands of Pods (speed)
+2. Humans exclude critical workloads and validate (reliability)
+3. AI generates draft PR (automation)
+4. Humans approve after staging tests (safety)
+5. GitOps performs gradual deployment (operational efficiency)
 
-이 Process로 **수동 대비 80% 시간 절감**, **안정성은 동일** 유지 가능합니다.
+This process achieves **80% time savings compared to manual approach** while **maintaining the same level of stability**.
 :::
 
 ## Resource Quota & LimitRange
 
-### 7.1 Namespace 수준 리소스 제한
+### 7.1 Namespace-level Resource Limits
 
-ResourceQuota로 네임스페이스 전체 리소스를 제한합니다:
+Limit entire namespace resources with ResourceQuota:
 
 ```yaml
 apiVersion: v1
@@ -3936,22 +3936,22 @@ metadata:
   namespace: production
 spec:
   hard:
-    # 총 리소스 제한
+    # Total resource limits
     requests.cpu: "100"           # 100 CPU cores
     requests.memory: "200Gi"      # 200GB RAM
-    limits.cpu: "200"             # CPU limits 합계
-    limits.memory: "400Gi"        # Memory limits 합계
+    limits.cpu: "200"             # Total CPU limits
+    limits.memory: "400Gi"        # Total Memory limits
 
-    # 오브젝트 수 제한
-    pods: "500"                   # 최대 500개 Pod
-    services: "50"                # 최대 50개 Service
-    persistentvolumeclaims: "100" # 최대 100개 PVC
+    # Object count limits
+    pods: "500"                   # Max 500 Pods
+    services: "50"                # Max 50 Services
+    persistentvolumeclaims: "100" # Max 100 PVCs
 
-    # 스토리지 제한
-    requests.storage: "2Ti"       # 총 2TB 스토리지
+    # Storage limits
+    requests.storage: "2Ti"       # Total 2TB storage
 
 ---
-# 환경별 쿼터 Example
+# Environment-specific quota examples
 apiVersion: v1
 kind: ResourceQuota
 metadata:
@@ -3980,13 +3980,13 @@ spec:
     pods: "200"
 ```
 
-**쿼터 사용량 확인:**
+**Check Quota Usage:**
 
 ```bash
-# 현재 쿼터 사용량
+# Current quota usage
 kubectl describe resourcequota production-quota -n production
 
-# 출력 Example:
+# Output example:
 # Name:            production-quota
 # Namespace:       production
 # Resource         Used   Hard
@@ -3998,9 +3998,9 @@ kubectl describe resourcequota production-quota -n production
 # requests.memory  150Gi  200Gi
 ```
 
-### 7.2 LimitRange로 기본값 설정
+### 7.2 Set Defaults with LimitRange
 
-LimitRange로 Pod/Container에 자동으로 기본 리소스를 주입합니다:
+LimitRange automatically injects default resources into Pods/Containers:
 
 ```yaml
 apiVersion: v1
@@ -4010,25 +4010,25 @@ metadata:
   namespace: production
 spec:
   limits:
-  # Container 레벨 제약
+  # Container-level constraints
   - type: Container
-    default:                    # limits 미설정 시 기본값
+    default:                    # Default when limits not set
       cpu: "500m"
       memory: "512Mi"
-    defaultRequest:             # requests 미설정 시 기본값
+    defaultRequest:             # Default when requests not set
       cpu: "100m"
       memory: "128Mi"
-    max:                        # 최대 허용값
+    max:                        # Maximum allowed
       cpu: "4000m"
       memory: "8Gi"
-    min:                        # 최소 요구값
+    min:                        # Minimum required
       cpu: "50m"
       memory: "64Mi"
-    maxLimitRequestRatio:       # limits/requests 최대 비율
-      cpu: "4"                  # limits는 requests의 최대 4배
-      memory: "2"               # limits는 requests의 최대 2배
+    maxLimitRequestRatio:       # Maximum limits/requests ratio
+      cpu: "4"                  # limits max 4x of requests
+      memory: "2"               # limits max 2x of requests
 
-  # Pod 레벨 제약
+  # Pod-level constraints
   - type: Pod
     max:
       cpu: "8000m"
@@ -4037,7 +4037,7 @@ spec:
       cpu: "100m"
       memory: "128Mi"
 
-  # PVC 제약
+  # PVC constraints
   - type: PersistentVolumeClaim
     max:
       storage: "100Gi"
@@ -4045,7 +4045,7 @@ spec:
       storage: "1Gi"
 
 ---
-# 개발 환경 LimitRange
+# Development environment LimitRange
 apiVersion: v1
 kind: LimitRange
 metadata:
@@ -4065,10 +4065,10 @@ spec:
       memory: "4Gi"
 ```
 
-**동작 Example:**
+**Behavior Example:**
 
 ```yaml
-# 개발자가 작성한 YAML (리소스 미지정)
+# Developer's YAML (no resources specified)
 apiVersion: v1
 kind: Pod
 metadata:
@@ -4078,9 +4078,9 @@ spec:
   containers:
   - name: nginx
     image: nginx:1.25
-    # resources 섹션 없음
+    # No resources section
 
-# LimitRange가 자동 주입한 결과
+# Result after LimitRange auto-injection
 apiVersion: v1
 kind: Pod
 metadata:
@@ -4091,55 +4091,55 @@ spec:
   - name: nginx
     image: nginx:1.25
     resources:
-      requests:           # defaultRequest 적용
+      requests:           # defaultRequest applied
         cpu: "100m"
         memory: "128Mi"
-      limits:             # default 적용
+      limits:             # default applied
         cpu: "500m"
         memory: "512Mi"
 ```
 
-**검증:**
+**Validation:**
 
 ```bash
-# LimitRange 확인
+# Check LimitRange
 kubectl describe limitrange production-limitrange -n production
 
-# Pod에 적용된 리소스 확인
+# Check resources applied to Pod
 kubectl get pod test-pod -n production -o jsonpath='{.spec.containers[0].resources}' | jq .
 ```
 
-### 7.3 DRA (Dynamic Resource Allocation) - GPU/특수 리소스 관리
+### 7.3 DRA (Dynamic Resource Allocation) - GPU/Special Resource Management
 
-Kubernetes 1.31+에서 도입된 **DRA (Dynamic Resource Allocation)**는 GPU, FPGA, NPU 같은 특수 리소스를 보다 유연하게 할당할 수 있는 새로운 메커니즘입니다.
+**DRA (Dynamic Resource Allocation)** introduced in Kubernetes 1.31+ is a new mechanism that allows more flexible allocation of special resources like GPU, FPGA, NPU.
 
-#### 기존 Device Plugin vs DRA
+#### Traditional Device Plugin vs DRA
 
-| 특성 | Device Plugin (기존) | DRA (K8s 1.31+) |
+| Feature | Device Plugin (Traditional) | DRA (K8s 1.31+) |
 |------|---------------------|-----------------|
-| **리소스 표현** | 단순 숫자 (`nvidia.com/gpu: 1`) | 구조화된 파라미터 (메모리, 컴퓨팅 모드) |
-| **공유 가능성** | 불가능 (1 Pod = 1 GPU) | 가능 (시간 분할, MIG 지원) |
-| **동적 할당** | 스케줄링 시 결정 | 런타임 동적 할당 |
-| **복잡한 토폴로지** | 제한적 | NUMA, PCIe 토폴로지 고려 |
-| **멀티 테넌트** | 어려움 | 네이티브 지원 |
+| **Resource Representation** | Simple number (`nvidia.com/gpu: 1`) | Structured parameters (memory, compute mode) |
+| **Sharing** | Not possible (1 Pod = 1 GPU) | Possible (time-slicing, MIG support) |
+| **Dynamic Allocation** | Decided at scheduling | Runtime dynamic allocation |
+| **Complex Topology** | Limited | Considers NUMA, PCIe topology |
+| **Multi-tenancy** | Difficult | Native support |
 
-**DRA의 핵심 개념:**
+**DRA Core Concepts:**
 
 ```mermaid
 graph LR
     A[Pod with ResourceClaim] --> B[Scheduler]
-    B --> C[ResourceClass 매칭]
+    B --> C[ResourceClass Matching]
     C --> D[DRA Driver]
-    D --> E[물리 GPU 할당]
+    D --> E[Physical GPU Allocation]
     E --> F[Pod Executing]
 
     style A fill:#4dabf7
     style E fill:#51cf66
 ```
 
-#### DRA 구성 요소
+#### DRA Components
 
-**1. ResourceClass (클러스터 수준 리소스 Definition)**
+**1. ResourceClass (Cluster-level Resource Definition)**
 
 ```yaml
 apiVersion: resource.k8s.io/v1alpha3
@@ -4158,15 +4158,15 @@ kind: GpuClassParameters
 metadata:
   name: a100-80gb
 spec:
-  # GPU 특성 Definition
+  # GPU characteristic definitions
   memory: "80Gi"
   computeCapability: "8.0"
-  # MIG (Multi-Instance GPU) 지원
+  # MIG (Multi-Instance GPU) support
   migEnabled: true
-  migProfile: "1g.10gb"  # 1/7 GPU 슬라이스
+  migProfile: "1g.10gb"  # 1/7 GPU slice
 ```
 
-**2. ResourceClaim (Pod가 요청하는 리소스)**
+**2. ResourceClaim (Resource requested by Pod)**
 
 ```yaml
 apiVersion: resource.k8s.io/v1alpha3
@@ -4186,15 +4186,15 @@ kind: GpuClaimParameters
 metadata:
   name: training-config
 spec:
-  # 요청할 GPU 사양
-  count: 2  # 2개 GPU 요청
-  sharing: "TimeSlicing"  # 시간 분할 공유 허용
+  # GPU specifications to request
+  count: 2  # Request 2 GPUs
+  sharing: "TimeSlicing"  # Allow time-slicing sharing
   selector:
     matchLabels:
       gpu.nvidia.com/memory: "80Gi"
 ```
 
-**3. Pod에서 ResourceClaim 사용**
+**3. Using ResourceClaim in Pod**
 
 ```yaml
 apiVersion: v1
@@ -4214,13 +4214,13 @@ spec:
       limits:
         memory: "64Gi"
 
-  # DRA를 통한 GPU 할당
+  # GPU allocation via DRA
   resourceClaims:
   - name: gpu
     source:
       resourceClaimName: ml-training-gpu
 
-  # 컨테이너에서 claim 참조
+  # Reference claim in container
   containers:
   - name: trainer
     # ...
@@ -4229,12 +4229,12 @@ spec:
       - name: gpu
 ```
 
-#### EKS에서 DRA 활성화 및 GPU 할당 Example
+#### Enabling DRA and GPU Allocation in EKS
 
-**Step 1: EKS 클러스터에서 DRA Feature Gate 활성화**
+**Step 1: Enable DRA Feature Gate in EKS Cluster**
 
 ```bash
-# EKS 1.31+ 클러스터 생성 시
+# When creating EKS 1.31+ cluster
 eksctl create cluster \
   --name dra-enabled-cluster \
   --version 1.31 \
@@ -4245,10 +4245,10 @@ eksctl create cluster \
   --kubernetes-feature-gates DynamicResourceAllocation=true
 ```
 
-**Step 2: NVIDIA GPU Operator 설치 (DRA 드라이버 포함)**
+**Step 2: Install NVIDIA GPU Operator (with DRA driver)**
 
 ```bash
-# Helm으로 GPU Operator 설치 (DRA 지원 버전)
+# Install GPU Operator via Helm (DRA-enabled version)
 helm repo add nvidia https://helm.ngc.nvidia.com/nvidia
 helm repo update
 
@@ -4257,12 +4257,12 @@ helm install gpu-operator nvidia/gpu-operator \
   --create-namespace \
   --set driver.enabled=true \
   --set toolkit.enabled=true \
-  --set devicePlugin.enabled=false \  # 기존 device plugin 비활성화
-  --set dra.enabled=true \             # DRA 활성화
-  --set migManager.enabled=true        # MIG 지원
+  --set devicePlugin.enabled=false \  # Disable traditional device plugin
+  --set dra.enabled=true \             # Enable DRA
+  --set migManager.enabled=true        # MIG support
 ```
 
-**Step 3: ResourceClaimTemplate로 자동 Claim 생성**
+**Step 3: Auto-generate Claims with ResourceClaimTemplate**
 
 ```yaml
 apiVersion: apps/v1
@@ -4284,7 +4284,7 @@ spec:
           claims:
           - name: gpu
 
-      # ResourceClaimTemplate로 각 Pod마다 자동 생성
+      # Auto-generate per Pod with ResourceClaimTemplate
       resourceClaims:
       - name: gpu
         source:
@@ -4311,67 +4311,67 @@ metadata:
   name: shared-inference-config
 spec:
   count: 1
-  sharing: "TimeSlicing"  # 여러 Pod가 시간 분할로 공유
+  sharing: "TimeSlicing"  # Multiple Pods share via time-slicing
   requests:
-    memory: "10Gi"        # GPU 메모리 10GB만 요청
+    memory: "10Gi"        # Request only 10GB GPU memory
 ```
 
-**DRA 장점 요약:**
+**DRA Benefits Summary:**
 
-1. **GPU 공유**: MIG or Time-Slicing으로 1개 GPU를 여러 Pod가 사용
-2. **세밀한 제어**: GPU 메모리, 컴퓨팅 모드, 토폴로지 지정 가능
-3. **동적 할당**: Pod 생성 후에도 리소스 추가/제거 가능
-4. **비용 절감**: GPU 활용률 향상 (기존 30-40% → DRA로 70-80%)
+1. **GPU Sharing**: Multiple Pods use 1 GPU via MIG or Time-Slicing
+2. **Fine-grained Control**: Specify GPU memory, compute mode, topology
+3. **Dynamic Allocation**: Add/remove resources even after Pod creation
+4. **Cost Savings**: Improved GPU utilization (30-40% traditional → 70-80% with DRA)
 
-:::warning EKS DRA 지원 상태 (2026년 2월 기준)
-- Kubernetes 1.31+에서 alpha 기능으로 제공
-- EKS에서는 Feature Gate 수동 활성화 필요
-- 프로덕션 사용 시 NVIDIA GPU Operator 최신 버전(v24.9.0+) 확인
-- MIG 지원은 A100/H100 GPU에서만 가능
+:::warning EKS DRA Support Status (as of February 2026)
+- Available as alpha feature in Kubernetes 1.31+
+- Manual Feature Gate activation required in EKS
+- For production use, verify NVIDIA GPU Operator latest version (v24.9.0+)
+- MIG support only available on A100/H100 GPUs
 :::
 
-### 7.3.1 Setu: Kueue-Karpenter 통합으로 GPU 유휴 비용 제거
+### 7.3.1 Setu: Eliminate GPU Idle Costs with Kueue-Karpenter Integration
 
-AI/ML 워크로드에서 GPU는 가장 비싼 리소스이지만, 기존 반응형 프로비저닝 방식은 심각한 낭비를 초래합니다. **Setu**는 Kueue의 쿼터 관리와 Karpenter의 노드 프로비저닝을 연결하여 프로액티브 리소스 할당을 구현합니다.
+In AI/ML workloads, GPUs are the most expensive resource, but traditional reactive provisioning causes severe waste. **Setu** implements proactive resource allocation by connecting Kueue's quota management with Karpenter's node provisioning.
 
-#### 반응형 프로비저닝의 리소스 낭비 문제
+#### Resource Waste Problem in Reactive Provisioning
 
-**문제 시나리오:**
-1. 4-GPU 트레이닝 Job이 Queue에 진입
-2. Karpenter가 노드를 하나씩 프로비저닝 (5-10분 소요)
-3. 2개 노드만 준비된 상태에서 Pod가 스케줄링 시도 → 실패
-4. **2개 GPU는 유휴 상태로 대기하며 비용 발생**
-5. 나머지 노드 준비 후에야 워크로드 시작
+**Problem Scenario:**
+1. 4-GPU training Job enters Queue
+2. Karpenter provisions nodes one by one (5-10 minutes)
+3. Pod scheduling attempted with only 2 nodes ready → fails
+4. **2 GPUs remain idle while incurring costs**
+5. Workload starts only after remaining nodes are ready
 
-**비용 영향:**
-- p4d.24xlarge (8x A100) = $32.77/시간
-- 10분 유휴 대기 × 2노드 = **$10.92 낭비**
-- 일 100건 Executing 시 월 $32,760 불필요 비용
+**Cost Impact:**
+- p4d.24xlarge (8x A100) = $32.77/hour
+- 10 min idle wait × 2 nodes = **$10.92 wasted**
+- 100 executions/day → $32,760 unnecessary monthly cost
 
-#### Setu의 All-or-Nothing 프로비저닝
+#### Setu's All-or-Nothing Provisioning
 
 ```mermaid
 graph LR
-    A[Job 제출] --> B[Kueue: 쿼터 검증]
-    B --> C[Setu: NodePool 용량 사전 확인]
-    C -->|충분| D[모든 노드 동시 프로비저닝]
-    C -->|불충분| E[즉시 실패 - 대기 시간 0]
-    D --> F[모든 노드 Ready 확인]
-    F --> G[Job Executing - 유휴 없음]
+    A[Job Submission] --> B[Kueue: Quota Validation]
+    B --> C[Setu: Pre-check NodePool Capacity]
+    C -->|Sufficient| D[Provision All Nodes Simultaneously]
+    C -->|Insufficient| E[Immediate Failure - Zero Wait]
+    D --> F[Verify All Nodes Ready]
+    F --> G[Job Execution - No Idle Time]
 
     style C fill:#4dabf7
     style G fill:#51cf66
     style E fill:#ff6b6b
 ```
 
-**Setu 작동 방식:**
+**How Setu Works:**
 
-1. **사전 용량 검증**: Karpenter NodePool에 필요한 노드 용량이 있는지 확인
-2. **동시 프로비저닝**: 모든 노드를 동시에 요청 (순차 대기 없음)
-3. **Gang Scheduling Guarantee**: 모든 노드가 Ready 상태가 된 후에만 워크로드 시작
-4. **실패 시 즉시 종료**: 용량 부족 시 즉시 실패하여 무의미한 대기 제거
+1. **Pre-capacity Validation**: Check if Karpenter NodePool has required node capacity
+2. **Simultaneous Provisioning**: Request all nodes at once (no sequential waiting)
+3. **Gang Scheduling Guarantee**: Start workload only after all nodes are Ready
+4. **Immediate Failure**: Fail immediately on capacity shortage to eliminate pointless waiting
 
-#### Kueue ClusterQueue와 통합
+#### Integration with Kueue ClusterQueue
 
 ```yaml
 apiVersion: kueue.x-k8s.io/v1beta1
@@ -4386,7 +4386,7 @@ spec:
     - name: a100-spot
       resources:
       - name: "nvidia.com/gpu"
-        nominalQuota: 32  # 4개 노드 × 8 GPU
+        nominalQuota: 32  # 4 nodes × 8 GPUs
       - name: "cpu"
         nominalQuota: 384
       - name: "memory"
@@ -4419,13 +4419,13 @@ spec:
   disruption:
     consolidationPolicy: WhenEmptyOrUnderutilized
     consolidateAfter: 5m
-  # Setu가 이 NodePool의 용량을 사전 검증
+  # Setu pre-validates this NodePool's capacity
   limits:
     cpu: "384"
     memory: "1536Gi"
 ```
 
-**Setu Controller 동작:**
+**Setu Controller Behavior:**
 
 ```yaml
 apiVersion: batch/v1
@@ -4435,9 +4435,9 @@ metadata:
   namespace: ml-training
   labels:
     kueue.x-k8s.io/queue-name: ml-team-queue
-    setu.io/enabled: "true"  # Setu 활성화
+    setu.io/enabled: "true"  # Enable Setu
 spec:
-  parallelism: 4  # 4개 노드 필요
+  parallelism: 4  # Requires 4 nodes
   completions: 4
   template:
     spec:
@@ -4447,36 +4447,36 @@ spec:
         image: pytorch/pytorch:2.1-cuda12.1
         resources:
           requests:
-            nvidia.com/gpu: 8  # 노드당 8 GPU
+            nvidia.com/gpu: 8  # 8 GPUs per node
             memory: 384Gi
           limits:
             nvidia.com/gpu: 8
 ```
 
-**Setu 동작 흐름:**
+**Setu Operation Flow:**
 
-1. Job이 Kueue Queue에 진입
-2. Kueue가 쿼타 확인 (32 GPU 중 available 확인)
-3. **Setu 개입**: Karpenter NodePool `a100-spot-pool`에서 4개 p4d.24xlarge 노드 프로비저닝 가능 여부 검증
-4. **가능하면**: 4개 노드 동시 프로비저닝 요청 + Job은 대기
-5. **불가능하면**: Job 즉시 실패 (다른 Queue로 재라우팅 or 재시도)
-6. 모든 노드 Ready 후 Job 스케줄링 → **유휴 GPU 0개**
+1. Job enters Kueue Queue
+2. Kueue checks quota (verify availability out of 32 GPUs)
+3. **Setu Intervenes**: Validate if 4 p4d.24xlarge nodes can be provisioned from Karpenter NodePool `a100-spot-pool`
+4. **If Possible**: Request simultaneous provisioning of 4 nodes + Job waits
+5. **If Not Possible**: Job fails immediately (reroute to another Queue or retry)
+6. After all nodes Ready, schedule Job → **0 idle GPUs**
 
-#### 리소스 효율성 비교
+#### Resource Efficiency Comparison
 
-| 상황 | 기존 방식 | Setu 방식 | 절감 효과 |
+| Scenario | Traditional Approach | Setu Approach | Savings |
 |------|----------|-----------|----------|
-| **4-GPU Job 시작 시간** | 노드 1개씩 프로비저닝 (15분) | 동시 프로비저닝 (7분) | **53% 단축** |
-| **유휴 GPU 비용** | 2개 노드 × 10분 대기 = $10.92 | 0 (동시 시작) | **100% 절감** |
-| **용량 부족 시 대기** | 10분 대기 후 실패 | 즉시 실패 (0초) | **대기 시간 제거** |
-| **Spot 중단 시 재시작** | 부분 노드 재생성 → 유휴 발생 | Gang Guarantee 재프로비저닝 | **중단 비용 최소화** |
+| **4-GPU Job Start Time** | Provision nodes one-by-one (15min) | Simultaneous provisioning (7min) | **53% reduction** |
+| **Idle GPU Cost** | 2 nodes × 10min wait = $10.92 | 0 (simultaneous start) | **100% savings** |
+| **Wait on Insufficient Capacity** | 10min wait then fail | Immediate failure (0sec) | **Wait time eliminated** |
+| **Restart on Spot Interruption** | Partial node recreation → idle occurs | Gang Guarantee reprovisioning | **Interruption cost minimized** |
 
-**월간 비용 절감 (100 Job Executing 기준):**
-- 유휴 비용 절감: **$32,760/월**
-- Cold start 제거: **$16,380/월** (시작 시간 53% 단축)
-- **총 절감: $49,140/월**
+**Monthly Cost Savings (100 Job executions basis):**
+- Idle cost savings: **$32,760/month**
+- Cold start elimination: **$16,380/month** (53% start time reduction)
+- **Total Savings: $49,140/month**
 
-#### 멀티 테넌트 환경에서 공정성 + 효율성
+#### Fairness + Efficiency in Multi-tenant Environments
 
 ```yaml
 apiVersion: kueue.x-k8s.io/v1beta1
@@ -4494,7 +4494,7 @@ spec:
       resources:
       - name: "nvidia.com/gpu"
         nominalQuota: 64
-        borrowingLimit: 32  # 다른 팀 유휴 시 32 GPU 추가 available
+        borrowingLimit: 32  # Borrow 32 additional GPUs when other teams idle
 ---
 apiVersion: kueue.x-k8s.io/v1beta1
 kind: LocalQueue
@@ -4513,33 +4513,33 @@ spec:
   clusterQueue: shared-gpu-queue
 ```
 
-**Setu + Kueue 통합 장점:**
+**Setu + Kueue Integration Benefits:**
 
-1. **공정한 쿼타 관리**: Kueue가 팀별 GPU 할당량 관리
-2. **효율적 프로비저닝**: Setu가 NodePool 용량 기반 사전 검증
-3. **Borrowing 최적화**: 유휴 GPU를 다른 팀이 사용할 때도 Gang Scheduling Guarantee
-4. **Spot 활용 극대화**: 부분 할당 방지로 Spot 중단 영향 최소화
+1. **Fair Quota Management**: Kueue manages per-team GPU allocations
+2. **Efficient Provisioning**: Setu pre-validates based on NodePool capacity
+3. **Borrowing Optimization**: Gang Scheduling Guarantee even when other teams use idle GPUs
+4. **Maximize Spot Usage**: Minimize Spot interruption impact by preventing partial allocations
 
-:::tip Setu 적용 Recommended 시나리오
-- **대규모 GPU 워크로드**: 4+ GPU 필요 시 유휴 비용 심각
-- **Spot 인스턴스 사용**: Gang scheduling으로 Spot 중단 대응력 향상
-- **멀티 테넌트 환경**: Kueue 공정성 + Karpenter 효율성 동시 확보
-- **비용 민감**: GPU 유휴 시간이 월 수천 달러 비용 초래
+:::tip Recommended Scenarios for Setu
+- **Large GPU Workloads**: Idle costs are severe when 4+ GPUs required
+- **Spot Instance Usage**: Improved Spot interruption response with gang scheduling
+- **Multi-tenant Environments**: Simultaneously secure Kueue fairness + Karpenter efficiency
+- **Cost Sensitive**: GPU idle time causes thousands of dollars monthly cost
 :::
 
-**참고 자료:**
+**References:**
 - [Setu GitHub Repository](https://github.com/sanjeevrg89/Setu)
-- [Kueue 공식 문서](https://kueue.sigs.k8s.io/)
-- [Karpenter NodePool 설정 가이드](https://karpenter.sh/)
+- [Kueue Official Documentation](https://kueue.sigs.k8s.io/)
+- [Karpenter NodePool Configuration Guide](https://karpenter.sh/)
 
-### 7.4 EKS Blueprints IaC 패턴으로 리소스 정책 표준화
+### 7.4 Standardize Resource Policies with EKS Blueprints IaC Pattern
 
-Terraform EKS Blueprints를 사용하면 ResourceQuota, LimitRange, Policy Enforcement를 코드로 표준화하여 모든 클러스터에 일관되게 적용할 수 있습니다.
+Terraform EKS Blueprints enables you to standardize ResourceQuota, LimitRange, and Policy Enforcement as code and apply consistently across all clusters.
 
-#### Terraform EKS Blueprints AddOn 구조
+#### Terraform EKS Blueprints AddOn Structure
 
 ```hcl
-# main.tf - EKS Blueprints로 리소스 정책 자동 배포
+# main.tf - Auto-deploy resource policies with EKS Blueprints
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
   version = "~> 20.0"
@@ -4562,7 +4562,7 @@ module "eks" {
   }
 }
 
-# EKS Blueprints AddOns로 리소스 정책 배포
+# Deploy resource policies with EKS Blueprints AddOns
 module "eks_blueprints_addons" {
   source  = "aws-ia/eks-blueprints-addons/aws"
   version = "~> 1.16"
@@ -4572,17 +4572,17 @@ module "eks_blueprints_addons" {
   cluster_version   = module.eks.cluster_version
   oidc_provider_arn = module.eks.oidc_provider_arn
 
-  # Metrics Server (VPA 사전 요구사항)
+  # Metrics Server (VPA prerequisite)
   enable_metrics_server = true
 
-  # Karpenter (노드 오토스케일링)
+  # Karpenter (node autoscaling)
   enable_karpenter = true
   karpenter = {
     repository_username = data.aws_ecrpublic_authorization_token.token.user_name
     repository_password = data.aws_ecrpublic_authorization_token.token.password
   }
 
-  # Kyverno (리소스 정책 Enforcement)
+  # Kyverno (resource policy enforcement)
   enable_kyverno = true
   kyverno = {
     values = [templatefile("${path.module}/kyverno-policies.yaml", {
@@ -4594,7 +4594,7 @@ module "eks_blueprints_addons" {
   }
 }
 
-# ResourceQuota를 Helm Chart로 배포
+# Deploy ResourceQuota as Helm Chart
 resource "helm_release" "resource_quotas" {
   name      = "resource-quotas"
   namespace = "kube-system"
@@ -4625,7 +4625,7 @@ resource "helm_release" "resource_quotas" {
 }
 ```
 
-#### Kyverno 정책으로 리소스 요청 Enforcement
+#### Enforce Resource Requests with Kyverno Policies
 
 ```yaml
 # kyverno-policies.yaml
@@ -4637,9 +4637,9 @@ metadata:
     policies.kyverno.io/title: Require Resource Requests
     policies.kyverno.io/severity: medium
     policies.kyverno.io/description: |
-      모든 Pod는 CPU와 Memory requests를 반드시 설정해야 합니다.
+      All Pods must set CPU and Memory requests.
 spec:
-  validationFailureAction: Enforce  # Audit (경고만) or Enforce (차단)
+  validationFailureAction: Enforce  # Audit (warning only) or Enforce (block)
   background: true
   rules:
   - name: check-cpu-memory-requests
@@ -4649,13 +4649,13 @@ spec:
           kinds:
           - Pod
     validate:
-      message: "CPU와 Memory requests는 필수입니다"
+      message: "CPU and Memory requests are required"
       pattern:
         spec:
           containers:
           - resources:
               requests:
-                memory: "?*"  # 존재 여부 확인
+                memory: "?*"  # Check existence
                 cpu: "?*"
 
   - name: enforce-memory-limits
@@ -4665,7 +4665,7 @@ spec:
           kinds:
           - Pod
     validate:
-      message: "Memory limits는 필수입니다 (OOM Kill 방지)"
+      message: "Memory limits are required (prevent OOM Kill)"
       pattern:
         spec:
           containers:
@@ -4680,7 +4680,7 @@ spec:
           kinds:
           - Pod
     validate:
-      message: "CPU는 최대 {{ max_cpu_limit }}, Memory는 최대 {{ max_memory_limit }}까지 허용"
+      message: "CPU max {{ max_cpu_limit }}, Memory max {{ max_memory_limit }} allowed"
       deny:
         conditions:
           any:
@@ -4692,10 +4692,10 @@ spec:
             value: "{{ max_memory_limit }}"
 ```
 
-#### OPA Gatekeeper 정책 Example (대안)
+#### OPA Gatekeeper Policy Example (Alternative)
 
 ```yaml
-# ConstraintTemplate - 리소스 요청 Enforcement
+# ConstraintTemplate - Enforce resource requests
 apiVersion: templates.gatekeeper.sh/v1
 kind: ConstraintTemplate
 metadata:
@@ -4721,23 +4721,23 @@ spec:
         violation[{"msg": msg}] {
           container := input.review.object.spec.containers[_]
           not container.resources.requests.cpu
-          msg := sprintf("컨테이너 %v는 CPU requests가 없습니다", [container.name])
+          msg := sprintf("Container %v has no CPU requests", [container.name])
         }
 
         violation[{"msg": msg}] {
           container := input.review.object.spec.containers[_]
           not container.resources.requests.memory
-          msg := sprintf("컨테이너 %v는 Memory requests가 없습니다", [container.name])
+          msg := sprintf("Container %v has no Memory requests", [container.name])
         }
 
         violation[{"msg": msg}] {
           container := input.review.object.spec.containers[_]
           not container.resources.limits.memory
-          msg := sprintf("컨테이너 %v는 Memory limits가 없습니다 (OOM 위험)", [container.name])
+          msg := sprintf("Container %v has no Memory limits (OOM risk)", [container.name])
         }
 
 ---
-# Constraint - ConstraintTemplate 적용
+# Constraint - Apply ConstraintTemplate
 apiVersion: constraints.gatekeeper.sh/v1beta1
 kind: K8sRequireResources
 metadata:
@@ -4752,9 +4752,9 @@ spec:
     exemptNamespaces: ["kube-system", "kube-node-lease"]
 ```
 
-#### GitOps 기반 리소스 정책 관리 패턴
+#### GitOps-based Resource Policy Management Pattern
 
-**ArgoCD ApplicationSet으로 환경별 ResourceQuota 배포:**
+**Deploy Environment-specific ResourceQuota with ArgoCD ApplicationSet:**
 
 ```yaml
 # argocd/applicationset-resource-policies.yaml
@@ -4806,7 +4806,7 @@ spec:
           selfHeal: true
 ```
 
-**리포지토리 구조:**
+**Repository Structure:**
 
 ```
 k8s-manifests/
@@ -4823,72 +4823,72 @@ k8s-manifests/
     └── applicationset-resource-policies.yaml
 ```
 
-:::tip EKS Blueprints + GitOps Recommended 패턴
-1. **Terraform으로 클러스터 프로비저닝** (VPC, EKS, AddOns)
-2. **Kyverno/OPA로 정책 Enforcement** (리소스 요청 필수, 과도한 할당 차단)
-3. **ArgoCD ApplicationSet으로 환경별 정책 배포** (GitOps)
-4. **Prometheus + Grafana로 정책 준수율 모니터링**
+:::tip Recommended EKS Blueprints + GitOps Pattern
+1. **Provision clusters with Terraform** (VPC, EKS, AddOns)
+2. **Enforce policies with Kyverno/OPA** (require resource requests, block excessive allocation)
+3. **Deploy environment-specific policies with ArgoCD ApplicationSet** (GitOps)
+4. **Monitor policy compliance with Prometheus + Grafana**
 
-이 조합으로 **"클러스터는 Terraform으로, 정책은 Git으로"** 관리하여 인프라 표준화와 운영 자동화를 달성합니다.
+This combination achieves **"Manage clusters with Terraform, policies with Git"** for infrastructure standardization and operational automation.
 :::
 
 ## Cost Impact Analysis
 
-### 8.1 리소스 낭비 계산
+### 8.1 Resource Waste Calculation
 
-**시나리오:**
-- 클러스터: 100개 노드 (m5.2xlarge, $0.384/시간)
-- 리소스 효율성: 40% (60% 낭비)
+**Scenario:**
+- Cluster: 100 nodes (m5.2xlarge, $0.384/hour)
+- Resource Efficiency: 40% (60% waste)
 
 ```
-월별 비용:
-100 노드 × $0.384/시간 × 730시간/월 = $28,032/월
+Monthly Cost:
+100 nodes × $0.384/hour × 730 hours/month = $28,032/month
 
-낭비 비용:
-$28,032 × 60% = $16,819/월
+Wasted Cost:
+$28,032 × 60% = $16,819/month
 
-Right-Sizing 후 (효율성 70%):
-필요 노드: 100 × (40% / 70%) = 57 노드
-월별 비용: 57 × $0.384 × 730 = $15,978/월
-절감액: $28,032 - $15,978 = $12,054/월 (43% 절감)
+After Right-Sizing (70% efficiency):
+Required Nodes: 100 × (40% / 70%) = 57 nodes
+Monthly Cost: 57 × $0.384 × 730 = $15,978/month
+Savings: $28,032 - $15,978 = $12,054/month (43% reduction)
 ```
 
-### 8.2 클러스터 효율성 메트릭
+### 8.2 Cluster Efficiency Metrics
 
 ```promql
-# CPU 효율성
+# CPU Efficiency
 sum(rate(container_cpu_usage_seconds_total{container!=""}[5m]))
 /
 sum(kube_pod_container_resource_requests{resource="cpu"}) * 100
 
-# Memory 효율성
+# Memory Efficiency
 sum(container_memory_working_set_bytes{container!=""})
 /
 sum(kube_pod_container_resource_requests{resource="memory"}) * 100
 
-# 목표: CPU 60% 이상, Memory 70% 이상
+# Target: CPU 60%+, Memory 70%+
 ```
 
-### 8.3 Right-Sizing 절감 효과
+### 8.3 Right-Sizing Savings Impact
 
-| 최적화 항목 | 비용 절감률 | 구현 난이도 | 예상 시간 |
+| Optimization Item | Cost Reduction | Implementation Difficulty | Estimated Time |
 |------------|-----------|-----------|----------|
-| VPA Recommended사항 적용 | 20-30% | 낮음 | 1-2주 |
-| CPU Limits 제거 | 5-10% | 낮음 | 1주 |
-| QoS 클래스 최적화 | 10-15% | 중간 | 2-3주 |
-| HPA + 적절한 Requests | 15-25% | 중간 | 2-4주 |
-| 전체 Right-Sizing | 30-50% | 높음 | 1-3개월 |
+| Apply VPA Recommendations | 20-30% | Low | 1-2 weeks |
+| Remove CPU Limits | 5-10% | Low | 1 week |
+| QoS Class Optimization | 10-15% | Medium | 2-3 weeks |
+| HPA + Proper Requests | 15-25% | Medium | 2-4 weeks |
+| Full Right-Sizing | 30-50% | High | 1-3 months |
 
-### 8.4 FinOps 통합 비용 최적화
+### 8.4 FinOps Integrated Cost Optimization
 
-FinOps(Financial Operations)는 클라우드 비용 관리를 조직 문화로 정착시키는 방법론입니다. Kubernetes 환경에서는 리소스 가시성, 비용 할당, 지속적 최적화가 핵심입니다.
+FinOps (Financial Operations) is a methodology to establish cloud cost management as organizational culture. In Kubernetes environments, resource visibility, cost allocation, and continuous optimization are key.
 
-#### 8.4.1 Kubecost + AWS Cost Explorer 연계
+#### 8.4.1 Kubecost + AWS Cost Explorer Integration
 
-**Kubecost 설치 및 EKS 통합:**
+**Kubecost Installation and EKS Integration:**
 
 ```bash
-# 1. Kubecost 설치 (Prometheus 포함)
+# 1. Install Kubecost (includes Prometheus)
 helm repo add kubecost https://kubecost.github.io/cost-analyzer/
 helm repo update
 
@@ -4900,8 +4900,8 @@ helm install kubecost kubecost/cost-analyzer \
   --set prometheus.nodeExporter.enabled=true \
   --set prometheus.serviceAccounts.nodeExporter.create=true
 
-# 2. AWS Cost and Usage Report (CUR) 통합 설정
-# values.yaml에 추가:
+# 2. AWS Cost and Usage Report (CUR) integration setup
+# Add to values.yaml:
 # kubecostProductConfigs:
 #   awsServiceKeyName: <secret-name>
 #   awsServiceKeyPassword: <secret-key>
@@ -4909,25 +4909,25 @@ helm install kubecost kubecost/cost-analyzer \
 #   awsSpotDataRegion: <region>
 #   curExportPath: <cur-export-path>
 
-# 3. 대시보드 접속
+# 3. Access dashboard
 kubectl port-forward -n kubecost deployment/kubecost-cost-analyzer 9090:9090
 
-# 브라우저에서 http://localhost:9090 접속
+# Open http://localhost:9090 in browser
 ```
 
-**네임스페이스/워크로드별 비용 가시성:**
+**Cost Visibility by Namespace/Workload:**
 
-Kubecost는 다음과 같은 차원으로 비용을 분해합니다:
+Kubecost breaks down costs into the following dimensions:
 
-| 차원 | 설명 | 활용 |
+| Dimension | Description | Usage |
 |------|------|------|
-| **Namespace** | 네임스페이스별 비용 | 팀/프로젝트별 청구 |
-| **Deployment** | 워크로드별 비용 | 애플리케이션별 TCO 분석 |
-| **Pod** | 개별 Pod 비용 | Over-provisioning 식별 |
-| **Label** | 커스텀 레이블별 비용 | 환경(dev/staging/prod), 비용센터별 분류 |
-| **Node** | 노드별 비용 | 인스턴스 타입 최적화 |
+| **Namespace** | Cost by namespace | Team/project billing |
+| **Deployment** | Cost by workload | TCO analysis per application |
+| **Pod** | Individual Pod cost | Identify over-provisioning |
+| **Label** | Cost by custom label | Classify by environment (dev/staging/prod), cost center |
+| **Node** | Cost by node | Instance type optimization |
 
-**AWS Cost Explorer와의 데이터 일관성 확보:**
+**Ensure Data Consistency with AWS Cost Explorer:**
 
 ```mermaid
 graph LR
@@ -4938,32 +4938,32 @@ graph LR
     subgraph "Kubecost"
         B --> C[Kubecost ETL]
         C --> D[Cost Allocation]
-        D --> E[Namespace 비용]
-        D --> F[Pod 비용]
-        D --> G[Label 비용]
+        D --> E[Namespace Cost]
+        D --> F[Pod Cost]
+        D --> G[Label Cost]
     end
 
-    subgraph "검증"
-        H[AWS Cost Explorer<br/>클러스터 총 비용] --> I{일치 확인}
-        E --> J[Kubecost 합계]
+    subgraph "Validation"
+        H[AWS Cost Explorer<br/>Total Cluster Cost] --> I{Check Match}
+        E --> J[Kubecost Total]
         F --> J
         G --> J
         J --> I
-        I -->|차이 < 5%| K[정상]
-        I -->|차이 > 5%| L[CUR 설정 확인]
+        I -->|Diff < 5%| K[Normal]
+        I -->|Diff > 5%| L[Check CUR Config]
     end
 
     style K fill:#51cf66
     style L fill:#ff6b6b
 ```
 
-**일관성 검증 쿼리:**
+**Consistency Validation Queries:**
 
 ```bash
-# Kubecost API - 클러스터 총 비용 (지난 7일)
+# Kubecost API - Total cluster cost (last 7 days)
 curl "http://localhost:9090/model/allocation?window=7d&aggregate=cluster" | jq '.data[].totalCost'
 
-# AWS CLI - Cost Explorer 총 비용 (지난 7일)
+# AWS CLI - Cost Explorer total cost (last 7 days)
 aws ce get-cost-and-usage \
   --time-period Start=$(date -d '7 days ago' +%Y-%m-%d),End=$(date +%Y-%m-%d) \
   --granularity DAILY \
@@ -4979,29 +4979,29 @@ aws ce get-cost-and-usage \
 # }
 ```
 
-**20-60% 비용 절감 가능 영역 식별 패턴:**
+**Identify 20-60% Cost Savings Opportunities:**
 
-Kubecost 대시보드에서 다음 지표로 최적화 기회를 식별합니다:
+Identify optimization opportunities with the following metrics from Kubecost dashboard:
 
-| 지표 | 기준 | 예상 절감 | 조치 |
+| Metric | Threshold | Expected Savings | Action |
 |------|------|----------|------|
 | **CPU Efficiency** | < 50% | 20-30% | Right-Sizing (VPA) |
 | **Memory Efficiency** | < 60% | 15-25% | Right-Sizing (VPA) |
 | **Idle Cost** | > 30% | 30-50% | HPA + Cluster Autoscaler/Karpenter |
-| **Over-Provisioned Pods** | Requests 사용률 < 50% | 10-20% | Goldilocks Recommended사항 적용 |
-| **Spot Adoption** | < 30% | 40-60% | Spot + Graviton 전환 |
+| **Over-Provisioned Pods** | Requests utilization < 50% | 10-20% | Apply Goldilocks recommendations |
+| **Spot Adoption** | < 30% | 40-60% | Migrate to Spot + Graviton |
 
-**Kubecost Savings Insights 활용:**
+**Leverage Kubecost Savings Insights:**
 
 ```bash
-# Kubecost API - Savings Recommended사항 조회
+# Kubecost API - Query Savings Recommendations
 curl "http://localhost:9090/model/savings" | jq '.data[] | {
   type: .savingsType,
   monthly_savings: .monthlySavings,
   resource: .resourceName
 }'
 
-# 예상 출력:
+# Expected output:
 # {
 #   "type": "rightsize-deployment",
 #   "monthly_savings": 1240.50,
@@ -5014,78 +5014,78 @@ curl "http://localhost:9090/model/savings" | jq '.data[] | {
 # }
 ```
 
-#### 8.4.2 Goldilocks vs Kubecost 도구 비교
+#### 8.4.2 Goldilocks vs Kubecost Tool Comparison
 
-| 항목 | Goldilocks | Kubecost |
+| Item | Goldilocks | Kubecost |
 |------|-----------|----------|
-| **주요 기능** | VPA Recommended사항 시각화 | 전체 비용 가시성 + 최적화 Recommended사항 |
-| **비용** | 무료 (오픈소스) | 무료 (기본), Enterprise (유료) |
-| **설치 복잡도** | 낮음 (Helm 1줄) | 중간 (Prometheus 설정 필요) |
-| **데이터 소스** | Metrics Server, VPA | Prometheus, AWS CUR, 클라우드 빌링 API |
-| **Recommended사항 범위** | CPU/Memory Right-Sizing | Right-Sizing, Spot, Graviton, Idle Resource, Cluster Sizing |
-| **비용 할당** | 없음 | Namespace, Label, Pod, Deployment 레벨 |
-| **예산 관리** | 없음 | 예산 알람, 비용 추세 예측 |
-| **멀티 클러스터** | 클러스터별 독립 | 통합 대시보드 지원 |
-| **AWS 통합** | 없음 | Cost Explorer, CUR, Savings Plans 분석 |
-| **리포트** | 웹 UI만 | PDF, CSV, Slack/Teams 알람 |
+| **Primary Function** | VPA recommendation visualization | Full cost visibility + optimization recommendations |
+| **Cost** | Free (open source) | Free (basic), Enterprise (paid) |
+| **Installation Complexity** | Low (1-line Helm) | Medium (Prometheus setup required) |
+| **Data Sources** | Metrics Server, VPA | Prometheus, AWS CUR, cloud billing APIs |
+| **Recommendation Scope** | CPU/Memory Right-Sizing | Right-Sizing, Spot, Graviton, Idle Resource, Cluster Sizing |
+| **Cost Allocation** | None | Namespace, Label, Pod, Deployment level |
+| **Budget Management** | None | Budget alerts, cost trend forecasting |
+| **Multi-cluster** | Independent per cluster | Unified dashboard support |
+| **AWS Integration** | None | Cost Explorer, CUR, Savings Plans analysis |
+| **Reporting** | Web UI only | PDF, CSV, Slack/Teams alerts |
 
-**추천 시나리오:**
+**Recommended Scenarios:**
 
-| 상황 | 추천 도구 | Reasons |
+| Situation | Recommended Tool | Reason |
 |------|----------|------|
-| **단일 클러스터, 리소스 최적화만** | Goldilocks | 가볍고 빠른 시작 |
-| **멀티 클러스터, 비용 청구** | Kubecost | 전사적 비용 관리 필요 |
-| **스타트업, 빠른 절감 필요** | Goldilocks → Kubecost | 단계적 도입 |
-| **엔터프라이즈, FinOps 팀 존재** | Kubecost Enterprise | 고급 기능 (예산, 알람, 정책) |
-| **오픈소스만 사용** | Goldilocks + Prometheus | 비용 0원 |
+| **Single cluster, resource optimization only** | Goldilocks | Lightweight and quick start |
+| **Multi-cluster, cost chargeback** | Kubecost | Enterprise-wide cost management needed |
+| **Startup, quick savings needed** | Goldilocks → Kubecost | Phased adoption |
+| **Enterprise, FinOps team exists** | Kubecost Enterprise | Advanced features (budget, alerts, policies) |
+| **Open source only** | Goldilocks + Prometheus | Zero cost |
 
-**병행 사용 패턴:**
+**Combined Usage Pattern:**
 
 ```bash
-# Goldilocks로 빠른 Right-Sizing
+# Quick Right-Sizing with Goldilocks
 kubectl label namespace production goldilocks.fairwinds.com/enabled=true
 
-# Kubecost로 전체 비용 추적 및 검증
-# 1. Goldilocks Recommended사항 적용 전 비용 기록
+# Track and verify total costs with Kubecost
+# 1. Record cost before applying Goldilocks recommendations
 curl "http://localhost:9090/model/allocation?window=7d&aggregate=namespace&accumulate=true" \
   | jq '.data[] | select(.name=="production") | .totalCost'
 
-# 2. Right-Sizing 적용
+# 2. Apply Right-Sizing
 kubectl set resources deployment web-app -n production \
   --requests=cpu=300m,memory=512Mi \
   --limits=memory=1Gi
 
-# 3. 7일 후 Kubecost에서 절감액 확인
+# 3. Verify savings in Kubecost after 7 days
 ```
 
-#### 8.4.3 자동화된 비용 최적화 루프
+#### 8.4.3 Automated Cost Optimization Loop
 
-FinOps의 핵심은 **지속적인 비용 가시성 → 최적화 → 검증 루프**입니다. GitOps와 결합하면 완전 자동화가 가능합니다.
+The core of FinOps is **continuous cost visibility → optimization → validation loop**. Full automation is possible when combined with GitOps.
 
-**비용 최적화 루프 아키텍처:**
+**Cost Optimization Loop Architecture:**
 
 ```mermaid
 graph TB
-    subgraph "1. 비용 가시성"
-        A[Prometheus 메트릭 수집] --> B[Kubecost 비용 분석]
-        B --> C[Over-provisioned 식별]
+    subgraph "1. Cost Visibility"
+        A[Prometheus metrics collection] --> B[Kubecost cost analysis]
+        B --> C[Identify Over-provisioned]
     end
 
-    subgraph "2. 리소스 최적화"
-        C --> D[VPA Recommended사항 생성]
-        D --> E[GitOps PR 자동 생성]
-        E --> F[팀 리뷰]
+    subgraph "2. Resource Optimization"
+        C --> D[Generate VPA Recommendations]
+        D --> E[Auto-create GitOps PR]
+        E --> F[Team Review]
     end
 
-    subgraph "3. 비용 검증"
-        F --> G[Merge → ArgoCD 배포]
-        G --> H[Kubecost 비용 추적]
-        H --> I{절감 확인}
+    subgraph "3. Cost Validation"
+        F --> G[Merge → ArgoCD Deploy]
+        G --> H[Kubecost Cost Tracking]
+        H --> I{Verify Savings}
     end
 
-    I -->|절감 성공| J[알람: Slack 통지]
-    I -->|절감 미달| K[롤백 검토]
-    J --> L[다음 최적화 대상 선정]
+    I -->|Savings Achieved| J[Alert: Slack Notification]
+    I -->|Savings Below Target| K[Review Rollback]
+    J --> L[Select Next Optimization Target]
     K --> L
     L --> A
 
@@ -5096,7 +5096,7 @@ graph TB
     style K fill:#ff6b6b
 ```
 
-**GitOps 기반 자동 Right-Sizing PR 생성 패턴:**
+**GitOps-based Auto Right-Sizing PR Generation Pattern:**
 
 ```python
 # automation/right-sizing-bot.py
@@ -5105,19 +5105,19 @@ import yaml
 import subprocess
 from datetime import datetime
 
-# 1. Kubecost API에서 Recommended사항 조회
+# 1. Query recommendations from Kubecost API
 def get_kubecost_recommendations():
     response = requests.get("http://kubecost:9090/model/savings")
     savings = response.json()["data"]
     return [s for s in savings if s["savingsType"] == "rightsize-deployment"]
 
-# 2. Deployment 매니페스트 업데이트
+# 2. Update Deployment manifest
 def update_deployment(namespace, name, cpu_request, memory_request):
     file_path = f"k8s/{namespace}/{name}.yaml"
     with open(file_path, 'r') as f:
         manifest = yaml.safe_load(f)
 
-    # 리소스 업데이트
+    # Update resources
     manifest["spec"]["template"]["spec"]["containers"][0]["resources"] = {
         "requests": {
             "cpu": cpu_request,
@@ -5131,7 +5131,7 @@ def update_deployment(namespace, name, cpu_request, memory_request):
     with open(file_path, 'w') as f:
         yaml.dump(manifest, f)
 
-# 3. Git PR 생성
+# 3. Create Git PR
 def create_pr(recommendations):
     branch = f"right-sizing-{datetime.now().strftime('%Y%m%d')}"
     subprocess.run(["git", "checkout", "-b", branch])
@@ -5151,7 +5151,7 @@ def create_pr(recommendations):
     ])
     subprocess.run(["git", "push", "origin", branch])
 
-    # GitHub PR 생성
+    # Create GitHub PR
     subprocess.run([
         "gh", "pr", "create",
         "--title", f"Cost Optimization: Right-Sizing Recommendations",
@@ -5159,14 +5159,14 @@ def create_pr(recommendations):
         "--label", "cost-optimization"
     ])
 
-# Executing
+# Execution
 if __name__ == "__main__":
     recommendations = get_kubecost_recommendations()
     if recommendations:
         create_pr(recommendations)
 ```
 
-**자동화 Executing (CronJob):**
+**Automation Execution (CronJob):**
 
 ```yaml
 apiVersion: batch/v1
@@ -5175,7 +5175,7 @@ metadata:
   name: right-sizing-bot
   namespace: automation
 spec:
-  schedule: "0 9 * * MON"  # 매주 월요일 오전 9시
+  schedule: "0 9 * * MON"  # Every Monday at 9am
   jobTemplate:
     spec:
       template:
@@ -5195,77 +5195,77 @@ spec:
           restartPolicy: OnFailure
 ```
 
-**Prometheus + Bedrock + GitOps 자동화 참조:**
+**Prometheus + Bedrock + GitOps Automation Reference:**
 
-AWS re:Invent 2025의 [CNS421 세션](https://www.youtube.com/watch?v=4s-a0jY4kSE)에서는 Amazon Bedrock과 Model Context Protocol(MCP)을 활용한 고급 자동화 패턴을 소개했습니다:
+AWS re:Invent 2025's [CNS421 session](https://www.youtube.com/watch?v=4s-a0jY4kSE) introduced advanced automation patterns using Amazon Bedrock and Model Context Protocol (MCP):
 
 ```python
-# 고급 패턴: AI 기반 최적화 의사결정
+# Advanced Pattern: AI-based Optimization Decision-making
 from anthropic import Anthropic
 
 client = Anthropic()
 
-# Prometheus 메트릭 수집
+# Prometheus metrics collection
 metrics = get_prometheus_metrics()
 
-# Bedrock에게 최적화 전략 요청
+# Request optimization strategy from Bedrock
 response = client.messages.create(
     model="claude-3-sonnet-20240229",
     max_tokens=1024,
     messages=[{
         "role": "user",
         "content": f"""
-        다음 Kubernetes 클러스터 메트릭을 분석하고 최적화 전략을 제안하세요:
+        Analyze the following Kubernetes cluster metrics and propose optimization strategy:
 
         {metrics}
 
-        다음을 포함하세요:
-        1. 비용 절감 우선순위
-        2. 리스크 평가
-        3. 단계별 Executing 계획
+        Include:
+        1. Cost savings prioritization
+        2. Risk assessment
+        3. Step-by-step execution plan
         """
     }]
 )
 
-# AI 제안을 PR 설명에 포함
+# Include AI recommendations in PR description
 create_pr_with_ai_context(response.content)
 ```
 
-#### 8.4.4 Graviton + Spot 비용 절감 시나리오
+#### 8.4.4 Graviton + Spot Cost Savings Scenarios
 
-**실제 비용 비교 표 (2026년 2월 기준, us-east-1):**
+**Actual Cost Comparison Table (as of February 2026, us-east-1):**
 
-| 시나리오 | 인스턴스 타입 | vCPU | Memory | 시간당 비용 | 월간 비용 (730h) | 절감률 |
+| Scenario | Instance Type | vCPU | Memory | Hourly Cost | Monthly Cost (730h) | Savings |
 |---------|-------------|------|--------|-----------|-----------------|--------|
 | **Baseline: x86 On-Demand** | m6i.2xlarge | 8 | 32 GB | $0.384 | $280.32 | - |
 | **Graviton On-Demand** | m7g.2xlarge | 8 | 32 GB | $0.3264 | $238.27 | **15%** |
-| **x86 Spot** | m6i.2xlarge | 8 | 32 GB | $0.1152 (70% 할인) | $84.10 | **70%** |
-| **Graviton Spot** | m7g.2xlarge | 8 | 32 GB | $0.0979 (70% 할인) | $71.47 | **75%** |
+| **x86 Spot** | m6i.2xlarge | 8 | 32 GB | $0.1152 (70% discount) | $84.10 | **70%** |
+| **Graviton Spot** | m7g.2xlarge | 8 | 32 GB | $0.0979 (70% discount) | $71.47 | **75%** |
 
-**100개 노드 클러스터 기준 연간 비용:**
+**Annual Cost for 100-Node Cluster:**
 
-| 구성 | 월간 비용 | 연간 비용 | 연간 절감액 |
+| Configuration | Monthly Cost | Annual Cost | Annual Savings |
 |------|----------|----------|-----------|
 | x86 On-Demand (100 nodes) | $28,032 | $336,384 | - |
 | Graviton On-Demand (100 nodes) | $23,827 | $285,924 | $50,460 (15%) |
 | x86 Spot (100 nodes) | $8,410 | $100,920 | $235,464 (70%) |
 | **Graviton Spot (100 nodes)** | **$7,147** | **$85,764** | **$250,620 (75%)** ⭐ |
 
-**워크로드 유형별 Recommended 조합:**
+**Recommended Combinations by Workload Type:**
 
-| 워크로드 유형 | Recommended 구성 | Reasons | 예상 절감 |
+| Workload Type | Recommended Configuration | Reason | Expected Savings |
 |-------------|----------|------|----------|
-| **프로덕션 API (상시)** | Graviton On-Demand 70% + Graviton Spot 30% | 안정성 우선, 일부 Spot 활용 | 25-35% |
-| **배치 작업** | Graviton Spot 100% | 중단 허용, 비용 최우선 | 70-75% |
-| **개발/스테이징** | Graviton Spot 100% | 중단 허용, 빠른 재시작 | 70-75% |
-| **데이터베이스** | Graviton On-Demand 100% | 중단 불가, 안정성 최우선 | 15% |
-| **큐 워커 (Stateless)** | Graviton Spot 80% + Graviton On-Demand 20% | 중단 시 재시작, 대부분 Spot | 60-65% |
-| **ML 추론** | Graviton Spot 100% (GPU 워크로드는 p4d Spot) | 중단 허용, 고비용 인스턴스 절감 | 70-75% |
+| **Production API (Always-on)** | Graviton On-Demand 70% + Graviton Spot 30% | Stability priority, partial Spot usage | 25-35% |
+| **Batch Jobs** | Graviton Spot 100% | Interruption tolerant, cost priority | 70-75% |
+| **Dev/Staging** | Graviton Spot 100% | Interruption tolerant, fast restart | 70-75% |
+| **Database** | Graviton On-Demand 100% | No interruption, stability priority | 15% |
+| **Queue Workers (Stateless)** | Graviton Spot 80% + Graviton On-Demand 20% | Restartable on interruption, mostly Spot | 60-65% |
+| **ML Inference** | Graviton Spot 100% (GPU workloads: p4d Spot) | Interruption tolerant, high-cost instance savings | 70-75% |
 
-**Karpenter NodePool에서 Graviton 우선 설정 YAML:**
+**Graviton-Preferred Configuration in Karpenter NodePool YAML:**
 
 ```yaml
-# Production API - Graviton 우선, Spot/On-Demand 혼합
+# Production API - Graviton preferred, Spot/On-Demand mix
 apiVersion: karpenter.sh/v1beta1
 kind: NodePool
 metadata:
@@ -5274,17 +5274,17 @@ spec:
   template:
     spec:
       requirements:
-      # Graviton 우선
+      # Graviton preferred
       - key: kubernetes.io/arch
         operator: In
         values: ["arm64"]
 
-      # Spot 70%, On-Demand 30% (가중치로 제어)
+      # 70% Spot, 30% On-Demand (controlled by weight)
       - key: karpenter.sh/capacity-type
         operator: In
         values: ["spot", "on-demand"]
 
-      # 범용 워크로드용 인스턴스 패밀리
+      # General-purpose workload instance families
       - key: node.kubernetes.io/instance-type
         operator: In
         values: ["m7g.large", "m7g.xlarge", "m7g.2xlarge"]
@@ -5292,7 +5292,7 @@ spec:
       nodeClassRef:
         name: default
 
-  # Spot 중단 시 자동 교체
+  # Auto-replace on Spot interruption
   disruption:
     consolidationPolicy: WhenUnderutilized
     expireAfter: 720h
@@ -5301,7 +5301,7 @@ spec:
     cpu: "200"
     memory: "400Gi"
 
-  weight: 100  # 최고 우선순위
+  weight: 100  # Highest priority
 
 ---
 # Batch Jobs - Graviton Spot 100%
@@ -5319,7 +5319,7 @@ spec:
 
       - key: karpenter.sh/capacity-type
         operator: In
-        values: ["spot"]  # Spot만
+        values: ["spot"]  # Spot only
 
       - key: node.kubernetes.io/instance-type
         operator: In
@@ -5328,7 +5328,7 @@ spec:
       nodeClassRef:
         name: default
 
-      # Batch 작업용 Taints
+      # Taints for batch jobs
       taints:
       - key: workload-type
         value: batch
@@ -5336,7 +5336,7 @@ spec:
 
   disruption:
     consolidationPolicy: WhenUnderutilized
-    expireAfter: 1h  # 배치 작업은 짧은 수명
+    expireAfter: 1h  # Short lifetime for batch jobs
 
   limits:
     cpu: "500"
@@ -5359,9 +5359,9 @@ spec:
 
       - key: karpenter.sh/capacity-type
         operator: In
-        values: ["on-demand"]  # On-Demand만
+        values: ["on-demand"]  # On-Demand only
 
-      # 메모리 최적화 인스턴스
+      # Memory-optimized instances
       - key: node.kubernetes.io/instance-type
         operator: In
         values: ["r7g.xlarge", "r7g.2xlarge", "r7g.4xlarge"]
@@ -5375,20 +5375,20 @@ spec:
         effect: NoSchedule
 
   disruption:
-    consolidationPolicy: WhenEmpty  # 비어있을 때만 교체
-    expireAfter: 2160h  # 90일 (장기 Executing)
+    consolidationPolicy: WhenEmpty  # Replace only when empty
+    expireAfter: 2160h  # 90 days (long-running)
 
   limits:
     cpu: "100"
     memory: "800Gi"
 
-  weight: 200  # 가장 높은 우선순위
+  weight: 200  # Highest priority
 ```
 
-**Pod에서 NodePool 선택:**
+**NodePool Selection in Pods:**
 
 ```yaml
-# API 서버 - production-api-pool 사용
+# API Server - use production-api-pool
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -5401,14 +5401,14 @@ spec:
         karpenter.sh/nodepool: production-api-pool
       containers:
       - name: api
-        image: api-server:v1-arm64  # Graviton용 이미지
+        image: api-server:v1-arm64  # Image for Graviton
         resources:
           requests:
             cpu: "500m"
             memory: "1Gi"
 
 ---
-# 배치 작업 - batch-jobs-pool 사용
+# Batch Job - use batch-jobs-pool
 apiVersion: batch/v1
 kind: CronJob
 metadata:
@@ -5436,7 +5436,7 @@ spec:
           restartPolicy: OnFailure
 
 ---
-# 데이터베이스 - database-pool 사용
+# Database - use database-pool
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -5464,22 +5464,22 @@ spec:
             memory: "16Gi"  # Guaranteed QoS
 ```
 
-**Spot 중단 대응 전략:**
+**Spot Interruption Response Strategy:**
 
 ```yaml
-# PodDisruptionBudget으로 최소 가용성 Guarantee
+# Guarantee minimum availability with PodDisruptionBudget
 apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
   name: api-server-pdb
 spec:
-  minAvailable: 80%  # 최소 80% Pod 유지
+  minAvailable: 80%  # Maintain minimum 80% Pods
   selector:
     matchLabels:
       app: api-server
 
 ---
-# Spot 중단 2분 전 알림 처리 (DaemonSet)
+# Handle Spot interruption 2-min advance notice (DaemonSet)
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
@@ -5501,19 +5501,19 @@ spec:
           value: "true"
 ```
 
-**실제 절감 사례 (AWS 공식 블로그):**
+**Real Savings Cases (AWS Official Blog):**
 
-| 조직 | 워크로드 | 이전 구성 | 최적화 후 | 절감액 |
+| Organization | Workload | Previous Config | After Optimization | Savings |
 |------|---------|----------|----------|--------|
-| Fintech 스타트업 | API 서버 100 nodes | x86 On-Demand | Graviton Spot 70% + On-Demand 30% | $8,500/월 (30%) |
-| 이커머스 기업 | 배치 작업 200 nodes | x86 On-Demand | Graviton Spot 100% | $42,000/월 (75%) |
-| SaaS 플랫폼 | 전체 클러스터 300 nodes | x86 혼합 | Graviton 90% + Spot 60% | $65,000/월 (65%) |
+| Fintech Startup | API servers 100 nodes | x86 On-Demand | Graviton Spot 70% + On-Demand 30% | $8,500/month (30%) |
+| E-commerce Company | Batch jobs 200 nodes | x86 On-Demand | Graviton Spot 100% | $42,000/month (75%) |
+| SaaS Platform | Full cluster 300 nodes | x86 mixed | Graviton 90% + Spot 60% | $65,000/month (65%) |
 
-:::tip Auto Mode에서의 Graviton + Spot
-EKS Auto Mode는 위와 같은 NodePool 구성 없이도, Pod의 리소스 요구사항을 분석하여 **자동으로 Graviton Spot 인스턴스를 우선 선택**합니다. 단, 컨테이너 이미지가 arm64 아키텍처를 지원해야 합니다.
+:::tip Graviton + Spot in Auto Mode
+EKS Auto Mode **automatically prioritizes Graviton Spot instances** by analyzing Pod resource requirements without NodePool configuration like above. However, container images must support arm64 architecture.
 
 ```yaml
-# Auto Mode 환경 - NodePool 불필요
+# Auto Mode environment - NodePool not needed
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -5524,65 +5524,65 @@ spec:
     spec:
       containers:
       - name: api
-        image: api-server:v1  # multi-arch 이미지 (arm64/amd64 모두 지원)
+        image: api-server:v1  # multi-arch image (supports both arm64/amd64)
         resources:
           requests:
             cpu: "500m"
             memory: "1Gi"
 
-      # Auto Mode가 자동으로:
-      # 1. Graviton Spot 우선 시도
-      # 2. Spot 불가 시 Graviton On-Demand
-      # 3. Graviton 불가 시 x86 Spot
-      # 4. 최후 x86 On-Demand
+      # Auto Mode automatically:
+      # 1. Try Graviton Spot first
+      # 2. Graviton On-Demand if Spot unavailable
+      # 3. x86 Spot if Graviton unavailable
+      # 4. x86 On-Demand as last resort
 ```
 :::
 
-:::info 전체 비용 전략은 cost-management.md 참조
-이 문서는 Pod 리소스 최적화에 집중합니다. 클러스터 전체 비용 관리 전략은 [EKS 비용 관리 가이드](/docs/infrastructure-optimization/cost-management)를 참조하세요.
+:::info For full cost strategy, see cost-management.md
+This document focuses on Pod resource optimization. For cluster-wide cost management strategy, see [EKS Cost Management Guide](/docs/infrastructure-optimization/cost-management).
 :::
 
 ## Comprehensive Checklist & References
 
-### 리소스 설정 체크리스트
+### Resource Configuration Checklist
 
-| 항목 | 확인 사항 | Recommended 설정 |
+| Item | Verification | Recommended Setting |
 |------|----------|----------|
-| **CPU Requests** | ✅ P95 사용량 + 20% | VPA Target 기반 |
-| **CPU Limits** | ✅ 일반 워크로드는 미설정 | 배치 작업만 설정 |
-| **Memory Requests** | ✅ P95 사용량 + 20% | VPA Target 기반 |
-| **Memory Limits** | ✅ 반드시 설정 | Requests × 1.5~2 |
-| **QoS 클래스** | ✅ 프로덕션은 Guaranteed/Burstable | BestEffort 금지 |
-| **VPA** | ✅ Off or Initial 모드 | Auto 모드 신중 |
-| **HPA** | ✅ Behavior 설정 | ScaleUp 공격적, ScaleDown 보수적 |
-| **ResourceQuota** | ✅ 네임스페이스별 설정 | 환경별 차등 적용 |
-| **LimitRange** | ✅ 기본값 설정 | 개발자 편의성 |
-| **PDB** | ✅ VPA Auto 사용 시 필수 | minAvailable 80% |
+| **CPU Requests** | ✅ P95 usage + 20% | Based on VPA Target |
+| **CPU Limits** | ✅ Unset for general workloads | Set only for batch jobs |
+| **Memory Requests** | ✅ P95 usage + 20% | Based on VPA Target |
+| **Memory Limits** | ✅ Must be set | Requests × 1.5~2 |
+| **QoS Class** | ✅ Guaranteed/Burstable for production | Prohibit BestEffort |
+| **VPA** | ✅ Off or Initial mode | Auto mode with caution |
+| **HPA** | ✅ Behavior configuration | ScaleUp aggressive, ScaleDown conservative |
+| **ResourceQuota** | ✅ Set per namespace | Differential by environment |
+| **LimitRange** | ✅ Set defaults | Developer convenience |
+| **PDB** | ✅ Required when using VPA Auto | minAvailable 80% |
 
-### 관련 문서
+### Related Documents
 
-**내부 문서:**
-- [Karpenter 오토스케일링](/docs/infrastructure-optimization/karpenter-autoscaling) - 노드 레벨 스케일링
-- [EKS 비용 관리](/docs/infrastructure-optimization/cost-management) - 전체 비용 최적화 전략
-- [EKS Resiliency 가이드](/docs/operations-observability/eks-resiliency-guide) - 안정성 체크리스트
+**Internal Documentation:**
+- [Karpenter Autoscaling](/docs/infrastructure-optimization/karpenter-autoscaling) - Node-level scaling
+- [EKS Cost Management](/docs/infrastructure-optimization/cost-management) - Full cost optimization strategy
+- [EKS Resiliency Guide](/docs/operations-observability/eks-resiliency-guide) - Reliability checklist
 
-**외부 참조:**
+**External References:**
 - [Kubernetes Resource Management](https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/)
 - [Vertical Pod Autoscaler](https://github.com/kubernetes/autoscaler/tree/master/vertical-pod-autoscaler)
 - [AWS EKS Best Practices - Resource Management](https://docs.aws.amazon.com/eks/latest/best-practices/reliability.html)
 - [Goldilocks](https://github.com/FairwindsOps/goldilocks)
 
-**Red Hat OpenShift 문서:**
-- [Automatically Scaling Pods with HPA](https://docs.openshift.com/container-platform/4.18/nodes/pods/nodes-pods-autoscaling.html) — HPA 구성 및 운영
-- [Vertical Pod Autoscaler](https://docs.openshift.com/container-platform/4.18/nodes/pods/nodes-pods-vertical-autoscaler.html) — VPA 모드별 설정 및 운영
-- [Quotas and Limit Ranges](https://docs.openshift.com/container-platform/4.18/applications/quotas/quotas-setting-per-project.html) — ResourceQuota, LimitRange 설정
-- [Using CPU Manager](https://docs.openshift.com/container-platform/4.18/scalability_and_performance/using-cpu-manager.html) — CPU 리소스 고급 관리
+**Red Hat OpenShift Documentation:**
+- [Automatically Scaling Pods with HPA](https://docs.openshift.com/container-platform/4.18/nodes/pods/nodes-pods-autoscaling.html) — HPA configuration and operations
+- [Vertical Pod Autoscaler](https://docs.openshift.com/container-platform/4.18/nodes/pods/nodes-pods-vertical-autoscaler.html) — VPA mode-specific configuration and operations
+- [Quotas and Limit Ranges](https://docs.openshift.com/container-platform/4.18/applications/quotas/quotas-setting-per-project.html) — ResourceQuota, LimitRange configuration
+- [Using CPU Manager](https://docs.openshift.com/container-platform/4.18/scalability_and_performance/using-cpu-manager.html) — Advanced CPU resource management
 
 ---
 
-**피드백 및 기여**
+**Feedback and Contributions**
 
-이 문서에 대한 피드백이나 개선 제안은 [GitHub Issues](https://github.com/devfloor9/engineering-playbook/issues)에 등록해주세요.
+Please submit feedback or improvement suggestions via [GitHub Issues](https://github.com/devfloor9/engineering-playbook/issues).
 
-**문서 버전**: v1.0 (2026-02-12)
-**다음 리뷰**: 2026-05-12
+**Document Version**: v1.0 (2026-02-12)
+**Next Review**: 2026-05-12
