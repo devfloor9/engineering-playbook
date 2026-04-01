@@ -20,7 +20,7 @@ export default function Slide11() {
       <h2 className="text-6xl font-bold mb-2">GPU Node Strategy 2026</h2>
       <p className="text-gray-400 mb-4">Workload-specific NodePools with Karpenter + KEDA autoscaling</p>
       <div className="flex-1 flex items-center">
-        <div className="scale-[2.2] origin-top"><FlowDiagram nodes={nodes} edges={edges} width={800} height={270} /></div>
+        <div className="w-full [&_svg]:!max-w-none"><FlowDiagram nodes={nodes} edges={edges} width={800} height={270} /></div>
       </div>
       <div className="grid grid-cols-3 gap-4 mt-4 text-center text-xs">
         <div className="bg-gray-900 rounded-lg p-3 border border-rose-500/30">

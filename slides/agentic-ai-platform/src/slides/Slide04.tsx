@@ -22,7 +22,7 @@ export default function Slide04() {
       <h2 className="text-6xl font-bold mb-2">6-Layer Platform Architecture</h2>
       <p className="text-gray-400 mb-4">Separation of concerns, loose coupling, independent scaling</p>
       <div className="flex-1 flex items-center">
-        <div className="scale-[2.2] origin-top"><FlowDiagram nodes={nodes} edges={edges} width={800} height={400} /></div>
+        <div className="w-full [&_svg]:!max-w-none"><FlowDiagram nodes={nodes} edges={edges} width={800} height={400} /></div>
       </div>
     </SlideWrapper>
   );
