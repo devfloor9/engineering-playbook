@@ -1,0 +1,19 @@
+@import "tailwindcss";
+@source "../../shared/src/**/*.tsx";
+
+/* Slide typography scale-up */
+html {
+  font-size: 20px;
+}
+
+/* Ensure slide titles are prominent */
+h2 {
+  letter-spacing: -0.02em;
+}
+
+/* FlowDiagram: remove max-width constraint, fill available space */
+svg.w-full {
+  max-width: none !important;
+  width: 100% !important;
+  height: auto !important;
+}

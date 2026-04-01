@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agentic AI Platform — Training Slides</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, 'Pretendard', BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #030712;
+      color: #f9fafb;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 3rem 1.5rem;
+    }
+    h1 {
+      font-size: 2.5rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #f472b6, #a78bfa, #60a5fa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 0.5rem;
+    }
+    .subtitle {
+      color: #9ca3af;
+      font-size: 1.1rem;
+      margin-bottom: 3rem;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 1.5rem;
+      max-width: 1200px;
+      width: 100%;
+    }
+    .card {
+      background: #111827;
+      border: 1px solid #1f2937;
+      border-radius: 12px;
+      padding: 1.5rem;
+      text-decoration: none;
+      color: inherit;
+      transition: all 0.2s;
+      display: flex;
+      flex-direction: column;
+    }
+    .card:hover {
+      border-color: #3b82f6;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(59, 130, 246, 0.15);
+    }
+    .badge {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      margin-bottom: 0.75rem;
+      width: fit-content;
+    }
+    .badge-summary { background: #3b82f620; color: #60a5fa; border: 1px solid #3b82f640; }
+    .badge-b1 { background: #8b5cf620; color: #a78bfa; border: 1px solid #8b5cf640; }
+    .badge-b2 { background: #f59e0b20; color: #fbbf24; border: 1px solid #f59e0b40; }
+    .badge-b3 { background: #06b6d420; color: #22d3ee; border: 1px solid #06b6d440; }
+    .badge-b4 { background: #10b98120; color: #34d399; border: 1px solid #10b98140; }
+    .badge-b5 { background: #f43f5e20; color: #fb7185; border: 1px solid #f43f5e40; }
+    .card h2 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+    .card p {
+      color: #9ca3af;
+      font-size: 0.875rem;
+      line-height: 1.5;
+      flex: 1;
+    }
+    .card .meta {
+      margin-top: 1rem;
+      font-size: 0.75rem;
+      color: #6b7280;
+    }
+    footer {
+      margin-top: 3rem;
+      color: #4b5563;
+      font-size: 0.8rem;
+    }
+    footer a { color: #60a5fa; text-decoration: none; }
+  </style>
+</head>
+<body>
+  <h1>Agentic AI Platform</h1>
+  <p class="subtitle">Production-Grade Multi-Model Systems on EKS — Training Slides</p>
+
+  <div class="grid">
+    <a class="card" href="./agentic-ai-platform/">
+      <span class="badge badge-summary">Summary</span>
+      <h2>Platform Overview</h2>
+      <p>End-to-end summary of the Agentic AI Platform — architecture, GPU strategy, gateway, cost optimization, and deployment path in 20 slides.</p>
+      <div class="meta">20 slides &middot; ~20 min</div>
+    </a>
+
+    <a class="card" href="./agentic-block1-architecture/">
+      <span class="badge badge-b1">Block 1</span>
+      <h2>Design & Architecture</h2>
+      <p>6-layer platform architecture, 5 critical challenges, AWS Native vs EKS Open approach, namespace isolation, and security model.</p>
+      <div class="meta">18 slides &middot; ~25 min</div>
+    </a>
+
+    <a class="card" href="./agentic-block2-model-serving/">
+      <span class="badge badge-b2">Block 2</span>
+      <h2>Model Serving & GPU</h2>
+      <p>GPU node strategy (Auto Mode / Karpenter / MNG), DRA deep dive, vLLM + llm-d stack, disaggregated serving, NVIDIA GPU stack, cost optimization.</p>
+      <div class="meta">20 slides &middot; ~30 min</div>
+    </a>
+
+    <a class="card" href="./agentic-block3-gateway/">
+      <span class="badge badge-b3">Block 3</span>
+      <h2>Gateway & Routing</h2>
+      <p>2-Tier LLM Gateway (kgateway + Bifrost), cascade routing, semantic caching, llm-d inference gateway, MCP/A2A protocol, multimodal routing.</p>
+      <div class="meta">16 slides &middot; ~20 min</div>
+    </a>
+
+    <a class="card" href="./agentic-block4-agent-data/">
+      <span class="badge badge-b4">Block 4</span>
+      <h2>Agents & Data</h2>
+      <p>Kagent K8s-native agents, MCP/A2A protocols, agent memory strategy, Milvus vector DB, RAG pipeline, Keycloak OIDC authentication.</p>
+      <div class="meta">16 slides &middot; ~20 min</div>
+    </a>
+
+    <a class="card" href="./agentic-block5-operations/">
+      <span class="badge badge-b5">Block 5</span>
+      <h2>Operations & MLOps</h2>
+      <p>Dual-layer observability (Bifrost + Langfuse), RAGAS evaluation, LLMOps cost governance, MLOps pipeline, production readiness checklist.</p>
+      <div class="meta">16 slides &middot; ~20 min</div>
+    </a>
+  </div>
+
+  <footer>
+    <a href="https://devfloor9.github.io/engineering-playbook/">Engineering Playbook</a> &middot; 2026.03
+  </footer>
+</body>
+</html>
