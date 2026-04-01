@@ -18,7 +18,7 @@ export default function Slide10() {
       <h2 className="text-6xl font-bold mb-2">EKS Auto Mode: Simplified GPU Deployment</h2>
       <p className="text-gray-400 mb-4">Zero driver management — GPU ready in minutes</p>
       <div className="flex-1 flex items-center">
-        <div className="w-full [&_svg]:!max-w-none"><FlowDiagram nodes={nodes} edges={edges} width={800} height={220} /></div>
+        <FlowDiagram nodes={nodes} edges={edges} width={800} height={220} />
       </div>
       <div className="flex gap-3 justify-center mt-4">
         <Badge color="emerald">Zero driver management</Badge>
