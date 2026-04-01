@@ -12,7 +12,7 @@ const challenges = [
 export default function Slide07() {
   return (
     <SlideWrapper>
-      <h2 className="text-3xl font-bold mb-2">5 Critical Challenges</h2>
+      <h2 className="text-6xl font-bold mb-2">5 Critical Challenges</h2>
       <p className="text-gray-400 mb-6">Key obstacles to building production Agentic AI platforms</p>
       <div className="grid grid-cols-5 gap-3 flex-1 items-start">
         {challenges.map((c) => (

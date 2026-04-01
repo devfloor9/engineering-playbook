@@ -11,7 +11,7 @@ const phases = [
 export default function Slide19() {
   return (
     <SlideWrapper>
-      <h2 className="text-3xl font-bold mb-2">Deployment Path</h2>
+      <h2 className="text-6xl font-bold mb-2">Deployment Path</h2>
       <p className="text-gray-400 mb-6">Progressive journey from prototype to enterprise scale</p>
 
       <div className="flex gap-4 flex-1 items-start">

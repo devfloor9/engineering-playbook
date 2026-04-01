@@ -18,7 +18,7 @@ const security = [
 export default function Slide06() {
   return (
     <SlideWrapper>
-      <h2 className="text-3xl font-bold mb-2">Namespace & Security Architecture</h2>
+      <h2 className="text-6xl font-bold mb-2">Namespace & Security Architecture</h2>
       <p className="text-gray-400 mb-6">Isolation by concern + 3-tier defense-in-depth</p>
       <div className="grid grid-cols-2 gap-8 flex-1">
         <div>

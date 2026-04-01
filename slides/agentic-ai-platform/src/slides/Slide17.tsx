@@ -4,7 +4,7 @@ import { Server, Activity } from 'lucide-react';
 export default function Slide17() {
   return (
     <SlideWrapper>
-      <h2 className="text-3xl font-bold mb-2">Dual-Layer Observability</h2>
+      <h2 className="text-6xl font-bold mb-2">Dual-Layer Observability</h2>
       <p className="text-gray-400 mb-6">Infrastructure metrics + Application traces = Complete visibility</p>
       <div className="grid grid-cols-2 gap-6 flex-1">
         <Card title="Infrastructure Layer" icon={<Server className="w-5 h-5" />} color="blue" className="h-full">

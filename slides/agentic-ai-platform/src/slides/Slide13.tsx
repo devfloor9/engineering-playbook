@@ -4,7 +4,7 @@ import { Zap, Route } from 'lucide-react';
 export default function Slide13() {
   return (
     <SlideWrapper>
-      <h2 className="text-3xl font-bold mb-2">vLLM + llm-d Inference Stack</h2>
+      <h2 className="text-6xl font-bold mb-2">vLLM + llm-d Inference Stack</h2>
       <p className="text-gray-400 mb-6">The engine (vLLM) + the intelligent scheduler (llm-d)</p>
       <div className="grid grid-cols-2 gap-6 flex-1">
         <Card title="vLLM — Inference Engine" icon={<Zap className="w-5 h-5" />} color="amber" className="h-full">

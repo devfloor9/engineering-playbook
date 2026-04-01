@@ -13,10 +13,10 @@ export default function Slide03() {
 
   return (
     <SlideWrapper>
-      <h2 className="text-3xl font-bold mb-2">The Solution: Heterogeneous Multi-Model Ecosystem</h2>
+      <h2 className="text-6xl font-bold mb-2">The Solution: Heterogeneous Multi-Model Ecosystem</h2>
       <p className="text-gray-400 mb-6">Separate by task complexity, managed by unified platform</p>
       <div className="flex-1 flex items-center">
-        <FlowDiagram nodes={nodes} edges={edges} width={800} height={350} />
+        <div className="scale-[2.2] origin-top"><FlowDiagram nodes={nodes} edges={edges} width={800} height={350} /></div>
       </div>
       <div className="mt-4 text-center text-sm text-gray-500">
         Route 40–70% of calls to SLMs → 73% cost reduction + 10× latency improvement

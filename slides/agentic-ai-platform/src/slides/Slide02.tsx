@@ -4,7 +4,7 @@ import { DollarSign, Timer, AlertTriangle, Shield } from 'lucide-react';
 export default function Slide02() {
   return (
     <SlideWrapper>
-      <h2 className="text-3xl font-bold mb-2">Why Single LLM Fails in Enterprise</h2>
+      <h2 className="text-6xl font-bold mb-2">Why Single LLM Fails in Enterprise</h2>
       <p className="text-gray-400 mb-6">4 critical limitations driving the shift to multi-model</p>
       <div className="grid grid-cols-2 gap-4 flex-1">
         <Card title="Cost" icon={<DollarSign className="w-5 h-5" />} color="rose">

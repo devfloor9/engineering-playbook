@@ -20,10 +20,10 @@ export default function Slide14() {
 
   return (
     <SlideWrapper>
-      <h2 className="text-3xl font-bold mb-2">Disaggregated Serving & Migration Path</h2>
+      <h2 className="text-6xl font-bold mb-2">Disaggregated Serving & Migration Path</h2>
       <p className="text-gray-400 mb-4">Separate compute-bound prefill from memory-bound decode</p>
       <div className="flex items-center mb-6">
-        <FlowDiagram nodes={nodes} edges={edges} width={800} height={170} />
+        <div className="scale-[2.2] origin-top"><FlowDiagram nodes={nodes} edges={edges} width={800} height={170} /></div>
       </div>
       <h3 className="text-lg font-semibold text-gray-300 mb-3">Migration Phases</h3>
       <div className="flex gap-2">

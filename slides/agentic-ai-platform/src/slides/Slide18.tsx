@@ -27,7 +27,7 @@ const checks = [
 export default function Slide18() {
   return (
     <SlideWrapper>
-      <h2 className="text-3xl font-bold mb-2">Production Readiness Checklist</h2>
+      <h2 className="text-6xl font-bold mb-2">Production Readiness Checklist</h2>
       <p className="text-gray-400 mb-4">Key requirements before going to production</p>
       <div className="grid grid-cols-5 gap-3 flex-1 items-start">
         {checks.map((c) => (

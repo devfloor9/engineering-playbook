@@ -4,7 +4,7 @@ import { ArrowDownRight, Database, DollarSign, Minimize } from 'lucide-react';
 export default function Slide16() {
   return (
     <SlideWrapper>
-      <h2 className="text-3xl font-bold mb-2">Cost Optimization: 4 Levers</h2>
+      <h2 className="text-6xl font-bold mb-2">Cost Optimization: 4 Levers</h2>
       <p className="text-gray-400 mb-6">Combined savings: $50K/month → $5–7K/month</p>
       <div className="grid grid-cols-4 gap-4 flex-1 items-start">
         <Card title="Cascade Routing" icon={<ArrowDownRight className="w-5 h-5" />} color="emerald">

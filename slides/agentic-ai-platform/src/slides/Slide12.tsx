@@ -3,7 +3,7 @@ import { SlideWrapper, Badge, CompareTable } from '@shared/components';
 export default function Slide12() {
   return (
     <SlideWrapper>
-      <h2 className="text-3xl font-bold mb-2">DRA: Dynamic Resource Allocation</h2>
+      <h2 className="text-6xl font-bold mb-2">DRA: Dynamic Resource Allocation</h2>
       <p className="text-gray-400 mb-4">Kubernetes 1.34 GA — Advanced GPU management with critical constraints</p>
 
       <div className="flex gap-2 mb-6 justify-center">

@@ -3,7 +3,7 @@ import { SlideWrapper, CompareTable } from '@shared/components';
 export default function Slide08() {
   return (
     <SlideWrapper>
-      <h2 className="text-3xl font-bold mb-2">Challenge → Solution Mapping</h2>
+      <h2 className="text-6xl font-bold mb-2">Challenge → Solution Mapping</h2>
       <p className="text-gray-400 mb-6">Every challenge maps to a concrete platform feature with measurable impact</p>
       <div className="flex-1 flex items-center">
         <CompareTable

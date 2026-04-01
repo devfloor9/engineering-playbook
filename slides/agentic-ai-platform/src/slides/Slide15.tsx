@@ -19,10 +19,10 @@ export default function Slide15() {
 
   return (
     <SlideWrapper>
-      <h2 className="text-3xl font-bold mb-2">2-Tier LLM Gateway Architecture</h2>
+      <h2 className="text-6xl font-bold mb-2">2-Tier LLM Gateway Architecture</h2>
       <p className="text-gray-400 mb-4">Separate infrastructure concerns from LLM-specific routing</p>
       <div className="flex-1 flex items-center">
-        <FlowDiagram nodes={nodes} edges={edges} width={820} height={200} />
+        <div className="scale-[2.2] origin-top"><FlowDiagram nodes={nodes} edges={edges} width={820} height={200} /></div>
       </div>
       <div className="mt-4 grid grid-cols-3 gap-3 text-center text-xs">
         <div className="bg-gray-900 rounded-lg p-3 border border-blue-500/30">

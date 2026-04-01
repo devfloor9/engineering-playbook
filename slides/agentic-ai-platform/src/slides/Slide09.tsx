@@ -3,7 +3,7 @@ import { SlideWrapper, CompareTable, Badge } from '@shared/components';
 export default function Slide09() {
   return (
     <SlideWrapper>
-      <h2 className="text-3xl font-bold mb-2">AWS Native vs EKS Open Architecture</h2>
+      <h2 className="text-6xl font-bold mb-2">AWS Native vs EKS Open Architecture</h2>
       <p className="text-gray-400 mb-6">Two complementary approaches — start managed, expand to open</p>
       <div className="flex-1 flex items-center">
         <CompareTable

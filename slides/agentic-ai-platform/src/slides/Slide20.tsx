@@ -16,7 +16,7 @@ const takeaways = [
 export default function Slide20() {
   return (
     <SlideWrapper className="items-center justify-center">
-      <h2 className="text-3xl font-bold mb-8">Key Takeaways</h2>
+      <h2 className="text-6xl font-bold mb-8">Key Takeaways</h2>
       <div className="grid grid-cols-2 gap-4 max-w-4xl w-full mb-8">
         {takeaways.map((t, i) => (
           <motion.div
