@@ -160,8 +160,21 @@ const config = {
           src: 'img/logo.svg',
         },
         items: [
-          { to: '/docs/intro', label: 'Documentation', position: 'left' },
-          { to: '/docs/benchmarks', label: 'Benchmark Reports', position: 'left' },
+          {
+            type: 'dropdown',
+            label: 'Documentation',
+            position: 'left',
+            items: [
+              { to: '/docs/intro', label: 'Getting Started' },
+              { to: '/docs/agentic-ai-platform', label: 'Agentic AI Platform' },
+              { to: '/docs/infrastructure-optimization', label: 'Infrastructure Optimization' },
+              { to: '/docs/operations-observability', label: 'Operations & Observability' },
+              { to: '/docs/security-governance', label: 'Security & Governance' },
+              { to: '/docs/aidlc', label: 'AIDLC' },
+              { to: '/docs/hybrid-infrastructure', label: 'Hybrid Infrastructure' },
+              { to: '/docs/benchmarks', label: 'Benchmarks' },
+            ],
+          },
           { to: '/slides', label: 'Slides', position: 'left' },
           {
             type: 'html',
