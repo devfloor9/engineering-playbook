@@ -5,7 +5,7 @@ description: "Langfuse, LangSmith를 활용한 Agentic AI 애플리케이션 모
 tags: [eks, langfuse, langsmith, monitoring, observability, tracing, opentelemetry, operations, troubleshooting, alerting]
 category: "genai-aiml"
 last_update:
-  date: 2026-02-14
+  date: 2026-04-04
   author: devfloor9
 sidebar_position: 1
 ---
@@ -1368,6 +1368,398 @@ tenant_monthly_budget_usd
 4. **배치 처리**: 가능한 경우 요청을 배치로 처리하여 오버헤드 감소
 :::
 
+
+## AMP/AMG + vLLM GPU 모니터링 실전 구성
+
+### 개요
+
+Amazon Managed Prometheus (AMP)와 Amazon Managed Grafana (AMG)를 사용하여 vLLM GPU 모니터링 스택을 구성합니다. 이를 통해 LLM 추론부터 GPU 하드웨어까지 전체 계층의 메트릭을 통합 대시보드에서 확인할 수 있습니다.
+
+### AMP 워크스페이스 생성
+
+```bash
+# AMP 워크스페이스 생성
+aws amp create-workspace \
+  --alias "vllm-inference-metrics" \
+  --region ap-northeast-2
+
+# 워크스페이스 ID 확인
+export AMP_WORKSPACE_ID=$(aws amp list-workspaces \
+  --region ap-northeast-2 \
+  --query 'workspaces[?alias==`vllm-inference-metrics`].workspaceId' \
+  --output text)
+
+echo "AMP Workspace ID: $AMP_WORKSPACE_ID"
+```
+
+### Prometheus → AMP Remote Write 설정
+
+EKS 클러스터의 Prometheus가 AMP로 메트릭을 전송하도록 구성합니다.
+
+```yaml
+# prometheus-amp-remote-write.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-server
+  namespace: monitoring
+data:
+  prometheus.yml: |
+    global:
+      scrape_interval: 15s
+      evaluation_interval: 15s
+    
+    remote_write:
+      - url: https://aps-workspaces.ap-northeast-2.amazonaws.com/workspaces/${AMP_WORKSPACE_ID}/api/v1/remote_write
+        queue_config:
+          max_samples_per_send: 1000
+          max_shards: 200
+          capacity: 2500
+        sigv4:
+          region: ap-northeast-2
+    
+    scrape_configs:
+      # vLLM 메트릭
+      - job_name: 'vllm'
+        kubernetes_sd_configs:
+          - role: pod
+            namespaces:
+              names:
+                - ai-inference
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_label_app]
+            regex: vllm
+            action: keep
+        metrics_path: /metrics
+      
+      # DCGM Exporter (GPU 메트릭)
+      - job_name: 'dcgm-exporter'
+        kubernetes_sd_configs:
+          - role: pod
+            namespaces:
+              names:
+                - monitoring
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_label_app]
+            regex: dcgm-exporter
+            action: keep
+      
+      # Node Exporter (인프라 메트릭)
+      - job_name: 'node-exporter'
+        kubernetes_sd_configs:
+          - role: pod
+            namespaces:
+              names:
+                - monitoring
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_label_app]
+            regex: node-exporter
+            action: keep
+      
+      # kgateway (게이트웨이 메트릭)
+      - job_name: 'kgateway'
+        kubernetes_sd_configs:
+          - role: pod
+            namespaces:
+              names:
+                - kgateway-system
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_label_app]
+            regex: kgateway
+            action: keep
+        metrics_path: /metrics
+```
+
+### IAM 권한 설정 (Pod Identity)
+
+Prometheus Pod가 AMP에 메트릭을 쓸 수 있도록 IAM 권한을 부여합니다.
+
+```yaml
+# prometheus-serviceaccount.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: prometheus-server
+  namespace: monitoring
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::123456789012:role/PrometheusRemoteWriteRole
+```
+
+IAM Role 정책:
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "aps:RemoteWrite",
+        "aps:GetSeries",
+        "aps:GetLabels",
+        "aps:GetMetricMetadata"
+      ],
+      "Resource": "arn:aws:aps:ap-northeast-2:123456789012:workspace/${AMP_WORKSPACE_ID}"
+    }
+  ]
+}
+```
+
+### AMG 워크스페이스 생성 및 사용자 권한
+
+```bash
+# AMG 워크스페이스 생성
+aws grafana create-workspace \
+  --account-access-type CURRENT_ACCOUNT \
+  --authentication-providers AWS_SSO \
+  --permission-type SERVICE_MANAGED \
+  --workspace-name "vllm-monitoring" \
+  --region ap-northeast-2
+
+# 워크스페이스 ID 확인
+export AMG_WORKSPACE_ID=$(aws grafana list-workspaces \
+  --region ap-northeast-2 \
+  --query 'workspaces[?name==`vllm-monitoring`].id' \
+  --output text)
+
+echo "AMG Workspace ID: $AMG_WORKSPACE_ID"
+```
+
+### IAM Identity Center 사용자 권한 부여
+
+```bash
+# IAM Identity Center 사용자에게 Grafana Admin 권한 부여
+aws grafana update-permissions \
+  --user-id "user-id-from-identity-center" \
+  --user-type "SSO_USER" \
+  --permissions-type "ADMIN" \
+  --workspace-id $AMG_WORKSPACE_ID \
+  --region ap-northeast-2
+```
+
+### AMP를 AMG 데이터 소스로 연결
+
+AMG 웹 콘솔에서:
+
+1. Configuration → Data Sources → Add data source
+2. Prometheus 선택
+3. URL: `https://aps-workspaces.ap-northeast-2.amazonaws.com/workspaces/${AMP_WORKSPACE_ID}`
+4. Auth: SigV4 활성화
+   - Region: `ap-northeast-2`
+   - Service: `aps`
+5. Save & Test
+
+### 모니터링 데이터 연결성 (계층별)
+
+| 계층 | 수집 도구 | 메트릭 패턴 | 확인 가능 항목 |
+|------|----------|-----------|--------------|
+| **LLM 추론** | Langfuse | trace, generation | 토큰 사용량, 비용, TTFT, 사용자별 패턴 |
+| **모델 서버** | vLLM Prometheus | `vllm_*` | 요청 수, 배치 크기, KV cache 사용률, TPS |
+| **GPU** | DCGM Exporter | `DCGM_FI_DEV_*` | GPU 활용도, 온도, 전력, 메모리 사용량 |
+| **인프라** | Node Exporter | `node_*` | CPU, 메모리, 네트워크, 디스크 I/O |
+| **게이트웨이** | kgateway | `envoy_*` | 요청 수, 레이턴시, 에러율, 업스트림 상태 |
+
+### PromQL 쿼리 예시
+
+#### GPU 평균 활용도
+
+```promql
+# 전체 GPU 평균 활용도
+avg(DCGM_FI_DEV_GPU_UTIL)
+
+# 노드별 GPU 활용도
+avg(DCGM_FI_DEV_GPU_UTIL) by (Hostname)
+
+# GPU 메모리 사용률
+avg(DCGM_FI_DEV_FB_USED / DCGM_FI_DEV_FB_FREE * 100) by (gpu)
+```
+
+#### 초당 생성 토큰
+
+```promql
+# 전체 TPS
+rate(vllm_generation_tokens_total[5m])
+
+# 모델별 TPS
+sum(rate(vllm_generation_tokens_total[5m])) by (model)
+
+# 배치 크기 평균
+avg(vllm_num_requests_running)
+```
+
+#### TTFT P99 (Time to First Token)
+
+```promql
+# TTFT P99
+histogram_quantile(0.99, rate(vllm_time_to_first_token_seconds_bucket[5m]))
+
+# TTFT P95
+histogram_quantile(0.95, rate(vllm_time_to_first_token_seconds_bucket[5m]))
+
+# E2E 지연 P99
+histogram_quantile(0.99, rate(vllm_e2e_request_latency_seconds_bucket[5m]))
+```
+
+#### 게이트웨이 5xx 에러율
+
+```promql
+# 5xx 에러율 (%)
+rate(envoy_http_downstream_rq_xx{envoy_response_code_class="5"}[5m]) 
+/ 
+rate(envoy_http_downstream_rq_total[5m]) * 100
+
+# 업스트림 헬스 체크 실패율
+sum(rate(envoy_cluster_upstream_cx_connect_fail[5m])) by (envoy_cluster_name)
+```
+
+### 데이터 흐름 다이어그램
+
+```mermaid
+flowchart TB
+    subgraph Sources["메트릭 수집원"]
+        VLLM[vLLM<br/>:8000/metrics]
+        DCGM[DCGM Exporter<br/>:9400/metrics]
+        NODE[Node Exporter<br/>:9100/metrics]
+        KGATEWAY[kgateway<br/>:9091/metrics]
+    end
+    
+    subgraph Collector["수집기"]
+        PROM[Prometheus<br/>ServiceMonitor]
+    end
+    
+    subgraph AWS["AWS 관리형 서비스"]
+        AMP[Amazon Managed<br/>Prometheus]
+        AMG[Amazon Managed<br/>Grafana]
+    end
+    
+    VLLM --> PROM
+    DCGM --> PROM
+    NODE --> PROM
+    KGATEWAY --> PROM
+    
+    PROM -->|Remote Write<br/>SigV4 Auth| AMP
+    AMP -->|Query| AMG
+    
+    style VLLM fill:#ffd93d,stroke:#333
+    style DCGM fill:#76b900,stroke:#333
+    style NODE fill:#326ce5,stroke:#333
+    style KGATEWAY fill:#326ce5,stroke:#333
+    style PROM fill:#e53935,stroke:#333
+    style AMP fill:#ff9900,stroke:#333
+    style AMG fill:#ff9900,stroke:#333
+```
+
+### Grafana 대시보드 패널 예시
+
+#### 1. GPU 활용도 타임시리즈
+
+```json
+{
+  "title": "GPU Utilization (%)",
+  "targets": [
+    {
+      "expr": "avg(DCGM_FI_DEV_GPU_UTIL) by (gpu)",
+      "legendFormat": "GPU {{gpu}}"
+    }
+  ],
+  "type": "timeseries"
+}
+```
+
+#### 2. vLLM 요청 처리량
+
+```json
+{
+  "title": "vLLM Requests per Second",
+  "targets": [
+    {
+      "expr": "rate(vllm_request_success_total[5m])",
+      "legendFormat": "Success"
+    },
+    {
+      "expr": "rate(vllm_request_failure_total[5m])",
+      "legendFormat": "Failure"
+    }
+  ],
+  "type": "graph"
+}
+```
+
+#### 3. 토큰 사용량 (Langfuse 데이터)
+
+Langfuse는 자체 API를 제공하므로 Grafana에서 HTTP 데이터소스로 연결하거나 ClickHouse를 직접 쿼리합니다.
+
+```sql
+-- ClickHouse 쿼리 (Grafana ClickHouse 플러그인 사용)
+SELECT
+  toStartOfInterval(timestamp, INTERVAL 1 HOUR) as time,
+  model,
+  sum(usage_input + usage_output) as total_tokens
+FROM traces
+WHERE timestamp > now() - INTERVAL 24 HOUR
+GROUP BY time, model
+ORDER BY time
+```
+
+### 알림 규칙 예시
+
+```yaml
+# amp-alert-rules.yaml
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: vllm-gpu-alerts
+  namespace: monitoring
+spec:
+  groups:
+    - name: gpu-alerts
+      interval: 30s
+      rules:
+        - alert: HighGPUTemperature
+          expr: DCGM_FI_DEV_GPU_TEMP > 85
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "GPU {{ $labels.gpu }} temperature is high"
+            description: "GPU temperature: {{ $value }}°C"
+        
+        - alert: GPUMemoryFull
+          expr: (DCGM_FI_DEV_FB_USED / DCGM_FI_DEV_FB_FREE * 100) > 95
+          for: 3m
+          labels:
+            severity: critical
+          annotations:
+            summary: "GPU {{ $labels.gpu }} memory is nearly full"
+        
+        - alert: HighVLLMLatency
+          expr: histogram_quantile(0.99, rate(vllm_e2e_request_latency_seconds_bucket[5m])) > 30
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "vLLM P99 latency is above 30s"
+```
+
+### 통합 대시보드 구성
+
+AMG에서 다음 패널을 포함하는 통합 대시보드를 구성합니다:
+
+1. **상단**: 전체 요약 (총 요청, 성공률, 평균 지연, 비용)
+2. **LLM 계층**: 토큰 사용량, TTFT/TPS, 모델별 요청 수
+3. **GPU 계층**: GPU 활용도, 온도, 메모리, 전력
+4. **인프라 계층**: CPU, 메모리, 네트워크, 디스크
+5. **게이트웨이 계층**: 요청 수, 에러율, 업스트림 상태
+
+:::tip 모니터링 베스트 프랙티스
+
+1. **계층별 메트릭 연결**: LLM 요청 증가 → GPU 활용도 상승 → 인프라 부하 증가 상관관계 분석
+2. **이상 탐지**: P99 지연이 갑자기 증가하면 GPU 온도나 메모리 사용량 동시 확인
+3. **용량 계획**: 평균 GPU 활용도가 70% 이상이면 추가 GPU 노드 프로비저닝 고려
+4. **비용 최적화**: TTFT가 낮은 모델을 우선 사용하여 사용자 경험 개선 + 처리량 증가
+:::
+
+---
 
 ## 결론
 

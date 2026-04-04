@@ -5,7 +5,7 @@ description: "EKS Auto Mode, Karpenter, Self-Managed Node Group, Hybrid Node의 
 tags: [eks, gpu, auto-mode, karpenter, hybrid-node, gpu-operator, nvidia, run-ai]
 category: "genai-aiml"
 last_update:
-  date: 2026-03-30
+  date: 2026-04-03
   author: devfloor9
 sidebar_position: 1
 ---
@@ -2286,6 +2286,108 @@ lifecycle:
    sudo ./hybrid-installer.sh --cluster-name test-cluster
    ```
 
+## EKS Auto Mode 대형 GPU 인스턴스 제약 (2026.04 검증)
+
+GLM-5 (744B MoE) 배포 과정에서 확인한 EKS Auto Mode의 대형 GPU 인스턴스 지원 현황과 제약사항입니다.
+
+### p5/p5en/p6 인스턴스 지원 현황
+
+| 인스턴스 | GPU | VRAM | Auto Mode Karpenter | 검증 결과 |
+|---------|-----|------|---------------------|----------|
+| p5.48xlarge | H100 80GB × 8 | 640GB | ✅ 지원 | Spot 프로비저닝 성공 (us-east-2) |
+| p5en.48xlarge | H200 141GB × 8 | 1,128GB | ❌ 제한적 | NoCompatibleInstanceTypes 발생 |
+| p6-b200.48xlarge | B200 192GB × 8 | 1,536GB | ❌ 미지원 | NodePool dry-run 통과하지만 프로비저닝 실패 |
+
+:::danger p5en/p6 Auto Mode 제약
+2026년 4월 기준, EKS Auto Mode의 managed Karpenter는 **p5en과 p6 인스턴스를 프로비저닝할 수 없습니다**. NodePool validation은 통과하지만, 실제 워크로드 배포 시 다음 오류가 발생합니다:
+
+```
+NodePool requirements filtered out all compatible available instance types
+NoCompatibleInstanceTypes
+```
+
+**원인**: Auto Mode의 내부 Karpenter가 p5en/p6 인스턴스 타입을 offering 매칭 과정에서 필터링합니다.
+:::
+
+### Auto Mode + MNG 하이브리드 시도 결과
+
+p5en/p6 사용을 위해 Auto Mode 클러스터에 Managed Node Group(MNG)을 추가하는 하이브리드 패턴을 시도했으나 다음 문제가 발생했습니다:
+
+**증상**:
+- `eksctl create nodegroup` 또는 AWS Console에서 MNG 생성 시도
+- MNG 상태가 `CREATING`에서 30분 이상 멈춤
+- CloudFormation 스택의 `Resources` 필드가 `null`로 유지
+- Auto Scaling Group(ASG)이 생성되지 않음
+
+**추정 원인**: Auto Mode의 managed compute 레이어와 MNG의 ASG 기반 관리가 내부적으로 충돌하는 것으로 보입니다. Auto Mode는 노드 라이프사이클을 전적으로 제어하려 하므로, 사용자가 MNG로 추가 노드 그룹을 생성하려는 시도를 처리하지 못하는 것으로 추정됩니다.
+
+**결론**: Auto Mode에서 p5en/p6 사용을 위한 MNG 하이브리드는 현재 불가능합니다.
+
+### GPU Operator Device Plugin 충돌
+
+Auto Mode 노드에서 GPU Operator를 `devicePlugin.enabled=true`로 설치하면 충돌이 발생합니다.
+
+**증상**:
+```bash
+kubectl describe node <gpu-node> | grep nvidia.com/gpu
+# Allocatable: nvidia.com/gpu: 0  (예상: 8)
+```
+
+**원인**: Auto Mode 내장 Device Plugin과 GPU Operator Device Plugin이 동시 실행되어 리소스 등록이 충돌합니다.
+
+**해결**: NodePool에 레이블 추가로 GPU Operator Device Plugin 비활성화
+```yaml
+apiVersion: karpenter.sh/v1
+kind: NodePool
+spec:
+  template:
+    metadata:
+      labels:
+        nvidia.com/gpu.deploy.device-plugin: "false"
+```
+
+### 노드 강제 종료 불가
+
+Auto Mode가 관리하는 EC2 인스턴스는 resource-based policy로 `ec2:TerminateInstances`를 명시적으로 차단합니다.
+
+**비정상 노드 복구 절차**:
+1. 모든 워크로드 삭제: `kubectl delete pod <gpu-pod>`
+2. NodeClaim 삭제: `kubectl delete nodeclaim <nodeclaim-name>`
+3. Karpenter가 Empty 노드 감지 후 자동 종료 (5-10분 대기)
+4. 새 NodeClaim 생성 → 정상 노드 시작
+
+**제약**: 관리자도 노드를 직접 terminate할 수 없으며, Karpenter의 자동 종료를 기다려야 합니다. 긴급 복구 시 15-20분 소요됩니다.
+
+### 권장 전략
+
+**대형 GPU (H200+, B200) 사용 시**:
+- ✅ **EKS Standard Mode + Karpenter + MNG** 사용
+- Auto Mode의 편의성보다 인스턴스 타입 호환성이 우선
+
+**p5.48xlarge (H100) 사용 시**:
+- ✅ **EKS Auto Mode 사용 가능**
+- GPU Operator 설치 시 Device Plugin만 레이블로 비활성화
+- Spot 인스턴스 활용 (us-east-2 권장, $13-15/hr)
+
+**GLM-5 (744B) 배포 결과**:
+- p5en/p6 미지원으로 p5.48xlarge로 대체 배포
+- Pipeline Parallelism (PP=2) 필요 → 16 GPU (p5.48xlarge × 2)
+- vLLM V1 엔진 PP 멀티노드 교착 이슈로 SGLang으로 전환
+
+### Spot 가격 비교 (us-east-2, 2026.04)
+
+| 인스턴스 | On-Demand | Spot (최저) | VRAM | 절감률 |
+|---------|-----------|------------|------|-------|
+| p5.48xlarge | $98/hr | $12.5/hr | 640GB | 87% |
+| p5en.48xlarge | ~$120/hr | $12.1/hr | 1,128GB | 90% |
+| p6-b200.48xlarge | $180/hr | $11.4/hr | 1,536GB | 94% |
+
+:::tip Spot 활용 권장
+대형 GPU 인스턴스는 Spot으로 85-90% 비용 절감이 가능합니다. PoC/데모 환경에서는 Spot을 적극 활용하되, NodePool `consolidationPolicy: WhenEmpty`로 설정하여 불필요한 중단을 방지하세요.
+:::
+
+---
+
 ### 13.2 참고 자료
 
 **AWS 공식 문서**
@@ -2319,6 +2421,6 @@ lifecycle:
 
 ---
 
-**마지막 업데이트**: 2026-03-30
+**마지막 업데이트**: 2026-04-03
 **작성자**: devfloor9
 **태그**: `eks` `gpu` `auto-mode` `karpenter` `hybrid-node` `gpu-operator` `nvidia` `run-ai`

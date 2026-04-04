@@ -69,6 +69,24 @@ const GpuMemoryRequirements = () => {
       int8Memory: '~132GB',
       recommendedGpu: '4x H100 80GB',
       color: '#84cc16'
+    },
+    {
+      model: 'GLM-5',
+      totalParams: '744B',
+      activeParams: '40B',
+      fp16Memory: '~1.5TB',
+      int8Memory: '~744GB',
+      recommendedGpu: '2x p5.48xlarge (PP=2)',
+      color: '#ef4444'
+    },
+    {
+      model: 'Kimi K2.5',
+      totalParams: '~1T',
+      activeParams: '32B',
+      fp16Memory: '~2TB',
+      int8Memory: '~500GB',
+      recommendedGpu: '1x p5.48xlarge (INT4)',
+      color: '#6366f1'
     }
   ];
 

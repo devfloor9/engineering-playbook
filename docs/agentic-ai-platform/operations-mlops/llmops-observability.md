@@ -5,7 +5,7 @@ description: "Langfuse, LangSmith, Helicone 비교 및 하이브리드 Observabi
 tags: [eks, observability, langfuse, langsmith, helicone, llmops, monitoring]
 category: "genai-aiml"
 last_update:
-  date: 2026-03-16
+  date: 2026-04-04
   author: devfloor9
 sidebar_position: 7
 ---
@@ -430,9 +430,247 @@ flowchart TB
 
 ---
 
-## 5. Langfuse EKS 셀프호스트 배포
+## 5. Langfuse EKS 배포 및 vLLM 연동
 
-### 5.1 인프라 사전 준비
+### 5.1 Langfuse EKS 배포 개요
+
+Langfuse를 EKS에 배포하고 kgateway HTTPRoute로 단일 NLB 통합 라우팅을 구성합니다.
+
+### 5.2 Helm 설치
+
+Langfuse Helm 차트를 사용하여 PostgreSQL, ClickHouse, Redis를 포함한 전체 스택을 배포합니다.
+
+```bash
+# Langfuse Helm 저장소 추가
+helm repo add langfuse https://langfuse.github.io/langfuse-helm
+helm repo update
+
+# 네임스페이스 생성
+kubectl create namespace observability
+
+# Langfuse Helm 설치 (PostgreSQL + ClickHouse + Redis 포함)
+helm install langfuse langfuse/langfuse \
+  --namespace observability \
+  --set postgresql.enabled=true \
+  --set postgresql.auth.password="secure-password" \
+  --set clickhouse.enabled=true \
+  --set redis.enabled=true \
+  --set ingress.enabled=false \
+  --set replicaCount=2
+```
+
+:::info EBS CSI Driver 필수
+Langfuse의 PostgreSQL과 ClickHouse는 영구 스토리지가 필요합니다. EKS 클러스터에 **EBS CSI Driver**가 설치되어 있고 **default StorageClass**가 구성되어 있어야 합니다.
+
+```bash
+# EBS CSI Driver 설치 확인
+kubectl get csidriver ebs.csi.aws.com
+
+# default StorageClass 확인
+kubectl get storageclass
+```
+:::
+
+### 5.3 Pod Identity로 IAM 권한 관리
+
+EKS Pod Identity를 사용하여 Langfuse에 S3, RDS 등의 AWS 리소스 접근 권한을 부여합니다.
+
+```yaml
+# langfuse-pod-identity.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: langfuse
+  namespace: observability
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::123456789012:role/LangfuseRole
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: langfuse
+  namespace: observability
+spec:
+  template:
+    spec:
+      serviceAccountName: langfuse
+```
+
+IAM Role 정책 예시:
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "s3:GetObject",
+        "s3:PutObject",
+        "s3:DeleteObject"
+      ],
+      "Resource": "arn:aws:s3:::langfuse-traces/*"
+    }
+  ]
+}
+```
+
+### 5.4 kgateway HTTPRoute로 /langfuse/* 라우팅
+
+kgateway를 사용하여 단일 NLB 엔드포인트에서 `/langfuse/*` 경로를 Langfuse 서비스로 라우팅합니다.
+
+```yaml
+# langfuse-httproute.yaml
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: langfuse-route
+  namespace: observability
+spec:
+  parentRefs:
+    - name: unified-gateway
+      namespace: ai-gateway
+  hostnames:
+    - "api.example.com"
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /langfuse/
+      filters:
+        - type: URLRewrite
+          urlRewrite:
+            path:
+              type: ReplacePrefixMatch
+              replacePrefixMatch: /
+      backendRefs:
+        - name: langfuse
+          port: 3000
+---
+# ReferenceGrant for cross-namespace access
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: ReferenceGrant
+metadata:
+  name: allow-gateway-to-langfuse
+  namespace: observability
+spec:
+  from:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      namespace: ai-gateway
+  to:
+    - group: ""
+      kind: Service
+```
+
+접속 URL:
+```
+http://[NLB_ENDPOINT]/langfuse/     → Langfuse 웹 UI
+http://[NLB_ENDPOINT]/langfuse/api  → Langfuse API
+```
+
+### 5.5 데이터 흐름 다이어그램
+
+```mermaid
+flowchart TB
+    subgraph Client["클라이언트"]
+        USER[AI 애플리케이션]
+    end
+    
+    subgraph Gateway["Gateway 계층"]
+        KGATEWAY[kgateway<br/>NLB 통합]
+    end
+    
+    subgraph Services["서비스 계층"]
+        VLLM[vLLM<br/>/v1/*]
+        LANGFUSE[Langfuse<br/>/langfuse/*]
+    end
+    
+    subgraph Storage["스토리지 계층"]
+        PG[(PostgreSQL<br/>메타데이터)]
+        CH[(ClickHouse<br/>분석)]
+        REDIS[(Redis<br/>캐시)]
+    end
+    
+    USER -->|1. 추론 요청| KGATEWAY
+    KGATEWAY -->|2. /v1/* 라우팅| VLLM
+    VLLM -->|3. 응답| USER
+    VLLM -.->|4. SDK로 Trace 전송| LANGFUSE
+    
+    USER -->|5. 대시보드 접속| KGATEWAY
+    KGATEWAY -->|6. /langfuse/* 라우팅| LANGFUSE
+    
+    LANGFUSE --> PG
+    LANGFUSE --> CH
+    LANGFUSE --> REDIS
+    
+    style KGATEWAY fill:#326ce5,stroke:#333
+    style VLLM fill:#ffd93d,stroke:#333
+    style LANGFUSE fill:#4285f4,stroke:#333
+    style PG fill:#336791,stroke:#333
+    style CH fill:#FF3333,stroke:#333
+    style REDIS fill:#DC382D,stroke:#333
+```
+
+### 5.6 Langfuse 수집 데이터 계층
+
+Langfuse는 다음과 같은 계층 구조로 데이터를 수집합니다:
+
+```mermaid
+flowchart TB
+    TRACE[Trace<br/>전체 요청 라이프사이클]
+    SPAN1[Span: Vector Search]
+    SPAN2[Span: Reranking]
+    GEN[Generation<br/>LLM API 호출]
+    SCORE1[Score: Faithfulness]
+    SCORE2[Score: Relevancy]
+    
+    TRACE --> SPAN1
+    TRACE --> SPAN2
+    TRACE --> GEN
+    GEN --> SCORE1
+    GEN --> SCORE2
+    
+    style TRACE fill:#4285f4,stroke:#333
+    style GEN fill:#ffd93d,stroke:#333
+    style SCORE1 fill:#34a853,stroke:#333
+    style SCORE2 fill:#34a853,stroke:#333
+```
+
+**수집 데이터 종류:**
+
+| 데이터 유형 | 설명 | 확인 가능 항목 |
+|------------|------|---------------|
+| **Trace** | 전체 요청 라이프사이클 | 총 지연 시간, 총 비용, 세션 ID |
+| **Generation** | LLM API 호출 상세 | 입력/출력 토큰, 모델명, 지연 시간, 파라미터(temperature 등) |
+| **Span** | 개별 작업 단계 | Vector 검색, Reranking, 도구 호출 등 |
+| **Score** | 품질 평가 메트릭 | Faithfulness, Relevancy, Toxicity 등 |
+
+### 5.7 확인 가능한 주요 항목
+
+Langfuse 대시보드에서 다음을 실시간으로 확인할 수 있습니다:
+
+1. **사용자별 토큰 소비 패턴**
+   - 사용자/테넌트별 일일 토큰 사용량
+   - 입력 vs 출력 토큰 비율
+   - 피크 시간대 분석
+
+2. **모델별 비용**
+   - 모델별 총 비용 및 요청 수
+   - 가장 비용이 높은 모델 식별
+   - 예산 대비 사용량
+
+3. **TTFT (Time to First Token) / TPS (Tokens per Second) 추이**
+   - P50, P95, P99 지연 시간
+   - 모델별 처리 속도 비교
+   - 시간대별 성능 변화
+
+4. **프롬프트 품질**
+   - Faithfulness, Relevancy 점수 분포
+   - 낮은 점수를 받은 프롬프트 필터링
+   - A/B 테스트 결과 비교
+
+### 5.8 인프라 사전 준비
 
 Langfuse를 EKS에 배포하기 전에 다음 AWS 리소스를 준비합니다:
 

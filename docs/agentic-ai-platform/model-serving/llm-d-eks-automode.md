@@ -5,7 +5,7 @@ description: "llm-d를 활용한 EKS 환경에서의 Kubernetes 네이티브 분
 tags: [eks, llm-d, vllm, inference-gateway, gpu, auto-mode, karpenter, qwen, kv-cache]
 category: "genai-aiml"
 last_update:
-  date: 2026-03-30
+  date: 2026-04-03
   author: devfloor9
 sidebar_position: 4
 ---
@@ -1051,6 +1051,81 @@ env:
 - [MoE 모델 서빙 가이드](./moe-model-serving.md) — Mixture of Experts 모델 서빙
 - [Inference Gateway 및 동적 라우팅](../gateway-agents/inference-gateway-routing.md) — 추론 라우팅 전략
 - [GPU 리소스 관리](./gpu-resource-management.md) — GPU 클러스터 리소스 관리, MIG/Time-Slicing 설정
+
+---
+
+## EKS Auto Mode GPU 인스턴스 지원 현황 (2026.04 검증)
+
+실제 배포 테스트를 통해 확인한 EKS Auto Mode의 GPU 인스턴스 지원 현황입니다.
+
+### 인스턴스 지원 매트릭스
+
+| 인스턴스 타입 | GPU | VRAM (총합) | Auto Mode 지원 | 검증 상태 |
+|-------------|-----|-----------|---------------|----------|
+| g5.xlarge~48xlarge | A10G | 24~192GB | ✅ 정상 | 프로비저닝 확인 |
+| g6.xlarge~48xlarge | L4 | 24~192GB | ✅ 정상 | 프로비저닝 확인 |
+| g6e.xlarge~48xlarge | L40S | 48~384GB | ✅ 정상 | 프로비저닝 확인 |
+| p4d.24xlarge | A100 40GB × 8 | 320GB | ✅ 정상 | dry-run 확인 |
+| p4de.24xlarge | A100 80GB × 8 | 640GB | ✅ 정상 | dry-run 확인 |
+| p5.48xlarge | H100 80GB × 8 | 640GB | ✅ 정상 | **Spot 프로비저닝 확인** (us-east-2) |
+| p5en.48xlarge | H200 141GB × 8 | 1,128GB | ⚠️ 제한적 | dry-run 통과, offering 매칭 실패 가능 |
+| **p6-b200.48xlarge** | **B200 192GB × 8** | **1,536GB** | **❌ 미지원** | **NodePool dry-run 통과하지만 `NoCompatibleInstanceTypes` 발생** |
+
+### MNG 하이브리드 패턴
+
+Auto Mode 클러스터에 Managed Node Group(MNG)을 추가하여 p5en/p6를 사용하려는 시도는 현재 불가능합니다.
+
+**증상** (2026.04 검증):
+- `eksctl create nodegroup` 실행 후 MNG 상태가 `CREATING`에서 30분 이상 멈춤
+- CloudFormation 스택의 `Resources` 필드가 `null`로 유지
+- Auto Scaling Group(ASG)이 생성되지 않음
+
+**추정 원인**: Auto Mode의 managed compute 레이어가 MNG의 ASG 기반 관리와 내부적으로 충돌하는 것으로 보입니다.
+
+**권장 대안**: p5en/p6가 필요한 경우 EKS Standard Mode + Karpenter로 클러스터를 생성하세요.
+
+:::warning p6 인스턴스 미지원
+2026년 4월 기준, EKS Auto Mode의 managed Karpenter는 **p6-b200.48xlarge를 프로비저닝할 수 없습니다.** NodePool validation은 통과하지만, 실제 NodeClaim 생성 시 "NodePool requirements filtered out all compatible available instance types" 오류가 발생합니다. p6 인스턴스가 필요한 경우 Self-managed Node Group 또는 Karpenter를 직접 운영하는 EKS Standard Mode를 고려해야 합니다.
+:::
+
+### 리전별 GPU 용량 가용성
+
+대형 GPU 인스턴스(p5.48xlarge)는 on-demand 용량 확보가 어려울 수 있습니다. 실제 테스트 결과:
+
+| 리전 | p5.48xlarge On-Demand | p5.48xlarge Spot | Spot 가격 |
+|------|---------------------|-----------------|----------|
+| ap-northeast-2 (서울) | ❌ InsufficientCapacity | 미확인 | — |
+| ap-northeast-1 (도쿄) | ❌ InsufficientCapacity | 미확인 | — |
+| **us-east-2 (Ohio)** | ⚠️ 가용성 변동 | **✅ 확보 성공** | **$13~15/hr** |
+| us-east-1 (버지니아) | ⚠️ 가용성 변동 | 미확인 | — |
+
+**Spot 가격 비교 (us-east-2, 2026.04)**:
+
+| 인스턴스 | On-Demand | Spot (최저) | VRAM | 절감률 |
+|---------|-----------|------------|------|-------|
+| p5.48xlarge | $55/hr | $12.5/hr | 640GB | 77% |
+| p5en.48xlarge | ~$76/hr | $12.1/hr | 1,128GB | 84% |
+| p6-b200.48xlarge | $114/hr | $11.4/hr | 1,536GB | 90% |
+
+:::tip Spot 인스턴스 활용
+p5.48xlarge Spot 인스턴스는 On-Demand ($55/hr) 대비 **최대 77% 할인**된 $12.5/hr에 사용 가능합니다. 데모/PoC 환경에서는 Spot을 적극 활용하되, NodePool에 `consolidationPolicy: WhenEmpty`로 설정하여 불필요한 중단을 방지하세요.
+
+**Standard Mode 권장**: p5en/p6가 필요한 경우 Auto Mode 대신 EKS Standard Mode + Karpenter를 사용하세요. Auto Mode는 p5.48xlarge까지만 안정적으로 지원합니다.
+:::
+
+### GPU 쿼타 주의사항
+
+EKS Auto Mode에서 GPU 노드 프로비저닝 시, EC2 vCPU 쿼타가 **인스턴스 버킷별로 분리**되어 있어 주의가 필요합니다:
+
+| 쿼타 이름 | 적용 인스턴스 | 기본값 | p5.48xlarge (192 vCPU) |
+|-----------|-------------|--------|----------------------|
+| Running On-Demand P instances | p4d, p4de, p5, p5en | 384 | 2대 가능 |
+| Running On-Demand G and VT instances | g5, g6, g6e | **64** | g6e.48xlarge 1대도 불가 |
+| Running On-Demand DL instances | dl1, dl2q | 96 | — |
+
+:::caution G 인스턴스 쿼타 함정
+GPU NodePool에 `instance-category: [g, p]`를 함께 설정한 경우, Karpenter가 G 타입 인스턴스를 먼저 시도할 수 있습니다. 이때 **G and VT 쿼타 (기본 64 vCPU)**에 걸려 프로비저닝이 실패합니다. P 타입만 사용하려면 `instance-category: [p]` 또는 `node.kubernetes.io/instance-type`으로 명시적으로 지정하세요.
+:::
 
 ---
 
