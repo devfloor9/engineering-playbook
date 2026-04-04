@@ -505,9 +505,20 @@ table tr:hover td {
     background: var(--ifm-background-color) !important;
     flex-grow: 1 !important;
   }
+  .navbar-sidebar .navbar__link,
+  .navbar-sidebar .menu__link {
+    color: var(--ifm-font-color-base) !important;
+  }
+  .navbar-sidebar .navbar__link:hover,
+  .navbar-sidebar .menu__link:hover {
+    color: var(--ifm-color-primary) !important;
+  }
   .navbar-sidebar .menu {
     background: var(--ifm-background-color) !important;
     padding: 1rem;
+  }
+  .navbar-sidebar__brand {
+    background: var(--ifm-background-color) !important;
   }
   .navbar-sidebar__backdrop {
     z-index: 199;
