@@ -485,9 +485,18 @@ table tr:hover td {
 
 /* ── Responsive ── */
 @media screen and (max-width: 996px) {
-  .navbar__search-input { min-width: 100% !important; width: 100% !important; }
-  .navbar__search-input:focus { min-width: 100% !important; width: 100% !important; }
-  [class*="navbarSearchContainer"] { position: static !important; transform: none !important; width: 100%; margin: 0.5rem 0 !important; }
+  /* 검색바: navbar 레이아웃을 깨지 않도록 제한 */
+  .navbar__search-input { min-width: auto !important; width: auto !important; }
+  .navbar__search-input:focus { min-width: 180px !important; width: 180px !important; }
+  [class*="navbarSearchContainer"] { position: static !important; transform: none !important; width: auto; margin: 0 !important; flex-shrink: 1; }
+
+  /* 모바일 사이드바: 햄버거 메뉴 클릭 시 정상 표시 */
+  .navbar-sidebar {
+    z-index: 200;
+  }
+  .navbar-sidebar__backdrop {
+    z-index: 199;
+  }
 }
 
 /* ── Markdown content ── */
