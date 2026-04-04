@@ -4,7 +4,7 @@ sidebar_label: "GLM-5.1 배포 가이드"
 description: "GLM-5 744B MoE FP8 모델을 EKS에서 vLLM + llm-d로 배포하면서 경험한 실전 이슈와 해결책"
 tags: [glm-5, moe, vllm, eks, gpu, deployment, lessons-learned]
 last_update:
-  date: 2026-04-03
+  date: 2026-04-04
   author: YoungJoon Jeong
 ---
 
@@ -923,37 +923,174 @@ spec:
 }
 ```
 
-### 추가 발견 이슈
-
-#### emptyDir 디스크 부족 (ephemeral-storage eviction)
-
-MNG `disk-size=500` (500GB)으로 설정 시, 704GB 모델 다운로드 중 노드의 ephemeral-storage 임계치를 초과하여 Pod이 Evicted됩니다.
-
-```
-Warning  Evicted  kubelet  The node was low on resource: ephemeral-storage.
-```
+### 배포 시 주의사항
 
 :::caution 디스크 크기 설정
-GLM-5 FP8 (704GB) 배포 시 MNG `disk-size`를 **최소 1500GB, 권장 2000GB**로 설정하세요. emptyDir은 노드의 ephemeral storage를 사용합니다.
+GLM-5 FP8 (704GB) 배포 시 MNG `disk-size`를 **최소 1500GB, 권장 2000GB**로 설정하세요. emptyDir은 노드의 ephemeral storage를 사용하므로, 500GB 디스크에서는 `ephemeral-storage eviction`이 발생합니다.
 :::
 
-#### EKS Auto Mode + MNG 하이브리드 실패
-
-Auto Mode 클러스터에 MNG를 추가하면 **MNG 생성이 비정상적으로 느림** (30분+ CREATING, Resources=null). Standard Mode 클러스터에서는 ~5분에 ACTIVE.
-
-:::warning Auto Mode + MNG
-대형 GPU 인스턴스 (p5en, p6) 배포 시 **EKS Standard Mode 클러스터를 사용**하세요. Auto Mode + MNG 하이브리드는 현재 불안정합니다.
+:::warning EKS 모드 선택
+대형 GPU 인스턴스 (p5en, p6) 배포 시 **EKS Standard Mode**를 사용하세요. Auto Mode + MNG 하이브리드는 MNG 생성이 30분+ 지연되거나 실패합니다.
 :::
 
-## 12. 게이트웨이 및 모니터링 구성
+## 12. 모니터링 및 Observability 구성
 
-kgateway, Bifrost 게이트웨이 구성과 코딩 도구 연결 방법은 [Inference Gateway 라우팅](../gateway-agents/inference-gateway-routing.md)을 참조하세요.
+### 아키텍처 개요
 
-Langfuse, AMP/AMG를 활용한 LLM Observability 및 GPU 모니터링 구성은 다음 문서를 참조하세요:
+```mermaid
+graph LR
+    subgraph "EKS Cluster"
+        VLLM[vLLM<br/>/metrics] -->|scrape| PROM[Prometheus]
+        BIFROST[Bifrost<br/>:9090/metrics] -->|scrape| PROM
+        PROM -->|remote-write<br/>Pod Identity| AMP[AMP]
+    end
+    
+    subgraph "AWS Managed"
+        AMP -->|SigV4 ec2_iam_role| AMG[AMG Grafana]
+    end
+    
+    subgraph "Langfuse"
+        VLLM -->|OpenAI callback| LF[Langfuse Web]
+        BIFROST -->|langfuse SDK| LF
+        LF --> PG[(PostgreSQL)]
+        LF --> CH[(ClickHouse)]
+        LF --> RD[(Redis)]
+    end
+    
+    style AMP fill:#ff9900
+    style AMG fill:#ff9900
+    style LF fill:#4c9aff
+```
+
+### 12-1. Prometheus → AMP (Pod Identity 인증)
+
+Prometheus가 AMP로 메트릭을 전송하려면 **Pod Identity**로 `aps:RemoteWrite` 권한이 필요합니다. 배포 스크립트 (`monitoring/install.sh`)가 자동으로 처리합니다.
+
+**핵심 구성 요소:**
+
+| 구성 | 값 | 비고 |
+|------|-----|------|
+| IAM Role | `prometheus-amp-remote-write` | `AmazonPrometheusRemoteWriteAccess` 정책 |
+| 인증 방식 | **Pod Identity** (IRSA 불필요) | `aws eks create-pod-identity-association` |
+| ServiceAccount | `prometheus-kube-prometheus-prometheus` | Helm 차트 기본 SA |
+
+```bash
+# Pod Identity 생성 (install.sh에서 자동 실행)
+aws eks create-pod-identity-association \
+  --cluster-name <CLUSTER_NAME> \
+  --namespace monitoring \
+  --service-account prometheus-kube-prometheus-prometheus \
+  --role-arn arn:aws:iam::<ACCOUNT_ID>:role/prometheus-amp-remote-write
+```
+
+:::tip Pod Identity vs IRSA
+Pod Identity는 OIDC Provider 설정 없이 한 줄 명령으로 완료됩니다. EKS 1.28+ 클러스터에서는 Pod Identity를 권장합니다.
+:::
+
+### 12-2. AMG 데이터 소스 설정
+
+AMG에서 AMP를 데이터 소스로 추가할 때 **SigV4 auth type을 `ec2_iam_role`로 설정**해야 합니다.
+
+```bash
+# Grafana API로 AMP 데이터 소스 추가
+curl -X POST "https://<GRAFANA_ENDPOINT>/api/datasources" \
+  -H "Authorization: Bearer <TOKEN>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Amazon Managed Prometheus",
+    "type": "prometheus",
+    "url": "https://aps-workspaces.<REGION>.amazonaws.com/workspaces/<AMP_WS_ID>/",
+    "access": "proxy",
+    "isDefault": true,
+    "jsonData": {
+      "httpMethod": "POST",
+      "sigV4Auth": true,
+      "sigV4AuthType": "ec2_iam_role",
+      "sigV4Region": "<REGION>"
+    }
+  }'
+```
+
+:::caution SigV4 auth type
+`ec2_iam_role`을 사용하세요. `workspace-iam-role`은 유효하지 않은 값으로 502 에러를 반환합니다. AMG workspace IAM Role에 `AmazonPrometheusQueryAccess` 정책이 연결되어 있어야 합니다.
+:::
+
+### 12-3. Langfuse 배포 주의사항
+
+Langfuse Helm 차트 배포 시 3가지 핵심 설정이 필요합니다:
+
+#### 1. Redis 패스워드 주입 (Worker CrashLoopBackOff 방지)
+
+Langfuse Helm 차트는 Bitnami Redis (Valkey) 서브차트를 사용하며, Secret 키 이름이 `valkey-password`입니다. Helm 차트가 이 패스워드를 Worker의 `REDIS_CONNECTION_STRING`에 자동으로 포함하지 않으므로 수동 주입이 필요합니다.
+
+```bash
+# 배포 스크립트 (langfuse/install.sh)에서 자동 처리
+REDIS_PW=$(kubectl get secret langfuse-redis -n langfuse \
+  -o jsonpath='{.data.valkey-password}' | base64 -d)
+kubectl set env deploy/langfuse-worker deploy/langfuse-web -n langfuse \
+  REDIS_CONNECTION_STRING="redis://default:${REDIS_PW}@langfuse-redis-primary:6379/0"
+```
+
+#### 2. NEXTAUTH_URL 설정
+
+`NEXTAUTH_URL`을 실제 접근 가능한 URL로 설정해야 합니다 (`localhost:3000` 금지).
+
+```bash
+kubectl set env deploy/langfuse-web -n langfuse \
+  NEXTAUTH_URL="http://<NLB_ENDPOINT>/langfuse"
+```
+
+#### 3. kgateway Sub-path 라우팅 (URLRewrite + Static Assets)
+
+Langfuse (Next.js)는 `/`에서 서빙하므로, `/langfuse` prefix로 접근하려면:
+
+1. **URLRewrite**: `/langfuse` → `/`로 prefix 제거
+2. **Static Assets**: `/_next/*`, `/api/auth/*`, `/api/public/*`, `/icon.svg`도 Langfuse로 라우팅
+
+```yaml
+# kgateway HTTPRoute (gateway.yaml에 포함)
+rules:
+  # /langfuse → / prefix 제거
+  - matches:
+    - path: { type: PathPrefix, value: /langfuse }
+    filters:
+    - type: URLRewrite
+      urlRewrite:
+        path: { type: ReplacePrefixMatch, replacePrefixMatch: / }
+    backendRefs:
+    - name: langfuse-web
+      namespace: langfuse
+      port: 3000
+  # Next.js static assets + auth API
+  - matches:
+    - path: { type: PathPrefix, value: /_next }
+    backendRefs: [{ name: langfuse-web, namespace: langfuse, port: 3000 }]
+  - matches:
+    - path: { type: PathPrefix, value: /api/auth }
+    backendRefs: [{ name: langfuse-web, namespace: langfuse, port: 3000 }]
+```
+
+:::info 배포 스크립트에서 자동 처리
+위의 모든 설정은 `deploy/full-platform/manifests/` 하위 스크립트에서 자동으로 처리됩니다. 수동 수정 없이 `deploy-glm5.sh` 한 번 실행으로 전체 스택이 올바르게 구성됩니다.
+:::
+
+### 12-4. 추천 PromQL 쿼리
+
+| 메트릭 | PromQL | 용도 |
+|--------|--------|------|
+| GPU 사용률 | `DCGM_FI_DEV_GPU_UTIL` | GPU 활성도 |
+| GPU 메모리 | `DCGM_FI_DEV_FB_USED / DCGM_FI_DEV_FB_FREE` | VRAM 사용률 |
+| vLLM TPS | `rate(vllm:request_success_total[5m])` | 추론 처리량 |
+| vLLM TTFT P99 | `histogram_quantile(0.99, rate(vllm:time_to_first_token_seconds_bucket[5m]))` | 첫 토큰 지연 |
+| Bifrost 요청 | `rate(bifrost_requests_total[5m])` | 게이트웨이 요청률 |
+
+## 13. 관련 문서
+
+- [Inference Gateway 라우팅](../gateway-agents/inference-gateway-routing.md) — kgateway + Bifrost + 코딩 도구 연결
 - [LLMOps Observability](../operations-mlops/llmops-observability.md) — Langfuse 배포 및 vLLM 연동
 - [Agent 모니터링](../operations-mlops/agent-monitoring.md) — AMP/AMG + vLLM GPU 모니터링
 
-## 13. EKS Auto Mode 인스턴스 지원 확인
+## 14. EKS Auto Mode 인스턴스 지원 확인
 
 EKS Auto Mode에서 GPU 인스턴스 지원 여부 확인 방법은 [EKS GPU 노드 전략](./eks-gpu-node-strategy.md#eks-auto-mode-인스턴스-지원-확인)을 참조하세요.
 

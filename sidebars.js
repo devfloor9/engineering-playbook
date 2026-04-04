@@ -172,6 +172,20 @@ const sidebars = {
             'agentic-ai-platform/operations-mlops/sagemaker-eks-integration',
           ],
         },
+        {
+          type: 'category',
+          label: 'Enterprise Ops',
+          link: {
+            type: 'doc',
+            id: 'agentic-ai-platform/enterprise-ops/index',
+          },
+          items: [
+            'agentic-ai-platform/enterprise-ops/agentic-playbook',
+            'agentic-ai-platform/enterprise-ops/compliance-framework',
+            'agentic-ai-platform/enterprise-ops/domain-customization',
+          ],
+        },
+        'agentic-ai-platform/model-serving/glm5-deployment-guide',
       ],
     },
     {
