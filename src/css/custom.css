@@ -503,6 +503,7 @@ table tr:hover td {
     height: calc(100vh - 60px) !important;
     overflow-y: auto !important;
     background: var(--ifm-background-color) !important;
+    flex-grow: 1 !important;
   }
   .navbar-sidebar .menu {
     background: var(--ifm-background-color) !important;
