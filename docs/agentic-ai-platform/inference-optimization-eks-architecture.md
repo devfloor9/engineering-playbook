@@ -15,7 +15,7 @@ last_update:
 
 ## 개요
 
-LLM(대규모 언어 모델) 서비스에서 **Inference 비용은 전체 AI 운영 비용의 80-90%** 를 차지합니다. GPU 시간이 곧 비용이며, p5.48xlarge(H100×8) 한 대의 On-Demand 가격은 시간당 $98입니다. 월 2대 운영 시 약 $141,580에 달합니다.
+프로덕션 LLM 서비스에서 **Inference 비용은 전체 AI 운영 비용의 80-90%** 를 차지합니다 ([a16z "The Economics of AI"](https://a16z.com/navigating-the-high-cost-of-ai-compute/), [NVIDIA GTC 2024](https://www.nvidia.com/en-us/on-demand/), [SemiAnalysis](https://semianalysis.com/)). 학습은 1회성이지만 추론은 서비스가 살아있는 한 24/7 지속되기 때문입니다. GPU 시간이 곧 비용이며, p5.48xlarge(H100×8) 한 대의 On-Demand 가격은 시간당 $98입니다. 월 2대 운영 시 약 $141,580에 달합니다.
 
 이 문서는 통신사 Agentic AI 플랫폼 구축 경험과 GLM-5(744B), Kimi K2.5(1T) 등 대형 MoE 모델 배포 실전 경험을 기반으로, EKS 위에서 LLM Inference 성능을 극대화하는 아키텍처 패턴과 교훈을 정리합니다.
 

@@ -14,7 +14,7 @@
 
 ## 왜 Inference 최적화인가?
 
-- LLM 서비스에서 **Inference 비용 = 전체 AI 운영 비용의 80-90%**
+- 프로덕션 LLM 서비스에서 **Inference 비용 = 전체 AI 운영 비용의 80-90%** (a16z, NVIDIA GTC, SemiAnalysis)
 - GPU 시간이 곧 돈: **p5.48xlarge(H100×8) = $98/hr On-Demand**
 - 월 2대 운영 시 약 **$141,580/월**
 - Spot 활용 시 **$13-15/hr** (85% 절감 가능)
