@@ -493,21 +493,24 @@ table tr:hover td {
   /* 모바일 사이드바: 햄버거 메뉴 클릭 시 정상 표시 */
   .navbar-sidebar {
     z-index: 200;
-    background: var(--ifm-background-color);
+    background: var(--ifm-background-color) !important;
     width: 80vw !important;
     max-width: 350px;
+    height: 100vh !important;
     box-shadow: 4px 0 24px rgba(0, 0, 0, 0.3);
   }
-  .navbar-sidebar .navbar-sidebar__items {
-    background: var(--ifm-background-color);
+  .navbar-sidebar__items {
+    height: calc(100vh - 60px) !important;
+    overflow-y: auto !important;
+    background: var(--ifm-background-color) !important;
   }
   .navbar-sidebar .menu {
-    background: var(--ifm-background-color);
+    background: var(--ifm-background-color) !important;
     padding: 1rem;
   }
   .navbar-sidebar__backdrop {
     z-index: 199;
-    background: rgba(0, 0, 0, 0.5);
+    background: rgba(0, 0, 0, 0.5) !important;
   }
 }
 
