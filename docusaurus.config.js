@@ -191,6 +191,10 @@ const config = {
                 to: '/docs/intro',
               },
               {
+                label: 'Agentic AI Platform',
+                to: '/docs/agentic-ai-platform',
+              },
+              {
                 label: 'Infrastructure Optimization',
                 to: '/docs/infrastructure-optimization',
               },
@@ -204,16 +208,24 @@ const config = {
             title: 'More',
             items: [
               {
-                label: 'Agentic AI Platform',
-                to: '/docs/agentic-ai-platform',
+                label: 'Security & Governance',
+                to: '/docs/security-governance',
+              },
+              {
+                label: 'AIDLC',
+                to: '/docs/aidlc',
               },
               {
                 label: 'Hybrid Infrastructure',
                 to: '/docs/hybrid-infrastructure',
               },
               {
-                label: 'Security & Governance',
-                to: '/docs/security-governance',
+                label: 'Benchmarks',
+                to: '/docs/benchmarks',
+              },
+              {
+                label: 'Slides',
+                to: '/slides',
               },
             ],
           },
