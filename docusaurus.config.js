@@ -166,15 +166,15 @@ const config = {
             position: 'left',
             items: [
               { to: '/docs/intro', label: 'Getting Started' },
+              { to: '/docs/eks-best-practices', label: 'EKS Best Practices' },
               { to: '/docs/agentic-ai-platform', label: 'Agentic AI Platform' },
-              { to: '/docs/infrastructure-optimization', label: 'Infrastructure Optimization' },
-              { to: '/docs/operations-observability', label: 'Operations & Observability' },
-              { to: '/docs/security-governance', label: 'Security & Governance' },
               { to: '/docs/aidlc', label: 'AIDLC' },
               { to: '/docs/hybrid-infrastructure', label: 'Hybrid Infrastructure' },
-              { to: '/docs/benchmarks', label: 'Benchmarks' },
+              { to: '/docs/security-governance', label: 'Security & Governance' },
+              { to: '/docs/rosa', label: 'ROSA' },
             ],
           },
+          { to: '/docs/benchmarks', label: 'Benchmarks', position: 'left' },
           { to: '/slides', label: 'Slides', position: 'left' },
           {
             type: 'html',
@@ -204,16 +204,16 @@ const config = {
                 to: '/docs/intro',
               },
               {
+                label: 'EKS Best Practices',
+                to: '/docs/eks-best-practices',
+              },
+              {
                 label: 'Agentic AI Platform',
                 to: '/docs/agentic-ai-platform',
               },
               {
-                label: 'Infrastructure Optimization',
-                to: '/docs/infrastructure-optimization',
-              },
-              {
-                label: 'Operations & Observability',
-                to: '/docs/operations-observability',
+                label: 'AIDLC',
+                to: '/docs/aidlc',
               },
             ],
           },
@@ -221,16 +221,16 @@ const config = {
             title: 'More',
             items: [
               {
+                label: 'Hybrid Infrastructure',
+                to: '/docs/hybrid-infrastructure',
+              },
+              {
                 label: 'Security & Governance',
                 to: '/docs/security-governance',
               },
               {
-                label: 'AIDLC',
-                to: '/docs/aidlc',
-              },
-              {
-                label: 'Hybrid Infrastructure',
-                to: '/docs/hybrid-infrastructure',
+                label: 'ROSA',
+                to: '/docs/rosa',
               },
               {
                 label: 'Benchmarks',
