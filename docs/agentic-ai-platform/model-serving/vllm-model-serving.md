@@ -332,6 +332,10 @@ vllm serve meta-llama/Llama-3.3-70B-Instruct \
 
 이를 통해 하나의 GPU 세트에서 도메인별 특화 모델을 효율적으로 운영할 수 있어 GPU 리소스를 크게 절약합니다.
 
+:::info 상세 가이드
+Multi-LoRA 핫스왑 배포, 고객별 어댑터 라우팅, A/B 테스트 등 상세 구현은 [커스텀 모델 파이프라인 가이드](./custom-model-pipeline.md#3-multi-lora-핫스왑-배포)를 참조하세요.
+:::
+
 ### 프리픽스 캐싱(Prefix Caching)
 
 표준화된 시스템 프롬프트나 반복되는 컨텍스트에서 400% 이상의 활용률 향상을 제공한다.

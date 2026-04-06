@@ -186,6 +186,7 @@ const sidebars = {
           ],
         },
         'agentic-ai-platform/model-serving/glm5-deployment-guide',
+        'agentic-ai-platform/model-serving/custom-model-pipeline',
       ],
     },
     {

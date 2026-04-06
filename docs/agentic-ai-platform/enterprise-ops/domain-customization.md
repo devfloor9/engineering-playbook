@@ -112,42 +112,15 @@ prompt = f"Context: {docs}\n\nQuestion: {query}"
 
 **정의**: 모델 가중치 자체를 도메인 데이터로 조정하여 **도메인 전문가 수준**의 출력을 생성합니다.
 
-**장점**:
-- 일관된 코드 스타일
-- 도메인 용어 정확도 최고
-- 복잡한 패턴 학습 가능
-
-**단점**:
-- GPU 학습 비용 ($2,000)
-- 학습 데이터 수집/정제 필요
-- 모델 배포 복잡도 증가
+**장점**: 일관된 코드 스타일, 도메인 용어 정확도 최고, 복잡한 패턴 학습
+**단점**: GPU 학습 비용 ($2,000), 학습 데이터 수집 필요
 
 :::info Kiro GLM-5 vs 자체 호스팅
-Kiro IDE는 2026년 4월부터 GLM-5를 네이티브 지원하며 즉시 사용 가능합니다. 하지만 Enterprise Ops의 핵심 기능인 **LoRA Fine-tuning, 멀티 고객 LoRA 핫스왑, 컴플라이언스 자체 통제**는 자체 호스팅에서만 가능합니다.
-
-| 요구사항 | Kiro | 자체 호스팅 |
-|---------|------|----------|
-| 코딩 어시스턴트 (범용) | ✅ | ✅ |
-| LoRA Fine-tuning (도메인 특화) | ❌ | ✅ |
-| 멀티 고객 LoRA 핫스왑 | ❌ | ✅ |
-| SOC2/ISO27001 자체 감사 | ❌ | ✅ |
-| VPC 내 데이터 격리 | ❌ | ✅ |
-| Langfuse 자체 모니터링 | ❌ | ✅ |
-
+Kiro IDE는 2026년 4월부터 GLM-5를 네이티브 지원하며 즉시 사용 가능합니다. 하지만 **LoRA Fine-tuning, 멀티 고객 LoRA 핫스왑, 컴플라이언스 자체 통제**는 자체 호스팅에서만 가능합니다.
 **권장**: 프로토타이핑은 Kiro, 프로덕션 도메인 특화는 자체 호스팅
 :::
 
-**예시**:
-```bash
-# QLoRA 학습 (H100×4, 2-3일)
-python train_lora.py \
-  --model meta-llama/Llama-3.3-70B-Instruct \
-  --dataset cobol_to_java_pairs.jsonl \
-  --lora_rank 16 \
-  --lora_alpha 32 \
-  --quantization int4 \
-  --epochs 3
-```
+QLoRA 학습 방법, NeMo/Unsloth 프레임워크, 체크포인트 관리 등 상세 구현은 [커스텀 모델 파이프라인 가이드](../model-serving/custom-model-pipeline.md#2-lora-fine-tuning-파이프라인)를 참조하세요.
 
 ---
 
@@ -303,180 +276,12 @@ graph LR
 
 ---
 
-## LoRA Fine-tuning
+## LoRA Fine-tuning + Multi-LoRA 핫스왑
 
-### QLoRA로 GPU 절감
+LoRA Fine-tuning(QLoRA 포함)과 vLLM Multi-LoRA 핫스왑 배포에 대한 상세 구현 가이드는 다음 문서를 참조하세요:
 
-**QLoRA**(Quantized LoRA)는 INT4 양자화 + LoRA를 결합하여 **GPU 메모리를 1/4로 절감**합니다.
-
-| 모델 | Full Fine-tuning | LoRA | QLoRA |
-|------|-----------------|------|-------|
-| **Llama-3.3-70B** | H100×32 (불가능) | H100×8 | **H100×4** |
-| **VRAM** | 280GB | 80GB | **40GB** |
-| **학습 시간** | - | 5일 | **2-3일** |
-| **비용** | - | $8,000 | **$2,000** |
-
-### 학습 데이터 형식
-
-JSONL 형식으로 입력-출력 쌍을 준비합니다.
-
-```json
-{"input": "COBOL: PERFORM CALC-INTEREST USING WS-PRINCIPAL WS-RATE.", "output": "Java: @Transactional public BigDecimal calcInterest(BigDecimal principal, BigDecimal rate) { return principal.multiply(rate).setScale(2, RoundingMode.HALF_UP); }"}
-{"input": "COBOL: IF WS-CREDIT-SCORE < 600 MOVE 'REJECT' TO WS-RESULT.", "output": "Java: if (creditScore < 600) { result = LoanDecision.REJECT; }"}
-{"input": "COBOL: CALL 'CB-SERVICE' USING WS-SSN WS-CREDIT.", "output": "Java: CreditBureauResponse credit = cbService.getCredit(ssn);"}
-```
-
-### NeMo Framework / Unsloth 활용
-
-#### NeMo Framework (NVIDIA)
-
-```bash
-# NeMo 설치
-pip install nemo_toolkit[all]
-
-# LoRA 학습
-python train_lora.py \
-  --config-path=conf \
-  --config-name=llama3_70b_lora \
-  model.data.train_ds.file_path=cobol_to_java.jsonl \
-  model.peft.lora_tuning.adapter_dim=16
-```
-
-#### Unsloth (2배 빠른 학습)
-
-```python
-from unsloth import FastLanguageModel
-
-model, tokenizer = FastLanguageModel.from_pretrained(
-    model_name="meta-llama/Llama-3.3-70B-Instruct",
-    max_seq_length=4096,
-    load_in_4bit=True,
-)
-
-model = FastLanguageModel.get_peft_model(
-    model,
-    r=16,
-    lora_alpha=32,
-    target_modules=["q_proj", "k_proj", "v_proj"],
-)
-
-trainer = SFTTrainer(
-    model=model,
-    train_dataset=dataset,
-    max_seq_length=4096,
-)
-trainer.train()
-```
-
----
-
-## vLLM Multi-LoRA 핫스왑
-
-vLLM은 **여러 LoRA 어댑터를 동시에 서빙**하며, 요청마다 어댑터를 동적으로 전환합니다.
-
-### 멀티 고객 시나리오
-
-```mermaid
-graph TD
-    G[Gateway] --> V[vLLM Server]
-    
-    V --> B[Base Model: GLM-5-32B]
-    
-    B --> L1[LoRA: 은행-원장]
-    B --> L2[LoRA: 증권-주문]
-    B --> L3[LoRA: 보험-계약]
-    
-    L1 --> |고객A| R1[응답]
-    L2 --> |고객B| R2[응답]
-    L3 --> |고객C| R3[응답]
-    
-    style V fill:#3498db
-    style B fill:#f39c12
-```
-
-### vLLM 설정
-
-```bash
-# vLLM 서버 시작
-vllm serve meta-llama/Llama-3.3-70B-Instruct \
-  --enable-lora \
-  --lora-modules \
-    bank-ledger=/models/lora/bank \
-    stock-order=/models/lora/stock \
-    insurance-contract=/models/lora/insurance \
-  --max-lora-rank 16
-```
-
-### 요청 시 어댑터 지정
-
-```python
-import openai
-
-client = openai.OpenAI(base_url="http://vllm.cluster.local:8000/v1")
-
-# 고객A (은행)
-response = client.chat.completions.create(
-    model="meta-llama/Llama-3.3-70B-Instruct",
-    messages=[{"role": "user", "content": "COBOL 원장 코드를 Java로 변환해줘"}],
-    extra_body={"lora_name": "bank-ledger"}
-)
-
-# 고객B (증권)
-response = client.chat.completions.create(
-    model="meta-llama/Llama-3.3-70B-Instruct",
-    messages=[{"role": "user", "content": "주문 체결 로직 생성"}],
-    extra_body={"lora_name": "stock-order"}
-)
-```
-
-### Bifrost Cascade Routing 연동
-
-```yaml
-apiVersion: gateway.solo.io/v1
-kind: RouteTable
-metadata:
-  name: lora-routing
-spec:
-  routes:
-  - matchers:
-    - headers:
-      - name: X-Customer-Domain
-        value: bank
-    routeAction:
-      single:
-        upstream: vllm-svc
-        responseTransformation:
-          transformationTemplate:
-            headers:
-              X-LoRA-Name:
-                text: "bank-ledger"
-  - matchers:
-    - headers:
-      - name: X-Customer-Domain
-        value: stock
-    routeAction:
-      single:
-        upstream: vllm-svc
-        responseTransformation:
-          transformationTemplate:
-            headers:
-              X-LoRA-Name:
-                text: "stock-order"
-```
-
-:::tip Langfuse로 고객별 추적
-```python
-from langfuse import Langfuse
-
-langfuse = Langfuse()
-trace = langfuse.trace(
-    name="inference",
-    user_id="customer-bank-A",
-    metadata={"lora": "bank-ledger", "model": "llama3.3-70b"}
-)
-```
-이렇게 하면 **고객별 사용량/비용을 추적**할 수 있습니다.
-:::
+- [커스텀 모델 파이프라인 — LoRA Fine-tuning](../model-serving/custom-model-pipeline.md#2-lora-fine-tuning-파이프라인): QLoRA GPU 절감, 학습 데이터 형식, NeMo/Unsloth 프레임워크
+- [커스텀 모델 파이프라인 — Multi-LoRA 핫스왑](../model-serving/custom-model-pipeline.md#3-multi-lora-핫스왑-배포): vLLM 설정, 고객별 어댑터 전환, Bifrost 라우팅 연동
 
 ---
 
@@ -762,70 +567,14 @@ for prompt in adversarial_prompts:
 
 ## Phase별 도입 로드맵
 
-| Phase | 기간 | 구성 | 효과 | 비용 | 액션 |
-|-------|------|------|------|------|------|
-| **Phase 1** | 즉시 | Steering + Playbook | 컴플라이언스 + 기본 품질 | 무료 | spec 파일 작성 |
-| **Phase 2** | 1-2주 | + VectorRAG (Milvus) | 내부 지식 정확도 향상 | 인프라 | 내부 문서 임베딩 |
-| **Phase 3** | 2-4주 | + GraphRAG (Neo4j) | 도메인 관계 이해 | 인프라 | 온톨로지 설계 |
-| **Phase 4** | 1-2개월 | + LoRA Fine-tuning | 도메인 전문성 + 스타일 일관성 | GPU $2K | 학습 데이터 수집 |
+| Phase | 기간 | 구성 | 효과 | 비용 |
+|-------|------|------|------|------|
+| **1** | 즉시 | Steering + Playbook | 컴플라이언스 + 기본 품질 | 무료 |
+| **2** | 1-2주 | + VectorRAG (Milvus) | 내부 지식 정확도 향상 | 인프라 |
+| **3** | 2-4주 | + SLM Cascade | 비용 최적화 (70% 절감) | +$500/월 |
+| **4** | 1-2개월 | + LoRA Fine-tuning | 도메인 전문성 + 스타일 일관성 | GPU $2K |
 
-### Phase 1: Steering (즉시)
-
-```bash
-# 1. spec 파일 작성
-cat > coding-standards.md <<EOF
-# 코딩 컨벤션
-- 클래스명: PascalCase
-- 메서드명: camelCase
-...
-EOF
-
-# 2. Playbook에 포함
-cat > playbook.yaml <<EOF
-system_prompt: |
-  다음 코딩 표준을 준수하세요:
-  {{file: coding-standards.md}}
-EOF
-```
-
-### Phase 2: VectorRAG (1-2주)
-
-```bash
-# 1. Milvus 배포
-helm install milvus milvus/milvus
-
-# 2. 문서 임베딩
-python embed_docs.py --input docs/ --output embeddings.pkl
-
-# 3. Langchain 연동
-python setup_rag.py
-```
-
-### Phase 3: GraphRAG (2-4주)
-
-```bash
-# 1. Neo4j 배포
-helm install neo4j neo4j/neo4j
-
-# 2. 온톨로지 정의
-cypher < ontology.cypher
-
-# 3. 하이브리드 검색
-python setup_hybrid_rag.py
-```
-
-### Phase 4: LoRA Fine-tuning (1-2개월)
-
-```bash
-# 1. 학습 데이터 수집
-python collect_training_data.py --source legacy-code/
-
-# 2. QLoRA 학습
-python train_lora.py --model llama3.3-70b --data training.jsonl
-
-# 3. vLLM 배포
-vllm serve llama3.3-70b --enable-lora --lora-modules my-adapter=/models/lora
-```
+각 Phase별 상세 구현 가이드는 [커스텀 모델 파이프라인 구축 가이드](../model-serving/custom-model-pipeline.md#6-phase별-구축-로드맵)를 참조하세요.
 
 ---
 
