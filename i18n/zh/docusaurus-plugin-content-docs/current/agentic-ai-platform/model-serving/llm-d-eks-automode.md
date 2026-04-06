@@ -210,7 +210,7 @@ llm-d ModelService 以 **DRA（ResourceClaim）** 方式请求 GPU 时，Karpent
 - **不使用 DRA 的部署**（`nvidia.com/gpu` Device Plugin 方式）：Auto Mode 和 Karpenter 正常工作
 - **P6e-GB200 UltraServer**：DRA 必须（Device Plugin 不支持）
 
-详情：[EKS GPU 节点策略 — DRA 工作负载的 MNG 策略](./eks-gpu-node-strategy.md#56-dra-工作负载的-managed-node-group-策略)
+详情：[EKS GPU 节点策略 — DRA 工作负载的 MNG 混合](./eks-gpu-node-strategy.md#53-dra工作负载的mng混合)
 :::
 
 ---

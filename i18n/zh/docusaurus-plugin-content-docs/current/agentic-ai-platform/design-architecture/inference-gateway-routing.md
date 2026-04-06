@@ -443,7 +443,7 @@ response = router.route(prompt="Explain the architecture...")  # → glm-5-744b
 | **IDE（Claude Code）** | 上下文感知 | 开发工具厂商 |
 | **客户端（SDK）** | 灵活性高 | 原型 |
 
-**实战推荐**：自托管环境中以 **kgateway → LLM Classifier → vLLM** 结构部署进行集中路由。开发者只使用单一端点（`/v1`），平台团队管理分类策略。详细部署指南请参阅 [网关配置指南](../reference-architecture/inference-gateway-setup.md#llm-classifier-部署)。
+**实战推荐**：自托管环境中以 **kgateway → LLM Classifier → vLLM** 结构部署进行集中路由。开发者只使用单一端点（`/v1`），平台团队管理分类策略。详细部署指南请参阅 [网关配置指南](../reference-architecture/inference-gateway-setup.md)。
 
 ---
 
@@ -477,7 +477,7 @@ graph TD
 RouteLLM 是研究项目，不推荐 K8s 生产部署。依赖冲突和大镜像（10GB+）是问题。MF classifier **概念**有用，但实战中推荐 **LLM Classifier**（自托管）或 **LiteLLM complexity routing**（外部 Provider）。
 :::
 
-详细部署代码请参阅 [网关配置指南](../reference-architecture/inference-gateway-setup.md#llm-classifier-部署)。
+详细部署代码请参阅 [网关配置指南](../reference-architecture/inference-gateway-setup.md)。
 
 ---
 
