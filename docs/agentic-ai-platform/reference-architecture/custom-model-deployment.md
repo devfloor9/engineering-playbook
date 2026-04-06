@@ -4,7 +4,7 @@ sidebar_label: "모델 배포"
 description: "GLM-5.1 사례 기반 — 대형 오픈소스 모델의 EKS 배포 실전 가이드"
 tags: [deployment, glm-5, vllm, eks, gpu, lws, lessons-learned]
 last_update:
-  date: 2026-04-05
+  date: 2026-04-06
   author: YoungJoon Jeong
 ---
 
@@ -42,6 +42,10 @@ last_update:
 
 :::tip 왜 GLM-5.1을 선택했나?
 MIT 라이선스로 상업적 활용 가능하며, Agentic Coding 작업에서 OpenAI GPT-4o를 능가하는 성능을 보여줍니다. 특히 SWE-bench 스코어가 77.8%로 코드 생성 및 버그 수정 작업에 강점을 보입니다.
+:::
+
+:::info 자동 모델 분기
+LLM Classifier를 사용하면 클라이언트가 단일 엔드포인트(`/v1`)로 요청하고, 프롬프트 내용에 따라 자동으로 SLM/LLM이 선택됩니다. 단순 요청은 Qwen3-4B(L4 $0.3/hr)로, 복잡한 요청(리팩터, 아키텍처, 설계 등)은 GLM-5 744B(H200 $12/hr)로 라우팅됩니다. 구성은 [게이트웨이 구성 가이드](./inference-gateway-setup.md#llm-classifier-배포)를 참조하세요.
 :::
 
 ### 모델 스펙 (GLM-5.1 예시)

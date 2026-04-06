@@ -235,9 +235,9 @@ import { TopologyEffectsTable } from '@site/src/components/InferenceGatewayTable
 
 | 패턴 | 설명 | 구현 | 사용 사례 |
 |------|------|------|----------|
-| **1. Weight 기반** | 고정 비율로 트래픽 분배 | Bifrost `weights: [0.7, 0.3]` | A/B 테스트, 점진적 모델 마이그레이션 |
-| **2. Fallback 기반** | 오류 시 다른 모델로 자동 전환 | Bifrost `fallback: true` | 가용성 향상, rate limit 회피 |
-| **3. 지능형 라우팅** | 요청 분석 후 자동 모델 선택 | LiteLLM/Bifrost/vLLM Semantic Router | 비용 최적화, 품질 유지 |
+| **1. Weight 기반** | 고정 비율로 트래픽 분배 | kgateway `backendRef weight` | A/B 테스트, 점진적 모델 마이그레이션 |
+| **2. Fallback 기반** | 오류 시 다른 모델로 자동 전환 | kgateway retry + 다중 backendRef | 가용성 향상, rate limit 회피 |
+| **3. 지능형 라우팅** | 요청 분석 후 자동 모델 선택 | **LLM Classifier** / LiteLLM / vLLM Semantic Router | 비용 최적화, 품질 유지 |
 
 ```mermaid
 flowchart TB
@@ -255,8 +255,8 @@ flowchart TB
     end
     
     subgraph P3["패턴 3: 지능형 라우팅"]
-        R1[Complexity Router]
-        R2{복잡도 분석}
+        R1[LLM Classifier]
+        R2{프롬프트 분석}
         R3[Strong Model]
         R4[Weak Model]
     end
@@ -275,11 +275,95 @@ flowchart TB
     style P3 fill:#e53935,stroke:#333,color:#fff
 ```
 
-### 지능형 Cascade Routing 구현 방법
+### Request Cascading 실전 구현
 
-지능형 cascade routing은 요청 복잡도를 분석하여 적절한 모델로 자동 라우팅합니다. 구현 방법은 크게 3가지입니다:
+지능형 cascade routing은 요청 복잡도를 분석하여 적절한 모델로 자동 라우팅합니다. 자체 호스팅 환경에서 실제 검증된 접근 방법을 중심으로 설명합니다.
 
-#### 접근 A: LiteLLM 네이티브 (편의성 우선)
+#### 접근 A: LLM Classifier (권장 — 실전 검증)
+
+**LLM Classifier**는 Python FastAPI 기반의 경량 라우터로, 프롬프트 내용을 직접 분석하여 SLM/LLM을 자동 선택합니다. kgateway 뒤에서 ExtProc(External Processing) 또는 독립 서비스로 동작하며, 클라이언트는 단일 엔드포인트(`/v1`)만 사용합니다.
+
+```mermaid
+graph LR
+    Client[Aider/Cline] --> KGW[kgateway NLB]
+    KGW -->|/v1/*| CLS[LLM Classifier<br/>FastAPI]
+    CLS -->|weak: 키워드없음, 500자미만| SLM[Qwen3-4B<br/>L4 $0.3/hr]
+    CLS -->|strong: 리팩터,설계,분석| LLM[GLM-5 744B<br/>H200 $12/hr]
+    CLS -->|OTel| LF[Langfuse]
+    
+    style KGW fill:#326ce5,stroke:#333,color:#fff
+    style CLS fill:#e53935,stroke:#333,color:#fff
+    style SLM fill:#ffd93d,stroke:#333,color:#000
+    style LLM fill:#76b900,stroke:#333,color:#000
+    style LF fill:#9c27b0,stroke:#333,color:#fff
+```
+
+**분류 기준:**
+
+| 기준 | weak (SLM) | strong (LLM) |
+|------|-----------|-------------|
+| **키워드** | 없음 | 리팩터, 아키텍처, 설계, 분석, 디버그, 최적화, 마이그레이션 등 |
+| **입력 길이** | 500자 미만 | 500자 이상 |
+| **대화 턴 수** | 5턴 이하 | 5턴 초과 |
+
+**핵심 분류 로직:**
+
+```python
+STRONG_KEYWORDS = ["리팩터", "아키텍처", "설계", "분석", "최적화", "디버그",
+                   "마이그레이션", "refactor", "architect", "design", "analyze",
+                   "optimize", "debug", "migration", "complex"]
+TOKEN_THRESHOLD = 500
+
+def classify(messages: list[dict]) -> str:
+    content = " ".join(m.get("content", "") for m in messages if m.get("content"))
+    # 키워드 매칭
+    if any(kw in content.lower() for kw in STRONG_KEYWORDS):
+        return "strong"
+    # 입력 길이
+    if len(content) > TOKEN_THRESHOLD:
+        return "strong"
+    # 대화 턴 수
+    if len(messages) > 5:
+        return "strong"
+    return "weak"
+```
+
+**장점**: 클라이언트 수정 불필요, 프롬프트 내용 직접 분석, Langfuse OTel 직접 전송, 배포 간단 (단일 Pod)
+**단점**: 분류 정확도가 휴리스틱에 의존 (ML classifier로 점진적 개선 가능)
+
+:::tip LLM Classifier가 최적인 이유
+표준 OpenAI 호환 클라이언트(Aider, Cline 등)는 **단일 `base_url`만 설정**합니다. LLM Classifier는 이 단일 엔드포인트 뒤에서 프롬프트를 분석하고, 백엔드 vLLM 인스턴스로 직접 프록시합니다. 클라이언트는 모델 선택을 전혀 인식하지 못합니다.
+:::
+
+#### Bifrost 자체 호스팅 Cascade 한계
+
+Bifrost를 자체 호스팅 vLLM cascade에 사용하려 했으나, 다음 한계로 인해 **LLM Classifier로 전환**했습니다:
+
+| 한계 | 설명 |
+|------|------|
+| **provider/model 포맷 강제** | 요청 시 `openai/glm-5` 형태 필수. 표준 OpenAI 클라이언트(Aider 등)는 `model: "auto"` 같은 단일 모델명을 기대 |
+| **provider당 단일 base_url** | 하나의 provider(예: `openai`)에 하나의 `network_config.base_url`만 설정 가능. SLM과 LLM이 다른 Service에 있으면 동일 provider로 라우팅 불가 |
+| **CEL에서 프롬프트 접근 불가** | CEL Rules는 `request.headers`만 접근 가능. 요청 body(프롬프트 내용)를 분석하여 라우팅하는 것이 불가능 |
+| **모델명 정규화 이슈** | 하이픈 제거 등 예측 불가능한 정규화로 vLLM `served-model-name`과 불일치 |
+
+:::warning Bifrost는 외부 LLM 프로바이더 통합에 적합
+Bifrost는 OpenAI/Anthropic/Bedrock 등 **외부 프로바이더 통합**과 **failover**에 최적화되어 있습니다. 자체 호스팅 vLLM 간의 지능형 cascade routing에는 LLM Classifier가 더 적합합니다.
+:::
+
+#### RouteLLM 평가 결과
+
+[RouteLLM](https://github.com/lm-sys/RouteLLM)은 LMSYS가 개발한 오픈소스 라우팅 프레임워크로, Matrix Factorization 기반 분류 모델이 학술적으로 검증되었습니다 (LMSYS Chatbot Arena 데이터 기반 90%+ 정확도).
+
+그러나 K8s 배포 시 다음 이슈가 확인되었습니다:
+
+- **의존성 충돌**: `torch`, `transformers`, `sentence-transformers` 등 대형 의존성 트리가 vLLM 환경과 충돌
+- **컨테이너 크기**: 분류 모델 포함 시 이미지 크기 10GB+ (경량 라우터에 부적합)
+- **배포 불안정**: pip dependency resolution 실패 빈도 높음
+- **유지보수**: 연구 프로젝트 성격으로 프로덕션 지원 부재
+
+**결론**: RouteLLM의 MF classifier **개념**은 유효하지만, 프로덕션 배포에는 **LLM Classifier**(경량 휴리스틱) 또는 **LiteLLM complexity routing**(외부 프로바이더 환경)을 권장합니다.
+
+#### 접근 B: LiteLLM 네이티브 (외부 프로바이더 환경)
 
 LiteLLM은 **complexity-based routing**을 네이티브로 지원합니다. 설정 파일에 1줄만 추가하면 자동으로 요청 복잡도를 분석하여 모델을 선택합니다.
 
@@ -299,93 +383,10 @@ router_settings:
   complexity_threshold: 0.7           # 0.7 이상 → 강력한 모델
 ```
 
-**장점**: 설정 1줄로 활성화, 프롬프트 길이·코드 포함 여부·추론 키워드 자동 분석
-**단점**: Python 기반 낮은 throughput, 복잡도 알고리즘 커스터마이징 불가
+**장점**: 설정 1줄로 활성화, 프롬프트 길이·코드 포함 여부·추론 키워드 자동 분석, 100+ 프로바이더 지원
+**단점**: Python 기반 낮은 throughput, 복잡도 알고리즘 커스터마이징 불가, 자체 호스팅 vLLM에서는 오버헤드
 
-#### 접근 B: Bifrost CEL Rules + 외부 Classifier (성능 우선)
-
-Bifrost는 **CEL (Common Expression Language) Rules**를 사용하여 헤더 기반 조건부 라우팅을 수행합니다. 복잡도 분석은 **애플리케이션 레벨**에서 수행하고, 결과를 `x-complexity-score` 헤더로 전달하면 Bifrost가 CEL rule로 모델을 선택합니다.
-
-```yaml
-# Bifrost 설정 (config.yaml)
-routes:
-  - path: /v1/chat/completions
-    rules:
-      - condition: 'request.headers["x-complexity-score"] > 0.7'
-        backend: gpt-4-turbo
-      - condition: 'request.headers["x-complexity-score"] <= 0.7'
-        backend: gpt-3.5-turbo
-    fallback: gpt-4-turbo  # CEL rule 실패 시
-```
-
-애플리케이션에서 복잡도 점수를 계산하여 헤더로 전달:
-
-```python
-# 클라이언트 코드 (예: Python)
-import openai
-
-def calculate_complexity(prompt: str) -> float:
-    # 간단한 휴리스틱 (실전에서는 ML 모델 사용)
-    score = 0.0
-    if len(prompt) > 500: score += 0.3
-    if "explain" in prompt or "analyze" in prompt: score += 0.4
-    if "```" in prompt: score += 0.3  # 코드 포함
-    return min(score, 1.0)
-
-prompt = "Analyze this complex algorithm and explain..."
-complexity_score = calculate_complexity(prompt)
-
-response = openai.ChatCompletion.create(
-    model="auto",  # Bifrost가 실제 모델 선택
-    messages=[{"role": "user", "content": prompt}],
-    headers={"x-complexity-score": str(complexity_score)}
-)
-```
-
-**장점**: 50x 빠른 throughput, 복잡도 알고리즘 완전 제어, Go/Rust 성능
-**단점**: 애플리케이션 레벨 classifier 개발 필요 (단, 간단한 휴리스틱으로도 충분한 경우 많음)
-
-#### 접근 C: Bifrost Go Plugin (완전 통합)
-
-Bifrost는 Go Plugin을 통해 **Gateway 내부에서 직접 복잡도 분석**을 수행할 수 있습니다. `PreLLMHook` 인터페이스를 구현하여 요청을 가로채고, 복잡도를 분석한 뒤 적절한 백엔드로 라우팅합니다.
-
-```go
-// complexity_plugin.go (Bifrost Plugin)
-package main
-
-import (
-    "strings"
-    "github.com/bifrost/sdk"
-)
-
-type ComplexityRouter struct{}
-
-func (c *ComplexityRouter) PreLLMHook(req *sdk.LLMRequest) (*sdk.RouteDecision, error) {
-    score := c.analyzeComplexity(req.Prompt)
-    
-    if score > 0.7 {
-        return &sdk.RouteDecision{Backend: "gpt-4-turbo"}, nil
-    }
-    return &sdk.RouteDecision{Backend: "gpt-3.5-turbo"}, nil
-}
-
-func (c *ComplexityRouter) analyzeComplexity(prompt string) float64 {
-    score := 0.0
-    if len(prompt) > 500 { score += 0.3 }
-    if strings.Contains(prompt, "explain") { score += 0.4 }
-    if strings.Contains(prompt, "```") { score += 0.3 }
-    return score
-}
-
-func main() {
-    sdk.RegisterPlugin(&ComplexityRouter{})
-}
-```
-
-**장점**: Gateway 레벨 통합, 클라이언트 수정 불필요, 고성능
-**단점**: Go 플러그인 개발 필요, Bifrost 전용
-
-#### 접근 D: vLLM Semantic Router (vLLM 전용)
+#### 접근 C: vLLM Semantic Router (vLLM 전용)
 
 vLLM 환경에서는 **vLLM Semantic Router**를 사용하여 경량 임베딩 기반 라우팅을 수행할 수 있습니다. 사전 정의된 "카테고리"에 임베딩을 매칭하여 모델을 선택합니다.
 
@@ -399,7 +400,7 @@ router = SemanticRouter(
         "complex": ["explain in detail", "analyze", "step by step"]
     },
     models={
-        "simple": "qwen3-coder-3b",
+        "simple": "qwen3-4b",
         "complex": "glm-5-744b"
     },
     threshold=0.85
@@ -412,31 +413,14 @@ response = router.route(prompt="Explain the architecture...")  # → glm-5-744b
 **장점**: vLLM 네이티브, 경량 임베딩 사용 (추론 지연 < 5ms), 설정 간단
 **단점**: vLLM 전용, 카테고리 사전 정의 필요
 
-### Hybrid Routing 패턴 (Rule-based + ML-based)
+### Cascade Routing 구현 방법 선택 가이드
 
-실전에서는 **Rule-based Fast Path (80%)** + **ML-based Slow Path (20%)** 조합이 효과적입니다. 간단한 휴리스틱으로 대부분을 처리하고, 애매한 케이스만 ML 모델로 분류합니다.
-
-```yaml
-# LiteLLM Hybrid Routing 예시
-router_settings:
-  routing_strategy: hybrid
-  
-  # Fast Path: 간단한 규칙 (80% 트래픽)
-  fast_rules:
-    - condition: 'len(prompt) < 100'
-      model: gpt-3.5-turbo
-    - condition: '"code" in prompt or "```" in prompt'
-      model: gpt-4o
-  
-  # Slow Path: ML 분류 (20% 트래픽)
-  ml_classifier:
-    model: complexity-classifier  # 경량 BERT 모델
-    threshold: 0.7
-    fallback: gpt-4-turbo
-```
-
-**장점**: 80% 요청은 즉시 처리 (< 1ms 오버헤드), 20%만 ML 추론 (5-10ms)
-**효과**: 평균 레이턴시 < 2ms, 비용 절감 ~70%
+| 환경 | 권장 접근 | 이유 |
+|------|----------|------|
+| **자체 호스팅 vLLM (Aider/Cline)** | **LLM Classifier** | 프롬프트 직접 분석, 단일 엔드포인트, 클라이언트 수정 불필요 |
+| **외부 프로바이더 (OpenAI/Anthropic)** | **LiteLLM** | 100+ 프로바이더 네이티브, complexity routing 1줄 |
+| **vLLM 단독 + 임베딩 가용** | **vLLM Semantic Router** | vLLM 네이티브, 경량 |
+| **하이브리드 (외부 + 자체)** | **LLM Classifier + LiteLLM** | 자체는 Classifier, 외부는 LiteLLM |
 
 ### Cascade Routing 전략 (Fallback 기반)
 
@@ -446,17 +430,20 @@ router_settings:
 
 일 10,000 요청 시나리오: Simple(50% GPT-3.5 $2.5) + Medium(30% Haiku $2.4) + Complex(15% GPT-4o $3.75) + Very Complex(5% GPT-4 Turbo $5) = **$13.65/일**. 모든 요청을 GPT-4 Turbo로 처리 시 $50/일 대비 **73% 절감**.
 
+**자체 호스팅 LLM Classifier 시나리오**: Qwen3-4B(70% weak, L4 $0.3/hr) + GLM-5 744B(30% strong, H200 $12/hr) = **월 $3,020** (GLM-5 단독 $8,900 대비 **66% 절감**).
+
 ### 엔터프라이즈 모델 라우팅 패턴
 
 **구현 위치 우선순위**: Gateway > IDE > 클라이언트
 
 | 위치 | 장점 | 적합 환경 |
 |------|------|----------|
-| **Gateway (Bifrost/LiteLLM)** | 중앙 통제, 정책 일관성 | 엔터프라이즈 **(권장)** |
+| **Gateway (LLM Classifier)** | 프롬프트 분석, 중앙 통제, 클라이언트 무수정 | 자체 호스팅 **(권장)** |
+| **Gateway (LiteLLM/Bifrost)** | 멀티 프로바이더, 정책 일관성 | 외부 프로바이더 |
 | **IDE (Claude Code)** | 컨텍스트 인식 | 개발 도구 벤더 |
 | **클라이언트 (SDK)** | 유연성 높음 | 프로토타입 |
 
-**실전 권장**: LiteLLM 또는 Bifrost를 Inference Gateway에 배포하여 중앙에서 라우팅. 개발자는 단일 엔드포인트만 사용, 플랫폼 팀이 정책 관리.
+**실전 권장**: 자체 호스팅 환경에서는 **kgateway → LLM Classifier → vLLM** 구조로 배포하여 중앙에서 라우팅. 개발자는 단일 엔드포인트(`/v1`)만 사용하고, 플랫폼 팀이 분류 정책을 관리합니다. 상세 배포 가이드는 [게이트웨이 구성 가이드](../reference-architecture/inference-gateway-setup.md#llm-classifier-배포)를 참조하세요.
 
 ---
 
@@ -466,9 +453,9 @@ router_settings:
 
 ```mermaid
 graph TD
-    Req[요청] --> Router[Complexity Router<br/>분류 모델]
-    Router -->|복잡도 > 0.7<br/>복잡한 추론 필요| LLM[Strong Model<br/>GLM-5 744B<br/>Reasoning]
-    Router -->|복잡도 ≤ 0.7<br/>단순 응답| SLM[Weak Model<br/>Qwen3-Coder 3B<br/>빠른 응답]
+    Req[요청] --> Router[LLM Classifier<br/>프롬프트 분석]
+    Router -->|strong: 리팩터,설계,분석<br/>500자이상, 5턴초과| LLM[Strong Model<br/>GLM-5 744B<br/>H200 $12/hr]
+    Router -->|weak: 단순 질의<br/>500자미만, 5턴이하| SLM[Weak Model<br/>Qwen3-4B<br/>L4 $0.3/hr]
     LLM --> Resp[응답]
     SLM --> Resp
     
@@ -477,19 +464,20 @@ graph TD
     style SLM fill:#76b900,stroke:#333,color:#000
 ```
 
-| 항목 | 설명 |
-|------|------|
-| **분류 모델** | Matrix Factorization (MF) — 경량 임베딩 기반 복잡도 예측 |
-| **입력** | 사용자 프롬프트 + 대화 히스토리 |
-| **출력** | Strong/Weak 선택 결정 + 신뢰도 점수 |
-| **지연** | 추가 지연 < 10ms (분류 모델 추론 시간) |
-| **정확도** | LMSYS Chatbot Arena 데이터 기반 학습, 90%+ 정확도 |
+| 항목 | RouteLLM (연구) | LLM Classifier (실전) |
+|------|----------------|---------------------|
+| **분류 방식** | Matrix Factorization 임베딩 | 키워드 + 토큰 길이 + 대화 턴 수 |
+| **입력** | 사용자 프롬프트 + 대화 히스토리 | 동일 |
+| **출력** | Strong/Weak + 신뢰도 점수 | Strong/Weak |
+| **추가 지연** | < 10ms (MF 추론) | < 1ms (규칙 기반) |
+| **의존성** | torch, transformers, sentence-transformers | FastAPI, httpx (경량) |
+| **K8s 배포** | 불안정 (의존성 충돌) | 안정 (50MB 이미지) |
 
 :::warning RouteLLM 프로덕션 배포 주의
-RouteLLM은 연구 프로젝트로, 프로덕션 직접 배포는 권장하지 않습니다. MF classifier 개념은 유용하지만, 실전에서는 **LiteLLM complexity routing** (네이티브 지원) 또는 **Bifrost CEL Rules** (고성능)를 사용하는 것이 더 안정적입니다.
+RouteLLM은 연구 프로젝트로, K8s 프로덕션 배포는 권장하지 않습니다. 의존성 충돌과 대형 이미지 크기(10GB+)가 문제입니다. MF classifier **개념**은 유용하지만, 실전에서는 **LLM Classifier**(자체 호스팅) 또는 **LiteLLM complexity routing**(외부 프로바이더)을 권장합니다.
 :::
 
-상세 배포 코드는 [게이트웨이 구성 가이드](../reference-architecture/inference-gateway-setup.md)를 참조하세요.
+상세 배포 코드는 [게이트웨이 구성 가이드](../reference-architecture/inference-gateway-setup.md#llm-classifier-배포)를 참조하세요.
 
 ---
 
