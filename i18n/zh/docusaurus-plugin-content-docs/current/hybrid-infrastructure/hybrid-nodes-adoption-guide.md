@@ -1,115 +1,114 @@
 ---
-title: "EKS Hybrid Nodes 完整指南"
-sidebar_label: "1. Hybrid Nodes Complete Guide"
-description: "Amazon EKS Hybrid Nodes 采用完整指南：架构、配置、网络、DNS、GPU 服务器、成本分析和动态资源分配 (DRA)"
+title: "EKS Hybrid Nodes Complete Guide"
+sidebar_label: "Hybrid Nodes Complete Guide"
+description: "A complete guide for adopting Amazon EKS Hybrid Nodes: architecture, configuration, networking, DNS, GPU servers, cost analysis, and Dynamic Resource Allocation (DRA)"
 tags: [eks, hybrid-nodes, nodeadm, kubernetes, harbor, networking, dns, gpu, dra, cost-optimization, architecture]
 category: "hybrid-multicloud"
-sidebar_position: 1
 last_update:
   date: 2026-02-14
   author: devfloor9
 ---
 
-# EKS Hybrid Nodes 完整指南
+# EKS Hybrid Nodes Complete Guide
 
-> 📅 **撰写日期**: 2025-08-20 | **修改日期**: 2026-02-14 | ⏱️ **阅读时间**: 约 6 分钟
+> **Created**: 2025-08-20 | **Updated**: 2026-02-14 | **Reading time**: ~8 min
 
-## 目录
+## Table of Contents
 
-1. [概述](#概述)
-2. [前提条件](#前提条件)
-3. [网络与 DNS 配置](#网络与-dns-配置)
-4. [Harbor 私有镜像仓库安装](#harbor-私有镜像仓库安装)
-5. [EKS Hybrid Nodes 配置](#eks-hybrid-nodes-配置)
-6. [Harbor 与 EKS 集成](#harbor-与-eks-集成)
-7. [GPU 服务器集成](#gpu-服务器集成)
-8. [成本分析与优化](#成本分析与优化)
-9. [动态资源分配 (DRA)](#动态资源分配-dra)
-10. [运维与维护](#运维与维护)
+1. [Overview](#overview)
+2. [Prerequisites](#prerequisites)
+3. [Networking and DNS Configuration](#networking-and-dns-configuration)
+4. [Harbor Private Registry Installation](#harbor-private-registry-installation)
+5. [EKS Hybrid Nodes Configuration](#eks-hybrid-nodes-configuration)
+6. [Harbor and EKS Integration](#harbor-and-eks-integration)
+7. [GPU Server Integration](#gpu-server-integration)
+8. [Cost Analysis and Optimization](#cost-analysis-and-optimization)
+9. [Dynamic Resource Allocation (DRA)](#dynamic-resource-allocation-dra)
+10. [Operations and Maintenance](#operations-and-maintenance)
 
-## 概述
+## Overview
 
-本指南提供了 Amazon EKS Hybrid Nodes 的完整采用方法。EKS Hybrid Nodes 于 2024 年 12 月正式发布，支持将本地基础设施与 AWS EKS 进行统一管理，允许在单个 Kubernetes 集群内管理高性能 GPU 服务器和云资源。
+This guide provides a complete adoption methodology for Amazon EKS Hybrid Nodes. Officially launched in December 2024, EKS Hybrid Nodes enables unified management of on-premises infrastructure and AWS EKS, allowing you to manage high-performance GPU servers and cloud resources within a single Kubernetes cluster.
 
-**主要特性：**
+**Key Features:**
 
-- 本地与云端统一管理
-- Harbor 2.13 私有镜像仓库集成
-- H100 GPU 服务器支持
-- 动态资源分配 (DRA)
-- 灵活的工作负载调度
+- Unified management of on-premises and cloud resources
+- Harbor 2.13 private registry integration
+- H100 GPU server support
+- Dynamic Resource Allocation (DRA)
+- Flexible workload placement
 
-## 前提条件
+## Prerequisites
 
-### 系统要求
+### System Requirements
 
-**本地节点：**
+**On-premises Nodes:**
 
-- 操作系统：Ubuntu 20.04/22.04/24.04 LTS 或 RHEL 8/9
-- Docker Engine 20.10.10+（用于 Harbor）
-- 容器运行时：containerd 1.6.x 或更高版本
-- 最低硬件要求：2 CPU 核心，4GB RAM
+- Operating System: Ubuntu 20.04/22.04/24.04 LTS or RHEL 8/9
+- Docker Engine 20.10.10+ (for Harbor)
+- Container Runtime: containerd 1.6.x or higher
+- Minimum Hardware: 2 CPU cores, 4GB RAM
 
-**GPU 服务器（可选）：**
+**GPU Servers (Optional):**
 
-- NVIDIA 驱动 550.x 或更高版本
+- NVIDIA Driver 550.x or higher
 - NVIDIA Container Toolkit
-- H100/H200 GPU 支持
+- H100/H200 GPU support
 
-### 网络要求
+### Network Requirements
 
-| 项目 | 要求 |
-|------|------|
-| 带宽 | 最低 10Gbps（Direct Connect 或 VPN） |
-| 延迟 | 建议 5ms 以下 |
-| MTU | 建议 Jumbo Frame (9000) |
+| Item | Requirement |
+|------|-------------|
+| Bandwidth | Minimum 10Gbps (Direct Connect or VPN) |
+| Latency | Recommended under 5ms |
+| MTU | Jumbo Frame (9000) recommended |
 
-## 网络与 DNS 配置
+## Networking and DNS Configuration
 
-### 所需防火墙设置
+### Required Firewall Settings
 
-配置本地与 AWS 之间所需的防火墙端口：
+Firewall port configuration required between on-premises and AWS:
 
-| 协议 | 端口 | 方向 | 用途 |
-|------|------|------|------|
-| TCP | 443 | 双向 | Kubernetes API 服务器通信 |
-| TCP | 10250 | 本地 → AWS | Kubelet API |
-| TCP/UDP | 53 | 双向 | DNS 查询 |
-| TCP | 6443 | 本地 → AWS | Kubernetes API（备选） |
+| Protocol | Port | Direction | Purpose |
+|----------|------|-----------|---------|
+| TCP | 443 | Bidirectional | Kubernetes API server communication |
+| TCP | 10250 | On-premises → AWS | Kubelet API |
+| TCP/UDP | 53 | Bidirectional | DNS lookups |
+| TCP | 6443 | On-premises → AWS | Kubernetes API (alternative) |
 
-### Pod CIDR 防火墙配置
+### Pod CIDR Firewall Configuration
 
-:::tip 建议
-建议在防火墙中注册整个 Pod CIDR 范围。
+:::tip Recommendation
+It is recommended to register the entire Pod CIDR range in the firewall.
 :::
 
-**配置方法：**
+**Configuration Methods:**
 
-- **完整 CIDR 注册（推荐）**：例如 `10.244.0.0/16`
-  - 灵活适应动态 Pod IP 分配
-  - Pod 扩展时无需额外防火墙设置
-  - 降低管理复杂度
+- **Register entire CIDR (recommended)**: e.g., `10.244.0.0/16`
+  - Flexible handling of dynamic Pod IP allocation
+  - No additional firewall configuration needed during Pod scaling
+  - Reduced management complexity
 
-- **仅固定 IP Worker 节点（不推荐）**：
-  - 每当 Pod IP 变更时需更新防火墙规则
-  - 增加运维复杂度
-  - 增加服务中断风险
+- **Register only static worker node IPs (not recommended)**:
+  - Firewall rules must be updated whenever Pod IPs change
+  - Increased operational complexity
+  - Increased risk of service disruption
 
-### Istio + Calico CNI 混合模式
+### Istio + Calico CNI Mixed Mode
 
-同时使用 Istio 服务网格和 Calico CNI 时的额外端口配置：
+Additional port configuration when using Istio service mesh with Calico CNI:
 
-| 组件 | 端口 | 用途 |
-|------|------|------|
-| Envoy Proxy | 15001 | 出站流量 |
-| Envoy Proxy | 15006 | 入站流量 |
-| Pilot | 15010 | xDS 服务器 |
-| Istio Telemetry | 15004 | Mixer 策略 |
-| Calico BGP | 179 | BGP 对等 |
-| Calico Felix | 9099 | 指标 |
+| Component | Port | Purpose |
+|-----------|------|---------|
+| Envoy Proxy | 15001 | Outbound traffic |
+| Envoy Proxy | 15006 | Inbound traffic |
+| Pilot | 15010 | xDS server |
+| Istio Telemetry | 15004 | Mixer policy |
+| Calico BGP | 179 | BGP peering |
+| Calico Felix | 9099 | Metrics |
 
 ```bash
-# 防火墙规则示例（AWS Security Group）
+# Firewall rule examples (AWS Security Group)
 aws ec2 authorize-security-group-ingress \
   --group-id sg-hybrid-nodes \
   --protocol tcp \
@@ -123,14 +122,14 @@ aws ec2 authorize-security-group-ingress \
   --source-group sg-hybrid-nodes
 ```
 
-### DNS 配置
+### DNS Configuration
 
-#### Route 53 Resolver Inbound Endpoint（本地 → AWS）
+#### Route 53 Resolver Inbound Endpoint (On-premises → AWS)
 
-**用途**：使本地服务器能够查询 AWS 内部域名
+**Purpose**: Allow on-premises servers to resolve AWS internal domains
 
 ```bash
-# 创建 Route 53 Resolver Inbound Endpoint
+# Create Route 53 Resolver Inbound Endpoint
 aws route53resolver create-resolver-endpoint \
   --creator-request-id unique-id-123 \
   --name hybrid-inbound-endpoint \
@@ -140,7 +139,7 @@ aws route53resolver create-resolver-endpoint \
               SubnetId=subnet-yyyyy,Ip=10.0.2.100
 ```
 
-**本地 DNS 配置（示例：BIND）：**
+**On-premises DNS configuration (e.g., BIND):**
 
 ```bash
 # /etc/named.conf
@@ -151,12 +150,12 @@ zone "eks.amazonaws.com" {
 };
 ```
 
-#### Route 53 Resolver Outbound Endpoint（AWS → 本地）
+#### Route 53 Resolver Outbound Endpoint (AWS → On-premises)
 
-**用途**：使 AWS Worker 节点能够查询本地内部域名
+**Purpose**: Allow AWS worker nodes to resolve on-premises internal domains
 
 ```bash
-# 创建 Outbound Endpoint
+# Create Outbound Endpoint
 aws route53resolver create-resolver-endpoint \
   --creator-request-id unique-id-456 \
   --name hybrid-outbound-endpoint \
@@ -165,7 +164,7 @@ aws route53resolver create-resolver-endpoint \
   --ip-addresses SubnetId=subnet-xxxxx \
               SubnetId=subnet-yyyyy
 
-# 创建 Resolver 规则
+# Create Resolver Rule
 aws route53resolver create-resolver-rule \
   --creator-request-id unique-id-789 \
   --name on-prem-dns-rule \
@@ -175,49 +174,49 @@ aws route53resolver create-resolver-rule \
   --resolver-endpoint-id rslvr-out-xxxxx
 ```
 
-#### 双向 DNS 查询验证
+#### Bidirectional DNS Resolution Verification
 
 ```bash
-# 从本地查询 AWS 域名
+# Resolve AWS domain from on-premises
 dig @10.0.1.100 my-service.eks.amazonaws.com
 
-# 从 AWS 查询本地域名
+# Resolve on-premises domain from AWS
 dig harbor.company.local
 ```
 
-### CIDR 设计
+### CIDR Design
 
-#### CIDR 设计原则
+#### CIDR Design Principles
 
-**AWS VPC CIDR：**
+**AWS VPC CIDR:**
 
-- 主要：`10.0.0.0/16`（65,536 个 IP）
-- 辅助（如需要）：`10.1.0.0/16`
+- Primary: `10.0.0.0/16` (65,536 IPs)
+- Secondary (if needed): `10.1.0.0/16`
 
-**本地 CIDR：**
+**On-premises CIDR:**
 
-- 现有网络：`192.168.0.0/16`
-- Pod CIDR：`10.244.0.0/16`
-- Service CIDR：`10.96.0.0/16`
+- Existing network: `192.168.0.0/16`
+- Pod CIDR: `10.244.0.0/16`
+- Service CIDR: `10.96.0.0/16`
 
-**防止地址重叠：**
+**Overlap Prevention:**
 
 ```bash
-# 检查 CIDR 重叠
+# Check for CIDR overlap
 aws ec2 describe-vpcs --query 'Vpcs[*].CidrBlock'
-# 检查本地路由表
+# Check on-premises routing table
 ip route show
 ```
 
-#### 路由配置
+#### Routing Configuration
 
 ```bash
-# 创建 AWS Transit Gateway
+# Create AWS Transit Gateway
 aws ec2 create-transit-gateway \
   --description "Hybrid connectivity" \
   --options AmazonSideAsn=64512,AutoAcceptSharedAttachments=enable
 
-# 创建 VPN 连接
+# Create VPN connection
 aws ec2 create-vpn-connection \
   --type ipsec.1 \
   --customer-gateway-id cgw-xxxxx \
@@ -225,39 +224,39 @@ aws ec2 create-vpn-connection \
   --options TunnelInsideIpVersion=ipv4,TunnelOptions=[{TunnelInsideCidr=169.254.10.0/30}]
 ```
 
-## Harbor 私有镜像仓库安装
+## Harbor Private Registry Installation
 
-### 下载 Harbor 2.13.2
+### Download Harbor 2.13.2
 
 ```bash
-# 下载 Harbor 2.13.2（最新稳定版）
+# Download Harbor 2.13.2 (latest stable version)
 wget https://github.com/goharbor/harbor/releases/download/v2.13.2/harbor-offline-installer-v2.13.2.tgz
 
-# 解压归档文件
+# Extract
 tar xvf harbor-offline-installer-v2.13.2.tgz
 cd harbor
 ```
 
-### SSL/TLS 证书配置
+### SSL/TLS Certificate Configuration
 
-#### 生成自签名证书
+#### Generate Self-Signed Certificates
 
 ```bash
-# 1. 生成 CA 证书
+# 1. Generate CA certificate
 openssl genrsa -out ca.key 4096
 openssl req -x509 -new -nodes -sha512 -days 3650 \
   -key ca.key \
   -out ca.crt \
-  -subj "/C=US/ST=California/L=San Francisco/O=MyOrganization/CN=Harbor-CA"
+  -subj "/C=KR/ST=Seoul/L=Seoul/O=MyOrganization/CN=Harbor-CA"
 
-# 2. 生成服务器证书
+# 2. Generate server certificate
 openssl genrsa -out harbor.key 4096
 openssl req -new -sha512 \
   -key harbor.key \
   -out harbor.csr \
-  -subj "/C=US/ST=California/L=San Francisco/O=MyOrganization/CN=harbor.yourdomain.com"
+  -subj "/C=KR/ST=Seoul/L=Seoul/O=MyOrganization/CN=harbor.yourdomain.com"
 
-# 3. 创建 v3.ext 文件（SAN 配置）
+# 3. Create v3.ext file (SAN configuration)
 cat > v3.ext <<EOF
 authorityKeyIdentifier=keyid,issuer
 basicConstraints=CA:FALSE
@@ -271,43 +270,43 @@ DNS.2=yourdomain.com
 IP.1=192.168.1.100
 EOF
 
-# 4. 签署证书
+# 4. Sign the certificate
 openssl x509 -req -sha512 -days 3650 \
   -extfile v3.ext \
   -CA ca.crt -CAkey ca.key -CAcreateserial \
   -in harbor.csr \
   -out harbor.crt
 
-# 5. 创建证书目录并复制文件
+# 5. Create certificate directory and copy files
 mkdir -p /data/cert
 cp harbor.crt /data/cert/
 cp harbor.key /data/cert/
 ```
 
-### Harbor 配置文件设置
+### Harbor Configuration File Setup
 
 ```bash
-# 复制并编辑 harbor.yml 文件
+# Copy and edit harbor.yml
 cp harbor.yml.tmpl harbor.yml
 vi harbor.yml
 ```
 
-关键配置内容：
+Key configuration settings:
 
 ```yaml
-# 主机名设置
+# Hostname setting
 hostname: harbor.yourdomain.com
 
-# HTTPS 配置
+# HTTPS configuration
 https:
   port: 443
   certificate: /data/cert/harbor.crt
   private_key: /data/cert/harbor.key
 
-# Harbor 管理员密码
+# Harbor admin password
 harbor_admin_password: Harbor12345!
 
-# 数据库配置
+# Database settings
 database:
   password: root123
   max_idle_conns: 100
@@ -315,10 +314,10 @@ database:
   conn_max_lifetime: 5m
   conn_max_idle_time: 0
 
-# 数据存储路径
+# Data storage path
 data_volume: /data
 
-# 日志配置
+# Log settings
 log:
   level: info
   local:
@@ -326,37 +325,37 @@ log:
     rotate_size: 200M
     location: /var/log/harbor
 
-# Trivy 漏洞扫描器配置
+# Trivy vulnerability scanner settings
 trivy:
   ignore_unfixed: false
   skip_update: false
   offline_scan: false
   insecure: false
 
-# 指标配置
+# Metrics settings
 metric:
   enabled: true
   port: 9090
   path: /metrics
 ```
 
-### Harbor 安装
+### Run Harbor Installation
 
 ```bash
-# 运行安装准备脚本
+# Run preparation script
 sudo ./prepare
 
-# 安装 Harbor（包含 Trivy）
+# Install Harbor (with Trivy)
 sudo ./install.sh --with-trivy
 
-# 验证安装
+# Verify installation
 docker-compose ps
 ```
 
-### 创建 Robot 账户
+### Create Robot Account
 
 ```bash
-# 通过 Harbor UI 创建或使用 API
+# Create via Harbor UI or API
 curl -X POST "https://harbor.yourdomain.com/api/v2.0/robots" \
   -H "Content-Type: application/json" \
   -u "admin:Harbor12345!" \
@@ -381,36 +380,36 @@ curl -X POST "https://harbor.yourdomain.com/api/v2.0/robots" \
   }'
 ```
 
-## EKS Hybrid Nodes 配置
+## EKS Hybrid Nodes Configuration
 
-### 安装 nodeadm
+### Install nodeadm
 
 ```bash
-# x86_64 架构
+# For x86_64 architecture
 curl -OL 'https://hybrid-assets.eks.amazonaws.com/releases/latest/bin/linux/amd64/nodeadm'
 
-# ARM 架构（如需要）
+# For ARM architecture (if needed)
 # curl -OL 'https://hybrid-assets.eks.amazonaws.com/releases/latest/bin/linux/arm64/nodeadm'
 
-# 授予执行权限
+# Grant execute permission
 chmod +x nodeadm
 sudo mv nodeadm /usr/local/bin/
 
-# 验证版本
+# Verify version
 nodeadm version
 ```
 
-### 安装所需组件
+### Install Required Components
 
 ```bash
-# 安装 Kubernetes 1.33 支持组件
+# Install Kubernetes 1.33 support components
 sudo nodeadm install 1.33 --credential-provider ssm
 
-# 或使用 IAM Roles Anywhere 时
+# Or when using IAM Roles Anywhere
 # sudo nodeadm install 1.33 --credential-provider iam-ra
 ```
 
-### 创建 NodeConfig 文件
+### Create NodeConfig File
 
 ```yaml
 # nodeconfig.yaml
@@ -419,15 +418,15 @@ kind: NodeConfig
 spec:
   cluster:
     name: my-hybrid-cluster
-    region: ap-northeast-2
+    region: ap-northeast-2  # Seoul Region
 
-  # 使用 SSM 的混合节点配置
+  # Hybrid node configuration using SSM
   hybrid:
     ssm:
       activationCode: "YOUR-ACTIVATION-CODE"
       activationId: "YOUR-ACTIVATION-ID"
 
-  # Containerd 配置（Harbor 镜像仓库设置）
+  # Containerd configuration (Harbor registry settings)
   containerd:
     config: |
       version = 2
@@ -450,7 +449,7 @@ spec:
               ca_file = "/etc/ssl/certs/harbor-ca.crt"
               insecure_skip_verify = false
 
-  # Kubelet 配置
+  # Kubelet settings
   kubelet:
     config:
       shutdownGracePeriod: 30s
@@ -459,39 +458,39 @@ spec:
       - --node-labels=node-type=hybrid,registry=harbor
 ```
 
-### 安装证书
+### Install Certificates
 
 ```bash
-# 将 CA 证书添加到系统信任存储
+# Add CA certificate to system trust store
 sudo cp ca.crt /usr/local/share/ca-certificates/harbor-ca.crt
 sudo update-ca-certificates
 
-# 为 containerd 创建证书目录
+# Create certificate directory for Containerd
 sudo mkdir -p /etc/containerd/certs.d/harbor.yourdomain.com
 
-# 复制证书
+# Copy certificate
 sudo cp ca.crt /etc/containerd/certs.d/harbor.yourdomain.com/ca.crt
 
-# 重启 containerd
+# Restart Containerd
 sudo systemctl restart containerd
 ```
 
-### 节点初始化
+### Initialize Node
 
 ```bash
-# 使用 NodeConfig 初始化节点
+# Initialize node using NodeConfig
 sudo nodeadm init --config-source file://nodeconfig.yaml
 
-# 验证节点状态
+# Verify node status
 kubectl get nodes
 ```
 
-## Harbor 与 EKS 集成
+## Harbor and EKS Integration
 
-### 网络配置
+### Network Configuration
 
 ```bash
-# 允许 EKS 节点访问 Harbor 安全组
+# Allow EKS node access to Harbor security group
 aws ec2 authorize-security-group-ingress \
   --group-id sg-harbor-xxxxx \
   --protocol tcp \
@@ -500,13 +499,13 @@ aws ec2 authorize-security-group-ingress \
   --region ap-northeast-2
 ```
 
-### CoreDNS 配置
+### CoreDNS Configuration
 
 ```yaml
-# 修改 CoreDNS ConfigMap
+# Modify CoreDNS ConfigMap
 kubectl edit configmap coredns -n kube-system
 
-# 添加以下内容
+# Add the following content
 data:
   Corefile: |
     .:53 {
@@ -516,7 +515,7 @@ data:
           pods insecure
           fallthrough in-addr.arpa ip6.arpa
         }
-        # 添加 Harbor DNS
+        # Add Harbor DNS
         hosts {
           192.168.1.100 harbor.yourdomain.com
           fallthrough
@@ -530,22 +529,22 @@ data:
     }
 ```
 
-### 创建 Kubernetes Secret
+### Create Kubernetes Secret
 
 ```bash
-# 测试 docker 登录
+# Test Docker login
 docker login harbor.yourdomain.com
 Username: robot$k8s-robot
 Password: YOUR-ROBOT-TOKEN
 
-# 创建 Kubernetes Secret
+# Create Kubernetes Secret
 kubectl create secret docker-registry harbor-registry \
   --docker-server=harbor.yourdomain.com \
   --docker-username='robot$k8s-robot' \
   --docker-password='YOUR-ROBOT-TOKEN' \
   --docker-email=admin@yourdomain.com
 
-# 将 Secret 复制到所有命名空间（可选）
+# Copy Secret to all namespaces (optional)
 for ns in $(kubectl get ns -o jsonpath='{.items[*].metadata.name}'); do
   kubectl get secret harbor-registry -o yaml | \
     sed "s/namespace: default/namespace: $ns/" | \
@@ -553,16 +552,16 @@ for ns in $(kubectl get ns -o jsonpath='{.items[*].metadata.name}'); do
 done
 ```
 
-### 测试与验证
+### Testing and Verification
 
 ```bash
-# 1. 验证网络连通性
+# 1. Verify network connectivity
 curl -k https://harbor.yourdomain.com/api/v2.0/health
 
-# 2. 直接从节点测试镜像拉取
+# 2. Test image pull directly from node
 sudo crictl pull harbor.yourdomain.com/library/nginx:latest
 
-# 3. 测试 Kubernetes Pod 部署
+# 3. Test Kubernetes Pod deployment
 cat <<EOF | kubectl apply -f -
 apiVersion: v1
 kind: Pod
@@ -576,18 +575,18 @@ spec:
   - name: harbor-registry
 EOF
 
-# 4. 验证 Pod 状态
+# 4. Verify Pod status
 kubectl get pod harbor-test
 kubectl describe pod harbor-test
 ```
 
-## GPU 服务器集成
+## GPU Server Integration
 
-### H100 GPU 服务器集成
+### H100 GPU Server Integration
 
-**验证目标**：将 10 台 H100 GPU 服务器作为 EKS Hybrid Nodes 接入
+**Validation Target**: Integrate 10 H100 GPU servers as EKS Hybrid Nodes
 
-#### GPU 节点配置
+#### GPU Node Configuration
 
 ```yaml
 # nodeconfig-gpu.yaml
@@ -623,16 +622,16 @@ spec:
             BinaryName = "/usr/bin/nvidia-container-runtime"
 ```
 
-#### 部署 NVIDIA Device Plugin
+#### Deploy NVIDIA Device Plugin
 
 ```bash
 kubectl apply -f https://raw.githubusercontent.com/NVIDIA/k8s-device-plugin/v0.14.5/nvidia-device-plugin.yml
 
-# 验证 GPU 资源
+# Verify GPU resources
 kubectl get nodes -o json | jq '.items[].status.allocatable."nvidia.com/gpu"'
 ```
 
-#### GPU 测试
+#### GPU Test
 
 ```yaml
 apiVersion: v1
@@ -656,20 +655,20 @@ spec:
     effect: NoSchedule
 ```
 
-### 本地存储访问
+### On-premises Storage Access
 
-#### NFS 挂载测试
+#### NFS Mount Test
 
 ```bash
-# 在 AWS Worker 节点上运行
+# Run from AWS worker node
 sudo mount -t nfs -o vers=4.1,rsize=1048576,wsize=1048576 \
   192.168.1.100:/export/data /mnt/onprem-storage
 
-# 性能测量
+# Measure performance
 dd if=/dev/zero of=/mnt/onprem-storage/testfile bs=1M count=1000 oflag=direct
 ```
 
-#### PersistentVolume 配置
+#### PersistentVolume Configuration
 
 ```yaml
 apiVersion: v1
@@ -693,48 +692,48 @@ spec:
     - retrans=2
 ```
 
-## 成本分析与优化
+## Cost Analysis and Optimization
 
-### Hybrid Nodes 定价结构
+### Hybrid Nodes Pricing Structure
 
-**基础定价（2025 年 2 月）：**
+**Base Pricing (as of February 2025):**
 
-- 每 vCPU：$0.1099/小时
-- 按每月 730 小时计算：约 $80.23/vCPU
+- Per vCPU: $0.1099/hour (~159 KRW/hour)
+- Based on 730 hours/month: ~$80.23/vCPU (~116,534 KRW)
 
-### H100 GPU 服务器成本分析
+### H100 GPU Server Cost Analysis
 
-**H100 GPU 服务器规格（基于 DGX H200）：**
+**H100 GPU Server Specifications (DGX H200):**
 
-- CPU：224 vCPU（2x Intel Xeon Platinum 8592+）
-- RAM：2TB
-- GPU：8x H200（141GB HBM3e）
+- CPU: 224 vCPU (2x Intel Xeon Platinum 8592+)
+- RAM: 2TB
+- GPU: 8x H200 (141GB HBM3e)
 
-**月度成本计算：**
+**Monthly Cost Calculation:**
 
 ```
-单节点：
-- 224 vCPU × $80.23 = $17,971.52/月
+Single node:
+- 224 vCPU x $80.23 = $17,971.52/month (~26.1M KRW)
 
-10 节点：
-- $17,971.52 × 10 = $179,715.20/月
+10 nodes:
+- $17,971.52 x 10 = $179,715.20/month (~261M KRW)
 ```
 
-:::warning 需要审查成本优化
-由于 H100 GPU 服务器的 vCPU 数量较多，Hybrid Nodes 成本相当可观。请审查以下优化方法：
+:::warning Cost Optimization Review Required
+Due to the high vCPU count of H100 GPU servers, Hybrid Nodes costs are substantial. Review the following optimization strategies:
 
-1. **选择性工作负载调度**：仅将 GPU 密集型工作负载放置在 Hybrid Nodes 上
-2. **Spot 实例混合使用**：为 AWS Worker 利用 Spot 实例
-3. **自动扩缩容**：在非使用时段移除节点
-4. **预留容量**：针对长期使用协商预留选项
+1. **Selective workload placement**: Place only GPU-intensive workloads on Hybrid Nodes
+2. **Spot Instance mix**: Use Spot Instances for AWS workers
+3. **Auto Scaling**: Remove nodes during idle hours
+4. **Reserved Capacity**: Negotiate reservation options for long-term usage
 :::
 
-### 成本降低策略
+### Cost Reduction Strategies
 
-#### 1. 混合工作负载分布
+#### 1. Hybrid Workload Distribution
 
 ```yaml
-# GPU 工作负载 → 本地
+# GPU workloads -> On-premises
 apiVersion: v1
 kind: Pod
 metadata:
@@ -751,7 +750,7 @@ spec:
         nvidia.com/gpu: 8
 
 ---
-# CPU 工作负载 → AWS EC2
+# CPU workloads -> AWS EC2
 apiVersion: v1
 kind: Pod
 metadata:
@@ -764,7 +763,7 @@ spec:
     image: nginx:latest
 ```
 
-#### 2. Cluster Autoscaler 配置
+#### 2. Cluster Autoscaler Configuration
 
 ```yaml
 apiVersion: apps/v1
@@ -786,10 +785,10 @@ spec:
           - --node-group-auto-discovery=asg:tag=k8s.io/cluster-autoscaler/enabled
 ```
 
-#### 3. 成本监控
+#### 3. Cost Monitoring
 
 ```bash
-# 使用 AWS Cost Explorer API 跟踪 Hybrid Nodes 成本
+# Track Hybrid Nodes costs with AWS Cost Explorer API
 aws ce get-cost-and-usage \
   --time-period Start=2025-02-01,End=2025-02-28 \
   --granularity MONTHLY \
@@ -805,27 +804,27 @@ aws ce get-cost-and-usage \
 }
 ```
 
-### 工作负载分布策略
+### Workload Distribution Strategy
 
-**本地 GPU Worker：**
+**On-premises GPU Workers:**
 
-- AI/ML 训练工作负载
-- 高性能推理服务
-- 数据密集型处理
+- AI/ML training workloads
+- High-performance inference services
+- Data-intensive processing
 
-**AWS CPU Worker：**
+**AWS CPU Workers:**
 
-- Web 应用和 API
-- 微服务
-- 轻量级批处理任务
+- Web applications and APIs
+- Microservices
+- Lightweight batch jobs
 
-## 动态资源分配 (DRA)
+## Dynamic Resource Allocation (DRA)
 
-:::info 什么是 DRA？
-动态资源分配 (DRA) 是 Kubernetes 1.26 引入的功能，使 Pod 能够在请求时动态分配 GPU、NPU 和专用加速器等资源。这改进了传统的静态资源分配方法，实现了更高效的资源利用。
+:::info What is DRA?
+Dynamic Resource Allocation (DRA) is a feature introduced in Kubernetes 1.26 that allows Pods to dynamically allocate resources such as GPUs, NPUs, and specialized accelerators on demand. It improves upon the traditional static resource allocation approach to enable more efficient resource utilization.
 :::
 
-### 启用 DRA
+### Enable DRA
 
 ```yaml
 apiVersion: eksctl.io/v1alpha5
@@ -862,14 +861,14 @@ managedNodeGroups:
         effect: NoSchedule
 ```
 
-### 部署 DRA 驱动
+### Deploy DRA Driver
 
 ```bash
-# 添加 DRA 驱动 Helm 仓库
+# Add DRA driver helm repository
 helm repo add dra-driver https://charts.dra.io
 helm repo update
 
-# 安装 DRA 驱动
+# Install DRA driver
 helm install dra-driver dra-driver/dra-driver \
   --namespace kube-system \
   --set driver.name=eks-hybrid-dra \
@@ -877,7 +876,7 @@ helm install dra-driver dra-driver/dra-driver \
   --set driver.enableCPU=true
 ```
 
-### 定义资源类
+### Define Resource Class
 
 ```yaml
 apiVersion: resource.k8s.io/v1alpha2
@@ -913,7 +912,7 @@ spec:
     namespace: kube-system
 ```
 
-### 配置资源声明
+### Configure Resource Claim
 
 ```yaml
 apiVersion: resource.k8s.io/v1alpha2
@@ -940,7 +939,7 @@ data:
   cuda-version: "12.2"
 ```
 
-### ML 训练作业示例
+### ML Training Job Example
 
 ```yaml
 apiVersion: batch/v1
@@ -976,23 +975,23 @@ spec:
         effect: NoSchedule
 ```
 
-### DRA 监控
+### DRA Monitoring
 
-:::tip 关键指标
-监控以下关键指标以评估 DRA 性能：
+:::tip Key Metrics
+Monitor the following metrics for DRA performance:
 
-- `dra_allocation_duration_seconds` - 资源分配耗时
-- `dra_allocation_errors_total` - 分配失败次数
-- `dra_resource_utilization_ratio` - 资源使用效率
-- `dra_pending_claims_total` - 未调度的资源声明
+- `dra_allocation_duration_seconds` - Time taken for resource allocation
+- `dra_allocation_errors_total` - Failed allocation attempts
+- `dra_resource_utilization_ratio` - Resource usage efficiency
+- `dra_pending_claims_total` - Unscheduled resource claims
 :::
 
-## 运维与维护
+## Operations and Maintenance
 
-### 安全加固
+### Security Hardening
 
 ```bash
-# 启用 Harbor 漏洞扫描自动化
+# Enable automated vulnerability scanning in Harbor
 curl -X PUT "https://harbor.yourdomain.com/api/v2.0/projects/1" \
   -H "Content-Type: application/json" \
   -u "admin:Harbor12345!" \
@@ -1004,12 +1003,12 @@ curl -X PUT "https://harbor.yourdomain.com/api/v2.0/projects/1" \
     }
   }'
 
-# 配置镜像签名策略（Notary）
+# Configure image signing policy (Notary)
 export DOCKER_CONTENT_TRUST=1
 export DOCKER_CONTENT_TRUST_SERVER=https://harbor.yourdomain.com:4443
 ```
 
-### 备份与恢复
+### Backup and Recovery
 
 ```bash
 #!/bin/bash
@@ -1018,21 +1017,21 @@ export DOCKER_CONTENT_TRUST_SERVER=https://harbor.yourdomain.com:4443
 BACKUP_DIR="/backup/harbor-$(date +%Y%m%d-%H%M%S)"
 mkdir -p $BACKUP_DIR
 
-# 1. 备份 Harbor 配置
+# 1. Backup Harbor configuration
 cp -r /data/harbor $BACKUP_DIR/
 
-# 2. 备份数据库
+# 2. Backup database
 docker exec harbor-db pg_dump -U postgres registry > $BACKUP_DIR/registry.sql
 
-# 3. 备份镜像仓库数据（可选）
+# 3. Backup registry data (optional)
 tar -czf $BACKUP_DIR/registry-data.tar.gz /data/registry
 
-echo "备份完成: $BACKUP_DIR"
+echo "Backup completed: $BACKUP_DIR"
 ```
 
-### 监控
+### Monitoring
 
-#### Prometheus 指标采集
+#### Prometheus Metrics Collection
 
 ```yaml
 apiVersion: v1
@@ -1050,58 +1049,58 @@ data:
       metrics_path: '/metrics'
 ```
 
-#### 关键监控指标
+#### Key Monitoring Indicators
 
-- 镜像仓库请求速率
-- 认证失败次数
-- 存储使用量
-- 数据库连接数
-- API 响应时间
+- Registry request rate
+- Authentication failure count
+- Storage usage
+- Database connection count
+- API response time
 
-### 性能验证
+### Performance Validation
 
-#### Direct Connect 性能测试
+#### Direct Connect Performance Test
 
 ```bash
-# 1. 基础连通性测试
+# 1. Basic connectivity test
 ping -c 100 <aws-endpoint>
 
-# 2. 检查 MTU 优化
+# 2. MTU optimization verification
 ping -M do -s 8972 <aws-endpoint>
 
-# 3. 路由跟踪
+# 3. Route tracing
 traceroute -n <aws-endpoint>
 
-# 4. 带宽测量
+# 4. Bandwidth measurement
 iperf3 -c <aws-endpoint> -t 60 -P 10 -w 512K
 ```
 
-#### 性能基准
+#### Performance Baselines
 
-| 指标 | 目标值 | 告警值 | 严重值 |
-|------|--------|--------|--------|
-| 延迟 | < 5ms | 5-10ms | > 10ms |
-| 抖动 | < 2ms | 2-5ms | > 5ms |
-| 丢包率 | < 0.01% | 0.01-0.1% | > 0.1% |
-| 带宽 | > 10Gbps | 5-10Gbps | < 5Gbps |
+| Metric | Target | Warning | Critical |
+|--------|--------|---------|----------|
+| Latency | Under 5ms | 5-10ms | Over 10ms |
+| Jitter | Under 2ms | 2-5ms | Over 5ms |
+| Packet Loss | Under 0.01% | 0.01-0.1% | Over 0.1% |
+| Bandwidth | Over 10Gbps | 5-10Gbps | Under 5Gbps |
 
-### 故障排除
+### Troubleshooting
 
-#### ImagePullBackOff 错误
+#### ImagePullBackOff Error
 
 ```bash
-# 诊断问题
+# Diagnose the issue
 kubectl describe pod <pod-name>
 kubectl get events --field-selector involvedObject.name=<pod-name>
 
-# 检查 Secret
+# Verify Secret
 kubectl get secret harbor-registry -o jsonpath='{.data.\.dockerconfigjson}' | base64 -d
 ```
 
-#### 证书错误
+#### Certificate Errors
 
 ```bash
-# 在所有节点上安装 CA 证书
+# Install CA certificate on all nodes
 cat <<EOF | kubectl apply -f -
 apiVersion: apps/v1
 kind: DaemonSet
@@ -1147,41 +1146,41 @@ spec:
 EOF
 ```
 
-#### DNS 解析失败
+#### DNS Resolution Failure
 
 ```bash
-# 测试 DNS
+# DNS test
 kubectl run -it --rm debug --image=busybox --restart=Never -- nslookup harbor.yourdomain.com
 
-# 检查 CoreDNS 日志
+# Check CoreDNS logs
 kubectl logs -n kube-system -l k8s-app=kube-dns
 
-# 重启 CoreDNS
+# Restart CoreDNS
 kubectl rollout restart deployment coredns -n kube-system
 ```
 
-## 结论
+## Conclusion
 
-EKS Hybrid Nodes 提供了跨本地与云端的统一 Kubernetes 环境。本指南涵盖的关键成功因素：
+EKS Hybrid Nodes provides a unified Kubernetes environment spanning on-premises and cloud. Key success factors covered in this guide:
 
-1. **正确的网络配置**：完整的 Pod CIDR 防火墙注册和双向 DNS 配置
-2. **证书管理**：使用自签名证书时，需在所有节点上安装 CA 证书
-3. **成本优化**：根据工作负载特性建立混合分布策略
-4. **动态资源分配**：使用 DRA 实现高效的 GPU 资源管理
-5. **持续验证**：通过分步测试进行配置验证
+1. **Proper networking configuration**: Register the entire Pod CIDR in the firewall and configure bidirectional DNS
+2. **Certificate management**: Install CA certificates on all nodes when using self-signed certificates
+3. **Cost optimization**: Establish a hybrid distribution strategy based on workload characteristics
+4. **Dynamic resource allocation**: Efficient GPU resource management using DRA
+5. **Continuous validation**: Verify configuration through testing at each stage
 
-在采用前，优先审查以下事项：
+Review the following items before adoption:
 
-- 通过 Direct Connect 确保安全的低延迟连接
-- H100 GPU 服务器高 vCPU 成本优化策略
-- 通过 PoC 验证实际环境的性能和稳定性
+- Ensure low-latency connectivity via Direct Connect
+- Cost optimization strategy for the high vCPU count of H100 GPU servers
+- Verify real-world performance and stability through PoC
 
 ---
 
-### 参考资料
+### References
 
-- [Amazon EKS Hybrid Nodes 官方文档](https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes.html)
-- [EKS Hybrid Nodes 定价](https://aws.amazon.com/eks/pricing/)
-- [Harbor 2.13 发行说明](https://github.com/goharbor/harbor/releases/tag/v2.13.2)
+- [Amazon EKS Hybrid Nodes Official Documentation](https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes.html)
+- [EKS Hybrid Nodes Pricing](https://aws.amazon.com/eks/pricing/)
+- [Harbor 2.13 Release Notes](https://github.com/goharbor/harbor/releases/tag/v2.13.2)
 - [Kubernetes DRA KEP](https://github.com/kubernetes/enhancements/tree/master/keps/sig-node/3063-dynamic-resource-allocation)
-- [NVIDIA GPU Operator 文档](https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/overview.html)
+- [NVIDIA GPU Operator Documentation](https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/overview.html)

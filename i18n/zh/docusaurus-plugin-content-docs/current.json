@@ -1,0 +1,90 @@
+{
+  "version.label": {
+    "message": "Next",
+    "description": "The label for version current"
+  },
+  "sidebar.docs.category.EKS Best Practices": {
+    "message": "EKS 最佳实践",
+    "description": "The label for category 'EKS Best Practices' in sidebar 'docs'"
+  },
+  "sidebar.docs.category.네트워크 & 성능": {
+    "message": "网络与性能",
+    "description": "The label for category '네트워크 & 성능' in sidebar 'docs'"
+  },
+  "sidebar.docs.category.Control Plane & 확장": {
+    "message": "控制平面与扩展",
+    "description": "The label for category 'Control Plane & 확장' in sidebar 'docs'"
+  },
+  "sidebar.docs.category.보안 & 인증": {
+    "message": "安全与认证",
+    "description": "The label for category '보안 & 인증' in sidebar 'docs'"
+  },
+  "sidebar.docs.category.리소스 & 비용": {
+    "message": "资源与成本",
+    "description": "The label for category '리소스 & 비용' in sidebar 'docs'"
+  },
+  "sidebar.docs.category.운영 & 안정성": {
+    "message": "运维与可靠性",
+    "description": "The label for category '운영 & 안정성' in sidebar 'docs'"
+  },
+  "sidebar.docs.category.Agentic AI Platform": {
+    "message": "Agentic AI 平台",
+    "description": "The label for category 'Agentic AI Platform' in sidebar 'docs'"
+  },
+  "sidebar.docs.category.설계 & 아키텍처": {
+    "message": "设计与架构",
+    "description": "The label for category '설계 & 아키텍처' in sidebar 'docs'"
+  },
+  "sidebar.docs.category.모델 서빙 & 추론 인프라": {
+    "message": "模型服务与推理基础设施",
+    "description": "The label for category '모델 서빙 & 추론 인프라' in sidebar 'docs'"
+  },
+  "sidebar.docs.category.운영 & 거버넌스": {
+    "message": "运营与治理",
+    "description": "The label for category '운영 & 거버넌스' in sidebar 'docs'"
+  },
+  "sidebar.docs.category.Reference Architecture": {
+    "message": "参考架构",
+    "description": "The label for category 'Reference Architecture' in sidebar 'docs'"
+  },
+  "sidebar.docs.category.AIDLC": {
+    "message": "AIDLC",
+    "description": "The label for category 'AIDLC' in sidebar 'docs'"
+  },
+  "sidebar.docs.category.AgenticOps": {
+    "message": "AgenticOps",
+    "description": "The label for category 'AgenticOps' in sidebar 'docs'"
+  },
+  "sidebar.docs.category.Hybrid Infrastructure": {
+    "message": "混合基础设施",
+    "description": "The label for category 'Hybrid Infrastructure' in sidebar 'docs'"
+  },
+  "sidebar.docs.category.Security & Governance": {
+    "message": "安全与治理",
+    "description": "The label for category 'Security & Governance' in sidebar 'docs'"
+  },
+  "sidebar.docs.category.ROSA (OpenShift on AWS)": {
+    "message": "ROSA (OpenShift on AWS)",
+    "description": "The label for category 'ROSA (OpenShift on AWS)' in sidebar 'docs'"
+  },
+  "sidebar.docs.category.Gateway API Adoption Guide": {
+    "message": "Gateway API 采用指南",
+    "description": "The label for category 'Gateway API Adoption Guide' in sidebar 'docs'"
+  },
+  "sidebar.benchmarks.doc.개요": {
+    "message": "概述",
+    "description": "The label for doc '개요' in sidebar 'benchmarks'"
+  },
+  "sidebar.benchmarks.category.네트워킹": {
+    "message": "网络",
+    "description": "The label for category '네트워킹' in sidebar 'benchmarks'"
+  },
+  "sidebar.benchmarks.category.AI/ML 추론": {
+    "message": "AI/ML 推理",
+    "description": "The label for category 'AI/ML 추론' in sidebar 'benchmarks'"
+  },
+  "sidebar.benchmarks.category.인프라 & 운영": {
+    "message": "基础设施与运维",
+    "description": "The label for category '인프라 & 운영' in sidebar 'benchmarks'"
+  }
+}

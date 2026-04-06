@@ -1,0 +1,50 @@
+{
+  "title": {
+    "message": "Engineering Playbook",
+    "description": "The title in the navbar"
+  },
+  "logo.alt": {
+    "message": "Engineering Playbook Logo",
+    "description": "The alt text of navbar logo"
+  },
+  "item.label.Documentation": {
+    "message": "文档",
+    "description": "Navbar item with label Documentation"
+  },
+  "item.label.Getting Started": {
+    "message": "快速入门",
+    "description": "Navbar item with label Getting Started"
+  },
+  "item.label.EKS Best Practices": {
+    "message": "EKS 最佳实践",
+    "description": "Navbar item with label EKS Best Practices"
+  },
+  "item.label.Agentic AI Platform": {
+    "message": "Agentic AI 平台",
+    "description": "Navbar item with label Agentic AI Platform"
+  },
+  "item.label.AIDLC": {
+    "message": "AIDLC",
+    "description": "Navbar item with label AIDLC"
+  },
+  "item.label.Hybrid Infrastructure": {
+    "message": "混合基础设施",
+    "description": "Navbar item with label Hybrid Infrastructure"
+  },
+  "item.label.Security & Governance": {
+    "message": "安全与治理",
+    "description": "Navbar item with label Security & Governance"
+  },
+  "item.label.ROSA": {
+    "message": "ROSA",
+    "description": "Navbar item with label ROSA"
+  },
+  "item.label.Benchmarks": {
+    "message": "基准测试",
+    "description": "Navbar item with label Benchmarks"
+  },
+  "item.label.Slides": {
+    "message": "演示文稿",
+    "description": "Navbar item with label Slides"
+  }
+}

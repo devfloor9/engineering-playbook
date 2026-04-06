@@ -1,62 +1,61 @@
 ---
-title: "EKS Default 命名空间删除事件响应指南"
-sidebar_label: "1. Default Namespace Incident"
-description: "因 EKS 集群中删除 default 命名空间而导致控制平面访问失败的根因分析、恢复流程及预防策略。"
+title: "EKS Default Namespace 删除故障应对指南"
+sidebar_label: "Default Namespace 故障"
+description: "EKS 集群中因删除 default namespace 导致 Control Plane 不可访问故障的原因分析、恢复流程及再发防止策略。"
 tags: [eks, security, incident-response, namespace, troubleshooting]
 category: "security-compliance"
-sidebar_position: 1
 last_update:
   date: 2026-02-14
   author: devfloor9
 ---
 
-# EKS Default 命名空间删除事件响应指南
+# EKS Default Namespace 删除故障应对指南
 
-> 📅 **撰写日期**: 2025-01-07 | **修改日期**: 2026-02-14 | ⏱️ **阅读时间**: 约 10 分钟
+> 📅 **编写日期**: 2025-01-07 | **修改日期**: 2026-02-14 | ⏱️ **阅读时间**: 约 12 分钟
 
 
-## 1. 概述 (TL;DR)
+## 1. 概述（TL;DR）
 
 :::danger 严重警告
-在 EKS 集群中删除 default 命名空间会阻止所有对控制平面的访问。kubectl 命令将失败，且无法通过 Velero 或 etcd 备份进行恢复。default 命名空间是必须受到保护的关键集群资源，强烈建议使用 Admission Controller 或其他访问控制机制来谨慎管理此资源。
+在 EKS 集群中删除 default namespace 会阻断对 Control Plane 的所有访问。kubectl 命令将无法工作，Velero 或 etcd 备份也无法恢复。Default Namespace 是集群必须防止删除的核心资源。因此强烈建议使用 Admission Controller 或其他访问控制机制进行谨慎管理。
 :::
 
-- **根因**: 删除 `default` 命名空间会移除 `kubernetes` Service
-- **影响范围**: API Server 访问失败 → 集群全面管理失败 → 服务中断（若持续时间较长）
-- **恢复方法**: **必须提交 AWS Support 工单**（严重级别：Critical）
+- **故障原因**：删除 `default` namespace 时 `kubernetes` Service 会一并被删除
+- **影响范围**：API Server 不可访问 → 集群整体管理不可用 → （长期化时）引发服务故障
+- **恢复方法**：**必须开启 AWS Support 案例**（Severity: Critical）
 
-:::tip 恢复摘要
-提交 Critical 级别的 AWS Support 工单，并将您的 Account Team 和 WWSO Specialist 作为参考联系人添加，以请求快速恢复。
+:::tip 一句话恢复方法
+向 AWS Support 开启 Critical 案例，并将 Account Team 和 WWSO Specialist 添加为工单参考人以请求快速恢复。
 :::
 
 ---
 
-## 2. 根因分析
+## 2. 故障原因分析
 
-### 2.1 Default 命名空间的角色
+### 2.1 Default Namespace 的作用
 
-`default` 命名空间不仅仅是用户工作负载的基本空间。此命名空间中存在关键的集群资源。
+`default` namespace 不仅仅是部署用户工作负载的默认空间。Kubernetes 集群的核心资源存在于此 namespace 中。
 
-**default 命名空间中的关键资源**：
+**default namespace 中包含的核心资源**：
 
 :::warning 注意
-kubernetes Service 是从集群内部访问 API Server 的唯一路径。如果此 Service 被删除，所有 Kubernetes 组件都将失去与控制平面的连接。
+kubernetes Service 是集群内部访问 API Server 的唯一路径。如果此 Service 被删除，所有 Kubernetes 组件都将无法与 Control Plane 通信。
 :::
 
-### 2.2 事件产生机制
+### 2.2 故障发生机制
 
-让我们来分析删除 `default` 命名空间时的级联故障过程。
+删除 `default` namespace 时发生的连锁故障过程如下图所示。
 
 ```mermaid
 flowchart TD
-    A["🗑️ Delete default namespace<br/>(kubectl delete ns default)"] --> B["kubernetes Service deleted"]
-    B --> C["API Server endpoint inaccessible"]
-    C --> D["kubectl commands fail"]
-    D --> E["Complete cluster management failure"]
+    A["🗑️ 删除 default namespace<br/>(kubectl delete ns default)"] --> B["kubernetes Service 被删除"]
+    B --> C["API Server endpoint 不可访问"]
+    C --> D["kubectl 命令无法执行"]
+    D --> E["集群管理完全不可用"]
 
-    E --> F["❌ Velero backup recovery impossible"]
-    E --> G["❌ etcd snapshot recovery impossible"]
-    E --> H["❌ GitOps redeployment impossible"]
+    E --> F["❌ Velero 备份恢复不可用"]
+    E --> G["❌ etcd 快照恢复不可用"]
+    E --> H["❌ GitOps 重新部署不可用"]
 
     style A fill:#ff6b6b,color:#fff
     style B fill:#ff8c42,color:#fff
@@ -68,27 +67,27 @@ flowchart TD
     style H fill:#666,color:#fff
 ```
 
-**事件序列**：
+**故障发生顺序**：
 
-1. **执行命名空间删除命令**: `kubectl delete namespace default`
-2. **级联删除**: 命名空间中的所有资源被一并删除
-3. **kubernetes Service 删除**: API Server 端点消失
-4. **连接中断**: 集群内部组件无法与 API Server 通信
-5. **管理不可能**: 无法执行任何 kubectl 命令
+1. **执行 namespace 删除命令**：`kubectl delete namespace default`
+2. **级联删除**：namespace 内所有资源一并被删除
+3. **kubernetes Service 删除**：API Server endpoint 消失
+4. **连接断开**：集群内部组件无法与 API Server 通信
+5. **管理不可用状态**：任何 kubectl 命令都无法执行
 
-### Worker Node 的影响
+### Worker 节点受到的影响
 
-API Server 端点的长时间丢失会对 Worker Node 产生级联影响。
+API Server endpoint 消失状态持续时，Worker 节点也会受到连锁影响。
 
 ```mermaid
 flowchart TD
-    A["kubernetes Service deleted"] --> B["kubelet → API Server communication fails"]
-    B --> C["Node Lease renewal failure<br/>(kube-node-lease)"]
-    C --> D["After 40 seconds: Node status NotReady"]
-    D --> E["After 5 minutes: Taint auto-added"]
+    A["kubernetes Service 删除"] --> B["kubelet → API Server 通信不可用"]
+    B --> C["Node Lease 更新失败<br/>(kube-node-lease)"]
+    C --> D["40秒后：Node 状态 NotReady"]
+    D --> E["5分钟后：自动添加 Taint"]
     E --> F["node.kubernetes.io/not-ready:NoExecute"]
     E --> G["node.kubernetes.io/unreachable:NoExecute"]
-    F --> H["Pod eviction targets"]
+    F --> H["Pod Eviction 目标"]
     G --> H
 
     style A fill:#ff6b6b,color:#fff
@@ -97,73 +96,73 @@ flowchart TD
     style H fill:#cc0000,color:#fff
 ```
 
-**节点状态随时间变化**：
+**随时间变化的节点状态**：
 
 :::warning 重要
-在这种情况下，控制平面本身不可访问，因此 Node Controller 实际上无法更新节点状态或添加污点。结果是，整个集群进入"冻结"状态，现有 Pod 继续运行，但新的调度和状态变更变得不可能。
+在此情况下，由于 Control Plane 本身不可访问，Node Controller 也实际上无法执行更新节点状态或添加 taint 的操作。结果整个集群进入"frozen"状态，现有运行中的 Pod 继续运行，但新的调度或状态变更不可能。
 :::
 
-### 冻结状态下的服务影响
+### Frozen 状态下的服务影响
 
-当集群进入冻结状态时，**现有工作负载会短暂继续运行，但服务退化会随时间增加**。
+集群进入 frozen 状态后，**现有工作负载会继续运行一段时间**，但随着时间推移会对服务产生严重影响。
 
-**即时影响**：
+**立即受影响的部分**：
 
-- ❌ 新 Pod 调度不可能
-- ❌ Pod 重启/重新部署不可能
-- ❌ ConfigMap 和 Secret 变更无法反映
-- ❌ HPA (Horizontal Pod Autoscaler) 扩缩容不可能
+- ❌ 无法调度新 Pod
+- ❌ 无法重启/重新部署 Pod
+- ❌ 无法反映 ConfigMap、Secret 变更
+- ❌ HPA（Horizontal Pod Autoscaler）无法扩缩
 
 **随时间推移的服务影响**：
 
 :::danger 特别危险的场景
 
-- 当 DNS 缓存过期或 TLS 证书过期时，服务发现失败，通信变得不可能
-- 如果 Pod 因 OOMKilled 或崩溃，**无法重启**
-- 如果节点发生故障，**该节点上的所有工作负载将丢失**
-- ALB/NLB Target Group 更新失败，导致**流量路由故障**
+- DNS 缓存过期或 TLS 证书过期时，因服务发现失败导致通信不可用
+- Pod 被 OOMKilled 或 crash 时**无法重启**
+- 节点故障时该节点的**所有工作负载丢失**
+- ALB/NLB Target Group 无法更新导致**流量路由失败**
 
-随着时间推移，事件影响范围会扩大，因此**请尽快联系 AWS Support**。
+随着时间推移故障范围会扩大，因此**尽快联系 AWS Support** 非常重要。
 :::
 
 ---
 
-## 3. 事件响应流程
+## 3. 故障应对流程
 
-### 步骤 1: 确认事件情况
+### Step 1：确认故障状况
 
-如果怀疑事件是由 default 命名空间删除引起的，首先验证集群状态。
+怀疑因 `default` namespace 删除导致故障时，首先需要确认集群状态。
 
-### 1-1. 测试 kubectl 访问
+### 1-1. kubectl 访问测试
 
-首先，验证 kubectl 命令是否正常工作。
+首先确认 kubectl 命令是否正常工作。
 
 ```bash
-# 尝试获取集群信息
+# 尝试查询集群信息
 kubectl cluster-info
 
-# 预期错误信息
+# 预期的错误消息
 # Unable to connect to the server: dial tcp: lookup kubernetes on 10.100.0.10:53: no such host
-# or
+# 或
 # The connection to the server <cluster-endpoint> was refused
 ```
 
 :::warning 注意
-如果看到上述错误，说明 kubernetes Service 已被删除，API Server 不可访问。
+如果出现上述错误，说明 kubernetes Service 已被删除，无法访问 API Server。
 :::
 
-### 1-2. 通过 AWS CLI 检查集群状态
+### 1-2. 通过 AWS CLI 确认集群状态
 
-即使 kubectl 失败，仍可使用 AWS CLI 检查 EKS 集群状态。
+即使 kubectl 不工作，也可以通过 AWS CLI 确认 EKS 集群的状态。
 
 ```bash
-# 检查集群状态
+# 确认集群状态
 aws eks describe-cluster \
   --name <cluster-name> \
   --query 'cluster.{Name:name,Status:status,Endpoint:endpoint,Version:version}' \
   --output table
 
-# 预期输出（集群本身为 ACTIVE）
+# 预期输出（集群本身为 ACTIVE 状态）
 # -------------------------------------------------------------------
 # |                        DescribeCluster                          |
 # +----------+------------------------------------------------------+
@@ -175,7 +174,7 @@ aws eks describe-cluster \
 ```
 
 ```bash
-# 检查节点组状态
+# 确认节点组状态
 aws eks list-nodegroups --cluster-name <cluster-name>
 
 aws eks describe-nodegroup \
@@ -185,143 +184,143 @@ aws eks describe-nodegroup \
   --output table
 ```
 
-### 1-3. 事件情况评估标准
+### 1-3. 故障判断标准
 
-:::tip 关键点
-如果集群在 AWS 控制台或 CLI 中显示为 ACTIVE，但 kubectl 命令完全失败，请怀疑 default 命名空间被删除。
+:::tip 核心要点
+如果在 AWS 控制台或 CLI 中集群显示为 ACTIVE 状态，但 kubectl 命令完全不工作，应怀疑 default namespace 被删除。
 :::
 
-✅ **检查点**: 如果确认上述症状，请立即进入**步骤 2: 提交 AWS Support 工单**。
+✅ **检查点**：确认上述症状后，立即进入 **Step 2：开启 AWS Support 案例**。
 
-### 步骤 2: 提交 AWS Support 工单
+### Step 2：开启 AWS Support 案例
 
-default 命名空间删除事件**只能通过 AWS Support 恢复**。请立即提交工单。
+因 `default` namespace 删除导致的故障**只能通过 AWS Support 恢复**。请立即开启案例。
 
-### 2-1. 工单提交信息
+### 2-1. 案例开启信息
 
-### 2-2. 工单正文模板
+### 2-2. 案例正文模板
 
-将以下模板复制粘贴到工单正文中。
+复制以下模板粘贴到案例正文中。
 
 ```text
-[URGENT] EKS Cluster Control Plane Access Failure Due to Default Namespace Deletion
+[紧急] EKS 集群 default namespace 删除导致 Control Plane 不可访问
 
-■ Cluster Information
-- Cluster Name: <Cluster Name>
-- Region: <Region>
-- Account ID: <AWS Account ID>
-- Cluster Version: <Kubernetes Version>
+■ 集群信息
+- Cluster Name: <集群名称>
+- Region: <区域>
+- Account ID: <AWS 账号 ID>
+- Cluster Version: <Kubernetes 版本>
 
-■ Incident Situation
-- Incident Time: <YYYY-MM-DD HH:MM UTC>
-- Symptoms: kubectl commands fail after default namespace deletion
-- Impact Scope: Entire cluster management impossible
+■ 故障状况
+- 发生时间: <YYYY-MM-DD HH:MM KST>
+- 症状: 删除 default namespace 后 kubectl 命令无法执行
+- 影响范围: 集群整体管理不可用
 
-■ Confirmed Details
-- Cluster status via AWS CLI: ACTIVE
-- kubectl cluster-info result: Connection failed
-- kubectl get ns default result: Connection failed
+■ 已确认事项
+- 通过 AWS CLI 确认集群状态: ACTIVE
+- kubectl cluster-info 执行结果: 连接失败
+- kubectl get ns default 执行结果: 连接失败
 
-■ Request
-Please restore the default namespace and kubernetes Service.
-Urgent recovery is needed for production environment.
+■ 请求事项
+请求恢复 default namespace 及 kubernetes Service。
+这是生产环境，需要紧急恢复。
 
-■ Contact Information
-- Contact Person: <Name>
-- Phone: <Phone Number>
-- Email: <Email>
+■ 联系方式
+- 负责人: <姓名>
+- 电话: <联系电话>
+- 邮箱: <邮箱>
 ```
 
-### 2-3. 在 AWS 控制台中提交工单的方法
+### 2-3. 在 AWS 控制台开启案例的方法
 
 1. 访问 AWS Support Center
 2. 点击 **Create case**
 3. 选择 **Technical**
-4. Service: 选择 **Elastic Kubernetes Service (EKS)**
-5. Category: 选择 **Cluster Issue**
-6. Severity: 选择 **Critical - Business-critical system down**（仅限 Enterprise Support 计划）
+4. Service：选择 **Elastic Kubernetes Service (EKS)**
+5. Category：选择 **Cluster Issue**
+6. Severity：选择 **Critical - Business-critical system down**（仅 Enterprise Support 计划可用）
 7. 将上述模板粘贴到正文中
-8. 联系选项: 选择 **Phone**（响应更快）
+8. 在 Contact options 中选择 **Phone**（更快响应）
 9. 点击 **Submit**
 
 :::warning 重要
-提交后记录工单 ID。联系 Account Team 和 WWSO Specialist 时需要使用。
+开启案例后务必记录案例 ID。联系 Account Team 和 WWSO Specialist 时需要使用。
 :::
 
-### 步骤 3: 联系 Account Team/WWSO Specialist
+### Step 3：联系 Account Team/WWSO Specialist
 
-在提交 AWS Support 工单的同时，联系您的 Account Team 和 WWSO (Worldwide Specialist Organization) Specialist 以加快恢复速度。
+在开启 AWS Support 案例的同时，联系 Account Team 和 WWSO（Worldwide Specialist Organization）Specialist 以加速恢复。
 
-### 3-1. 将参考联系人添加到工单
+### 3-1. 在工单中添加参考人
 
-将 Account Team 和 WWSO Specialist 作为参考联系人添加到您的 AWS Support 工单中。
+在 AWS Support 案例中添加 Account Team 和 WWSO Specialist 作为参考人。
 
-1. 导航到已提交工单的 **Correspondence** 部分
+1. 进入已开启案例的 **Correspondence** 部分
 2. 点击 **Reply** 按钮
-3. 添加以下内容以请求参考
+3. 添加以下内容请求参考
 
 ```text
-CC Request:
-- AWS Account Team: <Account Manager Name/Email>
-- WWSO EKS Specialist: <Specialist Name/Email (if known)>
+CC 请求：
+- AWS Account Team: <Account Manager 姓名/邮箱>
+- WWSO EKS Specialist: <Specialist 姓名/邮箱（如果知道）>
 
-Urgent recovery needed for production environment.
-Please support this case with Account Team and EKS Specialist.
+这是需要紧急恢复的生产环境。
+请求 Account Team 和 EKS Specialist 的支持。
 ```
 
 ### 3-2. 直接联系 Account Team
 
-除 AWS Support 工单外，直接联系您的 Account Team。
+除 AWS Support 案例外，直接联系 Account Team。
 
 **邮件模板**：
 
 ```text
-Subject: [URGENT] EKS Cluster Incident - Support Case #<Case ID>
+主题: [紧急] EKS 集群故障 - Support Case #<案例 ID>
 
-Hello,
+您好，
 
-I am contacting you regarding an urgent incident in our production EKS cluster.
+因生产 EKS 集群发生紧急故障，特此联系。
 
-■ Incident Summary
-- Cluster: <Cluster Name>
-- Symptoms: Control Plane access failure due to default namespace deletion
-- Support Case ID: <Case ID>
+■ 故障摘要
+- 集群: <集群名称>
+- 症状: 因删除 default namespace 导致 Control Plane 不可访问
+- Support Case ID: <案例 ID>
 
-■ Request
-Please escalate this case and connect with an EKS Specialist.
+■ 请求事项
+请求提升该案例的优先级并连接 EKS Specialist。
 
-Thank you,
-<Your Name>
-<Phone Number>
+谢谢。
+<姓名>
+<联系方式>
 ```
 
-**Slack/SMS 消息**（如可用）：
+**Slack/SMS 消息**（如果有 Account Team 频道）：
 
 ```text
-🚨 [URGENT] EKS Cluster Incident
+🚨 [紧急] EKS 集群故障发生
 
-- Account: <Account ID>
-- Cluster: <Cluster Name>
-- Issue: Control Plane access failure - default namespace deleted
-- Support Case: #<Case ID>
+- Account: <账号 ID>
+- Cluster: <集群名称>
+- Issue: 因删除 default namespace 导致 Control Plane 不可访问
+- Support Case: #<案例 ID>
 
-Production environment - urgent support needed.
+这是生产环境，请求紧急支持。
 ```
 
 ### 3-3. 联系 WWSO Specialist
 
-如果您认识 WWSO EKS Specialist，请直接联系。直接联系专家可通过内部管线路由工单，提升重要性并直接分配给负责的工程师。
+如果知道 WWSO EKS Specialist，可以直接联系。Specialist 联系后会利用内部工单提升工单重要度，并通过内部管道直接向分配的工程师传达工作请求。
 
 ### 3-4. 联系检查清单
 
-### 步骤 4: 恢复后验证
+### Step 4：恢复后验证
 
-在 AWS Support 恢复 `default` 命名空间后，验证集群是否正常运行。
+通过 AWS Support 恢复 `default` namespace 后，验证集群是否正常工作。
 
 ### 4-1. 基本连接验证
 
 ```bash
-# 1. 验证集群连接
+# 1. 确认集群连接
 kubectl cluster-info
 
 # 预期输出：
@@ -330,54 +329,54 @@ kubectl cluster-info
 ```
 
 ```bash
-# 2. 验证 default 命名空间存在
+# 2. 确认 default namespace 存在
 kubectl get namespace default
 
 # 预期输出：
 # NAME      STATUS   AGE
-# default   Active   <hours>
+# default   Active   <时间>
 ```
 
 ```bash
-# 3. 验证 kubernetes Service
+# 3. 确认 kubernetes Service
 kubectl get svc kubernetes -n default
 
 # 预期输出：
 # NAME         TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)   AGE
-# kubernetes   ClusterIP   10.100.0.1   <none>        443/TCP   <hours>
+# kubernetes   ClusterIP   10.100.0.1   <none>        443/TCP   <时间>
 ```
 
-### 4-2. 关键组件状态验证
+### 4-2. 核心组件状态验证
 
 ```bash
-# 4. 检查节点状态
+# 4. 确认节点状态
 kubectl get nodes
 
-# 验证所有节点为 Ready
+# 确认所有节点是否为 Ready 状态
 ```
 
 ```bash
-# 5. 检查系统 Pod 状态
+# 5. 确认系统 Pod 状态
 kubectl get pods -n kube-system
 
-# 验证所有 Pod 为 Running
-# 特别验证 coredns、kube-proxy、aws-node
+# 确认所有 Pod 是否为 Running 状态
+# 特别检查 coredns、kube-proxy、aws-node
 ```
 
 ```bash
-# 6. 检查所有命名空间
+# 6. 确认所有 namespace
 kubectl get namespaces
 
-# 验证 default、kube-system、kube-public、kube-node-lease 存在
+# 确认 default、kube-system、kube-public、kube-node-lease 存在
 ```
 
 ### 4-3. API Server 功能验证
 
 ```bash
-# 7. 测试 API 资源获取
+# 7. API 资源查询测试
 kubectl api-resources | head -20
 
-# 8. 简单资源创建/删除测试（可选）
+# 8. 简单的资源创建/删除测试（可选）
 kubectl run test-pod --image=nginx --restart=Never -n default
 kubectl get pod test-pod -n default
 kubectl delete pod test-pod -n default
@@ -385,147 +384,147 @@ kubectl delete pod test-pod -n default
 
 ✅ **验证检查清单**：
 
-### 步骤 5: 工作负载检查
+### Step 5：工作负载检查
 
-恢复后，检查现有工作负载是否正常运行。
+恢复后检查现有工作负载是否正常运行。
 
 ### 5-1. 工作负载状态检查
 
 ```bash
-# 1. 检查所有命名空间的 Pod 状态
+# 1. 确认所有 namespace 的 Pod 状态
 kubectl get pods --all-namespaces | grep -v Running | grep -v Completed
 
-# 找出不在 Running 或 Completed 状态的 Pod
+# 确认非 Running、Completed 状态的 Pod
 ```
 
 ```bash
-# 2. 检查 Deployment 状态
+# 2. 确认 Deployment 状态
 kubectl get deployments --all-namespaces
 
-# 验证 READY 列显示期望的副本数
+# 确认 READY 列中期望的 replica 数与实际数是否一致
 ```
 
 ```bash
-# 3. 检查 StatefulSet 状态
+# 3. 确认 StatefulSet 状态
 kubectl get statefulsets --all-namespaces
 ```
 
 ```bash
-# 4. 检查 DaemonSet 状态
+# 4. 确认 DaemonSet 状态
 kubectl get daemonsets --all-namespaces
 
-# 验证 DESIRED 和 READY 数量匹配
+# 确认 DESIRED 和 READY 数是否一致
 ```
 
 ### 5-2. 服务连接检查
 
 ```bash
-# 5. 验证 Service 和 Endpoint
+# 5. 确认 Service 和 Endpoints
 kubectl get svc --all-namespaces
 kubectl get endpoints --all-namespaces
 
-# 验证 Endpoint 有 IP 分配
+# 确认 Endpoints 是否正常分配了 IP
 ```
 
 ```bash
-# 6. 检查 Ingress 状态（如使用）
+# 6. 确认 Ingress 状态（如果使用的话）
 kubectl get ingress --all-namespaces
 ```
 
 ### 5-3. 存储检查
 
 ```bash
-# 7. 检查 PersistentVolumeClaim 状态
+# 7. 确认 PersistentVolumeClaim 状态
 kubectl get pvc --all-namespaces
 
-# 验证所有 PVC 为 Bound
+# 确认所有 PVC 是否为 Bound 状态
 ```
 
 ```bash
-# 8. 检查 PersistentVolume 状态
+# 8. 确认 PersistentVolume 状态
 kubectl get pv
 
-# 验证所有 PV 为 Bound
+# 确认所有 PV 是否为 Bound 状态
 ```
 
-### 5-4. 事件和日志检查
+### 5-4. 事件和日志确认
 
 ```bash
-# 9. 检查最近的 Warning 事件
+# 9. 确认最近的 Warning 事件
 kubectl get events --all-namespaces --field-selector type=Warning --sort-by='.lastTimestamp' | tail -20
 ```
 
 ```bash
-# 10. 检查有问题的 Pod 日志
+# 10. 确认有问题的 Pod 日志
 kubectl logs <pod-name> -n <namespace> --tail=100
 ```
 
 ### 5-5. 工作负载检查清单
 
 :::tip
-在事件期间可能有失败的 Job 或 CronJob。如有必要请手动重新运行。
+在故障发生期间可能有失败的 Job 或 CronJob。如有需要请手动重新执行。
 :::
 
 ```bash
-# 检查失败的 Job
+# 确认失败的 Job
 kubectl get jobs --all-namespaces --field-selector status.successful=0
 ```
 
-✅ **最终检查点**: 当所有工作负载验证正常时，事件响应完成。之后请查看**预防措施**。
+✅ **最终检查点**：确认所有工作负载正常后，故障应对完成。之后请检查**再发防止对策**。
 
 ---
 
-## 4. 关键资源列表
+## 4. Critical 资源列表
 
-### 4.1 关键命名空间
+### 4.1 Critical Namespaces
 
-除 default 命名空间外，还有一些系统命名空间，如果被删除将对集群产生严重影响。这些命名空间绝不能删除。
+除 `default` namespace 外，还有删除时会对集群造成致命影响的系统 namespace。这些 namespace 绝对不能删除。
 
 :::danger 严重警告
-default 和 kube-system 命名空间如果被删除，kubectl 访问本身将变得不可能，因此无法手动恢复。恢复必须通过 AWS Support 完成。
+default 和 kube-system namespace 删除时 kubectl 访问本身就不可用，因此无法手动恢复。必须通过 AWS Support 恢复。
 :::
 
-**各命名空间的详细角色**：
+**各 Namespace 的详细作用**：
 
 **default**：
 
-- `kubernetes` Service：从集群内部访问 API Server 的端点
-- `default` ServiceAccount：未指定 ServiceAccount 时 Pod 的默认认证主体
+- `kubernetes` Service：集群内部访问 API Server 的 endpoint
+- `default` ServiceAccount：namespace 中未指定 ServiceAccount 的 Pod 的默认认证主体
 
 **kube-system**：
 
-- 所有集群运行所需的基本系统组件部署的命名空间
-- EKS Add-on（CoreDNS、kube-proxy、VPC CNI）和控制器所在位置
+- 部署集群运维所必需的所有系统组件的 namespace
+- EKS Add-on（CoreDNS、kube-proxy、VPC CNI）及控制器所在位置
 
 **kube-public**：
 
-- 存储未认证用户也可读取的公共信息
+- 存储未认证用户也可读取的公开信息
 - `cluster-info` ConfigMap 包含集群 CA 证书和 API Server 地址
 
 **kube-node-lease**：
 
-- 每个节点的 Lease 对象存储在此处，作为心跳信号
-- Node Controller 根据此信息判断节点状态
+- 存储各节点的 Lease 对象，执行 heartbeat 作用
+- Node Controller 基于此信息判断节点状态
 
-### 4.2 kube-system 关键组件
+### 4.2 kube-system 核心组件
 
-`kube-system` 命名空间包含集群运行所必需的组件。单独删除或修改这些组件可能导致严重故障。
+`kube-system` namespace 中部署了集群运维所必需的组件。单独删除或修改这些组件可能导致严重故障。
 
-### EKS 关键 Add-on
+### EKS 核心 Add-on
 
 ### EKS 存储组件
 
-### 网络和负载均衡组件
+### 网络及负载均衡组件
 
 :::tip
-作为 EKS Add-on 管理的组件（CoreDNS、kube-proxy、VPC CNI、EBS CSI Driver）可以从 AWS 控制台或 CLI 重新安装 Add-on 来恢复。
+由 EKS Add-on 管理的组件（CoreDNS、kube-proxy、VPC CNI、EBS CSI Driver）可以通过 AWS 控制台或 CLI 重新安装 Add-on 来恢复。
 :::
 
 ```bash
-# 检查 EKS Add-on 状态
+# 确认 EKS Add-on 状态
 aws eks list-addons --cluster-name <cluster-name>
 
-# 重新安装 Add-on 示例（CoreDNS）
+# Add-on 重新安装示例（CoreDNS）
 aws eks create-addon \
   --cluster-name <cluster-name> \
   --addon-name coredns \
@@ -533,58 +532,58 @@ aws eks create-addon \
 ```
 
 :::warning 注意
-上述恢复方法仅在 kube-system 命名空间存在且 kubectl 访问可用时有效。如果命名空间本身被删除，则需要 AWS Support。
+上述恢复方法仅在 kube-system namespace 存在且 kubectl 访问可用时才能使用。如果 namespace 本身被删除，则需要 AWS Support。
 :::
 
-### 4.3 集群级别资源
+### 4.3 Cluster-Scoped 资源
 
-不属于任何命名空间的集群级别资源，如果被删除或修改，也可能影响整个集群。
+不属于任何 Namespace 的 Cluster-Scoped 资源在删除或修改时也可能影响整个集群。
 
 ### RBAC 相关资源
 
 :::warning 特别危险的 ClusterRole/ClusterRoleBinding
 
-- `system:node` / `system:node` binding：删除会导致**所有节点失去与 API Server 的通信**
-- `system:kube-controller-manager`：删除会导致 **Controller Manager 停止**
-- `system:kube-scheduler`：删除会导致 **Pod 调度停止**
+- `system:node` / `system:node` binding：删除时**所有节点无法与 API Server 通信**
+- `system:kube-controller-manager`：删除时**Controller Manager 停止运行**
+- `system:kube-scheduler`：删除时**Pod 调度停止**
 :::
 
-### CRD (Custom Resource Definition)
+### CRD（Custom Resource Definition）
 
 :::warning CRD 删除注意
-删除 CRD 会级联删除从该 CRD 创建的所有 Custom Resource。例如，删除 Cert-Manager 的 Certificate CRD 会删除集群中所有的 Certificate 资源。
+删除 CRD 时，该 CRD 创建的所有 Custom Resource 将被级联删除。例如，删除 Cert-Manager 的 Certificate CRD 将删除集群中所有 Certificate 资源。
 :::
 
 ### 存储相关资源
 
-### 节点和网络相关资源
+### 节点及网络相关资源
 
 ### EKS 特有资源
 
 :::tip 最佳实践
-在修改或删除集群级别资源之前，务必先创建备份。
+在修改或删除 Cluster-Scoped 资源之前，请务必创建备份。
 :::
 
 ```bash
 # ClusterRole 备份示例
 kubectl get clusterrole <role-name> -o yaml > clusterrole-backup.yaml
 
-# 备份所有 ClusterRole
+# 所有 ClusterRole 备份
 kubectl get clusterroles -o yaml > all-clusterroles-backup.yaml
 
-# 备份 CRD（不含 CR）
+# CRD 备份（不含 CR）
 kubectl get crd <crd-name> -o yaml > crd-backup.yaml
 ```
 
 ---
 
-## 5. 预防策略
+## 5. 再发防止方向
 
 ### 5.1 通过 Admission Controller 保护资源
 
-Kubernetes Admission Controller 可以防止关键资源被意外删除。这里介绍使用 Kyverno 的示例。
+利用 Kubernetes Admission Controller 可以预先阻止 Critical 资源的删除。这里介绍使用 Kyverno 的示例。
 
-### 使用 Kyverno 防止关键命名空间删除
+### 使用 Kyverno 防止 Critical Namespace 删除
 
 ```yaml
 apiVersion: kyverno.io/v1
@@ -611,7 +610,7 @@ spec:
           - clusterRoles:
               - cluster-admin
       validate:
-        message: "Deletion of critical namespace '{{request.object.metadata.name}}' is blocked."
+        message: "Critical namespace '{{request.object.metadata.name}}' 的删除已被阻止。"
         deny:
           conditions:
             all:
@@ -620,26 +619,26 @@ spec:
                 value: DELETE
 ```
 
-使用此策略后，非 cluster-admin 用户尝试删除关键命名空间时，其请求将被拒绝。
+应用上述策略后，非 `cluster-admin` 角色的用户尝试删除 Critical Namespace 时请求将被拒绝。
 
-### 替代 Admission Controller 选项
+### 其他 Admission Controller 选项
 
 除 Kyverno 外，还可以使用各种 Admission Controller。
 
-:::tip 建议
-根据您团队的技术栈和策略复杂度进行选择。对于简单的资源保护策略，Kyverno 可以快速部署。
+:::tip 推荐
+根据团队的技术栈和策略复杂度进行选择。如果是简单的资源保护策略，Kyverno 可以快速应用。
 :::
 
 ### 5.2 基于 GitOps 和 KRMOps 的运维
 
-采用 GitOps 和 KRMOps（Kubernetes Resource Model Operations）方法可以实现声明式资源管理，并从意外变更中快速恢复。
+引入 GitOps 和 KRMOps（Kubernetes Resource Model Operations）运维方式，可以声明式管理集群资源，并从意外变更中快速恢复。
 
-### EKS Auto Mode 的 ArgoCD 功能
+### EKS Auto Mode 的 ArgoCD Capability
 
-EKS Auto Mode 默认提供 ArgoCD，使基于 GitOps 的运维易于开始。
+EKS Auto Mode 默认提供 ArgoCD，可以轻松开始基于 GitOps 的运维。
 
 ```yaml
-# ArgoCD Application 示例 - 关键资源管理
+# ArgoCD Application 示例 - Critical 资源管理
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -656,26 +655,26 @@ spec:
     namespace: default
   syncPolicy:
     automated:
-      prune: false      # 防止自动删除关键资源
-      selfHeal: true    # 检测到漂移时自动恢复
+      prune: false      # 防止自动删除 Critical 资源
+      selfHeal: true    # Drift 发生时自动恢复
     syncOptions:
       - CreateNamespace=false
 ```
 
-**GitOps 预防优势**：
+**GitOps 的再发防止效果**：
 
 :::tip
-将关键命名空间和资源分离到专用的 ArgoCD Application 中，并设置 prune: false 和 selfHeal: true 来保护它们。
+将 Critical Namespace 和资源分离为单独的 ArgoCD Application，设置 prune: false 和 selfHeal: true 进行保护。
 :::
 
-### 基于 ACK 和 KRO 的 KRMOps 策略
+### 使用 ACK 和 KRO 的 KRMOps 策略
 
-使用 **ACK (AWS Controllers for Kubernetes)** 和 **KRO (Kube Resource Orchestrator)** 可以利用 Kubernetes Resource Model 管理 AWS 基础设施。
+通过 **ACK（AWS Controllers for Kubernetes）** 和 **KRO（Kube Resource Orchestrator）**，可以用 Kubernetes Resource Model 管理 AWS 基础设施。
 
 **通过 ACK 管理 AWS 资源**：
 
 ```yaml
-# 示例：通过 ACK 声明式管理 S3 存储桶
+# 使用 ACK 声明式管理 S3 Bucket 的示例
 apiVersion: s3.services.k8s.aws/v1alpha1
 kind: Bucket
 metadata:
@@ -689,10 +688,10 @@ spec:
         value: Production
 ```
 
-**通过 KRO 进行复杂资源编排**：
+**通过 KRO 编排复合资源**：
 
 ```yaml
-# KRO ResourceGroup 示例 - 定义应用程序栈
+# KRO ResourceGroup 示例 - 应用栈定义
 apiVersion: kro.run/v1alpha1
 kind: ResourceGroup
 metadata:
@@ -721,10 +720,10 @@ spec:
         # ... 省略
 ```
 
-**KRMOps 优势**：
+**KRMOps 的优势**：
 
-:::tip 建议
-结合使用 ACK 和 KRO，不仅可以统一管理 EKS 集群，还可以以 Kubernetes 原生方式统一管理关联的 AWS 资源（VPC、IAM、RDS 等）。
+:::tip 推荐
+结合使用 ACK 和 KRO，不仅可以管理 EKS 集群，还可以用 Kubernetes 方式统一管理相关的 AWS 资源（VPC、IAM、RDS 等）。
 :::
 
 **参考资料**：
@@ -735,19 +734,19 @@ spec:
 
 ### 5.3 基于 EKS Access Entry 的访问控制
 
-EKS Access Entry 克服了 aws-auth ConfigMap 的局限性，提供更安全的集群访问管理。
+EKS Access Entry 克服了 `aws-auth` ConfigMap 的局限性，提供更安全的集群访问管理。
 
 ### aws-auth ConfigMap 的问题
 
-传统的 aws-auth ConfigMap 方法存在以下风险：
+现有的 `aws-auth` ConfigMap 方式存在以下风险：
 
 :::warning 注意
-如果 aws-auth ConfigMap 被删除或损坏，所有基于 IAM 的认证将失败，导致无法访问集群。恢复也需要 AWS Support。
+如果 aws-auth ConfigMap 被删除或损坏，所有基于 IAM 的认证将失败，无法访问集群。这种情况也需要通过 AWS Support 恢复。
 :::
 
-### 过渡到 EKS Access Entry
+### 转换到 EKS Access Entry
 
-EKS Access Entry 通过 AWS API 管理集群访问，消除了 aws-auth ConfigMap 的风险。
+EKS Access Entry 通过 AWS API 管理集群访问，消除了 `aws-auth` ConfigMap 的风险。
 
 **Access Entry 创建示例**：
 
@@ -766,10 +765,10 @@ aws eks associate-access-policy \
   --access-scope type=cluster
 ```
 
-**命名空间级别的访问控制**：
+**Namespace 级别访问控制**：
 
 ```bash
-# 设置开发人员命名空间范围的访问权限
+# 设置只能访问特定 namespace 的开发者权限
 aws eks create-access-entry \
   --cluster-name my-cluster \
   --principal-arn arn:aws:iam::XXXXXXXXXXXX:role/DevTeamRole \
@@ -782,16 +781,16 @@ aws eks associate-access-policy \
   --access-scope type=namespace,namespaces=dev,staging
 ```
 
-**EKS Access Entry 优势**：
+**EKS Access Entry 的优势**：
 
-**预定义的访问策略**：
+**预定义的 Access Policy**：
 
 :::tip 建议
 
-1. **新集群**: 从一开始就只使用 EKS Access Entry（使用 `-bootstrap-cluster-creator-admin-permissions` 选项）
-2. **现有集群**: 逐步迁移到 Access Entry，然后消除 aws-auth ConfigMap 依赖
-3. **最小权限**: 使用命名空间范围的权限而非集群范围的权限
-4. **紧急恢复**: 通过 Access Entry 配置单独的具有集群管理员权限的 IAM Role，作为锁定保护
+1. **新集群**：从一开始只使用 EKS Access Entry（利用 `-bootstrap-cluster-creator-admin-permissions` 选项）
+2. **现有集群**：渐进迁移到 Access Entry 后移除 `aws-auth` ConfigMap 依赖
+3. **最小权限原则**：使用 namespace 范围权限代替集群全局权限
+4. **紧急恢复账号**：在单独的 IAM Role 上通过 Access Entry 设置集群管理员权限，以防锁定
 :::
 
 **迁移检查清单**：
@@ -799,26 +798,26 @@ aws eks associate-access-policy \
 **参考资料**：
 
 - EKS Cluster Access Management
-- 从 aws-auth ConfigMap 迁移
+- Migrating from aws-auth ConfigMap
 
 ---
 
 ## 6. 总结
 
-### 6.1 关键要点
+### 6.1 核心内容摘要
 
 :::danger 核心信息
-default 和 kube-system 命名空间如果被删除，kubectl 访问本身将变得不可能，因此无法手动恢复。恢复必须通过 AWS Support 完成。
+default、kube-system namespace 删除时 kubectl 访问本身就不可用，因此无法手动恢复。只能通过 AWS Support 恢复。
 :::
 
 ### 6.2 参考资料
 
 ### EKS 官方文档
 
-- Amazon EKS 最佳实践指南
+- Amazon EKS Best Practices Guide
 - EKS Cluster Access Management
-- 从 aws-auth ConfigMap 迁移到 Access Entry
-- EKS Add-on
+- Migrating from aws-auth ConfigMap to Access Entries
+- EKS Add-ons
 - EKS Auto Mode
 
 ### Kubernetes 官方文档
@@ -829,11 +828,11 @@ default 和 kube-system 命名空间如果被删除，kubectl 访问本身将变
 
 ### Admission Controller 工具
 
-- Kyverno - Kubernetes 原生策略管理
-- OPA Gatekeeper - Kubernetes 策略控制器
+- Kyverno - Kubernetes Native Policy Management
+- OPA Gatekeeper - Policy Controller for Kubernetes
 
 ### GitOps 和 KRMOps 工具
 
-- ArgoCD - Kubernetes 声明式 GitOps CD
+- ArgoCD - Declarative GitOps CD for Kubernetes
 - AWS Controllers for Kubernetes (ACK)
 - Kube Resource Orchestrator (KRO)

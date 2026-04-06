@@ -1,71 +1,70 @@
 ---
-title: "ROSA 安全合规控制台访问控制"
-sidebar_label: "2. Console Access Control"
-description: "满足金融行业安全要求的 Red Hat Hybrid Cloud Console 访问控制策略。通过 IdP、MFA 和基于 IP 的访问控制实现安全的管理员访问控制。"
+title: "ROSA Security Compliance Console Access Control"
+sidebar_label: "ROSA Security Compliance"
+description: "Access control strategies for Red Hat Hybrid Cloud Console to meet financial sector security requirements. Secure administrator access control through IdP, MFA, and IP-based access restrictions."
 tags: [rosa, openshift, security, compliance, idp, mfa, financial]
 category: "rosa"
-sidebar_position: 2
 last_update:
   date: 2026-02-13
   author: devfloor9
 ---
 
-# ROSA 安全合规控制台访问控制
+# ROSA Security Compliance Console Access Control
 
-> 📅 **撰写日期**: 2025-02-05 | **修改日期**: 2026-02-13 | ⏱️ **阅读时间**: 约 3 分钟
+> **Created**: 2025-02-05 | **Updated**: 2026-02-13 | **Reading time**: ~3 min
 
 
-## 概述
+## Overview
 
-在金融机构部署 ROSA (Red Hat OpenShift Service on AWS) 时，Red Hat Hybrid Cloud Console 的访问控制是一个重要的安全要求。本指南说明了使用 IdP (Identity Provider)、MFA 和基于 IP 的访问控制实现安全管理员访问控制的策略。
+When adopting ROSA (Red Hat OpenShift Service on AWS) in the financial sector, access control for the Red Hat Hybrid Cloud Console is a critical security requirement. This guide explains secure administrator access control strategies utilizing IdP (Identity Provider), MFA, and IP-based access restrictions.
 
-:::warning 注意
-本文档针对金融行业安全要求。实际实施需要 Red Hat 和 AWS 的咨询。
+:::warning Notice
+This document addresses security requirements for financial sector customers. Consultation with Red Hat and AWS is required for actual implementation.
 :::
 
 ---
 
-## 客户情况
+## Customer Situation
 
-一家实施 ROSA (Red Hat OpenShift Service on AWS) 的韩国金融机构对 Red Hat Hybrid Cloud Console 的访问控制提出了安全顾虑。这与已满足要求的 ROSA 集群网络架构是分开的。
+A financial institution in Korea raised concerns about access control for the Red Hat Hybrid Cloud Console while adopting ROSA (Red Hat OpenShift Service on AWS). This is a separate issue from the ROSA cluster network architecture, which has already been confirmed to meet the requirements.
 
-## 当前理解
+## Current Understanding
 
-- ROSA 集群私有网络配置已被充分理解且可实施
-- 合规问题仅限于 Red Hat Hybrid Cloud Console 的访问模式，而非 ROSA 集群本身
-- 创建 ROSA 集群后，管理员通过 Red Hat Hybrid Cloud Console 访问，目前不满足安全要求
+- The private network configuration for ROSA clusters is well understood and implementable.
+- The compliance issue is limited to the Red Hat Hybrid Cloud Console access pattern, not the ROSA cluster itself.
+- When a ROSA cluster is created, administrators access the cluster through the Red Hat Hybrid Cloud Console, which currently does not meet security requirements.
 
-## 当前障碍
+## Current Obstacle
 
-Red Hat Hybrid Cloud Console 的默认公共访问模式不满足金融行业监管要求。虽然 ROSA 集群本身可以通过私有网络配置得到适当保护，但控制台访问必须单独管理。
+The default public access pattern to the Red Hat Hybrid Cloud Console does not meet financial regulatory requirements. Although the ROSA cluster itself can be adequately protected with private network configuration, console access must be managed separately.
 
-## 安全要求
+## Security Requirements
 
-### 控制台访问控制需求
+### Console Access Control Requirements
 
-客户需要以下内容：
+The customer requires:
 
-1. Red Hat Hybrid Cloud Console 访问的 IdP (Identity Provider) 集成
-2. 通过 IdP 实施 MFA (Multi-Factor Authentication)
-3. 控制台的基于 IP 的访问控制
+1. IdP (Identity Provider) integration for Red Hat Hybrid Cloud Console access
+2. MFA (Multi-Factor Authentication) implementation through IdP
+3. IP-based access control for the console
 
-### 重要说明
+### Important Clarifications
 
-- 这些要求仅适用于 Red Hat Hybrid Cloud Console 访问
-- 与 ROSA 集群本身的 OIDC/SAML 配置完全不同
-- 顾虑不在于 ROSA 集群网络架构，实施私有网络配置（包括 Zero Egress 配置）后已验证合规
+- These requirements apply only to Red Hat Hybrid Cloud Console access.
+- This is completely separate from OIDC/SAML configuration for the ROSA cluster itself.
+- The concern is not about the ROSA cluster's network architecture, which has already been confirmed as compliant when implemented with private network configuration (including Zero Egress configuration).
 
-## 建议的访问控制工作流
+## Proposed Access Control Workflow
 
-客户提出的安全访问工作流如下：
+The secure access workflow proposed by the customer is as follows:
 
-1. 管理员访问 AWS ROSA 控制台
-2. 访问 Red Hat Hybrid Cloud Console 时，通过在 AWS 中配置的 IdP 处理认证
-3. IdP 执行：
-   - 多因素认证 (MFA)
-   - 基于 IP 的访问控制
+1. Administrator accesses the AWS ROSA Console.
+2. When accessing the Red Hat Hybrid Cloud Console, authentication is handled through an IdP configured in AWS.
+3. The IdP enforces:
+   - Multi-Factor Authentication (MFA)
+   - IP-based access control
 
-此工作流确保管理员访问受到严格控制，满足安全要求。
+This workflow ensures that administrator access is strictly controlled and compliant with security requirements.
 
 ```mermaid
 sequenceDiagram
@@ -75,40 +74,40 @@ sequenceDiagram
     participant RH Console as Red Hat Hybrid Cloud Console
     participant ROSA
 
-    Admin->>AWS Console: 1. Access AWS ROSA console
+    Admin->>AWS Console: 1. Access AWS ROSA Console
     Admin->>RH Console: 2. Access Red Hat Hybrid Cloud Console
     RH Console->>IdP: Authentication request
-    IdP->>IdP: 3. Validate MFA and IP-based access control
+    IdP->>IdP: 3. MFA and IP-based access control verification
     IdP-->>RH Console: Authentication response
-    RH Console->>ROSA: Access ROSA cluster (authenticated)
+    RH Console->>ROSA: Access ROSA cluster (upon authentication)
 ```
 
-### 完整架构
+### Overall Architecture
 
 ```mermaid
 graph TB
-    subgraph Customer[\"Customer Environment\"]
+    subgraph Customer["Customer Environment"]
         Admin[Administrator]
-        IdP[Corporate IdP<br/>with MFA and IP Control]
+        IdP[Corporate IdP<br/>with MFA and IP control]
     end
 
-    subgraph AWS[\"AWS Cloud\"]
+    subgraph AWS["AWS Cloud"]
         AWSC[AWS Console]
-        subgraph Private[\"Private Network\"]
+        subgraph Private["Private Network"]
             ROSA[ROSA Cluster<br/>Zero Egress Configuration]
         end
     end
 
-    subgraph RedHat[\"Red Hat\"]
+    subgraph RedHat["Red Hat"]
         HCC[Hybrid Cloud Console<br/>IdP Integration Required]
     end
 
     Admin -->|1. Access| AWSC
     Admin -->|2. Access| HCC
-    HCC -->|3. Authentication Request| IdP
-    IdP -->|4. MFA + IP Validation| IdP
-    IdP -->|5. Authentication Response| HCC
-    HCC -->|6. Management| ROSA
+    HCC -->|3. Auth request| IdP
+    IdP -->|4. MFA + IP verification| IdP
+    IdP -->|5. Auth response| HCC
+    HCC -->|6. Manage| ROSA
 
     style IdP fill:#ff9900,stroke:#232f3e,stroke-width:2px
     style HCC fill:#EE0000,stroke:#232f3e,stroke-width:2px
@@ -116,19 +115,19 @@ graph TB
 
 ---
 
-## 所需响应
+## Required Responses
 
-1. 类似金融行业案例的信息
-2. 已实施的管理员访问控制解决方案
-3. 其他金融行业实施的最佳实践
+1. Information on similar cases in the financial sector
+2. Previous solutions implemented for administrator access control
+3. Best practices from other financial sector implementations
 
-## 后续步骤
+## Next Steps
 
-- 验证建议的工作流是否满足 Red Hat 技术能力
-- 提供 Red Hat Hybrid Cloud Console IdP 集成文档
-- 分享其他金融行业实施的案例研究
-- 提供实施的技术指导
+- Confirm the proposed workflow meets Red Hat's technical capabilities
+- Provide IdP integration documentation for the Red Hat Hybrid Cloud Console
+- Share case studies from other financial sector implementations
+- Provide technical guidance for implementation
 
-:::tip 参考
-实际实施需要与 Red Hat 和 AWS 进行详细协调。
+:::tip Note
+Detailed consultation with Red Hat and AWS is required for actual implementation.
 :::
