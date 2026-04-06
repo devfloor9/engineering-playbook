@@ -36,20 +36,16 @@
     "description": "The label for category '설계 & 아키텍처' in sidebar 'docs'"
   },
   "sidebar.docs.category.모델 서빙 & 추론 인프라": {
-    "message": "Model Serving & Inference",
+    "message": "Model Serving & Inference Infrastructure",
     "description": "The label for category '모델 서빙 & 추론 인프라' in sidebar 'docs'"
   },
-  "sidebar.docs.category.추론 게이트웨이 & 라우팅": {
-    "message": "Inference Gateway & Routing",
-    "description": "The label for category '추론 게이트웨이 & 라우팅' in sidebar 'docs'"
+  "sidebar.docs.category.운영 & 거버넌스": {
+    "message": "Operations & Governance",
+    "description": "The label for category '운영 & 거버넌스' in sidebar 'docs'"
   },
-  "sidebar.docs.category.에이전트 & 데이터": {
-    "message": "Agents & Data",
-    "description": "The label for category '에이전트 & 데이터' in sidebar 'docs'"
-  },
-  "sidebar.docs.category.운영 & MLOps": {
-    "message": "Operations & MLOps",
-    "description": "The label for category '운영 & MLOps' in sidebar 'docs'"
+  "sidebar.docs.category.Reference Architecture": {
+    "message": "Reference Architecture",
+    "description": "The label for category 'Reference Architecture' in sidebar 'docs'"
   },
   "sidebar.docs.category.AIDLC": {
     "message": "AIDLC",
