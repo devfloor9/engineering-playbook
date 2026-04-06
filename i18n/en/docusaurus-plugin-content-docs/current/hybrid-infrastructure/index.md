@@ -1,44 +1,46 @@
 ---
 title: "Hybrid Infrastructure"
 sidebar_label: "Hybrid Infrastructure"
-description: "Advanced technical documentation for building hybrid and multi-cloud environments using Amazon EKS"
+description: "In-depth technical documentation on building hybrid cloud and multi-cloud environments with Amazon EKS"
+category: "hybrid"
 sidebar_position: 4
 last_update:
   date: 2026-02-13
   author: devfloor9
-category: "hybrid"
 ---
 
 # Hybrid Infrastructure
 
-Modern enterprise infrastructure environments are transcending the boundaries between cloud and on-premises. Through Amazon EKS Hybrid Nodes, enterprises can now extend the power of cloud-native platforms into their own data centers. This approach goes beyond simply connecting two environments, enabling organizations to operate on-premises and cloud resources as a single Kubernetes cluster under a unified management plane.
+> 📅 **Created**: 2025-02-05 | **Updated**: 2026-02-13 | ⏱️ **Reading time**: ~3 min
 
-The core value of hybrid infrastructure lies in flexibility and choice. Even when data sovereignty or regulatory requirements mandate keeping certain data on-premises, the rest of the application can leverage cloud elasticity and scalability. Organizations can also continue utilizing their existing on-premises hardware investments, particularly expensive GPU servers or special-purpose hardware, while simultaneously benefiting from cloud-based modern management tools and automation capabilities.
+Modern enterprise infrastructure extends beyond the boundaries of cloud and on-premises. With Amazon EKS Hybrid Nodes, organizations can extend the power of cloud-native platforms to their own data centers. This approach goes beyond simply connecting two environments — it enables operating on-premises and cloud resources as a single Kubernetes cluster under a unified management plane.
 
-EKS Hybrid Nodes deploy lightweight agents on each on-premises server to communicate securely with the AWS EKS control plane. These agents receive management commands through encrypted channels via VPN or AWS Direct Connect, while actual workloads execute on-premises. This architecture proves especially valuable for applications where network latency is critical or when large volumes of data must be processed locally.
+The core value of hybrid infrastructure lies in flexibility and choice. Even when data sovereignty or regulatory requirements mandate keeping certain data on-premises, the rest of the application can leverage the elasticity and scalability of the cloud. Additionally, existing on-premises hardware investments — especially expensive GPU servers and special-purpose hardware — can continue to be utilized alongside cloud-based management tools and automation capabilities.
 
-From a storage management perspective, hybrid environments offer new possibilities. Using Harbor registry allows managing container images on-premises while synchronizing with the cloud, and traditional storage protocols like NFS or iSCSI can be integrated with Kubernetes persistent volumes. Through Dynamic Resource Allocation (DRA) technology, Kubernetes can natively recognize and allocate specialized hardware such as GPUs or FPGAs, making high-performance computing workload placement more sophisticated.
+EKS Hybrid Nodes deploy a lightweight agent on each on-premises server to securely communicate with the AWS EKS control plane. The agent receives management commands through encrypted channels via VPN or AWS Direct Connect, while actual workloads run on-premises. This architecture is particularly useful for applications where network latency matters or when large volumes of data need to be processed locally.
 
-Cloud bursting represents one of the most attractive usage patterns of hybrid infrastructure. Organizations can utilize on-premises resources during normal operations, then automatically expand workloads to the cloud when traffic surges or special events occur. When combined with auto-scaling tools like Karpenter, this approach maintains cost efficiency while securing nearly unlimited computing power when needed.
+From a storage management perspective, hybrid environments offer new possibilities. Harbor registry enables managing container images on-premises while synchronizing with the cloud, and traditional storage protocols like NFS and iSCSI can be integrated with Kubernetes persistent volumes. Dynamic Resource Allocation (DRA) technology allows Kubernetes to natively recognize and allocate specialized hardware such as GPUs and FPGAs, enabling more sophisticated placement of high-performance computing workloads.
 
-## Document List (Implementation Order)
+Cloud bursting is one of the most compelling use patterns for hybrid infrastructure. Resources run on-premises under normal conditions, and when traffic spikes or special events occur, workloads automatically scale to the cloud. Combined with autoscaling tools like Karpenter, you can maintain cost efficiency while securing nearly unlimited computing power when needed.
 
-### Step 1: Hybrid Nodes Basic Guide
+## Documentation (Implementation Order)
 
-**[EKS Hybrid Nodes Complete Guide](./hybrid-nodes-adoption-guide.md)**
-Basic methods for connecting on-premises nodes to EKS clusters, hybrid networking configuration and security setup, migration strategies to hybrid environments, workload selection and placement criteria
+### Step 1: Hybrid Node Basics
+
+**[1. Hybrid Nodes Complete Guide](./hybrid-nodes-adoption-guide.md)**
+Connecting on-premises nodes to EKS clusters, hybrid networking configuration and security setup, migration strategies, workload selection and placement criteria
 
 ### Step 2: High-Performance Networking (SR-IOV)
 
-**[DGX H200 SR-IOV Networking Configuration](./sriov-dgx-h200-hybrid.md)**
-High-performance networking through SR-IOV, NVIDIA DGX H200 system integration and optimization
+**[2. SR-IOV Networking](./sriov-dgx-h200-hybrid.md)**
+High-performance networking via SR-IOV, NVIDIA DGX H200 system integration and optimization
 
 ### Step 3: Shared Storage Configuration
 
-**[EKS Hybrid Nodes Shared File Storage Solutions](./hybrid-nodes-file-storage.md)**
-File storage configuration for on-premises nodes, NFS/iSCSI utilization and data synchronization
+**[3. File Storage](./hybrid-nodes-file-storage.md)**
+File storage configuration for on-premises nodes, NFS/iSCSI usage and data synchronization
 
 ### Step 4: Container Registry Integration
 
-**[Harbor 2.13 and EKS Hybrid Nodes Integration Guide](./harbor-hybrid-integration.md)**
-Operating container image registries through Harbor, image synchronization between on-premises and cloud
+**[4. Harbor Registry](./harbor-hybrid-integration.md)**
+Container image registry management with Harbor, image synchronization between on-premises and cloud

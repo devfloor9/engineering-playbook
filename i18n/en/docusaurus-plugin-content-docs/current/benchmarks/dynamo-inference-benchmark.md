@@ -239,7 +239,7 @@ Recommendations will be written based on actual measurement results.
 
 | Scenario | Recommended Mode | Rationale |
 |---------|----------|------|
-| Single model, low concurrency (<8) | Aggregated | Implementation simplicity, minimal overhead |
+| Single model, low concurrency (fewer than 8) | Aggregated | Implementation simplicity, minimal overhead |
 | Multi-turn conversation, high cache hit rate | Disaggregated | Maximize KV Router + Prefix Cache effect |
 | High concurrency (32+), strict SLA | Disaggregated | Stabilize TTFT with Prefill/Decode separation |
 | Cost optimization priority | Disaggregated | Leverage lower-cost GPUs (L40S) for Decode |

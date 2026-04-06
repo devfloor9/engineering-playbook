@@ -1,46 +1,47 @@
 ---
 title: "NeMo Framework"
 sidebar_label: "NeMo Framework"
-description: "Building LLM fine-tuning and optimization pipelines using NVIDIA NeMo"
-sidebar_position: 5
-category: "genai-aiml"
+description: "NVIDIA NeMo Framework distributed training, fine-tuning, and TensorRT-LLM conversion architecture"
+tags: [nemo, nvidia, fine-tuning, tensorrt-llm, triton, nccl, distributed-training]
+sidebar_position: 7
 last_update:
-  date: 2026-02-14
-  author: devfloor9
-tags: [nemo, nvidia, fine-tuning, llm, training, tensorrt, genai]
+  date: 2026-04-05
+  author: YoungJoon Jeong
 ---
 
 import { NemoComponents, GPURequirements, CheckpointSharding, MonitoringMetrics, NCCLImportance } from '@site/src/components/NemoTables';
 
 # NeMo Framework
 
-> 📅 **Written**: 2026-02-13 | **Updated**: 2026-02-14 | ⏱️ **Reading Time**: Approximately 4 minutes
+> **Written**: 2026-02-13 | **Updated**: 2026-04-05 | **Reading time**: ~4 min
 
 NVIDIA NeMo is an end-to-end framework for training, fine-tuning, and optimizing large language models (LLMs). It supports distributed training and efficient model deployment in Kubernetes environments.
 
 ## Overview
 
-### Why NeMo is Needed
+### Problems NeMo Solves
 
-When domain-specific models are required in Agentic AI platforms:
+When using general-purpose LLMs (GPT-4, Claude, etc.) in Agentic AI platforms, the following limitations exist:
 
-- **Domain Adaptation**: Customizing models for specific industries/fields
-- **Performance Optimization**: Inference acceleration through TensorRT-LLM
-- **Cost Efficiency**: Replacing large models with smaller fine-tuned models
-- **Data Privacy**: On-premises training with sensitive data
+- **Lack of domain knowledge**: Insufficient understanding of industry/company-specific terminology and context
+- **Cost issues**: API costs surge with large-scale calls (token-per-request billing)
+- **Latency**: Response delays from external API calls
+- **Data privacy**: Cannot transmit sensitive data to external services
+- **On-premises requirements**: Regulated industries (finance/healthcare) need self-hosted infrastructure
+
+NeMo addresses these problems through **domain-specific model fine-tuning**.
+
+### NeMo Core Features
 
 ```mermaid
 flowchart LR
     Data[Data<br/>Preparation]
-    Pretrain[Pre-training<br/>Optional]
-    Finetune[Fine-tuning]
-    Eval[Evaluation]
+    Finetune[Fine-tuning<br/>SFT/PEFT]
+    Eval[Evaluation<br/>Accuracy]
     Export[TensorRT<br/>Conversion]
-    Deploy[Deployment]
+    Deploy[Triton<br/>Deployment]
 
-    Data --> Pretrain
-    Pretrain --> Finetune
-    Data -.-> Finetune
+    Data --> Finetune
     Finetune --> Eval
     Eval --> Export
     Export --> Deploy
@@ -49,48 +50,58 @@ flowchart LR
     style Export fill:#76b900
 ```
 
-### NeMo Framework Components
-
 <NemoComponents />
+
+**Key Value:**
+
+- **Efficient fine-tuning**: Train only 0.1% of total parameters with LoRA/QLoRA
+- **Distributed training**: Automatic multi-node, multi-GPU parallelization (Tensor/Pipeline/Data Parallelism)
+- **Inference optimization**: 2-4x performance improvement through TensorRT-LLM conversion
+- **Enterprise support**: Checkpoint management, monitoring, production deployment pipeline
+
+---
 
 ## EKS Deployment Architecture
 
-### Distributed Training Architecture
+### NeMo on EKS Configuration
 
 ```mermaid
 flowchart TB
     subgraph Control["Control Plane"]
         Launcher[NeMo<br/>Launcher]
-        Scheduler[K8s<br/>Scheduler]
+        Scheduler[Kubeflow<br/>PyTorchJob]
     end
 
-    subgraph Workers["Worker Nodes"]
-        W1[Worker Pod<br/>Node 1]
-        W2[Worker Pod<br/>Node 2]
-        W3[Worker Pod<br/>Node 3]
-        G1[GPU 0-7]
-        G2[GPU 0-7]
-        G3[GPU 0-7]
+    subgraph Workers["GPU Worker Nodes"]
+        W1[Worker Pod 1<br/>p5.48xlarge]
+        W2[Worker Pod 2<br/>p5.48xlarge]
+        W3[Worker Pod 3<br/>p5.48xlarge]
+        G1[8x H100 GPU]
+        G2[8x H100 GPU]
+        G3[8x H100 GPU]
     end
 
     subgraph Storage["Storage"]
-        S3[S3 / FSx]
-        CP[Checkpoints]
+        S3[S3<br/>Checkpoints]
+        FSx[FSx Lustre<br/>Training Data]
     end
 
-    NCCL[NCCL / EFA<br/>Communication]
+    NCCL[NCCL + EFA<br/>High-speed Communication]
 
     Launcher --> Scheduler
     Scheduler -.->|Deploy| W1
     Scheduler -.->|Deploy| W2
     Scheduler -.->|Deploy| W3
 
-    W1 <-->|High-speed Communication| NCCL
-    W2 <-->|High-speed Communication| NCCL
-    W3 <-->|High-speed Communication| NCCL
+    W1 <-->|AllReduce| NCCL
+    W2 <-->|AllReduce| NCCL
+    W3 <-->|AllReduce| NCCL
 
-    W1 -->|Save| S3
-    W2 -->|Save| CP
+    W1 --> S3
+    W2 --> S3
+    W1 --> FSx
+    W2 --> FSx
+    W3 --> FSx
 
     style Launcher fill:#76b900
     style NCCL fill:#326ce5
@@ -99,228 +110,90 @@ flowchart TB
     style G3 fill:#76b900
 ```
 
-### GPU Node Requirements
+### Container Configuration
+
+**NeMo Container Image:**
+
+```
+nvcr.io/nvidia/nemo:25.02
+├── PyTorch 2.5.1
+├── CUDA 12.6
+├── NCCL 2.23+
+├── Megatron-LM (NeMo integrated)
+├── TensorRT-LLM 0.13+
+└── Triton Inference Server 2.50+
+```
+
+**Key Dependencies:**
+
+- **Kubeflow Training Operator**: Distributed training orchestration via PyTorchJob CRD
+- **GPU Operator**: Automatic NVIDIA driver, Device Plugin, DCGM installation
+- **EFA Device Plugin**: Enable inter-node RDMA communication
+- **Karpenter**: GPU node autoscaling
 
 <GPURequirements />
 
-## NeMo Container Deployment
-
-### Helm Chart Installation
-
-```bash
-# NVIDIA NGC registry authentication
-kubectl create secret docker-registry ngc-secret \
-  --docker-server=nvcr.io \
-  --docker-username='$oauthtoken' \
-  --docker-password=${NGC_API_KEY} \
-  --namespace=nemo
-
-# Install NeMo Operator
-helm repo add nvidia https://helm.ngc.nvidia.com/nvidia
-helm repo update
-
-helm install nemo-operator nvidia/nemo-operator \
-  --namespace nemo \
-  --create-namespace \
-  --set operator.image.repository=nvcr.io/nvidia/nemo-operator \
-  --set operator.image.tag=24.07
-```
-
-### NeMo Training Job Definition
-
-:::info Note
-The `NeMoTraining` CRD below is an example showing NeMo's declarative training definition concept. In actual deployment, use Kubeflow Training Operator's PyTorchJob to configure distributed training.
-:::
-
-```yaml
-# NeMo training concept example (actually use PyTorchJob)
-apiVersion: nemo.nvidia.com/v1alpha1
-kind: NeMoTraining
-metadata:
-  name: llama-finetune
-  namespace: nemo
-spec:
-  # Model configuration
-  model:
-    name: "meta-llama/Llama-3.1-8B-Instruct"
-    source: "huggingface"
-
-  # Training configuration
-  training:
-    type: "sft"  # supervised fine-tuning
-    epochs: 3
-    batchSize: 4
-    gradientAccumulationSteps: 8
-    learningRate: 2e-5
-
-    # Distributed training configuration
-    distributed:
-      tensorParallelism: 1
-      pipelineParallelism: 1
-      dataParallelism: 8
-
-  # Data configuration
-  data:
-    trainDataset: "s3://nemo-data/train.jsonl"
-    valDataset: "s3://nemo-data/val.jsonl"
-    format: "jsonl"
-
-  # Resource configuration
-  resources:
-    nodes: 1
-    gpusPerNode: 8
-    gpuType: "nvidia.com/gpu"
-
-  # Checkpoint configuration
-  checkpoint:
-    enabled: true
-    path: "s3://nemo-checkpoints/llama-finetune"
-    saveInterval: 500
-
-  # Container image
-  image:
-    repository: "nvcr.io/nvidia/nemo"
-    tag: "24.07"
-    pullSecrets:
-      - name: ngc-secret
-```
-
-### Distributed Training via PyTorchJob
-
-```yaml
-apiVersion: kubeflow.org/v1
-kind: PyTorchJob
-metadata:
-  name: nemo-distributed-training
-  namespace: nemo
-spec:
-  pytorchReplicaSpecs:
-    Master:
-      replicas: 1
-      restartPolicy: OnFailure
-      template:
-        spec:
-          containers:
-          - name: pytorch
-            image: nvcr.io/nvidia/nemo:24.07
-            command:
-            - python
-            - -m
-            - nemo.collections.llm.recipes.finetune
-            - --config-path=/config
-            - --config-name=llama_finetune
-            env:
-            - name: NCCL_DEBUG
-              value: "INFO"
-            - name: NCCL_IB_DISABLE
-              value: "0"
-            - name: FI_PROVIDER
-              value: "efa"
-            - name: FI_EFA_USE_DEVICE_RDMA
-              value: "1"
-            - name: NCCL_PROTO
-              value: "simple"
-            resources:
-              limits:
-                nvidia.com/gpu: 8
-                vpc.amazonaws.com/efa: 4
-            volumeMounts:
-            - name: config
-              mountPath: /config
-            - name: data
-              mountPath: /data
-            - name: shm
-              mountPath: /dev/shm
-          volumes:
-          - name: config
-            configMap:
-              name: nemo-config
-          - name: data
-            persistentVolumeClaim:
-              claimName: training-data-pvc
-          - name: shm
-            emptyDir:
-              medium: Memory
-              sizeLimit: 64Gi
-    Worker:
-      replicas: 3
-      restartPolicy: OnFailure
-      template:
-        spec:
-          containers:
-          - name: pytorch
-            image: nvcr.io/nvidia/nemo:24.07
-            # Worker configuration same as Master
-```
+---
 
 ## Fine-tuning Guide
 
-### SFT (Supervised Fine-Tuning)
+### SFT (Supervised Fine-Tuning) Concept
 
-```python
-# nemo_sft_config.yaml
-trainer:
-  devices: 8
-  num_nodes: 1
-  accelerator: gpu
-  precision: bf16
-  max_epochs: 3
-  val_check_interval: 500
+**What is SFT?**: A method to improve specific task performance by additionally training a pre-trained model with domain-specific instruction-response data.
 
-model:
-  # Base model
-  restore_from_path: /models/llama-3.1-8b.nemo
-
-  # LoRA configuration (efficient fine-tuning)
-  peft:
-    peft_scheme: "lora"
-    lora_tuning:
-      adapter_dim: 32
-      alpha: 32
-      dropout: 0.1
-      target_modules:
-        - "q_proj"
-        - "v_proj"
-        - "k_proj"
-        - "o_proj"
-
-  # Data configuration
-  data:
-    train_ds:
-      file_path: /data/train.jsonl
-      micro_batch_size: 4
-      global_batch_size: 32
-    validation_ds:
-      file_path: /data/val.jsonl
-      micro_batch_size: 4
-
-  # Optimizer configuration
-  optim:
-    name: fused_adam
-    lr: 2e-5
-    weight_decay: 0.01
-    betas:
-      - 0.9
-      - 0.98
+```
+Pre-trained Model (general) → SFT → Domain-specific Model
 ```
 
-### Data Format
+**When to use?**
+
+- Customer FAQ chatbot: Train on specific product/service Q&A
+- Financial report generation: Train on financial terminology and formats
+- Medical diagnostic assistance: Train on medical terminology and diagnostic patterns
+
+**Data Format:**
 
 ```json
-{"input": "Answer the following question: What is EKS?", "output": "Amazon EKS (Elastic Kubernetes Service) is a managed Kubernetes service provided by AWS."}
-{"input": "Explain the main features of Karpenter.", "output": "Karpenter is a Kubernetes node autoscaler that provides automatic node provisioning, consolidation, and drift detection features."}
+{"input": "What is EKS Auto Mode?", "output": "EKS Auto Mode is a fully managed Kubernetes compute option where AWS automatically handles node provisioning, scaling, and security patching."}
+{"input": "What are Karpenter's key features?", "output": "Karpenter provides automatic node provisioning, bin-packing optimization, Spot instance integration, and drift detection capabilities."}
 ```
 
-### PEFT/LoRA Fine-tuning
+### PEFT/LoRA: Efficient Fine-tuning
+
+**PEFT (Parameter-Efficient Fine-Tuning)**: Instead of training all model parameters, **train only adapter layers** to save memory and time.
+
+**LoRA (Low-Rank Adaptation)**: The representative PEFT method that freezes original weights and **trains only two low-rank matrices (A, B)**.
+
+```
+Original weights W (freeze) + LoRA delta (A x B) = Final weights
+```
+
+**LoRA Key Parameters:**
+
+| Parameter | Description | Recommended | Impact |
+|-----------|-------------|-------------|--------|
+| `r` (rank) | Rank of low-rank matrices | 8-64 | Higher = more expressive, more memory |
+| `alpha` | Scaling factor | Same as r | Controls LoRA weight influence |
+| `dropout` | Dropout rate | 0.1 | Prevents overfitting |
+| `target_modules` | Layers to train | q_proj, v_proj | Attention layer selection |
+
+**Memory Savings:**
+
+- **Full Fine-Tuning (7B model)**: ~120GB VRAM needed (A100 80GB x 2)
+- **LoRA Fine-Tuning (7B model)**: ~24GB VRAM needed (A100 80GB x 1)
+- **Savings**: ~80% memory reduction
+
+### Fine-tuning Execution Example
 
 ```python
+# nemo_lora_finetune.py
 from nemo.collections.llm import finetune
 from nemo.collections.llm.peft import LoRA
 
 # LoRA configuration
 lora_config = LoRA(
-    r=32,
-    alpha=32,
+    r=32,  # rank
+    alpha=32,  # scaling
     dropout=0.1,
     target_modules=["q_proj", "v_proj", "k_proj", "o_proj"],
 )
@@ -331,87 +204,75 @@ model = finetune(
     data_path="/data/train.jsonl",
     peft_config=lora_config,
     trainer_config={
-        "devices": 8,
+        "devices": 8,  # 8 GPU
         "max_epochs": 3,
-        "precision": "bf16",
+        "precision": "bf16",  # BFloat16 (A100/H100)
     },
-    output_path="/output/llama-2-7b-finetuned",
+    output_path="/output/llama-3.1-8b-finetuned",
 )
 ```
+
+**Detailed pipeline**: For data preprocessing, multi-node distributed training, and hyperparameter tuning, see the [Custom Model Pipeline](../reference-architecture/custom-model-pipeline.md) document.
+
+---
 
 ## Checkpoint Management
 
-### Large-scale Model Checkpoint Sharding (>70B)
+### S3-based Checkpoint Storage
 
-For large-scale models over 70B, single checkpoint files can reach hundreds of GB. NeMo manages this efficiently through checkpoint sharding:
+NeMo periodically saves **checkpoints (model state snapshots)** during training. This enables:
 
-```yaml
-# Large-scale model checkpoint sharding configuration
-trainer:
-  checkpoint:
-    # Enable sharding
-    save_sharded_checkpoint: true
+- **Training resumption**: Restart from last checkpoint on failure
+- **Optimal model selection**: Select checkpoint with lowest validation loss
+- **Version management**: Compare checkpoints across experiments
 
-    # Shard size (in GB)
-    shard_size_gb: 10
+**S3 storage structure:**
 
-    # Number of parallel save workers
-    num_workers: 8
-
-    # Checkpoint compression
-    compression: "gzip"
+```
+s3://nemo-checkpoints/
+└── llama-3.1-8b-finetune/
+    ├── checkpoint-epoch=1-step=500/
+    │   ├── model_weights.ckpt
+    │   ├── optimizer_states.ckpt
+    │   └── metadata.yaml
+    ├── checkpoint-epoch=2-step=1000/
+    └── checkpoint-epoch=3-step=1500/
 ```
 
-**Sharding Strategy:**
+### Large Model Checkpoint Sharding
+
+For 70B+ large models, single checkpoint files reach hundreds of GB. NeMo uses **sharding** to split storage across multiple files.
 
 <CheckpointSharding />
 
-```python
-# Load sharded checkpoint
-from nemo.collections.nlp.models import MegatronGPTModel
-
-# Automatically load all shards in parallel
-model = MegatronGPTModel.restore_from(
-    restore_path="s3://checkpoints/llama-405b/sharded",
-    trainer=trainer,
-)
-```
-
-### S3 Checkpoint Saving
+**Sharding configuration:**
 
 ```yaml
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: nemo-checkpoint-config
-  namespace: nemo
-data:
-  checkpoint.yaml: |
-    checkpoint:
-      save_dir: "s3://nemo-checkpoints/${JOB_NAME}"
-      save_top_k: 3
-      save_last: true
-      save_interval: 500
-
-      # Automatic recovery configuration
-      resume:
-        enabled: true
-        resume_from_checkpoint: "auto"  # Automatically resume from latest checkpoint
+trainer:
+  checkpoint:
+    save_sharded_checkpoint: true
+    shard_size_gb: 10  # Split in 10GB units
+    num_workers: 8  # Parallel save workers
+    compression: "gzip"  # Compression (optional)
 ```
 
 ### Checkpoint Conversion
 
 ```bash
-# Convert NeMo checkpoint to HuggingFace format
+# NeMo → HuggingFace conversion
 python -m nemo.collections.llm.scripts.convert_nemo_to_hf \
   --input_path /checkpoints/llama-finetuned.nemo \
   --output_path /models/llama-finetuned-hf \
   --model_type llama
 ```
 
-## TensorRT-LLM Conversion and Optimization
+---
 
-### Model Conversion Pipeline
+## TensorRT-LLM Conversion
+
+### What is TensorRT-LLM?
+
+NVIDIA TensorRT-LLM is an optimization engine for LLM inference. It converts PyTorch models into **highly optimized execution graphs**, improving inference speed by 2-4x.
 
 ```mermaid
 flowchart LR
@@ -421,32 +282,35 @@ flowchart LR
     Triton[Triton<br/>Server]
 
     NeMo -->|Convert| HF
-    HF -->|Build| TRT
+    HF -->|Optimized Build| TRT
     TRT -->|Deploy| Triton
 
     style TRT fill:#76b900
     style Triton fill:#326ce5
 ```
 
-### TensorRT-LLM Conversion Script
+### Performance Improvement Comparison
+
+| Optimization Technique | Memory Savings | Speed Improvement | Description |
+|----------------------|---------------|-------------------|-------------|
+| **FP8 Quantization** | 50% | 1.5-2x | BFloat16 → FP8 (H100 only) |
+| **PagedAttention** | 40% | - | KV Cache dynamic memory management |
+| **In-flight Batching** | - | 2-3x | Continuous batch processing |
+| **Kernel Fusion** | - | 1.3-1.5x | Operation kernel fusion |
+| **Combined Effect** | **60-70%** | **2-4x** | Compound effect of above techniques |
+
+### Conversion Concept
 
 ```python
-# convert_to_trt.py
-# Using TensorRT-LLM 0.8+ API
 from tensorrt_llm import LLM
 
-# Model conversion (using from_pretrained API)
+# Convert HuggingFace model to TensorRT-LLM engine
 llm = LLM(
     model="/models/llama-finetuned-hf",
-    # Build configuration
     max_input_len=4096,
     max_output_len=2048,
     max_batch_size=64,
-
-    # Quantization configuration
-    dtype="fp8",  # FP8 quantization for memory savings
-
-    # Optimization configuration
+    dtype="fp8",  # FP8 quantization
     enable_paged_kv_cache=True,
     enable_chunked_context=True,
 )
@@ -455,233 +319,83 @@ llm = LLM(
 llm.save("/engines/llama-finetuned-trt")
 ```
 
-### Running Conversion as Kubernetes Job
-
-```yaml
-apiVersion: batch/v1
-kind: Job
-metadata:
-  name: trt-llm-conversion
-  namespace: nemo
-spec:
-  template:
-    spec:
-      containers:
-      - name: converter
-        image: nvcr.io/nvidia/tritonserver:24.07-trtllm-python-py3
-        command:
-        - python
-        - /scripts/convert_to_trt.py
-        - --input=/models/llama-finetuned-hf
-        - --output=/engines/llama-finetuned-trt
-        - --quantization=fp8
-        - --max-batch-size=64
-        resources:
-          limits:
-            nvidia.com/gpu: 1
-            memory: "80Gi"
-        volumeMounts:
-        - name: models
-          mountPath: /models
-        - name: engines
-          mountPath: /engines
-        - name: scripts
-          mountPath: /scripts
-      volumes:
-      - name: models
-        persistentVolumeClaim:
-          claimName: models-pvc
-      - name: engines
-        persistentVolumeClaim:
-          claimName: engines-pvc
-      - name: scripts
-        configMap:
-          name: conversion-scripts
-      restartPolicy: Never
-```
-
-## Triton Inference Server Deployment
-
-### TensorRT-LLM Backend Configuration
-
-```yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: triton-trtllm
-  namespace: inference
-spec:
-  replicas: 2
-  selector:
-    matchLabels:
-      app: triton-trtllm
-  template:
-    metadata:
-      labels:
-        app: triton-trtllm
-    spec:
-      containers:
-      - name: triton
-        image: nvcr.io/nvidia/tritonserver:24.07-trtllm-python-py3
-        args:
-        - tritonserver
-        - --model-repository=/models
-        - --http-port=8000
-        - --grpc-port=8001
-        - --metrics-port=8002
-        ports:
-        - containerPort: 8000
-          name: http
-        - containerPort: 8001
-          name: grpc
-        - containerPort: 8002
-          name: metrics
-        resources:
-          limits:
-            nvidia.com/gpu: 1
-            memory: "80Gi"
-        volumeMounts:
-        - name: model-repository
-          mountPath: /models
-      volumes:
-      - name: model-repository
-        persistentVolumeClaim:
-          claimName: triton-models-pvc
-```
-
-### Model Repository Structure
-
-```
-/models/
-└── llama-finetuned/
-    ├── config.pbtxt
-    ├── 1/
-    │   └── model.plan
-    └── tokenizer/
-        ├── tokenizer.json
-        └── tokenizer_config.json
-```
-
-### config.pbtxt Configuration
-
-```protobuf
-name: "llama-finetuned"
-backend: "tensorrtllm"
-max_batch_size: 64
-
-input [
-  {
-    name: "input_ids"
-    data_type: TYPE_INT32
-    dims: [-1]
-  },
-  {
-    name: "input_lengths"
-    data_type: TYPE_INT32
-    dims: [1]
-  }
-]
-
-output [
-  {
-    name: "output_ids"
-    data_type: TYPE_INT32
-    dims: [-1]
-  }
-]
-
-instance_group [
-  {
-    count: 1
-    kind: KIND_GPU
-    gpus: [0]
-  }
-]
-
-parameters {
-  key: "max_tokens_in_paged_kv_cache"
-  value: { string_value: "8192" }
-}
-
-parameters {
-  key: "batch_scheduler_policy"
-  value: { string_value: "inflight_fused_batching" }
-}
-```
-
-## Monitoring and Logging
-
-### Training Metrics Collection
-
-```yaml
-apiVersion: monitoring.coreos.com/v1
-kind: ServiceMonitor
-metadata:
-  name: nemo-training-monitor
-  namespace: nemo
-spec:
-  selector:
-    matchLabels:
-      app: nemo-training
-  endpoints:
-  - port: metrics
-    interval: 30s
-    path: /metrics
-```
-
-### Key Monitoring Metrics
-
-<MonitoringMetrics />
+**Conversion time**: ~10-20 minutes for a 7B model (1x A100)
 
 ---
 
-## NCCL In-depth Analysis: Distributed Training Communication Optimization
+## Triton Inference Server
 
-### NCCL's Role and Importance
+### Triton and NeMo Relationship
 
-NCCL (**NVIDIA Collective Communication Library**) is a core library responsible for **high-speed communication between multi-GPUs** in distributed GPU training. Deep learning model performance is directly affected by NCCL optimization level.
+**Triton Inference Server** is NVIDIA's production inference server that serves TensorRT-LLM engines via HTTP/gRPC API.
+
+```
+Client → Triton Server → TensorRT-LLM Backend → GPU
+```
+
+### Triton Architecture Concept
 
 ```mermaid
 flowchart TB
-    subgraph Perf["Distributed Training Performance"]
-        A[Total<br/>Training Time]
-        B[Computation 60%]
-        C[Communication 40%]
-
-        A --> B
-        A --> C
-
-        C --> D[NCCL<br/>Optimization Area]
-        D --> E[Collective<br/>Operations]
-        D --> F[Synchronization<br/>Overhead]
-
-        style D fill:#326ce5
-        style E fill:#76b900
-        style F fill:#ff6b6b
+    subgraph Triton["Triton Inference Server"]
+        HTTP[HTTP/gRPC<br/>Frontend]
+        Scheduler[Dynamic<br/>Batcher]
+        Backend[TensorRT-LLM<br/>Backend]
     end
 
-    subgraph Benefits["NCCL Effects"]
-        H[3-10x<br/>Performance Improvement]
-        I[CPU Overhead<br/>Elimination]
-        J[Memory<br/>Efficiency]
-        K[NVLink/EFA<br/>Automatic Utilization]
+    Client[Client] --> HTTP
+    HTTP --> Scheduler
+    Scheduler --> Backend
+    Backend --> GPU[GPU<br/>Inference]
 
-        style H fill:#76b900
-        style I fill:#76b900
-        style J fill:#76b900
-        style K fill:#76b900
+    style Scheduler fill:#326ce5
+    style Backend fill:#76b900
+```
+
+**Core Features:**
+
+- **Dynamic batching**: Automatically group multiple requests to optimize GPU utilization
+- **Model ensemble**: Connect multiple models in a pipeline (e.g., Tokenizer → LLM → Detokenizer)
+- **Backend support**: TensorRT-LLM, PyTorch, ONNX, TensorFlow, etc.
+- **Metrics collection**: Prometheus-compatible metrics (throughput, latency, GPU utilization)
+
+---
+
+## NCCL Distributed Communication
+
+### NCCL's Role
+
+**NCCL (NVIDIA Collective Communication Library)** is the core library responsible for **high-speed multi-GPU communication** in distributed GPU training.
+
+```mermaid
+flowchart TB
+    subgraph Perf["Distributed Training Time Composition"]
+        Total[Total<br/>Training Time]
+        Compute[Compute 60%]
+        Comm[Communication 40%]
+
+        Total --> Compute
+        Total --> Comm
+
+        Comm --> NCCL[NCCL<br/>Optimization Area]
+        NCCL --> Collective[Collective<br/>Operations]
+        NCCL --> Sync[Synchronization<br/>Overhead]
+
+        style NCCL fill:#326ce5
+        style Collective fill:#76b900
+        style Sync fill:#ff6b6b
     end
 ```
 
-**Why NCCL is Important in Distributed Training:**
+**Why is it important?**
 
 <NCCLImportance />
 
-### Core Collective Operations
+### Collective Operation Concepts
 
-#### 1. AllReduce - Most Important Operation
+#### 1. AllReduce (Most Important)
 
-AllReduce sums data from all GPUs and distributes results to all GPUs:
+Sums data from all GPUs and distributes the result to all GPUs.
 
 ```
 Initial state:
@@ -691,128 +405,60 @@ GPU 2: [7, 8, 9]
 GPU 3: [10, 11, 12]
 
 After AllReduce:
-GPU 0: [22, 26, 30]  # 1+4+7+10, 2+5+8+11, 3+6+9+12
-GPU 1: [22, 26, 30]
-GPU 2: [22, 26, 30]
-GPU 3: [22, 26, 30]
+All GPUs: [22, 26, 30]  # Element-wise sum
 ```
 
-**AllReduce Usage Example (in distributed training):**
+**Use case**: Averaging gradients from each GPU in distributed training
 
-```python
-import torch
-import torch.distributed as dist
+#### 2. AllGather
 
-# Initialize distributed training
-dist.init_process_group("nccl")
-rank = dist.get_rank()
-world_size = dist.get_world_size()
-
-# Each GPU's gradients (different)
-gradients = torch.randn(1024, device=f"cuda:{rank}")
-
-# AllReduce: Sum and average gradients from all GPUs
-dist.all_reduce(gradients, op=dist.ReduceOp.SUM)
-gradients /= world_size
-
-# Now all GPUs have identical gradients
-# Model weights are synchronized during update
-```
-
-#### 2. AllGather - Collect All Data
-
-AllGather collects data from all GPUs and distributes complete data to each GPU:
+Collects data from all GPUs and distributes the full data to each GPU.
 
 ```
 Initial state:
 GPU 0: [1, 2]
 GPU 1: [3, 4]
-GPU 2: [5, 6]
-GPU 3: [7, 8]
 
 After AllGather:
-GPU 0: [1, 2, 3, 4, 5, 6, 7, 8]
-GPU 1: [1, 2, 3, 4, 5, 6, 7, 8]
-GPU 2: [1, 2, 3, 4, 5, 6, 7, 8]
-GPU 3: [1, 2, 3, 4, 5, 6, 7, 8]
+All GPUs: [1, 2, 3, 4]
 ```
 
-**AllGather Use Case:**
+**Use case**: Gathering distributed tensors in Tensor Parallelism
 
-```python
-# Example: Collect statistics from all GPUs in batch normalization
-local_batch_stats = compute_batch_stats(local_batch)
+#### 3. ReduceScatter
 
-# Collect statistics from all GPUs with AllGather
-all_batch_stats = [torch.empty_like(local_batch_stats) for _ in range(world_size)]
-dist.all_gather(all_batch_stats, local_batch_stats)
-
-# Calculate global statistics
-global_mean = torch.stack(all_batch_stats).mean(dim=0)
-global_std = torch.stack(all_batch_stats).std(dim=0)
-```
-
-#### 3. ReduceScatter - Inverse of AllGather
-
-ReduceScatter first sums data then distributes partitions to each GPU:
-
-```
-Initial state:
-GPU 0: [1, 2, 3, 4, 5, 6, 7, 8]
-GPU 1: [9, 10, 11, 12, 13, 14, 15, 16]
-GPU 2: [17, 18, 19, 20, 21, 22, 23, 24]
-GPU 3: [25, 26, 27, 28, 29, 30, 31, 32]
-
-After ReduceScatter sum and partition:
-GPU 0: [52, 56]      # (1+9+17+25), (2+10+18+26)
-GPU 1: [60, 64]      # (3+11+19+27), (4+12+20+28)
-GPU 2: [68, 72]      # (5+13+21+29), (6+14+22+30)
-GPU 3: [76, 80]      # (7+15+23+31), (8+16+24+32)
-```
-
-**ReduceScatter Use Case (Model Parallelism):**
-
-```python
-# Sum and partition computation results in model parallelism
-local_output = model_fragment(input_data)
-
-# ReduceScatter: Sum all fragments then partition to each GPU
-reduced_output = torch.empty(output_size // world_size, device=local_output.device)
-dist.reduce_scatter(reduced_output, [local_output] * world_size)
-```
-
-#### 4. Broadcast - Data Distribution
-
-Broadcast copies data from one GPU to all GPUs:
+First sums data, then partitions and distributes to each GPU (inverse of AllGather).
 
 ```
 Initial state:
 GPU 0: [1, 2, 3, 4]
-GPU 1: [0, 0, 0, 0]
-GPU 2: [0, 0, 0, 0]
-GPU 3: [0, 0, 0, 0]
+GPU 1: [5, 6, 7, 8]
+
+After ReduceScatter:
+GPU 0: [6, 8]   # (1+5), (2+6)
+GPU 1: [10, 12] # (3+7), (4+8)
+```
+
+**Use case**: Passing intermediate results in Pipeline Parallelism
+
+#### 4. Broadcast
+
+Copies one GPU's data to all GPUs.
+
+```
+Initial state:
+GPU 0: [1, 2, 3]
+GPU 1: [0, 0, 0]
 
 After Broadcast:
-GPU 0: [1, 2, 3, 4]
-GPU 1: [1, 2, 3, 4]
-GPU 2: [1, 2, 3, 4]
-GPU 3: [1, 2, 3, 4]
+All GPUs: [1, 2, 3]
 ```
 
-**Broadcast Use Case:**
+**Use case**: Distributing model checkpoints from the master GPU
 
-```python
-# Broadcast model checkpoint from master GPU
-model_state = load_checkpoint() if rank == 0 else None
+### Network Topology Optimization
 
-# Broadcast: Distribute master GPU's model state to all GPUs
-dist.broadcast_object_list([model_state], src=0)
-model.load_state_dict(model_state)
-```
-
-### Network Topology Awareness
-
-NCCL automatically detects physical connection topology between GPUs and selects optimal paths:
+NCCL automatically detects the physical connection topology between GPUs and selects the optimal path.
 
 ```mermaid
 flowchart TB
@@ -825,87 +471,83 @@ flowchart TB
         L1 --> L2 --> L3 --> L4
     end
 
-    subgraph NCCL["NCCL Automatic Selection"]
-        A[Topology<br/>Analysis]
-        B[Algorithm<br/>Selection]
-        C[Channel<br/>Configuration]
-
-        A --> B --> C
-    end
-
     style L1 fill:#76b900
     style L2 fill:#76b900
     style L3 fill:#ffd93d
     style L4 fill:#ff6b6b
 ```
 
-### NCCL Performance Tuning Parameters
+**Per-topology algorithm selection:**
 
-```yaml
-# Complete NCCL Environment Variable Guide
+- **NVSwitch (H100 nodes)**: Tree algorithm (parallel broadcast)
+- **NVLink (A100 nodes)**: Ring algorithm (circular transfer)
+- **EFA inter-node**: Hierarchical algorithm (intra-node Ring → inter-node Tree)
 
-# 1. Algorithm Selection
-export NCCL_ALGO=Ring           # Ring (default), Tree, CollNet
-export NCCL_ALGO_ALL=Ring       # Specify AllReduce algorithm
-export NCCL_ALGO_TREE=Tree      # Force Tree algorithm
+### NCCL Tuning Parameters
 
-# 2. Protocol Selection
-export NCCL_PROTO=Simple        # Simple (default) or LL (Low Latency)
+```bash
+# Core NCCL environment variables
 
-# 3. Channel Settings (Very Important)
-export NCCL_MIN_NCHANNELS=4     # Minimum channels (default 4)
-export NCCL_MAX_NCHANNELS=8     # Maximum channels (default 32)
+# 1. Algorithm selection
+export NCCL_ALGO=Ring  # or Tree
 
-# 4. Buffer Size
-export NCCL_BUFFSIZE=2097152    # Default 2MB, recommended 1MB-4MB
+# 2. Protocol
+export NCCL_PROTO=Simple  # Simple (throughput) or LL (latency)
 
-# 5. Debug Settings
-export NCCL_DEBUG=INFO          # TRACE, DEBUG, INFO, WARN
-export NCCL_DEBUG_FILE=/var/log/nccl-debug.txt
-export NCCL_DEBUG_SUBSYS=ALL    # Trace all subsystems
+# 3. Channel count (important!)
+export NCCL_MIN_NCHANNELS=4
+export NCCL_MAX_NCHANNELS=8  # More = higher bandwidth, more overhead
 
-# 6. Network Interface
-export NCCL_SOCKET_IFNAME=eth0  # Network interface to use
-export NCCL_IB_DISABLE=0        # Use InfiniBand
-
-# 7. EFA Settings (AWS)
+# 4. EFA settings (AWS)
 export FI_PROVIDER=efa
 export FI_EFA_USE_DEVICE_RDMA=1
-export FI_EFA_FORK_SAFE=1
+export NCCL_IB_DISABLE=0
 
-# 8. Kernel Optimization
-export NCCL_CHECKS_DISABLE=0    # Enable safety checks (production)
-export NCCL_COMM_BLOCKING_WAIT=0
-export NCCL_ASYNC_ERROR_HANDLING=1
-
-# 9. P2P Settings
-export NCCL_P2P_DISABLE=0       # Enable GPU P2P communication
-export NCCL_P2P_LEVEL=SYS       # P2P level: LOC (local), SYS (system)
-
-# 10. Timeout Settings
-export NCCL_COMM_WAIT_TIMEOUT=0 # 0 = infinite wait
+# 5. Debug
+export NCCL_DEBUG=INFO  # Useful for diagnosing performance issues
 ```
+
+**Recommended channel counts:**
+
+- **8 GPU intra-node**: 4-8 channels
+- **Multi-node (16+ GPUs)**: 8-16 channels
+- **Large-scale (64+ GPUs)**: 16-32 channels
 
 ---
 
-## Related Documentation
+## Monitoring
 
-- [GPU Resource Management](./gpu-resource-management.md)
-- [MoE Model Serving](./moe-model-serving.md)
-- [Inference Gateway](../gateway-agents/inference-gateway-routing.md)
+### Key Metrics
+
+<MonitoringMetrics />
+
+**Monitoring stack**: Prometheus + Grafana + DCGM Exporter
+
+For detailed monitoring setup, see [Monitoring and Observability Setup](../reference-architecture/monitoring-observability-setup.md).
+
+---
+
+## Related Documents
+
+- [GPU Resource Management](./gpu-resource-management.md) - Karpenter, KEDA, DRA-based GPU autoscaling
+- [vLLM Model Serving](./vllm-model-serving.md) - Production inference server
+- [MoE Model Serving](./moe-model-serving.md) - Mixture of Experts architecture
+- [Custom Model Pipeline](../reference-architecture/custom-model-pipeline.md) - Full pipeline from data preparation to deployment
 
 :::tip Recommendations
 
-- Measure baseline performance with base model before fine-tuning
-- LoRA/QLoRA enables large model fine-tuning with fewer GPUs
-- TensorRT-LLM conversion can improve inference performance 2-4x
-- Properly configured NCCL environment variables can significantly improve distributed training performance
+- **Before fine-tuning**: Measure baseline performance with the base model
+- **LoRA first**: 80% memory savings vs full fine-tuning
+- **TensorRT-LLM essential**: 2-4x inference performance improvement
+- **NCCL tuning**: 20-30% performance improvement possible through channel count and algorithm optimization in multi-node training
+
 :::
 
-:::warning Precautions
+:::warning Cautions
 
-- Large-scale training incurs significant GPU costs. Use Spot instances and checkpoints
-- Consider NCCL communication overhead when determining node count for distributed training
-- Always save checkpoints to persistent storage like S3
-- EFA usage requires proper security group settings (allow all traffic)
+- **GPU costs**: Large-scale training can cost hundreds of thousands per hour. Actively use Spot instances and checkpoints
+- **Checkpoints essential**: Configure automatic saving to persistent storage like S3 (prepare for node failure)
+- **EFA security groups**: All traffic must be allowed within the same security group when using EFA
+- **Memory overflow**: On OOM, decrease `micro_batch_size` or enable `gradient_checkpointing`
+
 :::

@@ -13,7 +13,7 @@ import { DocCard, DocCardGrid } from '@site/src/components/DocCards';
 
 # Control Plane & Scaling
 
-Understand EKS Control Plane internals, and learn strategies for stable scaling of CRD-based platforms and multi-cluster high availability.
+Understand EKS Control Plane internals and learn strategies for stable scaling of CRD-based platforms and multi-cluster high availability.
 
 ---
 
@@ -22,14 +22,14 @@ Understand EKS Control Plane internals, and learn strategies for stable scaling 
     to="/docs/eks-best-practices/control-plane-scaling/eks-control-plane-crd-scaling"
     icon="🎛️"
     title="EKS Control Plane & CRD at Scale"
-    description="Control Plane operation principles, VAS auto-scaling, Provisioned Control Plane, CRD impact analysis, monitoring strategies"
+    description="Control Plane internals, VAS auto-scaling, Provisioned Control Plane, CRD impact analysis, and monitoring strategies"
     color="#4a90d9"
   />
   <DocCard
     to="/docs/eks-best-practices/control-plane-scaling/cross-cluster-object-replication"
     icon="🔄"
     title="Cross-Cluster Object Replication (HA)"
-    description="High availability architecture pattern comparison and decision guide through K8s object replication in multi-cluster environments"
+    description="Architecture pattern comparison and decision guide for achieving high availability through K8s object replication in multi-cluster environments"
     color="#34a853"
   />
 </DocCardGrid>

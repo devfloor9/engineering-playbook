@@ -1,310 +1,309 @@
 ---
-title: "Building an EKS Intelligent Observability Stack"
+title: "Building an Intelligent EKS Observability Stack"
 sidebar_label: "Intelligent Observability Stack"
 description: "Guide to building an EKS observability architecture using ADOT, AMP, AMG, CloudWatch AI, and Hosted MCP"
-sidebar_position: 2
 category: "agentic-ops"
 tags: [observability, opentelemetry, adot, prometheus, grafana, cloudwatch, devops-guru, mcp, eks]
 last_update:
-  date: 2026-02-14
-  author: devfloor9
+ date: 2026-02-14
+ author: devfloor9
 ---
 
 import { ArchitectureLayers, ManagedAddons, ServiceComparison, ObservabilityPillars, StackSelectionPatterns, DataFlowSummary, ProcessorSettings, ContainerInsightsMetrics, ApplicationSignalsLanguages, DevOpsGuruCost, EKSMCPTools, ErrorBudget, AlertOptimization } from '@site/src/components/ObservabilityStackTables';
 
-# Building an EKS Intelligent Observability Stack
+# Building an Intelligent EKS Observability Stack
 
-> **Written**: 2026-02-12 | **Updated**: 2026-02-14 | **Reading time**: ~45 min
+> 📅 **Created**: 2026-02-12 | **Updated**: 2026-02-14 | ⏱️ **Reading time**: ~45 min
 
 ---
 
 ## 1. Overview
 
-In modern distributed systems, **Observability** goes beyond simple monitoring — it refers to the ability to understand a system's internal state through its external outputs. In EKS environments, the combination of hundreds of Pods, complex service meshes, and dynamic scaling makes it difficult to identify the root cause of problems with traditional monitoring alone.
+현대 distributed system from **observability(Observability)**은 단순 monitoring 넘어, system 내부 status external 출력 through 이해 능력 means. EKS environment in 백 Pod, complex service 메time, dynamic scaling combination Traditional Monitoringonly으 issue root cause 파악기 어렵.
 
-### 1.1 3-Pillar Observability + AI Analysis Layer
+### 1.1 3-Pillar observability + AI analysis layer
 
-Combining the three pillars of observability with an AI analysis layer enables truly intelligent operations.
+observability 세 가지 기둥 and AI analysis layer combinationif 진정 intelligent operations possible.
 
 <ObservabilityPillars />
 
 :::info Scope of This Document
-This document covers the entire process of building an intelligent observability stack in an EKS environment, from Managed Add-on based observability foundations to the AI analysis layer. It focuses on strategies where AWS operates open-source observability tools as managed services to **eliminate complexity** while **maximizing K8s-native observability**. While this document is based on the AWS native stack, the same architecture can be applied with 3rd-party backends by using ADOT (OpenTelemetry) as the collection layer.
+Managed Add-on based observability 기초부터 AI analysis layer까지, EKS environment from intelligent observability stack build entire 과정 covers. AWS open-source observability tool managed as Operations to ** complexalso removal**if서 **K8s native observability 극대화** strategy 중심 as 설명. This document is based on the AWS native stack, but, ADOT(OpenTelemetry)를 collection 레이어 useif 3rd Party backend와also the same architecture Application .
 :::
 
-### 1.3 Observability Stack Selection Patterns
+### 1.3 observability stack optional pattern
 
-In real-world EKS operational environments, three major observability stack patterns are used depending on organizational requirements and existing investments:
+ actual EKS Operations environment in organization 요구사항 and existing investment according to 크 세 가지 observability stack pattern use:
 
 <StackSelectionPatterns />
 
-:::tip The Key to the Collection Layer: ADOT (OpenTelemetry)
+:::tip collection 레이어 Core: ADOT (OpenTelemetry)
 
-Regardless of which backend you choose, **using ADOT (OpenTelemetry) for the collection layer gives you the freedom to switch backends.** Since OpenTelemetry is a CNCF standard, it can export data to most backends including Prometheus, Jaeger, Datadog, Sumo Logic, and more. This is why AWS provides OpenTelemetry as a Managed Add-on (ADOT) instead of its own proprietary agent.
+어떤 backend optional든, **collection 레이어 ADOT(OpenTelemetry)를 useif backend 교체 free.** OpenTelemetry CNCF standard이므 Prometheus, Jaeger, Datadog, Sumo Logic etc. 대부minutes backend data 내보낼 . 이것 AWS 체 agent 대신 OpenTelemetry Managed Add-on(ADOT) as Provision 이유.
 :::
 
-This document explains configurations based on the **AWS Native** and **OSS-centric** patterns. If you use a 3rd-party backend, you can leverage the same collection pipeline by simply changing the ADOT Collector's exporter settings.
+This document **AWS native** and **OSS 중심** pattern 기준 as configuration 설명. 3rd Party backend use case, ADOT Collector exporter Configurationonly changeif the same collection pipeline utilization .
 
-### 1.2 Why Observability Matters in EKS
+### 1.2 왜 EKS from observability 중요가
 
-Observability in EKS environments is essential for the following reasons:
+EKS environment observability following 이유 mandatory:
 
-- **Dynamic infrastructure**: Pods are constantly created/deleted, and nodes are dynamically provisioned by Karpenter
-- **Microservice complexity**: Complex inter-service call chains make it difficult to identify single points of failure
-- **Multi-layer issues**: Multiple layers including applications, container runtime, nodes, network, and AWS services
-- **Cost optimization**: Right-sizing based on resource usage pattern analysis
-- **Regulatory compliance**: Audit logs, access records, and other compliance requirements
+- **dynamic infrastructure**: Pod time generation/deletion되며, node Karpenter by dynamic provisioning
+- **microservices complex**: service between call 체인 complex to single failure 지점 파악 difficult
+- **multi 레이어 issue**: application, container 런타임, node, network, AWS service etc. 다층 structure
+- **Cost Optimization**: resource use pattern analysis through Right-sizing needed
+- **규정 준**: audit log, approach 기록 etc. compliance 요구사항
 
 ---
 
-## 2. Managed Add-ons Based Observability Foundation
+## 2. Observability Foundations Based on Managed Add-ons
 
-EKS Managed Add-ons eliminate operational complexity by having AWS manage the installation, upgrades, and patches of observability agents. With a single `aws eks create-addon` command, you can establish a production-grade observability foundation.
+EKS Managed Add-ons AWS observability agent installation, 업그레이드, patch Management to operational complexity removal. `aws eks create-addon` 줄 명령 as production level observability 기초 확립 .
 
 <ManagedAddons />
 
 ### 2.1 ADOT (AWS Distro for OpenTelemetry) Add-on
 
-ADOT is the AWS distribution of OpenTelemetry that collects metrics, logs, and traces with a single agent.
+ADOT OpenTelemetry AWS distribution으로, metric·log·traces single agent collection.
 
 ```bash
-# Install ADOT Add-on
+# ADOT Add-on 설치
 aws eks create-addon \
-  --cluster-name my-cluster \
-  --addon-name adot \
-  --addon-version v0.40.0-eksbuild.1 \
-  --service-account-role-arn arn:aws:iam::ACCOUNT_ID:role/adot-collector-role
+ --cluster-name my-cluster \
+ --addon-name adot \
+ --addon-version v0.40.0-eksbuild.1 \
+ --service-account-role-arn arn:aws:iam::ACCOUNT_ID:role/adot-collector-role
 
-# Verify installation
+# 설치 확인
 aws eks describe-addon \
-  --cluster-name my-cluster \
-  --addon-name adot \
-  --query 'addon.status'
+ --cluster-name my-cluster \
+ --addon-name adot \
+ --query 'addon.status'
 ```
 
-:::tip ADOT vs Self-managed OpenTelemetry Deployment
-Using the ADOT Add-on automatically installs the OpenTelemetry Operator with built-in AWS service authentication (SigV4). This significantly reduces operational overhead compared to self-managed deployments, and EKS version compatibility is guaranteed by AWS.
+:::tip ADOT vs 체 OpenTelemetry Deployment
+ADOT Add-on useif OpenTelemetry Operator automatic installation되며, AWS service 인증(SigV4)이 built-in. 체 Deployment compared to operational burden 크 줄어들며, EKS 버before 호환 AWS by guarantee.
 :::
 
 ### 2.2 CloudWatch Observability Agent Add-on
 
-The CloudWatch Observability Agent provides an integrated offering of Container Insights Enhanced, Application Signals, and CloudWatch Logs.
+CloudWatch Observability Agent Container Insights Enhanced, Application Signals, CloudWatch Logs Integration provides.
 
 ```bash
 # CloudWatch Observability Agent Add-on
 aws eks create-addon \
-  --cluster-name my-cluster \
-  --addon-name amazon-cloudwatch-observability \
-  --service-account-role-arn arn:aws:iam::ACCOUNT_ID:role/cloudwatch-agent-role
+ --cluster-name my-cluster \
+ --addon-name amazon-cloudwatch-observability \
+ --service-account-role-arn arn:aws:iam::ACCOUNT_ID:role/cloudwatch-agent-role
 
-# Verify configuration
+# 구성 확인
 kubectl get pods -n amazon-cloudwatch
 ```
 
 ### 2.3 Node Monitoring Agent Add-on (2025)
 
-The Node Monitoring Agent detects hardware and OS-level issues on EC2 nodes.
+Node Monitoring Agent EC2 node 드웨어 and OS level issue detection.
 
 ```bash
 # Node Monitoring Agent Add-on
 aws eks create-addon \
-  --cluster-name my-cluster \
-  --addon-name eks-node-monitoring-agent
+ --cluster-name my-cluster \
+ --addon-name eks-node-monitoring-agent
 ```
 
-Key detection items:
+ major detection item:
 
-- **NVMe disk errors**: Proactive detection of EBS volume performance degradation
-- **Memory hardware errors**: EDAC (Error Detection and Correction) events
-- **Kernel soft lockups**: CPU held abnormally long
-- **OOM (Out of Memory)**: Process termination due to memory exhaustion
+- **NVMe 디스크 error**: EBS 볼륨 performance 저 preemptive detection
+- **memory 드웨어 error**: EDAC(Error Detection and Correction) event
+- **커널 소프트 락업**: CPU rationormal as 오래 점유 status
+- **OOM(Out of Memory)**: memory shortage as 인 process 종료
 
-#### 2.3.1 Integration of Node Readiness Controller with Observability
+#### 2.3.1 Node Readiness Controller and observability Integration
 
-**Node Readiness Controller (NRC)** is a controller introduced as Beta in Kubernetes 1.32 that automatically manages node taints based on node issues reported by Node Problem Detector (NPD). This is a core component of the **Closed-Loop Observability** pattern that connects observability data to automatic remediation.
+**Node Readiness Controller(NRC)**는 Kubernetes 1.32 Beta adoption 컨트롤러로, Node Problem Detector(NPD)가 보고 node issue based as node taint automatic Management. this is observability data automatic action(remediation)로 connection **Closed-Loop observability(Closed-Loop Observability)** pattern Core Configuration 요소.
 
-**Role in the Observability Pipeline:**
+**observability pipeline from role:**
 
 ```mermaid
 graph LR
-    NPD[Node Problem<br/>Detector] -->|Node Condition| K8sAPI[Kubernetes API]
-    K8sAPI -->|Watch| NRC[Node Readiness<br/>Controller]
-    NRC -->|Apply/Remove Taint| Node[Worker Node]
-    K8sAPI -->|Metrics| Prometheus[Prometheus/AMP]
-    K8sAPI -->|Events| CW[CloudWatch Events]
-    Prometheus -->|Visualize| Grafana[AMG Dashboard]
-    CW -->|Alert| SNS[SNS/EventBridge]
+ NPD[Node Problem<br/>Detector] -->|Node Condition| K8sAPI[Kubernetes API]
+ K8sAPI -->|Watch| NRC[Node Readiness<br/>Controller]
+ NRC -->|Apply/Remove Taint| Node[Worker Node]
+ K8sAPI -->|Metrics| Prometheus[Prometheus/AMP]
+ K8sAPI -->|Events| CW[CloudWatch Events]
+ Prometheus -->|Visualize| Grafana[AMG Dashboard]
+ CW -->|Alert| SNS[SNS/EventBridge]
 ```
 
-1. **Collection**: Node Monitoring Agent Add-on detects hardware/OS issues
-2. **Reporting**: NPD reports status to the K8s API as Node Conditions
-3. **Detection**: NRC monitors Node Condition changes
-4. **Action**: NRC automatically applies/removes the `node.kubernetes.io/unschedulable` taint
-5. **Observation**: CloudWatch Container Insights and AMP track taint change events
-6. **Alerting**: SNS/EventBridge notifies the operations team of node state changes
+1. **collection**: Node Monitoring Agent Add-on 드웨어/OS issue detection
+2. **보고**: NPD Node Condition as K8s API status 보고
+3. **detection**: NRC Node Condition 변화 Monitoring
+4. **action**: NRC automatic as `node.kubernetes.io/unschedulable` taint Application/removal
+5. **관찰**: CloudWatch Container Insights and AMP taint change event tracking
+6. **alert**: SNS/EventBridge through operations teams node status 변화 통지
 
 **CloudWatch Container Insights Integration:**
 
 ```bash
-# Query NRC-related node taint change events with CloudWatch Logs Insights
+# NRC 관련 노드 taint 변경 이벤트를 CloudWatch Logs Insights로 조회
 aws logs start-query \
-  --log-group-name /aws/containerinsights/my-cluster/application \
-  --start-time $(date -u -d '1 hour ago' +%s) \
-  --end-time $(date -u +%s) \
-  --query-string '
+ --log-group-name /aws/containerinsights/my-cluster/application \
+ --start-time $(date -u -d '1 hour ago' +%s) \
+ --end-time $(date -u +%s) \
+ --query-string '
 fields @timestamp, kubernetes.node_name, message
 | filter message like /NoSchedule/
 | filter message like /node.kubernetes.io\/unschedulable/
 | sort @timestamp desc
 '
 
-# Example output:
+# 출력 예시:
 # 2026-02-12 10:23:45 | node-abc123 | Taint added: node.kubernetes.io/unschedulable:NoSchedule (DiskPressure)
 # 2026-02-12 10:28:12 | node-abc123 | Taint removed: node.kubernetes.io/unschedulable (DiskPressure resolved)
 ```
 
-**Prometheus Metrics Collection:**
+**Prometheus metric collection:**
 
-NRC operates as part of the kube-controller-manager and exposes the following metrics:
+NRC kube-controller-manager day부 behavior and, following metric 노출:
 
 ```yaml
-# Collect NRC metrics with ServiceMonitor
+# ServiceMonitor로 NRC 메트릭 수집
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
-  name: node-readiness-controller
-  namespace: kube-system
+ name: node-readiness-controller
+ namespace: kube-system
 spec:
-  selector:
-    matchLabels:
-      component: kube-controller-manager
-  endpoints:
-  - port: metrics
-    path: /metrics
-    interval: 30s
+ selector:
+ matchLabels:
+ component: kube-controller-manager
+ endpoints:
+ - port: metrics
+ path: /metrics
+ interval: 30s
 
-# Key metrics:
-# - node_readiness_controller_reconcile_total: Number of NRC reconciliation executions
-# - node_readiness_controller_reconcile_duration_seconds: Reconciliation processing time
-# - node_readiness_controller_taint_changes_total: Number of taint applies/removals
+# 주요 메트릭:
+# - node_readiness_controller_reconcile_total: NRC reconciliation 실행 횟수
+# - node_readiness_controller_reconcile_duration_seconds: Reconciliation 처리 시간
+# - node_readiness_controller_taint_changes_total: Taint 적용/제거 횟수
 ```
 
-**AMG (Amazon Managed Grafana) Dashboard Visualization:**
+**AMG(Amazon Managed Grafana) dashboard time각화:**
 
 ```json
 {
-  "dashboard": {
-    "title": "Node Readiness & Health",
-    "panels": [
-      {
-        "title": "Nodes with Unschedulable Taints",
-        "targets": [{
-          "expr": "count(kube_node_spec_taint{key='node.kubernetes.io/unschedulable'})"
-        }]
-      },
-      {
-        "title": "NRC Reconciliation Rate",
-        "targets": [{
-          "expr": "rate(node_readiness_controller_reconcile_total[5m])"
-        }]
-      },
-      {
-        "title": "Node Condition Changes (24h)",
-        "targets": [{
-          "expr": "increase(node_readiness_controller_taint_changes_total[24h])"
-        }]
-      }
-    ]
-  }
+ "dashboard": {
+ "title": "Node Readiness & Health",
+ "panels": [
+ {
+ "title": "Nodes with Unschedulable Taints",
+ "targets": [{
+ "expr": "count(kube_node_spec_taint{key='node.kubernetes.io/unschedulable'})"
+ }]
+ },
+ {
+ "title": "NRC Reconciliation Rate",
+ "targets": [{
+ "expr": "rate(node_readiness_controller_reconcile_total[5m])"
+ }]
+ },
+ {
+ "title": "Node Condition Changes (24h)",
+ "targets": [{
+ "expr": "increase(node_readiness_controller_taint_changes_total[24h])"
+ }]
+ }
+ ]
+ }
 }
 ```
 
-**EventBridge-based Alert Automation:**
+**EventBridge based alert Automation:**
 
 ```yaml
-# EventBridge Rule: SNS alert on NRC taint changes
+# EventBridge Rule: NRC taint 변경 시 SNS 알림
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: eventbridge-rule
+ name: eventbridge-rule
 data:
-  rule.json: |
-    {
-      "source": ["aws.eks"],
-      "detail-type": ["EKS Node Taint Change"],
-      "detail": {
-        "taintKey": ["node.kubernetes.io/unschedulable"],
-        "action": ["added", "removed"]
-      }
-    }
+ rule.json: |
+ {
+ "source": ["aws.eks"],
+ "detail-type": ["EKS Node Taint Change"],
+ "detail": {
+ "taintKey": ["node.kubernetes.io/unschedulable"],
+ "action": ["added", "removed"]
+ }
+ }
 ---
-# Send alerts to SNS topic
-# Alert example:
+# SNS 주제로 알림 전송
+# 알림 예시:
 # [ALERT] Node ip-10-0-1-45.ap-northeast-2.compute.internal
 # Taint added: node.kubernetes.io/unschedulable:NoSchedule
 # Reason: DiskPressure detected by Node Monitoring Agent
 # Action: Pods will not be scheduled until condition resolves
 ```
 
-**Utilizing Dry-run Mode (Pre-production Validation):**
+**Dry-run 모드 utilization (production Application before Validation):**
 
-NRC supports three modes:
+NRC 세 가지 모드supports:
 
 | Mode | Description | When to Use |
-|------|-------------|------------|
-| `dry-run` | Simulates taint changes only (no actual application) | Assess impact scope before production deployment |
-| `bootstrap-only` | Applies taints only during cluster boot | Use only during initial node preparation phase |
-| `continuous` | Continuously monitors node state and manages taints | Production environment (recommended) |
+|------|------|----------|
+| `dry-run` | Taint change time뮬레이션only perform ( actual Application 안 함) | production Application before impact scope 평 |
+| `bootstrap-only` | cluster 부팅 time에only taint Application | initial node readiness phase에서only use |
+| `continuous` | continuous as node status Monitoring and taint Management | production environment (recommended) |
 
 ```bash
-# Enable NRC in dry-run mode (impact scope simulation)
+# Dry-run 모드로 NRC 활성화 (영향 범위 시뮬레이션)
 kubectl patch deployment kube-controller-manager \
-  -n kube-system \
-  --type='json' \
-  -p='[{
-    "op": "add",
-    "path": "/spec/template/spec/containers/0/command/-",
-    "value": "--feature-gates=NodeReadinessController=true"
-  },{
-    "op": "add",
-    "path": "/spec/template/spec/containers/0/command/-",
-    "value": "--node-readiness-controller-mode=dry-run"
-  }]'
+ -n kube-system \
+ --type='json' \
+ -p='[{
+ "op": "add",
+ "path": "/spec/template/spec/containers/0/command/-",
+ "value": "--feature-gates=NodeReadinessController=true"
+ },{
+ "op": "add",
+ "path": "/spec/template/spec/containers/0/command/-",
+ "value": "--node-readiness-controller-mode=dry-run"
+ }]'
 
-# Analyze dry-run results with CloudWatch Logs Insights
+# Dry-run 결과를 CloudWatch Logs Insights로 분석
 aws logs start-query \
-  --log-group-name /aws/containerinsights/my-cluster/application \
-  --start-time $(date -u -d '1 hour ago' +%s) \
-  --end-time $(date -u +%s) \
-  --query-string '
+ --log-group-name /aws/containerinsights/my-cluster/application \
+ --start-time $(date -u -d '1 hour ago' +%s) \
+ --end-time $(date -u +%s) \
+ --query-string '
 fields @timestamp, message
 | filter message like /dry-run/
 | filter message like /would add taint/
 | stats count() by kubernetes.node_name
 '
 
-# Output: Confirm the number of taints to be applied per node
-# -> Decide to switch to continuous mode after assessing impact scope
+# 출력: 각 노드별로 적용될 taint 개수 확인
+# → 영향 범위 평가 후 continuous 모드로 전환 결정
 ```
 
-**Gradual Rollout Strategy:**
+**gradual Rollout strategy:**
 
 ```mermaid
 graph LR
-    A[dry-run<br/>1-2 weeks] -->|Confirm no impact| B[bootstrap-only<br/>1 week]
-    B -->|Verify boot-time behavior| C[continuous<br/>Production]
+ A[dry-run<br/>1-2주] -->|영향 없음 확인| B[bootstrap-only<br/>1주]
+ B -->|부팅 시 동작 검증| C[continuous<br/>프로덕션]
 
-    A -->|Dashboard<br/>Monitoring| D[Grafana]
-    B -->|Event<br/>Tracking| E[CloudWatch]
-    C -->|Alert<br/>Automation| F[SNS/EventBridge]
+ A -->|Dashboard<br/>모니터링| D[Grafana]
+ B -->|이벤트<br/>추적| E[CloudWatch]
+ C -->|알림<br/>자동화| F[SNS/EventBridge]
 ```
 
-1. **Dry-run phase**: Monitor simulation results in observability dashboards
-2. **Bootstrap-only phase**: Apply taints only during node boot to assess initial impact
-3. **Continuous phase**: Fully activate in production environment with continuous monitoring
+1. **Dry-run phase**: observability dashboard from time뮬레이션 result Monitoring
+2. **Bootstrap-only phase**: node 부팅 time에only taint applying initial impact 평가
+3. **Continuous phase**: production environment complete Activation and 지속 Monitoring
 
-:::tip Best Practice for Observability to Auto-Remediation
-NRC is an excellent example of the **Closed-Loop Observability** pattern that performs automatic actions based on observability data. When the Node Monitoring Agent detects a problem, NRC automatically isolates the node to maintain workload stability. This is a core component of **Self-Healing Infrastructure** where the system recovers on its own without human intervention.
+:::tip observability → automatic action Best Practice
+NRC observability data 바탕 as automatic action perform **Closed-Loop Observability** pattern 좋 example. Node Monitoring Agent issue detectionif NRC automatic as node isolation to workload 안정 maintenance. this is 사람 입 without system 스스 times복 **Self-Healing Infrastructure** Core Configuration 요소.
 :::
 
 :::info Reference
@@ -313,198 +312,197 @@ NRC is an excellent example of the **Closed-Loop Observability** pattern that pe
 
 ### 2.4 Container Network Observability (2025.11)
 
-**Container Network Observability**, announced at re:Invent in November 2025, provides network visibility with K8s context in EKS environments. While traditional VPC Flow Logs only showed IP-level traffic, Container Network Observability provides **Pod-to-Pod, Pod-to-Service, Pod-to-external service** level network flows along with K8s metadata (namespace, service name, Pod labels).
+2025year 11monthly re:Invent from announcement **Container Network Observability**는 EKS environment from K8s 컨텍스트 inclusion network visibility Provision feature. existing VPC Flow Logs IP level trafficonly 보여주었다면, Container Network Observability **Pod → Pod, Pod → Service, Pod → external service** level network 플로우 K8s 메타data(namespace, service명, Pod 라벨) along with provides.
 
 ```bash
-# Install Network Flow Monitoring Agent Add-on
+# Network Flow Monitoring Agent Add-on 설치
 aws eks create-addon \
-  --cluster-name my-cluster \
-  --addon-name aws-network-flow-monitoring-agent
+ --cluster-name my-cluster \
+ --addon-name aws-network-flow-monitoring-agent
 
-# Enable Container Network Observability in VPC CNI
+# VPC CNI에서 Container Network Observability 활성화
 aws eks update-addon \
-  --cluster-name my-cluster \
-  --addon-name vpc-cni \
-  --configuration-values '{"enableNetworkPolicy":"true"}'
+ --cluster-name my-cluster \
+ --addon-name vpc-cni \
+ --configuration-values '{"enableNetworkPolicy":"true"}'
 ```
 
-Key features:
+ major feature:
 
-- **Pod-level network metrics**: Track TCP retransmissions, packet drops, and connection latency at the Pod/Service level
-- **Cross-AZ traffic visibility**: Measure cross-AZ data transfer volumes per service to identify unnecessary Cross-AZ costs
-- **K8s context network map**: Automatically map namespace, service name, and Pod labels to network flows
-- **AWS service communication tracking**: Analyze traffic patterns from Pods to AWS services like S3, RDS, DynamoDB
-- **Preferred observability stack integration**: Send metrics to any backend including AMP/Grafana, CloudWatch, Datadog
+- **Pod level network metric**: TCP re-transfer, 패킷 드롭, connection delaytime Pod/Service 단위 tracking
+- **Cross-AZ traffic visibility**: AZ between data transfer량 per service measurement to non- required Cross-AZ cost identification
+- **K8s 컨텍스트 network 맵**: network 플로우 namespace, service명, Pod 라벨 automatic mapping
+- **AWS service 통신 tracking**: Pod from S3, RDS, DynamoDB etc. AWS service traffic pattern Analysis
+- **선호 observability stack 연동**: AMP/Grafana, CloudWatch, Datadog etc. 어떤 backend로든 metric transfer possible
 
 :::tip Enhanced Network Security Policies (2025.12)
-Along with Container Network Observability, EKS also introduced **Enhanced Network Security Policies**. These allow centralized application of network access filters across the entire cluster and fine-grained control of external traffic with DNS-based egress policies. They operate on top of VPC CNI's Network Policy capabilities.
+Container Network Observability and 함께, EKS **Enhanced Network Security Policies**also adoption했. cluster before체 걸친 network approach 필터 중앙 from Application and, DNS based 이그레스 policy as external traffic 세밀 제어 . VPC CNI Network Policy feature based as behavior.
 :::
 
 :::info Key Message
-With just 5 observability Managed Add-ons, you establish the observability foundation across **all layers: infrastructure (Node Monitoring), network (NFM Agent -> Container Network Observability), and application (ADOT, CloudWatch Agent)**. All are deployed with a single `aws eks create-addon` command, and version management and security patches are handled by AWS.
+5 observability Managed Add-ononly as **infrastructure(Node Monitoring)**, **network(NFM Agent → Container Network Observability)**, **application(ADOT, CloudWatch Agent)** before 레이어 observability 기초 확립. 모두 `aws eks create-addon` 줄 Deployment되며, 버before Management and security patch AWS 담당.
 :::
 
 ### 2.6 CloudWatch Generative AI Observability
 
-**CloudWatch Generative AI Observability**, which started as Preview in July 2025 and reached GA in October, provides a new observability dimension for AI/ML workloads. It adds **AI workload-specific observability** to the existing 3-Pillar observability (Metrics, Logs, Traces), ushering in the era of 4-Pillar observability.
+2025year 7monthly Preview start to 10monthly GA 달 **CloudWatch Generative AI Observability**는 AI/ML workload 위 new observability 차원 provides. existing 3-Pillar observability(Metrics, Logs, Traces)에 **AI workload before용 observability**을 additional to 4-Pillar observability time대 엽.
 
-#### 2.6.1 Core Features
+#### 2.6.1 Key Features
 
 **LLM and AI Agent Monitoring:**
-- Monitor LLMs and AI Agents running on all infrastructure including Amazon Bedrock, EKS, ECS, and on-premises
-- Token consumption tracking (input/output token counts, cost per token)
-- Inference latency analysis (request-response time, P50/P90/P99 latency)
-- End-to-end tracing for full AI stack visibility
+- Amazon Bedrock, EKS, ECS, on-premises etc. all infrastructure from execution되 LLM and AI Agent Monitoring
+- 토 large 소ratio tracking (입력/출력 토 large , 토큰당 cost)
+- inference latency Analysis (request-response time, P50/P90/P99 latency)
+- End-to-end 트레이싱 as entire AI stack visibility securing
 
-**AI Workflow-Specific Observability:**
-- **Hallucination risk path detection**: Identify paths where the model is likely to generate incorrect information
-- **Retrieval miss identification**: Track search failures in RAG (Retrieval-Augmented Generation) systems
-- **Rate-limit retry monitoring**: Analyze retry patterns due to API limits
-- **Model-switch decision tracking**: Monitor logic for switching between multiple models
+**AI workflow 특화 observability:**
+- **Hallucination risk 경 detection**: model 잘못 정보 generation possible high 경 identification
+- **Retrieval miss identification**: RAG(Retrieval-Augmented Generation) system from search failure tracking
+- **Rate-limit retry Monitoring**: API limitation as 인 re-timealso pattern Analysis
+- **Model-switch 결정 tracking**: multiple model between transition 로직 Monitoring
 
 **Amazon Bedrock AgentCore Integration:**
-- Provides ready-to-use views for Agent workflows, Knowledge Base, and Tool usage
-- Cross-tool prompt flow visibility
-- External framework support (LangChain, LangGraph, CrewAI)
+- Agent workflow, Knowledge Base, Tool use for immediately use possible 뷰 Provision
+- 크로스 tool 프롬프트 플로우 visibility
+- external framework(LangChain, LangGraph, CrewAI) Support
 
-#### 2.6.2 4-Pillar Observability Architecture
+#### 2.6.2 4-Pillar observability architecture
 
 ```mermaid
 graph LR
-    subgraph Traditional["Traditional 3-Pillar"]
-        M[Metrics]
-        L[Logs]
-        T[Traces]
-    end
+ subgraph Traditional["전통적 3-Pillar"]
+ M[Metrics]
+ L[Logs]
+ T[Traces]
+ end
 
-    subgraph AI["AI Observability (4th Pillar)"]
-        TK[Token Usage]
-        LAT[Inference Latency]
-        HALL[Hallucination Risk]
-        RET[Retrieval Quality]
-    end
+ subgraph AI["AI Observability (4번째 Pillar)"]
+ TK[Token Usage]
+ LAT[Inference Latency]
+ HALL[Hallucination Risk]
+ RET[Retrieval Quality]
+ end
 
-    M --> AI
-    L --> AI
-    T --> AI
+ M --> AI
+ L --> AI
+ T --> AI
 ```
 
-:::info Differentiators of AI Observability
-Traditional 3-Pillar observability observes a system's **behavior**, while AI observability observes the model's **decision-making** and **quality**. For example, API latency (traditional) and inference quality (AI-specific) are different observation targets.
+:::info AI observability 차별점
+ existing 3-Pillar observability system **behavior(behavior)**을 관찰notonly, AI observability model **의사결정(decision-making)**과 **품질(quality)**을 관찰. example 들어, API latency(Traditional)와 inference 품질(AI 특화)은 서 다른 관찰 대상.
 :::
 
-#### 2.6.3 Activation Method
+#### 2.6.3 Activation method
 
 ```bash
-# Enable CloudWatch Generative AI Observability (EKS workloads)
-# Add AI Observability Exporter to ADOT Collector
+# CloudWatch Generative AI Observability 활성화 (EKS 워크로드)
+# ADOT Collector에 AI Observability Exporter 추가
 kubectl apply -f - <<EOF
 apiVersion: opentelemetry.io/v1beta1
 kind: OpenTelemetryCollector
 metadata:
-  name: adot-ai-observability
-  namespace: observability
+ name: adot-ai-observability
+ namespace: observability
 spec:
-  mode: deployment
-  config:
-    receivers:
-      otlp:
-        protocols:
-          grpc:
-            endpoint: "0.0.0.0:4317"
+ mode: deployment
+ config:
+ receivers:
+ otlp:
+ protocols:
+ grpc:
+ endpoint: "0.0.0.0:4317"
 
-    processors:
-      batch:
-        timeout: 10s
+ processors:
+ batch:
+ timeout: 10s
 
-    exporters:
-      awsxray:
-        region: ap-northeast-2
-        indexed_attributes:
-          - "gen_ai.system"
-          - "gen_ai.request.model"
-          - "gen_ai.usage.input_tokens"
-          - "gen_ai.usage.output_tokens"
+ exporters:
+ awsxray:
+ region: ap-northeast-2
+ indexed_attributes:
+ - "gen_ai.system"
+ - "gen_ai.request.model"
+ - "gen_ai.usage.input_tokens"
+ - "gen_ai.usage.output_tokens"
 
-      awscloudwatch:
-        region: ap-northeast-2
-        namespace: "GenAI/Observability"
-        metric_declarations:
-          - dimensions:
-              - ["service.name", "gen_ai.request.model"]
-            metric_name_selectors:
-              - "gen_ai.usage.input_tokens"
-              - "gen_ai.usage.output_tokens"
-              - "gen_ai.request.duration"
+ awscloudwatch:
+ region: ap-northeast-2
+ namespace: "GenAI/Observability"
+ metric_declarations:
+ - dimensions:
+ - ["service.name", "gen_ai.request.model"]
+ metric_name_selectors:
+ - "gen_ai.usage.input_tokens"
+ - "gen_ai.usage.output_tokens"
+ - "gen_ai.request.duration"
 
-    service:
-      pipelines:
-        traces:
-          receivers: [otlp]
-          processors: [batch]
-          exporters: [awsxray]
-        metrics:
-          receivers: [otlp]
-          processors: [batch]
-          exporters: [awscloudwatch]
+ service:
+ pipelines:
+ traces:
+ receivers: [otlp]
+ processors: [batch]
+ exporters: [awsxray]
+ metrics:
+ receivers: [otlp]
+ processors: [batch]
+ exporters: [awscloudwatch]
 EOF
 ```
 
 #### 2.6.4 MCP Integration and Automation
 
-CloudWatch Generative AI Observability integrates with the **Bedrock Data Automation MCP server** to allow direct querying of AI observability data from AI clients like Kiro and Amazon Q Developer.
+CloudWatch Generative AI Observability **Bedrock Data Automation MCP server**와 Integration AI observability data Kiro, Amazon Q Developer etc. AI 클라이언트 from directly 조times .
 
 ```
-[Scenario: LLM Inference Latency Increase]
+[시나리오: LLM 추론 레이턴시 증가]
 
-Kiro + MCP Auto Analysis:
-1. CloudWatch MCP: query_ai_metrics("inference_latency") -> P99 500ms -> 2.3s increase
-2. CloudWatch MCP: get_ai_traces(service="recommendation-llm") -> Token count spike confirmed
-3. CloudWatch MCP: check_hallucination_risk() -> High risk for certain prompt patterns
-4. Bedrock MCP: get_model_config() -> Excessive max_tokens model parameter setting
+Kiro + MCP 자동 분석:
+1. CloudWatch MCP: query_ai_metrics("inference_latency") → P99 500ms → 2.3s 증가
+2. CloudWatch MCP: get_ai_traces(service="recommendation-llm") → 토큰 수 급증 확인
+3. CloudWatch MCP: check_hallucination_risk() → 특정 프롬프트 패턴에서 위험도 높음
+4. Bedrock MCP: get_model_config() → 모델 파라미터 max_tokens 설정 과도
 
--> Kiro automatically:
-   - Creates PR to optimize max_tokens limit
-   - Suggests prompt engineering improvements
-   - Adds alternative model (smaller model) usage logic
+→ Kiro가 자동으로:
+ - max_tokens 제한 최적화 PR 생성
+ - 프롬프트 엔지니어링 개선 제안
+ - 대체 모델(소형 모델) 사용 로직 추가
 ```
 
 :::tip GitHub Action Integration
-CloudWatch Generative AI Observability provides a GitHub Action to automatically add AI observability data to PRs. It automatically displays token consumption, latency changes, and hallucination risk changes on model change PRs to assess impact before deployment.
+CloudWatch Generative AI Observability GitHub Action Provision to PR AI observability data automatic as additional . model change PR 토 large 소ratio량, latency 변화, Hallucination riskalso 변화 automatic as 표time to Deployment before impact 파악 .
 :::
 
-#### 2.6.5 Real-World Use Cases
+#### 2.6.5 actual use case
 
-**Case 1: RAG System Search Quality Monitoring**
+**case 1: RAG system search 품질 Monitoring**
 ```
-[Problem Discovery]
-Retrieval miss rate: 15% -> 35% spike (within 2 hours)
+[문제 발견]
+Retrieval miss rate: 15% → 35% 급증 (2시간 내)
 
-[CloudWatch AI Observability Analysis]
-- Knowledge Base index not updated for 7 days
-- Pattern detected: queries for latest documents failing
-- Embedding model version mismatch confirmed
+[CloudWatch AI Observability 분석]
+- Knowledge Base 인덱스가 7일간 업데이트 안 됨
+- 최신 문서에 대한 쿼리가 실패하는 패턴 감지
+- Embedding 모델 버전 불일치 확인
 
-[Auto Remediation]
--> Knowledge Base re-indexing triggered
--> Embedding model synchronized
--> Retrieval miss rate restored to 15%
+[자동 조치]
+→ Knowledge Base 재인덱싱 트리거
+→ Embedding 모델 동기화
+→ Retrieval miss rate 15%로 복구
 ```
 
-**Case 2: Token Cost Optimization**
+**case 2: 토 large Cost Optimization**
 ```
-[Cost Anomaly Detection]
-Daily token consumption: $500 -> $2,300 (460% increase)
+[비용 이상 감지]
+일일 토큰 소비: $500 → $2,300 (460% 증가)
 
-[Root Cause Analysis]
-- Specific prompt template outputting an average of 5,000 tokens (normal: 500)
-- Repetitive prompt chains maintaining unnecessarily long context
+[원인 분석]
+- 특정 프롬프트 템플릿이 평균 5,000 토큰 출력 (정상: 500)
+- 반복적 프롬프트 체인이 불필요하게 긴 컨텍스트 유지
 
-[Optimization Result]
--> Prompt template refactored
--> Dynamic context window adjustment
--> Cost reduced to $600/day (74% savings)
-```
+[최적화 결과]
+→ 프롬프트 템플릿 리팩토링
+→ 컨텍스트 윈도우 동적 조정
+→ 비용 $600/일로 감소 (74% 절감)
 :::
 
 ---
@@ -513,76 +511,76 @@ Daily token consumption: $500 -> $2,300 (460% increase)
 
 ## 3. Overall Architecture
 
-The EKS intelligent observability stack consists of 5 layers.
+EKS 지능형 관찰성 스택은 5개 레이어로 구성됩니다.
 
 <ArchitectureLayers />
 
 ```mermaid
 graph TB
-    subgraph Collection["Data Collection Layer"]
-        ADOT["ADOT Collector"]
-        CWAgent["CloudWatch Agent"]
-        FluentBit["Fluent Bit"]
-        NodeMon["Node Monitoring Agent"]
-        FlowMon["NFM Agent<br/>(Container Network Observability)"]
-    end
+ subgraph Collection["🔍 collection 레이어 (Data Collection)"]
+ ADOT["ADOT Collector"]
+ CWAgent["CloudWatch Agent"]
+ FluentBit["Fluent Bit"]
+ NodeMon["Node Monitoring Agent"]
+ FlowMon["NFM Agent<br/>(Container Network Observability)"]
+ end
 
-    subgraph Transport["Transport Layer"]
-        OTLP["OTLP gRPC/HTTP"]
-        RemoteWrite["Prometheus Remote Write"]
-        CWAPI["CloudWatch API"]
-        XRayAPI["X-Ray API"]
-    end
+ subgraph Transport["🔄 transfer 레이어 (Transport)"]
+ OTLP["OTLP gRPC/HTTP"]
+ RemoteWrite["Prometheus Remote Write"]
+ CWAPI["CloudWatch API"]
+ XRayAPI["X-Ray API"]
+ end
 
-    subgraph Storage["Storage Layer"]
-        AMP["AMP<br/>(Managed Prometheus)"]
-        CWLogs["CloudWatch Logs"]
-        CWMetrics["CloudWatch Metrics"]
-        XRay["AWS X-Ray"]
-    end
+ subgraph Storage["💾 storage 레이어 (Storage)"]
+ AMP["AMP<br/>(Managed Prometheus)"]
+ CWLogs["CloudWatch Logs"]
+ CWMetrics["CloudWatch Metrics"]
+ XRay["AWS X-Ray"]
+ end
 
-    subgraph Analysis["AI Analysis Layer"]
-        AMG["AMG<br/>(Managed Grafana)"]
-        CWAI["CloudWatch AI<br/>NL Query"]
-        DevOpsGuru["DevOps Guru<br/>ML Anomaly Detection"]
-        CWInvestigation["CloudWatch<br/>Investigations"]
-        AppSignals["Application<br/>Signals"]
-    end
+ subgraph Analysis["🧠 analysis layer (AI Analysis)"]
+ AMG["AMG<br/>(Managed Grafana)"]
+ CWAI["CloudWatch AI<br/>NL query"]
+ DevOpsGuru["DevOps Guru<br/>ML abnormal detection"]
+ CWInvestigation["CloudWatch<br/>Investigations"]
+ AppSignals["Application<br/>Signals"]
+ end
 
-    subgraph Action["Action Layer"]
-        MCP["Hosted MCP<br/>Servers"]
-        Kiro["Kiro +<br/>Spec-driven"]
-        QDev["Amazon Q<br/>Developer"]
-        Kagent["Kagent<br/>AI Agent"]
-    end
+ subgraph Action["⚡ execution 레이어 (Action)"]
+ MCP["Hosted MCP<br/>Servers"]
+ Kiro["Kiro +<br/>Spec-driven"]
+ QDev["Amazon Q<br/>Developer"]
+ Kagent["Kagent<br/>AI Agent"]
+ end
 
-    ADOT --> OTLP
-    ADOT --> RemoteWrite
-    CWAgent --> CWAPI
-    FluentBit --> CWLogs
-    NodeMon --> CWAPI
-    FlowMon --> CWAPI
+ ADOT --> OTLP
+ ADOT --> RemoteWrite
+ CWAgent --> CWAPI
+ FluentBit --> CWLogs
+ NodeMon --> CWAPI
+ FlowMon --> CWAPI
 
-    OTLP --> XRay
-    RemoteWrite --> AMP
-    CWAPI --> CWMetrics
-    CWAPI --> CWLogs
-    XRayAPI --> XRay
+ OTLP --> XRay
+ RemoteWrite --> AMP
+ CWAPI --> CWMetrics
+ CWAPI --> CWLogs
+ XRayAPI --> XRay
 
-    AMP --> AMG
-    CWMetrics --> CWAI
-    CWMetrics --> DevOpsGuru
-    CWLogs --> CWInvestigation
-    XRay --> AppSignals
+ AMP --> AMG
+ CWMetrics --> CWAI
+ CWMetrics --> DevOpsGuru
+ CWLogs --> CWInvestigation
+ XRay --> AppSignals
 
-    AMG --> MCP
-    CWAI --> MCP
-    DevOpsGuru --> Kiro
-    CWInvestigation --> QDev
-    AppSignals --> Kagent
+ AMG --> MCP
+ CWAI --> MCP
+ DevOpsGuru --> Kiro
+ CWInvestigation --> QDev
+ AppSignals --> Kagent
 ```
 
-### 3.1 Data Flow Summary
+### 3.1 데이터 흐름 요약
 
 <DataFlowSummary />
 
@@ -592,194 +590,194 @@ graph TB
 
 ### 4.1 OpenTelemetryCollector CRD
 
-Installing the ADOT Add-on also deploys the OpenTelemetry Operator, allowing declarative management of collectors through the `OpenTelemetryCollector` CRD.
+ADOT Add-on을 설치하면 OpenTelemetry Operator가 함께 배포되며, `OpenTelemetryCollector` CRD를 통해 선언적으로 수집기를 관리합니다.
 
 ```yaml
 apiVersion: opentelemetry.io/v1beta1
 kind: OpenTelemetryCollector
 metadata:
-  name: adot-collector
-  namespace: observability
+ name: adot-collector
+ namespace: observability
 spec:
-  mode: deployment
-  replicas: 2
-  resources:
-    limits:
-      cpu: "1"
-      memory: 2Gi
-    requests:
-      cpu: 200m
-      memory: 512Mi
-  config:
-    receivers:
-      otlp:
-        protocols:
-          grpc:
-            endpoint: "0.0.0.0:4317"
-          http:
-            endpoint: "0.0.0.0:4318"
-      prometheus:
-        config:
-          scrape_configs:
-            - job_name: 'kubernetes-pods'
-              kubernetes_sd_configs:
-                - role: pod
-              relabel_configs:
-                - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
-                  action: keep
-                  regex: true
-    processors:
-      batch:
-        timeout: 10s
-        send_batch_size: 1024
-      memory_limiter:
-        check_interval: 1s
-        limit_mib: 512
-        spike_limit_mib: 128
-      resource:
-        attributes:
-          - key: cluster.name
-            value: "my-eks-cluster"
-            action: upsert
-          - key: aws.region
-            value: "ap-northeast-2"
-            action: upsert
-      filter:
-        metrics:
-          exclude:
-            match_type: regexp
-            metric_names:
-              - "go_.*"
-              - "process_.*"
-    exporters:
-      prometheusremotewrite:
-        endpoint: "https://aps-workspaces.ap-northeast-2.amazonaws.com/workspaces/ws-xxxxx/api/v1/remote_write"
-        auth:
-          authenticator: sigv4auth
-        resource_to_telemetry_conversion:
-          enabled: true
-      awsxray:
-        region: ap-northeast-2
-        indexed_attributes:
-          - "otel.resource.service.name"
-          - "otel.resource.deployment.environment"
-      awscloudwatchlogs:
-        region: ap-northeast-2
-        log_group_name: "/eks/my-cluster/application"
-        log_stream_name: "otel-logs"
-    extensions:
-      sigv4auth:
-        region: ap-northeast-2
-        service: aps
-      health_check:
-        endpoint: "0.0.0.0:13133"
-    service:
-      extensions: [sigv4auth, health_check]
-      pipelines:
-        metrics:
-          receivers: [otlp, prometheus]
-          processors: [memory_limiter, filter, batch, resource]
-          exporters: [prometheusremotewrite]
-        traces:
-          receivers: [otlp]
-          processors: [memory_limiter, batch, resource]
-          exporters: [awsxray]
-        logs:
-          receivers: [otlp]
-          processors: [memory_limiter, batch, resource]
-          exporters: [awscloudwatchlogs]
+ mode: deployment
+ replicas: 2
+ resources:
+ limits:
+ cpu: "1"
+ memory: 2Gi
+ requests:
+ cpu: 200m
+ memory: 512Mi
+ config:
+ receivers:
+ otlp:
+ protocols:
+ grpc:
+ endpoint: "0.0.0.0:4317"
+ http:
+ endpoint: "0.0.0.0:4318"
+ prometheus:
+ config:
+ scrape_configs:
+ - job_name: 'kubernetes-pods'
+ kubernetes_sd_configs:
+ - role: pod
+ relabel_configs:
+ - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+ action: keep
+ regex: true
+ processors:
+ batch:
+ timeout: 10s
+ send_batch_size: 1024
+ memory_limiter:
+ check_interval: 1s
+ limit_mib: 512
+ spike_limit_mib: 128
+ resource:
+ attributes:
+ - key: cluster.name
+ value: "my-eks-cluster"
+ action: upsert
+ - key: aws.region
+ value: "ap-northeast-2"
+ action: upsert
+ filter:
+ metrics:
+ exclude:
+ match_type: regexp
+ metric_names:
+ - "go_.*"
+ - "process_.*"
+ exporters:
+ prometheusremotewrite:
+ endpoint: "https://aps-workspaces.ap-northeast-2.amazonaws.com/workspaces/ws-xxxxx/api/v1/remote_write"
+ auth:
+ authenticator: sigv4auth
+ resource_to_telemetry_conversion:
+ enabled: true
+ awsxray:
+ region: ap-northeast-2
+ indexed_attributes:
+ - "otel.resource.service.name"
+ - "otel.resource.deployment.environment"
+ awscloudwatchlogs:
+ region: ap-northeast-2
+ log_group_name: "/eks/my-cluster/application"
+ log_stream_name: "otel-logs"
+ extensions:
+ sigv4auth:
+ region: ap-northeast-2
+ service: aps
+ health_check:
+ endpoint: "0.0.0.0:13133"
+ service:
+ extensions: [sigv4auth, health_check]
+ pipelines:
+ metrics:
+ receivers: [otlp, prometheus]
+ processors: [memory_limiter, filter, batch, resource]
+ exporters: [prometheusremotewrite]
+ traces:
+ receivers: [otlp]
+ processors: [memory_limiter, batch, resource]
+ exporters: [awsxray]
+ logs:
+ receivers: [otlp]
+ processors: [memory_limiter, batch, resource]
+ exporters: [awscloudwatchlogs]
 ```
 
-### 4.2 DaemonSet Mode Deployment
+### 4.2 DaemonSet 모드 배포
 
-Use DaemonSet mode when per-node metric collection is needed.
+노드별 메트릭 수집이 필요한 경우 DaemonSet 모드를 사용합니다.
 
 ```yaml
 apiVersion: opentelemetry.io/v1beta1
 kind: OpenTelemetryCollector
 metadata:
-  name: adot-node-collector
-  namespace: observability
+ name: adot-node-collector
+ namespace: observability
 spec:
-  mode: daemonset
-  hostNetwork: true
-  volumes:
-    - name: hostfs
-      hostPath:
-        path: /
-  volumeMounts:
-    - name: hostfs
-      mountPath: /hostfs
-      readOnly: true
-  env:
-    - name: K8S_NODE_NAME
-      valueFrom:
-        fieldRef:
-          fieldPath: spec.nodeName
-  config:
-    receivers:
-      hostmetrics:
-        root_path: /hostfs
-        collection_interval: 30s
-        scrapers:
-          cpu: {}
-          disk: {}
-          filesystem: {}
-          load: {}
-          memory: {}
-          network: {}
-      kubeletstats:
-        collection_interval: 30s
-        auth_type: serviceAccount
-        endpoint: "https://${env:K8S_NODE_NAME}:10250"
-        insecure_skip_verify: true
-    processors:
-      batch:
-        timeout: 30s
-      resourcedetection:
-        detectors: [env, eks]
-    exporters:
-      prometheusremotewrite:
-        endpoint: "https://aps-workspaces.ap-northeast-2.amazonaws.com/workspaces/ws-xxxxx/api/v1/remote_write"
-        auth:
-          authenticator: sigv4auth
-    extensions:
-      sigv4auth:
-        region: ap-northeast-2
-        service: aps
-    service:
-      extensions: [sigv4auth]
-      pipelines:
-        metrics:
-          receivers: [hostmetrics, kubeletstats]
-          processors: [resourcedetection, batch]
-          exporters: [prometheusremotewrite]
+ mode: daemonset
+ hostNetwork: true
+ volumes:
+ - name: hostfs
+ hostPath:
+ path: /
+ volumeMounts:
+ - name: hostfs
+ mountPath: /hostfs
+ readOnly: true
+ env:
+ - name: K8S_NODE_NAME
+ valueFrom:
+ fieldRef:
+ fieldPath: spec.nodeName
+ config:
+ receivers:
+ hostmetrics:
+ root_path: /hostfs
+ collection_interval: 30s
+ scrapers:
+ cpu: {}
+ disk: {}
+ filesystem: {}
+ load: {}
+ memory: {}
+ network: {}
+ kubeletstats:
+ collection_interval: 30s
+ auth_type: serviceAccount
+ endpoint: "https://${env:K8S_NODE_NAME}:10250"
+ insecure_skip_verify: true
+ processors:
+ batch:
+ timeout: 30s
+ resourcedetection:
+ detectors: [env, eks]
+ exporters:
+ prometheusremotewrite:
+ endpoint: "https://aps-workspaces.ap-northeast-2.amazonaws.com/workspaces/ws-xxxxx/api/v1/remote_write"
+ auth:
+ authenticator: sigv4auth
+ extensions:
+ sigv4auth:
+ region: ap-northeast-2
+ service: aps
+ service:
+ extensions: [sigv4auth]
+ pipelines:
+ metrics:
+ receivers: [hostmetrics, kubeletstats]
+ processors: [resourcedetection, batch]
+ exporters: [prometheusremotewrite]
 ```
 
-:::tip Deployment vs DaemonSet Selection Criteria
+:::tip Deployment vs DaemonSet 선택 기준
 
-- **Deployment mode**: Application metrics/traces collection (OTLP reception), centralized processing
-- **DaemonSet mode**: Node-level metrics collection (hostmetrics, kubeletstats), network efficient
-- **Sidecar mode**: Collect logs/traces for specific Pods only, when isolation is needed
+- **Deployment 모드**: 애플리케이션 메트릭/트레이스 수집 (OTLP 수신), 중앙 집중식 처리
+- **DaemonSet 모드**: 노드 수준 메트릭 수집 (hostmetrics, kubeletstats), 네트워크 효율적
+- **Sidecar 모드**: 특정 Pod의 로그/트레이스만 수집, 격리 필요 시
 :::
 
-### 4.3 Pipeline Configuration Principles
+### 4.3 파이프라인 구성 원칙
 
-The ADOT Collector pipeline processes data in the order `receivers -> processors -> exporters`.
+ADOT Collector의 파이프라인은 `receivers → processors → exporters` 순서로 데이터를 처리합니다.
 
 ```
-+---------------+    +----------------+    +---------------+
-|  Receivers    |--->|  Processors    |--->|  Exporters    |
-|               |    |                |    |               |
-| - otlp        |    | - memory_      |    | - prometheus  |
-| - prometheus  |    |   limiter      |    |   remotewrite |
-| - hostmetrics |    | - batch        |    | - awsxray     |
-| - kubelet     |    | - filter       |    | - cwlogs      |
-|   stats       |    | - resource     |    |               |
-+---------------+    +----------------+    +---------------+
+┌─────────────┐ ┌──────────────┐ ┌─────────────┐
+│ Receivers │───▶│ Processors │───▶│ Exporters │
+│ │ │ │ │ │
+│ • otlp │ │ • memory_ │ │ • prometheus│
+│ • prometheus│ │ limiter │ │ remotewrite│
+│ • hostmetrics│ │ • batch │ │ • awsxray │
+│ • kubelet │ │ • filter │ │ • cwlogs │
+│ stats │ │ • resource │ │ │
+└─────────────┘ └──────────────┘ └─────────────┘
 ```
 
-**Key Processor Settings**:
+**핵심 프로세서 설정**:
 
 <ProcessorSettings />
 
@@ -789,2272 +787,2273 @@ The ADOT Collector pipeline processes data in the order `receivers -> processors
 
 ### 5.1 AMP (Amazon Managed Prometheus)
 
-AMP is a Prometheus-compatible managed service that stores and queries metrics at scale without infrastructure management.
+AMP는 Prometheus 호환 관리형 서비스로, 인프라 관리 없이 대규모 메트릭을 저장하고 쿼리합니다.
 
 ```bash
-# Create AMP workspace
+# AMP 워크스페이스 generation
 aws amp create-workspace \
-  --alias my-eks-observability \
-  --tags Environment=production
+ --alias my-eks-observability \
+ --tags Environment=production
 
-# Check workspace ID
+# 워크스페이스 ID Verification
 aws amp list-workspaces \
-  --query 'workspaces[?alias==`my-eks-observability`].workspaceId' \
-  --output text
+ --query 'workspaces[?alias==`my-eks-observability`].workspaceId' \
+ --output text
 ```
 
-### 5.2 Remote Write Configuration
+### 5.2 Remote Write 설정
 
-Remote write configuration for sending metrics from ADOT to AMP.
+ADOT에서 AMP로 메트릭을 전송하는 remote_write 구성입니다.
 
 ```yaml
 # Prometheus remote_write configuration
 remoteWrite:
-  - url: "https://aps-workspaces.ap-northeast-2.amazonaws.com/workspaces/ws-xxxxx/api/v1/remote_write"
-    sigv4:
-      region: ap-northeast-2
-    queue_config:
-      max_samples_per_send: 1000
-      max_shards: 200
-      capacity: 2500
-    write_relabel_configs:
-      - source_labels: [__name__]
-        regex: "go_.*|process_.*"
-        action: drop
+ - url: "https://aps-workspaces.ap-northeast-2.amazonaws.com/workspaces/ws-xxxxx/api/v1/remote_write"
+ sigv4:
+ region: ap-northeast-2
+ queue_config:
+ max_samples_per_send: 1000
+ max_shards: 200
+ capacity: 2500
+ write_relabel_configs:
+ - source_labels: [__name__]
+ regex: "go_.*|process_.*"
+ action: drop
 ```
 
-:::warning Remote Write Cost Optimization
-AMP charges based on the number of ingested metric samples. You can reduce costs by 30-50% by dropping unnecessary metrics (go_*, process_*) via `write_relabel_configs`. Additionally, increasing the `scrape_interval` from 15s to 30s halves the number of samples.
+:::warning Remote Write 비용 최적화
+AMP는 수집된 메트릭 샘플 수 기준으로 과금됩니다. `write_relabel_configs`를 통해 불필요한 메트릭(go_*, process_*)을 drop하면 비용을 30-50% 절감할 수 있습니다. 또한 `scrape_interval`을 15s에서 30s로 늘리면 샘플 수가 절반으로 줄어듭니다.
 :::
 
-### 5.3 AMG (Amazon Managed Grafana) Data Source Connection
+### 5.3 AMG (Amazon Managed Grafana) 데이터소스 연결
 
-Add AMP as a data source in AMG.
+AMG에서 AMP를 데이터소스로 추가합니다.
 
 ```bash
-# Create AMG workspace
+# AMG 워크스페이스 generation
 aws grafana create-workspace \
-  --workspace-name my-eks-grafana \
-  --account-access-type CURRENT_ACCOUNT \
-  --authentication-providers AWS_SSO \
-  --permission-type SERVICE_MANAGED \
-  --workspace-data-sources PROMETHEUS CLOUDWATCH XRAY
+ --workspace-name my-eks-grafana \
+ --account-access-type CURRENT_ACCOUNT \
+ --authentication-providers AWS_SSO \
+ --permission-type SERVICE_MANAGED \
+ --workspace-data-sources PROMETHEUS CLOUDWATCH XRAY
 
-# Auto-configure data source (AMP connection)
+# datasource automatic Configuration (AMP connection)
 aws grafana create-workspace-service-account \
-  --workspace-id g-xxxxxxxxxx \
-  --grafana-role ADMIN \
-  --name amp-datasource
+ --workspace-id g-xxxxxxxxxx \
+ --grafana-role ADMIN \
+ --name amp-datasource
 ```
 
-After adding the AMP data source in AMG, here are the essential PromQL queries you can use.
+AMG에서 AMP 데이터소스를 추가한 후 사용할 수 있는 핵심 PromQL 쿼리들입니다.
 
-### 5.4 Essential PromQL Queries
+### 5.4 핵심 PromQL 쿼리
 
 ```promql
-# Top 10 Pod CPU usage
+# Pod CPU userate 상위 10
 topk(10,
-  sum(rate(container_cpu_usage_seconds_total{namespace!="kube-system"}[5m])) by (pod)
+ sum(rate(container_cpu_usage_seconds_total{namespace!="kube-system"}[5m])) by (pod)
 )
 
-# Memory usage per node
+# per node memory userate
 100 * (1 - (
-  node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes
+ node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes
 ))
 
-# HTTP request error rate (5xx)
+# HTTP request errorrate (5xx)
 sum(rate(http_requests_total{status=~"5.."}[5m]))
 / sum(rate(http_requests_total[5m])) * 100
 
 # P99 latency
 histogram_quantile(0.99,
-  sum(rate(http_request_duration_seconds_bucket[5m])) by (le, service)
+ sum(rate(http_request_duration_seconds_bucket[5m])) by (le, service)
 )
 
-# Pod restart count (last 1 hour)
+# Pod restart 횟 (최근 1time)
 increase(kube_pod_container_status_restarts_total[1h])
 
-# Karpenter node provisioning wait time
+# Karpenter node provisioning 대기 time
 histogram_quantile(0.95,
-  sum(rate(karpenter_provisioner_scheduling_duration_seconds_bucket[10m])) by (le)
+ sum(rate(karpenter_provisioner_scheduling_duration_seconds_bucket[10m])) by (le)
 )
 ```
 
-:::info Core Value of AMP + AMG
-AWS handles all infrastructure management for Prometheus and Grafana (scaling, patching, high availability, backups). Teams can focus solely on **dashboard configuration and query writing**, allowing them to concentrate on the essential value of observability. This is the core of AWS's strategy of "maintaining the benefits of open source while eliminating complexity."
+:::info AMP + AMG의 핵심 가치
+AWS가 Prometheus와 Grafana의 인프라 관리(스케일링, 패치, 고가용성, 백업)를 모두 담당합니다. 팀은 **대시보드 구성과 쿼리 작성**에만 집중할 수 있어, 관찰성의 본질적 가치에 집중할 수 있습니다. 이것이 바로 "오픈소스의 장점을 유지하면서 복잡도를 제거"하는 AWS 전략의 핵심입니다.
 :::
 
-### 5.5 Grafana Alloy: Next-Generation Collector Pattern
+### 5.5 Grafana Alloy: 차세대 수집기 패턴
 
-**Grafana Alloy** is the successor to Grafana Agent, officially announced in April 2024. It supports both OpenTelemetry and Prometheus collection and enables more flexible pipeline configuration based on **Flow mode**.
+**Grafana Alloy**는 Grafana Agent의 후속 제품으로, 2024년 4월 공식 발표되었습니다. OpenTelemetry와 Prometheus 수집을 모두 지원하며, **Flow 모드**를 기반으로 더욱 유연한 파이프라인 구성이 가능합니다.
 
-#### 5.5.1 Grafana Alloy vs ADOT Comparison
+#### 5.5.1 Grafana Alloy vs ADOT 비교
 
-| Feature | ADOT (AWS Perspective) | Grafana Alloy | Recommended Scenario |
-|---------|----------------------|---------------|---------------------|
-| **Management** | EKS Managed Add-on | Self-deployed (Helm) | ADOT: When AWS integration is priority |
-| **Backend Focus** | AWS services (AMP, CloudWatch, X-Ray) | Grafana Cloud, Prometheus, Loki | Alloy: When centered on Grafana ecosystem |
-| **OpenTelemetry Support** | Native (OTEL Collector based) | Native (OTEL Receiver built-in) | Equal |
-| **Prometheus Collection** | (prometheus receiver) | (prometheus.scrape) | Alloy is lighter and faster |
-| **Log Collection** | CloudWatch Logs, S3 | Loki, CloudWatch Logs | Alloy: Loki optimized |
-| **Tracing** | X-Ray, OTLP | Tempo, Jaeger, OTLP | Alloy: Tempo optimized |
-| **Configuration** | YAML (OTEL Collector standard) | River language (declarative + dynamic) | Alloy is more intuitive |
-| **AWS IAM Integration** | SigV4 built-in | Manual setup required | ADOT is much simpler |
-| **Resource Usage** | Medium (Go-based) | Low (optimized Go) | Alloy uses ~30% less |
+| 특성 | ADOT (AWS 관점) | Grafana Alloy | 권장 시나리오 |
+|------|----------------|---------------|--------------|
+| **관리 형태** | EKS Managed Add-on | 자체 배포 (Helm) | ADOT: AWS 통합 우선 시 |
+| **백엔드 초점** | AWS 서비스 (AMP, CloudWatch, X-Ray) | Grafana Cloud, Prometheus, Loki | Alloy: Grafana 생태계 중심 시 |
+| **OpenTelemetry 지원** | ✅ 네이티브 (OTEL Collector 기반) | ✅ 네이티브 (OTEL Receiver 내장) | 동등 |
+| **Prometheus 수집** | ✅ (prometheus receiver) | ✅ (prometheus.scrape) | Alloy가 더 가볍고 빠름 |
+| **로그 수집** | CloudWatch Logs, S3 | Loki, CloudWatch Logs | Alloy: Loki 최적화 |
+| **트레이싱** | X-Ray, OTLP | Tempo, Jaeger, OTLP | Alloy: Tempo 최적화 |
+| **설정 방식** | YAML (OTEL Collector 표준) | River 언어 (선언적 + 동적) | Alloy가 더 직관적 |
+| **AWS IAM 통합** | ✅ SigV4 내장 | ❌ (수동 설정 필요) | ADOT가 훨씬 간편 |
+| **리소스 사용량** | 중간 (Go 기반) | 낮음 (최적화된 Go) | Alloy가 약 30% 적음 |
 
-:::tip ADOT vs Grafana Alloy Selection Guide
+:::tip ADOT vs Grafana Alloy 선택 가이드
 
-**Choose ADOT when:**
-- You want the convenience of AWS Managed Add-on
-- You primarily use AMP + CloudWatch + X-Ray as backends
-- You want automatic AWS IAM authentication handling
-- You want AWS-guaranteed EKS version compatibility
+**ADOT를 선택하는 경우:**
+- AWS Managed Add-on의 편의성을 원할 때
+- AMP + CloudWatch + X-Ray를 주 백엔드로 사용할 때
+- AWS IAM 인증을 자동으로 처리하고 싶을 때
+- EKS 버전 호환성을 AWS가 보장받고 싶을 때
 
-**Choose Grafana Alloy when:**
-- You use Grafana Cloud or a self-hosted Grafana stack
-- You're building a complete open-source stack with Loki + Tempo + Mimir
-- Lighter resource usage is important (cost-sensitive)
-- You need dynamic configuration features of River language
+**Grafana Alloy를 선택하는 경우:**
+- Grafana Cloud 또는 자체 호스팅 Grafana 스택을 사용할 때
+- Loki + Tempo + Mimir 조합으로 완전한 오픈소스 스택을 구축할 때
+- 더 가벼운 리소스 사용량이 중요할 때 (비용 민감)
+- River 언어의 동적 구성 기능이 필요할 때
 :::
 
-#### 5.5.2 Deploying Grafana Alloy on EKS
+#### 5.5.2 EKS에서 Grafana Alloy 배포
 
 ```bash
-# Add Helm repository
+# Helm 리포지토리 additional
 helm repo add grafana https://grafana.github.io/helm-charts
 helm repo update
 
-# Install Grafana Alloy
+# Grafana Alloy installation
 helm install grafana-alloy grafana/alloy \
-  --namespace observability \
-  --create-namespace \
-  --set alloy.configMap.content='
+ --namespace observability \
+ --create-namespace \
+ --set alloy.configMap.content='
 logging {
-  level = "info"
-  format = "logfmt"
+ level = "info"
+ format = "logfmt"
 }
 
-// Prometheus metrics collection
+// Prometheus metric collection
 prometheus.scrape "kubernetes_pods" {
-  targets = discovery.kubernetes.pods.targets
-  forward_to = [prometheus.remote_write.amp.receiver]
+ targets = discovery.kubernetes.pods.targets
+ forward_to = [prometheus.remote_write.amp.receiver]
 
-  clustering {
-    enabled = true
-  }
+ clustering {
+ enabled = true
+ }
 }
 
-// Kubernetes Pod auto-discovery
+// Kubernetes Pod automatic search
 discovery.kubernetes "pods" {
-  role = "pod"
+ role = "pod"
 
-  selectors {
-    role  = "pod"
-    field = "spec.nodeName=" + env("HOSTNAME")
-  }
+ selectors {
+ role = "pod"
+ field = "spec.nodeName=" + env("HOSTNAME")
+ }
 }
 
-// Send metrics to AMP (SigV4 authentication)
+// AMP metric transfer (SigV4 인증)
 prometheus.remote_write "amp" {
-  endpoint {
-    url = "https://aps-workspaces.ap-northeast-2.amazonaws.com/workspaces/ws-xxxxx/api/v1/remote_write"
+ endpoint {
+ url = "https://aps-workspaces.ap-northeast-2.amazonaws.com/workspaces/ws-xxxxx/api/v1/remote_write"
 
-    sigv4 {
-      region = "ap-northeast-2"
-    }
-  }
+ sigv4 {
+ region = "ap-northeast-2"
+ }
+ }
 }
 
-// Send logs to Loki
+// Loki log transfer
 loki.source.kubernetes "pods" {
-  targets    = discovery.kubernetes.pods.targets
-  forward_to = [loki.write.default.receiver]
+ targets = discovery.kubernetes.pods.targets
+ forward_to = [loki.write.default.receiver]
 }
 
 loki.write "default" {
-  endpoint {
-    url = "https://logs-prod-012.grafana.net/loki/api/v1/push"
+ endpoint {
+ url = "https://logs-prod-012.grafana.net/loki/api/v1/push"
 
-    basic_auth {
-      username = env("LOKI_USERNAME")
-      password = env("LOKI_PASSWORD")
-    }
-  }
+ basic_auth {
+ username = env("LOKI_USERNAME")
+ password = env("LOKI_PASSWORD")
+ }
+ }
 }
 
-// Receive OpenTelemetry traces
+// OpenTelemetry traces 신
 otelcol.receiver.otlp "default" {
-  grpc {
-    endpoint = "0.0.0.0:4317"
-  }
+ grpc {
+ endpoint = "0.0.0.0:4317"
+ }
 
-  http {
-    endpoint = "0.0.0.0:4318"
-  }
+ http {
+ endpoint = "0.0.0.0:4318"
+ }
 
-  output {
-    traces  = [otelcol.exporter.otlp.tempo.input]
-  }
+ output {
+ traces = [otelcol.exporter.otlp.tempo.input]
+ }
 }
 
 otelcol.exporter.otlp "tempo" {
-  client {
-    endpoint = "tempo.grafana.net:443"
+ client {
+ endpoint = "tempo.grafana.net:443"
 
-    auth {
-      authenticator = otelcol.auth.basic.tempo.handler
-    }
-  }
+ auth {
+ authenticator = otelcol.auth.basic.tempo.handler
+ }
+ }
 }
 
 otelcol.auth.basic "tempo" {
-  username = env("TEMPO_USERNAME")
-  password = env("TEMPO_PASSWORD")
+ username = env("TEMPO_USERNAME")
+ password = env("TEMPO_PASSWORD")
 }
 '
 ```
 
-#### 5.5.3 AMP + Alloy Combination vs AMP + ADOT Combination
+#### 5.5.3 AMP + Alloy 조합 vs AMP + ADOT 조합
 
-**Scenario 1: AMP + Grafana Alloy**
-
-```
-Pros:
-- 30% reduction in resource usage (CPU/Memory)
-- Excellent Prometheus collection performance (100K samples/second)
-- Dynamic configuration with River language (config changes without redeployment)
-
-Cons:
-- Manual AWS IAM authentication setup required (SigV4 credential management)
-- No EKS Managed Add-on support (manual upgrades)
-- Complex CloudWatch Logs integration (additional setup required)
-```
-
-**Scenario 2: AMP + ADOT**
+**시나리오 1: AMP + Grafana Alloy**
 
 ```
-Pros:
-- Fully automated management as EKS Managed Add-on
-- AWS IAM integration (automatic SigV4, IRSA support)
-- Native CloudWatch + X-Ray integration
-- AWS support and compatibility guarantee
+advantage:
+✅ resource use량 30% reduction (CPU/Memory)
+✅ Prometheus collection performance 우 (초당 100K 샘플)
+✅ River 언어 dynamic Configuration possible (re-Deployment without Configuration change)
 
-Cons:
-- Slightly higher resource usage than Alloy
-- YAML-centric configuration (not as flexible as River)
+단점:
+❌ AWS IAM 인증 manual Configuration needed (SigV4 격증명 Management)
+❌ EKS Managed Add-on Support none (manual 업그레이드)
+❌ CloudWatch Logs 연동 complex (additional Configuration needed)
 ```
 
-:::info Practical Recommendation
-**Hybrid approach**: It's also possible to collect metrics with Grafana Alloy and send them to AMP, while collecting traces and logs with ADOT and sending them to X-Ray and CloudWatch. This is a strategy that leverages each tool's strengths.
+**시나리오 2: AMP + ADOT**
+
+```
+advantage:
+✅ EKS Managed Add-on as complete automatic Management
+✅ AWS IAM Integration (SigV4 automatic, IRSA Support)
+✅ CloudWatch + X-Ray native Integration
+✅ AWS Support and 호환 guarantee
+
+단점:
+❌ resource use량 Alloy보다 약between high
+❌ Configuration YAML 중심 (Riveras much as 유연not 않음)
+```
+
+:::info 실전 권장사항
+**하이브리드 접근**: 메트릭은 Grafana Alloy로 수집하여 AMP에 전송하고, 트레이스와 로그는 ADOT로 수집하여 X-Ray와 CloudWatch에 전송하는 조합도 가능합니다. 각 도구의 강점을 살리는 전략입니다.
 :::
 
-#### 5.5.4 Integration with Grafana Cloud
+#### 5.5.4 Grafana Cloud와의 통합
 
-When using Grafana Cloud, Alloy can configure a complete observability stack with Loki + Tempo + Mimir.
+Grafana Cloud를 사용하는 경우, Alloy는 Loki + Tempo + Mimir로 완전한 관찰성 스택을 구성할 수 있습니다.
 
 ```yaml
-# Grafana Cloud integration example (alloy-config.river)
+# Grafana Cloud Integration example (alloy-config.river)
 prometheus.remote_write "grafana_cloud" {
-  endpoint {
-    url = "https://prometheus-prod-01-eu-west-0.grafana.net/api/prom/push"
+ endpoint {
+ url = "https://prometheus-prod-01-eu-west-0.grafana.net/api/prom/push"
 
-    basic_auth {
-      username = env("GRAFANA_CLOUD_PROMETHEUS_USERNAME")
-      password = env("GRAFANA_CLOUD_API_KEY")
-    }
-  }
+ basic_auth {
+ username = env("GRAFANA_CLOUD_PROMETHEUS_USERNAME")
+ password = env("GRAFANA_CLOUD_API_KEY")
+ }
+ }
 }
 
 loki.write "grafana_cloud" {
-  endpoint {
-    url = "https://logs-prod-eu-west-0.grafana.net/loki/api/v1/push"
+ endpoint {
+ url = "https://logs-prod-eu-west-0.grafana.net/loki/api/v1/push"
 
-    basic_auth {
-      username = env("GRAFANA_CLOUD_LOKI_USERNAME")
-      password = env("GRAFANA_CLOUD_API_KEY")
-    }
-  }
+ basic_auth {
+ username = env("GRAFANA_CLOUD_LOKI_USERNAME")
+ password = env("GRAFANA_CLOUD_API_KEY")
+ }
+ }
 }
 
 otelcol.exporter.otlp "grafana_cloud_traces" {
-  client {
-    endpoint = "tempo-prod-04-prod-eu-west-0.grafana.net:443"
+ client {
+ endpoint = "tempo-prod-04-prod-eu-west-0.grafana.net:443"
 
-    auth {
-      authenticator = otelcol.auth.basic.grafana_cloud.handler
-    }
-  }
+ auth {
+ authenticator = otelcol.auth.basic.grafana_cloud.handler
+ }
+ }
 }
 ```
 
-**Advantages of Grafana Cloud:**
-- **Fully managed**: No infrastructure management for Loki, Tempo, Mimir
-- **Unified view**: Explore metrics, logs, and traces in a single Grafana UI
-- **Free tier**: 10K time series, 50GB logs, 50GB traces per month free
-- **Global high availability**: Automatic replication across multiple regions
+**Grafana Cloud의 장점:**
+- **완전 관리형**: Loki, Tempo, Mimir 인프라 관리 불필요
+- **통합 뷰**: 메트릭·로그·트레이스를 단일 Grafana UI에서 탐색
+- **무료 티어**: 월 10K 시계열, 50GB 로그, 50GB 트레이스 무료 제공
+- **글로벌 고가용성**: 여러 리전에 자동 복제
 
-**Cost Comparison (monthly, small-to-medium EKS cluster):**
+**비용 비교 (월 기준, 중소형 EKS 클러스터):**
 
-| Item | AMP + AMG | Grafana Cloud | Self-hosted Grafana |
+| 항목 | AMP + AMG | Grafana Cloud | 자체 호스팅 Grafana |
 |------|-----------|--------------|-------------------|
-| Metrics (100K samples/sec) | $50-80 | $60-100 | $150-200 (EC2 cost) |
-| Logs (50GB/month) | $25 (CloudWatch) | $30 (Loki) | $100 (EBS + instances) |
-| Traces (10K spans/sec) | $15 (X-Ray) | $20 (Tempo) | $50 (EBS + instances) |
-| Management overhead | Low | Very low | High |
-| **Total estimated cost** | **$90-120** | **$110-150** | **$300-350** |
+| 메트릭 (100K 샘플/초) | $50-80 | $60-100 | $150-200 (EC2 비용) |
+| 로그 (50GB/월) | $25 (CloudWatch) | $30 (Loki) | $100 (EBS + 인스턴스) |
+| 트레이스 (10K spans/초) | $15 (X-Ray) | $20 (Tempo) | $50 (EBS + 인스턴스) |
+| 관리 부담 | 낮음 | 매우 낮음 | 높음 |
+| **총 예상 비용** | **$90-120** | **$110-150** | **$300-350** |
 
 ---
 
 ## 6. CloudWatch Cross-Account Observability
 
-### 6.1 The Need for Multi-Account Observability
+### 6.1 멀티 계정 관찰성의 필요성
 
-In large organizations, AWS accounts are separated for security, isolation, and cost management. However, when observability data is distributed across accounts, the following problems arise:
+대규모 조직에서는 보안, 격리, 비용 관리를 위해 AWS 계정을 분리합니다. 하지만 각 계정의 관찰성 데이터가 분산되면 다음 문제가 발생합니다:
 
-- **No unified view**: Metrics/logs from multiple accounts must be checked in separate consoles
-- **Difficult correlation analysis**: Cross-account service call tracing is impossible
-- **Alert management complexity**: Duplicate alert configuration management per account
-- **Reduced operational efficiency**: Navigating between multiple accounts to identify root causes during incidents
+- **통합 뷰 부재**: 여러 계정의 메트릭/로그를 개별 콘솔에서 확인해야 함
+- **상관 관계 분석 어려움**: Cross-account 서비스 호출 추적 불가
+- **알림 관리 복잡성**: 계정별 알림 설정을 중복 관리
+- **운영 효율 저하**: 장애 시 여러 계정을 오가며 원인 파악
 
-AWS provides centralized observability through **CloudWatch Cross-Account Observability**.
+AWS는 **CloudWatch Cross-Account Observability**를 통해 중앙 집중식 관찰성을 제공합니다.
 
-### 6.2 Cross-Account Architecture
+### 6.2 Cross-Account 아키텍처
 
 ```
-+-------------------------------------------------------------+
-|                   Monitoring Account                         |
-|  +--------------------------------------------------------+ |
-|  |         CloudWatch (Centralized View)                   | |
-|  |  - Unified metrics/logs/traces from all accounts        | |
-|  |  - Unified dashboards and alerts                        | |
-|  +--------------------------------------------------------+ |
-|                          ^                                   |
-|                    OAM Links                                 |
-+---------------------------+----------------------------------+
-                            |
-        +-------------------+-------------------+
-        |                   |                   |
-+-------v------+  +---------v-----+  +---------v-----+
-| Source Acct A |  | Source Acct B  |  | Source Acct C  |
-| (EKS Dev)    |  | (EKS Staging) |  | (EKS Prod)    |
-|              |  |               |  |               |
-| ADOT         |  | ADOT          |  | ADOT          |
-| Container    |  | Container     |  | Container     |
-| Insights     |  | Insights      |  | Insights      |
-+--------------+  +---------------+  +---------------+
+┌─────────────────────────────────────────────────────────────┐
+│ Monitoring Account │
+│ ┌────────────────────────────────────────────────────────┐ │
+│ │ CloudWatch (중앙 focus 뷰) │ │
+│ │ - all account metric/log/traces Integration │ │
+│ │ - Integration dashboard and alert │ │
+│ └────────────────────────────────────────────────────────┘ │
+│ ↑ │
+│ OAM Links │
+└──────────────────────────┬──────────────────────────────────┘
+ │
+ ┌──────────────────┼──────────────────┐
+ │ │ │
+┌───────▼──────┐ ┌────────▼─────┐ ┌────────▼─────┐
+│ Source account A │ │ Source account B │ │ Source account C │
+│ (EKS Dev) │ │ (EKS Staging)│ │ (EKS Prod) │
+│ │ │ │ │ │
+│ ADOT │ │ ADOT │ │ ADOT │
+│ Container │ │ Container │ │ Container │
+│ Insights │ │ Insights │ │ Insights │
+└───────────────┘ └──────────────┘ └──────────────┘
 ```
 
-### 6.3 OAM (Observability Access Manager) Configuration
+### 6.3 OAM (Observability Access Manager) 설정
 
-#### 6.3.1 Create Sink in Monitoring Account
+#### 6.3.1 Monitoring 계정에서 Sink 생성
 
 ```bash
-# Execute in Monitoring account
+# Monitoring account from execution
 aws oam create-sink \
-  --name central-observability-sink \
-  --tags Key=Environment,Value=production
+ --name central-observability-sink \
+ --tags Key=Environment,Value=production
 
-# Check Sink ARN (used in Source accounts)
+# Sink ARN Verification (Source account from use)
 SINK_ARN=$(aws oam list-sinks \
-  --query 'Items[0].Arn' \
-  --output text)
+ --query 'Items[0].Arn' \
+ --output text)
 
 echo $SINK_ARN
 # arn:aws:oam:ap-northeast-2:MONITORING_ACCOUNT_ID:sink/sink-id
 ```
 
-#### 6.3.2 Sink Policy Configuration (Access Authorization)
+#### 6.3.2 Sink Policy 설정 (접근 허용)
 
 ```json
 {
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Principal": {
-        "AWS": [
-          "arn:aws:iam::SOURCE_ACCOUNT_A:root",
-          "arn:aws:iam::SOURCE_ACCOUNT_B:root",
-          "arn:aws:iam::SOURCE_ACCOUNT_C:root"
-        ]
-      },
-      "Action": [
-        "oam:CreateLink",
-        "oam:UpdateLink"
-      ],
-      "Resource": "arn:aws:oam:ap-northeast-2:MONITORING_ACCOUNT_ID:sink/*",
-      "Condition": {
-        "ForAllValues:StringEquals": {
-          "oam:ResourceTypes": [
-            "AWS::CloudWatch::Metric",
-            "AWS::Logs::LogGroup",
-            "AWS::XRay::Trace"
-          ]
-        }
-      }
-    }
-  ]
+ "Version": "2012-10-17",
+ "Statement": [
+ {
+ "Effect": "Allow",
+ "Principal": {
+ "AWS": [
+ "arn:aws:iam::SOURCE_ACCOUNT_A:root",
+ "arn:aws:iam::SOURCE_ACCOUNT_B:root",
+ "arn:aws:iam::SOURCE_ACCOUNT_C:root"
+ ]
+ },
+ "Action": [
+ "oam:CreateLink",
+ "oam:UpdateLink"
+ ],
+ "Resource": "arn:aws:oam:ap-northeast-2:MONITORING_ACCOUNT_ID:sink/*",
+ "Condition": {
+ "ForAllValues:StringEquals": {
+ "oam:ResourceTypes": [
+ "AWS::CloudWatch::Metric",
+ "AWS::Logs::LogGroup",
+ "AWS::XRay::Trace"
+ ]
+ }
+ }
+ }
+ ]
 }
 ```
 
 ```bash
-# Apply Sink Policy
+# Sink Policy Application
 aws oam put-sink-policy \
-  --sink-identifier $SINK_ARN \
-  --policy file://sink-policy.json
+ --sink-identifier $SINK_ARN \
+ --policy file://sink-policy.json
 ```
 
-#### 6.3.3 Create Link in Source Accounts
+#### 6.3.3 Source 계정에서 Link 생성
 
 ```bash
-# Execute in each Source account A, B, C
+# Source account A, B, C from 각 each execution
 aws oam create-link \
-  --label-template '$AccountName-$Region' \
-  --resource-types "AWS::CloudWatch::Metric" \
-                   "AWS::Logs::LogGroup" \
-                   "AWS::XRay::Trace" \
-  --sink-identifier arn:aws:oam:ap-northeast-2:MONITORING_ACCOUNT_ID:sink/sink-id \
-  --tags Key=Account,Value=dev
+ --label-template '$AccountName-$Region' \
+ --resource-types "AWS::CloudWatch::Metric" \
+ "AWS::Logs::LogGroup" \
+ "AWS::XRay::Trace" \
+ --sink-identifier arn:aws:oam:ap-northeast-2:MONITORING_ACCOUNT_ID:sink/sink-id \
+ --tags Key=Account,Value=dev
 
-# Check Link status
+# Link status Verification
 aws oam list-links \
-  --query 'Items[*].[Label,ResourceTypes,SinkArn]' \
-  --output table
+ --query 'Items[*].[Label,ResourceTypes,SinkArn]' \
+ --output table
 ```
 
-:::info How OAM Links Work
-OAM Links **stream** observability data from Source accounts to the Monitoring account. Data is retained in the Source accounts as well, while the Monitoring account provides a unified view. This is a **logical connection**, not data replication.
+:::info OAM Link의 작동 원리
+OAM Link는 Source 계정의 관찰성 데이터를 Monitoring 계정으로 **스트리밍**합니다. 데이터는 Source 계정에도 유지되며, Monitoring 계정에서는 통합 뷰를 제공받습니다. 이는 데이터 복제가 아닌 **논리적 연결**입니다.
 :::
 
-### 6.4 Unified Dashboard Configuration
+### 6.4 통합 대시보드 구성
 
-Configure all accounts' data into a single dashboard from CloudWatch in the Monitoring account.
+Monitoring 계정의 CloudWatch에서 모든 계정의 데이터를 하나의 대시보드로 구성합니다.
 
 ```json
 {
-  "widgets": [
-    {
-      "type": "metric",
-      "properties": {
-        "metrics": [
-          [ { "accountId": "SOURCE_ACCOUNT_A", "expression": "SELECT AVG(pod_cpu_utilization) FROM SCHEMA(\"ContainerInsights\", ClusterName,Namespace,PodName) WHERE ClusterName = 'dev-cluster'" } ],
-          [ { "accountId": "SOURCE_ACCOUNT_B", "expression": "SELECT AVG(pod_cpu_utilization) FROM SCHEMA(\"ContainerInsights\", ClusterName,Namespace,PodName) WHERE ClusterName = 'staging-cluster'" } ],
-          [ { "accountId": "SOURCE_ACCOUNT_C", "expression": "SELECT AVG(pod_cpu_utilization) FROM SCHEMA(\"ContainerInsights\", ClusterName,Namespace,PodName) WHERE ClusterName = 'prod-cluster'" } ]
-        ],
-        "view": "timeSeries",
-        "region": "ap-northeast-2",
-        "title": "Pod CPU Usage Across All Environments",
-        "period": 300
-      }
-    }
-  ]
+ "widgets": [
+ {
+ "type": "metric",
+ "properties": {
+ "metrics": [
+ [ { "accountId": "SOURCE_ACCOUNT_A", "expression": "SELECT AVG(pod_cpu_utilization) FROM SCHEMA(\"ContainerInsights\", ClusterName,Namespace,PodName) WHERE ClusterName = 'dev-cluster'" } ],
+ [ { "accountId": "SOURCE_ACCOUNT_B", "expression": "SELECT AVG(pod_cpu_utilization) FROM SCHEMA(\"ContainerInsights\", ClusterName,Namespace,PodName) WHERE ClusterName = 'staging-cluster'" } ],
+ [ { "accountId": "SOURCE_ACCOUNT_C", "expression": "SELECT AVG(pod_cpu_utilization) FROM SCHEMA(\"ContainerInsights\", ClusterName,Namespace,PodName) WHERE ClusterName = 'prod-cluster'" } ]
+ ],
+ "view": "timeSeries",
+ "region": "ap-northeast-2",
+ "title": " entire environment Pod CPU userate",
+ "period": 300
+ }
+ }
+ ]
 }
 ```
 
-### 6.5 Cross-Account X-Ray Tracing
+### 6.5 Cross-Account X-Ray 트레이싱
 
-Cross-Account X-Ray configuration is needed to trace inter-service calls in multi-account environments.
+멀티 계정 환경에서 서비스 간 호출을 추적하려면 X-Ray의 Cross-Account 설정이 필요합니다.
 
 ```yaml
-# Source account ADOT Collector settings
+# Source account ADOT Collector Configuration
 exporters:
-  awsxray:
-    region: ap-northeast-2
-    # Enable Cross-Account tracing
-    role_arn: arn:aws:iam::MONITORING_ACCOUNT_ID:role/XRayCrossAccountRole
-    indexed_attributes:
-      - "aws.account_id"
-      - "otel.resource.service.name"
+ awsxray:
+ region: ap-northeast-2
+ # Cross-Account 트레이싱 Activation
+ role_arn: arn:aws:iam::MONITORING_ACCOUNT_ID:role/XRayCrossAccountRole
+ indexed_attributes:
+ - "aws.account_id"
+ - "otel.resource.service.name"
 ```
 
-**Monitoring Account IAM Role:**
+**Monitoring 계정의 IAM 역할:**
 
 ```json
 {
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Principal": {
-        "AWS": "arn:aws:iam::SOURCE_ACCOUNT_A:root"
-      },
-      "Action": "sts:AssumeRole"
-    }
-  ]
+ "Version": "2012-10-17",
+ "Statement": [
+ {
+ "Effect": "Allow",
+ "Principal": {
+ "AWS": "arn:aws:iam::SOURCE_ACCOUNT_A:root"
+ },
+ "Action": "sts:AssumeRole"
+ }
+ ]
 }
 ```
 
-### 6.6 Cost Considerations
+### 6.6 비용 고려사항
 
-Cross-Account Observability incurs additional costs for data transfer and storage.
+Cross-Account Observability는 데이터 전송 및 저장에 추가 비용이 발생합니다.
 
-| Cost Item | Description | Estimated Monthly Cost (per cluster) |
-|-----------|-------------|-------------------------------------|
-| **OAM Link** | Free (only data transfer costs apply) | $0 |
-| **Cross-Region transfer** | When sending to Monitoring account in a different region | $0.01/GB (~$50-150) |
-| **CloudWatch storage** | Metrics storage in central account | Same as existing costs |
-| **X-Ray traces** | Cross-Account trace storage | $5.00/million traces recorded |
+| 비용 항목 | 설명 | 월 예상 비용 (클러스터당) |
+|----------|------|------------------------|
+| **OAM Link** | 무료 (데이터 전송 비용만 발생) | $0 |
+| **Cross-Region 전송** | 다른 리전의 Monitoring 계정으로 전송 시 | $0.01/GB (약 $50-150) |
+| **CloudWatch 저장** | 중앙 계정에 메트릭 저장 | 기존 비용과 동일 |
+| **X-Ray 트레이스** | Cross-Account 트레이스 저장 | $5.00/백만 트레이스 기록 |
 
-:::warning Cost Optimization Strategies
-1. **Same-Region configuration**: Place the Monitoring account in the same region as Source accounts to eliminate data transfer costs
-2. **Metric filtering**: Select only necessary resources when creating OAM Links (e.g., include X-Ray only for production)
-3. **Sampling**: Adjust X-Ray sampling rate (default 1req/s -> 0.1req/s)
+:::warning 비용 최적화 전략
+1. **Same-Region 구성**: Monitoring 계정을 Source 계정과 동일 리전에 배치하여 데이터 전송 비용 제거
+2. **메트릭 필터링**: OAM Link 생성 시 필요한 리소스만 선택 (예: 프로덕션만 X-Ray 포함)
+3. **샘플링**: X-Ray에서 샘플링 비율 조정 (기본 1req/s → 0.1req/s)
 :::
 
-### 6.7 Production Operation Patterns
+### 6.7 실전 운영 패턴
 
-**Pattern 1: Environment-Based Account Separation + Centralized Observability**
-
-```
-Dev Account (111111111111)
-  +-- EKS Cluster: dev-cluster
-       +-- OAM Link -> Monitoring Account
-
-Staging Account (222222222222)
-  +-- EKS Cluster: staging-cluster
-       +-- OAM Link -> Monitoring Account
-
-Prod Account (333333333333)
-  +-- EKS Cluster: prod-cluster
-       +-- OAM Link -> Monitoring Account
-
-Monitoring Account (444444444444)
-  +-- CloudWatch Unified Dashboard
-  +-- Unified Alerts (SNS -> Slack)
-  +-- X-Ray Service Map (All Environments)
-```
-
-**Pattern 2: Team-Based Account Separation + Shared Observability**
+**패턴 1: 환경별 계정 분리 + 중앙 관찰성**
 
 ```
-Team-A Account (Frontend)
-Team-B Account (Backend)
-Team-C Account (Data)
-  +-- Each team's EKS + ADOT
-       +-- OAM Link -> Shared Monitoring Account
+Dev account (111111111111)
+ └── EKS cluster: dev-cluster
+ └── OAM Link → Monitoring account
 
-Shared Monitoring Account
-  +-- Per-team filtered dashboards
-  +-- Per-team alert routing
+Staging account (222222222222)
+ └── EKS cluster: staging-cluster
+ └── OAM Link → Monitoring account
+
+Prod account (333333333333)
+ └── EKS cluster: prod-cluster
+ └── OAM Link → Monitoring account
+
+Monitoring account (444444444444)
+ └── CloudWatch Integration dashboard
+ └── Integration alert (SNS → Slack)
+ └── X-Ray Service Map ( entire environment)
+```
+
+**패턴 2: 팀별 계정 분리 + 공유 관찰성**
+
+```
+Team-A account (Frontend)
+Team-B account (Backend)
+Team-C account (Data)
+ └── each 팀 EKS + ADOT
+ └── OAM Link → Shared Monitoring account
+
+Shared Monitoring account
+ └── per 팀 필터링 dashboard
+ └── per 팀 alert routing
 ```
 
 ---
 
 ## 7. CloudWatch Container Insights Enhanced
 
-### 6.1 Enhanced Container Insights Features
+### 6.1 Enhanced Container Insights 기능
 
-On EKS 1.28+, Enhanced Container Insights provides deep observability including **Control Plane metrics**.
+EKS 1.28+에서 Enhanced Container Insights는 **Control Plane 메트릭**을 포함한 심층 관찰성을 제공합니다.
 
 ```bash
-# Install CloudWatch Observability Operator (Helm)
+# CloudWatch Observability Operator installation (Helm)
 helm install amazon-cloudwatch-observability \
-  oci://public.ecr.aws/cloudwatch-agent/amazon-cloudwatch-observability \
-  --namespace amazon-cloudwatch --create-namespace \
-  --set clusterName=my-cluster \
-  --set region=ap-northeast-2 \
-  --set containerInsights.enhanced=true \
-  --set containerInsights.acceleratedCompute=true
+ oci://public.ecr.aws/cloudwatch-agent/amazon-cloudwatch-observability \
+ --namespace amazon-cloudwatch --create-namespace \
+ --set clusterName=my-cluster \
+ --set region=ap-northeast-2 \
+ --set containerInsights.enhanced=true \
+ --set containerInsights.acceleratedCompute=true
 ```
 
-### 6.2 Collected Metrics Scope
+### 6.2 수집 메트릭 범위
 
-Scope of metrics collected by Enhanced Container Insights:
+Enhanced Container Insights가 수집하는 메트릭 범위:
 
 <ContainerInsightsMetrics />
 
-### 6.3 EKS Control Plane Metrics
+### 6.3 EKS Control Plane 메트릭
 
-Control Plane metrics automatically collected on EKS 1.28+ are essential for understanding cluster health.
+EKS 1.28+에서 자동 수집되는 Control Plane 메트릭은 클러스터 건강 상태를 파악하는 데 필수적입니다.
 
 ```bash
-# Verify Control Plane metrics activation
+# Control Plane metric Activation Verification
 aws eks describe-cluster \
-  --name my-cluster \
-  --query 'cluster.logging.clusterLogging[?types[?contains(@, `api`)]]'
+ --name my-cluster \
+ --query 'cluster.logging.clusterLogging[?types[?contains(@, `api`)]]'
 ```
 
-Key Control Plane metrics:
+핵심 Control Plane 메트릭:
 
-- **API Server**: `apiserver_request_total`, `apiserver_request_duration_seconds` -- API server load and latency
-- **etcd**: `etcd_db_total_size_in_bytes`, `etcd_server_slow_apply_total` -- etcd health and performance
-- **Scheduler**: `scheduler_schedule_attempts_total`, `scheduler_scheduling_duration_seconds` -- Scheduling efficiency
-- **Controller Manager**: `workqueue_depth`, `workqueue_adds_total` -- Controller queue status
+- **API Server**: `apiserver_request_total`, `apiserver_request_duration_seconds` — API 서버 부하 및 레이턴시
+- **etcd**: `etcd_db_total_size_in_bytes`, `etcd_server_slow_apply_total` — etcd 상태 및 성능
+- **Scheduler**: `scheduler_schedule_attempts_total`, `scheduler_scheduling_duration_seconds` — 스케줄링 효율
+- **Controller Manager**: `workqueue_depth`, `workqueue_adds_total` — 컨트롤러 큐 상태
 
-:::warning Cost Considerations
-Enhanced Container Insights collects a large volume of metrics, which increases CloudWatch costs. Production clusters may incur an additional $50-200/month. It's recommended to use basic Container Insights for dev/staging environments and enable Enhanced only for production.
+:::warning 비용 고려사항
+Enhanced Container Insights는 수집하는 메트릭 양이 많아 CloudWatch 비용이 증가합니다. 프로덕션 클러스터에서는 월 $50-200 수준의 추가 비용이 발생할 수 있습니다. 개발/스테이징 환경에서는 기본 Container Insights를 사용하고, 프로덕션에서만 Enhanced를 활성화하는 전략을 권장합니다.
 :::
 
-### 6.4 Windows Workload Container Insights Support
+### 6.4 Windows 워크로드 Container Insights 지원
 
-On August 5, 2025, AWS announced CloudWatch Container Insights for EKS Windows Workloads Monitoring. This is an important development that provides a unified observability experience for EKS clusters running mixed Linux and Windows workloads.
+2025년 8월 5일, AWS는 CloudWatch Container Insights for EKS Windows Workloads Monitoring을 발표했습니다. 이는 Linux와 Windows 워크로드를 혼합 운영하는 EKS 클러스터에서 통합된 관찰성 경험을 제공하는 중요한 발전입니다.
 
-#### 6.4.1 Mixed Cluster Observability Strategy
+#### 6.4.1 혼합 클러스터 관찰성 전략
 
-Many enterprises run legacy .NET Framework applications and new Linux-based microservices on the same EKS cluster. Container Insights' Windows support enables building a single observability platform for such mixed environments.
+많은 기업들이 레거시 .NET Framework 애플리케이션과 신규 Linux 기반 마이크로서비스를 동일한 EKS 클러스터에서 운영합니다. Container Insights의 Windows 지원은 이러한 혼합 환경에서 단일 관찰성 플랫폼을 구축할 수 있게 합니다.
 
 ```yaml
-# Deploy Container Insights Agent to Windows nodes
+# Windows node Container Insights Agent Deployment
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
-  name: cloudwatch-agent-windows
-  namespace: amazon-cloudwatch
+ name: cloudwatch-agent-windows
+ namespace: amazon-cloudwatch
 spec:
-  selector:
-    matchLabels:
-      name: cloudwatch-agent-windows
-  template:
-    metadata:
-      labels:
-        name: cloudwatch-agent-windows
-    spec:
-      nodeSelector:
-        kubernetes.io/os: windows
-      serviceAccountName: cloudwatch-agent
-      containers:
-        - name: cloudwatch-agent
-          image: public.ecr.aws/cloudwatch-agent/cloudwatch-agent:latest-windows
-          env:
-            - name: HOST_IP
-              valueFrom:
-                fieldRef:
-                  fieldPath: status.hostIP
-            - name: HOST_NAME
-              valueFrom:
-                fieldRef:
-                  fieldPath: spec.nodeName
-            - name: K8S_NAMESPACE
-              valueFrom:
-                fieldRef:
-                  fieldPath: metadata.namespace
-          volumeMounts:
-            - name: cwagentconfig
-              mountPath: C:\ProgramData\Amazon\CloudWatch\cwagentconfig.json
-              subPath: cwagentconfig.json
-            - name: rootfs
-              mountPath: C:\rootfs
-              readOnly: true
-      volumes:
-        - name: cwagentconfig
-          configMap:
-            name: cwagent-config-windows
-        - name: rootfs
-          hostPath:
-            path: C:\
-            type: Directory
+ selector:
+ matchLabels:
+ name: cloudwatch-agent-windows
+ template:
+ metadata:
+ labels:
+ name: cloudwatch-agent-windows
+ spec:
+ nodeSelector:
+ kubernetes.io/os: windows
+ serviceAccountName: cloudwatch-agent
+ containers:
+ - name: cloudwatch-agent
+ image: public.ecr.aws/cloudwatch-agent/cloudwatch-agent:latest-windows
+ env:
+ - name: HOST_IP
+ valueFrom:
+ fieldRef:
+ fieldPath: status.hostIP
+ - name: HOST_NAME
+ valueFrom:
+ fieldRef:
+ fieldPath: spec.nodeName
+ - name: K8S_NAMESPACE
+ valueFrom:
+ fieldRef:
+ fieldPath: metadata.namespace
+ volumeMounts:
+ - name: cwagentconfig
+ mountPath: C:\ProgramData\Amazon\CloudWatch\cwagentconfig.json
+ subPath: cwagentconfig.json
+ - name: rootfs
+ mountPath: C:\rootfs
+ readOnly: true
+ volumes:
+ - name: cwagentconfig
+ configMap:
+ name: cwagent-config-windows
+ - name: rootfs
+ hostPath:
+ path: C:\
+ type: Directory
 ```
 
-#### 6.4.2 Windows-Specific Metrics
+#### 6.4.2 Windows 특화 메트릭
 
-Container Insights collects Windows-specific performance counters and system metrics on Windows nodes:
+Windows 노드에서 Container Insights는 Windows 특유의 성능 카운터와 시스템 메트릭을 수집합니다:
 
-| Metric Category | Key Metrics | Description |
-|----------------|-------------|-------------|
-| **.NET CLR** | `dotnet_clr_memory_heap_size_bytes` | Managed heap size of .NET applications |
-| | `dotnet_clr_gc_collections_total` | Garbage collection count (Gen 0/1/2) |
-| | `dotnet_clr_exceptions_thrown_total` | Total number of exceptions thrown |
-| **IIS** | `iis_current_connections` | Active HTTP connection count |
-| | `iis_requests_total` | Total HTTP requests processed |
-| | `iis_request_errors_total` | HTTP error response count (4xx, 5xx) |
-| **Windows System** | `windows_cpu_processor_utility` | CPU usage (%) |
-| | `windows_memory_available_bytes` | Available memory |
-| | `windows_net_bytes_total` | Network bytes sent/received |
-| **Container** | `container_memory_working_set_bytes` | Windows container memory working set |
-| | `container_cpu_usage_seconds_total` | Container CPU usage time |
+| 메트릭 카테고리 | 주요 메트릭 | 설명 |
+|----------------|------------|------|
+| **.NET CLR** | `dotnet_clr_memory_heap_size_bytes` | .NET 애플리케이션의 관리 힙 크기 |
+| | `dotnet_clr_gc_collections_total` | 가비지 컬렉션 발생 횟수 (Gen 0/1/2) |
+| | `dotnet_clr_exceptions_thrown_total` | 발생한 예외 총 수 |
+| **IIS** | `iis_current_connections` | 활성 HTTP 연결 수 |
+| | `iis_requests_total` | 처리된 HTTP 요청 총 수 |
+| | `iis_request_errors_total` | HTTP 에러 응답 수 (4xx, 5xx) |
+| **Windows 시스템** | `windows_cpu_processor_utility` | CPU 사용률 (%) |
+| | `windows_memory_available_bytes` | 사용 가능한 메모리 |
+| | `windows_net_bytes_total` | 네트워크 송수신 바이트 |
+| **컨테이너** | `container_memory_working_set_bytes` | Windows 컨테이너 메모리 작업 집합 |
+| | `container_cpu_usage_seconds_total` | 컨테이너 CPU 사용 시간 |
 
 ```yaml
-# Windows-specific metrics collection configuration
+# Windows 특화 metric collection Configuration
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: cwagent-config-windows
-  namespace: amazon-cloudwatch
+ name: cwagent-config-windows
+ namespace: amazon-cloudwatch
 data:
-  cwagentconfig.json: |
-    {
-      "metrics": {
-        "namespace": "ContainerInsights",
-        "metrics_collected": {
-          "statsd": {
-            "service_address": ":8125",
-            "metrics_collection_interval": 60,
-            "metrics_aggregation_interval": 60
-          },
-          "Performance Counters": {
-            "metrics_collection_interval": 60,
-            "counters": [
-              {
-                "counter_name": "\\Processor(_Total)\\% Processor Time",
-                "metric_name": "windows_cpu_processor_utility"
-              },
-              {
-                "counter_name": "\\Memory\\Available MBytes",
-                "metric_name": "windows_memory_available_bytes"
-              },
-              {
-                "counter_name": "\\.NET CLR Memory(_Global_)\\# Bytes in all Heaps",
-                "metric_name": "dotnet_clr_memory_heap_size_bytes"
-              },
-              {
-                "counter_name": "\\.NET CLR Exceptions(_Global_)\\# of Exceps Thrown / sec",
-                "metric_name": "dotnet_clr_exceptions_thrown_total"
-              },
-              {
-                "counter_name": "\\Web Service(_Total)\\Current Connections",
-                "metric_name": "iis_current_connections"
-              },
-              {
-                "counter_name": "\\Web Service(_Total)\\Total Method Requests",
-                "metric_name": "iis_requests_total"
-              }
-            ]
-          }
-        }
-      }
-    }
+ cwagentconfig.json: |
+ {
+ "metrics": {
+ "namespace": "ContainerInsights",
+ "metrics_collected": {
+ "statsd": {
+ "service_address": ":8125",
+ "metrics_collection_interval": 60,
+ "metrics_aggregation_interval": 60
+ },
+ "Performance Counters": {
+ "metrics_collection_interval": 60,
+ "counters": [
+ {
+ "counter_name": "\\Processor(_Total)\\% Processor Time",
+ "metric_name": "windows_cpu_processor_utility"
+ },
+ {
+ "counter_name": "\\Memory\\Available MBytes",
+ "metric_name": "windows_memory_available_bytes"
+ },
+ {
+ "counter_name": "\\.NET CLR Memory(_Global_)\\# Bytes in all Heaps",
+ "metric_name": "dotnet_clr_memory_heap_size_bytes"
+ },
+ {
+ "counter_name": "\\.NET CLR Exceptions(_Global_)\\# of Exceps Thrown / sec",
+ "metric_name": "dotnet_clr_exceptions_thrown_total"
+ },
+ {
+ "counter_name": "\\Web Service(_Total)\\Current Connections",
+ "metric_name": "iis_current_connections"
+ },
+ {
+ "counter_name": "\\Web Service(_Total)\\Total Method Requests",
+ "metric_name": "iis_requests_total"
+ }
+ ]
+ }
+ }
+ }
+ }
 ```
 
-#### 6.4.3 Mixed Cluster Dashboard Configuration
+#### 6.4.3 혼합 클러스터 대시보드 구성
 
-Recommended dashboard configuration for unified monitoring of Linux and Windows nodes from the CloudWatch console:
+CloudWatch 콘솔에서 Linux와 Windows 노드를 통합 모니터링하는 대시보드 구성 권장사항:
 
 ```json
 {
-  "widgets": [
-    {
-      "type": "metric",
-      "properties": {
-        "title": "Cluster CPU Usage (by OS)",
-        "metrics": [
-          [ "ContainerInsights", "node_cpu_utilization",
-            { "stat": "Average", "label": "Linux Nodes" },
-            { "dimensions": { "ClusterName": "my-cluster", "NodeOS": "linux" } }
-          ],
-          [ ".", "windows_cpu_processor_utility",
-            { "stat": "Average", "label": "Windows Nodes" },
-            { "dimensions": { "ClusterName": "my-cluster", "NodeOS": "windows" } }
-          ]
-        ],
-        "period": 300,
-        "region": "ap-northeast-2"
-      }
-    },
-    {
-      "type": "metric",
-      "properties": {
-        "title": ".NET Application Garbage Collection",
-        "metrics": [
-          [ "ContainerInsights", "dotnet_clr_gc_collections_total",
-            { "dimensions": { "ClusterName": "my-cluster", "Generation": "0" } }
-          ],
-          [ "...", { "Generation": "1" } ],
-          [ "...", { "Generation": "2" } ]
-        ],
-        "period": 60
-      }
-    },
-    {
-      "type": "log",
-      "properties": {
-        "title": "Windows Container Error Logs",
-        "query": "SOURCE '/aws/containerinsights/my-cluster/application'\n| fields @timestamp, kubernetes.pod_name, log\n| filter kubernetes.host like /windows/\n| filter log like /ERROR|Exception/\n| sort @timestamp desc\n| limit 50",
-        "region": "ap-northeast-2"
-      }
-    }
-  ]
+ "widgets": [
+ {
+ "type": "metric",
+ "properties": {
+ "title": "cluster CPU userate (OS별)",
+ "metrics": [
+ [ "ContainerInsights", "node_cpu_utilization",
+ { "stat": "Average", "label": "Linux Nodes" },
+ { "dimensions": { "ClusterName": "my-cluster", "NodeOS": "linux" } }
+ ],
+ [ ".", "windows_cpu_processor_utility",
+ { "stat": "Average", "label": "Windows Nodes" },
+ { "dimensions": { "ClusterName": "my-cluster", "NodeOS": "windows" } }
+ ]
+ ],
+ "period": 300,
+ "region": "ap-northeast-2"
+ }
+ },
+ {
+ "type": "metric",
+ "properties": {
+ "title": ".NET application 가ratio지 컬렉션",
+ "metrics": [
+ [ "ContainerInsights", "dotnet_clr_gc_collections_total",
+ { "dimensions": { "ClusterName": "my-cluster", "Generation": "0" } }
+ ],
+ [ "...", { "Generation": "1" } ],
+ [ "...", { "Generation": "2" } ]
+ ],
+ "period": 60
+ }
+ },
+ {
+ "type": "log",
+ "properties": {
+ "title": "Windows container error log",
+ "query": "SOURCE '/aws/containerinsights/my-cluster/application'\n| fields @timestamp, kubernetes.pod_name, log\n| filter kubernetes.host like /windows/\n| filter log like /ERROR|Exception/\n| sort @timestamp desc\n| limit 50",
+ "region": "ap-northeast-2"
+ }
+ }
+ ]
 }
 ```
 
-:::info Core Value of CloudWatch Container Insights Windows Support
-CloudWatch Container Insights has officially supported Windows workloads since August 2025. The ability to monitor Linux and Windows nodes in the same dashboard greatly reduces mixed cluster operational complexity. Windows-specific metrics like .NET CLR and IIS performance counters are automatically collected, establishing the observability foundation for Kubernetes migration of legacy .NET Framework applications.
+:::info CloudWatch Container Insights Windows 지원의 핵심 가치
+CloudWatch Container Insights는 2025년 8월부터 Windows 워크로드를 공식 지원합니다. Linux와 Windows 노드를 동일한 대시보드에서 통합 모니터링할 수 있어, 혼합 클러스터 운영 복잡성이 크게 줄어듭니다. .NET CLR, IIS 성능 카운터 등 Windows 특화 메트릭도 자동 수집되므로, 레거시 .NET Framework 애플리케이션의 Kubernetes 마이그레이션을 위한 관찰성 기반이 확립됩니다.
 :::
 
-:::tip Mixed Cluster Operation Recommendations
-**Node pool separation**: Separate Windows and Linux workloads into distinct node pools (Karpenter NodePool) while monitoring them under the same Container Insights namespace. This allows selecting optimized instance types for each OS while maintaining observability on a single platform.
+:::tip 혼합 클러스터 운영 권장사항
+**노드 풀 분리**: Windows와 Linux 워크로드를 별도의 노드 풀(Karpenter NodePool)로 분리하되, 동일한 Container Insights 네임스페이스에서 통합 모니터링합니다. 이렇게 하면 각 OS에 최적화된 인스턴스 타입을 선택하면서도 관찰성은 단일 플랫폼으로 유지할 수 있습니다.
 
-**Alert strategy**: Configure Windows-specific metric alerts (e.g., .NET GC Gen 2 frequency increase) and Linux metric alerts separately, but route them to the same SNS topic so the operations team receives all alerts through a single channel.
+**알림 전략**: Windows 특화 메트릭(예: .NET GC Gen 2 빈도 증가)과 Linux 메트릭을 별도 알림으로 구성하되, 동일한 SNS 토픽으로 라우팅하여 운영팀이 단일 채널에서 모든 알림을 받도록 합니다.
 :::
 
 ---
 
 ## 7. CloudWatch Application Signals
 
-Application Signals automatically generates service maps, SLI/SLO, and call graphs for applications with **zero-code instrumentation**.
+Application Signals는 **zero-code 계측**으로 애플리케이션의 서비스 맵, SLI/SLO, 호출 그래프를 자동 생성합니다.
 
-### 7.1 Supported Languages and Instrumentation Methods
+### 7.1 지원 언어 및 계측 방식
 
 <ApplicationSignalsLanguages />
 
-### 7.2 Activation Method
+### 7.2 활성화 방법
 
 ```yaml
-# Enable zero-code instrumentation with Instrumentation CRD
+# Instrumentation CRD zero-code 계측 Activation
 apiVersion: opentelemetry.io/v1alpha1
 kind: Instrumentation
 metadata:
-  name: app-signals
-  namespace: my-app
+ name: app-signals
+ namespace: my-app
 spec:
-  exporter:
-    endpoint: http://adot-collector.observability:4317
-  propagators:
-    - tracecontext
-    - baggage
-    - xray
-  java:
-    image: public.ecr.aws/aws-observability/adot-autoinstrumentation-java:latest
-    env:
-      - name: OTEL_AWS_APPLICATION_SIGNALS_ENABLED
-        value: "true"
-      - name: OTEL_METRICS_EXPORTER
-        value: "none"
-  python:
-    image: public.ecr.aws/aws-observability/adot-autoinstrumentation-python:latest
+ exporter:
+ endpoint: http://adot-collector.observability:4317
+ propagators:
+ - tracecontext
+ - baggage
+ - xray
+ java:
+ image: public.ecr.aws/aws-observability/adot-autoinstrumentation-java:latest
+ env:
+ - name: OTEL_AWS_APPLICATION_SIGNALS_ENABLED
+ value: "true"
+ - name: OTEL_METRICS_EXPORTER
+ value: "none"
+ python:
+ image: public.ecr.aws/aws-observability/adot-autoinstrumentation-python:latest
 ```
 
-Adding an annotation to the Pod automatically injects the instrumentation agent:
+Pod에 annotation을 추가하면 자동으로 계측 에이전트가 주입됩니다:
 
 ```yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: my-java-app
+ name: my-java-app
 spec:
-  template:
-    metadata:
-      annotations:
-        instrumentation.opentelemetry.io/inject-java: "app-signals"
-    spec:
-      containers:
-        - name: app
-          image: my-java-app:latest
+ template:
+ metadata:
+ annotations:
+ instrumentation.opentelemetry.io/inject-java: "app-signals"
+ spec:
+ containers:
+ - name: app
+ image: my-java-app:latest
 ```
 
-### 7.3 Automatic Service Map Generation
+### 7.3 Service Map 자동 생성
 
-When Application Signals is enabled, the following are automatically generated:
+Application Signals가 활성화되면 다음이 자동 생성됩니다:
 
-- **Service Map**: Visualizes inter-service call relationships, displays error rates/latency
-- **Automatic SLI Configuration**: Automatically measures availability (error rate), latency (P99), and throughput
-- **SLO Configuration**: Sets targets based on SLIs (e.g., 99.9% availability, P99 < 500ms)
-- **Call Graph**: Traces inter-service call paths for individual requests
+- **Service Map**: 서비스 간 호출 관계 시각화, 에러율/레이턴시 표시
+- **SLI 자동 설정**: 가용성(에러율), 레이턴시(P99), 처리량 자동 측정
+- **SLO 구성**: SLI 기반으로 목표 설정 (예: 가용성 99.9%, P99 < 500ms)
+- **Call Graph**: 개별 요청의 서비스 간 호출 경로 추적
 
-:::tip Application Signals + DevOps Guru Integration
-When DevOps Guru analyzes Application Signals SLI data, service-level anomaly detection becomes possible. For example, you can receive service-context alerts such as "Payment service P99 latency has increased 3x compared to normal."
+:::tip Application Signals + DevOps Guru 연동
+Application Signals의 SLI 데이터를 DevOps Guru가 분석하면, 서비스 수준에서의 이상 탐지가 가능합니다. 예를 들어 "결제 서비스의 P99 레이턴시가 평소보다 3배 증가"와 같은 서비스 맥락의 알림을 받을 수 있습니다.
 :::
 
 ---
 
 ## 8. DevOps Guru EKS Integration
 
-Amazon DevOps Guru uses ML to automatically detect operational anomalies and analyze root causes.
+Amazon DevOps Guru는 ML을 활용하여 운영 이상을 자동으로 탐지하고 근본 원인을 분석합니다.
 
-### 8.1 Resource Group Configuration
+### 8.1 리소스 그룹 설정
 
 ```bash
-# Enable DevOps Guru with EKS cluster-based resource group
+# EKS cluster based resource 그룹 as DevOps Guru Activation
 aws devops-guru update-resource-collection \
-  --action ADD \
-  --resource-collection '{
-    "Tags": {
-      "TagValues": [
-        {
-          "AppBoundaryKey": "eks-cluster",
-          "TagValues": ["my-cluster"]
-        }
-      ]
-    }
-  }'
+ --action ADD \
+ --resource-collection '{
+ "Tags": {
+ "TagValues": [
+ {
+ "AppBoundaryKey": "eks-cluster",
+ "TagValues": ["my-cluster"]
+ }
+ ]
+ }
+ }'
 ```
 
-### 8.2 How ML Anomaly Detection Works
+### 8.2 ML 이상 탐지 작동 방식
 
-DevOps Guru's anomaly detection operates in the following stages:
+DevOps Guru의 이상 탐지는 다음 단계로 작동합니다:
 
-1. **Learning Period** (1-2 weeks): Learns normal operational patterns with ML models
-2. **Anomaly Detection**: Detects metric changes deviating from learned patterns
-3. **Correlation Analysis**: Groups simultaneously occurring anomalous metrics
-4. **Root Cause Inference**: Analyzes causal relationships between anomalous metrics
-5. **Insight Generation**: Sends alerts with recommended actions
+1. **학습 기간** (1-2주): 정상 운영 패턴을 ML 모델로 학습
+2. **이상 탐지**: 학습된 패턴에서 벗어나는 메트릭 변화 감지
+3. **상관 분석**: 동시에 발생한 이상 메트릭들을 그룹화
+4. **근본 원인 추론**: 이상 메트릭 간 인과 관계 분석
+5. **인사이트 생성**: 권장 조치와 함께 알림 발송
 
-### 8.3 Real Anomaly Detection Scenario
+### 8.3 실제 이상 탐지 시나리오
 
-**Scenario: EKS Node Memory Pressure**
+**시나리오: EKS 노드 메모리 압박**
 
 ```
-[DevOps Guru Insight]
+[DevOps Guru insight]
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Severity: HIGH
-Type: Reactive Anomaly
+severity: HIGH
+type: Reactive Anomaly
 
-Related Metrics (Correlation Analysis):
-  ✦ node_memory_utilization: 92% → 98% (abnormal increase)
-  ✦ pod_eviction_count: 0 → 5 (abnormal increase)
-  ✦ container_restart_count: 2 → 18 (abnormal increase)
-  ✦ kube_node_status_condition{condition="MemoryPressure"}: 0 → 1
+관련 metric (correlation Analysis):
+ ✦ node_memory_utilization: 92% → 98% (rationormal increase)
+ ✦ pod_eviction_count: 0 → 5 (rationormal increase)
+ ✦ container_restart_count: 2 → 18 (rationormal increase)
+ ✦ kube_node_status_condition{condition="MemoryPressure"}: 0 → 1
 
-Root Cause Analysis:
-  → Memory utilization of node i-0abc123 exceeded the normal range
-    (60-75%), entering MemoryPressure state
-  → Pods without memory requests set are consuming excessive memory
+root cause Analysis:
+ → node i-0abc123 memory userate normal scope(60-75%)를
+ 초 and to MemoryPressure status 진입
+ → memory requests 미Configuration Pod들 과also memory 소ratio
 
-Recommended Actions:
-  1. Identify Pods without memory requests/limits set
-  2. Set namespace default limits through LimitRange
-  3. Add memory-based scaling configuration to Karpenter NodePool
+recommended action:
+ 1. memory requests/limits 미Configuration Pod Verification
+ 2. LimitRange through namespace default limitation Configuration
+ 3. Karpenter NodePool memory based scaling Configuration additional
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
-### 8.4 Cost and Activation Tips
+### 8.4 비용 및 활성화 팁
 
 <DevOpsGuruCost />
 
-### 8.5 DevOps Guru Cost Structure and Optimization
+### 8.5 DevOps Guru 비용 구조 및 최적화
 
-Understanding Amazon DevOps Guru's billing model accurately allows you to maximize the benefits of ML-based anomaly detection without exceeding budget.
+Amazon DevOps Guru의 과금 모델을 정확히 이해하면 예산을 초과하지 않으면서도 ML 기반 이상 탐지의 이점을 최대한 활용할 수 있습니다.
 
-#### 8.5.1 Billing Model Details
+#### 8.5.1 과금 모델 상세
 
-DevOps Guru uses a **Resource-Hour billing** model. This is based on the time AWS resources being analyzed are monitored by DevOps Guru.
+DevOps Guru는 **리소스 시간당 과금(Resource-Hour)** 방식을 사용합니다. 이는 분석 대상 AWS 리소스가 DevOps Guru에 의해 모니터링되는 시간을 기준으로 합니다.
 
 ```
-Monthly Cost = Number of analyzed resources × Hours × Regional hourly rate
+monthly cost = Analysis 대상 resource × time(hour) × per region time당 요금
 
-Regional hourly rate (ap-northeast-2):
+per region time당 요금 (ap-northeast-2 기준):
 - $0.0028 per resource-hour
 ```
 
-**Cost Estimation Examples:**
+**비용 추정 예시:**
 
 ```
-[Scenario 1: Small Production Cluster]
-Analyzed resources:
-- EKS Cluster: 1
-- EC2 Nodes: 10
-- RDS Instances: 2
-- Lambda Functions: 5
-- DynamoDB Tables: 3
+[scenario 1: 소규모 production cluster]
+Analysis 대상:
+- EKS cluster: 1
+- EC2 node: 10
+- RDS instance: 2
+- Lambda 함: 5
+- DynamoDB 테이블: 3
 - ALB: 2
-Total Resources: 23
+total resource: 23
 
-Monthly Cost:
-23 resources × 24 hours × 30 days × $0.0028 = $46.37/month
+monthlybetween cost:
+23 resource × 24time × 30day × $0.0028 = $46.37/monthly
 
-[Scenario 2: Medium Production Cluster]
-Analyzed resources:
-- EKS Cluster: 1
-- EC2 Nodes: 50
-- RDS Instances: 5
-- Lambda Functions: 20
-- DynamoDB Tables: 10
+[scenario 2: 중규모 production cluster]
+Analysis 대상:
+- EKS cluster: 1
+- EC2 node: 50
+- RDS instance: 5
+- Lambda 함: 20
+- DynamoDB 테이블: 10
 - ALB/NLB: 5
 - ElastiCache: 3
-Total Resources: 94
+total resource: 94
 
-Monthly Cost:
-94 resources × 24 hours × 30 days × $0.0028 = $189.50/month
+monthlybetween cost:
+94 resource × 24time × 30day × $0.0028 = $189.50/monthly
 
-[Scenario 3: Large Production Environment]
-Analyzed resources:
-- EKS Clusters: 3
-- EC2 Nodes: 200
-- RDS Instances: 15
-- Lambda Functions: 100
-- DynamoDB Tables: 30
-- Other Resources: 50
-Total Resources: 398
+[scenario 3: 대규모 production environment]
+Analysis 대상:
+- EKS cluster: 3
+- EC2 node: 200
+- RDS instance: 15
+- Lambda 함: 100
+- DynamoDB 테이블: 30
+- 기타 resource: 50
+total resource: 398
 
-Monthly Cost:
-398 resources × 24 hours × 30 days × $0.0028 = $801.79/month
+monthlybetween cost:
+398 resource × 24time × 30day × $0.0028 = $801.79/monthly
 ```
 
-#### 8.5.2 Cost Optimization Strategies
+#### 8.5.2 비용 최적화 전략
 
-**Strategy 1: Selective Activation by Environment**
+**전략 1: 환경별 선택적 활성화**
 
 ```bash
-# Enable DevOps Guru only for production environment
+# production environmentonly DevOps Guru Activation
 aws devops-guru update-resource-collection \
-  --action ADD \
-  --resource-collection '{
-    "Tags": {
-      "TagValues": [
-        {
-          "AppBoundaryKey": "Environment",
-          "TagValues": ["production"]
-        }
-      ]
-    }
-  }'
+ --action ADD \
+ --resource-collection '{
+ "Tags": {
+ "TagValues": [
+ {
+ "AppBoundaryKey": "Environment",
+ "TagValues": ["production"]
+ }
+ ]
+ }
+ }'
 
-# Exclude development/staging environments
-# → Can reduce resource count by 60-70%
+# development/staging environment 제외
+# → resource 60-70% savings possible
 ```
 
-**Strategy 2: CloudFormation Stack-Based Scoping**
+**전략 2: CloudFormation 스택 기반 범위 지정**
 
 ```bash
-# Analyze only specific CloudFormation stacks
+# 특정 CloudFormation stackonly Analysis
 aws devops-guru update-resource-collection \
-  --action ADD \
-  --resource-collection '{
-    "CloudFormation": {
-      "StackNames": [
-        "eks-production-cluster",
-        "rds-production-database",
-        "api-gateway-production"
-      ]
-    }
-  }'
+ --action ADD \
+ --resource-collection '{
+ "CloudFormation": {
+ "StackNames": [
+ "eks-production-cluster",
+ "rds-production-database",
+ "api-gateway-production"
+ ]
+ }
+ }'
 
-# Advantage: Focus costs on monitoring only core infrastructure
-# Expected savings: 40-50%
+# advantage: Core infrastructureonly monitoring cost focus
+# example상 savings: 40-50%
 ```
 
-**Strategy 3: Tag-Based Resource Grouping**
+**전략 3: Tag 기반 리소스 그룹핑**
 
 ```yaml
 # Tag strategy example
-Resource Type: EKS Node
-Tags:
-  - Environment: production
-  - Criticality: high
-  - DevOpsGuru: enabled
+resource 타입: EKS node
+태그:
+ - Environment: production
+ - Criticality: high
+ - DevOpsGuru: enabled
 
-# DevOps Guru configuration
+# DevOps Guru Configuration
 aws devops-guru update-resource-collection \
-  --action ADD \
-  --resource-collection '{
-    "Tags": {
-      "TagValues": [
-        {
-          "AppBoundaryKey": "Criticality",
-          "TagValues": ["high", "critical"]
-        }
-      ]
-    }
-  }'
+ --action ADD \
+ --resource-collection '{
+ "Tags": {
+ "TagValues": [
+ {
+ "AppBoundaryKey": "Criticality",
+ "TagValues": ["high", "critical"]
+ }
+ ]
+ }
+ }'
 ```
 
-**Strategy 4: Priority Setting by Resource Type**
+**전략 4: 리소스 타입별 우선순위 설정**
 
 ```
-[High Priority - Must Monitor]
-✓ EKS Cluster (Control Plane)
-✓ RDS Instances (Database)
-✓ DynamoDB Tables (NoSQL)
-✓ ALB/NLB (Traffic Entry)
-✓ Lambda (Serverless Functions)
+[ high 우선순위 - 반드time Monitoring]
+✓ EKS cluster (컨트롤 플레인)
+✓ RDS instance (database)
+✓ DynamoDB 테이블 (NoSQL)
+✓ ALB/NLB (traffic 엔트리)
+✓ Lambda (server리스 함)
 
-[Medium Priority - Selective Monitoring]
-△ EC2 Nodes (Managed by Karpenter)
-△ ElastiCache (Cache Layer)
-△ S3 Buckets (Storage)
+[intermediate 우선순위 - optional Monitoring]
+△ EC2 node (Karpenter Management 중)
+△ ElastiCache (cache 레이어)
+△ S3 버킷 (스토리지)
 
-[Low Priority - Can Exclude]
-✗ Development environment resources
-✗ Test Lambda functions
-✗ Temporary EC2 instances
+[ low 우선순위 - 제외 possible]
+✗ development environment resource
+✗ test용 Lambda
+✗ 임time EC2 instance
 ```
 
-#### 8.5.3 DevOps Guru vs CloudWatch Anomaly Detection Comparison
+#### 8.5.3 DevOps Guru vs CloudWatch Anomaly Detection 비교
 
-These two services are optimized for different use cases, and understanding the cost-feature tradeoffs is important.
+두 서비스는 서로 다른 사용 사례에 최적화되어 있으며, 비용과 기능의 트레이드오프를 이해하는 것이 중요합니다.
 
-| Item | DevOps Guru | CloudWatch Anomaly Detection |
+| 항목 | DevOps Guru | CloudWatch Anomaly Detection |
 |------|-------------|------------------------------|
-| **Billing Model** | Per resource-hour ($0.0028/resource-hour) | Per metric analysis count ($0.30/thousand metrics) |
-| **Analysis Scope** | Complex resource correlation analysis | Single metric anomaly detection |
-| **Root Cause Analysis** | AI-based automatic analysis | Not provided |
-| **Learning Period** | 1-2 weeks | 2 weeks |
-| **Insight Quality** | Very high (multi-layer analysis) | Medium (single metric) |
-| **Recommended Scenario** | Complex system failure detection | Specific metric threshold detection |
+| **과금 방식** | 리소스 시간당 ($0.0028/resource-hour) | 메트릭 분석 횟수 ($0.30/천 개 메트릭) |
+| **분석 범위** | 복합 리소스 상관 분석 | 단일 메트릭 이상 탐지 |
+| **근본 원인 분석** | AI 기반 자동 분석 | 제공 안 함 |
+| **학습 기간** | 1-2주 | 2주 |
+| **인사이트 품질** | 매우 높음 (다층 분석) | 중간 (단일 메트릭) |
+| **권장 시나리오** | 복합 시스템 장애 탐지 | 특정 메트릭 임계값 탐지 |
 
-**Cost Comparison Example:**
+**비용 비교 예시:**
 
 ```
-[Scenario: 50 resources, average 10 metrics per resource]
+[scenario: 50 resource, each resource당 average 10 metric]
 
 DevOps Guru:
-50 resources × 24 hours × 30 days × $0.0028 = $100.80/month
-→ All 500 metrics analyzed, including correlations
+50 resource × 24time × 30day × $0.0028 = $100.80/monthly
+→ 500 metric 모두 analysis, correlation 관계 inclusion
 
 CloudWatch Anomaly Detection:
-500 metrics × 1,000 analyses/month × ($0.30/1,000) = $150/month
-→ Single metrics only, no correlations
+500 metric × 1,000times Analysis/monthly × ($0.30/1,000) = $150/monthly
+→ single metriconly analysis, correlation 관계 none
 
-[Conclusion]
-DevOps Guru offers better value for cost (when complex analysis is needed)
-CloudWatch AD is suitable for single metric threshold monitoring
+[결론]
+DevOps Guru cost compared to feature 우 (복합 Analysis needed time)
+CloudWatch AD single metric threshold Monitoring 합
 ```
 
-**Feature/Cost Tradeoff Decision Matrix:**
+**기능/비용 트레이드오프 의사결정 매트릭스:**
 
 ```
-Complexity │ Recommended Solution
-──────────┼─────────────────────────────────────
-Very High  │ DevOps Guru (Full Stack Analysis)
-   ↑       │
-High       │ DevOps Guru (Core Resources Only)
-   │       │
-Medium     │ CloudWatch AD + Partial DevOps Guru
-   │       │
-Low        │ CloudWatch AD (Specific Metrics)
-   │       │
-Very Low   │ CloudWatch Alarms (Static Thresholds)
-   ↓       │
-──────────┴─────────────────────────────────────
-       Low                              High
-              Expected Monthly Cost →
+ complexalso │ recommendation solution
+────────┼─────────────────────────────────────
+매우 high│ DevOps Guru ( entire stack Analysis)
+ ↑ │
+high │ DevOps Guru (Core resourceonly)
+ │ │
+intermediate │ CloudWatch AD + day부 DevOps Guru
+ │ │
+낮음 │ CloudWatch AD (특정 metric)
+ │ │
+매우 낮음│ CloudWatch Alarms (정 threshold)
+ ↓ │
+────────┴─────────────────────────────────────
+ 저 고
+ example상 monthly cost →
 ```
 
-#### 8.5.4 Practical Cost Optimization Cases
+#### 8.5.4 실전 비용 최적화 사례
 
-**Case 1: 80% Cost Reduction Through Phased Adoption**
+**사례 1: 단계적 도입으로 80% 비용 절감**
 
 ```
 [Before]
-- Entire AWS account enabled (500+ resources)
-- Monthly cost: $1,008/month
+- entire AWS account Activation (500+ resource)
+- monthly cost: $1,008/monthly
 
-[After - Step-by-Step Optimization]
-Phase 1: Enable only production environment
-  → Resources: 500 → 150
-  → Monthly cost: $302.40/month (70% reduction)
+[After - per phase Optimization]
+1phase: production environmentonly Activation
+ → resource : 500 → 150
+ → monthly cost: $302.40/monthly (70% savings)
 
-Phase 2: Critical tag-based filtering
-  → Resources: 150 → 80
-  → Monthly cost: $161.28/month (84% reduction)
+2phase: Critical 태그 based 필터링
+ → resource : 150 → 80
+ → monthly cost: $161.28/monthly (84% savings)
 
-Phase 3: Mixed use with CloudWatch AD
-  → DevOps Guru: 50 core resources
-  → CloudWatch AD: 30 simple metrics
-  → Total cost: $100.80 + $45 = $145.80/month (86% reduction)
+3phase: CloudWatch AD and 혼합 use
+ → DevOps Guru: 50 Core resource
+ → CloudWatch AD: 30 단순 metric
+ → total cost: $100.80 + $45 = $145.80/monthly (86% savings)
 ```
 
-**Case 2: ROI-Based Justification**
+**사례 2: ROI 기반 정당화**
 
 ```
-[DevOps Guru Cost]
-$189.50/month (94 resources)
+[DevOps Guru cost]
+monthly $189.50 (94 resource)
 
-[Prevented Incident Cases (3 months)]
-1. RDS connection pool saturation early detection
-   → Prevented downtime: 2 hours
-   → Prevented revenue loss: $50,000
+[prevention failure case (3months)]
+1. RDS connection 풀 saturation preemptive detection
+ → example상 다운타임 prevention: 2time
+ → 매출 손실 prevention: $50,000
 
-2. Lambda cold start surge early warning
-   → Prevented performance degradation: 4 hours
-   → Prevented customer complaints: Immeasurable
+2. Lambda 콜드 스타트 spike 조기 경고
+ → performance 저 prevention: 4time
+ → 고객 non-only prevention: measurement impossible
 
-3. DynamoDB read capacity exceeded prediction
-   → Prevented service outage: 1 hour
-   → Prevented revenue loss: $25,000
+3. DynamoDB 읽기 용량 초 and prediction
+ → service failure prevention: 1time
+ → 매출 손실 prevention: $25,000
 
-[ROI Calculation]
-3-month cost: $189.50 × 3 = $568.50
-Prevented losses: $75,000+
+[ROI 계산]
+3months cost: $189.50 × 3 = $568.50
+prevention 손실: $75,000+
 ROI: 13,092%
 ```
 
-:::warning Cost Monitoring is Essential
-DevOps Guru costs scale linearly with the number of resources. Check "DevOps Guru" service costs weekly in AWS Cost Explorer, and immediately apply tag filtering or stack-based scope adjustments if costs exceed expectations. Especially in environments where resources dynamically increase through Auto Scaling, you should estimate costs based on the maximum resource count.
+:::warning 비용 모니터링 필수
+DevOps Guru는 리소스 수에 비례하여 비용이 선형 증가합니다. AWS Cost Explorer에서 "DevOps Guru" 서비스 비용을 매주 확인하고, 예상치를 초과하는 경우 Tag 필터링이나 스택 기반 범위 조정을 즉시 적용하세요. 특히 Auto Scaling으로 리소스가 동적으로 증가하는 환경에서는 최대 리소스 수를 기준으로 비용을 산정해야 합니다.
 :::
 
-:::tip Recommended Strategies by Scenario
-**DevOps Guru Usage Recommendations by Scenario:**
+:::tip 권장 시나리오별 전략
+**시나리오별 DevOps Guru 활용 권장사항:**
 
-1. **When complex anomaly detection is needed** → DevOps Guru (Full Stack)
-   - Example: Correlation analysis of "RDS connection count increase + Lambda timeout increase + API Gateway 5xx increase"
+1. **복합 이상 탐지가 필요한 경우** → DevOps Guru (전체 스택)
+ - 예: "RDS 연결 수 증가 + Lambda timeout 증가 + API Gateway 5xx 증가"의 상관 관계 분석
 
-2. **Single metric threshold monitoring** → CloudWatch Anomaly Detection
-   - Example: "CPU utilization is higher than usual" (unrelated to other metrics)
+2. **단일 메트릭 임계값 모니터링** → CloudWatch Anomaly Detection
+ - 예: "CPU 사용률이 평소보다 높음" (다른 메트릭과 무관)
 
-3. **When budget constraints exist** → DevOps Guru for core resources only + CloudWatch Alarms for the rest
-   - Example: DevOps Guru only for production RDS + EKS control plane
+3. **예산 제약이 있는 경우** → 핵심 리소스만 DevOps Guru + 나머지는 CloudWatch Alarms
+ - 예: 프로덕션 RDS + EKS 컨트롤 플레인만 DevOps Guru
 
-4. **Initial adoption phase** → Utilize the 1-month free trial, enable fully and evaluate insight quality
-   - After 1 month, measure value vs. cost and adjust scope
+4. **초기 도입 단계** → 1개월 무료 평가판 활용, 전체 활성화 후 인사이트 품질 평가
+ - 1개월 후 비용 대비 가치를 측정하여 범위 조정
 :::
 
-#### 8.5.5 Cost Alert Configuration
+#### 8.5.5 비용 알림 설정
 
 ```bash
-# Set up DevOps Guru cost alerts with AWS Budgets
+# AWS Budgets as DevOps Guru cost alert Configuration
 aws budgets create-budget \
-  --account-id ACCOUNT_ID \
-  --budget '{
-    "BudgetName": "DevOpsGuru-Monthly-Budget",
-    "BudgetLimit": {
-      "Amount": "200",
-      "Unit": "USD"
-    },
-    "TimeUnit": "MONTHLY",
-    "BudgetType": "COST",
-    "CostFilters": {
-      "Service": ["Amazon DevOps Guru"]
-    }
-  }' \
-  --notifications-with-subscribers '[
-    {
-      "Notification": {
-        "NotificationType": "ACTUAL",
-        "ComparisonOperator": "GREATER_THAN",
-        "Threshold": 80
-      },
-      "Subscribers": [
-        {
-          "SubscriptionType": "EMAIL",
-          "Address": "ops-team@example.com"
-        }
-      ]
-    }
-  ]'
+ --account-id ACCOUNT_ID \
+ --budget '{
+ "BudgetName": "DevOpsGuru-Monthly-Budget",
+ "BudgetLimit": {
+ "Amount": "200",
+ "Unit": "USD"
+ },
+ "TimeUnit": "MONTHLY",
+ "BudgetType": "COST",
+ "CostFilters": {
+ "Service": ["Amazon DevOps Guru"]
+ }
+ }' \
+ --notifications-with-subscribers '[
+ {
+ "Notification": {
+ "NotificationType": "ACTUAL",
+ "ComparisonOperator": "GREATER_THAN",
+ "Threshold": 80
+ },
+ "Subscribers": [
+ {
+ "SubscriptionType": "EMAIL",
+ "Address": "ops-team@example.com"
+ }
+ ]
+ }
+ ]'
 ```
 
-### 7.5 GuardDuty Extended Threat Detection — EKS Security Observability
+### 7.5 GuardDuty Extended Threat Detection — EKS 보안 관찰성
 
-Amazon GuardDuty Extended Threat Detection started with EKS support in June 2025, then expanded to EC2 and ECS in December, establishing a new standard for container security observability. AI/ML-based multi-stage attack detection goes beyond the limitations of traditional security monitoring.
+Amazon GuardDuty Extended Threat Detection은 2025년 6월 EKS 지원을 시작으로, 12월에는 EC2와 ECS로 확장되어 컨테이너 보안 관찰성의 새로운 표준을 제시합니다. AI/ML 기반 다단계 공격 탐지로 기존 보안 모니터링의 한계를 넘어섭니다.
 
-#### 7.5.1 Announcement History and Expansion
+#### 7.5.1 발표 이력 및 확장
 
-**June 17, 2025 - EKS Support Announcement:**
-- Correlates EKS audit logs, runtime behavior, malware execution, and AWS API activity
-- Integrates with EKS Runtime Monitoring for container-level threat detection
+**2025년 6월 17일 - EKS 지원 발표:**
+- EKS 감사 로그, 런타임 행동, 맬웨어 실행, AWS API 활동을 상관 분석
+- EKS Runtime Monitoring과 통합하여 컨테이너 수준 위협 탐지
 
-**December 2, 2025 - EC2, ECS Expansion:**
-- Extended Threat Detection expanded to EC2 instances and ECS tasks
-- Evolved into a unified threat detection platform
+**2025년 12월 2일 - EC2, ECS 확장:**
+- EC2 인스턴스 및 ECS 태스크로 Extended Threat Detection 확장
+- 통합된 위협 탐지 플랫폼으로 진화
 
-#### 7.5.2 Core Features
+#### 7.5.2 핵심 기능
 
-**AI/ML-Based Multi-Stage Attack Detection:**
-- **Attack Sequence Findings**: Automatically identifies attack sequences spanning multiple resources and data sources
-- **Correlation Analysis Engine**: Unified analysis of EKS audit logs + runtime behavior + malware execution + API activity
-- **Automatic Critical Severity Classification**: Distinguishes real threats from false positives, highlighting only Critical threats
-- **Dramatically Reduced Initial Analysis Time**: 90%+ time savings compared to manual log analysis
+**AI/ML 기반 다단계 공격 탐지:**
+- **Attack Sequence Findings**: 여러 리소스와 데이터 소스에 걸친 공격 시퀀스 자동 식별
+- **상관 분석 엔진**: EKS 감사 로그 + 런타임 행동 + 맬웨어 실행 + API 활동을 통합 분석
+- **Critical 심각도 자동 분류**: 진짜 위협과 오탐을 구분하여 Critical 위협만 강조
+- **1차 분석 시간 대폭 단축**: 수동 로그 분석 대비 90% 이상 시간 절감
 
-**EKS-Specific Detection Patterns:**
+**EKS 특화 탐지 패턴:**
 ```
-[Detection Scenario 1: Cryptomining Attack]
-→ Abnormal container image pull (external registry)
-→ High CPU utilization Pod execution
-→ Outbound connection to known mining pool
-→ Abnormal authentication attempts against API server
-→ GuardDuty connects these 4 stages to generate an Attack Sequence Finding
+[detection scenario 1: Cryptomining Attack]
+→ rationormal container 이미지 Pull (external registry)
+→ high CPU userate Pod execution
+→ 알려진 mining 풀 outbound connection
+→ API server for rationormal 인증 timealso
+→ GuardDuty 이 4phase connection to Attack Sequence Finding generation
 
-[Detection Scenario 2: Privilege Escalation]
-→ Abnormal ServiceAccount token access
-→ ClusterRole binding modification attempt
-→ Mass Secrets query
-→ New privileged Pod creation
-→ Automatically classified as Critical severity, immediate alert
-```
-
-#### 7.5.3 Real Case: November 2025 Cryptomining Campaign Detection
-
-This is a real threat detection case documented in detail on the AWS Security Blog (November 2025):
-
-**Attack Scenario:**
-```
-[Started 2025-11-02]
-1. Attacker infiltrated EKS worker node through exposed Docker API
-2. Deployed cryptomining workload with normal-looking container names
-3. Ran without CPU resource limits, exhausting node resources
-4. Maintained outbound connections to mining pools
-
-[GuardDuty Extended Threat Detection Discovery]
-→ Runtime Monitoring detected abnormal CPU patterns
-→ Network analysis identified connections to known mining pools
-→ Audit Log analysis confirmed unauthorized container creation
-→ Attack Sequence Finding generated (Critical severity)
-→ Less than 15 minutes from detection to alert
-
-[Result]
-→ Automatic isolation action (Lambda + EventBridge)
-→ Immediate replacement of affected nodes (Karpenter)
-→ Prevention of recurrence: Network Policy + PodSecurityPolicy hardening
+[detection scenario 2: Privilege Escalation]
+→ ServiceAccount 토 large rationormal 액세스
+→ ClusterRole 바인딩 change timealso
+→ Secrets 대량 조times
+→ new Management permission Pod generation
+→ Critical severity automatic minutes류, immediately alert
 ```
 
-:::warning Lessons from Real Threats
-This cryptomining campaign targeted hundreds of AWS accounts. Without GuardDuty Extended Threat Detection, most organizations would not have been aware of the attack until receiving their end-of-month bill. **Security observability is the first step in cost optimization**.
+#### 7.5.3 실제 사례: 2025년 11월 크립토마이닝 캠페인 탐지
+
+AWS Security Blog에 상세히 기록된 실제 위협 탐지 사례입니다 (2025년 11월):
+
+**공격 시나리오:**
+```
+[2025-11-02 start]
+1. 공격 노출 Docker API through EKS worker node 침투
+2. normal as 보this is container 이름 as cryptomining workload Deployment
+3. CPU resource limitation without execution to node resource exhaustion
+4. mining 풀 outbound connection maintenance
+
+[GuardDuty Extended Threat Detection detection]
+→ Runtime Monitoring rationormal CPU pattern detection
+→ Network Analysis 알려진 mining 풀 connection identification
+→ Audit Log Analysis ratio인 container generation Verification
+→ Attack Sequence Finding generation (Critical severity)
+→ detection부터 alert 15minutes 이내
+
+[result]
+→ automatic isolation action (Lambda + EventBridge)
+→ impact받 node immediately 교체 (Karpenter)
+→ re-발 prevention: Network Policy + PodSecurityPolicy enhancement
+```
+
+:::warning 실제 위협의 교훈
+이 크립토마이닝 캠페인은 수백 개의 AWS 계정을 대상으로 했습니다. GuardDuty Extended Threat Detection이 없었다면 대부분의 조직은 월말 청구서를 받기 전까지 공격을 인지하지 못했을 것입니다. **보안 관찰성은 비용 최적화의 첫 단계**입니다.
 :::
 
-#### 7.5.4 Observability Stack Integration
+#### 7.5.4 관찰성 스택 통합
 
-GuardDuty Extended Threat Detection integrates seamlessly with the existing observability stack:
+GuardDuty Extended Threat Detection은 기존 관찰성 스택과 완벽하게 통합됩니다:
 
 ```mermaid
 graph TB
-    subgraph EKS["EKS Cluster"]
-        RT[Runtime Monitoring<br/>Agent]
-        AL[Audit Logs]
-        NW[Network Telemetry]
-    end
+ subgraph EKS["EKS cluster"]
+ RT[Runtime Monitoring<br/>Agent]
+ AL[Audit Logs]
+ NW[Network Telemetry]
+ end
 
-    subgraph GuardDuty["GuardDuty Extended Threat Detection"]
-        AI[AI/ML Correlation<br/>Analysis]
-        SEQ[Attack Sequence<br/>Engine]
-    end
-    subgraph Response["Automated Response"]
-        EB[EventBridge]
-        Lambda[Lambda<br/>Isolation Function]
-        SNS[SNS Alerts]
-        CW[CloudWatch<br/>Investigations]
-    end
+ subgraph GuardDuty["GuardDuty Extended Threat Detection"]
+ AI[AI/ML correlation Analysis]
+ SEQ[Attack Sequence<br/>Engine]
+ end
 
-    RT --> AI
-    AL --> AI
-    NW --> AI
-    AI --> SEQ
-    SEQ --> EB
-    EB --> Lambda
-    EB --> SNS
-    EB --> CW
+ subgraph Response["automatic response"]
+ EB[EventBridge]
+ Lambda[Lambda<br/>isolation 함]
+ SNS[SNS alert]
+ CW[CloudWatch<br/>Investigations]
+ end
+
+ RT --> AI
+ AL --> AI
+ NW --> AI
+ AI --> SEQ
+ SEQ --> EB
+ EB --> Lambda
+ EB --> SNS
+ EB --> CW
 ```
 
-**CloudWatch Integration Example:**
+**CloudWatch 통합 예시:**
 ```bash
-# Query GuardDuty Findings in CloudWatch
+# GuardDuty Finding CloudWatch from 조times
 aws cloudwatch get-metric-statistics \
-  --namespace AWS/GuardDuty \
-  --metric-name FindingCount \
-  --dimensions Name=Severity,Value=CRITICAL \
-  --start-time 2026-02-01T00:00:00Z \
-  --end-time 2026-02-12T23:59:59Z \
-  --period 3600 \
-  --statistics Sum
+ --namespace AWS/GuardDuty \
+ --metric-name FindingCount \
+ --dimensions Name=Severity,Value=CRITICAL \
+ --start-time 2026-02-01T00:00:00Z \
+ --end-time 2026-02-12T23:59:59Z \
+ --period 3600 \
+ --statistics Sum
 
-# Automatic connection with CloudWatch Investigations
-# GuardDuty Finding → Investigation auto-created → Root cause analysis
+# CloudWatch Investigations and automatic connection
+# GuardDuty Finding → Investigation automatic generation → root cause Analysis
 ```
 
-#### 7.5.5 Activation Configuration
+#### 7.5.5 활성화 설정
 
-**Step 1: Enable GuardDuty EKS Runtime Monitoring**
+**Step 1: GuardDuty EKS Runtime Monitoring 활성화**
 ```bash
-# Enable EKS Protection in GuardDuty
+# GuardDuty from EKS Protection Activation
 aws guardduty update-detector \
-  --detector-id <detector-id> \
-  --features \
-    Name=EKS_RUNTIME_MONITORING,Status=ENABLED \
-    Name=EKS_ADDON_MANAGEMENT,Status=ENABLED
+ --detector-id <detector-id> \
+ --features \
+ Name=EKS_RUNTIME_MONITORING,Status=ENABLED \
+ Name=EKS_ADDON_MANAGEMENT,Status=ENABLED
 
-# Automatically deploy GuardDuty Agent to cluster
+# cluster GuardDuty Agent automatic Deployment
 aws guardduty update-malware-scan-settings \
-  --detector-id <detector-id> \
-  --scan-resource-criteria \
-    Include='{"MapEquals":[{"Key":"tag:eks-cluster","Value":"my-cluster"}]}'
+ --detector-id <detector-id> \
+ --scan-resource-criteria \
+ Include='{"MapEquals":[{"Key":"tag:eks-cluster","Value":"my-cluster"}]}'
 ```
 
-**Step 2: Enable Extended Threat Detection (Automatic)**
+**Step 2: Extended Threat Detection 활성화 (자동)**
 ```bash
-# Extended Threat Detection is automatically enabled when EKS Runtime Monitoring is activated
-# No additional cost, no API call required
+# EKS Runtime Monitoring Activationwhen Extended Threat Detection automatic Activation
+# additional cost none, API call non-needed
 
-# Verify
+# Verification
 aws guardduty get-detector --detector-id <detector-id> \
-  --query 'Features[?Name==`EKS_RUNTIME_MONITORING`].Status' \
-  --output text
+ --query 'Features[?Name==`EKS_RUNTIME_MONITORING`].Status' \
+ --output text
 ```
 
-**Step 3: Configure EventBridge Automated Response**
+**Step 3: EventBridge 자동 대응 설정**
 ```yaml
-# GuardDuty Finding → Automatic Isolation
+# GuardDuty Finding → automatic isolation
 apiVersion: events.amazonaws.com/v1
 kind: Rule
 metadata:
-  name: guardduty-critical-finding
+ name: guardduty-critical-finding
 spec:
-  eventPattern:
-    source:
-      - aws.guardduty
-    detail-type:
-      - GuardDuty Finding
-    detail:
-      severity:
-        - 7
-        - 8
-        - 9  # HIGH, CRITICAL
-      resource:
-        resourceType:
-          - EKSCluster
-  targets:
-    - arn: arn:aws:lambda:ap-northeast-2:ACCOUNT_ID:function:isolate-pod
-    - arn: arn:aws:sns:ap-northeast-2:ACCOUNT_ID:security-alerts
+ eventPattern:
+ source:
+ - aws.guardduty
+ detail-type:
+ - GuardDuty Finding
+ detail:
+ severity:
+ - 7
+ - 8
+ - 9 # HIGH, CRITICAL
+ resource:
+ resourceType:
+ - EKSCluster
+ targets:
+ - arn: arn:aws:lambda:ap-northeast-2:ACCOUNT_ID:function:isolate-pod
+ - arn: arn:aws:sns:ap-northeast-2:ACCOUNT_ID:security-alerts
 ```
 
-:::warning GuardDuty Extended Threat Detection Prerequisites
-Extended Threat Detection's full threat detection capabilities **only work when EKS Runtime Monitoring is enabled**. Without Runtime Monitoring, Attack Sequence Findings cannot be generated, and only simple API-based detection is available.
+:::warning GuardDuty Extended Threat Detection 필수 조건
+Extended Threat Detection의 완전한 위협 탐지 기능은 **EKS Runtime Monitoring이 활성화된 상태에서만** 작동합니다. Runtime Monitoring 없이는 Attack Sequence Findings를 생성할 수 없으며, 단순 API 기반 탐지만 가능합니다.
 :::
 
-#### 7.5.6 Cost Structure
+#### 7.5.6 비용 구조
 
 **GuardDuty EKS Runtime Monitoring:**
-- Billed per vCPU-hour: $0.008/vCPU-hour
-- Estimated cost for 30 days, 100 vCPU cluster: ~$576/month
+- vCPU-시간당 과금: $0.008/vCPU-hour
+- 30일, 100 vCPU 클러스터 예상 비용: ~$576/월
 
 **Extended Threat Detection:**
-- **No additional cost** when Runtime Monitoring is enabled
-- Attack Sequence Finding generation automatically included
+- Runtime Monitoring 활성화 시 **추가 비용 없음**
+- Attack Sequence Finding 생성 자동 포함
 
-**ROI Analysis:**
+**ROI 분석:**
 ```
-[Cryptomining Attack Prevention Case]
-GuardDuty cost: $576/month
-Blocked mining cost: $15,000/month (100 vCPU × 24 hours × $0.096/vCPU-hr × 30 days × 50% utilization)
-Net savings: $14,424/month
+[cryptomining 공격 blocking case]
+GuardDuty cost: $576/monthly
+blocking mining cost: $15,000/monthly (100 vCPU × 24time × $0.096/vCPU-hr × 30day × 50% userate)
+순 savings: $14,424/monthly
 ROI: 2,504%
 ```
 
-:::tip MCP Integration: Security Observability Automation
-GuardDuty Findings can be queried directly from Kiro and Q Developer through the CloudWatch MCP server:
+:::tip MCP 통합: 보안 관찰성의 자동화
+GuardDuty Findings는 CloudWatch MCP 서버를 통해 Kiro와 Q Developer에서 직접 조회 가능합니다:
 
 ```
-[Kiro + MCP Security Automation]
-Kiro: "Are there any current Critical security threats?"
+[Kiro + MCP security Automation]
+Kiro: " current Critical security 위협 있어?"
 → CloudWatch MCP: get_guardduty_findings(severity="CRITICAL")
 → Finding: "Unauthorized Pod creation from external IP"
-→ Kiro: Automatically creates Network Policy + Pod isolation + incident report
+→ Kiro: automatic as Network Policy generation + Pod isolation + incident 리포트 작
 ```
 
-This is the fully automated loop of **Observe → Analyze → Respond**.
+이것이 **관찰 → 분석 → 대응**의 완전 자동화 루프입니다.
 :::
 
 ---
 
-## 9. CloudWatch AI Natural Language Query + Investigations
+## 9. CloudWatch AI Natural Language Queries + Investigations
 
-### 9.1 CloudWatch AI Natural Language Query
+### 9.1 CloudWatch AI 자연어 쿼리
 
-CloudWatch AI NL Query is a feature that allows you to analyze metrics and logs using natural language. You can ask questions in natural language without knowing PromQL or CloudWatch Logs Insights query syntax.
+CloudWatch AI NL 쿼리는 자연어로 메트릭과 로그를 분석할 수 있는 기능입니다. PromQL이나 CloudWatch Logs Insights 쿼리 구문을 몰라도 자연어로 질문하면 됩니다.
 
-**Actual Query Examples**:
+**실제 쿼리 예시**:
 
 ```
-# Natural Language Query → Automatic Conversion
+# natural language query → automatic 변환
 
-Question: "Which EKS nodes had CPU utilization exceeding 80% in the last hour?"
-→ Automatically generates CloudWatch Metrics Insights query
+질문: "지난 1time 동안 CPU userate 80%를 초과 EKS node는?"
+→ CloudWatch Metrics Insights query automatic generation
 
-Question: "What time period had the most 5xx errors in payment-service?"
-→ Automatically generates CloudWatch Logs Insights query
+질문: "payment-service from 5xx error most 많 occurrence time대는?"
+→ CloudWatch Logs Insights query automatic generation
 
-Question: "Which services have slower API response times today compared to yesterday?"
-→ Automatically generates comparison analysis query
+질문: "어제 compared to 오늘 API response time 느려진 service는?"
+→ ratio교 Analysis query automatic generation
 ```
 
 ### 9.2 CloudWatch Investigations
 
-CloudWatch Investigations is an AI-based root cause analysis tool that automatically collects and analyzes related metrics, logs, and traces when an alert occurs.
+CloudWatch Investigations는 AI 기반 근본 원인 분석 도구로, 알림이 발생하면 자동으로 관련 메트릭, 로그, 트레이스를 수집하여 분석합니다.
 
-**Analysis Process**:
+**분석 프로세스**:
 
-1. **Alert Trigger**: CloudWatch Alarm or DevOps Guru insight occurs
-2. **Context Collection**: Automatically collects related metrics, logs, traces, and configuration change history
-3. **AI Analysis**: AI analyzes collected data to infer root causes
-4. **Timeline Generation**: Organizes event occurrence order by time period
-5. **Recommended Actions**: Presents specific resolution approaches
+1. **알림 트리거**: CloudWatch Alarm 또는 DevOps Guru 인사이트 발생
+2. **컨텍스트 수집**: 관련 메트릭, 로그, 트레이스, 구성 변경 이력 자동 수집
+3. **AI 분석**: 수집된 데이터를 AI가 분석하여 근본 원인 추론
+4. **타임라인 생성**: 이벤트 발생 순서를 시간대별로 정리
+5. **권장 조치**: 구체적인 해결 방안 제시
 
 ```
-[CloudWatch Investigation Result]
+[CloudWatch Investigation result]
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Investigation Summary: payment-service latency increase
+📋 조사 summary: payment-service latency increase
 
-Timeline:
-  14:23 - RDS connection pool utilization surged (70% → 95%)
-  14:25 - payment-service P99 latency 500ms → 2.3s
-  14:27 - Downstream order-service also started being affected
-  14:30 - CloudWatch Alarm triggered
+⏱️ 타임라인:
+ 14:23 - RDS connection 풀 userate spike (70% → 95%)
+ 14:25 - payment-service P99 latency 500ms → 2.3s
+ 14:27 - 다운스트림 order-servicealso impact 받기 start
+ 14:30 - CloudWatch Alarm trigger
 
-Root Cause:
-  Connection count of RDS instance (db.r5.large) approached
-  max_connections, delaying new connection creation
+🔍 root cause:
+ RDS instance(db.r5.large) connection max_connections에
+ 근접 to 새 connection generation delay됨
 
-Recommended Actions:
-  1. Upgrade RDS instance class or adjust max_connections
-  2. Optimize connection pooling library (HikariCP/PgBouncer) settings
-  3. Consider introducing RDS Proxy
+📌 recommended action:
+ 1. RDS instance 클래스 업그레이드 or max_connections adjustment
+ 2. connection 풀링 라이브러리(HikariCP/PgBouncer) Configuration Optimization
+ 3. RDS Proxy adoption 검토
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
 :::tip Investigation + Hosted MCP
-CloudWatch Investigations results can be queried directly from Kiro through the Hosted MCP server. "Are there any ongoing Investigations?" → MCP returns Investigation status → Kiro automatically generates response code. This is the complete loop of **AI Analysis → Automated Response**.
+CloudWatch Investigations의 결과를 Hosted MCP 서버를 통해 Kiro에서 직접 조회할 수 있습니다. "현재 진행 중인 Investigation이 있어?" → MCP가 Investigation 상태를 반환 → Kiro가 자동으로 대응 코드 생성. 이것이 **AI 분석 → 자동 대응**의 완전한 루프입니다.
 :::
 
-#### 9.1.3 Regional Availability and Cross-Region Considerations
+#### 9.1.3 리전 가용성 및 Cross-Region 고려사항
 
-CloudWatch AI Natural Language Query is available in 10 regions since GA in August 2025, and understanding regional constraints is important.
+CloudWatch AI 자연어 쿼리는 2025년 8월 GA 이후 10개 리전에서 사용 가능하며, 리전별 제약사항을 이해하는 것이 중요합니다.
 
-**Supported Regions (as of August 2025):**
+**지원 리전 (2025년 8월 기준):**
 
-| Region Code | Region Name | Query Processing Location |
+| 리전 코드 | 리전 이름 | 쿼리 처리 위치 |
 |----------|----------|--------------|
-| `us-east-1` | US East (N. Virginia) | Local |
-| `us-east-2` | US East (Ohio) | Local |
-| `us-west-2` | US West (Oregon) | Local |
-| `ap-southeast-1` | Asia Pacific (Singapore) | Local |
-| `ap-southeast-2` | Asia Pacific (Sydney) | Local |
-| `ap-northeast-1` | Asia Pacific (Tokyo) | Local |
+| `us-east-1` | US East (N. Virginia) | 로컬 |
+| `us-east-2` | US East (Ohio) | 로컬 |
+| `us-west-2` | US West (Oregon) | 로컬 |
+| `ap-southeast-1` | Asia Pacific (Singapore) | 로컬 |
+| `ap-southeast-2` | Asia Pacific (Sydney) | 로컬 |
+| `ap-northeast-1` | Asia Pacific (Tokyo) | 로컬 |
 | `ap-east-1` | Asia Pacific (Hong Kong) | Cross-Region (US) |
-| `eu-central-1` | Europe (Frankfurt) | Local |
-| `eu-west-1` | Europe (Ireland) | Local |
-| `eu-north-1` | Europe (Stockholm) | Local |
+| `eu-central-1` | Europe (Frankfurt) | 로컬 |
+| `eu-west-1` | Europe (Ireland) | 로컬 |
+| `eu-north-1` | Europe (Stockholm) | 로컬 |
 
-:::warning Cross-Region Prompt Processing
-When using natural language queries in the **Hong Kong (ap-east-1)** region, **Cross-Region calls to the US region** occur for prompt processing. This means:
+:::warning Cross-Region 프롬프트 처리
+**Hong Kong (ap-east-1)** 리전에서 자연어 쿼리를 사용하면 프롬프트 처리를 위해 **US 리전으로 Cross-Region 호출**이 발생합니다. 이는 다음을 의미합니다:
 
-- Increased query response time (network latency)
-- Prompt text is transmitted across region boundaries (data residency considerations needed)
-- Possible Cross-Region data transfer costs
+- 쿼리 응답 시간 증가 (네트워크 레이턴시)
+- 프롬프트 텍스트가 리전 경계를 넘어 전송됨 (데이터 레지던시 고려 필요)
+- Cross-Region 데이터 전송 비용 발생 가능
 
-**If you have data residency requirements**: Use direct CloudWatch Logs Insights query syntax instead of natural language queries in the Hong Kong region.
+**데이터 레지던시 요구사항이 있는 경우**: Hong Kong 리전에서는 자연어 쿼리 대신 직접 CloudWatch Logs Insights 쿼리 구문을 사용하세요.
 :::
 
-**Alternative Approaches for Unsupported Regions:**
+**미지원 리전에서의 대안 접근법:**
 
 ```bash
-# When querying from an unsupported region (e.g., ap-northeast-2, Seoul)
+# 미Support region(example: ap-northeast-2, Seoul) from query time
 
-# Natural language query not available
-# "Generate query" button does not appear in CloudWatch console
+# ❌ natural language query impossible
+# CloudWatch 콘솔 from "Generate query" 버튼 표time되지 않음
 
-# Alternative 1: Generate query in a supported region's console and copy
-# 1. Generate query with natural language in the us-west-2 console
-# 2. Copy the generated Logs Insights query
-# 3. Run the query directly in the ap-northeast-2 console
+# ✅ 대안 1: Support region 콘솔 from query generation after 복사
+# 1. us-west-2 콘솔 from natural language query generation
+# 2. generation Logs Insights query 복사
+# 3. ap-northeast-2 콘솔 from query directly execution
 
-# Alternative 2: Cross-Region query via AWS CLI (metrics only)
+# ✅ 대안 2: AWS CLI Cross-Region query (metriconly)
 aws cloudwatch get-metric-statistics \
-  --region ap-northeast-2 \
-  --namespace AWS/EKS \
-  --metric-name cluster_failed_node_count \
-  --start-time 2026-02-01T00:00:00Z \
-  --end-time 2026-02-12T23:59:59Z \
-  --period 300 \
-  --statistics Average
+ --region ap-northeast-2 \
+ --namespace AWS/EKS \
+ --metric-name cluster_failed_node_count \
+ --start-time 2026-02-01T00:00:00Z \
+ --end-time 2026-02-12T23:59:59Z \
+ --period 300 \
+ --statistics Average
 
-# Alternative 3: Direct CloudWatch Metrics Insights query (local execution)
+# ✅ 대안 3: CloudWatch Metrics Insights directly query (로컬 execution)
 SELECT AVG(cluster_failed_node_count)
 FROM SCHEMA("AWS/EKS", ClusterName)
 WHERE ClusterName = 'my-cluster'
 ```
 
-**Considerations for Cross-Region Metric Analysis:**
+**Cross-Region 메트릭 분석 시 주의사항:**
 
 ```yaml
-# Scenario: Multi-region EKS cluster unified monitoring
+# scenario: multi-region EKS cluster Integration Monitoring
 
-# Incorrect approach (inefficient)
-# Accessing each region's console individually to run natural language queries
-# → Time-consuming, no unified view
+# ❌ 잘못 approach (ratioefficiency)
+# each region 콘솔 per 접속 to natural language query execution
+# → time required, Integration 뷰 none
 
-# Correct approach
-# 1. Select a central region (e.g., us-west-2)
-# 2. Enable CloudWatch Cross-Region Observability
+# ✅ 올바른 approach
+# 1. 중앙 focus region(example: us-west-2) optional
+# 2. CloudWatch Cross-Region Observability Activation
 aws cloudwatch put-sink \
-  --name central-monitoring-sink \
-  --region us-west-2
+ --name central-monitoring-sink \
+ --region us-west-2
 
-# 3. Configure metric forwarding from each region to the central region
+# 3. each region from 중앙 region as metric transfer Configuration
 aws cloudwatch put-sink-policy \
-  --sink-identifier arn:aws:cloudwatch:us-west-2:ACCOUNT_ID:sink/central-monitoring-sink \
-  --policy '{
-    "Version": "2012-10-17",
-    "Statement": [{
-      "Effect": "Allow",
-      "Principal": {"AWS": "ACCOUNT_ID"},
-      "Action": ["oam:CreateLink","oam:UpdateLink"],
-      "Resource": "*"
-    }]
-  }'
+ --sink-identifier arn:aws:cloudwatch:us-west-2:ACCOUNT_ID:sink/central-monitoring-sink \
+ --policy '{
+ "Version": "2012-10-17",
+ "Statement": [{
+ "Effect": "Allow",
+ "Principal": {"AWS": "ACCOUNT_ID"},
+ "Action": ["oam:CreateLink","oam:UpdateLink"],
+ "Resource": "*"
+ }]
+ }'
 
-# 4. Connect source regions
+# 4. source region들 connection
 for region in ap-northeast-2 eu-central-1 us-east-1; do
-  aws cloudwatch put-link \
-    --region $region \
-    --label-template '$AccountName-$Region' \
-    --resource-types AWS::CloudWatch::Metric AWS::Logs::LogGroup \
-    --sink-identifier arn:aws:cloudwatch:us-west-2:ACCOUNT_ID:sink/central-monitoring-sink
+ aws cloudwatch put-link \
+ --region $region \
+ --label-template '$AccountName-$Region' \
+ --resource-types AWS::CloudWatch::Metric AWS::Logs::LogGroup \
+ --sink-identifier arn:aws:cloudwatch:us-west-2:ACCOUNT_ID:sink/central-monitoring-sink
 done
 
-# 5. Run unified natural language queries from the us-west-2 console
+# 5. us-west-2 콘솔 from Integration natural language query execution possible
 # "Show me all EKS clusters with high CPU across all regions"
 ```
 
-**Cost Structure:**
+**비용 구조:**
 
-| Item | Billing Method | Estimated Cost |
+| 항목 | 과금 방식 | 예상 비용 |
 |------|----------|---------|
-| Natural language query generation | Per query | $0.01/query (first 1,000 free) |
-| Logs Insights execution | Based on data scanned | $0.005/GB scanned |
-| Cross-Region data transfer | Per GB | $0.02/GB (inter-region) |
-| Cross-Region Observability | No additional cost | - |
+| 자연어 쿼리 생성 | 쿼리당 과금 | $0.01/쿼리 (첫 1,000개 무료) |
+| Logs Insights 실행 | 스캔 데이터양 기준 | $0.005/GB 스캔 |
+| Cross-Region 데이터 전송 | GB당 과금 | $0.02/GB (리전 간) |
+| Cross-Region Observability | 추가 비용 없음 | - |
 
-**Actual Cost Example:**
+**실제 비용 예시:**
 ```
-[Monthly Usage Pattern]
-- Natural language queries: 500 (within first 1,000 free)
-- Logs Insights scans: 100GB
-- Cross-Region transfer: 10GB (unified monitoring)
+[monthlybetween use pattern]
+- natural language query: 500times (첫 1,000 무료 scope 내)
+- Logs Insights scan: 100GB
+- Cross-Region transfer: 10GB (Integration Monitoring)
 
-[Monthly Cost]
-Natural language queries: $0
+[monthly cost]
+natural language query: $0
 Logs Insights: 100GB × $0.005 = $0.50
 Cross-Region transfer: 10GB × $0.02 = $0.20
-Total: $0.70/month
+total계: $0.70/monthly
 ```
 
-:::tip Region Selection Strategy
-**Production Environment Recommendations:**
+:::tip 리전 선택 전략
+**프로덕션 환경 권장사항:**
 
-1. **If the primary region is a supported region**: Use natural language queries locally
-2. **If the primary region is an unsupported region**:
-   - Development/Test: Generate queries in a supported region's console and copy
-   - Production: Centralize with CloudWatch Cross-Region Observability
-3. **If data residency requirements exist**: Do not use natural language queries, use direct query syntax
+1. **주 리전이 지원 리전인 경우**: 로컬에서 자연어 쿼리 사용
+2. **주 리전이 미지원 리전인 경우**:
+ - 개발/테스트: 지원 리전 콘솔에서 쿼리 생성 후 복사
+ - 프로덕션: CloudWatch Cross-Region Observability로 중앙 집중
+3. **데이터 레지던시 요구사항이 있는 경우**: 자연어 쿼리 사용 금지, 직접 쿼리 구문 사용
 :::
 
-**Future Outlook:**
+**미래 전망:**
 
-AWS is continuing to expand regional availability for CloudWatch AI Natural Language Query. Local support is expected in Seoul (ap-northeast-2), additional Singapore AZs, and others during 2026. For the latest regional availability, refer to the [AWS official documentation](https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/CloudWatchLogs-Insights-Query-Assist.html).
+AWS는 CloudWatch AI 자연어 쿼리의 리전 확장을 계속 진행 중입니다. 2026년 중 서울(ap-northeast-2), 싱가포르 추가 AZ 등에서 로컬 지원이 예상됩니다. 최신 리전 가용성은 [AWS 공식 문서](https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/CloudWatchLogs-Insights-Query-Assist.html)를 참조하세요.
 
 ---
 
-## 10. MCP Server-Based Unified Analysis
+## 10. Integrated Analysis Based on MCP Servers
 
-### 10.1 Changes MCP Brings to Observability
+### 10.1 MCP가 관찰성에 가져오는 변화
 
-Previously, you had to open the CloudWatch console, Grafana dashboards, and X-Ray console separately to diagnose issues. With AWS MCP servers (50+ individual local GA or Fully Managed Preview), you can **query all observability data from Kiro or Q Developer in a unified manner**.
+기존에는 CloudWatch 콘솔, Grafana 대시보드, X-Ray 콘솔을 각각 열어 문제를 진단했습니다. AWS MCP 서버(개별 로컬 50+ GA 또는 Fully Managed Preview)를 사용하면 **Kiro나 Q Developer에서 모든 관찰성 데이터를 통합 조회**할 수 있습니다.
 
 ```mermaid
 graph LR
-    subgraph DataSources["Data Sources"]
-        CW["CloudWatch<br/>Metrics/Logs"]
-        XR["X-Ray<br/>Traces"]
-        EKS_API["EKS API<br/>Cluster Status"]
-        DG["DevOps Guru<br/>Insights"]
-        CI["Container Insights<br/>Pod Metrics"]
-    end
+ subgraph DataSources["📊 data source"]
+ CW["CloudWatch<br/>Metrics/Logs"]
+ XR["X-Ray<br/>Traces"]
+ EKS_API["EKS API<br/>cluster status"]
+ DG["DevOps Guru<br/>Insights"]
+ CI["Container Insights<br/>Pod metric"]
+ end
 
-    subgraph MCP["Hosted MCP Servers"]
-        EKS_MCP["EKS MCP Server"]
-        CW_MCP["CloudWatch MCP Server"]
-    end
+ subgraph MCP["🔌 Hosted MCP Servers"]
+ EKS_MCP["EKS MCP Server"]
+ CW_MCP["CloudWatch MCP Server"]
+ end
 
-    subgraph Clients["AI Clients"]
-        Kiro["Kiro"]
-        QDev["Amazon Q<br/>Developer"]
-        Kagent2["Kagent"]
-    end
+ subgraph Clients["🤖 AI 클라이언트"]
+ Kiro["Kiro"]
+ QDev["Amazon Q<br/>Developer"]
+ Kagent2["Kagent"]
+ end
 
-    CW --> CW_MCP
-    XR --> CW_MCP
-    DG --> CW_MCP
-    CI --> CW_MCP
-    EKS_API --> EKS_MCP
+ CW --> CW_MCP
+ XR --> CW_MCP
+ DG --> CW_MCP
+ CI --> CW_MCP
+ EKS_API --> EKS_MCP
 
-    EKS_MCP --> Kiro
-    EKS_MCP --> QDev
-    EKS_MCP --> Kagent2
-    CW_MCP --> Kiro
-    CW_MCP --> QDev
-    CW_MCP --> Kagent2
+ EKS_MCP --> Kiro
+ EKS_MCP --> QDev
+ EKS_MCP --> Kagent2
+ CW_MCP --> Kiro
+ CW_MCP --> QDev
+ CW_MCP --> Kagent2
 ```
 
-### 10.2 EKS MCP Server Tools
+### 10.2 EKS MCP 서버 도구
 
-Key tools provided by the EKS MCP server:
+EKS MCP 서버가 제공하는 주요 도구:
 
 <EKSMCPTools />
 
-### 10.3 Unified Analysis Scenario
+### 10.3 통합 분석 시나리오
 
-**Scenario: Report that "payment-service is slow"**
+**시나리오: "payment-service가 느리다"는 보고**
 
-Process of unified analysis through MCP in Kiro:
+Kiro에서 MCP를 통해 통합 분석하는 과정:
 
 ```
-[Kiro + MCP Unified Analysis]
+[Kiro + MCP Integration Analysis]
 
 1. EKS MCP: list_pods(namespace="payment") → 3/3 Running, 0 Restarts ✓
-2. EKS MCP: get_pod_logs(pod="payment-xxx", tail=100) → Multiple DB timeout errors
-3. CloudWatch MCP: query_metrics("RDSConnections") → Connection count at 98%
-4. CloudWatch MCP: get_insights(service="payment") → DevOps Guru insight exists
-5. CloudWatch MCP: get_investigation("INV-xxxx") → RDS connection pool saturation confirmed
+2. EKS MCP: get_pod_logs(pod="payment-xxx", tail=100) → DB timeout error 다
+3. CloudWatch MCP: query_metrics("RDSConnections") → connection 98% reaching
+4. CloudWatch MCP: get_insights(service="payment") → DevOps Guru insight 존re-
+5. CloudWatch MCP: get_investigation("INV-xxxx") → RDS connection 풀 saturation Verification
 
-→ Kiro automatically:
-   - Generates RDS Proxy adoption IaC code
-   - Creates HikariCP connection pool optimization PR
-   - Adjusts Karpenter NodePool (memory-based scaling)
+→ Kiro automatic으로:
+ - RDS Proxy adoption IaC code generation
+ - HikariCP connection 풀 Configuration Optimization PR generation
+ - Karpenter NodePool adjustment (memory based scaling)
 ```
 
-:::info Operational Insights Based on Diverse Data Sources
-The core value of MCP is **unifying multiple data sources into a single interface**. AI agents can access CloudWatch metrics, X-Ray traces, EKS API, and DevOps Guru insights all at once, enabling faster and more accurate diagnostics than manually navigating between multiple consoles.
+:::info 다양한 데이터 소스 기반 운영 인사이트
+MCP의 핵심 가치는 **여러 데이터 소스를 단일 인터페이스로 통합**하는 것입니다. CloudWatch 메트릭, X-Ray 트레이스, EKS API, DevOps Guru 인사이트를 AI 에이전트가 한 번에 접근하여, 사람이 수동으로 여러 콘솔을 오가며 분석하는 것보다 빠르고 정확한 진단이 가능합니다.
 :::
 
-### 10.4 Programmatic Observability Automation
+### 10.4 프로그래머틱 관찰성 자동화
 
-Observability through MCP enables **programmatic automation**:
+MCP를 통한 관찰성은 **프로그래머틱 자동화**를 가능하게 합니다:
 
 ```
-[Directing Approach] - Manual, repetitive
-  "Open CloudWatch console and check payment-service metrics"
-  → "Find traces for that time period in X-Ray"
-  → "Also check RDS metrics"
-  → "So what's the cause?"
+[directing method] - manual, repetitive
+ "CloudWatch 콘솔 열어서 payment-service metric Verification해줘"
+ → "X-Ray from 해당 time대 traces 찾아줘"
+ → "RDS metricalso Verification해줘"
+ → "그래서 cause 뭐야?"
 
-[Programmatic Approach] - Automated, systematic
-  Kiro Spec: "Automatically diagnose when payment-service latency is abnormal"
-  → MCP queries CloudWatch + X-Ray + EKS API in unified manner
-  → AI analyzes root cause
-  → Automatically generates fix code + PR
+[programmatic method] - automatic, systematic
+ Kiro Spec: "payment-service latency abnormal time automatic diagnosis"
+ → MCP CloudWatch + X-Ray + EKS API Integration 조times
+ → AI root cause Analysis
+ → automatic as modification code generation + PR
 ```
 
 ---
 
 ## 11. Alert Optimization and SLO/SLI
 
-### 11.1 Alert Fatigue Problem
+### 11.1 Alert Fatigue 문제
 
-Alert fatigue is a serious operational issue in EKS environments:
+EKS 환경에서 알림 피로는 심각한 운영 문제입니다:
 
-- **Average EKS cluster**: 50-200 alerts per day
-- **Alerts actually requiring action**: 10-15% of total
-- **Alert Fatigue result**: Important alerts ignored, delayed incident response
+- **평균적인 EKS 클러스터**: 일 50-200개의 알림 발생
+- **실제 조치 필요한 알림**: 전체의 10-15%
+- **Alert Fatigue 결과**: 중요 알림 무시, 장애 대응 지연
 
-### 11.2 SLO-Based Alert Strategy
+### 11.2 SLO 기반 알림 전략
 
-Configuring alerts based on SLO (Service Level Objectives) can significantly reduce Alert Fatigue.
+SLO(Service Level Objectives) 기반으로 알림을 구성하면 Alert Fatigue를 크게 줄일 수 있습니다.
 
 ```yaml
-# SLO-based alert example - Based on Error Budget burn rate
+# SLO based alert example - Error Budget exhaustionrate based
 apiVersion: monitoring.coreos.com/v1
 kind: PrometheusRule
 metadata:
-  name: payment-service-slo
+ name: payment-service-slo
 spec:
-  groups:
-    - name: slo.payment-service
-      rules:
-        # SLI: Error rate
-        - record: sli:payment_error_rate:5m
-          expr: |
-            sum(rate(http_requests_total{service="payment",status=~"5.."}[5m]))
-            / sum(rate(http_requests_total{service="payment"}[5m]))
+ groups:
+ - name: slo.payment-service
+ rules:
+ # SLI: errorrate
+ - record: sli:payment_error_rate:5m
+ expr: |
+ sum(rate(http_requests_total{service="payment",status=~"5.."}[5m]))
+ / sum(rate(http_requests_total{service="payment"}[5m]))
 
-        # Error Budget burn rate (1 hour)
-        - alert: PaymentErrorBudgetBurn
-          expr: |
-            sli:payment_error_rate:5m > (1 - 0.999) * 14.4
-          for: 5m
-          labels:
-            severity: critical
-            service: payment
-          annotations:
-            summary: "Payment service Error Budget burning rapidly"
-            description: "Current error rate is burning Error Budget at 14.4x speed (1-hour window)"
+ # Error Budget exhaustionrate (1time)
+ - alert: PaymentErrorBudgetBurn
+ expr: |
+ sli:payment_error_rate:5m > (1 - 0.999) * 14.4
+ for: 5m
+ labels:
+ severity: critical
+ service: payment
+ annotations:
+ summary: "Payment service Error Budget 빠르 exhaustion 중"
+ description: " current errorrate Error Budget 14.4배 속also exhaustion 중 (1time 윈also우)"
 ```
 
-### 11.3 Error Budget Concept
+### 11.3 Error Budget 개념
 
 <ErrorBudget />
 
 ### 11.4 CloudWatch Composite Alarms
 
-Logically combine multiple alarms to reduce noise.
+여러 알람을 논리적으로 결합하여 노이즈를 줄입니다.
 
 ```bash
-# Composite Alarm: Alert only when both CPU AND Memory are simultaneously high
+# Composite Alarm: CPU AND Memory 동time 높 whenonly alert
 aws cloudwatch put-composite-alarm \
-  --alarm-name "EKS-Node-Resource-Pressure" \
-  --alarm-rule 'ALARM("EKS-Node-HighCPU") AND ALARM("EKS-Node-HighMemory")' \
-  --alarm-actions "arn:aws:sns:ap-northeast-2:ACCOUNT_ID:ops-team" \
-  --alarm-description "Alert only when node CPU and memory are simultaneously high"
+ --alarm-name "EKS-Node-Resource-Pressure" \
+ --alarm-rule 'ALARM("EKS-Node-HighCPU") AND ALARM("EKS-Node-HighMemory")' \
+ --alarm-actions "arn:aws:sns:ap-northeast-2:ACCOUNT_ID:ops-team" \
+ --alarm-description "node CPU and memory simultaneously 높 whenonly alert"
 ```
 
 <ServiceComparison />
 
-### 11.5 Alert Optimization Checklist
+### 11.5 알림 최적화 체크리스트
 
 <AlertOptimization />
 
-### 11.6 Cost-Optimized Log Pipeline
+### 11.6 비용 최적화 로그 파이프라인
 
-EKS clusters generate tens to hundreds of GB of logs per day. CloudWatch Logs is convenient but costs can accumulate easily. This section covers strategies to optimize log costs while maintaining analysis capabilities.
+EKS 클러스터는 하루에 수십 GB에서 수백 GB의 로그를 생성합니다. CloudWatch Logs는 편리하지만 비용이 누적되기 쉽습니다. 이 섹션에서는 로그 비용을 최적화하면서도 분석 능력을 유지하는 전략을 다룹니다.
 
-#### 11.6.1 CloudWatch Logs Cost Structure
+#### 11.6.1 CloudWatch Logs 비용 구조
 
-| Cost Item | Price (ap-northeast-2) | Example Cost (50-node cluster) |
+| 비용 항목 | 가격 (ap-northeast-2) | 예시 비용 (50 노드 클러스터) |
 |----------|---------------------|------------------------|
-| **Ingestion** | $0.50/GB | 100GB/day → $1,500/month |
-| **Storage - Standard** | $0.03/GB/month | 30-day retention → $90/month |
-| **Storage - Infrequent Access** | $0.01/GB/month | 30-day retention → $30/month |
-| **Analysis (Insights queries)** | $0.005/GB scanned | 10 queries/day → $150/month |
+| **수집(Ingestion)** | $0.50/GB | 일 100GB → 월 $1,500 |
+| **저장(Storage) - Standard** | $0.03/GB/월 | 30일 보관 시 월 $90 |
+| **저장 - Infrequent Access** | $0.01/GB/월 | 30일 보관 시 월 $30 |
+| **분석(Insights 쿼리)** | $0.005/GB 스캔 | 일 10회 쿼리 시 월 $150 |
 
-**Problem:**
-- CloudWatch Logs cost for production EKS cluster: $1,500-3,000/month
-- Most logs are never queried (over 90%)
-- S3 is 10x+ cheaper for long-term log retention
+**문제점:**
+- 프로덕션 EKS 클러스터의 CloudWatch Logs 비용: 월 $1,500-3,000
+- 대부분의 로그는 한 번도 조회되지 않음 (90% 이상)
+- 장기 보관 로그는 S3가 10배 이상 저렴함
 
-#### 11.6.2 CloudWatch Logs Infrequent Access Class
+#### 11.6.2 CloudWatch Logs Infrequent Access 클래스
 
-In November 2023, AWS announced the **Infrequent Access** log class. It allows storing infrequently queried logs at a lower cost.
+2023년 11월, AWS는 **Infrequent Access** 로그 클래스를 발표했습니다. 자주 조회하지 않는 로그를 저렴하게 보관할 수 있습니다.
 
 ```bash
-# Change log group to Infrequent Access
+# log 그룹 Infrequent Access change
 aws logs put-log-group-policy \
-  --log-group-name /eks/my-cluster/application \
-  --policy-name InfrequentAccessPolicy \
-  --policy-document '{
-    "Version": "2012-10-17",
-    "Statement": [
-      {
-        "Effect": "Allow",
-        "Action": "logs:CreateLogStream",
-        "Resource": "*"
-      }
-    ]
-  }'
+ --log-group-name /eks/my-cluster/application \
+ --policy-name InfrequentAccessPolicy \
+ --policy-document '{
+ "Version": "2012-10-17",
+ "Statement": [
+ {
+ "Effect": "Allow",
+ "Action": "logs:CreateLogStream",
+ "Resource": "*"
+ }
+ ]
+ }'
 
-# Change log class
+# log 클래스 change
 aws logs put-retention-policy \
-  --log-group-name /eks/my-cluster/application \
-  --retention-in-days 30
+ --log-group-name /eks/my-cluster/application \
+ --retention-in-days 30
 
 aws logs put-log-group-policy \
-  --log-group-name /eks/my-cluster/application \
-  --log-group-class INFREQUENT_ACCESS
+ --log-group-name /eks/my-cluster/application \
+ --log-group-class INFREQUENT_ACCESS
 ```
 
-**Infrequent Access Class Characteristics:**
+**Infrequent Access 클래스 특성:**
 
-| Characteristic | Standard | Infrequent Access |
+| 특성 | Standard | Infrequent Access |
 |------|----------|-------------------|
-| **Ingestion Cost** | $0.50/GB | $0.50/GB (same) |
-| **Storage Cost** | $0.03/GB/month | $0.01/GB/month (67% reduction) |
-| **Query Cost** | $0.005/GB scanned | $0.005/GB scanned (same) |
-| **Minimum Retention Period** | None | None |
-| **Suitable Scenario** | Real-time analysis | Audit, compliance |
+| **수집 비용** | $0.50/GB | $0.50/GB (동일) |
+| **저장 비용** | $0.03/GB/월 | $0.01/GB/월 (67% 절감) |
+| **쿼리 비용** | $0.005/GB 스캔 | $0.005/GB 스캔 (동일) |
+| **최소 보관 기간** | 없음 | 없음 |
+| **적합 시나리오** | 실시간 분석 | 감사, 컴플라이언스 |
 
-:::tip Infrequent Access Utilization Strategy
-**2-Tier Log Strategy:**
-1. **Recent 7 days**: Standard class (fast queries)
-2. **8-90 days**: Infrequent Access class (affordable retention)
+:::tip Infrequent Access 활용 전략
+**2-Tier 로그 전략:**
+1. **최근 7일**: Standard 클래스 (빠른 쿼리)
+2. **8-90일**: Infrequent Access 클래스 (저렴한 보관)
 
-This approach reduces storage costs by approximately 50% while still allowing fast querying of recent logs.
+이 방식으로 저장 비용을 약 50% 절감하면서도 최근 로그는 빠르게 조회할 수 있습니다.
 :::
 
-#### 11.6.3 S3 + Athena-Based Long-Term Log Analysis
+#### 11.6.3 S3 + Athena 기반 장기 보관 로그 분석
 
-For long-term retention beyond 90 days, configure a **CloudWatch Logs → S3 → Athena** pipeline.
+90일 이상 장기 보관이 필요한 경우, **CloudWatch Logs → S3 → Athena** 파이프라인을 구성합니다.
 
 ```yaml
-# CloudWatch Logs Export to S3 (EventBridge-based automation)
+# CloudWatch Logs Export to S3 (EventBridge based Automation)
 AWSTemplateFormatVersion: '2010-09-09'
 Resources:
-  LogExportBucket:
-    Type: AWS::S3::Bucket
-    Properties:
-      BucketName: eks-logs-archive
-      LifecycleConfiguration:
-        Rules:
-          - Id: TransitionToIA
-            Status: Enabled
-            Transitions:
-              - TransitionInDays: 30
-                StorageClass: STANDARD_IA
-              - TransitionInDays: 90
-                StorageClass: GLACIER_IR
-      VersioningConfiguration:
-        Status: Enabled
+ LogExportBucket:
+ Type: AWS::S3::Bucket
+ Properties:
+ BucketName: eks-logs-archive
+ LifecycleConfiguration:
+ Rules:
+ - Id: TransitionToIA
+ Status: Enabled
+ Transitions:
+ - TransitionInDays: 30
+ StorageClass: STANDARD_IA
+ - TransitionInDays: 90
+ StorageClass: GLACIER_IR
+ VersioningConfiguration:
+ Status: Enabled
 
-  LogExportRole:
-    Type: AWS::IAM::Role
-    Properties:
-      AssumedBy:
-        Service: logs.amazonaws.com
-      Policies:
-        - PolicyName: S3WriteAccess
-          PolicyDocument:
-            Version: '2012-10-17'
-            Statement:
-              - Effect: Allow
-                Action:
-                  - s3:PutObject
-                Resource: !Sub '${LogExportBucket.Arn}/*'
+ LogExportRole:
+ Type: AWS::IAM::Role
+ Properties:
+ AssumedBy:
+ Service: logs.amazonaws.com
+ Policies:
+ - PolicyName: S3WriteAccess
+ PolicyDocument:
+ Version: '2012-10-17'
+ Statement:
+ - Effect: Allow
+ Action:
+ - s3:PutObject
+ Resource: !Sub '${LogExportBucket.Arn}/*'
 
-  DailyExportRule:
-    Type: AWS::Events::Rule
-    Properties:
-      ScheduleExpression: 'cron(0 1 * * ? *)'  # Daily at 1:00 AM
-      State: ENABLED
-      Targets:
-        - Arn: !GetAtt ExportLambda.Arn
-          Id: TriggerExport
+ DailyExportRule:
+ Type: AWS::Events::Rule
+ Properties:
+ ScheduleExpression: 'cron(0 1 * * ? *)' # 매day 오before 1time
+ State: ENABLED
+ Targets:
+ - Arn: !GetAtt ExportLambda.Arn
+ Id: TriggerExport
 
-  ExportLambda:
-    Type: AWS::Lambda::Function
-    Properties:
-      Runtime: python3.11
-      Handler: index.handler
-      Role: !GetAtt LambdaExecutionRole.Arn
-      Code:
-        ZipFile: |
-          import boto3
-          import time
-          from datetime import datetime, timedelta
+ ExportLambda:
+ Type: AWS::Lambda::Function
+ Properties:
+ Runtime: python3.11
+ Handler: index.handler
+ Role: !GetAtt LambdaExecutionRole.Arn
+ Code:
+ ZipFile: |
+ import boto3
+ import time
+ from datetime import datetime, timedelta
 
-          logs = boto3.client('logs')
+ logs = boto3.client('logs')
 
-          def handler(event, context):
-              log_group_name = '/eks/my-cluster/application'
-              destination_bucket = 'eks-logs-archive'
+ def handler(event, context):
+ log_group_name = '/eks/my-cluster/application'
+ destination_bucket = 'eks-logs-archive'
 
-              # Yesterday's date range
-              yesterday = datetime.now() - timedelta(days=1)
-              start_time = int(yesterday.replace(hour=0, minute=0, second=0).timestamp() * 1000)
-              end_time = int(yesterday.replace(hour=23, minute=59, second=59).timestamp() * 1000)
+ # 어제 날짜 scope
+ yesterday = datetime.now() - timedelta(days=1)
+ start_time = int(yesterday.replace(hour=0, minute=0, second=0).timestamp() * 1000)
+ end_time = int(yesterday.replace(hour=23, minute=59, second=59).timestamp() * 1000)
 
-              # Start CloudWatch Logs Export
-              response = logs.create_export_task(
-                  logGroupName=log_group_name,
-                  fromTime=start_time,
-                  to=end_time,
-                  destination=destination_bucket,
-                  destinationPrefix=f'eks-logs/{yesterday.strftime("%Y/%m/%d")}/'
-              )
+ # CloudWatch Logs Export start
+ response = logs.create_export_task(
+ logGroupName=log_group_name,
+ fromTime=start_time,
+ to=end_time,
+ destination=destination_bucket,
+ destinationPrefix=f'eks-logs/{yesterday.strftime("%Y/%m/%d")}/'
+ )
 
-              return {
-                  'statusCode': 200,
-                  'body': f'Export task created: {response["taskId"]}'
-              }
+ return {
+ 'statusCode': 200,
+ 'body': f'Export task created: {response["taskId"]}'
+ }
 ```
 
-**Athena Query Table Creation:**
+**Athena 쿼리 테이블 생성:**
 
 ```sql
--- Query logs stored in S3 with Athena
+-- S3 storage log Athena query
 CREATE EXTERNAL TABLE eks_logs (
-  timestamp BIGINT,
-  message STRING,
-  log_stream STRING,
-  log_group STRING,
-  kubernetes_pod_name STRING,
-  kubernetes_namespace STRING,
-  kubernetes_container_name STRING
+ timestamp BIGINT,
+ message STRING,
+ log_stream STRING,
+ log_group STRING,
+ kubernetes_pod_name STRING,
+ kubernetes_namespace STRING,
+ kubernetes_container_name STRING
 )
 PARTITIONED BY (year STRING, month STRING, day STRING)
 ROW FORMAT SERDE 'org.openx.data.jsonserde.JsonSerDe'
 LOCATION 's3://eks-logs-archive/eks-logs/'
 TBLPROPERTIES ('has_encrypted_data'='false');
 
--- Add partitions (automate daily)
+-- 파티션 additional (매day Automation)
 MSCK REPAIR TABLE eks_logs;
 
--- Query example: Analyze yesterday's error logs
+-- query example: 어제 error log Analysis
 SELECT
-  kubernetes_namespace,
-  kubernetes_pod_name,
-  COUNT(*) as error_count
+ kubernetes_namespace,
+ kubernetes_pod_name,
+ COUNT(*) as error_count
 FROM eks_logs
 WHERE year = '2026'
-  AND month = '02'
-  AND day = '12'
-  AND message LIKE '%ERROR%'
+ AND month = '02'
+ AND day = '12'
+ AND message LIKE '%ERROR%'
 GROUP BY kubernetes_namespace, kubernetes_pod_name
 ORDER BY error_count DESC
 LIMIT 10;
 ```
 
-**Cost Comparison (90-day retention):**
+**비용 비교 (90일 보관 기준):**
 
-| Storage Method | Monthly Cost (100GB/day) | Notes |
+| 저장 방식 | 월 비용 (100GB/일) | 비고 |
 |----------|------------------|------|
-| CloudWatch Standard | $270 | Most expensive |
-| CloudWatch IA | $90 | 67% reduction |
-| S3 Standard | $23 | 91% reduction vs CloudWatch |
-| S3 Standard-IA | $12.50 | 95% reduction vs CloudWatch |
-| S3 Glacier IR | $4 | 98% reduction vs CloudWatch |
+| CloudWatch Standard | $270 | 가장 비쌈 |
+| CloudWatch IA | $90 | 67% 절감 |
+| S3 Standard | $23 | CloudWatch 대비 91% 절감 |
+| S3 Standard-IA | $12.50 | CloudWatch 대비 95% 절감 |
+| S3 Glacier IR | $4 | CloudWatch 대비 98% 절감 |
 
-#### 11.6.4 Log Filtering Strategy: Cost Reduction by Dropping Unnecessary Logs
+#### 11.6.4 로그 필터링 전략: 불필요 로그 드롭으로 비용 절감
 
-Not all logs are valuable. **Filtering at the ingestion stage** can significantly reduce costs.
+모든 로그가 가치 있는 것은 아닙니다. **수집 단계에서 필터링**하면 비용을 크게 줄일 수 있습니다.
 
-**Fluent Bit Filter Example (Built into ADOT):**
+**Fluent Bit 필터 예시 (ADOT 내장):**
 
 ```yaml
 # Fluent Bit ConfigMap
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: fluent-bit-config
-  namespace: observability
+ name: fluent-bit-config
+ namespace: observability
 data:
-  fluent-bit.conf: |
-    [SERVICE]
-        Flush         5
-        Daemon        off
-        Log_Level     info
+ fluent-bit.conf: |
+ [SERVICE]
+ Flush 5
+ Daemon off
+ Log_Level info
 
-    [INPUT]
-        Name              tail
-        Path              /var/log/containers/*.log
-        Parser            docker
-        Tag               kube.*
-        Refresh_Interval  5
-        Mem_Buf_Limit     50MB
+ [INPUT]
+ Name tail
+ Path /var/log/containers/*.log
+ Parser docker
+ Tag kube.*
+ Refresh_Interval 5
+ Mem_Buf_Limit 50MB
 
-    [FILTER]
-        Name    grep
-        Match   kube.*
-        # Exclude DEBUG logs
-        Exclude log DEBUG
+ [FILTER]
+ Name grep
+ Match kube.*
+ # DEBUG log 제외
+ Exclude log DEBUG
 
-    [FILTER]
-        Name    grep
-        Match   kube.*
-        # Exclude health check logs
-        Exclude log /healthz
+ [FILTER]
+ Name grep
+ Match kube.*
+ # Health check log 제외
+ Exclude log /healthz
 
-    [FILTER]
-        Name    grep
-        Match   kube.*
-        # Exclude Kubernetes system logs (kube-system namespace)
-        Exclude kubernetes_namespace_name kube-system
+ [FILTER]
+ Name grep
+ Match kube.*
+ # Kubernetes system log 제외 (kube-system namespace)
+ Exclude kubernetes_namespace_name kube-system
 
-    [FILTER]
-        Name    grep
-        Match   kube.*
-        # Exclude Istio proxy access logs (can be replaced with metrics)
-        Exclude kubernetes_container_name istio-proxy
+ [FILTER]
+ Name grep
+ Match kube.*
+ # Istio 프록time access log 제외 (metric as 대체 possible)
+ Exclude kubernetes_container_name istio-proxy
 
-    [FILTER]
-        Name    modify
-        Match   kube.*
-        # Mask sensitive information
-        Remove  password
-        Remove  token
-        Remove  api_key
+ [FILTER]
+ Name modify
+ Match kube.*
+ # 민감 정보 마스킹
+ Remove password
+ Remove token
+ Remove api_key
 
-    [OUTPUT]
-        Name                cloudwatch_logs
-        Match               kube.*
-        region              ap-northeast-2
-        log_group_name      /eks/my-cluster/application
-        log_stream_prefix   ${HOSTNAME}-
-        auto_create_group   true
+ [OUTPUT]
+ Name cloudwatch_logs
+ Match kube.*
+ region ap-northeast-2
+ log_group_name /eks/my-cluster/application
+ log_stream_prefix ${HOSTNAME}-
+ auto_create_group true
 ```
 
-**Filtering Effect:**
+**필터링 효과:**
 
-| Filtering Item | Log Volume Reduction | Monthly Cost Savings (100GB/day basis) |
+| 필터링 항목 | 로그 볼륨 감소 | 월 비용 절감 (100GB/일 기준) |
 |------------|--------------|--------------------------|
-| Exclude DEBUG logs | 30-40% | $450-600 |
-| Exclude health check logs | 10-15% | $150-225 |
-| Exclude kube-system | 5-10% | $75-150 |
-| Exclude Istio access logs | 15-20% | $225-300 |
-| **Total Savings** | **60-85%** | **$900-1,275** |
+| DEBUG 로그 제외 | 30-40% | $450-600 |
+| Health check 로그 제외 | 10-15% | $150-225 |
+| kube-system 제외 | 5-10% | $75-150 |
+| Istio access 로그 제외 | 15-20% | $225-300 |
+| **총 절감 효과** | **60-85%** | **$900-1,275** |
 
-:::warning Filtering Caveats
-Log filtering can **sacrifice problem analysis capability**. Follow these principles:
+:::warning 필터링 주의사항
+로그 필터링은 **문제 분석 능력을 희생**할 수 있습니다. 다음 원칙을 따르세요:
 
-1. **Production environment**: Send only ERROR, WARN levels to CloudWatch
-2. **Development/Staging**: Collect all logs (7-day retention)
-3. **Audit logs**: Never filter (regulatory compliance)
-4. **Sampling**: Apply 1/10 sampling for high-traffic services
+1. **프로덕션 환경**: ERROR, WARN 레벨만 CloudWatch로 전송
+2. **개발/스테이징**: 모든 로그 수집 (7일 보관)
+3. **감사 로그**: 절대 필터링하지 말 것 (규정 준수)
+4. **샘플링**: 트래픽이 많은 서비스는 1/10 샘플링 적용
 :::
 
-#### 11.6.5 Log Routing Optimization with Data Firehose
+#### 11.6.5 Data Firehose를 활용한 로그 라우팅 최적화
 
-**Amazon Data Firehose** (formerly Kinesis Data Firehose) can route and transform logs to multiple destinations in real time.
+**Amazon Data Firehose**(구 Kinesis Data Firehose)는 로그를 실시간으로 여러 대상에 라우팅하고 변환할 수 있습니다.
 
 ```yaml
 # CloudWatch Logs → Firehose → S3/OpenSearch/Redshift
 AWSTemplateFormatVersion: '2010-09-09'
 Resources:
-  LogDeliveryStream:
-    Type: AWS::KinesisFirehose::DeliveryStream
-    Properties:
-      DeliveryStreamName: eks-logs-delivery
-      DeliveryStreamType: DirectPut
-      ExtendedS3DestinationConfiguration:
-        BucketARN: !GetAtt LogArchiveBucket.Arn
-        RoleARN: !GetAtt FirehoseRole.Arn
-        Prefix: 'logs/year=!{timestamp:yyyy}/month=!{timestamp:MM}/day=!{timestamp:dd}/'
-        ErrorOutputPrefix: 'errors/'
-        BufferingHints:
-          SizeInMBs: 128
-          IntervalInSeconds: 300
-        CompressionFormat: GZIP
-        # Data transformation (JSON normalization via Lambda)
-        ProcessingConfiguration:
-          Enabled: true
-          Processors:
-            - Type: Lambda
-              Parameters:
-                - ParameterName: LambdaArn
-                  ParameterValue: !GetAtt LogTransformLambda.Arn
-        # Dynamic Partitioning (automatic classification by namespace)
-        DynamicPartitioningConfiguration:
-          Enabled: true
-          RetryOptions:
-            DurationInSeconds: 300
-        # Simultaneous OpenSearch delivery
-        ProcessingConfiguration:
-          Enabled: true
-          Processors:
-            - Type: AppendDelimiterToRecord
-              Parameters:
-                - ParameterName: Delimiter
-                  ParameterValue: '\\n'
+ LogDeliveryStream:
+ Type: AWS::KinesisFirehose::DeliveryStream
+ Properties:
+ DeliveryStreamName: eks-logs-delivery
+ DeliveryStreamType: DirectPut
+ ExtendedS3DestinationConfiguration:
+ BucketARN: !GetAtt LogArchiveBucket.Arn
+ RoleARN: !GetAtt FirehoseRole.Arn
+ Prefix: 'logs/year=!{timestamp:yyyy}/month=!{timestamp:MM}/day=!{timestamp:dd}/'
+ ErrorOutputPrefix: 'errors/'
+ BufferingHints:
+ SizeInMBs: 128
+ IntervalInSeconds: 300
+ CompressionFormat: GZIP
+ # data 변환 (Lambda JSON 정규화)
+ ProcessingConfiguration:
+ Enabled: true
+ Processors:
+ - Type: Lambda
+ Parameters:
+ - ParameterName: LambdaArn
+ ParameterValue: !GetAtt LogTransformLambda.Arn
+ # Dynamic Partitioning (per namespace automatic minutes류)
+ DynamicPartitioningConfiguration:
+ Enabled: true
+ RetryOptions:
+ DurationInSeconds: 300
+ # OpenSearch 동time transfer
+ ProcessingConfiguration:
+ Enabled: true
+ Processors:
+ - Type: AppendDelimiterToRecord
+ Parameters:
+ - ParameterName: Delimiter
+ ParameterValue: '\\n'
 
-  # CloudWatch Logs Subscription Filter
-  LogSubscriptionFilter:
-    Type: AWS::Logs::SubscriptionFilter
-    Properties:
-      LogGroupName: /eks/my-cluster/application
-      FilterPattern: ''  # All logs
-      DestinationArn: !GetAtt LogDeliveryStream.Arn
-      RoleArn: !GetAtt CloudWatchLogsRole.Arn
+ # CloudWatch Logs Subscription Filter
+ LogSubscriptionFilter:
+ Type: AWS::Logs::SubscriptionFilter
+ Properties:
+ LogGroupName: /eks/my-cluster/application
+ FilterPattern: '' # all log
+ DestinationArn: !GetAtt LogDeliveryStream.Arn
+ RoleArn: !GetAtt CloudWatchLogsRole.Arn
 
-  # Log transformation Lambda
-  LogTransformLambda:
-    Type: AWS::Lambda::Function
-    Properties:
-      Runtime: python3.11
-      Handler: index.handler
-      Code:
-        ZipFile: |
-          import json
-          import base64
-          import gzip
+ # log 변환 Lambda
+ LogTransformLambda:
+ Type: AWS::Lambda::Function
+ Properties:
+ Runtime: python3.11
+ Handler: index.handler
+ Code:
+ ZipFile: |
+ import json
+ import base64
+ import gzip
 
-          def handler(event, context):
-              output = []
+ def handler(event, context):
+ output = []
 
-              for record in event['records']:
-                  # Decode CloudWatch Logs data
-                  payload = base64.b64decode(record['data'])
-                  decompressed = gzip.decompress(payload)
-                  log_data = json.loads(decompressed)
+ for record in event['records']:
+ # CloudWatch Logs data 디코딩
+ payload = base64.b64decode(record['data'])
+ decompressed = gzip.decompress(payload)
+ log_data = json.loads(decompressed)
 
-                  for log_event in log_data['logEvents']:
-                      # JSON parsing and normalization
-                      try:
-                          parsed = json.loads(log_event['message'])
-                          transformed = {
-                              'timestamp': log_event['timestamp'],
-                              'level': parsed.get('level', 'INFO'),
-                              'message': parsed.get('message', ''),
-                              'namespace': log_data['logGroup'].split('/')[-2],
-                              'pod': log_data['logStream']
-                          }
+ for log_event in log_data['logEvents']:
+ # JSON parsing and 정규화
+ try:
+ parsed = json.loads(log_event['message'])
+ transformed = {
+ 'timestamp': log_event['timestamp'],
+ 'level': parsed.get('level', 'INFO'),
+ 'message': parsed.get('message', ''),
+ 'namespace': log_data['logGroup'].split('/')[-2],
+ 'pod': log_data['logStream']
+ }
 
-                          output.append({
-                              'recordId': record['recordId'],
-                              'result': 'Ok',
-                              'data': base64.b64encode(
-                                  json.dumps(transformed).encode('utf-8')
-                              ).decode('utf-8')
-                          })
-                      except:
-                          # Keep original on parse failure
-                          output.append({
-                              'recordId': record['recordId'],
-                              'result': 'Ok',
-                              'data': record['data']
-                          })
+ output.append({
+ 'recordId': record['recordId'],
+ 'result': 'Ok',
+ 'data': base64.b64encode(
+ json.dumps(transformed).encode('utf-8')
+ ).decode('utf-8')
+ })
+ except:
+ # parsing failure time 원본 maintenance
+ output.append({
+ 'recordId': record['recordId'],
+ 'result': 'Ok',
+ 'data': record['data']
+ })
 
-              return {'records': output}
+ return {'records': output}
 ```
 
-**Advantages of Firehose-Based Pipeline:**
+**Firehose 기반 파이프라인의 장점:**
 
-1. **Multi-destination routing**: Simultaneously deliver the same logs to S3 + OpenSearch + Redshift
-2. **Real-time transformation**: JSON normalization and sensitive information masking via Lambda
-3. **Automatic compression**: Store in GZIP, Snappy, Parquet formats (70% storage savings)
-4. **Dynamic Partitioning**: Automatic classification by namespace, Pod, and date
-5. **Cost efficiency**: 60-80% storage cost reduction compared to CloudWatch Logs
+1. **멀티 대상 라우팅**: 동일 로그를 S3 + OpenSearch + Redshift에 동시 전송
+2. **실시간 변환**: Lambda로 JSON 정규화, 민감 정보 마스킹
+3. **자동 압축**: GZIP, Snappy, Parquet 포맷으로 저장 (70% 저장 공간 절감)
+4. **Dynamic Partitioning**: 네임스페이스, Pod, 날짜별 자동 분류
+5. **비용 효율**: CloudWatch Logs 대비 60-80% 저장 비용 절감
 
-**Cost Comparison (Including Firehose):**
+**비용 비교 (Firehose 포함):**
 
-| Item | CloudWatch Only | Firehose + S3 | Savings |
+| 항목 | CloudWatch Only | Firehose + S3 | 절감율 |
 |------|----------------|---------------|--------|
-| Ingestion | $1,500/month | $1,500/month | - |
-| CloudWatch Storage (7 days) | $210/month | $7/month | 97% reduction |
-| Firehose Processing | - | $150/month | - |
-| S3 Storage (90 days) | - | $23/month | - |
-| **Total Cost** | **$1,710/month** | **$1,680/month** | **2% reduction** |
+| 수집 | $1,500/월 | $1,500/월 | - |
+| CloudWatch 저장 (7일) | $210/월 | $7/월 | 97% ↓ |
+| Firehose 처리 | - | $150/월 | - |
+| S3 저장 (90일) | - | $23/월 | - |
+| **총 비용** | **$1,710/월** | **$1,680/월** | **2% ↓** |
 
-:::info The True Value of Firehose
-Short-term cost savings are not significant, but in **long-term retention scenarios** (e.g., 1 year), it saves over 80% compared to CloudWatch. Additionally, logs stored in S3 can be utilized by various analysis tools such as Athena, Redshift Spectrum, and EMR, greatly enhancing **analysis flexibility**.
+:::info Firehose의 진짜 가치
+단기적 비용 절감은 크지 않지만, **장기 보관 시나리오**(예: 1년)에서는 CloudWatch 대비 80% 이상 절감됩니다. 또한 S3에 저장된 로그는 Athena, Redshift Spectrum, EMR 등 다양한 분석 도구로 활용할 수 있어 **분석 유연성**이 크게 향상됩니다.
 :::
 
 ---
 
-### 11.7 IaC MCP Server-Based Observability Stack Automated Deployment
+### 11.7 IaC MCP Server 기반 관찰성 스택 자동 배포
 
-The **AWS Infrastructure as Code (IaC) MCP Server** announced on November 28, 2025, fundamentally changes how observability stacks are deployed. With just a natural language request, it automatically generates CDK or CloudFormation templates, performs pre-deployment validation, and automatically applies best practices.
+2025년 11월 28일 발표된 **AWS Infrastructure as Code (IaC) MCP Server**는 관찰성 스택 배포 방식을 근본적으로 변화시킵니다. 자연어 요청만으로 CDK 또는 CloudFormation 템플릿을 자동 생성하고, 배포 전 검증을 수행하며, 모범 사례를 자동으로 적용합니다.
 
-#### 11.6.1 IaC MCP Server Overview
+#### 11.6.1 IaC MCP Server 개요
 
-The AWS IaC MCP Server is a tool that implements the Model Context Protocol, enabling AI clients (Kiro, Amazon Q Developer) to understand and generate infrastructure code.
+AWS IaC MCP Server는 Model Context Protocol을 구현한 도구로, AI 클라이언트(Kiro, Amazon Q Developer)가 인프라 코드를 이해하고 생성할 수 있게 합니다.
 
-**Core Features:**
+**핵심 기능:**
 
-| Feature | Description | Observability Stack Application |
+| 기능 | 설명 | 관찰성 스택 적용 |
 |------|------|-----------------|
-| **Documentation Search** | Real-time CDK/CloudFormation official documentation lookup | Automatic search for AMP, AMG, ADOT Collector configuration examples |
-| **Template Generation** | Natural language → IaC code automatic conversion | "Deploy EKS observability stack" → Full stack code generation |
-| **Syntax Validation** | Pre-deployment IaC template validation | CloudFormation Linter, CDK synth automatic execution |
-| **Best Practice Application** | Automatic insertion of AWS Well-Architected patterns | Tag strategy, IAM least privilege, encryption enabled by default |
-| **Troubleshooting** | Deployment failure root cause analysis and resolution suggestions | "AMP workspace creation failed" → Automatic permission issue diagnosis |
+| **문서 검색** | CDK/CloudFormation 공식 문서 실시간 조회 | AMP, AMG, ADOT Collector 구성 예제 자동 검색 |
+| **템플릿 생성** | 자연어 → IaC 코드 자동 변환 | "EKS 관찰성 스택 배포" → 전체 스택 코드 생성 |
+| **구문 검증** | 배포 전 IaC 템플릿 검증 | CloudFormation Linter, CDK synth 자동 실행 |
+| **모범 사례 적용** | AWS Well-Architected 패턴 자동 삽입 | 태그 전략, IAM 최소 권한, 암호화 기본 활성화 |
+| **트러블슈팅** | 배포 실패 원인 분석 및 해결 제안 | "AMP 워크스페이스 생성 실패" → 권한 문제 자동 진단 |
 
-#### 11.6.2 Kiro + IaC MCP Server Automated Deployment Workflow
+#### 11.6.2 Kiro + IaC MCP Server 자동 배포 워크플로우
 
 ```mermaid
 graph TB
-    subgraph UserRequest["1. User Request"]
-        NL["Natural Language Request:<br/>'Deploy an EKS observability stack'"]
-    end
+ subgraph UserRequest["1️⃣ use request"]
+ NL["natural language request:<br/>'EKS observability stack deploy it'"]
+ end
 
-    subgraph Kiro["2. Kiro AI Agent"]
-        Parse["Request Analysis:<br/>- AMP Workspace<br/>- AMG Connection<br/>- ADOT Collector<br/>- Container Insights"]
-    end
+ subgraph Kiro["2️⃣ Kiro AI agent"]
+ Parse["request Analysis:<br/>- AMP 워크스페이스<br/>- AMG connection<br/>- ADOT Collector<br/>- Container Insights"]
+ end
 
-    subgraph IaCMCP["3. IaC MCP Server"]
-        DocSearch["Documentation Search:<br/>- AMP CDK Configuration<br/>- ADOT Helm Chart<br/>- IAM Role Policies"]
-        CodeGen["Code Generation:<br/>CDK TypeScript"]
-        Validate["Validation:<br/>- cdk synth<br/>- cfn-lint<br/>- IAM Policy Check"]
-    end
+ subgraph IaCMCP["3️⃣ IaC MCP Server"]
+ DocSearch["document search:<br/>- AMP CDK Configuration<br/>- ADOT Helm 차트<br/>- IAM role policy"]
+ CodeGen["code generation:<br/>CDK TypeScript"]
+ Validate["Validation:<br/>- cdk synth<br/>- cfn-lint<br/>- IAM policy 검사"]
+ end
 
-    subgraph Deploy["4. Deployment"]
-        GitOps["Managed Argo CD"]
-        Apply["kubectl apply<br/>helm install<br/>cdk deploy"]
-    end
+ subgraph Deploy["4️⃣ Deployment"]
+ GitOps["Managed Argo CD"]
+ Apply["kubectl apply<br/>helm install<br/>cdk deploy"]
+ end
 
-    subgraph Verify["5. Verification"]
-        Health["Health Check:<br/>- AMP writable<br/>- AMG datasource connected<br/>- ADOT metrics collecting"]
-    end
+ subgraph Verify["5️⃣ Validation"]
+ Health["헬스체크:<br/>- AMP 쓰기 possible<br/>- AMG datasource connection<br/>- ADOT metric collection"]
+ end
 
-    NL --> Parse
-    Parse --> DocSearch
-    DocSearch --> CodeGen
-    CodeGen --> Validate
-    Validate --> GitOps
-    GitOps --> Apply
-    Apply --> Health
+ NL --> Parse
+ Parse --> DocSearch
+ DocSearch --> CodeGen
+ CodeGen --> Validate
+ Validate --> GitOps
+ GitOps --> Apply
+ Apply --> Health
 ```
 
-#### 11.6.3 Practical Usage Examples
+#### 11.6.3 실제 사용 예시
 
-**Scenario 1: Fully Automated Observability Stack Deployment**
+**시나리오 1: 완전 자동 관찰성 스택 배포**
 
 ```typescript
-// Request to Kiro: "Deploy an observability stack for EKS cluster my-cluster"
-// → IaC MCP Server automatically generates the following CDK code:
+// Kiro에 request: "EKS cluster my-cluster observability stack deploy it"
+// → IaC MCP Server following CDK code automatic generation:
 
 import * as cdk from 'aws-cdk-lib';
 import * as aps from 'aws-cdk-lib/aws-aps';
@@ -3063,360 +3062,360 @@ import * as iam from 'aws-cdk-lib/aws-iam';
 import * as eks from 'aws-cdk-lib/aws-eks';
 
 export class EksObservabilityStack extends cdk.Stack {
-  constructor(scope: cdk.App, id: string, props?: cdk.StackProps) {
-    super(scope, id, props);
+ constructor(scope: cdk.App, id: string, props?: cdk.StackProps) {
+ super(scope, id, props);
 
-    // 1. Create AMP Workspace
-    const ampWorkspace = new aps.CfnWorkspace(this, 'ObservabilityWorkspace', {
-      alias: 'my-cluster-observability',
-      tags: [
-        { key: 'Environment', value: 'production' },
-        { key: 'ManagedBy', value: 'Kiro-IaC-MCP' }
-      ]
-    });
+ // 1. AMP 워크스페이스 generation
+ const ampWorkspace = new aps.CfnWorkspace(this, 'ObservabilityWorkspace', {
+ alias: 'my-cluster-observability',
+ tags: [
+ { key: 'Environment', value: 'production' },
+ { key: 'ManagedBy', value: 'Kiro-IaC-MCP' }
+ ]
+ });
 
-    // 2. Create AMG Workspace
-    const amgWorkspace = new grafana.CfnWorkspace(this, 'GrafanaWorkspace', {
-      accountAccessType: 'CURRENT_ACCOUNT',
-      authenticationProviders: ['AWS_SSO'],
-      permissionType: 'SERVICE_MANAGED',
-      dataSources: ['PROMETHEUS', 'CLOUDWATCH', 'XRAY'],
-      name: 'my-cluster-grafana',
-      roleArn: this.createGrafanaRole().roleArn
-    });
+ // 2. AMG 워크스페이스 generation
+ const amgWorkspace = new grafana.CfnWorkspace(this, 'GrafanaWorkspace', {
+ accountAccessType: 'CURRENT_ACCOUNT',
+ authenticationProviders: ['AWS_SSO'],
+ permissionType: 'SERVICE_MANAGED',
+ dataSources: ['PROMETHEUS', 'CLOUDWATCH', 'XRAY'],
+ name: 'my-cluster-grafana',
+ roleArn: this.createGrafanaRole().roleArn
+ });
 
-    // 3. ADOT Collector IAM Role
-    const adotRole = new iam.Role(this, 'AdotCollectorRole', {
-      assumedBy: new iam.ServicePrincipal('eks.amazonaws.com'),
-      managedPolicies: [
-        iam.ManagedPolicy.fromAwsManagedPolicyName('CloudWatchAgentServerPolicy'),
-        iam.ManagedPolicy.fromAwsManagedPolicyName('AWSXRayDaemonWriteAccess')
-      ],
-      inlinePolicies: {
-        'AMPRemoteWrite': new iam.PolicyDocument({
-          statements: [
-            new iam.PolicyStatement({
-              effect: iam.Effect.ALLOW,
-              actions: ['aps:RemoteWrite', 'aps:GetSeries', 'aps:GetLabels', 'aps:GetMetricMetadata'],
-              resources: [ampWorkspace.attrArn]
-            })
-          ]
-        })
-      }
-    });
+ // 3. ADOT Collector IAM role
+ const adotRole = new iam.Role(this, 'AdotCollectorRole', {
+ assumedBy: new iam.ServicePrincipal('eks.amazonaws.com'),
+ managedPolicies: [
+ iam.ManagedPolicy.fromAwsManagedPolicyName('CloudWatchAgentServerPolicy'),
+ iam.ManagedPolicy.fromAwsManagedPolicyName('AWSXRayDaemonWriteAccess')
+ ],
+ inlinePolicies: {
+ 'AMPRemoteWrite': new iam.PolicyDocument({
+ statements: [
+ new iam.PolicyStatement({
+ effect: iam.Effect.ALLOW,
+ actions: ['aps:RemoteWrite', 'aps:GetSeries', 'aps:GetLabels', 'aps:GetMetricMetadata'],
+ resources: [ampWorkspace.attrArn]
+ })
+ ]
+ })
+ }
+ });
 
-    // 4. EKS Add-on Automatic Installation (Helm Integration)
-    new cdk.CfnOutput(this, 'AdotInstallCommand', {
-      value: `
-        # ADOT Collector Installation
-        kubectl apply -f - <<EOF
-        apiVersion: opentelemetry.io/v1beta1
-        kind: OpenTelemetryCollector
-        metadata:
-          name: adot-collector
-          namespace: observability
-        spec:
-          mode: deployment
-          serviceAccount: adot-collector
-          config:
-            receivers:
-              prometheus:
-                config:
-                  scrape_configs:
-                    - job_name: 'kubernetes-pods'
-                      kubernetes_sd_configs:
-                        - role: pod
-            exporters:
-              prometheusremotewrite:
-                endpoint: ${ampWorkspace.attrWorkspaceId}/api/v1/remote_write
-                auth:
-                  authenticator: sigv4auth
-            extensions:
-              sigv4auth:
-                region: ${this.region}
-                service: aps
-            service:
-              extensions: [sigv4auth]
-              pipelines:
-                metrics:
-                  receivers: [prometheus]
-                  exporters: [prometheusremotewrite]
-        EOF
-      `
-    });
+ // 4. EKS 애드온 automatic installation (Helm Integration)
+ new cdk.CfnOutput(this, 'AdotInstallCommand', {
+ value: `
+ # ADOT Collector installation
+ kubectl apply -f - <<EOF
+ apiVersion: opentelemetry.io/v1beta1
+ kind: OpenTelemetryCollector
+ metadata:
+ name: adot-collector
+ namespace: observability
+ spec:
+ mode: deployment
+ serviceAccount: adot-collector
+ config:
+ receivers:
+ prometheus:
+ config:
+ scrape_configs:
+ - job_name: 'kubernetes-pods'
+ kubernetes_sd_configs:
+ - role: pod
+ exporters:
+ prometheusremotewrite:
+ endpoint: ${ampWorkspace.attrWorkspaceId}/api/v1/remote_write
+ auth:
+ authenticator: sigv4auth
+ extensions:
+ sigv4auth:
+ region: ${this.region}
+ service: aps
+ service:
+ extensions: [sigv4auth]
+ pipelines:
+ metrics:
+ receivers: [prometheus]
+ exporters: [prometheusremotewrite]
+ EOF
+ `
+ });
 
-    // 5. Enable Container Insights
-    new cdk.CfnOutput(this, 'ContainerInsightsCommand', {
-      value: `
-        aws eks create-addon \\
-          --cluster-name my-cluster \\
-          --addon-name amazon-cloudwatch-observability \\
-          --service-account-role-arn ${adotRole.roleArn}
-      `
-    });
-  }
+ // 5. Container Insights Activation
+ new cdk.CfnOutput(this, 'ContainerInsightsCommand', {
+ value: `
+ aws eks create-addon \\
+ --cluster-name my-cluster \\
+ --addon-name amazon-cloudwatch-observability \\
+ --service-account-role-arn ${adotRole.roleArn}
+ `
+ });
+ }
 
-  private createGrafanaRole(): iam.Role {
-    return new iam.Role(this, 'GrafanaRole', {
-      assumedBy: new iam.ServicePrincipal('grafana.amazonaws.com'),
-      managedPolicies: [
-        iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonPrometheusQueryAccess'),
-        iam.ManagedPolicy.fromAwsManagedPolicyName('CloudWatchReadOnlyAccess'),
-        iam.ManagedPolicy.fromAwsManagedPolicyName('AWSXRayReadOnlyAccess')
-      ]
-    });
-  }
+ private createGrafanaRole(): iam.Role {
+ return new iam.Role(this, 'GrafanaRole', {
+ assumedBy: new iam.ServicePrincipal('grafana.amazonaws.com'),
+ managedPolicies: [
+ iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonPrometheusQueryAccess'),
+ iam.ManagedPolicy.fromAwsManagedPolicyName('CloudWatchReadOnlyAccess'),
+ iam.ManagedPolicy.fromAwsManagedPolicyName('AWSXRayReadOnlyAccess')
+ ]
+ });
+ }
 }
 ```
 
-**Scenario 2: Step-by-Step Deployment and Verification**
+**시나리오 2: 단계별 배포 및 검증**
 
 ```
-[Kiro + IaC MCP Server Automated Workflow]
+[Kiro + IaC MCP Server automatic workflow]
 
-Step 1: Natural Language Request
-User: "Deploy an EKS observability stack"
+📝 Step 1: natural language request
+User: "EKS observability stack deploy it"
 
-Step 2: IaC MCP Server Documentation Search
+🔍 Step 2: IaC MCP Server document search
 → resolve_cfn_resource("AWS::APS::Workspace")
 → resolve_cfn_resource("AWS::Grafana::Workspace")
 → search_cdk_docs("ADOT Collector CDK")
 
-Step 3: CDK Template Generation
-→ Automatically generates the TypeScript code above
-→ IAM least privilege principle automatically applied
-→ Tag strategy automatically inserted (Environment, ManagedBy, CostCenter)
+📄 Step 3: CDK 템플릿 generation
+→ 위 TypeScript code automatic generation
+→ IAM 최소 permission 원칙 automatic Application
+→ Tag strategy automatic 삽입 (Environment, ManagedBy, CostCenter)
 
-Step 4: Pre-Deployment Validation (IaC MCP Server Built-in)
-→ cdk synth (syntax validation)
-→ cfn-lint (CloudFormation best practice check)
-→ IAM Policy Simulator (permission verification)
-→ Result: All checks passed
+✅ Step 4: Deployment before Validation (IaC MCP Server 내장)
+→ cdk synth (구문 Validation)
+→ cfn-lint (CloudFormation 모범 case 검사)
+→ IAM Policy Simulator (permission Validation)
+→ result: ✓ All checks passed
 
-Step 5: GitOps Deployment via Managed Argo CD
-→ Commit code to Git repository
-→ Argo CD automatically syncs
-→ Changes are trackable
+🚀 Step 5: Managed Argo CD through GitOps Deployment
+→ Git 리포지토리 code commit
+→ Argo CD automatic 동기화
+→ change 사항 tracking possible
 
-Step 6: Post-Deployment Automatic Verification
-→ AMP workspace status check (ACTIVE)
+🔍 Step 6: Deployment after automatic Validation
+→ AMP 워크스페이스 status Verification (ACTIVE)
 → AMG datasource connection test (SUCCESS)
 → ADOT Collector Pod status (Running 2/2)
-→ First metric collection confirmed (within 30 seconds)
+→ 첫 metric collection Verification (30초 이내)
 
-Complete: "Observability stack has been successfully deployed."
+✅ 완료: "observability stack 공 as Deployment되었."
 ```
 
-#### 11.6.4 Key Advantages of IaC MCP Server
+#### 11.6.4 IaC MCP Server의 핵심 장점
 
-**1. Reduced Manual YAML Writing Time**
+**1. 수동 YAML 작성 시간 단축**
 
 ```
-[Before - Manual Writing]
-- AMP workspace creation: 15 min (documentation reference + YAML writing)
-- IAM role setup: 30 min (policy document writing + permission testing)
-- ADOT Collector configuration: 45 min (Helm values writing + debugging)
-- AMG connection: 20 min (datasource setup)
-Total work time: 110 min
+[Before - manual 작]
+- AMP 워크스페이스 generation: 15minutes (document Reference + YAML 작)
+- IAM role Configuration: 30minutes (policy document 작 + permission test)
+- ADOT Collector Configuration: 45minutes (Helm values 작 + 디버깅)
+- AMG connection: 20minutes (datasource Configuration)
+total 작업 time: 110minutes
 
 [After - IaC MCP Server]
-- Natural language request: 1 min
-- Code generation and validation: 2 min
-- Deployment: 5 min
-Total work time: 8 min
+- natural language request: 1minutes
+- code generation and Validation: 2minutes
+- Deployment: 5minutes
+total 작업 time: 8minutes
 
-→ 93% time reduction
+→ 93% time savings
 ```
 
-**2. Automatic Best Practice Application**
+**2. 모범 사례 자동 적용**
 
-The IaC MCP Server automatically applies observability best practices from the AWS Well-Architected Framework:
+IaC MCP Server는 AWS Well-Architected Framework의 관찰성 모범 사례를 자동으로 적용합니다:
 
-| Best Practice | Automatically Applied Content |
+| 모범 사례 | 자동 적용 내용 |
 |----------|---------------|
-| **Security** | IAM least privilege principle, SigV4 authentication automatic setup |
-| **Reliability** | AMP/AMG high availability configuration enabled by default |
-| **Performance** | ADOT Collector resource limits automatically set |
-| **Cost Optimization** | Metric filtering (unnecessary go_*, process_* removed) |
-| **Operational Excellence** | Tag strategy automatically applied, CloudWatch alerts configured by default |
+| **보안** | IAM 최소 권한 원칙, SigV4 인증 자동 설정 |
+| **안정성** | AMP/AMG의 고가용성 구성 기본 활성화 |
+| **성능** | ADOT Collector 리소스 제한 자동 설정 |
+| **비용 최적화** | 메트릭 필터링 (불필요한 go_*, process_* 제거) |
+| **운영 우수성** | Tag 전략 자동 적용, CloudWatch 알림 기본 구성 |
 
-**3. Configuration Error Prevention**
+**3. 설정 오류 방지**
 
 ```yaml
-# Common manual configuration error examples
+# day반인 manual Configuration error example
 
-# Incorrect configuration (common mistake in manual writing)
+# ❌ 잘못 Configuration (manual 작 time 흔 실)
 exporters:
-  prometheusremotewrite:
-    endpoint: "https://aps-workspaces.ap-northeast-2.amazonaws.com/workspaces/ws-xxxxx/api/v1/remote_write"
-    # Problem: SigV4 authentication missing → 403 Forbidden
+ prometheusremotewrite:
+ endpoint: "https://aps-workspaces.ap-northeast-2.amazonaws.com/workspaces/ws-xxxxx/api/v1/remote_write"
+ # issue: SigV4 인증 누락 → 403 Forbidden
 
-# IaC MCP Server auto-generated (correct configuration)
+# ✅ IaC MCP Server automatic generation (올바른 Configuration)
 exporters:
-  prometheusremotewrite:
-    endpoint: "https://aps-workspaces.ap-northeast-2.amazonaws.com/workspaces/ws-xxxxx/api/v1/remote_write"
-    auth:
-      authenticator: sigv4auth
-    resource_to_telemetry_conversion:
-      enabled: true
+ prometheusremotewrite:
+ endpoint: "https://aps-workspaces.ap-northeast-2.amazonaws.com/workspaces/ws-xxxxx/api/v1/remote_write"
+ auth:
+ authenticator: sigv4auth
+ resource_to_telemetry_conversion:
+ enabled: true
 extensions:
-  sigv4auth:
-    region: ap-northeast-2
-    service: aps
+ sigv4auth:
+ region: ap-northeast-2
+ service: aps
 ```
 
-#### 11.6.5 GitOps Integration with Managed Argo CD
+#### 11.6.5 Managed Argo CD와의 GitOps 통합
 
-Code generated by the IaC MCP Server is deployed via GitOps through the EKS Capability Managed Argo CD.
+IaC MCP Server가 생성한 코드는 EKS Capability인 Managed Argo CD를 통해 GitOps 방식으로 배포됩니다.
 
 ```yaml
-# ArgoCD Application auto-generation example
+# ArgoCD Application automatic generation example
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: eks-observability-stack
-  namespace: argocd
+ name: eks-observability-stack
+ namespace: argocd
 spec:
-  project: default
-  source:
-    repoURL: https://github.com/your-org/eks-infra
-    targetRevision: HEAD
-    path: observability-stack
-    helm:
-      valueFiles:
-        - values-production.yaml
-  destination:
-    server: https://kubernetes.default.svc
-    namespace: observability
-  syncPolicy:
-    automated:
-      prune: true
-      selfHeal: true
-    syncOptions:
-      - CreateNamespace=true
-  ignoreDifferences:
-    - group: apps
-      kind: Deployment
-      jsonPointers:
-        - /spec/replicas  # When managed by Karpenter
+ project: default
+ source:
+ repoURL: https://github.com/your-org/eks-infra
+ targetRevision: HEAD
+ path: observability-stack
+ helm:
+ valueFiles:
+ - values-production.yaml
+ destination:
+ server: https://kubernetes.default.svc
+ namespace: observability
+ syncPolicy:
+ automated:
+ prune: true
+ selfHeal: true
+ syncOptions:
+ - CreateNamespace=true
+ ignoreDifferences:
+ - group: apps
+ kind: Deployment
+ jsonPointers:
+ - /spec/replicas # Karpenter Management case
 ```
 
-**Advantages of GitOps Deployment:**
+**GitOps 배포의 장점:**
 
-- **Change History Tracking**: Track all infrastructure changes through Git commit history
-- **Easy Rollback**: Restore to previous state with a single `git revert`
-- **PR-Based Review**: Apply code review process to infrastructure changes as well
-- **Multi-Cluster Deployment**: Consistently deploy the same observability stack across multiple clusters
+- **변경 이력 추적**: Git 커밋 이력으로 모든 인프라 변경 추적
+- **롤백 용이성**: `git revert` 한 줄로 이전 상태로 복구
+- **PR 기반 리뷰**: 인프라 변경도 코드 리뷰 프로세스 적용
+- **멀티 클러스터 배포**: 동일한 관찰성 스택을 여러 클러스터에 일관되게 배포
 
-#### 11.6.6 Practical Usage Tips
+#### 11.6.6 실전 사용 팁
 
-**Tip 1: Minimize Risk with Step-by-Step Deployment**
-
-```
-[Recommended Deployment Order]
-Phase 1: Test IaC MCP Server generated code on development cluster
-Phase 2: Commit generated code to Git, create PR
-Phase 3: Deploy to staging cluster after team review
-Phase 4: Validate on staging for 1 week
-Phase 5: Deploy to production cluster
-```
-
-**Tip 2: When Customization is Needed**
+**Tip 1: 단계별 배포로 리스크 최소화**
 
 ```
-User: "Deploy an EKS observability stack, but set AMP metric retention period to 90 days"
+[recommended Deployment 순서]
+1phase: development cluster from IaC MCP Server generation code test
+2phase: generation code Git commit, PR generation
+3phase: 팀 review after staging cluster Deployment
+4phase: staging from 1주day Validation
+5phase: production cluster Deployment
+```
 
-→ IaC MCP Server automatically adds retention configuration:
+**Tip 2: 커스터마이징이 필요한 경우**
+
+```
+User: "EKS observability stack Deployment되, AMP metric 보존 기between 90day Configuration해줘"
+
+→ IaC MCP Server automatic as retention Configuration additional:
 
 const ampWorkspace = new aps.CfnWorkspace(this, 'ObservabilityWorkspace', {
-  alias: 'my-cluster-observability',
-  loggingConfiguration: {
-    logGroupArn: logGroup.logGroupArn
-  },
-  // Customized retention period
-  tags: [
-    { key: 'RetentionDays', value: '90' }
-  ]
+ alias: 'my-cluster-observability',
+ loggingConfiguration: {
+ logGroupArn: logGroup.logGroupArn
+ },
+ // 커스터마이징 보존 기between
+ tags: [
+ { key: 'RetentionDays', value: '90' }
+ ]
 });
 ```
 
-**Tip 3: Automatic Cost Optimization Settings**
+**Tip 3: 비용 최적화 설정 자동 추가**
 
 ```
-User: "Deploy an EKS observability stack, but include cost optimization settings"
+User: "EKS observability stack Deployment되, Cost Optimization Configurationalso inclusion해줘"
 
-→ IaC MCP Server automatically:
-  - Filters unnecessary metrics (go_*, process_*)
-  - Changes scrape interval from 15s → 30s
-  - Reduces network requests with batch processor
-  - Excludes DevOps Guru for development/staging environments
+→ IaC MCP Server automatic으로:
+ - non- required metric 필터링 (go_*, process_*)
+ - Scrape interval 15s → 30s change
+ - Batch processor network request reduction
+ - development/staging environment DevOps Guru 제외
 ```
 
-:::info Core Value of IaC MCP Server
-The AWS IaC MCP Server is not just a code generator. It references AWS official documentation in real time, automatically applies best practices, and performs pre-deployment validation -- it is an **intelligent infrastructure code assistant**. Even complex configurations connecting multiple services (AMP, AMG, ADOT, Container Insights, DevOps Guru) like an observability stack can be resolved with a single line of natural language.
+:::info IaC MCP Server의 핵심 가치
+AWS IaC MCP Server는 단순한 코드 생성기가 아닙니다. AWS 공식 문서를 실시간으로 참조하고, 모범 사례를 자동 적용하며, 배포 전 검증까지 수행하는 **지능형 인프라 코드 어시스턴트**입니다. 관찰성 스택처럼 여러 서비스(AMP, AMG, ADOT, Container Insights, DevOps Guru)를 연결하는 복잡한 설정도 자연어 한 줄로 해결할 수 있습니다.
 :::
 
-:::tip Synergy of Kiro + IaC MCP Server Combination
-Kiro leverages the IaC MCP Server to automate not only infrastructure deployment but also **continuous improvement**:
+:::tip Kiro + IaC MCP Server 조합의 시너지
+Kiro는 IaC MCP Server를 활용하여 인프라 배포뿐만 아니라 **지속적 개선**도 자동화합니다:
 
-1. **Observability Data Analysis**: Query metrics via CloudWatch MCP Server
-2. **Problem Detection**: Detect "ADOT Collector CPU utilization is high"
-3. **Solution Derivation**: Generate resource limit adjustment code via IaC MCP Server
-4. **PR Creation**: Automatically submit changes as a Git PR
-5. **Deployment**: Managed Argo CD automatically deploys after approval
+1. **관찰성 데이터 분석**: CloudWatch MCP Server로 메트릭 조회
+2. **문제 감지**: "ADOT Collector CPU 사용률이 높음" 탐지
+3. **해결책 도출**: IaC MCP Server로 리소스 제한 조정 코드 생성
+4. **PR 생성**: 변경 사항을 Git PR로 자동 제출
+5. **배포**: Managed Argo CD가 승인 후 자동 배포
 
-This is the fully automated loop of **Observe → Analyze → Improve**.
+이것이 **관찰 → 분석 → 개선**의 완전 자동화 루프입니다.
 :::
 
 ---
 
 ## 12. Conclusion
 
-### 12.1 Build Order Summary
+### 12.1 구축 순서 요약
 
-The following order is recommended for building an intelligent observability stack:
-
-```
-Phase 1: Deploy Managed Add-ons
-  └── ADOT + CloudWatch Observability + Node Monitoring + Flow Monitor
-
-Phase 2: Connect AMP + AMG
-  └── Remote Write configuration + Grafana dashboard setup
-
-Phase 3: Enable Application Signals
-  └── Zero-code instrumentation + Automatic SLI/SLO configuration
-
-Phase 4: Enable DevOps Guru
-  └── ML anomaly detection + Root cause analysis
-
-Phase 5: CloudWatch AI + MCP Integration
-  └── Natural language queries + Kiro/Q Developer integration
-
-Phase 6: Alert Optimization
-  └── SLO-based alerts + Composite Alarms + Automated recovery
-```
-
-### 12.2 Next Steps
-
-Based on this observability stack, study the following topics:
-
-- **[3. AIDLC Framework](../../aidlc/aidlc-framework.md)**: AI-driven development lifecycle and the development feedback loop with observability data
-- **[4. Predictive Scaling and Automated Recovery](./aiops-predictive-operations.md)**: ML prediction and automated recovery patterns based on observability data
-- **[1. AIOps Strategy Guide](./aiops-introduction.md)**: Overall AIOps strategy and the role of observability
-
-### 12.3 Learning Path
+지능형 관찰성 스택 구축은 다음 순서를 권장합니다:
 
 ```
-[Current Document] 2. Building an Intelligent Observability Stack
-     ↓
-[Next] 3. AIDLC Framework — AI Development Automation Using Observability Data
-     ↓
-[Advanced] 4. Predictive Scaling and Automated Recovery — Predictive Operations Based on Observability
+1phase: Managed Add-ons Deployment
+ └── ADOT + CloudWatch Observability + Node Monitoring + Flow Monitor
+
+2phase: AMP + AMG connection
+ └── Remote Write Configuration + Grafana dashboard Configuration
+
+3phase: Application Signals Activation
+ └── zero-code 계측 + SLI/SLO automatic Configuration
+
+4phase: DevOps Guru Activation
+ └── ML abnormal detection + root cause Analysis
+
+5phase: CloudWatch AI + MCP Integration
+ └── natural language query + Kiro/Q Developer 연동
+
+6phase: alert Optimization
+ └── SLO based alert + Composite Alarms + automatic recovery
+```
+
+### 12.2 다음 단계
+
+이 관찰성 스택을 기반으로 다음 주제를 학습하세요:
+
+- **[3. AIDLC 프레임워크](../../aidlc/aidlc-framework.md)**: AI 주도 개발 라이프사이클과 관찰성 데이터의 개발 피드백 루프
+- **[4. 예측 스케일링 및 자동 복구](./aiops-predictive-operations.md)**: 관찰성 데이터를 기반으로 한 ML 예측 및 자동 복구 패턴
+- **[1. AIOps 전략 가이드](./aiops-introduction.md)**: AIOps 전체 전략과 관찰성의 역할
+
+### 12.3 학습 경로
+
+```
+[Current document] 2. intelligent observability stack build
+ ↓
+[following] 3. AIDLC framework — observability data utilization AI development Automation
+ ↓
+[advanced] 4. prediction scaling and automatic recovery — observability based prediction Operations
 ```
 
 :::info Related Documents
 
-- [1. AIOps Strategy Guide](./aiops-introduction.md) — Overall AIOps Context
-- [3. AIDLC Framework](../../aidlc/aidlc-framework.md) — AI-Driven Development Methodology
-- [4. Predictive Scaling and Automated Recovery](./aiops-predictive-operations.md) — Predictive Operations Based on Observability
+- [1. AIOps strategy 가이드](./aiops-introduction.md) — AIOps entire 맥락
+- [3. AIDLC framework](../../aidlc/aidlc-framework.md) — AI 주also development method론
+- [4. prediction scaling and automatic recovery](./aiops-predictive-operations.md) — observability based prediction Operations
 :::

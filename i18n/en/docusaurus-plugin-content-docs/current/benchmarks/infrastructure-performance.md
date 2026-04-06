@@ -1,8 +1,8 @@
 ---
 title: Infrastructure Performance Benchmark
-sidebar_label: "Infrastructure Performance [Upcoming]"
+sidebar_label: "Report 6. Infrastructure Performance [Upcoming]"
 sidebar_position: 6
-description: EKS cluster infrastructure performance benchmark - network, DNS, autoscaling
+description: EKS cluster infrastructure performance benchmark - Network, DNS, Autoscaling
 category: "benchmarks"
 tags: [benchmark, infrastructure, performance, network, dns]
 last_update:
@@ -12,23 +12,23 @@ last_update:
 
 # Infrastructure Performance Benchmark
 
-Measures and analyzes key performance metrics of EKS cluster infrastructure.
+Measure and analyze key performance indicators of EKS cluster infrastructure.
 
 ## Network Performance
 
 ### Cilium ENI vs VPC CNI Comparison
 
-A detailed quantitative comparison of VPC CNI and Cilium CNI across multiple modes (kube-proxy, kube-proxy-less, ENI, with tuning applied) is covered in a separate dedicated document.
+A quantitative comparison of VPC CNI and Cilium CNI across multiple modes (kube-proxy, kube-proxy-less, ENI, tuning applied) is covered in detail in a separate document.
 
-For detailed benchmark results, refer to [2. CNI Performance Comparison](./cni-performance-comparison.md).
+See [2. CNI Performance Comparison](./cni-performance-comparison.md) for detailed benchmark results.
 
 **Comparison Scenarios (5):**
 
-- A: VPC CNI baseline (kube-proxy + iptables)
+- A: VPC CNI Default (kube-proxy + iptables)
 - B: Cilium + kube-proxy (Overlay)
 - C: Cilium kube-proxy-less (eBPF replacement)
-- D: Cilium ENI mode (Native Routing)
-- E: Cilium ENI + full tuning (DSR, XDP, Socket LB, etc.)
+- D: Cilium ENI Mode (Native Routing)
+- E: Cilium ENI + Full Tuning (DSR, XDP, Socket LB, etc.)
 
 ### Gateway API Performance
 
@@ -49,7 +49,7 @@ For detailed benchmark results, refer to [2. CNI Performance Comparison](./cni-p
 - Queries per second throughput
 - NodeLocal DNSCache effect
 
-## Autoscaling Response Time
+## Autoscaling Response Speed
 
 ### Karpenter vs Cluster Autoscaler
 
@@ -61,7 +61,7 @@ For detailed benchmark results, refer to [2. CNI Performance Comparison](./cni-p
 
 ## Cost Efficiency
 
-### Cost vs Performance by Instance Type
+### Cost-to-Performance Ratio by Instance Type
 
 **Metrics**
 

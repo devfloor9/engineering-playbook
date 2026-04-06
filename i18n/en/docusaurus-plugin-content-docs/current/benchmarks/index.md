@@ -11,7 +11,7 @@ last_update:
 
 # EKS Performance Benchmark Reports
 
-Performance benchmark reports measured with actual workloads in EKS environments. Validates architecture decisions and optimization directions with data.
+Performance benchmark reports measured based on real workloads in EKS environments. Validate architecture decisions and optimization directions with data.
 
 ## Networking
 
@@ -25,7 +25,7 @@ Performance benchmark reports measured with actual workloads in EKS environments
 | # | Report | Status |
 |---|--------|--------|
 | 3 | [Llama 4 FM Serving: GPU vs Custom Silicon](./ai-ml-workload.md) | ✅ Complete |
-| 4 | [Inference Platform: AgentCore vs EKS Self-Hosted](./agentcore-vs-eks-inference.md) | 📋 Planned |
+| 4 | [Inference Platform: AgentCore vs EKS Self-Built](./agentcore-vs-eks-inference.md) | 📋 Planned |
 | 5 | [NVIDIA Dynamo Inference Benchmark](./dynamo-inference-benchmark.md) | 🆕 New |
 
 ## Infrastructure & Operations
@@ -34,16 +34,16 @@ Performance benchmark reports measured with actual workloads in EKS environments
 |---|--------|--------|
 | 6 | [Infrastructure Performance](./infrastructure-performance.md) | 🔜 Upcoming |
 | 7 | [Hybrid Infrastructure](./hybrid-infrastructure.md) | 🔜 Upcoming |
-| 8 | [Security and Operations](./security-operations.md) | 🔜 Upcoming |
+| 8 | [Security & Operations](./security-operations.md) | 🔜 Upcoming |
 
 ## Benchmark Methodology
 
 All benchmarks follow these principles:
 
-1. **Reproducibility**: Document test environment, tools, and configurations
-2. **Statistical Significance**: Derive reliable results through sufficient repeated runs
-3. **Fair Comparison**: Measure comparison targets under identical conditions
-4. **Real Workloads**: Prioritize tests closer to actual patterns over synthetic benchmarks
+1. **Reproducibility**: Test environment, tools, and configuration are specified
+2. **Statistical Significance**: Reliable results through sufficient repeated runs
+3. **Fair Comparison**: Measurements taken under identical conditions across comparison targets
+4. **Real Workloads**: Tests that closely resemble actual patterns are prioritized over synthetic benchmarks
 
 ## Report Structure
 

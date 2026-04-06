@@ -11,45 +11,45 @@ last_update:
 
 # AIDLC: AI-Driven Development Lifecycle
 
-> **Reading time**: ~3 minutes
+> **Reading time**: ~3 min
 
-AIDLC (AI-Driven Development Lifecycle) is a new development methodology where AI drives the entire software development process. While traditional SDLC (Software Development Lifecycle) was a human-centric process, AIDLC accelerates the entire development cycle through the **Intent → Unit → Bolt** model, where AI leads from requirements analysis to design, implementation, and testing.
+AIDLC (AI-Driven Development Lifecycle) is a new development methodology where AI drives the entire software development process. While traditional SDLC (Software Development Lifecycle) was a human-centric process, AIDLC accelerates the entire development cycle — from requirements analysis to design, implementation, and testing — through the **Intent → Unit → Bolt** model.
 
 ## Core Concepts
 
-AIDLC is built on three pillars:
+AIDLC consists of three core pillars:
 
-- **Intent**: Humans define requirements and business intent in natural language. Kiro's Spec-driven development (requirements → design → tasks → code) supports this stage.
-- **Unit**: AI decomposes intent into actionable unit tasks. Quality is ensured by combining DDD (Domain-Driven Design) with BDD/TDD.
+- **Intent**: Humans define requirements and business intent in natural language. Kiro's Spec-driven development (requirements → design → tasks → code) supports this phase.
+- **Unit**: AI decomposes intent into executable work units. Quality is ensured by combining DDD (Domain-Driven Design) with BDD/TDD.
 - **Bolt**: AI automatically executes code generation, test writing, and deployment pipeline configuration.
 
 ## Reliability Dual Axis: Ontology × Harness
 
-To systematically ensure the reliability of AI-generated code, AIDLC introduces a two-axis reliability framework:
+To systematically ensure the reliability of AI-generated code, AIDLC introduces a dual-axis reliability framework:
 
-- **Ontology (WHAT + WHEN)**: A typed world model formalizing domain knowledge. A living model that continuously evolves through its own feedback loops (Inner/Middle/Outer), preventing AI hallucinations.
-- **Harness Engineering (HOW)**: Architectural structure for validating and enforcing constraints defined by the ontology
+- **Ontology (WHAT + WHEN)**: A typed world model that formalizes domain knowledge. A living model that continuously evolves through self-feedback loops (Inner/Middle/Outer), preventing AI hallucination.
+- **Harness Engineering (HOW)**: A structure that architecturally verifies and enforces the constraints defined by the ontology.
 
-## 10 AIDLC Principles
+## AIDLC 10 Principles
 
-The AIDLC framework defines 10 principles for systematizing AI-driven development. See [AIDLC Framework](./aidlc-framework.md) for details.
+The AIDLC framework defines 10 principles that systematize AI-driven development. See [AIDLC Framework](./aidlc-framework.md) for details.
 
-## After Development: Operations and Feedback Loops
+## Post-Development: Operations and Feedback Loops
 
-After developing software with AIDLC, **continuous improvement and feedback loops** in the production environment are essential. See [AIOps](/docs/operations-observability/agentic-ops) for an approach to this. AIOps is a methodology for systematically building feedback loops for operational efficiency including observability, predictive scaling, and auto-remediation using AI.
+After developing software with AIDLC, **continuous improvement and feedback loops** are needed in the actual production environment. Refer to [AIOps](/docs/aidlc/agentic-ops) for this approach. AIOps is a methodology that systematically builds feedback loops for operational efficiency — including operational observability, predictive scaling, and auto-remediation — leveraging AI.
 
 ```mermaid
 flowchart LR
     subgraph AIDLC["AIDLC (Development)"]
         direction TB
-        INTENT["Intent<br/>Define Requirements"] --> UNIT["Unit<br/>Decompose Tasks"]
+        INTENT["Intent<br/>Requirements Definition"] --> UNIT["Unit<br/>Task Decomposition"]
         UNIT --> BOLT["Bolt<br/>AI Execution"]
     end
 
     subgraph AIOPS["AIOps (Operations)"]
         direction TB
         OBS["Observability<br/>Metrics/Logs/Traces"] --> PREDICT["Predictive Analysis<br/>Anomaly Detection"]
-        PREDICT --> AUTO["Auto Response<br/>Scaling/Recovery"]
+        PREDICT --> AUTO["Auto Response<br/>Scaling/Remediation"]
     end
 
     AIDLC -->|"Deploy"| AIOPS
@@ -60,8 +60,8 @@ flowchart LR
 ```
 
 :::info Learning Path
-1. [AIDLC Framework](./aidlc-framework.md) — 10 principles, Intent→Unit→Bolt model, DDD integration, EKS capabilities mapping
-2. [AIOps](/docs/operations-observability/agentic-ops) — Building operational feedback loops after development
+1. [AIDLC Framework](./aidlc-framework.md) — 10 Principles, Intent→Unit→Bolt Model, DDD Integration, EKS Capability Mapping
+2. [AIOps](/docs/aidlc/agentic-ops) — Building Post-Development Operational Feedback Loops
 :::
 
 ## References

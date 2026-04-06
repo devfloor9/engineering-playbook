@@ -1,10 +1,9 @@
 ---
 title: "DGX H200 SR-IOV Networking Configuration"
 sidebar_label: "SR-IOV Networking"
-description: "Resolves SR-IOV VF naming mismatch issues on NVIDIA DGX H200 systems running Amazon EKS Hybrid Nodes through driver compatibility, persistent naming, and systemd orchestration"
+description: "Resolving SR-IOV VF naming inconsistencies on NVIDIA DGX H200 systems running Amazon EKS Hybrid Nodes through driver compatibility, persistent naming, and systemd orchestration."
 tags: [eks, hybrid-nodes, dgx-h200, sriov, infiniband, networking, mlnx-ofed]
 category: "hybrid-multicloud"
-sidebar_position: 2
 last_update:
   date: 2026-02-14
   author: devfloor9
@@ -12,12 +11,12 @@ last_update:
 
 # DGX H200 SR-IOV Networking Configuration
 
-> 📅 **Written**: 2025-09-01 | **Last Modified**: 2026-02-14 | ⏱️ **Reading Time**: ~5 min
+> **Created**: 2025-09-01 | **Updated**: 2026-02-14 | **Reading time**: ~7 min
 
 
 ## Introduction
 
-Network performance is critical when running high-performance computing workloads on NVIDIA DGX H200 systems using Amazon EKS Hybrid Nodes. Our team recently faced a challenging issue where SR-IOV virtual function (VF) interfaces experienced unpredictable name changes, causing the entire CNI stack to malfunction. This document shares the journey of root cause analysis and the comprehensive solution we developed.
+When running high-performance computing workloads on NVIDIA DGX H200 systems with Amazon EKS Hybrid Nodes, network performance is critical. Our team recently faced a challenging issue where SR-IOV Virtual Function (VF) interfaces caused the entire CNI stack to break due to unpredictable name changes. This document shares the journey of root cause analysis and the comprehensive solution we developed.
 
 ## Architecture Overview
 

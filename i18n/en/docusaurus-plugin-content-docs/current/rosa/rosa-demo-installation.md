@@ -1,10 +1,9 @@
 ---
 title: "ROSA Demo Installation Guide"
-sidebar_label: "Installation Demo"
-description: "ROSA cluster installation demo - STS-based cluster creation, IAM role configuration, auto-scaling setup, and admin access configuration guide"
+sidebar_label: "ROSA Demo Installation"
+description: "ROSA cluster installation demo - STS-based cluster creation, IAM role configuration, autoscaling setup, and admin access configuration guide"
 tags: [rosa, openshift, installation, sts, demo, autoscaling, iam]
 category: "rosa"
-sidebar_position: 1
 last_update:
   date: 2026-02-14
   author: devfloor9
@@ -12,10 +11,10 @@ last_update:
 
 # ROSA Demo Installation Guide
 
-> 📅 **Written**: 2025-02-05 | **Last Modified**: 2026-02-14 | ⏱️ **Reading Time**: ~2 min
+> **Created**: 2025-02-05 | **Updated**: 2026-02-14 | **Reading time**: ~2 min
 
 
-This document records the ROSA (Red Hat OpenShift Service on AWS) cluster installation process and results. It includes security-enhanced STS-based installation and auto-scaling configuration.
+This document is a demo guide recording the installation process and results of a ROSA (Red Hat OpenShift Service on AWS) cluster. It includes STS-based security-enhanced installation and autoscaling configuration.
 
 ---
 
@@ -23,7 +22,7 @@ This document records the ROSA (Red Hat OpenShift Service on AWS) cluster instal
 
 ### Creation Command
 
-Create a ROSA cluster using the following command:
+Use the following command to create the ROSA cluster:
 
 ```bash
 I: Creating cluster 'rosa-demo-icn'
@@ -65,7 +64,7 @@ rosa create cluster --cluster-name rosa-demo-icn \
 
 ## Cluster Information
 
-Details of the created cluster after installation completion are as follows:
+The detailed information of the created cluster after installation is as follows:
 
 | Item | Value |
 |------|-------|
@@ -110,7 +109,7 @@ Operator IAM Roles:
   - rosa-oidc-openshift-ingress-operator-cloud-credentials
 ```
 
-### Additional Configuration
+### Additional Settings
 
 | Setting | Value |
 |---------|-------|
@@ -121,9 +120,9 @@ Operator IAM Roles:
 
 ---
 
-## Auto-scaler Configuration
+## Autoscaler Configuration
 
-The cluster's auto-scaling settings are as follows:
+The cluster autoscaling settings are as follows:
 
 ```yaml
 autoscaler:
@@ -143,9 +142,9 @@ autoscaler:
 
 ---
 
-## Admin User Configuration
+## Admin User Setup
 
-Create admin account after cluster installation:
+Admin account creation after cluster installation:
 
 ```bash
 I: Admin account has been added to cluster 'rosa-demo-icn'.
@@ -158,32 +157,32 @@ oc login https://api.rosa-demo-icn.XXXX.p1.openshiftapps.com:6443 \
   --password <REDACTED>
 ```
 
-:::warning Security Caution
+:::warning Security Notice
 
-- Store admin password securely
-- If password is lost, you must delete and recreate the admin account
-- Access may take several minutes to become active
+- Store the admin password securely
+- If the password is lost, the admin account must be deleted and recreated
+- It may take a few minutes for access to become active
 :::
 
 ---
 
 ## Post-Installation Steps
 
-After installation completion, proceed with the following steps:
+After installation, proceed with the following steps:
 
-### 1. Configure Identity Provider
+### 1. Identity Provider Setup
 
 ```bash
 rosa create idp --help
 ```
 
-### 2. Verify Cluster Status
+### 2. Cluster Status Check
 
 ```bash
 rosa describe cluster -c rosa-demo-icn
 ```
 
-### 3. Monitor Installation Logs
+### 3. Installation Log Monitoring
 
 ```bash
 rosa logs install -c rosa-demo-icn --watch
@@ -195,18 +194,18 @@ rosa logs install -c rosa-demo-icn --watch
 
 ```mermaid
 graph TB
-    subgraph AWS[\"AWS Cloud (ap-northeast-2)\"]
-        subgraph VPC[\"VPC (10.0.0.0/16)\"]
-            subgraph CP[\"Control Plane\"]
+    subgraph AWS["AWS Cloud (ap-northeast-2)"]
+        subgraph VPC["VPC (10.0.0.0/16)"]
+            subgraph CP["Control Plane"]
                 M1[Master 1]
                 M2[Master 2]
                 M3[Master 3]
             end
-            subgraph Infra[\"Infra Nodes\"]
+            subgraph Infra["Infra Nodes"]
                 I1[Infra 1]
                 I2[Infra 2]
             end
-            subgraph Workers[\"Worker Nodes (Auto-scaling)\"]
+            subgraph Workers["Worker Nodes (Autoscaling)"]
                 W1[Worker 1<br/>m5.xlarge]
                 W2[Worker 2<br/>m5.xlarge]
             end
@@ -215,9 +214,9 @@ graph TB
         OIDC[OIDC Provider]
     end
 
-    subgraph Network[\"Network CIDR\"]
-        SC[\"Service: 172.30.0.0/16\"]
-        PC[\"Pod: 10.128.0.0/14\"]
+    subgraph Network["Network CIDRs"]
+        SC["Service: 172.30.0.0/16"]
+        PC["Pod: 10.128.0.0/14"]
     end
 
     IAM --> CP
@@ -229,5 +228,5 @@ graph TB
 ```
 
 :::tip Tip
-Using the `--sts` option when creating a ROSA cluster enables STS-based temporary credentials for enhanced security.
+Using the `--sts` option when creating a ROSA cluster enhances security by using STS-based temporary credentials.
 :::

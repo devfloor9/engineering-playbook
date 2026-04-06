@@ -1,137 +1,68 @@
 ---
-title: "NVIDIA GPU Software Stack"
+title: "NVIDIA GPU Stack"
 sidebar_label: "NVIDIA GPU Stack"
-sidebar_position: 3
-description: "GPU Operator, DCGM monitoring, MIG/Time-Slicing partitioning, NVIDIA Dynamo distributed inference optimization"
-tags: [nvidia, gpu-operator, dcgm, mig, time-slicing, dynamo, run-ai]
-category: "genai-aiml"
+description: "Architecture and EKS integration for GPU Operator, DCGM, MIG, Time-Slicing, and Dynamo"
+tags: [nvidia, gpu-operator, dcgm, mig, time-slicing, dynamo, kai-scheduler]
+sidebar_position: 6
 last_update:
-  date: 2026-03-20
-  author: devfloor9
+  date: 2026-04-05
+  author: YoungJoon Jeong
 ---
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 import { SpecificationTable, ComparisonTable } from '@site/src/components/tables';
 
-# NVIDIA GPU Software Stack
+# NVIDIA GPU Stack
 
-> 📅 **Created**: 2026-03-20 | **Updated**: 2026-03-20 | ⏱️ **Reading Time**: ~10 minutes
+The NVIDIA GPU software stack is organized in a layered structure for operating GPUs in Kubernetes environments.
 
+| Layer | Role | Core Component |
+|-------|------|---------------|
+| **Infrastructure Automation** | Declaratively manage GPU drivers, runtimes, and plugins | GPU Operator (ClusterPolicy CRD) |
+| **Monitoring** | Collect GPU state and expose Prometheus metrics | DCGM, DCGM Exporter |
+| **Partitioning** | Share a single GPU across multiple workloads | MIG, Time-Slicing |
+| **Inference Optimization** | Datacenter-scale LLM serving | Dynamo, KAI Scheduler |
 
-## Overview
-
-The NVIDIA GPU software stack is structured in three layers for efficient GPU operations in Kubernetes environments. **GPU Operator** (driver and infrastructure automation) connects GPUs to Kubernetes, **DCGM** (Data Center GPU Manager) monitors GPU status, and **Run:ai** handles GPU orchestration at the top layer. This document covers the configuration and operation of each layer, along with MIG/Time-Slicing partitioning strategies and the NVIDIA Dynamo distributed inference framework.
+This document covers the architecture and design decision criteria for each component. For GPU node provisioning (Karpenter), scaling (KEDA), and cost optimization, see [GPU Resource Management](./gpu-resource-management.md).
 
 ---
 
 ## GPU Operator Architecture
 
-:::info GPU Operator Latest Version (v25.10.1, as of March 2026)
+### Concept
+
+GPU Operator is an orchestration layer that bundles the entire GPU stack under a single **ClusterPolicy CRD**. Each component can be independently enabled/disabled, and GPU environments are automatically configured when nodes are added.
+
+:::info GPU Operator v25.10.1 (as of 2026.03)
 
 | Component | Version | Role |
-|----------|------|------|
-| GPU Operator | **v25.10.1** | Full GPU stack lifecycle management |
+|-----------|---------|------|
+| GPU Operator | **v25.10.1** | GPU stack lifecycle management |
 | NVIDIA Driver | **580.126.18** | GPU kernel driver |
 | DCGM | **v4.5.2** | GPU monitoring engine |
 | DCGM Exporter | **v4.5.2-4.8.1** | Prometheus metrics exposure |
 | Device Plugin | **v0.19.0** | K8s GPU resource registration |
-| GFD (GPU Feature Discovery) | **v0.19.0** | GPU node labeling |
+| GFD | **v0.19.0** | GPU node labeling |
 | MIG Manager | **v0.13.1** | MIG partition auto-management |
 | Container Toolkit (CDI) | **v1.17.5** | Container GPU runtime |
 
-**v25.10.1 Key Features:**
-- **Blackwell Architecture Support**: Full support for B200/GB200 GPUs
-- **HPC Job Mapping**: GPU job-level metrics collection and accounting
-- **CDMM (Confidential Data & Model Management)**: GPU support for Confidential Computing environments
-- **CDI (Container Device Interface)**: Container runtime-independent device management
+**v25.10.1 Key New Features:** Blackwell (B200/GB200) support, HPC Job Mapping, CDMM (Confidential Computing), CDI (Container Device Interface)
 :::
 
-### 3-Layer Architecture
+### Component Structure
 
 ```mermaid
 flowchart TB
-    subgraph L3["Layer 3: Orchestration"]
-        RUNAI[Run:ai<br/>Platform]
-    end
-
-    subgraph L2["Layer 2: Infrastructure Automation"]
-        GPUOP[GPU<br/>Operator]
-        DRIVER[Driver<br/>DaemonSet]
-        TOOLKIT[Container<br/>Toolkit]
-        DP[Device<br/>Plugin]
-        MIG[MIG<br/>Manager]
-        DCGM_EXP[DCGM<br/>Exporter]
-    end
-
-    subgraph L1["Layer 1: Monitoring"]
-        DCGM[NVIDIA<br/>DCGM]
-    end
-
-    subgraph HW["Hardware"]
-        GPU[Physical GPU<br/>H100/A100/L40S]
-    end
-
-    RUNAI -.->|Integration| GPUOP
-    RUNAI -->|Metrics| DCGM
-    GPUOP -->|Install| DRIVER
-    GPUOP -->|Install| TOOLKIT
-    GPUOP -->|Install| DP
-    GPUOP -->|Install| MIG
-    GPUOP -->|Install| DCGM_EXP
-    DCGM_EXP -->|Collect| DCGM
-    DCGM -->|Detect| GPU
-    DRIVER -->|Control| GPU
-
-    style RUNAI fill:#326ce5
-    style GPUOP fill:#76b900
-    style DCGM fill:#9c27b0
-    style GPU fill:#ff9900
-```
-
-Role of each layer:
-
-- **GPU Operator** (Orchestrator): Orchestration layer that bundles the entire GPU stack via **ClusterPolicy CRD**. Each component (Driver, Container Toolkit, Device Plugin, DCGM Exporter, NFD, GFD, MIG Manager) can be **independently enabled/disabled**. Can be installed on EKS Auto Mode — only Device Plugin is disabled via node labels while other components (DCGM Exporter, NFD, GFD, etc.) operate normally.
-- **DCGM** (Sensor): Monitoring engine that reads GPU status. Collects SM Utilization, Tensor Core Activity, Memory, Power, Temperature, ECC Errors, etc.
-- **Run:ai** (Control Tower): Scheduling/management layer operating on top of GPU Operator and DCGM. Provides Fractional GPU, Dynamic MIG, Gang Scheduling, and Quota management.
-
-### Dependencies
-
-| Combination | Possible | Use Case |
-|---|---|---|
-| GPU Operator Only | Yes | Basic GPU inference, manual MIG setup, DCGM metrics |
-| GPU Operator + Run:ai | Yes | Enterprise GPU cluster management (recommended) |
-| DCGM Only (manual driver install) | Yes | Bare metal, single server monitoring |
-| Run:ai Only (without GPU Operator) | **No** | GPU Operator ClusterPolicy is required dependency |
-| EKS Auto Mode + Run:ai | **Yes** | Install GPU Operator, disable Device Plugin via label |
-
-### GPU Management by EKS Environment
-
-| Node Type | GPU Driver | GPU Operator | MIG Support | Run:ai Support |
-|---|---|---|---|---|
-| Auto Mode | AWS auto-install | Installable (Device Plugin disabled via label) | Not supported | Supported (Device Plugin disabled via label) |
-| Karpenter (Self-Managed) | GPU Operator install | Full support | Full support | Full support |
-| Managed Node Group | GPU Operator install | Full support | Full support | Full support |
-| Hybrid Node (on-premises) | GPU Operator required | Required | Full support | Full support |
-
-:::tip Node Strategy Detailed Guide
-For detailed information on hybrid configuration of EKS Auto Mode and Karpenter, GPU Operator installation methods, and Hybrid Node GPU farm setup, refer to [EKS GPU Node Strategy](./eks-gpu-node-strategy.md).
-:::
-
-### GPU Operator Component Details
-
-GPU Operator manages the entire GPU stack declaratively through the ClusterPolicy CRD.
-
-```mermaid
-flowchart TB
-    subgraph GPUOperator["GPU Operator v25.10.1"]
+    subgraph GPUOperator["GPU Operator"]
         CP["ClusterPolicy CRD"]
-        CP --> DRIVER["Driver DaemonSet<br/>GPU kernel driver installation"]
-        CP --> TOOLKIT["Container Toolkit<br/>CDI-based runtime integration"]
-        CP --> DP["Device Plugin<br/>nvidia.com/gpu resource registration"]
-        CP --> GFD["GFD<br/>GPU model/MIG node labels"]
-        CP --> MIG_MGR["MIG Manager<br/>Auto-apply MIG profiles"]
-        CP --> DCGM_E["DCGM Exporter<br/>Prometheus metrics"]
+        CP --> DRIVER["Driver DaemonSet<br/>GPU Kernel Driver"]
+        CP --> TOOLKIT["Container Toolkit<br/>CDI-based Runtime"]
+        CP --> DP["Device Plugin<br/>nvidia.com/gpu Registration"]
+        CP --> GFD["GFD<br/>GPU Model/MIG Labels"]
+        CP --> NFD["NFD<br/>Node Feature Discovery"]
+        CP --> MIG_MGR["MIG Manager<br/>MIG Profile Auto-apply"]
+        CP --> DCGM_E["DCGM Exporter<br/>Prometheus Metrics"]
     end
 
     subgraph K8s["Kubernetes"]
@@ -144,71 +75,42 @@ flowchart TB
     DCGM_E --> PROM
 
     style CP fill:#76b900,color:#fff
-    style GPUOperator fill:#f0f0f0
 ```
 
-:::caution GPU Driver Constraints by AMI
-- **AL2023 / Bottlerocket**: GPU drivers are pre-installed in the AMI, so GPU Operator's `driver` component must be set to `enabled: false`.
-- **AL2 (Custom AMI)**: GPU Operator can install drivers directly.
-- **EKS Auto Mode**: AWS manages drivers automatically, so both `driver` and `toolkit` must be set to `enabled: false`.
+**Component Roles:**
+
+- **Driver DaemonSet**: Installs GPU kernel driver on nodes. Set `enabled: false` for AL2023/Bottlerocket as it's pre-installed in the AMI
+- **Container Toolkit (CDI)**: Injects GPU devices into container runtime. CDI (Container Device Interface)-based for runtime independence
+- **Device Plugin**: Registers `nvidia.com/gpu` extended resource with kubelet. Enables kube-scheduler to place GPU Pods
+- **GFD (GPU Feature Discovery)**: Exposes GPU model, driver version, MIG profiles as node labels. Used for nodeSelector/nodeAffinity
+- **NFD (Node Feature Discovery)**: Exposes hardware features (CPU, PCIe, NUMA, etc.) as node labels
+- **MIG Manager**: Auto-applies MIG profiles based on ConfigMap. Reconfigures on node label changes
+- **DCGM Exporter**: Exposes DCGM metrics in Prometheus format
+
+### GPU Operator Configuration per EKS Environment
+
+| Environment | Driver | Toolkit | Device Plugin | MIG | Notes |
+|-------------|--------|---------|---------------|-----|-------|
+| **EKS Auto Mode** | No (AWS auto) | No (AWS auto) | No (disabled via label) | No | DCGM/NFD/GFD work normally |
+| **Karpenter (Self-Managed)** | No (AL2023 AMI) | No (AL2023 AMI) | Yes | Yes | Full support |
+| **Managed Node Group** | No (AL2023 AMI) | No (AL2023 AMI) | Yes | Yes | Full support |
+| **Hybrid Node (On-premises)** | Yes (required) | Yes (required) | Yes | Yes | GPU Operator required |
+
+:::caution AMI-specific GPU Driver Constraints
+- **AL2023 / Bottlerocket**: GPU driver pre-installed in AMI. Both `driver` and `toolkit` must be `enabled: false`
+- **EKS Auto Mode**: AWS auto-manages drivers. Device Plugin disabled via node label `nvidia.com/gpu.deploy.device-plugin: "false"`
 :::
 
-**Helm Installation Example (Karpenter + Self-Managed):**
+### GPU Operator on EKS Auto Mode
 
-```bash
-# Add NVIDIA Helm repository
-helm repo add nvidia https://helm.ngc.nvidia.com/nvidia
-helm repo update
+On Auto Mode, AWS manages GPU drivers and Device Plugin, but **GPU Operator installation is still useful when**:
 
-# Install GPU Operator (AL2023/Bottlerocket — disable driver/toolkit)
-helm install gpu-operator nvidia/gpu-operator \
-  --namespace gpu-operator --create-namespace \
-  --set driver.enabled=false \
-  --set toolkit.enabled=false \
-  --set dcgmExporter.serviceMonitor.enabled=true \
-  --set migManager.enabled=true \
-  --set gfd.enabled=true \
-  --set nfd.enabled=true
-```
-
-**ClusterPolicy CRD Example:**
+- **DCGM Exporter**: GPU metrics collection (Auto Mode itself does not provide DCGM)
+- **GFD/NFD**: Per-GPU-model node labeling for nodeSelector usage
+- **KAI Scheduler**: Compatibility with projects depending on ClusterPolicy
 
 ```yaml
-apiVersion: nvidia.com/v1
-kind: ClusterPolicy
-metadata:
-  name: cluster-policy
-spec:
-  operator:
-    defaultRuntime: containerd
-  driver:
-    enabled: false          # AL2023/Bottlerocket: pre-installed in AMI
-  toolkit:
-    enabled: false          # AL2023/Bottlerocket: pre-installed in AMI
-  devicePlugin:
-    enabled: true
-  dcgmExporter:
-    enabled: true
-    version: "4.5.2-4.8.1"
-    serviceMonitor:
-      enabled: true
-  migManager:
-    enabled: true
-    config:
-      name: default-mig-parted-config
-  gfd:
-    enabled: true
-  nfd:
-    enabled: true
-  nodeStatusExporter:
-    enabled: false
-```
-
-**EKS Auto Mode NodePool Labels (Device Plugin Disabled):**
-
-On Auto Mode, install GPU Operator but disable only the Device Plugin via node labels. GPU Operator installation is required for projects like KAI Scheduler that depend on ClusterPolicy.
-
-```yaml
+# Auto Mode NodePool — Only Device Plugin disabled via label
 apiVersion: karpenter.sh/v1
 kind: NodePool
 metadata:
@@ -217,7 +119,7 @@ spec:
   template:
     metadata:
       labels:
-        nvidia.com/gpu.deploy.device-plugin: "false"  # Disable Device Plugin
+        nvidia.com/gpu.deploy.device-plugin: "false"
     spec:
       requirements:
         - key: eks.amazonaws.com/instance-family
@@ -229,201 +131,99 @@ spec:
         name: default
 ```
 
-### GPU Operator Configuration by EKS Environment
-
-| Environment | GPU Operator | Driver Management | MIG | Limitations |
-|------|-------------|-------------|-----|---------|
-| EKS Auto Mode | Installable (Device Plugin disabled) | AWS automatic (AMI pre-installed) | Not supported | Device Plugin disabled via label, DCGM/NFD/GFD operate normally |
-| EKS + Karpenter | Helm install | Operator managed | Full support | GPU AMI required in NodePool |
-| EKS Managed Node Group | Helm install | Operator managed | Full support | Node group-level management |
-| EKS Hybrid Nodes | Helm install (required) | Operator required | Full support | On-premises GPU farm, network setup required |
-
 ---
 
 ## DCGM Monitoring
 
-NVIDIA DCGM (Data Center GPU Manager) is a core component that monitors GPU status and exposes metrics to Prometheus.
+### Overview
+
+NVIDIA DCGM (Data Center GPU Manager) is a monitoring engine that collects GPU state and exposes metrics to Prometheus. GPU Operator automatically deploys DCGM Exporter as a DaemonSet.
 
 ### Deployment Method Selection
-
-DCGM Exporter can be deployed as DaemonSet or Sidecar. DaemonSet is recommended for most production environments.
 
 <Tabs>
   <TabItem value="daemonset" label="DaemonSet (Recommended)" default>
 
-| Item | Description |
-|------|------|
-| **Resource Efficiency** | 1 instance per node -- minimal overhead |
-| **Management** | Centralized, auto-managed by GPU Operator |
+| Item | Details |
+|------|---------|
+| **Resource Efficiency** | 1 instance per node — minimal overhead |
+| **Management** | Auto-managed by GPU Operator |
 | **Metrics Scope** | Collects all GPU metrics on the node |
-| **Security** | Only DaemonSet needs `SYS_ADMIN` |
 | **Suitable Environment** | Production environments (most cases) |
 
   </TabItem>
-  <TabItem value="sidecar" label="Sidecar (Special Purpose)">
+  <TabItem value="sidecar" label="Sidecar (Special Use)">
 
-| Item | Description |
-|------|------|
-| **Resource Efficiency** | 1 instance per Pod -- high overhead |
-| **Management** | Included in Pod spec, individual management |
-| **Metrics Scope** | Collects only that Pod's GPU metrics |
-| **Security** | All GPU Pods need `SYS_ADMIN` |
-| **Suitable Environment** | Multi-tenant isolation, per-Pod billing tracking |
+| Item | Details |
+|------|---------|
+| **Resource Efficiency** | 1 instance per Pod — higher overhead |
+| **Metrics Scope** | Collects only the Pod's GPU metrics |
+| **Suitable Environment** | Multi-tenant billing, when per-Pod isolation is needed |
+
+K8s 1.33+ stabilized Sidecar Containers (`restartPolicy: Always`) can be used to operate alongside the Pod lifecycle.
 
   </TabItem>
 </Tabs>
 
-**Valid Sidecar Scenarios:**
-- **Multi-tenant billing**: Need to precisely track GPU usage by tenant at Pod level
-- **Cannot install DaemonSet**: Environments with limited node access like EKS Auto Mode
-- **Pod isolation**: Need to independently monitor only specific Pod's GPU metrics
-
-### DaemonSet Deployment (Recommended)
-
-```yaml
-apiVersion: apps/v1
-kind: DaemonSet
-metadata:
-  name: dcgm-exporter
-  namespace: gpu-monitoring
-  labels:
-    app: dcgm-exporter
-spec:
-  selector:
-    matchLabels:
-      app: dcgm-exporter
-  template:
-    metadata:
-      labels:
-        app: dcgm-exporter
-    spec:
-      nodeSelector:
-        nvidia.com/gpu.present: "true"
-      tolerations:
-        - key: nvidia.com/gpu
-          operator: Exists
-          effect: NoSchedule
-      containers:
-        - name: dcgm-exporter
-          image: nvcr.io/nvidia/k8s/dcgm-exporter:4.5.2-4.8.1-ubuntu22.04
-          ports:
-            - name: metrics
-              containerPort: 9400
-          env:
-            - name: DCGM_EXPORTER_LISTEN
-              value: ":9400"
-            - name: DCGM_EXPORTER_KUBERNETES
-              value: "true"
-            - name: DCGM_EXPORTER_COLLECTORS
-              value: "/etc/dcgm-exporter/dcp-metrics-included.csv"
-          volumeMounts:
-            - name: pod-resources
-              mountPath: /var/lib/kubelet/pod-resources
-              readOnly: true
-          securityContext:
-            runAsNonRoot: false
-            runAsUser: 0
-            capabilities:
-              add: ["SYS_ADMIN"]
-      volumes:
-        - name: pod-resources
-          hostPath:
-            path: /var/lib/kubelet/pod-resources
-```
-
-:::info DCGM Exporter 3.3+ Features
-DCGM Exporter 3.3+ provides the following enhanced features:
-- **H100/H200 Support**: Latest GPU metrics collection
-- **Enhanced Metrics**: More granular GPU status monitoring
-- **Performance Improvements**: Metrics collection with lower overhead
-:::
-
-### Sidecar Deployment (Special Purpose)
-
-Use Kubernetes 1.33+'s stabilized Sidecar Containers to collect GPU metrics at Pod level.
-
-```yaml
-apiVersion: v1
-kind: Pod
-metadata:
-  name: vllm-with-monitoring
-  namespace: ai-inference
-spec:
-  initContainers:
-    # DCGM Exporter running as Sidecar (special purpose)
-    - name: dcgm-sidecar
-      image: nvcr.io/nvidia/k8s/dcgm-exporter:4.5.2-4.8.1-ubuntu22.04
-      restartPolicy: Always  # K8s 1.33+ Sidecar feature
-      ports:
-        - name: metrics
-          containerPort: 9400
-      securityContext:
-        capabilities:
-          add: ["SYS_ADMIN"]
-      resources:
-        requests:
-          cpu: "100m"
-          memory: "128Mi"
-        limits:
-          cpu: "200m"
-          memory: "256Mi"
-  containers:
-    - name: vllm
-      image: vllm/vllm-openai:latest
-      resources:
-        requests:
-          nvidia.com/gpu: 2
-        limits:
-          nvidia.com/gpu: 2
-```
-
 ### Key GPU Metrics
 
-Core metrics collected by DCGM Exporter.
-
 <SpecificationTable
-  headers={['Metric Name', 'Description', 'Scaling Usage']}
+  headers={['Metric', 'Description', 'Usage']}
   rows={[
-    { id: '1', cells: ['DCGM_FI_DEV_GPU_UTIL', 'GPU core utilization (%)', 'HPA trigger criterion'] },
+    { id: '1', cells: ['DCGM_FI_DEV_GPU_UTIL', 'GPU core utilization (%)', 'HPA/KEDA trigger'] },
     { id: '2', cells: ['DCGM_FI_DEV_MEM_COPY_UTIL', 'Memory bandwidth utilization (%)', 'Memory bottleneck detection'] },
-    { id: '3', cells: ['DCGM_FI_DEV_FB_USED', 'Framebuffer usage (MB)', 'OOM prevention'] },
-    { id: '4', cells: ['DCGM_FI_DEV_FB_FREE', 'Framebuffer available (MB)', 'Capacity planning'] },
-    { id: '5', cells: ['DCGM_FI_DEV_POWER_USAGE', 'Power usage (W)', 'Cost monitoring'] },
-    { id: '6', cells: ['DCGM_FI_DEV_SM_CLOCK', 'SM clock speed (MHz)', 'Performance monitoring'] },
-    { id: '7', cells: ['DCGM_FI_DEV_GPU_TEMP', 'GPU temperature (C)', 'Thermal management'] }
+    { id: '3', cells: ['DCGM_FI_DEV_FB_USED / FB_FREE', 'Framebuffer used/free (MB)', 'OOM prevention, capacity planning'] },
+    { id: '4', cells: ['DCGM_FI_DEV_POWER_USAGE', 'Power usage (W)', 'Cost and thermal management'] },
+    { id: '5', cells: ['DCGM_FI_DEV_GPU_TEMP', 'GPU temperature (C)', 'Thermal throttling prevention'] },
+    { id: '6', cells: ['DCGM_FI_DEV_SM_CLOCK', 'SM clock speed (MHz)', 'Performance monitoring'] }
   ]}
 />
 
-### Prometheus ServiceMonitor
+### Prometheus Integration Concept
 
-```yaml
-apiVersion: monitoring.coreos.com/v1
-kind: ServiceMonitor
-metadata:
-  name: dcgm-exporter
-  namespace: gpu-monitoring
-spec:
-  selector:
-    matchLabels:
-      app: dcgm-exporter
-  endpoints:
-    - port: metrics
-      interval: 15s
-      path: /metrics
-  namespaceSelector:
-    matchNames:
-      - gpu-monitoring
+DCGM Exporter exposes Prometheus-format metrics at the `:9400/metrics` endpoint. Setting `dcgmExporter.serviceMonitor.enabled=true` during GPU Operator installation auto-creates the ServiceMonitor.
+
+**Collection chain:**
+
 ```
+GPU Hardware → DCGM Engine → DCGM Exporter (:9400) → Prometheus → Grafana/KEDA
+```
+
+**Key design decisions:**
+- **Collection interval**: 15s (default). For LLM serving, 10s recommended
+- **Metrics filtering**: Control cardinality by collecting only needed metrics via `/etc/dcgm-exporter/dcp-metrics-included.csv`
+- **Pod-GPU mapping**: Setting `DCGM_EXPORTER_KUBERNETES=true` adds `pod`, `namespace`, `container` labels to metrics
 
 ---
 
 ## GPU Partitioning Strategies
 
-### MIG (Multi-Instance GPU) Based Partitioning
+### MIG (Multi-Instance GPU)
 
-MIG divides H100, A100, H200, and other Ampere/Hopper/Blackwell architecture GPUs into up to 7 independent GPU instances. Each MIG instance has isolated memory, cache, and SM (Streaming Multiprocessor), ensuring stable performance without workload interference.
+MIG partitions Ampere/Hopper/Blackwell architecture GPUs (A100, H100, H200, B200) into up to 7 **hardware-isolated** GPU instances. Each MIG instance has independent memory, cache, and SM (Streaming Multiprocessor), guaranteeing stable performance without inter-workload interference.
 
-GPU Operator's MIG Manager automatically manages MIG profiles based on ConfigMap.
+**MIG Core Value:**
+- **Hardware isolation**: Memory, SM, L2 cache completely separated for QoS guarantee
+- **Concurrent execution**: Multiple inference workloads run simultaneously without performance degradation
+- **GPU Operator auto-management**: MIG Manager auto-applies profiles based on ConfigMap
+
+**A100 40GB MIG Profiles:**
+
+<SpecificationTable
+  headers={['Profile', 'Memory', 'SM Count', 'Use Case', 'Expected Throughput']}
+  rows={[
+    { id: '1', cells: ['1g.5gb', '5GB', '14', 'Small models (3B and below)', '~20 tok/s'] },
+    { id: '2', cells: ['1g.10gb', '10GB', '14', 'Small models (3B-7B)', '~25 tok/s'] },
+    { id: '3', cells: ['2g.10gb', '10GB', '28', 'Medium models (7B-13B)', '~50 tok/s'] },
+    { id: '4', cells: ['3g.20gb', '20GB', '42', 'Medium-large models (13B-30B)', '~100 tok/s'] },
+    { id: '5', cells: ['4g.20gb', '20GB', '56', 'Large models (13B-30B)', '~130 tok/s'] },
+    { id: '6', cells: ['7g.40gb', '40GB', '84', 'Full GPU (70B+)', '~200 tok/s'] }
+  ]}
+/>
+
+**MIG Profile Management:**
+
+GPU Operator's MIG Manager watches node labels (`nvidia.com/mig.config`) and auto-applies MIG profiles. Define profiles in a ConfigMap, and MIG Manager reconfigures GPUs when node labels change.
 
 ```yaml
 # MIG Profile ConfigMap (mig-parted format)
@@ -436,80 +236,42 @@ data:
   config.yaml: |
     version: v1
     mig-configs:
-      # 7 small instances: multi-serving of small models
-      all-1g.5gb:
+      all-1g.5gb:          # 7 small instances
         - devices: all
           mig-enabled: true
           mig-devices:
             "1g.5gb": 7
-
-      # Mixed configuration: simultaneous large + small operation
-      mixed-balanced:
+      mixed-balanced:      # Mixed configuration
         - devices: all
           mig-enabled: true
           mig-devices:
             "3g.20gb": 1
             "2g.10gb": 1
             "1g.5gb": 2
-
-      # Single large instance: 70B+ models
-      single-7g:
+      single-7g:           # Single large
         - devices: all
           mig-enabled: true
           mig-devices:
             "7g.40gb": 1
-
----
-
-# Apply MIG profile (select by node label)
-# kubectl label node gpu-node-01 nvidia.com/mig.config=mixed-balanced
-
----
-
-# Use MIG device in Pod
-apiVersion: v1
-kind: Pod
-metadata:
-  name: vllm-mig-inference
-  namespace: ai-inference
-spec:
-  containers:
-    - name: vllm
-      image: vllm/vllm-openai:latest
-      command: ["python", "-m", "vllm.entrypoints.openai.api_server"]
-      args:
-        - "--model"
-        - "meta-llama/Llama-2-7b-hf"
-        - "--gpu-memory-utilization"
-        - "0.9"
-      resources:
-        requests:
-          memory: "4Gi"
-          cpu: "4"
-          nvidia.com/mig-1g.5gb: 1   # Specify MIG profile
-        limits:
-          nvidia.com/mig-1g.5gb: 1
 ```
 
-**A100 40GB MIG Profiles:**
+Pods request MIG devices using `nvidia.com/mig-<profile>` resources.
 
-<SpecificationTable
-  headers={['Profile', 'Memory', 'SM Count', 'Use Case', 'Expected Throughput']}
-  rows={[
-    { id: '1', cells: ['1g.5gb', '5GB', '14', 'Small models (3B or less)', '~20 tok/s'] },
-    { id: '2', cells: ['1g.10gb', '10GB', '14', 'Small models (3B-7B)', '~25 tok/s'] },
-    { id: '3', cells: ['2g.10gb', '10GB', '28', 'Medium models (7B-13B)', '~50 tok/s'] },
-    { id: '4', cells: ['3g.20gb', '20GB', '42', 'Medium-large models (13B-30B)', '~100 tok/s'] },
-    { id: '5', cells: ['4g.20gb', '20GB', '56', 'Large models (13B-30B)', '~130 tok/s'] },
-    { id: '6', cells: ['7g.40gb', '40GB', '84', 'Extra-large models (70B+)', '~200 tok/s'] }
-  ]}
-/>
+```yaml
+resources:
+  requests:
+    nvidia.com/mig-1g.5gb: 1
+  limits:
+    nvidia.com/mig-1g.5gb: 1
+```
 
-### Time-Slicing Based Partitioning
+### Time-Slicing
 
-Time-Slicing divides GPU computing time on a time basis, allowing multiple Pods to share the same GPU. Unlike MIG, it is **available on all NVIDIA GPUs** but lacks memory isolation between workloads and performance degradation occurs during concurrent execution.
+Time-Slicing shares GPU computing time across multiple Pods based on time division. Unlike MIG, it's **available on all NVIDIA GPUs** but lacks inter-workload memory isolation.
 
-Configure Time-Slicing via GPU Operator's ClusterPolicy or ConfigMap.
+**Configuration:**
+
+GPU Operator's ClusterPolicy references a ConfigMap to enable Time-Slicing.
 
 ```yaml
 # Time-Slicing ConfigMap
@@ -523,295 +285,177 @@ data:
     version: v1
     sharing:
       timeSlicing:
-        renameByDefault: false
-        failRequestsGreaterThanOne: false
         resources:
           - name: nvidia.com/gpu
-            replicas: 4  # Each GPU shared by 4 Pods
-
----
-
-# Enable Time-Slicing in ClusterPolicy
-apiVersion: nvidia.com/v1
-kind: ClusterPolicy
-metadata:
-  name: cluster-policy
-spec:
-  devicePlugin:
-    enabled: true
-    config:
-      name: time-slicing-config  # Reference ConfigMap
-      default: any
-
----
-
-# Use Time-Sliced GPU in Pod (same as regular GPU request)
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: vllm-timeslice-replicas
-  namespace: ai-inference
-spec:
-  replicas: 3  # 3 Pods share the same GPU
-  selector:
-    matchLabels:
-      app: vllm-slice
-  template:
-    metadata:
-      labels:
-        app: vllm-slice
-    spec:
-      containers:
-        - name: vllm
-          image: vllm/vllm-openai:latest
-          resources:
-            requests:
-              nvidia.com/gpu: 1  # GPU slice allocated when Time-Slicing enabled
-              memory: "8Gi"
-              cpu: "2"
-            limits:
-              nvidia.com/gpu: 1
+            replicas: 4    # Each GPU shared by 4 Pods
 ```
 
-**Time-Slicing Performance Considerations:**
+Pods request `nvidia.com/gpu: 1` as usual. On Time-Slicing-enabled nodes, a GPU slice is allocated.
+
+### MIG vs Time-Slicing Comparison
+
+<ComparisonTable
+  headers={['Item', 'MIG', 'Time-Slicing']}
+  rows={[
+    { id: '1', cells: ['Isolation level', 'Hardware isolation (memory, SM, cache)', 'Software time-sharing (no isolation)'] },
+    { id: '2', cells: ['Supported GPUs', 'A100, H100, H200, B200', 'All NVIDIA GPUs'] },
+    { id: '3', cells: ['Max partitions', '7 instances', 'Unlimited (performance degrades proportionally)'] },
+    { id: '4', cells: ['Performance predictability', 'Guaranteed (QoS)', 'Varies with concurrent workload count'] },
+    { id: '5', cells: ['Memory safety', 'OOM does not affect other instances', 'OOM affects other workloads'] },
+    { id: '6', cells: ['Suitable environment', 'Production inference, multi-tenant', 'Dev/test, batch inference'], recommended: true }
+  ]}
+/>
 
 :::warning Time-Slicing Performance Characteristics
-- **Context Switching Overhead**: Minimal at ~1% level
-- **Concurrent Execution Performance Degradation**: Shares GPU memory and compute, resulting in **50-100% performance degradation** depending on concurrent workload count
-- **No Memory Isolation**: Unlike MIG, GPU memory not isolated between workloads, so one workload's OOM affects others
+- **Context switching overhead**: ~1% level, negligible
+- **Concurrent execution degradation**: **50-100% performance drop** as GPU memory and compute are shared
+- **No memory isolation**: One workload's OOM affects others
+- **Suitable**: Batch inference, dev/test environments | **Not suitable**: Real-time inference (SLA), high-performance training
 :::
-
-| Use Case | Suitability | Reason |
-|----------|:------:|------|
-| Batch inference, non-urgent tasks | Suitable | Sequential execution minimizes performance impact |
-| Development/test environments | Suitable | GPU cost savings, performance guarantee unnecessary |
-| Real-time inference (with SLA) | Unsuitable | Unpredictable latency during concurrent workloads |
-| High-performance training | Unsuitable | Requires full GPU memory utilization |
 
 ---
 
-## NVIDIA Dynamo: Datacenter-Scale Inference Optimization
+## Dynamo: Datacenter-Scale Inference Optimization
 
 ### Overview
 
-**NVIDIA Dynamo** is an open-source framework that optimizes LLM inference at datacenter scale. It supports vLLM, SGLang, and TensorRT-LLM as backends, achieving **up to 7x performance improvement** over existing solutions in the SemiAnalysis InferenceX benchmark.
+**NVIDIA Dynamo** is an open-source framework that optimizes datacenter-scale LLM inference. It supports vLLM, SGLang, and TensorRT-LLM as backends, achieving **up to 7x performance improvement** over baselines.
 
-:::info Dynamo v1.0 (2026.03 GA)
-- **Supported Backends**: vLLM, SGLang, TensorRT-LLM
-- **Serving Modes**: Both Aggregated + Disaggregated equally supported
-- **Core Technologies**: Flash Indexer (radix tree KV indexing), NIXL (common KV transfer), KAI Scheduler (GPU-aware Pod placement), Planner (SLO-based autoscaling), EPP (Gateway API integration)
-- **Deployment**: Kubernetes Operator + CRD based
+:::info Dynamo v1.0 GA (2026.03)
+- **Serving modes**: Aggregated + Disaggregated equally supported
+- **Core technologies**: Flash Indexer, NIXL, KAI Scheduler, Planner, EPP
+- **Deployment**: Kubernetes Operator + CRD (DGDR)
 - **License**: Apache 2.0
 :::
 
 ### Core Architecture
 
-Dynamo **equally supports both Aggregated Serving and Disaggregated Serving**. In Disaggregated mode, it separates Prefill (prompt processing) and Decode (token generation) for independent scaling per stage. The latest release introduces **radix tree-based Flash Indexer** for indexing KV cache per worker to optimize prefix matching.
+Dynamo supports both Aggregated Serving and Disaggregated Serving. In Disaggregated mode, Prefill (prompt processing) and Decode (token generation) are separated for independent scaling.
 
 ```mermaid
 flowchart TD
-    CLIENT["Client Request"] --> ROUTER["Dynamo Router<br/>KV Cache-aware"]
+    CLIENT["Request"] --> ROUTER["Dynamo Router<br/>KV Cache-aware"]
 
     subgraph Prefill["Prefill Workers"]
-        PF1["Prefill-1<br/>GPU"]
-        PF2["Prefill-2<br/>GPU"]
+        PF1["Prefill-1"]
+        PF2["Prefill-2"]
     end
 
     subgraph Decode["Decode Workers"]
-        DC1["Decode-1<br/>GPU"]
-        DC2["Decode-2<br/>GPU"]
-        DC3["Decode-3<br/>GPU"]
+        DC1["Decode-1"]
+        DC2["Decode-2"]
+        DC3["Decode-3"]
     end
 
-    subgraph KVCache["KV Cache Management"]
+    ROUTER -->|Prompt| PF1
+    ROUTER -->|Prompt| PF2
+    PF1 -->|NIXL| DC1
+    PF2 -->|NIXL| DC2
+
+    subgraph Infra["Infrastructure"]
         KVBM["KVBM<br/>GPU→CPU→SSD"]
-        NIXL["NIXL<br/>KV Transfer"]
+        KAI["KAI Scheduler"]
+        PLANNER["Planner"]
+        EPP["EPP"]
     end
 
-    ROUTER -->|"Prompt"| PF1
-    ROUTER -->|"Prompt"| PF2
-    PF1 -->|"KV Cache"| NIXL
-    PF2 -->|"KV Cache"| NIXL
-    NIXL --> DC1
-    NIXL --> DC2
-    NIXL --> DC3
     DC1 --> KVBM
-    DC2 --> KVBM
-    DC3 --> KVBM
-
-    subgraph Scheduler["Scheduling & Autoscaling"]
-        KAI["KAI Scheduler<br/>GPU-aware Pod Placement"]
-        PLANNER["Planner<br/>SLO-based Autoscaling"]
-        EPP["EPP<br/>Gateway API Integration"]
-    end
-
     KAI -.-> Prefill
     KAI -.-> Decode
     PLANNER -.-> Prefill
-    PLANNER -.-> Decode
     EPP -.-> ROUTER
 
     style ROUTER fill:#76b900,color:#fff
-    style NIXL fill:#326ce5,color:#fff
     style KVBM fill:#ff9900,color:#fff
-    style KAI fill:#9c27b0,color:#fff
-    style PLANNER fill:#e91e63,color:#fff
-    style EPP fill:#00bcd4,color:#fff
 ```
 
 ### Core Components
 
-| Component | Role | Benefits |
-|----------|------|------|
-| **Disaggregated Serving** | Separate Prefill/Decode workers (Aggregated also supported) | Independent scaling per stage, maximize GPU utilization |
-| **KV Cache Routing** | Prefix-aware request routing | Improve KV Cache hit rate, reduce TTFT |
-| **Flash Indexer** | Radix tree-based KV cache indexing per worker | Optimize prefix matching, maximize KV reuse rate |
-| **KVBM (KV Block Manager)** | GPU → CPU → SSD 3-tier cache | Maximize memory efficiency, support large contexts |
-| **NIXL** | NVIDIA Inference Transfer Library (common KV transfer engine) | Ultra-fast KV Cache transfer between GPUs (NVLink/RDMA). Used by Dynamo, llm-d, production-stack, aibrix, and most other projects |
-| **KAI Scheduler** | GPU-aware K8s Pod scheduler | GPU topology, MIG slice-aware Pod placement. Depends on ClusterPolicy |
-| **Planner** | SLO-based autoscaling | Run profiling → supply results to Planner → automatic scaling based on SLO targets |
-| **EPP (Endpoint Picker Protocol)** | Gateway API integration | Dynamo's own EPP implementation for native K8s Gateway API integration |
+| Component | Role | Benefit |
+|-----------|------|---------|
+| **Disaggregated Serving** | Separate Prefill/Decode workers | Independent per-phase scaling, maximize GPU utilization |
+| **Flash Indexer** | Radix tree-based per-worker KV cache indexing | Prefix matching optimization, maximize KV reuse |
+| **KVBM** | GPU → CPU → SSD 3-tier cache | Maximize memory efficiency, support large-scale contexts |
+| **NIXL** | NVIDIA Inference Transfer Library | Ultra-fast GPU-to-GPU KV Cache transfer (NVLink/RDMA). Shared by Dynamo, llm-d, production-stack, aibrix |
+| **Planner** | SLO-based autoscaling | Profiling → SLO target-based automatic Prefill/Decode scaling |
+| **EPP** | Endpoint Picker Protocol | Native integration with K8s Gateway API |
+| **AIConfigurator** | Auto TP/PP recommendation | Optimal parallelization based on model size, GPU memory, network topology |
 
-### EKS Deployment
+### llm-d Selection Guide
 
-Dynamo is deployed to EKS using the Kubernetes Operator pattern.
+llm-d and Dynamo both handle LLM inference routing/scheduling and **compete at the routing layer**, so you choose one.
 
-**Installation Steps:**
-
-```bash
-# 1. Monitoring stack (Prometheus + Grafana)
-helm install kube-prometheus-stack prometheus-community/kube-prometheus-stack \
-  --namespace monitoring --create-namespace
-
-# 2. GPU Operator (skip if already installed)
-helm install gpu-operator nvidia/gpu-operator \
-  --namespace gpu-operator --create-namespace
-
-# 3. Dynamo Platform (Operator + etcd + NATS)
-helm install dynamo-platform nvidia/dynamo-platform \
-  --namespace dynamo-system --create-namespace
-
-# 4. Deploy Dynamo vLLM workload
-kubectl apply -f dynamo-vllm-deployment.yaml
+```
+llm-d:    Client → llm-d Router → vLLM Workers
+Dynamo:   Client → Dynamo Router → Prefill Workers → (NIXL) → Decode Workers
 ```
 
-**DynamoGraphDeploymentRequest (DGDR) CRD-based deployment:**
-
-```yaml
-apiVersion: dynamo.nvidia.com/v1alpha1
-kind: DynamoGraphDeploymentRequest
-metadata:
-  name: llama-70b-disagg
-  namespace: ai-inference
-spec:
-  graph:
-    name: disaggregated-llm
-    engine: vllm
-    model: meta-llama/Llama-3.1-70B-Instruct
-  serving:
-    mode: disaggregated  # aggregated | disaggregated
-    prefill:
-      replicas: 2
-      resources:
-        nvidia.com/gpu: 4
-    decode:
-      replicas: 4
-      resources:
-        nvidia.com/gpu: 2
-  routing:
-    strategy: prefix-aware
-    kvCacheRouting: true
-  sla:
-    maxTTFT: 500ms
-    maxITL: 50ms
-  autoscaling:
-    enabled: true
-    minReplicas: 2
-    maxReplicas: 16
-    targetUtilization: 70
-```
-
-### AIConfigurator
-
-Dynamo's **AIConfigurator** automatically recommends optimal Tensor Parallelism (TP) and Pipeline Parallelism (PP) settings based on model and hardware configuration.
-
-| Feature | Description |
-|------|------|
-| Automatic TP/PP Recommendation | Optimal parallelization based on model size, GPU memory, network topology |
-| Pareto Frontier | Find optimal points on throughput-latency tradeoff |
-| Hardware Profiling | Auto-detect GPU-to-GPU bandwidth, NVLink topology |
-| SLA-based Optimization | Configuration recommendations based on target TTFT/ITL |
-
----
-
-## llm-d vs Dynamo Selection Guide
-
-Both llm-d and NVIDIA Dynamo handle LLM inference routing/scheduling, but they are **alternatives** and should be selected rather than used together.
-
-### Feature Comparison
-
-| Item | llm-d | NVIDIA Dynamo |
-|------|-------|---------------|
-| **Architecture** | Aggregated + Disaggregated | Aggregated + Disaggregated (equally supported) |
-| **KV Cache Routing** | Prefix-aware routing | Prefix-aware + Flash Indexer (radix tree) |
-| **KV Cache Transfer** | NIXL (network also supported) | NIXL (NVLink/RDMA ultra-fast transfer) |
-| **Routing** | Gateway API + Envoy EPP | Dynamo Router + own EPP (Gateway API integration) |
-| **Pod Scheduling** | Default K8s scheduler (no built-in) | KAI Scheduler (GPU-aware Pod placement) |
-| **Autoscaling** | HPA/KEDA integration | Planner (SLO-based: profiling → autoscale) + KEDA/HPA |
-| **vLLM Backend** | Supported | Supported (also SGLang, TRT-LLM) |
-| **Kubernetes Integration** | Gateway API native | Operator + CRD (DGDR) + Gateway API EPP |
-| **Complexity** | Low -- add router to existing vLLM | High -- replace entire serving stack |
-| **Performance Gain** | Reduce TTFT via prefix hit | Flash Indexer + Disaggregated for up to 7x throughput |
-| **Maturity** | v0.5+ | v1.0 GA (2026.03) |
-
-### Why Difficult to Use Together
-
-Both act as **routers that decide which backend to send requests to**. Since they compete at the routing layer, connecting two routers serially makes no sense.
-
-```text
-llm-d alone:    Client → llm-d Router → vLLM Workers (Aggregated or Prefill/Decode separated)
-Dynamo alone:   Client → Dynamo Router → Prefill Workers → (NIXL) → Decode Workers
-```
-
-:::info Dynamo + llm-d Integration Possibility
-Dynamo 1.0 can integrate llm-d as an internal component. In this case, llm-d acts not as an independent router but as Dynamo's KV Cache-aware routing layer. Rather than being complete alternatives, Dynamo can be viewed as a superset containing llm-d.
-:::
-
-### Selection Criteria
+<ComparisonTable
+  headers={['Item', 'llm-d', 'Dynamo']}
+  rows={[
+    { id: '1', cells: ['Architecture', 'Aggregated + Disaggregated', 'Aggregated + Disaggregated (equal support)'] },
+    { id: '2', cells: ['KV Cache Routing', 'Prefix-aware', 'Prefix-aware + Flash Indexer (radix tree)'] },
+    { id: '3', cells: ['KV Cache Transfer', 'NIXL', 'NIXL (NVLink/RDMA)'] },
+    { id: '4', cells: ['Pod Scheduling', 'K8s default scheduler', 'KAI Scheduler (GPU-aware)'] },
+    { id: '5', cells: ['Autoscaling', 'HPA/KEDA integration', 'Planner (SLO-based) + KEDA/HPA'] },
+    { id: '6', cells: ['Backend', 'vLLM', 'vLLM, SGLang, TRT-LLM'] },
+    { id: '7', cells: ['Complexity', 'Low — add router to existing vLLM', 'High — replace entire serving stack'] },
+    { id: '8', cells: ['Maturity', 'v0.5+', 'v1.0 GA'] }
+  ]}
+/>
 
 | Scenario | Recommendation |
-|----------|------|
-| Add routing only to existing vLLM deployment | **llm-d** |
-| Small to medium scale (8 GPUs or fewer) | **llm-d** |
-| Gateway API-based K8s native routing | **llm-d** |
+|----------|---------------|
+| Add routing to existing vLLM | **llm-d** |
+| Small-medium scale (8 GPUs or less) | **llm-d** |
+| Gateway API-based K8s native | **llm-d** |
 | Large scale (16+ GPUs), maximize throughput | **Dynamo** |
-| Need NIXL-based ultra-fast KV transfer between GPUs | **Dynamo** |
-| Long context (128K+) workloads | **Dynamo** (NIXL + 3-tier KV cache) |
+| Long context (128K+) workloads | **Dynamo** (3-tier KV cache) |
 | Fast adoption, low operational complexity | **llm-d** |
 
 :::tip Migration Path
-Starting with llm-d and transitioning to Dynamo as scale grows is practical. Both use vLLM as backend and leverage NIXL for KV transfer. Key differences are Dynamo's Flash Indexer (radix tree KV indexing), KAI Scheduler (GPU-aware Pod placement), and Planner (SLO-based autoscaling).
+Starting with llm-d and transitioning to Dynamo as scale grows is practical. Both share vLLM backend and NIXL KV transfer. The key differences are Dynamo's Flash Indexer, KAI Scheduler, and Planner. Dynamo 1.0 can integrate llm-d as an internal component, making it viewable as a superset rather than a complete alternative.
 :::
 
 ---
 
-## Summary
+## KAI Scheduler
 
-The NVIDIA GPU software stack consists of three layers: GPU Operator (infrastructure automation), DCGM (monitoring), and Run:ai (orchestration). GPUs can be efficiently partitioned through MIG and Time-Slicing, and NVIDIA Dynamo can be used to optimize LLM inference at datacenter scale.
+KAI Scheduler is NVIDIA's **GPU-aware Kubernetes Pod scheduler**. Unlike the default kube-scheduler, it recognizes GPU topology (NVLink, PCIe), MIG slices, and Gang Scheduling to determine optimal Pod placement.
 
-### Next Steps
+### Core Features
 
-- [EKS GPU Resource Management](./gpu-resource-management.md) -- Karpenter, KEDA, DRA, cost optimization
-- [EKS GPU Node Strategy](./eks-gpu-node-strategy.md) -- Auto Mode + Karpenter + Hybrid Node configuration
-- [vLLM Model Serving](./vllm-model-serving.md) -- vLLM-based inference engine
+| Feature | Description |
+|---------|-------------|
+| **GPU Topology Awareness** | Minimizes communication cost by recognizing NVLink/PCIe connection structure |
+| **MIG-aware Scheduling** | Recognizes MIG slices as individual scheduling units |
+| **Gang Scheduling** | Guarantees all Pods are placed simultaneously in distributed training |
+| **Fair-share Scheduling** | Per-namespace/team GPU quota management |
+| **Preemption** | Priority-based Pod replacement |
+
+### Design Considerations
+
+- **ClusterPolicy dependency**: KAI Scheduler requires GPU Operator's ClusterPolicy to be installed
+- **EKS Auto Mode**: KAI Scheduler usable after installing GPU Operator with Device Plugin disabled via label
+- **Relationship with kube-scheduler**: KAI Scheduler does not replace kube-scheduler; it operates as a Secondary Scheduler delegated only for GPU workloads
+
+:::info KAI Scheduler =/= Autoscaling
+KAI Scheduler is a scheduler that decides **which node to place Pods on**. It is separate from autoscaling (KEDA/HPA) that increases Pod count or provisioning (Karpenter) that adds nodes.
+:::
 
 ---
+
+## Related Documents
+
+- [GPU Resource Management](./gpu-resource-management.md) — Karpenter, KEDA, DRA, cost optimization
+- [EKS GPU Node Strategy](./eks-gpu-node-strategy.md) — Auto Mode + Karpenter + Hybrid Node configuration
+- [vLLM Model Serving](./vllm-model-serving.md) — vLLM-based inference engine
+- [llm-d EKS Auto Mode](./llm-d-eks-automode.md) — llm-d detailed architecture
 
 ## References
 
 - [NVIDIA GPU Operator Documentation](https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/latest/)
 - [NVIDIA DCGM Exporter](https://github.com/NVIDIA/dcgm-exporter)
 - [NVIDIA Dynamo GitHub](https://github.com/ai-dynamo/dynamo)
-- [Dynamo Architecture Overview](https://github.com/ai-dynamo/dynamo/blob/main/docs/architecture.md)
 - [NIXL - NVIDIA Inference Transfer Library](https://github.com/ai-dynamo/nixl)
 - [KAI Scheduler](https://github.com/NVIDIA/KAI-Scheduler)

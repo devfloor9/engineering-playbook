@@ -1,7 +1,7 @@
 ---
 title: "Cross-Cluster Object Replication (HA) Architecture Guide"
 sidebar_label: "Cross-Cluster Replication (HA)"
-description: "Multi-cluster object replication patterns and decision guide for high availability architecture in EKS environments"
+description: "Architecture patterns and decision guide for achieving high availability through object replication in EKS multi-cluster environments"
 tags: [eks, multi-cluster, high-availability, gitops, argocd, flux, disaster-recovery]
 category: "infrastructure"
 sidebar_position: 3
@@ -12,26 +12,26 @@ last_update:
 
 # Cross-Cluster Object Replication (HA) Architecture Guide
 
-> 📅 **Created**: 2026-03-24 | **Updated**: 2026-03-24 | ⏱️ **Reading time**: ~12 min
+> **Written**: 2026-03-24 | **Updated**: 2026-03-24 | **Reading time**: ~12 min
 
-> **📌 Reference Environment**: EKS 1.32+, ArgoCD 2.13+, Flux v2.4+, Velero 1.15+
+> **Reference Environment**: EKS 1.32+, ArgoCD 2.13+, Flux v2.4+, Velero 1.15+
 
 ## 1. Overview
 
-Relying on a single EKS cluster in production environments means that cluster failure results in complete service outage. **Cross-Cluster Object Replication** is a strategy to ensure high availability by consistently replicating Kubernetes objects (ConfigMap, Secret, RBAC, CRD, NetworkPolicy, etc.) across multiple clusters.
+Relying on a single EKS cluster in production means a cluster failure brings down the entire service. **Cross-Cluster Object Replication** is a strategy that ensures high availability by consistently replicating Kubernetes objects (ConfigMaps, Secrets, RBAC, CRDs, NetworkPolicies, etc.) across multiple clusters.
 
-### Current Situation
+### Current State
 
-EKS does not provide a managed Cross-Cluster Object Replication feature. Therefore, you must implement it yourself by **combining open-source tools and architecture patterns**. This guide compares the pros and cons of each pattern and presents selection criteria based on workload types.
+EKS does not provide managed Cross-Cluster Object Replication. Therefore, you must implement it yourself by **combining open-source tools and architecture patterns**. This guide compares the pros and cons of each pattern and provides selection criteria based on workload types.
 
 ### Scope of This Guide
 
-| Included | Excluded |
-|----------|----------|
+| Included | Not Included |
+|----------|-------------|
 | K8s object replication (ConfigMap, Secret, CRD, RBAC, etc.) | Application data replication (DB replicas) |
 | GitOps-based declarative synchronization | Service mesh-based traffic routing |
 | Stateful object backup/restore (Velero) | Storage layer replication (EBS, EFS) |
-| DNS failover strategy | Application-level HA patterns |
+| DNS failover strategies | Application-level HA patterns |
 
 ---
 
@@ -54,11 +54,11 @@ graph LR
     style C2 fill:#4286f4,stroke:#2a6acf,color:#fff
 ```
 
-- **How it works**: Central layer makes direct API calls to each cluster
-- **Advantages**: Lightweight and intuitive
-- **Limitations**: Weak credential security, cannot Watch multiple clusters, increasing connection complexity
+- **How it works**: Direct API calls from a central point to each cluster
+- **Pros**: Lightweight and intuitive
+- **Cons**: Credential security vulnerabilities, no multi-cluster Watch support, increasing connection complexity
 
-### Pattern 2: Multi-cluster Controller (Kubefed Family)
+### Pattern 2: Multi-cluster Controller (Kubefed-style)
 
 A central controller monitors each cluster's state via Informer-based List-Watch and synchronizes through CRDs.
 
@@ -76,17 +76,17 @@ graph TB
     style C3 fill:#4286f4,stroke:#2a6acf,color:#fff
 ```
 
-- **How it works**: Central controller watches and synchronizes each cluster's state
-- **Advantages**: Dynamic cluster discovery, Federation policy application
-- **Limitations**: Watch event overflow at ~10+ clusters, Informer cache size limits, risk of plaintext credential storage
+- **How it works**: Central controller monitors and synchronizes each cluster's state
+- **Pros**: Dynamic cluster discovery, federation policies
+- **Cons**: Watch event overflow at ~10+ clusters, Informer cache size limits, plaintext credential storage risk
 
 :::warning Kubefed Project Status
-Kubefed (v2) in Kubernetes SIG is effectively in maintenance mode. Not recommended for new projects.
+Kubefed (v2) is effectively in maintenance mode by the Kubernetes SIG. It is not recommended for new projects.
 :::
 
 ### Pattern 3: Agent-based Pull Model (Recommended)
 
-Agents in each cluster Pull the desired state from a central source (Git or hub cluster) and Reconcile locally. This follows the same principle as kubelet receiving Pod specs and executing them locally.
+Agents in each cluster pull the desired state from a central source (Git or hub cluster) and reconcile locally. This follows the same principle as kubelet receiving Pod specs and running them locally.
 
 ```mermaid
 graph TB
@@ -110,40 +110,40 @@ graph TB
     style B_AGENT fill:#4286f4,stroke:#2a6acf,color:#fff
 ```
 
-- **How it works**: Each cluster agent independently Pulls desired state and Reconciles locally
-- **Advantages**: High scalability, Eventual Consistency, maintains local operation despite central failure
-- **Limitations**: Requires agent deployment to all clusters
+- **How it works**: Each cluster agent independently pulls the desired state and reconciles locally
+- **Pros**: High scalability, eventual consistency, local operation continues even during central failures
+- **Cons**: Requires agent deployment on all clusters
 
 ### Pattern Comparison Summary
 
 | Aspect | API Proxy | Multi-cluster Controller | Agent-based Pull |
 |--------|-----------|--------------------------|-------------------|
-| **Operation Mode** | Central → Cluster Push | Central Watch + CRD Sync | Cluster → Central Pull |
+| **Operation** | Central → Cluster Push | Central Watch + CRD Sync | Cluster → Central Pull |
 | **Scalability** | Low (proportional to connections) | Medium (~10 clusters) | High (hundreds of clusters) |
 | **Complexity** | Low | High | Medium |
-| **Security** | Weak (multiple credentials) | Weak (plaintext storage) | Strong (agent local permissions) |
-| **Failure Isolation** | Low | Medium | High |
+| **Security** | Weak (many credentials) | Weak (plaintext storage) | Strong (agent local permissions) |
+| **Fault Isolation** | Low | Medium | High |
 | **Drift Detection** | None | Partial | Built-in |
-| **Recommended Scenario** | PoC, small scale | Legacy environments | **Production (Recommended)** |
+| **Recommended For** | PoC, small scale | Legacy environments | **Production (recommended)** |
 
 ### Decision Flowchart
 
 ```mermaid
 flowchart TD
-    START[Cross-Cluster<br/>Object Replication Needed] --> Q1{Number of<br/>Clusters?}
+    START[Cross-Cluster<br/>Object Replication Needed] --> Q1{Number of clusters?}
 
-    Q1 --> |2-3 clusters| Q2{Declarative<br/>Management<br/>Required?}
-    Q1 --> |4+ clusters| PULL[Agent-based Pull<br/>GitOps Recommended]
+    Q1 --> |2-3| Q2{Declarative<br/>management needed?}
+    Q1 --> |4 or more| PULL[Agent-based Pull<br/>GitOps recommended]
 
     Q2 --> |Yes| PULL
-    Q2 --> |No, Simple Replication| Q3{Fine-grained<br/>Object Control?}
+    Q2 --> |No, simple replication| Q3{Fine-grained<br/>object control?}
 
     Q3 --> |Yes| MIRROR[Custom Controller<br/>MirrorController]
-    Q3 --> |No| PROXY[API Proxy<br/>Lightweight Solution]
+    Q3 --> |No| PROXY[API Proxy<br/>Lightweight solution]
 
-    PULL --> GITOPS{GitOps Tool Selection}
-    GITOPS --> |Hub-Spoke Central Management| ARGO[ArgoCD<br/>Hub-and-Spoke]
-    GITOPS --> |Distributed Autonomous Operation| FLUX[Flux<br/>Per-Cluster Independence]
+    PULL --> GITOPS{GitOps tool selection}
+    GITOPS --> |Hub-Spoke centralized| ARGO[ArgoCD<br/>Hub-and-Spoke]
+    GITOPS --> |Distributed autonomous| FLUX[Flux<br/>Per-cluster independent]
 
     style START fill:#232f3e,stroke:#1a2332,color:#fff
     style PULL fill:#34a853,stroke:#2a8642,color:#fff
@@ -159,7 +159,7 @@ flowchart TD
 
 ### Option A: GitOps (Flux / ArgoCD) — Recommended for Most Use Cases
 
-Use a Git repository as the Single Source of Truth, and have each cluster's GitOps agent independently Pull & Reconcile.
+Uses a Git repository as the Single Source of Truth, with GitOps agents in each cluster independently pulling and reconciling.
 
 ```mermaid
 graph TB
@@ -190,17 +190,17 @@ graph TB
 **Key Benefits:**
 
 - **Drift Detection**: Automatically detects and recovers when cluster state differs from Git
-- **Audit Trail**: All change history preserved as Git commits
-- **Declarative Management**: Define desired state and agents Reconcile
-- **Failure Isolation**: Agent failure in one cluster doesn't affect other clusters
+- **Audit Trail**: All change history is recorded as Git commits
+- **Declarative Management**: Define the desired state and let agents reconcile
+- **Fault Isolation**: An agent failure in one cluster does not affect others
 
 **Active-Active Configuration:**
 
-Both clusters independently Pull from the same Git repository. DNS (Route 53) distributes traffic, and when one cluster fails, the remaining cluster immediately handles all traffic.
+Both clusters independently pull from the same Git repo. DNS (Route 53) distributes traffic, and if one cluster fails, the remaining cluster immediately handles all traffic.
 
 **Active-Passive Configuration:**
 
-Only the Active cluster enables the GitOps agent. The Passive cluster keeps its agent in Suspended state and activates it during failover.
+Only the Active cluster has its GitOps agent enabled. The Passive cluster keeps its agent in Suspended state, activating it during failover.
 
 ### Option B: ArgoCD Hub-and-Spoke Model
 
@@ -231,35 +231,35 @@ graph TB
     style WB fill:#4286f4,stroke:#2a6acf,color:#fff
 ```
 
-**HA Configuration Strategies:**
+**HA Strategies:**
 
 | Strategy | Description | Suitable Scenario |
 |----------|-------------|-------------------|
-| **Active-Passive Mirroring** | Deploy ArgoCD in two regions, disable controller in Passive. Manual Scale-Up during failover | Environments with low DR requirements |
-| **Active-Active Sync Windows** | Two ArgoCD instances Sync in non-overlapping time windows (Sync Windows feature) | Active-Active requiring conflict prevention |
+| **Active-Passive Mirroring** | Deploy ArgoCD in two regions; Passive keeps controllers disabled. Manual Scale-Up during failover | Environments with low DR requirements |
+| **Active-Active Sync Windows** | Two ArgoCD instances sync during non-overlapping time windows (Sync Windows feature) | Active-Active requiring conflict prevention |
 
 :::info ApplicationSets Generator
-Using ArgoCD ApplicationSets' `Cluster Generator`, you can automatically deploy applications to all clusters registered with ArgoCD. Replication starts immediately when a new cluster is added without additional configuration.
+Using ArgoCD ApplicationSets' `Cluster Generator`, applications can be automatically deployed to all clusters registered with ArgoCD. When a new cluster is added, replication starts immediately without additional configuration.
 :::
 
 ### Option C: Custom Controller (MirrorController Pattern)
 
 When fine-grained control over object replication is needed, develop a dedicated controller to manage synchronization between source and target clusters.
 
-**Application Scenarios:**
+**Use Cases:**
 
-- Selective replication of objects with specific Labels/Annotations only
-- Object transformation needed during replication (e.g., Namespace changes, field modifications)
-- Custom conflict resolution logic implementation required
+- Selective replication of only objects with specific Labels/Annotations
+- Object transformation during replication (e.g., Namespace changes, field modifications)
+- Custom conflict resolution logic
 
 **Pros and Cons:**
 
-| Advantages | Disadvantages |
-|------------|---------------|
+| Pros | Cons |
+|------|------|
 | Clear separation of concerns | Additional operational overhead |
 | Reduced core logic complexity | Potential synchronization delays |
 | Fine-grained replication policy control | Increased debugging complexity |
-| Customizable conflict resolution | Direct development/maintenance required |
+| Custom conflict resolution | Requires in-house development/maintenance |
 
 ---
 
@@ -269,24 +269,24 @@ When fine-grained control over object replication is needed, develop a dedicated
 
 | Aspect | Active-Active | Active-Passive |
 |--------|---------------|----------------|
-| **Object Synchronization** | Both clusters Pull independently from same Git source | Only Active Reconciles, Passive waits |
-| **Failover Time** | Near zero (both already serving) | Few minutes (Passive activation needed) |
-| **Conflict Resolution** | Write conflicts possible — prevent with Sync Windows, etc. | No conflicts — single Writer |
-| **Operational Complexity** | High (object IDs, DNS, state sync) | Low (standard failover model) |
-| **Cost** | High (both operate at full capacity) | Low (Passive can run at reduced capacity) |
+| **Object Sync** | Both clusters independently pull from same Git source | Only Active reconciles; Passive stands by |
+| **Failover Time** | Near-zero (both already serving) | Minutes (Passive activation required) |
+| **Conflict Resolution** | Write conflicts possible — prevention via Sync Windows needed | No conflicts — single writer |
+| **Operational Complexity** | High (object IDs, DNS, state synchronization) | Low (standard failover model) |
+| **Cost** | High (full capacity on both sides) | Low (Passive can run at reduced capacity) |
 | **Suitable Scenario** | Multi-region HA, global load balancing | DR, cost-sensitive HA |
 
 ### Recommended Mode by Workload Type
 
 ```mermaid
 graph LR
-    subgraph "Workload Type"
+    subgraph "Workload Types"
         SL[Stateless<br/>API, Web]
         SF[Stateful<br/>DB, Cache]
         AI[AI/ML Inference<br/>vLLM, TGI]
     end
 
-    subgraph "Recommended Mode"
+    subgraph "Recommended Modes"
         AA[Active-Active<br/>GitOps + Route 53]
         AP[Active-Passive<br/>GitOps + Velero]
         AAM[Active-Active<br/>GitOps + S3 Model Sync]
@@ -315,8 +315,8 @@ Object replication alone cannot achieve complete Cross-Cluster HA. Combine the f
 | **Flux / ArgoCD** | K8s object replication (GitOps) | Core replication mechanism |
 | **Route 53** | DNS-based failover/load balancing | Health Check + Failover Routing |
 | **Global Accelerator** | Anycast IP-based global routing | For multi-region Active-Active |
-| **Velero** | Stateful object backup/restore (PV, etcd) | Integrates with S3 Cross-Region Replication |
-| **External Secrets Operator** | Secret synchronization | AWS Secrets Manager → Both clusters |
+| **Velero** | Stateful object backup/restore (PV, etcd) | Combined with S3 Cross-Region Replication |
+| **External Secrets Operator** | Secret synchronization | AWS Secrets Manager → both clusters |
 | **Crossplane / ACK** | AWS resource definition sync | Manage IaC as K8s objects |
 
 ### Tool Combination Architecture
@@ -361,53 +361,53 @@ graph TB
 
 ## 6. Current Limitations and Future Outlook
 
-There are features in EKS multi-cluster management that are not yet provided as managed services.
+There are features in the EKS multi-cluster management space that are not yet available as managed services.
 
-| Area | Current Status | Alternative |
-|------|----------------|-------------|
-| **Managed ClusterSets** | Not released | Group cross-account with RAM (Resource Access Manager) |
+| Area | Current State | Alternative |
+|------|---------------|-------------|
+| **Managed ClusterSets** | Not released | RAM (Resource Access Manager) for Cross-Account grouping |
 | **Built-in Cross-Cluster Replication** | Not released | GitOps (Flux/ArgoCD) |
-| **Multi-Region EKS Cluster** | Not released | Independent cluster per region + GitOps sync |
-| **Managed ArgoCD** | In development | Self-install/operate ArgoCD |
+| **Multi-Region EKS Cluster** | Not released | Independent clusters per region + GitOps sync |
+| **Managed ArgoCD** | In development | Self-managed ArgoCD installation |
 
 :::tip Practical Approach
-Until these features are released, the GitOps + supporting tool stack combination is the most mature and proven approach. Approximately 10% of EKS customers have already adopted Flux/ArgoCD-based GitOps.
+Until these features are released, the GitOps + supporting tool stack combination is the most mature and proven approach. Already about 10% of EKS customers have adopted GitOps based on Flux/ArgoCD.
 :::
 
 ---
 
-## 7. Production Recommended Combination
+## 7. Recommended Production Combinations
 
-Final recommended tool combination to eliminate single cluster dependency.
+Final recommended tool combinations for eliminating single-cluster dependency.
 
-| Purpose | Recommended Tool | Configuration Method |
-|---------|------------------|----------------------|
-| **K8s Object Replication** | GitOps (Flux or ArgoCD) | Both clusters Pull from same Git repo |
-| **Stateful Data Protection** | Velero + S3 Cross-Region Replication | Regular backup + cross-region replication |
+| Purpose | Recommended Tool | Configuration |
+|---------|------------------|---------------|
+| **K8s Object Replication** | GitOps (Flux or ArgoCD) | Both clusters pull from the same Git repo |
+| **Stateful Data Protection** | Velero + S3 Cross-Region Replication | Scheduled backup + cross-region replication |
 | **Secret Synchronization** | External Secrets Operator | AWS Secrets Manager as shared source |
 | **DNS Failover** | Route 53 Health Checks | Active-Active or Failover Routing |
-| **CRD/Custom Resources** | Include in GitOps repo | Manage like standard K8s objects |
-| **AWS Resource Definitions** | Crossplane or ACK | Synchronize IaC K8s-natively |
+| **CRD/Custom Resources** | Include in GitOps repo | Managed identically to standard K8s objects |
+| **AWS Resource Definitions** | Crossplane or ACK | Sync IaC natively in K8s |
 
 ### Implementation Priority
 
-1. **P0**: Deploy GitOps agents + Design Git repo structure
-2. **P1**: Configure External Secrets Operator + Route 53 Health Check
-3. **P2**: Establish Velero backup policy + S3 Cross-Region Replication
-4. **P3**: Synchronize AWS resources with Crossplane/ACK (if needed)
+1. **P0**: Deploy GitOps agents + design Git repo structure
+2. **P1**: Configure External Secrets Operator + Route 53 Health Checks
+3. **P2**: Establish Velero backup policies + S3 Cross-Region Replication
+4. **P3**: AWS resource sync with Crossplane/ACK (as needed)
 
 ---
 
-## 8. Related Documentation
+## 8. Related Documents
 
-- [EKS High Availability Architecture Guide](/docs/operations-observability/eks-resiliency-guide) — Response strategies by Failure Domain layer
-- [GitOps-based Cluster Operations](/docs/operations-observability/gitops-cluster-operation) — Flux/ArgoCD operations guide
+- [EKS High Availability Architecture Guide](/docs/eks-best-practices/operations-reliability/eks-resiliency-guide) — Failure Domain response strategies by layer
+- [GitOps-based Cluster Operations](/docs/eks-best-practices/operations-reliability/gitops-cluster-operation) — Flux/ArgoCD operations guide
 
 ---
 
 ## 9. References
 
-- [ArgoCD ApplicationSets](https://argo-cd.readthedocs.io/en/stable/operator-manual/applicationset/) — Multi-cluster automated deployment
+- [ArgoCD ApplicationSets](https://argo-cd.readthedocs.io/en/stable/operator-manual/applicationset/) — Multi-cluster automatic deployment
 - [ArgoCD Sync Windows](https://argo-cd.readthedocs.io/en/stable/user-guide/sync_windows/) — Active-Active conflict prevention
 - [Flux Multi-Tenancy](https://fluxcd.io/flux/guides/repository-structure/) — Multi-cluster repo structure
 - [Velero Documentation](https://velero.io/docs/) — Cluster backup/restore

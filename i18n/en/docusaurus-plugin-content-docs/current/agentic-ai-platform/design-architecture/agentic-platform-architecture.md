@@ -1,7 +1,7 @@
 ---
 title: "Agentic AI Platform Architecture"
 sidebar_label: "Platform Architecture"
-description: "Production-grade Agentic AI platform system architecture, core layers, and design principles"
+description: "Overall system architecture, core layers, and design principles of a production-grade Agentic AI Platform"
 tags: [architecture, agentic-ai, platform, kubernetes]
 category: "genai-aiml"
 last_update:
@@ -14,21 +14,21 @@ import { LayerRoles, TenantIsolation, RequestProcessing } from '@site/src/compon
 
 # Agentic AI Platform Architecture
 
-> 📅 **Created**: 2025-02-05 | **Updated**: 2026-03-20 | ⏱️ **Reading Time**: ~6 minutes
+> **Written**: 2025-02-05 | **Updated**: 2026-03-20 | **Reading time**: ~6 min
 
 ## Overview
 
-Agentic AI Platform is an integrated platform that enables autonomous AI agents to perform complex tasks. It is designed to solve challenges encountered when building GenAI services: model serving complexity, lack of framework integration, scaling difficulties, absence of MLOps automation, and cost optimization. The platform provides **agent orchestration**, **intelligent inference routing**, **vector search-based RAG**, **LLM tracing and cost analysis**, **horizontal auto-scaling**, and **multi-tenant resource isolation** as core capabilities. For detailed analysis of each challenge, refer to the [Technical Challenges](./agentic-ai-challenges.md) document.
+The Agentic AI Platform is a unified platform that enables autonomous AI agents to perform complex tasks. It is designed to address the challenges of model serving complexity, lack of framework integration, autoscaling difficulties, absence of MLOps automation, and cost optimization encountered when building GenAI services. The platform provides **agent orchestration**, **intelligent inference routing**, **vector search-based RAG**, **LLM tracing and cost analysis**, **horizontal autoscaling**, and **multi-tenant resource isolation** as core capabilities. For detailed analysis of each challenge, see the [Technical Challenges](./agentic-ai-challenges.md) document.
 
 :::info Target Audience
-This document is intended for solution architects, platform engineers, and DevOps engineers. Basic understanding of Kubernetes and AI/ML workloads is required.
+This document is intended for solution architects, platform engineers, and DevOps engineers. A basic understanding of Kubernetes and AI/ML workloads is required.
 :::
 
 ---
 
 ## Overall System Architecture
 
-Agentic AI Platform consists of 6 major layers. Each layer has clear responsibilities and enables independent scaling and operations through loose coupling.
+The Agentic AI Platform consists of 6 major layers. Each layer has clear responsibilities and enables independent scaling and operation through loose coupling.
 
 ```mermaid
 flowchart TD
@@ -94,11 +94,11 @@ flowchart TD
     style ObsLayer fill:#e1f5ff
 ```
 
-**Key Design Principles:**
+**Core Design Principles:**
 
 - **Self-hosted + External AI Hybrid**: Unified management of self-hosted LLMs and external AI Provider APIs through the same gateway
-- **2-Tier Cost Tracking**: Dual tracking at infrastructure level (model cost × tokens) and application level (per-Agent step costs)
-- **MCP/A2A Standard Protocols**: Standardize communication between Agents and tools (MCP) and between Agents (A2A) to ensure interoperability
+- **2-Tier Cost Tracking**: Dual tracking at infrastructure level (model unit price x tokens) and application level (per-agent-step costs)
+- **MCP/A2A Standard Protocols**: Standardized communication between agents and tools (MCP) and between agents (A2A) for interoperability
 
 ### Layer Roles
 
@@ -110,7 +110,7 @@ flowchart TD
 
 ### Agent Runtime
 
-Agent Runtime is the environment where AI agents execute. Each agent runs as an independent container, with lifecycle managed by the Agent Controller.
+The Agent Runtime is the environment where AI agents execute. Each agent runs as an independent container, with its lifecycle managed by the Agent Controller.
 
 ```mermaid
 flowchart LR
@@ -136,37 +136,37 @@ flowchart LR
     style Services fill:#fff4e1
 ```
 
-| Function | Description |
-|------|------|
-| **State Management** | Maintain conversation context and task state, checkpointing |
-| **Tool Execution** | Asynchronous execution of tools registered via MCP protocol |
-| **Memory Management** | Combine short-term memory (session) and long-term memory (vector DB) |
+| Feature | Description |
+|---------|-------------|
+| **State Management** | Maintains conversation context and task state, checkpointing |
+| **Tool Execution** | Asynchronous execution of registered tools via MCP protocol |
+| **Memory Management** | Combines short-term memory (session) with long-term memory (vector DB) |
 | **Inter-Agent Communication** | Multi-agent collaboration via A2A protocol |
 | **Error Recovery** | Automatic retry and fallback for failed tasks |
 
 ### Tool Registry
 
-Centrally manage tools available to agents in a declarative manner. Each tool is exposed as an MCP server that Agents call through standard protocols.
+Centrally manages tools available to agents in a declarative manner. Each tool is exposed as an MCP server, allowing agents to invoke them via the standard protocol.
 
-| Tool Type | Purpose | Examples |
-|----------|------|------|
-| **API Tools** | Call external REST/gRPC services | CRM lookup, order processing |
-| **Search Tools** | Vector DB search, document search | RAG context enhancement |
-| **Code Execution** | Execute code in sandbox environment | Data analysis, calculations |
-| **A2A Tools** | Delegate tasks to other Agents | Specialist Agent collaboration |
+| Tool Type | Purpose | Example |
+|-----------|---------|---------|
+| **API Tools** | External REST/gRPC service calls | CRM lookup, order processing |
+| **Search Tools** | Vector DB search, document search | RAG context augmentation |
+| **Code Execution** | Code execution in sandbox environments | Data analysis, calculations |
+| **A2A Tools** | Delegating tasks to other agents | Specialist agent collaboration |
 
-### Vector DB (RAG Storage)
+### Vector DB (RAG Store)
 
-Vector DB is the core of RAG systems. It converts documents to embedding vectors for storage and provides relevant context through similarity search upon Agent requests.
+The Vector DB is the core of the RAG system. It converts documents into embedding vectors for storage and provides relevant context via similarity search upon agent requests.
 
 **Design Considerations:**
-- **Multi-tenant Isolation**: Separate tenant data using Partition Keys
-- **Index Strategy**: High-performance Approximate Nearest Neighbor search with HNSW index
-- **Hybrid Search**: Improve search quality by combining Dense Vector + Sparse Vector (BM25)
+- **Multi-tenant isolation**: Data separation per tenant using Partition Keys
+- **Index strategy**: High-performance Approximate Nearest Neighbor search with HNSW index
+- **Hybrid search**: Improved search quality by combining Dense Vector + Sparse Vector (BM25)
 
 ### Inference Gateway
 
-Inference Gateway is the core component that intelligently routes model inference requests. It integrates self-hosted LLMs and external AI Providers through a single endpoint.
+The Inference Gateway is a core component that intelligently routes model inference requests. It unifies self-hosted LLMs and external AI providers into a single endpoint.
 
 ```mermaid
 flowchart LR
@@ -202,23 +202,23 @@ flowchart LR
 **Routing Strategies:**
 
 | Strategy | Description |
-|------|------|
-| **Model-based Routing** | Distribute to appropriate model backends based on request headers/parameters |
-| **KV Cache-aware Routing** | Minimize TTFT by considering LLM Prefix Cache state |
-| **Cascade Routing** | Try low-cost model first → automatically switch to high-performance model on failure |
-| **Weight-based Routing** | Split traffic by ratio for Canary/Blue-Green deployments |
-| **Fallback** | Automatically switch to alternative Provider on Provider failure |
+|----------|-------------|
+| **Model-based routing** | Distributes to appropriate model backends based on request headers/parameters |
+| **KV Cache-aware routing** | Minimizes TTFT by considering LLM Prefix Cache state |
+| **Cascade routing** | Tries low-cost model first → automatically switches to high-performance model on failure |
+| **Weight-based routing** | Traffic ratio splitting for Canary/Blue-Green deployments |
+| **Fallback** | Automatic failover to alternative provider on outage |
 
 ---
 
 ## Deployment Architecture
 
-### Namespace Configuration
+### Namespace Structure
 
-Separate namespaces by function for separation of concerns and security.
+Namespaces are separated by function for separation of concerns and security.
 
 | Namespace | Components | Pod Security | GPU |
-|-------------|---------|-------------|-----|
+|-----------|-----------|-------------|-----|
 | **ai-gateway** | Inference Gateway, Auth | restricted | - |
 | **ai-agents** | Agent Controller, Agent Pods, Tool Registry | baseline | - |
 | **ai-inference** | LLM Serving Engine, GPU Nodes | privileged | Required |
@@ -231,18 +231,18 @@ Separate namespaces by function for separation of concerns and security.
 
 ### Horizontal Scaling Strategy
 
-Each component can scale horizontally independently.
+Each component can be horizontally scaled independently.
 
 | Component | Scaling Trigger | Method |
-|---------|---------------|------|
+|-----------|----------------|--------|
 | Agent Pod | Message queue length, active session count | Event-driven Autoscaling |
-| LLM Serving | GPU utilization, queue wait time | HPA + GPU Node Auto-provisioning |
+| LLM Serving | GPU utilization, queue depth | HPA + GPU Node Auto-provisioning |
 | Vector DB | Query latency, index size | Independent Query/Index Node scaling |
-| Cache | Memory utilization | Cluster scaling |
+| Cache | Memory utilization | Cluster expansion |
 
-### Multi-tenant Support
+### Multi-Tenant Support
 
-Support multi-tenancy through a combination of namespace isolation, resource quotas, and network policies so multiple teams or projects can share the same platform.
+Supports multi-tenancy through a combination of namespace isolation, resource quotas, and network policies, enabling multiple teams or projects to share the same platform.
 
 <TenantIsolation />
 
@@ -250,7 +250,7 @@ Support multi-tenancy through a combination of namespace isolation, resource quo
 
 ## Security Architecture
 
-Agentic AI Platform applies **3-layer security** for external access, internal communication, and data security.
+The Agentic AI Platform applies a **3-layer security model** covering external access, internal communication, and data protection.
 
 ```mermaid
 flowchart LR
@@ -261,7 +261,7 @@ flowchart LR
 
     subgraph L2["Internal Communication Security"]
         MTLS["mTLS Encryption"]
-        RBAC["Role-based Access"]
+        RBAC["Role-Based Access"]
         NETPOL["Network Isolation"]
     end
 
@@ -280,12 +280,12 @@ flowchart LR
 
 **Agent-Specific Security Considerations:**
 
-- **Prompt Injection Defense**: Block malicious prompts with input validation layer (Guardrails)
-- **Tool Execution Permission Limits**: Declaratively define callable tools per Agent, apply least privilege principle
-- **PII Leakage Prevention**: Block exposure of sensitive information through output filtering
-- **Execution Time Limits**: Set timeouts and maximum step counts to prevent Agent infinite loops
+- **Prompt injection defense**: Block malicious prompts with an input validation layer (Guardrails)
+- **Tool execution permission limits**: Declaratively define callable tools per agent, applying the principle of least privilege
+- **PII leakage prevention**: Block sensitive information exposure through output filtering
+- **Execution time limits**: Timeout and maximum step count settings to prevent agent infinite loops
 
-:::danger Security Warnings
+:::danger Security Notice
 - Always enable mTLS in production environments
 - Store API keys and tokens in Secrets Manager
 - Perform regular security audits and patch vulnerabilities
@@ -295,7 +295,7 @@ flowchart LR
 
 ## Data Flow
 
-The complete flow of user requests processed through the platform.
+The complete flow of how user requests are processed through the platform.
 
 ```mermaid
 sequenceDiagram
@@ -317,12 +317,12 @@ sequenceDiagram
     rect rgb(240, 248, 255)
     Note over Agent,LLM: RAG + Inference Loop
     Agent->>VectorDB: 6. Context Search (RAG)
-    VectorDB-->>Agent: 7. Return Related Documents
+    VectorDB-->>Agent: 7. Return Relevant Documents
     Agent->>LLM: 8. Prompt + Context
     LLM-->>Agent: 9. Generated Response
     end
 
-    Agent->>Trace: 10. Trace · Cost Recording
+    Agent->>Trace: 10. Record Trace · Cost
     Agent-->>Gateway: 11. Final Response
     Gateway-->>Client: 12. Return Response
 ```
@@ -336,16 +336,16 @@ sequenceDiagram
 ### Key Monitoring Areas
 
 | Area | Target Metrics | Purpose |
-|------|-----------|------|
-| **Agent Performance** | Request count, P50/P99 latency, error rate, step count | Track agent performance |
+|------|---------------|---------|
+| **Agent Performance** | Request count, P50/P99 latency, error rate, step count | Agent performance tracking |
 | **LLM Performance** | Token throughput, TTFT, TPS, queue wait time | Model serving performance |
 | **Resource Usage** | CPU, memory, GPU utilization/temperature | Resource efficiency |
-| **Cost Tracking** | Per-tenant/per-model token costs, infrastructure costs | Cost governance |
+| **Cost Tracking** | Per-tenant/per-model token cost, infrastructure cost | Cost governance |
 
 **Example Alert Rules:**
 - Agent P99 latency > 10s → Warning
 - Agent error rate > 5% → Critical
-- GPU utilization < 20% (sustained 30min) → Cost Warning
+- GPU utilization < 20% (sustained 30 min) → Cost Warning
 - Token cost reaches 80% of daily budget → Budget Warning
 
 ---
@@ -353,37 +353,37 @@ sequenceDiagram
 ## Platform Requirements
 
 | Area | Required Capability | Description |
-|------|----------|------|
+|------|-------------------|-------------|
 | Container Orchestration | Managed Kubernetes | GPU node auto-provisioning, declarative workload management |
 | Networking | Gateway API support | Intelligent model routing, mTLS, Rate Limiting |
 | Model Serving | LLM inference engine | PagedAttention, KV Cache optimization, distributed inference |
-| External AI Integration | API Gateway / Proxy | External AI Provider integration, Fallback, cost tracking |
+| External AI Integration | API Gateway / Proxy | External AI provider integration, Fallback, cost tracking |
 | Agent Framework | Workflow engine | Multi-step execution, state management, MCP/A2A protocols |
 | Data Layer | Vector DB + Cache | RAG search, session state storage, long-term memory |
-| Observability | LLM tracing + Metrics | Token cost tracking, Agent Trace analysis, quality evaluation |
+| Observability | LLM tracing + metrics | Token cost tracking, Agent Trace analysis, quality evaluation |
 | Security | Multi-layer security model | OIDC/JWT, RBAC, NetworkPolicy, Guardrails |
 
-For specific technology stacks and implementation methods, refer to [AWS Native Platform](./aws-native-agentic-platform.md) or [EKS-Based Open Architecture](./agentic-ai-solutions-eks.md).
+For specific technology stacks and implementation methods, see [AWS Native Platform](./aws-native-agentic-platform.md) or [EKS-Based Open Architecture](./agentic-ai-solutions-eks.md).
 
 ---
 
 ## Conclusion
 
-Core principles of Agentic AI Platform architecture:
+Core principles of the Agentic AI Platform architecture:
 
 1. **Modularity**: Each component can be independently deployed, scaled, and updated
-2. **Hybrid AI**: Unified management of self-hosted LLMs and External AI Providers
-3. **Standard Protocols**: Standardize tool connections and inter-Agent communication with MCP/A2A
-4. **Observability**: Integrated monitoring of Trace, cost, and quality across the entire request flow
-5. **Security**: Multi-layer security model + Agent-specific security (Guardrails, tool permission limits)
-6. **Multi-tenancy**: Support multiple teams through namespace isolation, resource quotas, network policies
+2. **Hybrid AI**: Unified management of self-hosted LLMs and external AI providers
+3. **Standard Protocols**: Standardized tool connections and inter-agent communication via MCP/A2A
+4. **Observability**: Integrated monitoring of traces, costs, and quality across the entire request flow
+5. **Security**: Multi-layer security model + agent-specific security (Guardrails, tool permission limits)
+6. **Multi-tenancy**: Multi-team support through namespace isolation, resource quotas, and network policies
 
 :::tip Implementation Guide
 Specific methods for implementing this platform architecture are covered in the following documents:
 
 - [Technical Challenges](./agentic-ai-challenges.md) — Key challenges faced when building the platform
 - [AWS Native Platform](./aws-native-agentic-platform.md) — Managed service-based implementation
-- [EKS-Based Open Architecture](./agentic-ai-solutions-eks.md) — EKS + open-source-based implementation
+- [EKS-Based Open Architecture](./agentic-ai-solutions-eks.md) — EKS + open-source based implementation
 :::
 
 ## References

@@ -1,6 +1,6 @@
 ---
 title: Hybrid Infrastructure Benchmark
-sidebar_label: "Hybrid Infrastructure [Upcoming]"
+sidebar_label: "Report 7. Hybrid Infrastructure [Upcoming]"
 sidebar_position: 7
 description: Hybrid cloud infrastructure network and storage performance benchmark
 category: "benchmarks"
@@ -12,21 +12,21 @@ last_update:
 
 # Hybrid Infrastructure Benchmark
 
-Measures the performance of hybrid infrastructure between cloud and on-premises.
+Measure the performance of hybrid infrastructure between cloud and on-premises.
 
 ## Network Performance
 
 ### EKS Hybrid Nodes Network
 
-:::note Testing Upcoming
-This benchmark is currently in preparation.
+:::note Testing Planned
+This benchmark is currently being prepared.
 :::
 
 **Metrics**
 
 - Cloud-to-on-premises latency
 - VPN/Direct Connect bandwidth
-- Inter-pod communication performance (cross-region)
+- Pod-to-Pod communication performance (cross-region)
 
 ### SR-IOV Network Acceleration
 
@@ -42,7 +42,7 @@ This benchmark is currently in preparation.
 
 **Metrics**
 
-- Sequential/random read/write IOPS
+- Sequential/Random read/write IOPS
 - Large file transfer speed
 - Shared filesystem concurrent access performance
 

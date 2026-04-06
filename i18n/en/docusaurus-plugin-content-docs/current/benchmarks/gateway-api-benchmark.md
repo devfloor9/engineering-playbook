@@ -1,8 +1,8 @@
 ---
 title: "Gateway API Implementation Performance Benchmark Plan"
-sidebar_label: "Gateway API [Planned]"
+sidebar_label: "Report 2. Gateway API [Plan]"
 sidebar_position: 2
-description: "Performance comparison benchmark plan for 5 Gateway API implementations (AWS LBC v3, Cilium, NGINX Gateway Fabric, Envoy Gateway, kGateway) in EKS environments"
+description: "A benchmark plan for comparing the EKS performance of 5 Gateway API implementations (AWS LBC v3, Cilium, NGINX Gateway Fabric, Envoy Gateway, kGateway)"
 tags: [benchmark, gateway-api, cilium, envoy, nginx, performance, eks]
 category: "benchmark"
 last_update:
@@ -12,23 +12,23 @@ last_update:
 
 # Gateway API Implementation Performance Benchmark Plan
 
-> 📅 **Written**: 2026-02-12 | **Last Modified**: 2026-02-14 | ⏱️ **Reading Time**: ~5 min
+> 📅 **Created**: 2026-02-12 | **Updated**: 2026-02-14 | ⏱️ **Reading time**: ~5 min
 
-A systematic benchmark plan to objectively compare 5 Gateway API implementations in identical Amazon EKS environments. Quantitatively identify each solution's strengths and weaknesses to make data-driven architectural decisions.
+A systematic benchmark plan for objectively comparing 5 Gateway API implementations in the same Amazon EKS environment. The goal is to quantitatively identify each solution's strengths and weaknesses to enable data-driven architecture decisions.
 
-:::tip Related Documentation
-This benchmark plan targets the 5 solutions analyzed in the [Gateway API Adoption Guide](/docs/infrastructure-optimization/gateway-api-adoption-guide).
+:::tip Related Document
+This benchmark plan targets the 5 solutions compared in the [Gateway API Adoption Guide](/docs/eks-best-practices/networking-performance/gateway-api-adoption-guide).
 :::
 
-## 1. Benchmark Objectives
+## 1. Benchmark Objective
 
-This benchmark aims to objectively compare 5 Gateway API implementations in identical EKS environments, quantitatively identifying each solution's strengths and weaknesses to enable data-driven architecture decisions.
+This benchmark aims to objectively compare 5 Gateway API implementations in the same EKS environment, quantitatively identifying each solution's strengths and weaknesses.
 
-**Core Questions:**
-- Which solution is fastest? (throughput, latency)
-- Which solution has the best resource efficiency? (performance per CPU/Memory)
-- Which solution scales best in large environments?
-- What are the trade-offs of each solution?
+**Key Questions:**
+- Which solution is the fastest? (throughput, latency)
+- Which solution has the best resource efficiency? (performance relative to CPU/Memory)
+- Which solution scales best in large-scale environments?
+- What are the trade-offs for each solution?
 
 ## 2. Test Environment Design
 
@@ -51,7 +51,7 @@ graph TB
             BE3[Backend Node 3<br/>m7g.xlarge]
         end
 
-        PROM[Prometheus<br/>Metrics Collection]
+        PROM[Prometheus<br/>Metric Collection]
         GRAFANA[Grafana<br/>Visualization]
 
         K6 -->|HTTP/2 Traffic| GW1
@@ -81,59 +81,59 @@ graph TB
 
 ### 1. Basic Throughput (Throughput Test)
 
-**Objective:** Measure maximum RPS (Requests Per Second)
+**Purpose:** Measure maximum RPS (Requests Per Second)
 
-Increase concurrent connections from 100, 500, 1000, 5000 to measure maximum throughput for each solution.
+Measures maximum throughput for each solution by increasing concurrent connections from 100, 500, 1000, to 5000.
 
 ### 2. Latency Profile
 
-**Objective:** Measure P50/P90/P99/P99.9 latency
+**Purpose:** Measure P50/P90/P99/P99.9 latency
 
-Measure response time distribution under constant load to compare tail latency.
+Measures response time distribution under steady load to compare tail latencies.
 
 ### 3. TLS Performance
 
-**Objective:** Measure TLS termination throughput and handshake time
+**Purpose:** Measure TLS termination throughput and handshake time
 
-Measure TLS termination performance and handshake overhead in HTTPS traffic.
+Measures TLS termination performance and handshake overhead for HTTPS traffic.
 
 ### 4. L7 Routing Complexity
 
-**Objective:** Performance changes when applying header-based routing and URL rewrite
+**Purpose:** Measure performance impact of header-based routing and URL rewrite
 
-Measure the impact of complex routing rules on performance.
+Measures the impact of complex routing rules on performance.
 
 ### 5. Scaling Test
 
-**Objective:** Performance changes as Route count increases (10, 50, 100, 500 routes)
+**Purpose:** Measure performance changes as route count increases (10, 50, 100, 500 routes)
 
-Measure routing performance and memory usage with many HTTPRoutes.
+Measures routing performance and memory usage with many HTTPRoutes.
 
 ### 6. Resource Efficiency
 
-**Objective:** Throughput per CPU/Memory usage
+**Purpose:** Throughput relative to CPU/Memory usage
 
-Compare efficiency of each solution under identical resource constraints.
+Compares efficiency of each solution under the same resource constraints.
 
 ### 7. Failure Recovery
 
-**Objective:** Traffic impact during controller restart
+**Purpose:** Traffic impact during controller restart
 
-Measure downtime and recovery time when Gateway controller restarts.
+Measures downtime and recovery time when a Gateway controller restarts.
 
 ### 8. gRPC Performance
 
-**Objective:** gRPC streaming throughput
+**Purpose:** gRPC streaming throughput
 
-Measure gRPC protocol support and performance.
+Measures gRPC protocol support and performance.
 
-## 4. Measurement Metrics
+## 4. Measured Metrics
 
 | Metric | Unit | Measurement Method |
-|--------|------|-------------------|
+|------|------|-----------|
 | **RPS (Requests Per Second)** | req/s | k6 summary or Prometheus rate() |
 | **Latency (P50/P90/P99)** | ms | k6 histogram_quantile or Grafana |
-| **Error Rate** | % | (failed requests / total requests) × 100 |
+| **Error Rate** | % | (failed requests / total requests) x 100 |
 | **CPU Usage** | % | Prometheus container_cpu_usage_seconds_total |
 | **Memory Usage** | MB | Prometheus container_memory_working_set_bytes |
 | **Connection Setup Time** | ms | k6 http_req_connecting |
@@ -142,7 +142,7 @@ Measure gRPC protocol support and performance.
 
 ## 5. Expected Results (Theoretical Analysis)
 
-Expected strengths/weaknesses for each solution:
+Expected strengths/weaknesses per solution:
 
 **AWS Native (ALB + NLB)**
 - **Strengths**: Fully managed, auto-scaling, AWS integration
@@ -150,47 +150,45 @@ Expected strengths/weaknesses for each solution:
 - **Expected Performance**: Medium (throughput 10K RPS, P99 50ms)
 
 **Cilium Gateway API (ENI mode)**
-- **Strengths**: eBPF best performance, native routing, Hubble visibility
+- **Strengths**: Best eBPF performance, native routing, Hubble visibility
 - **Weaknesses**: Configuration complexity, learning curve
-- **Expected Performance**: Best (throughput 30K RPS, P99 15ms)
+- **Expected Performance**: Highest (throughput 30K RPS, P99 15ms)
 
 **NGINX Gateway Fabric**
 - **Strengths**: Proven NGINX engine, stability, rich features
-- **Weaknesses**: High memory usage
-- **Expected Performance**: Good (throughput 20K RPS, P99 25ms)
+- **Weaknesses**: Higher memory usage
+- **Expected Performance**: High (throughput 20K RPS, P99 25ms)
 
 **Envoy Gateway**
 - **Strengths**: Rich L7 features, extensibility, observability
 - **Weaknesses**: Resource overhead
-- **Expected Performance**: Medium-Good (throughput 15K RPS, P99 30ms)
+- **Expected Performance**: Medium-high (throughput 15K RPS, P99 30ms)
 
 **kGateway (Solo.io)**
 - **Strengths**: AI routing, enterprise features
 - **Weaknesses**: Enterprise license required
-- **Expected Performance**: Medium-Good (throughput 18K RPS, P99 28ms)
+- **Expected Performance**: Medium-high (throughput 18K RPS, P99 28ms)
 
 ## 6. Benchmark Execution Plan
 
-| Phase | Content | Tools | Time Required |
-|-------|---------|-------|--------------|
-| 1. Environment Setup | EKS cluster and 5 solutions deployed separately | eksctl, Helm | 2 days |
-| 2. Basic Tests | Throughput, Latency measurement | k6, Prometheus | 1 day |
-| 3. TLS Tests | HTTPS performance measurement | k6 (TLS) | 0.5 days |
-| 4. L7 Tests | Complex routing rule testing | k6 (custom) | 0.5 days |
-| 5. Scale Tests | Route count increase testing | kubectl, k6 | 1 day |
+| Phase | Description | Tools | Duration |
+|------|------|------|-----------|
+| 1. Environment Setup | Deploy EKS cluster and 5 solutions separately | eksctl, Helm | 2 days |
+| 2. Basic Tests | Measure throughput, latency | k6, Prometheus | 1 day |
+| 3. TLS Tests | Measure HTTPS performance | k6 (TLS) | 0.5 day |
+| 4. L7 Tests | Test complex routing rules | k6 (custom) | 0.5 day |
+| 5. Scale Tests | Test route count increase | kubectl, k6 | 1 day |
 | 6. Resource Measurement | CPU/Memory profiling | Prometheus, Grafana | 1 day |
-| 7. Results Analysis | Data analysis and report writing | Jupyter, Matplotlib | 2 days |
+| 7. Result Analysis | Data analysis and report writing | Jupyter, Matplotlib | 2 days |
 
 :::info
-Benchmark results will be updated in this document upon completion. For related network benchmarks, see [CNI Performance Comparison](./cni-performance-comparison.md).
+Benchmark execution results will be updated in this document. For related network benchmarks, see [CNI Performance Comparison](./cni-performance-comparison.md).
 :::
 
 ---
 
----
+## Related Documents
 
-## Related Documentation
-
-- [Gateway API Adoption Guide](/docs/infrastructure-optimization/gateway-api-adoption-guide) — Detailed comparison analysis of 5 solutions
+- [Gateway API Adoption Guide](/docs/eks-best-practices/networking-performance/gateway-api-adoption-guide) — Detailed comparison of 5 solutions
 - [CNI Performance Comparison Benchmark](./cni-performance-comparison.md) — VPC CNI vs Cilium network performance
 - [Infrastructure Performance Benchmark](./infrastructure-performance.md) — Comprehensive infrastructure performance testing

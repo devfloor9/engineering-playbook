@@ -1,7 +1,7 @@
 ---
 title: "Operations & Reliability"
 sidebar_label: "Operations & Reliability"
-description: "Best practices for reliable EKS cluster operations including GitOps, incident diagnosis, high availability, and Pod lifecycle management"
+description: "Best practices for stable EKS cluster operations including GitOps, troubleshooting, high availability, and Pod lifecycle management"
 tags: [eks, operations, reliability, gitops, debugging, ha, pod-lifecycle]
 sidebar_position: 5
 last_update:
@@ -13,7 +13,7 @@ import { DocCard, DocCardGrid } from '@site/src/components/DocCards';
 
 # Operations & Reliability
 
-Practical guide for reliable EKS cluster operations. Covers GitOps-based operational automation, incident diagnosis, high availability architecture, and Pod lifecycle management.
+A practical guide for stable EKS cluster operations. Covers GitOps-based operational automation, troubleshooting, high availability architecture, and Pod lifecycle management.
 
 ---
 
@@ -22,35 +22,35 @@ Practical guide for reliable EKS cluster operations. Covers GitOps-based operati
     to="/docs/eks-best-practices/operations-reliability/gitops-cluster-operation"
     icon="🔄"
     title="GitOps-based EKS Cluster Operations"
-    description="GitOps architecture, KRO/ACK utilization, multi-cluster management strategies and automation"
+    description="GitOps architecture, KRO/ACK usage, multi-cluster management strategies and automation"
     color="#667eea"
   />
   <DocCard
     to="/docs/eks-best-practices/operations-reliability/node-monitoring-agent"
     icon="📡"
     title="EKS Node Monitoring Agent"
-    description="Automatic node status detection, architecture, deployment strategies, best practices"
+    description="Automatic node health detection, architecture, deployment strategies, and best practices"
     color="#4a90d9"
   />
   <DocCard
     to="/docs/eks-best-practices/operations-reliability/eks-debugging-guide"
     icon="🔍"
-    title="EKS Incident Diagnosis and Response"
-    description="Systematic diagnosis and troubleshooting of application and infrastructure issues"
+    title="EKS Troubleshooting & Incident Response"
+    description="Systematic diagnosis and troubleshooting for application and infrastructure issues"
     color="#e63946"
   />
   <DocCard
     to="/docs/eks-best-practices/operations-reliability/eks-resiliency-guide"
     icon="🛡️"
     title="EKS High Availability Architecture"
-    description="Architecture patterns and operational strategies for ensuring high availability and fault tolerance"
+    description="Architecture patterns and operational strategies for achieving high availability and fault tolerance"
     color="#34a853"
   />
   <DocCard
     to="/docs/eks-best-practices/operations-reliability/eks-pod-health-lifecycle"
     icon="💓"
     title="Pod Health Checks & Lifecycle"
-    description="Probe configuration strategies, Graceful Shutdown, Pod lifecycle management"
+    description="Probe configuration strategies, Graceful Shutdown, and Pod lifecycle management"
     color="#ff6b35"
   />
   <DocCard

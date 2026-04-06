@@ -1,11 +1,11 @@
 ---
 title: "AI Agent Monitoring and Operations"
 sidebar_label: "Agent Monitoring & Operations"
-description: "Agentic AI application monitoring, alerting, and troubleshooting guide using Langfuse and LangSmith"
-tags: [eks, langfuse, langsmith, monitoring, observability, tracing, opentelemetry, operations, troubleshooting, alerting]
+description: "Agentic AI application monitoring architecture, key metric design, and alerting strategy overview"
+tags: [eks, langfuse, langsmith, monitoring, observability, tracing, opentelemetry, operations, alerting]
 category: "genai-aiml"
 last_update:
-  date: 2026-02-14
+  date: 2026-04-05
   author: devfloor9
 sidebar_position: 1
 ---
@@ -22,37 +22,32 @@ import {
 
 # AI Agent Monitoring and Operations
 
-This document covers how to effectively track and monitor the performance and behavior of Agentic AI applications using Langfuse and LangSmith. It provides a complete operational guide from deployment in a Kubernetes environment to Grafana dashboard configuration, alerting, and troubleshooting.
+This document covers the monitoring architecture, key metric design, and alerting strategy for Agentic AI applications at a conceptual level.
+
+:::info Production Deployment Guide
+For Langfuse Helm deployment, AMP/AMG configuration, ServiceMonitor YAML, and Grafana dashboard JSON, see the [Monitoring Stack Setup Guide](../reference-architecture/monitoring-observability-setup.md).
+:::
 
 ## Overview
 
-Agentic AI applications perform complex reasoning chains and various tool invocations, making it difficult to achieve sufficient visibility with traditional APM (Application Performance Monitoring) tools alone. LLM-specialized observability tools Langfuse and LangSmith provide the following key capabilities:
+Agentic AI applications perform complex reasoning chains and various tool calls, making it difficult to achieve sufficient visibility with traditional APM (Application Performance Monitoring) tools alone. LLM-specialized observability tools like Langfuse and LangSmith provide the following core capabilities:
 
-- **Trace Tracking**: Track the entire flow of LLM calls, tool executions, and agent reasoning processes
-- **Token Usage Analysis**: Calculate input/output token counts and costs
-- **Quality Evaluation**: Score response quality and collect feedback
-- **Debugging**: Diagnose issues through prompt and response content review
+- **Trace tracking**: Full flow tracking of LLM calls, tool execution, and agent reasoning processes
+- **Token usage analysis**: Input/output token counts and cost calculation
+- **Quality evaluation**: Response quality scoring and feedback collection
+- **Debugging**: Problem diagnosis through prompt and response content review
 
 :::info Target Audience
 This document is intended for platform operators, MLOps engineers, and AI developers. Basic understanding of Kubernetes and Python is required.
 :::
 
-## Langfuse vs LangSmith Comparison
+---
 
-<LangFuseVsLangSmithTable />
+## Monitoring Architecture
 
-:::tip Selection Guide
+### Langfuse Architecture Overview
 
-- **Langfuse**: When data sovereignty is critical or cost optimization is needed
-- **LangSmith**: When LangChain-based development is primary and quick start is needed
-:::
-
-
-## Langfuse Kubernetes Deployment
-
-### Architecture Overview
-
-Langfuse v2.75.0 and above consists of the following components:
+Langfuse v2.75.0+ consists of the following components:
 
 ```mermaid
 flowchart TB
@@ -89,648 +84,81 @@ flowchart TB
     style Storage fill:#326ce5
 ```
 
-### PostgreSQL Deployment
+### AMP/AMG Integrated Data Flow
 
-Deploy PostgreSQL for Langfuse metadata storage.
-
-```yaml
-# langfuse-postgres.yaml
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: observability
-  labels:
-    app.kubernetes.io/part-of: langfuse
----
-apiVersion: v1
-kind: Secret
-metadata:
-  name: langfuse-postgres-secret
-  namespace: observability
-type: Opaque
-stringData:
-  POSTGRES_USER: langfuse
-  POSTGRES_PASSWORD: "your-secure-password-here"  # Use Secrets Manager in production
-  POSTGRES_DB: langfuse
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: langfuse-postgres-pvc
-  namespace: observability
-spec:
-  accessModes:
-    - ReadWriteOnce
-  storageClassName: gp3
-  resources:
-    requests:
-      storage: 100Gi
----
-apiVersion: apps/v1
-kind: StatefulSet
-metadata:
-  name: langfuse-postgres
-  namespace: observability
-spec:
-  serviceName: langfuse-postgres
-  replicas: 1
-  selector:
-    matchLabels:
-      app: langfuse-postgres
-  template:
-    metadata:
-      labels:
-        app: langfuse-postgres
-    spec:
-      containers:
-        - name: postgres
-          image: postgres:15-alpine
-          ports:
-            - containerPort: 5432
-          envFrom:
-            - secretRef:
-                name: langfuse-postgres-secret
-          volumeMounts:
-            - name: postgres-data
-              mountPath: /var/lib/postgresql/data
-          resources:
-            requests:
-              memory: "1Gi"
-              cpu: "500m"
-            limits:
-              memory: "2Gi"
-              cpu: "1000m"
-          livenessProbe:
-            exec:
-              command:
-                - pg_isready
-                - -U
-                - langfuse
-            initialDelaySeconds: 30
-            periodSeconds: 10
-          readinessProbe:
-            exec:
-              command:
-                - pg_isready
-                - -U
-                - langfuse
-            initialDelaySeconds: 5
-            periodSeconds: 5
-      volumes:
-        - name: postgres-data
-          persistentVolumeClaim:
-            claimName: langfuse-postgres-pvc
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: langfuse-postgres
-  namespace: observability
-spec:
-  selector:
-    app: langfuse-postgres
-  ports:
-    - port: 5432
-      targetPort: 5432
-  clusterIP: None
+```mermaid
+flowchart TB
+    subgraph Sources["Metric Sources"]
+        VLLM[vLLM<br/>:8000/metrics]
+        DCGM[DCGM Exporter<br/>:9400/metrics]
+        NODE[Node Exporter<br/>:9100/metrics]
+        KGATEWAY[kgateway<br/>:9091/metrics]
+    end
+    
+    subgraph Collector["Collector"]
+        PROM[Prometheus<br/>ServiceMonitor]
+    end
+    
+    subgraph AWS["AWS Managed Services"]
+        AMP[Amazon Managed<br/>Prometheus]
+        AMG[Amazon Managed<br/>Grafana]
+    end
+    
+    VLLM --> PROM
+    DCGM --> PROM
+    NODE --> PROM
+    KGATEWAY --> PROM
+    
+    PROM -->|Remote Write<br/>SigV4 Auth| AMP
+    AMP -->|Query| AMG
+    
+    style VLLM fill:#ffd93d,stroke:#333
+    style DCGM fill:#76b900,stroke:#333
+    style NODE fill:#326ce5,stroke:#333
+    style KGATEWAY fill:#326ce5,stroke:#333
+    style PROM fill:#e53935,stroke:#333
+    style AMP fill:#ff9900,stroke:#333
+    style AMG fill:#ff9900,stroke:#333
 ```
 
+### Monitoring Data Layers
 
-### Langfuse Deployment
+| Layer | Collection Tool | Metric Pattern | Visible Items |
+|-------|----------------|---------------|---------------|
+| **LLM Inference** | Langfuse | trace, generation | Token usage, cost, TTFT, per-user patterns |
+| **Model Server** | vLLM Prometheus | `vllm_*` | Request count, batch size, KV cache utilization, TPS |
+| **GPU** | DCGM Exporter | `DCGM_FI_DEV_*` | GPU utilization, temperature, power, memory usage |
+| **Infrastructure** | Node Exporter | `node_*` | CPU, memory, network, disk I/O |
+| **Gateway** | kgateway | `envoy_*` | Request count, latency, error rate, upstream status |
 
-Deploy the Langfuse application.
-
-```yaml
-# langfuse-deployment.yaml
-apiVersion: v1
-kind: Secret
-metadata:
-  name: langfuse-secret
-  namespace: observability
-type: Opaque
-stringData:
-  # Required environment variables
-  DATABASE_URL: "postgresql://langfuse:your-secure-password-here@langfuse-postgres:5432/langfuse"
-  NEXTAUTH_SECRET: "your-nextauth-secret-32-chars-min"  # openssl rand -base64 32
-  SALT: "your-salt-value-here"  # openssl rand -base64 32
-  ENCRYPTION_KEY: "0000000000000000000000000000000000000000000000000000000000000000"  # 64 hex chars
-
-  # Optional environment variables
-  NEXTAUTH_URL: "https://langfuse.your-domain.com"
-  LANGFUSE_ENABLE_EXPERIMENTAL_FEATURES: "true"
-
-  # S3 configuration (optional)
-  S3_ENDPOINT: "https://s3.ap-northeast-2.amazonaws.com"
-  S3_ACCESS_KEY_ID: "your-access-key"
-  S3_SECRET_ACCESS_KEY: "your-secret-key"
-  S3_BUCKET_NAME: "langfuse-traces"
-  S3_REGION: "ap-northeast-2"
 ---
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: langfuse
-  namespace: observability
-  labels:
-    app: langfuse
-spec:
-  replicas: 2
-  selector:
-    matchLabels:
-      app: langfuse
-  template:
-    metadata:
-      labels:
-        app: langfuse
-      annotations:
-        prometheus.io/scrape: "true"
-        prometheus.io/port: "3000"
-        prometheus.io/path: "/api/public/metrics"
-    spec:
-      containers:
-        - name: langfuse
-          image: langfuse/langfuse:2.75.0
-          ports:
-            - containerPort: 3000
-              name: http
-          envFrom:
-            - secretRef:
-                name: langfuse-secret
-          env:
-            - name: NODE_ENV
-              value: "production"
-            - name: PORT
-              value: "3000"
-            - name: HOSTNAME
-              value: "0.0.0.0"
-          resources:
-            requests:
-              memory: "512Mi"
-              cpu: "250m"
-            limits:
-              memory: "1Gi"
-              cpu: "500m"
-          livenessProbe:
-            httpGet:
-              path: /api/public/health
-              port: 3000
-            initialDelaySeconds: 30
-            periodSeconds: 10
-            timeoutSeconds: 5
-          readinessProbe:
-            httpGet:
-              path: /api/public/health
-              port: 3000
-            initialDelaySeconds: 10
-            periodSeconds: 5
-            timeoutSeconds: 3
-      affinity:
-        podAntiAffinity:
-          preferredDuringSchedulingIgnoredDuringExecution:
-            - weight: 100
-              podAffinityTerm:
-                labelSelector:
-                  matchLabels:
-                    app: langfuse
-                topologyKey: kubernetes.io/hostname
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: langfuse
-  namespace: observability
-spec:
-  selector:
-    app: langfuse
-  ports:
-    - port: 80
-      targetPort: 3000
-      name: http
-  type: ClusterIP
-```
 
+## Langfuse vs LangSmith Comparison
 
-### Ingress Configuration
+<LangFuseVsLangSmithTable />
 
-Configure Ingress for external access.
+:::tip Selection Guide
 
-```yaml
-# langfuse-ingress.yaml
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: langfuse-ingress
-  namespace: observability
-  annotations:
-    kubernetes.io/ingress.class: alb
-    alb.ingress.kubernetes.io/scheme: internet-facing
-    alb.ingress.kubernetes.io/target-type: ip
-    alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:ap-northeast-2:XXXXXXXXXXXX:certificate/xxx
-    alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS":443}]'
-    alb.ingress.kubernetes.io/ssl-redirect: "443"
-    alb.ingress.kubernetes.io/healthcheck-path: /api/public/health
-    alb.ingress.kubernetes.io/healthcheck-interval-seconds: "15"
-    alb.ingress.kubernetes.io/healthcheck-timeout-seconds: "5"
-    alb.ingress.kubernetes.io/healthy-threshold-count: "2"
-    alb.ingress.kubernetes.io/unhealthy-threshold-count: "2"
-spec:
-  ingressClassName: alb
-  rules:
-    - host: langfuse.your-domain.com
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: langfuse
-                port:
-                  number: 80
-```
-
-### HPA Configuration
-
-Configure auto-scaling based on traffic.
-
-```yaml
-# langfuse-hpa.yaml
-apiVersion: autoscaling/v2
-kind: HorizontalPodAutoscaler
-metadata:
-  name: langfuse-hpa
-  namespace: observability
-spec:
-  scaleTargetRef:
-    apiVersion: apps/v1
-    kind: Deployment
-    name: langfuse
-  minReplicas: 2
-  maxReplicas: 10
-  metrics:
-    - type: Resource
-      resource:
-        name: cpu
-        target:
-          type: Utilization
-          averageUtilization: 70
-    - type: Resource
-      resource:
-        name: memory
-        target:
-          type: Utilization
-          averageUtilization: 80
-  behavior:
-    scaleDown:
-      stabilizationWindowSeconds: 300
-      policies:
-        - type: Percent
-          value: 10
-          periodSeconds: 60
-    scaleUp:
-      stabilizationWindowSeconds: 0
-      policies:
-        - type: Percent
-          value: 100
-          periodSeconds: 15
-        - type: Pods
-          value: 4
-          periodSeconds: 15
-      selectPolicy: Max
-```
-
-:::warning Production Deployment Precautions
-
-- Set `NEXTAUTH_SECRET`, `SALT`, `ENCRYPTION_KEY` with secure random values
-- Use AWS Secrets Manager or HashiCorp Vault to manage secrets in production
-- Amazon RDS PostgreSQL is strongly recommended for production (high availability, automatic backups, managed updates)
-- Use StatefulSet PostgreSQL for development/test environments only
+- **Langfuse**: When data sovereignty is important or cost optimization is needed
+- **LangSmith**: When LangChain-based development is the focus and quick start is needed
 :::
 
-### AWS Secrets Manager Integration (Recommended)
+### AWS Native Observability: CloudWatch Generative AI Observability
 
-In production environments, use AWS Secrets Manager with External Secrets Operator instead of Kubernetes Secrets:
+Amazon CloudWatch Generative AI Observability is an AWS-native solution for LLM and AI agent monitoring:
 
-```yaml
-# Install external-secrets-operator
-helm repo add external-secrets https://charts.external-secrets.io
-helm install external-secrets external-secrets/external-secrets -n external-secrets-system --create-namespace
+- **Infrastructure-agnostic monitoring**: Supports AI workloads across Bedrock, EKS, ECS, on-premises, and more
+- **Agent/tool tracking**: Built-in views for agents, knowledge bases, and tool calls
+- **End-to-end tracing**: Tracking across the entire AI stack
+- **Framework compatibility**: Support for external frameworks like LangChain, LangGraph, CrewAI
 
-# SecretStore configuration
-apiVersion: external-secrets.io/v1beta1
-kind: SecretStore
-metadata:
-  name: aws-secrets-manager
-  namespace: observability
-spec:
-  provider:
-    aws:
-      service: SecretsManager
-      region: ap-northeast-2
-      auth:
-        jwt:
-          serviceAccountRef:
-            name: langfuse
+Using Langfuse v2.75.0 (self-hosted data sovereignty) together with CloudWatch Gen AI Observability (AWS-native integration) provides the most comprehensive observability.
 
-# ExternalSecret configuration
-apiVersion: external-secrets.io/v1beta1
-kind: ExternalSecret
-metadata:
-  name: langfuse-secret
-  namespace: observability
-spec:
-  refreshInterval: 1h
-  secretStoreRef:
-    name: aws-secrets-manager
-    kind: SecretStore
-  target:
-    name: langfuse-secret
-    creationPolicy: Owner
-  data:
-    - secretKey: DATABASE_URL
-      remoteRef:
-        key: langfuse/database-url
-    - secretKey: NEXTAUTH_SECRET
-      remoteRef:
-        key: langfuse/nextauth-secret
-    - secretKey: SALT
-      remoteRef:
-        key: langfuse/salt
-    - secretKey: ENCRYPTION_KEY
-      remoteRef:
-        key: langfuse/encryption-key
-```
+---
 
-### Amazon RDS PostgreSQL Usage (Recommended)
+## Key Monitoring Metrics
 
-In production environments, use Amazon RDS instead of StatefulSet PostgreSQL:
-
-```yaml
-# RDS PostgreSQL connection configuration
-apiVersion: v1
-kind: Secret
-metadata:
-  name: langfuse-postgres-secret
-  namespace: observability
-type: Opaque
-stringData:
-  DATABASE_URL: "postgresql://langfuse:password@langfuse-db.xxxxxxxxxxxx.ap-northeast-2.rds.amazonaws.com:5432/langfuse?sslmode=require"
-```
-
-**RDS Advantages:**
-- Automatic backups and point-in-time recovery
-- Multi-AZ high availability
-- Automatic patching and updates
-- Performance insights and monitoring
-- Read replica support
-
-
-## LangSmith Integration
-
-LangSmith is a managed observability platform provided by LangChain. While there is no self-hosted option, integration with LangChain-based applications is very straightforward.
-
-### Environment Configuration
-
-Set environment variables to use LangSmith.
-
-```yaml
-# langsmith-config.yaml
-apiVersion: v1
-kind: Secret
-metadata:
-  name: langsmith-config
-  namespace: ai-agents
-type: Opaque
-stringData:
-  LANGCHAIN_TRACING_V2: "true"
-  LANGCHAIN_ENDPOINT: "https://api.smith.langchain.com"
-  LANGCHAIN_API_KEY: "ls__your-api-key-here"
-  LANGCHAIN_PROJECT: "agentic-ai-production"
-```
-
-### LangChain Agent Integration
-
-Python code example for integrating LangSmith with LangChain agents.
-
-```python
-# agent_with_langsmith.py
-import os
-from langchain_openai import ChatOpenAI
-from langchain.agents import AgentExecutor, create_openai_functions_agent
-from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
-from langchain.tools import tool
-from langsmith import traceable
-from langsmith.run_helpers import get_current_run_tree
-
-# Environment variable configuration (injected from Kubernetes Secret)
-# LANGCHAIN_TRACING_V2=true
-# LANGCHAIN_ENDPOINT=https://api.smith.langchain.com
-# LANGCHAIN_API_KEY=ls__xxx
-# LANGCHAIN_PROJECT=agentic-ai-production
-
-# Custom tool definition
-@tool
-def search_knowledge_base(query: str) -> str:
-    """Search for relevant information in the knowledge base."""
-    # Milvus search logic
-    return f"Search results: Information about {query}..."
-
-@tool
-def create_support_ticket(title: str, description: str, priority: str = "medium") -> str:
-    """Create a customer support ticket."""
-    # Ticket creation logic
-    return f"Ticket created: {title} (Priority: {priority})"
-
-# Agent configuration
-llm = ChatOpenAI(
-    model="gpt-4-turbo",
-    temperature=0.7,
-    max_tokens=4096,
-)
-
-prompt = ChatPromptTemplate.from_messages([
-    ("system", """You are a friendly and professional customer support agent.
-    Always provide accurate information and be honest about what you don't know.
-    Search the knowledge base or create tickets when necessary."""),
-    MessagesPlaceholder(variable_name="chat_history"),
-    ("human", "{input}"),
-    MessagesPlaceholder(variable_name="agent_scratchpad"),
-])
-
-tools = [search_knowledge_base, create_support_ticket]
-agent = create_openai_functions_agent(llm, tools, prompt)
-agent_executor = AgentExecutor(
-    agent=agent,
-    tools=tools,
-    verbose=True,
-    max_iterations=10,
-    return_intermediate_steps=True,
-)
-
-# Wrap as traceable function
-@traceable(
-    name="customer_support_agent",
-    run_type="chain",
-    tags=["production", "customer-support"],
-)
-def run_agent(user_input: str, chat_history: list = None, metadata: dict = None):
-    """Run the agent and record traces in LangSmith."""
-    if chat_history is None:
-        chat_history = []
-
-    # Add metadata to current run tree
-    run_tree = get_current_run_tree()
-    if run_tree and metadata:
-        run_tree.extra["metadata"] = metadata
-
-    result = agent_executor.invoke({
-        "input": user_input,
-        "chat_history": chat_history,
-    })
-
-    return result
-
-# Usage example
-if __name__ == "__main__":
-    response = run_agent(
-        user_input="Please check the shipping status for order #12345",
-        metadata={
-            "user_id": "user_123",
-            "session_id": "session_456",
-            "tenant_id": "tenant_abc",
-        }
-    )
-    print(response)
-```
-
-
-### Langfuse Python Integration
-
-How to integrate Langfuse into Python applications.
-
-```python
-# agent_with_langfuse.py
-import os
-from langfuse import Langfuse
-from langfuse.decorators import observe, langfuse_context
-from langfuse.openai import openai  # OpenAI wrapper
-from langchain_openai import ChatOpenAI
-from langchain.agents import AgentExecutor, create_openai_functions_agent
-from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
-from langchain.callbacks import LangfuseCallbackHandler
-
-# Initialize Langfuse client
-langfuse = Langfuse(
-    public_key=os.environ.get("LANGFUSE_PUBLIC_KEY"),
-    secret_key=os.environ.get("LANGFUSE_SECRET_KEY"),
-    host=os.environ.get("LANGFUSE_HOST", "https://langfuse.your-domain.com"),
-)
-
-# LangChain callback handler
-langfuse_handler = LangfuseCallbackHandler(
-    public_key=os.environ.get("LANGFUSE_PUBLIC_KEY"),
-    secret_key=os.environ.get("LANGFUSE_SECRET_KEY"),
-    host=os.environ.get("LANGFUSE_HOST"),
-)
-
-# Agent configuration
-llm = ChatOpenAI(
-    model="gpt-4-turbo",
-    temperature=0.7,
-    callbacks=[langfuse_handler],
-)
-
-@observe(name="customer_support_agent")
-def run_agent_with_langfuse(
-    user_input: str,
-    user_id: str = None,
-    session_id: str = None,
-    tenant_id: str = None,
-):
-    """Run agent with Langfuse tracing"""
-
-    # Add metadata to trace
-    langfuse_context.update_current_trace(
-        user_id=user_id,
-        session_id=session_id,
-        metadata={
-            "tenant_id": tenant_id,
-            "environment": os.environ.get("ENVIRONMENT", "production"),
-        },
-        tags=["customer-support", "production"],
-    )
-
-    # Execute agent
-    result = agent_executor.invoke(
-        {"input": user_input, "chat_history": []},
-        config={"callbacks": [langfuse_handler]},
-    )
-
-    # Record output tokens and cost
-    langfuse_context.update_current_observation(
-        output=result["output"],
-        metadata={
-            "intermediate_steps": len(result.get("intermediate_steps", [])),
-        },
-    )
-
-    return result
-
-@observe(name="vector_search", as_type="span")
-def search_with_tracing(query: str, collection: str, top_k: int = 5):
-    """Perform vector search with tracing"""
-    from pymilvus import Collection
-
-    langfuse_context.update_current_observation(
-        input={"query": query, "collection": collection, "top_k": top_k},
-    )
-
-    # Perform Milvus search
-    collection = Collection(collection)
-    results = collection.search(
-        data=[get_embedding(query)],
-        anns_field="embedding",
-        param={"metric_type": "COSINE", "params": {"ef": 64}},
-        limit=top_k,
-        output_fields=["content", "metadata"],
-    )
-
-    langfuse_context.update_current_observation(
-        output={"num_results": len(results[0])},
-    )
-
-    return results
-
-# Record scores and feedback
-def record_feedback(trace_id: str, score: float, comment: str = None):
-    """Record user feedback in Langfuse"""
-    langfuse.score(
-        trace_id=trace_id,
-        name="user_feedback",
-        value=score,
-        comment=comment,
-    )
-
-# Usage example
-if __name__ == "__main__":
-    response = run_agent_with_langfuse(
-        user_input="Please tell me the return process",
-        user_id="user_123",
-        session_id="session_456",
-        tenant_id="tenant_abc",
-    )
-
-    # Record feedback (e.g., user satisfied with response)
-    trace_id = langfuse_context.get_current_trace_id()
-    record_feedback(trace_id, score=1.0, comment="Accurate answer")
-
-    # Flush to send all events
-    langfuse.flush()
-```
-
-
-## Core Monitoring Metrics
-
-Define core metrics to track in Agentic AI applications.
+Defines the key metrics to track in Agentic AI applications.
 
 ### Metric Categories
 
@@ -782,364 +210,138 @@ flowchart TB
 
 <ErrorRateMetricsTable />
 
-### Prometheus Metrics Collection Configuration
+---
 
-```yaml
-# prometheus-scrape-config.yaml
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: prometheus-agent-scrape
-  namespace: observability
-data:
-  agent-scrape.yaml: |
-    scrape_configs:
-      - job_name: 'langfuse'
-        kubernetes_sd_configs:
-          - role: pod
-            namespaces:
-              names:
-                - observability
-        relabel_configs:
-          - source_labels: [__meta_kubernetes_pod_label_app]
-            regex: langfuse
-            action: keep
-          - source_labels: [__meta_kubernetes_pod_container_port_number]
-            regex: "3000"
-            action: keep
-        metrics_path: /api/public/metrics
+## PromQL Query Reference
 
-      - job_name: 'ai-agents'
-        kubernetes_sd_configs:
-          - role: pod
-            namespaces:
-              names:
-                - ai-agents
-        relabel_configs:
-          - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
-            regex: "true"
-            action: keep
-          - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
-            target_label: __metrics_path__
-            regex: (.+)
-          - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
-            action: replace
-            regex: ([^:]+)(?::\d+)?;(\d+)
-            replacement: $1:$2
-            target_label: __address__
+### GPU Metrics
+
+```promql
+# Overall GPU average utilization
+avg(DCGM_FI_DEV_GPU_UTIL)
+
+# Per-node GPU utilization
+avg(DCGM_FI_DEV_GPU_UTIL) by (Hostname)
+
+# GPU memory utilization
+avg(DCGM_FI_DEV_FB_USED / DCGM_FI_DEV_FB_FREE * 100) by (gpu)
 ```
 
+### vLLM Metrics
 
-### Python Metrics Exporter
+```promql
+# Overall TPS (tokens generated per second)
+rate(vllm_generation_tokens_total[5m])
 
-Code to expose Prometheus metrics from agent applications.
+# Per-model TPS
+sum(rate(vllm_generation_tokens_total[5m])) by (model)
 
-```python
-# metrics_exporter.py
-from prometheus_client import Counter, Histogram, Gauge, start_http_server
-import time
+# TTFT P99 (Time to First Token)
+histogram_quantile(0.99, rate(vllm_time_to_first_token_seconds_bucket[5m]))
 
-# Metric definitions
-AGENT_REQUEST_DURATION = Histogram(
-    'agent_request_duration_seconds',
-    'Agent request duration in seconds',
-    ['agent_name', 'model', 'tenant_id'],
-    buckets=[0.1, 0.5, 1.0, 2.0, 5.0, 10.0, 30.0, 60.0]
-)
+# TTFT P95
+histogram_quantile(0.95, rate(vllm_time_to_first_token_seconds_bucket[5m]))
 
-LLM_INFERENCE_DURATION = Histogram(
-    'llm_inference_duration_seconds',
-    'LLM inference duration in seconds',
-    ['model', 'provider'],
-    buckets=[0.1, 0.5, 1.0, 2.0, 5.0, 10.0, 30.0]
-)
+# E2E Latency P99
+histogram_quantile(0.99, rate(vllm_e2e_request_latency_seconds_bucket[5m]))
 
-LLM_TOKENS = Counter(
-    'llm_tokens_total',
-    'Total LLM tokens used',
-    ['model', 'token_type', 'tenant_id']  # token_type: input, output
-)
-
-LLM_COST = Counter(
-    'llm_cost_dollars_total',
-    'Total LLM cost in USD',
-    ['model', 'tenant_id']
-)
-
-AGENT_ERRORS = Counter(
-    'agent_errors_total',
-    'Total agent errors',
-    ['agent_name', 'error_type', 'tenant_id']
-)
-
-TOOL_EXECUTION_DURATION = Histogram(
-    'tool_execution_duration_seconds',
-    'Tool execution duration in seconds',
-    ['tool_name', 'agent_name'],
-    buckets=[0.01, 0.05, 0.1, 0.5, 1.0, 5.0, 10.0]
-)
-
-ACTIVE_SESSIONS = Gauge(
-    'agent_active_sessions',
-    'Number of active agent sessions',
-    ['agent_name', 'tenant_id']
-)
-
-# Model costs (USD per 1K tokens)
-MODEL_COSTS = {
-    "gpt-4o": {"input": 0.0025, "output": 0.01},
-    "gpt-4o-mini": {"input": 0.00015, "output": 0.0006},
-    "gpt-4-turbo": {"input": 0.01, "output": 0.03},
-    "claude-sonnet-4": {"input": 0.003, "output": 0.015},
-    "claude-3.5-haiku": {"input": 0.0008, "output": 0.004},
-    "claude-3-opus": {"input": 0.015, "output": 0.075},
-}
-
-def record_llm_usage(
-    model: str,
-    input_tokens: int,
-    output_tokens: int,
-    tenant_id: str,
-    duration: float,
-):
-    """Record LLM usage metrics"""
-    # Record token counts
-    LLM_TOKENS.labels(model=model, token_type="input", tenant_id=tenant_id).inc(input_tokens)
-    LLM_TOKENS.labels(model=model, token_type="output", tenant_id=tenant_id).inc(output_tokens)
-
-    # Calculate and record cost
-    if model in MODEL_COSTS:
-        cost = (
-            (input_tokens / 1000) * MODEL_COSTS[model]["input"] +
-            (output_tokens / 1000) * MODEL_COSTS[model]["output"]
-        )
-        LLM_COST.labels(model=model, tenant_id=tenant_id).inc(cost)
-
-    # Record inference time
-    LLM_INFERENCE_DURATION.labels(model=model, provider="openai").observe(duration)
-
-def record_agent_request(
-    agent_name: str,
-    model: str,
-    tenant_id: str,
-    duration: float,
-    success: bool,
-    error_type: str = None,
-):
-    """Record agent request metrics"""
-    AGENT_REQUEST_DURATION.labels(
-        agent_name=agent_name,
-        model=model,
-        tenant_id=tenant_id
-    ).observe(duration)
-
-    if not success and error_type:
-        AGENT_ERRORS.labels(
-            agent_name=agent_name,
-            error_type=error_type,
-            tenant_id=tenant_id
-        ).inc()
-
-# Start metrics server
-def start_metrics_server(port: int = 8000):
-    """Start Prometheus metrics server"""
-    start_http_server(port)
-    print(f"Metrics server started on port {port}")
+# Average batch size
+avg(vllm_num_requests_running)
 ```
 
+### Gateway Metrics
 
-## Grafana Dashboards and Alerting
+```promql
+# 5xx error rate (%)
+rate(envoy_http_downstream_rq_xx{envoy_response_code_class="5"}[5m]) 
+/ 
+rate(envoy_http_downstream_rq_total[5m]) * 100
 
-### Dashboard Overview
-
-Configure a Grafana dashboard for AI Agent monitoring.
-
-```mermaid
-flowchart TB
-    subgraph Overview["Overview"]
-        TOTAL_REQ[Total Requests]
-        SUCCESS_RATE[Success Rate]
-        AVG_LATENCY[Avg Latency]
-        ACTIVE_USERS[Active Users]
-    end
-
-    subgraph Performance["Performance"]
-        LATENCY_CHART[Latency Distribution]
-        THROUGHPUT[Throughput]
-        ERROR_RATE[Error Rate]
-    end
-
-    subgraph Cost["Cost & Usage"]
-        TOKEN_USAGE[Token Usage]
-        COST_BY_MODEL[Cost by Model]
-        COST_BY_TENANT[Cost by Tenant]
-    end
-
-    subgraph Traces["Traces"]
-        TRACE_TABLE[Recent Traces]
-        SLOW_TRACES[Slow Requests]
-        ERROR_TRACES[Error Traces]
-    end
-
-    style Overview fill:#4285f4
-    style Performance fill:#34a853
-    style Cost fill:#fbbc04
-    style Traces fill:#9c27b0
+# Upstream health check failure rate
+sum(rate(envoy_cluster_upstream_cx_connect_fail[5m])) by (envoy_cluster_name)
 ```
 
-### Grafana Alert Rules
+### Cost Metrics
 
-```yaml
-# grafana-alerts.yaml
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: grafana-alert-rules
-  namespace: observability
-data:
-  ai-agent-alerts.yaml: |
-    apiVersion: 1
-    groups:
-      - orgId: 1
-        name: AI Agent Alerts
-        folder: AI Monitoring
-        interval: 1m
-        rules:
-          - uid: agent-high-latency
-            title: Agent High Latency
-            condition: C
-            data:
-              - refId: A
-                relativeTimeRange:
-                  from: 300
-                  to: 0
-                datasourceUid: prometheus
-                model:
-                  expr: histogram_quantile(0.99, sum(rate(agent_request_duration_seconds_bucket[5m])) by (le, agent_name))
-                  intervalMs: 1000
-                  maxDataPoints: 43200
-              - refId: B
-                relativeTimeRange:
-                  from: 300
-                  to: 0
-                datasourceUid: __expr__
-                model:
-                  conditions:
-                    - evaluator:
-                        params: [10]
-                        type: gt
-                      operator:
-                        type: and
-                      query:
-                        params: [A]
-                      reducer:
-                        type: last
-                  type: threshold
-              - refId: C
-                datasourceUid: __expr__
-                model:
-                  expression: B
-                  type: reduce
-                  reducer: last
-            noDataState: NoData
-            execErrState: Error
-            for: 5m
-            annotations:
-              summary: "Agent {{ $labels.agent_name }} P99 latency is above 10s"
-              description: "Current P99 latency: {{ $values.A }}s"
-            labels:
-              severity: warning
+```promql
+# Daily total cost
+sum(increase(llm_cost_dollars_total[24h]))
 
-          - uid: agent-high-error-rate
-            title: Agent High Error Rate
-            condition: C
-            data:
-              - refId: A
-                datasourceUid: prometheus
-                model:
-                  expr: |
-                    sum(rate(agent_errors_total[5m])) by (agent_name) /
-                    sum(rate(agent_request_duration_seconds_count[5m])) by (agent_name)
-              - refId: B
-                datasourceUid: __expr__
-                model:
-                  conditions:
-                    - evaluator:
-                        params: [0.05]
-                        type: gt
-                  type: threshold
-              - refId: C
-                datasourceUid: __expr__
-                model:
-                  expression: B
-                  type: reduce
-                  reducer: last
-            for: 5m
-            annotations:
-              summary: "Agent {{ $labels.agent_name }} error rate is above 5%"
-              description: "Current error rate: {{ printf \"%.2f\" $values.A }}%"
-            labels:
-              severity: critical
+# Per-tenant daily cost
+sum(increase(llm_cost_dollars_total[24h])) by (tenant_id)
 
-          - uid: llm-rate-limit
-            title: LLM Rate Limit Errors
-            condition: C
-            data:
-              - refId: A
-                datasourceUid: prometheus
-                model:
-                  expr: sum(increase(llm_rate_limit_errors_total[5m])) by (model)
-              - refId: B
-                datasourceUid: __expr__
-                model:
-                  conditions:
-                    - evaluator:
-                        params: [10]
-                        type: gt
-                  type: threshold
-              - refId: C
-                datasourceUid: __expr__
-                model:
-                  expression: B
-                  type: reduce
-                  reducer: last
-            for: 2m
-            annotations:
-              summary: "LLM {{ $labels.model }} rate limit errors detected"
-              description: "{{ $values.A }} rate limit errors in last 5 minutes"
-            labels:
-              severity: warning
+# Per-model cost ratio
+sum(increase(llm_cost_dollars_total[24h])) by (model)
+/ ignoring(model) group_left
+sum(increase(llm_cost_dollars_total[24h]))
 
-          - uid: cost-budget-alert
-            title: Daily Cost Budget Exceeded
-            condition: C
-            data:
-              - refId: A
-                datasourceUid: prometheus
-                model:
-                  expr: sum(increase(llm_cost_dollars_total[24h])) by (tenant_id)
-              - refId: B
-                datasourceUid: __expr__
-                model:
-                  conditions:
-                    - evaluator:
-                        params: [100]  # $100 daily budget
-                        type: gt
-                  type: threshold
-              - refId: C
-                datasourceUid: __expr__
-                model:
-                  expression: B
-                  type: reduce
-                  reducer: last
-            for: 0s
-            annotations:
-              summary: "Tenant {{ $labels.tenant_id }} exceeded daily cost budget"
-              description: "Current daily cost: ${{ printf \"%.2f\" $values.A }}"
-            labels:
-              severity: warning
+# Budget utilization (monthly)
+sum(increase(llm_cost_dollars_total[30d])) by (tenant_id)
+/ on(tenant_id) group_left
+tenant_monthly_budget_usd
 ```
 
+---
+
+## Alerting Strategy
+
+### Alert Threshold Design
+
+| Alert | Condition | Severity | Duration |
+|-------|----------|----------|----------|
+| **Agent High Latency** | P99 latency > 10s | Warning | 5 min |
+| **Agent High Error Rate** | Error rate > 5% | Critical | 5 min |
+| **LLM Rate Limit** | Rate limit errors > 10/5min | Warning | 2 min |
+| **Daily Cost Budget** | Daily cost > $100 | Warning | Immediate |
+| **GPU High Temperature** | GPU temp > 85C | Warning | 5 min |
+| **GPU Memory Full** | GPU memory > 95% | Critical | 3 min |
+| **vLLM High Latency** | P99 E2E latency > 30s | Warning | 5 min |
+
+### Alert Hierarchy
+
+1. **Infrastructure layer**: GPU temperature, memory, power anomalies
+2. **Model server layer**: vLLM latency increase, KV cache shortage
+3. **Application layer**: Agent error rate, Rate limit
+4. **Business layer**: Cost overrun, SLA violations
+
+:::tip Monitoring Best Practices
+
+1. **Cross-layer metric correlation**: Analyze correlations — LLM request increase -> GPU utilization rise -> infrastructure load increase
+2. **Anomaly detection**: When P99 latency suddenly increases, simultaneously check GPU temperature and memory usage
+3. **Capacity planning**: Consider provisioning additional GPU nodes when average GPU utilization exceeds 70%
+4. **Cost optimization**: Prioritize models with lower TTFT to improve user experience + increase throughput
+:::
+
+---
+
+## Cost Tracking
+
+### Cost Tracking Concepts
+
+Track LLM usage costs by the following criteria:
+
+- **Per-model**: Total cost and request count per model, identifying the most expensive models
+- **Per-tenant**: Per-tenant/team daily token usage and budget utilization
+- **Per-time**: Peak time analysis, cost trends
+
+### Per-Model Cost Reference (2026 baseline)
+
+| Model | Input ($/1K tok) | Output ($/1K tok) |
+|-------|-----------------|------------------|
+| GPT-4o | $0.0025 | $0.01 |
+| GPT-4o-mini | $0.00015 | $0.0006 |
+| Claude Sonnet 4 | $0.003 | $0.015 |
+| Claude 3.5 Haiku | $0.0008 | $0.004 |
+
+:::tip Cost Optimization Tips
+
+1. **Model selection optimization**: Use cheaper models (GPT-4o-mini, Claude 3.5 Haiku) for simple tasks
+2. **Prompt optimization**: Reduce input tokens by removing unnecessary context
+3. **Caching**: Cache responses for repetitive queries
+4. **Cascade Routing**: Try low-cost model first, Fallback to high-performance model on failure
+:::
+
+---
 
 ## Operations Checklist
 
@@ -1151,274 +353,25 @@ data:
 
 <WeeklyChecksTable />
 
+---
 
-## Troubleshooting Guide
-
-### GPU OOM (Out of Memory) Issues
-
-#### Symptoms
-
-```
-CUDA out of memory. Tried to allocate X GiB
-RuntimeError: CUDA error: out of memory
-```
-
-#### Diagnosis
-
-```bash
-# Check GPU memory status
-kubectl exec -it <pod-name> -n inference -- nvidia-smi
-
-# Check DCGM metrics
-kubectl exec -it <dcgm-exporter-pod> -n monitoring -- dcgmi dmon -e 155,156
-```
-
-#### Solutions
-
-```yaml
-# 1. Reduce batch size
-env:
-- name: MAX_BATCH_SIZE
-  value: "16"  # Reduced from 32 to 16
-
-# 2. Apply model quantization
-env:
-- name: QUANTIZATION
-  value: "int8"  # or "fp8"
-
-# 3. Limit KV cache size
-env:
-- name: MAX_NUM_SEQS
-  value: "128"  # Limit concurrent sequences
-```
-
-### Network Latency Issues
-
-#### Symptoms
-
-- Inference request timeouts
-- Inter-model communication delays
-- NCCL timeouts (distributed inference)
-
-#### Solutions
-
-```yaml
-# 1. Distributed placement with Pod Anti-Affinity
-affinity:
-  podAntiAffinity:
-    preferredDuringSchedulingIgnoredDuringExecution:
-    - weight: 100
-      podAffinityTerm:
-        labelSelector:
-          matchLabels:
-            app: inference
-        topologyKey: "topology.kubernetes.io/zone"
-
-# 2. Increase timeouts
-env:
-- name: NCCL_TIMEOUT
-  value: "1800"  # 30 minutes
-- name: REQUEST_TIMEOUT
-  value: "300"   # 5 minutes
-```
-
-### Langfuse Connection Errors
-
-```bash
-# Symptom: Traces not recorded in Langfuse
-
-# 1. Check Langfuse service status
-kubectl get pods -n observability -l app=langfuse
-
-# 2. Check Langfuse logs
-kubectl logs -n observability -l app=langfuse --tail=100
-
-# 3. Test network connection
-kubectl run -it --rm debug --image=curlimages/curl --restart=Never -- \
-  curl -v http://langfuse.observability.svc/api/public/health
-
-# 4. Verify environment variables
-kubectl exec -n ai-agents <pod-name> -- env | grep LANGFUSE
-```
-
-
-## Cost Tracking
-
-### Cost Analysis by Model
-
-Track and analyze LLM usage costs by model.
-
-```python
-# cost_tracker.py
-from dataclasses import dataclass
-from datetime import datetime, timedelta
-from typing import Dict, List, Optional
-import json
-
-@dataclass
-class ModelPricing:
-    """Pricing information by model (USD per 1K tokens)"""
-    input_price: float
-    output_price: float
-
-# Model prices as of 2025
-MODEL_PRICING: Dict[str, ModelPricing] = {
-    # OpenAI
-    "gpt-4o": ModelPricing(0.0025, 0.01),
-    "gpt-4o-mini": ModelPricing(0.00015, 0.0006),
-    "gpt-4-turbo": ModelPricing(0.01, 0.03),
-
-    # Anthropic
-    "claude-sonnet-4": ModelPricing(0.003, 0.015),
-    "claude-3.5-haiku": ModelPricing(0.0008, 0.004),
-    "claude-3-opus": ModelPricing(0.015, 0.075),
-}
-
-@dataclass
-class UsageRecord:
-    """Usage record"""
-    timestamp: datetime
-    model: str
-    input_tokens: int
-    output_tokens: int
-    tenant_id: str
-    agent_name: str
-    trace_id: str
-
-    @property
-    def total_tokens(self) -> int:
-        return self.input_tokens + self.output_tokens
-
-    @property
-    def cost(self) -> float:
-        if self.model not in MODEL_PRICING:
-            return 0.0
-        pricing = MODEL_PRICING[self.model]
-        return (
-            (self.input_tokens / 1000) * pricing.input_price +
-            (self.output_tokens / 1000) * pricing.output_price
-        )
-
-class CostTracker:
-    """Cost tracker"""
-
-    def __init__(self, langfuse_client=None):
-        self.langfuse = langfuse_client
-        self.records: List[UsageRecord] = []
-
-    def record_usage(
-        self,
-        model: str,
-        input_tokens: int,
-        output_tokens: int,
-        tenant_id: str,
-        agent_name: str,
-        trace_id: str,
-    ):
-        """Record usage"""
-        record = UsageRecord(
-            timestamp=datetime.utcnow(),
-            model=model,
-            input_tokens=input_tokens,
-            output_tokens=output_tokens,
-            tenant_id=tenant_id,
-            agent_name=agent_name,
-            trace_id=trace_id,
-        )
-        self.records.append(record)
-
-        # Update Prometheus metrics
-        from metrics_exporter import record_llm_usage
-        record_llm_usage(
-            model=model,
-            input_tokens=input_tokens,
-            output_tokens=output_tokens,
-            tenant_id=tenant_id,
-            duration=0,  # Requires separate measurement
-        )
-
-        return record
-```
-
-### Cost Dashboard Queries
-
-```promql
-# Total daily cost
-sum(increase(llm_cost_dollars_total[24h]))
-
-# Daily cost by tenant
-sum(increase(llm_cost_dollars_total[24h])) by (tenant_id)
-
-# Cost ratio by model
-sum(increase(llm_cost_dollars_total[24h])) by (model)
-/ ignoring(model) group_left
-sum(increase(llm_cost_dollars_total[24h]))
-
-# Budget utilization (monthly)
-sum(increase(llm_cost_dollars_total[30d])) by (tenant_id)
-/ on(tenant_id) group_left
-tenant_monthly_budget_usd
-```
-
-:::tip Cost Optimization Tips
-
-1. **Model Selection Optimization**: Use cheaper models (GPT-4o-mini, Claude 3.5 Haiku) for simple tasks
-2. **Prompt Optimization**: Reduce input tokens by removing unnecessary context
-3. **Caching**: Cache responses for repetitive queries
-4. **Batch Processing**: Batch requests when possible to reduce overhead
-:::
-
-
-## Conclusion
-
-AI Agent monitoring is essential for stable operation and continuous improvement of Agentic AI applications. Key points covered in this document:
-
-### AWS Native Observability: CloudWatch Generative AI Observability
-
-:::tip re:Invent 2025 New Service
-Amazon CloudWatch Generative AI Observability was released as GA in October 2025. It can be used alongside or as an alternative to Langfuse/LangSmith.
-:::
-
-CloudWatch Generative AI Observability is an AWS native solution for LLM and AI agent monitoring:
-
-- **Infrastructure-Agnostic Monitoring**: Support for AI workloads across all environments including Bedrock, EKS, ECS, and on-premises
-- **Agent/Tool Tracking**: Built-in views for agents, knowledge bases, and tool calls
-- **End-to-End Tracing**: Tracking across the entire AI stack
-- **Token and Latency Metrics**: Native LLM tracing
-- **Framework Compatibility**: Support for external frameworks like LangChain, LangGraph, CrewAI
-
-Using Langfuse v2.75.0 (Self-hosted data sovereignty) together with CloudWatch Gen AI Observability (AWS native integration) provides the most comprehensive observability.
-
-Additionally, **CloudWatch Application Signals** enables automatic telemetry collection, service relationship visualization, and SLI/SLO monitoring for EKS workloads. It supports automatic instrumentation based on ADOT (AWS Distro for OpenTelemetry) without code changes.
-
-### Key Summary
-
-1. **Langfuse Deployment**: Deploy self-hosted Langfuse in Kubernetes environment to secure data sovereignty and optimize costs
-2. **LangSmith Integration**: Easily enable tracing in LangChain-based applications
-3. **Core Metrics**: Comprehensive monitoring through Latency, Token Usage, Error Rate, and Trace analysis
-4. **Grafana Dashboard**: Proactive operations through real-time monitoring and alerting
-5. **Cost Tracking**: Budget management and optimization through cost analysis by model and tenant
-6. **Troubleshooting**: Solve common issues like GPU OOM, network latency, model loading failures
-
-### Monitoring Maturity Model
+## Monitoring Maturity Model
 
 <MaturityModelTable />
 
-:::tip Next Steps
+---
 
+## Next Steps
+
+- [Monitoring Stack Setup Guide](../reference-architecture/monitoring-observability-setup.md) - AMP/AMG deployment, Langfuse Helm installation, ServiceMonitor, Grafana dashboard production setup
+- [LLMOps Observability Comparison Guide](./llmops-observability.md) - In-depth comparison of Langfuse vs LangSmith vs Helicone
 - [Agentic AI Platform Architecture](../design-architecture/agentic-platform-architecture.md) - Overall platform design
-- [Kagent Kubernetes Agent Management](../agent-data/kagent-kubernetes-agents.md) - Agent deployment and operations
-- [RAG Evaluation Framework](./ragas-evaluation.md) - Quality evaluation using Ragas
-:::
+- [RAG Evaluation Framework](./ragas-evaluation.md) - Quality evaluation with Ragas
 
 ## References
 
 - [Langfuse Documentation](https://langfuse.com/docs)
-- [Langfuse GitHub Repository](https://github.com/langfuse/langfuse)
 - [LangSmith Documentation](https://docs.smith.langchain.com/)
 - [CloudWatch Generative AI Observability](https://aws.amazon.com/blogs/mt/launching-amazon-cloudwatch-generative-ai-observability-preview/)
-- [CloudWatch Application Signals](https://aws.amazon.com/blogs/mt/amazon-cloudwatch-application-signals-new-enhancements-for-application-monitoring/)
 - [OpenTelemetry Documentation](https://opentelemetry.io/docs/)
 - [Prometheus Monitoring](https://prometheus.io/docs/)
-- [Grafana Dashboards](https://grafana.com/docs/grafana/latest/dashboards/)
-- [LangChain Callbacks](https://python.langchain.com/docs/modules/callbacks/)

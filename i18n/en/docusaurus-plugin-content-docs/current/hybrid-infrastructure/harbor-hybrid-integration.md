@@ -1,10 +1,9 @@
 ---
 title: "Harbor 2.13 and EKS Hybrid Nodes Integration Guide"
 sidebar_label: "Harbor Registry"
-description: "Complete step-by-step guide for integrating Harbor 2.13 private container registry with Amazon EKS Hybrid Nodes (Kubernetes 1.33), covering installation, SSL/TLS configuration, authentication, and troubleshooting"
+description: "A complete step-by-step guide for integrating Harbor 2.13 private container registry with Amazon EKS Hybrid Nodes (Kubernetes 1.33), covering installation, SSL/TLS configuration, authentication, and troubleshooting."
 tags: [eks, hybrid-nodes, harbor, container-registry, kubernetes, ssl-tls, nodeadm]
 category: "hybrid-multicloud"
-sidebar_position: 4
 last_update:
   date: 2026-02-14
   author: devfloor9
@@ -12,22 +11,22 @@ last_update:
 
 # Harbor 2.13 and EKS Hybrid Nodes Integration Guide
 
-> 📅 **Written**: 2025-08-20 | **Last Modified**: 2026-02-14 | ⏱️ **Reading Time**: ~3 min
+> **Created**: 2025-08-20 | **Updated**: 2026-02-14 | **Reading time**: ~3 min
 
 
 ## Overview
 
-This guide provides step-by-step configuration methods for integrating Harbor 2.13 with EKS Hybrid Nodes (Kubernetes 1.33). EKS Hybrid Nodes, officially released in December 2024, enables integrated management of on-premises infrastructure with AWS EKS, while Harbor 2.13 provides enhanced security features and AI model management capabilities.
+This guide provides step-by-step configuration instructions for integrating Harbor 2.13 with EKS Hybrid Nodes (Kubernetes 1.33). Officially launched in December 2024, EKS Hybrid Nodes enables unified management of on-premises infrastructure and AWS EKS, while Harbor 2.13 provides enhanced security features and AI model management capabilities.
 
 ## Part 1: Harbor Private Repository Installation and Configuration
 
-### Step 1: Harbor 2.13 Installation Preparation
+### Step 1: Prepare Harbor 2.13 Installation
 
-#### System Requirements
+#### Verify System Requirements
 
 - Docker Engine 20.10.10+
 - Docker Compose 2.0+
-- Minimum hardware: 2 CPU cores, 4GB RAM
+- Minimum Hardware: 2 CPU cores, 4GB RAM
 - Supported OS: Ubuntu 20.04/22.04, RHEL 8/9, CentOS 7/8
 
 #### Download Harbor 2.13.2
@@ -36,14 +35,14 @@ This guide provides step-by-step configuration methods for integrating Harbor 2.
 # Download Harbor 2.13.2 (latest stable version)
 wget https://github.com/goharbor/harbor/releases/download/v2.13.2/harbor-offline-installer-v2.13.2.tgz
 
-# Extract archive
+# Extract
 tar xvf harbor-offline-installer-v2.13.2.tgz
 cd harbor
 ```
 
 ### Step 2: SSL/TLS Certificate Configuration
 
-#### Generate Self-Signed Certificate
+#### Generate Self-Signed Certificates
 
 ```bash
 # 1. Generate CA certificate
@@ -51,14 +50,14 @@ openssl genrsa -out ca.key 4096
 openssl req -x509 -new -nodes -sha512 -days 3650 \
   -key ca.key \
   -out ca.crt \
-  -subj "/C=US/ST=California/L=San Francisco/O=MyOrganization/CN=Harbor-CA"
+  -subj "/C=KR/ST=Seoul/L=Seoul/O=MyOrganization/CN=Harbor-CA"
 
 # 2. Generate server certificate
 openssl genrsa -out harbor.key 4096
 openssl req -new -sha512 \
   -key harbor.key \
   -out harbor.csr \
-  -subj "/C=US/ST=California/L=San Francisco/O=MyOrganization/CN=harbor.yourdomain.com"
+  -subj "/C=KR/ST=Seoul/L=Seoul/O=MyOrganization/CN=harbor.yourdomain.com"
 
 # 3. Create v3.ext file (SAN configuration)
 cat > v3.ext <<EOF
@@ -74,7 +73,7 @@ DNS.2=yourdomain.com
 IP.1=192.168.1.100
 EOF
 
-# 4. Sign certificate
+# 4. Sign the certificate
 openssl x509 -req -sha512 -days 3650 \
   -extfile v3.ext \
   -CA ca.crt -CAkey ca.key -CAcreateserial \
@@ -92,12 +91,12 @@ cp harbor.key /data/cert/
 #### Modify harbor.yml
 
 ```bash
-# Copy and edit harbor.yml file
+# Copy and edit harbor.yml
 cp harbor.yml.tmpl harbor.yml
 vi harbor.yml
 ```
 
-Key configuration content:
+Key configuration settings:
 
 ```yaml
 # Hostname setting
@@ -112,7 +111,7 @@ https:
 # Harbor admin password
 harbor_admin_password: Harbor12345!
 
-# Database configuration
+# Database settings
 database:
   password: root123
   max_idle_conns: 100
@@ -123,7 +122,7 @@ database:
 # Data storage path
 data_volume: /data
 
-# Logging configuration
+# Log settings
 log:
   level: info
   local:
@@ -131,24 +130,24 @@ log:
     rotate_size: 200M
     location: /var/log/harbor
 
-# Trivy vulnerability scanner configuration
+# Trivy vulnerability scanner settings
 trivy:
   ignore_unfixed: false
   skip_update: false
   offline_scan: false
   insecure: false
 
-# Metrics configuration
+# Metrics settings
 metric:
   enabled: true
   port: 9090
   path: /metrics
 ```
 
-### Step 4: Harbor Installation
+### Step 4: Run Harbor Installation
 
 ```bash
-# Run installation preparation script
+# Run preparation script
 sudo ./prepare
 
 # Install Harbor (with Trivy)
@@ -158,12 +157,12 @@ sudo ./install.sh --with-trivy
 docker-compose ps
 ```
 
-### Step 5: Harbor User Authentication Configuration
+### Step 5: Configure Harbor User Authentication
 
 #### LDAP Authentication Setup (Optional)
 
 ```bash
-# Configure LDAP via API
+# LDAP configuration via API
 curl -X PUT "https://harbor.yourdomain.com/api/v2.0/configurations" \
   -H "Content-Type: application/json" \
   -u "admin:Harbor12345!" \
@@ -180,10 +179,10 @@ curl -X PUT "https://harbor.yourdomain.com/api/v2.0/configurations" \
   }'
 ```
 
-#### Create Robot Account (for Kubernetes integration)
+#### Create Robot Account (for Kubernetes Integration)
 
 ```bash
-# Create via Harbor UI or use API
+# Create via Harbor UI or API
 curl -X POST "https://harbor.yourdomain.com/api/v2.0/robots" \
   -H "Content-Type: application/json" \
   -u "admin:Harbor12345!" \
@@ -210,7 +209,7 @@ curl -X POST "https://harbor.yourdomain.com/api/v2.0/robots" \
 
 ## Part 2: EKS Hybrid Nodes Configuration
 
-### Step 6: nodeadm Installation and Preparation
+### Step 6: Install and Prepare nodeadm
 
 #### Download nodeadm
 
@@ -232,7 +231,7 @@ nodeadm version
 #### Install Required Components
 
 ```bash
-# Install Kubernetes 1.33 supporting components
+# Install Kubernetes 1.33 support components
 sudo nodeadm install 1.33 --credential-provider ssm
 
 # Or when using IAM Roles Anywhere
@@ -250,7 +249,7 @@ kind: NodeConfig
 spec:
   cluster:
     name: my-hybrid-cluster
-    region: ap-northeast-2
+    region: ap-northeast-2  # Seoul Region
 
   # Hybrid node configuration using SSM
   hybrid:
@@ -258,7 +257,7 @@ spec:
       activationCode: "YOUR-ACTIVATION-CODE"
       activationId: "YOUR-ACTIVATION-ID"
 
-  # Containerd configuration (Harbor registry setup)
+  # Containerd configuration (Harbor registry settings)
   containerd:
     config: |
       version = 2
@@ -281,7 +280,7 @@ spec:
               ca_file = "/etc/ssl/certs/harbor-ca.crt"
               insecure_skip_verify = false
 
-  # Kubelet configuration
+  # Kubelet settings
   kubelet:
     config:
       shutdownGracePeriod: 30s
@@ -290,26 +289,26 @@ spec:
       - --node-labels=node-type=hybrid,registry=harbor
 ```
 
-### Step 8: Install Certificate
+### Step 8: Install Certificates
 
-#### Install Harbor CA Certificate on Node
+#### Install Harbor CA Certificate on Nodes
 
 ```bash
 # Add CA certificate to system trust store
 sudo cp ca.crt /usr/local/share/ca-certificates/harbor-ca.crt
 sudo update-ca-certificates
 
-# Create certificate directory for containerd
+# Create certificate directory for Containerd
 sudo mkdir -p /etc/containerd/certs.d/harbor.yourdomain.com
 
 # Copy certificate
 sudo cp ca.crt /etc/containerd/certs.d/harbor.yourdomain.com/ca.crt
 
-# Restart containerd
+# Restart Containerd
 sudo systemctl restart containerd
 ```
 
-### Step 9: Node Initialization
+### Step 9: Initialize Node
 
 ```bash
 # Initialize node using NodeConfig
@@ -323,10 +322,10 @@ kubectl get nodes
 
 ### Step 10: Network Configuration
 
-#### Configure Security Groups
+#### Security Group Setup
 
 ```bash
-# Allow EKS nodes to access Harbor security group
+# Allow EKS node access to Harbor security group
 aws ec2 authorize-security-group-ingress \
   --group-id sg-harbor-xxxxx \
   --protocol tcp \
@@ -370,7 +369,7 @@ data:
 #### Create Harbor Authentication Secret
 
 ```bash
-# Test docker login
+# Test Docker login
 docker login harbor.yourdomain.com
 Username: robot$k8s-robot
 Password: YOUR-ROBOT-TOKEN
@@ -408,9 +407,9 @@ imagePullSecrets:
 EOF
 ```
 
-### Step 12: Testing and Validation
+### Step 12: Testing and Verification
 
-#### Connection Test
+#### Connectivity Tests
 
 ```bash
 # 1. Verify network connectivity
@@ -445,15 +444,15 @@ kubectl describe pod harbor-test
 **1. ImagePullBackOff Error**
 
 ```bash
-# Diagnose problem
+# Diagnose the issue
 kubectl describe pod <pod-name>
 kubectl get events --field-selector involvedObject.name=<pod-name>
 
-# Check Secret
+# Verify Secret
 kubectl get secret harbor-registry -o jsonpath='{.data.\.dockerconfigjson}' | base64 -d
 
-# Solution
-# - Recreate Secret
+# Solutions
+# - Recreate the Secret
 # - Verify image name and tag
 # - Check Harbor project access permissions
 ```
@@ -510,7 +509,7 @@ EOF
 **3. DNS Resolution Failure**
 
 ```bash
-# Test DNS
+# DNS test
 kubectl run -it --rm debug --image=busybox --restart=Never -- nslookup harbor.yourdomain.com
 
 # Check CoreDNS logs
@@ -524,10 +523,10 @@ kubectl rollout restart deployment coredns -n kube-system
 
 ### Step 14: Security Hardening
 
-#### Configure Harbor Security Policies
+#### Harbor Security Policy Configuration
 
 ```bash
-# Enable vulnerability scan automation
+# Enable automated vulnerability scanning
 curl -X PUT "https://harbor.yourdomain.com/api/v2.0/projects/1" \
   -H "Content-Type: application/json" \
   -u "admin:Harbor12345!" \
@@ -588,7 +587,7 @@ data:
       metrics_path: '/metrics'
 ```
 
-#### Key Monitoring Metrics
+#### Key Monitoring Indicators
 
 - Registry request rate
 - Authentication failure count
@@ -598,11 +597,11 @@ data:
 
 ## Conclusion
 
-This guide described step-by-step integration configuration of Harbor 2.13 and EKS Hybrid Nodes (Kubernetes 1.33). Key success factors are:
+This guide covered the step-by-step integration configuration of Harbor 2.13 and EKS Hybrid Nodes (Kubernetes 1.33). Key success factors are:
 
-1. **Proper Certificate Management**: When using self-signed certificates, install CA certificate on all nodes
-2. **Network Configuration**: Secure communication path between Harbor and EKS nodes
-3. **Authentication Setup**: Automated authentication configuration through Robot Account
-4. **Continuous Validation**: Configuration validation through step-by-step testing
+1. **Proper certificate management**: Install CA certificates on all nodes when using self-signed certificates
+2. **Network configuration**: Establish secure communication paths between Harbor and EKS nodes
+3. **Authentication setup**: Automated authentication configuration through Robot Accounts
+4. **Continuous validation**: Verify configuration through testing at each stage
 
-By leveraging Harbor 2.13's enhanced features and EKS Hybrid Nodes' flexibility, you can build an integrated container management environment spanning on-premises and cloud.
+By leveraging the enhanced features of Harbor 2.13 and the flexibility of EKS Hybrid Nodes, you can build a unified container management environment spanning on-premises and cloud.

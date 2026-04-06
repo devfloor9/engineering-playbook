@@ -1,10 +1,9 @@
 ---
 title: "EKS Hybrid Nodes Complete Guide"
 sidebar_label: "Hybrid Nodes Complete Guide"
-description: "Complete guide for Amazon EKS Hybrid Nodes adoption: architecture, configuration, networking, DNS, GPU servers, cost analysis, and dynamic resource allocation (DRA)"
+description: "A complete guide for adopting Amazon EKS Hybrid Nodes: architecture, configuration, networking, DNS, GPU servers, cost analysis, and Dynamic Resource Allocation (DRA)"
 tags: [eks, hybrid-nodes, nodeadm, kubernetes, harbor, networking, dns, gpu, dra, cost-optimization, architecture]
 category: "hybrid-multicloud"
-sidebar_position: 1
 last_update:
   date: 2026-02-14
   author: devfloor9
@@ -12,7 +11,7 @@ last_update:
 
 # EKS Hybrid Nodes Complete Guide
 
-> 📅 **Written**: 2025-08-20 | **Last Modified**: 2026-02-14 | ⏱️ **Reading Time**: ~6 min
+> **Created**: 2025-08-20 | **Updated**: 2026-02-14 | **Reading time**: ~8 min
 
 ## Table of Contents
 
@@ -29,11 +28,11 @@ last_update:
 
 ## Overview
 
-This guide provides complete adoption methods for Amazon EKS Hybrid Nodes. EKS Hybrid Nodes, officially released in December 2024, enables integrated management of on-premises infrastructure with AWS EKS, allowing management of high-performance GPU servers and cloud resources within a single Kubernetes cluster.
+This guide provides a complete adoption methodology for Amazon EKS Hybrid Nodes. Officially launched in December 2024, EKS Hybrid Nodes enables unified management of on-premises infrastructure and AWS EKS, allowing you to manage high-performance GPU servers and cloud resources within a single Kubernetes cluster.
 
 **Key Features:**
 
-- Unified management of on-premises and cloud
+- Unified management of on-premises and cloud resources
 - Harbor 2.13 private registry integration
 - H100 GPU server support
 - Dynamic Resource Allocation (DRA)
@@ -47,12 +46,12 @@ This guide provides complete adoption methods for Amazon EKS Hybrid Nodes. EKS H
 
 - Operating System: Ubuntu 20.04/22.04/24.04 LTS or RHEL 8/9
 - Docker Engine 20.10.10+ (for Harbor)
-- Container Runtime: containerd 1.6.x or later
+- Container Runtime: containerd 1.6.x or higher
 - Minimum Hardware: 2 CPU cores, 4GB RAM
 
 **GPU Servers (Optional):**
 
-- NVIDIA Driver 550.x or later
+- NVIDIA Driver 550.x or higher
 - NVIDIA Container Toolkit
 - H100/H200 GPU support
 
@@ -61,20 +60,20 @@ This guide provides complete adoption methods for Amazon EKS Hybrid Nodes. EKS H
 | Item | Requirement |
 |------|-------------|
 | Bandwidth | Minimum 10Gbps (Direct Connect or VPN) |
-| Latency | 5ms or less recommended |
+| Latency | Recommended under 5ms |
 | MTU | Jumbo Frame (9000) recommended |
 
 ## Networking and DNS Configuration
 
 ### Required Firewall Settings
 
-Configure necessary firewall ports between on-premises and AWS:
+Firewall port configuration required between on-premises and AWS:
 
 | Protocol | Port | Direction | Purpose |
 |----------|------|-----------|---------|
 | TCP | 443 | Bidirectional | Kubernetes API server communication |
 | TCP | 10250 | On-premises → AWS | Kubelet API |
-| TCP/UDP | 53 | Bidirectional | DNS queries |
+| TCP/UDP | 53 | Bidirectional | DNS lookups |
 | TCP | 6443 | On-premises → AWS | Kubernetes API (alternative) |
 
 ### Pod CIDR Firewall Configuration
@@ -85,19 +84,19 @@ It is recommended to register the entire Pod CIDR range in the firewall.
 
 **Configuration Methods:**
 
-- **Complete CIDR Registration (Recommended)**: e.g., `10.244.0.0/16`
-  - Flexible adaptation to dynamic Pod IP allocation
-  - No additional firewall settings needed during pod scaling
+- **Register entire CIDR (recommended)**: e.g., `10.244.0.0/16`
+  - Flexible handling of dynamic Pod IP allocation
+  - No additional firewall configuration needed during Pod scaling
   - Reduced management complexity
 
-- **Fixed IP Worker Nodes Only (Not Recommended)**:
-  - Need to update firewall rules whenever pod IPs change
+- **Register only static worker node IPs (not recommended)**:
+  - Firewall rules must be updated whenever Pod IPs change
   - Increased operational complexity
-  - Increased service disruption risk
+  - Increased risk of service disruption
 
 ### Istio + Calico CNI Mixed Mode
 
-Additional port configuration when using Istio service mesh and Calico CNI together:
+Additional port configuration when using Istio service mesh with Calico CNI:
 
 | Component | Port | Purpose |
 |-----------|------|---------|
@@ -109,7 +108,7 @@ Additional port configuration when using Istio service mesh and Calico CNI toget
 | Calico Felix | 9099 | Metrics |
 
 ```bash
-# Firewall rule example (AWS Security Group)
+# Firewall rule examples (AWS Security Group)
 aws ec2 authorize-security-group-ingress \
   --group-id sg-hybrid-nodes \
   --protocol tcp \
@@ -127,7 +126,7 @@ aws ec2 authorize-security-group-ingress \
 
 #### Route 53 Resolver Inbound Endpoint (On-premises → AWS)
 
-**Purpose**: Enable on-premises servers to query AWS internal domains
+**Purpose**: Allow on-premises servers to resolve AWS internal domains
 
 ```bash
 # Create Route 53 Resolver Inbound Endpoint
@@ -140,7 +139,7 @@ aws route53resolver create-resolver-endpoint \
               SubnetId=subnet-yyyyy,Ip=10.0.2.100
 ```
 
-**On-premises DNS Configuration (Example: BIND):**
+**On-premises DNS configuration (e.g., BIND):**
 
 ```bash
 # /etc/named.conf
@@ -153,7 +152,7 @@ zone "eks.amazonaws.com" {
 
 #### Route 53 Resolver Outbound Endpoint (AWS → On-premises)
 
-**Purpose**: Enable AWS worker nodes to query on-premises internal domains
+**Purpose**: Allow AWS worker nodes to resolve on-premises internal domains
 
 ```bash
 # Create Outbound Endpoint
@@ -175,13 +174,13 @@ aws route53resolver create-resolver-rule \
   --resolver-endpoint-id rslvr-out-xxxxx
 ```
 
-#### Bidirectional DNS Query Validation
+#### Bidirectional DNS Resolution Verification
 
 ```bash
-# Query AWS domains from on-premises
+# Resolve AWS domain from on-premises
 dig @10.0.1.100 my-service.eks.amazonaws.com
 
-# Query on-premises domains from AWS
+# Resolve on-premises domain from AWS
 dig harbor.company.local
 ```
 
@@ -200,10 +199,10 @@ dig harbor.company.local
 - Pod CIDR: `10.244.0.0/16`
 - Service CIDR: `10.96.0.0/16`
 
-**Preventing Overlaps:**
+**Overlap Prevention:**
 
 ```bash
-# Check CIDR overlaps
+# Check for CIDR overlap
 aws ec2 describe-vpcs --query 'Vpcs[*].CidrBlock'
 # Check on-premises routing table
 ip route show
@@ -217,7 +216,7 @@ aws ec2 create-transit-gateway \
   --description "Hybrid connectivity" \
   --options AmazonSideAsn=64512,AutoAcceptSharedAttachments=enable
 
-# Create VPN Connection
+# Create VPN connection
 aws ec2 create-vpn-connection \
   --type ipsec.1 \
   --customer-gateway-id cgw-xxxxx \
@@ -233,14 +232,14 @@ aws ec2 create-vpn-connection \
 # Download Harbor 2.13.2 (latest stable version)
 wget https://github.com/goharbor/harbor/releases/download/v2.13.2/harbor-offline-installer-v2.13.2.tgz
 
-# Extract archive
+# Extract
 tar xvf harbor-offline-installer-v2.13.2.tgz
 cd harbor
 ```
 
 ### SSL/TLS Certificate Configuration
 
-#### Generate Self-Signed Certificate
+#### Generate Self-Signed Certificates
 
 ```bash
 # 1. Generate CA certificate
@@ -248,14 +247,14 @@ openssl genrsa -out ca.key 4096
 openssl req -x509 -new -nodes -sha512 -days 3650 \
   -key ca.key \
   -out ca.crt \
-  -subj "/C=US/ST=California/L=San Francisco/O=MyOrganization/CN=Harbor-CA"
+  -subj "/C=KR/ST=Seoul/L=Seoul/O=MyOrganization/CN=Harbor-CA"
 
 # 2. Generate server certificate
 openssl genrsa -out harbor.key 4096
 openssl req -new -sha512 \
   -key harbor.key \
   -out harbor.csr \
-  -subj "/C=US/ST=California/L=San Francisco/O=MyOrganization/CN=harbor.yourdomain.com"
+  -subj "/C=KR/ST=Seoul/L=Seoul/O=MyOrganization/CN=harbor.yourdomain.com"
 
 # 3. Create v3.ext file (SAN configuration)
 cat > v3.ext <<EOF
@@ -271,7 +270,7 @@ DNS.2=yourdomain.com
 IP.1=192.168.1.100
 EOF
 
-# 4. Sign certificate
+# 4. Sign the certificate
 openssl x509 -req -sha512 -days 3650 \
   -extfile v3.ext \
   -CA ca.crt -CAkey ca.key -CAcreateserial \
@@ -287,12 +286,12 @@ cp harbor.key /data/cert/
 ### Harbor Configuration File Setup
 
 ```bash
-# Copy and edit harbor.yml file
+# Copy and edit harbor.yml
 cp harbor.yml.tmpl harbor.yml
 vi harbor.yml
 ```
 
-Key configuration content:
+Key configuration settings:
 
 ```yaml
 # Hostname setting
@@ -307,7 +306,7 @@ https:
 # Harbor admin password
 harbor_admin_password: Harbor12345!
 
-# Database configuration
+# Database settings
 database:
   password: root123
   max_idle_conns: 100
@@ -318,7 +317,7 @@ database:
 # Data storage path
 data_volume: /data
 
-# Logging configuration
+# Log settings
 log:
   level: info
   local:
@@ -326,24 +325,24 @@ log:
     rotate_size: 200M
     location: /var/log/harbor
 
-# Trivy vulnerability scanner configuration
+# Trivy vulnerability scanner settings
 trivy:
   ignore_unfixed: false
   skip_update: false
   offline_scan: false
   insecure: false
 
-# Metrics configuration
+# Metrics settings
 metric:
   enabled: true
   port: 9090
   path: /metrics
 ```
 
-### Harbor Installation
+### Run Harbor Installation
 
 ```bash
-# Run installation preparation script
+# Run preparation script
 sudo ./prepare
 
 # Install Harbor (with Trivy)
@@ -356,7 +355,7 @@ docker-compose ps
 ### Create Robot Account
 
 ```bash
-# Create via Harbor UI or use API
+# Create via Harbor UI or API
 curl -X POST "https://harbor.yourdomain.com/api/v2.0/robots" \
   -H "Content-Type: application/json" \
   -u "admin:Harbor12345!" \
@@ -403,7 +402,7 @@ nodeadm version
 ### Install Required Components
 
 ```bash
-# Install Kubernetes 1.33 supporting components
+# Install Kubernetes 1.33 support components
 sudo nodeadm install 1.33 --credential-provider ssm
 
 # Or when using IAM Roles Anywhere
@@ -419,7 +418,7 @@ kind: NodeConfig
 spec:
   cluster:
     name: my-hybrid-cluster
-    region: ap-northeast-2
+    region: ap-northeast-2  # Seoul Region
 
   # Hybrid node configuration using SSM
   hybrid:
@@ -427,7 +426,7 @@ spec:
       activationCode: "YOUR-ACTIVATION-CODE"
       activationId: "YOUR-ACTIVATION-ID"
 
-  # Containerd configuration (Harbor registry setup)
+  # Containerd configuration (Harbor registry settings)
   containerd:
     config: |
       version = 2
@@ -450,7 +449,7 @@ spec:
               ca_file = "/etc/ssl/certs/harbor-ca.crt"
               insecure_skip_verify = false
 
-  # Kubelet configuration
+  # Kubelet settings
   kubelet:
     config:
       shutdownGracePeriod: 30s
@@ -459,24 +458,24 @@ spec:
       - --node-labels=node-type=hybrid,registry=harbor
 ```
 
-### Install Certificate
+### Install Certificates
 
 ```bash
 # Add CA certificate to system trust store
 sudo cp ca.crt /usr/local/share/ca-certificates/harbor-ca.crt
 sudo update-ca-certificates
 
-# Create certificate directory for containerd
+# Create certificate directory for Containerd
 sudo mkdir -p /etc/containerd/certs.d/harbor.yourdomain.com
 
 # Copy certificate
 sudo cp ca.crt /etc/containerd/certs.d/harbor.yourdomain.com/ca.crt
 
-# Restart containerd
+# Restart Containerd
 sudo systemctl restart containerd
 ```
 
-### Node Initialization
+### Initialize Node
 
 ```bash
 # Initialize node using NodeConfig
@@ -491,7 +490,7 @@ kubectl get nodes
 ### Network Configuration
 
 ```bash
-# Allow EKS nodes to access Harbor security group
+# Allow EKS node access to Harbor security group
 aws ec2 authorize-security-group-ingress \
   --group-id sg-harbor-xxxxx \
   --protocol tcp \
@@ -533,7 +532,7 @@ data:
 ### Create Kubernetes Secret
 
 ```bash
-# Test docker login
+# Test Docker login
 docker login harbor.yourdomain.com
 Username: robot$k8s-robot
 Password: YOUR-ROBOT-TOKEN
@@ -553,7 +552,7 @@ for ns in $(kubectl get ns -o jsonpath='{.items[*].metadata.name}'); do
 done
 ```
 
-### Testing and Validation
+### Testing and Verification
 
 ```bash
 # 1. Verify network connectivity
@@ -585,7 +584,7 @@ kubectl describe pod harbor-test
 
 ### H100 GPU Server Integration
 
-**Validation Goal**: Integrate 10 H100 GPU servers as EKS Hybrid Nodes
+**Validation Target**: Integrate 10 H100 GPU servers as EKS Hybrid Nodes
 
 #### GPU Node Configuration
 
@@ -661,11 +660,11 @@ spec:
 #### NFS Mount Test
 
 ```bash
-# Run on AWS worker node
+# Run from AWS worker node
 sudo mount -t nfs -o vers=4.1,rsize=1048576,wsize=1048576 \
   192.168.1.100:/export/data /mnt/onprem-storage
 
-# Performance measurement
+# Measure performance
 dd if=/dev/zero of=/mnt/onprem-storage/testfile bs=1M count=1000 oflag=direct
 ```
 
@@ -697,14 +696,14 @@ spec:
 
 ### Hybrid Nodes Pricing Structure
 
-**Base Pricing (February 2025):**
+**Base Pricing (as of February 2025):**
 
-- Per vCPU: $0.1099/hour
-- Based on 730 hours/month: approximately $80.23/vCPU
+- Per vCPU: $0.1099/hour (~159 KRW/hour)
+- Based on 730 hours/month: ~$80.23/vCPU (~116,534 KRW)
 
 ### H100 GPU Server Cost Analysis
 
-**H100 GPU Server Specifications (DGX H200 basis):**
+**H100 GPU Server Specifications (DGX H200):**
 
 - CPU: 224 vCPU (2x Intel Xeon Platinum 8592+)
 - RAM: 2TB
@@ -713,20 +712,20 @@ spec:
 **Monthly Cost Calculation:**
 
 ```
-Single Node:
-- 224 vCPU × $80.23 = $17,971.52/month
+Single node:
+- 224 vCPU x $80.23 = $17,971.52/month (~26.1M KRW)
 
-10 Nodes:
-- $17,971.52 × 10 = $179,715.20/month
+10 nodes:
+- $17,971.52 x 10 = $179,715.20/month (~261M KRW)
 ```
 
-:::warning Cost Optimization Review Needed
-Due to the high number of vCPUs in H100 GPU servers, Hybrid Nodes costs are substantial. Review the following optimization approaches:
+:::warning Cost Optimization Review Required
+Due to the high vCPU count of H100 GPU servers, Hybrid Nodes costs are substantial. Review the following optimization strategies:
 
-1. **Selective Workload Placement**: Place only GPU-intensive workloads on Hybrid Nodes
-2. **Spot Instances Mix**: Utilize Spot instances for AWS workers
-3. **Auto Scaling**: Remove nodes during non-usage hours
-4. **Reserved Capacity**: Negotiate reserved options for long-term usage
+1. **Selective workload placement**: Place only GPU-intensive workloads on Hybrid Nodes
+2. **Spot Instance mix**: Use Spot Instances for AWS workers
+3. **Auto Scaling**: Remove nodes during idle hours
+4. **Reserved Capacity**: Negotiate reservation options for long-term usage
 :::
 
 ### Cost Reduction Strategies
@@ -734,7 +733,7 @@ Due to the high number of vCPUs in H100 GPU servers, Hybrid Nodes costs are subs
 #### 1. Hybrid Workload Distribution
 
 ```yaml
-# GPU workload → On-premises
+# GPU workloads -> On-premises
 apiVersion: v1
 kind: Pod
 metadata:
@@ -751,7 +750,7 @@ spec:
         nvidia.com/gpu: 8
 
 ---
-# CPU workload → AWS EC2
+# CPU workloads -> AWS EC2
 apiVersion: v1
 kind: Pod
 metadata:
@@ -789,7 +788,7 @@ spec:
 #### 3. Cost Monitoring
 
 ```bash
-# Track Hybrid Nodes costs using AWS Cost Explorer API
+# Track Hybrid Nodes costs with AWS Cost Explorer API
 aws ce get-cost-and-usage \
   --time-period Start=2025-02-01,End=2025-02-28 \
   --granularity MONTHLY \
@@ -822,7 +821,7 @@ aws ce get-cost-and-usage \
 ## Dynamic Resource Allocation (DRA)
 
 :::info What is DRA?
-Dynamic Resource Allocation (DRA) is a feature introduced in Kubernetes 1.26 that enables Pods to dynamically allocate resources such as GPUs, NPUs, and specialized accelerators when requested. This improves upon traditional static resource allocation methods, enabling more efficient resource utilization.
+Dynamic Resource Allocation (DRA) is a feature introduced in Kubernetes 1.26 that allows Pods to dynamically allocate resources such as GPUs, NPUs, and specialized accelerators on demand. It improves upon the traditional static resource allocation approach to enable more efficient resource utilization.
 :::
 
 ### Enable DRA
@@ -877,7 +876,7 @@ helm install dra-driver dra-driver/dra-driver \
   --set driver.enableCPU=true
 ```
 
-### Define Resource Classes
+### Define Resource Class
 
 ```yaml
 apiVersion: resource.k8s.io/v1alpha2
@@ -913,7 +912,7 @@ spec:
     namespace: kube-system
 ```
 
-### Configure Resource Claims
+### Configure Resource Claim
 
 ```yaml
 apiVersion: resource.k8s.io/v1alpha2
@@ -979,9 +978,9 @@ spec:
 ### DRA Monitoring
 
 :::tip Key Metrics
-Monitor these critical metrics for DRA performance:
+Monitor the following metrics for DRA performance:
 
-- `dra_allocation_duration_seconds` - Time to allocate resources
+- `dra_allocation_duration_seconds` - Time taken for resource allocation
 - `dra_allocation_errors_total` - Failed allocation attempts
 - `dra_resource_utilization_ratio` - Resource usage efficiency
 - `dra_pending_claims_total` - Unscheduled resource claims
@@ -992,7 +991,7 @@ Monitor these critical metrics for DRA performance:
 ### Security Hardening
 
 ```bash
-# Enable Harbor vulnerability scan automation
+# Enable automated vulnerability scanning in Harbor
 curl -X PUT "https://harbor.yourdomain.com/api/v2.0/projects/1" \
   -H "Content-Type: application/json" \
   -u "admin:Harbor12345!" \
@@ -1050,7 +1049,7 @@ data:
       metrics_path: '/metrics'
 ```
 
-#### Key Monitoring Metrics
+#### Key Monitoring Indicators
 
 - Registry request rate
 - Authentication failure count
@@ -1066,39 +1065,39 @@ data:
 # 1. Basic connectivity test
 ping -c 100 <aws-endpoint>
 
-# 2. Check MTU optimization
+# 2. MTU optimization verification
 ping -M do -s 8972 <aws-endpoint>
 
-# 3. Trace route
+# 3. Route tracing
 traceroute -n <aws-endpoint>
 
-# 4. Measure bandwidth
+# 4. Bandwidth measurement
 iperf3 -c <aws-endpoint> -t 60 -P 10 -w 512K
 ```
 
-#### Performance Baseline
+#### Performance Baselines
 
 | Metric | Target | Warning | Critical |
 |--------|--------|---------|----------|
-| Latency | < 5ms | 5-10ms | > 10ms |
-| Jitter | < 2ms | 2-5ms | > 5ms |
-| Packet Loss | < 0.01% | 0.01-0.1% | > 0.1% |
-| Bandwidth | > 10Gbps | 5-10Gbps | < 5Gbps |
+| Latency | Under 5ms | 5-10ms | Over 10ms |
+| Jitter | Under 2ms | 2-5ms | Over 5ms |
+| Packet Loss | Under 0.01% | 0.01-0.1% | Over 0.1% |
+| Bandwidth | Over 10Gbps | 5-10Gbps | Under 5Gbps |
 
 ### Troubleshooting
 
 #### ImagePullBackOff Error
 
 ```bash
-# Diagnose problem
+# Diagnose the issue
 kubectl describe pod <pod-name>
 kubectl get events --field-selector involvedObject.name=<pod-name>
 
-# Check Secret
+# Verify Secret
 kubectl get secret harbor-registry -o jsonpath='{.data.\.dockerconfigjson}' | base64 -d
 ```
 
-#### Certificate Error
+#### Certificate Errors
 
 ```bash
 # Install CA certificate on all nodes
@@ -1150,7 +1149,7 @@ EOF
 #### DNS Resolution Failure
 
 ```bash
-# Test DNS
+# DNS test
 kubectl run -it --rm debug --image=busybox --restart=Never -- nslookup harbor.yourdomain.com
 
 # Check CoreDNS logs
@@ -1162,23 +1161,23 @@ kubectl rollout restart deployment coredns -n kube-system
 
 ## Conclusion
 
-EKS Hybrid Nodes provides an integrated Kubernetes environment spanning on-premises and cloud. Key success factors covered in this guide:
+EKS Hybrid Nodes provides a unified Kubernetes environment spanning on-premises and cloud. Key success factors covered in this guide:
 
-1. **Proper Networking Configuration**: Complete Pod CIDR firewall registration and bidirectional DNS configuration
-2. **Certificate Management**: When using self-signed certificates, install CA certificate on all nodes
-3. **Cost Optimization**: Establish hybrid distribution strategies according to workload characteristics
-4. **Dynamic Resource Allocation**: Efficient GPU resource management using DRA
-5. **Continuous Validation**: Configuration validation through step-by-step testing
+1. **Proper networking configuration**: Register the entire Pod CIDR in the firewall and configure bidirectional DNS
+2. **Certificate management**: Install CA certificates on all nodes when using self-signed certificates
+3. **Cost optimization**: Establish a hybrid distribution strategy based on workload characteristics
+4. **Dynamic resource allocation**: Efficient GPU resource management using DRA
+5. **Continuous validation**: Verify configuration through testing at each stage
 
-Before adoption, prioritize reviewing:
+Review the following items before adoption:
 
-- Secure low-latency connectivity through Direct Connect
-- H100 GPU server high vCPU cost optimization strategies
-- Verify actual environment performance and stability through PoC
+- Ensure low-latency connectivity via Direct Connect
+- Cost optimization strategy for the high vCPU count of H100 GPU servers
+- Verify real-world performance and stability through PoC
 
 ---
 
-### Reference Materials
+### References
 
 - [Amazon EKS Hybrid Nodes Official Documentation](https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes.html)
 - [EKS Hybrid Nodes Pricing](https://aws.amazon.com/eks/pricing/)

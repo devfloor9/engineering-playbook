@@ -2,19 +2,18 @@
 title: "AIDLC Framework - AI-Driven Development Lifecycle"
 sidebar_label: "AIDLC Framework"
 description: "A practical guide to applying the AWS AI-DLC methodology in EKS environments to enhance development and operations with AI"
-sidebar_position: 3
 category: "aidlc"
 tags: [aidlc, kiro, mcp, gitops, argocd, ack, kro, ddd, ai-agent, eks]
 last_update:
-  date: 2026-02-14
-  author: devfloor9
+ date: 2026-02-14
+ author: devfloor9
 ---
 
 import { AidlcPhaseMapping, EksCapabilities, ProductivityMetrics, AidlcPrinciples, AidlcPhaseActivities, AiCodingAgentComparison, QualityGates, AiAgentEcosystem, DetailedMetrics, AidlcPipeline, AidlcArtifacts } from '@site/src/components/AidlcTables';
 
-# AIDLC Framework — AI-Driven Development and Operations Enhancement in EKS Environments
+# AIDLC Framework — Enhancing AI-Driven Development and Operations in EKS Environments
 
-> **Written**: 2026-02-12 | **Updated**: 2026-02-14 | **Reading Time**: ~39 min
+> 📅 **Created**: 2026-02-12 | **Updated**: 2026-02-14 | ⏱️ **Reading time**: ~39 min
 
 ---
 
@@ -22,202 +21,199 @@ import { AidlcPhaseMapping, EksCapabilities, ProductivityMetrics, AidlcPrinciple
 
 ### 1.1 Why AIDLC
 
-The traditional Software Development Lifecycle (SDLC) was designed around the premise of human-centered long iteration cycles (weekly/monthly). Rituals like daily standups, sprint reviews, and retrospectives are optimized for these long cycles. The advent of AI breaks this premise.
+Traditional Software Development Lifecycles (SDLC) were designed with the premise of human-centered long iteration cycles (weekly/monthly). Rituals like daily standups, sprint reviews, and retrospectives are optimized for these long cycles. The advent of AI breaks this premise.
 
-AI performs requirements analysis, task decomposition, code generation, and testing on an **hourly/daily** basis. A retrofit approach of fitting AI into the existing SDLC limits this potential — much like building a faster horse-drawn carriage in the age of automobiles.
+AI performs requirements analysis, task decomposition, code generation, and testing on an **hourly/daily** basis. Retrofitting AI into existing SDLC limits this potential — like building a faster horse-drawn carriage in the automobile era.
 
-**AIDLC (AI-Driven Development Lifecycle)** is a methodology proposed by AWS Labs that reorganizes AI from **First Principles**, integrating it as a core collaborator in the development lifecycle.
+**AIDLC (AI-Driven Development Lifecycle)** is a methodology proposed by AWS Labs that reconstructs AI from **First Principles** and integrates it as a core collaborator in the development lifecycle.
 
 ```
-Traditional SDLC                        AIDLC
-━━━━━━━━━━━━━━                          ━━━━━━━━━━━━━━━━━━━
-Humans plan and execute                  AI proposes, humans verify
-Weekly/monthly iterations (Sprint)       Hourly/daily iterations (Bolt)
-Design techniques are team's choice      DDD/BDD/TDD built into methodology
-Role silos (FE/BE/DevOps)               AI transcends role boundaries
-Manual requirements analysis             AI decomposes Intent into Units
-Sequential handoffs                      Continuous flow + Loss Function verification
+전통적 SDLC AIDLC
+━━━━━━━━━━━━━━ ━━━━━━━━━━━━━━━━━━━
+사람이 계획하고 실행 AI가 제안하고, 사람이 검증
+주/월 단위 반복 (Sprint) 시간/일 단위 반복 (Bolt)
+설계 기법은 팀 선택 DDD/BDD/TDD를 방법론에 내장
+역할 사일로 (FE/BE/DevOps) AI로 역할 경계 초월
+수동 요구사항 분석 AI가 Intent를 Unit으로 분해
+순차적 핸드오프 연속 흐름 + Loss Function 검증
 ```
 
 ### 1.2 Connection to AIOps Strategy
 
-The AWS open-source strategy → MCP integration → AI tools → Kiro orchestration covered in [1. AIOps Strategy Guide](../operations-observability/agentic-ops/aiops-introduction.md) is the **technology foundation** for realizing AIDLC. The 3-Pillar + AI analysis layer built in [2. Intelligent Observability Stack](../operations-observability/agentic-ops/aiops-observability-stack.md) is the **data foundation** for the Operations phase. This document presents the **methodology for systematically enhancing development and operations** on top of that technology and data foundation.
+[1. AIOps strategy 가이드](./agentic-ops/aiops-introduction.md)covers the AWS open-source strategy → MCP integration → AI tools → Kiro orchestration as the **technology foundation** for realizing AIDLC. [2. intelligent observability stack](./agentic-ops/aiops-observability-stack.md)built in 3-Pillar + AI analysis layer Operations phase **data based**. This document 그 기술·data based 위 from **development and Operations systematic as 고also화 method론**을 presentation.
 
 ```
-[1] AIOps Strategy Guide ──── Technology Foundation (MCP, Kiro, AI Agent)
-           │
-[2] Intelligent Observability Stack ──── Data Foundation (ADOT, AMP/AMG, CloudWatch AI)
-           │
-[3] AIDLC Framework ── Methodology (This Document)
-           │
-[4] Predictive Scaling & Auto-Recovery ──────── Advanced (ML Prediction, Auto-Recovery, Chaos)
+[1] AIOps 전략 가이드 ──── 기술 기반 (MCP, Kiro, AI Agent)
+ │
+[2] 지능형 관찰성 스택 ──── 데이터 기반 (ADOT, AMP/AMG, CloudWatch AI)
+ │
+[3] AIDLC 프레임워크 ── 방법론 (이 문서)
+ │
+[4] 예측 스케일링 및 자동 복구 ──────── 심화 (ML 예측, 자동 복구, Chaos)
 ```
 
 :::info Original Reference
-The core concepts of AIDLC are defined in AWS Labs' [AI-DLC Method Definition](https://prod.d13rzhkk8cj2z0.amplifyapp.com/). This document is a guide for practically implementing that methodology in EKS environments.
+AIDLC core concepts are AWS Labs [AI-DLC Method Definition](https://prod.d13rzhkk8cj2z0.amplifyapp.com/)is defined in. This document 해당 method론 EKS environment from 실용 as Implementation 가이드.
 :::
 
 ---
 
 ## 2. AIDLC Core Concepts
 
-### 2.1 10 Principles
+### 2.1 Ten Principles
 
 <AidlcPrinciples />
 
-Among these, 3 are particularly important in EKS environments:
+Three that are particularly important in EKS environments:
 
-- **Reverse the Conversation Direction** — AI collects EKS cluster state via MCP and proposes deployment plans first. Developers set the destination (Intent) like a driver using Google Maps, and verify the routes proposed by AI.
-- **Integration of Design Techniques** — DDD is built into the core of the methodology, enabling AI to automatically model business logic into Aggregates, Entities, and Value Objects. Design techniques that were "up to the team" in Scrum become essential core in AI-DLC.
-- **Minimize Stages, Maximize Flow** — Minimizes handoffs and implements continuous flow. Human verification at each stage serves as a **Loss Function**, catching errors early to prevent downstream propagation.
+- **Reverse the Conversation Direction** — AI EKS cluster status MCP collection and, deployment plan 먼저 recommendation. development Google Maps 운before처럼 목지(Intent)를 Configuration and, AI presentation 경 Validation.
+- **Integration of Design Techniques** — DDD method론 core 내장 to, AI Business logic Aggregate, Entity, Value Object automatic model링. Scrum from "팀 알아서 optional"던 design 기법 AI-DLC in mandatory 코어.
+- **Minimize Stages, Maximize Flow** — handoff 최소화 and 연속 flow implementation. each phase 사람 validation is **Loss Function** role로, 류 before파될 error 조기 blocking.
 
 ### 2.2 Core Artifacts
 
-AI-DLC redefines traditional SDLC terminology for the AI era.
+AI-DLC redefines traditional SDLC terms for the AI era.
 
 ```
-┌─────────┐    ┌─────────┐    ┌─────────┐
-│  Intent  │───▶│  Unit   │───▶│  Bolt   │
-│High-level │    │Independent│   │Fast      │
-│ purpose   │    │work unit  │   │iteration │
-│          │    │(DDD Sub- │   │(Sprint  │
-│Business   │   │ domain)  │   │ replace)│
-│ goal     │    └─────────┘    └─────────┘
-└─────────┘         │
-              ┌─────┴─────┐
-              ▼           ▼
-        ┌──────────┐ ┌──────────┐
-        │ Domain   │ │ Logical  │
-        │ Design   │ │ Design   │
-        │Business  │ │NFR+      │
-        │ logic    │ │Patterns  │
-        └──────────┘ └──────────┘
-              │           │
-              └─────┬─────┘
-                    ▼
-            ┌──────────────┐
-            │ Deployment   │
-            │    Unit      │
-            │Container+    │
-            │Helm+         │
-            │  Terraform   │
-            └──────────────┘
+┌─────────┐ ┌─────────┐ ┌─────────┐
+│ Intent │───▶│ Unit │───▶│ Bolt │
+│ 고수준 목적│ │독립 작업단위│ │빠른 반복 │
+│ │ │(DDD Sub- │ │(Sprint │
+│비즈니스 목표│ │ domain) │ │ 대체) │
+└─────────┘ └─────────┘ └─────────┘
+ │
+ ┌─────┴─────┐
+ ▼ ▼
+ ┌──────────┐ ┌──────────┐
+ │ Domain │ │ Logical │
+ │ Design │ │ Design │
+ │비즈니스 로직│ │NFR+패턴 │
+ └──────────┘ └──────────┘
+ │ │
+ └─────┬─────┘
+ ▼
+ ┌──────────────┐
+ │ Deployment │
+ │ Unit │
+ │컨테이너+Helm+ │
+ │ Terraform │
+ └──────────────┘
 ```
 
 <AidlcArtifacts />
 
-:::tip Context Memory and Traceability
-All artifacts are stored as **Context Memory** for AI to reference throughout the lifecycle. Bidirectional tracing between artifacts (Domain Model ↔ User Story ↔ Test Plan) is guaranteed, ensuring AI always works within the correct context.
+:::tip Context Memory and tracking
+ all artifact **Context Memory**로 storage AI 라이프사이클 entire from reference. artifact between 양방향 tracking(Domain Model ↔ User Story ↔ test 계획)이 guarantee, AI 항상 정확 맥락 from 작업.
 :::
 
 ### 2.3 AI-Driven Recursive Workflow
 
-The core of AI-DLC is a **recursive refinement process where AI proposes plans and humans verify**.
+The core of AI-DLC is the **recursive refinement process where AI proposes plans and humans verify**.
 
 ```
-Intent (Business Purpose)
-  │
-  ▼
-AI: Generate Level 1 Plan ◀──── Human: Verify · Modify
-  │
-  ├─▶ Step 1 ──▶ AI: Level 2 Decomposition ◀── Human: Verify
-  │                 ├─▶ Sub-task 1.1 ──▶ AI Execute ◀── Human: Verify
-  │                 └─▶ Sub-task 1.2 ──▶ AI Execute ◀── Human: Verify
-  │
-  ├─▶ Step 2 ──▶ AI: Level 2 Decomposition ◀── Human: Verify
-  │                 └─▶ ...
-  └─▶ Step N ──▶ ...
+Intent (비즈니스 목적)
+ │
+ ▼
+AI: Level 1 Plan 생성 ◀──── 사람: 검증 · 수정
+ │
+ ├─▶ Step 1 ──▶ AI: Level 2 분해 ◀── 사람: 검증
+ │ ├─▶ Sub-task 1.1 ──▶ AI 실행 ◀── 사람: 검증
+ │ └─▶ Sub-task 1.2 ──▶ AI 실행 ◀── 사람: 검증
+ │
+ ├─▶ Step 2 ──▶ AI: Level 2 분해 ◀── 사람: 검증
+ │ └─▶ ...
+ └─▶ Step N ──▶ ...
 
-[All Artifacts → Context Memory → Bidirectional Traceability]
+[모든 산출물 → Context Memory → 양방향 추적성]
 ```
 
-Human verification at each stage is a **Loss Function** — catching errors early to prevent downstream propagation. Rather than prescribing fixed workflows per path (new development, refactoring, defect fixing), AI proposes flexible Level 1 Plans suited to the situation.
+ each phase 사람 validation is **Loss Function** — error 조기 포착 to 류 before파 prevention. AI 경로별(신규 development, refactoring, 결함 modification) 고정 workflow 규정not 않고, 상황 맞 Level 1 Plan recommendation 유연 approach.
 
-### 2.4 AIDLC 3-Phase Overview
+### 2.4 AIDLC Three-Phase Overview
 
-AIDLC consists of 3 phases: **Inception**, **Construction**, and **Operations**.
+AIDLC consists of three phases: **Inception**, **Construction**, and **Operations**.
 
 <AidlcPhaseMapping />
 
 ```mermaid
 graph LR
-    subgraph Inception["Inception"]
-        REQ["Requirements Analysis"]
-        SPEC["Spec Generation"]
-        DESIGN["Design"]
-    end
+ subgraph Inception["Inception"]
+ REQ["요구사항 분석"]
+ SPEC["Spec 생성"]
+ DESIGN["설계"]
+ end
 
-    subgraph Construction["Construction"]
-        TASKS["Task Decomposition"]
-        CODE["Code Generation"]
-        REVIEW["AI Code Review"]
-        TEST["Test Generation"]
-    end
+ subgraph Construction["Construction"]
+ TASKS["태스크 분해"]
+ CODE["코드 생성"]
+ REVIEW["AI 코드 리뷰"]
+ TEST["테스트 생성"]
+ end
 
-    subgraph Operations["Operations"]
-        DEPLOY["Declarative Deployment"]
-        OBSERVE["Observability"]
-        AGENT["AI Agent<br/>Autonomous Operations"]
-    end
+ subgraph Operations["Operations"]
+ DEPLOY["선언적 배포"]
+ OBSERVE["관찰성"]
+ AGENT["AI Agent<br/>자율 운영"]
+ end
 
-    REQ --> SPEC --> DESIGN --> TASKS
-    TASKS --> CODE --> REVIEW --> TEST
-    TEST --> DEPLOY --> OBSERVE --> AGENT
+ REQ --> SPEC --> DESIGN --> TASKS
+ TASKS --> CODE --> REVIEW --> TEST
+ TEST --> DEPLOY --> OBSERVE --> AGENT
 
-    AGENT -.->|Feedback| REQ
+ AGENT -.->|피드백| REQ
 
-    style Inception fill:#e8f5e9,stroke:#4caf50
-    style Construction fill:#e3f2fd,stroke:#2196f3
-    style Operations fill:#fce4ec,stroke:#e91e63
+ style Inception fill:#e8f5e9,stroke:#4caf50
+ style Construction fill:#e3f2fd,stroke:#2196f3
+ style Operations fill:#fce4ec,stroke:#e91e63
 ```
 
 <AidlcPhaseActivities />
 
-### 2.5 AIDLC Reliability Dual Axis: Ontology × Harness
+### 2.5 AIDLC Reliability Dual Axis: Ontology x Harness
 
-To systematically ensure the reliability of AI-generated code, AIDLC introduces a two-axis reliability framework based on **Ontology** and **Harness Engineering**.
+To systematically ensure the reliability of AI-generated code, AIDLC introduces a dual-axis reliability framework of **ontology** and **harness engineering**.
 
 ```mermaid
 graph LR
-    subgraph Ontology["Ontology (WHAT + WHEN)"]
-        DEF["Domain Constraint Definition"]
-        FB["Feedback Loop<br/>(Self-Evolution)"]
-        DEF -->|"Operational Data"| FB
-        FB -->|"Refinement"| DEF
-    end
+ subgraph Ontology["온톨로지 (WHAT + WHEN)"]
+ DEF["도메인 제약 정의"]
+ FB["피드백 루프<br/>(자체 진화)"]
+ DEF -->|"운영 데이터"| FB
+ FB -->|"정제"| DEF
+ end
 
-    subgraph Harness["Harness Engineering (HOW)"]
-        VAL["Structured Validation"]
-        ARCH["Architectural Constraints"]
-    end
+ subgraph Harness["하네스 엔지니어링 (HOW)"]
+ VAL["구조화된 검증"]
+ ARCH["아키텍처적 제약"]
+ end
 
-    Ontology -->|"Deliver Constraints"| Harness
-    Harness -->|"Validation Results → Ontology Evolution"| Ontology
+ Ontology -->|"제약 조건 전달"| Harness
+ Harness -->|"검증 결과 → 온톨로지 진화"| Ontology
 
-    style Ontology fill:#4caf50,color:#fff
-    style Harness fill:#2196f3,color:#fff
+ style Ontology fill:#4caf50,color:#fff
+ style Harness fill:#2196f3,color:#fff
 ```
 
-**Two Axes:**
+**Roles of the two axes:**
 
-- **Ontology** — A "typed world model" that formalizes domain knowledge. Elevates DDD's Ubiquitous Language into a structured schema that AI can understand. Ontology is not a static schema but a **living model that continuously evolves through its own feedback loops**. As operational data, incidents, and edge cases are discovered, the ontology is refined, improving AI agent behavior.
-- **Harness Engineering** — An architectural structure for validating and enforcing the constraints defined by the ontology. The key lesson of 2026: "The agent isn't the hard part — the harness is." Harness validation results drive ontology evolution.
+- **Ontology** — formalized domain knowledge as "typed world model". elevates DDD's Ubiquitous Language to a structured schema that AI can understand. Ontology is not a static schema but a living model that **continuously evolves through its own feedback loop**. Whenever operational data, incidents, or edge cases are discovered, the ontology is refined, improving AI agent behavior.
+- **Harness Engineering** — A structure that architecturally validates and enforces the constraints defined by the ontology. "agent 어려운 아니라, harness 어렵다"는 2026year Key Lesson. Harness verification results drive ontology evolution.
 
-**Mapping to AIDLC 3 Phases:**
+**AIDLC three-phase mapping:**
 
-| Phase | Ontology (Definition + Feedback Loop) | Harness (Validation + Constraints) |
-|-------|--------------------------------------|-----------------------------------|
-| **Inception** | Define domain ontology → Requirements refinement loop via Mob Elaboration | Spec consistency validation harness |
+| Phase | ontology (정 + 피드백 loop) | harness (Validation + constraint) |
+|------|---------------------------|-------------------|
+| **Inception** | Domain ontology definition → Requirements refinement loop via Mob Elaboration | Spec consistency verification harness |
 | **Construction** | Code generation constraints → Ontology updates via PR review/metrics | Build/test/security scan harness |
-| **Operations** | Operational context model → Ontology evolution via observability data (AIOps → AIDLC) | Runtime guardrails, circuit breakers |
+| **Operations** | Operations context model → Ontology evolution via observability data (AIOps → AIDLC) | Runtime guardrails, circuit breakers |
 
-:::info Ontology's Self-Feedback Loop
-Feedback loops are an **intrinsic property** of ontology. Ontology evolves across 3 layers:
-- **Inner Loop** (minutes): Test failures → refine prompts/ontology constraints
-- **Middle Loop** (days): PR review feedback → update ontology schema
-- **Outer Loop** (weeks): Operational incidents/SLO violations → redesign domain ontology structure
+:::info Ontology self-feedback loop
+The feedback loop is an **intrinsic property** of the ontology. The ontology evolves across 3 layers:
+- **Inner Loop** (Minutes): Test failure → prompt/ontology constraint refinement
+- **Middle Loop** (Days): PR review feedback → ontology schema update
+- **Outer Loop** (Weeks): Operational incident/SLO violation → domain ontology restructuring
 
-HITL (Human-in-the-Loop) is a **strategic design element** in this evolution process. HITL integration yields 31% accuracy improvement and 67% reduction in false positives.
+HITL (Human-in-the-Loop) is a **strategic design element** in this evolution process. HITL integration confirmed a 31% accuracy improvement and 67% False Positive reduction.
 :::
 
 ---
@@ -226,139 +222,136 @@ HITL (Human-in-the-Loop) is a **strategic design element** in this evolution pro
 
 ### 3.1 Mob Elaboration
 
-The core ritual of Inception is **Mob Elaboration** — a requirements refinement session where Product Owner, developers, and QA gather together to collaborate with AI.
+The key ritual of Inception is **Mob Elaboration** — A requirements refinement session where Product Owner, developers, and QA collaborate with AI in one room.
 
 ```
 ┌──────────────────────────────────────────────────┐
-│              Mob Elaboration Ritual                │
+│ Mob Elaboration 리추얼 │
 ├──────────────────────────────────────────────────┤
-│                                                   │
-│  [AI] Proposes decomposition of Intent into       │
-│       User Stories + Units                        │
-│    ↓                                              │
-│  [PO + Dev + QA] Review · Adjust over/under       │
-│       design                                      │
-│    ↓                                              │
-│  [AI] Applies modifications → Generates           │
-│       additional NFR · Risks                      │
-│    ↓                                              │
-│  [Team] Final verification → Confirm Bolt plan    │
-│                                                   │
+│ │
+│ [AI] Intent를 User Story + Unit으로 분해 제안 │
+│ ↓ │
+│ [PO + Dev + QA] 검토 · 과잉/부족 설계 조정 │
+│ ↓ │
+│ [AI] 수정 반영 → NFR · Risk 추가 생성 │
+│ ↓ │
+│ [팀] 최종 검증 → Bolt 계획 확정 │
+│ │
 ├──────────────────────────────────────────────────┤
-│  Artifacts:                                       │
-│  PRFAQ · User Stories · NFR Definitions           │
-│  Risk Register · Measurement Criteria · Bolt Plan │
+│ 산출물: │
+│ PRFAQ · User Stories · NFR 정의 │
+│ Risk Register · 측정 기준 · Bolt 계획 │
 └──────────────────────────────────────────────────┘
 ```
 
-Sequential requirements analysis that took **weeks to months** in traditional methodologies is compressed to **hours** by having AI generate drafts and the team review simultaneously.
+Compresses sequential requirements analysis that took **weeks to months** in traditional methodologies to **hours** by having AI generate drafts and teams review simultaneously.
 
 ### 3.2 Kiro Spec-Driven Inception
 
-Kiro systematizes Mob Elaboration artifacts into **Spec files**. It structures the entire process from natural language requirements to code.
+Kiro Mob Elaboration artifact **Spec 파day**로 체계화. natural language 요구사항 from code entire 과정 structure화.
 
 ```
-requirements.md → design.md → tasks.md → Code Generation → Verification
+requirements.md → design.md → tasks.md → 코드 생성 → 검증
 ```
 
-**EKS Example: Payment Service Deployment**
+**EKS example: Payment Service Deployment**
 
 `requirements.md`:
 
 ```markdown
-# Payment Service Deployment Requirements
+# Payment Service 배포 요구사항
 
-## Functional Requirements
-- REST API endpoint: /api/v1/payments
-- Integration with DynamoDB table
-- Asynchronous event processing via SQS
+## 기능 요구사항
+- REST API 엔드포인트: /api/v1/payments
+- DynamoDB 테이블과 연동
+- SQS를 통한 비동기 이벤트 처리
 
-## Non-Functional Requirements
-- P99 latency: < 200ms
-- Availability: 99.95%
-- Auto-scaling: 2-20 Pods
-- EKS 1.35+ compatible
+## 비기능 요구사항
+- P99 레이턴시: < 200ms
+- 가용성: 99.95%
+- 자동 스케일링: 2-20 Pod
+- EKS 1.35+ 호환
 ```
 
 `design.md`:
 
 ```markdown
-# Payment Service Architecture
+# Payment Service 아키텍처
 
-## Infrastructure Configuration
+## 인프라 구성
 - EKS Deployment (3 replicas min)
 - ACK DynamoDB Table (on-demand)
 - ACK SQS Queue (FIFO)
 - HPA (CPU 70%, Memory 80%)
 - Karpenter NodePool (graviton, spot)
 
-## Observability
+## 관찰성
 - ADOT sidecar (traces → X-Ray)
-- Application Signals (SLI/SLO automatic)
+- Application Signals (SLI/SLO 자동)
 - CloudWatch Logs (/eks/payment-service)
 
-## Security
-- Pod Identity (IRSA replacement)
-- NetworkPolicy (namespace isolation)
+## 보안
+- Pod Identity (IRSA 대체)
+- NetworkPolicy (namespace 격리)
 - Secrets Manager CSI Driver
 ```
 
 `tasks.md`:
 
 ```markdown
-# Implementation Tasks
+# 구현 태스크
 
-## Bolt 1: Infrastructure
-- [ ] Write ACK DynamoDB Table CRD
-- [ ] Write ACK SQS Queue CRD
-- [ ] Define KRO ResourceGroup (DynamoDB + SQS integration)
-- [ ] Configure Karpenter NodePool (graviton, spot)
+## Bolt 1: 인프라
+- [ ] ACK DynamoDB Table CRD 작성
+- [ ] ACK SQS Queue CRD 작성
+- [ ] KRO ResourceGroup 정의 (DynamoDB + SQS 통합)
+- [ ] Karpenter NodePool 설정 (graviton, spot)
 
-## Bolt 2: Application
-- [ ] Implement Go REST API
-- [ ] Integrate DynamoDB SDK
-- [ ] Implement SQS consumer
+## Bolt 2: 애플리케이션
+- [ ] Go REST API 구현
+- [ ] DynamoDB SDK 연동
+- [ ] SQS consumer 구현
 - [ ] Dockerfile + multi-stage build
 
-## Bolt 3: Deployment
-- [ ] Write Helm chart
-- [ ] Define Argo CD Application
-- [ ] Write HPA manifest
-- [ ] Write NetworkPolicy
+## Bolt 3: 배포
+- [ ] Helm chart 작성
+- [ ] Argo CD Application 정의
+- [ ] HPA manifest 작성
+- [ ] NetworkPolicy 작성
 
-## Bolt 4: Observability
-- [ ] Configure ADOT sidecar
+## Bolt 4: 관찰성
+- [ ] ADOT sidecar 설정
 - [ ] Application Signals annotation
-- [ ] CloudWatch dashboard
-- [ ] SLO alert configuration
+- [ ] CloudWatch 대시보드
+- [ ] SLO 알림 설정
 ```
 
-:::tip Core Value of Spec-Driven
-**Directing approach**: "Create DynamoDB" → "I also need SQS" → "Now deploy it" → Manual instructions each time, risk of context loss
-**Spec-Driven**: Kiro analyzes requirements.md → Generates design.md → Decomposes into tasks.md → Auto-generates code → Connected through consistent Context Memory all the way to verification
+:::tip Spec-Driven Core Value
+**directing method**: "DynamoDB only들어줘" → "SQSalso needed해" → "이제 deploy it" → 매번 manual 지time, 맥락 loss risk
+**Spec-Driven**: Kiro requirements.md Analysis → design.md generation → tasks.md minutes해 → code automatic generation → to validation consistent Context Memory connection
 :::
 
 ### 3.3 MCP-Based Real-Time Context Collection
 
-Kiro is MCP-native, collecting real-time infrastructure state through AWS Hosted MCP servers during the Inception phase.
+Kiro MCP native로, Inception phase from AWS Hosted MCP server through Real-time infrastructure status collection.
 
 ```
-[Kiro + MCP Interaction]
+[Kiro + MCP 상호작용]
 
-Kiro: "Check EKS cluster status"
-  → EKS MCP Server: get_cluster_status()
-  → Response: { version: "1.35", nodes: 5, status: "ACTIVE" }
+Kiro: "EKS 클러스터 상태 확인"
+ → EKS MCP Server: get_cluster_status()
+ → 응답: { version: "1.35", nodes: 5, status: "ACTIVE" }
 
-Kiro: "Cost analysis"
-  → Cost Analysis MCP Server: analyze_cost(service="EKS")
-  → Response: { monthly: "$450", recommendations: [...] }
+Kiro: "비용 분석"
+ → Cost Analysis MCP Server: analyze_cost(service="EKS")
+ → 응답: { monthly: "$450", recommendations: [...] }
 
-Kiro: "Analyze current workloads"
-  → EKS MCP Server: list_deployments(namespace="payment")
-  → Response: { deployments: [...], resource_usage: {...} }
+Kiro: "현재 워크로드 분석"
+ → EKS MCP Server: list_deployments(namespace="payment")
+ → 응답: { deployments: [...], resource_usage: {...} }
 ```
 
-This enables **designs that reflect the current cluster state and costs** when generating design.md. For details on MCP integration architecture, refer to [1. AIOps Strategy Guide](../operations-observability/agentic-ops/aiops-introduction.md).
+이 through design.md generation time ** current cluster status and cost 반영 design**가 possible. MCP integration architecture detailed [1. AIOps strategy 가이드](./agentic-ops/aiops-introduction.md)를 Reference.
 
 ---
 
@@ -366,588 +359,588 @@ This enables **designs that reflect the current cluster state and costs** when g
 
 ### 4.1 DDD Integration: From Domain Design to Logical Design
 
-In AI-DLC, DDD is **not optional but a built-in element of the methodology**. AI automatically models business logic according to DDD principles.
+AI-DLC from DDD **optional사항 not method론 내장 요소**. AI Business logic automatic as DDD 원칙 according to model링.
 
 ```mermaid
 graph LR
-    subgraph DD["Domain Design"]
-        AGG["Aggregate"]
-        ENT["Entity"]
-        VO["Value Object"]
-        DE["Domain Event"]
-    end
+ subgraph DD["Domain Design"]
+ AGG["Aggregate"]
+ ENT["Entity"]
+ VO["Value Object"]
+ DE["Domain Event"]
+ end
 
-    subgraph LD["Logical Design"]
-        CQRS["CQRS Pattern"]
-        CB["Circuit Breaker"]
-        ADR["ADR Generation"]
-    end
+ subgraph LD["Logical Design"]
+ CQRS["CQRS 패턴"]
+ CB["Circuit Breaker"]
+ ADR["ADR 생성"]
+ end
 
-    subgraph CG["Code Generation"]
-        AWS["AWS Service Mapping"]
-        TEST["Auto Test Generation"]
-    end
+ subgraph CG["코드 생성"]
+ AWS["AWS 서비스 매핑"]
+ TEST["테스트 자동 생성"]
+ end
 
-    DD -->|Apply NFR| LD
-    LD -->|AI Code Generation| CG
+ DD -->|NFR 적용| LD
+ LD -->|AI 코드 생성| CG
 
-    style DD fill:#e8f5e9,stroke:#4caf50
-    style LD fill:#e3f2fd,stroke:#2196f3
-    style CG fill:#fff3e0,stroke:#ff9800
+ style DD fill:#e8f5e9,stroke:#4caf50
+ style LD fill:#e3f2fd,stroke:#2196f3
+ style CG fill:#fff3e0,stroke:#ff9800
 ```
 
-**Payment Service Example**:
+**Payment Service example**:
 
-1. **Domain Design** — AI models business logic
-   - Aggregate: `Payment` (transactionId, amount, status)
-   - Entity: `PaymentMethod`, `Customer`
-   - Value Object: `Money`, `Currency`
-   - Domain Event: `PaymentCreated`, `PaymentCompleted`, `PaymentFailed`
+1. **Domain Design** — AI Business logic model링
+ - Aggregate: `Payment` (transactionId, amount, status)
+ - Entity: `PaymentMethod`, `Customer`
+ - Value Object: `Money`, `Currency`
+ - Domain Event: `PaymentCreated`, `PaymentCompleted`, `PaymentFailed`
 
-2. **Logical Design** — Apply NFR + Select architecture patterns
-   - CQRS: Separate payment creation (Command) / query (Query)
-   - Circuit Breaker: External payment gateway calls
-   - ADR: Record "DynamoDB on-demand vs provisioned" decision
+2. **Logical Design** — NFR Application + architecture pattern optional
+ - CQRS: 결제 generation(Command) / 조times(Query) minutes리
+ - Circuit Breaker: external 결제 이트웨 call
+ - ADR: "DynamoDB on-demand vs provisioned" 의사결정 기록
 
-3. **Code Generation** — AWS service mapping
-   - Aggregate → EKS Deployment + DynamoDB Table
-   - Domain Event → SQS FIFO Queue
-   - Circuit Breaker → Envoy sidecar + Istio
+3. **code generation** — AWS service mapping
+ - Aggregate → EKS Deployment + DynamoDB Table
+ - Domain Event → SQS FIFO Queue
+ - Circuit Breaker → Envoy sidecar + Istio
 
-Developers **verify and adjust** the models generated by AI at each stage. This verification serves as the Loss Function.
+development each phase from AI generation model **Validation·adjustment**. 이 Validation Loss Function role .
 
-### 4.1.1 Ontology-Driven Development: From DDD to Formal Ontology
+### 4.1.1 ontology based development: DDD from type식 ontology로
 
-> "Prompt engineering is ontology engineering in denial" — 2026 AI Community Consensus
+> "프롬프트 엔지니어링 ontology 엔지니어링이다" — 2026 AI 커뮤니티 컨sensor스
 
-DDD's Ubiquitous Language is an informal agreement for team communication. **Ontology-driven development** elevates this to a **formal schema (typed world model)** that AI can mechanically understand and enforce.
+DDD Ubiquitous Language 팀 내 소통 위 ratio-type식 합의. **ontology based development**은 this AI 기계 as 이해 and 준can **type식 스키마(typed world model)**로 격상.
 
-**Why Ontology?**
+**왜 ontology인가?**
 
-The root cause of AI agent failures is not weak models or inaccurate prompts, but the **absence of semantic structure in the architecture**. When definitions of users, orders, tasks, and rules are scattered across prompts, AI loses context and generates hallucinations.
+AI agent failure root cause model 약함이나 프롬프트 부정확함 아니라, **architecture 의미 structure(semantic structure)가 없기 when문**. use, 주문, 태스크, 규칙 definition 프롬프트 안 흩어져 있으면 AI 맥락 잃고 환각(hallucination)을 generation.
 
-**Kiro Spec + Ontology Integration:**
+**Kiro Spec + ontology Integration:**
 
 ```yaml
-# Domain ontology section in requirements.md
+# requirements.md 내 도메인 온톨로지 섹션
 domain_ontology:
-  aggregates:
-    Payment:
-      invariants:
-        - "amount must be greater than 0"
-        - "status transition: CREATED → PROCESSING → COMPLETED | FAILED"
-      entities:
-        - PaymentMethod: { type: "enum", values: ["CARD", "BANK", "WALLET"] }
-        - Customer: { attributes: ["customerId", "tier"] }
-      value_objects:
-        - Money: { currency: "ISO 4217", amount: "decimal(19,4)" }
-      domain_events:
-        - PaymentCreated: { trigger: "payment request received", data: ["paymentId", "amount"] }
-        - PaymentCompleted: { trigger: "PG approval completed" }
-        - PaymentFailed: { trigger: "PG rejection or timeout" }
-  relationships:
-    - "Payment CONTAINS PaymentMethod (1:1)"
-    - "Customer INITIATES Payment (1:N)"
-  constraints:
-    - "Maximum 3 concurrent payments per Customer"
-    - "Maximum 2 retries from FAILED state"
+ aggregates:
+ Payment:
+ invariants:
+ - "amount는 0보다 커야 한다"
+ - "status 전이: CREATED → PROCESSING → COMPLETED | FAILED"
+ entities:
+ - PaymentMethod: { type: "enum", values: ["CARD", "BANK", "WALLET"] }
+ - Customer: { attributes: ["customerId", "tier"] }
+ value_objects:
+ - Money: { currency: "ISO 4217", amount: "decimal(19,4)" }
+ domain_events:
+ - PaymentCreated: { trigger: "결제 요청 수신", data: ["paymentId", "amount"] }
+ - PaymentCompleted: { trigger: "PG 승인 완료" }
+ - PaymentFailed: { trigger: "PG 거부 또는 타임아웃" }
+ relationships:
+ - "Payment CONTAINS PaymentMethod (1:1)"
+ - "Customer INITIATES Payment (1:N)"
+ constraints:
+ - "동일 Customer의 동시 결제는 최대 3건"
+ - "FAILED 상태에서 재시도는 최대 2회"
 ```
 
-This ontology is **injected into the AI agent's context window** to:
-1. Automatically enforce entity relationships and invariants during code generation
-2. Auto-derive boundary cases based on domain event transition paths during test generation
-3. Auto-detect ontology violations (e.g., creating payments with negative amounts) during code review
+이 ontology AI agent **컨텍스트 윈also우 injection**:
+1. code generation time 엔티티 관계 and non-변 condition(invariant)을 automatic 준
+2. test generation time also메인 event before 경 based as 경계 케이스 automatic also출
+3. code review time ontology 위반(example: 금액 음인 결제 generation)을 automatic detection
 
-:::tip Connection to Knowledge Graphs
-Materializing ontology as a Knowledge Graph enables the SemanticForge pattern — the Knowledge Graph serves as a constraint satisfaction harness that prevents logical and structural hallucinations in AI-generated code at the source.
+:::tip Knowledge Graph and connection
+ontology Knowledge Graph 구체화if SemanticForge pattern Applicationcan — Knowledge Graph constraint satisfaction harness role to AI generation code 논리/structure 환각 원천 blocking.
 :::
 
-:::caution Lesson Learned: Official Documentation Alone is Not Enough
-When building ontology, **if you only reference official documentation, AI confuses "logically plausible reasoning" with "verified facts."** Real-world case:
+:::caution Practical Lesson: 공식 documentonly으 shortage다
+ontology build time **공식 document(Official Documentation)only Referenceif AI "논리 as 그럴듯 inference"을 "Validation 사실"로 혼동**. actual case:
 
-- **Problem**: AWS EKS Auto Mode docs state "AWS manages GPU drivers" → AI extrapolated "GPU Operator cannot be installed" → comparison tables, architecture, recommendations all contaminated
-- **Cause**: Reasoning from official docs' generalities without checking actual implementation repos ([awslabs/ai-on-eks PR #288](https://github.com/awslabs/ai-on-eks/pull/288))
-- **Result**: The false premise "technically impossible" propagated across the entire document, corrupting 12+ comparison tables and architecture recommendations
+- **issue**: AWS EKS Auto Mode 공식 document "AWS GPU 드라이버 Management다"고 기술 → AI "GPU Operator installation impossible"로 ratio약 → ratio교표, architecture, Recommendations before체 오염
+- **cause**: actual Implementation 레포([awslabs/ai-on-eks PR #288](https://github.com/awslabs/ai-on-eks/pull/288))를 Verificationnot 않고 공식 document day반론only as inference
+- **result**: "기술 non-possible"이라 잘못 before제 document before체 before파 12 abnormal ratio교표 and architecture Recommendations 모두 틀림
 
-**Knowledge source hierarchy for ontology:**
+**ontology inclusionmust knowledge source 계층:**
 
 | Priority | Source | Example | Reliability |
-|----------|--------|---------|-------------|
-| 1 | **Actual implementation code/PRs** | awslabs/ai-on-eks, Helm chart source | Highest — working code |
-| 2 | **Project GitHub issues/releases** | NVIDIA/KAI-Scheduler, ai-dynamo/dynamo | High — factual exchange between developers |
-| 3 | **Official documentation** | docs.nvidia.com, docs.aws.amazon.com | Medium — generalities, may lag updates |
-| 4 | **Blogs/tutorials** | Medium, AWS Blog | Low — snapshot of a specific point in time |
+|---------|------|------|--------|
+| 1 | ** actual Implementation code/PR** | awslabs/ai-on-eks, Helm chart sourcecode | 최고 — actual behavior code |
+| 2 | **프로젝트 GitHub 이슈/릴리스** | NVIDIA/KAI-Scheduler, ai-dynamo/dynamo | high — development between 사실 교환 |
+| 3 | **공식 document** | docs.nvidia.com, docs.aws.amazon.com | intermediate — day반론, 업데이트 delay possible |
+| 4 | **블log/튜토리얼** | Medium, AWS Blog | 낮음 — 특정 time점 스냅샷 |
 
-**Principle**: AI-generated technical documents must be **cross-validated against actual implementation code**. "Cannot do" in official docs may mean "not yet documented."
+**원칙**: AI generation 기술 document 반드time ** actual Implementation code and 교차 Validation(cross-validation)**must . 공식 document "cannot다"는 "아직 document화되지 않았다"day .
+:::
+
+#### Ontology Feedback Loop: A Living Model
+
+ontology 번 definitionif 끝나 정 스키마 아닙. **Operations data and development 경험 through continuous as evolution** 살아있 model. 이 체 피드백 loop AIDLC 신뢰 root as guarantee.
+
+```mermaid
+graph TD
+ subgraph Inner["Inner Loop (분 단위)"]
+ GEN["AI 코드 생성"] --> TEST["테스트/하네스 실행"]
+ TEST -->|"실패: 온톨로지 제약 위반"| REFINE["온톨로지 제약 정제"]
+ REFINE --> GEN
+ end
+
+ subgraph Middle["Middle Loop (일 단위)"]
+ PR["PR 리뷰"] --> METRIC["메트릭 수집"]
+ METRIC -->|"반복 패턴 발견"| SCHEMA["온톨로지 스키마 갱신"]
+ SCHEMA --> PR
+ end
+
+ subgraph Outer["Outer Loop (주 단위)"]
+ OBS["운영 관찰성<br/>(AIOps)"] -->|"인시던트/SLO 위반"| REDESIGN["도메인 온톨로지<br/>구조 재설계"]
+ REDESIGN --> SPEC["Spec 개선"]
+ SPEC --> OBS
+ end
+
+ Inner --> Middle
+ Middle --> Outer
+
+ style Inner fill:#e3f2fd,stroke:#2196f3
+ style Middle fill:#fff3e0,stroke:#ff9800
+ style Outer fill:#fce4ec,stroke:#e91e63
+```
+
+| Loop | Cycle | Trigger | Ontology Change |
+|------|------|--------|-------------|
+| **Inner** | Minutes | test failure, harness 위반 | constraint condition additional/modification (example: 누락 invariant 발견) |
+| **Middle** | Days | PR review from repetitive pattern | 엔티티/관계 스키마 renewal (example: new Value Object additional) |
+| **Outer** | Weeks | Operations incident, SLO 위반 | also메인 model structure re-design (example: Aggregate 경계 re-definition) |
+
+:::info HITL ontology evolution Core 메커니즘
+HITL(Human-in-the-Loop)을 autonomous 과also기 not **ontology evolution strategy design 요소**로 배치. HITL integration confirmed a 31% accuracy improvement and 67% False Positive reduction. 피드백 loop without Operationsif ML model 90%가 production reachingnot 못.
+
+**case**: 피드백 loop 미Application time $28K cost errorrate 8.3%→7.9% 미미 improvement. structure화 ontology 피드백 loop Application time 31day only errorrate 1.2% reduction.
 :::
 
 **References:**
 - [Why Ontology Matters for Agentic AI in 2026](https://kenhuangus.substack.com/p/why-ontology-matters-for-agentic) — Ken Huang & Bhavya Gupta
 - [Why AI Agents Fail Without Ontologies](https://medium.com/@itznihal/why-ai-agents-fail-without-ontologies-production-lessons-beb9fe9c3af9) — Nihal Parmar, 2026.03
-- [SemanticForge: Knowledge Graph-based Hallucination Prevention](https://arxiv.org/html/2511.07584v1)
+- [SemanticForge: Knowledge Graph based 환 each prevention](https://arxiv.org/html/2511.07584v1)
 - [How to Build an AI Agent Feedback Loop](https://www.braincuber.com/blog/how-to-build-feedback-loop-ai-agent-improvement) — Braincuber, 2026.03
 - [Human-in-the-Loop in Agentic AI](https://atalupadhyay.wordpress.com/2026/03/16/human-in-the-loop-in-agentic-ai/) — 2026.03
 
-#### Ontology Feedback Loop: A Living Model
-
-Ontology is not a static schema defined once and forgotten. It is a **living model that continuously evolves through operational data and development experience**. This self-feedback loop fundamentally ensures AIDLC reliability.
-
-```mermaid
-graph TD
-    subgraph Inner["Inner Loop (Minutes)"]
-        GEN["AI Code Generation"] --> TEST["Test/Harness Execution"]
-        TEST -->|"Failure: Ontology Constraint Violation"| REFINE["Refine Ontology Constraints"]
-        REFINE --> GEN
-    end
-
-    subgraph Middle["Middle Loop (Days)"]
-        PR["PR Review"] --> METRIC["Metric Collection"]
-        METRIC -->|"Recurring Patterns Found"| SCHEMA["Update Ontology Schema"]
-        SCHEMA --> PR
-    end
-
-    subgraph Outer["Outer Loop (Weeks)"]
-        OBS["Operational Observability<br/>(AIOps)"] -->|"Incidents/SLO Violations"| REDESIGN["Redesign Domain<br/>Ontology Structure"]
-        REDESIGN --> SPEC["Spec Improvement"]
-        SPEC --> OBS
-    end
-
-    Inner --> Middle
-    Middle --> Outer
-
-    style Inner fill:#e3f2fd,stroke:#2196f3
-    style Middle fill:#fff3e0,stroke:#ff9800
-    style Outer fill:#fce4ec,stroke:#e91e63
-```
-
-| Loop | Cycle | Trigger | Ontology Change |
-|------|-------|---------|----------------|
-| **Inner** | Minutes | Test failures, harness violations | Add/modify constraints (e.g., discover missing invariants) |
-| **Middle** | Days | Recurring patterns in PR reviews | Update entity/relationship schemas (e.g., add new Value Objects) |
-| **Outer** | Weeks | Operational incidents, SLO violations | Redesign domain model structure (e.g., redefine Aggregate boundaries) |
-
-:::info HITL is a Core Mechanism of Ontology Evolution
-Deploy HITL (Human-in-the-Loop) as a **strategic design element of ontology evolution**, not a transitional step toward autonomy. HITL integration yields 31% accuracy improvement and 67% reduction in false positives. Without feedback loops, 90% of ML models never reach production.
-
-**Case Study**: Without feedback loops — $28K cost, error rate improved marginally from 8.3% to 7.9%. With structured ontology feedback loops — error rate dropped to 1.2% within 31 days.
-:::
-
 ### 4.2 Mob Construction
 
-The core ritual of Construction is **Mob Construction**. Teams gather in one room to develop their respective Units, exchanging Integration Specifications generated during the Domain Design phase.
+Construction Core ritual **Mob Construction**. 팀 방 모여 각 Unit development and, Domain Design phase from generation Integration 사양(Integration Specification)을 교환.
 
 ```
-[Mob Construction Flow]
+[Mob Construction 흐름]
 
-Team A: Payment Unit        Team B: Notification Unit
-  │                            │
-  ├─ Domain Design Complete    ├─ Domain Design Complete
-  │                            │
-  └────── Exchange Integration Specs ──────┘
-          (Domain Event Contracts)
-  │                            │
-  ├─ Logical Design            ├─ Logical Design
-  ├─ Code Generation           ├─ Code Generation
-  ├─ Testing                   ├─ Testing
-  └─ Bolt Delivery             └─ Bolt Delivery
+Team A: Payment Unit Team B: Notification Unit
+ │ │
+ ├─ Domain Design 완료 ├─ Domain Design 완료
+ │ │
+ └────── 통합 사양 교환 ──────┘
+ (Domain Event 계약)
+ │ │
+ ├─ Logical Design ├─ Logical Design
+ ├─ 코드 생성 ├─ 코드 생성
+ ├─ 테스트 ├─ 테스트
+ └─ Bolt 전달 └─ Bolt 전달
 ```
 
-Each Unit is loosely coupled, enabling **parallel development**, integrated through Domain Events. AI also auto-generates integration tests.
+ each Unit 느슨 combination **병렬 development**이 possible and, Domain Event through Integration. AI Integration testalso automatic generation.
 
-:::warning Brown-field (Existing System) Approach
-When adding features or refactoring existing systems, **additional steps** are needed in the Construction phase:
+:::warning Brown-field ( existing system) approach
+ existing system feature additional나 refactoring perform case, Construction phase **additional 스텝**이 needed:
 
-1. AI **reverse-engineers existing code into a semantic model** (Code → Model promotion)
-   - **Static Model**: Components, responsibilities, relationships
-   - **Dynamic Model**: Component interactions for major use cases
-2. Developers verify and modify the reverse-engineered model
-3. Then proceed with the same Construction flow as Green-field
+1. AI existing code **time맨틱 model 역공학** (code → model 승격)
+ - **Static Model**: 컴포넌트, 책임, 관계
+ - **Dynamic Model**: major 유스케이스 컴포넌트 상호작용
+2. development 역공학 model Validation·modification
+3. 이after Green-field and the same Construction flow 진행
 
-This ensures AI performs changes with an accurate understanding of the existing system's context.
+이 through AI existing system 맥락 정확히 파악 status from change perform.
 :::
 
 ### 4.3 AI Coding Agents
 
-These are the AI coding agents used in the AIDLC Construction phase. Amazon Q Developer and Kiro use **Anthropic Claude** models, and Kiro also supports open-weight models for cost optimization and specialized domain extensions.
+AIDLC Construction phase from utilization AI 코딩 agent들. Amazon Q Developer and Kiro **Anthropic Claude** model use and, Kiro 오픈 웨이트 modelalso Support to Cost Optimization and 특 also메인 extension possible.
 
 <AiCodingAgentComparison />
 
-#### 4.3.4 Amazon Q Developer — Real-Time Code Build and Test (2025)
+#### 4.3.4 Amazon Q Developer — Real-time code build and test (2025)
 
-AWS announced **Amazon Q Developer's real-time code execution capability** in February 2025. This is an innovative approach where AI generates code and then **automatically builds and runs tests to verify results** before presenting them to the developer. It is a core mechanism in the AIDLC Construction phase that **activates the Loss Function early** to prevent errors from propagating downstream.
+AWS 2025year 2monthly **Amazon Q Developer Real-time code execution feature**을 announcement했. this is AI code generation after **automatic as build and test execution to result Validation** 뒤 development에 presentation 혁신 approach. AIDLC Construction phase from **Loss Function 조기 작동**time켜 error 류 before파not 않 Core 메커니즘.
 
-**Real-Time Code Execution Capability**
+**Real-time code execution feature**
 
-Traditional AI coding tools required developers to manually build and test after code generation. Q Developer automates this process, implementing a closed loop of **code generation → automatic build → test execution → result verification → developer review**.
+Traditional인 AI 코딩 tool code generation after development manual as build·testmust 했. Q Developer 이 과정 Automation to **code generation → automatic build → test execution → result Validation → development review** 폐쇄 loop implementation.
 
 ```
-Traditional Approach:
-  AI Code Generation → Developer Manual Build → Developer Manual Test → Error Found → Feedback to AI → Regenerate
-  (Iteration cycle: 5-10 minutes)
+기존 방식:
+ AI 코드 생성 → 개발자 수동 빌드 → 개발자 수동 테스트 → 오류 발견 → AI에게 피드백 → 재생성
+ (반복 주기: 5-10분)
 
-Q Developer Real-Time Execution:
-  AI Code Generation → Auto Build → Auto Test → Result Verification → (Auto Fix Retry on Error) → Developer Review
-  (Iteration cycle: 1-2 minutes, minimal developer intervention)
+Q Developer 실시간 실행:
+ AI 코드 생성 → 자동 빌드 → 자동 테스트 → 결과 검증 → (오류 시 자동 수정 재시도) → 개발자 리뷰
+ (반복 주기: 1-2분, 개발자 개입 최소화)
 ```
 
-**Core Mechanisms**
+**Core 메커니즘**
 
-1. **Automatic Build Pipeline**
-   - Q Developer automatically runs the project's build tools (Maven, Gradle, npm, pip, etc.) after code changes
-   - Immediately detects compilation errors and dependency conflicts
-   - On build failure, analyzes error messages and automatically retries with code fixes
+1. **automatic build pipeline**
+ - Q Developer code change after 프로젝트 build tool(Maven, Gradle, npm, pip 등)를 automatic execution
+ - 컴파day error, dependency 충돌 immediately detection
+ - build failure time error 메time지 Analysis to automatic as code modification re-timealso
 
-2. **Automatic Test Execution**
-   - Automatically runs unit tests and integration tests
-   - On test failure, analyzes the cause and fixes code or tests
-   - Adds new code while maintaining existing test coverage
+2. **test automatic execution**
+ - 유닛 test, Integration test automatic as execution
+ - test failure time failure cause Analysis to code or test modification
+ - existing test coverage maintenance and 새 code additional
 
-3. **Pre-Developer Review Verification**
-   - When developers receive code, **builds and tests have already passed**
-   - Developers focus on business logic and design review (Loss Function role)
-   - Verifying "Is it the right code?" rather than "Does the code work?"
+3. **development review before Validation**
+ - development code 받 when **이미 build and test 통과 status**
+ - development Business logic and design 검토 focus (Loss Function role)
+ - "code 작동가?"가 not "올바른 code인가?"를 Validation
 
-**Security Scan Auto-Fix Suggestions**
+**security scan automatic modification recommendation**
 
-Q Developer automatically scans Kubernetes YAML and application code for security vulnerabilities and provides fix suggestions.
+Q Developer Kubernetes YAML and application code security vulnerability automatic as scan and modification recommendation provides.
 
-**Kubernetes YAML Security Scan**
+**Kubernetes YAML security scan**
 
-1. **Root Privilege Detection**
-   - Detects `runAsUser: 0` or `runAsNonRoot: false`
-   - Suggestion: `runAsUser: 1000`, `runAsNonRoot: true`
+1. **Root permission detection**
+ - `runAsUser: 0` or `runAsNonRoot: false` detection
+ - recommendation: `runAsUser: 1000`, `runAsNonRoot: true`
 
-2. **Privileged Container Detection**
-   - Detects `securityContext.privileged: true`
-   - Suggestion: Explicitly add only required capabilities (e.g., `NET_ADMIN`)
+2. **Privileged container detection**
+ - `securityContext.privileged: true` detection
+ - recommendation: required capabilitiesonly 명time as additional (example: `NET_ADMIN`)
 
-3. **Missing securityContext Detection**
-   - Warns when Pod/Container lacks `securityContext`
-   - Suggestion: Add securityContext following the principle of least privilege
+3. **미Configuration securityContext detection**
+ - Pod/Container `securityContext`가 없 case 경고
+ - recommendation: 최소 permission 원칙 따른 securityContext additional
 
-**Auto-Fix Suggestion Example**
+**automatic modification recommendation example**
 
 ```yaml
-# Issue detected by Q Developer
+# Q Developer가 감지한 문제
 apiVersion: v1
 kind: Pod
 metadata:
-  name: payment-pod
+ name: payment-pod
 spec:
-  containers:
-    - name: payment
-      image: payment:v1
-      securityContext:
-        runAsUser: 0  # ⚠️ Using root privileges
-        privileged: true  # ⚠️ Privileged mode
+ containers:
+ - name: payment
+ image: payment:v1
+ securityContext:
+ runAsUser: 0 # ⚠️ Root 권한 사용
+ privileged: true # ⚠️ Privileged 모드
 
-# Fix suggested by Q Developer
+# Q Developer가 제안하는 수정
 apiVersion: v1
 kind: Pod
 metadata:
-  name: payment-pod
+ name: payment-pod
 spec:
-  securityContext:
-    runAsNonRoot: true
-    runAsUser: 1000
-    fsGroup: 1000
-    seccompProfile:
-      type: RuntimeDefault
-  containers:
-    - name: payment
-      image: payment:v1
-      securityContext:
-        allowPrivilegeEscalation: false
-        readOnlyRootFilesystem: true
-        capabilities:
-          drop:
-            - ALL
-          add:
-            - NET_BIND_SERVICE  # Add only required capabilities
+ securityContext:
+ runAsNonRoot: true
+ runAsUser: 1000
+ fsGroup: 1000
+ seccompProfile:
+ type: RuntimeDefault
+ containers:
+ - name: payment
+ image: payment:v1
+ securityContext:
+ allowPrivilegeEscalation: false
+ readOnlyRootFilesystem: true
+ capabilities:
+ drop:
+ - ALL
+ add:
+ - NET_BIND_SERVICE # 필요한 capabilities만 추가
 ```
 
-**AIDLC Construction Phase Integration**
+**AIDLC Construction phase Integration**
 
-Q Developer's real-time execution and security scanning **automate the Quality Gate** in the Construction phase, realizing AIDLC's fast iteration cycle (Bolt).
+Q Developer Real-time execution and security scan Construction phase **Quality Gate Automation** to AIDLC Fast iteration 주기(Bolt)를 실현.
 
-1. **Auto-run Q Developer security scan at Quality Gate**
-   - When Kiro generates code, Q Developer security scan is integrated into the pipeline
-   - Automatically scans Kubernetes manifests, Dockerfiles, and application code
-   - Presents fix suggestions to developers when vulnerabilities are found (Loss Function)
+1. **Quality Gate from Q Developer security scan automatic execution**
+ - Kiro code generation when Q Developer security scan pipeline Integration
+ - Kubernetes manifest, Dockerfile, application code automatic scan
+ - vulnerability 발견 time modification recommendation development에 presentation (Loss Function)
 
-2. **Add Q Developer validation step to CI/CD pipeline**
-   - Run Q Developer scan in GitHub Actions/GitLab CI when PR is created
-   - Auto build and test execution guarantees "code works"
-   - Security scan guarantees "code is secure"
-   - Developers only verify "code is correct" (role separation)
+2. **CI/CD pipeline Q Developer Validation phase additional**
+ - PR generation time GitHub Actions/GitLab CI from Q Developer scan execution
+ - build·test automatic execution as "code 작동함"을 guarantee
+ - security scan as "code safety함"을 guarantee
+ - development "code 올바름"only Validation (role minutes리)
 
-**Integrated Workflow Example**
+**Integration workflow example**
 
 ```yaml
 # .github/workflows/aidlc-construction.yml
 name: AIDLC Construction Quality Gate
 on:
-  pull_request:
-    types: [opened, synchronize]
+ pull_request:
+ types: [opened, synchronize]
 
 jobs:
-  q-developer-validation:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
+ q-developer-validation:
+ runs-on: ubuntu-latest
+ steps:
+ - uses: actions/checkout@v4
 
-      # 1. Q Developer Security Scan
-      - name: Q Developer Security Scan
-        uses: aws/amazon-q-developer-action@v1
-        with:
-          scan-type: security
-          source-path: .
-          auto-fix: true  # Apply auto-fix suggestions
+ # 1. Q Developer 보안 스캔
+ - name: Q Developer Security Scan
+ uses: aws/amazon-q-developer-action@v1
+ with:
+ scan-type: security
+ source-path: .
+ auto-fix: true # 자동 수정 제안 적용
 
-      # 2. Real-Time Build and Test
-      - name: Q Developer Build & Test
-        uses: aws/amazon-q-developer-action@v1
-        with:
-          action: build-and-test
-          test-coverage-threshold: 80
+ # 2. 실시간 빌드 및 테스트
+ - name: Q Developer Build & Test
+ uses: aws/amazon-q-developer-action@v1
+ with:
+ action: build-and-test
+ test-coverage-threshold: 80
 
-      # 3. Kubernetes Manifest Validation
-      - name: K8s Manifest Security Check
-        run: |
-          # Verify Q Developer suggested fixes have been applied
-          kube-linter lint deploy/ --config .kube-linter.yaml
+ # 3. Kubernetes manifest 검증
+ - name: K8s Manifest Security Check
+ run: |
+ # Q Developer가 제안한 수정이 적용되었는지 확인
+ kube-linter lint deploy/ --config .kube-linter.yaml
 
-      # 4. Allow Argo CD sync only on pass
-      - name: Approve for GitOps
-        if: success()
-        run: echo "Quality Gate passed. Ready for Argo CD sync."
+ # 4. 통과 시에만 Argo CD 동기화 허용
+ - name: Approve for GitOps
+ if: success()
+ run: echo "Quality Gate passed. Ready for Argo CD sync."
 ```
 
-**Actual Impact — Shortened Feedback Loop**
+** actual 효 and — 피드백 loop 단축**
 
 ```
-Traditional Construction Phase:
-  [Developer] Write code (30 min)
-    → [Developer] Manual build (2 min)
-    → [Developer] Manual test (5 min)
-    → [Developer] Error found (10 min debugging)
-    → [Developer] Fix code (20 min)
-    → Repeat...
-  Total time: 2-3 hours
+전통적 Construction 단계:
+ [개발자] 코드 작성 (30분)
+ → [개발자] 수동 빌드 (2분)
+ → [개발자] 수동 테스트 (5분)
+ → [개발자] 오류 발견 (10분 디버깅)
+ → [개발자] 코드 수정 (20분)
+ → 반복...
+ 총 소요 시간: 2-3시간
 
-Q Developer Real-Time Execution:
-  [AI] Generate code (1 min)
-    → [AI] Auto build/test (30 sec)
-    → [AI] Error detection and auto-fix (1 min)
-    → [Developer] Loss Function verification (10 min)
-    → [Argo CD] Auto deployment
-  Total time: 15-20 minutes
+Q Developer 실시간 실행:
+ [AI] 코드 생성 (1분)
+ → [AI] 자동 빌드·테스트 (30초)
+ → [AI] 오류 감지 및 자동 수정 (1분)
+ → [개발자] Loss Function 검증 (10분)
+ → [Argo CD] 자동 배포
+ 총 소요 시간: 15-20분
 ```
 
-:::tip Value of Q Developer in AIDLC
-Q Developer's real-time execution implements AIDLC's core principle of **"Minimize Stages, Maximize Flow"**. By automating each stage of code generation → build → test → verification, it eliminates handoffs, and developers focus solely on **decision-making (Loss Function)**. This is the core mechanism that shortens the weekly/monthly cycles of traditional SDLC to AIDLC's hourly/daily cycles.
+:::tip AIDLC from Q Developer value
+Q Developer Real-time execution AIDLC Core 원칙인 **"Minimize Stages, Maximize Flow"**를 implementation. code generation → build → test → Validation each phase Automation to handoff removal and, development **의사결정(Loss Function)**에only focus. 이것 existing SDLC 주/monthly 단위 주기 AIDLC time/Days 주기 단축 Core 메커니즘.
 :::
 
 **References**
 
 - [AWS DevOps Blog: Enhancing Code Generation with Real-Time Execution in Amazon Q Developer](https://aws.amazon.com/blogs/devops/enhancing-code-generation-with-real-time-execution-in-amazon-q-developer/) (2025-02-06)
-- AWS re:Invent 2025 EKS Research — See Section 13.4
+- AWS re:Invent 2025 EKS Research — Section 13.4 Reference
 
-### 4.4 EKS Capabilities-Based Declarative Automation
+### 4.4 Declarative Automation Based on EKS Capabilities
 
-EKS Capabilities (2025.11) provides popular open-source tools as AWS-managed services, declaratively deploying Construction phase artifacts.
+EKS Capabilities(2025.11)는 인기 있 open-source tool AWS managed as Provision to, Construction phase artifact declarative as Deployment.
 
 <EksCapabilities />
 
 #### 4.4.1 Managed Argo CD — GitOps
 
-Managed Argo CD operates GitOps as a managed service on AWS infrastructure. When Kiro pushes generated code to Git, it is automatically deployed to EKS. Application CRDs manage single environments, while ApplicationSets declaratively manage multi-environments (dev/staging/production).
+Managed Argo CD GitOps AWS infrastructure from managed as Operations. Kiro generation code Git 푸timeif automatic as EKS Deployment. Application CRD single environment을, ApplicationSet as multi environment(dev/staging/production)을 declarative as Management.
 
-#### 4.4.2 ACK — Declarative AWS Resource Management
+#### 4.4.2 ACK — AWS resource declarative Management
 
-ACK declaratively manages 50+ AWS services as K8s CRDs. It deploys infrastructure elements from Kiro-generated Domain Design (DynamoDB, SQS, S3, etc.) via `kubectl apply`, naturally integrating into Argo CD's GitOps workflow.
+ACK 50+ AWS service K8s CRD declarative as Management. Kiro generation Domain Design infrastructure 요소(DynamoDB, SQS, S3 등)를 `kubectl apply`로 Deployment and, Argo CD GitOps workflow 연스럽 Integration.
 
-:::info Core Value of ACK
-With ACK, **AWS resources external to the cluster can also be managed using the K8s declarative model**. Create/modify/delete DynamoDB, SQS, S3, RDS, etc. as K8s CRDs — this is the strategy of "declaratively managing all infrastructure centered on K8s."
+:::info ACK Core Value
+ACK useif **cluster external AWS resourcealso K8s declarative model Management** . DynamoDB, SQS, S3, RDS etc. K8s CRD generation/modification/deletion and, 이것 "K8s 중심 as all infrastructure declarative as Management" strategy.
 :::
 
-#### 4.4.3 KRO — Complex Resource Orchestration
+#### 4.4.3 KRO — 복합 resource orchestration
 
-KRO bundles multiple K8s resources into a **single deployment unit (ResourceGroup)**. It directly maps to AIDLC's Deployment Unit concept, creating Deployment + Service + HPA + ACK resources as a single Custom Resource.
+KRO multiple K8s resource ** single Deployment 단위(ResourceGroup)**로 묶. AIDLC Deployment Unit 념 and directly mapping, Deployment + Service + HPA + ACK resource 나 Custom Resource generation.
 
 #### 4.4.4 LBC v3 Gateway API
 
-AWS Load Balancer Controller v3 brings Gateway API to GA, providing L4(NLB) + L7(ALB) routing, QUIC/HTTP3, JWT validation, and header transformation. Traffic is managed declaratively via Gateway + HTTPRoute CRDs.
+AWS Load Balancer Controller v3 Gateway API GA transition and L4(NLB) + L7(ALB) routing, QUIC/HTTP3, JWT Validation, 헤더 변환 provides. Gateway + HTTPRoute CRD traffic declarative as Management.
 
-#### 4.4.5 LBC v3 Gateway API — Advanced Features Detail
+#### 4.4.5 LBC v3 Gateway API — 고급 feature detailed
 
-AWS Load Balancer Controller v3's Gateway API support provides powerful L4/L7 routing capabilities through the Kubernetes standard traffic management API. This is a core tool for declaratively implementing networking requirements from Kiro Specs in the AIDLC Construction phase.
+AWS Load Balancer Controller v3 Gateway API Support Kubernetes standard traffic Management API through powerful L4/L7 routing feature provides. this is AIDLC Construction phase from Kiro Spec 네트워킹 요구사항 declarative as Implementation Core tool.
 
-**Gateway API v1.4 + LBC v2.14+ Coverage**
+**Gateway API v1.4 + LBC v2.14+ Support scope**
 
-Gateway API uses a role-oriented design that allows infrastructure operators, cluster operators, and application developers to manage traffic within their respective scopes of responsibility.
+Gateway API role 지향(role-oriented) design infrastructure Operations, cluster Operations, application development 각 책임 scope from traffic Managementcan .
 
 1. **L4 Routes — TCPRoute, UDPRoute, TLSRoute (NLB, v2.13.3+)**
-   - **TCPRoute**: TCP-based application routing (e.g., PostgreSQL, Redis, gRPC with TCP)
-   - **UDPRoute**: UDP-based protocol routing (e.g., DNS, QUIC, game servers)
-   - **TLSRoute**: SNI (Server Name Indication)-based TLS routing
-   - Provisioned with Network Load Balancer (NLB), guaranteeing high throughput and low latency
-   - Example: SNI-based shard routing in multi-tenant database clusters
+ - **TCPRoute**: TCP based application routing (example: PostgreSQL, Redis, gRPC with TCP)
+ - **UDPRoute**: UDP based 프로토콜 routing (example: DNS, QUIC, 임 server)
+ - **TLSRoute**: SNI(Server Name Indication) based TLS routing
+ - Network Load Balancer(NLB)로 provisioning되며, high 처리량 and low delay time guarantee
+ - example: multi-tenant database cluster from SNI based 샤드 routing
 
 2. **L7 Routes — HTTPRoute, GRPCRoute (ALB, v2.14.0+)**
-   - **HTTPRoute**: HTTP/HTTPS routing based on path, headers, query parameters
-   - **GRPCRoute**: Routing based on gRPC method names, gRPC-specific header management
-   - Provisioned with Application Load Balancer (ALB), supporting content-based routing
-   - Example: `/api/v1/*` → v1 service, `/api/v2/*` → v2 service (canary deployment)
+ - **HTTPRoute**: 경로, 헤더, query 파라미터 based HTTP/HTTPS routing
+ - **GRPCRoute**: gRPC 메서드 이름 based routing, gRPC-specific 헤더 Management
+ - Application Load Balancer(ALB)로 provisioning되며, 콘텐츠 based routing Support
+ - example: `/api/v1/*` → v1 service, `/api/v2/*` → v2 service (canary Deployment)
 
-3. **QUIC Protocol Support (HTTP/3 on NLB)**
-   - Native HTTP/3 (QUIC) protocol support on NLB
-   - Resolves TCP head-of-line blocking via UDP-based transport
-   - Connection migration support in mobile network environments
-   - Example: Real-time video streaming, game servers, low-latency APIs
+3. **QUIC 프로토콜 Support (HTTP/3 on NLB)**
+ - HTTP/3(QUIC) 프로토콜 NLB from native Support
+ - UDP based as TCP head-of-line blocking issue 해결
+ - 모바day network environment from connection 마이그레이션(connection migration) Support
+ - example: Real-time ratio디오 streaming, 임 server, 저delay API
 
-**JWT Validation Feature**
+**JWT Validation feature**
 
-Gateway API v1.4 supports **Gateway-level JWT (JSON Web Token) validation**. This separates authentication logic from backend services, reducing their load.
+Gateway API v1.4 **Gateway 레벨 from JWT(JSON Web Token) Validation**을 support. 이 through 인증 로직 backend service from minutes리 to 부 reductiontime킵.
 
-- **Authentication Policy Definition**: Declare JWT validation rules on the Gateway (issuer, public key, claim validation)
-- **Backend Load Reduction**: ALB/NLB validates JWTs, early-blocking invalid requests
-- **Centralized Authentication**: Multiple services reuse common authentication policies
-- **Example**: Payment Service validates `iss=https://auth.example.com`, `aud=payment-api` on the `/api/v1/payments` path
+- **인증 policy definition**: Gateway JWT Validation 규칙 declarative (발급, 공 키, 클레임 Validation)
+- **backend 부 reduction**: ALB/NLB from JWT Validation to 유효not 않 request 조기 blocking
+- **중앙화 인증**: multiple service 공통 인증 policy re-use
+- **example**: Payment Service `/api/v1/payments` 경 from `iss=https://auth.example.com`, `aud=payment-api` Validation
 
-**Header Transformation**
+**헤더 변환**
 
-HTTPRoute can dynamically add, modify, and delete request and response headers.
+HTTPRoute request and response 헤더 dynamic as additional·modification·deletion .
 
-- **RequestHeaderModifier**: Manipulate request headers before forwarding to backend
-  - Example: Add `X-User-ID` header (user ID extracted from JWT claims)
-  - Example: Force `X-Forwarded-Proto: https` (when backend is behind a proxy)
-- **ResponseHeaderModifier**: Manipulate response headers before responding to client
-  - Example: Add `X-Frame-Options: DENY` (security header)
-  - Example: Remove `Server` header (prevent information disclosure)
+- **RequestHeaderModifier**: backend before달되기 before request 헤더 조작
+ - example: `X-User-ID` 헤더 additional (JWT 클레임 from 추출 use ID)
+ - example: `X-Forwarded-Proto: https` 강제 (backend 프록time 뒤 있 when)
+- **ResponseHeaderModifier**: 클라이언트 response기 before response 헤더 조작
+ - example: `X-Frame-Options: DENY` additional (security 헤더)
+ - example: `Server` 헤더 removal (정보 노출 prevention)
 
-**Usage in AIDLC Construction Phase**
+**AIDLC Construction phase from utilization**
 
-Gateway API is a core tool for automatically deploying networking requirements defined in Kiro Specs through GitOps workflows.
+Gateway API Kiro Spec from definition 네트워킹 요구사항 GitOps workflow automatic Deployment Core tool.
 
-1. **Define API routing requirements in Kiro Spec**
-   - Specify requirements like "Route 10% traffic to v2 via canary deployment" in `requirements.md`
-   - Design routing strategy using Gateway API in `design.md`
-   - Kiro auto-generates HTTPRoute manifests
+1. **Kiro Spec from API routing 요구사항 definition**
+ - `requirements.md` from "canary Deployment 10% traffic v2 routing" such as 요구사항 명time
+ - `design.md` from Gateway API use routing strategy design
+ - Kiro HTTPRoute manifest automatic generation
 
-2. **Declarative traffic management with Gateway API CRDs**
-   - Deploy Gateway, GatewayClass, HTTPRoute with a single Git commit
-   - Argo CD automatically syncs changes to EKS
-   - LBC provisions ALB/NLB and applies routing rules
+2. **Gateway API CRD declarative traffic Management**
+ - Git commit 번 as Gateway, GatewayClass, HTTPRoute Deployment
+ - Argo CD change 사항 automatic as EKS 동기화
+ - LBC ALB/NLB provisioning and routing 규칙 Application
 
-3. **Canary/blue-green deployment strategy automation**
-   - Adjust traffic distribution ratio with HTTPRoute's `weight` field
-   - Example: v1 service 90%, v2 service 10% → gradually increase v2 to 100%
-   - Monitor SLOs for each version with CloudWatch Application Signals
-   - AI Agent automatically rolls back on SLO violation (Operations phase integration)
+3. **canary/블루-그린 Deployment strategy Automation**
+ - HTTPRoute `weight` 필드 traffic distributed ratiorate adjustment
+ - example: v1 service 90%, v2 service 10% → gradual as v2 100%로 increase
+ - CloudWatch Application Signals each 버before SLO Monitoring
+ - AI Agent SLO 위반 time automatic as rollback (Operations phase Integration)
 
-**Gateway, GatewayClass, HTTPRoute YAML Examples**
+**Gateway, GatewayClass, HTTPRoute YAML example**
 
 ```yaml
-# gatewayclass.yaml — Defined by infrastructure operator
+# gatewayclass.yaml — 인프라 운영자가 정의
 apiVersion: gateway.networking.k8s.io/v1
 kind: GatewayClass
 metadata:
-  name: aws-alb
+ name: aws-alb
 spec:
-  controllerName: gateway.alb.aws.amazon.com/controller
-  description: "AWS Application Load Balancer"
+ controllerName: gateway.alb.aws.amazon.com/controller
+ description: "AWS Application Load Balancer"
 ---
-# gateway.yaml — Defined by cluster operator
+# gateway.yaml — 클러스터 운영자가 정의
 apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
 metadata:
-  name: payment-gateway
-  namespace: production
-  annotations:
-    gateway.alb.aws.amazon.com/scheme: internet-facing
-    gateway.alb.aws.amazon.com/tags: Environment=production,Service=payment
+ name: payment-gateway
+ namespace: production
+ annotations:
+ gateway.alb.aws.amazon.com/scheme: internet-facing
+ gateway.alb.aws.amazon.com/tags: Environment=production,Service=payment
 spec:
-  gatewayClassName: aws-alb
-  listeners:
-    - name: https
-      protocol: HTTPS
-      port: 443
-      tls:
-        mode: Terminate
-        certificateRefs:
-          - name: payment-tls-cert
-            kind: Secret
-      allowedRoutes:
-        namespaces:
-          from: Selector
-          selector:
-            matchLabels:
-              gateway-access: enabled
+ gatewayClassName: aws-alb
+ listeners:
+ - name: https
+ protocol: HTTPS
+ port: 443
+ tls:
+ mode: Terminate
+ certificateRefs:
+ - name: payment-tls-cert
+ kind: Secret
+ allowedRoutes:
+ namespaces:
+ from: Selector
+ selector:
+ matchLabels:
+ gateway-access: enabled
 ---
-# httproute.yaml — Defined by application developer
+# httproute.yaml — 애플리케이션 개발자가 정의
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
-  name: payment-api-route
-  namespace: production
+ name: payment-api-route
+ namespace: production
 spec:
-  parentRefs:
-    - name: payment-gateway
-      namespace: production
-      sectionName: https
-  rules:
-    # Canary deployment: v1 90%, v2 10%
-    - matches:
-        - path:
-            type: PathPrefix
-            value: /api/v1/payments
-      backendRefs:
-        - name: payment-service-v1
-          port: 8080
-          weight: 90
-        - name: payment-service-v2
-          port: 8080
-          weight: 10
-      filters:
-        # JWT Validation (Gateway API v1.4)
-        - type: RequestHeaderModifier
-          requestHeaderModifier:
-            add:
-              - name: X-User-ID
-                value: "{jwt.sub}"  # Extracted from JWT claims
-        # Security headers
-        - type: ResponseHeaderModifier
-          responseHeaderModifier:
-            add:
-              - name: X-Frame-Options
-                value: DENY
-              - name: X-Content-Type-Options
-                value: nosniff
-            remove:
-              - Server  # Prevent server info disclosure
+ parentRefs:
+ - name: payment-gateway
+ namespace: production
+ sectionName: https
+ rules:
+ # 카나리 배포: v1 90%, v2 10%
+ - matches:
+ - path:
+ type: PathPrefix
+ value: /api/v1/payments
+ backendRefs:
+ - name: payment-service-v1
+ port: 8080
+ weight: 90
+ - name: payment-service-v2
+ port: 8080
+ weight: 10
+ filters:
+ # JWT 검증 (Gateway API v1.4)
+ - type: RequestHeaderModifier
+ requestHeaderModifier:
+ add:
+ - name: X-User-ID
+ value: "{jwt.sub}" # JWT 클레임에서 추출
+ # 보안 헤더 추가
+ - type: ResponseHeaderModifier
+ responseHeaderModifier:
+ add:
+ - name: X-Frame-Options
+ value: DENY
+ - name: X-Content-Type-Options
+ value: nosniff
+ remove:
+ - Server # 서버 정보 노출 방지
 ---
-# grpcroute.yaml — gRPC service routing
+# grpcroute.yaml — gRPC 서비스 라우팅
 apiVersion: gateway.networking.k8s.io/v1alpha2
 kind: GRPCRoute
 metadata:
-  name: payment-grpc-route
-  namespace: production
+ name: payment-grpc-route
+ namespace: production
 spec:
-  parentRefs:
-    - name: payment-gateway
-  rules:
-    - matches:
-        - method:
-            service: payment.v1.PaymentService
-            method: CreatePayment
-      backendRefs:
-        - name: payment-grpc-service
-          port: 9090
+ parentRefs:
+ - name: payment-gateway
+ rules:
+ - matches:
+ - method:
+ service: payment.v1.PaymentService
+ method: CreatePayment
+ backendRefs:
+ - name: payment-grpc-service
+ port: 9090
 ```
 
-:::tip Gateway API vs Ingress Comparison
-**Ingress** defines all routing rules in a single resource, mixing infrastructure operator and developer responsibilities. **Gateway API** separates roles into GatewayClass (infrastructure), Gateway (cluster), and HTTPRoute (application), enabling each team to work independently. This aligns with AIDLC's **Loss Function** concept — validating at each layer to prevent error propagation.
+:::tip Gateway API and Ingress ratio교
+**Ingress**는 single resource all routing 규칙 definition to, infrastructure Operations and development 책임 혼re-. **Gateway API**는 GatewayClass(infrastructure), Gateway(cluster), HTTPRoute(application)로 role minutes리 to, each 팀 independent as 작업 . AIDLC **Loss Function** 념 and day치 — each 레이어 from Validation to error before파 prevention.
 :::
 
 **References**
@@ -955,124 +948,124 @@ spec:
 - [Kubernetes Gateway API v1.4 Release](https://kubernetes.io/blog/2025/11/06/gateway-api-v1-4/) (2025-11-06)
 - [AWS Load Balancer Controller — Gateway API Docs](https://kubernetes-sigs.github.io/aws-load-balancer-controller/latest/guide/gateway/gateway/)
 - [Kubernetes Gateway API in Action (AWS Blog)](https://aws.amazon.com/blogs/containers/kubernetes-gateway-api-in-action/)
-- AWS re:Invent 2025 EKS Research — See Section 3.5
+- AWS re:Invent 2025 EKS Research — Section 3.5 Reference
 
-#### 4.4.6 Node Readiness Controller — Declarative Node Readiness Management
+#### 4.4.6 Node Readiness Controller — declarative node readiness status Management
 
-**Node Readiness Controller (NRC)** is a controller that declaratively defines conditions that Kubernetes nodes must meet before accepting workloads. This is a core tool in the AIDLC Construction phase for expressing infrastructure requirements as code and automatically applying them through GitOps.
+**Node Readiness Controller(NRC)**는 Kubernetes node workload 용기 before 충족must condition declarative as definition 컨트롤러. this is AIDLC Construction phase from infrastructure 요구사항 code 표현 and, GitOps through automatic as Application Core tool.
 
 **Core Concepts**
 
-NRC defines conditions that nodes must satisfy before transitioning to "Ready" state through the `NodeReadinessRule` CRD. Traditionally, node readiness was automatically determined by kubelet, but NRC allows **declaratively injecting application-specific requirements into the infrastructure layer**.
+NRC `NodeReadinessRule` CRD through node "Ready" status transition되기 before only족must condition definition. Traditional as node readiness status kubelet automatic as 결정했지only, NRC useif **per application 요구사항 infrastructure 레이어 declarative as injection** .
 
-- **Declarative Policies**: Define node readiness conditions as YAML via `NodeReadinessRule`
-- **GitOps Compatible**: Version-manage and auto-deploy node readiness policies through Argo CD
-- **Workload Protection**: Block scheduling until essential daemonsets (CNI, CSI, security agents) are ready
+- **declarative policy**: `NodeReadinessRule`로 node readiness condition YAML definition
+- **GitOps 호환**: Argo CD through node readiness policy 버before Management and automatic Deployment
+- **workload 보호**: mandatory DaemonSet(CNI, CSI, security agent)이 readiness될 when scheduling blocking
 
-**Usage Across AIDLC Phases**
+**AIDLC each phase from utilization**
 
-| Phase | NRC Role | Example |
-|-------|----------|---------|
-| **Inception** | AI analyzes workload requirements → Auto-defines required NodeReadinessRules | "GPU workloads should only be scheduled after NVIDIA device plugin is ready" |
-| **Construction** | Include NRC rules in Helm charts, deploy as Terraform EKS Blueprints AddOn | Kiro auto-generates `NodeReadinessRule` manifests |
-| **Operations** | NRC auto-manages node readiness at runtime, AI analyzes rule effectiveness | Track node readiness delay with CloudWatch Application Signals |
+| Phase | NRC role | Example |
+|------|----------|------|
+| **Inception** | AI workload 요구사항 Analysis → required NodeReadinessRule automatic 정 | "GPU workload NVIDIA device plugin readiness after에only scheduling" |
+| **Construction** | NRC 규칙 Helm chart inclusion, Terraform EKS Blueprints AddOn as Deployment | Kiro `NodeReadinessRule` manifest automatic generation |
+| **Operations** | NRC 런타임 node readiness automatic Management, AI 규칙 효 and Analysis | CloudWatch Application Signals node readiness delay time tracking |
 
-**Infrastructure as Code Perspective**
+**Infrastructure as Code 관점**
 
-NRC extends AIDLC's "express infrastructure as code, test infrastructure too" principle down to the node level.
+NRC AIDLC "infrastructure code로, infrastructurealso test" 원칙 node level extension.
 
-1. **GitOps-Based Policy Management**
-   - Store `NodeReadinessRule` CRDs in Git repositories
-   - Argo CD automatically syncs to EKS clusters
-   - Apply to entire cluster with a single Git commit on policy change
+1. **GitOps based policy Management**
+ - `NodeReadinessRule` CRD Git 리포지토리 storage
+ - Argo CD automatic as EKS cluster 동기화
+ - policy change time Git commit 번 as entire cluster Application
 
 2. **Kiro + MCP Automation**
-   - Kiro parses workload requirements from Inception phase's `design.md`
-   - Checks current cluster's daemonset status through EKS MCP Server
-   - Auto-generates required `NodeReadinessRule` and adds to IaC repository
+ - Kiro Inception phase `design.md` from workload 요구사항 parsing
+ - EKS MCP Server through current cluster DaemonSet status Verification
+ - required `NodeReadinessRule`을 automatic generation to IaC 리포지토리 additional
 
 3. **Terraform EKS Blueprints Integration**
-   - Declaratively install NRC controller as EKS Blueprints AddOn
-   - Automate default policy configuration through Helm values
-   - Apply consistent node readiness policies across multi-cluster environments
+ - NRC 컨트롤러 EKS Blueprints AddOn as declarative installation
+ - Helm values through default policy Configuration Automation
+ - multi cluster environment from consistent node readiness policy Application
 
 **Quality Gate Integration**
 
-In AIDLC's Quality Gate phase, NRC is used as a tool to verify node readiness before deployment.
+AIDLC Quality Gate phase from NRC Deployment before node readiness status Validation tool utilization.
 
-- **Pre-deployment Dry-run**: Simulate the impact on existing workloads when applying NRC rules
-- **CI/CD Pipeline Validation**: `kubectl apply --dry-run` + NRC rule validity check in GitHub Actions/GitLab CI
-- **Role as Loss Function**: Block incorrect node readiness policies before production deployment
+- **Deployment before Dry-run**: NRC 규칙 Application했 when existing workload 미치 impact time뮬레이션
+- **CI/CD pipeline Validation**: GitHub Actions/GitLab CI from `kubectl apply --dry-run` + NRC 규칙 유효 검사
+- **Loss Function as role**: 잘못 node readiness policy production Deployment되기 before blocking
 
-**YAML Example: NodeReadinessRule for GPU Workloads**
+**YAML example: GPU workload용 NodeReadinessRule**
 
 ```yaml
 apiVersion: node.k8s.io/v1alpha1
 kind: NodeReadinessRule
 metadata:
-  name: gpu-node-readiness
-  namespace: kube-system
+ name: gpu-node-readiness
+ namespace: kube-system
 spec:
-  # Apply only to GPU nodes
-  nodeSelector:
-    matchLabels:
-      node.kubernetes.io/instance-type: p4d.24xlarge
-  # Do not transition node to Ready until all following daemonsets are in Ready state
-  requiredDaemonSets:
-    - name: nvidia-device-plugin-daemonset
-      namespace: kube-system
-    - name: gpu-feature-discovery
-      namespace: kube-system
-    - name: dcgm-exporter
-      namespace: monitoring
-  # Timeout: Keep node NotReady if conditions not met within 10 minutes
-  timeout: 10m
+ # GPU 노드에만 적용
+ nodeSelector:
+ matchLabels:
+ node.kubernetes.io/instance-type: p4d.24xlarge
+ # 다음 데몬셋이 모두 Ready 상태일 때까지 노드를 Ready로 전환하지 않음
+ requiredDaemonSets:
+ - name: nvidia-device-plugin-daemonset
+ namespace: kube-system
+ - name: gpu-feature-discovery
+ namespace: kube-system
+ - name: dcgm-exporter
+ namespace: monitoring
+ # 타임아웃: 10분 내에 조건이 충족되지 않으면 노드를 NotReady로 유지
+ timeout: 10m
 ```
 
 **Practical Use Cases**
 
-| Scenario | NRC Rule | Effect |
-|----------|----------|--------|
-| **Cilium CNI Cluster** | Wait until Cilium agent is Ready | Prevent Pod scheduling before network initialization |
-| **GPU Cluster** | Wait for NVIDIA device plugin + DCGM exporter readiness | Block workload scheduling before GPU resource exposure |
-| **Security-Hardened Environment** | Wait for Falco, OPA Gatekeeper readiness | Prevent workload execution before security policy enforcement |
-| **Storage Workloads** | Wait for EBS CSI driver + snapshot controller readiness | Prevent volume mount failures |
+| Scenario | NRC 규칙 | Effect |
+|----------|----------|------|
+| **Cilium CNI cluster** | Cilium agent Readyday when 대기 | network initial화 before Pod scheduling prevention |
+| **GPU cluster** | NVIDIA device plugin + DCGM exporter readiness 대기 | GPU resource 노출 before workload scheduling blocking |
+| **security enhancement environment** | Falco, OPA Gatekeeper readiness 대기 | security policy Application before workload execution prevention |
+| **스토리지 workload** | EBS CSI driver + snapshot controller readiness 대기 | 볼륨 마운트 failure prevention |
 
-**Terraform EKS Blueprints AddOn Example**
+**Terraform EKS Blueprints AddOn example**
 
 ```hcl
 module "eks_blueprints_addons" {
-  source = "aws-ia/eks-blueprints-addons/aws"
+ source = "aws-ia/eks-blueprints-addons/aws"
 
-  cluster_name      = module.eks.cluster_name
-  cluster_endpoint  = module.eks.cluster_endpoint
+ cluster_name = module.eks.cluster_name
+ cluster_endpoint = module.eks.cluster_endpoint
 
-  enable_node_readiness_controller = true
-  node_readiness_controller = {
-    namespace = "kube-system"
-    values = [
-      yamlencode({
-        defaultRules = {
-          cilium = {
-            enabled = true
-            daemonSets = ["cilium"]
-          }
-          gpuNodes = {
-            enabled = true
-            nodeSelector = {
-              "node.kubernetes.io/instance-type" = "p4d.24xlarge"
-            }
-            daemonSets = ["nvidia-device-plugin-daemonset", "dcgm-exporter"]
-          }
-        }
-      })
-    ]
-  }
+ enable_node_readiness_controller = true
+ node_readiness_controller = {
+ namespace = "kube-system"
+ values = [
+ yamlencode({
+ defaultRules = {
+ cilium = {
+ enabled = true
+ daemonSets = ["cilium"]
+ }
+ gpuNodes = {
+ enabled = true
+ nodeSelector = {
+ "node.kubernetes.io/instance-type" = "p4d.24xlarge"
+ }
+ daemonSets = ["nvidia-device-plugin-daemonset", "dcgm-exporter"]
+ }
+ }
+ })
+ ]
+ }
 }
 ```
 
-:::tip NRC + AIDLC Synergy
-Node Readiness Controller extends AIDLC's principle of **"express infrastructure requirements declaratively and verify automatically"** down to the node level. Kiro analyzes workload requirements during the Inception phase to auto-generate `NodeReadinessRules`, Argo CD deploys them via GitOps, and during the Operations phase, AI Agents automatically detect and respond to node readiness anomalies.
+:::tip NRC + AIDLC time너지
+Node Readiness Controller AIDLC **"infrastructure 요구사항 declarative as 표현 and automatic as Validation"** 원칙 node level extension. Kiro Inception phase from workload 요구사항 Analysis to automatic as `NodeReadinessRule`을 generation and, Argo CD this GitOps Deployment and, Operations phase from AI Agent node readiness status abnormal automatic as detection·response.
 :::
 
 **References**
@@ -1080,120 +1073,120 @@ Node Readiness Controller extends AIDLC's principle of **"express infrastructure
 - [Kubernetes Blog: Introducing Node Readiness Controller](https://kubernetes.io/blog/2026/02/03/introducing-node-readiness-controller/) (2026-02-03)
 - [Node Readiness Controller GitHub Repository](https://github.com/kubernetes-sigs/node-readiness-controller)
 
-:::tip EKS Capabilities + AIDLC Synergy
-When Managed Argo CD (deployment) + ACK (infrastructure) + KRO (orchestration) + LBC v3 (networking) + NRC (node readiness) are combined, all artifacts generated by Kiro from Specs can be **deployed as a full stack with a single Git Push**. This is the key to the Construction → Operations transition.
+:::tip EKS Capabilities + AIDLC time너지
+Managed Argo CD(Deployment) + ACK(infrastructure) + KRO(orchestration) + LBC v3(네트워킹) + NRC(node readiness)가 combinationwhen, Kiro Spec from generation all artifact **Git Push 번 as entire stack Deployment**가 possible. 이것 Construction → Operations transition Core.
 :::
 
 ### 4.5 MCP-Based IaC Automation Pipeline
 
-Combining Kiro with AWS Hosted MCP servers, IaC is automatically generated from Inception Specs through Construction and deployed via Argo CD.
+Kiro and AWS Hosted MCP server combinationif, Inception Spec from Construction IaC automatic as generation and Argo CD Deployment.
 
 <AidlcPipeline />
 
 #### 4.5.3 AWS IaC MCP Server — CDK/CloudFormation AI Support
 
-AWS announced the **AWS Infrastructure as Code (IaC) MCP Server** on November 28, 2025. This is a programmatic interface that allows AI tools like Kiro CLI to search CloudFormation and CDK documentation, automatically validate templates, and provide AI-assisted deployment troubleshooting.
+AWS 2025year 11monthly 28day **AWS Infrastructure as Code (IaC) MCP Server**를 announcement했. this is Kiro CLI and such as AI tool from CloudFormation and CDK document search and, 템플릿 automatic Validation and, Deployment troubleshooting AI Support programmatic interface.
 
-**AWS IaC MCP Server Overview**
+**AWS IaC MCP Server overview**
 
-AWS IaC MCP Server provides the following capabilities through Model Context Protocol:
+AWS IaC MCP Server Model Context Protocol through following feature Provision:
 
-- **Documentation Search**: Search CloudFormation resource types, CDK constructs, and best practices in real-time
-- **Template Validation**: Automatically detect syntax errors in IaC templates and suggest fixes
-- **Deployment Troubleshooting**: Analyze root causes of stack deployment failures and suggest solutions
-- **Programmatic Access**: Native integration with AI tools like Kiro, Amazon Q Developer
+- **document search**: CloudFormation resource 타입, CDK 구문, 모범 case Real-time as search
+- **템플릿 Validation**: IaC 템플릿 문법 error automatic as detection and modification recommendation
+- **Deployment troubleshooting**: stack Deployment failure time root cause Analysis and 해결 method presentation
+- **programmatic approach**: Kiro, Amazon Q Developer etc. AI tool and native Integration
 
-**AIDLC Construction Phase Integration**
+**AIDLC Construction phase Integration**
 
-In AIDLC's Construction phase, IaC MCP Server is used as follows:
+AIDLC Construction phase from IaC MCP Server following and 같 utilization:
 
-1. **Kiro Spec → IaC Code Generation Validation**
-   - Kiro generates CDK/Terraform/Helm code based on `design.md` generated during the Inception phase
-   - IaC MCP Server automatically validates syntax, resource constraints, and security policy compliance of generated code
-   - For CloudFormation templates, pre-detects resource type typos, circular dependencies, and invalid properties
+1. **Kiro Spec → IaC code generation Validation**
+ - Inception phase from generation `design.md`를 based as Kiro CDK/Terraform/Helm code generation
+ - IaC MCP Server generation code 문법, resource constraint, security policy 준 automatic Validation
+ - CloudFormation 템플릿 case resource 타입 오타, 순환 종속, 잘못 속 preemptive detection
 
-2. **CloudFormation Template Syntax Error Auto-Fix**
-   - Statically analyzes templates before deployment to identify error patterns
-   - Example: `Properties` typo → `Properties`, invalid intrinsic function → suggest correct function
-   - Kiro auto-applies fix suggestions or requests Loss Function verification from the developer
+2. **CloudFormation 템플릭 문법 error automatic modification**
+ - Deployment before 템플릿 정 Analysis to error pattern identification
+ - example: `Properties` 오타 → `Properties`, 잘못 인트린직 함 → 올바른 함 recommendation
+ - modification recommendation Kiro automatic as Application거나 development에 Loss Function Validation request
 
-3. **Pre-validation of Compatibility with Existing Infrastructure**
-   - Integrates with EKS MCP Server and Cost Analysis MCP to analyze current cluster state
-   - Verifies new IaC code doesn't conflict with existing resources (VPC, subnets, security groups)
-   - Example: Check for name duplication with existing tables when creating DynamoDB table, verify VPC endpoint reusability
+3. ** existing infrastructure and 호환 preemptive Validation**
+ - EKS MCP Server, Cost Analysis MCP and Integration to current cluster status Analysis
+ - new IaC code existing resource(VPC, subnet, security 그룹)와 충돌not 않는지 Validation
+ - example: DynamoDB 테이블 generation time existing 테이블 and 이름 중복 체크, VPC endpoint re-use possible whether Verification
 
-**Code Example: IaC MCP Server Workflow in Kiro**
+**code example: Kiro from IaC MCP Server utilization workflow**
 
 ```bash
-# 1. Activate IaC MCP Server
+# 1. IaC MCP Server 활성화
 kiro mcp add aws-iac
 
-# 2. Generate IaC code from Spec files
+# 2. Spec 파일에서 IaC 코드 생성
 kiro generate --spec requirements.md --output infra/
 
-# 3. Validation process automatically run by IaC MCP Server
-# - CloudFormation template syntax check
-# - CDK construct compatibility validation
-# - Resource constraint verification (e.g., DynamoDB on-demand vs provisioned)
+# 3. IaC MCP Server가 자동으로 실행되는 검증 과정
+# - CloudFormation 템플릿 문법 체크
+# - CDK construct 호환성 검증
+# - 리소스 제약 조건 확인 (예: DynamoDB on-demand vs provisioned)
 
-# 4. Check validation results
+# 4. 검증 결과 확인
 kiro verify --target infra/
 
-# Output example:
+# 출력 예시:
 # ✓ CloudFormation syntax valid
 # ⚠ Warning: DynamoDB table 'payments' uses on-demand billing (estimated $150/month)
 # ✓ VPC endpoint 'vpce-dynamodb' already exists, reusing
 # ✗ Error: Security group 'sg-app' conflicts with existing rule
 
-# 5. Auto-fix errors
+# 5. 오류 자동 수정
 kiro fix --interactive
 
-# Fix suggestions from IaC MCP Server:
-# - Security group rule conflict → Change to new rule ID
-# - Auto-apply after developer approval
+# IaC MCP Server가 제안하는 수정 사항:
+# - Security group rule conflict → 새로운 규칙 ID로 변경
+# - 개발자 승인 후 자동 적용
 
-# 6. Deploy via Argo CD
+# 6. Argo CD로 배포
 git add infra/ && git commit -m "Add Payment Service infrastructure"
 git push origin main
-# Argo CD auto-syncs → Deploys to EKS
+# Argo CD가 자동으로 synced → EKS에 배포
 ```
 
-**Integration Flow in Construction Phase**
+**Construction phase from Integration flow**
 
 ```mermaid
 graph TB
-    subgraph Inception["Inception Phase"]
-        SPEC["Spec Files<br/>(requirements.md,<br/>design.md)"]
-    end
+ subgraph Inception["Inception 단계"]
+ SPEC["Spec 파일<br/>(requirements.md,<br/>design.md)"]
+ end
 
-    subgraph Construction["Construction Phase"]
-        KIRO["Kiro AI<br/>Code Generation"]
-        IAC_MCP["IaC MCP Server<br/>Validation & Fix"]
-        LOSS["Loss Function<br/>(Developer Verification)"]
-        GIT["Git Commit"]
-    end
+ subgraph Construction["Construction 단계"]
+ KIRO["Kiro AI<br/>코드 생성"]
+ IAC_MCP["IaC MCP Server<br/>검증 및 수정"]
+ LOSS["Loss Function<br/>(개발자 검증)"]
+ GIT["Git 커밋"]
+ end
 
-    subgraph Deployment["Deployment"]
-        ARGO["Argo CD<br/>GitOps"]
-        EKS["EKS Cluster"]
-    end
+ subgraph Deployment["배포"]
+ ARGO["Argo CD<br/>GitOps"]
+ EKS["EKS 클러스터"]
+ end
 
-    SPEC --> KIRO
-    KIRO --> IAC_MCP
-    IAC_MCP -->|Syntax error found| KIRO
-    IAC_MCP -->|Validation passed| LOSS
-    LOSS -->|Approved| GIT
-    LOSS -->|Needs modification| KIRO
-    GIT --> ARGO
-    ARGO --> EKS
+ SPEC --> KIRO
+ KIRO --> IAC_MCP
+ IAC_MCP -->|문법 오류 발견| KIRO
+ IAC_MCP -->|검증 통과| LOSS
+ LOSS -->|승인| GIT
+ LOSS -->|수정 필요| KIRO
+ GIT --> ARGO
+ ARGO --> EKS
 
-    style IAC_MCP fill:#fff3e0,stroke:#ff9800
-    style LOSS fill:#e8f5e9,stroke:#4caf50
-    style ARGO fill:#e3f2fd,stroke:#2196f3
+ style IAC_MCP fill:#fff3e0,stroke:#ff9800
+ style LOSS fill:#e8f5e9,stroke:#4caf50
+ style ARGO fill:#e3f2fd,stroke:#2196f3
 ```
 
-:::tip IaC MCP Server and Kiro Synergy
-AWS IaC MCP Server, combined with Kiro's Spec-driven development, automatically validates infrastructure code quality. It can be activated with `kiro mcp add aws-iac`, ensuring generated CloudFormation/CDK code automatically follows AWS best practices. This serves as a **Loss Function that catches IaC errors early** in the Construction phase.
+:::tip IaC MCP Server and Kiro time너지
+AWS IaC MCP Server Kiro Spec-driven development and combination to infrastructure code 품질 automatic as Validation. `kiro mcp add aws-iac` 명령 as Activationcan으며, generation CloudFormation/CDK code AWS 모범 case automatic as 따르also록 guarantee. this is Construction phase from **IaC error 조기 포착 Loss Function** role .
 :::
 
 **References**
@@ -1206,250 +1199,250 @@ AWS IaC MCP Server, combined with Kiro's Spec-driven development, automatically 
 
 ### 5.1 Observability Foundation
 
-The data foundation of the Operations phase is the 5-Layer architecture built in [2. Intelligent Observability Stack](../operations-observability/agentic-ops/aiops-observability-stack.md).
+Operations phase data based [2. intelligent observability stack](./agentic-ops/aiops-observability-stack.md)built in 5-Layer architecture.
 
 ```
-[Observability Stack → Operations Connection]
+[관찰성 스택 → Operations 연결]
 
 Collection Layer (ADOT, CloudWatch Agent, NFM Agent)
-      ↓
+ ↓
 Transport Layer (OTLP, Prometheus Remote Write)
-      ↓
+ ↓
 Storage Layer (AMP, CloudWatch, X-Ray)
-      ↓
+ ↓
 Analysis Layer (AMG, CloudWatch AI, DevOps Guru)
-      ↓
-Action Layer ← AIDLC Operations is located here
-  ├── MCP-based integrated analysis
-  ├── AI Agent automated response
-  └── Predictive scaling
+ ↓
+Action Layer ← AIDLC Operations가 여기에 위치
+ ├── MCP 기반 통합 분석
+ ├── AI Agent 자동 대응
+ └── 예측 스케일링
 ```
 
-Metrics, logs, and traces collected in [2. Intelligent Observability Stack](../operations-observability/agentic-ops/aiops-observability-stack.md) are delivered to AI tools and Agents through MCP, forming the decision-making foundation of the Operations phase.
+[2. intelligent observability stack](./agentic-ops/aiops-observability-stack.md)collected from metric·log·traces MCP through AI tool and Agent before달, Operations phase 의사결정 based .
 
-#### 5.1.3 2025-2026 Observability Innovations — Strengthening AIDLC Operations
+#### 5.1.3 2025-2026 observability 혁신 — AIDLC Operations enhancement
 
-AWS announced **two major innovations** in the EKS observability domain from November 2025 through early 2026. These **significantly strengthen the data foundation** of the AIDLC Operations phase, enabling AI Agents to proactively detect and respond to network issues and control plane problems.
+AWS 2025year 11monthly부터 2026year 초 EKS observability 영역 from **두 가지 major 혁신**을 announcement했. this is AIDLC Operations phase **data based 크 enhancement** and, AI Agent network 이슈 and 컨트롤 플레인 issue preemptive as detection and responsecan .
 
-**Container Network Observability (November 19, 2025)**
+**Container Network Observability (2025year 11monthly 19day)**
 
-AWS announced **Container Network Observability**, providing granular visibility into the network layer of EKS clusters. This complements the existing CloudWatch Container Insights' focus on the application and container layers by **combining network traffic patterns with Kubernetes context**.
+AWS **Container Network Observability**를 announcement to EKS cluster network 계층 for 세minutes화 visibility provides. this is existing CloudWatch Container Insights application·container 계층 focus했던 것 보완 to, **network traffic pattern Kubernetes 컨텍스트 and combination**.
 
 **Key Features**
 
-1. **Pod-to-Pod Communication Pattern Analysis**
-   - Real-time visualization of traffic flows between namespaces and services
-   - Automatic generation of dependency maps for microservice architectures
-   - Example: Payment Service → DynamoDB call patterns, communication frequency with Notification Service
+1. **Pod-to-Pod 통신 pattern Analysis**
+ - namespace between, service between traffic flow Real-time as time각화
+ - microservices architecture dependency 맵 automatic generation
+ - example: Payment Service → DynamoDB call pattern, Notification Service and 통신 빈also
 
-2. **Cross-AZ Traffic Visibility**
-   - Tracking data transfer volume and costs between Availability Zones
-   - Identifying services with high Cross-AZ traffic to provide cost optimization opportunities
-   - Example: Pod in AZ-a calling DynamoDB endpoint in AZ-b → $200/month unnecessary cost
+2. **Cross-AZ traffic visibility**
+ - Availability Zone between data transfer량 and cost tracking
+ - Cross-AZ traffic 많 service identification to Cost Optimization 기times Provision
+ - example: AZ-a Pod AZ-b DynamoDB endpoint call → monthly $200 non- required cost
 
-3. **Network Anomaly Detection**
-   - AI-based automatic detection of unusual traffic patterns
-   - Example: Sudden large-volume traffic to external IPs → suspected data exfiltration
-   - Example: Spike in connection attempt failure rate for a specific Pod → NetworkPolicy error or service failure
+3. **network abnormal detection**
+ - AI based as 평소 and 다른 traffic pattern automatic detection
+ - example: sudden external IP 대량 traffic → potential data 유출 의심
+ - example: 특정 Pod connection timealso failurerate spike → NetworkPolicy error or service failure
 
-**Usage in AIDLC Operations Phase**
+**AIDLC Operations phase from utilization**
 
-Container Network Observability **strengthens the Collection Layer**, enabling AI Agents to automatically identify and respond to network issues:
+Container Network Observability Operations phase **Collection Layer enhancement** to, AI Agent network 이슈 automatic as identification and responsecan :
 
-- **Automatic Root Cause Analysis**: When a Pod is unresponsive, AI Agent analyzes network metrics to automatically determine whether it's "traffic blocked by NetworkPolicy" or "target service failure"
-- **Cost Optimization Suggestions**: Analyzes Cross-AZ traffic patterns to provide specific suggestions like "Save $500/month by modifying Pod Topology Spread Constraints"
-- **Security Anomaly Detection**: Integrates with GuardDuty Extended Threat Detection for early detection of network-level attack patterns
+- **automatic root cause Analysis**: Pod responsenot 않 when, AI Agent network metric Analysis to "NetworkPolicy 인 traffic blocking"인지 "대상 service failure"인지 automatic decision
+- **Cost Optimization recommendation**: Cross-AZ traffic pattern Analysis to "Pod Topology Spread Constraints modification as monthly $500 savings possible" such as 구체 recommendation
+- **security abnormal detection**: GuardDuty Extended Threat Detection and 연계 to network 레벨 공격 pattern 조기 detection
 
-**Implementation Example: Network Issue Analysis via Kiro + MCP**
+**Implementation example: Kiro + MCP through network 이슈 Analysis**
 
 ```bash
-# Query Container Network Observability metrics through CloudWatch MCP
+# Container Network Observability 메트릭을 CloudWatch MCP를 통해 조회
 kiro diagnose --issue "payment-service high latency"
 
-# AI Agent's analysis process (internal operations):
-# 1. CloudWatch MCP → Query Container Network Observability metrics
-#    - payment-service → dynamodb-endpoint: P99 latency 500ms (normally 50ms)
-#    - Cross-AZ traffic ratio: 80% (normally 20%)
+# AI Agent의 분석 과정 (내부 동작):
+# 1. CloudWatch MCP → Container Network Observability 메트릭 조회
+# - payment-service → dynamodb-endpoint: P99 latency 500ms (평소 50ms)
+# - Cross-AZ 트래픽 비율: 80% (평소 20%)
 #
-# 2. EKS MCP → Check Pod placement status
-#    - payment-service Pods: all 5 placed in AZ-a
-#    - DynamoDB endpoint: exists only in AZ-b, AZ-c
+# 2. EKS MCP → Pod 배치 상태 확인
+# - payment-service Pods: 5개 모두 AZ-a에 배치
+# - DynamoDB endpoint: AZ-b, AZ-c에만 존재
 #
-# 3. Root cause inference
-#    - Pod Topology Spread is not working properly
-#    - All traffic being sent Cross-AZ → network latency + cost increase
+# 3. 근본 원인 추론
+# - Pod Topology Spread가 제대로 작동하지 않음
+# - 모든 트래픽이 Cross-AZ로 전송 → 네트워크 지연 + 비용 증가
 #
-# 4. Recovery suggestion
-#    - Modify Pod Topology Spread Constraints
-#    - Force AZ distribution in Karpenter NodePool
-#    - Expected effect: P99 latency recovery to 50ms, $400/month cost savings
+# 4. 복구 제안
+# - Pod Topology Spread Constraints 수정
+# - Karpenter NodePool에 AZ 분산 강제
+# - 예상 효과: P99 latency 50ms 회복, 월 $400 비용 절감
 
-# Output example:
-# Network issue detected: Excessive Cross-AZ traffic
-# Current state: payment-service Pods 100% concentrated in AZ-a
-# Suggestion: Pod Topology Spread + Karpenter AZ distribution
-# Expected effect: 90% improvement in P99 latency, $400/month savings
-# Proceed with automatic fix? [Y/n]
+# 출력 예시:
+# 🔍 네트워크 이슈 탐지: Cross-AZ 트래픽 과다
+# 📊 현재 상태: payment-service Pods 100% AZ-a 집중
+# 💡 제안: Pod Topology Spread + Karpenter AZ 분산
+# 💰 예상 효과: P99 latency 90% 개선, 월 $400 절감
+# ❓ 자동 수정을 진행할까요? [Y/n]
 ```
 
-**CloudWatch Control Plane Metrics (December 19, 2025)**
+**CloudWatch Control Plane Metrics (2025year 12monthly 19day)**
 
-AWS announced **EKS Control Plane Metrics** along with the **CloudWatch Observability Operator**. This enables proactive monitoring of the health and performance of the Kubernetes API server, etcd, scheduler, and controller manager.
+AWS **CloudWatch Observability Operator** along with **EKS Control Plane metric**을 announcement했. this is Kubernetes API server, etcd, 스케줄러, 컨트롤러 매니저 헬스 and performance preemptive as Monitoringcan .
 
 **Key Features**
 
-1. **API Server Latency Monitoring**
-   - Tracks API request latency for `kubectl` commands, Deployment updates, HPA scaling, etc.
-   - Example: When API server P99 latency exceeds 500ms → early detection of cluster overload
+1. **API server delay Monitoring**
+ - `kubectl` 명령, Deployment 업데이트, HPA scaling etc. API request delay time tracking
+ - example: API server P99 latency 500ms 초과if → cluster 과부 status임 조기 detection
 
-2. **etcd Performance Tracking**
-   - Monitors etcd disk sync latency, leader election time, and database size
-   - Example: When etcd disk latency increases → suspected excessive creation of cluster resources (ConfigMap, Secret)
+2. **etcd performance tracking**
+ - etcd 디스크 동기화 delay, 리더 선출 time, database 크기 Monitoring
+ - example: etcd 디스크 delay increaseif → cluster resource(ConfigMap, Secret) 과다 generation 의심
 
-3. **Scheduler Status Monitoring**
-   - Tracks pending Pod count, scheduling latency, and scheduling failure reasons
-   - Example: When scheduling failures spike → insufficient node capacity or Affinity constraint errors
+3. **스케줄러 status Monitoring**
+ - Pending Pod , scheduling delay time, scheduling failure 이유 tracking
+ - example: scheduling failure spikeif → node 용량 shortage or Affinity constraint error
 
-**Usage in AIDLC Operations Phase**
+**AIDLC Operations phase from utilization**
 
-CloudWatch Control Plane Metrics **strengthens the Analysis Layer**, enabling AI Agents to proactively respond to infrastructure-level issues:
+CloudWatch Control Plane Metrics **Analysis Layer enhancement** to, AI Agent infrastructure 레벨 issue preemptive as responsecan :
 
-- **Proactive Scaling**: When API server latency shows an increasing trend, AI Agent suggests upgrading to Provisioned Control Plane
-- **Resource Cleanup Automation**: When etcd database size reaches threshold, automatically identifies unused ConfigMaps/Secrets and suggests cleanup
-- **Scheduling Optimization**: Analyzes Pending Pod causes to provide specific improvement suggestions like "NodeSelector constraints are too strict"
+- **preemptive scaling**: API server delay increase 추세 보이면, AI Agent Provisioned Control Plane as 업그레이드 recommendation
+- **resource cleanup Automation**: etcd database 크기 threshold reachingif, use되지 않 ConfigMap/Secret automatic identification and cleanup recommendation
+- **scheduling Optimization**: Pending Pod cause Analysis to "NodeSelector constraint 너무 엄격함" such as 구체 improvement recommendation
 
-**Implementation Example: CloudWatch Observability Operator Configuration**
+**Implementation example: CloudWatch Observability Operator Configuration**
 
 ```yaml
 # cloudwatch-operator-config.yaml
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: cloudwatch-operator-config
-  namespace: amazon-cloudwatch
+ name: cloudwatch-operator-config
+ namespace: amazon-cloudwatch
 data:
-  config.yaml: |
-    enableControlPlaneMetrics: true
-    controlPlaneMetrics:
-      - apiserver_request_duration_seconds
-      - apiserver_request_total
-      - etcd_disk_backend_commit_duration_seconds
-      - etcd_disk_wal_fsync_duration_seconds
-      - scheduler_pending_pods
-      - scheduler_schedule_attempts_total
+ config.yaml: |
+ enableControlPlaneMetrics: true
+ controlPlaneMetrics:
+ - apiserver_request_duration_seconds
+ - apiserver_request_total
+ - etcd_disk_backend_commit_duration_seconds
+ - etcd_disk_wal_fsync_duration_seconds
+ - scheduler_pending_pods
+ - scheduler_schedule_attempts_total
 
-    # AI Agent integration settings
-    alerting:
-      - metric: apiserver_request_duration_seconds_p99
-        threshold: 500ms
-        action: trigger_ai_agent_analysis
-        context: |
-          API server latency is increasing.
-          AI Agent will analyze the root cause and suggest response measures.
+ # AI Agent 통합 설정
+ alerting:
+ - metric: apiserver_request_duration_seconds_p99
+ threshold: 500ms
+ action: trigger_ai_agent_analysis
+ context: |
+ API 서버 지연이 증가하고 있습니다.
+ AI Agent가 근본 원인을 분석하고 대응 방안을 제안합니다.
 
-      - metric: etcd_mvcc_db_total_size_in_bytes
-        threshold: 8GB
-        action: trigger_ai_agent_cleanup
-        context: |
-          etcd database size is approaching the threshold.
-          AI Agent will identify cleanable resources.
+ - metric: etcd_mvcc_db_total_size_in_bytes
+ threshold: 8GB
+ action: trigger_ai_agent_cleanup
+ context: |
+ etcd 데이터베이스 크기가 임계값에 근접했습니다.
+ AI Agent가 정리 가능한 리소스를 식별합니다.
 ```
 
-**Integration in Operations Phase: Kiro + DevOps Agent Automated Response**
+**Operations phase from Integration: Kiro + DevOps Agent automatic response**
 
-Container Network Observability and Control Plane Metrics enable **Kiro + DevOps Agent (Kagent/Strands)** to automatically respond based on observability data:
+Container Network Observability and Control Plane Metrics **Kiro + DevOps Agent(Kagent/Strands)**가 observability data based as automatic response pattern possible :
 
 ```mermaid
 graph TB
-    subgraph Collection["Collection Layer"]
-        CNO["Container Network<br/>Observability<br/>(Pod-to-Pod traffic)"]
-        CPM["Control Plane<br/>Metrics<br/>(API/etcd/Scheduler)"]
-        ADOT["ADOT<br/>(App metrics/traces)"]
-    end
+ subgraph Collection["Collection Layer"]
+ CNO["Container Network<br/>Observability<br/>(Pod-to-Pod 트래픽)"]
+ CPM["Control Plane<br/>Metrics<br/>(API/etcd/스케줄러)"]
+ ADOT["ADOT<br/>(앱 메트릭/트레이스)"]
+ end
 
-    subgraph Storage["Storage Layer"]
-        CW["CloudWatch"]
-        AMP["Prometheus"]
-        XRAY["X-Ray"]
-    end
+ subgraph Storage["Storage Layer"]
+ CW["CloudWatch"]
+ AMP["Prometheus"]
+ XRAY["X-Ray"]
+ end
 
-    subgraph Analysis["Analysis Layer"]
-        AI_ANALYZE["AI Analysis<br/>Anomaly Detection<br/>Root Cause Inference"]
-    end
+ subgraph Analysis["Analysis Layer"]
+ AI_ANALYZE["AI 분석<br/>이상 탐지<br/>근본 원인 추론"]
+ end
 
-    subgraph Action["Action Layer - AIDLC Operations"]
-        KIRO["Kiro<br/>MCP Integration<br/>Context Collection"]
-        AGENT["DevOps Agent<br/>(Kagent/Strands)<br/>Automated Response"]
-    end
+ subgraph Action["Action Layer - AIDLC Operations"]
+ KIRO["Kiro<br/>MCP 통합<br/>컨텍스트 수집"]
+ AGENT["DevOps Agent<br/>(Kagent/Strands)<br/>자동 대응"]
+ end
 
-    subgraph Remediation["Recovery Execution"]
-        NET_FIX["Network Issue Fix<br/>NetworkPolicy<br/>Pod Redistribution"]
-        CP_FIX["Control Plane Optimization<br/>Resource Cleanup<br/>Provisioned Transition"]
-        APP_FIX["Application Fix<br/>Memory Increase<br/>Restart"]
-    end
+ subgraph Remediation["복구 실행"]
+ NET_FIX["네트워크 이슈 수정<br/>NetworkPolicy<br/>Pod 재배치"]
+ CP_FIX["컨트롤 플레인 최적화<br/>리소스 정리<br/>Provisioned 전환"]
+ APP_FIX["애플리케이션 수정<br/>메모리 증가<br/>재시작"]
+ end
 
-    CNO --> CW
-    CPM --> CW
-    ADOT --> AMP
-    ADOT --> XRAY
+ CNO --> CW
+ CPM --> CW
+ ADOT --> AMP
+ ADOT --> XRAY
 
-    CW --> AI_ANALYZE
-    AMP --> AI_ANALYZE
-    XRAY --> AI_ANALYZE
+ CW --> AI_ANALYZE
+ AMP --> AI_ANALYZE
+ XRAY --> AI_ANALYZE
 
-    AI_ANALYZE --> KIRO
-    KIRO --> AGENT
+ AI_ANALYZE --> KIRO
+ KIRO --> AGENT
 
-    AGENT -->|Network issue| NET_FIX
-    AGENT -->|Control plane issue| CP_FIX
-    AGENT -->|Application issue| APP_FIX
+ AGENT -->|네트워크 이슈| NET_FIX
+ AGENT -->|컨트롤 플레인 이슈| CP_FIX
+ AGENT -->|애플리케이션 이슈| APP_FIX
 
-    style CNO fill:#e8f5e9,stroke:#4caf50
-    style CPM fill:#e8f5e9,stroke:#4caf50
-    style AI_ANALYZE fill:#fff3e0,stroke:#ff9800
-    style AGENT fill:#e3f2fd,stroke:#2196f3
+ style CNO fill:#e8f5e9,stroke:#4caf50
+ style CPM fill:#e8f5e9,stroke:#4caf50
+ style AI_ANALYZE fill:#fff3e0,stroke:#ff9800
+ style AGENT fill:#e3f2fd,stroke:#2196f3
 ```
 
-**Real-World Scenarios: Integrated Response Workflow**
+** actual scenario: Integration response workflow**
 
 ```bash
-# Scenario 1: Automatic network issue detection and fix
-# [15:00] Container Network Observability: Cross-AZ traffic spike
-# [15:01] Kiro + EKS MCP: Pod placement status analysis
-# [15:02] AI Agent determination: Pod Topology Spread error
-# [15:03] Automatic fix: Add topologySpreadConstraints to Deployment
-# [15:10] Verification: Cross-AZ traffic reduced 80% → 20%, P99 latency improved 90%
+# 시나리오 1: 네트워크 이슈 자동 탐지 및 수정
+# [15:00] Container Network Observability: Cross-AZ 트래픽 급증
+# [15:01] Kiro + EKS MCP: Pod 배치 상태 분석
+# [15:02] AI Agent 판단: Pod Topology Spread 오류
+# [15:03] 자동 수정: Deployment에 topologySpreadConstraints 추가
+# [15:10] 검증: Cross-AZ 트래픽 80% → 20% 감소, P99 latency 90% 개선
 
-# Scenario 2: Proactive control plane performance degradation response
-# [09:00] Control Plane Metrics: API server P99 latency increasing trend
-# [09:05] Kiro analysis: Currently 300ms, expected to reach 500ms in 10 minutes
-# [09:10] AI Agent suggestion: Switch to Provisioned Control Plane (XL tier)
-# [09:11] Operator approval (Slack button click)
-# [09:30] Transition complete: API server latency stabilized at 50ms
+# 시나리오 2: 컨트롤 플레인 성능 저하 선제 대응
+# [09:00] Control Plane Metrics: API 서버 P99 latency 증가 추세
+# [09:05] Kiro 분석: 현재 300ms, 10분 후 500ms 도달 예상
+# [09:10] AI Agent 제안: Provisioned Control Plane(XL tier)로 전환
+# [09:11] 운영자 승인 (Slack 버튼 클릭)
+# [09:30] 전환 완료: API 서버 latency 50ms로 안정화
 
-# Scenario 3: etcd capacity management automation
-# [18:00] Control Plane Metrics: etcd DB size 7.5GB (threshold 8GB)
-# [18:05] Kiro + EKS MCP: Unused resource scan
-#         - ConfigMaps unused for 90+ days: 250
-#         - Secrets from deleted Namespaces: 120
-# [18:10] AI Agent suggestion: Free 1.2GB by cleaning 370 resources
-# [18:11] Automatic execution (safe pattern): Backup then cleanup
-# [18:20] Complete: etcd DB size 6.3GB, free space secured
+# 시나리오 3: etcd 용량 관리 자동화
+# [18:00] Control Plane Metrics: etcd DB 크기 7.5GB (임계값 8GB)
+# [18:05] Kiro + EKS MCP: 미사용 리소스 스캔
+# - 90일 이상 사용 안 한 ConfigMap: 250개
+# - 삭제된 Namespace의 Secret: 120개
+# [18:10] AI Agent 제안: 370개 리소스 정리로 1.2GB 확보 가능
+# [18:11] 자동 실행 (안전 패턴): 백업 후 정리
+# [18:20] 완료: etcd DB 크기 6.3GB, 여유 공간 확보
 ```
 
-:::warning Production Deployment Considerations
-Container Network Observability and Control Plane Metrics incur **additional costs**:
-- Container Network Observability: Log collection costs based on VPC Flow Logs
-- Control Plane Metrics: CloudWatch custom metric charges apply
+:::warning Production Adoption Considerations
+Container Network Observability and Control Plane Metrics **additional cost**이 occurrence:
+- Container Network Observability: VPC Flow Logs based as log collection cost occurrence
+- Control Plane Metrics: CloudWatch use 정 metric 요금 Application
 
-Evaluate the cost impact before production deployment and gradually enable starting with critical clusters. You can calculate estimated costs using the AWS Cost Calculator.
+production adoption before cost impact 평 and, important cluster부터 gradual as Activation. AWS Cost Calculator use to example상 cost 계산 .
 :::
 
 **References**
 
 - [AWS News Blog: Monitor network performance with Container Network Observability](https://aws.amazon.com/blogs/aws/monitor-network-performance-and-traffic-across-your-eks-clusters-with-container-network-observability/) (2025-11-19)
 - [Container Blog: Proactive EKS monitoring with CloudWatch Operator](https://aws.amazon.com/blogs/containers/proactive-amazon-eks-monitoring-with-amazon-cloudwatch-operator-and-aws-control-plane-metrics/) (2025-12-19)
-- AWS re:Invent 2025 EKS Research — See Section 1.1 (Network Obs), 1.3 (Control Plane)
+- AWS re:Invent 2025 EKS Research — Section 1.1(Network Obs), 1.3(Control Plane) Reference
 
 ### 5.2 AI Agent Operations Automation
 
@@ -1457,1227 +1450,1226 @@ Evaluate the cost impact before production deployment and gradually enable start
 
 #### 5.2.1 Amazon Q Developer (GA)
 
-The most mature production pattern. Immediately usable in CloudWatch Investigations and EKS troubleshooting.
+most 숙 production pattern. CloudWatch Investigations and EKS troubleshooting from immediately utilization possible.
 
-- **CloudWatch Investigations**: AI detects metric anomalies and analyzes root causes
-- **EKS Troubleshooting**: Diagnoses cluster status, Pod failures, and node issues using natural language
-- **Security Scan**: Code vulnerability detection + automatic fix suggestions
+- **CloudWatch Investigations**: AI metric abnormal detection and root cause Analysis
+- **EKS troubleshooting**: cluster status, Pod failure, node issue natural language diagnosis
+- **security scan**: code vulnerability detection + automatic modification recommendation
 
 #### 5.2.2 Strands Agents (OSS)
 
-A production-proven agent SDK from AWS that defines **Agent SOPs (Standard Operating Procedures)** in natural language.
+AWS production Validation 거친 agent SDK로, **Agent SOPs(Standard Operating Procedures)**를 natural language definition.
 
 ```python
-# Strands Agent SOP: Pod CrashLoopBackOff Response
+# Strands Agent SOP: Pod CrashLoopBackOff 대응
 from strands import Agent
 from strands.tools import eks_tool, cloudwatch_tool, slack_tool
 
 ops_agent = Agent(
-    name="eks-incident-responder",
-    model="bedrock/anthropic.claude-sonnet",
-    tools=[eks_tool, cloudwatch_tool, slack_tool],
-    sop="""
-    ## Pod CrashLoopBackOff Response SOP
+ name="eks-incident-responder",
+ model="bedrock/anthropic.claude-sonnet",
+ tools=[eks_tool, cloudwatch_tool, slack_tool],
+ sop="""
+ ## Pod CrashLoopBackOff 대응 SOP
 
-    1. Identify Failed Pods
-       - kubectl get pods --field-selector=status.phase!=Running
-       - Record namespace, Pod name, restart count
+ 1. 장애 Pod 식별
+ - kubectl get pods --field-selector=status.phase!=Running
+ - 네임스페이스, Pod 이름, 재시작 횟수 기록
 
-    2. Log Analysis
-       - kubectl logs <pod> --previous
-       - Classify error patterns: OOM, ConfigError, DependencyFailure
+ 2. 로그 분석
+ - kubectl logs <pod> --previous
+ - 에러 패턴 분류: OOM, ConfigError, DependencyFailure
 
-    3. Root Cause Diagnosis
-       - OOM → Check memory limits
-       - ConfigError → Check ConfigMap/Secret
-       - DependencyFailure → Check dependent service status
+ 3. 근본 원인 진단
+ - OOM → 메모리 limits 확인
+ - ConfigError → ConfigMap/Secret 확인
+ - DependencyFailure → 의존 서비스 상태 확인
 
-    4. Automated Response
-       - OOM and limits < 2Gi → Patch limits to 1.5x (automatic)
-       - ConfigError → Slack alert + mention assignee (manual)
-       - DependencyFailure → Attempt dependent service restart (automatic)
+ 4. 자동 대응
+ - OOM이고 limits < 2Gi → limits를 1.5배로 패치 (자동)
+ - ConfigError → Slack 알림 + 담당자 멘션 (수동)
+ - DependencyFailure → 의존 서비스 재시작 시도 (자동)
 
-    5. Post-Incident Report
-       - Post incident report to Slack #incidents channel
-    """
+ 5. 사후 보고
+ - Slack #incidents 채널에 인시던트 보고서 게시
+ """
 )
 ```
 
 #### 5.2.3 Kagent (K8s Native)
 
-Declaratively manages AI agents as K8s CRDs. Supports MCP integration (kmcp) but is still in early stages.
+K8s CRD AI agent declarative as Management. MCP Integration(kmcp)을 Supportnotonly 아직 initial phase.
 
 ```yaml
-# Kagent Agent Definition
+# Kagent Agent 정의
 apiVersion: kagent.dev/v1alpha1
 kind: Agent
 metadata:
-  name: eks-ops-agent
-  namespace: kagent-system
+ name: eks-ops-agent
+ namespace: kagent-system
 spec:
-  description: "EKS operations automation agent"
-  modelConfig:
-    provider: bedrock
-    model: anthropic.claude-sonnet
-    region: ap-northeast-2
-  systemPrompt: |
-    This is an EKS cluster operations agent.
-    It automatically diagnoses and responds to Pod failures, node issues, and scaling problems.
-    It only performs safe actions, and requests approval for risky changes.
-  tools:
-    - name: kubectl
-      type: kmcp
-      config:
-        server: kubernetes.default.svc
-        namespace: "*"
-        allowedVerbs: ["get", "describe", "logs", "top"]
-    - name: cloudwatch
-      type: kmcp
-      config:
-        region: ap-northeast-2
-        actions: ["GetMetricData", "DescribeAlarms"]
+ description: "EKS 운영 자동화 에이전트"
+ modelConfig:
+ provider: bedrock
+ model: anthropic.claude-sonnet
+ region: ap-northeast-2
+ systemPrompt: |
+ EKS 클러스터 운영 에이전트입니다.
+ Pod 장애, 노드 문제, 스케일링 이슈를 자동으로 진단하고 대응합니다.
+ 항상 안전한 조치만 수행하며, 위험한 변경은 승인을 요청합니다.
+ tools:
+ - name: kubectl
+ type: kmcp
+ config:
+ server: kubernetes.default.svc
+ namespace: "*"
+ allowedVerbs: ["get", "describe", "logs", "top"]
+ - name: cloudwatch
+ type: kmcp
+ config:
+ region: ap-northeast-2
+ actions: ["GetMetricData", "DescribeAlarms"]
 ```
 
-#### 5.2.5 Kagent Maturity Reassessment and Latest Features (2025-2026)
+#### 5.2.5 Kagent maturity re-평 and 최신 feature (2025-2026)
 
-Kagent started at an early stage in 2024, but during 2025-2026 **acquired numerous production-ready features**, significantly improving its maturity. Along with its unique value of Kubernetes-native declarative AI Agent management, MCP integration and multi-agent orchestration capabilities were added.
+Kagent 2024year initial phase start했으나, 2025-2026year 동안 **production readiness feature 다 securing** to maturity 크 improvement되었. Kubernetes native declarative AI Agent Management라 독보 value and 함께, MCP Integration and multi agent orchestration feature additional되었.
 
-**Current Maturity Assessment**
+** current maturity 평가**
 
-| Assessment Area | 2024 Early | 2025-2026 Current | Change |
-|----------------|------------|-------------------|--------|
-| **CRD Stability** | Alpha (v1alpha1) | Alpha (v1alpha1, stable API) | CRD schema stabilized |
-| **MCP Integration** | Experimental | kmcp production support | kubectl, CloudWatch, Prometheus native |
-| **Custom Tool** | Not supported | Declarative definition in CRD | Extensibility greatly improved |
-| **Multi-Agent** | Single Agent | Multiple Agent collaboration patterns | Complex issue resolution possible |
-| **Production Use** | Not recommended | Pilot possible (with checklist compliance) | Gradual adoption path provided |
+| Assessment Area | 2024 initial | 2025-2026 current | 변화 |
+|----------|----------|---------------|------|
+| **CRD 안정** | Alpha (v1alpha1) | Alpha (v1alpha1, 안정 API) | CRD 스키마 stabilization |
+| **MCP Integration** | 실험 | kmcp production Support | kubectl, CloudWatch, Prometheus native |
+| **Custom Tool** | 미Support | CRD from declarative 정 possible | extension 대폭 improvement |
+| **Multi-Agent** | single Agent | multiple Agent 협력 pattern | 복합 이슈 해결 possible |
+| **production use** | recommendednot 않음 | 파day럿 possible (체크리스트 준 time) | gradual adoption 경 presentation |
 
-**Latest Feature Updates**
+**최신 feature 업데이트**
 
 1. **kmcp (Kubernetes MCP) Integration**
 
-Kagent enables natural language cluster management without kubectl commands through **Kubernetes MCP (kmcp)**.
+Kagent **Kubernetes MCP (kmcp)** through kubectl 명령 without natural language cluster Management .
 
 ```yaml
-# Natural language cluster management via kmcp
+# kmcp를 통한 자연어 클러스터 관리
 apiVersion: kagent.dev/v1alpha1
 kind: Agent
 metadata:
-  name: cluster-manager
+ name: cluster-manager
 spec:
-  tools:
-    - name: kubernetes
-      type: kmcp
-      config:
-        # Converts kubectl get pods, kubectl describe, kubectl logs, etc.
-        # into natural language requests
-        operations:
-          - get
-          - describe
-          - logs
-          - top
-          - events
-        # Write operations require explicit approval
-        writeOperations:
-          - patch
-          - delete
-          - scale
-        approvalRequired: true  # Risky operations require approval
+ tools:
+ - name: kubernetes
+ type: kmcp
+ config:
+ # kubectl get pods, kubectl describe, kubectl logs 등을
+ # 자연어 요청으로 변환
+ operations:
+ - get
+ - describe
+ - logs
+ - top
+ - events
+ # 쓰기 작업은 명시적 승인 필요
+ writeOperations:
+ - patch
+ - delete
+ - scale
+ approvalRequired: true # 위험한 작업은 승인 요청
 ```
 
-**kmcp Usage Example**:
-- Agent request: "Check recent logs for payment-service"
-- kmcp conversion: `kubectl logs -l app=payment-service --tail=100`
-- Agent analysis: OOM pattern detected in logs → suggests memory limits increase
+**kmcp utilization example**:
+- Agent request: "payment-service 최근 log Verification"
+- kmcp 변환: `kubectl logs -l app=payment-service --tail=100`
+- Agent Analysis: log from OOM pattern detection → memory limits increase recommendation
 
-2. **Custom Tool Definition**
+2. **Custom Tool definition**
 
-Custom tools can be declaratively defined in Kagent CRDs. This is a key feature for integrating a team's unique operational scripts into AI Agents.
+Kagent CRD from custom tool declarative as definition . 팀 고유 Operations 스크립트 AI Agent Integration Key Features.
 
 ```yaml
-# Custom Tool Example: DynamoDB Table Analysis Tool
+# Custom Tool 예시: DynamoDB 테이블 분석 도구
 apiVersion: kagent.dev/v1alpha1
 kind: Tool
 metadata:
-  name: dynamodb-analyzer
-  namespace: kagent-system
+ name: dynamodb-analyzer
+ namespace: kagent-system
 spec:
-  description: "Analyzes DynamoDB table capacity, throttling, and costs"
-  type: script
-  script:
-    language: python
-    code: |
-      import boto3
-      import json
+ description: "DynamoDB 테이블의 용량, 스로틀링, 비용을 분석"
+ type: script
+ script:
+ language: python
+ code: |
+ import boto3
+ import json
 
-      def analyze_table(table_name):
-          dynamodb = boto3.client('dynamodb')
-          cloudwatch = boto3.client('cloudwatch')
+ def analyze_table(table_name):
+ dynamodb = boto3.client('dynamodb')
+ cloudwatch = boto3.client('cloudwatch')
 
-          # Query table metrics
-          response = dynamodb.describe_table(TableName=table_name)
-          table = response['Table']
+ # 테이블 메트릭 조회
+ response = dynamodb.describe_table(TableName=table_name)
+ table = response['Table']
 
-          # CloudWatch metrics: ThrottledRequests
-          metrics = cloudwatch.get_metric_statistics(
-              Namespace='AWS/DynamoDB',
-              MetricName='ThrottledRequests',
-              Dimensions=[{'Name': 'TableName', 'Value': table_name}],
-              StartTime=datetime.now() - timedelta(hours=1),
-              EndTime=datetime.now(),
-              Period=300,
-              Statistics=['Sum']
-          )
+ # CloudWatch 메트릭: ThrottledRequests
+ metrics = cloudwatch.get_metric_statistics(
+ Namespace='AWS/DynamoDB',
+ MetricName='ThrottledRequests',
+ Dimensions=[{'Name': 'TableName', 'Value': table_name}],
+ StartTime=datetime.now() - timedelta(hours=1),
+ EndTime=datetime.now(),
+ Period=300,
+ Statistics=['Sum']
+ )
 
-          return {
-              'table_name': table_name,
-              'billing_mode': table['BillingModeSummary']['BillingMode'],
-              'item_count': table['ItemCount'],
-              'size_bytes': table['TableSizeBytes'],
-              'throttled_requests': sum(m['Sum'] for m in metrics['Datapoints'])
-          }
+ return {
+ 'table_name': table_name,
+ 'billing_mode': table['BillingModeSummary']['BillingMode'],
+ 'item_count': table['ItemCount'],
+ 'size_bytes': table['TableSizeBytes'],
+ 'throttled_requests': sum(m['Sum'] for m in metrics['Datapoints'])
+ }
 ---
-# Agent using Custom Tool
+# Agent가 Custom Tool 사용
 apiVersion: kagent.dev/v1alpha1
 kind: Agent
 metadata:
-  name: dynamodb-ops-agent
+ name: dynamodb-ops-agent
 spec:
-  tools:
-    - name: dynamodb-analyzer
-      type: custom
-      ref:
-        name: dynamodb-analyzer
-        namespace: kagent-system
-  systemPrompt: |
-    This is a DynamoDB operations agent.
-    It automatically diagnoses table performance issues and provides optimization suggestions.
+ tools:
+ - name: dynamodb-analyzer
+ type: custom
+ ref:
+ name: dynamodb-analyzer
+ namespace: kagent-system
+ systemPrompt: |
+ DynamoDB 운영 에이전트입니다.
+ 테이블 성능 문제를 자동으로 진단하고 최적화 제안을 제공합니다.
 ```
 
-3. **Multi-Agent Orchestration**
+3. **Multi-Agent orchestration**
 
-Multiple Kagent agents collaborate to resolve complex issues. Each Agent focuses on its area of expertise while a higher-level Orchestrator Agent coordinates the workflow.
+ multiple Kagent 협력 to 복합 이슈 해결. each Agent before문 영역 focus and, 상위 Orchestrator Agent workflow adjustment.
 
 ```yaml
-# Orchestrator Agent: Overall incident response coordination
+# Orchestrator Agent: 인시던트 대응 총괄
 apiVersion: kagent.dev/v1alpha1
 kind: Agent
 metadata:
-  name: incident-orchestrator
+ name: incident-orchestrator
 spec:
-  description: "Analyzes incidents and delegates tasks to specialist Agents"
-  systemPrompt: |
-    Analyzes incidents and delegates tasks to specialist Agents.
-    - network-agent: Network issues
-    - resource-agent: CPU/Memory issues
-    - storage-agent: Storage issues
-  delegates:
-    - name: network-agent
-      namespace: kagent-system
-    - name: resource-agent
-      namespace: kagent-system
-    - name: storage-agent
-      namespace: kagent-system
+ description: "인시던트 대응을 여러 전문 Agent에게 위임"
+ systemPrompt: |
+ 인시던트를 분석하고, 전문 Agent에게 작업을 위임합니다.
+ - network-agent: 네트워크 문제
+ - resource-agent: CPU/메모리 문제
+ - storage-agent: 스토리지 문제
+ delegates:
+ - name: network-agent
+ namespace: kagent-system
+ - name: resource-agent
+ namespace: kagent-system
+ - name: storage-agent
+ namespace: kagent-system
 ---
-# Network Specialist Agent
+# Network 전문 Agent
 apiVersion: kagent.dev/v1alpha1
 kind: Agent
 metadata:
-  name: network-agent
+ name: network-agent
 spec:
-  description: "Network issue specialist Agent"
-  tools:
-    - name: kubernetes
-      type: kmcp
-    - name: network-troubleshoot
-      type: custom
-      ref:
-        name: network-troubleshoot-tool
-  systemPrompt: |
-    Diagnoses network issues:
-    - Pod-to-Pod communication failures
-    - NetworkPolicy errors
-    - DNS resolution issues
+ description: "네트워크 문제 전문 Agent"
+ tools:
+ - name: kubernetes
+ type: kmcp
+ - name: network-troubleshoot
+ type: custom
+ ref:
+ name: network-troubleshoot-tool
+ systemPrompt: |
+ 네트워크 문제를 진단합니다:
+ - Pod 간 통신 장애
+ - NetworkPolicy 오류
+ - DNS 해석 문제
 ```
 
-**Multi-Agent Workflow Example**:
-1. **Orchestrator**: "payment-service Pod is unresponsive"
-2. **Orchestrator → Resource Agent**: Check CPU/Memory status
-3. **Resource Agent**: "Resources are normal"
-4. **Orchestrator → Network Agent**: Check network connectivity
-5. **Network Agent**: "Egress block found in NetworkPolicy" → suggests fix
-6. **Orchestrator**: Requests operator approval → applies → verifies
+**Multi-Agent workflow example**:
+1. **Orchestrator**: "payment-service Pod responsenot 않음"
+2. **Orchestrator → Resource Agent**: CPU/memory status Verification
+3. **Resource Agent**: "resource normal"
+4. **Orchestrator → Network Agent**: network connection Verification
+5. **Network Agent**: "NetworkPolicy from egress blocking 발견" → modification recommendation
+6. **Orchestrator**: Operations에 approval request → Application → Validation
 
-4. **Prometheus Metrics Direct Query**
+4. **Prometheus metric directly 조times feature**
 
-Kagent integrates Prometheus via MCP to automatically convert natural language queries to PromQL.
+Kagent Prometheus MCP Integration to natural language query PromQL automatic 변환.
 
 ```yaml
 apiVersion: kagent.dev/v1alpha1
 kind: Agent
 metadata:
-  name: metrics-analyst
+ name: metrics-analyst
 spec:
-  tools:
-    - name: prometheus
-      type: kmcp
-      config:
-        endpoint: http://prometheus.monitoring.svc:9090
-        queryLanguage: promql
-        autoTranslate: true  # Natural language → PromQL auto conversion
+ tools:
+ - name: prometheus
+ type: kmcp
+ config:
+ endpoint: http://prometheus.monitoring.svc:9090
+ queryLanguage: promql
+ autoTranslate: true # 자연어 → PromQL 자동 변환
 ```
 
-**Usage Example**:
-- Agent request: "P99 latency for payment-service over the last 1 hour"
-- kmcp conversion: `histogram_quantile(0.99, rate(http_request_duration_seconds_bucket{service="payment-service"}[1h]))`
-- Agent analysis: P99 exceeds 200ms threshold → begins root cause analysis
+**use example**:
+- Agent request: "payment-service 지난 1time P99 latency"
+- kmcp 변환: `histogram_quantile(0.99, rate(http_request_duration_seconds_bucket{service="payment-service"}[1h]))`
+- Agent Analysis: P99 200ms threshold 초 and → root cause Analysis start
 
-**Production Use Checklist**
+**production use 체크리스트**
 
-Check the following before introducing Kagent to production:
+Kagent production adoption기 before following 사항 Verification:
 
 | Checklist | Description | Example |
-|-----------|-------------|---------|
-| **RBAC Least Privilege** | Grant only minimum required permissions to Agent's ServiceAccount | Allow only `get`, `list`, `watch`; `delete` requires approval |
-| **Limit Automatic Action Scope** | Only execute safe actions automatically via `allowedActions` field | Allow `patch` (memory increase), prohibit `delete` (Pod deletion) |
-| **Enable Audit Logging** | Record all Agent actions in Kubernetes Audit Log | Log Kagent namespace in `auditPolicy` |
-| **Start with Dry-run Mode** | Start initial deployment in read-only mode | Set `dryRun: true`, generate suggestions only |
-| **Gradually Expand Automation** | Gradually expand automatic action scope after verifying safe patterns | 1 week dry-run → automate memory patch → automate scaling |
+|-----------|------|------|
+| **RBAC 최소 permission** | Agent ServiceAccount required 최소 permissiononly 부여 | `get`, `list`, `watch`only 허용, `delete`는 approval needed |
+| **automatic action scope limitation** | `allowedActions` 필드 safe actiononly automatic execution | `patch` (memory increase) 허용, `delete` (Pod deletion) 금지 |
+| **audit log Activation** | all Agent action Kubernetes Audit Log 기록 | `auditPolicy` from Kagent namespace 로깅 |
+| **Dry-run 모드 start** | initial Deployment 읽기 before용 모드 start | `dryRun: true` configuration, recommendationonly generation |
+| **gradual Automation 확대** | safe pattern Validation after automatic action scope gradual 확대 | 1주day dry-run → memory patch Automation → scaling Automation |
 
-**Example: Production-Ready Kagent Configuration**
+**example: production readiness Kagent Configuration**
 
 ```yaml
 apiVersion: kagent.dev/v1alpha1
 kind: Agent
 metadata:
-  name: production-ops-agent
-  namespace: kagent-system
+ name: production-ops-agent
+ namespace: kagent-system
 spec:
-  description: "Production EKS cluster operations agent"
-  modelConfig:
-    provider: bedrock
-    model: anthropic.claude-sonnet
+ description: "프로덕션 EKS 클러스터 운영 에이전트"
+ modelConfig:
+ provider: bedrock
+ model: anthropic.claude-sonnet
 
-  # Principle of least privilege
-  rbac:
-    serviceAccount: kagent-ops-sa
-    permissions:
-      - apiGroups: [""]
-        resources: ["pods", "services"]
-        verbs: ["get", "list", "watch"]
-      - apiGroups: ["apps"]
-        resources: ["deployments"]
-        verbs: ["get", "list", "watch", "patch"]  # Only patch allowed
+ # 최소 권한 원칙
+ rbac:
+ serviceAccount: kagent-ops-sa
+ permissions:
+ - apiGroups: [""]
+ resources: ["pods", "services"]
+ verbs: ["get", "list", "watch"]
+ - apiGroups: ["apps"]
+ resources: ["deployments"]
+ verbs: ["get", "list", "watch", "patch"] # patch만 허용
 
-  # Limit automatic action scope
-  allowedActions:
-    automatic:
-      - name: increase_memory
-        description: "Increase memory limits by 1.5x (max 4Gi)"
-        condition: "OOMKilled && limits < 4Gi"
-      - name: scale_up
-        description: "Replicas +1 when no HPA (max 10)"
-        condition: "HighCPU && replicas < 10"
-    requiresApproval:
-      - name: delete_pod
-        description: "Force delete Pod"
-      - name: restart_deployment
-        description: "Restart Deployment"
+ # 자동 조치 범위 제한
+ allowedActions:
+ automatic:
+ - name: increase_memory
+ description: "메모리 limits 1.5배 증가 (최대 4Gi)"
+ condition: "OOMKilled && limits < 4Gi"
+ - name: scale_up
+ description: "HPA 없는 경우 replicas +1 (최대 10)"
+ condition: "HighCPU && replicas < 10"
+ requiresApproval:
+ - name: delete_pod
+ description: "Pod 강제 삭제"
+ - name: restart_deployment
+ description: "Deployment 재시작"
 
-  # Audit logging
-  audit:
-    enabled: true
-    logLevel: detailed
-    destinations:
-      - cloudwatch
-      - s3
+ # 감사 로그
+ audit:
+ enabled: true
+ logLevel: detailed
+ destinations:
+ - cloudwatch
+ - s3
 
-  # Start with dry-run for initial deployment
-  dryRun: true  # Change to false after approval
+ # 초기 배포는 dry-run
+ dryRun: true # 승인 후 false로 변경
 ```
 
-**Kagent vs Strands vs Q Developer Comparison Update**
+**Kagent vs Strands vs Q Developer ratio교 업데이트**
 
 | Item | Kagent (2025-2026) | Strands | Q Developer |
 |------|-------------------|---------|-------------|
-| **Deployment Method** | K8s CRD (declarative) | Python SDK (code) | AWS managed |
-| **MCP Integration** | kmcp native | MCP server integration | AWS Hosted MCP |
-| **Custom Tool** | Declared via CRD | Python functions | Q API extension |
-| **Multi-Agent** | Orchestrator + specialist Agents | SOP chains | Single Agent |
-| **Prometheus** | kmcp natural language query | Python client | CloudWatch integration |
-| **Production Maturity** | Pilot possible (with checklist compliance) | Production proven | GA |
-| **Learning Curve** | K8s CRD knowledge required | Python development knowledge | None (fully managed) |
-| **Extensibility** | High (unlimited CRD extension) | Medium (Python ecosystem) | Limited (AWS-provided features) |
+| **Deployment method** | K8s CRD (declarative) | Python SDK (code) | AWS managed |
+| **MCP Integration** | kmcp native | MCP server 연동 | AWS Hosted MCP |
+| **Custom Tool** | CRD declarative | Python 함 | Q API extension |
+| **Multi-Agent** | Orchestrator + before문 Agent | SOP 체인 | single Agent |
+| **Prometheus** | kmcp natural language query | Python client | CloudWatch Integration |
+| **production maturity** | 파day럿 possible (체크리스트 준) | production Validation됨 | GA |
+| **learning 곡선** | K8s CRD knowledge needed | Python development knowledge | none (complete managed) |
+| **extension** | high (CRD 무 extension) | intermediate (Python 생태계) | limitation (AWS Provision feature) |
 
-:::tip Kagent Adoption Scenario
-**Pilot Stage**: Start with Q Developer (GA) → Expand to Strands (production) → Transition to Kagent (K8s Native)
+:::tip Kagent adoption scenario
+**파day럿 phase**: Q Developer(GA)로 start → Strands(production)로 extension → Kagent(K8s Native)로 transition
 
-**When Kagent is Suitable**:
-- When you want to integrate Agent definitions into GitOps workflows
-- When you need to orchestrate multiple specialist Agents
-- When you want to integrate a team's unique operational tools into Agents
-- Platform teams that prefer the Kubernetes-native approach
+**Kagent 합 case**:
+- GitOps workflow Agent definition Integration and 싶 when
+- multiple before문 Agent orchestrationmust when
+- 팀 고유 Operations tool Agent Integration and 싶 when
+- Kubernetes native method 선호 platform 팀
 
-**Caution**: Still in Alpha stage, so thorough testing and gradual rollout are required before production adoption
+**Considerations**: 아직 Alpha phase이므 production adoption before 철저 test and gradual 롤아웃 needed
 :::
 
 **References**
 
 - [Kagent GitHub Repository](https://github.com/kagent-dev/kagent)
-- AWS re:Invent 2025 EKS Research — See Section 2.1 (CNS421)
+- AWS re:Invent 2025 EKS Research — Section 2.1(CNS421) Reference
 
 #### 5.2.4 Agentic AI for EKS Operations — re:Invent 2025 CNS421
 
-The **CNS421 session** at AWS re:Invent 2025, titled "Streamline Amazon EKS Operations with Agentic AI," demonstrated practical patterns for AI Agent-based EKS operations automation with actual working code. This session presents the key technologies for the **Level 3 (Predictive) → Level 4 (Autonomous)** transition of the AIDLC Operations phase.
+AWS re:Invent 2025 **CNS421 세션**은 "Streamline Amazon EKS Operations with Agentic AI"라 제목으로, actual behavior code along with AI Agent based EKS Operations Automation 실용 pattern time연했. 이 세션 AIDLC Operations phase **Level 3(prediction-type) → Level 4(autonomous-type)** transition Core 기술 presentation.
 
-**CNS421 Session Core Content: 3-Stage Automation Pattern**
+**CNS421 세션 Core 내용: 3phase Automation pattern**
 
-CNS421 proposes an approach to **evolve EKS operations automation in stages**:
+CNS421 EKS Operations Automation **phase as evolution**time키 approach method recommendation:
 
-1. **Real-Time Issue Diagnosis**
-   - AI Agent performs integrated analysis of CloudWatch, EKS API, and Prometheus metrics
-   - Automatically detects anomalies and infers root causes
-   - Example: When Pod CrashLoopBackOff occurs → log pattern analysis → classify as OOM/ConfigError/DependencyFailure
+1. **Real-time 이슈 diagnosis (Real-Time Issue Diagnosis)**
+ - AI Agent CloudWatch, EKS API, Prometheus metric Integration Analysis
+ - abnormal 징after automatic as detection and, root cause inference
+ - example: Pod CrashLoopBackOff occurrence time → log pattern Analysis → OOM/ConfigError/DependencyFailure minutes류
 
-2. **Guided Remediation**
-   - AI **clearly presents recovery steps** based on diagnostic results
-   - Operators review and approve each step before execution
-   - Example: "1) Increase memory limits from 1Gi → 1.5Gi, 2) Restart Deployment, 3) Monitor for 5 minutes"
+2. **안내 recovery (Guided Remediation)**
+ - AI diagnosis result based as **recovery phase clear히 presentation**
+ - Operations each phase 검토 and approvalif서 execution
+ - example: "1) memory limits 1Gi → 1.5Gi increase, 2) Deployment restart, 3) 5minutesbetween Monitoring"
 
-3. **Auto-Remediation**
-   - Safe patterns are **automatically executed by AI without human intervention**
-   - Risky changes (production node termination, etc.) still require approval
-   - Example: OOM detected → automatic limits patch → Deployment rolling update → Slack notification
+3. **automatic recovery (Auto-Remediation)**
+ - safe pattern AI **사람 입 without automatic execution**
+ - risk change(production node 종료 등)은 여before히 approval request
+ - example: OOM detection → limits automatic patch → Deployment 롤링 업데이트 → Slack alert
 
-This 3-stage pattern aligns exactly with AIDLC's **Loss Function concept** — automating safe actions while having humans verify risky actions to prevent error propagation.
+이 3phase pattern AIDLC **Loss Function 념**과 정확히 day치 — safe action Automation and, risk action 사람 Validation to error before파 prevention.
 
-**MCP-Based Integrated Architecture**
+**MCP based integration architecture**
 
-The architecture demonstrated in CNS421 **integrates multiple MCP servers** to provide context to AI Agents:
+CNS421 from time연 architecture ** multiple MCP server Integration** to AI Agent 컨텍스트provides:
 
 ```mermaid
 graph TB
-    subgraph Trigger["Issue Occurrence"]
-        EVENT["CloudWatch Alarm<br/>Pod CrashLoopBackOff<br/>High CPU Alert"]
-    end
+ subgraph Trigger["이슈 발생"]
+ EVENT["CloudWatch 알람<br/>Pod CrashLoopBackOff<br/>High CPU 알림"]
+ end
 
-    subgraph MCP_Layer["MCP Data Collection"]
-        EKS_MCP["EKS MCP Server<br/>Cluster Status<br/>Pod/Node Info"]
-        CW_MCP["CloudWatch MCP<br/>Metrics/Logs<br/>Alarm History"]
-        XRAY_MCP["X-Ray MCP<br/>Traces<br/>Service Map"]
-        COST_MCP["Cost Analysis MCP<br/>Resource Costs<br/>Optimization Suggestions"]
-    end
+ subgraph MCP_Layer["MCP 데이터 수집"]
+ EKS_MCP["EKS MCP Server<br/>클러스터 상태<br/>Pod/Node 정보"]
+ CW_MCP["CloudWatch MCP<br/>메트릭/로그<br/>알람 히스토리"]
+ XRAY_MCP["X-Ray MCP<br/>트레이스<br/>서비스 맵"]
+ COST_MCP["Cost Analysis MCP<br/>리소스 비용<br/>최적화 제안"]
+ end
 
-    subgraph AI_Agent["AI Agent Analysis"]
-        ANALYZE["Integrated Data Analysis<br/>Root Cause Inference<br/>Tribal Knowledge Application"]
-        DECISION["Recovery Strategy Decision<br/>Safety Assessment<br/>Auto/Manual Determination"]
-    end
+ subgraph AI_Agent["AI Agent 분석"]
+ ANALYZE["통합 데이터 분석<br/>근본 원인 추론<br/>Tribal Knowledge 적용"]
+ DECISION["복구 전략 결정<br/>안전성 평가<br/>자동/수동 판단"]
+ end
 
-    subgraph Remediation["Recovery Execution"]
-        AUTO["Auto Recovery<br/>Safe Patterns"]
-        GUIDED["Guided Recovery<br/>Operator Approval"]
-    end
+ subgraph Remediation["복구 실행"]
+ AUTO["자동 복구<br/>안전한 패턴"]
+ GUIDED["안내된 복구<br/>운영자 승인"]
+ end
 
-    subgraph Verification["Verification"]
-        VERIFY["Recovery Result Check<br/>Metric Normalization<br/>Alarm Clearance"]
-        REPORT["Incident Report<br/>Slack/PagerDuty<br/>Context Memory Storage"]
-    end
+ subgraph Verification["검증"]
+ VERIFY["복구 결과 확인<br/>메트릭 정상화<br/>알람 해제"]
+ REPORT["인시던트 리포트<br/>Slack/PagerDuty<br/>Context Memory 저장"]
+ end
 
-    EVENT --> EKS_MCP
-    EVENT --> CW_MCP
-    EVENT --> XRAY_MCP
-    EVENT --> COST_MCP
+ EVENT --> EKS_MCP
+ EVENT --> CW_MCP
+ EVENT --> XRAY_MCP
+ EVENT --> COST_MCP
 
-    EKS_MCP --> ANALYZE
-    CW_MCP --> ANALYZE
-    XRAY_MCP --> ANALYZE
-    COST_MCP --> ANALYZE
+ EKS_MCP --> ANALYZE
+ CW_MCP --> ANALYZE
+ XRAY_MCP --> ANALYZE
+ COST_MCP --> ANALYZE
 
-    ANALYZE --> DECISION
-    DECISION -->|Safe| AUTO
-    DECISION -->|Risky| GUIDED
-    AUTO --> VERIFY
-    GUIDED --> VERIFY
-    VERIFY --> REPORT
+ ANALYZE --> DECISION
+ DECISION -->|안전| AUTO
+ DECISION -->|위험| GUIDED
+ AUTO --> VERIFY
+ GUIDED --> VERIFY
+ VERIFY --> REPORT
 
-    style ANALYZE fill:#fff3e0,stroke:#ff9800
-    style DECISION fill:#e8f5e9,stroke:#4caf50
-    style AUTO fill:#e3f2fd,stroke:#2196f3
-    style VERIFY fill:#fce4ec,stroke:#e91e63
+ style ANALYZE fill:#fff3e0,stroke:#ff9800
+ style DECISION fill:#e8f5e9,stroke:#4caf50
+ style AUTO fill:#e3f2fd,stroke:#2196f3
+ style VERIFY fill:#fce4ec,stroke:#e91e63
 ```
 
-**Tribal Knowledge Utilization: Transferring Team Operational Know-How to AI**
+**Tribal Knowledge utilization: 팀 Operations 노우 AI before달**
 
-One of the key innovations of CNS421 is the method of **providing Tribal Knowledge (team tacit knowledge) as context to AI Agents**. AI leverages the operational know-how accumulated by teams over time to perform **customized troubleshooting**.
+CNS421 Core 혁신 중 나 **Tribal Knowledge(팀 암묵지)를 AI Agent 컨텍스트 Provision** method. 팀 오랜 time 걸쳐 accumulation Operations 노우 AI leveraging **맞춤-type troubleshooting**을 perform.
 
-**Tribal Knowledge Example: Payment Service Operational Know-How**
+**Tribal Knowledge example: Payment Service Operations 노우**
 
 ```yaml
 # tribal-knowledge/payment-service.yaml
 service: payment-service
 namespace: production
 tribal_knowledge:
-  known_issues:
-    - pattern: "OOM Killed"
-      root_cause: "Memory leak during spike traffic"
-      context: |
-        Discovered during January 2025 Black Friday.
-        Redis connection pool is not released when payment requests exceed 1000/sec.
-      remediation:
-        - "Increase memory limits by 1.5x (temporary)"
-        - "Set Redis connection pool maxIdle=50 (permanent)"
-        - "Monitor metrics for 10 minutes after deployment"
-      safe_to_auto_remediate: false
-      requires_approval: true
+ known_issues:
+ - pattern: "OOM Killed"
+ root_cause: "스파이크 트래픽 시 메모리 누수"
+ context: |
+ 2025년 1월 블랙프라이데이 때 발견.
+ 결제 요청이 초당 1000건 이상일 때 Redis 커넥션 풀이 해제되지 않음.
+ remediation:
+ - "메모리 limits를 1.5배로 증가 (임시)"
+ - "Redis 커넥션 풀 maxIdle=50으로 설정 (영구)"
+ - "배포 후 10분간 메트릭 모니터링"
+ safe_to_auto_remediate: false
+ requires_approval: true
 
-    - pattern: "DynamoDB ThrottlingException"
-      root_cause: "Write capacity exceeded during promotion period"
-      context: |
-        Recurring at the start of monthly promotions on the 1st.
-        DynamoDB table is in provisioned mode, not on-demand.
-      remediation:
-        - "Switch DynamoDB table to on-demand (automatic)"
-        - "Verify exponential backoff retry logic"
-      safe_to_auto_remediate: true
-      cost_impact: "Expected $50/month increase"
+ - pattern: "DynamoDB ThrottlingException"
+ root_cause: "프로모션 기간 쓰기 용량 초과"
+ context: |
+ 매월 1일 프로모션 시작 시 반복 발생.
+ DynamoDB 테이블이 on-demand 아닌 provisioned 모드.
+ remediation:
+ - "DynamoDB 테이블을 on-demand로 전환 (자동)"
+ - "Exponential backoff 재시도 로직 확인"
+ safe_to_auto_remediate: true
+ cost_impact: "월 $50 증가 예상"
 
-  dependencies:
-    - service: notification-service
-      impact_if_down: "Payment completion notification failure, degraded user experience"
-      fallback: "Queued in notification queue, resent after recovery"
+ dependencies:
+ - service: notification-service
+ impact_if_down: "결제 완료 알림 실패, 사용자 경험 저하"
+ fallback: "알림 큐에 쌓이며 복구 후 재전송"
 
-    - service: fraud-detection
-      impact_if_down: "Payment approval impossible, business disruption"
-      fallback: "None - immediate oncall required"
+ - service: fraud-detection
+ impact_if_down: "결제 승인 불가, 비즈니스 중단"
+ fallback: "없음 - 즉시 oncall 호출 필요"
 
-  escalation_rules:
-    - condition: "Error rate > 10% for 5 min"
-      action: "Slack #payments-oncall + PagerDuty"
-    - condition: "Revenue impact > $10,000"
-      action: "Slack #executive-alerts + CTO"
+ escalation_rules:
+ - condition: "Error rate > 10% for 5분"
+ action: "Slack #payments-oncall + PagerDuty"
+ - condition: "Revenue impact > $10,000"
+ action: "Slack #executive-alerts + CTO"
 ```
 
-AI Agent reads this Tribal Knowledge and, upon detecting the same pattern, performs recovery considering the team's operational history. For example, upon detecting "DynamoDB ThrottlingException," it **automatically switches to on-demand mode** based on past promotion period experience and notifies the cost impact ($50/month) to Slack.
+AI Agent 이 Tribal Knowledge 읽고, the same pattern detectionif 팀 Operations 히스토리 consideration recovery perform. example 들어, "DynamoDB ThrottlingException"을 detectionif past 프로모션 기between 경험 based as **automatic as on-demand 모드 transition** and, cost impact($50/monthly)을 Slack 알립.
 
-**AIDLC Operations Phase Mapping: Level 3 → Level 4 Transition**
+**AIDLC Operations phase mapping: Level 3 → Level 4 transition**
 
-The Agentic AI pattern from CNS421 is the key technology for elevating the maturity of the AIDLC Operations phase from **Level 3 (Predictive) to Level 4 (Autonomous)**:
+CNS421 Agentic AI pattern AIDLC Operations phase maturity **Level 3(prediction-type) from Level 4(autonomous-type)**로 끌어올리 Core 기술:
 
-| Maturity | Characteristics | CNS421 Pattern Mapping |
-|----------|----------------|----------------------|
-| **Level 2: Reactive** | Alarm fires → humans respond manually | Traditional CloudWatch alarm-based operations |
-| **Level 3: Predictive** | AI predicts anomalies → notifies humans | **Real-time issue diagnosis** — automatic root cause inference through MCP integrated analysis |
-| **Level 4: Autonomous** | AI automatically executes safe actions + requests approval for risky actions | **Guided remediation + auto-remediation** — customized response based on Tribal Knowledge |
+| Maturity | Characteristics | CNS421 pattern mapping |
+|--------|------|-----------------|
+| **Level 2: reactive-type** | alarm occurrence → 사람 manual response | existing CloudWatch alarm based Operations |
+| **Level 3: prediction-type** | AI abnormal 징after prediction → 사람에 alert | **Real-time 이슈 diagnosis** — MCP Integration Analysis as root cause automatic inference |
+| **Level 4: autonomous-type** | AI safe action automatic execution + risk action approval request | **안내 recovery + automatic recovery** — Tribal Knowledge based 맞춤-type response |
 
-AIDLC's **Loss Function** concept is important here — even at Level 4, **not everything is automated**. Patterns with verified safety (memory limits increase, on-demand transition) are automatically executed, while risky changes (node termination, database schema changes) are verified by humans. This is the core of **Guided Remediation**.
+AIDLC **Loss Function** 념 여기서 중요 — Level 4에서also ** all 것 Automationnot 않**. safety Validation pattern(memory limits increase, on-demand transition)은 automatic execution and, risk change(node 종료, database 스키마 change)은 사람 Validation. 이것 **Guided Remediation** Core.
 
-**Implementation Example via Kiro + MCP**
+**Kiro + MCP through Implementation example**
 
-An actual workflow implementing the patterns demonstrated in CNS421 with Kiro and MCP:
+CNS421 from time연 pattern Kiro and MCP Implementation actual workflow:
 
 ```bash
-# 1. Load Tribal Knowledge into Kiro Context Memory
+# 1. Tribal Knowledge를 Kiro Context Memory에 로드
 kiro context add tribal-knowledge/payment-service.yaml
 
-# 2. Activate MCP servers
+# 2. MCP 서버 활성화
 kiro mcp add eks
 kiro mcp add cloudwatch
 kiro mcp add xray
 
-# 3. Start monitoring in Agentic AI mode
+# 3. Agentic AI 모드로 모니터링 시작
 kiro monitor --namespace production --agent-mode enabled
 
-# Real-time log output example:
-# [12:05:30] CloudWatch alarm: payment-service Pod OOM
-# [12:05:31] MCP data collection: EKS Pod status, CloudWatch metrics, X-Ray traces
-# [12:05:35] AI analysis: Tribal Knowledge match - "Memory leak during spike traffic"
-# [12:05:36] Recovery approval required (safe_to_auto_remediate: false)
-# [12:05:36] Suggested recovery steps:
-#            1) Increase memory limits from 1Gi → 1.5Gi
-#            2) Restart Deployment
-#            3) Set Redis connection pool maxIdle=50
-# [12:05:40] Approval received (operator approved via Slack)
-# [12:05:45] Applying Deployment patch...
-# [12:06:00] Recovery complete. Metric normalization confirmed.
-# [12:06:01] Incident report → Slack #payments-oncall
+# 실시간 로그 출력 예시:
+# [12:05:30] 🔍 CloudWatch 알람: payment-service Pod OOM
+# [12:05:31] 📊 MCP 데이터 수집: EKS Pod 상태, CloudWatch 메트릭, X-Ray 트레이스
+# [12:05:35] 🧠 AI 분석: Tribal Knowledge 일치 - "스파이크 트래픽 시 메모리 누수"
+# [12:05:36] ⚠️ 복구 승인 필요 (safe_to_auto_remediate: false)
+# [12:05:36] 📝 제안된 복구 단계:
+# 1) 메모리 limits를 1Gi → 1.5Gi로 증가
+# 2) Deployment 재시작
+# 3) Redis 커넥션 풀 maxIdle=50 설정
+# [12:05:40] ✅ 승인 받음 (Slack에서 운영자 승인)
+# [12:05:45] 🔧 Deployment 패치 적용 중...
+# [12:06:00] ✅ 복구 완료. 메트릭 정상화 확인.
+# [12:06:01] 📊 인시던트 리포트 → Slack #payments-oncall
 
-# 4. Auto-recovery log (DynamoDB Throttling example)
-# [14:30:00] CloudWatch alarm: DynamoDB ThrottlingException
-# [14:30:02] AI analysis: Tribal Knowledge match - "Write capacity exceeded during promotion period"
-# [14:30:03] Auto-recovery possible (safe_to_auto_remediate: true)
-# [14:30:05] DynamoDB table → switching to on-demand mode
-# [14:30:20] Recovery complete. Cost impact: $50/month increase (Slack notification sent)
+# 4. 자동 복구 로그 (DynamoDB Throttling 예시)
+# [14:30:00] 🔍 CloudWatch 알람: DynamoDB ThrottlingException
+# [14:30:02] 🧠 AI 분석: Tribal Knowledge 일치 - "프로모션 기간 쓰기 용량 초과"
+# [14:30:03] ✅ 자동 복구 가능 (safe_to_auto_remediate: true)
+# [14:30:05] 🔧 DynamoDB 테이블 → on-demand 모드 전환
+# [14:30:20] ✅ 복구 완료. 비용 영향: 월 $50 증가 (Slack 알림 전송)
 ```
 
-:::info Practicality of CNS421
-CNS421 was rated as the **most practical AIOps session** at re:Invent 2025. This is because it demonstrated **actual working code and MCP server integration patterns** rather than theoretical concepts. The session video ([YouTube Link](https://www.youtube.com/watch?v=4s-a0jY4kSE)) shows the **entire process of an AI Agent diagnosing and recovering an EKS cluster through natural language conversation** instead of Terraform, kubectl, or AWS CLI.
+:::info CNS421 실용
+CNS421 re:Invent 2025 from **most 실용인 AIOps 세션** as 평가받았. 이론 념 not, ** actual behavior code and MCP server Integration pattern**을 time연했기 when문. 세션 동영상([YouTube Link](https://www.youtube.com/watch?v=4s-a0jY4kSE)) in Terraform, kubectl, AWS CLI 대신 **AI Agent natural language 대화 EKS cluster diagnosis and recovery entire 과정**을 볼 .
 :::
 
 **References**
 
 - [CNS421 Session Video: Streamline Amazon EKS Operations with Agentic AI](https://www.youtube.com/watch?v=4s-a0jY4kSE) — re:Invent 2025
-- AWS re:Invent 2025 EKS Research — See Section 2.1
+- AWS re:Invent 2025 EKS Research — Section 2.1 Reference
 
 :::tip Adoption Order
-**First adopt** Q Developer (GA)'s fully managed analysis, then add Strands (OSS) SOP-based workflows, and gradually expand Kagent (early stage) K8s native approach. The Agentic AI pattern from CNS421 can be implemented with the **Strands + MCP combination**, and Tribal Knowledge is managed as Strands SOP files. This connects with the maturity model Level 3→4 transition in [1. AIOps Strategy Guide](../operations-observability/agentic-ops/aiops-introduction.md).
+Q Developer(GA) complete managed analysis **먼저 adoption** and, Strands(OSS) SOP based workflow additional after, Kagent(initial phase) K8s native approach gradual as extension. CNS421 Agentic AI pattern **Strands + MCP 조합** as Implementationcan으며, Tribal Knowledge Strands SOP 파day Management. [1. AIOps strategy 가이드](./agentic-ops/aiops-introduction.md) maturity model Level 3→4 transition and 연계.
 :::
 
 ### 5.3 From CI/CD to AI/CD — Leveraging Bedrock AgentCore
 
-In AIDLC, deployment pipelines evolve from traditional CI/CD to **AI/CD**, enhanced by AI.
+AIDLC from Deployment pipeline existing CI/CD AI enhancement **AI/CD**로 evolution.
 
 ```
-[CI/CD → AI/CD Transition]
+[CI/CD → AI/CD 전환]
 
-Traditional CI/CD:
-  Code commit → Build → Test → Manual approval → Deploy
+기존 CI/CD:
+ 코드 커밋 → 빌드 → 테스트 → 수동 승인 → 배포
 
 AI/CD:
-  Spec commit → AI code generation → AI security scan → AI review
-     → Loss Function verification (human) → Argo CD auto deployment
-     → AI observability monitoring → AI Agent automated response
+ Spec 커밋 → AI 코드 생성 → AI 보안 스캔 → AI 리뷰
+ → Loss Function 검증 (사람) → Argo CD 자동 배포
+ → AI 관찰성 모니터링 → AI Agent 자동 대응
 ```
 
-Key transition points:
-- **Code commit** → **Spec commit** (requirements.md is the trigger)
-- **Manual approval** → **AI review + Loss Function verification** (humans focus on decision-making)
-- **Manual monitoring** → **AI Agent autonomous response** (MCP-based integrated analysis)
+Core transition점:
+- **code commit** → **Spec commit** (requirements.md trigger)
+- **manual approval** → **AI review + Loss Function Validation** (사람 의사결정 focus)
+- **manual Monitoring** → **AI Agent autonomous response** (MCP based Integration Analysis)
 
-:::info Operations Deep Dive
-Advanced Operations phase patterns such as ML-based predictive scaling, Karpenter + AI prediction, and Chaos Engineering + AI learning are covered in [4. Predictive Scaling and Auto-Recovery](../operations-observability/agentic-ops/aiops-predictive-operations.md).
+:::info Operations advanced
+ML based prediction scaling, Karpenter + AI prediction, Chaos Engineering + AI learning etc. Operations phase advanced pattern [4. prediction scaling and automatic recovery](./agentic-ops/aiops-predictive-operations.md)is covered in.
 :::
 
-Bedrock AgentCore is AWS's managed agent framework that enables the pattern of **delegating deployment pipeline decisions to AI**. Traditional CI/CD executes linearly according to predefined rules, but AgentCore-based pipelines **analyze real-time metrics to autonomously determine deployment progression/rollback**.
+Bedrock AgentCore AWS managed agent framework로, **Deployment pipeline 의사결정 AI 위임** pattern possible . existing CI/CD preemptive definition 규칙 according to linear as execution되지only, AgentCore based pipeline **Real-time metric Analysis to Deployment 진행/rollback autonomous decision**.
 
-#### 5.3.1 Agent-Based Canary Deployment Decision
+Bedrock AgentCore AWS managed agent framework로, **Deployment pipeline 의사결정 AI 위임** pattern possible . existing CI/CD preemptive definition 규칙 according to linear as execution되지only, AgentCore based pipeline **Real-time metric Analysis to Deployment 진행/rollback autonomous decision**.
 
-Traditional canary deployments judge success/failure with fixed thresholds (e.g., error rate > 1%, P99 latency > 500ms). AgentCore performs **context-aware dynamic judgment**.
+#### 5.3.1 agent based canary Deployment decision
+
+Traditional canary Deployment 고정 threshold(example: errorrate > 1%, P99 latency > 500ms) as 공/failure decision. AgentCore **맥락 consideration dynamic decision**을 perform.
 
 ```yaml
 # bedrock-agent-canary-deployment.yaml
 apiVersion: bedrock.aws/v1
 kind: Agent
 metadata:
-  name: canary-deployment-agent
-  namespace: cicd-system
+ name: canary-deployment-agent
+ namespace: cicd-system
 spec:
-  modelArn: arn:aws:bedrock:ap-northeast-2::foundation-model/anthropic.claude-sonnet-3-5-v2
-  instruction: |
-    You are an AI agent managing EKS canary deployments.
-    Analyze metrics to determine whether to promote or rollback the deployment.
+ modelArn: arn:aws:bedrock:ap-northeast-2::foundation-model/anthropic.claude-sonnet-3-5-v2
+ instruction: |
+ 당신은 EKS 카나리 배포를 관리하는 AI 에이전트입니다.
+ 메트릭을 분석하여 배포를 진행(promote)하거나 롤백할지 판단합니다.
 
-    Decision criteria:
-    1. Error rate: If new version increases 20%+ over existing → immediate rollback
-    2. Latency: If P99 exceeds threshold BUT caused by traffic spike → wait 5 minutes and re-evaluate
-    3. Business metrics: If payment success rate drops → rollback even if technical metrics are normal
-    4. Gradual risk: 3 consecutive normal checks → auto-promote traffic 10% → 25% → 50% → 100%
+ 판단 기준:
+ 1. 에러율: 신규 버전이 기존 대비 20% 이상 증가 → 즉시 롤백
+ 2. 레이턴시: P99가 임계값 초과 BUT 트래픽 급증이 원인인 경우 → 5분 대기 후 재평가
+ 3. 비즈니스 메트릭: 결제 성공률 하락 → 기술 메트릭이 정상이어도 롤백
+ 4. 점진적 위험: 3회 연속 정상 → 트래픽 10% → 25% → 50% → 100% 자동 프로모션
 
-    Note: Be conservative for financial services, aggressive for internal tools.
+ 주의: 금융 서비스는 보수적으로, 내부 도구는 공격적으로 판단하세요.
 
-  actionGroups:
-    - name: metrics-analysis
-      description: "CloudWatch metrics query and analysis"
-      tools:
-        - name: get_cloudwatch_metrics
-          type: aws-service
-          service: cloudwatch
-          actions:
-            - GetMetricData
-            - GetMetricStatistics
-        - name: get_application_signals
-          type: aws-service
-          service: application-signals
-          actions:
-            - GetServiceLevelIndicator
+ actionGroups:
+ - name: metrics-analysis
+ description: "CloudWatch 메트릭 조회 및 분석"
+ tools:
+ - name: get_cloudwatch_metrics
+ type: aws-service
+ service: cloudwatch
+ actions:
+ - GetMetricData
+ - GetMetricStatistics
+ - name: get_application_signals
+ type: aws-service
+ service: application-signals
+ actions:
+ - GetServiceLevelIndicator
 
-    - name: deployment-control
-      description: "Argo Rollouts control"
-      tools:
-        - name: promote_canary
-          type: lambda
-          functionArn: arn:aws:lambda:ap-northeast-2:123456789012:function:promote-canary
-        - name: rollback_canary
-          type: lambda
-          functionArn: arn:aws:lambda:ap-northeast-2:123456789012:function:rollback-canary
+ - name: deployment-control
+ description: "Argo Rollouts 제어"
+ tools:
+ - name: promote_canary
+ type: lambda
+ functionArn: arn:aws:lambda:ap-northeast-2:123456789012:function:promote-canary
+ - name: rollback_canary
+ type: lambda
+ functionArn: arn:aws:lambda:ap-northeast-2:123456789012:function:rollback-canary
 
-    - name: notification
-      description: "Slack notification"
-      tools:
-        - name: send_slack
-          type: lambda
-          functionArn: arn:aws:lambda:ap-northeast-2:123456789012:function:send-slack
+ - name: notification
+ description: "Slack 알림"
+ tools:
+ - name: send_slack
+ type: lambda
+ functionArn: arn:aws:lambda:ap-northeast-2:123456789012:function:send-slack
 
-  # Automated execution workflow
-  triggers:
-    - type: EventBridge
-      schedule: rate(2 minutes)  # Evaluate canary status every 2 minutes
-      condition: |
-        Execute only when Argo Rollouts has a canary deployment in progress
+ # 자동 실행 워크플로우
+ triggers:
+ - type: EventBridge
+ schedule: rate(2 minutes) # 2분마다 카나리 상태 평가
+ condition: |
+ Argo Rollouts가 카나리 배포 진행 중일 때만 실행
 ```
 
-**Execution Flow**:
+**execution flow**:
 
 ```
-[Canary deployment start]
-  ↓
-[EventBridge: Trigger every 2 minutes]
-  ↓
-[AgentCore evaluation start]
-  ├─→ CloudWatch Metrics query
-  │   - Error rate: stable 0.1%, canary 0.15% (50% increase)
-  │   - P99 latency: stable 80ms, canary 120ms
-  │   - Traffic: 10% of total
-  │
-  ├─→ Application Signals SLI query
-  │   - Payment success rate: 99.8% → 99.7% (0.1%p decrease)
-  │
-  ├─→ AI judgment (context-aware)
-  │   "Error rate increased 50% but absolute value is still low (0.15%).
-  │    Latency increase is estimated to be initialization delay of new version.
-  │    Payment success rate decrease is not statistically significant.
-  │    → Recommend waiting 5 minutes and re-evaluating"
-  │
-  └─→ Slack notification
-      "Canary deployment in progress - re-evaluating in 5 minutes"
+[카나리 배포 시작]
+ ↓
+[EventBridge: 2분마다 트리거]
+ ↓
+[AgentCore 평가 시작]
+ ├─→ CloudWatch Metrics 조회
+ │ - 에러율: stable 0.1%, canary 0.15% (50% 증가)
+ │ - P99 레이턴시: stable 80ms, canary 120ms
+ │ - 트래픽: 전체 대비 10%
+ │
+ ├─→ Application Signals SLI 조회
+ │ - 결제 성공률: 99.8% → 99.7% (0.1%p 하락)
+ │
+ ├─→ AI 판단 (맥락 고려)
+ │ "에러율이 50% 증가했지만 절대값은 여전히 낮음(0.15%).
+ │ 레이턴시 증가는 신규 버전의 초기화 지연으로 추정.
+ │ 결제 성공률 하락은 통계적으로 유의미하지 않음.
+ │ → 5분 대기 후 재평가 권장"
+ │
+ └─→ Slack 알림
+ "🟡 카나리 배포 진행 중 - 5분 후 재평가"
 
-[After 5 minutes]
-  ↓
-[AgentCore re-evaluation]
-  ├─→ Metrics query
-  │   - Error rate: stable 0.1%, canary 0.12% (20% increase)
-  │   - P99 latency: stable 80ms, canary 85ms (stabilized)
-  │
-  ├─→ AI judgment
-  │   "Latency has stabilized and error rate is within acceptable range.
-  │    → Approve traffic increase to 25%"
-  │
-  └─→ promote_canary execution
-      Argo Rollouts setWeight 25%
+[5분 후]
+ ↓
+[AgentCore 재평가]
+ ├─→ 메트릭 조회
+ │ - 에러율: stable 0.1%, canary 0.12% (20% 증가)
+ │ - P99 레이턴시: stable 80ms, canary 85ms (안정화)
+ │
+ ├─→ AI 판단
+ │ "레이턴시가 안정화되고 에러율도 허용 범위 내.
+ │ → 트래픽 25%로 증가 승인"
+ │
+ └─→ promote_canary 실행
+ Argo Rollouts setWeight 25%
 
-[After 10 minutes: 25% traffic evaluation → 50% promotion]
-[After 15 minutes: 50% traffic evaluation → 100% promotion]
+[10분 후: 트래픽 25% 평가 → 50% 프로모션]
+[15분 후: 트래픽 50% 평가 → 100% 프로모션]
 ```
 
-#### 5.3.2 CodePipeline + Bedrock Agent Integration Pattern
+#### 5.3.2 CodePipeline + Bedrock Agent Integration pattern
 
-CodePipeline can be configured to invoke Bedrock Agent so that **AI decides deployment approval**.
+CodePipeline from Bedrock Agent call to **Deployment approval whether AI 결정**also록 Configuration .
 
 ```yaml
 # codepipeline-with-bedrock-agent.yaml
 AWSTemplateFormatVersion: '2010-09-09'
 Resources:
-  DeploymentPipeline:
-    Type: AWS::CodePipeline::Pipeline
-    Properties:
-      Name: ai-controlled-deployment
-      Stages:
-        - Name: Source
-          Actions:
-            - Name: GitHubSource
-              ActionTypeId:
-                Category: Source
-                Owner: ThirdParty
-                Provider: GitHub
-                Version: 1
-              Configuration:
-                Repo: payment-service
-                Branch: main
+ DeploymentPipeline:
+ Type: AWS::CodePipeline::Pipeline
+ Properties:
+ Name: ai-controlled-deployment
+ Stages:
+ - Name: Source
+ Actions:
+ - Name: GitHubSource
+ ActionTypeId:
+ Category: Source
+ Owner: ThirdParty
+ Provider: GitHub
+ Version: 1
+ Configuration:
+ Repo: payment-service
+ Branch: main
 
-        - Name: Build
-          Actions:
-            - Name: BuildImage
-              ActionTypeId:
-                Category: Build
-                Owner: AWS
-                Provider: CodeBuild
-                Version: 1
+ - Name: Build
+ Actions:
+ - Name: BuildImage
+ ActionTypeId:
+ Category: Build
+ Owner: AWS
+ Provider: CodeBuild
+ Version: 1
 
-        - Name: DeployToStaging
-          Actions:
-            - Name: DeployStaging
-              ActionTypeId:
-                Category: Deploy
-                Owner: AWS
-                Provider: ECS  # or EKS
-                Version: 1
+ - Name: DeployToStaging
+ Actions:
+ - Name: DeployStaging
+ ActionTypeId:
+ Category: Deploy
+ Owner: AWS
+ Provider: ECS # 또는 EKS
+ Version: 1
 
-        - Name: AIGatekeeper
-          Actions:
-            - Name: BedrockAgentApproval
-              ActionTypeId:
-                Category: Invoke
-                Owner: AWS
-                Provider: Lambda
-                Version: 1
-              Configuration:
-                FunctionName: !Ref BedrockAgentInvoker
-                UserParameters: |
-                  {
-                    "agentId": "AGENT_ID",
-                    "agentAliasId": "ALIAS_ID",
-                    "decision": "approve_production_deployment",
-                    "context": {
-                      "service": "payment-service",
-                      "environment": "staging",
-                      "evaluationPeriod": "15m"
-                    }
-                  }
+ - Name: AIGatekeeper
+ Actions:
+ - Name: BedrockAgentApproval
+ ActionTypeId:
+ Category: Invoke
+ Owner: AWS
+ Provider: Lambda
+ Version: 1
+ Configuration:
+ FunctionName: !Ref BedrockAgentInvoker
+ UserParameters: |
+ {
+ "agentId": "AGENT_ID",
+ "agentAliasId": "ALIAS_ID",
+ "decision": "approve_production_deployment",
+ "context": {
+ "service": "payment-service",
+ "environment": "staging",
+ "evaluationPeriod": "15m"
+ }
+ }
 
-        - Name: DeployToProduction
-          Actions:
-            - Name: DeployProd
-              ActionTypeId:
-                Category: Deploy
-                Owner: AWS
-                Provider: EKS
-                Version: 1
+ - Name: DeployToProduction
+ Actions:
+ - Name: DeployProd
+ ActionTypeId:
+ Category: Deploy
+ Owner: AWS
+ Provider: EKS
+ Version: 1
 
-  BedrockAgentInvoker:
-    Type: AWS::Lambda::Function
-    Properties:
-      Runtime: python3.12
-      Handler: index.handler
-      Code:
-        ZipFile: |
-          import json
-          import boto3
+ BedrockAgentInvoker:
+ Type: AWS::Lambda::Function
+ Properties:
+ Runtime: python3.12
+ Handler: index.handler
+ Code:
+ ZipFile: |
+ import json
+ import boto3
 
-          bedrock_agent = boto3.client('bedrock-agent-runtime')
-          codepipeline = boto3.client('codepipeline')
+ bedrock_agent = boto3.client('bedrock-agent-runtime')
+ codepipeline = boto3.client('codepipeline')
 
-          def handler(event, context):
-              # CodePipeline job information
-              job_id = event['CodePipeline.job']['id']
-              user_params = json.loads(
-                  event['CodePipeline.job']['data']['actionConfiguration']['configuration']['UserParameters']
-              )
+ def handler(event, context):
+ # CodePipeline job 정보
+ job_id = event['CodePipeline.job']['id']
+ user_params = json.loads(
+ event['CodePipeline.job']['data']['actionConfiguration']['configuration']['UserParameters']
+ )
 
-              # Invoke Bedrock Agent
-              response = bedrock_agent.invoke_agent(
-                  agentId=user_params['agentId'],
-                  agentAliasId=user_params['agentAliasId'],
-                  sessionId=job_id,
-                  inputText=f"""
-                  Evaluate {user_params['context']['service']} deployed to the staging environment
-                  for {user_params['context']['evaluationPeriod']} and determine whether to approve
-                  production deployment.
+ # Bedrock Agent 호출
+ response = bedrock_agent.invoke_agent(
+ agentId=user_params['agentId'],
+ agentAliasId=user_params['agentAliasId'],
+ sessionId=job_id,
+ inputText=f"""
+ 스테이징 환경에 배포된 {user_params['context']['service']}를
+ {user_params['context']['evaluationPeriod']} 동안 평가하여
+ 프로덕션 배포를 승인할지 판단하세요.
 
-                  Evaluation items:
-                  1. Has the error rate increased compared to existing?
-                  2. Is latency violating the SLO?
-                  3. Have business metrics (payment success rate, etc.) declined?
-                  4. Have security vulnerabilities been found?
+ 평가 항목:
+ 1. 에러율이 기존 대비 증가했는가?
+ 2. 레이턴시가 SLO를 위반하는가?
+ 3. 비즈니스 메트릭(결제 성공률 등)이 하락했는가?
+ 4. 보안 취약점이 발견되었는가?
 
-                  If approval criteria are met, return "APPROVE"; otherwise return "REJECT" and explain the reason.
-                  """
-              )
+ 승인 기준을 충족하면 "APPROVE", 그렇지 않으면 "REJECT"를 반환하고 이유를 설명하세요.
+ """
+ )
 
-              # Parse Agent response
-              decision = parse_agent_response(response)
+ # Agent 응답 파싱
+ decision = parse_agent_response(response)
 
-              if decision['action'] == 'APPROVE':
-                  codepipeline.put_job_success_result(jobId=job_id)
-              else:
-                  codepipeline.put_job_failure_result(
-                      jobId=job_id,
-                      failureDetails={
-                          'type': 'JobFailed',
-                          'message': decision['reason']
-                      }
-                  )
+ if decision['action'] == 'APPROVE':
+ codepipeline.put_job_success_result(jobId=job_id)
+ else:
+ codepipeline.put_job_failure_result(
+ jobId=job_id,
+ failureDetails={
+ 'type': 'JobFailed',
+ 'message': decision['reason']
+ }
+ )
 ```
 
-#### 5.3.3 AgentCore vs Strands SOPs Comparison (CI/CD Perspective)
+#### 5.3.3 AgentCore vs Strands SOPs ratio교 (CI/CD 관점)
 
-| Comparison Item | Bedrock AgentCore | Strands SOPs |
-|----------------|-------------------|--------------|
-| **Deployment Method** | AWS managed (serverless) | Self-hosted (container/Lambda) |
-| **Cost Model** | Per Agent invocation | Compute resource-based |
-| **CI/CD Integration** | CodePipeline native | Custom Lambda/Webhook |
-| **State Management** | Agent session auto-managed | External storage required (DynamoDB, etc.) |
-| **Tool Extensibility** | Declared via ActionGroups | Implemented as Python functions |
-| **Multi-Step Workflows** | Built-in support | Implemented via SOP chains |
-| **Observability** | CloudWatch Logs automatic | Must implement directly |
-| **Production Maturity** | GA (released 2024.11) | Production proven |
-| **Learning Curve** | Low (declarative YAML) | Medium (Python + framework) |
+| Comparison | Bedrock AgentCore | Strands SOPs |
+|----------|-------------------|--------------|
+| **Deployment method** | AWS managed (server리스) | 체 호스팅 (container/Lambda) |
+| **cost model** | Agent call당 과금 | 컴퓨팅 resource based |
+| **CI/CD Integration** | CodePipeline native | custom Lambda/Webhook |
+| **status Management** | Agent 세션 automatic Management | external storage소 needed (DynamoDB 등) |
+| **tool extension** | ActionGroups declarative | Python 함 Implementation |
+| **multi 스텝 workflow** | 내장 Support | SOP 체인 as Implementation |
+| **observability** | CloudWatch Logs automatic | directly Implementation needed |
+| **production maturity** | GA (2024.11 출time) | production Validation됨 |
+| **learning 곡선** | 낮음 (declarative YAML) | intermediate (Python + framework) |
 
 :::tip CI/CD Automation Selection Guide
-**Recommend AgentCore**:
-- Teams using CodePipeline as primary
-- Prefer serverless architecture
-- Rapid prototyping and experimentation are important
+**AgentCore recommendation**:
+- CodePipeline 주력 as use 팀
+- server리스 architecture 선호
+- fast 프로토타입 and 실험 중요
 
-**Recommend Strands**:
-- Complex custom logic needed
-- Existing Python-based automation infrastructure
-- Fine-grained cost optimization needed (Agent invocation cost vs compute cost)
+**Strands recommendation**:
+- complex custom 로직 needed
+- existing Python based Automation infrastructure 보유
+- 세밀 Cost Optimization needed (Agent call cost vs 컴퓨팅 cost)
 
-**Combination Pattern**:
-- AgentCore: Deployment approval gate (high-level judgment)
-- Strands: Detailed recovery automation (low-level execution)
+**조합 pattern**:
+- AgentCore: Deployment approval 이트 (고level decision)
+- Strands: 세부 recovery Automation (저level execution)
 :::
 
 ### 5.4 Multi-Region AIDLC Patterns
 
-In multi-region EKS environments, AIDLC must balance **gradual deployment strategies** with **per-region automation control**. Based on GitOps (Argo CD), it ensures consistency across regions while adjusting deployments to each region's characteristics (traffic patterns, compliance requirements).
+multi-region EKS environment from AIDLC **gradual Deployment strategy**과 **per region Automation 제어** 균-type 맞춰야 . GitOps(Argo CD)를 based as region between consistency guaranteeif서, each region 특(traffic pattern, 규정 준)에 맞 Deployment adjustment.
 
-#### 5.4.1 Multi-Region EKS AIDLC Workflow
+#### 5.4.1 multi-region EKS AIDLC workflow
 
 ```mermaid
 graph TB
-    subgraph Development
-        DEV_CLUSTER[Development Cluster<br/>ap-northeast-2]
-    end
+ subgraph Development
+ DEV_CLUSTER[개발 클러스터<br/>ap-northeast-2]
+ end
 
-    subgraph Staging
-        STG_AP[Staging AP<br/>ap-northeast-2]
-    end
+ subgraph Staging
+ STG_AP[스테이징 AP<br/>ap-northeast-2]
+ end
 
-    subgraph Production
-        PROD_AP[Production AP<br/>ap-northeast-2<br/>Primary]
-        PROD_EU[Production EU<br/>eu-west-1<br/>Secondary]
-        PROD_US[Production US<br/>us-east-1<br/>Secondary]
-    end
+ subgraph Production
+ PROD_AP[프로덕션 AP<br/>ap-northeast-2<br/>Primary]
+ PROD_EU[프로덕션 EU<br/>eu-west-1<br/>Secondary]
+ PROD_US[프로덕션 US<br/>us-east-1<br/>Secondary]
+ end
 
-    subgraph GitOps
-        ARGOCD[Argo CD<br/>Hub Cluster]
-        GIT[Git Repository<br/>manifests/]
-    end
+ subgraph GitOps
+ ARGOCD[Argo CD<br/>Hub Cluster]
+ GIT[Git Repository<br/>manifests/]
+ end
 
-    DEV_CLUSTER -->|Tests passed| STG_AP
-    STG_AP -->|AI Quality Gate| ARGOCD
+ DEV_CLUSTER -->|테스트 통과| STG_AP
+ STG_AP -->|AI 품질 게이트| ARGOCD
 
-    ARGOCD -->|Sync Wave 1| PROD_AP
-    PROD_AP -->|Canary success<br/>15 min evaluation| ARGOCD
+ ARGOCD -->|Sync Wave 1| PROD_AP
+ PROD_AP -->|카나리 성공<br/>15분 평가| ARGOCD
 
-    ARGOCD -->|Sync Wave 2| PROD_EU
-    PROD_EU -->|Canary success<br/>30 min evaluation| ARGOCD
+ ARGOCD -->|Sync Wave 2| PROD_EU
+ PROD_EU -->|카나리 성공<br/>30분 평가| ARGOCD
 
-    ARGOCD -->|Sync Wave 3| PROD_US
+ ARGOCD -->|Sync Wave 3| PROD_US
 
-    GIT -.->|ApplicationSet| ARGOCD
+ GIT -.->|ApplicationSet| ARGOCD
 
-    style PROD_AP fill:#e8f5e9,stroke:#4caf50
-    style PROD_EU fill:#fff3e0,stroke:#ff9800
-    style PROD_US fill:#fff3e0,stroke:#ff9800
+ style PROD_AP fill:#e8f5e9,stroke:#4caf50
+ style PROD_EU fill:#fff3e0,stroke:#ff9800
+ style PROD_US fill:#fff3e0,stroke:#ff9800
 ```
 
-#### 5.4.2 GitOps Multi-Region Gradual Deployment
+#### 5.4.2 GitOps multi-region gradual Deployment
 
-Using Argo CD ApplicationSet to automate **sequential deployment per region**, controlling next region deployment based on each region's canary evaluation results.
+Argo CD ApplicationSet use to **per region 순차 Deployment**를 Automation and, each region canary 평 result according to following region Deployment 제어.
 
 ```yaml
 # argocd-multi-region-applicationset.yaml
 apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
 metadata:
-  name: payment-service-multi-region
-  namespace: argocd
+ name: payment-service-multi-region
+ namespace: argocd
 spec:
-  generators:
-    - list:
-        elements:
-          - region: ap-northeast-2
-            cluster: prod-ap-cluster
-            syncWave: "1"
-            canaryDuration: "15m"
-            trafficWeight: "10,25,50,100"
-            primary: "true"
-          - region: eu-west-1
-            cluster: prod-eu-cluster
-            syncWave: "2"
-            canaryDuration: "30m"
-            trafficWeight: "20,50,100"
-            primary: "false"
-          - region: us-east-1
-            cluster: prod-us-cluster
-            syncWave: "3"
-            canaryDuration: "30m"
-            trafficWeight: "20,50,100"
-            primary: "false"
+ generators:
+ - list:
+ elements:
+ - region: ap-northeast-2
+ cluster: prod-ap-cluster
+ syncWave: "1"
+ canaryDuration: "15m"
+ trafficWeight: "10,25,50,100"
+ primary: "true"
+ - region: eu-west-1
+ cluster: prod-eu-cluster
+ syncWave: "2"
+ canaryDuration: "30m"
+ trafficWeight: "20,50,100"
+ primary: "false"
+ - region: us-east-1
+ cluster: prod-us-cluster
+ syncWave: "3"
+ canaryDuration: "30m"
+ trafficWeight: "20,50,100"
+ primary: "false"
 
-  template:
-    metadata:
-      name: payment-service-{{region}}
-      annotations:
-        # Sync Wave ensures order between regions
-        argocd.argoproj.io/sync-wave: "{{syncWave}}"
-        # Proceed only after previous Wave succeeds
-        argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
-    spec:
-      project: production
-      source:
-        repoURL: https://github.com/company/k8s-manifests
-        targetRevision: HEAD
-        path: apps/payment-service/overlays/{{region}}
-        helm:
-          parameters:
-            - name: region
-              value: "{{region}}"
-            - name: canary.duration
-              value: "{{canaryDuration}}"
-            - name: canary.trafficWeight
-              value: "{{trafficWeight}}"
-      destination:
-        server: "{{cluster}}"
-        namespace: payment-service
-      syncPolicy:
-        automated:
-          prune: true
-          selfHeal: true
-        syncOptions:
-          - CreateNamespace=true
-        # Canary evaluation hook
-        postSync:
-          - hook: Job
-            hookType: PostSync
-            manifest: |
-              apiVersion: batch/v1
-              kind: Job
-              metadata:
-                name: canary-evaluation-{{region}}
-              spec:
-                template:
-                  spec:
-                    containers:
-                    - name: bedrock-agent-evaluator
-                      image: aws-bedrock-agent-evaluator:latest
-                      env:
-                      - name: REGION
-                        value: "{{region}}"
-                      - name: SERVICE
-                        value: payment-service
-                      - name: DURATION
-                        value: "{{canaryDuration}}"
-                      - name: IS_PRIMARY
-                        value: "{{primary}}"
-                      command:
-                      - /bin/sh
-                      - -c
-                      - |
-                        # Invoke Bedrock Agent for canary evaluation
-                        DECISION=$(aws bedrock-agent-runtime invoke-agent \
-                          --agent-id $AGENT_ID \
-                          --agent-alias-id $AGENT_ALIAS_ID \
-                          --session-id "argo-$ARGOCD_APP_NAME-$REGION" \
-                          --input-text "Evaluate the payment-service canary deployment in {{region}} region for {{canaryDuration}}. Primary region: {{primary}}" \
-                          | jq -r '.decision')
+ template:
+ metadata:
+ name: payment-service-{{region}}
+ annotations:
+ # Sync Wave로 리전 간 순서 보장
+ argocd.argoproj.io/sync-wave: "{{syncWave}}"
+ # 이전 Wave 성공 후에만 진행
+ argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+ spec:
+ project: production
+ source:
+ repoURL: https://github.com/company/k8s-manifests
+ targetRevision: HEAD
+ path: apps/payment-service/overlays/{{region}}
+ helm:
+ parameters:
+ - name: region
+ value: "{{region}}"
+ - name: canary.duration
+ value: "{{canaryDuration}}"
+ - name: canary.trafficWeight
+ value: "{{trafficWeight}}"
+ destination:
+ server: "{{cluster}}"
+ namespace: payment-service
+ syncPolicy:
+ automated:
+ prune: true
+ selfHeal: true
+ syncOptions:
+ - CreateNamespace=true
+ # 카나리 평가 훅
+ postSync:
+ - hook: Job
+ hookType: PostSync
+ manifest: |
+ apiVersion: batch/v1
+ kind: Job
+ metadata:
+ name: canary-evaluation-{{region}}
+ spec:
+ template:
+ spec:
+ containers:
+ - name: bedrock-agent-evaluator
+ image: aws-bedrock-agent-evaluator:latest
+ env:
+ - name: REGION
+ value: "{{region}}"
+ - name: SERVICE
+ value: payment-service
+ - name: DURATION
+ value: "{{canaryDuration}}"
+ - name: IS_PRIMARY
+ value: "{{primary}}"
+ command:
+ - /bin/sh
+ - -c
+ - |
+ # Bedrock Agent 호출하여 카나리 평가
+ DECISION=$(aws bedrock-agent-runtime invoke-agent \
+ --agent-id $AGENT_ID \
+ --agent-alias-id $AGENT_ALIAS_ID \
+ --session-id "argo-$ARGOCD_APP_NAME-$REGION" \
+ --input-text "{{region}} 리전의 payment-service 카나리 배포를 {{canaryDuration}} 동안 평가하세요. Primary 리전: {{primary}}" \
+ | jq -r '.decision')
 
-                        if [ "$DECISION" = "APPROVE" ]; then
-                          echo "Canary evaluation success: {{region}} region deployment complete"
-                          exit 0
-                        else
-                          echo "Canary evaluation failed: {{region}} region rollback required"
-                          # Rollback Argo CD Application to previous version
-                          argocd app rollback $ARGOCD_APP_NAME --prune
-                          exit 1
-                        fi
-                    restartPolicy: Never
+ if [ "$DECISION" = "APPROVE" ]; then
+ echo "카나리 평가 성공: {{region}} 리전 배포 완료"
+ exit 0
+ else
+ echo "카나리 평가 실패: {{region}} 리전 롤백 필요"
+ # Argo CD Application을 이전 버전으로 롤백
+ argocd app rollback $ARGOCD_APP_NAME --prune
+ exit 1
+ fi
+ restartPolicy: Never
 ```
 
-#### 5.4.3 Per-Region Test Strategy
+#### 5.4.3 per region test strategy
 
-In multi-region environments, **differentiated testing tailored to regional characteristics** is required.
+multi-region environment in **region 특 맞 차별화 test**is required.
 
-| Test Stage | Primary Region (AP) | Secondary Regions (EU, US) | Purpose |
-|------------|-------------------|------------------------|---------|
-| **Canary** | 10% → 25% → 50% → 100% (15 min) | 20% → 50% → 100% (30 min) | Verify in Primary first |
-| **SLO Verification** | P99 < 200ms, error rate < 0.1% | P99 < 300ms (considering cross-region latency) | Differentiated thresholds per region |
-| **Load Testing** | Actual traffic pattern (peak: 10K rps) | Half level (peak: 5K rps) | Consider per-region traffic |
-| **Fault Injection** | Chaos Mesh weekly execution | Chaos Mesh biweekly execution | Primary-first verification |
-| **Security Scan** | Same across all regions (Q Developer Security Scan) | Same across all regions | Consistent security policy |
+| test phase | Primary region (AP) | Secondary region (EU, US) | 목 |
+|------------|-------------------|------------------------|------|
+| **Canary** | 10% → 25% → 50% → 100% (15minutes) | 20% → 50% → 100% (30minutes) | Primary from 먼저 Validation |
+| **SLO Validation** | P99 < 200ms, errorrate < 0.1% | P99 < 300ms (Cross-region latency consideration) | per region threshold 차등화 |
+| **부 test** | actual traffic pattern (peak: 10K rps) | 절반 level (peak: 5K rps) | per region traffic consideration |
+| **failure injection** | Chaos Mesh 주between execution | Chaos Mesh 격주 execution | Primary 우선 Validation |
+| **security scan** | all region 동day (Q Developer Security Scan) | all region 동day | consistent security policy |
 
-**Per-Region AI Quality Gate Example**:
+**per region AI 품질 이트 example**:
 
 ```yaml
 # quality-gate-regional-config.yaml
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: quality-gate-config
-  namespace: cicd-system
+ name: quality-gate-config
+ namespace: cicd-system
 data:
-  ap-northeast-2: |
-    # Primary region: Strict criteria
-    slo:
-      p99_latency_ms: 200
-      error_rate_pct: 0.1
-      availability_pct: 99.95
-    canary:
-      duration: 15m
-      traffic: [10, 25, 50, 100]
-      autoPromote: true
-    chaos:
-      enabled: true
-      frequency: weekly
+ ap-northeast-2: |
+ # Primary 리전: 엄격한 기준
+ slo:
+ p99_latency_ms: 200
+ error_rate_pct: 0.1
+ availability_pct: 99.95
+ canary:
+ duration: 15m
+ traffic: [10, 25, 50, 100]
+ autoPromote: true
+ chaos:
+ enabled: true
+ frequency: weekly
 
-  eu-west-1: |
-    # Secondary region: Considering cross-region latency
-    slo:
-      p99_latency_ms: 300
-      error_rate_pct: 0.15
-      availability_pct: 99.9
-    canary:
-      duration: 30m
-      traffic: [20, 50, 100]
-      autoPromote: true
-    chaos:
-      enabled: true
-      frequency: biweekly
+ eu-west-1: |
+ # Secondary 리전: Cross-region latency 고려
+ slo:
+ p99_latency_ms: 300
+ error_rate_pct: 0.15
+ availability_pct: 99.9
+ canary:
+ duration: 30m
+ traffic: [20, 50, 100]
+ autoPromote: true
+ chaos:
+ enabled: true
+ frequency: biweekly
 
-  us-east-1: |
-    # Secondary region: Same as eu-west-1
-    slo:
-      p99_latency_ms: 300
-      error_rate_pct: 0.15
-      availability_pct: 99.9
-    canary:
-      duration: 30m
-      traffic: [20, 50, 100]
-      autoPromote: true
-    chaos:
-      enabled: true
-      frequency: biweekly
+ us-east-1: |
+ # Secondary 리전: eu-west-1과 동일
+ slo:
+ p99_latency_ms: 300
+ error_rate_pct: 0.15
+ availability_pct: 99.9
+ canary:
+ duration: 30m
+ traffic: [20, 50, 100]
+ autoPromote: true
+ chaos:
+ enabled: true
+ frequency: biweekly
 ```
 
-#### 5.4.4 DR (Disaster Recovery) Scenario AIDLC Integration
+#### 5.4.4 DR(re-해 recovery) scenario AIDLC Integration
 
-Multi-region AIDLC **integrates disaster recovery scenarios into the normal deployment process**, making DR transitions a verified workflow.
+multi-region AIDLC **re-해 recovery scenario normal Deployment process Integration** to, DR transition Validation workflow only듭.
 
-**DR Transition Scenario**:
+**DR transition scenario**:
 
 ```
-[Normal State]
-Primary (AP): 100% traffic
-Secondary (EU, US): 0% traffic (Standby)
+[정상 상태]
+Primary (AP): 100% 트래픽
+Secondary (EU, US): 0% 트래픽 (Standby)
 
-[AP Region Failure Detected]
-  ↓
-[AI Agent Automatic Determination]
-  - CloudWatch Synthetics: AP region endpoint failed 3 consecutive times
-  - Container Network Observability: AP region Pod-to-Pod communication severed
-  - Control Plane Metrics: AP API server not responding
-  ↓
-[DR Transition Decision]
-  AI Agent: "AP region control plane failure confirmed. Failover to EU region recommended."
-  ↓
-[Automatic Execution]
-  1. Route 53 Health Check failure detected
-  2. Route 53 weighted routing change: EU 100%, AP 0%
-  3. EU region HPA scale out: 2 → 10 replicas
-  4. EU region Karpenter NodePool expansion
-  5. Slack notification: "DR transition complete. EU region promoted to Primary."
-  ↓
-[After AP Region Recovery]
-  1. AI Agent detects AP region health check normalization
-  2. Gradual traffic return: EU 100% → EU 50%, AP 50% → AP 100%
-  3. Verify AP region stability with canary pattern (30 min)
-  4. Return to normal state
+[AP 리전 장애 감지]
+ ↓
+[AI Agent 자동 판단]
+ - CloudWatch Synthetics: AP 리전 엔드포인트 3회 연속 실패
+ - Container Network Observability: AP 리전 Pod-to-Pod 통신 두절
+ - Control Plane Metrics: AP API 서버 응답 없음
+ ↓
+[DR 전환 결정]
+ AI Agent: "AP 리전 컨트롤 플레인 장애 확인. EU 리전으로 페일오버 권장."
+ ↓
+[자동 실행]
+ 1. Route 53 Health Check 실패 감지
+ 2. Route 53 가중치 라우팅 변경: EU 100%, AP 0%
+ 3. EU 리전 HPA 스케일 아웃: 2 → 10 replicas
+ 4. EU 리전 Karpenter NodePool 확장
+ 5. Slack 알림: "DR 전환 완료. EU 리전이 Primary로 승격."
+ ↓
+[AP 리전 복구 후]
+ 1. AI Agent가 AP 리전 헬스 체크 정상화 감지
+ 2. 점진적 트래픽 복귀: EU 100% → EU 50%, AP 50% → AP 100%
+ 3. 카나리 패턴으로 AP 리전 안정성 검증 (30분)
+ 4. 정상 상태 복귀
 ```
 
-**DR Transition Argo CD Configuration**:
+**DR transition Argo CD Configuration**:
 
 ```yaml
 # argocd-dr-failover-application.yaml
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: payment-service-dr-controller
-  namespace: argocd
+ name: payment-service-dr-controller
+ namespace: argocd
 spec:
-  project: production
-  source:
-    repoURL: https://github.com/company/k8s-manifests
-    path: dr-controller
-    helm:
-      parameters:
-        - name: primary.region
-          value: ap-northeast-2
-        - name: secondary.regions
-          value: "eu-west-1,us-east-1"
-        - name: failover.automatic
-          value: "true"
-        - name: failover.healthCheckFailureThreshold
-          value: "3"
-        - name: failback.canaryDuration
-          value: "30m"
-  destination:
-    server: https://kubernetes.default.svc
-    namespace: dr-system
-  syncPolicy:
-    automated:
-      prune: true
-      selfHeal: true
+ project: production
+ source:
+ repoURL: https://github.com/company/k8s-manifests
+ path: dr-controller
+ helm:
+ parameters:
+ - name: primary.region
+ value: ap-northeast-2
+ - name: secondary.regions
+ value: "eu-west-1,us-east-1"
+ - name: failover.automatic
+ value: "true"
+ - name: failover.healthCheckFailureThreshold
+ value: "3"
+ - name: failback.canaryDuration
+ value: "30m"
+ destination:
+ server: https://kubernetes.default.svc
+ namespace: dr-system
+ syncPolicy:
+ automated:
+ prune: true
+ selfHeal: true
 ```
 
-:::warning Production Considerations for DR Transitions
-**Be cautious with automatic DR transitions**:
-- Disable automatic transitions during initial adoption (`failover.automatic: false`)
-- Repeat manual DR transition drills (quarterly DR drills)
-- Add human approval step to AI Agent decisions (Slack Approval Workflow)
-- Verify data consistency after transition (check RDS Cross-Region Replication Lag)
+:::warning DR transition production consideration사항
+**automatic DR transition 신중**:
+- initial adoption time automatic transition ratioActivation (`failover.automatic: false`)
+- manual DR transition 훈련 repetitive (per minutes기 DR 훈련)
+- AI Agent decision for 사람 approval phase additional (Slack Approval Workflow)
+- transition after data consistency Validation (RDS Cross-Region Replication Lag Verification)
 
-**Database DR**:
-- RDS Aurora Global Database: Automatic failover support (RPO < 1 second)
-- DynamoDB Global Tables: Multi-region automatic replication
-- ElastiCache Global Datastore: Redis multi-region replication
+**database DR**:
+- RDS Aurora Global Database: automatic failover Support (RPO < 1초)
+- DynamoDB Global Tables: multi-region automatic 복제
+- ElastiCache Global Datastore: Redis multi-region 복제
 :::
 
 ---
 
-## 6. Quality Gates — Quality Assurance Across All Phases
+## 6. Quality Gates — Cross-Phase Quality Assurance
 
-In AI-DLC, human verification is a **Loss Function** — catching errors early at each stage to prevent downstream propagation. Quality Gates systematize this Loss Function.
+AI-DLC from 사람 validation is **Loss Function** — each phase from error 조기 포착 to 류 before파 prevention. Quality Gates 이 Loss Function 체계화 것.
 
 ```
-Inception          Construction          Operations
-    │                   │                    │
-    ▼                   ▼                    ▼
-[Mob Elaboration    [DDD Model         [Pre-deployment
- artifact            verification]      verification]
- verification]
-    │                   │                    │
-    ▼                   ▼                    ▼
-[Spec consistency]  [Code + Security    [SLO-based
-                     scan]               monitoring]
-    │                   │                    │
-    ▼                   ▼                    ▼
-[NFR fulfillment]   [Test coverage]     [AI Agent response
-                                         verification]
+Inception Construction Operations
+ │ │ │
+ ▼ ▼ ▼
+[Mob Elaboration [DDD Model [배포 전 검증]
+ 산출물 검증] 검증]
+ │ │ │
+ ▼ ▼ ▼
+[Spec 정합성] [코드 + 보안 스캔] [SLO 기반 모니터링]
+ │ │ │
+ ▼ ▼ ▼
+[NFR 충족 여부] [테스트 커버리지] [AI Agent 대응 검증]
 ```
 
 <QualityGates />
 
 ### Harness Engineering: An Architectural Approach to Quality Assurance
 
-> "The agent isn't the hard part — the harness is" — NxCode, 2026
+> "agent 어려운 아니라, harness 어렵다" — NxCode, 2026
 
-The key lesson of 2026 AI development is the rise of **Harness Engineering**. When OpenAI Codex generated 1 million lines of code, human engineers wrote zero lines. The engineer's role shifted from **writing code to designing the harness**.
+2026year AI development Key Lesson **Harness Engineering** 부상. OpenAI Codex 100only 줄 code generation when, 인between 엔지니어 작 code 0줄이었. 엔지니어 role **code 쓰 것 아니라 harness design 것** as transition되었.
 
-**Harness vs Guardrails:**
+**harness vs guardrails:**
 
-| Aspect | Guardrails | Harness |
-|--------|-----------|---------|
-| **Scope** | Runtime I/O filtering | Entire architecture design |
-| **Role** | PII masking, prompt injection defense | Retry budgets, timeouts, output gates, circuit breakers |
-| **Timing** | During execution | From design time |
-| **Failure Mode** | Block individual requests | Protect entire system |
+| Category | guardrails(Guardrails) | harness(Harness) |
+|------|---------------------|----------------|
+| **scope** | 런타임 입출력 필터링 | architecture entire design |
+| **role** | PII 마스킹, 프롬프트 인젝션 방어 | re-timealso example산, 타임아웃, 출력 이트, circuit breaker |
+| **time점** | execution 중 | design time점부터 |
+| **failure 모드** | per request blocking | system entire 보호 |
 
-:::caution The Same-Agent Testing Trap
-"Tests written by the same AI agent cannot catch that agent's errors" — this is the AI equivalent of marking your own homework. Tests pass, CI is green, merge... but 3 days later the feature is half-wired. The cause: tests were optimized for 'done', not 'correct'.
+:::caution such as agent test 함정
+" such as AI agent 작 test such as agent error 잡지 못다" — this is AI 숙제 스스 채점 것 and 같. test 통 and and, CI 녹색이고, 머지했지only… 3day after feature 반only behavior 상황 occurrence. cause test '완료'에 Optimization되었지 '정확'에 Optimization되지 않았기 when문.
 
-**Solution**: Independent verification harness — validation must be performed by a different agent (or human) than the one that generated the code.
+**해결**: independent Validation harness — code generation agent and 다른 agent(or 인between)가 Validation performmust .
 :::
 
-**AIDLC Harness Patterns:**
+**AIDLC harness pattern:**
 
-| Phase | Harness Type | Validation Target | Implementation |
-|-------|-------------|-------------------|---------------|
-| **Inception** | Spec validation harness | Requirements completeness, conflicts, NFR fulfillment | Ontology-based Spec consistency auto-verification |
-| **Construction** | Build/test harness | Code correctness, security, architecture compliance | Independent agent review + ontology violation detection |
-| **Operations** | Runtime harness | AI Agent behavior constraints, cost limits | Circuit breakers, retry budgets, output gates |
+| Phase | harness type | Validation 대상 | Implementation method |
+|------|-----------|----------|----------|
+| **Inception** | Spec Validation harness | 요구사항 complete, 상충 whether, NFR 충족 | ontology based Spec consistency automatic Validation |
+| **Construction** | build/test harness | code 정확, security, architecture 준 | 독립 agent review + ontology 위반 detection |
+| **Operations** | 런타임 harness | AI Agent 행동 constraint, cost limitation | circuit breaker, re-timealso example산, 출력 이트 |
 
-**Fintech Runaway Case**: An AI agent operating without a harness executed **847 API retries** in a single loop, incurring $2,200 in costs and sending 14 incomplete emails. The cause was not the model or prompt but an **architectural failure** — no retry budget, timeout, output gate, or circuit breaker.
+**Fintech Runaway case**: harness without Operations AI agent 나 loop from **847번 API re-timealso**를 execution to $2,200 cost occurrencetime키고 14 non-complete 이메day transfer했. cause model이나 프롬프트 아니라 **architecture failure** — re-timealso example산, 타임아웃, 출력 이트, circuit breaker 없었.
 
 **References:**
 - [Harness Engineering: Governing AI Agents through Architectural Rigor](https://harness-engineering.ai/blog/harness-engineering-governing-ai-agents-through-architectural-rigor/) — Kai Renner, 2026.03
@@ -2687,411 +2679,411 @@ The key lesson of 2026 AI development is the rise of **Harness Engineering**. Wh
 
 ### 6.1 AI-Based PR Review Automation
 
-Traditional code reviews rely on lint rules and static analysis, but **AI-based reviews verify architecture patterns, security best practices, and business logic consistency**.
+Traditional code review 린트 규칙 and 정 Analysis 의존notonly, **AI based review architecture pattern, security 모범 case, Business logic 정합** Validation.
 
 ```yaml
 # .github/workflows/ai-review.yml
 name: AI Code Review
 on:
-  pull_request:
-    types: [opened, synchronize]
+ pull_request:
+ types: [opened, synchronize]
 
 jobs:
-  ai-review:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+ ai-review:
+ runs-on: ubuntu-latest
+ steps:
+ - uses: actions/checkout@v4
+ with:
+ fetch-depth: 0
 
-      - name: Q Developer Security Scan
-        uses: aws/amazon-q-developer-action@v1
-        with:
-          scan-type: security
-          source-path: .
+ - name: Q Developer Security Scan
+ uses: aws/amazon-q-developer-action@v1
+ with:
+ scan-type: security
+ source-path: .
 
-      - name: K8s Manifest Validation
-        run: |
-          kube-linter lint deploy/ --config .kube-linter.yaml
+ - name: K8s Manifest Validation
+ run: |
+ kube-linter lint deploy/ --config .kube-linter.yaml
 
-      - name: Terraform Validation
-        if: contains(github.event.pull_request.changed_files, 'terraform/')
-        run: |
-          cd terraform/
-          terraform init -backend=false
-          terraform validate
-          tflint --recursive
+ - name: Terraform Validation
+ if: contains(github.event.pull_request.changed_files, 'terraform/')
+ run: |
+ cd terraform/
+ terraform init -backend=false
+ terraform validate
+ tflint --recursive
 ```
 
 ### 6.2 LLM-Based Code Review Automation (Beyond Lint)
 
-An advanced quality gate where **LLMs verify architecture patterns and business logic** beyond lint tools.
+린트 tool 넘어 **LLM architecture pattern and Business logic Validation** 고급 품질 이트.
 
-#### 6.2.1 Architecture Pattern Verification
+#### 6.2.1 Architecture Pattern Validation
 
-Uses Q Developer to automatically verify that code adheres to the team's architecture principles.
+Q Developer leveraging code 팀 architecture 원칙 준지 automatic Validation.
 
 ```yaml
 # .github/workflows/architecture-review.yml
 name: AI Architecture Review
 on:
-  pull_request:
-    types: [opened, synchronize]
+ pull_request:
+ types: [opened, synchronize]
 
 jobs:
-  architecture-review:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+ architecture-review:
+ runs-on: ubuntu-latest
+ steps:
+ - uses: actions/checkout@v4
+ with:
+ fetch-depth: 0
 
-      - name: Extract Changed Files
-        id: changed-files
-        run: |
-          git diff --name-only origin/${{ github.base_ref }}..HEAD > changed_files.txt
-          echo "files=$(cat changed_files.txt | tr '\n' ' ')" >> $GITHUB_OUTPUT
+ - name: Extract Changed Files
+ id: changed-files
+ run: |
+ git diff --name-only origin/${{ github.base_ref }}..HEAD > changed_files.txt
+ echo "files=$(cat changed_files.txt | tr '\n' ' ')" >> $GITHUB_OUTPUT
 
-      - name: Q Developer Architecture Review
-        id: q-review
-        run: |
-          # Verify architecture using Q Developer CLI
-          aws q-developer review \
-            --files "${{ steps.changed-files.outputs.files }}" \
-            --review-type architecture \
-            --context-file ARCHITECTURE.md \
-            --output review-result.json
+ - name: Q Developer Architecture Review
+ id: q-review
+ run: |
+ # Q Developer CLI를 사용하여 아키텍처 검증
+ aws q-developer review \
+ --files "${{ steps.changed-files.outputs.files }}" \
+ --review-type architecture \
+ --context-file ARCHITECTURE.md \
+ --output review-result.json
 
-          # Verification criteria
-          VIOLATIONS=$(jq -r '.violations | length' review-result.json)
-          if [ "$VIOLATIONS" -gt 0 ]; then
-            echo "Architecture violations found: $VIOLATIONS"
-            jq -r '.violations[] | "- [\(.severity)] \(.file):\(.line) - \(.message)"' review-result.json
-            exit 1
-          fi
+ # 검증 기준
+ VIOLATIONS=$(jq -r '.violations | length' review-result.json)
+ if [ "$VIOLATIONS" -gt 0 ]; then
+ echo "❌ 아키텍처 위반 발견: $VIOLATIONS 건"
+ jq -r '.violations[] | "- [\(.severity)] \(.file):\(.line) - \(.message)"' review-result.json
+ exit 1
+ fi
 
-      - name: Post Review Comments
-        if: failure()
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const fs = require('fs');
-            const review = JSON.parse(fs.readFileSync('review-result.json', 'utf8'));
+ - name: Post Review Comments
+ if: failure()
+ uses: actions/github-script@v7
+ with:
+ script: |
+ const fs = require('fs');
+ const review = JSON.parse(fs.readFileSync('review-result.json', 'utf8'));
 
-            for (const violation of review.violations) {
-              await github.rest.pulls.createReviewComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                pull_number: context.issue.number,
-                body: `**${violation.severity}**: ${violation.message}\n\n**Suggestion**: ${violation.suggestion}`,
-                commit_id: context.payload.pull_request.head.sha,
-                path: violation.file,
-                line: violation.line
-              });
-            }
+ for (const violation of review.violations) {
+ await github.rest.pulls.createReviewComment({
+ owner: context.repo.owner,
+ repo: context.repo.repo,
+ pull_number: context.issue.number,
+ body: `**${violation.severity}**: ${violation.message}\n\n**제안**: ${violation.suggestion}`,
+ commit_id: context.payload.pull_request.head.sha,
+ path: violation.file,
+ line: violation.line
+ });
+ }
 ```
 
-**Verification Example (ARCHITECTURE.md)**:
+**Validation example (ARCHITECTURE.md)**:
 
 ```markdown
-# Architecture Principles
+# 아키텍처 원칙
 
-## DDD Pattern Compliance
-- Aggregates are defined in a single file (e.g., `user_aggregate.go`)
-- Entities can only be modified within an Aggregate
-- Value Objects are implemented as immutable objects
+## DDD 패턴 준수
+- Aggregate는 단일 파일로 정의 (예: `user_aggregate.go`)
+- Entity는 Aggregate 내부에서만 수정 가능
+- Value Object는 불변 객체로 구현
 
-## Microservice Communication
-- Synchronous calls: Use gRPC
-- Asynchronous events: Use SQS/SNS
-- External APIs: HTTP REST (OpenAPI spec required)
+## 마이크로서비스 통신
+- 동기 호출: gRPC 사용
+- 비동기 이벤트: SQS/SNS 사용
+- 외부 API: HTTP REST (OpenAPI spec 필수)
 
-## Observability
-- OpenTelemetry instrumentation on all handlers
-- Business metrics exposed as Prometheus custom metrics
-- Structured logging (JSON format, including contextual fields)
+## 관찰성
+- 모든 핸들러에 OpenTelemetry 계측
+- 비즈니스 메트릭은 Prometheus 커스텀 메트릭으로 노출
+- 구조화된 로깅 (JSON 형식, contextual fields 포함)
 
-## Security
-- Authentication: JWT (HS256 prohibited, use RS256)
-- Sensitive information: Retrieved from AWS Secrets Manager
-- SQL queries: Use Prepared Statements (string concatenation prohibited)
+## 보안
+- 인증: JWT (HS256 금지, RS256 사용)
+- 민감 정보: AWS Secrets Manager에서 조회
+- SQL 쿼리: Prepared Statement 사용 (문자열 연결 금지)
 ```
 
-**Q Developer Detection Example**:
+**Q Developer 검출 example**:
 
 ```go
-// Violation: Direct Entity modification outside Aggregate
+// ❌ 위반: Aggregate 외부에서 Entity 직접 수정
 func UpdateUserEmail(userID string, email string) error {
-    user, _ := userRepo.FindByID(userID)
-    user.Email = email  // Violation: Direct Entity modification
-    return userRepo.Save(user)
+ user, _ := userRepo.FindByID(userID)
+ user.Email = email // ❌ Entity 직접 수정
+ return userRepo.Save(user)
 }
 
-// Recommended: Modification through Aggregate method
+// ✅ 권장: Aggregate 메서드를 통한 수정
 func UpdateUserEmail(userID string, email string) error {
-    user, _ := userRepo.FindByID(userID)
-    return user.ChangeEmail(email)  // Aggregate method used
+ user, _ := userRepo.FindByID(userID)
+ return user.ChangeEmail(email) // ✅ Aggregate 메서드 사용
 }
 ```
 
-**AI Review Comment**:
+**AI review 코멘트**:
 
-> **MEDIUM**: `user.Email = email` violates Aggregate encapsulation.
+> **MEDIUM**: `user.Email = email`는 Aggregate encapsulation 위반.
 >
-> **Suggestion**: Add a `ChangeEmail(email string) error` method to the `User` Aggregate and move email format validation logic inside the Aggregate.
+> **recommendation**: `User` Aggregate `ChangeEmail(email string) error` 메서드 additional and, 이메day type식 Validation 로직 Aggregate 내부 movement.
 >
-> **Reference**: ARCHITECTURE.md - DDD Pattern Compliance
+> **Reference**: ARCHITECTURE.md - DDD pattern 준
 
 #### 6.2.2 AI-Based Test Case Auto-Generation
 
-Uses Q Developer to **automatically generate test cases when code changes**, preventing coverage gaps.
+Q Developer leveraging **code change time test 케이스 automatic generation** and, coverage shortage prevention.
 
 ```yaml
 # .github/workflows/test-generation.yml
 name: AI Test Generation
 on:
-  pull_request:
-    types: [opened, synchronize]
+ pull_request:
+ types: [opened, synchronize]
 
 jobs:
-  generate-tests:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
+ generate-tests:
+ runs-on: ubuntu-latest
+ steps:
+ - uses: actions/checkout@v4
 
-      - name: Q Developer Test Generation
-        run: |
-          # Auto-generate tests for changed files
-          for file in $(git diff --name-only origin/${{ github.base_ref }}..HEAD | grep '\.go$'); do
-            # Generate if no existing test file
-            test_file="${file%.*}_test.go"
-            if [ ! -f "$test_file" ]; then
-              aws q-developer generate-tests \
-                --source-file "$file" \
-                --output "$test_file" \
-                --framework "testify" \
-                --coverage-target 80
-            fi
+ - name: Q Developer Test Generation
+ run: |
+ # 변경된 파일에 대한 테스트 자동 생성
+ for file in $(git diff --name-only origin/${{ github.base_ref }}..HEAD | grep '\.go$'); do
+ # 기존 테스트 파일이 없으면 생성
+ test_file="${file%.*}_test.go"
+ if [ ! -f "$test_file" ]; then
+ aws q-developer generate-tests \
+ --source-file "$file" \
+ --output "$test_file" \
+ --framework "testify" \
+ --coverage-target 80
+ fi
 
-            # Add missing cases to existing tests
-            aws q-developer augment-tests \
-              --source-file "$file" \
-              --test-file "$test_file" \
-              --coverage-analysis
-          done
+ # 기존 테스트에 누락된 케이스 추가
+ aws q-developer augment-tests \
+ --source-file "$file" \
+ --test-file "$test_file" \
+ --coverage-analysis
+ done
 
-      - name: Run Tests and Check Coverage
-        run: |
-          go test ./... -coverprofile=coverage.out
-          COVERAGE=$(go tool cover -func=coverage.out | grep total | awk '{print $3}' | sed 's/%//')
+ - name: Run Tests and Check Coverage
+ run: |
+ go test ./... -coverprofile=coverage.out
+ COVERAGE=$(go tool cover -func=coverage.out | grep total | awk '{print $3}' | sed 's/%//')
 
-          if (( $(echo "$COVERAGE < 80" | bc -l) )); then
-            echo "Test coverage insufficient: $COVERAGE% (target: 80%)"
+ if (( $(echo "$COVERAGE < 80" | bc -l) )); then
+ echo "❌ 테스트 커버리지 부족: $COVERAGE% (목표: 80%)"
 
-            # Analyze uncovered functions
-            aws q-developer analyze-coverage \
-              --coverage-file coverage.out \
-              --recommend-tests
+ # 커버되지 않은 함수 분석
+ aws q-developer analyze-coverage \
+ --coverage-file coverage.out \
+ --recommend-tests
 
-            exit 1
-          fi
+ exit 1
+ fi
 
-      - name: Commit Generated Tests
-        if: success()
-        run: |
-          git config user.name "Q Developer Bot"
-          git config user.email "q-developer@aws.amazon.com"
-          git add "*_test.go"
-          git commit -m "chore: add AI-generated tests [skip ci]" || true
-          git push
+ - name: Commit Generated Tests
+ if: success()
+ run: |
+ git config user.name "Q Developer Bot"
+ git config user.email "q-developer@aws.amazon.com"
+ git add "*_test.go"
+ git commit -m "chore: add AI-generated tests [skip ci]" || true
+ git push
 ```
 
-**Generated Test Example**:
+**generation test example**:
 
 ```go
-// user_service_test.go (AI-generated)
+// user_service_test.go (AI 생성)
 package service
 
 import (
-    "testing"
-    "github.com/stretchr/testify/assert"
-    "github.com/stretchr/testify/mock"
+ "testing"
+ "github.com/stretchr/testify/assert"
+ "github.com/stretchr/testify/mock"
 )
 
 func TestUserService_ChangeEmail_Success(t *testing.T) {
-    // Arrange
-    mockRepo := new(MockUserRepository)
-    service := NewUserService(mockRepo)
+ // Arrange
+ mockRepo := new(MockUserRepository)
+ service := NewUserService(mockRepo)
 
-    user := &User{ID: "user-123", Email: "old@example.com"}
-    mockRepo.On("FindByID", "user-123").Return(user, nil)
-    mockRepo.On("Save", mock.Anything).Return(nil)
+ user := &User{ID: "user-123", Email: "old@example.com"}
+ mockRepo.On("FindByID", "user-123").Return(user, nil)
+ mockRepo.On("Save", mock.Anything).Return(nil)
 
-    // Act
-    err := service.ChangeEmail("user-123", "new@example.com")
+ // Act
+ err := service.ChangeEmail("user-123", "new@example.com")
 
-    // Assert
-    assert.NoError(t, err)
-    assert.Equal(t, "new@example.com", user.Email)
-    mockRepo.AssertExpectations(t)
+ // Assert
+ assert.NoError(t, err)
+ assert.Equal(t, "new@example.com", user.Email)
+ mockRepo.AssertExpectations(t)
 }
 
 func TestUserService_ChangeEmail_InvalidFormat(t *testing.T) {
-    // Arrange
-    mockRepo := new(MockUserRepository)
-    service := NewUserService(mockRepo)
+ // Arrange
+ mockRepo := new(MockUserRepository)
+ service := NewUserService(mockRepo)
 
-    user := &User{ID: "user-123", Email: "old@example.com"}
-    mockRepo.On("FindByID", "user-123").Return(user, nil)
+ user := &User{ID: "user-123", Email: "old@example.com"}
+ mockRepo.On("FindByID", "user-123").Return(user, nil)
 
-    // Act
-    err := service.ChangeEmail("user-123", "invalid-email")
+ // Act
+ err := service.ChangeEmail("user-123", "invalid-email")
 
-    // Assert
-    assert.Error(t, err)
-    assert.Contains(t, err.Error(), "invalid email format")
+ // Assert
+ assert.Error(t, err)
+ assert.Contains(t, err.Error(), "invalid email format")
 }
 
 func TestUserService_ChangeEmail_UserNotFound(t *testing.T) {
-    // Arrange
-    mockRepo := new(MockUserRepository)
-    service := NewUserService(mockRepo)
+ // Arrange
+ mockRepo := new(MockUserRepository)
+ service := NewUserService(mockRepo)
 
-    mockRepo.On("FindByID", "nonexistent").Return(nil, ErrUserNotFound)
+ mockRepo.On("FindByID", "nonexistent").Return(nil, ErrUserNotFound)
 
-    // Act
-    err := service.ChangeEmail("nonexistent", "new@example.com")
+ // Act
+ err := service.ChangeEmail("nonexistent", "new@example.com")
 
-    // Assert
-    assert.ErrorIs(t, err, ErrUserNotFound)
+ // Assert
+ assert.ErrorIs(t, err, ErrUserNotFound)
 }
 ```
 
-### 6.3 Security Vulnerability AI Analysis
+### 6.3 AI Security Vulnerability Analysis
 
-Combines Q Developer Security Scan and CodeGuru to perform **multi-layer security verification**.
+Q Developer Security Scan and CodeGuru combination to **다층 security Validation**을 perform.
 
 ```yaml
 # .github/workflows/security-scan.yml
 name: Multi-Layer Security Scan
 on:
-  pull_request:
-    types: [opened, synchronize]
-  schedule:
-    - cron: '0 2 * * *'  # Full scan daily at 02:00
+ pull_request:
+ types: [opened, synchronize]
+ schedule:
+ - cron: '0 2 * * *' # 매일 02:00 전체 스캔
 
 jobs:
-  security-scan:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
+ security-scan:
+ runs-on: ubuntu-latest
+ steps:
+ - uses: actions/checkout@v4
 
-      - name: Q Developer Security Scan
-        id: q-security
-        run: |
-          aws q-developer scan \
-            --scan-type security \
-            --source-path . \
-            --output q-security-report.json \
-            --severity-threshold MEDIUM
+ - name: Q Developer Security Scan
+ id: q-security
+ run: |
+ aws q-developer scan \
+ --scan-type security \
+ --source-path . \
+ --output q-security-report.json \
+ --severity-threshold MEDIUM
 
-          CRITICAL=$(jq -r '.findings[] | select(.severity=="CRITICAL") | .id' q-security-report.json | wc -l)
-          HIGH=$(jq -r '.findings[] | select(.severity=="HIGH") | .id' q-security-report.json | wc -l)
+ CRITICAL=$(jq -r '.findings[] | select(.severity=="CRITICAL") | .id' q-security-report.json | wc -l)
+ HIGH=$(jq -r '.findings[] | select(.severity=="HIGH") | .id' q-security-report.json | wc -l)
 
-          echo "critical=$CRITICAL" >> $GITHUB_OUTPUT
-          echo "high=$HIGH" >> $GITHUB_OUTPUT
+ echo "critical=$CRITICAL" >> $GITHUB_OUTPUT
+ echo "high=$HIGH" >> $GITHUB_OUTPUT
 
-      - name: CodeGuru Reviewer
-        run: |
-          # CodeGuru Reviewer integration
-          aws codeguru-reviewer create-code-review \
-            --name "${{ github.event.pull_request.title }}" \
-            --repository-association-arn $CODEGURU_ARN \
-            --type '{"RepositoryAnalysis":{"RepositoryHead":{"BranchName":"${{ github.head_ref }}"}}}'
+ - name: CodeGuru Reviewer
+ run: |
+ # CodeGuru Reviewer 연동
+ aws codeguru-reviewer create-code-review \
+ --name "${{ github.event.pull_request.title }}" \
+ --repository-association-arn $CODEGURU_ARN \
+ --type '{"RepositoryAnalysis":{"RepositoryHead":{"BranchName":"${{ github.head_ref }}"}}}'
 
-      - name: Container Image Scan (ECR)
-        if: contains(github.event.pull_request.changed_files, 'Dockerfile')
-        run: |
-          # Build Docker image
-          docker build -t ${{ github.repository }}:${{ github.sha }} .
+ - name: Container Image Scan (ECR)
+ if: contains(github.event.pull_request.changed_files, 'Dockerfile')
+ run: |
+ # Docker 이미지 빌드
+ docker build -t ${{ github.repository }}:${{ github.sha }} .
 
-          # Push to ECR and scan
-          aws ecr get-login-password | docker login --username AWS --password-stdin $ECR_REGISTRY
-          docker push $ECR_REGISTRY/${{ github.repository }}:${{ github.sha }}
+ # ECR로 푸시 및 스캔
+ aws ecr get-login-password | docker login --username AWS --password-stdin $ECR_REGISTRY
+ docker push $ECR_REGISTRY/${{ github.repository }}:${{ github.sha }}
 
-          # Wait for scan results and verify
-          aws ecr wait image-scan-complete \
-            --repository-name ${{ github.repository }} \
-            --image-id imageTag=${{ github.sha }}
+ # 스캔 결과 대기 및 검증
+ aws ecr wait image-scan-complete \
+ --repository-name ${{ github.repository }} \
+ --image-id imageTag=${{ github.sha }}
 
-          FINDINGS=$(aws ecr describe-image-scan-findings \
-            --repository-name ${{ github.repository }} \
-            --image-id imageTag=${{ github.sha }} \
-            --query 'imageScanFindings.findingSeverityCounts')
+ FINDINGS=$(aws ecr describe-image-scan-findings \
+ --repository-name ${{ github.repository }} \
+ --image-id imageTag=${{ github.sha }} \
+ --query 'imageScanFindings.findingSeverityCounts')
 
-          CRITICAL=$(echo $FINDINGS | jq -r '.CRITICAL // 0')
-          if [ "$CRITICAL" -gt 0 ]; then
-            echo "Critical vulnerabilities found in container image"
-            exit 1
-          fi
+ CRITICAL=$(echo $FINDINGS | jq -r '.CRITICAL // 0')
+ if [ "$CRITICAL" -gt 0 ]; then
+ echo "❌ 컨테이너 이미지에서 Critical 취약점 발견"
+ exit 1
+ fi
 
-      - name: Security Gate Decision
-        run: |
-          CRITICAL=${{ steps.q-security.outputs.critical }}
-          HIGH=${{ steps.q-security.outputs.high }}
+ - name: Security Gate Decision
+ run: |
+ CRITICAL=${{ steps.q-security.outputs.critical }}
+ HIGH=${{ steps.q-security.outputs.high }}
 
-          if [ "$CRITICAL" -gt 0 ]; then
-            echo "CRITICAL vulnerabilities found - PR merge blocked"
-            exit 1
-          elif [ "$HIGH" -gt 3 ]; then
-            echo "HIGH vulnerabilities exceed 3 - Security team approval required"
-            # Slack notification
-            curl -X POST $SLACK_WEBHOOK_URL -d '{
-              "text": "Security approval required: PR #${{ github.event.pull_request.number }}\nHIGH vulnerabilities: '"$HIGH"'",
-              "channel": "#security-approvals"
-            }'
-            exit 1
-          else
-            echo "Security verification passed"
-          fi
+ if [ "$CRITICAL" -gt 0 ]; then
+ echo "❌ CRITICAL 취약점 발견 - PR 병합 불가"
+ exit 1
+ elif [ "$HIGH" -gt 3 ]; then
+ echo "⚠️ HIGH 취약점 3개 초과 - 보안팀 승인 필요"
+ # Slack 알림
+ curl -X POST $SLACK_WEBHOOK_URL -d '{
+ "text": "🔒 보안 승인 필요: PR #${{ github.event.pull_request.number }}\nHIGH 취약점: '"$HIGH"'개",
+ "channel": "#security-approvals"
+ }'
+ exit 1
+ else
+ echo "✅ 보안 검증 통과"
+ fi
 ```
 
 ### 6.4 Quality Gate Scoring System
 
-Sets **auto-approval thresholds** based on AI confidence, enabling immediate merge for high-quality changes while requiring manual review for risky changes.
+AI reliability based as **automatic approval threshold**을 Configuration to, 고품질 change immediately 병합 and risk change manual review 요구.
 
 ```yaml
 # quality-gate-scoring.yaml
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: quality-gate-config
-  namespace: cicd-system
+ name: quality-gate-config
+ namespace: cicd-system
 data:
-  scoring-rules: |
-    # Quality Gate Scoring System (0-100)
+ scoring-rules: |
+ # Quality Gate 점수 체계 (0-100)
 
-    ## 1. Code Quality (40 points)
-    - No lint violations: +10
-    - Test coverage 80% or above: +15
-    - AI architecture review passed: +15
+ ## 1. 코드 품질 (40점)
+ - 린트 위반 없음: +10
+ - 테스트 커버리지 80% 이상: +15
+ - AI 아키텍처 리뷰 통과: +15
 
-    ## 2. Security (30 points)
-    - 0 Critical vulnerabilities: +15
-    - 3 or fewer High vulnerabilities: +10
-    - No sensitive information exposure: +5
+ ## 2. 보안 (30점)
+ - Critical 취약점 0개: +15
+ - High 취약점 3개 이하: +10
+ - 민감 정보 노출 없음: +5
 
-    ## 3. Performance (20 points)
-    - Build time < 5 minutes: +10
-    - Image size increase < 10%: +5
-    - Memory usage increase < 20%: +5
+ ## 3. 성능 (20점)
+ - 빌드 시간 < 5분: +10
+ - 이미지 크기 증가 < 10%: +5
+ - 메모리 사용량 증가 < 20%: +5
 
-    ## 4. Documentation (10 points)
-    - README updated: +5
-    - OpenAPI spec updated on API change: +5
+ ## 4. 문서화 (10점)
+ - README 업데이트: +5
+ - API 변경 시 OpenAPI spec 업데이트: +5
 
-  auto-approval-threshold: "85"  # Auto-approve at 85+ points
-  manual-review-threshold: "70"  # Manual review required below 70 points
+ auto-approval-threshold: "85" # 85점 이상 자동 승인
+ manual-review-threshold: "70" # 70점 미만 수동 리뷰 필수
 ```
 
 **GitHub Actions Integration**:
@@ -3100,98 +3092,98 @@ data:
 # .github/workflows/quality-gate.yml
 name: Quality Gate Scoring
 on:
-  pull_request:
-    types: [opened, synchronize]
+ pull_request:
+ types: [opened, synchronize]
 
 jobs:
-  quality-gate:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
+ quality-gate:
+ runs-on: ubuntu-latest
+ steps:
+ - uses: actions/checkout@v4
 
-      - name: Calculate Quality Score
-        id: score
-        run: |
-          SCORE=0
+ - name: Calculate Quality Score
+ id: score
+ run: |
+ SCORE=0
 
-          # Code Quality (40 points)
-          LINT_VIOLATIONS=$(golangci-lint run --out-format json | jq '.Issues | length')
-          [ "$LINT_VIOLATIONS" -eq 0 ] && SCORE=$((SCORE + 10))
+ # 코드 품질 (40점)
+ LINT_VIOLATIONS=$(golangci-lint run --out-format json | jq '.Issues | length')
+ [ "$LINT_VIOLATIONS" -eq 0 ] && SCORE=$((SCORE + 10))
 
-          COVERAGE=$(go test ./... -coverprofile=coverage.out | grep coverage | awk '{print $2}' | sed 's/%//')
-          (( $(echo "$COVERAGE >= 80" | bc -l) )) && SCORE=$((SCORE + 15))
+ COVERAGE=$(go test ./... -coverprofile=coverage.out | grep coverage | awk '{print $2}' | sed 's/%//')
+ (( $(echo "$COVERAGE >= 80" | bc -l) )) && SCORE=$((SCORE + 15))
 
-          ARCH_REVIEW=$(jq -r '.violations | length' architecture-review.json)
-          [ "$ARCH_REVIEW" -eq 0 ] && SCORE=$((SCORE + 15))
+ ARCH_REVIEW=$(jq -r '.violations | length' architecture-review.json)
+ [ "$ARCH_REVIEW" -eq 0 ] && SCORE=$((SCORE + 15))
 
-          # Security (30 points)
-          CRITICAL=$(jq -r '[.findings[] | select(.severity=="CRITICAL")] | length' q-security-report.json)
-          [ "$CRITICAL" -eq 0 ] && SCORE=$((SCORE + 15))
+ # 보안 (30점)
+ CRITICAL=$(jq -r '[.findings[] | select(.severity=="CRITICAL")] | length' q-security-report.json)
+ [ "$CRITICAL" -eq 0 ] && SCORE=$((SCORE + 15))
 
-          HIGH=$(jq -r '[.findings[] | select(.severity=="HIGH")] | length' q-security-report.json)
-          [ "$HIGH" -le 3 ] && SCORE=$((SCORE + 10))
+ HIGH=$(jq -r '[.findings[] | select(.severity=="HIGH")] | length' q-security-report.json)
+ [ "$HIGH" -le 3 ] && SCORE=$((SCORE + 10))
 
-          SECRETS=$(gitleaks detect --no-git --report-format json | jq '.findings | length')
-          [ "$SECRETS" -eq 0 ] && SCORE=$((SCORE + 5))
+ SECRETS=$(gitleaks detect --no-git --report-format json | jq '.findings | length')
+ [ "$SECRETS" -eq 0 ] && SCORE=$((SCORE + 5))
 
-          # Performance (20 points)
-          BUILD_TIME=$(cat build-metrics.json | jq -r '.duration_seconds')
-          (( $(echo "$BUILD_TIME < 300" | bc -l) )) && SCORE=$((SCORE + 10))
+ # 성능 (20점)
+ BUILD_TIME=$(cat build-metrics.json | jq -r '.duration_seconds')
+ (( $(echo "$BUILD_TIME < 300" | bc -l) )) && SCORE=$((SCORE + 10))
 
-          # Documentation (10 points)
-          README_UPDATED=$(git diff --name-only origin/${{ github.base_ref }}..HEAD | grep -c README.md)
-          [ "$README_UPDATED" -gt 0 ] && SCORE=$((SCORE + 5))
+ # 문서화 (10점)
+ README_UPDATED=$(git diff --name-only origin/${{ github.base_ref }}..HEAD | grep -c README.md)
+ [ "$README_UPDATED" -gt 0 ] && SCORE=$((SCORE + 5))
 
-          echo "score=$SCORE" >> $GITHUB_OUTPUT
+ echo "score=$SCORE" >> $GITHUB_OUTPUT
 
-      - name: Quality Gate Decision
-        run: |
-          SCORE=${{ steps.score.outputs.score }}
+ - name: Quality Gate Decision
+ run: |
+ SCORE=${{ steps.score.outputs.score }}
 
-          if [ "$SCORE" -ge 85 ]; then
-            echo "Quality Score: $SCORE/100 - Auto-approved"
-            gh pr review ${{ github.event.pull_request.number }} --approve --body "AI Quality Gate auto-approved (Score: $SCORE/100)"
-          elif [ "$SCORE" -ge 70 ]; then
-            echo "Quality Score: $SCORE/100 - Manual review recommended"
-            gh pr comment ${{ github.event.pull_request.number }} --body "Quality Score: $SCORE/100\nPlease merge after team review."
-          else
-            echo "Quality Score: $SCORE/100 - Manual review required"
-            gh pr review ${{ github.event.pull_request.number }} --request-changes --body "Quality Score is low ($SCORE/100). Please improve and re-submit for review."
-            exit 1
-          fi
+ if [ "$SCORE" -ge 85 ]; then
+ echo "✅ Quality Score: $SCORE/100 - 자동 승인"
+ gh pr review ${{ github.event.pull_request.number }} --approve --body "AI Quality Gate 자동 승인 (점수: $SCORE/100)"
+ elif [ "$SCORE" -ge 70 ]; then
+ echo "⚠️ Quality Score: $SCORE/100 - 수동 리뷰 권장"
+ gh pr comment ${{ github.event.pull_request.number }} --body "Quality Score: $SCORE/100\n팀 리뷰 후 병합하세요."
+ else
+ echo "❌ Quality Score: $SCORE/100 - 수동 리뷰 필수"
+ gh pr review ${{ github.event.pull_request.number }} --request-changes --body "Quality Score가 낮습니다 ($SCORE/100). 개선 후 재검토하세요."
+ exit 1
+ fi
 ```
 
-:::tip Quality Gate Score Usage
-**Auto-Approval (85+ points)**:
-- Lint, tests, and security all passed
-- Documentation complete
-- No performance degradation
-- Eligible for automatic deployment after merge
+:::tip Quality Gate 점 utilization
+**automatic approval (85점 abnormal)**:
+- 린트, test, security 모두 통과
+- document화 완료
+- performance 저 none
+- 병합 after automatic Deployment possible
 
-**Manual Review Recommended (70-84 points)**:
-- Mostly passed but some improvements needed
-- Merge decision after team review
-- Deployment requires manual approval
+**manual review recommended (70-84점)**:
+- 대부minutes 통과했지only day부 improvement needed
+- 팀 review after 병합 결정
+- Deployment manual approval needed
 
-**Manual Review Required (below 70 points)**:
-- Quality criteria not met
-- Re-review after code improvement
-- Merge blocked
+**manual review mandatory (70점 less than)**:
+- 품질 기준 미달
+- code improvement after re-검토
+- 병합 impossible status
 :::
 
 ---
 
 ---
 
-## 7. Measurement Metrics
+## 7. Metrics
 
 ### 7.1 AIDLC Productivity Metrics
 
-Key metrics for measuring the effectiveness of AIDLC adoption.
+AIDLC adoption 효 and measurement기 위 Core 지표.
 
 <ProductivityMetrics />
 
-### 7.2 Detailed Measurement Items and DORA Mapping
+### 7.2 Detailed Metrics and DORA Mapping
 
 <DetailedMetrics />
 
@@ -3202,76 +3194,76 @@ Key metrics for measuring the effectiveness of AIDLC adoption.
 ### 8.1 Adoption Roadmap
 
 ```
-Phase 1: AI Coding Tool Adoption
-  └── Start code generation and review with Q Developer/Copilot
-      (AIOps Maturity Level 2)
+Phase 1: AI 코딩 도구 도입
+ └── Q Developer/Copilot으로 코드 생성·리뷰 시작
+ (AIOps 성숙도 Level 2)
 
-Phase 2: Spec-Driven Development
-  └── Systematic requirements → code workflow with Kiro + MCP
-      Pilot Mob Elaboration ritual
-      (AIOps Maturity Level 3)
+Phase 2: Spec-Driven 개발
+ └── Kiro + MCP로 체계적 requirements → 코드 워크플로우
+ Mob Elaboration 리추얼 시범 도입
+ (AIOps 성숙도 Level 3)
 
-Phase 3: Declarative Automation
-  └── Complete GitOps with Managed Argo CD + ACK + KRO
-      AI/CD pipeline transition
-      (AIOps Maturity Level 3→4)
+Phase 3: 선언적 자동화
+ └── Managed Argo CD + ACK + KRO로 GitOps 완성
+ AI/CD 파이프라인 전환
+ (AIOps 성숙도 Level 3→4)
 
-Phase 4: AI Agent Expansion
-  └── Autonomous operations with Q Developer + Strands + Kagent
-      Spread Mob Construction ritual
-      (AIOps Maturity Level 4)
+Phase 4: AI Agent 확장
+ └── Q Developer + Strands + Kagent로 자율 운영
+ Mob Construction 리추얼 확산
+ (AIOps 성숙도 Level 4)
 ```
 
 ### 8.2 Next Steps
 
-- **[4. Predictive Scaling and Auto-Recovery](../operations-observability/agentic-ops/aiops-predictive-operations.md)** — Operations phase deep dive: ML-based predictive scaling, AI Agent automatic incident response, Chaos Engineering
-- **[2. Intelligent Observability Stack](../operations-observability/agentic-ops/aiops-observability-stack.md)** — Data foundation for the Operations phase: ADOT, AMP/AMG, CloudWatch AI setup
-- **[1. AIOps Strategy Guide](../operations-observability/agentic-ops/aiops-introduction.md)** — Technology foundation for AIDLC: AWS open-source strategy, MCP integration, AI tool ecosystem
+- **[4. prediction scaling and automatic recovery](./agentic-ops/aiops-predictive-operations.md)** — Operations phase advanced: ML based prediction scaling, AI Agent automatic incident response, Chaos Engineering
+- **[2. intelligent observability stack](./agentic-ops/aiops-observability-stack.md)** — Operations phase data based: ADOT, AMP/AMG, CloudWatch AI build
+- **[1. AIOps strategy 가이드](./agentic-ops/aiops-introduction.md)** — AIDLC 기술 based: AWS open-source strategy, MCP Integration, AI tool 생태계
 
 ### 8.3 Learning Path
 
 ```
-[Previous] 1. AIOps Strategy Guide — Understanding the technology foundation (MCP, Kiro, AI Agent)
-     ↓
-[Previous] 2. Intelligent Observability Stack — Building the data foundation (ADOT, AMP/AMG)
-     ↓
-[Current] 3. AIDLC Framework — Practicing the methodology (this document)
-     ↓
-[Next] 4. Predictive Scaling and Auto-Recovery — Deep dive into autonomous operations
+[이전] 1. AIOps 전략 가이드 — 기술 기반 이해 (MCP, Kiro, AI Agent)
+ ↓
+[이전] 2. 지능형 관찰성 스택 — 데이터 기반 구축 (ADOT, AMP/AMG)
+ ↓
+[현재] 3. AIDLC 프레임워크 — 방법론 실천 (이 문서)
+ ↓
+[다음] 4. 예측 스케일링 및 자동 복구 — 자율 운영 심화
 ```
 
 :::info References
 
-**AIDLC Original:**
-- [AWS AI-DLC Method Definition](https://prod.d13rzhkk8cj2z0.amplifyapp.com/) — AIDLC original (Raja SP, AWS)
+**AIDLC 원문:**
+- [AWS AI-DLC Method Definition](https://prod.d13rzhkk8cj2z0.amplifyapp.com/) — AIDLC 원문 (Raja SP, AWS)
 - [AWS AI-Driven Development Life Cycle Blog](https://aws.amazon.com/blogs/devops/ai-driven-development-life-cycle/)
 - [AWS Labs AIDLC Workflows (GitHub)](https://github.com/awslabs/aidlc-workflows)
 - [Open-Sourcing Adaptive Workflows for AI-DLC](https://aws.amazon.com/blogs/devops/open-sourcing-adaptive-workflows-for-ai-driven-development-life-cycle-ai-dlc/) — AWS, 2025.11
 
-**Ontology:**
+**ontology:**
 - [Why Ontology Matters for Agentic AI in 2026](https://kenhuangus.substack.com/p/why-ontology-matters-for-agentic) — Ken Huang & Bhavya Gupta
 - [Why AI Agents Fail Without Ontologies](https://medium.com/@itznihal/why-ai-agents-fail-without-ontologies-production-lessons-beb9fe9c3af9) — Nihal Parmar, 2026.03
-- [SemanticForge: Knowledge Graph-based Hallucination Prevention](https://arxiv.org/html/2511.07584v1)
+- [SemanticForge: Knowledge Graph based 환 each prevention](https://arxiv.org/html/2511.07584v1)
 
-**Harness Engineering:**
+**harness 엔지니어링:**
 - [Harness Engineering: Governing AI Agents through Architectural Rigor](https://harness-engineering.ai/blog/harness-engineering-governing-ai-agents-through-architectural-rigor/) — Kai Renner, 2026.03
 - [Harness Engineering Complete Guide](https://www.nxcode.io/resources/news/harness-engineering-complete-guide-ai-agent-codex-2026) — NxCode, 2026.03
 - [Specwright: Closes the Loop](https://obsidian-owl.github.io/engineering-blog/posts/specwright-spec-driven-development-that-closes-the-loop/) — Obsidian Owl, 2026.02
 - [EleutherAI LM Evaluation Harness](https://github.com/EleutherAI/lm-evaluation-harness) — GitHub 11.7k+ stars
 
-**Feedback Loops:**
+**피드백 loop:**
 - [How to Build an AI Agent Feedback Loop](https://www.braincuber.com/blog/how-to-build-feedback-loop-ai-agent-improvement) — Braincuber, 2026.03
 - [Human-in-the-Loop in Agentic AI](https://atalupadhyay.wordpress.com/2026/03/16/human-in-the-loop-in-agentic-ai/) — 2026.03
 - [AI Agent Feedback Loops: Monitor and Validate](https://jduncan.io/blog/2025-10-26-feedback-loops-ai-agents/) — JDuncan.io, 2025.10
 
-**Cross-Validation Essential Sources (Actual Implementation Repos):**
-- [awslabs/ai-on-eks](https://github.com/awslabs/ai-on-eks) — EKS GPU workload implementation patterns
-- [ai-dynamo/dynamo](https://github.com/ai-dynamo/dynamo) — NVIDIA Dynamo source code
-- [ai-dynamo/nixl](https://github.com/ai-dynamo/nixl) — NIXL KV transfer engine
-- [NVIDIA/KAI-Scheduler](https://github.com/NVIDIA/KAI-Scheduler) — KAI Scheduler source code
+**교차 Validation mandatory source ( actual Implementation 레포):**
+- [awslabs/ai-on-eks](https://github.com/awslabs/ai-on-eks) — EKS GPU workload actual Implementation pattern
+- [ai-dynamo/dynamo](https://github.com/ai-dynamo/dynamo) — NVIDIA Dynamo sourcecode
+- [ai-dynamo/nixl](https://github.com/ai-dynamo/nixl) — NIXL KV transfer 엔진
+- [NVIDIA/KAI-Scheduler](https://github.com/NVIDIA/KAI-Scheduler) — KAI Scheduler sourcecode
 - [llm-d/llm-d](https://github.com/llm-d/llm-d) — LLM-D distributed inference
 
-**AWS Ecosystem:**
+**AWS 생태계:**
 - [EKS Capabilities (2025.11)](https://aws.amazon.com/blogs/containers/)
 - [Strands Agents SDK](https://github.com/strands-agents/sdk-python)
 - [Kagent - Kubernetes AI Agent](https://github.com/kagent-dev/kagent)

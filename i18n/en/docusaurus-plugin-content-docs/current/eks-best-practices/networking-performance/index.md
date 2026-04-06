@@ -13,7 +13,7 @@ import { DocCard, DocCardGrid } from '@site/src/components/DocCards';
 
 # Networking & Performance Optimization
 
-Practical guide for maximizing EKS cluster network performance. Covers DNS tuning, inter-service traffic optimization, and Gateway API adoption strategies for next-generation traffic routing.
+A practical guide to maximizing network performance in EKS clusters. Covers DNS tuning, inter-service traffic optimization, and adoption strategies for Gateway API — the next-generation traffic routing standard.
 
 ---
 
@@ -22,21 +22,21 @@ Practical guide for maximizing EKS cluster network performance. Covers DNS tunin
     to="/docs/eks-best-practices/networking-performance/gateway-api-adoption-guide"
     icon="🌐"
     title="Gateway API Adoption Guide"
-    description="NGINX Ingress Controller EOL response, Gateway API architecture and GAMMA Initiative, Cilium ENI + Gateway API deep dive, migration strategies"
+    description="NGINX Ingress Controller EOL response, Gateway API architecture, GAMMA Initiative, Cilium ENI + Gateway API deep dive, and migration strategy"
     color="#667eea"
   />
   <DocCard
     to="/docs/eks-best-practices/networking-performance/coredns-monitoring-optimization"
     icon="🔍"
-    title="CoreDNS Monitoring and Performance Optimization"
-    description="DNS query performance analysis, CoreDNS caching strategies, NodeLocal DNSCache utilization, monitoring system setup"
+    title="CoreDNS Monitoring & Performance Optimization"
+    description="DNS query performance analysis, CoreDNS caching strategies, NodeLocal DNSCache usage, and monitoring architecture"
     color="#4a90d9"
   />
   <DocCard
     to="/docs/eks-best-practices/networking-performance/east-west-traffic-best-practice"
     icon="↔️"
     title="East-West Traffic Optimization"
-    description="Inter-service communication optimization, Topology Aware Routing, multi-cluster traffic management"
+    description="Inter-service communication optimization, Topology Aware Routing, and multi-cluster traffic management"
     color="#34a853"
   />
 </DocCardGrid>
