@@ -130,6 +130,8 @@ const sidebars = {
             'agentic-ai-platform/model-serving/moe-model-serving',
             'agentic-ai-platform/model-serving/nvidia-gpu-stack',
             'agentic-ai-platform/model-serving/nemo-framework',
+            'agentic-ai-platform/model-serving/glm5-deployment-guide',
+            'agentic-ai-platform/model-serving/custom-model-pipeline',
           ],
         },
         {
@@ -185,8 +187,6 @@ const sidebars = {
             'agentic-ai-platform/enterprise-ops/domain-customization',
           ],
         },
-        'agentic-ai-platform/model-serving/glm5-deployment-guide',
-        'agentic-ai-platform/model-serving/custom-model-pipeline',
       ],
     },
     {
