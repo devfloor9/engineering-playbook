@@ -4,7 +4,7 @@ sidebar_label: "GLM-5.1 배포 가이드"
 description: "GLM-5 744B MoE FP8 모델을 EKS에서 vLLM + llm-d로 배포하면서 경험한 실전 이슈와 해결책"
 tags: [glm-5, moe, vllm, eks, gpu, deployment, lessons-learned]
 last_update:
-  date: 2026-04-04
+  date: 2026-04-05
   author: YoungJoon Jeong
 ---
 
@@ -940,8 +940,13 @@ GLM-5 FP8 (704GB) 배포 시 MNG `disk-size`를 **최소 1500GB, 권장 2000GB**
 ```mermaid
 graph LR
     subgraph "EKS Cluster"
-        VLLM[vLLM<br/>/metrics] -->|scrape| PROM[Prometheus]
-        BIFROST[Bifrost<br/>:9090/metrics] -->|scrape| PROM
+        Client[Aider/IDE] --> KGW[kgateway NLB]
+        KGW -->|/v1/*| BF[Bifrost]
+        BF --> VLLM[vLLM GLM-5]
+        BF -->|OTel traces| KGW2[kgateway URLRewrite]
+        KGW2 -->|/api/public/otel/v1/traces| LF[Langfuse]
+        VLLM -->|/metrics scrape| PROM[Prometheus]
+        BF -->|:9090/metrics| PROM
         PROM -->|remote-write<br/>Pod Identity| AMP[AMP]
     end
     
@@ -949,17 +954,10 @@ graph LR
         AMP -->|SigV4 ec2_iam_role| AMG[AMG Grafana]
     end
     
-    subgraph "Langfuse"
-        VLLM -->|OpenAI callback| LF[Langfuse Web]
-        BIFROST -->|langfuse SDK| LF
-        LF --> PG[(PostgreSQL)]
-        LF --> CH[(ClickHouse)]
-        LF --> RD[(Redis)]
-    end
-    
     style AMP fill:#ff9900
     style AMG fill:#ff9900
     style LF fill:#4c9aff
+    style BF fill:#2ecc71
 ```
 
 ### 12-1. Prometheus → AMP (Pod Identity 인증)
@@ -1070,11 +1068,110 @@ rules:
     backendRefs: [{ name: langfuse-web, namespace: langfuse, port: 3000 }]
 ```
 
+#### 4. MinIO S3 Secret Key 주입
+
+Langfuse Helm 차트가 MinIO S3 secret key를 환경변수에 자동으로 주입하지 않습니다. 누락 시 OTel trace 수신에서 500 에러가 발생합니다.
+
+```bash
+# MinIO 패스워드 확인
+MINIO_PW=$(kubectl get secret langfuse-s3 -n langfuse \
+  -o jsonpath='{.data.root-password}' | base64 -d)
+
+# Web + Worker 모두 주입
+kubectl set env deploy/langfuse-web deploy/langfuse-worker -n langfuse \
+  LANGFUSE_S3_EVENT_UPLOAD_SECRET_ACCESS_KEY="$MINIO_PW" \
+  LANGFUSE_S3_BATCH_EXPORT_SECRET_ACCESS_KEY="$MINIO_PW" \
+  LANGFUSE_S3_MEDIA_UPLOAD_SECRET_ACCESS_KEY="$MINIO_PW"
+```
+
 :::info 배포 스크립트에서 자동 처리
 위의 모든 설정은 `deploy/full-platform/manifests/` 하위 스크립트에서 자동으로 처리됩니다. 수동 수정 없이 `deploy-glm5.sh` 한 번 실행으로 전체 스택이 올바르게 구성됩니다.
 :::
 
-### 12-4. 추천 PromQL 쿼리
+:::warning 프로덕션 Hardening
+현재 구성은 아키텍처 검증 및 데모 목적입니다. 프로덕션 환경에서는 다음을 추가로 구성해야 합니다:
+- **TLS**: NLB에 ACM 인증서 + HTTPS 리스너
+- **인증**: Langfuse SSO/OIDC, Bifrost API Key 인증
+- **Pod Security**: `runAsNonRoot`, `readOnlyRootFilesystem`, `allowPrivilegeEscalation: false`
+- **NetworkPolicy**: 네임스페이스 간 트래픽 격리
+- **HA**: PostgreSQL → RDS Multi-AZ, Redis → ElastiCache, Langfuse HPA
+- **Secrets**: S3 + KMS 암호화 (MinIO → AWS S3 전환), AWS Secrets Manager
+:::
+
+### 12-4. 코딩 도구 연결 (Aider)
+
+[Aider](https://aider.chat)는 가장 널리 사용되는 오픈소스 AI 코딩 도구로, OpenAI-compatible API를 지원합니다.
+
+#### Aider 설치 및 연결
+
+```bash
+# Aider 설치
+pip install aider-chat
+
+# GLM-5 연결 (Bifrost 경유 → Langfuse 모니터링)
+# Bifrost provider/model 포맷 호환을 위한 double-prefix
+aider --model openai/openai/glm-5 \
+  --openai-api-base http://<NLB_ENDPOINT>/v1 \
+  --openai-api-key dummy
+```
+
+:::caution Bifrost 모델명 정규화
+Bifrost는 내부적으로 모델명의 하이픈을 제거합니다 (`glm-5` → `glm5`). vLLM의 `--served-model-name`을 Bifrost 정규화 결과와 일치시켜야 합니다:
+- vLLM: `--served-model-name=glm5` (하이픈 없음)
+- Bifrost config: `"models": ["glm-5", "glm5"]` (둘 다 포함)
+- Bifrost Feature Request [#1058](https://github.com/maximhq/bifrost/issues/1058): 모델 alias 기능 요청 중 (2025.12~)
+:::
+
+#### 지원 코딩 도구 비교
+
+| 도구 | model 필드 전달 | Bifrost 호환 | 설정 방법 |
+|------|----------------|-------------|----------|
+| **Cline** | 그대로 전달 | ✅ | Model ID: `openai/glm-5` |
+| **Continue.dev** | 그대로 전달 | ✅ | model: `openai/glm-5` |
+| **Aider** | LiteLLM prefix 제거 | ⚠️ double-prefix 필요 | `openai/openai/glm-5` |
+| **Cursor** | 자체 검증 거부 | ❌ | 미지원 |
+
+:::tip Aider 권장 이유
+Aider는 Git-aware 코드 수정 + 자동 커밋을 지원하며, double-prefix 트릭 (`openai/openai/glm-5`)으로 Bifrost 경유 → Langfuse 모니터링이 가능합니다. CLI 기반이라 CI/CD 파이프라인에서도 활용 가능합니다.
+:::
+
+### 12-5. Langfuse S3 + KMS 구성
+
+프로덕션 환경에서는 Langfuse 내장 MinIO를 **AWS S3 + KMS**로 교체합니다.
+
+| | MinIO (기본) | AWS S3 + KMS |
+|---|---|---|
+| 가용성 | 단일 Pod | 11 nines |
+| 암호화 | ❌ | ✅ SSE-KMS |
+| 인증 | Access Key | Pod Identity |
+| 비용 | 클러스터 리소스 | S3 저장 + 요청 |
+
+```bash
+# S3 버킷 + KMS 키 생성
+aws s3api create-bucket --bucket langfuse-traces-<ACCOUNT_ID> --region <REGION>
+aws kms create-key --description "Langfuse trace encryption"
+
+# S3 기본 암호화 (KMS)
+aws s3api put-bucket-encryption --bucket langfuse-traces-<ACCOUNT_ID> \
+  --server-side-encryption-configuration '{"Rules": [{"ApplyServerSideEncryptionByDefault": {"SSEAlgorithm": "aws:kms", "KMSMasterKeyID": "<KMS_KEY_ID>"}, "BucketKeyEnabled": true}]}'
+
+# Pod Identity로 인증 (Access Key 불필요)
+aws eks create-pod-identity-association \
+  --cluster-name <CLUSTER> --namespace langfuse \
+  --service-account langfuse \
+  --role-arn arn:aws:iam::<ACCOUNT_ID>:role/langfuse-s3-access
+
+# Langfuse 환경변수 변경 (MinIO 제거 → S3)
+kubectl set env deploy/langfuse-web deploy/langfuse-worker -n langfuse \
+  LANGFUSE_S3_EVENT_UPLOAD_BUCKET="langfuse-traces-<ACCOUNT_ID>" \
+  LANGFUSE_S3_EVENT_UPLOAD_REGION="<REGION>" \
+  LANGFUSE_S3_EVENT_UPLOAD_ENDPOINT- \
+  LANGFUSE_S3_EVENT_UPLOAD_ACCESS_KEY_ID- \
+  LANGFUSE_S3_EVENT_UPLOAD_SECRET_ACCESS_KEY- \
+  LANGFUSE_S3_EVENT_UPLOAD_FORCE_PATH_STYLE-
+```
+
+### 12-6. 추천 PromQL 쿼리
 
 | 메트릭 | PromQL | 용도 |
 |--------|--------|------|

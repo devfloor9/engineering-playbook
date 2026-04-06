@@ -5,7 +5,7 @@ description: "Langfuse, LangSmith를 활용한 Agentic AI 애플리케이션 모
 tags: [eks, langfuse, langsmith, monitoring, observability, tracing, opentelemetry, operations, troubleshooting, alerting]
 category: "genai-aiml"
 last_update:
-  date: 2026-04-04
+  date: 2026-04-05
   author: devfloor9
 sidebar_position: 1
 ---
@@ -98,7 +98,7 @@ Langfuse의 메타데이터 저장을 위한 PostgreSQL을 배포합니다.
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: observability
+  name: monitoring
   labels:
     app.kubernetes.io/part-of: langfuse
 ---
@@ -106,7 +106,7 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: langfuse-postgres-secret
-  namespace: observability
+  namespace: monitoring
 type: Opaque
 stringData:
   POSTGRES_USER: langfuse
@@ -117,7 +117,7 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: langfuse-postgres-pvc
-  namespace: observability
+  namespace: monitoring
 spec:
   accessModes:
     - ReadWriteOnce
@@ -130,7 +130,7 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: langfuse-postgres
-  namespace: observability
+  namespace: monitoring
 spec:
   serviceName: langfuse-postgres
   replicas: 1
@@ -185,7 +185,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: langfuse-postgres
-  namespace: observability
+  namespace: monitoring
 spec:
   selector:
     app: langfuse-postgres
@@ -206,7 +206,7 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: langfuse-secret
-  namespace: observability
+  namespace: monitoring
 type: Opaque
 stringData:
   # 필수 환경 변수
@@ -230,7 +230,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: langfuse
-  namespace: observability
+  namespace: monitoring
   labels:
     app: langfuse
 spec:
@@ -298,7 +298,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: langfuse
-  namespace: observability
+  namespace: monitoring
 spec:
   selector:
     app: langfuse
@@ -320,7 +320,7 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: langfuse-ingress
-  namespace: observability
+  namespace: monitoring
   annotations:
     kubernetes.io/ingress.class: alb
     alb.ingress.kubernetes.io/scheme: internet-facing
@@ -358,7 +358,7 @@ apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: langfuse-hpa
-  namespace: observability
+  namespace: monitoring
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
@@ -420,7 +420,7 @@ apiVersion: external-secrets.io/v1beta1
 kind: SecretStore
 metadata:
   name: aws-secrets-manager
-  namespace: observability
+  namespace: monitoring
 spec:
   provider:
     aws:
@@ -436,7 +436,7 @@ apiVersion: external-secrets.io/v1beta1
 kind: ExternalSecret
 metadata:
   name: langfuse-secret
-  namespace: observability
+  namespace: monitoring
 spec:
   refreshInterval: 1h
   secretStoreRef:
@@ -470,7 +470,7 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: langfuse-postgres-secret
-  namespace: observability
+  namespace: monitoring
 type: Opaque
 stringData:
   DATABASE_URL: "postgresql://langfuse:password@langfuse-db.xxxxxxxxxxxx.ap-northeast-2.rds.amazonaws.com:5432/langfuse?sslmode=require"
@@ -790,7 +790,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: prometheus-agent-scrape
-  namespace: observability
+  namespace: monitoring
 data:
   agent-scrape.yaml: |
     scrape_configs:
@@ -799,7 +799,7 @@ data:
           - role: pod
             namespaces:
               names:
-                - observability
+                - monitoring
         relabel_configs:
           - source_labels: [__meta_kubernetes_pod_label_app]
             regex: langfuse
@@ -995,7 +995,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: grafana-alert-rules
-  namespace: observability
+  namespace: monitoring
 data:
   ai-agent-alerts.yaml: |
     apiVersion: 1
@@ -1228,14 +1228,14 @@ env:
 # 증상: Langfuse에 트레이스가 기록되지 않음
 
 # 1. Langfuse 서비스 상태 확인
-kubectl get pods -n observability -l app=langfuse
+kubectl get pods -n monitoring -l app=langfuse
 
 # 2. Langfuse 로그 확인
-kubectl logs -n observability -l app=langfuse --tail=100
+kubectl logs -n monitoring -l app=langfuse --tail=100
 
 # 3. 네트워크 연결 테스트
 kubectl run -it --rm debug --image=curlimages/curl --restart=Never -- \
-  curl -v http://langfuse.observability.svc/api/public/health
+  curl -v http://langfuse.monitoring.svc/api/public/health
 
 # 4. 환경 변수 확인
 kubectl exec -n ai-agents <pod-name> -- env | grep LANGFUSE
@@ -1548,6 +1548,14 @@ AMG 웹 콘솔에서:
    - Region: `ap-northeast-2`
    - Service: `aps`
 5. Save & Test
+
+:::caution SigV4 auth type 주의
+AMG에서 AMP 데이터 소스 추가 시 `sigV4AuthType`을 반드시 `ec2_iam_role`로 설정하세요. `workspace-iam-role`은 유효하지 않은 값으로 502 에러를 반환합니다.
+:::
+
+:::tip Pod Identity vs IRSA
+EKS 1.28+ 클러스터에서는 **Pod Identity**를 권장합니다. IRSA와 달리 OIDC Provider 설정이 불필요하며, `aws eks create-pod-identity-association` 한 줄로 설정 완료됩니다.
+:::
 
 ### 모니터링 데이터 연결성 (계층별)
 

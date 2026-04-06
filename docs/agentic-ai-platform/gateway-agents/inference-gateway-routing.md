@@ -1322,17 +1322,26 @@ spec:
 
 ### 코딩 도구 연결 예시
 
-Continue.dev, Cursor, Aider 등의 AI 코딩 도구에서 kgateway를 통해 vLLM에 연결할 수 있습니다.
+Aider, Continue.dev, Cline 등의 AI 코딩 도구에서 kgateway를 통해 vLLM에 연결할 수 있습니다.
 
-**Continue.dev 설정 예시**:
+#### Aider 연결 예시
+
+```bash
+# Bifrost 경유 (Langfuse 모니터링 포함)
+aider --model openai/meta-llama/Llama-3.1-70B-Instruct \
+  --openai-api-base http://[NLB_ENDPOINT]/v1 \
+  --openai-api-key dummy
+```
+
+#### Continue.dev 설정 예시
 
 ```json
 {
   "models": [
     {
-      "title": "Llama-3.1-70B",
+      "title": "Llama-3.1-70B (Bifrost)",
       "provider": "openai",
-      "model": "meta-llama/Llama-3.1-70B-Instruct",
+      "model": "openai/meta-llama/Llama-3.1-70B-Instruct",
       "apiBase": "http://[NLB_ENDPOINT]/v1",
       "apiKey": "dummy"
     }
@@ -1340,21 +1349,16 @@ Continue.dev, Cursor, Aider 등의 AI 코딩 도구에서 kgateway를 통해 vLL
 }
 ```
 
-**Cursor 설정 예시**:
+#### Cline 설정 예시
 
-Settings → Models → OpenAI API Compatible
+Settings → API Provider → OpenAI Compatible
 - Base URL: `http://[NLB_ENDPOINT]/v1`
-- Model: `meta-llama/Llama-3.1-70B-Instruct`
+- Model: `openai/meta-llama/Llama-3.1-70B-Instruct`
 - API Key: `dummy`
 
-**Aider 설정 예시**:
-
-```bash
-aider \
-  --model openai/meta-llama/Llama-3.1-70B-Instruct \
-  --openai-api-base http://[NLB_ENDPOINT]/v1 \
-  --openai-api-key dummy
-```
+:::info Cursor 호환성 제한
+Cursor는 모델명에 `/`를 허용하지 않아 Bifrost `provider/model` 포맷과 호환되지 않습니다. Aider 또는 Continue.dev를 권장합니다.
+:::
 
 :::info 엔드포인트 비식별화
 실제 프로덕션 환경에서는 NLB 엔드포인트를 도메인 네임(예: `api.your-company.com`)으로 매핑하여 사용하세요. 직접 IP 주소나 AWS 자동 생성 DNS 이름을 노출하지 마세요.
