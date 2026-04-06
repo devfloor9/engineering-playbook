@@ -1,17 +1,17 @@
 ---
 title: "추론 게이트웨이 & LLM Gateway 아키텍처"
 sidebar_label: "추론 게이트웨이"
-description: "kgateway + Bifrost/LiteLLM 2-Tier 아키텍처, Cascade Routing, Semantic Caching, agentgateway"
-tags: [kgateway, bifrost, litellm, gateway-api, agentgateway, cascade-routing, semantic-caching]
+description: "kgateway + Bifrost/LiteLLM 2-Tier 아키텍처, Cascade Routing, Semantic Caching, agentgateway, RouteLLM"
+tags: [kgateway, bifrost, litellm, gateway-api, agentgateway, cascade-routing, semantic-caching, routellm, llmroute]
 sidebar_position: 1
 last_update:
-  date: 2026-04-05
+  date: 2026-04-06
   author: YoungJoon Jeong
 ---
 
 # 추론 게이트웨이 & LLM Gateway 아키텍처
 
-> 작성일: 2025-02-05 | 수정일: 2026-04-05 | 읽는 시간: 약 12분
+> 작성일: 2025-02-05 | 수정일: 2026-04-06 | 읽는 시간: 약 15분
 
 ## 개요
 
@@ -34,6 +34,36 @@ last_update:
 
 ## 2-Tier Gateway 아키텍처
 
+### Gateway 계층 구분
+
+LLM 추론 플랫폼은 **3가지 서로 다른 Gateway 역할**을 명확히 구분해야 합니다:
+
+| Gateway 유형 | 역할 | 구현체 | 위치 |
+|-------------|------|-------|------|
+| **Ingress Gateway** | 외부 트래픽 수신, TLS 종료, 경로 기반 라우팅 | kgateway (NLB 연동) | Tier 1 |
+| **Inference Gateway** | 모델 선택, KV Cache-aware, LoRA-aware, 요청 캐스케이딩 | RouteLLM / Bifrost / llm-d EPP | Tier 2-A |
+| **Data Plane** | MCP/A2A 프로토콜, stateful 세션, 도구 라우팅 | agentgateway | Tier 2-B |
+
+```mermaid
+graph LR
+    Client[클라이언트] --> IGW[Ingress Gateway<br/>kgateway NLB<br/>TLS 종료]
+    IGW -->|복잡도 분석| IFG[Inference Gateway<br/>RouteLLM / Bifrost<br/>모델 선택]
+    IFG -->|복잡| LLM[GLM-5 744B<br/>Reasoning]
+    IFG -->|단순| SLM[Qwen3-Coder 3B<br/>빠른 응답]
+    IGW -->|MCP/A2A| AGW[agentgateway<br/>세션 관리<br/>도구 라우팅]
+    
+    style IGW fill:#326ce5,stroke:#333,color:#fff
+    style IFG fill:#e53935,stroke:#333,color:#fff
+    style AGW fill:#ff9900,stroke:#333,color:#000
+    style LLM fill:#76b900,stroke:#333,color:#000
+    style SLM fill:#ffd93d,stroke:#333,color:#000
+```
+
+**핵심 원칙:**
+- **Ingress Gateway (kgateway)**: 네트워크 레벨 트래픽 제어만 담당. 모델 선택 로직은 포함하지 않음
+- **Inference Gateway (RouteLLM/Bifrost)**: 요청 복잡도 분석 → 적절한 모델 자동 선택 → 비용 최적화
+- **Data Plane (agentgateway)**: AI 전용 프로토콜 (MCP/A2A) 처리, stateful 세션 유지
+
 ### 전체 구조
 
 ```mermaid
@@ -44,21 +74,21 @@ flowchart TB
         UI[UI]
     end
 
-    subgraph T1["Tier 1: kgateway (L1)"]
-        GW1[Gateway]
+    subgraph T1["Tier 1: Ingress Gateway"]
+        GW1[kgateway<br/>NLB + TLS]
         HR1[External LLM]
         HR2[Self-hosted]
         HR3[MCP/A2A]
     end
 
-    subgraph T2A["Tier 2-A: LLM Gateway (L2)"]
-        BIFROST[Bifrost / LiteLLM]
+    subgraph T2A["Tier 2-A: Inference Gateway"]
+        BIFROST[RouteLLM / Bifrost]
         OPENAI[OpenAI]
         ANTHROPIC[Anthropic]
         BEDROCK[Bedrock]
     end
 
-    subgraph T2B["Tier 2-B: Self-hosted"]
+    subgraph T2B["Tier 2-B: Data Plane"]
         AGENTGW[agentgateway]
         VLLM1[vLLM-1]
         VLLM2[vLLM-2]
@@ -95,8 +125,8 @@ flowchart TB
 | Tier | 컴포넌트 | 책임 | 프로토콜 |
 |------|----------|------|----------|
 | **Tier 1** | kgateway (Envoy 기반) | 트래픽 라우팅, mTLS, rate limiting, 네트워크 정책 | HTTP/HTTPS, gRPC |
-| **Tier 2-A** | Bifrost (또는 LiteLLM) | 외부 LLM 프로바이더 통합, 비용 추적, cascade routing, semantic caching | OpenAI-compatible API |
-| **Tier 2-B** | agentgateway | 자체 추론 인프라 라우팅, MCP/A2A 세션, Tool Poisoning 방지 | HTTP, JSON-RPC, MCP, A2A |
+| **Tier 2-A** | RouteLLM / Bifrost | 지능형 모델 선택, 비용 추적, request cascading, semantic caching | OpenAI-compatible API |
+| **Tier 2-B** | agentgateway | MCP/A2A 세션 관리, 자체 추론 인프라 라우팅, Tool Poisoning 방지 | HTTP, JSON-RPC, MCP, A2A |
 
 ### 트래픽 플로우
 
@@ -261,11 +291,105 @@ AI 추론 환경에서는 다음 세 가지 장애 대응 메커니즘이 핵심
 
 ---
 
-## Cascade Routing (비용 최적화)
+## Request Cascading: 지능형 모델 라우팅
 
 ### 개념
 
-Cascade Routing은 쿼리 복잡도에 따라 **cheap -> medium -> premium** 모델을 단계적으로 시도하여 비용을 최적화합니다. 간단한 질의는 저렴한 모델로 처리하고, 실패하거나 품질이 낮을 경우에만 상위 모델로 escalate합니다.
+**Request Cascading**은 요청의 복잡도를 자동으로 분석하여 적절한 모델로 라우팅하는 지능형 최적화 기법입니다. 간단한 질의는 저렴하고 빠른 모델로, 복잡한 reasoning이 필요한 질의는 강력한 모델로 자동 분배하여 비용과 지연을 동시에 개선합니다.
+
+**핵심 원리**: IDE는 단일 엔드포인트만 바라보고, 모델 선택은 플랫폼 레벨에서 중앙 통제합니다. 이는 Claude Code의 자동 모델 선택 (Haiku/Sonnet/Opus)과 동일한 패턴입니다.
+
+### RouteLLM: 오픈소스 LLM 라우터
+
+**RouteLLM**은 LMSYS가 개발한 오픈소스 LLM 라우팅 프레임워크입니다. 경량 분류 모델(Matrix Factorization)이 요청을 분석하여 strong/weak 모델을 자동으로 선택합니다.
+
+```mermaid
+graph TD
+    Req[요청] --> Router[RouteLLM Router<br/>MF 분류 모델]
+    Router -->|MF Score > 0.7<br/>복잡한 추론 필요| LLM[Strong Model<br/>GLM-5 744B<br/>Reasoning]
+    Router -->|MF Score ≤ 0.7<br/>단순 응답| SLM[Weak Model<br/>Qwen3-Coder 3B<br/>빠른 응답]
+    LLM --> Resp[응답]
+    SLM --> Resp
+    
+    style Router fill:#326ce5,stroke:#333,color:#fff
+    style LLM fill:#e53935,stroke:#333,color:#fff
+    style SLM fill:#76b900,stroke:#333,color:#000
+```
+
+| 항목 | 설명 |
+|------|------|
+| **분류 모델** | Matrix Factorization (MF) — 경량 임베딩 기반 복잡도 예측 |
+| **입력** | 사용자 프롬프트 + 대화 히스토리 |
+| **출력** | Strong/Weak 선택 결정 + 신뢰도 점수 |
+| **지연** | 추가 지연 < 10ms (분류 모델 추론 시간) |
+| **정확도** | LMSYS Chatbot Arena 데이터 기반 학습, 90%+ 정확도 |
+
+**RouteLLM 배포 예시:**
+
+```python
+from routellm.controller import Controller
+
+controller = Controller(
+    routers=["mf"],  # Matrix Factorization 라우터
+    strong_model="openai/gpt-4",
+    weak_model="openai/gpt-3.5-turbo",
+    threshold=0.7,  # MF Score 임계값
+)
+
+# 요청 라우팅
+response = controller.chat.completions.create(
+    model="router-mf-0.7",
+    messages=[{"role": "user", "content": "파이썬으로 퀵소트 구현해줘"}]
+)
+```
+
+### Cascading 패턴 3가지
+
+| 패턴 | 설명 | 구현 | 사용 사례 |
+|------|------|------|----------|
+| **1. Weight 기반** | 고정 비율로 트래픽 분배 | Bifrost `weights: [0.7, 0.3]` | A/B 테스트, 점진적 모델 마이그레이션 |
+| **2. Fallback 기반** | 오류 시 다른 모델로 자동 전환 | Bifrost `fallback: true` | 가용성 향상, rate limit 회피 |
+| **3. 지능형 라우팅** | 요청 분석 후 자동 모델 선택 | RouteLLM MF 분류 | 비용 최적화, 품질 유지 |
+
+```mermaid
+flowchart TB
+    Q[User Query]
+    
+    subgraph P1["패턴 1: Weight 기반"]
+        W1[70% → Cheap]
+        W2[30% → Premium]
+    end
+    
+    subgraph P2["패턴 2: Fallback 기반"]
+        F1[Primary Model]
+        F2{5xx/Timeout?}
+        F3[Fallback Model]
+    end
+    
+    subgraph P3["패턴 3: 지능형 라우팅"]
+        R1[RouteLLM 분석]
+        R2{MF Score}
+        R3[Strong Model]
+        R4[Weak Model]
+    end
+    
+    Q --> P1 & P2 & P3
+    
+    F1 --> F2
+    F2 -->|Yes| F3
+    
+    R1 --> R2
+    R2 -->|> 0.7| R3
+    R2 -->|≤ 0.7| R4
+    
+    style P1 fill:#ffd93d,stroke:#333
+    style P2 fill:#ff9900,stroke:#333
+    style P3 fill:#e53935,stroke:#333,color:#fff
+```
+
+### Cascade Routing 전략 (Fallback 기반)
+
+복잡도에 따라 **cheap -> medium -> premium** 모델을 단계적으로 시도하는 전통적 접근입니다.
 
 ```mermaid
 flowchart TB
@@ -311,9 +435,7 @@ flowchart TB
     style P fill:#e53935,stroke:#333
 ```
 
-### Fallback 조건
-
-각 단계에서 다음 조건 충족 시 상위 모델로 escalate합니다:
+**Fallback 조건:**
 
 | 조건 | 설명 |
 |------|------|
@@ -322,7 +444,7 @@ flowchart TB
 | **Timeout** | 응답 시간 초과 |
 | **Quality Score < 0.7** | 응답 품질 점수 미달 (옵션) |
 
-### 복잡도 분류 기준
+**복잡도 분류 기준:**
 
 | 조건 | 시작 모델 | 예시 |
 |------|----------|------|
@@ -343,7 +465,129 @@ flowchart TB
 | Very Complex (5%) | GPT-4 Turbo | 500 | $0.01 | $5 |
 | **합계** | | 10,000 | | **$13.65/일** |
 
-**비교**: 모든 요청을 GPT-4 Turbo로 처리 시 $50/일. **Cascade Routing으로 73% 절감**.
+**비교**: 모든 요청을 GPT-4 Turbo로 처리 시 $50/일. **Request Cascading으로 73% 절감**.
+
+### 엔터프라이즈 모델 라우팅 패턴
+
+**구현 위치 우선순위**: Gateway 레벨 > IDE 레벨 > 클라이언트 레벨
+
+| 위치 | 장점 | 단점 | 적합 환경 |
+|------|------|------|----------|
+| **Gateway (RouteLLM)** | 중앙 통제, 정책 일관성, IDE 변경 불필요 | 초기 구축 필요 | 엔터프라이즈 **(권장)** |
+| **IDE (Claude Code)** | 컨텍스트 인식, 로컬 결정 | IDE별 구현 필요 | 개발 도구 벤더 |
+| **클라이언트 (SDK)** | 유연성 높음 | 정책 분산, 관리 어려움 | 프로토타입 |
+
+**실전 권장**: RouteLLM을 Inference Gateway에 배포하여 모든 요청을 중앙에서 라우팅합니다. 개발자는 단일 엔드포인트만 사용하고, 라우팅 정책은 플랫폼 팀이 관리합니다.
+
+---
+
+## Gateway API Inference Extension
+
+Kubernetes Gateway API는 **Inference Extension**을 통해 LLM 추론을 쿠버네티스 네이티브 리소스로 관리할 수 있게 합니다.
+
+### 핵심 CRD (Custom Resource Definitions)
+
+| CRD | 역할 | 예시 |
+|-----|------|------|
+| **InferenceModel** | 모델별 서빙 정책 정의 (criticality, 라우팅 규칙) | `criticality: high` → 전용 GPU 할당 |
+| **InferencePool** | 모델 서빙 Pod 그룹 (vLLM replicas) | `replicas: 3` → 3개 vLLM 인스턴스 |
+| **LLMRoute** | 요청을 InferenceModel로 라우팅하는 규칙 | `x-model-id: glm-5` → GLM-5 Pool |
+
+```yaml
+# InferenceModel 예시
+apiVersion: gateway.networking.k8s.io/v1alpha1
+kind: InferenceModel
+metadata:
+  name: glm-5-744b
+spec:
+  modelId: glm-5-744b
+  criticality: high  # 전용 GPU, 높은 우선순위
+  resourceRequirements:
+    gpu: 8
+    memory: 320Gi
+  routingPolicy:
+    strategy: consistent-hash  # 세션 어피니티
+    hashKey: x-user-id
+```
+
+```yaml
+# InferencePool 예시
+apiVersion: gateway.networking.k8s.io/v1alpha1
+kind: InferencePool
+metadata:
+  name: glm-5-pool
+spec:
+  modelRef:
+    name: glm-5-744b
+  replicas: 3
+  backend:
+    service: vllm-glm-5
+    port: 8000
+  autoscaling:
+    minReplicas: 1
+    maxReplicas: 10
+    metrics:
+      - type: QueueDepth
+        target: 100
+```
+
+```yaml
+# LLMRoute 예시
+apiVersion: gateway.networking.k8s.io/v1alpha1
+kind: LLMRoute
+metadata:
+  name: model-routing
+spec:
+  parentRefs:
+    - name: kgateway
+  rules:
+    - matches:
+        - headers:
+            - name: x-model-id
+              value: glm-5
+      backendRefs:
+        - group: gateway.networking.k8s.io
+          kind: InferencePool
+          name: glm-5-pool
+    - matches:
+        - headers:
+            - name: x-model-id
+              value: qwen3
+      backendRefs:
+        - group: gateway.networking.k8s.io
+          kind: InferencePool
+          name: qwen3-pool
+```
+
+### Gateway API Inference Extension 통합
+
+Gateway API Inference Extension은 **kgateway + llm-d EPP**와 연동하여 쿠버네티스 네이티브 추론 라우팅을 제공합니다:
+
+```mermaid
+graph TB
+    Client[클라이언트] --> Gateway[kgateway]
+    Gateway --> LLMRoute[LLMRoute CRD<br/>라우팅 규칙]
+    LLMRoute --> Pool1[InferencePool<br/>GLM-5]
+    LLMRoute --> Pool2[InferencePool<br/>Qwen3]
+    Pool1 --> LLMD1[llm-d EPP<br/>Disaggregated]
+    Pool2 --> VLLM[vLLM<br/>Aggregated]
+    
+    style Gateway fill:#326ce5,stroke:#333,color:#fff
+    style LLMRoute fill:#e53935,stroke:#333,color:#fff
+    style Pool1 fill:#ff9900,stroke:#333
+    style Pool2 fill:#ffd93d,stroke:#333
+```
+
+**현재 상태**: Gateway API Inference Extension은 CNCF 프로젝트로 활발히 개발 중입니다. Kubernetes 1.34+에서 alpha 단계로 제공될 예정이며, kgateway는 실험적 지원을 진행 중입니다.
+
+**핵심 가치:**
+- **선언적 관리**: YAML로 모델, 풀, 라우팅 규칙을 선언하면 컨트롤러가 자동 조정
+- **벤더 중립**: Gateway API 표준 준수로 다른 구현체로 마이그레이션 가능
+- **K8s 네이티브**: kubectl, Helm, GitOps로 모델 인프라 관리
+
+:::info Gateway API Inference Extension 상태
+이 기능은 현재 alpha 단계로 프로덕션 사용은 권장하지 않습니다. 실전 배포는 [Reference Architecture](../reference-architecture/) 가이드를 참조하세요.
+:::
 
 ---
 
@@ -538,6 +782,8 @@ OTel 연동은 Bifrost의 `otel` 플러그인 또는 LiteLLM의 `success_callbac
 
 ### 실전 배포 가이드
 
+실제 코드 예시와 YAML 매니페스트는 Reference Architecture 섹션을 참조하세요:
+
 - [게이트웨이 구성 가이드](../reference-architecture/inference-gateway-setup.md) - kgateway, Bifrost, agentgateway 설치 및 YAML 매니페스트
 - [OpenClaw AI Gateway 배포](../reference-architecture/openclaw-ai-gateway.mdx) - OpenClaw + Bifrost + Hubble 실전 배포
 - [커스텀 모델 배포](../reference-architecture/custom-model-deployment.md) - vLLM/llm-d 배포 가이드
@@ -561,8 +807,10 @@ OTel 연동은 Bifrost의 `otel` 플러그인 또는 LiteLLM의 `success_callbac
 ### 공식 문서
 
 - [Kubernetes Gateway API](https://gateway-api.sigs.k8s.io/)
+- [Gateway API Inference Extension (Proposal)](https://github.com/kubernetes-sigs/gateway-api/issues/2813)
 - [kgateway 공식 문서](https://kgateway.dev/docs/)
 - [agentgateway GitHub](https://github.com/kgateway-dev/agentgateway)
+- [RouteLLM GitHub](https://github.com/lm-sys/RouteLLM)
 - [Bifrost 공식 문서](https://bifrost.dev/docs)
 - [LiteLLM 공식 문서](https://docs.litellm.ai/)
 
@@ -576,3 +824,8 @@ OTel 연동은 Bifrost의 `otel` 플러그인 또는 LiteLLM의 `success_callbac
 
 - [Model Context Protocol (MCP) Spec](https://modelcontextprotocol.io/specification)
 - [Agent-to-Agent (A2A) Protocol](https://github.com/a2a-protocol/spec)
+
+### 연구 자료
+
+- [RouteLLM: Learning to Route LLMs with Preference Data (arXiv)](https://arxiv.org/abs/2406.18665)
+- [LMSYS Chatbot Arena Leaderboard](https://chat.lmsys.org/?leaderboard)
