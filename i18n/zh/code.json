@@ -1,0 +1,521 @@
+{
+  "theme.ErrorPageContent.title": {
+    "message": "页面崩溃了。",
+    "description": "The title of the fallback page when the page crashed"
+  },
+  "theme.blog.archive.title": {
+    "message": "归档",
+    "description": "The page & hero title of the blog archive page"
+  },
+  "theme.blog.archive.description": {
+    "message": "归档",
+    "description": "The page & hero description of the blog archive page"
+  },
+  "theme.BackToTopButton.buttonAriaLabel": {
+    "message": "返回顶部",
+    "description": "The ARIA label for the back to top button"
+  },
+  "theme.blog.paginator.navAriaLabel": {
+    "message": "博客列表页导航",
+    "description": "The ARIA label for the blog pagination"
+  },
+  "theme.blog.paginator.newerEntries": {
+    "message": "较新的文章",
+    "description": "The label used to navigate to the newer blog posts page (previous page)"
+  },
+  "theme.blog.paginator.olderEntries": {
+    "message": "较旧的文章",
+    "description": "The label used to navigate to the older blog posts page (next page)"
+  },
+  "theme.blog.post.paginator.navAriaLabel": {
+    "message": "博客文章页导航",
+    "description": "The ARIA label for the blog posts pagination"
+  },
+  "theme.blog.post.paginator.newerPost": {
+    "message": "较新的文章",
+    "description": "The blog post button label to navigate to the newer/previous post"
+  },
+  "theme.blog.post.paginator.olderPost": {
+    "message": "较旧的文章",
+    "description": "The blog post button label to navigate to the older/next post"
+  },
+  "theme.tags.tagsPageLink": {
+    "message": "查看所有标签",
+    "description": "The label of the link targeting the tag list page"
+  },
+  "theme.colorToggle.ariaLabel.mode.system": {
+    "message": "跟随系统",
+    "description": "The name for the system color mode"
+  },
+  "theme.colorToggle.ariaLabel.mode.light": {
+    "message": "浅色模式",
+    "description": "The name for the light color mode"
+  },
+  "theme.colorToggle.ariaLabel.mode.dark": {
+    "message": "深色模式",
+    "description": "The name for the dark color mode"
+  },
+  "theme.colorToggle.ariaLabel": {
+    "message": "切换深色和浅色模式（当前为{mode}）",
+    "description": "The ARIA label for the color mode toggle"
+  },
+  "theme.docs.breadcrumbs.navAriaLabel": {
+    "message": "面包屑导航",
+    "description": "The ARIA label for the breadcrumbs"
+  },
+  "theme.docs.DocCard.categoryDescription.plurals": {
+    "message": "{count} 个项目",
+    "description": "The default description for a category card in the generated index about how many items this category includes"
+  },
+  "theme.docs.paginator.navAriaLabel": {
+    "message": "文档页面",
+    "description": "The ARIA label for the docs pagination"
+  },
+  "theme.docs.paginator.previous": {
+    "message": "上一页",
+    "description": "The label used to navigate to the previous doc"
+  },
+  "theme.docs.paginator.next": {
+    "message": "下一页",
+    "description": "The label used to navigate to the next doc"
+  },
+  "theme.docs.tagDocListPageTitle.nDocsTagged": {
+    "message": "{count} 篇文档已标记",
+    "description": "Pluralized label for \"{count} docs tagged\". Use as much plural forms (separated by \"|\") as your language support (see https://www.unicode.org/cldr/cldr-aux/charts/34/supplemental/language_plural_rules.html)"
+  },
+  "theme.docs.tagDocListPageTitle": {
+    "message": "{nDocsTagged}「{tagName}」",
+    "description": "The title of the page for a docs tag"
+  },
+  "theme.docs.versionBadge.label": {
+    "message": "版本：{versionLabel}"
+  },
+  "theme.docs.versions.unreleasedVersionLabel": {
+    "message": "这是 {siteTitle} {versionLabel} 版本的未发布文档。",
+    "description": "The label used to tell the user that he's browsing an unreleased doc version"
+  },
+  "theme.docs.versions.unmaintainedVersionLabel": {
+    "message": "这是 {siteTitle} {versionLabel} 的文档，已不再积极维护。",
+    "description": "The label used to tell the user that he's browsing an unmaintained doc version"
+  },
+  "theme.docs.versions.latestVersionSuggestionLabel": {
+    "message": "如需最新文档，请查看 {latestVersionLink}（{versionLabel}）。",
+    "description": "The label used to tell the user to check the latest version"
+  },
+  "theme.docs.versions.latestVersionLinkLabel": {
+    "message": "最新版本",
+    "description": "The label used for the latest version suggestion link label"
+  },
+  "theme.common.editThisPage": {
+    "message": "编辑此页",
+    "description": "The link label to edit the current page"
+  },
+  "theme.common.headingLinkTitle": {
+    "message": "{heading}的直接链接",
+    "description": "Title for link to heading"
+  },
+  "theme.lastUpdated.atDate": {
+    "message": "于 {date}",
+    "description": "The words used to describe on which date a page has been last updated"
+  },
+  "theme.lastUpdated.byUser": {
+    "message": "由 {user}",
+    "description": "The words used to describe by who the page has been last updated"
+  },
+  "theme.lastUpdated.lastUpdatedAtBy": {
+    "message": "最后更新{atDate}{byUser}",
+    "description": "The sentence used to display when a page has been last updated, and by who"
+  },
+  "theme.NotFound.title": {
+    "message": "页面未找到",
+    "description": "The title of the 404 page"
+  },
+  "theme.navbar.mobileVersionsDropdown.label": {
+    "message": "版本",
+    "description": "The label for the navbar versions dropdown on mobile view"
+  },
+  "theme.tags.tagsListLabel": {
+    "message": "标签：",
+    "description": "The label alongside a tag list"
+  },
+  "theme.AnnouncementBar.closeButtonAriaLabel": {
+    "message": "关闭",
+    "description": "The ARIA label for close button of announcement bar"
+  },
+  "theme.admonition.caution": {
+    "message": "注意",
+    "description": "The default label used for the Caution admonition (:::caution)"
+  },
+  "theme.admonition.danger": {
+    "message": "危险",
+    "description": "The default label used for the Danger admonition (:::danger)"
+  },
+  "theme.admonition.info": {
+    "message": "信息",
+    "description": "The default label used for the Info admonition (:::info)"
+  },
+  "theme.admonition.note": {
+    "message": "备注",
+    "description": "The default label used for the Note admonition (:::note)"
+  },
+  "theme.admonition.tip": {
+    "message": "提示",
+    "description": "The default label used for the Tip admonition (:::tip)"
+  },
+  "theme.admonition.warning": {
+    "message": "警告",
+    "description": "The default label used for the Warning admonition (:::warning)"
+  },
+  "theme.blog.sidebar.navAriaLabel": {
+    "message": "博客最近文章导航",
+    "description": "The ARIA label for recent posts in the blog sidebar"
+  },
+  "theme.DocSidebarItem.expandCategoryAriaLabel": {
+    "message": "展开侧边栏分类「{label}」",
+    "description": "The ARIA label to expand the sidebar category"
+  },
+  "theme.DocSidebarItem.collapseCategoryAriaLabel": {
+    "message": "折叠侧边栏分类「{label}」",
+    "description": "The ARIA label to collapse the sidebar category"
+  },
+  "theme.IconExternalLink.ariaLabel": {
+    "message": "（在新标签页中打开）",
+    "description": "The ARIA label for the external link icon"
+  },
+  "theme.NotFound.p1": {
+    "message": "我们找不到您要查找的内容。",
+    "description": "The first paragraph of the 404 page"
+  },
+  "theme.NotFound.p2": {
+    "message": "请联系将您链接到原始 URL 的网站所有者，告知他们链接已失效。",
+    "description": "The 2nd paragraph of the 404 page"
+  },
+  "theme.NavBar.navAriaLabel": {
+    "message": "主导航",
+    "description": "The ARIA label for the main navigation"
+  },
+  "theme.navbar.mobileLanguageDropdown.label": {
+    "message": "语言",
+    "description": "The label for the mobile language switcher dropdown"
+  },
+  "theme.TOCCollapsible.toggleButtonLabel": {
+    "message": "本页目录",
+    "description": "The label used by the button on the collapsible TOC component"
+  },
+  "theme.blog.post.readMore": {
+    "message": "阅读更多",
+    "description": "The label used in blog post item excerpts to link to full blog posts"
+  },
+  "theme.blog.post.readMoreLabel": {
+    "message": "阅读关于 {title} 的更多内容",
+    "description": "The ARIA label for the link to full blog posts from excerpts"
+  },
+  "theme.blog.post.readingTime.plurals": {
+    "message": "约 {readingTime} 分钟阅读",
+    "description": "Pluralized label for \"{readingTime} min read\". Use as much plural forms (separated by \"|\") as your language support (see https://www.unicode.org/cldr/cldr-aux/charts/34/supplemental/language_plural_rules.html)"
+  },
+  "theme.CodeBlock.copy": {
+    "message": "复制",
+    "description": "The copy button label on code blocks"
+  },
+  "theme.CodeBlock.copied": {
+    "message": "已复制",
+    "description": "The copied button label on code blocks"
+  },
+  "theme.CodeBlock.copyButtonAriaLabel": {
+    "message": "复制代码到剪贴板",
+    "description": "The ARIA label for copy code blocks button"
+  },
+  "theme.CodeBlock.wordWrapToggle": {
+    "message": "切换自动换行",
+    "description": "The title attribute for toggle word wrapping button of code block lines"
+  },
+  "theme.docs.breadcrumbs.home": {
+    "message": "首页",
+    "description": "The ARIA label for the home page in the breadcrumbs"
+  },
+  "theme.docs.sidebar.collapseButtonTitle": {
+    "message": "收起侧边栏",
+    "description": "The title attribute for collapse button of doc sidebar"
+  },
+  "theme.docs.sidebar.collapseButtonAriaLabel": {
+    "message": "收起侧边栏",
+    "description": "The title attribute for collapse button of doc sidebar"
+  },
+  "theme.docs.sidebar.navAriaLabel": {
+    "message": "文档侧边栏",
+    "description": "The ARIA label for the sidebar navigation"
+  },
+  "theme.docs.sidebar.closeSidebarButtonAriaLabel": {
+    "message": "关闭导航栏",
+    "description": "The ARIA label for close button of mobile sidebar"
+  },
+  "theme.docs.sidebar.toggleSidebarButtonAriaLabel": {
+    "message": "切换导航栏",
+    "description": "The ARIA label for hamburger menu button of mobile navigation"
+  },
+  "theme.navbar.mobileSidebarSecondaryMenu.backButtonLabel": {
+    "message": "← 返回主菜单",
+    "description": "The label of the back button to return to main menu, inside the mobile navbar sidebar secondary menu (notably used to display the docs sidebar)"
+  },
+  "theme.navbar.mobileDropdown.collapseButton.expandAriaLabel": {
+    "message": "展开下拉菜单",
+    "description": "The ARIA label of the button to expand the mobile dropdown navbar item"
+  },
+  "theme.navbar.mobileDropdown.collapseButton.collapseAriaLabel": {
+    "message": "折叠下拉菜单",
+    "description": "The ARIA label of the button to collapse the mobile dropdown navbar item"
+  },
+  "theme.docs.sidebar.expandButtonTitle": {
+    "message": "展开侧边栏",
+    "description": "The ARIA label and title attribute for expand button of doc sidebar"
+  },
+  "theme.docs.sidebar.expandButtonAriaLabel": {
+    "message": "展开侧边栏",
+    "description": "The ARIA label and title attribute for expand button of doc sidebar"
+  },
+  "theme.IdealImageMessage.loading": {
+    "message": "加载中...",
+    "description": "When the full-scale image is loading"
+  },
+  "theme.IdealImageMessage.load": {
+    "message": "点击加载{sizeMessage}",
+    "description": "To prompt users to load the full image. sizeMessage is a parenthesized size figure."
+  },
+  "theme.IdealImageMessage.offline": {
+    "message": "您的浏览器已离线，图片未加载",
+    "description": "When the user is viewing an offline document"
+  },
+  "theme.IdealImageMessage.404error": {
+    "message": "404. 图片未找到",
+    "description": "When the image is not found"
+  },
+  "theme.IdealImageMessage.error": {
+    "message": "错误。点击重新加载",
+    "description": "When the image fails to load for unknown error"
+  },
+  "theme.blog.post.plurals": {
+    "message": "{count} 篇文章",
+    "description": "Pluralized label for \"{count} posts\". Use as much plural forms (separated by \"|\") as your language support (see https://www.unicode.org/cldr/cldr-aux/charts/34/supplemental/language_plural_rules.html)"
+  },
+  "theme.blog.tagTitle": {
+    "message": "{nPosts}标记为「{tagName}」",
+    "description": "The title of the page for a blog tag"
+  },
+  "theme.blog.author.pageTitle": {
+    "message": "{authorName} - {nPosts}",
+    "description": "The title of the page for a blog author"
+  },
+  "theme.blog.authorsList.pageTitle": {
+    "message": "作者",
+    "description": "The title of the authors page"
+  },
+  "theme.blog.authorsList.viewAll": {
+    "message": "查看所有作者",
+    "description": "The label of the link targeting the blog authors page"
+  },
+  "theme.blog.author.noPosts": {
+    "message": "该作者尚未撰写任何文章。",
+    "description": "The text for authors with 0 blog post"
+  },
+  "theme.contentVisibility.unlistedBanner.title": {
+    "message": "未列出的页面",
+    "description": "The unlisted content banner title"
+  },
+  "theme.contentVisibility.unlistedBanner.message": {
+    "message": "此页面未列出。搜索引擎不会索引它，只有拥有直接链接的用户才能访问。",
+    "description": "The unlisted content banner message"
+  },
+  "theme.contentVisibility.draftBanner.title": {
+    "message": "草稿页面",
+    "description": "The draft content banner title"
+  },
+  "theme.contentVisibility.draftBanner.message": {
+    "message": "此页面为草稿。它仅在开发模式下可见，不会包含在生产构建中。",
+    "description": "The draft content banner message"
+  },
+  "theme.ErrorPageContent.tryAgain": {
+    "message": "重试",
+    "description": "The label of the button to try again rendering when the React error boundary captures an error"
+  },
+  "theme.common.skipToMainContent": {
+    "message": "跳到主要内容",
+    "description": "The skip to content label used for accessibility, allowing to rapidly navigate to main content with keyboard tab/enter navigation"
+  },
+  "theme.tags.tagsPageTitle": {
+    "message": "标签",
+    "description": "The title of the tag list page"
+  },
+  "homepage.features.learnMore": {
+    "message": "了解更多",
+    "description": "Learn More button"
+  },
+  "homepage.tagline": {
+    "message": "云原生架构工程手册与基准测试报告",
+    "description": "Site tagline"
+  },
+  "homepage.getStarted": {
+    "message": "快速入门",
+    "description": "Get Started button"
+  },
+  "homepage.description": {
+    "message": "云原生架构工程手册与基准测试报告 — EKS 基础设施优化、Agentic AI、AIOps、性能基准",
+    "description": "Homepage meta description"
+  },
+  "homepage.domains.title": {
+    "message": "技术领域与基准测试",
+    "description": "Technical Domains section title"
+  },
+  "homepage.domains.subtitle": {
+    "message": "探索涵盖七大核心技术领域的深度指南与定量基准测试报告。",
+    "description": "Technical Domains section subtitle"
+  },
+  "homepage.quickstart.title": {
+    "message": "快速入门",
+    "description": "Quick Start section title"
+  },
+  "homepage.quickstart.description": {
+    "message": "初次接触云原生工程？从入门指南开始获取全面概览，然后探索基准测试报告以做出数据驱动的决策。",
+    "description": "Quick Start section description"
+  },
+  "homepage.quickstart.button": {
+    "message": "查看文档",
+    "description": "Documentation button"
+  },
+  "homepage.features.infrastructure.title": {
+    "message": "基础设施优化",
+    "description": "Infrastructure Optimization feature title"
+  },
+  "homepage.features.infrastructure.description": {
+    "message": "Gateway API 采用、CoreDNS 优化、Cilium CNI 网络、Karpenter 自动扩缩、东西向流量优化和成本管理。",
+    "description": "Infrastructure Optimization feature description"
+  },
+  "homepage.features.observability.title": {
+    "message": "运维与可观测性",
+    "description": "Operations & Observability feature title"
+  },
+  "homepage.features.observability.description": {
+    "message": "GitOps 集群运维、节点监控、EKS 调试、高可用架构、Pod 健康生命周期和调度策略。",
+    "description": "Operations & Observability feature description"
+  },
+  "homepage.features.agentic.title": {
+    "message": "Agentic AI 平台",
+    "description": "Agentic AI Platform feature title"
+  },
+  "homepage.features.agentic.description": {
+    "message": "生产级 GenAI 平台，集成 vLLM/MoE 服务、llm-d 分布式推理、Inference Gateway、Milvus RAG、Kagent AI Agent 和 MLOps 管道。",
+    "description": "Agentic AI Platform feature description"
+  },
+  "homepage.features.hybrid.title": {
+    "message": "混合基础设施",
+    "description": "Hybrid Infrastructure feature title"
+  },
+  "homepage.features.hybrid.description": {
+    "message": "混合节点采用、SR-IOV DGX H200 高性能网络、共享文件存储和 Harbor 容器镜像仓库集成。",
+    "description": "Hybrid Infrastructure feature description"
+  },
+  "homepage.features.security.title": {
+    "message": "安全与治理",
+    "description": "Security & Governance feature title"
+  },
+  "homepage.features.security.description": {
+    "message": "身份优先安全、GuardDuty 威胁检测、Kyverno 策略管理、企业 Kubernetes 供应链安全。",
+    "description": "Security & Governance feature description"
+  },
+  "homepage.features.aiops.title": {
+    "message": "AIOps 与 AIDLC",
+    "description": "AIOps & AIDLC feature title"
+  },
+  "homepage.features.aiops.description": {
+    "message": "EKS AIOps 策略、基于 ADOT/AMP/AMG 的智能可观测性栈、AIDLC 框架与 Kiro 和 MCP、预测性扩缩和自动恢复。",
+    "description": "AIOps & AIDLC feature description"
+  },
+  "homepage.features.rosa.title": {
+    "message": "ROSA (OpenShift on AWS)",
+    "description": "ROSA feature title"
+  },
+  "homepage.features.rosa.description": {
+    "message": "Red Hat OpenShift Service on AWS 安装指南、安全配置和合规管理。",
+    "description": "ROSA feature description"
+  },
+  "homepage.features.benchmarks.title": {
+    "message": "基准测试报告",
+    "description": "Benchmark Reports feature title"
+  },
+  "homepage.features.benchmarks.description": {
+    "message": "定量性能基准测试：CNI 对比（Cilium vs VPC CNI）、Gateway API 实现、AI/ML 工作负载和基础设施性能。",
+    "description": "Benchmark Reports feature description"
+  },
+  "homepage.quickstart.benchmarks": {
+    "message": "查看基准测试",
+    "description": "Benchmarks button"
+  },
+  "hero.badge": {
+    "message": "Engineering Playbook",
+    "description": "Hero badge text"
+  },
+  "hero.subtitle": {
+    "message": "基于 Amazon EKS 的基础设施、AI/ML 工作流、安全和自动化运维实战工程指南",
+    "description": "Hero subtitle"
+  },
+  "hero.startReading": {
+    "message": "开始阅读",
+    "description": "Hero CTA button"
+  },
+  "hero.exploreTopics": {
+    "message": "探索主题",
+    "description": "Hero secondary button"
+  },
+  "topics.title": {
+    "message": "核心知识领域",
+    "description": "Topics section title"
+  },
+  "topics.subtitle": {
+    "message": "深入涵盖云工程核心领域的精选指南合集",
+    "description": "Topics section subtitle"
+  },
+  "topics.viewAll": {
+    "message": "查看所有模块",
+    "description": "View all link"
+  },
+  "topic.agentic.desc": {
+    "message": "基于 EKS 的 Agentic AI 平台设计、2-Tier Gateway、Knowledge Feature Store、模型服务、MLOps 管道",
+    "description": "Agentic AI Platform topic description"
+  },
+  "topic.eks.desc": {
+    "message": "Amazon EKS 网络、控制平面扩展、安全认证、Karpenter 成本优化、运维稳定性",
+    "description": "EKS Best Practices topic description"
+  },
+  "topic.rosa.desc": {
+    "message": "Red Hat OpenShift on AWS 安装、安全合规、企业运维指南",
+    "description": "ROSA topic description"
+  },
+  "topic.security.desc": {
+    "message": "零信任网络、IAM 角色管理、容器安全扫描自动化",
+    "description": "Security & Governance topic description"
+  },
+  "topic.aidlc.desc": {
+    "message": "AI 驱动开发方法论、Intent→Unit→Bolt 模型、DDD 集成",
+    "description": "AIDLC topic description"
+  },
+  "topic.hybrid.desc": {
+    "message": "本地-云端混合架构、ROSA、多云策略",
+    "description": "Hybrid Infrastructure topic description"
+  },
+  "topic.benchmarks.desc": {
+    "message": "性能基准测试、成本分析、架构对比报告",
+    "description": "Benchmarks topic description"
+  },
+  "cta.title": {
+    "message": "准备好构建可扩展架构了吗？",
+    "description": "CTA section title"
+  },
+  "cta.subtitle": {
+    "message": "通过 Engineering Playbook 构建更可靠的系统。",
+    "description": "CTA section subtitle"
+  },
+  "cta.getGuide": {
+    "message": "获取完整指南",
+    "description": "CTA button"
+  }
+}
