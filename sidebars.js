@@ -145,18 +145,6 @@ const sidebars = {
         },
         {
           type: 'category',
-          label: '에이전트 & 데이터',
-          link: {
-            type: 'doc',
-            id: 'agentic-ai-platform/agent-data/index',
-          },
-          items: [
-            'agentic-ai-platform/agent-data/kagent-kubernetes-agents',
-            'agentic-ai-platform/agent-data/milvus-vector-database',
-          ],
-        },
-        {
-          type: 'category',
           label: '운영 & MLOps',
           link: {
             type: 'doc',
@@ -168,6 +156,7 @@ const sidebars = {
             'agentic-ai-platform/operations-mlops/llmops-observability',
             'agentic-ai-platform/operations-mlops/mlops-pipeline-eks',
             'agentic-ai-platform/operations-mlops/sagemaker-eks-integration',
+            'agentic-ai-platform/operations-mlops/kagent-kubernetes-agents',
           ],
         },
         {
@@ -181,6 +170,7 @@ const sidebars = {
             'agentic-ai-platform/enterprise-ops/agentic-playbook',
             'agentic-ai-platform/enterprise-ops/compliance-framework',
             'agentic-ai-platform/enterprise-ops/domain-customization',
+            'agentic-ai-platform/enterprise-ops/milvus-vector-database',
           ],
         },
         {
