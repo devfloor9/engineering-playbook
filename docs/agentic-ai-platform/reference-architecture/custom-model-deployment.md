@@ -936,8 +936,15 @@ spec:
 
 ## 다음 단계
 
-- 모니터링 구성은 [모니터링 스택 구성](./monitoring-observability-setup.md)을 참조하세요.
-- 게이트웨이 구성은 [Inference Gateway 라우팅](../design-architecture/inference-gateway-routing.md)을 참조하세요.
+### 모델 서빙 및 인프라
+- [vLLM 모델 서빙](../model-serving/vllm-model-serving.md) — vLLM 설정, 성능 최적화, 텐서 병렬화
+- [MoE 모델 서빙](../model-serving/moe-model-serving.md) — Mixture-of-Experts 모델 특화 가이드
+- [llm-d 분산 추론](../model-serving/llm-d-eks-automode.md) — KV Cache-aware 라우팅, Disaggregated Serving
+- [EKS GPU 노드 전략](../model-serving/eks-gpu-node-strategy.md) — Auto Mode + Karpenter 하이브리드, 보안, 트러블슈팅
+
+### 운영 및 모니터링
+- [모니터링 스택 구성](./monitoring-observability-setup.md) — Langfuse, Prometheus, Grafana 배포
+- [Inference Gateway 라우팅](../design-architecture/inference-gateway-routing.md) — kgateway + Bifrost 2-Tier 아키텍처
 
 ### 참고 자료
 

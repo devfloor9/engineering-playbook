@@ -58,7 +58,7 @@ graph LR
 
 :::tip 관련 문서
 - [운영 & 거버넌스](../operations-mlops/index.md) - 전체 운영 아키텍처
-- [GLM-5 배포 실전 가이드](../model-serving/glm5-deployment-guide.md) - Kiro vs 자체 호스팅 비교 포함
+- [커스텀 모델 배포 가이드](./custom-model-deployment.md) - Kiro vs 자체 호스팅 비교 포함
 :::
 
 ---
@@ -423,7 +423,7 @@ spec:
 - 8B 모델 서빙에 충분한 사양
 :::
 
-- 참조: [비용 Threshold 분석](../model-serving/glm5-deployment-guide.md#비용-threshold-분석)
+- 참조: [비용 Threshold 분석](./custom-model-deployment.md#비용-threshold-분석)
 
 ---
 
@@ -536,4 +536,4 @@ Phase 4까지 완료 시:
 | NeMo Framework | [docs.nvidia.com/nemo-framework](https://docs.nvidia.com/nemo-framework/user-guide/latest/) |
 | RAGAS Evaluation | [docs.ragas.io](https://docs.ragas.io/) |
 | Bifrost AI Gateway | [docs.getbifrost.ai](https://docs.getbifrost.ai/) |
-| GLM-5 배포 실전 가이드 | [glm5-deployment-guide.md](../model-serving/glm5-deployment-guide.md) |
+| 커스텀 모델 배포 가이드 | [custom-model-deployment.md](./custom-model-deployment.md) |

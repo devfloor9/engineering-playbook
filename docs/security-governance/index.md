@@ -173,6 +173,4 @@ AWS 네이티브 보안 서비스는 클라우드 환경에 최적화된 보안 
 
 [Hybrid Infrastructure](/docs/hybrid-infrastructure) - 하이브리드 환경 보안
 
-[Operations & Observability](/docs/operations-observability) - 보안 모니터링
-
-[Infrastructure Optimization](/docs/infrastructure-optimization) - 네트워크 보안
+[EKS Best Practices](/docs/eks-best-practices) - 보안 모니터링 및 네트워크 보안

@@ -152,7 +152,7 @@ flowchart TB
 3. **데이터 주권과 비용**: 민감 데이터 클라우드 전송 불가, 대규모 트래픽 시 과금 급증
 4. **고급 평가 파이프라인**: Ragas 같은 전문 프레임워크 통합, CI/CD 회귀 테스트 자동화
 
-### 4.2 추천 조합: Bifrost (Gateway) + Langfuse (Observability)
+### 4.2 추천 조합: kgateway + Bifrost (Gateway) + Langfuse (Observability)
 
 ```mermaid
 flowchart TB
@@ -162,7 +162,7 @@ flowchart TB
 
     subgraph EKS["EKS Cluster"]
         subgraph GW["Gateway"]
-            B[Kong/Envoy]
+            B[kgateway<br/>Envoy 기반]
             C[Bifrost]
         end
 
@@ -203,7 +203,7 @@ flowchart TB
 ```
 
 **이점**:
-- **Gateway 책임 분리**: Bifrost가 프로바이더 라우팅, Caching, Rate limiting 담당
+- **Gateway 책임 분리**: kgateway (Envoy 기반)가 트래픽 관리, 인증, Rate limiting 담당, Bifrost가 프로바이더 라우팅과 Caching 담당
 - **Observability 전문화**: Langfuse가 Tracing, 평가, 프롬프트 관리 담당
 - **완전한 셀프호스트**: 모든 구성 요소를 EKS에서 실행
 - **확장성**: 각 계층을 독립적으로 스케일링

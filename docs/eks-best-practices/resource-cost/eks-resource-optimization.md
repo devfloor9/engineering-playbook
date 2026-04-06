@@ -20,9 +20,9 @@ last_update:
 Kubernetes 환경에서 Pod 리소스 설정은 클러스터 효율성과 비용에 직접적인 영향을 미칩니다. **컨테이너의 50%가 요청한 CPU의 1/3만 사용**하며, 이는 평균 40-60%의 리소스 낭비로 이어집니다. 이 가이드는 Pod 레벨 리소스 최적화를 통해 클러스터 효율성을 극대화하고 비용을 30-50% 절감하는 실전 전략을 제공합니다.
 
 :::info 관련 문서와의 차이점
-- **[karpenter-autoscaling.md](/docs/infrastructure-optimization/karpenter-autoscaling)**: 노드 레벨 오토스케일링 (이 문서는 Pod 레벨)
-- **[cost-management.md](/docs/infrastructure-optimization/cost-management)**: 전체 비용 전략 (이 문서는 리소스 설정에 집중)
-- **[eks-resiliency-guide.md](/docs/operations-observability/eks-resiliency-guide)**: 리소스 설정을 체크리스트 항목으로만 다룸
+- **[karpenter-autoscaling.md](/docs/eks-best-practices/resource-cost/karpenter-autoscaling)**: 노드 레벨 오토스케일링 (이 문서는 Pod 레벨)
+- **[cost-management.md](/docs/eks-best-practices/resource-cost/cost-management)**: 전체 비용 전략 (이 문서는 리소스 설정에 집중)
+- **[eks-resiliency-guide.md](/docs/eks-best-practices/operations-reliability/eks-resiliency-guide)**: 리소스 설정을 체크리스트 항목으로만 다룸
 :::
 
 ### 핵심 내용
@@ -2030,7 +2030,7 @@ spec:
 | `selectPolicy` | Max(공격적), Min(보수적), Disabled | ScaleUp: Max, ScaleDown: Min |
 
 :::info karpenter-autoscaling.md 참조
-HPA와 Karpenter를 함께 사용하는 전체 아키텍처는 [Karpenter 오토스케일링 가이드](/docs/infrastructure-optimization/karpenter-autoscaling)를 참조하세요.
+HPA와 Karpenter를 함께 사용하는 전체 아키텍처는 [Karpenter 오토스케일링 가이드](/docs/eks-best-practices/resource-cost/karpenter-autoscaling)를 참조하세요.
 :::
 
 ### 5.2 커스텀 메트릭 기반 HPA
@@ -5553,7 +5553,7 @@ spec:
 :::
 
 :::info 전체 비용 전략은 cost-management.md 참조
-이 문서는 Pod 리소스 최적화에 집중합니다. 클러스터 전체 비용 관리 전략은 [EKS 비용 관리 가이드](/docs/infrastructure-optimization/cost-management)를 참조하세요.
+이 문서는 Pod 리소스 최적화에 집중합니다. 클러스터 전체 비용 관리 전략은 [EKS 비용 관리 가이드](/docs/eks-best-practices/resource-cost/cost-management)를 참조하세요.
 :::
 
 ## 종합 체크리스트 & 참고 자료
@@ -5576,9 +5576,9 @@ spec:
 ### 관련 문서
 
 **내부 문서:**
-- [Karpenter 오토스케일링](/docs/infrastructure-optimization/karpenter-autoscaling) - 노드 레벨 스케일링
-- [EKS 비용 관리](/docs/infrastructure-optimization/cost-management) - 전체 비용 최적화 전략
-- [EKS Resiliency 가이드](/docs/operations-observability/eks-resiliency-guide) - 안정성 체크리스트
+- [Karpenter 오토스케일링](/docs/eks-best-practices/resource-cost/karpenter-autoscaling) - 노드 레벨 스케일링
+- [EKS 비용 관리](/docs/eks-best-practices/resource-cost/cost-management) - 전체 비용 최적화 전략
+- [EKS Resiliency 가이드](/docs/eks-best-practices/operations-reliability/eks-resiliency-guide) - 안정성 체크리스트
 
 **외부 참조:**
 - [Kubernetes Resource Management](https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/)

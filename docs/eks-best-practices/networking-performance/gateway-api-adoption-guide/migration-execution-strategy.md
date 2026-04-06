@@ -14,7 +14,7 @@ import TabItem from '@theme/TabItem';
 import { MigrationFeatureMappingTable, TroubleshootingTable } from '@site/src/components/GatewayApiTables';
 
 :::info
-이 문서는 [Gateway API 도입 가이드](/docs/infrastructure-optimization/gateway-api-adoption-guide)의 심화 가이드입니다. NGINX Ingress에서 Gateway API로의 실전 마이그레이션 전략을 제공합니다.
+이 문서는 [Gateway API 도입 가이드](/docs/eks-best-practices/networking-performance/gateway-api-adoption-guide)의 심화 가이드입니다. NGINX Ingress에서 Gateway API로의 실전 마이그레이션 전략을 제공합니다.
 :::
 
 ## 1. 사전 요구사항: CRD 설치
@@ -825,7 +825,7 @@ kubectl get events -n <namespace> --sort-by='.lastTimestamp' | tail -20
 
 ## 관련 문서
 
-- **[Gateway API 도입 가이드](/docs/infrastructure-optimization/gateway-api-adoption-guide)** - 전체 Gateway API 마이그레이션 가이드
-- **[Cilium ENI 모드 + Gateway API](/docs/infrastructure-optimization/gateway-api-adoption-guide/cilium-eni-gateway-api)** - Cilium 심화 구성 가이드
+- **[Gateway API 도입 가이드](/docs/eks-best-practices/networking-performance/gateway-api-adoption-guide)** - 전체 Gateway API 마이그레이션 가이드
+- **[Cilium ENI 모드 + Gateway API](/docs/eks-best-practices/networking-performance/gateway-api-adoption-guide/cilium-eni-gateway-api)** - Cilium 심화 구성 가이드
 - [Gateway API 공식 문서](https://gateway-api.sigs.k8s.io/)
 - [AWS Load Balancer Controller](https://kubernetes-sigs.github.io/aws-load-balancer-controller/)

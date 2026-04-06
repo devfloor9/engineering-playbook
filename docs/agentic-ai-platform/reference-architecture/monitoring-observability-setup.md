@@ -716,7 +716,6 @@ kubectl set env deploy/langfuse-web -n langfuse \
 
 - [Agent 모니터링](../operations-mlops/agent-monitoring.md) - 모니터링 아키텍처 및 메트릭 설계 상세
 - [LLMOps Observability](../operations-mlops/llmops-observability.md) - Langfuse/LangSmith/Helicone 비교 및 평가 파이프라인
-- [GLM-5.1 배포 가이드 섹션 12](../model-serving/glm5-deployment-guide.md#12-모니터링-및-observability-구성) - 실전 배포 경험
 - [Amazon Managed Prometheus](https://docs.aws.amazon.com/prometheus/)
 - [Amazon Managed Grafana](https://docs.aws.amazon.com/grafana/)
 - [Langfuse Helm Chart](https://github.com/langfuse/langfuse-helm)

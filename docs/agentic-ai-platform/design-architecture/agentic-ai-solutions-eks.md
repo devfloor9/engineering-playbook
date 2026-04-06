@@ -777,8 +777,8 @@ spec:
 
 - [vLLM Documentation](https://docs.vllm.ai/)
 - [llm-d Project](https://github.com/llm-d/llm-d)
-- [Kgateway Documentation](https://kgateway.io/docs/)
-- [Bifrost Documentation](https://bifrost.dev/docs)
+- [Kgateway Documentation](https://kgateway.dev/docs/)
+- [Bifrost Documentation](https://www.getmaxim.ai/bifrost)
 
 ### LLM Observability 및 Agent
 

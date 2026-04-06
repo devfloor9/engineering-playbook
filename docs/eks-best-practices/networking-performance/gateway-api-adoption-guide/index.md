@@ -2163,7 +2163,7 @@ flowchart TD
   </TabItem>
   <TabItem value="hybrid" label="하이브리드 노드">
 
-**Cilium Gateway API + llm-d** — EKS Hybrid Nodes로 클라우드와 온프레미스 GPU 노드를 통합 운영하는 경우, Cilium을 단일 CNI로 사용하면 CNI 단일화 + Hubble 통합 관측성 + Gateway API 내장의 이점을 확보할 수 있습니다. AI 추론 트래픽은 llm-d가 KV Cache-aware 라우팅으로 최적화합니다. 자세한 내용은 [Cilium ENI + Gateway API 심화 가이드 — 섹션 9](/docs/infrastructure-optimization/gateway-api-adoption-guide/cilium-eni-gateway-api#9-하이브리드-노드-아키텍처와-aiml-워크로드)를 참조하세요.
+**Cilium Gateway API + llm-d** — EKS Hybrid Nodes로 클라우드와 온프레미스 GPU 노드를 통합 운영하는 경우, Cilium을 단일 CNI로 사용하면 CNI 단일화 + Hubble 통합 관측성 + Gateway API 내장의 이점을 확보할 수 있습니다. AI 추론 트래픽은 llm-d가 KV Cache-aware 라우팅으로 최적화합니다. 자세한 내용은 [Cilium ENI + Gateway API 심화 가이드 — 섹션 9](/docs/eks-best-practices/networking-performance/gateway-api-adoption-guide/cilium-eni-gateway-api#9-하이브리드-노드-아키텍처와-aiml-워크로드)를 참조하세요.
 
   </TabItem>
 </Tabs>
@@ -2184,10 +2184,10 @@ Gateway API는 단순한 Ingress 대체가 아닌, 클라우드 네이티브 트
 :::
 
 **지금 시작하세요:**
-1. 현재 Ingress 인벤토리 수집 — [마이그레이션 실행 전략](/docs/infrastructure-optimization/gateway-api-adoption-guide/migration-execution-strategy) 참조
+1. 현재 Ingress 인벤토리 수집 — [마이그레이션 실행 전략](/docs/eks-best-practices/networking-performance/gateway-api-adoption-guide/migration-execution-strategy) 참조
 2. 워크로드에 맞는 솔루션 선택 (섹션 4)
-3. PoC 환경 구축 — [마이그레이션 실행 전략](/docs/infrastructure-optimization/gateway-api-adoption-guide/migration-execution-strategy) 참조
-4. 점진적 마이그레이션 실행 — [마이그레이션 실행 전략](/docs/infrastructure-optimization/gateway-api-adoption-guide/migration-execution-strategy) 참조
+3. PoC 환경 구축 — [마이그레이션 실행 전략](/docs/eks-best-practices/networking-performance/gateway-api-adoption-guide/migration-execution-strategy) 참조
+4. 점진적 마이그레이션 실행 — [마이그레이션 실행 전략](/docs/eks-best-practices/networking-performance/gateway-api-adoption-guide/migration-execution-strategy) 참조
 
 **추가 리소스:**
 - [Gateway API 공식 문서](https://gateway-api.sigs.k8s.io/)
@@ -2204,15 +2204,15 @@ Gateway API는 단순한 Ingress 대체가 아닌, 클라우드 네이티브 트
 
 이 가이드의 주제별 심화 내용은 별도 하위 문서로 제공됩니다.
 
-- **[1. GAMMA Initiative — 서비스 메시 통합의 미래](/docs/infrastructure-optimization/gateway-api-adoption-guide/gamma-initiative)** — GAMMA 개요, East-West 트래픽 관리, 서비스 메시 통합 아키텍처, 구현체별 지원 현황
-- **[2. Cilium ENI 모드 + Gateway API 심화 구성](/docs/infrastructure-optimization/gateway-api-adoption-guide/cilium-eni-gateway-api)** — ENI 모드 아키텍처, 설치/구성, 성능 최적화(eBPF, XDP), Hubble 관측성, BGP Control Plane v2, 하이브리드 노드 아키텍처
-- **[3. 마이그레이션 실행 전략](/docs/infrastructure-optimization/gateway-api-adoption-guide/migration-execution-strategy)** — 5-Phase 마이그레이션 프로세스, CRD 설치, 검증 스크립트, 트러블슈팅 가이드
+- **[1. GAMMA Initiative — 서비스 메시 통합의 미래](/docs/eks-best-practices/networking-performance/gateway-api-adoption-guide/gamma-initiative)** — GAMMA 개요, East-West 트래픽 관리, 서비스 메시 통합 아키텍처, 구현체별 지원 현황
+- **[2. Cilium ENI 모드 + Gateway API 심화 구성](/docs/eks-best-practices/networking-performance/gateway-api-adoption-guide/cilium-eni-gateway-api)** — ENI 모드 아키텍처, 설치/구성, 성능 최적화(eBPF, XDP), Hubble 관측성, BGP Control Plane v2, 하이브리드 노드 아키텍처
+- **[3. 마이그레이션 실행 전략](/docs/eks-best-practices/networking-performance/gateway-api-adoption-guide/migration-execution-strategy)** — 5-Phase 마이그레이션 프로세스, CRD 설치, 검증 스크립트, 트러블슈팅 가이드
 
 ### 관련 카테고리
 
-- [2. CoreDNS 모니터링 & 최적화](/docs/infrastructure-optimization/coredns-monitoring-optimization)
-- [3. East-West 트래픽 최적화](/docs/infrastructure-optimization/east-west-traffic-best-practice)
-- [4. Karpenter 초고속 오토스케일링](/docs/infrastructure-optimization/karpenter-autoscaling)
+- [2. CoreDNS 모니터링 & 최적화](/docs/eks-best-practices/networking-performance/coredns-monitoring-optimization)
+- [3. East-West 트래픽 최적화](/docs/eks-best-practices/networking-performance/east-west-traffic-best-practice)
+- [4. Karpenter 초고속 오토스케일링](/docs/eks-best-practices/resource-cost/karpenter-autoscaling)
 
 ### 외부 참고 자료
 

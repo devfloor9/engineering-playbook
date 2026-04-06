@@ -400,8 +400,8 @@ EKS 멀티 클러스터 관리 영역에서 아직 관리형 서비스로 제공
 
 ## 8. 관련 문서
 
-- [EKS 고가용성 아키텍처 가이드](/docs/operations-observability/eks-resiliency-guide) — Failure Domain 계층별 대응 전략
-- [GitOps 기반 클러스터 운영](/docs/operations-observability/gitops-cluster-operation) — Flux/ArgoCD 운영 가이드
+- [EKS 고가용성 아키텍처 가이드](/docs/eks-best-practices/operations-reliability/eks-resiliency-guide) — Failure Domain 계층별 대응 전략
+- [GitOps 기반 클러스터 운영](/docs/eks-best-practices/operations-reliability/gitops-cluster-operation) — Flux/ArgoCD 운영 가이드
 
 ---
 

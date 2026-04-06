@@ -14,7 +14,7 @@ import TabItem from '@theme/TabItem';
 import { EksRequirementsTable, InstanceTypeTable, LatencyComparisonTable, AlgorithmComparisonTable } from '@site/src/components/GatewayApiTables';
 
 :::info
-이 문서는 [Gateway API 도입 가이드](/docs/infrastructure-optimization/gateway-api-adoption-guide)의 심화 가이드입니다. Cilium ENI 모드와 Gateway API를 결합한 고성능 네트워킹 구성에 대한 실전 가이드를 제공합니다.
+이 문서는 [Gateway API 도입 가이드](/docs/eks-best-practices/networking-performance/gateway-api-adoption-guide)의 심화 가이드입니다. Cilium ENI 모드와 Gateway API를 결합한 고성능 네트워킹 구성에 대한 실전 가이드를 제공합니다.
 :::
 
 Cilium ENI 모드는 AWS의 Elastic Network Interface를 직접 활용하여 파드에 VPC IP 주소를 할당하는 고성능 네트워킹 솔루션입니다. Gateway API와 결합하면 표준화된 L7 라우팅과 eBPF 기반 초저지연 처리를 동시에 달성할 수 있습니다.
@@ -1802,7 +1802,7 @@ Gateway API Inference Extension이 GA되기 전까지는 **Option 1 (Cilium + Ci
 
 ## 관련 문서
 
-- **[Gateway API 도입 가이드](/docs/infrastructure-optimization/gateway-api-adoption-guide)** - 전체 Gateway API 마이그레이션 가이드
+- **[Gateway API 도입 가이드](/docs/eks-best-practices/networking-performance/gateway-api-adoption-guide)** - 전체 Gateway API 마이그레이션 가이드
 - **[llm-d + EKS 배포 가이드](/docs/agentic-ai-platform/model-serving/llm-d-eks-automode)** - llm-d 분산 추론 스택 구성
 - **[Cilium 공식 문서](https://docs.cilium.io/)** - Cilium 프로젝트 공식 문서
 - **[Cilium Gateway API 문서](https://docs.cilium.io/en/stable/network/servicemesh/gateway-api/)** - Cilium의 Gateway API 구현 가이드

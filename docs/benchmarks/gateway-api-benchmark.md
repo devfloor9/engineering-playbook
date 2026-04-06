@@ -17,7 +17,7 @@ last_update:
 5개의 Gateway API 구현체를 동일한 Amazon EKS 환경에서 객관적으로 비교하기 위한 체계적인 벤치마크 계획입니다. 각 솔루션의 강점과 약점을 정량적으로 파악하여 아키텍처 결정을 데이터 기반으로 수행할 수 있도록 합니다.
 
 :::tip 관련 문서
-이 벤치마크 계획은 [Gateway API 도입 가이드](/docs/infrastructure-optimization/gateway-api-adoption-guide)에서 비교 분석한 5개 솔루션을 대상으로 합니다.
+이 벤치마크 계획은 [Gateway API 도입 가이드](/docs/eks-best-practices/networking-performance/gateway-api-adoption-guide)에서 비교 분석한 5개 솔루션을 대상으로 합니다.
 :::
 
 ## 1. 벤치마크 목적
@@ -189,6 +189,6 @@ gRPC 프로토콜 지원 및 성능을 측정합니다.
 
 ## 관련 문서
 
-- [Gateway API 도입 가이드](/docs/infrastructure-optimization/gateway-api-adoption-guide) — 5개 솔루션 상세 비교 분석
+- [Gateway API 도입 가이드](/docs/eks-best-practices/networking-performance/gateway-api-adoption-guide) — 5개 솔루션 상세 비교 분석
 - [CNI 성능 비교 벤치마크](./cni-performance-comparison.md) — VPC CNI vs Cilium 네트워크 성능
 - [인프라 성능 벤치마크](./infrastructure-performance.md) — 종합 인프라 성능 테스트

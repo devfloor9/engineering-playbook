@@ -999,7 +999,7 @@ Auto Mode 환경에서는 **인프라 수준 자동화**와 **애플리케이션
 - **Auto Mode가 담당**: 노드 프로비저닝, Spot Fallback, OS 패치, 인스턴스 선택
 - **사용자가 담당**: PDB, Topology Spread, Graceful Shutdown, Probe 설정, Circuit Breaker
 
-상세한 Auto Mode 환경의 Probe 및 리소스 설정은 [EKS Pod 헬스체크 & 라이프사이클 관리](/docs/operations-observability/eks-pod-health-lifecycle)와 [EKS Pod 리소스 최적화 가이드](/docs/infrastructure-optimization/eks-resource-optimization)를 참조하세요.
+상세한 Auto Mode 환경의 Probe 및 리소스 설정은 [EKS Pod 헬스체크 & 라이프사이클 관리](/docs/eks-best-practices/operations-reliability/eks-pod-health-lifecycle)와 [EKS Pod 리소스 최적화 가이드](/docs/eks-best-practices/resource-cost/eks-resource-optimization)를 참조하세요.
 :::
 
 ---
@@ -1466,7 +1466,7 @@ echo "============================================"
 
 - [EKS 장애 진단 및 대응 가이드](./eks-debugging-guide.md) — 운영 중 장애 진단 및 트러블슈팅
 - [GitOps 기반 EKS 클러스터 운영](./gitops-cluster-operation.md) — ArgoCD, KRO 기반 클러스터 관리
-- [Karpenter를 활용한 초고속 오토스케일링](/docs/infrastructure-optimization/karpenter-autoscaling.md) — Karpenter 심층 설정 및 HPA 최적화
+- [Karpenter를 활용한 초고속 오토스케일링](/docs/eks-best-practices/resource-cost/karpenter-autoscaling) — Karpenter 심층 설정 및 HPA 최적화
 
 ### 외부 참조
 

@@ -207,8 +207,7 @@ Primary Region (ROSA)
 
 - [Hybrid Infrastructure](/docs/hybrid-infrastructure) - 하이브리드 환경 관리
 - [Security & Governance](/docs/security-governance) - ROSA 보안 아키텍처
-- [Infrastructure Optimization](/docs/infrastructure-optimization) - 네트워킹 최적화
-- [Operations & Observability](/docs/operations-observability) - 클러스터 모니터링
+- [EKS Best Practices](/docs/eks-best-practices) - 네트워킹 최적화 및 클러스터 모니터링
 
 ---
 
