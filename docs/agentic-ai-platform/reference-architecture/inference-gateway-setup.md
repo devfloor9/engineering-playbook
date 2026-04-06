@@ -10,7 +10,7 @@ last_update:
 
 # 추론 게이트웨이 구성 가이드
 
-이 문서는 kgateway + Bifrost 기반 추론 게이트웨이의 **실전 배포 절차**를 다룹니다. 아키텍처 개념과 설계 원칙은 [추론 게이트웨이 라우팅](../gateway-agents/inference-gateway-routing.md) 및 [LLM Gateway 2-Tier 아키텍처](../gateway-agents/llm-gateway-architecture.md)를 참조하세요.
+이 문서는 kgateway + Bifrost 기반 추론 게이트웨이의 **실전 배포 절차**를 다룹니다. 아키텍처 개념과 설계 원칙은 [추론 게이트웨이 라우팅](../design-architecture/inference-gateway-routing.md)을 참조하세요.
 
 ---
 
@@ -705,8 +705,7 @@ kgateway를 경유하는 경우에는 URLRewrite로 경로를 변환합니다.
 
 ## 참고 자료
 
-- [추론 게이트웨이 라우팅](../gateway-agents/inference-gateway-routing.md) - kgateway 아키텍처 및 라우팅 전략 상세
-- [LLM Gateway 2-Tier 아키텍처](../gateway-agents/llm-gateway-architecture.md) - Bifrost, LiteLLM 등 솔루션 비교
+- [추론 게이트웨이 라우팅](../design-architecture/inference-gateway-routing.md) - kgateway 아키텍처 및 라우팅 전략 상세
 - [Kubernetes Gateway API 공식 문서](https://gateway-api.sigs.k8s.io/)
 - [kgateway 공식 문서](https://kgateway.dev/docs/)
 - [Bifrost 공식 문서](https://bifrost.dev/docs)

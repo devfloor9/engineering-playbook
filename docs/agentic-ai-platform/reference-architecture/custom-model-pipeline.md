@@ -57,8 +57,8 @@ graph LR
 학습 파이프라인에서 도메인 데이터를 QLoRA로 학습하고, 평가를 통과한 어댑터만 레지스트리에 등록합니다. 서빙 파이프라인에서는 vLLM Multi-LoRA로 여러 어댑터를 동시에 로드하고, Bifrost Cascade를 통해 SLM/LLM 간 비용 최적화 라우팅을 수행합니다.
 
 :::tip 관련 문서
-- [Enterprise Ops 3-Layer 전략](../enterprise-ops/index.md) - 전체 운영 아키텍처
-- [GLM-5 배포 실전 가이드](./glm5-deployment-guide.md) - Kiro vs 자체 호스팅 비교 포함
+- [운영 & 거버넌스](../operations-mlops/index.md) - 전체 운영 아키텍처
+- [GLM-5 배포 실전 가이드](../model-serving/glm5-deployment-guide.md) - Kiro vs 자체 호스팅 비교 포함
 :::
 
 ---
@@ -179,7 +179,7 @@ s3://model-registry/
 MLflow에 학습 메트릭(loss, accuracy)과 어댑터 경로를 함께 기록하면, 어떤 데이터셋과 하이퍼파라미터 조합이 최적인지 추적할 수 있습니다.
 :::
 
-- 참조: [NeMo Framework 체크포인트 관리](./nemo-framework.md)
+- 참조: [NeMo Framework 체크포인트 관리](../model-serving/nemo-framework.md)
 
 ---
 
@@ -423,7 +423,7 @@ spec:
 - 8B 모델 서빙에 충분한 사양
 :::
 
-- 참조: [비용 Threshold 분석](./glm5-deployment-guide.md#비용-threshold-분석)
+- 참조: [비용 Threshold 분석](../model-serving/glm5-deployment-guide.md#비용-threshold-분석)
 
 ---
 
@@ -536,4 +536,4 @@ Phase 4까지 완료 시:
 | NeMo Framework | [docs.nvidia.com/nemo-framework](https://docs.nvidia.com/nemo-framework/user-guide/latest/) |
 | RAGAS Evaluation | [docs.ragas.io](https://docs.ragas.io/) |
 | Bifrost AI Gateway | [docs.getbifrost.ai](https://docs.getbifrost.ai/) |
-| GLM-5 배포 실전 가이드 | [glm5-deployment-guide.md](./glm5-deployment-guide.md) |
+| GLM-5 배포 실전 가이드 | [glm5-deployment-guide.md](../model-serving/glm5-deployment-guide.md) |

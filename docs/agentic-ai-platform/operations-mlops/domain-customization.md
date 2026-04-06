@@ -120,7 +120,7 @@ Kiro IDE는 2026년 4월부터 GLM-5를 네이티브 지원하며 즉시 사용 
 **권장**: 프로토타이핑은 Kiro, 프로덕션 도메인 특화는 자체 호스팅
 :::
 
-QLoRA 학습 방법, NeMo/Unsloth 프레임워크, 체크포인트 관리 등 상세 구현은 [커스텀 모델 파이프라인 가이드](../model-serving/custom-model-pipeline.md#2-lora-fine-tuning-파이프라인)를 참조하세요.
+QLoRA 학습 방법, NeMo/Unsloth 프레임워크, 체크포인트 관리 등 상세 구현은 [커스텀 모델 파이프라인 가이드](../reference-architecture/custom-model-pipeline.md#2-lora-fine-tuning-파이프라인)를 참조하세요.
 
 ---
 
@@ -280,8 +280,8 @@ graph LR
 
 LoRA Fine-tuning(QLoRA 포함)과 vLLM Multi-LoRA 핫스왑 배포에 대한 상세 구현 가이드는 다음 문서를 참조하세요:
 
-- [커스텀 모델 파이프라인 — LoRA Fine-tuning](../model-serving/custom-model-pipeline.md#2-lora-fine-tuning-파이프라인): QLoRA GPU 절감, 학습 데이터 형식, NeMo/Unsloth 프레임워크
-- [커스텀 모델 파이프라인 — Multi-LoRA 핫스왑](../model-serving/custom-model-pipeline.md#3-multi-lora-핫스왑-배포): vLLM 설정, 고객별 어댑터 전환, Bifrost 라우팅 연동
+- [커스텀 모델 파이프라인 — LoRA Fine-tuning](../reference-architecture/custom-model-pipeline.md#2-lora-fine-tuning-파이프라인): QLoRA GPU 절감, 학습 데이터 형식, NeMo/Unsloth 프레임워크
+- [커스텀 모델 파이프라인 — Multi-LoRA 핫스왑](../reference-architecture/custom-model-pipeline.md#3-multi-lora-핫스왑-배포): vLLM 설정, 고객별 어댑터 전환, Bifrost 라우팅 연동
 
 ---
 
@@ -574,7 +574,7 @@ for prompt in adversarial_prompts:
 | **3** | 2-4주 | + SLM Cascade | 비용 최적화 (70% 절감) | +$500/월 |
 | **4** | 1-2개월 | + LoRA Fine-tuning | 도메인 전문성 + 스타일 일관성 | GPU $2K |
 
-각 Phase별 상세 구현 가이드는 [커스텀 모델 파이프라인 구축 가이드](../model-serving/custom-model-pipeline.md#6-phase별-구축-로드맵)를 참조하세요.
+각 Phase별 상세 구현 가이드는 [커스텀 모델 파이프라인 구축 가이드](../reference-architecture/custom-model-pipeline.md#6-phase별-구축-로드맵)를 참조하세요.
 
 ---
 

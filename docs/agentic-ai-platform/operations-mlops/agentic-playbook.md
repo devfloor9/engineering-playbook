@@ -595,6 +595,6 @@ spec:
 
 ## 다음 단계
 
-- **[LoRA Fine-tuning](./lora-finetuning.md)**: Layer 3 모델 조정 가이드
-- **[RAG 파이프라인](./rag-pipeline.md)**: Layer 2 지식 보강 구현
-- **[AgenticOps](../../operations-observability/agentic-ops/)**: 운영 피드백 루프
+- **[커스텀 모델 파이프라인](../reference-architecture/custom-model-pipeline.md)**: Layer 3 모델 조정 가이드 (LoRA Fine-tuning 포함)
+- **[Milvus 벡터 데이터베이스](./milvus-vector-database.md)**: Layer 2 지식 보강 구현 (RAG 파이프라인)
+- **[AgenticOps](/docs/aidlc/agentic-ops/index)**: 운영 피드백 루프

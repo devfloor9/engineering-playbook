@@ -565,7 +565,7 @@ export NCCL_DEBUG=INFO  # 성능 문제 진단 시 유용
 
 **모니터링 스택**: Prometheus + Grafana + DCGM Exporter
 
-상세 모니터링 설정은 [모니터링 및 관찰성 설정](../operations-mlops/monitoring-observability-setup.md)을 참조하세요.
+상세 모니터링 설정은 [모니터링 및 관찰성 설정](../reference-architecture/monitoring-observability-setup.md)을 참조하세요.
 
 ---
 

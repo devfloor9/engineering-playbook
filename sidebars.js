@@ -113,6 +113,7 @@ const sidebars = {
             'agentic-ai-platform/design-architecture/agentic-ai-challenges',
             'agentic-ai-platform/design-architecture/aws-native-agentic-platform',
             'agentic-ai-platform/design-architecture/agentic-ai-solutions-eks',
+            'agentic-ai-platform/design-architecture/inference-gateway-routing',
           ],
         },
         {
@@ -134,43 +135,20 @@ const sidebars = {
         },
         {
           type: 'category',
-          label: '추론 게이트웨이 & 라우팅',
-          link: {
-            type: 'doc',
-            id: 'agentic-ai-platform/gateway-agents/index',
-          },
-          items: [
-            'agentic-ai-platform/gateway-agents/inference-gateway-routing',
-          ],
-        },
-        {
-          type: 'category',
-          label: '운영 & MLOps',
+          label: '운영 & 거버넌스',
           link: {
             type: 'doc',
             id: 'agentic-ai-platform/operations-mlops/index',
           },
           items: [
             'agentic-ai-platform/operations-mlops/agent-monitoring',
-            'agentic-ai-platform/operations-mlops/ragas-evaluation',
             'agentic-ai-platform/operations-mlops/llmops-observability',
-            'agentic-ai-platform/operations-mlops/mlops-pipeline-eks',
-            'agentic-ai-platform/operations-mlops/sagemaker-eks-integration',
             'agentic-ai-platform/operations-mlops/kagent-kubernetes-agents',
-          ],
-        },
-        {
-          type: 'category',
-          label: 'Enterprise Ops',
-          link: {
-            type: 'doc',
-            id: 'agentic-ai-platform/enterprise-ops/index',
-          },
-          items: [
-            'agentic-ai-platform/enterprise-ops/agentic-playbook',
-            'agentic-ai-platform/enterprise-ops/compliance-framework',
-            'agentic-ai-platform/enterprise-ops/domain-customization',
-            'agentic-ai-platform/enterprise-ops/milvus-vector-database',
+            'agentic-ai-platform/operations-mlops/ragas-evaluation',
+            'agentic-ai-platform/operations-mlops/agentic-playbook',
+            'agentic-ai-platform/operations-mlops/compliance-framework',
+            'agentic-ai-platform/operations-mlops/domain-customization',
+            'agentic-ai-platform/operations-mlops/milvus-vector-database',
           ],
         },
         {
@@ -186,6 +164,8 @@ const sidebars = {
             'agentic-ai-platform/reference-architecture/inference-gateway-setup',
             'agentic-ai-platform/reference-architecture/monitoring-observability-setup',
             'agentic-ai-platform/reference-architecture/custom-model-pipeline',
+            'agentic-ai-platform/reference-architecture/mlops-pipeline-eks',
+            'agentic-ai-platform/reference-architecture/sagemaker-eks-integration',
             'agentic-ai-platform/reference-architecture/coding-tools-cost-analysis',
             'agentic-ai-platform/reference-architecture/openclaw-ai-gateway',
           ],

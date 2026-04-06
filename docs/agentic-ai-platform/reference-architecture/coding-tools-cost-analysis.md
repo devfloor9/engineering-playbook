@@ -439,4 +439,4 @@ graph TD
 | Kiro 가격 정책 | [kiro.dev/pricing](https://kiro.dev/pricing) |
 | GLM-5 배포 가이드 | [glm5-deployment-guide.md](../model-serving/glm5-deployment-guide.md) |
 | 커스텀 모델 파이프라인 | [custom-model-pipeline.md](./custom-model-pipeline.md) |
-| Inference Gateway | [inference-gateway-routing.md](../gateway-agents/inference-gateway-routing.md) |
+| Inference Gateway | [inference-gateway-routing.md](../design-architecture/inference-gateway-routing.md) |

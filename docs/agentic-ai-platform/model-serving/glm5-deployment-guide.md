@@ -1293,7 +1293,7 @@ kubectl set env deploy/langfuse-web deploy/langfuse-worker -n langfuse \
 
 ## 13. 관련 문서
 
-- [Inference Gateway 라우팅](../gateway-agents/inference-gateway-routing.md) — kgateway + Bifrost + 코딩 도구 연결
+- [Inference Gateway 라우팅](../design-architecture/inference-gateway-routing.md) — kgateway + Bifrost + 코딩 도구 연결
 - [LLMOps Observability](../operations-mlops/llmops-observability.md) — Langfuse 배포 및 vLLM 연동
 - [Agent 모니터링](../operations-mlops/agent-monitoring.md) — AMP/AMG + vLLM GPU 모니터링
 

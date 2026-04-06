@@ -937,7 +937,7 @@ spec:
 ## 다음 단계
 
 - 모니터링 구성은 [모니터링 스택 구성](./monitoring-observability-setup.md)을 참조하세요.
-- 게이트웨이 구성은 [Inference Gateway 라우팅](../gateway-agents/inference-gateway-routing.md)을 참조하세요.
+- 게이트웨이 구성은 [Inference Gateway 라우팅](../design-architecture/inference-gateway-routing.md)을 참조하세요.
 
 ### 참고 자료
 
