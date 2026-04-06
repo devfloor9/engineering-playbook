@@ -15,17 +15,17 @@
     "message": "Getting Started",
     "description": "The label of footer link with label=Getting Started linking to /docs/intro"
   },
-  "link.item.label.Infrastructure Optimization": {
-    "message": "Infrastructure Optimization",
-    "description": "The label of footer link with label=Infrastructure Optimization linking to /docs/infrastructure-optimization"
-  },
-  "link.item.label.Operations & Observability": {
-    "message": "Operations & Observability",
-    "description": "The label of footer link with label=Operations & Observability linking to /docs/operations-observability"
+  "link.item.label.EKS Best Practices": {
+    "message": "EKS Best Practices",
+    "description": "The label of footer link with label=EKS Best Practices linking to /docs/eks-best-practices"
   },
   "link.item.label.Agentic AI Platform": {
     "message": "Agentic AI Platform",
     "description": "The label of footer link with label=Agentic AI Platform linking to /docs/agentic-ai-platform"
+  },
+  "link.item.label.AIDLC": {
+    "message": "AIDLC",
+    "description": "The label of footer link with label=AIDLC linking to /docs/aidlc"
   },
   "link.item.label.Hybrid Infrastructure": {
     "message": "Hybrid Infrastructure",
@@ -34,6 +34,18 @@
   "link.item.label.Security & Governance": {
     "message": "Security & Governance",
     "description": "The label of footer link with label=Security & Governance linking to /docs/security-governance"
+  },
+  "link.item.label.ROSA": {
+    "message": "ROSA",
+    "description": "The label of footer link with label=ROSA linking to /docs/rosa"
+  },
+  "link.item.label.Benchmarks": {
+    "message": "Benchmarks",
+    "description": "The label of footer link with label=Benchmarks linking to /docs/benchmarks"
+  },
+  "link.item.label.Slides": {
+    "message": "Slides",
+    "description": "The label of footer link with label=Slides linking to /slides"
   },
   "link.item.label.GitHub": {
     "message": "GitHub",

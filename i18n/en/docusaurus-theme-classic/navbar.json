@@ -11,8 +11,40 @@
     "message": "Documentation",
     "description": "Navbar item with label Documentation"
   },
-  "item.label.GitHub": {
-    "message": "GitHub",
-    "description": "Navbar item with label GitHub"
+  "item.label.Getting Started": {
+    "message": "Getting Started",
+    "description": "Navbar item with label Getting Started"
+  },
+  "item.label.EKS Best Practices": {
+    "message": "EKS Best Practices",
+    "description": "Navbar item with label EKS Best Practices"
+  },
+  "item.label.Agentic AI Platform": {
+    "message": "Agentic AI Platform",
+    "description": "Navbar item with label Agentic AI Platform"
+  },
+  "item.label.AIDLC": {
+    "message": "AIDLC",
+    "description": "Navbar item with label AIDLC"
+  },
+  "item.label.Hybrid Infrastructure": {
+    "message": "Hybrid Infrastructure",
+    "description": "Navbar item with label Hybrid Infrastructure"
+  },
+  "item.label.Security & Governance": {
+    "message": "Security & Governance",
+    "description": "Navbar item with label Security & Governance"
+  },
+  "item.label.ROSA": {
+    "message": "ROSA",
+    "description": "Navbar item with label ROSA"
+  },
+  "item.label.Benchmarks": {
+    "message": "Benchmarks",
+    "description": "Navbar item with label Benchmarks"
+  },
+  "item.label.Slides": {
+    "message": "Slides",
+    "description": "Navbar item with label Slides"
   }
 }
