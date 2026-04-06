@@ -141,8 +141,6 @@ const sidebars = {
           },
           items: [
             'agentic-ai-platform/gateway-agents/inference-gateway-routing',
-            'agentic-ai-platform/gateway-agents/llm-gateway-architecture',
-            'agentic-ai-platform/gateway-agents/openclaw-ai-gateway',
           ],
         },
         {
@@ -199,6 +197,7 @@ const sidebars = {
             'agentic-ai-platform/reference-architecture/monitoring-observability-setup',
             'agentic-ai-platform/reference-architecture/custom-model-pipeline',
             'agentic-ai-platform/reference-architecture/coding-tools-cost-analysis',
+            'agentic-ai-platform/reference-architecture/openclaw-ai-gateway',
           ],
         },
       ],
