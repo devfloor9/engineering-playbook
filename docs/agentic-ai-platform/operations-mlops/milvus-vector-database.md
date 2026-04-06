@@ -5,7 +5,7 @@ description: "Amazon EKS에서 Milvus 벡터 데이터베이스를 배포하고 
 sidebar_position: 2
 category: "genai-aiml"
 last_update:
-  date: 2026-02-14
+  date: 2026-04-06
   author: devfloor9
 tags: [milvus, vector-database, rag, kubernetes, eks, genai, embedding]
 ---
@@ -115,141 +115,25 @@ flowchart TB
 
 ## EKS 배포 가이드
 
-### Helm 차트를 통한 설치
+### 배포 개요
 
-```bash
-# Milvus Helm 저장소 추가
-helm repo add milvus https://zilliztech.github.io/milvus-helm/
-helm repo update
+Milvus는 EKS에서 Helm 차트를 통해 배포할 수 있습니다. 프로덕션 환경에서는 다음 컴포넌트를 고려해야 합니다:
 
-# 네임스페이스 생성
-kubectl create namespace ai-data
+- **Cluster Mode**: 분산 아키텍처로 고가용성 제공
+- **etcd**: 메타데이터 저장 (최소 3개 복제본 권장)
+- **Storage**: MinIO 또는 Amazon S3/S3 Express One Zone
+- **Message Queue**: Pulsar (이벤트 스트리밍)
+- **Query/Data/Index Nodes**: 워크로드에 따라 스케일링
 
-# 프로덕션 설정으로 설치
-helm install milvus milvus/milvus \
-  --namespace ai-data \
-  --version 4.1.x \
-  --set cluster.enabled=true \
-  --set etcd.replicaCount=3 \
-  --set minio.mode=distributed \
-  --set pulsar.enabled=true \
-  -f milvus-values.yaml
-```
+**권장 리소스 구성:**
+- Proxy: 2+ replicas, 1-2 CPU, 2-4Gi 메모리
+- Query Node: 3+ replicas, 2-4 CPU, 8-16Gi 메모리
+- Data Node: 2+ replicas, 1-2 CPU, 4-8Gi 메모리
+- Index Node: 2+ replicas, 2-4 CPU, 8-16Gi 메모리
 
-### 프로덕션 values.yaml 설정
+### Amazon S3 통합
 
-```yaml
-# milvus-values.yaml
-cluster:
-  enabled: true
-
-# Proxy 설정
-proxy:
-  replicas: 2
-  resources:
-    requests:
-      cpu: "1"
-      memory: "2Gi"
-    limits:
-      cpu: "2"
-      memory: "4Gi"
-
-# Query Node 설정 - 검색 성능에 직접 영향
-queryNode:
-  replicas: 3
-  resources:
-    requests:
-      cpu: "2"
-      memory: "8Gi"
-    limits:
-      cpu: "4"
-      memory: "16Gi"
-  # GPU 가속 활성화 (선택사항)
-  # gpu:
-  #   enabled: true
-
-# Data Node 설정
-dataNode:
-  replicas: 2
-  resources:
-    requests:
-      cpu: "1"
-      memory: "4Gi"
-    limits:
-      cpu: "2"
-      memory: "8Gi"
-
-# Index Node 설정
-indexNode:
-  replicas: 2
-  resources:
-    requests:
-      cpu: "2"
-      memory: "8Gi"
-    limits:
-      cpu: "4"
-      memory: "16Gi"
-
-# etcd 클러스터 설정
-etcd:
-  replicaCount: 3
-  persistence:
-    enabled: true
-    storageClass: "gp3"
-    size: 20Gi
-
-# MinIO 분산 모드 설정
-minio:
-  mode: distributed
-  replicas: 4
-  persistence:
-    enabled: true
-    storageClass: "gp3"
-    size: 100Gi
-
-# Pulsar 메시지 큐 설정
-pulsar:
-  enabled: true
-  components:
-    autorecovery: true
-  bookkeeper:
-    replicaCount: 3
-  broker:
-    replicaCount: 2
-```
-
-### Amazon S3를 스토리지로 사용
-
-MinIO 대신 Amazon S3를 직접 사용하면 운영 부담을 줄일 수 있습니다. S3 Express One Zone을 사용하면 더 빠른 성능과 낮은 지연 시간을 제공합니다:
-
-```yaml
-# milvus-s3-values.yaml
-externalS3:
-  enabled: true
-  host: "s3.ap-northeast-2.amazonaws.com"
-  port: "443"
-  useSSL: true
-  bucketName: "milvus-data-bucket"
-  useIAM: true  # IRSA 사용
-  cloudProvider: "aws"
-
-# S3 Express One Zone 사용 (선택사항 - 더 빠른 성능)
-# externalS3:
-#   enabled: true
-#   host: "s3express-ap-northeast-2.amazonaws.com"
-#   bucketName: "milvus-data-bucket--apne2-az1--x-s3"  # S3 Express 버킷 이름 형식
-#   useIAM: true
-#   cloudProvider: "aws"
-
-minio:
-  enabled: false  # MinIO 비활성화
-
-# IRSA를 위한 ServiceAccount 설정
-serviceAccount:
-  create: true
-  annotations:
-    eks.amazonaws.com/role-arn: "arn:aws:iam::XXXXXXXXXXXX:role/MilvusS3Role"
-```
+MinIO 대신 Amazon S3를 직접 사용하면 운영 부담을 줄일 수 있습니다. S3 Express One Zone을 사용하면 더 빠른 성능과 낮은 지연 시간을 제공합니다.
 
 :::tip S3 Express One Zone 장점
 
@@ -260,29 +144,13 @@ serviceAccount:
 
 :::
 
-:::tip S3 IAM 정책
+**S3 통합 고려사항:**
+- IRSA(IAM Roles for Service Accounts)를 사용한 권한 관리
+- S3 버킷 정책: GetObject, PutObject, DeleteObject, ListBucket 권한 필요
+- S3 Express One Zone: 단일 AZ 제한, 고성능 요구 시 권장
 
-```json
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Action": [
-        "s3:GetObject",
-        "s3:PutObject",
-        "s3:DeleteObject",
-        "s3:ListBucket"
-      ],
-      "Resource": [
-        "arn:aws:s3:::milvus-data-bucket",
-        "arn:aws:s3:::milvus-data-bucket/*"
-      ]
-    }
-  ]
-}
-```
-
+:::info 상세 배포 가이드
+Milvus 배포 상세 절차, Helm values 설정, S3 IAM 정책 예제는 [Milvus 공식 Helm 차트 문서](https://milvus.io/docs/install_cluster-helm.md)를 참조하세요.
 :::
 
 ## 인덱스 타입 선택 가이드
@@ -525,81 +393,38 @@ results = collection.hybrid_search(
 
 ### 데이터 백업 전략
 
-```bash
-# Milvus 백업 도구 설치
-pip install milvus-backup
+Milvus는 공식 백업 도구(`milvus-backup`)를 제공하여 컬렉션 데이터를 백업하고 복원할 수 있습니다.
 
-# 백업 설정 파일
-cat > backup_config.yaml << EOF
-milvus:
-  address: milvus-proxy.ai-data.svc.cluster.local
-  port: 19530
-
-minio:
-  address: minio.ai-data.svc.cluster.local
-  port: 9000
-  accessKeyID: minioadmin
-  secretAccessKey: minioadmin
-  bucketName: milvus-backup
-  useSSL: false
-
-backup:
-  maxSegmentGroupSize: 2G
-EOF
-
-# 백업 실행
-milvus-backup create -n daily_backup -c backup_config.yaml
-```
+**백업 고려사항:**
+- 백업 대상: MinIO/S3 버킷으로 컬렉션 데이터 내보내기
+- 백업 주기: 일일 또는 주간 백업 권장
+- 백업 크기 제한: `maxSegmentGroupSize` 설정으로 청크 크기 제어
+- 복원 전략: 동일 클러스터 또는 다른 클러스터로 복원 가능
 
 ### 재해 복구 구성
 
-```yaml
-# 크로스 리전 복제를 위한 설정
-apiVersion: batch/v1
-kind: CronJob
-metadata:
-  name: milvus-backup-sync
-  namespace: ai-data
-spec:
-  schedule: "0 */6 * * *"  # 6시간마다
-  jobTemplate:
-    spec:
-      template:
-        spec:
-          containers:
-          - name: backup-sync
-            image: amazon/aws-cli:latest
-            command:
-            - /bin/sh
-            - -c
-            - |
-              # 백업을 다른 리전 S3로 복제
-              aws s3 sync s3://milvus-backup-primary s3://milvus-backup-dr \
-                --source-region ap-northeast-2 \
-                --region us-west-2
-          restartPolicy: OnFailure
-          serviceAccountName: milvus-backup-sa
-```
+프로덕션 환경에서는 크로스 리전 복제를 통한 재해 복구 전략을 권장합니다.
+
+**DR 전략:**
+- **크로스 리전 S3 복제**: 백업 데이터를 다른 AWS 리전으로 자동 복제
+- **복구 시간 목표(RTO)**: S3 복제 지연 + Milvus 클러스터 프로비저닝 시간
+- **복구 시점 목표(RPO)**: 백업 주기에 따라 결정 (일반적으로 6-24시간)
+- **자동화**: CronJob을 사용한 주기적 백업 및 동기화
+
+:::info 상세 백업 가이드
+백업 도구 설치, 설정 파일 작성, CronJob 구성 등 상세 절차는 [Milvus 백업 및 복원 가이드](https://milvus.io/docs/backup_and_restore.md)를 참조하세요.
+:::
 
 ## 모니터링 및 메트릭
 
 ### Prometheus 메트릭 수집
 
-```yaml
-apiVersion: monitoring.coreos.com/v1
-kind: ServiceMonitor
-metadata:
-  name: milvus-monitor
-  namespace: ai-data
-spec:
-  selector:
-    matchLabels:
-      app.kubernetes.io/name: milvus
-  endpoints:
-  - port: metrics
-    interval: 30s
-    path: /metrics
-```
+Milvus는 Prometheus 형식의 메트릭을 `/metrics` 엔드포인트에서 제공합니다. ServiceMonitor를 사용하여 자동으로 메트릭을 수집할 수 있습니다.
+
+**메트릭 수집 설정:**
+- 엔드포인트: `/metrics` (기본 포트 9091)
+- 수집 주기: 30초 권장
+- 레이블: `app.kubernetes.io/name: milvus`로 필터링
 
 ### 주요 모니터링 메트릭
 
@@ -607,35 +432,15 @@ spec:
 
 ### Grafana 대시보드
 
-```json
-{
-  "dashboard": {
-    "title": "Milvus Performance",
-    "panels": [
-      {
-        "title": "Search Latency P99",
-        "type": "graph",
-        "targets": [
-          {
-            "expr": "histogram_quantile(0.99, rate(milvus_proxy_search_latency_bucket[5m]))",
-            "legendFormat": "P99 Latency"
-          }
-        ]
-      },
-      {
-        "title": "Query Throughput",
-        "type": "graph",
-        "targets": [
-          {
-            "expr": "sum(rate(milvus_proxy_search_vectors_count[5m]))",
-            "legendFormat": "Vectors/sec"
-          }
-        ]
-      }
-    ]
-  }
-}
-```
+**권장 시각화 패널:**
+- Search Latency P99: `histogram_quantile(0.99, rate(milvus_proxy_search_latency_bucket[5m]))`
+- Query Throughput: `sum(rate(milvus_proxy_search_vectors_count[5m]))`
+- Memory Usage: `milvus_querynode_memory_used_bytes`
+- Collection Size: `milvus_collection_num_entities`
+
+:::info 상세 모니터링 가이드
+ServiceMonitor YAML, Grafana 대시보드 JSON, 알람 규칙 설정은 [Milvus 모니터링 가이드](https://milvus.io/docs/monitor.md)를 참조하세요.
+:::
 
 ---
 
@@ -643,88 +448,29 @@ spec:
 
 Milvus Operator를 사용하면 복잡한 분산 아키텍처를 선언적으로 관리할 수 있습니다.
 
-### Milvus Operator 설치
+### Milvus Operator 개요
 
-```bash
-# Milvus Operator 설치
-helm repo add milvus-operator https://milvus-io.github.io/milvus-operator/
-helm repo update
-helm install milvus-operator milvus-operator/milvus-operator -n milvus-operator --create-namespace
-```
+**Operator 장점:**
+- **선언적 관리**: Milvus CRD로 클러스터 구성 정의
+- **자동 스케일링**: HPA와 연동하여 컴포넌트별 자동 스케일링
+- **롤링 업데이트**: 무중단 업그레이드 지원
+- **의존성 관리**: etcd, MinIO, Pulsar 자동 배포
 
-### Milvus 클러스터 CRD 배포
-
-```yaml
-apiVersion: milvus.io/v1beta1
-kind: Milvus
-metadata:
-  name: milvus-cluster
-  namespace: ai-data
-spec:
-  mode: cluster
-  dependencies:
-    etcd:
-      inCluster:
-        values:
-          replicaCount: 3
-    storage:
-      inCluster:
-        values:
-          mode: distributed
-    pulsar:
-      inCluster:
-        values:
-          components:
-            autorecovery: false
-  components:
-    proxy:
-      replicas: 2
-      resources:
-        requests:
-          cpu: "1"
-          memory: "2Gi"
-    queryNode:
-      replicas: 3
-      resources:
-        requests:
-          cpu: "2"
-          memory: "8Gi"
-    dataNode:
-      replicas: 2
-    indexNode:
-      replicas: 2
-      resources:
-        requests:
-          nvidia.com/gpu: 1  # GPU 가속 인덱싱
-```
+**주요 컴포넌트 설정:**
+- Cluster Mode 활성화
+- etcd 복제본 수 (최소 3개)
+- Storage 백엔드 (MinIO 또는 S3)
+- Pulsar 메시지 큐 활성화
+- 각 노드 타입별 replica 및 리소스 설정
 
 ### GPU 가속 인덱싱
 
-Index Node에 GPU를 할당하면 인덱스 빌드 속도를 크게 향상시킬 수 있습니다:
+Index Node에 GPU를 할당하면 인덱스 빌드 속도를 크게 향상시킬 수 있습니다.
 
-```yaml
-# GPU 활성화된 Index Node 설정
-spec:
-  components:
-    indexNode:
-      replicas: 2
-      resources:
-        requests:
-          nvidia.com/gpu: 1
-          cpu: "4"
-          memory: "16Gi"
-        limits:
-          nvidia.com/gpu: 1
-          cpu: "8"
-          memory: "32Gi"
-      # GPU 전용 노드에 스케줄링
-      nodeSelector:
-        workload: gpu-indexing
-      tolerations:
-        - key: nvidia.com/gpu
-          operator: Exists
-          effect: NoSchedule
-```
+**GPU 인덱싱 설정:**
+- GPU 리소스 요청: `nvidia.com/gpu: 1`
+- NodeSelector로 GPU 노드 지정
+- Toleration으로 GPU taint 처리
 
 **권장 GPU 인스턴스:**
 
@@ -733,6 +479,10 @@ spec:
 **GPU 인덱싱 성능 비교:**
 
 <GPUIndexingPerformanceTable />
+
+:::info 상세 Operator 가이드
+Milvus Operator 설치, CRD 스키마, GPU 설정 예제는 [Milvus Operator 문서](https://milvus.io/docs/install_cluster-milvusoperator.md)를 참조하세요.
+:::
 
 ---
 
