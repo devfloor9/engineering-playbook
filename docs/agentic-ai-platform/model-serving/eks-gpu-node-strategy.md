@@ -1,103 +1,96 @@
 ---
-title: "EKS GPU 노드 전략: Auto Mode + Karpenter + Hybrid Node"
+title: "EKS GPU 노드 전략"
 sidebar_label: "EKS GPU 노드 전략"
-description: "EKS Auto Mode, Karpenter, Self-Managed Node Group, Hybrid Node의 GPU 워크로드별 최적 노드 전략"
-tags: [eks, gpu, auto-mode, karpenter, hybrid-node, gpu-operator, nvidia, run-ai]
-category: "genai-aiml"
-last_update:
-  date: 2026-04-03
-  author: devfloor9
+description: "EKS Auto Mode, Karpenter, MNG, Hybrid Node의 GPU 워크로드별 최적 노드 전략"
+tags: [eks, gpu, auto-mode, karpenter, hybrid-node, gpu-operator]
 sidebar_position: 1
+last_update:
+  date: 2026-04-05
+  author: YoungJoon Jeong
 ---
 
-import { TroubleshootingGuide, SecurityLayers } from '@site/src/components/AgenticSolutionsTables';
-
-# EKS GPU 노드 전략: Auto Mode + Karpenter + Hybrid Node
+# EKS GPU 노드 전략
 
 ## 1. 개요
 
 EKS에서 GPU 워크로드를 운영할 때 노드 타입 선택은 운영 복잡도, 비용, 기능 활용도에 직접적인 영향을 미칩니다. GPU 추론과 훈련 워크로드는 일반 컨테이너 워크로드와 달리 다음과 같은 특수한 요구사항을 가집니다:
 
 - **드라이버 의존성**: NVIDIA GPU 드라이버, Container Toolkit, Device Plugin
-- **고급 기능**: MIG (Multi-Instance GPU), vGPU, Time-Slicing
+- **고급 기능**: MIG (Multi-Instance GPU), Time-Slicing, Fractional GPU
 - **모니터링**: DCGM (Data Center GPU Manager) 기반 메트릭
-- **스케줄링**: Fractional GPU, Topology-Aware Placement, Gang Scheduling
+- **스케줄링**: Topology-Aware Placement, Gang Scheduling
 
 AWS EKS는 GPU 워크로드를 위해 4가지 노드 타입을 제공합니다:
 
-1. **EKS Auto Mode**: AWS가 전체 노드 라이프사이클을 관리 (드라이버 사전 설치)
-2. **Karpenter (Self-Managed)**: 자동 스케일링 + 사용자 정의 가능
-3. **Managed Node Group**: AWS 관리 노드 그룹 (제한적 자동 스케일링)
-4. **Hybrid Node**: 온프레미스 서버를 EKS 클러스터에 연결
+| 노드 타입 | 설명 |
+|-----------|------|
+| **EKS Auto Mode** | AWS가 전체 노드 라이프사이클을 관리 (GPU 드라이버 사전 설치) |
+| **Karpenter** | 자동 스케일링 + Custom AMI, MIG 등 완전한 사용자 정의 |
+| **Managed Node Group** | AWS 관리 노드 그룹, DRA(Dynamic Resource Allocation) 유일 지원 |
+| **Hybrid Node** | 온프레미스 GPU 서버를 EKS 클러스터에 연결 |
 
-**핵심 원칙**: 하나의 EKS 클러스터에서 여러 노드 타입을 동시에 운영할 수 있습니다. 이를 활용해 워크로드 특성에 맞는 최적의 노드 전략을 구성할 수 있습니다.
+:::tip 핵심 원칙
+하나의 EKS 클러스터에서 여러 노드 타입을 **동시에** 운영할 수 있습니다. 워크로드 특성에 맞는 최적의 노드 조합을 구성하세요.
+:::
 
-### 주요 목표
+### 이 문서의 범위
 
-- Auto Mode의 특성 이해 (GPU Operator 설치 가능, Device Plugin만 레이블 비활성화)
-- Karpenter + GPU Operator 조합의 장점
-- Run:ai, DCGM, GPU Operator 의존 관계
-- 하이브리드 아키텍처 설계 (Auto Mode + Karpenter + Hybrid Node)
+이 문서는 **노드 타입 선택과 하이브리드 아키텍처 설계**에 집중합니다. GPU Operator/DCGM/Dynamo 등 NVIDIA 소프트웨어 스택 상세, GPU 오토스케일링, llm-d 분산 추론, 보안/트러블슈팅은 각 전문 문서에서 다룹니다 (7장 관련 문서 참조).
 
 ---
 
-## 2. EKS 노드 타입별 특성 비교
+## 2. 노드 타입별 특성 비교
+
+### 2.1 기능 비교 테이블
 
 | 특성 | Auto Mode | Karpenter | Managed Node Group | Hybrid Node |
 |------|-----------|-----------|-------------------|-------------|
-| **관리 주체** | AWS 완전 관리 | Self-Managed (사용자) | AWS 관리 | On-Premises 관리 |
+| **관리 주체** | AWS 완전 관리 | Self-Managed | AWS 관리 | On-Premises |
 | **자동 스케일링** | 자동 (AWS 제어) | 자동 (NodePool 기반) | 수동/제한적 | 수동 |
 | **Custom AMI** | 불가 | 가능 | 가능 | 가능 |
 | **SSH 접근** | 불가 | 가능 | 가능 | 가능 |
 | **GPU 드라이버** | 사전 설치 (AWS) | 사용자 설치 | 사용자 설치 | 사용자 설치 |
-| **GPU Operator 호환** | **가능** (Device Plugin 레이블 비활성화) | **가능** | 가능 | 가능 |
-| **Privileged DaemonSet** | 제한적 | 가능 | 가능 | 가능 |
+| **GPU Operator** | **가능** (Device Plugin 레이블 비활성화) | **가능** | 가능 | 가능 |
 | **Root Filesystem** | Read-Only | Read-Write | Read-Write | Read-Write |
-| **SELinux** | Enforcing | Permissive | Permissive | 사용자 설정 |
 | **MIG 지원** | 불가 (NodeClass read-only) | 가능 | 가능 | 가능 |
 | **DRA 호환** | **불가** (내부 Karpenter 기반) | **불가** ([#1231](https://github.com/kubernetes-sigs/karpenter/issues/1231)) | **가능** (권장) | 가능 |
-| **DCGM Exporter** | GPU Operator로 자동 설치 | GPU Operator 포함 | 수동 설치 | GPU Operator 포함 |
-| **Run:ai 호환** | **가능** (Device Plugin 레이블 비활성화) | **가능** | 가능 | 가능 |
+| **DCGM Exporter** | GPU Operator로 설치 | GPU Operator 포함 | 수동 설치 | GPU Operator 포함 |
+| **Run:ai 호환** | **가능** (Device Plugin 비활성화) | **가능** | 가능 | 가능 |
 | **비용** | 낮음 (관리 불필요) | 중간 | 중간 | 낮음 (Capex) |
-| **적합 워크로드** | 단순 추론 | 고급 GPU 기능 | 정적 워크로드 | 온프레미스 통합 |
+| **적합 워크로드** | 단순 추론 | 고급 GPU 기능 | DRA 워크로드 | 온프레미스 통합 |
 
-**핵심 인사이트**:
+### 2.2 선택 가이드: 언제 어떤 노드를 쓸 것인가
 
-- **Auto Mode**: GPU 드라이버가 사전 설치되어 즉시 사용 가능. GPU Operator 설치 가능하되 Device Plugin만 레이블로 비활성화 (DCGM, NFD, GFD 정상 동작)
-- **Auto Mode + GPU Operator**: KAI Scheduler, Run:ai 등 ClusterPolicy 의존 프로젝트 사용 가능. MIG는 NodeClass read-only 제약으로 불가
-- **Karpenter + GPU Operator**: MIG, Custom AMI 등 최대 유연성
-- **Managed Node Group**: DRA(Dynamic Resource Allocation) 사용 시 유일한 선택지. Karpenter와 Auto Mode는 DRA 미지원
-- **Hybrid Node**: 온프레미스 GPU 서버를 EKS로 통합 (GPU Operator 필수)
+**Auto Mode를 선택하는 경우:**
+- GPU 드라이버 관리 부담 없이 빠르게 추론 서비스를 시작하고 싶을 때
+- MIG, Fractional GPU가 불필요한 대형 모델 (70B+) 서빙
+- 시스템/비GPU 워크로드 (API Gateway, Agent, Observability)
+
+**Karpenter를 선택하는 경우:**
+- MIG 파티셔닝, Custom AMI, Spot Instance 유연한 제어가 필요할 때
+- Run:ai, KAI Scheduler 등 GPU Operator ClusterPolicy 의존 프로젝트 사용
+- 중소형 모델의 GPU 활용률 최적화 (MIG 분할)
+
+**Managed Node Group을 선택하는 경우:**
+- DRA(Dynamic Resource Allocation) 기반 GPU 관리가 필요할 때
+- P6e-GB200 UltraServer 등 DRA 전용 인스턴스 사용
+
+**Hybrid Node를 선택하는 경우:**
+- 기존 온프레미스 GPU 서버 자산을 EKS에 통합할 때
+- 데이터 주권 (Data Residency) 요구사항
 
 ---
 
-## 3. EKS Auto Mode의 GPU 지원과 제약
+## 3. EKS Auto Mode GPU 지원과 제약
 
 ### 3.1 Auto Mode가 자동 제공하는 GPU 스택
 
-EKS Auto Mode는 GPU 인스턴스 (p5, g6e, g5 등)에서 다음을 사전 설치합니다:
+EKS Auto Mode는 GPU 인스턴스에서 다음을 사전 설치합니다:
 
-```yaml
-# Auto Mode GPU Node에서 자동 제공되는 컴포넌트
-
-1. NVIDIA GPU 드라이버
-   - AWS가 관리하는 드라이버 버전
-   - /dev/nvidia* 디바이스 자동 생성
-
-2. NVIDIA Container Toolkit
-   - containerd 플러그인 자동 구성
-   - nvidia-container-runtime 설치
-
-3. NVIDIA Device Plugin
-   - kubernetes.io/nvidia-gpu 리소스 자동 등록
-   - GPU 디바이스 스케줄링 가능
-
-4. GPU 리소스 등록
-   - Pod에서 nvidia.com/gpu: 1 요청 가능
-   - Topology-aware scheduling 지원
-```
-
-**장점**: Pod에서 바로 GPU 사용 가능
+1. **NVIDIA GPU 드라이버** - AWS 관리 버전, `/dev/nvidia*` 디바이스 자동 생성
+2. **NVIDIA Container Toolkit** - containerd 플러그인 자동 구성
+3. **NVIDIA Device Plugin** - `nvidia.com/gpu` 리소스 자동 등록
+4. **GPU 리소스 등록** - Pod에서 `nvidia.com/gpu: 1` 요청 즉시 가능
 
 ```yaml
 apiVersion: v1
@@ -112,86 +105,13 @@ spec:
     resources:
       limits:
         nvidia.com/gpu: 1
-  nodeSelector:
-    karpenter.sh/nodepool: auto-mode-gpu  # Auto Mode NodePool
 ```
 
 ### 3.2 Auto Mode에서 GPU Operator 설치: Device Plugin 비활성화 패턴
 
-GPU Operator는 Auto Mode에서 **설치 가능**합니다. 핵심은 **Device Plugin만 노드 레이블로 비활성화**하고 나머지 컴포넌트(DCGM Exporter, NFD, GFD, MIG Manager)는 정상 운영하는 것입니다. 이 패턴은 [awslabs/ai-on-eks PR #288](https://github.com/awslabs/ai-on-eks/pull/288)에서 검증되었습니다.
+GPU Operator는 Auto Mode에서 **설치 가능**합니다. 핵심은 **Device Plugin만 노드 레이블로 비활성화**하고 나머지 컴포넌트(DCGM Exporter, NFD, GFD)는 정상 운영하는 것입니다. 이 패턴은 [awslabs/ai-on-eks PR #288](https://github.com/awslabs/ai-on-eks/pull/288)에서 검증되었습니다.
 
-#### Auto Mode에서의 GPU Operator 컴포넌트 상태
-
-| GPU Operator 컴포넌트 | Auto Mode 설정 | 이유 |
-|---------------------|--------------|------|
-| **Driver** | `enabled: false` | AMI에 사전 설치 (AL2023/Bottlerocket) |
-| **Container Toolkit** | `enabled: false` | AMI에 사전 설치 |
-| **Device Plugin** | 레이블로 비활성화 | AWS가 자체 Device Plugin 관리 |
-| **DCGM Exporter** | `enabled: true` | 세밀한 GPU 메트릭 수집 |
-| **NFD** | `enabled: true` | 하드웨어 기능 탐지 |
-| **GFD** | `enabled: true` | GPU 속성 레이블링 |
-| **MIG Manager** | `enabled: true` | ClusterPolicy 제공 (실제 MIG 분할은 NodeClass 제약으로 불가) |
-
-#### NodePool 레이블 설정
-
-```yaml
-apiVersion: karpenter.sh/v1
-kind: NodePool
-metadata:
-  name: gpu-auto-mode
-spec:
-  template:
-    metadata:
-      labels:
-        nvidia.com/gpu.deploy.device-plugin: "false"  # Device Plugin 비활성화
-    spec:
-      requirements:
-        - key: eks.amazonaws.com/instance-family
-          operator: In
-          values: ["p5", "p4d", "g6e", "g5"]
-      nodeClassRef:
-        group: eks.amazonaws.com
-        kind: NodeClass
-        name: default
-```
-
-#### Helm Values (Auto Mode용)
-
-```yaml
-driver:
-  enabled: false          # AMI 사전 설치
-toolkit:
-  enabled: false          # AMI 사전 설치
-devicePlugin:
-  enabled: true           # 전역 활성화, 노드 레이블로 선택적 비활성화
-dcgmExporter:
-  enabled: true
-  serviceMonitor:
-    enabled: true
-nfd:
-  enabled: true
-gfd:
-  enabled: true
-migManager:
-  enabled: true
-nodeStatusExporter:
-  enabled: false
-sandboxDevicePlugin:
-  enabled: false
-```
-
-:::caution Auto Mode의 실제 제약
-GPU Operator 설치는 가능하지만, 다음은 Auto Mode NodeClass가 read-only이므로 불가합니다:
-- **MIG 파티셔닝**: NodeClass에서 MIG 프로파일 설정 불가 (GPU Operator의 MIG Manager가 설치되어 ClusterPolicy는 제공하지만, 실제 GPU 분할 적용 불가)
-- **Custom AMI**: 특정 드라이버 버전 핀 불가
-- **SSH/SSM 접근**: 노드 직접 디버깅 불가
-
-MIG 기반 GPU 분할이 필요하면 Karpenter + GPU Operator로 전환하세요.
-:::
-
-### 3.3 왜 KAI Scheduler와 Run:ai에 GPU Operator가 필요한가
-
-KAI Scheduler, Run:ai 등 여러 프로젝트는 GPU Operator의 **ClusterPolicy CRD**에 의존합니다. ClusterPolicy 없이는 이들 프로젝트가 시작조차 하지 못합니다.
+**왜 GPU Operator가 필요한가?** KAI Scheduler, Run:ai 등 여러 프로젝트는 GPU Operator의 **ClusterPolicy CRD**에 의존합니다. ClusterPolicy 없이는 이들 프로젝트가 시작조차 하지 못합니다. Auto Mode에서도 GPU Operator를 설치해야 하는 핵심 이유입니다.
 
 ```
 ClusterPolicy CRD (GPU Operator)
@@ -203,739 +123,377 @@ DCGM Exporter (GPU 메트릭)
 NFD/GFD (하드웨어 레이블)
 ```
 
-이것이 Auto Mode에서도 GPU Operator를 설치해야 하는 핵심 이유입니다. Device Plugin만 비활성화하면 나머지 컴포넌트가 정상 동작하여 ClusterPolicy가 생성되고, 의존 프로젝트들이 정상 작동합니다.
+| GPU Operator 컴포넌트 | Auto Mode 설정 | 이유 |
+|---------------------|--------------|------|
+| **Driver** | `enabled: false` | AMI에 사전 설치 |
+| **Container Toolkit** | `enabled: false` | AMI에 사전 설치 |
+| **Device Plugin** | 레이블로 비활성화 | AWS 자체 Device Plugin 관리 |
+| **DCGM Exporter** | `enabled: true` | GPU 메트릭 수집 |
+| **NFD / GFD** | `enabled: true` | 하드웨어 기능 탐지 및 GPU 속성 레이블링 |
+
+NodePool에서 Device Plugin을 비활성화하는 레이블 설정:
+
+```yaml
+apiVersion: karpenter.sh/v1
+kind: NodePool
+metadata:
+  name: gpu-auto-mode
+spec:
+  template:
+    metadata:
+      labels:
+        nvidia.com/gpu.deploy.device-plugin: "false"
+    spec:
+      requirements:
+        - key: eks.amazonaws.com/instance-family
+          operator: In
+          values: ["p5", "g6e", "g5"]
+      nodeClassRef:
+        group: eks.amazonaws.com
+        kind: NodeClass
+        name: default
+```
+
+Helm Values (Auto Mode용):
+
+```yaml
+driver:
+  enabled: false
+toolkit:
+  enabled: false
+devicePlugin:
+  enabled: true           # 전역 활성화, 노드 레이블로 선택적 비활성화
+dcgmExporter:
+  enabled: true
+  serviceMonitor:
+    enabled: true
+nfd:
+  enabled: true
+gfd:
+  enabled: true
+```
+
+:::caution Auto Mode의 실제 제약
+GPU Operator 설치는 가능하지만, NodeClass가 read-only이므로 다음은 불가합니다:
+- **MIG 파티셔닝**: NodeClass에서 MIG 프로파일 설정 불가
+- **Custom AMI**: 특정 드라이버 버전 핀 불가
+- **SSH/SSM 접근**: 노드 직접 디버깅 불가
+
+MIG 기반 GPU 분할이 필요하면 Karpenter + GPU Operator로 전환하세요.
+:::
+
+### 3.3 대형 GPU 인스턴스 지원 현황 (2026.04 검증)
+
+GLM-5 (744B MoE) 배포 과정에서 확인한 Auto Mode의 대형 GPU 인스턴스 지원 현황입니다.
+
+| 인스턴스 | GPU | VRAM | Auto Mode | 검증 결과 |
+|---------|-----|------|-----------|----------|
+| p5.48xlarge | H100 80GB x 8 | 640GB | ✅ 지원 | Spot 프로비저닝 성공 (us-east-2) |
+| p5en.48xlarge | H200 141GB x 8 | 1,128GB | ❌ 제한적 | NoCompatibleInstanceTypes 발생 |
+| p6-b200.48xlarge | B200 192GB x 8 | 1,536GB | ❌ 미지원 | 프로비저닝 실패 |
+
+:::danger p5en/p6 Auto Mode 제약
+Auto Mode의 managed Karpenter는 **p5en과 p6 인스턴스를 프로비저닝할 수 없습니다**. NodePool validation은 통과하지만 실제 배포 시 다음 오류가 발생합니다:
+
+```
+NodePool requirements filtered out all compatible available instance types
+NoCompatibleInstanceTypes
+```
+
+**원인**: Auto Mode의 내부 Karpenter가 p5en/p6 인스턴스 타입을 offering 매칭 과정에서 필터링합니다.
+:::
+
+### 3.4 Auto Mode + MNG 하이브리드 제약
+
+p5en/p6 사용을 위해 Auto Mode 클러스터에 MNG를 추가하는 하이브리드 패턴은 **현재 불가능**합니다:
+
+- MNG 생성 시 `CREATING` 상태에서 30분 이상 멈춤
+- CloudFormation 스택의 `Resources` 필드가 `null`로 유지
+- Auto Mode의 managed compute 레이어와 MNG의 ASG 기반 관리가 내부적으로 충돌
+
+**결론**: 대형 GPU (H200+, B200) 사용 시 **EKS Standard Mode + Karpenter + MNG**를 사용하세요.
+
+### 3.5 Device Plugin 충돌 해결
+
+Auto Mode 노드에서 GPU Operator를 `devicePlugin.enabled=true`로 설치하면 내장 Device Plugin과 충돌합니다.
+
+```bash
+kubectl describe node <gpu-node> | grep nvidia.com/gpu
+# Allocatable: nvidia.com/gpu: 0  (예상: 8)
+```
+
+**해결**: NodePool에 `nvidia.com/gpu.deploy.device-plugin: "false"` 레이블 추가 (3.2절 참조)
+
+### 3.6 노드 강제 종료 불가
+
+Auto Mode가 관리하는 EC2 인스턴스는 `ec2:TerminateInstances`를 차단합니다. 비정상 노드 복구 절차:
+
+1. 워크로드 삭제: `kubectl delete pod <gpu-pod>`
+2. NodeClaim 삭제: `kubectl delete nodeclaim <nodeclaim-name>`
+3. Karpenter가 Empty 노드 감지 후 자동 종료 (5-10분)
+4. 새 NodeClaim 생성으로 정상 노드 시작
+
+### 3.7 Auto Mode 인스턴스 지원 확인 방법
+
+NodePool dry-run으로 특정 인스턴스 타입의 지원 여부를 사전 확인할 수 있습니다:
+
+```yaml
+apiVersion: karpenter.sh/v1
+kind: NodePool
+metadata:
+  name: gpu-test-dryrun
+spec:
+  template:
+    spec:
+      requirements:
+        - key: node.kubernetes.io/instance-type
+          operator: In
+          values: ["p5en.48xlarge"]
+      nodeClassRef:
+        group: eks.amazonaws.com
+        kind: NodeClass
+        name: default
+  limits:
+    nvidia.com/gpu: "8"
+```
+
+dry-run 후 `kubectl get nodeclaim` 이벤트에서 `NoCompatibleInstanceTypes`가 발생하면 해당 인스턴스 타입은 Auto Mode에서 미지원입니다.
 
 ---
 
-## 4. Karpenter + GPU Operator: 최적의 조합
+## 4. Karpenter GPU NodePool 구성
 
 ### 4.1 왜 Karpenter인가
 
-Karpenter는 Auto Mode의 자동 스케일링 장점을 유지하면서, GPU Operator를 완전히 활용할 수 있습니다.
+Karpenter는 Auto Mode의 자동 스케일링 장점을 유지하면서, GPU Operator를 완전히 활용할 수 있는 최적의 균형점입니다.
 
-| 기능 | Auto Mode | Karpenter | Self-Managed Node Group |
-|------|-----------|-----------|------------------------|
-| **자동 스케일링** | 자동 (AWS 제어) | 자동 (NodePool 기반) | 수동 (ASG 기반) |
-| **GPU Operator** | 가능 (Device Plugin 비활성화) | 가능 | 가능 |
-| **Custom AMI** | 불가 | 가능 | 가능 |
-| **Root Filesystem** | Read-Only | Read-Write | Read-Write |
-| **MIG 지원** | 불가 (NodeClass read-only) | 가능 | 가능 |
-| **Run:ai 호환** | 가능 (Device Plugin 비활성화) | 가능 | 가능 |
-| **Spot Instance** | 제한적 | 완전 지원 | 제한적 |
-| **노드 교체 속도** | 빠름 | 매우 빠름 | 느림 (ASG) |
-| **비용 최적화** | AWS 자동 | 사용자 제어 | 사용자 제어 |
+| 기능 | Auto Mode | Karpenter |
+|------|-----------|-----------|
+| **자동 스케일링** | 자동 (AWS 제어) | 자동 (NodePool 기반) |
+| **GPU Operator** | 가능 (Device Plugin 비활성화) | 완전 가능 |
+| **Custom AMI** | 불가 | 가능 |
+| **MIG 지원** | 불가 | 가능 |
+| **Spot Instance** | 제한적 | 완전 지원 |
+| **노드 교체 속도** | 빠름 | 매우 빠름 |
 
-**결론**: Karpenter는 Auto Mode의 자동화 + Self-Managed의 유연성을 모두 제공합니다.
-
-### 4.2 Karpenter GPU NodePool 설정
+### 4.2 추론 워크로드 NodePool
 
 ```yaml
 apiVersion: karpenter.sh/v1
 kind: NodePool
 metadata:
   name: gpu-inference
-  namespace: karpenter
 spec:
-  # 노드 템플릿
   template:
     metadata:
       labels:
         node-type: gpu-inference
         gpu-operator: enabled
-        workload: llm-inference
     spec:
-      # 인스턴스 타입 제약
       requirements:
-        # GPU 인스턴스 타입
         - key: node.kubernetes.io/instance-type
           operator: In
           values:
             - p5.48xlarge      # H100 x8 (640GB HBM3)
             - g6e.12xlarge     # L40S x4 (192GB GDDR6)
             - g5.12xlarge      # A10G x4 (96GB GDDR6)
-            - g5.48xlarge      # A10G x8 (192GB GDDR6)
-
-        # Capacity Type (Spot 제외 - 추론 워크로드는 On-Demand 권장)
         - key: karpenter.sh/capacity-type
           operator: In
           values: [on-demand]
-
-        # Availability Zone (Multi-AZ 분산)
         - key: topology.kubernetes.io/zone
           operator: In
           values: [us-west-2a, us-west-2b, us-west-2c]
-
-      # GPU 노드 Taints (일반 워크로드 배치 방지)
       taints:
         - key: nvidia.com/gpu
           effect: NoSchedule
           value: "true"
-
-      # Kubelet 설정
       kubelet:
-        # GPU 워크로드는 메모리 집약적
         maxPods: 110
-        # Eviction 임계값 조정
         evictionHard:
           memory.available: "10Gi"
-          nodefs.available: "10%"
-        # Image Pull 병렬화
-        imageGCHighThresholdPercent: 85
-        imageGCLowThresholdPercent: 80
-
-  # 중단 정책 (비용 최적화)
   disruption:
-    # 노드가 비어 있으면 5분 후 종료
     consolidationPolicy: WhenEmpty
     consolidateAfter: 5m
-    # 사용 중인 노드는 유지
-    budgets:
-      - nodes: "100%"
-        duration: 10m
-
-  # 리소스 제한 (비용 폭발 방지)
   limits:
     cpu: "1000"
     memory: "4000Gi"
-    nvidia.com/gpu: "32"  # 최대 32개 GPU (p5.48xlarge 4대)
+    nvidia.com/gpu: "32"
+```
 
----
+### 4.3 훈련 워크로드 NodePool (Spot + On-Demand fallback)
+
+```yaml
 apiVersion: karpenter.sh/v1
 kind: NodePool
 metadata:
   name: gpu-training
-  namespace: karpenter
 spec:
   template:
     metadata:
       labels:
         node-type: gpu-training
         gpu-operator: enabled
-        workload: model-training
     spec:
       requirements:
         - key: node.kubernetes.io/instance-type
           operator: In
           values:
-            - p5.48xlarge      # H100 x8 (훈련 최적화)
-            - p4d.24xlarge     # A100 x8 (40GB)
-
-        # Spot Instance 허용 (훈련은 중단 허용)
+            - p5.48xlarge      # H100 x8
         - key: karpenter.sh/capacity-type
           operator: In
-          values: [spot, on-demand]
-
+          values: [spot, on-demand]  # Spot 우선, On-Demand fallback
       taints:
         - key: workload
           effect: NoSchedule
           value: "training"
-
       kubelet:
-        maxPods: 50  # 훈련 워크로드는 Pod 수 제한
+        maxPods: 50
         evictionHard:
-          memory.available: "20Gi"  # 훈련은 메모리 여유 필요
-
+          memory.available: "20Gi"
   disruption:
-    # Spot 중단 시에도 10분 유예
     consolidationPolicy: WhenUnderutilized
-    consolidateAfter: 10m
-
+    consolidateAfter: 30m  # 훈련 중단 방지
   limits:
-    nvidia.com/gpu: "64"  # 최대 64개 GPU (p5.48xlarge 8대)
+    nvidia.com/gpu: "64"
 ```
 
-### 4.3 EC2NodeClass 설정
+### 4.4 EC2NodeClass 설정
 
 ```yaml
 apiVersion: karpenter.k8s.aws/v1
 kind: EC2NodeClass
 metadata:
   name: gpu-inference
-  namespace: karpenter
 spec:
-  # AMI 선택 (GPU 최적화 AMI)
   amiSelectorTerms:
-    - alias: al2023  # Amazon Linux 2023 (권장)
-      # 또는 Custom AMI:
-      # id: ami-0123456789abcdef (NVIDIA 드라이버 사전 설치)
-
-  # IAM Role
+    - alias: al2023
   role: KarpenterNodeRole-eks-genai-cluster
-
-  # Subnet 선택 (Private Subnet)
   subnetSelectorTerms:
     - tags:
         karpenter.sh/discovery: eks-genai-cluster
         subnet-type: private
-
-  # Security Group
   securityGroupSelectorTerms:
     - tags:
         karpenter.sh/discovery: eks-genai-cluster
-
-  # User Data (GPU Operator 설치 준비)
-  userData: |
-    #!/bin/bash
-    set -ex
-
-    # GPU Operator를 위한 사전 작업
-
-    # 1. NVIDIA Fabric Manager 설치 (NVLink 필요 시)
-    # p5.48xlarge, p4d.24xlarge는 NVLink 사용
-    if [[ $(ec2-metadata --instance-type | grep -E "p5|p4d") ]]; then
-      yum install -y nvidia-fabricmanager
-      systemctl enable nvidia-fabricmanager
-      systemctl start nvidia-fabricmanager
-    fi
-
-    # 2. Kernel Headers 설치 (GPU Operator가 드라이버 컴파일)
-    yum install -y kernel-devel-$(uname -r) kernel-headers-$(uname -r)
-
-    # 3. Containerd 설정 (nvidia-container-runtime 준비)
-    mkdir -p /etc/containerd
-    containerd config default > /etc/containerd/config.toml
-    sed -i 's/SystemdCgroup = false/SystemdCgroup = true/' /etc/containerd/config.toml
-    systemctl restart containerd
-
-    # 4. 대용량 모델 다운로드를 위한 디스크 확장
-    # EBS 볼륨을 200Gi로 확장 (NodeClass blockDeviceMappings에서 설정)
-
-    # 5. 노드 레이블 추가 (GPU Operator NodeSelector)
-    echo "KUBELET_EXTRA_ARGS='--node-labels=gpu-operator=enabled'" >> /etc/sysconfig/kubelet
-
-  # EBS 볼륨 설정
   blockDeviceMappings:
     - deviceName: /dev/xvda
       ebs:
-        volumeSize: 200Gi      # LLM 모델 캐싱용
+        volumeSize: 200Gi
         volumeType: gp3
-        iops: 16000            # 높은 IOPS (모델 로딩 속도 향상)
-        throughput: 1000       # 1000 MB/s
+        iops: 16000
+        throughput: 1000
         encrypted: true
         deleteOnTermination: true
-
-  # Metadata Options (IMDSv2 필수)
   metadataOptions:
     httpEndpoint: enabled
-    httpProtocolIPv6: disabled
     httpPutResponseHopLimit: 2
     httpTokens: required  # IMDSv2
-
-  # Tags (비용 추적)
   tags:
     Environment: production
-    Team: ml-platform
     ManagedBy: karpenter
-    Workload: gpu-inference
 ```
 
-### 4.4 GPU Operator 설치 (Karpenter 노드 전용)
+### 4.5 GPU Operator Helm Values (Karpenter 노드 전용)
 
 ```yaml
-# Helm Values for GPU Operator
-# helm install gpu-operator nvidia/gpu-operator -f gpu-operator-values.yaml
-
-# 1. Driver 설정
+# helm install gpu-operator nvidia/gpu-operator -f values.yaml
 driver:
-  enabled: false  # AL2023/Bottlerocket: AMI 사전 설치
+  enabled: false          # AL2023: AMI 사전 설치
 
-# 2. Toolkit 설정
 toolkit:
-  enabled: false  # AL2023/Bottlerocket: AMI 사전 설치
+  enabled: false          # AL2023: AMI 사전 설치
 
-# 3. Device Plugin 설정
 devicePlugin:
   enabled: true
-  version: v0.15.0
-
-  # Resource 이름 설정
-  config:
-    name: time-slicing-config  # ConfigMap 이름
-    default: "any"
-
   nodeSelector:
     gpu-operator: enabled
-
   tolerations:
     - key: nvidia.com/gpu
       operator: Exists
       effect: NoSchedule
 
-# 4. MIG Manager 설정
 migManager:
   enabled: true
-  version: v0.7.0
-
-  # MIG 전략 (Auto Mode에서는 MIG 분할 적용 불가, Karpenter 노드 전용)
-  config:
-    name: mig-parted-config
-    default: "all-balanced"  # 모든 GPU를 균등 분할
-
   nodeSelector:
     gpu-operator: enabled
+  config:
+    name: mig-parted-config
+    default: "all-balanced"
 
-  tolerations:
-    - key: nvidia.com/gpu
-      operator: Exists
-      effect: NoSchedule
-
-# 5. DCGM Exporter 설정 (Prometheus 메트릭)
 dcgmExporter:
   enabled: true
-  version: 3.3.5-3.4.1-ubuntu22.04
-
-  # 메트릭 수집 주기
-  config:
-    name: dcgm-exporter-metrics
-
   serviceMonitor:
     enabled: true
     interval: 15s
-    honorLabels: true
-
   nodeSelector:
     gpu-operator: enabled
 
-  tolerations:
-    - key: nvidia.com/gpu
-      operator: Exists
-      effect: NoSchedule
-
-# 6. Node Feature Discovery
 nfd:
-  enabled: true  # GPU 기능 자동 탐지
-
-# 7. GFD (GPU Feature Discovery)
-gfd:
   enabled: true
 
+gfd:
+  enabled: true
   nodeSelector:
     gpu-operator: enabled
 
-# 8. Operator 자체 설정
 operator:
-  # Auto Mode 노드 제외 (중요!)
   nodeSelector:
     node-type: gpu-inference  # Karpenter NodePool 레이블
-
   tolerations:
     - key: nvidia.com/gpu
       operator: Exists
       effect: NoSchedule
-
   defaultRuntime: containerd
-
-  # Validator 비활성화 (Auto Mode 노드와 충돌 방지)
-  validator:
-    nodeSelector:
-      gpu-operator: enabled
 ```
 
-**핵심 설정**:
+**핵심 설정 포인트:**
+- `nodeSelector: gpu-operator: enabled` -- Auto Mode 노드 제외
+- `driver/toolkit: false` -- AL2023 AMI에 사전 설치
+- `migManager: true` -- Karpenter 노드에서 MIG 기능 활용
 
-1. **nodeSelector: gpu-operator: enabled**: Auto Mode 노드 제외
-2. **MIG Manager 활성화**: Auto Mode에서는 MIG 분할 적용이 불가하므로 Karpenter 노드에서 MIG 기능 활용
-3. **DCGM Exporter**: GPU 메트릭 자동 수집 (Prometheus 통합)
+### 4.6 GPU 토폴로지 기반 스케줄링
 
----
-
-## 5. GPU Operator / DCGM / Run:ai 아키텍처
-
-### 5.1 계층 구조 다이어그램
-
-```mermaid
-flowchart TB
-    A[Physical GPU<br/>Hardware]
-    B[NVIDIA<br/>Driver]
-    C[CUDA<br/>Runtime]
-    D[DCGM]
-
-    subgraph GPUOp["GPU Operator"]
-        I[Device<br/>Plugin]
-        J[MIG<br/>Manager]
-        K[Container<br/>Toolkit]
-    end
-
-    subgraph Runai["Run:ai"]
-        L[Fractional<br/>GPU]
-        M[Gang<br/>Scheduling]
-        N[Fairness<br/>Policy]
-    end
-
-    subgraph Monitor["모니터링"]
-        G[DCGM<br/>Exporter]
-        H[Prometheus/<br/>Grafana]
-    end
-
-    A --> B
-    B --> C
-    C --> D
-    D --> GPUOp
-    GPUOp --> Runai
-
-    D --> G
-    G --> H
-
-    style A fill:#76b900
-    style D fill:#ffd93d
-    style GPUOp fill:#326ce5
-    style Runai fill:#9c27b0
-    style H fill:#9c27b0
-```
-
-**의존 관계**:
-
-```
-Run:ai (최상위 스케줄링 레이어)
-  ↓ depends on
-GPU Operator (인프라 자동화 레이어)
-  ↓ includes
-DCGM (모니터링 엔진)
-  ↓ requires
-NVIDIA Driver (커널 모듈)
-  ↓
-Physical GPU (하드웨어)
-```
-
-### 5.2 GPU Operator의 역할
-
-GPU Operator는 Kubernetes에서 GPU 워크로드를 자동화하는 인프라 계층입니다.
-
-| 컴포넌트 | 역할 | Auto Mode | Karpenter |
-|----------|------|-----------|-----------|
-| **nvidia-driver** | GPU 커널 모듈 설치 | AWS 사전 설치 | GPU Operator 설치 |
-| **container-toolkit** | Container runtime 통합 | AWS 사전 구성 | GPU Operator 구성 |
-| **device-plugin** | GPU 리소스 등록 | AWS Device Plugin | GPU Operator Plugin |
-| **gpu-feature-discovery** | GPU 속성 라벨링 | 제한적 | 완전 지원 |
-| **mig-manager** | MIG 프로파일 관리 | 불가 | 가능 |
-| **dcgm-exporter** | Prometheus 메트릭 | 수동 설치 | 자동 포함 |
-| **node-status-exporter** | 노드 상태 메트릭 | 불가 | 자동 포함 |
-
-**GPU Operator의 핵심 가치**:
+분산 훈련에서 NVLink 연결된 GPU끼리 같은 노드에 배치하는 것이 성능에 결정적입니다:
 
 ```yaml
-# GPU Operator 없이 직접 구성하려면:
-# 1. 각 노드에 SSH 접근
-# 2. NVIDIA 드라이버 수동 설치
-# 3. Container Toolkit 수동 구성
-# 4. Device Plugin Manifest 수동 배포
-# 5. DCGM 수동 설치
-# 6. MIG 수동 설정
-# → 노드 100대면 100번 반복
-
-# GPU Operator 사용 시:
-helm install gpu-operator nvidia/gpu-operator
-# → 모든 노드에 자동 배포, 자동 업그레이드, 자동 모니터링
-```
-
-### 5.3 DCGM의 역할
-
-DCGM (Data Center GPU Manager)은 NVIDIA GPU의 모니터링 엔진입니다.
-
-#### 수집 메트릭 유형
-
-**1. 성능 메트릭**
-
-```promql
-# GPU SM (Streaming Multiprocessor) 사용률
-DCGM_FI_DEV_GPU_UTIL{gpu="0", namespace="inference"} 75
-
-# Tensor Core 사용률 (AI 워크로드 핵심 지표)
-DCGM_FI_PROF_PIPE_TENSOR_ACTIVE{gpu="0"} 92
-
-# 메모리 사용률
-DCGM_FI_DEV_FB_USED{gpu="0"} 68719476736  # 64GB / 80GB (A100)
-
-# PCIe/NVLink Throughput
-DCGM_FI_PROF_PCIE_TX_BYTES{gpu="0"} 15728640000  # 15 GB/s
-DCGM_FI_PROF_NVLINK_TX_BYTES{gpu="0"} 629145600000  # 600 GB/s (p5.48xlarge)
-
-# Power Consumption
-DCGM_FI_DEV_POWER_USAGE{gpu="0"} 450  # 450W / 700W (H100)
-
-# Temperature
-DCGM_FI_DEV_GPU_TEMP{gpu="0"} 68  # 68°C
-```
-
-**2. 헬스 체크**
-
-```promql
-# ECC (Error Correcting Code) 오류
-DCGM_FI_DEV_ECC_DBE_VOL_TOTAL{gpu="0"} 0  # Double Bit Errors (심각)
-
-# XID 오류 (하드웨어 오류 코드)
-DCGM_FI_DEV_XID_ERRORS{gpu="0"} 0
-
-# Thermal Throttling (과열로 인한 성능 저하)
-DCGM_FI_DEV_THERMAL_VIOLATION{gpu="0"} 0
-
-# Clock Throttling Reason
-DCGM_FI_DEV_CLOCK_THROTTLE_REASONS{gpu="0", reason="hw_thermal"} 0
-```
-
-**3. 프로파일링**
-
-```promql
-# Per-Process GPU 메모리 사용량
-DCGM_FI_DEV_FB_USED_BY_PROCESS{pid="12345", process="python3"} 17179869184  # 16GB
-
-# MIG Instance별 메트릭
-DCGM_FI_DEV_GPU_UTIL{gpu="0", mig_instance="1g.10gb"} 45
-
-# Per-User GPU 사용률 (Run:ai 연동)
-runai_gpu_utilization{user="data-scientist-1", team="ml-team"} 0.87
-```
-
-### 5.4 Run:ai의 역할
-
-Run:ai는 GPU Operator + DCGM 위에서 동작하는 **스케줄링 및 오케스트레이션** 계층입니다.
-
-#### Run:ai 핵심 기능
-
-**1. GPU 스케줄링 고급 기능**
-
-```yaml
-# Fractional GPU (GPU 분할 스케줄링)
-apiVersion: run.ai/v1
-kind: RunaiJob
-metadata:
-  name: inference-job
-spec:
-  gpuFraction: 0.5  # GPU 1개를 0.5개로 요청 (2개 Pod이 1개 GPU 공유)
-  gpuMemory: 20Gi   # 메모리 한계 설정
-
-  # Run:ai가 자동 처리:
-  # - CUDA_VISIBLE_DEVICES 환경변수 설정
-  # - GPU 메모리 제한 (nvidia-smi 기반)
-  # - Time-Slicing 스케줄링
-
----
-# Dynamic MIG (런타임에 MIG 프로파일 변경)
-apiVersion: run.ai/v1
-kind: RunaiJob
-metadata:
-  name: training-job
-spec:
-  migProfile: "3g.40gb"  # MIG 3-slice (A100 40GB → 3개 인스턴스)
-
-  # Run:ai가 자동 처리:
-  # - nvidia-smi mig 명령 실행
-  # - MIG UUID 자동 할당
-  # - Pod에 MIG Instance 매핑
-
----
-# Gang Scheduling (분산 훈련 동시 시작)
-apiVersion: run.ai/v1
-kind: DistributedJob
-metadata:
-  name: llama-70b-training
-spec:
-  workers: 8        # 8개 Pod 동시 필요
-  gpusPerWorker: 8  # 각 Pod에 GPU 8개
-
-  # Run:ai가 자동 처리:
-  # - 64개 GPU가 동시에 Available할 때만 스케줄링
-  # - 모든 Pod이 동시에 시작
-  # - 하나라도 실패하면 전체 롤백
-
----
-# Bin Packing + Topology-Aware
-apiVersion: run.ai/v1
-kind: RunaiJob
-spec:
-  topology: "same-node"  # GPU가 동일 노드에 있어야 함
-
-  # Run:ai가 자동 처리:
-  # - NVLink 연결된 GPU끼리 매칭
-  # - PCIe Bandwidth 최적화
-  # - NUMA Affinity 고려
-```
-
-**2. 리소스 관리**
-
-```yaml
-# Department → Project → User 계층 구조
-Department: "ML Platform Team"
-  ├── Project: "LLM Inference"
-  │   ├── GPU Quota: 32
-  │   ├── Over-Quota: 16 (idle 시 사용 가능)
-  │   └── Users:
-  │       ├── ml-engineer-1 (Quota: 8)
-  │       └── ml-engineer-2 (Quota: 4)
-  └── Project: "Model Training"
-      ├── GPU Quota: 64
-      ├── Over-Quota: 32
-      └── Fairness Policy: "DRF"  # Dominant Resource Fairness
-
-# Preemption (우선순위 기반 선점)
-Job: high-priority-inference
-  Priority: 100
-  → 낮은 우선순위 Job을 선점하고 GPU 확보
-
-# Fairness (공정성 알고리즘)
-Algorithm: "Dominant Resource Fairness"
-  → 각 User의 GPU 사용 시간을 추적
-  → 적게 사용한 User에게 우선권
-```
-
-**3. 가시성 및 거버넌스**
-
-```yaml
-# Run:ai Dashboard 제공 메트릭 (DCGM 기반)
-
-Per-User GPU Utilization:
-  ml-engineer-1: 87% (GPU 8개, 평균 87% 활용)
-  ml-engineer-2: 45% (GPU 4개, 평균 45% 활용)
-
-Per-Team GPU Cost:
-  ML Platform Team: $12,450/month (GPU 64개)
-  ├── LLM Inference: $8,200/month (GPU 32개)
-  └── Model Training: $4,250/month (GPU 32개)
-
-Idle GPU Detection:
-  gpu-node-5: GPU 2,3번 Idle (12시간) → 알림 발송
-
-Job Queueing:
-  Pending Jobs: 8
-  ├── training-job-1: 대기 중 (GPU 16개 필요, 현재 8개 Available)
-  └── inference-job-2: 실행 중 (GPU 4개 사용)
-```
-
-### 5.5 의존 관계 정리
-
-| 조합 | 가능? | 사용 사례 |
-|------|------|----------|
-| **GPU Operator만** | YES | 기본 GPU 추론, 간단한 훈련 |
-| **GPU Operator + DCGM** | YES | GPU 모니터링 + Alerting |
-| **GPU Operator + Run:ai** | YES | 엔터프라이즈 GPU 관리 (권장) |
-| **DCGM만** | YES | 베어메탈 환경 GPU 모니터링 |
-| **Run:ai만** | NO | GPU Operator 필수 (Driver, Plugin 필요) |
-| **Auto Mode + Run:ai** | YES | GPU Operator 설치 후 Device Plugin 레이블 비활성화 |
-| **Auto Mode + DCGM Exporter** | YES | 수동 설치 가능 (제한적) |
-
-**핵심 인사이트**:
-
-- **Run:ai는 GPU Operator 위에서만 동작** (Driver, Device Plugin 필요)
-- **Auto Mode에서도 GPU Operator 설치 가능 (Device Plugin 레이블 비활성화) → Run:ai 사용 가능**
-- **Karpenter + GPU Operator + Run:ai = 엔터프라이즈 GPU 플랫폼 최적 구성**
-
----
-
-## 5.6 DRA 워크로드를 위한 Managed Node Group 전략
-
-DRA(Dynamic Resource Allocation)는 K8s 1.34에서 GA로 승격되었으며, GPU 메모리 세밀 할당, MIG/MPS/Time-Slicing 선택, NVLink 토폴로지 인식 스케줄링 등 Device Plugin을 넘어서는 고급 GPU 관리를 제공합니다. **단, DRA는 Karpenter와 EKS Auto Mode에서 사용할 수 없습니다.**
-
-:::danger DRA + Karpenter/Auto Mode 비호환
-Karpenter는 Pod의 `spec.resourceClaims`를 감지하면 노드 프로비저닝을 skip합니다 ([PR #2384](https://github.com/kubernetes-sigs/karpenter/pull/2384)). EKS Auto Mode도 내부적으로 Karpenter를 사용하므로 동일한 제약이 적용됩니다. DRA 워크로드의 노드 관리는 **Managed Node Group**이 유일한 정식 지원 방법입니다.
-
-이것은 단순한 CRD 해석 문제가 아닙니다. Karpenter는 Pod 요구사항을 시뮬레이션해서 최적 인스턴스를 계산하는데, DRA의 ResourceSlice는 노드가 존재한 후에야 DRA Driver가 발행하므로 **노드 생성 전 시뮬레이션이 불가능**합니다(닭과 달걀 문제). 반면 Cluster Autoscaler는 "Pending Pod이 있으니 MNG를 스케일업해"라는 단순 판단만 하므로 DRA를 해석할 필요 없이 동작합니다.
-
-**참고**: [AWS EKS 공식 문서 — Manage hardware devices](https://docs.aws.amazon.com/eks/latest/userguide/device-management.html)
-:::
-
-#### Karpenter `IGNORE_DRA_REQUESTS` 워크어라운드 (PoC 용도)
-
-Karpenter의 `IGNORE_DRA_REQUESTS` 플래그를 활성화하면, DRA 요구사항을 무시하고 nodeSelector/라벨 기반으로 노드를 프로비저닝할 수 있습니다.
-
-```yaml
-# Karpenter에서 DRA 무시 활성화
-env:
-  - name: IGNORE_DRA_REQUESTS
-    value: "true"
-
----
-# NodePool: GPU 라벨 매칭
-apiVersion: karpenter.sh/v1
-kind: NodePool
-metadata:
-  name: gpu-dra-h100
-spec:
-  template:
-    metadata:
-      labels:
-        gpu-class: h100-80gb
-    spec:
-      requirements:
-        - key: node.kubernetes.io/instance-type
-          operator: In
-          values: ["p5.48xlarge"]
-
----
-# DRA Pod: 라벨로 인스턴스 힌트 + ResourceClaim으로 GPU 할당
+# Pod에서 GPU 토폴로지 힌트 설정
 apiVersion: v1
 kind: Pod
 spec:
-  nodeSelector:
-    gpu-class: h100-80gb          # Karpenter가 이걸 보고 프로비저닝
-  resourceClaims:
-    - name: gpu
-      resourceClaimTemplateName: gpu-claim  # kube-scheduler가 처리
+  containers:
+  - name: pytorch-ddp
+    resources:
+      limits:
+        nvidia.com/gpu: 4
+  # 같은 NVLink 도메인 내 GPU 배치
+  topologySpreadConstraints:
+    - maxSkew: 1
+      topologyKey: topology.kubernetes.io/zone
+      whenUnsatisfiable: DoNotSchedule
+      labelSelector:
+        matchLabels:
+          app: distributed-training
 ```
 
-**동작**: Karpenter가 ResourceClaim을 무시 → nodeSelector로 NodePool 매칭 → 노드 프로비저닝 → DRA Driver 배포 → kube-scheduler가 DRA 매칭 → Pod 배치
+### 4.7 Spot 가격 비교 (us-east-2, 2026.04)
 
-:::warning 프로덕션 비권장
+| 인스턴스 | On-Demand | Spot (최저) | VRAM | 절감률 |
+|---------|-----------|------------|------|-------|
+| p5.48xlarge | $98/hr | $12.5/hr | 640GB | 87% |
+| p5en.48xlarge | ~$120/hr | $12.1/hr | 1,128GB | 90% |
+| p6-b200.48xlarge | $180/hr | $11.4/hr | 1,536GB | 94% |
 
-| 위험 | 설명 |
-|---|---|
-| **Bin-packing 오류** | Karpenter가 DRA 리소스 소비를 모르므로 GPU 용량 초과 Pod 배치 가능 |
-| **스케일다운 오판** | DRA 리소스 미인식으로 사용 중 노드를 빈 노드로 판단 |
-| **임시 플래그** | 정식 DRA 지원 시 제거 예정 |
-
-PoC/단일 Pod-per-Node 구성에서만 사용하고, **프로덕션은 MNG + Cluster Autoscaler를 권장**합니다.
+:::tip Spot 활용 권장
+대형 GPU 인스턴스는 Spot으로 85-90% 비용 절감이 가능합니다. PoC/데모 환경에서는 Spot을 적극 활용하되, `consolidationPolicy: WhenEmpty`로 설정하여 불필요한 중단을 방지하세요.
 :::
-
-### DRA 하이브리드 아키텍처
-
-```mermaid
-flowchart TB
-    subgraph Cluster["EKS Cluster (K8s 1.34+)"]
-        subgraph MNG["Managed Node Group (GPU)"]
-            DRA_D[NVIDIA DRA Driver]
-            GPU_OP[GPU Operator]
-            RS[ResourceSlice]
-            LLMD_P[llm-d Prefill Pod<br/>ResourceClaim]
-            LLMD_D[llm-d Decode Pod<br/>ResourceClaim]
-        end
-
-        subgraph Karp["Karpenter / Auto Mode"]
-            API[API Gateway]
-            AGENT[Agent Framework]
-            MON[Observability]
-            VLLM[vLLM Pod<br/>nvidia.com/gpu]
-        end
-    end
-
-    CA[Cluster Autoscaler] -.->|스케일아웃| MNG
-    KEDA_OP[KEDA] -.->|Pod 스케일링| LLMD_D
-
-    style MNG fill:#76b900
-    style Karp fill:#ff9900
-    style CA fill:#326ce5
-```
-
-**핵심 구성 원칙:**
-
-| 워크로드 | 노드 타입 | GPU 할당 방식 | 스케일링 |
-|---|---|---|---|
-| DRA 워크로드 (llm-d, P6e-GB200) | **Managed Node Group** | ResourceClaim (DRA) | Cluster Autoscaler |
-| 일반 GPU 추론 (vLLM 단독) | Karpenter / Auto Mode | `nvidia.com/gpu` (Device Plugin) | Karpenter 동적 프로비저닝 |
-| 비GPU 워크로드 | Karpenter / Auto Mode | - | Karpenter 동적 프로비저닝 |
-
-### DRA 스케일아웃: KEDA + Cluster Autoscaler
-
-GPU 노드 프로비저닝은 수 분이 소요되므로, Pod Pending 전에 LLM 메트릭으로 미리 스케일아웃을 시작해야 합니다:
-
-1. **Proactive**: KEDA가 KV Cache 사용률, TTFT, 대기 요청 수를 감시 → Pod 스케일아웃
-2. **Reactive**: Pod Pending 발생 → Cluster Autoscaler가 MNG desired capacity 증가 → GPU 노드 프로비저닝
-
-상세 설정은 [GPU 리소스 관리 — DRA 스케일아웃 전략](./gpu-resource-management.md#dra-워크로드의-gpu-스케일아웃-전략)을 참조하세요.
 
 ---
 
-## 6. 권장 하이브리드 아키텍처
+## 5. 권장 하이브리드 아키텍처
 
-하나의 EKS 클러스터에서 3가지 노드 타입을 동시에 운영하는 전략입니다.
+### 5.1 3-노드 타입 공존 아키텍처
+
+하나의 EKS 클러스터에서 Auto Mode + Karpenter + Hybrid Node를 동시에 운영합니다.
 
 ```mermaid
 flowchart TB
@@ -972,403 +530,76 @@ flowchart TB
     style Auto fill:#ff9900
     style Karp fill:#326ce5
     style Hyb fill:#76b900
-
-    AutoMode -.배포 제외.-> K1
-    AutoMode -.배포 제외.-> K4
-
-    Karpenter --> K4
-    K4 --> K1
-    K1 --> K3
-
-    Hybrid --> H1
-    H1 --> H2
-
-    style AutoMode fill:#e1f5ff
-    style Karpenter fill:#e1ffe1
-    style Hybrid fill:#ffe1e1
-    style K4 fill:#f0e1ff
 ```
 
-### 6.1 워크로드별 노드 배치 전략
+### 5.2 워크로드별 노드 배치 전략
 
 | 워크로드 유형 | 노드 타입 | GPU Operator | 이유 |
 |--------------|-----------|--------------|------|
 | **시스템 컴포넌트** | Auto Mode | 불필요 | 관리 불필요, 비용 최소화 |
-| **API Gateway** | Auto Mode | 불필요 | CPU 워크로드 |
-| **Agent Orchestration** | Auto Mode | 불필요 | CPU 워크로드 |
-| **간단한 GPU 추론** | Auto Mode | 선택사항 (DCGM 모니터링 시 필요) | MIG 불필요, 빠른 스케일링 |
+| **API Gateway / Agent** | Auto Mode | 불필요 | CPU 워크로드 |
+| **간단한 GPU 추론 (70B+)** | Auto Mode | 선택 (DCGM 시 필요) | MIG 불필요, 빠른 스케일링 |
 | **MIG 기반 추론** | Karpenter | 필수 | MIG Manager 필요 |
 | **Fractional GPU** | Karpenter | 필수 | Run:ai 필요 |
-| **모델 훈련** | Karpenter | 필수 | Gang Scheduling 필요 |
+| **모델 훈련** | Karpenter | 필수 | Gang Scheduling, Spot |
+| **DRA 워크로드** | Managed Node Group | 필수 | Karpenter/Auto Mode 미지원 |
 | **온프레미스 GPU** | Hybrid Node | 필수 | AWS 관리 GPU 스택 없음 |
 
-### 6.2 Karpenter NodePool 구성 (상세)
+### 5.3 DRA 워크로드를 위한 MNG 하이브리드
 
-```yaml
-# 1. 간단한 추론 (Auto Mode로 처리)
-apiVersion: karpenter.sh/v1
-kind: NodePool
-metadata:
-  name: auto-mode-gpu-simple
-spec:
-  template:
-    spec:
-      requirements:
-        - key: node.kubernetes.io/instance-type
-          operator: In
-          values: [g5.xlarge, g5.2xlarge]  # 소형 GPU
-        - key: karpenter.sh/capacity-type
-          operator: In
-          values: [on-demand]
-  limits:
-    nvidia.com/gpu: "8"
+DRA(Dynamic Resource Allocation)는 K8s 1.34에서 GA로 승격되었으며, GPU 메모리 세밀 할당, NVLink 토폴로지 인식 스케줄링 등 Device Plugin을 넘어서는 고급 GPU 관리를 제공합니다. **단, DRA는 Karpenter와 Auto Mode에서 사용할 수 없습니다.**
 
----
-# 2. 고급 추론 (Karpenter + GPU Operator)
-apiVersion: karpenter.sh/v1
-kind: NodePool
-metadata:
-  name: karpenter-gpu-advanced
-spec:
-  template:
-    metadata:
-      labels:
-        gpu-operator: enabled
-        runai-enabled: "true"
-    spec:
-      requirements:
-        - key: node.kubernetes.io/instance-type
-          operator: In
-          values: [p5.48xlarge, g6e.12xlarge]
-      taints:
-        - key: nvidia.com/gpu
-          effect: NoSchedule
-  limits:
-    nvidia.com/gpu: "64"
+:::danger DRA + Karpenter/Auto Mode 비호환
+Karpenter는 Pod의 `spec.resourceClaims`를 감지하면 노드 프로비저닝을 skip합니다 ([PR #2384](https://github.com/kubernetes-sigs/karpenter/pull/2384)). Karpenter는 Pod 요구사항을 시뮬레이션해서 최적 인스턴스를 계산하는데, DRA의 ResourceSlice는 노드가 존재한 후에야 DRA Driver가 발행하므로 **노드 생성 전 시뮬레이션이 불가능**합니다 (닭과 달걀 문제).
 
----
-# 3. 모델 훈련 (Karpenter + Spot)
-apiVersion: karpenter.sh/v1
-kind: NodePool
-metadata:
-  name: karpenter-gpu-training
-spec:
-  template:
-    metadata:
-      labels:
-        gpu-operator: enabled
-        workload: training
-    spec:
-      requirements:
-        - key: node.kubernetes.io/instance-type
-          operator: In
-          values: [p5.48xlarge]  # H100만 사용
-        - key: karpenter.sh/capacity-type
-          operator: In
-          values: [spot, on-demand]  # Spot 우선
-      taints:
-        - key: workload
-          effect: NoSchedule
-          value: "training"
-  disruption:
-    consolidationPolicy: WhenUnderutilized
-    consolidateAfter: 30m  # 훈련 중단 방지
-  limits:
-    nvidia.com/gpu: "128"
-```
-
-### 6.3 GPU Operator 배포 (Karpenter 노드만)
-
-```yaml
-# GPU Operator Helm Values
-operator:
-  # GPU Operator는 Auto Mode + Karpenter 모두에서 동작
-  affinity:
-    nodeAffinity:
-      requiredDuringSchedulingIgnoredDuringExecution:
-        nodeSelectorTerms:
-          - matchExpressions:
-              # gpu-operator=enabled 레이블이 있는 노드만
-              - key: gpu-operator
-                operator: In
-                values: [enabled]
-
-# Auto Mode 노드: driver/toolkit은 AMI 사전 설치, Device Plugin은 레이블 비활성화
-driver:
-  enabled: false  # AL2023/Bottlerocket: AMI 사전 설치
-
-toolkit:
-  enabled: false  # AL2023/Bottlerocket: AMI 사전 설치
-
-devicePlugin:
-  enabled: true   # 전역 활성화, Auto Mode 노드는 레이블로 선택적 비활성화
-
-migManager:
-  enabled: true
-  nodeSelector:
-    gpu-operator: enabled
-  config:
-    name: mig-config
-    default: all-balanced
-
-dcgmExporter:
-  enabled: true
-  nodeSelector:
-    gpu-operator: enabled
-  serviceMonitor:
-    enabled: true
-
-runai:
-  enabled: true  # Run:ai 통합 활성화
-```
-
----
-
-## 7. EKS Hybrid Node GPU 팜
-
-### 7.1 Hybrid Node 개념
-
-EKS Hybrid Node는 **온프레미스 서버를 EKS 클러스터에 등록**하는 기능입니다 (2024년 11월 GA).
+DRA 워크로드의 노드 관리는 **Managed Node Group + Cluster Autoscaler**가 유일한 정식 지원 방법입니다.
+:::
 
 ```mermaid
-flowchart LR
-    subgraph AWS["AWS Cloud"]
-        EKS[EKS<br/>Control Plane]
-        VPC[VPC]
+flowchart TB
+    subgraph Cluster["EKS Cluster (K8s 1.34+)"]
+        subgraph MNG["Managed Node Group (GPU)"]
+            DRA_D[NVIDIA DRA Driver]
+            GPU_OP[GPU Operator]
+            LLMD_P[llm-d Prefill Pod<br/>ResourceClaim]
+            LLMD_D[llm-d Decode Pod<br/>ResourceClaim]
+        end
+
+        subgraph Karp["Karpenter / Auto Mode"]
+            API[API Gateway]
+            AGENT[Agent Framework]
+            VLLM[vLLM Pod<br/>nvidia.com/gpu]
+        end
     end
 
-    subgraph OnPrem["On-Premises"]
-        HN1[Hybrid Node 1<br/>DGX A100]
-        HN2[Hybrid Node 2<br/>GPU Server x4]
-        HN3[Hybrid Node 3<br/>Legacy ML]
-    end
+    CA[Cluster Autoscaler] -.->|스케일아웃| MNG
+    KEDA_OP[KEDA] -.->|Pod 스케일링| LLMD_D
 
-    HN1 -.->|VPN/DX| EKS
-    HN2 -.->|VPN/DX| EKS
-    HN3 -.->|VPN/DX| EKS
-
-    EKS --> VPC
-
-    style OnPrem fill:#76b900
-    style AWS fill:#ff9900
+    style MNG fill:#76b900
+    style Karp fill:#ff9900
+    style CA fill:#326ce5
 ```
 
-**핵심 특징**:
+| 워크로드 | 노드 타입 | GPU 할당 방식 | 스케일링 |
+|---|---|---|---|
+| DRA 워크로드 (llm-d, P6e-GB200) | **Managed Node Group** | ResourceClaim (DRA) | Cluster Autoscaler |
+| 일반 GPU 추론 (vLLM 단독) | Karpenter / Auto Mode | `nvidia.com/gpu` (Device Plugin) | Karpenter |
+| 비GPU 워크로드 | Karpenter / Auto Mode | - | Karpenter |
 
-- 온프레미스 GPU 서버를 EKS에 등록 (IAM, Kubelet 인증)
-- AWS 관리 GPU 스택 없음 → **GPU Operator 필수**
-- VPN 또는 AWS Direct Connect 필요
-- EKS Control Plane은 AWS 관리, 워커 노드는 온프레미스
+상세 DRA 스케일아웃 전략은 [GPU 리소스 관리](./gpu-resource-management.md#dra-워크로드의-스케일아웃)를 참조하세요.
 
-### 7.2 Hybrid Node 등록
+### 5.4 모델 크기별 권장 노드 전략
 
-```bash
-# 1. Hybrid Node IAM Role 생성
-aws iam create-role \
-  --role-name EKSHybridNodeRole \
-  --assume-role-policy-document file://hybrid-node-trust-policy.json
+| 모델 크기 | 예시 | 권장 노드 | 이유 |
+|---|---|---|---|
+| **70B+** | Qwen3-72B, Llama-3-70B | Auto Mode + llm-d | GPU를 거의 다 사용, 관리 편의성 |
+| **30B-65B** | Qwen3-32B | Auto Mode 또는 Karpenter | GPU 50%+ 사용, 상황에 따라 선택 |
+| **13B-30B** | Llama-3-13B | Karpenter + MIG 2분할 | GPU 활용률 개선 필요 |
+| **7B 이하** | Llama-3-8B, Mistral-7B | Karpenter + MIG 4-7분할 | GPU 낭비 심각, MIG 필수 |
+| **멀티 모델** | 여러 모델 동시 운영 | Karpenter + MIG | 모델별 MIG 파티션 분리 |
+| **개발/테스트** | 모델 무관 | Auto Mode | 빠른 시작 |
 
-aws iam attach-role-policy \
-  --role-name EKSHybridNodeRole \
-  --policy-arn arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy
-
-# 2. Hybrid Node 등록 (온프레미스 서버에서 실행)
-curl -o hybrid-node-installer.sh https://hybrid.eks.amazonaws.com/installer
-chmod +x hybrid-node-installer.sh
-
-sudo ./hybrid-node-installer.sh \
-  --cluster-name genai-platform \
-  --region us-west-2 \
-  --role-arn arn:aws:iam::123456789012:role/EKSHybridNodeRole \
-  --credential-provider ssm  # AWS SSM을 통한 인증
-
-# 3. GPU Operator 자동 설치 (Hybrid Node 감지 시)
-kubectl apply -f - <<EOF
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: gpu-operator-config
-  namespace: gpu-operator
-data:
-  hybrid-node-detected: "true"
-  auto-install-driver: "true"
-EOF
-
-# 4. 노드 확인
-kubectl get nodes -l node.kubernetes.io/instance-type=hybrid
-NAME                STATUS   ROLES    AGE   VERSION
-dgx-a100-station-1  Ready    <none>   5m    v1.29.0
-gpu-server-pool-1   Ready    <none>   5m    v1.29.0
-```
-
-### 7.3 Hybrid Node GPU Operator 설치
-
-```yaml
-# GPU Operator Helm Values (Hybrid Node 전용)
-operator:
-  nodeSelector:
-    node.kubernetes.io/instance-type: hybrid
-
-driver:
-  enabled: true
-  # Hybrid Node는 Ubuntu/RHEL 등 다양한 OS
-  repository: nvcr.io/nvidia
-  version: "550.90.07"
-
-  nodeSelector:
-    node.kubernetes.io/instance-type: hybrid
-
-toolkit:
-  enabled: true
-  nodeSelector:
-    node.kubernetes.io/instance-type: hybrid
-
-devicePlugin:
-  enabled: true
-  nodeSelector:
-    node.kubernetes.io/instance-type: hybrid
-
-migManager:
-  enabled: true
-  nodeSelector:
-    node.kubernetes.io/instance-type: hybrid
-
-dcgmExporter:
-  enabled: true
-  nodeSelector:
-    node.kubernetes.io/instance-type: hybrid
-  serviceMonitor:
-    enabled: true
-    additionalLabels:
-      location: on-premises
-```
-
-### 7.4 3-노드 타입 공존 전략
-
-```yaml
-# Pod 배치 전략 (NodeSelector + Affinity)
-
-# 1. 간단한 추론 → Auto Mode
-apiVersion: v1
-kind: Pod
-metadata:
-  name: simple-inference
-spec:
-  containers:
-  - name: llama-7b
-    resources:
-      limits:
-        nvidia.com/gpu: 1
-  nodeSelector:
-    eks.amazonaws.com/compute-type: auto  # Auto Mode 노드
-
----
-# 2. MIG 기반 추론 → Karpenter
-apiVersion: v1
-kind: Pod
-metadata:
-  name: mig-inference
-spec:
-  containers:
-  - name: llama-70b
-    resources:
-      limits:
-        nvidia.com/mig-1g.10gb: 1  # MIG Instance
-  nodeSelector:
-    gpu-operator: enabled
-  affinity:
-    nodeAffinity:
-      requiredDuringSchedulingIgnoredDuringExecution:
-        nodeSelectorTerms:
-          - matchExpressions:
-              - key: node.kubernetes.io/instance-type
-                operator: In
-                values: [p5.48xlarge, g6e.12xlarge]
-
----
-# 3. 온프레미스 GPU → Hybrid Node
-apiVersion: v1
-kind: Pod
-metadata:
-  name: onprem-training
-spec:
-  containers:
-  - name: pytorch-ddp
-    resources:
-      limits:
-        nvidia.com/gpu: 8
-  nodeSelector:
-    node.kubernetes.io/instance-type: hybrid
-  tolerations:
-    - key: on-premises
-      operator: Exists
-      effect: NoSchedule
-```
-
----
-
-## 8. llm-d와 모델 크기별 노드 전략
-
-### 8.1 llm-d on EKS Auto Mode: 가능하지만 제약 있음
-
-[llm-d](./llm-d-eks-automode.md)는 KV-cache 인식 라우팅과 분산 추론을 제공하는 Kubernetes 네이티브 추론 스케줄러입니다. llm-d의 핵심 가치는 **GPU 파티셔닝이 아니라 요청 라우팅 최적화**이므로, Auto Mode에서도 핵심 기능은 동작합니다.
-
-| llm-d 기능 | Auto Mode | Karpenter + GPU Operator |
-|---|---|---|
-| InferencePool/InferenceModel CRD | 동작 | 동작 |
-| KV-cache aware routing | 동작 | 동작 |
-| Prefix caching 라우팅 | 동작 | 동작 |
-| 모델 메트릭 기반 로드 밸런싱 | 동작 | 동작 |
-| Pod/노드 자동 스케일링 | 동작 | 동작 |
-| MIG로 GPU 분할 후 Pod 배치 | **불가** | 동작 |
-| Fractional GPU (0.5 GPU) | **불가** | 동작 |
-| DCGM 상세 GPU 메트릭 | GPU Operator 설치 시 동작 | 동작 |
-
-그러나 **GPU fraction을 제어할 수 없으므로, 모델 크기에 따라 GPU 활용 효율이 크게 달라집니다.**
-
-### 8.2 모델 크기별 GPU 활용 효율
-
-#### 대형 모델 (70B+) -- Auto Mode 적합
-
-```
-Qwen3-72B on H100 80GB
-┌────────────────────────────────────────────┐
-│ ████████████████████████████████████████░░ │
-│ GPU 메모리 사용: ~75GB / 80GB (93%)        │
-│ GPU Utilization: 85-95%                    │
-│ llm-d KV-cache 라우팅: 효과적               │
-│ → GPU를 거의 다 사용, 낭비 없음              │
-└────────────────────────────────────────────┘
-```
-
-#### 중소형 모델 (7B-13B) -- Auto Mode 비효율
-
-```
-Llama-3-8B on H100 80GB
-┌────────────────────────────────────────────┐
-│ ████████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ │
-│ GPU 메모리 사용: ~16GB / 80GB (20%)        │
-│ GPU Utilization: 20-40%                    │
-│ llm-d KV-cache 라우팅: 효과적               │
-│ → 라우팅은 최적이지만 GPU 80%가 유휴 상태    │
-└────────────────────────────────────────────┘
-```
-
-#### MIG 분할 시 (Karpenter + GPU Operator)
-
-```
-H100을 MIG 3g.40gb x 2로 분할
-┌───────────────────┐ ┌───────────────────┐
-│ MIG 1: Llama-8B   │ │ MIG 2: Llama-8B   │
-│ ████████░░░░░░░░░ │ │ ████████░░░░░░░░░ │
-│ 16GB / 40GB       │ │ 16GB / 40GB       │
-│ Pod A             │ │ Pod B             │
-└───────────────────┘ └───────────────────┘
-→ 하나의 GPU에서 2개 모델 인스턴스 운영
-→ 비용 50% 절감 + llm-d 라우팅까지 적용
-```
-
-### 8.3 비용 영향 시뮬레이션
+### 5.5 모델 크기별 비용 영향
 
 p5.48xlarge (H100 x8) 기준, 월 비용 약 $98,000:
 
@@ -1379,96 +610,105 @@ p5.48xlarge (H100 x8) 기준, 월 비용 약 $98,000:
 | **절감 효과** | 동일 | **75% 절감** | **3.2배 향상** | **75% 절감** |
 
 :::warning 모델 크기와 비용 효율
-모델 파라미터 수가 작을수록 Auto Mode에서의 GPU 낭비가 커집니다. 7B 모델을 H100에서 운영하면 GPU 메모리의 80%가 유휴 상태로 남으며, 이는 직접적인 비용 낭비입니다. MIG 파티셔닝이 필수적인 이유입니다.
+모델 파라미터 수가 작을수록 Auto Mode에서의 GPU 낭비가 커집니다. 7B 모델을 H100에서 운영하면 GPU 메모리의 80%가 유휴 상태로 남으며, 이는 직접적인 비용 낭비입니다. 중소형 모델에는 MIG 파티셔닝이 필수적입니다.
 :::
 
-### 8.4 모델 크기별 권장 노드 전략
+### 5.6 현시점 최적 구성 (2026.04)
 
-| 모델 크기 | 예시 | 권장 노드 | 이유 |
-|---|---|---|---|
-| **70B+** | Qwen3-72B, Llama-3-70B | Auto Mode + llm-d | GPU를 거의 다 사용, 관리 편의성 |
-| **30B-65B** | Qwen3-32B, CodeLlama-34B | Auto Mode 또는 Karpenter | GPU 메모리 50%+ 사용, 상황에 따라 선택 |
-| **13B-30B** | Llama-3-13B | Karpenter + MIG 2분할 | GPU 활용률 개선 필요 |
-| **7B 이하** | Llama-3-8B, Mistral-7B | Karpenter + MIG 4-7분할 | GPU 낭비 심각, MIG 필수 |
-| **멀티 모델 서빙** | 여러 모델 동시 운영 | Karpenter + MIG | 모델별 MIG 파티션 분리 |
-| **개발/테스트** | 모델 무관 | Auto Mode | 빠른 시작, 비용 민감하지 않음 |
+대부분의 LLM 서빙 환경에서는 DRA가 아직 필수가 아닙니다. Device Plugin + MIG 조합으로 GPU 분할과 토폴로지 배치를 충분히 커버할 수 있으며, Karpenter의 빠른 스케일아웃이 MNG + Cluster Autoscaler보다 LLM 서빙 SLO에 유리합니다.
 
-### 8.5 실전 하이브리드 배치 예시
+```mermaid
+flowchart TB
+    subgraph Cluster["EKS Cluster (K8s 1.33+)"]
+        subgraph KarpGPU["Karpenter + GPU Operator"]
+            NP_PF[NodePool: gpu-prefill<br/>p5.48xlarge]
+            NP_DC[NodePool: gpu-decode<br/>p5.48xlarge]
+            NP_SM[NodePool: gpu-small<br/>g6e.12xlarge]
+            PF[Prefill Pod<br/>nvidia.com/gpu: 4]
+            DC[Decode Pod<br/>nvidia.com/gpu: 2]
+            SM[소형 모델 Pod<br/>nvidia.com/mig-3g.40gb]
+        end
 
-```yaml
-# 대형 모델: Auto Mode + llm-d (GPU 전체 사용)
-apiVersion: inference.ai/v1alpha2
-kind: InferencePool
-metadata:
-  name: qwen3-72b-pool
-  namespace: ai-inference
-spec:
-  targetPortNumber: 8000
-  selector:
-    app: vllm-qwen3-72b
-  extensionRef:
-    name: llm-d-endpoint-picker
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: vllm-qwen3-72b
-  namespace: ai-inference
-spec:
-  replicas: 4
-  template:
-    spec:
-      containers:
-        - name: vllm
-          image: vllm/vllm-openai:latest
-          args: ["--model", "Qwen/Qwen3-72B", "--tensor-parallel-size", "4"]
-          resources:
-            limits:
-              nvidia.com/gpu: 4           # GPU 전체 사용 (Auto Mode OK)
-      nodeSelector:
-        eks.amazonaws.com/compute-type: auto
+        subgraph AutoMode["Auto Mode (비GPU)"]
+            GW[Gateway]
+            AGENT[Agent Framework]
+            MON[Observability]
+        end
+    end
 
----
-# 소형 모델: Karpenter + MIG + llm-d (GPU 분할)
-apiVersion: inference.ai/v1alpha2
-kind: InferencePool
-metadata:
-  name: llama3-8b-pool
-  namespace: ai-inference
-spec:
-  targetPortNumber: 8000
-  selector:
-    app: vllm-llama3-8b
-  extensionRef:
-    name: llm-d-endpoint-picker
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: vllm-llama3-8b
-  namespace: ai-inference
-spec:
-  replicas: 8
-  template:
-    spec:
-      containers:
-        - name: vllm
-          image: vllm/vllm-openai:latest
-          args: ["--model", "meta-llama/Llama-3-8B", "--gpu-memory-utilization", "0.9"]
-          resources:
-            limits:
-              nvidia.com/mig-3g.40gb: 1   # MIG 인스턴스 사용 (Karpenter)
-      nodeSelector:
-        gpu-operator: enabled
-      tolerations:
-        - key: nvidia.com/gpu
-          operator: Exists
-          effect: NoSchedule
+    KEDA[KEDA<br/>KV Cache / TTFT] -.->|Pod 스케일링| DC
+    DCGM[DCGM Exporter] -.->|메트릭| KEDA
+
+    NP_PF --> PF
+    NP_DC --> DC
+    NP_SM --> SM
+
+    style KarpGPU fill:#326ce5
+    style AutoMode fill:#ff9900
+    style KEDA fill:#9c27b0
 ```
 
+| 기준 | Karpenter + Device Plugin | MNG + DRA |
+|---|---|---|
+| **스케일아웃 속도** | 빠름 (Karpenter) | 느림 (Cluster Autoscaler) |
+| **GPU 분할** | MIG 지원 (GPU Operator) | DRA 네이티브 |
+| **운영 복잡도** | 단일 스택 | MNG + Karpenter 혼용 |
+| **K8s 버전** | 1.32+ | 1.34+ (DRA GA) |
+| **생태계 성숙도** | 프로덕션 검증 | 초기 단계 |
+
+### 5.7 규모별 권장 구성
+
+**소규모 (< 32 GPU)**
+
+```yaml
+구성: Auto Mode + Karpenter (GPU 전용)
+  - Auto Mode: 일반 워크로드
+  - Karpenter: GPU 추론 (Device Plugin)
+  - GPU Operator: DCGM 모니터링
+비용: $5,000 - $15,000/월
+```
+
+**중규모 (32 - 128 GPU)**
+
+```yaml
+구성: Karpenter + GPU Operator + KEDA
+  - Karpenter NodePool: Prefill / Decode / 소형 모델 분리
+  - GPU Operator: MIG, DCGM, NFD/GFD
+  - KEDA: KV Cache / TTFT 기반 Pod 스케일링
+비용: $15,000 - $80,000/월
+```
+
+**대규모 (> 128 GPU)**
+
+```yaml
+구성: Karpenter + GPU Operator + Run:ai + Hybrid Node
+  - Karpenter: GPU Operator + Run:ai
+  - Hybrid Node: 온프레미스 GPU 팜 통합
+  - P6e-GB200 도입 시: MNG + DRA 추가
+비용: $80,000 - $500,000/월 (클라우드) + Capex (온프레미스)
+```
+
+### 5.8 DRA 전환 시점
+
+| 조건 | 전환 필요 |
+|---|---|
+| P6e-GB200 UltraServer 도입 | 필수 (Device Plugin 미지원) |
+| Multi-Node NVLink / IMEX 필요 | 필수 (ComputeDomain은 DRA 전용) |
+| CEL 기반 세밀한 GPU 속성 선택 | 권장 |
+| GPU 공유 (MPS) | 권장 |
+| Karpenter DRA 지원 GA | 전환 최적 시점 (MNG 불필요) |
+
+:::tip 전환 전략
+**지금**: Karpenter + GPU Operator (Device Plugin + MIG) -- 가장 빠르고 운영 가능한 프로덕션 구성
+
+**P6e-GB200 도입 시**: MNG (DRA, GPU) + Karpenter (비GPU) 하이브리드
+
+**Karpenter DRA GA 후**: Karpenter + DRA 통합 -- 최종 목표 구성
+:::
+
 ---
 
-## 9. 노드 전략 의사결정 플로우차트
+## 6. 노드 전략 의사결정 플로우차트
 
 ```mermaid
 flowchart TD
@@ -1508,919 +748,53 @@ flowchart TD
     style KarpMIG fill:#326ce5
 ```
 
-### 의사결정 테이블
+### 의사결정 요약 테이블
 
-| 질문 | 답변 | 권장 노드 타입 | GPU Operator | 이유 |
-|------|------|---------------|--------------|------|
-| GPU 불필요 | - | Auto Mode | 불필요 | 비용 최소화 |
-| 간단한 GPU 추론 | MIG 불필요 | Auto Mode GPU | 불필요 | 빠른 배포 |
-| MIG 필요 | - | Karpenter | 필수 | MIG Manager 필요 |
-| **DRA 필요** | - | **Managed Node Group** | **필수** | **Karpenter/Auto Mode 미지원** |
-| Fractional GPU | - | Karpenter | 필수 | Run:ai 필요 |
-| Run:ai 스케줄링 | - | Karpenter | 필수 | GPU Operator 기반 |
-| 온프레미스 GPU | - | Hybrid Node | 필수 | AWS 드라이버 없음 |
-| 비용 최소화 | Spot 허용 | Karpenter Spot | 필수 | 유연한 Spot 관리 |
-| 대규모 훈련 | Gang Scheduling | Karpenter + Run:ai | 필수 | 동시 시작 보장 |
-| **P6e-GB200** | DRA 필수 | **Managed Node Group** | **필수** | Device Plugin 미지원 |
-
----
-
-## 10. 요약
-
-### 10.1 노드 타입별 최적 시나리오
-
-| 시나리오 | 노드 타입 | GPU Operator | Run:ai | 설정 복잡도 | 비용 |
-|----------|-----------|--------------|--------|------------|------|
-| **단순 GPU 추론** | Auto Mode | 선택사항 | 가능 (Device Plugin 비활성화) | 낮음 | 낮음 |
-| **MIG 기반 추론** | Karpenter | 필수 | 선택 | 중간 | 중간 |
-| **DRA 기반 GPU 관리** | **Managed Node Group** | 필수 | 선택 | 중간 | 중간 |
-| **Fractional GPU** | Karpenter | 필수 | 필수 | 높음 | 중간 |
-| **모델 훈련** | Karpenter | 필수 | 선택 | 중간 | 높음 |
-| **Gang Scheduling** | Karpenter | 필수 | 필수 | 높음 | 높음 |
-| **P6e-GB200 UltraServer** | **Managed Node Group** | 필수 | 선택 | 높음 | 높음 |
-| **온프레미스 GPU** | Hybrid Node | 필수 | 선택 | 높음 | 낮음 (Capex) |
-| **하이브리드 클라우드** | Auto + Karpenter + Hybrid | 부분 필수 | 선택 | 매우 높음 | 혼합 |
-
-### 10.2 핵심 원칙
-
-**1. Auto Mode의 제약을 이해하라**
-
-```yaml
-# Auto Mode에서 GPU Operator 설치 가능 (Device Plugin만 레이블 비활성화)
-패턴:
-  - driver.enabled: false (AMI 사전 설치)
-  - toolkit.enabled: false (AMI 사전 설치)
-  - NodePool 레이블: nvidia.com/gpu.deploy.device-plugin: "false"
-  - DCGM Exporter, NFD, GFD: 정상 동작
-
-제약:
-  → MIG 파티셔닝 불가 (NodeClass read-only)
-  → Custom AMI 불가
-  → SSH/SSM 접근 불가
-```
-
-**2. Karpenter는 최적의 균형점**
-
-```yaml
-장점:
-  - Auto Mode의 자동 스케일링 유지
-  - GPU Operator 완전 설치 가능
-  - Custom AMI 지원
-  - Spot Instance 유연한 관리
-
-단점:
-  - Self-Managed (사용자가 업그레이드 관리)
-  - 초기 설정 복잡도
-
-결론:
-  → 엔터프라이즈 GPU 플랫폼의 표준
-```
-
-**3. Hybrid Node는 온프레미스 통합 전용**
-
-```yaml
-사용 사례:
-  - 기존 GPU 서버 자산 활용
-  - 데이터 주권 (Data Residency)
-  - 레거시 시스템 통합
-
-필수 요구사항:
-  - GPU Operator 필수
-  - VPN / Direct Connect 필요
-  - 네트워크 지연 고려
-
-결론:
-  → 클라우드 + 온프레미스 하이브리드 전략
-```
-
-### 10.3 현시점 최적 구성 (2026.03)
-
-대부분의 LLM 서빙 환경에서는 DRA가 아직 필수가 아닙니다. Device Plugin + MIG 조합으로 GPU 분할, 토폴로지 배치를 충분히 커버할 수 있으며, Karpenter의 빠른 스케일아웃이 MNG + Cluster Autoscaler보다 LLM 서빙 SLO에 유리합니다.
-
-#### 권장: Karpenter + GPU Operator (Device Plugin)
-
-```mermaid
-flowchart TB
-    subgraph Cluster["EKS Cluster (K8s 1.33+)"]
-        subgraph KarpGPU["Karpenter + GPU Operator"]
-            NP_PF[NodePool: gpu-prefill<br/>p5.48xlarge]
-            NP_DC[NodePool: gpu-decode<br/>p5.48xlarge]
-            NP_SM[NodePool: gpu-small<br/>g6e.12xlarge]
-            PF[Prefill Pod<br/>nvidia.com/gpu: 4]
-            DC[Decode Pod<br/>nvidia.com/gpu: 2]
-            SM[소형 모델 Pod<br/>nvidia.com/mig-3g.40gb]
-        end
-
-        subgraph AutoMode["Auto Mode (비GPU)"]
-            GW[Gateway]
-            AGENT[Agent Framework]
-            MON[Observability]
-        end
-    end
-
-    KEDA[KEDA<br/>KV Cache / TTFT] -.->|Pod 스케일링| DC
-    DCGM[DCGM Exporter] -.->|메트릭| KEDA
-
-    NP_PF --> PF
-    NP_DC --> DC
-    NP_SM --> SM
-
-    style KarpGPU fill:#326ce5
-    style AutoMode fill:#ff9900
-    style KEDA fill:#9c27b0
-```
-
-**이 구성이 최적인 이유:**
-
-| 기준 | Karpenter + Device Plugin | MNG + DRA |
-|---|---|---|
-| **스케일아웃 속도** | 빠름 (Karpenter) | 느림 (Cluster Autoscaler) |
-| **GPU 분할** | MIG 지원 (GPU Operator) | DRA 네이티브 |
-| **운영 복잡도** | 단일 스택 | MNG + Karpenter 혼용 |
-| **llm-d 호환** | Device Plugin 완전 지원 | DRA 지원 (MNG 한정) |
-| **K8s 버전** | 1.32+ | 1.34+ (DRA GA) |
-| **생태계 성숙도** | 프로덕션 검증 | 초기 단계 |
-
-#### 규모별 권장 구성
-
-**소규모 스타트업 (< 32 GPU)**
-
-```yaml
-구성: Auto Mode + Karpenter (GPU 전용)
-  - Auto Mode: 일반 워크로드
-  - Karpenter: GPU 추론 (Device Plugin)
-  - GPU Operator: DCGM 모니터링
-
-비용: $5,000 - $15,000/월
-복잡도: 낮음
-```
-
-**중규모 기업 (32 - 128 GPU)**
-
-```yaml
-구성: Karpenter + GPU Operator + KEDA
-  - Karpenter NodePool: Prefill / Decode / 소형 모델 분리
-  - GPU Operator: MIG, DCGM, NFD/GFD
-  - KEDA: KV Cache / TTFT 기반 Pod 스케일링
-
-비용: $15,000 - $80,000/월
-복잡도: 중간
-```
-
-**대규모 엔터프라이즈 (> 128 GPU)**
-
-```yaml
-구성: Karpenter + GPU Operator + Run:ai + Hybrid Node
-  - Karpenter: GPU Operator + Run:ai (Fractional GPU, Gang Scheduling)
-  - Hybrid Node: 온프레미스 GPU 팜 통합
-  - P6e-GB200 도입 시: MNG + DRA 추가 (하이브리드)
-
-비용: $80,000 - $500,000/월 (클라우드) + Capex (온프레미스)
-복잡도: 높음
-```
-
-#### DRA 전환 시점
-
-| 조건 | 전환 필요 |
-|---|---|
-| **P6e-GB200 UltraServer 도입** | 필수 (Device Plugin 미지원) |
-| **Multi-Node NVLink / IMEX 필요** | 필수 (ComputeDomain은 DRA 전용) |
-| **CEL 기반 세밀한 GPU 속성 선택** | 권장 |
-| **GPU 공유 (MPS)** | 권장 |
-| **Karpenter DRA 지원 GA** | 전환 최적 시점 (MNG 불필요해짐) |
-
-:::tip 전환 전략
-**지금**: Karpenter + GPU Operator (Device Plugin + MIG) — 가장 빠르고 운영 가능한 프로덕션 구성
-
-**P6e-GB200 도입 시**: MNG (DRA, GPU) + Karpenter (비GPU) 하이브리드
-
-**Karpenter DRA GA 후**: Karpenter + DRA 통합 — 최종 목표 구성
-:::
+| 질문 | 답변 | 권장 노드 타입 | GPU Operator |
+|------|------|---------------|--------------|
+| GPU 불필요 | - | Auto Mode | 불필요 |
+| 간단한 GPU 추론 (MIG 불필요) | - | Auto Mode GPU | 선택 |
+| MIG 필요 | - | Karpenter | 필수 |
+| DRA 필요 | - | **Managed Node Group** | 필수 |
+| Fractional GPU / Run:ai | - | Karpenter | 필수 |
+| 온프레미스 GPU | - | Hybrid Node | 필수 |
+| 비용 최소화 (Spot 허용) | - | Karpenter Spot | 필수 |
+| 대규모 훈련 (Gang Scheduling) | - | Karpenter + Run:ai | 필수 |
+| P6e-GB200 | DRA 필수 | **Managed Node Group** | 필수 |
 
 ---
 
-## 11. GPU 워크로드 보안 강화
+## 7. 관련 문서
 
-GPU 리소스는 고가이며 민감한 AI 모델을 처리하므로, 강력한 보안 정책이 필수적입니다.
+### GPU 스택 및 모니터링
 
-### 11.1 Pod Security Standards for GPU Pods
+GPU Operator, DCGM, MIG, Time-Slicing, KAI Scheduler, Dynamo 등 NVIDIA GPU 소프트웨어 스택의 상세 내용은 별도 문서를 참조하세요.
 
-GPU Pod에 대한 보안 정책을 적용하여 권한 상승 및 호스트 접근을 제한합니다.
+- **[NVIDIA GPU 스택](./nvidia-gpu-stack.md)** - GPU Operator, DCGM Exporter, MIG Manager, Dynamo, KAI Scheduler
 
-```yaml
-# gpu-pod-security-policy.yaml
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: ai-inference
-  labels:
-    pod-security.kubernetes.io/enforce: restricted
-    pod-security.kubernetes.io/audit: restricted
-    pod-security.kubernetes.io/warn: restricted
+### GPU 리소스 관리
 
----
-apiVersion: policy/v1
-kind: PodDisruptionBudget
-metadata:
-  name: vllm-pdb
-  namespace: ai-inference
-spec:
-  minAvailable: 1
-  selector:
-    matchLabels:
-      app: vllm
+Karpenter, KEDA, DRA 기반 GPU 오토스케일링 전략은 다음을 참조하세요.
 
----
-apiVersion: v1
-kind: ResourceQuota
-metadata:
-  name: gpu-quota
-  namespace: ai-inference
-spec:
-  hard:
-    requests.nvidia.com/gpu: "16"
-    limits.nvidia.com/gpu: "16"
-    requests.memory: "512Gi"
-    requests.cpu: "128"
-```
+- **[GPU 리소스 관리](./gpu-resource-management.md)** - Karpenter NodePool, KEDA 스케일링, DRA 스케일아웃 전략
 
-### 11.2 Network Policies for Model Serving
+### 추론 엔진
 
-모델 서빙 Pod 간 네트워크 트래픽을 제한하여 측면 이동(lateral movement)을 방지합니다.
+- **[llm-d EKS Auto Mode](./llm-d-eks-automode.md)** - llm-d 분산 추론, KV-cache 인식 라우팅, Auto Mode/Karpenter 노드 전략
+- **[vLLM 모델 서빙](./vllm-model-serving.md)** - vLLM 배포 및 최적화
 
-```yaml
-# network-policy-gpu-inference.yaml
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: vllm-network-policy
-  namespace: ai-inference
-spec:
-  podSelector:
-    matchLabels:
-      app: vllm
-  policyTypes:
-    - Ingress
-    - Egress
-  ingress:
-    # Gateway에서만 트래픽 허용
-    - from:
-        - namespaceSelector:
-            matchLabels:
-              name: ai-gateway
-        - podSelector:
-            matchLabels:
-              app: kgateway
-      ports:
-        - protocol: TCP
-          port: 8000
-  egress:
-    # S3 모델 다운로드 허용
-    - to:
-        - namespaceSelector: {}
-      ports:
-        - protocol: TCP
-          port: 443
-    # DNS 허용
-    - to:
-        - namespaceSelector:
-            matchLabels:
-              name: kube-system
-        - podSelector:
-            matchLabels:
-              k8s-app: kube-dns
-      ports:
-        - protocol: UDP
-          port: 53
-```
+### 하이브리드 인프라
 
-### 11.3 S3 Bucket Policies for Model Storage
+온프레미스 GPU 서버의 EKS Hybrid Node 등록, VPN/Direct Connect 구성, GPU Operator 설치는 다음을 참조하세요.
 
-모델 아티팩트 저장소에 대한 최소 권한 원칙을 적용합니다.
+- **[Hybrid Infrastructure](/docs/hybrid-infrastructure)** - 온프레미스 + 클라우드 하이브리드 아키텍처
 
-```json
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Sid": "AllowVLLMReadModels",
-      "Effect": "Allow",
-      "Principal": {
-        "AWS": "arn:aws:iam::123456789012:role/vllm-pod-role"
-      },
-      "Action": [
-        "s3:GetObject",
-        "s3:ListBucket"
-      ],
-      "Resource": [
-        "arn:aws:s3:::agentic-ai-models/*",
-        "arn:aws:s3:::agentic-ai-models"
-      ],
-      "Condition": {
-        "StringEquals": {
-          "s3:ExistingObjectTag/Environment": "production"
-        }
-      }
-    },
-    {
-      "Sid": "DenyUnencryptedObjectUploads",
-      "Effect": "Deny",
-      "Principal": "*",
-      "Action": "s3:PutObject",
-      "Resource": "arn:aws:s3:::agentic-ai-models/*",
-      "Condition": {
-        "StringNotEquals": {
-          "s3:x-amz-server-side-encryption": "aws:kms"
-        }
-      }
-    }
-  ]
-}
-```
+### 배포 및 보안
 
-### 11.4 IAM Roles for GPU Workloads (Pod Identity)
+GPU 워크로드의 실전 배포 YAML, 보안 정책 (Pod Security Standards, NetworkPolicy, IAM), 트러블슈팅 가이드는 Reference Architecture를 참조하세요.
 
-EKS Pod Identity를 사용하여 GPU Pod에 최소 권한 IAM 역할을 할당합니다.
+- **[Reference Architecture: GPU 인프라](../reference-architecture/custom-model-deployment.md)** - GPU 보안, 트러블슈팅, 배포 가이드
 
-```yaml
-# vllm-pod-identity.yaml
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: vllm-sa
-  namespace: ai-inference
-  annotations:
-    eks.amazonaws.com/role-arn: arn:aws:iam::123456789012:role/vllm-pod-role
+### 플랫폼 아키텍처
 
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: vllm-deployment
-  namespace: ai-inference
-spec:
-  template:
-    spec:
-      serviceAccountName: vllm-sa
-      containers:
-        - name: vllm
-          image: vllm/vllm-openai:latest
-          env:
-            - name: AWS_REGION
-              value: us-west-2
-            - name: MODEL_PATH
-              value: s3://agentic-ai-models/llama-3-70b/
-```
-
-**IAM Policy for vLLM Pod:**
-
-```json
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Action": [
-        "s3:GetObject",
-        "s3:ListBucket"
-      ],
-      "Resource": [
-        "arn:aws:s3:::agentic-ai-models/*",
-        "arn:aws:s3:::agentic-ai-models"
-      ]
-    },
-    {
-      "Effect": "Allow",
-      "Action": [
-        "kms:Decrypt",
-        "kms:DescribeKey"
-      ],
-      "Resource": "arn:aws:kms:us-west-2:123456789012:key/model-encryption-key"
-    },
-    {
-      "Effect": "Allow",
-      "Action": [
-        "secretsmanager:GetSecretValue"
-      ],
-      "Resource": "arn:aws:secretsmanager:us-west-2:123456789012:secret:vllm-api-keys-*"
-    }
-  ]
-}
-```
-
-### 11.5 MIG for Multi-Tenant GPU Isolation
-
-Multi-Instance GPU (MIG)를 사용하여 단일 GPU를 여러 테넌트 간 완전히 격리합니다.
-
-```yaml
-# mig-enabled-nodepool.yaml
-apiVersion: karpenter.sh/v1
-kind: NodePool
-metadata:
-  name: gpu-mig-pool
-spec:
-  template:
-    metadata:
-      labels:
-        node-type: gpu-mig
-        mig-enabled: "true"
-    spec:
-      requirements:
-        - key: node.kubernetes.io/instance-type
-          operator: In
-          values:
-            - p4d.24xlarge  # A100 80GB with MIG support
-        - key: karpenter.k8s.aws/instance-gpu-count
-          operator: Gt
-          values: ["0"]
-      nodeClassRef:
-        group: karpenter.k8s.aws
-        kind: EC2NodeClass
-        name: gpu-mig-nodeclass
-      taints:
-        - key: nvidia.com/gpu
-          value: "true"
-          effect: NoSchedule
-
----
-apiVersion: karpenter.k8s.aws/v1
-kind: EC2NodeClass
-metadata:
-  name: gpu-mig-nodeclass
-spec:
-  role: KarpenterNodeRole-${CLUSTER_NAME}
-  amiSelectorTerms:
-    - alias: al2023@latest
-  userData: |
-    #!/bin/bash
-    # MIG 모드 활성화
-    nvidia-smi -mig 1
-
-    # MIG 프로파일 생성 (3g.40gb 인스턴스 2개)
-    nvidia-smi mig -cgi 9,9 -C
-
-    # Device Plugin 재시작
-    systemctl restart nvidia-device-plugin
-```
-
-**MIG 리소스를 사용하는 Pod:**
-
-```yaml
-apiVersion: v1
-kind: Pod
-metadata:
-  name: tenant-a-inference
-  namespace: tenant-a
-spec:
-  containers:
-    - name: vllm
-      image: vllm/vllm-openai:latest
-      resources:
-        limits:
-          nvidia.com/mig-3g.40gb: 1  # MIG 인스턴스 요청
-```
-
-### 11.6 Security Best Practices Summary
-
-<SecurityLayers />
-
-:::tip GPU 보안 체크리스트
-
-1. **Pod Security Standards 적용**: 모든 GPU 네임스페이스에 `restricted` 정책 적용
-2. **NetworkPolicy 구성**: GPU Pod 간 불필요한 통신 차단
-3. **S3 암호화 강제**: 모델 저장 시 KMS 암호화 필수
-4. **Pod Identity 사용**: IRSA 대신 EKS Pod Identity로 IAM 역할 할당
-5. **MIG 활성화**: 멀티 테넌트 환경에서 GPU 완전 격리
-6. **감사 로깅**: CloudTrail + GuardDuty로 GPU 리소스 접근 모니터링
-:::
-
----
-
-## 12. GPU 워크로드 트러블슈팅
-
-GPU 워크로드 운영 시 자주 발생하는 문제와 해결 방법을 정리합니다.
-
-### 문제 1: GPU가 Pod에 할당되지 않음
-
-**증상:**
-```bash
-kubectl describe pod vllm-pod
-# Events:
-# Warning  FailedScheduling  pod has unbound immediate PersistentVolumeClaims
-# Warning  FailedScheduling  0/5 nodes are available: 5 Insufficient nvidia.com/gpu
-```
-
-**원인:**
-- NVIDIA Device Plugin이 설치되지 않음
-- GPU 노드에 taint가 설정되어 있으나 Pod에 toleration이 없음
-- GPU 리소스가 이미 모두 할당됨
-
-**해결 방법:**
-
-```bash
-# 1. NVIDIA Device Plugin 확인
-kubectl get daemonset -n kube-system nvidia-device-plugin-daemonset
-
-# 2. GPU 노드 확인
-kubectl get nodes -l node.kubernetes.io/instance-type=g5.xlarge
-kubectl describe node <node-name> | grep nvidia.com/gpu
-
-# 3. GPU Operator 설치 (없는 경우)
-helm install gpu-operator nvidia/gpu-operator \
-  --namespace gpu-operator \
-  --create-namespace
-
-# 4. Pod에 toleration 추가
-tolerations:
-  - key: nvidia.com/gpu
-    operator: Exists
-    effect: NoSchedule
-```
-
-### 문제 2: GPU 메모리 부족 (OOM)
-
-**증상:**
-```bash
-# Pod 로그에서 확인
-CUDA out of memory. Tried to allocate 2.00 GiB
-```
-
-**원인:**
-- 모델 크기가 GPU 메모리보다 큼
-- 배치 크기가 너무 큼
-- 여러 프로세스가 동일 GPU 사용
-
-**해결 방법:**
-
-```yaml
-# 1. 더 큰 GPU 인스턴스 사용
-nodeSelector:
-  node.kubernetes.io/instance-type: g5.12xlarge  # 4x A10G 96GB
-
-# 2. vLLM 설정 최적화
-env:
-  - name: VLLM_GPU_MEMORY_UTILIZATION
-    value: "0.9"  # GPU 메모리 90%만 사용
-  - name: VLLM_MAX_NUM_SEQS
-    value: "256"  # 동시 시퀀스 수 제한
-
-# 3. MIG로 GPU 분할 사용
-resources:
-  limits:
-    nvidia.com/mig-3g.40gb: 1  # A100 80GB를 3g.40gb 인스턴스로 분할
-```
-
-### 문제 3: Karpenter가 GPU 노드를 프로비저닝하지 않음
-
-**증상:**
-```bash
-# Pod가 Pending 상태로 유지
-kubectl get pods
-# NAME        READY   STATUS    RESTARTS   AGE
-# vllm-pod    0/1     Pending   0          5m
-```
-
-**원인:**
-- NodePool에 GPU 인스턴스 타입이 정의되지 않음
-- NodePool의 GPU 리소스 limit 초과
-- IAM 권한 부족
-
-**해결 방법:**
-
-```bash
-# 1. NodePool 확인
-kubectl get nodepool gpu-inference-pool -o yaml
-
-# 2. GPU 인스턴스 타입 추가
-spec:
-  template:
-    spec:
-      requirements:
-        - key: karpenter.k8s.aws/instance-gpu-count
-          operator: Gt
-          values: ["0"]
-        - key: node.kubernetes.io/instance-type
-          operator: In
-          values:
-            - g5.xlarge
-            - g5.2xlarge
-            - g5.12xlarge
-
-# 3. GPU limit 확인 및 증가
-spec:
-  limits:
-    nvidia.com/gpu: 100  # 충분한 GPU 리소스 할당
-
-# 4. Karpenter IAM 권한 확인
-aws iam get-role --role-name KarpenterNodeRole-${CLUSTER_NAME}
-```
-
-### 문제 4: GPU 드라이버 버전 불일치
-
-**증상:**
-```bash
-# Pod 로그에서 확인
-Failed to initialize NVML: Driver/library version mismatch
-```
-
-**원인:**
-- 노드의 NVIDIA 드라이버와 컨테이너의 CUDA 버전 불일치
-- GPU Operator 업데이트 후 노드 재시작 필요
-
-**해결 방법:**
-
-```bash
-# 1. 노드의 드라이버 버전 확인
-kubectl debug node/<node-name> -it --image=ubuntu
-nvidia-smi
-
-# 2. GPU Operator 버전 확인
-helm list -n gpu-operator
-
-# 3. GPU Operator 업그레이드
-helm upgrade gpu-operator nvidia/gpu-operator \
-  --namespace gpu-operator \
-  --set driver.version="550.127.05"
-
-# 4. 노드 재시작 (드레인 후)
-kubectl drain <node-name> --ignore-daemonsets --delete-emptydir-data
-kubectl delete node <node-name>
-# Karpenter가 자동으로 새 노드 프로비저닝
-```
-
-### 문제 5: EFA 네트워크가 활성화되지 않음
-
-**증상:**
-```bash
-# 분산 학습 시 네트워크 성능 저하
-# NCCL 로그에서 확인
-NCCL WARN NET/Socket : No EFA device found
-```
-
-**원인:**
-- EFA 드라이버가 로드되지 않음
-- Security Group에서 EFA 트래픽 차단
-- EFA 지원 인스턴스 타입이 아님
-
-**해결 방법:**
-
-```yaml
-# 1. EFA 지원 인스턴스 사용
-spec:
-  requirements:
-    - key: node.kubernetes.io/instance-type
-      operator: In
-      values:
-        - p4d.24xlarge
-        - p5.48xlarge
-
-# 2. NodeClass에서 EFA 활성화
-apiVersion: karpenter.k8s.aws/v1
-kind: EC2NodeClass
-metadata:
-  name: gpu-training-nodeclass
-spec:
-  userData: |
-    #!/bin/bash
-    modprobe efa
-    echo 'export FI_PROVIDER=efa' >> /etc/profile.d/efa.sh
-    echo 'export FI_EFA_USE_DEVICE_RDMA=1' >> /etc/profile.d/efa.sh
-
-# 3. Security Group 규칙 추가
-securityGroupSelectorTerms:
-  - tags:
-      karpenter.sh/discovery: ${CLUSTER_NAME}
-      efa-enabled: "true"
-```
-
-### 문제 6: Spot 인스턴스 중단으로 추론 서비스 중단
-
-**증상:**
-```bash
-# Spot 중단 알림
-Spot instance termination notice received
-```
-
-**원인:**
-- Spot 인스턴스 용량 부족
-- 단일 Spot 풀에만 의존
-
-**해결 방법:**
-
-```yaml
-# 1. 다양한 인스턴스 타입 허용
-spec:
-  template:
-    spec:
-      requirements:
-        - key: node.kubernetes.io/instance-type
-          operator: In
-          values:
-            - g5.xlarge
-            - g5.2xlarge
-            - g5.4xlarge
-            - g5.8xlarge  # 여러 타입으로 분산
-
-# 2. Spot과 On-Demand 혼합
-        - key: karpenter.sh/capacity-type
-          operator: In
-          values: ["spot", "on-demand"]
-
-# 3. PodDisruptionBudget 설정
-apiVersion: policy/v1
-kind: PodDisruptionBudget
-metadata:
-  name: vllm-pdb
-spec:
-  minAvailable: 2
-  selector:
-    matchLabels:
-      app: vllm
-
-# 4. Graceful shutdown 구현
-lifecycle:
-  preStop:
-    exec:
-      command: ["/bin/sh", "-c", "sleep 120"]  # 2분 대기
-```
-
-### 트러블슈팅 체크리스트
-
-<TroubleshootingGuide />
-
-:::warning 프로덕션 운영 권장사항
-
-1. **모니터링 필수**: Prometheus + Grafana로 GPU 메트릭 실시간 추적
-2. **알림 설정**: GPU 사용률, 메모리, 온도 임계값 알림 구성
-3. **로그 수집**: CloudWatch Logs로 모든 GPU Pod 로그 중앙 집중화
-4. **정기 점검**: 주간 GPU 노드 헬스 체크 및 드라이버 업데이트 확인
-5. **재해 복구**: 체크포인트 기반 학습 재시작 메커니즘 구현
-:::
-
----
-
-## 13. 다음 단계 & 참고 자료
-
-### 13.1 다음 단계
-
-1. **EKS Auto Mode 테스트**
-   ```bash
-   eksctl create cluster --name test-auto \
-     --region us-west-2 \
-     --node-type=auto
-   ```
-
-2. **Karpenter + GPU Operator PoC**
-   ```bash
-   helm install karpenter oci://public.ecr.aws/karpenter/karpenter
-   helm install gpu-operator nvidia/gpu-operator
-   ```
-
-3. **Run:ai 평가판**
-   - [Run:ai 무료 평가판 신청](https://www.run.ai/trial)
-   - 30일 무료 (최대 16 GPU)
-
-4. **Hybrid Node 파일럿**
-   ```bash
-   curl -o hybrid-installer.sh https://hybrid.eks.amazonaws.com/installer
-   sudo ./hybrid-installer.sh --cluster-name test-cluster
-   ```
-
-## EKS Auto Mode 대형 GPU 인스턴스 제약 (2026.04 검증)
-
-GLM-5 (744B MoE) 배포 과정에서 확인한 EKS Auto Mode의 대형 GPU 인스턴스 지원 현황과 제약사항입니다.
-
-### p5/p5en/p6 인스턴스 지원 현황
-
-| 인스턴스 | GPU | VRAM | Auto Mode Karpenter | 검증 결과 |
-|---------|-----|------|---------------------|----------|
-| p5.48xlarge | H100 80GB × 8 | 640GB | ✅ 지원 | Spot 프로비저닝 성공 (us-east-2) |
-| p5en.48xlarge | H200 141GB × 8 | 1,128GB | ❌ 제한적 | NoCompatibleInstanceTypes 발생 |
-| p6-b200.48xlarge | B200 192GB × 8 | 1,536GB | ❌ 미지원 | NodePool dry-run 통과하지만 프로비저닝 실패 |
-
-:::danger p5en/p6 Auto Mode 제약
-2026년 4월 기준, EKS Auto Mode의 managed Karpenter는 **p5en과 p6 인스턴스를 프로비저닝할 수 없습니다**. NodePool validation은 통과하지만, 실제 워크로드 배포 시 다음 오류가 발생합니다:
-
-```
-NodePool requirements filtered out all compatible available instance types
-NoCompatibleInstanceTypes
-```
-
-**원인**: Auto Mode의 내부 Karpenter가 p5en/p6 인스턴스 타입을 offering 매칭 과정에서 필터링합니다.
-:::
-
-### Auto Mode + MNG 하이브리드 시도 결과
-
-p5en/p6 사용을 위해 Auto Mode 클러스터에 Managed Node Group(MNG)을 추가하는 하이브리드 패턴을 시도했으나 다음 문제가 발생했습니다:
-
-**증상**:
-- `eksctl create nodegroup` 또는 AWS Console에서 MNG 생성 시도
-- MNG 상태가 `CREATING`에서 30분 이상 멈춤
-- CloudFormation 스택의 `Resources` 필드가 `null`로 유지
-- Auto Scaling Group(ASG)이 생성되지 않음
-
-**추정 원인**: Auto Mode의 managed compute 레이어와 MNG의 ASG 기반 관리가 내부적으로 충돌하는 것으로 보입니다. Auto Mode는 노드 라이프사이클을 전적으로 제어하려 하므로, 사용자가 MNG로 추가 노드 그룹을 생성하려는 시도를 처리하지 못하는 것으로 추정됩니다.
-
-**결론**: Auto Mode에서 p5en/p6 사용을 위한 MNG 하이브리드는 현재 불가능합니다.
-
-### GPU Operator Device Plugin 충돌
-
-Auto Mode 노드에서 GPU Operator를 `devicePlugin.enabled=true`로 설치하면 충돌이 발생합니다.
-
-**증상**:
-```bash
-kubectl describe node <gpu-node> | grep nvidia.com/gpu
-# Allocatable: nvidia.com/gpu: 0  (예상: 8)
-```
-
-**원인**: Auto Mode 내장 Device Plugin과 GPU Operator Device Plugin이 동시 실행되어 리소스 등록이 충돌합니다.
-
-**해결**: NodePool에 레이블 추가로 GPU Operator Device Plugin 비활성화
-```yaml
-apiVersion: karpenter.sh/v1
-kind: NodePool
-spec:
-  template:
-    metadata:
-      labels:
-        nvidia.com/gpu.deploy.device-plugin: "false"
-```
-
-### 노드 강제 종료 불가
-
-Auto Mode가 관리하는 EC2 인스턴스는 resource-based policy로 `ec2:TerminateInstances`를 명시적으로 차단합니다.
-
-**비정상 노드 복구 절차**:
-1. 모든 워크로드 삭제: `kubectl delete pod <gpu-pod>`
-2. NodeClaim 삭제: `kubectl delete nodeclaim <nodeclaim-name>`
-3. Karpenter가 Empty 노드 감지 후 자동 종료 (5-10분 대기)
-4. 새 NodeClaim 생성 → 정상 노드 시작
-
-**제약**: 관리자도 노드를 직접 terminate할 수 없으며, Karpenter의 자동 종료를 기다려야 합니다. 긴급 복구 시 15-20분 소요됩니다.
-
-### 권장 전략
-
-**대형 GPU (H200+, B200) 사용 시**:
-- ✅ **EKS Standard Mode + Karpenter + MNG** 사용
-- Auto Mode의 편의성보다 인스턴스 타입 호환성이 우선
-
-**p5.48xlarge (H100) 사용 시**:
-- ✅ **EKS Auto Mode 사용 가능**
-- GPU Operator 설치 시 Device Plugin만 레이블로 비활성화
-- Spot 인스턴스 활용 (us-east-2 권장, $13-15/hr)
-
-**GLM-5 (744B) 배포 결과**:
-- p5en/p6 미지원으로 p5.48xlarge로 대체 배포
-- Pipeline Parallelism (PP=2) 필요 → 16 GPU (p5.48xlarge × 2)
-- vLLM V1 엔진 PP 멀티노드 교착 이슈로 SGLang으로 전환
-
-### Spot 가격 비교 (us-east-2, 2026.04)
-
-| 인스턴스 | On-Demand | Spot (최저) | VRAM | 절감률 |
-|---------|-----------|------------|------|-------|
-| p5.48xlarge | $98/hr | $12.5/hr | 640GB | 87% |
-| p5en.48xlarge | ~$120/hr | $12.1/hr | 1,128GB | 90% |
-| p6-b200.48xlarge | $180/hr | $11.4/hr | 1,536GB | 94% |
-
-:::tip Spot 활용 권장
-대형 GPU 인스턴스는 Spot으로 85-90% 비용 절감이 가능합니다. PoC/데모 환경에서는 Spot을 적극 활용하되, NodePool `consolidationPolicy: WhenEmpty`로 설정하여 불필요한 중단을 방지하세요.
-:::
-
----
-
-### 13.2 참고 자료
-
-**AWS 공식 문서**
-
-- [EKS Auto Mode 공식 문서](https://docs.aws.amazon.com/eks/latest/userguide/auto-mode.html)
-- [Karpenter 공식 문서](https://karpenter.sh)
-- [EKS Hybrid Nodes](https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes.html)
-
-**NVIDIA 문서**
-
-- [GPU Operator 공식 문서](https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/latest/index.html)
-- [DCGM 공식 문서](https://docs.nvidia.com/datacenter/dcgm/latest/index.html)
-- [MIG User Guide](https://docs.nvidia.com/datacenter/tesla/mig-user-guide/index.html)
-
-**Run:ai 문서**
-
-- [Run:ai Documentation](https://docs.run.ai)
-- [Run:ai + EKS Integration Guide](https://docs.run.ai/latest/admin/runai-setup/cluster-setup/eks/)
-
-**커뮤니티 리소스**
-
-- [NVIDIA GPU Cloud](https://ngc.nvidia.com)
-- [Karpenter Slack](https://kubernetes.slack.com/archives/C02SFFZSA2K)
-- [AWS Containers Roadmap](https://github.com/aws/containers-roadmap)
-
-**관련 문서**
-
-- [GPU 리소스 관리](./gpu-resource-management.md) - Karpenter, DCGM, KEDA 기반 스케일링
-- [llm-d 분산 추론](./llm-d-eks-automode.md) - Kubernetes 네이티브 분산 추론 (Auto Mode & Karpenter)
-- [EKS 기반 오픈 아키텍처](../design-architecture/agentic-ai-solutions-eks.md) - 전체 플랫폼 아키텍처
-
----
-
-**마지막 업데이트**: 2026-04-03
-**작성자**: devfloor9
-**태그**: `eks` `gpu` `auto-mode` `karpenter` `hybrid-node` `gpu-operator` `nvidia` `run-ai`
+- **[EKS 기반 오픈 아키텍처](../design-architecture/agentic-ai-solutions-eks.md)** - 전체 Agentic AI 플랫폼 아키텍처

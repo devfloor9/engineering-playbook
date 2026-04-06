@@ -731,7 +731,7 @@ Decode Pod에 TP=2만 사용하면, p5.48xlarge(8 GPU) 한 노드에 Decode Pod 
 
 ## llm-d vs NVIDIA Dynamo
 
-llm-d와 NVIDIA Dynamo는 모두 LLM 추론 라우팅/스케줄링을 제공하지만 접근 방식이 다릅니다. 상세 비교는 [NVIDIA GPU 스택 — llm-d vs Dynamo](./nvidia-gpu-stack.md#llm-d-vs-dynamo-선택-가이드)를 참조하세요.
+llm-d와 NVIDIA Dynamo는 모두 LLM 추론 라우팅/스케줄링을 제공하지만 접근 방식이 다릅니다. 상세 비교는 [NVIDIA GPU 스택 — llm-d vs Dynamo](./nvidia-gpu-stack.md#llm-d와의-선택-가이드)를 참조하세요.
 
 | 항목 | llm-d | NVIDIA Dynamo |
 |------|-------|---------------|

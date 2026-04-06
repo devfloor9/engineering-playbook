@@ -1,46 +1,47 @@
 ---
 title: "NeMo 프레임워크"
 sidebar_label: "NeMo 프레임워크"
-description: "NVIDIA NeMo를 활용한 LLM 파인튜닝 및 최적화 파이프라인 구축"
+description: "NVIDIA NeMo Framework의 분산 학습, 파인튜닝, TensorRT-LLM 변환 아키텍처"
+tags: [nemo, nvidia, fine-tuning, tensorrt-llm, triton, nccl, distributed-training]
 sidebar_position: 7
-category: "genai-aiml"
 last_update:
-  date: 2026-02-14
-  author: devfloor9
-tags: [nemo, nvidia, fine-tuning, llm, training, tensorrt, genai]
+  date: 2026-04-05
+  author: YoungJoon Jeong
 ---
 
 import { NemoComponents, GPURequirements, CheckpointSharding, MonitoringMetrics, NCCLImportance } from '@site/src/components/NemoTables';
 
 # NeMo 프레임워크
 
-> 📅 **작성일**: 2026-02-13 | **수정일**: 2026-02-14 | ⏱️ **읽는 시간**: 약 4분
+> 📅 **작성일**: 2026-02-13 | **수정일**: 2026-04-05 | ⏱️ **읽는 시간**: 약 4분
 
 NVIDIA NeMo는 대규모 언어 모델(LLM)의 학습, 파인튜닝, 최적화를 위한 엔드투엔드 프레임워크입니다. Kubernetes 환경에서 분산 학습과 효율적인 모델 배포를 지원합니다.
 
 ## 개요
 
-### NeMo가 필요한 이유
+### NeMo가 해결하는 문제
 
-Agentic AI 플랫폼에서 도메인 특화 모델이 필요한 경우:
+Agentic AI 플랫폼에서 범용 LLM(GPT-4, Claude 등)을 사용할 때 다음과 같은 한계가 있습니다:
 
-- **도메인 적응**: 특정 산업/분야에 맞는 모델 커스터마이징
-- **성능 최적화**: TensorRT-LLM을 통한 추론 가속
-- **비용 효율**: 작은 파인튜닝 모델로 대형 모델 대체
-- **데이터 프라이버시**: 민감한 데이터로 온프레미스 학습
+- **도메인 지식 부족**: 특정 산업/기업의 전문 용어와 맥락 이해 부족
+- **비용 문제**: 대규모 호출 시 API 비용 급증 (token-per-request 과금)
+- **레이턴시**: 외부 API 호출로 인한 응답 지연
+- **데이터 프라이버시**: 민감한 데이터를 외부 서비스로 전송 불가
+- **온프레미스 요구사항**: 금융/의료 등 규제 산업의 자체 인프라 운영 필요
+
+NeMo는 이러한 문제를 **도메인 특화 모델 파인튜닝**으로 해결합니다.
+
+### NeMo 핵심 기능
 
 ```mermaid
 flowchart LR
     Data[데이터<br/>준비]
-    Pretrain[사전학습<br/>선택사항]
-    Finetune[파인튜닝]
-    Eval[평가]
+    Finetune[파인튜닝<br/>SFT/PEFT]
+    Eval[평가<br/>Accuracy]
     Export[TensorRT<br/>변환]
-    Deploy[배포]
+    Deploy[Triton<br/>배포]
 
-    Data --> Pretrain
-    Pretrain --> Finetune
-    Data -.-> Finetune
+    Data --> Finetune
     Finetune --> Eval
     Eval --> Export
     Export --> Deploy
@@ -49,48 +50,58 @@ flowchart LR
     style Export fill:#76b900
 ```
 
-### NeMo 프레임워크 구성요소
-
 <NemoComponents />
+
+**주요 가치:**
+
+- **효율적인 파인튜닝**: LoRA/QLoRA로 전체 파라미터의 0.1%만 학습
+- **분산 학습**: Multi-node, Multi-GPU 자동 병렬화 (Tensor/Pipeline/Data Parallelism)
+- **추론 최적화**: TensorRT-LLM 변환으로 2-4배 성능 향상
+- **엔터프라이즈 지원**: 체크포인트 관리, 모니터링, 프로덕션 배포 파이프라인
+
+---
 
 ## EKS 배포 아키텍처
 
-### 분산 학습 아키텍처
+### NeMo on EKS 구성
 
 ```mermaid
 flowchart TB
     subgraph Control["컨트롤 플레인"]
         Launcher[NeMo<br/>Launcher]
-        Scheduler[K8s<br/>Scheduler]
+        Scheduler[Kubeflow<br/>PyTorchJob]
     end
 
-    subgraph Workers["Worker Nodes"]
-        W1[Worker Pod<br/>Node 1]
-        W2[Worker Pod<br/>Node 2]
-        W3[Worker Pod<br/>Node 3]
-        G1[GPU 0-7]
-        G2[GPU 0-7]
-        G3[GPU 0-7]
+    subgraph Workers["GPU Worker Nodes"]
+        W1[Worker Pod 1<br/>p5.48xlarge]
+        W2[Worker Pod 2<br/>p5.48xlarge]
+        W3[Worker Pod 3<br/>p5.48xlarge]
+        G1[8x H100 GPU]
+        G2[8x H100 GPU]
+        G3[8x H100 GPU]
     end
 
     subgraph Storage["스토리지"]
-        S3[S3 / FSx]
-        CP[체크포인트]
+        S3[S3<br/>체크포인트]
+        FSx[FSx Lustre<br/>학습 데이터]
     end
 
-    NCCL[NCCL / EFA<br/>통신]
+    NCCL[NCCL + EFA<br/>고속 통신]
 
     Launcher --> Scheduler
     Scheduler -.->|배포| W1
     Scheduler -.->|배포| W2
     Scheduler -.->|배포| W3
 
-    W1 <-->|고속 통신| NCCL
-    W2 <-->|고속 통신| NCCL
-    W3 <-->|고속 통신| NCCL
+    W1 <-->|AllReduce| NCCL
+    W2 <-->|AllReduce| NCCL
+    W3 <-->|AllReduce| NCCL
 
-    W1 -->|저장| S3
-    W2 -->|저장| CP
+    W1 --> S3
+    W2 --> S3
+    W1 --> FSx
+    W2 --> FSx
+    W3 --> FSx
 
     style Launcher fill:#76b900
     style NCCL fill:#326ce5
@@ -99,228 +110,90 @@ flowchart TB
     style G3 fill:#76b900
 ```
 
-### GPU 노드 요구사항
+### 컨테이너 구성
+
+**NeMo 컨테이너 이미지:**
+
+```
+nvcr.io/nvidia/nemo:25.02
+├── PyTorch 2.5.1
+├── CUDA 12.6
+├── NCCL 2.23+
+├── Megatron-LM (NeMo 통합)
+├── TensorRT-LLM 0.13+
+└── Triton Inference Server 2.50+
+```
+
+**주요 의존성:**
+
+- **Kubeflow Training Operator**: PyTorchJob CRD로 분산 학습 오케스트레이션
+- **GPU Operator**: NVIDIA 드라이버, Device Plugin, DCGM 자동 설치
+- **EFA Device Plugin**: 노드 간 RDMA 통신 활성화
+- **Karpenter**: GPU 노드 오토스케일링
 
 <GPURequirements />
 
-## NeMo 컨테이너 배포
-
-### Helm 차트 설치
-
-```bash
-# NVIDIA NGC 레지스트리 인증
-kubectl create secret docker-registry ngc-secret \
-  --docker-server=nvcr.io \
-  --docker-username='$oauthtoken' \
-  --docker-password=${NGC_API_KEY} \
-  --namespace=nemo
-
-# NeMo Operator 설치
-helm repo add nvidia https://helm.ngc.nvidia.com/nvidia
-helm repo update
-
-helm install nemo-operator nvidia/nemo-operator \
-  --namespace nemo \
-  --create-namespace \
-  --set operator.image.repository=nvcr.io/nvidia/nemo-operator \
-  --set operator.image.tag=24.07
-```
-
-### NeMo 학습 Job 정의
-
-:::info 참고
-아래 `NeMoTraining` CRD는 NeMo의 선언적 학습 정의 개념을 보여주는 예시입니다. 실제 배포 시에는 Kubeflow Training Operator의 PyTorchJob을 사용하여 분산 학습을 구성합니다.
-:::
-
-```yaml
-# NeMo 학습 개념 예시 (실제로는 PyTorchJob 사용)
-apiVersion: nemo.nvidia.com/v1alpha1
-kind: NeMoTraining
-metadata:
-  name: llama-finetune
-  namespace: nemo
-spec:
-  # 모델 설정
-  model:
-    name: "meta-llama/Llama-3.1-8B-Instruct"
-    source: "huggingface"
-  
-  # 학습 설정
-  training:
-    type: "sft"  # supervised fine-tuning
-    epochs: 3
-    batchSize: 4
-    gradientAccumulationSteps: 8
-    learningRate: 2e-5
-    
-    # 분산 학습 설정
-    distributed:
-      tensorParallelism: 1
-      pipelineParallelism: 1
-      dataParallelism: 8
-  
-  # 데이터 설정
-  data:
-    trainDataset: "s3://nemo-data/train.jsonl"
-    valDataset: "s3://nemo-data/val.jsonl"
-    format: "jsonl"
-  
-  # 리소스 설정
-  resources:
-    nodes: 1
-    gpusPerNode: 8
-    gpuType: "nvidia.com/gpu"
-    
-  # 체크포인트 설정
-  checkpoint:
-    enabled: true
-    path: "s3://nemo-checkpoints/llama-finetune"
-    saveInterval: 500
-    
-  # 컨테이너 이미지
-  image:
-    repository: "nvcr.io/nvidia/nemo"
-    tag: "24.07"
-    pullSecrets:
-      - name: ngc-secret
-```
-
-### PyTorchJob을 통한 분산 학습
-
-```yaml
-apiVersion: kubeflow.org/v1
-kind: PyTorchJob
-metadata:
-  name: nemo-distributed-training
-  namespace: nemo
-spec:
-  pytorchReplicaSpecs:
-    Master:
-      replicas: 1
-      restartPolicy: OnFailure
-      template:
-        spec:
-          containers:
-          - name: pytorch
-            image: nvcr.io/nvidia/nemo:24.07
-            command:
-            - python
-            - -m
-            - nemo.collections.llm.recipes.finetune
-            - --config-path=/config
-            - --config-name=llama_finetune
-            env:
-            - name: NCCL_DEBUG
-              value: "INFO"
-            - name: NCCL_IB_DISABLE
-              value: "0"
-            - name: FI_PROVIDER
-              value: "efa"
-            - name: FI_EFA_USE_DEVICE_RDMA
-              value: "1"
-            - name: NCCL_PROTO
-              value: "simple"
-            resources:
-              limits:
-                nvidia.com/gpu: 8
-                vpc.amazonaws.com/efa: 4
-            volumeMounts:
-            - name: config
-              mountPath: /config
-            - name: data
-              mountPath: /data
-            - name: shm
-              mountPath: /dev/shm
-          volumes:
-          - name: config
-            configMap:
-              name: nemo-config
-          - name: data
-            persistentVolumeClaim:
-              claimName: training-data-pvc
-          - name: shm
-            emptyDir:
-              medium: Memory
-              sizeLimit: 64Gi
-    Worker:
-      replicas: 3
-      restartPolicy: OnFailure
-      template:
-        spec:
-          containers:
-          - name: pytorch
-            image: nvcr.io/nvidia/nemo:24.07
-            # Worker 설정은 Master와 동일
-```
+---
 
 ## 파인튜닝 가이드
 
-### SFT (Supervised Fine-Tuning)
+### SFT (Supervised Fine-Tuning) 개념
 
-```python
-# nemo_sft_config.yaml
-trainer:
-  devices: 8
-  num_nodes: 1
-  accelerator: gpu
-  precision: bf16
-  max_epochs: 3
-  val_check_interval: 500
-  
-model:
-  # 기본 모델
-  restore_from_path: /models/llama-3.1-8b.nemo
-  
-  # LoRA 설정 (효율적인 파인튜닝)
-  peft:
-    peft_scheme: "lora"
-    lora_tuning:
-      adapter_dim: 32
-      alpha: 32
-      dropout: 0.1
-      target_modules:
-        - "q_proj"
-        - "v_proj"
-        - "k_proj"
-        - "o_proj"
-  
-  # 데이터 설정
-  data:
-    train_ds:
-      file_path: /data/train.jsonl
-      micro_batch_size: 4
-      global_batch_size: 32
-    validation_ds:
-      file_path: /data/val.jsonl
-      micro_batch_size: 4
-      
-  # 옵티마이저 설정
-  optim:
-    name: fused_adam
-    lr: 2e-5
-    weight_decay: 0.01
-    betas:
-      - 0.9
-      - 0.98
+**SFT란?**: 사전학습된 모델에 도메인별 instruction-response 데이터를 추가 학습시켜 특정 작업 성능을 향상시키는 방법입니다.
+
+```
+사전학습 모델 (범용) → SFT → 도메인 특화 모델
 ```
 
-### 데이터 형식
+**언제 사용하는가?**
+
+- 고객사 FAQ 챗봇: 특정 제품/서비스 관련 Q&A 학습
+- 금융 보고서 생성: 금융 용어 및 포맷 학습
+- 의료 진단 보조: 의학 용어 및 진단 패턴 학습
+
+**데이터 형식:**
 
 ```json
-{"input": "다음 질문에 답하세요: EKS란 무엇인가요?", "output": "Amazon EKS(Elastic Kubernetes Service)는 AWS에서 제공하는 관리형 Kubernetes 서비스입니다."}
-{"input": "Karpenter의 주요 기능을 설명하세요.", "output": "Karpenter는 자동 노드 프로비저닝, 통합(consolidation), 드리프트 감지 기능을 제공하는 Kubernetes 노드 오토스케일러입니다."}
+{"input": "EKS Auto Mode란 무엇인가요?", "output": "EKS Auto Mode는 노드 프로비저닝, 스케일링, 보안 패치를 AWS가 자동으로 관리하는 완전 관리형 Kubernetes 컴퓨팅 옵션입니다."}
+{"input": "Karpenter의 주요 기능은?", "output": "Karpenter는 자동 노드 프로비저닝, bin-packing 최적화, Spot 인스턴스 통합, drift 감지 기능을 제공합니다."}
 ```
 
-### PEFT/LoRA 파인튜닝
+### PEFT/LoRA: 효율적인 파인튜닝
+
+**PEFT (Parameter-Efficient Fine-Tuning)**: 전체 모델 파라미터를 학습하는 대신 **일부 어댑터 레이어만 학습**하여 메모리와 시간을 절약하는 기법입니다.
+
+**LoRA (Low-Rank Adaptation)**: PEFT의 대표적 방법으로, 원본 가중치는 동결(freeze)하고 **저차원 행렬 2개(A, B)만 학습**합니다.
+
+```
+원본 가중치 W (freeze) + LoRA 델타 (A × B) = 최종 가중치
+```
+
+**LoRA 핵심 파라미터:**
+
+| 파라미터 | 설명 | 권장값 | 영향 |
+|---------|------|--------|------|
+| `r` (rank) | 저차원 행렬의 랭크 | 8-64 | 클수록 표현력 ↑, 메모리 ↑ |
+| `alpha` | 스케일링 계수 | r과 동일 | LoRA 가중치 영향력 조절 |
+| `dropout` | 드롭아웃 비율 | 0.1 | 과적합 방지 |
+| `target_modules` | 학습할 레이어 | q_proj, v_proj | Attention 레이어 선택 |
+
+**메모리 절감 효과:**
+
+- **Full Fine-Tuning (7B 모델)**: ~120GB VRAM 필요 (A100 80GB × 2)
+- **LoRA Fine-Tuning (7B 모델)**: ~24GB VRAM 필요 (A100 80GB × 1)
+- **절감률**: ~80% 메모리 감소
+
+### 파인튜닝 실행 예시
 
 ```python
+# nemo_lora_finetune.py
 from nemo.collections.llm import finetune
 from nemo.collections.llm.peft import LoRA
 
 # LoRA 설정
 lora_config = LoRA(
-    r=32,
-    alpha=32,
+    r=32,  # rank
+    alpha=32,  # scaling
     dropout=0.1,
     target_modules=["q_proj", "v_proj", "k_proj", "o_proj"],
 )
@@ -331,87 +204,86 @@ model = finetune(
     data_path="/data/train.jsonl",
     peft_config=lora_config,
     trainer_config={
-        "devices": 8,
+        "devices": 8,  # 8 GPU
         "max_epochs": 3,
-        "precision": "bf16",
+        "precision": "bf16",  # BFloat16 (A100/H100)
     },
-    output_path="/output/llama-2-7b-finetuned",
+    output_path="/output/llama-3.1-8b-finetuned",
 )
 ```
+
+**상세 파이프라인**: 데이터 전처리, 멀티노드 분산 학습, 하이퍼파라미터 튜닝 등은 [커스텀 모델 파이프라인](../reference-architecture/custom-model-pipeline.md) 문서를 참조하세요.
+
+---
 
 ## 체크포인트 관리
 
-### 대규모 모델 체크포인트 샤딩 (>70B)
+### S3 기반 체크포인트 저장
 
-70B 이상의 대규모 모델은 단일 체크포인트 파일이 수백 GB에 달할 수 있습니다. NeMo는 체크포인트 샤딩을 통해 이를 효율적으로 관리합니다:
+NeMo는 학습 중 주기적으로 **체크포인트(모델 상태 스냅샷)**를 저장합니다. 이를 통해:
 
-```yaml
-# 대규모 모델 체크포인트 샤딩 설정
-trainer:
-  checkpoint:
-    # 샤딩 활성화
-    save_sharded_checkpoint: true
-    
-    # 샤드 크기 (GB 단위)
-    shard_size_gb: 10
-    
-    # 병렬 저장 워커 수
-    num_workers: 8
-    
-    # 체크포인트 압축
-    compression: "gzip"
+- **학습 재개**: 장애 발생 시 마지막 체크포인트부터 재시작
+- **최적 모델 선택**: 검증 손실이 가장 낮은 체크포인트 선택
+- **버전 관리**: 여러 실험의 체크포인트 비교
+
+**S3 저장 구조:**
+
+```
+s3://nemo-checkpoints/
+└── llama-3.1-8b-finetune/
+    ├── checkpoint-epoch=1-step=500/
+    │   ├── model_weights.ckpt
+    │   ├── optimizer_states.ckpt
+    │   └── metadata.yaml
+    ├── checkpoint-epoch=2-step=1000/
+    └── checkpoint-epoch=3-step=1500/
 ```
 
-**샤딩 전략:**
+### 대규모 모델 체크포인트 샤딩
+
+70B 이상의 대규모 모델은 단일 체크포인트 파일이 수백 GB에 달합니다. NeMo는 **샤딩(sharding)**으로 이를 여러 파일로 분할 저장합니다.
 
 <CheckpointSharding />
 
-```python
-# 샤딩된 체크포인트 로드
-from nemo.collections.nlp.models import MegatronGPTModel
-
-# 자동으로 모든 샤드를 병렬 로드
-model = MegatronGPTModel.restore_from(
-    restore_path="s3://checkpoints/llama-405b/sharded",
-    trainer=trainer,
-)
-```
-
-### S3 체크포인트 저장
+**샤딩 설정:**
 
 ```yaml
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: nemo-checkpoint-config
-  namespace: nemo
-data:
-  checkpoint.yaml: |
-    checkpoint:
-      save_dir: "s3://nemo-checkpoints/${JOB_NAME}"
-      save_top_k: 3
-      save_last: true
-      save_interval: 500
-      
-      # 자동 복구 설정
-      resume:
-        enabled: true
-        resume_from_checkpoint: "auto"  # 최신 체크포인트에서 자동 복구
+trainer:
+  checkpoint:
+    save_sharded_checkpoint: true
+    shard_size_gb: 10  # 10GB 단위로 분할
+    num_workers: 8  # 병렬 저장 워커 수
+    compression: "gzip"  # 압축 (선택사항)
+```
+
+**샤딩 저장 구조:**
+
+```
+s3://checkpoints/llama-405b/
+└── checkpoint-step=1000/
+    ├── shard-00000-of-00040.ckpt  (10GB)
+    ├── shard-00001-of-00040.ckpt  (10GB)
+    ├── ...
+    └── shard-00039-of-00040.ckpt  (10GB)
 ```
 
 ### 체크포인트 변환
 
 ```bash
-# NeMo 체크포인트를 HuggingFace 형식으로 변환
+# NeMo → HuggingFace 변환
 python -m nemo.collections.llm.scripts.convert_nemo_to_hf \
   --input_path /checkpoints/llama-finetuned.nemo \
   --output_path /models/llama-finetuned-hf \
   --model_type llama
 ```
 
-## TensorRT-LLM 변환 및 최적화
+---
 
-### 모델 변환 파이프라인
+## TensorRT-LLM 변환
+
+### TensorRT-LLM이란?
+
+NVIDIA TensorRT-LLM은 LLM 추론을 위한 최적화 엔진입니다. PyTorch 모델을 **고도로 최적화된 실행 그래프**로 변환하여 추론 속도를 2-4배 향상시킵니다.
 
 ```mermaid
 flowchart LR
@@ -421,32 +293,35 @@ flowchart LR
     Triton[Triton<br/>Server]
 
     NeMo -->|변환| HF
-    HF -->|빌드| TRT
+    HF -->|최적화 빌드| TRT
     TRT -->|배포| Triton
 
     style TRT fill:#76b900
     style Triton fill:#326ce5
 ```
 
-### TensorRT-LLM 변환 스크립트
+### 성능 향상 비교
+
+| 최적화 기법 | 메모리 절감 | 속도 향상 | 설명 |
+|------------|-----------|----------|------|
+| **FP8 양자화** | 50% | 1.5-2x | BFloat16 → FP8 (H100 전용) |
+| **PagedAttention** | 40% | - | KV Cache 동적 메모리 관리 |
+| **In-flight Batching** | - | 2-3x | 연속 배치 처리 |
+| **Kernel Fusion** | - | 1.3-1.5x | 연산 커널 융합 |
+| **종합 효과** | **60-70%** | **2-4x** | 위 기법들의 복합 효과 |
+
+### 변환 개념
 
 ```python
-# convert_to_trt.py
-# TensorRT-LLM 0.8+ API 사용
 from tensorrt_llm import LLM
 
-# 모델 변환 (from_pretrained API 사용)
+# HuggingFace 모델을 TensorRT-LLM 엔진으로 변환
 llm = LLM(
     model="/models/llama-finetuned-hf",
-    # 빌드 설정
     max_input_len=4096,
     max_output_len=2048,
     max_batch_size=64,
-    
-    # 양자화 설정
-    dtype="fp8",  # FP8 양자화로 메모리 절약
-    
-    # 최적화 설정
+    dtype="fp8",  # FP8 양자화
     enable_paged_kv_cache=True,
     enable_chunked_context=True,
 )
@@ -455,148 +330,65 @@ llm = LLM(
 llm.save("/engines/llama-finetuned-trt")
 ```
 
-### Kubernetes Job으로 변환 실행
+**변환 시간**: 7B 모델 기준 약 10-20분 (A100 1개)
 
-```yaml
-apiVersion: batch/v1
-kind: Job
-metadata:
-  name: trt-llm-conversion
-  namespace: nemo
-spec:
-  template:
-    spec:
-      containers:
-      - name: converter
-        image: nvcr.io/nvidia/tritonserver:24.07-trtllm-python-py3
-        command:
-        - python
-        - /scripts/convert_to_trt.py
-        - --input=/models/llama-finetuned-hf
-        - --output=/engines/llama-finetuned-trt
-        - --quantization=fp8
-        - --max-batch-size=64
-        resources:
-          limits:
-            nvidia.com/gpu: 1
-            memory: "80Gi"
-        volumeMounts:
-        - name: models
-          mountPath: /models
-        - name: engines
-          mountPath: /engines
-        - name: scripts
-          mountPath: /scripts
-      volumes:
-      - name: models
-        persistentVolumeClaim:
-          claimName: models-pvc
-      - name: engines
-        persistentVolumeClaim:
-          claimName: engines-pvc
-      - name: scripts
-        configMap:
-          name: conversion-scripts
-      restartPolicy: Never
+---
+
+## Triton Inference Server
+
+### Triton과 NeMo의 관계
+
+**Triton Inference Server**는 NVIDIA의 프로덕션 추론 서버로, TensorRT-LLM 엔진을 HTTP/gRPC API로 서빙합니다.
+
+```
+클라이언트 → Triton Server → TensorRT-LLM 백엔드 → GPU
 ```
 
-## Triton Inference Server 배포
+### Triton 아키텍처 개념
 
-### TensorRT-LLM 백엔드 설정
+```mermaid
+flowchart TB
+    subgraph Triton["Triton Inference Server"]
+        HTTP[HTTP/gRPC<br/>Frontend]
+        Scheduler[Dynamic<br/>Batcher]
+        Backend[TensorRT-LLM<br/>Backend]
+    end
 
-```yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: triton-trtllm
-  namespace: inference
-spec:
-  replicas: 2
-  selector:
-    matchLabels:
-      app: triton-trtllm
-  template:
-    metadata:
-      labels:
-        app: triton-trtllm
-    spec:
-      containers:
-      - name: triton
-        image: nvcr.io/nvidia/tritonserver:24.07-trtllm-python-py3
-        args:
-        - tritonserver
-        - --model-repository=/models
-        - --http-port=8000
-        - --grpc-port=8001
-        - --metrics-port=8002
-        ports:
-        - containerPort: 8000
-          name: http
-        - containerPort: 8001
-          name: grpc
-        - containerPort: 8002
-          name: metrics
-        resources:
-          limits:
-            nvidia.com/gpu: 1
-            memory: "80Gi"
-        volumeMounts:
-        - name: model-repository
-          mountPath: /models
-      volumes:
-      - name: model-repository
-        persistentVolumeClaim:
-          claimName: triton-models-pvc
+    Client[Client] --> HTTP
+    HTTP --> Scheduler
+    Scheduler --> Backend
+    Backend --> GPU[GPU<br/>Inference]
+
+    style Scheduler fill:#326ce5
+    style Backend fill:#76b900
 ```
+
+**핵심 기능:**
+
+- **동적 배칭**: 여러 요청을 자동으로 묶어 GPU 활용률 최적화
+- **모델 앙상블**: 여러 모델을 파이프라인으로 연결 (예: Tokenizer → LLM → Detokenizer)
+- **백엔드 지원**: TensorRT-LLM, PyTorch, ONNX, TensorFlow 등
+- **메트릭 수집**: Prometheus 호환 메트릭 (처리량, 레이턴시, GPU 사용률)
 
 ### 모델 저장소 구조
 
 ```
 /models/
 └── llama-finetuned/
-    ├── config.pbtxt
-    ├── 1/
-    │   └── model.plan
+    ├── config.pbtxt  # Triton 설정 파일
+    ├── 1/  # 버전 1
+    │   └── model.plan  # TensorRT-LLM 엔진
     └── tokenizer/
         ├── tokenizer.json
         └── tokenizer_config.json
 ```
 
-### config.pbtxt 설정
+**config.pbtxt 핵심 설정:**
 
 ```protobuf
 name: "llama-finetuned"
 backend: "tensorrtllm"
 max_batch_size: 64
-
-input [
-  {
-    name: "input_ids"
-    data_type: TYPE_INT32
-    dims: [-1]
-  },
-  {
-    name: "input_lengths"
-    data_type: TYPE_INT32
-    dims: [1]
-  }
-]
-
-output [
-  {
-    name: "output_ids"
-    data_type: TYPE_INT32
-    dims: [-1]
-  }
-]
-
-instance_group [
-  {
-    count: 1
-    kind: KIND_GPU
-    gpus: [0]
-  }
-]
 
 parameters {
   key: "max_tokens_in_paged_kv_cache"
@@ -609,79 +401,43 @@ parameters {
 }
 ```
 
-## 모니터링 및 로깅
-
-### 학습 메트릭 수집
-
-```yaml
-apiVersion: monitoring.coreos.com/v1
-kind: ServiceMonitor
-metadata:
-  name: nemo-training-monitor
-  namespace: nemo
-spec:
-  selector:
-    matchLabels:
-      app: nemo-training
-  endpoints:
-  - port: metrics
-    interval: 30s
-    path: /metrics
-```
-
-### 주요 모니터링 메트릭
-
-<MonitoringMetrics />
-
 ---
 
-## NCCL 심층 분석: 분산 학습 통신 최적화
+## NCCL 분산 통신
 
-### NCCL의 역할과 중요성
+### NCCL의 역할
 
-NCCL (**NVIDIA Collective Communication Library**)는 분산 GPU 학습에서 **multi-GPU 간 고속 통신**을 담당하는 핵심 라이브러리입니다. 딥러닝 모델의 성능은 NCCL의 최적화 정도에 직접적으로 영향을 미칩니다.
+**NCCL (NVIDIA Collective Communication Library)**은 분산 GPU 학습에서 **multi-GPU 간 고속 통신**을 담당하는 핵심 라이브러리입니다.
 
 ```mermaid
 flowchart TB
-    subgraph Perf["분산 학습 성능"]
-        A[전체<br/>학습 시간]
-        B[계산 60%]
-        C[통신 40%]
+    subgraph Perf["분산 학습 시간 구성"]
+        Total[전체<br/>학습 시간]
+        Compute[계산 60%]
+        Comm[통신 40%]
 
-        A --> B
-        A --> C
+        Total --> Compute
+        Total --> Comm
 
-        C --> D[NCCL<br/>최적화 영역]
-        D --> E[Collective<br/>연산]
-        D --> F[동기화<br/>오버헤드]
+        Comm --> NCCL[NCCL<br/>최적화 영역]
+        NCCL --> Collective[Collective<br/>연산]
+        NCCL --> Sync[동기화<br/>오버헤드]
 
-        style D fill:#326ce5
-        style E fill:#76b900
-        style F fill:#ff6b6b
-    end
-
-    subgraph Benefits["NCCL 효과"]
-        H[3-10배<br/>성능 개선]
-        I[CPU 오버헤드<br/>제거]
-        J[메모리<br/>효율성]
-        K[NVLink/EFA<br/>자동 활용]
-
-        style H fill:#76b900
-        style I fill:#76b900
-        style J fill:#76b900
-        style K fill:#76b900
+        style NCCL fill:#326ce5
+        style Collective fill:#76b900
+        style Sync fill:#ff6b6b
     end
 ```
 
-**분산 학습에서 NCCL이 중요한 이유:**
+**왜 중요한가?**
 
 <NCCLImportance />
 
-### 핵심 집합 연산 (Collective Operations)
+### Collective 연산 개념
 
-#### 1. AllReduce - 가장 중요한 연산
+#### 1. AllReduce (가장 중요)
 
-AllReduce는 모든 GPU의 데이터를 합산하고 결과를 모든 GPU에 배분합니다:
+모든 GPU의 데이터를 합산하고 결과를 모든 GPU에 배분합니다.
 
 ```
 초기 상태:
@@ -691,128 +447,60 @@ GPU 2: [7, 8, 9]
 GPU 3: [10, 11, 12]
 
 AllReduce 후:
-GPU 0: [22, 26, 30]  # 1+4+7+10, 2+5+8+11, 3+6+9+12
-GPU 1: [22, 26, 30]
-GPU 2: [22, 26, 30]
-GPU 3: [22, 26, 30]
+모든 GPU: [22, 26, 30]  # 각 원소별 합산
 ```
 
-**AllReduce 사용 예시 (분산 학습에서):**
+**사용 사례**: 분산 학습에서 각 GPU의 그래디언트를 평균화
 
-```python
-import torch
-import torch.distributed as dist
+#### 2. AllGather
 
-# 분산 학습 초기화
-dist.init_process_group("nccl")
-rank = dist.get_rank()
-world_size = dist.get_world_size()
-
-# 각 GPU의 그래디언트 (서로 다름)
-gradients = torch.randn(1024, device=f"cuda:{rank}")
-
-# AllReduce: 모든 GPU의 그래디언트 합산 및 평균화
-dist.all_reduce(gradients, op=dist.ReduceOp.SUM)
-gradients /= world_size
-
-# 이제 모든 GPU가 동일한 그래디언트를 가짐
-# 모델 가중치 업데이트 시 동기화됨
-```
-
-#### 2. AllGather - 모든 데이터 수집
-
-AllGather는 모든 GPU의 데이터를 수집하여 각 GPU에 전체 데이터를 배분합니다:
+모든 GPU의 데이터를 수집하여 각 GPU에 전체 데이터를 배분합니다.
 
 ```
 초기 상태:
 GPU 0: [1, 2]
 GPU 1: [3, 4]
-GPU 2: [5, 6]
-GPU 3: [7, 8]
 
 AllGather 후:
-GPU 0: [1, 2, 3, 4, 5, 6, 7, 8]
-GPU 1: [1, 2, 3, 4, 5, 6, 7, 8]
-GPU 2: [1, 2, 3, 4, 5, 6, 7, 8]
-GPU 3: [1, 2, 3, 4, 5, 6, 7, 8]
+모든 GPU: [1, 2, 3, 4]
 ```
 
-**AllGather 사용 사례:**
+**사용 사례**: Tensor Parallelism에서 분산된 텐서를 모으기
 
-```python
-# 예시: 배치 정규화에서 모든 GPU의 통계 수집
-local_batch_stats = compute_batch_stats(local_batch)
+#### 3. ReduceScatter
 
-# AllGather로 모든 GPU의 통계 수집
-all_batch_stats = [torch.empty_like(local_batch_stats) for _ in range(world_size)]
-dist.all_gather(all_batch_stats, local_batch_stats)
-
-# 전역 통계 계산
-global_mean = torch.stack(all_batch_stats).mean(dim=0)
-global_std = torch.stack(all_batch_stats).std(dim=0)
-```
-
-#### 3. ReduceScatter - AllGather의 역연산
-
-ReduceScatter는 데이터를 먼저 합산한 후 각 GPU에 분할하여 배분합니다:
-
-```
-초기 상태:
-GPU 0: [1, 2, 3, 4, 5, 6, 7, 8]
-GPU 1: [9, 10, 11, 12, 13, 14, 15, 16]
-GPU 2: [17, 18, 19, 20, 21, 22, 23, 24]
-GPU 3: [25, 26, 27, 28, 29, 30, 31, 32]
-
-ReduceScatter 합산 후 분할:
-GPU 0: [52, 56]      # (1+9+17+25), (2+10+18+26)
-GPU 1: [60, 64]      # (3+11+19+27), (4+12+20+28)
-GPU 2: [68, 72]      # (5+13+21+29), (6+14+22+30)
-GPU 3: [76, 80]      # (7+15+23+31), (8+16+24+32)
-```
-
-**ReduceScatter 사용 사례 (Model Parallelism):**
-
-```python
-# 모델 병렬화에서 계산 결과를 합산하고 분할
-local_output = model_fragment(input_data)
-
-# ReduceScatter: 모든 프래그먼트 합산 후 각 GPU에 분할
-reduced_output = torch.empty(output_size // world_size, device=local_output.device)
-dist.reduce_scatter(reduced_output, [local_output] * world_size)
-```
-
-#### 4. Broadcast - 데이터 배포
-
-Broadcast는 한 GPU의 데이터를 모든 GPU에 복사합니다:
+데이터를 먼저 합산한 후 각 GPU에 분할하여 배분합니다 (AllGather의 역연산).
 
 ```
 초기 상태:
 GPU 0: [1, 2, 3, 4]
-GPU 1: [0, 0, 0, 0]
-GPU 2: [0, 0, 0, 0]
-GPU 3: [0, 0, 0, 0]
+GPU 1: [5, 6, 7, 8]
+
+ReduceScatter 후:
+GPU 0: [6, 8]   # (1+5), (2+6)
+GPU 1: [10, 12] # (3+7), (4+8)
+```
+
+**사용 사례**: Pipeline Parallelism에서 중간 결과 전달
+
+#### 4. Broadcast
+
+한 GPU의 데이터를 모든 GPU에 복사합니다.
+
+```
+초기 상태:
+GPU 0: [1, 2, 3]
+GPU 1: [0, 0, 0]
 
 Broadcast 후:
-GPU 0: [1, 2, 3, 4]
-GPU 1: [1, 2, 3, 4]
-GPU 2: [1, 2, 3, 4]
-GPU 3: [1, 2, 3, 4]
+모든 GPU: [1, 2, 3]
 ```
 
-**Broadcast 사용 사례:**
+**사용 사례**: 마스터 GPU에서 모델 체크포인트 배포
 
-```python
-# 마스터 GPU에서 모델 체크포인트 브로드캐스트
-model_state = load_checkpoint() if rank == 0 else None
+### 네트워크 토폴로지 최적화
 
-# Broadcast: 마스터 GPU의 모델 상태를 모든 GPU에 배포
-dist.broadcast_object_list([model_state], src=0)
-model.load_state_dict(model_state)
-```
-
-### 네트워크 토폴로지 인식
-
-NCCL은 GPU 간 물리적 연결 토폴로지를 자동으로 감지하고 최적의 경로를 선택합니다:
+NCCL은 GPU 간 물리적 연결 토폴로지를 자동으로 감지하고 최적의 경로를 선택합니다.
 
 ```mermaid
 flowchart TB
@@ -825,87 +513,83 @@ flowchart TB
         L1 --> L2 --> L3 --> L4
     end
 
-    subgraph NCCL["NCCL 자동 선택"]
-        A[토폴로지<br/>분석]
-        B[알고리즘<br/>선택]
-        C[채널<br/>구성]
-
-        A --> B --> C
-    end
-
     style L1 fill:#76b900
     style L2 fill:#76b900
     style L3 fill:#ffd93d
     style L4 fill:#ff6b6b
 ```
 
-### NCCL 성능 튜닝 파라미터
+**토폴로지별 알고리즘 선택:**
 
-```yaml
-# NCCL 환경 변수 완벽 가이드
+- **NVSwitch (H100 노드)**: Tree 알고리즘 (병렬 브로드캐스트)
+- **NVLink (A100 노드)**: Ring 알고리즘 (순환 전달)
+- **EFA 노드 간**: Hierarchical 알고리즘 (노드 내 Ring → 노드 간 Tree)
+
+### NCCL 튜닝 파라미터
+
+```bash
+# 핵심 NCCL 환경 변수
 
 # 1. 알고리즘 선택
-export NCCL_ALGO=Ring           # Ring (기본), Tree, CollNet
-export NCCL_ALGO_ALL=Ring       # AllReduce 알고리즘 지정
-export NCCL_ALGO_TREE=Tree      # Tree 알고리즘 강제
+export NCCL_ALGO=Ring  # 또는 Tree
 
-# 2. 프로토콜 선택
-export NCCL_PROTO=Simple        # Simple (기본) 또는 LL (Low Latency)
+# 2. 프로토콜
+export NCCL_PROTO=Simple  # Simple (throughput) 또는 LL (latency)
 
-# 3. 채널 설정 (매우 중요)
-export NCCL_MIN_NCHANNELS=4     # 최소 채널 수 (기본 4)
-export NCCL_MAX_NCHANNELS=8     # 최대 채널 수 (기본 32)
+# 3. 채널 수 (중요!)
+export NCCL_MIN_NCHANNELS=4
+export NCCL_MAX_NCHANNELS=8  # 많을수록 대역폭 ↑, 오버헤드 ↑
 
-# 4. 버퍼 크기
-export NCCL_BUFFSIZE=2097152    # 기본 2MB, 1MB-4MB 권장
-
-# 5. 디버그 설정
-export NCCL_DEBUG=INFO          # TRACE, DEBUG, INFO, WARN
-export NCCL_DEBUG_FILE=/var/log/nccl-debug.txt
-export NCCL_DEBUG_SUBSYS=ALL    # 모든 서브시스템 추적
-
-# 6. 네트워크 인터페이스
-export NCCL_SOCKET_IFNAME=eth0  # 사용할 네트워크 인터페이스
-export NCCL_IB_DISABLE=0        # InfiniBand 사용
-
-# 7. EFA 설정 (AWS)
+# 4. EFA 설정 (AWS)
 export FI_PROVIDER=efa
 export FI_EFA_USE_DEVICE_RDMA=1
-export FI_EFA_FORK_SAFE=1
+export NCCL_IB_DISABLE=0
 
-# 8. 커널 최적화
-export NCCL_CHECKS_DISABLE=0    # 안전 검사 활성화 (프로덕션)
-export NCCL_COMM_BLOCKING_WAIT=0
-export NCCL_ASYNC_ERROR_HANDLING=1
-
-# 9. P2P 설정
-export NCCL_P2P_DISABLE=0       # GPU P2P 통신 활성화
-export NCCL_P2P_LEVEL=SYS       # P2P 레벨: LOC (로컬), SYS (시스템)
-
-# 10. 타임아웃 설정
-export NCCL_COMM_WAIT_TIMEOUT=0 # 0 = 무한 대기
+# 5. 디버그
+export NCCL_DEBUG=INFO  # 성능 문제 진단 시 유용
 ```
+
+**채널 수 권장값:**
+
+- **8 GPU 노드 내**: 4-8 채널
+- **멀티노드 (16+ GPU)**: 8-16 채널
+- **대규모 (64+ GPU)**: 16-32 채널
+
+---
+
+## 모니터링
+
+### 주요 메트릭
+
+<MonitoringMetrics />
+
+**모니터링 스택**: Prometheus + Grafana + DCGM Exporter
+
+상세 모니터링 설정은 [모니터링 및 관찰성 설정](../operations-mlops/monitoring-observability-setup.md)을 참조하세요.
 
 ---
 
 ## 관련 문서
 
-- [GPU 리소스 관리](./gpu-resource-management.md)
-- [MoE 모델 서빙](./moe-model-serving.md)
-- [Inference Gateway](../gateway-agents/inference-gateway-routing.md)
+- [GPU 리소스 관리](./gpu-resource-management.md) - Karpenter, KEDA, DRA 기반 GPU 오토스케일링
+- [vLLM 모델 서빙](./vllm-model-serving.md) - 프로덕션 추론 서버
+- [MoE 모델 서빙](./moe-model-serving.md) - Mixture of Experts 아키텍처
+- [커스텀 모델 파이프라인](../reference-architecture/custom-model-pipeline.md) - 데이터 준비부터 배포까지 전체 파이프라인
 
 :::tip 권장 사항
 
-- 파인튜닝 전 기본 모델로 베이스라인 성능을 측정하세요
-- LoRA/QLoRA를 사용하면 적은 GPU로도 대형 모델 파인튜닝이 가능합니다
-- TensorRT-LLM 변환으로 추론 성능을 2-4배 향상시킬 수 있습니다
-- NCCL 환경 변수를 적절히 설정하면 분산 학습 성능을 크게 개선할 수 있습니다
+- **파인튜닝 시작 전**: 기본 모델로 베이스라인 성능을 측정하세요
+- **LoRA 우선 사용**: 전체 파인튜닝 대비 메모리 80% 절감
+- **TensorRT-LLM 필수**: 추론 성능 2-4배 향상
+- **NCCL 튜닝**: 멀티노드 학습 시 채널 수와 알고리즘 최적화로 20-30% 성능 개선 가능
+
 :::
 
 :::warning 주의사항
 
-- 대규모 학습은 상당한 GPU 비용이 발생합니다. Spot 인스턴스와 체크포인트를 활용하세요
-- 분산 학습 시 NCCL 통신 오버헤드를 고려하여 노드 수를 결정하세요
-- 체크포인트는 반드시 S3 등 영구 스토리지에 저장하세요
-- EFA 사용 시 적절한 보안 그룹 설정이 필요합니다 (모든 트래픽 허용)
+- **GPU 비용**: 대규모 학습은 시간당 수십만원 비용 발생. Spot 인스턴스와 체크포인트 적극 활용
+- **체크포인트 필수**: S3 등 영구 스토리지에 자동 저장 설정 (노드 장애 대비)
+- **EFA 보안 그룹**: EFA 사용 시 모든 트래픽 허용 필요 (동일 보안 그룹 내)
+- **메모리 오버플로**: OOM 발생 시 `micro_batch_size` 감소 또는 `gradient_checkpointing` 활성화
+
 :::
