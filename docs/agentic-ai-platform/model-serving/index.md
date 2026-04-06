@@ -1,7 +1,12 @@
 ---
 title: "모델 서빙 & 추론 인프라"
 sidebar_label: "모델 서빙 & 추론 인프라"
+description: "EKS 기반 GPU 노드 전략, vLLM/llm-d 추론 엔진, MoE 서빙, NVIDIA GPU 스택 가이드"
+tags: [model-serving, gpu, vllm, llm-d, inference, eks]
 sidebar_position: 2
+last_update:
+  date: 2026-04-06
+  author: YoungJoon Jeong
 ---
 
 import { DocCard, DocCardGrid } from '@site/src/components/DocCards';

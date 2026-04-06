@@ -504,7 +504,7 @@ spec:
     spec:
       containers:
         - name: vllm
-          image: vllm/vllm-openai:v0.7.3
+          image: vllm/vllm-openai:v0.18.2
           ports:
             - name: http
               containerPort: 8000

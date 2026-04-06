@@ -1,7 +1,12 @@
 ---
 title: "설계 & 아키텍처"
 sidebar_label: "설계 & 아키텍처"
+description: "Agentic AI 플랫폼의 아키텍처 설계, 기술적 도전과제, AWS Native 및 EKS 기반 구현 접근"
+tags: [architecture, design, agentic-ai, eks, aws]
 sidebar_position: 1
+last_update:
+  date: 2026-04-06
+  author: YoungJoon Jeong
 ---
 
 import { DocCard, DocCardGrid } from '@site/src/components/DocCards';
