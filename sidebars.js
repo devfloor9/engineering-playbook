@@ -130,8 +130,6 @@ const sidebars = {
             'agentic-ai-platform/model-serving/moe-model-serving',
             'agentic-ai-platform/model-serving/nvidia-gpu-stack',
             'agentic-ai-platform/model-serving/nemo-framework',
-            'agentic-ai-platform/model-serving/glm5-deployment-guide',
-            'agentic-ai-platform/model-serving/custom-model-pipeline',
           ],
         },
         {
@@ -185,6 +183,22 @@ const sidebars = {
             'agentic-ai-platform/enterprise-ops/agentic-playbook',
             'agentic-ai-platform/enterprise-ops/compliance-framework',
             'agentic-ai-platform/enterprise-ops/domain-customization',
+          ],
+        },
+        {
+          type: 'category',
+          label: 'Reference Architecture',
+          collapsed: true,
+          link: {
+            type: 'doc',
+            id: 'agentic-ai-platform/reference-architecture/index',
+          },
+          items: [
+            'agentic-ai-platform/reference-architecture/custom-model-deployment',
+            'agentic-ai-platform/reference-architecture/inference-gateway-setup',
+            'agentic-ai-platform/reference-architecture/monitoring-observability-setup',
+            'agentic-ai-platform/reference-architecture/custom-model-pipeline',
+            'agentic-ai-platform/reference-architecture/coding-tools-cost-analysis',
           ],
         },
       ],
