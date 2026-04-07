@@ -309,8 +309,22 @@
     var savedTheme=localStorage.getItem('viz-theme');var currentTheme=savedTheme||'dark';
     function applyTheme(t){document.documentElement.className='theme-'+t;document.getElementById('themeIcon').textContent=t==='dark'?'🌙':'☀️';document.getElementById('themeLabel').textContent=t==='dark'?'Dark':'Light';localStorage.setItem('viz-theme',t);currentTheme=t}
     function cycleTheme(){applyTheme(currentTheme==='dark'?'light':'dark')}
-    applyTheme(currentTheme);
-    async function downloadImage(){var m=document.querySelector('.viz-menu');m.style.display='none';try{var u=await htmlToImage.toPng(document.body,{quality:1,pixelRatio:2});var a=document.createElement('a');a.href=u;a.download='agentic-platform-architecture-v2.png';a.click()}catch(e){console.error(e)}m.style.display=''}
+
+    // 부모 페이지(Docusaurus) 테마와 동기화
+    // 1. URL 파라미터로 초기 테마 수신
+    var urlTheme=new URLSearchParams(window.location.search).get('theme');
+    // 2. postMessage로 동적 테마 변경 수신
+    window.addEventListener('message',function(e){
+      if(e.data&&e.data.type==='theme-change'){applyTheme(e.data.theme==='dark'?'dark':'light')}
+    });
+    // 3. 초기 테마 적용 (URL 파라미터 > 부모 감지 > localStorage > 기본값)
+    var inIframe=window.self!==window.top;
+    var initTheme=urlTheme||(inIframe?null:savedTheme)||'dark';
+    if(initTheme)applyTheme(initTheme);
+    // iframe 내에서는 메뉴 숨김
+    if(inIframe){var menu=document.querySelector('.viz-menu');if(menu)menu.style.display='none';}
+
+    async function downloadImage(){var m=document.querySelector('.viz-menu');if(m)m.style.display='none';try{var u=await htmlToImage.toPng(document.body,{quality:1,pixelRatio:2});var a=document.createElement('a');a.href=u;a.download='agentic-platform-architecture-v2.png';a.click()}catch(e){console.error(e)}if(m)m.style.display=''}
   </script>
 </body>
 </html>

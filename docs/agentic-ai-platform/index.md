@@ -11,6 +11,30 @@ last_update:
 ---
 
 import { DocCard, DocCardGrid } from '@site/src/components/DocCards';
+import { useColorMode } from '@docusaurus/theme-common';
+import { useEffect, useRef } from 'react';
+
+export const ThemedDiagram = () => {
+  const { colorMode } = useColorMode();
+  const iframeRef = useRef(null);
+  useEffect(() => {
+    if (iframeRef.current && iframeRef.current.contentWindow) {
+      iframeRef.current.contentWindow.postMessage(
+        { type: 'theme-change', theme: colorMode },
+        '*'
+      );
+    }
+  }, [colorMode]);
+  return (
+    <iframe
+      ref={iframeRef}
+      src={`/engineering-playbook/agentic-platform-architecture.html?theme=${colorMode}`}
+      style={{width: '100%', height: '1600px', border: 'none', borderRadius: '12px'}}
+      title="Agentic AI Platform 추론 파이프라인 아키텍처"
+      loading="lazy"
+    />
+  );
+};
 
 # Agentic AI Platform
 
@@ -24,12 +48,7 @@ Agentic AI Platform은 자율적인 AI 에이전트가 복잡한 작업을 수�
 
 EKS Auto Mode 기반 프로덕션 추론 파이프라인의 전체 요청 흐름입니다. kgateway ExtProc가 프롬프트를 분석하여 LLM 라우팅을 결정하고, Bifrost 거버넌스 레이어와 llm-d KV Cache-aware 라우팅을 거쳐 최적의 모델에 요청을 전달합니다.
 
-<iframe
-  src="/engineering-playbook/agentic-platform-architecture.html"
-  style={{width: '100%', height: '1600px', border: 'none', borderRadius: '12px'}}
-  title="Agentic AI Platform 추론 파이프라인 아키텍처"
-  loading="lazy"
-/>
+<ThemedDiagram />
 
 ---
 
