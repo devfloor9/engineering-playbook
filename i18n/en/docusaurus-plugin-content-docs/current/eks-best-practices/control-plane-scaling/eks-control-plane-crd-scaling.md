@@ -165,12 +165,41 @@ aws eks update-cluster-config --name my-cluster \
 
 ## 7. Recommendations & Adoption Roadmap
 
-| Profile | Tier | Monthly Cost |
-|---------|------|-------------|
-| ≤10 CRDs | Standard | ~$73 |
-| 10-30 CRDs | **XL** | ~$1,204 |
-| 30+ CRDs | **2XL** | ~$2,482 |
-| Large AI/ML | **4XL** | ~$5,037 |
+| Workload Profile | Tier | Rationale | Monthly Cost |
+|-----------------|------|-----------|-------------|
+| ~50 nodes, basic add-ons (Karpenter, cert-manager) | Standard | Default auto-scaling is sufficient | ~$73 |
+| ~200 nodes, 5+ operators (ArgoCD, Prometheus, custom controllers) | **XL** | etcd 16GB, 99.99% SLA | ~$1,204 |
+| ~500 nodes, service mesh + GitOps + multi-tenant | **2XL** | Enhanced API Server throughput | ~$2,482 |
+| 1,000+ nodes, AI/ML operators + large-scale CRD pipelines | **4XL** | API Server horizontal scaling | ~$5,037 |
+
+### Control Plane Metrics Reference by Scale
+
+Industry-average reference values for key metrics that drive EKS control plane scaling decisions. Actual values vary by workload pattern — **investigate when thresholds are exceeded**.
+
+| Metric | ~50 Nodes (Standard) | ~200 Nodes (XL) | ~500 Nodes (2XL) | 1,000+ Nodes (4XL) |
+|--------|---------------------|-----------------|------------------|-------------------|
+| **etcd DB Size** | 0.5–1.5 GB | 2–5 GB | 5–10 GB | 10–20 GB |
+| **etcd Object Count** | ~5,000 | ~30,000 | ~100,000 | 300,000+ |
+| **API QPS** (req/sec) | 20–50 | 100–300 | 300–800 | 1,000–3,000 |
+| **API Latency** (p99) | < 200ms | < 500ms | < 1s | < 1.5s (target) |
+| **429 Throttle** (/min) | 0 | < 5 | < 20 | Upgrade trigger |
+| **Watch Connections** | ~200 | ~1,500 | ~5,000 | 15,000+ |
+| **CRD Types** (ref) | 5–15 | 15–40 | 40–80 | 80+ |
+| **Controller Reconcile/sec** | 5–20 | 50–150 | 150–500 | 500–2,000 |
+
+:::info How to Measure
+- **etcd DB Size**: `apiserver_storage_size_bytes` (CloudWatch or Prometheus)
+- **API QPS**: `apiserver_request_total` rate (split by verb recommended)
+- **429 Throttle**: `apiserver_request_total{code="429"}` — investigate immediately if non-zero
+- **Watch Connections**: `apiserver_longrunning_requests{verb="WATCH"}` — scales with controllers/nodes
+- **Reconcile Rate**: `controller_runtime_reconcile_total` rate per controller
+:::
+
+:::warning etcd Size Alert Thresholds
+- **Standard**: Warning at > 6GB → consider XL
+- **XL/2XL**: Warning at > 12GB → clean up unused CRs or upgrade tier
+- **4XL**: Critical at > 20GB → consider architecture split (multi-cluster)
+:::
 
 | Phase | Timeline | Activities |
 |-------|----------|-----------|

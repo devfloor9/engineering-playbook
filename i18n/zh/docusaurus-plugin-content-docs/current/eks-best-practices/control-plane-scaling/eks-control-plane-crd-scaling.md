@@ -165,12 +165,41 @@ aws eks update-cluster-config --name my-cluster \
 
 ## 7. Recommendations & Adoption Roadmap
 
-| Profile | Tier | Monthly Cost |
-|---------|------|-------------|
-| ≤10 CRDs | Standard | ~$73 |
-| 10-30 CRDs | **XL** | ~$1,204 |
-| 30+ CRDs | **2XL** | ~$2,482 |
-| Large AI/ML | **4XL** | ~$5,037 |
+| 工作负载规模 | 推荐层级 | 核心原因 | 月费用（预估） |
+|-----------|---------|---------|------------|
+| ~50 节点，基础插件（Karpenter、cert-manager） | Standard | 默认自动扩展即可满足 | ~$73 |
+| ~200 节点，5+ Operator（ArgoCD、Prometheus、自定义控制器） | **XL** | etcd 16GB，99.99% SLA | ~$1,204 |
+| ~500 节点，服务网格 + GitOps + 多租户 | **2XL** | 增强 API Server 吞吐量 | ~$2,482 |
+| 1,000+ 节点，AI/ML Operator + 大规模 CRD 管道 | **4XL** | API Server 水平扩展 | ~$5,037 |
+
+### 各规模控制平面指标参考值
+
+影响 EKS 控制平面扩展决策的关键指标行业平均参考值。实际值因工作负载模式而异——**超过阈值时应立即调查**。
+
+| 指标 | ~50 节点 (Standard) | ~200 节点 (XL) | ~500 节点 (2XL) | 1,000+ 节点 (4XL) |
+|------|-------------------|---------------|----------------|-----------------|
+| **etcd DB 大小** | 0.5–1.5 GB | 2–5 GB | 5–10 GB | 10–20 GB |
+| **etcd 对象数** | ~5,000 | ~30,000 | ~100,000 | 300,000+ |
+| **API QPS**（请求/秒） | 20–50 | 100–300 | 300–800 | 1,000–3,000 |
+| **API 延迟**（p99） | < 200ms | < 500ms | < 1s | < 1.5s（目标） |
+| **429 限流**（/分钟） | 0 | < 5 | < 20 | 升级触发点 |
+| **Watch 连接数** | ~200 | ~1,500 | ~5,000 | 15,000+ |
+| **CRD 类型数**（参考） | 5–15 | 15–40 | 40–80 | 80+ |
+| **控制器 Reconcile/秒** | 5–20 | 50–150 | 150–500 | 500–2,000 |
+
+:::info 测量方法
+- **etcd DB 大小**: `apiserver_storage_size_bytes`（CloudWatch 或 Prometheus）
+- **API QPS**: `apiserver_request_total` rate（建议按 verb 拆分）
+- **429 限流**: `apiserver_request_total{code="429"}` — 非零时立即调查
+- **Watch 连接**: `apiserver_longrunning_requests{verb="WATCH"}` — 随控制器/节点数增长
+- **Reconcile 速率**: 各控制器 `controller_runtime_reconcile_total` rate
+:::
+
+:::warning etcd 大小告警阈值
+- **Standard**: 超过 6GB 时 Warning → 考虑升级到 XL
+- **XL/2XL**: 超过 12GB 时 Warning → 清理无用 CR 或升级层级
+- **4XL**: 超过 20GB 时 Critical → 考虑架构拆分（多集群）
+:::
 
 | Phase | Timeline | Activities |
 |-------|----------|-----------|
