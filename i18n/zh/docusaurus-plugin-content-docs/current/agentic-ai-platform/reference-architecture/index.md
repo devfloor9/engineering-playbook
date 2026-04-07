@@ -24,6 +24,23 @@ import DocCardList from '@theme/DocCardList';
 | **更新频率** | 设计变更时 | 部署/运维经验积累时 |
 :::
 
+## 平台架构
+
+Agentic AI Platform 的完整架构，包括基于 Ontology 的 Knowledge Feature Store、6 层结构、模型服务/微调管道。
+
+<iframe
+  src="https://viewer.diagrams.net/?highlight=0000ff&nav=1&title=Agentic%20AI%20Platform&url=https%3A%2F%2Fraw.githubusercontent.com%2Fdevfloor9%2Fengineering-playbook%2Fmain%2Fstatic%2FAgentic%2520AI%2520Platform(with%2520Ontology%2520and%2520fine%2520tunning%2520feature).drawio"
+  style={{width: '100%', height: '1200px', border: 'none', borderRadius: '12px', background: '#fff'}}
+  title="Agentic AI Platform Architecture"
+  loading="lazy"
+/>
+
+:::tip 在 draw.io 中编辑
+[在 draw.io 中打开](https://app.diagrams.net/?src=about#Hdevfloor9%2Fengineering-playbook%2Fmain%2Fstatic%2FAgentic%20AI%20Platform(with%20Ontology%20and%20fine%20tunning%20feature).drawio) — 通过 GitHub 集成直接编辑。
+:::
+
+---
+
 ## 整体架构概览
 
 下图展示了 Reference Architecture 的 6 个领域及部署顺序。

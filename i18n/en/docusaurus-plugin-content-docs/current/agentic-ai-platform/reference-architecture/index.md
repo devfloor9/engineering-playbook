@@ -24,6 +24,23 @@ This section provides **production deployment and configuration guides** for the
 | **Update Cadence** | On design changes | As deployment/operations experience accumulates |
 :::
 
+## Platform Architecture
+
+The complete architecture of the Agentic AI Platform, including the Ontology-based Knowledge Feature Store, 6-layer structure, and model serving/fine-tuning pipelines.
+
+<iframe
+  src="https://viewer.diagrams.net/?highlight=0000ff&nav=1&title=Agentic%20AI%20Platform&url=https%3A%2F%2Fraw.githubusercontent.com%2Fdevfloor9%2Fengineering-playbook%2Fmain%2Fstatic%2FAgentic%2520AI%2520Platform(with%2520Ontology%2520and%2520fine%2520tunning%2520feature).drawio"
+  style={{width: '100%', height: '1200px', border: 'none', borderRadius: '12px', background: '#fff'}}
+  title="Agentic AI Platform Architecture"
+  loading="lazy"
+/>
+
+:::tip Edit in draw.io
+[Open in draw.io](https://app.diagrams.net/?src=about#Hdevfloor9%2Fengineering-playbook%2Fmain%2Fstatic%2FAgentic%20AI%20Platform(with%20Ontology%20and%20fine%20tunning%20feature).drawio) — Edit directly with GitHub integration.
+:::
+
+---
+
 ## Architecture Overview
 
 The diagram below shows the 6 areas of the Reference Architecture and the deployment sequence.

@@ -51,6 +51,18 @@
     "message": "AIDLC",
     "description": "The label for category 'AIDLC' in sidebar 'docs'"
   },
+  "sidebar.docs.category.방법론": {
+    "message": "方法论",
+    "description": "The label for category '방법론' in sidebar 'docs'"
+  },
+  "sidebar.docs.category.엔터프라이즈 도입": {
+    "message": "企业导入",
+    "description": "The label for category '엔터프라이즈 도입' in sidebar 'docs'"
+  },
+  "sidebar.docs.category.도구 & 구현": {
+    "message": "工具与实现",
+    "description": "The label for category '도구 & 구현' in sidebar 'docs'"
+  },
   "sidebar.docs.category.AgenticOps": {
     "message": "AgenticOps",
     "description": "The label for category 'AgenticOps' in sidebar 'docs'"

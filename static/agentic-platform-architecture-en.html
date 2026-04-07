@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Agentic AI Platform — Inference Pipeline 아키텍처 v2</title>
+  <title>Agentic AI Platform — Inference Pipeline Architecture v2</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -237,7 +237,7 @@
     <!-- OBSERVABILITY -->
     <section style="padding:20px 0 48px;">
       <div class="container">
-        <div class="section-title animate delay-7"><h2>관측가능성 & Governance 레이어</h2><p>Bifrost · llm-d · Langfuse Integration</p></div>
+        <div class="section-title animate delay-7"><h2>Observability & Governance Layer</h2><p>Bifrost · llm-d · Langfuse Integration</p></div>
         <div class="gov-layer animate delay-7">
           <div class="gov-layer-title">Governance + Observability Stack</div>
           <div class="gov-grid">
@@ -310,16 +310,16 @@
     function applyTheme(t){document.documentElement.className='theme-'+t;document.getElementById('themeIcon').textContent=t==='dark'?'🌙':'☀️';document.getElementById('themeLabel').textContent=t==='dark'?'Dark':'Light';localStorage.setItem('viz-theme',t);currentTheme=t}
     function cycleTheme(){applyTheme(currentTheme==='dark'?'light':'dark')}
 
-    // 부모 페이지(Docusaurus) 테마와 동기화
+    // Sync with parent page (Docusaurus) theme
     var urlTheme=new URLSearchParams(window.location.search).get('theme');
     var inIframe=window.self!==window.top;
 
-    // postMessage 수신 (React ThemedDiagram 컴포넌트용)
+    // Receive postMessage (for React ThemedDiagram)
     window.addEventListener('message',function(e){
       if(e.data&&e.data.type==='theme-change'){applyTheme(e.data.theme==='dark'?'dark':'light')}
     });
 
-    // 부모 DOM에서 data-theme 직접 읽기 (같은 도메인)
+    // Read data-theme from parent DOM (same domain)
     function getParentTheme(){
       try{
         var pt=window.parent.document.documentElement.getAttribute('data-theme');
@@ -327,7 +327,7 @@
       }catch(e){return null}
     }
 
-    // 부모 테마 변경 감지 (MutationObserver)
+    // Detect parent theme change (MutationObserver)
     if(inIframe){
       try{
         var parentHtml=window.parent.document.documentElement;
@@ -339,12 +339,12 @@
       }catch(e){}
     }
 
-    // 초기 테마: URL 파라미터 > 부모 DOM > localStorage > dark
+    // Initial theme: URL param > parent DOM > localStorage > dark
     var parentTheme=inIframe?getParentTheme():null;
     var initTheme=urlTheme||parentTheme||(inIframe?'light':savedTheme)||'dark';
     applyTheme(initTheme);
 
-    // iframe 내 메뉴 숨김
+    // Hide menu in iframe
     if(inIframe){var menu=document.querySelector('.viz-menu');if(menu)menu.style.display='none';}
 
     async function downloadImage(){var m=document.querySelector('.viz-menu');if(m)m.style.display='none';try{var u=await htmlToImage.toPng(document.body,{quality:1,pixelRatio:2});var a=document.createElement('a');a.href=u;a.download='agentic-platform-architecture-v2.png';a.click()}catch(e){console.error(e)}if(m)m.style.display=''}
