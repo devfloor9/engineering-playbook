@@ -86,6 +86,10 @@ spec:
 
 ### 1.4 Gateway 리소스 (단일 NLB 통합)
 
+:::danger 프로덕션 환경 필수
+아래는 개발/테스트용 기본 구성입니다. **프로덕션 환경에서는 반드시 [섹션 9: CloudFront + WAF/Shield](#cloudfront-waf)를 적용**하여 NLB를 직접 노출하지 마세요. 인증 없이 퍼블릭으로 SG를 오픈하면 회사 정책에 의해 자동 차단됩니다.
+:::
+
 ```yaml
 apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
@@ -963,6 +967,303 @@ http://<NLB_ENDPOINT>/_next/*        → Langfuse (Static Assets)
 http://<NLB_ENDPOINT>/api/public/*   → Langfuse (API + OTel)
 https://<AMG_ENDPOINT>               → Grafana (별도 관리형)
 ```
+
+---
+
+## 9. CloudFront + WAF/Shield 보안 레이어 {#cloudfront-waf}
+
+프로덕션 환경에서는 NLB를 직접 노출하지 않고, **CloudFront + WAF/Shield**를 앞단에 구성하여 DDoS 방어, 요청 필터링, TLS 종단을 수행합니다.
+
+### 아키텍처
+
+```mermaid
+graph LR
+    Client["Client<br/>(Aider/Cline/SDK)"] --> CF["CloudFront<br/>+ WAF/Shield"]
+    CF --> NLB["NLB (HTTPS)"]
+    NLB --> KGW["kgateway"]
+    KGW --> BF["Bifrost"]
+    KGW --> CLS["LLM Classifier"]
+    BF --> VLLM["vLLM<br/>(GLM-5/Qwen3)"]
+    CLS --> VLLM
+    KGW --> LF["Langfuse"]
+
+    style CF fill:#ff9900,color:#fff
+    style NLB fill:#3b82f6,color:#fff
+    style KGW fill:#10b981,color:#fff
+```
+
+### 9.1 NLB TLS 리스너 구성
+
+기존 HTTP Gateway를 HTTPS로 전환합니다. ACM 인증서가 필요합니다.
+
+```bash
+# 1. ACM 인증서 요청 (NLB 리전 — us-east-2)
+aws acm request-certificate \
+  --domain-name "api.your-company.com" \
+  --validation-method DNS \
+  --region us-east-2
+
+# 2. DNS 검증 완료 후 ARN 확인
+export NLB_CERT_ARN=$(aws acm list-certificates --region us-east-2 \
+  --query "CertificateSummaryList[?DomainName=='api.your-company.com'].CertificateArn" \
+  --output text)
+```
+
+Gateway 리소스를 HTTPS로 업데이트:
+
+```yaml
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: unified-gateway
+  namespace: ai-gateway
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-type: "external"
+    service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: "ip"
+    service.beta.kubernetes.io/aws-load-balancer-scheme: "internet-facing"
+    # TLS 종단
+    service.beta.kubernetes.io/aws-load-balancer-ssl-cert: "${NLB_CERT_ARN}"
+    service.beta.kubernetes.io/aws-load-balancer-ssl-ports: "443"
+    # SG 제한: CloudFront IP 대역만 허용
+    service.beta.kubernetes.io/aws-load-balancer-security-groups: "${CF_RESTRICTED_SG_ID}"
+spec:
+  gatewayClassName: kgateway
+  listeners:
+    - name: https
+      protocol: HTTPS
+      port: 443
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - name: nlb-tls-cert
+      allowedRoutes:
+        namespaces:
+          from: All
+```
+
+:::warning NLB Security Group 제한
+NLB의 Security Group은 **CloudFront Managed Prefix List만 허용**해야 합니다. `0.0.0.0/0` 오픈은 회사 정책에 의해 자동 차단됩니다.
+
+```bash
+# CloudFront Managed Prefix List 확인
+aws ec2 describe-managed-prefix-lists \
+  --filters "Name=prefix-list-name,Values=com.amazonaws.global.cloudfront.origin-facing" \
+  --query "PrefixLists[0].PrefixListId" --output text
+
+# SG에 CloudFront prefix list만 허용
+aws ec2 authorize-security-group-ingress \
+  --group-id ${CF_RESTRICTED_SG_ID} \
+  --ip-permissions "IpProtocol=tcp,FromPort=443,ToPort=443,PrefixListIds=[{PrefixListId=${CF_PREFIX_LIST_ID}}]"
+```
+:::
+
+### 9.2 WAF WebACL 생성
+
+```bash
+# WAF WebACL 생성 (CloudFront용은 반드시 us-east-1)
+aws wafv2 create-web-acl \
+  --name "inference-gateway-waf" \
+  --scope CLOUDFRONT \
+  --region us-east-1 \
+  --default-action '{"Allow":{}}' \
+  --rules '[
+    {
+      "Name": "AWSManagedRulesCommonRuleSet",
+      "Priority": 1,
+      "Statement": {
+        "ManagedRuleGroupStatement": {
+          "VendorName": "AWS",
+          "Name": "AWSManagedRulesCommonRuleSet"
+        }
+      },
+      "OverrideAction": {"None":{}},
+      "VisibilityConfig": {
+        "SampledRequestsEnabled": true,
+        "CloudWatchMetricsEnabled": true,
+        "MetricName": "CommonRuleSet"
+      }
+    },
+    {
+      "Name": "RateLimit",
+      "Priority": 2,
+      "Statement": {
+        "RateBasedStatement": {
+          "Limit": 2000,
+          "AggregateKeyType": "IP"
+        }
+      },
+      "Action": {"Block":{}},
+      "VisibilityConfig": {
+        "SampledRequestsEnabled": true,
+        "CloudWatchMetricsEnabled": true,
+        "MetricName": "RateLimit"
+      }
+    },
+    {
+      "Name": "AWSManagedRulesKnownBadInputsRuleSet",
+      "Priority": 3,
+      "Statement": {
+        "ManagedRuleGroupStatement": {
+          "VendorName": "AWS",
+          "Name": "AWSManagedRulesKnownBadInputsRuleSet"
+        }
+      },
+      "OverrideAction": {"None":{}},
+      "VisibilityConfig": {
+        "SampledRequestsEnabled": true,
+        "CloudWatchMetricsEnabled": true,
+        "MetricName": "KnownBadInputs"
+      }
+    }
+  ]' \
+  --visibility-config '{
+    "SampledRequestsEnabled": true,
+    "CloudWatchMetricsEnabled": true,
+    "MetricName": "InferenceGatewayWAF"
+  }'
+```
+
+WAF 규칙 구성:
+
+| 규칙 | 용도 | 설정 |
+|------|------|------|
+| **AWSManagedRulesCommonRuleSet** | SQL Injection, XSS, 일반 공격 방어 | AWS 관리형 |
+| **RateLimit** | IP당 요청 제한 | 2,000 req/5min (조정 가능) |
+| **KnownBadInputsRuleSet** | Log4j, 알려진 악성 패턴 차단 | AWS 관리형 |
+
+### 9.3 CloudFront 배포 생성
+
+```bash
+# NLB DNS 이름 확인
+export NLB_DNS=$(kubectl get gateway unified-gateway -n ai-gateway \
+  -o jsonpath='{.status.addresses[0].value}')
+
+# CloudFront 배포 생성
+aws cloudfront create-distribution \
+  --distribution-config "{
+    \"CallerReference\": \"inference-gateway-$(date +%s)\",
+    \"Origins\": {
+      \"Quantity\": 1,
+      \"Items\": [{
+        \"Id\": \"nlb-origin\",
+        \"DomainName\": \"${NLB_DNS}\",
+        \"CustomOriginConfig\": {
+          \"HTTPPort\": 80,
+          \"HTTPSPort\": 443,
+          \"OriginProtocolPolicy\": \"https-only\",
+          \"OriginSslProtocols\": {\"Quantity\": 1, \"Items\": [\"TLSv1.2\"]}
+        }
+      }]
+    },
+    \"DefaultCacheBehavior\": {
+      \"TargetOriginId\": \"nlb-origin\",
+      \"ViewerProtocolPolicy\": \"https-only\",
+      \"AllowedMethods\": {
+        \"Quantity\": 7,
+        \"Items\": [\"GET\",\"HEAD\",\"OPTIONS\",\"PUT\",\"POST\",\"PATCH\",\"DELETE\"],
+        \"CachedMethods\": {\"Quantity\": 2, \"Items\": [\"GET\",\"HEAD\"]}
+      },
+      \"CachePolicyId\": \"4135ea2d-6df8-44a3-9df3-4b5a84be39ad\",
+      \"OriginRequestPolicyId\": \"216adef6-5c7f-47e4-b989-5492eafa07d3\",
+      \"Compress\": true,
+      \"ForwardedValues\": {
+        \"QueryString\": true,
+        \"Cookies\": {\"Forward\": \"none\"},
+        \"Headers\": {
+          \"Quantity\": 3,
+          \"Items\": [\"Authorization\", \"Content-Type\", \"X-Api-Key\"]
+        }
+      }
+    },
+    \"Enabled\": true,
+    \"WebACLId\": \"${WAF_ACL_ARN}\",
+    \"Comment\": \"Inference Gateway - kgateway + Bifrost\",
+    \"PriceClass\": \"PriceClass_200\",
+    \"ViewerCertificate\": {
+      \"CloudFrontDefaultCertificate\": true
+    }
+  }"
+```
+
+:::tip 캐시 정책
+LLM 추론 API(`/v1/chat/completions`)는 **POST 요청**이므로 CloudFront에서 캐시되지 않습니다. `CachingDisabled` 정책(`4135ea2d-...`)을 사용하고, `AllOriginRequestPolicy`(`216adef6-...`)로 모든 헤더를 Origin에 전달합니다. Langfuse 정적 자산(`/_next/*`)만 캐시 혜택을 받습니다.
+:::
+
+### 9.4 Shield Standard
+
+CloudFront 배포에는 **AWS Shield Standard가 자동으로 적용**됩니다 (추가 비용 없음). L3/L4 DDoS 방어가 포함됩니다.
+
+대규모 서비스의 경우 Shield Advanced($3,000/월) 업그레이드를 고려하세요:
+- L7 DDoS 방어
+- AWS DDoS Response Team(DRT) 지원
+- WAF 비용 면제
+- 비용 보호 (DDoS로 인한 스케일링 비용 환불)
+
+### 9.5 클라이언트 엔드포인트 변경
+
+배포 완료 후 CloudFront 도메인으로 접근합니다:
+
+```bash
+# CloudFront 도메인 확인
+export CF_DOMAIN=$(aws cloudfront list-distributions \
+  --query "DistributionList.Items[?Comment=='Inference Gateway - kgateway + Bifrost'].DomainName" \
+  --output text)
+
+echo "Endpoint: https://${CF_DOMAIN}/v1"
+```
+
+**IDE/클라이언트 설정 변경**:
+
+```bash
+# Aider
+OPENAI_API_BASE="https://${CF_DOMAIN}/v1" \
+OPENAI_API_KEY="dummy" \
+aider --model openai/auto
+
+# Python SDK
+from openai import OpenAI
+client = OpenAI(
+    base_url=f"https://{CF_DOMAIN}/v1",
+    api_key="dummy"
+)
+```
+
+### 9.6 검증
+
+```bash
+# 1. CloudFront → NLB → kgateway 경로 확인
+curl -s https://${CF_DOMAIN}/v1/models | jq .
+
+# 2. WAF 동작 확인 (SQL Injection 패턴 차단)
+curl -s -o /dev/null -w "%{http_code}" \
+  "https://${CF_DOMAIN}/v1/models?id=1%20OR%201=1"
+# 예상: 403 (WAF 차단)
+
+# 3. Rate Limit 확인 (2000 req/5min 초과)
+for i in $(seq 1 100); do
+  curl -s -o /dev/null -w "%{http_code}\n" \
+    https://${CF_DOMAIN}/v1/models &
+done
+
+# 4. NLB 직접 접근 차단 확인 (SG가 CF prefix만 허용)
+curl -s -o /dev/null -w "%{http_code}" \
+  "https://${NLB_DNS}/v1/models"
+# 예상: timeout (직접 접근 불가)
+```
+
+### 9.7 연결 경로 요약
+
+```
+변경 전: Client → NLB (HTTP, 퍼블릭) → kgateway → Bifrost → vLLM
+변경 후: Client → CloudFront (HTTPS, WAF/Shield) → NLB (HTTPS, CF만 허용) → kgateway → Bifrost → vLLM
+```
+
+| 구간 | 프로토콜 | 보안 |
+|------|---------|------|
+| Client → CloudFront | HTTPS (TLS 1.2+) | WAF 규칙 + Shield Standard + Rate Limit |
+| CloudFront → NLB | HTTPS (TLS 1.2) | SG: CloudFront Prefix List만 허용 |
+| NLB → kgateway | HTTP (클러스터 내부) | VPC 내부 통신, NetworkPolicy |
+| kgateway → Bifrost/vLLM | HTTP (클러스터 내부) | Service 간 통신 |
 
 ---
 
