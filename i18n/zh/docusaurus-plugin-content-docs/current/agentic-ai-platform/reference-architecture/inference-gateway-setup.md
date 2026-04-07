@@ -12,6 +12,17 @@ last_update:
 
 本文档涵盖基于 kgateway + Bifrost 的推理网关**实战部署步骤**。架构概念和设计原则请参阅 [推理网关路由](../design-architecture/inference-gateway-routing.md)。
 
+## 生产推理管道架构
+
+基于 EKS Auto Mode 的生产推理管道完整请求流程。kgateway ExtProc 分析提示词确定 LLM 路由，经过 Bifrost 治理层和 llm-d KV Cache 感知路由，将请求发送到最优模型。
+
+<iframe
+  src="/engineering-playbook/agentic-platform-architecture.html?theme=dark"
+  style={{width: '100%', height: '1600px', border: 'none', borderRadius: '12px'}}
+  title="Agentic AI Platform 推理管道架构"
+  loading="lazy"
+/>
+
 ---
 
 ## 1. kgateway 安装和基本资源配置

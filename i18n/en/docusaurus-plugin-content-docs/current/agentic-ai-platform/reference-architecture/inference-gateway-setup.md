@@ -12,6 +12,17 @@ last_update:
 
 This document covers the **hands-on deployment procedures** for a kgateway + Bifrost-based inference gateway. For architectural concepts and design principles, see [Inference Gateway Routing](../design-architecture/inference-gateway-routing.md).
 
+## Production Inference Pipeline Architecture
+
+Complete request flow of the EKS Auto Mode production inference pipeline. kgateway ExtProc analyzes prompts to determine LLM routing, passes through Bifrost governance and llm-d KV Cache-aware routing to the optimal model.
+
+<iframe
+  src="/engineering-playbook/agentic-platform-architecture.html?theme=dark"
+  style={{width: '100%', height: '1600px', border: 'none', borderRadius: '12px'}}
+  title="Agentic AI Platform Inference Pipeline Architecture"
+  loading="lazy"
+/>
+
 ---
 
 ## 1. kgateway Installation and Base Resource Configuration
