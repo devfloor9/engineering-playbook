@@ -10,7 +10,7 @@ last_update:
 ---
 
 
-> **Purpose**: This guide provides detailed specifications for EKS Provisioned Control Plane (PCP) tiers, explains control plane architecture improvements, and outlines performance validation methodologies.
+> **목적**: 이 가이드는 EKS Provisioned Control Plane (PCP) 티어별 상세 사양, 컨트롤 플레인 아키텍처 개선 효과, 성능 검증 방법론을 제공합니다.
 
 :::tip 관련 문서
 Control Plane 아키텍처 개요, CRD 영향 분석, 모니터링 설정, CRD 설계 베스트 프랙티스는 **[EKS Control Plane & CRD at Scale 종합 가이드](./eks-control-plane-crd-scaling)**를 참조하세요.
@@ -18,69 +18,69 @@ Control Plane 아키텍처 개요, CRD 영향 분석, 모니터링 설정, CRD �
 
 ---
 
-## In this post
+## 이 문서에서 다루는 내용
 
-Organizations running large-scale Kubernetes workloads on Amazon EKS face a critical question: how do you ensure your control plane can handle peak load without over-provisioning? This technical deep dive explores three key areas:
+대규모 Kubernetes 워크로드를 Amazon EKS에서 운영하는 조직은 핵심 질문에 직면합니다: 오버 프로비저닝 없이 컨트롤 플레인이 피크 부하를 처리할 수 있도록 어떻게 보장하는가? 이 기술 심화 가이드는 세 가지 핵심 영역을 다룹니다:
 
-1. **PCP tier specifications and practical object limits** — Understanding API request concurrency (seats), pod scheduling rates, and etcd database sizing with real-world examples
-2. **EKS control plane architecture improvements** — How AWS engineering enhancements deliver consistent performance and higher availability
-3. **Performance validation methodology** — Using ClusterLoader2 and comprehensive metrics to verify control plane capacity
+1. **PCP 티어 스팩 및 Practical 오브젝트 한도** — API request concurrency (seats), pod scheduling rates, and etcd database sizing with real-world examples
+2. **EKS 컨트롤 플레인 아키텍처 개선** — AWS 엔지니어링 개선이 deliver consistent performance and higher availability
+3. **성능 검증 방법론** — ClusterLoader2를 활용한 and comprehensive metrics to verify control plane capacity
 
-Whether you're planning a 10,000-node cluster or troubleshooting API throttling, this guide provides the technical details and measurement strategies you need to right-size your EKS control plane.
+10,000노드 클러스터를 계획하거나 API throttling을 트러블슈팅하는 경우, 이 가이드는 EKS 컨트롤 플레인을 적정 규모로 설정하기 위한 기술적 세부사항과 측정 전략을 제공합니다.
 
 ---
 
-## 1. PCP Tier Specifications and Practical Object Limits
+## 1. PCP 티어 스팩 기준 및 Practical 오브젝트 수량
 
-> **Key takeaway:** API Request Concurrency (Seats) represents "concurrent seat capacity," not "concurrent request count." A single LIST request can consume up to 10 seats depending on the number of objects returned. Customer-facing concurrency numbers (e.g., 4XL = 6,800 seats) apply cluster-wide. For a 10,000-node / 1,000,000-pod environment, you need ~8.2 GB etcd DB capacity at peak, ~1,155 seats, and ~370 pods/sec for AZ failure recovery — making **4XL the recommended tier**. Kubernetes upstream officially supports up to 5,000 nodes / 150,000 pods, though AWS has benchmarked both 5K and 10K node configurations. **Measure actual APF seat usage** via `apiserver_flowcontrol_current_executing_seats` in CloudWatch (free) over a 1-week period to determine the appropriate tier.
+> **핵심 요약:** API Request Concurrency (Seats) represents "concurrent seat capacity," not "concurrent request count." A single LIST request can consume up to 10 seats depending on the number of objects returned. Customer-facing concurrency numbers (e.g., 4XL = 6,800 seats) apply cluster-wide. For a 10,000-node / 1,000,000-pod environment, you need ~8.2 GB etcd DB capacity at peak, ~1,155 seats, and ~370 pods/sec for AZ failure recovery — making **4XL the recommended tier**. Kubernetes upstream officially supports up to 5,000 nodes / 150,000 pods, though AWS has benchmarked both 5K and 10K node configurations. **Measure actual APF seat usage** via `apiserver_flowcontrol_current_executing_seats` in CloudWatch (free) over a 1-week period to determine the appropriate tier.
 
-### 1.1 Large-Scale Single Cluster Benchmarks
+### 1.1 대형 고객 단일 클러스터 규모 벤치마크
 
-The following reference data is based on public documentation and AWS benchmarks for large single-cluster deployments.
+다음 참고 데이터는 공개 문서 및 대형 단일 클러스터 배포에 대한 AWS 벤치마크를 기반으로 합니다.
 
-#### Kubernetes Upstream and EKS Official Test Limits
+#### Kubernetes Upstream 및 EKS 공식 테스트 한도
 
-| Benchmark | Nodes | Total Pods | Total K8s Objects | Notes |
+| 벤치마크 | 노드 | 총 Pod 수 | 총 K8s 오브젝트 | 비고 |
 |-----------|------:|----------:|-----------------:|-------|
-| **K8s SIG-Scalability Official Limit** | 5,000 | 150,000 | ~300,000 | Upstream SLI/SLO guarantee scope |
-| **EKS 5K Node Benchmark** | 5,000 | ~150,000 | ~300,000 | AWS validated |
+| **K8s SIG-Scalability Official Limit** | 5,000 | 150,000 | ~300,000 | Upstream SLI/SLO 보장 범위 |
+| **EKS 5K Node Benchmark** | 5,000 | ~150,000 | ~300,000 | AWS 검증 완료 |
 | **EKS 10K Node Benchmark** | 10,000 | ~500,000+ | ~760,000 | PCP 4XL, API P99 < 1s achieved |
 
-> **Note:** While Kubernetes upstream's official SLI/SLO guarantee covers 5,000 nodes / 150,000 pods, this represents a **conservative baseline applicable to all Kubernetes distributions**. EKS PCP is designed to support beyond this threshold into 10K+ node environments.
+> **참고:** While Kubernetes upstream's official SLI/SLO guarantee covers 5,000 nodes / 150,000 pods, this represents a **conservative baseline applicable to all Kubernetes distributions**. EKS PCP is designed to support beyond this threshold into 10K+ node environments.
 
-#### Confirmed Customer Cases
+#### 확인된 고객 사례
 
-| Case | Object Count | Tier | Result |
+| 사례 | 오브젝트 수 | 티어 | 결과 |
 |------|-------------|------|--------|
-| **Company S** (Cloud/SaaS, cert-manager) | ~200K CRDs + ~400K related = ~600K | PCP recommended | Stable operations |
-| **Company C** (Networking/Security, accessrulegroups) | ~12,500 CRDs (~300 KB each) | - | LIST timeout issues |
-| **Kyverno admissionreports leak** (open-source controller) | 1,565,106 CRDs | Standard | etcd DB exceeded 8GB → failure |
+| **Company S** (Cloud/SaaS, cert-manager) | ~200K CRDs + ~400K related = ~600K | PCP recommended | 안정 운영 |
+| **Company C** (Networking/Security, accessrulegroups) | ~12,500 CRDs (~300 KB each) | - | LIST 타임아웃 이슈 |
+| **Kyverno admissionreports leak** (open-source controller) | 1,565,106 CRDs | Standard | etcd DB 8GB 초과 → 장애 |
 
-#### Important Notes on Cluster Scale
+#### 클러스터 규모에 대한 중요 참고사항
 
-Some large customers claim to operate "tens of thousands of nodes in a single cluster." However, **actual control plane load is not determined solely by node/pod count**. Two 10,000-node clusters can require completely different PCP tiers depending on workload patterns.
+일부 대형 고객은 "단일 클러스터에서 수만 개의 노드를 운영"한다고 주장합니다. 그러나 **실제 컨트롤 플레인 부하는 노드/Pod 수만으로 결정되지 않습니다**. Two 10,000-node clusters can require completely different PCP tiers depending on workload patterns.
 
-**Accurate tier sizing requires measuring actual APF seat usage, not claimed scale.** Refer to section 1.9 "APF Seat Usage Monitoring Guide" to measure your cluster's actual concurrency consumption.
+**정확한 티어 사이징은 주장된 규모가 아닌 실제 APF seat 사용량 측정이 필요합니다.** Refer to section 1.9 "APF Seat Usage Monitoring Guide" to measure your cluster's actual concurrency consumption.
 
-> **Note:** Most large customers operate **multiple clusters** segmented by workload, region, and environment, rather than scaling a single cluster indefinitely.
+> **참고:** Most large customers operate **multiple clusters** segmented by workload, region, and environment, rather than scaling a single cluster indefinitely.
 
-> **Note:** AWS has benchmarked PCP performance in both 5K and 10K node environments.
+> **참고:** AWS has benchmarked PCP performance in both 5K and 10K node environments.
 
-#### Key Bottlenecks in Single Cluster Scaling
+#### 단일 클러스터 스케일링의 주요 병목
 
-| Scale | Primary Bottleneck | Description |
+| 규모 | 주요 병목 | 설명 |
 |-------|-------------------|-------------|
-| **~1,000 nodes** | Generally none | Standard tier sufficient for most workloads |
-| **~3,000 nodes** | etcd DB size, API Concurrency | XL+ required if CRD-heavy |
-| **~5,000 nodes** | Scheduler throughput, LIST latency | Approaching K8s upstream official limit, 2XL+ recommended |
-| **~10,000 nodes** | All components can saturate | 4XL required, consider AZ failure recovery time |
-| **~15,000+ nodes** | etcd 16GB limit, API Server horizontal scaling limits | 8XL or consider cluster splitting |
+| **~1,000 nodes** | 일반적으로 없음 | 대부분의 워크로드에 Standard 티어 충분 |
+| **~3,000 nodes** | etcd DB size, API Concurrency | CRD가 많으면 XL+ 필요 |
+| **~5,000 nodes** | Scheduler throughput, LIST latency | K8s upstream 공식 한도에 근접, 2XL+ recommended |
+| **~10,000 nodes** | 모든 컴포넌트 포화 가능 | 4XL required, consider AZ failure recovery time |
+| **~15,000+ nodes** | etcd 16GB limit, API Server horizontal scaling limits | 8XL or 클러스터 분리 검토 |
 
-### 1.2 Official Tier Specifications
+### 1.2 티어별 공식 사양
 
-Amazon EKS Provisioned Control Plane allows customers to directly select a control plane scaling tier, **pre-provisioning capacity**. While Standard mode auto-scales based on workload, PCP guarantees the minimum performance floor of the selected tier.
+Amazon EKS Provisioned Control Plane은 고객이 직접 컨트롤 플레인 스케일링 티어를 선택하여 **용량을 사전 프로비저닝**할 수 있게 합니다. While Standard mode auto-scales based on workload, PCP guarantees the minimum performance floor of the selected tier.
 
-| Tier | API Request Concurrency (seats) | Pod Scheduling Rate (pods/sec) | Cluster DB Size | SLA | Price ($/hr) |
+| 티어 | API Request Concurrency (seats) | Pod Scheduling Rate (pods/sec) | Cluster DB Size | SLA | 가격 ($/hr) |
 |------|-------------------------------:|-------------------------------:|----------------:|----:|-------------:|
 | **Standard** | Auto-scaling | Auto-scaling | 8 GB | 99.95% | $0.10 |
 | **XL** | 1,700 | 167 | 16 GB | 99.99% | $1.65 |
@@ -88,13 +88,13 @@ Amazon EKS Provisioned Control Plane allows customers to directly select a contr
 | **4XL** | 6,800 | 400 | 16 GB | 99.99% | $6.90 |
 | **8XL** | 13,600 | 400 | 16 GB | 99.99% | $14.00 |
 
-> **Note:** Standard tier auto-scales based on workload. XL+ tiers guarantee the minimum performance floor for that tier, with auto-scaling available beyond the baseline as needed. For current pricing, see the [AWS EKS pricing page](https://aws.amazon.com/eks/pricing/).
+> **참고:** Standard tier auto-scales based on workload. XL+ tiers guarantee the minimum performance floor for that tier, with auto-scaling available beyond the baseline as needed. For current pricing, see the [AWS EKS pricing page](https://aws.amazon.com/eks/pricing/).
 
-### 1.3 Detailed Control Plane Parameters by Tier
+### 1.3 티어별 K8s 컨트롤 플레인 파라미터 상세
 
-Performance differences across tiers are determined by core parameters in kube-apiserver, kube-scheduler, and kube-controller-manager.
+티어 간 성능 차이는 kube-apiserver, kube-scheduler, kube-controller-manager의 핵심 파라미터에 의해 결정됩니다.
 
-| Parameter | XL | 2XL | 4XL | 8XL |
+| 파라미터 | XL | 2XL | 4XL | 8XL |
 |-----------|---:|----:|----:|----:|
 | **API Server max-requests-inflight** | 567 | 1,134 | 1,511 | 1,511 |
 | **API Server max-mutating-requests-inflight** | 283 | 566 | 756 | 756 |
@@ -107,13 +107,13 @@ Performance differences across tiers are determined by core parameters in kube-a
 | **KCM concurrent-hpa-syncs** | 29 | 50 | 50 | 50 |
 | **KCM concurrent-job-syncs** | 180 | 340 | 500 | 500 |
 
-> **Note:** Standard tier automatically adjusts control plane parameters based on workload.
+> **참고:** Standard tier automatically adjusts control plane parameters based on workload.
 
-### 1.4 What Each Metric Actually Means
+### 1.4 각 메트릭의 실제 의미
 
 #### API Request Concurrency (Seats)
 
-"API Request Concurrency = 1,700 seats" does **not** mean the system can handle 1,700 simultaneous simple requests.
+"API Request Concurrency = 1,700 seats"는 시스템이 1,700개의 동시 단순 요청을 처리할 수 있다는 의미가 **아닙니다**.
 
 - **Seat** is the concurrency unit in APF (API Priority and Fairness). `max-requests-inflight` + `max-mutating-requests-inflight` sum to the API Server's **Total Concurrency Limit**, which is proportionally distributed across PriorityLevelConfigurations.
 - **Simple requests** (GET/POST/PUT/DELETE): 1 seat consumed
@@ -121,30 +121,30 @@ Performance differences across tiers are determined by core parameters in kube-a
 - **WATCH requests**: Consume 1 seat during initial notification burst, then released
 - **WRITE requests**: Continue occupying additional seat time for WATCH notification processing even after write completion
 
-> **Note:** AWS official spec API Request Concurrency is cluster-wide. EKS control planes run multiple API Servers for high availability, and the sum of APF seats across all servers equals the cluster-wide Concurrency.
+> **참고:** AWS official spec API Request Concurrency is cluster-wide. EKS control planes run multiple API Servers for high availability, and the sum of APF seats across all servers equals the cluster-wide Concurrency.
 
-**Behavior when exceeded**:
-1. Total concurrency limit exceeded → requests **wait in APF queue**
-2. Queue full → rejected with **HTTP 429 (Too Many Requests)**
-3. Monitor via `apiserver_flowcontrol_rejected_requests_total` metric
+**한도 초과 시 동작:**
+1. 총 동시성 한도 초과 → 요청이 **APF 큐에서 대기**
+2. 큐 가득 참 → **HTTP 429 (Too Many Requests)**로 거부
+3. 모니터링: `apiserver_flowcontrol_rejected_requests_total` metric
 
-#### Why 1,700 Seats Isn't as Small as It Sounds
+#### 1,700 Seat이 작아 보이지 않는 이유
 
-Seats are **weighted concurrency**, not a simple connection count. The key factor is **occupation duration** — seats are returned immediately when a request completes.
+Seat은 단순 연결 수가 아닌 **가중 동시성(weighted concurrency)**입니다. 핵심 요소는 **점유 시간(occupation duration)** — seats are returned immediately when a request completes.
 
-| Request Type | Seat Cost | Typical Duration | Throughput per Seat per Second |
+| 요청 타입 | Seat 비용 | 일반적 점유 시간 | Seat당 초당 처리량 |
 |-------------|:---------:|:----------------:|:-----------------------------:|
 | Simple GET | 1 | ~5ms | ~200 req/s |
 | LIST (< 500 objects) | 1 | ~100ms | ~10 req/s |
 | LIST (5,000 objects) | 10 | ~3s | ~0.3 req/s |
 | CREATE/UPDATE | 1 | ~60ms (write + WATCH propagation) | ~16 req/s |
 
-**Streaming analogy**: Think of seats as **bandwidth**, not connections. A 4K stream consumes 25 Mbps while SD uses 3 Mbps — "1 Gbps bandwidth" doesn't mean 1,000 concurrent users if they're all streaming 4K. Similarly, `kubectl get pods -A` (LIST all) is "4K streaming" (10 seats), while `kubectl get pod my-pod` is "SD streaming" (1 seat).
+**스트리밍 비유**: Seat을 연결 수가 아닌 **대역폭**으로 생각하세요. A 4K stream consumes 25 Mbps while SD uses 3 Mbps — "1 Gbps bandwidth" doesn't mean 1,000 concurrent users if they're all streaming 4K. Similarly, `kubectl get pods -A` (LIST all) is "4K streaming" (10 seats), while `kubectl get pod my-pod` is "SD streaming" (1 seat).
 
-**Real-world production example (~200 nodes, XL tier = 1,700 seats)**:
+**실제 프로덕션 예시 (~200 nodes, XL tier = 1,700 seats)**:
 
 ```
-Steady-state load:
+상시 부하:
   kubelet heartbeats (200 nodes × 10s interval)     → ~20 seats
   20 controllers in reconcile loops                   → ~50 seats
   Prometheus scraping                                 → ~5 seats
@@ -152,7 +152,7 @@ Steady-state load:
   ─────────────────────────────────────────────────────────────
   Total: ~85 seats (5% of 1,700)
 
-Peak burst scenario (simultaneous):
+피크 버스트 시나리오 (동시 발생):
   500 Deployment rollouts                             → +500 seats
   Monitoring dashboards running large LISTs           → +30 seats
   HPA simultaneous scaling                            → +100 seats
@@ -161,34 +161,34 @@ Peak burst scenario (simultaneous):
   Total: ~1,015 seats (60% of 1,700)
 ```
 
-**Tier selection is driven by peak bursts, not steady-state.** 1,700 seats (XL) becomes insufficient when:
+**티어 선택은 상시 부하가 아닌 피크 버스트에 의해 결정됩니다.** 1,700 seats (XL) becomes insufficient when:
 - **500+ nodes** with AZ failure triggering 1/3 pod rescheduling
 - **10+ large CRD controllers** reconciling simultaneously
 - **CI/CD pipelines** deploying hundreds of Deployments at once
 
-In these cases, upgrade to 2XL (3,400 seats) or 4XL (6,800 seats).
+이런 경우 2XL (3,400 seats) 또는 4XL (6,800 seats)로 업그레이드가 필요합니다.
 
 #### Pod Scheduling Rate (pods/sec)
 
-- Represents **the number of pods the Scheduler can bind per second**.
+- **Scheduler가 초당 바인딩할 수 있는 Pod 수**를 나타냅니다.
 - Determined by `kube-api-qps` and `kube-api-burst` parameters that control how fast the Scheduler can make API Server requests.
 - At 4XL+, Scheduler QPS plateaus at 400, but bottlenecks are mitigated by increased API Server count (3+).
 - Actual throughput can be verified via `scheduler_schedule_attempts_total` metric.
 
 #### Cluster DB Size (etcd)
 
-- The upper limit of **logical data size** storable in etcd.
+- etcd에 저장 가능한 **논리적 데이터 크기**의 상한입니다.
 - Standard: 8 GB
 - XL+: 16 GB
-- Due to etcd's MVCC characteristics, **frequent updates cause revision accumulation, making actual DB size 2-5x the data size**.
-- Compaction runs every 5 minutes to delete old revisions, but extremely high update frequencies can fill the DB between compaction cycles.
-- **When quota exceeded, all writes are rejected** → cluster effectively down
+- etcd의 MVCC 특성으로 인해 **빈번한 업데이트는 리비전 누적을 유발하여 실제 DB 크기가 데이터 크기의 2~5배**가 됩니다.
+- Compaction이 5분마다 실행되어 오래된 리비전을 삭제하지만, 극도로 높은 업데이트 빈도에서는 compaction 사이클 사이에 DB가 가득 찰 수 있습니다.
+- **quota 초과 시 모든 쓰기가 거부됨** → 클러스터 사실상 다운
 
-### 1.5 API Request Concurrency vs Inflight Seats — Concept Deep Dive with Examples
+### 1.5 API Request Concurrency vs Inflight Seats — 개념 심화 및 예시
 
-#### Terminology: Two Different Layers
+#### 용어 정리: 두 가지 다른 레이어
 
-"API Request Concurrency" and "Inflight Seats" are often used interchangeably, but they represent **different layers**.
+"API Request Concurrency"와 "Inflight Seats"는 종종 혼용되지만, **다른 레이어**를 나타냅니다.
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -196,7 +196,7 @@ In these cases, upgrade to 2XL (3,400 seats) or 4XL (6,800 seats).
 │         "API Request Concurrency = 6,800 seats" (4XL)            │
 │                                                                   │
 │   = Total "seat capacity" for concurrent requests cluster-wide   │
-│   = Individual API Server APF seats sum × API Server count       │
+│   = 개별 API Server APF seats sum × API Server count       │
 └──────────────────────┬──────────────────────────────────────────┘
                        │
           ┌────────────┼────────────┐
@@ -210,29 +210,29 @@ In these cases, upgrade to 2XL (3,400 seats) or 4XL (6,800 seats).
 Cluster Total Concurrency = Individual Server APF Seats × API Server Count
 ```
 
-| Concept | Scope | Description |
+| 개념 | 범위 | 설명 |
 |---------|-------|-------------|
-| **max-requests-inflight** | Individual API Server | Maximum concurrent non-mutating (read-only) requests |
-| **max-mutating-requests-inflight** | Individual API Server | Maximum concurrent mutating requests |
-| **Individual Server APF Total Seats** | Individual API Server | Sum of the above two values. Proportionally distributed to APF PriorityLevels |
-| **API Request Concurrency** | Cluster-wide | Individual Server APF Seats × API Server Count. **Value published in AWS official specs** |
+| **max-requests-inflight** | 개별 API Server | 최대 동시 비변경(읽기 전용) 요청 수 |
+| **max-mutating-requests-inflight** | 개별 API Server | 최대 동시 변경 요청 수 |
+| **Individual Server APF Total Seats** | 개별 API Server | 위 두 값의 합. APF PriorityLevel에 비례 배분 |
+| **API Request Concurrency** | Cluster-wide | 개별 Server APF Seats × API Server 수. **AWS 공식 스팩에 게시된 값** |
 
-#### Core Difference: "Concurrent Request Count" vs "Concurrent Seat Count"
+#### 핵심 차이: "동시 요청 수" vs "동시 Seat 수"
 
-**Seat (capacity)** does not equal 1 request = 1 seat. Seats consumed vary by request type:
+**Seat (용량)**은 1 요청 = 1 seat이 아닙니다. 요청 타입에 따라 소비되는 seat이 다릅니다:
 
-| Request Type | Seat Consumption | Occupation Duration | Description |
+| 요청 타입 | Seat 소비 | 점유 시간 | 설명 |
 |-------------|:----------------:|---------------------|-------------|
-| **Simple GET** (e.g., `kubectl get pod my-pod`) | **1** | Until response complete | Single object retrieval |
-| **Simple CREATE/UPDATE/DELETE** | **1** | Write complete + WATCH notification propagation time | Mutating requests occupy additional time post-write |
-| **Small LIST** (< 500 objects returned) | **1** | Until response complete | Work Estimator calculates as 1 seat |
-| **Large LIST** (1,000 objects returned) | **~2** | Until response complete | Increases proportional to object count |
-| **Large LIST** (5,000 objects returned) | **~10** | Until response complete | Work Estimator maximum |
-| **WATCH** | **1 initially** → **0** | Released after initial burst | Long-lived connection but seat released |
+| **Simple GET** (e.g., `kubectl get pod my-pod`) | **1** | 응답 완료까지 | 단일 오브젝트 조회 |
+| **Simple CREATE/UPDATE/DELETE** | **1** | 쓰기 완료 + WATCH 알림 전파 시간 | 쓰기 요청은 쓰기 후 추가 시간 점유 |
+| **Small LIST** (< 500 objects returned) | **1** | 응답 완료까지 | Work Estimator가 1 seat으로 계산 |
+| **Large LIST** (1,000 objects returned) | **~2** | 응답 완료까지 | 오브젝트 수에 비례하여 증가 |
+| **Large LIST** (5,000 objects returned) | **~10** | 응답 완료까지 | Work Estimator 최대값 |
+| **WATCH** | **1 initially** → **0** | 초기 burst 후 해제 | 장기 연결이지만 seat 해제됨 |
 
-#### Concrete Scenario Example (4XL Cluster)
+#### 구체적 시나리오 예시 (4XL 클러스터)
 
-**Scenario**: 4XL cluster (total 6,800 seats) with the following simultaneous requests
+**시나리오**: 4XL 클러스터 (총 6,800 seats)에서 다음 요청이 동시에 발생
 
 ```
 ┌─ Concurrent Requests ───────────────────────────────────────────┐
@@ -266,12 +266,12 @@ Cluster Total Concurrency = Individual Server APF Seats × API Server Count
 - During peak LIST request bursts, seat consumption spikes, causing 429 errors
 - **Actually 4XL+ is recommended**
 
-#### APF PriorityLevel Distribution Example (4XL Basis)
+#### APF PriorityLevel 분배 예시 (4XL Basis)
 
 Cluster-wide APF Seats are proportionally distributed to PriorityLevelConfigurations on each API Server. Below is an individual API Server example:
 
 ```
-Individual API Server APF Seat Distribution Example
+개별 API Server APF Seat Distribution Example
 │
 ├─ system (highest priority)    ─── ~5%  = ~113 seats   ← kube-system core components
 ├─ leader-election              ─── ~5%  = ~113 seats   ← Leader election requests
@@ -302,7 +302,7 @@ CRD Usage Scenario:
   - CRD Type D (monitoring rules): 1 per namespace = 200 × ~5 KB = ~1 MB
 ```
 
-#### Step 1: etcd DB Size Estimation
+#### Step 1: etcd DB 크기 산정
 
 ```
 [K8s Built-in Objects]
@@ -455,7 +455,7 @@ CRD Usage Scenario:
 └───────────────────────────────────────────────────────────────────┘
 ```
 
-#### PCP Tier Sizing Formula Summary
+#### PCP 티어 산정 공식 요약
 
 ```
 [Formula 1: etcd DB Size]
@@ -509,10 +509,10 @@ CRD Usage Scenario:
 
 #### Actual Benchmarks and Customer Cases
 
-| Case | Object Count | Tier | Result |
+| 사례 | 오브젝트 수 | 티어 | 결과 |
 |------|-------------|------|--------|
 | **AWS PCP Official Benchmark** | ~760,000 K8s objects | 4XL | API P99 < 1s, Scheduler ~350 pods/sec maintained |
-| **Company S** (Cloud/SaaS, cert-manager) | ~200K CRDs + ~400K related = ~600K | PCP recommended | Stable operations |
+| **Company S** (Cloud/SaaS, cert-manager) | ~200K CRDs + ~400K related = ~600K | PCP recommended | 안정 운영 |
 | **Company C** (Networking/Security, accessrulegroups) | ~12,500 CRDs | - | ~300 KB each → LIST timeout (size issue) |
 | **Kyverno admissionreports leak** (open-source controller) | 1,565,106 | Standard | etcd DB exceeded → failure |
 
@@ -536,7 +536,7 @@ CRD operations have unique performance characteristics distinct from built-in re
 | **Request Size** | Individual CRD objects can exceed 1.5MB etcd request limit | Medium |
 | **List Call Cost** | CRDs use JSON encoding (not protobuf) → LIST/WATCH performance significantly degraded vs built-in resources | High |
 
-### 1.8 Tier Selection Decision Tree
+### 1.8 티어 선택 의사결정 트리
 
 ```
 Calculate Total CRD Object Capacity
@@ -671,7 +671,7 @@ Measured Peak Seat Usage
 │   └─ 4XL recommended (6,800 seats, ~21-60% headroom)
 │
 └─ Peak > 5,400 seats
-    └─ 8XL (13,600 seats) or consider cluster splitting
+    └─ 8XL (13,600 seats) or 클러스터 분리 검토
     
 ⚠️ Important: Maintain minimum 20% safety margin.
    When peak reaches 80% of limit, evaluate higher tier.
@@ -679,7 +679,7 @@ Measured Peak Seat Usage
    deploy failure, runaway controller infinite LIST, etc.).
 ```
 
-#### Customer Measurement Request Template
+#### 고객 측정 요청 템플릿
 
 Share the following with customers to collect 1 week of data for appropriate tier determination:
 
@@ -708,11 +708,11 @@ Please collect the following 3 metrics from your current cluster over 1 week (in
 
 ---
 
-## 2. EKS Control Plane Architecture Improvements
+## 2. EKS 컨트롤 플레인 아키텍처 개선 효과
 
-> **Key takeaway:** EKS has continuously improved etcd architecture to achieve **consistent latency, enhanced availability, etcd DB 16GB expansion (XL+), Event Sharding, and API Server horizontal scaling**. Monitor etcd DB size using the `apiserver_storage_size_bytes` metric.
+> **핵심 요약:** EKS has continuously improved etcd architecture to achieve **consistent latency, enhanced availability, etcd DB 16GB expansion (XL+), Event Sharding, and API Server horizontal scaling**. Monitor etcd DB size using the `apiserver_storage_size_bytes` metric.
 
-### 2.1 Overview
+### 2.1 개요
 
 AWS continuously enhances the EKS control plane etcd architecture, delivering higher performance and availability. These improvements provide direct benefits to customers across all PCP tiers.
 
@@ -727,7 +727,7 @@ AWS continuously enhances the EKS control plane etcd architecture, delivering hi
 | **etcd Event Sharding** | Event objects isolated to separate partition | On XL+ tiers, events don't impact main etcd |
 | **API Server Horizontal Scaling** | Multiple API Server operations | Higher tiers enable API Server horizontal scaling for load distribution |
 
-### 2.3 Features Available Only on XL+ Tiers
+### 2.3 XL 이상 티어에서만 사용 가능한 기능
 
 | Feature | Standard | XL+ |
 |---------|:--------:|:---:|
@@ -738,9 +738,9 @@ AWS continuously enhances the EKS control plane etcd architecture, delivering hi
 
 ---
 
-## 3. EKS Control Plane Performance Validation Methodology
+## 3. EKS 컨트롤 플레인 성능 검증 방법론
 
-> **Key takeaway:** **ClusterLoader2 (CL2)** is the standard load testing tool used by both AWS and the Kubernetes community, including in AWS PCP official benchmarks. Testing follows a **5-phase strategy** (Baseline → Ramp-up → Sustained Peak → Burst → Recovery), but requires at minimum **deploying Prometheus to collect detailed APF metrics and etcd metrics** for accurate bottleneck analysis. **Success criteria** follows official Kubernetes SLI/SLO: API Mutating P99 ≤ 1s, Cluster LIST P99 ≤ 30s, Pod Scheduling P99 ≤ 5s. **CloudWatch free metrics cover**: 429 errors, API P99 latency, etcd DB size, APF seat usage, scheduling attempts. **Prometheus required for**: etcd latency, APF queue depth, KCM workqueue depth, per-PriorityLevel saturation analysis.
+> **핵심 요약:** **ClusterLoader2 (CL2)** is the standard load testing tool used by both AWS and the Kubernetes community, including in AWS PCP official benchmarks. Testing follows a **5-phase strategy** (Baseline → Ramp-up → Sustained Peak → Burst → Recovery), but requires at minimum **deploying Prometheus to collect detailed APF metrics and etcd metrics** for accurate bottleneck analysis. **Success criteria** follows official Kubernetes SLI/SLO: API Mutating P99 ≤ 1s, Cluster LIST P99 ≤ 30s, Pod Scheduling P99 ≤ 5s. **CloudWatch free metrics cover**: 429 errors, API P99 latency, etcd DB size, APF seat usage, scheduling attempts. **Prometheus required for**: etcd latency, APF queue depth, KCM workqueue depth, per-PriorityLevel saturation analysis.
 
 ### 3.1 Testing Tool: ClusterLoader2 (CL2)
 
@@ -796,7 +796,7 @@ EOL
 | `SMALL_GROUP_SIZE` | Small Deployment size | 5 | 5 |
 | `CL2_SCHEDULER_THROUGHPUT_THRESHOLD` | Scheduler throughput threshold | 20 | 100 |
 
-### 3.2 Test Scenario Types
+### 3.2 테스트 시나리오 유형
 
 | Test Type | Purpose | CL2 Config |
 |-----------|---------|------------|
@@ -834,7 +834,7 @@ Phase 5: Recovery Testing
 └── Verify residual queue depth, latency, etc.
 ```
 
-### 3.4 Simple Script-Based Testing (Without CL2)
+### 3.4 간단한 스크립트 기반 테스트 (Without CL2)
 
 ```bash
 # 1. Mass Deployment creation for API load test
@@ -863,7 +863,7 @@ while true; do kubectl get pods --all-namespaces > /dev/null; done
 | Pod Startup Latency | P99 ≤ 5s (excluding image pull/init) | `kubelet_pod_start_sli_duration_seconds` |
 | Pod Scheduling Latency | P99 ≤ 5s | `scheduler_pod_scheduling_sli_duration_seconds` |
 
-### 3.6 Key Monitoring Metrics — Availability by Collection Path
+### 3.6 주요 모니터링 메트릭 — 수집 경로별 가용성 by Collection Path
 
 EKS provides 4 dimensions of Control Plane observability:
 
@@ -908,7 +908,7 @@ kubectl get --raw=/apis/metrics.eks.amazonaws.com/v1/ksh/container/metrics
 kubectl get --raw=/apis/metrics.eks.amazonaws.com/v1/etcd/container/metrics
 ```
 
-> **Note:** Using Amazon Managed Prometheus (AMP) Agentless Collector (Poseidon) enables automatic collection of Control Plane metrics to AMP workspace without installing Prometheus in-cluster.
+> **참고:** Using Amazon Managed Prometheus (AMP) Agentless Collector (Poseidon) enables automatic collection of Control Plane metrics to AMP workspace without installing Prometheus in-cluster.
 
 ### 3.7 Load Testing Checklist (10 Items)
 
@@ -927,7 +927,7 @@ kubectl get --raw=/apis/metrics.eks.amazonaws.com/v1/etcd/container/metrics
 
 > **Recommendation:** During load testing, **strongly recommend deploying at minimum Prometheus to collect detailed APF metrics and etcd metrics**.
 
-### 3.8 Useful PromQL Queries
+### 3.8 유용한 PromQL 쿼리
 
 ```promql
 # API request latency heatmap (most important)
@@ -949,7 +949,7 @@ sum(rate(apiserver_request_total{code=~"5.."}[5m]))
 / sum(rate(apiserver_request_total[5m]))
 ```
 
-### 3.9 Useful CloudWatch Logs Insights Queries
+### 3.9 유용한 CloudWatch Logs Insights 쿼리
 
 ```sql
 -- Find slowest API calls
@@ -999,7 +999,7 @@ API latency high?
     └─ Review APF configuration (specific priority group saturation)
 ```
 
-### 3.11 PCP Tier Upgrade Decision Criteria Summary
+### 3.11 PCP 티어별 업그레이드 판단 기준 요약
 
 | Current Tier | Key Monitoring Metrics | Upgrade Condition | Action |
 |-------------|------------------------|-------------------|--------|
