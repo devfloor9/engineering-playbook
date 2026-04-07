@@ -17,7 +17,7 @@ last_update:
 基于 EKS Auto Mode 的生产推理管道完整请求流程。kgateway ExtProc 分析提示词确定 LLM 路由，经过 Bifrost 治理层和 llm-d KV Cache 感知路由，将请求发送到最优模型。
 
 <iframe
-  src="/engineering-playbook/agentic-platform-architecture.html?theme=dark"
+  src="/engineering-playbook/agentic-platform-architecture-zh.html"
   style={{width: '100%', height: '1600px', border: 'none', borderRadius: '12px'}}
   title="Agentic AI Platform 推理管道架构"
   loading="lazy"

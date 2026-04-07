@@ -20,6 +20,19 @@ This documentation series guides you through understanding the platform architec
 
 ---
 
+## Production Inference Pipeline Architecture
+
+Complete request flow of the EKS Auto Mode production inference pipeline. kgateway ExtProc analyzes prompts to determine LLM routing, passes through Bifrost governance and llm-d KV Cache-aware routing to the optimal model.
+
+<iframe
+  src="/engineering-playbook/agentic-platform-architecture-en.html"
+  style={{width: '100%', height: '1600px', border: 'none', borderRadius: '12px'}}
+  title="Agentic AI Platform Inference Pipeline Architecture"
+  loading="lazy"
+/>
+
+---
+
 ## Documentation Structure
 
 <DocCardGrid columns={2}>

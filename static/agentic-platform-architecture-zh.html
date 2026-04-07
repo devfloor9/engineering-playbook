@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Agentic AI Platform — 추론 파이프라인 아키텍처 v2</title>
+  <title>Agentic AI Platform — 推理管道 아키텍처 v2</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -126,8 +126,8 @@
   <main id="main-content" role="main">
     <section class="hero animate">
       <div class="badge"><span class="badge-dot"></span> Production Ready · E2E Verified</div>
-      <h1><span>Agentic AI Platform</span><br>추론 파이프라인</h1>
-      <p>kgateway ExtProc 라우팅 · Bifrost 거버넌스 · llm-d KV Cache · Langfuse OTel</p>
+      <h1><span>Agentic AI Platform</span><br>推理管道</h1>
+      <p>kgateway ExtProc 路由 · Bifrost 治理 · llm-d KV Cache · Langfuse OTel</p>
     </section>
 
     <section class="flow-section">
@@ -160,18 +160,18 @@
               <div class="node-icon" style="background:#6366f1;color:white;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div>
               <div>
                 <div class="node-title">kgateway v2.2.2 <span class="tag" style="background:#6366f1">Gateway API</span> + ExtProc <span class="tag" style="background:var(--accent-secondary)">LLM Router</span></div>
-                <div class="node-sub">Envoy ext_proc gRPC · 프롬프트 분류 → 모델 라우팅 결정</div>
+                <div class="node-sub">Envoy ext_proc gRPC · 提示词分类 → 模型路由决策</div>
               </div>
             </div>
             <div class="node-detail">
-              <div class="node-detail-row"><span class="label">1단계</span> 요청 body BUFFERED → ExtProc gRPC로 전달</div>
-              <div class="node-detail-row"><span class="label">2단계</span> 프롬프트 분석 (키워드 · 길이 · 턴 수) → <strong>strong/weak</strong> 분류</div>
-              <div class="node-detail-row"><span class="label">3단계</span> <code>model</code> 필드 변환 + <code>x-model-tier</code> 헤더 설정</div>
-              <div class="node-detail-row"><span class="label">4단계</span> <code>clear_route_cache=true</code> → kgateway가 헤더 기반 재라우팅</div>
+              <div class="node-detail-row"><span class="label">步骤1</span> 请求 body BUFFERED → 转发到 ExtProc gRPC</div>
+              <div class="node-detail-row"><span class="label">步骤2</span> 提示词分析（关键词 · 长度 · 轮次） → <strong>strong/weak</strong> 分类</div>
+              <div class="node-detail-row"><span class="label">步骤3</span> <code>model</code> 字段转换 + <code>x-model-tier</code> 头部注入</div>
+              <div class="node-detail-row"><span class="label">步骤4</span> <code>clear_route_cache=true</code> → kgateway 基于头部重新路由</div>
             </div>
           </div>
 
-          <div class="arrow animate delay-4"><div class="arrow-line"></div><div class="arrow-head"></div><div class="arrow-label">x-model-tier 헤더 기반 라우팅 분기</div></div>
+          <div class="arrow animate delay-4"><div class="arrow-line"></div><div class="arrow-head"></div><div class="arrow-label">x-model-tier 头部路由分支</div></div>
 
           <!-- Branch: Strong / Weak -->
           <div class="branch-wrapper animate delay-5">
@@ -179,10 +179,10 @@
               <!-- STRONG PATH -->
               <div style="display:flex;flex-direction:column;gap:0;align-items:center;">
                 <div class="node" style="border-color:var(--negative);position:relative;">
-                  <span class="branch-label" style="background:var(--negative);color:white;">STRONG (복잡한 프롬프트)</span>
+                  <span class="branch-label" style="background:var(--negative);color:white;">STRONG (复杂提示词)</span>
                   <div class="node-h" style="margin-top:8px;">
                     <div class="node-icon" style="background:var(--bifrost);color:white;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
-                    <div><div class="node-title">Bifrost <span class="tag" style="background:var(--bifrost)">거버넌스</span></div>
+                    <div><div class="node-title">Bifrost <span class="tag" style="background:var(--bifrost)">治理</span></div>
                     <div class="node-sub">Semantic Cache (Redis) · Rate Limit · Cost Tracking · OTel→Langfuse</div></div>
                   </div>
                 </div>
@@ -207,10 +207,10 @@
               <!-- WEAK PATH -->
               <div style="display:flex;flex-direction:column;gap:0;align-items:center;">
                 <div class="node" style="border-color:var(--positive);position:relative;">
-                  <span class="branch-label" style="background:var(--positive);color:white;">WEAK (단순 프롬프트)</span>
+                  <span class="branch-label" style="background:var(--positive);color:white;">WEAK (简单提示词)</span>
                   <div class="node-h" style="margin-top:8px;">
                     <div class="node-icon" style="background:var(--bifrost);color:white;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
-                    <div><div class="node-title">Bifrost <span class="tag" style="background:var(--bifrost)">거버넌스</span></div>
+                    <div><div class="node-title">Bifrost <span class="tag" style="background:var(--bifrost)">治理</span></div>
                     <div class="node-sub">Semantic Cache (Redis) · Rate Limit · Cost Tracking · OTel→Langfuse</div></div>
                   </div>
                 </div>
@@ -237,7 +237,7 @@
     <!-- OBSERVABILITY -->
     <section style="padding:20px 0 48px;">
       <div class="container">
-        <div class="section-title animate delay-7"><h2>관측가능성 & 거버넌스 레이어</h2><p>Bifrost · llm-d · Langfuse 통합</p></div>
+        <div class="section-title animate delay-7"><h2>관측가능성 & 治理 레이어</h2><p>Bifrost · llm-d · Langfuse 集成</p></div>
         <div class="gov-layer animate delay-7">
           <div class="gov-layer-title">Governance + Observability Stack</div>
           <div class="gov-grid">
@@ -247,11 +247,11 @@
                 <div class="gov-card-title">Bifrost v1.4.11</div>
               </div>
               <ul>
-                <li>Semantic Cache — Redis 유사도 0.85+ 매칭</li>
-                <li>Rate Limiting — 분당/시간당 요청 제한</li>
-                <li>Cost Tracking — 모델별 토큰 비용 산정</li>
-                <li>Provider 라우팅 — llmd-glm5, llmd-qwen3</li>
-                <li>OTel Trace → Langfuse 전송</li>
+                <li>Semantic Cache — Redis 相似度 0.85+ 匹配</li>
+                <li>Rate Limiting — 每分钟/每小时请求限制</li>
+                <li>Cost Tracking — 按模型计算 Token 成本</li>
+                <li>Provider 路由 — llmd-glm5, llmd-qwen3</li>
+                <li>OTel Trace → Langfuse 导出</li>
               </ul>
             </div>
             <div class="gov-card llmd">
@@ -260,11 +260,11 @@
                 <div class="gov-card-title">llm-d v1.0.23</div>
               </div>
               <ul>
-                <li>Prefix-aware 라우팅 (KV Cache hit 87%+)</li>
-                <li>Load-aware 스코어링 (GPU 활용률)</li>
+                <li>Prefix-aware 路由 (KV Cache 命中 87%+)</li>
+                <li>Load-aware 评分 (GPU 利用率)</li>
                 <li>Redis KV Cache Indexer</li>
                 <li>EPP — Endpoint Picker Provider</li>
-                <li>Session affinity (대화 컨텍스트 유지)</li>
+                <li>Session affinity（对话上下文保持）</li>
               </ul>
             </div>
             <div class="gov-card langfuse" style="grid-column: span 2;">
@@ -273,12 +273,12 @@
                 <div class="gov-card-title">Langfuse v3.162.0 — OTel Observability</div>
               </div>
               <ul style="display:grid;grid-template-columns:1fr 1fr;gap:0 24px;">
-                <li>OTel Trace 수집 (Bifrost → OTLP)</li>
-                <li>ClickHouse 분석 엔진</li>
-                <li>프롬프트 / 응답 로그</li>
-                <li>PostgreSQL 메타데이터</li>
-                <li>모델별 latency · 토큰 · 비용 대시보드</li>
-                <li>Redis 캐시 + S3 Blob</li>
+                <li>OTel Trace 收集 (Bifrost → OTLP)</li>
+                <li>ClickHouse 分析引擎</li>
+                <li>提示词/响应日志</li>
+                <li>PostgreSQL 元数据</li>
+                <li>按模型 latency · Token · 成本仪表盘</li>
+                <li>Redis 缓存 + S3 Blob</li>
               </ul>
             </div>
           </div>
@@ -289,14 +289,14 @@
     <!-- INFRA -->
     <section class="infra-section">
       <div class="container">
-        <div class="section-title animate delay-8"><h2>인프라 구성</h2><p>EKS Auto Mode "agentic-platform" · us-east-2</p></div>
+        <div class="section-title animate delay-8"><h2>基础设施</h2><p>EKS Auto Mode "agentic-platform" · us-east-2</p></div>
         <div class="infra-grid animate delay-8">
           <div class="infra-card"><div class="infra-label">Auto Mode</div><div class="infra-value">general-purpose</div><div class="infra-sub">kgateway · ExtProc · Bifrost · Langfuse</div></div>
           <div class="infra-card"><div class="infra-label">GPU MNG #1</div><div class="infra-value">p5en.48xlarge</div><div class="infra-sub">H200×8 · Spot · GLM-5</div></div>
           <div class="infra-card"><div class="infra-label">GPU MNG #2</div><div class="infra-value">g6.xlarge</div><div class="infra-sub">L4×1 · Spot · Qwen3</div></div>
           <div class="infra-card"><div class="infra-label">Gateway</div><div class="infra-value">kgateway v2.2.2</div><div class="infra-sub">OCI · CRDs + ExtProc</div></div>
-          <div class="infra-card"><div class="infra-label">스토리지</div><div class="infra-value">EBS gp3 (CSI)</div><div class="infra-sub">ebs.csi.eks.amazonaws.com</div></div>
-          <div class="infra-card"><div class="infra-label">추가 Addons</div><div class="infra-value">vpc-cni · coredns</div><div class="infra-sub">kube-proxy · metrics-server</div></div>
+          <div class="infra-card"><div class="infra-label">存储</div><div class="infra-value">EBS gp3 (CSI)</div><div class="infra-sub">ebs.csi.eks.amazonaws.com</div></div>
+          <div class="infra-card"><div class="infra-label">附加 Addons</div><div class="infra-value">vpc-cni · coredns</div><div class="infra-sub">kube-proxy · metrics-server</div></div>
         </div>
       </div>
     </section>
