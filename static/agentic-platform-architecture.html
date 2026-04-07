@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="ko" class="theme-dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agentic AI Platform — 추론 파이프라인 아키텍처 v2</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/html-to-image@1.11.11/dist/html-to-image.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html.theme-dark {
+      --bg: #0A0A0A; --surface: #141414; --surface-hover: #1C1C1C;
+      --border: rgba(255,255,255,0.06); --text: #EDEDED; --text-secondary: #888;
+      --accent: #3b82f6; --accent-secondary: #8b5cf6;
+      --positive: #10b981; --negative: #f43f5e; --warning: #f59e0b;
+      --node-glow: rgba(59,130,246,0.15); --bifrost: #f97316; --llmd: #06b6d4;
+    }
+    html.theme-light {
+      --bg: #FAFAF9; --surface: #FFFFFF; --surface-hover: #F5F5F4;
+      --border: rgba(0,0,0,0.08); --text: #0f172a; --text-secondary: #64748b;
+      --accent: #2563eb; --accent-secondary: #7c3aed;
+      --positive: #059669; --negative: #e11d48; --warning: #d97706;
+      --node-glow: rgba(37,99,235,0.08); --bifrost: #ea580c; --llmd: #0891b2;
+    }
+    body { font-family: 'Noto Sans KR','Inter',sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; -webkit-font-smoothing: antialiased; transition: background .3s,color .3s; }
+    h1,h2,h3 { color: var(--text); letter-spacing: -0.03em; line-height: 1.2; font-family: 'Inter','Noto Sans KR',sans-serif; }
+    h1 { font-weight: 800; font-size: clamp(2.5rem,5vw,3.5rem); }
+    h2 { font-weight: 700; font-size: 2rem; }
+    h3 { font-weight: 600; font-size: 1.15rem; }
+    code { font-size: 0.8rem; padding: 1px 5px; border-radius: 3px; background: rgba(59,130,246,0.1); color: var(--accent); }
+    .container { max-width: 900px; margin: 0 auto; padding: 0 24px; }
+
+    .hero { text-align: center; padding: 80px 24px 32px; background: radial-gradient(ellipse at 50% 0%,var(--node-glow) 0%,transparent 60%); }
+    .hero h1 span { color: var(--accent); }
+    .hero p { color: var(--text-secondary); font-size: 1.05rem; margin-top: 10px; }
+    .badge { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 20px; font-size: .8rem; font-weight: 500; background: var(--surface); border: 1px solid var(--border); color: var(--text-secondary); margin-bottom: 14px; }
+    .badge-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--positive); animation: pulse 2s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1}50%{opacity:.4} }
+
+    /* FLOW */
+    .flow-section { padding: 32px 0 48px; }
+    .flow { display: flex; flex-direction: column; align-items: center; gap: 0; }
+    .node { position: relative; width: 100%; max-width: 760px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 18px 22px; transition: box-shadow .2s,border-color .2s; }
+    .node:hover { box-shadow: 0 0 24px var(--node-glow); border-color: var(--accent); }
+    .node-h { display: flex; align-items: center; gap: 12px; }
+    .node-icon { width: 38px; height: 38px; border-radius: 9px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .node-icon svg { width: 18px; height: 18px; }
+    .node-title { font-weight: 700; font-size: 1rem; }
+    .node-sub { color: var(--text-secondary); font-size: .82rem; line-height: 1.5; margin-top: 2px; }
+    .tag { display: inline-block; padding: 1px 7px; border-radius: 4px; font-size: .65rem; font-weight: 700; color: white; margin-left: 6px; vertical-align: middle; }
+    .node-detail { margin-top: 10px; padding: 10px 14px; background: rgba(59,130,246,0.04); border-radius: 8px; border: 1px solid rgba(59,130,246,0.08); }
+    .node-detail-row { display: flex; gap: 8px; align-items: baseline; font-size: .78rem; color: var(--text-secondary); padding: 2px 0; }
+    .node-detail-row .label { color: var(--accent); font-weight: 600; min-width: 36px; }
+
+    .arrow { display: flex; flex-direction: column; align-items: center; height: 36px; }
+    .arrow-line { width: 2px; flex: 1; background: linear-gradient(to bottom,var(--accent),var(--accent-secondary)); opacity: .45; }
+    .arrow-head { width: 0; height: 0; border-left: 5px solid transparent; border-right: 5px solid transparent; border-top: 7px solid var(--accent); opacity: .5; }
+    .arrow-label { font-size: .65rem; color: var(--accent); font-weight: 600; letter-spacing: .04em; margin-top: 1px; }
+
+    /* BRANCH */
+    .branch-wrapper { width: 100%; max-width: 760px; }
+    .branch-connector { display: flex; justify-content: center; gap: 0; height: 32px; position: relative; }
+    .branch-connector::before { content: ''; position: absolute; top: 0; left: 25%; right: 25%; height: 2px; background: linear-gradient(90deg,var(--negative),var(--positive)); opacity: .3; }
+    .branch-connector .left-line, .branch-connector .right-line { width: 2px; background: var(--accent); opacity: .3; }
+    .branch { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .branch .node { max-width: 100%; }
+    .branch-label { position: absolute; top: -9px; left: 14px; font-size: .6rem; font-weight: 700; padding: 1px 7px; border-radius: 4px; text-transform: uppercase; letter-spacing: .08em; }
+
+    /* GOVERNANCE LAYER */
+    .gov-layer { width: 100%; max-width: 760px; border: 2px dashed var(--border); border-radius: 14px; padding: 18px; position: relative; }
+    .gov-layer-title { position: absolute; top: -11px; left: 20px; background: var(--bg); padding: 0 10px; font-size: .7rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: .06em; }
+    .gov-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .gov-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
+    .gov-card-h { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+    .gov-card-icon { width: 30px; height: 30px; border-radius: 7px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .gov-card-title { font-weight: 700; font-size: .88rem; }
+    .gov-card ul { list-style: none; padding: 0; }
+    .gov-card li { font-size: .76rem; color: var(--text-secondary); padding: 2px 0 2px 14px; position: relative; }
+    .gov-card li::before { content: ''; position: absolute; left: 0; top: 9px; width: 5px; height: 5px; border-radius: 50%; opacity: .5; }
+    .gov-card.bifrost li::before { background: var(--bifrost); }
+    .gov-card.llmd li::before { background: var(--llmd); }
+    .gov-card.langfuse li::before { background: var(--accent-secondary); }
+
+    /* INFRA */
+    .infra-section { padding: 20px 0 80px; }
+    .infra-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; max-width: 760px; margin: 0 auto; }
+    .infra-card { background: var(--surface); border: 1px solid var(--border); border-radius: 9px; padding: 14px; text-align: center; }
+    .infra-label { font-size: .65rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: .06em; font-weight: 600; }
+    .infra-value { font-size: .88rem; font-weight: 700; margin-top: 3px; }
+    .infra-sub { font-size: .72rem; color: var(--text-secondary); margin-top: 2px; }
+
+    .section-title { text-align: center; margin-bottom: 28px; }
+    .section-title p { color: var(--text-secondary); font-size: .88rem; }
+
+    @keyframes fadeInUp { from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)} }
+    .animate { animation: fadeInUp .6s ease-out both; }
+    .animate.delay-1{animation-delay:.1s}.animate.delay-2{animation-delay:.2s}.animate.delay-3{animation-delay:.3s}.animate.delay-4{animation-delay:.4s}.animate.delay-5{animation-delay:.5s}.animate.delay-6{animation-delay:.6s}.animate.delay-7{animation-delay:.7s}.animate.delay-8{animation-delay:.8s}.animate.delay-9{animation-delay:.9s}
+
+    @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+    @media print{body{background:white!important;color:black!important}.viz-menu{display:none}}
+    @media(max-width:768px){.branch,.gov-grid{grid-template-columns:1fr}.infra-grid{grid-template-columns:1fr}}
+    @media(max-width:375px){body{overflow-x:hidden}}
+
+    .viz-menu{position:fixed;top:16px;right:16px;z-index:9999}
+    .viz-menu-toggle{width:44px;height:44px;border-radius:12px;background:var(--surface);border:1px solid var(--border);color:var(--text);cursor:pointer;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(12px);transition:all .2s}
+    .viz-menu-toggle:hover{background:var(--surface-hover)}
+    .viz-menu-dropdown{position:absolute;top:52px;right:0;min-width:200px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:8px;opacity:0;visibility:hidden;transform:translateY(-8px);transition:all .2s;backdrop-filter:blur(16px)}
+    .viz-menu-dropdown.open{opacity:1;visibility:visible;transform:translateY(0)}
+    .viz-menu-dropdown button{width:100%;padding:10px 14px;border:none;border-radius:8px;background:transparent;color:var(--text);font-size:14px;font-family:inherit;cursor:pointer;text-align:left;display:flex;align-items:center;gap:10px;transition:background .15s}
+    .viz-menu-dropdown button:hover{background:var(--surface-hover)}
+  </style>
+</head>
+<body>
+  <a href="#main-content" class="skip-link" style="position:absolute;left:-9999px;">Skip to content</a>
+  <div class="viz-menu">
+    <button class="viz-menu-toggle" onclick="toggleMenu()" aria-label="Menu"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="5" x2="17" y2="5"/><line x1="3" y1="10" x2="17" y2="10"/><line x1="3" y1="15" x2="17" y2="15"/></svg></button>
+    <div class="viz-menu-dropdown" id="vizMenuDropdown">
+      <button onclick="cycleTheme()"><span id="themeIcon">🌙</span><span id="themeLabel">Dark</span></button>
+      <button onclick="downloadImage()"><span>📥</span><span>Download PNG</span></button>
+      <button onclick="window.print()"><span>🖨️</span><span>Print / PDF</span></button>
+    </div>
+  </div>
+
+  <main id="main-content" role="main">
+    <section class="hero animate">
+      <div class="badge"><span class="badge-dot"></span> Production Ready · E2E Verified</div>
+      <h1><span>Agentic AI Platform</span><br>추론 파이프라인</h1>
+      <p>kgateway ExtProc 라우팅 · Bifrost 거버넌스 · llm-d KV Cache · Langfuse OTel</p>
+    </section>
+
+    <section class="flow-section">
+      <div class="container">
+        <div class="flow">
+
+          <!-- Client -->
+          <div class="node animate delay-1">
+            <div class="node-h">
+              <div class="node-icon" style="background:var(--accent);color:white;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></div>
+              <div><div class="node-title">Client</div><div class="node-sub">Cursor · VS Code · curl · OpenAI SDK — <code>model: "auto"</code></div></div>
+            </div>
+          </div>
+
+          <div class="arrow animate delay-1"><div class="arrow-line"></div><div class="arrow-head"></div><div class="arrow-label">POST /v1/chat/completions</div></div>
+
+          <!-- NLB -->
+          <div class="node animate delay-2">
+            <div class="node-h">
+              <div class="node-icon" style="background:var(--warning);color:white;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/></svg></div>
+              <div><div class="node-title">AWS NLB <span class="tag" style="background:var(--warning)">internet-facing</span></div><div class="node-sub">Port 80 · us-east-2</div></div>
+            </div>
+          </div>
+
+          <div class="arrow animate delay-2"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+
+          <!-- kgateway + ExtProc (highlighted) -->
+          <div class="node animate delay-3" style="border-color:var(--accent-secondary);box-shadow:0 0 20px var(--node-glow);">
+            <div class="node-h">
+              <div class="node-icon" style="background:#6366f1;color:white;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div>
+              <div>
+                <div class="node-title">kgateway v2.2.2 <span class="tag" style="background:#6366f1">Gateway API</span> + ExtProc <span class="tag" style="background:var(--accent-secondary)">LLM Router</span></div>
+                <div class="node-sub">Envoy ext_proc gRPC · 프롬프트 분류 → 모델 라우팅 결정</div>
+              </div>
+            </div>
+            <div class="node-detail">
+              <div class="node-detail-row"><span class="label">1단계</span> 요청 body BUFFERED → ExtProc gRPC로 전달</div>
+              <div class="node-detail-row"><span class="label">2단계</span> 프롬프트 분석 (키워드 · 길이 · 턴 수) → <strong>strong/weak</strong> 분류</div>
+              <div class="node-detail-row"><span class="label">3단계</span> <code>model</code> 필드 변환 + <code>x-model-tier</code> 헤더 설정</div>
+              <div class="node-detail-row"><span class="label">4단계</span> <code>clear_route_cache=true</code> → kgateway가 헤더 기반 재라우팅</div>
+            </div>
+          </div>
+
+          <div class="arrow animate delay-4"><div class="arrow-line"></div><div class="arrow-head"></div><div class="arrow-label">x-model-tier 헤더 기반 라우팅 분기</div></div>
+
+          <!-- Branch: Strong / Weak -->
+          <div class="branch-wrapper animate delay-5">
+            <div class="branch">
+              <!-- STRONG PATH -->
+              <div style="display:flex;flex-direction:column;gap:0;align-items:center;">
+                <div class="node" style="border-color:var(--negative);position:relative;">
+                  <span class="branch-label" style="background:var(--negative);color:white;">STRONG (복잡한 프롬프트)</span>
+                  <div class="node-h" style="margin-top:8px;">
+                    <div class="node-icon" style="background:var(--bifrost);color:white;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+                    <div><div class="node-title">Bifrost <span class="tag" style="background:var(--bifrost)">거버넌스</span></div>
+                    <div class="node-sub">Semantic Cache (Redis) · Rate Limit · Cost Tracking · OTel→Langfuse</div></div>
+                  </div>
+                </div>
+                <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+                <div class="node" style="border-color:var(--llmd);">
+                  <div class="node-h">
+                    <div class="node-icon" style="background:var(--llmd);color:white;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v6m0 6v6m11-7h-6m-6 0H1"/></svg></div>
+                    <div><div class="node-title">llm-d EPP <span class="tag" style="background:var(--llmd)">KV Cache Routing</span></div>
+                    <div class="node-sub">Prefix-aware · Load-aware<br>Redis KV Cache Index · NCCL</div></div>
+                  </div>
+                </div>
+                <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+                <div class="node" style="border-color:var(--negative);">
+                  <div class="node-h">
+                    <div class="node-icon" style="background:var(--negative);color:white;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M9 9h6v6H9z"/></svg></div>
+                    <div><div class="node-title">vLLM GLM-5</div>
+                    <div class="node-sub">glm-4-9b-chat · p5en.48xlarge<br>H200×8 · TP=8 · 32K ctx · Spot</div></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- WEAK PATH -->
+              <div style="display:flex;flex-direction:column;gap:0;align-items:center;">
+                <div class="node" style="border-color:var(--positive);position:relative;">
+                  <span class="branch-label" style="background:var(--positive);color:white;">WEAK (단순 프롬프트)</span>
+                  <div class="node-h" style="margin-top:8px;">
+                    <div class="node-icon" style="background:var(--bifrost);color:white;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+                    <div><div class="node-title">Bifrost <span class="tag" style="background:var(--bifrost)">거버넌스</span></div>
+                    <div class="node-sub">Semantic Cache (Redis) · Rate Limit · Cost Tracking · OTel→Langfuse</div></div>
+                  </div>
+                </div>
+                <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+                <div class="node" style="border-color:var(--positive);visibility:hidden;height:0;padding:0;border:0;overflow:hidden;">
+                  <!-- spacer to align with llm-d on the left -->
+                </div>
+                <div class="arrow" style="visibility:hidden;height:0;"><div class="arrow-line"></div></div>
+                <div class="node" style="border-color:var(--positive);">
+                  <div class="node-h">
+                    <div class="node-icon" style="background:var(--positive);color:white;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M9 9h6v6H9z"/></svg></div>
+                    <div><div class="node-title">vLLM Qwen3</div>
+                    <div class="node-sub">Qwen2.5-Coder-3B · g6.xlarge<br>L4×1 · 8K ctx · Spot</div></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- OBSERVABILITY -->
+    <section style="padding:20px 0 48px;">
+      <div class="container">
+        <div class="section-title animate delay-7"><h2>관측가능성 & 거버넌스 레이어</h2><p>Bifrost · llm-d · Langfuse 통합</p></div>
+        <div class="gov-layer animate delay-7">
+          <div class="gov-layer-title">Governance + Observability Stack</div>
+          <div class="gov-grid">
+            <div class="gov-card bifrost">
+              <div class="gov-card-h">
+                <div class="gov-card-icon" style="background:var(--bifrost);color:white;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+                <div class="gov-card-title">Bifrost v1.4.11</div>
+              </div>
+              <ul>
+                <li>Semantic Cache — Redis 유사도 0.85+ 매칭</li>
+                <li>Rate Limiting — 분당/시간당 요청 제한</li>
+                <li>Cost Tracking — 모델별 토큰 비용 산정</li>
+                <li>Provider 라우팅 — llmd-glm5, llmd-qwen3</li>
+                <li>OTel Trace → Langfuse 전송</li>
+              </ul>
+            </div>
+            <div class="gov-card llmd">
+              <div class="gov-card-h">
+                <div class="gov-card-icon" style="background:var(--llmd);color:white;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v6m0 6v6m11-7h-6m-6 0H1"/></svg></div>
+                <div class="gov-card-title">llm-d v1.0.23</div>
+              </div>
+              <ul>
+                <li>Prefix-aware 라우팅 (KV Cache hit 87%+)</li>
+                <li>Load-aware 스코어링 (GPU 활용률)</li>
+                <li>Redis KV Cache Indexer</li>
+                <li>EPP — Endpoint Picker Provider</li>
+                <li>Session affinity (대화 컨텍스트 유지)</li>
+              </ul>
+            </div>
+            <div class="gov-card langfuse" style="grid-column: span 2;">
+              <div class="gov-card-h">
+                <div class="gov-card-icon" style="background:var(--accent-secondary);color:white;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg></div>
+                <div class="gov-card-title">Langfuse v3.162.0 — OTel Observability</div>
+              </div>
+              <ul style="display:grid;grid-template-columns:1fr 1fr;gap:0 24px;">
+                <li>OTel Trace 수집 (Bifrost → OTLP)</li>
+                <li>ClickHouse 분석 엔진</li>
+                <li>프롬프트 / 응답 로그</li>
+                <li>PostgreSQL 메타데이터</li>
+                <li>모델별 latency · 토큰 · 비용 대시보드</li>
+                <li>Redis 캐시 + S3 Blob</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- INFRA -->
+    <section class="infra-section">
+      <div class="container">
+        <div class="section-title animate delay-8"><h2>인프라 구성</h2><p>EKS Auto Mode "agentic-platform" · us-east-2</p></div>
+        <div class="infra-grid animate delay-8">
+          <div class="infra-card"><div class="infra-label">Auto Mode</div><div class="infra-value">general-purpose</div><div class="infra-sub">kgateway · ExtProc · Bifrost · Langfuse</div></div>
+          <div class="infra-card"><div class="infra-label">GPU MNG #1</div><div class="infra-value">p5en.48xlarge</div><div class="infra-sub">H200×8 · Spot · GLM-5</div></div>
+          <div class="infra-card"><div class="infra-label">GPU MNG #2</div><div class="infra-value">g6.xlarge</div><div class="infra-sub">L4×1 · Spot · Qwen3</div></div>
+          <div class="infra-card"><div class="infra-label">Gateway</div><div class="infra-value">kgateway v2.2.2</div><div class="infra-sub">OCI · CRDs + ExtProc</div></div>
+          <div class="infra-card"><div class="infra-label">스토리지</div><div class="infra-value">EBS gp3 (CSI)</div><div class="infra-sub">ebs.csi.eks.amazonaws.com</div></div>
+          <div class="infra-card"><div class="infra-label">추가 Addons</div><div class="infra-value">vpc-cni · coredns</div><div class="infra-sub">kube-proxy · metrics-server</div></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    function toggleMenu(){var d=document.getElementById('vizMenuDropdown');if(d)d.classList.toggle('open')}
+    document.addEventListener('click',function(e){if(!e.target.closest('.viz-menu')){var d=document.getElementById('vizMenuDropdown');if(d)d.classList.remove('open')}});
+    document.addEventListener('keydown',function(e){if(e.key==='Escape'){var d=document.getElementById('vizMenuDropdown');if(d)d.classList.remove('open')}});
+    var savedTheme=localStorage.getItem('viz-theme');var currentTheme=savedTheme||'dark';
+    function applyTheme(t){document.documentElement.className='theme-'+t;document.getElementById('themeIcon').textContent=t==='dark'?'🌙':'☀️';document.getElementById('themeLabel').textContent=t==='dark'?'Dark':'Light';localStorage.setItem('viz-theme',t);currentTheme=t}
+    function cycleTheme(){applyTheme(currentTheme==='dark'?'light':'dark')}
+    applyTheme(currentTheme);
+    async function downloadImage(){var m=document.querySelector('.viz-menu');m.style.display='none';try{var u=await htmlToImage.toPng(document.body,{quality:1,pixelRatio:2});var a=document.createElement('a');a.href=u;a.download='agentic-platform-architecture-v2.png';a.click()}catch(e){console.error(e)}m.style.display=''}
+  </script>
+</body>
+</html>
