@@ -84,7 +84,26 @@ const sidebars = {
           items: [
             'eks-best-practices/operations-reliability/gitops-cluster-operation',
             'eks-best-practices/operations-reliability/node-monitoring-agent',
-            'eks-best-practices/operations-reliability/eks-debugging-guide',
+            {
+              type: 'category',
+              label: 'EKS 디버깅',
+              link: {
+                type: 'doc',
+                id: 'eks-best-practices/operations-reliability/eks-debugging/index',
+              },
+              items: [
+                'eks-best-practices/operations-reliability/eks-debugging/control-plane',
+                'eks-best-practices/operations-reliability/eks-debugging/node',
+                'eks-best-practices/operations-reliability/eks-debugging/workload',
+                'eks-best-practices/operations-reliability/eks-debugging/networking',
+                'eks-best-practices/operations-reliability/eks-debugging/storage',
+                'eks-best-practices/operations-reliability/eks-debugging/observability',
+                'eks-best-practices/operations-reliability/eks-debugging/health-check-mismatch',
+                'eks-best-practices/operations-reliability/eks-debugging/gpu-ai-workload',
+                'eks-best-practices/operations-reliability/eks-debugging/auto-mode',
+                'eks-best-practices/operations-reliability/eks-debugging/karpenter',
+              ],
+            },
             'eks-best-practices/operations-reliability/eks-resiliency-guide',
             'eks-best-practices/operations-reliability/eks-pod-health-lifecycle',
             'eks-best-practices/operations-reliability/eks-pod-scheduling-availability',
