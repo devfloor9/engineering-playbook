@@ -1,6 +1,6 @@
 <mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36">
   <diagram name="Page-1" id="page-1">
-    <mxGraphModel dx="918" dy="1737" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+    <mxGraphModel dx="1431" dy="2051" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -33,7 +33,7 @@
         <mxCell id="120" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E3F2FD;strokeColor=#326CE5;verticalAlign=top;fontStyle=1;fontSize=10;align=left;spacingLeft=5;arcSize=6;" value="② Orchestration Layer (FastAPI + LangGraph) [CPU]" vertex="1">
           <mxGeometry height="202" width="589" x="342" y="140" as="geometry" />
         </mxCell>
-        <mxCell id="2" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=20;fontStyle=1;fontFamily=Helvetica;" value="LG U+ Agentic AI Platform - EKS Architecture (v7.5)" vertex="1">
+        <mxCell id="2" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=20;fontStyle=1;fontFamily=Helvetica;" value="Agentic AI Platform - Open Architecture" vertex="1">
           <mxGeometry height="30" width="800" x="238.5" y="-30" as="geometry" />
         </mxCell>
         <mxCell id="903" edge="1" parent="1" source="122" style="edgeStyle=orthogonalEdgeStyle;html=1;exitX=0.493;exitY=0.967;endArrow=classic;strokeWidth=1.5;strokeColor=#34A853;exitDx=0;exitDy=0;exitPerimeter=0;labelBackgroundColor=none;entryX=0.156;entryY=-0.01;entryDx=0;entryDy=0;entryPerimeter=0;" target="127" value="Tier 1">
