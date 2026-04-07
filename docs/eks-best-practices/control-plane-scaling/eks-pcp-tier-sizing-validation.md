@@ -128,6 +128,46 @@ Performance differences across tiers are determined by core parameters in kube-a
 2. Queue full → rejected with **HTTP 429 (Too Many Requests)**
 3. Monitor via `apiserver_flowcontrol_rejected_requests_total` metric
 
+#### Why 1,700 Seats Isn't as Small as It Sounds
+
+Seats are **weighted concurrency**, not a simple connection count. The key factor is **occupation duration** — seats are returned immediately when a request completes.
+
+| Request Type | Seat Cost | Typical Duration | Throughput per Seat per Second |
+|-------------|:---------:|:----------------:|:-----------------------------:|
+| Simple GET | 1 | ~5ms | ~200 req/s |
+| LIST (< 500 objects) | 1 | ~100ms | ~10 req/s |
+| LIST (5,000 objects) | 10 | ~3s | ~0.3 req/s |
+| CREATE/UPDATE | 1 | ~60ms (write + WATCH propagation) | ~16 req/s |
+
+**Streaming analogy**: Think of seats as **bandwidth**, not connections. A 4K stream consumes 25 Mbps while SD uses 3 Mbps — "1 Gbps bandwidth" doesn't mean 1,000 concurrent users if they're all streaming 4K. Similarly, `kubectl get pods -A` (LIST all) is "4K streaming" (10 seats), while `kubectl get pod my-pod` is "SD streaming" (1 seat).
+
+**Real-world production example (~200 nodes, XL tier = 1,700 seats)**:
+
+```
+Steady-state load:
+  kubelet heartbeats (200 nodes × 10s interval)     → ~20 seats
+  20 controllers in reconcile loops                   → ~50 seats
+  Prometheus scraping                                 → ~5 seats
+  General kubectl usage                               → ~10 seats
+  ─────────────────────────────────────────────────────────────
+  Total: ~85 seats (5% of 1,700)
+
+Peak burst scenario (simultaneous):
+  500 Deployment rollouts                             → +500 seats
+  Monitoring dashboards running large LISTs           → +30 seats
+  HPA simultaneous scaling                            → +100 seats
+  AZ failure → pod rescheduling burst                 → +300 seats
+  ─────────────────────────────────────────────────────────────
+  Total: ~1,015 seats (60% of 1,700)
+```
+
+**Tier selection is driven by peak bursts, not steady-state.** 1,700 seats (XL) becomes insufficient when:
+- **500+ nodes** with AZ failure triggering 1/3 pod rescheduling
+- **10+ large CRD controllers** reconciling simultaneously
+- **CI/CD pipelines** deploying hundreds of Deployments at once
+
+In these cases, upgrade to 2XL (3,400 seats) or 4XL (6,800 seats).
+
 #### Pod Scheduling Rate (pods/sec)
 
 - Represents **the number of pods the Scheduler can bind per second**.
