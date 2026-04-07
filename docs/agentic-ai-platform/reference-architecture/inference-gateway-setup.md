@@ -8,9 +8,40 @@ last_update:
   author: YoungJoon Jeong
 ---
 
+import { useColorMode } from '@docusaurus/theme-common';
+import { useEffect, useRef } from 'react';
+
+export const InferencePipelineDiagram = () => {
+  const { colorMode } = useColorMode();
+  const iframeRef = useRef(null);
+  useEffect(() => {
+    if (iframeRef.current && iframeRef.current.contentWindow) {
+      iframeRef.current.contentWindow.postMessage(
+        { type: 'theme-change', theme: colorMode },
+        '*'
+      );
+    }
+  }, [colorMode]);
+  return (
+    <iframe
+      ref={iframeRef}
+      src={`/engineering-playbook/agentic-platform-architecture.html?theme=${colorMode}`}
+      style={{width: '100%', height: '1600px', border: 'none', borderRadius: '12px'}}
+      title="프로덕션 추론 파이프라인 아키텍처"
+      loading="lazy"
+    />
+  );
+};
+
 # 추론 게이트웨이 구성 가이드
 
 이 문서는 kgateway + Bifrost 기반 추론 게이트웨이의 **실전 배포 절차**를 다룹니다. 아키텍처 개념과 설계 원칙은 [추론 게이트웨이 라우팅](../design-architecture/inference-gateway-routing.md)을 참조하세요.
+
+## 프로덕션 추론 파이프라인 참조 아키텍처
+
+EKS Auto Mode 기반 프로덕션 추론 파이프라인의 전체 요청 흐름입니다. CloudFront(WAF/Shield) → NLB → kgateway ExtProc가 프롬프트를 분석하여 LLM 라우팅을 결정하고, Bifrost 거버넌스 레이어와 llm-d KV Cache-aware 라우팅을 거쳐 최적의 모델에 요청을 전달합니다.
+
+<InferencePipelineDiagram />
 
 ---
 

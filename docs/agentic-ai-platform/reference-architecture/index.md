@@ -10,30 +10,6 @@ last_update:
 ---
 
 import DocCardList from '@theme/DocCardList';
-import { useColorMode } from '@docusaurus/theme-common';
-import { useEffect, useRef } from 'react';
-
-export const ThemedDiagram = () => {
-  const { colorMode } = useColorMode();
-  const iframeRef = useRef(null);
-  useEffect(() => {
-    if (iframeRef.current && iframeRef.current.contentWindow) {
-      iframeRef.current.contentWindow.postMessage(
-        { type: 'theme-change', theme: colorMode },
-        '*'
-      );
-    }
-  }, [colorMode]);
-  return (
-    <iframe
-      ref={iframeRef}
-      src={`/engineering-playbook/agentic-platform-architecture.html?theme=${colorMode}`}
-      style={{width: '100%', height: '1600px', border: 'none', borderRadius: '12px'}}
-      title="Agentic AI Platform 추론 파이프라인 아키텍처"
-      loading="lazy"
-    />
-  );
-};
 
 # Reference Architecture
 
@@ -48,11 +24,20 @@ export const ThemedDiagram = () => {
 | **업데이트 주기** | 설계 변경 시 | 배포/운영 경험 축적 시 |
 :::
 
-## 프로덕션 추론 파이프라인 아키텍처
+## 플랫폼 아키텍처
 
-EKS Auto Mode 기반 프로덕션 추론 파이프라인의 전체 요청 흐름입니다. kgateway ExtProc가 프롬프트를 분석하여 LLM 라우팅을 결정하고, Bifrost 거버넌스 레이어와 llm-d KV Cache-aware 라우팅을 거쳐 최적의 모델에 요청을 전달합니다.
+Agentic AI Platform의 전체 아키텍처입니다. Ontology 기반 Knowledge Feature Store, 6개 레이어 구조, 모델 서빙/파인튜닝 파이프라인을 포함합니다.
 
-<ThemedDiagram />
+<iframe
+  src="https://viewer.diagrams.net/?highlight=0000ff&nav=1&title=Agentic%20AI%20Platform&url=https%3A%2F%2Fraw.githubusercontent.com%2Fdevfloor9%2Fengineering-playbook%2Fmain%2Fstatic%2FAgentic%2520AI%2520Platform(with%2520Ontology%2520and%2520fine%2520tunning%2520feature).drawio"
+  style={{width: '100%', height: '1200px', border: 'none', borderRadius: '12px', background: '#fff'}}
+  title="Agentic AI Platform Architecture"
+  loading="lazy"
+/>
+
+:::tip draw.io에서 편집
+[draw.io에서 열기](https://app.diagrams.net/?src=about#Hdevfloor9%2Fengineering-playbook%2Fmain%2Fstatic%2FAgentic%20AI%20Platform(with%20Ontology%20and%20fine%20tunning%20feature).drawio) — GitHub 연동으로 직접 편집 가능합니다.
+:::
 
 ---
 
