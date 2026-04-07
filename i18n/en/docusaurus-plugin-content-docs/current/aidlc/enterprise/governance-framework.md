@@ -132,7 +132,7 @@ communication:
 - Foreign key naming rules
 
 **API Design Guide**
-- RESTful resource naming (/orders/{orderId}/items)
+- RESTful resource naming (`/orders/{orderId}/items`)
 - HTTP method usage (GET: query, POST: create, PUT/PATCH: update, DELETE: delete)
 - Pagination parameters (page, size, sort)
 - Error response format (RFC 9457 Problem Details)

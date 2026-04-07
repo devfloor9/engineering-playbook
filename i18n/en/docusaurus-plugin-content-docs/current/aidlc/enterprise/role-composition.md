@@ -435,7 +435,7 @@ Metrics to measure role transformation success:
 
 ### Organization Level
 - **Development Personnel Efficiency**: Number of implementable features with same personnel (Target: 50% increase)
-- **Security Rework Ratio**: Time spent fixing security vulnerabilities as ratio (Target: <5%)
+- **Security Rework Ratio**: Time spent fixing security vulnerabilities as ratio (Target: under 5%)
 - **Project Schedule Adherence Rate**: Schedule adherence ratio vs plan (Target: 90%+)
 
 ## References
