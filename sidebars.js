@@ -181,18 +181,61 @@ const sidebars = {
         id: 'aidlc/index',
       },
       items: [
-        'aidlc/aidlc-framework',
+        {
+          type: 'category',
+          label: '방법론',
+          link: {
+            type: 'doc',
+            id: 'aidlc/methodology/index',
+          },
+          items: [
+            'aidlc/methodology/principles-and-model',
+            'aidlc/methodology/ontology-engineering',
+            'aidlc/methodology/harness-engineering',
+            'aidlc/methodology/ddd-integration',
+          ],
+        },
+        {
+          type: 'category',
+          label: '엔터프라이즈 도입',
+          link: {
+            type: 'doc',
+            id: 'aidlc/enterprise/index',
+          },
+          items: [
+            'aidlc/enterprise/adoption-strategy',
+            'aidlc/enterprise/role-composition',
+            'aidlc/enterprise/cost-estimation',
+            'aidlc/enterprise/governance-framework',
+            'aidlc/enterprise/msa-complexity',
+            'aidlc/enterprise/case-studies',
+          ],
+        },
+        {
+          type: 'category',
+          label: '도구 & 구현',
+          link: {
+            type: 'doc',
+            id: 'aidlc/toolchain/index',
+          },
+          items: [
+            'aidlc/toolchain/ai-coding-agents',
+            'aidlc/toolchain/open-weight-models',
+            'aidlc/toolchain/eks-declarative-automation',
+            'aidlc/toolchain/technology-roadmap',
+          ],
+        },
         {
           type: 'category',
           label: 'AgenticOps',
           link: {
             type: 'doc',
-            id: 'aidlc/agentic-ops/index',
+            id: 'aidlc/operations/index',
           },
           items: [
-            'aidlc/agentic-ops/aiops-introduction',
-            'aidlc/agentic-ops/aiops-observability-stack',
-            'aidlc/agentic-ops/aiops-predictive-operations',
+            'aidlc/operations/observability-stack',
+            'aidlc/operations/predictive-operations',
+            'aidlc/operations/autonomous-response',
           ],
         },
       ],
