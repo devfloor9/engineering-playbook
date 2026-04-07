@@ -277,7 +277,7 @@ nav.menu {
 }
 
 article {
-  max-width: 48rem;
+  max-width: min(90%, 72rem);
 }
 
 /* ── Cards — No border lines, surface shifts ── */
