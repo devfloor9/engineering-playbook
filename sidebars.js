@@ -47,6 +47,7 @@ const sidebars = {
           },
           items: [
             'eks-best-practices/control-plane-scaling/eks-control-plane-crd-scaling',
+            'eks-best-practices/control-plane-scaling/eks-pcp-tier-sizing-validation',
             'eks-best-practices/control-plane-scaling/cross-cluster-object-replication',
           ],
         },
