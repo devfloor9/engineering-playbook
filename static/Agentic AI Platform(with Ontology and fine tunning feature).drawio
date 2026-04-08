@@ -389,7 +389,7 @@
         <mxCell id="965" connectable="0" parent="1" style="group" value="" vertex="1">
           <mxGeometry height="120" width="160" x="1010" y="698" as="geometry" />
         </mxCell>
-        <mxCell id="500" parent="965" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F8BBD0;strokeColor=#E91E63;strokeWidth=2;dashed=1;verticalAlign=top;fontStyle=1;fontSize=9;align=left;spacingLeft=5;arcSize=6;" value="On-Premise - Training" vertex="1">
+        <mxCell id="500" parent="965" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F8BBD0;strokeColor=#E91E63;strokeWidth=2;dashed=1;verticalAlign=top;fontStyle=1;fontSize=9;align=center;spacingLeft=5;arcSize=6;" value="On-Premise - Training" vertex="1">
           <mxGeometry height="120" width="160" as="geometry" />
         </mxCell>
         <mxCell id="501" parent="965" style="text;html=1;strokeColor=none;fillColor=none;align=center;fontSize=8;" value="H100&lt;br&gt;Slurm + Ray" vertex="1">
@@ -404,7 +404,7 @@
         <mxCell id="966" connectable="0" parent="1" style="group" value="" vertex="1">
           <mxGeometry height="100" width="160" x="1010" y="580" as="geometry" />
         </mxCell>
-        <mxCell id="510" parent="966" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F8BBD0;strokeColor=#E91E63;strokeWidth=2;dashed=1;verticalAlign=top;fontStyle=1;fontSize=9;align=left;spacingLeft=5;arcSize=6;" value="On-Premise - Inference" vertex="1">
+        <mxCell id="510" parent="966" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F8BBD0;strokeColor=#E91E63;strokeWidth=2;dashed=1;verticalAlign=top;fontStyle=1;fontSize=9;align=center;spacingLeft=5;arcSize=6;" value="On-Premise - Inference" vertex="1">
           <mxGeometry height="100" width="160" as="geometry" />
         </mxCell>
         <mxCell id="511" parent="966" style="text;html=1;strokeColor=none;fillColor=none;align=center;fontSize=8;" value="H200, H100, L40s" vertex="1">
