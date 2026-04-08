@@ -277,7 +277,19 @@ nav.menu {
 }
 
 article {
-  max-width: min(90%, 72rem);
+  max-width: min(95%, 72rem);
+}
+
+/* Docusaurus 기본 컨테이너 너비 확장 */
+.docMainContainer_node_modules-\@docusaurus-theme-classic-lib-theme-DocPage-Layout-Main-styles-module,
+[class*="docMainContainer"] {
+  max-width: 100% !important;
+}
+
+/* 테이블, 코드블록은 article보다 넓게 허용 */
+.markdown table,
+.markdown pre {
+  max-width: 100%;
 }
 
 /* ── Cards — No border lines, surface shifts ── */
