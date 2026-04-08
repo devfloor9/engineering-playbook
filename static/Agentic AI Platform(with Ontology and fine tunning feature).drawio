@@ -1,6 +1,6 @@
 <mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36">
   <diagram name="Page-1" id="page-1">
-    <mxGraphModel dx="575" dy="1680" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+    <mxGraphModel dx="941" dy="2049" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -366,9 +366,6 @@
         <mxCell id="95191" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=8;" value="Dark blue dashed: GraphRAG" vertex="1">
           <mxGeometry height="16" width="100" x="200" y="805" as="geometry" />
         </mxCell>
-        <mxCell id="952" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=7;fontColor=#999999;" value="v7.5 | 2026-03-26 | Auto Mode + DRA + Agent Ready in Orchestration Layer" vertex="1">
-          <mxGeometry height="14" width="300" x="5" y="870" as="geometry" />
-        </mxCell>
         <mxCell id="705" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FF9900;strokeColor=#CC7A00;fontColor=#FFFFFF;fontSize=8;" value="CloudWatch" vertex="1">
           <mxGeometry height="30" width="70" x="682" y="788" as="geometry" />
         </mxCell>
@@ -440,7 +437,7 @@
         <mxCell id="407" parent="967" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E0E0E0;strokeColor=#BDBDBD;fontColor=#333333;fontSize=8;" value="Mistral" vertex="1">
           <mxGeometry height="30" width="63.99999999999999" x="10.666666666666668" y="153" as="geometry" />
         </mxCell>
-        <mxCell id="408" parent="967" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E0E0E0;strokeColor=#BDBDBD;fontColor=#333333;fontSize=8;" value="Custom Model" vertex="1">
+        <mxCell id="408" parent="967" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E0E0E0;strokeColor=#BDBDBD;fontColor=#333333;fontSize=8;movable=0;resizable=0;rotatable=0;deletable=0;editable=0;locked=1;connectable=0;" value="Custom Model" vertex="1">
           <mxGeometry height="30" width="63.99999999999999" x="85.33333333333334" y="153" as="geometry" />
         </mxCell>
         <mxCell id="409" parent="967" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E0E0E0;strokeColor=#BDBDBD;fontColor=#333333;fontSize=8;" value="Qwen" vertex="1">
