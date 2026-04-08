@@ -1,6 +1,6 @@
 <mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36">
   <diagram name="Page-1" id="page-1">
-    <mxGraphModel dx="1431" dy="2051" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+    <mxGraphModel dx="545" dy="1649" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -389,13 +389,13 @@
         <mxCell id="965" connectable="0" parent="1" style="group" value="" vertex="1">
           <mxGeometry height="120" width="160" x="1010" y="698" as="geometry" />
         </mxCell>
-        <mxCell id="500" parent="965" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F8BBD0;strokeColor=#E91E63;strokeWidth=2;dashed=1;verticalAlign=top;fontStyle=1;fontSize=9;align=left;spacingLeft=5;arcSize=6;" value="On-Premise (Colab-Co) - Training" vertex="1">
+        <mxCell id="500" parent="965" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F8BBD0;strokeColor=#E91E63;strokeWidth=2;dashed=1;verticalAlign=top;fontStyle=1;fontSize=9;align=left;spacingLeft=5;arcSize=6;" value="On-Premise - Training" vertex="1">
           <mxGeometry height="120" width="160" as="geometry" />
         </mxCell>
-        <mxCell id="501" parent="965" style="text;html=1;strokeColor=none;fillColor=none;align=center;fontSize=8;" value="H100 x16 (128 GPUs)&#xa;Slurm + Ray" vertex="1">
+        <mxCell id="501" parent="965" style="text;html=1;strokeColor=none;fillColor=none;align=center;fontSize=8;" value="H100&lt;br&gt;Slurm + Ray" vertex="1">
           <mxGeometry height="25" width="138.66666666666666" x="10.666666666666666" y="25" as="geometry" />
         </mxCell>
-        <mxCell id="502" parent="965" style="text;html=1;strokeColor=none;fillColor=none;align=center;fontSize=8;" value="H200 x26 (208 GPUs)&#xa;DeepSpeed/FSDP" vertex="1">
+        <mxCell id="502" parent="965" style="text;html=1;strokeColor=none;fillColor=none;align=center;fontSize=8;" value="H200&lt;br&gt;DeepSpeed/FSDP" vertex="1">
           <mxGeometry height="25" width="138.66666666666666" x="10.666666666666666" y="50" as="geometry" />
         </mxCell>
         <mxCell id="503" parent="965" style="text;html=1;strokeColor=none;fillColor=none;align=center;fontSize=8;" value="Megatron-LM / NeMo&#xa;PEFT (LoRA/QLoRA)" vertex="1">
@@ -404,13 +404,13 @@
         <mxCell id="966" connectable="0" parent="1" style="group" value="" vertex="1">
           <mxGeometry height="100" width="160" x="1010" y="580" as="geometry" />
         </mxCell>
-        <mxCell id="510" parent="966" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F8BBD0;strokeColor=#E91E63;strokeWidth=2;dashed=1;verticalAlign=top;fontStyle=1;fontSize=9;align=left;spacingLeft=5;arcSize=6;" value="On-Premise (Sangam) - Inference" vertex="1">
+        <mxCell id="510" parent="966" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F8BBD0;strokeColor=#E91E63;strokeWidth=2;dashed=1;verticalAlign=top;fontStyle=1;fontSize=9;align=left;spacingLeft=5;arcSize=6;" value="On-Premise - Inference" vertex="1">
           <mxGeometry height="100" width="160" as="geometry" />
         </mxCell>
-        <mxCell id="511" parent="966" style="text;html=1;strokeColor=none;fillColor=none;align=center;fontSize=8;" value="H200 x2, H100 x6&#xa;L40s x6 (88 GPUs)" vertex="1">
+        <mxCell id="511" parent="966" style="text;html=1;strokeColor=none;fillColor=none;align=center;fontSize=8;" value="H200, H100, L40s" vertex="1">
           <mxGeometry height="25" width="130" x="10" y="25" as="geometry" />
         </mxCell>
-        <mxCell id="512" parent="966" style="text;html=1;strokeColor=none;fillColor=none;align=center;fontSize=8;" value="K-EXAONE | ixi-GEN&#xa;GPT-OSS | STT/TTS" vertex="1">
+        <mxCell id="512" parent="966" style="text;html=1;strokeColor=none;fillColor=none;align=center;fontSize=8;" value="Custom Model&lt;br&gt;GPT-OSS | STT/TTS" vertex="1">
           <mxGeometry height="25" width="130" x="10" y="55" as="geometry" />
         </mxCell>
         <mxCell id="967" connectable="0" parent="1" style="group" value="" vertex="1">
