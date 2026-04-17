@@ -82,11 +82,11 @@ AWS 공식 제품 페이지 및 EC2 사용자 가이드 기준 2026-04 시점의
 | trn1.32xlarge | 16× Trainium1 | 32 | 512 GB | 128 | 512 GB | 800 Gbps EFA |
 | trn1n.32xlarge | 16× Trainium1 | 32 | 512 GB | 128 | 512 GB | 1,600 Gbps EFA |
 | trn2.48xlarge | 16× Trainium2 | 128 | 1.5 TB (HBM3) | 192 | 2 TiB | 3.2 Tbps EFA v3 |
-| **trn2 Ultra** (trn2u.48xlarge) | 64× Trainium2 (4×trn2 NeuronLink) | 512 | 6 TB (HBM3) | - | - | 12.8 Tbps |
+| **trn2 Ultra** (trn2u.48xlarge, preview/limited availability) | 64× Trainium2 (4×trn2 NeuronLink) | 512 | 6 TB (HBM3) | - | - | 12.8 Tbps |
 
 :::caution 버전·수치 주의
 - NeuronCore 수 및 메모리 용량은 AWS 공식 자료 기준이며 SDK 릴리스에 따라 보고 단위가 달라질 수 있습니다. 배포 전 `neuron-ls` 로 실제 디바이스를 확인하세요.
-- trn2 Ultra(trn2u)는 AWS 공식 발표 기준 "NeuronLink 로 4개 trn2 를 결합한 ultraserver" 입니다. 일반 가용성 및 리전 범위는 AWS 공식 문서를 확인해야 합니다.
+- **trn2 Ultra(trn2u)** 는 AWS 공식 발표 기준 "NeuronLink 로 4개 trn2 를 결합한 ultraserver" 입니다. **2026-04 시점에 preview 또는 제한 가용성일 수 있으며**, 일반 가용성·리전 범위·Spot 지원 여부는 AWS 계정 팀 또는 공식 문서로 반드시 확인해야 합니다.
 - inf1 (1세대 Inferentia) 은 본 문서에서 다루지 않습니다. 신규 배포에는 Inferentia2/Trainium2 를 사용하세요.
 :::
 

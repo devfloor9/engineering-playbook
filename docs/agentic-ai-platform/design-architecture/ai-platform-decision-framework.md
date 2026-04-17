@@ -6,7 +6,7 @@ description: "SageMaker Unified Studio, Bedrock AgentCore, EKS 오픈 아키텍�
 tags: [decision-framework, sagemaker, bedrock, agentcore, eks, cost, hybrid]
 category: "genai-aiml"
 last_update:
-  date: 2026-04-15
+  date: 2026-04-17
   author: YoungJoon Jeong
 ---
 
