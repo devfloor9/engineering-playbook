@@ -1,17 +1,18 @@
 ---
-title: "추론 게이트웨이 & LLM Gateway 아키텍처"
-sidebar_label: "추론 게이트웨이"
-description: "kgateway + Bifrost/LiteLLM 2-Tier 아키텍처, Cascade Routing, Semantic Caching, agentgateway"
+title: "추론 게이트웨이 & LLM Gateway 라우팅 전략"
+sidebar_label: "게이트웨이 라우팅 전략"
+description: "kgateway + Bifrost/LiteLLM 2-Tier 아키텍처와 Cascade Routing, Semantic Router, Hybrid Routing 설계 패턴"
 tags: [kgateway, bifrost, litellm, gateway-api, agentgateway, cascade-routing, semantic-caching, vllm-semantic-router]
-sidebar_position: 1
 last_update:
-  date: 2026-04-06
+  date: 2026-04-17
   author: YoungJoon Jeong
 ---
 
-# 추론 게이트웨이 & LLM Gateway 아키텍처
+# 추론 게이트웨이 & LLM Gateway 라우팅 전략
 
-> 작성일: 2025-02-05 | 수정일: 2026-04-06 | 읽는 시간: 약 15분
+> 작성일: 2025-02-05 | 수정일: 2026-04-17 | 읽는 시간: 약 15분
+
+이 문서는 2-Tier 게이트웨이 아키텍처와 라우팅 전략(Cascade / Semantic Router / Hybrid)의 **설계 원칙**을 다룹니다. 실제 Helm 설치, HTTPRoute 매니페스트, OTel 연동 등 **배포 절차**는 [추론 게이트웨이 구성 가이드](./inference-gateway-setup.md)를 참조하세요.
 
 ## 개요
 
@@ -424,13 +425,36 @@ response = router.route(prompt="Explain the architecture...")  # → glm-5-744b
 
 ### Cascade Routing 전략 (Fallback 기반)
 
-복잡도에 따라 **cheap -> medium -> premium** 모델을 단계적으로 시도합니다. Fallback 조건: HTTP 5xx, Rate Limit 초과, Timeout, Quality Score < 0.7 (옵션). 복잡도 분류: 토큰 < 100 → Cheap (GPT-3.5), < 500 → Cheap+ (Haiku), < 1500 또는 코드 포함 → Medium (GPT-4o), > 1500 → Premium (GPT-4 Turbo).
+복잡도에 따라 **cheap -> balanced -> frontier** 모델을 단계적으로 시도합니다.
 
-### 비용 절감 효과
+**복잡도 분류 기준 (2026-04 기준):**
 
-일 10,000 요청 시나리오: Simple(50% GPT-3.5 $2.5) + Medium(30% Haiku $2.4) + Complex(15% GPT-4o $3.75) + Very Complex(5% GPT-4 Turbo $5) = **$13.65/일**. 모든 요청을 GPT-4 Turbo로 처리 시 $50/일 대비 **73% 절감**.
+| 복잡도 | 조건 | 권장 모델 | 토큰당 비용 |
+|--------|------|----------|-----------|
+| **Simple** | 토큰 < 200, 키워드 없음 | Haiku 4.5 / GPT-4.1 nano | $0.80-$0.15/M |
+| **Medium** | 토큰 200-1000, 코드 포함 | Sonnet 4.6 / Gemini 2.5 Flash | $3-$0.10/M |
+| **Complex** | 토큰 1000+, reasoning 키워드 | Opus 4.7 / GPT-4.1 | $15-$10/M |
 
-**자체 호스팅 LLM Classifier 시나리오**: Qwen3-4B(70% weak, L4 $0.3/hr) + GLM-5 744B(30% strong, H200 $12/hr) = **월 $3,020** (GLM-5 단독 $8,900 대비 **66% 절감**).
+**Fallback 조건**: HTTP 5xx, Rate Limit 초과, Timeout, Quality Score < 0.7 (옵션)
+
+### 비용 절감 효과 (2026-04 기준)
+
+일 10,000 요청 시나리오:
+- Simple (50%): Haiku 4.5 — 50 tok in, 100 tok out → $0.50/일
+- Medium (30%): Sonnet 4.6 — 500 tok in, 500 tok out → $2.70/일
+- Complex (15%): Opus 4.7 — 1500 tok in, 1000 tok out → $3.38/일
+- Very Complex (5%): Opus 4.7 — 3000 tok in, 2000 tok out → $3.00/일
+
+**총 비용: $9.58/일 ($287/월)**
+
+모든 요청을 Opus 4.7로 처리 시: $45/일 ($1,350/월) 대비 **79% 절감**
+
+**자체 호스팅 LLM Classifier 시나리오** (2026-04 기준):
+- Qwen3-4B (70% weak, L4 $0.3/hr × 24hr × 30d) = $216/월
+- GLM-5 744B (30% strong, H200 $12/hr × 24hr × 30d × 0.3) = $2,592/월
+- Langfuse + AMP/AMG = $200/월
+
+**총 비용: $3,008/월** (GLM-5 단독 $8,900/월 대비 **66% 절감**)
 
 ### 엔터프라이즈 모델 라우팅 패턴
 
@@ -520,26 +544,14 @@ graph TB
 
 ## Semantic Caching
 
-### 개념
+Semantic Caching은 의미적으로 유사한 프롬프트를 감지하여 이전 응답을 재사용함으로써 LLM API 비용과 지연시간을 동시에 절감합니다. Gateway 레벨(Bifrost/LiteLLM/Portkey)에서 임베딩 유사도로 HIT/MISS를 판단하므로, KV Cache(vLLM) · Prompt Cache(프로바이더 관리형)와 독립적으로 조합할 수 있습니다.
 
-Semantic Caching은 **의미적으로 유사한 프롬프트**를 감지하여 이전 응답을 재사용함으로써 LLM API 비용을 절감합니다. 임베딩 기반 유사도 매칭 (threshold > 0.85)을 사용하여 Cache HIT 시 LLM 호출을 건너뜁니다.
+**권장 기본 임계값**: 0.85 — 의미 동일·표현 차이 허용
 
-### 유사도 임계값 (Similarity Threshold)
+설계 원칙(3계층 캐시 비교, 유사도 임계값 트레이드오프, 도구 비교 표, 캐시 키 설계, 관측성·실전 체크리스트)은 별도 문서에서 상세히 다룹니다.
 
-| Threshold | 의미 | 캐시 적중률 | 정확도 |
-|-----------|------|-------------|--------|
-| **0.95+** | 거의 동일한 문장 | 낮음 (~10%) | 매우 높음 |
-| **0.85-0.94** | 의미가 같고 표현이 약간 다름 | 중간 (~30%) | 높음 **(권장)** |
-| **0.75-0.84** | 유사한 주제 | 높음 (~50%) | 중간 (거짓 긍정 위험) |
-| **0.70 이하** | 관련 있는 주제 | 매우 높음 | 낮음 (부적절한 응답 위험) |
-
-**권장 설정**: **0.85** (의미는 같고 표현만 다른 경우 캐시 재사용)
-
-### 비용 절감 효과
-
-일 10,000 요청, 캐시 적중률 30%, GPT-4 Turbo 기준: 월 비용 $4,500 → $3,150 (30% 절감). 추가 비용 (임베딩 ~$0.5/월, Redis/Milvus ~$10-20/월) 포함 시 순 절감 ~$1,300/월 (29%).
-
-**구현 옵션**: Portkey (내장 semantic cache), Helicone (Rust 기반 고성능), 자체 구현 (Redis + 임베딩). 상세 구성은 Reference Architecture 참조.
+- **설계 원칙**: [Semantic Caching 전략](../design-architecture/semantic-caching-strategy.md)
+- **실전 배포 예시**: [OpenClaw AI Gateway 배포](./openclaw-ai-gateway.mdx) 의 LiteLLM + Redis 구성
 
 ---
 

@@ -4,7 +4,7 @@ sidebar_label: "모델 배포"
 description: "GLM-5.1 사례 기반 — 대형 오픈소스 모델의 EKS 배포 실전 가이드"
 tags: [deployment, glm-5, vllm, eks, gpu, lws, lessons-learned]
 last_update:
-  date: 2026-04-06
+  date: 2026-04-17
   author: YoungJoon Jeong
 ---
 
@@ -655,7 +655,7 @@ helm upgrade --install gpu-operator nvidia/gpu-operator \
   --set nodeStatusExporter.enabled=true
 ```
 
-이제 DCGM, GFD (GPU Feature Discovery), Node Status Exporter만 실행되며, Device Plugin은 Auto Mode의 내장 버전을 사용합니다.
+이제 DCGM, GFD (GPU Feature Discovery), Node Status Exporter만 실행되며, Device Plugin은 Auto Mode의 내장 버전을 사용합니다. GPU Operator의 전체 아키텍처와 컴포넌트 상세는 [NVIDIA GPU 스택](../model-serving/nvidia-gpu-stack.md)을 참조하세요.
 
 ```bash
 # GPU 정상 인식 확인
@@ -948,7 +948,7 @@ spec:
 
 ### 운영 및 모니터링
 - [모니터링 스택 구성](./monitoring-observability-setup.md) — Langfuse, Prometheus, Grafana 배포
-- [Inference Gateway 라우팅](../design-architecture/inference-gateway-routing.md) — kgateway + Bifrost 2-Tier 아키텍처
+- [Inference Gateway 라우팅](../reference-architecture/inference-gateway-routing.md) — kgateway + Bifrost 2-Tier 아키텍처
 
 ### 참고 자료
 

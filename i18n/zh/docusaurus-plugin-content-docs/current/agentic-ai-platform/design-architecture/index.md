@@ -45,7 +45,7 @@ import { DocCard, DocCardGrid } from '@site/src/components/DocCards';
     color="#10b981"
   />
   <DocCard
-    to="/docs/agentic-ai-platform/design-architecture/inference-gateway-routing"
+    to="/docs/agentic-ai-platform/reference-architecture/inference-gateway-routing"
     icon="🔀"
     title="推理网关与 Cascade Routing"
     description="kgateway + Bifrost/LiteLLM 2-Tier 架构、基于复杂度的 Cascade Routing（LiteLLM 原生、Bifrost CEL Rules、vLLM Semantic Router）、Hybrid Routing 模式、agentgateway MCP/A2A。"

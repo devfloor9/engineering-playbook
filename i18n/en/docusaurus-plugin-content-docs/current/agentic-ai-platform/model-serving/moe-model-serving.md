@@ -432,7 +432,7 @@ Key alert criteria:
 ### Next Steps
 
 - [GPU Resource Management](./gpu-resource-management.md) - GPU cluster dynamic resource allocation
-- [Inference Gateway Routing](../design-architecture/inference-gateway-routing.md) - Multi-model routing strategies
+- [Inference Gateway Routing](../reference-architecture/inference-gateway-routing.md) - Multi-model routing strategies
 - [Agentic AI Platform Architecture](../design-architecture/agentic-platform-architecture.md) - Overall platform structure
 
 ---

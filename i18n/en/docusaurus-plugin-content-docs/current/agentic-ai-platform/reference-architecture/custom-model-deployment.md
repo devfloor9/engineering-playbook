@@ -948,7 +948,7 @@ For large GPU instances (p5en, p6), use **EKS Standard Mode**. Auto Mode + MNG h
 
 ### Operations and Monitoring
 - [Monitoring Stack Setup](./monitoring-observability-setup.md) -- Langfuse, Prometheus, Grafana deployment
-- [Inference Gateway Routing](../design-architecture/inference-gateway-routing.md) -- kgateway + Bifrost 2-Tier architecture
+- [Inference Gateway Routing](../reference-architecture/inference-gateway-routing.md) -- kgateway + Bifrost 2-Tier architecture
 
 ### References
 

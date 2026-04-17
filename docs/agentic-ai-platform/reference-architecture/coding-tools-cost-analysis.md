@@ -4,7 +4,7 @@ sidebar_label: "비용 & IDE"
 description: "Aider, Cline, Continue.dev 연동 + Bedrock vs Kiro vs 자체 호스팅 비용 비교"
 tags: [aider, cline, cursor, cost-analysis, kiro, bedrock, bifrost]
 last_update:
-  date: 2026-04-06
+  date: 2026-04-17
   author: YoungJoon Jeong
 ---
 
@@ -181,7 +181,7 @@ response = client.chat.completions.create(
 
 GLM-5를 사용하는 3가지 방법의 토큰당 비용을 비교합니다.
 
-### 5.1 토큰당 비용 (2026.04 기준)
+### 5.1 토큰당 비용 (2026-04-17 기준)[^1]
 
 | | **Bedrock API** | **Kiro (0.5x credit)** | **자체 호스팅 (EKS)** |
 |---|---|---|---|
@@ -192,6 +192,8 @@ GLM-5를 사용하는 3가지 방법의 토큰당 비용을 비교합니다.
 | 최소 비용 | $0 | $20/월 | $8,900/월 |
 | LoRA Fine-tuning | ❌ | ❌ | ✅ |
 | 데이터 주권 | △ VPC Endpoint | ❌ | ✅ VPC 격리 |
+
+[^1]: GLM-5 기준. 최신 Bedrock 가격: [AWS Bedrock Pricing](https://aws.amazon.com/bedrock/pricing/), Kiro 가격: [Kiro Pricing](https://kiro.dev/pricing)
 
 :::info Kiro 가격 추정 근거
 Kiro는 GLM-5를 0.5x credit으로 제공합니다. Pro 플랜 $20/월 = 1,000 credits, 초과 시 $0.04/credit. 1 credit ≈ 1 요청(~1.5K tokens) 가정 시, 토큰당 비용은 Bedrock 대비 ~20% 저렴합니다.
@@ -424,6 +426,9 @@ graph TD
 | Bifrost Gateway | [getbifrost.ai](https://getbifrost.ai/) |
 | Langfuse Observability | [langfuse.com](https://langfuse.com/) |
 | Kiro 가격 정책 | [kiro.dev/pricing](https://kiro.dev/pricing) |
+| AWS Bedrock Pricing | [aws.amazon.com/bedrock/pricing](https://aws.amazon.com/bedrock/pricing/) |
+| OpenAI Pricing | [platform.openai.com/pricing](https://platform.openai.com/pricing) |
+| Anthropic Pricing | [anthropic.com/pricing](https://www.anthropic.com/pricing) |
 | 커스텀 모델 배포 가이드 | [custom-model-deployment.md](./custom-model-deployment.md) |
 | 커스텀 모델 파이프라인 | [custom-model-pipeline.md](./custom-model-pipeline.md) |
-| Inference Gateway | [inference-gateway-routing.md](../design-architecture/inference-gateway-routing.md) |
+| Inference Gateway | [inference-gateway-routing.md](../reference-architecture/inference-gateway-routing.md) |

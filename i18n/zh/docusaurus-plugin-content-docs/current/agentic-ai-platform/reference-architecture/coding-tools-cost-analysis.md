@@ -290,4 +290,4 @@ graph LR
 | Kiro 定价 | [kiro.dev/pricing](https://kiro.dev/pricing) |
 | 自定义模型部署指南 | [custom-model-deployment.md](./custom-model-deployment.md) |
 | 自定义模型流水线 | [custom-model-pipeline.md](./custom-model-pipeline.md) |
-| Inference Gateway | [inference-gateway-routing.md](../design-architecture/inference-gateway-routing.md) |
+| Inference Gateway | [inference-gateway-routing.md](../reference-architecture/inference-gateway-routing.md) |

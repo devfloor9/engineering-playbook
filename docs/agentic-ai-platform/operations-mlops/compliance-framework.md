@@ -4,7 +4,7 @@ sidebar_label: "컴플라이언스"
 description: "SOC2, ISO27001, 전자금융감독규정, ISMS-P를 AI 운영에 매핑하는 컴플라이언스 가이드"
 tags: [compliance, soc2, iso27001, isms-p, audit, security]
 last_update:
-  date: 2026-04-04
+  date: 2026-04-17
   author: YoungJoon Jeong
 ---
 
@@ -51,7 +51,7 @@ SOC2(Service Organization Control 2)는 클라우드 서비스의 보안, 가용
 | SOC2 통제 | Trust Criteria | AI 운영 구현 | 기술 스택 |
 |-----------|----------------|-------------|----------|
 | **CC6.1-6.8** | 논리적·물리적 접근 제어 | 모델 API 인증 + 데이터 접근 통제 | **Pod Identity + RBAC + API Key** |
-| **CC7.1-7.4** | 시스템 모니터링 | 추론 요청 추적 + GPU 리소스 모니터링 | **Langfuse + AMP/AMG + DCGM** |
+| **CC7.1-7.4** | 시스템 모니터링 | 추론 요청 추적 + GPU 리소스 모니터링 | **LLM Tracing + AMP/AMG + DCGM** |
 | **CC7.3** | 이상 탐지 및 인시던트 대응 | 자동 알림 + Playbook rollback | **PagerDuty + ArgoCD** |
 | **CC8.1** | 변경 관리 | Playbook 버전 관리 + 승인 게이트 | **GitOps + Approval Gate** |
 
@@ -88,15 +88,8 @@ roleRef:
   apiGroup: rbac.authorization.k8s.io
 ```
 
-:::tip CC7.1-7.4 구현: Langfuse로 추론 추적
-```python
-from langfuse import Langfuse
-
-langfuse = Langfuse()
-trace = langfuse.trace(name="inference", user_id="user-123")
-trace.span(name="model-inference", input=prompt, output=response, metadata={"model": "llama3.3-70b"})
-```
-이렇게 하면 모든 추론 요청이 **감사 가능한 트레이스**로 저장됩니다.
+:::tip CC7.1-7.4 구현: LLM 트레이싱
+모든 추론 요청을 감사 가능한 트레이스로 기록합니다. 구현 방법은 [Agent 모니터링](../operations-mlops/agent-monitoring.md) 및 [LLM 트레이싱 배포](../reference-architecture/monitoring-observability-setup.md)를 참조하세요.
 :::
 
 ---
@@ -183,22 +176,13 @@ spec:
 | 항목 | 요구사항 | AI 운영 매핑 | 구현 |
 |------|---------|-------------|------|
 | **2.6** | 접근통제 | API Key + RBAC + 다단계 인증 | **Pod Identity + MFA** |
-| **2.9** | 시스템 및 서비스 개발보안 | Playbook 버전 관리 + Guardrails | **Git + Guardrails API** |
+| **2.9** | 시스템 및 서비스 개발보안 | Playbook 버전 관리 + Guardrails | **Git + [Guardrails 스택](./ai-gateway-guardrails.md)** |
 | **2.11** | 정보보안 사고 관리 | 자동 인시던트 탐지 및 대응 | **알림 + 자동 롤백** |
 
-:::caution ISMS-P 2.6: PII 탐지 및 차단
-```python
-from guardrails import Guard
-import guardrails.hub as gh
+:::caution ISMS-P 관련 항목: PII 탐지 및 차단
+Guardrails를 통한 PII 탐지/차단은 ISMS-P 개인정보 처리·접근통제 요건을 만족시키는 기술적 통제입니다.
 
-guard = Guard().use(
-    gh.DetectPII(pii_entities=["EMAIL_ADDRESS", "PERSON", "PHONE_NUMBER"], on_fail="exception")
-)
-
-# 입력 필터링
-validated_input = guard.validate(user_prompt)
-```
-이렇게 하면 **개인정보가 포함된 프롬프트를 사전 차단**할 수 있습니다.
+**기술 구현은 [AI Gateway Guardrails](./ai-gateway-guardrails.md)를 참조하세요** — Microsoft Presidio 한국어 recognizer, Bedrock Guardrails ApplyGuardrail API, Guardrails AI `DetectPII` validator 등 구현 패턴과 kgateway/Bifrost 통합 예시를 제공합니다.
 :::
 
 ---
@@ -257,7 +241,7 @@ def check_compliance(playbook_path):
 
 | 데이터 | 보관 위치 | 보관 기간 | 접근 권한 | 법적 근거 |
 |--------|----------|----------|----------|----------|
-| **추론 트레이스** | Langfuse + S3 | 3년 | 감사팀, DevOps | ISO27001 A.12.4 |
+| **추론 트레이스** | LLM Tracing + S3 | 3년 | 감사팀, DevOps | ISO27001 A.12.4 |
 | **API 호출 로그** | CloudTrail + S3 | 5년 | 보안팀, 감사팀 | 전자금융감독규정 제19조 |
 | **모델 변경 이력** | Git + ECR | 영구 | DevOps, ML팀 | SOC2 CC8.1 |
 | **GPU 메트릭** | AMP + S3 | 1년 | 운영팀 | 내부 정책 |
@@ -292,7 +276,7 @@ def check_compliance(playbook_path):
 :::warning 감사 데이터 무결성 보장
 - **S3 Object Lock**: 삭제 방지 (WORM 모드)
 - **CloudTrail 검증**: `aws cloudtrail validate-logs`로 변조 검증
-- **Langfuse Immutable Trace**: 트레이스는 생성 후 수정 불가
+- **Immutable Trace**: LLM 트레이싱 시스템에서 트레이스는 생성 후 수정 불가 (Langfuse 등)
 :::
 
 ---
@@ -302,7 +286,7 @@ def check_compliance(playbook_path):
 ### SOC2 감사 대비
 
 - [ ] CC6.1-6.8: Pod Identity + RBAC 설정 완료
-- [ ] CC7.1-7.4: Langfuse + AMP/AMG 모니터링 구축
+- [ ] CC7.1-7.4: LLM 트레이싱 + AMP/AMG 모니터링 구축
 - [ ] CC7.3: PagerDuty 알림 + 자동 롤백 설정
 - [ ] CC8.1: GitOps + Approval Gate 적용
 
@@ -332,5 +316,7 @@ def check_compliance(playbook_path):
 - [ISO/IEC 27001:2022](https://www.iso.org/standard/82875.html)
 - [전자금융감독규정 (금융위원회)](https://www.law.go.kr/)
 - [ISMS-P 인증기준 (KISA)](https://isms.kisa.or.kr/)
-- [Langfuse Compliance Guide](https://langfuse.com/docs/compliance)
+- [Agent 모니터링 아키텍처](../operations-mlops/agent-monitoring.md)
+- [LLMOps Observability 비교](../operations-mlops/llmops-observability.md)
+- [AI Gateway Guardrails](./ai-gateway-guardrails.md) — 기술 구현 상세 (PII, Injection 방어, 도구 비교)
 - [Guardrails AI Security](https://docs.guardrailsai.com/concepts/security/)

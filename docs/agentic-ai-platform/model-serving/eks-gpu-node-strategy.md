@@ -5,7 +5,7 @@ description: "EKS Auto Mode, Karpenter, MNG, Hybrid Node의 GPU 워크로드별 
 tags: [eks, gpu, auto-mode, karpenter, hybrid-node, gpu-operator]
 sidebar_position: 1
 last_update:
-  date: 2026-04-05
+  date: 2026-04-17
   author: YoungJoon Jeong
 ---
 
@@ -112,6 +112,8 @@ spec:
 GPU Operator는 Auto Mode에서 **설치 가능**합니다. 핵심은 **Device Plugin만 노드 레이블로 비활성화**하고 나머지 컴포넌트(DCGM Exporter, NFD, GFD)는 정상 운영하는 것입니다. 이 패턴은 [awslabs/ai-on-eks PR #288](https://github.com/awslabs/ai-on-eks/pull/288)에서 검증되었습니다.
 
 **왜 GPU Operator가 필요한가?** KAI Scheduler, Run:ai 등 여러 프로젝트는 GPU Operator의 **ClusterPolicy CRD**에 의존합니다. ClusterPolicy 없이는 이들 프로젝트가 시작조차 하지 못합니다. Auto Mode에서도 GPU Operator를 설치해야 하는 핵심 이유입니다.
+
+GPU Operator의 전체 아키텍처와 컴포넌트 상세는 [NVIDIA GPU 스택](./nvidia-gpu-stack.md)을 참조하세요.
 
 ```
 ClusterPolicy CRD (GPU Operator)
@@ -708,7 +710,64 @@ flowchart TB
 
 ---
 
-## 6. 노드 전략 의사결정 플로우차트
+## 6. AWS 가속기 선택 가이드 (NVIDIA vs Neuron)
+
+EKS GPU 노드 전략은 전통적으로 NVIDIA GPU (p/g 시리즈) 중심으로 설계되어 왔지만, 2026년 시점에는 **Trainium2/Inferentia2** 기반 AWS 커스텀 가속기가 프로덕션 대안으로 성숙했습니다. Neuron 스택의 상세는 [AWS Neuron Stack](./aws-neuron-stack.md) 에서 다루며, 이 절은 노드 전략 수립 단계에서의 선택 기준만 정리합니다.
+
+### 6.1 NVIDIA GPU vs AWS Neuron 의사결정 표
+
+| 기준 | NVIDIA GPU (p5/p5en/p6/g6e) | AWS Neuron (trn2/inf2) |
+|------|---------------------------|---------------------|
+| **모델 생태계 최신성** | 즉시 지원 (신규 모델 Day-1) | AWS 포팅 주기 지연 (몇 주~몇 달) |
+| **장기 운영 TCO** | 높음 (H100/H200/B200 Spot 도 고가) | 토큰당 비용 유리 (AWS 자료 기준) |
+| **Capacity 가용성** | 리전·시기에 따라 타이트 | 상대적으로 확보 용이 |
+| **커스텀 CUDA 커널** | 전면 지원 | 지원 불가 (NEFF 컴파일 필요) |
+| **양자화 포맷** | AWQ/GPTQ/GGUF 광범위 | BF16/FP16/FP8, AWQ/GPTQ 제한적 |
+| **관측 생태계** | GPU Operator + DCGM 성숙 | neuron-monitor + OSS exporter |
+| **오픈소스 서빙** | vLLM, SGLang, TRT-LLM 등 풍부 | NxD Inference / vLLM Neuron / TGI Neuron |
+| **Bedrock 연속성** | 무관 | Bedrock 내부 스택과 동일 경로 |
+| **하이브리드(온프레미스)** | Hybrid Node 로 가능 | EC2 전용 (온프레미스 불가) |
+
+### 6.2 선택 플로우
+
+```mermaid
+flowchart TD
+    START([AWS 가속기 선택])
+    Q1{신규 SOTA 모델<br/>즉시 서빙?}
+    Q2{Bedrock 연속성<br/>또는 장기 TCO?}
+    Q3{커스텀 CUDA 커널<br/>또는 AWQ/GGUF<br/>의존?}
+    Q4{Neuron Model Zoo<br/>지원 모델?}
+
+    NVIDIA[NVIDIA GPU<br/>p5/p5en/p6/g6e]
+    NEURON[AWS Neuron<br/>trn2/inf2]
+    HYBRID[혼합 운영<br/>Neuron + NVIDIA]
+
+    START --> Q1
+    Q1 -->|Yes| NVIDIA
+    Q1 -->|No| Q2
+    Q2 -->|Yes| Q3
+    Q2 -->|No| NVIDIA
+    Q3 -->|Yes| NVIDIA
+    Q3 -->|No| Q4
+    Q4 -->|Yes| NEURON
+    Q4 -->|No| HYBRID
+
+    style NVIDIA fill:#76b900,color:#fff
+    style NEURON fill:#ff9900,color:#fff
+    style HYBRID fill:#326ce5,color:#fff
+```
+
+### 6.3 권장 혼합 운영 패턴
+
+- **Frontier (최신 모델) 레이어**: NVIDIA GPU (p5en/p6) — 신규 모델을 빠르게 도입
+- **Volume (고빈도 추론) 레이어**: Neuron (trn2/inf2) — 안정 모델을 저비용으로 대량 서빙
+- **Edge/온프레미스**: Hybrid Node + NVIDIA GPU — Neuron 은 EC2 전용
+
+상세한 Neuron SDK, Device Plugin, Karpenter NodePool, 추론 프레임워크(NxD Inference / vLLM Neuron / TGI Neuron) 선택은 [AWS Neuron Stack](./aws-neuron-stack.md) 문서를 참조하세요.
+
+---
+
+## 7. 노드 전략 의사결정 플로우차트
 
 ```mermaid
 flowchart TD
@@ -764,7 +823,7 @@ flowchart TD
 
 ---
 
-## 7. 관련 문서
+## 8. 관련 문서
 
 ### GPU 스택 및 모니터링
 

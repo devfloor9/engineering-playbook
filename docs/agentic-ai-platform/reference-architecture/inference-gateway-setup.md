@@ -1,10 +1,10 @@
 ---
 title: "추론 게이트웨이 구성 가이드"
-sidebar_label: "게이트웨이"
+sidebar_label: "게이트웨이 배포"
 description: "kgateway + Bifrost 설치, HTTPRoute 설정, OTel 연동 실전 가이드"
 tags: [kgateway, bifrost, gateway-api, httproute, otel, deployment]
 last_update:
-  date: 2026-04-06
+  date: 2026-04-17
   author: YoungJoon Jeong
 ---
 
@@ -35,7 +35,7 @@ export const InferencePipelineDiagram = () => {
 
 # 추론 게이트웨이 구성 가이드
 
-이 문서는 kgateway + Bifrost 기반 추론 게이트웨이의 **실전 배포 절차**를 다룹니다. 아키텍처 개념과 설계 원칙은 [추론 게이트웨이 라우팅](../design-architecture/inference-gateway-routing.md)을 참조하세요.
+이 문서는 kgateway + Bifrost 기반 추론 게이트웨이의 **실전 배포 절차**를 다룹니다. 아키텍처 개념과 라우팅 전략(Cascade, Semantic Router, 2-Tier 구조)은 [추론 게이트웨이 라우팅](./inference-gateway-routing.md)을 참조하세요.
 
 ## 프로덕션 추론 파이프라인 참조 아키텍처
 
@@ -239,7 +239,7 @@ spec:
 
 ### 2.3 Langfuse Sub-path 라우팅 (URLRewrite)
 
-Langfuse (Next.js)는 `/`에서 서빙하므로, `/langfuse` prefix로 접근하려면 URLRewrite가 필요합니다.
+Langfuse (Next.js)는 `/`에서 서빙하므로, `/langfuse` prefix로 접근하려면 URLRewrite가 필요합니다. Langfuse 아키텍처 및 배포 상세는 [Langfuse 배포 가이드](./monitoring-observability-setup.md)를 참조하세요.
 
 ```yaml
 apiVersion: gateway.networking.k8s.io/v1
@@ -304,7 +304,7 @@ spec:
 
 ### 2.4 OTel URLRewrite (Bifrost → Langfuse)
 
-Bifrost OTel 플러그인은 `collector_url`의 base path만 사용하므로, kgateway에서 전체 OTLP 경로로 변환합니다.
+Bifrost OTel 플러그인은 `collector_url`의 base path만 사용하므로, kgateway에서 전체 OTLP 경로로 변환합니다. OTel 연동 상세는 [Langfuse OTel 설정](./monitoring-observability-setup.md#opentelemetry-연동)을 참조하세요.
 
 ```yaml
 apiVersion: gateway.networking.k8s.io/v1
@@ -713,8 +713,8 @@ Bifrost에서 모델 alias 기능이 [#1058](https://github.com/maximhq/bifrost/
 # 1. Bifrost 로그에서 OTel 전송 확인
 kubectl logs -l app=bifrost -n ai-external --tail=30 | grep -i otel
 
-# 2. Langfuse 로그에서 OTLP 수신 확인
-kubectl logs -l app=langfuse-web -n langfuse --tail=30 | grep -i otlp
+# 2. Langfuse 로그에서 OTLP 수신 확인 (네임스페이스는 환경에 따라 조정)
+kubectl logs -l app=langfuse-web -n observability --tail=30 | grep -i otlp
 
 # 3. kgateway URLRewrite 동작 확인
 kubectl logs -n kgateway-system -l app=kgateway --tail=30 | grep "otel"
@@ -725,16 +725,12 @@ kubectl logs -n kgateway-system -l app=kgateway --tail=30 | grep "otel"
 | 확인 항목 | 올바른 값 |
 |----------|----------|
 | `trace_type` | `"otel"` (not `"genai_extension"`) |
-| `collector_url` | `http://langfuse-web.langfuse.svc.cluster.local:3000/api/public/otel/v1/traces` |
-| Authorization | `Basic <BASE64(pk:sk)>` |
-| kgateway URLRewrite | `/api/public/otel` -> `/api/public/otel/v1/traces` |
+| `collector_url` | 전체 경로 포함 (`/api/public/otel/v1/traces`) |
+| Authorization | `Basic <BASE64(public_key:secret_key)>` |
+| kgateway URLRewrite | `/api/public/otel` -> `/api/public/otel/v1/traces` (경유 시) |
 | ReferenceGrant | observability 네임스페이스에 생성됨 |
 
-:::tip Bifrost OTel collector_url 경로
-Bifrost OTel 플러그인은 `collector_url`에 지정한 경로를 그대로 사용합니다. kgateway를 경유하지 않고 클러스터 내부에서 Langfuse에 직접 전송하는 경우 전체 경로(`/api/public/otel/v1/traces`)를 `collector_url`에 포함해야 합니다.
-
-kgateway를 경유하는 경우에는 URLRewrite로 경로를 변환합니다.
-:::
+상세 설정은 [Langfuse OTel 연동](./monitoring-observability-setup.md#opentelemetry-연동)을 참조하세요.
 
 ---
 
@@ -1300,7 +1296,9 @@ curl -s -o /dev/null -w "%{http_code}" \
 
 ## 참고 자료
 
-- [추론 게이트웨이 라우팅](../design-architecture/inference-gateway-routing.md) - kgateway 아키텍처 및 라우팅 전략 상세
+- [추론 게이트웨이 라우팅](./inference-gateway-routing.md) - kgateway 아키텍처 및 라우팅 전략 상세
+- [Langfuse 배포 가이드](./monitoring-observability-setup.md) - Helm 설치, OTel 연동, Redis/ClickHouse 구성
+- [Agent 모니터링](../operations-mlops/agent-monitoring.md) - Langfuse 아키텍처 및 컴포넌트
 - [Kubernetes Gateway API 공식 문서](https://gateway-api.sigs.k8s.io/)
 - [kgateway 공식 문서](https://kgateway.dev/docs/)
 - [Bifrost 공식 문서](https://bifrost.dev/docs)

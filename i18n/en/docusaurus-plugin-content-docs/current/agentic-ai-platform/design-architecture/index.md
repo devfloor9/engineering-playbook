@@ -45,7 +45,7 @@ This section guides you through understanding the Agentic AI Platform architectu
     color="#10b981"
   />
   <DocCard
-    to="/docs/agentic-ai-platform/design-architecture/inference-gateway-routing"
+    to="/docs/agentic-ai-platform/reference-architecture/inference-gateway-routing"
     icon="🔀"
     title="Inference Gateway & Cascade Routing"
     description="kgateway + Bifrost/LiteLLM 2-Tier architecture, Complexity-based Cascade Routing (LiteLLM native, Bifrost CEL Rules, vLLM Semantic Router), Hybrid Routing patterns, agentgateway MCP/A2A."

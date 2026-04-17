@@ -286,4 +286,4 @@ Cost optimization strategies only possible with self-hosting.
 | Kiro Pricing | [kiro.dev/pricing](https://kiro.dev/pricing) |
 | Custom Model Deployment Guide | [custom-model-deployment.md](./custom-model-deployment.md) |
 | Custom Model Pipeline | [custom-model-pipeline.md](./custom-model-pipeline.md) |
-| Inference Gateway | [inference-gateway-routing.md](../design-architecture/inference-gateway-routing.md) |
+| Inference Gateway | [inference-gateway-routing.md](../reference-architecture/inference-gateway-routing.md) |

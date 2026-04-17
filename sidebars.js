@@ -131,9 +131,10 @@ const sidebars = {
           items: [
             'agentic-ai-platform/design-architecture/agentic-platform-architecture',
             'agentic-ai-platform/design-architecture/agentic-ai-challenges',
+            'agentic-ai-platform/design-architecture/ai-platform-decision-framework',
             'agentic-ai-platform/design-architecture/aws-native-agentic-platform',
             'agentic-ai-platform/design-architecture/agentic-ai-solutions-eks',
-            'agentic-ai-platform/design-architecture/inference-gateway-routing',
+            'agentic-ai-platform/design-architecture/semantic-caching-strategy',
           ],
         },
         {
@@ -150,6 +151,7 @@ const sidebars = {
             'agentic-ai-platform/model-serving/llm-d-eks-automode',
             'agentic-ai-platform/model-serving/moe-model-serving',
             'agentic-ai-platform/model-serving/nvidia-gpu-stack',
+            'agentic-ai-platform/model-serving/aws-neuron-stack',
             'agentic-ai-platform/model-serving/nemo-framework',
           ],
         },
@@ -166,6 +168,7 @@ const sidebars = {
             'agentic-ai-platform/operations-mlops/kagent-kubernetes-agents',
             'agentic-ai-platform/operations-mlops/ragas-evaluation',
             'agentic-ai-platform/operations-mlops/agentic-playbook',
+            'agentic-ai-platform/operations-mlops/ai-gateway-guardrails',
             'agentic-ai-platform/operations-mlops/compliance-framework',
             'agentic-ai-platform/operations-mlops/domain-customization',
             'agentic-ai-platform/operations-mlops/milvus-vector-database',
@@ -181,6 +184,7 @@ const sidebars = {
           },
           items: [
             'agentic-ai-platform/reference-architecture/custom-model-deployment',
+            'agentic-ai-platform/reference-architecture/inference-gateway-routing',
             'agentic-ai-platform/reference-architecture/inference-gateway-setup',
             'agentic-ai-platform/reference-architecture/monitoring-observability-setup',
             'agentic-ai-platform/reference-architecture/custom-model-pipeline',

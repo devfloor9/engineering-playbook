@@ -10,7 +10,7 @@ last_update:
 
 # Inference Gateway Setup Guide
 
-This document covers the **hands-on deployment procedures** for a kgateway + Bifrost-based inference gateway. For architectural concepts and design principles, see [Inference Gateway Routing](../design-architecture/inference-gateway-routing.md).
+This document covers the **hands-on deployment procedures** for a kgateway + Bifrost-based inference gateway. For architectural concepts and design principles, see [Inference Gateway Routing](../reference-architecture/inference-gateway-routing.md).
 
 ## Production Inference Pipeline Architecture
 
@@ -978,7 +978,7 @@ https://<AMG_ENDPOINT>               -> Grafana (Managed separately)
 
 ## References
 
-- [Inference Gateway Routing](../design-architecture/inference-gateway-routing.md) - Detailed kgateway architecture and routing strategies
+- [Inference Gateway Routing](../reference-architecture/inference-gateway-routing.md) - Detailed kgateway architecture and routing strategies
 - [Kubernetes Gateway API Official Documentation](https://gateway-api.sigs.k8s.io/)
 - [kgateway Official Documentation](https://kgateway.dev/docs/)
 - [Bifrost Official Documentation](https://bifrost.dev/docs)

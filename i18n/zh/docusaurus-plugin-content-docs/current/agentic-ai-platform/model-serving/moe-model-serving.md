@@ -432,7 +432,7 @@ sequenceDiagram
 ### 下一步
 
 - [GPU 资源管理](./gpu-resource-management.md) - GPU 集群动态资源分配
-- [Inference Gateway 路由](../design-architecture/inference-gateway-routing.md) - 多模型路由策略
+- [Inference Gateway 路由](../reference-architecture/inference-gateway-routing.md) - 多模型路由策略
 - [Agentic AI 平台架构](../design-architecture/agentic-platform-architecture.md) - 整体平台架构
 
 ---

@@ -10,7 +10,7 @@ last_update:
 
 # 推理网关配置指南
 
-本文档涵盖基于 kgateway + Bifrost 的推理网关**实战部署步骤**。架构概念和设计原则请参阅 [推理网关路由](../design-architecture/inference-gateway-routing.md)。
+本文档涵盖基于 kgateway + Bifrost 的推理网关**实战部署步骤**。架构概念和设计原则请参阅 [推理网关路由](../reference-architecture/inference-gateway-routing.md)。
 
 ## 生产推理管道架构
 

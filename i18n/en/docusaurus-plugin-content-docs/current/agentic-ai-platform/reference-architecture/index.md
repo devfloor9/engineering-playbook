@@ -220,7 +220,7 @@ For concepts and architecture design, refer to the following documents:
 - [Agentic AI Platform Architecture](../design-architecture/agentic-platform-architecture.md) — Overall design principles and component structure
 - [GPU Resource Management](../model-serving/gpu-resource-management.md) — Karpenter, KEDA, DRA-based GPU autoscaling
 - [vLLM Model Serving](../model-serving/vllm-model-serving.md) — vLLM architecture and optimization techniques
-- [Inference Gateway Routing](../design-architecture/inference-gateway-routing.md) — kgateway + AI gateway design
+- [Inference Gateway Routing](../reference-architecture/inference-gateway-routing.md) — kgateway + AI gateway design
 
 ---
 

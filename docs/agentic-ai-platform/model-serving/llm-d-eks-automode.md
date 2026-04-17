@@ -5,7 +5,7 @@ description: "llm-d 아키텍처 개념, KV Cache-aware 라우팅, Disaggregated
 tags: [eks, llm-d, vllm, inference-gateway, gpu, auto-mode, karpenter, kv-cache]
 category: "genai-aiml"
 last_update:
-  date: 2026-04-06
+  date: 2026-04-17
   author: devfloor9
 sidebar_position: 4
 ---
@@ -213,12 +213,8 @@ sequenceDiagram
 - **g6e family (L40S)**: 13B-70B 모델, 비용 효율적 추론
 :::
 
-:::danger llm-d + DRA 사용 시 노드 제약
-llm-d ModelService가 **DRA (ResourceClaim)** 방식으로 GPU를 요청하는 경우, Karpenter와 EKS Auto Mode에서는 노드 프로비저닝이 동작하지 않습니다. DRA의 ResourceSlice는 노드 생성 후 DRA Driver가 발행하므로, Karpenter가 노드 생성 전에 필요한 시뮬레이션이 불가능합니다.
-
-- **DRA를 사용하는 배포**: 반드시 **Managed Node Group + Cluster Autoscaler**로 GPU 노드 관리
-- **DRA 없이 배포** (`nvidia.com/gpu` Device Plugin 방식): Auto Mode와 Karpenter에서 정상 동작
-- **P6e-GB200 UltraServer**: DRA가 필수 (Device Plugin 미지원)
+:::danger llm-d + DRA 사용 시 Karpenter/Auto Mode 제약
+llm-d ModelService가 DRA (ResourceClaim) 방식으로 GPU를 요청하는 경우, Karpenter와 EKS Auto Mode에서는 노드 프로비저닝이 동작하지 않습니다. DRA 워크로드는 **Managed Node Group + Cluster Autoscaler** 구성이 필요합니다.
 
 상세: [EKS GPU 노드 전략 — DRA 워크로드를 위한 MNG 전략](./eks-gpu-node-strategy.md#56-dra-워크로드를-위한-managed-node-group-전략)
 :::

@@ -4,7 +4,7 @@ sidebar_label: "커스텀 모델 파이프라인"
 description: "LoRA Fine-tuning, Multi-LoRA 핫스왑, SLM Cascade Routing으로 도메인별 최적화된 모델 서빙 파이프라인 구축"
 tags: [lora, fine-tuning, cascade-routing, multi-lora, slm, pipeline, vllm, bifrost]
 last_update:
-  date: 2026-04-05
+  date: 2026-04-17
   author: YoungJoon Jeong
 ---
 
@@ -268,34 +268,9 @@ spec:
 클라이언트(Aider/Cline) → `X-Customer-Domain: bank` 헤더 설정 → kgateway → Bifrost → vLLM (`lora_name=bank-ledger` 자동 매핑)
 :::
 
-### 3.5 Langfuse 고객별 추적
+### 3.5 고객별 추론 추적
 
-각 고객의 추론 요청을 Langfuse로 추적하여 LoRA 어댑터별 성능을 모니터링합니다.
-
-```python
-from langfuse import Langfuse
-
-langfuse = Langfuse()
-
-trace = langfuse.trace(
-    name="inference",
-    user_id="customer-bank-A",
-    metadata={"lora": "bank-ledger", "model": "glm-5"}
-)
-
-# 추론 실행 후 결과 기록
-generation = trace.generation(
-    name="completion",
-    model="glm-5",
-    model_parameters={"lora": "bank-ledger"},
-    input=messages,
-    output=response.choices[0].message.content,
-    usage={
-        "input": response.usage.prompt_tokens,
-        "output": response.usage.completion_tokens,
-    },
-)
-```
+각 고객의 추론 요청을 LLM 트레이싱 시스템으로 추적하여 LoRA 어댑터별 성능을 모니터링합니다. 구현 방법은 [Agent 모니터링](../operations-mlops/agent-monitoring.md) 및 [LLM 트레이싱 배포](./monitoring-observability-setup.md)를 참조하세요.
 
 ---
 
@@ -450,37 +425,18 @@ spec:
 
 ### 5.2 LoRA A/B 테스트
 
-새로운 어댑터 버전을 배포하기 전, Langfuse 태그를 활용한 A/B 테스트로 성능을 비교합니다.
+새로운 어댑터 버전을 배포하기 전, LLM 트레이싱 시스템의 태그 기능을 활용한 A/B 테스트로 성능을 비교합니다. 요청 메타데이터에 `lora` 버전을 태그로 기록하면 대시보드에서 어댑터별 성능을 비교할 수 있습니다.
 
-```python
-# Langfuse로 A/B 테스트
-import random
-from langfuse.openai import openai
-
-client = openai.OpenAI(
-    base_url="http://vllm:8000/v1",
-    api_key="dummy",
-)
-
-for test_case in test_dataset:
-    lora = random.choice(["bank-ledger-v1", "bank-ledger-v2"])
-    response = client.chat.completions.create(
-        model="glm-5",
-        messages=[{"role": "user", "content": test_case["input"]}],
-        extra_body={"lora_name": lora},
-        langfuse_tags=[f"lora:{lora}", "ab-test"],
-    )
-    # Langfuse 대시보드에서 lora별 성능 비교 가능
-```
+구현 예시는 [Agent 모니터링 - A/B 테스트](../operations-mlops/agent-monitoring.md)를 참조하세요.
 
 **A/B 테스트 비교 항목:**
 
 | 메트릭 | 측정 방법 | 의미 |
 |--------|----------|------|
 | 정확도 | SWE-bench / 도메인 테스트 | 코드 변환 정확성 |
-| 레이턴시 | Langfuse p50/p95 | 응답 속도 |
+| 레이턴시 | LLM 트레이싱 p50/p95 | 응답 속도 |
 | 토큰 효율 | output_tokens / input_tokens | 답변 간결성 |
-| 사용자 만족도 | Langfuse Annotation Score | 실제 사용자 평가 |
+| 사용자 만족도 | Annotation Score | 실제 사용자 평가 |
 
 - 참조: [RAGAS 평가 프레임워크](../operations-mlops/ragas-evaluation.md)
 - 참조: [LLMOps Observability 평가 파이프라인](../operations-mlops/llmops-observability.md)
@@ -536,4 +492,6 @@ Phase 4까지 완료 시:
 | NeMo Framework | [docs.nvidia.com/nemo-framework](https://docs.nvidia.com/nemo-framework/user-guide/latest/) |
 | RAGAS Evaluation | [docs.ragas.io](https://docs.ragas.io/) |
 | Bifrost AI Gateway | [docs.getbifrost.ai](https://docs.getbifrost.ai/) |
+| Agent 모니터링 | [agent-monitoring.md](../operations-mlops/agent-monitoring.md) |
+| LLM 트레이싱 배포 | [monitoring-observability-setup.md](./monitoring-observability-setup.md) |
 | 커스텀 모델 배포 가이드 | [custom-model-deployment.md](./custom-model-deployment.md) |

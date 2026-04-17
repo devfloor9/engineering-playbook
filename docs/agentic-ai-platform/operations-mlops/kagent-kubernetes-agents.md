@@ -5,7 +5,7 @@ description: "Kagent를 활용한 Kubernetes 환경에서의 AI 에이전트 선
 tags: [eks, kagent, kubernetes, agent, crd, operator]
 category: "genai-aiml"
 last_update:
-  date: 2026-04-06
+  date: 2026-04-17
   author: devfloor9
 sidebar_position: 3
 ---
@@ -220,7 +220,7 @@ spec:
   observability:
     tracing:
       enabled: true
-      provider: langfuse       # langfuse, langsmith, cloudwatch
+      provider: langfuse       # langfuse, langsmith, cloudwatch (상세: ../operations-mlops/llmops-observability.md)
     metrics:
       enabled: true
       port: 9090
@@ -384,15 +384,12 @@ Agent CRD 생성
 
 ## 관측성 통합
 
-### 지원 관측성 프로바이더
+Agent 실행 트레이스는 Langfuse, LangSmith, CloudWatch Generative AI Observability 중 하나로 전송합니다. 각 도구의 비교는 [LLMOps Observability 비교](../operations-mlops/llmops-observability.md)를 참조하세요.
 
-| 프로바이더 | 유형 | 설명 |
-|-----------|------|------|
-| **Langfuse** | 트레이싱 | OSS LLM 관측성 (자체 호스팅 가능) |
-| **LangSmith** | 트레이싱 | LangChain 에코시스템 트레이싱 |
-| **CloudWatch** | 메트릭/로그 | AWS 네이티브 Generative AI Observability |
-| **OpenTelemetry** | 범용 | 분산 트레이싱 표준 |
-| **Prometheus** | 메트릭 | ServiceMonitor 기반 메트릭 수집 |
+배포 가이드:
+- **Langfuse**: [아키텍처](../operations-mlops/agent-monitoring.md), [Helm 배포](../reference-architecture/monitoring-observability-setup.md)
+- **LangSmith**: [LangSmith 공식 문서](https://docs.smith.langchain.com/)
+- **CloudWatch**: [AWS Generative AI Observability](https://docs.aws.amazon.com/cloudwatch/)
 
 ### 핵심 알림 규칙
 

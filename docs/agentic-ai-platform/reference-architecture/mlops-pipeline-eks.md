@@ -6,7 +6,7 @@ sidebar_position: 3
 category: "genai-aiml"
 tags: [mlops, kubeflow, mlflow, vllm, argocd, gitops, argo-workflows, eks, ml-pipeline]
 last_update:
-  date: 2026-04-06
+  date: 2026-04-17
   author: devfloor9
 ---
 
@@ -671,88 +671,11 @@ spec:
 
 ## GPU 리소스 스케줄링 (Karpenter)
 
-### Karpenter 아키텍처
+Karpenter는 GPU 워크로드를 위한 동적 노드 프로비저닝을 제공합니다. Pending Pod를 감지하면 적합한 GPU 인스턴스를 자동으로 선택하고 프로비저닝합니다.
 
-```mermaid
-flowchart TB
-    PENDING[Pending Pods<br/>GPU 필요]
-    CONTROLLER[Karpenter<br/>Controller]
-
-    subgraph Provisioning["노드 프로비저닝"]
-        PROVISION[인스턴스<br/>선택]
-        EC2[EC2 실행<br/>g5/p4/p5]
-        SPOT[Spot<br/>70% 절감]
-    end
-
-    PENDING -->|스케일링 요청| CONTROLLER
-    CONTROLLER --> PROVISION
-    PROVISION --> EC2
-    PROVISION --> SPOT
-
-    style PENDING fill:#ea4335
-    style CONTROLLER fill:#4285f4
-    style Provisioning fill:#76b900
-```
-
-### Karpenter NodePool 설정
-
-```yaml
-apiVersion: karpenter.sh/v1
-kind: NodePool
-metadata:
-  name: gpu-training
-spec:
-  template:
-    spec:
-      requirements:
-        - key: karpenter.sh/capacity-type
-          operator: In
-          values: ["spot", "on-demand"]
-        - key: node.kubernetes.io/instance-type
-          operator: In
-          values: ["g5.xlarge", "g5.2xlarge", "g5.4xlarge"]
-        - key: karpenter.k8s.aws/instance-gpu-count
-          operator: Gt
-          values: ["0"]
-      
-      nodeClassRef:
-        name: gpu-node-class
-      
-      taints:
-        - key: nvidia.com/gpu
-          value: "true"
-          effect: NoSchedule
-  
-  limits:
-    nvidia.com/gpu: "50"
-  
-  disruption:
-    consolidationPolicy: WhenUnderutilized
-    expireAfter: 720h
----
-apiVersion: karpenter.k8s.aws/v1
-kind: EC2NodeClass
-metadata:
-  name: gpu-node-class
-spec:
-  amiFamily: AL2023
-  role: KarpenterNodeRole-ml-cluster
-  
-  subnetSelectorTerms:
-    - tags:
-        karpenter.sh/discovery: ml-cluster
-  
-  securityGroupSelectorTerms:
-    - tags:
-        karpenter.sh/discovery: ml-cluster
-  
-  blockDeviceMappings:
-    - deviceName: /dev/xvda
-      ebs:
-        volumeSize: 100Gi
-        volumeType: gp3
-        encrypted: true
-```
+:::info Karpenter 상세 설정
+NodePool 구성, Spot 전략, Consolidation 정책, GPU 인스턴스 비교는 [GPU 리소스 관리](../model-serving/gpu-resource-management.md)를 참조하세요.
+:::
 
 ---
 

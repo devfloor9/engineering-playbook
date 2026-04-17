@@ -220,7 +220,7 @@ graph TD
 - [Agentic AI Platform 架构](../design-architecture/agentic-platform-architecture.md) — 整体设计原则与组件结构
 - [GPU 资源管理](../model-serving/gpu-resource-management.md) — Karpenter、KEDA、DRA 基于 GPU 的自动伸缩
 - [vLLM 模型服务](../model-serving/vllm-model-serving.md) — vLLM 架构与优化技术
-- [Inference Gateway 路由](../design-architecture/inference-gateway-routing.md) — kgateway + AI 网关设计
+- [Inference Gateway 路由](../reference-architecture/inference-gateway-routing.md) — kgateway + AI 网关设计
 
 ---
 

@@ -5,7 +5,7 @@ description: "프로덕션급 Agentic AI 플랫폼의 전체 시스템 아키텍
 tags: [architecture, agentic-ai, platform, kubernetes]
 category: "genai-aiml"
 last_update:
-  date: 2026-03-20
+  date: 2026-04-17
   author: devfloor9
 sidebar_position: 1
 ---

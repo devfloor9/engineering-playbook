@@ -5,7 +5,7 @@ description: "vLLM의 PagedAttention, 병렬화 전략, Multi-LoRA, 하드웨어
 tags: [vllm, paged-attention, tensor-parallel, pipeline-parallel, multi-lora, serving]
 sidebar_position: 3
 last_update:
-  date: 2026-04-06
+  date: 2026-04-17
   author: YoungJoon Jeong
 ---
 
