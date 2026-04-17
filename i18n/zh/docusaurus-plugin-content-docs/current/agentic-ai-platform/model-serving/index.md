@@ -17,49 +17,49 @@ import { DocCard, DocCardGrid } from '@site/src/components/DocCards';
 
 <DocCardGrid columns={2}>
   <DocCard
-    to="/docs/agentic-ai-platform/model-serving/eks-gpu-node-strategy"
+    to="/docs/agentic-ai-platform/model-serving/gpu-infrastructure/eks-gpu-node-strategy"
     icon="🖥️"
     title="EKS GPU 节点策略"
     description="Auto Mode、Karpenter、Managed Node Group、Hybrid Node 的 GPU 工作负载最优节点策略。包含安全加固及故障排除指南。"
     color="#326ce5"
   />
   <DocCard
-    to="/docs/agentic-ai-platform/model-serving/gpu-resource-management"
+    to="/docs/agentic-ai-platform/model-serving/gpu-infrastructure/gpu-resource-management"
     icon="📊"
     title="GPU 资源管理"
     description="基于 Karpenter 的 GPU 节点伸缩、KEDA 自动伸缩、DRA 动态资源分配、Spot/Consolidation 成本优化策略。"
     color="#f59e0b"
   />
   <DocCard
-    to="/docs/agentic-ai-platform/model-serving/vllm-model-serving"
+    to="/docs/agentic-ai-platform/model-serving/inference-frameworks/vllm-model-serving"
     icon="🚀"
     title="vLLM 模型服务"
     description="基于 PagedAttention 的高性能 LLM 推理引擎。模型部署、性能优化、Continuous Batching、Tensor Parallelism 配置指南。"
     color="#ff6b6b"
   />
   <DocCard
-    to="/docs/agentic-ai-platform/model-serving/llm-d-eks-automode"
+    to="/docs/agentic-ai-platform/model-serving/inference-frameworks/llm-d-eks-automode"
     icon="🔀"
     title="llm-d 分布式推理"
     description="Kubernetes 原生分布式推理调度器。KV Cache 感知路由、Prefix Cache 优化、Disaggregated Serving 架构。"
     color="#8b5cf6"
   />
   <DocCard
-    to="/docs/agentic-ai-platform/model-serving/moe-model-serving"
+    to="/docs/agentic-ai-platform/model-serving/inference-frameworks/moe-model-serving"
     icon="🧩"
     title="MoE 模型服务"
     description="Mixture of Experts 模型的高效服务。Expert Parallelism、动态路由、内存优化策略。"
     color="#06b6d4"
   />
   <DocCard
-    to="/docs/agentic-ai-platform/model-serving/nvidia-gpu-stack"
+    to="/docs/agentic-ai-platform/model-serving/gpu-infrastructure/nvidia-gpu-stack"
     icon="💚"
     title="NVIDIA GPU 堆栈"
     description="GPU Operator、DCGM 监控、MIG/Time-Slicing 分区、Dynamo 推理框架等 NVIDIA GPU 软件栈指南。"
     color="#76b900"
   />
   <DocCard
-    to="/docs/agentic-ai-platform/model-serving/nemo-framework"
+    to="/docs/agentic-ai-platform/model-serving/inference-frameworks/nemo-framework"
     icon="🧠"
     title="NeMo 框架"
     description="基于 NVIDIA NeMo 的大规模模型训练与微调。分布式训练、EFA 高速网络、检查点策略。"

@@ -2,7 +2,7 @@
 title: "엔터프라이즈 컴플라이언스 프레임워크"
 sidebar_label: "컴플라이언스"
 description: "SOC2, ISO27001, 전자금융감독규정, ISMS-P를 AI 운영에 매핑하는 컴플라이언스 가이드"
-tags: [compliance, soc2, iso27001, isms-p, audit, security]
+tags: [compliance, soc2, iso27001, isms-p, audit, security, 'scope:ops']
 last_update:
   date: 2026-04-17
   author: YoungJoon Jeong

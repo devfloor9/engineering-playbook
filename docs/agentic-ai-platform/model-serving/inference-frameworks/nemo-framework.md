@@ -2,10 +2,10 @@
 title: "NeMo 프레임워크"
 sidebar_label: "NeMo 프레임워크"
 description: "NVIDIA NeMo Framework의 분산 학습, 파인튜닝, TensorRT-LLM 변환 아키텍처"
-tags: [nemo, nvidia, fine-tuning, tensorrt-llm, triton, nccl, distributed-training]
+tags: [nemo, nvidia, fine-tuning, tensorrt-llm, triton, nccl, distributed-training, 'scope:tech']
 sidebar_position: 7
 last_update:
-  date: 2026-04-05
+  date: 2026-04-17
   author: YoungJoon Jeong
 ---
 
@@ -212,7 +212,7 @@ model = finetune(
 )
 ```
 
-**상세 파이프라인**: 데이터 전처리, 멀티노드 분산 학습, 하이퍼파라미터 튜닝 등은 [커스텀 모델 파이프라인](../reference-architecture/custom-model-pipeline.md) 문서를 참조하세요.
+**상세 파이프라인**: 데이터 전처리, 멀티노드 분산 학습, 하이퍼파라미터 튜닝 등은 [커스텀 모델 파이프라인](../../reference-architecture/custom-model-pipeline.md) 문서를 참조하세요.
 
 ---
 
@@ -565,16 +565,16 @@ export NCCL_DEBUG=INFO  # 성능 문제 진단 시 유용
 
 **모니터링 스택**: Prometheus + Grafana + DCGM Exporter
 
-상세 모니터링 설정은 [모니터링 및 관찰성 설정](../reference-architecture/monitoring-observability-setup.md)을 참조하세요.
+상세 모니터링 설정은 [모니터링 및 관찰성 설정](../../reference-architecture/monitoring-observability-setup.md)을 참조하세요.
 
 ---
 
 ## 관련 문서
 
-- [GPU 리소스 관리](./gpu-resource-management.md) - Karpenter, KEDA, DRA 기반 GPU 오토스케일링
+- [GPU 리소스 관리](../gpu-infrastructure/gpu-resource-management.md) - Karpenter, KEDA, DRA 기반 GPU 오토스케일링
 - [vLLM 모델 서빙](./vllm-model-serving.md) - 프로덕션 추론 서버
 - [MoE 모델 서빙](./moe-model-serving.md) - Mixture of Experts 아키텍처
-- [커스텀 모델 파이프라인](../reference-architecture/custom-model-pipeline.md) - 데이터 준비부터 배포까지 전체 파이프라인
+- [커스텀 모델 파이프라인](../../reference-architecture/custom-model-pipeline.md) - 데이터 준비부터 배포까지 전체 파이프라인
 
 :::tip 권장 사항
 

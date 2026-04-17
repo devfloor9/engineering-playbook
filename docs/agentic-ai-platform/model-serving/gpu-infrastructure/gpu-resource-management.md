@@ -2,7 +2,7 @@
 title: "GPU 리소스 관리"
 sidebar_label: "GPU 리소스 관리"
 description: "EKS에서 Karpenter, KEDA, DRA를 활용한 GPU 리소스 관리 및 비용 최적화"
-tags: [gpu, karpenter, keda, dra, autoscaling, cost-optimization]
+tags: [gpu, karpenter, keda, dra, autoscaling, cost-optimization, 'scope:tech']
 sidebar_position: 2
 last_update:
   date: 2026-04-17
@@ -429,7 +429,7 @@ flowchart LR
 
 - [NVIDIA GPU 스택](./nvidia-gpu-stack.md) — GPU Operator, DCGM, MIG, Time-Slicing, Dynamo
 - [EKS GPU 노드 전략](./eks-gpu-node-strategy.md) — Auto Mode + Karpenter + Hybrid Node 구성
-- [vLLM 모델 서빙](./vllm-model-serving.md) — 추론 엔진 배포
+- [vLLM 모델 서빙](../inference-frameworks/vllm-model-serving.md) — 추론 엔진 배포
 
 ## 참고 자료
 

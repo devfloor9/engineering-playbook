@@ -2,7 +2,7 @@
 title: "AWS Neuron Stack — Trainium2/Inferentia2 on EKS"
 sidebar_label: "AWS Neuron Stack"
 description: "EKS 위에서 AWS 커스텀 AI 가속기(Trainium2/Inferentia2)를 운영하기 위한 Neuron SDK, Device Plugin, NxD Inference 가이드"
-tags: [trainium2, inferentia2, neuron-sdk, aws-accelerator, eks, vllm-neuron, nxd-inference]
+tags: [trainium2, inferentia2, neuron-sdk, aws-accelerator, eks, vllm-neuron, nxd-inference, 'scope:tech']
 sidebar_position: 7
 last_update:
   date: 2026-04-17
@@ -519,7 +519,7 @@ flowchart LR
 - AMP(Amazon Managed Prometheus) 에서 remote-write 로 수집하고 AMG(Amazon Managed Grafana) 에서 대시보드화
 - CloudWatch Container Insights 의 Neuron 메트릭도 함께 활용 가능
 
-상세 AMP/AMG 구성은 [모니터링·Observability 셋업](../reference-architecture/monitoring-observability-setup.md) 을 참조하세요.
+상세 AMP/AMG 구성은 [모니터링·Observability 셋업](../../reference-architecture/monitoring-observability-setup.md) 을 참조하세요.
 
 ### 8.3 주요 메트릭
 
@@ -569,9 +569,9 @@ flowchart LR
 - [EKS GPU 노드 전략](./eks-gpu-node-strategy.md) — AWS 가속기 선택 가이드, NVIDIA vs Neuron
 - [NVIDIA GPU 스택](./nvidia-gpu-stack.md) — NVIDIA 스택과의 비교 기준
 - [GPU 리소스 관리](./gpu-resource-management.md) — Karpenter/KEDA/DRA 기반 오토스케일링
-- [vLLM 모델 서빙](./vllm-model-serving.md) — vLLM 기반 추론 엔진 (CUDA 경로)
-- [MoE 모델 서빙](./moe-model-serving.md) — MoE 구조 개념 및 Trainium2 배치 전략
-- [모니터링·Observability 셋업](../reference-architecture/monitoring-observability-setup.md) — AMP/AMG, Langfuse, OTel
+- [vLLM 모델 서빙](../inference-frameworks/vllm-model-serving.md) — vLLM 기반 추론 엔진 (CUDA 경로)
+- [MoE 모델 서빙](../inference-frameworks/moe-model-serving.md) — MoE 구조 개념 및 Trainium2 배치 전략
+- [모니터링·Observability 셋업](../../reference-architecture/monitoring-observability-setup.md) — AMP/AMG, Langfuse, OTel
 
 ## 참고 자료
 

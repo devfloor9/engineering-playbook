@@ -2,9 +2,9 @@
 title: "모니터링 & Observability 구성 가이드"
 sidebar_label: "모니터링"
 description: "Prometheus→AMP, AMG, Langfuse, Bifrost OTel 통합 모니터링 실전 구성 가이드"
-tags: [monitoring, langfuse, amp, amg, prometheus, otel, deployment]
+tags: [monitoring, langfuse, amp, amg, prometheus, otel, deployment, 'scope:impl']
 last_update:
-  date: 2026-04-05
+  date: 2026-04-17
   author: YoungJoon Jeong
 ---
 

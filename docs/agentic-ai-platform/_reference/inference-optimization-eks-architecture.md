@@ -1321,12 +1321,12 @@ flowchart TB
 ## 참고 자료
 
 ### 내부 문서
-- [EKS GPU 노드 전략](./model-serving/eks-gpu-node-strategy.md) — Auto Mode, Karpenter, Hybrid Node 비교
-- [vLLM 기반 FM 배포 및 성능 최적화](./model-serving/vllm-model-serving.md) — vLLM 상세 가이드
-- [llm-d 기반 EKS 분산 추론](./model-serving/llm-d-eks-automode.md) — llm-d 배포 가이드
-- [MoE 모델 서빙 가이드](./model-serving/moe-model-serving.md) — MoE 모델 배포
-- [GPU 리소스 관리](./model-serving/gpu-resource-management.md) — GPU 스케일링, DRA, 비용 최적화
-- [NVIDIA GPU 소프트웨어 스택](./model-serving/nvidia-gpu-stack.md) — GPU Operator, DCGM, MIG, Dynamo
+- [EKS GPU 노드 전략](./model-serving/gpu-infrastructure/eks-gpu-node-strategy.md) — Auto Mode, Karpenter, Hybrid Node 비교
+- [vLLM 기반 FM 배포 및 성능 최적화](./model-serving/inference-frameworks/vllm-model-serving.md) — vLLM 상세 가이드
+- [llm-d 기반 EKS 분산 추론](./model-serving/inference-frameworks/llm-d-eks-automode.md) — llm-d 배포 가이드
+- [MoE 모델 서빙 가이드](./model-serving/inference-frameworks/moe-model-serving.md) — MoE 모델 배포
+- [GPU 리소스 관리](./model-serving/gpu-infrastructure/gpu-resource-management.md) — GPU 스케일링, DRA, 비용 최적화
+- [NVIDIA GPU 소프트웨어 스택](./model-serving/gpu-infrastructure/nvidia-gpu-stack.md) — GPU Operator, DCGM, MIG, Dynamo
 
 ### 외부 참고
 - [GenAI on EKS Starter Kit](https://github.com/aws-samples/sample-genai-on-eks-starter-kit) — Bifrost, vLLM, Langfuse 배포 자동화

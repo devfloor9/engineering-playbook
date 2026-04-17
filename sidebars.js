@@ -145,14 +145,34 @@ const sidebars = {
             id: 'agentic-ai-platform/model-serving/index',
           },
           items: [
-            'agentic-ai-platform/model-serving/eks-gpu-node-strategy',
-            'agentic-ai-platform/model-serving/gpu-resource-management',
-            'agentic-ai-platform/model-serving/vllm-model-serving',
-            'agentic-ai-platform/model-serving/llm-d-eks-automode',
-            'agentic-ai-platform/model-serving/moe-model-serving',
-            'agentic-ai-platform/model-serving/nvidia-gpu-stack',
-            'agentic-ai-platform/model-serving/aws-neuron-stack',
-            'agentic-ai-platform/model-serving/nemo-framework',
+            {
+              type: 'category',
+              label: 'GPU 인프라',
+              link: {
+                type: 'doc',
+                id: 'agentic-ai-platform/model-serving/gpu-infrastructure/index',
+              },
+              items: [
+                'agentic-ai-platform/model-serving/gpu-infrastructure/eks-gpu-node-strategy',
+                'agentic-ai-platform/model-serving/gpu-infrastructure/gpu-resource-management',
+                'agentic-ai-platform/model-serving/gpu-infrastructure/nvidia-gpu-stack',
+                'agentic-ai-platform/model-serving/gpu-infrastructure/aws-neuron-stack',
+              ],
+            },
+            {
+              type: 'category',
+              label: '추론 프레임워크',
+              link: {
+                type: 'doc',
+                id: 'agentic-ai-platform/model-serving/inference-frameworks/index',
+              },
+              items: [
+                'agentic-ai-platform/model-serving/inference-frameworks/vllm-model-serving',
+                'agentic-ai-platform/model-serving/inference-frameworks/llm-d-eks-automode',
+                'agentic-ai-platform/model-serving/inference-frameworks/moe-model-serving',
+                'agentic-ai-platform/model-serving/inference-frameworks/nemo-framework',
+              ],
+            },
           ],
         },
         {

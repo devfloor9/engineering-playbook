@@ -2,7 +2,7 @@
 title: "OpenClaw AI Agent Gateway 배포 및 Full Observability"
 sidebar_label: "OpenClaw AI Gateway"
 description: "OpenClaw AI 에이전트 게이트웨이를 EKS에 비용 최적화 배포하고, Bifrost Auto-Router + Cilium Hubble + Langfuse로 Full Observability 구현"
-tags: [eks, openclaw, bifrost, langfuse, cilium, hubble, bedrock, graviton, pod-identity, observability]
+tags: [eks, openclaw, bifrost, langfuse, cilium, hubble, bedrock, graviton, pod-identity, observability, 'scope:impl']
 category: "genai-aiml"
 sidebar_position: 5
 last_update:
@@ -470,7 +470,7 @@ kubectl create secret generic bifrost-secrets \
 ---
 
 :::tip 다음 단계
-- 자체 호스팅 vLLM 추가 시: [llm-d 분산 추론](../model-serving/llm-d-eks-automode.md)를 참조하여 `Bifrost → llm-d → vLLM` 하이브리드 구성
+- 자체 호스팅 vLLM 추가 시: [llm-d 분산 추론](../model-serving/inference-frameworks/llm-d-eks-automode.md)를 참조하여 `Bifrost → llm-d → vLLM` 하이브리드 구성
 - LiteLLM 대안 사용: Bifrost가 요구사항에 맞지 않을 경우 LiteLLM으로 대체 가능 (Python 기반, 동일한 OpenAI-compatible API)
 - 벡터 검색 RAG 추가: [Milvus 벡터 DB](../operations-mlops/milvus-vector-database.md) 참조
 - 에이전트 평가: [Ragas 평가](../operations-mlops/ragas-evaluation.md)로 응답 품질 측정

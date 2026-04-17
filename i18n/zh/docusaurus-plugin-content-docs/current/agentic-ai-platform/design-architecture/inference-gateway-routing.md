@@ -627,8 +627,8 @@ Bifrost/LiteLLM 向 Langfuse 发送 OTel trace 以追踪 Prompt/完成内容、T
 
 ### 相关基础设施
 
-- [GPU 资源管理](../model-serving/gpu-resource-management.md) - 动态资源分配策略
-- [llm-d 分布式推理](../model-serving/llm-d-eks-automode.md) - 基于 EKS Auto Mode 的分布式推理
+- [GPU 资源管理](../model-serving/gpu-infrastructure/gpu-resource-management.md) - 动态资源分配策略
+- [llm-d 分布式推理](../model-serving/inference-frameworks/llm-d-eks-automode.md) - 基于 EKS Auto Mode 的分布式推理
 - [Agent 监控](../operations-mlops/agent-monitoring.md) - Langfuse 集成指南
 
 ---

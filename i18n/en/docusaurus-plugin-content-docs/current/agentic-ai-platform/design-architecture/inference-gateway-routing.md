@@ -616,8 +616,8 @@ For actual code examples and YAML manifests, see the Reference Architecture sect
 
 ### Related Infrastructure
 
-- [GPU Resource Management](../model-serving/gpu-resource-management.md) - Dynamic resource allocation strategy
-- [llm-d Distributed Inference](../model-serving/llm-d-eks-automode.md) - EKS Auto Mode-based distributed inference
+- [GPU Resource Management](../model-serving/gpu-infrastructure/gpu-resource-management.md) - Dynamic resource allocation strategy
+- [llm-d Distributed Inference](../model-serving/inference-frameworks/llm-d-eks-automode.md) - EKS Auto Mode-based distributed inference
 - [Agent Monitoring](../operations-mlops/agent-monitoring.md) - Langfuse integration guide
 
 ---

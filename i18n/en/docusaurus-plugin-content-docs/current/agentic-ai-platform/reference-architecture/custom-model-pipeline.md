@@ -179,7 +179,7 @@ s3://model-registry/
 Recording training metrics (loss, accuracy) alongside adapter paths in MLflow lets you track which dataset and hyperparameter combinations are optimal.
 :::
 
-- Reference: [NeMo Framework Checkpoint Management](../model-serving/nemo-framework.md)
+- Reference: [NeMo Framework Checkpoint Management](../model-serving/inference-frameworks/nemo-framework.md)
 
 ---
 

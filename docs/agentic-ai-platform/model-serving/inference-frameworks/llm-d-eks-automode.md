@@ -2,7 +2,7 @@
 title: "llm-d 기반 EKS 분산 추론 가이드"
 sidebar_label: "llm-d 분산 추론"
 description: "llm-d 아키텍처 개념, KV Cache-aware 라우팅, Disaggregated Serving, EKS Auto Mode 통합 전략"
-tags: [eks, llm-d, vllm, inference-gateway, gpu, auto-mode, karpenter, kv-cache]
+tags: [eks, llm-d, vllm, inference-gateway, gpu, auto-mode, karpenter, kv-cache, 'scope:tech']
 category: "genai-aiml"
 last_update:
   date: 2026-04-17
@@ -38,7 +38,7 @@ llm-d는 Red Hat이 주도하는 Apache 2.0 라이선스의 Kubernetes 네이티
 기존 vLLM 배포가 단순한 Round-Robin 로드 밸런싱에 의존하는 반면, llm-d는 KV Cache 상태를 인식하는 지능적 라우팅을 통해 동일한 prefix를 가진 요청을 이미 해당 KV Cache를 보유한 Pod로 전달합니다. 이를 통해 Time To First Token(TTFT)을 크게 단축하고 GPU 연산을 절약할 수 있습니다.
 
 :::tip 실전 배포 가이드
-llm-d의 EKS 배포 YAML, helmfile 명령어, 클러스터 생성 등 실전 배포는 [커스텀 모델 배포 가이드](../reference-architecture/custom-model-deployment.md)를 참조하세요.
+llm-d의 EKS 배포 YAML, helmfile 명령어, 클러스터 생성 등 실전 배포는 [커스텀 모델 배포 가이드](../../reference-architecture/custom-model-deployment.md)를 참조하세요.
 :::
 
 :::warning llm-d Inference Gateway =/= 범용 Gateway API 구현체
@@ -189,17 +189,9 @@ sequenceDiagram
 
 ### Auto Mode vs Karpenter + GPU Operator 비교
 
-| 기준 | EKS Auto Mode | Auto Mode + GPU Operator | Karpenter + GPU Operator |
-|------|:---:|:---:|:---:|
-| **적합한 모델 크기** | 70B+ (GPU 전체 활용) | 70B+ (GPU 전체 활용) | 7B~30B (MIG로 분할 가능) |
-| **GPU 드라이버 관리** | AWS 자동 관리 | AWS 자동 관리 | AMI 사전 설치 |
-| **Device Plugin** | AWS 관리 | 레이블로 비활성화 | GPU Operator 관리 |
-| **DCGM 모니터링** | 기본 메트릭만 | DCGM Exporter 세밀 메트릭 | DCGM Exporter 세밀 메트릭 |
-| **MIG / Time-Slicing** | 불가 | 불가 | 가능 |
-| **KAI Scheduler** | 불가 | 가능 (ClusterPolicy 의존) | 가능 |
-| **운영 복잡도** | 낮음 | 중간 | 중간 |
+Auto Mode는 GPU 드라이버 관리 부담 없이 대형 모델 서빙에 적합하며, Karpenter는 MIG/Time-Slicing 등 고급 GPU 기능이 필요한 워크로드에 유리합니다.
 
-모델 크기별 상세 비용 분석은 [EKS GPU 노드 전략](./eks-gpu-node-strategy.md)을 참조하세요.
+**상세 비교표 및 비용 분석**: [EKS GPU 노드 전략 — 노드 타입별 특성 비교](../gpu-infrastructure/eks-gpu-node-strategy.md#2-노드-타입별-특성-비교) 참조
 
 ### GPU 인스턴스 사양
 
@@ -216,7 +208,7 @@ sequenceDiagram
 :::danger llm-d + DRA 사용 시 Karpenter/Auto Mode 제약
 llm-d ModelService가 DRA (ResourceClaim) 방식으로 GPU를 요청하는 경우, Karpenter와 EKS Auto Mode에서는 노드 프로비저닝이 동작하지 않습니다. DRA 워크로드는 **Managed Node Group + Cluster Autoscaler** 구성이 필요합니다.
 
-상세: [EKS GPU 노드 전략 — DRA 워크로드를 위한 MNG 전략](./eks-gpu-node-strategy.md#56-dra-워크로드를-위한-managed-node-group-전략)
+상세: [EKS GPU 노드 전략 — DRA 워크로드를 위한 MNG 전략](../gpu-infrastructure/eks-gpu-node-strategy.md#56-dra-워크로드를-위한-managed-node-group-전략)
 :::
 
 ---
@@ -292,7 +284,7 @@ Decode NodePool (memory-heavy):
 
 ## llm-d vs NVIDIA Dynamo
 
-llm-d와 NVIDIA Dynamo는 모두 LLM 추론 라우팅/스케줄링을 제공하지만 접근 방식이 다릅니다. 상세 비교는 [NVIDIA GPU 스택 — llm-d vs Dynamo](./nvidia-gpu-stack.md#llm-d와의-선택-가이드)를 참조하세요.
+llm-d와 NVIDIA Dynamo는 모두 LLM 추론 라우팅/스케줄링을 제공하지만 접근 방식이 다릅니다. 상세 비교는 [NVIDIA GPU 스택 — llm-d vs Dynamo](../gpu-infrastructure/nvidia-gpu-stack.md#llm-d와의-선택-가이드)를 참조하세요.
 
 | 항목 | llm-d | NVIDIA Dynamo |
 |------|-------|---------------|
@@ -409,13 +401,7 @@ p5.48xlarge는 시간당 약 $98.32 (us-west-2 On-Demand 기준)입니다. 2대 
 | ap-northeast-2 (서울) | InsufficientCapacity | 미확인 | -- |
 | **us-east-2 (Ohio)** | 가용성 변동 | **확보 성공** | **$13~15/hr** |
 
-**Spot 가격 비교 (us-east-2, 2026.04)**:
-
-| 인스턴스 | On-Demand | Spot (최저) | VRAM | 절감률 |
-|---------|-----------|------------|------|-------|
-| p5.48xlarge | $55/hr | $12.5/hr | 640GB | 77% |
-| p5en.48xlarge | ~$76/hr | $12.1/hr | 1,128GB | 84% |
-| p6-b200.48xlarge | $114/hr | $11.4/hr | 1,536GB | 90% |
+**Spot 가격 비교 (us-east-2, 2026.04 기준)**: p5 인스턴스는 Spot으로 85-90% 비용 절감이 가능합니다. 상세 가격표는 [EKS GPU 노드 전략 — Spot 가격 비교](../gpu-infrastructure/eks-gpu-node-strategy.md#47-spot-가격-비교-us-east-2-202604)를 참조하세요.
 
 ### GPU 쿼타 주의사항
 
@@ -432,10 +418,10 @@ GPU NodePool에 `instance-category: [g, p]`를 함께 설정한 경우, Karpente
 
 ## 다음 단계
 
-- [EKS GPU 노드 전략](./eks-gpu-node-strategy.md) -- Auto Mode vs Karpenter vs Hybrid Node, 모델 크기별 비용 분석
+- [EKS GPU 노드 전략](../gpu-infrastructure/eks-gpu-node-strategy.md) -- Auto Mode vs Karpenter vs Hybrid Node, 모델 크기별 비용 분석
 - [vLLM 기반 FM 배포 및 성능 최적화](./vllm-model-serving.md) -- vLLM 기본 개념 및 배포
 - [MoE 모델 서빙 가이드](./moe-model-serving.md) -- Mixture of Experts 모델 서빙
-- [GPU 리소스 관리](./gpu-resource-management.md) -- GPU 클러스터 리소스 관리
+- [GPU 리소스 관리](../gpu-infrastructure/gpu-resource-management.md) -- GPU 클러스터 리소스 관리
 
 ---
 

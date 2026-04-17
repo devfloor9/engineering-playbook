@@ -1,11 +1,11 @@
 ---
 title: "모델 서빙 & 추론 인프라"
 sidebar_label: "모델 서빙 & 추론 인프라"
-description: "EKS 기반 GPU 노드 전략, vLLM/llm-d 추론 엔진, MoE 서빙, NVIDIA GPU 스택 가이드"
-tags: [model-serving, gpu, vllm, llm-d, inference, eks]
+description: "GPU 인프라 계층과 추론·학습 프레임워크 계층으로 나뉜 모델 서빙 가이드"
+tags: [model-serving, gpu, vllm, llm-d, inference, eks, 'scope:tech']
 sidebar_position: 2
 last_update:
-  date: 2026-04-06
+  date: 2026-04-17
   author: YoungJoon Jeong
 ---
 
@@ -13,60 +13,28 @@ import { DocCard, DocCardGrid } from '@site/src/components/DocCards';
 
 # 모델 서빙 & 추론 인프라
 
-GPU/가속기 위에서 LLM을 배포하고 서빙하는 방법을 다룹니다. EKS 인프라 레이어부터 추론 엔진, 분산 서빙, GPU 소프트웨어 스택, 학습 프레임워크까지 순서대로 구성되어 있습니다.
+GPU/가속기 위에서 LLM 을 배포하고 서빙하는 방법을 두 계층으로 나누어 다룹니다.
+
+- **GPU 인프라 계층**: Kubernetes 위에서 GPU 인스턴스·드라이버·스케줄러·파티셔닝을 관리하는 계층. 어느 노드에 어떻게 GPU 를 할당할지 결정합니다.
+- **추론 프레임워크 계층**: 확보된 GPU 위에서 실제로 모델을 서빙·분산 추론·파인튜닝하는 AI 프레임워크 계층. vLLM·llm-d·MoE·NeMo 가 여기 속합니다.
 
 <DocCardGrid columns={2}>
   <DocCard
-    to="/docs/agentic-ai-platform/model-serving/eks-gpu-node-strategy"
+    to="/docs/agentic-ai-platform/model-serving/gpu-infrastructure"
     icon="🖥️"
-    title="EKS GPU 노드 전략"
-    description="Auto Mode, Karpenter, Managed Node Group, Hybrid Node의 GPU 워크로드별 최적 노드 전략. 보안 강화 및 트러블슈팅 가이드 포함."
+    title="GPU 인프라"
+    description="EKS GPU 노드 전략, Karpenter·KEDA·DRA 기반 리소스 관리, NVIDIA GPU 스택(ClusterPolicy·DCGM·MIG·Time-Slicing), AWS Neuron Stack(Trainium2/Inferentia2)."
     color="#326ce5"
   />
   <DocCard
-    to="/docs/agentic-ai-platform/model-serving/gpu-resource-management"
-    icon="📊"
-    title="GPU 리소스 관리"
-    description="Karpenter 기반 GPU 노드 스케일링, KEDA 자동 스케일링, DRA 동적 리소스 할당, Spot/Consolidation 비용 최적화 전략."
-    color="#f59e0b"
-  />
-  <DocCard
-    to="/docs/agentic-ai-platform/model-serving/vllm-model-serving"
+    to="/docs/agentic-ai-platform/model-serving/inference-frameworks"
     icon="🚀"
-    title="vLLM 모델 서빙"
-    description="PagedAttention 기반 고성능 LLM 추론 엔진. 모델 배포, 성능 최적화, Continuous Batching, Tensor Parallelism 설정 가이드."
+    title="추론 프레임워크"
+    description="vLLM PagedAttention·Multi-LoRA, llm-d 분산 추론·KV Cache-aware 라우팅, MoE 모델 서빙, NVIDIA NeMo 학습·파인튜닝 프레임워크."
     color="#ff6b6b"
-  />
-  <DocCard
-    to="/docs/agentic-ai-platform/model-serving/llm-d-eks-automode"
-    icon="🔀"
-    title="llm-d 분산 추론"
-    description="Kubernetes 네이티브 분산 추론 스케줄러. KV Cache-aware 라우팅, Prefix Cache 최적화, Disaggregated Serving 아키텍처."
-    color="#8b5cf6"
-  />
-  <DocCard
-    to="/docs/agentic-ai-platform/model-serving/moe-model-serving"
-    icon="🧩"
-    title="MoE 모델 서빙"
-    description="Mixture of Experts 모델의 효율적 서빙. Expert Parallelism, 동적 라우팅, 메모리 최적화 전략."
-    color="#06b6d4"
-  />
-  <DocCard
-    to="/docs/agentic-ai-platform/model-serving/nvidia-gpu-stack"
-    icon="💚"
-    title="NVIDIA GPU 스택"
-    description="GPU Operator, DCGM 모니터링, MIG/Time-Slicing 파티셔닝, Dynamo 추론 프레임워크 등 NVIDIA GPU 소프트웨어 스택 가이드."
-    color="#76b900"
-  />
-  <DocCard
-    to="/docs/agentic-ai-platform/model-serving/nemo-framework"
-    icon="🧠"
-    title="NeMo 프레임워크"
-    description="NVIDIA NeMo 기반 대규모 모델 학습 및 파인튜닝. 분산 학습, EFA 고속 네트워크, 체크포인팅 전략."
-    color="#9c27b0"
   />
 </DocCardGrid>
 
 :::tip 학습 순서
-인프라부터 시작: **EKS GPU 노드 전략** → **GPU 리소스 관리** → **vLLM 모델 서빙** → **llm-d 분산 추론** 순서로 읽으면 GPU 인프라 위에서 추론 서비스를 구축하는 전체 흐름을 이해할 수 있습니다.
+**GPU 인프라 → 추론 프레임워크** 순으로 읽는 것이 자연스럽습니다. GPU 인프라에서 "어떤 노드·파티셔닝·드라이버 스택을 쓸 것인가" 를 먼저 결정한 뒤, 추론 프레임워크에서 "그 위에 vLLM·llm-d 를 어떻게 배포할 것인가" 를 다룹니다.
 :::

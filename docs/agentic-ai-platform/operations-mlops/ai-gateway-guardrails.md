@@ -2,7 +2,7 @@
 title: "AI Gateway Guardrails"
 sidebar_label: "AI Gateway Guardrails"
 description: "LLM Gateway 레벨 Guardrails — PII Redaction, Prompt Injection 방어, Content Filtering, 도구 비교와 한국 금융권 컴플라이언스 매핑"
-tags: [guardrails, pii, prompt-injection, safety, llm-security, compliance, ismsp, bedrock-guardrails, nemo-guardrails, llama-guard]
+tags: [guardrails, pii, prompt-injection, safety, llm-security, compliance, ismsp, bedrock-guardrails, nemo-guardrails, llama-guard, 'scope:ops']
 last_update:
   date: 2026-04-17
   author: YoungJoon Jeong

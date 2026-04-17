@@ -2,7 +2,7 @@
 title: "추론 게이트웨이 구성 가이드"
 sidebar_label: "게이트웨이 배포"
 description: "kgateway + Bifrost 설치, HTTPRoute 설정, OTel 연동 실전 가이드"
-tags: [kgateway, bifrost, gateway-api, httproute, otel, deployment]
+tags: [kgateway, bifrost, gateway-api, httproute, otel, deployment, 'scope:impl']
 last_update:
   date: 2026-04-17
   author: YoungJoon Jeong
@@ -1294,8 +1294,234 @@ curl -s -o /dev/null -w "%{http_code}" \
 
 ---
 
+## 10. Semantic Caching 구현 옵션 (Advanced) {#semantic-caching-구현-옵션-advanced}
+
+:::info 개념 및 설계 원칙
+Semantic Caching의 개념, 유사도 임계값 설계, 캐시 키 구조, 관측성 전략은 [Semantic Caching 전략](../design-architecture/semantic-caching-strategy.md)을 참조하세요. 이 섹션은 실제 구현을 위한 도구 비교와 배포 설정을 다룹니다.
+:::
+
+### 10.1 구현 도구 비교 (2026-04 기준)
+
+공식 문서와 레포지토리 기준으로 정리한 주요 옵션입니다. 기능이 빠르게 변경되므로 배포 시점에 공식 문서를 다시 확인하세요.
+
+| 도구 | 라이선스 | 백엔드 | 주요 장점 | 한계 | 공식 자료 |
+|------|----------|--------|---------|------|----------|
+| **GPTCache** | OSS (MIT) | Redis / Milvus / FAISS / SQLite | 다양한 백엔드, 어댑터 풍부, 초기부터 Semantic Cache에 특화 | 2024 이후 릴리스 빈도 감소, LangChain/LiteLLM에 비해 커뮤니티 주도 | [GitHub](https://github.com/zilliztech/GPTCache) |
+| **Redis Semantic Cache (RedisVL)** | OSS (MIT) | Redis Stack / Redis 8+ | 기존 Redis 인프라 재사용, `SemanticCache` 클래스 네이티브 제공, 벡터 검색 내장 | 임베딩 파이프라인과 TTL 정책은 애플리케이션이 직접 구성 | [RedisVL — Semantic Cache](https://redis.io/docs/latest/develop/ai/redisvl/user_guide/semantic_caching/) |
+| **Portkey** | SaaS + Self-host (OSS Gateway, Apache 2.0) | 내장 스토어 / Redis | 게이트웨이 일체형 (라우팅/가드레일/캐시 통합), Virtual Keys로 멀티테넌트 | 고급 기능은 관리형 플랜 의존, 셀프호스트 구성 복잡 | [Portkey Semantic Cache](https://docs.portkey.ai/docs/product/ai-gateway/cache-simple-and-semantic) |
+| **Helicone** | OSS (Apache 2.0) / SaaS | ClickHouse(관측성) + Redis/S3(캐시) | 관측성·로깅과 캐시 통합, Rust 게이트웨이로 저지연 | 셀프호스트 풀스택은 의존성 많음, 캐시 기본은 exact-match (Semantic은 고급 기능) | [Helicone Caching](https://docs.helicone.ai/features/advanced-usage/caching) |
+| **Bifrost + Redis** | OSS (Apache 2.0) + OSS Redis | Redis | Go 기반 저지연, CEL Rules로 캐시 키 커스터마이징, 기존 Bifrost 배포 재사용 | Semantic Cache 자체는 프러그인/사이드카로 직접 구성 필요 | [Bifrost 문서](https://www.getmaxim.ai/bifrost/docs) |
+| **LangCache (Redis Labs)** | 관리형 SaaS (Redis Enterprise) | Redis Enterprise | 완전관리형, 임베딩 모델·거버넌스 포함 (2025 하반기 GA) | Enterprise 전용, 리전 제약, 비용 | [Redis LangCache](https://redis.io/langcache/) |
+
+### 10.2 도구 선택 결정 트리
+
+```mermaid
+flowchart TD
+    Q1{이미 Redis<br/>인프라 있나?}
+    Q1 -->|예| Q2{게이트웨이<br/>통합 필요?}
+    Q1 -->|아니오| Q3{관리형 원하나?}
+
+    Q2 -->|예| R1[Bifrost + Redis<br/>또는 LiteLLM + Redis]
+    Q2 -->|아니오| R2[RedisVL SemanticCache<br/>직접 호출]
+
+    Q3 -->|예, 엔터프라이즈| R3[LangCache<br/>또는 Portkey 관리형]
+    Q3 -->|아니오, 셀프호스트| Q4{관측성도<br/>필요?}
+
+    Q4 -->|예| R4[Helicone]
+    Q4 -->|아니오| R5[GPTCache + FAISS/Milvus]
+
+    style R1 fill:#326ce5,stroke:#333,color:#fff
+    style R2 fill:#e53935,stroke:#333,color:#fff
+    style R3 fill:#ff9900,stroke:#333,color:#000
+    style R4 fill:#76b900,stroke:#333,color:#000
+    style R5 fill:#ffd93d,stroke:#333,color:#000
+```
+
+### 10.3 시나리오별 추천
+
+| 시나리오 | 추천 조합 | 이유 |
+|----------|----------|------|
+| **기존 EKS + Redis 운영** | Bifrost + Redis + RedisVL | 신규 벤더 도입 없이 기존 인프라 재사용 |
+| **관리형 + 규정 준수** | Portkey 관리형 또는 LangCache | SOC2/HIPAA 등 인증, 운영 부담 최소 |
+| **관측성 우선** | Helicone | 캐시·라우팅·로그를 단일 제품에서 |
+| **초기 PoC / 프로토타입** | LiteLLM + Redis (`cache: true`) | 설정 1-2줄로 활성, 빠른 검증 |
+| **오픈소스 강한 제약** | GPTCache + Milvus | 벤더 락인 없음, 백엔드 선택 자유 |
+
+### 10.4 Gateway별 통합 패턴
+
+#### LiteLLM
+
+기본 활성화 (exact-match):
+
+```yaml
+# litellm_config.yaml
+litellm_settings:
+  cache: true
+  cache_params:
+    type: "redis"
+    host: "redis-service.default.svc.cluster.local"
+    port: 6379
+```
+
+Semantic Cache 활성화:
+
+```yaml
+litellm_settings:
+  cache: true
+  cache_params:
+    type: "redis-semantic-cache"
+    host: "redis-service.default.svc.cluster.local"
+    port: 6379
+    similarity_threshold: 0.85
+    embedding_model: "text-embedding-3-small"
+```
+
+자세한 옵션은 [LiteLLM Caching 문서](https://docs.litellm.ai/docs/proxy/caching) 참조.
+
+#### Bifrost + RedisVL 사이드카
+
+Bifrost 자체는 exact-match 캐시만 지원하므로, Semantic Cache는 다음 두 가지 방법으로 구현합니다.
+
+**방법 A: Python 프록시 앞단** — RedisVL `SemanticCache` 클래스를 사용한 경량 FastAPI 프록시를 Bifrost 앞에 배치
+
+```python
+from redisvl.extensions.session_manager import SemanticCache
+from fastapi import FastAPI, Request
+import httpx
+
+app = FastAPI()
+
+cache = SemanticCache(
+    name="llm_cache",
+    redis_url="redis://redis-service:6379",
+    distance_threshold=0.15,  # 1 - similarity (0.85 similarity = 0.15 distance)
+)
+
+@app.post("/v1/{path:path}")
+async def proxy(path: str, request: Request):
+    body = await request.json()
+    query = body["messages"][-1]["content"]
+    
+    # Semantic Cache 조회
+    cached = cache.check(prompt=query)
+    if cached:
+        return {"choices": [{"message": {"content": cached[0]["response"]}}]}
+    
+    # MISS → Bifrost 호출
+    async with httpx.AsyncClient() as client:
+        resp = await client.post(f"http://bifrost:8080/v1/{path}", json=body)
+        result = resp.json()
+    
+    # 응답 저장
+    cache.store(prompt=query, response=result["choices"][0]["message"]["content"])
+    return result
+```
+
+**방법 B: CEL Rules 헤더 기반 분기** — Bifrost CEL Rules로 `x-cache-enabled: true` 헤더가 있는 요청만 Redis 경유
+
+```json
+{
+  "plugins": [
+    {
+      "enabled": true,
+      "name": "cel_rules",
+      "config": {
+        "rules": [
+          {
+            "condition": "request.header['x-cache-enabled'] == 'true'",
+            "action": "route",
+            "target": "redis-semantic-proxy"
+          }
+        ]
+      }
+    }
+  ]
+}
+```
+
+#### Portkey
+
+Portkey는 게이트웨이 일체형으로 캐시를 내장 지원합니다.
+
+```typescript
+import Portkey from "portkey-ai";
+
+const portkey = new Portkey({
+  apiKey: "YOUR_PORTKEY_API_KEY",
+  config: {
+    cache: {
+      mode: "semantic",
+      max_age: 3600,  // TTL 1시간
+    },
+    strategy: {
+      mode: "fallback",
+      targets: [
+        { provider: "openai", model: "gpt-4o" },
+        { provider: "anthropic", model: "claude-sonnet-4" },
+      ],
+    },
+  },
+});
+
+const response = await portkey.chat.completions.create({
+  messages: [{ role: "user", content: "Hello" }],
+  model: "gpt-4o",
+});
+```
+
+Virtual Keys와 결합하여 테넌트별 캐시 정책 분리도 가능합니다. 상세는 [Portkey Semantic Cache 문서](https://docs.portkey.ai/docs/product/ai-gateway/cache-simple-and-semantic) 참조.
+
+#### Helicone
+
+Helicone은 요청 헤더로 캐시를 제어합니다.
+
+```bash
+curl https://oai.helicone.ai/v1/chat/completions \
+  -H "Authorization: Bearer YOUR_OPENAI_KEY" \
+  -H "Helicone-Auth: Bearer YOUR_HELICONE_KEY" \
+  -H "Helicone-Cache-Enabled: true" \
+  -H "Helicone-Cache-Seed: prod-v1" \
+  -d '{
+    "model": "gpt-4o",
+    "messages": [{"role": "user", "content": "Hello"}]
+  }'
+```
+
+Semantic 모드는 고급 기능으로, [Helicone Caching 문서](https://docs.helicone.ai/features/advanced-usage/caching)에서 확인하세요.
+
+### 10.5 캐시 키 설계 예시 (YAML)
+
+실제 구현에서 캐시 키를 생성하는 의사 코드 예시입니다.
+
+```yaml
+# 캐시 키 생성 로직 (의사 코드)
+cache_key_components:
+  model_id: "glm-5"                      # 모델 종류
+  system_prompt_hash: "a3f2e1b"          # 시스템 프롬프트 SHA256 (8자)
+  tenant_id: "org-12345"                 # 조직/테넌트
+  language: "ko"                         # 언어
+  tool_set_hash: "c9d8e7f"               # 에이전트 도구 집합 해시
+  embedding: [0.12, -0.34, ...]         # 사용자 질의 임베딩 (벡터 DB 저장)
+
+# Redis key 포맷
+redis_key: "cache:org-12345:ko:glm-5:a3f2e1b:c9d8e7f"
+# 벡터 DB에서 embedding 유사도 검색 → 임계값 이상 HIT 시 redis_key로 응답 조회
+```
+
+### 10.6 배포 전 점검 사항
+
+- [ ] 임계값 초기값 0.90 설정 (보수적 시작)
+- [ ] TTL 정책 문서화 (도메인별 차등 적용)
+- [ ] Guardrails(PII redaction) 가 캐시 **앞**에 배치되었는지 확인
+- [ ] Langfuse 트레이스에 `cache_hit`, `similarity_score` 태그 추가
+- [ ] Redis 장애 시 fail-open 시나리오 검증
+- [ ] A/B 테스트로 점진적 롤아웃 (트래픽 10% → 50% → 100%)
+
+---
+
 ## 참고 자료
 
+- [Semantic Caching 전략](../design-architecture/semantic-caching-strategy.md) - 개념, 임계값 설계, 관측성, 도메인별 패턴
 - [추론 게이트웨이 라우팅](./inference-gateway-routing.md) - kgateway 아키텍처 및 라우팅 전략 상세
 - [Langfuse 배포 가이드](./monitoring-observability-setup.md) - Helm 설치, OTel 연동, Redis/ClickHouse 구성
 - [Agent 모니터링](../operations-mlops/agent-monitoring.md) - Langfuse 아키텍처 및 컴포넌트

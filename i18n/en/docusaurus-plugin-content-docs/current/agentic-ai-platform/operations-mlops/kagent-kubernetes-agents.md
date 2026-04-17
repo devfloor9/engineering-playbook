@@ -418,7 +418,7 @@ Using Kagent enables declarative management of AI agents in Kubernetes environme
 
 - [Agentic AI Platform Architecture](../design-architecture/agentic-platform-architecture.md) - Overall platform design
 - [Agent Monitoring](../operations-mlops/agent-monitoring.md) - Langfuse/LangSmith integration guide
-- [GPU Resource Management](../model-serving/gpu-resource-management.md) - Dynamic resource allocation
+- [GPU Resource Management](../model-serving/gpu-infrastructure/gpu-resource-management.md) - Dynamic resource allocation
 
 :::
 

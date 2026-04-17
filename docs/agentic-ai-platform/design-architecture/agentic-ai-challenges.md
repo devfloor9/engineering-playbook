@@ -2,10 +2,10 @@
 title: "Agentic AI 워크로드의 기술적 도전과제"
 sidebar_label: "기술적 도전과제"
 description: "Agentic AI 워크로드 운영 시 직면하는 5가지 핵심 도전과제"
-tags: [genai, agentic-ai, gpu, challenges]
+tags: [genai, agentic-ai, gpu, challenges, 'scope:design']
 category: "genai-aiml"
 last_update:
-  date: 2026-03-27
+  date: 2026-04-17
   author: devfloor9
 sidebar_position: 2
 ---

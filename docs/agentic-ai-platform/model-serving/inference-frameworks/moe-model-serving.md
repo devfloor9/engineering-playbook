@@ -2,7 +2,7 @@
 title: "MoE 모델 서빙 개념 가이드"
 sidebar_label: "MoE 모델 서빙"
 description: "Mixture of Experts 모델의 아키텍처 개념, 분산 배포 전략, 성능 최적화 원리"
-tags: [eks, moe, vllm, model-serving, gpu, mixtral]
+tags: [eks, moe, vllm, model-serving, gpu, mixtral, 'scope:tech']
 category: "genai-aiml"
 last_update:
   date: 2026-04-17
@@ -25,7 +25,7 @@ Mixture of Experts(MoE) 모델은 대규모 언어 모델의 효율성을 극대
 이 문서에서는 MoE 아키텍처의 핵심 개념, 모델별 리소스 요구사항, 분산 배포 전략을 다룹니다.
 
 :::tip 실전 배포 가이드
-MoE 모델의 EKS 배포 YAML, helm 명령어, 멀티노드 구성 등 실전 배포는 [커스텀 모델 배포 가이드](../reference-architecture/custom-model-deployment.md)를 참조하세요.
+MoE 모델의 EKS 배포 YAML, helm 명령어, 멀티노드 구성 등 실전 배포는 [커스텀 모델 배포 가이드](../../reference-architecture/custom-model-deployment.md)를 참조하세요.
 :::
 
 ---
@@ -318,9 +318,9 @@ AWS Trainium2 / Inferentia2 는 대규모 MoE 모델(DBRX, Mixtral 8x22B, Llama 
 :::info 상세 가이드는 별도 문서 참조
 Neuron SDK 아키텍처, 인스턴스 라인업, Device Plugin 배포, Karpenter NodePool, 추론 프레임워크(NxD / vLLM Neuron / TGI Neuron) 비교, 지원 모델 매트릭스, 관측성, 한계 및 주의사항은 아래 전용 문서에서 다룹니다.
 
-→ **[AWS Neuron Stack — Trainium2/Inferentia2 on EKS](./aws-neuron-stack.md)**
+→ **[AWS Neuron Stack — Trainium2/Inferentia2 on EKS](../gpu-infrastructure/aws-neuron-stack.md)**
 
-노드 선택 단계의 NVIDIA vs Neuron 의사결정은 [EKS GPU 노드 전략](./eks-gpu-node-strategy.md#6-aws-가속기-선택-가이드-nvidia-vs-neuron) 을 참조하세요.
+노드 선택 단계의 NVIDIA vs Neuron 의사결정은 [EKS GPU 노드 전략](../gpu-infrastructure/eks-gpu-node-strategy.md#6-aws-가속기-선택-가이드-nvidia-vs-neuron) 을 참조하세요.
 :::
 
 ---
@@ -421,9 +421,9 @@ sequenceDiagram
 
 ### 다음 단계
 
-- [GPU 리소스 관리](./gpu-resource-management.md) - GPU 클러스터 동적 리소스 할당
-- [Inference Gateway 라우팅](../reference-architecture/inference-gateway-routing.md) - 다중 모델 라우팅 전략
-- [Agentic AI 플랫폼 아키텍처](../design-architecture/agentic-platform-architecture.md) - 전체 플랫폼 구성
+- [GPU 리소스 관리](../gpu-infrastructure/gpu-resource-management.md) - GPU 클러스터 동적 리소스 할당
+- [Inference Gateway 라우팅](../../reference-architecture/inference-gateway-routing.md) - 다중 모델 라우팅 전략
+- [Agentic AI 플랫폼 아키텍처](../../design-architecture/agentic-platform-architecture.md) - 전체 플랫폼 구성
 
 ---
 

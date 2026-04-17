@@ -2,7 +2,7 @@
 title: "코딩 도구 연동 & 비용 분석"
 sidebar_label: "비용 & IDE"
 description: "Aider, Cline, Continue.dev 연동 + Bedrock vs Kiro vs 자체 호스팅 비용 비교"
-tags: [aider, cline, cursor, cost-analysis, kiro, bedrock, bifrost]
+tags: [aider, cline, cursor, cost-analysis, kiro, bedrock, bifrost, 'scope:impl']
 last_update:
   date: 2026-04-17
   author: YoungJoon Jeong
@@ -345,7 +345,7 @@ spec:
 - TTFT: 10초 → 1초 (prefix cache hit 시)
 - GPU 비용 동일 (처리량 증가로 인스턴스 수 감소 가능)
 
-참조: [llm-d EKS Auto Mode](../model-serving/llm-d-eks-automode.md)
+참조: [llm-d EKS Auto Mode](../model-serving/inference-frameworks/llm-d-eks-automode.md)
 
 ### 6.5 Multi-LoRA 공유
 

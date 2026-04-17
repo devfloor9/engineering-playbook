@@ -2,9 +2,9 @@
 title: "Agentic Playbook"
 sidebar_label: "Agentic Playbook"
 description: "Agent 워크플로우를 IaC처럼 선언적으로 정의하고 컴플라이언스를 자동화하는 Playbook 가이드"
-tags: [playbook, agent, langgraph, guardrails, compliance, gitops]
+tags: [playbook, agent, langgraph, guardrails, compliance, gitops, 'scope:ops']
 last_update:
-  date: 2026-04-04
+  date: 2026-04-17
   author: YoungJoon Jeong
 ---
 

@@ -2,10 +2,10 @@
 title: "NVIDIA GPU 스택"
 sidebar_label: "NVIDIA GPU 스택"
 description: "GPU Operator, DCGM, MIG, Time-Slicing, Dynamo의 아키텍처와 EKS 통합"
-tags: [nvidia, gpu-operator, dcgm, mig, time-slicing, dynamo, kai-scheduler]
+tags: [nvidia, gpu-operator, dcgm, mig, time-slicing, dynamo, kai-scheduler, 'scope:tech']
 sidebar_position: 6
 last_update:
-  date: 2026-04-05
+  date: 2026-04-17
   author: YoungJoon Jeong
 ---
 
@@ -449,8 +449,8 @@ KAI Scheduler는 **Pod를 어떤 노드에 배치할지** 결정하는 스케줄
 
 - [GPU 리소스 관리](./gpu-resource-management.md) — Karpenter, KEDA, DRA, 비용 최적화
 - [EKS GPU 노드 전략](./eks-gpu-node-strategy.md) — Auto Mode + Karpenter + Hybrid Node 구성
-- [vLLM 모델 서빙](./vllm-model-serving.md) — vLLM 기반 추론 엔진
-- [llm-d EKS Auto Mode](./llm-d-eks-automode.md) — llm-d 상세 아키텍처
+- [vLLM 모델 서빙](../inference-frameworks/vllm-model-serving.md) — vLLM 기반 추론 엔진
+- [llm-d EKS Auto Mode](../inference-frameworks/llm-d-eks-automode.md) — llm-d 상세 아키텍처
 
 ## 참고 자료
 

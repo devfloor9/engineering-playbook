@@ -2,7 +2,7 @@
 title: "추론 게이트웨이 & LLM Gateway 라우팅 전략"
 sidebar_label: "게이트웨이 라우팅 전략"
 description: "kgateway + Bifrost/LiteLLM 2-Tier 아키텍처와 Cascade Routing, Semantic Router, Hybrid Routing 설계 패턴"
-tags: [kgateway, bifrost, litellm, gateway-api, agentgateway, cascade-routing, semantic-caching, vllm-semantic-router]
+tags: [kgateway, bifrost, litellm, gateway-api, agentgateway, cascade-routing, semantic-caching, vllm-semantic-router, 'scope:impl']
 last_update:
   date: 2026-04-17
   author: YoungJoon Jeong
@@ -641,8 +641,8 @@ Bifrost/LiteLLM에서 Langfuse로 OTel trace를 전송하여 프롬프트/완료
 
 ### 관련 인프라
 
-- [GPU 리소스 관리](../model-serving/gpu-resource-management.md) - 동적 리소스 할당 전략
-- [llm-d 분산 추론](../model-serving/llm-d-eks-automode.md) - EKS Auto Mode 기반 분산 추론
+- [GPU 리소스 관리](../model-serving/gpu-infrastructure/gpu-resource-management.md) - 동적 리소스 할당 전략
+- [llm-d 분산 추론](../model-serving/inference-frameworks/llm-d-eks-automode.md) - EKS Auto Mode 기반 분산 추론
 - [Agent 모니터링](../operations-mlops/agent-monitoring.md) - Langfuse 통합 가이드
 
 ---
