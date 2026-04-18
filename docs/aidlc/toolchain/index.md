@@ -1,5 +1,5 @@
-tags: [aidlc, toolchain, 'scope:toolchain']
 ---
+tags: [aidlc, toolchain, 'scope:toolchain']
 title: "도구 & 구현"
 sidebar_label: "도구 & 구현"
 description: "AIDLC를 실현하는 도구 — AI 코딩 에이전트, 오픈 웨이트 모델, EKS 자동화, 기술 로드맵"

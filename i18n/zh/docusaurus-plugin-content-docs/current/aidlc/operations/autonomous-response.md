@@ -1,5 +1,5 @@
-tags: [aidlc, operations, 'scope:ops']
 ---
+tags: [aidlc, operations, 'scope:ops']
 title: "自主响应"
 sidebar_label: "自主响应"
 description: "基于 AI Agent 的自主事件响应 — 集成 Strands/Kagent、Chaos Engineering + AI、Ontology 反馈循环"

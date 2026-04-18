@@ -1,5 +1,5 @@
-tags: [aidlc, operations, 'scope:ops']
 ---
+tags: [aidlc, operations, 'scope:ops']
 title: "자율 대응"
 sidebar_label: "자율 대응"
 description: "AI Agent 기반 자율 인시던트 대응 — Strands/Kagent 통합, Chaos Engineering + AI, 온톨로지 피드백 루프"

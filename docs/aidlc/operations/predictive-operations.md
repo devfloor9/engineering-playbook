@@ -1,5 +1,5 @@
-tags: [aidlc, operations, 'scope:ops']
 ---
+tags: [aidlc, operations, 'scope:ops']
 title: "예측 운영"
 sidebar_label: "예측 운영"
 description: "ML 기반 예측 스케일링과 이상 감지 — Karpenter+AI, CloudWatch Anomaly Detection, AI Right-Sizing"

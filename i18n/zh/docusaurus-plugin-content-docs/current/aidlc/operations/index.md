@@ -1,5 +1,5 @@
-tags: [aidlc, operations, 'scope:ops']
 ---
+tags: [aidlc, operations, 'scope:ops']
 title: "AgenticOps"
 sidebar_label: "AgenticOps"
 description: "AIDLC 所构建软件的基于 AI 代理的自主运维 — 可观测性、预测、自动响应"

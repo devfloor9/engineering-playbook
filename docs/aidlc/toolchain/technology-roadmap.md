@@ -1,5 +1,5 @@
-tags: [aidlc, toolchain, 'scope:toolchain']
 ---
+tags: [aidlc, toolchain, 'scope:toolchain']
 title: 기술 로드맵
 sidebar_label: 기술 로드맵
 description: AIDLC 기술 투자 의사결정 — Build-vs-Wait 매트릭스, 도구 성숙도 평가, 6/12/18개월 호라이즌

@@ -1,5 +1,5 @@
-tags: [aidlc, operations, 'scope:ops']
 ---
+tags: [aidlc, operations, 'scope:ops']
 title: "预测运维"
 sidebar_label: "预测运维"
 description: "基于 ML 的预测性伸缩与异常检测 — Karpenter+AI、CloudWatch Anomaly Detection、AI Right-Sizing"

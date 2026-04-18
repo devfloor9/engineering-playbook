@@ -1,5 +1,5 @@
-tags: [aidlc, toolchain, 'scope:toolchain']
 ---
+tags: [aidlc, toolchain, 'scope:toolchain']
 title: Open-Weight 模型
 sidebar_label: Open-Weight 模型
 description: 面向数据驻留与成本优化的 Open-Weight 模型落地策略 — 本地部署、混合架构、TCO 对比

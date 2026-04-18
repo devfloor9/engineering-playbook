@@ -1,5 +1,5 @@
-tags: [aidlc, toolchain, 'scope:toolchain']
 ---
+tags: [aidlc, toolchain, 'scope:toolchain']
 title: EKS 声明式自动化
 sidebar_label: EKS 声明式自动化
 description: 用 EKS Capabilities 实现 AIDLC Construction/Operations 的声明式自动化模式

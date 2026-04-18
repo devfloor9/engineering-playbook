@@ -1,5 +1,5 @@
-tags: [aidlc, toolchain, 'scope:toolchain']
 ---
+tags: [aidlc, toolchain, 'scope:toolchain']
 title: "工具与实现"
 sidebar_label: "工具与实现"
 description: "实现 AIDLC 的工具 — AI 编码代理、Open-Weight 模型、EKS 自动化、技术路线图"

@@ -1,5 +1,5 @@
-tags: [aidlc, toolchain, 'scope:toolchain']
 ---
+tags: [aidlc, toolchain, 'scope:toolchain']
 title: EKS 선언적 자동화
 sidebar_label: EKS 선언적 자동화
 description: AIDLC Construction/Operations를 EKS Capabilities로 구현하는 선언적 자동화 패턴

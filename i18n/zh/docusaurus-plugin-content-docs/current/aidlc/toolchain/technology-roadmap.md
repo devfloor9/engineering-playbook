@@ -1,5 +1,5 @@
-tags: [aidlc, toolchain, 'scope:toolchain']
 ---
+tags: [aidlc, toolchain, 'scope:toolchain']
 title: 技术路线图
 sidebar_label: 技术路线图
 description: AIDLC 技术投资决策 — Build-vs-Wait 矩阵、工具成熟度评估、6/12/18 个月展望
