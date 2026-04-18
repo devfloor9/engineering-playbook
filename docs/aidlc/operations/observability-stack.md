@@ -3,9 +3,9 @@ title: "관찰성 스택"
 sidebar_label: "관찰성 스택"
 description: "AIDLC Operations의 데이터 기반 — 3-Pillar 관찰성 + AI 분석 레이어 구축"
 category: "aidlc-operations"
-tags: [observability, adot, prometheus, grafana, cloudwatch, mcp, aidlc]
+tags: [observability, adot, prometheus, grafana, cloudwatch, mcp, aidlc, 'scope:ops']
 last_update:
-  date: 2026-04-07
+  date: 2026-04-18
   author: devfloor9
 ---
 

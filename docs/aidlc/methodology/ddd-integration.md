@@ -3,9 +3,9 @@ title: "DDD 통합"
 sidebar_label: "DDD 통합"
 description: "AIDLC에서 DDD가 필수 코어인 이유 — 도메인 설계부터 논리 설계까지 AI 주도 개발"
 category: "aidlc"
-tags: [ddd, domain-driven-design, mob-elaboration, kiro, mcp, aggregate, entity, cqrs, adr]
+tags: [ddd, domain-driven-design, mob-elaboration, kiro, mcp, aggregate, entity, cqrs, adr, 'scope:methodology']
 last_update:
-  date: 2026-04-07
+  date: 2026-04-18
   author: devfloor9
 ---
 

@@ -1,9 +1,10 @@
 ---
 title: MSA 복잡도 평가
 sidebar_label: MSA 복잡도 평가
-description: AIDLC 프로젝트 적합성 평가 — MSA 난이도 매트릭스, Saga 패턴 검증, 온톨로지 깊이 가이드
+description: AIDLC 엔터프라이즈 - msa-complexity
+tags: [aidlc, enterprise, 'scope:enterprise']
 last_update:
-  date: 2026-04-07
+  date: 2026-04-18
   author: devfloor9
 ---
 

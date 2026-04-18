@@ -1297,7 +1297,7 @@ curl -s -o /dev/null -w "%{http_code}" \
 ## 10. Semantic Caching 구현 옵션 (Advanced) {#semantic-caching-구현-옵션-advanced}
 
 :::info 개념 및 설계 원칙
-Semantic Caching의 개념, 유사도 임계값 설계, 캐시 키 구조, 관측성 전략은 [Semantic Caching 전략](../design-architecture/semantic-caching-strategy.md)을 참조하세요. 이 섹션은 실제 구현을 위한 도구 비교와 배포 설정을 다룹니다.
+Semantic Caching의 개념, 유사도 임계값 설계, 캐시 키 구조, 관측성 전략은 [Semantic Caching 전략](../model-serving/inference-frameworks/semantic-caching-strategy.md)을 참조하세요. 이 섹션은 실제 구현을 위한 도구 비교와 배포 설정을 다룹니다.
 :::
 
 ### 10.1 구현 도구 비교 (2026-04 기준)
@@ -1521,7 +1521,7 @@ redis_key: "cache:org-12345:ko:glm-5:a3f2e1b:c9d8e7f"
 
 ## 참고 자료
 
-- [Semantic Caching 전략](../design-architecture/semantic-caching-strategy.md) - 개념, 임계값 설계, 관측성, 도메인별 패턴
+- [Semantic Caching 전략](../model-serving/inference-frameworks/semantic-caching-strategy.md) - 개념, 임계값 설계, 관측성, 도메인별 패턴
 - [추론 게이트웨이 라우팅](./inference-gateway-routing.md) - kgateway 아키텍처 및 라우팅 전략 상세
 - [Langfuse 배포 가이드](./monitoring-observability-setup.md) - Helm 설치, OTel 연동, Redis/ClickHouse 구성
 - [Agent 모니터링](../operations-mlops/agent-monitoring.md) - Langfuse 아키텍처 및 컴포넌트

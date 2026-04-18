@@ -1,9 +1,10 @@
 ---
 title: AI 코딩 에이전트
 sidebar_label: AI 코딩 에이전트
-description: AIDLC Construction 단계의 AI 코딩 에이전트 — Kiro Spec-Driven 개발, Q Developer, 에이전트 비교
+description: AIDLC Construction 단계의 AI 코딩 에이전트 — 공식 지원 7개 플랫폼, Kiro Spec-Driven 개발, Q Developer, 에이전트 비교
+tags: [aidlc, ai-coding-agents, toolchain, kiro, q-developer, cursor, cline, claude-code, copilot, 'scope:toolchain']
 last_update:
-  date: 2026-04-07
+  date: 2026-04-18
   author: devfloor9
 ---
 
@@ -11,7 +12,83 @@ import { AiCodingAgentComparison } from '@site/src/components/AidlcTables';
 
 # AI 코딩 에이전트
 
-AIDLC Construction 단계에서 설계를 코드로 구현하는 AI 코딩 에이전트 전략을 다룹니다. Kiro의 Spec-Driven 접근, Amazon Q Developer의 실시간 빌드·테스트, MCP 기반 컨텍스트 수집, CI/CD 통합 패턴을 중심으로 설명합니다.
+AIDLC Construction 단계에서 설계를 코드로 구현하는 AI 코딩 에이전트 전략을 다룹니다. 본 문서는 먼저 **AWS Labs AIDLC 공식 지원 7개 플랫폼**을 요약한 뒤, Kiro의 Spec-Driven 접근과 Amazon Q Developer의 실시간 빌드·테스트를 심화합니다. 그리고 MCP 기반 컨텍스트 수집, CI/CD 통합 패턴, 에이전트 선택 가이드로 마무리합니다.
+
+## 0. 공식 AIDLC 지원 플랫폼 7종
+
+AWS Labs [AIDLC Workflows](https://github.com/awslabs/aidlc-workflows) 는 AIDLC 방법론이 동작하는 **7개 공식 지원 플랫폼** 을 정의합니다. 각 플랫폼은 Common Rules 와 Inception/Construction 워크플로를 구현해야 하며, 산출물 포맷은 공통 규약을 따릅니다.
+
+```mermaid
+graph TB
+    AIDLC[AIDLC 방법론<br/>Common Rules + Stages]
+    AIDLC --> P1[Kiro]
+    AIDLC --> P2[Amazon Q Developer]
+    AIDLC --> P3[Cursor]
+    AIDLC --> P4[Cline]
+    AIDLC --> P5[Claude Code]
+    AIDLC --> P6[GitHub Copilot]
+    AIDLC --> P7[AGENTS.md]
+
+    style AIDLC fill:#326ce5,color:#fff
+    style P1 fill:#ff9900,color:#fff
+    style P2 fill:#ff9900,color:#fff
+    style P3 fill:#2ecc71,color:#fff
+    style P4 fill:#2ecc71,color:#fff
+    style P5 fill:#9b59b6,color:#fff
+    style P6 fill:#24292e,color:#fff
+    style P7 fill:#95a5a6,color:#fff
+```
+
+### 0.1 Kiro
+- **AIDLC 적용**: Spec-Driven 기본 탑재. `requirements.md → design.md → tasks.md` 파일 구조가 Inception 산출물과 거의 1:1 매핑. MCP 네이티브로 AWS Hosted MCP 서버와 즉시 연동
+- **강점**: Common Rules 11개 모두 Full 지원. 조직 Extension(opt-in.md) 인식. AWS 서비스(EKS, DynamoDB 등)와의 밀착 통합
+- **한계**: AWS 생태계 중심이라 멀티클라우드 팀에는 제약. IDE 선택지 제한적
+
+### 0.2 Amazon Q Developer
+- **AIDLC 적용**: Construction 단계의 실시간 빌드·테스트·보안 스캔 중심. Inception 은 별도 Kiro/Claude Code 등과 조합
+- **강점**: 빌드·테스트 자동 실행으로 Loss Function 즉시 작동. CodeCatalyst·GitHub Actions 통합 우수. `/transform` 으로 레거시 마이그레이션(Java, .NET) 지원
+- **한계**: Inception(요구사항·설계) 단계는 다른 도구 병행 필요. 자유도 높은 실험·프로토타이핑은 Cursor 등이 더 유연
+
+### 0.3 Cursor
+- **AIDLC 적용**: 코드 컨텍스트 기반 Spec-Driven. `.cursor/rules/` 디렉터리로 Common Rules 일부 표현 가능. Composer 기능으로 multi-file 편집
+- **강점**: 대규모 리팩터링·코드 이해에 강함. Apply 기능으로 제안 코드 검증 후 병합. 에디터 UX 완성도 높음
+- **한계**: AIDLC Extension System 미지원 → 조직 규정은 수동 프롬프트로 보완. Audit Log 자동 생성 제한
+
+### 0.4 Cline
+- **AIDLC 적용**: VS Code Extension 기반 Autonomous Agent. CLI 중심 워크플로에 적합. Plan Mode / Act Mode 분리가 Adaptive Execution 과 잘 맞음
+- **강점**: 완전 오픈소스, Bring Your Own Key(BYOK). 로컬 파일시스템·터미널 제어 자유로움. AIDLC 산출물 파일 생성·수정이 자연스러움
+- **한계**: IDE 통합 UX 가 Cursor 대비 낮음. 상용 지원 부재 (커뮤니티 의존)
+
+### 0.5 Claude Code
+- **AIDLC 적용**: CLI + IDE 통합 양쪽 지원. Sub-agent 기반 복잡 태스크 분해. AGENTS.md / CLAUDE.md 로 Common Rules 표현
+- **강점**: Anthropic Claude 모델 기본값. Sub-agent 로 Inception(planner) + Construction(executor) 분리 가능. MCP 생태계와 매끄러운 연동
+- **한계**: Opus 모델 사용 시 비용 부담. 팀 전체 도입 시 라이선스·레이트리밋 관리 필요
+
+### 0.6 GitHub Copilot
+- **AIDLC 적용**: 코드 자동완성 중심. Copilot Chat + Workspace 로 Spec-Driven 일부 지원. Copilot Enterprise 에서 AGENTS.md 인식 확장 중
+- **강점**: 가장 광범위한 IDE 지원(VS Code · JetBrains · Neovim). 대부분 개발자에게 이미 익숙. GitHub 네이티브 통합
+- **한계**: AIDLC Stage Transition 이나 Checkpoint Approval 개념은 Copilot 기본 기능에 없음 — 수동 운영 필요. 프롬프트 커스터마이징 제약
+
+### 0.7 AGENTS.md
+- **AIDLC 적용**: 플랫폼이라기보다 **도구 독립 문서 규격**. `AGENTS.md` 파일로 Common Rules·Extension·Stage 규약을 평문으로 서술
+- **강점**: 어떤 AI 에이전트라도 `AGENTS.md` 를 읽으면 AIDLC 규칙을 따르게 할 수 있음 (Claude Code, Cursor, Cline 모두 지원). Git 추적·Review 용이
+- **한계**: 자동 실행·강제가 불가능 → 에이전트가 파일을 무시할 여지 존재. Audit/Checkpoint 는 별도 도구 필요
+
+### 0.8 플랫폼 선택 요약표
+
+| 플랫폼 | AIDLC Common Rules | Inception | Construction | Audit | 라이선스 | 추천 케이스 |
+|--------|-------------------|-----------|--------------|-------|---------|-----------|
+| Kiro | Full | Full | Full | Full | Commercial (AWS) | AWS 엔터프라이즈, 보안 민감 |
+| Amazon Q Developer | Full | Partial | Full | Full | Commercial (AWS) | AWS + CI/CD 실시간 검증 |
+| Cursor | Partial | Partial | Full | Manual | Commercial | 대규모 리팩터링·탐색적 개발 |
+| Cline | Partial | Partial | Full | Manual | OSS (BYOK) | 비용 절감·커스터마이징 |
+| Claude Code | Full | Full | Full | Partial | Commercial (Anthropic) | Sub-agent 기반 복잡 태스크 |
+| GitHub Copilot | Partial | Limited | Full | Limited | Commercial (GitHub) | 폭넓은 IDE 지원·낮은 학습곡선 |
+| AGENTS.md | Full (문서) | Full (문서) | Full (문서) | Manual | OSS | 도구 독립 규약 관리 |
+
+:::tip 하이브리드 전략 권장
+단일 플랫폼만 쓰는 대신, **Kiro (Inception) + Q Developer (Construction) + GitHub Copilot (개별 자동완성)** 처럼 stage 별로 최적 도구를 조합하는 **하이브리드** 가 실전에서 가장 효율적입니다. 산출물이 Markdown + YAML 로 표준화되어 있어 플랫폼 간 이동 비용이 낮습니다.
+:::
 
 ## 1. AI 코딩 에이전트 개관
 

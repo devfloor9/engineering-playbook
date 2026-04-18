@@ -19,7 +19,7 @@ last_update:
 NVIDIA Dynamo 기반 LLM 서빙에서 **Aggregated** 모드와 **Disaggregated** 모드의 성능을 비교하는 벤치마크입니다. EKS 환경에서 AIPerf 벤치마크 도구의 4가지 측정 모드를 실행하여, Disaggregated Serving의 KV Router + NIXL Transfer가 실제 워크로드에서 어떤 성능 차이를 만드는지 정량적으로 검증합니다.
 
 :::info 배포 가이드
-이 벤치마크의 EKS 배포는 [NVIDIA GPU 스택 가이드](/docs/agentic-ai-platform/model-serving/nvidia-gpu-stack)를 참조하세요.
+이 벤치마크의 EKS 배포는 [NVIDIA GPU 스택 가이드](/docs/agentic-ai-platform/model-serving/gpu-infrastructure/nvidia-gpu-stack)를 참조하세요.
 :::
 
 ## 테스트 환경
@@ -207,7 +207,7 @@ AIPerf 벤치마크 도구는 4가지 측정 모드를 제공합니다:
 6. 서빙 배포: Aggregated 또는 Disaggregated 모드 선택
 7. 벤치마크 실행: 4가지 모드 순차 실행
 
-상세 배포 가이드는 [NVIDIA GPU 스택 가이드](/docs/agentic-ai-platform/model-serving/nvidia-gpu-stack)를 참조하세요.
+상세 배포 가이드는 [NVIDIA GPU 스택 가이드](/docs/agentic-ai-platform/model-serving/gpu-infrastructure/nvidia-gpu-stack)를 참조하세요.
 
 ---
 
@@ -249,4 +249,4 @@ AIPerf 벤치마크 도구는 4가지 측정 모드를 제공합니다:
 - [NVIDIA Dynamo Documentation](https://docs.nvidia.com/dynamo/)
 - [vLLM Project](https://docs.vllm.ai/)
 - [AIPerf Benchmark Tool](https://github.com/NVIDIA/dynamo)
-- [NVIDIA GPU 스택 가이드](/docs/agentic-ai-platform/model-serving/nvidia-gpu-stack)
+- [NVIDIA GPU 스택 가이드](/docs/agentic-ai-platform/model-serving/gpu-infrastructure/nvidia-gpu-stack)

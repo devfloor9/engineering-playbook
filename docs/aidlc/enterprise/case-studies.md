@@ -1,9 +1,10 @@
 ---
-title: "사례 연구"
-sidebar_label: "사례 연구"
-description: "AIDLC 엔터프라이즈 도입 사례 — 익명화된 실전 사례, 정량적 before/after 지표, 실패 패턴과 교훈"
+title: AIDLC 사례 연구
+sidebar_label: AIDLC 사례 연구
+description: AIDLC 엔터프라이즈 - case-studies
+tags: [aidlc, enterprise, 'scope:enterprise']
 last_update:
-  date: 2026-04-07
+  date: 2026-04-18
   author: devfloor9
 ---
 
@@ -355,7 +356,7 @@ last_update:
 
 2. **온프레미스 오픈 웨이트 모델 운영 난이도**
    - 문제: vLLM 설치, GPU 리소스 관리, 모델 버전 관리 복잡도
-   - 해결: AWS ProServe 지원, [EKS GPU 노드 전략](/docs/agentic-ai-platform/model-serving/eks-gpu-node-strategy) 적용
+   - 해결: AWS ProServe 지원, [EKS GPU 노드 전략](/docs/agentic-ai-platform/model-serving/gpu-infrastructure/eks-gpu-node-strategy) 적용
    - 결과: 3개월차에 안정화
 
 **🔑 핵심 인사이트:**
@@ -596,7 +597,7 @@ cost_limit:
 
 ## 성공 요인 요약
 
-14개 프로젝트 분석을 통해 도출한 **5가지 핵심 성공 요인**:
+14개 프로젝트 분석을 통해 도출한 핵심 성공 요인 (상세 로드맵: [도입 전략](./adoption-strategy.md)):
 
 | 순위 | 성공 요인 | 설명 | 중요도 |
 |------|----------|------|-------|

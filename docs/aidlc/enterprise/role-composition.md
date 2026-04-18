@@ -1,9 +1,10 @@
 ---
 title: 역할 재정의
 sidebar_label: 역할 재정의
-description: AIDLC 시대의 팀 구조와 역할 변화 — 하네스 엔지니어, 온톨로지 스튜어드, AI 검증자
+description: AIDLC 엔터프라이즈 - role-composition
+tags: [aidlc, enterprise, 'scope:enterprise']
 last_update:
-  date: 2026-04-07
+  date: 2026-04-18
   author: devfloor9
 ---
 

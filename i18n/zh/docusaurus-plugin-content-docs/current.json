@@ -39,6 +39,14 @@
     "message": "模型服务与推理基础设施",
     "description": "The label for category '모델 서빙 & 추론 인프라' in sidebar 'docs'"
   },
+  "sidebar.docs.category.GPU 인프라": {
+    "message": "GPU 基础设施",
+    "description": "The label for category 'GPU 인프라' in sidebar 'docs'"
+  },
+  "sidebar.docs.category.추론 프레임워크": {
+    "message": "推理框架",
+    "description": "The label for category '추론 프레임워크' in sidebar 'docs'"
+  },
   "sidebar.docs.category.운영 & 거버넌스": {
     "message": "运营与治理",
     "description": "The label for category '운영 & 거버넌스' in sidebar 'docs'"

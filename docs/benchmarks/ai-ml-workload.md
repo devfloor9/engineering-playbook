@@ -291,7 +291,7 @@ vllm serve meta-llama/Llama-4-Scout-17B-16E \
 
 1. **Spot 인스턴스 활용**: 배치 추론 워크로드에서 50-70% 비용 절감 (중단 허용 시)
 2. **EC2 Capacity Blocks**: Trainium2 인스턴스의 예약 할당으로 안정적 가용성 확보
-3. **오토스케일링**: Karpenter + KEDA 기반 GPU 메트릭 스케일링 (상세: [GPU 리소스 관리](/docs/agentic-ai-platform/model-serving/gpu-resource-management))
+3. **오토스케일링**: Karpenter + KEDA 기반 GPU 메트릭 스케일링 (상세: [GPU 리소스 관리](/docs/agentic-ai-platform/model-serving/gpu-infrastructure/gpu-resource-management))
 4. **모델 양자화**: FP8/INT8 양자화로 메모리 사용량 감소 및 처리량 향상
 
 ---
@@ -306,8 +306,8 @@ vllm serve meta-llama/Llama-4-Scout-17B-16E \
 - [AWS EC2 Inf2 인스턴스](https://aws.amazon.com/ec2/instance-types/inf2/)
 - [AWS Neuron SDK 문서](https://awsdocs-neuron.readthedocs-hosted.com/)
 - [NVIDIA — Llama 4 추론 가속](https://developer.nvidia.com/blog/nvidia-accelerates-inference-on-meta-llama-4-scout-and-maverick/)
-- [vLLM 모델 서빙 가이드](/docs/agentic-ai-platform/model-serving/vllm-model-serving)
-- [GPU 리소스 관리](/docs/agentic-ai-platform/model-serving/gpu-resource-management)
+- [vLLM 모델 서빙 가이드](/docs/agentic-ai-platform/model-serving/inference-frameworks/vllm-model-serving)
+- [GPU 리소스 관리](/docs/agentic-ai-platform/model-serving/gpu-infrastructure/gpu-resource-management)
 
 :::note 데이터 신뢰성 안내
 본 벤치마크의 수치는 Meta, AWS, NVIDIA, vLLM 프로젝트에서 공개한 사양 및 벤치마크 데이터를 기반으로 한 **추정치**입니다. 실제 성능은 워크로드 특성, 입력 길이, 배치 크기, 모델 구성에 따라 달라질 수 있습니다. 프로덕션 배포 전 실제 환경에서의 벤치마크를 권장합니다.

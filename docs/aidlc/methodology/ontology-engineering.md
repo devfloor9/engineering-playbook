@@ -1,13 +1,18 @@
 ---
 title: 온톨로지 엔지니어링
 sidebar_label: 온톨로지 엔지니어링
-description: AIDLC 신뢰성의 첫 번째 축 — Typed World Model로 AI 환각을 방지하고 도메인 정확성을 보장하는 온톨로지 접근법
+description: AIDLC 신뢰성의 첫 번째 축 — Typed World Model로 AI 환각을 방지하고 도메인 정확성을 보장하는 온톨로지 접근법 (engineering-playbook 확장 콘텐츠)
+tags: [aidlc, ontology, methodology, 'scope:methodology']
 last_update:
-  date: 2026-04-07
+  date: 2026-04-18
   author: devfloor9
 ---
 
 # 온톨로지 엔지니어링
+
+:::info 확장 개념 (engineering-playbook 독자 콘텐츠)
+온톨로지·하네스 엔지니어링은 [AWS Labs AIDLC 공식 방법론](https://github.com/awslabs/aidlc-workflows) 에 포함되지 않은, engineering-playbook 의 독자 확장 콘텐츠입니다. DDD + 2026년 Agentic AI 베스트 프랙티스를 반영해 엔터프라이즈 AI 신뢰성을 강화했습니다. 공식 AIDLC 적용 시 이 축은 선택적으로 도입 가능합니다.
+:::
 
 > "프롬프트 엔지니어링은 온톨로지 엔지니어링이다" — 2026 AI 커뮤니티 컨센서스
 

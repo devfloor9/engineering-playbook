@@ -44,6 +44,13 @@ import { DocCard, DocCardGrid } from '@site/src/components/DocCards';
     description="NVIDIA NeMo 기반 대규모 학습·파인튜닝, 분산 학습, EFA 고속 네트워크, 체크포인팅."
     color="#9c27b0"
   />
+  <DocCard
+    to="/docs/agentic-ai-platform/model-serving/inference-frameworks/semantic-caching-strategy"
+    icon="⚡"
+    title="Semantic Caching 전략"
+    description="LLM Gateway 레벨 의미 기반 캐싱 — 유사도 임계값 설계, 3계층 캐시 구분(KV/Prompt/Semantic), 관측성·보안 가이드."
+    color="#22c55e"
+  />
 </DocCardGrid>
 
 :::tip 학습 순서

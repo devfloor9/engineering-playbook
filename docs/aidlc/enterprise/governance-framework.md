@@ -1,9 +1,10 @@
 ---
 title: 거버넌스 프레임워크
 sidebar_label: 거버넌스 프레임워크
-description: AIDLC 엔터프라이즈 거버넌스 — 3층 모델, 스티어링 파일 자동화, 데이터 주권, AI 기본법 대응
+description: AIDLC 엔터프라이즈 - governance-framework
+tags: [aidlc, enterprise, 'scope:enterprise']
 last_update:
-  date: 2026-04-07
+  date: 2026-04-18
   author: devfloor9
 ---
 
@@ -164,10 +165,10 @@ communication:
 ```yaml
 # 예시: 프로젝트별 모델 라우팅
 models:
-  code_generation: claude-3-7-sonnet-20260629  # 복잡한 비즈니스 로직
+  code_generation: Claude Sonnet 4.6  # 복잡한 비즈니스 로직
   code_review: qwen3-coder-32b-instruct         # 온프레미스 보안 리뷰
   test_generation: gpt-4o-mini                  # 단위 테스트 생성
-  documentation: claude-3-5-haiku-20260320      # API 문서 자동 생성
+  documentation: Claude Haiku 4.5      # API 문서 자동 생성
 ```
 
 **프로젝트별 제약**
@@ -234,7 +235,7 @@ harness:
       min_approvals: 1
 
 model_routing:
-  code_generation: claude-3-7-sonnet-20260629
+  code_generation: Claude Sonnet 4.6
   code_review: qwen3-coder-32b-instruct  # on-premises
   test_generation: gpt-4o-mini
 
@@ -283,7 +284,7 @@ You are working on an e-commerce order management service.
     {
       "title": "Claude 3.7 Sonnet",
       "provider": "anthropic",
-      "model": "claude-3-7-sonnet-20260629"
+      "model": "Claude Sonnet 4.6"
     }
   ]
 }
@@ -454,7 +455,7 @@ def create_order(order: OrderCreate):
 # .aidlc/audit-log.yaml
 - timestamp: 2026-04-07T10:30:00Z
   action: code_generation
-  model: claude-3-7-sonnet-20260629
+  model: Claude Sonnet 4.6
   prompt: "주문 생성 API 엔드포인트 구현"
   input_files:
     - src/models/order.py
@@ -509,7 +510,7 @@ risk_assessment:
   "timestamp": "2026-04-07T10:30:00Z",
   "user": "devfloor9",
   "action": "code_generation",
-  "model": "claude-3-7-sonnet-20260629",
+  "model": "Claude Sonnet 4.6",
   "prompt": "주문 생성 API 엔드포인트 구현",
   "input_files": ["src/models/order.py", "src/schemas/order.py"],
   "output_file": "src/api/orders.py",

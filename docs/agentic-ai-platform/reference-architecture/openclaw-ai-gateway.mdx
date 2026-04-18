@@ -348,7 +348,7 @@ kubectl create secret generic bifrost-secrets \
 - Service: ClusterIP (port 4000, OpenAI-compatible API)
 
 :::tip Semantic Cache 설계 원칙
-위 구성은 LiteLLM `cache: true` + Redis 기반의 실전 예시입니다. 유사도 임계값 선택, 캐시 키 설계(멀티테넌트 namespace), PII 안전 처리, 관측성 지표 등 전반적인 설계 원칙은 [Semantic Caching 전략](../design-architecture/semantic-caching-strategy.md) 문서를 참조하세요.
+위 구성은 LiteLLM `cache: true` + Redis 기반의 실전 예시입니다. 유사도 임계값 선택, 캐시 키 설계(멀티테넌트 namespace), PII 안전 처리, 관측성 지표 등 전반적인 설계 원칙은 [Semantic Caching 전략](../model-serving/inference-frameworks/semantic-caching-strategy.md) 문서를 참조하세요.
 :::
 
 ### 5.3 OpenClaw Gateway
