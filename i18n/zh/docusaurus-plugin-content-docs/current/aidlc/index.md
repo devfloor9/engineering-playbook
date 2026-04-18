@@ -1,70 +1,101 @@
 ---
 title: "AIDLC"
 sidebar_label: "AIDLC"
-description: "AI-Driven Development Lifecycle — AI 主导的软件开发方法论"
+description: "AI-Driven Development Lifecycle — 基于 AWS Labs 官方方法论 + DDD·Ontology·Harness 企业级扩展"
 sidebar_position: 4
 category: "aidlc"
+tags: [aidlc, methodology, 'scope:nav']
 last_update:
-  date: 2026-03-23
+  date: 2026-04-18
   author: devfloor9
 ---
 
 # AIDLC: AI-Driven Development Lifecycle
 
-> **阅读时间**：约 3 分钟
+> **阅读时间**: 约 3 分钟
 
-AIDLC（AI-Driven Development Lifecycle）是一种由 AI 主导软件开发全过程的新型开发方法论。如果说传统 SDLC（Software Development Lifecycle）是以人为中心的流程，那么 AIDLC 通过 **Intent → Unit → Bolt** 模型，让 AI 从需求分析到设计、实现、测试，加速整个开发周期。
+:::info 官方 AIDLC 参考
+本章节基于 [AWS Labs AIDLC Workflows](https://github.com/awslabs/aidlc-workflows) (v0.1.7, 2026-04-02) 并叠加 DDD·Ontology·Harness 扩展。关于官方术语 (User Request/Requirements, Unit of Work) 与 engineering-playbook 术语 (Intent, Unit, Bolt) 的映射,请参阅 [10 大原则与执行模型](./methodology/principles-and-model.md#12-aws-labs-aidlc-官方术语映射)。
+:::
+
+AIDLC (AI-Driven Development Lifecycle) 是一种由 AI 主导软件开发全流程的新型开发方法论。如果说传统 SDLC 是以人为中心的流程,那么 AIDLC 则通过 **Intent → Unit → Bolt** 模型让 AI 从需求分析、设计、实现到测试加速整个开发周期。
+
+**AIDLC 定义与 SDLC 对比详情**: 参见 [10 大原则与执行模型](/docs/aidlc/methodology/principles-and-model)
+
+## 4 大轨道
+
+AIDLC 指南根据读者的角色和关注点划分为 4 个轨道。
+
+```mermaid
+flowchart TB
+    subgraph METHOD["方法论"]
+        direction TB
+        P["10 大原则<br/>Intent · Unit · Bolt"]
+        O["Ontology 工程<br/>Typed World Model"]
+        H["Harness 工程<br/>架构约束设计"]
+        D["DDD 集成<br/>领域驱动设计"]
+    end
+
+    subgraph ENTER["企业级落地"]
+        direction TB
+        A["落地策略<br/>瀑布→混合"]
+        R["角色再定义<br/>Harness 工程师"]
+        C["成本效益<br/>RFP 估算模型"]
+        G["治理<br/>3 层框架"]
+        M["MSA 复杂度<br/>适配性评估"]
+        CS["案例研究"]
+    end
+
+    subgraph TOOL["工具与实现"]
+        direction TB
+        AI["AI 编码代理<br/>Kiro · Q Developer"]
+        OW["Open-Weight 模型<br/>本地部署 · TCO"]
+        EKS["EKS 声明式自动化<br/>GitOps · Gateway API"]
+        TR["技术路线图<br/>Build vs Wait"]
+    end
+
+    subgraph OPS["AgenticOps"]
+        direction TB
+        OB["可观测性<br/>ADOT · AMP · CloudWatch"]
+        PR["预测运维<br/>ML 伸缩 · 异常检测"]
+        AR["自主响应<br/>AI Agent · Chaos Eng"]
+    end
+
+    METHOD --> TOOL
+    METHOD --> ENTER
+    TOOL --> OPS
+    OPS -->|"反馈循环"| METHOD
+
+    style METHOD fill:#326ce5,color:#fff
+    style ENTER fill:#ff9900,color:#fff
+    style TOOL fill:#76b900,color:#fff
+    style OPS fill:#e74c3c,color:#fff
+```
+
+## 按角色划分的学习路径
+
+| 角色 | 推荐路径 |
+|------|----------|
+| **管理层 · PM** | [企业级落地](/docs/aidlc/enterprise) → [成本效益](/docs/aidlc/enterprise/cost-estimation) → [案例研究](/docs/aidlc/enterprise/case-studies) |
+| **架构师** | [方法论](/docs/aidlc/methodology) → [Ontology](/docs/aidlc/methodology/ontology-engineering) → [Harness](/docs/aidlc/methodology/harness-engineering) → [MSA 复杂度](/docs/aidlc/enterprise/msa-complexity) |
+| **开发者** | [10 大原则](/docs/aidlc/methodology/principles-and-model) → [DDD 集成](/docs/aidlc/methodology/ddd-integration) → [AI 编码代理](/docs/aidlc/toolchain/ai-coding-agents) |
+| **运维 · SRE** | [AgenticOps](/docs/aidlc/operations) → [可观测性](/docs/aidlc/operations/observability-stack) → [自主响应](/docs/aidlc/operations/autonomous-response) |
+| **安全 · 合规** | [治理](/docs/aidlc/enterprise/governance-framework) → [Harness 工程](/docs/aidlc/methodology/harness-engineering) → [Open-Weight 模型](/docs/aidlc/toolchain/open-weight-models) |
 
 ## 核心概念
 
-AIDLC 由三个核心轴组成：
+### 可信性双轴: Ontology × Harness
 
-- **Intent（意图）**：由人以自然语言定义需求和业务意图。Kiro 的 Spec-driven 开发（requirements → design → tasks → 代码）支持这一阶段。
-- **Unit（单元）**：AI 将意图分解为可执行的单元任务。结合 DDD（Domain-Driven Design）与 BDD/TDD 来保障质量。
-- **Bolt（执行）**：AI 自动执行代码生成、测试编写和部署流水线配置。
+为系统性地保证 AI 生成代码的可信性,AIDLC 引入了两个轴的框架。Ontology 定义 "需要验证什么",Harness 实现 "如何验证",两者互为补充。
 
-## 可靠性双轴：本体论 × 约束工程
-
-为了系统性地保障 AI 生成代码的可靠性，AIDLC 引入了两轴可靠性框架：
-
-- **本体论（WHAT + WHEN）**：将领域知识形式化的 typed world model。通过自身反馈环路（Inner/Middle/Outer）持续演进的活的模型，防止 AI 幻觉。
-- **约束工程（HOW）**：以架构方式验证和强制执行本体论定义的约束的结构
-
-## AIDLC 十大原则
-
-AIDLC 框架定义了十大原则来系统化 AI 驱动的开发。详细内容请参阅 [AIDLC 框架](./aidlc-framework.md)。
-
-## 开发之后：运维与反馈环路
-
-在通过 AIDLC 完成软件开发之后，需要在实际运维环境中进行**持续改进和反馈环路**。相关方法请参阅 [AIOps](/docs/aidlc/agentic-ops)。AIOps 是一种利用 AI 系统性构建运维可观测性、预测扩缩容、自动恢复等运维效率化反馈环路的方法论。
-
-```mermaid
-flowchart LR
-    subgraph AIDLC["AIDLC（开发）"]
-        direction TB
-        INTENT["Intent<br/>需求定义"] --> UNIT["Unit<br/>任务分解"]
-        UNIT --> BOLT["Bolt<br/>AI 执行"]
-    end
-
-    subgraph AIOPS["AIOps（运维）"]
-        direction TB
-        OBS["可观测性<br/>指标/日志/链路追踪"] --> PREDICT["预测分析<br/>异常检测"]
-        PREDICT --> AUTO["自动响应<br/>扩缩容/恢复"]
-    end
-
-    AIDLC -->|"部署"| AIOPS
-    AIOPS -->|"反馈环路"| AIDLC
-
-    style AIDLC fill:#326ce5,color:#fff
-    style AIOPS fill:#ff9900,color:#fff
-```
-
-:::info 学习路径
-1. [AIDLC 框架](./aidlc-framework.md) — 十大原则、Intent→Unit→Bolt 模型、DDD 集成、EKS 能力映射
-2. [AIOps](/docs/aidlc/agentic-ops) — 开发之后的运维反馈环路构建
-:::
+→ 详情请参阅 [Ontology 工程](/docs/aidlc/methodology/ontology-engineering) · [Harness 工程](/docs/aidlc/methodology/harness-engineering)
 
 ## 参考资料
 
-- [AWS AI-Driven Development Life Cycle](https://aws.amazon.com/blogs/devops/ai-driven-development-life-cycle/)
-- [AWS Labs AIDLC Workflows (GitHub)](https://github.com/awslabs/aidlc-workflows)
+### 官方参考
+- [AWS Labs AIDLC Workflows](https://github.com/awslabs/aidlc-workflows) — 官方仓库 (v0.1.7)
+- [AWS Labs Common Rules](https://github.com/awslabs/aidlc-workflows/tree/main/aws-aidlc-rule-details/common) — 11 项通用规则
+- [AWS Labs Inception Stages](https://github.com/awslabs/aidlc-workflows/tree/main/aws-aidlc-rule-details/inception) — 7 个阶段 Adaptive Execution
+- [AWS Labs Extensions](https://github.com/awslabs/aidlc-workflows/tree/main/aws-aidlc-rule-details/extensions) — opt-in 扩展机制
+- [AWS AI-Driven Development Life Cycle Blog](https://aws.amazon.com/blogs/devops/ai-driven-development-life-cycle/)
+- [Open-Sourcing Adaptive Workflows for AI-DLC](https://aws.amazon.com/blogs/devops/open-sourcing-adaptive-workflows-for-ai-driven-development-life-cycle-ai-dlc/)

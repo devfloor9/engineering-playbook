@@ -5,7 +5,7 @@ description: "Why DDD is an essential core in AIDLC — AI-driven development fr
 category: "aidlc"
 tags: [ddd, domain-driven-design, mob-elaboration, kiro, mcp, aggregate, entity, cqrs, adr]
 last_update:
-  date: 2026-04-07
+  date: 2026-04-18
   author: devfloor9
 ---
 

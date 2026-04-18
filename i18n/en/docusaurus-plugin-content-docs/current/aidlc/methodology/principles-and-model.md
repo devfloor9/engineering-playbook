@@ -5,7 +5,7 @@ description: "Core philosophy of AIDLC and the Intent → Unit → Bolt executio
 category: "aidlc"
 tags: [aidlc, principles, intent, unit, bolt, methodology]
 last_update:
-  date: 2026-04-07
+  date: 2026-04-18
   author: devfloor9
 ---
 

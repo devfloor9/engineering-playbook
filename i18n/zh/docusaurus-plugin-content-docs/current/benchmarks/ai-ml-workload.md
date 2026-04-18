@@ -291,7 +291,7 @@ vllm serve meta-llama/Llama-4-Scout-17B-16E \
 
 1. **Spot 实例使用**：批量推理工作负载可节省 50-70% 成本（可接受中断时）
 2. **EC2 Capacity Blocks**：为 Trainium2 实例预留分配以确保可用性
-3. **自动扩缩**：基于 Karpenter + KEDA 的 GPU 指标扩缩（详见：[GPU 资源管理](/docs/agentic-ai-platform/model-serving/gpu-resource-management)）
+3. **自动扩缩**：基于 Karpenter + KEDA 的 GPU 指标扩缩（详见：[GPU 资源管理](/docs/agentic-ai-platform/model-serving/gpu-infrastructure/gpu-resource-management)）
 4. **模型量化**：通过 FP8/INT8 量化减少内存使用并提升吞吐量
 
 ---
@@ -306,8 +306,8 @@ vllm serve meta-llama/Llama-4-Scout-17B-16E \
 - [AWS EC2 Inf2 实例](https://aws.amazon.com/ec2/instance-types/inf2/)
 - [AWS Neuron SDK 文档](https://awsdocs-neuron.readthedocs-hosted.com/)
 - [NVIDIA — Llama 4 推理加速](https://developer.nvidia.com/blog/nvidia-accelerates-inference-on-meta-llama-4-scout-and-maverick/)
-- [vLLM 模型服务指南](/docs/agentic-ai-platform/model-serving/vllm-model-serving)
-- [GPU 资源管理](/docs/agentic-ai-platform/model-serving/gpu-resource-management)
+- [vLLM 模型服务指南](/docs/agentic-ai-platform/model-serving/inference-frameworks/vllm-model-serving)
+- [GPU 资源管理](/docs/agentic-ai-platform/model-serving/gpu-infrastructure/gpu-resource-management)
 
 :::note 数据可靠性声明
 本基准测试中的数据是基于 Meta、AWS、NVIDIA 和 vLLM 项目发布的规格和基准数据的**估算值**。实际性能可能因工作负载特性、输入长度、批次大小和模型配置而异。建议在生产部署前在实际环境中进行基准测试。

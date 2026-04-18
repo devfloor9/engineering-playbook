@@ -19,7 +19,7 @@ last_update:
 A benchmark comparing the performance of **Aggregated** and **Disaggregated** modes in NVIDIA Dynamo-based LLM serving. By running 4 measurement modes of the AIPerf benchmark tool in an EKS environment, this quantitatively validates what performance differences the KV Router + NIXL Transfer of Disaggregated Serving make in real workloads.
 
 :::info Deployment Guide
-For EKS deployment of this benchmark, see the [NVIDIA GPU Stack Guide](/docs/agentic-ai-platform/model-serving/nvidia-gpu-stack).
+For EKS deployment of this benchmark, see the [NVIDIA GPU Stack Guide](/docs/agentic-ai-platform/model-serving/gpu-infrastructure/nvidia-gpu-stack).
 :::
 
 ## Test Environment
@@ -207,7 +207,7 @@ See the [Agent Monitoring Guide](/docs/agentic-ai-platform/operations-mlops/agen
 6. Serving deployment: Choose Aggregated or Disaggregated mode
 7. Benchmark execution: Run 4 modes sequentially
 
-See the [NVIDIA GPU Stack Guide](/docs/agentic-ai-platform/model-serving/nvidia-gpu-stack) for detailed deployment guide.
+See the [NVIDIA GPU Stack Guide](/docs/agentic-ai-platform/model-serving/gpu-infrastructure/nvidia-gpu-stack) for detailed deployment guide.
 
 ---
 
@@ -249,4 +249,4 @@ Recommendations will be written based on actual measurement results.
 - [NVIDIA Dynamo Documentation](https://docs.nvidia.com/dynamo/)
 - [vLLM Project](https://docs.vllm.ai/)
 - [AIPerf Benchmark Tool](https://github.com/NVIDIA/dynamo)
-- [NVIDIA GPU Stack Guide](/docs/agentic-ai-platform/model-serving/nvidia-gpu-stack)
+- [NVIDIA GPU Stack Guide](/docs/agentic-ai-platform/model-serving/gpu-infrastructure/nvidia-gpu-stack)

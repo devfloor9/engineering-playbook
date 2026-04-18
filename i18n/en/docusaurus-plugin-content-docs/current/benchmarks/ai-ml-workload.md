@@ -291,7 +291,7 @@ vllm serve meta-llama/Llama-4-Scout-17B-16E \
 
 1. **Spot Instance Usage**: 50-70% cost savings for batch inference workloads (when interruption is acceptable)
 2. **EC2 Capacity Blocks**: Reserved allocation for Trainium2 instances for reliable availability
-3. **Autoscaling**: Karpenter + KEDA-based GPU metric scaling (details: [GPU Resource Management](/docs/agentic-ai-platform/model-serving/gpu-resource-management))
+3. **Autoscaling**: Karpenter + KEDA-based GPU metric scaling (details: [GPU Resource Management](/docs/agentic-ai-platform/model-serving/gpu-infrastructure/gpu-resource-management))
 4. **Model Quantization**: Reduced memory usage and improved throughput with FP8/INT8 quantization
 
 ---
@@ -306,8 +306,8 @@ vllm serve meta-llama/Llama-4-Scout-17B-16E \
 - [AWS EC2 Inf2 Instances](https://aws.amazon.com/ec2/instance-types/inf2/)
 - [AWS Neuron SDK Documentation](https://awsdocs-neuron.readthedocs-hosted.com/)
 - [NVIDIA — Llama 4 Inference Acceleration](https://developer.nvidia.com/blog/nvidia-accelerates-inference-on-meta-llama-4-scout-and-maverick/)
-- [vLLM Model Serving Guide](/docs/agentic-ai-platform/model-serving/vllm-model-serving)
-- [GPU Resource Management](/docs/agentic-ai-platform/model-serving/gpu-resource-management)
+- [vLLM Model Serving Guide](/docs/agentic-ai-platform/model-serving/inference-frameworks/vllm-model-serving)
+- [GPU Resource Management](/docs/agentic-ai-platform/model-serving/gpu-infrastructure/gpu-resource-management)
 
 :::note Data Reliability Notice
 The figures in this benchmark are **estimates** based on specifications and benchmark data published by Meta, AWS, NVIDIA, and the vLLM project. Actual performance may vary depending on workload characteristics, input length, batch size, and model configuration. We recommend benchmarking in your actual environment before production deployment.

@@ -1,44 +1,44 @@
 ---
-title: "LLMOps Observability 비교 가이드"
+title: "LLMOps Observability Comparison Guide"
 sidebar_label: "LLMOps Observability"
-description: "Langfuse, LangSmith, Helicone 비교 및 하이브리드 Observability 아키텍처 개요"
-tags: [eks, observability, langfuse, langsmith, helicone, llmops, monitoring]
+description: "Langfuse, LangSmith, Helicone comparison and hybrid Observability architecture overview"
+tags: [eks, observability, langfuse, langsmith, helicone, llmops, monitoring, 'scope:ops']
 category: "genai-aiml"
 last_update:
-  date: 2026-04-05
+  date: 2026-04-17
   author: devfloor9
 sidebar_position: 7
 ---
 
-# LLMOps Observability 비교 가이드
+# LLMOps Observability Comparison Guide
 
-## 1. 개요
+## 1. Overview
 
-### 1.1 전통적 APM이 LLM 워크로드에서 부족한 이유
+### 1.1 Why Traditional APM Falls Short for LLM Workloads
 
-전통적인 Application Performance Monitoring (APM) 도구들은 LLM 기반 애플리케이션의 특수한 요구사항을 충족하지 못합니다:
+Traditional Application Performance Monitoring (APM) tools fail to meet the special requirements of LLM-based applications:
 
-- **토큰 비용 추적 불가**: 기존 APM은 CPU/메모리 사용량만 측정하며, LLM API 호출의 실제 비용인 입력/출력 토큰 수와 프로바이더별 가격을 추적하지 못합니다
-- **프롬프트 품질 평가 부재**: HTTP 요청/응답 본문은 기록하지만, 프롬프트 템플릿 버전 관리, A/B 테스트, 품질 평가 메트릭이 없습니다
-- **체인 추적의 한계**: LangChain/LlamaIndex 같은 프레임워크의 복잡한 체인(Chain)과 에이전트 워크플로우는 단순 HTTP trace로는 가시성 확보가 어렵습니다
-- **의미론적 컨텍스트 부족**: 단순 latency/throughput만 측정할 뿐, "답변이 정확한가?", "환각(hallucination)이 발생했는가?"와 같은 의미론적 품질을 평가하지 못합니다
+- **Unable to Track Token Costs**: Existing APM only measures CPU/memory usage and fails to track input/output token counts and provider-specific pricing, which are the actual costs of LLM API calls
+- **Absence of Prompt Quality Assessment**: While HTTP request/response bodies are logged, there is no prompt template version management, A/B testing, or quality evaluation metrics
+- **Chain Tracing Limitations**: Complex chains and agent workflows in frameworks like LangChain/LlamaIndex are difficult to gain visibility into with simple HTTP traces
+- **Lack of Semantic Context**: Only measures simple latency/throughput, unable to evaluate semantic quality such as "Is the answer accurate?" or "Did hallucination occur?"
 
-### 1.2 LLMOps Observability의 4가지 핵심 영역
+### 1.2 Four Core Areas of LLMOps Observability
 
-1. **Tracing**: 전체 요청 라이프사이클 추적 (프롬프트 -> LLM -> 응답), 중첩된 체인/에이전트 단계별 가시성
-2. **Evaluation**: 자동/수동 평가를 통한 응답 품질 측정 (정확도, 충실도, 관련성, 독성 등)
-3. **Prompt Management**: 프롬프트 템플릿 버전 관리, A/B 테스트, 프로덕션 배포 파이프라인
-4. **Cost Tracking**: 프로바이더별/모델별 토큰 비용 실시간 집계, 팀/프로젝트별 예산 관리
+1. **Tracing**: Track entire request lifecycle (prompt -> LLM -> response), visibility into nested chain/agent steps
+2. **Evaluation**: Measure response quality through automated/manual assessment (accuracy, faithfulness, relevance, toxicity, etc.)
+3. **Prompt Management**: Prompt template version control, A/B testing, production deployment pipeline
+4. **Cost Tracking**: Real-time aggregation of token costs by provider/model, team/project budget management
 
-:::info 실전 배포 가이드
-Langfuse Helm 배포, Redis/ClickHouse 구성, kgateway sub-path 라우팅, Bifrost OTel 연동 등 실전 구성은 [모니터링 스택 구성 가이드](../reference-architecture/monitoring-observability-setup.md)를 참조하세요.
+:::info Practical Deployment Guide
+For practical configuration including Langfuse Helm deployment, Redis/ClickHouse setup, kgateway sub-path routing, and Bifrost OTel integration, refer to [Monitoring Stack Configuration Guide](../reference-architecture/monitoring-observability-setup.md).
 :::
 
 ---
 
-## 2. 핵심 개념
+## 2. Core Concepts
 
-### 2.1 Trace 구조
+### 2.1 Trace Structure
 
 ```mermaid
 flowchart TB
@@ -68,91 +68,91 @@ flowchart TB
     style H fill:#76b900,stroke:#333
 ```
 
-### 2.2 주요 개념 정의
+### 2.2 Key Concept Definitions
 
-| 개념 | 설명 |
+| Concept | Description |
 |------|------|
-| **Trace** | 요청의 전체 라이프사이클을 나타내는 최상위 단위. 사용자 질문 -> 여러 LLM 호출 -> 최종 응답 |
-| **Span** | Trace를 구성하는 개별 단계 (LLM 호출, 도구 호출, Vector 검색, 후처리) |
-| **Generation** | LLM API 호출 세부 정보: 입출력 토큰, 모델명, 파라미터, 지연 시간, 비용 |
-| **Score** | 응답 품질 평가 메트릭: 자동(LLM-as-Judge), 수동(사람 피드백) |
-| **Session** | 대화형 애플리케이션에서 여러 Trace를 묶는 컨텍스트 |
+| **Trace** | Top-level unit representing entire request lifecycle. User question -> multiple LLM calls -> final response |
+| **Span** | Individual step composing a trace (LLM call, tool call, vector search, post-processing) |
+| **Generation** | LLM API call details: input/output tokens, model name, parameters, latency, cost |
+| **Score** | Response quality evaluation metrics: automated (LLM-as-Judge), manual (human feedback) |
+| **Session** | Context grouping multiple traces in conversational applications |
 
 ---
 
-## 3. 솔루션 비교
+## 3. Solution Comparison
 
 ### 3.1 Langfuse
 
-**오픈소스 LLMOps Observability 플랫폼** (MIT 라이선스, 완전한 셀프호스트 지원)
+**Open-source LLMOps Observability platform** (MIT license, full self-hosted support)
 
-**핵심 기능**:
-- **Tracing**: LangChain, LlamaIndex, OpenAI SDK 네이티브 통합, 중첩된 체인/에이전트 완전 가시성
-- **Prompt Management**: 프롬프트 템플릿 버전 관리, A/B 테스트, 프로덕션/스테이징 환경 분리
-- **Evaluation**: LLM-as-Judge, 규칙 기반 자동 평가, Annotation Queue 수동 평가, Dataset 관리
-- **아키텍처**: PostgreSQL(메타데이터) + ClickHouse(분석) + Redis(캐시)
+**Core Features**:
+- **Tracing**: Native integration with LangChain, LlamaIndex, OpenAI SDK, complete visibility into nested chain/agent
+- **Prompt Management**: Prompt template version management, A/B testing, production/staging environment separation
+- **Evaluation**: LLM-as-Judge, rule-based automated evaluation, annotation queue manual evaluation, dataset management
+- **Architecture**: PostgreSQL (metadata) + ClickHouse (analytics) + Redis (cache)
 
-**장점**: 완전한 데이터 소유권, 무제한 확장, 강력한 평가 파이프라인, 비용 효율(셀프호스트)
+**Advantages**: Complete data ownership, unlimited scaling, robust evaluation pipeline, cost efficiency (self-hosted)
 
-**단점**: 운영 오버헤드(PG+CH+Redis 관리), 초기 설정 복잡도
+**Disadvantages**: Operational overhead (PG+CH+Redis management), initial configuration complexity
 
 ### 3.2 LangSmith
 
-**LangChain AI 제공 클라우드 기반 Observability 플랫폼**
+**Cloud-based Observability platform provided by LangChain AI**
 
-**핵심 기능**:
-- LangChain/LangGraph 제로 코드 통합
-- Hub (프롬프트 마켓플레이스): 커뮤니티 공유, 버전 관리, Fork/Share
-- Evaluator 라이브러리: 사전 정의된 평가자, 비교 모드
-- Annotation Queue: 팀 협업, RLHF 데이터 소스
+**Core Features**:
+- Zero-code integration with LangChain/LangGraph
+- Hub (Prompt marketplace): Community sharing, version management, fork/share
+- Evaluator library: Pre-defined evaluators, comparison mode
+- Annotation queue: Team collaboration, RLHF data source
 
-**장점**: LangChain 딥 인테그레이션, 관리형 서비스, 5분 내 통합
+**Advantages**: Deep LangChain integration, managed service, integration within 5 minutes
 
-**단점**: LangChain 종속성, 클라우드 전용(엔터프라이즈만 셀프호스트), 트레이스당 과금
+**Disadvantages**: LangChain dependency, cloud-only (enterprise only for self-hosted), per-trace billing
 
 ### 3.3 Helicone
 
-**Rust 기반 고성능 LLM Gateway + Observability 통합 솔루션**
+**Rust-based high-performance LLM Gateway + Observability integrated solution**
 
-**핵심 기능**:
-- Zero-Code 통합: OpenAI endpoint URL 변경만으로 자동 추적
-- Gateway 기능 내장: Rate limiting, Caching, Retries, Load balancing
-- 실시간 비용 대시보드
+**Core Features**:
+- Zero-code integration: Automatic tracking with just OpenAI endpoint URL change
+- Built-in gateway features: Rate limiting, caching, retries, load balancing
+- Real-time cost dashboard
 
-**장점**: 초고속 통합(URL 변경만), 고성능(Rust, 10ms 미만 지연), Gateway 기능 내장
+**Advantages**: Ultra-fast integration (URL change only), high performance (Rust, &lt;10ms latency), built-in gateway features
 
-**단점**: 프롬프트 관리/평가 파이프라인 부재, 중첩 Span 추적 제한적
+**Disadvantages**: Lack of prompt management/evaluation pipeline, limited nested span tracking
 
-### 3.4 솔루션 비교 테이블
+### 3.4 Solution Comparison Table
 
-| 기능 | Langfuse | LangSmith | Helicone |
+| Feature | Langfuse | LangSmith | Helicone |
 |------|----------|-----------|----------|
-| **라이선스** | MIT (오픈소스) | Proprietary | Proprietary (셀프호스트 가능) |
-| **셀프호스트** | 완전 지원 | 엔터프라이즈만 | 지원 |
+| **License** | MIT (open-source) | Proprietary | Proprietary (self-hosted available) |
+| **Self-hosted** | Full support | Enterprise only | Supported |
 | **Tracing** | ★★★★★ | ★★★★★ | ★★★ |
-| **Prompt Management** | ★★★★★ (버전, A/B) | ★★★★ (Hub) | ★★ (단순 저장) |
-| **Evaluation** | ★★★★★ (Pipeline) | ★★★★★ | ★ (없음) |
+| **Prompt Management** | ★★★★★ (Version, A/B) | ★★★★ (Hub) | ★★ (Simple storage) |
+| **Evaluation** | ★★★★★ (Pipeline) | ★★★★★ | ★ (None) |
 | **Cost Tracking** | ★★★★★ | ★★★★ | ★★★★ |
-| **LangChain 통합** | ★★★★ | ★★★★★ | ★★★ |
-| **프레임워크 중립성** | ★★★★★ | ★★★ | ★★★★★ |
-| **Gateway 기능** | 없음 | 없음 | ★★★★★ |
-| **스케일 한계** | 무제한 (셀프호스트) | 플랜 제한 | 플랜 제한 |
-| **데이터 주권** | ★★★★★ | ★★ | ★★★★ |
+| **LangChain Integration** | ★★★★ | ★★★★★ | ★★★ |
+| **Framework Neutrality** | ★★★★★ | ★★★ | ★★★★★ |
+| **Gateway Features** | None | None | ★★★★★ |
+| **Scale Limits** | Unlimited (self-hosted) | Plan limits | Plan limits |
+| **Data Sovereignty** | ★★★★★ | ★★ | ★★★★ |
 
 ---
 
-## 4. 하이브리드 아키텍처 추천
+## 4. Hybrid Architecture Recommendation
 
-### 4.1 왜 단일 솔루션이 부족한가
+### 4.1 Why Single Solution Is Insufficient
 
-엔터프라이즈 환경에서는 복합적 요구사항이 존재합니다:
+Enterprise environments have complex requirements:
 
-1. **Gateway 분리 필요**: Rate limiting, Caching, Failover는 Observability와 독립적으로 관리
-2. **멀티 프레임워크 지원**: LangChain, LlamaIndex, 커스텀 코드가 혼재
-3. **데이터 주권과 비용**: 민감 데이터 클라우드 전송 불가, 대규모 트래픽 시 과금 급증
-4. **고급 평가 파이프라인**: Ragas 같은 전문 프레임워크 통합, CI/CD 회귀 테스트 자동화
+1. **Gateway Separation Needed**: Rate limiting, caching, failover managed independently from observability
+2. **Multi-Framework Support**: Mix of LangChain, LlamaIndex, and custom code
+3. **Data Sovereignty and Cost**: Cannot send sensitive data to cloud, billing spikes with large-scale traffic
+4. **Advanced evaluation pipeline**: Ragas Integration with specialized frameworks like Ragas, CI/CD regression test automation
 
-### 4.2 추천 조합: kgateway + Bifrost (Gateway) + Langfuse (Observability)
+### 4.2 Recommended Combination: kgateway + Bifrost (Gateway) + Langfuse (Observability)
 
 ```mermaid
 flowchart TB
@@ -162,7 +162,7 @@ flowchart TB
 
     subgraph EKS["EKS Cluster"]
         subgraph GW["Gateway"]
-            B[kgateway<br/>Envoy 기반]
+            B[kgateway<br/>Envoy based]
             C[Bifrost]
         end
 
@@ -202,48 +202,48 @@ flowchart TB
     style H fill:#76b900,stroke:#333
 ```
 
-**이점**:
-- **Gateway 책임 분리**: kgateway (Envoy 기반)가 트래픽 관리, 인증, Rate limiting 담당, Bifrost가 프로바이더 라우팅과 Caching 담당
-- **Observability 전문화**: Langfuse가 Tracing, 평가, 프롬프트 관리 담당
-- **완전한 셀프호스트**: 모든 구성 요소를 EKS에서 실행
-- **확장성**: 각 계층을 독립적으로 스케일링
+**Benefits**:
+- **Gateway responsibility separation**: kgateway (Envoy based)handles traffic management, authentication, rate limiting; Bifrost handles provider routing and caching
+- **Observability specialization**: Langfuse handles tracing, evaluation, and prompt management
+- **Complete self-hosted**: All components run on EKS
+- **Scalability**: Scale each layer independently
 
-### 4.3 Helicone 단독 vs Bifrost+Langfuse 비교
+### 4.3 Helicone Standalone vs Bifrost+Langfuse Comparison
 
-| 측면 | Helicone 단독 | Bifrost + Langfuse |
+| Aspect | Helicone Standalone | Bifrost + Langfuse |
 |------|---------------|---------------------|
-| **통합 복잡도** | 매우 낮음 (URL 변경만) | 중간 (SDK 통합 필요) |
-| **프롬프트 관리** | 제한적 (저장만) | 강력 (버전, A/B 테스트) |
-| **평가 파이프라인** | 없음 | 완전 지원 (Ragas 통합) |
-| **체인 추적** | 제한적 | 완벽 (중첩 Span) |
-| **확장성** | Gateway/Observability 결합 | 독립 스케일링 |
-| **적합 시나리오** | MVP, 단순 API 호출 | 엔터프라이즈, 복잡한 체인 |
+| **Integration complexity** | Very low (URL change only) | Medium (SDK integration needed) |
+| **Prompt Management** | Limited (storage only) | Strong (Version, A/B testing) |
+| **Evaluation pipeline** | None | Full support (Ragas integration) |
+| **Chain Tracking** | limited | Perfect (nested span) |
+| **Scalability** | Gateway/Observability Combined | Independent scaling |
+| **Suitable scenario** | MVP, Simple API calls | enterprise, Complex chain |
 
 ---
 
-## 5. OpenTelemetry 통합 아키텍처
+## 5. OpenTelemetry Integration Architecture
 
-### 5.1 왜 OpenTelemetry를 통합하는가
+### 5.1 Why Integrate OpenTelemetry
 
-Langfuse는 LLM 특화 Observability를 제공하지만, 전체 애플리케이션 컨텍스트는 기존 APM에서 관리합니다. OpenTelemetry를 사용하면:
+Langfuse provides LLM-specific observability, but overall application context is managed by existing APM. Using OpenTelemetry:
 
-- **통합 대시보드**: LLM Trace + 기존 APM Trace를 한 화면에서 조회
-- **상관 관계 분석**: HTTP 요청 -> DB 쿼리 -> LLM 호출의 전체 흐름 추적
-- **단일 계측 SDK**: OpenTelemetry만 사용하여 Langfuse와 기존 APM 동시 전송
+- **Unified dashboard**: LLM Trace + existing APM trace on one screen
+- **Correlation analytics**: entire flow: HTTP request -> DB query -> LLM call
+- **Single instrumentation SDK**: send to both Langfuse and existing APM using only OpenTelemetry
 
-### 5.2 OTel Semantic Conventions 매핑
+### 5.2 OTel Semantic Conventions Mapping
 
-| OTEL 속성 | Langfuse 필드 | 설명 |
+| OTEL Attribute | Langfuse Field | Description |
 |-----------|---------------|------|
-| `llm.model` | `model` | 모델명 (gpt-4o, claude-3-opus 등) |
-| `llm.input_tokens` | `usage.input` | 입력 토큰 수 |
-| `llm.output_tokens` | `usage.output` | 출력 토큰 수 |
-| `llm.temperature` | `modelParameters.temperature` | Temperature 파라미터 |
-| `llm.request.prompt` | `input` | 프롬프트 |
-| `llm.response.completion` | `output` | 응답 텍스트 |
-| `llm.total_cost` | `calculatedTotalCost` | 계산된 비용 |
+| `llm.model` | `model` | Model name (gpt-4o, claude-3-opus)" |
+| `llm.input_tokens` | `usage.input` | Input token count |
+| `llm.output_tokens` | `usage.output` | Output token count |
+| `llm.temperature` | `modelParameters.temperature` | Temperature Parameter |
+| `llm.request.prompt` | `input` | Prompt |
+| `llm.response.completion` | `output` | Response text |
+| `llm.total_cost` | `calculatedTotalCost` | Calculated cost |
 
-### 5.3 Grafana Tempo + Langfuse 조합
+### 5.3 Grafana Tempo + Langfuse Combination
 
 ```mermaid
 flowchart LR
@@ -266,69 +266,69 @@ flowchart LR
 
 ---
 
-## 6. 평가 파이프라인 개념
+## 6. Evaluation pipeline Concept
 
-### 6.1 평가 방식
+### 6.1 Evaluation Methods
 
-Langfuse Evaluation은 세 가지 방식을 지원합니다:
+Langfuse evaluation supports three methods:
 
-1. **LLM-as-Judge**: 별도 LLM을 사용하여 응답 품질 평가 (Faithfulness, Relevancy 등)
-2. **규칙 기반**: Python 함수로 커스텀 평가 로직 (정규식 매칭, 키워드 체크)
-3. **수동 평가**: Annotation Queue에서 사람이 직접 평가 (RLHF 데이터 수집)
+1. **LLM-as-Judge**: Evaluate response quality using separate LLM (Faithfulness, Relevancy)"
+2. **Rule-based**: Custom evaluation logic with Python functions (Regex matching, keyword checks)
+3. **Manual evaluation**: Human evaluation directly in annotation queue (RLHF Data collection)
 
-### 6.2 평가 메트릭
+### 6.2 Evaluation Metrics
 
-| 메트릭 | 범위 | 설명 | 평가 방법 |
+| Metric | Range | Description | Evaluation Method |
 |--------|------|------|-----------|
-| **Faithfulness** | 0-1 | 응답이 제공된 컨텍스트에 충실한가? | LLM-as-Judge |
-| **Answer Relevancy** | 0-1 | 응답이 질문과 관련이 있는가? | Ragas (임베딩 유사도) |
-| **Context Precision** | 0-1 | 검색된 컨텍스트가 질문과 관련이 있는가? | Ragas |
-| **Context Recall** | 0-1 | Ground Truth가 검색된 컨텍스트에 포함되어 있는가? | Ragas |
-| **Toxicity** | 0-1 | 응답에 유해한 내용이 포함되어 있는가? | Detoxify 라이브러리 |
-| **Latency** | ms | 응답 생성 지연 시간 | 자동 수집 |
-| **Cost** | USD | 요청당 비용 | 자동 계산 |
+| **Faithfulness** | 0-1 | Is response faithful to provided context? | LLM-as-Judge |
+| **Answer Relevancy** | 0-1 | Is response relevant to question? | Ragas (Embedding similarity) |
+| **Context Precision** | 0-1 | Is retrieved context relevant to question? | Ragas |
+| **Context Recall** | 0-1 | Is ground truth included in retrieved context? | Ragas |
+| **Toxicity** | 0-1 | Does response contain harmful content? | Detoxify Library |
+| **Latency** | ms | Response generation latency time | Auto-collected |
+| **Cost** | USD | Cost per request | Auto-calculated |
 
-### 6.3 Ragas 연동
+### 6.3 Ragas Integration
 
-Ragas는 RAG 시스템 전용 평가 프레임워크로, Langfuse와 통합하여 더 정교한 평가를 제공합니다. 자세한 내용은 [RAG Evaluation with Ragas](./ragas-evaluation.md) 문서를 참조하세요.
+Ragas is a RAG system-specific evaluation framework that integrates with Langfuse to provide more sophisticated evaluation. For details, refer to [RAG Evaluation with Ragas](./ragas-evaluation.md) document.
 
 ---
 
-## 7. 시나리오별 추천
+## 7. Recommendations by Scenario
 
-| 시나리오 | 추천 솔루션 | 이유 |
+| Scenario | Recommended Solution | Reason |
 |----------|-------------|------|
-| **LangChain/LangGraph 중심 개발** | LangSmith | LangChain 네이티브 통합, 코드 한 줄로 전체 체인 추적 |
-| **데이터 주권 필수 (금융/의료)** | Langfuse (셀프호스트) | 모든 데이터를 자체 인프라에 저장, GDPR/HIPAA 컴플라이언스 |
-| **빠른 시작 (MVP/PoC)** | Helicone | URL 변경만으로 즉시 추적, Gateway 기능 내장 |
-| **프롬프트 엔지니어링 팀 운영** | Langfuse | 프롬프트 버전 관리, A/B 테스트, Dataset + 자동 평가 |
-| **엔터프라이즈 하이브리드** | Bifrost + Langfuse | Gateway/Observability 책임 분리, 독립적 스케일링 |
-| **풀스택 GenAI 플랫폼** | kgateway + Bifrost + Langfuse + Ragas | API 관리 + LLM 라우팅 + 추적 + 품질 평가 |
-| **대규모 트래픽 (월 1000만+ 트레이스)** | Langfuse + ClickHouse 클러스터 | 수평 확장 가능, 비용 효율 |
+| **LangChain/LangGraph Centric development** | LangSmith | Native LangChain integration, full chain tracking with one line of code |
+| **Data sovereignty required (finance/healthcare)** | Langfuse (self-hosted) | Store all data in own infrastructure, GDPR/HIPAA Compliance |
+| **Quick start (MVP/PoC)** | Helicone | Immediate tracking with URL change only, built-in gateway features |
+| **Prompt engineering team operations** | Langfuse | Prompt Version Management, A/B testing, dataset + automated evaluation |
+| **Enterprise hybrid** | Bifrost + Langfuse | Gateway/Observability Responsibility separation, independent scaling |
+| **Full-stack GenAI platform** | kgateway + Bifrost + Langfuse + Ragas | API management + LLM routing + tracking + quality evaluation |
+| **Large-scale traffic (10M+ traces per month)** | Langfuse + ClickHouse Cluster | Horizontal scaling possible, cost efficiency |
 
 ---
 
-## 8. 요약
+## 8. Summary
 
-1. **LLMOps Observability는 필수**: 전통적 APM은 LLM 워크로드의 토큰 비용, 프롬프트 품질, 체인 추적을 지원하지 못합니다.
-2. **3대 솔루션**: Langfuse(오픈소스, 셀프호스트, 평가 파이프라인), LangSmith(LangChain 최적화, 관리형), Helicone(Proxy 기반, Gateway+Observability 통합)
-3. **하이브리드 아키텍처 추천**: Bifrost(Gateway) + Langfuse(Observability) 조합이 엔터프라이즈 환경에 최적
-4. **OpenTelemetry 통합**: 기존 APM과 LLMOps Observability를 통합 대시보드로 연결
-5. **평가 파이프라인**: LLM-as-Judge, Ragas, Annotation Queue를 활용한 자동/수동 품질 평가
+1. **LLMOps observability is essential**: Traditional APM does not support token cost, prompt quality, and chain tracking for LLM workloads.
+2. **Three major solutions**: Langfuse(Open-source, self-hosted, Evaluation pipeline), LangSmith(LangChain Optimized, Managed), Helicone(Proxy-based, Gateway+Observability integration)
+3. **Hybrid architecture recommendation**: Bifrost(Gateway) + Langfuse(Observability) combination is optimal for enterprise environments
+4. **OpenTelemetry integration**: Connect existing APM and LLMOps observability with unified dashboard
+5. **Evaluation pipeline**: LLM-as-Judge, Ragas, Annotation Queuefor automated/manual quality evaluation
 
 ---
 
-## 참고 자료
+## References
 
-### 공식 문서
+### Official Documentation
 - [Langfuse Documentation](https://langfuse.com/docs)
 - [LangSmith Documentation](https://docs.smith.langchain.com)
 - [Helicone Documentation](https://docs.helicone.ai)
 - [OpenTelemetry LLM Semantic Conventions](https://opentelemetry.io/docs/specs/semconv/gen-ai/)
 - [Ragas Documentation](https://docs.ragas.io)
 
-### 관련 문서
-- [모니터링 스택 구성 가이드](../reference-architecture/monitoring-observability-setup.md) - Langfuse 배포, Bifrost OTel 연동, kgateway 라우팅 실전 구성
-- [Bifrost Gateway 구성 가이드](../reference-architecture/inference-gateway-routing.md)
+### Related Documentation
+- [Monitoring Stack Configuration Guide](../reference-architecture/monitoring-observability-setup.md) - Langfuse Deployment, Bifrost OTel integration, kgateway routing practical configuration
+- [Bifrost Gateway Configuration Guide](../reference-architecture/inference-gateway-routing.md)
 - [RAG Evaluation with Ragas](./ragas-evaluation.md)
-- [Agent 모니터링 & 운영](./agent-monitoring.md)
+- [Agent Monitoring & Operations](./agent-monitoring.md)

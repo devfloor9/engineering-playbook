@@ -3,7 +3,7 @@ title: "AgenticOps"
 sidebar_label: "AgenticOps"
 description: "AI agent-based autonomous operations for software developed with AIDLC — observability, prediction, and automated response"
 last_update:
-  date: 2026-04-07
+  date: 2026-04-18
   author: devfloor9
 ---
 

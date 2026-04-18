@@ -1,13 +1,13 @@
 ---
-title: "EKS 기반 Agentic AI 오픈 아키텍처"
-sidebar_label: "EKS 기반 오픈 아키텍처"
-description: "Amazon EKS와 오픈소스 생태계를 활용한 Agentic AI 플랫폼 구축 가이드"
-tags: [eks, aws, karpenter, genai, agentic-ai, gpu, solutions]
+title: "EKS-based Agentic AI Open Architecture"
+sidebar_label: "EKS-based Open Architecture"
+description: "Guide to building Agentic AI platform using Amazon EKS and open-source ecosystem"
+tags: [eks, aws, karpenter, genai, agentic-ai, gpu, solutions, 'scope:design']
 category: "genai-aiml"
 last_update:
-  date: 2026-04-06
+  date: 2026-04-17
   author: devfloor9
-sidebar_position: 4
+sidebar_position: 5
 ---
 
 import Tabs from '@theme/Tabs';
@@ -27,82 +27,60 @@ import {
   EksClusterConfiguration
 } from '@site/src/components/AgenticSolutionsTables';
 
-> 📅 **작성일**: 2025-02-05 | **수정일**: 2026-04-06 | ⏱️ **읽는 시간**: 약 12분
+> 📅 **Created**: 2025-02-05 | **Updated**: 2026-04-17 | ⏱️ **Reading Time**: ~12 minutes
 
-:::info 선행 문서
-이 문서를 읽기 전에 다음 문서를 먼저 참조하세요:
-- [플랫폼 아키텍처](./agentic-platform-architecture.md) — Agentic AI Platform의 구조와 핵심 레이어
-- [기술적 도전과제](./agentic-ai-challenges.md) — 5가지 핵심 도전과제
-- [AWS Native 플랫폼](./aws-native-agentic-platform.md) — 매니지드 서비스 기반 대안 접근 (비교 참고)
+:::info Prerequisite Documents
+Before reading this document, refer to the following documents first:
+- [Platform Architecture](./agentic-platform-architecture.md) — Structure and core layers of Agentic AI Platform
+- [Technical Challenges](./agentic-ai-challenges.md) — 5 core challenges
+- [AI Platform Selection Guide](./ai-platform-decision-framework.md) — Managed vs open-source decision
+- [AWS Native Platform](./aws-native-agentic-platform.md) — Managed service-based alternative approach (for comparison)
 :::
 
 ---
 
-## Part 1: 왜 EKS 기반 오픈 아키텍처인가?
+## Part 1: Why EKS-based Open Architecture?
 
-[AWS Native 플랫폼](./aws-native-agentic-platform.md)은 빠르게 시작할 수 있는 강력한 접근입니다. 하지만 다음과 같은 요구사항이 생기면 **EKS 기반 오픈 아키텍처**가 필요합니다:
+[AWS Native Platform](./aws-native-agentic-platform.md) is a powerful approach for quick start. However, when the following requirements arise, **EKS-based open architecture** is needed:
 
-```mermaid
-flowchart TD
-    subgraph AWSNative["AWS Native로 충분한 경우"]
-        N1["Bedrock 지원 모델만 사용"]
-        N2["서버리스 추론"]
-        N3["표준 Agent 패턴"]
-    end
+- **Self-hosted Open Weight Models** (Llama, Qwen, DeepSeek)
+- **Hybrid Architecture** (on-premises GPU + cloud)
+- **Custom Agent Workflows** (LangGraph, MCP/A2A)
+- **Multi-provider Routing** (Bifrost 2-Tier Gateway)
+- **Fine-grained GPU Cost Optimization** (Spot, MIG, Consolidation)
 
-    subgraph EKSNeeded["EKS가 필요한 경우"]
-        E1["Open Weight Model<br/>자체 호스팅<br/>(Llama, Qwen, DeepSeek)"]
-        E2["하이브리드 아키텍처<br/>(온프레미스 GPU + 클라우드)"]
-        E3["커스텀 Agent 워크플로우<br/>(LangGraph, MCP/A2A)"]
-        E4["멀티 프로바이더 라우팅<br/>(Bifrost 2-Tier Gateway)"]
-        E5["세밀한 GPU 비용 최적화<br/>(Spot, MIG, Consolidation)"]
-    end
+:::tip Platform Comparison
+For 5-axis comparison of AWS Native, SageMaker Unified Studio, EKS open architecture, and hybrid, refer to [AI Platform Selection Guide](./ai-platform-decision-framework.md#platform-comparison-matrix).
+:::
 
-    AWSNative -.->|"요구사항 확장"| EKSNeeded
-
-    style AWSNative fill:#e1f5ff
-    style EKSNeeded fill:#fff4e1
-```
-
-**핵심 메시지: AWS Native → EKS는 보완 관계입니다.**
-
-| 기준 | AWS Native | EKS 기반 오픈 아키텍처 |
-|------|-----------|----------------------|
-| 모델 선택 | Bedrock 지원 모델 | 모든 Open Weight 모델 |
-| GPU 관리 | 불필요 (서버리스) | Karpenter 자동 프로비저닝 |
-| 비용 최적화 | 사용량 기반 과금 | Spot, MIG, Consolidation |
-| 운영 부담 | 최소 | 중간 (Auto Mode로 절감) |
-| 하이브리드 | 제한적 | EKS Hybrid Nodes |
-| 커스터마이징 | 제한적 | 완전한 유연성 |
-
-현실적인 접근은 **AWS Native로 시작하고, 필요에 따라 EKS로 확장**하는 것입니다. 두 접근은 동일한 VPC 내에서 공존할 수 있습니다.
+**Key Message: AWS Native → EKS is a complementary relationship.** A realistic approach is to **start with AWS Native and expand to EKS as needed**. Both approaches can coexist within the same VPC.
 
 ---
 
-## Part 2: EKS Auto Mode로 빠르게 시작
+## Part 2: Quick Start with EKS Auto Mode
 
-### EKS 클러스터 구성 옵션: 컨트롤 플레인과 데이터 플레인
+### EKS Cluster Configuration Options: Control Plane and Data Plane
 
-EKS 클러스터 구성은 **두 개의 독립된 레이어**로 나뉩니다.
+EKS cluster configuration is divided into **two independent layers**.
 
 ```mermaid
 flowchart TD
-    subgraph ControlPlane["컨트롤 플레인 (API Server, etcd, Scheduler)"]
-        CP_STD["Standard<br/>동적 오토스케일링<br/>$0.10/hr"]
-        CP_PCP["Provisioned (PCP)<br/>고정 티어 프로비저닝<br/>프리미엄 과금"]
+    subgraph ControlPlane["Control Plane (API Server, etcd, Scheduler)"]
+        CP_STD["Standard<br/>Dynamic Autoscaling<br/>$0.10/hr"]
+        CP_PCP["Provisioned (PCP)<br/>Fixed Tier Provisioning<br/>Premium Billing"]
     end
 
-    subgraph DataPlane["데이터 플레인 (Worker Nodes)"]
-        DP_MNG["Managed<br/>Node Groups<br/>수동 관리"]
-        DP_KARP["Karpenter<br/>자동 프로비저닝<br/>GPU 최적화"]
-        DP_AUTO["Auto Mode<br/>AWS 완전 관리<br/>운영 최소화"]
+    subgraph DataPlane["Data Plane (Worker Nodes)"]
+        DP_MNG["Managed<br/>Node Groups<br/>Manual Management"]
+        DP_KARP["Karpenter<br/>Auto Provisioning<br/>GPU Optimization"]
+        DP_AUTO["Auto Mode<br/>AWS Fully Managed<br/>Minimal Operations"]
     end
 
-    CP_STD -.->|조합 가능| DP_MNG
-    CP_STD -.->|조합 가능| DP_KARP
-    CP_STD -.->|조합 가능| DP_AUTO
-    CP_PCP -.->|조합 가능| DP_KARP
-    CP_PCP -.->|조합 가능| DP_AUTO
+    CP_STD -.->|Can combine| DP_MNG
+    CP_STD -.->|Can combine| DP_KARP
+    CP_STD -.->|Can combine| DP_AUTO
+    CP_PCP -.->|Can combine| DP_KARP
+    CP_PCP -.->|Can combine| DP_AUTO
 
     style CP_STD fill:#232f3e,color:#fff
     style CP_PCP fill:#527fff,color:#fff
@@ -113,113 +91,68 @@ flowchart TD
 
 ### Provisioned Control Plane (PCP)
 
-**PCP**는 컨트롤 플레인 용량을 사전에 고정 티어로 프로비저닝하여, API 서버 성능의 일관성을 보장하는 프리미엄 옵션입니다.
+**PCP** is a premium option that provisions control plane capacity in advance with fixed tiers, ensuring consistent API server performance.
 
-#### PCP 티어 스펙
+#### PCP Tier Specifications
 
-| Tier | API 동시성 (seats) | Pod 스케줄링 | etcd DB | SLA | 비용 |
+| Tier | API Concurrency (seats) | Pod Scheduling | etcd DB | SLA | Cost |
 |------|:-----------------:|:----------:|:------:|:---:|-----:|
-| **Standard** | 동적 (AWS 자동 조정) | 동적 | 8GB | 99.95% | $0.10/hr |
+| **Standard** | Dynamic (AWS auto-adjusted) | Dynamic | 8GB | 99.95% | $0.10/hr |
 | **XL** | 1,700 | 167/sec | 16GB | 99.99% | - |
 | **2XL** | 3,400 | 283/sec | 16GB | 99.99% | - |
 | **4XL** | 6,800 | 400/sec | 16GB | 99.99% | - |
 | **8XL** | 13,600 | 400/sec | 16GB | 99.99% | - |
 
-> 출처: [AWS EKS Provisioned Control Plane 공식 문서](https://docs.aws.amazon.com/eks/latest/userguide/eks-provisioned-control-plane.html) (K8s 1.30+ 기준). PCP 티어별 가격은 AWS 공식 가격 페이지를 참조하세요.
+> Source: [AWS EKS Provisioned Control Plane Official Documentation](https://docs.aws.amazon.com/eks/latest/userguide/eks-provisioned-control-plane.html) (K8s 1.30+ baseline). For PCP tier pricing, refer to AWS official pricing page.
 
-#### 티어 선택 기준: 메트릭 기반 판단
+#### Tier Selection Criteria: Metric-based Judgment
 
-:::warning 워커 노드 수는 PCP 티어 선택 기준이 아닙니다
-PCP 티어는 **Kubernetes 컨트롤 플레인 메트릭**을 기반으로 선택해야 합니다.
+:::warning Worker Node Count Is Not PCP Tier Selection Criterion
+PCP tier should be selected based on **Kubernetes control plane metrics**.
 :::
 
-**핵심 모니터링 메트릭:**
+**Key Monitoring Metrics:**
 
-| 메트릭 | Prometheus 쿼리 | 판단 기준 |
+| Metric | Prometheus Query | Judgment Criterion |
 |--------|----------------|----------|
-| **API Inflight Seats** (가장 중요) | `apiserver_flowcontrol_current_executing_seats_total` | 1,200 seats 지속 초과 → XL 이상 |
-| **Pod Scheduling Rate** | `scheduler_schedule_attempts_SCHEDULED` | 100/sec 이상 → XL, 200/sec 이상 → 2XL |
-| **etcd DB Size** | `apiserver_storage_size_bytes` | 10GB 초과 → XL 이상 필요 |
+| **API Inflight Seats** (Most important) | `apiserver_flowcontrol_current_executing_seats_total` | 1,200 seats Sustained exceeds → XL or higher |
+| **Pod Scheduling Rate** | `scheduler_schedule_attempts_SCHEDULED` | 100/sec or more → XL, 200/sec or more → 2XL |
+| **etcd DB Size** | `apiserver_storage_size_bytes` | 10GB Exceeds → XL or higher needed |
 
-:::info PCP vs Auto Mode — 서로 다른 레이어
-**PCP**는 컨트롤 플레인 용량 옵션이고, **Auto Mode**는 데이터 플레인 관리 옵션입니다. 두 기능은 **조합하여 사용할 수 있습니다**.
+:::info PCP vs Auto Mode — Different Layers
+**PCP** is a control plane capacity option, and **Auto Mode** is a data plane management option. Both features **can be used in combination**.
 :::
 
-### 컨트롤 플레인 × 데이터 플레인 비교 및 조합
+### Control Plane × Data Plane Comparison and Combination
 
 <EksClusterConfiguration />
 
-:::tip AI 플랫폼 규모별 권장 구성
-- **소규모 (PoC/데모)**: Standard + Auto Mode — 최소 운영 부담, 99.95% SLA
-- **중규모 (프로덕션 추론)**: Standard + Karpenter — GPU 비용 최적화, 99.95% SLA
-- **대규모 (엔터프라이즈 AI)**: PCP XL + Auto Mode — API seats ≤ 1,700, 99.99% SLA
-- **초대규모 (학습 클러스터)**: PCP 4XL+ + Karpenter — API seats ≤ 6,800+, GPU 세밀 제어
+:::tip Recommended Configuration by AI Platform Scale
+- **Small-scale (PoC/demo)**: Standard + Auto Mode — Minimal operational burden, 99.95% SLA
+- **Medium-scale (production inference)**: Standard + Karpenter — GPU cost optimization, 99.95% SLA
+- **Large-scale (enterprise AI)**: PCP XL + Auto Mode — API seats ≤ 1,700, 99.99% SLA
+- **Extra-large-scale (training cluster)**: PCP 4XL+ + Karpenter — API seats ≤ 6,800+, fine-grained GPU control
 :::
 
 ---
 
-### Amazon EKS와 Karpenter: Kubernetes의 장점 극대화
+### Amazon EKS and Karpenter: Maximizing Kubernetes Advantages
 
-**Amazon EKS와 Karpenter의 조합**은 Kubernetes의 장점을 극대화하여 완전 자동화된 최적의 인프라를 구현합니다.
+**The combination of Amazon EKS and Karpenter** maximizes Kubernetes advantages to implement fully automated optimal infrastructure. Karpenter provides node provisioning optimized for AI workloads, enabling faster scaling and finer-grained instance selection compared to existing Cluster Autoscaler.
 
-```mermaid
-flowchart TD
-    subgraph AWS["AWS 관리형 서비스"]
-        EKS["Amazon EKS<br/>관리형 K8s"]
-        EC2["Amazon EC2<br/>GPU 인스턴스"]
-        S3["Amazon S3<br/>모델 스토리지"]
-        CW["CloudWatch<br/>모니터링"]
-    end
-
-    subgraph KarpenterLayer["Karpenter 자동화 계층"]
-        KARP["Karpenter<br/>Controller"]
-        NP1["GPU Inference<br/>NodePool"]
-        NP2["GPU Training<br/>NodePool"]
-        NP3["Spot<br/>NodePool"]
-    end
-
-    subgraph Workload["AI 워크로드"]
-        INF["추론<br/>서비스"]
-        TRAIN["학습<br/>작업"]
-        BATCH["배치<br/>처리"]
-    end
-
-    EKS --> KARP
-    KARP --> NP1 & NP2 & NP3
-    NP1 & NP2 & NP3 --> EC2
-    NP1 --> INF
-    NP2 --> TRAIN
-    NP3 --> BATCH
-    INF & TRAIN --> S3 & CW
-
-    style EKS fill:#ff9900,color:#fff
-    style KARP fill:#ffd93d
-    style EC2 fill:#ff9900,color:#fff
-```
-
-#### 왜 EKS + Karpenter인가?
+:::info Karpenter Detailed Guide
+For Karpenter v1.0+ GA features, NodePool configuration, GPU instance comparison, and cost optimization strategies, refer to [GPU Resource Management](../model-serving/gpu-infrastructure/gpu-resource-management.md).
+:::
 
 <EksKarpenterLayers />
 
-#### Karpenter: AI 인프라 자동화의 핵심
+### EKS Auto Mode: Complete Automation
 
-Karpenter는 기존 Cluster Autoscaler의 한계를 극복하고, **AI 워크로드에 최적화된 노드 프로비저닝**을 제공합니다.
-
-:::info Karpenter v1.0+ GA
-Karpenter는 **v1.0 이상에서 GA 상태**입니다. v1 API (`karpenter.sh/v1`)를 사용하세요.
-:::
-
-<ClusterAutoscalerVsKarpenter />
-
-<KarpenterKeyFeatures />
-
-### EKS Auto Mode: 완전 자동화의 완성
-
-**EKS Auto Mode**는 Karpenter를 포함한 핵심 컴포넌트들을 자동으로 구성하고 관리합니다.
+**EKS Auto Mode** automatically configures and manages core components including Karpenter.
 
 ```mermaid
 flowchart TD
-    subgraph AutoManaged["EKS Auto Mode 자동 관리"]
+    subgraph AutoManaged["EKS Auto Mode Auto-managed"]
         AUTO["EKS<br/>Auto Mode"]
         KARP["Karpenter"]
         VPC_CNI["VPC CNI"]
@@ -228,10 +161,10 @@ flowchart TD
         POD_ID["Pod Identity<br/>Agent"]
     end
 
-    subgraph UserDefined["사용자 정의 영역"]
+    subgraph UserDefined["User-defined Area"]
         NP["Custom<br/>NodePool"]
         NC["Custom<br/>NodeClass"]
-        WL["AI<br/>워크로드"]
+        WL["AI<br/>Workload"]
     end
 
     AUTO --> KARP & VPC_CNI & CSI & COREDNS & POD_ID
@@ -241,110 +174,70 @@ flowchart TD
     style KARP fill:#ffd93d
 ```
 
-#### EKS Auto Mode vs 수동 구성 비교
+#### EKS Auto Mode vs Manual Configuration Comparison
 
 <EksAutoModeVsStandard />
 
-#### GPU 워크로드를 위한 EKS Auto Mode 설정
+#### for GPU Workloads EKS Auto Mode Configuration
 
-```yaml
-# EKS Auto Mode에서 GPU NodePool 추가
-apiVersion: karpenter.sh/v1
-kind: NodePool
-metadata:
-  name: gpu-inference-pool
-spec:
-  template:
-    metadata:
-      labels:
-        node-type: gpu-inference
-        eks-auto-mode: "true"
-    spec:
-      requirements:
-        - key: karpenter.sh/capacity-type
-          operator: In
-          values: ["spot", "on-demand"]
-        - key: node.kubernetes.io/instance-type
-          operator: In
-          values:
-            - g5.xlarge
-            - g5.2xlarge
-            - g5.4xlarge
-            - g5.12xlarge
-            - p4d.24xlarge
-        - key: karpenter.k8s.aws/instance-gpu-count
-          operator: Gt
-          values: ["0"]
-      nodeClassRef:
-        group: karpenter.k8s.aws
-        kind: EC2NodeClass
-        name: default  # EKS Auto Mode 기본 NodeClass 활용
-  limits:
-    nvidia.com/gpu: 50
-  disruption:
-    consolidationPolicy: WhenEmptyOrUnderutilized
-    consolidateAfter: 30s
-```
+EKS Auto Mode automatically configures and manages Karpenter. GPU NodePool addition enables immediate AI workload deployment.
 
-:::tip EKS Auto Mode 권장 사항
-EKS Auto Mode는 **새로운 AI 플랫폼 구축 시 권장되는 옵션**입니다.
-- Karpenter 설치 및 구성 자동화로 **초기 구축 시간 80% 단축**
-- 핵심 컴포넌트 자동 업그레이드로 **운영 부담 대폭 감소**
-- GPU NodePool만 커스텀 정의하면 **즉시 AI 워크로드 배포 가능**
+:::tip NodePool Configuration Details
+For detailed configuration including GPU NodePool composition, Spot/On-Demand strategy, Consolidation policy, refer to [GPU Resource Management](../model-serving/gpu-infrastructure/gpu-resource-management.md#karpenter-nodepool-configuration).
 :::
 
-:::info EKS Auto Mode와 GPU 지원
-EKS Auto Mode는 NVIDIA GPU를 포함한 가속 컴퓨팅 인스턴스를 완벽히 지원합니다.
+:::info EKS Auto Mode and GPU Support
+EKS Auto Mode fully supports accelerated computing instances including NVIDIA GPU.
 
-**re:Invent 2024/2025 신규 기능:**
-- **EKS Hybrid Nodes (GA)**: 온프레미스 GPU 인프라를 EKS 클러스터에 통합
-- **Enhanced Pod Identity v2**: 크로스 계정 IAM 역할 지원
-- **Native Inferentia/Trainium Support**: Neuron SDK 자동 구성
-- **Provisioned Control Plane**: 대규모 AI 학습 워크로드를 위한 사전 프로비저닝
+**re:Invent 2024/2025 New Features:**
+- **EKS Hybrid Nodes (GA)**: Integrate on-premises GPU infrastructure into EKS cluster
+- **Enhanced Pod Identity v2**: Cross-account IAM role support
+- **Native Inferentia/Trainium Support**: Automatic Neuron SDK configuration
+- **Provisioned Control Plane**: Pre-provisioning for large-scale AI training workloads
 :::
 
 ---
 
-### Auto Mode에서 배포 가능한 Agentic AI 컴포넌트
+### Agentic AI Components Deployable on Auto Mode
 
-EKS Auto Mode 위에서 Agentic AI 플랫폼의 모든 핵심 컴포넌트를 배포할 수 있습니다.
+All core components of Agentic AI platform can be deployed on EKS Auto Mode.
 
-#### 추론: vLLM + llm-d
+#### Inference: vLLM + llm-d
 
-**vLLM**은 LLM 추론 전용 엔진이며, **llm-d**는 KV Cache 상태를 고려한 지능형 라우팅을 제공합니다.
+**vLLM** is an LLM inference-dedicated engine, and **llm-d** provides intelligent routing considering KV Cache state.
 
-:::info 모델 서빙 스택 구성
-- **vLLM**: LLM 추론 전용 (GPT, Claude, Llama 등) — PagedAttention 기반 KV Cache 최적화
-- **Triton Inference Server**: 비-LLM 추론 담당 (임베딩, 리랭킹, Whisper STT)
-- **llm-d**: KV Cache-aware 라우팅으로 Prefix cache 히트율 극대화
+:::info Model Serving Stack Configuration
+- **vLLM**: LLM inference-dedicated (GPT, Claude, Llama, etc.) — PagedAttention-based KV Cache optimization
+- **Triton Inference Server**: Handles non-LLM inference (embedding, reranking, Whisper STT)
+- **llm-d**: Maximize prefix cache hit rate with KV Cache-aware routing
 
-상세 설정은 [vLLM 모델 서빙](../model-serving/inference-frameworks/vllm-model-serving.md) 및 [llm-d 분산 추론](../model-serving/inference-frameworks/llm-d-eks-automode.md)을 참조하세요.
+For detailed configuration, refer to [vLLM Model Serving](../model-serving/inference-frameworks/vllm-model-serving.md) and [llm-d Distributed Inference](../model-serving/inference-frameworks/llm-d-eks-automode.md).
 :::
 
-#### 게이트웨이: kgateway + Bifrost (2-Tier Gateway)
+#### Gateway: kgateway + Bifrost (2-Tier Gateway)
 
-2-Tier Gateway 아키텍처로 트래픽 관리와 모델 라우팅을 분리합니다:
-- **Tier 1 (kgateway)**: Gateway API 기반 인증, Rate Limiting, 트래픽 관리
-- **Tier 2 (Bifrost)**: 모델 추상화, Fallback, 비용 추적, Cascade Routing
+Separate traffic management and model routing with 2-Tier Gateway architecture:
+- **Tier 1 (kgateway)**: Gateway API-based authentication, rate limiting, traffic management
+- **Tier 2 (Bifrost)**: Model abstraction, fallback, cost tracking, cascade routing
 
-> 상세 아키텍처는 [Inference Gateway 라우팅](./inference-gateway-routing.md)을 참조하세요.
+> For detailed architecture, refer to [Inference Gateway Routing](../reference-architecture/inference-gateway-routing.md).
 
 #### Agent: LangGraph + NeMo Guardrails + MCP/A2A
 
-EKS에서 Agent 워크플로우는 다음으로 구성됩니다:
+Agent workflows on EKS consist of:
 
 ```mermaid
 flowchart LR
     subgraph "Agent Ready Apps"
-        SALES["영업 Agent"]
-        LEGAL["법무 Agent"]
-        BILLING["빌링 Agent"]
+        SALES["Sales Agent"]
+        LEGAL["Legal Agent"]
+        BILLING["Billing Agent"]
         AICC["AICC Agent"]
     end
 
     subgraph "EKS Agent Platform"
-        MCP["MCP Server<br/>(Tool 연결)"]
-        A2A["A2A Gateway<br/>(Agent 간 통신)"]
+        MCP["MCP Server<br/>(Tool Connection)"]
+        A2A["A2A Gateway<br/>(Inter-Agent Communication)"]
         LG["LangGraph<br/>(Workflow)"]
         GUARD["NeMo Guardrails<br/>(Safety)"]
         REDIS["Redis<br/>(State Store)"]
@@ -357,60 +250,60 @@ flowchart LR
     LG <--> A2A
 ```
 
-- **LangGraph**: 멀티스텝 Agent 워크플로우 정의, 조건부 분기, 병렬 실행
-- **NeMo Guardrails**: 프롬프트 인젝션 방어, PII 유출 방지, 출력 검증
-- **MCP**: Agent Ready 앱이 표준화된 방식으로 Tool 제공
-- **A2A**: Agent 간 안전하고 효율적인 통신
-- **Redis (ElastiCache)**: LangGraph checkpointer로 상태 관리
+- **LangGraph**: Multi-step agent workflow definition, conditional branching, parallel execution
+- **NeMo Guardrails**: Prompt injection defense, PII leak prevention, output validation — Tool comparison and implementation details in [AI Gateway Guardrails](../operations-mlops/ai-gateway-guardrails.md)
+- **MCP**: Agent Ready apps provide tools in standardized way
+- **A2A**: Safe and efficient communication between agents
+- **Redis (ElastiCache)**: State management with LangGraph checkpointer
 
-Agent Pod는 KEDA를 통해 Redis 큐 길이 기반으로 자동 스케일링됩니다.
+Agent pods autoscale based on Redis queue length via KEDA.
 
-> 상세 내용은 [Kagent Agent 관리](../operations-mlops/kagent-kubernetes-agents.md) 및 [AWS Native 플랫폼 — AgentCore & MCP](./aws-native-agentic-platform.md#mcp-프로토콜과-eks-통합)를 참조하세요.
+> Details in [Kagent Agent Management](../operations-mlops/kagent-kubernetes-agents.md) and [AWS Native Platform — AgentCore & MCP](./aws-native-agentic-platform.md#mcp-protocol-and-eks-integration). For Guardrails technology stack (Input/Output Guard, Tool Allow-list, kgateway/Bifrost integration), refer to [AI Gateway Guardrails](../operations-mlops/ai-gateway-guardrails.md).
 
-#### RAG + 옵저버빌리티
+#### RAG + Observability
 
-- **Milvus**: 벡터 DB — RAG 시스템 핵심 ([상세](../operations-mlops/milvus-vector-database.md))
-- **Langfuse**: 프로덕션 LLM 트레이싱, 토큰 비용 추적 (Self-hosted, MIT 라이선스)
-- **Prometheus + Grafana**: 인프라 메트릭 모니터링
+- **Milvus**: Vector DB — Core of RAG system ([Details](../operations-mlops/milvus-vector-database.md))
+- **Langfuse**: Production LLM tracing, token cost tracking ([Architecture](../operations-mlops/agent-monitoring.md), [Deployment Guide](../reference-architecture/monitoring-observability-setup.md))
+- **Prometheus + Grafana**: Infrastructure metrics monitoring
 
 ---
 
-### EKS 기반 간편 배포
+### EKS-based Easy Deployment
 
 <DeploymentTimeComparison />
 
-#### 솔루션별 EKS 배포 방법
+#### EKS Deployment Methods by Solution
 
 <EksIntegrationBenefits />
 
-#### 간편 배포 예시
+#### Easy Deployment Example
 
-배포 가이드는 [Reference Architecture](../reference-architecture/) 참조하세요.
+For deployment guide, refer to [Reference Architecture](../reference-architecture/).
 
-:::info GPU 비용 최적화 상세
-Spot 인스턴스 활용, Consolidation, 시간대별 스케줄 기반 비용 관리 등 GPU 비용 최적화 전략은 [GPU 리소스 관리](../model-serving/gpu-infrastructure/gpu-resource-management.md) 문서를 참조하세요.
+:::info GPU Cost optimization Details
+For GPU cost optimization strategies including Spot instance usage, Consolidation, and schedule-based cost management, refer to [GPU Resource Management](../model-serving/gpu-infrastructure/gpu-resource-management.md) document.
 :::
 
-:::info GPU 보안 및 트러블슈팅
-GPU Pod 보안 정책, Network Policy, IAM, MIG 격리 및 GPU 트러블슈팅 가이드는 [EKS GPU 노드 전략](../model-serving/gpu-infrastructure/eks-gpu-node-strategy.md) 문서를 참조하세요.
+:::info GPU Security and Troubleshooting
+GPU Pod security policies, Network Policy, IAM, MIG isolation, and GPU troubleshooting guide, refer to [EKS GPU Node Strategy](../model-serving/gpu-infrastructure/eks-gpu-node-strategy.md) document.
 :::
 
 ---
 
-## Part 3: EKS Capability로 인프라 운영 부담 최소화
+## Part 3: Minimize Infrastructure Operational Burden with EKS Capability
 
-### EKS Capability란?
+### What is EKS Capability?
 
-**EKS Capability**는 Amazon EKS에서 특정 워크로드를 효과적으로 운영하기 위해 **검증된 오픈소스 도구와 AWS 서비스를 통합하여 제공하는 플랫폼 수준의 기능**입니다.
+**EKS Capability** are platform-level capabilities that integrate proven open-source tools and AWS services
 
 ```mermaid
 graph TB
-    subgraph "EKS Capability 계층 구조"
-        EKS["Amazon EKS<br/>관리형 Kubernetes"]
+    subgraph "EKS Capability Layer Structure"
+        EKS["Amazon EKS<br/>Managed Kubernetes"]
 
         subgraph "Platform Capabilities"
-            AUTO["EKS Auto Mode<br/>인프라 자동화"]
-            ADDON["EKS Add-ons<br/>핵심 컴포넌트"]
+            AUTO["EKS Auto Mode<br/>Infrastructure Automation"]
+            ADDON["EKS Add-ons<br/>Core Components"]
         end
 
         subgraph "Workload Capabilities"
@@ -419,10 +312,10 @@ graph TB
             APP["App Capability<br/>ALB, Service Mesh"]
         end
 
-        subgraph "Integration Capabilities (EKS 공식 지원)"
-            ACK_C["ACK<br/>AWS 리소스 통합"]
-            KRO_C["KRO<br/>리소스 오케스트레이션"]
-            ARGOCD_C["Argo CD<br/>GitOps 배포"]
+        subgraph "Integration Capabilities (EKS Official Support)"
+            ACK_C["ACK<br/>AWS Resource Integration"]
+            KRO_C["KRO<br/>Resource Orchestration"]
+            ARGOCD_C["Argo CD<br/>GitOps Deployment"]
         end
     end
 
@@ -437,21 +330,21 @@ graph TB
     style ARGOCD_C fill:#e85a25
 ```
 
-### Agentic AI를 위한 핵심 EKS Capability
+### Core EKS Capabilities for Agentic AI
 
 <EksCapabilities />
 
-:::warning Argo Workflows는 별도 설치 필요
-**Argo Workflows**는 EKS Capability로 공식 지원되지 않으므로 **직접 설치가 필요**합니다.
+:::warning Argo Workflows Requires Separate Installation
+**Argo Workflows** is not officially supported as EKS Capability, so **direct installation is required**.
 
-배포 가이드는 [Argo Workflows 공식 문서](https://argoproj.github.io/argo-workflows/installation/)를 참조하세요.
+For deployment guide, refer to [Argo Workflows Official Documentation](https://argoproj.github.io/argo-workflows/installation/).
 :::
 
 ---
 
 ### ACK (AWS Controllers for Kubernetes)
 
-**ACK**는 Kubernetes Custom Resource를 통해 AWS 서비스를 직접 프로비저닝하고 관리합니다. **EKS Add-on으로 간편하게 설치**할 수 있습니다.
+**ACK** directly provisions and manages AWS services through Kubernetes Custom Resources. It can be **easily installed as EKS Add-on**.
 
 ```mermaid
 graph LR
@@ -474,11 +367,11 @@ graph LR
     style CR fill:#326ce5
 ```
 
-**AI 플랫폼에서 ACK 활용 사례:**
+**ACK Usage Examples in AI Platform:**
 
 <AckControllers />
 
-**ACK를 이용한 S3 버킷 생성 예시:**
+**S3 Bucket Creation Example with ACK:**
 
 ```yaml
 apiVersion: s3.services.k8s.aws/v1alpha1
@@ -501,7 +394,7 @@ spec:
 
 ### KRO (Kubernetes Resource Orchestrator)
 
-**KRO**는 여러 Kubernetes 리소스와 AWS 리소스를 **하나의 추상화된 단위로 조합**하여 복잡한 인프라를 단순하게 배포합니다.
+**KRO** **combines multiple Kubernetes resources and AWS resources into one abstracted unit** to deploy complex infrastructure simply.
 
 ```mermaid
 graph TB
@@ -509,13 +402,13 @@ graph TB
         RG["ResourceGroup<br/>ai-inference-stack"]
     end
 
-    subgraph "자동 생성되는 리소스"
-        S3B["S3 Bucket<br/>(모델 저장소)"]
-        RDS["RDS Instance<br/>(메타데이터)"]
-        SEC["Secret<br/>(자격증명)"]
+    subgraph "Auto-generated Resources"
+        S3B["S3 Bucket<br/>(Model Repository)"]
+        RDS["RDS Instance<br/>(Metadata)"]
+        SEC["Secret<br/>(Credentials)"]
         DEP["Deployment<br/>(vLLM)"]
-        SVC["Service<br/>(추론 엔드포인트)"]
-        HPA["HPA<br/>(오토스케일링)"]
+        SVC["Service<br/>(Inference Endpoint)"]
+        HPA["HPA<br/>(Autoscaling)"]
     end
 
     RG --> S3B & RDS & SEC & DEP & SVC & HPA
@@ -525,10 +418,10 @@ graph TB
     style RDS fill:#ff9900
 ```
 
-**KRO로 AI 추론 스택을 단일 리소스로 배포:**
+**Deploy AI Inference Stack as Single Resource with KRO:**
 
 ```yaml
-# 단일 리소스로 전체 스택 배포
+# Deploy entire stack as single resource
 apiVersion: v1alpha1
 kind: AIInferenceStack
 metadata:
@@ -541,26 +434,26 @@ spec:
   maxReplicas: 20
 ```
 
-### Argo 기반 ML 파이프라인 자동화
+### Argo-based ML Pipeline Automation
 
-**Argo Workflows**와 **Argo CD**를 결합하면 AI 모델의 학습, 평가, 배포까지 **전체 MLOps 파이프라인을 GitOps 방식으로 자동화**할 수 있습니다.
+Combining **Argo Workflows** and **Argo CD** enables **full MLOps pipeline automation in GitOps style** from AI model training, evaluation, to deployment.
 
 ```mermaid
 graph LR
     subgraph "GitOps Pipeline"
-        GIT["Git Repository<br/>(모델 코드 + 설정)"]
-        ARGOCD["Argo CD<br/>(배포 자동화)"]
+        GIT["Git Repository<br/>(Model Code + Config)"]
+        ARGOCD["Argo CD<br/>(Deployment Automation)"]
     end
 
     subgraph "ML Pipeline (Argo Workflows)"
-        PREP["데이터 전처리"]
-        TRAIN["모델 학습<br/>(GPU NodePool)"]
-        EVAL["모델 평가<br/>(RAGAS)"]
-        REG["모델 등록<br/>(S3/MLflow)"]
+        PREP["Data Preprocessing"]
+        TRAIN["Model Training<br/>(GPU NodePool)"]
+        EVAL["Model Evaluation<br/>(RAGAS)"]
+        REG["Model Registration<br/>(S3/MLflow)"]
     end
 
     subgraph "Serving"
-        CANARY["Canary 배포"]
+        CANARY["Canary Deployment"]
         PROD["Production<br/>vLLM Serving"]
     end
 
@@ -572,28 +465,28 @@ graph LR
     style TRAIN fill:#76b900
 ```
 
-### ACK + KRO + ArgoCD 통합 아키텍처
+### ACK + KRO + ArgoCD Integration Architecture
 
 ```mermaid
 graph TB
-    subgraph "개발자 경험"
-        DEV["개발자"]
-        GIT["Git Push<br/>(모델 코드 + 설정)"]
+    subgraph "Developer Experience"
+        DEV["Developer"]
+        GIT["Git Push<br/>(Model Code + Config)"]
     end
 
     subgraph "GitOps Layer"
-        ARGOCD["Argo CD<br/>배포 자동화"]
-        ARGOWF["Argo Workflows<br/>ML 파이프라인"]
+        ARGOCD["Argo CD<br/>Deployment Automation"]
+        ARGOWF["Argo Workflows<br/>ML Pipeline"]
     end
 
     subgraph "Infrastructure Abstraction"
-        KRO["KRO<br/>리소스 조합"]
-        ACK["ACK Controllers<br/>AWS 리소스 관리"]
+        KRO["KRO<br/>Resource Composition"]
+        ACK["ACK Controllers<br/>AWS Resource Management"]
     end
 
     subgraph "EKS Platform"
-        KARP["Karpenter<br/>GPU 노드 프로비저닝"]
-        VLLM["vLLM<br/>모델 서빙"]
+        KARP["Karpenter<br/>GPU Node Provisioning"]
+        VLLM["vLLM<br/>Model Serving"]
     end
 
     subgraph "AWS Services"
@@ -618,29 +511,29 @@ graph TB
 
 <AutomationComponents />
 
-:::info 완전 자동화의 이점 — 인프라 운영을 EKS에 위임하고 Agent 개발에 집중
-- **개발자**: Git push만으로 모델 배포
-- **플랫폼 팀**: 인프라 관리 부담 최소화
-- **비용 최적화**: 필요한 리소스만 동적 프로비저닝
-- **일관성**: 모든 환경에서 동일한 배포 방식
+:::info Benefits of Complete Automation — Delegate Infrastructure Operations to EKS and Focus on Agent Development
+- **Developer**: Git pushdeploys models with just Git push
+- **Platform Team**: Minimize infrastructure management burden
+- **Cost Optimization**: Dynamic provisioning of only necessary resources
+- **Consistency**: Same deployment method across all environments
 :::
 
 ---
 
-## Part 4: 결론 + 다음 단계
+## Part 4: Conclusion + Next Steps
 
-### 점진적 여정: AWS Native → Auto Mode → EKS Capability
+### Progressive Journey: AWS Native → Auto Mode → EKS Capability
 
 ```mermaid
 graph LR
     START["AWS Native<br/>(Bedrock + AgentCore)"]
-    AUTO["EKS Auto Mode<br/>(빠른 시작)"]
-    CAP["EKS Capability<br/>(운영 자동화)"]
-    SCALE["규모 확장<br/>(GPU 최적화)"]
+    AUTO["EKS Auto Mode<br/>(Quick Start)"]
+    CAP["EKS Capability<br/>(Operations Automation)"]
+    SCALE["Scale Expansion<br/>(GPU optimization)"]
 
-    START -->|"Open Weight 모델<br/>하이브리드 필요"| AUTO
-    AUTO -->|"인프라 자동화<br/>GitOps 도입"| CAP
-    CAP -->|"대규모 GPU<br/>세밀한 비용 제어"| SCALE
+    START -->|"Open Weight Model<br/>Hybrid Needed"| AUTO
+    AUTO -->|"Infrastructure Automation<br/>GitOps Adoption"| CAP
+    CAP -->|"Large-scale GPU<br/>Fine-grained Cost Control"| SCALE
 
     style START fill:#e1f5ff
     style AUTO fill:#ff9900,color:#fff
@@ -648,31 +541,31 @@ graph LR
     style SCALE fill:#76b900,color:#fff
 ```
 
-### EKS Auto Mode: 권장 시작점
+### EKS Auto Mode: Recommended Starting Point
 
 <EksAutoModeBenefits />
 
-### 도전과제별 해결 방안 요약
+### Solution Summary by Challenge
 
 <ChallengeSolutionsSummary />
 
-### EKS Auto Mode GPU 제약사항과 하이브리드 전략
+### EKS Auto Mode GPU Limitations and Hybrid Strategy
 
-EKS Auto Mode는 일반 워크로드와 기본 GPU 추론에 최적이지만, GPU 고급 기능에는 제약이 있습니다.
+EKS Auto Mode is optimal for general workloads and basic GPU inference, but has limitations for advanced GPU features.
 
-| 워크로드 유형 | Auto Mode 적합성 | 이유 |
+| Workload Type | Auto Mode Suitability | Reason |
 |---|---|---|
-| API Gateway, Agent Framework | 적합 | Non-GPU, 자동 스케일링 충분 |
-| Observability Stack | 적합 | Non-GPU, 관리 부담 최소화 |
-| 기본 GPU 추론 (전체 GPU) | 적합 | AWS 관리 GPU 스택으로 충분 |
-| MIG 파티셔닝 필요 | **부적합** | NodeClass read-only로 MIG 분할 불가 (GPU Operator 자체는 설치 가능) |
-| Run:ai GPU 스케줄링 | **가능** | GPU Operator 설치 후 Device Plugin 레이블 비활성화 |
+| API Gateway, Agent Framework | Suitable | Non-GPU, automatic scaling sufficient |
+| Observability Stack | Suitable | Non-GPU, minimize management burden |
+| Basic GPU inference (full GPU) | Suitable | AWS-managed GPU stack sufficient |
+| MIG partitioning needed | **Unsuitable** | Cannot partition MIG with read-only NodeClass (GPU Operator itself can be installed) |
+| Run:ai GPU Scheduling | **Possible** | Disable Device Plugin label after GPU Operator installation |
 
-**권장 하이브리드 구성**: Auto Mode(일반 워크로드) + Karpenter(GPU 고급 기능)를 하나의 클러스터에서 운영합니다. 상세 구성은 [EKS GPU 노드 전략](../model-serving/gpu-infrastructure/eks-gpu-node-strategy.md)을 참조하세요.
+**Recommended hybrid configuration**: Operate Auto Mode (general workloads) + Karpenter (advanced GPU features) in a single cluster. For detailed configuration, refer to [EKS GPU Node Strategy](../model-serving/gpu-infrastructure/eks-gpu-node-strategy.md).
 
-### Gateway API 제약 및 우회
+### Gateway API Limitations and Workarounds
 
-EKS Auto Mode의 빌트인 로드밸런서는 Kubernetes Gateway API를 직접 지원하지 않습니다. kgateway를 사용하려면 별도의 Service (type: LoadBalancer)로 NLB를 프로비저닝합니다.
+EKS Auto Mode's built-in load balancer does not directly support Kubernetes Gateway API. To use kgateway, provision NLB with separate Service (type: LoadBalancer).
 
 ```yaml
 apiVersion: v1
@@ -694,93 +587,93 @@ spec:
       targetPort: 8443
 ```
 
-> 2-Tier Gateway 아키텍처의 전체 설계는 [LLM Gateway 2-Tier 아키텍처](./inference-gateway-routing.md)를 참조하세요.
+> For complete 2-Tier Gateway Architecture design, refer to [LLM Gateway 2-Tier Architecture](../reference-architecture/inference-gateway-routing.md).
 
-### 핵심 권장사항
+### Key Recommendations
 
-1. **EKS Auto Mode로 시작**: 새 클러스터는 Auto Mode로 생성하여 Karpenter 자동 구성 활용
-2. **GPU 고급 기능은 Karpenter 노드**: MIG, Run:ai 등 GPU Operator 필요 시 Karpenter NodePool 추가
-3. **GPU NodePool 커스텀 정의**: 워크로드 특성에 맞는 GPU NodePool 추가 (추론/학습/실험 분리)
-4. **Spot 인스턴스 적극 활용**: 추론 워크로드의 70% 이상을 Spot으로 운영
-5. **Consolidation 기본 활성화**: EKS Auto Mode에서 자동 활성화된 Consolidation 활용
-6. **KEDA 연동**: 메트릭 기반 Pod 스케일링과 Karpenter 노드 프로비저닝 연계
+1. **Start with EKS Auto Mode**: Create new clusters with Auto Mode to leverage automatic Karpenter configuration
+2. **Advanced GPU features on Karpenter nodes**: Add Karpenter NodePool when GPU Operator needed for MIG, Run:ai, etc.
+3. **GPU NodePool Custom Definition**: Add GPU NodePool suited to workload characteristics (separate inference/training/experimentation)
+4. **Aggressive Spot Instance Use**: Operate 70%+ of inference workloads with Spot
+5. **Enable Consolidation by default**: Leverage auto-enabled Consolidation in EKS Auto Mode
+6. **KEDA integration**: Link metric-based pod scaling with Karpenter node provisioning
 
-### 배포 경로 선택하기
+### Choose Deployment Path
 
 <Tabs>
-<TabItem value="auto-mode" label="EKS Auto Mode (대부분에게 권장)">
+<TabItem value="auto-mode" label="EKS Auto Mode (Recommended for Most)">
 
-**적합한 경우:**
-- 스타트업 및 소규모 팀
-- Kubernetes 초보 팀
-- 표준 Agentic AI 워크로드
+**When Suitable:**
+- Startups and small teams
+- Kubernetes beginner teams
+- Standard Agentic AI workloads
 
-**시작하기:**
+**Getting Started:**
 
-배포 가이드는 [EKS Auto Mode 공식 문서](https://docs.aws.amazon.com/eks/latest/userguide/automode.html)를 참조하세요.
+For deployment guide, refer to [EKS Auto Mode Official Documentation](https://docs.aws.amazon.com/eks/latest/userguide/automode.html).
 
-**장점:** 인프라 관리 부담 제로, AWS 최적화 기본 설정, 자동 보안 패치
-
-</TabItem>
-<TabItem value="karpenter" label="EKS + Karpenter (최대 제어)">
-
-**적합한 경우:**
-- 대규모 프로덕션 워크로드
-- 복잡한 GPU 요구사항 (혼합 인스턴스 타입)
-- 비용 최적화가 최우선
-
-**시작하기:**
-
-배포 가이드는 [Karpenter 공식 문서](https://karpenter.sh/docs/getting-started/)를 참조하세요.
-
-**장점:** 세밀한 인스턴스 제어, 최대 비용 최적화 (70-80% 절감), 커스텀 AMI
+**Advantages:** Zero infrastructure management burden, AWS-optimized default settings, automatic security patches
 
 </TabItem>
-<TabItem value="hybrid" label="하이브리드 (두 방식의 장점 결합)">
+<TabItem value="karpenter" label="EKS + Karpenter (Maximum Control)">
 
-**적합한 경우:**
-- 성장하는 플랫폼 (단순하게 시작, 복잡하게 확장)
-- 혼합 워크로드 타입 (CPU 에이전트 + GPU LLM)
+**When Suitable:**
+- Large-scale production workloads
+- Complex GPU requirements (mixed instance types)
+- Cost optimization as top priority
 
-**시작하기:**
+**Getting Started:**
 
-배포 가이드는 [Reference Architecture](../reference-architecture/)를 참조하세요.
+For deployment guide, refer to [Karpenter Official Documentation](https://karpenter.sh/docs/getting-started/).
 
-**장점:** 점진적 복잡도 증가, GPU 비용 최적화, AWS 관리형 + 커스텀 조합
+**Advantages:** Fine-grained instance control, maximum cost optimization (70-80% savings), custom AMI
+
+</TabItem>
+<TabItem value="hybrid" label="Hybrid (Combine Advantages of Both)">
+
+**When Suitable:**
+- Growing platform (start simple, expand complex)
+- Mixed workload types (CPU agents + GPU LLM)
+
+**Getting Started:**
+
+For deployment guide, refer to [Reference Architecture](../reference-architecture/).
+
+**Advantages:** Progressive complexity increase, GPU cost optimization, AWS-managed + custom combination
 
 </TabItem>
 </Tabs>
 
-### 규모 확장 시 참고 문서
+### Reference Documents for Scaling
 
-| 영역 | 문서 | 내용 |
+| Area | Document | Content |
 |------|------|------|
-| GPU 노드 전략 | [EKS GPU 노드 전략](../model-serving/gpu-infrastructure/eks-gpu-node-strategy.md) | Auto Mode + Karpenter + Hybrid Node + 보안/트러블슈팅 |
-| GPU 리소스 관리 | [GPU 리소스 관리](../model-serving/gpu-infrastructure/gpu-resource-management.md) | Karpenter 스케일링, KEDA, DRA, 비용 최적화 |
-| NVIDIA GPU 스택 | [NVIDIA GPU 스택](../model-serving/gpu-infrastructure/nvidia-gpu-stack.md) | GPU Operator, DCGM, MIG, Time-Slicing |
-| 모델 서빙 | [vLLM 모델 서빙](../model-serving/inference-frameworks/vllm-model-serving.md) | vLLM 설정, 성능 최적화 |
-| 분산 추론 | [llm-d 분산 추론](../model-serving/inference-frameworks/llm-d-eks-automode.md) | KV Cache-aware 라우팅 |
-| 학습 인프라 | [NeMo 프레임워크](../model-serving/inference-frameworks/nemo-framework.md) | 분산 학습, EFA 네트워크 |
+| GPU Node Strategy | [EKS GPU Node Strategy](../model-serving/gpu-infrastructure/eks-gpu-node-strategy.md) | Auto Mode + Karpenter + Hybrid Node + Security/Troubleshooting |
+| GPU Resource Management | [GPU Resource Management](../model-serving/gpu-infrastructure/gpu-resource-management.md) | Karpenter scaling, KEDA, DRA, cost optimization |
+| NVIDIA GPU Stack | [NVIDIA GPU Stack](../model-serving/gpu-infrastructure/nvidia-gpu-stack.md) | GPU Operator, DCGM, MIG, Time-Slicing |
+| Model Serving | [vLLM Model Serving](../model-serving/inference-frameworks/vllm-model-serving.md) | vLLM configuration, performance optimization |
+| Distributed Inference | [llm-d Distributed Inference](../model-serving/inference-frameworks/llm-d-eks-automode.md) | KV Cache-aware routing |
+| Training Infrastructure | [NeMo Framework](../model-serving/inference-frameworks/nemo-framework.md) | Distributed training, EFA network |
 
 ---
 
-## 참고 자료
+## References
 
-### Kubernetes 및 인프라
+### Kubernetes and Infrastructure
 
 - [Amazon EKS Documentation](https://docs.aws.amazon.com/eks/)
 - [EKS Auto Mode](https://docs.aws.amazon.com/eks/latest/userguide/automode.html)
 - [Karpenter Documentation](https://karpenter.sh/docs/)
 - [KEDA - Kubernetes Event-driven Autoscaling](https://keda.sh/)
 
-### 모델 서빙 및 게이트웨이
+### Model Serving and Gateway
 
 - [vLLM Documentation](https://docs.vllm.ai/)
 - [llm-d Project](https://github.com/llm-d/llm-d)
 - [Kgateway Documentation](https://kgateway.dev/docs/)
 - [Bifrost Documentation](https://www.getmaxim.ai/bifrost)
 
-### LLM Observability 및 Agent
+### LLM Observability and Agent
 
 - [Langfuse Documentation](https://langfuse.com/docs)
 - [LangSmith Documentation](https://docs.smith.langchain.com/)

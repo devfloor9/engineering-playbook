@@ -3,7 +3,7 @@ title: Governance Framework
 sidebar_label: Governance Framework
 description: AIDLC Enterprise Governance — 3-Layer Model, Steering File Automation, Data Sovereignty, AI Act Compliance
 last_update:
-  date: 2026-04-07
+  date: 2026-04-18
   author: devfloor9
 ---
 
@@ -164,10 +164,10 @@ See [Harness](../methodology/harness-engineering.md) for details.
 ```yaml
 # Example: Project-level model routing
 models:
-  code_generation: claude-3-7-sonnet-20260629  # Complex business logic
+  code_generation: Claude Sonnet 4.6  # Complex business logic
   code_review: qwen3-coder-32b-instruct         # On-premises security review
   test_generation: gpt-4o-mini                  # Unit test generation
-  documentation: claude-3-5-haiku-20260320      # Auto API documentation
+  documentation: Claude Haiku 4.5      # Auto API documentation
 ```
 
 **Project-Specific Constraints**
@@ -234,7 +234,7 @@ harness:
       min_approvals: 1
 
 model_routing:
-  code_generation: claude-3-7-sonnet-20260629
+  code_generation: Claude Sonnet 4.6
   code_review: qwen3-coder-32b-instruct  # on-premises
   test_generation: gpt-4o-mini
 
@@ -283,7 +283,7 @@ You are working on an e-commerce order management service.
     {
       "title": "Claude 3.7 Sonnet",
       "provider": "anthropic",
-      "model": "claude-3-7-sonnet-20260629"
+      "model": "Claude Sonnet 4.6"
     }
   ]
 }
@@ -454,7 +454,7 @@ def create_order(order: OrderCreate):
 # .aidlc/audit-log.yaml
 - timestamp: 2026-04-07T10:30:00Z
   action: code_generation
-  model: claude-3-7-sonnet-20260629
+  model: Claude Sonnet 4.6
   prompt: "Implement order creation API endpoint"
   input_files:
     - src/models/order.py
@@ -509,7 +509,7 @@ Log all AI operations for traceability.
   "timestamp": "2026-04-07T10:30:00Z",
   "user": "devfloor9",
   "action": "code_generation",
-  "model": "claude-3-7-sonnet-20260629",
+  "model": "Claude Sonnet 4.6",
   "prompt": "Implement order creation API endpoint",
   "input_files": ["src/models/order.py", "src/schemas/order.py"],
   "output_file": "src/api/orders.py",

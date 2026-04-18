@@ -82,6 +82,6 @@ For EKS Hybrid Nodes combining cloud and on-premises GPU nodes, Cilium serves as
 ## Related Documents
 
 - **[Gateway API Adoption Guide](/docs/eks-best-practices/networking-performance/gateway-api-adoption-guide)**
-- **[llm-d + EKS Deployment Guide](/docs/agentic-ai-platform/model-serving/llm-d-eks-automode)**
+- **[llm-d + EKS Deployment Guide](/docs/agentic-ai-platform/model-serving/inference-frameworks/llm-d-eks-automode)**
 - [Cilium Official Documentation](https://docs.cilium.io/)
 - [Gateway API Inference Extension](https://gateway-api.sigs.k8s.io/geps/gep-3567/)

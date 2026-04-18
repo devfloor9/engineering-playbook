@@ -3,7 +3,7 @@ title: Role Composition
 sidebar_label: Role Composition
 description: Team Structure and Role Changes in the AIDLC Era — Harness Engineer, Ontology Steward, AI Verifier
 last_update:
-  date: 2026-04-07
+  date: 2026-04-18
   author: devfloor9
 ---
 

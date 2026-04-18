@@ -19,7 +19,7 @@ last_update:
 对比 NVIDIA Dynamo 基础 LLM 推理中**聚合式**和**分离式**模式性能的基准测试。通过在 EKS 环境中运行 AIPerf 基准测试工具的 4 种测量模式，量化验证分离式推理的 KV Router + NIXL Transfer 在实际工作负载中带来的性能差异。
 
 :::info 部署指南
-本基准测试的 EKS 部署请参见 [NVIDIA GPU 栈指南](/docs/agentic-ai-platform/model-serving/nvidia-gpu-stack)。
+本基准测试的 EKS 部署请参见 [NVIDIA GPU 栈指南](/docs/agentic-ai-platform/model-serving/gpu-infrastructure/nvidia-gpu-stack)。
 :::
 
 ## 测试环境
@@ -207,7 +207,7 @@ AIPerf 基准测试工具提供 4 种测量模式：
 6. 推理部署：选择聚合式或分离式模式
 7. 基准测试执行：按顺序运行 4 种模式
 
-详细部署指南请参见 [NVIDIA GPU 栈指南](/docs/agentic-ai-platform/model-serving/nvidia-gpu-stack)。
+详细部署指南请参见 [NVIDIA GPU 栈指南](/docs/agentic-ai-platform/model-serving/gpu-infrastructure/nvidia-gpu-stack)。
 
 ---
 
@@ -249,4 +249,4 @@ AIPerf 基准测试工具提供 4 种测量模式：
 - [NVIDIA Dynamo 文档](https://docs.nvidia.com/dynamo/)
 - [vLLM 项目](https://docs.vllm.ai/)
 - [AIPerf 基准测试工具](https://github.com/NVIDIA/dynamo)
-- [NVIDIA GPU 栈指南](/docs/agentic-ai-platform/model-serving/nvidia-gpu-stack)
+- [NVIDIA GPU 栈指南](/docs/agentic-ai-platform/model-serving/gpu-infrastructure/nvidia-gpu-stack)

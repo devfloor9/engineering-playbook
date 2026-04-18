@@ -4,7 +4,7 @@ sidebar_label: Harness Engineering
 description: The second axis of AIDLC reliability — Harness design that architecturally enforces AI execution safety
 keywords: [harness engineering, quality gates, circuit breaker, AI safety, architectural constraints, guardrails]
 last_update:
-  date: 2026-04-07
+  date: 2026-04-18
   author: devfloor9
 ---
 

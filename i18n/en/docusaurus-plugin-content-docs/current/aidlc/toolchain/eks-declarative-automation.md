@@ -3,7 +3,7 @@ title: EKS Declarative Automation
 sidebar_label: EKS Declarative Automation
 description: Declarative automation patterns for implementing AIDLC Construction/Operations with EKS Capabilities
 last_update:
-  date: 2026-04-07
+  date: 2026-04-18
   author: devfloor9
 ---
 

@@ -3,7 +3,7 @@ title: AI Coding Agents
 sidebar_label: AI Coding Agents
 description: AI Coding Agents for AIDLC Construction Phase — Kiro Spec-Driven Development, Q Developer, Agent Comparison
 last_update:
-  date: 2026-04-07
+  date: 2026-04-18
   author: devfloor9
 ---
 

@@ -3,7 +3,7 @@ title: "Predictive Operations"
 sidebar_label: "Predictive Operations"
 description: "ML-based predictive scaling and anomaly detection — Karpenter+AI, CloudWatch Anomaly Detection, AI Right-Sizing"
 last_update:
-  date: 2026-04-07
+  date: 2026-04-18
   author: devfloor9
 ---
 

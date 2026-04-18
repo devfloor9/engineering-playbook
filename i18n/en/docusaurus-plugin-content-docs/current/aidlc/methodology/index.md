@@ -3,7 +3,7 @@ title: "Methodology"
 sidebar_label: "Methodology"
 description: "Core methodology of AIDLC — 10 Principles, Ontology, Harness Engineering, DDD Integration"
 last_update:
-  date: 2026-04-07
+  date: 2026-04-18
   author: devfloor9
 ---
 

@@ -5,7 +5,7 @@ description: "The data foundation of AIDLC Operations — building 3-Pillar obse
 category: "aidlc-operations"
 tags: [observability, adot, prometheus, grafana, cloudwatch, mcp, aidlc]
 last_update:
-  date: 2026-04-07
+  date: 2026-04-18
   author: devfloor9
 ---
 

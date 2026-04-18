@@ -5,7 +5,7 @@ description: "AI-Driven Development Lifecycle — Enterprise adoption guide for 
 sidebar_position: 4
 category: "aidlc"
 last_update:
-  date: 2026-04-07
+  date: 2026-04-18
   author: devfloor9
 ---
 

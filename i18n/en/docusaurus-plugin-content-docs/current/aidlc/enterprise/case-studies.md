@@ -3,7 +3,7 @@ title: "Case Studies"
 sidebar_label: "Case Studies"
 description: "AIDLC Enterprise Adoption Case Studies — Anonymized real-world cases, quantitative before/after metrics, failure patterns and lessons learned"
 last_update:
-  date: 2026-04-07
+  date: 2026-04-18
   author: devfloor9
 ---
 
@@ -355,7 +355,7 @@ Strategy:
 
 2. **On-premises Open-weight Model Operation Difficulty**
    - Problem: vLLM installation, GPU resource management, model version management complexity
-   - Solution: AWS ProServe support, applied [EKS GPU Node Strategy](/docs/agentic-ai-platform/model-serving/eks-gpu-node-strategy)
+   - Solution: AWS ProServe support, applied [EKS GPU Node Strategy](/docs/agentic-ai-platform/model-serving/gpu-infrastructure/eks-gpu-node-strategy)
    - Result: Stabilized by month 3
 
 **🔑 Key Insight:**

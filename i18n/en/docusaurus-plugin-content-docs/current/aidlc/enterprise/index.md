@@ -1,9 +1,10 @@
 ---
-title: "Enterprise Adoption"
-sidebar_label: "Enterprise Adoption"
-description: "AIDLC Enterprise Adoption Strategy — Organizational Transformation, Cost Estimation, Governance, Case Studies"
+title: AIDLC Enterprise Adoption
+sidebar_label: AIDLC Enterprise Adoption
+description: AIDLC Enterprise Adoption — Organizational transformation, cost estimation, governance, and case studies
+tags: [aidlc, enterprise, 'scope:enterprise']
 last_update:
-  date: 2026-04-07
+  date: 2026-04-18
   author: devfloor9
 ---
 
@@ -17,11 +18,11 @@ Adopting AIDLC methodology in real enterprise environments requires more than ju
 
 The most frequently encountered challenges in enterprise AIDLC adoption:
 
-- **Process Transition**: How to transition from waterfall to AIDLC hybrid?
-- **Cost Justification**: How much does AIDLC reduce project costs?
-- **Role Changes**: How do PM, architect, and developer roles evolve?
-- **Quality Governance**: How to manage AI-generated code quality enterprise-wide?
-- **Complexity Management**: Can AIDLC be applied to large-scale MSA projects?
+- **Process Transition**: How to transition from waterfall to AIDLC hybrid? → [Adoption Strategy](./adoption-strategy.md)
+- **Cost Justification**: How much does AIDLC reduce project costs? → [Cost Effectiveness](./cost-estimation.md)
+- **Role Changes**: How do PM, architect, and developer roles evolve? → [Role Redefinition](./role-composition.md)
+- **Quality Governance**: How to manage AI-generated code quality enterprise-wide? → [Governance](./governance-framework.md)
+- **Complexity Management**: Can AIDLC be applied to large-scale MSA projects? → [MSA Complexity](./msa-complexity.md)
 
 ## Structure
 

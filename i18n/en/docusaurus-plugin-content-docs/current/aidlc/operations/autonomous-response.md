@@ -3,7 +3,7 @@ title: "Autonomous Response"
 sidebar_label: "Autonomous Response"
 description: "AI Agent-based autonomous incident response — Strands/Kagent integration, Chaos Engineering + AI, ontology feedback loop"
 last_update:
-  date: 2026-04-07
+  date: 2026-04-18
   author: devfloor9
 ---
 
