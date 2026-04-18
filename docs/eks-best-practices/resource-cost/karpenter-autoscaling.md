@@ -5,7 +5,7 @@ description: "Amazon EKS에서 Karpenter를 활용한 스케일링 전략 종합
 tags: [eks, karpenter, autoscaling, performance, cloudwatch, prometheus, spot-instances]
 category: "performance-networking"
 last_update:
-  date: 2026-02-13
+  date: 2026-04-18
   author: devfloor9
 ---
 
@@ -2524,7 +2524,7 @@ spec:
 
 ### Consolidation 정책: 속도 vs 비용
 
-Karpenter v1.0부터 `consolidationPolicy` 필드가 `disruption` 섹션으로 이동했습니다.
+Karpenter v1.2부터 `consolidationPolicy` 필드가 `disruption` 섹션으로 이동했습니다.
 
 ```yaml
 apiVersion: karpenter.sh/v1

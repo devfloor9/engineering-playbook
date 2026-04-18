@@ -133,7 +133,10 @@ const sidebars = {
             'agentic-ai-platform/design-architecture/agentic-ai-challenges',
             'agentic-ai-platform/design-architecture/ai-platform-decision-framework',
             'agentic-ai-platform/design-architecture/aws-native-agentic-platform',
+            'agentic-ai-platform/design-architecture/agentcore-hybrid-deployment',
             'agentic-ai-platform/design-architecture/agentic-ai-solutions-eks',
+            'agentic-ai-platform/design-architecture/knowledge-feature-store',
+            'agentic-ai-platform/design-architecture/self-improving-agent-loop',
           ],
         },
         {
@@ -156,6 +159,7 @@ const sidebars = {
                 'agentic-ai-platform/model-serving/gpu-infrastructure/gpu-resource-management',
                 'agentic-ai-platform/model-serving/gpu-infrastructure/nvidia-gpu-stack',
                 'agentic-ai-platform/model-serving/gpu-infrastructure/aws-neuron-stack',
+                'agentic-ai-platform/model-serving/gpu-infrastructure/criu-gpu-migration',
               ],
             },
             {
@@ -205,9 +209,23 @@ const sidebars = {
           items: [
             'agentic-ai-platform/reference-architecture/custom-model-deployment',
             'agentic-ai-platform/reference-architecture/inference-gateway-routing',
-            'agentic-ai-platform/reference-architecture/inference-gateway-setup',
+            {
+              type: 'category',
+              label: 'Inference Gateway 배포',
+              link: {
+                type: 'doc',
+                id: 'agentic-ai-platform/reference-architecture/inference-gateway-setup/index',
+              },
+              items: [
+                'agentic-ai-platform/reference-architecture/inference-gateway-setup/basic-deployment',
+                'agentic-ai-platform/reference-architecture/inference-gateway-setup/advanced-features',
+                'agentic-ai-platform/reference-architecture/inference-gateway-setup/troubleshooting-guide',
+              ],
+            },
+            'agentic-ai-platform/reference-architecture/cascade-routing-tuning',
             'agentic-ai-platform/reference-architecture/monitoring-observability-setup',
             'agentic-ai-platform/reference-architecture/custom-model-pipeline',
+            'agentic-ai-platform/reference-architecture/continuous-training-pipeline',
             'agentic-ai-platform/reference-architecture/mlops-pipeline-eks',
             'agentic-ai-platform/reference-architecture/sagemaker-eks-integration',
             'agentic-ai-platform/reference-architecture/coding-tools-cost-analysis',
@@ -254,9 +272,50 @@ const sidebars = {
             'aidlc/enterprise/cost-estimation',
             'aidlc/enterprise/governance-framework',
             'aidlc/enterprise/extension-system',
-            'aidlc/enterprise/agent-versioning',
-            'aidlc/enterprise/regulatory-compliance',
-            'aidlc/enterprise/msa-complexity',
+            {
+              type: 'category',
+              label: 'Agent Versioning',
+              link: {
+                type: 'doc',
+                id: 'aidlc/enterprise/agent-versioning/index',
+              },
+              items: [
+                'aidlc/enterprise/agent-versioning/prompt-model-registry',
+                'aidlc/enterprise/agent-versioning/deployment-strategies',
+                'aidlc/enterprise/agent-versioning/governance-automation',
+              ],
+            },
+            {
+              type: 'category',
+              label: 'Regulatory Compliance',
+              link: {
+                type: 'doc',
+                id: 'aidlc/enterprise/regulatory-compliance/index',
+              },
+              items: [
+                'aidlc/enterprise/regulatory-compliance/frameworks/eu-ai-act',
+                'aidlc/enterprise/regulatory-compliance/frameworks/nist-ai-rmf',
+                'aidlc/enterprise/regulatory-compliance/frameworks/iso-42001',
+                'aidlc/enterprise/regulatory-compliance/frameworks/korea-ai-law',
+                'aidlc/enterprise/regulatory-compliance/implementation-guide',
+              ],
+            },
+            {
+              type: 'category',
+              label: 'MSA 복잡도',
+              link: {
+                type: 'doc',
+                id: 'aidlc/enterprise/msa-complexity/index',
+              },
+              items: [
+                'aidlc/enterprise/msa-complexity/pattern-guides/l1-l2-simple-msa',
+                'aidlc/enterprise/msa-complexity/pattern-guides/l3-l4-async-saga',
+                'aidlc/enterprise/msa-complexity/pattern-guides/l5-event-sourcing',
+                'aidlc/enterprise/msa-complexity/implementation/ontology-guide',
+                'aidlc/enterprise/msa-complexity/implementation/harness-checklist',
+                'aidlc/enterprise/msa-complexity/implementation/verification',
+              ],
+            },
             'aidlc/enterprise/case-studies',
           ],
         },

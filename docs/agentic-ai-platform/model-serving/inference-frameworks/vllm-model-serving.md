@@ -5,7 +5,7 @@ description: "vLLM의 PagedAttention, 병렬화 전략, Multi-LoRA, 하드웨어
 tags: [vllm, paged-attention, tensor-parallel, pipeline-parallel, multi-lora, serving, 'scope:tech']
 sidebar_position: 3
 last_update:
-  date: 2026-04-17
+  date: 2026-04-18
   author: YoungJoon Jeong
 ---
 
@@ -67,7 +67,7 @@ llm = LLM(
 
 ### V1 엔진 아키텍처
 
-vLLM v0.6+ 버전은 V1 엔진을 도입하여 다음 기능을 개선했다:
+vLLM v0.19.x 버전은 V1 엔진을 도입하여 다음 기능을 개선했다:
 - **Chunked Prefill**: 프리필(계산 집약적)과 디코드(메모리 집약적)를 동일 배치에서 혼합 처리
 - **FP8 KV Cache**: KV 캐시 메모리를 2배 절감하여 더 긴 컨텍스트 지원
 - **Improved Prefix Caching**: 공통 프리픽스 재사용으로 400%+ 처리량 향상
@@ -204,7 +204,7 @@ vllm serve model-name --enable-expert-parallel
 
 ## 지원 하드웨어
 
-vLLM v0.6+ 버전은 다양한 하드웨어 가속기를 지원한다:
+vLLM v0.19.x 버전은 다양한 하드웨어 가속기를 지원한다:
 
 <ComparisonTable
   headers={['하드웨어', '지원 수준', '주요 용도', 'AWS 인스턴스 타입']}

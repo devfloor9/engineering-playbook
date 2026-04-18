@@ -109,9 +109,9 @@ graph TB
 - 데이터 분류별 사용 가능 모델 매트릭스
 
 **모델 사용 정책**
-- 코드 생성: GPT-4 Turbo / Claude 3.7 Sonnet / Qwen 3 Coder
+- 코드 생성: GPT-4.1 / Claude 4.6 Sonnet / Qwen 3 Coder
 - 보안 리뷰: 온프레미스 오픈 웨이트 모델
-- 문서 생성: GPT-4o-mini 등 경량 모델
+- 문서 생성: GPT-4.1-mini 등 경량 모델
 
 ### Layer 2: 시스템별 정책 (System Architecture Standards)
 
@@ -237,7 +237,7 @@ harness:
 model_routing:
   code_generation: Claude Sonnet 4.6
   code_review: qwen3-coder-32b-instruct  # on-premises
-  test_generation: gpt-4o-mini
+  test_generation: gpt-4.1-mini
 
 constraints:
   - no_jpa_n_plus_1_query

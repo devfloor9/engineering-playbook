@@ -4,7 +4,7 @@ sidebar_label: "PFR: GPU 추론"
 description: "대형 MoE 모델 배포 과정에서 발견한 EKS Auto Mode 제약 및 개선 요청"
 tags: [pfr, eks, gpu, auto-mode, dynamo]
 last_update:
-  date: 2026-04-03
+  date: 2026-04-18
   author: YoungJoon Jeong
 ---
 
@@ -25,7 +25,7 @@ GLM-5 (744B MoE) 및 Kimi K2.5 (1T MoE) 대형 언어 모델을 EKS Auto Mode에
 ### 배포 환경
 - **인프라**: Amazon EKS Auto Mode (v1.32)
 - **GPU 타겟**: p6-b200.48xlarge (8×B200, 192GB HBM3e), p5.48xlarge (8×H100, 80GB HBM3)
-- **모델 서빙**: vLLM v0.7.x + NVIDIA Dynamo (Disaggregated Serving)
+- **모델 서빙**: vLLM v0.19.x + NVIDIA Dynamo (Disaggregated Serving)
 - **스케줄링**: Karpenter (Auto Mode 내장) + NVIDIA GPU Operator
 
 ---
@@ -617,7 +617,7 @@ vLLM V1 엔진에서 Pipeline Parallelism (PP=2) 멀티노드 배포 시 교착 
          spec:
            containers:
            - name: vllm
-             image: vllm/vllm-openai:v0.7.3
+             image: vllm/vllm-openai:v0.19.2
              command: ["vllm", "serve"]
              args:
                - "THUDM/glm-5-8b"

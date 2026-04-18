@@ -12,7 +12,7 @@ last_update:
 
 > 작성일: 2025-02-05 | 수정일: 2026-04-17 | 읽는 시간: 약 15분
 
-이 문서는 2-Tier 게이트웨이 아키텍처와 라우팅 전략(Cascade / Semantic Router / Hybrid)의 **설계 원칙**을 다룹니다. 실제 Helm 설치, HTTPRoute 매니페스트, OTel 연동 등 **배포 절차**는 [추론 게이트웨이 구성 가이드](./inference-gateway-setup.md)를 참조하세요.
+이 문서는 2-Tier 게이트웨이 아키텍처와 라우팅 전략(Cascade / Semantic Router / Hybrid)의 **설계 원칙**을 다룹니다. 실제 Helm 설치, HTTPRoute 매니페스트, OTel 연동 등 **배포 절차**는 [추론 게이트웨이 배포 가이드](./inference-gateway-setup/)를 참조하세요.
 
 ## 개요
 
@@ -467,7 +467,7 @@ response = router.route(prompt="Explain the architecture...")  # → glm-5-744b
 | **IDE (Claude Code)** | 컨텍스트 인식 | 개발 도구 벤더 |
 | **클라이언트 (SDK)** | 유연성 높음 | 프로토타입 |
 
-**실전 권장**: 자체 호스팅 환경에서는 **kgateway → LLM Classifier → vLLM** 구조로 배포하여 중앙에서 라우팅. 개발자는 단일 엔드포인트(`/v1`)만 사용하고, 플랫폼 팀이 분류 정책을 관리합니다. 상세 배포 가이드는 [게이트웨이 구성 가이드](../reference-architecture/inference-gateway-setup.md#llm-classifier-배포)를 참조하세요.
+**실전 권장**: 자체 호스팅 환경에서는 **kgateway → LLM Classifier → vLLM** 구조로 배포하여 중앙에서 라우팅. 개발자는 단일 엔드포인트(`/v1`)만 사용하고, 플랫폼 팀이 분류 정책을 관리합니다. 상세 배포 가이드는 [추론 게이트웨이 배포: LLM Classifier](./inference-gateway-setup/advanced-features#llm-classifier-배포)를 참조하세요.
 
 ---
 
@@ -501,7 +501,7 @@ graph TD
 RouteLLM은 연구 프로젝트로, K8s 프로덕션 배포는 권장하지 않습니다. 의존성 충돌과 대형 이미지 크기(10GB+)가 문제입니다. MF classifier **개념**은 유용하지만, 실전에서는 **LLM Classifier**(자체 호스팅) 또는 **LiteLLM complexity routing**(외부 프로바이더)을 권장합니다.
 :::
 
-상세 배포 코드는 [게이트웨이 구성 가이드](../reference-architecture/inference-gateway-setup.md#llm-classifier-배포)를 참조하세요.
+상세 배포 코드는 [추론 게이트웨이 배포: LLM Classifier](./inference-gateway-setup/advanced-features#llm-classifier-배포)를 참조하세요.
 
 ---
 
@@ -517,7 +517,7 @@ Kubernetes Gateway API는 **Inference Extension**을 통해 LLM 추론을 쿠버
 | **InferencePool** | 모델 서빙 Pod 그룹 (vLLM replicas) | `replicas: 3` → 3개 vLLM 인스턴스 |
 | **LLMRoute** | 요청을 InferenceModel로 라우팅하는 규칙 | `x-model-id: glm-5` → GLM-5 Pool |
 
-상세 YAML 매니페스트는 [게이트웨이 구성 가이드](../reference-architecture/inference-gateway-setup.md)를 참조하세요.
+상세 YAML 매니페스트는 [추론 게이트웨이 배포 가이드](./inference-gateway-setup/)를 참조하세요.
 
 ### Gateway API Inference Extension 통합
 
@@ -629,7 +629,7 @@ Bifrost/LiteLLM에서 Langfuse로 OTel trace를 전송하여 프롬프트/완료
 
 실제 코드 예시와 YAML 매니페스트는 Reference Architecture 섹션을 참조하세요:
 
-- [게이트웨이 구성 가이드](../reference-architecture/inference-gateway-setup.md) - kgateway, Bifrost, agentgateway 설치 및 YAML 매니페스트
+- [추론 게이트웨이 배포 가이드](./inference-gateway-setup/) - kgateway, Bifrost, agentgateway 설치 및 YAML 매니페스트
 - [OpenClaw AI Gateway 배포](../reference-architecture/openclaw-ai-gateway.mdx) - OpenClaw + Bifrost + Hubble 실전 배포
 - [커스텀 모델 배포](../reference-architecture/custom-model-deployment.md) - vLLM/llm-d 배포 가이드
 

@@ -290,7 +290,7 @@ last_update:
 목표: 데이터 레지던시 준수 + 비용 절감
 전략:
   - 민감 정보 처리 → 온프레미스 GLM-5 (EKS + vLLM)
-  - 일반 업무 → 클라우드 Claude 3.5 Sonnet
+  - 일반 업무 → 클라우드 Claude 4.6 Sonnet
   - LiteLLM Gateway로 라우팅 자동화
 ```
 
@@ -627,7 +627,7 @@ cost_limit:
 **기술 심화:**
 - **[온톨로지 엔지니어링](../methodology/ontology-engineering.md)** — 도메인 지식 형식화
 - **[하네스 엔지니어링](../methodology/harness-engineering.md)** — AI 실행 안전성 보장
-- **[MSA 복잡도 평가](./msa-complexity.md)** — 대규모 프로젝트 적용 가이드
+- **[MSA 복잡도 평가](./msa-complexity/index.md)** — 대규모 프로젝트 적용 가이드
 
 ---
 

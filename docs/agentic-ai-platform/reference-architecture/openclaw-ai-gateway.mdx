@@ -6,7 +6,7 @@ tags: [eks, openclaw, bifrost, langfuse, cilium, hubble, bedrock, graviton, pod-
 category: "genai-aiml"
 sidebar_position: 5
 last_update:
-  date: 2026-04-17
+  date: 2026-04-18
   author: devfloor9
 ---
 
@@ -71,7 +71,7 @@ OpenClaw(TypeScript/Node.js)과 Bifrost(Rust)는 ARM64 완전 호환이며, mult
 |------|------|------|
 | **인스턴스** | Graviton4 **M8g** | GA, x86 대비 20-40% 비용 절감, 에너지 효율 60% 향상 |
 | **향후 전환** | Graviton5 **M9g** | M8g 대비 25% 성능 향상, 2026 GA 예정. GA 후 전환 시 동일 비용에서 추가 성능 확보 |
-| **구매 옵션** | **Spot Instance** 우선 | On-Demand 대비 60-90% 절감. Karpenter 네이티브 중단 대응 + NMA 노드 건강 감시 |
+| **구매 옵션** | **Spot Instance** 우선 | On-Demand 대비 60-90% 절감. Karpenter v1.2+ 네이티브 중단 대응 + NMA 노드 건강 감시 |
 
 #### Spot Instance 안정 운영
 
@@ -79,7 +79,7 @@ OpenClaw 게이트웨이는 상태 비저장(stateless) 워크로드이므로 Sp
 
 | 계층 | 도구 | 역할 |
 |------|------|------|
-| **Spot 중단 대응** | Karpenter v1.0+ | 2분 전 경고 감지 → 대체 노드 프로비저닝 → Pod 재스케줄링 |
+| **Spot 중단 대응** | Karpenter v1.2+ | 2분 전 경고 감지 → 대체 노드 프로비저닝 → Pod 재스케줄링 |
 | **노드 건강 감시** | NMA (EKS Add-on) | 커널/containerd/디스크/네트워크 이상 감지 → Node Condition 업데이트 |
 | **자동 복구** | Node Auto Repair | NMA가 보고한 비정상 노드 자동 교체 |
 

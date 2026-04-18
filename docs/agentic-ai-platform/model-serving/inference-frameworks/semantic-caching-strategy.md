@@ -80,7 +80,7 @@ flowchart LR
 | **주 목적** | TTFT·throughput 개선 | 반복 시스템 프롬프트 비용 절감 | **중복 LLM 호출 자체를 제거** |
 | **비용 영향** | GPU 시간 절감 (자체 호스팅) | 입력 토큰 단가 할인 (관리형) | API 호출 자체를 건너뜀 |
 | **실패 시 영향** | 성능 저하만 | 캐시 미적용 시 일반 단가 | **응답 품질에 직접 영향** (오답 리스크) |
-| **관련 문서** | [vLLM 모델 서빙](../model-serving/inference-frameworks/vllm-model-serving.md) | 프로바이더 공식 문서 | 본 문서 |
+| **관련 문서** | [vLLM 모델 서빙](./vllm-model-serving.md) | 프로바이더 공식 문서 | 본 문서 |
 
 :::tip 세 계층은 독립적으로 조합 가능
 Semantic Cache HIT → 즉시 응답 (LLM 호출 생략). MISS 시 프로바이더 호출 → Prompt Cache가 시스템 프롬프트 입력 비용 절감 → 추론 엔진 내부 KV Cache가 생성 속도 개선. 세 계층은 **서로 직교(orthogonal)** 하므로 동시에 활성화하는 것이 일반적입니다.

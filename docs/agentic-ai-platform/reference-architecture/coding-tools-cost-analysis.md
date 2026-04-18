@@ -301,7 +301,7 @@ LLM Classifier Cascade 도입 시 월 $5,880 절감 (연간 $70,560). LLM Classi
 | 입력 길이 | 500자 미만 | 500자 이상 |
 | 대화 턴 수 | 5턴 이하 | 5턴 초과 |
 
-상세 배포 가이드: [게이트웨이 구성 가이드 - LLM Classifier](./inference-gateway-setup.md#llm-classifier-배포)
+상세 배포 가이드: [추론 게이트웨이 배포: LLM Classifier](./inference-gateway-setup/advanced-features#llm-classifier-배포)
 :::
 
 ### 6.3 Semantic Caching
