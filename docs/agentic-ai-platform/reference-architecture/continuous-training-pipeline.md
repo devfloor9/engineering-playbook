@@ -30,6 +30,10 @@ Continuous Training Pipeline은 프로덕션 추론 트레이스를 자동으로
 이 문서는 [Self-Improving Agent Loop](../design-architecture/self-improving-agent-loop.md)의 5단계 아키텍처를 EKS에서 구현하는 방법을 다룹니다. 설계 배경과 전략적 의사결정은 설계 문서를 참조하세요.
 :::
 
+:::warning 실 운영 전 ADR 합의 필요
+본 파이프라인을 실제 트래픽에 적용하려면 [ADR — Self-Improving Agent Loop 도입 의사결정](../_reference/adr-self-improving-loop.md)에 정의된 스코프·자동화 경계·데이터 게이트·롤백 기준이 조직 차원에서 합의돼야 합니다. Train/Deploy 단계는 수동 승인 경계로 운영하세요.
+:::
+
 ### 5단계 파이프라인 흐름
 
 ```mermaid

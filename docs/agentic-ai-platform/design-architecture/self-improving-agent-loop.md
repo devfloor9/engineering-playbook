@@ -13,6 +13,10 @@ last_update:
 본 루프는 self-hosted 오픈웨이트 모델(Qwen3, Llama 4, GLM-5 등) 전용이다. AgentCore의 Claude/Nova 등 관리형 폐쇄 모델은 자가 학습 불가이므로 스코프에서 제외한다.
 :::
 
+:::info ADR 선행 필요
+실 운영 적용 전에 스코프·자동화 경계·데이터 거버넌스·롤백 기준에 대한 합의가 필요하다. 자세한 합의 대상은 [ADR — Self-Improving Agent Loop 도입 의사결정](../_reference/adr-self-improving-loop.md)을 참조.
+:::
+
 # Self-Improving Agent Loop (Autosearch)
 
 ## Autosearch 담론과 엔터프라이즈 해석
