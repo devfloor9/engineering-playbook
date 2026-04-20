@@ -2,17 +2,26 @@
 title: "vLLM 모델 서빙"
 sidebar_label: "vLLM 모델 서빙"
 description: "vLLM의 PagedAttention, 병렬화 전략, Multi-LoRA, 하드웨어 지원 아키텍처"
-tags: [vllm, paged-attention, tensor-parallel, pipeline-parallel, multi-lora, serving, 'scope:tech']
-sidebar_position: 3
+created: 2026-02-05
 last_update:
-  date: 2026-04-18
-  author: YoungJoon Jeong
+  date: 2026-04-20
+  author: devfloor9
+reading_time: 21
+tags:
+  - vllm
+  - paged-attention
+  - tensor-parallel
+  - pipeline-parallel
+  - multi-lora
+  - serving
+  - inference
+  - gpu
+  - optimization
+  - scope:tech
 ---
 
 import ComparisonTable from '@site/src/components/tables/ComparisonTable';
 import SpecificationTable from '@site/src/components/tables/SpecificationTable';
-
-# vLLM 모델 서빙
 
 ## 개요
 
@@ -164,7 +173,7 @@ vLLM V1 엔진의 multiproc_executor는 NCCL TCPStore를 통해 멀티노드 동
 2. **Ray 기반 vLLM**: Ray Cluster 구성 (운영 복잡도 증가)
 3. **단일 노드 배포**: H200 (141GB × 8) 또는 B200 (192GB × 8) 사용하여 PP 제거
 
-상세 내용은 [커스텀 모델 배포 가이드](../../reference-architecture/custom-model-deployment.md#vllm-pp-멀티노드-제약)를 참조하세요.
+상세 내용은 [커스텀 모델 배포 가이드](../../reference-architecture/model-lifecycle/custom-model-deployment.md#vllm-pp-멀티노드-제약)를 참조하세요.
 
 ### 데이터 병렬화 (Data Parallelism, DP)
 
@@ -262,7 +271,7 @@ vllm serve meta-llama/Llama-3.3-70B-Instruct \
 ```
 
 :::info 상세 가이드
-Multi-LoRA 핫스왑 배포, 고객별 어댑터 라우팅, A/B 테스트, S3 동적 로딩 등 상세 구현은 [커스텀 모델 파이프라인 가이드](../../reference-architecture/custom-model-pipeline.md#multi-lora-핫스왑-배포)를 참조하세요.
+Multi-LoRA 핫스왑 배포, 고객별 어댑터 라우팅, A/B 테스트, S3 동적 로딩 등 상세 구현은 [커스텀 모델 파이프라인 가이드](../../reference-architecture/model-lifecycle/custom-model-pipeline.md#multi-lora-핫스왑-배포)를 참조하세요.
 :::
 
 ## 성능 최적화
@@ -403,15 +412,15 @@ WARNING Sequence group 0 is preempted by PreemptionMode.RECOMPUTE
 4. `max_model_len` 감소 (실제 워크로드에 맞게)
 
 :::info 상세 가이드
-Prometheus + Grafana 기반 모니터링 스택 구성, 알람 임계값 설정, 대시보드 템플릿은 [모니터링 스택 구성 가이드](../../reference-architecture/monitoring-observability-setup.md)를 참조하세요.
+Prometheus + Grafana 기반 모니터링 스택 구성, 알람 임계값 설정, 대시보드 템플릿은 [모니터링 스택 구성 가이드](../../reference-architecture/integrations/monitoring-observability-setup.md)를 참조하세요.
 :::
 
 ## 관련 문서
 
 ### 실전 배포
-- **[커스텀 모델 배포](../../reference-architecture/custom-model-deployment.md)**: Kubernetes 배포 YAML, LWS 멀티노드, S3 모델 캐시, vLLM PP 멀티노드 제약 상세, 코딩 특화 모델 배포 가이드
-- **[커스텀 모델 파이프라인](../../reference-architecture/custom-model-pipeline.md)**: Multi-LoRA 핫스왑, 고객별 어댑터 라우팅, A/B 테스트, S3 동적 로딩
-- **[모니터링 스택 구성](../../reference-architecture/monitoring-observability-setup.md)**: Prometheus + Grafana 설정, 알람 임계값, 대시보드 템플릿
+- **[커스텀 모델 배포](../../reference-architecture/model-lifecycle/custom-model-deployment.md)**: Kubernetes 배포 YAML, LWS 멀티노드, S3 모델 캐시, vLLM PP 멀티노드 제약 상세, 코딩 특화 모델 배포 가이드
+- **[커스텀 모델 파이프라인](../../reference-architecture/model-lifecycle/custom-model-pipeline.md)**: Multi-LoRA 핫스왑, 고객별 어댑터 라우팅, A/B 테스트, S3 동적 로딩
+- **[모니터링 스택 구성](../../reference-architecture/integrations/monitoring-observability-setup.md)**: Prometheus + Grafana 설정, 알람 임계값, 대시보드 템플릿
 
 ### 관련 기술
 - **[llm-d EKS Auto Mode](./llm-d-eks-automode.md)**: vLLM + llm-d 연동 통한 Disaggregated Serving

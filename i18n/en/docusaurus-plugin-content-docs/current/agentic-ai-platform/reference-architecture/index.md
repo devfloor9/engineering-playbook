@@ -13,7 +13,7 @@ import DocCardList from '@theme/DocCardList';
 
 # Reference Architecture
 
-This section provides **production deployment and configuration guides** for the Agentic AI Platform. Concepts and design principles are covered in the [Documentation section](../design-architecture/agentic-platform-architecture.md); here we focus on specific configurations, YAML manifests, and verification procedures for deploying and operating on actual clusters.
+This section provides **production deployment and configuration guides** for the Agentic AI Platform. Concepts and design principles are covered in the [Documentation section](../design-architecture/foundations/agentic-platform-architecture.md); here we focus on specific configurations, YAML manifests, and verification procedures for deploying and operating on actual clusters.
 
 :::info Documentation vs Reference Architecture
 | Aspect | Documentation | Reference Architecture |
@@ -217,10 +217,10 @@ Prerequisites for deploying the Reference Architecture.
 
 For concepts and architecture design, refer to the following documents:
 
-- [Agentic AI Platform Architecture](../design-architecture/agentic-platform-architecture.md) — Overall design principles and component structure
+- [Agentic AI Platform Architecture](../design-architecture/foundations/agentic-platform-architecture.md) — Overall design principles and component structure
 - [GPU Resource Management](../model-serving/gpu-infrastructure/gpu-resource-management.md) — Karpenter, KEDA, DRA-based GPU autoscaling
 - [vLLM Model Serving](../model-serving/inference-frameworks/vllm-model-serving.md) — vLLM architecture and optimization techniques
-- [Inference Gateway Routing](../reference-architecture/inference-gateway-routing.md) — kgateway + AI gateway design
+- [Inference Gateway Routing](../reference-architecture/inference-gateway/routing-strategy.md) — kgateway + AI gateway design
 
 ---
 

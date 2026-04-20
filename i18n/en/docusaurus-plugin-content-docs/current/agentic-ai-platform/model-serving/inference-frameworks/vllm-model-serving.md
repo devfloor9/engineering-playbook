@@ -164,7 +164,7 @@ vLLM V1 engine's multiproc_executor performs multi-node synchronization via NCCL
 2. **Ray-based vLLM**: Ray Cluster configuration (increased operational complexity)
 3. **Single node deployment**: Use H200 (141GB x 8) or B200 (192GB x 8) to eliminate PP
 
-For details, see the [Custom Model Deployment Guide](../reference-architecture/custom-model-deployment.md#vllm-pp-multi-node-limitations).
+For details, see the [Custom Model Deployment Guide](../reference-architecture/model-lifecycle/custom-model-deployment.md#vllm-pp-multi-node-limitations).
 
 ### Data Parallelism (DP)
 
@@ -262,7 +262,7 @@ vllm serve meta-llama/Llama-3.3-70B-Instruct \
 ```
 
 :::info Detailed Guide
-For Multi-LoRA hot-swap deployment, per-customer adapter routing, A/B testing, and S3 dynamic loading, see the [Custom Model Pipeline Guide](../reference-architecture/custom-model-pipeline.md#multi-lora-hot-swap-deployment).
+For Multi-LoRA hot-swap deployment, per-customer adapter routing, A/B testing, and S3 dynamic loading, see the [Custom Model Pipeline Guide](../reference-architecture/model-lifecycle/custom-model-pipeline.md#multi-lora-hot-swap-deployment).
 :::
 
 ## Performance Optimization
@@ -403,15 +403,15 @@ WARNING Sequence group 0 is preempted by PreemptionMode.RECOMPUTE
 4. Decrease `max_model_len` (match actual workload)
 
 :::info Detailed Guide
-For Prometheus + Grafana monitoring stack setup, alert threshold configuration, and dashboard templates, see the [Monitoring Stack Setup Guide](../reference-architecture/monitoring-observability-setup.md).
+For Prometheus + Grafana monitoring stack setup, alert threshold configuration, and dashboard templates, see the [Monitoring Stack Setup Guide](../reference-architecture/integrations/monitoring-observability-setup.md).
 :::
 
 ## Related Documents
 
 ### Production Deployment
-- **[Custom Model Deployment](../reference-architecture/custom-model-deployment.md)**: Kubernetes deployment YAML, LWS multi-node, S3 model cache, vLLM PP multi-node constraint details, coding-specialized model deployment guide
-- **[Custom Model Pipeline](../reference-architecture/custom-model-pipeline.md)**: Multi-LoRA hot-swap, per-customer adapter routing, A/B testing, S3 dynamic loading
-- **[Monitoring Stack Setup](../reference-architecture/monitoring-observability-setup.md)**: Prometheus + Grafana setup, alert thresholds, dashboard templates
+- **[Custom Model Deployment](../reference-architecture/model-lifecycle/custom-model-deployment.md)**: Kubernetes deployment YAML, LWS multi-node, S3 model cache, vLLM PP multi-node constraint details, coding-specialized model deployment guide
+- **[Custom Model Pipeline](../reference-architecture/model-lifecycle/custom-model-pipeline.md)**: Multi-LoRA hot-swap, per-customer adapter routing, A/B testing, S3 dynamic loading
+- **[Monitoring Stack Setup](../reference-architecture/integrations/monitoring-observability-setup.md)**: Prometheus + Grafana setup, alert thresholds, dashboard templates
 
 ### Related Technologies
 - **[llm-d EKS Auto Mode](./llm-d-eks-automode.md)**: Disaggregated Serving via vLLM + llm-d integration

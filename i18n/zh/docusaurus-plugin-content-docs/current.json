@@ -47,13 +47,61 @@
     "message": "推理框架",
     "description": "The label for category '추론 프레임워크' in sidebar 'docs'"
   },
+  "sidebar.docs.category.추론 최적화": {
+    "message": "推理优化",
+    "description": "The label for category '추론 최적화' in sidebar 'docs'"
+  },
+  "sidebar.docs.category.플랫폼 기초": {
+    "message": "平台基础",
+    "description": "The label for category '플랫폼 기초' in sidebar 'docs'"
+  },
+  "sidebar.docs.category.플랫폼 선택": {
+    "message": "平台选择",
+    "description": "The label for category '플랫폼 선택' in sidebar 'docs'"
+  },
+  "sidebar.docs.category.고급 패턴": {
+    "message": "高级模式",
+    "description": "The label for category '고급 패턴' in sidebar 'docs'"
+  },
   "sidebar.docs.category.운영 & 거버넌스": {
     "message": "运营与治理",
     "description": "The label for category '운영 & 거버넌스' in sidebar 'docs'"
   },
+  "sidebar.docs.category.관측성": {
+    "message": "可观测性",
+    "description": "The label for category '관측성' in sidebar 'docs'"
+  },
+  "sidebar.docs.category.거버넌스": {
+    "message": "治理",
+    "description": "The label for category '거버넌스' in sidebar 'docs'"
+  },
+  "sidebar.docs.category.데이터 인프라": {
+    "message": "数据基础设施",
+    "description": "The label for category '데이터 인프라' in sidebar 'docs'"
+  },
   "sidebar.docs.category.Reference Architecture": {
     "message": "参考架构",
     "description": "The label for category 'Reference Architecture' in sidebar 'docs'"
+  },
+  "sidebar.docs.category.추론 게이트웨이": {
+    "message": "推理网关",
+    "description": "The label for category '추론 게이트웨이' in sidebar 'docs'"
+  },
+  "sidebar.docs.category.배포 가이드": {
+    "message": "部署指南",
+    "description": "The label for category '배포 가이드' in sidebar 'docs'"
+  },
+  "sidebar.docs.category.모델 수명주기": {
+    "message": "模型生命周期",
+    "description": "The label for category '모델 수명주기' in sidebar 'docs'"
+  },
+  "sidebar.docs.category.Continuous Training": {
+    "message": "持续训练",
+    "description": "The label for category 'Continuous Training' in sidebar 'docs'"
+  },
+  "sidebar.docs.category.통합 & 비용": {
+    "message": "集成与成本",
+    "description": "The label for category '통합 & 비용' in sidebar 'docs'"
   },
   "sidebar.docs.category.AIDLC": {
     "message": "AIDLC",

@@ -785,8 +785,8 @@ flowchart TD
 
 ### Deployment and Security
 
-- **[Reference Architecture: GPU Infrastructure](../reference-architecture/custom-model-deployment.md)** - GPU security, troubleshooting, deployment guide
+- **[Reference Architecture: GPU Infrastructure](../reference-architecture/model-lifecycle/custom-model-deployment.md)** - GPU security, troubleshooting, deployment guide
 
 ### Platform Architecture
 
-- **[EKS-Based Open Architecture](../design-architecture/agentic-ai-solutions-eks.md)** - Overall Agentic AI platform architecture
+- **[EKS-Based Open Architecture](../design-architecture/platform-selection/agentic-ai-solutions-eks.md)** - Overall Agentic AI platform architecture

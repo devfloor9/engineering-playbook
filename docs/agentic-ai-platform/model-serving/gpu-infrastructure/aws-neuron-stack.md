@@ -2,14 +2,22 @@
 title: "AWS Neuron Stack — Trainium2/Inferentia2 on EKS"
 sidebar_label: "AWS Neuron Stack"
 description: "EKS 위에서 AWS 커스텀 AI 가속기(Trainium2/Inferentia2)를 운영하기 위한 Neuron SDK, Device Plugin, NxD Inference 가이드"
-tags: [trainium2, inferentia2, neuron-sdk, aws-accelerator, eks, vllm-neuron, nxd-inference, 'scope:tech']
-sidebar_position: 7
+created: 2026-04-17
 last_update:
-  date: 2026-04-18
-  author: YoungJoon Jeong
+  date: 2026-04-20
+  author: devfloor9
+reading_time: 17
+tags:
+  - trainium2
+  - inferentia2
+  - neuron-sdk
+  - aws-accelerator
+  - eks
+  - vllm-neuron
+  - nxd-inference
+  - inference
+  - scope:tech
 ---
-
-# AWS Neuron Stack
 
 AWS Neuron은 AWS가 설계한 AI 가속기(Trainium, Inferentia) 위에서 학습·추론 워크로드를 실행하기 위한 소프트웨어 스택입니다. NVIDIA의 CUDA + GPU Operator 조합이 NVIDIA GPU 상에서 수행하는 역할과 유사하게, Neuron SDK + Neuron Device Plugin 이 EKS 위에서 Trainium/Inferentia 칩을 Kubernetes 리소스로 추상화합니다.
 
@@ -519,7 +527,7 @@ flowchart LR
 - AMP(Amazon Managed Prometheus) 에서 remote-write 로 수집하고 AMG(Amazon Managed Grafana) 에서 대시보드화
 - CloudWatch Container Insights 의 Neuron 메트릭도 함께 활용 가능
 
-상세 AMP/AMG 구성은 [모니터링·Observability 셋업](../../reference-architecture/monitoring-observability-setup.md) 을 참조하세요.
+상세 AMP/AMG 구성은 [모니터링·Observability 셋업](../../reference-architecture/integrations/monitoring-observability-setup.md) 을 참조하세요.
 
 ### 8.3 주요 메트릭
 
@@ -571,7 +579,7 @@ flowchart LR
 - [GPU 리소스 관리](./gpu-resource-management.md) — Karpenter/KEDA/DRA 기반 오토스케일링
 - [vLLM 모델 서빙](../inference-frameworks/vllm-model-serving.md) — vLLM 기반 추론 엔진 (CUDA 경로)
 - [MoE 모델 서빙](../inference-frameworks/moe-model-serving.md) — MoE 구조 개념 및 Trainium2 배치 전략
-- [모니터링·Observability 셋업](../../reference-architecture/monitoring-observability-setup.md) — AMP/AMG, Langfuse, OTel
+- [모니터링·Observability 셋업](../../reference-architecture/integrations/monitoring-observability-setup.md) — AMP/AMG, Langfuse, OTel
 
 ## 참고 자료
 

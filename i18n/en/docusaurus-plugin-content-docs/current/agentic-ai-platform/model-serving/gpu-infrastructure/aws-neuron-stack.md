@@ -519,7 +519,7 @@ flowchart LR
 - AMP (Amazon Managed Prometheus) collects via remote-write and AMG (Amazon Managed Grafana) dashboards
 - CloudWatch Container Insights Neuron metrics can also be utilized
 
-For detailed AMP/AMG configuration, refer to [Monitoring·Observability Setup](../../reference-architecture/monitoring-observability-setup.md) .
+For detailed AMP/AMG configuration, refer to [Monitoring·Observability Setup](../../reference-architecture/integrations/monitoring-observability-setup.md) .
 
 ### 8.3 Key Metrics
 
@@ -571,7 +571,7 @@ For detailed AMP/AMG configuration, refer to [Monitoring·Observability Setup](.
 - [GPU Resource Management](./gpu-resource-management.md) — Karpenter/KEDA/DRA-based autoscaling
 - [vLLM Model Serving](../inference-frameworks/vllm-model-serving.md) — vLLM-based inference engine (CUDA path)
 - [MoE Model Serving](../inference-frameworks/moe-model-serving.md) — MoE architecture concepts and Trainium2 deployment strategy
-- [Monitoring·Observability Setup](../../reference-architecture/monitoring-observability-setup.md) — AMP/AMG, Langfuse, OTel
+- [Monitoring·Observability Setup](../../reference-architecture/integrations/monitoring-observability-setup.md) — AMP/AMG, Langfuse, OTel
 
 ## References
 

@@ -47,13 +47,61 @@
     "message": "Inference Frameworks",
     "description": "The label for category '추론 프레임워크' in sidebar 'docs'"
   },
+  "sidebar.docs.category.추론 최적화": {
+    "message": "Inference Optimization",
+    "description": "The label for category '추론 최적화' in sidebar 'docs'"
+  },
+  "sidebar.docs.category.플랫폼 기초": {
+    "message": "Platform Foundations",
+    "description": "The label for category '플랫폼 기초' in sidebar 'docs'"
+  },
+  "sidebar.docs.category.플랫폼 선택": {
+    "message": "Platform Selection",
+    "description": "The label for category '플랫폼 선택' in sidebar 'docs'"
+  },
+  "sidebar.docs.category.고급 패턴": {
+    "message": "Advanced Patterns",
+    "description": "The label for category '고급 패턴' in sidebar 'docs'"
+  },
   "sidebar.docs.category.운영 & 거버넌스": {
     "message": "Operations & Governance",
     "description": "The label for category '운영 & 거버넌스' in sidebar 'docs'"
   },
+  "sidebar.docs.category.관측성": {
+    "message": "Observability",
+    "description": "The label for category '관측성' in sidebar 'docs'"
+  },
+  "sidebar.docs.category.거버넌스": {
+    "message": "Governance",
+    "description": "The label for category '거버넌스' in sidebar 'docs'"
+  },
+  "sidebar.docs.category.데이터 인프라": {
+    "message": "Data Infrastructure",
+    "description": "The label for category '데이터 인프라' in sidebar 'docs'"
+  },
   "sidebar.docs.category.Reference Architecture": {
     "message": "Reference Architecture",
     "description": "The label for category 'Reference Architecture' in sidebar 'docs'"
+  },
+  "sidebar.docs.category.추론 게이트웨이": {
+    "message": "Inference Gateway",
+    "description": "The label for category '추론 게이트웨이' in sidebar 'docs'"
+  },
+  "sidebar.docs.category.배포 가이드": {
+    "message": "Setup Guide",
+    "description": "The label for category '배포 가이드' in sidebar 'docs'"
+  },
+  "sidebar.docs.category.모델 수명주기": {
+    "message": "Model Lifecycle",
+    "description": "The label for category '모델 수명주기' in sidebar 'docs'"
+  },
+  "sidebar.docs.category.Continuous Training": {
+    "message": "Continuous Training",
+    "description": "The label for category 'Continuous Training' in sidebar 'docs'"
+  },
+  "sidebar.docs.category.통합 & 비용": {
+    "message": "Integrations & Cost",
+    "description": "The label for category '통합 & 비용' in sidebar 'docs'"
   },
   "sidebar.docs.category.AIDLC": {
     "message": "AIDLC",

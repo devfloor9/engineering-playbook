@@ -10,7 +10,7 @@ const NextSteps = () => {
     {
       order: isKo ? '다음' : isZh ? '下一步' : 'Next',
       doc: isKo ? '지능형 관찰성 스택' : isZh ? '智能可观测性堆栈' : 'Intelligent Observability Stack',
-      link: '/docs/operations-observability/agentic-ops/aiops-observability-stack',
+      link: '/docs/aidlc/operations/observability-stack',
       content: isKo ? 'ADOT, AMP, AMG, CloudWatch AI 통합 아키텍처 구축' : isZh ? '构建 ADOT、AMP、AMG、CloudWatch AI 集成架构' : 'Build integrated architecture with ADOT, AMP, AMG, CloudWatch AI',
       color: '#2563eb'
     },
@@ -24,7 +24,7 @@ const NextSteps = () => {
     {
       order: isKo ? '최종' : isZh ? '最后' : 'Finally',
       doc: isKo ? '예측 운영' : isZh ? '预测性运维' : 'Predictive Operations',
-      link: '/docs/operations-observability/agentic-ops/aiops-predictive-operations',
+      link: '/docs/aidlc/operations/predictive-operations',
       content: isKo ? 'ML 예측 스케일링, AI Agent 자동 인시던트 대응' : isZh ? 'ML 预测性扩展，AI Agent 自动事故响应' : 'ML predictive scaling, AI Agent auto incident response',
       color: '#059669'
     }

@@ -212,7 +212,7 @@ model = finetune(
 )
 ```
 
-**详细流水线**：数据预处理、多节点分布式训练、超参数调优等请参阅 [自定义模型流水线](../reference-architecture/custom-model-pipeline.md) 文档。
+**详细流水线**：数据预处理、多节点分布式训练、超参数调优等请参阅 [自定义模型流水线](../reference-architecture/model-lifecycle/custom-model-pipeline.md) 文档。
 
 ---
 
@@ -565,7 +565,7 @@ export NCCL_DEBUG=INFO  # 诊断性能问题时有用
 
 **监控栈**：Prometheus + Grafana + DCGM Exporter
 
-详细监控设置请参阅 [监控和可观测性设置](../reference-architecture/monitoring-observability-setup.md)。
+详细监控设置请参阅 [监控和可观测性设置](../reference-architecture/integrations/monitoring-observability-setup.md)。
 
 ---
 
@@ -574,7 +574,7 @@ export NCCL_DEBUG=INFO  # 诊断性能问题时有用
 - [GPU 资源管理](./gpu-resource-management.md) - Karpenter、KEDA、DRA GPU 自动伸缩
 - [vLLM 模型服务](./vllm-model-serving.md) - 生产推理服务器
 - [MoE 模型服务](./moe-model-serving.md) - Mixture of Experts 架构
-- [自定义模型流水线](../reference-architecture/custom-model-pipeline.md) - 从数据准备到部署的完整流水线
+- [自定义模型流水线](../reference-architecture/model-lifecycle/custom-model-pipeline.md) - 从数据准备到部署的完整流水线
 
 :::tip 建议
 

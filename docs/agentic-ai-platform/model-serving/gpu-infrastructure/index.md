@@ -2,16 +2,21 @@
 title: "GPU 인프라"
 sidebar_label: "GPU 인프라"
 description: "EKS GPU 노드 전략, Karpenter·KEDA·DRA 리소스 관리, NVIDIA GPU 스택, AWS Neuron 스택"
-tags: [gpu, eks, karpenter, gpu-operator, neuron, 'scope:tech']
-sidebar_position: 0
+created: 2026-04-17
 last_update:
-  date: 2026-04-17
-  author: YoungJoon Jeong
+  date: 2026-04-20
+  author: devfloor9
+reading_time: 1
+tags:
+  - gpu
+  - eks
+  - karpenter
+  - gpu-operator
+  - neuron
+  - scope:tech
 ---
 
 import { DocCard, DocCardGrid } from '@site/src/components/DocCards';
-
-# GPU 인프라
 
 Kubernetes 위에서 **어떤 GPU 인스턴스를 · 어떻게 스케줄링하고 · 어떤 드라이버·파티셔닝 스택으로 관리할지** 를 다루는 계층입니다. 이 계층이 확립되어야 상위의 추론 프레임워크(vLLM·llm-d 등)가 안정적으로 돌아갑니다.
 

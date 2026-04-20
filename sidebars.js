@@ -129,14 +129,45 @@ const sidebars = {
             id: 'agentic-ai-platform/design-architecture/index',
           },
           items: [
-            'agentic-ai-platform/design-architecture/agentic-platform-architecture',
-            'agentic-ai-platform/design-architecture/agentic-ai-challenges',
-            'agentic-ai-platform/design-architecture/ai-platform-decision-framework',
-            'agentic-ai-platform/design-architecture/aws-native-agentic-platform',
-            'agentic-ai-platform/design-architecture/agentcore-hybrid-deployment',
-            'agentic-ai-platform/design-architecture/agentic-ai-solutions-eks',
-            'agentic-ai-platform/design-architecture/knowledge-feature-store',
-            'agentic-ai-platform/design-architecture/self-improving-agent-loop',
+            {
+              type: 'category',
+              label: '플랫폼 기초',
+              link: {
+                type: 'doc',
+                id: 'agentic-ai-platform/design-architecture/foundations/index',
+              },
+              items: [
+                'agentic-ai-platform/design-architecture/foundations/agentic-platform-architecture',
+                'agentic-ai-platform/design-architecture/foundations/agentic-ai-challenges',
+                'agentic-ai-platform/design-architecture/foundations/knowledge-feature-store',
+              ],
+            },
+            {
+              type: 'category',
+              label: '플랫폼 선택',
+              link: {
+                type: 'doc',
+                id: 'agentic-ai-platform/design-architecture/platform-selection/index',
+              },
+              items: [
+                'agentic-ai-platform/design-architecture/platform-selection/ai-platform-decision-framework',
+                'agentic-ai-platform/design-architecture/platform-selection/aws-native-agentic-platform',
+                'agentic-ai-platform/design-architecture/platform-selection/agentic-ai-solutions-eks',
+                'agentic-ai-platform/design-architecture/platform-selection/agentcore-hybrid-strategy',
+              ],
+            },
+            {
+              type: 'category',
+              label: '고급 패턴',
+              link: {
+                type: 'doc',
+                id: 'agentic-ai-platform/design-architecture/advanced-patterns/index',
+              },
+              items: [
+                'agentic-ai-platform/design-architecture/advanced-patterns/self-improving-agent-loop',
+                'agentic-ai-platform/design-architecture/advanced-patterns/adr-self-improving-loop',
+              ],
+            },
           ],
         },
         {
@@ -177,6 +208,19 @@ const sidebars = {
                 'agentic-ai-platform/model-serving/inference-frameworks/semantic-caching-strategy',
               ],
             },
+            {
+              type: 'category',
+              label: '추론 최적화',
+              link: {
+                type: 'doc',
+                id: 'agentic-ai-platform/model-serving/inference-optimization/index',
+              },
+              items: [
+                'agentic-ai-platform/model-serving/inference-optimization/kv-cache-optimization',
+                'agentic-ai-platform/model-serving/inference-optimization/disaggregated-serving',
+                'agentic-ai-platform/model-serving/inference-optimization/cost-optimization',
+              ],
+            },
           ],
         },
         {
@@ -187,15 +231,45 @@ const sidebars = {
             id: 'agentic-ai-platform/operations-mlops/index',
           },
           items: [
-            'agentic-ai-platform/operations-mlops/agent-monitoring',
-            'agentic-ai-platform/operations-mlops/llmops-observability',
-            'agentic-ai-platform/operations-mlops/kagent-kubernetes-agents',
-            'agentic-ai-platform/operations-mlops/ragas-evaluation',
-            'agentic-ai-platform/operations-mlops/agentic-playbook',
-            'agentic-ai-platform/operations-mlops/ai-gateway-guardrails',
-            'agentic-ai-platform/operations-mlops/compliance-framework',
-            'agentic-ai-platform/operations-mlops/domain-customization',
-            'agentic-ai-platform/operations-mlops/milvus-vector-database',
+            {
+              type: 'category',
+              label: '관측성',
+              link: {
+                type: 'doc',
+                id: 'agentic-ai-platform/operations-mlops/observability/index',
+              },
+              items: [
+                'agentic-ai-platform/operations-mlops/observability/agent-monitoring',
+                'agentic-ai-platform/operations-mlops/observability/llmops-observability',
+                'agentic-ai-platform/operations-mlops/observability/kagent-kubernetes-agents',
+              ],
+            },
+            {
+              type: 'category',
+              label: '거버넌스',
+              link: {
+                type: 'doc',
+                id: 'agentic-ai-platform/operations-mlops/governance/index',
+              },
+              items: [
+                'agentic-ai-platform/operations-mlops/governance/ragas-evaluation',
+                'agentic-ai-platform/operations-mlops/governance/agentic-playbook',
+                'agentic-ai-platform/operations-mlops/governance/ai-gateway-guardrails',
+                'agentic-ai-platform/operations-mlops/governance/compliance-framework',
+                'agentic-ai-platform/operations-mlops/governance/domain-customization',
+              ],
+            },
+            {
+              type: 'category',
+              label: '데이터 인프라',
+              link: {
+                type: 'doc',
+                id: 'agentic-ai-platform/operations-mlops/data-infrastructure/index',
+              },
+              items: [
+                'agentic-ai-platform/operations-mlops/data-infrastructure/milvus-vector-database',
+              ],
+            },
           ],
         },
         {
@@ -207,29 +281,71 @@ const sidebars = {
             id: 'agentic-ai-platform/reference-architecture/index',
           },
           items: [
-            'agentic-ai-platform/reference-architecture/custom-model-deployment',
-            'agentic-ai-platform/reference-architecture/inference-gateway-routing',
             {
               type: 'category',
-              label: 'Inference Gateway 배포',
+              label: '추론 게이트웨이',
               link: {
                 type: 'doc',
-                id: 'agentic-ai-platform/reference-architecture/inference-gateway-setup/index',
+                id: 'agentic-ai-platform/reference-architecture/inference-gateway/index',
               },
               items: [
-                'agentic-ai-platform/reference-architecture/inference-gateway-setup/basic-deployment',
-                'agentic-ai-platform/reference-architecture/inference-gateway-setup/advanced-features',
-                'agentic-ai-platform/reference-architecture/inference-gateway-setup/troubleshooting-guide',
+                'agentic-ai-platform/reference-architecture/inference-gateway/routing-strategy',
+                'agentic-ai-platform/reference-architecture/inference-gateway/cascade-routing-tuning',
+                'agentic-ai-platform/reference-architecture/inference-gateway/openclaw-example',
+                {
+                  type: 'category',
+                  label: '배포 가이드',
+                  link: {
+                    type: 'doc',
+                    id: 'agentic-ai-platform/reference-architecture/inference-gateway/setup/index',
+                  },
+                  items: [
+                    'agentic-ai-platform/reference-architecture/inference-gateway/setup/basic-deployment',
+                    'agentic-ai-platform/reference-architecture/inference-gateway/setup/advanced-features',
+                    'agentic-ai-platform/reference-architecture/inference-gateway/setup/troubleshooting-guide',
+                  ],
+                },
               ],
             },
-            'agentic-ai-platform/reference-architecture/cascade-routing-tuning',
-            'agentic-ai-platform/reference-architecture/monitoring-observability-setup',
-            'agentic-ai-platform/reference-architecture/custom-model-pipeline',
-            'agentic-ai-platform/reference-architecture/continuous-training-pipeline',
-            'agentic-ai-platform/reference-architecture/mlops-pipeline-eks',
-            'agentic-ai-platform/reference-architecture/sagemaker-eks-integration',
-            'agentic-ai-platform/reference-architecture/coding-tools-cost-analysis',
-            'agentic-ai-platform/reference-architecture/openclaw-ai-gateway',
+            {
+              type: 'category',
+              label: '모델 수명주기',
+              link: {
+                type: 'doc',
+                id: 'agentic-ai-platform/reference-architecture/model-lifecycle/index',
+              },
+              items: [
+                'agentic-ai-platform/reference-architecture/model-lifecycle/custom-model-deployment',
+                'agentic-ai-platform/reference-architecture/model-lifecycle/custom-model-pipeline',
+                'agentic-ai-platform/reference-architecture/model-lifecycle/mlops-pipeline-eks',
+                {
+                  type: 'category',
+                  label: 'Continuous Training',
+                  link: {
+                    type: 'doc',
+                    id: 'agentic-ai-platform/reference-architecture/model-lifecycle/continuous-training/index',
+                  },
+                  items: [
+                    'agentic-ai-platform/reference-architecture/model-lifecycle/continuous-training/trace-to-dataset',
+                    'agentic-ai-platform/reference-architecture/model-lifecycle/continuous-training/grpo-dpo-training',
+                    'agentic-ai-platform/reference-architecture/model-lifecycle/continuous-training/evaluation-rollout',
+                  ],
+                },
+              ],
+            },
+            {
+              type: 'category',
+              label: '통합 & 비용',
+              link: {
+                type: 'doc',
+                id: 'agentic-ai-platform/reference-architecture/integrations/index',
+              },
+              items: [
+                'agentic-ai-platform/reference-architecture/integrations/sagemaker-eks-integration',
+                'agentic-ai-platform/reference-architecture/integrations/monitoring-observability-setup',
+                'agentic-ai-platform/reference-architecture/integrations/coding-tools-cost-analysis',
+              ],
+            },
           ],
         },
       ],

@@ -17,35 +17,35 @@ import { DocCard, DocCardGrid } from '@site/src/components/DocCards';
 
 <DocCardGrid columns={2}>
   <DocCard
-    to="/docs/agentic-ai-platform/design-architecture/agentic-platform-architecture"
+    to="/docs/agentic-ai-platform/design-architecture/foundations/agentic-platform-architecture"
     icon="🏗️"
     title="平台架构"
     description="Agentic AI Platform 的 6 大核心层（Client、Gateway、Agent、Model Serving、Data、Observability）与设计原则。提供独立于具体实现的平台蓝图。"
     color="#667eea"
   />
   <DocCard
-    to="/docs/agentic-ai-platform/design-architecture/agentic-ai-challenges"
+    to="/docs/agentic-ai-platform/design-architecture/foundations/agentic-ai-challenges"
     icon="⚡"
     title="技术挑战"
     description="GPU 资源管理、推理路由、LLMOps 可观测性、Agent 编排、模型供应链——分析构建平台时面临的 5 大核心挑战。"
     color="#f59e0b"
   />
   <DocCard
-    to="/docs/agentic-ai-platform/design-architecture/aws-native-agentic-platform"
+    to="/docs/agentic-ai-platform/design-architecture/platform-selection/aws-native-agentic-platform"
     icon="☁️"
     title="AWS Native 平台"
     description="利用 Amazon Bedrock、Strands Agents SDK、AgentCore，无需 GPU 管理即可专注 Agent 开发的托管服务方案。快速启动的最佳选择。"
     color="#ff9900"
   />
   <DocCard
-    to="/docs/agentic-ai-platform/design-architecture/agentic-ai-solutions-eks"
+    to="/docs/agentic-ai-platform/design-architecture/platform-selection/agentic-ai-solutions-eks"
     icon="🔧"
     title="EKS 开放架构"
     description="Amazon EKS Auto Mode + 开源生态实现 Open Weight 模型自托管、混合架构、精细化 GPU 成本优化。"
     color="#10b981"
   />
   <DocCard
-    to="/docs/agentic-ai-platform/reference-architecture/inference-gateway-routing"
+    to="/docs/agentic-ai-platform/reference-architecture/inference-gateway/routing-strategy"
     icon="🔀"
     title="推理网关与 Cascade Routing"
     description="kgateway + Bifrost/LiteLLM 2-Tier 架构、基于复杂度的 Cascade Routing（LiteLLM 原生、Bifrost CEL Rules、vLLM Semantic Router）、Hybrid Routing 模式、agentgateway MCP/A2A。"

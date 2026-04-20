@@ -2,11 +2,21 @@
 title: "GPU 리소스 관리"
 sidebar_label: "GPU 리소스 관리"
 description: "EKS에서 Karpenter, KEDA, DRA를 활용한 GPU 리소스 관리 및 비용 최적화"
-tags: [gpu, karpenter, keda, dra, autoscaling, cost-optimization, 'scope:tech']
-sidebar_position: 2
+created: 2026-02-05
 last_update:
-  date: 2026-04-17
-  author: YoungJoon Jeong
+  date: 2026-04-20
+  author: devfloor9
+reading_time: 13
+tags:
+  - gpu
+  - karpenter
+  - keda
+  - dra
+  - autoscaling
+  - cost-optimization
+  - eks
+  - kubernetes
+  - scope:tech
 ---
 
 import Tabs from '@theme/Tabs';
@@ -19,8 +29,6 @@ import {
   CostOptimizationStrategies,
   KarpenterGpuOptimization
 } from '@site/src/components/AgenticSolutionsTables';
-
-# GPU 리소스 관리
 
 EKS 환경에서 GPU 리소스를 관리하는 전략은 크게 세 가지 축으로 구성됩니다.
 

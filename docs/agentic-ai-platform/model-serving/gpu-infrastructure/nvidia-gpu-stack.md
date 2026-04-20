@@ -2,18 +2,27 @@
 title: "NVIDIA GPU 스택"
 sidebar_label: "NVIDIA GPU 스택"
 description: "GPU Operator, DCGM, MIG, Time-Slicing, Dynamo의 아키텍처와 EKS 통합"
-tags: [nvidia, gpu-operator, dcgm, mig, time-slicing, dynamo, kai-scheduler, 'scope:tech']
-sidebar_position: 6
+created: 2026-03-20
 last_update:
-  date: 2026-04-17
-  author: YoungJoon Jeong
+  date: 2026-04-20
+  author: devfloor9
+reading_time: 14
+tags:
+  - nvidia
+  - gpu-operator
+  - dcgm
+  - mig
+  - time-slicing
+  - dynamo
+  - kai-scheduler
+  - gpu
+  - monitoring
+  - scope:tech
 ---
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 import { SpecificationTable, ComparisonTable } from '@site/src/components/tables';
-
-# NVIDIA GPU 스택
 
 NVIDIA GPU 소프트웨어 스택은 Kubernetes 환경에서 GPU를 운영하기 위한 계층 구조로 구성됩니다.
 

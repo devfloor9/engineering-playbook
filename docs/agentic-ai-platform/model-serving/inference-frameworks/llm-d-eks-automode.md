@@ -2,11 +2,24 @@
 title: "llm-d 기반 EKS 분산 추론 가이드"
 sidebar_label: "llm-d 분산 추론"
 description: "llm-d 아키텍처 개념, KV Cache-aware 라우팅, Disaggregated Serving, EKS Auto Mode 통합 전략"
-tags: [eks, llm-d, vllm, inference-gateway, gpu, auto-mode, karpenter, kv-cache, 'scope:tech']
-category: "genai-aiml"
+created: 2026-02-10
 last_update:
-  date: 2026-04-17
+  date: 2026-04-20
   author: devfloor9
+reading_time: 18
+tags:
+  - eks
+  - llm-d
+  - vllm
+  - inference-gateway
+  - gpu
+  - auto-mode
+  - karpenter
+  - kv-cache
+  - kubernetes
+  - inference
+  - scope:tech
+category: "genai-aiml"
 sidebar_position: 4
 ---
 
@@ -25,11 +38,7 @@ import {
   CostOptimizationTable
 } from '@site/src/components/LlmdTables';
 
-# llm-d 기반 EKS 분산 추론 가이드
-
 > **현재 버전**: llm-d v0.5+ (2026.03)
-
-> **작성일**: 2026-02-10 | **수정일**: 2026-04-06 | **읽는 시간**: 약 8분
 
 ## 개요
 
@@ -38,7 +47,7 @@ llm-d는 Red Hat이 주도하는 Apache 2.0 라이선스의 Kubernetes 네이티
 기존 vLLM 배포가 단순한 Round-Robin 로드 밸런싱에 의존하는 반면, llm-d는 KV Cache 상태를 인식하는 지능적 라우팅을 통해 동일한 prefix를 가진 요청을 이미 해당 KV Cache를 보유한 Pod로 전달합니다. 이를 통해 Time To First Token(TTFT)을 크게 단축하고 GPU 연산을 절약할 수 있습니다.
 
 :::tip 실전 배포 가이드
-llm-d의 EKS 배포 YAML, helmfile 명령어, 클러스터 생성 등 실전 배포는 [커스텀 모델 배포 가이드](../../reference-architecture/custom-model-deployment.md)를 참조하세요.
+llm-d의 EKS 배포 YAML, helmfile 명령어, 클러스터 생성 등 실전 배포는 [커스텀 모델 배포 가이드](../../reference-architecture/model-lifecycle/custom-model-deployment.md)를 참조하세요.
 :::
 
 :::warning llm-d Inference Gateway =/= 범용 Gateway API 구현체

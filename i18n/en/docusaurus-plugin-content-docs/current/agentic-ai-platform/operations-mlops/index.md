@@ -31,56 +31,56 @@ For actual deployment architectures including MLOps pipeline setup and SageMaker
 
 <DocCardGrid columns={2}>
   <DocCard
-    to="/docs/agentic-ai-platform/operations-mlops/agent-monitoring"
+    to="/docs/agentic-ai-platform/operations-mlops/observability/agent-monitoring"
     icon="📈"
     title="Agent Monitoring & Operations"
     description="Agent health and performance monitoring. LLM tracing integration, token cost tracking, alerting rules, and operational dashboard configuration."
     color="#3b82f6"
   />
   <DocCard
-    to="/docs/agentic-ai-platform/operations-mlops/llmops-observability"
+    to="/docs/agentic-ai-platform/operations-mlops/observability/llmops-observability"
     icon="👁️"
     title="LLMOps Observability"
     description="Comparison guide for Langfuse, LangSmith, and Helicone. LLM tracing, token cost analysis, and prompt quality monitoring."
     color="#f59e0b"
   />
   <DocCard
-    to="/docs/agentic-ai-platform/operations-mlops/kagent-kubernetes-agents"
+    to="/docs/agentic-ai-platform/operations-mlops/observability/kagent-kubernetes-agents"
     icon="🤖"
     title="Kagent: Kubernetes Agent Management"
     description="Kubernetes-based agent lifecycle management. Pod-based agent deployment, dynamic scaling, and health check integration."
     color="#8b5cf6"
   />
   <DocCard
-    to="/docs/agentic-ai-platform/operations-mlops/ragas-evaluation"
+    to="/docs/agentic-ai-platform/operations-mlops/governance/ragas-evaluation"
     icon="✅"
     title="Ragas Evaluation"
     description="RAG pipeline quality evaluation framework. Faithfulness, Relevance, Correctness metrics, and CI/CD integrated automated evaluation."
     color="#10b981"
   />
   <DocCard
-    to="/docs/agentic-ai-platform/operations-mlops/agentic-playbook"
+    to="/docs/agentic-ai-platform/operations-mlops/governance/agentic-playbook"
     icon="📚"
     title="Agentic Playbook"
     description="Best practice collection for production agent operations. Scenario-based playbooks for incident response, performance tuning, and cost optimization."
     color="#ec4899"
   />
   <DocCard
-    to="/docs/agentic-ai-platform/operations-mlops/compliance-framework"
+    to="/docs/agentic-ai-platform/operations-mlops/governance/compliance-framework"
     icon="🔒"
     title="Compliance Framework"
     description="Regulatory compliance and governance framework. GDPR, HIPAA, financial regulations, audit logging, and data protection policy development."
     color="#ef4444"
   />
   <DocCard
-    to="/docs/agentic-ai-platform/operations-mlops/domain-customization"
+    to="/docs/agentic-ai-platform/operations-mlops/governance/domain-customization"
     icon="🎯"
     title="Domain-Specific Customization"
     description="Industry-specific agent customization guide. Specialized strategies and implementation patterns for finance, healthcare, manufacturing, and more."
     color="#06b6d4"
   />
   <DocCard
-    to="/docs/agentic-ai-platform/operations-mlops/milvus-vector-database"
+    to="/docs/agentic-ai-platform/operations-mlops/data-infrastructure/milvus-vector-database"
     icon="🗄️"
     title="Milvus Vector Database"
     description="Production vector DB operations. Milvus cluster configuration, index optimization, backup/recovery, and performance tuning guide."

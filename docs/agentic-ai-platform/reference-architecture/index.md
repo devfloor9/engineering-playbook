@@ -3,17 +3,17 @@ title: "Reference Architecture"
 sidebar_label: "Reference Architecture"
 sidebar_position: 7
 description: "Agentic AI Platform 실전 배포 및 구성 레퍼런스 아키텍처"
-tags: [reference-architecture, deployment, eks, gpu, monitoring, 'scope:impl']
+created: 2026-04-06
 last_update:
-  date: 2026-04-17
-  author: YoungJoon Jeong
+  date: 2026-04-20
+  author: devfloor9
+reading_time: 1
+tags: [reference-architecture, deployment, eks, gpu, monitoring, 'scope:impl']
 ---
 
 import DocCardList from '@theme/DocCardList';
 
-# Reference Architecture
-
-이 섹션은 Agentic AI Platform의 **실전 배포 및 구성 가이드**를 제공합니다. 개념과 설계 원칙은 [Documentation 섹션](../design-architecture/agentic-platform-architecture.md)에서 다루며, 이곳에서는 실제 클러스터에 배포하고 운영하기 위한 구체적인 설정, YAML 매니페스트, 검증 절차를 다룹니다.
+이 섹션은 Agentic AI Platform의 **실전 배포 및 구성 가이드**를 제공합니다. 개념과 설계 원칙은 [Documentation 섹션](../design-architecture/foundations/agentic-platform-architecture.md)에서 다루며, 이곳에서는 실제 클러스터에 배포하고 운영하기 위한 구체적인 설정, YAML 매니페스트, 검증 절차를 다룹니다.
 
 :::info Documentation vs Reference Architecture
 | 구분 | Documentation | Reference Architecture |
@@ -217,7 +217,7 @@ Reference Architecture를 배포하기 위한 사전 요구사항입니다.
 
 개념과 아키텍처 설계에 대해서는 다음 문서를 참조하세요:
 
-- [Agentic AI Platform 아키텍처](../design-architecture/agentic-platform-architecture.md) — 전체 설계 원칙과 컴포넌트 구조
+- [Agentic AI Platform 아키텍처](../design-architecture/foundations/agentic-platform-architecture.md) — 전체 설계 원칙과 컴포넌트 구조
 - [GPU 리소스 관리](../model-serving/gpu-infrastructure/gpu-resource-management.md) — Karpenter, KEDA, DRA 기반 GPU 오토스케일링
 - [vLLM 모델 서빙](../model-serving/inference-frameworks/vllm-model-serving.md) — vLLM 아키텍처와 최적화 기법
 - [Inference Gateway 라우팅 전략](./inference-gateway-routing.md) — 2-Tier 아키텍처와 Cascade/Semantic/Hybrid Routing 설계

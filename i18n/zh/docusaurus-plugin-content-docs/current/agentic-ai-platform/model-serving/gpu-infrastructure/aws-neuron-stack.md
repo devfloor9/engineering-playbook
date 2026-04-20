@@ -519,7 +519,7 @@ flowchart LR
 - 在 AMP（Amazon Managed Prometheus）中通过 remote-write 采集，在 AMG（Amazon Managed Grafana）中仪表板化
 - CloudWatch Container Insights 的 Neuron 指标也可一起使用
 
-详细 AMP/AMG 配置请参阅[监控·Observability 设置](../../reference-architecture/monitoring-observability-setup.md)。
+详细 AMP/AMG 配置请参阅[监控·Observability 设置](../../reference-architecture/integrations/monitoring-observability-setup.md)。
 
 ### 8.3 主要指标
 
@@ -571,7 +571,7 @@ flowchart LR
 - [GPU 资源管理](./gpu-resource-management.md) — 基于 Karpenter/KEDA/DRA 的自动扩展
 - [vLLM 模型服务](../inference-frameworks/vllm-model-serving.md) — 基于 vLLM 的推理引擎（CUDA 路径）
 - [MoE 模型服务](../inference-frameworks/moe-model-serving.md) — MoE 结构概念和 Trainium2 部署策略
-- [监控·Observability 设置](../../reference-architecture/monitoring-observability-setup.md) — AMP/AMG、Langfuse、OTel
+- [监控·Observability 设置](../../reference-architecture/integrations/monitoring-observability-setup.md) — AMP/AMG、Langfuse、OTel
 
 ## 参考资料
 

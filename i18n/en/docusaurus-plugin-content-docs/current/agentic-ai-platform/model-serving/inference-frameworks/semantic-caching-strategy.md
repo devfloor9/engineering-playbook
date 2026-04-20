@@ -241,7 +241,7 @@ Visualize the following with Langfuse custom dashboards or Prometheus + Grafana:
 
 ### Langfuse OTel Integration Reference
 
-For Bifrost/LiteLLM OTel transmission configuration, follow existing [LLMOps Observability](../../operations-mlops/llmops-observability) and [Inference Gateway Setup Guide](../../reference-architecture/inference-gateway-setup) documents. Cache-related tags are added as span attributes at the application/gateway plugin layer.
+For Bifrost/LiteLLM OTel transmission configuration, follow existing [LLMOps Observability](../../operations-mlops/observability/llmops-observability) and [Inference Gateway Setup Guide](../../reference-architecture/inference-gateway-setup) documents. Cache-related tags are added as span attributes at the application/gateway plugin layer.
 
 ---
 
@@ -334,11 +334,11 @@ Medical/financial/legal domains may require audit log recording even for cache H
 ### Related Documents
 
 - **Implementation Guide**: [Inference Gateway Setup Guide — Semantic Caching Implementation Options](../../reference-architecture/inference-gateway-setup#semantic-caching-implementation-options-advanced) — Tool comparison tables, configuration examples, deployment snippets
-- [Inference Gateway Routing Strategy](../../reference-architecture/inference-gateway-routing)
-- [OpenClaw AI Gateway Deployment](../../reference-architecture/openclaw-ai-gateway.mdx)
-- [LLMOps Observability](../../operations-mlops/llmops-observability)
-- [Milvus Vector Database](../../operations-mlops/milvus-vector-database)
-- [Ragas Evaluation](../../operations-mlops/ragas-evaluation)
+- [Inference Gateway Routing Strategy](../../reference-architecture/inference-gateway/routing-strategy)
+- [OpenClaw AI Gateway Deployment](../../reference-architecture/inference-gateway/openclaw-example.mdx)
+- [LLMOps Observability](../../operations-mlops/observability/llmops-observability)
+- [Milvus Vector Database](../../operations-mlops/data-infrastructure/milvus-vector-database)
+- [Ragas Evaluation](../../operations-mlops/governance/ragas-evaluation)
 
 ### Research & Background
 

@@ -2,21 +2,28 @@
 title: "MoE 모델 서빙 개념 가이드"
 sidebar_label: "MoE 모델 서빙"
 description: "Mixture of Experts 모델의 아키텍처 개념, 분산 배포 전략, 성능 최적화 원리"
-tags: [eks, moe, vllm, model-serving, gpu, mixtral, 'scope:tech']
-category: "genai-aiml"
+created: 2026-02-05
 last_update:
-  date: 2026-04-18
+  date: 2026-04-20
   author: devfloor9
+reading_time: 15
+tags:
+  - eks
+  - moe
+  - vllm
+  - model-serving
+  - gpu
+  - mixtral
+  - inference
+  - architecture
+  - scope:tech
+category: "genai-aiml"
 sidebar_position: 5
 ---
 
 import { RoutingMechanisms, MoeVsDense, GpuMemoryRequirements, ParallelizationStrategies, TensorParallelismConfig, VllmVsTgi, KvCacheConfig, BatchOptimization, MonitoringMetrics, GpuVsTrainium2 } from '@site/src/components/MoeModelTables';
 
-# MoE 모델 서빙 개념 가이드
-
 > **현재 버전**: vLLM v0.18+ / v0.19.x (2026-04 기준)
-
-> **작성일**: 2025-02-09 | **수정일**: 2026-04-06 | **읽는 시간**: 약 6분
 
 ## 개요
 
@@ -25,7 +32,7 @@ Mixture of Experts(MoE) 모델은 대규모 언어 모델의 효율성을 극대
 이 문서에서는 MoE 아키텍처의 핵심 개념, 모델별 리소스 요구사항, 분산 배포 전략을 다룹니다.
 
 :::tip 실전 배포 가이드
-MoE 모델의 EKS 배포 YAML, helm 명령어, 멀티노드 구성 등 실전 배포는 [커스텀 모델 배포 가이드](../../reference-architecture/custom-model-deployment.md)를 참조하세요.
+MoE 모델의 EKS 배포 YAML, helm 명령어, 멀티노드 구성 등 실전 배포는 [커스텀 모델 배포 가이드](../../reference-architecture/model-lifecycle/custom-model-deployment.md)를 참조하세요.
 :::
 
 ---
@@ -422,8 +429,8 @@ sequenceDiagram
 ### 다음 단계
 
 - [GPU 리소스 관리](../gpu-infrastructure/gpu-resource-management.md) - GPU 클러스터 동적 리소스 할당
-- [Inference Gateway 라우팅](../../reference-architecture/inference-gateway-routing.md) - 다중 모델 라우팅 전략
-- [Agentic AI 플랫폼 아키텍처](../../design-architecture/agentic-platform-architecture.md) - 전체 플랫폼 구성
+- [Inference Gateway 라우팅](../../reference-architecture/inference-gateway/routing-strategy.md) - 다중 모델 라우팅 전략
+- [Agentic AI 플랫폼 아키텍처](../../design-architecture/foundations/agentic-platform-architecture.md) - 전체 플랫폼 구성
 
 ---
 

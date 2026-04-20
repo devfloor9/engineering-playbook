@@ -13,7 +13,7 @@ import DocCardList from '@theme/DocCardList';
 
 # Reference Architecture
 
-本节提供 Agentic AI Platform 的**实战部署与配置指南**。概念和设计原则请参阅[文档章节](../design-architecture/agentic-platform-architecture.md)，此处聚焦于实际集群部署和运维所需的具体配置、YAML 清单和验证流程。
+本节提供 Agentic AI Platform 的**实战部署与配置指南**。概念和设计原则请参阅[文档章节](../design-architecture/foundations/agentic-platform-architecture.md)，此处聚焦于实际集群部署和运维所需的具体配置、YAML 清单和验证流程。
 
 :::info Documentation vs Reference Architecture
 | 区分 | Documentation | Reference Architecture |
@@ -217,10 +217,10 @@ graph TD
 
 关于概念和架构设计，请参阅以下文档：
 
-- [Agentic AI Platform 架构](../design-architecture/agentic-platform-architecture.md) — 整体设计原则与组件结构
+- [Agentic AI Platform 架构](../design-architecture/foundations/agentic-platform-architecture.md) — 整体设计原则与组件结构
 - [GPU 资源管理](../model-serving/gpu-infrastructure/gpu-resource-management.md) — Karpenter、KEDA、DRA 基于 GPU 的自动伸缩
 - [vLLM 模型服务](../model-serving/inference-frameworks/vllm-model-serving.md) — vLLM 架构与优化技术
-- [Inference Gateway 路由](../reference-architecture/inference-gateway-routing.md) — kgateway + AI 网关设计
+- [Inference Gateway 路由](../reference-architecture/inference-gateway/routing-strategy.md) — kgateway + AI 网关设计
 
 ---
 

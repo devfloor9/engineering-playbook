@@ -2,11 +2,21 @@
 title: "CRIU 기반 GPU 무중단 마이그레이션 (Preview)"
 sidebar_label: "CRIU GPU Migration"
 description: "Spot reclaim·스케줄링 이벤트 시 GPU 워크로드 checkpoint/restore로 무중단 이관하는 기술 현황과 EKS 적용 가능 시나리오 분석 (Experimental)"
-tags: [criu, gpu, checkpoint, spot, experimental, 'scope:tech']
-sidebar_position: 5
+created: 2026-04-18
 last_update:
-  date: 2026-04-18
+  date: 2026-04-20
   author: devfloor9
+reading_time: 19
+tags:
+  - criu
+  - gpu
+  - checkpoint
+  - spot
+  - experimental
+  - kubernetes
+  - eks
+  - cost-optimization
+  - scope:tech
 ---
 
 :::caution Experimental / Research Preview
@@ -126,17 +136,19 @@ flowchart TB
 | 컴포넌트 | 버전 | 상태 | 비고 |
 |---------|------|------|------|
 | **CRIU** | v4.0+ | Stable | CPU 워크로드는 프로덕션 검증 |
-| **cuda-checkpoint** | alpha/beta | **Experimental** | NVIDIA 공식 도구, GPU 메모리 dump |
-| **nvidia-container-toolkit** | v1.17+ | Beta | CR(checkpoint/restore) 플러그인 포함 |
+| **cuda-checkpoint** | driver 570+ | **Active Development** | NVIDIA Labs, 공식 릴리스 태그 없음, UVM/IPC 메모리 미지원 ([repo](https://github.com/NVIDIA/cuda-checkpoint)) |
+| **nvidia-container-toolkit** | v1.17+ | Experimental | CR(checkpoint/restore) 플러그인 포함 |
 | **runc** | v1.2+ | Alpha | CRIU 통합, GPU CR 지원 |
-| **K8s ContainerCheckpoint API** | 1.30 alpha | **Alpha** | KEP-2008, feature gate 필요 |
-| **EKS 지원** | - | **미지원** | 자체 검증 필요 |
+| **K8s ContainerCheckpoint API** | **1.30 Beta (default enabled)** | **Beta** | KEP-2008, 1.25 Alpha → 1.30 Beta (default `true`). GA 일정 미확정 |
+| **K8s GPU checkpoint 공식 지원** | - | **미지원** | KEP-2008 문서: "external hardware device (GPU, InfiniBand) 접근 시 실패 가능". AMD만 일부 동작 |
+| **EKS 지원** | - | **미지원** | Auto Mode는 feature gate 제어 불가, Standard Mode도 GPU CR 공식 미검증 |
 
-:::warning 성숙도 경고
-- **cuda-checkpoint**: NVIDIA Labs 프로젝트로 beta 이하. 공식 지원 없음
-- **K8s API**: 1.30 alpha, 1.34까지 beta 예상. GA는 1.35+ 전망
-- **EKS**: ContainerCheckpoint API가 feature gate이므로 EKS에서 활성화 여부 불명확
-- **프로덕션 사례**: 공개된 GPU CRIU 프로덕션 사례 없음 (2026.04 기준)
+:::warning 성숙도 경고 (2026-04-20 재검증)
+- **cuda-checkpoint**: NVIDIA Labs 프로젝트, GitHub에 tagged release 없음. driver 570+에서 "actively developed" 상태 명시. UVM·IPC 메모리 미지원, x64 전용
+- **K8s ContainerCheckpoint API**: 1.25 Alpha → **1.30 Beta (default enabled)**. GA 일정은 Kubernetes enhancements 트래커에 확정 공지 없음 (2026-04 기준)
+- **K8s KEP-2008 자체 주석**: "Checkpointing anything with access to an external hardware device like a GPU or InfiniBand can fail" — **NVIDIA GPU는 공식 지원 안 됨**, AMD만 일부 동작
+- **EKS**: Auto Mode는 feature gate 제어 불가. Standard Mode에서도 GPU CR은 AWS 공식 문서화 없음
+- **프로덕션 사례**: 공개된 대규모 LLM GPU CRIU 프로덕션 사례 없음 (2026-04 기준)
 :::
 
 ### 기술 스택 상세
@@ -166,7 +178,7 @@ flowchart TB
 #### K8s ContainerCheckpoint API (KEP-2008)
 
 ```yaml
-# K8s 1.30+ (alpha, feature gate 필요)
+# K8s 1.30+ (Beta, feature gate default enabled)
 apiVersion: v1
 kind: Pod
 metadata:
@@ -193,10 +205,11 @@ kubectl checkpoint create <pod-name> \
 kubectl apply -f pod-restore.yaml  # checkpoint 경로 참조
 ```
 
-:::caution K8s API 제약
-- 1.30: alpha, feature gate `ContainerCheckpoint=true` 필요
-- EKS Auto Mode: feature gate 제어 불가 → 사용 불가
-- EKS Standard Mode: kube-apiserver/kubelet flag 수정 필요
+:::caution K8s API 제약 (2026-04-20 재검증)
+- 1.30: **Beta, default enabled** — 별도 feature gate 활성화 불필요 (단, CRI-O 기본, containerd는 부분 지원)
+- GPU 체크포인트: KEP-2008 공식 미지원 (AMD 제한적, NVIDIA는 cuda-checkpoint + nvidia-container-toolkit CR 플러그인 별도 구성 필요)
+- EKS Auto Mode: containerd 기반이며 kubelet/container runtime 튜닝 제한 → 사실상 사용 불가
+- EKS Standard Mode: CRI-O 교체 + Custom AMI + 드라이버 고정이 현실적 경로, AWS 공식 지원 없음
 :::
 
 ---
@@ -544,18 +557,18 @@ Replica 1 Spot reclaim:
 
 ## 6. 로드맵과 검증 포인트
 
-### CNCF/Kubernetes 커뮤니티 동향
+### CNCF/Kubernetes 커뮤니티 동향 (2026-04-20 재검증)
 
-| 시기 | 주요 이정표 | 상태 |
-|------|-----------|------|
-| K8s 1.30 | ContainerCheckpoint API alpha | 완료 (2024.04) |
-| K8s 1.32 | ContainerCheckpoint API beta | 예상 (2024.12) |
-| K8s 1.34 | ContainerCheckpoint API GA | 예상 (2025.08) |
-| K8s 1.35 | GPU checkpoint 공식 지원 | 희망 (2026.02) |
-| **2026.04** | **현재 위치** | **Alpha/Beta 혼재** |
+| 시기 | 주요 이정표 | 실제 상태 |
+|------|-----------|---------|
+| K8s 1.25 | ContainerCheckpoint API **Alpha** | 완료 |
+| K8s 1.30 | ContainerCheckpoint API **Beta (default enabled)** | 완료 |
+| K8s 1.31+ | GA 승격 | **일정 미확정** (enhancements 트래커에 target milestone 공지 없음) |
+| - | KEP-2008 내 GPU 공식 지원 | **미포함** — "external hardware device checkpoint는 실패 가능" 명시 |
+| **2026.04** | **현재 위치** | **Beta (CPU), GPU는 NVIDIA Labs 실험적 구현만 존재** |
 
 :::info CNCF WG 활동
-CNCF Batch Working Group과 AI Working Group에서 GPU checkpoint를 논의 중입니다. 그러나 공식 KEP는 아직 없으며, nvidia-container-toolkit의 실험적 구현만 존재합니다.
+CNCF Batch Working Group과 AI Working Group에서 GPU checkpoint를 논의 중이지만, **GPU 전용 KEP는 상정되지 않았습니다**. 현실적 진전은 nvidia-container-toolkit CR 플러그인(experimental)과 cuda-checkpoint(driver 570+, tagged release 없음)의 조합뿐입니다. LLM 서빙 워크로드(TP>1, NVLink 의존) 체크포인트는 별도 KEP가 필요한 상황입니다.
 :::
 
 ### 자체 검증 체크리스트

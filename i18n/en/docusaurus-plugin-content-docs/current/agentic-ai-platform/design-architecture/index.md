@@ -17,35 +17,35 @@ This section guides you through understanding the Agentic AI Platform architectu
 
 <DocCardGrid columns={2}>
   <DocCard
-    to="/docs/agentic-ai-platform/design-architecture/agentic-platform-architecture"
+    to="/docs/agentic-ai-platform/design-architecture/foundations/agentic-platform-architecture"
     icon="🏗️"
     title="Platform Architecture"
     description="The 6 core layers of the Agentic AI Platform (Client, Gateway, Agent, Model Serving, Data, Observability) and design principles. Presents an implementation-agnostic platform blueprint."
     color="#667eea"
   />
   <DocCard
-    to="/docs/agentic-ai-platform/design-architecture/agentic-ai-challenges"
+    to="/docs/agentic-ai-platform/design-architecture/foundations/agentic-ai-challenges"
     icon="⚡"
     title="Technical Challenges"
     description="GPU resource management, inference routing, LLMOps observability, agent orchestration, model supply chain — analysis of the 5 key challenges faced when building the platform."
     color="#f59e0b"
   />
   <DocCard
-    to="/docs/agentic-ai-platform/design-architecture/aws-native-agentic-platform"
+    to="/docs/agentic-ai-platform/design-architecture/platform-selection/aws-native-agentic-platform"
     icon="☁️"
     title="AWS Native Platform"
     description="A managed service approach using Amazon Bedrock, Strands Agents SDK, and AgentCore to focus on agent development without GPU management. Optimal for quick starts."
     color="#ff9900"
   />
   <DocCard
-    to="/docs/agentic-ai-platform/design-architecture/agentic-ai-solutions-eks"
+    to="/docs/agentic-ai-platform/design-architecture/platform-selection/agentic-ai-solutions-eks"
     icon="🔧"
     title="EKS-Based Open Architecture"
     description="Self-hosting open weight models with Amazon EKS Auto Mode + open-source ecosystem, enabling hybrid architecture and fine-grained GPU cost optimization."
     color="#10b981"
   />
   <DocCard
-    to="/docs/agentic-ai-platform/reference-architecture/inference-gateway-routing"
+    to="/docs/agentic-ai-platform/reference-architecture/inference-gateway/routing-strategy"
     icon="🔀"
     title="Inference Gateway & Cascade Routing"
     description="kgateway + Bifrost/LiteLLM 2-Tier architecture, Complexity-based Cascade Routing (LiteLLM native, Bifrost CEL Rules, vLLM Semantic Router), Hybrid Routing patterns, agentgateway MCP/A2A."

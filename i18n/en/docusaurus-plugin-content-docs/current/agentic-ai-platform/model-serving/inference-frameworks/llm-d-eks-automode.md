@@ -38,7 +38,7 @@ llm-d is an Apache 2.0-licensed Kubernetes-native distributed inference stack le
 While existing vLLM deployments rely on simple Round-Robin load balancing, llm-d delivers intelligent routing that is KV Cache state-aware, forwarding requests with identical prefixes to Pods that already hold the corresponding KV Cache. This significantly reduces Time To First Token (TTFT) and saves GPU computation.
 
 :::tip Production Deployment Guide
-For llm-d EKS deployment YAML, helmfile commands, and cluster creation, see the [Custom Model Deployment Guide](../reference-architecture/custom-model-deployment.md).
+For llm-d EKS deployment YAML, helmfile commands, and cluster creation, see the [Custom Model Deployment Guide](../reference-architecture/model-lifecycle/custom-model-deployment.md).
 :::
 
 :::warning llm-d Inference Gateway =/= General-purpose Gateway API Implementation

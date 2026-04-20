@@ -2,16 +2,22 @@
 title: "모델 서빙 & 추론 인프라"
 sidebar_label: "모델 서빙 & 추론 인프라"
 description: "GPU 인프라 계층과 추론·학습 프레임워크 계층으로 나뉜 모델 서빙 가이드"
-tags: [model-serving, gpu, vllm, llm-d, inference, eks, 'scope:tech']
-sidebar_position: 2
+created: 2026-03-06
 last_update:
-  date: 2026-04-17
-  author: YoungJoon Jeong
+  date: 2026-04-20
+  author: devfloor9
+reading_time: 1
+tags:
+  - model-serving
+  - gpu
+  - vllm
+  - llm-d
+  - inference
+  - eks
+  - scope:tech
 ---
 
 import { DocCard, DocCardGrid } from '@site/src/components/DocCards';
-
-# 모델 서빙 & 추론 인프라
 
 GPU/가속기 위에서 LLM 을 배포하고 서빙하는 방법을 두 계층으로 나누어 다룹니다.
 

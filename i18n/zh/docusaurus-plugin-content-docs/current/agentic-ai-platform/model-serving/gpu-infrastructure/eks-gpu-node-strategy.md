@@ -793,8 +793,8 @@ Karpenter、KEDA、DRA 基于 GPU 自动伸缩策略请参阅以下文档。
 
 GPU 工作负载的实战部署 YAML、安全策略（Pod Security Standards、NetworkPolicy、IAM）、故障排除指南请参阅 Reference Architecture。
 
-- **[Reference Architecture: GPU 基础设施](../reference-architecture/custom-model-deployment.md)** - GPU 安全、故障排除、部署指南
+- **[Reference Architecture: GPU 基础设施](../reference-architecture/model-lifecycle/custom-model-deployment.md)** - GPU 安全、故障排除、部署指南
 
 ### 平台架构
 
-- **[EKS 开放架构](../design-architecture/agentic-ai-solutions-eks.md)** - 完整 Agentic AI 平台架构
+- **[EKS 开放架构](../design-architecture/platform-selection/agentic-ai-solutions-eks.md)** - 完整 Agentic AI 平台架构

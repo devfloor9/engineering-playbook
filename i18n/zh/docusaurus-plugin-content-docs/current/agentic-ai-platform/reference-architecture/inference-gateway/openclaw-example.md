@@ -1,0 +1,31 @@
+---
+title: "OpenClaw AI Agent Gateway 部署与 Full Observability"
+sidebar_label: "OpenClaw AI Gateway"
+description: "在 EKS 上成本优化部署 OpenClaw AI Agent Gateway，通过 Bifrost Auto-Router + Cilium Hubble + Langfuse 实现 Full Observability"
+tags: [eks, openclaw, bifrost, langfuse, cilium, hubble, bedrock, graviton, pod-identity, observability]
+category: "genai-aiml"
+sidebar_position: 5
+last_update:
+  date: 2026-02-25
+  author: devfloor9
+---
+
+# OpenClaw AI Agent Gateway 部署与 Full Observability
+
+> 📅 **创建日期**：2026-02-25 | ⏱️ **阅读时间**：约 15 分钟
+
+## 概述
+
+OpenClaw（226k+ GitHub stars）是通用 AI Agent 框架，提供利用多种 LLM 的自主 Agent 工作流。AWS 提供的 `aws-samples/sample-OpenClaw-on-AWS-with-Bedrock` 示例是基于 EC2 + CloudFormation 的快速启动指南，以单一实例连接一个 Bedrock 模型的简单配置。对于原型开发或个人使用足够，但企业环境需要不同方法。
+
+本文档在**现有 EKS 集群上部署 OpenClaw**，结合多模型路由和 3 层可观测性构建可用于生产运营的架构。
+
+| | EC2 单独部署 | EKS 部署（本文档）|
+|---|---|---|
+| **基础设施** | EC2 + CloudFormation、实例级管理 | 在现有 EKS 集群添加 Pod、Karpenter 自动伸缩 |
+| **LLM 集成** | Bedrock 单一模型 | Bifrost Auto-Router → 基于查询内容的 Bedrock 多模型（Claude/GLM/Solar）|
+| **可观测性** | CloudWatch 基本指标 | 3 层：网络（Hubble）+ LLM（Langfuse）+ 系统（OTEL/Prometheus）|
+| **成本控制** | 实例大小调整 | Graviton4 ARM + Spot + 语义缓存 + 预算控制 |
+| **可扩展性** | 手动伸缩 | HPA/Karpenter 自动伸缩、Spot 实例原生中断应对 |
+
+本文档的详细内容（Helm 配置、Bifrost Auto-Router 设置、Hubble 网络可观测性、Langfuse 集成等）由于篇幅原因请参阅[韩文原文](/docs/agentic-ai-platform/reference-architecture/inference-gateway/openclaw-example)。

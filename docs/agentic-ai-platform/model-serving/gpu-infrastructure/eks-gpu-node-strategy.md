@@ -2,16 +2,24 @@
 title: "EKS GPU 노드 전략"
 sidebar_label: "EKS GPU 노드 전략"
 description: "EKS Auto Mode, Karpenter, MNG, Hybrid Node의 GPU 워크로드별 최적 노드 전략"
-tags: [eks, gpu, auto-mode, karpenter, hybrid-node, gpu-operator, 'scope:tech']
-sidebar_position: 1
+created: 2026-03-16
 last_update:
-  date: 2026-04-17
-  author: YoungJoon Jeong
+  date: 2026-04-20
+  author: devfloor9
+reading_time: 25
+tags:
+  - eks
+  - gpu
+  - auto-mode
+  - karpenter
+  - hybrid-node
+  - gpu-operator
+  - deployment
+  - architecture
+  - scope:tech
 ---
 
-# EKS GPU 노드 전략
-
-## 1. 개요
+## 개요
 
 EKS에서 GPU 워크로드를 운영할 때 노드 타입 선택은 운영 복잡도, 비용, 기능 활용도에 직접적인 영향을 미칩니다. GPU 추론과 훈련 워크로드는 일반 컨테이너 워크로드와 달리 다음과 같은 특수한 요구사항을 가집니다:
 
@@ -837,8 +845,8 @@ Karpenter, KEDA, DRA 기반 GPU 오토스케일링 전략은 다음을 참조하
 
 GPU 워크로드의 실전 배포 YAML, 보안 정책 (Pod Security Standards, NetworkPolicy, IAM), 트러블슈팅 가이드는 Reference Architecture를 참조하세요.
 
-- **[Reference Architecture: GPU 인프라](../../reference-architecture/custom-model-deployment.md)** - GPU 보안, 트러블슈팅, 배포 가이드
+- **[Reference Architecture: GPU 인프라](../../reference-architecture/model-lifecycle/custom-model-deployment.md)** - GPU 보안, 트러블슈팅, 배포 가이드
 
 ### 플랫폼 아키텍처
 
-- **[EKS 기반 오픈 아키텍처](../../design-architecture/agentic-ai-solutions-eks.md)** - 전체 Agentic AI 플랫폼 아키텍처
+- **[EKS 기반 오픈 아키텍처](../../design-architecture/platform-selection/agentic-ai-solutions-eks.md)** - 전체 Agentic AI 플랫폼 아키텍처

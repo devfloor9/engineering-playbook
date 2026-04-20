@@ -1,0 +1,475 @@
+---
+title: "OpenClaw AI Agent Gateway 배포 및 Full Observability"
+sidebar_label: "OpenClaw AI Gateway"
+description: "OpenClaw AI 에이전트 게이트웨이를 EKS에 비용 최적화 배포하고, Bifrost Auto-Router + Cilium Hubble + Langfuse로 Full Observability 구현"
+created: 2026-03-06
+last_update:
+  date: 2026-04-20
+  author: devfloor9
+reading_time: 1
+tags: [eks, openclaw, bifrost, langfuse, cilium, hubble, bedrock, graviton, pod-identity, observability, 'scope:impl']
+category: "genai-aiml"
+sidebar_position: 5
+---
+
+## 개요
+
+OpenClaw(226k+ GitHub stars)은 범용 AI 에이전트 프레임워크로, 다양한 LLM을 활용한 자율 에이전트 워크플로우를 제공합니다. AWS에서는 `aws-samples/sample-OpenClaw-on-AWS-with-Bedrock` 샘플이 EC2 + CloudFormation 기반의 빠른 시작 가이드를 제공하며, 단일 인스턴스에서 Bedrock 모델 하나를 연동하는 간단한 구성입니다. 프로토타이핑이나 개인 사용에는 충분하지만, 엔터프라이즈 환경에서는 다른 접근이 필요합니다.
+
+이 문서에서는 **기존 EKS 클러스터 위에 OpenClaw을 배포**하고, 멀티 모델 라우팅과 3계층 관측성을 결합하여 프로덕션 운영이 가능한 구조를 구성합니다.
+
+| | EC2 단독 배포 | EKS 기반 배포 (본 문서) |
+|---|---|---|
+| **인프라** | EC2 + CloudFormation, 인스턴스 단위 관리 | 기존 EKS 클러스터에 Pod 추가, Karpenter 자동 스케일링 |
+| **LLM 연동** | Bedrock 단일 모델 | Bifrost Auto-Router → 질의 내용 기반 Bedrock 멀티 모델 (Claude/GLM/Solar) |
+| **관측성** | CloudWatch 기본 메트릭 | 3-Layer: 네트워크(Hubble) + LLM(Langfuse) + 시스템(OTEL/Prometheus) |
+| **비용 제어** | 인스턴스 크기 조절 | Graviton4 ARM + Spot + 시맨틱 캐싱 + 예산 제어 |
+| **확장성** | 수동 스케일링 | HPA/Karpenter 자동 스케일링, Spot 인스턴스 네이티브 중단 대응 |
+
+### 관련 문서
+
+| 문서 | 내용 | 관계 |
+|------|------|------|
+| [Inference Gateway](../reference-architecture/inference-gateway/routing-strategy.md) | Kgateway 기반 라우팅 | 이론적 기반 |
+| [Agent 모니터링](../operations-mlops/observability/agent-monitoring.md) | Langfuse/LangSmith 모니터링 | 모니터링 이론 |
+| **17. OpenClaw AI Gateway** (본 문서) | OpenClaw 실전 배포 + Full o11y | **실습 구현** |
+
+---
+
+## 아키텍처 설계
+
+이 구성은 6가지 핵심 설계 결정을 바탕으로, 엔터프라이즈 환경에서 요구하는 **비용 효율성**, **관측 가능성**, **운영 자동화**를 동시에 달성합니다.
+
+import OpenClawArchitecture from '@site/src/components/OpenClawArchitecture';
+
+<OpenClawArchitecture />
+
+### 핵심 설계 결정 요약
+
+이 아키텍처의 각 계층은 다음과 같은 설계 결정에 기반합니다:
+
+| 결정 영역 | 선택 | 대안 | 핵심 근거 |
+|-----------|------|------|-----------|
+| **호스팅 플랫폼** | EKS | EC2 단독 / AgentCore | Karpenter 자동 스케일링, o11y 스택 자유도, Spot/Graviton 조합 가능. AgentCore는 Experimental 단계로 cron 미지원, o11y 커스터마이징 제한 |
+| **LLM Gateway** | Bifrost Proxy | LiteLLM / llm-d | Bedrock 멀티 모델 구조에 최적. Rust 기반 50x 빠른 성능, 100+ 프로바이더, 예산 제어, `success_callback: ["langfuse"]` 한 줄 연동. 자체 vLLM 추가 시 `Bifrost → llm-d → vLLM` 하이브리드 가능. LiteLLM은 대안으로 사용 가능 |
+| **LLM Observability** | Langfuse (self-hosted) | Tempo / Loki | LLM 네이티브: 토큰 사용량, 비용, 도구 호출 체인, 프롬프트/완료 내용 추적. Tempo/Loki는 범용 인프라 o11y로 프롬프트 수준 추적 불가 |
+| **Network Observability** | Cilium Hubble (ENI 모드) | CW Network Flow Monitor | L3/L4/L7 가시성(HTTP 경로, 상태코드, DNS), 인터랙티브 서비스맵, $0. CW NFM은 L3/L4만 지원하며 $20-45/월 |
+| **IAM 인증** | EKS Pod Identity | IRSA | OIDC provider 불필요, `aws eks create-pod-identity-association` 한 줄로 매핑 |
+| **컴퓨팅** | Graviton4 M8g + Spot | x86 On-Demand | ARM64 20-40% 저렴, Spot 추가 절감, Karpenter 네이티브 중단 대응 |
+
+---
+
+## Technology Stack
+
+### Compute
+
+OpenClaw(TypeScript/Node.js)과 Bifrost(Rust)는 ARM64 완전 호환이며, multi-arch 이미지를 사용합니다.
+
+| 항목 | 구성 | 상세 |
+|------|------|------|
+| **인스턴스** | Graviton4 **M8g** | GA, x86 대비 20-40% 비용 절감, 에너지 효율 60% 향상 |
+| **향후 전환** | Graviton5 **M9g** | M8g 대비 25% 성능 향상, 2026 GA 예정. GA 후 전환 시 동일 비용에서 추가 성능 확보 |
+| **구매 옵션** | **Spot Instance** 우선 | On-Demand 대비 60-90% 절감. Karpenter v1.2+ 네이티브 중단 대응 + NMA 노드 건강 감시 |
+
+#### Spot Instance 안정 운영
+
+OpenClaw 게이트웨이는 상태 비저장(stateless) 워크로드이므로 Spot Instance에 적합합니다. 안정 운영을 위해 3가지 계층을 조합합니다:
+
+| 계층 | 도구 | 역할 |
+|------|------|------|
+| **Spot 중단 대응** | Karpenter v1.2+ | 2분 전 경고 감지 → 대체 노드 프로비저닝 → Pod 재스케줄링 |
+| **노드 건강 감시** | NMA (EKS Add-on) | 커널/containerd/디스크/네트워크 이상 감지 → Node Condition 업데이트 |
+| **자동 복구** | Node Auto Repair | NMA가 보고한 비정상 노드 자동 교체 |
+
+Karpenter NodePool, EC2NodeClass, NMA 설정은 [5.1 Infrastructure](#51-infrastructure)에서 상세히 다룹니다.
+
+**Pod 설정 — graceful shutdown + AZ 분산:**
+
+```yaml
+spec:
+  terminationGracePeriodSeconds: 120  # 진행 중 LLM 응답 완료 대기
+  topologySpreadConstraints:
+    - maxSkew: 1
+      topologyKey: topology.kubernetes.io/zone
+      whenUnsatisfiable: DoNotSchedule
+      labelSelector:
+        matchLabels:
+          app: openclaw-gateway
+```
+
+`terminationGracePeriodSeconds: 120`으로 Spot 중단 시 진행 중인 LLM 응답이 완료될 시간을 확보하고, `topologySpreadConstraints`로 AZ 간 Pod를 분산하여 단일 AZ 장애에 대비합니다.
+
+### LLM Models — Content-Based Routing
+
+| 질의 유형 | 모델 | 프로바이더 | 근거 |
+|-----------|------|-----------|------|
+| 범용 (기본) | **Claude Sonnet 4.6** | Bedrock | 1M context, 최고 에이전트 성능 |
+| 코딩 / 프로그래밍 | **GLM-4.7** | Bedrock | 102B MoE, 코드 생성 최적화 |
+| 한국어 / 한국 관련 | **Solar Pro 3** | Bedrock | 128K context, 한국어 최적화, MoE 12B active |
+
+### Networking
+
+| Component | Technology |
+|-----------|-----------|
+| CNI | Cilium (ENI 모드) |
+| Service Map | Hubble UI + Grafana |
+| Bedrock 연결 | VPC Endpoint (`com.amazonaws.<region>.bedrock-runtime`) |
+
+### Observability (3-Layer)
+
+| Layer | Tool | Tracks |
+|-------|------|--------|
+| **Network** | Cilium Hubble | L7 HTTP 흐름, DNS, 서비스맵 |
+| **LLM** | Langfuse | 프롬프트/응답, 토큰 비용, 도구 호출 체인 |
+| **System** | OTEL → Prometheus/Grafana | CPU, 메모리, Pod 헬스, 커스텀 메트릭 |
+
+---
+
+## Cost Analysis
+
+| 항목 | 예상 월 비용 |
+|------|-------------|
+| Gateway + Bifrost (ARM) | ~$30 |
+| Bedrock API (Claude/GLM/Solar) | ~$15-40 |
+| Langfuse (self-hosted) | ~$10 |
+| Redis (캐시) | ~$5 |
+| Cilium + Hubble | $0 |
+| Prometheus/Grafana | $0 (기존 스택) |
+| **합계** | **$60-85/월** |
+
+### 비용 최적화 전략
+
+| Strategy | Detail | Savings |
+|----------|--------|---------|
+| Graviton4 ARM | x86 대비 | 20-40% |
+| Spot Instance | On-Demand 대비, Karpenter 네이티브 중단 대응 | 60-90% (컴퓨팅) |
+| Auto-Router | 특화 모델 라우팅으로 비용/품질 최적화 | 모델별 최적 |
+| 시맨틱 캐싱 | Redis 기반, 동일/유사 요청 캐시 | 반복 요청 ~90% |
+| 예산 제어 | 가상 키별 월 예산, rate limiting | 과금 방지 |
+| VPC Endpoint | Bedrock NAT Gateway 비용 제거 | 데이터 전송비 절감 |
+
+---
+
+## Deployment Guide
+
+### 5.1 Infrastructure
+
+#### EKS 클러스터 사전 요구사항
+
+| 요구사항 | 상세 |
+|----------|------|
+| EKS 버전 | 1.30+ |
+| Karpenter | v1.0+ (Spot 네이티브 중단 대응 포함) |
+| EKS Add-ons | Pod Identity Agent, EKS Node Monitoring Agent |
+| VPC | Bedrock VPC Endpoint (`com.amazonaws.<region>.bedrock-runtime`) |
+| CNI | Cilium ENI 모드 (Hubble L7 가시성 필요 시) 또는 VPC CNI |
+
+신규 클러스터 생성 시 EKS Auto Mode를 권장합니다. 기존 클러스터가 있다면 위 요구사항만 충족하면 됩니다.
+
+#### Karpenter — 비용 최적화 노드 구성
+
+Graviton4 M8g Spot 우선 구성으로 컴퓨팅 비용을 최소화합니다.
+
+```yaml
+# EC2NodeClass — Graviton4 ARM64 노드 설정
+apiVersion: karpenter.k8s.aws/v1
+kind: EC2NodeClass
+metadata:
+  name: openclaw-arm64
+spec:
+  role: "KarpenterNodeRole-${CLUSTER_NAME}"
+  amiSelectorTerms:
+    - alias: al2023@latest     # Amazon Linux 2023, ARM64 자동 선택
+  subnetSelectorTerms:
+    - tags:
+        karpenter.sh/discovery: "${CLUSTER_NAME}"
+  securityGroupSelectorTerms:
+    - tags:
+        karpenter.sh/discovery: "${CLUSTER_NAME}"
+  blockDeviceMappings:
+    - deviceName: /dev/xvda
+      ebs:
+        volumeSize: 30Gi
+        volumeType: gp3
+        deleteOnTermination: true
+```
+
+```yaml
+# NodePool — Graviton 4세대 이상 전체, Spot 우선, On-Demand 폴백
+apiVersion: karpenter.sh/v1
+kind: NodePool
+metadata:
+  name: openclaw-gateway
+spec:
+  template:
+    metadata:
+      labels:
+        workload-type: ai-gateway
+    spec:
+      requirements:
+        - key: kubernetes.io/arch
+          operator: In
+          values: ["arm64"]
+        - key: karpenter.sh/capacity-type
+          operator: In
+          values: ["spot", "on-demand"]  # Spot 우선, 가용 시
+        - key: karpenter.k8s.aws/instance-generation
+          operator: Gt
+          values: ["3"]                   # 4세대 이상 → m8g, c8g, r8g, m9g 등 모두 포함
+        - key: karpenter.k8s.aws/instance-size
+          operator: In
+          values: ["medium", "large"]
+      nodeClassRef:
+        group: karpenter.k8s.aws
+        kind: EC2NodeClass
+        name: openclaw-arm64
+  disruption:
+    consolidationPolicy: WhenEmptyOrUnderutilized
+    budgets:
+      - nodes: "1"  # 한 번에 최대 1개 노드만 축출 → 가용성 보장
+  limits:
+    cpu: "8"        # 최대 8 vCPU — 비용 상한
+    memory: 16Gi
+```
+
+:::tip Graviton 세대 자동 전환
+`instance-family`를 특정하지 않고 `instance-generation: Gt "3"` + `arch: arm64`로 지정했으므로, Graviton 4세대 이상의 **모든 패밀리**(m8g, c8g, r8g, m9g 등)가 후보에 포함됩니다. 새로운 Graviton 세대가 GA 되면 NodePool 수정 없이 Karpenter가 가격/성능 기준으로 최적 인스턴스를 자동 선택합니다.
+:::
+
+#### Node Monitoring Agent — 노드 건강 상태 감시
+
+Karpenter는 Spot 중단 이벤트에 대응하지만, **노드 자체의 시스템 레벨 이상**(커널 문제, containerd 장애, 디스크/네트워크 이상 등)은 감지하지 않습니다. EKS Node Monitoring Agent(NMA)를 EKS Add-on으로 활성화하면 이 영역을 보완합니다.
+
+| 감지 영역 | Karpenter | NMA |
+|-----------|-----------|-----|
+| Spot 중단 2분 전 경고 | **감지 + 대체 노드 프로비저닝** | - |
+| 커널/containerd 장애 | - | **감지 → Node Condition 업데이트** |
+| 디스크/네트워크 이상 | - | **감지 → Kubernetes Event 생성** |
+| Node Auto Repair 연동 | - | **비정상 노드 자동 교체 트리거** |
+
+```bash
+# NMA EKS Add-on 활성화
+aws eks create-addon \
+  --cluster-name ${CLUSTER_NAME} \
+  --addon-name eks-node-monitoring-agent
+```
+
+Karpenter(Spot 중단 대응) + NMA(노드 건강 감시) + Node Auto Repair(자동 교체)를 조합하면, Spot 인스턴스 환경에서도 높은 가용성을 확보할 수 있습니다.
+
+#### IAM — EKS Pod Identity
+
+```bash
+# Pod Identity Agent add-on 활성화 후:
+aws eks create-pod-identity-association \
+  --cluster-name ${CLUSTER_NAME} \
+  --namespace openclaw \
+  --service-account openclaw-sa \
+  --role-arn arn:aws:iam::${ACCOUNT_ID}:role/openclaw-bedrock-role
+```
+
+IAM Role에 필요한 권한:
+
+- `bedrock:InvokeModel`
+- `bedrock:InvokeModelWithResponseStream`
+
+OpenClaw과 Bifrost는 동일한 ServiceAccount를 사용합니다.
+
+### 5.2 Bifrost AI Gateway
+
+#### Config — 멀티 모델 + Auto-Router
+
+```yaml
+model_list:
+  - model_name: claude-sonnet
+    litellm_params:
+      model: bedrock/anthropic.claude-sonnet-4-6
+
+  - model_name: glm-4.7
+    litellm_params:
+      model: bedrock/zhipu.glm-4.7
+
+  - model_name: solar-pro-3
+    litellm_params:
+      model: bedrock/upstage.solar-pro-3
+
+router_settings:
+  routing_strategy: "content-based"
+  auto_router:
+    encoder_type: openai
+    encoder_name: text-embedding-3-small
+    routes:
+      - name: korean-queries
+        model: solar-pro-3
+        utterances:
+          - "한국어로 답변해줘"
+          - "한국 관련 질문"
+          - "Korean language query"
+          - "한국 뉴스"
+          - "한국어 번역"
+        description: "한국어 질의 또는 한국 관련 질의"
+        score_threshold: 0.5
+      - name: coding-queries
+        model: glm-4.7
+        utterances:
+          - "write code"
+          - "debug this function"
+          - "코드 작성해줘"
+          - "프로그래밍"
+          - "fix this bug"
+        description: "코딩, 프로그래밍, 디버깅 관련 질의"
+        score_threshold: 0.5
+    default_route: claude-sonnet
+
+litellm_settings:
+  cache: true
+  cache_params:
+    type: redis
+    host: redis
+    port: 6379
+  success_callback: ["langfuse"]
+  failure_callback: ["langfuse"]
+
+general_settings:
+  master_key: os.environ/LITELLM_MASTER_KEY
+```
+
+#### Secrets 생성
+
+```bash
+kubectl create secret generic bifrost-secrets \
+  --from-literal=BIFROST_MASTER_KEY=<your-master-key>
+```
+
+모든 모델이 Bedrock를 통해 호출되므로 별도의 API 키가 불필요합니다. IAM 인증은 EKS Pod Identity를 통해 자동으로 처리됩니다.
+
+- Redis sidecar: Auto-Router 임베딩 캐시 + 시맨틱 캐시
+- Service: ClusterIP (port 4000, OpenAI-compatible API)
+
+:::tip Semantic Cache 설계 원칙
+위 구성은 LiteLLM `cache: true` + Redis 기반의 실전 예시입니다. 유사도 임계값 선택, 캐시 키 설계(멀티테넌트 namespace), PII 안전 처리, 관측성 지표 등 전반적인 설계 원칙은 [Semantic Caching 전략](../model-serving/inference-frameworks/semantic-caching-strategy.md) 문서를 참조하세요.
+:::
+
+### 5.3 OpenClaw Gateway
+
+#### Deployment
+
+- Image: `ghcr.io/openclaw/openclaw:latest`
+- Resources: 512Mi memory, 250m CPU
+- NodeSelector: `kubernetes.io/arch: arm64`
+- Service: ClusterIP (port 18789)
+
+#### Config (`openclaw.json`)
+
+```json
+{
+  "ai": {
+    "provider": "openai",
+    "baseUrl": "http://bifrost-proxy:4000",
+    "model": "claude-sonnet"
+  },
+  "diagnostics": {
+    "enabled": true,
+    "otel": {
+      "enabled": true,
+      "endpoint": "http://otel-collector:4317",
+      "serviceName": "openclaw-gateway",
+      "traces": true,
+      "metrics": true,
+      "logs": true
+    }
+  }
+}
+```
+
+### 5.4 Cilium CNI (ENI 모드) + Hubble
+
+**Cilium ENI 모드** — VPC CNI 완전 대체, 단일 eBPF 데이터패스
+
+- Pod IP를 ENI에서 직접 할당
+- 완전한 NetworkPolicy 지원
+- 최적 성능의 단일 데이터패스
+
+**Hubble UI** 기능:
+
+- 인터랙티브 서비스맵: Pod 간 HTTP 요청 흐름 시각화
+- L7 HTTP 흐름: `POST /v1/chat/completions → 200 OK (320ms)` 확인
+- DNS 쿼리 추적: 어떤 외부 API를 호출하는지 실시간 확인
+- Hubble Grafana 대시보드: Prometheus 메트릭 연동
+- 비용: **$0**
+
+### 5.5 LLM Observability (Langfuse)
+
+- Langfuse self-hosted Helm chart (PostgreSQL + Langfuse server)
+- Bifrost `success_callback: ["langfuse"]`로 자동 연동
+
+**추적 항목:**
+
+- 프롬프트/완료 내용
+- 토큰 사용량
+- 모델별 비용
+- 도구 호출 체인
+- 지연시간
+
+### 5.6 System Observability (OTEL + Prometheus/Grafana)
+
+- **OTEL Collector**: Receivers OTLP (gRPC :4317), Exporters Prometheus
+- 기존 kube-prometheus-stack이 있으면 재활용, 없으면 Helm으로 신규 배포
+- OpenClaw 메트릭: `openclaw.tokens`, `openclaw.cost.usd`, `openclaw.run.duration_ms`, `openclaw.message.*`
+
+---
+
+## Dashboards & Alerts
+
+### Langfuse (LLM 수준)
+
+- **Agent Trace Explorer**: 메시지 → LLM 호출 → 도구 실행 → 응답 체인
+- **Token Usage**: 모델별/시간별 토큰 소비
+- **Cost Analytics**: 일별/주별 비용 트렌드
+- **Prompt/Completion Inspector**: 실제 입출력 확인
+
+### Hubble (네트워크 수준)
+
+- **인터랙티브 서비스맵**: Pod 간 HTTP 요청 흐름
+- **L7 가시성**: `POST /v1/chat/completions → 200 OK (320ms)`
+- **DNS 쿼리 추적**: 어떤 외부 API를 호출하는지
+
+### Grafana (시스템 수준)
+
+- **Gateway Health**: 업타임, 연결 수, 메모리, CPU
+- **Bifrost**: 캐시 히트율, 요청 처리량, 지연시간
+- **Pod/Node 리소스 사용량**
+
+### Alert Rules
+
+| Alert | Condition |
+|-------|-----------|
+| 예산 초과 임박 | Bifrost budget > 80% |
+| Gateway 다운 | Pod restart > 3 in 5min |
+| LLM 응답 지연 | Latency > 5s |
+| 캐시 히트율 급락 | Cache hit < 30% |
+| 에러율 | Error rate > 5% |
+
+---
+
+## Verification Checklist
+
+| # | Check | Command / Action |
+|---|-------|-----------------|
+| 1 | 모든 Pod Running | `kubectl get pods` |
+| 2 | Gateway 상태 | `openclaw status` (port-forward 후) |
+| 3 | Auto-Router 라우팅 | Bifrost UI에서 모델 목록 + 라우팅 확인 |
+| 4 | 서비스맵 | Hubble UI에서 Pod 간 HTTP 흐름 확인 |
+| 5 | LLM trace | Langfuse UI에서 프롬프트→도구→응답 trace |
+| 6 | 시스템 메트릭 | Grafana 대시보드 확인 |
+| 7 | Bedrock 감사 | CloudTrail 로그 확인 |
+| 8 | 라우팅 검증 | 한국어/코딩/범용 질의 각각 테스트 |
+| 9 | Spot 안정성 | `kubectl get events` 로 Karpenter 노드 전환 이벤트 검증, `kubectl get nodeclaims` 로 대체 노드 프로비저닝 확인 |
+
+---
+
+:::tip 다음 단계
+- 자체 호스팅 vLLM 추가 시: [llm-d 분산 추론](../model-serving/inference-frameworks/llm-d-eks-automode.md)를 참조하여 `Bifrost → llm-d → vLLM` 하이브리드 구성
+- LiteLLM 대안 사용: Bifrost가 요구사항에 맞지 않을 경우 LiteLLM으로 대체 가능 (Python 기반, 동일한 OpenAI-compatible API)
+- 벡터 검색 RAG 추가: [Milvus 벡터 DB](../operations-mlops/data-infrastructure/milvus-vector-database.md) 참조
+- 에이전트 평가: [Ragas 평가](../operations-mlops/governance/ragas-evaluation.md)로 응답 품질 측정
+:::
