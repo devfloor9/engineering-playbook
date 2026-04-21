@@ -25,6 +25,13 @@ Before reading this document, refer to:
 - [SageMaker-EKS 통합](../../reference-architecture/integrations/sagemaker-eks-integration.md) — Hybrid VPC/IAM reference
 :::
 
+:::caution Verification pending
+The Decision Matrix 8-axis weights, Hand-off pattern catalog, IAM session sharing flow, and migration roadmap are in a pre-review state awaiting MLOps lead review and real-deployment E2E verification. Value footnotes and banner will be updated after validation.
+
+Verification tracking: [Issue #6](https://github.com/devfloor9/engineering-playbook/issues/6)
+:::
+
+
 ---
 
 ## Hybrid Deployment Motivation

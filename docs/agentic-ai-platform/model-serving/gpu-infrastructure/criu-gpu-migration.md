@@ -23,6 +23,12 @@ tags:
 2026.04 기준, GPU CRIU는 NVIDIA cuda-checkpoint + CRIU + runc 통합이 alpha/beta 상태이며 프로덕션 투입 불가. 본 문서는 기술 동향과 검증 체크리스트 제공 목적이다.
 :::
 
+:::caution 검증 대기 (Verification pending)
+실전 대안(graceful drain + warm start) 순서와 EKS Auto Mode 제약은 GLM-5 운영자 실전 검증 이전 상태입니다. 검증 완료 시 timing·순서 실측값과 배너가 갱신됩니다.
+
+실배포 검증 추적: [Issue #7](https://github.com/devfloor9/engineering-playbook/issues/7)
+:::
+
 # CRIU 기반 GPU 무중단 마이그레이션 (Preview)
 
 ## 1. 왜 CRIU인가: Spot reclaim과 KV cache 손실 문제

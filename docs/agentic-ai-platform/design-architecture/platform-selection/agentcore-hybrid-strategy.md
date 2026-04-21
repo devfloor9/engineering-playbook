@@ -20,6 +20,12 @@ sidebar_position: 5
 본 문서의 구현 샘플(IAM OAuth 전파, Lambda Trace Forwarder, Dual-write Memory, Cost-arbitrage Router)은 **설계 참조용**이며, us-east-2 테어다운(2026-04-18) 이후 해당 리전의 AgentCore·EKS 조합 통합 테스트 이력이 없습니다. Phase 3 실배포 착수 전 IAM 경계·Trace correlation·PrivateLink endpoint 3종에 대한 E2E 검증 수행 예정.
 :::
 
+:::caution 검증 대기 (Verification pending)
+Decision Matrix 8축 가중치·Hand-off 패턴 카탈로그·IAM 세션 공유 흐름·마이그레이션 로드맵은 MLOps 리드 검토와 실배포 E2E 검증 이전 상태입니다. 검증 완료 시 수치 각주와 배너가 갱신됩니다.
+
+실배포 검증 추적: [Issue #6](https://github.com/devfloor9/engineering-playbook/issues/6)
+:::
+
 ## 개요
 
 Bedrock AgentCore는 강력한 매니지드 Agent 플랫폼이지만, 엔터프라이즈 환경에서는 자체 호스팅 인프라와의 조합이 필요한 경우가 많습니다. 이 문서는 **AgentCore의 서버리스 장점과 EKS 기반 Self-hosted 인프라의 유연성을 결합**하여 최적의 하이브리드 아키텍처를 설계하기 위한 의사결정 프레임워크와 검증된 패턴 카탈로그를 제공합니다.

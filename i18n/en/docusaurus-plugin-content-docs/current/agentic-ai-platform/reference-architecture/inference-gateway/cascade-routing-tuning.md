@@ -19,6 +19,13 @@ characters´ ë¬¸charactersë Inference Gatewaycharacters **Casc
 characters´ ë¬¸charactersë íë«í¼ characters´characterscharacters, MLOps characterscharacters§ëcharacters´ë¥¼ ëcharacterscharacters¼ë¡ í©ëë¤. LLM Classifier ëë LiteLLM based Cascade Routingcharacters´ characters´ë¯¸ ë°°í¬ëcharactersê³ , characters¤characters  íë¡ëcharacters í¸ëí½ basedcharacters¼ë¡ characters íëcharacters ë¹characters©characters itemscharacters íë ¤ë charactersí©characters itemscharacters í©ëë¤.
 :::
 
+:::caution Verification pending
+SLO values, Langfuse queries, Canary stages, and Fallback order in this document are design drafts awaiting production validation. Real-deployment verification by the Classifier v7 operator will update the banner and value footnotes.
+
+Verification tracking: [Issue #5](https://github.com/devfloor9/engineering-playbook/issues/5)
+:::
+
+
 ---
 
 ## 1. íë ëª©ícharacters SLO characters characters

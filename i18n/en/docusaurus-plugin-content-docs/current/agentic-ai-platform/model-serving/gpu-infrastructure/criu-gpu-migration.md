@@ -13,6 +13,13 @@ last_update:
 As of April 2026, GPU CRIU is in alpha/beta state with NVIDIA cuda-checkpoint + CRIU + runc integration and not production-ready. This document provides technology trends and validation checklists.
 :::
 
+:::caution Verification pending
+The practical alternative (graceful drain + warm start) ordering and EKS Auto Mode constraints are in a pre-verification state awaiting GLM-5 operator real-world validation. Timing and ordering measured values and banner will be updated upon completion.
+
+Verification tracking: [Issue #7](https://github.com/devfloor9/engineering-playbook/issues/7)
+:::
+
+
 # CRIU-based GPU Live Migration (Preview)
 
 ## 1. Why CRIU: Spot Reclaim and KV Cache Loss Problems

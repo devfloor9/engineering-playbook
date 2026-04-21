@@ -17,6 +17,12 @@ sidebar_position: 3
 이 문서는 플랫폼 운영자, MLOps 엔지니어를 대상으로 합니다. LLM Classifier 또는 LiteLLM 기반 Cascade Routing이 이미 배포되었고, 실제 프로덕션 트래픽 기반으로 정확도와 비용을 개선하려는 상황을 가정합니다.
 :::
 
+:::caution 검증 대기 (Verification pending)
+본 문서의 SLO 수치·Langfuse 쿼리·Canary 단계·Fallback 순서는 설계 초안이며 실제 프로덕션 검증 이전 상태입니다. Classifier v7 운영자 대상 실배포 검증이 완료되면 배너와 수치 각주가 갱신됩니다.
+
+실배포 검증 추적: [Issue #5](https://github.com/devfloor9/engineering-playbook/issues/5)
+:::
+
 ---
 
 ## 튜닝 목표와 SLO 정의
