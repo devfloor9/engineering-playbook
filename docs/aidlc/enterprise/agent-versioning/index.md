@@ -84,7 +84,7 @@ import DocCardList from '@theme/DocCardList';
 ## AIDLC 연관 문서
 
 - [Evaluation Framework](../../toolchain/evaluation-framework.md) — Golden Dataset 기반 회귀 감지
-- [Agent 모니터링](../../../agentic-ai-platform/operations-mlops/agent-monitoring.md) — 실시간 observability
+- [Agent 모니터링](../../../agentic-ai-platform/operations-mlops/observability/agent-monitoring.md) — 실시간 observability
 
 ---
 

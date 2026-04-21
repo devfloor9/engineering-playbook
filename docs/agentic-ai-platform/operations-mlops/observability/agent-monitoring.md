@@ -27,7 +27,7 @@ import {
 이 문서에서는 Agentic AI 애플리케이션의 모니터링 아키텍처, 핵심 메트릭 설계, 알림 전략을 개념 수준에서 다룹니다.
 
 :::info 실전 배포 가이드
-Langfuse Helm 배포, AMP/AMG 구성, ServiceMonitor YAML, Grafana 대시보드 JSON 등 실전 구성은 [모니터링 스택 구성 가이드](../reference-architecture/integrations/monitoring-observability-setup.md)를 참조하세요.
+Langfuse Helm 배포, AMP/AMG 구성, ServiceMonitor YAML, Grafana 대시보드 JSON 등 실전 구성은 [모니터링 스택 구성 가이드](../../reference-architecture/integrations/monitoring-observability-setup.md)를 참조하세요.
 :::
 
 ## 1. 개요
@@ -376,10 +376,10 @@ LLM 사용 비용을 다음 기준으로 추적합니다:
 
 ## 10. 다음 단계
 
-- [모니터링 스택 구성 가이드](../reference-architecture/integrations/monitoring-observability-setup.md) - AMP/AMG 배포, Langfuse Helm 설치, ServiceMonitor, Grafana 대시보드 실전 구성
+- [모니터링 스택 구성 가이드](../../reference-architecture/integrations/monitoring-observability-setup.md) - AMP/AMG 배포, Langfuse Helm 설치, ServiceMonitor, Grafana 대시보드 실전 구성
 - [LLMOps Observability 비교 가이드](./llmops-observability.md) - Langfuse vs LangSmith vs Helicone 심층 비교
-- [Agentic AI Platform 아키텍처](../design-architecture/foundations/agentic-platform-architecture.md) - 전체 플랫폼 설계
-- [RAG 평가 프레임워크](./ragas-evaluation.md) - Ragas를 활용한 품질 평가
+- [Agentic AI Platform 아키텍처](../../design-architecture/foundations/agentic-platform-architecture.md) - 전체 플랫폼 설계
+- [RAG 평가 프레임워크](../governance/ragas-evaluation.md) - Ragas를 활용한 품질 평가
 
 ## 참고 자료
 

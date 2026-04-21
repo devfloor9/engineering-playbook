@@ -363,7 +363,7 @@ sequenceDiagram
 | 可观测性 | LLM 链路追踪 + 指标 | Token 成本追踪、Agent Trace 分析、质量评估 |
 | 安全 | 多层安全模型 | OIDC/JWT、RBAC、NetworkPolicy、Guardrails |
 
-具体技术栈和实现方法请参阅 [AWS Native 平台](./aws-native-agentic-platform.md) 或 [EKS 开放架构](./agentic-ai-solutions-eks.md)。
+具体技术栈和实现方法请参阅 [AWS Native 平台](../platform-selection/aws-native-agentic-platform.md) 或 [EKS 开放架构](../platform-selection/agentic-ai-solutions-eks.md)。
 
 ---
 
@@ -382,8 +382,8 @@ Agentic AI Platform 架构的核心原则：
 本平台架构的具体实现方法在以下文档中介绍：
 
 - [技术挑战](./agentic-ai-challenges.md) — 构建平台时面临的核心挑战
-- [AWS Native 平台](./aws-native-agentic-platform.md) — 基于托管服务的实现
-- [EKS 开放架构](./agentic-ai-solutions-eks.md) — 基于 EKS + 开源的实现
+- [AWS Native 平台](../platform-selection/aws-native-agentic-platform.md) — 基于托管服务的实现
+- [EKS 开放架构](../platform-selection/agentic-ai-solutions-eks.md) — 基于 EKS + 开源的实现
 :::
 
 ## 参考资料

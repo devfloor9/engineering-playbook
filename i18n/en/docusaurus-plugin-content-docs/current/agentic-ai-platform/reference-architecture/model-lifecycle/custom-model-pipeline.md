@@ -57,7 +57,7 @@ graph LR
 The training pipeline trains domain data with QLoRA, and only adapters that pass evaluation are registered in the registry. The serving pipeline loads multiple adapters simultaneously with vLLM Multi-LoRA and performs cost-optimized routing between SLM/LLM through Bifrost Cascade.
 
 :::tip Related Docs
-- [Operations & Governance](../operations-mlops/index.md) - Full operations architecture
+- [Operations & Governance](../../operations-mlops/index.md) - Full operations architecture
 - [Custom Model Deployment Guide](./custom-model-deployment.md) - Includes Kiro vs. self-hosted comparison
 :::
 
@@ -179,7 +179,7 @@ s3://model-registry/
 Recording training metrics (loss, accuracy) alongside adapter paths in MLflow lets you track which dataset and hyperparameter combinations are optimal.
 :::
 
-- Reference: [NeMo Framework Checkpoint Management](../model-serving/inference-frameworks/nemo-framework.md)
+- Reference: [NeMo Framework Checkpoint Management](../../model-serving/inference-frameworks/nemo-framework.md)
 
 ---
 
@@ -482,8 +482,8 @@ for test_case in test_dataset:
 | Token Efficiency | output_tokens / input_tokens | Answer conciseness |
 | User Satisfaction | Langfuse Annotation Score | Real user evaluation |
 
-- Reference: [RAGAS Evaluation Framework](../operations-mlops/governance/ragas-evaluation.md)
-- Reference: [LLMOps Observability Evaluation Pipeline](../operations-mlops/observability/llmops-observability.md)
+- Reference: [RAGAS Evaluation Framework](../../operations-mlops/governance/ragas-evaluation.md)
+- Reference: [LLMOps Observability Evaluation Pipeline](../../operations-mlops/observability/llmops-observability.md)
 
 ---
 

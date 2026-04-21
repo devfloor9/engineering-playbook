@@ -213,7 +213,7 @@ spec:
 
 ### 2.3 Langfuse Sub-path 라우팅 (URLRewrite) {#langfuse-sub-path-라우팅-urlrewrite}
 
-Langfuse (Next.js)는 `/`에서 서빙하므로, `/langfuse` prefix로 접근하려면 URLRewrite가 필요합니다. Langfuse 아키텍처 및 배포 상세는 [Langfuse 배포 가이드](../monitoring-observability-setup.md)를 참조하세요.
+Langfuse (Next.js)는 `/`에서 서빙하므로, `/langfuse` prefix로 접근하려면 URLRewrite가 필요합니다. Langfuse 아키텍처 및 배포 상세는 [Langfuse 배포 가이드](../../integrations/monitoring-observability-setup.md)를 참조하세요.
 
 ```yaml
 apiVersion: gateway.networking.k8s.io/v1
@@ -650,13 +650,13 @@ curl -s -o /dev/null -w "%{http_code}" http://${NLB_ENDPOINT}/langfuse/
 
 1. **문제 해결**: 배포 중 오류가 발생했다면 [트러블슈팅 가이드](./troubleshooting-guide.md)를 참조하세요.
 2. **고급 기능**: 프로덕션 환경을 위한 [LLM Classifier, CloudFront/WAF, Semantic Caching](./advanced-features.md)을 구성하세요.
-3. **모니터링**: [Langfuse 배포 가이드](../monitoring-observability-setup.md)를 참조하여 OTel 연동을 완료하세요.
+3. **모니터링**: [Langfuse 배포 가이드](../../integrations/monitoring-observability-setup.md)를 참조하여 OTel 연동을 완료하세요.
 
 ---
 
 ## 참고 자료
 
-- [추론 게이트웨이 라우팅](../inference-gateway-routing.md) - kgateway 아키텍처 및 라우팅 전략
+- [추론 게이트웨이 라우팅](../routing-strategy.md) - kgateway 아키텍처 및 라우팅 전략
 - [Kubernetes Gateway API 공식 문서](https://gateway-api.sigs.k8s.io/)
 - [kgateway 공식 문서](https://kgateway.dev/docs/)
 - [Bifrost 공식 문서](https://bifrost.dev/docs)

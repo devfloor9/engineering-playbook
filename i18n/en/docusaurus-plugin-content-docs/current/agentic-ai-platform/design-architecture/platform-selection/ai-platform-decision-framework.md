@@ -26,8 +26,8 @@ AI platform construction paths are broadly divided into three categories:
 
 :::info Prerequisites
 Before reading this document, refer to:
-- [Platform Architecture](./agentic-platform-architecture.md) — 6-layer design blueprint
-- [Technical Challenges](./agentic-ai-challenges.md) — 5 core challenge analysis
+- [Platform Architecture](../foundations/agentic-platform-architecture.md) — 6-layer design blueprint
+- [Technical Challenges](../foundations/agentic-ai-challenges.md) — 5 core challenge analysis
 :::
 
 ---
@@ -121,7 +121,7 @@ The optimal approach varies based on customer circumstances. Compare each platfo
 <PlatformComparisonMatrix />
 
 :::info Detailed Cost Analysis
-For detailed cost comparison between self-hosting and Bedrock (break-even points, Cascade Routing savings), refer to [Coding Tools Cost Analysis](../reference-architecture/integrations/coding-tools-cost-analysis.md).
+For detailed cost comparison between self-hosting and Bedrock (break-even points, Cascade Routing savings), refer to [Coding Tools Cost Analysis](../../reference-architecture/integrations/coding-tools-cost-analysis.md).
 :::
 
 ---
@@ -199,8 +199,8 @@ journey
 
 **Detailed Guide by Level**:
 - **Level 1 (Exploration)**: → [AWS Native Platform](./aws-native-agentic-platform.md)
-- **Level 2 (Build)**: → [SageMaker-EKS Integration](../reference-architecture/integrations/sagemaker-eks-integration.md)
-- **Level 3 (Optimization)**: → [EKS-based Open Architecture](./agentic-ai-solutions-eks.md), [Inference Gateway](../reference-architecture/inference-gateway/routing-strategy.md)
+- **Level 2 (Build)**: → [SageMaker-EKS Integration](../../reference-architecture/integrations/sagemaker-eks-integration.md)
+- **Level 3 (Optimization)**: → [EKS-based Open Architecture](./agentic-ai-solutions-eks.md), [Inference Gateway](../../reference-architecture/inference-gateway/routing-strategy.md)
 
 ---
 
@@ -227,7 +227,7 @@ flowchart LR
 
 **Core value**: Maintain Bedrock API quality while reducing costs by 40-60%
 
-**Reference**: [Inference Gateway & Cascade Routing](../reference-architecture/inference-gateway/routing-strategy.md)
+**Reference**: [Inference Gateway & Cascade Routing](../../reference-architecture/inference-gateway/routing-strategy.md)
 
 ---
 
@@ -247,7 +247,7 @@ flowchart LR
 
 **Core value**: SageMaker's managed training environment + EKS cost-efficient serving
 
-**Reference**: [SageMaker-EKS Integration](../reference-architecture/integrations/sagemaker-eks-integration.md)
+**Reference**: [SageMaker-EKS Integration](../../reference-architecture/integrations/sagemaker-eks-integration.md)
 
 ---
 
@@ -281,7 +281,7 @@ The most complex but most flexible pattern:
 
 This pattern is chosen by large enterprises to meet different requirements across teams. Due to high architectural complexity, clear operational responsibility boundaries and a service catalog are essential.
 
-**Reference**: For technical implementation of hybrid architecture, refer to [SageMaker-EKS Integration](../reference-architecture/integrations/sagemaker-eks-integration.md).
+**Reference**: For technical implementation of hybrid architecture, refer to [SageMaker-EKS Integration](../../reference-architecture/integrations/sagemaker-eks-integration.md).
 
 ---
 
@@ -297,7 +297,7 @@ Optimal options and estimated costs based on monthly inference volume.
 | ~5M+ requests | EKS self-hosting | ~$3,500-5,000 | 60%+ savings with Spot + Cascade |
 
 :::info Detailed Cost Analysis
-For detailed analysis of instance costs, Spot savings rates, and Cascade Routing effects, refer to [Coding Tools Cost Analysis](../reference-architecture/integrations/coding-tools-cost-analysis.md).
+For detailed analysis of instance costs, Spot savings rates, and Cascade Routing effects, refer to [Coding Tools Cost Analysis](../../reference-architecture/integrations/coding-tools-cost-analysis.md).
 :::
 
 ---
@@ -322,13 +322,13 @@ For detailed analysis of instance costs, Spot savings rates, and Cascade Routing
 ## Related Documents
 
 ### Design & Architecture
-- [Platform Architecture](./agentic-platform-architecture.md) — 6-layer design blueprint
-- [Technical Challenges](./agentic-ai-challenges.md) — 5 core challenge analysis
+- [Platform Architecture](../foundations/agentic-platform-architecture.md) — 6-layer design blueprint
+- [Technical Challenges](../foundations/agentic-ai-challenges.md) — 5 core challenge analysis
 - [AWS Native Platform](./aws-native-agentic-platform.md) — Bedrock + Strands SDK + AgentCore details
 - [EKS-based Open Architecture](./agentic-ai-solutions-eks.md) — EKS Auto Mode + open source stack details
-- [Inference Gateway & Cascade Routing](../reference-architecture/inference-gateway/routing-strategy.md) — 2-Tier Gateway architecture
+- [Inference Gateway & Cascade Routing](../../reference-architecture/inference-gateway/routing-strategy.md) — 2-Tier Gateway architecture
 
 ### Reference Architecture
-- [SageMaker-EKS Integration](../reference-architecture/integrations/sagemaker-eks-integration.md) — Hybrid ML pipeline implementation
-- [Coding Tools Cost Analysis](../reference-architecture/integrations/coding-tools-cost-analysis.md) — Bedrock vs self-hosting break-even analysis
-- [Custom Model Deployment](../reference-architecture/model-lifecycle/custom-model-deployment.md) — vLLM deployment practical guide
+- [SageMaker-EKS Integration](../../reference-architecture/integrations/sagemaker-eks-integration.md) — Hybrid ML pipeline implementation
+- [Coding Tools Cost Analysis](../../reference-architecture/integrations/coding-tools-cost-analysis.md) — Bedrock vs self-hosting break-even analysis
+- [Custom Model Deployment](../../reference-architecture/model-lifecycle/custom-model-deployment.md) — vLLM deployment practical guide

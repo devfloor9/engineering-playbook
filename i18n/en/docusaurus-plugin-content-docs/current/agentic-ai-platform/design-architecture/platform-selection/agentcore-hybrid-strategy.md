@@ -22,7 +22,7 @@ Before reading this document, refer to:
 - [AWS Native Platform](./aws-native-agentic-platform.md) — AgentCore 7개 서비스 개요 (avoid duplication)
 - [EKS-based Open Architecture](./agentic-ai-solutions-eks.md) — Self-hosted stack composition
 - [AI Platform Decision Framework](./ai-platform-decision-framework.md) — Managed vs open-source decision-making
-- [SageMaker-EKS 통합](../reference-architecture/integrations/sagemaker-eks-integration.md) — Hybrid VPC/IAM reference
+- [SageMaker-EKS 통합](../../reference-architecture/integrations/sagemaker-eks-integration.md) — Hybrid VPC/IAM reference
 :::
 
 ---
@@ -91,7 +91,7 @@ graph TB
 | ~5M+ requests | $15,000+ | **$3,500-5,000** | **$4,000-6,000** | EKS-centric Hybrid |
 
 :::tip Break-even Point
-Hybrid approach becomes cost-effective at 500K+ monthly inference volumes. [Coding Tools Cost Analysis](../reference-architecture/integrations/coding-tools-cost-analysis.md)for detailed calculation formulas.
+Hybrid approach becomes cost-effective at 500K+ monthly inference volumes. [Coding Tools Cost Analysis](../../reference-architecture/integrations/coding-tools-cost-analysis.md)for detailed calculation formulas.
 :::
 
 ---
@@ -896,9 +896,9 @@ Quantitative metrics to determine each Phase transition.
 - [Langfuse Self-Hosting](https://langfuse.com/docs/deployment/self-host)
 
 ### Hybrid Architecture Reference
-- [SageMaker-EKS 통합](../reference-architecture/integrations/sagemaker-eks-integration.md)
-- [추론 게이트웨이 라우팅](../reference-architecture/inference-gateway/routing-strategy.md)
-- [Coding Tools Cost Analysis](../reference-architecture/integrations/coding-tools-cost-analysis.md)
+- [SageMaker-EKS 통합](../../reference-architecture/integrations/sagemaker-eks-integration.md)
+- [추론 게이트웨이 라우팅](../../reference-architecture/inference-gateway/routing-strategy.md)
+- [Coding Tools Cost Analysis](../../reference-architecture/integrations/coding-tools-cost-analysis.md)
 
 ### MCP & A2A
 - [AWS MCP Servers (GitHub)](https://github.com/awslabs/mcp)

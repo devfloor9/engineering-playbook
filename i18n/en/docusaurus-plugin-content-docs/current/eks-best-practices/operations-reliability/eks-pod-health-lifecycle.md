@@ -58,5 +58,5 @@ Comprehensive coverage of: preStop hooks, SIGTERM handling, terminationGracePeri
 
 ## Related Documents
 
-- [EKS Troubleshooting Guide](/docs/eks-best-practices/operations-reliability/eks-debugging-guide)
+- [EKS Troubleshooting Guide](/docs/eks-best-practices/operations-reliability/eks-debugging)
 - [EKS High Availability Architecture](/docs/eks-best-practices/operations-reliability/eks-resiliency-guide)

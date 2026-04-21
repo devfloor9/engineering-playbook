@@ -586,7 +586,7 @@ curl -s -o /dev/null -w "%{http_code}" \
 ## 3. Semantic Caching 实现选项（高级）{#semantic-caching-实现选项-advanced}
 
 :::info 概念及设计原则
-Semantic Caching 的概念、相似度阈值设计、缓存键结构、可观测性策略参阅 [Semantic Caching 策略](../../model-serving/inference-frameworks/semantic-caching-strategy.md)。本节涵盖实际实现的工具比较和部署配置。
+Semantic Caching 的概念、相似度阈值设计、缓存键结构、可观测性策略参阅 [Semantic Caching 策略](../../../model-serving/inference-frameworks/semantic-caching-strategy.md)。本节涵盖实际实现的工具比较和部署配置。
 :::
 
 ### 3.1 实现工具比较（2026-04 基准）
@@ -813,14 +813,14 @@ redis_key: "cache:org-12345:ko:glm-5:a3f2e1b:c9d8e7f"
 高级功能配置已完成。进行以下步骤：
 
 1. **故障排除**：部署中发生错误时参考 [故障排除指南](./troubleshooting-guide.md)。
-2. **监控强化**：参考 [Langfuse 部署指南](../monitoring-observability-setup.md) 完成 OTel 集成和仪表板。
-3. **运营流程**：参考 [Agent 监控](../../operations-mlops/observability/agent-monitoring.md) 建立生产运营体系。
+2. **监控强化**：参考 [Langfuse 部署指南](../../integrations/monitoring-observability-setup.md) 完成 OTel 集成和仪表板。
+3. **运营流程**：参考 [Agent 监控](../../../operations-mlops/observability/agent-monitoring.md) 建立生产运营体系。
 
 ---
 
 ## 参考资料
 
-- [Semantic Caching 策略](../../model-serving/inference-frameworks/semantic-caching-strategy.md) - 概念、阈值设计、可观测性、按域模式
-- [推理网关路由](../inference-gateway-routing.md) - kgateway 架构及路由策略
-- [Langfuse 部署指南](../monitoring-observability-setup.md) - Helm 安装、OTel 集成、Redis/ClickHouse 配置
-- [Agent 监控](../../operations-mlops/observability/agent-monitoring.md) - Langfuse 架构及组件
+- [Semantic Caching 策略](../../../model-serving/inference-frameworks/semantic-caching-strategy.md) - 概念、阈值设计、可观测性、按域模式
+- [推理网关路由](../routing-strategy.md) - kgateway 架构及路由策略
+- [Langfuse 部署指南](../../integrations/monitoring-observability-setup.md) - Helm 安装、OTel 集成、Redis/ClickHouse 配置
+- [Agent 监控](../../../operations-mlops/observability/agent-monitoring.md) - Langfuse 架构及组件

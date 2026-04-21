@@ -363,7 +363,7 @@ sequenceDiagram
 | Observability | LLM tracing + metrics | Token cost tracking, Agent Trace analysis, quality evaluation |
 | Security | Multi-layer security model | OIDC/JWT, RBAC, NetworkPolicy, Guardrails |
 
-For specific technology stacks and implementation methods, see [AWS Native Platform](./aws-native-agentic-platform.md) or [EKS-Based Open Architecture](./agentic-ai-solutions-eks.md).
+For specific technology stacks and implementation methods, see [AWS Native Platform](../platform-selection/aws-native-agentic-platform.md) or [EKS-Based Open Architecture](../platform-selection/agentic-ai-solutions-eks.md).
 
 ---
 
@@ -382,8 +382,8 @@ Core principles of the Agentic AI Platform architecture:
 Specific methods for implementing this platform architecture are covered in the following documents:
 
 - [Technical Challenges](./agentic-ai-challenges.md) — Key challenges faced when building the platform
-- [AWS Native Platform](./aws-native-agentic-platform.md) — Managed service-based implementation
-- [EKS-Based Open Architecture](./agentic-ai-solutions-eks.md) — EKS + open-source based implementation
+- [AWS Native Platform](../platform-selection/aws-native-agentic-platform.md) — Managed service-based implementation
+- [EKS-Based Open Architecture](../platform-selection/agentic-ai-solutions-eks.md) — EKS + open-source based implementation
 :::
 
 ## References

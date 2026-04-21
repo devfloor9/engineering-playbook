@@ -212,7 +212,7 @@ model = finetune(
 )
 ```
 
-**Detailed pipeline**: For data preprocessing, multi-node distributed training, and hyperparameter tuning, see the [Custom Model Pipeline](../reference-architecture/model-lifecycle/custom-model-pipeline.md) document.
+**Detailed pipeline**: For data preprocessing, multi-node distributed training, and hyperparameter tuning, see the [Custom Model Pipeline](../../reference-architecture/model-lifecycle/custom-model-pipeline.md) document.
 
 ---
 
@@ -523,16 +523,16 @@ export NCCL_DEBUG=INFO  # Useful for diagnosing performance issues
 
 **Monitoring stack**: Prometheus + Grafana + DCGM Exporter
 
-For detailed monitoring setup, see [Monitoring and Observability Setup](../reference-architecture/integrations/monitoring-observability-setup.md).
+For detailed monitoring setup, see [Monitoring and Observability Setup](../../reference-architecture/integrations/monitoring-observability-setup.md).
 
 ---
 
 ## Related Documents
 
-- [GPU Resource Management](./gpu-resource-management.md) - Karpenter, KEDA, DRA-based GPU autoscaling
+- [GPU Resource Management](../gpu-infrastructure/gpu-resource-management.md) - Karpenter, KEDA, DRA-based GPU autoscaling
 - [vLLM Model Serving](./vllm-model-serving.md) - Production inference server
 - [MoE Model Serving](./moe-model-serving.md) - Mixture of Experts architecture
-- [Custom Model Pipeline](../reference-architecture/model-lifecycle/custom-model-pipeline.md) - Full pipeline from data preparation to deployment
+- [Custom Model Pipeline](../../reference-architecture/model-lifecycle/custom-model-pipeline.md) - Full pipeline from data preparation to deployment
 
 :::tip Recommendations
 

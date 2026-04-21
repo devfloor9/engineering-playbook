@@ -727,7 +727,7 @@ Agent KPI SLO (Production)
 
 ### 8.4 Related Documentation
 
-- [LLMOps Observability Comparison Guide](../../agentic-ai-platform/operations-mlops/llmops-observability.md): Langfuse vs LangSmith vs Helicone
-- [Ragas RAG Evaluation Frameworks](../../agentic-ai-platform/operations-mlops/ragas-evaluation.md): Ragas Metrics Details
+- [LLMOps Observability Comparison Guide](../../agentic-ai-platform/operations-mlops/observability/llmops-observability.md): Langfuse vs LangSmith vs Helicone
+- [Ragas RAG Evaluation Frameworks](../../agentic-ai-platform/operations-mlops/governance/ragas-evaluation.md): Ragas Metrics Details
 - [Observability Stack](./observability-stack.md): AIDLC Operationstelemetry foundation
 - [Predictive Operations](./predictive-operations.md): Metric-based failure prediction

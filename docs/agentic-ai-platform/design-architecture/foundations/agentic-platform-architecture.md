@@ -366,7 +366,7 @@ sequenceDiagram
 | 관측성 | LLM 트레이싱 + 메트릭 | 토큰 비용 추적, Agent Trace 분석, 품질 평가 |
 | 보안 | 다층 보안 모델 | OIDC/JWT, RBAC, NetworkPolicy, Guardrails |
 
-구체적인 기술 스택과 구현 방법은 [AWS Native 플랫폼](./aws-native-agentic-platform.md) 또는 [EKS 기반 오픈 아키텍처](./agentic-ai-solutions-eks.md)를 참조하세요.
+구체적인 기술 스택과 구현 방법은 [AWS Native 플랫폼](../platform-selection/aws-native-agentic-platform.md) 또는 [EKS 기반 오픈 아키텍처](../platform-selection/agentic-ai-solutions-eks.md)를 참조하세요.
 
 ---
 
@@ -385,8 +385,8 @@ Agentic AI Platform 아키텍처의 핵심 원칙:
 이 플랫폼 아키텍처를 구현하는 구체적인 방법은 다음 문서에서 다룹니다:
 
 - [기술적 도전과제](./agentic-ai-challenges.md) — 플랫폼 구축 시 직면하는 핵심 과제
-- [AWS Native 플랫폼](./aws-native-agentic-platform.md) — 매니지드 서비스 기반 구현
-- [EKS 기반 오픈 아키텍처](./agentic-ai-solutions-eks.md) — EKS + 오픈소스 기반 구현
+- [AWS Native 플랫폼](../platform-selection/aws-native-agentic-platform.md) — 매니지드 서비스 기반 구현
+- [EKS 기반 오픈 아키텍처](../platform-selection/agentic-ai-solutions-eks.md) — EKS + 오픈소스 기반 구현
 :::
 
 ## 참고 자료
@@ -408,6 +408,6 @@ Agentic AI Platform 아키텍처의 핵심 원칙:
 ### 관련 문서 (내부)
 
 - [기술적 도전과제](./agentic-ai-challenges.md) — 5가지 핵심 과제 분석
-- [AWS Native 플랫폼](./aws-native-agentic-platform.md) — 매니지드 서비스 구현
-- [EKS 기반 오픈 아키텍처](./agentic-ai-solutions-eks.md) — 자체 호스팅 구현
-- [Inference Gateway 라우팅](../reference-architecture/inference-gateway/routing-strategy.md) — 2-Tier Gateway 상세
+- [AWS Native 플랫폼](../platform-selection/aws-native-agentic-platform.md) — 매니지드 서비스 구현
+- [EKS 기반 오픈 아키텍처](../platform-selection/agentic-ai-solutions-eks.md) — 자체 호스팅 구현
+- [Inference Gateway 라우팅](../../reference-architecture/inference-gateway/routing-strategy.md) — 2-Tier Gateway 상세

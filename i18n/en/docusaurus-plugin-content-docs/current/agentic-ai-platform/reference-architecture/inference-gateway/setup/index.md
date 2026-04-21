@@ -36,7 +36,7 @@ export const InferencePipelineDiagram = () => {
 
 # Inference Gateway Deployment Guide
 
-This document covers **production deployment procedures** for kgateway + Bifrost-based inference gateway. For architecture concepts and routing strategies (Cascade, Semantic Router, 2-Tier structure), refer to [Inference Gateway Routing](../inference-gateway-routing.md).
+This document covers **production deployment procedures** for kgateway + Bifrost-based inference gateway. For architecture concepts and routing strategies (Cascade, Semantic Router, 2-Tier structure), refer to [Inference Gateway Routing](../routing-strategy.md).
 
 :::info Guide Structure
 This guide consists of 3 documents. Learn sequentially or reference specific sections as needed.
@@ -147,7 +147,7 @@ Verify the following before proceeding with all deployment stages.
 ### Recommended
 
 - AWS Load Balancer Controller installed (for automatic NLB creation)
-- Langfuse deployed (refer to [Langfuse Deployment Guide](../monitoring-observability-setup.md))
+- Langfuse deployed (refer to [Langfuse Deployment Guide](../../integrations/monitoring-observability-setup.md))
 - Production environment: ACM certificate issued (for CloudFront + TLS)
 
 ---
@@ -155,16 +155,16 @@ Verify the following before proceeding with all deployment stages.
 ## Next Steps
 
 - **Get Started**: Navigate to [Basic Deployment](./basic-deployment.md) to begin kgateway installation.
-- **Understand Architecture**: Read [Inference Gateway Routing](../inference-gateway-routing.md) before deployment to grasp the overall structure.
-- **Prepare Monitoring**: Configure observability stack by referring to [Langfuse Deployment Guide](../monitoring-observability-setup.md).
+- **Understand Architecture**: Read [Inference Gateway Routing](../routing-strategy.md) before deployment to grasp the overall structure.
+- **Prepare Monitoring**: Configure observability stack by referring to [Langfuse Deployment Guide](../../integrations/monitoring-observability-setup.md).
 
 ---
 
 ## References
 
-- [Inference Gateway Routing](../inference-gateway-routing.md) - kgateway architecture and routing strategy details
-- [Langfuse Deployment Guide](../monitoring-observability-setup.md) - Helm installation, OTel integration, Redis/ClickHouse configuration
-- [Agent Monitoring](../../operations-mlops/observability/agent-monitoring.md) - Langfuse architecture and components
+- [Inference Gateway Routing](../routing-strategy.md) - kgateway architecture and routing strategy details
+- [Langfuse Deployment Guide](../../integrations/monitoring-observability-setup.md) - Helm installation, OTel integration, Redis/ClickHouse configuration
+- [Agent Monitoring](../../../operations-mlops/observability/agent-monitoring.md) - Langfuse architecture and components
 - [Kubernetes Gateway API Official Documentation](https://gateway-api.sigs.k8s.io/)
 - [kgateway Official Documentation](https://kgateway.dev/docs/)
 - [Bifrost Official Documentation](https://bifrost.dev/docs)

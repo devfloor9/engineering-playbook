@@ -595,12 +595,12 @@ spec:
 - [AWS CloudTrail 로깅](https://docs.aws.amazon.com/cloudtrail/)
 
 ### 관련 문서
-- [커스텀 모델 파이프라인](../reference-architecture/model-lifecycle/custom-model-pipeline.md)
-- [Milvus 벡터 데이터베이스](./milvus-vector-database.md)
+- [커스텀 모델 파이프라인](../../reference-architecture/model-lifecycle/custom-model-pipeline.md)
+- [Milvus 벡터 데이터베이스](../data-infrastructure/milvus-vector-database.md)
 - [AgenticOps](/docs/aidlc/operations)
 
 ## 다음 단계
 
-- **[커스텀 모델 파이프라인](../reference-architecture/model-lifecycle/custom-model-pipeline.md)**: Layer 3 모델 조정 가이드 (LoRA Fine-tuning 포함)
-- **[Milvus 벡터 데이터베이스](./milvus-vector-database.md)**: Layer 2 지식 보강 구현 (RAG 파이프라인)
+- **[커스텀 모델 파이프라인](../../reference-architecture/model-lifecycle/custom-model-pipeline.md)**: Layer 3 모델 조정 가이드 (LoRA Fine-tuning 포함)
+- **[Milvus 벡터 데이터베이스](../data-infrastructure/milvus-vector-database.md)**: Layer 2 지식 보강 구현 (RAG 파이프라인)
 - **[AgenticOps](/docs/aidlc/operations)**: 운영 피드백 루프

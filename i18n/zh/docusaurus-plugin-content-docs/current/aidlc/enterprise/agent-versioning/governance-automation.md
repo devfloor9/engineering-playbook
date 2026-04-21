@@ -366,7 +366,7 @@ def lambda_handler(event, context):
 
 ### AIDLC 关联文档
 - [Evaluation Framework](../../toolchain/evaluation-framework.md) — 基于 Golden Dataset 的回归检测
-- [Agent 监控](../../../agentic-ai-platform/operations-mlops/agent-monitoring.md) — 实时 observability
+- [Agent 监控](../../../agentic-ai-platform/operations-mlops/observability/agent-monitoring.md) — 实时 observability
 
 ### 监控·告警
 - **Prometheus**: [prometheus.io](https://prometheus.io/)
@@ -385,4 +385,4 @@ def lambda_handler(event, context):
 
 1. **[提示词·模型注册中心](./prompt-model-registry.md)** — 构建版本管理系统
 2. **[部署策略](./deployment-strategies.md)** — 实现 Canary/Shadow 策略
-3. **[Agent 监控](../../../agentic-ai-platform/operations-mlops/agent-monitoring.md)** — 构建 Langfuse + Prometheus 集成 observability
+3. **[Agent 监控](../../../agentic-ai-platform/operations-mlops/observability/agent-monitoring.md)** — 构建 Langfuse + Prometheus 集成 observability

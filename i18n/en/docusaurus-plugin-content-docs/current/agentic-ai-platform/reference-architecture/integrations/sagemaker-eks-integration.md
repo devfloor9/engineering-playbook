@@ -819,9 +819,9 @@ The SageMaker-EKS hybrid architecture combines the advantages of managed trainin
 
 ### Next Steps
 
-- [EKS-Based MLOps Pipeline](./mlops-pipeline-eks.md)
-- [GPU Resource Management](../model-serving/gpu-infrastructure/gpu-resource-management.md)
-- [Model Monitoring](../operations-mlops/observability/agent-monitoring.md)
+- [EKS-Based MLOps Pipeline](../model-lifecycle/mlops-pipeline-eks.md)
+- [GPU Resource Management](../../model-serving/gpu-infrastructure/gpu-resource-management.md)
+- [Model Monitoring](../../operations-mlops/observability/agent-monitoring.md)
 
 ---
 

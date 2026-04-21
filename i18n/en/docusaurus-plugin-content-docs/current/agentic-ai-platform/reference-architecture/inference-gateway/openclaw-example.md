@@ -32,8 +32,8 @@ This document covers **deploying OpenClaw on an existing EKS cluster**, combinin
 
 | Document | Content | Relationship |
 |----------|---------|-------------|
-| [Inference Gateway](../reference-architecture/inference-gateway/routing-strategy.md) | Kgateway-based routing | Theoretical foundation |
-| [Agent Monitoring](../operations-mlops/observability/agent-monitoring.md) | Langfuse/LangSmith monitoring | Monitoring theory |
+| [Inference Gateway](routing-strategy.md) | Kgateway-based routing | Theoretical foundation |
+| [Agent Monitoring](../../operations-mlops/observability/agent-monitoring.md) | Langfuse/LangSmith monitoring | Monitoring theory |
 | **17. OpenClaw AI Gateway** (this document) | OpenClaw production deployment + full o11y | **Hands-on implementation** |
 
 ---
@@ -466,8 +466,8 @@ Since all models are invoked through Bedrock, no separate API keys are needed. I
 ---
 
 :::tip Next Steps
-- Adding self-hosted vLLM: See [llm-d Distributed Inference](../model-serving/inference-frameworks/llm-d-eks-automode.md) for `Bifrost -> llm-d -> vLLM` hybrid setup
+- Adding self-hosted vLLM: See [llm-d Distributed Inference](../../model-serving/inference-frameworks/llm-d-eks-automode.md) for `Bifrost -> llm-d -> vLLM` hybrid setup
 - LiteLLM alternative: If Bifrost doesn't meet your requirements, LiteLLM can be used as a drop-in replacement (Python-based, same OpenAI-compatible API)
-- Adding vector search RAG: See [Milvus Vector DB](../operations-mlops/data-infrastructure/milvus-vector-database.md)
-- Agent evaluation: Measure response quality with [Ragas Evaluation](../operations-mlops/governance/ragas-evaluation.md)
+- Adding vector search RAG: See [Milvus Vector DB](../../operations-mlops/data-infrastructure/milvus-vector-database.md)
+- Agent evaluation: Measure response quality with [Ragas Evaluation](../../operations-mlops/governance/ragas-evaluation.md)
 :::

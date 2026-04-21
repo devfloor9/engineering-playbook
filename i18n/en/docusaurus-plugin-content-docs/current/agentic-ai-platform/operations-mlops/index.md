@@ -91,5 +91,5 @@ For actual deployment architectures including MLOps pipeline setup and SageMaker
 ## Related Sections
 
 - **[Reference Architecture](../reference-architecture/index.md)**: MLOps pipelines, SageMaker-EKS integration, production deployment guides
-- **[AIDLC > AgenticOps](/docs/aidlc/agentic-ops)**: AIOps-based automated operations and predictive monitoring
+- **[AIDLC > AgenticOps](/docs/aidlc/operations)**: AIOps-based automated operations and predictive monitoring
 - **[Design & Architecture](../design-architecture/index.md)**: Overall platform architecture design documents

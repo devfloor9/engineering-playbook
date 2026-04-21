@@ -22,7 +22,7 @@ Bedrock AgentCore 是一个强大的托管 Agent 平台,但在企业环境中通
 - [AWS Native 平台](./aws-native-agentic-platform.md) — AgentCore 7 项服务概述(避免重复)
 - [基于 EKS 的开放架构](./agentic-ai-solutions-eks.md) — 自托管技术栈配置
 - [AI 平台选择指南](./ai-platform-decision-framework.md) — 托管 vs 开源决策
-- [SageMaker-EKS 集成](../reference-architecture/integrations/sagemaker-eks-integration.md) — 混合 VPC/IAM 参考
+- [SageMaker-EKS 集成](../../reference-architecture/integrations/sagemaker-eks-integration.md) — 混合 VPC/IAM 参考
 :::
 
 ---
@@ -91,7 +91,7 @@ graph TB
 | ~500 万次+ | $15,000+ | **$3,500-5,000** | **$4,000-6,000** | EKS 为主混合 |
 
 :::tip 损益平衡点
-月推理量超过 50 万次时混合方案具有成本效益。详细计算公式请参考[编码工具成本分析](../reference-architecture/integrations/coding-tools-cost-analysis.md)。
+月推理量超过 50 万次时混合方案具有成本效益。详细计算公式请参考[编码工具成本分析](../../reference-architecture/integrations/coding-tools-cost-analysis.md)。
 :::
 
 ---
@@ -896,9 +896,9 @@ flowchart TD
 - [Langfuse Self-Hosting](https://langfuse.com/docs/deployment/self-host)
 
 ### 混合架构参考
-- [SageMaker-EKS 集成](../reference-architecture/integrations/sagemaker-eks-integration.md)
-- [推理网关路由](../reference-architecture/inference-gateway/routing-strategy.md)
-- [编码工具成本分析](../reference-architecture/integrations/coding-tools-cost-analysis.md)
+- [SageMaker-EKS 集成](../../reference-architecture/integrations/sagemaker-eks-integration.md)
+- [推理网关路由](../../reference-architecture/inference-gateway/routing-strategy.md)
+- [编码工具成本分析](../../reference-architecture/integrations/coding-tools-cost-analysis.md)
 
 ### MCP & A2A
 - [AWS MCP Servers(GitHub)](https://github.com/awslabs/mcp)

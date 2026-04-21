@@ -23,7 +23,7 @@ last_update:
 - **成本论证**: AIDLC 能为项目节省多少成本? → [成本效益](./cost-estimation.md)
 - **角色变化**: PM、架构师、开发者的角色会如何变化? → [角色再定义](./role-composition.md)
 - **质量治理**: 如何在全公司范围内管理 AI 生成代码的质量? → [治理](./governance-framework.md)
-- **复杂度管理**: 大规模 MSA 项目能否应用 AIDLC? → [MSA 复杂度](./msa-complexity.md)
+- **复杂度管理**: 大规模 MSA 项目能否应用 AIDLC? → [MSA 复杂度](msa-complexity/index.md)
 
 ## 组成
 
@@ -33,7 +33,7 @@ last_update:
 | 2 | [角色再定义](./role-composition.md) | PM、组织设计、交付经理 |
 | 3 | [成本效益框架](./cost-estimation.md) | 管理层、PM、售前工程师 |
 | 4 | [治理框架](./governance-framework.md) | 企业架构师、合规负责人 |
-| 5 | [MSA 复杂度评估](./msa-complexity.md) | 架构师、资深开发者 |
+| 5 | [MSA 复杂度评估](msa-complexity/index.md) | 架构师、资深开发者 |
 | 6 | [案例研究](./case-studies.md) | 全体干系人 |
 
 ## 与方法论的联系

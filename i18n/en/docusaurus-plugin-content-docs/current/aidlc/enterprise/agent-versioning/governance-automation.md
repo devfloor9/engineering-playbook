@@ -366,7 +366,7 @@ def lambda_handler(event, context):
 
 ### AIDLC Related Documents
 - [Evaluation Framework](../../toolchain/evaluation-framework.md) — Golden Dataset-based regression detection
-- [Agent Monitoring](../../../agentic-ai-platform/operations-mlops/agent-monitoring.md) — Real-time observability
+- [Agent Monitoring](../../../agentic-ai-platform/operations-mlops/observability/agent-monitoring.md) — Real-time observability
 
 ### Monitoring & Alerting
 - **Prometheus**: [prometheus.io](https://prometheus.io/)
@@ -385,4 +385,4 @@ Once you've built the governance system:
 
 1. **[Prompt & Model Registry](./prompt-model-registry.md)** — Build version control system
 2. **[Deployment Strategies](./deployment-strategies.md)** — Implement Canary/Shadow strategies
-3. **[Agent Monitoring](../../../agentic-ai-platform/operations-mlops/agent-monitoring.md)** — Build Langfuse + Prometheus integrated observability
+3. **[Agent Monitoring](../../../agentic-ai-platform/operations-mlops/observability/agent-monitoring.md)** — Build Langfuse + Prometheus integrated observability

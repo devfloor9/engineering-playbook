@@ -475,9 +475,9 @@ flowchart TB
 
 ## 相关文档
 
-- [Milvus 向量数据库](./milvus-vector-database.md)
-- [Agent 监控](./agent-monitoring.md)
-- [Agentic AI 平台架构](../design-architecture/foundations/agentic-platform-architecture.md)
+- [Milvus 向量数据库](../data-infrastructure/milvus-vector-database.md)
+- [Agent 监控](../observability/agent-monitoring.md)
+- [Agentic AI 平台架构](../../design-architecture/foundations/agentic-platform-architecture.md)
 
 :::tip 建议
 

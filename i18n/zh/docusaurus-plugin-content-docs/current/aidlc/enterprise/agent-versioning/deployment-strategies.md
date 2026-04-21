@@ -420,4 +420,4 @@ CloudWatch 告警(`LLMErrorRate > threshold`)发生时自动回滚。
 
 1. **[治理·自动化](./governance-automation.md)** — 构建自动回归检测和回滚体系
 2. **[提示词·模型注册中心](./prompt-model-registry.md)** — 构建版本管理体系
-3. **[Agent 监控](../../../agentic-ai-platform/operations-mlops/agent-monitoring.md)** — 构建实时 observability
+3. **[Agent 监控](../../../agentic-ai-platform/operations-mlops/observability/agent-monitoring.md)** — 构建实时 observability

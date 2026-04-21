@@ -13,7 +13,7 @@ last_update:
 
 > 编写日期：2026-04-18 | 阅读时间：约 20 分钟
 
-本文档是在生产环境中**调优 Inference Gateway 的 Cascade Routing** 的实战指南。架构概念和基本实现请先参考[网关路由策略](./inference-gateway-routing.md)。
+本文档是在生产环境中**调优 Inference Gateway 的 Cascade Routing** 的实战指南。架构概念和基本实现请先参考[网关路由策略](./routing-strategy.md)。
 
 :::info 目标读者
 本文档面向平台运维人员和 MLOps 工程师。假设已部署基于 LLM Classifier 或 LiteLLM 的 Cascade Routing，并希望基于实际生产流量优化准确性和成本。
@@ -926,17 +926,17 @@ STRONG_KEYWORDS = [
 ## 相关文档
 
 ### 架构及策略
-- [网关路由策略](./inference-gateway-routing.md) - 2-Tier 架构、Cascade/Semantic Router、LLM Classifier 概念
-- [推理网关部署指南](./inference-gateway-setup/) - kgateway Helm 安装、HTTPRoute YAML、LLM Classifier 部署代码
+- [网关路由策略](./routing-strategy.md) - 2-Tier 架构、Cascade/Semantic Router、LLM Classifier 概念
+- [推理网关部署指南](./setup/) - kgateway Helm 安装、HTTPRoute YAML、LLM Classifier 部署代码
 
 ### 监控及成本
-- [Agent 监控](../operations-mlops/observability/agent-monitoring.md) - Langfuse 架构、核心指标、告警策略
-- [监控栈配置指南](./monitoring-observability-setup.md) - Langfuse Helm、AMP/AMG、ServiceMonitor、Grafana 仪表板
-- [编码工具 & 成本分析](./coding-tools-cost-analysis.md) - Aider/Cline 连接、成本优化技巧
+- [Agent 监控](../../operations-mlops/observability/agent-monitoring.md) - Langfuse 架构、核心指标、告警策略
+- [监控栈配置指南](../integrations/monitoring-observability-setup.md) - Langfuse Helm、AMP/AMG、ServiceMonitor、Grafana 仪表板
+- [编码工具 & 成本分析](../integrations/coding-tools-cost-analysis.md) - Aider/Cline 连接、成本优化技巧
 
 ### 框架及模型
-- [vLLM 模型服务](../model-serving/inference-frameworks/vllm-model-serving.md) - vLLM 部署、PagedAttention、Multi-LoRA
-- [Semantic Caching 策略](../model-serving/inference-frameworks/semantic-caching-strategy.md) - 3 层缓存、相似度阈值、可观测性
+- [vLLM 模型服务](../../model-serving/inference-frameworks/vllm-model-serving.md) - vLLM 部署、PagedAttention、Multi-LoRA
+- [Semantic Caching 策略](../../model-serving/inference-frameworks/semantic-caching-strategy.md) - 3 层缓存、相似度阈值、可观测性
 
 ---
 

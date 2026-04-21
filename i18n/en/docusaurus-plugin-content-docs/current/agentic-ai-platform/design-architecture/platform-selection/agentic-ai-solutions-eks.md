@@ -31,8 +31,8 @@ import {
 
 :::info Prerequisite Documents
 Before reading this document, refer to the following documents first:
-- [Platform Architecture](./agentic-platform-architecture.md) — Structure and core layers of Agentic AI Platform
-- [Technical Challenges](./agentic-ai-challenges.md) — 5 core challenges
+- [Platform Architecture](../foundations/agentic-platform-architecture.md) — Structure and core layers of Agentic AI Platform
+- [Technical Challenges](../foundations/agentic-ai-challenges.md) — 5 core challenges
 - [AI Platform Selection Guide](./ai-platform-decision-framework.md) — Managed vs open-source decision
 - [AWS Native Platform](./aws-native-agentic-platform.md) — Managed service-based alternative approach (for comparison)
 :::
@@ -141,7 +141,7 @@ PCP tier should be selected based on **Kubernetes control plane metrics**.
 **The combination of Amazon EKS and Karpenter** maximizes Kubernetes advantages to implement fully automated optimal infrastructure. Karpenter provides node provisioning optimized for AI workloads, enabling faster scaling and finer-grained instance selection compared to existing Cluster Autoscaler.
 
 :::info Karpenter Detailed Guide
-For Karpenter v1.0+ GA features, NodePool configuration, GPU instance comparison, and cost optimization strategies, refer to [GPU Resource Management](../model-serving/gpu-infrastructure/gpu-resource-management.md).
+For Karpenter v1.0+ GA features, NodePool configuration, GPU instance comparison, and cost optimization strategies, refer to [GPU Resource Management](../../model-serving/gpu-infrastructure/gpu-resource-management.md).
 :::
 
 <EksKarpenterLayers />
@@ -183,7 +183,7 @@ flowchart TD
 EKS Auto Mode automatically configures and manages Karpenter. GPU NodePool addition enables immediate AI workload deployment.
 
 :::tip NodePool Configuration Details
-For detailed configuration including GPU NodePool composition, Spot/On-Demand strategy, Consolidation policy, refer to [GPU Resource Management](../model-serving/gpu-infrastructure/gpu-resource-management.md#karpenter-nodepool-configuration).
+For detailed configuration including GPU NodePool composition, Spot/On-Demand strategy, Consolidation policy, refer to [GPU Resource Management](../../model-serving/gpu-infrastructure/gpu-resource-management.md#karpenter-nodepool-configuration).
 :::
 
 :::info EKS Auto Mode and GPU Support
@@ -211,7 +211,7 @@ All core components of Agentic AI platform can be deployed on EKS Auto Mode.
 - **Triton Inference Server**: Handles non-LLM inference (embedding, reranking, Whisper STT)
 - **llm-d**: Maximize prefix cache hit rate with KV Cache-aware routing
 
-For detailed configuration, refer to [vLLM Model Serving](../model-serving/inference-frameworks/vllm-model-serving.md) and [llm-d Distributed Inference](../model-serving/inference-frameworks/llm-d-eks-automode.md).
+For detailed configuration, refer to [vLLM Model Serving](../../model-serving/inference-frameworks/vllm-model-serving.md) and [llm-d Distributed Inference](../../model-serving/inference-frameworks/llm-d-eks-automode.md).
 :::
 
 #### Gateway: kgateway + Bifrost (2-Tier Gateway)
@@ -220,7 +220,7 @@ Separate traffic management and model routing with 2-Tier Gateway architecture:
 - **Tier 1 (kgateway)**: Gateway API-based authentication, rate limiting, traffic management
 - **Tier 2 (Bifrost)**: Model abstraction, fallback, cost tracking, cascade routing
 
-> For detailed architecture, refer to [Inference Gateway Routing](../reference-architecture/inference-gateway/routing-strategy.md).
+> For detailed architecture, refer to [Inference Gateway Routing](../../reference-architecture/inference-gateway/routing-strategy.md).
 
 #### Agent: LangGraph + NeMo Guardrails + MCP/A2A
 
@@ -251,19 +251,19 @@ flowchart LR
 ```
 
 - **LangGraph**: Multi-step agent workflow definition, conditional branching, parallel execution
-- **NeMo Guardrails**: Prompt injection defense, PII leak prevention, output validation — Tool comparison and implementation details in [AI Gateway Guardrails](../operations-mlops/governance/ai-gateway-guardrails.md)
+- **NeMo Guardrails**: Prompt injection defense, PII leak prevention, output validation — Tool comparison and implementation details in [AI Gateway Guardrails](../../operations-mlops/governance/ai-gateway-guardrails.md)
 - **MCP**: Agent Ready apps provide tools in standardized way
 - **A2A**: Safe and efficient communication between agents
 - **Redis (ElastiCache)**: State management with LangGraph checkpointer
 
 Agent pods autoscale based on Redis queue length via KEDA.
 
-> Details in [Kagent Agent Management](../operations-mlops/observability/kagent-kubernetes-agents.md) and [AWS Native Platform — AgentCore & MCP](./aws-native-agentic-platform.md#mcp-protocol-and-eks-integration). For Guardrails technology stack (Input/Output Guard, Tool Allow-list, kgateway/Bifrost integration), refer to [AI Gateway Guardrails](../operations-mlops/governance/ai-gateway-guardrails.md).
+> Details in [Kagent Agent Management](../../operations-mlops/observability/kagent-kubernetes-agents.md) and [AWS Native Platform — AgentCore & MCP](./aws-native-agentic-platform.md#mcp-protocol-and-eks-integration). For Guardrails technology stack (Input/Output Guard, Tool Allow-list, kgateway/Bifrost integration), refer to [AI Gateway Guardrails](../../operations-mlops/governance/ai-gateway-guardrails.md).
 
 #### RAG + Observability
 
-- **Milvus**: Vector DB — Core of RAG system ([Details](../operations-mlops/data-infrastructure/milvus-vector-database.md))
-- **Langfuse**: Production LLM tracing, token cost tracking ([Architecture](../operations-mlops/observability/agent-monitoring.md), [Deployment Guide](../reference-architecture/integrations/monitoring-observability-setup.md))
+- **Milvus**: Vector DB — Core of RAG system ([Details](../../operations-mlops/data-infrastructure/milvus-vector-database.md))
+- **Langfuse**: Production LLM tracing, token cost tracking ([Architecture](../../operations-mlops/observability/agent-monitoring.md), [Deployment Guide](../../reference-architecture/integrations/monitoring-observability-setup.md))
 - **Prometheus + Grafana**: Infrastructure metrics monitoring
 
 ---
@@ -278,14 +278,14 @@ Agent pods autoscale based on Redis queue length via KEDA.
 
 #### Easy Deployment Example
 
-For deployment guide, refer to [Reference Architecture](../reference-architecture/).
+For deployment guide, refer to [Reference Architecture](../../reference-architecture/).
 
 :::info GPU Cost optimization Details
-For GPU cost optimization strategies including Spot instance usage, Consolidation, and schedule-based cost management, refer to [GPU Resource Management](../model-serving/gpu-infrastructure/gpu-resource-management.md) document.
+For GPU cost optimization strategies including Spot instance usage, Consolidation, and schedule-based cost management, refer to [GPU Resource Management](../../model-serving/gpu-infrastructure/gpu-resource-management.md) document.
 :::
 
 :::info GPU Security and Troubleshooting
-GPU Pod security policies, Network Policy, IAM, MIG isolation, and GPU troubleshooting guide, refer to [EKS GPU Node Strategy](../model-serving/gpu-infrastructure/eks-gpu-node-strategy.md) document.
+GPU Pod security policies, Network Policy, IAM, MIG isolation, and GPU troubleshooting guide, refer to [EKS GPU Node Strategy](../../model-serving/gpu-infrastructure/eks-gpu-node-strategy.md) document.
 :::
 
 ---
@@ -561,7 +561,7 @@ EKS Auto Mode is optimal for general workloads and basic GPU inference, but has 
 | MIG partitioning needed | **Unsuitable** | Cannot partition MIG with read-only NodeClass (GPU Operator itself can be installed) |
 | Run:ai GPU Scheduling | **Possible** | Disable Device Plugin label after GPU Operator installation |
 
-**Recommended hybrid configuration**: Operate Auto Mode (general workloads) + Karpenter (advanced GPU features) in a single cluster. For detailed configuration, refer to [EKS GPU Node Strategy](../model-serving/gpu-infrastructure/eks-gpu-node-strategy.md).
+**Recommended hybrid configuration**: Operate Auto Mode (general workloads) + Karpenter (advanced GPU features) in a single cluster. For detailed configuration, refer to [EKS GPU Node Strategy](../../model-serving/gpu-infrastructure/eks-gpu-node-strategy.md).
 
 ### Gateway API Limitations and Workarounds
 
@@ -587,7 +587,7 @@ spec:
       targetPort: 8443
 ```
 
-> For complete 2-Tier Gateway Architecture design, refer to [LLM Gateway 2-Tier Architecture](../reference-architecture/inference-gateway/routing-strategy.md).
+> For complete 2-Tier Gateway Architecture design, refer to [LLM Gateway 2-Tier Architecture](../../reference-architecture/inference-gateway/routing-strategy.md).
 
 ### Key Recommendations
 
@@ -637,7 +637,7 @@ For deployment guide, refer to [Karpenter Official Documentation](https://karpen
 
 **Getting Started:**
 
-For deployment guide, refer to [Reference Architecture](../reference-architecture/).
+For deployment guide, refer to [Reference Architecture](../../reference-architecture/).
 
 **Advantages:** Progressive complexity increase, GPU cost optimization, AWS-managed + custom combination
 
@@ -648,12 +648,12 @@ For deployment guide, refer to [Reference Architecture](../reference-architectur
 
 | Area | Document | Content |
 |------|------|------|
-| GPU Node Strategy | [EKS GPU Node Strategy](../model-serving/gpu-infrastructure/eks-gpu-node-strategy.md) | Auto Mode + Karpenter + Hybrid Node + Security/Troubleshooting |
-| GPU Resource Management | [GPU Resource Management](../model-serving/gpu-infrastructure/gpu-resource-management.md) | Karpenter scaling, KEDA, DRA, cost optimization |
-| NVIDIA GPU Stack | [NVIDIA GPU Stack](../model-serving/gpu-infrastructure/nvidia-gpu-stack.md) | GPU Operator, DCGM, MIG, Time-Slicing |
-| Model Serving | [vLLM Model Serving](../model-serving/inference-frameworks/vllm-model-serving.md) | vLLM configuration, performance optimization |
-| Distributed Inference | [llm-d Distributed Inference](../model-serving/inference-frameworks/llm-d-eks-automode.md) | KV Cache-aware routing |
-| Training Infrastructure | [NeMo Framework](../model-serving/inference-frameworks/nemo-framework.md) | Distributed training, EFA network |
+| GPU Node Strategy | [EKS GPU Node Strategy](../../model-serving/gpu-infrastructure/eks-gpu-node-strategy.md) | Auto Mode + Karpenter + Hybrid Node + Security/Troubleshooting |
+| GPU Resource Management | [GPU Resource Management](../../model-serving/gpu-infrastructure/gpu-resource-management.md) | Karpenter scaling, KEDA, DRA, cost optimization |
+| NVIDIA GPU Stack | [NVIDIA GPU Stack](../../model-serving/gpu-infrastructure/nvidia-gpu-stack.md) | GPU Operator, DCGM, MIG, Time-Slicing |
+| Model Serving | [vLLM Model Serving](../../model-serving/inference-frameworks/vllm-model-serving.md) | vLLM configuration, performance optimization |
+| Distributed Inference | [llm-d Distributed Inference](../../model-serving/inference-frameworks/llm-d-eks-automode.md) | KV Cache-aware routing |
+| Training Infrastructure | [NeMo Framework](../../model-serving/inference-frameworks/nemo-framework.md) | Distributed training, EFA network |
 
 ---
 

@@ -429,7 +429,7 @@ flowchart LR
 
 - [NVIDIA GPU 栈](./nvidia-gpu-stack.md) — GPU Operator、DCGM、MIG、Time-Slicing、Dynamo
 - [EKS GPU 节点策略](./eks-gpu-node-strategy.md) — Auto Mode + Karpenter + Hybrid Node 配置
-- [vLLM 模型服务](./vllm-model-serving.md) — 推理引擎部署
+- [vLLM 模型服务](../inference-frameworks/vllm-model-serving.md) — 推理引擎部署
 
 ## 参考资料
 

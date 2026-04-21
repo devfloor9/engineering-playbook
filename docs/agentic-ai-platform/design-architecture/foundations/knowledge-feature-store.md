@@ -760,6 +760,6 @@ Knowledge Feature Store는 전통 Feature Store의 **scalar/vector 피처 제공
 ### 관련 문서 (내부)
 
 - [플랫폼 아키텍처](./agentic-platform-architecture.md) — 데이터 레이어 설계
-- [Milvus 벡터 DB](../operations-mlops/data-infrastructure/milvus-vector-database.md) — 벡터 검색 구현
-- [Ragas RAG 평가](../operations-mlops/governance/ragas-evaluation.md) — RAG 품질 측정
-- [도메인 커스터마이징](../operations-mlops/governance/domain-customization.md) — 도메인 특화 전략
+- [Milvus 벡터 DB](../../operations-mlops/data-infrastructure/milvus-vector-database.md) — 벡터 검색 구현
+- [Ragas RAG 평가](../../operations-mlops/governance/ragas-evaluation.md) — RAG 품질 측정
+- [도메인 커스터마이징](../../operations-mlops/governance/domain-customization.md) — 도메인 특화 전략

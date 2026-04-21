@@ -13,7 +13,7 @@ last_update:
 
 > characterscharacters±characters¼: 2026-04-18 | characters½ë charactersitems: characters½ 20ë¶
 
-characters´ ë¬¸charactersë Inference Gatewaycharacters **Cascade Routingcharacters íë¡ëcharacters íê²½characterscharacters íë**íë characters¤characters  itemscharacters´ëcharactersëë¤. charactersí¤ícharacters² itemsëê³¼ ê¸°ë³¸ êµ¬ícharacters [ê²characters´í¸characters¨characters´ ë¼characters°í characters ëµ](./inference-gateway-routing.md)characters ë¨¼characters  characters°¸characters¡°ícharacters¸characters.
+characters´ ë¬¸charactersë Inference Gatewaycharacters **Cascade Routingcharacters íë¡ëcharacters íê²½characterscharacters íë**íë characters¤characters  itemscharacters´ëcharactersëë¤. charactersí¤ícharacters² itemsëê³¼ ê¸°ë³¸ êµ¬ícharacters [ê²characters´í¸characters¨characters´ ë¼characters°í characters ëµ](./routing-strategy.md)characters ë¨¼characters  characters°¸characters¡°ícharacters¸characters.
 
 :::info ëcharacters ëcharacters
 characters´ ë¬¸charactersë íë«í¼ characters´characterscharacters, MLOps characterscharacters§ëcharacters´ë¥¼ ëcharacterscharacters¼ë¡ í©ëë¤. LLM Classifier ëë LiteLLM based Cascade Routingcharacters´ characters´ë¯¸ ë°°í¬ëcharactersê³ , characters¤characters  íë¡ëcharacters í¸ëí½ basedcharacters¼ë¡ characters íëcharacters ë¹characters©characters itemscharacters íë ¤ë charactersí©characters itemscharacters í©ëë¤.
@@ -926,17 +926,17 @@ STRONG_KEYWORDS = [
 ## ê´ë ¨ ë¬¸characters
 
 ### charactersí¤ícharacters² ë° characters ëµ
-- [ê²characters´í¸characters¨characters´ ë¼characters°í characters ëµ](./inference-gateway-routing.md) - 2-Tier charactersí¤ícharacters², Cascade/Semantic Router, LLM Classifier itemsë
-- [characters¶ë¡  ê²characters´í¸characters¨characters´ ë°°í¬ itemscharacters´ë](./inference-gateway-setup/) - kgateway Helm characters¤characters¹, HTTPRoute YAML, LLM Classifier ë°°í¬ characters½ë
+- [ê²characters´í¸characters¨characters´ ë¼characters°í characters ëµ](./routing-strategy.md) - 2-Tier charactersí¤ícharacters², Cascade/Semantic Router, LLM Classifier itemsë
+- [characters¶ë¡  ê²characters´í¸characters¨characters´ ë°°í¬ itemscharacters´ë](./setup/) - kgateway Helm characters¤characters¹, HTTPRoute YAML, LLM Classifier ë°°í¬ characters½ë
 
 ### ëª¨ëí°ë§ ë° ë¹characters©
-- [Agent ëª¨ëí°ë§](../operations-mlops/observability/agent-monitoring.md) - Langfuse charactersí¤ícharacters², íµcharacters¬ ë©í¸ë¦­, charactersë¦¼ characters ëµ
-- [ëª¨ëí°ë§ characters¤í êµ¬characters± itemscharacters´ë](./monitoring-observability-setup.md) - Langfuse Helm, AMP/AMG, ServiceMonitor, Grafana ëcharactersë³´ë
-- [characters½ë© ëêµ¬ & ë¹characters© ë¶characters](./coding-tools-cost-analysis.md) - Aider/Cline characters°ê²°, ë¹characters© charactersµcharacters í í
+- [Agent ëª¨ëí°ë§](../../operations-mlops/observability/agent-monitoring.md) - Langfuse charactersí¤ícharacters², íµcharacters¬ ë©í¸ë¦­, charactersë¦¼ characters ëµ
+- [ëª¨ëí°ë§ characters¤í êµ¬characters± itemscharacters´ë](../integrations/monitoring-observability-setup.md) - Langfuse Helm, AMP/AMG, ServiceMonitor, Grafana ëcharactersë³´ë
+- [characters½ë© ëêµ¬ & ë¹characters© ë¶characters](../integrations/coding-tools-cost-analysis.md) - Aider/Cline characters°ê²°, ë¹characters© charactersµcharacters í í
 
 ### íë characterscharactersí¬ ë° ëª¨ë¸
-- [vLLM ëª¨ë¸ charactersë¹](../model-serving/inference-frameworks/vllm-model-serving.md) - vLLM ë°°í¬, PagedAttention, Multi-LoRA
-- [Semantic Caching characters ëµ](../model-serving/inference-frameworks/semantic-caching-strategy.md) - 3ê³characters¸µ charactersºcharacters, characters characters¬ë charactersê³items, ê´characters¸¡characters±
+- [vLLM ëª¨ë¸ charactersë¹](../../model-serving/inference-frameworks/vllm-model-serving.md) - vLLM ë°°í¬, PagedAttention, Multi-LoRA
+- [Semantic Caching characters ëµ](../../model-serving/inference-frameworks/semantic-caching-strategy.md) - 3ê³characters¸µ charactersºcharacters, characters characters¬ë charactersê³items, ê´characters¸¡characters±
 
 ---
 

@@ -394,9 +394,9 @@ flowchart TB
 
 ## Related Documents
 
-- [Milvus Vector Database](./milvus-vector-database.md)
-- [Agent Monitoring](./agent-monitoring.md)
-- [Agentic AI Platform Architecture](../design-architecture/foundations/agentic-platform-architecture.md)
+- [Milvus Vector Database](../data-infrastructure/milvus-vector-database.md)
+- [Agent Monitoring](../observability/agent-monitoring.md)
+- [Agentic AI Platform Architecture](../../design-architecture/foundations/agentic-platform-architecture.md)
 
 :::tip Recommendations
 

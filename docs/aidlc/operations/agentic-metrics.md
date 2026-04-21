@@ -727,7 +727,7 @@ Agent KPI SLO (프로덕션)
 
 ### 8.4 관련 문서
 
-- [LLMOps Observability 비교 가이드](../../agentic-ai-platform/operations-mlops/llmops-observability.md): Langfuse vs LangSmith vs Helicone
-- [Ragas RAG 평가 프레임워크](../../agentic-ai-platform/operations-mlops/ragas-evaluation.md): Ragas 메트릭 상세
+- [LLMOps Observability 비교 가이드](../../agentic-ai-platform/operations-mlops/observability/llmops-observability.md): Langfuse vs LangSmith vs Helicone
+- [Ragas RAG 평가 프레임워크](../../agentic-ai-platform/operations-mlops/governance/ragas-evaluation.md): Ragas 메트릭 상세
 - [관찰성 스택](./observability-stack.md): AIDLC Operations의 텔레메트리 기반
 - [예측 운영](./predictive-operations.md): 메트릭 기반 장애 예측

@@ -31,7 +31,7 @@ Traditional Application Performance Monitoring (APM) tools fail to meet the spec
 4. **Cost Tracking**: Real-time aggregation of token costs by provider/model, team/project budget management
 
 :::info Practical Deployment Guide
-For practical configuration including Langfuse Helm deployment, Redis/ClickHouse setup, kgateway sub-path routing, and Bifrost OTel integration, refer to [Monitoring Stack Configuration Guide](../reference-architecture/integrations/monitoring-observability-setup.md).
+For practical configuration including Langfuse Helm deployment, Redis/ClickHouse setup, kgateway sub-path routing, and Bifrost OTel integration, refer to [Monitoring Stack Configuration Guide](../../reference-architecture/integrations/monitoring-observability-setup.md).
 :::
 
 ---
@@ -290,7 +290,7 @@ Langfuse evaluation supports three methods:
 
 ### 6.3 Ragas Integration
 
-Ragas is a RAG system-specific evaluation framework that integrates with Langfuse to provide more sophisticated evaluation. For details, refer to [RAG Evaluation with Ragas](./ragas-evaluation.md) document.
+Ragas is a RAG system-specific evaluation framework that integrates with Langfuse to provide more sophisticated evaluation. For details, refer to [RAG Evaluation with Ragas](../governance/ragas-evaluation.md) document.
 
 ---
 
@@ -328,7 +328,7 @@ Ragas is a RAG system-specific evaluation framework that integrates with Langfus
 - [Ragas Documentation](https://docs.ragas.io)
 
 ### Related Documentation
-- [Monitoring Stack Configuration Guide](../reference-architecture/integrations/monitoring-observability-setup.md) - Langfuse Deployment, Bifrost OTel integration, kgateway routing practical configuration
-- [Bifrost Gateway Configuration Guide](../reference-architecture/inference-gateway/routing-strategy.md)
-- [RAG Evaluation with Ragas](./ragas-evaluation.md)
+- [Monitoring Stack Configuration Guide](../../reference-architecture/integrations/monitoring-observability-setup.md) - Langfuse Deployment, Bifrost OTel integration, kgateway routing practical configuration
+- [Bifrost Gateway Configuration Guide](../../reference-architecture/inference-gateway/routing-strategy.md)
+- [RAG Evaluation with Ragas](../governance/ragas-evaluation.md)
 - [Agent Monitoring & Operations](./agent-monitoring.md)

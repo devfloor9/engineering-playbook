@@ -89,7 +89,7 @@ roleRef:
 ```
 
 :::tip CC7.1-7.4 구현: LLM 트레이싱
-모든 추론 요청을 감사 가능한 트레이스로 기록합니다. 구현 방법은 [Agent 모니터링](../operations-mlops/observability/agent-monitoring.md) 및 [LLM 트레이싱 배포](../reference-architecture/integrations/monitoring-observability-setup.md)를 참조하세요.
+모든 추론 요청을 감사 가능한 트레이스로 기록합니다. 구현 방법은 [Agent 모니터링](../observability/agent-monitoring.md) 및 [LLM 트레이싱 배포](../../reference-architecture/integrations/monitoring-observability-setup.md)를 참조하세요.
 :::
 
 ---
@@ -316,7 +316,7 @@ def check_compliance(playbook_path):
 - [ISO/IEC 27001:2022](https://www.iso.org/standard/82875.html)
 - [전자금융감독규정 (금융위원회)](https://www.law.go.kr/)
 - [ISMS-P 인증기준 (KISA)](https://isms.kisa.or.kr/)
-- [Agent 모니터링 아키텍처](../operations-mlops/observability/agent-monitoring.md)
-- [LLMOps Observability 비교](../operations-mlops/observability/llmops-observability.md)
+- [Agent 모니터링 아키텍처](../observability/agent-monitoring.md)
+- [LLMOps Observability 비교](../observability/llmops-observability.md)
 - [AI Gateway Guardrails](./ai-gateway-guardrails.md) — 기술 구현 상세 (PII, Injection 방어, 도구 비교)
 - [Guardrails AI Security](https://docs.guardrailsai.com/concepts/security/)

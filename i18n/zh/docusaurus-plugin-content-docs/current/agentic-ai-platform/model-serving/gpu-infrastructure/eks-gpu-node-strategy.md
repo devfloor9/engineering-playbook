@@ -780,8 +780,8 @@ Karpenter、KEDA、DRA 基于 GPU 自动伸缩策略请参阅以下文档。
 
 ### 推理引擎
 
-- **[llm-d EKS Auto Mode](./llm-d-eks-automode.md)** - llm-d 分布式推理、KV-cache 感知路由、Auto Mode/Karpenter 节点策略
-- **[vLLM 模型服务](./vllm-model-serving.md)** - vLLM 部署及优化
+- **[llm-d EKS Auto Mode](../inference-frameworks/llm-d-eks-automode.md)** - llm-d 分布式推理、KV-cache 感知路由、Auto Mode/Karpenter 节点策略
+- **[vLLM 模型服务](../inference-frameworks/vllm-model-serving.md)** - vLLM 部署及优化
 
 ### 混合基础设施
 
@@ -793,8 +793,8 @@ Karpenter、KEDA、DRA 基于 GPU 自动伸缩策略请参阅以下文档。
 
 GPU 工作负载的实战部署 YAML、安全策略（Pod Security Standards、NetworkPolicy、IAM）、故障排除指南请参阅 Reference Architecture。
 
-- **[Reference Architecture: GPU 基础设施](../reference-architecture/model-lifecycle/custom-model-deployment.md)** - GPU 安全、故障排除、部署指南
+- **[Reference Architecture: GPU 基础设施](../../reference-architecture/model-lifecycle/custom-model-deployment.md)** - GPU 安全、故障排除、部署指南
 
 ### 平台架构
 
-- **[EKS 开放架构](../design-architecture/platform-selection/agentic-ai-solutions-eks.md)** - 完整 Agentic AI 平台架构
+- **[EKS 开放架构](../../design-architecture/platform-selection/agentic-ai-solutions-eks.md)** - 完整 Agentic AI 平台架构

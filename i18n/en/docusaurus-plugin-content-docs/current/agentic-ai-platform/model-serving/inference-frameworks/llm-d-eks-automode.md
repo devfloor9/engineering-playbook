@@ -38,7 +38,7 @@ llm-d is an Apache 2.0-licensed Kubernetes-native distributed inference stack le
 While existing vLLM deployments rely on simple Round-Robin load balancing, llm-d delivers intelligent routing that is KV Cache state-aware, forwarding requests with identical prefixes to Pods that already hold the corresponding KV Cache. This significantly reduces Time To First Token (TTFT) and saves GPU computation.
 
 :::tip Production Deployment Guide
-For llm-d EKS deployment YAML, helmfile commands, and cluster creation, see the [Custom Model Deployment Guide](../reference-architecture/model-lifecycle/custom-model-deployment.md).
+For llm-d EKS deployment YAML, helmfile commands, and cluster creation, see the [Custom Model Deployment Guide](../../reference-architecture/model-lifecycle/custom-model-deployment.md).
 :::
 
 :::warning llm-d Inference Gateway =/= General-purpose Gateway API Implementation
@@ -199,7 +199,7 @@ KV Cache-aware routing is most effective in applications using identical system 
 | **KAI Scheduler** | Not available | Available (ClusterPolicy dependency) | Available |
 | **Operational complexity** | Low | Medium | Medium |
 
-For per-model-size detailed cost analysis, see [EKS GPU Node Strategy](./eks-gpu-node-strategy.md).
+For per-model-size detailed cost analysis, see [EKS GPU Node Strategy](../gpu-infrastructure/eks-gpu-node-strategy.md).
 
 ### GPU Instance Specifications
 
@@ -220,7 +220,7 @@ When llm-d ModelService requests GPUs via **DRA (ResourceClaim)**, node provisio
 - **Non-DRA deployment** (`nvidia.com/gpu` Device Plugin method): Works normally on Auto Mode and Karpenter
 - **P6e-GB200 UltraServer**: DRA is required (Device Plugin not supported)
 
-Details: [EKS GPU Node Strategy — MNG Strategy for DRA Workloads](./eks-gpu-node-strategy.md#56-mng-strategy-for-dra-workloads)
+Details: [EKS GPU Node Strategy — MNG Strategy for DRA Workloads](../gpu-infrastructure/eks-gpu-node-strategy.md#56-mng-strategy-for-dra-workloads)
 :::
 
 ---
@@ -296,7 +296,7 @@ Decode NodePool (memory-heavy):
 
 ## llm-d vs NVIDIA Dynamo
 
-llm-d and NVIDIA Dynamo both provide LLM inference routing/scheduling but with different approaches. For detailed comparison, see [NVIDIA GPU Stack — llm-d vs Dynamo Selection Guide](./nvidia-gpu-stack.md#llm-d-selection-guide).
+llm-d and NVIDIA Dynamo both provide LLM inference routing/scheduling but with different approaches. For detailed comparison, see [NVIDIA GPU Stack — llm-d vs Dynamo Selection Guide](../gpu-infrastructure/nvidia-gpu-stack.md#llm-d-selection-guide).
 
 | Item | llm-d | NVIDIA Dynamo |
 |------|-------|---------------|
@@ -436,10 +436,10 @@ When setting `instance-category: [g, p]` together in GPU NodePool, Karpenter may
 
 ## Next Steps
 
-- [EKS GPU Node Strategy](./eks-gpu-node-strategy.md) -- Auto Mode vs Karpenter vs Hybrid Node, per-model-size cost analysis
+- [EKS GPU Node Strategy](../gpu-infrastructure/eks-gpu-node-strategy.md) -- Auto Mode vs Karpenter vs Hybrid Node, per-model-size cost analysis
 - [vLLM Model Serving and Performance Optimization](./vllm-model-serving.md) -- vLLM basics and deployment
 - [MoE Model Serving Guide](./moe-model-serving.md) -- Mixture of Experts model serving
-- [GPU Resource Management](./gpu-resource-management.md) -- GPU cluster resource management
+- [GPU Resource Management](../gpu-infrastructure/gpu-resource-management.md) -- GPU cluster resource management
 
 ---
 

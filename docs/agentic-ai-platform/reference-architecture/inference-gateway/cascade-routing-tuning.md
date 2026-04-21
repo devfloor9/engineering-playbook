@@ -11,7 +11,7 @@ tags: [cascade-routing, inference-gateway, langfuse, tuning, 'scope:ops']
 sidebar_position: 3
 ---
 
-이 문서는 Inference Gateway의 **Cascade Routing을 프로덕션 환경에서 튜닝**하는 실전 가이드입니다. 아키텍처 개념과 기본 구현은 [게이트웨이 라우팅 전략](./inference-gateway-routing.md)을 먼저 참조하세요.
+이 문서는 Inference Gateway의 **Cascade Routing을 프로덕션 환경에서 튜닝**하는 실전 가이드입니다. 아키텍처 개념과 기본 구현은 [게이트웨이 라우팅 전략](./routing-strategy.md)을 먼저 참조하세요.
 
 :::info 대상 독자
 이 문서는 플랫폼 운영자, MLOps 엔지니어를 대상으로 합니다. LLM Classifier 또는 LiteLLM 기반 Cascade Routing이 이미 배포되었고, 실제 프로덕션 트래픽 기반으로 정확도와 비용을 개선하려는 상황을 가정합니다.
@@ -934,17 +934,17 @@ STRONG_KEYWORDS = [
 ## 참고 자료
 
 ### 아키텍처 및 전략
-- [게이트웨이 라우팅 전략](./inference-gateway-routing.md) - 2-Tier 아키텍처, Cascade/Semantic Router, LLM Classifier 개념
-- [추론 게이트웨이 배포 가이드](./inference-gateway-setup/) - kgateway Helm 설치, HTTPRoute YAML, LLM Classifier 배포 코드
+- [게이트웨이 라우팅 전략](./routing-strategy.md) - 2-Tier 아키텍처, Cascade/Semantic Router, LLM Classifier 개념
+- [추론 게이트웨이 배포 가이드](./setup/) - kgateway Helm 설치, HTTPRoute YAML, LLM Classifier 배포 코드
 
 ### 모니터링 및 비용
-- [Agent 모니터링](../operations-mlops/observability/agent-monitoring.md) - Langfuse 아키텍처, 핵심 메트릭, 알림 전략
-- [모니터링 스택 구성 가이드](./monitoring-observability-setup.md) - Langfuse Helm, AMP/AMG, ServiceMonitor, Grafana 대시보드
-- [코딩 도구 & 비용 분석](./coding-tools-cost-analysis.md) - Aider/Cline 연결, 비용 최적화 팁
+- [Agent 모니터링](../../operations-mlops/observability/agent-monitoring.md) - Langfuse 아키텍처, 핵심 메트릭, 알림 전략
+- [모니터링 스택 구성 가이드](../integrations/monitoring-observability-setup.md) - Langfuse Helm, AMP/AMG, ServiceMonitor, Grafana 대시보드
+- [코딩 도구 & 비용 분석](../integrations/coding-tools-cost-analysis.md) - Aider/Cline 연결, 비용 최적화 팁
 
 ### 프레임워크 및 모델
-- [vLLM 모델 서빙](../model-serving/inference-frameworks/vllm-model-serving.md) - vLLM 배포, PagedAttention, Multi-LoRA
-- [Semantic Caching 전략](../model-serving/inference-frameworks/semantic-caching-strategy.md) - 3계층 캐시, 유사도 임계값, 관측성
+- [vLLM 모델 서빙](../../model-serving/inference-frameworks/vllm-model-serving.md) - vLLM 배포, PagedAttention, Multi-LoRA
+- [Semantic Caching 전략](../../model-serving/inference-frameworks/semantic-caching-strategy.md) - 3계층 캐시, 유사도 임계값, 관측성
 
 ---
 

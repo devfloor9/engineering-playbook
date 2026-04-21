@@ -39,7 +39,7 @@ AWS Agentic AI 스택은 세 개의 축(Pillar)으로 구성됩니다.
 
 ### 도전과제 해결 매핑
 
-[기술적 도전과제](./agentic-ai-challenges.md)에서 다룬 5가지 핵심 과제를 AWS Native 접근으로 해결하는 방법:
+[기술적 도전과제](../foundations/agentic-ai-challenges.md)에서 다룬 5가지 핵심 과제를 AWS Native 접근으로 해결하는 방법:
 
 | 도전과제 | AWS Native 해결 방안 |
 |---------|---------------------|
@@ -468,7 +468,7 @@ Resources:
 ```
 
 :::info 실전 배포 가이드
-상세한 kubectl/helm 명령어, 전체 YAML 매니페스트, Python boto3 배포 스크립트는 [Reference Architecture](../reference-architecture/) 섹션을 참조하세요. 이 문서는 AWS Native 접근의 **개념과 패턴**에 집중합니다.
+상세한 kubectl/helm 명령어, 전체 YAML 매니페스트, Python boto3 배포 스크립트는 [Reference Architecture](../../reference-architecture/) 섹션을 참조하세요. 이 문서는 AWS Native 접근의 **개념과 패턴**에 집중합니다.
 :::
 
 ---
@@ -605,7 +605,7 @@ bedrock_agent.create_agent_action_group(
 ```
 
 :::info 실전 배포 상세
-완전한 boto3 스크립트, IAM 정책, YAML 매니페스트는 [Reference Architecture](../reference-architecture/) 섹션을 참조하세요.
+완전한 boto3 스크립트, IAM 정책, YAML 매니페스트는 [Reference Architecture](../../reference-architecture/) 섹션을 참조하세요.
 :::
 
 ### Self-hosted Agent와의 하이브리드 전략
@@ -665,7 +665,7 @@ CloudWatch Generative AI Observability는 **2025년 10월 GA**되었습니다. A
 
 - 매니지드 vs 오픈소스 vs 하이브리드 중 최적 접근 선택 → [AI 플랫폼 선택 가이드](./ai-platform-decision-framework.md)
 - EKS 기반 오픈소스 아키텍처가 필요하다면 → [EKS 기반 오픈 아키텍처](./agentic-ai-solutions-eks.md)
-- 전체 플랫폼 설계 → [플랫폼 아키텍처](./agentic-platform-architecture.md)
+- 전체 플랫폼 설계 → [플랫폼 아키텍처](../foundations/agentic-platform-architecture.md)
 
 ## 참고 자료
 
@@ -685,7 +685,7 @@ CloudWatch Generative AI Observability는 **2025년 10월 GA**되었습니다. A
 
 ### 관련 문서 (내부)
 
-- [플랫폼 아키텍처](./agentic-platform-architecture.md) — 6개 핵심 레이어
-- [기술적 도전과제](./agentic-ai-challenges.md) — 5가지 핵심 과제
+- [플랫폼 아키텍처](../foundations/agentic-platform-architecture.md) — 6개 핵심 레이어
+- [기술적 도전과제](../foundations/agentic-ai-challenges.md) — 5가지 핵심 과제
 - [AI 플랫폼 선택 가이드](./ai-platform-decision-framework.md) — 매니지드 vs 오픈소스
 - [EKS 기반 오픈 아키텍처](./agentic-ai-solutions-eks.md) — 자체 호스팅 비교

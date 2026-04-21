@@ -272,8 +272,8 @@ flowchart LR
 
 이 5가지 도전과제를 해결하기 위한 두 가지 접근 방식을 제시합니다:
 
-1. **[AWS Native 플랫폼](./aws-native-agentic-platform.md)**: AWS 매니지드 서비스(Bedrock, AgentCore)를 활용하여 인프라 운영 부담을 최소화하고 Agent 개발에 집중하는 접근
-2. **[EKS 기반 오픈 아키텍처](./agentic-ai-solutions-eks.md)**: Amazon EKS와 오픈소스 생태계를 활용하여 세밀한 제어와 비용 최적화를 달성하는 접근
+1. **[AWS Native 플랫폼](../platform-selection/aws-native-agentic-platform.md)**: AWS 매니지드 서비스(Bedrock, AgentCore)를 활용하여 인프라 운영 부담을 최소화하고 Agent 개발에 집중하는 접근
+2. **[EKS 기반 오픈 아키텍처](../platform-selection/agentic-ai-solutions-eks.md)**: Amazon EKS와 오픈소스 생태계를 활용하여 세밀한 제어와 비용 최적화를 달성하는 접근
 
 두 접근은 **상호 보완적**이며, 워크로드 특성에 따라 조합하여 사용할 수 있습니다.
 
@@ -312,6 +312,6 @@ flowchart LR
 ### 관련 문서 (내부)
 
 - [플랫폼 아키텍처](./agentic-platform-architecture.md) — 전체 시스템 설계 청사진
-- [AWS Native 플랫폼](./aws-native-agentic-platform.md) — 매니지드 서비스 접근
-- [EKS 기반 오픈 아키텍처](./agentic-ai-solutions-eks.md) — 자체 호스팅 접근
-- [GPU 리소스 관리](../model-serving/gpu-infrastructure/gpu-resource-management.md) — GPU 비용 최적화 상세
+- [AWS Native 플랫폼](../platform-selection/aws-native-agentic-platform.md) — 매니지드 서비스 접근
+- [EKS 기반 오픈 아키텍처](../platform-selection/agentic-ai-solutions-eks.md) — 자체 호스팅 접근
+- [GPU 리소스 관리](../../model-serving/gpu-infrastructure/gpu-resource-management.md) — GPU 비용 최적화 상세

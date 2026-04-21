@@ -10,7 +10,7 @@ last_update:
 
 # 监控与 Observability 配置指南
 
-本文档涵盖 Prometheus → AMP、AMG、Langfuse、Bifrost OTel 集成监控的**实战部署步骤**。架构概念和设计原则请参阅 [Agent 监控](../operations-mlops/observability/agent-monitoring.md) 和 [LLMOps Observability](../operations-mlops/observability/llmops-observability.md)。
+本文档涵盖 Prometheus → AMP、AMG、Langfuse、Bifrost OTel 集成监控的**实战部署步骤**。架构概念和设计原则请参阅 [Agent 监控](../../operations-mlops/observability/agent-monitoring.md) 和 [LLMOps Observability](../../operations-mlops/observability/llmops-observability.md)。
 
 ---
 

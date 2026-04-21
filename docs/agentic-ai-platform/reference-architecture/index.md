@@ -220,7 +220,7 @@ Reference Architecture를 배포하기 위한 사전 요구사항입니다.
 - [Agentic AI Platform 아키텍처](../design-architecture/foundations/agentic-platform-architecture.md) — 전체 설계 원칙과 컴포넌트 구조
 - [GPU 리소스 관리](../model-serving/gpu-infrastructure/gpu-resource-management.md) — Karpenter, KEDA, DRA 기반 GPU 오토스케일링
 - [vLLM 모델 서빙](../model-serving/inference-frameworks/vllm-model-serving.md) — vLLM 아키텍처와 최적화 기법
-- [Inference Gateway 라우팅 전략](./inference-gateway-routing.md) — 2-Tier 아키텍처와 Cascade/Semantic/Hybrid Routing 설계
+- [Inference Gateway 라우팅 전략](inference-gateway/routing-strategy.md) — 2-Tier 아키텍처와 Cascade/Semantic/Hybrid Routing 설계
 
 ---
 

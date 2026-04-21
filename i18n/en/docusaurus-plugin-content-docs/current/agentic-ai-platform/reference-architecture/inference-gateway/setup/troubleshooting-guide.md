@@ -283,7 +283,7 @@ kubectl exec -it -n observability <langfuse-web-pod> -- curl -v \
 # Expected: 200 OK
 ```
 
-For detailed configuration, refer to [Langfuse OTel Integration](../monitoring-observability-setup.md#opentelemetry-integration).
+For detailed configuration, refer to [Langfuse OTel Integration](../../integrations/monitoring-observability-setup.md#opentelemetry-integration).
 
 ---
 
@@ -507,7 +507,7 @@ kubectl logs -l app=langfuse-web -n observability --tail=20 -f
 
 - [Basic Deployment](./basic-deployment.md) - kgateway, HTTPRoute, Bifrost basic configuration
 - [Advanced Features](./advanced-features.md) - LLM Classifier, CloudFront/WAF, Semantic Caching
-- [Langfuse Deployment Guide](../monitoring-observability-setup.md) - OTel integration and troubleshooting
+- [Langfuse Deployment Guide](../../integrations/monitoring-observability-setup.md) - OTel integration and troubleshooting
 - [Kubernetes Gateway API Official Documentation](https://gateway-api.sigs.k8s.io/)
 - [kgateway Official Documentation](https://kgateway.dev/docs/)
 - [Bifrost Official Documentation](https://bifrost.dev/docs)

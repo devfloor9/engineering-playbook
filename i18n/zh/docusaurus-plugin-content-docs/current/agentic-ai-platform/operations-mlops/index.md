@@ -91,5 +91,5 @@ MLOps 流水线构建及 SageMaker-EKS 集成等实际部署架构请参阅 [Ref
 ## 相关章节
 
 - **[Reference Architecture](../reference-architecture/index.md)**：MLOps 流水线、SageMaker-EKS 集成、实战部署指南
-- **[AIDLC > AgenticOps](/docs/aidlc/agentic-ops)**：基于 AIOps 的自动化运营与预测性监控
+- **[AIDLC > AgenticOps](/docs/aidlc/operations)**：基于 AIOps 的自动化运营与预测性监控
 - **[设计与架构](../design-architecture/index.md)**：平台整体架构设计文档

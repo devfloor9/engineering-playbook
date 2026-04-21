@@ -508,7 +508,7 @@ kubectl logs -l app=langfuse-web -n observability --tail=20 -f
 
 - [基础部署](./basic-deployment.md) - kgateway、HTTPRoute、Bifrost 基础配置
 - [高级功能](./advanced-features.md) - LLM Classifier、CloudFront/WAF、Semantic Caching
-- [Langfuse 部署指南](../monitoring-observability-setup.md) - OTel 集成及故障排除
+- [Langfuse 部署指南](../../integrations/monitoring-observability-setup.md) - OTel 集成及故障排除
 - [Kubernetes Gateway API 官方文档](https://gateway-api.sigs.k8s.io/)
 - [kgateway 官方文档](https://kgateway.dev/docs/)
 - [Bifrost 官方文档](https://bifrost.dev/docs)

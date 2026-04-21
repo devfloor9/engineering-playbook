@@ -424,7 +424,7 @@ class OutputFilter:
 **AIDLC 적용**:
 - [거버넌스 프레임워크](../enterprise/governance-framework.md)에서 모델 거버넌스 정책 수립
 - Langfuse를 통해 모든 추론 요청/응답 로깅
-- 매 분기 편향 감사 수행 (예: [RAGAS](../../agentic-ai-platform/operations-mlops/ragas-evaluation.md) 평가)
+- 매 분기 편향 감사 수행 (예: [RAGAS](../../agentic-ai-platform/operations-mlops/governance/ragas-evaluation.md) 평가)
 
 ## 참고 자료
 

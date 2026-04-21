@@ -34,7 +34,7 @@ This document covers the **agent development optimization approach** provided by
 
 ### Challenge Resolution Mapping
 
-How the 5 key challenges covered in [Technical Challenges](./agentic-ai-challenges.md) are addressed with the AWS Native approach:
+How the 5 key challenges covered in [Technical Challenges](../foundations/agentic-ai-challenges.md) are addressed with the AWS Native approach:
 
 | Challenge | AWS Native Solution |
 |-----------|-------------------|
@@ -428,7 +428,7 @@ Resources:
 ```
 
 :::info Production Deployment Guide
-For detailed kubectl/helm commands, complete YAML manifests, and Python boto3 deployment scripts, see the [Reference Architecture](../reference-architecture/) section.
+For detailed kubectl/helm commands, complete YAML manifests, and Python boto3 deployment scripts, see the [Reference Architecture](../../reference-architecture/) section.
 :::
 
 ---
@@ -550,7 +550,7 @@ CloudWatch Generative AI Observability became **GA in October 2025**. Natively i
 ## Next Steps
 
 - For EKS-based open-source architecture → [EKS-Based Open Architecture](./agentic-ai-solutions-eks.md)
-- For overall platform design → [Platform Architecture](./agentic-platform-architecture.md)
+- For overall platform design → [Platform Architecture](../foundations/agentic-platform-architecture.md)
 
 ## References
 

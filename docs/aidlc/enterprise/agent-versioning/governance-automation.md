@@ -366,7 +366,7 @@ def lambda_handler(event, context):
 
 ### AIDLC 연관 문서
 - [Evaluation Framework](../../toolchain/evaluation-framework.md) — Golden Dataset 기반 회귀 감지
-- [Agent 모니터링](../../../agentic-ai-platform/operations-mlops/agent-monitoring.md) — 실시간 observability
+- [Agent 모니터링](../../../agentic-ai-platform/operations-mlops/observability/agent-monitoring.md) — 실시간 observability
 
 ### 모니터링·알림
 - **Prometheus**: [prometheus.io](https://prometheus.io/)
@@ -385,4 +385,4 @@ def lambda_handler(event, context):
 
 1. **[프롬프트·모델 레지스트리](./prompt-model-registry.md)** — 버전 관리 시스템 구축
 2. **[배포 전략](./deployment-strategies.md)** — Canary/Shadow 전략 구현
-3. **[Agent 모니터링](../../../agentic-ai-platform/operations-mlops/agent-monitoring.md)** — Langfuse + Prometheus 통합 observability 구축
+3. **[Agent 모니터링](../../../agentic-ai-platform/operations-mlops/observability/agent-monitoring.md)** — Langfuse + Prometheus 통합 observability 구축

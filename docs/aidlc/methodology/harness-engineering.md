@@ -415,7 +415,7 @@ AIDLC 3단계별 하네스 패턴 체크리스트:
 - **[온톨로지 엔지니어링](./ontology-engineering.md)** — 하네스가 검증하는 제약의 정의 (WHAT 축)
 - **[역할 재정의](../enterprise/role-composition.md)** — 하네스 엔지니어 역할
 - **[비용 효과](../enterprise/cost-estimation.md)** — 하네스 ROI 계산
-- **[MSA 복잡도](../enterprise/msa-complexity.md)** — MSA별 하네스 패턴
+- **[MSA 복잡도](../enterprise/msa-complexity/index.md)** — MSA별 하네스 패턴
 
 ### 외부 참조
 - [Harness Engineering: Governing AI Agents through Architectural Rigor](https://harness-engineering.ai/blog/harness-engineering-governing-ai-agents-through-architectural-rigor/) — Kai Renner, 2026.03

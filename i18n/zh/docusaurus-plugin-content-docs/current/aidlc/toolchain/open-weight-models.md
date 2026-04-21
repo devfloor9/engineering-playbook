@@ -424,7 +424,7 @@ class OutputFilter:
 **AIDLC 应用**:
 - 在 [治理框架](../enterprise/governance-framework.md) 中建立模型治理策略
 - 通过 Langfuse 记录所有推理请求 / 响应
-- 每季度执行偏差审计 (如 [RAGAS](../../agentic-ai-platform/operations-mlops/ragas-evaluation.md) 评估)
+- 每季度执行偏差审计 (如 [RAGAS](../../agentic-ai-platform/operations-mlops/governance/ragas-evaluation.md) 评估)
 
 ## 参考资料
 

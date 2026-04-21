@@ -267,8 +267,8 @@ flowchart LR
 
 为解决这 5 大挑战，提出两种方案：
 
-1. **[AWS Native 平台](./aws-native-agentic-platform.md)**：利用 AWS 托管服务（Bedrock、AgentCore）最小化基础设施运维负担，专注 Agent 开发
-2. **[EKS 开放架构](./agentic-ai-solutions-eks.md)**：利用 Amazon EKS 和开源生态实现精细控制和成本优化
+1. **[AWS Native 平台](../platform-selection/aws-native-agentic-platform.md)**：利用 AWS 托管服务（Bedrock、AgentCore）最小化基础设施运维负担，专注 Agent 开发
+2. **[EKS 开放架构](../platform-selection/agentic-ai-solutions-eks.md)**：利用 Amazon EKS 和开源生态实现精细控制和成本优化
 
 两种方案**互为补充**，可根据工作负载特性组合使用。
 

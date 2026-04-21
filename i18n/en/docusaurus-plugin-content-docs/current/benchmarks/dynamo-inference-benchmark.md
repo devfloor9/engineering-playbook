@@ -184,7 +184,7 @@ Benchmark results are visualized in Grafana dashboards:
 - **Dynamo Platform**: Worker status, request rate, KV cache hit rate
 - **KV Block Manager**: Block allocation, eviction, offload status
 
-See the [Agent Monitoring Guide](/docs/agentic-ai-platform/operations-mlops/agent-monitoring) for dashboard configuration.
+See the [Agent Monitoring Guide](/docs/agentic-ai-platform/operations-mlops/observability/agent-monitoring) for dashboard configuration.
 
 ---
 

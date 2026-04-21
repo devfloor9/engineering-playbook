@@ -809,9 +809,9 @@ The EKS-based MLOps pipeline provides a fully automated ML lifecycle by integrat
 
 ### Next Steps
 
-- [SageMaker-EKS Integration](./sagemaker-eks-integration.md) - Hybrid ML architecture
-- [GPU Resource Management](../model-serving/gpu-infrastructure/gpu-resource-management.md) - GPU cluster optimization
-- [Model Monitoring](../operations-mlops/observability/agent-monitoring.md) - Production model observability
+- [SageMaker-EKS Integration](../integrations/sagemaker-eks-integration.md) - Hybrid ML architecture
+- [GPU Resource Management](../../model-serving/gpu-infrastructure/gpu-resource-management.md) - GPU cluster optimization
+- [Model Monitoring](../../operations-mlops/observability/agent-monitoring.md) - Production model observability
 
 ---
 

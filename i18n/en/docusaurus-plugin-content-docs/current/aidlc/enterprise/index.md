@@ -22,7 +22,7 @@ The most frequently encountered challenges in enterprise AIDLC adoption:
 - **Cost Justification**: How much does AIDLC reduce project costs? → [Cost Effectiveness](./cost-estimation.md)
 - **Role Changes**: How do PM, architect, and developer roles evolve? → [Role Redefinition](./role-composition.md)
 - **Quality Governance**: How to manage AI-generated code quality enterprise-wide? → [Governance](./governance-framework.md)
-- **Complexity Management**: Can AIDLC be applied to large-scale MSA projects? → [MSA Complexity](./msa-complexity.md)
+- **Complexity Management**: Can AIDLC be applied to large-scale MSA projects? → [MSA Complexity](msa-complexity/index.md)
 
 ## Structure
 
@@ -32,7 +32,7 @@ The most frequently encountered challenges in enterprise AIDLC adoption:
 | 2 | [Role Composition](./role-composition.md) | PM, Organizational Design, Delivery Managers |
 | 3 | [Cost Effectiveness Framework](./cost-estimation.md) | Executives, PM, Sales Engineers |
 | 4 | [Governance Framework](./governance-framework.md) | Enterprise Architects, Compliance |
-| 5 | [MSA Complexity Assessment](./msa-complexity.md) | Architects, Senior Developers |
+| 5 | [MSA Complexity Assessment](msa-complexity/index.md) | Architects, Senior Developers |
 | 6 | [Case Studies](./case-studies.md) | All Stakeholders |
 
 ## Connection to Methodology

@@ -776,8 +776,8 @@ flowchart TD
 
 ### Inference Engines
 
-- **[llm-d EKS Auto Mode](./llm-d-eks-automode.md)** - llm-d distributed inference, KV-cache aware routing, Auto Mode/Karpenter node strategy
-- **[vLLM Model Serving](./vllm-model-serving.md)** - vLLM deployment and optimization
+- **[llm-d EKS Auto Mode](../inference-frameworks/llm-d-eks-automode.md)** - llm-d distributed inference, KV-cache aware routing, Auto Mode/Karpenter node strategy
+- **[vLLM Model Serving](../inference-frameworks/vllm-model-serving.md)** - vLLM deployment and optimization
 
 ### Hybrid Infrastructure
 
@@ -785,8 +785,8 @@ flowchart TD
 
 ### Deployment and Security
 
-- **[Reference Architecture: GPU Infrastructure](../reference-architecture/model-lifecycle/custom-model-deployment.md)** - GPU security, troubleshooting, deployment guide
+- **[Reference Architecture: GPU Infrastructure](../../reference-architecture/model-lifecycle/custom-model-deployment.md)** - GPU security, troubleshooting, deployment guide
 
 ### Platform Architecture
 
-- **[EKS-Based Open Architecture](../design-architecture/platform-selection/agentic-ai-solutions-eks.md)** - Overall Agentic AI platform architecture
+- **[EKS-Based Open Architecture](../../design-architecture/platform-selection/agentic-ai-solutions-eks.md)** - Overall Agentic AI platform architecture

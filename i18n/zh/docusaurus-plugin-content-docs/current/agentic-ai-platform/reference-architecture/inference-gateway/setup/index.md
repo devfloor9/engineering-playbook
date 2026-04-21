@@ -36,7 +36,7 @@ export const InferencePipelineDiagram = () => {
 
 # Inference Gateway 部署指南
 
-本文档涵盖基于 kgateway + Bifrost 的推理网关**实战部署流程**。架构概念和路由策略（Cascade、Semantic Router、2-Tier 结构）请参阅 [推理网关路由](../inference-gateway-routing.md)。
+本文档涵盖基于 kgateway + Bifrost 的推理网关**实战部署流程**。架构概念和路由策略（Cascade、Semantic Router、2-Tier 结构）请参阅 [推理网关路由](../routing-strategy.md)。
 
 :::info 指南组成
 本指南由 3 个文档组成。您可以按顺序学习，也可以选择需要的部分参考。
@@ -147,7 +147,7 @@ graph LR
 ### 建议事项
 
 - AWS Load Balancer Controller 安装（NLB 自动创建）
-- Langfuse 部署完成（参考 [Langfuse 部署指南](../monitoring-observability-setup.md)）
+- Langfuse 部署完成（参考 [Langfuse 部署指南](../../integrations/monitoring-observability-setup.md)）
 - 生产环境：ACM 证书颁发（用于 CloudFront + TLS）
 
 ---
@@ -155,16 +155,16 @@ graph LR
 ## 下一步
 
 - **开始：** 前往 [基础部署](./basic-deployment.md) 开始 kgateway 安装。
-- **理解架构：** 部署前阅读 [推理网关路由](../inference-gateway-routing.md) 了解整体结构。
-- **准备监控：** 参考 [Langfuse 部署指南](../monitoring-observability-setup.md) 配置可观测性栈。
+- **理解架构：** 部署前阅读 [推理网关路由](../routing-strategy.md) 了解整体结构。
+- **准备监控：** 参考 [Langfuse 部署指南](../../integrations/monitoring-observability-setup.md) 配置可观测性栈。
 
 ---
 
 ## 参考资料
 
-- [推理网关路由](../inference-gateway-routing.md) - kgateway 架构及路由策略详解
-- [Langfuse 部署指南](../monitoring-observability-setup.md) - Helm 安装、OTel 集成、Redis/ClickHouse 配置
-- [Agent 监控](../../operations-mlops/observability/agent-monitoring.md) - Langfuse 架构及组件
+- [推理网关路由](../routing-strategy.md) - kgateway 架构及路由策略详解
+- [Langfuse 部署指南](../../integrations/monitoring-observability-setup.md) - Helm 安装、OTel 集成、Redis/ClickHouse 配置
+- [Agent 监控](../../../operations-mlops/observability/agent-monitoring.md) - Langfuse 架构及组件
 - [Kubernetes Gateway API 官方文档](https://gateway-api.sigs.k8s.io/)
 - [kgateway 官方文档](https://kgateway.dev/docs/)
 - [Bifrost 官方文档](https://bifrost.dev/docs)

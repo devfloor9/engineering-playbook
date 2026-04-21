@@ -701,7 +701,7 @@ Apply DDD Context Mapping patterns when multiple services interact.
 | **Shared Kernel** | Share common domain model | Shared Library (minimize) |
 | **Published Language** | Standard event format | CloudEvents + SQS |
 
-Refer to the [MSA Complexity](../enterprise/msa-complexity.md) document for DDD application strategies in complex MSA environments.
+Refer to the [MSA Complexity](../enterprise/msa-complexity/index.md) document for DDD application strategies in complex MSA environments.
 
 ---
 
@@ -736,7 +736,7 @@ Refer to the [MSA Complexity](../enterprise/msa-complexity.md) document for DDD 
 - **[Ontology Engineering](./ontology-engineering.md)** — Extension from DDD to formal ontology
 - **[Harness Engineering](./harness-engineering.md)** — Validate DDD patterns in Quality Gates
 - **[AI Coding Agents](../toolchain/ai-coding-agents.md)** — Kiro, Q Developer details
-- **[MSA Complexity](../enterprise/msa-complexity.md)** — DDD application in complex MSA
+- **[MSA Complexity](../enterprise/msa-complexity/index.md)** — DDD application in complex MSA
 
 ---
 

@@ -412,7 +412,7 @@ Harness pattern checklist for AIDLC 3 phases:
 - **[Ontology Engineering](./ontology-engineering.md)** — Definition of constraints validated by harness (WHAT axis)
 - **[Role Redefinition](../enterprise/role-composition.md)** — Harness engineer role
 - **[Cost Effectiveness](../enterprise/cost-estimation.md)** — Harness ROI calculation
-- **[MSA Complexity](../enterprise/msa-complexity.md)** — Harness patterns by MSA
+- **[MSA Complexity](../enterprise/msa-complexity/index.md)** — Harness patterns by MSA
 
 ### External References
 - [Harness Engineering: Governing AI Agents through Architectural Rigor](https://harness-engineering.ai/blog/harness-engineering-governing-ai-agents-through-architectural-rigor/) — Kai Renner, 2026.03

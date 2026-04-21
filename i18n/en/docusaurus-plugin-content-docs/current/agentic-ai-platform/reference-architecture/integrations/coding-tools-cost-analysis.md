@@ -284,6 +284,6 @@ Cost optimization strategies only possible with self-hosting.
 | Bifrost Gateway | [getbifrost.ai](https://getbifrost.ai/) |
 | Langfuse Observability | [langfuse.com](https://langfuse.com/) |
 | Kiro Pricing | [kiro.dev/pricing](https://kiro.dev/pricing) |
-| Custom Model Deployment Guide | [custom-model-deployment.md](./custom-model-deployment.md) |
-| Custom Model Pipeline | [custom-model-pipeline.md](./custom-model-pipeline.md) |
-| Inference Gateway | [inference-gateway-routing.md](../reference-architecture/inference-gateway/routing-strategy.md) |
+| Custom Model Deployment Guide | [custom-model-deployment.md](../model-lifecycle/custom-model-deployment.md) |
+| Custom Model Pipeline | [custom-model-pipeline.md](../model-lifecycle/custom-model-pipeline.md) |
+| Inference Gateway | [inference-gateway-routing.md](../inference-gateway/routing-strategy.md) |

@@ -45,7 +45,7 @@ It has an MIT license allowing commercial use and outperforms OpenAI GPT-4o on A
 :::
 
 :::info Automatic Model Branching
-With an LLM Classifier, clients send requests to a single endpoint (`/v1`), and the system automatically selects an SLM or LLM based on prompt content. Simple requests are routed to Qwen3-4B (L4 $0.3/hr), while complex requests (refactoring, architecture, design, etc.) are routed to GLM-5 744B (H200 $12/hr). See the [Gateway Setup Guide](./inference-gateway-setup.md#llm-classifier-deployment) for configuration details.
+With an LLM Classifier, clients send requests to a single endpoint (`/v1`), and the system automatically selects an SLM or LLM based on prompt content. Simple requests are routed to Qwen3-4B (L4 $0.3/hr), while complex requests (refactoring, architecture, design, etc.) are routed to GLM-5 744B (H200 $12/hr). See the [Gateway Setup Guide](../inference-gateway/setup/advanced-features#llm-classifier-deployment) for configuration details.
 :::
 
 ### Model Specs (GLM-5.1 Example)
@@ -941,14 +941,14 @@ For large GPU instances (p5en, p6), use **EKS Standard Mode**. Auto Mode + MNG h
 ## Next Steps
 
 ### Model Serving and Infrastructure
-- [vLLM Model Serving](../model-serving/inference-frameworks/vllm-model-serving.md) -- vLLM configuration, performance optimization, tensor parallelism
-- [MoE Model Serving](../model-serving/inference-frameworks/moe-model-serving.md) -- Guide specific to Mixture-of-Experts models
-- [llm-d Distributed Inference](../model-serving/inference-frameworks/llm-d-eks-automode.md) -- KV Cache-aware routing, Disaggregated Serving
-- [EKS GPU Node Strategy](../model-serving/gpu-infrastructure/eks-gpu-node-strategy.md) -- Auto Mode + Karpenter hybrid, security, troubleshooting
+- [vLLM Model Serving](../../model-serving/inference-frameworks/vllm-model-serving.md) -- vLLM configuration, performance optimization, tensor parallelism
+- [MoE Model Serving](../../model-serving/inference-frameworks/moe-model-serving.md) -- Guide specific to Mixture-of-Experts models
+- [llm-d Distributed Inference](../../model-serving/inference-frameworks/llm-d-eks-automode.md) -- KV Cache-aware routing, Disaggregated Serving
+- [EKS GPU Node Strategy](../../model-serving/gpu-infrastructure/eks-gpu-node-strategy.md) -- Auto Mode + Karpenter hybrid, security, troubleshooting
 
 ### Operations and Monitoring
-- [Monitoring Stack Setup](./monitoring-observability-setup.md) -- Langfuse, Prometheus, Grafana deployment
-- [Inference Gateway Routing](../reference-architecture/inference-gateway/routing-strategy.md) -- kgateway + Bifrost 2-Tier architecture
+- [Monitoring Stack Setup](../integrations/monitoring-observability-setup.md) -- Langfuse, Prometheus, Grafana deployment
+- [Inference Gateway Routing](../inference-gateway/routing-strategy.md) -- kgateway + Bifrost 2-Tier architecture
 
 ### References
 

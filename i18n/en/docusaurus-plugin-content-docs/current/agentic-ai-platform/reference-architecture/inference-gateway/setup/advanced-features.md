@@ -585,7 +585,7 @@ After: Client → CloudFront (HTTPS, WAF/Shield) → NLB (HTTPS, CF only) → kg
 ## 3. Semantic Caching Implementation Options (Advanced) {#semantic-caching-implementation-options-advanced}
 
 :::info Concepts and Design Principles
-For Semantic Caching concepts, similarity threshold design, cache key structure, and observability strategies, refer to [Semantic Caching Strategy](../../model-serving/inference-frameworks/semantic-caching-strategy.md). This section covers tool comparisons and deployment configurations for actual implementation.
+For Semantic Caching concepts, similarity threshold design, cache key structure, and observability strategies, refer to [Semantic Caching Strategy](../../../model-serving/inference-frameworks/semantic-caching-strategy.md). This section covers tool comparisons and deployment configurations for actual implementation.
 :::
 
 ### 3.1 Implementation Tool Comparison (2026-04 baseline)
@@ -812,14 +812,14 @@ redis_key: "cache:org-12345:ko:glm-5:a3f2e1b:c9d8e7f"
 Advanced feature configuration is complete. Proceed to the next steps:
 
 1. **Troubleshooting**: If errors occurred during deployment, refer to [Troubleshooting Guide](./troubleshooting-guide.md).
-2. **Enhanced Monitoring**: Complete OTel integration and dashboards by referring to [Langfuse Deployment Guide](../monitoring-observability-setup.md).
-3. **Operational Processes**: Establish production operations by referring to [Agent Monitoring](../../operations-mlops/observability/agent-monitoring.md).
+2. **Enhanced Monitoring**: Complete OTel integration and dashboards by referring to [Langfuse Deployment Guide](../../integrations/monitoring-observability-setup.md).
+3. **Operational Processes**: Establish production operations by referring to [Agent Monitoring](../../../operations-mlops/observability/agent-monitoring.md).
 
 ---
 
 ## References
 
-- [Semantic Caching Strategy](../../model-serving/inference-frameworks/semantic-caching-strategy.md) - Concepts, threshold design, observability, domain-specific patterns
-- [Inference Gateway Routing](../inference-gateway-routing.md) - kgateway architecture and routing strategies
-- [Langfuse Deployment Guide](../monitoring-observability-setup.md) - Helm installation, OTel integration, Redis/ClickHouse configuration
-- [Agent Monitoring](../../operations-mlops/observability/agent-monitoring.md) - Langfuse architecture and components
+- [Semantic Caching Strategy](../../../model-serving/inference-frameworks/semantic-caching-strategy.md) - Concepts, threshold design, observability, domain-specific patterns
+- [Inference Gateway Routing](../routing-strategy.md) - kgateway architecture and routing strategies
+- [Langfuse Deployment Guide](../../integrations/monitoring-observability-setup.md) - Helm installation, OTel integration, Redis/ClickHouse configuration
+- [Agent Monitoring](../../../operations-mlops/observability/agent-monitoring.md) - Langfuse architecture and components

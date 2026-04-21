@@ -626,7 +626,7 @@ If you've gained concrete insights on AIDLC adoption through these case studies,
 **Technical Deep Dive:**
 - **[Ontology Engineering](../methodology/ontology-engineering.md)** — Domain knowledge formalization
 - **[Harness Engineering](../methodology/harness-engineering.md)** — AI execution safety assurance
-- **[MSA Complexity Assessment](./msa-complexity.md)** — Large-scale project application guide
+- **[MSA Complexity Assessment](msa-complexity/index.md)** — Large-scale project application guide
 
 ---
 

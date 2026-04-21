@@ -420,4 +420,4 @@ Once you've selected a deployment strategy:
 
 1. **[Governance & Automation](./governance-automation.md)** — Build automatic regression detection and rollback system
 2. **[Prompt & Model Registry](./prompt-model-registry.md)** — Build version control system
-3. **[Agent Monitoring](../../../agentic-ai-platform/operations-mlops/agent-monitoring.md)** — Build real-time observability
+3. **[Agent Monitoring](../../../agentic-ai-platform/operations-mlops/observability/agent-monitoring.md)** — Build real-time observability

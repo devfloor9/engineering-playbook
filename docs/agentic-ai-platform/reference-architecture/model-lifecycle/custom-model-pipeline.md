@@ -57,7 +57,7 @@ graph LR
 학습 파이프라인에서 도메인 데이터를 QLoRA로 학습하고, 평가를 통과한 어댑터만 레지스트리에 등록합니다. 서빙 파이프라인에서는 vLLM Multi-LoRA로 여러 어댑터를 동시에 로드하고, Bifrost Cascade를 통해 SLM/LLM 간 비용 최적화 라우팅을 수행합니다.
 
 :::tip 관련 문서
-- [운영 & 거버넌스](../operations-mlops/index.md) - 전체 운영 아키텍처
+- [운영 & 거버넌스](../../operations-mlops/index.md) - 전체 운영 아키텍처
 - [커스텀 모델 배포 가이드](./custom-model-deployment.md) - Kiro vs 자체 호스팅 비교 포함
 :::
 
@@ -65,7 +65,7 @@ graph LR
 
 ## LoRA 학습·배포 파이프라인 (도메인 특화)
 
-이 섹션은 도메인 특화 전략에서 LoRA Fine-tuning과 Multi-LoRA 핫스왑 배포를 실제로 구현하는 방법을 다룹니다. 도메인 특화의 전략적 배경과 의사결정 기준은 [도메인 특화 (LoRA + RAG)](../operations-mlops/governance/domain-customization.md)를 참조하세요.
+이 섹션은 도메인 특화 전략에서 LoRA Fine-tuning과 Multi-LoRA 핫스왑 배포를 실제로 구현하는 방법을 다룹니다. 도메인 특화의 전략적 배경과 의사결정 기준은 [도메인 특화 (LoRA + RAG)](../../operations-mlops/governance/domain-customization.md)를 참조하세요.
 
 ---
 
@@ -185,7 +185,7 @@ s3://model-registry/
 MLflow에 학습 메트릭(loss, accuracy)과 어댑터 경로를 함께 기록하면, 어떤 데이터셋과 하이퍼파라미터 조합이 최적인지 추적할 수 있습니다.
 :::
 
-- 참조: [NeMo Framework 체크포인트 관리](../model-serving/inference-frameworks/nemo-framework.md)
+- 참조: [NeMo Framework 체크포인트 관리](../../model-serving/inference-frameworks/nemo-framework.md)
 
 ---
 
@@ -302,7 +302,7 @@ trace = langfuse.trace(
 | **B증권** | 50,000 | 250M | 25시간 | $1,250 |
 | **C보험** | 30,000 | 150M | 15시간 | $750 |
 
-구현 방법은 [Agent 모니터링](../operations-mlops/observability/agent-monitoring.md) 및 [LLM 트레이싱 배포](./monitoring-observability-setup.md)를 참조하세요.
+구현 방법은 [Agent 모니터링](../../operations-mlops/observability/agent-monitoring.md) 및 [LLM 트레이싱 배포](../integrations/monitoring-observability-setup.md)를 참조하세요.
 
 ---
 
@@ -459,7 +459,7 @@ spec:
 
 새로운 어댑터 버전을 배포하기 전, LLM 트레이싱 시스템의 태그 기능을 활용한 A/B 테스트로 성능을 비교합니다. 요청 메타데이터에 `lora` 버전을 태그로 기록하면 대시보드에서 어댑터별 성능을 비교할 수 있습니다.
 
-구현 예시는 [Agent 모니터링 - A/B 테스트](../operations-mlops/observability/agent-monitoring.md)를 참조하세요.
+구현 예시는 [Agent 모니터링 - A/B 테스트](../../operations-mlops/observability/agent-monitoring.md)를 참조하세요.
 
 **A/B 테스트 비교 항목:**
 
@@ -470,8 +470,8 @@ spec:
 | 토큰 효율 | output_tokens / input_tokens | 답변 간결성 |
 | 사용자 만족도 | Annotation Score | 실제 사용자 평가 |
 
-- 참조: [RAGAS 평가 프레임워크](../operations-mlops/governance/ragas-evaluation.md)
-- 참조: [LLMOps Observability 평가 파이프라인](../operations-mlops/observability/llmops-observability.md)
+- 참조: [RAGAS 평가 프레임워크](../../operations-mlops/governance/ragas-evaluation.md)
+- 참조: [LLMOps Observability 평가 파이프라인](../../operations-mlops/observability/llmops-observability.md)
 
 ---
 
@@ -526,6 +526,6 @@ Phase 4까지 완료 시:
 | NeMo Framework | [docs.nvidia.com/nemo-framework](https://docs.nvidia.com/nemo-framework/user-guide/latest/) |
 | RAGAS Evaluation | [docs.ragas.io](https://docs.ragas.io/) |
 | Bifrost AI Gateway | [docs.getbifrost.ai](https://docs.getbifrost.ai/) |
-| Agent 모니터링 | [agent-monitoring.md](../operations-mlops/observability/agent-monitoring.md) |
-| LLM 트레이싱 배포 | [monitoring-observability-setup.md](./monitoring-observability-setup.md) |
+| Agent 모니터링 | [agent-monitoring.md](../../operations-mlops/observability/agent-monitoring.md) |
+| LLM 트레이싱 배포 | [monitoring-observability-setup.md](../integrations/monitoring-observability-setup.md) |
 | 커스텀 모델 배포 가이드 | [custom-model-deployment.md](./custom-model-deployment.md) |

@@ -184,7 +184,7 @@ AIPerf 벤치마크 도구는 4가지 측정 모드를 제공합니다:
 - **Dynamo Platform**: 워커 상태, 요청률, KV 캐시 히트율
 - **KV Block Manager**: 블록 할당, Eviction, Offload 현황
 
-대시보드 구성은 [Agent 모니터링 가이드](/docs/agentic-ai-platform/operations-mlops/agent-monitoring)를 참조하세요.
+대시보드 구성은 [Agent 모니터링 가이드](/docs/agentic-ai-platform/operations-mlops/observability/agent-monitoring)를 참조하세요.
 
 ---
 

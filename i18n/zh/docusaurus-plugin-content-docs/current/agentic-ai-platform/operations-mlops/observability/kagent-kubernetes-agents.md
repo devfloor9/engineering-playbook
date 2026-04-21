@@ -416,9 +416,9 @@ Agent CRD 创建
 
 :::tip 下一步
 
-- [Agentic AI Platform 架构](../design-architecture/foundations/agentic-platform-architecture.md) - 整体平台设计
-- [Agent 监控](../operations-mlops/observability/agent-monitoring.md) - Langfuse/LangSmith 集成指南
-- [GPU 资源管理](../model-serving/gpu-infrastructure/gpu-resource-management.md) - 动态资源分配
+- [Agentic AI Platform 架构](../../design-architecture/foundations/agentic-platform-architecture.md) - 整体平台设计
+- [Agent 监控](agent-monitoring.md) - Langfuse/LangSmith 集成指南
+- [GPU 资源管理](../../model-serving/gpu-infrastructure/gpu-resource-management.md) - 动态资源分配
 
 :::
 

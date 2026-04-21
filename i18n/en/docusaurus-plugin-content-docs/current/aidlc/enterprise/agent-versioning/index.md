@@ -84,7 +84,7 @@ import DocCardList from '@theme/DocCardList';
 ## AIDLC Related Documents
 
 - [Evaluation Framework](../../toolchain/evaluation-framework.md) — Golden Dataset-based regression detection
-- [Agent Monitoring](../../../agentic-ai-platform/operations-mlops/agent-monitoring.md) — Real-time observability
+- [Agent Monitoring](../../../agentic-ai-platform/operations-mlops/observability/agent-monitoring.md) — Real-time observability
 
 ---
 

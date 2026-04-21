@@ -693,9 +693,9 @@ flowchart TB
 - [AWS Bedrock RAG Evaluation](https://docs.aws.amazon.com/bedrock/)
 
 ### 관련 문서
-- [Milvus 벡터 데이터베이스](./milvus-vector-database.md)
-- [Agent 모니터링](./agent-monitoring.md)
-- [Agentic AI 플랫폼 아키텍처](../design-architecture/foundations/agentic-platform-architecture.md)
+- [Milvus 벡터 데이터베이스](../data-infrastructure/milvus-vector-database.md)
+- [Agent 모니터링](../observability/agent-monitoring.md)
+- [Agentic AI 플랫폼 아키텍처](../../design-architecture/foundations/agentic-platform-architecture.md)
 
 :::tip 권장 사항
 

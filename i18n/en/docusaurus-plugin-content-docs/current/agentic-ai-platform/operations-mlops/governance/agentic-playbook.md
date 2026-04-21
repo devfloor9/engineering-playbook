@@ -234,6 +234,6 @@ Requires manual approval only under specific conditions:
 
 ## Next Steps
 
-- **[Custom Model Pipeline](../reference-architecture/model-lifecycle/custom-model-pipeline.md)**: Layer 3 model tuning guide (including LoRA Fine-tuning)
-- **[Milvus Vector Database](./milvus-vector-database.md)**: Layer 2 knowledge augmentation implementation (RAG pipeline)
-- **[AgenticOps](/docs/aidlc/agentic-ops)**: Operational feedback loop
+- **[Custom Model Pipeline](../../reference-architecture/model-lifecycle/custom-model-pipeline.md)**: Layer 3 model tuning guide (including LoRA Fine-tuning)
+- **[Milvus Vector Database](../data-infrastructure/milvus-vector-database.md)**: Layer 2 knowledge augmentation implementation (RAG pipeline)
+- **[AgenticOps](/docs/aidlc/operations)**: Operational feedback loop

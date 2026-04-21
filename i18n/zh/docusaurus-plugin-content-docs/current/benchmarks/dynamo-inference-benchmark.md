@@ -184,7 +184,7 @@ AIPerf 基准测试工具提供 4 种测量模式：
 - **Dynamo 平台**：Worker 状态、请求速率、KV 缓存命中率
 - **KV Block Manager**：Block 分配、驱逐、Offload 状态
 
-仪表板配置请参见 [Agent 监控指南](/docs/agentic-ai-platform/operations-mlops/agent-monitoring)。
+仪表板配置请参见 [Agent 监控指南](/docs/agentic-ai-platform/operations-mlops/observability/agent-monitoring)。
 
 ---
 

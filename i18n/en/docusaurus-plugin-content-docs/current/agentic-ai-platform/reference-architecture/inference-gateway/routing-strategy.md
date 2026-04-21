@@ -12,7 +12,7 @@ last_update:
 
 > Created: 2025-02-05 | Updated: 2026-04-17 | Reading Time: ~15 minutes
 
-This document covers **design principles** for 2-Tier gateway architecture and routing strategies (Cascade / Semantic Router / Hybrid). For actual **deployment procedures** including Helm installation, HTTPRoute manifests, and OTel integration, refer to [Inference Gateway Deployment Guide](./inference-gateway-setup/).
+This document covers **design principles** for 2-Tier gateway architecture and routing strategies (Cascade / Semantic Router / Hybrid). For actual **deployment procedures** including Helm installation, HTTPRoute manifests, and OTel integration, refer to [Inference Gateway Deployment Guide](./setup/).
 
 ## Overview
 
@@ -466,7 +466,7 @@ Processing all requests with Opus 4.7: $45/day ($1,350/month) → **79% savings*
 | **IDE (Claude Code)** | Context awareness | Dev tool vendors |
 | **Client (SDK)** | High flexibility | Prototype |
 
-**Field Recommendation**: In self-hosted environments, deploy with **kgateway → LLM Classifier → vLLM** structure for centralized routing. Developers use only a single endpoint (`/v1`), and platform teams manage classification policies. For detailed deployment guide, refer to [Inference Gateway Deployment: LLM Classifier](./inference-gateway-setup/advanced-features#llm-classifier-deployment).
+**Field Recommendation**: In self-hosted environments, deploy with **kgateway → LLM Classifier → vLLM** structure for centralized routing. Developers use only a single endpoint (`/v1`), and platform teams manage classification policies. For detailed deployment guide, refer to [Inference Gateway Deployment: LLM Classifier](setup/advanced-features.md#llm-classifier-deployment).
 
 ---
 
@@ -500,7 +500,7 @@ graph TD
 RouteLLM is a research project; K8s production deployment is not recommended. Dependency conflicts and large image size (10GB+) are problematic. The MF classifier **concept** is useful, but for production we recommend **LLM Classifier** (self-hosted) or **LiteLLM complexity routing** (external provider environments).
 :::
 
-For detailed deployment code, refer to [Inference Gateway Deployment Guide: LLM Classifier](./inference-gateway-setup/advanced-features#llm-classifier-deployment).
+For detailed deployment code, refer to [Inference Gateway Deployment Guide: LLM Classifier](setup/advanced-features.md#llm-classifier-deployment).
 
 ---
 
@@ -516,7 +516,7 @@ Kubernetes Gateway API enables managing LLM inference as Kubernetes-native resou
 | **InferencePool** | Model serving Pod group (vLLM replicas) | `replicas: 3` → 3 vLLM instances |
 | **LLMRoute** | Rules for routing requests to InferenceModel | `x-model-id: glm-5` → GLM-5 Pool |
 
-For detailed YAML manifests, refer to [Inference Gateway Deployment Guide](./inference-gateway-setup/).
+For detailed YAML manifests, refer to [Inference Gateway Deployment Guide](./setup/).
 
 ### Gateway API Inference Extension Integration
 
@@ -537,7 +537,7 @@ graph TB
     style Pool2 fill:#ffd93d,stroke:#333
 ```
 
-**Current Status**: Actively developed as CNCF project. Expected to provide alpha in Kubernetes 1.34+; production use not currently recommended. For production deployment, refer to [Reference Architecture](../reference-architecture/) guides.
+**Current Status**: Actively developed as CNCF project. Expected to provide alpha in Kubernetes 1.34+; production use not currently recommended. For production deployment, refer to [Reference Architecture](../) guides.
 
 ---
 
@@ -549,8 +549,8 @@ Semantic Caching detects semantically similar prompts and reuses previous respon
 
 Design principles (3-tier cache comparison, similarity threshold tradeoffs, tool comparison table, cache key design, observability·production checklist) are covered in detail in separate documentation.
 
-- **Design Principles**: [Semantic Caching Strategy](../model-serving/inference-frameworks/semantic-caching-strategy.md)
-- **Production Deployment Example**: LiteLLM + Redis configuration in [OpenClaw AI Gateway Deployment](./openclaw-ai-gateway.mdx)
+- **Design Principles**: [Semantic Caching Strategy](../../model-serving/inference-frameworks/semantic-caching-strategy.md)
+- **Production Deployment Example**: LiteLLM + Redis configuration in [OpenClaw AI Gateway Deployment](./openclaw-example.md)
 
 ---
 
@@ -606,7 +606,7 @@ import { MonitoringMetricsTable } from '@site/src/components/InferenceGatewayTab
 
 ### Langfuse OTel Integration
 
-Send OTel traces from Bifrost/LiteLLM to Langfuse to track prompts/completions, token usage, cost analysis, and tool call chains. Bifrost activates via `otel` plugin, LiteLLM via `success_callback: ["langfuse"]` config. For detailed configuration, refer to [Monitoring Stack Setup](../reference-architecture/integrations/monitoring-observability-setup.md).
+Send OTel traces from Bifrost/LiteLLM to Langfuse to track prompts/completions, token usage, cost analysis, and tool call chains. Bifrost activates via `otel` plugin, LiteLLM via `success_callback: ["langfuse"]` config. For detailed configuration, refer to [Monitoring Stack Setup](../integrations/monitoring-observability-setup.md).
 
 ### Recommended Alert Rules
 
@@ -626,21 +626,21 @@ Send OTel traces from Bifrost/LiteLLM to Langfuse to track prompts/completions, 
 
 For actual code examples and YAML manifests, refer to Reference Architecture section:
 
-- [Inference Gateway Deployment Guide](./inference-gateway-setup/) - kgateway, Bifrost, agentgateway installation and YAML manifests
-- [OpenClaw AI Gateway Deployment](../reference-architecture/inference-gateway/openclaw-example.mdx) - OpenClaw + Bifrost + Hubble production deployment
-- [Custom Model Deployment](../reference-architecture/model-lifecycle/custom-model-deployment.md) - vLLM/llm-d deployment guide
+- [Inference Gateway Deployment Guide](./setup/) - kgateway, Bifrost, agentgateway installation and YAML manifests
+- [OpenClaw AI Gateway Deployment](./openclaw-example.md) - OpenClaw + Bifrost + Hubble production deployment
+- [Custom Model Deployment](../model-lifecycle/custom-model-deployment.md) - vLLM/llm-d deployment guide
 
 ### Cost and Observability
 
-- [Coding Tools & Cost Analysis](../reference-architecture/integrations/coding-tools-cost-analysis.md) - Aider/Cline connection, NLB unified routing patterns
-- [Monitoring Stack Setup](../reference-architecture/integrations/monitoring-observability-setup.md) - Langfuse OTel integration, Prometheus, Grafana dashboards
-- [LLMOps Observability](../operations-mlops/observability/llmops-observability.md) - Langfuse/LangSmith-based LLM observability
+- [Coding Tools & Cost Analysis](../integrations/coding-tools-cost-analysis.md) - Aider/Cline connection, NLB unified routing patterns
+- [Monitoring Stack Setup](../integrations/monitoring-observability-setup.md) - Langfuse OTel integration, Prometheus, Grafana dashboards
+- [LLMOps Observability](../../operations-mlops/observability/llmops-observability.md) - Langfuse/LangSmith-based LLM observability
 
 ### Related Infrastructure
 
-- [GPU Resource Management](../model-serving/gpu-infrastructure/gpu-resource-management.md) - Dynamic resource allocation strategies
-- [llm-d Distributed Inference](../model-serving/inference-frameworks/llm-d-eks-automode.md) - EKS Auto Mode-based distributed inference
-- [Agent Monitoring](../operations-mlops/observability/agent-monitoring.md) - Langfuse integration guide
+- [GPU Resource Management](../../model-serving/gpu-infrastructure/gpu-resource-management.md) - Dynamic resource allocation strategies
+- [llm-d Distributed Inference](../../model-serving/inference-frameworks/llm-d-eks-automode.md) - EKS Auto Mode-based distributed inference
+- [Agent Monitoring](../../operations-mlops/observability/agent-monitoring.md) - Langfuse integration guide
 
 ---
 

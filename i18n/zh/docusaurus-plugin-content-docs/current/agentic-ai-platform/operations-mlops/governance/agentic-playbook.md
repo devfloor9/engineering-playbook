@@ -303,6 +303,6 @@ spec:
 
 ## 下一步
 
-- **[自定义模型流水线](../reference-architecture/model-lifecycle/custom-model-pipeline.md)**：Layer 3 模型调整指南（含 LoRA Fine-tuning）
-- **[Milvus 向量数据库](./milvus-vector-database.md)**：Layer 2 知识增强实现（RAG 流水线）
-- **[AgenticOps](/docs/aidlc/agentic-ops)**：运营反馈循环
+- **[自定义模型流水线](../../reference-architecture/model-lifecycle/custom-model-pipeline.md)**：Layer 3 模型调整指南（含 LoRA Fine-tuning）
+- **[Milvus 向量数据库](../data-infrastructure/milvus-vector-database.md)**：Layer 2 知识增强实现（RAG 流水线）
+- **[AgenticOps](/docs/aidlc/operations)**：运营反馈循环

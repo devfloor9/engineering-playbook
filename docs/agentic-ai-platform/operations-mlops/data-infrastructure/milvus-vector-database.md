@@ -495,10 +495,10 @@ Milvus Operator 설치, CRD 스키마, GPU 설정 예제는 [Milvus Operator 문
 
 ### 관련 문서
 
-- [Agentic AI 플랫폼 아키텍처](../design-architecture/foundations/agentic-platform-architecture.md)
-- [Agentic AI 기술 도전과제](../design-architecture/foundations/agentic-ai-challenges.md)
-- [Ragas RAG 평가 프레임워크](../operations-mlops/governance/ragas-evaluation.md)
-- [Agent 모니터링](../operations-mlops/observability/agent-monitoring.md)
+- [Agentic AI 플랫폼 아키텍처](../../design-architecture/foundations/agentic-platform-architecture.md)
+- [Agentic AI 기술 도전과제](../../design-architecture/foundations/agentic-ai-challenges.md)
+- [Ragas RAG 평가 프레임워크](../governance/ragas-evaluation.md)
+- [Agent 모니터링](../observability/agent-monitoring.md)
 
 :::info 권장 사항
 

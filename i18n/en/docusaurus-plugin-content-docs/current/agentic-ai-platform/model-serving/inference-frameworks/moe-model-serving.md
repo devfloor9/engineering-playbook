@@ -25,7 +25,7 @@ Mixture of Experts (MoE) models are an architecture that maximizes the efficienc
 This document covers the core concepts of MoE architecture, per-model resource requirements, and distributed deployment strategies.
 
 :::tip Production Deployment Guide
-For MoE model EKS deployment YAML, helm commands, and multi-node configuration, see the [Custom Model Deployment Guide](../reference-architecture/model-lifecycle/custom-model-deployment.md).
+For MoE model EKS deployment YAML, helm commands, and multi-node configuration, see the [Custom Model Deployment Guide](../../reference-architecture/model-lifecycle/custom-model-deployment.md).
 :::
 
 ---
@@ -431,9 +431,9 @@ Key alert criteria:
 
 ### Next Steps
 
-- [GPU Resource Management](./gpu-resource-management.md) - GPU cluster dynamic resource allocation
-- [Inference Gateway Routing](../reference-architecture/inference-gateway/routing-strategy.md) - Multi-model routing strategies
-- [Agentic AI Platform Architecture](../design-architecture/foundations/agentic-platform-architecture.md) - Overall platform structure
+- [GPU Resource Management](../gpu-infrastructure/gpu-resource-management.md) - GPU cluster dynamic resource allocation
+- [Inference Gateway Routing](../../reference-architecture/inference-gateway/routing-strategy.md) - Multi-model routing strategies
+- [Agentic AI Platform Architecture](../../design-architecture/foundations/agentic-platform-architecture.md) - Overall platform structure
 
 ---
 

@@ -328,10 +328,10 @@ Assigning GPUs to Index Nodes can significantly improve index build speed.
 
 ## Related Documents
 
-- [Agentic AI Platform Architecture](../design-architecture/foundations/agentic-platform-architecture.md)
-- [Agentic AI Technical Challenges](../design-architecture/foundations/agentic-ai-challenges.md)
-- [Ragas RAG Evaluation Framework](../operations-mlops/governance/ragas-evaluation.md)
-- [Agent Monitoring](../operations-mlops/observability/agent-monitoring.md)
+- [Agentic AI Platform Architecture](../../design-architecture/foundations/agentic-platform-architecture.md)
+- [Agentic AI Technical Challenges](../../design-architecture/foundations/agentic-ai-challenges.md)
+- [Ragas RAG Evaluation Framework](../governance/ragas-evaluation.md)
+- [Agent Monitoring](../observability/agent-monitoring.md)
 
 :::info Recommendations
 

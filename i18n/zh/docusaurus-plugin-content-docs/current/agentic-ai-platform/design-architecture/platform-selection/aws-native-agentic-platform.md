@@ -34,7 +34,7 @@ AWS Agentic AI 技术栈由三大支柱（Pillar）构成。
 
 ### 挑战解决映射
 
-通过 AWS Native 方案解决[技术挑战](./agentic-ai-challenges.md)中的 5 大核心问题：
+通过 AWS Native 方案解决[技术挑战](../foundations/agentic-ai-challenges.md)中的 5 大核心问题：
 
 | 挑战 | AWS Native 解决方案 |
 |---------|---------------------|
@@ -463,7 +463,7 @@ Resources:
 ```
 
 :::info 实战部署指南
-详细的 kubectl/helm 命令、完整 YAML 清单、Python boto3 部署脚本请参阅 [Reference Architecture](../reference-architecture/) 章节。本文档聚焦于 AWS Native 方案的**概念与模式**。
+详细的 kubectl/helm 命令、完整 YAML 清单、Python boto3 部署脚本请参阅 [Reference Architecture](../../reference-architecture/) 章节。本文档聚焦于 AWS Native 方案的**概念与模式**。
 :::
 
 ---
@@ -600,7 +600,7 @@ bedrock_agent.create_agent_action_group(
 ```
 
 :::info 实战部署详情
-完整的 boto3 脚本、IAM 策略、YAML 清单请参阅 [Reference Architecture](../reference-architecture/) 章节。
+完整的 boto3 脚本、IAM 策略、YAML 清单请参阅 [Reference Architecture](../../reference-architecture/) 章节。
 :::
 
 ### Self-hosted Agent 的混合策略
@@ -659,7 +659,7 @@ CloudWatch Generative AI Observability 于 **2025 年 10 月 GA**。与 AgentCor
 ## 下一步
 
 - 如需 EKS 开源架构 → [EKS 开放架构](./agentic-ai-solutions-eks.md)
-- 整体平台设计 → [平台架构](./agentic-platform-architecture.md)
+- 整体平台设计 → [平台架构](../foundations/agentic-platform-architecture.md)
 
 ## 参考资料
 

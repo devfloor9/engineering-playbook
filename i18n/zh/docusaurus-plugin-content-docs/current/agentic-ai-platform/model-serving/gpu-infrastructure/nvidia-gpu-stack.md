@@ -449,8 +449,8 @@ KAI Scheduler 是决定**将 Pod 放置在哪个节点**的调度器。与增加
 
 - [GPU 资源管理](./gpu-resource-management.md) — Karpenter、KEDA、DRA、成本优化
 - [EKS GPU 节点策略](./eks-gpu-node-strategy.md) — Auto Mode + Karpenter + Hybrid Node 配置
-- [vLLM 模型服务](./vllm-model-serving.md) — vLLM 推理引擎
-- [llm-d EKS Auto Mode](./llm-d-eks-automode.md) — llm-d 详细架构
+- [vLLM 模型服务](../inference-frameworks/vllm-model-serving.md) — vLLM 推理引擎
+- [llm-d EKS Auto Mode](../inference-frameworks/llm-d-eks-automode.md) — llm-d 详细架构
 
 ## 参考资料
 

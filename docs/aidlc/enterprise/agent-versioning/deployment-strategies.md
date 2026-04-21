@@ -420,4 +420,4 @@ CloudWatch 알람(`LLMErrorRate > threshold`) 발생 시 자동 롤백.
 
 1. **[거버넌스·자동화](./governance-automation.md)** — 자동 회귀 감지 및 롤백 체계 구축
 2. **[프롬프트·모델 레지스트리](./prompt-model-registry.md)** — 버전 관리 체계 구축
-3. **[Agent 모니터링](../../../agentic-ai-platform/operations-mlops/agent-monitoring.md)** — 실시간 observability 구축
+3. **[Agent 모니터링](../../../agentic-ai-platform/operations-mlops/observability/agent-monitoring.md)** — 실시간 observability 구축

@@ -519,5 +519,5 @@ def evaluate_trace(trace_id):
 - [AIDLC 方法论](/docs/aidlc/methodology)
 - [AI 编码代理](./ai-coding-agents.md)
 - [技术路线图](./technology-roadmap.md)
-- [LLMOps Observability](/docs/agentic-ai-platform/operations-mlops/llmops-observability)
-- [Ragas Evaluation](/docs/agentic-ai-platform/operations-mlops/ragas-evaluation)
+- [LLMOps Observability](/docs/agentic-ai-platform/operations-mlops/observability/llmops-observability)
+- [Ragas Evaluation](/docs/agentic-ai-platform/operations-mlops/governance/ragas-evaluation)

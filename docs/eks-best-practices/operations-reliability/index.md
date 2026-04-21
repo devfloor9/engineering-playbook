@@ -33,7 +33,7 @@ EKS 클러스터의 안정적인 운영을 위한 실전 가이드입니다. Git
     color="#4a90d9"
   />
   <DocCard
-    to="/docs/eks-best-practices/operations-reliability/eks-debugging-guide"
+    to="/docs/eks-best-practices/operations-reliability/eks-debugging"
     icon="🔍"
     title="EKS 장애 진단 및 대응"
     description="애플리케이션 및 인프라 문제의 체계적 진단과 트러블슈팅"

@@ -301,7 +301,7 @@ LLM Classifier Cascade 도입 시 월 $5,880 절감 (연간 $70,560). LLM Classi
 | 입력 길이 | 500자 미만 | 500자 이상 |
 | 대화 턴 수 | 5턴 이하 | 5턴 초과 |
 
-상세 배포 가이드: [추론 게이트웨이 배포: LLM Classifier](./inference-gateway-setup/advanced-features#llm-classifier-배포)
+상세 배포 가이드: [추론 게이트웨이 배포: LLM Classifier](../inference-gateway/setup/advanced-features#llm-classifier-배포)
 :::
 
 ### 6.3 Semantic Caching
@@ -345,7 +345,7 @@ spec:
 - TTFT: 10초 → 1초 (prefix cache hit 시)
 - GPU 비용 동일 (처리량 증가로 인스턴스 수 감소 가능)
 
-참조: [llm-d EKS Auto Mode](../model-serving/inference-frameworks/llm-d-eks-automode.md)
+참조: [llm-d EKS Auto Mode](../../model-serving/inference-frameworks/llm-d-eks-automode.md)
 
 ### 6.5 Multi-LoRA 공유
 
@@ -368,7 +368,7 @@ graph TD
 - 인프라 비용 1/3
 - 각 고객은 도메인 특화 모델 사용
 
-참조: [커스텀 모델 파이프라인](./custom-model-pipeline.md)
+참조: [커스텀 모델 파이프라인](../model-lifecycle/custom-model-pipeline.md)
 
 ---
 
@@ -431,6 +431,6 @@ graph TD
 | AWS Bedrock Pricing | [aws.amazon.com/bedrock/pricing](https://aws.amazon.com/bedrock/pricing/) |
 | OpenAI Pricing | [platform.openai.com/pricing](https://platform.openai.com/pricing) |
 | Anthropic Pricing | [anthropic.com/pricing](https://www.anthropic.com/pricing) |
-| 커스텀 모델 배포 가이드 | [custom-model-deployment.md](./custom-model-deployment.md) |
-| 커스텀 모델 파이프라인 | [custom-model-pipeline.md](./custom-model-pipeline.md) |
-| Inference Gateway | [inference-gateway-routing.md](../reference-architecture/inference-gateway/routing-strategy.md) |
+| 커스텀 모델 배포 가이드 | [custom-model-deployment.md](../model-lifecycle/custom-model-deployment.md) |
+| 커스텀 모델 파이프라인 | [custom-model-pipeline.md](../model-lifecycle/custom-model-pipeline.md) |
+| Inference Gateway | [inference-gateway-routing.md](../inference-gateway/routing-strategy.md) |

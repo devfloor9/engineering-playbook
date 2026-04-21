@@ -33,7 +33,7 @@ A practical guide for stable EKS cluster operations. Covers GitOps-based operati
     color="#4a90d9"
   />
   <DocCard
-    to="/docs/eks-best-practices/operations-reliability/eks-debugging-guide"
+    to="/docs/eks-best-practices/operations-reliability/eks-debugging"
     icon="🔍"
     title="EKS Troubleshooting & Incident Response"
     description="Systematic diagnosis and troubleshooting for application and infrastructure issues"

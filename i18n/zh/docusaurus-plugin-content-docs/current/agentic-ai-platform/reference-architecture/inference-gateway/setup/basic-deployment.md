@@ -213,7 +213,7 @@ spec:
 
 ### 2.3 Langfuse Sub-path 路由（URLRewrite） {#langfuse-sub-path-路由-urlrewrite}
 
-Langfuse（Next.js）在 `/` 提供服务，因此要以 `/langfuse` 前缀访问需要 URLRewrite。Langfuse 架构及部署详情参阅 [Langfuse 部署指南](../monitoring-observability-setup.md)。
+Langfuse（Next.js）在 `/` 提供服务，因此要以 `/langfuse` 前缀访问需要 URLRewrite。Langfuse 架构及部署详情参阅 [Langfuse 部署指南](../../integrations/monitoring-observability-setup.md)。
 
 ```yaml
 apiVersion: gateway.networking.k8s.io/v1
@@ -650,13 +650,13 @@ curl -s -o /dev/null -w "%{http_code}" http://${NLB_ENDPOINT}/langfuse/
 
 1. **故障排除**：部署中发生错误时参考 [故障排除指南](./troubleshooting-guide.md)。
 2. **高级功能**：为生产环境配置 [LLM Classifier、CloudFront/WAF、Semantic Caching](./advanced-features.md)。
-3. **监控**：参考 [Langfuse 部署指南](../monitoring-observability-setup.md) 完成 OTel 集成。
+3. **监控**：参考 [Langfuse 部署指南](../../integrations/monitoring-observability-setup.md) 完成 OTel 集成。
 
 ---
 
 ## 参考资料
 
-- [推理网关路由](../inference-gateway-routing.md) - kgateway 架构及路由策略
+- [推理网关路由](../routing-strategy.md) - kgateway 架构及路由策略
 - [Kubernetes Gateway API 官方文档](https://gateway-api.sigs.k8s.io/)
 - [kgateway 官方文档](https://kgateway.dev/docs/)
 - [Bifrost 官方文档](https://bifrost.dev/docs)

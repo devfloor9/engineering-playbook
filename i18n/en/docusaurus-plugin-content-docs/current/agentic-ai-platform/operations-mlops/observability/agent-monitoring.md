@@ -25,7 +25,7 @@ import {
 This document covers the monitoring architecture, key metric design, and alerting strategy for Agentic AI applications at a conceptual level.
 
 :::info Production Deployment Guide
-For Langfuse Helm deployment, AMP/AMG configuration, ServiceMonitor YAML, and Grafana dashboard JSON, see the [Monitoring Stack Setup Guide](../reference-architecture/integrations/monitoring-observability-setup.md).
+For Langfuse Helm deployment, AMP/AMG configuration, ServiceMonitor YAML, and Grafana dashboard JSON, see the [Monitoring Stack Setup Guide](../../reference-architecture/integrations/monitoring-observability-setup.md).
 :::
 
 ## Overview
@@ -363,10 +363,10 @@ Track LLM usage costs by the following criteria:
 
 ## Next Steps
 
-- [Monitoring Stack Setup Guide](../reference-architecture/integrations/monitoring-observability-setup.md) - AMP/AMG deployment, Langfuse Helm installation, ServiceMonitor, Grafana dashboard production setup
+- [Monitoring Stack Setup Guide](../../reference-architecture/integrations/monitoring-observability-setup.md) - AMP/AMG deployment, Langfuse Helm installation, ServiceMonitor, Grafana dashboard production setup
 - [LLMOps Observability Comparison Guide](./llmops-observability.md) - In-depth comparison of Langfuse vs LangSmith vs Helicone
-- [Agentic AI Platform Architecture](../design-architecture/foundations/agentic-platform-architecture.md) - Overall platform design
-- [RAG Evaluation Framework](./ragas-evaluation.md) - Quality evaluation with Ragas
+- [Agentic AI Platform Architecture](../../design-architecture/foundations/agentic-platform-architecture.md) - Overall platform design
+- [RAG Evaluation Framework](../governance/ragas-evaluation.md) - Quality evaluation with Ragas
 
 ## References
 

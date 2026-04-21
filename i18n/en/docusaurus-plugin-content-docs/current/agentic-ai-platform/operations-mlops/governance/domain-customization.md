@@ -63,7 +63,7 @@ graph TD
 **Pros**: Consistent code style, highest domain terminology accuracy, complex pattern learning
 **Cons**: GPU training cost ($2,000), training data collection required
 
-For detailed QLoRA training, NeMo/Unsloth frameworks, and checkpoint management, see the [Custom Model Pipeline Guide](../reference-architecture/model-lifecycle/custom-model-pipeline.md#2-lora-fine-tuning-pipeline).
+For detailed QLoRA training, NeMo/Unsloth frameworks, and checkpoint management, see the [Custom Model Pipeline Guide](../../reference-architecture/model-lifecycle/custom-model-pipeline.md#2-lora-fine-tuning-pipeline).
 
 ---
 
@@ -184,7 +184,7 @@ When an SI company **operates multiple customers on the same platform**, per-cus
 | **3** | 2-4 weeks | + SLM Cascade | Cost optimization (70% savings) | +$500/month |
 | **4** | 1-2 months | + LoRA Fine-tuning | Domain expertise + Style consistency | GPU $2K |
 
-For detailed per-phase implementation guides, see the [Custom Model Pipeline Guide](../reference-architecture/model-lifecycle/custom-model-pipeline.md#6-phase-by-phase-roadmap).
+For detailed per-phase implementation guides, see the [Custom Model Pipeline Guide](../../reference-architecture/model-lifecycle/custom-model-pipeline.md#6-phase-by-phase-roadmap).
 
 ---
 

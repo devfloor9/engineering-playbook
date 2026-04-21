@@ -20,7 +20,7 @@ import {
 本文档从概念层面介绍 Agentic AI 应用的监控架构、核心指标设计和告警策略。
 
 :::info 实战部署指南
-Langfuse Helm 部署、AMP/AMG 配置、ServiceMonitor YAML、Grafana 仪表板 JSON 等实战配置请参阅 [监控栈配置指南](../reference-architecture/integrations/monitoring-observability-setup.md)。
+Langfuse Helm 部署、AMP/AMG 配置、ServiceMonitor YAML、Grafana 仪表板 JSON 等实战配置请参阅 [监控栈配置指南](../../reference-architecture/integrations/monitoring-observability-setup.md)。
 :::
 
 ## 概述
@@ -358,10 +358,10 @@ tenant_monthly_budget_usd
 
 ## 下一步
 
-- [监控栈配置指南](../reference-architecture/integrations/monitoring-observability-setup.md) - AMP/AMG 部署、Langfuse Helm 安装、ServiceMonitor、Grafana 仪表板实战配置
+- [监控栈配置指南](../../reference-architecture/integrations/monitoring-observability-setup.md) - AMP/AMG 部署、Langfuse Helm 安装、ServiceMonitor、Grafana 仪表板实战配置
 - [LLMOps Observability 对比指南](./llmops-observability.md) - Langfuse vs LangSmith vs Helicone 深度对比
-- [Agentic AI Platform 架构](../design-architecture/foundations/agentic-platform-architecture.md) - 整体平台设计
-- [RAG 评估框架](./ragas-evaluation.md) - 利用 Ragas 的质量评估
+- [Agentic AI Platform 架构](../../design-architecture/foundations/agentic-platform-architecture.md) - 整体平台设计
+- [RAG 评估框架](../governance/ragas-evaluation.md) - 利用 Ragas 的质量评估
 
 ## 参考资料
 

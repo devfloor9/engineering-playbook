@@ -415,7 +415,7 @@ AIDLC 3 阶段 Harness 模式清单:
 - **[Ontology 工程](./ontology-engineering.md)** — Harness 所校验约束的定义 (WHAT 轴)
 - **[角色再定义](../enterprise/role-composition.md)** — Harness 工程师角色
 - **[成本效益](../enterprise/cost-estimation.md)** — Harness ROI 计算
-- **[MSA 复杂度](../enterprise/msa-complexity.md)** — 各类 MSA 的 Harness 模式
+- **[MSA 复杂度](../enterprise/msa-complexity/index.md)** — 各类 MSA 的 Harness 模式
 
 ### 外部参考
 - [Harness Engineering: Governing AI Agents through Architectural Rigor](https://harness-engineering.ai/blog/harness-engineering-governing-ai-agents-through-architectural-rigor/) — Kai Renner, 2026.03

@@ -290,10 +290,10 @@ Milvus 在 `/metrics` 端点提供 Prometheus 格式指标。可使用 ServiceMo
 
 ## 相关文档
 
-- [Agentic AI 平台架构](../design-architecture/foundations/agentic-platform-architecture.md)
-- [Agentic AI 技术挑战](../design-architecture/foundations/agentic-ai-challenges.md)
-- [Ragas RAG 评估框架](../operations-mlops/governance/ragas-evaluation.md)
-- [Agent 监控](../operations-mlops/observability/agent-monitoring.md)
+- [Agentic AI 平台架构](../../design-architecture/foundations/agentic-platform-architecture.md)
+- [Agentic AI 技术挑战](../../design-architecture/foundations/agentic-ai-challenges.md)
+- [Ragas RAG 评估框架](../governance/ragas-evaluation.md)
+- [Agent 监控](../observability/agent-monitoring.md)
 
 :::info 建议
 

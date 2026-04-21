@@ -213,7 +213,7 @@ spec:
 
 ### 2.3 Langfuse Sub-path Routing (URLRewrite) {#langfuse-sub-path-routing-urlrewrite}
 
-Langfuse (Next.js) serves from `/`, so URLRewrite is required to access via `/langfuse` prefix. For Langfuse architecture and deployment details, refer to [Langfuse Deployment Guide](../monitoring-observability-setup.md).
+Langfuse (Next.js) serves from `/`, so URLRewrite is required to access via `/langfuse` prefix. For Langfuse architecture and deployment details, refer to [Langfuse Deployment Guide](../../integrations/monitoring-observability-setup.md).
 
 ```yaml
 apiVersion: gateway.networking.k8s.io/v1
@@ -278,7 +278,7 @@ spec:
 
 ### 2.4 OTel URLRewrite (Bifrost → Langfuse)
 
-Bifrost OTel plugin uses only the base path of `collector_url`, so kgateway converts it to the full OTLP path. For OTel integration details, refer to [Langfuse OTel Configuration](../monitoring-observability-setup.md#opentelemetry-integration).
+Bifrost OTel plugin uses only the base path of `collector_url`, so kgateway converts it to the full OTLP path. For OTel integration details, refer to [Langfuse OTel Configuration](../../integrations/monitoring-observability-setup.md#opentelemetry-integration).
 
 ```yaml
 apiVersion: gateway.networking.k8s.io/v1
@@ -650,13 +650,13 @@ Basic deployment is complete. Proceed to the next steps:
 
 1. **Troubleshooting**: If errors occurred during deployment, refer to [Troubleshooting Guide](./troubleshooting-guide.md).
 2. **Advanced Features**: Configure [LLM Classifier, CloudFront/WAF, Semantic Caching](./advanced-features.md) for production environments.
-3. **Monitoring**: Complete OTel integration by referring to [Langfuse Deployment Guide](../monitoring-observability-setup.md).
+3. **Monitoring**: Complete OTel integration by referring to [Langfuse Deployment Guide](../../integrations/monitoring-observability-setup.md).
 
 ---
 
 ## References
 
-- [Inference Gateway Routing](../inference-gateway-routing.md) - kgateway architecture and routing strategies
+- [Inference Gateway Routing](../routing-strategy.md) - kgateway architecture and routing strategies
 - [Kubernetes Gateway API Official Documentation](https://gateway-api.sigs.k8s.io/)
 - [kgateway Official Documentation](https://kgateway.dev/docs/)
 - [Bifrost Official Documentation](https://bifrost.dev/docs)

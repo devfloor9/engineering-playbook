@@ -429,7 +429,7 @@ flowchart LR
 
 - [NVIDIA GPU Stack](./nvidia-gpu-stack.md) — GPU Operator, DCGM, MIG, Time-Slicing, Dynamo
 - [EKS GPU Node Strategy](./eks-gpu-node-strategy.md) — Auto Mode + Karpenter + Hybrid Node configuration
-- [vLLM Model Serving](./vllm-model-serving.md) — Inference engine deployment
+- [vLLM Model Serving](../inference-frameworks/vllm-model-serving.md) — Inference engine deployment
 
 ## References
 

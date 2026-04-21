@@ -14,7 +14,7 @@ last_update:
 
 This document covers design principles and operational considerations for **gateway-level semantic caching** in LLM inference pipelines.
 
-**Implementation Guide**: For tool comparison tables, gateway integration patterns, configuration examples, and deployment snippets, refer to [Inference Gateway Setup Guide — Semantic Caching Implementation Options](../../reference-architecture/inference-gateway-setup#semantic-caching-implementation-options-advanced).
+**Implementation Guide**: For tool comparison tables, gateway integration patterns, configuration examples, and deployment snippets, refer to [Inference Gateway Setup Guide — Semantic Caching Implementation Options](../../reference-architecture/inference-gateway/setup#semantic-caching-implementation-options-advanced).
 
 ## 1. Overview
 
@@ -80,7 +80,7 @@ flowchart LR
 | **Primary Purpose** | TTFT & throughput improvement | Repeated system prompt cost reduction | **Eliminate duplicate LLM calls entirely** |
 | **Cost Impact** | GPU time savings (self-hosted) | Input token price discount (managed) | Skip API calls entirely |
 | **Failure Impact** | Performance degradation only | Cache not applied → regular pricing | **Direct response quality impact** (false answer risk) |
-| **Related Docs** | [vLLM Model Serving](../model-serving/inference-frameworks/vllm-model-serving.md) | Provider official docs | This document |
+| **Related Docs** | [vLLM Model Serving](vllm-model-serving.md) | Provider official docs | This document |
 
 :::tip Three Layers Can Combine Independently
 Semantic Cache HIT → immediate response (skip LLM call). On MISS, provider call → Prompt Cache reduces system prompt input cost → inference engine KV Cache improves generation speed. The three layers are **orthogonal** to each other, so enabling all simultaneously is common.
@@ -159,7 +159,7 @@ When implementing Semantic Cache, select solutions considering these factors.
 - Pros: Minimal operational burden, compliance certifications included
 - Cons: Cost, region constraints
 
-For specific tool comparison tables, configuration examples, and deployment snippets, refer to [Inference Gateway Setup Guide — Semantic Caching Implementation Options](../../reference-architecture/inference-gateway-setup#semantic-caching-implementation-options-advanced).
+For specific tool comparison tables, configuration examples, and deployment snippets, refer to [Inference Gateway Setup Guide — Semantic Caching Implementation Options](../../reference-architecture/inference-gateway/setup#semantic-caching-implementation-options-advanced).
 
 ---
 
@@ -198,7 +198,7 @@ Requests with `temperature > 0`, `top_p < 1`, or tool calls produce **different 
 - Selectively allow only on endpoints with guaranteed reproducibility (e.g., `/summarize`, `/classify`)
 - Recommend routing rules that cache only `temperature=0` requests
 
-For specific gateway integration patterns (kgateway, LiteLLM, Bifrost), configuration examples, and code snippets, refer to [Inference Gateway Setup Guide — Semantic Caching Implementation Options](../../reference-architecture/inference-gateway-setup#semantic-caching-implementation-options-advanced).
+For specific gateway integration patterns (kgateway, LiteLLM, Bifrost), configuration examples, and code snippets, refer to [Inference Gateway Setup Guide — Semantic Caching Implementation Options](../../reference-architecture/inference-gateway/setup#semantic-caching-implementation-options-advanced).
 
 ---
 
@@ -241,7 +241,7 @@ Visualize the following with Langfuse custom dashboards or Prometheus + Grafana:
 
 ### Langfuse OTel Integration Reference
 
-For Bifrost/LiteLLM OTel transmission configuration, follow existing [LLMOps Observability](../../operations-mlops/observability/llmops-observability) and [Inference Gateway Setup Guide](../../reference-architecture/inference-gateway-setup) documents. Cache-related tags are added as span attributes at the application/gateway plugin layer.
+For Bifrost/LiteLLM OTel transmission configuration, follow existing [LLMOps Observability](../../operations-mlops/observability/llmops-observability) and [Inference Gateway Setup Guide](../../reference-architecture/inference-gateway/setup) documents. Cache-related tags are added as span attributes at the application/gateway plugin layer.
 
 ---
 
@@ -333,9 +333,9 @@ Medical/financial/legal domains may require audit log recording even for cache H
 
 ### Related Documents
 
-- **Implementation Guide**: [Inference Gateway Setup Guide — Semantic Caching Implementation Options](../../reference-architecture/inference-gateway-setup#semantic-caching-implementation-options-advanced) — Tool comparison tables, configuration examples, deployment snippets
+- **Implementation Guide**: [Inference Gateway Setup Guide — Semantic Caching Implementation Options](../../reference-architecture/inference-gateway/setup#semantic-caching-implementation-options-advanced) — Tool comparison tables, configuration examples, deployment snippets
 - [Inference Gateway Routing Strategy](../../reference-architecture/inference-gateway/routing-strategy)
-- [OpenClaw AI Gateway Deployment](../../reference-architecture/inference-gateway/openclaw-example.mdx)
+- [OpenClaw AI Gateway Deployment](../../reference-architecture/inference-gateway/openclaw-example.md)
 - [LLMOps Observability](../../operations-mlops/observability/llmops-observability)
 - [Milvus Vector Database](../../operations-mlops/data-infrastructure/milvus-vector-database)
 - [Ragas Evaluation](../../operations-mlops/governance/ragas-evaluation)

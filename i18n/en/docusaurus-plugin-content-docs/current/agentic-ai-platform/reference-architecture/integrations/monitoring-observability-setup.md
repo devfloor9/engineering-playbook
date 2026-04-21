@@ -10,7 +10,7 @@ last_update:
 
 # Monitoring & Observability Setup Guide
 
-This document covers the **hands-on deployment procedures** for integrated monitoring with Prometheus to AMP, AMG, Langfuse, and Bifrost OTel. For architecture concepts and design principles, see [Agent Monitoring](../operations-mlops/observability/agent-monitoring.md) and [LLMOps Observability](../operations-mlops/observability/llmops-observability.md).
+This document covers the **hands-on deployment procedures** for integrated monitoring with Prometheus to AMP, AMG, Langfuse, and Bifrost OTel. For architecture concepts and design principles, see [Agent Monitoring](../../operations-mlops/observability/agent-monitoring.md) and [LLMOps Observability](../../operations-mlops/observability/llmops-observability.md).
 
 ---
 
@@ -402,7 +402,7 @@ kubectl set env deploy/langfuse-web -n langfuse \
 
 ### 4.5 kgateway Sub-path Routing
 
-This configures Langfuse to be served at the `/langfuse` path through the kgateway unified NLB. For detailed HTTPRoute YAML, see the [Gateway Setup Guide](./inference-gateway-setup.md#23-langfuse-sub-path-routing-urlrewrite).
+This configures Langfuse to be served at the `/langfuse` path through the kgateway unified NLB. For detailed HTTPRoute YAML, see the [Gateway Setup Guide](../inference-gateway/setup/basic-deployment#langfuse-sub-path-routing-urlrewrite).
 
 Required routing rules:
 
@@ -696,7 +696,7 @@ To fundamentally resolve MinIO-related issues, we recommend migrating to S3 + KM
 /icon.svg       -> langfuse-web:3000  (Favicon)
 ```
 
-For detailed HTTPRoute YAML, see the [Gateway Setup Guide](./inference-gateway-setup.md#23-langfuse-sub-path-routing-urlrewrite).
+For detailed HTTPRoute YAML, see the [Gateway Setup Guide](../inference-gateway/setup/basic-deployment#langfuse-sub-path-routing-urlrewrite).
 
 ### 7.6 Langfuse Infinite Redirect (NEXTAUTH_URL)
 
@@ -714,8 +714,8 @@ kubectl set env deploy/langfuse-web -n langfuse \
 
 ## References
 
-- [Agent Monitoring](../operations-mlops/observability/agent-monitoring.md) - Detailed monitoring architecture and metric design
-- [LLMOps Observability](../operations-mlops/observability/llmops-observability.md) - Langfuse/LangSmith/Helicone comparison and evaluation pipelines
+- [Agent Monitoring](../../operations-mlops/observability/agent-monitoring.md) - Detailed monitoring architecture and metric design
+- [LLMOps Observability](../../operations-mlops/observability/llmops-observability.md) - Langfuse/LangSmith/Helicone comparison and evaluation pipelines
 - [Amazon Managed Prometheus](https://docs.aws.amazon.com/prometheus/)
 - [Amazon Managed Grafana](https://docs.aws.amazon.com/grafana/)
 - [Langfuse Helm Chart](https://github.com/langfuse/langfuse-helm)

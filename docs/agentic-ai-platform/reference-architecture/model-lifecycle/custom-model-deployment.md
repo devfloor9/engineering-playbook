@@ -45,7 +45,7 @@ MIT 라이선스로 상업적 활용 가능하며, Agentic Coding 작업에서 O
 :::
 
 :::info 자동 모델 분기
-LLM Classifier를 사용하면 클라이언트가 단일 엔드포인트(`/v1`)로 요청하고, 프롬프트 내용에 따라 자동으로 SLM/LLM이 선택됩니다. 단순 요청은 Qwen3-4B(L4 $0.3/hr)로, 복잡한 요청(리팩터, 아키텍처, 설계 등)은 GLM-5 744B(H200 $12/hr)로 라우팅됩니다. 구성은 [추론 게이트웨이 배포: LLM Classifier](./inference-gateway-setup/advanced-features#llm-classifier-배포)를 참조하세요.
+LLM Classifier를 사용하면 클라이언트가 단일 엔드포인트(`/v1`)로 요청하고, 프롬프트 내용에 따라 자동으로 SLM/LLM이 선택됩니다. 단순 요청은 Qwen3-4B(L4 $0.3/hr)로, 복잡한 요청(리팩터, 아키텍처, 설계 등)은 GLM-5 744B(H200 $12/hr)로 라우팅됩니다. 구성은 [추론 게이트웨이 배포: LLM Classifier](../inference-gateway/setup/advanced-features#llm-classifier-배포)를 참조하세요.
 :::
 
 ### 모델 스펙 (GLM-5.1 예시)
@@ -655,7 +655,7 @@ helm upgrade --install gpu-operator nvidia/gpu-operator \
   --set nodeStatusExporter.enabled=true
 ```
 
-이제 DCGM, GFD (GPU Feature Discovery), Node Status Exporter만 실행되며, Device Plugin은 Auto Mode의 내장 버전을 사용합니다. GPU Operator의 전체 아키텍처와 컴포넌트 상세는 [NVIDIA GPU 스택](../model-serving/gpu-infrastructure/nvidia-gpu-stack.md)을 참조하세요.
+이제 DCGM, GFD (GPU Feature Discovery), Node Status Exporter만 실행되며, Device Plugin은 Auto Mode의 내장 버전을 사용합니다. GPU Operator의 전체 아키텍처와 컴포넌트 상세는 [NVIDIA GPU 스택](../../model-serving/gpu-infrastructure/nvidia-gpu-stack.md)을 참조하세요.
 
 ```bash
 # GPU 정상 인식 확인
@@ -941,14 +941,14 @@ spec:
 ## 다음 단계
 
 ### 모델 서빙 및 인프라
-- [vLLM 모델 서빙](../model-serving/inference-frameworks/vllm-model-serving.md) — vLLM 설정, 성능 최적화, 텐서 병렬화
-- [MoE 모델 서빙](../model-serving/inference-frameworks/moe-model-serving.md) — Mixture-of-Experts 모델 특화 가이드
-- [llm-d 분산 추론](../model-serving/inference-frameworks/llm-d-eks-automode.md) — KV Cache-aware 라우팅, Disaggregated Serving
-- [EKS GPU 노드 전략](../model-serving/gpu-infrastructure/eks-gpu-node-strategy.md) — Auto Mode + Karpenter 하이브리드, 보안, 트러블슈팅
+- [vLLM 모델 서빙](../../model-serving/inference-frameworks/vllm-model-serving.md) — vLLM 설정, 성능 최적화, 텐서 병렬화
+- [MoE 모델 서빙](../../model-serving/inference-frameworks/moe-model-serving.md) — Mixture-of-Experts 모델 특화 가이드
+- [llm-d 분산 추론](../../model-serving/inference-frameworks/llm-d-eks-automode.md) — KV Cache-aware 라우팅, Disaggregated Serving
+- [EKS GPU 노드 전략](../../model-serving/gpu-infrastructure/eks-gpu-node-strategy.md) — Auto Mode + Karpenter 하이브리드, 보안, 트러블슈팅
 
 ### 운영 및 모니터링
-- [모니터링 스택 구성](./monitoring-observability-setup.md) — Langfuse, Prometheus, Grafana 배포
-- [Inference Gateway 라우팅](../reference-architecture/inference-gateway/routing-strategy.md) — kgateway + Bifrost 2-Tier 아키텍처
+- [모니터링 스택 구성](../integrations/monitoring-observability-setup.md) — Langfuse, Prometheus, Grafana 배포
+- [Inference Gateway 라우팅](../inference-gateway/routing-strategy.md) — kgateway + Bifrost 2-Tier 아키텍처
 
 ## 참고 자료
 

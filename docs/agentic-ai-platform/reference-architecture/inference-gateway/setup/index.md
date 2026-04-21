@@ -36,7 +36,7 @@ export const InferencePipelineDiagram = () => {
   );
 };
 
-이 문서는 kgateway + Bifrost 기반 추론 게이트웨이의 **실전 배포 절차**를 다룹니다. 아키텍처 개념과 라우팅 전략(Cascade, Semantic Router, 2-Tier 구조)은 [추론 게이트웨이 라우팅](../inference-gateway-routing.md)을 참조하세요.
+이 문서는 kgateway + Bifrost 기반 추론 게이트웨이의 **실전 배포 절차**를 다룹니다. 아키텍처 개념과 라우팅 전략(Cascade, Semantic Router, 2-Tier 구조)은 [추론 게이트웨이 라우팅](../routing-strategy.md)을 참조하세요.
 
 :::info 가이드 구성
 이 가이드는 3개 문서로 구성됩니다. 순차적으로 학습하거나, 필요한 섹션만 선택하여 참조하세요.
@@ -149,7 +149,7 @@ graph LR
 ### 권장 사항
 
 - AWS Load Balancer Controller 설치 (NLB 자동 생성)
-- Langfuse 배포 완료 ([Langfuse 배포 가이드](../monitoring-observability-setup.md) 참조)
+- Langfuse 배포 완료 ([Langfuse 배포 가이드](../../integrations/monitoring-observability-setup.md) 참조)
 - 프로덕션 환경: ACM 인증서 발급 (CloudFront + TLS용)
 
 ---
@@ -157,16 +157,16 @@ graph LR
 ## 다음 단계
 
 - **시작하기**: [기본 배포](./basic-deployment.md)로 이동하여 kgateway 설치를 시작하세요.
-- **아키텍처 이해**: 배포 전 [추론 게이트웨이 라우팅](../inference-gateway-routing.md)을 읽고 전체 구조를 파악하세요.
-- **모니터링 준비**: [Langfuse 배포 가이드](../monitoring-observability-setup.md)를 참조하여 관측성 스택을 구성하세요.
+- **아키텍처 이해**: 배포 전 [추론 게이트웨이 라우팅](../routing-strategy.md)을 읽고 전체 구조를 파악하세요.
+- **모니터링 준비**: [Langfuse 배포 가이드](../../integrations/monitoring-observability-setup.md)를 참조하여 관측성 스택을 구성하세요.
 
 ---
 
 ## 참고 자료
 
-- [추론 게이트웨이 라우팅](../inference-gateway-routing.md) - kgateway 아키텍처 및 라우팅 전략 상세
-- [Langfuse 배포 가이드](../monitoring-observability-setup.md) - Helm 설치, OTel 연동, Redis/ClickHouse 구성
-- [Agent 모니터링](../../operations-mlops/observability/agent-monitoring.md) - Langfuse 아키텍처 및 컴포넌트
+- [추론 게이트웨이 라우팅](../routing-strategy.md) - kgateway 아키텍처 및 라우팅 전략 상세
+- [Langfuse 배포 가이드](../../integrations/monitoring-observability-setup.md) - Helm 설치, OTel 연동, Redis/ClickHouse 구성
+- [Agent 모니터링](../../../operations-mlops/observability/agent-monitoring.md) - Langfuse 아키텍처 및 컴포넌트
 - [Kubernetes Gateway API 공식 문서](https://gateway-api.sigs.k8s.io/)
 - [kgateway 공식 문서](https://kgateway.dev/docs/)
 - [Bifrost 공식 문서](https://bifrost.dev/docs)

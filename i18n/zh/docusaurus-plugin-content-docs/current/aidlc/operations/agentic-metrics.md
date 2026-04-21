@@ -727,7 +727,7 @@ Agent KPI SLO (生产)
 
 ### 8.4 相关文档
 
-- [LLMOps Observability 对比指南](../../agentic-ai-platform/operations-mlops/llmops-observability.md): Langfuse vs LangSmith vs Helicone
-- [Ragas RAG 评估框架](../../agentic-ai-platform/operations-mlops/ragas-evaluation.md): Ragas 指标详解
+- [LLMOps Observability 对比指南](../../agentic-ai-platform/operations-mlops/observability/llmops-observability.md): Langfuse vs LangSmith vs Helicone
+- [Ragas RAG 评估框架](../../agentic-ai-platform/operations-mlops/governance/ragas-evaluation.md): Ragas 指标详解
 - [可观测性栈](./observability-stack.md): AIDLC Operations 的遥测基础
 - [预测运维](./predictive-operations.md): 基于指标的故障预测

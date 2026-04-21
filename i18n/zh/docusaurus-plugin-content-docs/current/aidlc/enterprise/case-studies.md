@@ -627,7 +627,7 @@ cost_limit:
 **技术深入:**
 - **[Ontology 工程](../methodology/ontology-engineering.md)** — 领域知识形式化
 - **[Harness 工程](../methodology/harness-engineering.md)** — 保障 AI 执行安全
-- **[MSA 复杂度评估](./msa-complexity.md)** — 大规模项目适用指南
+- **[MSA 复杂度评估](msa-complexity/index.md)** — 大规模项目适用指南
 
 ---
 

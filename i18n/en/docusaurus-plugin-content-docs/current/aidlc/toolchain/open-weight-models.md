@@ -423,7 +423,7 @@ European AI Act, Korean AI Basic Act, and other regulations require the followin
 **AIDLC Application**:
 - Establish model governance policies in [Governance Framework](../enterprise/governance-framework.md)
 - Log all inference requests/responses via Langfuse
-- Perform bias audits quarterly (e.g., [RAGAS](../../agentic-ai-platform/operations-mlops/ragas-evaluation.md) evaluation)
+- Perform bias audits quarterly (e.g., [RAGAS](../../agentic-ai-platform/operations-mlops/governance/ragas-evaluation.md) evaluation)
 
 ## References
 
