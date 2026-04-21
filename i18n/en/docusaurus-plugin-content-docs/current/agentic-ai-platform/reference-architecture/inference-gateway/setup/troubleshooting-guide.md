@@ -283,7 +283,7 @@ kubectl exec -it -n observability <langfuse-web-pod> -- curl -v \
 # Expected: 200 OK
 ```
 
-For detailed configuration, refer to [Langfuse OTel Integration](../../integrations/monitoring-observability-setup.md#opentelemetry-integration).
+For detailed configuration, refer to [Langfuse OTel Integration](../../integrations/monitoring-observability-setup.md).
 
 ---
 

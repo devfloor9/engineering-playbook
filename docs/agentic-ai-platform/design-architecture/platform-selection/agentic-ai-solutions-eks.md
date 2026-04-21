@@ -191,7 +191,7 @@ flowchart TD
 EKS Auto Mode는 Karpenter를 자동으로 구성하고 관리합니다. GPU NodePool만 추가하면 즉시 AI 워크로드 배포가 가능합니다.
 
 :::tip NodePool 설정 상세
-GPU NodePool 구성, Spot/On-Demand 전략, Consolidation 정책 등 상세 설정은 [GPU 리소스 관리](../model-serving/gpu-infrastructure/gpu-resource-management.md#karpenter-nodepool-구성)를 참조하세요.
+GPU NodePool 구성, Spot/On-Demand 전략, Consolidation 정책 등 상세 설정은 [GPU 리소스 관리](../../model-serving/gpu-infrastructure/gpu-resource-management.md)를 참조하세요.
 :::
 
 :::info EKS Auto Mode와 GPU 지원

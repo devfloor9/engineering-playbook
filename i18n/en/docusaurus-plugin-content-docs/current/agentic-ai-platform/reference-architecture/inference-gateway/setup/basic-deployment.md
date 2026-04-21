@@ -278,7 +278,7 @@ spec:
 
 ### 2.4 OTel URLRewrite (Bifrost → Langfuse)
 
-Bifrost OTel plugin uses only the base path of `collector_url`, so kgateway converts it to the full OTLP path. For OTel integration details, refer to [Langfuse OTel Configuration](../../integrations/monitoring-observability-setup.md#opentelemetry-integration).
+Bifrost OTel plugin uses only the base path of `collector_url`, so kgateway converts it to the full OTLP path. For OTel integration details, refer to [Langfuse OTel Configuration](../../integrations/monitoring-observability-setup.md).
 
 ```yaml
 apiVersion: gateway.networking.k8s.io/v1

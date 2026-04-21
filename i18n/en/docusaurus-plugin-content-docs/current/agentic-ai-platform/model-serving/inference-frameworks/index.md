@@ -13,7 +13,7 @@ import { DocCard, DocCardGrid } from '@site/src/components/DocCards';
 
 # Inference Frameworks
 
-The AI framework layer on top of [GPU Infrastructure](../gpu-infrastructure) that actually performs **LLM serving, distributed inference, and fine-tuning**. Covers single-node high-performance serving (vLLM), Kubernetes-native distributed inference (llm-d), MoE model processing, and NVIDIA NeMo-based training.
+The AI framework layer on top of [GPU Infrastructure](../gpu-infrastructure/index.md) that actually performs **LLM serving, distributed inference, and fine-tuning**. Covers single-node high-performance serving (vLLM), Kubernetes-native distributed inference (llm-d), MoE model processing, and NVIDIA NeMo-based training.
 
 <DocCardGrid columns={2}>
   <DocCard

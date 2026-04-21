@@ -278,7 +278,7 @@ spec:
 
 ### 2.4 OTel URLRewrite (Bifrost → Langfuse)
 
-Bifrost OTel 플러그인은 `collector_url`의 base path만 사용하므로, kgateway에서 전체 OTLP 경로로 변환합니다. OTel 연동 상세는 [Langfuse OTel 설정](../monitoring-observability-setup.md#opentelemetry-연동)을 참조하세요.
+Bifrost OTel 플러그인은 `collector_url`의 base path만 사용하므로, kgateway에서 전체 OTLP 경로로 변환합니다. OTel 연동 상세는 [Langfuse OTel 설정](../../integrations/monitoring-observability-setup.md)을 참조하세요.
 
 ```yaml
 apiVersion: gateway.networking.k8s.io/v1

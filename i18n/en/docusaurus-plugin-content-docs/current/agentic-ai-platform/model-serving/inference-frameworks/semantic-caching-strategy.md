@@ -14,7 +14,7 @@ last_update:
 
 This document covers design principles and operational considerations for **gateway-level semantic caching** in LLM inference pipelines.
 
-**Implementation Guide**: For tool comparison tables, gateway integration patterns, configuration examples, and deployment snippets, refer to [Inference Gateway Setup Guide — Semantic Caching Implementation Options](../../reference-architecture/inference-gateway/setup#semantic-caching-implementation-options-advanced).
+**Implementation Guide**: For tool comparison tables, gateway integration patterns, configuration examples, and deployment snippets, refer to [Inference Gateway Setup Guide — Semantic Caching Implementation Options](../../reference-architecture/inference-gateway/setup/advanced-features).
 
 ## 1. Overview
 
@@ -159,7 +159,7 @@ When implementing Semantic Cache, select solutions considering these factors.
 - Pros: Minimal operational burden, compliance certifications included
 - Cons: Cost, region constraints
 
-For specific tool comparison tables, configuration examples, and deployment snippets, refer to [Inference Gateway Setup Guide — Semantic Caching Implementation Options](../../reference-architecture/inference-gateway/setup#semantic-caching-implementation-options-advanced).
+For specific tool comparison tables, configuration examples, and deployment snippets, refer to [Inference Gateway Setup Guide — Semantic Caching Implementation Options](../../reference-architecture/inference-gateway/setup/advanced-features).
 
 ---
 
@@ -198,7 +198,7 @@ Requests with `temperature > 0`, `top_p < 1`, or tool calls produce **different 
 - Selectively allow only on endpoints with guaranteed reproducibility (e.g., `/summarize`, `/classify`)
 - Recommend routing rules that cache only `temperature=0` requests
 
-For specific gateway integration patterns (kgateway, LiteLLM, Bifrost), configuration examples, and code snippets, refer to [Inference Gateway Setup Guide — Semantic Caching Implementation Options](../../reference-architecture/inference-gateway/setup#semantic-caching-implementation-options-advanced).
+For specific gateway integration patterns (kgateway, LiteLLM, Bifrost), configuration examples, and code snippets, refer to [Inference Gateway Setup Guide — Semantic Caching Implementation Options](../../reference-architecture/inference-gateway/setup/advanced-features).
 
 ---
 
@@ -333,7 +333,7 @@ Medical/financial/legal domains may require audit log recording even for cache H
 
 ### Related Documents
 
-- **Implementation Guide**: [Inference Gateway Setup Guide — Semantic Caching Implementation Options](../../reference-architecture/inference-gateway/setup#semantic-caching-implementation-options-advanced) — Tool comparison tables, configuration examples, deployment snippets
+- **Implementation Guide**: [Inference Gateway Setup Guide — Semantic Caching Implementation Options](../../reference-architecture/inference-gateway/setup/advanced-features) — Tool comparison tables, configuration examples, deployment snippets
 - [Inference Gateway Routing Strategy](../../reference-architecture/inference-gateway/routing-strategy)
 - [OpenClaw AI Gateway Deployment](../../reference-architecture/inference-gateway/openclaw-example.md)
 - [LLMOps Observability](../../operations-mlops/observability/llmops-observability)
