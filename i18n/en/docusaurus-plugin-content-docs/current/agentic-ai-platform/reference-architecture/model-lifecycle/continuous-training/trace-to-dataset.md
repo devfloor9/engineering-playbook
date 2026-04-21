@@ -242,7 +242,7 @@ glue.create_table(
 
 #### Ragas 메트릭
 
-[Ragas 평가 프레임워크](../../operations-mlops/governance/ragas-evaluation.md)는 RAG 시스템의 품질을 객관적으로 측정합니다.
+[Ragas 평가 프레임워크](../../../operations-mlops/governance/ragas-evaluation.md)는 RAG 시스템의 품질을 객관적으로 측정합니다.
 
 ```python
 from ragas.metrics import faithfulness, answer_relevancy, context_precision
@@ -461,6 +461,6 @@ df.to_parquet('s3://training-data-lake/labeled-dataset/2026-04-18.parquet')
 
 ### 관련 문서
 
-- [Ragas Evaluation](../../operations-mlops/governance/ragas-evaluation.md) — Ragas 메트릭 심화
-- [Agent 모니터링 (Langfuse)](../../operations-mlops/observability/agent-monitoring.md)
+- [Ragas Evaluation](../../../operations-mlops/governance/ragas-evaluation.md) — Ragas 메트릭 심화
+- [Agent 모니터링 (Langfuse)](../../../operations-mlops/observability/agent-monitoring.md)
 - [GRPO/DPO 학습 Job](./grpo-dpo-training.md)

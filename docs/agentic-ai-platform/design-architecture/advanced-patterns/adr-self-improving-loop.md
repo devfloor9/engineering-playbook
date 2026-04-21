@@ -6,7 +6,7 @@ created: 2026-04-19
 last_update:
   date: 2026-04-20
   author: devfloor9
-reading_time: 5
+reading_time: 18
 tags:
   - adr
   - self-improving
@@ -23,6 +23,41 @@ sidebar_position: 99
   - 설계: [Self-Improving Agent Loop](./self-improving-agent-loop.md)
   - 구현: [Continuous Training Pipeline](../../reference-architecture/model-lifecycle/continuous-training/index.md)
   - 운영: [Cascade Routing Tuning](../../reference-architecture/inference-gateway/cascade-routing-tuning.md)
+
+---
+
+## Architecture Decision Record 개요
+
+Architecture Decision Record(ADR)는 아키텍처 수준의 중요한 의사결정을 **맥락(Context)·결정(Decision)·결과(Consequences)** 3요소로 고정하는 경량 기록 형식입니다. Michael Nygard가 2011년 블로그 포스트 "Documenting Architecture Decisions"에서 제안한 템플릿을 원형으로 하며, 이후 [MADR](https://adr.github.io/madr/), [adr-tools](https://github.com/npryce/adr-tools), [arc42](https://docs.arc42.org/) 등 다양한 변종이 업계 표준으로 정착했습니다.
+
+### 작성 목적
+
+- **결정 이력 보존** — "왜 그 시점에 이 구조를 택했는가"를 코드 리포지토리와 함께 버전 관리합니다. 위키·Slack 메모 대비 장기 보존성이 높고, 코드 변경과 결정 변경이 함께 추적됩니다.
+- **이해관계자 합의 통로** — `Proposed` 상태의 ADR은 플랫폼·보안·FinOps·컴플라이언스 팀이 공통 문서를 놓고 회람·리뷰하는 경량 RFC 역할을 합니다.
+- **재검토·롤백 근거** — 결정 당시 전제가 무너졌을 때, 해당 ADR의 Context 섹션이 "무엇을 재평가해야 하는가"의 기준점이 됩니다.
+
+### 일반 구조 (Nygard 원형)
+
+| 섹션 | 역할 |
+|------|------|
+| Title | 한 줄 결정 요약 (예: "Self-Improving Loop 도입 원칙") |
+| Status | `Proposed` / `Accepted` / `Deprecated` / `Superseded by <새 ADR>` |
+| Context | 결정이 필요해진 배경·제약·관련 사실 |
+| Decision | 합의된 선택 — 단일 결정 또는 Decision Points 다건 |
+| Consequences | 결정의 긍정적·부정적 영향, trade-off, 후속 액션 |
+
+### 본 플랫폼의 ADR 규약
+
+1. **위치** — `design-architecture/advanced-patterns/` 또는 도메인별 서브카테고리 하위에 배치합니다.
+2. **파일명** — `adr-<주제>.md` 형식을 사용합니다 (예: `adr-self-improving-loop.md`, `adr-knowledge-feature-store.md`).
+3. **frontmatter 태그** — `adr`, `scope:design` 필수 포함. 그 외 기술 스택·도메인 태그 보강.
+4. **Status 전이** — `Proposed → Accepted → (Deprecated 또는 Superseded)`. 전이 시 `last_update.date` 갱신.
+5. **불변성** — Accepted 이후 결정 본문은 수정하지 않습니다. 반대 결정은 **새 ADR을 작성**해 기존 ADR을 `Superseded by <새 ADR 경로>` 로 표시합니다.
+6. **리뷰 절차** — Proposed 단계에서 최소 DRI 1인 + 관련 팀 리드 1인의 회람 승인 기록을 PR 코멘트로 남깁니다.
+
+### 본 ADR의 위치
+
+본 문서는 [Self-Improving Agent Loop 설계](./self-improving-agent-loop.md) 의 **운영 원칙**을 고정하기 위한 ADR입니다. 설계 문서가 "기술적으로 무엇이 가능한가(autosearch 루프의 기술 구조)"를 서술한다면, 본 ADR은 그 중 "**무엇을 어떤 경계로** 도입할 것인가(자동화 범위·책임·롤백 기준)"를 합의합니다. 구현 스펙은 [Continuous Training Pipeline](../../reference-architecture/model-lifecycle/continuous-training/index.md) 에서 다룹니다.
 
 ---
 
@@ -129,11 +164,15 @@ Phase 3 문서 개편에서 Andrej Karpathy의 autosearch 담론을 엔터프라
 ### 공식 문서
 - [Kubernetes Canary Deployment](https://kubernetes.io/docs/concepts/cluster-administration/manage-deployment/#canary-deployment) — 점진적 롤아웃 표준
 - [MLflow Model Registry](https://mlflow.org/docs/latest/model-registry.html) — 모델 버전 관리 레퍼런스
+- [MADR (Markdown ADR)](https://adr.github.io/madr/) — ADR 템플릿 최신 스펙
+- [adr-tools](https://github.com/npryce/adr-tools) — ADR 생성·관리 CLI
 
 ### 논문 / 기술 블로그
+- [Michael Nygard — Documenting Architecture Decisions](https://cognitect.com/blog/2011/11/15/documenting-architecture-decisions) — ADR 원형 제안 (2011)
 - Andrej Karpathy — "LLMs doing autosearch" (2026 Q1 담론)
 - [LMSYS RouteLLM](https://lmsys.org/blog/2024-07-01-routellm/) — Cascade routing classifier 설계
 - [Langfuse OTel](https://langfuse.com/docs/opentelemetry) — Production trace standard
+- [ThoughtWorks Technology Radar — Lightweight ADRs](https://www.thoughtworks.com/radar/techniques/lightweight-architecture-decision-records) — ADR 업계 도입 사례
 
 ### 관련 문서 (내부)
 - [Self-Improving Agent Loop 설계](./self-improving-agent-loop.md) — 5-Stage Loop 상세 아키텍처

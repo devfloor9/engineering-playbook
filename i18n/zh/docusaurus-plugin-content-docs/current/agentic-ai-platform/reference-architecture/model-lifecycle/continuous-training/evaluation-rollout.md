@@ -370,7 +370,7 @@ client.transition_model_version_stage(
 
 ### Agent Versioning 연계
 
-[Agent Versioning](../../../aidlc/enterprise/agent-versioning/index.md)은 에이전트 코드와 모델 버전을 동기화합니다.
+[Agent Versioning](../../../../aidlc/enterprise/agent-versioning/index.md)은 에이전트 코드와 모델 버전을 동기화합니다.
 
 ```yaml
 # agent-version-manifest.yaml
@@ -735,7 +735,7 @@ ROI: 400%
 
 - [Trace → Dataset Materializer](./trace-to-dataset.md) — 배포 후 다음 iteration 데이터 수집
 - [GRPO/DPO 학습 Job](./grpo-dpo-training.md) — 회귀 발생 시 재학습 실행
-- [Agent Versioning](../../../aidlc/enterprise/agent-versioning/index.md) — 에이전트 레벨 롤아웃 전략
+- [Agent Versioning](../../../../aidlc/enterprise/agent-versioning/index.md) — 에이전트 레벨 롤아웃 전략
 
 ## 참고 자료
 
@@ -753,6 +753,6 @@ ROI: 400%
 
 ### 관련 문서
 
-- [Ragas Evaluation](../../operations-mlops/governance/ragas-evaluation.md)
-- [Inference Gateway 라우팅 전략](../inference-gateway-routing.md)
-- [모니터링 · Observability 셋업](../monitoring-observability-setup.md)
+- [Ragas Evaluation](../../../operations-mlops/governance/ragas-evaluation.md)
+- [Inference Gateway 라우팅 전략](../../inference-gateway/routing-strategy.md)
+- [모니터링 · Observability 셋업](../../integrations/monitoring-observability-setup.md)

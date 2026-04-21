@@ -59,7 +59,7 @@ graph LR
 | **成本** | 每次 Rollout 的 LLM 调用增加 N 倍(N=探索路径数) | 成本·质量权衡优化,优先使用低成本模型 |
 | **Reward 建模** | "成功"的定义模糊(客户满意度? 准确度? 延迟?) | 复合 reward: LLM-as-judge + Ragas + 用户反馈 |
 | **Mode Collapse** | 仅重复生成特定模式(多样性丢失) | 熵正则化、多样化采样 |
-| **法规** | 每次模型变更需审计日志、模型卡更新 | 版本管理、审计追踪、[Agent 版本管理](../../aidlc/enterprise/agent-versioning/index.md)联动 |
+| **法规** | 每次模型变更需审计日志、模型卡更新 | 版本管理、审计追踪、[Agent 版本管理](../../../aidlc/enterprise/agent-versioning/index.md)联动 |
 
 :::tip 企业洞察
 Self-improving loop 应解释为**"人工监督下的自动强化"**而非"完全自动化"。每次迭代都需要质量门控和人在回路验证。
@@ -1330,11 +1330,11 @@ WHERE event_type = 'model_deployed'
 
 ### 相关文档
 
-- [Agent 变更管理 — 提示·模型版本管理](../../aidlc/enterprise/agent-versioning/index.md)
-- [Agent 监控与运维](../operations-mlops/observability/agent-monitoring.md)
-- [Ragas RAG 评估框架](../operations-mlops/governance/ragas-evaluation.md)
-- [Cascade Routing 调优策略](../reference-architecture/inference-gateway/cascade-routing-tuning.md)(同一提交中创建)
-- [持续训练流水线](../reference-architecture/model-lifecycle/continuous-training/index.md)(同一提交中创建)
+- [Agent 变更管理 — 提示·模型版本管理](../../../aidlc/enterprise/agent-versioning/index.md)
+- [Agent 监控与运维](../../operations-mlops/observability/agent-monitoring.md)
+- [Ragas RAG 评估框架](../../operations-mlops/governance/ragas-evaluation.md)
+- [Cascade Routing 调优策略](../../reference-architecture/inference-gateway/cascade-routing-tuning.md)(同一提交中创建)
+- [持续训练流水线](../../reference-architecture/model-lifecycle/continuous-training/index.md)(同一提交中创建)
 
 :::danger Reward Hacking 免责声明
 Self-improving loop **无法"完全自动化"**。Reward hacking、mode collapse、policy drift 随时可能发生,人在回路验证和统计监控**必不可少**。盲目自动化可能导致模型质量退化。
@@ -1346,7 +1346,7 @@ Self-improving loop **无法"完全自动化"**。Reward hacking、mode collapse
 
 如果正在考虑引入 Self-improving loop:
 
-1. **[Cascade Routing 调优](../reference-architecture/inference-gateway/cascade-routing-tuning.md)** — 优先尝试低成本模型确保训练数据多样性
-2. **[持续训练流水线](../reference-architecture/model-lifecycle/continuous-training/index.md)** — 设计定期学习自动化流水线
-3. **[Agent 变更管理](../../aidlc/enterprise/agent-versioning/index.md)** — 模型版本管理与渐进部署策略
-4. **[Agent 监控](../operations-mlops/observability/agent-monitoring.md)** — 基于 Langfuse 的 trace 收集与成本追踪
+1. **[Cascade Routing 调优](../../reference-architecture/inference-gateway/cascade-routing-tuning.md)** — 优先尝试低成本模型确保训练数据多样性
+2. **[持续训练流水线](../../reference-architecture/model-lifecycle/continuous-training/index.md)** — 设计定期学习自动化流水线
+3. **[Agent 变更管理](../../../aidlc/enterprise/agent-versioning/index.md)** — 模型版本管理与渐进部署策略
+4. **[Agent 监控](../../operations-mlops/observability/agent-monitoring.md)** — 基于 Langfuse 的 trace 收集与成本追踪

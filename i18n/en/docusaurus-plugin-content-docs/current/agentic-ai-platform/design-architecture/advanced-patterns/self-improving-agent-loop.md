@@ -59,7 +59,7 @@ Applying Karpathy's ideal to enterprise environments requires considering these 
 | **비용** | LLM calls increase N-fold per rollout (N=number of exploration paths) | Optimize cost-quality trade-off, prioritize low-cost models |
 | **Reward Modeling** | "Definition of.*success.*is ambiguous(customer satisfaction? accuracy? latency?) | Composite reward: LLM-as-judge + Ragas + user feedback |
 | **Mode Collapse** | Generate only specific patterns repeatedly (diversity loss) | Entropy regularization, diverse sampling |
-| **Regulatory** | Audit log and model card update required for each model change | Version control, audit trail, [Agent version관리](../../aidlc/enterprise/agent-versioning/index.md) integration |
+| **Regulatory** | Audit log and model card update required for each model change | Version control, audit trail, [Agent version관리](../../../aidlc/enterprise/agent-versioning/index.md) integration |
 
 :::tip Enterprise Insight
 Self-improving loop should be interpreted as.*automated reinforcement under human supervision.*not.*full automation. Quality gates and human-in-the-loop verification are essential at each iteration.
@@ -1330,11 +1330,11 @@ WHERE event_type = 'model_deployed'
 
 ### Related Documents
 
-- [Agent 변경 관리 — 프롬프트·모델 version 관리](../../aidlc/enterprise/agent-versioning/index.md)
-- [Agent Monitoring and Operations](../operations-mlops/observability/agent-monitoring.md)
-- [Ragas RAG Evaluation Framework](../operations-mlops/governance/ragas-evaluation.md)
-- [Cascade Routing Tuning Strategy](../reference-architecture/inference-gateway/cascade-routing-tuning.md) (to be created in same commit)
-- [Continuous Training Pipeline](../reference-architecture/model-lifecycle/continuous-training/index.md) (to be created in same commit)
+- [Agent 변경 관리 — 프롬프트·모델 version 관리](../../../aidlc/enterprise/agent-versioning/index.md)
+- [Agent Monitoring and Operations](../../operations-mlops/observability/agent-monitoring.md)
+- [Ragas RAG Evaluation Framework](../../operations-mlops/governance/ragas-evaluation.md)
+- [Cascade Routing Tuning Strategy](../../reference-architecture/inference-gateway/cascade-routing-tuning.md) (to be created in same commit)
+- [Continuous Training Pipeline](../../reference-architecture/model-lifecycle/continuous-training/index.md) (to be created in same commit)
 
 :::danger Reward Hacking Disclaimer
 Self-improving loop.*cannot be fully automated. Reward hacking, mode collapse, policy drift can occur anytime, Human-in-the-loop verification and statistical monitoring are.*essential.
@@ -1346,7 +1346,7 @@ Self-improving loop.*cannot be fully automated. Reward hacking, mode collapse, p
 
 If considering Self-improving loop adoption:
 
-1. **[Cascade Routing 튜닝](../reference-architecture/inference-gateway/cascade-routing-tuning.md)** — Ensure training data diversity by prioritizing low-cost models first
-2. **[Continuous Training Pipeline](../reference-architecture/model-lifecycle/continuous-training/index.md)** — Design automated regular training pipeline
-3. **[Agent 변경 관리](../../aidlc/enterprise/agent-versioning/index.md)** — 모델 version 관리 및 점진 배포 전략
-4. **[Agent 모니터링](../operations-mlops/observability/agent-monitoring.md)** — Langfuse-based trace collection and cost tracking
+1. **[Cascade Routing 튜닝](../../reference-architecture/inference-gateway/cascade-routing-tuning.md)** — Ensure training data diversity by prioritizing low-cost models first
+2. **[Continuous Training Pipeline](../../reference-architecture/model-lifecycle/continuous-training/index.md)** — Design automated regular training pipeline
+3. **[Agent 변경 관리](../../../aidlc/enterprise/agent-versioning/index.md)** — 모델 version 관리 및 점진 배포 전략
+4. **[Agent 모니터링](../../operations-mlops/observability/agent-monitoring.md)** — Langfuse-based trace collection and cost tracking

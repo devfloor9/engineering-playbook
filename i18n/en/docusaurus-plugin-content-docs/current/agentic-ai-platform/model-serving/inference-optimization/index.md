@@ -33,19 +33,19 @@ import DocCardList from '@theme/DocCardList';
 <DocCardList items={[
   {
     type: 'link',
-    href: './kv-cache-optimization',
+    href: '/docs/agentic-ai-platform/model-serving/inference-optimization/kv-cache-optimization',
     label: 'KV Cache 최적화 (vLLM Deep Dive + Cache-Aware Routing)',
     description: 'vLLM PagedAttention·Continuous Batching·FP8 KV Cache 등 핵심 기술과 llm-d/Dynamo의 KV Cache-Aware Routing 비교'
   },
   {
     type: 'link',
-    href: './disaggregated-serving',
+    href: '/docs/agentic-ai-platform/model-serving/inference-optimization/disaggregated-serving',
     label: 'Disaggregated Serving + LWS 멀티노드',
     description: 'Prefill/Decode 분리 아키텍처, NIXL KV 전송, LeaderWorkerSet 기반 700B+ 대형 모델 멀티노드 배포'
   },
   {
     type: 'link',
-    href: './cost-optimization',
+    href: '/docs/agentic-ai-platform/model-serving/inference-optimization/cost-optimization',
     label: 'GPU 리소스·관측·Hybrid Node·실전 교훈',
     description: '2-Tier 오토스케일링, DCGM/vLLM 모니터링, Bifrost→Bedrock Cascade Fallback, Hybrid Node 온프레 통합, 대형 MoE 배포 실전 교훈'
   }
