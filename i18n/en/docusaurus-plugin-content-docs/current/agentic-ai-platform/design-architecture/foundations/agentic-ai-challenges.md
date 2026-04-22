@@ -2,17 +2,22 @@
 title: "Technical Challenges of Agentic AI Workloads"
 sidebar_label: "Technical Challenges"
 description: "5 key challenges faced when operating Agentic AI workloads"
-tags: [genai, agentic-ai, gpu, challenges]
-category: "genai-aiml"
+created: 2026-02-05
 last_update:
-  date: 2026-03-27
+  date: 2026-04-20
   author: devfloor9
+reading_time: 7
+tags:
+  - genai
+  - agentic-ai
+  - gpu
+  - challenges
+  - scope:design
+category: "genai-aiml"
 sidebar_position: 2
 ---
 
 import { ChallengeSummary } from '@site/src/components/AgenticChallengesTables';
-
-> **Written**: 2025-02-05 | **Updated**: 2026-03-27 | **Reading time**: ~7 min
 
 ## Introduction
 
@@ -22,18 +27,18 @@ When building and operating an Agentic AI platform, platform engineers and archi
 Before reading this document, review the overall structure of the Agentic AI Platform in [Platform Architecture](./agentic-platform-architecture.md).
 :::
 
-## Background: Why a Single LLM Is Not Enough
+## Why a Single LLM Is Not Enough
 
-In the era of Agentic AI, the first question organizations face is *"Can't we just use one large, expensive LLM?"* In practice, relying entirely on a single massive LLM in enterprise environments leads to the following limitations.
+In the Agentic AI era, the first question organizations face is *"Can't we just use one large, expensive LLM?"* In practice, relying entirely on a single massive LLM in enterprise environments leads to the following practical limitations.
 
 ### 4 Limitations of a Single LLM in Enterprise Practice
 
 | Limitation Area | Problem Organizations Face | Platform Response |
 |----------------|--------------------------|-------------------|
-| **Cost** | Token pricing for 70B+ models can reach tens of thousands of dollars per month at high traffic volumes, and the same cost applies to simple tasks like tool calls and formatting within agents. Research shows that **40-70% of agent LLM calls can be replaced by SLMs**. | **Bifrost 2-Tier routing** separates simple calls to self-hosted SLMs, routing only complex reasoning to LLMs |
-| **Performance / Latency** | Large models have long response latency (TTFT), degrading user experience in real-time customer service (AICC) and conversational agents. Domain-specific SLMs can deliver **10x faster responses** for the same tasks. | **3-Tier Orchestration** — Tier 1 (SLM direct) is ~50ms, Tier 2 (LLM) is used only for complex reasoning |
+| **Cost** | Token pricing for 70B+ models can reach tens of millions of won per month at high traffic volumes, and the same cost applies to simple tasks like tool calls and formatting within agents. Research shows that **40-70% of agent LLM calls can be replaced by SLMs**. | **Bifrost 2-Tier routing** separates simple calls to self-hosted SLMs, routing only complex reasoning to LLMs |
+| **Performance · Latency** | Large models have long response latency (TTFT), degrading user experience in real-time customer service (AICC) and conversational agents. Domain-specific SLMs can deliver **10x faster responses** for the same tasks. | **3-Tier Orchestration** — Tier 1 (SLM direct) is ~50ms, Tier 2 (LLM) is used only for complex reasoning |
 | **Information Accuracy** | LLM hallucination is a structural characteristic, and it is critical in tasks requiring accuracy such as billing calculations and terms verification. Transformer architecture has inherent limitations in complex arithmetic and logical operations. | **Tool Delegation** — Arithmetic is delegated to rule engines, fact verification to Knowledge Graphs. LLMs focus only on natural language understanding |
-| **Governance / Security** | Risks of sensitive data (PII/PHI) leaking to external LLM APIs, audit trails for autonomous agent actions, team-level access control and budget management are all required. | **NeMo Guardrails** (I/O filtering) + **LangGraph HITL** (human approval gates) + **Langfuse** (audit trails) |
+| **Governance · Security** | Risks of sensitive data (PII/PHI) leaking to external LLM APIs, audit trails for autonomous agent actions, team-level access control and budget management are all required. | **NeMo Guardrails** (I/O filtering) + **LangGraph HITL** (human approval gates) + **Langfuse** (audit trails) |
 
 ### Infrastructure Optimization: Direction of Superintelligence Research Companies and K8s Ecosystem
 
@@ -58,7 +63,7 @@ As such, Kubernetes is evolving beyond a simple container orchestrator to become
 Organizations must move beyond single LLM dependency to build a **heterogeneous multi-model ecosystem**, supported by a robust **infrastructure platform**.
 
 ```
-Strategic planning / Complex reasoning    Routine tasks / Domain-specific
+Strategic planning · Complex reasoning    Routine tasks · Domain-specific
 ┌──────────────────┐                     ┌──────────────────┐
 │  LLM Orchestrator │        Task        │   SLM Expert Pool │
 │  (Claude, GPT etc)│───Distribution────→│  (7B/14B + LoRA)  │
@@ -285,3 +290,28 @@ These two approaches are **complementary** and can be combined based on workload
 - **Open weight models + hybrid + cost optimization**: EKS-based open architecture
 - **Realistic optimum**: Combine both approaches (start with AWS Native, expand to EKS as needed)
 :::
+
+---
+
+## References
+
+### Official Documentation
+
+- [Kubernetes Gateway API](https://gateway-api.sigs.k8s.io/) — K8s official gateway API specification
+- [CNCF AI/ML Landscape](https://landscape.cncf.io/) — Cloud Native AI/ML ecosystem overview
+- [NVIDIA GPU Operator Documentation](https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/) — GPU Operator official guide
+- [AWS EKS Best Practices for AI/ML](https://aws.github.io/aws-eks-best-practices/) — EKS AI/ML workload optimization
+
+### Papers / Technical Blogs
+
+- [vLLM: Easy, Fast, and Cheap LLM Serving](https://blog.vllm.ai/2023/06/20/vllm.html) — PagedAttention mechanism explanation
+- [Efficient Memory Management for LLM Serving (OSDI 2023)](https://arxiv.org/abs/2309.06180) — KV Cache optimization research
+- [Cost-Effective LLM Inference at Scale](https://aws.amazon.com/blogs/machine-learning/) — Production cost optimization cases
+- [NVIDIA Blog: Optimizing AI Workloads](https://developer.nvidia.com/blog/) — GPU optimization technology blog
+
+### Related Documents (Internal)
+
+- [Platform Architecture](./agentic-platform-architecture.md) — Overall system design blueprint
+- [AWS Native Platform](../platform-selection/aws-native-agentic-platform.md) — Managed service approach
+- [EKS-Based Open Architecture](../platform-selection/agentic-ai-solutions-eks.md) — Self-hosting approach
+- [GPU Resource Management](../../model-serving/gpu-infrastructure/gpu-resource-management.md) — GPU cost optimization details

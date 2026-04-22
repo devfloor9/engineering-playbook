@@ -2,15 +2,27 @@
 title: "Self-Improving Agent Loop (Autosearch)"
 sidebar_label: "Self-Improving Loop"
 description: "5-stage loop design and safety mechanisms for self-hosted SLMs to autonomously learn and improve from production traces based on Karpathy's autosearch concept"
-tags: [self-improving, autosearch, rlaif, grpo, dpo, 'scope:design']
-sidebar_position: 8
+created: 2026-04-18
 last_update:
-  date: 2026-04-18
+  date: 2026-04-20
   author: devfloor9
+reading_time: 35
+tags:
+  - self-improving
+  - autosearch
+  - rlaif
+  - grpo
+  - dpo
+  - scope:design
+sidebar_position: 8
 ---
 
 :::warning Self-Hosted SLM Only
-This loop is exclusively for self-hosted open-weight models. AgentCore's managed closed models like Claude/Nova cannot self-learn and are excluded from scope.
+This loop is exclusively for self-hosted open-weight models (Qwen3, Llama 4, GLM-5, etc.). AgentCore's managed closed models like Claude/Nova cannot self-learn and are excluded from scope.
+:::
+
+:::info ADR Required
+Before production deployment, consensus on scope, automation boundaries, data governance, and rollback criteria is needed. See [ADR — Self-Improving Agent Loop Decision](./adr-self-improving-loop.md) for detailed consensus items.
 :::
 
 # Self-Improving Agent Loop (Autosearch)
@@ -19,12 +31,12 @@ This loop is exclusively for self-hosted open-weight models. AgentCore's managed
 
 ### Karpathy's Core Argument
 
-Andrej Karpathy argued that LLMs will evolve beyond simple.*machines **into.*autosearch.*systems. Core Mechanism:
+Andrej Karpathy argued that LLMs will evolve beyond simple "next token prediction" machines into **autosearch systems**. Core mechanisms:
 
-1. **Tool-use Rollout**: LLM explores multiple reasoning paths using tools
-2. **Success as Signal**: Successful paths.*become signals for next learning
+1. **Tool-use Rollout**: LLM explores multiple reasoning paths using tools (code execution, web search, calculator, etc.)
+2. **Success as Signal**: Successful paths (reaching correct answer, completing tasks) become signals for next learning
 3. **Self-Supervised Loop**: Accumulate own success/failure data without human labeling and retrain with reinforcement learning
-4. **Compound Growth**: Stronger models generate more success traces.*virtuous cycle of improvement
+4. **Compound Growth**: Stronger models generate more success traces → stronger models (virtuous cycle)
 
 ```mermaid
 graph LR
@@ -43,26 +55,26 @@ graph LR
     style G fill:#9c27b0
 ```
 
-**예시**: Math problem-solving Agent
-- **Rollout**: "53 × 47 = ?"5 approaches for(direct calculation, Python execution, Wolfram Alpha, approximation, decomposition)
-- **Success**: Python execution and decomposition reach correct answer
-- **Training**: .*learning with success paths as preferred samples, failure paths as rejected
+**Example**: Math problem-solving Agent
+- **Rollout**: "53 × 47 = ?" with 5 approaches (direct calculation, Python execution, Wolfram Alpha, approximation, decomposition)
+- **Success**: Python execution and decomposition reach correct answer 2491
+- **Training**: DPO learning with success paths as preferred samples, failure paths as rejected
 - **Next Iteration**: Model bias increases to try Python execution first for complex calculations
 
 ### Enterprise Environment Constraints
 
-Applying Karpathy's ideal to enterprise environments requires considering these constraints:
+Applying Karpathy's idealism to enterprise environments requires considering these constraints:
 
 | Constraint | Description | Solution Direction |
 |------|------|----------|
 | **Data Governance** | Production traces may contain PII, confidential information | Presidio PII scanner, k-anonymity, consent tracking |
-| **비용** | LLM calls increase N-fold per rollout (N=number of exploration paths) | Optimize cost-quality trade-off, prioritize low-cost models |
-| **Reward Modeling** | "Definition of.*success.*is ambiguous(customer satisfaction? accuracy? latency?) | Composite reward: LLM-as-judge + Ragas + user feedback |
+| **Cost** | LLM calls increase N-fold per rollout (N=number of exploration paths) | Optimize cost-quality trade-off, prioritize low-cost models |
+| **Reward Modeling** | Definition of "success" is ambiguous (customer satisfaction? accuracy? latency?) | Composite reward: LLM-as-judge + Ragas + user feedback |
 | **Mode Collapse** | Generate only specific patterns repeatedly (diversity loss) | Entropy regularization, diverse sampling |
-| **Regulatory** | Audit log and model card update required for each model change | Version control, audit trail, [Agent version관리](../../../aidlc/enterprise/agent-versioning/index.md) integration |
+| **Regulatory** | Audit log and model card update required for each model change | Version control, audit trail, [Agent Versioning](../../../aidlc/enterprise/agent-versioning/index.md) integration |
 
 :::tip Enterprise Insight
-Self-improving loop should be interpreted as.*automated reinforcement under human supervision.*not.*full automation. Quality gates and human-in-the-loop verification are essential at each iteration.
+Self-improving loop should be interpreted as **"automated reinforcement under human supervision"**, not **"full automation"**. Quality gates and human-in-the-loop verification are essential at each iteration.
 :::
 
 ---
@@ -120,14 +132,14 @@ graph TB
 
 ### Stage 1: Rollout — Production Traffic Collection
 
-**목표**: Collect Agent execution traces for actual user requests.
+**Goal**: Collect Agent execution traces for actual user requests.
 
-**실행 주기**: Continuous (Real-time)
+**Execution Cycle**: Continuous (Real-time)
 
-**입력**: User request, context, Agent state  
-**출력**: Trace (Prompt, tool calls, intermediate reasoning, final response, latency, token count)
+**Input**: User request, context, Agent state  
+**Output**: Trace (prompt, tool calls, intermediate reasoning, final response, latency, token count)
 
-**수집 메커니즘**:
+**Collection Mechanism**:
 
 ```python
 from langfuse import Langfuse
@@ -152,22 +164,22 @@ def execute_agent(user_query: str, context: dict):
     return response
 ```
 
-**다양성 확보**: Generate 3 responses with temperature variations.*for same request.*increase diversity
+**Diversity Assurance**: Generate 3 responses with temperature variations (0.7/0.9/1.1) for same request to increase diversity
 
-**실패 복구**: User response returned normally even if trace collection fails (async logging)
+**Failure Recovery**: User response returned normally even if trace collection fails (async logging)
 
 ---
 
 ### Stage 2: Score — Reward Calculation
 
-**목표**: Quantify.*how good each response is.*by assigning 0-1 score to each trace.
+**Goal**: Quantify "how good each response is" by assigning 0-1 score to each trace.
 
-**실행 주기**: Hourly batch
+**Execution Cycle**: Hourly batch
 
-**입력**: Langfuse trace ID batch  
-**출력**: `{trace_id: reward_score}` table
+**Input**: Langfuse trace ID batch  
+**Output**: `{trace_id: reward_score}` table
 
-**복합 Reward 공식**:
+**Composite Reward Formula**:
 
 ```python
 reward_score = (
@@ -175,22 +187,22 @@ reward_score = (
     w2 * ragas_faithfulness +   # Ragas faithfulness (0-1)
     w3 * ragas_context_recall + # Ragas context recall (0-1)
     w4 * user_feedback_score +  # Thumbs up=1, down=0, neutral=0.5
-    w5 * latency_penalty        # P99 penalty if exceeds
+    w5 * latency_penalty        # Penalty if P99 exceeds
 )
 
 # Default weights (adjust with experiments)
 w1, w2, w3, w4, w5 = 0.3, 0.25, 0.2, 0.2, 0.05
 ```
 
-**LLM-as-Judge 프롬프트**:
+**LLM-as-Judge Prompt**:
 
 ```python
 judge_prompt = f"""
 Evaluate the following Agent response:
 
-**질문**: {question}
-**컨텍스트**: {context}
-**응답**: {answer}
+**Question**: {question}
+**Context**: {context}
+**Answer**: {answer}
 
 Evaluation Criteria:
 1. Accuracy: Factual accuracy based on context
@@ -202,7 +214,7 @@ Return score between 0-1 and reasoning in JSON.
 {{"score": 0.85, "reasoning": "Accurate and complete but slightly verbose"}}
 """
 
-judge_response = cheap_llm.generate(judge_prompt)  # Qwen3-7B 사용 (cost reduction)
+judge_response = cheap_llm.generate(judge_prompt)  # Use Qwen3-7B (cost reduction)
 ```
 
 **Ragas Evaluation**:
@@ -220,7 +232,7 @@ eval_data = {
 ragas_result = evaluate(Dataset.from_dict(eval_data), metrics=[faithfulness, context_recall])
 ```
 
-**User Feedback 통합**:
+**User Feedback Integration**:
 
 ```python
 # Query user feedback from Langfuse
@@ -228,23 +240,23 @@ feedback = langfuse.get_scores(trace_id=trace_id, name="user-feedback")
 user_score = 1.0 if feedback.value == "positive" else 0.0 if feedback.value == "negative" else 0.5
 ```
 
-**비용 최적화**:
-- LLM-as-Judge uses low-cost model
+**Cost Optimization**:
+- LLM-as-Judge uses low-cost model (Qwen3-7B, Llama 4 Scout)
 - Ragas with caching (reuse same question+context combinations)
-- 유저 피드백 우선 — 피드백 있으면 LLM-as-Judge 스킨
+- Prioritize user feedback — skip LLM-as-Judge if feedback exists
 
 ---
 
 ### Stage 3: Filter — Data Curation & PII Gate
 
-**목표**: Select only high-quality traces as training data and remove sensitive information.
+**Goal**: Select only high-quality traces as training data and remove sensitive information.
 
-**실행 주기**: Hourly batch
+**Execution Cycle**: Hourly batch
 
-**입력**: Scored traces  
-**출력**: Clean training dataset (S3 Iceberg table)
+**Input**: Scored traces  
+**Output**: Clean training dataset (S3 Iceberg table)
 
-**품질 게이트**:
+**Quality Gates**:
 
 ```python
 def filter_traces(scored_traces):
@@ -254,7 +266,7 @@ def filter_traces(scored_traces):
         if trace.reward_score < 0.7:
             continue
         
-        # 2. Remove latency outliers (P99 > 30초)
+        # 2. Remove latency outliers (P99 > 30 seconds)
         if trace.latency > 30:
             continue
         
@@ -271,7 +283,7 @@ def filter_traces(scored_traces):
     return filtered
 ```
 
-**PII scanning (Presidio)**:
+**PII Scanning (Presidio)**:
 
 ```python
 from presidio_analyzer import AnalyzerEngine
@@ -281,13 +293,13 @@ analyzer = AnalyzerEngine()
 anonymizer = AnonymizerEngine()
 
 def scan_and_anonymize(text: str) -> tuple[str, bool]:
-    """Detect PII then anonymize. (Returns.*anonymized text, PII found"""
+    """Detect PII then anonymize. Returns (anonymized text, PII found)."""
     results = analyzer.analyze(text=text, language='ko')
     
     if not results:
         return text, False  # No PII
     
-    # PII found.*anonymize
+    # PII found → anonymize
     anonymized = anonymizer.anonymize(text=text, analyzer_results=results)
     return anonymized.text, True
 
@@ -307,13 +319,13 @@ def check_k_anonymity(traces, k=5):
     """Remove if same pattern has less than k instances"""
     query_counts = defaultdict(int)
     for trace in traces:
-        query_pattern = extract_pattern(trace.question)  # 엔티티 제거 후 패턴 추출
+        query_pattern = extract_pattern(trace.question)  # Extract pattern after entity removal
         query_counts[query_pattern] += 1
     
     return [t for t in traces if query_counts[extract_pattern(t.question)] >= k]
 ```
 
-**저장소 — S3 + Iceberg**:
+**Storage — S3 + Iceberg**:
 
 ```python
 import pyiceberg
@@ -321,7 +333,7 @@ import pyiceberg
 catalog = pyiceberg.catalog.load_catalog("training_data")
 table = catalog.load_table("agent_traces")
 
-# Iceberg table에 append
+# Append to Iceberg table
 table.append([
     {"trace_id": t.id, "question": t.question, "answer": t.answer, 
      "reward": t.reward_score, "timestamp": t.timestamp}
@@ -329,25 +341,25 @@ table.append([
 ])
 ```
 
-**규제 준수**:
+**Regulatory Compliance**:
 - **GDPR/PIPA**: Opt-out mechanism required when using training data without user consent
-- **데이터 보관 기간**: Delete within 90 days after training (policy setting)
+- **Data Retention Period**: Delete within 90 days after training (policy setting)
 - **Audit Log**: Record all PII detection/anonymization events in CloudTrail/Audit DB
 
 ---
 
 ### Stage 4: Train — Preference Tuning
 
-**목표**: Retrain model with reinforcement learning using high-quality traces.
+**Goal**: Retrain model with reinforcement learning using high-quality traces.
 
-**실행 주기**: Weekly or Monthly
+**Execution Cycle**: Weekly or Monthly
 
-**입력**: S3 Iceberg table (preference pairs)  
-**출력**: Candidate model checkpoint
+**Input**: S3 Iceberg table (preference pairs)  
+**Output**: Candidate model checkpoint
 
-**Preference Pair 구성**:
+**Preference Pair Construction**:
 
-Self-improving loop uses.*multiple responses to same question uses high-reward as preferred, low-reward as rejected.
+Self-improving loop uses high-reward as preferred, low-reward as rejected among multiple responses to same question.
 
 ```python
 def build_preference_pairs(traces):
@@ -359,7 +371,7 @@ def build_preference_pairs(traces):
     pairs = []
     for question, trace_list in grouped.items():
         if len(trace_list) < 2:
-            continue  # cannot pair
+            continue  # Cannot pair
         
         # Sort by reward
         sorted_traces = sorted(trace_list, key=lambda t: t.reward_score, reverse=True)
@@ -382,7 +394,7 @@ def build_preference_pairs(traces):
     return pairs
 ```
 
-**학습 Method Selection Guide**:
+**Training Method Selection Guide**:
 
 | Method | Data Requirement | GPU-hours (7B model) | Convergence Stability | Suitable Scenario |
 |------|-------------|---------------------|------------|-------------|
@@ -392,12 +404,12 @@ def build_preference_pairs(traces):
 | **RFT** | 10k+ high-quality traces | ~300 (8×H100) | ⭐⭐⭐⭐⭐ | When golden dataset for supervised learning available |
 
 :::tip Selection Guide
-- **초기 (데이터 &lt;2k pairs)**: GRPO — Fastest and effective with minimal data
-- **중기 (데이터 5k-10k pairs)**: DPO — Balance of stability and effectiveness
-- **Maturity (data.*)**: RLAIF 또는 RFT — Complex reward modeling
+- **Initial (data &lt;2k pairs)**: GRPO — Fastest and effective with minimal data
+- **Mid-stage (data 5k-10k pairs)**: DPO — Balance of stability and effectiveness
+- **Maturity (data &gt;10k)**: RLAIF or RFT — Complex reward modeling
 :::
 
-**GRPO 학습 예시 (NeMo-RL)**:
+**GRPO Training Example (NeMo-RL)**:
 
 ```python
 from nemo.collections.nlp.models.language_modeling import MegatronGPTSFTModel
@@ -425,7 +437,7 @@ trainer.fit(train_dataset=preference_pairs, val_dataset=golden_dataset)
 model.save_to("qwen3-7b-grpo-2026-04-18.nemo")
 ```
 
-**DPO 학습 예시 (TRL)**:
+**DPO Training Example (TRL)**:
 
 ```python
 from transformers import AutoModelForCausalLM, AutoTokenizer
@@ -454,10 +466,10 @@ trainer.train()
 model.save_pretrained("qwen3-7b-dpo-2026-04-18")
 ```
 
-**학습 모니터링**:
+**Training Monitoring**:
 
 ```python
-# Wandb integration으로 실시간 메트릭 추적
+# Track real-time metrics with Wandb integration
 import wandb
 
 wandb.init(project="self-improving-agent", name="grpo-2026-04-18")
@@ -470,29 +482,29 @@ wandb.init(project="self-improving-agent", name="grpo-2026-04-18")
 - Training time per epoch
 ```
 
-**비용 추정 (Qwen3-7B, 5k pairs, DPO)**:
-- GPU: 8× H100 × 25시간 = 200 GPU-hours
+**Cost Estimate (Qwen3-7B, 5k pairs, DPO)**:
+- GPU: 8× H100 × 25 hours = 200 GPU-hours
 - Cloud cost (p5.48xlarge, $98.32/hr): ~$2,458
-- Comparison: Weekly training $10k, Monthly training $2.5k
+- Comparison: Weekly training $10k/month, Monthly training $2.5k/month
 
 ---
 
 ### Stage 5: Deploy — Regression Verification & Gradual Deployment
 
-**목표**: Verify new trained model has not regressed vs baseline before deploying to production.
+**Goal**: Verify new trained model has not regressed vs baseline before deploying to production.
 
-**실행 주기**: Once after training completion
+**Execution Cycle**: Once after training completion
 
-**입력**: Candidate model checkpoint  
-**출력**: Production deployment or rollback
+**Input**: Candidate model checkpoint  
+**Output**: Production deployment or rollback
 
-**Golden Dataset 평가**:
+**Golden Dataset Evaluation**:
 
 ```python
 from ragas import evaluate
 from datasets import Dataset
 
-# Golden Dataset (.*QA validated by domain experts)
+# Golden Dataset (100-200 QA validated by domain experts)
 golden_data = load_golden_dataset("s3://golden-eval/agent-qa-v2.jsonl")
 
 # Evaluate baseline model
@@ -510,14 +522,14 @@ if p_value < 0.05 and mean(candidate_results) > mean(baseline_results):
     print("✅ Candidate model is statistically significantly better")
     decision = "PROCEED_TO_SHADOW"
 elif mean(candidate_results) < mean(baseline_results) * 0.95:
-    print("❌ 5% regression detected.*rollback")
+    print("❌ 5%+ regression detected → rollback")
     decision = "ROLLBACK"
 else:
-    print("⚠️ No significant difference.*additional verification needed")
+    print("⚠️ No significant difference → additional verification needed")
     decision = "MANUAL_REVIEW"
 ```
 
-**Shadow Test (5% 트래픽)**:
+**Shadow Test (5% Traffic)**:
 
 ```python
 # Inference Gateway configuration (LiteLLM + Feature Flag)
@@ -532,20 +544,20 @@ def select_model(user_id: str) -> str:
     # 95% baseline, 5% candidate (shadow)
     return "qwen3-7b-baseline" if variant.name == "control" else "qwen3-7b-candidate"
 
-# Shadow 응답은 로깅만, 사용자에게는 baseline 반환
+# Shadow response logged only, baseline returned to user
 async def execute_with_shadow(query: str, user_id: str):
     baseline_task = agent_call(model="qwen3-7b-baseline", query=query)
     candidate_task = agent_call(model="qwen3-7b-candidate", query=query, shadow=True)
     
     baseline_resp, candidate_resp = await asyncio.gather(baseline_task, candidate_task)
     
-    # 비교 로깅
+    # Comparison logging
     log_shadow_comparison(query, baseline_resp, candidate_resp)
     
     return baseline_resp  # Only baseline to user
 ```
 
-**회귀 모니터링 (24시간)**:
+**Regression Monitoring (24 hours)**:
 
 ```promql
 # Prometheus query: Candidate vs Baseline error rate
@@ -558,11 +570,11 @@ histogram_quantile(0.99, rate(agent_latency_bucket{model="candidate"}[1h]))
 vs
 histogram_quantile(0.99, rate(agent_latency_bucket{model="baseline"}[1h]))
 
-# User Feedback 비율
+# User Feedback ratio
 sum(rate(user_feedback_positive{model="candidate"}[1h])) / sum(rate(user_feedback_total{model="candidate"}[1h]))
 ```
 
-**자동 롤백 트리거**:
+**Auto-rollback Triggers**:
 
 ```yaml
 # Prometheus AlertManager
@@ -575,11 +587,11 @@ sum(rate(user_feedback_positive{model="candidate"}[1h])) / sum(rate(user_feedbac
      / rate(agent_requests_total{model="baseline"}[30m]))
   for: 30m
   annotations:
-    summary: "Candidate model error rate.*increase.*automatic rollback"
-  # Webhook.*Lambda.*LaunchDarkly API (change variant weight to 0%)
+    summary: "Candidate model error rate 1.5x increase → automatic rollback"
+  # Webhook → Lambda → LaunchDarkly API (change variant weight to 0%)
 ```
 
-**Canary 배포 (Shadow 성공 시)**:
+**Canary Deployment (on Shadow success)**:
 
 ```python
 # Gradually increase ratio in LaunchDarkly console
@@ -588,7 +600,7 @@ sum(rate(user_feedback_positive{model="candidate"}[1h])) / sum(rate(user_feedbac
 # Day 3: 50%
 # Day 4: 100%
 
-# 24-hour monitoring at each stage.*proceed to next if no regression
+# 24-hour monitoring at each stage → proceed to next if no regression
 ```
 
 ---
@@ -597,7 +609,7 @@ sum(rate(user_feedback_positive{model="candidate"}[1h])) / sum(rate(user_feedbac
 
 ### LLM-as-Judge + Ragas + User Feedback Weights
 
-**Default weights.*adjust with experiments):
+**Default weights (adjust with experiments)**:
 
 ```python
 REWARD_WEIGHTS = {
@@ -605,7 +617,7 @@ REWARD_WEIGHTS = {
     "faithfulness": 0.25,     # Ragas faithfulness (prevent hallucination)
     "context_recall": 0.20,   # Ragas context recall (retrieval quality)
     "user_feedback": 0.20,    # Thumbs up/down
-    "latency_penalty": 0.05,  # P99 penalty if exceeds
+    "latency_penalty": 0.05,  # Penalty if P99 exceeds
 }
 
 def compute_reward(trace):
@@ -628,17 +640,17 @@ def compute_reward(trace):
                      0.0 if trace.user_feedback == "negative" else 0.5
     score += REWARD_WEIGHTS["user_feedback"] * feedback_score
     
-    # 5. Latency penalty (P99 > 10초 시 감점)
+    # 5. Latency penalty (deduct if P99 > 10 seconds)
     if trace.latency > 10:
-        penalty = min(0.05, (trace.latency - 10) / 100)  # maximum.*penalty
+        penalty = min(0.05, (trace.latency - 10) / 100)  # Maximum 5% penalty
         score -= penalty
     
-    return max(0.0, min(1.0, score))  # 0-1 clamp to.*range
+    return max(0.0, min(1.0, score))  # Clamp to 0-1 range
 ```
 
 ### Weight Tuning Experiment
 
-**A/B Test로 최적 가중치 탐색**:
+**Optimal Weight Search with A/B Test**:
 
 ```python
 # Define experiment groups
@@ -652,29 +664,29 @@ experiments = [
 for exp in experiments:
     model = train_with_rewards(base_model, preference_pairs, reward_weights=exp["weights"])
     
-    # Golden dataset 평가
+    # Golden dataset evaluation
     results = evaluate(model, golden_dataset)
     
-    # 프로덕션 테스트 (Canary 5%)
+    # Production test (Canary 5%)
     production_metrics = deploy_canary(model, traffic_pct=0.05, duration_hours=24)
     
     # Track business metrics
     print(f"{exp['name']}: Accuracy={results.accuracy}, User Satisfaction={production_metrics.satisfaction}")
 ```
 
-**반복 최적화**:
+**Iterative Optimization**:
 1. Train model with initial weights
 2. Collect business metrics after production deployment (user satisfaction, task completion rate)
 3. Retrain after weight adjustment
-4. 2-3회 Finalize optimal combination after.*iterations
+4. Finalize optimal combination after 2-3 iterations
 
 ---
 
 ## Data Curation & PII Gate
 
-### Langfuse Trace → S3 Iceberg table
+### Langfuse Trace → S3 Iceberg Table
 
-**데이터 플로우**:
+**Data Flow**:
 
 ```mermaid
 graph LR
@@ -717,15 +729,15 @@ def lambda_handler(event, context):
         output_results = analyzer.analyze(text=trace["output"], language="ko")
         
         if input_results or output_results:
-            # PII found.*anonymize or discard
+            # PII found → anonymize or discard
             if should_anonymize(trace):
                 trace = anonymize_trace(trace, input_results, output_results)
             else:
-                continue  # discard
+                continue  # Discard
         
         clean_traces.append(trace)
     
-    # 3. Iceberg table에 저장
+    # 3. Save to Iceberg table
     catalog = load_catalog("glue", **{"s3.endpoint": "https://s3.amazonaws.com"})
     table = catalog.load_table("training_data.agent_traces")
     table.append(clean_traces)
@@ -735,10 +747,10 @@ def lambda_handler(event, context):
 
 ### Presidio PII Scanner
 
-**Supported Entities.*Korean):
+**Supported Entities (Korean)**:
 - Name, email, phone number, SSN, credit card number, address, IP address
 
-**커스텀 인식기 추가**:
+**Add Custom Recognizers**:
 
 ```python
 from presidio_analyzer import Pattern, PatternRecognizer
@@ -754,9 +766,9 @@ analyzer.registry.add_recognizer(account_number_recognizer)
 
 ### k-Anonymity
 
-**개념**: Same pattern query must exist for at least k people considered low risk for individual identification.
+**Concept**: Same pattern query must exist for at least k people to be considered low risk for individual identification.
 
-**구현**:
+**Implementation**:
 
 ```python
 from collections import defaultdict
@@ -767,7 +779,7 @@ def apply_k_anonymity(traces, k=5):
     # 1. Extract query pattern (remove named entities)
     pattern_groups = defaultdict(list)
     for trace in traces:
-        pattern = extract_pattern(trace.question)  # "홍길동" → "[NAME]", "2026-04-18" → "[DATE]"
+        pattern = extract_pattern(trace.question)  # "John Doe" → "[NAME]", "2026-04-18" → "[DATE]"
         pattern_groups[pattern].append(trace)
     
     # 2. Remove groups with less than k
@@ -776,13 +788,13 @@ def apply_k_anonymity(traces, k=5):
         if len(group) >= k:
             filtered.extend(group)
         else:
-            print(f"⚠️ Pattern.*removed (k={len(group)} < {k})")
+            print(f"⚠️ Pattern '{pattern}' removed (k={len(group)} < {k})")
     
     return filtered
 
 def extract_pattern(text: str) -> str:
     """Replace named entities with placeholders"""
-    # NER 모델로 엔티티 추출 후 치환
+    # Extract entities with NER model and replace
     entities = ner_model.predict(text)
     for entity in entities:
         text = text.replace(entity.text, f"[{entity.label}]")
@@ -791,15 +803,15 @@ def extract_pattern(text: str) -> str:
 
 ### Terms & Regional Storage Requirements
 
-**한국 PIPA (개인정보보호법)**:
-- 사용자 동의 없이 프로필 기반 자동 decision 금지 → **opt-in consent required**
-- Separate consent required for overseas transfer → **storage in domestic region**
+**Korean PIPA (Personal Information Protection Act, 개인정보보호법)**:
+- Prohibits automated profile-based decisions without user consent → **opt-in consent required**
+- Separate consent required for overseas transfer → **storage in domestic region (ap-northeast-2)**
 
 **GDPR**:
-- Right to be forgotten → **사용자 요청 시 7일 내 삭제**
-- Data minimization → **Delete original traces within.*days after training**
+- Right to be forgotten → **Delete within 7 days upon user request**
+- Data minimization → **Delete original traces within 90 days after training**
 
-**Consent 추적**:
+**Consent Tracking**:
 
 ```python
 # User consent table
@@ -821,18 +833,18 @@ if not user_consents[trace.user_id].consent_to_training:
 
 ### GRPO (Group Relative Policy Optimization)
 
-**원리**: Update policy based on relative rewards of multiple responses (rollouts) to same prompt. Variant of PPO but no reference model required.
+**Principle**: Update policy based on relative rewards of multiple responses (rollouts) to same prompt. Variant of PPO but no reference model required.
 
-**장점**:
-- Effective even with small data (1k starting from.*pairs)
+**Advantages**:
+- Effective even with small data (starting from 1k pairs)
 - Fast convergence (50 GPU-hours)
-- No reference model required.*save memory
+- No reference model required → save memory
 
-**단점**:
+**Disadvantages**:
 - Unstable convergence (sensitive to learning rate adjustment)
 - Difficult to handle complex reward functions
 
-**사용 예시**:
+**Usage Example**:
 
 ```python
 # NeMo-Aligner GRPO
@@ -849,24 +861,24 @@ trainer = GRPOTrainer(
 trainer.fit(train_dataset)
 ```
 
-**Suitable Scenario**: Initial self-improvement, fast iteration 필요 시
+**Suitable Scenario**: Initial self-improvement when fast iteration required
 
 ---
 
 ### DPO (Direct Preference Optimization)
 
-**원리**: Learn implicit reward using preferred/rejected pairs directly. Directly optimize policy without reward model.
+**Principle**: Learn implicit reward using preferred/rejected pairs directly. Directly optimize policy without reward model.
 
-**장점**:
+**Advantages**:
 - Stable convergence
 - Automatic KL divergence control with reference model
 - Simple implementation (TRL library)
 
-**단점**:
+**Disadvantages**:
 - Requires sufficient data (5k+ pairs)
 - Long training time (200 GPU-hours)
 
-**사용 예시**:
+**Usage Example**:
 
 ```python
 from trl import DPOTrainer, DPOConfig
@@ -894,18 +906,18 @@ trainer.train()
 
 ### RLAIF (Reinforcement Learning from AI Feedback)
 
-**원리**: Learn reward model from AI-generated feedback.*optimize policy with PPO. RLHF.*Human.*→.*AI.*variant.
+**Principle**: Learn reward model from AI-generated feedback and optimize policy with PPO. RLHF variant replacing "Human" with "AI".
 
-**장점**:
+**Advantages**:
 - Can express complex reward functions
 - Advantageous for large-scale training
 
-**단점**:
+**Disadvantages**:
 - Reward model training overhead (additional GPU-hours)
 - Unstable convergence (sensitive to hyperparameters)
 - High implementation complexity
 
-**사용 예시**:
+**Usage Example**:
 
 ```python
 # 1. Train reward model
@@ -932,24 +944,24 @@ ppo_trainer = PPOTrainer(
 ppo_trainer.train()
 ```
 
-**Suitable Scenario**: When complex reward modeling needed (예: 다단계 추론, 창의성 평가)
+**Suitable Scenario**: When complex reward modeling needed (e.g., multi-step reasoning, creativity evaluation)
 
 ---
 
 ### RFT (Rejection Sampling Fine-Tuning)
 
-**원리**: Select only high-reward responses from multiple rollouts.*supervised fine-tuning. Reinforce with SFT without RL.
+**Principle**: Select only high-reward responses from multiple rollouts for supervised fine-tuning. Reinforce with SFT without RL.
 
-**장점**:
-- 가장 Stable convergence
+**Advantages**:
+- Most stable convergence
 - Simple implementation (same as SFT)
 - Best efficiency when high-quality dataset available
 
-**단점**:
-- Requires golden dataset.*high-quality traces)
+**Disadvantages**:
+- Requires golden dataset (10k+ high-quality traces)
 - Lack of exploration (only selected responses learned)
 
-**사용 예시**:
+**Usage Example**:
 
 ```python
 # 1. Select high-reward traces
@@ -979,19 +991,19 @@ trainer.train()
 
 ### Practical Comparison (Qwen3-7B, 5k pairs baseline)
 
-| 메트릭 | GRPO | DPO | RLAIF | RFT |
+| Metric | GRPO | DPO | RLAIF | RFT |
 |--------|------|-----|-------|-----|
 | **GPU-hours** | 50 | 200 | 500 | 300 |
 | **Minimum Data** | 1k | 5k | 10k | 10k |
 | **Convergence Stability** | ⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐ | ⭐⭐⭐⭐⭐ |
-| **구현 복잡도** | 중 | 낮 | 높 | 낮 |
-| **Reward 유연성** | 낮 | 중 | 높 | 낮 |
-| **Cloud cost** | $500 | $2,000 | $5,000 | $3,000 |
+| **Implementation Complexity** | Medium | Low | High | Low |
+| **Reward Flexibility** | Low | Medium | High | Low |
+| **Cloud Cost** | $500 | $2,000 | $5,000 | $3,000 |
 
-**권장 로드맵**:
-1. **Phase 1.*months)**: Fast proof-of-concept with GRPO
-2. **Phase 2.*months)**: Switch to DPO after data accumulation
-3. **Phase 3.*months+)**: Introduce RLAIF when complex reward needed, or parallel RFT when golden dataset available
+**Recommended Roadmap**:
+1. **Phase 1 (1-2 months)**: Fast proof-of-concept with GRPO
+2. **Phase 2 (3-6 months)**: Switch to DPO after data accumulation
+3. **Phase 3 (6+ months)**: Introduce RLAIF when complex reward needed, or parallel RFT when golden dataset available
 
 ---
 
@@ -999,16 +1011,16 @@ trainer.train()
 
 ### What is Reward Hacking?
 
-Phenomenon where model learns only.*responses that get high rewards.*not.*truly good responses.
+Phenomenon where model learns only "responses that get high rewards" rather than "truly good responses".
 
-**예시**:
-- **과도한 장황함**: Write long to get completeness score.*generate unnecessarily long answers
-- **템플릿 반복**: "다음 단계를 따르세요: 1) ... 2) ..." 패턴이 높은 점수 → 모든 답변이 동일 format
-- **확신 과잉**: "절대 확실합니다" Assertive expressions get LLM-as-Judge score.*answer hallucinations confidently
+**Examples**:
+- **Excessive verbosity**: Write long to increase completeness score → unnecessarily long answers
+- **Template repetition**: "Follow these steps: 1) ... 2) ..." pattern scores high → all answers follow same format
+- **Overconfidence**: "Absolutely certain" assertive expressions get high LLM-as-Judge scores → confident hallucinations
 
 ### Diverse Rollout Sampling
 
-**전략**: Generate diverse responses to same question.*ensure diversity.
+**Strategy**: Generate diverse responses to same question to ensure diversity.
 
 ```python
 def diverse_rollout(prompt: str, n=4):
@@ -1031,7 +1043,7 @@ def diverse_rollout(prompt: str, n=4):
     return responses
 ```
 
-**Diversity 메트릭 모니터링**:
+**Diversity Metric Monitoring**:
 
 ```python
 from sentence_transformers import SentenceTransformer
@@ -1047,16 +1059,16 @@ def measure_diversity(responses: list[str]) -> float:
     # Exclude diagonal (similarity with self)
     avg_sim = (similarities.sum() - len(responses)) / (len(responses) * (len(responses) - 1))
     
-    return 1 - avg_sim  # diversity score (higher is more diverse)
+    return 1 - avg_sim  # Diversity score (higher is more diverse)
 
 # Alert configuration
 if measure_diversity(batch_responses) < 0.3:
-    alert("⚠️ Insufficient response diversity.*possibility of mode collapse")
+    alert("⚠️ Insufficient response diversity → possibility of mode collapse")
 ```
 
 ### Entropy Regularization
 
-**목적**: Prevent model from being excessively biased toward specific patterns Maintain entropy of output distribution.
+**Purpose**: Maintain entropy of output distribution to prevent model from being excessively biased toward specific patterns.
 
 ```python
 import torch
@@ -1065,7 +1077,7 @@ import torch.nn.functional as F
 def entropy_regularized_loss(logits, labels, entropy_coef=0.01):
     """Cross-entropy loss + entropy regularization"""
     
-    # 1. base loss
+    # 1. Base loss
     ce_loss = F.cross_entropy(logits, labels)
     
     # 2. Calculate entropy of output distribution
@@ -1078,20 +1090,20 @@ def entropy_regularized_loss(logits, labels, entropy_coef=0.01):
     return total_loss
 ```
 
-**Entropy 모니터링**:
+**Entropy Monitoring**:
 
 ```python
 # Track batch entropy during training
 wandb.log({"output_entropy": entropy.item()})
 
 # Alert mode collapse if entropy drops sharply
-if entropy < 2.0:  # adjust threshold based on vocab size
-    alert("⚠️ Low entropy detected → mode collapse 가능성")
+if entropy < 2.0:  # Adjust threshold based on vocab size
+    alert("⚠️ Low entropy detected → possible mode collapse")
 ```
 
 ### Policy Drift Monitoring (KL Divergence)
 
-**목적**: Prevent model from drifting too far from base model after retraining Track KL divergence.
+**Purpose**: Track KL divergence to prevent model from drifting too far from base model after retraining.
 
 ```python
 import torch.nn.functional as F
@@ -1117,26 +1129,26 @@ def compute_kl_divergence(base_model, new_model, test_prompts):
     return sum(kl_divs) / len(kl_divs)
 
 # Pre-deployment check
-kl_threshold = 0.5  # empirically adjust
+kl_threshold = 0.5  # Empirically adjust
 avg_kl = compute_kl_divergence(base_model, candidate_model, golden_prompts)
 
 if avg_kl > kl_threshold:
-    alert(f"⚠️ KL divergence {avg_kl:.3f} > {kl_threshold} → policy drift 과도")
+    alert(f"⚠️ KL divergence {avg_kl:.3f} > {kl_threshold} → excessive policy drift")
     decision = "ROLLBACK"
 ```
 
 ### Human-in-the-Loop Verification
 
-**전략**: Verify quality with weekly human review of.*of total training data.
+**Strategy**: Verify quality with weekly human review of 1-2% of total training data.
 
 ```python
 def sample_for_human_review(traces, sample_rate=0.02):
-    """Random sampling.*prioritize edge cases"""
+    """Random sampling + prioritize edge cases"""
     
     # 1. Random sample
     random_sample = random.sample(traces, int(len(traces) * sample_rate * 0.5))
     
-    # 2. Edge case priority sample.*high reward.*low user feedback)
+    # 2. Edge case priority sample (high reward + low user feedback)
     edge_cases = sorted(
         traces,
         key=lambda t: abs(t.reward_score - t.user_feedback_score),
@@ -1153,7 +1165,7 @@ for trace in review_batch:
     send_to_labeling_ui(trace, reviewer="domain_expert")
 ```
 
-**검토 결과 피드백**:
+**Review Result Feedback**:
 
 ```python
 # Human review results
@@ -1168,7 +1180,7 @@ corr, p_value = spearmanr(
 )
 
 if corr < 0.7:
-    alert(f"⚠️ Reward-human correlation.*need reward function readjustment")
+    alert(f"⚠️ Reward-human correlation {corr:.2f} < 0.7 → need reward function readjustment")
 ```
 
 ---
@@ -1177,34 +1189,34 @@ if corr < 0.7:
 
 ### Cost-Benefit Analysis
 
-**투자 비용 (월간 기준)**:
+**Investment Cost (Monthly)**:
 
 | Item | Cost (USD) | Note |
 |------|-----------|------|
 | **GPU Training** | $2,500 | Weekly DPO training, 8×H100 × 25h |
 | **Trace Storage** | $300 | S3 + Iceberg (1TB) |
-| **LLM-as-Judge Inference** | $500 | Qwen3-7B, .*evaluations per hour |
-| **Ragas Evaluation** | $200 | with caching |
+| **LLM-as-Judge Inference** | $500 | Qwen3-7B, 10k evaluations per hour |
+| **Ragas Evaluation** | $200 | With caching |
 | **Infrastructure Operations** | $500 | Lambda, Glue, Athena |
 | **Total** | **$4,000** | Monthly operational cost |
 
-**Expected Effect.*months baseline)**:
+**Expected Effect (3 months baseline)**:
 
-| 메트릭 | Before | After | Improvement |
+| Metric | Before | After | Improvement |
 |--------|--------|-------|--------|
 | **Exact Match** | 0.78 | 0.85 | +9%p |
 | **User Satisfaction** | 3.5/5 | 4.2/5 | +20% |
 | **Task Completion** | 72% | 83% | +11%p |
 | **Escalation Rate** | 15% | 9% | -40% |
 
-**ROI 계산**:
+**ROI Calculation**:
 - Monthly cost: $4,000
-- Save 1 human agent.*annual salary.*monthly.*savings
-- **Payback Period**: 0.8months
+- Save 1 human agent (annual salary $60k) → monthly $5,000 savings
+- **Payback Period**: 0.8 months
 
 ### Governance
 
-**모델 카드 업데이트**:
+**Model Card Update**:
 
 ```yaml
 # model-card.yaml
@@ -1243,7 +1255,7 @@ approval:
   deployment_stage: "Canary 5%"
 ```
 
-**감사 로그**:
+**Audit Log**:
 
 ```sql
 -- Record all training events
@@ -1256,7 +1268,7 @@ CREATE TABLE training_audit_log (
     metadata JSONB
 );
 
--- Example query:.*Who deployed models in April 2026?"
+-- Example query: "Who deployed models in April 2026?"
 SELECT * FROM training_audit_log
 WHERE event_type = 'model_deployed'
   AND timestamp BETWEEN '2026-04-01' AND '2026-04-30';
@@ -1264,7 +1276,7 @@ WHERE event_type = 'model_deployed'
 
 ### Team Capability Check
 
-**필요 Capability**:
+**Required Capabilities**:
 
 | Capability | Necessity | Current Level | Gap Closure Plan |
 |------|--------|----------|--------------|
@@ -1274,7 +1286,7 @@ WHERE event_type = 'model_deployed'
 | **Production Operations** | ⭐⭐⭐⭐⭐ | - | SRE team collaboration |
 | **Data Governance** | ⭐⭐⭐⭐ | - | Link with Legal/Compliance team |
 
-**최소 팀 구성**:
+**Minimum Team Composition**:
 - ML Engineer (RL experience) × 1
 - MLOps Engineer × 1
 - Data Engineer × 1
@@ -1283,61 +1295,56 @@ WHERE event_type = 'model_deployed'
 
 ### Go/No-Go Criteria
 
-**Go (진행) 조건**:
-- ✅ .*monthly budget secured
-- ✅ 최소 3months production trace 축적 (>2k traces)
-- ✅ Golden dataset prepared (>100 samples)
-- ✅ MLOps 파이프라인 구축 (CI/CD, monitoring)
-- ✅ Legal/Compliance approval.*PII handling, consent)
-- ✅ Secure RL/MLOps expertise.*internal or external)
+**Go (Proceed) Conditions**:
+- ✅ $4k monthly budget secured
+- ✅ Minimum 3 months production trace accumulation (&gt;2k traces)
+- ✅ Golden dataset prepared (&gt;100 samples)
+- ✅ MLOps pipeline established (CI/CD, monitoring)
+- ✅ Legal/Compliance approval (PII handling, consent)
+- ✅ Secure RL/MLOps expertise (internal or external)
 
-**No-Go (중단) 조건**:
+**No-Go (Stop) Conditions**:
 - ❌ Insufficient data (&lt;1k traces)
-- ❌ 팀 Capability 부족 (RL Expertise 없음)
-- ❌ Unresolved compliance.*no PII handling plan)
-- ❌ Negative ROI.*cost.*expected effect)
+- ❌ Insufficient team capability (no RL expertise)
+- ❌ Unresolved compliance (no PII handling plan)
+- ❌ Negative ROI (cost &gt; expected effect)
 
-**Phase별 의사decision**:
+**Phase-by-Phase Decision**:
 
-1. **Phase 0 (Pilot, 1months)**: Small-scale experiment with GRPO,.*traces,.*budget
-   - **Go 기준**: Exact Match.*improvement or more
-2. **Phase 1.*months)**: Expand with DPO,.*traces,.*budget
-   - **Go 기준**: User Satisfaction.*or more, no regression
-3. **Phase 2.*months+)**: Establish regular learning loop
-   - **Go 기준**: ROI.*quality gate pass rate >95%
+1. **Phase 0 (Pilot, 1 month)**: Small-scale experiment with GRPO, 500 traces, $500 budget
+   - **Go Criteria**: Exact Match +3%p improvement or more
+2. **Phase 1 (PoC, 3 months)**: Expand with DPO, 5k traces, $12k budget
+   - **Go Criteria**: User Satisfaction +10% or more, no regression
+3. **Phase 2 (Production, 6+ months)**: Establish regular learning loop
+   - **Go Criteria**: ROI &gt; 1.5, quality gate pass rate &gt;95%
 
 ---
 
 ## References
 
-### Academic Papers
+### Official Documentation
 
-- **DPO**: Rafailov et al., "Direct Preference Optimization: Your Language Model is Secretly a Reward Model" (NeurIPS 2023)  
-  [arxiv.org/abs/2305.18290](https://arxiv.org/abs/2305.18290)
+- [TRL (Transformer Reinforcement Learning)](https://github.com/huggingface/trl) — HuggingFace RL library
+- [NeMo-Aligner](https://github.com/NVIDIA/NeMo-Aligner) — NVIDIA reinforcement learning toolkit
+- [Presidio PII Scanner](https://microsoft.github.io/presidio/) — Microsoft PII detection
+- [Ragas Documentation](https://docs.ragas.io/) — RAG evaluation framework
 
-- **GRPO**: DeepSeek, "DeepSeek-R1: Incentivizing Reasoning Capability in LLMs via Reinforcement Learning" (2024)  
-  [arxiv.org/abs/2401.02954](https://arxiv.org/abs/2401.02954)
+### Papers / Technical Blogs
 
-- **RLAIF**: Bai et al., "Constitutional AI: Harmlessness from AI Feedback" (2022)  
-  [arxiv.org/abs/2212.08073](https://arxiv.org/abs/2212.08073)
+- [DPO: Direct Preference Optimization (NeurIPS 2023)](https://arxiv.org/abs/2305.18290) — DPO paper
+- [DeepSeek-R1: GRPO for Reasoning (2024)](https://arxiv.org/abs/2401.02954) — GRPO paper
+- [Constitutional AI: RLAIF (Anthropic 2022)](https://arxiv.org/abs/2212.08073) — RLAIF paper
+- [Andrej Karpathy on Autosearch](https://karpathy.github.io/) — Autosearch concept
 
-### Open Source Libraries
+### Related Documents (Internal)
 
-- **TRL (Transformer Reinforcement Learning)**: [github.com/huggingface/trl](https://github.com/huggingface/trl)
-- **NeMo-Aligner**: [github.com/NVIDIA/NeMo-Aligner](https://github.com/NVIDIA/NeMo-Aligner)
-- **Ragas**: [docs.ragas.io](https://docs.ragas.io/)
-- **Presidio**: [microsoft.github.io/presidio](https://microsoft.github.io/presidio/)
-
-### Related Documents
-
-- [Agent 변경 관리 — 프롬프트·모델 version 관리](../../../aidlc/enterprise/agent-versioning/index.md)
-- [Agent Monitoring and Operations](../../operations-mlops/observability/agent-monitoring.md)
-- [Ragas RAG Evaluation Framework](../../operations-mlops/governance/ragas-evaluation.md)
-- [Cascade Routing Tuning Strategy](../../reference-architecture/inference-gateway/cascade-routing-tuning.md) (to be created in same commit)
-- [Continuous Training Pipeline](../../reference-architecture/model-lifecycle/continuous-training/index.md) (to be created in same commit)
+- [Agent Versioning](../../../aidlc/enterprise/agent-versioning/index.md) — Model version management
+- [Agent Monitoring](../../operations-mlops/observability/agent-monitoring.md) — Langfuse tracing
+- [Ragas Evaluation](../../operations-mlops/governance/ragas-evaluation.md) — RAG quality evaluation
+- [Cascade Routing Tuning](../../reference-architecture/inference-gateway/cascade-routing-tuning.md) — Routing optimization
 
 :::danger Reward Hacking Disclaimer
-Self-improving loop.*cannot be fully automated. Reward hacking, mode collapse, policy drift can occur anytime, Human-in-the-loop verification and statistical monitoring are.*essential.
+Self-improving loop **cannot be fully automated**. Reward hacking, mode collapse, and policy drift can occur anytime. Human-in-the-loop verification and statistical monitoring are **essential**. Blind automation can lead to model quality degradation.
 :::
 
 ---
@@ -1346,7 +1353,7 @@ Self-improving loop.*cannot be fully automated. Reward hacking, mode collapse, p
 
 If considering Self-improving loop adoption:
 
-1. **[Cascade Routing 튜닝](../../reference-architecture/inference-gateway/cascade-routing-tuning.md)** — Ensure training data diversity by prioritizing low-cost models first
+1. **[Cascade Routing Tuning](../../reference-architecture/inference-gateway/cascade-routing-tuning.md)** — Ensure training data diversity by prioritizing low-cost models first
 2. **[Continuous Training Pipeline](../../reference-architecture/model-lifecycle/continuous-training/index.md)** — Design automated regular training pipeline
-3. **[Agent 변경 관리](../../../aidlc/enterprise/agent-versioning/index.md)** — 모델 version 관리 및 점진 배포 전략
-4. **[Agent 모니터링](../../operations-mlops/observability/agent-monitoring.md)** — Langfuse-based trace collection and cost tracking
+3. **[Agent Versioning](../../../aidlc/enterprise/agent-versioning/index.md)** — Model version management and progressive deployment strategy
+4. **[Agent Monitoring](../../operations-mlops/observability/agent-monitoring.md)** — Langfuse-based trace collection and cost tracking

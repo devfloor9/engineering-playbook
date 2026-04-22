@@ -3,30 +3,36 @@ title: "AI Platform Selection Guide: Managed vs Open Source vs Hybrid"
 sidebar_label: "AI Platform Selection Guide"
 sidebar_position: 3
 description: "Decision framework for selecting the optimal approach between SageMaker Unified Studio, Bedrock AgentCore, and EKS open architecture based on customer needs"
-tags: [decision-framework, sagemaker, bedrock, agentcore, eks, cost, hybrid, 'scope:design']
-category: "genai-aiml"
+created: 2026-04-17
 last_update:
-  date: 2026-04-17
-  author: YoungJoon Jeong
+  date: 2026-04-20
+  author: devfloor9
+reading_time: 15
+tags:
+  - decision-framework
+  - sagemaker
+  - bedrock
+  - agentcore
+  - eks
+  - cost
+  - hybrid
+  - scope:design
+category: "genai-aiml"
 ---
 
 import { PlatformComparisonMatrix, MaturityPathTable, HybridPatternSummary } from '@site/src/components/DecisionFrameworkTables';
 
-# AI Platform Selection Guide
-
-> 📅 **Written**: 2026-04-15 | ⏱️ **Reading time**: ~15 minutes
-
-When customers start developing AI systems, they face the fundamental question: "Should we use managed services or build with open source?" This document provides a decision framework for selecting the optimal approach among **SageMaker Unified Studio**, **Bedrock AgentCore**, and **EKS-based open architecture** based on customer circumstances.
+When customers start developing AI directly, the first question they face is "Should we use managed services or build with open source?" This document provides a decision framework to select the optimal approach among **SageMaker Unified Studio**, **Bedrock AgentCore**, and **EKS-based open architecture** based on customer circumstances.
 
 AI platform construction paths are broadly divided into three categories:
 
-- **(A) AWS Managed**: Start with Bedrock + Strands SDK + AgentCore with no infrastructure operations
-- **(B) EKS + Open Source**: Self-host with vLLM, llm-d, Langfuse for maximum control
-- **(C) Hybrid**: Combine Bedrock and EKS to balance cost, control, and speed
+- **(A) AWS Managed**: Start with no infrastructure operations using Bedrock + Strands SDK + AgentCore
+- **(B) EKS + Open Source**: Secure maximum control with self-hosting using vLLM, llm-d, Langfuse, etc.
+- **(C) Hybrid**: Achieve balance of cost, control, and speed by combining Bedrock and EKS
 
 :::info Prerequisites
-Before reading this document, refer to:
-- [Platform Architecture](../foundations/agentic-platform-architecture.md) — 6-layer design blueprint
+Before reading this document, refer to the following:
+- [Platform Architecture](../foundations/agentic-platform-architecture.md) — 6-layer core design blueprint
 - [Technical Challenges](../foundations/agentic-ai-challenges.md) — 5 core challenge analysis
 :::
 
@@ -34,7 +40,7 @@ Before reading this document, refer to:
 
 ## AWS AI Platform Service Landscape
 
-AWS AI services are structured into 4 tiers. Customers typically start at lower tiers and progress upward based on their needs.
+AWS AI services are structured into 4 tiers. Customers start at lower tiers and move to higher tiers as needed.
 
 ```mermaid
 graph TB
@@ -83,7 +89,7 @@ graph TB
 
 ### Integrated AI Development Environment
 
-**SageMaker Unified Studio** is an integrated AI development environment released in H2 2024, designed to perform ML/data/analytics tasks in a single IDE. Previously, teams had to use fragmented tools like SageMaker Studio Classic, Athena, and Glue Studio separately, but Unified Studio consolidates them into one platform.
+**SageMaker Unified Studio** is an integrated AI development environment released in H2 2024, designed to perform ML/data/analytics tasks in a single IDE. Previously, teams had to use fragmented tools like SageMaker Studio Classic, Athena, and Glue Studio separately, but Unified Studio consolidates them into one.
 
 ### Key Differentiators
 
@@ -109,7 +115,7 @@ flowchart LR
 ```
 
 :::tip Key Message
-SageMaker Unified Studio is a **development environment (Tier 2)**. It has a **complementary relationship** with Bedrock (inference) or EKS (serving), and provides greatest value when data teams and ML teams need to collaborate on a single platform.
+SageMaker Unified Studio is a **development environment (Tier 2)**. It has a **complementary relationship** with Bedrock (inference) or EKS (serving), and provides the greatest value when data teams and ML teams need to collaborate on a single platform.
 :::
 
 ---
@@ -319,16 +325,25 @@ For detailed analysis of instance costs, Spot savings rates, and Cascade Routing
 
 ---
 
-## Related Documents
+## References
 
-### Design & Architecture
-- [Platform Architecture](../foundations/agentic-platform-architecture.md) — 6-layer design blueprint
-- [Technical Challenges](../foundations/agentic-ai-challenges.md) — 5 core challenge analysis
-- [AWS Native Platform](./aws-native-agentic-platform.md) — Bedrock + Strands SDK + AgentCore details
-- [EKS-based Open Architecture](./agentic-ai-solutions-eks.md) — EKS Auto Mode + open source stack details
-- [Inference Gateway & Cascade Routing](../../reference-architecture/inference-gateway/routing-strategy.md) — 2-Tier Gateway architecture
+### Official Documentation
 
-### Reference Architecture
-- [SageMaker-EKS Integration](../../reference-architecture/integrations/sagemaker-eks-integration.md) — Hybrid ML pipeline implementation
-- [Coding Tools Cost Analysis](../../reference-architecture/integrations/coding-tools-cost-analysis.md) — Bedrock vs self-hosting break-even analysis
-- [Custom Model Deployment](../../reference-architecture/model-lifecycle/custom-model-deployment.md) — vLLM deployment practical guide
+- [Amazon SageMaker Unified Studio](https://docs.aws.amazon.com/sagemaker/latest/dg/unified-studio.html) — Integrated AI development environment
+- [Amazon Bedrock Documentation](https://docs.aws.amazon.com/bedrock/) — Bedrock official documentation
+- [Amazon EKS Best Practices](https://aws.github.io/aws-eks-best-practices/) — EKS recommendations
+- [AWS Well-Architected Framework](https://aws.amazon.com/architecture/well-architected/) — Architecture framework
+
+### Papers / Technical Blogs
+
+- [Choosing the Right AI Platform](https://aws.amazon.com/blogs/machine-learning/) — Platform selection guide
+- [Cost Optimization for LLM Inference](https://huyenchip.com/2023/04/11/llm-engineering.html) — Cost optimization strategies
+- [Hybrid AI Architecture Patterns](https://aws.amazon.com/architecture/) — Hybrid patterns
+- [Building Production ML Systems](https://developers.google.com/machine-learning/guides/rules-of-ml) — Production ML guide
+
+### Related Documents (Internal)
+
+- [Platform Architecture](../foundations/agentic-platform-architecture.md) — 6 core layers
+- [Technical Challenges](../foundations/agentic-ai-challenges.md) — 5 core challenges
+- [AWS Native Platform](./aws-native-agentic-platform.md) — Managed service details
+- [EKS-based Open Architecture](./agentic-ai-solutions-eks.md) — Self-hosting details

@@ -1,7 +1,7 @@
 ---
-title: "ADR — Self-Improving Agent Loop 도입 의사결정"
+title: "ADR — Self-Improving Agent Loop Adoption Decision"
 sidebar_label: "ADR: Self-Improving Loop"
-description: "Self-Improving Agent Loop(자가학습 강화 파이프라인)를 실 운영에 도입하기 전 합의해야 할 원칙·스코프·책임·롤백 경계를 정리한 Architecture Decision Record"
+description: "Architecture Decision Record documenting principles, scope, responsibilities, and rollback boundaries to be agreed upon before introducing the Self-Improving Agent Loop to production"
 created: 2026-04-19
 last_update:
   date: 2026-04-20
@@ -17,125 +17,125 @@ tags:
 sidebar_position: 99
 ---
 
-- **상태**: Proposed (실 운영 착수 전 합의 필요)
-- **작성일**: 2026-04-19
-- **관련 문서**
-  - 설계: [Self-Improving Agent Loop](./self-improving-agent-loop.md)
-  - 구현: [Continuous Training Pipeline](../../reference-architecture/model-lifecycle/continuous-training/index.md)
-  - 운영: [Cascade Routing Tuning](../../reference-architecture/inference-gateway/cascade-routing-tuning.md)
+- **Status**: Proposed (consensus required before production deployment)
+- **Date**: 2026-04-19
+- **Related Documents**
+  - Design: [Self-Improving Agent Loop](./self-improving-agent-loop.md)
+  - Implementation: [Continuous Training Pipeline](../../reference-architecture/model-lifecycle/continuous-training/index.md)
+  - Operations: [Cascade Routing Tuning](../../reference-architecture/inference-gateway/cascade-routing-tuning.md)
 
 ---
 
 ## Context
 
-Phase 3 문서 개편에서 Andrej Karpathy의 autosearch 담론을 엔터프라이즈 환경에 매핑한 두 편의 문서가 추가되었다. 설계(`self-improving-agent-loop.md`)와 구현(`continuous-training/`)은 draft 상태이며, 내부 리뷰 전에 다음과 같은 **운영 원칙 합의**가 선행되어야 한다.
+In the Phase 3 documentation reorganization, two documents mapping Andrej Karpathy's autosearch discourse to enterprise environments were added. The design (`self-improving-agent-loop.md`) and implementation (`continuous-training/`) are in draft status, and **operational principle consensus** must precede internal review.
 
-자동화된 학습 루프는 기술적으로 매력적이지만, 엔터프라이즈 환경에서 Reward hacking·데이터 유출·거버넌스 공백으로 인한 손실이 이득을 초과할 위험이 크다. 본 ADR은 "무엇을 자동화하고 어디를 끊을지"를 합의하기 위한 회의 자료이다.
+While automated learning loops are technically appealing, in enterprise environments the risk of losses from reward hacking, data leakage, and governance gaps exceeding benefits is significant. This ADR serves as meeting material for agreeing on "what to automate and where to draw boundaries."
 
 ---
 
-## Decision Points (합의 대상)
+## Decision Points (Consensus Items)
 
-### 1. 스코프 고정 — self-hosted SLM 전용
+### 1. Fixed Scope — Self-hosted SLM Only
 
-- 본 루프는 **Qwen3 / Llama 4 / GLM-5** 등 self-hosted 오픈웨이트 모델 전용이다.
-- Bedrock AgentCore Claude/Nova 등 관리형 폐쇄 모델, OpenAI GPT-4.1, Gemini 2.5는 스코프 제외.
-- Ragas/LLM-judge 평가는 공유 자원을 사용하더라도, **weight 업데이트가 일어나는 대상 모델**은 self-hosted로 한정한다.
+- This loop is exclusively for self-hosted open-weight models: **Qwen3 / Llama 4 / GLM-5**.
+- Excludes managed closed models (Bedrock AgentCore Claude/Nova, OpenAI GPT-4.1, Gemini 2.5).
+- While Ragas/LLM-judge evaluation may use shared resources, **target models receiving weight updates** are limited to self-hosted models.
 
-**근거**: 폐쇄 모델은 weight 접근 불가 + 공급자 ToS 위반 가능성이 있다. 루프 적용이 아니라 프롬프트/라우팅 튜닝으로 대체한다.
+**Rationale**: Closed models lack weight access and risk vendor ToS violations. Address through prompt/routing tuning rather than loop application.
 
-### 2. 루프 자동화 경계 — 5 stage 중 3 stage만 자동화
+### 2. Loop Automation Boundary — Only 3 of 5 Stages Automated
 
-| Stage | 자동화 여부 | 사람 개입 |
+| Stage | Automation | Human Intervention |
 |-------|-----|----------|
-| 1. Rollout (trace 수집) | ✅ 자동 | — |
-| 2. Score (Reward labeling) | ✅ 자동 | 주간 1–2% 샘플 수동 검증 |
-| 3. Filter (데이터 큐레이션) | ✅ 자동 | PII 스캐너 통과 강제 |
-| 4. Train (GRPO/DPO/RLAIF) | ⚠ **수동 트리거** | 배포 엔지니어 승인 필수 |
-| 5. Deploy (Canary) | ⚠ **수동 승인 + Canary** | 10% → 50% → 100% 단계별 게이트 |
+| 1. Rollout (trace collection) | ✅ Automated | — |
+| 2. Score (Reward labeling) | ✅ Automated | Weekly 1–2% manual sample verification |
+| 3. Filter (data curation) | ✅ Automated | Mandatory PII scanner pass |
+| 4. Train (GRPO/DPO/RLAIF) | ⚠ **Manual trigger** | Deployment engineer approval required |
+| 5. Deploy (Canary) | ⚠ **Manual approval + Canary** | 10% → 50% → 100% staged gates |
 
-**근거**: Train/Deploy까지 무인 자동화할 경우 reward hacking 가능성과 롤백 비용이 급증한다. Train은 최소 주간 cadence의 수동 Job trigger로 시작한다.
+**Rationale**: Unattended automation through Train/Deploy dramatically increases reward hacking risk and rollback costs. Start Train with minimum weekly cadence manual job triggers.
 
-### 3. Reward 모델 책임자 지정
+### 3. Reward Model Owner Designation
 
-- Reward 모델 정책(LLM-judge 프롬프트, Ragas 가중치, 유저 피드백 weight) 변경은 **단일 책임자(DRI)** 를 지정한다.
-- 변경 시 PR 리뷰 + 과거 30일 trace에 대한 backtest 결과 첨부가 필수이다.
-- **Decision owner**: 플랫폼 MLOps 리드 (TBD)
+- Changes to reward model policy (LLM-judge prompts, Ragas weights, user feedback weights) require a **single Directly Responsible Individual (DRI)**.
+- Changes require PR review + backtest results on past 30 days of traces.
+- **Decision owner**: Platform MLOps Lead (TBD)
 
-**근거**: Reward signal이 학습 전체 방향을 결정한다. 무분별한 weight 조정은 silent drift의 근원이다.
+**Rationale**: Reward signals determine overall learning direction. Indiscriminate weight adjustments are the root cause of silent drift.
 
-### 4. 데이터 거버넌스 — 4-gate 통과 의무화
+### 4. Data Governance — Mandatory 4-Gate Passage
 
-학습 데이터로 승격되는 trace는 다음 4개 게이트를 순서대로 통과해야 한다.
+Traces promoted to training data must pass the following 4 gates sequentially:
 
-1. **PII 게이트** — Presidio/Comprehend로 개인정보 마스킹. 실패 trace는 폐기한다.
-2. **Consent 게이트** — 수집 동의 없는 trace는 학습 데이터에서 제외한다 (`consent=true` 태그 필수).
-3. **지역 게이트** — 규제 지역(EU GDPR, KR PIPA) trace는 해당 지역 데이터 경계 내 학습 Job만 사용한다.
-4. **기밀 분류 게이트** — 고객 기밀/내부 전용 trace는 사내 전용 모델에만 반영한다.
+1. **PII Gate** — Mask personal information with Presidio/Comprehend. Discard failed traces.
+2. **Consent Gate** — Exclude traces without collection consent from training data (`consent=true` tag required).
+3. **Regional Gate** — Traces from regulated regions (EU GDPR, KR PIPA) only used by training jobs within corresponding regional data boundaries.
+4. **Confidentiality Gate** — Customer confidential/internal-only traces reflected only in internal-only models.
 
-**근거**: 컴플라이언스 팀 사전 검토 없이 trace를 학습에 사용하면 재학습 레벨의 데이터 삭제 요청 시 비용이 폭증한다.
+**Rationale**: Using traces for training without compliance team pre-review causes cost explosion for retraining-level data deletion requests.
 
-### 5. 비용 가드레일
+### 5. Cost Guardrails
 
-- **월간 GPU-hour 상한**: 환경별로 사전 지정한다 (기본 제안: 1,000 GPU-hour/월 on p5en Spot, 약 $15K 상한).
-- **퀄리티 하락 시 자동 중단**: Canary 배포 후 Ragas faithfulness 5%p 하락 또는 misroute rate 10%p 상승 시 자동 롤백한다.
-- 상한 초과 예정 시 FinOps 리뷰 없이 Train Job 스케줄링이 불가하다.
+- **Monthly GPU-hour ceiling**: Pre-specified per environment (default proposal: 1,000 GPU-hour/month on p5en Spot, ~$15K ceiling).
+- **Auto-halt on quality degradation**: Automatic rollback if Ragas faithfulness drops 5%p or misroute rate rises 10%p after Canary deployment.
+- Train job scheduling prohibited without FinOps review when ceiling breach imminent.
 
-**근거**: GRPO 한 iteration이 수 시간 단위 GPU를 요구한다. 무제한 자동화는 예산 관리 불가하다.
+**Rationale**: One GRPO iteration requires multi-hour GPU usage. Unlimited automation makes budget management impossible.
 
-### 6. 롤백 경계 — 어느 버전까지 즉시 복귀 가능해야 하는가
+### 6. Rollback Boundary — Which Versions Must Allow Immediate Reversion
 
-- **모델 버전**: 최근 3세대 weight을 registry에 보관한다 (삭제 금지).
-- **Reward 모델 버전**: 최근 5회분을 유지한다.
-- **라우터 classifier 버전**: 최근 10회분을 유지한다.
-- Canary 실패 시 이전 세대로 **5분 내 자동 복귀** 검증을 Game day로 주기적으로 실시한다.
+- **Model versions**: Retain last 3 generation weights in registry (deletion prohibited).
+- **Reward model versions**: Maintain last 5 versions.
+- **Router classifier versions**: Maintain last 10 versions.
+- Periodically conduct Game day exercises verifying **automatic reversion within 5 minutes** to previous generation on Canary failure.
 
-**근거**: 자가 학습 루프에서 가장 흔한 실패 모드는 "어제는 좋았는데 오늘은 나빠졌다" 패턴이다. 빠른 복귀 경로가 없으면 운영 리스크가 과도하다.
+**Rationale**: The most common failure mode in self-learning loops is "worked yesterday, broken today" pattern. Without fast reversion paths, operational risk is excessive.
 
-### 7. 조직 경계 — 단일 팀 pilot → 플랫폼 확대
+### 7. Organizational Boundaries — Single Team Pilot → Platform Expansion
 
-- Phase 1 (0–3개월): **Classifier v7 / 라우터**만 자가학습 대상이다. 단일 팀 pilot.
-- Phase 2 (3–6개월): 특정 self-hosted SLM 하나(Qwen3-4B)로 확장한다.
-- Phase 3 (6개월+): GLM-5 등 대형 모델로 확장 여부를 재검토한다. **별도 ADR 필요**.
+- Phase 1 (0–3 months): **Classifier v7 / router** only as self-learning targets. Single team pilot.
+- Phase 2 (3–6 months): Expand to one specific self-hosted SLM (Qwen3-4B).
+- Phase 3 (6+ months): Re-evaluate expansion to large models like GLM-5. **Separate ADR required**.
 
-**근거**: 기술적으로 가능한 것과 조직이 운영 가능한 것은 다르다. 초기 스코프를 작게 잡고 게임 데이터를 쌓은 후 확장한다.
+**Rationale**: Technical feasibility differs from organizational operability. Start with small scope, accumulate operational data, then expand.
 
 ---
 
 ## Consequences
 
-### 긍정적
-- 루프 도입 범위·속도·책임이 명시되어 예측 가능성이 올라간다.
-- 폐쇄 모델은 제외하므로 공급자 계약 리스크를 회피한다.
-- 3-stage 자동화로 돌발 사고 시 피해 반경이 축소된다.
+### Positive
+- Explicitly defined loop introduction scope, speed, and responsibilities increase predictability.
+- Excludes closed models, avoiding vendor contract risks.
+- 3-stage automation reduces blast radius in incident scenarios.
 
-### 부정적 / Trade-off
-- Train/Deploy 수동 승인으로 "완전 자동 autosearch"의 속도 이점 일부를 희생한다.
-- 4-gate 데이터 게이트가 초기 데이터 수집량을 크게 줄여 학습 속도가 저하될 수 있다.
-- 단일 DRI 모델은 담당자 이탈 시 운영 단절 위험이 있어 백업 DRI 지정이 필요하다.
+### Negative / Trade-offs
+- Manual Train/Deploy approval sacrifices some speed advantages of "fully automated autosearch."
+- 4-gate data gates may significantly reduce initial data collection volume, slowing learning pace.
+- Single DRI model risks operational disruption on personnel departure, requiring backup DRI designation.
 
-### 다음 액션
+### Next Actions
 
-- [ ] 본 ADR Draft를 관련 리드들에게 회람한다 (MLOps / Security / FinOps / 컴플라이언스).
-- [ ] Reward 모델 DRI를 지정한다 (플랫폼 팀 내부 논의).
-- [ ] 4-gate 데이터 파이프라인 설계 작업을 생성한다 → `continuous-training/trace-to-dataset.md` § Stage 3 보강.
-- [ ] Game day 롤백 시나리오를 작성한다 → `cascade-routing-tuning.md` § Canary 롤아웃 보강.
-- [ ] 합의 후 상태를 **Proposed → Accepted** 로 갱신한다.
+- [ ] Circulate this ADR draft to relevant leads (MLOps / Security / FinOps / Compliance).
+- [ ] Designate Reward model DRI (internal platform team discussion).
+- [ ] Create 4-gate data pipeline design work item → Enhance `continuous-training/trace-to-dataset.md` § Stage 3.
+- [ ] Draft Game day rollback scenarios → Enhance `cascade-routing-tuning.md` § Canary rollout.
+- [ ] Update status to **Proposed → Accepted** after consensus.
 
 ---
 
-## 참고 자료
+## References
 
-### 공식 문서
-- [Kubernetes Canary Deployment](https://kubernetes.io/docs/concepts/cluster-administration/manage-deployment/#canary-deployment) — 점진적 롤아웃 표준
-- [MLflow Model Registry](https://mlflow.org/docs/latest/model-registry.html) — 모델 버전 관리 레퍼런스
+### Official Documentation
+- [Kubernetes Canary Deployment](https://kubernetes.io/docs/concepts/cluster-administration/manage-deployment/#canary-deployment) — Progressive rollout standard
+- [MLflow Model Registry](https://mlflow.org/docs/latest/model-registry.html) — Model version management reference
 
-### 논문 / 기술 블로그
-- Andrej Karpathy — "LLMs doing autosearch" (2026 Q1 담론)
-- [LMSYS RouteLLM](https://lmsys.org/blog/2024-07-01-routellm/) — Cascade routing classifier 설계
+### Papers / Tech Blogs
+- Andrej Karpathy — "LLMs doing autosearch" (2026 Q1 discourse)
+- [LMSYS RouteLLM](https://lmsys.org/blog/2024-07-01-routellm/) — Cascade routing classifier design
 - [Langfuse OTel](https://langfuse.com/docs/opentelemetry) — Production trace standard
 
-### 관련 문서 (내부)
-- [Self-Improving Agent Loop 설계](./self-improving-agent-loop.md) — 5-Stage Loop 상세 아키텍처
-- [Continuous Training Pipeline 구현](../../reference-architecture/model-lifecycle/continuous-training/index.md) — 실제 파이프라인 스펙
-- [Cascade Routing Tuning 운영](../../reference-architecture/inference-gateway/cascade-routing-tuning.md) — Canary 운영 가이드
+### Related Documents (Internal)
+- [Self-Improving Agent Loop Design](./self-improving-agent-loop.md) — 5-Stage Loop detailed architecture
+- [Continuous Training Pipeline Implementation](../../reference-architecture/model-lifecycle/continuous-training/index.md) — Actual pipeline specifications
+- [Cascade Routing Tuning Operations](../../reference-architecture/inference-gateway/cascade-routing-tuning.md) — Canary operations guide

@@ -2,19 +2,21 @@
 title: "Kagent - Kubernetes AI Agent Management"
 sidebar_label: "Kagent Agent Management"
 description: "Declarative AI agent management architecture and orchestration patterns in Kubernetes using Kagent"
-tags: [eks, kagent, kubernetes, agent, crd, operator]
+tags: [eks, kagent, kubernetes, agent, crd, operator, 'scope:ops']
 category: "genai-aiml"
+created: 2026-02-05
 last_update:
-  date: 2026-04-06
+  date: 2026-04-20
   author: devfloor9
 sidebar_position: 3
+reading_time: 9
 ---
 
 # Kagent - Kubernetes AI Agent Management
 
 In a multi-model ecosystem, AI agents must call multiple LLMs/SLMs, connect to tools and other agents via MCP/A2A protocols, and dynamically scale based on traffic. Kubernetes' **Operator pattern** is the most natural approach for declaratively defining such agents as CRDs and automatically managing their lifecycles. Kagent is a reference architecture that applies this pattern to AI agents.
 
-## Overview
+## 1. Overview
 
 Kagent declaratively defines agents, tools, and workflows through Custom Resource Definitions (CRDs), with an Operator automatically deploying and managing them. Instead of manually writing Deployments, Services, and ConfigMaps, a single `Agent` CRD integrates model connections, tool bindings, and scaling policies.
 
@@ -56,7 +58,7 @@ This document is intended for Kubernetes administrators, platform engineers, and
 
 ---
 
-## Kagent Architecture
+## 2. Kagent Architecture
 
 Kagent follows the Kubernetes Operator pattern, consisting of Controller, CRDs, and Webhooks.
 
@@ -146,7 +148,7 @@ sequenceDiagram
 
 ---
 
-## CRD Structure
+## 3. CRD Structure
 
 ### Agent CRD
 
@@ -220,7 +222,7 @@ spec:
   observability:
     tracing:
       enabled: true
-      provider: langfuse       # langfuse, langsmith, cloudwatch
+      provider: langfuse       # langfuse, langsmith, cloudwatch (details: ../operations-mlops/observability/llmops-observability.md)
     metrics:
       enabled: true
       port: 9090
@@ -273,7 +275,7 @@ Define multi-agent workflows using the Workflow CRD.
 
 ---
 
-## Multi-Agent Orchestration
+## 4. Multi-Agent Orchestration
 
 Define workflows where multiple agents collaborate to handle complex tasks.
 
@@ -348,7 +350,7 @@ Workflow execution status is tracked via `WorkflowRun` CRD:
 
 ---
 
-## Agent Lifecycle Management
+## 5. Agent Lifecycle Management
 
 ### Operator-Managed Resources
 
@@ -382,17 +384,14 @@ Agent CRD Creation
 
 ---
 
-## Observability Integration
+## 6. Observability Integration
 
-### Supported Observability Providers
+Agent execution traces are sent to Langfuse, LangSmith, or CloudWatch Generative AI Observability. For a comparison of each tool, see [LLMOps Observability Comparison](llmops-observability.md).
 
-| Provider | Type | Description |
-|----------|------|-------------|
-| **Langfuse** | Tracing | OSS LLM observability (self-hostable) |
-| **LangSmith** | Tracing | LangChain ecosystem tracing |
-| **CloudWatch** | Metrics/Logs | AWS native Generative AI Observability |
-| **OpenTelemetry** | Universal | Distributed tracing standard |
-| **Prometheus** | Metrics | ServiceMonitor-based metrics collection |
+Deployment guides:
+- **Langfuse**: [Architecture](agent-monitoring.md), [Helm Deployment](../../reference-architecture/integrations/monitoring-observability-setup.md)
+- **LangSmith**: [LangSmith Official Documentation](https://docs.smith.langchain.com/)
+- **CloudWatch**: [AWS Generative AI Observability](https://docs.aws.amazon.com/cloudwatch/)
 
 ### Key Alert Rules
 
@@ -404,7 +403,7 @@ Agent CRD Creation
 
 ---
 
-## Conclusion
+## 7. Conclusion
 
 Using Kagent enables declarative management of AI agents in Kubernetes environments. Key benefits include:
 
@@ -426,10 +425,16 @@ Using Kagent enables declarative management of AI agents in Kubernetes environme
 
 ## References
 
-- [Kagent Concepts and Design Patterns](https://github.com/kagent-dev/kagent) (reference architecture)
+### Official Documentation
+- [Kagent Concepts and Design Patterns](https://github.com/kagent-dev/kagent)
 - [KubeAI - Kubernetes AI Platform](https://github.com/substratusai/kubeai)
-- [Bedrock AgentCore](https://docs.aws.amazon.com/bedrock/latest/userguide/agents-core.html) - AWS managed Agent runtime
-- [LangGraph Platform](https://langchain-ai.github.io/langgraph/) - Agent workflow framework
+- [Bedrock AgentCore](https://docs.aws.amazon.com/bedrock/latest/userguide/agents-core.html)
+- [LangGraph Platform](https://langchain-ai.github.io/langgraph/)
 - [Kubernetes Operator Pattern](https://kubernetes.io/docs/concepts/extend-kubernetes/operator/)
 - [KEDA Documentation](https://keda.sh/docs/)
 - [re:Invent 2025 CNS421 - Streamline EKS Operations with Agentic AI](https://www.youtube.com/watch?v=4s-a0jY4kSE)
+
+### Related Documentation
+- [Agentic AI Platform Architecture](../../design-architecture/foundations/agentic-platform-architecture.md)
+- [Agent Monitoring](./agent-monitoring.md)
+- [GPU Resource Management](../../model-serving/gpu-infrastructure/gpu-resource-management.md)

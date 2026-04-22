@@ -168,10 +168,10 @@ Extension activation is controlled by the **`opt-in.md`** file at the project ro
 
 ### Organization
 - [x] org-lg-security (version 1.2.0) — LG CNS internal security standards
-- [x] org-compliance-ismsp (version 2.1.0) — ISMS-P (Korea Information Security Management System - Personal Information) certification standards
+- [x] org-compliance-ismsp (version 2.1.0) — ISMS-P (Korean Personal Information & Information Security Management System) certification standards
 
 ### Domain
-- [x] finance-korea (version 1.0.0) — Korea Electronic Financial Supervision Regulations
+- [x] finance-korea (version 1.0.0) — Korean Electronic Financial Supervision Regulations
 
 ## Disabled Extensions (explicit rejection)
 
@@ -225,7 +225,7 @@ Organization Extension (finance): Allows Temperature = 0.1 (some creativity allo
 
 ### 4.1 Korea ISMS-P Extension
 
-**Background**: ISMS-P (Information Security Management System - Personal Information) is a private certification requiring compliance with Korea information security laws. Virtually mandatory for public contracts and financial services entry.
+**Background**: ISMS-P (Korean Personal Information & Information Security Management System) is a private certification requiring compliance with Korea information security laws. Virtually mandatory for public contracts and financial services entry.
 
 **Extension Directory Structure:**
 ```
@@ -290,7 +290,7 @@ extension:
 extension:
   name: finance-korea
   version: 1.0.0
-  description: Korea Electronic Financial Supervision Regulations AIDLC integration
+  description: Korean Electronic Financial Supervision Regulations AIDLC integration
   applies_to:
     industries: [finance]
     regions: [KR]

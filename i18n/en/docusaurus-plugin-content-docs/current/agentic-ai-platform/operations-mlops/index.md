@@ -2,18 +2,18 @@
 title: "Operations & Governance"
 sidebar_label: "Operations & Governance"
 description: "AI platform monitoring, observability, evaluation, compliance, and domain-specific operations guide"
-tags: [operations, monitoring, observability, mlops, compliance]
-sidebar_position: 4
+tags: [operations, monitoring, observability, mlops, compliance, 'scope:ops']
+sidebar_position: 0
+created: 2026-03-06
 last_update:
-  date: 2026-04-06
-  author: YoungJoon Jeong
+  date: 2026-04-20
+  author: devfloor9
+reading_time: 1
 ---
 
 import { DocCard, DocCardGrid } from '@site/src/components/DocCards';
 
-# Operations & Governance
-
-This section provides guides for **monitoring**, **observability**, **quality evaluation**, **compliance**, and **domain-specific operations** to ensure stable operation of production AI platforms.
+Provides guides for **monitoring**, **observability**, **quality evaluation**, **compliance**, and **domain-specific operations** to ensure stable operation of production AI platforms.
 
 This section comprehensively covers the following areas:
 
@@ -66,6 +66,13 @@ For actual deployment architectures including MLOps pipeline setup and SageMaker
     color="#ec4899"
   />
   <DocCard
+    to="/docs/agentic-ai-platform/operations-mlops/governance/ai-gateway-guardrails"
+    icon="🛡️"
+    title="AI Gateway Guardrails"
+    description="LLM Gateway-level Guardrails. PII Redaction, Prompt Injection defense, tool comparison (Guardrails AI/NeMo/Llama Guard/Bedrock), Korean financial sector compliance mapping."
+    color="#dc2626"
+  />
+  <DocCard
     to="/docs/agentic-ai-platform/operations-mlops/governance/compliance-framework"
     icon="🔒"
     title="Compliance Framework"
@@ -76,7 +83,7 @@ For actual deployment architectures including MLOps pipeline setup and SageMaker
     to="/docs/agentic-ai-platform/operations-mlops/governance/domain-customization"
     icon="🎯"
     title="Domain-Specific Customization"
-    description="Industry-specific agent customization guide. Specialized strategies and implementation patterns for finance, healthcare, manufacturing, and more."
+    description="Industry-specific agent customization guide. Specialized strategies and implementation patterns for finance, healthcare, manufacturing, and other domains."
     color="#06b6d4"
   />
   <DocCard

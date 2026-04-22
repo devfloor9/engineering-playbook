@@ -430,7 +430,7 @@ spec:
 - 8B 모델 서빙에 충분한 사양
 :::
 
-- 참조: [비용 Threshold 분석](./custom-model-deployment.md#비용-threshold-분석)
+- 참조: [비용 Threshold 분석](../integrations/coding-tools-cost-analysis.md#비용-threshold-분석-bedrock-vs-kiro-vs-자체-호스팅)
 
 ---
 

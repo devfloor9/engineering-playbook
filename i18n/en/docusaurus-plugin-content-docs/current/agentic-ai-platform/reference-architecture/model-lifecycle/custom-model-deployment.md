@@ -1,19 +1,19 @@
 ---
 title: "Custom Model Deployment Guide"
 sidebar_label: "Model Deployment"
-description: "A hands-on guide to deploying large open-source models on EKS, based on the GLM-5.1 experience"
-tags: [deployment, glm-5, vllm, eks, gpu, lws, lessons-learned]
+description: "Hands-on guide to deploying large open-source models on EKS, based on the GLM-5.1 experience"
+created: 2026-04-04
 last_update:
-  date: 2026-04-06
-  author: YoungJoon Jeong
+  date: 2026-04-20
+  author: devfloor9
+reading_time: 1
+tags: [deployment, glm-5, vllm, eks, gpu, lws, lessons-learned, 'scope:impl']
 ---
-
-# Custom Model Deployment Guide
 
 This document is a hands-on guide to deploying large open-source models with vLLM on EKS. It uses the **GLM-5.1 744B MoE FP8** model as a working example, but the same patterns apply to other large models such as DeepSeek-V3, Mixtral, and Qwen-MoE.
 
 :::info Purpose of This Guide
-This document focuses less on "here's how to do it" and more on "here's what we ran into, and how we solved it." It is designed to help you anticipate and address issues you may encounter during actual production deployments.
+This document focuses less on "here's how to do it" and more on "here's what we ran into, and how we solved it." It helps you anticipate and address issues you may encounter during actual production deployments.
 :::
 
 ## 1. Model Selection Criteria
@@ -38,14 +38,14 @@ Evaluate the following criteria when choosing a model to deploy.
 - **Context**: 200K tokens supported
 - **Performance**:
   - #1 open-source model on Agentic Coding benchmarks (55.00 points)
-  - SWE-bench 77.8% (vs. GPT-4o 57.0%)
+  - SWE-bench 77.8% (vs. GPT-4.1 62.3%)
 
 :::tip Why We Chose GLM-5.1
 It has an MIT license allowing commercial use and outperforms OpenAI GPT-4o on Agentic Coding tasks. Its SWE-bench score of 77.8% demonstrates particular strength in code generation and bug-fixing tasks.
 :::
 
 :::info Automatic Model Branching
-With an LLM Classifier, clients send requests to a single endpoint (`/v1`), and the system automatically selects an SLM or LLM based on prompt content. Simple requests are routed to Qwen3-4B (L4 $0.3/hr), while complex requests (refactoring, architecture, design, etc.) are routed to GLM-5 744B (H200 $12/hr). See the [Gateway Setup Guide](../inference-gateway/setup/advanced-features#llm-classifier-deployment) for configuration details.
+With an LLM Classifier, clients send requests to a single endpoint (`/v1`), and the system automatically selects an SLM or LLM based on prompt content. Simple requests are routed to Qwen3-4B (L4 $0.3/hr), while complex requests (refactoring, architecture, design, etc.) are routed to GLM-5 744B (H200 $12/hr). See [Inference Gateway Setup: LLM Classifier](../inference-gateway/setup/advanced-features#llm-classifier-deployment) for configuration details.
 :::
 
 ### Model Specs (GLM-5.1 Example)
@@ -59,15 +59,15 @@ With an LLM Classifier, clients send requests to a single endpoint (`/v1`), and 
 | Required VRAM | ~744GB (single-node loading) |
 | Minimum GPUs | 8x H200 (1,128GB) or 8x B200 (1,536GB) |
 
-## 2. GPU Instance Selection Matrix
+## GPU Instance Selection Matrix
 
 The most critical decision when deploying large models is the GPU instance type. Select instances based on the model's VRAM requirements.
 
 | Instance | GPU | VRAM | 744B Single Node? | PP=2 Multi-node | Spot Price (us-east-2) | Recommendation |
 |---------|-----|------|-------------------|--------------|---------------------|--------|
-| p5.48xlarge | H100x8 | 640GB | ❌ (744GB > 640GB) | ⚠️ vLLM deadlock | $12/hr | ⚠️ |
-| p5en.48xlarge | H200x8 | 1,128GB | ✅ | ✅ (unnecessary) | $12/hr | ✅ Optimal |
-| p6-b200.48xlarge | B200x8 | 1,536GB | ✅ | ✅ (unnecessary) | $18/hr | ✅ Headroom |
+| p5.48xlarge | H100×8 | 640GB | ❌ (744GB > 640GB) | ⚠️ vLLM deadlock | $12/hr | ⚠️ |
+| p5en.48xlarge | H200×8 | 1,128GB | ✅ | ✅ (unnecessary) | $12/hr | ✅ Optimal |
+| p6-b200.48xlarge | B200×8 | 1,536GB | ✅ | ✅ (unnecessary) | $18/hr | ✅ Headroom |
 
 :::warning Caution When Using Instances with Insufficient VRAM
 If the model's VRAM requirement exceeds the instance VRAM, PP (Pipeline Parallelism) multi-node is required. However, due to vLLM V1 engine multi-node PP deadlock issues (see Section 6), stable deployment is difficult. **We recommend selecting an instance with sufficient VRAM for single-node deployment.**
@@ -93,7 +93,7 @@ aws ec2 describe-spot-price-history \
   --output table
 ```
 
-## 3. EKS Deployment Mode Selection
+## EKS Deployment Mode Selection
 
 The choice between EKS Auto Mode and Standard Mode depends on the GPU instance type you plan to use.
 
@@ -146,7 +146,7 @@ eksctl create nodegroup \
   --kubelet-extra-args "--max-pods=110"
 ```
 
-## 4. Building a Custom vLLM Image
+## vLLM Custom Image Build
 
 ### Problem: Latest Model Not Recognized
 
@@ -211,7 +211,7 @@ initContainers:
     mountPath: /opt/vllm/.local
 ```
 
-## 5. Model Cache Strategy (S3 to NVMe)
+## Model Cache Strategy (S3 → NVMe)
 
 Downloading large models (hundreds of GB) takes a very long time. An efficient caching strategy is essential.
 
@@ -223,7 +223,7 @@ Downloading large models (hundreds of GB) takes a very long time. An efficient c
 | EFS | ~60min (per node) | ✅ Shared filesystem | EFS storage + throughput | High | ⚠️ |
 | NVMe emptyDir (pre-download required) | Instant | ✅ (S3 sync first) | S3 transfer only | High | ✅ |
 
-### Recommended: S3 Pre-upload -> s5cmd -> NVMe emptyDir
+### Recommended: S3 Pre-upload → s5cmd → NVMe emptyDir
 
 **Recommended workflow:**
 
@@ -312,9 +312,9 @@ This section documents a **failure case**. It details the issues encountered and
 
 ### Symptoms
 
-1. **Leader Pod**: Model loading complete -> `vllm.engine.engine.LLMEngine` initialization success
-2. **Worker Pod**: `Waiting for engine process to be ready...` -> Timeout (10 minutes)
-3. **Result**: GPU memory released -> `TCPStore::recv: Connection closed by peer` -> Crash
+1. **Leader Pod**: Model loading complete → `vllm.engine.engine.LLMEngine` initialization success
+2. **Worker Pod**: `Waiting for engine process to be ready...` → Timeout (10 minutes)
+3. **Result**: GPU memory released → `TCPStore::recv: Connection closed by peer` → Crash
 
 ```bash
 # Leader Pod logs (normal)
@@ -358,8 +358,8 @@ The vLLM V1 engine uses `multiproc_executor`, and multi-node Pipeline Parallelis
 When `--enforce-eager` is not properly applied, torch.compile is activated. In multi-node environments, torch.compile causes:
 
 - Compile timing mismatch between Leader and Worker
-- Partial rank waiting during NCCL collectives -> deadlock
-- GPU memory OOM -> process termination -> NCCL connection drop
+- Partial rank waiting during NCCL collectives → deadlock
+- GPU memory OOM → process termination → NCCL connection drop
 
 #### 4. Timing Mismatch Due to Independent Per-node Downloads
 
@@ -367,7 +367,7 @@ When downloading directly from HuggingFace Hub, each node downloads independentl
 
 - Leader: Completes in 3 minutes
 - Worker: Completes in 8 minutes
-- Leader initializes engine first -> Worker waits -> timeout
+- Leader initializes engine first → Worker waits → timeout
 
 ### Attempted Solutions and Results
 
@@ -391,7 +391,7 @@ The vLLM V1 engine's non-Ray multi-node Pipeline Parallelism is not suitable for
 ```yaml
 resources:
   limits:
-    nvidia.com/gpu: 8  # 8x H200 = 1,128GB
+    nvidia.com/gpu: 8  # 8× H200 = 1,128GB
 ```
 
 - **Pros**: Eliminates multi-node complexity, maximum stability
@@ -429,7 +429,7 @@ helm install ray-cluster kuberay/ray-cluster \
 - **Pros**: Stay within the vLLM ecosystem, improved stability
 - **Cons**: Ray cluster operational overhead
 
-## 7. LWS Multi-node Configuration
+## LWS Multi-node Configuration
 
 When multi-node deployment is necessary, use LeaderWorkerSet (LWS). While the deadlock issue existed, the LWS multi-node networking itself worked successfully.
 
@@ -520,7 +520,7 @@ vllm-glm5-0-1 vllm[5678]: NCCL INFO rank 8 initialized 16 ranks on 2 nodes
 vllm-glm5-0-1 vllm[5678]: NCCL INFO Using network Socket
 ```
 
-NCCL successfully connected 16 ranks (8 GPUs per node x 2 nodes).
+NCCL successfully connected 16 ranks (8 GPUs per node × 2 nodes).
 
 #### 2. Distributed Model Weight Loading Success
 
@@ -552,7 +552,7 @@ The Leader used port 8000 and the Worker used port 8001 to prevent conflicts.
 `restartPolicy: Default` restarts only the Worker Pod while keeping the Leader running. This improves stability by avoiding full group restarts for transient Worker failures.
 :::
 
-## 8. K8s Service Naming Pitfall
+## K8s Service Naming Pitfall
 
 Kubernetes automatically generates environment variables based on Service names. This can cause unexpected vLLM configuration errors.
 
@@ -611,7 +611,7 @@ Now the environment variables Kubernetes generates are `GLM5_SERVING_*`, which d
 Kubernetes converts Service names into environment variables in the format `<NAME>_<PORT>_`. Avoid common prefixes like `vllm-`, `llm-`, and `model-`.
 :::
 
-## 9. GPU Operator + Auto Mode Conflict
+## GPU Operator + Auto Mode Conflict
 
 EKS Auto Mode provides a built-in NVIDIA Device Plugin, and installing GPU Operator with default settings causes a conflict.
 
@@ -655,7 +655,7 @@ helm upgrade --install gpu-operator nvidia/gpu-operator \
   --set nodeStatusExporter.enabled=true
 ```
 
-Now only DCGM, GFD (GPU Feature Discovery), and Node Status Exporter run, while the Device Plugin uses the Auto Mode built-in version.
+Now only DCGM, GFD (GPU Feature Discovery), and Node Status Exporter run, while the Device Plugin uses the Auto Mode built-in version. For the full GPU Operator architecture and component details, see [NVIDIA GPU Stack](../../model-serving/gpu-infrastructure/nvidia-gpu-stack.md).
 
 ```bash
 # Confirm GPUs are properly recognized
@@ -674,7 +674,7 @@ After a Device Plugin conflict, even after reinstalling the GPU Operator, you mu
 3. Provision new GPU nodes
 :::
 
-## 10. Recommended Deployment Architecture
+## Recommended Deployment Architecture
 
 This is the recommended architecture incorporating all the lessons learned above.
 
@@ -689,7 +689,7 @@ graph TB
     HF -->|huggingface-cli download| S3_UPLOAD
     
     subgraph "EKS Standard Mode (us-east-2)"
-        MNG[MNG: p5en.48xlarge<br/>H200x8, 1,128GB<br/>Spot $12/hr]
+        MNG[MNG: p5en.48xlarge<br/>H200×8, 1,128GB<br/>Spot $12/hr]
         
         subgraph "Pod Initialization"
             INIT[initContainer<br/>s5cmd sync<br/>S3 → NVMe emptyDir]
@@ -877,7 +877,7 @@ spec:
         effect: NoSchedule
 ```
 
-## 11. Deployment Verification Results (GLM-5.1 Case, 2026-04-03)
+## Deployment Verification Results (GLM-5.1 Case, 2026-04-03)
 
 :::tip Deployment Success
 GLM-5.1 (744B MoE FP8) serving was successfully deployed with the configuration below.
@@ -888,11 +888,11 @@ GLM-5.1 (744B MoE FP8) serving was successfully deployed with the configuration 
 | Item | Value |
 |------|-------|
 | Cluster | `glm5-std-us-east-2` (EKS Standard Mode, K8s 1.35) |
-| Instance | **p5en.48xlarge** (H200x8, 1,128GB VRAM) |
+| Instance | **p5en.48xlarge** (H200×8, 1,128GB VRAM) |
 | Capacity | **Spot** (~$12/hr, 84% savings vs. On-Demand $76/hr) |
 | GPU Usage | 131.7 GB / 143.7 GB per GPU (91.6%) |
 | Disk | **2TB** (704GB model + 1.3TB headroom) |
-| Model Cache | S3 -> `aws s3 sync` (50 parallel) -> NVMe emptyDir |
+| Model Cache | S3 → `aws s3 sync` (50 parallel) → NVMe emptyDir |
 | vLLM | v0.18.2rc1 nightly + transformers v5.5.0.dev0 |
 | TP | 8 (PP unnecessary) |
 | max_model_len | 32,768 |
@@ -950,7 +950,9 @@ For large GPU instances (p5en, p6), use **EKS Standard Mode**. Auto Mode + MNG h
 - [Monitoring Stack Setup](../integrations/monitoring-observability-setup.md) -- Langfuse, Prometheus, Grafana deployment
 - [Inference Gateway Routing](../inference-gateway/routing-strategy.md) -- kgateway + Bifrost 2-Tier architecture
 
-### References
+## References
+
+### Official Documentation
 
 - [GLM-5 Model Card](https://huggingface.co/zai-org/GLM-5-FP8)
 - [vLLM Documentation](https://docs.vllm.ai/)

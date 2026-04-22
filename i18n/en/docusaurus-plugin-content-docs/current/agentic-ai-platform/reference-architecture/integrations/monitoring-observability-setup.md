@@ -2,19 +2,19 @@
 title: "Monitoring & Observability Setup Guide"
 sidebar_label: "Monitoring"
 description: "Hands-on setup guide for integrated monitoring with Prometheus to AMP, AMG, Langfuse, and Bifrost OTel"
-tags: [monitoring, langfuse, amp, amg, prometheus, otel, deployment]
+created: 2026-04-06
 last_update:
-  date: 2026-04-05
-  author: YoungJoon Jeong
+  date: 2026-04-20
+  author: devfloor9
+reading_time: 1
+tags: [monitoring, langfuse, amp, amg, prometheus, otel, deployment, 'scope:impl']
 ---
-
-# Monitoring & Observability Setup Guide
 
 This document covers the **hands-on deployment procedures** for integrated monitoring with Prometheus to AMP, AMG, Langfuse, and Bifrost OTel. For architecture concepts and design principles, see [Agent Monitoring](../../operations-mlops/observability/agent-monitoring.md) and [LLMOps Observability](../../operations-mlops/observability/llmops-observability.md).
 
 ---
 
-## 1. Monitoring Architecture Overview
+## Monitoring Architecture Overview
 
 ```mermaid
 graph LR
@@ -43,13 +43,13 @@ graph LR
 
 | Data | Path | Purpose |
 |------|------|---------|
-| Infrastructure Metrics | vLLM/DCGM/kgateway -> Prometheus -> AMP -> AMG | GPU utilization, TPS, latency, error rate |
-| LLM Traces | Bifrost -> OTel -> Langfuse | Token usage, cost, prompt quality |
-| Gateway Metrics | kgateway -> Prometheus -> AMP | Request count, 5xx errors, upstream status |
+| Infrastructure Metrics | vLLM/DCGM/kgateway → Prometheus → AMP → AMG | GPU utilization, TPS, latency, error rate |
+| LLM Traces | Bifrost → OTel → Langfuse | Token usage, cost, prompt quality |
+| Gateway Metrics | kgateway → Prometheus → AMP | Request count, 5xx errors, upstream status |
 
 ---
 
-## 2. Prometheus + AMP Setup
+## Prometheus + AMP Setup
 
 ### 2.1 Create AMP Workspace
 
@@ -177,7 +177,7 @@ helm install prometheus prometheus-community/kube-prometheus-stack \
 
 ---
 
-## 3. AMG (Grafana) Setup
+## AMG (Grafana) Setup
 
 ### 3.1 Create AMG Workspace
 
@@ -247,7 +247,7 @@ aws grafana update-permissions \
 
 ---
 
-## 4. Langfuse Deployment on EKS
+## Langfuse Deployment on EKS
 
 ### 4.1 Helm Installation
 
@@ -402,7 +402,7 @@ kubectl set env deploy/langfuse-web -n langfuse \
 
 ### 4.5 kgateway Sub-path Routing
 
-This configures Langfuse to be served at the `/langfuse` path through the kgateway unified NLB. For detailed HTTPRoute YAML, see the [Gateway Setup Guide](../inference-gateway/setup/basic-deployment#langfuse-sub-path-routing-urlrewrite).
+This configures Langfuse to be served at the `/langfuse` path through the kgateway unified NLB. For detailed HTTPRoute YAML, see [Inference Gateway Setup: Basic Deployment](../inference-gateway/setup/basic-deployment#langfuse-sub-path-routing-urlrewrite).
 
 Required routing rules:
 
@@ -696,7 +696,7 @@ To fundamentally resolve MinIO-related issues, we recommend migrating to S3 + KM
 /icon.svg       -> langfuse-web:3000  (Favicon)
 ```
 
-For detailed HTTPRoute YAML, see the [Gateway Setup Guide](../inference-gateway/setup/basic-deployment#langfuse-sub-path-routing-urlrewrite).
+For detailed HTTPRoute YAML, see [Inference Gateway Setup: Basic Deployment](../inference-gateway/setup/basic-deployment#langfuse-sub-path-routing-urlrewrite).
 
 ### 7.6 Langfuse Infinite Redirect (NEXTAUTH_URL)
 

@@ -2,18 +2,25 @@
 title: "NeMo Framework"
 sidebar_label: "NeMo Framework"
 description: "NVIDIA NeMo Framework distributed training, fine-tuning, and TensorRT-LLM conversion architecture"
-tags: [nemo, nvidia, fine-tuning, tensorrt-llm, triton, nccl, distributed-training]
-sidebar_position: 7
+created: 2026-02-05
 last_update:
-  date: 2026-04-05
-  author: YoungJoon Jeong
+  date: 2026-04-20
+  author: devfloor9
+reading_time: 12
+tags:
+  - nemo
+  - nvidia
+  - fine-tuning
+  - tensorrt-llm
+  - triton
+  - nccl
+  - distributed-training
+  - training
+  - scope:tech
+sidebar_position: 7
 ---
 
 import { NemoComponents, GPURequirements, CheckpointSharding, MonitoringMetrics, NCCLImportance } from '@site/src/components/NemoTables';
-
-# NeMo Framework
-
-> **Written**: 2026-02-13 | **Updated**: 2026-04-05 | **Reading time**: ~4 min
 
 NVIDIA NeMo is an end-to-end framework for training, fine-tuning, and optimizing large language models (LLMs). It supports distributed training and efficient model deployment in Kubernetes environments.
 
@@ -23,11 +30,11 @@ NVIDIA NeMo is an end-to-end framework for training, fine-tuning, and optimizing
 
 When using general-purpose LLMs (GPT-4, Claude, etc.) in Agentic AI platforms, the following limitations exist:
 
-- **Lack of domain knowledge**: Insufficient understanding of industry/company-specific terminology and context
-- **Cost issues**: API costs surge with large-scale calls (token-per-request billing)
+- **Lack of Domain Knowledge**: Insufficient understanding of industry/company-specific terminology and context
+- **Cost Issues**: API costs surge with large-scale calls (token-per-request billing)
 - **Latency**: Response delays from external API calls
-- **Data privacy**: Cannot transmit sensitive data to external services
-- **On-premises requirements**: Regulated industries (finance/healthcare) need self-hosted infrastructure
+- **Data Privacy**: Cannot transmit sensitive data to external services
+- **On-premises Requirements**: Regulated industries (finance/healthcare) need self-hosted infrastructure
 
 NeMo addresses these problems through **domain-specific model fine-tuning**.
 
@@ -54,10 +61,10 @@ flowchart LR
 
 **Key Value:**
 
-- **Efficient fine-tuning**: Train only 0.1% of total parameters with LoRA/QLoRA
-- **Distributed training**: Automatic multi-node, multi-GPU parallelization (Tensor/Pipeline/Data Parallelism)
-- **Inference optimization**: 2-4x performance improvement through TensorRT-LLM conversion
-- **Enterprise support**: Checkpoint management, monitoring, production deployment pipeline
+- **Efficient Fine-tuning**: Train only 0.1% of total parameters with LoRA/QLoRA
+- **Distributed Training**: Automatic multi-node, multi-GPU parallelization (Tensor/Pipeline/Data Parallelism)
+- **Inference Optimization**: 2-4x performance improvement through TensorRT-LLM conversion
+- **Enterprise Support**: Checkpoint management, monitoring, production deployment pipeline
 
 ---
 
@@ -145,7 +152,7 @@ nvcr.io/nvidia/nemo:25.02
 Pre-trained Model (general) → SFT → Domain-specific Model
 ```
 
-**When to use?**
+**When to Use?**
 
 - Customer FAQ chatbot: Train on specific product/service Q&A
 - Financial report generation: Train on financial terminology and formats
@@ -165,7 +172,7 @@ Pre-trained Model (general) → SFT → Domain-specific Model
 **LoRA (Low-Rank Adaptation)**: The representative PEFT method that freezes original weights and **trains only two low-rank matrices (A, B)**.
 
 ```
-Original weights W (freeze) + LoRA delta (A x B) = Final weights
+Original weights W (freeze) + LoRA delta (A × B) = Final weights
 ```
 
 **LoRA Key Parameters:**
@@ -179,9 +186,9 @@ Original weights W (freeze) + LoRA delta (A x B) = Final weights
 
 **Memory Savings:**
 
-- **Full Fine-Tuning (7B model)**: ~120GB VRAM needed (A100 80GB x 2)
-- **LoRA Fine-Tuning (7B model)**: ~24GB VRAM needed (A100 80GB x 1)
-- **Savings**: ~80% memory reduction
+- **Full Fine-Tuning (7B model)**: approximately 120GB VRAM needed (A100 80GB × 2)
+- **LoRA Fine-Tuning (7B model)**: approximately 24GB VRAM needed (A100 80GB × 1)
+- **Savings**: approximately 80% memory reduction
 
 ### Fine-tuning Execution Example
 
@@ -212,7 +219,7 @@ model = finetune(
 )
 ```
 
-**Detailed pipeline**: For data preprocessing, multi-node distributed training, and hyperparameter tuning, see the [Custom Model Pipeline](../../reference-architecture/model-lifecycle/custom-model-pipeline.md) document.
+**Detailed Pipeline**: For data preprocessing, multi-node distributed training, and hyperparameter tuning, refer to the [Custom Model Pipeline](../../reference-architecture/model-lifecycle/custom-model-pipeline.md) document.
 
 ---
 
@@ -222,11 +229,11 @@ model = finetune(
 
 NeMo periodically saves **checkpoints (model state snapshots)** during training. This enables:
 
-- **Training resumption**: Restart from last checkpoint on failure
-- **Optimal model selection**: Select checkpoint with lowest validation loss
-- **Version management**: Compare checkpoints across experiments
+- **Training Resumption**: Restart from last checkpoint on failure
+- **Optimal Model Selection**: Select checkpoint with lowest validation loss
+- **Version Management**: Compare checkpoints across experiments
 
-**S3 storage structure:**
+**S3 Storage Structure:**
 
 ```
 s3://nemo-checkpoints/
@@ -245,7 +252,7 @@ For 70B+ large models, single checkpoint files reach hundreds of GB. NeMo uses *
 
 <CheckpointSharding />
 
-**Sharding configuration:**
+**Sharding Configuration:**
 
 ```yaml
 trainer:
@@ -254,6 +261,17 @@ trainer:
     shard_size_gb: 10  # Split in 10GB units
     num_workers: 8  # Parallel save workers
     compression: "gzip"  # Compression (optional)
+```
+
+**Sharded Storage Structure:**
+
+```
+s3://checkpoints/llama-405b/
+└── checkpoint-step=1000/
+    ├── shard-00000-of-00040.ckpt  (10GB)
+    ├── shard-00001-of-00040.ckpt  (10GB)
+    ├── ...
+    └── shard-00039-of-00040.ckpt  (10GB)
 ```
 
 ### Checkpoint Conversion
@@ -319,7 +337,7 @@ llm = LLM(
 llm.save("/engines/llama-finetuned-trt")
 ```
 
-**Conversion time**: ~10-20 minutes for a 7B model (1x A100)
+**Conversion Time**: Approximately 10-20 minutes for a 7B model (1x A100)
 
 ---
 
@@ -354,10 +372,41 @@ flowchart TB
 
 **Core Features:**
 
-- **Dynamic batching**: Automatically group multiple requests to optimize GPU utilization
-- **Model ensemble**: Connect multiple models in a pipeline (e.g., Tokenizer → LLM → Detokenizer)
-- **Backend support**: TensorRT-LLM, PyTorch, ONNX, TensorFlow, etc.
-- **Metrics collection**: Prometheus-compatible metrics (throughput, latency, GPU utilization)
+- **Dynamic Batching**: Automatically group multiple requests to optimize GPU utilization
+- **Model Ensemble**: Connect multiple models in a pipeline (e.g., Tokenizer → LLM → Detokenizer)
+- **Backend Support**: TensorRT-LLM, PyTorch, ONNX, TensorFlow, etc.
+- **Metrics Collection**: Prometheus-compatible metrics (throughput, latency, GPU utilization)
+
+### Model Repository Structure
+
+```
+/models/
+└── llama-finetuned/
+    ├── config.pbtxt  # Triton configuration file
+    ├── 1/  # Version 1
+    │   └── model.plan  # TensorRT-LLM engine
+    └── tokenizer/
+        ├── tokenizer.json
+        └── tokenizer_config.json
+```
+
+**config.pbtxt Core Settings:**
+
+```protobuf
+name: "llama-finetuned"
+backend: "tensorrtllm"
+max_batch_size: 64
+
+parameters {
+  key: "max_tokens_in_paged_kv_cache"
+  value: { string_value: "8192" }
+}
+
+parameters {
+  key: "batch_scheduler_policy"
+  value: { string_value: "inflight_fused_batching" }
+}
+```
 
 ---
 
@@ -387,7 +436,7 @@ flowchart TB
     end
 ```
 
-**Why is it important?**
+**Why is it Important?**
 
 <NCCLImportance />
 
@@ -408,7 +457,7 @@ After AllReduce:
 All GPUs: [22, 26, 30]  # Element-wise sum
 ```
 
-**Use case**: Averaging gradients from each GPU in distributed training
+**Use Case**: Averaging gradients from each GPU in distributed training
 
 #### 2. AllGather
 
@@ -423,7 +472,7 @@ After AllGather:
 All GPUs: [1, 2, 3, 4]
 ```
 
-**Use case**: Gathering distributed tensors in Tensor Parallelism
+**Use Case**: Gathering distributed tensors in Tensor Parallelism
 
 #### 3. ReduceScatter
 
@@ -439,7 +488,7 @@ GPU 0: [6, 8]   # (1+5), (2+6)
 GPU 1: [10, 12] # (3+7), (4+8)
 ```
 
-**Use case**: Passing intermediate results in Pipeline Parallelism
+**Use Case**: Passing intermediate results in Pipeline Parallelism
 
 #### 4. Broadcast
 
@@ -454,7 +503,7 @@ After Broadcast:
 All GPUs: [1, 2, 3]
 ```
 
-**Use case**: Distributing model checkpoints from the master GPU
+**Use Case**: Distributing model checkpoints from the master GPU
 
 ### Network Topology Optimization
 
@@ -477,7 +526,7 @@ flowchart TB
     style L4 fill:#ff6b6b
 ```
 
-**Per-topology algorithm selection:**
+**Per-topology Algorithm Selection:**
 
 - **NVSwitch (H100 nodes)**: Tree algorithm (parallel broadcast)
 - **NVLink (A100 nodes)**: Ring algorithm (circular transfer)
@@ -507,7 +556,7 @@ export NCCL_IB_DISABLE=0
 export NCCL_DEBUG=INFO  # Useful for diagnosing performance issues
 ```
 
-**Recommended channel counts:**
+**Recommended Channel Counts:**
 
 - **8 GPU intra-node**: 4-8 channels
 - **Multi-node (16+ GPUs)**: 8-16 channels
@@ -521,9 +570,9 @@ export NCCL_DEBUG=INFO  # Useful for diagnosing performance issues
 
 <MonitoringMetrics />
 
-**Monitoring stack**: Prometheus + Grafana + DCGM Exporter
+**Monitoring Stack**: Prometheus + Grafana + DCGM Exporter
 
-For detailed monitoring setup, see [Monitoring and Observability Setup](../../reference-architecture/integrations/monitoring-observability-setup.md).
+For detailed monitoring setup, refer to [Monitoring and Observability Setup](../../reference-architecture/integrations/monitoring-observability-setup.md).
 
 ---
 
@@ -536,18 +585,18 @@ For detailed monitoring setup, see [Monitoring and Observability Setup](../../re
 
 :::tip Recommendations
 
-- **Before fine-tuning**: Measure baseline performance with the base model
-- **LoRA first**: 80% memory savings vs full fine-tuning
-- **TensorRT-LLM essential**: 2-4x inference performance improvement
-- **NCCL tuning**: 20-30% performance improvement possible through channel count and algorithm optimization in multi-node training
+- **Before Fine-tuning**: Measure baseline performance with the base model
+- **LoRA First**: 80% memory savings vs full fine-tuning
+- **TensorRT-LLM Essential**: 2-4x inference performance improvement
+- **NCCL Tuning**: 20-30% performance improvement possible through channel count and algorithm optimization in multi-node training
 
 :::
 
 :::warning Cautions
 
-- **GPU costs**: Large-scale training can cost hundreds of thousands per hour. Actively use Spot instances and checkpoints
-- **Checkpoints essential**: Configure automatic saving to persistent storage like S3 (prepare for node failure)
-- **EFA security groups**: All traffic must be allowed within the same security group when using EFA
-- **Memory overflow**: On OOM, decrease `micro_batch_size` or enable `gradient_checkpointing`
+- **GPU Costs**: Large-scale training can cost hundreds of thousands per hour. Actively use Spot instances and checkpoints
+- **Checkpoints Essential**: Configure automatic saving to persistent storage like S3 (prepare for node failure)
+- **EFA Security Groups**: All traffic must be allowed within the same security group when using EFA
+- **Memory Overflow**: On OOM, decrease `micro_batch_size` or enable `gradient_checkpointing`
 
 :::

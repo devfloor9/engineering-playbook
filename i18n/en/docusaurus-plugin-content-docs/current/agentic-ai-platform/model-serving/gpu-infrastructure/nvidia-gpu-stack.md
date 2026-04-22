@@ -2,18 +2,27 @@
 title: "NVIDIA GPU Stack"
 sidebar_label: "NVIDIA GPU Stack"
 description: "Architecture and EKS integration for GPU Operator, DCGM, MIG, Time-Slicing, and Dynamo"
-tags: [nvidia, gpu-operator, dcgm, mig, time-slicing, dynamo, kai-scheduler]
-sidebar_position: 6
+created: 2026-03-20
 last_update:
-  date: 2026-04-05
-  author: YoungJoon Jeong
+  date: 2026-04-20
+  author: devfloor9
+reading_time: 14
+tags:
+  - nvidia
+  - gpu-operator
+  - dcgm
+  - mig
+  - time-slicing
+  - dynamo
+  - kai-scheduler
+  - gpu
+  - monitoring
+  - scope:tech
 ---
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 import { SpecificationTable, ComparisonTable } from '@site/src/components/tables';
-
-# NVIDIA GPU Stack
 
 The NVIDIA GPU software stack is organized in a layered structure for operating GPUs in Kubernetes environments.
 
@@ -91,10 +100,10 @@ flowchart TB
 
 | Environment | Driver | Toolkit | Device Plugin | MIG | Notes |
 |-------------|--------|---------|---------------|-----|-------|
-| **EKS Auto Mode** | No (AWS auto) | No (AWS auto) | No (disabled via label) | No | DCGM/NFD/GFD work normally |
-| **Karpenter (Self-Managed)** | No (AL2023 AMI) | No (AL2023 AMI) | Yes | Yes | Full support |
-| **Managed Node Group** | No (AL2023 AMI) | No (AL2023 AMI) | Yes | Yes | Full support |
-| **Hybrid Node (On-premises)** | Yes (required) | Yes (required) | Yes | Yes | GPU Operator required |
+| **EKS Auto Mode** | ❌ (AWS auto) | ❌ (AWS auto) | ❌ (disabled via label) | ❌ | DCGM/NFD/GFD work normally |
+| **Karpenter (Self-Managed)** | ❌ (AL2023 AMI) | ❌ (AL2023 AMI) | ✅ | ✅ | Full support |
+| **Managed Node Group** | ❌ (AL2023 AMI) | ❌ (AL2023 AMI) | ✅ | ✅ | Full support |
+| **Hybrid Node (On-premises)** | ✅ (required) | ✅ (required) | ✅ | ✅ | GPU Operator required |
 
 :::caution AMI-specific GPU Driver Constraints
 - **AL2023 / Bottlerocket**: GPU driver pre-installed in AMI. Both `driver` and `toolkit` must be `enabled: false`
@@ -439,7 +448,7 @@ KAI Scheduler is NVIDIA's **GPU-aware Kubernetes Pod scheduler**. Unlike the def
 - **EKS Auto Mode**: KAI Scheduler usable after installing GPU Operator with Device Plugin disabled via label
 - **Relationship with kube-scheduler**: KAI Scheduler does not replace kube-scheduler; it operates as a Secondary Scheduler delegated only for GPU workloads
 
-:::info KAI Scheduler =/= Autoscaling
+:::info KAI Scheduler ≠ Autoscaling
 KAI Scheduler is a scheduler that decides **which node to place Pods on**. It is separate from autoscaling (KEDA/HPA) that increases Pod count or provisioning (Karpenter) that adds nodes.
 :::
 

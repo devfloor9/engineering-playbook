@@ -2,27 +2,36 @@
 title: "vLLM Model Serving"
 sidebar_label: "vLLM Model Serving"
 description: "vLLM PagedAttention, parallelization strategies, Multi-LoRA, and hardware support architecture"
-tags: [vllm, paged-attention, tensor-parallel, pipeline-parallel, multi-lora, serving]
-sidebar_position: 3
+created: 2026-02-05
 last_update:
-  date: 2026-04-06
-  author: YoungJoon Jeong
+  date: 2026-04-20
+  author: devfloor9
+reading_time: 21
+tags:
+  - vllm
+  - paged-attention
+  - tensor-parallel
+  - pipeline-parallel
+  - multi-lora
+  - serving
+  - inference
+  - gpu
+  - optimization
+  - scope:tech
 ---
 
 import ComparisonTable from '@site/src/components/tables/ComparisonTable';
 import SpecificationTable from '@site/src/components/tables/SpecificationTable';
 
-# vLLM Model Serving
-
 ## Overview
 
-vLLM is a high-performance LLM inference engine that reduces KV cache memory waste by 60-80% through the PagedAttention algorithm and provides 2-24x throughput improvement over traditional approaches via Continuous Batching. Major companies including Meta, Mistral AI, Cohere, and IBM use it in production environments. It provides an OpenAI-compatible API for easy migration of existing applications.
+vLLM is a high-performance LLM inference engine that reduces KV cache memory waste by 60-80% through the PagedAttention algorithm and provides 2-24x throughput improvement via Continuous Batching. Major companies including Meta, Mistral AI, Cohere, and IBM use it in production environments, and it provides an OpenAI-compatible API for easy migration of existing applications.
 
-> **Current version**: vLLM v0.18+ / v0.19.x (as of 2026-04)
+> **📌 Current Version**: vLLM v0.18+ / v0.19.x (as of 2026-04)
 
 ### Why vLLM Became the Standard
 
-Traditional LLM serving engines statically allocated KV cache memory, resulting in 60-80% memory waste. Static batching waited until a fixed number of requests accumulated, leading to long GPU idle time. vLLM eliminates these two fundamental bottlenecks, providing up to 24x higher throughput on the same hardware.
+Traditional LLM serving engines statically allocated KV cache memory, resulting in 60-80% memory waste. Static batching waited until a fixed number of requests accumulated, leading to long GPU idle times. vLLM eliminates these two fundamental bottlenecks, providing up to 24x higher throughput on the same hardware.
 
 vLLM core innovations:
 - **PagedAttention**: Inspired by OS virtual memory management, manages KV cache as non-contiguous blocks
@@ -38,7 +47,7 @@ Due to the autoregressive nature of Transformer architecture, each request must 
 vLLM's PagedAttention divides KV cache into fixed-size blocks stored non-contiguously. Short requests allocate fewer blocks; longer ones allocate additional blocks as needed. Block tables maintain logical ordering, eliminating memory fragmentation.
 
 **Memory efficiency improvement**:
-- Traditional: Pre-allocate max sequence length x batch size → 60-80% waste
+- Traditional: Pre-allocate max sequence length × batch size → 60-80% waste
 - PagedAttention: Dynamically allocate only actual usage → waste eliminated
 
 ### Continuous Batching
@@ -67,7 +76,7 @@ llm = LLM(
 
 ### V1 Engine Architecture
 
-vLLM v0.6+ introduces the V1 engine with these improvements:
+vLLM v0.19.x introduces the V1 engine with these improvements:
 - **Chunked Prefill**: Mixes prefill (compute-intensive) and decode (memory-intensive) in the same batch
 - **FP8 KV Cache**: Reduces KV cache memory by 2x for longer context support
 - **Improved Prefix Caching**: 400%+ throughput improvement through common prefix reuse
@@ -77,7 +86,7 @@ vLLM v0.6+ introduces the V1 engine with these improvements:
 Accurately calculate required GPU memory before model deployment. Memory usage breaks down as:
 
 ```
-Required GPU Memory = Model Weights + Non-torch Memory + PyTorch Activation Peak Memory + (Per-batch KV Cache Memory x Batch Size)
+Required GPU Memory = Model Weights + Non-torch Memory + PyTorch Activation Peak Memory + (Per-batch KV Cache Memory × Batch Size)
 ```
 
 ### Model Weight Memory
@@ -95,7 +104,7 @@ Determined by parameter count and precision.
 />
 
 **Example calculation**:
-- Llama-3.3-70B (FP16): 70B x 2 bytes = 140GB (weights only)
+- Llama-3.3-70B (FP16): 70B × 2 bytes = 140GB (weights only)
 - KV Cache (batch size 256, sequence length 8192): ~40GB
 - Activation and other overhead: ~20GB
 - **Total**: ~200GB → Not possible on single H100 80GB, TP=4 needed (50GB per GPU)
@@ -144,16 +153,16 @@ vllm serve meta-llama/Llama-3.3-70B-Instruct \
 ### Parallelization Strategy Combination Matrix
 
 <ComparisonTable
-  headers={['Scenario', 'Model Size', 'GPU Configuration', 'Parallelization Strategy', 'TP x PP']}
+  headers={['Scenario', 'Model Size', 'GPU Configuration', 'Parallelization Strategy', 'TP × PP']}
   rows={[
-    { id: '1', cells: ['Small model', '7B-13B', '1x H100 80GB', 'None', '1 x 1'], recommended: true },
-    { id: '2', cells: ['Medium model', '32B-70B', '4x H100 80GB (single node)', 'TP=4', '4 x 1'], recommended: true },
-    { id: '3', cells: ['Large model', '175B-405B', '8x H100 (2 nodes)', 'TP=4, PP=2', '4 x 2'] },
-    { id: '4', cells: ['Ultra-large model', '744B MoE', '16x H100 (2 nodes)', 'TP=8, PP=2', '8 x 2'] }
+    { id: '1', cells: ['Small model', '7B-13B', '1×H100 80GB', 'None', '1 × 1'], recommended: true },
+    { id: '2', cells: ['Medium model', '32B-70B', '4×H100 80GB (single node)', 'TP=4', '4 × 1'], recommended: true },
+    { id: '3', cells: ['Large model', '175B-405B', '8×H100 (2 nodes)', 'TP=4, PP=2', '4 × 2'] },
+    { id: '4', cells: ['Ultra-large model', '744B MoE', '16×H100 (2 nodes)', 'TP=8, PP=2', '8 × 2'] }
   ]}
 />
 
-### PP Multi-node Limitations (V1 Engine, 2026.04)
+### PP Multi-node Constraints (V1 Engine, 2026.04)
 
 vLLM V1 engine's multiproc_executor performs multi-node synchronization via NCCL TCPStore. For large models (744B class), loading time may exceed `VLLM_ENGINE_READY_TIMEOUT_S` (default 600s), causing deadlock.
 
@@ -162,9 +171,9 @@ vLLM V1 engine's multiproc_executor performs multi-node synchronization via NCCL
 **Solutions**:
 1. **Use SGLang** (recommended): Stably supports multi-node PP
 2. **Ray-based vLLM**: Ray Cluster configuration (increased operational complexity)
-3. **Single node deployment**: Use H200 (141GB x 8) or B200 (192GB x 8) to eliminate PP
+3. **Single node deployment**: Use H200 (141GB × 8) or B200 (192GB × 8) to eliminate PP
 
-For details, see the [Custom Model Deployment Guide](../../reference-architecture/model-lifecycle/custom-model-deployment.md#vllm-pp-multi-node-limitations).
+For details, see the [Custom Model Deployment Guide](../../reference-architecture/model-lifecycle/custom-model-deployment.md#6-pp-multi-node-deadlock-issue-lessons-learned).
 
 ### Data Parallelism (DP)
 
@@ -204,24 +213,24 @@ For details, see [MoE Model Serving](./moe-model-serving.md).
 
 ## Supported Hardware
 
-vLLM v0.6+ supports various hardware accelerators:
+vLLM v0.19.x supports various hardware accelerators:
 
 <ComparisonTable
   headers={['Hardware', 'Support Level', 'Primary Use', 'AWS Instance Type']}
   rows={[
-    { id: '1', cells: ['NVIDIA H100 (80GB)', 'Full support', 'Production inference', 'p5.48xlarge (H100x8)'], recommended: true },
-    { id: '2', cells: ['NVIDIA H200 (141GB)', 'Full support', 'Large model inference', 'p5en.48xlarge (H200x8)'] },
-    { id: '3', cells: ['NVIDIA B200 (192GB)', 'Full support', 'Ultra-large model inference', 'p6-b200.48xlarge (B200x8)'] },
-    { id: '4', cells: ['NVIDIA L4 (24GB)', 'Full support', 'Cost-efficient inference', 'g6e.xlarge~12xlarge (L4x1~8)'] },
-    { id: '5', cells: ['AWS Trainium2', 'Supported', 'AWS native acceleration', 'trn2.48xlarge (Trn2x16)'] },
+    { id: '1', cells: ['NVIDIA H100 (80GB)', 'Full support', 'Production inference', 'p5.48xlarge (H100×8)'], recommended: true },
+    { id: '2', cells: ['NVIDIA H200 (141GB)', 'Full support', 'Large model inference', 'p5en.48xlarge (H200×8)'] },
+    { id: '3', cells: ['NVIDIA B200 (192GB)', 'Full support', 'Ultra-large model inference', 'p6-b200.48xlarge (B200×8)'] },
+    { id: '4', cells: ['NVIDIA L4 (24GB)', 'Full support', 'Cost-efficient inference', 'g6e.xlarge~12xlarge (L4×1~8)'] },
+    { id: '5', cells: ['AWS Trainium2', 'Supported', 'AWS native acceleration', 'trn2.48xlarge (Trn2×16)'] },
     { id: '6', cells: ['AMD MI300X', 'Supported', 'Alternative GPU infrastructure', '-'] }
   ]}
 />
 
 **AWS EKS Recommended Configuration**:
-- **Production**: p5.48xlarge (H100 x 8, 640GB HBM3) → Deploy 175B models with TP=8
-- **Large models**: p5en.48xlarge (H200 x 8, 1,128GB HBM3e) → Deploy 405B models with TP=8
-- **Cost optimization**: g6e instances (L4) → 7B-13B models, Spot instance utilization
+- **Production**: p5.48xlarge (H100 × 8, 640GB HBM3) → Deploy 175B models with TP=8
+- **Large models**: p5en.48xlarge (H200 × 8, 1,128GB HBM3e) → Deploy 405B models with TP=8
+- **Cost optimization**: g6e instances (L4) → 7B~13B models, Spot instance utilization
 
 ## Multi-LoRA Serving
 
@@ -235,7 +244,7 @@ vLLM can simultaneously serve multiple LoRA adapters on a single base model. Thi
 - Adapter switching overhead: tens to hundreds of ms (100x faster than full model reloading)
 
 **Memory efficiency**:
-- Traditional: Per-domain full model x N deployments = 140GB x 5 = 700GB
+- Traditional: Per-domain full model × N deployments = 140GB × 5 = 700GB
 - Multi-LoRA: Base Model (140GB) + Adapter cache (10GB) = 150GB
 
 ### Key Configuration Options
@@ -329,7 +338,7 @@ llm = LLM(
 )
 ```
 
-Adjust `max_num_batched_tokens` to balance TTFT and throughput:
+Adjust `max_num_batched_tokens` to balance TTFT (Time To First Token) and throughput:
 - Higher value → increased throughput, increased TTFT
 - Lower value → decreased TTFT, decreased throughput
 

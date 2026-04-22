@@ -1,7 +1,7 @@
 ---
 title: "Eval Gate · Registry · KPI"
 sidebar_label: "Evaluation & Rollout"
-description: "학습된 체크포인트의 Threshold 검증, kgateway 기반 Canary 점진 배포, MLflow Registry 버전 관리, 회귀 시 자동 롤백, 비용·품질 KPI 대시보드 구성."
+description: "Threshold verification of trained checkpoints, kgateway-based gradual Canary deployment, MLflow Registry version management, automatic rollback on regression, cost and quality KPI dashboard configuration."
 created: 2026-04-18
 last_update:
   date: 2026-04-20
@@ -19,52 +19,52 @@ sidebar_position: 4
 
 ## Eval Gate
 
-### Threshold 검증
+### Threshold Verification
 
-학습된 모델은 배포 전 품질 기준선(threshold)을 통과해야 합니다.
+Trained models must pass quality thresholds before deployment.
 
 ```python
 # eval_gate.py
 from ragas import evaluate
 from ragas.metrics import faithfulness, answer_relevancy
 
-# 테스트 데이터셋 (프로덕션 대표 샘플 500개)
+# Test dataset (500 representative production samples)
 test_dataset = load_test_dataset('s3://training-data-lake/test-dataset.parquet')
 
-# 신규 모델 평가
+# Evaluate new model
 new_model_results = evaluate(
     test_dataset,
     model='glm-5-dpo-checkpoint-1000',
     metrics=[faithfulness, answer_relevancy]
 )
 
-# 기준선 모델 평가
+# Evaluate baseline model
 baseline_results = evaluate(
     test_dataset,
     model='glm-5-baseline',
     metrics=[faithfulness, answer_relevancy]
 )
 
-# Threshold 검증
+# Threshold verification
 THRESHOLDS = {
     'faithfulness': 0.85,
     'answer_relevancy': 0.80,
 }
 
 REGRESSION_TOLERANCE = {
-    'faithfulness': 0.03,  # 3%p 이상 하락 시 실패
-    'p99_latency_ms': 0.10,  # 10% 이상 증가 시 실패
+    'faithfulness': 0.03,  # Fail if drops > 3pp
+    'p99_latency_ms': 0.10,  # Fail if increases > 10%
 }
 
 def check_eval_gate(new, baseline, thresholds, regression):
     failures = []
     
-    # 절대 Threshold 검증
+    # Absolute threshold verification
     for metric, threshold in thresholds.items():
         if new[metric] < threshold:
             failures.append(f"{metric}: {new[metric]:.3f} < {threshold}")
     
-    # 회귀 검증
+    # Regression verification
     if baseline['faithfulness'] - new['faithfulness'] > regression['faithfulness']:
         failures.append(f"Faithfulness regression: {baseline['faithfulness']:.3f} → {new['faithfulness']:.3f}")
     
@@ -85,7 +85,7 @@ passed = check_eval_gate(new_model_results, baseline_results, THRESHOLDS, REGRES
 
 ### Canary Deployment (kgateway)
 
-[Gateway API](https://gateway-api.sigs.k8s.io/)의 HTTPRoute를 사용하여 트래픽을 점진적으로 전환합니다.
+Use [Gateway API](https://gateway-api.sigs.k8s.io/) HTTPRoute to gradually shift traffic.
 
 #### Stage 1: 5% Canary
 
@@ -111,18 +111,18 @@ spec:
         value: /v1/chat/completions
     
     backendRefs:
-    # 기존 stable 버전 (95%)
+    # Existing stable version (95%)
     - name: vllm-glm5-stable
       port: 8000
       weight: 95
     
-    # 신규 canary 버전 (5%)
+    # New canary version (5%)
     - name: vllm-glm5-canary
       port: 8000
       weight: 5
 ```
 
-#### Stage 2: 25% (24시간 후 문제 없으면)
+#### Stage 2: 25% (after 24 hours if no issues)
 
 ```yaml
 # canary-25-percent.yaml
@@ -135,7 +135,7 @@ backendRefs:
   weight: 25
 ```
 
-#### Stage 3: 100% (7일 후 최종 승격)
+#### Stage 3: 100% (final promotion after 7 days)
 
 ```yaml
 # canary-100-percent.yaml
@@ -145,7 +145,7 @@ backendRefs:
   weight: 100
 ```
 
-### Canary 모니터링
+### Canary Monitoring
 
 ```yaml
 # canary-monitor-rules.yaml
@@ -160,7 +160,7 @@ data:
     - name: canary-monitoring
       interval: 30s
       rules:
-      # Faithfulness 회귀 감지
+      # Faithfulness regression detection
       - alert: CanaryFaithfulnessDrop
         expr: |
           (
@@ -170,10 +170,10 @@ data:
           ) < -0.03
         for: 10m
         annotations:
-          summary: "Canary 모델 faithfulness 3%p 이상 하락"
+          summary: "Canary model faithfulness dropped > 3pp"
           description: "Canary: {{ $value | humanize }}pp drop"
       
-      # P99 레이턴시 회귀
+      # P99 latency regression
       - alert: CanaryLatencyRegression
         expr: |
           (
@@ -183,9 +183,9 @@ data:
           ) > 1.10
         for: 5m
         annotations:
-          summary: "Canary 모델 P99 레이턴시 10% 이상 증가"
+          summary: "Canary model P99 latency increased > 10%"
       
-      # 에러율 증가
+      # Error rate increase
       - alert: CanaryErrorRateHigh
         expr: |
           rate(vllm_request_errors_total{model="glm5-canary"}[5m])
@@ -193,10 +193,10 @@ data:
           rate(vllm_request_errors_total{model="glm5-stable"}[5m]) * 2
         for: 5m
         annotations:
-          summary: "Canary 모델 에러율 2배 이상 증가"
+          summary: "Canary model error rate increased > 2x"
 ```
 
-### CI 통합 (Argo Workflows)
+### CI Integration (Argo Workflows)
 
 ```yaml
 # canary-deployment-workflow.yaml
@@ -224,7 +224,7 @@ spec:
             value: "5"
         when: "{{steps.eval-gate.outputs.result}} == passed"
     
-    # Step 3: 24시간 대기 + 모니터링
+    # Step 3: Wait 24h + monitoring
     - - name: monitor-24h
         template: monitor-canary
         arguments:
@@ -241,7 +241,7 @@ spec:
             value: "25"
         when: "{{steps.monitor-24h.outputs.result}} == healthy"
     
-    # Step 5: 7일 대기
+    # Step 5: Wait 7 days
     - - name: monitor-7d
         template: monitor-canary
         arguments:
@@ -249,7 +249,7 @@ spec:
           - name: duration
             value: "168h"
     
-    # Step 6: 100% 승격
+    # Step 6: Promote to 100%
     - - name: promote-to-production
         template: apply-canary-weight
         arguments:
@@ -263,7 +263,7 @@ spec:
       image: python:3.11
       command: [python]
       source: |
-        # (위 eval_gate.py 코드)
+        # (eval_gate.py code above)
         passed = check_eval_gate(...)
         print("passed" if passed else "failed")
   
@@ -294,10 +294,10 @@ spec:
       image: curlimages/curl:latest
       command: [sh]
       source: |
-        # Prometheus에서 canary 메트릭 조회
+        # Query canary metrics from Prometheus
         sleep {{inputs.parameters.duration}}
         
-        # Faithfulness 확인
+        # Check Faithfulness
         faithfulness_drop=$(curl -s 'http://prometheus:9090/api/v1/query?query=...')
         if [ "$faithfulness_drop" -lt "-0.03" ]; then
           echo "unhealthy"
@@ -311,7 +311,7 @@ spec:
 
 ### MLflow Model Registry
 
-[MLflow](https://mlflow.org/)는 모델 버전 관리와 라이프사이클을 추적합니다.
+[MLflow](https://mlflow.org/) tracks model versions and lifecycle.
 
 ```python
 # mlflow_registry.py
@@ -321,11 +321,11 @@ from mlflow.tracking import MlflowClient
 mlflow.set_tracking_uri("http://mlflow-server.mlflow.svc.cluster.local:5000")
 client = MlflowClient()
 
-# 신규 모델 등록
+# Register new model
 model_uri = "s3://training-checkpoints/grpo-run-001/checkpoint-1000"
 
 with mlflow.start_run(run_name="grpo-iteration-001"):
-    # 메트릭 로깅
+    # Log metrics
     mlflow.log_metrics({
         "faithfulness": 0.92,
         "answer_relevancy": 0.88,
@@ -333,7 +333,7 @@ with mlflow.start_run(run_name="grpo-iteration-001"):
         "training_loss": 0.15,
     })
     
-    # 모델 등록
+    # Register model
     mlflow.register_model(
         model_uri=model_uri,
         name="glm-5-grpo",
@@ -346,31 +346,31 @@ with mlflow.start_run(run_name="grpo-iteration-001"):
         }
     )
 
-# Stage 전환 (None → Staging → Production)
+# Stage transition (None → Staging → Production)
 client.transition_model_version_stage(
     name="glm-5-grpo",
     version=1,
-    stage="Staging",  # Canary 배포 중
+    stage="Staging",  # During Canary deployment
 )
 
-# 7일 후 Production 승격
+# Promote to Production after 7 days
 client.transition_model_version_stage(
     name="glm-5-grpo",
     version=1,
     stage="Production",
 )
 
-# 이전 버전 Archive
+# Archive previous version
 client.transition_model_version_stage(
     name="glm-5-grpo",
-    version=0,  # 이전 baseline 모델
+    version=0,  # Previous baseline model
     stage="Archived",
 )
 ```
 
-### Agent Versioning 연계
+### Agent Versioning Integration
 
-[Agent Versioning](../../../../aidlc/enterprise/agent-versioning/index.md)은 에이전트 코드와 모델 버전을 동기화합니다.
+[Agent Versioning](../../../../aidlc/enterprise/agent-versioning/index.md) synchronizes agent code with model versions.
 
 ```yaml
 # agent-version-manifest.yaml
@@ -398,14 +398,14 @@ data:
         version: v1.5.0
         model:
           name: glm-5-grpo
-          version: 0  # 아직 이전 버전 사용
+          version: 0  # Still using previous version
           registry: mlflow
           stage: Production
 ```
 
-### Bedrock Agents 하이브리드 동기
+### Bedrock Agents Hybrid Sync
 
-하이브리드 아키텍처(EKS + Bedrock)에서는 EKS 모델 업데이트를 Bedrock Agent에도 반영해야 합니다.
+In hybrid architecture (EKS + Bedrock), EKS model updates must also be reflected in Bedrock Agents.
 
 ```python
 # sync_to_bedrock.py
@@ -413,15 +413,15 @@ import boto3
 
 bedrock = boto3.client('bedrock-agent')
 
-# EKS 신규 모델 정보
+# EKS new model information
 eks_model_version = "glm-5-grpo-v1"
 eks_endpoint = "http://vllm-glm5-canary.model-serving.svc.cluster.local:8000"
 
-# Bedrock Agent 업데이트
+# Update Bedrock Agent
 bedrock.update_agent(
     agentId='AGENT123',
     agentName='code-assistant',
-    foundationModel='anthropic.claude-3-sonnet-20240229-v1:0',  # fallback 모델
+    foundationModel='anthropic.claude-3-sonnet-20240229-v1:0',  # fallback model
     instruction=f"""
     Use the custom EKS model for code generation tasks:
     - Model: {eks_model_version}
@@ -434,7 +434,7 @@ bedrock.update_agent(
 
 ### Rollback YAML
 
-회귀 발견 시 즉시 이전 stable 버전으로 롤백합니다.
+Immediately rollback to the previous stable version when regression is detected.
 
 ```yaml
 # rollback-to-stable.yaml
@@ -446,22 +446,22 @@ metadata:
 spec:
   rules:
   - backendRefs:
-    # Canary 제거, 100% stable로 복구
+    # Remove canary, restore 100% stable
     - name: vllm-glm5-stable
       port: 8000
       weight: 100
 ---
-# Canary Deployment 정지
+# Stop Canary Deployment
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: vllm-glm5-canary
   namespace: model-serving
 spec:
-  replicas: 0  # 즉시 스케일다운
+  replicas: 0  # Scale down immediately
 ```
 
-**Rollback 자동화 (Argo Rollouts):**
+**Rollback Automation (Argo Rollouts):**
 
 ```yaml
 apiVersion: argoproj.io/v1alpha1
@@ -480,7 +480,7 @@ spec:
       - pause: {duration: 168h}
       - setWeight: 100
       
-      # 자동 롤백 조건
+      # Automatic rollback conditions
       analysis:
         templates:
         - templateName: canary-quality-check
@@ -488,12 +488,12 @@ spec:
         - name: service-name
           value: vllm-glm5-canary
   
-  revisionHistoryLimit: 5  # 최근 5개 버전 유지
+  revisionHistoryLimit: 5  # Keep last 5 versions
 ```
 
-### Checkpoint 보존 정책
+### Checkpoint Retention Policy
 
-S3 체크포인트는 lifecycle 정책으로 비용 최적화합니다.
+Optimize costs for S3 checkpoints with lifecycle policies.
 
 ```json
 {
@@ -527,38 +527,38 @@ S3 체크포인트는 lifecycle 정책으로 비용 최적화합니다.
 }
 ```
 
-**보존 전략:**
+**Retention Strategy:**
 
-- **최근 30일**: S3 Standard (즉시 접근)
-- **30-90일**: Glacier Instant Retrieval (드문 액세스)
-- **90-365일**: Glacier Deep Archive (장기 보관)
-- **Production 체크포인트**: 영구 보존
+- **Last 30 days**: S3 Standard (immediate access)
+- **30-90 days**: Glacier Instant Retrieval (infrequent access)
+- **90-365 days**: Glacier Deep Archive (long-term storage)
+- **Production checkpoints**: Permanent retention
 
-## 관측·비용 KPI
+## Observability & Cost KPIs
 
 ### GPU-hours per Quality Improvement
 
-**KPI 정의**: Faithfulness 0.01 상승당 소요된 GPU 시간과 비용
+**KPI Definition**: GPU time and cost required per 0.01 faithfulness increase
 
 ```python
 # kpi_calculation.py
 import pandas as pd
 
-# 학습 이력
+# Training history
 training_runs = pd.DataFrame([
     {'iteration': 1, 'gpu_hours': 96, 'cost_usd': 1200, 'faithfulness_delta': 0.02},
     {'iteration': 2, 'gpu_hours': 120, 'cost_usd': 1500, 'faithfulness_delta': 0.015},
     {'iteration': 3, 'gpu_hours': 144, 'cost_usd': 1800, 'faithfulness_delta': 0.01},
 ])
 
-# KPI 계산
+# Calculate KPI
 training_runs['gpu_hours_per_0.01_improvement'] = training_runs['gpu_hours'] / (training_runs['faithfulness_delta'] * 100)
 training_runs['cost_per_0.01_improvement'] = training_runs['cost_usd'] / (training_runs['faithfulness_delta'] * 100)
 
 print(training_runs)
 ```
 
-**결과 예시:**
+**Example Results:**
 
 | iteration | gpu_hours | cost_usd | faithfulness_delta | gpu_hours_per_0.01 | cost_per_0.01 |
 |-----------|-----------|----------|-------------------|-------------------|--------------|
@@ -566,11 +566,11 @@ print(training_runs)
 | 2 | 120 | $1,500 | 0.015 | 80 | $1,000 |
 | 3 | 144 | $1,800 | 0.010 | 144 | $1,800 |
 
-**해석**: 초기에는 빠른 개선이 가능하지만, iteration이 진행될수록 **수익체감(diminishing returns)** 발생. 비용 대비 효율이 떨어지면 학습 중단 고려.
+**Interpretation**: Initial improvements are rapid, but **diminishing returns** occur as iterations progress. Consider stopping training when cost efficiency drops.
 
 ### AMP Recording Rule
 
-Prometheus Recording Rule로 KPI를 사전 계산하여 대시보드 쿼리 성능을 최적화합니다.
+Prometheus Recording Rules pre-calculate KPIs to optimize dashboard query performance.
 
 ```yaml
 # amp-recording-rules.yaml
@@ -585,26 +585,26 @@ data:
     - name: continuous-training-kpi
       interval: 1m
       rules:
-      # 모델별 평균 Faithfulness (1시간 윈도우)
+      # Average Faithfulness per model (1-hour window)
       - record: model:faithfulness:avg1h
         expr: |
           avg_over_time(langfuse_trace_faithfulness[1h])
       
-      # Canary vs Stable Faithfulness 차이
+      # Canary vs Stable Faithfulness difference
       - record: canary:faithfulness:delta
         expr: |
           model:faithfulness:avg1h{model="glm5-canary"}
           -
           model:faithfulness:avg1h{model="glm5-stable"}
       
-      # GPU 사용 시간 (누적)
+      # GPU usage time (cumulative)
       - record: training:gpu_hours:total
         expr: |
           sum(
             rate(container_gpu_allocation{namespace="training-pipeline"}[5m])
           ) * 3600
       
-      # 학습 비용 추정 (GPU-hour × $12.5)
+      # Training cost estimate (GPU-hour × $12.5)
       - record: training:cost_usd:total
         expr: |
           training:gpu_hours:total * 12.5
@@ -617,7 +617,7 @@ data:
           increase(training:cost_usd:total[7d])
 ```
 
-### Grafana 대시보드
+### Grafana Dashboard
 
 ```json
 {
@@ -678,81 +678,81 @@ data:
 }
 ```
 
-### 주간/월간 Cadence 권장
+### Recommended Weekly/Monthly Cadence
 
-| 주기 | 액션 | 목표 |
-|------|------|------|
-| **주간** | Trace 수집 → Reward Labeling | 최소 5,000개 고품질 trace 확보 |
-| **격주** | GRPO/DPO 학습 iteration | Faithfulness +0.01 개선 |
-| **월간** | 전체 평가 + Canary 배포 | 프로덕션 품질 1% 개선 |
-| **분기** | 비용 대비 ROI 분석 | 학습 중단/지속 의사결정 |
+| Cycle | Action | Goal |
+|-------|--------|------|
+| **Weekly** | Trace collection → Reward Labeling | Secure minimum 5,000 high-quality traces |
+| **Bi-weekly** | GRPO/DPO training iteration | Faithfulness +0.01 improvement |
+| **Monthly** | Full evaluation + Canary deployment | 1% production quality improvement |
+| **Quarterly** | Cost vs ROI analysis | Training stop/continue decision |
 
-**권장 시작 주기:**
+**Recommended Starting Cycle:**
 
-- **초기 3개월**: 격주 iteration (빠른 개선)
-- **성숙기 (6개월+)**: 월간 iteration (안정화)
+- **First 3 months**: Bi-weekly iterations (rapid improvement)
+- **Maturity (6+ months)**: Monthly iterations (stabilization)
 
-### 손익 분기 분석
+### Break-even Analysis
 
 ```python
 # roi_analysis.py
-# 가정: 모델 품질 1% 개선 → 사용자 만족도 5% 증가 → 이탈률 2% 감소
+# Assumption: 1% model quality improvement → 5% user satisfaction increase → 2% churn reduction
 
-# 현재 지표
-monthly_revenue = 100_000  # $100K/월
-churn_rate = 0.10  # 10% 월간 이탈률
-ltv_per_user = 5_000  # 사용자 생애 가치 $5K
+# Current metrics
+monthly_revenue = 100_000  # $100K/month
+churn_rate = 0.10  # 10% monthly churn rate
+ltv_per_user = 5_000  # User lifetime value $5K
 
-# 학습 비용
+# Training cost
 training_cost_per_iteration = 2_000
 iterations_per_month = 2
 monthly_training_cost = training_cost_per_iteration * iterations_per_month  # $4K
 
-# 품질 개선 효과
-quality_improvement_per_month = 0.01  # 1% faithfulness 증가
-churn_reduction = quality_improvement_per_month * 2  # 2% 이탈률 감소
+# Quality improvement effect
+quality_improvement_per_month = 0.01  # 1% faithfulness increase
+churn_reduction = quality_improvement_per_month * 2  # 2% churn reduction
 
-# 매출 증대
+# Revenue increase
 retained_users = (monthly_revenue / ltv_per_user) * churn_reduction
 revenue_increase = retained_users * ltv_per_user
 
-print(f"월간 학습 비용: ${monthly_training_cost:,}")
-print(f"월간 매출 증대: ${revenue_increase:,.0f}")
-print(f"순익: ${revenue_increase - monthly_training_cost:,.0f}")
+print(f"Monthly training cost: ${monthly_training_cost:,}")
+print(f"Monthly revenue increase: ${revenue_increase:,.0f}")
+print(f"Net profit: ${revenue_increase - monthly_training_cost:,.0f}")
 print(f"ROI: {(revenue_increase / monthly_training_cost - 1) * 100:.1f}%")
 ```
 
-**출력 예시:**
+**Example Output:**
 
 ```
-월간 학습 비용: $4,000
-월간 매출 증대: $20,000
-순익: $16,000
+Monthly training cost: $4,000
+Monthly revenue increase: $20,000
+Net profit: $16,000
 ROI: 400%
 ```
 
-## 다음 단계
+## Next Steps
 
-- [Trace → Dataset Materializer](./trace-to-dataset.md) — 배포 후 다음 iteration 데이터 수집
-- [GRPO/DPO 학습 Job](./grpo-dpo-training.md) — 회귀 발생 시 재학습 실행
-- [Agent Versioning](../../../../aidlc/enterprise/agent-versioning/index.md) — 에이전트 레벨 롤아웃 전략
+- [Trace → Dataset Materializer](./trace-to-dataset.md) — Collect data for next iteration after deployment
+- [GRPO/DPO Training Job](./grpo-dpo-training.md) — Re-run training when regression occurs
+- [Agent Versioning](../../../../aidlc/enterprise/agent-versioning/index.md) — Agent-level rollout strategy
 
-## 참고 자료
+## References
 
-### 공식 문서
+### Official Documentation
 
-- [MLflow](https://mlflow.org/) — Model Registry·Tracking
-- [Gateway API](https://gateway-api.sigs.k8s.io/) — HTTPRoute 기반 Canary
-- [Argo Rollouts](https://argoproj.github.io/argo-rollouts/) — 선언적 Canary/Blue-Green 자동화
+- [MLflow](https://mlflow.org/) — Model Registry and Tracking
+- [Gateway API](https://gateway-api.sigs.k8s.io/) — HTTPRoute-based Canary
+- [Argo Rollouts](https://argoproj.github.io/argo-rollouts/) — Declarative Canary/Blue-Green automation
 - [Prometheus Recording Rules](https://prometheus.io/docs/prometheus/latest/configuration/recording_rules/)
 
-### 논문 · 기술 블로그
+### Papers & Technical Blogs
 
 - [Canary Analysis: Netflix Tech Blog](https://netflixtechblog.com/automated-canary-analysis-at-netflix-with-kayenta-3260bc7acc69)
 - [Ragas: Automated Evaluation of RAG (arxiv 2309.15217)](https://arxiv.org/abs/2309.15217)
 
-### 관련 문서
+### Related Documents
 
 - [Ragas Evaluation](../../../operations-mlops/governance/ragas-evaluation.md)
-- [Inference Gateway 라우팅 전략](../../inference-gateway/routing-strategy.md)
-- [모니터링 · Observability 셋업](../../integrations/monitoring-observability-setup.md)
+- [Inference Gateway Routing Strategy](../../inference-gateway/routing-strategy.md)
+- [Monitoring & Observability Setup](../../integrations/monitoring-observability-setup.md)

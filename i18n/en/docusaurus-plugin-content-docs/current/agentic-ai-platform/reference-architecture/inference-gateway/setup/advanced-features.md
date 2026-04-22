@@ -2,14 +2,14 @@
 title: "Advanced Features"
 sidebar_label: "2. Advanced Features"
 description: "LLM Classifier, CloudFront/WAF, Semantic Caching configuration"
+created: 2026-04-06
+last_update:
+  date: 2026-04-20
+  author: devfloor9
+reading_time: 1
 tags: [llm-classifier, cloudfront, waf, semantic-caching, 'scope:impl']
 sidebar_position: 2
-last_update:
-  date: 2026-04-18
-  author: devfloor9
 ---
-
-# Advanced Features
 
 This document covers advanced configurations for production environments. Add prompt-based automatic routing (LLM Classifier), security layer (CloudFront + WAF/Shield), and cost optimization (Semantic Caching) to complete a full inference pipeline.
 

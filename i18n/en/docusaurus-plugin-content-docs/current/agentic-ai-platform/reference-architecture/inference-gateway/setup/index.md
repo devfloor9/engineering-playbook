@@ -1,12 +1,14 @@
 ---
 title: "Inference Gateway Deployment Guide"
-sidebar_label: "Inference Gateway Setup"
+sidebar_label: "Inference Gateway Deployment"
 description: "Step-by-step deployment guide for kgateway-based Inference Gateway (basic/advanced/troubleshooting)"
+created: 2026-04-18
+last_update:
+  date: 2026-04-20
+  author: devfloor9
+reading_time: 1
 tags: [inference-gateway, kgateway, deployment, 'scope:impl']
 sidebar_position: 4
-last_update:
-  date: 2026-04-18
-  author: devfloor9
 ---
 
 import { useColorMode } from '@docusaurus/theme-common';
@@ -34,8 +36,6 @@ export const InferencePipelineDiagram = () => {
   );
 };
 
-# Inference Gateway Deployment Guide
-
 This document covers **production deployment procedures** for kgateway + Bifrost-based inference gateway. For architecture concepts and routing strategies (Cascade, Semantic Router, 2-Tier structure), refer to [Inference Gateway Routing](../routing-strategy.md).
 
 :::info Guide Structure
@@ -52,7 +52,9 @@ Complete request flow of production inference pipeline based on EKS Auto Mode. C
 
 ## Deployment Stages Overview
 
-### 1. [Basic Deployment](./basic-deployment.md) (Required)
+## Deployment Stages Overview
+
+### [Basic Deployment](./basic-deployment.md) (Required)
 
 Configure kgateway + HTTPRoute + Bifrost behind a single NLB endpoint to complete basic inference pipeline.
 
@@ -68,7 +70,7 @@ Configure kgateway + HTTPRoute + Bifrost behind a single NLB endpoint to complet
 
 ---
 
-### 2. [Advanced Features](./advanced-features.md) (Optional)
+### [Advanced Features](./advanced-features.md) (Optional)
 
 Add prompt-based automatic routing, production security layer, and Semantic Caching to enhance cost optimization and security.
 
@@ -81,7 +83,7 @@ Add prompt-based automatic routing, production security layer, and Semantic Cach
 
 ---
 
-### 3. [Troubleshooting](./troubleshooting-guide.md) (Reference)
+### [Troubleshooting](./troubleshooting-guide.md) (Reference)
 
 Common issues and solutions during deployment and operations.
 

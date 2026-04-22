@@ -2,11 +2,11 @@
 title: "Agentic AI Platform"
 sidebar_label: "Agentic AI Platform"
 description: "In-depth technical documentation on the architecture, deployment, and operations of the Agentic AI Platform"
-tags: [eks, kubernetes, genai, agentic-ai, gpu, llm, platform]
+tags: [eks, kubernetes, genai, agentic-ai, gpu, llm, platform, 'scope:nav']
 category: "genai-aiml"
 sidebar_position: 3
 last_update:
-  date: 2026-03-27
+  date: 2026-04-17
   author: devfloor9
 ---
 
@@ -14,22 +14,9 @@ import { DocCard, DocCardGrid } from '@site/src/components/DocCards';
 
 # Agentic AI Platform
 
-The Agentic AI Platform is a unified platform that enables autonomous AI agents to perform complex tasks. Deploying a single monolithic LLM for mission-critical enterprise workloads has clear limitations in terms of **cost**, **latency**, **accuracy (hallucination)**, and **governance**. Organizations must transition to a **heterogeneous multi-model ecosystem** where LLMs handle complex reasoning while domain-specific SLMs handle routine operations — and **platform-level infrastructure** is the key to operating this efficiently. Kubernetes is rapidly expanding AI-native capabilities such as DRA, Gateway API Inference Extension, and Kueue, and this platform supports multi-model switching **without code changes** on top of the K8s ecosystem.
+The Agentic AI Platform is a unified platform that enables autonomous AI agents to perform complex tasks. Deploying a single monolithic LLM for mission-critical enterprise workloads has clear limitations in terms of **cost**, **latency**, **accuracy (hallucination)**, and **governance**. Organizations must transition to a **heterogeneous multi-model ecosystem** where LLMs handle complex reasoning while domain-specific SLMs handle repetitive tasks — and **platform-level infrastructure** is the key to operating this efficiently. Kubernetes is rapidly expanding AI-native capabilities such as DRA, Gateway API Inference Extension, and Kueue, and this platform supports multi-model switching **without code changes** on top of the K8s ecosystem.
 
 This documentation series guides you through understanding the platform architecture, identifying the **5 key challenges** faced during deployment, and addressing them through two approaches: **AWS Native managed services** and **EKS-based open architecture**. These two approaches are complementary, and we recommend a gradual journey starting with AWS Native and expanding to EKS as needed.
-
----
-
-## Production Inference Pipeline Architecture
-
-Complete request flow of the EKS Auto Mode production inference pipeline. kgateway ExtProc analyzes prompts to determine LLM routing, passes through Bifrost governance and llm-d KV Cache-aware routing to the optimal model.
-
-<iframe
-  src="/engineering-playbook/agentic-platform-architecture-en.html"
-  style={{width: '100%', height: '1600px', border: 'none', borderRadius: '12px'}}
-  title="Agentic AI Platform Inference Pipeline Architecture"
-  loading="lazy"
-/>
 
 ---
 

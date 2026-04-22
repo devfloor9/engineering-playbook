@@ -2,22 +2,29 @@
 title: "Knowledge Feature Store Expansion"
 sidebar_label: "Knowledge Feature Store"
 description: "3-plane design integrating ontology and Knowledge Graph into traditional Feature Store to reduce hallucinations, enable provenance tracking, and enhance domain entity utilization"
-tags: [feature-store, knowledge-graph, ontology, rag, 'scope:design']
-sidebar_position: 7
+created: 2026-04-18
 last_update:
-  date: 2026-04-18
+  date: 2026-04-20
   author: devfloor9
+reading_time: 20
+tags:
+  - feature-store
+  - knowledge-graph
+  - ontology
+  - rag
+  - scope:design
+sidebar_position: 7
 ---
 
 :::info Forward-looking Design
-To be refined in separate ontology session. This document proposes conceptual design and pilot scope.
+To be refined in separate ontology session (2026-Q2). This document proposes conceptual design and pilot scope.
 :::
 
 # Knowledge Feature Store Expansion
 
 ## Problem Definition: Why Feature Store Alone Is Insufficient
 
-Traditional Feature Store 다음과 같은 한계가 드러납니다:
+Traditional Feature Stores (Feast, SageMaker Feature Store, Tecton) are optimized for efficiently providing **scalar values and embedding vectors**. However, in Agentic AI environments, the following limitations emerge:
 
 ### Traditional Feature Store Limitations
 
@@ -50,35 +57,35 @@ flowchart LR
 
 **Specific Problem Cases:**
 
-1. **Entity Relations 부재** → 환각 발생
+1. **Absence of Entity Relations** → Hallucinations
    - Question: "What devices are connected to customer A's recent contracts?"
    - Traditional FS: Returns customer embedding and contract embedding separately
    - Result: LLM connects unrelated devices causing hallucination
    - Required: `(Customer)-[:HAS_CONTRACT]->(Contract)-[:USES]->(Device)` relationship
 
-2. **Ontology 부재** → 도메인 용어 오해
-   - Question: "Usage patterns of.*grade users"
-   - Traditional FS: 'Premium'을 단순 문자열로 처리
-   - Result: 'VIP', 'Gold', 'Platinum'과의 relationship를 이해하지 못함
+2. **Absence of Ontology** → Domain Term Misunderstanding
+   - Question: "Usage patterns of Premium grade users"
+   - Traditional FS: Treats 'Premium' as simple string
+   - Result: Cannot understand relationships with 'VIP', 'Gold', 'Platinum'
    - Required: `Premium subClassOf HighValueCustomer`, `VIP equivalentTo Premium` definition
 
-3. **Provenance absence.*audit failure
+3. **Absence of Provenance** → Audit Failure
    - Requirement: "What is the data source for this answer?"
    - Traditional FS: Only provides vector similarity, cannot track source data
-   - Result: Compliance.*failure
+   - Result: Compliance (SOC2, GDPR) failure
    - Required: Feature → Raw Data → Source System → Timestamp chain
 
-4. **시간적 relationship 부재** → 컨텍스트 오류
+4. **Absence of Temporal Relationships** → Context Errors
    - Question: "Prior usage patterns of customers who churned in 2025 Q4"
    - Traditional FS: Only supports point-in-time queries
-   - Result: 해지 전후 relationship를 연결하지 못함
+   - Result: Cannot connect relationships before and after churn
    - Required: Temporal edge `BEFORE`, `AFTER` relationship
 
 ---
 
 ## Knowledge Feature Store Conceptual Model
 
-Knowledge Feature Store(KFS)는 Traditional Feature Store를 3-plane 구조로 확장하여 scalar/vector 데이터에 **relationship와 의미**를 추가합니다.
+Knowledge Feature Store (KFS) extends the traditional Feature Store with a 3-plane architecture, adding **relationships and semantics** to scalar/vector data.
 
 ### 3-Plane Architecture
 
@@ -132,9 +139,9 @@ flowchart TB
     RP --> GRAPH
     RP --> HYBRID
     
-    FP -.->|읽기| S3
-    KP -.->|읽기| NEPTUNE
-    RP -.->|읽기| MILVUS
+    FP -.->|Read| S3
+    KP -.->|Read| NEPTUNE
+    RP -.->|Read| MILVUS
     
     style FP fill:#e1f5ff
     style KP fill:#fff4e1
@@ -147,7 +154,7 @@ flowchart TB
 |-------|------|------------|---------|----------|
 | **Feature Plane** | Provide Scalar/Vector features | Parquet, Protobuf | &lt;10ms | `get_features(entity_id, feature_names)` |
 | **Knowledge Plane** | Entity Relations·Ontology | RDF, Property Graph | &lt;50ms | `traverse(Customer, depth=2, relation='HAS_CONTRACT')` |
-| **Retrieval Plane** | Vector search.*graph expansion | HNSW Index, Cypher | &lt;100ms | `hybrid_search(query_embedding, kg_expand=True)` |
+| **Retrieval Plane** | Vector search + graph expansion | HNSW Index, Cypher | &lt;100ms | `hybrid_search(query_embedding, kg_expand=True)` |
 
 ### Unified Read API
 
@@ -174,19 +181,19 @@ result = kfs.retrieve(
 )
 
 # Result:
-# - contexts: Documents found by vector search 10개
-# - entities: .*nodes connected by graph expansion
+# - contexts: 10 documents found by vector search
+# - entities: Entity nodes connected by graph expansion
 # - features: Scalar/vector features of each entity
 # - provenance: Source and timestamp of each data point
 ```
 
 ---
 
-## Ontology 스키마와 entities 해석
+## Ontology Schema and Entity Interpretation
 
 ### Domain Ontology Definition
 
-Domain entities in Agentic AI Platform(Customer, Contract, Device, Usage)를 SKOS/OWL-lite 서브셋으로 definition합니다.
+Defines domain entities in Agentic AI Platform (Customer, Contract, Device, Usage) using SKOS/OWL-lite subset.
 
 ```turtle
 @prefix kfs: <http://platform.ai/ontology/kfs#> .
@@ -195,51 +202,51 @@ Domain entities in Agentic AI Platform(Customer, Contract, Device, Usage)를 SKO
 
 # Core Entities
 kfs:Customer a owl:Class ;
-    skos:prefLabel "고객"@ko ;
-    skos:definition "Individual or organization using the service"@ko .
+    skos:prefLabel "Customer"@en, "고객"@ko ;
+    skos:definition "Individual or organization using the service" .
 
 kfs:Contract a owl:Class ;
-    skos:prefLabel "계약"@ko ;
-    skos:definition "Service contract with customer"@ko .
+    skos:prefLabel "Contract"@en, "계약"@ko ;
+    skos:definition "Service contract with customer" .
 
 kfs:Device a owl:Class ;
-    skos:prefLabel "디바이스"@ko ;
-    skos:definition "Device for service delivery"@ko .
+    skos:prefLabel "Device"@en, "디바이스"@ko ;
+    skos:definition "Device for service delivery" .
 
 kfs:Usage a owl:Class ;
-    skos:prefLabel "이용"@ko ;
-    skos:definition "Service usage event"@ko .
+    skos:prefLabel "Usage"@en, "이용"@ko ;
+    skos:definition "Service usage event" .
 
-# relationship definition
+# Relationship definition
 kfs:hasContract a owl:ObjectProperty ;
     rdfs:domain kfs:Customer ;
     rdfs:range kfs:Contract ;
-    skos:prefLabel "Has contract"@ko .
+    skos:prefLabel "Has contract"@en .
 
 kfs:usesDevice a owl:ObjectProperty ;
     rdfs:domain kfs:Contract ;
     rdfs:range kfs:Device ;
-    skos:prefLabel "Uses device"@ko .
+    skos:prefLabel "Uses device"@en .
 
 kfs:recordedUsage a owl:ObjectProperty ;
     rdfs:domain kfs:Device ;
     rdfs:range kfs:Usage ;
-    skos:prefLabel "Usage record"@ko .
+    skos:prefLabel "Usage record"@en .
 
-# attributes definition
+# Attributes definition
 kfs:customerGrade a owl:DatatypeProperty ;
     rdfs:domain kfs:Customer ;
     rdfs:range xsd:string ;
-    skos:prefLabel "Customer grade"@ko .
+    skos:prefLabel "Customer grade"@en .
 
 kfs:churnRisk a owl:DatatypeProperty ;
     rdfs:domain kfs:Customer ;
     rdfs:range xsd:float ;
-    skos:prefLabel "Churn risk"@ko .
+    skos:prefLabel "Churn risk"@en .
 
 # Grade Hierarchy (SKOS Concept Scheme)
 kfs:CustomerGradeScheme a skos:ConceptScheme ;
-    skos:prefLabel "Customer grade 체계"@ko .
+    skos:prefLabel "Customer grade system"@en .
 
 kfs:Premium a skos:Concept ;
     skos:inScheme kfs:CustomerGradeScheme ;
@@ -261,15 +268,15 @@ kfs:HighValue a skos:Concept ;
 | Implementation | Managed Option | Open Source Option | Selection Criteria |
 |------|-----------|-------------|----------|
 | **Knowledge Graph** | Amazon Neptune Analytics | Neo4j, JanusGraph | Scale, operational capability, cost |
-| **Ontology Store** | AWS RDF Store (Neptune) | Oxigraph, Apache Jena | Ontology 복잡도, 추론 필요성 |
+| **Ontology Store** | AWS RDF Store (Neptune) | Oxigraph, Apache Jena | Ontology complexity, inference requirements |
 | **Vector DB** | - | Milvus, Weaviate | Already built on EKS |
 
 **Neptune Analytics Advantages:**
-- 서버리스 그래프 분석 (프로비저닝 불필요)
+- Serverless graph analytics (no provisioning required)
 - Millisecond query latency
 - Gremlin, openCypher support
 - Direct S3 data loading
-- Cost: $1.08/vCPU/hr (on-demand), 쿼리당 $0.10/Compute Unit
+- Cost: $1.08/vCPU/hr (on-demand), $0.10/Compute Unit per query
 
 **Neo4j Advantages:**
 - Mature ecosystem, rich plugins
@@ -281,9 +288,9 @@ kfs:HighValue a skos:Concept ;
 
 ## KG-aware RAG Pattern
 
-### Vector search.*graph expansion
+### Vector Search + Graph Expansion
 
-Traditional RAG selects context only by vector similarity하지만, KG-aware RAG는 **그래프 relationship를 활용하여 컨텍스트를 확장**합니다.
+Traditional RAG selects context only by vector similarity, but KG-aware RAG **leverages graph relationships to expand context**.
 
 ```mermaid
 flowchart LR
@@ -313,7 +320,7 @@ flowchart LR
     style L fill:#9c27b0
 ```
 
-### Implementation 예제
+### Implementation Example
 
 ```python
 from kfs import KnowledgeFeatureStore
@@ -334,35 +341,35 @@ def kg_aware_rag(query: str) -> dict:
         metric="COSINE"
     )
     
-    # 3. 각 documents의 연결된 entities 추출
+    # 3. Extract connected entities from each document
     entities = []
     for doc in vector_results:
-        # documents에서 언급된 entities 식별
+        # Identify entities mentioned in documents
         doc_entities = kfs.extract_entities(doc.text)
         entities.extend(doc_entities)
     
-    # 4. Knowledge Graph에서 1-hop 확장
+    # 4. 1-hop expansion in Knowledge Graph
     expanded_entities = kfs.graph_expand(
         entities=entities,
         depth=1,
         relations=["HAS_CONTRACT", "USES_DEVICE", "RECORDED_USAGE"]
     )
     
-    # 5. 확장된 entities와 Question의 거리로 re-rank
+    # 5. Re-rank by distance between expanded entities and question
     scored_contexts = []
     for doc in vector_results:
-        # documents 점수 = 벡터 유사도 + 그래프 거리 가중치
+        # Document score = vector similarity + graph distance weight
         vector_score = doc.score
         entity_distance = kfs.min_distance(
             doc.entities, 
             query_entities
         )
-        graph_score = 1 / (1 + entity_distance)  # 거리 역수
+        graph_score = 1 / (1 + entity_distance)  # Inverse distance
         
         final_score = 0.7 * vector_score + 0.3 * graph_score
         scored_contexts.append((doc, final_score))
     
-    # 6. Top-5 컨텍스트 선택
+    # 6. Select top-5 contexts
     final_contexts = sorted(
         scored_contexts, 
         key=lambda x: x[1], 
@@ -375,14 +382,14 @@ def kg_aware_rag(query: str) -> dict:
         "provenance": [doc.metadata for doc, score in final_contexts]
     }
 
-# 7. Ragas로 Evaluation
+# 7. Evaluation with Ragas
 result = kg_aware_rag("Recent usage patterns of Premium grade users")
 
 eval_dataset = {
     "question": ["Recent usage patterns of Premium grade users"],
     "contexts": [result["contexts"]],
     "answer": [llm.generate(result["contexts"])],
-    "ground_truth": ["Premium 고객은 월평균 150GB를..."]
+    "ground_truth": ["Premium customers average 150GB monthly..."]
 }
 
 ragas_result = evaluate(
@@ -402,9 +409,9 @@ print(ragas_result)
 | **Hallucination Rate** | 18% | 7% | -61% |
 
 **Improvement Mechanism:**
-1. 그래프 relationship로 관련 없는 컨텍스트 제거 → Precision 증가
-2. Supplement missing entities with 1-hop expansion.*Increase Recall
-3. Clarify provenance with tracking.*Increase Faithfulness
+1. Remove irrelevant contexts via graph relationships → Increase Precision
+2. Supplement missing entities with 1-hop expansion → Increase Recall
+3. Clarify provenance with tracking → Increase Faithfulness
 
 ---
 
@@ -412,7 +419,7 @@ print(ragas_result)
 
 ### CDC-based Event Flow
 
-Knowledge Feature Store.*detects changes in source database in real-time**하여 propagates to Feature Plane, Knowledge Plane, Retrieval Plane.
+Knowledge Feature Store **detects changes in source database in real-time** and propagates them to Feature Plane, Knowledge Plane, and Retrieval Plane.
 
 ```mermaid
 flowchart LR
@@ -463,13 +470,13 @@ flowchart LR
 | Characteristic | Offline Batch | Online Stream | Hybrid |
 |------|--------------|--------------|-----------|
 | **Latency** | Hourly (Glue/EMR) | Seconds (Kinesis) | Batch → Online |
-| **Accuracy** | 100% (Full recomputation) | 99%+ (Incremental update) | Periodic.*calibration |
-| **비용** | Low | High | Medium |
+| **Accuracy** | 100% (Full recomputation) | 99%+ (Incremental update) | Periodic accuracy calibration |
+| **Cost** | Low | High | Medium |
 | **Use Case** | Historical data loading | Real-time recommendation | Production standard |
 
 ### Eventual Consistency Model
 
-Knowledge Feature Store adopts.*Eventual Consistency. 3 planes may not update simultaneously, eventually reach consistent state.
+Knowledge Feature Store adopts **Eventual Consistency**. The 3 planes may not update simultaneously but eventually reach a consistent state.
 
 ```python
 # Ensure point-in-time consistency
@@ -481,9 +488,9 @@ result = kfs.retrieve(
 
 # This query:
 # 1. Feature Plane: Returns only features before timestamp
-# 2. Knowledge Plane: timestamp 이전의 relationship만 탐색
-# 3. Retrieval Plane: timestamp 이전에 인덱싱된 documents만 검색
-# → 3 planes aligned to same point in time
+# 2. Knowledge Plane: Traverses only relationships before timestamp
+# 3. Retrieval Plane: Searches only documents indexed before timestamp
+# → All 3 planes aligned to same point in time
 ```
 
 ### Write Pipeline Example
@@ -502,7 +509,7 @@ def kfs_materializer():
     for message in consumer:
         event = message.value
         
-        # 1. Feature Plane 업데이트
+        # 1. Update Feature Plane
         feast_client.push(
             feature_view="customer_features",
             entity_rows=[{
@@ -512,7 +519,7 @@ def kfs_materializer():
             }]
         )
         
-        # 2. Knowledge Graph 업데이트
+        # 2. Update Knowledge Graph
         if event["type"] == "CONTRACT_CREATED":
             neptune_client.execute(f"""
                 MATCH (c:Customer {{id: '{event["customer_id"]}'}})
@@ -523,7 +530,7 @@ def kfs_materializer():
                     }})
             """)
         
-        # 3. Vector DB 업데이트 (documents 변경 시)
+        # 3. Update Vector DB (when documents change)
         if event["type"] == "DOCUMENT_UPDATED":
             embedding = embedding_model.encode(event["content"])
             milvus_client.insert(
@@ -536,7 +543,7 @@ def kfs_materializer():
                 }
             )
         
-        # 4. Provenance 기록
+        # 4. Record provenance
         provenance_store.record(
             entity_id=event["customer_id"],
             source_system="app-db",
@@ -552,7 +559,7 @@ def kfs_materializer():
 
 ### Row/Attribute-level Authorization
 
-Knowledge Feature Store performs access control at.*entity level.*and.*attribute level.
+Knowledge Feature Store performs access control at both **entity level** and **attribute level**.
 
 ```python
 # Role-based Access Control
@@ -563,7 +570,7 @@ kfs_config = {
                 "entities": ["Customer", "Usage"],
                 "attributes": {
                     "Customer": ["id", "grade", "churn_risk"],
-                    "Usage": ["*"]  # 모든 attributes
+                    "Usage": ["*"]  # All attributes
                 },
                 "relations": ["HAS_CONTRACT", "RECORDED_USAGE"]
             },
@@ -595,9 +602,9 @@ result = kfs.retrieve(
 # → Customer.name, Customer.ssn etc. automatically masked
 ```
 
-### PII masking On-Read
+### PII Masking On-Read
 
-Sensitive information is masked.*at read time minimizes data copies.
+Sensitive information is masked **at read time**, minimizing data copies.
 
 ```python
 # Attribute-level Masking
@@ -619,7 +626,7 @@ masked_result = kfs.retrieve(
 
 ### Lineage (OpenLineage)
 
-Knowledge Feature Store follows.*OpenLineage.*standard tracks data lineage.
+Knowledge Feature Store follows the **OpenLineage** standard to track data lineage.
 
 ```json
 {
@@ -694,32 +701,32 @@ kfs.retrieve(
 
 ### Pilot Roadmap
 
-| Phase | Duration | Goal | 주요 action |
+| Phase | Duration | Goal | Key Actions |
 |-------|------|------|----------|
-| **Phase 0** | 2주 | Schema Design | 도메인 Ontology 초안, entities·relationship definition |
-| **Phase 1** | 4주 | Read API | Milvus + Neptune 통합, Develop unified query API |
-| **Phase 2** | 6주 | Write Pipeline | Debezium CDC → Kafka → Materializer Build |
-| **Phase 3** | 4주 | Governance | RBAC, PII masking, OpenLineage 통합 |
-| **Phase 4** | 2주 | Evaluation | Ragas KG-aware RAG 평가, Metric 베이스라인 수립 |
+| **Phase 0** | 2 weeks | Schema Design | Draft domain ontology, define entities & relationships |
+| **Phase 1** | 4 weeks | Read API | Integrate Milvus + Neptune, develop unified query API |
+| **Phase 2** | 6 weeks | Write Pipeline | Build Debezium CDC → Kafka → Materializer |
+| **Phase 3** | 4 weeks | Governance | RBAC, PII masking, OpenLineage integration |
+| **Phase 4** | 2 weeks | Evaluation | Evaluate Ragas KG-aware RAG, establish metric baseline |
 
 **Phase 0 Schema Draft Scope:**
-- 4개 Core Entities: Customer, Contract, Device, Usage
-- 6개 relationship: HAS_CONTRACT, USES_DEVICE, RECORDED_USAGE, BEFORE, AFTER, RELATED_TO
-- 10개 attributes: customer_grade, churn_risk, contract_type, device_model, usage_gb, ...
+- 4 Core Entities: Customer, Contract, Device, Usage
+- 6 relationships: HAS_CONTRACT, USES_DEVICE, RECORDED_USAGE, BEFORE, AFTER, RELATED_TO
+- 10 attributes: customer_grade, churn_risk, contract_type, device_model, usage_gb, ...
 - 1 SKOS scheme: CustomerGradeScheme (Premium, VIP, Standard, ...)
 
 ---
 
 ## Conclusion
 
-Knowledge Feature Store는 Traditional Feature Store의 **scalar/vector feature provision.*capability **Ontology와 지식 그래프**를 통합하여 achieves the following:
+Knowledge Feature Store integrates **Ontology and Knowledge Graph** with the traditional Feature Store's **scalar/vector feature provisioning** capability to achieve the following:
 
-1. **환각 감소**: Entity Relations를 명시적으로 모델링하여 LLM이 relationship 없는 정보를 연결하는 것을 방지
-2. **Provenance Tracking**: Provenance chain으로 답변의 출처를 역추적하여 Meet compliance requirements
-3. **도메인 entities 활용**: Ontology로 도메인 용어와 계층을 definition하여 Improve LLM domain understanding
-4. **KG-aware RAG**: Vector search.*graph expansion을 결합하여 Faithfulness +24%, Context Recall +25% 개선
+1. **Reduced Hallucinations**: Explicitly models Entity Relations to prevent LLMs from connecting unrelated information
+2. **Provenance Tracking**: Enables tracing answer sources through provenance chain to meet compliance requirements
+3. **Domain Entity Utilization**: Defines domain terminology and hierarchy through Ontology to improve LLM domain understanding
+4. **KG-aware RAG**: Combines vector search with graph expansion to improve Faithfulness +24%, Context Recall +25%
 
-2026-Q2 Ontology 세션에서 review Phase 0 schema draft, will finalize pilot scope.
+The Phase 0 schema draft will be reviewed in the 2026-Q2 Ontology session to finalize pilot scope.
 
 ---
 

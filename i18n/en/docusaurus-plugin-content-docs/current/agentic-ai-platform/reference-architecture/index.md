@@ -3,15 +3,15 @@ title: "Reference Architecture"
 sidebar_label: "Reference Architecture"
 sidebar_position: 7
 description: "Production deployment and configuration reference architecture for the Agentic AI Platform"
-tags: [reference-architecture, deployment, eks, gpu, monitoring]
+created: 2026-04-06
 last_update:
-  date: 2026-04-05
-  author: YoungJoon Jeong
+  date: 2026-04-20
+  author: devfloor9
+reading_time: 1
+tags: [reference-architecture, deployment, eks, gpu, monitoring, 'scope:impl']
 ---
 
 import DocCardList from '@theme/DocCardList';
-
-# Reference Architecture
 
 This section provides **production deployment and configuration guides** for the Agentic AI Platform. Concepts and design principles are covered in the [Documentation section](../design-architecture/foundations/agentic-platform-architecture.md); here we focus on specific configurations, YAML manifests, and verification procedures for deploying and operating on actual clusters.
 
@@ -220,7 +220,7 @@ For concepts and architecture design, refer to the following documents:
 - [Agentic AI Platform Architecture](../design-architecture/foundations/agentic-platform-architecture.md) — Overall design principles and component structure
 - [GPU Resource Management](../model-serving/gpu-infrastructure/gpu-resource-management.md) — Karpenter, KEDA, DRA-based GPU autoscaling
 - [vLLM Model Serving](../model-serving/inference-frameworks/vllm-model-serving.md) — vLLM architecture and optimization techniques
-- [Inference Gateway Routing](../reference-architecture/inference-gateway/routing-strategy.md) — kgateway + AI gateway design
+- [Inference Gateway Routing Strategy](inference-gateway/routing-strategy.md) — 2-Tier architecture and Cascade/Semantic/Hybrid Routing design
 
 ---
 

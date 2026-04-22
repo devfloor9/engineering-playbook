@@ -2,16 +2,23 @@
 title: "Inference Frameworks"
 sidebar_label: "Inference Frameworks"
 description: "vLLM·llm-d·MoE·NeMo — AI framework layer for actual model serving, distributed inference, and fine-tuning on GPUs"
-tags: [vllm, llm-d, moe, nemo, inference, fine-tuning, 'scope:tech']
-sidebar_position: 2
+created: 2026-04-17
 last_update:
-  date: 2026-04-17
-  author: YoungJoon Jeong
+  date: 2026-04-20
+  author: devfloor9
+reading_time: 1
+tags:
+  - vllm
+  - llm-d
+  - moe
+  - nemo
+  - inference
+  - fine-tuning
+  - serving
+  - scope:tech
 ---
 
 import { DocCard, DocCardGrid } from '@site/src/components/DocCards';
-
-# Inference Frameworks
 
 The AI framework layer on top of [GPU Infrastructure](../gpu-infrastructure/index.md) that actually performs **LLM serving, distributed inference, and fine-tuning**. Covers single-node high-performance serving (vLLM), Kubernetes-native distributed inference (llm-d), MoE model processing, and NVIDIA NeMo-based training.
 

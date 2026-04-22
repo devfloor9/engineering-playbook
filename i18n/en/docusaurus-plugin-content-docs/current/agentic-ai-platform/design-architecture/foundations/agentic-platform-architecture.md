@@ -2,23 +2,26 @@
 title: "Agentic AI Platform Architecture"
 sidebar_label: "Platform Architecture"
 description: "Overall system architecture, core layers, and design principles of a production-grade Agentic AI Platform"
-tags: [architecture, agentic-ai, platform, kubernetes]
-category: "genai-aiml"
+created: 2026-02-05
 last_update:
-  date: 2026-03-20
+  date: 2026-04-20
   author: devfloor9
+reading_time: 6
+tags:
+  - architecture
+  - agentic-ai
+  - platform
+  - kubernetes
+  - scope:design
+category: "genai-aiml"
 sidebar_position: 1
 ---
 
 import { LayerRoles, TenantIsolation, RequestProcessing } from '@site/src/components/ArchitectureTables';
 
-# Agentic AI Platform Architecture
-
-> **Written**: 2025-02-05 | **Updated**: 2026-03-20 | **Reading time**: ~6 min
-
 ## Overview
 
-The Agentic AI Platform is a unified platform that enables autonomous AI agents to perform complex tasks. It is designed to address the challenges of model serving complexity, lack of framework integration, autoscaling difficulties, absence of MLOps automation, and cost optimization encountered when building GenAI services. The platform provides **agent orchestration**, **intelligent inference routing**, **vector search-based RAG**, **LLM tracing and cost analysis**, **horizontal autoscaling**, and **multi-tenant resource isolation** as core capabilities. For detailed analysis of each challenge, see the [Technical Challenges](./agentic-ai-challenges.md) document.
+The Agentic AI Platform is a unified platform that enables autonomous AI agents to perform complex tasks. It is designed to address challenges encountered when building GenAI services: model serving complexity, lack of framework integration, autoscaling difficulties, absence of MLOps automation, and cost optimization. The platform provides **agent orchestration**, **intelligent inference routing**, **vector search-based RAG**, **LLM tracing and cost analysis**, **horizontal autoscaling**, and **multi-tenant resource isolation** as core capabilities. For detailed analysis of each challenge, see the [Technical Challenges](./agentic-ai-challenges.md) document.
 
 :::info Target Audience
 This document is intended for solution architects, platform engineers, and DevOps engineers. A basic understanding of Kubernetes and AI/ML workloads is required.
@@ -97,7 +100,7 @@ flowchart TD
 **Core Design Principles:**
 
 - **Self-hosted + External AI Hybrid**: Unified management of self-hosted LLMs and external AI Provider APIs through the same gateway
-- **2-Tier Cost Tracking**: Dual tracking at infrastructure level (model unit price x tokens) and application level (per-agent-step costs)
+- **2-Tier Cost Tracking**: Dual tracking at infrastructure level (model unit price × tokens) and application level (per-agent-step costs)
 - **MCP/A2A Standard Protocols**: Standardized communication between agents and tools (MCP) and between agents (A2A) for interoperability
 
 ### Layer Roles
@@ -388,6 +391,23 @@ Specific methods for implementing this platform architecture are covered in the 
 
 ## References
 
-- [Kubernetes Gateway API](https://gateway-api.sigs.k8s.io/)
-- [MCP (Model Context Protocol)](https://modelcontextprotocol.io/)
-- [A2A (Agent-to-Agent Protocol)](https://google.github.io/A2A/)
+### Official Documentation
+
+- [Kubernetes Gateway API](https://gateway-api.sigs.k8s.io/) — K8s official gateway API
+- [MCP (Model Context Protocol)](https://modelcontextprotocol.io/) — MCP protocol specification
+- [CNCF Cloud Native Architecture](https://www.cncf.io/) — Cloud native architecture patterns
+- [OpenTelemetry](https://opentelemetry.io/) — Observability standard
+
+### Papers / Technical Blogs
+
+- [A2A (Agent-to-Agent Protocol)](https://google.github.io/A2A/) — Google multi-agent communication protocol
+- [LangChain Architecture Patterns](https://blog.langchain.dev/) — Agent architecture patterns
+- [Building Production-Ready LLM Applications](https://huyenchip.com/2023/04/11/llm-engineering.html) — Production LLM engineering
+- [AWS Well-Architected Framework for AI/ML](https://aws.amazon.com/architecture/) — AI/ML workload design principles
+
+### Related Documents (Internal)
+
+- [Technical Challenges](./agentic-ai-challenges.md) — 5 key challenge analysis
+- [AWS Native Platform](../platform-selection/aws-native-agentic-platform.md) — Managed service implementation
+- [EKS-Based Open Architecture](../platform-selection/agentic-ai-solutions-eks.md) — Self-hosting implementation
+- [Inference Gateway Routing](../../reference-architecture/inference-gateway/routing-strategy.md) — 2-Tier Gateway details

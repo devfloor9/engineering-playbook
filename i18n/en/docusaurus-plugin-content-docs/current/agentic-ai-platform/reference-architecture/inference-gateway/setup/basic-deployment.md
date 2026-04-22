@@ -2,14 +2,14 @@
 title: "Basic Deployment"
 sidebar_label: "1. Basic Deployment"
 description: "kgateway installation, HTTPRoute configuration, Bifrost Gateway Mode setup"
+created: 2026-04-18
+last_update:
+  date: 2026-04-20
+  author: devfloor9
+reading_time: 1
 tags: [kgateway, bifrost, httproute, gateway-api, 'scope:impl']
 sidebar_position: 1
-last_update:
-  date: 2026-04-18
-  author: devfloor9
 ---
-
-# Basic Deployment
 
 This document covers the procedures for deploying **core components** of the kgateway + Bifrost-based inference gateway. Route multiple services path-based behind a single NLB endpoint and implement multi-provider integration with Bifrost Gateway Mode.
 

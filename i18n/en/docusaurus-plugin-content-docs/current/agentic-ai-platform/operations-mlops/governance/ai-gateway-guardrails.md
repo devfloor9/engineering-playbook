@@ -2,13 +2,13 @@
 title: "AI Gateway Guardrails"
 sidebar_label: "AI Gateway Guardrails"
 description: "LLM Gateway-level Guardrails — PII redaction, prompt injection defense, content filtering, tool comparison, and Korean financial compliance mapping"
-tags: [guardrails, pii, prompt-injection, safety, llm-security, compliance, ismsp, bedrock-guardrails, nemo-guardrails, llama-guard, 'scope:ops']
+created: 2026-04-17
 last_update:
-  date: 2026-04-17
-  author: YoungJoon Jeong
+  date: 2026-04-20
+  author: devfloor9
+reading_time: 12
+tags: [guardrails, pii, prompt-injection, safety, llm-security, compliance, ismsp, bedrock-guardrails, nemo-guardrails, llama-guard, 'scope:ops']
 ---
-
-# AI Gateway Guardrails
 
 In enterprise LLM platforms, Guardrails are **"a technology stack that places safety nets before and after the model."** Relying solely on the model's safety alignment cannot prevent **prompt injection**, **PII leaks**, and **tool misuse**. This document compares Guardrails tools implementable at the LLM gateway level and provides practical defense patterns and Korean financial compliance mapping.
 
@@ -80,7 +80,7 @@ flowchart LR
 
 | Layer | Location | Responsibility | Latency Impact |
 |--------|------|------|----------|
-| **Input Guard** | Right after gateway entry | PII redaction, Prompt injection detection, language/length validation | +20~100ms |
+| **Input Guard** | Right after gateway entry | PII redaction, prompt injection detection, language/length validation | +20~100ms |
 | **Gateway Policy** | Gateway core | Authentication/authorization, tenant isolation, rate limit, model routing | +5~20ms |
 | **Tool Allow-list** | Agent/MCP layer | MCP server whitelist, scoped token, argument validation | +10~30ms |
 | **Model (LLM Safety)** | Model itself | Safety alignment injected during training | 0ms (Built into model) |
@@ -266,7 +266,7 @@ agent:
   mcp_servers:
     allow:
       - uri: "mcp://internal-kb.svc.cluster.local"
-        fingerprint: "sha256:abcd..." # Tool poisoning defense
+        fingerprint: "sha256:abcd..."  # Tool poisoning defense
     deny:
       - uri: "mcp://*"
 ```
@@ -289,7 +289,7 @@ You are a safety auditor. Given the <policy> and <response>, output JSON:
 
 def judge(response: str, policy: str) -> dict:
     judge_resp = llm_call(
-        model="claude-haiku-4.5", # Use cheap model as judge
+        model="claude-haiku-4.5",  # Use cheap model as judge
         messages=[{"role": "user", "content": JUDGE_PROMPT.format(...)}],
     )
     return json.loads(judge_resp)
@@ -355,8 +355,8 @@ spec:
       processingMode:
         requestHeaderMode: SEND
         requestBodyMode: BUFFERED
-        responseBodyMode: STREAMED # Streaming response chunk-level inspection
-      failureModeAllow: false # Reject requests on Guardrails failure (fail-closed)
+        responseBodyMode: STREAMED  # Streaming response chunk-level inspection
+      failureModeAllow: false       # Reject requests on Guardrails failure (fail-closed)
       timeout: 2s
 ```
 

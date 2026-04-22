@@ -28,8 +28,8 @@ assessed_by: devfloor9
 
 # EU AI Act: Risk Tier
 eu_ai_act:
-  risk_tier: limited-risk  # AI 생성 코드는 Limited risk
-  rationale: "코드 생성 AI 사용, 개발자 검토 필수화로 위험 완화"
+  risk_tier: limited-risk  # AI-generated code is Limited risk
+  rationale: "Risk mitigated by using code generation AI with mandatory developer review"
   transparency_required: true
 
 # NIST AI RMF: MAP
@@ -63,16 +63,16 @@ korea_ai_law:
 ```yaml
 # .aidlc/harness/quality-gates.yaml
 quality_gates:
-  # EU AI Act: Art. 15 (정확성·견고성)
+  # EU AI Act: Art. 15 (accuracy and robustness)
   - gate: code_quality
     enabled: true
     thresholds:
-      code_coverage: 80  # 80% 이상
-      duplication: 3     # 3% 이하
+      code_coverage: 80  # 80% or higher
+      duplication: 3     # 3% or lower
       cognitive_complexity: 15
     failure_action: block_merge
   
-  # NIST AI RMF: MEASURE-2.3 (보안)
+  # NIST AI RMF: MEASURE-2.3 (security)
   - gate: security_scan
     enabled: true
     tools:
@@ -89,7 +89,7 @@ quality_gates:
     min_approvals: 1
     failure_action: block_merge
   
-  # Korea AI Basic Act: Generation labeling obligation
+  # Korea AI Framework Act: Generation labeling obligation
   - gate: ai_generated_marker
     enabled: true
     marker_format: |
@@ -243,7 +243,7 @@ Phased approach for introducing regulatory compliance framework in organizations
 
 **Target Regulations:**
 - EU AI Act (organizations entering EU market)
-- Korea AI Basic Act (AI 기본법, Korea-based operations)
+- Korea AI Framework Act (AI 기본법, Korea-based operations)
 
 **Implementation Items:**
 
@@ -481,7 +481,7 @@ class AdversarialTester:
         test_cases = [
             "",  # Empty input
             "a" * 10000,  # Very long input
-            "한글 ✓ émojis 🎉",  # Multi-language
+            "한글 ✓ émojis 🎉",  # Multi-language (Korean characters intentional)
         ]
         
         for prompt in test_cases:

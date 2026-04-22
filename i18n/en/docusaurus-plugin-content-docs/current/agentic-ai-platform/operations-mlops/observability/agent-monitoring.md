@@ -2,12 +2,14 @@
 title: "AI Agent Monitoring and Operations"
 sidebar_label: "Agent Monitoring & Operations"
 description: "Agentic AI application monitoring architecture, key metric design, and alerting strategy overview"
-tags: [eks, langfuse, langsmith, monitoring, observability, tracing, opentelemetry, operations, alerting]
+tags: [eks, langfuse, langsmith, monitoring, observability, tracing, opentelemetry, operations, alerting, 'scope:ops']
 category: "genai-aiml"
+created: 2026-02-05
 last_update:
-  date: 2026-04-05
+  date: 2026-04-20
   author: devfloor9
 sidebar_position: 1
+reading_time: 10
 ---
 
 import {
@@ -28,7 +30,7 @@ This document covers the monitoring architecture, key metric design, and alertin
 For Langfuse Helm deployment, AMP/AMG configuration, ServiceMonitor YAML, and Grafana dashboard JSON, see the [Monitoring Stack Setup Guide](../../reference-architecture/integrations/monitoring-observability-setup.md).
 :::
 
-## Overview
+## 1. Overview
 
 Agentic AI applications perform complex reasoning chains and various tool calls, making it difficult to achieve sufficient visibility with traditional APM (Application Performance Monitoring) tools alone. LLM-specialized observability tools like Langfuse and LangSmith provide the following core capabilities:
 
@@ -43,11 +45,11 @@ This document is intended for platform operators, MLOps engineers, and AI develo
 
 ---
 
-## Monitoring Architecture
+## 2. Monitoring Architecture
 
 ### Langfuse Architecture Overview
 
-Langfuse v2.75.0+ consists of the following components:
+Langfuse v3.162.0+ consists of the following components:
 
 ```mermaid
 flowchart TB
@@ -133,7 +135,7 @@ flowchart TB
 
 ---
 
-## Langfuse vs LangSmith Comparison
+## 3. Langfuse vs LangSmith Comparison
 
 <LangFuseVsLangSmithTable />
 
@@ -152,11 +154,11 @@ Amazon CloudWatch Generative AI Observability is an AWS-native solution for LLM 
 - **End-to-end tracing**: Tracking across the entire AI stack
 - **Framework compatibility**: Support for external frameworks like LangChain, LangGraph, CrewAI
 
-Using Langfuse v2.75.0 (self-hosted data sovereignty) together with CloudWatch Gen AI Observability (AWS-native integration) provides the most comprehensive observability.
+Using Langfuse v3.x (self-hosted data sovereignty) together with CloudWatch Gen AI Observability (AWS-native integration) provides the most comprehensive observability.
 
 ---
 
-## Key Monitoring Metrics
+## 4. Key Monitoring Metrics
 
 Defines the key metrics to track in Agentic AI applications.
 
@@ -212,11 +214,11 @@ flowchart TB
 
 ---
 
-## PromQL Query Reference
+## 5. PromQL Query Reference
 
 ### GPU Metrics
 
-```promql
+```prometheus
 # Overall GPU average utilization
 avg(DCGM_FI_DEV_GPU_UTIL)
 
@@ -229,7 +231,7 @@ avg(DCGM_FI_DEV_FB_USED / DCGM_FI_DEV_FB_FREE * 100) by (gpu)
 
 ### vLLM Metrics
 
-```promql
+```prometheus
 # Overall TPS (tokens generated per second)
 rate(vllm_generation_tokens_total[5m])
 
@@ -251,7 +253,7 @@ avg(vllm_num_requests_running)
 
 ### Gateway Metrics
 
-```promql
+```prometheus
 # 5xx error rate (%)
 rate(envoy_http_downstream_rq_xx{envoy_response_code_class="5"}[5m]) 
 / 
@@ -263,7 +265,7 @@ sum(rate(envoy_cluster_upstream_cx_connect_fail[5m])) by (envoy_cluster_name)
 
 ### Cost Metrics
 
-```promql
+```prometheus
 # Daily total cost
 sum(increase(llm_cost_dollars_total[24h]))
 
@@ -283,7 +285,7 @@ tenant_monthly_budget_usd
 
 ---
 
-## Alerting Strategy
+## 6. Alerting Strategy
 
 ### Alert Threshold Design
 
@@ -314,7 +316,7 @@ tenant_monthly_budget_usd
 
 ---
 
-## Cost Tracking
+## 7. Cost Tracking
 
 ### Cost Tracking Concepts
 
@@ -324,26 +326,37 @@ Track LLM usage costs by the following criteria:
 - **Per-tenant**: Per-tenant/team daily token usage and budget utilization
 - **Per-time**: Peak time analysis, cost trends
 
-### Per-Model Cost Reference (2026 baseline)
+### Per-Model Cost Reference (2026-04 baseline)[^1]
 
-| Model | Input ($/1K tok) | Output ($/1K tok) |
-|-------|-----------------|------------------|
-| GPT-4o | $0.0025 | $0.01 |
-| GPT-4o-mini | $0.00015 | $0.0006 |
-| Claude Sonnet 4 | $0.003 | $0.015 |
-| Claude 3.5 Haiku | $0.0008 | $0.004 |
+| Tier | Model | Input ($/1M tok) | Output ($/1M tok) | Features |
+|------|-------|----------------|----------------|----------|
+| **Frontier** | Claude Opus 4.7 | $15 | $75 | Highest quality reasoning |
+| **Frontier** | GPT-4.1 / o3 | $10 | $30 | Complex reasoning |
+| **Frontier** | Gemini 2.5 Pro | $1.25 | $5 | Enhanced multimodal |
+| **Balanced** | Claude Sonnet 4.6 | $3 | $15 | Quality-cost balance |
+| **Balanced** | GPT-4.1 mini | $0.40 | $1.60 | Fast inference |
+| **Balanced** | Gemini 2.5 Flash | $0.10 | $0.40 | High throughput |
+| **Fast/Cheap** | Claude Haiku 4.5 | $0.80 | $4 | Simple tasks |
+| **Fast/Cheap** | GPT-4.1 nano / o4-mini | $0.15 | $0.60 | Ultra-low cost |
+| **Fast/Cheap** | Gemini 2.5 Flash-Lite | $0.05 | $0.20 | Minimal latency |
+| **Open-weight** | DeepSeek V3.1 | Self-hosted | Self-hosted | Open license |
+| **Open-weight** | Llama 4 Scout | Self-hosted | Self-hosted | Meta official |
+| **Open-weight** | Qwen3-72B | Self-hosted | Self-hosted | Alibaba Cloud |
+
+[^1]: As of 2026-04-17. For latest pricing, see official pricing pages: [OpenAI Pricing](https://openai.com/api/pricing/), [Anthropic Pricing](https://www.anthropic.com/pricing), [Google AI Pricing](https://ai.google.dev/pricing)
 
 :::tip Cost Optimization Tips
 
-1. **Model selection optimization**: Use cheaper models (GPT-4o-mini, Claude 3.5 Haiku) for simple tasks
+1. **Model selection optimization**: Use cheaper models (GPT-4.1 nano, Haiku 4.5, Gemini 2.5 Flash-Lite) for simple tasks
 2. **Prompt optimization**: Reduce input tokens by removing unnecessary context
-3. **Caching**: Cache responses for repetitive queries
-4. **Cascade Routing**: Try low-cost model first, Fallback to high-performance model on failure
+3. **Caching**: Cache responses for repetitive queries (Prompt Caching, Semantic Caching)
+4. **Cascade Routing**: Try low-cost model first, fallback to high-performance model on failure — 66% cost savings possible
+5. **Open-weight models**: Convert to fixed costs with DeepSeek V3.1, Llama 4, Qwen3 when self-hosting
 :::
 
 ---
 
-## Operations Checklist
+## 8. Operations Checklist
 
 ### Daily Checks
 
@@ -355,13 +368,13 @@ Track LLM usage costs by the following criteria:
 
 ---
 
-## Monitoring Maturity Model
+## 9. Monitoring Maturity Model
 
 <MaturityModelTable />
 
 ---
 
-## Next Steps
+## 10. Next Steps
 
 - [Monitoring Stack Setup Guide](../../reference-architecture/integrations/monitoring-observability-setup.md) - AMP/AMG deployment, Langfuse Helm installation, ServiceMonitor, Grafana dashboard production setup
 - [LLMOps Observability Comparison Guide](./llmops-observability.md) - In-depth comparison of Langfuse vs LangSmith vs Helicone

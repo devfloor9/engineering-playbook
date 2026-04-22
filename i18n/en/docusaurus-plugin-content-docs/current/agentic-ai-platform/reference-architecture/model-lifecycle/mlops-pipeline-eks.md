@@ -2,31 +2,29 @@
 title: "MLOps Pipeline on EKS"
 sidebar_label: "MLOps Pipeline"
 description: "End-to-end ML lifecycle management with Kubeflow + MLflow + vLLM + ArgoCD GitOps"
+created: 2026-02-11
+last_update:
+  date: 2026-04-20
+  author: devfloor9
+reading_time: 1
 sidebar_position: 3
 category: "genai-aiml"
-tags: [mlops, kubeflow, mlflow, vllm, argocd, gitops, argo-workflows, eks, ml-pipeline]
-last_update:
-  date: 2026-04-06
-  author: devfloor9
+tags: [mlops, kubeflow, mlflow, vllm, argocd, gitops, argo-workflows, eks, ml-pipeline, 'scope:impl']
 ---
 
 import SpecificationTable from '@site/src/components/tables/SpecificationTable';
 import { PipelineComponents, GitOpsDeployment } from '@site/src/components/MlOpsTables';
 
-# MLOps Pipeline on EKS
-
-> 📅 **Created**: 2026-02-13 | **Updated**: 2026-04-06 | ⏱️ **Read time**: ~12 min
-
 ## Overview
 
-MLOps is a set of practices for automating and standardizing the development, deployment, and operation of machine learning models. This document covers building an end-to-end ML lifecycle -- from data preparation to model serving -- using Kubeflow Pipelines, MLflow, vLLM model serving, and ArgoCD GitOps deployment on Amazon EKS.
+MLOps is a set of practices that automate and standardize the development, deployment, and operation of machine learning models. This document covers how to build an end-to-end ML lifecycle from data preparation to model serving in an Amazon EKS environment, utilizing Kubeflow Pipelines, MLflow, vLLM model serving, and ArgoCD GitOps deployment.
 
 ### Key Objectives
 
-- **Full Automation**: Build automated pipelines from data ingestion to model deployment
-- **Experiment Tracking**: Systematic experiment management and model versioning with MLflow
+- **Full Automation**: Build automated pipelines from data collection to model deployment
+- **Experiment Tracking**: Systematic experiment management and model version control via MLflow
 - **Scalable Serving**: High-performance model serving with vLLM + ArgoCD GitOps deployment
-- **GPU Optimization**: Dynamic GPU resource management with Karpenter
+- **GPU Optimization**: Dynamic GPU resource management using Karpenter
 
 ---
 
@@ -101,9 +99,9 @@ flowchart LR
 
 ### Kubeflow Installation (AWS Distribution)
 
-AWS provides the Kubeflow on AWS distribution, which offers an EKS-integrated configuration.
+AWS provides the Kubeflow on AWS distribution, offering an EKS-integrated configuration.
 
-> See the [Kubeflow on AWS official documentation](https://awslabs.github.io/kubeflow-manifests/) for deployment guide.
+> Refer to the [Kubeflow on AWS official documentation](https://awslabs.github.io/kubeflow-manifests/) for deployment guides.
 
 ### Kubeflow Architecture
 
@@ -152,7 +150,7 @@ flowchart TB
 
 ### Writing Kubeflow Pipelines Components
 
-Kubeflow Pipelines defines reusable components via the Python SDK.
+Kubeflow Pipelines defines reusable components through the Python SDK.
 
 ```python
 # pipeline_components.py
@@ -425,7 +423,7 @@ flowchart LR
 
 ### ArgoCD Installation and Configuration
 
-> See the [ArgoCD official documentation](https://argo-cd.readthedocs.io/en/stable/getting_started/) for deployment guide.
+> Refer to the [ArgoCD official documentation](https://argo-cd.readthedocs.io/en/stable/getting_started/) for deployment guides.
 
 ### ArgoCD Application Example (vLLM Model Serving Deployment)
 
@@ -671,88 +669,11 @@ spec:
 
 ## GPU Resource Scheduling (Karpenter)
 
-### Karpenter Architecture
+Karpenter provides dynamic node provisioning for GPU workloads. When it detects Pending Pods, it automatically selects and provisions appropriate GPU instances.
 
-```mermaid
-flowchart TB
-    PENDING[Pending Pods<br/>GPU Required]
-    CONTROLLER[Karpenter<br/>Controller]
-
-    subgraph Provisioning["Node Provisioning"]
-        PROVISION[Instance<br/>Selection]
-        EC2[EC2 Launch<br/>g5/p4/p5]
-        SPOT[Spot<br/>70% Savings]
-    end
-
-    PENDING -->|Scale request| CONTROLLER
-    CONTROLLER --> PROVISION
-    PROVISION --> EC2
-    PROVISION --> SPOT
-
-    style PENDING fill:#ea4335
-    style CONTROLLER fill:#4285f4
-    style Provisioning fill:#76b900
-```
-
-### Karpenter NodePool Configuration
-
-```yaml
-apiVersion: karpenter.sh/v1
-kind: NodePool
-metadata:
-  name: gpu-training
-spec:
-  template:
-    spec:
-      requirements:
-        - key: karpenter.sh/capacity-type
-          operator: In
-          values: ["spot", "on-demand"]
-        - key: node.kubernetes.io/instance-type
-          operator: In
-          values: ["g5.xlarge", "g5.2xlarge", "g5.4xlarge"]
-        - key: karpenter.k8s.aws/instance-gpu-count
-          operator: Gt
-          values: ["0"]
-      
-      nodeClassRef:
-        name: gpu-node-class
-      
-      taints:
-        - key: nvidia.com/gpu
-          value: "true"
-          effect: NoSchedule
-  
-  limits:
-    nvidia.com/gpu: "50"
-  
-  disruption:
-    consolidationPolicy: WhenUnderutilized
-    expireAfter: 720h
----
-apiVersion: karpenter.k8s.aws/v1
-kind: EC2NodeClass
-metadata:
-  name: gpu-node-class
-spec:
-  amiFamily: AL2023
-  role: KarpenterNodeRole-ml-cluster
-  
-  subnetSelectorTerms:
-    - tags:
-        karpenter.sh/discovery: ml-cluster
-  
-  securityGroupSelectorTerms:
-    - tags:
-        karpenter.sh/discovery: ml-cluster
-  
-  blockDeviceMappings:
-    - deviceName: /dev/xvda
-      ebs:
-        volumeSize: 100Gi
-        volumeType: gp3
-        encrypted: true
-```
+:::info Detailed Karpenter Configuration
+For NodePool configuration, Spot strategies, Consolidation policies, and GPU instance comparisons, refer to [GPU Resource Management](../../model-serving/gpu-infrastructure/gpu-resource-management.md).
+:::
 
 ---
 
@@ -796,16 +717,16 @@ def production_ml_pipeline(
 
 ## Summary
 
-The EKS-based MLOps pipeline provides a fully automated ML lifecycle by integrating Kubeflow, MLflow, vLLM, and ArgoCD.
+The EKS-based MLOps pipeline integrates Kubeflow, MLflow, vLLM, and ArgoCD to provide a fully automated ML lifecycle.
 
-### Key Takeaways
+### Key Points
 
 1. **Kubeflow Pipelines**: Reusable component-based ML workflows
-2. **MLflow**: Strengthen governance with experiment tracking and model registry
+2. **MLflow**: Strengthened governance through experiment tracking and model registry
 3. **vLLM**: High-performance LLM serving (PagedAttention, Prefix Caching)
 4. **ArgoCD GitOps**: Declarative deployment, auto-sync, one-click rollback
 5. **Karpenter**: Cost optimization through dynamic GPU resource provisioning
-6. **Argo Workflows**: Shorten deployment cycles with CI/CD automation
+6. **Argo Workflows**: Shortened deployment cycles through CI/CD automation
 
 ### Next Steps
 

@@ -2,11 +2,24 @@
 title: "llm-d Based EKS Distributed Inference Guide"
 sidebar_label: "llm-d Distributed Inference"
 description: "llm-d architecture concepts, KV Cache-aware routing, Disaggregated Serving, EKS Auto Mode integration strategy"
-tags: [eks, llm-d, vllm, inference-gateway, gpu, auto-mode, karpenter, kv-cache]
-category: "genai-aiml"
+created: 2026-02-10
 last_update:
-  date: 2026-04-06
+  date: 2026-04-20
   author: devfloor9
+reading_time: 18
+tags:
+  - eks
+  - llm-d
+  - vllm
+  - inference-gateway
+  - gpu
+  - auto-mode
+  - karpenter
+  - kv-cache
+  - kubernetes
+  - inference
+  - scope:tech
+category: "genai-aiml"
 sidebar_position: 4
 ---
 
@@ -25,11 +38,7 @@ import {
   CostOptimizationTable
 } from '@site/src/components/LlmdTables';
 
-# llm-d Based EKS Distributed Inference Guide
-
-> **Current version**: llm-d v0.5+ (2026.03)
-
-> **Written**: 2026-02-10 | **Updated**: 2026-04-06 | **Reading time**: ~8 min
+> **Current Version**: llm-d v0.5+ (2026.03)
 
 ## Overview
 
@@ -189,17 +198,9 @@ KV Cache-aware routing is most effective in applications using identical system 
 
 ### Auto Mode vs Karpenter + GPU Operator Comparison
 
-| Criteria | EKS Auto Mode | Auto Mode + GPU Operator | Karpenter + GPU Operator |
-|------|:---:|:---:|:---:|
-| **Suitable model size** | 70B+ (full GPU utilization) | 70B+ (full GPU utilization) | 7B-30B (MIG partitioning possible) |
-| **GPU driver management** | AWS auto-managed | AWS auto-managed | AMI pre-installed |
-| **Device Plugin** | AWS managed | Disabled via label | GPU Operator managed |
-| **DCGM monitoring** | Basic metrics only | DCGM Exporter detailed metrics | DCGM Exporter detailed metrics |
-| **MIG / Time-Slicing** | Not available | Not available | Available |
-| **KAI Scheduler** | Not available | Available (ClusterPolicy dependency) | Available |
-| **Operational complexity** | Low | Medium | Medium |
+Auto Mode is suitable for large model serving without GPU driver management burden, while Karpenter is advantageous for workloads requiring advanced GPU features like MIG/Time-Slicing.
 
-For per-model-size detailed cost analysis, see [EKS GPU Node Strategy](../gpu-infrastructure/eks-gpu-node-strategy.md).
+**Detailed comparison and cost analysis**: See [EKS GPU Node Strategy — Node Type Comparison](../gpu-infrastructure/eks-gpu-node-strategy.md#2-node-type-comparison)
 
 ### GPU Instance Specifications
 
@@ -213,14 +214,10 @@ For per-model-size detailed cost analysis, see [EKS GPU Node Strategy](../gpu-in
 - **g6e family (L40S)**: 13B-70B models, cost-efficient inference
 :::
 
-:::danger llm-d + DRA Node Constraints
-When llm-d ModelService requests GPUs via **DRA (ResourceClaim)**, node provisioning does not work on Karpenter and EKS Auto Mode. Since DRA's ResourceSlice is issued by the DRA Driver after node creation, Karpenter cannot perform the simulation needed before node creation.
+:::danger llm-d + DRA Karpenter/Auto Mode Constraints
+When llm-d ModelService requests GPUs via DRA (ResourceClaim), node provisioning does not work on Karpenter and EKS Auto Mode. DRA workloads require **Managed Node Group + Cluster Autoscaler** configuration.
 
-- **DRA-based deployment**: Must use **Managed Node Group + Cluster Autoscaler** for GPU node management
-- **Non-DRA deployment** (`nvidia.com/gpu` Device Plugin method): Works normally on Auto Mode and Karpenter
-- **P6e-GB200 UltraServer**: DRA is required (Device Plugin not supported)
-
-Details: [EKS GPU Node Strategy — MNG Strategy for DRA Workloads](../gpu-infrastructure/eks-gpu-node-strategy.md#56-mng-strategy-for-dra-workloads)
+Details: [EKS GPU Node Strategy — MNG Hybrid for DRA Workloads](../gpu-infrastructure/eks-gpu-node-strategy.md#53-mng-hybrid-for-dra-workloads)
 :::
 
 ---
@@ -413,13 +410,7 @@ As of April 2026, EKS Auto Mode's managed Karpenter **cannot provision p6-b200.4
 | ap-northeast-2 (Seoul) | InsufficientCapacity | Unconfirmed | -- |
 | **us-east-2 (Ohio)** | Availability varies | **Successfully acquired** | **$13-15/hr** |
 
-**Spot Price Comparison (us-east-2, 2026.04)**:
-
-| Instance | On-Demand | Spot (Lowest) | VRAM | Savings |
-|---------|-----------|------------|------|---------|
-| p5.48xlarge | $55/hr | $12.5/hr | 640GB | 77% |
-| p5en.48xlarge | ~$76/hr | $12.1/hr | 1,128GB | 84% |
-| p6-b200.48xlarge | $114/hr | $11.4/hr | 1,536GB | 90% |
+**Spot Price Comparison (us-east-2, 2026.04)**: p5 instances offer 85-90% cost savings on Spot. For detailed pricing, see [EKS GPU Node Strategy — Spot Price Comparison](../gpu-infrastructure/eks-gpu-node-strategy.md#47-spot-price-comparison-us-east-2-202604).
 
 ### GPU Quota Notes
 

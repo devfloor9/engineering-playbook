@@ -1,24 +1,29 @@
 ---
 title: "AWS Native Agentic AI Platform: Agent-Centric Approach with Managed Services"
 sidebar_label: "AWS Native Platform"
-sidebar_position: 3
+sidebar_position: 4
 description: "A platform approach that reduces infrastructure operational burden using Amazon Bedrock, Strands Agents SDK, and AgentCore to focus on agent development"
-tags: [agentcore, bedrock, strands, aws-native, mcp, a2a]
-category: "genai-aiml"
+created: 2026-03-18
 last_update:
-  date: 2026-04-06
+  date: 2026-04-20
   author: devfloor9
+reading_time: 18
+tags:
+  - agentcore
+  - bedrock
+  - strands
+  - aws-native
+  - mcp
+  - a2a
+  - scope:design
+category: "genai-aiml"
 ---
 
 import { EKSMCPFeatures, KagentVsAgentCore, MultiAgentPatterns, MCPServerEcosystem } from '@site/src/components/BedrockMcpTables';
 
-# AWS Native Agentic AI Platform
-
-> **Written**: 2026-03-18 | **Updated**: 2026-03-20 | **Status**: Draft
-
 ## Overview
 
-By leveraging AWS managed services, you can **focus on agent business logic rather than infrastructure operations**. AWS handles GPU management, scaling, availability, and security, while your development team invests its efforts solely on the problems agents need to solve.
+By leveraging AWS managed services, you can **focus on Agent business logic rather than infrastructure operations**. AWS handles GPU management, scaling, availability, and security, while development teams invest their efforts solely on the problems Agents need to solve.
 
 The AWS Agentic AI stack consists of three pillars.
 
@@ -29,7 +34,7 @@ The AWS Agentic AI stack consists of three pillars.
 | **Operations** | Amazon Bedrock AgentCore | Serverless deployment, memory, gateway, policy, evaluation |
 
 :::info Key Perspective
-This document covers the **agent development optimization approach** provided by AWS managed services. The strategy is to delegate areas where managed services are sufficient to AWS, focusing team capabilities on agent business logic. However, this approach is the **first step** in a multi-model journey. When cost pressure from traffic growth, need for domain-specific SLMs, or data sovereignty requirements arise, the realistic optimum is to expand to [EKS-Based Open Architecture](./agentic-ai-solutions-eks.md) and **combine self-hosted models with Bedrock in a hybrid approach**.
+This document covers the **Agent development optimization approach** provided by AWS managed services. The strategy is to delegate areas where managed services are sufficient to AWS, focusing team capabilities on Agent business logic. However, this approach is the **first step** in a multi-model journey. When cost pressure from traffic growth, need for domain-specific SLMs, or data sovereignty requirements arise, the realistic optimum is to expand to [EKS-based Open Architecture](./agentic-ai-solutions-eks.md) and **combine self-hosted models with Bedrock in a hybrid approach**.
 :::
 
 ### Challenge Resolution Mapping
@@ -45,7 +50,7 @@ How the 5 key challenges covered in [Technical Challenges](../foundations/agenti
 | Model supply chain management | Bedrock Model Evaluation + Prompt Management |
 
 :::tip Core Value of AWS Native
-Since AWS handles GPU infrastructure management, scaling, availability, and security, teams can focus solely on agent business logic. For more fine-grained control, it can be combined with [EKS-Based Open Architecture](./agentic-ai-solutions-eks.md).
+Since AWS handles GPU infrastructure management, scaling, availability, and security, teams can focus solely on Agent business logic. For more fine-grained control, it can be combined with [EKS-based Open Architecture](./agentic-ai-solutions-eks.md).
 :::
 
 ---
@@ -116,7 +121,7 @@ Agents with long system prompts or repetitive tool definitions can significantly
 
 ## Strands Agents SDK: Development Framework
 
-**Strands Agents SDK** is an open-source agent framework released by AWS under Apache 2.0. It implements production-grade agents with minimal code and supports various model providers beyond Bedrock through its model-agnostic design.
+**Strands Agents SDK** is an open-source agent framework released by AWS under Apache 2.0. It implements production-grade Agents with minimal code and supports various model providers beyond Bedrock through its model-agnostic design.
 
 ### Minimal Code Agent Implementation
 
@@ -138,7 +143,7 @@ result = agent("Convert the current temperature in Seoul to Celsius and Fahrenhe
 from strands import Agent
 from strands.tools.mcp import MCPClient
 
-# MCP server connection — auto-discovers external tools and integrates with agent
+# MCP server connection — auto-discovers external tools and integrates with Agent
 mcp_client = MCPClient(server_url="http://mcp-server:8080")
 
 agent = Agent(
@@ -167,7 +172,7 @@ def create_ticket(title: str, priority: str, description: str) -> dict:
 agent = Agent(
     model=BedrockModel(model_id="anthropic.claude-sonnet-4-20250514"),
     tools=[lookup_customer, create_ticket],
-    system_prompt="You are a customer service agent. Look up customer information and create tickets when needed.",
+    system_prompt="You are a customer service Agent. Look up customer information and create tickets when needed.",
 )
 ```
 
@@ -186,7 +191,7 @@ agent = Agent(
 
 ## Amazon Bedrock AgentCore: Operations Platform
 
-AgentCore is a platform that provides **everything needed for production agent operations** as a managed service. Released as GA in 2025, it consists of 7 core services.
+AgentCore is a platform that provides **everything needed for production Agent operations** as a managed service. Released as GA in 2025, it consists of 7 core services.
 
 ### 7 Core Services
 
@@ -214,7 +219,7 @@ agentcore deploy \
 
 #### 2. Memory — Short/Long-term Memory Management
 
-A managed memory service that enables agents to remember conversation context and user preferences.
+A managed memory service that enables Agents to remember conversation context and user preferences.
 
 | Memory Type | Description | Usage Example |
 |------------|-------------|---------------|
@@ -228,7 +233,7 @@ A managed memory service that enables agents to remember conversation context an
 AgentCore Gateway **automatically converts REST APIs to MCP protocol** and uses semantic tool search to select only relevant tools from hundreds of registered tools.
 
 :::info Semantic Tool Search
-Even with 300 tools registered, the Gateway analyzes the user request and delivers only the 4 relevant tools to the agent. This saves LLM context window and improves tool selection accuracy.
+Even with 300 tools registered, the Gateway analyzes the user request and delivers only the 4 relevant tools to the Agent. This saves LLM context window and improves tool selection accuracy.
 :::
 
 | Feature | Description |
@@ -273,14 +278,14 @@ Policy: "PII must be masked when calling external APIs"
 |---------|-------------|
 | **CloudWatch Integration** | Automatic collection of metrics, logs, and alarms |
 | **OpenTelemetry** | Standard instrumentation compatible with existing monitoring tools |
-| **Per-step Traces** | Full tracking from agent reasoning → tool calls → responses |
-| **Cost Dashboard** | Per-model, per-agent, per-session cost visualization |
+| **Per-step Traces** | Full tracking from Agent reasoning → tool calls → responses |
+| **Cost Dashboard** | Per-model, per-Agent, per-session cost visualization |
 
 #### 7. Evaluation — Continuous Quality Monitoring
 
 | Feature | Description |
 |---------|-------------|
-| **LLM-as-judge** | LLM automatically evaluates agent response quality |
+| **LLM-as-judge** | LLM automatically evaluates Agent response quality |
 | **13 Evaluation Criteria** | Accuracy, relevance, harmfulness, consistency, etc. |
 | **A/B Testing** | Quantitative measurement of quality impact from prompt/model changes |
 | **Continuous Monitoring** | Real-time quality tracking on production traffic |
@@ -319,7 +324,7 @@ graph LR
 
 ### Simple Agent Pattern
 
-Suitable for agents performing single tasks such as FAQ, billing lookup, and status checks.
+Suitable for Agents performing single tasks such as FAQ, billing lookup, and status checks.
 
 ```mermaid
 graph LR
@@ -335,6 +340,8 @@ graph LR
 ```
 
 ### Complex Agent Pattern (Multi-step)
+
+Suitable for Agents that call multiple tools sequentially/in parallel and branch based on intermediate results.
 
 ```mermaid
 graph TD
@@ -362,11 +369,14 @@ graph TD
 
 ### Multi-Agent Pattern
 
+Independent Agents collaborate to handle complex business processes.
+
 ```python
 from strands import Agent
 from strands.models import BedrockModel
 from strands.multiagent import MultiAgentOrchestrator
 
+# Define specialist Agents
 research_agent = Agent(
     model=BedrockModel(model_id="anthropic.claude-sonnet-4-20250514"),
     system_prompt="You are a research specialist.",
@@ -385,9 +395,10 @@ writer_agent = Agent(
     tools=["document_writer"],
 )
 
+# Multi-Agent Orchestration
 orchestrator = MultiAgentOrchestrator(
     agents=[research_agent, analysis_agent, writer_agent],
-    strategy="sequential",
+    strategy="sequential",  # Sequential execution: Research → Analysis → Writing
 )
 result = orchestrator("Write a Q1 2026 market trends report")
 ```
@@ -396,15 +407,44 @@ result = orchestrator("Write a Q1 2026 market trends report")
 
 ## Deployment Guide
 
+The practical deployment methods for the AWS Native Agentic AI Platform consist of three approaches:
+
 ### Deployment Methods Overview
 
 | Approach | Tool | Suitable Scenario |
 |----------|------|------------------|
-| **CLI Deployment** | `agentcore deploy` | Quick prototyping, single agent deployment |
+| **CLI Deployment** | `agentcore deploy` | Quick prototyping, single Agent deployment |
 | **IaC Deployment** | CloudFormation / CDK | Production environments, reproducible infrastructure |
 | **Full-stack Template** | FAST Templates | Full stack (Agent + API + UI) bootstrap |
 
+### Strands + AgentCore Concept
+
+**Strands Agent Structure:**
+```python
+from strands import Agent
+from strands.models import BedrockModel
+
+# Define Agent with minimal code
+agent = Agent(
+    model=BedrockModel(model_id="anthropic.claude-sonnet-4-20250514"),
+    tools=["calculator", "web_search"],
+    system_prompt="You are a math assistant.",
+)
+
+# Wrap as Lambda handler
+def handler(event, context):
+    return agent(event["prompt"])
+```
+
+**AgentCore Deployment Workflow:**
+1. Write Agent code (Python)
+2. Execute `agentcore deploy` → Automatically deploy to Firecracker MicroVM
+3. Endpoint created → Agent callable via REST API
+4. Memory/Gateway/Policy automatically connected
+
 ### CloudFormation IaC Pattern
+
+Using AWS CloudFormation allows declarative management of Agents and related resources (Knowledge Base, Guardrails, etc.):
 
 ```yaml
 Resources:
@@ -428,7 +468,7 @@ Resources:
 ```
 
 :::info Production Deployment Guide
-For detailed kubectl/helm commands, complete YAML manifests, and Python boto3 deployment scripts, see the [Reference Architecture](../../reference-architecture/) section.
+For detailed kubectl/helm commands, complete YAML manifests, and Python boto3 deployment scripts, refer to the [Reference Architecture](../../reference-architecture/) section. This document focuses on **concepts and patterns** of the AWS Native approach.
 :::
 
 ---
@@ -439,10 +479,10 @@ For detailed kubectl/helm commands, complete YAML manifests, and Python boto3 de
 
 | Item | Details |
 |------|---------|
-| **Challenge** | Reducing knowledge search time for customer service agents |
+| **Challenge** | Reducing internal policy search time for customer service agents |
 | **Architecture** | Strands Agent + Bedrock Knowledge Bases + Claude |
 | **Results** | **30% improvement** in consultation efficiency, 90% reduction in policy search time |
-| **Key Value** | Completed knowledge agent with just S3 document upload, without building a RAG pipeline |
+| **Core Value** | Completed knowledge Agent with just S3 document upload, without building a RAG pipeline |
 
 ### CJ OnStyle: Multi-Agent Live Commerce
 
@@ -451,7 +491,7 @@ For detailed kubectl/helm commands, complete YAML manifests, and Python boto3 de
 | **Challenge** | Automating real-time customer Q&A during live broadcasts |
 | **Architecture** | Multi-agent (Product Info Agent + Order Agent + Recommendation Agent) |
 | **Results** | **3x improvement** in customer response rate, real-time processing latency under 2 seconds |
-| **Key Value** | AgentCore Runtime auto-scaling handled live broadcast traffic surges |
+| **Core Value** | AgentCore Runtime auto-scaling handled live broadcast traffic surges |
 
 ### Amazon Devices: Manufacturing Agent
 
@@ -460,11 +500,13 @@ For detailed kubectl/helm commands, complete YAML manifests, and Python boto3 de
 | **Challenge** | Automating quality inspection model fine-tuning for manufacturing lines |
 | **Architecture** | Strands Agent + Bedrock Fine-tuning + AgentCore |
 | **Results** | Fine-tuning time reduced from **days to 1 hour** |
-| **Key Value** | Agent auto-orchestrated data preprocessing → fine-tuning → evaluation |
+| **Core Value** | Agent auto-orchestrated data preprocessing → fine-tuning → evaluation |
 
 ---
 
 ## Cost Structure
+
+The cost of an AgentCore-based platform follows a **pay-as-you-go** serverless model.
 
 ### Billing Model
 
@@ -476,11 +518,21 @@ For detailed kubectl/helm commands, complete YAML manifests, and Python boto3 de
 | **Guardrails** | Processed text units | Billed separately for input/output |
 | **Prompt Caching** | 90% discount on cache hits | Greater savings with more repeated patterns |
 
+### Operational Cost Savings
+
+| Area | Savings Factor |
+|------|---------------|
+| **GPU Management** | No need for GPU instance provisioning, patching, scaling operations personnel |
+| **Infrastructure Operations** | Serverless architecture eliminates cluster management burden |
+| **Security Compliance** | Leverage AWS SOC 2, HIPAA, ISO 27001 certifications |
+| **Availability Management** | Multi-AZ automatic placement, DR built-in with Cross-Region Inference |
+| **Monitoring Setup** | Native CloudWatch integration eliminates need for separate monitoring stack |
+
 :::info Cost Optimization Tips
-- **Prompt Caching**: Must enable for agents with long system prompts
+- **Prompt Caching**: Must enable for Agents with long system prompts
 - **Provisioned Throughput**: Up to 50% savings vs on-demand for stable traffic
 - **Cross-Region Inference**: Prevents throttling with auto-fallback when regional capacity is limited
-- **Batch Inference**: Use batch mode for evaluation/analysis tasks that don't require real-time processing
+- **Batch Inference**: Use batch mode for evaluation/analysis tasks that don't require real-time processing to save costs
 :::
 
 ---
@@ -489,7 +541,7 @@ For detailed kubectl/helm commands, complete YAML manifests, and Python boto3 de
 
 ### MCP (Model Context Protocol) Overview
 
-MCP is a **standard communication protocol** between AI agents and tools:
+MCP is a **standard communication protocol** between AI Agents and tools:
 
 - **Tool Discovery**: Agents dynamically discover available tools
 - **Context Passing**: Execution context and state passed in standardized format
@@ -498,15 +550,75 @@ MCP is a **standard communication protocol** between AI agents and tools:
 
 ### EKS MCP Server Integration
 
+AWS provides EKS-dedicated hosted MCP servers to support integration between Kubernetes clusters and AI Agents:
+
 <EKSMCPFeatures />
+
+**EKS MCP Server Deployment Concept:**
+
+MCP servers run within the Kubernetes cluster, enabling Agents to query cluster status and perform operations without executing kubectl commands.
+
+```bash
+# Clone AWS MCP server repository
+git clone https://github.com/awslabs/mcp.git
+cd mcp/servers/eks
+
+# Build Docker image and deploy to EKS
+docker build -t eks-mcp-server:latest .
+kubectl apply -f k8s/deployment.yaml
+```
+
+**AgentCore + MCP Integration Pattern:**
+
+Bedrock AgentCore registers MCP servers as Action Groups, enabling Agents to use Kubernetes tools:
+
+```python
+import boto3
+
+bedrock_agent = boto3.client('bedrock-agent')
+
+# Create Agent
+response = bedrock_agent.create_agent(
+    agentName='sre-agent',
+    foundationModel='anthropic.claude-sonnet-4-20250514',
+    instruction='You are an SRE agent for Kubernetes troubleshooting.',
+    agentResourceRoleArn='arn:aws:iam::ACCOUNT:role/BedrockAgentRole',
+)
+
+# Connect MCP tools (Action Group)
+bedrock_agent.create_agent_action_group(
+    agentId=response['agent']['agentId'],
+    agentVersion='DRAFT',
+    actionGroupName='eks-mcp-tools',
+    actionGroupExecutor={'customControl': 'RETURN_CONTROL'},
+    apiSchema={
+        'payload': {
+            'openapi': '3.0.0',
+            'info': {'title': 'EKS MCP Tools', 'version': '1.0'},
+            'paths': {
+                '/pod-logs': {'post': {'description': 'Get pod logs'}},
+                '/k8s-events': {'post': {'description': 'Get K8s events'}},
+            }
+        }
+    }
+)
+```
+
+:::info Production Deployment Details
+For complete boto3 scripts, IAM policies, and YAML manifests, refer to the [Reference Architecture](../../reference-architecture/) section.
+:::
 
 ### Hybrid Strategy with Self-hosted Agents
 
+EKS-based self-hosted Agents and Bedrock AgentCore can be used together:
+
 <KagentVsAgentCore />
 
-**Hybrid Approach**: Route high-frequency, cost-sensitive calls to EKS self-hosted agents, and low-frequency calls requiring complex reasoning to Bedrock AgentCore.
+**Hybrid Approach**: Route high-frequency, cost-sensitive calls to EKS self-hosted Agents, and low-frequency calls requiring complex reasoning to Bedrock AgentCore for effective strategy.
 
 ### Multi-Agent Orchestration
+
+AgentCore supports inter-Agent collaboration via MCP/A2A:
 
 <MultiAgentPatterns />
 
@@ -532,12 +644,14 @@ flowchart TB
 
 ### AWS MCP Server Ecosystem
 
+AWS provides official MCP servers as open source ([github.com/awslabs/mcp](https://github.com/awslabs/mcp)):
+
 <MCPServerEcosystem />
 
 ### CloudWatch Gen AI Observability Integration
 
 :::tip CloudWatch Gen AI Observability GA
-CloudWatch Generative AI Observability became **GA in October 2025**. Natively integrated with AgentCore, agent invocations, tool executions, and token usage are automatically recorded in CloudWatch without additional configuration.
+CloudWatch Generative AI Observability became **GA in October 2025**. Natively integrated with AgentCore, Agent invocations, tool executions, and token usage are automatically recorded in CloudWatch without additional configuration.
 :::
 
 - **Agent Execution Tracing**: End-to-end tracing for full inference flow visibility
@@ -549,13 +663,29 @@ CloudWatch Generative AI Observability became **GA in October 2025**. Natively i
 
 ## Next Steps
 
-- For EKS-based open-source architecture → [EKS-Based Open Architecture](./agentic-ai-solutions-eks.md)
+- Select optimal approach among managed vs open source vs hybrid → [AI Platform Selection Guide](./ai-platform-decision-framework.md)
+- For EKS-based open-source architecture → [EKS-based Open Architecture](./agentic-ai-solutions-eks.md)
 - For overall platform design → [Platform Architecture](../foundations/agentic-platform-architecture.md)
 
 ## References
 
-- [Amazon Bedrock AgentCore Documentation](https://docs.aws.amazon.com/bedrock/latest/userguide/agents.html)
-- [AWS MCP Servers (GitHub)](https://github.com/awslabs/mcp)
-- [Model Context Protocol Specification](https://modelcontextprotocol.io/)
-- [CloudWatch Generative AI Observability](https://aws.amazon.com/blogs/mt/launching-amazon-cloudwatch-generative-ai-observability-preview/)
-- [CNS421: Streamline EKS Operations with Agentic AI (re:Invent 2025)](https://www.youtube.com/watch?v=4s-a0jY4kSE)
+### Official Documentation
+
+- [Amazon Bedrock AgentCore Documentation](https://docs.aws.amazon.com/bedrock/latest/userguide/agents.html) — AgentCore official guide
+- [Strands Agents SDK (GitHub)](https://github.com/awslabs/strands) — Open-source Agent framework
+- [Model Context Protocol Specification](https://modelcontextprotocol.io/) — MCP protocol specification
+- [AWS MCP Servers (GitHub)](https://github.com/awslabs/mcp) — AWS official MCP servers
+
+### Papers / Technical Blogs
+
+- [CloudWatch Generative AI Observability](https://aws.amazon.com/blogs/mt/launching-amazon-cloudwatch-generative-ai-observability-preview/) — Observability GA announcement
+- [Building Production Agent Systems](https://aws.amazon.com/blogs/machine-learning/) — Production Agent construction
+- [CNS421: Streamline EKS Operations with Agentic AI](https://www.youtube.com/watch?v=4s-a0jY4kSE) — re:Invent 2025 session
+- [Agent-to-Agent Protocol Deep Dive](https://google.github.io/A2A/) — Multi-agent communication
+
+### Related Documents (Internal)
+
+- [Platform Architecture](../foundations/agentic-platform-architecture.md) — 6 core layers
+- [Technical Challenges](../foundations/agentic-ai-challenges.md) — 5 core challenges
+- [AI Platform Selection Guide](./ai-platform-decision-framework.md) — Managed vs open source
+- [EKS-based Open Architecture](./agentic-ai-solutions-eks.md) — Self-hosting comparison

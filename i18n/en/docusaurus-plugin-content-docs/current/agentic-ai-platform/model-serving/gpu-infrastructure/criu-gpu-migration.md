@@ -2,11 +2,21 @@
 title: "CRIU-based GPU Live Migration (Preview)"
 sidebar_label: "CRIU GPU Migration"
 description: "Technical status and EKS application scenarios for GPU workload checkpoint/restore during Spot reclaim and scheduling events (Experimental)"
-tags: [criu, gpu, checkpoint, spot, experimental, 'scope:tech']
-sidebar_position: 5
+created: 2026-04-18
 last_update:
-  date: 2026-04-18
+  date: 2026-04-20
   author: devfloor9
+reading_time: 19
+tags:
+  - criu
+  - gpu
+  - checkpoint
+  - spot
+  - experimental
+  - kubernetes
+  - eks
+  - cost-optimization
+  - scope:tech
 ---
 
 :::caution Experimental / Research Preview
@@ -19,7 +29,6 @@ The practical alternative (graceful drain + warm start) ordering and EKS Auto Mo
 Verification tracking: [Issue #7](https://github.com/devfloor9/engineering-playbook/issues/7)
 :::
 
-
 # CRIU-based GPU Live Migration (Preview)
 
 ## 1. Why CRIU: Spot Reclaim and KV Cache Loss Problems
@@ -28,66 +37,66 @@ Verification tracking: [Issue #7](https://github.com/devfloor9/engineering-playb
 
 Spot instance usage is a core cost reduction strategy in large-scale LLM serving environments (85-94% savings). However, Spot reclaim events cause critical issues:
 
-**GLM-5 (744B MoE) Case on p5en.48xlarge H200Ã8:**
+**GLM-5 (744B MoE) Case on p5en.48xlarge H200×8:**
 
-| Item | time | Notes |
+| Item | Time | Notes |
 |------|-----|------|
-| Spot reclaim warning | 2min | AWSthat characters ê³µíis characters characters¼í time |
+| Spot reclaim warning | 2min | Only time AWS provides |
 | Model reloading time | 15-20min | 744B parameter weight loading |
 | KV Cache warmup | 5-10min | Major prefix regeneration |
 | **Total recovery time** | **22-32min** | Cannot handle urgent requests |
-| **Cost** | $40-65/reclaim | p5en per hour ~$120 based on |
+| **Cost** | $40-65/reclaim | Based on p5en ~$120/hr |
 
 **Fundamental Limitations of Spot Reclaim:**
 
 ```
 Spot reclaim warning (2min)
-  â
-  ââ gracefulShutdown (1-2min) â Complete in-flight requests
-  ââ ëª¨ë¸ characters¸ë¡ë (30sec-1min) â Memory deallocation
-  ââ Pod termination
-       â
+  ↓
+  ├─ gracefulShutdown (1-2min) — Complete in-flight requests
+  ├─ Model unload (30sec-1min) — Memory deallocation
+  └─ Pod termination
+       ↓
   New node provisioning (3-5min)
-       â
-  Model reloading (15-20min) â bottleneck
-       â
-  KV Cache warmup (5-10min) â bottleneck
-       â
-  Resume serving (characters´ 25-37min)
+       ↓
+  Model reloading (15-20min) ← bottleneck
+       ↓
+  KV Cache warmup (5-10min) ← bottleneck
+       ↓
+  Resume serving (total 25-37min)
 ```
 
 ### Limitations of Existing Alternatives
 
 | Alternative | Advantages | Limitations |
 |------|------|------|
-| **Warm Replica** | Immediate failover | GPU 2Ã Cost ($240/hr â $480/hr) |
-| **llm-d KV Offload** | KV Cacheonly network transfer | Model reloadingis characters¬characters í required |
-| **On-Demand fallback** | Stable | Spot vs. 10Ã Cost |
-| **Multi-AZ mincharacters°** | AZ Fault tolerance | Spot reclaim does not solve reclaim itself |
+| **Warm Replica** | Immediate failover | GPU 2× cost ($240/hr → $480/hr) |
+| **llm-d KV Offload** | KV Cache-only network transfer | Model reloading still required |
+| **On-Demand fallback** | Stable | 10× cost vs Spot |
+| **Multi-AZ distribution** | AZ fault tolerance | Does not solve Spot reclaim itself |
 
-### CRIU Core Problem CRIU Aims to Solve
+### Core Problem CRIU Aims to Solve
 
-CRIU(Checkpoint/Restore In Userspace)is of a running process **entire state**to save to disk(checkpoint)and, resume from that point on another node(restore)enables you to.
+CRIU (Checkpoint/Restore In Userspace) saves the **entire state** of a running process to disk (checkpoint) and enables resumption from that point on another node (restore).
 
-**GPU Expected benefits when applied to GPU workloads:**
+**Expected benefits when applied to GPU workloads:**
 
 ```
 Spot reclaim warning (2min)
-  â
-  CRIU checkpoint (1-2min) â GPU memory + process status dump
-  â
+  ↓
+  CRIU checkpoint (1-2min) — GPU memory + process state dump
+  ↓
   New node provisioning (3-5min)
-  â
-  CRIU restore (1-3min) â Model reloading omitted
-  â
-  Resume serving (characters´ 5-10min, 70-80% reduction)
+  ↓
+  CRIU restore (1-3min) ← Model reloading omitted
+  ↓
+  Resume serving (total 5-10min, 70-80% reduction)
 ```
 
 **Savings effect:**
 
-- **ë³µêµ¬ time**: 25-37min â 5-10min (70-80% reduction)
-- **Cost**: reclaimper $40-65 â $10-20 (50-70% savings)
-- **SLA**: urgent requests 22min instead of 5min can be handled within
+- **Recovery time**: 25-37min → 5-10min (70-80% reduction)
+- **Cost**: $40-65/reclaim → $10-20 (50-70% savings)
+- **SLA**: Urgent requests can be handled in 5min instead of 22min
 
 ---
 
@@ -130,50 +139,52 @@ flowchart TB
 
 ### Core Component Maturity
 
-| Component | Version | status | Notes |
+| Component | Version | Status | Notes |
 |---------|------|------|------|
 | **CRIU** | v4.0+ | Stable | CPU workloads production-verified |
-| **cuda-checkpoint** | alpha/beta | **Experimental** | NVIDIA Official tool, GPU memory dump |
-| **nvidia-container-toolkit** | v1.17+ | Beta | CR(checkpoint/restore) plugin included |
+| **cuda-checkpoint** | driver 570+ | **Active Development** | NVIDIA Labs, no official release tags, UVM/IPC memory unsupported ([repo](https://github.com/NVIDIA/cuda-checkpoint)) |
+| **nvidia-container-toolkit** | v1.17+ | Experimental | CR (checkpoint/restore) plugin included |
 | **runc** | v1.2+ | Alpha | CRIU integration, GPU CR support |
-| **K8s ContainerCheckpoint API** | 1.30 alpha | **Alpha** | KEP-2008, feature gate required |
-| **EKS support** | - | **Not supported** | Self-validation required |
+| **K8s ContainerCheckpoint API** | **1.30 Beta (default enabled)** | **Beta** | KEP-2008, 1.25 Alpha → 1.30 Beta (default `true`). GA schedule unconfirmed |
+| **K8s GPU checkpoint official support** | - | **Unsupported** | KEP-2008 documentation: "external hardware device (GPU, InfiniBand) access may fail". Only AMD partially works |
+| **EKS support** | - | **Unsupported** | Auto Mode cannot control feature gates, Standard Mode also lacks official GPU CR validation |
 
-:::warning Maturity Warning
-- **cuda-checkpoint**: NVIDIA Labs project beta or below. No official support
-- **K8s API**: 1.30 alpha, 1.34until beta expected. GAthe 1.35+ projected
-- **EKS**: ContainerCheckpoint APIthat feature gatecharacters´ë¯to EKSunclear if enabled in
-- **production cases**: publicly available GPU CRIU no production cases (2026.04 based on)
+:::warning Maturity Warning (2026-04-20 Re-validation)
+- **cuda-checkpoint**: NVIDIA Labs project, no tagged releases on GitHub. Driver 570+ explicitly states "actively developed". UVM·IPC memory unsupported, x64 only
+- **K8s ContainerCheckpoint API**: 1.25 Alpha → **1.30 Beta (default enabled)**. GA schedule not confirmed in Kubernetes enhancements tracker (as of 2026-04)
+- **K8s KEP-2008 own note**: "Checkpointing anything with access to an external hardware device like a GPU or InfiniBand can fail" — **NVIDIA GPU not officially supported**, only AMD partially works
+- **EKS**: Auto Mode cannot control feature gates. Standard Mode also lacks AWS official GPU CR documentation
+- **Production cases**: No public large-scale LLM GPU CRIU production cases (as of 2026-04)
 :::
 
 ### Technology Stack Details
 
 #### CRIU (Checkpoint/Restore In Userspace)
 
-- **Role**: Linux process memory, file descriptors, network sockets, characters¤ë ë statusto checkpoint
-- **GPU Constraints**: by default GPU memorydoes not recognize â cuda-checkpoint required
-- **characters±charactersë**: CPU workloadis 10years+ characters­characters¬to Stable. Docker/Podmanalso used
+- **Role**: Checkpoint Linux process memory, file descriptors, network sockets, thread state
+- **GPU Constraints**: Does not recognize GPU memory by default → cuda-checkpoint required
+- **Maturity**: CPU workloads stable with 10+ years history. Used by Docker/Podman
 
 #### cuda-checkpoint (NVIDIA)
 
 - **GitHub**: [NVIDIA/cuda-checkpoint](https://github.com/NVIDIA/cuda-checkpoint)
-- **Role**: CUDA context, GPU memory(device memory), unified memoryto dump/restore
-- **Constraintscharacters¬í­**:
-  - H100/H200: device memory charactersµë 80GB/141GB â checkpoint ícharacters¼ Size ëcharacters¼
-  - PCIe BAR remapping: ëcharacters¼ GPU UUID ë¸ëë¡only restore thatë¥
-  - NVLink topology Fixed: Multi-GPU workloadrequires same topology required
-  - CUDA Version match: checkpoint/restore characters ëcharacters¼ CUDA Version required
+- **Role**: Dump/restore CUDA context, GPU memory (device memory), unified memory
+- **Constraints**:
+  - H100/H200: device memory max 80GB/141GB → checkpoint file size identical
+  - PCIe BAR remapping: restore only to nodes with identical GPU UUID
+  - NVLink topology fixed: Multi-GPU workloads require identical topology
+  - CUDA version match: checkpoint/restore requires identical CUDA version
 
 #### nvidia-container-toolkit CR plugin
 
-- **Role**: containerd/runcthat GPU containerto checkpoint/restoreí  ë cuda-checkpointto automatic call
-- **Configuration**: `/etc/nvidia-container-runtime/config.toml`at `checkpoint-restore = true`
-- **Status**: v1.17+at experimental support
+- **Role**: Automatically calls cuda-checkpoint when containerd/runc checkpoint/restores GPU containers
+- **Configuration**: `checkpoint-restore = true` in `/etc/nvidia-container-runtime/config.toml`
+- **Status**: Experimental support in v1.17+
 
 #### K8s ContainerCheckpoint API (KEP-2008)
 
 ```yaml
-# K8s 1.30+ (alpha, feature gate required)
+# K8s 1.30+ (Beta, feature gate default enabled)
 apiVersion: v1
 kind: Pod
 metadata:
@@ -200,19 +211,20 @@ kubectl checkpoint create <pod-name> \
 kubectl apply -f pod-restore.yaml  # checkpoint path reference
 ```
 
-:::caution K8s API Constraints
-- 1.30: alpha, feature gate `ContainerCheckpoint=true` required
-- EKS Auto Mode: feature gate cannot control â unavailable
-- EKS Standard Mode: kube-apiserver/kubelet flag modification required
+:::caution K8s API Constraints (2026-04-20 Re-validation)
+- 1.30: **Beta, default enabled** — No separate feature gate activation required (but CRI-O default, containerd partial support)
+- GPU checkpoint: KEP-2008 officially unsupported (AMD limited, NVIDIA requires separate cuda-checkpoint + nvidia-container-toolkit CR plugin configuration)
+- EKS Auto Mode: containerd-based with kubelet/container runtime tuning restrictions → effectively unusable
+- EKS Standard Mode: CRI-O replacement + Custom AMI + driver pinning is realistic path, no AWS official support
 :::
 
 ---
 
-## 3. GPU status checkpointof fundamental Constraints
+## 3. Fundamental Constraints of GPU State Checkpoint
 
 ### Device Memory Dump Size
 
-| GPU | VRAM | checkpoint ícharacters¼ Size | Transfer time (10GbE) | Transfer time (100GbE) |
+| GPU | VRAM | checkpoint file size | Transfer time (10GbE) | Transfer time (100GbE) |
 |-----|------|-------------------|-----------------|------------------|
 | A100 40GB | 40GB | ~40GB | 32sec | 3.2sec |
 | H100 80GB | 80GB | ~80GB | 64sec | 6.4sec |
@@ -220,26 +232,26 @@ kubectl apply -f pod-restore.yaml  # checkpoint path reference
 | H200 x8 | 1,128GB | ~1,128GB | **15min** | **1.5min** |
 
 :::warning Network bottleneck
-p5en.48xlarge (H200Ã8)of checkpointis **1.1TB**is. cross-node Transferis requiring ê²½characters°:
-- 10GbE: 15min (Spot reclaim 2min within impossible)
-- 100GbE: 1.5min (Spot reclaim 2min within thatë¥, but ENA Constraints)
-- **characters¤characters§characters with cross-node migrateis impossible**, only same-node restart is realistic
+p5en.48xlarge (H200×8) checkpoint is **1.1TB**. If cross-node transfer is required:
+- 10GbE: 15min (impossible within 2min Spot reclaim)
+- 100GbE: 1.5min (possible within 2min Spot reclaim, but ENA constraints)
+- **Cross-node migrate effectively impossible**, only same-node restart realistic
 :::
 
-### PCIe BAR remapping Constraints
+### PCIe BAR Remapping Constraints
 
-GPUthe PCIe Base Address Register(BAR)to through CPUand communicates. checkpoint saved during BAR address is **hardware-dependent**characters´ë¯to ë¤characters Constraintsis characterscharactersµëë¤:
+GPUs communicate with CPU through PCIe Base Address Register (BAR). BAR addresses saved during checkpoint are **hardware-dependent**, with the following constraints:
 
 | Scenario | Feasibility | Reason |
 |---------|---------|------|
-| ëcharacters¼ ë¸ë restart | â | ëcharacters¼ PCIe slot, ëcharacters¼ BAR address |
-| ëcharacters¼ instance type (ëcharacters¼ AZ) | â ï¸ Experimental | GPU UUID UUID match difficult to guarantee |
-| ëcharacters¼ instance type (Cross-AZ) | â | PCIe different topology |
-| Heterogeneous (H200âH100) | â | architectureÂ·memory Size charactersis |
+| Same node restart | ✅ | Same PCIe slot, same BAR address |
+| Same instance type (same AZ) | ⚠️ Experimental | GPU UUID match difficult to guarantee |
+| Same instance type (Cross-AZ) | ❌ | Different PCIe topology |
+| Heterogeneous (H200→H100) | ❌ | Different architecture·memory size |
 
 ### NVLink Topology Fixed
 
-Multi-GPU workload(TP=4, TP=8)the GPU between NVLink characters°ê²° êµ¬characters¡°to ofcharacters¡´. checkpointthe **GPU indexand NVLink topologyto characters ë pathto save**íë¯ë¡:
+Multi-GPU workloads (TP=4, TP=8) depend on NVLink connection structure between GPUs. Checkpoint saves **GPU index and NVLink topology as absolute paths**, so:
 
 ```
 Original:
@@ -247,48 +259,48 @@ Original:
   GPU 2 <--NVLink--> GPU 3
 
 Restore on different topology:
-  GPU 0 <--PCIe--> GPU 1  â NVLink ëê¹
+  GPU 0 <--PCIe--> GPU 1  ← NVLink broken
   GPU 2 <--NVLink--> GPU 3
-  â Tensor Parallelism íµcharacters  characters¤í¨
+  → Tensor Parallelism communication failure
 ```
 
-**ê²°ë¡ **: TP>1 workloadis **ëcharacters¼ NVLink êµ¬characters± ë¸ëë¡only** restore thatë¥
+**Conclusion**: TP>1 workloads can **only restore to nodes with identical NVLink configuration**
 
-### CUDA Context Version characters¼characters¹
+### CUDA Context Version Match
 
-- **CUDA Runtime Version**: checkpoint/restore characters ëcharacters¼ CUDA Version required (12.2 â 12.3 ë¶that)
-- **Driver ABI í¸ícharacters±**: GPU driver major Version characters¼characters¹ required (R580 â R570 ë¶that)
-- **AMI Fixed**: EKS Auto Modeis driver Version cannot control â Karpenter + Custom AMI required
+- **CUDA Runtime Version**: checkpoint/restore requires identical CUDA version (12.2 ↔ 12.3 impossible)
+- **Driver ABI Compatibility**: GPU driver major version match required (R580 ↔ R570 impossible)
+- **AMI Pinning**: EKS Auto Mode cannot control driver versions → Karpenter + Custom AMI required
 
 ---
 
-## 4. EKS characters characters© Scenario ë§¤í¸ë¦­characters¤
+## 4. EKS Application Scenario Matrix
 
-### Scenarioë³ Feasibility
+### Scenario-specific Feasibility
 
 | Scenario | Feasibility | Complexity | Notes |
 |---------|-----------|-------|------|
-| **(a) ëcharacters¼ ë¸ë restart** | â Ready | Medium | OS update, kubelet restart |
-| **(b) ëcharacters¼ instance type migrate** | â ï¸ Experimental | High | GPU UUID UUID match difficult to guarantee |
-| **(c) Heterogeneous migrate (H200âH100)** | â Blocked | - | charactersí¤ícharacters² charactersis |
-| **(d) Cross-AZ migrate** | â Blocked | - | NIXL recommended |
+| **(a) Same node restart** | ✅ Ready | Medium | OS update, kubelet restart |
+| **(b) Same instance type migrate** | ⚠️ Experimental | High | GPU UUID match difficult to guarantee |
+| **(c) Heterogeneous migrate (H200↔H100)** | ❌ Blocked | - | Different architecture |
+| **(d) Cross-AZ migrate** | ❌ Blocked | - | NIXL recommended |
 
-### (a) ëcharacters¼ ë¸ë restart â Ready
+### (a) Same node restart — Ready
 
 **Use Case:**
-- Spot reclaim without ë¸ë OS update
+- Node OS update without Spot reclaim
 - kubelet/containerd restart
-- GPU driver update (ëcharacters¼ major Version)
+- GPU driver update (same major version)
 
 **Procedure:**
 
 ```bash
-# 1. Checkpoint characterscharacters±
+# 1. Checkpoint creation
 kubectl checkpoint create gpu-pod-1 \
   --container=vllm \
   --output=/mnt/efs/checkpoints/vllm-$(date +%s).tar
 
-# 2. ë¸ë maintenance
+# 2. Node maintenance
 kubectl drain <node> --ignore-daemonsets
 # ... OS update, driver update
 kubectl uncordon <node>
@@ -297,35 +309,35 @@ kubectl uncordon <node>
 kubectl apply -f vllm-pod-restore.yaml
 ```
 
-**Constraintscharacters¬í­:**
-- EFS/FSxto checkpoint save required (local disk is restart deleted on)
-- ëcharacters¼ GPU index(CUDA_VISIBLE_DEVICES) maintain required
+**Constraints:**
+- EFS/FSx checkpoint storage required (local disk deleted on restart)
+- Same GPU index (CUDA_VISIBLE_DEVICES) maintenance required
 - kubelet feature gate `ContainerCheckpoint=true` required (EKS Standard)
 
-**expected í¨ê³¼:**
-- restart time: 20-30min â 3-5min (80-85% reduction)
-- maintenance charactersëcharacters°: 1time â 10min
+**Expected effect:**
+- Restart time: 20-30min → 3-5min (80-85% reduction)
+- Maintenance window: 1hr → 10min
 
-### (b) ëcharacters¼ instance type migrate â Experimental
+### (b) Same instance type migrate — Experimental
 
 **Use Case:**
-- Spot reclaim characters ëcharacters¼ instance type ë¸ëto migration
-- node replacement (hardware failure)
+- Migrate to same instance type node during Spot reclaim
+- Node replacement (hardware failure)
 
 **Prerequisites:**
-- ëcharacters¼ instance type (p5en.48xlarge â p5en.48xlarge)
-- ëcharacters¼ AZ (us-east-2a â us-east-2a)
-- **ëcharacters¼ GPU UUID** â AWSnot guaranteed by AWS â ï¸
+- Same instance type (p5en.48xlarge → p5en.48xlarge)
+- Same AZ (us-east-2a → us-east-2a)
+- **Same GPU UUID** — Not guaranteed by AWS ⚠️
 
-**GPU UUID Pre-verification:**
+**GPU UUID pre-verification:**
 
 ```bash
-# all p5en ë¸ëof GPU UUID collect
+# Collect GPU UUID of all p5en nodes
 kubectl get nodes -l node.kubernetes.io/instance-type=p5en.48xlarge \
   -o json | jq '.items[].metadata.labels["nvidia.com/gpu.uuid"]'
 ```
 
-**NodePool Constraints:**
+**NodePool constraints:**
 
 ```yaml
 apiVersion: karpenter.sh/v1
@@ -338,129 +350,129 @@ spec:
       requirements:
         - key: node.kubernetes.io/instance-type
           operator: In
-          values: ["p5en.48xlarge"]  # ë¨characters¼ type Fixed
+          values: ["p5en.48xlarge"]  # Single type pinned
         - key: topology.kubernetes.io/zone
           operator: In
-          values: ["us-east-2a"]  # ë¨characters¼ AZ Fixed
-        # GPU UUID characters¼characters¹ ë³´characters¥ impossible â AWS API Not supported
+          values: ["us-east-2a"]  # Single AZ pinned
+        # GPU UUID match cannot be guaranteed — AWS API unsupported
 ```
 
-**ë¬¸characters characters :**
-- AWSthe GPU UUID characters¬characters  characterscharacters½ API not provided
-- checkpoint/restore on failure fallbackwith cold start required
-- Spot reclaim 2min within checkpoint + network Transfer + restore impossible
+**Problems:**
+- AWS does not provide GPU UUID pre-reservation API
+- Fallback to cold start required on checkpoint/restore failure
+- Checkpoint + network transfer + restore impossible within 2min Spot reclaim
 
-**Conclusion:** Technically possible but **not operationally viable**. for validation environment experiments
+**Conclusion:** Technically possible but **not operationally viable**. For validation environment experiments
 
-### (c) Heterogeneous migrate (H200âH100) â Blocked
+### (c) Heterogeneous migrate (H200↔H100) — Blocked
 
-**impossibleí Reason:**
-- GPU charactersí¤ícharacters² charactersis (Hopper vs Ada)
-- VRAM Size charactersis (141GB vs 80GB)
-- CUDA Compute Capability charactersis (9.0 vs 8.0)
-- cuda-checkpointthat charactersí¤ícharacters² between ë³í Not supported
+**Impossible reasons:**
+- Different GPU architecture (Hopper vs Ada)
+- Different VRAM size (141GB vs 80GB)
+- Different CUDA Compute Capability (9.0 vs 8.0)
+- cuda-checkpoint does not support cross-architecture conversion
 
-### (d) Cross-AZ migrate â Blocked
+### (d) Cross-AZ migrate — Blocked
 
 **Use Case:**
-- AZ failure characters different AZto migration
+- Migrate to different AZ during AZ failure
 
 **Alternative: llm-d NIXL KV Offload**
 
-Cross-AZ GPU workload migrationis CRIU instead of **llm-d NIXL**is ë characters í©í©ëë¤:
+Cross-AZ GPU workload migration is better suited for **llm-d NIXL** instead of CRIU:
 
 ```
 AZ-A:
-  Prefill Pod â KV Cacheto AZ-Bto NIXL Transfer
+  Prefill Pod → NIXL transmit KV Cache to AZ-B
 
 AZ-B:
-  Decode Pod â KV Cache receive â ëª¨ë¸is isë¯¸ toëë status
+  Decode Pod ← Receive KV Cache → Model already loaded
 ```
 
 | Item | CRIU | llm-d NIXL |
 |------|------|-----------|
-| Transfer Data | entire GPU memory (1TB+) | KV Cacheonly (characterscharacters­ GB) |
-| Transfer time | 15min+ | characters sec |
-| Model reloading | ë¶required | required (but Decode Podis isë¯¸ toë) |
-| network | 10GbE â bottleneck | RDMA/NVLink â secê³ characters |
+| Transfer data | Entire GPU memory (1TB+) | KV Cache only (tens of GB) |
+| Transfer time | 15min+ | Seconds |
+| Model reloading | Unnecessary | Required (but Decode Pod already loaded) |
+| Network | 10GbE → bottleneck | RDMA/NVLink → ultra-fast |
 
-**characterscharacters¸**: [llm-d EKS Auto Mode â Disaggregated Serving](../inference-frameworks/llm-d-eks-automode.md#disaggregated-serving-replicaë)
+**Details**: [llm-d EKS Auto Mode — Disaggregated Serving](../inference-frameworks/llm-d-eks-automode.md#disaggregated-serving-concept)
 
 ---
 
-## 5. characters¤characters  Alternativeê³¼ Combination Strategy
+## 5. Practical Alternatives and Combination Strategies
 
-### Alternative comparisoní
+### Alternative Comparison Table
 
-| strategy | ë³µêµ¬ time | Cost | Complexity | characters±charactersalso | recommended |
+| Strategy | Recovery time | Cost | Complexity | Maturity | Recommended |
 |------|---------|-----|-------|-------|:----:|
-| **Warm Replica** | characters¦characters | 2Ã | Low | Production | â­â­â­ |
-| **llm-d NIXL KV Offload** | 5-10min | 1Ã | Medium | GA | â­â­â­â­ |
-| **vLLM Prefix Cache Warm-up** | 10-15min | 1Ã | Low | GA | â­â­â­ |
-| **Karpenter do-not-evict** | - | Spot ë¶that | Low | GA | â­â­ |
-| **2-replica Hot Standby** | 1-2min | 2Ã | Low | Production | â­â­â­â­â­ |
-| **CRIU (ëcharacters¼ ë¸ë)** | 3-5min | 1Ã | High | Experimental | â­ |
-| **CRIU (Cross-node)** | impossible | - | - | Blocked | â |
+| **Warm Replica** | Immediate | 2× | Low | Production | ⭐⭐⭐ |
+| **llm-d NIXL KV Offload** | 5-10min | 1× | Medium | GA | ⭐⭐⭐⭐ |
+| **vLLM Prefix Cache Warm-up** | 10-15min | 1× | Low | GA | ⭐⭐⭐ |
+| **Karpenter do-not-evict** | - | Spot unavailable | Low | GA | ⭐⭐ |
+| **2-replica Hot Standby** | 1-2min | 2× | Low | Production | ⭐⭐⭐⭐⭐ |
+| **CRIU (same node)** | 3-5min | 1× | High | Experimental | ⭐ |
+| **CRIU (Cross-node)** | Impossible | - | - | Blocked | ❌ |
 
 ### llm-d NIXL KV Offload
 
-llm-dof Disaggregated Servingis Prefill/Decodeto minë¦¬and, KV Cacheto NIXLto Transfer. Spot reclaim characters:
+llm-d's Disaggregated Serving separates Prefill/Decode and transmits KV Cache via NIXL. During Spot reclaim:
 
 ```
 Prefill Pod (Spot, p5en.48xlarge):
-  - Spot reclaim warning â checkpoint KV Cache to S3/FSx (characters sec)
+  - Spot reclaim warning → checkpoint KV Cache to S3/FSx (seconds)
   - Pod termination
 
 Decode Pod (On-Demand, p5.48xlarge):
-  - ê¸°characters¡´ ëª¨ë¸ ê³characters charactersë¹
-  - Prefill without decodeonly charactersí (characters¼characterscharacters  TTFT characters¦that)
+  - Continue serving existing model
+  - Perform decode only without prefill (temporary TTFT increase)
 
-characters Prefill Pod:
-  - KV Cacheto S3/FSxat ë³µêµ¬ (5-10sec)
+New Prefill Pod:
+  - Restore KV Cache from S3/FSx (5-10sec)
   - Resume serving
 ```
 
 **Advantages:**
-- Decode Podis no interruption
-- Prefill ë³µêµ¬only 5-10sec
-- Model reloading ë¶required
+- Decode Pod uninterrupted
+- Prefill recovery only 5-10sec
+- Model reloading unnecessary
 
-**ë¨characters :**
-- TTFTthat temporarily increases (Prefill Pod during recovery)
+**Disadvantages:**
+- TTFT temporarily increases (during Prefill Pod recovery)
 
-**characterscharacters¸**: [llm-d EKS Auto Mode](../inference-frameworks/llm-d-eks-automode.md)
+**Details**: [llm-d EKS Auto Mode](../inference-frameworks/llm-d-eks-automode.md)
 
 ### vLLM Prefix Cache Warm-up
 
-vLLM v0.18+is automatic prefix caching/ support. Spot reclaim characters  characters£¼characters prefixto ë¯¸ë¦¬ characters²ë¦¬ícharacters¬ charactersºcharactersto warmupí  characters characterscharactersµëë¤:
+vLLM v0.18+ supports automatic prefix caching. Major prefixes can be pre-processed to warm up the cache before Spot reclaim:
 
 ```python
 # warm-up script
 prefixes = [
     "You are a helpful assistant...",
     "Analyze the following document...",
-    # ... characters£¼characters characterscharacters¤í prompt
+    # ... major system prompts
 ]
 
 for prefix in prefixes:
     client.completions.create(
         model="gpt-4",
         prompt=prefix,
-        max_tokens=1  # charactersµcharacters characterscharacters±with charactersºcharactersonly warmup
+        max_tokens=1  # Minimal generation for cache warmup only
     )
 ```
 
 **Advantages:**
-- vLLM default feature, ë³also alsoêµ¬ ë¶required
-- Spot reclaim after characters£¼characters prefixfast response
+- vLLM default feature, no separate tools required
+- Major prefixes respond quickly after Spot reclaim
 
-**ë¨characters :**
-- Model reloadingis characters¬characters í 15-20min required
-- entire KV Cache recovery impossible
+**Disadvantages:**
+- Model reloading still requires 15-20min
+- Full KV Cache recovery impossible
 
 ### Karpenter do-not-evict
 
-Karpenterof `do-not-evict` with annotation, specific Podto Spot reclaim can exclude from target:
+Karpenter's `do-not-evict` annotation can exclude specific Pods from Spot reclaim targets:
 
 ```yaml
 apiVersion: v1
@@ -469,19 +481,19 @@ metadata:
   annotations:
     karpenter.sh/do-not-evict: "true"
 spec:
-  # ... GPU Pod characters of
+  # ... GPU Pod definition
 ```
 
 **Advantages:**
-- no interruption
+- Uninterrupted
 
-**ë¨characters :**
-- Spot characters¸characters¤í´characters¤to On-Demanduse like â Cost ischaracters  characterscharacters¤
-- AWS Spot reclaim cannot prevent itself (annotationis Karpenterof charactersë°characters  consolidationonly characters characters´)
+**Disadvantages:**
+- Use Spot instances like On-Demand → Cost benefit lost
+- Cannot prevent AWS Spot reclaim itself (annotation only controls Karpenter's voluntary consolidation)
 
-### 2-replica Hot Standby (recommended)
+### 2-replica Hot Standby (Recommended)
 
-Production íê²½at thatcharacters¥ Stablecharacters¸ strategyis **2replica replica operation**:
+The most stable strategy in production environments is **running 2 replicas**:
 
 ```yaml
 apiVersion: apps/v1
@@ -489,151 +501,151 @@ kind: Deployment
 metadata:
   name: vllm-serving
 spec:
-  replicas: 2  # charactersµcharacters 2replica maintain
+  replicas: 2  # Maintain minimum 2
   template:
     spec:
       containers:
       - name: vllm
-        # ... ëcharacters¼ ëª¨ë¸ charactersë¹
+        # ... Same model serving
       affinity:
         podAntiAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
           - labelSelector:
               matchLabels:
                 app: vllm-serving
-            topologyKey: kubernetes.io/hostname  # different ë¸ëto Ãcharacters¹
+            topologyKey: kubernetes.io/hostname  # Place on different nodes
 ```
 
 **Cost:**
-- 2ë operation characters Cost 2Ã â Spot when using **On-Demand 1similar to Cost**
-- p5.48xlarge Spot $12/hr Ã 2 = $24/hr vs On-Demand $98/hr Ã 1
+- Running 2 instances doubles cost → With Spot usage **similar to On-Demand 1 instance cost**
+- p5.48xlarge Spot $12/hr × 2 = $24/hr vs On-Demand $98/hr × 1
 
 **Advantages:**
-- 1replica replica Spot reclaim remaining when 1replicahandles traffic
-- during recovery charactersë¹characters¤ no interruption
-- throughput via load balancing 2Ã
+- Remaining 1 replica handles traffic during 1 replica Spot reclaim
+- No service interruption during recovery
+- 2× throughput via load balancing
 
-**ë¨characters :**
-- GPU 2Ã usage (but Spotwith On-Demand 1level Cost)
+**Disadvantages:**
+- 2× GPU usage (but Spot achieves On-Demand 1 instance cost level)
 
 ### Combination Strategy
 
 The realistic optimal configuration is **2-replica Hot Standby + llm-d NIXL**:
 
 ```
-âââââââââââââââââââââââ
-â llm-d Gateway       â
-â (KV Cache-aware LB) â
-ââââââââââââ¬âââââââââââ
-           â
-    ââââââââ´ââââââââ
-    â              â
-âââââ¼ââââ      âââââ¼ââââ
-âReplicaâ      âReplicaâ
-â   1   â      â   2   â
-â Spot  â      â Spot  â
-âp5.48x â      âp5.48x â
-âââââââââ      âââââââââ
-  different AZ        different AZ
+┌─────────────────────┐
+│ llm-d Gateway       │
+│ (KV Cache-aware LB) │
+└──────────┬──────────┘
+           │
+    ┌──────┴───────┐
+    │              │
+┌───▼───┐      ┌───▼───┐
+│Replica│      │Replica│
+│   1   │      │   2   │
+│ Spot  │      │ Spot  │
+│p5.48x │      │p5.48x │
+└───────┘      └───────┘
+  Different AZ   Different AZ
 
 Replica 1 Spot reclaim:
-  â llm-dthat Replica 2switch traffic to
-  â KV Cacheis NIXLto share (required characters)
-  â Replica 1 ë³µêµ¬ (15min) characters¤charactersalso charactersë¹characters¤ characters characters
+  → llm-d switches traffic to Replica 2
+  → KV Cache shared via NIXL (as needed)
+  → Service normal during Replica 1 recovery (15min)
 ```
 
 **Advantages:**
-- no service interruption
-- KV Cache characters¬usagewith TTFT reduction
-- Spot ícharacters©with Cost í¨characters¨characters 
+- No service interruption
+- TTFT reduction via KV Cache reuse
+- Cost-effective with Spot utilization
 
 ---
 
 ## 6. Roadmap and Validation Points
 
-### CNCF/Kubernetes Community Trends
+### CNCF/Kubernetes Community Trends (2026-04-20 Re-validation)
 
-| Period | Major Milestone | status |
-|------|-----------|------|
-| K8s 1.30 | ContainerCheckpoint API alpha | Completed (2024.04) |
-| K8s 1.32 | ContainerCheckpoint API beta | expected (2024.12) |
-| K8s 1.34 | ContainerCheckpoint API GA | expected (2025.08) |
-| K8s 1.35 | GPU checkpoint official support | í¬ë§ (2026.02) |
-| **2026.04** | **ícharacters¬ characterscharacters¹** | **Alpha/Beta Mixed** |
+| Period | Major Milestone | Actual Status |
+|------|-----------|---------|
+| K8s 1.25 | ContainerCheckpoint API **Alpha** | Completed |
+| K8s 1.30 | ContainerCheckpoint API **Beta (default enabled)** | Completed |
+| K8s 1.31+ | GA promotion | **Schedule unconfirmed** (no target milestone announcement in enhancements tracker) |
+| - | KEP-2008 official GPU support | **Not included** — Explicitly states "external hardware device checkpoint may fail" |
+| **2026.04** | **Current position** | **Beta (CPU), GPU only has NVIDIA Labs experimental implementation** |
 
 :::info CNCF WG Activity
-CNCF Batch Working Groupê³¼ AI Working Groupat GPU checkpointto ë¼of characters¤is. However official KEPthe does not exist yet, nvidia-container-toolkitof Experimental êµ¬íonly characters¡´characters¬.
+CNCF Batch Working Group and AI Working Group are discussing GPU checkpoint, but **no GPU-specific KEP has been proposed**. The only realistic progress is the combination of nvidia-container-toolkit CR plugin (experimental) and cuda-checkpoint (driver 570+, no tagged releases). Separate KEP needed for LLM serving workload (TP>1, NVLink-dependent) checkpoint.
 :::
 
-### Self-validation characters²´í¬ë¦¬characters¤í¸
+### Self-validation Checklist
 
-CRIU GPU checkpointto characters¤ííë ¤ë©´ ë¤characters characters²´í¬ë¦¬characters¤í¸to ícharacters¸ícharacters¸characters:
+To experiment with CRIU GPU checkpoint, check the following checklist:
 
 #### Infrastructure Requirements
 
-- [ ] **EKS Standard Mode** â Auto Modeis feature gate cannot control
-- [ ] **K8s 1.30+** â ContainerCheckpoint API required
-- [ ] **kubelet feature gate** â `ContainerCheckpoint=true`
-- [ ] **GPU Driver R580+** â cuda-checkpoint í¸í Version
-- [ ] **Custom AMI** â driver Version Fixed required
-- [ ] **EFS/FSx mount** â checkpoint ícharacters¼ save (HDDis ëë¦¼, SSD recommended)
+- [ ] **EKS Standard Mode** — Auto Mode cannot control feature gates
+- [ ] **K8s 1.30+** — ContainerCheckpoint API required
+- [ ] **kubelet feature gate** — `ContainerCheckpoint=true`
+- [ ] **GPU Driver R580+** — cuda-checkpoint compatible version
+- [ ] **Custom AMI** — Driver version pinning required
+- [ ] **EFS/FSx mount** — checkpoint file storage (HDD slow, SSD recommended)
 
 #### Software Stack
 
-- [ ] **runc v1.2+** â CRIU integration Version
-- [ ] **CRIU v4.0+** â GPU support build
-- [ ] **cuda-checkpoint beta** â NVIDIA Labsat ë¤characters´ë¡ë
-- [ ] **nvidia-container-toolkit v1.17+** â CR plugin enable
-- [ ] **ëcharacters¼ CUDA Version** â checkpoint/restore ë¸ë characters¼characters¹
+- [ ] **runc v1.2+** — CRIU integration version
+- [ ] **CRIU v4.0+** — GPU support build
+- [ ] **cuda-checkpoint beta** — Download from NVIDIA Labs
+- [ ] **nvidia-container-toolkit v1.17+** — CR plugin enabled
+- [ ] **Same CUDA version** — checkpoint/restore node match
 
-#### ë¸ë Configuration
+#### Node Configuration
 
-- [ ] **NodePool ë¨characters¼ instance type** â Heterogeneous ë¶that
-- [ ] **ë¨characters¼ AZ** â Cross-AZ ë¶that
-- [ ] **GPU UUID collect** â characters¬characters  ë§¤í table create
-- [ ] **NVLink topology characters¼characters¹** â Multi-GPU characters required
+- [ ] **NodePool single instance type** — Heterogeneous impossible
+- [ ] **Single AZ** — Cross-AZ impossible
+- [ ] **GPU UUID collection** — Create pre-mapping table
+- [ ] **NVLink topology match** — Required for multi-GPU
 
-#### test Scenario
+#### Test Scenarios
 
-1. **ëcharacters¼ ë¸ë restart test** (Low Risk)
-   - test Pod checkpoint/restore
-   - ëª¨ë¸ loading time vs checkpoint time comparison
-   - memory integrity verification (inference result consistency)
+1. **Same node restart test** (Low Risk)
+   - Test Pod checkpoint/restore
+   - Compare model loading time vs checkpoint time
+   - Verify memory integrity (inference result consistency)
 
-2. **ëcharacters¼ instance type migrate test** (High Risk)
-   - GPU UUID manual mapping
-   - checkpoint network Transfer
-   - restore success rate measurement
-   - on failure fallback procedure verification
+2. **Same instance type migrate test** (High Risk)
+   - Manual GPU UUID mapping
+   - Checkpoint network transfer
+   - Measure restore success rate
+   - Verify fallback procedure on failure
 
 3. **Spot reclaim simulation** (Production Readiness)
-   - 2min forced with timer checkpoint
-   - ë³µêµ¬ time measurement
-   - SLA charactersí¥ mincharacters
+   - Forced checkpoint with 2min timer
+   - Measure recovery time
+   - Analyze SLA impact
 
-### verification on failure Action
+### Actions on Verification Failure
 
 | Failure Type | Action |
 |---------|------|
-| checkpoint characterscharacters± characters¤í¨ | cuda-checkpoint check logs, GPU driver Version verification |
-| restore characters¤í¨ (GPU UUID mismatch) | ëcharacters¼ ë¸ëë¡only restore, NodePool redesign |
-| restore characters¤í¨ (CUDA Version mismatch) | AMI Version Fixed, driver update prohibit |
-| Spot reclaim 2min within ë¯¸Completed | checkpoint Size reduce, network ëcharacters­í­ expand, ëis CRIU abandon |
-| performance degradation | CRIU overhead measurement, warm-up time consider |
+| checkpoint creation failure | Check cuda-checkpoint logs, verify GPU driver version |
+| restore failure (GPU UUID mismatch) | Restore only to same node, redesign NodePool |
+| restore failure (CUDA version mismatch) | Pin AMI version, prohibit driver updates |
+| Spot reclaim not completed within 2min | Reduce checkpoint size, expand network bandwidth, or abandon CRIU |
+| Performance degradation | Measure CRIU overhead, consider warm-up time |
 
 ---
 
 ## References
 
-- **CRIU official ë¬¸characters**: [criu.org](https://criu.org/)
+- **CRIU official documentation**: [criu.org](https://criu.org/)
 - **NVIDIA cuda-checkpoint GitHub**: [github.com/NVIDIA/cuda-checkpoint](https://github.com/NVIDIA/cuda-checkpoint)
 - **K8s KEP-2008**: [ContainerCheckpoint API](https://github.com/kubernetes/enhancements/tree/master/keps/sig-node/2008-forensic-container-checkpointing)
 - **nvidia-container-toolkit CR plugin**: [NVIDIA Container Toolkit Docs](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/)
-- **llm-d NIXL**: [llm-d GitHub](https://github.com/llm-d/llm-d) â KV Cache network Transfer Alternative
+- **llm-d NIXL**: [llm-d GitHub](https://github.com/llm-d/llm-d) — KV Cache network transfer alternative
 
 ## Related Documents
 
-- [EKS GPU ë¸ë strategy](./eks-gpu-node-strategy.md) â Spot/On-Demand strategy, Cost charactersµcharacters í
-- [GPU ë¦¬characterscharacters¤ management](./gpu-resource-management.md) â Karpenter characters¤í characters¤characters¼characters¼ë§
-- [llm-d EKS Auto Mode](../inference-frameworks/llm-d-eks-automode.md) â Disaggregated Serving + NIXL KV Offload
-- [vLLM ëª¨ë¸ charactersë¹](../inference-frameworks/vllm-model-serving.md) â Prefix Cache, KV Cache management
+- [EKS GPU Node Strategy](./eks-gpu-node-strategy.md) — Spot/On-Demand strategy, cost optimization
+- [GPU Resource Management](./gpu-resource-management.md) — Karpenter autoscaling
+- [llm-d EKS Auto Mode](../inference-frameworks/llm-d-eks-automode.md) — Disaggregated Serving + NIXL KV Offload
+- [vLLM Model Serving](../inference-frameworks/vllm-model-serving.md) — Prefix Cache, KV Cache management

@@ -20,7 +20,7 @@ As of 2026, global enterprises face a complex environment requiring **simultaneo
 
 - **EU**: AI Act (adopted 2024, phased enforcement begins 2026-2027)
 - **United States**: NIST AI RMF 1.1 (federal procurement requirement), state-level regulations
-- **Korea**: AI Basic Act (AI 기본법, enforcement expected 2026)
+- **Korea**: AI Framework Act (AI 기본법, enforcement expected 2026)
 - **International Standard**: ISO/IEC 42001:2023 (AI Management System certification)
 
 ### Why AIDLC Integration is Essential
@@ -115,7 +115,7 @@ graph TB
 
 [Detailed Guide →](./frameworks/iso-42001.md)
 
-### Korea AI Basic Act (AI 기본법, 2026)
+### Korea AI Framework Act (AI 기본법, 2026)
 
 **Key Features:**
 - Expected enforcement in H1 2026

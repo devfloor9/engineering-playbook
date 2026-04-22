@@ -2,16 +2,24 @@
 title: "EKS GPU Node Strategy"
 sidebar_label: "EKS GPU Node Strategy"
 description: "Optimal node strategies for GPU workloads across EKS Auto Mode, Karpenter, MNG, and Hybrid Nodes"
-tags: [eks, gpu, auto-mode, karpenter, hybrid-node, gpu-operator]
-sidebar_position: 1
+created: 2026-03-16
 last_update:
-  date: 2026-04-05
-  author: YoungJoon Jeong
+  date: 2026-04-20
+  author: devfloor9
+reading_time: 25
+tags:
+  - eks
+  - gpu
+  - auto-mode
+  - karpenter
+  - hybrid-node
+  - gpu-operator
+  - deployment
+  - architecture
+  - scope:tech
 ---
 
-# EKS GPU Node Strategy
-
-## 1. Overview
+## Overview
 
 When operating GPU workloads on EKS, node type selection directly impacts operational complexity, cost, and feature utilization. GPU inference and training workloads have special requirements unlike general container workloads:
 
@@ -24,28 +32,28 @@ AWS EKS provides 4 node types for GPU workloads:
 
 | Node Type | Description |
 |-----------|-------------|
-| **EKS Auto Mode** | AWS fully manages the node lifecycle (GPU drivers pre-installed) |
+| **EKS Auto Mode** | AWS fully manages the entire node lifecycle (GPU drivers pre-installed) |
 | **Karpenter** | Auto-scaling + Custom AMI, MIG, full user customization |
 | **Managed Node Group** | AWS-managed node groups, only option supporting DRA (Dynamic Resource Allocation) |
 | **Hybrid Node** | Connect on-premises GPU servers to the EKS cluster |
 
 :::tip Core Principle
-You can operate multiple node types **simultaneously** in a single EKS cluster. Configure the optimal node combination for your workload characteristics.
+You can operate multiple node types **simultaneously** in a single EKS cluster. Configure the optimal node combination matching your workload characteristics.
 :::
 
 ### Scope of This Document
 
-This document focuses on **node type selection and hybrid architecture design**. NVIDIA software stack details (GPU Operator/DCGM/Dynamo), GPU autoscaling, llm-d distributed inference, and security/troubleshooting are covered in their respective specialized documents (see Section 7 Related Documents).
+This document focuses on **node type selection and hybrid architecture design**. Detailed NVIDIA software stack (GPU Operator/DCGM/Dynamo), GPU autoscaling, llm-d distributed inference, and security/troubleshooting are covered in their respective specialized documents (see Section 7 Related Documents).
 
 ---
 
 ## 2. Node Type Comparison
 
-### 2.1 Feature Comparison
+### 2.1 Feature Comparison Table
 
 | Feature | Auto Mode | Karpenter | Managed Node Group | Hybrid Node |
 |---------|-----------|-----------|-------------------|-------------|
-| **Management** | AWS fully managed | Self-managed | AWS managed | On-Premises |
+| **Management Owner** | AWS fully managed | Self-Managed | AWS managed | On-Premises |
 | **Auto-scaling** | Automatic (AWS controlled) | Automatic (NodePool-based) | Manual/Limited | Manual |
 | **Custom AMI** | Not available | Available | Available | Available |
 | **SSH Access** | Not available | Available | Available | Available |
@@ -55,7 +63,7 @@ This document focuses on **node type selection and hybrid architecture design**.
 | **MIG Support** | Not available (NodeClass read-only) | Available | Available | Available |
 | **DRA Compatible** | **Not available** (internal Karpenter-based) | **Not available** ([#1231](https://github.com/kubernetes-sigs/karpenter/issues/1231)) | **Available** (recommended) | Available |
 | **DCGM Exporter** | Install via GPU Operator | Included in GPU Operator | Manual installation | Included in GPU Operator |
-| **Run:ai Compatible** | **Available** (disable Device Plugin) | **Available** | Available | Available |
+| **Run:ai Compatible** | **Available** (Device Plugin disabled) | **Available** | Available | Available |
 | **Cost** | Low (no management needed) | Medium | Medium | Low (Capex) |
 | **Suitable Workloads** | Simple inference | Advanced GPU features | DRA workloads | On-premises integration |
 
@@ -63,7 +71,7 @@ This document focuses on **node type selection and hybrid architecture design**.
 
 **Choose Auto Mode when:**
 - You want to quickly start inference services without GPU driver management burden
-- Serving large models (70B+) that don't need MIG or Fractional GPU
+- Serving large models (70B+) that don't require MIG or Fractional GPU
 - System/non-GPU workloads (API Gateway, Agent, Observability)
 
 **Choose Karpenter when:**
@@ -112,6 +120,8 @@ spec:
 GPU Operator **can be installed** on Auto Mode. The key is to **disable only the Device Plugin via node labels** while keeping other components (DCGM Exporter, NFD, GFD) running normally. This pattern was validated in [awslabs/ai-on-eks PR #288](https://github.com/awslabs/ai-on-eks/pull/288).
 
 **Why is GPU Operator needed?** Several projects including KAI Scheduler and Run:ai depend on GPU Operator's **ClusterPolicy CRD**. Without ClusterPolicy, these projects cannot even start. This is the core reason for installing GPU Operator on Auto Mode.
+
+For complete GPU Operator architecture and component details, see [NVIDIA GPU Stack](./nvidia-gpu-stack.md).
 
 ```
 ClusterPolicy CRD (GPU Operator)
@@ -184,24 +194,9 @@ If MIG-based GPU partitioning is needed, switch to Karpenter + GPU Operator.
 
 ### 3.3 Large GPU Instance Support Status (Verified 2026.04)
 
-Auto Mode large GPU instance support status confirmed during GLM-5 (744B MoE) deployment:
+Auto Mode large GPU instance support status confirmed during GLM-5 (744B MoE) deployment. p5.48xlarge Spot provisioning was successful, but p5en/p6 have current limitations.
 
-| Instance | GPU | VRAM | Auto Mode | Verification Result |
-|---------|-----|------|-----------|-------------------|
-| p5.48xlarge | H100 80GB x 8 | 640GB | Supported | Spot provisioning successful (us-east-2) |
-| p5en.48xlarge | H200 141GB x 8 | 1,128GB | Limited | NoCompatibleInstanceTypes error |
-| p6-b200.48xlarge | B200 192GB x 8 | 1,536GB | Not supported | Provisioning failed |
-
-:::danger p5en/p6 Auto Mode Limitation
-Auto Mode's managed Karpenter **cannot provision p5en and p6 instances**. NodePool validation passes but the following error occurs during actual deployment:
-
-```
-NodePool requirements filtered out all compatible available instance types
-NoCompatibleInstanceTypes
-```
-
-**Cause**: Auto Mode's internal Karpenter filters p5en/p6 instance types during the offering matching process.
-:::
+**Detailed Support Status**: See [EKS Auto Mode GPU Instance Support Status](../inference-frameworks/llm-d-eks-automode.md#eks-auto-mode-gpu-instance-support-status-verified-202604)
 
 ### 3.4 Auto Mode + MNG Hybrid Limitation
 
@@ -484,7 +479,7 @@ spec:
 | p6-b200.48xlarge | $180/hr | $11.4/hr | 1,536GB | 94% |
 
 :::tip Spot Usage Recommendation
-Large GPU instances can achieve 85-90% cost savings with Spot. Actively use Spot for PoC/demo environments, and set `consolidationPolicy: WhenEmpty` to prevent unnecessary disruption.
+Large GPU instances can achieve 85-94% cost savings with Spot. Actively use Spot for PoC/demo environments, and set `consolidationPolicy: WhenEmpty` to prevent unnecessary disruption. Prices are approximate; verify real-time pricing at [AWS Spot Pricing](https://aws.amazon.com/ec2/spot/pricing/).
 :::
 
 ---
@@ -536,14 +531,14 @@ flowchart TB
 
 | Workload Type | Node Type | GPU Operator | Reason |
 |--------------|-----------|--------------|--------|
-| **System components** | Auto Mode | Not needed | No management needed, cost minimization |
+| **System Components** | Auto Mode | Not needed | No management needed, cost minimization |
 | **API Gateway / Agent** | Auto Mode | Not needed | CPU workloads |
-| **Simple GPU inference (70B+)** | Auto Mode | Optional (needed for DCGM) | MIG not needed, fast scaling |
-| **MIG-based inference** | Karpenter | Required | MIG Manager needed |
+| **Simple GPU Inference (70B+)** | Auto Mode | Optional (needed for DCGM) | MIG not needed, fast scaling |
+| **MIG-Based Inference** | Karpenter | Required | MIG Manager needed |
 | **Fractional GPU** | Karpenter | Required | Run:ai needed |
-| **Model training** | Karpenter | Required | Gang Scheduling, Spot |
-| **DRA workloads** | Managed Node Group | Required | Not supported on Karpenter/Auto Mode |
-| **On-premises GPU** | Hybrid Node | Required | No AWS-managed GPU stack |
+| **Model Training** | Karpenter | Required | Gang Scheduling, Spot |
+| **DRA Workloads** | Managed Node Group | Required | Not supported on Karpenter/Auto Mode |
+| **On-Premises GPU** | Hybrid Node | Required | No AWS-managed GPU stack |
 
 ### 5.3 MNG Hybrid for DRA Workloads
 
@@ -582,9 +577,9 @@ flowchart TB
 
 | Workload | Node Type | GPU Allocation Method | Scaling |
 |---|---|---|---|
-| DRA workloads (llm-d, P6e-GB200) | **Managed Node Group** | ResourceClaim (DRA) | Cluster Autoscaler |
-| Standard GPU inference (vLLM standalone) | Karpenter / Auto Mode | `nvidia.com/gpu` (Device Plugin) | Karpenter |
-| Non-GPU workloads | Karpenter / Auto Mode | - | Karpenter |
+| DRA Workloads (llm-d, P6e-GB200) | **Managed Node Group** | ResourceClaim (DRA) | Cluster Autoscaler |
+| Standard GPU Inference (vLLM standalone) | Karpenter / Auto Mode | `nvidia.com/gpu` (Device Plugin) | Karpenter |
+| Non-GPU Workloads | Karpenter / Auto Mode | - | Karpenter |
 
 For detailed DRA scale-out strategies, see [GPU Resource Management](./gpu-resource-management.md#dra-workload-scale-out).
 
@@ -596,12 +591,12 @@ For detailed DRA scale-out strategies, see [GPU Resource Management](./gpu-resou
 | **30B-65B** | Qwen3-32B | Auto Mode or Karpenter | 50%+ GPU usage, choose based on situation |
 | **13B-30B** | Llama-3-13B | Karpenter + MIG 2-way split | GPU utilization improvement needed |
 | **7B and below** | Llama-3-8B, Mistral-7B | Karpenter + MIG 4-7 way split | Severe GPU waste, MIG essential |
-| **Multi-model** | Multiple models simultaneously | Karpenter + MIG | Separate MIG partitions per model |
+| **Multi-Model** | Multiple models simultaneously | Karpenter + MIG | Separate MIG partitions per model |
 | **Dev/Test** | Model agnostic | Auto Mode | Quick start |
 
 ### 5.5 Cost Impact by Model Size
 
-Based on p5.48xlarge (H100 x8), monthly cost ~$98,000:
+Based on p5.48xlarge (H100 x8), monthly cost approximately $98,000:
 
 | Configuration | 7B Model Instances | GPU Usage | GPU Utilization | Effective Cost/Instance |
 |---|---|---|---|---|
@@ -650,15 +645,15 @@ flowchart TB
 
 | Criteria | Karpenter + Device Plugin | MNG + DRA |
 |---|---|---|
-| **Scale-out speed** | Fast (Karpenter) | Slow (Cluster Autoscaler) |
-| **GPU partitioning** | MIG supported (GPU Operator) | DRA native |
-| **Operational complexity** | Single stack | MNG + Karpenter mixed |
-| **K8s version** | 1.32+ | 1.34+ (DRA GA) |
-| **Ecosystem maturity** | Production-proven | Early stage |
+| **Scale-out Speed** | Fast (Karpenter) | Slow (Cluster Autoscaler) |
+| **GPU Partitioning** | MIG supported (GPU Operator) | DRA native |
+| **Operational Complexity** | Single stack | MNG + Karpenter mixed |
+| **K8s Version** | 1.32+ | 1.34+ (DRA GA) |
+| **Ecosystem Maturity** | Production-proven | Early stage |
 
 ### 5.7 Recommended Configuration by Scale
 
-**Small (< 32 GPUs)**
+**Small Scale (< 32 GPUs)**
 
 ```yaml
 Configuration: Auto Mode + Karpenter (GPU dedicated)
@@ -668,7 +663,7 @@ Configuration: Auto Mode + Karpenter (GPU dedicated)
 Cost: $5,000 - $15,000/month
 ```
 
-**Medium (32 - 128 GPUs)**
+**Medium Scale (32 - 128 GPUs)**
 
 ```yaml
 Configuration: Karpenter + GPU Operator + KEDA
@@ -678,7 +673,7 @@ Configuration: Karpenter + GPU Operator + KEDA
 Cost: $15,000 - $80,000/month
 ```
 
-**Large (> 128 GPUs)**
+**Large Scale (> 128 GPUs)**
 
 ```yaml
 Configuration: Karpenter + GPU Operator + Run:ai + Hybrid Node
@@ -692,23 +687,80 @@ Cost: $80,000 - $500,000/month (cloud) + Capex (on-premises)
 
 | Condition | Transition Required |
 |---|---|
-| P6e-GB200 UltraServer adoption | Required (Device Plugin not supported) |
-| Multi-Node NVLink / IMEX needed | Required (ComputeDomain is DRA-exclusive) |
-| CEL-based fine-grained GPU attribute selection | Recommended |
-| GPU sharing (MPS) | Recommended |
-| Karpenter DRA support GA | Optimal transition timing (MNG not needed) |
+| P6e-GB200 UltraServer Adoption | Required (Device Plugin not supported) |
+| Multi-Node NVLink / IMEX Needed | Required (ComputeDomain is DRA-exclusive) |
+| CEL-Based Fine-Grained GPU Attribute Selection | Recommended |
+| GPU Sharing (MPS) | Recommended |
+| Karpenter DRA Support GA | Optimal transition timing (MNG not needed) |
 
 :::tip Transition Strategy
 **Now**: Karpenter + GPU Operator (Device Plugin + MIG) -- Fastest and most operationally viable production configuration
 
-**When adopting P6e-GB200**: MNG (DRA, GPU) + Karpenter (non-GPU) hybrid
+**When Adopting P6e-GB200**: MNG (DRA, GPU) + Karpenter (non-GPU) hybrid
 
 **After Karpenter DRA GA**: Karpenter + DRA integration -- Final target configuration
 :::
 
 ---
 
-## 6. Node Strategy Decision Flowchart
+## 6. AWS Accelerator Selection Guide (NVIDIA vs Neuron)
+
+EKS GPU node strategies have traditionally been designed around NVIDIA GPUs (p/g series), but as of 2026, **Trainium2/Inferentia2** based AWS custom accelerators have matured as production alternatives. Neuron stack details are covered in [AWS Neuron Stack](./aws-neuron-stack.md), while this section only summarizes selection criteria for node strategy planning.
+
+### 6.1 NVIDIA GPU vs AWS Neuron Decision Matrix
+
+| Criteria | NVIDIA GPU (p5/p5en/p6/g6e) | AWS Neuron (trn2/inf2) |
+|------|---------------------------|---------------------|
+| **Model Ecosystem Recency** | Immediate support (new models Day-1) | AWS porting cycle delay (weeks to months) |
+| **Long-Term TCO** | Higher (H100/H200/B200 Spot still expensive) | Favorable cost per token (per AWS data) |
+| **Capacity Availability** | Tight depending on region/timing | Relatively easier to secure |
+| **Custom CUDA Kernels** | Full support | Not supported (NEFF compilation required) |
+| **Quantization Formats** | AWQ/GPTQ/GGUF extensive | BF16/FP16/FP8, AWQ/GPTQ limited |
+| **Observability Ecosystem** | GPU Operator + DCGM mature | neuron-monitor + OSS exporter |
+| **Open-Source Serving** | vLLM, SGLang, TRT-LLM rich | NxD Inference / vLLM Neuron / TGI Neuron |
+| **Bedrock Continuity** | Unrelated | Same path as Bedrock internal stack |
+| **Hybrid (On-Premises)** | Possible with Hybrid Node | EC2 only (on-premises not available) |
+
+### 6.2 Selection Flow
+
+```mermaid
+flowchart TD
+    START([AWS Accelerator Selection])
+    Q1{Need immediate<br/>SOTA model<br/>serving?}
+    Q2{Bedrock continuity<br/>or long-term TCO?}
+    Q3{Custom CUDA kernels<br/>or AWQ/GGUF<br/>dependency?}
+    Q4{Neuron Model Zoo<br/>supported model?}
+
+    NVIDIA[NVIDIA GPU<br/>p5/p5en/p6/g6e]
+    NEURON[AWS Neuron<br/>trn2/inf2]
+    HYBRID[Mixed Operation<br/>Neuron + NVIDIA]
+
+    START --> Q1
+    Q1 -->|Yes| NVIDIA
+    Q1 -->|No| Q2
+    Q2 -->|Yes| Q3
+    Q2 -->|No| NVIDIA
+    Q3 -->|Yes| NVIDIA
+    Q3 -->|No| Q4
+    Q4 -->|Yes| NEURON
+    Q4 -->|No| HYBRID
+
+    style NVIDIA fill:#76b900,color:#fff
+    style NEURON fill:#ff9900,color:#fff
+    style HYBRID fill:#326ce5,color:#fff
+```
+
+### 6.3 Recommended Mixed Operation Pattern
+
+- **Frontier (Latest Models) Layer**: NVIDIA GPU (p5en/p6) — Rapid adoption of new models
+- **Volume (High-Frequency Inference) Layer**: Neuron (trn2/inf2) — Low-cost serving of stable models at scale
+- **Edge/On-Premises**: Hybrid Node + NVIDIA GPU — Neuron is EC2-only
+
+For detailed Neuron SDK, Device Plugin, Karpenter NodePool, and inference framework selection (NxD Inference / vLLM Neuron / TGI Neuron), see [AWS Neuron Stack](./aws-neuron-stack.md).
+
+---
+
+## 7. Node Strategy Decision Flowchart
 
 ```mermaid
 flowchart TD
@@ -758,19 +810,23 @@ flowchart TD
 | DRA needed | - | **Managed Node Group** | Required |
 | Fractional GPU / Run:ai | - | Karpenter | Required |
 | On-premises GPU | - | Hybrid Node | Required |
-| Cost minimization (Spot OK) | - | Karpenter Spot | Required |
+| Cost minimization (Spot acceptable) | - | Karpenter Spot | Required |
 | Large-scale training (Gang Scheduling) | - | Karpenter + Run:ai | Required |
 | P6e-GB200 | DRA required | **Managed Node Group** | Required |
 
 ---
 
-## 7. Related Documents
+## 8. Related Documents
 
 ### GPU Stack and Monitoring
+
+For detailed NVIDIA GPU software stack including GPU Operator, DCGM, MIG, Time-Slicing, KAI Scheduler, and Dynamo, see the dedicated document.
 
 - **[NVIDIA GPU Stack](./nvidia-gpu-stack.md)** - GPU Operator, DCGM Exporter, MIG Manager, Dynamo, KAI Scheduler
 
 ### GPU Resource Management
+
+For GPU autoscaling strategies based on Karpenter, KEDA, and DRA, see:
 
 - **[GPU Resource Management](./gpu-resource-management.md)** - Karpenter NodePool, KEDA Scaling, DRA Scale-out Strategy
 
@@ -781,9 +837,13 @@ flowchart TD
 
 ### Hybrid Infrastructure
 
+For EKS Hybrid Node registration of on-premises GPU servers, VPN/Direct Connect configuration, and GPU Operator installation, see:
+
 - **[Hybrid Infrastructure](/docs/hybrid-infrastructure)** - On-premises + cloud hybrid architecture
 
 ### Deployment and Security
+
+For production deployment YAML, security policies (Pod Security Standards, NetworkPolicy, IAM), and troubleshooting guides for GPU workloads, see Reference Architecture.
 
 - **[Reference Architecture: GPU Infrastructure](../../reference-architecture/model-lifecycle/custom-model-deployment.md)** - GPU security, troubleshooting, deployment guide
 

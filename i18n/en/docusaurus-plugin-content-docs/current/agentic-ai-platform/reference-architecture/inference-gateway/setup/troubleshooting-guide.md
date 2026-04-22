@@ -2,14 +2,14 @@
 title: "Troubleshooting Guide"
 sidebar_label: "3. Troubleshooting"
 description: "Common issues and solutions during Inference Gateway deployment and operations"
+created: 2026-04-18
+last_update:
+  date: 2026-04-20
+  author: devfloor9
+reading_time: 1
 tags: [troubleshooting, debugging, kgateway, bifrost, 'scope:impl']
 sidebar_position: 3
-last_update:
-  date: 2026-04-18
-  author: devfloor9
 ---
-
-# Troubleshooting Guide
 
 This document covers common issues and solutions during Inference Gateway deployment and operations. Refer to the relevant section to quickly resolve issues when they occur.
 

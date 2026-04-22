@@ -2,15 +2,15 @@
 title: "Custom Model Pipeline Guide"
 sidebar_label: "Custom Model Pipeline"
 description: "Building a domain-optimized model serving pipeline with LoRA Fine-tuning, Multi-LoRA Hot-swap, and SLM Cascade Routing"
-tags: [lora, fine-tuning, cascade-routing, multi-lora, slm, pipeline, vllm, bifrost]
+created: 2026-04-06
 last_update:
-  date: 2026-04-05
-  author: YoungJoon Jeong
+  date: 2026-04-20
+  author: devfloor9
+reading_time: 1
+tags: [lora, fine-tuning, cascade-routing, multi-lora, slm, pipeline, vllm, bifrost, 'scope:impl']
 ---
 
-# Custom Model Pipeline Guide
-
-## 1. Overview
+## Overview
 
 ### Why You Need a Custom Model Pipeline
 
@@ -56,22 +56,28 @@ graph LR
 
 The training pipeline trains domain data with QLoRA, and only adapters that pass evaluation are registered in the registry. The serving pipeline loads multiple adapters simultaneously with vLLM Multi-LoRA and performs cost-optimized routing between SLM/LLM through Bifrost Cascade.
 
-:::tip Related Docs
-- [Operations & Governance](../../operations-mlops/index.md) - Full operations architecture
+:::tip Related Documentation
+- [Operations & MLOps](../../operations-mlops/index.md) - Full operations architecture
 - [Custom Model Deployment Guide](./custom-model-deployment.md) - Includes Kiro vs. self-hosted comparison
 :::
 
 ---
 
-## 2. LoRA Fine-tuning Pipeline
+## LoRA Training & Deployment Pipeline (Domain Specialization)
 
-### 2.1 QLoRA GPU Savings
+This section covers how to implement LoRA Fine-tuning and Multi-LoRA hot-swap deployment in the domain specialization strategy. For strategic background and decision criteria for domain specialization, see [Domain Customization (LoRA + RAG)](../../operations-mlops/governance/domain-customization.md).
+
+---
+
+### LoRA Fine-tuning Pipeline
+
+#### QLoRA GPU Savings
 
 **QLoRA** (Quantized LoRA) trains only the LoRA adapter while keeping the base model quantized to INT4. This dramatically reduces GPU requirements compared to full fine-tuning.
 
 | Model | Full Fine-tuning | LoRA | QLoRA |
 |-------|-----------------|------|-------|
-| **Llama-3.3-70B** | H100x32 (impractical) | H100x8 | **H100x4** |
+| **Llama-3.3-70B** | H100×32 (impractical) | H100×8 | **H100×4** |
 | **VRAM** | 280 GB | 80 GB | **40 GB** |
 | **Training Time** | - | 5 days | **2-3 days** |
 | **Cost** | - | $8,000 | **$2,000** |
@@ -80,7 +86,7 @@ The training pipeline trains domain data with QLoRA, and only adapters that pass
 QLoRA keeps base model weights in INT4 during training, so tasks requiring extremely precise numerical computations (e.g., financial calculations) may show slight accuracy differences compared to LoRA (FP16). Always validate in the domain evaluation stage.
 :::
 
-### 2.2 Training Data Format
+#### Training Data Format
 
 Prepare training data as input-output pairs in JSONL format.
 
@@ -95,16 +101,16 @@ Prepare training data as input-output pairs in JSONL format.
 
 | Source | Transformation Method | Expected Data Volume |
 |--------|----------------------|---------------------|
-| Legacy COBOL code | Generate COBOL -> Java translation pairs | 10,000+ modules |
-| Internal frameworks | Framework pattern -> code pairs | 5,000+ patterns |
-| Code review history | Pre-fix -> post-fix pairs | 20,000+ commits |
-| Technical docs | Documentation -> implementation code pairs | 3,000+ pages |
+| Legacy COBOL code | Generate COBOL → Java translation pairs | 10,000+ modules |
+| Internal frameworks | Framework pattern → code pairs | 5,000+ patterns |
+| Code review history | Pre-fix → post-fix pairs | 20,000+ commits |
+| Technical docs | Documentation → implementation code pairs | 3,000+ pages |
 
 :::tip Data Quality Determines Model Quality
 **Quality** matters more than quantity. 1,000 high-quality pairs reviewed by senior developers are more effective than 10,000 auto-generated ones. Start with at least 500 reviewed pairs.
 :::
 
-### 2.3 Training Frameworks
+#### Training Frameworks
 
 #### NeMo Framework (NVIDIA)
 
@@ -124,7 +130,7 @@ python train_lora.py \
 - `target_modules`: attention layers (`q_proj`, `k_proj`, `v_proj`, `o_proj`)
 :::
 
-#### Unsloth (2x Faster Training)
+#### Unsloth (2× Faster Training)
 
 An open-source library that doubles LoRA/QLoRA training speed on a single node while reducing memory usage by up to 50%.
 
@@ -155,9 +161,9 @@ trainer.train()
 | Framework | Strengths | Best For |
 |-----------|----------|---------|
 | **NeMo** | Multi-node distributed training, official NVIDIA support | H100 cluster available, large-scale training |
-| **Unsloth** | 2x faster training, memory savings, simple API | Single node, rapid prototyping |
+| **Unsloth** | 2× faster training, memory savings, simple API | Single node, rapid prototyping |
 
-### 2.4 Checkpoint Management
+#### Checkpoint Management
 
 Trained LoRA adapters are stored in S3 with version management via MLflow.
 
@@ -183,9 +189,9 @@ Recording training metrics (loss, accuracy) alongside adapter paths in MLflow le
 
 ---
 
-## 3. Multi-LoRA Hot-swap Deployment
+### Multi-LoRA Hot-swap Deployment
 
-### 3.1 Architecture
+#### Architecture
 
 Leveraging vLLM's Multi-LoRA feature, you can load multiple LoRA adapters simultaneously on top of a single base model to serve customized responses per customer.
 
@@ -205,7 +211,7 @@ graph TD
 The base model (e.g., 70B) is loaded into GPU memory only once. Each LoRA adapter at rank 16 is approximately **100-200MB**, so even loading 10 adapters simultaneously adds less than 2GB of additional memory.
 :::
 
-### 3.2 vLLM Multi-LoRA Configuration
+#### vLLM Multi-LoRA Configuration
 
 ```bash
 vllm serve meta-llama/Llama-3.3-70B-Instruct \
@@ -231,7 +237,7 @@ vllm serve meta-llama/Llama-3.3-70B-Instruct \
 vLLM loads adapters into GPU memory at request time. Using more adapters than `--max-loras` causes **swap latency** (hundreds of ms). Set `--max-loras` to match the number of frequently used adapters.
 :::
 
-### 3.3 Specifying Adapters in Requests
+#### Specifying Adapters in Requests
 
 Make requests via the OpenAI-compatible API and specify the LoRA name in `extra_body`.
 
@@ -243,7 +249,7 @@ response = client.chat.completions.create(
 )
 ```
 
-### 3.4 Per-customer Routing (Bifrost + X-Customer-Domain Header)
+#### Per-customer Routing (Bifrost + X-Customer-Domain Header)
 
 Use kgateway's HTTPRoute for HTTP header-based per-customer LoRA adapter routing.
 
@@ -265,12 +271,12 @@ spec:
 ```
 
 :::tip Routing Flow
-Client (Aider/Cline) -> Sets `X-Customer-Domain: bank` header -> kgateway -> Bifrost -> vLLM (auto-maps to `lora_name=bank-ledger`)
+Client (Aider/Cline) → Sets `X-Customer-Domain: bank` header → kgateway → Bifrost → vLLM (auto-maps to `lora_name=bank-ledger`)
 :::
 
-### 3.5 Langfuse Per-customer Tracking
+#### Per-customer Inference Tracking and Cost Billing
 
-Track each customer's inference requests with Langfuse to monitor per-adapter performance.
+Track each customer's inference requests with an LLM tracing system to monitor per-adapter performance and bill monthly costs.
 
 ```python
 from langfuse import Langfuse
@@ -280,28 +286,29 @@ langfuse = Langfuse()
 trace = langfuse.trace(
     name="inference",
     user_id="customer-bank-A",
-    metadata={"lora": "bank-ledger", "model": "glm-5"}
-)
-
-# Record results after inference
-generation = trace.generation(
-    name="completion",
-    model="glm-5",
-    model_parameters={"lora": "bank-ledger"},
-    input=messages,
-    output=response.choices[0].message.content,
-    usage={
-        "input": response.usage.prompt_tokens,
-        "output": response.usage.completion_tokens,
-    },
+    metadata={
+        "lora": "bank-ledger",
+        "model": "glm-5-32b",
+        "domain": "ledger"
+    }
 )
 ```
 
+**Monthly Cost Billing Example:**
+
+| Customer | Requests | Tokens | GPU Time | Cost |
+|----------|---------|---------|----------|------|
+| **Bank A** | 100,000 | 500M | 50 hours | $2,500 |
+| **Securities B** | 50,000 | 250M | 25 hours | $1,250 |
+| **Insurance C** | 30,000 | 150M | 15 hours | $750 |
+
+For implementation details, see [Agent Monitoring](../../operations-mlops/observability/agent-monitoring.md) and [LLM Tracing Deployment](../integrations/monitoring-observability-setup.md).
+
 ---
 
-## 4. SLM Cascade Routing (Cost Optimization)
+## SLM Cascade Routing (Cost Optimization)
 
-### 4.1 Cascade Architecture
+### Cascade Architecture
 
 Sending every request to a large model (LLM) is wasteful. 70% of requests can be handled adequately by a small model (SLM).
 
@@ -317,7 +324,7 @@ graph LR
     style LLM fill:#e74c3c
 ```
 
-### 4.2 Cost Analysis
+### Cost Analysis
 
 | | SLM Only | LLM Only | **Cascade (70:30)** |
 |---|---|---|---|
@@ -329,7 +336,7 @@ graph LR
 Adopting Cascade saves $5,880/month ($70,560/year). Setup takes only 1-2 days, making it **immediately worthwhile**.
 :::
 
-### 4.3 Bifrost Cascade Config
+### Bifrost Cascade Config
 
 ```json
 {
@@ -361,7 +368,7 @@ Adopting Cascade saves $5,880/month ($70,560/year). Setup takes only 1-2 days, m
 Bifrost's current cascade routing operates at the **provider level** and does not support automatic routing based on request complexity. It works with simple weight-based distribution or fallback conditions (5xx, latency exceeded). Complexity-based routing must be implemented with llm-d or custom logic.
 :::
 
-### 4.4 SLM Deployment YAML
+### SLM Deployment YAML
 
 ```yaml
 apiVersion: apps/v1
@@ -418,18 +425,18 @@ spec:
 ```
 
 :::info g6.xlarge Instance Specs
-- GPU: 1x NVIDIA L4 (24GB VRAM)
+- GPU: 1× NVIDIA L4 (24GB VRAM)
 - Cost: ~$0.31/hr (On-Demand), ~$0.09/hr (Spot)
 - Sufficient for serving 8B models
 :::
 
-- Reference: [Cost Threshold Analysis](./custom-model-deployment.md#cost-threshold-analysis)
+- Reference: [Cost Threshold Analysis](../integrations/coding-tools-cost-analysis.md#5-cost-threshold-analysis-bedrock-vs-kiro-vs-self-hosting)
 
 ---
 
-## 5. Evaluation Pipeline
+## Evaluation Pipeline
 
-### 5.1 LoRA Adapter Evaluation Matrix
+### LoRA Adapter Evaluation Matrix
 
 Trained adapters must pass multiple evaluations before deployment.
 
@@ -442,59 +449,40 @@ Trained adapters must pass multiple evaluations before deployment.
 
 :::warning Evaluation Thresholds
 Minimum criteria for adapter deployment:
-- RAGAS Faithfulness: >= 0.85
-- SWE-bench Resolved: >= 30%
+- RAGAS Faithfulness: ≥ 0.85
+- SWE-bench Resolved: ≥ 30%
 - Domain expert approval: At least 2 out of 3
 - Garak security test: 0 critical findings
 :::
 
-### 5.2 LoRA A/B Testing
+### LoRA A/B Testing
 
-Before deploying a new adapter version, compare performance using Langfuse tags for A/B testing.
+Before deploying a new adapter version, compare performance using LLM tracing system tags for A/B testing. Recording the `lora` version in request metadata as a tag allows per-adapter performance comparison in the dashboard.
 
-```python
-# A/B testing with Langfuse
-import random
-from langfuse.openai import openai
-
-client = openai.OpenAI(
-    base_url="http://vllm:8000/v1",
-    api_key="dummy",
-)
-
-for test_case in test_dataset:
-    lora = random.choice(["bank-ledger-v1", "bank-ledger-v2"])
-    response = client.chat.completions.create(
-        model="glm-5",
-        messages=[{"role": "user", "content": test_case["input"]}],
-        extra_body={"lora_name": lora},
-        langfuse_tags=[f"lora:{lora}", "ab-test"],
-    )
-    # Compare per-LoRA performance in Langfuse dashboard
-```
+For implementation examples, see [Agent Monitoring - A/B Testing](../../operations-mlops/observability/agent-monitoring.md).
 
 **A/B Test Comparison Metrics:**
 
 | Metric | Measurement | Meaning |
 |--------|------------|---------|
 | Accuracy | SWE-bench / domain tests | Code conversion correctness |
-| Latency | Langfuse p50/p95 | Response speed |
+| Latency | LLM tracing p50/p95 | Response speed |
 | Token Efficiency | output_tokens / input_tokens | Answer conciseness |
-| User Satisfaction | Langfuse Annotation Score | Real user evaluation |
+| User Satisfaction | Annotation Score | Real user evaluation |
 
 - Reference: [RAGAS Evaluation Framework](../../operations-mlops/governance/ragas-evaluation.md)
 - Reference: [LLMOps Observability Evaluation Pipeline](../../operations-mlops/observability/llmops-observability.md)
 
 ---
 
-## 6. Phased Implementation Roadmap
+## Phased Implementation Roadmap
 
 | Phase | Timeline | Components | Cost (USD) | Key Actions |
 |-------|----------|-----------|-----------|------------|
 | **1** | Immediate | Base Model + Steering | $8,900/mo (GPU) | vLLM deployment, Bifrost + Langfuse integration |
 | **2** | 1-2 weeks | + VectorRAG | +infra | Milvus deployment, internal document embedding |
 | **3** | 2-4 weeks | + SLM Cascade | +$500/mo | SLM deployment, Bifrost cascade configuration |
-| **4** | 1-2 months | + LoRA Fine-tuning | +$2K (one-time) | Training data collection -> QLoRA -> Evaluation -> Multi-LoRA deployment |
+| **4** | 1-2 months | + LoRA Fine-tuning | +$2K (one-time) | Training data collection → QLoRA → Evaluation → Multi-LoRA deployment |
 
 ```mermaid
 gantt
@@ -517,15 +505,17 @@ gantt
 
 :::tip Return on Investment (ROI)
 Upon completing Phase 4:
-- **COBOL to Java migration**: 10,000 modules x 1.5 hours saved = **15,000 hours saved** (~$750K)
+- **COBOL→Java migration**: 10,000 modules × 1.5 hours saved = **15,000 hours saved** (~$750K)
 - **LoRA training cost**: $2,000 (one-time)
 - **Monthly operational savings**: $5,880 (Cascade effect)
-- **ROI: 375x**
+- **ROI: 375×**
 :::
 
 ---
 
 ## References
+
+### Official Documentation
 
 | Resource | Link |
 |----------|------|
@@ -536,4 +526,6 @@ Upon completing Phase 4:
 | NeMo Framework | [docs.nvidia.com/nemo-framework](https://docs.nvidia.com/nemo-framework/user-guide/latest/) |
 | RAGAS Evaluation | [docs.ragas.io](https://docs.ragas.io/) |
 | Bifrost AI Gateway | [docs.getbifrost.ai](https://docs.getbifrost.ai/) |
+| Agent Monitoring | [agent-monitoring.md](../../operations-mlops/observability/agent-monitoring.md) |
+| LLM Tracing Deployment | [monitoring-observability-setup.md](../integrations/monitoring-observability-setup.md) |
 | Custom Model Deployment Guide | [custom-model-deployment.md](./custom-model-deployment.md) |

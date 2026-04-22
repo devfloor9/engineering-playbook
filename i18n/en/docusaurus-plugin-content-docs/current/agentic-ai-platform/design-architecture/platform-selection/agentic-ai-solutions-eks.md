@@ -2,11 +2,21 @@
 title: "EKS-based Agentic AI Open Architecture"
 sidebar_label: "EKS-based Open Architecture"
 description: "Guide to building Agentic AI platform using Amazon EKS and open-source ecosystem"
-tags: [eks, aws, karpenter, genai, agentic-ai, gpu, solutions, 'scope:design']
-category: "genai-aiml"
+created: 2026-02-05
 last_update:
-  date: 2026-04-17
+  date: 2026-04-20
   author: devfloor9
+reading_time: 12
+tags:
+  - eks
+  - aws
+  - karpenter
+  - genai
+  - agentic-ai
+  - gpu
+  - solutions
+  - scope:design
+category: "genai-aiml"
 sidebar_position: 5
 ---
 
@@ -27,21 +37,19 @@ import {
   EksClusterConfiguration
 } from '@site/src/components/AgenticSolutionsTables';
 
-> 📅 **Created**: 2025-02-05 | **Updated**: 2026-04-17 | ⏱️ **Reading Time**: ~12 minutes
-
 :::info Prerequisite Documents
 Before reading this document, refer to the following documents first:
 - [Platform Architecture](../foundations/agentic-platform-architecture.md) — Structure and core layers of Agentic AI Platform
 - [Technical Challenges](../foundations/agentic-ai-challenges.md) — 5 core challenges
-- [AI Platform Selection Guide](./ai-platform-decision-framework.md) — Managed vs open-source decision
-- [AWS Native Platform](./aws-native-agentic-platform.md) — Managed service-based alternative approach (for comparison)
+- [AI Platform Selection Guide](./ai-platform-decision-framework.md) — Managed vs open-source decision-making
+- [AWS Native Platform](./aws-native-agentic-platform.md) — Managed service-based alternative approach (for comparison reference)
 :::
 
 ---
 
-## Part 1: Why EKS-based Open Architecture?
+## Why EKS-based Open Architecture?
 
-[AWS Native Platform](./aws-native-agentic-platform.md) is a powerful approach for quick start. However, when the following requirements arise, **EKS-based open architecture** is needed:
+[AWS Native Platform](./aws-native-agentic-platform.md) is a powerful approach for getting started quickly. However, when the following requirements arise, **EKS-based open architecture** becomes necessary:
 
 - **Self-hosted Open Weight Models** (Llama, Qwen, DeepSeek)
 - **Hybrid Architecture** (on-premises GPU + cloud)
@@ -50,14 +58,14 @@ Before reading this document, refer to the following documents first:
 - **Fine-grained GPU Cost Optimization** (Spot, MIG, Consolidation)
 
 :::tip Platform Comparison
-For 5-axis comparison of AWS Native, SageMaker Unified Studio, EKS open architecture, and hybrid, refer to [AI Platform Selection Guide](./ai-platform-decision-framework.md#platform-comparison-matrix).
+For a 5-axis comparison of AWS Native, SageMaker Unified Studio, EKS open architecture, and hybrid approaches, refer to [AI Platform Selection Guide](./ai-platform-decision-framework.md#platform-comparison-matrix).
 :::
 
 **Key Message: AWS Native → EKS is a complementary relationship.** A realistic approach is to **start with AWS Native and expand to EKS as needed**. Both approaches can coexist within the same VPC.
 
 ---
 
-## Part 2: Quick Start with EKS Auto Mode
+## Quick Start with EKS Auto Mode
 
 ### EKS Cluster Configuration Options: Control Plane and Data Plane
 
@@ -76,11 +84,11 @@ flowchart TD
         DP_AUTO["Auto Mode<br/>AWS Fully Managed<br/>Minimal Operations"]
     end
 
-    CP_STD -.->|Can combine| DP_MNG
-    CP_STD -.->|Can combine| DP_KARP
-    CP_STD -.->|Can combine| DP_AUTO
-    CP_PCP -.->|Can combine| DP_KARP
-    CP_PCP -.->|Can combine| DP_AUTO
+    CP_STD -.->|Can Combine| DP_MNG
+    CP_STD -.->|Can Combine| DP_KARP
+    CP_STD -.->|Can Combine| DP_AUTO
+    CP_PCP -.->|Can Combine| DP_KARP
+    CP_PCP -.->|Can Combine| DP_AUTO
 
     style CP_STD fill:#232f3e,color:#fff
     style CP_PCP fill:#527fff,color:#fff
@@ -107,7 +115,7 @@ flowchart TD
 
 #### Tier Selection Criteria: Metric-based Judgment
 
-:::warning Worker Node Count Is Not PCP Tier Selection Criterion
+:::warning Worker Node Count Is Not a PCP Tier Selection Criterion
 PCP tier should be selected based on **Kubernetes control plane metrics**.
 :::
 
@@ -115,9 +123,9 @@ PCP tier should be selected based on **Kubernetes control plane metrics**.
 
 | Metric | Prometheus Query | Judgment Criterion |
 |--------|----------------|----------|
-| **API Inflight Seats** (Most important) | `apiserver_flowcontrol_current_executing_seats_total` | 1,200 seats Sustained exceeds → XL or higher |
-| **Pod Scheduling Rate** | `scheduler_schedule_attempts_SCHEDULED` | 100/sec or more → XL, 200/sec or more → 2XL |
-| **etcd DB Size** | `apiserver_storage_size_bytes` | 10GB Exceeds → XL or higher needed |
+| **API Inflight Seats** (Most Important) | `apiserver_flowcontrol_current_executing_seats_total` | Sustained exceeds 1,200 seats → XL or higher |
+| **Pod Scheduling Rate** | `scheduler_schedule_attempts_SCHEDULED` | 100/sec or higher → XL, 200/sec or higher → 2XL |
+| **etcd DB Size** | `apiserver_storage_size_bytes` | Exceeds 10GB → XL or higher required |
 
 :::info PCP vs Auto Mode — Different Layers
 **PCP** is a control plane capacity option, and **Auto Mode** is a data plane management option. Both features **can be used in combination**.
@@ -128,10 +136,10 @@ PCP tier should be selected based on **Kubernetes control plane metrics**.
 <EksClusterConfiguration />
 
 :::tip Recommended Configuration by AI Platform Scale
-- **Small-scale (PoC/demo)**: Standard + Auto Mode — Minimal operational burden, 99.95% SLA
-- **Medium-scale (production inference)**: Standard + Karpenter — GPU cost optimization, 99.95% SLA
-- **Large-scale (enterprise AI)**: PCP XL + Auto Mode — API seats ≤ 1,700, 99.99% SLA
-- **Extra-large-scale (training cluster)**: PCP 4XL+ + Karpenter — API seats ≤ 6,800+, fine-grained GPU control
+- **Small-scale (PoC/Demo)**: Standard + Auto Mode — Minimal operational burden, 99.95% SLA
+- **Medium-scale (Production Inference)**: Standard + Karpenter — GPU cost optimization, 99.95% SLA
+- **Large-scale (Enterprise AI)**: PCP XL + Auto Mode — API seats ≤ 1,700, 99.99% SLA
+- **Extra-large-scale (Training Cluster)**: PCP 4XL+ + Karpenter — API seats ≤ 6,800+, fine-grained GPU control
 :::
 
 ---
@@ -141,7 +149,7 @@ PCP tier should be selected based on **Kubernetes control plane metrics**.
 **The combination of Amazon EKS and Karpenter** maximizes Kubernetes advantages to implement fully automated optimal infrastructure. Karpenter provides node provisioning optimized for AI workloads, enabling faster scaling and finer-grained instance selection compared to existing Cluster Autoscaler.
 
 :::info Karpenter Detailed Guide
-For Karpenter v1.0+ GA features, NodePool configuration, GPU instance comparison, and cost optimization strategies, refer to [GPU Resource Management](../../model-serving/gpu-infrastructure/gpu-resource-management.md).
+For Karpenter v1.2+ GA features, NodePool configuration, GPU instance comparison, and cost optimization strategies, refer to [GPU Resource Management](../../model-serving/gpu-infrastructure/gpu-resource-management.md).
 :::
 
 <EksKarpenterLayers />
@@ -178,12 +186,12 @@ flowchart TD
 
 <EksAutoModeVsStandard />
 
-#### for GPU Workloads EKS Auto Mode Configuration
+#### EKS Auto Mode Configuration for GPU Workloads
 
-EKS Auto Mode automatically configures and manages Karpenter. GPU NodePool addition enables immediate AI workload deployment.
+EKS Auto Mode automatically configures and manages Karpenter. Adding GPU NodePool enables immediate AI workload deployment.
 
 :::tip NodePool Configuration Details
-For detailed configuration including GPU NodePool composition, Spot/On-Demand strategy, Consolidation policy, refer to [GPU Resource Management](../../model-serving/gpu-infrastructure/gpu-resource-management.md#karpenter-nodepool-configuration).
+For detailed configuration including GPU NodePool composition, Spot/On-Demand strategy, Consolidation policy, refer to [GPU Resource Management](../../model-serving/gpu-infrastructure/gpu-resource-management.md).
 :::
 
 :::info EKS Auto Mode and GPU Support
@@ -200,7 +208,7 @@ EKS Auto Mode fully supports accelerated computing instances including NVIDIA GP
 
 ### Agentic AI Components Deployable on Auto Mode
 
-All core components of Agentic AI platform can be deployed on EKS Auto Mode.
+All core components of the Agentic AI platform can be deployed on EKS Auto Mode.
 
 #### Inference: vLLM + llm-d
 
@@ -209,14 +217,14 @@ All core components of Agentic AI platform can be deployed on EKS Auto Mode.
 :::info Model Serving Stack Configuration
 - **vLLM**: LLM inference-dedicated (GPT, Claude, Llama, etc.) — PagedAttention-based KV Cache optimization
 - **Triton Inference Server**: Handles non-LLM inference (embedding, reranking, Whisper STT)
-- **llm-d**: Maximize prefix cache hit rate with KV Cache-aware routing
+- **llm-d**: Maximizes prefix cache hit rate with KV Cache-aware routing
 
 For detailed configuration, refer to [vLLM Model Serving](../../model-serving/inference-frameworks/vllm-model-serving.md) and [llm-d Distributed Inference](../../model-serving/inference-frameworks/llm-d-eks-automode.md).
 :::
 
 #### Gateway: kgateway + Bifrost (2-Tier Gateway)
 
-Separate traffic management and model routing with 2-Tier Gateway architecture:
+Separates traffic management and model routing with 2-Tier Gateway architecture:
 - **Tier 1 (kgateway)**: Gateway API-based authentication, rate limiting, traffic management
 - **Tier 2 (Bifrost)**: Model abstraction, fallback, cost tracking, cascade routing
 
@@ -251,14 +259,14 @@ flowchart LR
 ```
 
 - **LangGraph**: Multi-step agent workflow definition, conditional branching, parallel execution
-- **NeMo Guardrails**: Prompt injection defense, PII leak prevention, output validation — Tool comparison and implementation details in [AI Gateway Guardrails](../../operations-mlops/governance/ai-gateway-guardrails.md)
-- **MCP**: Agent Ready apps provide tools in standardized way
+- **NeMo Guardrails**: Prompt injection defense, PII leak prevention, output validation — For tool comparison and implementation details, refer to [AI Gateway Guardrails](../../operations-mlops/governance/ai-gateway-guardrails.md)
+- **MCP**: Agent Ready apps provide tools in a standardized way
 - **A2A**: Safe and efficient communication between agents
 - **Redis (ElastiCache)**: State management with LangGraph checkpointer
 
-Agent pods autoscale based on Redis queue length via KEDA.
+Agent Pods autoscale based on Redis queue length via KEDA.
 
-> Details in [Kagent Agent Management](../../operations-mlops/observability/kagent-kubernetes-agents.md) and [AWS Native Platform — AgentCore & MCP](./aws-native-agentic-platform.md#mcp-protocol-and-eks-integration). For Guardrails technology stack (Input/Output Guard, Tool Allow-list, kgateway/Bifrost integration), refer to [AI Gateway Guardrails](../../operations-mlops/governance/ai-gateway-guardrails.md).
+> For details, refer to [Kagent Agent Management](../../operations-mlops/observability/kagent-kubernetes-agents.md) and [AWS Native Platform — AgentCore & MCP](./aws-native-agentic-platform.md#mcp-protocol-and-eks-integration). For Guardrails technology stack (Input/Output Guard, Tool Allow-list, kgateway/Bifrost integration), refer to [AI Gateway Guardrails](../../operations-mlops/governance/ai-gateway-guardrails.md).
 
 #### RAG + Observability
 
@@ -280,21 +288,21 @@ Agent pods autoscale based on Redis queue length via KEDA.
 
 For deployment guide, refer to [Reference Architecture](../../reference-architecture/).
 
-:::info GPU Cost optimization Details
+:::info GPU Cost Optimization Details
 For GPU cost optimization strategies including Spot instance usage, Consolidation, and schedule-based cost management, refer to [GPU Resource Management](../../model-serving/gpu-infrastructure/gpu-resource-management.md) document.
 :::
 
 :::info GPU Security and Troubleshooting
-GPU Pod security policies, Network Policy, IAM, MIG isolation, and GPU troubleshooting guide, refer to [EKS GPU Node Strategy](../../model-serving/gpu-infrastructure/eks-gpu-node-strategy.md) document.
+For GPU Pod security policies, Network Policy, IAM, MIG isolation, and GPU troubleshooting guide, refer to [EKS GPU Node Strategy](../../model-serving/gpu-infrastructure/eks-gpu-node-strategy.md) document.
 :::
 
 ---
 
-## Part 3: Minimize Infrastructure Operational Burden with EKS Capability
+## Minimize Infrastructure Operational Burden with EKS Capability
 
 ### What is EKS Capability?
 
-**EKS Capability** are platform-level capabilities that integrate proven open-source tools and AWS services
+**EKS Capability** is a platform-level feature that integrates proven open-source tools and AWS services to effectively operate specific workloads on Amazon EKS.
 
 ```mermaid
 graph TB
@@ -335,7 +343,7 @@ graph TB
 <EksCapabilities />
 
 :::warning Argo Workflows Requires Separate Installation
-**Argo Workflows** is not officially supported as EKS Capability, so **direct installation is required**.
+**Argo Workflows** is not officially supported as an EKS Capability, so **direct installation is required**.
 
 For deployment guide, refer to [Argo Workflows Official Documentation](https://argoproj.github.io/argo-workflows/installation/).
 :::
@@ -344,7 +352,7 @@ For deployment guide, refer to [Argo Workflows Official Documentation](https://a
 
 ### ACK (AWS Controllers for Kubernetes)
 
-**ACK** directly provisions and manages AWS services through Kubernetes Custom Resources. It can be **easily installed as EKS Add-on**.
+**ACK** directly provisions and manages AWS services through Kubernetes Custom Resources. It can be **easily installed as an EKS Add-on**.
 
 ```mermaid
 graph LR
@@ -512,7 +520,7 @@ graph TB
 <AutomationComponents />
 
 :::info Benefits of Complete Automation — Delegate Infrastructure Operations to EKS and Focus on Agent Development
-- **Developer**: Git pushdeploys models with just Git push
+- **Developer**: Model deployment with just Git push
 - **Platform Team**: Minimize infrastructure management burden
 - **Cost Optimization**: Dynamic provisioning of only necessary resources
 - **Consistency**: Same deployment method across all environments
@@ -520,7 +528,7 @@ graph TB
 
 ---
 
-## Part 4: Conclusion + Next Steps
+## Conclusion and Next Steps
 
 ### Progressive Journey: AWS Native → Auto Mode → EKS Capability
 
@@ -529,7 +537,7 @@ graph LR
     START["AWS Native<br/>(Bedrock + AgentCore)"]
     AUTO["EKS Auto Mode<br/>(Quick Start)"]
     CAP["EKS Capability<br/>(Operations Automation)"]
-    SCALE["Scale Expansion<br/>(GPU optimization)"]
+    SCALE["Scale Expansion<br/>(GPU Optimization)"]
 
     START -->|"Open Weight Model<br/>Hybrid Needed"| AUTO
     AUTO -->|"Infrastructure Automation<br/>GitOps Adoption"| CAP
@@ -557,15 +565,15 @@ EKS Auto Mode is optimal for general workloads and basic GPU inference, but has 
 |---|---|---|
 | API Gateway, Agent Framework | Suitable | Non-GPU, automatic scaling sufficient |
 | Observability Stack | Suitable | Non-GPU, minimize management burden |
-| Basic GPU inference (full GPU) | Suitable | AWS-managed GPU stack sufficient |
-| MIG partitioning needed | **Unsuitable** | Cannot partition MIG with read-only NodeClass (GPU Operator itself can be installed) |
+| Basic GPU Inference (Full GPU) | Suitable | AWS-managed GPU stack sufficient |
+| MIG Partitioning Needed | **Unsuitable** | Cannot partition MIG with read-only NodeClass (GPU Operator itself can be installed) |
 | Run:ai GPU Scheduling | **Possible** | Disable Device Plugin label after GPU Operator installation |
 
 **Recommended hybrid configuration**: Operate Auto Mode (general workloads) + Karpenter (advanced GPU features) in a single cluster. For detailed configuration, refer to [EKS GPU Node Strategy](../../model-serving/gpu-infrastructure/eks-gpu-node-strategy.md).
 
 ### Gateway API Limitations and Workarounds
 
-EKS Auto Mode's built-in load balancer does not directly support Kubernetes Gateway API. To use kgateway, provision NLB with separate Service (type: LoadBalancer).
+EKS Auto Mode's built-in load balancer does not directly support Kubernetes Gateway API. To use kgateway, provision NLB with a separate Service (type: LoadBalancer).
 
 ```yaml
 apiVersion: v1
@@ -587,16 +595,16 @@ spec:
       targetPort: 8443
 ```
 
-> For complete 2-Tier Gateway Architecture design, refer to [LLM Gateway 2-Tier Architecture](../../reference-architecture/inference-gateway/routing-strategy.md).
+> For complete 2-Tier Gateway architecture design, refer to [LLM Gateway 2-Tier Architecture](../../reference-architecture/inference-gateway/routing-strategy.md).
 
 ### Key Recommendations
 
 1. **Start with EKS Auto Mode**: Create new clusters with Auto Mode to leverage automatic Karpenter configuration
-2. **Advanced GPU features on Karpenter nodes**: Add Karpenter NodePool when GPU Operator needed for MIG, Run:ai, etc.
+2. **Advanced GPU Features on Karpenter Nodes**: Add Karpenter NodePool when GPU Operator needed for MIG, Run:ai, etc.
 3. **GPU NodePool Custom Definition**: Add GPU NodePool suited to workload characteristics (separate inference/training/experimentation)
 4. **Aggressive Spot Instance Use**: Operate 70%+ of inference workloads with Spot
-5. **Enable Consolidation by default**: Leverage auto-enabled Consolidation in EKS Auto Mode
-6. **KEDA integration**: Link metric-based pod scaling with Karpenter node provisioning
+5. **Enable Consolidation by Default**: Leverage auto-enabled Consolidation in EKS Auto Mode
+6. **KEDA Integration**: Link metric-based Pod scaling with Karpenter node provisioning
 
 ### Choose Deployment Path
 
@@ -659,23 +667,23 @@ For deployment guide, refer to [Reference Architecture](../../reference-architec
 
 ## References
 
-### Kubernetes and Infrastructure
+### Official Documentation
 
-- [Amazon EKS Documentation](https://docs.aws.amazon.com/eks/)
-- [EKS Auto Mode](https://docs.aws.amazon.com/eks/latest/userguide/automode.html)
-- [Karpenter Documentation](https://karpenter.sh/docs/)
-- [KEDA - Kubernetes Event-driven Autoscaling](https://keda.sh/)
+- [Amazon EKS Documentation](https://docs.aws.amazon.com/eks/) — EKS official documentation
+- [EKS Auto Mode](https://docs.aws.amazon.com/eks/latest/userguide/automode.html) — Auto Mode guide
+- [Karpenter Documentation](https://karpenter.sh/docs/) — Karpenter official documentation
+- [KEDA - Kubernetes Event-driven Autoscaling](https://keda.sh/) — Event-driven autoscaling
 
-### Model Serving and Gateway
+### Papers / Technical Blogs
 
-- [vLLM Documentation](https://docs.vllm.ai/)
-- [llm-d Project](https://github.com/llm-d/llm-d)
-- [Kgateway Documentation](https://kgateway.dev/docs/)
-- [Bifrost Documentation](https://www.getmaxim.ai/bifrost)
+- [vLLM: Easy, Fast, and Cheap LLM Serving](https://blog.vllm.ai/) — vLLM official blog
+- [Efficient Memory Management for LLM Serving](https://arxiv.org/abs/2309.06180) — PagedAttention paper
+- [AWS re:Invent 2024: EKS Auto Mode Deep Dive](https://www.youtube.com/watch?v=) — Auto Mode session
+- [NVIDIA Developer Blog: AI on Kubernetes](https://developer.nvidia.com/blog/) — GPU workload optimization
 
-### LLM Observability and Agent
+### Related Documents (Internal)
 
-- [Langfuse Documentation](https://langfuse.com/docs)
-- [LangSmith Documentation](https://docs.smith.langchain.com/)
-- [KAgent - Kubernetes Agent Framework](https://github.com/kagent-dev/kagent)
-- [NVIDIA NeMo Framework](https://docs.nvidia.com/nemo-framework/user-guide/latest/overview.html)
+- [Platform Architecture](../foundations/agentic-platform-architecture.md) — Overall system design
+- [Technical Challenges](../foundations/agentic-ai-challenges.md) — 5 core challenges
+- [GPU Resource Management](../../model-serving/gpu-infrastructure/gpu-resource-management.md) — Karpenter, KEDA, DRA
+- [vLLM Model Serving](../../model-serving/inference-frameworks/vllm-model-serving.md) — vLLM deployment guide

@@ -1,36 +1,42 @@
 ---
-title: "AgentCore Hybrid Deployment Patterns"
-sidebar_label: "AgentCore Hybrid Deployment"
-description: "Decision framework and pattern catalog for combining Bedrock AgentCore managed service with EKS-based self-hosted agents"
-tags: [agentcore, bedrock, hybrid, eks, 'scope:design']
-sidebar_position: 5
+title: "AgentCore Hybrid Strategy"
+sidebar_label: "AgentCore Hybrid Strategy"
+description: "Decision framework and pattern catalog for combining Bedrock AgentCore managed service with EKS-based self-hosted agents in hybrid deployment"
+created: 2026-04-18
 last_update:
-  date: 2026-04-18
+  date: 2026-04-20
   author: devfloor9
+reading_time: 15
+tags:
+  - agentcore
+  - bedrock
+  - hybrid
+  - eks
+  - scope:design
+sidebar_position: 5
 ---
 
-# AgentCore Hybrid Deployment Patterns
+:::info Verification Status
+The implementation samples in this document (IAM OAuth propagation, Lambda Trace Forwarder, Dual-write Memory, Cost-arbitrage Router) are **for design reference** and have no E2E integration test history for AgentCore·EKS combinations in us-east-2 after teardown (2026-04-18). E2E verification for IAM boundaries, Trace correlation, and 3 PrivateLink endpoint types will be performed before Phase 3 deployment.
+:::
 
-> 📅 **Written**: 2026-04-18 | ⏱️ **Reading Time**: ~15 minutes
+:::caution Verification Pending
+Decision Matrix 8-axis weights, Hand-off pattern catalog, IAM session sharing flow, and migration roadmap are in pre-review state awaiting MLOps lead review and real-deployment E2E verification. Value footnotes and banner will be updated upon validation.
+
+Deployment verification tracking: [Issue #6](https://github.com/devfloor9/engineering-playbook/issues/6)
+:::
 
 ## Overview
 
-Bedrock AgentCore는 강력한 매니지드 Agent 플랫폼이지만, 엔터프라이즈 환경에서는 자체 호스팅 인프라와의 조합이 필요한 경우가 많습니다. 이 문서는 **AgentCore의 서버리스 장점과 EKS 기반 Self-hosted 인프라의 유연성을 결합**하여 Optimal의 하이브리드 아키텍처를 설계하기 위한 의사결정 프레임워크와 검증된 패턴 카탈로그를 제공합니다.
+Bedrock AgentCore is a powerful managed Agent platform, but enterprise environments often require combination with self-hosted infrastructure. This document provides a decision framework and validated pattern catalog for designing optimal hybrid architecture that **combines AgentCore's serverless advantages with EKS-based Self-hosted infrastructure flexibility**.
 
-:::info Prerequisites
+:::info Prerequisite Documents
 Before reading this document, refer to:
-- [AWS Native Platform](./aws-native-agentic-platform.md) — AgentCore 7개 서비스 개요 (avoid duplication)
+- [AWS Native Platform](./aws-native-agentic-platform.md) — AgentCore 7-service overview (avoid duplication)
 - [EKS-based Open Architecture](./agentic-ai-solutions-eks.md) — Self-hosted stack composition
-- [AI Platform Decision Framework](./ai-platform-decision-framework.md) — Managed vs open-source decision-making
-- [SageMaker-EKS 통합](../../reference-architecture/integrations/sagemaker-eks-integration.md) — Hybrid VPC/IAM reference
+- [AI Platform Selection Guide](./ai-platform-decision-framework.md) — Managed vs open-source decision
+- [SageMaker-EKS Integration](../../reference-architecture/integrations/sagemaker-eks-integration.md) — Hybrid VPC/IAM reference
 :::
-
-:::caution Verification pending
-The Decision Matrix 8-axis weights, Hand-off pattern catalog, IAM session sharing flow, and migration roadmap are in a pre-review state awaiting MLOps lead review and real-deployment E2E verification. Value footnotes and banner will be updated after validation.
-
-Verification tracking: [Issue #6](https://github.com/devfloor9/engineering-playbook/issues/6)
-:::
-
 
 ---
 
@@ -39,14 +45,14 @@ Verification tracking: [Issue #6](https://github.com/devfloor9/engineering-playb
 ### Single Approach Limitations
 
 **Constraints of AgentCore Only**:
-- Bedrock GA 100+ 모델 중심 (cannot host self fine-tuned SLMs)
-- 토큰 기반 과금 (고빈도 Simple task에서 Cost 증가)
+- Bedrock GA 100+ model-centric (cannot host self fine-tuned SLMs)
+- Token-based pricing (cost increase for high-frequency simple tasks)
 - Latency with on-premises data sources
 - Complex PrivateLink setup when MCP servers are inside VPC
 
 **Constraints of EKS Self-hosted Only**:
 - Agent Runtime infrastructure operational burden (Kagent Pod + Redis State Store)
-- Complex autoscaling vs serverless scaling (KEDA Queue 기반)
+- Complex autoscaling vs serverless scaling (KEDA Queue-based)
 - Lack of managed memory management (direct implementation required)
 - Direct multi-agent orchestration framework construction
 
@@ -69,10 +75,10 @@ graph TB
     end
     
     subgraph "Best of Both"
-        COST["Cost Optimal화<br/>40-60% reduction"]
+        COST["Cost Optimization<br/>40-60% reduction"]
         LATENCY["Minimize Latency<br/>Leverage data gravity"]
-        CONTROL["Fine-grained Control<br/>Custom models + 도구"]
-        SIMPLE["Simplified Operations<br/>매니지드 + Self-hosted"]
+        CONTROL["Fine-grained Control<br/>Custom models + tools"]
+        SIMPLE["Simplified Operations<br/>Managed + Self-hosted"]
     end
     
     AC_RUNTIME --> SIMPLE
@@ -98,7 +104,7 @@ graph TB
 | ~5M+ requests | $15,000+ | **$3,500-5,000** | **$4,000-6,000** | EKS-centric Hybrid |
 
 :::tip Break-even Point
-Hybrid approach becomes cost-effective at 500K+ monthly inference volumes. [Coding Tools Cost Analysis](../../reference-architecture/integrations/coding-tools-cost-analysis.md)for detailed calculation formulas.
+Hybrid approach becomes cost-effective at 500K+ monthly inference volumes. See [Coding Tools Cost Analysis](../../reference-architecture/integrations/coding-tools-cost-analysis.md) for detailed calculation formulas.
 :::
 
 ---
@@ -109,31 +115,31 @@ Evaluate agent placement using 8 core dimensions.
 
 | Evaluation Axis | AgentCore | EKS Kagent | Hybrid | Decision Criteria |
 |--------|-----------|------------|--------|----------|
-| **Inference Latency** | Medium (50-200ms) | Low (10-50ms) | **낮음** | VPC internal tools 호출 → EKS |
-| **Cost** | High for high-frequency | 고빈도 시 Low | **Optimal** | 단순=EKS, 복잡=AgentCore |
-| **PII Handling** | VPC 외부 (제약) | VPC 내부 (유리) | **유연** | 민감 데이터 → EKS MCP |
-| **Model Customization** | Bedrock 모델만 | 자유 (Qwen3, 커스텀) | **자유** | Fine-tuned 모델 → EKS |
-| **Tool Chain** | REST→MCP 변환 | K8s 네이티브 | **양쪽** | 외부 SaaS → AgentCore Gateway |
-| **Session Length** | 최대 8시간 | 제한 없음 | **제한 없음** | 장시간 대화 → EKS State |
-| **Audit Requirements** | CloudTrail 자동 | 직접 Implementation 필요 | **CloudTrail + Custom** | 규제 → AgentCore 우선 |
-| **Team Capability** | Kubernetes 불필요 | Kubernetes 필수 | **선택적** | K8s Beginner → AgentCore 중심 |
+| **Inference Latency** | Medium (50-200ms) | Low (10-50ms) | **Low** | VPC internal tool calls → EKS |
+| **Cost** | High for high-frequency | Low for high-frequency | **Optimal** | Simple=EKS, Complex=AgentCore |
+| **PII Handling** | VPC external (constraints) | VPC internal (advantageous) | **Flexible** | Sensitive data → EKS MCP |
+| **Model Customization** | Bedrock models only | Free (Qwen3, custom) | **Free** | Fine-tuned models → EKS |
+| **Tool Chain** | REST→MCP conversion | K8s native | **Both** | External SaaS → AgentCore Gateway |
+| **Session Length** | Max 8 hours | Unlimited | **Unlimited** | Long conversations → EKS State |
+| **Audit Requirements** | CloudTrail automatic | Direct implementation required | **CloudTrail + Custom** | Regulatory → AgentCore priority |
+| **Team Capability** | Kubernetes unnecessary | Kubernetes required | **Optional** | K8s beginner → AgentCore-centric |
 
 ### Decision Flowchart
 
 ```mermaid
 flowchart TD
-    START["Agent 배치 의사결정"]
+    START["Agent Placement Decision"]
     
-    Q1{"Monthly Inference Volume<br/>50만 건 이상?"}
-    Q2{"PII/민감 데이터<br/>VPC 내 처리 필수?"}
-    Q3{"커스텀 Fine-tuned<br/>모델 사용?"}
-    Q4{"VPC internal tools<br/>빈번한 호출?"}
-    Q5{"Kubernetes<br/>운영 역량?"}
+    Q1{"Monthly Inference Volume<br/>500K+ requests?"}
+    Q2{"PII/Sensitive Data<br/>VPC internal processing required?"}
+    Q3{"Custom Fine-tuned<br/>Model usage?"}
+    Q4{"VPC internal tools<br/>Frequent calls?"}
+    Q5{"Kubernetes<br/>Operational capability?"}
     
-    AGENTCORE["✅ AgentCore Only<br/>서버리스 + 빠른 시작"]
-    EKS_ONLY["✅ EKS Kagent Only<br/>최대 제어 + Cost Optimal"]
-    HYBRID_AC["✅ Hybrid (AgentCore 중심)<br/>complex reasoning은 AgentCore<br/>Simple task은 EKS SLM"]
-    HYBRID_EKS["✅ Hybrid (EKS 중심)<br/>대부분 EKS 처리<br/>AgentCore는 Escalation"]
+    AGENTCORE["✅ AgentCore Only<br/>Serverless + Quick start"]
+    EKS_ONLY["✅ EKS Kagent Only<br/>Maximum control + Cost optimal"]
+    HYBRID_AC["✅ Hybrid (AgentCore-centric)<br/>Complex reasoning with AgentCore<br/>Simple tasks with EKS SLM"]
+    HYBRID_EKS["✅ Hybrid (EKS-centric)<br/>Most processing on EKS<br/>AgentCore for Escalation"]
     
     START --> Q1
     Q1 -->|"No"| Q2
@@ -163,12 +169,12 @@ flowchart TD
 
 ### What is Data Gravity?
 
-데이터가 많은 곳에 컴퓨팅을 배치하는 것이 네트워크 지연과 Cost을 최소화합니다.
+Placing computing where data resides minimizes network latency and cost.
 
 **Typical Scenario**:
-- EKS VPC 내부에 Milvus 벡터 DB (수 GB~TB 규모)
-- AgentCore Runtime은 VPC 외부 (Bedrock 서비스 계정)
-- Agent가 RAG 검색을 위해 Milvus 조회 시 **PrivateLink 경유 필요** → 지연 증가 + 복잡도 증가
+- Milvus vector DB inside EKS VPC (GB~TB scale)
+- AgentCore Runtime outside VPC (Bedrock service account)
+- When Agent queries Milvus for RAG search **PrivateLink traversal required** → Increased latency + complexity
 
 ### Reverse Call Pattern
 
@@ -176,27 +182,27 @@ Architecture where AgentCore Runtime calls MCP servers inside EKS VPC.
 
 ```mermaid
 sequenceDiagram
-    participant User as User
+    participant User
     participant AC_RT as AgentCore Runtime
     participant AC_GW as AgentCore Gateway
     participant PL as PrivateLink Endpoint
     participant MCP as EKS MCP Server
-    participant Milvus as Milvus (VPC 내부)
+    participant Milvus as Milvus (VPC internal)
     
-    User->>AC_RT: "customer contract에서 violation clauses Find"
+    User->>AC_RT: "Find violation clauses in customer contract"
     AC_RT->>AC_GW: Semantic tool discovery
     AC_GW-->>AC_RT: contract-search-tool (MCP)
     
-    AC_RT->>PL: MCP 호출 (PrivateLink)
+    AC_RT->>PL: MCP call (PrivateLink)
     PL->>MCP: mcp://contract-search
-    MCP->>Milvus: 벡터 검색 (VPC 내부 — 저지연)
-    Milvus-->>MCP: 관련 문서 청크
+    MCP->>Milvus: Vector search (VPC internal — low latency)
+    Milvus-->>MCP: Related document chunks
     MCP-->>PL: MCP response
     PL-->>AC_RT: Search results
     
-    AC_RT->>User: "제3조 Potential violation found"
+    AC_RT->>User: "Article 3 potential violation found"
     
-    Note over MCP,Milvus: VPC 내부 통신 — 1-5ms
+    Note over MCP,Milvus: VPC internal communication — 1-5ms
     Note over AC_RT,PL: PrivateLink — 10-30ms
 ```
 
@@ -222,10 +228,10 @@ spec:
       targetPort: 8080
       protocol: TCP
 ---
-# VPC Endpoint Service 생성 (AWS Console 또는 Terraform)
-# 1. NLB ARN 확인
-# 2. VPC Endpoint Service 생성 (Acceptance required: No)
-# 3. AgentCore IAM Role에 Endpoint 접근 권한 추가
+# Create VPC Endpoint Service (AWS Console or Terraform)
+# 1. Confirm NLB ARN
+# 2. Create VPC Endpoint Service (Acceptance required: No)
+# 3. Add Endpoint access permission to AgentCore IAM Role
 ```
 
 ### S3+KMS Boundary Setup
@@ -259,13 +265,13 @@ class SecureArtifactManager:
         return f"s3://{self.bucket}/{key}"
     
     def load_from_eks(self, s3_uri: str) -> dict:
-        """Load S3 object from EKS Pod (Pod Identity로 KMS 복호화)"""
+        """Load S3 object from EKS Pod (KMS decryption with Pod Identity)"""
         bucket, key = s3_uri.replace('s3://', '').split('/', 1)
         response = self.s3.get_object(Bucket=bucket, Key=key)
         return json.loads(response['Body'].read())
 ```
 
-**IAM 정책**:
+**IAM Policy**:
 ```json
 {
   "Version": "2012-10-17",
@@ -311,13 +317,13 @@ sequenceDiagram
     
     User->>AC_GW: "Code completion: def merge_sort"
     AC_GW->>Classifier: Classify complexity
-    Classifier-->>AC_GW: "Simple task (0.2 복잡도)"
+    Classifier-->>AC_GW: "Simple task (0.2 complexity)"
     AC_GW->>EKS_Agent: Qwen3-4B Self-hosted
-    EKS_Agent-->>User: Code completion Result
+    EKS_Agent-->>User: Code completion result
     
     User->>AC_GW: "Review distributed transaction design"
     AC_GW->>Classifier: Classify complexity
-    Classifier-->>AC_GW: "Complex task (0.9 복잡도)"
+    Classifier-->>AC_GW: "Complex task (0.9 complexity)"
     AC_GW->>AC_Agent: Claude Sonnet (Bedrock)
     AC_Agent-->>User: Architecture review
 ```
@@ -344,7 +350,7 @@ class HybridRouter:
     def __init__(self):
         self.classifier = Agent(
             model=BedrockModel(model_id="anthropic.claude-haiku-20250320"),
-            system_prompt="""당신은 Request Classify complexity기입니다.
+            system_prompt="""You are a request complexity classifier.
 Evaluate complexity on a 0.0-1.0 scale and respond with JSON.
 {"complexity": 0.0-1.0, "reason": "explanation"}"""
         )
@@ -361,7 +367,7 @@ Evaluate complexity on a 0.0-1.0 scale and respond with JSON.
             return self._route_to_agentcore(user_request, model='sonnet')
     
     def _route_to_eks(self, request: str) -> dict:
-        """EKS Kagent로 라우팅"""
+        """Route to EKS Kagent"""
         import requests
         response = requests.post(
             "http://kagent-service.agents.svc.cluster.local/invoke",
@@ -370,7 +376,7 @@ Evaluate complexity on a 0.0-1.0 scale and respond with JSON.
         return {"response": response.json(), "routed_to": "eks-kagent"}
     
     def _route_to_agentcore(self, request: str, model: str) -> dict:
-        """AgentCore로 라우팅"""
+        """Route to AgentCore"""
         response = bedrock_runtime.invoke_agent(
             agentId='AGENT123',
             agentAliasId='ALIAS456',
@@ -389,7 +395,7 @@ EKS Self-hosted Agent processes first, escalates to AgentCore when complexity ex
 ```mermaid
 flowchart LR
     User["User"] --> EKS["EKS Kagent<br/>Qwen3-4B"]
-    EKS -->|"Confidence < 0.7"| AC["AgentCore<br/>Claude Sonnet"]
+    EKS -->|"Confidence &lt; 0.7"| AC["AgentCore<br/>Claude Sonnet"]
     EKS -->|"Confidence ≥ 0.7"| User
     AC --> User
     
@@ -398,9 +404,9 @@ flowchart LR
 ```
 
 **Escalation Triggers**:
-- LLM response Confidence 점수 < 0.7
-- Tool call failure 2회 이상
-- User 명시적 Request ("need more accurate answer")
+- LLM response confidence score < 0.7
+- Tool call failure 2+ times
+- User explicit request ("need more accurate answer")
 
 **Implementation**:
 
@@ -418,20 +424,20 @@ class EscalatingAgent:
         self.bedrock_runtime = boto3.client('bedrock-agent-runtime')
     
     def process(self, user_request: str) -> dict:
-        # 1차: EKS Self-hosted Agent
+        # 1st attempt: EKS Self-hosted Agent
         response = self.primary_agent(user_request)
         confidence = response.metadata.get('confidence', 0.0)
         
         if confidence >= 0.7:
             return {"response": response, "agent": "eks-qwen3", "confidence": confidence}
         
-        # 에스컬레이션: AgentCore Claude Sonnet
-        print(f"⚠️ 낮은 Confidence ({confidence}) → AgentCore 에스컬레이션")
+        # Escalation: AgentCore Claude Sonnet
+        print(f"⚠️ Low confidence ({confidence}) → AgentCore escalation")
         agentcore_response = self.bedrock_runtime.invoke_agent(
             agentId='EXPERT_AGENT_ID',
             agentAliasId='PROD_ALIAS',
             sessionId='escalation-session',
-            inputText=f"원본 Request: {user_request}\n\n초기 시도 실패 (Confidence: {confidence}). 정확한 답변 제공 필요."
+            inputText=f"Original request: {user_request}\n\nInitial attempt failed (Confidence: {confidence}). Accurate answer required."
         )
         return {"response": agentcore_response, "agent": "agentcore-sonnet", "escalated": True}
 ```
@@ -447,18 +453,18 @@ sequenceDiagram
     participant User
     participant AC as AgentCore Agent
     participant AC_MEM as AgentCore Memory
-    participant S3 as S3 (중계)
+    participant S3 as S3 (relay)
     participant LANGFUSE as Langfuse (EKS)
     participant EKS as EKS Kagent
     
-    User->>AC: "customer A Store.*preferences"
+    User->>AC: "Store customer A preferences"
     AC->>AC_MEM: Save short-term memory
     AC->>S3: Export session data
     S3->>LANGFUSE: EventBridge → Lambda → Langfuse Trace
     
-    User->>EKS: "customer A Recommend products"
+    User->>EKS: "Recommend products for customer A"
     EKS->>LANGFUSE: Query context
-    LANGFUSE-->>EKS: "customer A 선호: eco-friendly products"
+    LANGFUSE-->>EKS: "Customer A preference: eco-friendly products"
     EKS-->>User: "Recommend eco-friendly lineup"
 ```
 
@@ -467,7 +473,7 @@ sequenceDiagram
 | Event | AgentCore → EKS | EKS → AgentCore |
 |--------|----------------|----------------|
 | Session start | Memory Session ID → S3 | Langfuse Trace ID → DynamoDB |
-| 도구 호출 | Action Group execution log → CloudWatch → Langfuse | Langfuse Span → CloudWatch Logs Insights |
+| Tool invocation | Action Group execution log → CloudWatch → Langfuse | Langfuse Span → CloudWatch Logs Insights |
 | Session end | Memory summarization → S3 → Langfuse | Langfuse session statistics → AgentCore Analytics |
 
 **Implementation**:
@@ -489,13 +495,13 @@ class DualMemoryManager:
         self.agentcore_memory_bucket = "agentcore-memory-export"
     
     def sync_agentcore_to_langfuse(self, agent_id: str, session_id: str):
-        """AgentCore Memory → Langfuse 동기화"""
-        # AgentCore Memory 내보내기 (S3)
+        """AgentCore Memory → Langfuse synchronization"""
+        # Export AgentCore Memory (S3)
         memory_key = f"{agent_id}/{session_id}/memory.json"
         memory_obj = self.s3.get_object(Bucket=self.agentcore_memory_bucket, Key=memory_key)
         memory_data = json.loads(memory_obj['Body'].read())
         
-        # Langfuse Trace 생성
+        # Create Langfuse Trace
         trace = self.langfuse.trace(
             id=session_id,
             name=f"AgentCore Session {agent_id}",
@@ -511,13 +517,13 @@ class DualMemoryManager:
             )
         
         trace.update(output=memory_data.get('summary'))
-        print(f"✅ AgentCore Memory → Langfuse 동기화 완료: {session_id}")
+        print(f"✅ AgentCore Memory → Langfuse sync complete: {session_id}")
     
     def sync_langfuse_to_agentcore(self, trace_id: str, agent_id: str):
-        """Langfuse → AgentCore Memory 동기화"""
+        """Langfuse → AgentCore Memory synchronization"""
         trace = self.langfuse.get_trace(trace_id)
         
-        # AgentCore Memory 형식으로 변환
+        # Convert to AgentCore Memory format
         memory_data = {
             "agent_id": agent_id,
             "session_id": trace_id,
@@ -528,60 +534,60 @@ class DualMemoryManager:
             "synced_at": datetime.utcnow().isoformat()
         }
         
-        # S3 업로드 (AgentCore가 import)
+        # Upload to S3 (AgentCore imports)
         self.s3.put_object(
             Bucket=self.agentcore_memory_bucket,
             Key=f"{agent_id}/{trace_id}/imported-memory.json",
             Body=json.dumps(memory_data)
         )
-        print(f"✅ Langfuse → AgentCore Memory 동기화 완료: {trace_id}")
+        print(f"✅ Langfuse → AgentCore Memory sync complete: {trace_id}")
 ```
 
 ---
 
 ### Pattern (d): Cost-arbitrage (High-freq=EKS, Low-freq Complex=AgentCore)
 
-Request 빈도와 복잡도에 따라 Cost Optimal Agent를 선택합니다.
+Select cost-optimal Agent based on request frequency and complexity.
 
-**Cost 모델**:
+**Cost Model**:
 
-| Scenario | 월 Request 수 | Avg Tokens | AgentCore Cost | EKS Cost | Optimal 선택 |
+| Scenario | Monthly Requests | Avg Tokens | AgentCore Cost | EKS Cost | Optimal Choice |
 |---------|-----------|---------|--------------|----------|----------|
-| Code completion | 500만 건 | 300 토큰 | ~$15,000 | ~$3,500 | **EKS** |
-| Architecture review | 5만 건 | 5,000 토큰 | ~$2,500 | $3,500 (GPU 유휴) | **AgentCore** |
-| translation | 200만 건 | 500 토큰 | ~$10,000 | ~$2,000 | **EKS** |
-| complex reasoning | 10만 건 | 8,000 토큰 | ~$8,000 | $4,000 (dedicated GPU) | **AgentCore** |
+| Code completion | 5M requests | 300 tokens | ~$15,000 | ~$3,500 | **EKS** |
+| Architecture review | 50K requests | 5,000 tokens | ~$2,500 | $3,500 (GPU idle) | **AgentCore** |
+| Translation | 2M requests | 500 tokens | ~$10,000 | ~$2,000 | **EKS** |
+| Complex reasoning | 100K requests | 8,000 tokens | ~$8,000 | $4,000 (dedicated GPU) | **AgentCore** |
 
-**라우팅 로직**:
+**Routing Logic**:
 
 ```python
 # cost_arbitrage_router.py
 class CostArbitrageRouter:
     def __init__(self):
-        self.request_counts = {}  # Request 빈도 추적
+        self.request_counts = {}  # Track request frequency
         
-        # Cost 계수 (예시)
+        # Cost coefficients (example)
         self.agentcore_cost_per_1k_tokens = 0.003  # Claude Haiku
-        self.eks_fixed_monthly = 500  # GPU 인스턴스 고정 Cost
-        self.eks_break_even_requests = 200000  # 손익분기
+        self.eks_fixed_monthly = 500  # GPU instance fixed cost
+        self.eks_break_even_requests = 200000  # Break-even point
     
     def should_use_eks(self, task_type: str, estimated_tokens: int) -> bool:
-        """Cost 기반 라우팅 결정"""
+        """Cost-based routing decision"""
         monthly_requests = self.request_counts.get(task_type, 0)
         
-        # 고빈도 작업 → EKS
+        # High-frequency tasks → EKS
         if monthly_requests > self.eks_break_even_requests:
             return True
         
-        # 저빈도 + 복잡 → AgentCore
+        # Low-frequency + complex → AgentCore
         if estimated_tokens > 5000 and monthly_requests < 50000:
             return False
         
-        # Simple task → EKS (고정 Cost 상각)
+        # Simple task → EKS (amortize fixed cost)
         if estimated_tokens < 1000:
             return True
         
-        return False  # 기본: AgentCore
+        return False  # Default: AgentCore
 ```
 
 ---
@@ -598,23 +604,23 @@ sequenceDiagram
     participant AC_ID as AgentCore Identity
     participant AC_RT as AgentCore Runtime
     participant MCP as EKS MCP Server
-    participant Backend as 백엔드 API
+    participant Backend as Backend API
     
     User->>AC_ID: Okta login
     AC_ID-->>User: JWT Access Token
     
-    User->>AC_RT: Agent 호출 (Authorization: Bearer JWT)
+    User->>AC_RT: Agent invocation (Authorization: Bearer JWT)
     AC_RT->>AC_ID: Verify token
     AC_ID-->>AC_RT: Valid (user_id, scopes)
     
-    AC_RT->>MCP: MCP 도구 호출 (X-Forwarded-Authorization: Bearer JWT)
-    MCP->>Backend: 백엔드 API 호출 (Authorization: Bearer JWT)
+    AC_RT->>MCP: MCP tool invocation (X-Forwarded-Authorization: Bearer JWT)
+    MCP->>Backend: Backend API call (Authorization: Bearer JWT)
     Backend-->>MCP: Result
     MCP-->>AC_RT: MCP response
     AC_RT-->>User: Agent response
 ```
 
-**EKS MCP Server 인증 검증**:
+**EKS MCP Server Authentication Verification**:
 
 ```python
 # mcp_auth_middleware.py
@@ -631,7 +637,7 @@ def validate_agentcore_token(f):
             return jsonify({"error": "Missing authorization token"}), 401
         
         try:
-            # AgentCore Identity 공개키로 검증
+            # Verify with AgentCore Identity public key
             payload = jwt.decode(
                 token,
                 audience="mcp-server",
@@ -652,9 +658,9 @@ def validate_agentcore_token(f):
 @app.route('/mcp/customer-lookup', methods=['POST'])
 @validate_agentcore_token
 def customer_lookup():
-    """인증된 User만 customer 조회 가능"""
+    """Only authenticated users can query customers"""
     customer_id = request.json.get('customer_id')
-    # request.user_id로 감사 로그 기록
+    # Record audit log with request.user_id
     return {"customer": fetch_customer(customer_id)}
 ```
 
@@ -690,13 +696,13 @@ flowchart LR
     style LANGFUSE fill:#10b981,color:#fff
 ```
 
-**Trace Correlation ID 규칙**:
+**Trace Correlation ID Rules**:
 
-| 소스 | Trace ID 형식 | Parent Span ID |
+| Source | Trace ID Format | Parent Span ID |
 |------|--------------|----------------|
 | AgentCore | `ac-{session_id}-{timestamp}` | `ac-root` |
-| EKS Kagent | `eks-{pod_name}-{trace_id}` | `ac-{session_id}` (AgentCore 호출 시) |
-| Hybrid Trace | `hybrid-{session_id}` | 양쪽에서 공유 |
+| EKS Kagent | `eks-{pod_name}-{trace_id}` | `ac-{session_id}` (when calling AgentCore) |
+| Hybrid Trace | `hybrid-{session_id}` | Shared by both sides |
 
 **Lambda Trace Forwarder**:
 
@@ -711,14 +717,14 @@ cloudwatch = boto3.client('logs')
 langfuse_endpoint = "https://langfuse.eks.internal/api/public/ingestion"
 
 def lambda_handler(event, context):
-    """CloudWatch GenAI Observability → Langfuse 전달"""
+    """CloudWatch GenAI Observability → Langfuse forwarding"""
     for record in event['Records']:
         message = json.loads(record['Sns']['Message'])
         
         if message['source'] == 'aws.bedrock.agentcore':
             trace_data = message['detail']
             
-            # Langfuse 형식으로 변환
+            # Convert to Langfuse format
             langfuse_trace = {
                 "id": f"hybrid-{trace_data['sessionId']}",
                 "name": f"AgentCore {trace_data['agentId']}",
@@ -739,13 +745,13 @@ def lambda_handler(event, context):
                 ]
             }
             
-            # Langfuse로 전송
+            # Send to Langfuse
             response = requests.post(
                 langfuse_endpoint,
                 json=langfuse_trace,
                 headers={"Authorization": f"Bearer {os.environ['LANGFUSE_API_KEY']}"}
             )
-            print(f"✅ Trace 전달 완료: {trace_data['sessionId']} → Langfuse")
+            print(f"✅ Trace forwarding complete: {trace_data['sessionId']} → Langfuse")
     
     return {"statusCode": 200}
 ```
@@ -769,50 +775,50 @@ flowchart LR
 
 **Checklist**:
 - [ ] Select Bedrock model (Claude Sonnet/Haiku)
-- [ ] Strands SDK로 Agent Implementation
+- [ ] Agent implementation with Strands SDK
 - [ ] Deploy to AgentCore (`agentcore deploy`)
 - [ ] Configure Knowledge Bases RAG
 - [ ] Enable CloudWatch GenAI Observability
 
 **Exit Criteria (Phase 2 transition triggers)**:
-- Monthly Inference Volume 50만 건 초과
-- Bedrock 토큰 Cost 월 $1,500 초과
-- VPC internal tools 호출 빈도 높음 (p95 latency > 100ms)
+- Monthly inference volume exceeds 500K requests
+- Bedrock token cost exceeds $1,500/month
+- High VPC internal tool call frequency (p95 latency > 100ms)
 
 ---
 
 ### Phase 2: Bedrock + Self-hosted SLM (3-6 months)
 
-**Goal**: Cost Optimal화, Simple task을 EKS Qwen3-4B로 오프로드
+**Goal**: Cost optimization, offload simple tasks to EKS Qwen3-4B
 
 ```mermaid
 flowchart LR
     User["User"] --> GW["kgateway"]
     GW --> Classifier["LLM Classifier"]
-    Classifier -->|"복잡"| AC["AgentCore<br/>Claude"]
-    Classifier -->|"단순"| EKS["EKS<br/>Qwen3-4B"]
+    Classifier -->|"Complex"| AC["AgentCore<br/>Claude"]
+    Classifier -->|"Simple"| EKS["EKS<br/>Qwen3-4B"]
     
     style AC fill:#ff9900,color:#fff
     style EKS fill:#10b981,color:#fff
 ```
 
 **Checklist**:
-- [ ] Configure EKS cluster (Auto Mode 또는 Karpenter)
+- [ ] Configure EKS cluster (Auto Mode or Karpenter)
 - [ ] Deploy Qwen3-4B with vLLM
-- [ ] LLM Classifier Implementation (Cascade Routing)
-- [ ] kgateway + Bifrost 2-Tier Gateway 구성
-- [ ] Cost 대시보드 구축 (AgentCore vs EKS Cost 추적)
+- [ ] Implement LLM Classifier (Cascade Routing)
+- [ ] Configure kgateway + Bifrost 2-Tier Gateway
+- [ ] Build cost dashboard (track AgentCore vs EKS cost)
 
 **Exit Criteria (Phase 3 transition triggers)**:
-- EKS Agent와 AgentCore Agent 간 컨텍스트 공유 필요
-- 양쪽에서 동일한 세션 유지 요구
-- Fine-tuned Custom models 필요
+- Context sharing required between EKS Agent and AgentCore Agent
+- Require maintaining same session on both sides
+- Fine-tuned custom models needed
 
 ---
 
 ### Phase 3: Full Hybrid Cross-routing (6-12 months)
 
-**Goal**: 양방향 라우팅, 통합 컨텍스트, Optimal Cost
+**Goal**: Bidirectional routing, unified context, optimal cost
 
 ```mermaid
 flowchart TD
@@ -841,11 +847,11 @@ flowchart TD
     
     User --> GW
     GW --> Router
-    Router -->|"복잡/저빈도"| AC_Agent
-    Router -->|"단순/고빈도"| EKS_Agent
+    Router -->|"Complex/Low-freq"| AC_Agent
+    Router -->|"Simple/High-freq"| EKS_Agent
     
     AC_Agent --> AC_MEM
-    AC_MEM <-.->|"동기화"| S3
+    AC_MEM <-.->|"Sync"| S3
     S3 <-.-> LANGFUSE
     
     AC_Agent -->|"PrivateLink"| MCP
@@ -860,54 +866,55 @@ flowchart TD
 ```
 
 **Checklist**:
-- [ ] Dual-write Memory 동기화 Implementation (패턴 c)
+- [ ] Implement dual-write Memory synchronization (pattern c)
 - [ ] Integrate Trace Correlation ID
 - [ ] PrivateLink Endpoint for MCP
-- [ ] Cost-arbitrage Router Implementation (패턴 d)
-- [ ] Escalation 로직 Implementation (패턴 b)
+- [ ] Implement cost-arbitrage Router (pattern d)
+- [ ] Implement escalation logic (pattern b)
 - [ ] Unified dashboard (AgentCore + EKS integrated observability)
 
 **Success Metrics**:
-- Cost reduction률: 40-60% (Bedrock Only vs)
-- p95 latency.*improvement
-- Session context consistency: 95% 이상
+- Cost reduction rate: 40-60% (vs Bedrock Only)
+- p95 latency: 20% improvement vs AgentCore standalone
+- Session context consistency: 95%+
 - Agent availability: 99.9% (both-side Failover)
 
 ---
 
-## transition triggers Metric
+## Transition Trigger Metrics
 
 Quantitative metrics to determine each Phase transition.
 
 | Metric | Phase 1 → 2 Threshold | Phase 2 → 3 Threshold |
 |------|-------------------|-------------------|
-| **Monthly Inference Volume** | > 50만 건 | > 150만 건 |
-| **월 Cost** | > $1,500 | > $3,000 |
-| **평균 지연 (p95)** | > 100ms | > 200ms |
+| **Monthly Inference Volume** | > 500K requests | > 1.5M requests |
+| **Monthly Cost** | > $1,500 | > $3,000 |
+| **Average Latency (p95)** | > 100ms | > 200ms |
 | **Session Context Loss Rate** | N/A | > 5% |
-| **Custom models 요구** | Fine-tuning needed | Domain-specific SLM needed |
-| **팀 K8s Capability** | Beginner | Intermediate+ |
+| **Custom Model Requirement** | Fine-tuning needed | Domain-specific SLM needed |
+| **Team K8s Capability** | Beginner | Intermediate+ |
 
 ---
 
 ## References
 
-### AgentCore Official Documentation
-- [Amazon Bedrock AgentCore](https://docs.aws.amazon.com/bedrock/latest/userguide/agents.html)
-- [AgentCore Identity & Policy](https://docs.aws.amazon.com/bedrock/latest/userguide/agents-identity.html)
-- [CloudWatch Generative AI Observability](https://aws.amazon.com/blogs/mt/launching-amazon-cloudwatch-generative-ai-observability-preview/)
+### Official Documentation
 
-### EKS & Kubernetes
-- [EKS PrivateLink](https://docs.aws.amazon.com/eks/latest/userguide/private-clusters.html)
-- [Kagent - Kubernetes Agent Framework](https://github.com/kagent-dev/kagent)
-- [Langfuse Self-Hosting](https://langfuse.com/docs/deployment/self-host)
+- [Amazon Bedrock AgentCore](https://docs.aws.amazon.com/bedrock/latest/userguide/agents.html) — AgentCore official documentation
+- [AgentCore Identity & Policy](https://docs.aws.amazon.com/bedrock/latest/userguide/agents-identity.html) — Authentication & policy guide
+- [EKS PrivateLink](https://docs.aws.amazon.com/eks/latest/userguide/private-clusters.html) — VPC internal connection
+- [AWS PrivateLink for Services](https://docs.aws.amazon.com/vpc/latest/privatelink/) — Service endpoints
 
-### Hybrid Architecture Reference
-- [SageMaker-EKS 통합](../../reference-architecture/integrations/sagemaker-eks-integration.md)
-- [추론 게이트웨이 라우팅](../../reference-architecture/inference-gateway/routing-strategy.md)
-- [Coding Tools Cost Analysis](../../reference-architecture/integrations/coding-tools-cost-analysis.md)
+### Papers / Technical Blogs
 
-### MCP & A2A
-- [AWS MCP Servers (GitHub)](https://github.com/awslabs/mcp)
-- [Model Context Protocol Specification](https://modelcontextprotocol.io/)
-- [Agent-to-Agent Protocol](https://agentprotocol.io/)
+- [CloudWatch Generative AI Observability](https://aws.amazon.com/blogs/mt/launching-amazon-cloudwatch-generative-ai-observability-preview/) — Observability integration
+- [Hybrid AI Architecture Patterns](https://aws.amazon.com/blogs/machine-learning/) — Hybrid patterns
+- [Langfuse Self-Hosting Guide](https://langfuse.com/docs/deployment/self-host) — Self-hosting guide
+- [Building Cost-Effective AI Systems](https://huyenchip.com/2023/04/11/llm-engineering.html) — Cost optimization
+
+### Related Documents (Internal)
+
+- [AWS Native Platform](./aws-native-agentic-platform.md) — AgentCore 7-service overview
+- [EKS-based Open Architecture](./agentic-ai-solutions-eks.md) — Self-hosted stack
+- [SageMaker-EKS Integration](../../reference-architecture/integrations/sagemaker-eks-integration.md) — VPC/IAM reference
+- [Coding Tools Cost Analysis](../../reference-architecture/integrations/coding-tools-cost-analysis.md) — Break-even calculation

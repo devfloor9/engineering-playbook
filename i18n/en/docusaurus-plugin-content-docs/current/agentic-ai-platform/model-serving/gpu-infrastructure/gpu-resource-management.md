@@ -2,11 +2,21 @@
 title: "GPU Resource Management"
 sidebar_label: "GPU Resource Management"
 description: "GPU resource management and cost optimization using Karpenter, KEDA, and DRA on EKS"
-tags: [gpu, karpenter, keda, dra, autoscaling, cost-optimization]
-sidebar_position: 2
+created: 2026-02-05
 last_update:
-  date: 2026-04-06
-  author: YoungJoon Jeong
+  date: 2026-04-20
+  author: devfloor9
+reading_time: 13
+tags:
+  - gpu
+  - karpenter
+  - keda
+  - dra
+  - autoscaling
+  - cost-optimization
+  - eks
+  - kubernetes
+  - scope:tech
 ---
 
 import Tabs from '@theme/Tabs';
@@ -20,8 +30,6 @@ import {
   KarpenterGpuOptimization
 } from '@site/src/components/AgenticSolutionsTables';
 
-# GPU Resource Management
-
 GPU resource management strategies in EKS environments are organized around three axes.
 
 | Axis | Key Question | Core Technologies |
@@ -30,7 +38,7 @@ GPU resource management strategies in EKS environments are organized around thre
 | **Scheduling** | Which node to place GPU Pods on? | Device Plugin, DRA, Topology-Aware Routing |
 | **Scaling** | How to respond to traffic changes? | KEDA, HPA, Cluster Autoscaler |
 
-This document covers the architecture and design decision criteria for each axis. For GPU hardware partitioning (MIG, Time-Slicing) and the NVIDIA software stack, see [NVIDIA GPU Stack](./nvidia-gpu-stack.md).
+This document covers the architecture and design decision criteria for each axis. For GPU Operator details (ClusterPolicy, DCGM, MIG, Time-Slicing, Dynamo, KAI Scheduler, and other NVIDIA software stack components), see [NVIDIA GPU Stack](./nvidia-gpu-stack.md).
 
 ---
 
@@ -40,7 +48,7 @@ This document covers the architecture and design decision criteria for each axis
 Karpenter has been GA since v1.0, and all examples in this document use the `karpenter.sh/v1` API.
 :::
 
-### GPU Node Auto-Provisioning Concepts
+### GPU Node Auto-Provisioning Concept
 
 Karpenter analyzes Pending Pod resource requests (`nvidia.com/gpu`, memory, CPU) to automatically provision the optimal EC2 instance. The core value of Karpenter for GPU workloads includes:
 
@@ -150,7 +158,7 @@ Device Plugin is simple and stable but can only allocate GPUs as **whole units**
 
 ### Topology-Aware Routing
 
-Topology-Aware Routing, stabilized in K8s 1.33+, minimizes network latency between GPU nodes. It prioritizes routing traffic to GPU nodes within the same AZ, particularly improving performance for multi-node tensor parallelism workloads.
+Topology-Aware Routing, stabilized in K8s 1.33+, minimizes network latency between GPU nodes. It prioritizes routing traffic to GPU nodes within the same AZ (availability zone), particularly improving performance for multi-node tensor parallelism workloads.
 
 ```yaml
 apiVersion: v1
@@ -180,7 +188,7 @@ For large-scale LLM training or tensor parallel inference, multiple GPU Pods mus
 
 ## DRA (Dynamic Resource Allocation)
 
-### Concepts and Necessity
+### Concept and Necessity
 
 DRA is Kubernetes' new GPU resource management paradigm that overcomes Device Plugin limitations.
 
@@ -231,15 +239,15 @@ flowchart LR
 
 | Node Provisioning | DRA Compatible | Notes |
 |---|---|---|
-| **Managed Node Group** | Supported | Recommended |
-| **Self-Managed Node Group** | Supported | Manual configuration required |
-| **Karpenter** | Not supported | Skips Pods with ResourceClaim |
-| **EKS Auto Mode** | Not supported | Same limitation due to internal Karpenter |
+| **Managed Node Group** | ✅ Supported | Recommended |
+| **Self-Managed Node Group** | ✅ Supported | Manual configuration required |
+| **Karpenter** | ❌ Not supported | Skips Pods with ResourceClaim |
+| **EKS Auto Mode** | ❌ Not supported | Same limitation due to internal Karpenter |
 :::
 
 **Why Karpenter cannot support DRA:**
 
-Karpenter analyzes Pod requirements to calculate optimal instances for **nodes that don't yet exist**. This calculation is impossible with DRA:
+Karpenter analyzes Pod requirements to calculate optimal instances for **nodes that don't yet exist**. This calculation is impossible with DRA.
 
 1. **ResourceSlice is created after node exists**: DRA Driver issues ResourceSlice after detecting GPUs on the node, but Karpenter needs this information before node creation (chicken-and-egg problem)
 2. **No instance→ResourceSlice mapping**: With Device Plugin, `p5.48xlarge → nvidia.com/gpu: 8` is statically known, but with DRA the content varies by Driver implementation

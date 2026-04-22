@@ -1,7 +1,7 @@
 ---
-title: "Disaggregated Serving + LWS 멀티노드"
+title: "Disaggregated Serving + LWS Multi-Node"
 sidebar_label: "Disaggregated Serving"
-description: "Prefill/Decode 분리 아키텍처와 NIXL 공통 KV 전송 엔진, LeaderWorkerSet 기반 700B+ 대형 MoE 모델 멀티노드 배포 가이드"
+description: "Prefill/Decode separation architecture and NIXL common KV transfer engine, LeaderWorkerSet-based 700B+ large MoE model multi-node deployment guide"
 created: 2026-04-03
 last_update:
   date: 2026-04-20
@@ -19,24 +19,24 @@ tags:
 sidebar_position: 3
 ---
 
-## 개요
+## Overview
 
-대형 LLM 추론은 두 가지 서로 다른 연산 단계(Prefill / Decode)로 나뉘며, 각 단계의 하드웨어 요구 프로파일이 다릅니다. 700B+ 모델은 단일 노드에 적재할 수 없어 멀티노드 파이프라인 병렬화가 필수입니다. 본 문서는 **Disaggregated Serving** 아키텍처와 **LeaderWorkerSet(LWS)** 기반 멀티노드 배포 패턴을 다룹니다.
+Large LLM inference is divided into two fundamentally different computational stages (Prefill / Decode), each with different hardware requirement profiles. 700B+ models cannot fit in a single node, requiring multi-node pipeline parallelization. This document covers **Disaggregated Serving** architecture and **LeaderWorkerSet (LWS)**-based multi-node deployment patterns.
 
 ## Disaggregated Serving
 
-### Prefill/Decode 분리의 필요성
+### Need for Prefill/Decode Separation
 
-LLM 추론은 두 가지 근본적으로 다른 연산 단계로 구성됩니다.
+LLM inference consists of two fundamentally different computational stages.
 
-| 단계 | 특성 | 병목 | GPU 요구 |
+| Stage | Characteristics | Bottleneck | GPU Requirements |
 |------|------|------|---------|
-| **Prefill** | 입력 프롬프트 전체 처리 | Compute-bound | 높은 연산 능력 (TP=4) |
-| **Decode** | 토큰 하나씩 순차 생성 | Memory-bound | 높은 메모리 대역폭 (TP=2) |
+| **Prefill** | Process entire input prompt | Compute-bound | High compute capability (TP=4) |
+| **Decode** | Sequential token-by-token generation | Memory-bound | High memory bandwidth (TP=2) |
 
-이 두 단계를 동일 Pod에서 처리하면, Prefill의 compute 부하가 Decode의 latency를 악화시킵니다. 분리하면 각 단계를 독립적으로 스케일링할 수 있어 GPU 활용률이 극대화됩니다.
+Processing both stages in the same Pod causes Prefill's compute load to worsen Decode's latency. Separation enables independent scaling of each stage, maximizing GPU utilization.
 
-### 분리 아키텍처
+### Separation Architecture
 
 ```mermaid
 flowchart LR
@@ -56,10 +56,10 @@ flowchart LR
 
     GW --> PF1
     GW --> PF2
-    PF1 -->|"NIXL KV 전송"| DC1
-    PF1 -->|"NIXL KV 전송"| DC2
-    PF2 -->|"NIXL KV 전송"| DC3
-    PF2 -->|"NIXL KV 전송"| DC4
+    PF1 -->|"NIXL KV Transfer"| DC1
+    PF1 -->|"NIXL KV Transfer"| DC2
+    PF2 -->|"NIXL KV Transfer"| DC3
+    PF2 -->|"NIXL KV Transfer"| DC4
 
     style GW fill:#326ce5,color:#fff
     style PF1 fill:#ff6b6b,color:#fff
@@ -70,16 +70,16 @@ flowchart LR
     style DC4 fill:#4ecdc4,color:#fff
 ```
 
-### NIXL: 공통 KV Cache 전송 엔진
+### NIXL: Common KV Cache Transfer Engine
 
-NIXL(NVIDIA Inference Xfer Library)은 llm-d, Dynamo, production-stack, aibrix 등 대부분의 프로젝트가 사용하는 공통 KV 전송 엔진입니다. NVLink/RDMA를 활용한 초고속 GPU 간 KV Cache 전송을 제공합니다.
+NIXL (NVIDIA Inference Xfer Library) is the common KV transfer engine used by most projects including llm-d, Dynamo, production-stack, and aibrix. It provides ultra-fast GPU-to-GPU KV Cache transfer leveraging NVLink/RDMA.
 
-### EKS Auto Mode에서의 Disaggregated Serving
+### Disaggregated Serving on EKS Auto Mode
 
-Auto Mode에서는 MIG 파티셔닝이 불가능하므로, **인스턴스(노드) 단위로 역할을 분리**합니다.
+Since MIG partitioning is not possible on Auto Mode, **roles are separated at the instance (node) level**.
 
 ```yaml
-# Prefill 전용 NodePool
+# Prefill-dedicated NodePool
 apiVersion: karpenter.sh/v1
 kind: NodePool
 metadata:
@@ -103,7 +103,7 @@ spec:
           value: prefill
           effect: NoSchedule
 ---
-# Decode 전용 NodePool
+# Decode-dedicated NodePool
 apiVersion: karpenter.sh/v1
 kind: NodePool
 metadata:
@@ -128,16 +128,16 @@ spec:
           effect: NoSchedule
 ```
 
-**GPU 배치 전략:**
-- Prefill: p5.48xlarge 1대에 Prefill Pod 2개 (각 TP=4, GPU 4개)
-- Decode: p5.48xlarge 1대에 Decode Pod 4개 (각 TP=2, GPU 2개)
-- 이를 통해 GPU 유휴를 최소화
+**GPU Placement Strategy:**
+- Prefill: 2 Prefill Pods per p5.48xlarge (each TP=4, 4 GPUs)
+- Decode: 4 Decode Pods per p5.48xlarge (each TP=2, 2 GPUs)
+- Minimizes GPU idle time
 
-## LWS 기반 멀티노드 대형 모델 서빙
+## LWS-Based Multi-Node Large Model Serving
 
-### LeaderWorkerSet 개요
+### LeaderWorkerSet Overview
 
-700B+ 대형 MoE 모델은 단일 노드(8× GPU)에 적재할 수 없어 멀티노드 파이프라인 병렬화가 필수입니다. [LeaderWorkerSet(LWS)](https://github.com/kubernetes-sigs/lws)는 Kubernetes 네이티브 멀티노드 워크로드 패턴으로, **Ray 없이도 멀티노드 Pipeline Parallelism**을 구현할 수 있습니다.
+700B+ large MoE models cannot fit in a single node (8× GPUs), requiring multi-node pipeline parallelization. [LeaderWorkerSet (LWS)](https://github.com/kubernetes-sigs/lws) is a Kubernetes-native multi-node workload pattern that enables **multi-node Pipeline Parallelism without Ray**.
 
 ```mermaid
 graph LR
@@ -150,17 +150,17 @@ graph LR
     style W fill:#fff3e0
 ```
 
-### LWS vs Ray 비교
+### LWS vs Ray Comparison
 
-| 항목 | LWS + vLLM | Ray + vLLM |
+| Item | LWS + vLLM | Ray + vLLM |
 |------|-----------|-----------|
-| **의존성** | LWS CRD만 설치 | Ray Cluster (head + worker) |
-| **복잡도** | 낮음 | 높음 |
-| **Pod 관리** | K8s StatefulSet 기반 | Ray 자체 스케줄러 |
-| **장애 복구** | RecreateGroupOnPodRestart | Ray 재연결 |
-| **EKS Auto Mode** | 호환 | 호환 |
+| **Dependencies** | LWS CRD only | Ray Cluster (head + worker) |
+| **Complexity** | Low | High |
+| **Pod Management** | K8s StatefulSet-based | Ray's own scheduler |
+| **Failure Recovery** | RecreateGroupOnPodRestart | Ray reconnection |
+| **EKS Auto Mode** | Compatible | Compatible |
 
-### 배포 예제: GLM-5 744B (PP=2, TP=8)
+### Deployment Example: GLM-5 744B (PP=2, TP=8)
 
 ```yaml
 apiVersion: leaderworkerset.x-k8s.io/v1
@@ -212,7 +212,7 @@ spec:
               sizeLimit: 32Gi
     workerTemplate:
       spec:
-        # leader와 동일한 container spec (args에서 node-rank만 다름)
+        # Same container spec as leader (only node-rank differs in args)
         tolerations:
           - key: nvidia.com/gpu
             operator: Exists
@@ -248,12 +248,12 @@ spec:
               sizeLimit: 32Gi
 ```
 
-### NCCL / EFA 네트워크 최적화
+### NCCL / EFA Network Optimization
 
-멀티노드 파이프라인 병렬화에서 노드 간 통신 성능이 핵심입니다. p5.48xlarge는 3,200 Gbps EFA(Elastic Fabric Adapter)를 제공합니다.
+Inter-node communication performance is critical in multi-node pipeline parallelization. p5.48xlarge provides 3,200 Gbps EFA (Elastic Fabric Adapter).
 
 ```yaml
-# NCCL 환경 변수 최적화 (LWS Pod에 추가)
+# NCCL environment variable optimization (add to LWS Pod)
 env:
   - name: NCCL_DEBUG
     value: "INFO"
@@ -262,33 +262,33 @@ env:
   - name: FI_EFA_USE_DEVICE_RDMA
     value: "1"
   - name: NCCL_ALGO
-    value: "Ring"           # Ring이 멀티노드 PP에 적합
+    value: "Ring"           # Ring is suitable for multi-node PP
   - name: NCCL_PROTO
-    value: "Simple"         # EFA에서 안정적
+    value: "Simple"         # Stable on EFA
   - name: NCCL_MIN_NCHANNELS
     value: "4"
 ```
 
-:::tip LWS 장애 복구
-`restartPolicy: RecreateGroupOnPodRestart`로 설정하면, Leader 또는 Worker Pod 중 하나가 실패할 때 전체 그룹을 재생성합니다. 멀티노드 NCCL 통신은 모든 노드가 동기화되어야 하므로, 부분 재시작보다 전체 재시작이 안정적입니다.
+:::tip LWS Failure Recovery
+Setting `restartPolicy: RecreateGroupOnPodRestart` recreates the entire group when either Leader or Worker Pod fails. Multi-node NCCL communication requires all nodes to be synchronized, making full restart more stable than partial restart.
 :::
 
-## 참고 자료
+## References
 
-### 공식 문서
-- [LeaderWorkerSet GitHub](https://github.com/kubernetes-sigs/lws) — K8s 네이티브 멀티노드 워크로드
-- [NVIDIA Dynamo Disaggregated Serving](https://developer.nvidia.com/dynamo) — Prefill/Decode 분리 설계
+### Official Documentation
+- [LeaderWorkerSet GitHub](https://github.com/kubernetes-sigs/lws) — K8s native multi-node workload
+- [NVIDIA Dynamo Disaggregated Serving](https://developer.nvidia.com/dynamo) — Prefill/Decode separation design
 - [Elastic Fabric Adapter (EFA)](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/efa.html) — p5.48xlarge 3,200Gbps RDMA
-- [NCCL 튜닝 가이드](https://docs.nvidia.com/deeplearning/nccl/user-guide/docs/env.html) — 멀티노드 통신 최적화
+- [NCCL Tuning Guide](https://docs.nvidia.com/deeplearning/nccl/user-guide/docs/env.html) — Multi-node communication optimization
 
-### 논문·기술 블로그
+### Papers & Technical Blogs
 - [DistServe (OSDI 2024)](https://arxiv.org/abs/2401.09670) — "DistServe: Disaggregating Prefill and Decoding for Goodput-optimized Large Language Model Serving"
 - [Splitwise Paper (Microsoft)](https://arxiv.org/abs/2311.18677) — "Splitwise: Efficient Generative LLM Inference Using Phase Splitting"
-- [llm-d Disaggregated Design](https://llm-d.ai/docs/architecture/disaggregated-serving) — llm-d 분리 서빙 아키텍처
-- [NIXL Overview (NVIDIA)](https://developer.nvidia.com/blog/introducing-nvidia-dynamo-a-low-latency-distributed-inference-framework-for-scaling-reasoning-ai-models/) — 공통 KV 전송 엔진
+- [llm-d Disaggregated Design](https://llm-d.ai/docs/architecture/disaggregated-serving) — llm-d disaggregated serving architecture
+- [NIXL Overview (NVIDIA)](https://developer.nvidia.com/blog/introducing-nvidia-dynamo-a-low-latency-distributed-inference-framework-for-scaling-reasoning-ai-models/) — Common KV transfer engine
 
-### 관련 문서
-- [KV Cache 최적화 (vLLM Deep Dive + Cache-Aware Routing)](./kv-cache-optimization.md) — vLLM 병렬화 전략
-- [GPU 리소스·관측·Hybrid Node·실전 교훈](./cost-optimization.md) — NodePool 기반 오토스케일링
-- [MoE 모델 서빙 가이드](../inference-frameworks/moe-model-serving.md) — MoE 모델 배포
-- [llm-d 기반 EKS 분산 추론](../inference-frameworks/llm-d-eks-automode.md) — llm-d 배포 가이드
+### Related Documentation
+- [KV Cache Optimization (vLLM Deep Dive + Cache-Aware Routing)](./kv-cache-optimization.md) — vLLM parallelization strategies
+- [GPU Resources · Observability · Hybrid Node · Lessons Learned](./cost-optimization.md) — NodePool-based autoscaling
+- [MoE Model Serving Guide](../inference-frameworks/moe-model-serving.md) — MoE model deployment
+- [llm-d-based EKS Distributed Inference](../inference-frameworks/llm-d-eks-automode.md) — llm-d deployment guide

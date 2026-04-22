@@ -2,21 +2,28 @@
 title: "MoE Model Serving Concept Guide"
 sidebar_label: "MoE Model Serving"
 description: "Architecture concepts, distributed deployment strategies, and performance optimization principles for Mixture of Experts models"
-tags: [eks, moe, vllm, model-serving, gpu, mixtral]
-category: "genai-aiml"
+created: 2026-02-05
 last_update:
-  date: 2026-04-06
+  date: 2026-04-20
   author: devfloor9
+reading_time: 15
+tags:
+  - eks
+  - moe
+  - vllm
+  - model-serving
+  - gpu
+  - mixtral
+  - inference
+  - architecture
+  - scope:tech
+category: "genai-aiml"
 sidebar_position: 5
 ---
 
 import { RoutingMechanisms, MoeVsDense, GpuMemoryRequirements, ParallelizationStrategies, TensorParallelismConfig, VllmVsTgi, KvCacheConfig, BatchOptimization, MonitoringMetrics, GpuVsTrainium2 } from '@site/src/components/MoeModelTables';
 
-# MoE Model Serving Concept Guide
-
-> **Current version**: vLLM v0.18+ / v0.19.x (as of 2026-04)
-
-> **Written**: 2025-02-09 | **Updated**: 2026-04-06 | **Reading time**: ~6 min
+> **Current version**: vLLM v0.18+ / v0.19.x (as of April 2026)
 
 ## Overview
 
@@ -25,7 +32,7 @@ Mixture of Experts (MoE) models are an architecture that maximizes the efficienc
 This document covers the core concepts of MoE architecture, per-model resource requirements, and distributed deployment strategies.
 
 :::tip Production Deployment Guide
-For MoE model EKS deployment YAML, helm commands, and multi-node configuration, see the [Custom Model Deployment Guide](../../reference-architecture/model-lifecycle/custom-model-deployment.md).
+For practical deployment including EKS deployment YAML, helm commands, and multi-node configuration for MoE models, refer to the [Custom Model Deployment Guide](../../reference-architecture/model-lifecycle/custom-model-deployment.md).
 :::
 
 ---
@@ -56,9 +63,9 @@ flowchart TB
     INPUT --> GATE
     GATE -->|Top-K=2<br/>Selected| E1
     GATE -->|Top-K=2<br/>Selected| E2
-    GATE -.->|Not selected| E3
-    GATE -.->|Not selected| E4
-    GATE -.->|Not selected| EN
+    GATE -.->|Not Selected| E3
+    GATE -.->|Not Selected| E4
+    GATE -.->|Not Selected| EN
     E1 --> COMBINE
     E2 --> COMBINE
     COMBINE --> OUTPUT
@@ -78,10 +85,10 @@ The core of MoE models is the routing mechanism that selects appropriate Experts
 
 :::info Routing Operation Principles
 
-1. **Gate computation**: Pass the input token's hidden state through the Gate network
-2. **Expert selection**: Select Top-K Experts from Softmax output
-3. **Parallel processing**: Selected Experts process the input in parallel
-4. **Weighted summation**: Combine Expert outputs with Gate weights
+1. **Gate Computation**: Pass the input token's hidden state through the Gate network
+2. **Expert Selection**: Select Top-K Experts from Softmax output
+3. **Parallel Processing**: Selected Experts process the input in parallel
+4. **Weighted Summation**: Combine Expert outputs with Gate weights
 
 :::
 
@@ -113,7 +120,7 @@ flowchart LR
 
 :::tip Advantages of MoE Models
 
-- **Computational efficiency**: Faster inference by activating only a portion of total parameters
+- **Computational Efficiency**: Faster inference by activating only a portion of total parameters
 - **Scalability**: Model capacity expandable by adding Experts
 - **Specialization**: Each Expert can specialize in specific domains/tasks
 
@@ -129,11 +136,11 @@ MoE models activate fewer parameters but must load all Experts into memory.
 
 :::info Latest MoE Model Memory Optimization
 
-**DeepSeek-V3**: Uses Multi-head Latent Attention (MLA) architecture to significantly reduce KV cache memory. Achieves ~40% memory savings compared to traditional MHA, so actual memory requirements may be lower than listed.
+**DeepSeek-V3**: Uses Multi-head Latent Attention (MLA) architecture to significantly reduce KV cache memory. Achieves approximately 40% memory savings compared to traditional MHA, so actual memory requirements may be lower than listed values.
 
-**GLM-5** (released Feb 2026): 744B total parameters / 40B active, 8 of 256 experts activated. SWE-bench Verified 77.8%, Agentic Coding #1 (55.00), MIT license. FP8 quantized version requires ~744GB VRAM (2x p5.48xlarge, PP=2). HuggingFace: `zai-org/GLM-5-FP8`
+**GLM-5** (released February 2026): 744B total parameters / 40B active, 8 of 256 experts activated. SWE-bench Verified 77.8%, Agentic Coding #1 (55.00), MIT license. FP8 quantized version requires approximately 744GB VRAM (2x p5.48xlarge, PP=2). HuggingFace: `zai-org/GLM-5-FP8`
 
-**Kimi K2.5** (released Jan 2026): ~1T total parameters / 32B active, Modified DeepSeek V3 MoE architecture. SWE-bench Verified 76.8%, HumanEval 99%, Agent Swarm support. INT4 quantized version requires ~500GB VRAM (1x p5.48xlarge, TP=8). HuggingFace: `moonshotai/Kimi-K2.5`
+**Kimi K2.5** (released January 2026): approximately 1T total parameters / 32B active, Modified DeepSeek V3 MoE architecture. SWE-bench Verified 76.8%, HumanEval 99%, Agent Swarm support. INT4 quantized version requires approximately 500GB VRAM (1x p5.48xlarge, TP=8). HuggingFace: `moonshotai/Kimi-K2.5`
 
 Exact memory requirements vary with batch size and sequence length, so profiling is recommended.
 :::
@@ -142,7 +149,7 @@ Exact memory requirements vary with batch size and sequence length, so profiling
 
 - **KV Cache**: Additional memory needed based on batch size and sequence length
 - **Activation Memory**: Storage space for intermediate activation values during inference
-- **CUDA Context**: ~1-2GB CUDA overhead per GPU
+- **CUDA Context**: Approximately 1-2GB CUDA overhead per GPU
 - **Safety Margin**: Recommended 10-20% headroom in production
 
 :::
@@ -195,15 +202,15 @@ Tensor Parallelism distributes each model layer across multiple GPUs.
 
 :::tip Tensor Parallelism Optimization
 
-- **NVLink utilization**: Use NVLink-supported instances for high-speed inter-GPU communication
-- **TP size selection**: Choose minimum TP size based on model size and GPU memory
-- **Communication overhead**: Larger TP size increases All-Reduce communication
+- **NVLink Utilization**: Use NVLink-supported instances for high-speed inter-GPU communication
+- **TP Size Selection**: Choose minimum TP size based on model size and GPU memory
+- **Communication Overhead**: Larger TP size increases All-Reduce communication
 
 :::
 
 ### Expert Parallelism
 
-Expert Parallelism distributes MoE model Experts across multiple GPUs. In vLLM v0.6+, Experts are automatically distributed within TP.
+Expert Parallelism distributes MoE model Experts across multiple GPUs. In vLLM v0.19.x, Experts are automatically distributed within TP.
 
 ### Expert Activation Patterns
 
@@ -247,11 +254,11 @@ flowchart TB
 
 | Model | Total Parameters | Active Parameters | Recommended Config | VRAM Requirement |
 |-------|-----------------|-------------------|-------------------|-----------------|
-| GLM-5 FP8 | 744B | 40B | 2x p5.48xlarge, PP=2, TP=8 | ~744GB |
-| Kimi K2.5 INT4 | ~1T | 32B | 1x p5.48xlarge, TP=8 | ~500GB |
-| DeepSeek-V3 | 671B | 37B | 2x p5.48xlarge, PP=2, TP=8 | ~671GB |
-| Mixtral 8x22B | 141B | 39B | 1x p5.48xlarge, TP=4 | ~282GB |
-| Mixtral 8x7B | 47B | 13B | 1x p4d.24xlarge, TP=2 | ~94GB |
+| GLM-5 FP8 | 744B | 40B | 2x p5.48xlarge, PP=2, TP=8 | approximately 744GB |
+| Kimi K2.5 INT4 | approximately 1T | 32B | 1x p5.48xlarge, TP=8 | approximately 500GB |
+| DeepSeek-V3 | 671B | 37B | 2x p5.48xlarge, PP=2, TP=8 | approximately 671GB |
+| Mixtral 8x22B | 141B | 39B | 1x p5.48xlarge, TP=4 | approximately 282GB |
+| Mixtral 8x7B | 47B | 13B | 1x p4d.24xlarge, TP=2 | approximately 94GB |
 
 :::tip 700B+ MoE Model Deployment Recommendations
 
@@ -265,9 +272,9 @@ flowchart TB
 
 :::warning Multi-node Deployment Cautions
 
-- **Network bandwidth**: Overhead from inter-node All-Reduce communication (EFA recommended)
-- **Loading time**: 700B+ models may take 20-30 minutes for initial loading
-- **Memory headroom**: 10-15% safety margin required
+- **Network Bandwidth**: Overhead from inter-node All-Reduce communication (EFA recommended)
+- **Loading Time**: 700B+ models may take 20-30 minutes for initial loading
+- **Memory Headroom**: 10-15% safety margin required
 - **LeaderWorkerSet CRD**: LWS Operator must be installed on the cluster
 
 :::
@@ -299,38 +306,28 @@ Text Generation Inference (TGI) entered maintenance mode in 2025. **Use vLLM for
 
 ## AWS Trainium2-Based MoE Inference
 
-### Trainium2 Overview
+AWS Trainium2 / Inferentia2 provide a cost-efficient alternative to GPUs for large-scale MoE models (DBRX, Mixtral 8x22B, Llama 4 MoE, etc.), with lower per-token costs. The Neuron stack maps Expert Parallelism and Tensor Parallelism to NeuronCore units and serves via **NxD Inference** or **vLLM Neuron backend**.
 
-AWS Trainium2 is AWS's 2nd-generation ML accelerator, providing cost-efficient inference compared to GPUs.
+### Summary
 
-**Key features:**
-- **High performance**: Llama 3.1 405B inference possible on a single trn2.48xlarge
-- **Cost efficiency**: Up to 50% cost savings vs GPU
-- **NeuronX SDK**: PyTorch 2.5+ support, minimal code changes for model onboarding
-- **NxD Inference**: PyTorch-based library simplifying large-scale LLM deployment
-- **FP8 Quantization**: Memory efficiency improvement
-- **Flash Decoding**: Speculative Decoding support
+| Item | Overview |
+|------|----------|
+| Hardware | trn2.48xlarge (Trainium2 16 chips / NeuronCore 128 / HBM 1.5TB), inf2 series |
+| SDK | AWS Neuron SDK 2.x, torch-neuronx, neuronx-cc |
+| Inference Framework | NxD Inference (AWS official), vLLM Neuron backend, TGI Neuron fork |
+| Quantization | BF16/FP16/FP8(E4M3/E5M2). Some AWQ/GPTQ, GGUF not supported |
+| Suitable MoE | DBRX 132B, Mixtral 8x7B/8x22B, Llama 4 MoE (within NxD support scope) |
 
 ### GPU vs Trainium2 Cost Comparison
 
 <GpuVsTrainium2 />
 
-:::tip Trainium2 Recommended Scenarios
+:::info Refer to Separate Document for Detailed Guide
+For Neuron SDK architecture, instance lineup, Device Plugin deployment, Karpenter NodePool, inference framework comparison (NxD / vLLM Neuron / TGI Neuron), supported model matrix, observability, limitations and considerations, refer to the dedicated document below.
 
-- **Cost optimization**: When 50%+ cost savings vs GPU are needed
-- **Large-scale deployment**: Operating tens to hundreds of inference endpoints
-- **Stable workloads**: Production environments where stability and cost matter more than experimental features
-- **AWS native**: Preference for fully managed solutions within the AWS ecosystem
+→ **[AWS Neuron Stack — Trainium2/Inferentia2 on EKS](../gpu-infrastructure/aws-neuron-stack.md)**
 
-:::
-
-:::warning Trainium2 Limitations
-
-- **Model support**: Not all models are supported; NeuronX SDK compatibility check needed
-- **Custom kernels**: Some custom CUDA kernels need porting to Neuron
-- **Debugging**: Debugging tools are more limited compared to GPU
-- **Regional availability**: Available only in certain AWS regions
-
+For NVIDIA vs Neuron decision-making at the node selection stage, refer to [EKS GPU Node Strategy](../gpu-infrastructure/eks-gpu-node-strategy.md#6-aws-accelerator-selection-guide-nvidia-vs-neuron).
 :::
 
 ---
@@ -391,9 +388,9 @@ sequenceDiagram
 
 :::info Speculative Decoding Effect
 
-- **Speed improvement**: 1.5x - 2.5x throughput increase (varies by workload)
-- **Quality maintained**: Output quality is identical (guaranteed by verification process)
-- **Additional memory**: Extra GPU memory needed for the draft model
+- **Speed Improvement**: 1.5x - 2.5x throughput increase (varies by workload)
+- **Quality Maintained**: Output quality is identical (guaranteed by verification process)
+- **Additional Memory**: Extra GPU memory needed for the draft model
 
 :::
 
@@ -413,9 +410,9 @@ Key alert criteria:
 
 | Metric | Threshold | Severity | Description |
 |--------|-----------|----------|-------------|
-| P95 Response Latency | > 30s | Warning | MoE model response delay |
-| KV Cache Utilization | > 95% | Critical | May reject new requests |
-| Waiting Request Count | > 100 | Warning | Scale-out needed |
+| P95 Response Latency | &gt; 30s | Warning | MoE model response delay |
+| KV Cache Utilization | &gt; 95% | Critical | May reject new requests |
+| Waiting Request Count | &gt; 100 | Warning | Scale-out needed |
 
 ---
 
@@ -423,11 +420,11 @@ Key alert criteria:
 
 ### Key Points
 
-1. **Architecture understanding**: Grasp the operating principles of Expert networks and routing mechanisms
-2. **Memory planning**: Secure sufficient GPU memory as all Experts must be loaded
-3. **Distributed deployment**: Appropriately combine Tensor Parallelism and Expert Parallelism
-4. **Inference engine selection**: vLLM recommended (latest optimization techniques and active updates)
-5. **Performance optimization**: Apply KV Cache, Speculative Decoding, and batch processing optimization
+1. **Architecture Understanding**: Grasp the operating principles of Expert networks and routing mechanisms
+2. **Memory Planning**: Secure sufficient GPU memory as all Experts must be loaded
+3. **Distributed Deployment**: Appropriately combine Tensor Parallelism and Expert Parallelism
+4. **Inference Engine Selection**: vLLM recommended (latest optimization techniques and active updates)
+5. **Performance Optimization**: Apply KV Cache, Speculative Decoding, and batch processing optimization
 
 ### Next Steps
 

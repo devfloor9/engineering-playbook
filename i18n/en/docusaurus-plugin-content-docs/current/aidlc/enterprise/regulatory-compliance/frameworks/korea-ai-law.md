@@ -8,7 +8,7 @@ last_update:
   author: devfloor9
 ---
 
-# Korea AI Basic Act (AI 기본법, Enforcement Expected 2026)
+# Korea AI Framework Act (AI 기본법, Enforcement Expected 2026)
 
 > 📅 **Published**: 2026-04-18 | ⏱️ **Reading Time**: ~5 minutes
 
@@ -16,7 +16,7 @@ last_update:
 
 ## Overview
 
-**Korea AI Basic Act (인공지능 기본법)** is Korea's first comprehensive AI regulation law, **expected to be enforced in H1 2026**.
+**Korea AI Framework Act (AI 기본법, Artificial Intelligence Framework Act)** is Korea's first comprehensive AI regulation law, **expected to be enforced in H1 2026**.
 
 **Legislative Background:**
 - Led by Ministry of Science and ICT

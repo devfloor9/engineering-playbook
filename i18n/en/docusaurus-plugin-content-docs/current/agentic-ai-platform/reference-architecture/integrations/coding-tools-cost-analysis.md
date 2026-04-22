@@ -2,26 +2,26 @@
 title: "Coding Tool Integration & Cost Analysis"
 sidebar_label: "Cost & IDE"
 description: "Aider, Cline, Continue.dev integration + Bedrock vs Kiro vs self-hosting cost comparison"
-tags: [aider, cline, cursor, cost-analysis, kiro, bedrock, bifrost]
+created: 2026-04-06
 last_update:
-  date: 2026-04-06
-  author: YoungJoon Jeong
+  date: 2026-04-20
+  author: devfloor9
+reading_time: 1
+tags: [aider, cline, cursor, cost-analysis, kiro, bedrock, bifrost, 'scope:impl']
 ---
 
-# Coding Tool Integration & Cost Analysis
-
-## 1. Overview
+## Overview
 
 To leverage AI coding tools in enterprise environments, three factors must be considered: **IDE integration**, **cost optimization**, and **data sovereignty**. This document provides methods for connecting major coding tools like Aider, Cline, and Continue.dev to self-hosted LLMs, along with cost analysis of Bedrock vs Kiro vs self-hosting.
 
 ### Why Self-Hosting Integration Is Needed
 
 | Constraint | SaaS (Kiro, Copilot) | Self-Hosting |
-|-----------|---------------------|-------------|
-| **Data sovereignty** | Code transmitted externally | Complete VPC isolation |
-| **Customization** | Only provided models | LoRA Fine-tuning |
-| **Cost control** | Fixed token pricing | Cascade 66% savings |
-| **Observability** | Limited | Full Langfuse control |
+|------------|---------------------|--------------|
+| **Data sovereignty** | Code transmitted externally | ✅ Complete VPC isolation |
+| **Customization** | Only provided models | ✅ LoRA Fine-tuning |
+| **Cost control** | Fixed token pricing | ✅ Cascade 66% savings |
+| **Observability** | Limited | ✅ Full Langfuse control |
 
 :::tip Core Strategy
 Deploy an **LLM Classifier** behind kgateway so clients use a single endpoint (`/v1`), and SLM (Qwen3-4B) or LLM (GLM-5) is automatically selected based on prompt content. Track all requests with Langfuse, achieving 66% cost savings through Cascade Routing without manual model selection.
@@ -29,7 +29,7 @@ Deploy an **LLM Classifier** behind kgateway so clients use a single endpoint (`
 
 ---
 
-## 2. IDE/Coding Tool Connections
+## IDE/Coding Tool Connections
 
 ### 2.1 LLM Classifier Auto-Routing (Recommended)
 
@@ -37,10 +37,10 @@ Using an **LLM Classifier**, all clients connect to a **single endpoint**, and S
 
 | Tool | LLM Classifier Compatible | Configuration |
 |------|--------------------------|--------------|
-| **Aider** | Yes | `OPENAI_API_BASE=http://<NLB>/v1 aider --model openai/auto` |
-| **Cline** | Yes | Model: `auto`, Base URL: `http://<NLB>/v1` |
-| **Continue.dev** | Yes | model: `auto`, apiBase: `http://<NLB>/v1` |
-| **Cursor** | Yes | No `/` needed in model name — use `auto` |
+| **Aider** | ✅ | `OPENAI_API_BASE=http://<NLB>/v1 aider --model openai/auto` |
+| **Cline** | ✅ | Model: `auto`, Base URL: `http://<NLB>/v1` |
+| **Continue.dev** | ✅ | model: `auto`, apiBase: `http://<NLB>/v1` |
+| **Cursor** | ✅ | No `/` needed in model name — use `auto` |
 
 :::tip Compatibility Improvement over Bifrost
 The `provider/model` format (`openai/glm-5`) and Aider double-prefix trick (`openai/openai/glm-5`) required when routing through Bifrost are **completely unnecessary**. Cursor can also be used without model name `/` restrictions.
@@ -100,7 +100,7 @@ Settings -> API Provider -> OpenAI Compatible
 
 ---
 
-## 3. Routing Architecture Comparison
+## Routing Architecture Comparison
 
 ### 3.1 LLM Classifier vs Bifrost
 
@@ -108,19 +108,42 @@ Settings -> API Provider -> OpenAI Compatible
 |------|--------------------------------|------------|
 | **Suitable for** | Self-hosted vLLM cascade | External provider integration (OpenAI/Anthropic) |
 | **Model name format** | `auto` (arbitrary value OK) | `provider/model` required |
-| **Prompt analysis** | Direct body access | CEL can only access headers |
-| **Multi-backend** | WEAK/STRONG URL separation | Single base_url per provider |
-| **Aider compatible** | No tricks needed | Double-prefix required |
-| **Cursor compatible** | Yes | No (slash not allowed) |
+| **Prompt analysis** | ✅ Direct body access | ❌ CEL can only access headers |
+| **Multi-backend** | ✅ WEAK/STRONG URL separation | ❌ Single base_url per provider |
+| **Aider compatible** | ✅ No tricks needed | ⚠️ Double-prefix required |
+| **Cursor compatible** | ✅ | ❌ Slash not allowed |
 | **Image size** | ~50MB | ~100MB |
 
 :::info When to Use Bifrost
 Bifrost is optimized for **external LLM provider** (OpenAI, Anthropic, Bedrock) integration, failover, and rate limiting. Use LLM Classifier for intelligent cascade between self-hosted vLLMs. Both can be used together (Bifrost for external, LLM Classifier for self-hosted).
 :::
 
+### 3.2 Client Request Example (LLM Classifier)
+
+```python
+from openai import OpenAI
+
+client = OpenAI(
+    base_url="http://<NLB_ENDPOINT>/v1",
+    api_key="dummy"
+)
+
+# Simple request → automatically Qwen3-4B
+response = client.chat.completions.create(
+    model="auto",  # Model name irrelevant — Classifier analyzes prompt
+    messages=[{"role": "user", "content": "Hello, how are you?"}]
+)
+
+# Complex request → automatically GLM-5 744B
+response = client.chat.completions.create(
+    model="auto",
+    messages=[{"role": "user", "content": "Refactor this code and analyze the architecture"}]
+)
+```
+
 ---
 
-## 4. Kiro vs Self-Hosting Comparison
+## Kiro vs Self-Hosting Comparison
 
 In April 2026, [Kiro IDE began natively supporting GLM-5](https://kiro.dev/changelog/models/glm-5-now-available-in-kiro). Kiro hosts open weight models on its own infrastructure (us-east-1) at 0.5x credit.
 
@@ -130,13 +153,13 @@ In April 2026, [Kiro IDE began natively supporting GLM-5](https://kiro.dev/chang
 |---|---|---|
 | **Infrastructure** | Kiro/AWS managed | Self-operated (EKS + GPU nodes) |
 | **Cost** | Usage-based (0.5x credit) | GPU Spot ~$12/hr |
-| **LoRA Fine-tuning** | Not available | Domain-specific customization |
-| **Data sovereignty** | Via Kiro infrastructure | Complete VPC isolation |
-| **Compliance** | Depends on Kiro policy | Self-controlled SOC2/ISO27001 |
-| **Observability** | Kiro dashboard | Full Langfuse + AMP/AMG control |
-| **Gateway** | None | Bifrost (guardrails, caching) |
-| **Steering/Spec** | Native | Separate implementation needed |
-| **Custom endpoints** | Kiro model list only | Freely configurable |
+| **LoRA Fine-tuning** | ❌ Not available | ✅ Domain-specific customization |
+| **Data sovereignty** | Via Kiro infrastructure | ✅ Complete VPC isolation |
+| **Compliance** | Depends on Kiro policy | ✅ Self-controlled SOC2/ISO27001 |
+| **Observability** | Kiro dashboard | ✅ Full Langfuse + AMP/AMG control |
+| **Gateway** | None | ✅ Bifrost (guardrails, caching) |
+| **Steering/Spec** | ✅ Native | Separate implementation needed |
+| **Custom endpoints** | ❌ Kiro model list only | ✅ Freely configurable |
 | **Getting started** | Immediate | High difficulty |
 
 :::tip When Self-Hosting Is Needed
@@ -146,21 +169,35 @@ In April 2026, [Kiro IDE began natively supporting GLM-5](https://kiro.dev/chang
 - **Complete Observability**: Collect all traces/metrics in self-hosted Langfuse + AMP
 :::
 
+:::info When Kiro Is Suitable
+- Rapid GLM-5 prototyping without infrastructure setup
+- Leveraging Kiro Steering/Spec native workflows
+- Small teams looking to reduce GPU infrastructure operational burden
+:::
+
 ---
 
 ## 5. Cost Threshold Analysis: Bedrock vs Kiro vs Self-Hosting
 
-### 5.1 Per-Token Cost (as of 2026.04)
+Comparing per-token costs for three methods of using GLM-5.
+
+### 5.1 Per-Token Cost (as of 2026-04-17)[^1]
 
 | | **Bedrock API** | **Kiro (0.5x credit)** | **Self-Hosting (EKS)** |
 |---|---|---|---|
 | Input ($/1M tokens) | $1.00 | ~$0.80 (est.) | **Variable** |
 | Output ($/1M tokens) | $3.20 | ~$2.56 (est.) | **Variable** |
-| Avg request cost (1K in + 500 out) | **$0.0026** | **$0.0021** | **Fixed cost / request volume** |
-| Monthly subscription | None (pay-as-you-go) | $20-200/month | None |
+| Avg request cost (1K in + 500 out) | **$0.0026** | **$0.0021** | **Fixed cost ÷ request volume** |
+| Monthly subscription | None (pay-as-you-go) | $20~200/month | None |
 | Minimum cost | $0 | $20/month | $8,900/month |
-| LoRA Fine-tuning | No | No | Yes |
-| Data sovereignty | Partial (VPC Endpoint) | No | Full VPC isolation |
+| LoRA Fine-tuning | ❌ | ❌ | ✅ |
+| Data sovereignty | △ VPC Endpoint | ❌ | ✅ VPC isolation |
+
+[^1]: Based on GLM-5. Latest Bedrock pricing: [AWS Bedrock Pricing](https://aws.amazon.com/bedrock/pricing/), Kiro pricing: [Kiro Pricing](https://kiro.dev/pricing)
+
+:::info Kiro Pricing Estimate Basis
+Kiro provides GLM-5 at 0.5x credit. Pro plan $20/month = 1,000 credits, excess at $0.04/credit. Assuming 1 credit ≈ 1 request (~1.5K tokens), per-token cost is ~20% cheaper than Bedrock.
+:::
 
 ### 5.2 Self-Hosting Fixed Costs
 
@@ -195,15 +232,15 @@ In April 2026, [Kiro IDE began natively supporting GLM-5](https://kiro.dev/chang
 ```mermaid
 graph LR
     subgraph "Under 1M requests/month"
-        A[Kiro $2,100] -->|Cheapest| WIN1[Kiro]
+        A[Kiro $2,100] -->|Cheapest| WIN1[✅ Kiro]
     end
     
     subgraph "1-3M requests/month"
-        B[Bedrock $7,800] --> WIN2[Self-Hosting 8h<br/>$3,120]
+        B[Bedrock $7,800] --> WIN2[✅ Self-Hosting 8h<br/>$3,120]
     end
     
     subgraph "3M+ requests/month"
-        C[Bedrock $26,000] --> WIN3[Self-Hosting<br/>+ Cascade<br/>$3,620]
+        C[Bedrock $26,000] --> WIN3[✅ Self-Hosting<br/>+ Cascade<br/>$3,620]
     end
     
     style WIN1 fill:#2ecc71
@@ -213,7 +250,7 @@ graph LR
 
 ---
 
-## 6. Cost Optimization Options (Not Available on Bedrock/Kiro)
+## Cost Optimization Options (Not Available on Bedrock/Kiro)
 
 Cost optimization strategies only possible with self-hosting.
 
@@ -228,13 +265,118 @@ Cost optimization strategies only possible with self-hosting.
 | **Spot Instance** | 84% savings | On-Demand $76/hr → Spot $12/hr |
 | **Multi-LoRA sharing** | 1/N infrastructure cost | GLM-5 x1 + LoRA xN = serve N customers |
 
+### 6.2 Cascade Routing Architecture (LLM Classifier)
+
+```mermaid
+graph LR
+    Req[Request] --> CLS[LLM Classifier]
+    CLS -->|weak: no keywords, <500 chars 70%| SLM[Qwen3-4B<br/>L4 $0.3/hr]
+    CLS -->|strong: refactor, design, analysis 30%| LLM[GLM-5 744B<br/>H200 $12/hr]
+    SLM --> Resp[Response]
+    LLM --> Resp
+    CLS -.->|OTel| LF[Langfuse]
+    
+    style CLS fill:#326ce5,color:#fff
+    style SLM fill:#2ecc71
+    style LLM fill:#e74c3c,color:#fff
+    style LF fill:#9c27b0,color:#fff
+```
+
+#### Cascade Cost Analysis
+
+| | SLM Only | LLM Only | **Cascade (70:30)** |
+|---|---|---|---|
+| **Monthly cost** | $500 | $8,900 | **$3,020** |
+| **Accuracy** | 70% | 95% | **92%** |
+| **Cost savings** | - | - | **66%** |
+
+:::tip ROI Calculation
+Introducing LLM Classifier Cascade saves $5,880/month ($70,560/year). LLM Classifier deploys as a single FastAPI Pod, and setup takes about half a day, making it **immediately worthwhile**.
+:::
+
+:::info LLM Classifier Classification Criteria
+| Criteria | weak (SLM) | strong (LLM) |
+|----------|-----------|-------------|
+| Keywords | None | Refactor, architecture, design, analysis, debug, optimize, etc. |
+| Input length | &lt;500 chars | ≥500 chars |
+| Conversation turns | ≤5 turns | &gt;5 turns |
+
+Detailed deployment guide: [Inference Gateway Setup: LLM Classifier](../inference-gateway/setup/advanced-features#llm-classifier-deployment)
+:::
+
+### 6.3 Semantic Caching
+
+Bifrost supports embedding-based semantic caching.
+
+```json
+{
+  "semantic_cache": {
+    "enabled": true,
+    "similarity_threshold": 0.85,
+    "embedding_model": "text-embedding-3-small",
+    "max_cache_size": 10000
+  }
+}
+```
+
+**Effect:**
+- Similar requests (similarity >= 0.85) return instantly from cache
+- GPU cost $0
+- Response latency &lt;50ms (vs inference 2-10s)
+
+### 6.4 KV Cache Aware Routing
+
+Using llm-d routes requests reusing the same context to the same GPU, reducing TTFT by 90%.
+
+```yaml
+# llm-d Deployment
+spec:
+  replicas: 3
+  template:
+    spec:
+      containers:
+      - name: llm-d
+        args:
+          - --enable-prefix-caching
+          - --scheduler-strategy=prefix-aware
+```
+
+**Effect:**
+- TTFT: 10s → 1s (on prefix cache hit)
+- Same GPU cost (instance count may decrease due to increased throughput)
+
+Reference: [llm-d EKS Auto Mode](../../model-serving/inference-frameworks/llm-d-eks-automode.md)
+
+### 6.5 Multi-LoRA Sharing
+
+Load multiple LoRA adapters simultaneously on a single GLM-5 instance for per-customer custom serving.
+
+```mermaid
+graph TD
+    G[Bifrost Gateway] --> V[vLLM Server]
+    V --> B[Base Model: GLM-5]
+    B --> L1[LoRA: Banking-Ledger]
+    B --> L2[LoRA: Securities-Orders]
+    B --> L3[LoRA: Insurance-Contracts]
+    L1 -->|Customer A| R1[Response]
+    L2 -->|Customer B| R2[Response]
+    L3 -->|Customer C| R3[Response]
+```
+
+**Effect:**
+- 3 customers = 1 GPU instance
+- Infrastructure cost 1/3
+- Each customer uses domain-specific model
+
+Reference: [Custom Model Pipeline](../model-lifecycle/custom-model-pipeline.md)
+
 ---
 
-## 7. Selection Criteria Summary
+## Selection Criteria Summary
 
 | Criteria | Recommendation |
 |----------|---------------|
-| Under 500K requests/month + quick start | **Kiro** (cheapest) |
+| &lt;500K requests/month + quick start | **Kiro** (cheapest) |
 | 500K-1.5M + API integration | **Bedrock** (pay-as-you-go, no infrastructure) |
 | 1.5M+ (24/7) or 1.2M+ (8h) | **Self-Hosting** |
 | With Cascade, 1.4M+ | **Self-Hosting** (savings vs Bedrock) |
@@ -251,7 +393,7 @@ Cost optimization strategies only possible with self-hosting.
 
 ---
 
-## 8. Next Steps
+## Next Steps
 
 ### Phase 1: Basic Integration (1 day)
 - [ ] Deploy kgateway + Bifrost + Langfuse
@@ -277,6 +419,8 @@ Cost optimization strategies only possible with self-hosting.
 
 ## References
 
+### Official Documentation
+
 | Resource | Link |
 |----------|------|
 | Aider Official Docs | [aider.chat](https://aider.chat) |
@@ -284,6 +428,9 @@ Cost optimization strategies only possible with self-hosting.
 | Bifrost Gateway | [getbifrost.ai](https://getbifrost.ai/) |
 | Langfuse Observability | [langfuse.com](https://langfuse.com/) |
 | Kiro Pricing | [kiro.dev/pricing](https://kiro.dev/pricing) |
+| AWS Bedrock Pricing | [aws.amazon.com/bedrock/pricing](https://aws.amazon.com/bedrock/pricing/) |
+| OpenAI Pricing | [platform.openai.com/pricing](https://platform.openai.com/pricing) |
+| Anthropic Pricing | [anthropic.com/pricing](https://www.anthropic.com/pricing) |
 | Custom Model Deployment Guide | [custom-model-deployment.md](../model-lifecycle/custom-model-deployment.md) |
 | Custom Model Pipeline | [custom-model-pipeline.md](../model-lifecycle/custom-model-pipeline.md) |
 | Inference Gateway | [inference-gateway-routing.md](../inference-gateway/routing-strategy.md) |

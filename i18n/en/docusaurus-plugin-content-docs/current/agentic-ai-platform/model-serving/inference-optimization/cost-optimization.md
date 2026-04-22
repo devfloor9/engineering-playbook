@@ -1,7 +1,7 @@
 ---
-title: "GPU 리소스·관측·Hybrid Node·실전 교훈"
-sidebar_label: "비용·관측성·Hybrid"
-description: "2-Tier GPU 오토스케일링·DCGM/vLLM 모니터링·Bifrost→Bedrock Cascade Fallback·Hybrid Node 온프레 통합·대형 MoE 배포 실전 교훈"
+title: "GPU Resources · Observability · Hybrid Node · Lessons Learned"
+sidebar_label: "Cost · Observability · Hybrid"
+description: "2-Tier GPU autoscaling, DCGM/vLLM monitoring, Bifrost→Bedrock Cascade Fallback, Hybrid Node on-premises integration, large MoE deployment lessons learned"
 created: 2026-04-03
 last_update:
   date: 2026-04-20
@@ -21,46 +21,46 @@ tags:
 sidebar_position: 4
 ---
 
-## 개요
+## Overview
 
-LLM 서빙 운영 비용의 대부분은 GPU 가동 시간이며, 비용 효율성을 확보하려면 오토스케일링·관측성·Fallback·온프레미스 통합이 유기적으로 맞물려야 합니다. 본 문서는 2-Tier 스케일링, DCGM/vLLM 모니터링, Bifrost→Bedrock Cascade Fallback, EKS Hybrid Node 통합, 그리고 대형 MoE 모델 배포에서 축적된 실전 교훈을 정리합니다.
+The majority of LLM serving operational costs come from GPU uptime, and achieving cost efficiency requires autoscaling, observability, fallback, and on-premises integration to work together organically. This document consolidates 2-Tier scaling, DCGM/vLLM monitoring, Bifrost→Bedrock Cascade Fallback, EKS Hybrid Node integration, and lessons learned from large MoE model deployments.
 
-## GPU 리소스 관리 & 오토스케일링
+## GPU Resource Management & Autoscaling
 
-### 2-Tier 스케일링 아키텍처
+### 2-Tier Scaling Architecture
 
-LLM 서빙에서는 Pod 스케일링과 노드 스케일링을 2단계로 구성합니다.
+LLM serving configures Pod scaling and Node scaling in two stages.
 
 ```mermaid
 flowchart TB
-    subgraph Metrics["메트릭 소스"]
-        DCGM[DCGM Exporter<br/>GPU 메트릭]
+    subgraph Metrics["Metrics Sources"]
+        DCGM[DCGM Exporter<br/>GPU Metrics]
         VLLM[vLLM Metrics<br/>KV Cache, TTFT, Queue]
     end
 
-    subgraph PodScale["1단계: Pod 스케일링"]
-        KEDA[KEDA<br/>GPU 메트릭 기반]
-        HPA[HPA v2<br/>커스텀 메트릭]
+    subgraph PodScale["Stage 1: Pod Scaling"]
+        KEDA[KEDA<br/>GPU Metrics-based]
+        HPA[HPA v2<br/>Custom Metrics]
     end
 
-    subgraph NodeScale["2단계: 노드 스케일링"]
-        KARP[Karpenter<br/>자동 프로비저닝]
+    subgraph NodeScale["Stage 2: Node Scaling"]
+        KARP[Karpenter<br/>Auto Provisioning]
     end
 
     DCGM --> KEDA
     VLLM --> KEDA
-    KEDA -->|Pod 증가| PodScale
-    PodScale -->|GPU 부족| KARP
-    KARP -->|"p5.48xlarge 프로비저닝"| NodeScale
+    KEDA -->|Pod Increase| PodScale
+    PodScale -->|GPU Shortage| KARP
+    KARP -->|"p5.48xlarge Provisioning"| NodeScale
 
     style DCGM fill:#76b900,color:#fff
     style KEDA fill:#326ce5,color:#fff
     style KARP fill:#ff9900,color:#fff
 ```
 
-### KEDA 스케일링 구성
+### KEDA Scaling Configuration
 
-LLM 서빙의 핵심 스케일링 시그널 3가지:
+Three core scaling signals for LLM serving:
 
 ```yaml
 apiVersion: keda.sh/v1alpha1
@@ -73,17 +73,17 @@ spec:
   minReplicaCount: 2
   maxReplicaCount: 8
   triggers:
-    # 1. KV Cache 포화 — 가장 민감한 시그널
+    # 1. KV Cache saturation — most sensitive signal
     - type: prometheus
       metadata:
         query: avg(vllm_gpu_cache_usage_perc)
         threshold: "80"
-    # 2. 대기 중인 요청 수
+    # 2. Number of waiting requests
     - type: prometheus
       metadata:
         query: sum(vllm_num_requests_waiting)
         threshold: "10"
-    # 3. TTFT SLO 위반 근접
+    # 3. TTFT SLO violation proximity
     - type: prometheus
       metadata:
         query: |
@@ -92,80 +92,80 @@ spec:
         threshold: "2"
 ```
 
-### Disaggregated Serving 스케일링 기준
+### Disaggregated Serving Scaling Criteria
 
-Prefill과 Decode의 병목 시그널이 다릅니다.
+Prefill and Decode have different bottleneck signals.
 
 | | Prefill | Decode |
 |---|---|---|
-| **병목 시그널** | TTFT 증가, 입력 큐 적체 | TPS 감소, KV Cache 포화 |
-| **스케일 기준** | 입력 토큰 처리 대기시간 | 동시 생성 세션 수 |
-| **GPU 특성** | Compute 집약 (연산 병목) | Memory 집약 (대역폭 병목) |
+| **Bottleneck Signal** | TTFT increase, input queue backlog | TPS decrease, KV Cache saturation |
+| **Scaling Criterion** | Input token processing wait time | Concurrent generation session count |
+| **GPU Characteristics** | Compute-intensive (compute bottleneck) | Memory-intensive (bandwidth bottleneck) |
 
-### DRA(Dynamic Resource Allocation) 현실
+### DRA (Dynamic Resource Allocation) Reality
 
-DRA는 K8s 1.32+에서 v1beta1, 1.34+에서 GA로 GPU 파티셔닝/토폴로지 인식 스케줄링을 제공합니다. 그러나 **Karpenter/Auto Mode와 호환되지 않는** 아키텍처적 한계가 있습니다.
+DRA provides GPU partitioning/topology-aware scheduling as v1beta1 in K8s 1.32+ and GA in 1.34+. However, there is an **architectural limitation of incompatibility with Karpenter/Auto Mode**.
 
-- Karpenter는 **노드 생성 전** GPU 리소스를 시뮬레이션해야 하는데, DRA의 ResourceSlice는 **노드 생성 후** DRA Driver가 발행
-- 이 "닭과 달걀" 문제로 인해 DRA Pod는 Karpenter에서 skip됨
-- **DRA 사용 시**: MNG + Cluster Autoscaler 필수
+- Karpenter must simulate GPU resources **before node creation**, but DRA's ResourceSlice is published by DRA Driver **after node creation**
+- Due to this "chicken and egg" problem, DRA Pods are skipped in Karpenter
+- **When Using DRA**: MNG + Cluster Autoscaler required
 
-:::info DRA 사용 판단
-**DRA가 필요한 경우:** MIG 파티셔닝, CEL 기반 속성 GPU 선택, P6e-GB200 환경
+:::info DRA Usage Decision
+**When DRA is needed:** MIG partitioning, CEL-based attribute GPU selection, P6e-GB200 environments
 
-**Device Plugin이 충분한 경우:** 전체 GPU 단위 할당, Karpenter/Auto Mode 사용
+**When Device Plugin is sufficient:** Whole GPU unit allocation, Karpenter/Auto Mode usage
 :::
 
-### 비용 최적화 스택
+### Cost Optimization Stack
 
-4가지 전략을 조합하여 **총 ~85% 비용 절감**이 가능합니다.
+Combining four strategies can achieve **approximately 85% total cost reduction**.
 
-| 전략 | 절감 효과 | 적용 방법 |
+| Strategy | Reduction Effect | Application Method |
 |------|---------|---------|
-| **Spot 인스턴스** | 60-90% | Karpenter `capacity-type: spot`, p5 Spot $13-15/hr (us-east-2) |
-| **Consolidation** | 20-30% | `consolidationPolicy: WhenEmptyOrUnderutilized`, 30초 대기 |
-| **Right-sizing** | 15-25% | 모델 크기별 인스턴스 타입 자동 선택 (NodePool weight) |
-| **시간대별 스케줄링** | 30-40% | disruption budget으로 비업무 시간 50%+ 축소 |
+| **Spot Instances** | 60-90% | Karpenter `capacity-type: spot`, p5 Spot $13-15/hr (us-east-2) |
+| **Consolidation** | 20-30% | `consolidationPolicy: WhenEmptyOrUnderutilized`, 30s wait |
+| **Right-sizing** | 15-25% | Automatic instance type selection by model size (NodePool weight) |
+| **Time-based Scheduling** | 30-40% | disruption budget to reduce 50%+ during non-business hours |
 
 ```yaml
-# Karpenter 시간대별 disruption budget 예시
+# Karpenter time-based disruption budget example
 disruption:
   consolidationPolicy: WhenEmptyOrUnderutilized
   consolidateAfter: 30s
   budgets:
-    # 업무 시간: 안정성 우선
+    # Business hours: stability priority
     - nodes: "10%"
       schedule: "0 9 * * 1-5"
       duration: 9h
-    # 비업무 시간: 비용 우선
+    # Non-business hours: cost priority
     - nodes: "50%"
       schedule: "0 18 * * 1-5"
       duration: 15h
 ```
 
-## Observability & Fallback 전략
+## Observability & Fallback Strategy
 
-### GPU 모니터링 스택
+### GPU Monitoring Stack
 
 ```mermaid
 flowchart LR
-    subgraph GPU["GPU 레이어"]
-        DCGM[DCGM Exporter<br/>GPU 센서 메트릭]
-        VLLM_M[vLLM Metrics<br/>추론 메트릭]
+    subgraph GPU["GPU Layer"]
+        DCGM[DCGM Exporter<br/>GPU Sensor Metrics]
+        VLLM_M[vLLM Metrics<br/>Inference Metrics]
     end
 
-    subgraph Collect["수집"]
+    subgraph Collect["Collection"]
         PROM[Prometheus]
     end
 
-    subgraph Visualize["시각화 & 알림"]
-        GRAF[Grafana<br/>대시보드]
-        ALERT[AlertManager<br/>알림]
+    subgraph Visualize["Visualization & Alerting"]
+        GRAF[Grafana<br/>Dashboard]
+        ALERT[AlertManager<br/>Alerts]
     end
 
-    subgraph AppLevel["애플리케이션 레벨"]
-        BIFROST[Bifrost<br/>인프라 비용 추적]
-        LANGFUSE[Langfuse<br/>추론 품질/레이턴시]
+    subgraph AppLevel["Application Level"]
+        BIFROST[Bifrost<br/>Infrastructure Cost Tracking]
+        LANGFUSE[Langfuse<br/>Inference Quality/Latency]
     end
 
     DCGM --> PROM
@@ -179,39 +179,39 @@ flowchart LR
     style LANGFUSE fill:#326ce5,color:#fff
 ```
 
-### 핵심 모니터링 메트릭
+### Core Monitoring Metrics
 
-**GPU 인프라 메트릭 (DCGM):**
+**GPU Infrastructure Metrics (DCGM):**
 
-| 메트릭 | 설명 | 임계값 |
+| Metric | Description | Threshold |
 |--------|------|-------|
-| `DCGM_FI_DEV_GPU_UTIL` | GPU SM 활용률 | &gt; 90%: 경고, &gt; 95%: 위험 |
-| `DCGM_FI_DEV_MEM_COPY_UTIL` | 메모리 복사 활용률 | &gt; 80%: 주의 |
-| `DCGM_FI_DEV_FB_USED` | 프레임버퍼 사용량 | 가용 메모리 &lt; 10%: 위험 |
-| `DCGM_FI_DEV_POWER_USAGE` | GPU 전력 소비 | TDP 근접 시 주의 |
+| `DCGM_FI_DEV_GPU_UTIL` | GPU SM utilization | &gt; 90%: warning, &gt; 95%: critical |
+| `DCGM_FI_DEV_MEM_COPY_UTIL` | Memory copy utilization | &gt; 80%: caution |
+| `DCGM_FI_DEV_FB_USED` | Framebuffer usage | Available memory &lt; 10%: critical |
+| `DCGM_FI_DEV_POWER_USAGE` | GPU power consumption | Caution when approaching TDP |
 
-**vLLM 추론 메트릭:**
+**vLLM Inference Metrics:**
 
-| 메트릭 | 설명 | 임계값 |
+| Metric | Description | Threshold |
 |--------|------|-------|
-| `vllm:gpu_cache_usage_perc` | KV Cache 사용률 | &gt; 80%: 스케일 아웃 |
-| `vllm:num_requests_waiting` | 대기 중인 요청 | &gt; 10: 스케일 아웃 |
-| `vllm:time_to_first_token_seconds` | TTFT | P95 &gt; 2초: 조치 필요 |
-| `vllm:num_preemptions_total` | 선점 횟수 | 높으면 메모리 부족 |
-| `vllm:avg_generation_throughput_toks_per_s` | 생성 처리량 | 기준선 대비 모니터링 |
+| `vllm:gpu_cache_usage_perc` | KV Cache usage | &gt; 80%: scale out |
+| `vllm:num_requests_waiting` | Waiting requests | &gt; 10: scale out |
+| `vllm:time_to_first_token_seconds` | TTFT | P95 &gt; 2s: action required |
+| `vllm:num_preemptions_total` | Preemption count | High indicates memory shortage |
+| `vllm:avg_generation_throughput_toks_per_s` | Generation throughput | Monitor vs baseline |
 
-### 2-Tier 비용 추적
+### 2-Tier Cost Tracking
 
-완전한 비용 가시성을 위해 인프라와 애플리케이션 레벨을 모두 추적합니다.
+Track both infrastructure and application levels for complete cost visibility.
 
-- **Bifrost (인프라 레벨)**: 모델별 토큰 단가, 팀/프로젝트별 예산 관리, 월간 비용 리포트
-- **Langfuse (애플리케이션 레벨)**: Agent 워크플로우 각 단계별 토큰 소비, 체인 end-to-end latency, Trace 기반 성능 병목 분석
+- **Bifrost (Infrastructure Level)**: Token unit price per model, team/project budget management, monthly cost reports
+- **Langfuse (Application Level)**: Token consumption per Agent workflow stage, chain end-to-end latency, Trace-based performance bottleneck analysis
 
-이 2-Tier 전략으로 "어떤 모델이 얼마나 사용되었는가"(인프라)와 "어떤 기능이 비용을 유발하는가"(애플리케이션)를 동시에 파악할 수 있습니다.
+This 2-Tier strategy enables simultaneous understanding of "which models were used how much" (infrastructure) and "which features drive costs" (application).
 
 ### Bifrost → Bedrock Cascade Fallback
 
-Self-hosted 모델(vLLM/llm-d)이 과부하이거나 장애일 때, Amazon Bedrock의 관리형 모델로 자동 폴백하는 Cascade Routing을 구성할 수 있습니다. Bifrost(또는 LiteLLM)가 Gateway 역할을 하며, 응답 실패/타임아웃 시 Bedrock으로 요청을 전환합니다.
+When self-hosted models (vLLM/llm-d) are overloaded or failing, Cascade Routing can be configured to automatically fallback to Amazon Bedrock's managed models. Bifrost (or LiteLLM) acts as the Gateway, switching requests to Bedrock on response failures/timeouts.
 
 ```mermaid
 flowchart LR
@@ -225,18 +225,18 @@ flowchart LR
         BR[Amazon Bedrock<br/>Claude 4 Sonnet<br/>Nova Pro]
     end
 
-    BF -->|"1차: Self-hosted"| LLMD
-    BF -->|"2차: Fallback"| BR
+    BF -->|"Primary: Self-hosted"| LLMD
+    BF -->|"Secondary: Fallback"| BR
 
     LLMD -.->|"500/502/503/timeout"| BF
-    BF -.->|"자동 전환"| BR
+    BF -.->|"Automatic Switch"| BR
 
     style BF fill:#ff9900,color:#fff
     style LLMD fill:#326ce5,color:#fff
     style BR fill:#ff6b6b,color:#fff
 ```
 
-**Bifrost Cascade Routing 설정:**
+**Bifrost Cascade Routing Configuration:**
 
 ```yaml
 # bifrost-config.yaml
@@ -244,13 +244,13 @@ routing:
   defaultModel: self-hosted-qwen3
   strategy: cascade
   cascadeOrder:
-    - self-hosted-qwen3      # 1차: EKS Self-hosted (비용 최적)
-    - self-hosted-glm5        # 2차: EKS Self-hosted 대안
-    - bedrock-claude-sonnet   # 3차: Bedrock 관리형 (폴백)
+    - self-hosted-qwen3      # Primary: EKS Self-hosted (cost optimized)
+    - self-hosted-glm5        # Secondary: EKS Self-hosted alternative
+    - bedrock-claude-sonnet   # Tertiary: Bedrock managed (fallback)
   fallbackConditions:
     - statusCode: [500, 502, 503, 504]
-    - latencyMs: "> 30000"    # 30초 초과 시 폴백
-    - errorRate: "> 0.1"      # 에러율 10% 초과 시 폴백
+    - latencyMs: "> 30000"    # Fallback if exceeding 30s
+    - errorRate: "> 0.1"      # Fallback if error rate exceeds 10%
 
 models:
   - name: self-hosted-qwen3
@@ -258,7 +258,7 @@ models:
     baseUrl: http://inference-gateway.llm-d:8080/v1
     model: Qwen/Qwen3-32B
     priority: 1
-    costPer1kTokens: 0.001    # Self-hosted 추정 비용
+    costPer1kTokens: 0.001    # Self-hosted estimated cost
 
   - name: self-hosted-glm5
     provider: openai-compatible
@@ -272,28 +272,28 @@ models:
     model: anthropic.claude-sonnet-4-20250514
     region: us-east-1
     priority: 3
-    costPer1kTokens: 0.003    # Bedrock 공식 단가
+    costPer1kTokens: 0.003    # Bedrock official pricing
     maxTokens: 4096
 ```
 
-**Cascade Routing의 장점:**
+**Advantages of Cascade Routing:**
 
-| 관점 | Self-hosted 단독 | Cascade (Self-hosted + Bedrock) |
+| Perspective | Self-hosted Only | Cascade (Self-hosted + Bedrock) |
 |------|----------------|-------------------------------|
-| **가용성** | GPU 장애 시 서비스 중단 | Bedrock 폴백으로 무중단 |
-| **비용** | GPU 고정 비용 | 평시 Self-hosted(저비용) + 피크 Bedrock(종량제) |
-| **용량 계획** | 피크 트래픽 기준 GPU 확보 | 기본 트래픽만 GPU, 초과분 Bedrock |
-| **Cold Start** | Spot 중단 시 수 분 지연 | Bedrock 즉시 응답 |
+| **Availability** | Service interruption on GPU failure | Uninterrupted via Bedrock fallback |
+| **Cost** | Fixed GPU cost | Regular Self-hosted (low cost) + peak Bedrock (pay-as-you-go) |
+| **Capacity Planning** | Secure GPU for peak traffic | GPU for baseline traffic only, excess to Bedrock |
+| **Cold Start** | Several minutes delay on Spot interruption | Bedrock immediate response |
 
-:::tip 비용 최적화 패턴
-평시 트래픽의 80%를 Self-hosted로 처리하고, 피크 시 20%를 Bedrock으로 오프로드하면 **GPU를 피크 기준으로 프로비저닝할 필요가 없어** 인프라 비용을 30-40% 추가 절감할 수 있습니다. Spot 인스턴스 중단 시에도 Bedrock이 즉시 백업 역할을 합니다.
+:::tip Cost Optimization Pattern
+Processing 80% of regular traffic with Self-hosted and offloading 20% peak to Bedrock **eliminates the need to provision GPUs for peak capacity**, achieving an additional 30-40% infrastructure cost reduction. Bedrock also serves as immediate backup during Spot instance interruptions.
 :::
 
-## Hybrid Node: 온프레미스 GPU 팜 통합
+## Hybrid Node: On-Premises GPU Farm Integration
 
-### 개요
+### Overview
 
-EKS Hybrid Node는 **온프레미스 GPU 서버를 EKS 클러스터에 등록**하는 기능입니다 (2024년 11월 GA). 이미 보유한 DGX, GPU 서버를 클라우드 EKS와 통합하여 하이브리드 Inference 아키텍처를 구성할 수 있습니다.
+EKS Hybrid Node is a feature for **registering on-premises GPU servers to EKS clusters** (GA November 2024). Existing DGX and GPU servers can be integrated with cloud EKS to build hybrid Inference architecture.
 
 ```mermaid
 flowchart LR
@@ -314,9 +314,9 @@ flowchart LR
         BF[Bifrost<br/>Cascade Routing]
     end
 
-    BF -->|"1차: On-Prem<br/>(고정 비용)"| HN1
-    BF -->|"2차: Cloud GPU<br/>(Spot/On-Demand)"| CN1
-    BF -->|"3차: Bedrock<br/>(종량제 폴백)"| BR[Amazon Bedrock]
+    BF -->|"Primary: On-Prem<br/>(Fixed Cost)"| HN1
+    BF -->|"Secondary: Cloud GPU<br/>(Spot/On-Demand)"| CN1
+    BF -->|"Tertiary: Bedrock<br/>(Pay-as-you-go Fallback)"| BR[Amazon Bedrock]
 
     HN1 -.->|"VPN / DX"| EKS
     HN2 -.->|"VPN / DX"| EKS
@@ -328,10 +328,10 @@ flowchart LR
     style BF fill:#ff9900,color:#fff
 ```
 
-### Hybrid Node 등록
+### Hybrid Node Registration
 
 ```bash
-# 1. Hybrid Node IAM Role 생성
+# 1. Create Hybrid Node IAM Role
 aws iam create-role \
   --role-name EKSHybridNodeRole \
   --assume-role-policy-document file://hybrid-node-trust-policy.json
@@ -340,7 +340,7 @@ aws iam attach-role-policy \
   --role-name EKSHybridNodeRole \
   --policy-arn arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy
 
-# 2. 온프레미스 서버에서 Hybrid Node 등록
+# 2. Register Hybrid Node from on-premises server
 curl -o hybrid-node-installer.sh https://hybrid.eks.amazonaws.com/installer
 chmod +x hybrid-node-installer.sh
 
@@ -350,18 +350,18 @@ sudo ./hybrid-node-installer.sh \
   --role-arn arn:aws:iam::123456789012:role/EKSHybridNodeRole \
   --credential-provider ssm
 
-# 3. 노드 확인
+# 3. Verify nodes
 kubectl get nodes -l node.kubernetes.io/instance-type=hybrid
 ```
 
-### Hybrid Node GPU Operator 설치
+### Hybrid Node GPU Operator Installation
 
-온프레미스 노드에는 AWS 관리 GPU 스택이 없으므로 **GPU Operator 필수**입니다.
+On-premises nodes lack AWS-managed GPU stack, so **GPU Operator is required**.
 
 ```yaml
-# GPU Operator Helm Values (Hybrid Node 전용)
+# GPU Operator Helm Values (Hybrid Node dedicated)
 driver:
-  enabled: true               # 온프레미스: 드라이버 설치 필요
+  enabled: true               # On-premises: driver installation required
   version: "580.126.18"
   nodeSelector:
     node.kubernetes.io/instance-type: hybrid
@@ -372,7 +372,7 @@ toolkit:
     node.kubernetes.io/instance-type: hybrid
 
 devicePlugin:
-  enabled: true               # 온프레미스: Device Plugin도 설치 필요
+  enabled: true               # On-premises: Device Plugin installation required
   nodeSelector:
     node.kubernetes.io/instance-type: hybrid
 
@@ -381,29 +381,29 @@ dcgmExporter:
   serviceMonitor:
     enabled: true
     additionalLabels:
-      location: on-premises   # 온프레미스/클라우드 메트릭 분리
+      location: on-premises   # Separate on-premises/cloud metrics
   nodeSelector:
     node.kubernetes.io/instance-type: hybrid
 ```
 
 ### 3-Tier Cascade: On-Prem → Cloud → Bedrock
 
-Hybrid Node와 Bifrost Cascade를 결합하면 **비용 효율성과 가용성을 동시에 극대화**하는 3-Tier 아키텍처를 구성할 수 있습니다.
+Combining Hybrid Node with Bifrost Cascade creates a 3-Tier architecture that **maximizes both cost efficiency and availability**.
 
-| Tier | 인프라 | 비용 구조 | 역할 |
+| Tier | Infrastructure | Cost Structure | Role |
 |------|--------|---------|------|
-| **Tier 1** | On-Prem Hybrid Node (DGX) | 고정 비용 (이미 보유) | 기본 트래픽 처리 (항상 활성) |
-| **Tier 2** | Cloud GPU (EKS Spot/OD) | 변동 비용 (시간당) | 피크 트래픽 버스트 |
-| **Tier 3** | Amazon Bedrock | 종량제 (토큰당) | 장애/과부하 폴백 |
+| **Tier 1** | On-Prem Hybrid Node (DGX) | Fixed cost (already owned) | Handle baseline traffic (always active) |
+| **Tier 2** | Cloud GPU (EKS Spot/OD) | Variable cost (hourly) | Peak traffic bursts |
+| **Tier 3** | Amazon Bedrock | Pay-as-you-go (per token) | Failure/overload fallback |
 
 ```yaml
-# Bifrost 3-Tier Cascade 설정
+# Bifrost 3-Tier Cascade configuration
 routing:
   strategy: cascade
   cascadeOrder:
-    - onprem-dgx-llm          # 1차: On-Prem (고정 비용, 항상 활성)
-    - cloud-eks-llm            # 2차: Cloud GPU (Spot, 탄력적)
-    - bedrock-fallback         # 3차: Bedrock (종량제, 무제한 용량)
+    - onprem-dgx-llm          # Primary: On-Prem (fixed cost, always active)
+    - cloud-eks-llm            # Secondary: Cloud GPU (Spot, elastic)
+    - bedrock-fallback         # Tertiary: Bedrock (pay-as-you-go, unlimited capacity)
 
 models:
   - name: onprem-dgx-llm
@@ -428,10 +428,10 @@ models:
     priority: 3
 ```
 
-### Pod 배치 전략: nodeSelector로 워크로드 분리
+### Pod Placement Strategy: Workload Separation with nodeSelector
 
 ```yaml
-# On-Prem Hybrid Node에 배치 (기본 추론)
+# Deploy on On-Prem Hybrid Node (baseline inference)
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -453,7 +453,7 @@ spec:
             limits:
               nvidia.com/gpu: 1
 ---
-# Cloud GPU Node에 배치 (버스트 트래픽)
+# Deploy on Cloud GPU Node (burst traffic)
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -476,31 +476,31 @@ spec:
               nvidia.com/gpu: 1
 ```
 
-:::warning Hybrid Node 네트워크 고려사항
-- **레이턴시**: VPN/Direct Connect 경유로 클라우드 노드 대비 10-50ms 추가 지연
-- **대역폭**: 멀티노드 NCCL 통신은 고대역폭 필요 → On-Prem 내 PP는 가능하나, On-Prem↔Cloud 간 PP는 비권장
-- **권장**: On-Prem 노드는 독립적인 모델을 서빙하고, Cloud 노드와는 Gateway 레벨에서 Cascade Routing으로 연결
+:::warning Hybrid Node Network Considerations
+- **Latency**: 10-50ms additional delay via VPN/Direct Connect compared to cloud nodes
+- **Bandwidth**: Multi-node NCCL communication requires high bandwidth → On-Prem internal PP is feasible, but On-Prem↔Cloud PP is not recommended
+- **Recommendation**: On-Prem nodes serve independent models, connect with Cloud nodes via Cascade Routing at Gateway level
 :::
 
-## 실전 교훈: 대형 MoE 모델 배포
+## Lessons Learned: Large MoE Model Deployment
 
-### 이미지/모델 다운로드 실패 대응
+### Image/Model Download Failure Mitigation
 
-대형 모델(744GB+)의 가중치 다운로드는 LLM 서빙에서 가장 흔한 Cold Start 병목입니다. HuggingFace Hub에서 수백 GB를 다운로드할 때 네트워크 불안정, 타임아웃, 디스크 부족 등으로 자주 실패합니다.
+Large model (744GB+) weight download is the most common Cold Start bottleneck in LLM serving. Downloading hundreds of GB from HuggingFace Hub frequently fails due to network instability, timeouts, and disk shortage.
 
-#### 문제 유형과 대응
+#### Problem Types and Responses
 
-| 문제 | 증상 | 대응 |
+| Problem | Symptoms | Response |
 |------|------|------|
-| **HF Hub 다운로드 타임아웃** | Pod CrashLoopBackOff, `ConnectionError` | 재시도 + resume 지원 (`HF_HUB_ENABLE_HF_TRANSFER=1`) |
-| **대형 파일 부분 다운로드** | 모델 로딩 시 corruption 에러 | 체크섬 검증 + 재다운로드 |
-| **컨테이너 이미지 Pull 느림** | `ImagePullBackOff`, 수 분 대기 | 이미지 사전 캐싱 (Bottlerocket 데이터 볼륨, SOCI) |
-| **멀티노드 동시 다운로드** | 네트워크 대역폭 경합 | S3 캐싱 + init container 순차 로딩 |
-| **EFS 느린 다운로드** | 로딩 시간 30분+ | NVMe emptyDir로 전환 |
+| **HF Hub Download Timeout** | Pod CrashLoopBackOff, `ConnectionError` | Retry + resume support (`HF_HUB_ENABLE_HF_TRANSFER=1`) |
+| **Large File Partial Download** | Corruption error during model loading | Checksum verification + re-download |
+| **Slow Container Image Pull** | `ImagePullBackOff`, several minutes wait | Pre-cache images (Bottlerocket data volume, SOCI) |
+| **Multi-node Simultaneous Download** | Network bandwidth contention | S3 caching + init container sequential loading |
+| **Slow EFS Download** | 30+ minutes loading time | Switch to NVMe emptyDir |
 
-#### 전략 1: HuggingFace Transfer 가속
+#### Strategy 1: HuggingFace Transfer Acceleration
 
-`hf_transfer`는 Rust 기반 고속 다운로드 라이브러리로, 기본 다운로드 대비 **3-5배 빠릅니다**.
+`hf_transfer` is a Rust-based high-speed download library, **3-5x faster** than default download.
 
 ```yaml
 env:
@@ -511,14 +511,14 @@ env:
       secretKeyRef:
         name: hf-token
         key: token
-  # 다운로드 재시도 설정
+  # Download retry configuration
   - name: HF_HUB_DOWNLOAD_TIMEOUT
-    value: "600"            # 10분 타임아웃
+    value: "600"            # 10 minute timeout
 ```
 
-#### 전략 2: S3 사전 캐싱 + Init Container
+#### Strategy 2: S3 Pre-caching + Init Container
 
-가장 안정적인 방법입니다. 모델 가중치를 S3에 미리 업로드하고, init container에서 로컬 NVMe로 복사합니다.
+Most stable method. Pre-upload model weights to S3, copy to local NVMe in init container.
 
 ```yaml
 apiVersion: apps/v1
@@ -529,7 +529,7 @@ spec:
   template:
     spec:
       initContainers:
-        # 1단계: S3에서 NVMe로 모델 다운로드
+        # Stage 1: Download model from S3 to NVMe
         - name: model-downloader
           image: amazon/aws-cli:latest
           command: ["/bin/sh", "-c"]
@@ -545,7 +545,7 @@ spec:
                 --no-progress \
                 --expected-size 65000000000
               echo "Download complete, verifying..."
-              # 체크섬 검증
+              # Checksum verification
               if [ -f /models/model.safetensors.index.json ]; then
                 echo "Model verified successfully"
               else
@@ -575,12 +575,12 @@ spec:
             sizeLimit: 200Gi  # NVMe emptyDir
 ```
 
-#### 전략 3: 컨테이너 이미지 사전 캐싱
+#### Strategy 3: Container Image Pre-caching
 
-vLLM/SGLang 이미지(10-20GB)의 Pull 시간을 줄이는 방법입니다.
+Methods to reduce Pull time for vLLM/SGLang images (10-20GB).
 
 ```yaml
-# Karpenter NodePool에서 이미지 사전 Pull 활성화
+# Enable image pre-Pull in Karpenter NodePool
 apiVersion: karpenter.sh/v1
 kind: NodePool
 metadata:
@@ -589,144 +589,144 @@ spec:
   template:
     spec:
       kubelet:
-        # 이미지 GC 임계값을 높여 캐시 유지
+        # Raise image GC threshold to maintain cache
         imageGCHighThresholdPercent: 90
         imageGCLowThresholdPercent: 85
 ```
 
-**SOCI (Seekable OCI) 인덱스 활용:**
+**Using SOCI (Seekable OCI) Index:**
 
-ECR에 SOCI 인덱스를 생성하면 이미지를 lazy-loading으로 Pull하여 **컨테이너 시작 시간을 70-80% 단축**합니다.
+Creating SOCI index in ECR enables image lazy-loading via Pull, **reducing container start time by 70-80%**.
 
 ```bash
-# SOCI 인덱스 생성 (ECR)
+# Create SOCI index (ECR)
 aws soci create \
   --image-uri 123456789012.dkr.ecr.us-east-2.amazonaws.com/vllm:v0.6.3
 
-# EKS Auto Mode는 SOCI를 자동 지원
-# Karpenter: Bottlerocket AMI 사용 시 SOCI 네이티브 지원
+# EKS Auto Mode automatically supports SOCI
+# Karpenter: Native SOCI support when using Bottlerocket AMI
 ```
 
-#### 전략 4: 멀티노드 LWS의 모델 다운로드 조율
+#### Strategy 4: Multi-node LWS Model Download Coordination
 
-LWS로 멀티노드 배포 시, Leader와 Worker가 동시에 같은 모델을 다운로드하면 네트워크 경합이 발생합니다.
+When deploying with LWS multi-node, network contention occurs if Leader and Worker simultaneously download the same model.
 
 ```yaml
-# Leader Pod: S3에서 다운로드 후 NVMe 캐시
+# Leader Pod: Download from S3 then cache to NVMe
 initContainers:
   - name: model-downloader
     command: ["/bin/sh", "-c"]
     args:
       - |
-        # Leader만 S3에서 다운로드
+        # Only Leader downloads from S3
         aws s3 sync s3://model-cache/glm5-fp8/ /models/
         echo "READY" > /models/.download-complete
 
-# Worker Pod: Leader 완료 대기 후 독립 다운로드
+# Worker Pod: Wait for Leader completion then download independently
 initContainers:
   - name: model-downloader
     command: ["/bin/sh", "-c"]
     args:
       - |
-        # Worker는 독립적으로 S3에서 다운로드
-        # (NVMe emptyDir는 노드별 독립이므로 공유 불가)
+        # Worker downloads independently from S3
+        # (NVMe emptyDir is node-independent, cannot share)
         aws s3 sync s3://model-cache/glm5-fp8/ /models/
 ```
 
-:::tip 다운로드 성능 비교
-| 방법 | 744GB 모델 소요 시간 | 안정성 | 비용 |
+:::tip Download Performance Comparison
+| Method | 744GB Model Time | Stability | Cost |
 |------|-------------------|--------|------|
-| HF Hub 직접 | 20-40분 | 타임아웃 빈번 | 무료 |
-| HF Hub + hf_transfer | 10-15분 | 양호 | 무료 |
-| **S3 사전 캐싱** | **5-10분** | **매우 안정** | **S3 저장 비용** |
-| FSx for Lustre | 5-8분 | 안정 | 높음 |
-| NVMe 로컬 캐시 (재기동) | &lt; 1분 | 최고 | 무료 |
+| HF Hub Direct | 20-40min | Frequent timeouts | Free |
+| HF Hub + hf_transfer | 10-15min | Good | Free |
+| **S3 Pre-caching** | **5-10min** | **Very Stable** | **S3 Storage Cost** |
+| FSx for Lustre | 5-8min | Stable | High |
+| NVMe Local Cache (Restart) | &lt; 1min | Best | Free |
 :::
 
-### EKS Auto Mode GPU 제약 사항
+### EKS Auto Mode GPU Limitations
 
-GLM-5(744B MoE)와 Kimi K2.5(1T MoE) 배포 과정에서 확인된 핵심 제약사항입니다.
+Core limitations identified during GLM-5 (744B MoE) and Kimi K2.5 (1T MoE) deployments.
 
-#### p6-b200 미지원
+#### p6-b200 Not Supported
 
-2026년 4월 기준, EKS Auto Mode의 managed Karpenter는 **p6-b200.48xlarge를 프로비저닝할 수 없습니다**. NodePool validation은 통과하지만, 실제 NodeClaim 생성 시 `NoCompatibleInstanceTypes` 오류가 발생합니다.
+As of April 2026, EKS Auto Mode's managed Karpenter **cannot provision p6-b200.48xlarge**. NodePool validation passes but actual NodeClaim creation fails with `NoCompatibleInstanceTypes` error.
 
-#### GPU 인스턴스 용량 확보
+#### GPU Instance Capacity Acquisition
 
-서울/도쿄 리전에서 p5.48xlarge는 InsufficientCapacity가 빈번합니다. **us-east-2 (Ohio) Spot에서 $13-15/hr로 확보 가능**합니다 (On-Demand $98/hr 대비 85% 절감).
+p5.48xlarge frequently has InsufficientCapacity in Seoul/Tokyo regions. **Available in us-east-2 (Ohio) Spot for $13-15/hr** (85% reduction vs On-Demand $98/hr).
 
-| 리전 | p5.48xlarge On-Demand | p5.48xlarge Spot | Spot 가격 |
+| Region | p5.48xlarge On-Demand | p5.48xlarge Spot | Spot Price |
 |------|---------------------|-----------------|----------|
-| ap-northeast-2 (서울) | InsufficientCapacity | 미확인 | — |
-| ap-northeast-1 (도쿄) | InsufficientCapacity | 미확인 | — |
-| **us-east-2 (Ohio)** | 가용성 변동 | **확보 가능** | **$13~15/hr** |
+| ap-northeast-2 (Seoul) | InsufficientCapacity | Unconfirmed | — |
+| ap-northeast-1 (Tokyo) | InsufficientCapacity | Unconfirmed | — |
+| **us-east-2 (Ohio)** | Variable availability | **Available** | **$13~15/hr** |
 
-#### GPU Operator 충돌
+#### GPU Operator Conflict
 
-`devicePlugin.enabled=true`로 GPU Operator를 설치하면 Auto Mode 내장 Device Plugin과 충돌하여 `allocatable=0`이 됩니다. **반드시 `devicePlugin.enabled=false`로 설치**해야 합니다.
+Installing GPU Operator with `devicePlugin.enabled=true` conflicts with Auto Mode's built-in Device Plugin, resulting in `allocatable=0`. **Must install with `devicePlugin.enabled=false`**.
 
-#### EC2 인스턴스 직접 종료 불가
+#### Cannot Directly Terminate EC2 Instances
 
-Auto Mode 관리 노드는 resource-based policy로 `ec2:TerminateInstances`가 차단됩니다. 노드 정리는 Karpenter NodePool 삭제 또는 Pod 제거를 통해 간접적으로 수행해야 합니다.
+Auto Mode managed nodes block `ec2:TerminateInstances` via resource-based policy. Node cleanup must be performed indirectly through Karpenter NodePool deletion or Pod removal.
 
-### 서빙 프레임워크 호환성
+### Serving Framework Compatibility
 
-| 모델 | vLLM 지원 | SGLang 지원 | 비고 |
+| Model | vLLM Support | SGLang Support | Notes |
 |------|---------|-----------|------|
-| Qwen3-32B | 지원 | 지원 | llm-d 기본 모델, Apache 2.0 |
-| Kimi K2.5 (1T MoE) | 지원 | 지원 | INT4 W4A16 Marlin MoE, `gpu_memory_utilization=0.85` |
-| GLM-5 (744B MoE) | 미지원 | 지원 | `glm_moe_dsa` 아키텍처 → transformers v5.2+ 필요, vLLM은 v4.x 사용 |
-| DeepSeek V3.2 | 지원 | 지원 | MoE, 671B/37B active |
+| Qwen3-32B | Supported | Supported | llm-d default model, Apache 2.0 |
+| Kimi K2.5 (1T MoE) | Supported | Supported | INT4 W4A16 Marlin MoE, `gpu_memory_utilization=0.85` |
+| GLM-5 (744B MoE) | Not supported | Supported | `glm_moe_dsa` architecture → requires transformers v5.2+, vLLM uses v4.x |
+| DeepSeek V3.2 | Supported | Supported | MoE, 671B/37B active |
 
-:::warning GLM-5 배포 시 주의
-GLM-5는 vLLM에서 지원되지 않습니다. SGLang 전용 이미지(`lmsysorg/sglang:glm5-hopper`)를 사용해야 하며, 멀티노드 배포 시 `--pp-size 2 --nnodes 2 --dist-init-addr <leader>:5000`을 설정합니다.
+:::warning GLM-5 Deployment Caution
+GLM-5 is not supported in vLLM. Must use SGLang-dedicated image (`lmsysorg/sglang:glm5-hopper`), and configure `--pp-size 2 --nnodes 2 --dist-init-addr <leader>:5000` for multi-node deployment.
 :::
 
-### 스토리지 전략
+### Storage Strategy
 
-대형 모델(744GB+)의 가중치 로딩은 스토리지 성능이 핵심입니다.
+Storage performance is critical for large model (744GB+) weight loading.
 
-| 스토리지 | 순차 읽기 | 멀티노드 공유 | 권장 시나리오 |
+| Storage | Sequential Read | Multi-node Sharing | Recommended Scenario |
 |---------|---------|------------|------------|
-| **NVMe emptyDir** | ~3,500 MB/s | 노드별 개별 | p5 내장 NVMe, 최고 성능 |
-| EFS | ~100-300 MB/s | ReadWriteMany | 소형 모델, 공유 필요 시 |
-| S3 + init container | ~1,000 MB/s | S3 공유 | 중간 성능, 비용 효율 |
-| FSx for Lustre | ~1,000+ MB/s | ReadWriteMany | 학습 워크로드 |
+| **NVMe emptyDir** | ~3,500 MB/s | Node-independent | p5 built-in NVMe, best performance |
+| EFS | ~100-300 MB/s | ReadWriteMany | Small models, when sharing needed |
+| S3 + init container | ~1,000 MB/s | S3 shared | Medium performance, cost efficient |
+| FSx for Lustre | ~1,000+ MB/s | ReadWriteMany | Training workloads |
 
-:::tip 대형 모델 권장
-GLM-5(744GB), Kimi K2.5(630GB) 같은 대형 모델은 **로컬 NVMe(emptyDir)**를 권장합니다. p5.48xlarge에 8×3.84TB NVMe SSD가 내장되어 추가 비용 없이 최고 성능을 제공합니다. HuggingFace Hub 직접 다운로드 시 첫 기동 10-20분 소요되지만, 이후 로딩은 빠릅니다.
+:::tip Large Model Recommendation
+Large models like GLM-5 (744GB) and Kimi K2.5 (630GB) recommend **local NVMe (emptyDir)**. p5.48xlarge has 8×3.84TB NVMe SSD built-in, providing best performance at no additional cost. First startup takes 10-20min with HuggingFace Hub direct download, but subsequent loads are fast.
 :::
 
-### GPU 쿼터 함정
+### GPU Quota Pitfall
 
-EC2 vCPU 쿼터가 인스턴스 버킷별로 분리되어 있어 주의가 필요합니다.
+EC2 vCPU quotas are separated by instance bucket, requiring caution.
 
-| 쿼타 | 적용 인스턴스 | 기본값 | 주의사항 |
+| Quota | Applicable Instances | Default | Caution |
 |------|------------|--------|---------|
-| Running On-Demand P instances | p4d, p5, p5en | 384 | p5.48xlarge(192 vCPU) 2대 가능 |
-| Running On-Demand G and VT instances | g5, g6, g6e | **64** | g6e.48xlarge 1대도 불가 → 쿼터 증가 필요 |
+| Running On-Demand P instances | p4d, p5, p5en | 384 | Can have 2 p5.48xlarge (192 vCPU each) |
+| Running On-Demand G and VT instances | g5, g6, g6e | **64** | Cannot even have 1 g6e.48xlarge → quota increase required |
 
-GPU NodePool에 `instance-category: [g, p]`를 함께 설정하면, Karpenter가 G 타입을 먼저 시도하여 G 쿼터(64 vCPU)에 걸릴 수 있습니다. P 타입만 필요하면 명시적으로 지정해야 합니다.
+Setting `instance-category: [g, p]` together in GPU NodePool may cause Karpenter to try G types first, hitting the G quota (64 vCPU). If only P types are needed, specify explicitly.
 
-## 참고 자료
+## References
 
-### 공식 문서
+### Official Documentation
 - [KEDA Documentation](https://keda.sh/docs/) — Kubernetes Event-driven Autoscaling
-- [Karpenter Documentation](https://karpenter.sh/docs/) — 노드 오토프로비저닝, Disruption, Consolidation
-- [EKS Hybrid Nodes](https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes.html) — 온프레 GPU 팜 통합
-- [NVIDIA DCGM Exporter](https://github.com/NVIDIA/dcgm-exporter) — GPU 센서 메트릭 수집
-- [Langfuse Self-hosted](https://langfuse.com/docs/deployment/self-host) — Agent 관측성 OSS
+- [Karpenter Documentation](https://karpenter.sh/docs/) — Node auto-provisioning, Disruption, Consolidation
+- [EKS Hybrid Nodes](https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes.html) — On-premises GPU farm integration
+- [NVIDIA DCGM Exporter](https://github.com/NVIDIA/dcgm-exporter) — GPU sensor metrics collection
+- [Langfuse Self-hosted](https://langfuse.com/docs/deployment/self-host) — Agent observability OSS
 
-### 논문·기술 블로그
-- [a16z "The Economics of AI"](https://a16z.com/navigating-the-high-cost-of-ai-compute/) — GPU 비용 구조 분석
-- [AWS Bottlerocket & SOCI](https://aws.amazon.com/blogs/containers/introducing-seekable-oci-for-lazy-loading-container-images/) — 컨테이너 이미지 lazy-loading
-- [Spot 인스턴스 운영 가이드 (AWS)](https://aws.amazon.com/ec2/spot/) — Karpenter Spot 중단 대응
-- [NVIDIA Triton & DCGM Metrics Guide](https://developer.nvidia.com/dcgm) — GPU 메트릭 해석
+### Papers & Technical Blogs
+- [a16z "The Economics of AI"](https://a16z.com/navigating-the-high-cost-of-ai-compute/) — GPU cost structure analysis
+- [AWS Bottlerocket & SOCI](https://aws.amazon.com/blogs/containers/introducing-seekable-oci-for-lazy-loading-container-images/) — Container image lazy-loading
+- [Spot Instance Operations Guide (AWS)](https://aws.amazon.com/ec2/spot/) — Karpenter Spot interruption response
+- [NVIDIA Triton & DCGM Metrics Guide](https://developer.nvidia.com/dcgm) — GPU metrics interpretation
 
-### 관련 문서
-- [Inference Optimization on EKS (개요)](./index.md) — 추론 최적화 카테고리 진입점
-- [KV Cache 최적화 (vLLM Deep Dive + Cache-Aware Routing)](./kv-cache-optimization.md) — vLLM/llm-d/Dynamo 심화
-- [Disaggregated Serving + LWS 멀티노드](./disaggregated-serving.md) — Prefill/Decode 분리, LWS 배포
-- [GPU 리소스 관리](../gpu-infrastructure/gpu-resource-management.md) — GPU 스케일링, DRA
-- [NVIDIA GPU 소프트웨어 스택](../gpu-infrastructure/nvidia-gpu-stack.md) — GPU Operator, DCGM
-- [Agent 모니터링 (Langfuse canonical)](../../operations-mlops/observability/agent-monitoring.md) — Langfuse 기반 Agent 관측성
+### Related Documentation
+- [Inference Optimization on EKS (Overview)](./index.md) — Inference optimization category entry point
+- [KV Cache Optimization (vLLM Deep Dive + Cache-Aware Routing)](./kv-cache-optimization.md) — vLLM/llm-d/Dynamo deep dive
+- [Disaggregated Serving + LWS Multi-Node](./disaggregated-serving.md) — Prefill/Decode separation, LWS deployment
+- [GPU Resource Management](../gpu-infrastructure/gpu-resource-management.md) — GPU scaling, DRA
+- [NVIDIA GPU Software Stack](../gpu-infrastructure/nvidia-gpu-stack.md) — GPU Operator, DCGM
+- [Agent Monitoring (Langfuse Canonical)](../../operations-mlops/observability/agent-monitoring.md) — Langfuse-based Agent observability

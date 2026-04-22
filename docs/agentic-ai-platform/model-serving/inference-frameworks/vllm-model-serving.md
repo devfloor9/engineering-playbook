@@ -173,7 +173,7 @@ vLLM V1 엔진의 multiproc_executor는 NCCL TCPStore를 통해 멀티노드 동
 2. **Ray 기반 vLLM**: Ray Cluster 구성 (운영 복잡도 증가)
 3. **단일 노드 배포**: H200 (141GB × 8) 또는 B200 (192GB × 8) 사용하여 PP 제거
 
-상세 내용은 [커스텀 모델 배포 가이드](../../reference-architecture/model-lifecycle/custom-model-deployment.md#vllm-pp-멀티노드-제약)를 참조하세요.
+상세 내용은 [커스텀 모델 배포 가이드](../../reference-architecture/model-lifecycle/custom-model-deployment.md#pp-멀티노드-교착-문제-lessons-learned)를 참조하세요.
 
 ### 데이터 병렬화 (Data Parallelism, DP)
 

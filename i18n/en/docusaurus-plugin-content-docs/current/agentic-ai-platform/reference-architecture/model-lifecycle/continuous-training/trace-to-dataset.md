@@ -1,7 +1,7 @@
 ---
 title: "Trace → Dataset Materializer"
 sidebar_label: "Trace to Dataset"
-description: "Langfuse OTel 트레이스를 S3 Parquet/Iceberg로 적재하고 Ragas + LLM Judge Fleet로 Reward를 레이블링해 GRPO/DPO 학습 데이터셋을 자동 구성합니다."
+description: "Load Langfuse OTel traces into S3 Parquet/Iceberg and automatically construct GRPO/DPO training datasets by labeling rewards with Ragas + LLM Judge Fleet."
 created: 2026-04-18
 last_update:
   date: 2026-04-20
@@ -17,13 +17,13 @@ tags:
 sidebar_position: 2
 ---
 
-## 개요
+## Overview
 
-Continuous Training Pipeline의 1~2단계인 **Trace 수집 → Reward 레이블링** 구현을 다룹니다. Langfuse에 저장된 프로덕션 추론 트레이스를 S3 Parquet로 적재하고, Ragas + LLM Judge Fleet으로 각 trace의 품질을 0-1점으로 스코어링하여 GRPO/DPO 학습 데이터셋을 구성합니다.
+This document covers the implementation of stages 1-2 of the Continuous Training Pipeline: **Trace Collection → Reward Labeling**. It loads production inference traces stored in Langfuse into S3 Parquet and scores each trace's quality on a 0-1 scale with Ragas + LLM Judge Fleet to construct GRPO/DPO training datasets.
 
 ## Langfuse OTel → S3 Parquet
 
-Langfuse는 OpenTelemetry 프로토콜로 추론 트레이스를 수집합니다. 이를 S3에 Parquet 형식으로 저장하여 대규모 배치 분석이 가능하도록 합니다.
+Langfuse collects inference traces via the OpenTelemetry protocol. Store them in S3 in Parquet format to enable large-scale batch analysis.
 
 ```mermaid
 flowchart LR
@@ -45,7 +45,7 @@ flowchart LR
 ### Langfuse Trace Schema
 
 ```sql
--- Langfuse traces 테이블 구조 (PostgreSQL)
+-- Langfuse traces table structure (PostgreSQL)
 CREATE TABLE traces (
     id UUID PRIMARY KEY,
     timestamp TIMESTAMP,
@@ -57,16 +57,16 @@ CREATE TABLE traces (
     latency_ms INT,
     token_count INT,
     metadata JSONB,
-    user_consent BOOLEAN  -- GDPR 동의 여부
+    user_consent BOOLEAN  -- GDPR consent status
 );
 
--- 예시 데이터
+-- Example data
 {
   "id": "trace-12345",
   "timestamp": "2026-04-18T03:15:00Z",
   "user_id": "user-abc",
-  "input": "EKS Auto Mode와 Karpenter의 차이점은?",
-  "output": "EKS Auto Mode는 AWS 완전 관리형 노드 그룹이며...",
+  "input": "What's the difference between EKS Auto Mode and Karpenter?",
+  "output": "EKS Auto Mode is an AWS fully-managed node group...",
   "model": "glm-5-32b",
   "latency_ms": 850,
   "token_count": 512,
@@ -78,7 +78,7 @@ CREATE TABLE traces (
 }
 ```
 
-### S3 Partitioning 전략
+### S3 Partitioning Strategy
 
 ```bash
 s3://training-data-lake/
@@ -96,27 +96,27 @@ s3://training-data-lake/
         └── ...
 ```
 
-**Partitioning 이유:**
+**Partitioning Reasons:**
 
-- **날짜**: 시간 범위 쿼리 최적화 (예: 최근 7일 데이터)
-- **모델**: 모델별 성능 추적, A/B 테스트 분리
-- **동의**: GDPR/CCPA 규정 준수, 동의 없는 데이터 학습 제외
+- **Date**: Optimize time-range queries (e.g., last 7 days of data)
+- **Model**: Per-model performance tracking, A/B test separation
+- **Consent**: GDPR/CCPA compliance, exclude non-consented data from training
 
 ### Apache Iceberg vs Hudi
 
-| 특징 | Apache Iceberg | Apache Hudi |
-|------|---------------|-------------|
-| **스냅샷 격리** | 완벽한 ACID 트랜잭션 | 타임라인 기반 일관성 |
-| **Schema 진화** | 자동 컬럼 추가/삭제 | 수동 마이그레이션 필요 |
-| **쿼리 성능** | 파티션 가지치기 최적화 | COW/MOR 모드 선택 |
-| **AWS 통합** | Glue Catalog 네이티브 | EMR 최적화 |
-| **권장 용도** | 대규모 분석 쿼리 | 실시간 upsert 중심 |
+| Feature | Apache Iceberg | Apache Hudi |
+|---------|---------------|-------------|
+| **Snapshot Isolation** | Full ACID transactions | Timeline-based consistency |
+| **Schema Evolution** | Automatic column add/delete | Manual migration required |
+| **Query Performance** | Partition pruning optimization | COW/MOR mode selection |
+| **AWS Integration** | Native Glue Catalog | EMR optimized |
+| **Recommended Use** | Large-scale analytical queries | Real-time upsert focus |
 
-:::tip Iceberg 권장
-Continuous Training은 **읽기 중심 워크로드**(배치 학습)이므로 Iceberg를 권장합니다. Schema 변경(신규 메타데이터 필드 추가)이 빈번하므로 자동 Schema Evolution이 유리합니다.
+:::tip Iceberg Recommended
+Continuous Training is a **read-heavy workload** (batch learning), so Iceberg is recommended. Schema changes (adding new metadata fields) are frequent, making automatic Schema Evolution advantageous.
 :::
 
-### Airflow DAG 예시
+### Airflow DAG Example
 
 ```python
 # dags/langfuse_to_s3.py
@@ -130,12 +130,12 @@ import pyarrow as pa
 import pyarrow.parquet as pq
 
 def export_langfuse_traces(**context):
-    """Langfuse Postgres → S3 Parquet 변환"""
+    """Langfuse Postgres → S3 Parquet conversion"""
     
-    # Langfuse DB 연결
+    # Connect to Langfuse DB
     pg_hook = PostgresHook(postgres_conn_id='langfuse_db')
     
-    # 어제 날짜 데이터 추출 (user_consent=true만)
+    # Extract yesterday's data (user_consent=true only)
     yesterday = context['ds']
     query = f"""
         SELECT 
@@ -151,14 +151,14 @@ def export_langfuse_traces(**context):
     
     df = pg_hook.get_pandas_df(query)
     
-    # 모델별로 그룹화하여 Parquet 저장
+    # Group by model and save Parquet
     for model, group in df.groupby('model'):
         table = pa.Table.from_pandas(group)
         
-        # S3 경로: s3://bucket/date=2026-04-18/model=glm-5-32b/consent=true/
+        # S3 path: s3://bucket/date=2026-04-18/model=glm-5-32b/consent=true/
         s3_key = f"langfuse-traces/date={yesterday}/model={model}/consent=true/traces-{context['ti'].xcom_pull()}.parquet"
         
-        # S3 업로드
+        # S3 upload
         s3_hook = S3Hook(aws_conn_id='aws_default')
         with s3_hook.get_conn().open(f"s3://training-data-lake/{s3_key}", 'wb') as f:
             pq.write_table(table, f, compression='snappy')
@@ -167,7 +167,7 @@ def export_langfuse_traces(**context):
 
 with DAG(
     dag_id='langfuse_to_s3_daily',
-    schedule_interval='0 6 * * *',  # 매일 오전 6시
+    schedule_interval='0 6 * * *',  # Daily at 6 AM
     start_date=datetime(2026, 4, 1),
     catchup=False,
     default_args={
@@ -182,7 +182,7 @@ with DAG(
     )
 ```
 
-### AWS Glue Catalog 등록
+### AWS Glue Catalog Registration
 
 ```python
 # glue_iceberg_table.py
@@ -190,7 +190,7 @@ import boto3
 
 glue = boto3.client('glue')
 
-# Iceberg 테이블 정의
+# Define Iceberg table
 glue.create_table(
     DatabaseName='training_data',
     TableInput={
@@ -229,32 +229,32 @@ glue.create_table(
 
 ## Reward Labeler Fleet
 
-### Reward Labeling 개념
+### Reward Labeling Concept
 
-**Reward Labeling**은 각 trace의 품질을 0-1점 사이 점수로 평가하는 프로세스입니다. 이 점수는 GRPO/DPO 학습에서 **선호도(preference) 신호**로 사용됩니다.
+**Reward Labeling** is the process of evaluating each trace's quality with a 0-1 score. This score is used as a **preference signal** in GRPO/DPO training.
 
 ```
-고득점 trace (0.8-1.0) → 선호 예제 (학습 시 가중치 ↑)
-저득점 trace (0.0-0.3) → 비선호 예제 (학습 시 가중치 ↓)
+High-score traces (0.8-1.0) → Preferred examples (higher weight in training)
+Low-score traces (0.0-0.3) → Non-preferred examples (lower weight in training)
 ```
 
-### 평가 지표 조합
+### Evaluation Metrics Combination
 
-#### Ragas 메트릭
+#### Ragas Metrics
 
-[Ragas 평가 프레임워크](../../../operations-mlops/governance/ragas-evaluation.md)는 RAG 시스템의 품질을 객관적으로 측정합니다.
+The [Ragas evaluation framework](../../../operations-mlops/governance/ragas-evaluation.md) objectively measures RAG system quality.
 
 ```python
 from ragas.metrics import faithfulness, answer_relevancy, context_precision
 
-# Ragas 배치 평가
+# Ragas batch evaluation
 scores = {
-    'faithfulness': 0.92,      # 답변이 컨텍스트에 충실한가
-    'answer_relevancy': 0.88,  # 답변이 질문과 관련있는가
-    'context_precision': 0.85  # 검색된 컨텍스트가 정확한가
+    'faithfulness': 0.92,      # Is answer faithful to context?
+    'answer_relevancy': 0.88,  # Is answer relevant to question?
+    'context_precision': 0.85  # Is retrieved context accurate?
 }
 
-# 가중 평균으로 최종 Reward 계산
+# Calculate final Reward with weighted average
 reward = (
     0.5 * scores['faithfulness'] +
     0.3 * scores['answer_relevancy'] +
@@ -265,26 +265,26 @@ reward = (
 
 #### LLM-as-a-Judge
 
-작은 모델(Qwen3-4B)을 judge로 활용하여 답변 품질을 평가합니다.
+Use a small model (Qwen3-4B) as a judge to evaluate answer quality.
 
 ```python
-# LLM Judge 프롬프트
+# LLM Judge prompt
 JUDGE_PROMPT = """
-다음 질문과 답변을 평가하세요.
+Evaluate the following question and answer.
 
-**질문**: {question}
-**답변**: {answer}
+**Question**: {question}
+**Answer**: {answer}
 
-**평가 기준**:
-1. 정확성: 기술적 오류가 없는가?
-2. 완결성: 질문의 모든 측면을 다루는가?
-3. 명확성: 이해하기 쉬운가?
+**Evaluation Criteria**:
+1. Accuracy: Are there technical errors?
+2. Completeness: Does it cover all aspects of the question?
+3. Clarity: Is it easy to understand?
 
-점수를 0.0-1.0 사이로 출력하세요. JSON 형식으로만 응답하세요:
+Output a score between 0.0-1.0. Respond only in JSON format:
 {{"score": 0.85, "reasoning": "..."}}
 """
 
-# Qwen3-4B로 평가 (vLLM 배치 추론)
+# Evaluate with Qwen3-4B (vLLM batch inference)
 judge_response = vllm_client.chat.completions.create(
     model="qwen3-coder-4b",
     messages=[{"role": "user", "content": JUDGE_PROMPT.format(question=q, answer=a)}],
@@ -296,19 +296,19 @@ judge_score = json.loads(judge_response.choices[0].message.content)['score']
 # → judge_score = 0.85
 ```
 
-#### 최종 Reward 합산
+#### Final Reward Aggregation
 
 ```python
-# Ragas + LLM Judge 조합
+# Ragas + LLM Judge combination
 final_reward = (
-    0.6 * ragas_reward +      # Ragas 가중치 60%
-    0.4 * judge_score         # Judge 가중치 40%
+    0.6 * ragas_reward +      # Ragas weight 60%
+    0.4 * judge_score         # Judge weight 40%
 )
 ```
 
-### KServe InferenceService 배포
+### KServe InferenceService Deployment
 
-Qwen3-4B Judge 모델을 KServe로 배포하여 고가용성 fleet을 구성합니다.
+Deploy Qwen3-4B Judge model with KServe to build a high-availability fleet.
 
 ```yaml
 # reward-labeler-inference.yaml
@@ -361,13 +361,13 @@ spec:
         avg(vllm_requests_running{model="qwen3-judge"})
 ```
 
-**오토스케일링 전략:**
+**Autoscaling Strategy:**
 
-- **최소 3 replica**: 기본 처리량 보장
-- **최대 10 replica**: 배치 평가 시 스파이크 대응
-- **트리거**: vLLM 대기 요청 수 > 10 시 스케일아웃
+- **Minimum 3 replicas**: Guarantee baseline throughput
+- **Maximum 10 replicas**: Handle spikes during batch evaluation
+- **Trigger**: Scale out when vLLM waiting requests > 10
 
-### 배치 평가 Job
+### Batch Evaluation Job
 
 ```python
 # batch_reward_labeling.py
@@ -378,7 +378,7 @@ import openai
 import json
 from concurrent.futures import ThreadPoolExecutor
 
-# S3에서 최근 7일 trace 로드
+# Load last 7 days of traces from S3
 df = pd.read_parquet(
     's3://training-data-lake/langfuse-traces/',
     filters=[
@@ -389,13 +389,13 @@ df = pd.read_parquet(
     ]
 )
 
-# Ragas 평가
+# Ragas evaluation
 ragas_results = evaluate(
     df,
     metrics=[faithfulness, answer_relevancy, context_precision]
 )
 
-# LLM Judge 평가 (병렬 처리)
+# LLM Judge evaluation (parallel processing)
 def judge_single_trace(row):
     response = openai.ChatCompletion.create(
         model="qwen3-judge",
@@ -408,7 +408,7 @@ def judge_single_trace(row):
         }],
         temperature=0.1,
         max_tokens=200,
-        # KServe InferenceService 엔드포인트
+        # KServe InferenceService endpoint
         api_base="http://reward-labeler-qwen3.training-pipeline.svc.cluster.local:8000/v1"
     )
     return json.loads(response.choices[0].message.content)['score']
@@ -416,7 +416,7 @@ def judge_single_trace(row):
 with ThreadPoolExecutor(max_workers=50) as executor:
     judge_scores = list(executor.map(judge_single_trace, df.to_dict('records')))
 
-# 최종 Reward 계산
+# Calculate final Reward
 df['ragas_reward'] = (
     0.5 * ragas_results['faithfulness'] +
     0.3 * ragas_results['answer_relevancy'] +
@@ -425,42 +425,42 @@ df['ragas_reward'] = (
 df['judge_score'] = judge_scores
 df['final_reward'] = 0.6 * df['ragas_reward'] + 0.4 * df['judge_score']
 
-# S3에 레이블링된 데이터셋 저장
+# Save labeled dataset to S3
 df.to_parquet('s3://training-data-lake/labeled-dataset/2026-04-18.parquet')
 ```
 
-### 비용 예시
+### Cost Example
 
-| 리소스 | 스펙 | 시간당 비용 | 일일 비용 (10시간 가동) |
-|--------|------|-----------|----------------------|
+| Resource | Spec | Hourly Cost | Daily Cost (10 hours) |
+|----------|------|-------------|----------------------|
 | **Qwen3-4B Judge Fleet** | g6.xlarge × 3 | $0.93 | $9.30 |
-| **Ragas 평가 (Bedrock Claude)** | - | API 호출당 | $5-10 (1만 trace 기준) |
-| **Airflow/Kubernetes** | 기존 인프라 | - | - |
-| **총 비용** | - | - | **$15-20/일** |
+| **Ragas Evaluation (Bedrock Claude)** | - | Per API call | $5-10 (10K traces) |
+| **Airflow/Kubernetes** | Existing infrastructure | - | - |
+| **Total Cost** | - | - | **$15-20/day** |
 
-연간 $5,000-7,000 수준으로 수동 라벨링($10K/월) 대비 **95% 절감** 효과.
+Annual cost of $5,000-7,000, achieving **95% savings** compared to manual labeling ($10K/month).
 
-## 다음 단계
+## Next Steps
 
-- [GRPO/DPO 학습 Job](./grpo-dpo-training.md) — 수집된 레이블 데이터셋으로 preference tuning 수행
-- [Eval Gate · Registry · KPI](./evaluation-rollout.md) — 학습 후 품질 검증과 Canary 배포
+- [GRPO/DPO Training Job](./grpo-dpo-training.md) — Perform preference tuning with collected labeled dataset
+- [Eval Gate · Registry · KPI](./evaluation-rollout.md) — Quality verification and Canary deployment after training
 
-## 참고 자료
+## References
 
-### 공식 문서
+### Official Documentation
 
-- [Langfuse](https://langfuse.com/docs) — LLM Observability 플랫폼
-- [Apache Iceberg](https://iceberg.apache.org/) — 오픈 테이블 포맷
-- [AWS Glue Data Catalog](https://docs.aws.amazon.com/glue/latest/dg/components-overview.html) — Iceberg 메타스토어
+- [Langfuse](https://langfuse.com/docs) — LLM Observability platform
+- [Apache Iceberg](https://iceberg.apache.org/) — Open table format
+- [AWS Glue Data Catalog](https://docs.aws.amazon.com/glue/latest/dg/components-overview.html) — Iceberg metastore
 - [KServe](https://kserve.github.io/website/) — Kubernetes ModelMesh/InferenceService
 
-### 논문 · 기술 블로그
+### Papers & Technical Blogs
 
 - [Ragas: Automated Evaluation of RAG (arxiv 2309.15217)](https://arxiv.org/abs/2309.15217)
 - [LLM-as-a-Judge Survey (arxiv 2411.15594)](https://arxiv.org/abs/2411.15594)
 
-### 관련 문서
+### Related Documents
 
-- [Ragas Evaluation](../../../operations-mlops/governance/ragas-evaluation.md) — Ragas 메트릭 심화
-- [Agent 모니터링 (Langfuse)](../../../operations-mlops/observability/agent-monitoring.md)
-- [GRPO/DPO 학습 Job](./grpo-dpo-training.md)
+- [Ragas Evaluation](../../../operations-mlops/governance/ragas-evaluation.md) — Deep dive into Ragas metrics
+- [Agent Monitoring (Langfuse)](../../../operations-mlops/observability/agent-monitoring.md)
+- [GRPO/DPO Training Job](./grpo-dpo-training.md)
