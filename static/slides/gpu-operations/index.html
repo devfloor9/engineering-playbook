@@ -1,0 +1,914 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>EKS GPU Operations — Agentic AI Platform Training</title>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  html,body,#root{margin:0;padding:0;background:#030712;color:#f9fafb;min-height:100vh;font-family:-apple-system,'Pretendard',BlinkMacSystemFont,'Segoe UI',sans-serif}
+  .mono{font-family:ui-monospace,'SFMono-Regular',Menlo,Monaco,Consolas,monospace}
+  .fade-in{animation:fadein .45s ease both}
+  @keyframes fadein{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+  .grad-text{background:linear-gradient(135deg,#76b900,#60a5fa,#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+  .grad-amber{background:linear-gradient(135deg,#f59e0b,#f472b6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+  .chip{display:inline-flex;align-items:center;gap:.35rem;padding:.2rem .55rem;border-radius:9999px;font-size:.7rem;font-weight:600}
+  .divider{height:1px;background:linear-gradient(90deg,transparent,#334155,transparent)}
+  .scrollbar::-webkit-scrollbar{width:6px;height:6px}
+  .scrollbar::-webkit-scrollbar-thumb{background:#374151;border-radius:3px}
+  kbd{display:inline-block;padding:.05rem .35rem;border-radius:4px;border:1px solid #374151;background:#0f172a;font-size:.7rem;color:#cbd5e1;font-family:ui-monospace,monospace}
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel" data-presets="react">
+const { useState, useEffect, useCallback, useMemo } = React;
+
+// ===== Shared components =====
+function Frame({ children }) {
+  return (
+    <div className="min-h-screen w-full flex flex-col fade-in">
+      <div className="max-w-6xl mx-auto w-full px-10 pt-10 pb-32 flex-1 flex flex-col">
+        {children}
+      </div>
+    </div>
+  );
+}
+
+function Header({ eyebrow, title, sub, accent='#76b900' }) {
+  return (
+    <div className="mb-7">
+      {eyebrow && (
+        <div className="text-xs font-semibold tracking-widest uppercase mb-2"
+             style={{color: accent}}>{eyebrow}</div>
+      )}
+      <h1 className="text-4xl md:text-5xl font-extrabold leading-tight grad-text">{title}</h1>
+      {sub && <p className="text-gray-400 mt-3 text-lg leading-relaxed">{sub}</p>}
+    </div>
+  );
+}
+
+function Card({ title, icon, color='blue', children, className='' }) {
+  const map = {
+    blue: 'border-blue-500/30 bg-blue-500/5',
+    green: 'border-emerald-500/30 bg-emerald-500/5',
+    amber: 'border-amber-500/30 bg-amber-500/5',
+    purple: 'border-purple-500/30 bg-purple-500/5',
+    rose: 'border-rose-500/30 bg-rose-500/5',
+    slate: 'border-slate-600/40 bg-slate-800/40',
+    lime: 'border-lime-500/30 bg-lime-500/5',
+  };
+  const textMap = {
+    blue:'text-blue-400', green:'text-emerald-400', amber:'text-amber-400',
+    purple:'text-purple-400', rose:'text-rose-400', slate:'text-slate-300', lime:'text-lime-400'
+  };
+  return (
+    <div className={`rounded-xl border p-5 ${map[color]} ${className}`}>
+      <div className="flex items-center gap-2 mb-3">
+        {icon && <span className={`${textMap[color]} text-lg`}>{icon}</span>}
+        <h3 className={`font-bold ${textMap[color]}`}>{title}</h3>
+      </div>
+      <div className="text-gray-200 text-sm leading-relaxed">{children}</div>
+    </div>
+  );
+}
+
+function Pill({ text, tone='slate' }) {
+  const map = {
+    slate:'bg-slate-700/50 text-slate-200',
+    green:'bg-emerald-500/20 text-emerald-300',
+    amber:'bg-amber-500/20 text-amber-300',
+    rose:'bg-rose-500/20 text-rose-300',
+    blue:'bg-blue-500/20 text-blue-300',
+    purple:'bg-purple-500/20 text-purple-300',
+    lime:'bg-lime-500/20 text-lime-300',
+  };
+  return <span className={`chip ${map[tone]}`}>{text}</span>;
+}
+
+function Code({ children, lang='yaml' }) {
+  return (
+    <pre className="mono text-xs md:text-sm bg-black/60 border border-slate-700/60 rounded-lg p-4 overflow-auto scrollbar whitespace-pre">
+      <code>{children}</code>
+    </pre>
+  );
+}
+
+function Table({ headers, rows, highlight=[] }) {
+  return (
+    <div className="overflow-auto scrollbar rounded-lg border border-slate-700/60">
+      <table className="w-full text-sm">
+        <thead className="bg-slate-800/70">
+          <tr>{headers.map((h,i)=>(
+            <th key={i} className="text-left px-3 py-2 text-xs uppercase tracking-wider text-gray-300 font-semibold">{h}</th>
+          ))}</tr>
+        </thead>
+        <tbody>
+          {rows.map((r,i)=>(
+            <tr key={i} className={`${i%2? 'bg-slate-900/40':'bg-slate-900/20'} ${highlight.includes(i)?'bg-emerald-900/30':''}`}>
+              {r.map((c,j)=>(
+                <td key={j} className="px-3 py-2 text-gray-200 align-top">{c}</td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+// Simple SVG flow diagram
+function Flow({ nodes, edges, w=900, h=380 }) {
+  const byId = Object.fromEntries(nodes.map(n => [n.id, n]));
+  return (
+    <svg viewBox={`0 0 ${w} ${h}`} className="w-full max-w-5xl mx-auto">
+      <defs>
+        <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5"
+                markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 Z" fill="#94a3b8"/>
+        </marker>
+      </defs>
+      {edges.map((e, i)=>{
+        const f = byId[e.from], t = byId[e.to]; if (!f || !t) return null;
+        const x1=f.x+f.w/2, y1=f.y+f.h, x2=t.x+t.w/2, y2=t.y;
+        const mx=(x1+x2)/2, my=(y1+y2)/2;
+        const path = `M ${x1} ${y1} C ${x1} ${my} ${x2} ${my} ${x2} ${y2}`;
+        return (
+          <g key={i}>
+            <path d={path} fill="none" stroke="#94a3b8" strokeWidth="1.6" markerEnd="url(#arr)" strokeDasharray={e.dashed?'5 4':''}/>
+            {e.label && <text x={mx} y={my-6} fontSize="11" fill="#cbd5e1" textAnchor="middle">{e.label}</text>}
+          </g>
+        );
+      })}
+      {nodes.map(n=>(
+        <g key={n.id}>
+          <rect x={n.x} y={n.y} width={n.w} height={n.h} rx="10"
+                fill={n.fill || '#0f172a'} stroke={n.stroke || '#334155'} strokeWidth="1.6"/>
+          <text x={n.x+n.w/2} y={n.y+n.h/2+5} fontSize="13" fill={n.textColor || '#f1f5f9'}
+                textAnchor="middle" fontWeight="600">{n.label}</text>
+          {n.sub && <text x={n.x+n.w/2} y={n.y+n.h/2+22} fontSize="11" fill="#94a3b8" textAnchor="middle">{n.sub}</text>}
+        </g>
+      ))}
+    </svg>
+  );
+}
+
+// ===== Slides =====
+const slides = [
+  // 1. Title
+  () => (
+    <Frame>
+      <div className="flex-1 flex flex-col justify-center">
+        <div className="mb-4 flex items-center gap-2">
+          <Pill text="AGENTIC AI PLATFORM" tone="lime"/>
+          <Pill text="TRAINING" tone="slate"/>
+          <Pill text="2026.05" tone="slate"/>
+        </div>
+        <h1 className="text-6xl md:text-7xl font-extrabold leading-[1.05] grad-text mb-6">
+          EKS GPU Operations
+        </h1>
+        <p className="text-2xl text-gray-300 font-light max-w-3xl">
+          NVIDIA · AWS Neuron · Karpenter · DRA · GPU Operator — 프로덕션 Agentic 플랫폼을 위한 GPU 인프라 운영 가이드
+        </p>
+        <div className="mt-10 grid grid-cols-2 md:grid-cols-4 gap-3 max-w-3xl">
+          <Pill text="EKS Auto Mode" tone="amber"/>
+          <Pill text="Karpenter v1.2+" tone="blue"/>
+          <Pill text="GPU Operator v25.10" tone="green"/>
+          <Pill text="DRA K8s 1.34 GA" tone="purple"/>
+          <Pill text="vLLM v0.18+" tone="lime"/>
+          <Pill text="Trainium2 / Inferentia2" tone="amber"/>
+          <Pill text="Dynamo v1.0" tone="green"/>
+          <Pill text="CRIU Preview" tone="rose"/>
+        </div>
+        <div className="mt-14 text-sm text-gray-500">
+          20 slides · 이전/다음: <kbd>←</kbd> <kbd>→</kbd> · 첫 슬라이드: <kbd>Home</kbd>
+        </div>
+      </div>
+    </Frame>
+  ),
+
+  // 2. Why GPU Operations
+  () => (
+    <Frame>
+      <Header eyebrow="Why This Matters"
+              title="GPU 운영이 LLM 플랫폼의 단일 최대 비용"
+              sub="GPU는 EKS 상위 워크로드의 70–90% 비용을 차지합니다. 노드 전략·파티셔닝·오토스케일링의 작은 오판이 월 수만 달러 낭비로 이어집니다."/>
+      <div className="grid grid-cols-3 gap-5">
+        <Card title="1. 노드 전략" icon="🖥️" color="blue">
+          Auto Mode vs Karpenter vs MNG vs Hybrid Node — DRA 요구사항·MIG·Spot·온프레미스 통합 여부로 선택이 갈립니다.
+        </Card>
+        <Card title="2. 파티셔닝" icon="🔪" color="amber">
+          H100을 7B 모델 단독으로 쓰면 GPU 80%가 유휴. MIG·Time-Slicing으로 활용률 3배 이상 개선 가능합니다.
+        </Card>
+        <Card title="3. 스케일링" icon="📈" color="green">
+          GPU 사용률이 아닌 <b>KV Cache·TTFT·Queue</b>가 LLM 서빙의 민감 시그널입니다. KEDA + Karpenter 2단 체인.
+        </Card>
+        <Card title="4. 관측" icon="📡" color="purple">
+          DCGM Exporter · Neuron Monitor가 Prometheus에 연결되지 않으면 오토스케일·SLO·비용 분석 모두 무너집니다.
+        </Card>
+        <Card title="5. 비용" icon="💰" color="rose">
+          Spot 85–94% 절감, Consolidation 20–30%, 시간대 스케줄링 30–40%. 조합 시 총 85%까지 절감 가능.
+        </Card>
+        <Card title="6. 미래 대비" icon="🔮" color="lime">
+          P6e-GB200·trn2 Ultra·CRIU·DRA GA — 로드맵을 읽지 않으면 내년에 다시 재설계합니다.
+        </Card>
+      </div>
+    </Frame>
+  ),
+
+  // 3. 네 가지 노드 타입
+  () => (
+    <Frame>
+      <Header eyebrow="Foundation" title="EKS GPU 노드 4가지 타입"
+              sub="하나의 클러스터에서 이 네 타입을 동시에 운영해 워크로드 특성에 정확히 맞춥니다."/>
+      <Table
+        headers={['타입','관리 주체','스케일링','Custom AMI','MIG','DRA','권장 용도']}
+        rows={[
+          ['EKS Auto Mode','AWS 완전 관리','자동','❌','❌','❌','단순 추론·시스템·비GPU'],
+          ['Karpenter','Self-Managed','자동(NodePool)','✅','✅','❌','고급 GPU·Spot·MIG'],
+          ['Managed Node Group','AWS 관리','수동/제한','✅','✅','✅','DRA·P6e-GB200'],
+          ['Hybrid Node','On-Premises','수동','✅','✅','✅','온프레미스 GPU 팜 통합'],
+        ]}
+        highlight={[1,2]}
+      />
+      <div className="mt-6 grid grid-cols-2 gap-5">
+        <Card title="핵심 원칙" color="green" icon="🎯">
+          하나의 클러스터 = 여러 노드 타입. 시스템은 Auto Mode, 고급 GPU는 Karpenter, DRA는 MNG로 분리해 각 영역의 최적점을 조합합니다.
+        </Card>
+        <Card title="주의" color="amber" icon="⚠️">
+          Auto Mode + MNG 하이브리드는 2026.04 기준 MNG 생성이 <b>CREATING 30분+ 멈춤</b>. 대형 GPU는 Standard Mode로 시작하세요.
+        </Card>
+      </div>
+    </Frame>
+  ),
+
+  // 4. Auto Mode 장단점
+  () => (
+    <Frame>
+      <Header eyebrow="Node Strategy — Auto Mode" title="EKS Auto Mode GPU 지원과 제약"
+              sub="AWS가 드라이버·Container Toolkit·Device Plugin까지 사전 설치합니다. 단 NodeClass는 Read-Only."/>
+      <div className="grid grid-cols-2 gap-5 mb-5">
+        <Card title="자동 제공" icon="✅" color="green">
+          <ul className="space-y-1 list-disc list-inside">
+            <li>NVIDIA GPU 드라이버 (AWS 관리)</li>
+            <li>NVIDIA Container Toolkit (CDI)</li>
+            <li>NVIDIA Device Plugin</li>
+            <li><span className="mono">nvidia.com/gpu</span> 리소스 즉시 사용</li>
+          </ul>
+        </Card>
+        <Card title="구조적 제약" icon="🚧" color="rose">
+          <ul className="space-y-1 list-disc list-inside">
+            <li>MIG 파티셔닝 불가 (NodeClass read-only)</li>
+            <li>Custom AMI·드라이버 버전 핀 불가</li>
+            <li>SSH/SSM 디버깅 불가</li>
+            <li>DRA 미지원 (내부 Karpenter 기반)</li>
+            <li>강제 종료 불가 (<span className="mono">TerminateInstances</span> 차단)</li>
+          </ul>
+        </Card>
+      </div>
+      <Card title="GPU Operator는 여전히 설치 가능 — Device Plugin만 비활성화 패턴" color="blue" icon="🧩">
+        <div className="grid grid-cols-2 gap-4 mt-2">
+          <Code lang="yaml">{`# NodePool 레이블로 내장 DP만 비활성화
+labels:
+  nvidia.com/gpu.deploy.device-plugin: "false"`}</Code>
+          <Code lang="yaml">{`# Helm Values — AMI 내장이므로 false
+driver: { enabled: false }
+toolkit: { enabled: false }
+devicePlugin: { enabled: true }
+dcgmExporter: { enabled: true }
+nfd: { enabled: true }
+gfd: { enabled: true }`}</Code>
+        </div>
+        <div className="mt-3 text-gray-300">
+          KAI Scheduler·Run:ai는 GPU Operator의 <b>ClusterPolicy CRD</b>에 의존합니다. Auto Mode에서도 GPU Operator를 설치해야 하는 핵심 이유입니다.
+        </div>
+      </Card>
+    </Frame>
+  ),
+
+  // 5. Karpenter NodePool
+  () => (
+    <Frame>
+      <Header eyebrow="Node Strategy — Karpenter" title="Karpenter GPU NodePool"
+              sub="자동 스케일링 장점은 유지하면서 MIG·Custom AMI·Spot·GPU Operator를 완전히 활용하는 최적의 균형점."/>
+      <div className="grid grid-cols-5 gap-3 mb-4">
+        {[
+          ['인스턴스 다양성','p4d·p5·p5en·g6e'],
+          ['Spot/On-Demand','capacity-type 혼합'],
+          ['Consolidation','유휴 GPU 자동 정리'],
+          ['Taint 격리','nvidia.com/gpu'],
+          ['MIG Manager','GPU Operator 연동'],
+        ].map((x,i)=>(
+          <div key={i} className="rounded-lg border border-slate-700/60 bg-slate-800/40 p-3">
+            <div className="text-xs text-blue-400 font-semibold mb-1">{x[0]}</div>
+            <div className="text-sm text-gray-200">{x[1]}</div>
+          </div>
+        ))}
+      </div>
+      <Code lang="yaml">{`apiVersion: karpenter.sh/v1
+kind: NodePool
+metadata: { name: gpu-inference }
+spec:
+  template:
+    metadata: { labels: { node-type: gpu-inference, gpu-operator: enabled } }
+    spec:
+      requirements:
+        - { key: node.kubernetes.io/instance-type, operator: In,
+            values: [p5.48xlarge, g6e.12xlarge, g5.12xlarge] }
+        - { key: karpenter.sh/capacity-type, operator: In, values: [spot, on-demand] }
+      taints:
+        - { key: nvidia.com/gpu, effect: NoSchedule, value: "true" }
+  disruption:
+    consolidationPolicy: WhenEmpty
+    consolidateAfter: 5m
+  limits: { cpu: "1000", memory: "4000Gi", nvidia.com/gpu: "32" }`}</Code>
+      <div className="mt-4">
+        <Card title="설계 포인트" color="amber" icon="🧠">
+          <ul className="space-y-1 list-disc list-inside">
+            <li><b>limits.nvidia.com/gpu</b> — 클러스터 전체 GPU 상한으로 비용 폭주 방지</li>
+            <li><b>consolidateAfter</b> 짧게 — GPU 비용이 높으므로 공격적 정리 (30s–5m)</li>
+            <li>Spot 우선, On-Demand fallback — p5·p5en Spot 기준 <b>85–94% 절감</b></li>
+          </ul>
+        </Card>
+      </div>
+    </Frame>
+  ),
+
+  // 6. DRA 비호환
+  () => (
+    <Frame>
+      <Header eyebrow="Node Strategy — DRA" title="DRA는 Karpenter·Auto Mode와 호환되지 않습니다"
+              sub="K8s 1.34 GA. GPU 메모리 세밀 할당·CEL 속성 매칭·NVLink 토폴로지 인식. 단, 노드 프로비저닝 제약 존재."/>
+      <div className="grid grid-cols-2 gap-5 mb-5">
+        <Table
+          headers={['노드 프로비저닝','DRA 호환']}
+          rows={[
+            ['Managed Node Group','✅ 지원 (권장)'],
+            ['Self-Managed Node Group','✅ 지원'],
+            ['Karpenter','❌ 미지원 (ResourceClaim Pod skip)'],
+            ['EKS Auto Mode','❌ 미지원 (내부 Karpenter)'],
+          ]}
+          highlight={[0]}
+        />
+        <Card title="왜 Karpenter는 DRA를 못 보는가" color="rose" icon="🐔">
+          <div className="mb-2"><b>닭과 달걀 문제</b></div>
+          <ol className="list-decimal list-inside space-y-1">
+            <li>DRA Driver가 GPU를 탐지한 <b>후에</b> ResourceSlice 발행</li>
+            <li>Karpenter는 노드 <b>생성 전에</b> 요구사항 시뮬레이션 필요</li>
+            <li>CEL 표현식 평가에 필요한 속성이 없음 → skip</li>
+          </ol>
+          <div className="mt-2 text-gray-400 text-xs">Cluster Autoscaler는 DRA 해석 없이 "Pending → MNG +1" 단순 판단이므로 동작.</div>
+        </Card>
+      </div>
+      <Card title="현시점 권장 — 2026.04" color="green" icon="✨">
+        대부분의 LLM 서빙은 <b>Karpenter + GPU Operator (Device Plugin + MIG)</b>로 충분합니다. Karpenter의 빠른 스케일아웃이 MNG + CA보다 LLM SLO에 유리. <b>P6e-GB200 도입 또는 Karpenter DRA GA</b> 전환 시점까지 이 구성을 유지하세요.
+      </Card>
+    </Frame>
+  ),
+
+  // 7. Model size vs cost
+  () => (
+    <Frame>
+      <Header eyebrow="Cost Impact" title="모델 크기별 GPU 낭비와 MIG의 효과"
+              sub="p5.48xlarge H100×8 기준 월 약 $98,000. 모델이 작을수록 Auto Mode 낭비가 커집니다."/>
+      <Table
+        headers={['구성','7B 인스턴스 수','GPU 사용량','활용률','인스턴스당 실효 비용']}
+        rows={[
+          ['Auto Mode (전체 할당)','8개','GPU 8개','~25%','$12,250'],
+          ['Karpenter + MIG 4분할','8개','GPU 2개','~80%','$3,063'],
+        ]}
+        highlight={[1]}
+      />
+      <div className="grid grid-cols-3 gap-5 mt-6">
+        <Card title="7B 이하" color="rose" icon="🪶">
+          GPU 낭비 심각 · MIG 4~7분할 필수. Karpenter 전용.
+        </Card>
+        <Card title="13B–30B" color="amber" icon="⚖️">
+          MIG 2~4분할로 활용률 개선. Karpenter 권장.
+        </Card>
+        <Card title="70B+" color="green" icon="🐘">
+          GPU 전체 점유. Auto Mode + llm-d가 운영 편의성 우수.
+        </Card>
+      </div>
+      <div className="mt-6 text-sm text-gray-400">
+        MIG 파티션 7분할 시 p5 1대 = 56개 추론 인스턴스. 멀티 테넌트 서빙에 적합합니다.
+      </div>
+    </Frame>
+  ),
+
+  // 8. NVIDIA GPU 스택
+  () => (
+    <Frame>
+      <Header eyebrow="NVIDIA Software Stack" title="GPU Operator — ClusterPolicy 하나로 스택 번들링"
+              sub="v25.10.1 (2026.03) · Driver 580 · DCGM v4.5 · MIG Manager · GFD/NFD. 컴포넌트별 독립 enable/disable."/>
+      <Flow
+        nodes={[
+          {id:'cp',label:'ClusterPolicy CRD', x:380, y:15, w:200, h:56, fill:'#064e3b', stroke:'#10b981', textColor:'#d1fae5'},
+          {id:'dr',label:'Driver',sub:'DaemonSet',x:40,y:140,w:130,h:56},
+          {id:'tk',label:'Container Toolkit',sub:'CDI',x:190,y:140,w:150,h:56},
+          {id:'dp',label:'Device Plugin',sub:'nvidia.com/gpu',x:360,y:140,w:160,h:56},
+          {id:'mig',label:'MIG Manager',sub:'프로필 자동',x:540,y:140,w:150,h:56},
+          {id:'dcgm',label:'DCGM Exporter',sub:':9400',x:710,y:140,w:170,h:56},
+          {id:'gfd',label:'GFD / NFD',sub:'노드 레이블',x:160,y:260,w:160,h:56},
+          {id:'sched',label:'kube-scheduler',x:380,y:260,w:170,h:56,fill:'#1e293b',stroke:'#64748b'},
+          {id:'prom',label:'Prometheus',x:700,y:260,w:170,h:56,fill:'#1e293b',stroke:'#f97316'},
+        ]}
+        edges={[
+          {from:'cp',to:'dr'},{from:'cp',to:'tk'},{from:'cp',to:'dp'},{from:'cp',to:'mig'},{from:'cp',to:'dcgm'},
+          {from:'dp',to:'sched',label:'resource 등록'},
+          {from:'gfd',to:'sched',label:'레이블 매칭'},
+          {from:'dcgm',to:'prom',label:'scrape'},
+        ]}
+      />
+      <div className="grid grid-cols-3 gap-4 mt-5">
+        <Card title="AMI별 설정" color="blue" icon="💿">
+          AL2023·Bottlerocket은 드라이버·Toolkit 사전 설치 → Helm에서 <span className="mono">enabled:false</span>
+        </Card>
+        <Card title="Auto Mode" color="amber" icon="🤖">
+          Device Plugin만 레이블로 비활성. DCGM·NFD·GFD는 정상 동작
+        </Card>
+        <Card title="Hybrid Node" color="lime" icon="🔗">
+          드라이버·Toolkit·DP 모두 활성 — GPU Operator 필수
+        </Card>
+      </div>
+    </Frame>
+  ),
+
+  // 9. DCGM metrics
+  () => (
+    <Frame>
+      <Header eyebrow="Observability" title="DCGM 메트릭 — GPU 가시성의 기반"
+              sub="Prometheus :9400/metrics · 수집 주기 15s(LLM은 10s 권장) · Pod-GPU 매핑은 DCGM_EXPORTER_KUBERNETES=true"/>
+      <Table
+        headers={['메트릭','설명','활용']}
+        rows={[
+          ['DCGM_FI_DEV_GPU_UTIL','GPU 코어 사용률 (%)','HPA/KEDA 트리거 (주의: LLM은 KV Cache가 더 민감)'],
+          ['DCGM_FI_DEV_MEM_COPY_UTIL','메모리 대역폭 (%)','메모리 병목 감지'],
+          ['DCGM_FI_DEV_FB_USED / FB_FREE','프레임버퍼 (MB)','OOM 방지·용량 계획'],
+          ['DCGM_FI_DEV_POWER_USAGE','전력 사용량 (W)','비용·열 관리'],
+          ['DCGM_FI_DEV_GPU_TEMP','GPU 온도 (C)','열 스로틀링 방지'],
+          ['DCGM_FI_DEV_SM_CLOCK','SM 클럭 (MHz)','성능 모니터링'],
+        ]}
+      />
+      <div className="mt-5">
+        <Code lang="bash">{`# 수집 체인
+GPU → DCGM Engine → DCGM Exporter (:9400) → Prometheus → Grafana / KEDA
+
+# ServiceMonitor 자동 생성
+dcgmExporter:
+  enabled: true
+  serviceMonitor:
+    enabled: true
+    interval: 15s`}</Code>
+      </div>
+    </Frame>
+  ),
+
+  // 10. MIG vs Time-Slicing
+  () => (
+    <Frame>
+      <Header eyebrow="Partitioning" title="MIG vs Time-Slicing — 격리와 가용성의 트레이드오프"
+              sub="MIG는 하드웨어 격리, Time-Slicing은 소프트웨어 시분할. 용도에 따라 선택."/>
+      <Table
+        headers={['항목','MIG','Time-Slicing']}
+        rows={[
+          ['격리','하드웨어 (메모리·SM·캐시)','소프트웨어 시분할'],
+          ['지원 GPU','A100·H100·H200·B200','모든 NVIDIA GPU'],
+          ['최대 분할','7개','제한 없음 (성능 저하 비례)'],
+          ['성능 보장','QoS 보장','동시 워크로드 수에 따라 변동'],
+          ['OOM 영향','다른 인스턴스에 영향 없음','다른 워크로드에 영향'],
+          ['적합 환경','프로덕션 추론·멀티 테넌트','개발/테스트·배치'],
+        ]}
+        highlight={[0,3,4,5]}
+      />
+      <div className="grid grid-cols-2 gap-5 mt-5">
+        <Card title="MIG 프로필 참고 처리량" color="green" icon="⚡">
+          <div className="text-xs text-gray-400 mb-2">측정 조건: Llama 2, BF16, Batch=1, Prompt 512/Output 128, vLLM v0.18</div>
+          <ul className="space-y-1 text-sm">
+            <li>1g.5gb → ~20 tok/s (3B 이하)</li>
+            <li>2g.10gb → ~50 tok/s (7B–13B)</li>
+            <li>3g.20gb → ~100 tok/s (13B–30B)</li>
+            <li>7g.40gb → ~200 tok/s (70B+)</li>
+          </ul>
+        </Card>
+        <Card title="Time-Slicing 경고" color="rose" icon="⚠️">
+          <ul className="space-y-1 list-disc list-inside">
+            <li>컨텍스트 스위칭 ~1% (미미)</li>
+            <li>메모리/컴퓨팅 공유 → 동시 워크로드 수에 따라 <b>50~100% 성능 저하</b></li>
+            <li>OOM 격리 없음 — SLA 워크로드 부적합</li>
+          </ul>
+        </Card>
+      </div>
+    </Frame>
+  ),
+
+  // 11. KEDA for LLM
+  () => (
+    <Frame>
+      <Header eyebrow="Autoscaling" title="LLM 서빙은 GPU Util이 아닌 KV Cache로 스케일"
+              sub="KEDA → Pod 수 · Karpenter → 노드 수. 2단 체인이 LLM SLO를 지킵니다."/>
+      <Flow w={900} h={260}
+        nodes={[
+          {id:'m',label:'GPU 메트릭',sub:'DCGM + vLLM',x:40,y:100,w:160,h:60,fill:'#064e3b',stroke:'#10b981'},
+          {id:'k',label:'KEDA',sub:'ScaledObject',x:260,y:100,w:140,h:60,fill:'#3b0764',stroke:'#a855f7'},
+          {id:'s',label:'kube-scheduler',x:460,y:100,w:160,h:60,fill:'#1e293b',stroke:'#64748b'},
+          {id:'kp',label:'Karpenter',sub:'NodePool',x:680,y:100,w:180,h:60,fill:'#1e3a8a',stroke:'#3b82f6'},
+        ]}
+        edges={[
+          {from:'m',to:'k',label:'trigger'},
+          {from:'k',to:'s',label:'Pod +N'},
+          {from:'s',to:'kp',label:'Pending'},
+        ]}
+      />
+      <Code lang="yaml">{`apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+spec:
+  minReplicaCount: 2
+  maxReplicaCount: 10
+  triggers:
+    # 1. KV Cache 포화 — 가장 민감한 시그널
+    - type: prometheus
+      metadata:
+        query: avg(vllm_gpu_cache_usage_perc{model="exaone"})
+        threshold: "80"
+    # 2. 대기 요청 수
+    - type: prometheus
+      metadata: { query: sum(vllm_num_requests_waiting), threshold: "10" }
+    # 3. TTFT SLO 근접
+    - type: prometheus
+      metadata:
+        query: histogram_quantile(0.95, rate(vllm_time_to_first_token_seconds_bucket[5m]))
+        threshold: "2"`}</Code>
+      <div className="mt-4 grid grid-cols-2 gap-5">
+        <Card title="Prefill vs Decode" color="purple" icon="🔀">
+          Disaggregated serving에서는 Prefill(TTFT·입력 큐) / Decode(KV Cache·TPS) 병목이 다릅니다. 역할별로 별도 ScaledObject를 가져가세요.
+        </Card>
+        <Card title="DRA 워크로드" color="amber" icon="🧬">
+          Karpenter 사용 불가 → <b>MNG + Cluster Autoscaler + KEDA</b> 조합. Pending → MNG +1 → DRA Driver 배포 → ResourceSlice 생성 → Pod 배치.
+        </Card>
+      </div>
+    </Frame>
+  ),
+
+  // 12. Cost optimization
+  () => (
+    <Frame>
+      <Header eyebrow="Cost" title="4대 비용 최적화 전략"
+              sub="추론 워크로드 조합 시 총 85% 절감. 학습 워크로드는 Savings Plans + Spot 조합으로 60%."/>
+      <Table
+        headers={['전략','핵심 메커니즘','예상 절감','적용 대상']}
+        rows={[
+          ['Spot 인스턴스','capacity-type:spot + 다양한 타입','60–90%','추론(stateless)'],
+          ['Consolidation','WhenEmptyOrUnderutilized + 30s','20–30%','모든 GPU 워크로드'],
+          ['시간대 Disruption','업무 10% / 비업무 50%','30–40%','패턴 뚜렷한 서비스'],
+          ['워크로드별 인스턴스','소형→g5, 대형→p5, weight','15–25%','다양한 모델 운영'],
+        ]}
+      />
+      <div className="grid grid-cols-2 gap-5 mt-5">
+        <Card title="Spot 실제 가격 (us-east-2, 2026.04)" color="green" icon="💸">
+          <ul className="space-y-1 text-sm">
+            <li>p5.48xlarge · On $98/hr · Spot $12.5/hr · <b>87% 절감</b></li>
+            <li>p5en.48xlarge · On ~$120/hr · Spot $12.1/hr · <b>90% 절감</b></li>
+            <li>p6-b200.48xlarge · On $180/hr · Spot $11.4/hr · <b>94% 절감</b></li>
+          </ul>
+        </Card>
+        <Card title="Spot 주의사항" color="rose" icon="⚠️">
+          <ul className="space-y-1 list-disc list-inside">
+            <li>중단 2분 전 경고 — <span className="mono">terminationGracePeriodSeconds</span>·preStop hook 필수</li>
+            <li>Stateful 워크로드 부적합</li>
+            <li>가용성 편차 — 다양한 인스턴스 타입 지정</li>
+          </ul>
+        </Card>
+      </div>
+    </Frame>
+  ),
+
+  // 13. Dynamo vs llm-d
+  () => (
+    <Frame>
+      <Header eyebrow="Inference Stack" title="Dynamo vs llm-d — 라우팅 레이어 선택"
+              sub="둘 다 vLLM 백엔드와 NIXL KV 전송을 공유. 차이는 Flash Indexer·KAI Scheduler·Planner."/>
+      <Table
+        headers={['항목','llm-d','Dynamo v1.0']}
+        rows={[
+          ['아키텍처','Aggregated + Disaggregated','Aggregated + Disaggregated'],
+          ['KV 라우팅','Prefix-aware','Prefix + Flash Indexer (radix tree)'],
+          ['KV 전송','NIXL','NIXL (NVLink/RDMA)'],
+          ['Pod 스케줄','kube-scheduler','KAI Scheduler (GPU-aware)'],
+          ['오토스케일','HPA/KEDA','Planner (SLO 기반) + KEDA'],
+          ['백엔드','vLLM','vLLM·SGLang·TRT-LLM'],
+          ['복잡도','낮음 (라우터 추가)','높음 (스택 교체)'],
+          ['성숙도','v0.5+','v1.0 GA'],
+        ]}
+      />
+      <div className="grid grid-cols-3 gap-4 mt-5">
+        <Card title="llm-d 추천" color="blue" icon="🟦">
+          GPU 8개 이하 · Gateway API 친화 · 빠른 도입
+        </Card>
+        <Card title="Dynamo 추천" color="green" icon="🟩">
+          GPU 16개+ · 128K+ 긴 컨텍스트 · 처리량 극대화
+        </Card>
+        <Card title="마이그레이션" color="purple" icon="↔️">
+          llm-d → Dynamo 전환 가능 (공통 NIXL). Dynamo는 llm-d를 내부 컴포넌트로 통합 가능한 상위 집합
+        </Card>
+      </div>
+    </Frame>
+  ),
+
+  // 14. AWS Neuron
+  () => (
+    <Frame>
+      <Header eyebrow="Alternative — AWS Silicon" title="AWS Neuron — Trainium2 / Inferentia2"
+              sub="CUDA + GPU Operator의 AWS 대체 스택. Neuron SDK 2.x + Neuron Device Plugin."/>
+      <div className="grid grid-cols-2 gap-5 mb-5">
+        <Card title="Neuron 선택 이유" color="amber" icon="🧭">
+          <ul className="space-y-1 list-disc list-inside">
+            <li>장기 운영 <b>Per-Token TCO</b> 유리</li>
+            <li>H100/H200/B200 capacity 타이트 시 대안</li>
+            <li>Bedrock과의 스택 연속성</li>
+            <li>FP8 (E4M3/E5M2) Trainium2 지원</li>
+          </ul>
+        </Card>
+        <Card title="Neuron 한계" color="rose" icon="🚧">
+          <ul className="space-y-1 list-disc list-inside">
+            <li>커스텀 CUDA 커널 포팅 필요</li>
+            <li>AWQ/GPTQ 제한적, GGUF 미지원</li>
+            <li>신규 모델 지원 지연 (AWS 포팅 주기)</li>
+            <li>NEFF 컴파일 20–30분 → 사전 컴파일 필수</li>
+            <li>온프레미스 불가 (EC2 전용)</li>
+          </ul>
+        </Card>
+      </div>
+      <Table
+        headers={['인스턴스','칩','NeuronCore','HBM','네트워크']}
+        rows={[
+          ['inf2.48xlarge','12× Inferentia2','24','384 GB','100 Gbps'],
+          ['trn1.32xlarge','16× Trainium1','32','512 GB','800 Gbps EFA'],
+          ['trn2.48xlarge','16× Trainium2','128','1.5 TB HBM3','3.2 Tbps EFA v3'],
+          ['trn2 Ultra (preview)','64× Trainium2','512','6 TB HBM3','12.8 Tbps'],
+        ]}
+      />
+      <div className="mt-4 text-sm text-gray-400">
+        <b>권장 하이브리드:</b> Frontier = NVIDIA (최신 모델) · Volume = Neuron (안정 모델 대량 서빙) · Edge = Hybrid Node + NVIDIA.
+      </div>
+    </Frame>
+  ),
+
+  // 15. Neuron inference frameworks
+  () => (
+    <Frame>
+      <Header eyebrow="Neuron — Inference" title="Neuron 추론 프레임워크 선택"
+              sub="NxD Inference · vLLM Neuron · TGI Neuron 중 용도에 맞게 선택."/>
+      <Table
+        headers={['항목','NxD Inference','vLLM Neuron','TGI Neuron']}
+        rows={[
+          ['유지 주체','AWS 공식','vLLM + AWS','HuggingFace + AWS'],
+          ['모델 커버리지','Llama·Mistral·DBRX (공식)','vLLM 지원 중 포팅된 것','HF + optimum-neuron'],
+          ['Pre-compiled','제공','부분','부분'],
+          ['Speculative Decoding','지원(모델별)','부분','제한적'],
+          ['업데이트 속도','AWS 주기','vLLM 주기(빠름)','유지보수 모드'],
+          ['권장 용도','대규모 프로덕션','다양한 모델·최신 기능','HF 생태계 연속성'],
+        ]}
+        highlight={[0,5]}
+      />
+      <div className="grid grid-cols-3 gap-4 mt-5">
+        <Card title="Llama 프로덕션" color="green" icon="🦙">NxD Inference (pre-compiled checkpoint 이점)</Card>
+        <Card title="최신 기능 활용" color="blue" icon="⚙️">vLLM Neuron backend</Card>
+        <Card title="HF 파이프라인" color="purple" icon="🤗">TGI Neuron fork</Card>
+      </div>
+      <div className="mt-5">
+        <Code lang="yaml">{`# Pod Neuron 리소스 요청 예 — trn2.48xlarge 전체
+resources:
+  limits:
+    aws.amazon.com/neuron: "16"       # 칩 단위 (Trainium2 × 16)
+  # or aws.amazon.com/neuroncore: "128"  # NeuronCore 단위`}</Code>
+      </div>
+    </Frame>
+  ),
+
+  // 16. Hybrid architecture
+  () => (
+    <Frame>
+      <Header eyebrow="Reference Architecture" title="권장 하이브리드 GPU 아키텍처"
+              sub="하나의 EKS 클러스터 · 세 가지 노드 타입 · 워크로드 특성에 정확히 매핑."/>
+      <Flow w={900} h={380}
+        nodes={[
+          {id:'am',label:'Auto Mode',sub:'시스템·GW·Agent·관측',x:40,y:60,w:220,h:80,fill:'#78350f',stroke:'#f59e0b'},
+          {id:'kp',label:'Karpenter + GPU Operator',sub:'MIG·DCGM·Spot·Run:ai',x:330,y:60,w:260,h:80,fill:'#1e3a8a',stroke:'#3b82f6'},
+          {id:'mng',label:'Managed Node Group',sub:'DRA·P6e-GB200',x:660,y:60,w:200,h:80,fill:'#14532d',stroke:'#10b981'},
+
+          {id:'llmd',label:'llm-d / Dynamo',sub:'라우터·KEDA',x:160,y:210,w:240,h:60,fill:'#3b0764',stroke:'#a855f7'},
+          {id:'vllm',label:'vLLM Workers',sub:'Prefill · Decode',x:450,y:210,w:200,h:60,fill:'#064e3b',stroke:'#10b981'},
+          {id:'obs',label:'DCGM + Langfuse',sub:'Prometheus',x:700,y:210,w:180,h:60,fill:'#1e293b',stroke:'#f97316'},
+
+          {id:'bf',label:'LLM Gateway',sub:'LiteLLM / Bifrost',x:330,y:320,w:260,h:48,fill:'#1e293b',stroke:'#64748b'},
+        ]}
+        edges={[
+          {from:'am',to:'llmd'},{from:'kp',to:'llmd'},
+          {from:'llmd',to:'vllm'},
+          {from:'mng',to:'vllm',dashed:true,label:'DRA only'},
+          {from:'vllm',to:'obs'},
+          {from:'bf',to:'llmd'},
+        ]}
+      />
+      <div className="grid grid-cols-3 gap-4 mt-5">
+        <Card title="System Plane" color="amber" icon="⚙️">Auto Mode · API GW · Agent · 관측 — 관리 최소화</Card>
+        <Card title="Inference Plane" color="blue" icon="🚀">Karpenter · MIG · Spot · vLLM/llm-d — 성능·비용 균형</Card>
+        <Card title="DRA Plane" color="green" icon="🧬">MNG · GB200 UltraServer · 고급 토폴로지 · 신규 GPU</Card>
+      </div>
+    </Frame>
+  ),
+
+  // 17. CRIU preview
+  () => (
+    <Frame>
+      <Header eyebrow="Research Preview" accent="#f472b6" title="CRIU GPU Migration — Experimental"
+              sub="Spot reclaim 시 checkpoint/restore로 복구 시간 단축. 2026.04 기준 프로덕션 투입 불가."/>
+      <div className="grid grid-cols-2 gap-5 mb-5">
+        <Card title="현재 상태 (재검증 2026-04)" color="rose" icon="🧪">
+          <ul className="space-y-1 list-disc list-inside">
+            <li>K8s ContainerCheckpoint: 1.30 <b>Beta (default enabled)</b>, GA 일정 미확정</li>
+            <li>KEP-2008: <b>GPU 공식 미지원</b> (AMD 일부 동작)</li>
+            <li>cuda-checkpoint (driver 570+): tagged release 없음, UVM/IPC 미지원</li>
+            <li>EKS: Auto Mode 불가, Standard Mode 공식 미검증</li>
+          </ul>
+        </Card>
+        <Card title="근본 제약" color="amber" icon="🧱">
+          <ul className="space-y-1 list-disc list-inside">
+            <li>H200×8 노드 = checkpoint 약 <b>1.1 TB</b> (10 GbE 15분)</li>
+            <li>PCIe BAR 재매핑 — 동일 GPU UUID만 restore 가능</li>
+            <li>NVLink 토폴로지 고정 — Cross-node TP 불가</li>
+            <li>CUDA 버전 / 드라이버 ABI 일치 필수</li>
+          </ul>
+        </Card>
+      </div>
+      <Card title="실전 대안 — 2-replica Hot Standby + llm-d NIXL" color="green" icon="🛡️">
+        <div className="grid grid-cols-2 gap-3 mt-1 text-sm">
+          <div>✅ 서비스 무중단 · KV Cache 재사용 · Spot 활용 시 On-Demand 수준 비용</div>
+          <div>✅ Cross-AZ 장애에도 대응 — NIXL로 KV 전송 수 초</div>
+        </div>
+      </Card>
+    </Frame>
+  ),
+
+  // 18. Decision tree
+  () => (
+    <Frame>
+      <Header eyebrow="Decision" title="GPU 노드 전략 의사결정 — 한 장으로"
+              sub="한 개의 GPU 워크로드를 받았을 때 이 순서로 질문하세요."/>
+      <div className="text-gray-200 text-sm space-y-3">
+        {[
+          ['1','GPU가 필요한가?', 'NO → Auto Mode 일반 NodePool'],
+          ['2','P6e-GB200 또는 DRA 필수 기능 사용?', 'YES → MNG + Cluster Autoscaler + DRA'],
+          ['3','MIG/Fractional GPU/Run:ai 필요?', 'YES → Karpenter + GPU Operator (Device Plugin + MIG)'],
+          ['4','온프레미스 GPU 자산 통합?', 'YES → Hybrid Node + GPU Operator'],
+          ['5','대형 70B+ 모델 단일 서빙?', 'YES → Auto Mode + llm-d (관리 편의성)'],
+          ['6','그 외 일반 GPU 추론', '→ Karpenter + Spot + GPU Operator (기본값)'],
+        ].map((r,i)=>(
+          <div key={i} className="rounded-xl border border-slate-700/60 bg-slate-900/40 p-4 flex gap-4 items-center">
+            <div className="text-2xl font-black grad-amber w-10">{r[0]}</div>
+            <div className="flex-1">
+              <div className="text-white font-semibold">{r[1]}</div>
+              <div className="text-gray-400 text-sm mt-0.5">{r[2]}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </Frame>
+  ),
+
+  // 19. Takeaways
+  () => (
+    <Frame>
+      <Header eyebrow="Takeaways" title="핵심 10가지 — 현장에서 바로 적용"
+              sub="이 슬라이드의 내용을 요약한 운영 체크리스트."/>
+      <div className="grid grid-cols-2 gap-4">
+        {[
+          ['노드 타입은 하나로 선택하지 말 것','Auto Mode + Karpenter + MNG + Hybrid Node를 용도별로 조합'],
+          ['GPU Operator는 Auto Mode에서도 필수','Device Plugin만 레이블로 비활성, DCGM/NFD/GFD/MIG는 활성'],
+          ['DRA는 Karpenter 금지','MNG + Cluster Autoscaler 경로로 구성'],
+          ['KEDA 트리거는 GPU Util 아닌 KV Cache','vllm_gpu_cache_usage_perc + TTFT + Queue'],
+          ['MIG로 소형 모델 활용률 3배+','7B를 H100 단독 = $12K, MIG 4분할 = $3K'],
+          ['Spot + Consolidation + 시간대 = 85% 절감','capacity-type:spot, consolidateAfter 공격적'],
+          ['Dynamo는 llm-d의 상위 집합','소규모 llm-d → 규모 확장 시 Dynamo 전환 경로'],
+          ['Neuron은 TCO·capacity 목적','Frontier NVIDIA + Volume Neuron 하이브리드'],
+          ['GPU Ops는 관측 없이 불가','DCGM + neuron-monitor가 Prometheus에 연결되어야 모든 상위 기능 동작'],
+          ['CRIU보다 2-replica Hot Standby','Spot 복구 전략은 실전 대안 조합이 안전'],
+        ].map((t,i)=>(
+          <div key={i} className="rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-4 flex gap-3">
+            <div className="w-8 h-8 rounded-full bg-emerald-500/20 text-emerald-300 flex items-center justify-center font-bold text-sm shrink-0">{i+1}</div>
+            <div>
+              <div className="font-semibold text-white">{t[0]}</div>
+              <div className="text-gray-400 text-sm mt-0.5">{t[1]}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </Frame>
+  ),
+
+  // 20. References / next steps
+  () => (
+    <Frame>
+      <Header eyebrow="Next Steps" title="더 깊게 — 참고 자료 & 다음 세션"
+              sub="이 슬라이드는 엔지니어링 플레이북의 GPU 인프라 챕터를 요약한 것입니다."/>
+      <div className="grid grid-cols-2 gap-5">
+        <Card title="Documentation (내부)" color="blue" icon="📚">
+          <ul className="space-y-1 text-sm">
+            <li>/docs/agentic-ai-platform/model-serving/gpu-infrastructure/</li>
+            <li className="ml-3">· eks-gpu-node-strategy</li>
+            <li className="ml-3">· gpu-resource-management</li>
+            <li className="ml-3">· nvidia-gpu-stack</li>
+            <li className="ml-3">· aws-neuron-stack</li>
+            <li className="ml-3">· criu-gpu-migration (Preview)</li>
+            <li>/docs/eks-best-practices/operations-reliability/eks-debugging/gpu-ai-workload</li>
+          </ul>
+        </Card>
+        <Card title="External References" color="green" icon="🔗">
+          <ul className="space-y-1 text-sm">
+            <li>NVIDIA GPU Operator Documentation</li>
+            <li>NVIDIA Dynamo · NIXL · KAI Scheduler (GitHub)</li>
+            <li>Karpenter 공식 문서 — karpenter.sh</li>
+            <li>Kubernetes DRA — kubernetes.io/.../dynamic-resource-allocation</li>
+            <li>AWS Neuron SDK — awsdocs-neuron.readthedocs-hosted.com</li>
+            <li>K8s KEP-2008 Forensic Container Checkpointing</li>
+          </ul>
+        </Card>
+      </div>
+      <div className="mt-8 rounded-2xl border border-purple-500/30 bg-purple-500/5 p-6">
+        <div className="text-purple-300 text-sm uppercase tracking-widest font-semibold mb-1">Next Block</div>
+        <div className="text-white text-2xl font-bold">Inference Gateway · Routing · Guardrails</div>
+        <div className="text-gray-400 mt-1 text-sm">GPU 인프라 위에서 트래픽을 어떻게 라우팅하고 보호할 것인가 — kgateway · LiteLLM · AI Gateway Guardrails</div>
+      </div>
+    </Frame>
+  ),
+];
+
+// ===== App =====
+function Minimap({ n, current, onGo }) {
+  return (
+    <div className="fixed bottom-5 left-1/2 -translate-x-1/2 flex items-center gap-1 px-3 py-2 bg-slate-900/80 border border-slate-700 rounded-full backdrop-blur">
+      {Array.from({length:n}).map((_,i)=>(
+        <button key={i} onClick={()=>onGo(i)}
+          className={`w-2.5 h-2.5 rounded-full transition-all ${
+            i===current ? 'bg-emerald-400 scale-125'
+            : i<current ? 'bg-emerald-500/40'
+            : 'bg-slate-600 hover:bg-slate-400'
+          }`}
+          aria-label={`Slide ${i+1}`}/>
+      ))}
+    </div>
+  );
+}
+
+function Nav({ current, total, onPrev, onNext }) {
+  return (
+    <div className="fixed top-5 right-6 flex items-center gap-3">
+      <div className="text-xs text-gray-400 mono">
+        {String(current+1).padStart(2,'0')} / {String(total).padStart(2,'0')}
+      </div>
+      <button onClick={onPrev}
+              className="w-9 h-9 rounded-full bg-slate-800 border border-slate-700 text-gray-300 hover:bg-slate-700 disabled:opacity-30"
+              disabled={current===0}>‹</button>
+      <button onClick={onNext}
+              className="w-9 h-9 rounded-full bg-emerald-600 border border-emerald-500 text-white hover:bg-emerald-500 disabled:opacity-30"
+              disabled={current===total-1}>›</button>
+    </div>
+  );
+}
+
+function App() {
+  const [current, setCurrent] = useState(0);
+  const go = useCallback((i)=> setCurrent(Math.max(0, Math.min(slides.length-1, i))),[]);
+  const prev = useCallback(()=>go(current-1),[current,go]);
+  const next = useCallback(()=>go(current+1),[current,go]);
+
+  useEffect(()=>{
+    const onKey = (e)=>{
+      if (e.key==='ArrowRight'||e.key===' '||e.key==='PageDown') next();
+      else if (e.key==='ArrowLeft'||e.key==='PageUp') prev();
+      else if (e.key==='Home') go(0);
+      else if (e.key==='End') go(slides.length-1);
+    };
+    window.addEventListener('keydown', onKey);
+    return ()=>window.removeEventListener('keydown', onKey);
+  },[next,prev,go]);
+
+  const S = slides[current];
+  return (
+    <div className="relative">
+      <S key={current}/>
+      <Nav current={current} total={slides.length} onPrev={prev} onNext={next}/>
+      <Minimap n={slides.length} current={current} onGo={go}/>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>

@@ -39,6 +39,20 @@ const slideDecks = [
     ],
   },
   {
+    category: 'GPU Infrastructure Deep Dive',
+    categoryIcon: '🖥️',
+    categoryColor: '#a3e635',
+    items: [
+      {
+        title: 'EKS GPU Operations',
+        description: 'NVIDIA · AWS Neuron · Karpenter · DRA · GPU Operator · MIG · KEDA · Dynamo vs llm-d · Spot 비용 전략 · CRIU Preview',
+        badge: 'Deep Dive',
+        slides: 20,
+        href: '/slides/gpu-operations/',
+      },
+    ],
+  },
+  {
     category: 'EKS Operations Training',
     categoryIcon: '⚙️',
     categoryColor: '#60a5fa',

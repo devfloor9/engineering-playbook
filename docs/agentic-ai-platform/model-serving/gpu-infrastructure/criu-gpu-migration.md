@@ -4,7 +4,7 @@ sidebar_label: "CRIU GPU Migration"
 description: "Spot reclaim·스케줄링 이벤트 시 GPU 워크로드 checkpoint/restore로 무중단 이관하는 기술 현황과 EKS 적용 가능 시나리오 분석 (Experimental)"
 created: 2026-04-18
 last_update:
-  date: 2026-04-20
+  date: 2026-05-07
   author: devfloor9
 reading_time: 19
 tags:
@@ -20,7 +20,7 @@ tags:
 ---
 
 :::caution Experimental / Research Preview
-2026.04 기준, GPU CRIU는 NVIDIA cuda-checkpoint + CRIU + runc 통합이 alpha/beta 상태이며 프로덕션 투입 불가. 본 문서는 기술 동향과 검증 체크리스트 제공 목적이다.
+2026.04 기준, GPU CRIU는 NVIDIA cuda-checkpoint + CRIU + runc 통합이 alpha/beta 상태이며 프로덕션 투입 불가합니다. 본 문서는 기술 동향과 검증 체크리스트 제공 목적입니다.
 :::
 
 :::caution 검증 대기 (Verification pending)
@@ -29,9 +29,7 @@ tags:
 실배포 검증 추적: [Issue #7](https://github.com/devfloor9/engineering-playbook/issues/7)
 :::
 
-# CRIU 기반 GPU 무중단 마이그레이션 (Preview)
-
-## 1. 왜 CRIU인가: Spot reclaim과 KV cache 손실 문제
+## 배경: Spot reclaim과 KV cache 손실 문제
 
 ### 문제 상황
 
@@ -100,7 +98,7 @@ Spot reclaim 경고 (2분)
 
 ---
 
-## 2. 기술 스택 현황 (2026.04)
+## 기술 스택 현황 (2026.04)
 
 ### 전체 아키텍처
 
@@ -220,7 +218,7 @@ kubectl apply -f pod-restore.yaml  # checkpoint 경로 참조
 
 ---
 
-## 3. GPU 상태 checkpoint의 근본 제약
+## GPU 상태 checkpoint의 근본 제약
 
 ### Device Memory Dump 크기
 
@@ -274,7 +272,7 @@ Restore on different topology:
 
 ---
 
-## 4. EKS 적용 시나리오 매트릭스
+## EKS 적용 시나리오 매트릭스
 
 ### 시나리오별 실현 가능성
 
@@ -400,7 +398,7 @@ AZ-B:
 
 ---
 
-## 5. 실전 대안과 조합 전략
+## 실전 대안과 조합 전략
 
 ### 대안 비교표
 
@@ -561,7 +559,7 @@ Replica 1 Spot reclaim:
 
 ---
 
-## 6. 로드맵과 검증 포인트
+## 로드맵과 검증 포인트
 
 ### CNCF/Kubernetes 커뮤니티 동향 (2026-04-20 재검증)
 

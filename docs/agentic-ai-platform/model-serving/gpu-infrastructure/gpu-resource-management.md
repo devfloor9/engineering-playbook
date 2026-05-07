@@ -4,7 +4,7 @@ sidebar_label: "GPU 리소스 관리"
 description: "EKS에서 Karpenter, KEDA, DRA를 활용한 GPU 리소스 관리 및 비용 최적화"
 created: 2026-02-05
 last_update:
-  date: 2026-04-20
+  date: 2026-05-07
   author: devfloor9
 reading_time: 13
 tags:
