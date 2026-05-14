@@ -512,6 +512,60 @@ const sidebars = {
         'rosa/rosa-security-compliance',
       ],
     },
+    {
+      type: 'category',
+      label: 'Industry Solutions',
+      collapsed: true,
+      link: {
+        type: 'doc',
+        id: 'industry-solutions/index',
+      },
+      items: [
+        {
+          type: 'category',
+          label: 'Retail',
+          collapsed: true,
+          link: {
+            type: 'doc',
+            id: 'industry-solutions/retail/index',
+          },
+          items: [
+            {
+              type: 'category',
+              label: 'LG H&H Marketing Innovation PoC',
+              collapsed: true,
+              link: {
+                type: 'doc',
+                id: 'industry-solutions/retail/lg-hnh-marketing-innovation/index',
+              },
+              items: [
+                'industry-solutions/retail/lg-hnh-marketing-innovation/personas',
+                'industry-solutions/retail/lg-hnh-marketing-innovation/ontology',
+                'industry-solutions/retail/lg-hnh-marketing-innovation/scenarios',
+                'industry-solutions/retail/lg-hnh-marketing-innovation/data-sources',
+                'industry-solutions/retail/lg-hnh-marketing-innovation/architecture',
+                {
+                  type: 'category',
+                  label: 'Design Specs (8)',
+                  collapsed: true,
+                  items: [
+                    'industry-solutions/retail/lg-hnh-marketing-innovation/design-spec/S1-semantic-search',
+                    'industry-solutions/retail/lg-hnh-marketing-innovation/design-spec/S2-persona-chatbot',
+                    'industry-solutions/retail/lg-hnh-marketing-innovation/design-spec/S3-insight-cards',
+                    'industry-solutions/retail/lg-hnh-marketing-innovation/design-spec/S4-persona-cluster',
+                    'industry-solutions/retail/lg-hnh-marketing-innovation/design-spec/S5-campaign-roas',
+                    'industry-solutions/retail/lg-hnh-marketing-innovation/design-spec/S6-external-signals',
+                    'industry-solutions/retail/lg-hnh-marketing-innovation/design-spec/S7-customer-journey',
+                    'industry-solutions/retail/lg-hnh-marketing-innovation/design-spec/S8-guardrails',
+                  ],
+                },
+                'industry-solutions/retail/lg-hnh-marketing-innovation/demo-storytelling',
+              ],
+            },
+          ],
+        },
+      ],
+    },
   ],
   benchmarks: [
     {
