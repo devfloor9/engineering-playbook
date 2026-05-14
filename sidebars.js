@@ -578,7 +578,7 @@ const sidebars = {
                 'industry-solutions/retail/amway-direct-selling/architecture',
                 {
                   type: 'category',
-                  label: 'Design Specs (11)',
+                  label: 'AMWAY Design Specs (11)',
                   collapsed: true,
                   items: [
                     'industry-solutions/retail/amway-direct-selling/design-spec/S1-semantic-search',
@@ -613,7 +613,7 @@ const sidebars = {
                 'industry-solutions/retail/shinkong-mitsukoshi-luxury/architecture',
                 {
                   type: 'category',
-                  label: 'Design Specs (11)',
+                  label: 'Mitsukoshi Design Specs (11)',
                   collapsed: true,
                   items: [
                     'industry-solutions/retail/shinkong-mitsukoshi-luxury/design-spec/S1-semantic-search',
@@ -648,7 +648,7 @@ const sidebars = {
                 'industry-solutions/retail/momo-ecommerce/architecture',
                 {
                   type: 'category',
-                  label: 'Design Specs (11)',
+                  label: 'Momo Design Specs (11)',
                   collapsed: true,
                   items: [
                     'industry-solutions/retail/momo-ecommerce/design-spec/S1-semantic-search',
@@ -683,7 +683,7 @@ const sidebars = {
                 'industry-solutions/retail/uni-president-bu-integration/architecture',
                 {
                   type: 'category',
-                  label: 'Design Specs (11)',
+                  label: 'Uni-President Design Specs (11)',
                   collapsed: true,
                   items: [
                     'industry-solutions/retail/uni-president-bu-integration/design-spec/S1-semantic-search',
