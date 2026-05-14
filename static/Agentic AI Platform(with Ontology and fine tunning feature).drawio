@@ -1,6 +1,6 @@
 <mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36">
   <diagram name="Page-1" id="page-1">
-    <mxGraphModel dx="941" dy="2049" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+    <mxGraphModel dx="1423" dy="2024" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -68,7 +68,7 @@
             <mxPoint x="290" y="270" as="sourcePoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="44" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FF6B6B;strokeColor=#CC5555;fontColor=#FFFFFF;fontSize=9;dashed=1;" value="IAM Identity&#xa;Center" vertex="1">
+        <mxCell id="44" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FF6B6B;strokeColor=#CC5555;fontColor=#FFFFFF;fontSize=9;dashed=1;" value="Keycloak" vertex="1">
           <mxGeometry height="40" width="80" x="208" y="238" as="geometry" />
         </mxCell>
         <mxCell id="45" edge="1" parent="1" source="40" style="edgeStyle=orthogonalEdgeStyle;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;endArrow=classic;strokeWidth=2;" target="41">
