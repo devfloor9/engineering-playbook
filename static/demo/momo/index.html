@@ -1,0 +1,1014 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Momo eCommerce & Live Innovation PoC — Demo</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.js"></script>
+<script src="https://unpkg.com/vis-network@9.1.9/standalone/umd/vis-network.min.js"></script>
+<style>
+  body { font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif; }
+  .lane { border-bottom: 1px dashed #e5e7eb; }
+  .pulse-dot { animation: pulse 1.5s infinite; }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .4; } }
+  .scrollbar-thin::-webkit-scrollbar { width: 6px; }
+  .scrollbar-thin::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+  .typing::after { content: '▍'; animation: blink 1s infinite; }
+  @keyframes blink { 0%,50% { opacity: 1; } 51%,100% { opacity: 0; } }
+</style>
+</head>
+<body class="bg-slate-50 text-slate-900">
+
+<!-- Header -->
+<header class="bg-white border-b border-slate-200 sticky top-0 z-50">
+  <div class="px-6 py-3 flex items-center justify-between">
+    <div class="flex items-center gap-4">
+      <div class="font-bold text-xl text-pink-600">momo</div>
+      <div class="text-sm text-slate-500">Marketing Innovation PoC — Ontology + Agentic AI Demo</div>
+    </div>
+    <div class="flex items-center gap-3">
+      <span class="text-xs text-slate-500">부서 페르소나</span>
+      <select id="personaSwitcher" class="text-sm px-3 py-1.5 rounded-md border border-slate-300 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-rose-300">
+        <option value="P1">P1 · 마케팅 (앱·캠페인)</option>
+        <option value="P2">P2 · 카테고리·트렌드</option>
+        <option value="P3">P3 · 검색·추천·MarTech</option>
+        <option value="P4">P4 · 고객 서비스·CRM</option>
+        <option value="P5">P5 · 물류·MD</option>
+      </select>
+      <span id="personaBadge" class="text-xs px-2 py-1 rounded bg-rose-100 text-rose-700 font-medium">P1 활성</span>
+    </div>
+  </div>
+</header>
+
+<div class="flex min-h-[calc(100vh-58px)]">
+  <!-- Sidebar -->
+  <aside class="w-64 bg-white border-r border-slate-200 p-4 sticky top-[58px] h-[calc(100vh-58px)] overflow-y-auto scrollbar-thin">
+    <div class="text-xs font-semibold text-slate-400 uppercase mb-2">시나리오 (8)</div>
+    <nav id="navList" class="flex flex-col gap-1"></nav>
+
+    <div class="mt-6 text-xs font-semibold text-slate-400 uppercase mb-2">Knowledge Graph</div>
+    <ul class="text-sm text-slate-600 space-y-1">
+      <li>• 25 클래스</li>
+      <li>• ~500K edges</li>
+      <li>• Customer × SKU × Channel</li>
+    </ul>
+
+    <div class="mt-6 text-xs font-semibold text-slate-400 uppercase mb-2">데이터 코호트</div>
+    <ul class="text-sm space-y-1">
+      <li><span class="inline-block w-2 h-2 bg-emerald-500 rounded-full mr-2"></span>real (N=500)</li>
+      <li><span class="inline-block w-2 h-2 bg-amber-400 rounded-full mr-2"></span>synth (49.5K)</li>
+      <li><span class="inline-block w-2 h-2 bg-sky-500 rounded-full mr-2"></span>external (4종)</li>
+    </ul>
+  </aside>
+
+  <!-- Main content -->
+  <main id="mainPanel" class="flex-1 p-6 overflow-x-auto">
+    <!-- 동적 렌더링 -->
+  </main>
+</div>
+
+<!-- Footer -->
+<footer class="bg-white border-t border-slate-200 px-6 py-3 text-xs text-slate-400 flex justify-between">
+  <span>Momo eCommerce & Live Innovation PoC · Mock Demo</span>
+  <span>Bedrock Sonnet 4.6 + AgentCore + Neptune + OpenSearch + Cohere</span>
+</footer>
+
+<script>
+// ============= Mock Data =============
+const SCENARIOS = [
+  { id: 'S1', label: '자연어 시맨틱 검색', icon: '🔍' },
+  { id: 'S2', label: '5 부서 페르소나 챗봇', icon: '💬' },
+  { id: 'S3', label: '카테고리·BU 인사이트 카드', icon: '📊' },
+  { id: 'S4', label: '페르소나 매칭 + 클러스터링', icon: '🎯' },
+  { id: 'S5', label: '옴니채널 캠페인 ROAS', icon: '📈' },
+  { id: 'S6', label: '외부 시그널 융합', icon: '🌐' },
+  { id: 'S7', label: '옴니채널 회원 여정', icon: '🛒' },
+  { id: 'S8', label: '가드레일·동의·PII', icon: '🛡️' },
+  { id: 'S9Mo', label: '라이브 어트리뷰션 ⭐', icon: '📺' },
+  { id: 'S10Mo', label: '배송 SLA ⭐', icon: '🚚' },
+  { id: 'S11Mo', label: '추천 다양성 ⭐', icon: '🎲' },
+];
+
+const PERSONAS = {
+  P1: { name: '마케팅 (앱·캠페인)', tone: '앱 ROAS / 라이브 동시접속', color: 'pink' },
+  P2: { name: '카테고리·트렌드', tone: '신상 SOV / 카테고리 LTV', color: 'violet' },
+  P3: { name: '검색·추천·MarTech', tone: '추천 정확도 / 다양성', color: 'sky' },
+  P4: { name: '고객 서비스·CRM', tone: 'NPS / 환불률 / 배송 만족', color: 'emerald' },
+  P5: { name: '물류·MD', tone: '배송 SLA / fulfillment', color: 'amber' },
+};
+
+const SAMPLE_PRODUCTS = [
+  { sku: 'OUT-101', name: 'Coleman 4인 텐트', brand: 'Coleman', bu: '아웃도어', price: 8900, rating: 4.6, social: 'Dcard 캠핑 +28%' },
+  { sku: 'BTY-205', name: '资生堂 紅妍肌活露', brand: '资生堂', bu: '뷰티', price: 4200, rating: 4.7, social: '라이브 GMV TOP' },
+  { sku: 'HOM-301', name: '대형 공기청정기', brand: 'Sharp', bu: '가전', price: 15800, rating: 4.5, social: '폭우 시즌 +35%' },
+  { sku: 'FUD-419', name: '신선 수입 체리 1kg', brand: 'PB', bu: '식품', price: 690, rating: 4.4, social: 'TV 방송 효과' },
+  { sku: 'KID-501', name: '키즈 학습 태블릿', brand: 'Galaxy Tab Kids', bu: '키즈', price: 12900, rating: 4.6, social: '엄마 카페' },
+  { sku: 'PET-602', name: '강아지 사료 12kg', brand: 'Royal Canin', bu: '펫', price: 3490, rating: 4.7, social: '24시간 배송' },
+];
+
+const SAMPLE_REVIEWS = [
+  { source: '자사몰', text: '민감성 두피에도 자극 없음. 향이 부드럽고 마음에 듦.', sku: 'HDB-021', sentiment: 'pos', date: '2026-04-22' },
+  { source: '올리브영', text: '오가닉 인증 + 가성비 + 향까지 마음에 듭니다.', sku: 'HDB-021', sentiment: 'pos', date: '2026-04-18' },
+  { source: 'X', text: '#엘라스틴 #민감성두피 #오가닉 — 추천합니다', sku: 'HDB-021', sentiment: 'pos', date: '2026-04-25' },
+  { source: '네이버', text: '매끈한 머릿결. 가격 대비 만족.', sku: 'HDB-021', sentiment: 'pos', date: '2026-04-19' },
+  { source: 'Dcard', text: '향이 강하지 않아서 좋아요. 두피 가려움 줄어듦.', sku: 'HDB-021', sentiment: 'pos', date: '2026-04-15' },
+];
+
+const SAMPLE_MEMBERS = [
+  { id: 'mem_a4f2c1', age: '30대', region: '台北', persona: '라이브 즉흥 구매', grade: 'VIP', ltv: 'NT$185K', last: '2일 전' },
+  { id: 'mem_b9e7d3', age: '40대', region: '台中', persona: '24시간 배송 의존', grade: '골드', ltv: 'NT$95K', last: '5일 전' },
+  { id: 'mem_c1a8f5', age: '50대', region: '高雄', persona: 'TV 홈쇼핑 충성', grade: 'VIP', ltv: 'NT$240K', last: '8일 전' },
+  { id: 'mem_d6b2e9', age: '20대', region: '台北', persona: '검색 익스플로러', grade: '실버', ltv: 'NT$28K', last: '15일 전' },
+];
+
+// ============= Helpers =============
+let currentScenario = 'S1';
+let currentPersona = 'P1';
+
+function el(tag, attrs={}, ...children) {
+  const e = document.createElement(tag);
+  for (const [k,v] of Object.entries(attrs||{})) {
+    if (k === 'class') e.className = v;
+    else if (k === 'html') e.innerHTML = v;
+    else if (k.startsWith('on')) e.addEventListener(k.slice(2).toLowerCase(), v);
+    else e.setAttribute(k, v);
+  }
+  for (const c of children) {
+    if (c == null) continue;
+    e.append(c instanceof Node ? c : document.createTextNode(c));
+  }
+  return e;
+}
+
+function badge(label, type='real') {
+  const colors = {real:'bg-emerald-100 text-emerald-700', synth:'bg-amber-100 text-amber-700', external:'bg-sky-100 text-sky-700', neutral:'bg-slate-100 text-slate-600'};
+  return `<span class="text-[10px] font-semibold px-1.5 py-0.5 rounded ${colors[type]||colors.neutral}">${label}</span>`;
+}
+
+// ============= Sidebar =============
+function renderSidebar() {
+  const nav = document.getElementById('navList');
+  nav.innerHTML = '';
+  SCENARIOS.forEach(s => {
+    const active = s.id === currentScenario;
+    const btn = el('button', {
+      class: `text-left px-3 py-2 rounded-md text-sm flex items-center gap-2 ${active ? 'bg-rose-50 text-rose-700 font-semibold' : 'hover:bg-slate-100 text-slate-700'}`,
+      onclick: () => { currentScenario = s.id; renderSidebar(); renderMain(); }
+    }, `${s.icon} ${s.id}`, el('span', {class: 'text-xs text-slate-500'}, s.label));
+    nav.appendChild(btn);
+  });
+}
+
+// ============= Persona Switcher =============
+document.getElementById('personaSwitcher').addEventListener('change', e => {
+  currentPersona = e.target.value;
+  document.getElementById('personaBadge').textContent = `${currentPersona} 활성`;
+  renderMain();
+});
+
+// ============= Scenario Renderers =============
+function renderMain() {
+  const main = document.getElementById('mainPanel');
+  main.innerHTML = '';
+  const renderer = SCENARIO_RENDERERS[currentScenario];
+  if (renderer) renderer(main);
+}
+
+const SCENARIO_RENDERERS = {
+  S1: renderS1,
+  S2: renderS2,
+  S3: renderS3,
+  S4: renderS4,
+  S5: renderS5,
+  S6: renderS6,
+  S7: renderS7,
+  S8: renderS8,
+};
+
+function header(title, subtitle) {
+  return el('div', {class: 'mb-6'},
+    el('h1', {class: 'text-2xl font-bold mb-1'}, title),
+    el('p', {class: 'text-sm text-slate-500'}, subtitle)
+  );
+}
+
+// ============= S1. Semantic Search =============
+function renderS1(main) {
+  main.appendChild(header('🔍 S1. 자연어 시맨틱 검색',
+    'BM25 (Nori) + Cohere KNN → RRF → Cohere rerank-v3 + Neptune 1-hop'));
+
+  const wrap = el('div', {class: 'space-y-4'});
+
+  // Search box
+  const searchBox = el('div', {class: 'bg-white rounded-lg border border-slate-200 p-4 shadow-sm'},
+    el('div', {class: 'flex gap-2'},
+      el('input', {type: 'text', id: 's1Query', class: 'flex-1 px-4 py-2 border border-slate-300 rounded-md text-sm', placeholder: '예: 30대 여성 민감성 두피, 오가닉 선호, 최근 90일 미구매', value: '30대 여성 민감성 두피, 오가닉 선호, 최근 90일 미구매'}),
+      el('button', {class: 'bg-rose-600 hover:bg-rose-700 text-white px-5 py-2 rounded-md text-sm font-semibold', onclick: () => runS1Search()}, 'Search')
+    ),
+    el('div', {class: 'mt-3 flex gap-2 text-xs text-slate-500'},
+      el('span', {class: 'px-2 py-1 bg-slate-100 rounded'}, 'BU: All'),
+      el('span', {class: 'px-2 py-1 bg-slate-100 rounded'}, '가격: ₩2,000~₩200,000'),
+      el('span', {class: 'px-2 py-1 bg-slate-100 rounded'}, '기간: 90일'),
+      el('span', {class: 'px-2 py-1 bg-slate-100 rounded'}, `페르소나: ${PERSONAS[currentPersona].name}`)
+    )
+  );
+  wrap.appendChild(searchBox);
+
+  // Result counter
+  const counter = el('div', {id: 's1Counter', class: 'text-sm text-slate-600'}, '검색 결과: 23건 (BM25 8 · KNN 11 · 공통 4)');
+  wrap.appendChild(counter);
+
+  // 3-column results
+  const grid = el('div', {class: 'grid grid-cols-3 gap-4'},
+    renderS1Column('🛍️ SKU 카드', SAMPLE_PRODUCTS.slice(0, 3).map(p => skuCard(p))),
+    renderS1Column('👤 회원 카드', SAMPLE_MEMBERS.slice(0, 3).map(m => memberCard(m))),
+    renderS1Column('💬 리뷰 카드 (자사 + 외부)', SAMPLE_REVIEWS.slice(0, 4).map(r => reviewCard(r)))
+  );
+  wrap.appendChild(grid);
+
+  // 1-hop graph
+  const graphCard = el('div', {class: 'bg-white rounded-lg border border-slate-200 p-4 shadow-sm'},
+    el('div', {class: 'flex justify-between items-center mb-3'},
+      el('h3', {class: 'font-semibold'}, '🕸️ Neptune 1-hop 그래프 (선택: 엘라스틴 퍼펙트 케어 샴푸)'),
+      el('span', {class: 'text-xs text-slate-500'}, '5 노드 · 7 엣지')
+    ),
+    el('div', {id: 's1Graph', style: 'height: 280px;'})
+  );
+  wrap.appendChild(graphCard);
+
+  main.appendChild(wrap);
+
+  // Render network
+  setTimeout(() => renderKGGraph('s1Graph', {
+    nodes: [
+      {id: 1, label: 'HDB-021\n엘라스틴', shape: 'box', color: '#fee2e2', font: {size: 11}},
+      {id: 2, label: 'HDB', shape: 'ellipse', color: '#dbeafe', font: {size: 11}},
+      {id: 3, label: '엘라스틴 (Brand)', shape: 'ellipse', color: '#fef3c7', font: {size: 11}},
+      {id: 4, label: '샴푸 (Category)', shape: 'ellipse', color: '#dcfce7', font: {size: 11}},
+      {id: 5, label: '리뷰 41건\n(올영 28 · X 9 · 자사 4)', shape: 'box', color: '#e0e7ff', font: {size: 10}},
+      {id: 6, label: '구매 회원 12명', shape: 'box', color: '#fce7f3', font: {size: 10}},
+    ],
+    edges: [
+      {from: 1, to: 2, label: 'BU'},
+      {from: 1, to: 3, label: 'OF_BRAND'},
+      {from: 1, to: 4, label: 'IN_CATEGORY'},
+      {from: 1, to: 5, label: 'REVIEWED'},
+      {from: 1, to: 6, label: 'PURCHASED_BY'},
+      {from: 3, to: 2, label: 'BELONGS_TO'},
+    ]
+  }), 50);
+}
+
+function renderS1Column(title, cards) {
+  return el('div', {class: 'bg-white rounded-lg border border-slate-200 p-4 shadow-sm'},
+    el('h3', {class: 'font-semibold mb-3 text-sm'}, title),
+    el('div', {class: 'space-y-2'}, ...cards)
+  );
+}
+
+function skuCard(p) {
+  return el('div', {class: 'border border-slate-200 rounded-md p-3 hover:border-rose-300 cursor-pointer text-xs'},
+    el('div', {class: 'flex justify-between items-start mb-1'},
+      el('span', {class: 'font-semibold'}, p.name),
+      el('span', {html: badge('real')})
+    ),
+    el('div', {class: 'text-slate-500'}, `${p.brand} · ${p.bu} · ₩${p.price.toLocaleString()}`),
+    el('div', {class: 'mt-1 text-slate-600'}, `★ ${p.rating} · ${p.social}`)
+  );
+}
+
+function memberCard(m) {
+  return el('div', {class: 'border border-slate-200 rounded-md p-3 text-xs'},
+    el('div', {class: 'flex justify-between items-start mb-1'},
+      el('span', {class: 'font-semibold'}, m.id),
+      el('span', {html: badge('real')})
+    ),
+    el('div', {class: 'text-slate-500'}, `${m.age} · ${m.region}`),
+    el('div', {class: 'mt-1'},
+      el('span', {class: 'inline-block px-2 py-0.5 bg-violet-100 text-violet-700 rounded text-[10px] mr-1'}, m.persona),
+      el('span', {class: 'inline-block px-2 py-0.5 bg-amber-100 text-amber-700 rounded text-[10px]'}, m.grade)
+    ),
+    el('div', {class: 'mt-1 text-slate-600'}, `LTV ${m.ltv} · 마지막 구매 ${m.last}`)
+  );
+}
+
+function reviewCard(r) {
+  const sourceColor = {'자사몰': 'bg-rose-100 text-rose-700', '올리브영': 'bg-emerald-100 text-emerald-700', 'X': 'bg-slate-100 text-slate-700', '네이버': 'bg-green-100 text-green-700', 'Dcard': 'bg-pink-100 text-pink-700'};
+  const cohort = r.source === '자사몰' ? 'real' : 'external';
+  return el('div', {class: 'border border-slate-200 rounded-md p-3 text-xs'},
+    el('div', {class: 'flex justify-between items-start mb-1'},
+      el('span', {class: `text-[10px] font-semibold px-1.5 py-0.5 rounded ${sourceColor[r.source] || 'bg-slate-100'}`}, r.source),
+      el('span', {html: badge(cohort, cohort)})
+    ),
+    el('div', {class: 'text-slate-700 mt-1 italic'}, `"${r.text}"`),
+    el('div', {class: 'mt-1 text-slate-500'}, `${r.sku} · ${r.date}`)
+  );
+}
+
+function runS1Search() {
+  const counter = document.getElementById('s1Counter');
+  if (!counter) return;
+  counter.textContent = '검색 중... (BM25 + KNN 병렬 실행)';
+  setTimeout(() => {
+    counter.innerHTML = '검색 결과: <strong>23건</strong> (BM25 8 · KNN 11 · 공통 4) <span class="text-xs text-emerald-600 ml-2">✓ 1.2초</span>';
+  }, 600);
+}
+
+// ============= S2. Persona Chatbot =============
+function renderS2(main) {
+  main.appendChild(header('💬 S2. 5 부서 페르소나 챗봇',
+    'Bedrock Sonnet 4.6 + AgentCore Memory + 12 도구 자율 호출 + SSE 스트리밍'));
+
+  const grid = el('div', {class: 'grid grid-cols-3 gap-4'});
+
+  // Chat panel (2 cols)
+  const chat = el('div', {class: 'col-span-2 bg-white rounded-lg border border-slate-200 shadow-sm flex flex-col h-[560px]'});
+  chat.appendChild(el('div', {class: 'border-b border-slate-200 p-3 text-sm font-semibold flex items-center justify-between'},
+    el('div', {}, `MI Agent · ${PERSONAS[currentPersona].name} 페르소나`),
+    el('span', {class: `text-xs px-2 py-0.5 rounded bg-${PERSONAS[currentPersona].color}-100 text-${PERSONAS[currentPersona].color}-700`}, PERSONAS[currentPersona].tone)
+  ));
+
+  const messagesDiv = el('div', {id: 's2Messages', class: 'flex-1 overflow-y-auto p-4 space-y-3 scrollbar-thin'});
+  chat.appendChild(messagesDiv);
+
+  const inputBox = el('div', {class: 'border-t border-slate-200 p-3 flex gap-2'},
+    el('input', {id: 's2Input', class: 'flex-1 px-3 py-2 border border-slate-300 rounded-md text-sm', placeholder: '질문을 입력하세요...', value: '이번 달 페리오 매출이 떨어진 채널 TOP 5와 원인은?'}),
+    el('button', {class: 'bg-rose-600 hover:bg-rose-700 text-white px-4 py-2 rounded-md text-sm font-semibold', onclick: () => runS2Chat()}, 'Send')
+  );
+  chat.appendChild(inputBox);
+  grid.appendChild(chat);
+
+  // Trace panel
+  const trace = el('div', {class: 'bg-white rounded-lg border border-slate-200 shadow-sm flex flex-col h-[560px]'},
+    el('div', {class: 'border-b border-slate-200 p-3 text-sm font-semibold flex items-center justify-between'},
+      el('div', {}, '🔧 도구 호출 트레이스'),
+      el('span', {id: 's2TraceCount', class: 'text-xs text-slate-500'}, '0 calls')
+    ),
+    el('div', {id: 's2Trace', class: 'flex-1 overflow-y-auto p-3 space-y-2 scrollbar-thin text-xs text-slate-600'})
+  );
+  grid.appendChild(trace);
+  main.appendChild(grid);
+
+  // Suggested queries
+  const suggestions = el('div', {class: 'mt-4 flex flex-wrap gap-2'},
+    ...['숨37 신상 런칭 ROAS 시뮬', '최근 인스타에서 떠오른 키워드와 자사 매출 연결', '동의 미수신 회원 발송 차단 확인'].map(t =>
+      el('button', {class: 'text-xs px-3 py-1.5 bg-white border border-slate-200 rounded-md hover:border-rose-300', onclick: () => { document.getElementById('s2Input').value = t; }}, t)
+    )
+  );
+  main.appendChild(suggestions);
+
+  // Initial message
+  appendChat('user', '이번 달 페리오 매출이 떨어진 채널 TOP 5와 원인은?');
+}
+
+function appendChat(role, text) {
+  const div = document.getElementById('s2Messages');
+  if (!div) return;
+  const isUser = role === 'user';
+  div.appendChild(el('div', {class: `flex ${isUser ? 'justify-end' : 'justify-start'}`},
+    el('div', {class: `max-w-[85%] px-3 py-2 rounded-lg text-sm ${isUser ? 'bg-rose-600 text-white' : 'bg-slate-100 text-slate-800'}`}, text)
+  ));
+  div.scrollTop = div.scrollHeight;
+}
+
+function appendTrace(toolName, input, output, durationMs) {
+  const div = document.getElementById('s2Trace');
+  if (!div) return;
+  const item = el('div', {class: 'border-l-2 border-rose-300 pl-2 py-1 animate-pulse'},
+    el('div', {class: 'flex justify-between items-start'},
+      el('span', {class: 'font-mono text-rose-600 font-semibold'}, toolName),
+      el('span', {class: 'text-[10px] text-slate-400'}, `${durationMs}ms`)
+    ),
+    el('div', {class: 'text-[11px] text-slate-500 mt-0.5'}, `→ ${input}`),
+    el('div', {class: 'text-[11px] text-emerald-600 mt-0.5'}, `← ${output}`)
+  );
+  div.appendChild(item);
+  setTimeout(() => item.classList.remove('animate-pulse'), 1000);
+  div.scrollTop = div.scrollHeight;
+  const cnt = document.getElementById('s2TraceCount');
+  cnt.textContent = `${div.children.length} calls`;
+}
+
+function runS2Chat() {
+  const input = document.getElementById('s2Input');
+  const q = input.value.trim();
+  if (!q) return;
+  appendChat('user', q);
+  input.value = '';
+
+  document.getElementById('s2Trace').innerHTML = '';
+  document.getElementById('s2TraceCount').textContent = '0 calls';
+
+  // Mock tool calls based on persona
+  const calls = currentPersona === 'P1' ? [
+    ['campaign_simulator', 'brand=페리오, period=30d', 'Bayesian posterior 1000 샘플 완료', 1820],
+    ['attribution_calc', 'method=time_decay, brand=페리오', 'SMS 35% / 마트 28% / SNS 22% / 카톡 15%', 940],
+    ['social_trend_join', 'keyword=페리오 치약, days=30', '검색량 -8% vs 전월', 620],
+  ] : currentPersona === 'P5' ? [
+    ['channel_metrics_push', 'sku_brand=페리오', 'GMV by channel 집계 완료', 480],
+    ['neptune_query', 'POSTransaction × Channel × Brand', '5개 채널 GMV 추출', 620],
+    ['weather_join', 'KMA 일별 기온/강수', '서울·부산 폭염 영향 데이터', 320],
+    ['social_trend_join', 'keyword=페리오 치약, days=30', '검색량 -8%, 부정 리뷰 +14%', 720],
+    ['behavior_change_detect', 'sku=HDB-074', 'z-score 2.1, 시그너처 매칭', 450],
+  ] : [
+    ['neptune_query', 'POSTransaction × Brand=페리오', '5채널 GMV 집계', 620],
+    ['behavior_change_detect', 'sku=HDB-074', 'z-score 2.1', 450],
+    ['social_trend_join', 'keyword=페리오 치약', '검색 -8%', 620],
+  ];
+
+  // Simulate delays
+  let delay = 200;
+  calls.forEach(([tool, input, output, ms]) => {
+    setTimeout(() => appendTrace(tool, input, output, ms), delay);
+    delay += 700;
+  });
+
+  // Final answer
+  setTimeout(() => {
+    const answer = currentPersona === 'P1' ?
+      '**캠페인 효과 분석 (브랜드 마케터 시각)**\n• 채널별 ROAS: SMS 4.2x · 마트 3.1x · SNS 2.8x\n• 다음 캠페인 제안: SNS 비중 +15% 재배분\n• 예산 1억 시뮬: 응답률 +18% 예상\n\n출처: 자사 캠페인 데이터(real) + 검색 트렌드(external)' :
+      currentPersona === 'P5' ?
+      '**채널·매장 시각 (MD)**\n• TOP 5 매출 하락 채널: ① 이마트 -18% ② 롯데마트 -14% ③ 자사몰 -9% ④ CU -7% ⑤ 올영 -5%\n• 주요 원인 (근거 시그널):\n  - 폭염 영향 → 칫솔·치약 카테고리 전반 둔화 (KMA 기상)\n  - 경쟁사 신제품 출시 → 페리오 SOV -12% (CompetitorSignal)\n  - 검색 트렌드 -8%, 부정 리뷰 +14% (SocialSignal)\n• MD 액션: 매대 진열 강화 + 1+1 프로모션 4주\n\n출처: POS(real) + 외부 4종(external)' :
+      '**데이터 분석 시각 (D&A)**\n• 매출 z-score 2.1 (이상치 임계 초과)\n• 검색 트렌드 -8% 시차 14일 선행\n• 모델 drift 유의 (predictor distribution shift)\n• 권장: 모델 재학습 + 외부 시그널 weight 조정';
+    appendChat('assistant', answer);
+  }, delay + 300);
+}
+
+// ============= S3. Insight Cards =============
+function renderS3(main) {
+  main.appendChild(header('📊 S3. 카테고리·BU 인사이트 카드',
+    'Neptune 집계 + AgentCore Code Interpreter (matplotlib) + Sonnet 4.6 페르소나 코멘트'));
+
+  const grid = el('div', {class: 'grid grid-cols-2 gap-4'});
+
+  // Card 1: BU 월별 GMV
+  const card1 = insightCard('월별 BU GMV 추이', 'real', 'Beauty (rose) / HDB (sky) / Refreshment (amber)', PERSONAS[currentPersona].comment3_1 || s3PersonaComment(1));
+  grid.appendChild(card1);
+  setTimeout(() => drawBUChart(card1.querySelector('canvas')), 100);
+
+  // Card 2: 자외선차단 vs 기온
+  const card2 = insightCard('자외선차단 GMV vs 기온 (지난 90일)', 'external', 'WeatherSignal 결합 · R² 0.68', s3PersonaComment(2));
+  grid.appendChild(card2);
+  setTimeout(() => drawSunCareChart(card2.querySelector('canvas')), 150);
+
+  // Card 3: 검색 트렌드 vs 자사
+  const card3 = insightCard('검색 트렌드 vs 자사 GMV (Beauty)', 'external', 'SocialSignal 듀얼 축', s3PersonaComment(3));
+  grid.appendChild(card3);
+  setTimeout(() => drawTrendChart(card3.querySelector('canvas')), 200);
+
+  // Card 4: 경쟁사 출시 영향
+  const card4 = insightCard('경쟁사 신제품 출시 후 자사 영향', 'external', 'CompetitorSignal annotation', s3PersonaComment(4));
+  grid.appendChild(card4);
+  setTimeout(() => drawCompetitorChart(card4.querySelector('canvas')), 250);
+
+  main.appendChild(grid);
+}
+
+function insightCard(title, cohort, subtitle, comment) {
+  return el('div', {class: 'bg-white rounded-lg border border-slate-200 p-4 shadow-sm'},
+    el('div', {class: 'flex justify-between items-start mb-2'},
+      el('div', {},
+        el('h3', {class: 'font-semibold text-sm'}, title),
+        el('p', {class: 'text-xs text-slate-500 mt-0.5'}, subtitle)
+      ),
+      el('span', {html: badge(cohort, cohort)})
+    ),
+    el('div', {class: 'h-48 mb-3'}, el('canvas', {})),
+    el('div', {class: 'border-t border-slate-100 pt-2'},
+      el('div', {class: 'text-[11px] text-slate-400 mb-1'}, `LLM 코멘트 (${PERSONAS[currentPersona].name} 시각)`),
+      el('div', {class: 'text-xs text-slate-700 whitespace-pre-line'}, comment)
+    )
+  );
+}
+
+function s3PersonaComment(cardIdx) {
+  const p = currentPersona;
+  const tones = {
+    1: { P1: '11월 후 +12%, 사전 SMS 캠페인 효과로 추정. 12월은 SNS 위주 재배분 권장.', P2: 'Beauty BU가 30대 이상 코호트에서 비중 급상승. 새 세그먼트 후보.', P3: '11월 분포가 평년 대비 +1.5σ. 외부(기온) 변수 결합 분석 필요.', P4: 'VIP 등급 적립률 +3pt 상승. 등급 유지 캠페인 효과로 추정.', P5: '11월 GMV +12%, 매대·재고 회전 +0.4. 백화점·올영 매대 확장 제안.' },
+    2: { P1: '기온 ↑5℃ 시 자외선차단 매출 +28%. 5월 캠페인 세팅에 반영.', P2: '여름 진입 시점에 트렌드세터 페르소나 우선 노출.', P3: 'R² 0.68. lag 0~2일 가장 강한 상관. 모델 feature로 추가.', P4: 'VIP에 자외선차단 신상 무료 샘플 큐레이션.', P5: '기온 25℃ 이상 진입 후 진열 50% 확대 권장.' },
+    3: { P1: '"비건뷰티" 검색 +35% → 자사 비건 SKU 캠페인 즉시 재가동.', P2: '키워드 SOV 자사 12%, 경쟁사 21%. SOV 격차 분석 필요.', P3: '검색 → GMV 시차 7일. 단기 수요 예측 모델에 반영.', P4: 'VIP 적립 캠페인에 비건 키워드 결합.', P5: '비건 카테고리 매대 신설 + 신상 5종 도입 제안.' },
+    4: { P1: '경쟁사 출시 후 자사 GMV -8%, 4주 후 회복. 카운터 캠페인 타이밍.', P2: '경쟁사 SOV +18% 흡수. 자사 페르소나 이탈 모니터링.', P3: '시차 -2주~+4주 영향. 캠페인 효과 분리 고려.', P4: 'VIP 이탈 위험 +6%. 리텐션 혜택 강화.', P5: '신상 출시 4주 내 카운터 프로모션 권장.' },
+  };
+  return tones[cardIdx][p] || '';
+}
+
+function drawBUChart(canvas) {
+  if (!canvas) return;
+  new Chart(canvas, {
+    type: 'line',
+    data: {
+      labels: ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'],
+      datasets: [
+        { label: 'Beauty', data: [82,85,88,91,95,99,102,98,104,108,121,118], borderColor: '#e11d48', backgroundColor: 'rgba(225,29,72,0.1)', tension: 0.4 },
+        { label: 'HDB', data: [70,72,74,73,75,77,80,82,79,81,84,86], borderColor: '#0284c7', backgroundColor: 'rgba(2,132,199,0.1)', tension: 0.4 },
+        { label: 'Refreshment', data: [58,60,63,65,68,72,76,80,75,72,69,68], borderColor: '#f59e0b', backgroundColor: 'rgba(245,158,11,0.1)', tension: 0.4 },
+      ]
+    },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: {boxWidth: 8, font: {size: 10}} } }, scales: { y: { ticks: {font: {size: 9}} }, x: { ticks: {font: {size: 9}} } } }
+  });
+}
+
+function drawSunCareChart(canvas) {
+  if (!canvas) return;
+  const points = [];
+  for (let i = 0; i < 90; i++) {
+    const t = 5 + 25 * Math.sin(i / 90 * Math.PI) + (Math.random()-0.5)*4;
+    const g = 50 + (t-5) * 4 + (Math.random()-0.5)*15;
+    points.push({x: t, y: g});
+  }
+  new Chart(canvas, {
+    type: 'scatter',
+    data: { datasets: [{ label: '자외선차단 GMV vs 기온', data: points, backgroundColor: '#0ea5e9', pointRadius: 3 }] },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: {display:false} }, scales: { x: { title: {display: true, text: '기온 °C', font:{size:9}}, ticks:{font:{size:9}} }, y: { title:{display:true, text:'GMV (단위:M)', font:{size:9}}, ticks:{font:{size:9}} } } }
+  });
+}
+
+function drawTrendChart(canvas) {
+  if (!canvas) return;
+  new Chart(canvas, {
+    type: 'line',
+    data: {
+      labels: ['W1','W2','W3','W4','W5','W6','W7','W8','W9','W10','W11','W12'],
+      datasets: [
+        { label: '검색 트렌드 (네이버)', data: [40,42,48,55,62,70,68,75,82,80,88,92], borderColor: '#8b5cf6', tension: 0.4, yAxisID: 'y' },
+        { label: '자사 Beauty GMV', data: [82,85,88,91,95,99,102,108,114,118,121,128], borderColor: '#e11d48', tension: 0.4, yAxisID: 'y1' },
+      ]
+    },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels:{boxWidth:8, font:{size:10}} } }, scales: { y: { position: 'left', ticks:{font:{size:9}} }, y1: { position: 'right', grid:{drawOnChartArea:false}, ticks:{font:{size:9}} }, x: {ticks:{font:{size:9}}} } }
+  });
+}
+
+function drawCompetitorChart(canvas) {
+  if (!canvas) return;
+  new Chart(canvas, {
+    type: 'bar',
+    data: {
+      labels: ['-3W','-2W','-1W','출시','+1W','+2W','+3W','+4W'],
+      datasets: [
+        { label: '자사 GMV (vs baseline)', data: [102, 100, 98, 92, 88, 90, 95, 102], backgroundColor: '#e11d48' },
+        { label: '경쟁사 SOV', data: [10, 12, 15, 28, 25, 22, 18, 14], backgroundColor: '#94a3b8' },
+      ]
+    },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels:{boxWidth:8, font:{size:10}} } }, scales: { y: {ticks:{font:{size:9}}}, x: {ticks:{font:{size:9}}} } }
+  });
+}
+
+// ============= S4. Persona Match + Cluster =============
+function renderS4(main) {
+  main.appendChild(header('🎯 S4. 라이프스타일 페르소나 매칭 + 클러스터링',
+    '회원 RFM × 카테고리 친화도 KMeans + LLM 라벨링 + 소셜 페르소나 보강'));
+
+  const grid = el('div', {class: 'grid grid-cols-2 gap-4'});
+
+  // 페르소나 카드 5종
+  const personas = [
+    { name: '키즈맘', desc: '유아용품·생활용품·평일 낮', count: 8420, color: 'pink' },
+    { name: '골드미스', desc: '프리미엄 PB·뷰티·주말 오전', count: 5210, color: 'rose' },
+    { name: '1인가구', desc: '소량·간편·심야', count: 12300, color: 'sky' },
+    { name: '시니어', desc: '신선·전단·매장 결제', count: 6800, color: 'amber' },
+    { name: '트렌드세터', desc: '신상품·SNS 캠페인 응답', count: 4100, color: 'violet' },
+  ];
+
+  const personaPanel = el('div', {class: 'bg-white rounded-lg border border-slate-200 p-4 shadow-sm'},
+    el('h3', {class: 'font-semibold text-sm mb-3'}, '5 라이프스타일 페르소나 분포'),
+    el('div', {class: 'space-y-2'}, ...personas.map(p =>
+      el('div', {class: 'flex items-center gap-3'},
+        el('div', {class: `w-2 h-2 rounded-full bg-${p.color}-400`}),
+        el('div', {class: 'flex-1 text-sm'},
+          el('div', {class: 'font-semibold'}, p.name),
+          el('div', {class: 'text-xs text-slate-500'}, p.desc)
+        ),
+        el('div', {class: 'text-sm font-mono'}, p.count.toLocaleString()),
+        el('div', {class: 'w-32 h-2 bg-slate-100 rounded'},
+          el('div', {class: `h-2 bg-${p.color}-400 rounded`, style: `width: ${(p.count/15000*100).toFixed(0)}%`})
+        )
+      )
+    ))
+  );
+  grid.appendChild(personaPanel);
+
+  // KMeans 클러스터 카드
+  const clusterPanel = el('div', {class: 'bg-white rounded-lg border border-slate-200 p-4 shadow-sm'},
+    el('h3', {class: 'font-semibold text-sm mb-3'}, 'KMeans 6 클러스터 (LLM 라벨링)'),
+    el('div', {class: 'space-y-2'},
+      clusterRow('C1', '프리미엄 Beauty 충성층', 4200, 'rose', 'R 5 / F 8.2 / M ₩280K'),
+      clusterRow('C2', '할인 민감 1인가구', 8800, 'sky', 'R 3 / F 4.1 / M ₩48K'),
+      clusterRow('C3', '주말 가족 쇼핑객', 6100, 'amber', 'R 4 / F 5.6 / M ₩125K'),
+      clusterRow('C4', 'HDB 정기구매 키즈맘', 7300, 'pink', 'R 5 / F 7.8 / M ₩98K'),
+      clusterRow('C5', '편의점 음료 트렌드세터', 3900, 'violet', 'R 5 / F 12.4 / M ₩35K'),
+      clusterRow('C6', '시니어 신선·생활용품', 5400, 'emerald', 'R 4 / F 6.2 / M ₩72K'),
+    )
+  );
+  grid.appendChild(clusterPanel);
+
+  // PCA 산점도 (mock)
+  const scatterCard = el('div', {class: 'col-span-2 bg-white rounded-lg border border-slate-200 p-4 shadow-sm'},
+    el('h3', {class: 'font-semibold text-sm mb-3'}, '클러스터 2D 산점도 (PCA)'),
+    el('div', {class: 'h-72'}, el('canvas', {id: 's4Scatter'}))
+  );
+  grid.appendChild(scatterCard);
+
+  main.appendChild(grid);
+  setTimeout(() => drawS4Scatter(), 100);
+}
+
+function clusterRow(id, label, count, color, rfm) {
+  return el('div', {class: 'flex items-center gap-3 text-sm'},
+    el('span', {class: `w-8 text-xs font-mono px-1.5 py-0.5 rounded bg-${color}-100 text-${color}-700 text-center`}, id),
+    el('div', {class: 'flex-1'},
+      el('div', {class: 'font-semibold'}, label),
+      el('div', {class: 'text-xs text-slate-500'}, rfm)
+    ),
+    el('div', {class: 'text-sm font-mono'}, count.toLocaleString())
+  );
+}
+
+function drawS4Scatter() {
+  const canvas = document.getElementById('s4Scatter');
+  if (!canvas) return;
+  const colors = ['#e11d48', '#0ea5e9', '#f59e0b', '#ec4899', '#8b5cf6', '#10b981'];
+  const datasets = colors.map((c, i) => {
+    const points = [];
+    const cx = (i % 3) * 4 - 4;
+    const cy = (Math.floor(i / 3)) * 4 - 2;
+    for (let j = 0; j < 50; j++) {
+      points.push({x: cx + (Math.random()-0.5)*2, y: cy + (Math.random()-0.5)*2});
+    }
+    return { label: `C${i+1}`, data: points, backgroundColor: c, pointRadius: 3 };
+  });
+  new Chart(canvas, {
+    type: 'scatter',
+    data: { datasets },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels:{boxWidth:8, font:{size:10}} } }, scales: { x: {ticks:{font:{size:9}}}, y:{ticks:{font:{size:9}}} } }
+  });
+}
+
+// ============= S5. Campaign ROAS =============
+function renderS5(main) {
+  main.appendChild(header('📈 S5. 옴니채널 캠페인 ROAS 시뮬',
+    'Bayesian 어트리뷰션 (PyMC) + 검색·SNS 반응 결합'));
+
+  const wrap = el('div', {class: 'grid grid-cols-2 gap-4'});
+
+  // 캠페인 정의
+  const campaignPanel = el('div', {class: 'bg-white rounded-lg border border-slate-200 p-4 shadow-sm'},
+    el('h3', {class: 'font-semibold text-sm mb-3'}, '캠페인 정의'),
+    el('div', {class: 'space-y-2 text-sm'},
+      kvRow('대상 BU', 'Beauty (숨37 신상)'),
+      kvRow('세그먼트', 'VIP + 골드 5만명 (LG 멤버스)'),
+      kvRow('기간', '2026-05-20 ~ 2026-06-19'),
+      kvRow('예산', '₩100,000,000'),
+      kvRow('타겟', '신제품 도입 30일 ROAS 4.0+ ')
+    )
+  );
+  wrap.appendChild(campaignPanel);
+
+  // 추천 채널 믹스
+  const mixCard = el('div', {class: 'bg-white rounded-lg border border-slate-200 p-4 shadow-sm'},
+    el('div', {class: 'flex justify-between items-center mb-3'},
+      el('h3', {class: 'font-semibold text-sm'}, '추천 채널 믹스'),
+      el('span', {class: 'text-xs text-emerald-600 font-semibold'}, 'Expected ROAS 4.62x')
+    ),
+    el('div', {class: 'h-56'}, el('canvas', {id: 's5Donut'}))
+  );
+  wrap.appendChild(mixCard);
+
+  // ROAS 분포 (violin-like)
+  const violinCard = el('div', {class: 'col-span-2 bg-white rounded-lg border border-slate-200 p-4 shadow-sm'},
+    el('h3', {class: 'font-semibold text-sm mb-3'}, 'ROAS 분포 (1000 MCMC 샘플)'),
+    el('div', {class: 'h-56'}, el('canvas', {id: 's5Violin'}))
+  );
+  wrap.appendChild(violinCard);
+
+  main.appendChild(wrap);
+  setTimeout(() => { drawS5Donut(); drawS5Violin(); }, 100);
+}
+
+function kvRow(k, v) {
+  return el('div', {class: 'flex justify-between border-b border-slate-100 pb-1.5'},
+    el('span', {class: 'text-slate-500 text-xs'}, k),
+    el('span', {class: 'font-semibold text-sm'}, v)
+  );
+}
+
+function drawS5Donut() {
+  const c = document.getElementById('s5Donut');
+  if (!c) return;
+  new Chart(c, {
+    type: 'doughnut',
+    data: {
+      labels: ['SMS', '카톡', 'SNS 광고', '자사몰 배너', '올영 매대', '인플루언서'],
+      datasets: [{
+        data: [22, 18, 28, 12, 12, 8],
+        backgroundColor: ['#e11d48', '#f59e0b', '#8b5cf6', '#0ea5e9', '#10b981', '#ec4899']
+      }]
+    },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels:{boxWidth:10, font:{size:11}} } } }
+  });
+}
+
+function drawS5Violin() {
+  const c = document.getElementById('s5Violin');
+  if (!c) return;
+  // approximate violin via line area
+  const channels = ['SMS', '카톡', 'SNS 광고', '자사몰 배너', '올영 매대', '인플루언서'];
+  const datasets = channels.map((ch, i) => {
+    const center = [4.2, 3.8, 5.1, 3.2, 4.5, 4.0][i];
+    const spread = 0.6;
+    const data = [];
+    for (let x = 1; x <= 7; x += 0.2) {
+      const y = Math.exp(-Math.pow(x-center, 2)/(2*spread*spread));
+      data.push({x, y: y + i*1.2});
+    }
+    return { label: ch, data, fill: false, borderColor: ['#e11d48','#f59e0b','#8b5cf6','#0ea5e9','#10b981','#ec4899'][i], borderWidth: 2, tension: 0.4, pointRadius: 0 };
+  });
+  new Chart(c, {
+    type: 'line',
+    data: { datasets },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels:{boxWidth:8, font:{size:10}} } }, scales: { x: { type: 'linear', title: {display:true, text:'ROAS (x)', font:{size:9}}, ticks:{font:{size:9}} }, y: { display: false } } }
+  });
+}
+
+// ============= S6. External Signals =============
+function renderS6(main) {
+  main.appendChild(header('🌐 S6. 외부 시그널 융합 (4종)',
+    '소셜 트렌드 · KMA 기상 · BOK·통계청 경제 · 경쟁사 동향'));
+
+  const grid = el('div', {class: 'grid grid-cols-2 gap-4'});
+
+  // 4종 시그널 시계열
+  const sigCard = el('div', {class: 'col-span-2 bg-white rounded-lg border border-slate-200 p-4 shadow-sm'},
+    el('h3', {class: 'font-semibold text-sm mb-3'}, '외부 시그널 시계열 + 자사 GMV (이중 축)'),
+    el('div', {class: 'h-72'}, el('canvas', {id: 's6Series'}))
+  );
+  grid.appendChild(sigCard);
+
+  // 상관 히트맵
+  const heatCard = el('div', {class: 'bg-white rounded-lg border border-slate-200 p-4 shadow-sm'},
+    el('h3', {class: 'font-semibold text-sm mb-3'}, '카테고리 × 외부 시그널 상관 히트맵'),
+    el('div', {id: 's6Heatmap', class: 'space-y-1 text-xs'})
+  );
+  grid.appendChild(heatCard);
+
+  // 시차 분석
+  const lagCard = el('div', {class: 'bg-white rounded-lg border border-slate-200 p-4 shadow-sm'},
+    el('h3', {class: 'font-semibold text-sm mb-3'}, '시차 분석 (cross-correlation, lag 0~14d)'),
+    el('div', {class: 'h-56'}, el('canvas', {id: 's6Lag'}))
+  );
+  grid.appendChild(lagCard);
+
+  main.appendChild(grid);
+  setTimeout(() => { drawS6Series(); drawS6Heatmap(); drawS6Lag(); }, 100);
+}
+
+function drawS6Series() {
+  const c = document.getElementById('s6Series');
+  if (!c) return;
+  const labels = Array.from({length: 30}, (_, i) => `D-${30-i}`);
+  new Chart(c, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        { label: '소셜 트렌드 (인덱스)', data: labels.map((_,i) => 50+Math.sin(i/4)*20+i*1.5), borderColor: '#8b5cf6', tension: 0.3, yAxisID: 'y' },
+        { label: '기온 (°C)', data: labels.map((_,i) => 12+i*0.4+(Math.random()-0.5)*3), borderColor: '#0ea5e9', tension: 0.3, yAxisID: 'y' },
+        { label: '환율 (USD/KRW)', data: labels.map((_,i) => 1300+(Math.random()-0.5)*40), borderColor: '#f59e0b', tension: 0.3, yAxisID: 'y' },
+        { label: '자사 Beauty GMV', data: labels.map((_,i) => 80+i*2+Math.sin(i/3)*8), borderColor: '#e11d48', tension: 0.3, yAxisID: 'y1', borderWidth: 3 },
+      ]
+    },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels:{boxWidth:8, font:{size:10}} } }, scales: { y: { position: 'left', ticks:{font:{size:9}} }, y1: { position: 'right', grid:{drawOnChartArea:false}, ticks:{font:{size:9}} }, x:{ticks:{font:{size:9}, autoSkip:true, maxTicksLimit:10}} } }
+  });
+}
+
+function drawS6Heatmap() {
+  const div = document.getElementById('s6Heatmap');
+  if (!div) return;
+  const cats = ['자외선차단','샴푸','치약','음료','핸드크림'];
+  const sigs = ['소셜','기상','환율','경쟁사'];
+  // header
+  div.innerHTML = '';
+  const head = el('div', {class: 'grid gap-1 font-semibold text-slate-500', style: 'grid-template-columns: 80px repeat(4, 1fr)'},
+    el('div', {}, ''),
+    ...sigs.map(s => el('div', {class: 'text-center'}, s))
+  );
+  div.appendChild(head);
+  cats.forEach(cat => {
+    const row = el('div', {class: 'grid gap-1', style: 'grid-template-columns: 80px repeat(4, 1fr)'});
+    row.appendChild(el('div', {class: 'font-semibold text-slate-700'}, cat));
+    sigs.forEach(s => {
+      const v = (Math.random()*1.6 - 0.8);
+      const intensity = Math.abs(v);
+      const color = v > 0 ? `rgba(225, 29, 72, ${intensity})` : `rgba(14, 165, 233, ${intensity})`;
+      row.appendChild(el('div', {class: 'text-center font-mono py-1 rounded', style: `background: ${color}; color: ${intensity > 0.5 ? '#fff' : '#1e293b'}`}, v.toFixed(2)));
+    });
+    div.appendChild(row);
+  });
+}
+
+function drawS6Lag() {
+  const c = document.getElementById('s6Lag');
+  if (!c) return;
+  new Chart(c, {
+    type: 'bar',
+    data: {
+      labels: Array.from({length: 15}, (_, i) => `lag${i}`),
+      datasets: [{ label: '검색 트렌드 → 자사 GMV cross-corr', data: [0.18, 0.22, 0.31, 0.42, 0.55, 0.68, 0.71, 0.62, 0.49, 0.38, 0.29, 0.21, 0.15, 0.10, 0.06], backgroundColor: '#8b5cf6' }]
+    },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend:{display:false} }, scales: { y:{ticks:{font:{size:9}}}, x:{ticks:{font:{size:9}}} } }
+  });
+}
+
+// ============= S7. Customer Journey =============
+function renderS7(main) {
+  main.appendChild(header('🛒 S7. 옴니채널 회원 여정 (3 BU 통합)',
+    '단일 LG 멤버스 회원이 자사몰 → SNS 광고 → 올영 → 마트 → CU 가로지르는 단일 타임라인'));
+
+  // member info
+  const memCard = el('div', {class: 'bg-white rounded-lg border border-slate-200 p-4 shadow-sm mb-4 grid grid-cols-5 gap-3'},
+    kvBox('회원 ID', 'cust_a4f2c1', 'real'),
+    kvBox('연령·지역', '30대 / 서울 강남'),
+    kvBox('페르소나', '골드미스 (0.62)'),
+    kvBox('등급 (LG 멤버스)', 'VIP'),
+    kvBox('90일 LTV', '₩2,418,000')
+  );
+  main.appendChild(memCard);
+
+  // BU 비중 도넛 + Swimlane
+  const grid = el('div', {class: 'grid grid-cols-4 gap-4'});
+  const buCard = el('div', {class: 'col-span-1 bg-white rounded-lg border border-slate-200 p-4 shadow-sm'},
+    el('h3', {class: 'font-semibold text-sm mb-3'}, '90일 BU 비중'),
+    el('div', {class: 'h-44'}, el('canvas', {id: 's7BU'}))
+  );
+  grid.appendChild(buCard);
+
+  const lanesCard = el('div', {class: 'col-span-3 bg-white rounded-lg border border-slate-200 p-4 shadow-sm'},
+    el('h3', {class: 'font-semibold text-sm mb-3'}, 'Swimlane 타임라인 (90일)'),
+    el('div', {id: 's7Lanes', class: 'space-y-2'})
+  );
+  grid.appendChild(lanesCard);
+
+  main.appendChild(grid);
+  setTimeout(() => { drawS7BU(); drawS7Lanes(); }, 100);
+}
+
+function kvBox(k, v, cohort='') {
+  const wrap = el('div', {class: 'border border-slate-200 rounded-md p-3'},
+    el('div', {class: 'text-xs text-slate-500 mb-1'}, k),
+    el('div', {class: 'font-semibold text-sm'}, v)
+  );
+  if (cohort) wrap.firstChild.insertAdjacentHTML('beforeend', ' ' + badge(cohort, cohort));
+  return wrap;
+}
+
+function drawS7BU() {
+  const c = document.getElementById('s7BU');
+  if (!c) return;
+  new Chart(c, {
+    type: 'doughnut',
+    data: { labels: ['Beauty','HDB','Refreshment'], datasets: [{ data: [62, 28, 10], backgroundColor: ['#e11d48','#0ea5e9','#f59e0b'] }] },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels:{boxWidth:8, font:{size:10}} } } }
+  });
+}
+
+function drawS7Lanes() {
+  const div = document.getElementById('s7Lanes');
+  if (!div) return;
+  const lanes = [
+    { name: '자사몰 (검색·구매)', color: 'rose', events: [{d: 5, label: '검색', icon: '🔍'}, {d: 12, label: '구매(숨37)', icon: '🛒'}, {d: 47, label: '재구매', icon: '🛒'}, {d: 78, label: '리뷰', icon: '⭐'}] },
+    { name: 'SNS 광고 응답', color: 'violet', events: [{d: 3, label: '인스타 클릭', icon: '📱'}, {d: 28, label: '카톡 친구', icon: '💬'}, {d: 56, label: '쇼츠 시청', icon: '🎬'}] },
+    { name: '올리브영 (오프라인)', color: 'emerald', events: [{d: 18, label: 'CNP 구매', icon: '🏪'}, {d: 60, label: '신상 시연', icon: '🏪'}] },
+    { name: '대형마트 (HDB)', color: 'sky', events: [{d: 34, label: '엘라스틴', icon: '🛒'}, {d: 71, label: '자연퐁', icon: '🛒'}] },
+    { name: '편의점 (Refreshment)', color: 'amber', events: [{d: 23, label: '환타', icon: '🥤'}, {d: 52, label: '코카콜라', icon: '🥤'}, {d: 84, label: '토레타', icon: '🥤'}] },
+  ];
+
+  div.innerHTML = '';
+  // Header axis
+  const axis = el('div', {class: 'relative h-6 border-b border-slate-200 mb-2'});
+  for (let d = 0; d <= 90; d += 15) {
+    axis.appendChild(el('div', {class: 'absolute text-[10px] text-slate-400', style: `left: ${(d/90*100)}%; bottom: 0`}, `D+${d}`));
+  }
+  div.appendChild(axis);
+
+  lanes.forEach(lane => {
+    const laneEl = el('div', {class: 'flex items-center gap-3'},
+      el('div', {class: 'w-32 text-xs font-semibold text-slate-700'}, lane.name)
+    );
+    const track = el('div', {class: `relative flex-1 h-10 bg-${lane.color}-50 rounded`});
+    lane.events.forEach(ev => {
+      track.appendChild(el('div', {
+        class: `absolute -top-1 px-1.5 py-0.5 rounded text-xs bg-${lane.color}-500 text-white whitespace-nowrap shadow`,
+        style: `left: ${(ev.d/90*100)}%; transform: translateX(-50%)`,
+        title: `D+${ev.d}: ${ev.label}`
+      }, `${ev.icon} ${ev.label}`));
+    });
+    laneEl.appendChild(track);
+    div.appendChild(laneEl);
+  });
+
+  // 핵심 전환 표시
+  div.appendChild(el('div', {class: 'mt-3 text-xs bg-slate-50 p-2 rounded text-slate-600'},
+    el('div', {class: 'font-semibold mb-1'}, '🌟 핵심 전환'),
+    '• D+12 첫 Beauty 구매 → D+18 올영 매장 방문 → D+47 자사몰 재구매 → 90일 내 VIP 등급 유지'
+  ));
+}
+
+// ============= S8. Guardrails =============
+function renderS8(main) {
+  main.appendChild(header('🛡️ S8. 마케팅 동의·PII·미성년 가드레일',
+    'Bedrock Guardrails 4 토픽 + 동의 미수신 차단 + PII 마스킹 + 미성년 화장품 가드'));
+
+  const grid = el('div', {class: 'grid grid-cols-3 gap-4 mb-4'},
+    statCard('차단 (Block)', 47, '오늘', 'rose'),
+    statCard('마스킹 (Mask)', 312, '오늘', 'sky'),
+    statCard('허용 (Allow)', 4895, '오늘', 'emerald')
+  );
+  main.appendChild(grid);
+
+  const policyCard = el('div', {class: 'bg-white rounded-lg border border-slate-200 p-4 shadow-sm mb-4'},
+    el('h3', {class: 'font-semibold text-sm mb-3'}, '활성 정책'),
+    el('div', {class: 'space-y-2'},
+      policyRow('폭력·혐오·성·오정보 (Bedrock 4 토픽)', 'Block', 'rose'),
+      policyRow('의료·법률 자문 추정', 'Block + 안내', 'amber'),
+      policyRow('마케팅 동의 미수신 → 캠페인 발송 도구', '도구 차단', 'rose'),
+      policyRow('PII (이름·연락처·주소·카드)', '자동 마스킹', 'sky'),
+      policyRow('미성년 추정 + 화장품 마케팅', '컨텍스트 차단', 'rose'),
+      policyRow('임신·질병 추정 라벨', 'LLM 라벨 금지', 'amber')
+    )
+  );
+  main.appendChild(policyCard);
+
+  // 테스트 입력
+  const testCard = el('div', {class: 'bg-white rounded-lg border border-slate-200 p-4 shadow-sm'},
+    el('h3', {class: 'font-semibold text-sm mb-3'}, '🧪 테스트'),
+    el('div', {class: 'flex gap-2 mb-3'},
+      el('button', {class: 'text-xs px-3 py-1.5 bg-slate-100 rounded hover:bg-slate-200', onclick: () => testGuardrail('pii')}, '회원 cust_001234 연락처 알려줘'),
+      el('button', {class: 'text-xs px-3 py-1.5 bg-slate-100 rounded hover:bg-slate-200', onclick: () => testGuardrail('consent')}, '동의 미수신 5만명 SMS 발송'),
+      el('button', {class: 'text-xs px-3 py-1.5 bg-slate-100 rounded hover:bg-slate-200', onclick: () => testGuardrail('minor')}, '미성년에게 화장품 캠페인'),
+    ),
+    el('div', {id: 's8Result', class: 'text-sm bg-slate-50 rounded p-3 text-slate-500'}, '버튼을 클릭하면 가드레일 처리 결과가 표시됩니다.')
+  );
+  main.appendChild(testCard);
+}
+
+function statCard(label, value, period, color) {
+  return el('div', {class: 'bg-white rounded-lg border border-slate-200 p-4 shadow-sm'},
+    el('div', {class: `text-xs text-${color}-600 font-semibold`}, label),
+    el('div', {class: 'text-3xl font-bold mt-1'}, value.toLocaleString()),
+    el('div', {class: 'text-xs text-slate-400 mt-1'}, period)
+  );
+}
+
+function policyRow(label, action, color) {
+  return el('div', {class: 'flex justify-between items-center py-1.5 border-b border-slate-100 text-sm'},
+    el('span', {class: 'text-slate-700'}, label),
+    el('span', {class: `text-xs px-2 py-1 rounded bg-${color}-100 text-${color}-700 font-semibold`}, action)
+  );
+}
+
+function testGuardrail(type) {
+  const div = document.getElementById('s8Result');
+  if (!div) return;
+  const samples = {
+    pii: { input: '회원 cust_001234 연락처 알려줘', action: 'PII 자동 마스킹', output: '연락처: 010-****-**** (마스킹) · 마지막 구매 92일 전', color: 'sky' },
+    consent: { input: '동의 미수신 5만명 SMS 발송 시뮬', action: '도구 차단', output: '`channel_metrics_push` 호출 차단됨 — 사유: 마케팅 동의 미수신 회원 47,832명 / 전체 차단', color: 'rose' },
+    minor: { input: '미성년 추정 회원 1,234명에게 화장품 캠페인', action: '컨텍스트 차단', output: 'Bedrock Guardrails block — 미성년 + 화장품 컨텍스트 정책 위반 / 정책 ID GDR-MINOR-COSM-01', color: 'rose' },
+  };
+  const s = samples[type];
+  div.innerHTML = '';
+  div.appendChild(el('div', {class: 'space-y-2'},
+    el('div', {class: 'text-xs'},
+      el('span', {class: 'text-slate-400'}, '입력 → '),
+      el('span', {class: 'text-slate-700'}, s.input)
+    ),
+    el('div', {class: 'text-xs'},
+      el('span', {class: 'text-slate-400'}, '가드 → '),
+      el('span', {class: `text-xs px-2 py-0.5 rounded bg-${s.color}-100 text-${s.color}-700 font-semibold`}, s.action)
+    ),
+    el('div', {class: 'text-xs'},
+      el('span', {class: 'text-slate-400'}, '출력 → '),
+      el('span', {class: 'text-slate-700'}, s.output)
+    )
+  ));
+}
+
+// ============= KG Graph helper =============
+function renderKGGraph(containerId, dataset) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  const data = { nodes: new vis.DataSet(dataset.nodes), edges: new vis.DataSet(dataset.edges.map(e => ({...e, arrows: 'to', font: {size: 9, align: 'middle'}, color: '#94a3b8'}))) };
+  const options = {
+    physics: { enabled: true, stabilization: { iterations: 60 } },
+    nodes: { borderWidth: 1, color: { border: '#cbd5e1' } },
+    edges: { width: 1 },
+    interaction: { hover: true }
+  };
+  new vis.Network(container, data, options);
+}
+
+// ============= Init =============
+renderSidebar();
+renderMain();
+</script>
+</body>
+</html>
