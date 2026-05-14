@@ -20,8 +20,6 @@ LG생활건강 **3 BU(Beauty + HDB + Refreshment) 통합** 마케팅 혁신 PoC 
 - **8 시나리오**: 시맨틱 검색·페르소나 챗봇·인사이트 카드·페르소나 매칭/클러스터링·캠페인 ROAS·외부 시그널 융합·옴니채널 여정·가드레일
 - **AWS Stack**: Bedrock Sonnet 4.6 + Cohere embed/rerank + Neptune + OpenSearch Serverless + AgentCore + Glue + ECS Fargate ARM64
 
-> **레퍼런스**: GS Caltex M&M본부 PoC ([gcc.whchoi.net](https://gcc.whchoi.net/)) 패턴 본질 (온톨로지 + Agentic AI + 부서 페르소나 스위처) 을 LG생활건강 마케팅 혁신 컨텍스트로 재설계 (공개 정보만 활용)
-
 ---
 
 ## 공통 가치 제안

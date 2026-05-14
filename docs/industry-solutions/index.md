@@ -20,8 +20,6 @@ description: "산업별로 검증된 PoC 패턴과 동작 시연 데모 자산. 
 ### Energy (예정)
 정유·주유 네트워크 멤버십·캠페인.
 
-- *(예정) GS Caltex GCC 원본 패턴*
-
 ### Financial Services (예정)
 은행·카드·증권 데이터 통합 PoC 패턴.
 
