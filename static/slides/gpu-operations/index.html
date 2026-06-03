@@ -9,17 +9,31 @@
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 <script src="https://cdn.tailwindcss.com"></script>
 <style>
-  html,body,#root{margin:0;padding:0;background:#030712;color:#f9fafb;min-height:100vh;font-family:-apple-system,'Pretendard',BlinkMacSystemFont,'Segoe UI',sans-serif}
+  html,body{margin:0;padding:0;background:#030712;color:#f9fafb;height:100%;width:100%;overflow:hidden;font-family:-apple-system,'Pretendard',BlinkMacSystemFont,'Segoe UI',sans-serif}
+  #root{height:100vh;width:100vw;overflow:hidden}
+  /* 16:9 fixed stage 1280x720, scaled via JS transform */
+  .stage-viewport{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#030712}
+  .stage{position:relative;width:1280px;height:720px;transform-origin:center center;background:#030712;overflow:hidden;box-shadow:0 0 0 1px #1f2937}
+  .stage-inner{position:absolute;inset:0;display:flex;flex-direction:column;padding:40px 56px 56px}
   .mono{font-family:ui-monospace,'SFMono-Regular',Menlo,Monaco,Consolas,monospace}
-  .fade-in{animation:fadein .45s ease both}
-  @keyframes fadein{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+  .fade-in{animation:fadein .35s ease both}
+  @keyframes fadein{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
   .grad-text{background:linear-gradient(135deg,#76b900,#60a5fa,#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
   .grad-amber{background:linear-gradient(135deg,#f59e0b,#f472b6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-  .chip{display:inline-flex;align-items:center;gap:.35rem;padding:.2rem .55rem;border-radius:9999px;font-size:.7rem;font-weight:600}
+  .chip{display:inline-flex;align-items:center;gap:.35rem;padding:.15rem .5rem;border-radius:9999px;font-size:11px;font-weight:600;line-height:1.25}
   .divider{height:1px;background:linear-gradient(90deg,transparent,#334155,transparent)}
   .scrollbar::-webkit-scrollbar{width:6px;height:6px}
   .scrollbar::-webkit-scrollbar-thumb{background:#374151;border-radius:3px}
-  kbd{display:inline-block;padding:.05rem .35rem;border-radius:4px;border:1px solid #374151;background:#0f172a;font-size:.7rem;color:#cbd5e1;font-family:ui-monospace,monospace}
+  kbd{display:inline-block;padding:.05rem .35rem;border-radius:4px;border:1px solid #374151;background:#0f172a;font-size:11px;color:#cbd5e1;font-family:ui-monospace,monospace}
+  /* stage-local typography — prevents overflow at 1280x720 */
+  .stage h1{line-height:1.1}
+  .stage h2,.stage h3{line-height:1.2}
+  .stage p{line-height:1.5}
+  .stage table{font-size:12px}
+  .stage table th{font-size:10px;letter-spacing:.05em}
+  .stage td,.stage th{padding:6px 10px !important}
+  .stage pre{font-size:11px;line-height:1.45}
+  .stage .card-body{font-size:12px;line-height:1.55}
 </style>
 </head>
 <body>
@@ -31,23 +45,22 @@ const { useState, useEffect, useCallback, useMemo } = React;
 // ===== Shared components =====
 function Frame({ children }) {
   return (
-    <div className="min-h-screen w-full flex flex-col fade-in">
-      <div className="max-w-6xl mx-auto w-full px-10 pt-10 pb-32 flex-1 flex flex-col">
-        {children}
-      </div>
+    <div className="stage-inner fade-in">
+      {children}
     </div>
   );
 }
 
-function Header({ eyebrow, title, sub, accent='#76b900' }) {
+function Header({ eyebrow, title, sub, accent='#76b900', compact=false }) {
   return (
-    <div className="mb-7">
+    <div className={compact ? 'mb-3' : 'mb-4'}>
       {eyebrow && (
-        <div className="text-xs font-semibold tracking-widest uppercase mb-2"
-             style={{color: accent}}>{eyebrow}</div>
+        <div className="font-semibold tracking-widest uppercase mb-1"
+             style={{color: accent, fontSize: 11, letterSpacing: '.14em'}}>{eyebrow}</div>
       )}
-      <h1 className="text-4xl md:text-5xl font-extrabold leading-tight grad-text">{title}</h1>
-      {sub && <p className="text-gray-400 mt-3 text-lg leading-relaxed">{sub}</p>}
+      <h1 className={`font-extrabold grad-text ${compact ? 'text-3xl' : 'text-4xl'}`}
+          style={{lineHeight: 1.1}}>{title}</h1>
+      {sub && <p className="text-gray-400 mt-2" style={{fontSize: 14, lineHeight: 1.5}}>{sub}</p>}
     </div>
   );
 }
@@ -67,12 +80,12 @@ function Card({ title, icon, color='blue', children, className='' }) {
     purple:'text-purple-400', rose:'text-rose-400', slate:'text-slate-300', lime:'text-lime-400'
   };
   return (
-    <div className={`rounded-xl border p-5 ${map[color]} ${className}`}>
-      <div className="flex items-center gap-2 mb-3">
-        {icon && <span className={`${textMap[color]} text-lg`}>{icon}</span>}
-        <h3 className={`font-bold ${textMap[color]}`}>{title}</h3>
+    <div className={`rounded-lg border p-3 ${map[color]} ${className}`}>
+      <div className="flex items-center gap-2 mb-2">
+        {icon && <span className={`${textMap[color]}`} style={{fontSize: 15}}>{icon}</span>}
+        <h3 className={`font-bold ${textMap[color]}`} style={{fontSize: 13}}>{title}</h3>
       </div>
-      <div className="text-gray-200 text-sm leading-relaxed">{children}</div>
+      <div className="card-body text-gray-200">{children}</div>
     </div>
   );
 }

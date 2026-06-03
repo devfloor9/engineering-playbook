@@ -8,40 +8,52 @@ const LayerRoles = () => {
 
   const layers = [
     {
-      layer: isKo ? 'Client Layer' : isZh ? '客户端层' : 'Client Layer',
-      role: isKo ? '사용자 및 애플리케이션 인터페이스' : isZh ? '用户和应用程序接口' : 'User and application interface',
-      components: isKo ? 'API Clients, Web UI, SDK' : isZh ? 'API 客户端、Web UI、SDK' : 'API Clients, Web UI, SDK',
+      layer: isKo ? 'Layer 1: Client & Feedback' : isZh ? '第1层：客户端与反馈' : 'Layer 1: Client & Feedback',
+      role: isKo ? '사용자 인터페이스 및 피드백 수집' : isZh ? '用户接口和反馈收集' : 'User interface and feedback collection',
+      components: isKo ? 'API Clients, Web UI, SDK, Feedback Collector' : isZh ? 'API 客户端、Web UI、SDK、反馈收集器' : 'API Clients, Web UI, SDK, Feedback Collector',
       color: '#e3f2fd'
     },
     {
-      layer: isKo ? 'Gateway Layer' : isZh ? '网关层' : 'Gateway Layer',
-      role: isKo ? '인증, 라우팅, 트래픽 관리' : isZh ? '认证、路由、流量管理' : 'Authentication, routing, traffic management',
-      components: isKo ? 'Inference Gateway, Auth, Rate Limiter' : isZh ? '推理网关、认证、速率限制器' : 'Inference Gateway, Auth, Rate Limiter',
+      layer: isKo ? 'Layer 2: Gateway & Governance' : isZh ? '第2层：网关与治理' : 'Layer 2: Gateway & Governance',
+      role: isKo ? '인증, 라우팅, A/B 테스트, 비용 제어' : isZh ? '认证、路由、A/B 测试、成本控制' : 'Authentication, routing, A/B testing, cost control',
+      components: isKo ? 'Inference Gateway, Auth, A/B Router, Cost Guardrails' : isZh ? '推理网关、认证、A/B 路由器、成本护栏' : 'Inference Gateway, Auth, A/B Router, Cost Guardrails',
       color: '#fff3e0'
     },
     {
-      layer: isKo ? 'Agent Layer' : isZh ? '代理层' : 'Agent Layer',
-      role: isKo ? 'AI 에이전트 실행 및 오케스트레이션' : isZh ? 'AI 代理执行和编排' : 'AI agent execution and orchestration',
-      components: isKo ? 'Agent Controller, Agent Instances, Tool Registry' : isZh ? '代理控制器、代理实例、工具注册表' : 'Agent Controller, Agent Instances, Tool Registry',
+      layer: isKo ? 'Layer 3: Agent & Orchestration' : isZh ? '第3层：代理与编排' : 'Layer 3: Agent & Orchestration',
+      role: isKo ? 'AI 에이전트 실행 및 버전 관리' : isZh ? 'AI 代理执行和版本管理' : 'AI agent execution and version management',
+      components: isKo ? 'Agent Controller, Agent Runtime, Tool Registry, Agent Version Store' : isZh ? '代理控制器、代理运行时、工具注册表、代理版本库' : 'Agent Controller, Agent Runtime, Tool Registry, Agent Version Store',
       color: '#e8f5e9'
     },
     {
-      layer: isKo ? 'Model Serving Layer' : isZh ? '模型服务层' : 'Model Serving Layer',
-      role: isKo ? 'LLM 모델 추론 서비스' : isZh ? 'LLM 模型推理服务' : 'LLM model inference service',
-      components: isKo ? 'LLM Serving Engine, 분산 추론 스케줄러' : isZh ? 'LLM 服务引擎、分布式推理调度器' : 'LLM Serving Engine, Distributed Inference Scheduler',
+      layer: isKo ? 'Layer 4: Model Serving & Lifecycle' : isZh ? '第4层：模型服务与生命周期' : 'Layer 4: Model Serving & Lifecycle',
+      role: isKo ? 'LLM 추론, 모델 버전 관리, 파인튜닝' : isZh ? 'LLM 推理、模型版本管理、微调' : 'LLM inference, model versioning, fine-tuning',
+      components: isKo ? 'LLM Serving Engine, Model Registry, Fine-tuning Service, Evaluation Harness' : isZh ? 'LLM 服务引擎、模型注册表、微调服务、评估工具' : 'LLM Serving Engine, Model Registry, Fine-tuning Service, Evaluation Harness',
       color: '#fce4ec'
     },
     {
-      layer: isKo ? 'Data Layer' : isZh ? '数据层' : 'Data Layer',
-      role: isKo ? '데이터 저장 및 검색' : isZh ? '数据存储和搜索' : 'Data storage and search',
-      components: isKo ? 'Vector DB, Cache, Object Storage' : isZh ? '向量数据库、缓存、对象存储' : 'Vector DB, Cache, Object Storage',
+      layer: isKo ? 'Layer 5: Data & Feature' : isZh ? '第5层：数据与特征' : 'Layer 5: Data & Feature',
+      role: isKo ? '데이터 저장, Feature Store, 데이터 품질 관리' : isZh ? '数据存储、特征库、数据质量管理' : 'Data storage, Feature Store, data quality management',
+      components: isKo ? 'Vector DB, Feature Store, ETL Pipeline, Data Quality Monitor' : isZh ? '向量数据库、特征库、ETL 管道、数据质量监控' : 'Vector DB, Feature Store, ETL Pipeline, Data Quality Monitor',
       color: '#f3e5f5'
     },
     {
-      layer: isKo ? 'Observability Layer' : isZh ? '可观测性层' : 'Observability Layer',
-      role: isKo ? '모니터링 및 추적' : isZh ? '监控和跟踪' : 'Monitoring and tracking',
-      components: isKo ? 'LLM Tracing, Metrics, Dashboard' : isZh ? 'LLM 追踪、指标、仪表盘' : 'LLM Tracing, Metrics, Dashboard',
+      layer: isKo ? 'Layer 6: Observability & Insights' : isZh ? '第6层：可观测性与洞察' : 'Layer 6: Observability & Insights',
+      role: isKo ? '모니터링, 추적, 드리프트 감지, 실험 추적' : isZh ? '监控、追踪、漂移检测、实验追踪' : 'Monitoring, tracing, drift detection, experiment tracking',
+      components: isKo ? 'LLM Tracing, Metrics, Drift Detection, Experiment Tracking' : isZh ? 'LLM 追踪、指标、漂移检测、实验追踪' : 'LLM Tracing, Metrics, Drift Detection, Experiment Tracking',
       color: '#e0f7fa'
+    },
+    {
+      layer: isKo ? 'Layer 7: Training & Feedback' : isZh ? '第7层：训练与反馈' : 'Layer 7: Training & Feedback',
+      role: isKo ? '지속적 학습, 재학습 파이프라인, 피드백 루프' : isZh ? '持续学习、重新训练管道、反馈循环' : 'Continuous learning, retraining pipeline, feedback loop',
+      components: isKo ? 'Training Pipeline, CT Scheduler, Feedback Loop, Drift Detector' : isZh ? '训练管道、CT 调度器、反馈循环、漂移检测器' : 'Training Pipeline, CT Scheduler, Feedback Loop, Drift Detector',
+      color: '#fff0f5'
+    },
+    {
+      layer: isKo ? 'Layer 8: Evaluation & Quality' : isZh ? '第8层：评估与质量' : 'Layer 8: Evaluation & Quality',
+      role: isKo ? '품질 평가, Guardrails, 자동 롤백, SLO 관리' : isZh ? '质量评估、护栏、自动回滚、SLO 管理' : 'Quality evaluation, guardrails, automated rollback, SLO management',
+      components: isKo ? 'RAGAS Metrics, Guardrails, Regression Detection, Automated Rollback' : isZh ? 'RAGAS 指标、护栏、回归检测、自动回滚' : 'RAGAS Metrics, Guardrails, Regression Detection, Automated Rollback',
+      color: '#f0ffe1'
     }
   ];
 
