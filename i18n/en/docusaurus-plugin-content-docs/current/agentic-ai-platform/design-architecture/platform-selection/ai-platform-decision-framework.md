@@ -32,7 +32,7 @@ AI platform construction paths are broadly divided into three categories:
 
 :::info Prerequisites
 Before reading this document, refer to the following:
-- [Platform Architecture](../foundations/agentic-platform-architecture.md) — 6-layer core design blueprint
+- [Platform Architecture](../foundations/agentic-platform-architecture.md) — 6 layers + 3 planes design blueprint
 - [Technical Challenges](../foundations/agentic-ai-challenges.md) — 5 core challenge analysis
 :::
 
@@ -176,6 +176,25 @@ flowchart TD
 
 :::warning The Flowchart is a Starting Point
 This flowchart is the starting point for conversation, not the final conclusion. Actual customer situations are complex, and most enterprises converge on a **hybrid approach**.
+:::
+
+---
+
+## The Fourth Decision Axis: Data Sovereignty
+
+The flowchart above used workload, volume, and capability as criteria, but in regulated industries **data sovereignty** acts as a hard constraint that takes precedence over all other criteria. Sovereignty requirements appear on a Public → In-country → Hybrid → Air-gapped spectrum; the stronger the requirement, the lower the managed-service dependency and the larger the share of self-hosting/on-premises.
+
+| Sovereignty Level | Inference Location | Recommended Approach |
+|-------------------|--------------------|--------------------|
+| **Public** | No region constraint | AWS Native |
+| **In-country** | Fixed to in-country region | Bedrock Geographic CRIS + SCP region enforcement |
+| **Hybrid** | On-premises + in-country | EKS Hybrid Nodes + self-hosting |
+| **Air-gapped** | Fully isolated | On-premises EKS only |
+
+It is safest to treat data sovereignty as the **first filter** of the decision. When a sovereignty constraint forces EKS self-hosting or hybrid, it takes precedence over conclusions based on cost or volume.
+
+:::info Sovereign & Hybrid Details
+For SCP region enforcement policies, Bedrock Geographic cross-Region inference, and EKS Hybrid Nodes-based hybrid/in-country self-hosting implementation, see [Sovereign & Hybrid Deployment](./sovereign-hybrid-deployment.md).
 :::
 
 ---
@@ -343,7 +362,8 @@ For detailed analysis of instance costs, Spot savings rates, and Cascade Routing
 
 ### Related Documents (Internal)
 
-- [Platform Architecture](../foundations/agentic-platform-architecture.md) — 6 core layers
+- [Platform Architecture](../foundations/agentic-platform-architecture.md) — 6 layers + 3 planes
 - [Technical Challenges](../foundations/agentic-ai-challenges.md) — 5 core challenges
 - [AWS Native Platform](./aws-native-agentic-platform.md) — Managed service details
 - [EKS-based Open Architecture](./agentic-ai-solutions-eks.md) — Self-hosting details
+- [Sovereign & Hybrid Deployment](./sovereign-hybrid-deployment.md) — Data sovereignty, SCP region enforcement, EKS Hybrid Nodes

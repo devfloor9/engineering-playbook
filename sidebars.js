@@ -154,6 +154,7 @@ const sidebars = {
                 'agentic-ai-platform/design-architecture/platform-selection/aws-native-agentic-platform',
                 'agentic-ai-platform/design-architecture/platform-selection/agentic-ai-solutions-eks',
                 'agentic-ai-platform/design-architecture/platform-selection/agentcore-hybrid-strategy',
+                'agentic-ai-platform/design-architecture/platform-selection/sovereign-hybrid-deployment',
               ],
             },
             {
@@ -478,6 +479,7 @@ const sidebars = {
       },
       items: [
         'hybrid-infrastructure/hybrid-nodes-adoption-guide',
+        'hybrid-infrastructure/hybrid-nodes-networking-gateway',
         'hybrid-infrastructure/sriov-dgx-h200-hybrid',
         'hybrid-infrastructure/hybrid-nodes-file-storage',
         'hybrid-infrastructure/harbor-hybrid-integration',

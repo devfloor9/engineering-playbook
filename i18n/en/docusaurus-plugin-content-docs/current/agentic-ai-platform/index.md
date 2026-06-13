@@ -27,7 +27,7 @@ This documentation series guides you through understanding the platform architec
     to="/docs/agentic-ai-platform/design-architecture"
     icon="🏗️"
     title="Design & Architecture"
-    description="Platform 6-layer design, 5 key challenges, AWS Native vs EKS implementation, 2-Tier Inference Gateway & Cascade Routing strategy."
+    description="Platform 6 layers + 3 planes design, 5 key challenges, AWS Native vs EKS implementation, 2-Tier Inference Gateway & Cascade Routing strategy."
     color="#667eea"
   />
   <DocCard

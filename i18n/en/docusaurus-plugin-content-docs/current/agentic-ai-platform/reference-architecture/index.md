@@ -26,7 +26,7 @@ This section provides **production deployment and configuration guides** for the
 
 ## Platform Architecture
 
-The complete architecture of the Agentic AI Platform, including the Ontology-based Knowledge Feature Store, 6-layer structure, and model serving/fine-tuning pipelines.
+The complete architecture of the Agentic AI Platform, including the Ontology-based Knowledge Feature Store, 6 layers + 3 planes structure, and model serving/fine-tuning pipelines.
 
 <iframe
   src="https://viewer.diagrams.net/?highlight=0000ff&nav=1&title=Agentic%20AI%20Platform&url=https%3A%2F%2Fraw.githubusercontent.com%2Fdevfloor9%2Fengineering-playbook%2Fmain%2Fstatic%2FAgentic%2520AI%2520Platform(with%2520Ontology%2520and%2520fine%2520tunning%2520feature).drawio"

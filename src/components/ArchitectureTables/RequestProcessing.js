@@ -8,43 +8,43 @@ const RequestProcessing = () => {
 
   const steps = [
     {
-      step: '1-3',
-      component: 'Gateway, Auth',
-      description: isKo ? '인증 및 권한 검증' : isZh ? '身份验证和授权验证' : 'Authentication and authorization verification',
+      step: '1-2',
+      component: 'Gateway (L5)',
+      description: isKo ? '인증 · Rate Limit · Guardrail 검증' : isZh ? '认证 · 限流 · 护栏验证' : 'Auth, rate limit, guardrail verification',
       color: '#3b82f6',
       icon: '🔐'
     },
     {
-      step: '4-5',
-      component: 'Controller, Agent',
-      description: isKo ? '에이전트 선택 및 작업 할당' : isZh ? '代理选择和任务分配' : 'Agent selection and task assignment',
+      step: '3',
+      component: 'Gateway → Agent (L4)',
+      description: isKo ? '에이전트 라우팅 및 작업 할당' : isZh ? '代理路由和任务分配' : 'Agent routing and task assignment',
       color: '#8b5cf6',
       icon: '🤖'
     },
     {
-      step: '6-8',
-      component: 'Agent, Vector DB',
+      step: '4-5',
+      component: 'Agent → Vector DB (L3)',
       description: isKo ? 'RAG를 위한 컨텍스트 검색' : isZh ? 'RAG 上下文搜索' : 'Context search for RAG',
       color: '#10b981',
       icon: '🔍'
     },
     {
-      step: '9-11',
-      component: 'Agent, LLM',
-      description: isKo ? 'LLM 추론 수행' : isZh ? 'LLM 推理执行' : 'LLM inference execution',
+      step: '6-8',
+      component: 'Agent → Gateway → Model (L2)',
+      description: isKo ? '게이트웨이 경유 모델 추론 (Cascade · Fallback)' : isZh ? '经网关的模型推理（Cascade · Fallback）' : 'Model inference via gateway (Cascade, Fallback)',
       color: '#f59e0b',
       icon: '🧠'
     },
     {
-      step: '12',
-      component: 'Tracing',
-      description: isKo ? '관측성 데이터 기록' : isZh ? '记录可观测性数据' : 'Record observability data',
+      step: '9',
+      component: isKo ? '관측성 플레인' : isZh ? '可观测性平面' : 'Observability Plane',
+      description: isKo ? 'Trace · 비용 기록' : isZh ? '记录追踪和成本' : 'Record trace and cost',
       color: '#06b6d4',
       icon: '📊'
     },
     {
-      step: '13-15',
-      component: isKo ? '전체' : isZh ? '全部' : 'Overall',
+      step: '10-11',
+      component: 'Agent → Gateway → Client',
       description: isKo ? '응답 반환' : isZh ? '返回响应' : 'Response return',
       color: '#ec4899',
       icon: '✅'

@@ -15,7 +15,7 @@ tags:
 
 ## Overview
 
-Foundation documents for understanding the core design principles and structure of Agentic AI platforms. Explains "what to build and why" through the 6-layer platform blueprint, 5 key challenges, and Knowledge Feature Store concepts.
+Foundation documents for understanding the core design principles and structure of Agentic AI platforms. Explains "what to build and why" through the 6 runtime layers + 3 cross-cutting planes platform blueprint, 5 key challenges, and Knowledge Feature Store concepts.
 
 ## Document List
 

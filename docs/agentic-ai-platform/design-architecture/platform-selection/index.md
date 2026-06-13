@@ -16,7 +16,7 @@ tags:
 
 ## 개요
 
-엔터프라이즈 환경에서 Agentic AI 플랫폼을 구축할 때 직면하는 핵심 질문은 "어떤 플랫폼을 선택할 것인가"입니다. SageMaker/Bedrock/EKS 비교, AWS Native 관리형 서비스, EKS 오픈소스 아키텍처, Bedrock AgentCore 하이브리드 전략 등 4가지 접근 방식을 상황별 선택 기준과 함께 제시합니다.
+엔터프라이즈 환경에서 Agentic AI 플랫폼을 구축할 때 직면하는 핵심 질문은 "어떤 플랫폼을 선택할 것인가"입니다. SageMaker/Bedrock/EKS 비교, AWS Native 관리형 서비스, EKS 오픈소스 아키텍처, Bedrock AgentCore 하이브리드 전략, 데이터 주권을 충족하는 소버린·하이브리드 배포 등 상황별 선택 기준을 함께 제시합니다.
 
 ## 문서 목록
 

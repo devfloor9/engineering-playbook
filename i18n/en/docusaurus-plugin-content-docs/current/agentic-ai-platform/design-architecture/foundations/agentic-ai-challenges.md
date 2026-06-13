@@ -126,7 +126,7 @@ Traditional VM-based infrastructure or manual management approaches cannot effec
 
 ## Challenge 1: GPU Resource Management and Cost Optimization
 
-GPUs are the **most expensive resource** in the Agentic AI Platform. Appropriate GPU allocation strategies are needed based on model size and workload characteristics.
+GPUs are the **most expensive resource** in the Agentic AI Platform. Appropriate GPU allocation strategies are needed based on model size and workload characteristics. This challenge is owned by **Layer 1: AI Infrastructure** of the platform architecture, which addresses it by integrating accelerated compute, orchestration, monitoring, and performance optimization into a single layer.
 
 **Why it's difficult:**
 

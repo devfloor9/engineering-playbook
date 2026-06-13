@@ -685,7 +685,7 @@ CloudWatch Generative AI Observability는 **2025년 10월 GA**되었습니다. A
 
 ### 관련 문서 (내부)
 
-- [플랫폼 아키텍처](../foundations/agentic-platform-architecture.md) — 6개 핵심 레이어
+- [플랫폼 아키텍처](../foundations/agentic-platform-architecture.md) — 6 레이어 + 3 플레인
 - [기술적 도전과제](../foundations/agentic-ai-challenges.md) — 5가지 핵심 과제
 - [AI 플랫폼 선택 가이드](./ai-platform-decision-framework.md) — 매니지드 vs 오픈소스
 - [EKS 기반 오픈 아키텍처](./agentic-ai-solutions-eks.md) — 자체 호스팅 비교

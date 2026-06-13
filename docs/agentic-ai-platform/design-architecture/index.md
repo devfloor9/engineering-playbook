@@ -26,7 +26,7 @@ Agentic AI 플랫폼의 아키텍처를 이해하고, 기술적 도전과제를 
     to="/docs/agentic-ai-platform/design-architecture/foundations"
     icon="🏗️"
     title="플랫폼 기초"
-    description="6-레이어 플랫폼 블루프린트, 5가지 핵심 도전과제, Knowledge Feature Store 개념을 통해 Agentic AI 플랫폼의 기초를 이해합니다."
+    description="6 런타임 레이어 + 3 횡단 플레인 플랫폼 블루프린트, 5가지 핵심 도전과제, Knowledge Feature Store 개념을 통해 Agentic AI 플랫폼의 기초를 이해합니다."
     color="#667eea"
   />
   <DocCard

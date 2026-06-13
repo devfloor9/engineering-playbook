@@ -32,7 +32,7 @@ AI 플랫폼 구축 경로는 크게 3가지로 나뉩니다:
 
 :::info 선행 문서
 이 문서를 읽기 전에 다음 문서를 먼저 참조하세요:
-- [플랫폼 아키텍처](../foundations/agentic-platform-architecture.md) — 6개 핵심 레이어 설계 청사진
+- [플랫폼 아키텍처](../foundations/agentic-platform-architecture.md) — 6 레이어 + 3 플레인 설계 청사진
 - [기술적 도전과제](../foundations/agentic-ai-challenges.md) — 5가지 핵심 과제 분석
 :::
 
@@ -176,6 +176,25 @@ flowchart TD
 
 :::warning 플로우차트는 출발점입니다
 이 플로우차트는 대화의 시작점이지, 최종 결론이 아닙니다. 실제 고객 상황은 복합적이며, 대부분의 엔터프라이즈는 **하이브리드 접근**으로 수렴합니다.
+:::
+
+---
+
+## 네 번째 결정축: 데이터 주권
+
+앞의 플로우차트는 워크로드·볼륨·역량을 기준으로 했지만, 규제 산업에서는 **데이터 주권(Sovereignty)**이 다른 모든 기준에 우선하는 하드 제약으로 작용합니다. 주권 요구는 Public → In-country → Hybrid → Air-gapped 스펙트럼으로 나타나며, 요구 강도가 높을수록 매니지드 의존도는 낮아지고 자체 호스팅·온프레미스 비중이 커집니다.
+
+| 주권 수준 | 추론 위치 | 권장 접근 |
+|----------|----------|----------|
+| **Public** | 리전 제약 없음 | AWS Native |
+| **In-country** | 국내 리전 고정 | Bedrock Geographic CRIS + SCP 리전 강제 |
+| **Hybrid** | 온프레미스 + in-country | EKS Hybrid Nodes + 자체 호스팅 |
+| **Air-gapped** | 완전 격리 | 온프레미스 EKS 전용 |
+
+데이터 주권은 의사결정의 **첫 번째 필터**로 두는 것이 안전합니다. 주권 제약이 EKS 자체 호스팅 또는 하이브리드를 강제하면, 비용·볼륨 기준의 결론보다 우선합니다.
+
+:::info 소버린 & 하이브리드 상세
+SCP 리전 강제 정책, Bedrock Geographic cross-Region inference, EKS Hybrid Nodes 기반 하이브리드·in-country 자체 호스팅 구현은 [소버린 & 하이브리드 배포](./sovereign-hybrid-deployment.md)를 참조하세요.
 :::
 
 ---
@@ -343,7 +362,8 @@ flowchart LR
 
 ### 관련 문서 (내부)
 
-- [플랫폼 아키텍처](../foundations/agentic-platform-architecture.md) — 6개 핵심 레이어
+- [플랫폼 아키텍처](../foundations/agentic-platform-architecture.md) — 6 레이어 + 3 플레인
 - [기술적 도전과제](../foundations/agentic-ai-challenges.md) — 5가지 핵심 과제
 - [AWS Native 플랫폼](./aws-native-agentic-platform.md) — 매니지드 서비스 상세
 - [EKS 기반 오픈 아키텍처](./agentic-ai-solutions-eks.md) — 자체 호스팅 상세
+- [소버린 & 하이브리드 배포](./sovereign-hybrid-deployment.md) — 데이터 주권, SCP 리전 강제, EKS Hybrid Nodes

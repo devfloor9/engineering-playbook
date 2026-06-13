@@ -27,7 +27,7 @@ Agentic AI Platform은 자율적인 AI 에이전트가 복잡한 작업을 수�
     to="/docs/agentic-ai-platform/design-architecture"
     icon="🏗️"
     title="설계 & 아키텍처"
-    description="플랫폼 6개 레이어 설계, 5가지 도전과제, AWS Native vs EKS 구현, 2-Tier 추론 게이트웨이 & Cascade Routing 전략."
+    description="플랫폼 6 레이어 + 3 플레인 설계, 5가지 도전과제, AWS Native vs EKS 구현, 2-Tier 추론 게이트웨이 & Cascade Routing 전략."
     color="#667eea"
   />
   <DocCard

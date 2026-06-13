@@ -16,7 +16,7 @@ tags:
 
 ## Overview
 
-The key question when building an Agentic AI platform in an enterprise environment is "which platform to choose." Presents four approaches with situation-specific selection criteria: SageMaker/Bedrock/EKS comparison, AWS Native managed services, EKS open-source architecture, and Bedrock AgentCore hybrid strategy.
+The key question when building an Agentic AI platform in an enterprise environment is "which platform to choose." Presents situation-specific selection criteria including SageMaker/Bedrock/EKS comparison, AWS Native managed services, EKS open-source architecture, Bedrock AgentCore hybrid strategy, and sovereign/hybrid deployment that meets data sovereignty requirements.
 
 ## Document List
 

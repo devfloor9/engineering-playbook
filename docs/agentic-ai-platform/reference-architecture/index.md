@@ -26,7 +26,7 @@ import DocCardList from '@theme/DocCardList';
 
 ## 플랫폼 아키텍처
 
-Agentic AI Platform의 전체 아키텍처입니다. Ontology 기반 Knowledge Feature Store, 6개 레이어 구조, 모델 서빙/파인튜닝 파이프라인을 포함합니다.
+Agentic AI Platform의 전체 아키텍처입니다. Ontology 기반 Knowledge Feature Store, 6 레이어 + 3 플레인 구조, 모델 서빙/파인튜닝 파이프라인을 포함합니다.
 
 <iframe
   src="https://viewer.diagrams.net/?highlight=0000ff&nav=1&title=Agentic%20AI%20Platform&url=https%3A%2F%2Fraw.githubusercontent.com%2Fdevfloor9%2Fengineering-playbook%2Fmain%2Fstatic%2FAgentic%2520AI%2520Platform(with%2520Ontology%2520and%2520fine%2520tunning%2520feature).drawio"

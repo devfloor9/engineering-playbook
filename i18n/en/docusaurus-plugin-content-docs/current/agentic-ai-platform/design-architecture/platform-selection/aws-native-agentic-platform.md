@@ -685,7 +685,7 @@ CloudWatch Generative AI Observability became **GA in October 2025**. Natively i
 
 ### Related Documents (Internal)
 
-- [Platform Architecture](../foundations/agentic-platform-architecture.md) — 6 core layers
+- [Platform Architecture](../foundations/agentic-platform-architecture.md) — 6 layers + 3 planes
 - [Technical Challenges](../foundations/agentic-ai-challenges.md) — 5 core challenges
 - [AI Platform Selection Guide](./ai-platform-decision-framework.md) — Managed vs open source
 - [EKS-based Open Architecture](./agentic-ai-solutions-eks.md) — Self-hosting comparison

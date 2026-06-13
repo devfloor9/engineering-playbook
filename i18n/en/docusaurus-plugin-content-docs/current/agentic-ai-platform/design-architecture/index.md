@@ -26,7 +26,7 @@ This section guides you through understanding the Agentic AI Platform architectu
     to="/docs/agentic-ai-platform/design-architecture/foundations"
     icon="🏗️"
     title="Platform Foundations"
-    description="Understand the fundamentals of the Agentic AI Platform through the 6-layer platform blueprint, 5 key challenges, and Knowledge Feature Store concept."
+    description="Understand the fundamentals of the Agentic AI Platform through the 6 runtime layers + 3 cross-cutting planes platform blueprint, 5 key challenges, and Knowledge Feature Store concept."
     color="#667eea"
   />
   <DocCard
