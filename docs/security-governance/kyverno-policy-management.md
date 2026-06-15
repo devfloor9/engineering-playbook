@@ -1,11 +1,11 @@
 ---
 title: "Kyverno 기반 정책 관리"
 sidebar_label: "Kyverno 정책 관리"
-description: "Kyverno v1.16을 활용한 Kubernetes 정책 관리 및 거버넌스"
+description: "Kyverno v1.17+ (현재 v1.18)을 활용한 Kubernetes 정책 관리 및 거버넌스"
 category: "security"
 tags: [eks, security, kyverno, policy, governance]
 last_update:
-  date: 2026-02-13
+  date: 2026-06-15
   author: devfloor9
 ---
 
@@ -14,7 +14,7 @@ last_update:
 :::info 작성 예정
 이 문서는 현재 작성 중입니다. 다음 내용이 포함될 예정입니다:
 
-- Kyverno v1.16 CEL 기반 정책
+- Kyverno v1.17+ (현재 v1.18) CEL v1 GA 정책 (1.17부터 프로덕션 가능)
 - 네임스페이스 수준 정책 관리
 - 정책 예외 관리
 - OPA Gatekeeper 비교

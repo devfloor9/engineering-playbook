@@ -6,7 +6,7 @@ tags: [eks, observability, langfuse, langsmith, helicone, llmops, monitoring, 's
 category: "genai-aiml"
 created: 2026-03-16
 last_update:
-  date: 2026-04-20
+  date: 2026-06-15
   author: devfloor9
 sidebar_position: 7
 reading_time: 8
@@ -90,7 +90,7 @@ flowchart TB
 - **Tracing**: LangChain, LlamaIndex, OpenAI SDK 네이티브 통합, 중첩된 체인/에이전트 완전 가시성
 - **Prompt Management**: 프롬프트 템플릿 버전 관리, A/B 테스트, 프로덕션/스테이징 환경 분리
 - **Evaluation**: LLM-as-Judge, 규칙 기반 자동 평가, Annotation Queue 수동 평가, Dataset 관리
-- **아키텍처**: PostgreSQL(메타데이터) + ClickHouse(분석) + Redis(캐시)
+- **아키텍처**: PostgreSQL(메타데이터) + ClickHouse(분석) + Redis(캐시). v3(2024-12+)는 ClickHouse+Redis+S3+Worker로 v2 대비 셀프호스팅 복잡도 증가
 
 **장점**: 완전한 데이터 소유권, 무제한 확장, 강력한 평가 파이프라인, 비용 효율(셀프호스트)
 
@@ -116,10 +116,10 @@ flowchart TB
 
 **핵심 기능**:
 - Zero-Code 통합: OpenAI endpoint URL 변경만으로 자동 추적
-- Gateway 기능 내장: Rate limiting, Caching, Retries, Load balancing
+- Gateway 기능 내장: Rate limiting, Caching, Retries, Load balancing (Rust 기반 고성능 게이트웨이)
 - 실시간 비용 대시보드
 
-**장점**: 초고속 통합(URL 변경만), 고성능(Rust, 10ms 미만 지연), Gateway 기능 내장
+**장점**: 초고속 통합(URL 변경만), Go 기반 고성능 게이트웨이(10ms 미만 지연), Gateway 기능 내장
 
 **단점**: 프롬프트 관리/평가 파이프라인 부재, 중첩 Span 추적 제한적
 

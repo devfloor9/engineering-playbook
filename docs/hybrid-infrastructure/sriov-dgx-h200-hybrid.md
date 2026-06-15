@@ -5,7 +5,7 @@ description: "NVIDIA DGX H200 시스템에서 Amazon EKS Hybrid Nodes를 실행�
 tags: [eks, hybrid-nodes, dgx-h200, sriov, infiniband, networking, mlnx-ofed]
 category: "hybrid-multicloud"
 last_update:
-  date: 2026-02-14
+  date: 2026-06-15
   author: devfloor9
 ---
 
@@ -30,7 +30,7 @@ Picture this: You've deployed a cutting-edge DGX H200 cluster with 8x 400G Infin
 
 Our environment consisted of:
 
-- **Hardware**: NVIDIA DGX H200 (8-GPU system) with 8x 400G InfiniBand HCAs + 1x 200G BlueField-3
+- **Hardware**: NVIDIA DGX H200 (8-GPU system) with 2x dual-port ConnectX-7 (400G InfiniBand HCAs). BlueField-3 DPU는 옵션 구성이며 SuperPOD 환경에서 주로 사용됩니다.
 - **Software Stack**: Ubuntu 24.04, Kernel 6.8.0-55-generic, Amazon EKS Hybrid Nodes
 - **Networking**: Cilium v1.17.x (primary CNI) with Multus + SR-IOV CNI for secondary networks
 

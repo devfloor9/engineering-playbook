@@ -4,7 +4,7 @@ sidebar_label: "Disaggregated Serving"
 description: "Prefill/Decode 분리 아키텍처와 NIXL 공통 KV 전송 엔진, LeaderWorkerSet 기반 700B+ 대형 MoE 모델 멀티노드 배포 가이드"
 created: 2026-04-03
 last_update:
-  date: 2026-04-20
+  date: 2026-06-15
   author: devfloor9
 reading_time: 15
 tags:
@@ -181,7 +181,7 @@ spec:
             effect: NoSchedule
         containers:
           - name: vllm
-            image: vllm/vllm-openai:v0.18.1
+            image: vllm/vllm-openai:v0.23.0
             command: ["vllm", "serve"]
             args:
               - "zai-org/GLM-5-FP8"
@@ -219,7 +219,7 @@ spec:
             effect: NoSchedule
         containers:
           - name: vllm
-            image: vllm/vllm-openai:v0.18.1
+            image: vllm/vllm-openai:v0.23.0
             command: ["vllm", "serve"]
             args:
               - "zai-org/GLM-5-FP8"

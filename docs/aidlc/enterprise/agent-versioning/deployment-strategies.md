@@ -4,7 +4,7 @@ sidebar_label: "배포 전략"
 description: "점진적 모델 교체 전략과 Feature Flag 기반 프롬프트 전개 방식"
 tags: [deployment, canary, shadow, ab-test, blue-green, feature-flag, 'scope:enterprise']
 last_update:
-  date: 2026-04-18
+  date: 2026-06-15
   author: devfloor9
 ---
 
@@ -213,7 +213,7 @@ spec:
     spec:
       containers:
       - name: vllm
-        image: vllm/vllm-openai:v0.5.4
+        image: vllm/vllm-openai:v0.23.0
         args: ["--model", "meta-llama/Llama-3.1-8B-Instruct"]
 ---
 # green-deployment.yaml (신버전)
@@ -235,7 +235,7 @@ spec:
     spec:
       containers:
       - name: vllm
-        image: vllm/vllm-openai:v0.6.3
+        image: vllm/vllm-openai:v0.23.0
         args: ["--model", "meta-llama/Llama-3.1-8B-Instruct"]
 ---
 # service.yaml (처음엔 blue 가리킴)

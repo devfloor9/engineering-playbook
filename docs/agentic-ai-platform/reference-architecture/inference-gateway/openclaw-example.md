@@ -4,7 +4,7 @@ sidebar_label: "OpenClaw AI Gateway"
 description: "OpenClaw AI 에이전트 게이트웨이를 EKS에 비용 최적화 배포하고, Bifrost Auto-Router + Cilium Hubble + Langfuse로 Full Observability 구현"
 created: 2026-03-06
 last_update:
-  date: 2026-04-20
+  date: 2026-06-15
   author: devfloor9
 reading_time: 1
 tags: [eks, openclaw, bifrost, langfuse, cilium, hubble, bedrock, graviton, pod-identity, observability, 'scope:impl']
@@ -14,7 +14,7 @@ sidebar_position: 5
 
 ## 개요
 
-OpenClaw(226k+ GitHub stars)은 범용 AI 에이전트 프레임워크로, 다양한 LLM을 활용한 자율 에이전트 워크플로우를 제공합니다. AWS에서는 `aws-samples/sample-OpenClaw-on-AWS-with-Bedrock` 샘플이 EC2 + CloudFormation 기반의 빠른 시작 가이드를 제공하며, 단일 인스턴스에서 Bedrock 모델 하나를 연동하는 간단한 구성입니다. 프로토타이핑이나 개인 사용에는 충분하지만, 엔터프라이즈 환경에서는 다른 접근이 필요합니다.
+OpenClaw은 범용 AI 에이전트 프레임워크로, 다양한 LLM을 활용한 자율 에이전트 워크플로우를 제공합니다. AWS에서는 `aws-samples/sample-OpenClaw-on-AWS-with-Bedrock` 샘플이 EC2 + CloudFormation 기반의 빠른 시작 가이드를 제공하며, 단일 인스턴스에서 Bedrock 모델 하나를 연동하는 간단한 구성입니다. 프로토타이핑이나 개인 사용에는 충분하지만, 엔터프라이즈 환경에서는 다른 접근이 필요합니다.
 
 이 문서에서는 **기존 EKS 클러스터 위에 OpenClaw을 배포**하고, 멀티 모델 라우팅과 3계층 관측성을 결합하여 프로덕션 운영이 가능한 구조를 구성합니다.
 
@@ -51,7 +51,7 @@ import OpenClawArchitecture from '@site/src/components/OpenClawArchitecture';
 | 결정 영역 | 선택 | 대안 | 핵심 근거 |
 |-----------|------|------|-----------|
 | **호스팅 플랫폼** | EKS | EC2 단독 / AgentCore | Karpenter 자동 스케일링, o11y 스택 자유도, Spot/Graviton 조합 가능. AgentCore는 Experimental 단계로 cron 미지원, o11y 커스터마이징 제한 |
-| **LLM Gateway** | Bifrost Proxy | LiteLLM / llm-d | Bedrock 멀티 모델 구조에 최적. Rust 기반 50x 빠른 성능, 100+ 프로바이더, 예산 제어, `success_callback: ["langfuse"]` 한 줄 연동. 자체 vLLM 추가 시 `Bifrost → llm-d → vLLM` 하이브리드 가능. LiteLLM은 대안으로 사용 가능 |
+| **LLM Gateway** | Bifrost Proxy | LiteLLM / llm-d | Bedrock 멀티 모델 구조에 최적. Go 기반 고성능 게이트웨이, 100+ 프로바이더, 예산 제어, `success_callback: ["langfuse"]` 한 줄 연동. 자체 vLLM 추가 시 `Bifrost → llm-d → vLLM` 하이브리드 가능. LiteLLM은 대안으로 사용 가능 |
 | **LLM Observability** | Langfuse (self-hosted) | Tempo / Loki | LLM 네이티브: 토큰 사용량, 비용, 도구 호출 체인, 프롬프트/완료 내용 추적. Tempo/Loki는 범용 인프라 o11y로 프롬프트 수준 추적 불가 |
 | **Network Observability** | Cilium Hubble (ENI 모드) | CW Network Flow Monitor | L3/L4/L7 가시성(HTTP 경로, 상태코드, DNS), 인터랙티브 서비스맵, $0. CW NFM은 L3/L4만 지원하며 $20-45/월 |
 | **IAM 인증** | EKS Pod Identity | IRSA | OIDC provider 불필요, `aws eks create-pod-identity-association` 한 줄로 매핑 |
@@ -63,13 +63,13 @@ import OpenClawArchitecture from '@site/src/components/OpenClawArchitecture';
 
 ### Compute
 
-OpenClaw(TypeScript/Node.js)과 Bifrost(Rust)는 ARM64 완전 호환이며, multi-arch 이미지를 사용합니다.
+OpenClaw(TypeScript/Node.js)과 Bifrost(Go)는 ARM64 완전 호환이며, multi-arch 이미지를 사용합니다.
 
 | 항목 | 구성 | 상세 |
 |------|------|------|
 | **인스턴스** | Graviton4 **M8g** | GA, x86 대비 20-40% 비용 절감, 에너지 효율 60% 향상 |
-| **향후 전환** | Graviton5 **M9g** | M8g 대비 25% 성능 향상, 2026 GA 예정. GA 후 전환 시 동일 비용에서 추가 성능 확보 |
-| **구매 옵션** | **Spot Instance** 우선 | On-Demand 대비 60-90% 절감. Karpenter v1.2+ 네이티브 중단 대응 + NMA 노드 건강 감시 |
+| **향후 전환** | Graviton5 **M9g** | M8g 대비 ~25% 성능 향상, **2026-06-10 GA**. 전환 시 동일 비용에서 추가 성능 확보 |
+| **구매 옵션** | **Spot Instance** 우선 | On-Demand 대비 60-90% 절감. Karpenter v1.13+ 네이티브 중단 대응 + NMA 노드 건강 감시 |
 
 #### Spot Instance 안정 운영
 
@@ -77,7 +77,7 @@ OpenClaw 게이트웨이는 상태 비저장(stateless) 워크로드이므로 Sp
 
 | 계층 | 도구 | 역할 |
 |------|------|------|
-| **Spot 중단 대응** | Karpenter v1.2+ | 2분 전 경고 감지 → 대체 노드 프로비저닝 → Pod 재스케줄링 |
+| **Spot 중단 대응** | Karpenter v1.13+ | 2분 전 경고 감지 → 대체 노드 프로비저닝 → Pod 재스케줄링 |
 | **노드 건강 감시** | NMA (EKS Add-on) | 커널/containerd/디스크/네트워크 이상 감지 → Node Condition 업데이트 |
 | **자동 복구** | Node Auto Repair | NMA가 보고한 비정상 노드 자동 교체 |
 
@@ -104,7 +104,7 @@ spec:
 | 질의 유형 | 모델 | 프로바이더 | 근거 |
 |-----------|------|-----------|------|
 | 범용 (기본) | **Claude Sonnet 4.6** | Bedrock | 1M context, 최고 에이전트 성능 |
-| 코딩 / 프로그래밍 | **GLM-4.7** | Bedrock | 102B MoE, 코드 생성 최적화 |
+| 코딩 / 프로그래밍 | **GLM-4.7** | Bedrock | 355B-A32B, 코드 생성 최적화 |
 | 한국어 / 한국 관련 | **Solar Pro 3** | Bedrock | 128K context, 한국어 최적화, MoE 12B active |
 
 ### Networking
@@ -158,7 +158,7 @@ spec:
 
 | 요구사항 | 상세 |
 |----------|------|
-| EKS 버전 | 1.30+ |
+| EKS 버전 | 1.33+ |
 | Karpenter | v1.0+ (Spot 네이티브 중단 대응 포함) |
 | EKS Add-ons | Pod Identity Agent, EKS Node Monitoring Agent |
 | VPC | Bedrock VPC Endpoint (`com.amazonaws.<region>.bedrock-runtime`) |

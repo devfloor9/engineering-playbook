@@ -4,7 +4,7 @@ sidebar_label: "네트워킹 라우팅 & Gateway"
 description: "EKS Hybrid Nodes의 Node/Pod CIDR 라우팅 요건, CNI NAT 구성의 한계, CGNAT(100.64.0.0/10) 대역 지원, 그리고 Pod 라우팅 요건을 제거하는 Hybrid Nodes Gateway 아키텍처 분석"
 created: 2026-06-12
 last_update:
-  date: 2026-06-12
+  date: 2026-06-15
   author: YoungJoon Jeong
 reading_time: 15
 tags:
@@ -104,7 +104,7 @@ flowchart LR
     HN --- POD
 ```
 
-고가용성은 Kubernetes Lease 기반 leader election의 active-standby 모델로 구현됩니다. 두 게이트웨이 Pod가 pod anti-affinity로 서로 다른 노드(권장: 서로 다른 가용 영역)에서 실행되고, 두 Pod 모두 기동 시점에 VXLAN 인터페이스와 전체 하이브리드 노드의 VTEP 엔트리를 사전 구성합니다. Leader 장애 시 standby가 lease를 획득하고 VPC 라우트와 `CiliumVTEPConfig` CRD를 자신으로 갱신하기까지 약 3~5초의 failover가 발생합니다.
+고가용성은 Kubernetes Lease 기반 leader election의 active-standby 모델로 구현됩니다. 두 게이트웨이 Pod가 pod anti-affinity로 서로 다른 노드(권장: 서로 다른 가용 영역)에서 실행되고, 두 Pod 모두 기동 시점에 VXLAN 인터페이스와 전체 하이브리드 노드의 VTEP 엔트리를 사전 구성합니다. Leader 장애 시 standby가 lease를 획득하고 VPC 라우트와 `CiliumVTEPConfig` CRD를 자신으로 갱신하기까지 약 15~30초의 failover가 발생합니다(lease/renew 파라미터 조정으로 단축 가능).
 
 배포는 Helm으로 수행하며 EKS Auto Mode(권장) 또는 managed node group을 게이트웨이 노드로 사용합니다.
 

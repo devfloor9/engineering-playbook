@@ -5,7 +5,7 @@ description: "Kubernetes Probe 설정 전략, Graceful Shutdown 패턴, Pod 라�
 tags: [eks, kubernetes, probes, health-check, graceful-shutdown, lifecycle, best-practices]
 category: "operations"
 last_update:
-  date: 2026-02-14
+  date: 2026-06-15
   author: devfloor9
 ---
 
@@ -13,7 +13,7 @@ last_update:
 
 > 📅 **작성일**: 2026-02-12 | **수정일**: 2026-02-14 | ⏱️ **읽는 시간**: 약 48분
 
-> **📌 기준 환경**: EKS 1.30+, Kubernetes 1.30+, AWS Load Balancer Controller v2.7+
+> **📌 기준 환경**: EKS 1.33+, Kubernetes 1.30+, AWS Load Balancer Controller v2.7+
 
 ## 1. 개요
 

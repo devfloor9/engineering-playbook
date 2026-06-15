@@ -82,7 +82,7 @@ description: "AMWAY 글로벌 직접판매 — ABO/IBO 다단계 조직 + Nutril
 | Edge / Auth | CloudFront + Lambda@Edge + Cognito (RS256 JWT) |
 | Frontend | Next.js 14 (App Router) |
 | Backend | FastAPI (Python 3.12) on ECS Fargate ARM64 |
-| AI | Bedrock Sonnet 4.6 + Cohere embed-v4 / rerank-v3 |
+| AI | Bedrock Sonnet 4.6 + Cohere embed-v4 / rerank-v3.5 |
 | Agent | AgentCore (Memory + Code Interpreter) |
 | Graph | Amazon Neptune (openCypher, ~700K edges — ABO 트리 깊이 반영) |
 | Search | OpenSearch Serverless (다국어 분석기 + KNN + RRF) |

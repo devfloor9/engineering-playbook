@@ -5,7 +5,7 @@ description: "대규모 EKS 클러스터의 안정적인 운영을 위한 GitOps
 tags: [eks, gitops, argocd, kro, ack, kubernetes, automation, infrastructure-as-code]
 category: "observability-monitoring"
 last_update:
-  date: 2026-02-18
+  date: 2026-06-15
   author: devfloor9
 ---
 
@@ -13,7 +13,7 @@ last_update:
 
 > 📅 **작성일**: 2025-02-09 | **수정일**: 2026-02-18 | ⏱️ **읽는 시간**: 약 6분
 
-> **📌 기준 버전**: ArgoCD v2.13+ / v3 (프리릴리즈), EKS Capability for Argo CD (GA), Kubernetes 1.32
+> **📌 기준 버전**: ArgoCD v3.x GA (현재 v3.3+), EKS Capability for Argo CD (GA), Kubernetes 1.33+
 
 
 ## 개요
@@ -388,9 +388,9 @@ aws eks create-capability \
   --role-arn arn:aws:iam::123456789012:role/eks-kro-role
 ```
 
-## ArgoCD v3 업데이트 (2025)
+## ArgoCD v3 업데이트 (GA)
 
-ArgoCD v3가 KubeCon EU 2025에서 프리릴리즈되었으며, 주요 개선 사항은 다음과 같습니다:
+ArgoCD v3.x GA (현재 v3.3+)의 주요 개선 사항은 다음과 같습니다:
 
 ### 확장성 개선
 
@@ -410,11 +410,11 @@ ArgoCD v2.x에서 v3로의 마이그레이션:
 
 1. v2.13으로 먼저 업그레이드 (호환성 확인)
 2. 사용 중단 API 확인 및 업데이트
-3. v3 프리릴리즈에서 기능 테스트
+3. v3.x에서 기능 테스트 (현재 v3.3+ 안정)
 4. 프로덕션 업그레이드 실행
 
-:::warning 주의사항
-ArgoCD v3는 2025년 상반기 프리릴리즈 상태입니다. 프로덕션 환경에서는 안정 버전(v2.13+)을 사용하고, v3 GA 릴리즈를 확인한 후 마이그레이션하세요.
+:::info ArgoCD v3 GA
+ArgoCD v3.x는 GA 상태이며 프로덕션 환경에서 사용 가능합니다. 현재 최신 버전은 v3.3+입니다.
 :::
 
 ## 결론

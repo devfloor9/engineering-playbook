@@ -4,7 +4,7 @@ sidebar_label: "Agent Versioning"
 description: "엔터프라이즈 Agent의 프롬프트·모델·배포 전략·거버넌스를 통합하는 Change Management 체계"
 tags: [agent-versioning, prompt-registry, canary, feature-flag, 'scope:enterprise']
 last_update:
-  date: 2026-04-18
+  date: 2026-06-15
   author: devfloor9
 ---
 
@@ -29,7 +29,7 @@ last_update:
    "당신은 금융 분석 전문가입니다" → "당신은 보수적 투자 자문가입니다"로 한 줄 변경하면 출력 패턴 전체가 변한다.
 
 2. **모델 교체는 런타임 교체**  
-   GPT-4 → Claude 4.7 Sonnet 전환 시 동일 프롬프트도 응답 스타일, 토큰 사용량, latency가 달라진다.
+   GPT-4 → Claude Sonnet 4.6 전환 시 동일 프롬프트도 응답 스타일, 토큰 사용량, latency가 달라진다.
 
 3. **변경 추적 없이는 롤백 불가**  
    "어제까지 잘 됐는데 오늘 이상해요"라는 신고를 받았을 때, 누가 어떤 프롬프트를 언제 바꿨는지 모르면 복구할 수 없다.

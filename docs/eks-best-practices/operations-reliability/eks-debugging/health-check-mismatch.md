@@ -4,7 +4,7 @@ sidebar_label: "Health Check 불일치"
 description: "K8s Probe와 ALB/NLB/Ingress Controller Health Check의 메커니즘 차이 및 timeout 불일치로 인한 장애 진단 가이드"
 tags: [eks, debugging, health-check, probe, alb, nlb, ingress]
 last_update:
-  date: 2026-04-07
+  date: 2026-06-15
   author: devfloor9
 ---
 
@@ -12,7 +12,7 @@ last_update:
 
 > 📅 **작성일**: 2026-04-07 | ⏱️ **읽는 시간**: 약 20분
 
-> **📌 기준 환경**: EKS 1.32+, AWS Load Balancer Controller v2.9+, Ingress-NGINX v1.11+
+> **📌 기준 환경**: EKS 1.33+, AWS Load Balancer Controller v2.9+, Ingress-NGINX v1.11+
 
 ## 1. 개요
 

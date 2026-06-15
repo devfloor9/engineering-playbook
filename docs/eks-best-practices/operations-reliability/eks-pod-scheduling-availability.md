@@ -5,7 +5,7 @@ description: "Kubernetes Pod 스케줄링 전략, Affinity/Anti-Affinity, PDB, P
 tags: [eks, kubernetes, scheduling, affinity, pdb, priority, taints, tolerations, descheduler]
 category: "operations"
 last_update:
-  date: 2026-02-14
+  date: 2026-06-15
   author: devfloor9
   changes: "Section 10.5 추가 (Node Readiness Controller), Section 10 추가 (2025-2026 AWS 혁신), Section 8.4.1 추가 (Descheduler+Karpenter 조합), Section 9.2 추가 (AI/ML 워크로드)"
 ---
@@ -14,7 +14,7 @@ last_update:
 
 > 📅 **작성일**: 2026-02-12 | **수정일**: 2026-02-14 | ⏱️ **읽는 시간**: 약 54분
 
-> **📌 기준 환경**: EKS 1.30+, Karpenter v1.x, Kubernetes 1.30+
+> **📌 기준 환경**: EKS 1.33+, Karpenter v1.x, Kubernetes 1.30+
 
 ## 1. 개요
 
@@ -3396,7 +3396,7 @@ spec:
 ```
 
 :::info DRA 도입 시기
-DRA는 Kubernetes 1.34에서 Alpha, 1.36에서 Beta로 예상됩니다. 프로덕션 사용은 1.38+ Stable 이후를 권장합니다. 현재는 기존 Device Plugin 방식이 안정적입니다.
+DRA 코어는 Kubernetes 1.34에서 GA되었습니다 (`resource.k8s.io/v1`, 기본 활성화). 프로덕션 사용 가능하며, 현재는 기존 Device Plugin 방식과 병행 사용 가능합니다.
 :::
 
 #### 9.2.3 AI 학습 vs 추론 스케줄링 전략
@@ -3649,7 +3649,7 @@ spec:
 | **배치 처리** (CPU 워크로드) | ⚠️ 선택 | 비용 효율성 목적이라면 유용 |
 
 :::info Setu 설치 및 설정
-Setu는 Karpenter v0.32+ 및 Kueue v0.6+를 요구합니다. Helm 차트를 통해 설치 가능하며, 상세 가이드는 [Setu GitHub 저장소](https://github.com/sanjeevrg89/Setu)를 참조하세요.
+Setu는 Karpenter v1.0+ 및 Kueue v0.6+를 요구합니다. Helm 차트를 통해 설치 가능하며, 상세 가이드는 [Setu GitHub 저장소](https://github.com/sanjeevrg89/Setu)를 참조하세요.
 :::
 
 :::warning 프로덕션 사용 시 고려사항

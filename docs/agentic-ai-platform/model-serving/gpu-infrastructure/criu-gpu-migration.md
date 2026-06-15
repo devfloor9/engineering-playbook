@@ -4,7 +4,7 @@ sidebar_label: "CRIU GPU Migration"
 description: "Spot reclaim·스케줄링 이벤트 시 GPU 워크로드 checkpoint/restore로 무중단 이관하는 기술 현황과 EKS 적용 가능 시나리오 분석 (Experimental)"
 created: 2026-04-18
 last_update:
-  date: 2026-05-07
+  date: 2026-06-15
   author: devfloor9
 reading_time: 19
 tags:
@@ -412,7 +412,7 @@ AZ-B:
 | **CRIU (동일 노드)** | 3-5분 | 1배 | 높음 | Experimental | ⭐ |
 | **CRIU (Cross-node)** | 불가능 | - | - | Blocked | ❌ |
 
-### llm-d NIXL KV Offload
+### llm-d NIXL KV Offload (v0.7+, CNCF Sandbox)
 
 llm-d의 Disaggregated Serving은 Prefill/Decode를 분리하고, KV Cache를 NIXL로 전송합니다. Spot reclaim 시:
 
@@ -442,7 +442,7 @@ Decode Pod (On-Demand, p5.48xlarge):
 
 ### vLLM Prefix Cache Warm-up
 
-vLLM v0.18+는 자동 prefix caching을 지원합니다. Spot reclaim 전 주요 prefix를 미리 처리하여 캐시를 워밍업할 수 있습니다:
+vLLM v0.22+ / v0.23.x는 자동 prefix caching을 지원합니다. Spot reclaim 전 주요 prefix를 미리 처리하여 캐시를 워밍업할 수 있습니다:
 
 ```python
 # warm-up 스크립트

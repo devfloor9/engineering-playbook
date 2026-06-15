@@ -29,10 +29,10 @@ description: "Nutrilite·Artistry·Home SKU + ABO + 외부 소셜 후기 통합 
 | KG 1-hop | Neptune (ABO × Product × Brand × BU) | 그래프 확장 |
 
 ## 5. 처리 파이프라인
-1. 입력 → Cohere embed-multilingual-v3
+1. 입력 → Cohere embed-v4
 2. OpenSearch 병렬: BM25 + KNN → top 100/100
 3. RRF 융합 → top 50
-4. Cohere rerank-multilingual-v3 → top 20
+4. Cohere rerank-v3.5 (`cohere.rerank-v3-5:0`) → top 20
 5. Neptune 1-hop 확장 (ABO/SKU 노드)
 6. 결과 카드 + 그래프
 

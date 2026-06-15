@@ -6,7 +6,7 @@ tags: [eks, kubernetes, genai, agentic-ai, gpu, llm, platform, 'scope:nav']
 category: "genai-aiml"
 sidebar_position: 3
 last_update:
-  date: 2026-04-17
+  date: 2026-06-15
   author: devfloor9
 ---
 

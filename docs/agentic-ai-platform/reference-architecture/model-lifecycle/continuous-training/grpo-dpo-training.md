@@ -4,7 +4,7 @@ sidebar_label: "GRPO/DPO Training"
 description: "레이블링된 preference 데이터셋으로 NeMo-RL(GRPO)·TRL(DPO) 학습 Job을 Karpenter Spot 노드풀 + Volcano Gang Scheduling으로 실행하는 실전 구성."
 created: 2026-04-18
 last_update:
-  date: 2026-04-20
+  date: 2026-06-15
   author: devfloor9
 reading_time: 8
 tags:
@@ -206,7 +206,7 @@ spec:
       
       containers:
       - name: nemo-trainer
-        image: nvcr.io/nvidia/nemo:26.02
+        image: nvcr.io/nvidia/nemo:26.02  # 배포 시점 NGC 카탈로그에서 최신 버전 확인
         command:
         - python
         - /workspace/nemo_grpo_training.py

@@ -31,7 +31,7 @@ graph TB
 
     subgraph AI["AI / Agent"]
         Bedrock[Bedrock<br/>Sonnet 4.6]
-        Cohere[Cohere<br/>embed-v4 / rerank-v3]
+        Cohere[Cohere<br/>embed-v4 / rerank-v3.5]
         AC[AgentCore<br/>Memory + Code Interpreter]
         GR[Bedrock Guardrails<br/>4 토픽 + 동의 + 미성년]
     end
@@ -97,7 +97,7 @@ graph TB
 ### 2.3 Backend
 | 컴포넌트 | 역할 |
 |---|---|
-| **FastAPI 3.12** | API + SSE 스트리밍 |
+| **FastAPI (Python 3.12)** | API + SSE 스트리밍 |
 | **ECS Fargate ARM64** | 컨테이너 런타임 (Graviton) |
 | **OpenTelemetry** | 트레이싱 → CloudWatch + Langfuse |
 
@@ -106,7 +106,7 @@ graph TB
 |---|---|---|
 | **Bedrock Sonnet 4.6** | 챗봇·라벨링·코멘트 | S2, S3, S4, S6 |
 | **Cohere embed-v4** | 임베딩 (1024d) | S1, S4 |
-| **Cohere rerank-v3** | 재순위화 | S1 |
+| **Cohere rerank-v3.5** | 재순위화 | S1 |
 | **AgentCore Memory** | short/long-term | S2 |
 | **AgentCore Code Interpreter** | Firecracker microVM (matplotlib·sklearn·PyMC) | S3, S4, S5, S6 |
 | **Bedrock Guardrails** | 4 토픽 + 마케팅 동의 + PII + 미성년 화장품 | S8 |

@@ -4,7 +4,7 @@ sidebar_label: "비용 & IDE"
 description: "Aider, Cline, Continue.dev 연동 + Bedrock vs Kiro vs 자체 호스팅 비용 비교"
 created: 2026-04-06
 last_update:
-  date: 2026-04-20
+  date: 2026-06-15
   author: devfloor9
 reading_time: 1
 tags: [aider, cline, cursor, cost-analysis, kiro, bedrock, bifrost, 'scope:impl']

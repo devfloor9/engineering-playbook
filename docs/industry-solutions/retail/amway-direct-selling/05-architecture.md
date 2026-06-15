@@ -62,7 +62,7 @@ graph TB
 | **Neptune (700K edges)** | ABO Tree 깊이 5단 쿼리 (`*1..5` openCypher) — LG H&H 500K 대비 +40% |
 | **Step Functions (Subscription State Manager)** | 구독 state machine: Active → Pause → Cancelled / Renewed |
 | **Bedrock Guardrails (강화)** | 4 토픽 + 직접판매 규제 + 미성년 + 건강기능식품 광고 |
-| **Cohere embed-multilingual-v3 / rerank-multilingual-v3** | 한·중·일·영·스페인어 동시 (글로벌 100여 국가) |
+| **Cohere embed-v4 / rerank-v3.5** | 한·중·일·영·스페인어 동시 (글로벌 100여 국가, `cohere.rerank-v3-5:0`) |
 | **OpenSearch 다국어 분석기** | Nori + Smartcn (중국어) + Kuromoji (일본어) + Standard |
 
 ---

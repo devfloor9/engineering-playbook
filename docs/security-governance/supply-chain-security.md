@@ -5,7 +5,7 @@ description: "컨테이너 이미지 서명, SBOM, CI/CD 보안 게이트를 통
 category: "security"
 tags: [eks, security, supply-chain, ecr, sigstore, sbom]
 last_update:
-  date: 2026-02-13
+  date: 2026-06-15
   author: devfloor9
 ---
 

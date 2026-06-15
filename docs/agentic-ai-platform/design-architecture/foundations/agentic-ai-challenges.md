@@ -4,7 +4,7 @@ sidebar_label: "기술적 도전과제"
 description: "Agentic AI 워크로드 운영 시 직면하는 5가지 핵심 도전과제"
 created: 2026-02-05
 last_update:
-  date: 2026-04-20
+  date: 2026-06-15
   author: devfloor9
 reading_time: 7
 tags:
@@ -50,7 +50,7 @@ Agentic AI 시대를 맞아 기업이 가장 먼저 직면하는 질문은 *"가
 
 | K8s AI 기능 | 버전 | 역할 | 다중 모델 생태계에서의 의미 |
 |------------|------|------|------------------------|
-| **DRA** (Dynamic Resource Allocation) | 1.31 Beta | GPU를 MIG 단위로 세밀 분할·할당 | SLM은 MIG 파티션, LLM은 전체 GPU — 하나의 클러스터에서 공존 |
+| **DRA** (Dynamic Resource Allocation) | 1.34 GA (1.35+ stable) | GPU를 MIG 단위로 세밀 분할·할당 | SLM은 MIG 파티션, LLM은 전체 GPU — 하나의 클러스터에서 공존 |
 | **Gateway API + Inference Extension** | 2025 | LLM 추론 요청의 표준화된 라우팅 | KV Cache 상태 기반 지능형 라우팅, 모델별 트래픽 분배 |
 | **Kueue** | GA | AI 워크로드 큐잉·스케줄링 | 학습/추론 작업의 공정한 GPU 자원 분배, 팀별 쿼터 |
 | **LeaderWorkerSet** | 1.31 | 분산 추론·학습 워크로드 패턴 | 70B+ 모델의 Tensor Parallel 분산 추론을 K8s 네이티브로 관리 |

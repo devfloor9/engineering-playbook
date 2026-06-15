@@ -5,7 +5,7 @@ description: "NGINX Ingress Controller EOL 대응, Gateway API 아키텍처, GAM
 tags: [eks, gateway-api, nginx, cilium, envoy, networking, migration, ebpf, gamma]
 category: "performance-networking"
 last_update:
-  date: 2026-02-14
+  date: 2026-06-15
   author: devfloor9
 ---
 
@@ -34,7 +34,7 @@ import {
 
 # Gateway API 도입 가이드
 
-> **📌 기준 버전**: Gateway API v1.4.0, Cilium v1.19.0, EKS 1.32, AWS LBC v3.0.0, Envoy Gateway v1.7.0
+> **📌 기준 버전**: Gateway API v1.5.1, Cilium v1.19.0, EKS 1.33+, AWS LBC v3.0.0, Envoy Gateway v1.7.0
 
 > 📅 **작성일**: 2025-02-12 | **수정일**: 2026-02-14 | ⏱️ **읽는 시간**: 약 13분
 

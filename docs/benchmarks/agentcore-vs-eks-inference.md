@@ -6,7 +6,7 @@ description: "Bedrock AgentCore를 기본으로 EKS 자체 구축(vLLM, llm-d, B
 tags: [benchmark, bedrock, agentcore, eks, vllm, llm-d, bifrost, litellm, inference, cost]
 category: "benchmark"
 last_update:
-  date: 2026-04-18
+  date: 2026-06-15
   author: devfloor9
 ---
 
@@ -132,7 +132,7 @@ Bifrost:  ~11us  x 5회 = ~0.055ms 누적
 Region: us-east-1
 
 Baseline (AgentCore 기본 모델):
-  - Bedrock Claude 4.7 Sonnet (온디맨드 + 프로비저닝)
+  - Bedrock Claude Sonnet 4.6 (온디맨드 + 프로비저닝)
   - Bedrock Llama 4 Maverick 70B (온디맨드)
   - AgentCore Agent Runtime + MCP 커넥터
   - Bedrock Guardrails, CloudWatch
@@ -142,8 +142,8 @@ Baseline+ (AgentCore 커스텀 모델):
   - 동일 AgentCore 런타임
 
 대안 A-1 (EKS + LiteLLM + vLLM):
-  - EKS v1.32, Karpenter v1.2
-  - g5.2xlarge (A10G) x 4, vLLM v0.19.x
+  - EKS v1.33+, Karpenter v1.13+ (GA since v1.0)
+  - g5.2xlarge (A10G) x 4, vLLM v0.23.x
   - Llama 4 Maverick 70B (AWQ 4bit)
   - LiteLLM v1.60+ → kgateway (RoundRobin)
   - Langfuse v3.x + Prometheus
@@ -154,10 +154,10 @@ Baseline+ (AgentCore 커스텀 모델):
   - Bifrost 빌트인 옵저버빌리티 + Prometheus
 
 대안 B-1 (EKS + LiteLLM + llm-d + vLLM):
-  - 대안 A-1 + llm-d v0.5+
+  - 대안 A-1 + llm-d v0.7+ (CNCF Sandbox)
 
 대안 B-2 (EKS + Bifrost + llm-d + vLLM):
-  - 대안 A-2 + llm-d v0.5+
+  - 대안 A-2 + llm-d v0.7+ (CNCF Sandbox)
   - Bifrost base_url → llm-d 서비스 엔드포인트
 
 부하 생성: Locust + LLMPerf

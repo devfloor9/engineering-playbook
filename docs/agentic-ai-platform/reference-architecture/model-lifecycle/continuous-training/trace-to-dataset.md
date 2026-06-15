@@ -4,7 +4,7 @@ sidebar_label: "Trace to Dataset"
 description: "Langfuse OTel 트레이스를 S3 Parquet/Iceberg로 적재하고 Ragas + LLM Judge Fleet로 Reward를 레이블링해 GRPO/DPO 학습 데이터셋을 자동 구성합니다."
 created: 2026-04-18
 last_update:
-  date: 2026-04-20
+  date: 2026-06-15
   author: devfloor9
 reading_time: 10
 tags:
@@ -323,7 +323,7 @@ spec:
     maxReplicas: 10
     containers:
     - name: kserve-container
-      image: vllm/vllm-openai:v0.18.2
+      image: vllm/vllm-openai:v0.23.0
       args:
       - --model=Qwen/Qwen3-Coder-4B-Instruct
       - --served-model-name=qwen3-judge

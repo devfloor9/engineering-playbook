@@ -220,4 +220,4 @@ ORDER BY date
 | `idx_social_trend` | 소셜 키워드·게시글 (네이버·구글·X·인스타) | Nori | Cohere embed-v4 |
 | `idx_competitor` | 경쟁사 신제품·이벤트 텍스트 | Nori | Cohere embed-v4 |
 
-→ BM25 + KNN → RRF → Cohere rerank-v3
+→ BM25 + KNN → RRF → Cohere rerank-v3.5

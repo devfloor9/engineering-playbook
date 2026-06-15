@@ -4,7 +4,7 @@ sidebar_label: "Evaluation & Rollout"
 description: "학습된 체크포인트의 Threshold 검증, kgateway 기반 Canary 점진 배포, MLflow Registry 버전 관리, 회귀 시 자동 롤백, 비용·품질 KPI 대시보드 구성."
 created: 2026-04-18
 last_update:
-  date: 2026-04-20
+  date: 2026-06-15
   author: devfloor9
 reading_time: 16
 tags:
@@ -421,7 +421,7 @@ eks_endpoint = "http://vllm-glm5-canary.model-serving.svc.cluster.local:8000"
 bedrock.update_agent(
     agentId='AGENT123',
     agentName='code-assistant',
-    foundationModel='anthropic.claude-3-sonnet-20240229-v1:0',  # fallback 모델
+    foundationModel='us.anthropic.claude-sonnet-4-20250514-v1:0',  # fallback 모델 (현행 inference profile 확인)
     instruction=f"""
     Use the custom EKS model for code generation tasks:
     - Model: {eks_model_version}

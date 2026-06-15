@@ -5,7 +5,7 @@ description: "Amazon EKS의 CoreDNS 성능을 체계적으로 모니터링하고
 tags: [eks, coredns, dns, monitoring, prometheus, performance]
 category: "performance-networking"
 last_update:
-  date: 2026-02-18
+  date: 2026-06-15
   author: devfloor9
 ---
 

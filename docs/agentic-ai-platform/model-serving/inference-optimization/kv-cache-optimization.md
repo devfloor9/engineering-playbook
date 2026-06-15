@@ -4,7 +4,7 @@ sidebar_label: "KV Cache 최적화"
 description: "vLLM PagedAttention·Continuous Batching·FP8 KV Cache 등 핵심 기술 정리와 llm-d/NVIDIA Dynamo의 KV Cache-Aware Routing 비교 및 Gateway 구성"
 created: 2026-04-03
 last_update:
-  date: 2026-04-20
+  date: 2026-06-15
   author: devfloor9
 reading_time: 12
 tags:
@@ -26,14 +26,14 @@ LLM 추론 엔진의 성능은 대부분 KV Cache(Key-Value Cache)를 얼마나 
 
 ### 핵심 기술 스택
 
-vLLM(v0.19.x)은 현재 가장 널리 사용되는 LLM 추론 엔진입니다. 핵심 기술과 성능 영향은 다음과 같습니다.
+vLLM(v0.22+/v0.23.x)은 현재 가장 널리 사용되는 LLM 추론 엔진입니다. 핵심 기술과 성능 영향은 다음과 같습니다.
 
 | 기술 | 성능 영향 | 설명 |
 |------|---------|------|
-| **PagedAttention** | KV Cache 메모리 60-80% 절감 | OS 가상 메모리 기법으로 KV 캐시를 비연속 블록 저장 |
-| **Continuous Batching** | 처리량 2-24x 향상 | 반복(iteration) 수준에서 요청을 동적 추가/제거 |
+| **PagedAttention** | KV Cache 메모리 60-80% 절감 (vLLM 벤치마크 기준, 워크로드별 상이) | OS 가상 메모리 기법으로 KV 캐시를 비연속 블록 저장 |
+| **Continuous Batching** | 처리량 2-24x 향상 (vLLM 벤치마크 기준, 워크로드별 상이) | 반복(iteration) 수준에서 요청을 동적 추가/제거 |
 | **FP8 KV Cache** | 메모리 2배 절감 | KV 캐시를 FP8 정밀도로 저장 (v0.6+) |
-| **Prefix Caching** | 반복 프롬프트 400%+ 향상 | 공통 시스템 프롬프트의 KV 캐시 재사용 |
+| **Prefix Caching** | 반복 프롬프트 400%+ 향상 (vLLM 벤치마크 기준, 워크로드별 상이) | 공통 시스템 프롬프트의 KV 캐시 재사용 |
 | **Speculative Decoding** | 속도 2-3x 향상 | 소형 드래프트 모델이 토큰 예측, 메인 모델이 검증 |
 | **Chunked Prefill** | TTFT/처리량 균형 개선 | Prefill과 Decode를 동일 배치에서 혼합 처리 |
 
@@ -150,7 +150,7 @@ sequenceDiagram
 
 두 프로젝트 모두 KV Cache-aware 라우팅을 제공하지만 접근 방식이 다릅니다.
 
-| 항목 | llm-d v0.5+ | NVIDIA Dynamo v1.0 |
+| 항목 | llm-d v0.7+ | NVIDIA Dynamo v1.1.x |
 |------|------------|-------------------|
 | **주도** | Red Hat (Apache 2.0) | NVIDIA (Apache 2.0) |
 | **KV Cache 인덱싱** | Prefix-aware 라우팅 | Flash Indexer (radix tree) |
@@ -212,7 +212,7 @@ flowchart TB
 
 ### 공식 문서
 - [vLLM 공식 문서](https://docs.vllm.ai) — 최적화 및 튜닝 가이드
-- [vLLM GitHub](https://github.com/vllm-project/vllm) — v0.19.x 릴리스 노트
+- [vLLM GitHub](https://github.com/vllm-project/vllm) — v0.23.x 릴리스 노트
 - [llm-d GitHub](https://github.com/llm-d/llm-d) — K8s 네이티브 분산 추론
 - [NVIDIA Dynamo](https://developer.nvidia.com/dynamo) — 분산 추론 프레임워크
 

@@ -4,7 +4,7 @@ title: 오픈 웨이트 모델
 sidebar_label: 오픈 웨이트 모델
 description: 데이터 레지던시와 비용 최적화를 위한 오픈 웨이트 모델 활용 전략 — 온프레미스 배포, 하이브리드 구성, TCO 비교
 last_update:
-  date: 2026-04-18
+  date: 2026-06-15
   author: devfloor9
 ---
 
@@ -100,7 +100,7 @@ spec:
         node.kubernetes.io/instance-type: p5en.48xlarge
       containers:
       - name: vllm
-        image: vllm/vllm-openai:v0.18.2
+        image: vllm/vllm-openai:v0.23.0
         args:
         - --model
         - THUDM/glm-5-405b
@@ -134,7 +134,7 @@ spec:
 docker run --gpus all \
   -p 8000:8000 \
   -v /data/models:/models \
-  vllm/vllm-openai:v0.18.2 \
+  vllm/vllm-openai:v0.23.0 \
   --model /models/glm-5-405b \
   --served-model-name glm5 \
   --tensor-parallel-size 8 \
@@ -200,7 +200,7 @@ router_settings:
 
 #### 클라우드 API (Claude, GPT-4)
 
-| 항목 | Claude Sonnet 4.5 | 비고 |
+| 항목 | Claude Sonnet 4.6 | 비고 |
 |------|-------------------|------|
 | 입력 토큰 | $3/1M tokens | Bedrock 기준 |
 | 출력 토큰 | $15/1M tokens | 출력이 입력보다 5배 비쌈 |

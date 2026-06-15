@@ -4,7 +4,7 @@ sidebar_label: "비용·관측성·Hybrid"
 description: "2-Tier GPU 오토스케일링·DCGM/vLLM 모니터링·Bifrost→Bedrock Cascade Fallback·Hybrid Node 온프레 통합·대형 MoE 배포 실전 교훈"
 created: 2026-04-03
 last_update:
-  date: 2026-04-20
+  date: 2026-06-15
   author: devfloor9
 reading_time: 25
 tags:
@@ -104,7 +104,7 @@ Prefill과 Decode의 병목 시그널이 다릅니다.
 
 ### DRA(Dynamic Resource Allocation) 현실
 
-DRA는 K8s 1.32+에서 v1beta1, 1.34+에서 GA로 GPU 파티셔닝/토폴로지 인식 스케줄링을 제공합니다. 그러나 **Karpenter/Auto Mode와 호환되지 않는** 아키텍처적 한계가 있습니다.
+DRA는 K8s 1.34에서 GA(`resource.k8s.io/v1`, 기본 활성화)되어 GPU 파티셔닝/토폴로지 인식 스케줄링을 제공합니다. 그러나 **Karpenter/Auto Mode와 호환되지 않는** 아키텍처적 한계가 있습니다.
 
 - Karpenter는 **노드 생성 전** GPU 리소스를 시뮬레이션해야 하는데, DRA의 ResourceSlice는 **노드 생성 후** DRA Driver가 발행
 - 이 "닭과 달걀" 문제로 인해 DRA Pod는 Karpenter에서 skip됨
@@ -269,7 +269,7 @@ models:
 
   - name: bedrock-claude-sonnet
     provider: bedrock
-    model: anthropic.claude-sonnet-4-20250514
+    model: anthropic.claude-sonnet-4-20250514-v1:0
     region: us-east-1
     priority: 3
     costPer1kTokens: 0.003    # Bedrock 공식 단가
@@ -293,7 +293,7 @@ models:
 
 ### 개요
 
-EKS Hybrid Node는 **온프레미스 GPU 서버를 EKS 클러스터에 등록**하는 기능입니다 (2024년 11월 GA). 이미 보유한 DGX, GPU 서버를 클라우드 EKS와 통합하여 하이브리드 Inference 아키텍처를 구성할 수 있습니다.
+EKS Hybrid Node는 **온프레미스 GPU 서버를 EKS 클러스터에 등록**하는 기능입니다 (2024년 12월 GA, re:Invent 2024). 이미 보유한 DGX, GPU 서버를 클라우드 EKS와 통합하여 하이브리드 Inference 아키텍처를 구성할 수 있습니다.
 
 ```mermaid
 flowchart LR
@@ -362,7 +362,7 @@ kubectl get nodes -l node.kubernetes.io/instance-type=hybrid
 # GPU Operator Helm Values (Hybrid Node 전용)
 driver:
   enabled: true               # 온프레미스: 드라이버 설치 필요
-  version: "580.126.18"
+  version: "580.126.18"       # 현행 GPU Operator 26.3.2 정합 드라이버 버전 확인 권장
   nodeSelector:
     node.kubernetes.io/instance-type: hybrid
 
@@ -423,7 +423,7 @@ models:
 
   - name: bedrock-fallback
     provider: bedrock
-    model: anthropic.claude-sonnet-4-20250514
+    model: anthropic.claude-sonnet-4-20250514-v1:0
     region: us-east-1
     priority: 3
 ```
@@ -447,7 +447,7 @@ spec:
           effect: NoSchedule
       containers:
         - name: vllm
-          image: vllm/vllm-openai:v0.6.3
+          image: vllm/vllm-openai:v0.23.0
           args: ["Qwen/Qwen3-32B-FP8", "--gpu-memory-utilization=0.95"]
           resources:
             limits:
@@ -469,7 +469,7 @@ spec:
           effect: NoSchedule
       containers:
         - name: vllm
-          image: vllm/vllm-openai:v0.6.3
+          image: vllm/vllm-openai:v0.23.0
           args: ["Qwen/Qwen3-32B-FP8", "--gpu-memory-utilization=0.95"]
           resources:
             limits:
@@ -562,7 +562,7 @@ spec:
               memory: 4Gi
       containers:
         - name: vllm
-          image: vllm/vllm-openai:v0.6.3
+          image: vllm/vllm-openai:v0.23.0
           args:
             - /models
             - "--gpu-memory-utilization=0.95"
@@ -675,11 +675,11 @@ Auto Mode 관리 노드는 resource-based policy로 `ec2:TerminateInstances`가 
 |------|---------|-----------|------|
 | Qwen3-32B | 지원 | 지원 | llm-d 기본 모델, Apache 2.0 |
 | Kimi K2.5 (1T MoE) | 지원 | 지원 | INT4 W4A16 Marlin MoE, `gpu_memory_utilization=0.85` |
-| GLM-5 (744B MoE) | 미지원 | 지원 | `glm_moe_dsa` 아키텍처 → transformers v5.2+ 필요, vLLM은 v4.x 사용 |
+| GLM-5 (744B MoE) | 초기 SGLang 전용, 이후 vLLM 지원 | 지원 | `glm_moe_dsa` 아키텍처, vLLM 지원 여부는 최신 릴리스 확인 |
 | DeepSeek V3.2 | 지원 | 지원 | MoE, 671B/37B active |
 
 :::warning GLM-5 배포 시 주의
-GLM-5는 vLLM에서 지원되지 않습니다. SGLang 전용 이미지(`lmsysorg/sglang:glm5-hopper`)를 사용해야 하며, 멀티노드 배포 시 `--pp-size 2 --nnodes 2 --dist-init-addr <leader>:5000`을 설정합니다.
+GLM-5는 초기 SGLang 전용으로 출시되었으나 이후 vLLM에서도 지원이 추가되었습니다. 최신 vLLM 버전에서 지원 여부를 확인하세요. SGLang 사용 시 전용 이미지(`lmsysorg/sglang:glm5-hopper`)를 사용하며, 멀티노드 배포 시 `--pp-size 2 --nnodes 2 --dist-init-addr <leader>:5000`을 설정합니다.
 :::
 
 ### 스토리지 전략

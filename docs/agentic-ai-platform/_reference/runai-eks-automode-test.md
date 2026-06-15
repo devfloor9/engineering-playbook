@@ -5,7 +5,7 @@ description: "EKS Auto Mode에서 Run:ai 설치, GPU 워크로드 배포, AMP/AM
 tags: [eks, auto-mode, run-ai, gpu-operator, amp, amg, dcgm, monitoring, test]
 category: "genai-aiml"
 last_update:
-  date: 2026-03-27
+  date: 2026-06-15
   author: devfloor9
 sidebar_position: 8
 ---
@@ -192,7 +192,7 @@ helm repo update
 # GPU Operator 설치 (Auto Mode 전용 값)
 helm install gpu-operator nvidia/gpu-operator \
   --namespace gpu-operator --create-namespace \
-  --version v25.3.0 \
+  --version v26.3.2 \
   --set driver.enabled=false \
   --set toolkit.enabled=false \
   --set devicePlugin.enabled=true \

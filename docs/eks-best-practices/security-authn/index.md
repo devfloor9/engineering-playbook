@@ -5,7 +5,7 @@ description: "EKS API Server 인증/인가, IAM 통합, Pod Identity 등 보안 
 tags: [eks, security, authentication, authorization, iam]
 sidebar_position: 3
 last_update:
-  date: 2026-03-24
+  date: 2026-06-15
   author: devfloor9
 ---
 

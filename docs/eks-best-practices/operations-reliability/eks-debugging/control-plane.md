@@ -4,7 +4,7 @@ sidebar_label: "컨트롤 플레인"
 description: "EKS 컨트롤 플레인 문제 진단 및 해결 가이드"
 tags: [eks, kubernetes, control-plane, debugging, troubleshooting]
 last_update:
-  date: 2026-04-07
+  date: 2026-06-15
   author: devfloor9
 ---
 
@@ -281,7 +281,7 @@ aws eks create-pod-identity-association \
 ### aws-auth ConfigMap vs EKS Access Entries 혼용 이슈
 
 **문제:**
-- EKS 1.23+에서는 Access Entries API가 도입되어 aws-auth ConfigMap 대체 가능
+- EKS Access Entries API가 도입되어 aws-auth ConfigMap 대체 가능
 - 두 방식을 혼용하면 인증 규칙이 예상과 다르게 동작할 수 있음
 
 **인증 모드 확인:**
@@ -296,8 +296,8 @@ aws eks describe-cluster --name <cluster-name> \
 
 | 모드 | 설명 | 권장 사용 사례 |
 |------|------|--------------|
-| `CONFIG_MAP` | aws-auth ConfigMap만 사용 (레거시) | EKS 1.22 이하 |
-| `API` | Access Entries API만 사용 | 신규 클러스터 (EKS 1.23+) |
+| `CONFIG_MAP` | aws-auth ConfigMap만 사용 (레거시) | 레거시 클러스터 |
+| `API` | Access Entries API만 사용 | 신규 클러스터 권장 |
 | `API_AND_CONFIG_MAP` | 두 방식 모두 허용 (기본값) | 마이그레이션 중 |
 
 **마이그레이션 가이드:**

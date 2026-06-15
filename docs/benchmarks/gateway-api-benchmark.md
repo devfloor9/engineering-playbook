@@ -6,7 +6,7 @@ description: "5개 Gateway API 구현체(AWS LBC v3, Cilium, NGINX Gateway Fabri
 tags: [benchmark, gateway-api, cilium, envoy, nginx, performance, eks]
 category: "benchmark"
 last_update:
-  date: 2026-02-14
+  date: 2026-06-15
   author: devfloor9
 ---
 

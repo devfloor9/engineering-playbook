@@ -153,7 +153,7 @@ kubectl describe ec2nodeclass <nodeclass-name>
 ```
 
 :::warning Karpenter v1 API 변경사항
-Karpenter v1.2+에서는 `Provisioner` → `NodePool`, `AWSNodeTemplate` → `EC2NodeClass`로 변경되었습니다. 기존 v0.x 설정을 사용 중이라면 마이그레이션이 필요합니다. API 그룹도 `karpenter.sh/v1`로 업데이트하세요.
+Karpenter v1.0(v1 API)부터 `Provisioner` → `NodePool`, `AWSNodeTemplate` → `EC2NodeClass`로 변경되었습니다(최신 v1.13+). 기존 v0.x 설정을 사용 중이라면 마이그레이션이 필요합니다. API 그룹도 `karpenter.sh/v1`로 업데이트하세요.
 :::
 
 ## Managed Node Group 에러 코드

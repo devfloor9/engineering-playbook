@@ -4,7 +4,7 @@ sidebar_label: "llm-d 분산 추론"
 description: "llm-d 아키텍처 개념, KV Cache-aware 라우팅, Disaggregated Serving, EKS Auto Mode 통합 전략"
 created: 2026-02-10
 last_update:
-  date: 2026-04-20
+  date: 2026-06-15
   author: devfloor9
 reading_time: 18
 tags:
@@ -38,7 +38,7 @@ import {
   CostOptimizationTable
 } from '@site/src/components/LlmdTables';
 
-> **현재 버전**: llm-d v0.5+ (2026.03)
+> **현재 버전**: llm-d v0.7+ (CNCF Sandbox, 2026.05)
 
 ## 개요
 
@@ -397,10 +397,10 @@ p5.48xlarge는 시간당 약 $98.32 (us-west-2 On-Demand 기준)입니다. 2대 
 | p4d.24xlarge | A100 40GB x 8 | 320GB | 정상 | dry-run 확인 |
 | p5.48xlarge | H100 80GB x 8 | 640GB | 정상 | **Spot 프로비저닝 확인** (us-east-2) |
 | p5en.48xlarge | H200 141GB x 8 | 1,128GB | 제한적 | dry-run 통과, offering 매칭 실패 가능 |
-| **p6-b200.48xlarge** | **B200 192GB x 8** | **1,536GB** | **미지원** | **`NoCompatibleInstanceTypes` 발생** |
+| **p6-b200.48xlarge** | **B200 180GB x 8** | **1,440GB** | **미지원 (2026.04 시점, 재검증 필요)** | **`NoCompatibleInstanceTypes` 발생** |
 
 :::warning p6 인스턴스 미지원
-2026년 4월 기준, EKS Auto Mode의 managed Karpenter는 **p6-b200.48xlarge를 프로비저닝할 수 없습니다.** p6 인스턴스가 필요한 경우 EKS Standard Mode + Karpenter를 사용하세요.
+2026년 4월 시점 기준, EKS Auto Mode의 managed Karpenter는 **p6-b200.48xlarge를 프로비저닝할 수 없습니다.** p6 인스턴스가 필요한 경우 EKS Standard Mode + Karpenter를 사용하세요. (향후 지원 여부는 재검증 필요)
 :::
 
 ### 리전별 GPU 용량 가용성

@@ -5,7 +5,7 @@ description: "Gateway API 마이그레이션 5-Phase 전략, CRD 설치, 단계�
 tags: [eks, gateway-api, migration, nginx, deployment]
 category: "performance-networking"
 last_update:
-  date: 2026-02-14
+  date: 2026-06-15
   author: devfloor9
 ---
 
@@ -24,8 +24,8 @@ import { MigrationFeatureMappingTable, TroubleshootingTable } from '@site/src/co
 ### 1.1 Gateway API 표준 CRDs
 
 ```bash
-# Gateway API v1.4.0 표준 설치
-kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.4.0/standard-install.yaml
+# Gateway API v1.5.1 표준 설치
+kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.5.1/standard-install.yaml
 
 # 실험적(Experimental) 기능 포함 설치 (선택사항)
 kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.4.0/experimental-install.yaml

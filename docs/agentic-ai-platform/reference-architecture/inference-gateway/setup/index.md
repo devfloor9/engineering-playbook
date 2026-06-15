@@ -4,7 +4,7 @@ sidebar_label: "Inference Gateway 배포"
 description: "kgateway 기반 Inference Gateway의 단계별 배포 가이드 (기본/고급/트러블슈팅)"
 created: 2026-04-18
 last_update:
-  date: 2026-04-20
+  date: 2026-06-15
   author: devfloor9
 reading_time: 1
 tags: [inference-gateway, kgateway, deployment, 'scope:impl']
@@ -141,7 +141,7 @@ graph LR
 
 ### 필수 요구 사항
 
-- [x] EKS 클러스터 (K8s 1.32+, DRA 1.35 GA)
+- [x] EKS 클러스터 (K8s 1.33+, DRA 1.34 GA)
 - [x] kubectl 설치 및 클러스터 접근 권한
 - [x] Helm 3.x 설치
 - [x] vLLM 또는 llm-d 기반 모델 서빙 Pod 배포 완료

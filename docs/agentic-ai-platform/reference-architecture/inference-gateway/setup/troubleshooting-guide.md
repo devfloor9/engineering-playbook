@@ -4,7 +4,7 @@ sidebar_label: "3. 트러블슈팅"
 description: "Inference Gateway 배포 및 운영 중 발생하는 일반적인 문제와 해결 방법"
 created: 2026-04-18
 last_update:
-  date: 2026-04-20
+  date: 2026-06-15
   author: devfloor9
 reading_time: 1
 tags: [troubleshooting, debugging, kgateway, bifrost, 'scope:impl']
@@ -356,7 +356,7 @@ spec:
         fsGroup: 1000  # 필수!
       containers:
       - name: bifrost
-        image: bifrost/bifrost:v2.0.0
+        image: maximhq/bifrost:v1.5.1
         args: ["-app-dir", "/app/data"]
         volumeMounts:
         - name: bifrost-data
@@ -511,4 +511,4 @@ kubectl logs -l app=langfuse-web -n observability --tail=20 -f
 - [Langfuse 배포 가이드](../../integrations/monitoring-observability-setup.md) - OTel 연동 및 트러블슈팅
 - [Kubernetes Gateway API 공식 문서](https://gateway-api.sigs.k8s.io/)
 - [kgateway 공식 문서](https://kgateway.dev/docs/)
-- [Bifrost 공식 문서](https://bifrost.dev/docs)
+- [Bifrost 공식 문서](https://getmaxim.ai/docs/bifrost)

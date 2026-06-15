@@ -4,7 +4,7 @@ sidebar_label: AI 코딩 에이전트
 description: AIDLC Construction 단계의 AI 코딩 에이전트 — 공식 지원 7개 플랫폼, Kiro Spec-Driven 개발, Q Developer, 에이전트 비교
 tags: [aidlc, ai-coding-agents, toolchain, kiro, q-developer, cursor, cline, claude-code, copilot, 'scope:toolchain']
 last_update:
-  date: 2026-04-18
+  date: 2026-06-15
   author: devfloor9
 ---
 
@@ -228,7 +228,7 @@ Kiro는 Claude 외에 오픈 웨이트 모델(Llama 4 Behemoth, Mixtral 8x22B, D
 
 ## 3. Amazon Q Developer — 실시간 빌드 및 테스트
 
-AWS는 2025년 2월 **Amazon Q Developer의 실시간 코드 실행 기능**을 발표했습니다. 이는 AI가 코드를 생성한 후 **자동으로 빌드하고 테스트를 실행하여 결과를 검증**한 뒤 개발자에게 제시하는 혁신적 접근입니다.
+AWS는 2025년 1월 31일 **Amazon Q Developer의 실시간 코드 실행 기능**을 발표했습니다. 이는 AI가 코드를 생성한 후 **자동으로 빌드하고 테스트를 실행하여 결과를 검증**한 뒤 개발자에게 제시하는 혁신적 접근입니다.
 
 AIDLC Construction 단계에서 **Loss Function을 조기에 작동**시켜 오류를 하류로 전파하지 않는 핵심 메커니즘입니다.
 

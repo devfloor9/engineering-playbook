@@ -4,7 +4,7 @@ sidebar_label: "SageMaker-EKS 통합"
 description: "SageMaker에서 학습하고 EKS에서 서빙하는 하이브리드 ML 아키텍처"
 created: 2026-02-11
 last_update:
-  date: 2026-04-20
+  date: 2026-06-15
   author: devfloor9
 reading_time: 1
 sidebar_position: 4
@@ -171,7 +171,7 @@ def deploy_to_vllm(
                 "spec": {
                     "containers": [{
                         "name": "vllm-server",
-                        "image": "vllm/vllm-openai:latest",
+                        "image": "vllm/vllm-openai:v0.23.0",
                         "args": ["--model", model_data_url, "--tensor-parallel-size", "1", "--max-model-len", "4096"],
                         "ports": [{"containerPort": 8000, "name": "http"}],
                         "resources": {
@@ -555,7 +555,7 @@ class MultiRegionDeployer:
                 "template": {
                     "metadata": {"labels": {"app": f"vllm-{model_name}", "region": region}},
                     "spec": {"containers": [{
-                        "name": "vllm-server", "image": "vllm/vllm-openai:latest",
+                        "name": "vllm-server", "image": "vllm/vllm-openai:v0.23.0",
                         "args": ["--model", model_url, "--tensor-parallel-size", "1", "--max-model-len", "4096"],
                         "ports": [{"containerPort": 8000, "name": "http"}],
                         "resources": {"requests": {"nvidia.com/gpu": "1"}, "limits": {"nvidia.com/gpu": "1"}}
@@ -651,7 +651,7 @@ spec:
       serviceAccountName: vllm-sa
       containers:
         - name: vllm-server
-          image: vllm/vllm-openai:latest
+          image: vllm/vllm-openai:v0.23.0
           args: [--model, s3://my-models/fraud-detection/model.tar.gz, --tensor-parallel-size, "1", --max-model-len, "4096"]
           ports:
             - containerPort: 8000

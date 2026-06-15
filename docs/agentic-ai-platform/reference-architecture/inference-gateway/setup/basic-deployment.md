@@ -4,7 +4,7 @@ sidebar_label: "1. 기본 배포"
 description: "kgateway 설치, HTTPRoute 설정, Bifrost Gateway Mode 구성"
 created: 2026-04-18
 last_update:
-  date: 2026-04-20
+  date: 2026-06-15
   author: devfloor9
 reading_time: 1
 tags: [kgateway, bifrost, httproute, gateway-api, 'scope:impl']
@@ -24,14 +24,14 @@ sidebar_position: 1
 ### 1.1 Gateway API CRD 설치
 
 ```bash
-# Gateway API 표준 CRD 설치 (v1.2.0+)
-kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.2.0/standard-install.yaml
+# Gateway API 표준 CRD 설치 (v1.5.1+)
+kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.5.1/standard-install.yaml
 
 # 실험적 기능 포함 설치 (HTTPRoute 필터 등)
-kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.2.0/experimental-install.yaml
+kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.5.1/experimental-install.yaml
 ```
 
-### 1.2 kgateway v2.2.2 Helm 설치
+### 1.2 kgateway v2.3+ Helm 설치
 
 ```bash
 # Helm 저장소 추가
@@ -41,10 +41,10 @@ helm repo update
 # 네임스페이스 생성
 kubectl create namespace kgateway-system
 
-# kgateway v2.2.2 설치
+# kgateway v2.3+ 설치
 helm install kgateway kgateway/kgateway \
   --namespace kgateway-system \
-  --version v2.2.2 \
+  --version v2.3.0 \
   --set controller.replicaCount=2 \
   --set controller.resources.requests.cpu=500m \
   --set controller.resources.requests.memory=512Mi \
@@ -470,7 +470,7 @@ spec:
           mountPath: /config
       containers:
       - name: bifrost
-        image: bifrost/bifrost:v2.0.0
+        image: maximhq/bifrost:v1.5.1
         args: ["-app-dir", "/app/data"]
         ports:
         - containerPort: 8080
@@ -659,4 +659,4 @@ curl -s -o /dev/null -w "%{http_code}" http://${NLB_ENDPOINT}/langfuse/
 - [추론 게이트웨이 라우팅](../routing-strategy.md) - kgateway 아키텍처 및 라우팅 전략
 - [Kubernetes Gateway API 공식 문서](https://gateway-api.sigs.k8s.io/)
 - [kgateway 공식 문서](https://kgateway.dev/docs/)
-- [Bifrost 공식 문서](https://bifrost.dev/docs)
+- [Bifrost 공식 문서](https://getmaxim.ai/docs/bifrost)

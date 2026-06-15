@@ -6,7 +6,7 @@ tags: [eks, kagent, kubernetes, agent, crd, operator, 'scope:ops']
 category: "genai-aiml"
 created: 2026-02-05
 last_update:
-  date: 2026-04-20
+  date: 2026-06-15
   author: devfloor9
 sidebar_position: 3
 reading_time: 9
@@ -141,7 +141,7 @@ sequenceDiagram
 
 ### 사전 요구사항
 
-- Kubernetes 클러스터 (v1.25 이상)
+- Kubernetes 클러스터 (최소 요구 버전 v1.25 이상, 권장 v1.33+ — 최신 API 및 보안 패치 포함)
 - kubectl CLI 도구
 - Helm v3 (Helm 설치 시)
 - cert-manager (Webhook TLS 인증서 관리)

@@ -6,7 +6,7 @@ tags: [eks, multi-cluster, high-availability, gitops, argocd, flux, disaster-rec
 category: "infrastructure"
 sidebar_position: 3
 last_update:
-  date: 2026-03-24
+  date: 2026-06-15
   author: devfloor9
 ---
 
@@ -371,7 +371,7 @@ EKS 멀티 클러스터 관리 영역에서 아직 관리형 서비스로 제공
 | **관리형 ArgoCD** | 개발 중 | 자체 ArgoCD 설치/운영 |
 
 :::tip 현실적 접근
-위 기능들이 출시될 때까지, GitOps + 보조 도구 스택 조합이 가장 성숙하고 검증된 접근법입니다. 이미 EKS 고객의 약 10%가 Flux/ArgoCD 기반 GitOps를 채택하고 있습니다.
+위 기능들이 출시될 때까지, GitOps + 보조 도구 스택 조합이 가장 성숙하고 검증된 접근법입니다. 많은 EKS 고객이 Flux/ArgoCD 기반 GitOps를 채택하고 있습니다.
 :::
 
 ---

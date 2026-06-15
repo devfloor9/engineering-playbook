@@ -4,7 +4,7 @@ sidebar_label: "PFR: GPU 추론"
 description: "대형 MoE 모델 배포 과정에서 발견한 EKS Auto Mode 제약 및 개선 요청"
 tags: [pfr, eks, gpu, auto-mode, dynamo]
 last_update:
-  date: 2026-04-18
+  date: 2026-06-15
   author: YoungJoon Jeong
 ---
 
@@ -19,13 +19,13 @@ GLM-5 (744B MoE) 및 Kimi K2.5 (1T MoE) 대형 언어 모델을 EKS Auto Mode에
 ## 배경
 
 ### 배포 대상 모델
-- **GLM-5 (744B MoE)**: 192개 Expert, 8개 Active Expert, 최소 8×H200/B200 GPU 필요
+- **GLM-5 (744B MoE)**: 192개 Expert, 8개 Active Expert, 최소 8×H200/B200 GPU 필요 (B200 180GB HBM3e per-GPU)
 - **Kimi K2.5 (1T MoE)**: 256개 Expert, 16개 Active Expert, 최소 16×H200/B200 GPU 필요
 
 ### 배포 환경
 - **인프라**: Amazon EKS Auto Mode (v1.32)
-- **GPU 타겟**: p6-b200.48xlarge (8×B200, 192GB HBM3e), p5.48xlarge (8×H100, 80GB HBM3)
-- **모델 서빙**: vLLM v0.19.x + NVIDIA Dynamo (Disaggregated Serving)
+- **GPU 타겟**: p6-b200.48xlarge (8×B200, 180GB HBM3e per-GPU, 1,440GB total), p5.48xlarge (8×H100, 80GB HBM3)
+- **모델 서빙**: vLLM v0.22+ / v0.23.x + NVIDIA Dynamo (Disaggregated Serving)
 - **스케줄링**: Karpenter (Auto Mode 내장) + NVIDIA GPU Operator
 
 ---
@@ -89,7 +89,7 @@ helm install karpenter oci://public.ecr.aws/karpenter/karpenter \
 ```
 
 ### 비즈니스 임팩트
-- **B200 GPU (192GB HBM3e)는 744B~1T MoE 모델에 필수**:
+- **B200 GPU (180GB HBM3e)는 744B~1T MoE 모델에 필수**:
   - GLM-5: H100 (80GB)로는 expert offloading 필요 → 레이턴시 2배 증가
   - Kimi K2.5: B200 없이는 배포 불가 (메모리 부족)
 - **Auto Mode 사용 불가 → Standard Mode 전환 필요**:
@@ -677,7 +677,7 @@ containers:
 
 **옵션 2: 단일 노드 + 대형 인스턴스**
 
-p5en.48xlarge (H200 1,128GB) 또는 p6-b200.48xlarge (B200 1,536GB)를 사용하여 PP=1로 배포.
+p5en.48xlarge (H200 1,128GB) 또는 p6-b200.48xlarge (B200 1,440GB)를 사용하여 PP=1로 배포.
 
 **제약**: EKS Standard Mode 필요 (Auto Mode는 p5en/p6 미지원).
 

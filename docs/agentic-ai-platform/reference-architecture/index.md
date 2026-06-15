@@ -5,7 +5,7 @@ sidebar_position: 7
 description: "Agentic AI Platform 실전 배포 및 구성 레퍼런스 아키텍처"
 created: 2026-04-06
 last_update:
-  date: 2026-04-20
+  date: 2026-06-15
   author: devfloor9
 reading_time: 1
 tags: [reference-architecture, deployment, eks, gpu, monitoring, 'scope:impl']
@@ -83,7 +83,7 @@ EKS 클러스터와 GPU 노드 그룹을 구성합니다. Auto Mode와 Standard 
 
 | 항목 | 세부사항 |
 |------|---------|
-| EKS 버전 | 1.32+ (권장 1.33) |
+| EKS 버전 | 1.33+ (권장 1.35/1.36) |
 | 노드 그룹 | MNG p5en.48xlarge (Spot) |
 | GPU Operator | `devicePlugin.enabled=false` (Auto Mode 충돌 방지) |
 | 모니터링 에이전트 | DCGM Exporter, GFD, Node Status Exporter |
@@ -200,7 +200,7 @@ Reference Architecture를 배포하기 위한 사전 요구사항입니다.
 | 도구 | 최소 버전 | 용도 |
 |------|----------|------|
 | `eksctl` | 0.200+ | EKS 클러스터 관리 |
-| `kubectl` | 1.32+ | Kubernetes 리소스 관리 |
+| `kubectl` | 1.33+ | Kubernetes 리소스 관리 |
 | `helm` | 3.16+ | 차트 배포 |
 | `aws` CLI | 2.22+ | AWS 리소스 관리 |
 | `docker` | 27+ | 커스텀 이미지 빌드 |

@@ -4,7 +4,7 @@ title: 기술 로드맵
 sidebar_label: 기술 로드맵
 description: AIDLC 기술 투자 의사결정 — Build-vs-Wait 매트릭스, 도구 성숙도 평가, 6/12/18개월 호라이즌
 last_update:
-  date: 2026-04-18
+  date: 2026-06-15
   author: devfloor9
 ---
 
@@ -37,8 +37,8 @@ AIDLC 구현 시 조직이 직면하는 대표적인 질문들:
 ### 1.2 2026년 기술 환경 특징
 
 **성숙한 기술:**
-- Kubernetes (v1.35 GA, DRA 포함)
-- vLLM (v0.18+, PagedAttention v2)
+- Kubernetes (v1.36 GA, DRA 1.34 GA)
+- vLLM (v0.22+ / v0.23.x, PagedAttention v2)
 - GitOps (Argo CD, Flux CD)
 - ACK (50+ AWS 서비스 GA)
 - Gateway API (v1.2 GA)
@@ -47,7 +47,7 @@ AIDLC 구현 시 조직이 직면하는 대표적인 질문들:
 - MCP (Model Context Protocol) 서버 생태계 (50+ 오픈소스 서버)
 - AI 코딩 에이전트 (Kiro, Q Developer, Cursor, Windsurf)
 - Kubernetes 오퍼레이터 (KRO, Kagent)
-- 분산 추론 엔진 (llm-d v0.5, Dynamo v1.x)
+- 분산 추론 엔진 (llm-d v0.7+, Dynamo v1.x)
 
 **초기 단계:**
 - Strands Agents SDK (Early Access)
@@ -71,8 +71,8 @@ AIDLC 구현 시 조직이 직면하는 대표적인 질문들:
 | **MCP Servers** | 50+ GA | 🟡 선택적 도입 | 도구별 성숙도 차이 큼. 실험 후 안정화된 것만 도입. [mcp.run](https://mcp.run) 참조 |
 | **Kagent** | Early | 🟠 실험 단계 | K8s AI Agent 자동화. 프로덕션 적용 전 충분한 테스트 필요. 대안: kubectl + 스크립트 |
 | **Strands Agents SDK** | GA | ✅ 커스텀 에이전트 시 | Bedrock Agents + CDK 기반. 대안: LangGraph, CrewAI |
-| **vLLM** | v0.18+ (Mature) | ✅ 데이터 레지던시 시 | 오픈 웨이트 모델 서빙. 대안: TensorRT-LLM, SGLang |
-| **llm-d** | v0.5+ (GA) | 🟡 고급 사용자 | Disaggregated Serving, NIXL KV 전송. 대안: Ray Serve, vLLM multi-instance |
+| **vLLM** | v0.22+ / v0.23.x (Mature) | ✅ 데이터 레지던시 시 | 오픈 웨이트 모델 서빙. 대안: TensorRT-LLM, SGLang |
+| **llm-d** | v0.7+ (GA) | 🟡 고급 사용자 | Disaggregated Serving, NIXL KV 전송. 대안: Ray Serve, vLLM multi-instance |
 | **Dynamo** | v1.x (GA) | 🟡 고급 사용자 | NVIDIA 엔터프라이즈 추론 플랫폼. 대안: vLLM, TensorRT-LLM |
 | **Langfuse** | v3.x (GA) | ✅ 즉시 도입 | Self-hosted 관찰성. 대안: LangSmith (SaaS), Helicone |
 | **Ragas** | v0.2+ (GA) | ✅ 즉시 도입 | AI Agent 평가 프레임워크. 대안: PromptFoo, TruLens |
@@ -86,7 +86,7 @@ AIDLC 구현 시 조직이 직면하는 대표적인 질문들:
 ### 2.1 도구별 세부 평가
 
 #### Kiro (Spec-Driven 개발)
-- **성숙도**: GA (2025년 11월 정식 출시)
+- **성숙도**: GA (2025년 11월 17일)
 - **강점**: 요구사항 → 코드 자동 생성, MCP 통합, Git 커밋까지 완전 자동화
 - **약점**: 벤더 종속(AWS 전용), 초기 학습 곡선
 - **권장**: 신규 마이크로서비스 개발부터 시작, Mob Elaboration 리추얼과 결합

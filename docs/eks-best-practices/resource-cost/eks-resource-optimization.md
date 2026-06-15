@@ -5,7 +5,7 @@ description: "Kubernetes Pod의 CPU/Memory 리소스 설정, QoS 클래스, VPA/
 tags: [eks, kubernetes, resources, cpu, memory, qos, vpa, hpa, right-sizing, optimization]
 category: "performance-networking"
 last_update:
-  date: 2026-02-14
+  date: 2026-06-15
   author: devfloor9
 ---
 
@@ -13,7 +13,7 @@ last_update:
 
 > 📅 **작성일**: 2026-02-12 | **수정일**: 2026-02-14 | ⏱️ **읽는 시간**: 약 46분
 
-> **📌 기준 환경**: EKS 1.30+, Kubernetes 1.30+, Metrics Server v0.7+
+> **📌 기준 환경**: EKS 1.33+, Kubernetes 1.33+, Metrics Server v0.7+
 
 ## 개요
 
@@ -593,14 +593,15 @@ docker manifest inspect nginx:1.25 | jq '.manifests[].platform'
 - Graviton On-Demand: $2,383/월 (15% 절감)
 - **Graviton Spot: $715/월 (75% 절감)** ⭐
 
-**Graviton4 특화 최적화:**
+**Graviton4 및 Graviton5 특화 최적화:**
 
-Graviton4 (R8g, M8g, C8g) 인스턴스는 Graviton3 대비 **30% 향상된 컴퓨팅 성능**과 **75% 향상된 메모리 대역폭**을 제공합니다.
+Graviton4 (R8g, M8g, C8g) 인스턴스는 Graviton3 대비 **30% 향상된 컴퓨팅 성능**과 **75% 향상된 메모리 대역폭**을 제공합니다. Graviton5 (M9g, M9gd)는 2026년 6월 GA되었으며, M8g 대비 약 25% 추가 성능 향상을 제공합니다.
 
 | 세대 | 인스턴스 패밀리 | 성능 개선 | 주요 워크로드 |
 |------|---------------|---------|-------------|
 | Graviton3 | m7g, c7g, r7g | 기준 | 범용 웹/API, 컨테이너 |
-| **Graviton4** | **m8g, c8g, r8g** | **+30% 컴퓨팅, +75% 메모리** | **고성능 데이터베이스, ML 추론, 실시간 분석** |
+| **Graviton4** | **m8g, c8g, r8g (8g 시리즈)** | **+30% 컴퓨팅, +75% 메모리** | **고성능 데이터베이스, ML 추론, 실시간 분석** |
+| **Graviton5** | **m9g, m9gd** | **Graviton4 대비 +25%** | **최신 고성능 워크로드** |
 
 **ARM64 Multi-Arch 빌드 파이프라인:**
 
@@ -660,23 +661,28 @@ jobs:
           cache-to: type=gha,mode=max
 ```
 
-**Graviton3 → Graviton4 마이그레이션 벤치마크 포인트:**
+**Graviton3 → Graviton4/5 마이그레이션 벤치마크 포인트:**
 
 ```yaml
-# Graviton4 우선 NodePool 예시 (Karpenter)
+# Graviton4/5 우선 NodePool 예시 (Karpenter)
 apiVersion: karpenter.sh/v1
 kind: NodePool
 metadata:
-  name: graviton4-spot-pool
+  name: graviton-spot-pool
 spec:
   template:
     spec:
       requirements:
-      # Graviton4 우선, Graviton3 Fallback
+      # Graviton5 → Graviton4 → Graviton3 우선순위
       - key: node.kubernetes.io/instance-type
         operator: In
         values:
-          # Graviton4 (최우선)
+          # Graviton5 (최우선, 2026-06 GA)
+          - "m9g.medium"
+          - "m9g.large"
+          - "m9g.xlarge"
+          - "m9g.2xlarge"
+          # Graviton4 (8g 시리즈)
           - "m8g.medium"
           - "m8g.large"
           - "m8g.xlarge"
@@ -736,18 +742,18 @@ k6 run --vus 100 --duration 5m loadtest.js
 curl -s http://localhost:9090/api/v1/query?query=rate(http_request_duration_seconds_sum[5m]) | jq .
 ```
 
-:::tip Graviton4 마이그레이션 체크리스트
+:::tip Graviton4/5 마이그레이션 체크리스트
 
 - [ ] **컨테이너 이미지**: ARM64 지원 확인 (`docker manifest inspect`)
 - [ ] **의존성 라이브러리**: ARM64 호환성 검증
 - [ ] **CI/CD 파이프라인**: Multi-arch 빌드 활성화
-- [ ] **NodePool 우선순위**: Graviton4 → Graviton3 → x86 순서 설정
+- [ ] **NodePool 우선순위**: Graviton5 → Graviton4(8g 시리즈) → Graviton3 → x86 순서 설정
 - [ ] **성능 벤치마크**: P99 레이턴시, 처리량, CPU 사용률 측정
 - [ ] **비용 분석**: Graviton3 대비 가격/성능 비율 계산
 :::
 
-:::warning Graviton4 리전 가용성
-Graviton4 기반 인스턴스(M8g, C8g, R8g)는 아직 모든 리전에서 가용하지 않을 수 있습니다. 프로덕션 배포 전 대상 리전의 인스턴스 가용성을 확인하세요: `aws ec2 describe-instance-type-offerings --location-type availability-zone --filters Name=instance-type,Values=m8g.* --region <region>`
+:::warning Graviton4/5 리전 가용성
+Graviton4 기반 인스턴스(M8g, C8g, R8g)와 Graviton5 인스턴스(M9g, M9gd)는 아직 모든 리전에서 가용하지 않을 수 있습니다. 프로덕션 배포 전 대상 리전의 인스턴스 가용성을 확인하세요: `aws ec2 describe-instance-type-offerings --location-type availability-zone --filters Name=instance-type,Values=m8g.*,m9g.* --region <region>`
 :::
 
 #### 2.5.4 Auto Mode 환경의 리소스 설정 권장사항
@@ -2215,7 +2221,7 @@ Kubernetes 클러스터에서 새 노드가 프로비저닝되면, CNI 플러그
 
 ### 5.4 Node Readiness Controller (NRC) 개요
 
-Node Readiness Controller는 Kubernetes 1.32에 도입된 기능으로, 인프라 준비 완료 전까지 Pod 스케줄링을 차단하여 리소스 효율성을 향상시킵니다.
+Node Readiness Controller는 kubernetes-sigs 아웃오브트리 프로젝트로 2026년 2월 알파 단계에 공개된 기능으로, 인프라 준비 완료 전까지 Pod 스케줄링을 차단하여 리소스 효율성을 향상시킵니다.
 
 **핵심 기능:**
 
@@ -2516,7 +2522,7 @@ spec:
 
 :::tip 참고 자료
 - **공식 블로그**: [Introducing Node Readiness Controller](https://kubernetes.io/blog/2026/02/03/introducing-node-readiness-controller/)
-- **KEP (Kubernetes Enhancement Proposal)**: KEP-4403
+- **KEP (Kubernetes Enhancement Proposal)**: KEP-5233/5416 (NodeReadinessGates)
 - **API 문서**: `readiness.node.x-k8s.io/v1alpha1`
 :::
 
@@ -3566,7 +3572,7 @@ def lambda_handler(event, context):
     """
 
     response = bedrock.invoke_model(
-        modelId='anthropic.claude-3-sonnet-20240229-v1:0',
+        modelId='us.anthropic.claude-sonnet-4-6-v1:0',
         contentType='application/json',
         accept='application/json',
         body=json.dumps({
@@ -4117,11 +4123,11 @@ kubectl get pod test-pod -n production -o jsonpath='{.spec.containers[0].resourc
 
 ### 7.3 DRA (Dynamic Resource Allocation) - GPU/특수 리소스 관리
 
-Kubernetes 1.31+에서 도입된 **DRA (Dynamic Resource Allocation)**는 GPU, FPGA, NPU 같은 특수 리소스를 보다 유연하게 할당할 수 있는 새로운 메커니즘입니다.
+Kubernetes 1.34에서 GA된 **DRA (Dynamic Resource Allocation)**는 GPU, FPGA, NPU 같은 특수 리소스를 보다 유연하게 할당할 수 있는 새로운 메커니즘입니다.
 
 #### 기존 Device Plugin vs DRA
 
-| 특성 | Device Plugin (기존) | DRA (K8s 1.31+) |
+| 특성 | Device Plugin (기존) | DRA (K8s 1.34 GA) |
 |------|---------------------|-----------------|
 | **리소스 표현** | 단순 숫자 (`nvidia.com/gpu: 1`) | 구조화된 파라미터 (메모리, 컴퓨팅 모드) |
 | **공유 가능성** | 불가능 (1 Pod = 1 GPU) | 가능 (시간 분할, MIG 지원) |
@@ -4237,18 +4243,17 @@ spec:
 
 #### EKS에서 DRA 활성화 및 GPU 할당 예시
 
-**Step 1: EKS 클러스터에서 DRA Feature Gate 활성화**
+**Step 1: EKS 클러스터 생성 (DRA는 1.34부터 GA, 기본 활성화)**
 
 ```bash
-# EKS 1.31+ 클러스터 생성 시
+# EKS 1.34+ 클러스터 생성 시 (DRA 기본 활성화)
 eksctl create cluster \
   --name dra-enabled-cluster \
-  --version 1.31 \
+  --version 1.34 \
   --region us-west-2 \
   --nodegroup-name gpu-nodes \
   --node-type p4d.24xlarge \
-  --nodes 2 \
-  --kubernetes-feature-gates DynamicResourceAllocation=true
+  --nodes 2
 ```
 
 **Step 2: NVIDIA GPU Operator 설치 (DRA 드라이버 포함)**
@@ -5216,9 +5221,9 @@ client = Anthropic()
 # Prometheus 메트릭 수집
 metrics = get_prometheus_metrics()
 
-# Bedrock에게 최적화 전략 요청
+# Claude API를 통한 최적화 전략 요청
 response = client.messages.create(
-    model="claude-3-sonnet-20240229",
+    model="claude-sonnet-4-20250514",
     max_tokens=1024,
     messages=[{
         "role": "user",

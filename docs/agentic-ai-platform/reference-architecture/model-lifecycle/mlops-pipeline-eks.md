@@ -4,7 +4,7 @@ sidebar_label: "MLOps 파이프라인"
 description: "Kubeflow + MLflow + vLLM + ArgoCD GitOps 기반 엔드투엔드 ML 라이프사이클 관리"
 created: 2026-02-11
 last_update:
-  date: 2026-04-20
+  date: 2026-06-15
   author: devfloor9
 reading_time: 1
 sidebar_position: 3
@@ -502,7 +502,7 @@ spec:
     spec:
       containers:
         - name: vllm
-          image: vllm/vllm-openai:v0.18.2
+          image: vllm/vllm-openai:v0.23.0
           ports:
             - name: http
               containerPort: 8000

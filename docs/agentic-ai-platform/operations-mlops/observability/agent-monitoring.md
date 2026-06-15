@@ -6,7 +6,7 @@ tags: [eks, langfuse, langsmith, monitoring, observability, tracing, opentelemet
 category: "genai-aiml"
 created: 2026-02-05
 last_update:
-  date: 2026-04-20
+  date: 2026-06-15
   author: devfloor9
 sidebar_position: 1
 reading_time: 10
@@ -49,7 +49,7 @@ Agentic AI 애플리케이션은 복잡한 추론 체인과 다양한 도구 호
 
 ### Langfuse 아키텍처 개요
 
-Langfuse v3.162.0 이상은 다음 컴포넌트로 구성됩니다:
+Langfuse v3 (2024-12+)는 다음 컴포넌트로 구성됩니다. v3는 ClickHouse+Redis+S3 아키텍처로, v2 대비 셀프호스팅 복잡도가 증가했습니다:
 
 ```mermaid
 flowchart TB

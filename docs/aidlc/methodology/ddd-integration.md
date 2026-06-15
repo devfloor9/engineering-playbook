@@ -5,7 +5,7 @@ description: "AIDLC에서 DDD가 필수 코어인 이유 — 도메인 설계부
 category: "aidlc"
 tags: [ddd, domain-driven-design, mob-elaboration, kiro, mcp, aggregate, entity, cqrs, adr, 'scope:methodology']
 last_update:
-  date: 2026-04-18
+  date: 2026-06-15
   author: devfloor9
 ---
 
@@ -654,7 +654,7 @@ Kiro 워크플로우:
 
 ### 8.2 Amazon Q Developer의 실시간 검증
 
-**Amazon Q Developer**는 2025년 2월 발표된 **실시간 코드 실행 기능**을 통해 DDD 구현을 즉시 검증합니다.
+**Amazon Q Developer**는 2025년 1월 31일 발표된 **실시간 코드 실행 기능**을 통해 DDD 구현을 즉시 검증합니다.
 
 ```
 전통 방식:

@@ -5,7 +5,7 @@ description: "ROSA 클러스터 설치 데모 - STS 기반 클러스터 생성, 
 tags: [rosa, openshift, installation, sts, demo, autoscaling, iam]
 category: "rosa"
 last_update:
-  date: 2026-02-14
+  date: 2026-06-15
   author: devfloor9
 ---
 
@@ -37,7 +37,7 @@ rosa create cluster --cluster-name rosa-demo-icn \
   --operator-roles-prefix rosa-oidc \
   --oidc-config-id XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX \
   --region ap-northeast-2 \
-  --version 4.13.34 \
+  --version 4.21.x \  # rosa list versions 명령으로 최신 패치 버전 확인
   --ec2-metadata-http-tokens optional \
   --enable-autoscaling \
   --min-replicas 2 \

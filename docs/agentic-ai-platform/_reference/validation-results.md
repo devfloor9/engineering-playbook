@@ -1,12 +1,16 @@
 ---
 sidebar_position: 100
-title: "문서 검증 결과"
-description: "Agentic AI Platform 문서의 기술적 정확성 검증 결과"
-tags: [validation, documentation, quality-assurance]
+title: "문서 검증 결과 (Archived 2026-02-13)"
+description: "Agentic AI Platform 문서의 기술적 정확성 검증 결과 — Archived, 현행 아님"
+tags: [validation, documentation, quality-assurance, archived]
 last_update:
   date: 2026-02-13
   author: validation-system
 ---
+
+:::warning Archived 2026-02-13 — superseded
+이 문서는 2026-02-13 스냅샷입니다. 현행 검증 결과가 아니며 참고용으로만 유지됩니다. 최신 문서 검증은 별도 프로세스로 수행됩니다.
+:::
 
 # Agentic AI Platform 문서 검증 결과
 

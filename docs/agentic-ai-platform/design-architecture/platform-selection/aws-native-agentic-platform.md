@@ -5,7 +5,7 @@ sidebar_position: 4
 description: "Amazon Bedrock, Strands Agents SDK, AgentCore를 활용하여 인프라 운영 부담을 줄이고 Agent 개발에 집중하는 플랫폼 접근"
 created: 2026-03-18
 last_update:
-  date: 2026-04-20
+  date: 2026-06-15
   author: devfloor9
 reading_time: 18
 tags:
@@ -191,7 +191,7 @@ agent = Agent(
 
 ## Amazon Bedrock AgentCore: 운영 플랫폼
 
-AgentCore는 **Agent의 프로덕션 운영에 필요한 모든 것**을 매니지드로 제공하는 플랫폼입니다. 2025년 GA(General Availability)로 출시되었으며, 7개의 핵심 서비스로 구성됩니다.
+AgentCore는 **Agent의 프로덕션 운영에 필요한 모든 것**을 매니지드로 제공하는 플랫폼입니다. 2025년 10월 GA(General Availability)로 출시되었으며, 7개의 핵심 서비스로 구성됩니다.
 
 ### 7대 핵심 서비스
 

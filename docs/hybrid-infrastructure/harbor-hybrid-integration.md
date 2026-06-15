@@ -5,7 +5,7 @@ description: "Harbor 2.13 프라이빗 컨테이너 레지스트리를 Amazon EK
 tags: [eks, hybrid-nodes, harbor, container-registry, kubernetes, ssl-tls, nodeadm]
 category: "hybrid-multicloud"
 last_update:
-  date: 2026-02-14
+  date: 2026-06-15
   author: devfloor9
 ---
 
@@ -20,23 +20,23 @@ last_update:
 
 ## Part 1: Harbor Private Repository 설치 및 구성
 
-### Step 1: Harbor 2.13 설치 준비
+### Step 1: Harbor 2.15 설치 준비
 
 #### 시스템 요구사항 확인
 
 - Docker Engine 20.10.10+
 - Docker Compose 2.0+
 - 최소 하드웨어: 2 CPU cores, 4GB RAM
-- 지원 OS: Ubuntu 20.04/22.04, RHEL 8/9, CentOS 7/8
+- 지원 OS: Ubuntu 22.04/24.04, RHEL 8/9
 
-#### Harbor 2.13.2 다운로드
+#### Harbor 2.15.x 다운로드
 
 ```bash
-# Harbor 2.13.2 다운로드 (최신 안정 버전)
-wget https://github.com/goharbor/harbor/releases/download/v2.13.2/harbor-offline-installer-v2.13.2.tgz
+# Harbor 2.15.x 다운로드 (현재 안정 버전)
+wget https://github.com/goharbor/harbor/releases/download/v2.15.1/harbor-offline-installer-v2.15.1.tgz
 
 # 압축 해제
-tar xvf harbor-offline-installer-v2.13.2.tgz
+tar xvf harbor-offline-installer-v2.15.1.tgz
 cd harbor
 ```
 
@@ -108,12 +108,12 @@ https:
   certificate: /data/cert/harbor.crt
   private_key: /data/cert/harbor.key
 
-# Harbor 관리자 비밀번호
-harbor_admin_password: Harbor12345!
+# Harbor 관리자 비밀번호 (배포 후 즉시 변경 필요)
+harbor_admin_password: CHANGE_ME_AFTER_INSTALL
 
-# 데이터베이스 설정
+# 데이터베이스 설정 (강력한 비밀번호로 변경 + 정기 로테이션)
 database:
-  password: root123
+  password: CHANGE_DB_PASSWORD
   max_idle_conns: 100
   max_open_conns: 900
   conn_max_lifetime: 5m
@@ -165,7 +165,7 @@ docker-compose ps
 # API를 통한 LDAP 구성
 curl -X PUT "https://harbor.yourdomain.com/api/v2.0/configurations" \
   -H "Content-Type: application/json" \
-  -u "admin:Harbor12345!" \
+  -u "admin:YOUR_ADMIN_PASSWORD" \
   -d '{
     "auth_mode": "ldap_auth",
     "ldap_url": "ldap://ldap.company.com:389",
@@ -185,7 +185,7 @@ curl -X PUT "https://harbor.yourdomain.com/api/v2.0/configurations" \
 # Harbor UI에서 생성하거나 API 사용
 curl -X POST "https://harbor.yourdomain.com/api/v2.0/robots" \
   -H "Content-Type: application/json" \
-  -u "admin:Harbor12345!" \
+  -u "admin:YOUR_ADMIN_PASSWORD" \
   -d '{
     "name": "k8s-robot",
     "duration": 365,
@@ -529,7 +529,7 @@ kubectl rollout restart deployment coredns -n kube-system
 # 취약점 스캔 자동화 활성화
 curl -X PUT "https://harbor.yourdomain.com/api/v2.0/projects/1" \
   -H "Content-Type: application/json" \
-  -u "admin:Harbor12345!" \
+  -u "admin:YOUR_ADMIN_PASSWORD" \
   -d '{
     "metadata": {
       "auto_scan": "true",

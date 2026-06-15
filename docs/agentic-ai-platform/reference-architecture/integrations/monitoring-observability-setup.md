@@ -4,7 +4,7 @@ sidebar_label: "모니터링"
 description: "Prometheus→AMP, AMG, Langfuse, Bifrost OTel 통합 모니터링 실전 구성 가이드"
 created: 2026-04-06
 last_update:
-  date: 2026-04-20
+  date: 2026-06-15
   author: devfloor9
 reading_time: 1
 tags: [monitoring, langfuse, amp, amg, prometheus, otel, deployment, 'scope:impl']
@@ -100,7 +100,7 @@ aws eks create-pod-identity-association \
 ```
 
 :::tip Pod Identity vs IRSA
-Pod Identity는 OIDC Provider 설정 없이 한 줄 명령으로 완료됩니다. EKS 1.28+ 클러스터에서는 Pod Identity를 권장합니다.
+Pod Identity는 OIDC Provider 설정 없이 한 줄 명령으로 완료됩니다. EKS 1.33+ (현재 표준 지원 버전) 클러스터에서는 Pod Identity를 권장합니다.
 :::
 
 ### 2.4 Prometheus Helm values 핵심 설정

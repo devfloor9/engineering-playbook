@@ -5,7 +5,7 @@ description: "EKS Pod Identity 기반 제로트러스트 접근 제어 및 IRSA 
 category: "security"
 tags: [eks, security, pod-identity, irsa, zero-trust]
 last_update:
-  date: 2026-02-13
+  date: 2026-06-15
   author: devfloor9
 ---
 
