@@ -34,6 +34,13 @@ const SolutionsComparisonTable = () => {
       features: isKo ? 'Agent 워크플로우 프레임워크, 상태 관리, LangSmith 네이티브 통합' : isZh ? 'Agent 工作流框架，状态管理，LangSmith 原生集成' : 'Agent workflow framework, state management, LangSmith native integration',
       useCase: isKo ? '복잡한 멀티스텝 Agent, 상태 기반 워크플로우' : isZh ? '复杂多步骤 Agent，基于状态的工作流' : 'Complex multi-step agents, stateful workflows',
       color: '#f59e0b'
+    },
+    {
+      id: 'hermes-agent',
+      solution: isKo ? 'hermes-agent (NousResearch, OSS)' : isZh ? 'hermes-agent (NousResearch, 开源)' : 'hermes-agent (NousResearch, OSS)',
+      features: isKo ? 'self-improving 에이전트 런타임, MCP·40+ 도구·서브에이전트, 모델 무관(OpenRouter 등), MIT' : isZh ? '自我改进代理运行时，MCP·40+ 工具·子代理，模型无关（OpenRouter 等），MIT' : 'Self-improving agent runtime, MCP·40+ tools·subagents, model-agnostic (OpenRouter etc.), MIT',
+      useCase: isKo ? 'OSS 자가개선 에이전트, 멀티 백엔드(Docker/Modal) 실행' : isZh ? '开源自我改进代理，多后端（Docker/Modal）运行' : 'OSS self-improving agent, multi-backend (Docker/Modal) execution',
+      color: '#8b5cf6'
     }
   ];
 

@@ -9,6 +9,8 @@ export { default as GammaMeshDiagram } from './GammaMeshDiagram';
 export { default as GammaInfographic } from './GammaInfographic';
 export { default as FeatureComparisonMatrix } from './FeatureComparisonMatrix';
 export { default as SolutionOverviewMatrix } from './SolutionOverviewMatrix';
+export { default as SolutionSelectorCards } from './SolutionSelectorCards';
+export { default as TieredGatewayDiagram } from './TieredGatewayDiagram';
 export { default as ScenarioRecommendationTable } from './ScenarioRecommendationTable';
 export { default as FeatureMappingTable } from './FeatureMappingTable';
 export { default as DifficultyComparisonTable } from './DifficultyComparisonTable';

@@ -32,6 +32,7 @@ const sidebars = {
                 'eks-best-practices/networking-performance/gateway-api-adoption-guide/gamma-initiative',
                 'eks-best-practices/networking-performance/gateway-api-adoption-guide/cilium-eni-gateway-api',
                 'eks-best-practices/networking-performance/gateway-api-adoption-guide/migration-execution-strategy',
+                'eks-best-practices/networking-performance/gateway-api-adoption-guide/feature-implementation-cookbook',
               ],
             },
             'eks-best-practices/networking-performance/coredns-monitoring-optimization',
@@ -290,6 +291,7 @@ const sidebars = {
                 id: 'agentic-ai-platform/reference-architecture/inference-gateway/index',
               },
               items: [
+                'agentic-ai-platform/reference-architecture/inference-gateway/tiered-gateway-architecture',
                 'agentic-ai-platform/reference-architecture/inference-gateway/routing-strategy',
                 'agentic-ai-platform/reference-architecture/inference-gateway/cascade-routing-tuning',
                 'agentic-ai-platform/reference-architecture/inference-gateway/openclaw-example',

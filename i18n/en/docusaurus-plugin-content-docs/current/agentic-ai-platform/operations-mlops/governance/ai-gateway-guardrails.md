@@ -505,6 +505,20 @@ Article numbers below are based on publicly available regulations and subject to
 In network-separated environments, **external SaaS-dependent Guardrails** like Bedrock Guardrails, Portkey Cloud, Lakera are not permitted in principle. For internal network configuration, recommend **NeMo Guardrails + Presidio + Llama Guard 3 (self-hosted GPU deployment)** combination.
 :::
 
+### 8.4 SaaS LLM API Gateway Data Sovereignty {#openrouter-등-saas-게이트웨이-데이터-주권}
+
+Among [LLM API Gateways](../../reference-architecture/inference-gateway/tiered-gateway-architecture.md) (Tier 2 ②), hosted SaaS like **OpenRouter** routes prompts/responses through an external service. This is advantageous for fast multi-provider integration, but environments with data sovereignty or regulatory requirements must consider the following.
+
+| Consideration | Detail |
+|---------------|--------|
+| **Data boundary** | Prompts are sent to the gateway SaaS and its downstream model providers. If they contain PII/confidential data, redact at the Input Guard before sending, or exclude sensitive traffic from the SaaS path. |
+| **Data policy settings** | OpenRouter provides "Custom Data Policies" to restrict routing to only trusted models/providers. Verify whether it is enabled and its scope. |
+| **Self-hosted alternative** | In environments where external transmission is restricted (network separation, financial sector), first consider implementing the same provider abstraction with a **self-hosted gateway (Bifrost·LiteLLM)**. |
+
+:::note Factual boundary
+Verify OpenRouter's detailed data-handling specifics (prompt caching, BYOK, etc.) in the product documentation before applying. Whether the Electronic Financial Supervision Regulation / network separation applies depends on each institution's interpretation and regulatory guidance; this document presents general considerations.
+:::
+
 ---
 
 ## 9. Practical Checklist

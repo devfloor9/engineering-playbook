@@ -29,20 +29,26 @@ last_update:
 
 ## 2-Tier Gateway 아키텍처
 
+:::tip 게이트웨이 계층 정의는 별도 문서로 통일
+플랫폼 전역의 게이트웨이 계층 용어·역할 정의는 [티어드 게이트웨이 아키텍처](./tiered-gateway-architecture.md)에 단일하게 정리되어 있습니다. 이 문서는 그중 **Tier 2-A(LLM API Gateway)** 의 라우팅 전략에 집중합니다. 클러스터 내 추론 Pod 라우팅(Tier 2 ① Inference Extension)은 아래 [Gateway API Inference Extension](#gateway-api-inference-extension) 섹션을 참조하세요.
+:::
+
 ### Gateway 계층 구분
 
-LLM 추론 플랫폼은 **3가지 서로 다른 Gateway 역할**을 명확히 구분해야 합니다:
+LLM 추론 플랫폼은 **3가지 서로 다른 Gateway 역할**을 명확히 구분해야 합니다. (전체 계층 정의는 [티어드 게이트웨이 아키텍처](./tiered-gateway-architecture.md) 참조)
 
 | Gateway 유형 | 역할 | 구현체 | 위치 |
 |-------------|------|-------|------|
 | **Ingress Gateway** | 외부 트래픽 수신, TLS 종료, 경로 기반 라우팅 | kgateway (NLB 연동) | Tier 1 |
-| **Inference Gateway** | 모델 선택, 지능형 라우팅, 요청 캐스케이딩 | Bifrost / LiteLLM | Tier 2-A |
-| **Data Plane** | MCP/A2A 프로토콜, stateful 세션, 도구 라우팅 | agentgateway | Tier 2-B |
+| **LLM API Gateway** | 모델 선택, 지능형 라우팅, 요청 캐스케이딩 (외부/내부 모델 추상화) | Bifrost / LiteLLM | Tier 2-A |
+| **Agent Data Plane** | MCP/A2A 프로토콜, stateful 세션, 도구 라우팅 | agentgateway | Tier 2-B |
+
+> **용어 주의**: 여기서 **Tier 2-A "LLM API Gateway"** 는 모델 API를 추상화하는 프로바이더 프록시(Bifrost/LiteLLM)입니다. 클러스터 내 추론 Pod로 라우팅하는 **Gateway API Inference Extension**(Tier 2 ①, 본 문서 후반부)과는 용도가 다릅니다.
 
 ```mermaid
 graph LR
     Client[클라이언트] --> IGW[Ingress Gateway<br/>kgateway NLB<br/>TLS 종료]
-    IGW -->|복잡도 분석| IFG[Inference Gateway<br/>Bifrost / LiteLLM<br/>모델 선택]
+    IGW -->|복잡도 분석| IFG[LLM API Gateway<br/>Bifrost / LiteLLM<br/>모델 선택]
     IFG -->|복잡| LLM[GLM-5 744B<br/>Reasoning]
     IFG -->|단순| SLM[Qwen3-Coder 3B<br/>빠른 응답]
     IGW -->|MCP/A2A| AGW[agentgateway<br/>세션 관리<br/>도구 라우팅]
@@ -56,8 +62,8 @@ graph LR
 
 **핵심 원칙:**
 - **Ingress Gateway (kgateway)**: 네트워크 레벨 트래픽 제어만 담당. 모델 선택 로직은 포함하지 않음
-- **Inference Gateway (Bifrost/LiteLLM)**: 요청 복잡도 분석 → 적절한 모델 자동 선택 → 비용 최적화
-- **Data Plane (agentgateway)**: AI 전용 프로토콜 (MCP/A2A) 처리, stateful 세션 유지
+- **LLM API Gateway (Bifrost/LiteLLM)**: 요청 복잡도 분석 → 적절한 모델 자동 선택 → 비용 최적화
+- **Agent Data Plane (agentgateway)**: AI 전용 프로토콜 (MCP/A2A) 처리, stateful 세션 유지
 
 ### 전체 구조
 
@@ -76,14 +82,14 @@ flowchart TB
         HR3[MCP/A2A]
     end
 
-    subgraph T2A["Tier 2-A: Inference Gateway"]
+    subgraph T2A["Tier 2-A: LLM API Gateway"]
         BIFROST[Bifrost / LiteLLM]
         OPENAI[OpenAI]
         ANTHROPIC[Anthropic]
         BEDROCK[Bedrock]
     end
 
-    subgraph T2B["Tier 2-B: Data Plane"]
+    subgraph T2B["Tier 2-B: Agent Data Plane"]
         AGENTGW[agentgateway]
         VLLM1[vLLM-1]
         VLLM2[vLLM-2]
@@ -119,9 +125,9 @@ flowchart TB
 
 | Tier | 컴포넌트 | 책임 | 프로토콜 |
 |------|----------|------|----------|
-| **Tier 1** | kgateway (Envoy 기반) | 트래픽 라우팅, mTLS, rate limiting, 네트워크 정책 | HTTP/HTTPS, gRPC |
-| **Tier 2-A** | Bifrost / LiteLLM | 지능형 모델 선택, 비용 추적, request cascading, semantic caching | OpenAI-compatible API |
-| **Tier 2-B** | agentgateway | MCP/A2A 세션 관리, 자체 추론 인프라 라우팅, Tool Poisoning 방지 | HTTP, JSON-RPC, MCP, A2A |
+| **Tier 1** (Ingress Gateway) | kgateway (Envoy 기반) | 트래픽 라우팅, mTLS, rate limiting, 네트워크 정책 | HTTP/HTTPS, gRPC |
+| **Tier 2-A** (LLM API Gateway) | Bifrost / LiteLLM | 지능형 모델 선택, 비용 추적, request cascading, semantic caching | OpenAI-compatible API |
+| **Tier 2-B** (Agent Data Plane) | agentgateway | MCP/A2A 세션 관리, 자체 추론 인프라 라우팅, Tool Poisoning 방지 | HTTP, JSON-RPC, MCP, A2A |
 
 ### 트래픽 플로우
 
@@ -195,6 +201,11 @@ import { TopologyEffectsTable } from '@site/src/components/InferenceGatewayTable
 | **Portkey** | TypeScript | SOC2 인증, semantic caching, Virtual Keys | 지원 | Proprietary + OSS | 엔터프라이즈, 규정 준수 |
 | **Kong AI Gateway** | Lua/C | MCP 지원, 기존 Kong 인프라 활용 | 플러그인 | Apache 2.0 / Enterprise | 기존 Kong 사용자 |
 | **Helicone** | Rust | Gateway + Observability 통합, 고성능 | 지원 | Apache 2.0 | 고성능 + 관측성 동시 필요 |
+| **OpenRouter** | SaaS (호스티드) | 400+ 모델·60+ 프로바이더 통합 API, 프로바이더 폴백, OpenAI 호환 | 프로바이더 라우팅 지원 | SaaS (상용) | 멀티 프로바이더 빠른 통합, 프로토타이핑 |
+
+:::note 셀프호스트 vs SaaS
+위 표에서 Bifrost·LiteLLM·Helicone·vLLM Semantic Router는 **셀프호스트**(클러스터 내 배포)이고, **OpenRouter는 호스티드 SaaS**입니다. SaaS는 즉시 400+ 모델에 접근하고 프로바이더 폴백·빌링을 위임할 수 있어 빠른 통합·프로토타이핑에 유리합니다. 단, 프롬프트가 외부 서비스로 전송되므로 데이터 주권·규제 요건이 있는 환경에서는 [거버넌스 주의점](../../operations-mlops/governance/ai-gateway-guardrails.md#openrouter-등-saas-게이트웨이-데이터-주권)을 검토하세요.
+:::
 
 ### Bifrost vs LiteLLM
 

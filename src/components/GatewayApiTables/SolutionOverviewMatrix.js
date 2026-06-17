@@ -87,11 +87,11 @@ const solutions = [
     provider: 'CNCF',
     dataPlane: 'Envoy Proxy',
     license: 'Apache 2.0',
-    maturity: { ko: '중간 (2년)', en: 'Medium (2 years)' },
+    maturity: { ko: '중간 (v1.0 GA 2024)', en: 'Medium (v1.0 GA 2024)' },
     gaDate: '2024-03',
     keyFeatures: {
-      ko: ['CNCF 졸업', 'Policy Attachment 패턴', '고급 L7 (mTLS, ExtAuth, Rate Limiting, Circuit Breaking)', 'Istio 호환'],
-      en: ['CNCF graduated', 'Policy Attachment pattern', 'Advanced L7 (mTLS, ExtAuth, Rate Limiting, Circuit Breaking)', 'Istio compatible']
+      ko: ['CNCF Envoy 서브프로젝트 (Envoy는 졸업)', 'Policy Attachment 패턴', '고급 L7 (mTLS, ExtAuth, Rate Limiting, Circuit Breaking)', 'Istio 호환'],
+      en: ['CNCF Envoy subproject (Envoy is graduated)', 'Policy Attachment pattern', 'Advanced L7 (mTLS, ExtAuth, Rate Limiting, Circuit Breaking)', 'Istio compatible']
     },
     limitations: {
       ko: ['상대적 신규 프로젝트', 'Envoy 복잡성', '관리형 서비스 없음'],
@@ -110,11 +110,11 @@ const solutions = [
     id: 'kgateway',
     name: 'kGateway',
     color: '#9c27b0',
-    provider: 'CNCF (Solo.io)',
+    provider: { ko: 'CNCF Sandbox (前 Solo.io Gloo)', en: 'CNCF Sandbox (formerly Solo.io Gloo)' },
     dataPlane: 'Envoy Proxy',
     license: 'Apache 2.0',
-    maturity: { ko: '높음 (8년+)', en: 'High (8+ years)' },
-    gaDate: '2018-03',
+    maturity: { ko: '중간 (Gloo 계보 2018~, kgateway 2025~)', en: 'Medium (Gloo lineage since 2018, kgateway since 2025)' },
+    gaDate: '2025 (kgateway)',
     keyFeatures: {
       ko: ['통합 게이트웨이 (4-in-1)', 'AI/ML 워크로드 라우팅', 'JWT/OAuth/OIDC 네이티브', 'Gateway API v1.4.0 완전 지원'],
       en: ['Unified gateway (4-in-1)', 'AI/ML workload routing', 'JWT/OAuth/OIDC native', 'Gateway API v1.4.0 full support']
@@ -130,6 +130,32 @@ const solutions = [
     notFor: {
       ko: ['단순 인그레스만 필요', '보수적 환경'],
       en: ['Simple ingress only', 'Conservative environments']
+    }
+  },
+  {
+    id: 'kong',
+    name: 'Kong',
+    color: '#00b9aa',
+    provider: 'Kong Inc.',
+    dataPlane: { ko: 'OpenResty (NGINX + Lua)', en: 'OpenResty (NGINX + Lua)' },
+    license: { ko: 'Apache 2.0 / 상용', en: 'Apache 2.0 / Commercial' },
+    maturity: { ko: '높음 (10년+)', en: 'High (10+ years)' },
+    gaDate: '2023-08',
+    keyFeatures: {
+      ko: ['100+ 플러그인 생태계', 'KongPlugin CRD 정책 모델', 'Kong AI Gateway (LLM API 프록시)', '엔터프라이즈 24x7 지원 (Enterprise/Konnect)'],
+      en: ['100+ plugin ecosystem', 'KongPlugin CRD policy model', 'Kong AI Gateway (LLM API proxy)', 'Enterprise 24x7 support (Enterprise/Konnect)']
+    },
+    limitations: {
+      ko: ['대부분 정책이 Gateway API 네이티브가 아닌 KongPlugin 경유', 'TLSRoute 미지원, GRPCRoute는 하이브리드 모드만', 'GAMMA/서비스 메시는 별도 제품(Kong Mesh)'],
+      en: ['Most policies via KongPlugin, not native Gateway API', 'No TLSRoute; GRPCRoute only in hybrid mode', 'GAMMA/mesh is a separate product (Kong Mesh)']
+    },
+    bestFor: {
+      ko: ['기존 Kong/API 관리 자산 보유', '풍부한 플러그인 기반 API 관리', '엔터프라이즈 지원 필요', 'LLM API 게이트웨이(외부 모델 프록시)'],
+      en: ['Existing Kong/API management investment', 'Plugin-rich API management', 'Enterprise support needed', 'LLM API gateway (external model proxy)']
+    },
+    notFor: {
+      ko: ['Gateway API 네이티브 정책 우선', '클러스터 내 추론 Pod 라우팅(Inference Extension)', 'eBPF 기반 고성능 메시'],
+      en: ['Native Gateway API policy priority', 'In-cluster inference pod routing (Inference Extension)', 'eBPF-based high-performance mesh']
     }
   }
 ];
@@ -190,7 +216,7 @@ export default function SolutionOverviewMatrix({ locale = 'ko' }) {
           {locale === 'ko' ? 'Gateway API 솔루션 개요 비교' : 'Gateway API Solution Overview Comparison'}
         </div>
         <div style={{ fontSize: '0.72rem', opacity: 0.7, marginTop: 2 }}>
-          {locale === 'ko' ? '5개 솔루션 · 5개 비교 카테고리' : '5 solutions · 5 comparison categories'}
+          {locale === 'ko' ? '6개 솔루션 · 5개 비교 카테고리' : '6 solutions · 5 comparison categories'}
         </div>
       </div>
 
@@ -228,7 +254,7 @@ export default function SolutionOverviewMatrix({ locale = 'ko' }) {
                         <tr style={{ borderBottom: `1px solid ${borderColor}` }}>
                           <td style={{ padding: '0.5rem', fontWeight: 600, background: cellBg, position: 'sticky', left: 0, zIndex: 1 }}>{locale === 'ko' ? '제공사' : 'Provider'}</td>
                           {solutions.map((sol, i) => (
-                            <td key={i} style={{ padding: '0.5rem', borderLeft: `1px solid ${borderColor}` }}>{sol.provider}</td>
+                            <td key={i} style={{ padding: '0.5rem', borderLeft: `1px solid ${borderColor}` }}>{typeof sol.provider === 'object' ? sol.provider[locale] : sol.provider}</td>
                           ))}
                         </tr>
                         <tr style={{ borderBottom: `1px solid ${borderColor}` }}>

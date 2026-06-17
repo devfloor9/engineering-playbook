@@ -6,6 +6,7 @@ const solutionColors = {
   'NGINX Fabric': '#4caf50',
   'Envoy GW': '#f44336',
   'kGateway': '#9c27b0',
+  'Kong': '#00b9aa',
   'NGINX/Envoy': '#757575',
 };
 
@@ -21,6 +22,8 @@ const data = {
     { scenario: '하이브리드/멀티클러스터', first: 'Cilium', second: 'kGateway', reason: 'BGP Control Plane, 멀티사이트 메시' },
     { scenario: '빠른 PoC (검증)', first: 'AWS Native', second: 'NGINX Fabric', reason: '빠른 설정, 관리형, 검증된 안정성' },
     { scenario: '장기 전략적 투자', first: 'Cilium', second: 'Envoy GW', reason: 'eBPF 미래 기술, CNCF 생태계' },
+    { scenario: '엔터프라이즈 API 관리 + 플러그인', first: 'Kong', second: 'kGateway', reason: '100+ 플러그인, 24x7 지원, 기존 Kong 자산' },
+    { scenario: 'LLM API 게이트웨이 (외부 모델 프록시)', first: 'Kong', second: 'kGateway', reason: 'Kong AI Gateway, LLM 프로바이더 라우팅·시맨틱 캐시' },
   ],
   en: [
     { scenario: 'AWS All-in + Minimal Ops', first: 'AWS Native', second: 'Cilium', reason: 'Managed, SLA guaranteed, small ops team' },
@@ -33,6 +36,8 @@ const data = {
     { scenario: 'Hybrid/Multi-cluster', first: 'Cilium', second: 'kGateway', reason: 'BGP Control Plane, multi-site mesh' },
     { scenario: 'Quick PoC (Validation)', first: 'AWS Native', second: 'NGINX Fabric', reason: 'Fast setup, managed, proven stability' },
     { scenario: 'Long-term Strategic Investment', first: 'Cilium', second: 'Envoy GW', reason: 'eBPF future tech, CNCF ecosystem' },
+    { scenario: 'Enterprise API Management + Plugins', first: 'Kong', second: 'kGateway', reason: '100+ plugins, 24x7 support, existing Kong investment' },
+    { scenario: 'LLM API Gateway (external model proxy)', first: 'Kong', second: 'kGateway', reason: 'Kong AI Gateway, LLM provider routing & semantic cache' },
   ],
 };
 

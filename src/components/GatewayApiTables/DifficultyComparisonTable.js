@@ -15,24 +15,24 @@ const difficultyStyles = {
 
 const data = {
   ko: [
-    { feature: 'Basic Auth', aws: '중간', cilium: '중간', nginx: '쉬움', envoy: '중간', kgateway: '쉬움' },
-    { feature: 'IP Allowlist', aws: '쉬움', cilium: '쉬움', nginx: '쉬움', envoy: '쉬움', kgateway: '쉬움' },
-    { feature: 'Rate Limiting', aws: '중간', cilium: '중간', nginx: '쉬움', envoy: '쉬움', kgateway: '쉬움' },
-    { feature: 'URL Rewrite', aws: '쉬움', cilium: '쉬움', nginx: '쉬움', envoy: '쉬움', kgateway: '쉬움' },
-    { feature: 'Body Size', aws: '중간', cilium: '어려움', nginx: '쉬움', envoy: '쉬움', kgateway: '쉬움' },
-    { feature: 'Custom Error', aws: '쉬움', cilium: '어려움', nginx: '중간', envoy: '쉬움', kgateway: '쉬움' },
-    { feature: 'Header Routing', aws: '쉬움', cilium: '쉬움', nginx: '쉬움', envoy: '쉬움', kgateway: '쉬움' },
-    { feature: 'Cookie Affinity', aws: '쉬움', cilium: '어려움', nginx: '쉬움', envoy: '중간', kgateway: '쉬움' },
+    { feature: 'Basic Auth', aws: '중간', cilium: '중간', nginx: '쉬움', envoy: '중간', kgateway: '쉬움', kong: '쉬움' },
+    { feature: 'IP Allowlist', aws: '쉬움', cilium: '쉬움', nginx: '쉬움', envoy: '쉬움', kgateway: '쉬움', kong: '쉬움' },
+    { feature: 'Rate Limiting', aws: '중간', cilium: '중간', nginx: '쉬움', envoy: '쉬움', kgateway: '쉬움', kong: '쉬움' },
+    { feature: 'URL Rewrite', aws: '쉬움', cilium: '쉬움', nginx: '쉬움', envoy: '쉬움', kgateway: '쉬움', kong: '쉬움' },
+    { feature: 'Body Size', aws: '중간', cilium: '어려움', nginx: '쉬움', envoy: '쉬움', kgateway: '쉬움', kong: '쉬움' },
+    { feature: 'Custom Error', aws: '쉬움', cilium: '어려움', nginx: '중간', envoy: '쉬움', kgateway: '쉬움', kong: '중간' },
+    { feature: 'Header Routing', aws: '쉬움', cilium: '쉬움', nginx: '쉬움', envoy: '쉬움', kgateway: '쉬움', kong: '쉬움' },
+    { feature: 'Cookie Affinity', aws: '쉬움', cilium: '어려움', nginx: '쉬움', envoy: '중간', kgateway: '쉬움', kong: '쉬움' },
   ],
   en: [
-    { feature: 'Basic Auth', aws: 'Medium', cilium: 'Medium', nginx: 'Easy', envoy: 'Medium', kgateway: 'Easy' },
-    { feature: 'IP Allowlist', aws: 'Easy', cilium: 'Easy', nginx: 'Easy', envoy: 'Easy', kgateway: 'Easy' },
-    { feature: 'Rate Limiting', aws: 'Medium', cilium: 'Medium', nginx: 'Easy', envoy: 'Easy', kgateway: 'Easy' },
-    { feature: 'URL Rewrite', aws: 'Easy', cilium: 'Easy', nginx: 'Easy', envoy: 'Easy', kgateway: 'Easy' },
-    { feature: 'Body Size', aws: 'Medium', cilium: 'Hard', nginx: 'Easy', envoy: 'Easy', kgateway: 'Easy' },
-    { feature: 'Custom Error', aws: 'Easy', cilium: 'Hard', nginx: 'Medium', envoy: 'Easy', kgateway: 'Easy' },
-    { feature: 'Header Routing', aws: 'Easy', cilium: 'Easy', nginx: 'Easy', envoy: 'Easy', kgateway: 'Easy' },
-    { feature: 'Cookie Affinity', aws: 'Easy', cilium: 'Hard', nginx: 'Easy', envoy: 'Medium', kgateway: 'Easy' },
+    { feature: 'Basic Auth', aws: 'Medium', cilium: 'Medium', nginx: 'Easy', envoy: 'Medium', kgateway: 'Easy', kong: 'Easy' },
+    { feature: 'IP Allowlist', aws: 'Easy', cilium: 'Easy', nginx: 'Easy', envoy: 'Easy', kgateway: 'Easy', kong: 'Easy' },
+    { feature: 'Rate Limiting', aws: 'Medium', cilium: 'Medium', nginx: 'Easy', envoy: 'Easy', kgateway: 'Easy', kong: 'Easy' },
+    { feature: 'URL Rewrite', aws: 'Easy', cilium: 'Easy', nginx: 'Easy', envoy: 'Easy', kgateway: 'Easy', kong: 'Easy' },
+    { feature: 'Body Size', aws: 'Medium', cilium: 'Hard', nginx: 'Easy', envoy: 'Easy', kgateway: 'Easy', kong: 'Easy' },
+    { feature: 'Custom Error', aws: 'Easy', cilium: 'Hard', nginx: 'Medium', envoy: 'Easy', kgateway: 'Easy', kong: 'Medium' },
+    { feature: 'Header Routing', aws: 'Easy', cilium: 'Easy', nginx: 'Easy', envoy: 'Easy', kgateway: 'Easy', kong: 'Easy' },
+    { feature: 'Cookie Affinity', aws: 'Easy', cilium: 'Hard', nginx: 'Easy', envoy: 'Medium', kgateway: 'Easy', kong: 'Easy' },
   ],
 };
 
@@ -74,6 +74,7 @@ export default function DifficultyComparisonTable({ locale = 'ko' }) {
               <th style={{ padding: '0.6rem 0.8rem', textAlign: 'center', background: 'var(--ifm-color-emphasis-100)', borderBottom: '2px solid #4caf50', fontWeight: 700, fontSize: '0.74rem', color: 'var(--ifm-font-color-base)', minWidth: '120px' }}>NGINX Fabric</th>
               <th style={{ padding: '0.6rem 0.8rem', textAlign: 'center', background: 'var(--ifm-color-emphasis-100)', borderBottom: '2px solid #f44336', fontWeight: 700, fontSize: '0.74rem', color: 'var(--ifm-font-color-base)', minWidth: '120px' }}>Envoy GW</th>
               <th style={{ padding: '0.6rem 0.8rem', textAlign: 'center', background: 'var(--ifm-color-emphasis-100)', borderBottom: '2px solid #9c27b0', fontWeight: 700, fontSize: '0.74rem', color: 'var(--ifm-font-color-base)', minWidth: '120px' }}>kGateway</th>
+              <th style={{ padding: '0.6rem 0.8rem', textAlign: 'center', background: 'var(--ifm-color-emphasis-100)', borderBottom: '2px solid #00b9aa', fontWeight: 700, fontSize: '0.74rem', color: 'var(--ifm-font-color-base)', minWidth: '120px' }}>Kong</th>
             </tr>
           </thead>
           <tbody>
@@ -85,6 +86,7 @@ export default function DifficultyComparisonTable({ locale = 'ko' }) {
                 <td style={{ padding: '0.7rem 0.8rem', borderBottom: '1px solid var(--ifm-color-emphasis-200)' }}>{renderCell(item.nginx)}</td>
                 <td style={{ padding: '0.7rem 0.8rem', borderBottom: '1px solid var(--ifm-color-emphasis-200)' }}>{renderCell(item.envoy)}</td>
                 <td style={{ padding: '0.7rem 0.8rem', borderBottom: '1px solid var(--ifm-color-emphasis-200)' }}>{renderCell(item.kgateway)}</td>
+                <td style={{ padding: '0.7rem 0.8rem', borderBottom: '1px solid var(--ifm-color-emphasis-200)' }}>{renderCell(item.kong)}</td>
               </tr>
             ))}
           </tbody>

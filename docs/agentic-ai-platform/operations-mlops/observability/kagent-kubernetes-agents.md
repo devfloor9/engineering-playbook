@@ -32,6 +32,8 @@ import { SolutionsComparisonTable } from '@site/src/components/KagentTables';
 
 <SolutionsComparisonTable />
 
+오픈소스 자가개선 에이전트 런타임으로 **hermes-agent**(NousResearch, MIT)도 있습니다. MCP·40+ 도구·서브에이전트 spawn을 지원하며 모델에 무관하게 동작합니다 — 모델 프로바이더로 [LLM API 게이트웨이](../../reference-architecture/inference-gateway/tiered-gateway-architecture.md)(Tier 2 ②)의 OpenRouter 등을 사용할 수 있어, **Layer 4(에이전트 런타임) → Layer 5(게이트웨이)** 흐름을 그대로 구성합니다. Kubernetes 네이티브 선언적 관리가 필요하면 Kagent를, 단독 실행형 자가개선 에이전트가 필요하면 hermes-agent를 검토하세요.
+
 ### 주요 기능
 
 - **선언적 에이전트 관리**: YAML 기반 에이전트 정의 및 배포

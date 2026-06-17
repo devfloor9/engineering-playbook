@@ -7,6 +7,7 @@ const data = {
     { route: 'NGINX Fabric', bestFor: 'NGINX 경험 활용', advantages: '검증된 안정성, 익숙한 설정, 빠른 전환', color: '#4caf50' },
     { route: 'Envoy Gateway', bestFor: 'CNCF 표준 + 서비스 메시', advantages: 'L7 기능 풍부, Istio 통합, 확장성', color: '#f44336' },
     { route: 'kGateway', bestFor: 'AI/ML 통합 필요', advantages: 'AI 라우팅, 엔터프라이즈 지원, Solo.io 생태계', color: '#9c27b0' },
+    { route: 'Kong', bestFor: '엔터프라이즈 API 관리 + LLM 프록시', advantages: '100+ 플러그인, 24x7 지원, Kong AI Gateway(외부 LLM 라우팅)', color: '#00b9aa' },
   ],
   en: [
     { route: 'AWS Native', bestFor: 'AWS all-in organizations', advantages: 'Fully managed, auto-scaling, zero ops', color: '#ff9800' },
@@ -14,6 +15,7 @@ const data = {
     { route: 'NGINX Fabric', bestFor: 'Leveraging NGINX experience', advantages: 'Proven stability, familiar config, fast transition', color: '#4caf50' },
     { route: 'Envoy Gateway', bestFor: 'CNCF standard + service mesh', advantages: 'Rich L7 features, Istio integration, extensibility', color: '#f44336' },
     { route: 'kGateway', bestFor: 'AI/ML integration needs', advantages: 'AI routing, enterprise support, Solo.io ecosystem', color: '#9c27b0' },
+    { route: 'Kong', bestFor: 'Enterprise API management + LLM proxy', advantages: '100+ plugins, 24x7 support, Kong AI Gateway (external LLM routing)', color: '#00b9aa' },
   ],
 };
 

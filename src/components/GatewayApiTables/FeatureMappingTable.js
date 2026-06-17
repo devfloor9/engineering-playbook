@@ -6,28 +6,29 @@ const solutionColors = {
   'NGINX Fabric': '#4caf50',
   'Envoy GW': '#f44336',
   'kGateway': '#9c27b0',
+  'Kong': '#00b9aa',
 };
 
 const data = {
   ko: [
-    { num: 1, feature: 'Basic Auth', aws: 'Lambda/JWT', cilium: 'L7 Policy', nginx: 'OIDC Policy', envoy: 'ExtAuth', kgateway: 'JWT/OIDC' },
-    { num: 2, feature: 'IP Allowlist', aws: 'WAF IP Sets + SG', cilium: 'CiliumNetworkPolicy', nginx: 'NginxProxy', envoy: 'SecurityPolicy', kgateway: 'RouteOption' },
-    { num: 3, feature: 'Rate Limiting', aws: 'WAF Rate Rule', cilium: 'L7 Rate Limit', nginx: 'NginxProxy', envoy: 'BackendTrafficPolicy', kgateway: 'RouteOption' },
-    { num: 4, feature: 'URL Rewrite', aws: 'HTTPRoute Filter', cilium: 'HTTPRoute Filter', nginx: 'HTTPRoute Filter', envoy: 'HTTPRoute Filter', kgateway: 'HTTPRoute Filter' },
-    { num: 5, feature: 'Body Size', aws: 'WAF Size Rule', cilium: '-', nginx: 'NginxProxy', envoy: 'ClientTrafficPolicy', kgateway: 'RouteOption' },
-    { num: 6, feature: 'Custom Error', aws: 'ALB Fixed Response', cilium: '-', nginx: 'Custom Backend', envoy: 'Direct Response', kgateway: 'DirectResponse' },
-    { num: 7, feature: 'Header Routing', aws: 'HTTPRoute matches', cilium: 'HTTPRoute matches', nginx: 'HTTPRoute matches', envoy: 'HTTPRoute matches', kgateway: 'HTTPRoute matches' },
-    { num: 8, feature: 'Cookie Affinity', aws: 'TG Stickiness', cilium: '-', nginx: 'Upstream Config', envoy: 'Session Persistence', kgateway: 'RouteOption' },
+    { num: 1, feature: 'Basic Auth', aws: 'Lambda/JWT', cilium: 'L7 Policy', nginx: 'OIDC Policy', envoy: 'ExtAuth', kgateway: 'JWT/OIDC', kong: 'KongPlugin (jwt)' },
+    { num: 2, feature: 'IP Allowlist', aws: 'WAF IP Sets + SG', cilium: 'CiliumNetworkPolicy', nginx: 'NginxProxy', envoy: 'SecurityPolicy', kgateway: 'RouteOption', kong: 'KongPlugin (ip-restriction)' },
+    { num: 3, feature: 'Rate Limiting', aws: 'WAF Rate Rule', cilium: 'L7 Rate Limit', nginx: 'NginxProxy', envoy: 'BackendTrafficPolicy', kgateway: 'RouteOption', kong: 'KongPlugin (rate-limiting)' },
+    { num: 4, feature: 'URL Rewrite', aws: 'HTTPRoute Filter', cilium: 'HTTPRoute Filter', nginx: 'HTTPRoute Filter', envoy: 'HTTPRoute Filter', kgateway: 'HTTPRoute Filter', kong: 'HTTPRoute Filter' },
+    { num: 5, feature: 'Body Size', aws: 'WAF Size Rule', cilium: '-', nginx: 'NginxProxy', envoy: 'ClientTrafficPolicy', kgateway: 'RouteOption', kong: 'KongPlugin (request-size-limiting)' },
+    { num: 6, feature: 'Custom Error', aws: 'ALB Fixed Response', cilium: '-', nginx: 'Custom Backend', envoy: 'Direct Response', kgateway: 'DirectResponse', kong: 'KongPlugin / 템플릿' },
+    { num: 7, feature: 'Header Routing', aws: 'HTTPRoute matches', cilium: 'HTTPRoute matches', nginx: 'HTTPRoute matches', envoy: 'HTTPRoute matches', kgateway: 'HTTPRoute matches', kong: 'HTTPRoute matches' },
+    { num: 8, feature: 'Cookie Affinity', aws: 'TG Stickiness', cilium: '-', nginx: 'Upstream Config', envoy: 'Session Persistence', kgateway: 'RouteOption', kong: 'KongPlugin (session)' },
   ],
   en: [
-    { num: 1, feature: 'Basic Auth', aws: 'Lambda/JWT', cilium: 'L7 Policy', nginx: 'OIDC Policy', envoy: 'ExtAuth', kgateway: 'JWT/OIDC' },
-    { num: 2, feature: 'IP Allowlist', aws: 'WAF IP Sets + SG', cilium: 'CiliumNetworkPolicy', nginx: 'NginxProxy', envoy: 'SecurityPolicy', kgateway: 'RouteOption' },
-    { num: 3, feature: 'Rate Limiting', aws: 'WAF Rate Rule', cilium: 'L7 Rate Limit', nginx: 'NginxProxy', envoy: 'BackendTrafficPolicy', kgateway: 'RouteOption' },
-    { num: 4, feature: 'URL Rewrite', aws: 'HTTPRoute Filter', cilium: 'HTTPRoute Filter', nginx: 'HTTPRoute Filter', envoy: 'HTTPRoute Filter', kgateway: 'HTTPRoute Filter' },
-    { num: 5, feature: 'Body Size', aws: 'WAF Size Rule', cilium: '-', nginx: 'NginxProxy', envoy: 'ClientTrafficPolicy', kgateway: 'RouteOption' },
-    { num: 6, feature: 'Custom Error', aws: 'ALB Fixed Response', cilium: '-', nginx: 'Custom Backend', envoy: 'Direct Response', kgateway: 'DirectResponse' },
-    { num: 7, feature: 'Header Routing', aws: 'HTTPRoute matches', cilium: 'HTTPRoute matches', nginx: 'HTTPRoute matches', envoy: 'HTTPRoute matches', kgateway: 'HTTPRoute matches' },
-    { num: 8, feature: 'Cookie Affinity', aws: 'TG Stickiness', cilium: '-', nginx: 'Upstream Config', envoy: 'Session Persistence', kgateway: 'RouteOption' },
+    { num: 1, feature: 'Basic Auth', aws: 'Lambda/JWT', cilium: 'L7 Policy', nginx: 'OIDC Policy', envoy: 'ExtAuth', kgateway: 'JWT/OIDC', kong: 'KongPlugin (jwt)' },
+    { num: 2, feature: 'IP Allowlist', aws: 'WAF IP Sets + SG', cilium: 'CiliumNetworkPolicy', nginx: 'NginxProxy', envoy: 'SecurityPolicy', kgateway: 'RouteOption', kong: 'KongPlugin (ip-restriction)' },
+    { num: 3, feature: 'Rate Limiting', aws: 'WAF Rate Rule', cilium: 'L7 Rate Limit', nginx: 'NginxProxy', envoy: 'BackendTrafficPolicy', kgateway: 'RouteOption', kong: 'KongPlugin (rate-limiting)' },
+    { num: 4, feature: 'URL Rewrite', aws: 'HTTPRoute Filter', cilium: 'HTTPRoute Filter', nginx: 'HTTPRoute Filter', envoy: 'HTTPRoute Filter', kgateway: 'HTTPRoute Filter', kong: 'HTTPRoute Filter' },
+    { num: 5, feature: 'Body Size', aws: 'WAF Size Rule', cilium: '-', nginx: 'NginxProxy', envoy: 'ClientTrafficPolicy', kgateway: 'RouteOption', kong: 'KongPlugin (request-size-limiting)' },
+    { num: 6, feature: 'Custom Error', aws: 'ALB Fixed Response', cilium: '-', nginx: 'Custom Backend', envoy: 'Direct Response', kgateway: 'DirectResponse', kong: 'KongPlugin / template' },
+    { num: 7, feature: 'Header Routing', aws: 'HTTPRoute matches', cilium: 'HTTPRoute matches', nginx: 'HTTPRoute matches', envoy: 'HTTPRoute matches', kgateway: 'HTTPRoute matches', kong: 'HTTPRoute matches' },
+    { num: 8, feature: 'Cookie Affinity', aws: 'TG Stickiness', cilium: '-', nginx: 'Upstream Config', envoy: 'Session Persistence', kgateway: 'RouteOption', kong: 'KongPlugin (session)' },
   ],
 };
 
@@ -51,6 +52,7 @@ export default function FeatureMappingTable({ locale = 'ko' }) {
               <th style={{ padding: '0.6rem 0.8rem', textAlign: 'left', borderBottom: `3px solid ${solutionColors['NGINX Fabric']}`, background: 'var(--ifm-color-emphasis-100)', fontWeight: 700, fontSize: '0.74rem', color: 'var(--ifm-font-color-base)', minWidth: '140px' }}>NGINX Fabric</th>
               <th style={{ padding: '0.6rem 0.8rem', textAlign: 'left', borderBottom: `3px solid ${solutionColors['Envoy GW']}`, background: 'var(--ifm-color-emphasis-100)', fontWeight: 700, fontSize: '0.74rem', color: 'var(--ifm-font-color-base)', minWidth: '140px' }}>Envoy GW</th>
               <th style={{ padding: '0.6rem 0.8rem', textAlign: 'left', borderBottom: `3px solid ${solutionColors['kGateway']}`, background: 'var(--ifm-color-emphasis-100)', fontWeight: 700, fontSize: '0.74rem', color: 'var(--ifm-font-color-base)', minWidth: '140px' }}>kGateway</th>
+              <th style={{ padding: '0.6rem 0.8rem', textAlign: 'left', borderBottom: `3px solid ${solutionColors['Kong']}`, background: 'var(--ifm-color-emphasis-100)', fontWeight: 700, fontSize: '0.74rem', color: 'var(--ifm-font-color-base)', minWidth: '140px' }}>Kong</th>
             </tr>
           </thead>
           <tbody>
@@ -65,6 +67,7 @@ export default function FeatureMappingTable({ locale = 'ko' }) {
                 <td style={{ padding: '0.7rem 0.8rem', color: 'var(--ifm-font-color-base)', borderBottom: '1px solid var(--ifm-color-emphasis-200)', background: 'var(--ifm-color-emphasis-100)' }}>{item.nginx}</td>
                 <td style={{ padding: '0.7rem 0.8rem', color: 'var(--ifm-font-color-base)', borderBottom: '1px solid var(--ifm-color-emphasis-200)', background: 'var(--ifm-color-emphasis-100)' }}>{item.envoy}</td>
                 <td style={{ padding: '0.7rem 0.8rem', color: 'var(--ifm-font-color-base)', borderBottom: '1px solid var(--ifm-color-emphasis-200)', background: 'var(--ifm-color-emphasis-100)' }}>{item.kgateway}</td>
+                <td style={{ padding: '0.7rem 0.8rem', color: 'var(--ifm-font-color-base)', borderBottom: '1px solid var(--ifm-color-emphasis-200)', background: 'var(--ifm-color-emphasis-100)' }}>{item.kong}</td>
               </tr>
             ))}
           </tbody>

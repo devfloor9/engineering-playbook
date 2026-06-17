@@ -29,20 +29,26 @@ Each tier is managed independently, separating infrastructure and AI workloads.
 
 ## 2-Tier Gateway Architecture
 
+:::tip Gateway layer definitions are unified in a dedicated document
+The platform-wide gateway-layer terminology and role definitions are consolidated in [Tiered Gateway Architecture](./tiered-gateway-architecture.md). This document focuses on the routing strategy of **Tier 2-A (LLM API Gateway)**. For in-cluster inference pod routing (Tier 2 ① Inference Extension), see the [Gateway API Inference Extension](#gateway-api-inference-extension) section below.
+:::
+
 ### Gateway Layer Separation
 
-LLM inference platforms must clearly distinguish **3 different Gateway roles**:
+LLM inference platforms must clearly distinguish **3 different Gateway roles**. (For the full layer definitions, see [Tiered Gateway Architecture](./tiered-gateway-architecture.md))
 
 | Gateway Type | Role | Implementation | Location |
 |-------------|------|-------|------|
 | **Ingress Gateway** | External traffic ingress, TLS termination, path-based routing | kgateway (NLB integration) | Tier 1 |
-| **Inference Gateway** | Model selection, intelligent routing, request cascading | Bifrost / LiteLLM | Tier 2-A |
-| **Data Plane** | MCP/A2A protocols, stateful sessions, tool routing | agentgateway | Tier 2-B |
+| **LLM API Gateway** | Model selection, intelligent routing, request cascading (external/internal model abstraction) | Bifrost / LiteLLM | Tier 2-A |
+| **Agent Data Plane** | MCP/A2A protocols, stateful sessions, tool routing | agentgateway | Tier 2-B |
+
+> **Terminology note**: Here, **Tier 2-A "LLM API Gateway"** is a provider proxy (Bifrost/LiteLLM) that abstracts the model API. It serves a different purpose from the **Gateway API Inference Extension** (Tier 2 ①, later in this document) that routes to in-cluster inference pods.
 
 ```mermaid
 graph LR
     Client[Client] --> IGW[Ingress Gateway<br/>kgateway NLB<br/>TLS Termination]
-    IGW -->|Complexity Analysis| IFG[Inference Gateway<br/>Bifrost / LiteLLM<br/>Model Selection]
+    IGW -->|Complexity Analysis| IFG[LLM API Gateway<br/>Bifrost / LiteLLM<br/>Model Selection]
     IFG -->|Complex| LLM[GLM-5 744B<br/>Reasoning]
     IFG -->|Simple| SLM[Qwen3-Coder 3B<br/>Fast Response]
     IGW -->|MCP/A2A| AGW[agentgateway<br/>Session Mgmt<br/>Tool Routing]
@@ -56,8 +62,8 @@ graph LR
 
 **Core Principles:**
 - **Ingress Gateway (kgateway)**: Handles network-level traffic control only. Does not include model selection logic
-- **Inference Gateway (Bifrost/LiteLLM)**: Analyzes request complexity → Automatically selects appropriate model → Cost optimization
-- **Data Plane (agentgateway)**: Handles AI-specific protocols (MCP/A2A), maintains stateful sessions
+- **LLM API Gateway (Bifrost/LiteLLM)**: Analyzes request complexity → Automatically selects appropriate model → Cost optimization
+- **Agent Data Plane (agentgateway)**: Handles AI-specific protocols (MCP/A2A), maintains stateful sessions
 
 ### Overall Architecture
 
@@ -76,14 +82,14 @@ flowchart TB
         HR3[MCP/A2A]
     end
 
-    subgraph T2A["Tier 2-A: Inference Gateway"]
+    subgraph T2A["Tier 2-A: LLM API Gateway"]
         BIFROST[Bifrost / LiteLLM]
         OPENAI[OpenAI]
         ANTHROPIC[Anthropic]
         BEDROCK[Bedrock]
     end
 
-    subgraph T2B["Tier 2-B: Data Plane"]
+    subgraph T2B["Tier 2-B: Agent Data Plane"]
         AGENTGW[agentgateway]
         VLLM1[vLLM-1]
         VLLM2[vLLM-2]
@@ -119,9 +125,9 @@ flowchart TB
 
 | Tier | Component | Responsibility | Protocol |
 |------|----------|------|----------|
-| **Tier 1** | kgateway (Envoy-based) | Traffic routing, mTLS, rate limiting, network policies | HTTP/HTTPS, gRPC |
-| **Tier 2-A** | Bifrost / LiteLLM | Intelligent model selection, cost tracking, request cascading, semantic caching | OpenAI-compatible API |
-| **Tier 2-B** | agentgateway | MCP/A2A session management, self-hosted inference routing, Tool Poisoning prevention | HTTP, JSON-RPC, MCP, A2A |
+| **Tier 1** (Ingress Gateway) | kgateway (Envoy-based) | Traffic routing, mTLS, rate limiting, network policies | HTTP/HTTPS, gRPC |
+| **Tier 2-A** (LLM API Gateway) | Bifrost / LiteLLM | Intelligent model selection, cost tracking, request cascading, semantic caching | OpenAI-compatible API |
+| **Tier 2-B** (Agent Data Plane) | agentgateway | MCP/A2A session management, self-hosted inference routing, Tool Poisoning prevention | HTTP, JSON-RPC, MCP, A2A |
 
 ### Traffic Flow
 
@@ -195,6 +201,11 @@ For streaming responses, `backendRequest` timeout is for first byte, `request` i
 | **Portkey** | TypeScript | SOC2 certified, semantic caching, Virtual Keys | Supported | Proprietary + OSS | Enterprise, compliance |
 | **Kong AI Gateway** | Lua/C | MCP support, leverages existing Kong infra | Plugin | Apache 2.0 / Enterprise | Existing Kong users |
 | **Helicone** | Rust | Gateway + Observability integrated, high performance | Supported | Apache 2.0 | High performance + observability needed |
+| **OpenRouter** | SaaS (hosted) | Unified API for 400+ models·60+ providers, provider fallback, OpenAI-compatible | Provider routing supported | SaaS (commercial) | Fast multi-provider integration, prototyping |
+
+:::note Self-hosted vs SaaS
+In the table above, Bifrost·LiteLLM·Helicone·vLLM Semantic Router are **self-hosted** (deployed in-cluster), whereas **OpenRouter is hosted SaaS**. SaaS provides instant access to 400+ models and delegates provider fallback/billing, which is advantageous for fast integration and prototyping. However, since prompts are sent to an external service, review the [governance considerations](../../operations-mlops/governance/ai-gateway-guardrails.md#openrouter-등-saas-게이트웨이-데이터-주권) for environments with data sovereignty or regulatory requirements.
+:::
 
 ### Bifrost vs LiteLLM
 

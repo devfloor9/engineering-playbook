@@ -6,11 +6,11 @@ const categories = [
     title: { ko: '기본 정보', en: 'Basic Info' },
     color: '#1565c0',
     rows: [
-      { label: { ko: '제공사', en: 'Provider' }, values: ['AWS', 'Isovalent/Cisco', 'F5/NGINX', 'CNCF Envoy', 'CNCF (Solo.io)'] },
-      { label: { ko: '데이터플레인', en: 'Data Plane' }, values: ['AWS ALB/NLB (관리형)', 'Envoy + eBPF', 'NGINX', 'Envoy Proxy', 'Envoy Proxy'] },
-      { label: { ko: '라이선스', en: 'License' }, values: ['AWS 서비스', 'Apache 2.0', 'Apache 2.0 / 상용', 'Apache 2.0', 'Apache 2.0'] },
-      { label: { ko: 'CNCF 상태', en: 'CNCF Status' }, values: ['-', 'CNCF 졸업 (eBPF)', '-', 'CNCF 졸업 (Envoy)', 'CNCF Sandbox'] },
-      { label: { ko: '성숙도', en: 'Maturity' }, values: ['✅ 높음 (AWS 검증)', '✅ 높음 (8년+)', '✅ 높음 (NGINX 20년+)', '⚠️ 중간 (2년)', '✅ 높음 (8년+)'] }
+      { label: { ko: '제공사', en: 'Provider' }, values: ['AWS', 'Isovalent/Cisco', 'F5/NGINX', 'CNCF Envoy', 'CNCF (Solo.io)', 'Kong Inc.'] },
+      { label: { ko: '데이터플레인', en: 'Data Plane' }, values: ['AWS ALB/NLB (관리형)', 'Envoy + eBPF', 'NGINX', 'Envoy Proxy', 'Envoy Proxy', 'OpenResty (NGINX+Lua)'] },
+      { label: { ko: '라이선스', en: 'License' }, values: ['AWS 서비스', 'Apache 2.0', 'Apache 2.0 / 상용', 'Apache 2.0', 'Apache 2.0', 'Apache 2.0 / 상용'] },
+      { label: { ko: 'CNCF 상태', en: 'CNCF Status' }, values: ['-', 'CNCF 졸업 (eBPF)', '-', 'Envoy 서브프로젝트 (Envoy는 졸업)', 'CNCF Sandbox', '-'] },
+      { label: { ko: '성숙도', en: 'Maturity' }, values: ['✅ 높음 (AWS 검증)', '✅ 높음 (8년+)', '✅ 높음 (NGINX 20년+)', '⚠️ 중간 (v1.0 GA 2024)', '⚠️ 중간 (Gloo 계보 2018~, kgateway 2025~)', '✅ 높음 (10년+)'] }
     ]
   },
   {
@@ -18,12 +18,12 @@ const categories = [
     title: { ko: 'Gateway API', en: 'Gateway API' },
     color: '#2e7d32',
     rows: [
-      { label: { ko: '지원 버전', en: 'Supported Version' }, values: ['v1.3', 'v1.3', 'v1.3+', 'v1.3', 'v1.4'] },
-      { label: { ko: 'HTTPRoute', en: 'HTTPRoute' }, values: ['✅', '✅', '✅', '✅', '✅'] },
-      { label: { ko: 'GRPCRoute', en: 'GRPCRoute' }, values: ['✅', '✅', '✅', '✅', '✅'] },
-      { label: { ko: 'TLSRoute', en: 'TLSRoute' }, values: ['✅ (NLB)', '✅', '✅', '✅', '✅'] },
-      { label: { ko: 'TCPRoute', en: 'TCPRoute' }, values: ['✅ (NLB)', '⚠️ Experimental', '❌', '✅', '✅'] },
-      { label: { ko: 'UDPRoute', en: 'UDPRoute' }, values: ['✅ (NLB)', '⚠️ Experimental', '❌', '✅', '✅'] }
+      { label: { ko: '지원 버전', en: 'Supported Version' }, values: ['v1.3', 'v1.3', 'v1.3+', 'v1.3', 'v1.4', 'v1.3 (KIC 3.5+)'] },
+      { label: { ko: 'HTTPRoute', en: 'HTTPRoute' }, values: ['✅', '✅', '✅', '✅', '✅', '✅'] },
+      { label: { ko: 'GRPCRoute', en: 'GRPCRoute' }, values: ['✅', '✅', '✅', '✅', '✅', '⚠️ 하이브리드 모드'] },
+      { label: { ko: 'TLSRoute', en: 'TLSRoute' }, values: ['✅ (NLB)', '✅', '✅', '✅', '✅', '❌'] },
+      { label: { ko: 'TCPRoute', en: 'TCPRoute' }, values: ['✅ (NLB)', '⚠️ Experimental', '❌', '✅', '✅', '✅'] },
+      { label: { ko: 'UDPRoute', en: 'UDPRoute' }, values: ['✅ (NLB)', '⚠️ Experimental', '❌', '✅', '✅', '✅'] }
     ]
   },
   {
@@ -31,14 +31,14 @@ const categories = [
     title: { ko: '핵심 기능', en: 'Core Features' },
     color: '#e65100',
     rows: [
-      { label: { ko: 'TLS Termination', en: 'TLS Termination' }, values: ['✅ ACM 통합', '✅ Secret', '✅ Secret', '✅ Secret', '✅ Secret'] },
-      { label: { ko: 'mTLS', en: 'mTLS' }, values: ['⚠️ 제한적', '✅', '✅', '✅', '✅'] },
-      { label: { ko: 'Rate Limiting', en: 'Rate Limiting' }, values: ['❌ WAF 필요', '✅ L7 Policy', '✅ NginxProxy', '✅ BackendTrafficPolicy', '✅ RouteOption'] },
-      { label: { ko: 'Header 조작', en: 'Header Manipulation' }, values: ['✅ LBC v3', '✅', '✅', '✅', '✅'] },
-      { label: { ko: 'URL Rewrite', en: 'URL Rewrite' }, values: ['✅', '✅', '✅', '✅', '✅'] },
-      { label: { ko: '인증/인가', en: 'Auth' }, values: ['Lambda/Cognito/JWT', 'L7 Policy', 'OIDC Policy', 'ExtAuth/OIDC', 'JWT/OAuth/OIDC'] },
-      { label: { ko: 'Canary 배포', en: 'Canary Deploy' }, values: ['✅ Weight', '✅ Weight', '✅ Weight', '✅ Weight', '✅ Weight'] },
-      { label: { ko: '세션 어피니티', en: 'Session Affinity' }, values: ['✅ TG Stickiness', '⚠️ 수동', '✅ Upstream Config', '✅ Session Persistence', '✅ RouteOption'] }
+      { label: { ko: 'TLS Termination', en: 'TLS Termination' }, values: ['✅ ACM 통합', '✅ Secret', '✅ Secret', '✅ Secret', '✅ Secret', '✅ Secret'] },
+      { label: { ko: 'mTLS', en: 'mTLS' }, values: ['⚠️ 제한적', '✅', '✅', '✅', '✅', '✅ (플러그인)'] },
+      { label: { ko: 'Rate Limiting', en: 'Rate Limiting' }, values: ['❌ WAF 필요', '✅ L7 Policy', '✅ NginxProxy', '✅ BackendTrafficPolicy', '✅ RouteOption', '✅ KongPlugin'] },
+      { label: { ko: 'Header 조작', en: 'Header Manipulation' }, values: ['✅ LBC v3', '✅', '✅', '✅', '✅', '✅'] },
+      { label: { ko: 'URL Rewrite', en: 'URL Rewrite' }, values: ['✅', '✅', '✅', '✅', '✅', '✅'] },
+      { label: { ko: '인증/인가', en: 'Auth' }, values: ['Lambda/Cognito/JWT', 'L7 Policy', 'OIDC Policy', 'ExtAuth/OIDC', 'JWT/OAuth/OIDC', 'KongPlugin (JWT/OAuth/OIDC/key-auth)'] },
+      { label: { ko: 'Canary 배포', en: 'Canary Deploy' }, values: ['✅ Weight', '✅ Weight', '✅ Weight', '✅ Weight', '✅ Weight', '✅ Weight'] },
+      { label: { ko: '세션 어피니티', en: 'Session Affinity' }, values: ['✅ TG Stickiness', '⚠️ 수동', '✅ Upstream Config', '✅ Session Persistence', '✅ RouteOption', '✅ KongPlugin (session)'] }
     ]
   },
   {
@@ -46,10 +46,10 @@ const categories = [
     title: { ko: '보안', en: 'Security' },
     color: '#b71c1c',
     rows: [
-      { label: { ko: 'WAF 통합', en: 'WAF Integration' }, values: ['✅ AWS WAF', '❌', '⚠️ ModSecurity', '⚠️ 별도 구성', '⚠️ 별도 구성'] },
-      { label: { ko: 'DDoS 보호', en: 'DDoS Protection' }, values: ['✅ AWS Shield', '⚠️ 수동', '⚠️ 수동', '⚠️ 수동', '⚠️ 수동'] },
-      { label: { ko: 'IP 제어', en: 'IP Control' }, values: ['SG + WAF', 'CiliumNetworkPolicy', 'NginxProxy', 'SecurityPolicy', 'RouteOption'] },
-      { label: { ko: '클라이언트 인증서', en: 'Client Cert' }, values: ['⚠️ 제한적', '✅', '✅', '✅', '✅'] }
+      { label: { ko: 'WAF 통합', en: 'WAF Integration' }, values: ['✅ AWS WAF', '❌', '⚠️ ModSecurity', '⚠️ 별도 구성', '⚠️ 별도 구성', '⚠️ 별도 구성'] },
+      { label: { ko: 'DDoS 보호', en: 'DDoS Protection' }, values: ['✅ AWS Shield', '⚠️ 수동', '⚠️ 수동', '⚠️ 수동', '⚠️ 수동', '⚠️ 수동'] },
+      { label: { ko: 'IP 제어', en: 'IP Control' }, values: ['SG + WAF', 'CiliumNetworkPolicy', 'NginxProxy', 'SecurityPolicy', 'RouteOption', 'KongPlugin (ip-restriction)'] },
+      { label: { ko: '클라이언트 인증서', en: 'Client Cert' }, values: ['⚠️ 제한적', '✅', '✅', '✅', '✅', '✅ (플러그인)'] }
     ]
   },
   {
@@ -57,9 +57,9 @@ const categories = [
     title: { ko: '성능', en: 'Performance' },
     color: '#2e7d32',
     rows: [
-      { label: { ko: '처리량', en: 'Throughput' }, values: ['AWS 관리형 (고성능)', '✅✅✅ 최고 (eBPF)', '✅✅ 높음', '✅✅ 높음', '✅✅ 높음'] },
-      { label: { ko: '지연시간', en: 'Latency' }, values: ['낮음', '✅ 가장 낮음', '낮음', '낮음', '낮음'] },
-      { label: { ko: '리소스 사용', en: 'Resource Usage' }, values: ['- (관리형)', '✅ 가장 낮음', '중간', '중간', '중간'] }
+      { label: { ko: '처리량', en: 'Throughput' }, values: ['AWS 관리형 (고성능)', '✅✅✅ 최고 (eBPF)', '✅✅ 높음', '✅✅ 높음', '✅✅ 높음', '✅✅ 높음 (NGINX)'] },
+      { label: { ko: '지연시간', en: 'Latency' }, values: ['낮음', '✅ 가장 낮음', '낮음', '낮음', '낮음', '낮음'] },
+      { label: { ko: '리소스 사용', en: 'Resource Usage' }, values: ['- (관리형)', '✅ 가장 낮음', '중간', '중간', '중간', '중간'] }
     ]
   },
   {
@@ -67,11 +67,11 @@ const categories = [
     title: { ko: '운영', en: 'Operations' },
     color: '#4e342e',
     rows: [
-      { label: { ko: '스케일링', en: 'Scaling' }, values: ['AWS Auto Scaling', 'DaemonSet', 'HPA/수동', 'HPA/수동', 'HPA/수동'] },
-      { label: { ko: '고가용성', en: 'HA' }, values: ['AWS 내장 HA', 'DaemonSet', 'Pod + PDB', 'Pod + PDB', 'Pod + PDB'] },
-      { label: { ko: '모니터링', en: 'Monitoring' }, values: ['CloudWatch', 'Hubble + Prometheus', 'Prometheus', 'Prometheus', 'Prometheus'] },
-      { label: { ko: '운영 부담', en: 'Ops Overhead' }, values: ['✅ 낮음', '중간', '중간', '중간', '중간'] },
-      { label: { ko: 'SLA 보장', en: 'SLA' }, values: ['✅ 99.99%', '❌', '⚠️ F5 지원 시', '❌', '⚠️ Solo 지원 시'] }
+      { label: { ko: '스케일링', en: 'Scaling' }, values: ['AWS Auto Scaling', 'DaemonSet', 'HPA/수동', 'HPA/수동', 'HPA/수동', 'HPA/수동'] },
+      { label: { ko: '고가용성', en: 'HA' }, values: ['AWS 내장 HA', 'DaemonSet', 'Pod + PDB', 'Pod + PDB', 'Pod + PDB', 'Pod + PDB'] },
+      { label: { ko: '모니터링', en: 'Monitoring' }, values: ['CloudWatch', 'Hubble + Prometheus', 'Prometheus', 'Prometheus', 'Prometheus', 'Prometheus (플러그인)'] },
+      { label: { ko: '운영 부담', en: 'Ops Overhead' }, values: ['✅ 낮음', '중간', '중간', '중간', '중간', '중간'] },
+      { label: { ko: 'SLA 보장', en: 'SLA' }, values: ['✅ 99.99%', '❌', '⚠️ F5 지원 시', '❌', '⚠️ Solo 지원 시', '⚠️ Kong 지원 시'] }
     ]
   },
   {
@@ -79,10 +79,10 @@ const categories = [
     title: { ko: '메시 통합', en: 'Mesh Integration' },
     color: '#4a148c',
     rows: [
-      { label: { ko: 'GAMMA', en: 'GAMMA' }, values: ['❌', '✅ GA', '❌', '⚠️ 제한적', '✅ GA'] },
-      { label: { ko: 'Service Mesh', en: 'Service Mesh' }, values: ['❌', '✅ (네이티브)', '❌', 'Istio 호환', '✅ (네이티브)'] },
-      { label: { ko: 'East-West', en: 'East-West' }, values: ['❌', '✅ eBPF', '❌', '⚠️', '✅'] },
-      { label: { ko: '사이드카 불필요', en: 'No Sidecar' }, values: ['-', '✅', '-', '❌', '⚠️'] }
+      { label: { ko: 'GAMMA', en: 'GAMMA' }, values: ['❌', '✅ GA', '❌', '⚠️ 제한적', '✅ GA', '❌'] },
+      { label: { ko: 'Service Mesh', en: 'Service Mesh' }, values: ['❌', '✅ (네이티브)', '❌', 'Istio 호환', '✅ (네이티브)', '⚠️ Kong Mesh (별도 제품)'] },
+      { label: { ko: 'East-West', en: 'East-West' }, values: ['❌', '✅ eBPF', '❌', '⚠️', '✅', '❌ (North-South)'] },
+      { label: { ko: '사이드카 불필요', en: 'No Sidecar' }, values: ['-', '✅', '-', '❌', '⚠️', '-'] }
     ]
   },
   {
@@ -90,12 +90,12 @@ const categories = [
     title: { ko: '고급 기능', en: 'Advanced Features' },
     color: '#0d47a1',
     rows: [
-      { label: { ko: 'Circuit Breaking', en: 'Circuit Breaking' }, values: ['❌', '✅', '⚠️ 제한적', '✅', '✅'] },
-      { label: { ko: 'Fault Injection', en: 'Fault Injection' }, values: ['❌', '✅', '❌', '✅', '✅'] },
-      { label: { ko: 'Retry 정책', en: 'Retry Policy' }, values: ['⚠️ 기본', '✅', '✅', '✅', '✅'] },
-      { label: { ko: 'Timeout 정책', en: 'Timeout Policy' }, values: ['✅', '✅', '✅', '✅', '✅'] },
-      { label: { ko: 'GraphQL Gateway', en: 'GraphQL Gateway' }, values: ['❌', '❌', '❌', '❌', '✅'] },
-      { label: { ko: 'WebAssembly', en: 'WebAssembly' }, values: ['❌', '❌', '❌', '⚠️ 실험적', '✅'] }
+      { label: { ko: 'Circuit Breaking', en: 'Circuit Breaking' }, values: ['❌', '✅', '⚠️ 제한적', '✅', '✅', '❌'] },
+      { label: { ko: 'Fault Injection', en: 'Fault Injection' }, values: ['❌', '✅', '❌', '✅', '✅', '❌'] },
+      { label: { ko: 'Retry 정책', en: 'Retry Policy' }, values: ['⚠️ 기본', '✅', '✅', '✅', '✅', '⚠️ 제한적'] },
+      { label: { ko: 'Timeout 정책', en: 'Timeout Policy' }, values: ['✅', '✅', '✅', '✅', '✅', '✅ KongPlugin'] },
+      { label: { ko: 'GraphQL Gateway', en: 'GraphQL Gateway' }, values: ['❌', '❌', '❌', '❌', '✅', '✅ (플러그인)'] },
+      { label: { ko: 'WebAssembly', en: 'WebAssembly' }, values: ['❌', '❌', '❌', '⚠️ 실험적', '✅', '❌ (Lua/Go/Py/JS)'] }
     ]
   },
   {
@@ -103,9 +103,10 @@ const categories = [
     title: { ko: 'AI/ML', en: 'AI/ML' },
     color: '#880e4f',
     rows: [
-      { label: { ko: '추론 라우팅', en: 'Inference Routing' }, values: ['❌', '❌', '❌', '❌', '✅'] },
-      { label: { ko: 'MCP Gateway', en: 'MCP Gateway' }, values: ['❌', '❌', '❌', '❌', '✅'] },
-      { label: { ko: '모델 A/B 테스트', en: 'Model A/B Testing' }, values: ['⚠️ Weight만', '⚠️ Weight만', '⚠️ Weight만', '⚠️ Weight만', '✅ 네이티브'] }
+      { label: { ko: '추론 라우팅 (클러스터 내 Pod)', en: 'Inference Routing (in-cluster pods)' }, values: ['❌', '❌', '❌', '❌', '✅', '❌'] },
+      { label: { ko: 'LLM API 게이트웨이 (외부 모델)', en: 'LLM API Gateway (external models)' }, values: ['❌', '❌', '❌', '❌', '⚠️', '✅ Kong AI Gateway'] },
+      { label: { ko: 'MCP Gateway', en: 'MCP Gateway' }, values: ['❌', '❌', '❌', '❌', '✅', '❌'] },
+      { label: { ko: '모델 A/B 테스트', en: 'Model A/B Testing' }, values: ['⚠️ Weight만', '⚠️ Weight만', '⚠️ Weight만', '⚠️ Weight만', '✅ 네이티브', '⚠️ Weight/플러그인'] }
     ]
   },
   {
@@ -113,10 +114,10 @@ const categories = [
     title: { ko: '관측성', en: 'Observability' },
     color: '#006064',
     rows: [
-      { label: { ko: '메트릭', en: 'Metrics' }, values: ['CloudWatch', 'Hubble + Prometheus', 'Prometheus', 'Prometheus', 'Prometheus'] },
-      { label: { ko: '로그', en: 'Logs' }, values: ['CloudWatch Logs', 'Loki/ELK', 'ELK', 'ELK', 'ELK'] },
-      { label: { ko: '추적', en: 'Tracing' }, values: ['X-Ray', 'Jaeger/Zipkin', 'Jaeger', 'Jaeger', 'Jaeger'] },
-      { label: { ko: 'Service Map', en: 'Service Map' }, values: ['❌', '✅ Hubble', '❌', '⚠️ 별도', '⚠️ 별도'] }
+      { label: { ko: '메트릭', en: 'Metrics' }, values: ['CloudWatch', 'Hubble + Prometheus', 'Prometheus', 'Prometheus', 'Prometheus', 'Prometheus (플러그인)'] },
+      { label: { ko: '로그', en: 'Logs' }, values: ['CloudWatch Logs', 'Loki/ELK', 'ELK', 'ELK', 'ELK', 'ELK (플러그인)'] },
+      { label: { ko: '추적', en: 'Tracing' }, values: ['X-Ray', 'Jaeger/Zipkin', 'Jaeger', 'Jaeger', 'Jaeger', 'OpenTelemetry (플러그인)'] },
+      { label: { ko: 'Service Map', en: 'Service Map' }, values: ['❌', '✅ Hubble', '❌', '⚠️ 별도', '⚠️ 별도', '❌'] }
     ]
   },
   {
@@ -124,11 +125,11 @@ const categories = [
     title: { ko: '비용', en: 'Cost' },
     color: '#e65100',
     rows: [
-      { label: { ko: '기본 비용', en: 'Base Cost' }, values: ['ALB 시간당 + LCU', '컴퓨팅 리소스', '컴퓨팅 리소스', '컴퓨팅 리소스', '컴퓨팅 리소스'] },
-      { label: { ko: '월 예상', en: 'Monthly Est.' }, values: ['$50-200', '$30-100', '$50-150', '$50-150', '$50-150'] },
-      { label: { ko: '벤더 종속', en: 'Vendor Lock-in' }, values: ['높음 (AWS)', '낮음', '낮음', '없음', '낮음'] },
-      { label: { ko: '멀티클라우드', en: 'Multi-cloud' }, values: ['❌', '✅', '✅', '✅', '✅'] },
-      { label: { ko: '온프레미스', en: 'On-premises' }, values: ['❌', '✅', '✅', '✅', '✅'] }
+      { label: { ko: '기본 비용', en: 'Base Cost' }, values: ['ALB 시간당 + LCU', '컴퓨팅 리소스', '컴퓨팅 리소스', '컴퓨팅 리소스', '컴퓨팅 리소스', '컴퓨팅 리소스 (OSS)'] },
+      { label: { ko: '월 예상', en: 'Monthly Est.' }, values: ['$50-200', '$30-100', '$50-150', '$50-150', '$50-150', '$50-150 (OSS)'] },
+      { label: { ko: '벤더 종속', en: 'Vendor Lock-in' }, values: ['높음 (AWS)', '낮음', '낮음', '없음', '낮음', '낮음 (OSS) / 중간 (Enterprise)'] },
+      { label: { ko: '멀티클라우드', en: 'Multi-cloud' }, values: ['❌', '✅', '✅', '✅', '✅', '✅'] },
+      { label: { ko: '온프레미스', en: 'On-premises' }, values: ['❌', '✅', '✅', '✅', '✅', '✅'] }
     ]
   },
   {
@@ -136,15 +137,15 @@ const categories = [
     title: { ko: '커뮤니티', en: 'Community' },
     color: '#37474f',
     rows: [
-      { label: { ko: 'GitHub Stars', en: 'GitHub Stars' }, values: ['-', '19k+ (Cilium)', '2k+', '5k+', '4k+ (Gloo)'] },
-      { label: { ko: '활발도', en: 'Activity' }, values: ['AWS 공식', '✅ 매우 활발', '중간', '✅ 활발', '✅ 활발'] },
-      { label: { ko: '문서 품질', en: 'Doc Quality' }, values: ['✅ 우수', '✅ 우수', '중간', '✅ 우수', '✅ 우수'] },
-      { label: { ko: '프로덕션 사례', en: 'Production Cases' }, values: ['✅ 많음', '✅ 많음', '중간', '중간', '✅ 많음'] }
+      { label: { ko: 'GitHub Stars', en: 'GitHub Stars' }, values: ['-', '19k+ (Cilium)', '2k+', '5k+', '4k+ (Gloo)', '43k+ (Kong)'] },
+      { label: { ko: '활발도', en: 'Activity' }, values: ['AWS 공식', '✅ 매우 활발', '중간', '✅ 활발', '✅ 활발', '✅ 매우 활발'] },
+      { label: { ko: '문서 품질', en: 'Doc Quality' }, values: ['✅ 우수', '✅ 우수', '중간', '✅ 우수', '✅ 우수', '✅ 우수'] },
+      { label: { ko: '프로덕션 사례', en: 'Production Cases' }, values: ['✅ 많음', '✅ 많음', '중간', '중간', '✅ 많음', '✅ 많음'] }
     ]
   }
 ];
 
-const solutions = ['AWS Native (LBC v3)', 'Cilium', 'NGINX Fabric', 'Envoy Gateway', 'kGateway'];
+const solutions = ['AWS Native (LBC v3)', 'Cilium', 'NGINX Fabric', 'Envoy Gateway', 'kGateway', 'Kong'];
 
 const getCellBg = (value) => {
   if (value.includes('✅✅✅') || value.includes('매우 활발')) return '#e8f5e9';
@@ -175,7 +176,7 @@ export default function FeatureComparisonMatrix({ locale = 'ko' }) {
           {locale === 'ko' ? 'Gateway API 솔루션 종합 비교' : 'Gateway API Solution Comprehensive Comparison'}
         </div>
         <div style={{ fontSize: '0.72rem', opacity: 0.7, marginTop: 2 }}>
-          {locale === 'ko' ? '72개 비교 항목 · 10개 카테고리 · 5개 솔루션' : '72 comparison items · 10 categories · 5 solutions'}
+          {locale === 'ko' ? '73개 비교 항목 · 10개 카테고리 · 6개 솔루션' : '73 comparison items · 10 categories · 6 solutions'}
         </div>
       </div>
 

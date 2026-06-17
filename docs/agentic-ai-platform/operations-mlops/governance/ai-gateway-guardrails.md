@@ -507,6 +507,20 @@ Langfuse는 LLM 호출별 span을 제공하므로 `safety_violation=true` 필터
 망분리 환경에서 Bedrock Guardrails, Portkey Cloud, Lakera 등 **외부 SaaS 의존 Guardrails** 는 원칙적으로 허용되지 않습니다. 내부망용 구성은 **NeMo Guardrails + Presidio + Llama Guard 3 (자체 GPU 배포)** 조합을 권장합니다.
 :::
 
+### 8.4 SaaS LLM API 게이트웨이 데이터 주권 {#openrouter-등-saas-게이트웨이-데이터-주권}
+
+[LLM API 게이트웨이](../../reference-architecture/inference-gateway/tiered-gateway-architecture.md)(Tier 2 ②) 중 **OpenRouter** 같은 호스티드 SaaS는 프롬프트·응답이 외부 서비스를 경유합니다. 빠른 다중 프로바이더 통합에는 유리하지만, 데이터 주권·규제 요건이 있는 환경에서는 다음을 고려해야 합니다.
+
+| 고려 항목 | 내용 |
+|----------|------|
+| **데이터 경계** | 프롬프트가 게이트웨이 SaaS와 그 하위 모델 프로바이더로 전송됩니다. PII·기밀이 포함되면 Input Guard에서 redaction 후 전송하거나, 민감 트래픽은 SaaS 경로에서 제외하세요. |
+| **데이터 정책 설정** | OpenRouter는 "Custom Data Policies"로 신뢰하는 모델·프로바이더로만 라우팅하도록 제한하는 기능을 제공합니다. 활성화 여부와 적용 범위를 검증하세요. |
+| **셀프호스트 대안** | 망분리·금융권 등 외부 전송이 제약되는 환경에서는 **셀프호스트 게이트웨이(Bifrost·LiteLLM)** 로 동일한 프로바이더 추상화를 구현하는 것을 우선 검토하세요. |
+
+:::note 사실 경계
+프롬프트 캐싱·BYOK 등 OpenRouter의 세부 데이터 처리 방식은 제품 문서에서 직접 확인 후 적용하세요. 전자금융감독규정·망분리 적용 여부는 기관별 해석과 감독당국 가이드에 따르며, 본 문서는 일반적 고려사항을 제시합니다.
+:::
+
 ---
 
 ## 9. 실전 체크리스트
