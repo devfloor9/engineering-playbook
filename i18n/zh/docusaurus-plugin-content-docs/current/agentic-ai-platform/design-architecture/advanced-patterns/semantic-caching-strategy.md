@@ -80,7 +80,7 @@ flowchart LR
 | **主要目的** | TTFT·吞吐量改善 | 减少重复系统提示成本 | **直接消除重复 LLM 调用** |
 | **成本影响** | 节省 GPU 时间（自托管） | 输入 token 单价折扣（托管） | 跳过 API 调用本身 |
 | **失败时影响** | 仅性能下降 | 缓存未应用时一般单价 | **直接影响响应质量**（错误答案风险） |
-| **相关文档** | [vLLM 模型服务](vllm-model-serving.md) | 提供商官方文档 | 本文档 |
+| **相关文档** | [vLLM 模型服务](../../model-serving/inference-frameworks/vllm-model-serving.md) | 提供商官方文档 | 本文档 |
 
 :::tip 三个层次可独立组合
 Semantic Cache HIT → 立即响应（省略 LLM 调用）。MISS 时调用提供商 → Prompt Cache 减少系统提示输入成本 → 推理引擎内部 KV Cache 改善生成速度。三个层次**相互正交（orthogonal）**，通常同时启用。

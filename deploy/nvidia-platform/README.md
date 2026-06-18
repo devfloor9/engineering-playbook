@@ -1,3 +1,9 @@
+---
+created: 2026-03-20
+last_update:
+  date: 2026-03-20
+reading_time: 3
+---
 # NVIDIA Dynamo Platform — EKS Deployment Guide
 
 NVIDIA Dynamo 기반 LLM 추론 플랫폼을 Amazon EKS에 배포하기 위한 매니페스트 및 스크립트 모음입니다.

@@ -1,3 +1,9 @@
+---
+created: 2026-03-11
+last_update:
+  date: 2026-03-11
+reading_time: 1
+---
 # EKS Operations Training - React Slides
 
 React + Vite + TypeScript + Tailwind CSS v4 기반 인터랙티브 교육 슬라이드.

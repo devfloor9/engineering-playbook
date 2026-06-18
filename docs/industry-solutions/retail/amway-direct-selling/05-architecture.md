@@ -1,9 +1,12 @@
 ---
+created: 2026-05-14
 title: "AWS 단일 아키텍처 (AMWAY)"
 sidebar_label: "05. Architecture"
 description: "Bedrock + Neptune + OpenSearch + AgentCore + Cohere — ABO Tree·구독·다국어 특화"
+last_update:
+  date: 2026-06-15
+reading_time: 3
 ---
-
 # AWS 단일 아키텍처 (AMWAY)
 
 > LG H&H와 동일 골격 + AMWAY 특화: ABO Tree (Neptune 깊이 쿼리), 정기구독 (state machine), 글로벌 다국어, 직접판매 규제 가드

@@ -140,7 +140,6 @@ const sidebars = {
               items: [
                 'agentic-ai-platform/design-architecture/foundations/agentic-platform-architecture',
                 'agentic-ai-platform/design-architecture/foundations/agentic-ai-challenges',
-                'agentic-ai-platform/design-architecture/foundations/knowledge-feature-store',
               ],
             },
             {
@@ -168,6 +167,8 @@ const sidebars = {
               items: [
                 'agentic-ai-platform/design-architecture/advanced-patterns/self-improving-agent-loop',
                 'agentic-ai-platform/design-architecture/advanced-patterns/adr-self-improving-loop',
+                'agentic-ai-platform/design-architecture/advanced-patterns/knowledge-feature-store',
+                'agentic-ai-platform/design-architecture/advanced-patterns/semantic-caching-strategy',
               ],
             },
           ],
@@ -207,7 +208,6 @@ const sidebars = {
                 'agentic-ai-platform/model-serving/inference-frameworks/llm-d-eks-automode',
                 'agentic-ai-platform/model-serving/inference-frameworks/moe-model-serving',
                 'agentic-ai-platform/model-serving/inference-frameworks/nemo-framework',
-                'agentic-ai-platform/model-serving/inference-frameworks/semantic-caching-strategy',
               ],
             },
             {

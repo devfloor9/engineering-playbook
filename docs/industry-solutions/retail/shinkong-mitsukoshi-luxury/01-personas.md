@@ -1,9 +1,12 @@
 ---
+created: 2026-05-14
 title: "5 부서 페르소나 (Mitsukoshi)"
 sidebar_label: "01. Personas"
 description: "新光三越 마케팅·인사이트·디지털·VIP·MD 5 부서 페르소나"
+last_update:
+  date: 2026-05-14
+reading_time: 4
 ---
-
 # 5 부서 페르소나 (Mitsukoshi)
 
 | 코드 | 부서 | 미션 | KPI | 주 시나리오 |

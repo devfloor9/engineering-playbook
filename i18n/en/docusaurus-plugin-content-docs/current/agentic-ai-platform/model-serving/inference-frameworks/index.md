@@ -51,13 +51,6 @@ The AI framework layer on top of [GPU Infrastructure](../gpu-infrastructure/inde
     description="Large-scale training and fine-tuning with NVIDIA NeMo, distributed training, EFA high-speed networking, checkpointing."
     color="#9c27b0"
   />
-  <DocCard
-    to="/docs/agentic-ai-platform/model-serving/inference-frameworks/semantic-caching-strategy"
-    icon="⚡"
-    title="Semantic Caching Strategy"
-    description="LLM Gateway-level semantic caching — similarity threshold design, 3-layer cache distinction (KV/Prompt/Semantic), observability & security guide."
-    color="#22c55e"
-  />
 </DocCardGrid>
 
 :::tip Reading Order

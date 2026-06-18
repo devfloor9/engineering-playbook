@@ -1,3 +1,9 @@
+---
+created: 2026-02-16
+last_update:
+  date: 2026-02-16
+reading_time: 47
+---
 # CNCF & Kubernetes Community Sources for EKS Operational Best Practices
 
 > Research compiled from CNCF blogs, official Kubernetes documentation, AWS EKS guides, and leading Kubernetes community resources.

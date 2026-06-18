@@ -1,9 +1,12 @@
 ---
+created: 2026-05-14
 title: "S1. 자연어 시맨틱 검색 (Uni-President)"
 sidebar_label: "S1. Semantic Search"
 description: "5 BU SKU + OPENPOINT 회원 + 외부 후기 통합 검색"
+last_update:
+  date: 2026-05-14
+reading_time: 1
 ---
-
 # S1. 자연어 시맨틱 검색 (Uni-President)
 
 ## 1. URL · 페르소나

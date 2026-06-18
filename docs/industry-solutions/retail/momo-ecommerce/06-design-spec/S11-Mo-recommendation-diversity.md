@@ -1,9 +1,12 @@
 ---
+created: 2026-05-14
 title: "S11-Mo. 모바일 앱 추천·검색 다양성 (Momo 특화)"
 sidebar_label: "S11-Mo. Recommendation Diversity"
 description: "추천 다양성·신상 노출·롱테일 SKU 발견 — 탐색-구매 균형 모니터"
+last_update:
+  date: 2026-05-14
+reading_time: 2
 ---
-
 # S11-Mo. 모바일 앱 추천·검색 다양성
 
 > **Momo 차별 포인트** ⭐ — 방대한 SKU 자산이 모바일 앱에서 발견되도록 추천 다양성 + 롱테일 노출을 모니터.

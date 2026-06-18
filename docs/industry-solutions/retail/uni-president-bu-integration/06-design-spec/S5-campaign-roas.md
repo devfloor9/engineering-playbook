@@ -1,9 +1,12 @@
 ---
+created: 2026-05-14
 title: "S5. 옴니채널 캠페인 ROAS (Uni-President)"
 sidebar_label: "S5. Campaign ROAS"
 description: "OPENPOINT 통합 캠페인 + BU 교차 유도 채널 믹스 Bayesian 어트리뷰션"
+last_update:
+  date: 2026-05-14
+reading_time: 1
 ---
-
 # S5. 옴니채널 캠페인 ROAS (Uni-President)
 
 ## 채널 후보

@@ -89,7 +89,7 @@ flowchart LR
 | **Primary Purpose** | TTFT & throughput improvement | Repeated system prompt cost reduction | **Eliminate duplicate LLM calls entirely** |
 | **Cost Impact** | GPU time savings (self-hosted) | Input token price discount (managed) | Skip API calls entirely |
 | **Failure Impact** | Performance degradation only | Cache not applied → regular pricing | **Direct response quality impact** (false answer risk) |
-| **Related Docs** | [vLLM Model Serving](./vllm-model-serving.md) | Provider official docs | This document |
+| **Related Docs** | [vLLM Model Serving](../../model-serving/inference-frameworks/vllm-model-serving.md) | Provider official docs | This document |
 
 :::tip Three Layers Can Combine Independently
 Semantic Cache HIT → immediate response (skip LLM call). On MISS, provider call → Prompt Cache reduces system prompt input cost → inference engine KV Cache improves generation speed. The three layers are **orthogonal** to each other, so enabling all simultaneously is common.

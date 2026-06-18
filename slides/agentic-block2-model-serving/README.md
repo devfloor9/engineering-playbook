@@ -1,3 +1,9 @@
+---
+created: 2026-04-19
+last_update:
+  date: 2026-04-19
+reading_time: 6
+---
 # Block 2: Model Serving & GPU Infrastructure
 
 Interactive presentation covering enterprise GPU management for LLM workloads on Amazon EKS.

@@ -585,7 +585,7 @@ After: Client → CloudFront (HTTPS, WAF/Shield) → NLB (HTTPS, CF only) → kg
 ## 3. Semantic Caching Implementation Options (Advanced) {#semantic-caching-implementation-options-advanced}
 
 :::info Concepts and Design Principles
-For Semantic Caching concepts, similarity threshold design, cache key structure, and observability strategies, refer to [Semantic Caching Strategy](../../../model-serving/inference-frameworks/semantic-caching-strategy.md). This section covers tool comparisons and deployment configurations for actual implementation.
+For Semantic Caching concepts, similarity threshold design, cache key structure, and observability strategies, refer to [Semantic Caching Strategy](../../../design-architecture/advanced-patterns/semantic-caching-strategy.md). This section covers tool comparisons and deployment configurations for actual implementation.
 :::
 
 ### 3.1 Implementation Tool Comparison (2026-04 baseline)
@@ -819,7 +819,7 @@ Advanced feature configuration is complete. Proceed to the next steps:
 
 ## References
 
-- [Semantic Caching Strategy](../../../model-serving/inference-frameworks/semantic-caching-strategy.md) - Concepts, threshold design, observability, domain-specific patterns
+- [Semantic Caching Strategy](../../../design-architecture/advanced-patterns/semantic-caching-strategy.md) - Concepts, threshold design, observability, domain-specific patterns
 - [Inference Gateway Routing](../routing-strategy.md) - kgateway architecture and routing strategies
 - [Langfuse Deployment Guide](../../integrations/monitoring-observability-setup.md) - Helm installation, OTel integration, Redis/ClickHouse configuration
 - [Agent Monitoring](../../../operations-mlops/observability/agent-monitoring.md) - Langfuse architecture and components

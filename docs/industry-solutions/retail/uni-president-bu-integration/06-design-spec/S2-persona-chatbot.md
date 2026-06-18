@@ -1,9 +1,12 @@
 ---
+created: 2026-05-14
 title: "S2. 5 부서 페르소나 챗봇 (Uni-President)"
 sidebar_label: "S2. Persona Chatbot"
 description: "통합 마케팅·CMI·D&A·OPENPOINT·제조물류 5 부서별 도구 자율 호출"
+last_update:
+  date: 2026-05-14
+reading_time: 2
 ---
-
 # S2. 5 부서 페르소나 챗봇 (Uni-President)
 
 ## 도구 12종

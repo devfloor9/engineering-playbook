@@ -586,7 +586,7 @@ curl -s -o /dev/null -w "%{http_code}" \
 ## 3. Semantic Caching 实现选项（高级）{#semantic-caching-实现选项-advanced}
 
 :::info 概念及设计原则
-Semantic Caching 的概念、相似度阈值设计、缓存键结构、可观测性策略参阅 [Semantic Caching 策略](../../../model-serving/inference-frameworks/semantic-caching-strategy.md)。本节涵盖实际实现的工具比较和部署配置。
+Semantic Caching 的概念、相似度阈值设计、缓存键结构、可观测性策略参阅 [Semantic Caching 策略](../../../design-architecture/advanced-patterns/semantic-caching-strategy.md)。本节涵盖实际实现的工具比较和部署配置。
 :::
 
 ### 3.1 实现工具比较（2026-04 基准）
@@ -820,7 +820,7 @@ redis_key: "cache:org-12345:ko:glm-5:a3f2e1b:c9d8e7f"
 
 ## 参考资料
 
-- [Semantic Caching 策略](../../../model-serving/inference-frameworks/semantic-caching-strategy.md) - 概念、阈值设计、可观测性、按域模式
+- [Semantic Caching 策略](../../../design-architecture/advanced-patterns/semantic-caching-strategy.md) - 概念、阈值设计、可观测性、按域模式
 - [推理网关路由](../routing-strategy.md) - kgateway 架构及路由策略
 - [Langfuse 部署指南](../../integrations/monitoring-observability-setup.md) - Helm 安装、OTel 集成、Redis/ClickHouse 配置
 - [Agent 监控](../../../operations-mlops/observability/agent-monitoring.md) - Langfuse 架构及组件

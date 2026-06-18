@@ -1,9 +1,12 @@
 ---
+created: 2026-05-14
 title: "S1. 자연어 시맨틱 검색"
 sidebar_label: "S1. Semantic Search"
 description: "자사 SKU·회원·리뷰 + 외부 소셜 리뷰(올영·X) 통합 시맨틱 검색"
+last_update:
+  date: 2026-06-15
+reading_time: 4
 ---
-
 # S1. 자연어 시맨틱 검색
 
 ## 1. URL 경로

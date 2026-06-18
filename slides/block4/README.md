@@ -1,3 +1,9 @@
+---
+created: 2026-03-25
+last_update:
+  date: 2026-03-25
+reading_time: 4
+---
 # EKS Block 4 - 고가용성 아키텍처 슬라이드
 
 React + Vite + TailwindCSS + Framer Motion 기반 슬라이드 데크

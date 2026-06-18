@@ -1,9 +1,12 @@
 ---
+created: 2026-05-14
 title: "S6. 외부 시그널 융합 (Mitsukoshi)"
 sidebar_label: "S6. External Signals"
 description: "소셜·기상·환율(JPY/USD/HKD)·관광 4종 융합"
+last_update:
+  date: 2026-05-14
+reading_time: 1
 ---
-
 # S6. 외부 시그널 융합 (Mitsukoshi)
 
 ## 1. URL · 페르소나

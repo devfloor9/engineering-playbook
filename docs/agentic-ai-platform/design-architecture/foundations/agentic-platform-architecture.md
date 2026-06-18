@@ -285,7 +285,7 @@ Offline Store (S3 Parquet)
 세션 상태, 단기 메모리, LangGraph checkpointer 상태를 저장합니다. Agent의 장기 실행 작업에 대한 체크포인팅과 복구를 지원합니다.
 
 :::info 상세 가이드
-온톨로지 기반 Knowledge Feature Store의 3-plane 설계는 [Knowledge Feature Store](./knowledge-feature-store.md), Milvus 벡터 DB 운영은 [Milvus 벡터 DB](../../operations-mlops/data-infrastructure/milvus-vector-database.md)를 참조하세요.
+온톨로지 기반 Knowledge Feature Store의 3-plane 설계는 [Knowledge Feature Store](../advanced-patterns/knowledge-feature-store.md), Milvus 벡터 DB 운영은 [Milvus 벡터 DB](../../operations-mlops/data-infrastructure/milvus-vector-database.md)를 참조하세요.
 :::
 
 ---
@@ -827,7 +827,7 @@ Agentic AI Platform 아키텍처의 핵심 원칙:
 ### 관련 문서 (내부)
 
 - [기술적 도전과제](./agentic-ai-challenges.md) — 플랫폼이 해결하는 5가지 핵심 문제
-- [Knowledge Feature Store](./knowledge-feature-store.md) — 온톨로지 기반 특성 관리
+- [Knowledge Feature Store](../advanced-patterns/knowledge-feature-store.md) — 온톨로지 기반 특성 관리
 - [Model Serving & 추론 인프라](../../model-serving/index.md) — vLLM, llm-d, MoE 배포 가이드
 - [Operations & 거버넌스](../../operations-mlops/index.md) — Langfuse, RAGAS, Guardrails 운영
 - [Reference Architecture](../../reference-architecture/index.md) — 단계별 구현 가이드

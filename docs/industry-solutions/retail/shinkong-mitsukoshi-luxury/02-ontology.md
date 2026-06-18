@@ -1,9 +1,12 @@
 ---
+created: 2026-05-14
 title: "Knowledge Graph 25 클래스 (Mitsukoshi)"
 sidebar_label: "02. Ontology"
 description: "新光三越 KG 25 클래스 — VIP·외국인·입점 브랜드·면세·점포 (~550K edges)"
+last_update:
+  date: 2026-05-14
+reading_time: 5
 ---
-
 # Knowledge Graph 25 Classes (Mitsukoshi)
 
 > Neptune (~550K edges). **VIP + 외국인 회원 + 입점 700 브랜드 + 면세** 특성 반영.

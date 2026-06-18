@@ -1,9 +1,12 @@
 ---
+created: 2026-05-14
 title: "S2. 5 부서 페르소나 챗봇 (AMWAY)"
 sidebar_label: "S2. Persona Chatbot"
 description: "ABO Field/CMI/D&A/CX/Compliance 5 부서별 도구 자율 호출 챗봇"
+last_update:
+  date: 2026-05-14
+reading_time: 3
 ---
-
 # S2. 5 부서 페르소나 챗봇 (AMWAY)
 
 ## 1. URL · 페르소나

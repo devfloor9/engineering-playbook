@@ -1,9 +1,12 @@
 ---
+created: 2026-05-14
 title: "S10-Mo. 자체 물류 배송 SLA + 발주 최적화 (Momo 특화)"
 sidebar_label: "S10-Mo. Delivery SLA"
 description: "24시간 배송 약속 vs 실측 + 권역별 fulfillment center 부하 + 외기온 결합"
+last_update:
+  date: 2026-05-14
+reading_time: 2
 ---
-
 # S10-Mo. 자체 물류 배송 SLA + 발주 최적화
 
 > **Momo 차별 포인트** ⭐ — 자체 물류(momo Fast)의 24시간 배송 약속 위반률을 권역·시간대·외기온 결합 분석.

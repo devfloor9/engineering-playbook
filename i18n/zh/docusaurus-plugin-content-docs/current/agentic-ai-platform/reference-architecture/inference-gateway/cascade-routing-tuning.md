@@ -936,7 +936,7 @@ STRONG_KEYWORDS = [
 
 ### 框架及模型
 - [vLLM 模型服务](../../model-serving/inference-frameworks/vllm-model-serving.md) - vLLM 部署、PagedAttention、Multi-LoRA
-- [Semantic Caching 策略](../../model-serving/inference-frameworks/semantic-caching-strategy.md) - 3 层缓存、相似度阈值、可观测性
+- [Semantic Caching 策略](../../design-architecture/advanced-patterns/semantic-caching-strategy.md) - 3 层缓存、相似度阈值、可观测性
 
 ---
 

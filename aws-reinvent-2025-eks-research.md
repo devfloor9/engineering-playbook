@@ -1,3 +1,9 @@
+---
+created: 2026-02-16
+last_update:
+  date: 2026-02-16
+reading_time: 95
+---
 # AWS re:Invent 2025 - EKS Operations, Debugging & Observability Research
 
 **Research Date:** February 12, 2026

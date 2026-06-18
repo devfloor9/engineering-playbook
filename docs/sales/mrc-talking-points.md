@@ -1,9 +1,12 @@
 ---
+created: 2026-03-19
 title: "MRC 토킹포인트 - Modern Agentic Applications Day"
 sidebar_label: "MRC 토킹포인트"
 description: "2026.4.9 Modern Agentic Applications Day 고객 초대를 위한 MRC(Marketing Representative for Customers) 세일즈 피치 가이드"
+last_update:
+  date: 2026-03-20
+reading_time: 15
 ---
-
 # MRC 토킹포인트
 
 > **핵심 테제**: "디지털 전환에 성공한 기업이 Agentic AI도 잘 합니다."

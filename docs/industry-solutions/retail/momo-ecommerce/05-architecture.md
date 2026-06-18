@@ -1,9 +1,12 @@
 ---
+created: 2026-05-14
 title: "AWS 단일 아키텍처 (Momo)"
 sidebar_label: "05. Architecture"
 description: "Bedrock + Neptune + OpenSearch + Kinesis (라이브) + TimeStream (배송 SLA)"
+last_update:
+  date: 2026-05-14
+reading_time: 1
 ---
-
 # AWS 단일 아키텍처 (Momo)
 
 > LG H&H 골격 + Momo 특화: **Kinesis Data Streams** (라이브 방송 이벤트), **TimeStream** (배송 SLA 시계열), 다국어, ~800K edges.

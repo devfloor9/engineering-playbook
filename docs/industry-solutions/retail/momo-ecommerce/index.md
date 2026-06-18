@@ -1,9 +1,12 @@
 ---
+created: 2026-05-14
 title: "Momo eCommerce & Live Innovation PoC"
 sidebar_label: "Overview"
 description: "富邦媒(momo.com) 대만 1위 이커머스 — 라이브 커머스 + 24시간 배송 + 방대 SKU를 Ontology + Agentic AI로"
+last_update:
+  date: 2026-05-14
+reading_time: 6
 ---
-
 # Momo eCommerce & Live Innovation PoC
 
 > **"방대한 SKU·회원·라이브 방송·캠페인·자체 물류 데이터를 외부 트렌드·기상·경제·경쟁사 시그널과 묶어 온톨로지 + Agentic AI로 풀어내는 이커머스 혁신 PoC"**

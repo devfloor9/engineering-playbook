@@ -1,9 +1,12 @@
 ---
+created: 2026-05-14
 title: "S7. 옴니채널 회원 여정 (Uni-President)"
 sidebar_label: "S7. Customer Journey"
 description: "OPENPOINT 회원의 자사 BU 가로지르는 여정"
+last_update:
+  date: 2026-05-14
+reading_time: 1
 ---
-
 # S7. 옴니채널 회원 여정 (Uni-President)
 
 > S9-U와 유사하지만 S7은 **개별 회원 90일 타임라인** 중심, S9-U는 **통계적 BU 교차 패턴** 중심.

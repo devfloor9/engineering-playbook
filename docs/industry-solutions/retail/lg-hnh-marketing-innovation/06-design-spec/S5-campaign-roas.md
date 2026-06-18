@@ -1,9 +1,12 @@
 ---
+created: 2026-05-14
 title: "S5. 옴니채널 캠페인 ROAS 시뮬"
 sidebar_label: "S5. Campaign ROAS"
 description: "옴니채널(자사몰/마트/H&B/SNS) Bayesian 어트리뷰션 + 검색·SNS 반응 결합"
+last_update:
+  date: 2026-05-14
+reading_time: 2
 ---
-
 # S5. 옴니채널 캠페인 ROAS 시뮬
 
 ## 1. URL 경로

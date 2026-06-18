@@ -1,9 +1,12 @@
 ---
+created: 2026-05-14
 title: "S5. 옴니채널 캠페인 ROAS (AMWAY)"
 sidebar_label: "S5. Campaign ROAS"
 description: "자사몰·ABO 직판·카탈로그·SNS 채널 Bayesian 어트리뷰션"
+last_update:
+  date: 2026-05-14
+reading_time: 2
 ---
-
 # S5. 옴니채널 캠페인 ROAS 시뮬 (AMWAY)
 
 ## 1. URL · 페르소나

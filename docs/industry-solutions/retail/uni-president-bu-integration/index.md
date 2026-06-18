@@ -1,9 +1,12 @@
 ---
+created: 2026-05-14
 title: "Uni-President BU Integration PoC"
 sidebar_label: "Overview"
 description: "統一企業 — 7-Eleven Taiwan + 까르푸 + Starbucks + 식품 제조 BU 통합을 Ontology + Agentic AI로"
+last_update:
+  date: 2026-05-14
+reading_time: 6
 ---
-
 # Uni-President BU Integration PoC
 
 > **"OPENPOINT 회원·식품 제조·7-Eleven·까르푸·Starbucks·물류 데이터를 외부 트렌드·기상·경제·경쟁사 시그널과 묶어 온톨로지 + Agentic AI로 풀어내는 BU 통합 혁신 PoC"**

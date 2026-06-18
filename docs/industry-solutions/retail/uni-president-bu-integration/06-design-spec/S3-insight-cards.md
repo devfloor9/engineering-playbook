@@ -1,9 +1,12 @@
 ---
+created: 2026-05-14
 title: "S3. 카테고리·BU 인사이트 카드 (Uni-President)"
 sidebar_label: "S3. Insight Cards"
 description: "5 BU GMV + 자사 SKU sell-through + 외부 4종 결합"
+last_update:
+  date: 2026-05-14
+reading_time: 2
 ---
-
 # S3. 카테고리·BU 인사이트 카드 (Uni-President)
 
 ## 카드 프리셋

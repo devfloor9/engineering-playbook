@@ -44,13 +44,6 @@ import { DocCard, DocCardGrid } from '@site/src/components/DocCards';
     description="基于 NVIDIA NeMo 的大规模训练·微调、分布式学习、EFA 高速网络、检查点保存。"
     color="#9c27b0"
   />
-  <DocCard
-    to="/docs/agentic-ai-platform/model-serving/inference-frameworks/semantic-caching-strategy"
-    icon="⚡"
-    title="Semantic Caching 策略"
-    description="LLM Gateway 级别语义缓存 — 相似度阈值设计、3 层缓存划分（KV/Prompt/Semantic）、可观测性·安全指南。"
-    color="#22c55e"
-  />
 </DocCardGrid>
 
 :::tip 学习顺序

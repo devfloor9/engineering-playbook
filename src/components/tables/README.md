@@ -1,3 +1,9 @@
+---
+created: 2026-02-14
+last_update:
+  date: 2026-02-14
+reading_time: 10
+---
 # Table Components Library
 
 A collection of React table components for the Agentic AI Platform documentation, built with Docusaurus 3.9.2.

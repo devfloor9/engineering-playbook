@@ -1,3 +1,9 @@
+---
+created: 2026-04-19
+last_update:
+  date: 2026-04-19
+reading_time: 111
+---
 # EKS 디버깅 마스터 가이드 — 발표자 노트 & 데이터 소스
 
 > **슬라이드 URL**: https://devfloor9.github.io/engineering-playbook/slides/eks-debugging/

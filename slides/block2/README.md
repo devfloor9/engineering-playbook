@@ -1,3 +1,9 @@
+---
+created: 2026-03-25
+last_update:
+  date: 2026-03-25
+reading_time: 5
+---
 # EKS Block 02 - Node Monitoring Agent
 
 React-based slide deck for EKS Node Monitoring Agent documentation.

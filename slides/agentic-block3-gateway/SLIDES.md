@@ -1,3 +1,9 @@
+---
+created: 2026-04-19
+last_update:
+  date: 2026-04-19
+reading_time: 6
+---
 # Block 3: Gateway & Routing Slides
 
 ## Overview

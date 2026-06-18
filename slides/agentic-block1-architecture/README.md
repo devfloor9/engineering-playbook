@@ -1,3 +1,9 @@
+---
+created: 2026-04-19
+last_update:
+  date: 2026-04-19
+reading_time: 5
+---
 # Block 1: Design & Architecture — Agentic AI Platform
 
 Interactive slide deck covering the design and architecture of Agentic AI platforms.

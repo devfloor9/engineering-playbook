@@ -1,3 +1,9 @@
+---
+created: 2026-02-16
+last_update:
+  date: 2026-02-16
+reading_time: 55
+---
 # AWS Sources for EKS Operational Best Practices
 
 > Research compiled from AWS official documentation, blogs, and prescriptive guidance.

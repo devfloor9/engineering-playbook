@@ -1,9 +1,12 @@
 ---
+created: 2026-05-14
 title: "S3. 카테고리·BU 인사이트 카드 (AMWAY)"
 sidebar_label: "S3. Insight Cards"
 description: "Nutrition/Beauty/Home BU 매출 + 외부 4종 결합 자동 보고서 카드"
+last_update:
+  date: 2026-05-14
+reading_time: 2
 ---
-
 # S3. 카테고리·BU 인사이트 카드 (AMWAY)
 
 ## 1. URL · 페르소나

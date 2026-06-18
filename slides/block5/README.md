@@ -1,3 +1,9 @@
+---
+created: 2026-03-25
+last_update:
+  date: 2026-03-25
+reading_time: 6
+---
 # Block 5: Pod Health & Graceful Shutdown
 
 EKS Pod 헬스체크 & 라이프사이클 관리 슬라이드

@@ -1,3 +1,9 @@
+---
+created: 2026-04-19
+last_update:
+  date: 2026-04-19
+reading_time: 3
+---
 # React + TypeScript + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.

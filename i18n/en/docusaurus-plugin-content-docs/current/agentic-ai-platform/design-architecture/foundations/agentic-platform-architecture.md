@@ -281,7 +281,7 @@ Offline Store (S3 Parquet)
 Stores session state, short-term memory, and LangGraph checkpointer state. Supports checkpointing and recovery for long-running agent tasks.
 
 :::info Detailed Guides
-For the 3-plane design of the ontology-based Knowledge Feature Store, see [Knowledge Feature Store](./knowledge-feature-store.md); for Milvus vector DB operations, see [Milvus Vector DB](../../operations-mlops/data-infrastructure/milvus-vector-database.md).
+For the 3-plane design of the ontology-based Knowledge Feature Store, see [Knowledge Feature Store](../advanced-patterns/knowledge-feature-store.md); for Milvus vector DB operations, see [Milvus Vector DB](../../operations-mlops/data-infrastructure/milvus-vector-database.md).
 :::
 
 ---
@@ -818,7 +818,7 @@ Specific methods for implementing this platform architecture are covered in the 
 ### Related Documents (Internal)
 
 - [Technical Challenges](./agentic-ai-challenges.md) — Analysis of 5 key challenges
-- [Knowledge Feature Store](./knowledge-feature-store.md) — Ontology-based feature management
+- [Knowledge Feature Store](../advanced-patterns/knowledge-feature-store.md) — Ontology-based feature management
 - [Model Serving & Inference Infrastructure](../../model-serving/index.md) — vLLM, llm-d, MoE deployment guides
 - [Operations & Governance](../../operations-mlops/index.md) — Langfuse, RAGAS, Guardrails operations
 - [Reference Architecture](../../reference-architecture/index.md) — Step-by-step implementation guides

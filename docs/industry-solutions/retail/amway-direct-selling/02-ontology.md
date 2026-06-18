@@ -1,9 +1,12 @@
 ---
+created: 2026-05-14
 title: "Knowledge Graph 25 클래스 (AMWAY)"
 sidebar_label: "02. Ontology"
 description: "AMWAY ABO 다단계 + 정기구독 + 글로벌 다국어 컨텍스트 KG 25 클래스 (~700K edges)"
+last_update:
+  date: 2026-05-14
+reading_time: 5
 ---
-
 # Knowledge Graph 25 Classes (AMWAY)
 
 > Neptune (openCypher) 기반 25 클래스 KG. 추정 ~700K edges (ABO Tree 깊이 반영). **ABO 다단계 조직 + 정기구독 + 글로벌 다국어** 특성 반영.

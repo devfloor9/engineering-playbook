@@ -1,9 +1,12 @@
 ---
+created: 2026-05-14
 title: "S8. 마케팅 동의·PII·미성년 가드레일"
 sidebar_label: "S8. Guardrails"
 description: "Bedrock Guardrails + 마케팅 동의 + PII 마스킹 + 미성년 화장품 가드"
+last_update:
+  date: 2026-05-14
+reading_time: 2
 ---
-
 # S8. 마케팅 동의·PII·미성년 가드레일
 
 ## 1. URL 경로

@@ -1,9 +1,12 @@
 ---
+created: 2026-05-14
 title: "S9-Mo. 라이브 커머스 방송 효과 어트리뷰션 (Momo 특화)"
 sidebar_label: "S9-Mo. Live Attribution"
 description: "라이브 시청자 → 장바구니 → 구매 funnel + 진행자별·SKU별 효과"
+last_update:
+  date: 2026-05-14
+reading_time: 2
 ---
-
 # S9-Mo. 라이브 커머스 방송 효과 어트리뷰션
 
 > **Momo 차별 포인트** ⭐ — 라이브 방송 시청·핀·구매 이벤트를 Kinesis로 실시간 수집해 진행자·SKU·시간대별 어트리뷰션.

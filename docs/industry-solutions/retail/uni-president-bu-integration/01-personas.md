@@ -1,9 +1,12 @@
 ---
+created: 2026-05-14
 title: "5 부서 페르소나 (Uni-President)"
 sidebar_label: "01. Personas"
 description: "통합 마케팅·CMI·D&A·OPENPOINT·제조물류 5 부서"
+last_update:
+  date: 2026-05-14
+reading_time: 2
 ---
-
 # 5 부서 페르소나 (Uni-President)
 
 | 코드 | 부서 | 미션 | KPI | 주 시나리오 |

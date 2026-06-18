@@ -1,9 +1,12 @@
 ---
+created: 2026-05-14
 title: "S6. 외부 시그널 융합 (4종)"
 sidebar_label: "S6. External Signals"
 description: "자사 GMV × 외부 4종(소셜·기상·경제·경쟁사) 융합 매크로 분석"
+last_update:
+  date: 2026-05-14
+reading_time: 2
 ---
-
 # S6. 외부 시그널 융합
 
 > 외부 데이터 4종 모두 활용 — 마케팅 혁신 PoC의 핵심 가치 중 하나.

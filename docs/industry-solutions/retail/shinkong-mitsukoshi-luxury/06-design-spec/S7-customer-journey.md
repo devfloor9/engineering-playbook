@@ -1,9 +1,12 @@
 ---
+created: 2026-05-14
 title: "S7. 옴니채널 회원 여정 (Mitsukoshi)"
 sidebar_label: "S7. Customer Journey"
 description: "자사몰 → 매장 → 면세 → 재방문 단일 타임라인"
+last_update:
+  date: 2026-05-14
+reading_time: 1
 ---
-
 # S7. 옴니채널 회원 여정 (Mitsukoshi)
 
 ## 1. URL · 페르소나

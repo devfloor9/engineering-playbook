@@ -1,9 +1,12 @@
 ---
+created: 2026-05-14
 title: "30분 시연 스크립트 (Momo)"
 sidebar_label: "99. Demo Storytelling"
 description: "Momo 임원·라이브 운영팀·물류팀 미팅용 30분 시연"
+last_update:
+  date: 2026-05-14
+reading_time: 3
 ---
-
 # 30분 시연 스크립트 (Momo)
 
 ## 0. 시연 전 준비

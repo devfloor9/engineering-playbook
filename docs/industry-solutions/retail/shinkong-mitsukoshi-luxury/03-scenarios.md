@@ -1,9 +1,12 @@
 ---
+created: 2026-05-14
 title: "11 시나리오 매핑 (Mitsukoshi)"
 sidebar_label: "03. Scenarios"
 description: "공통 8 + Mitsukoshi 특화 3 (외국인 면세·럭셔리 SOV·VIP 컨시어지)"
+last_update:
+  date: 2026-05-14
+reading_time: 3
 ---
-
 # 11 시나리오 매핑 (Mitsukoshi)
 
 | # | 시나리오 | 자사 데이터 | 외부 데이터 | URL | 주 페르소나 |

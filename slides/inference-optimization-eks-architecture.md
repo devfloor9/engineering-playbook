@@ -1,3 +1,9 @@
+---
+created: 2026-04-03
+last_update:
+  date: 2026-04-04
+reading_time: 27
+---
 # Inference & 모델 성능 최적화를 위한 EKS 아키텍처
 
 ---

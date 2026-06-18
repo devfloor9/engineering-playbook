@@ -1,9 +1,12 @@
 ---
+created: 2026-05-14
 title: "S4. 페르소나 매칭 + 클러스터링"
 sidebar_label: "S4. Persona & Cluster"
 description: "라이프스타일 페르소나 자동 분류 + RFM × 카테고리 친화도 KMeans 통합"
+last_update:
+  date: 2026-05-14
+reading_time: 2
 ---
-
 # S4. 라이프스타일 페르소나 매칭 + 클러스터링
 
 > 페르소나 매칭과 RFM 클러스터링을 하나의 화면으로 통합. **소셜 페르소나 (인스타·올영) 결합으로 강화**.

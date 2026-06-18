@@ -950,7 +950,7 @@ STRONG_KEYWORDS = [
 
 ### Frameworks and Models
 - [vLLM Model Serving](../../model-serving/inference-frameworks/vllm-model-serving.md) - vLLM deployment, PagedAttention, Multi-LoRA
-- [Semantic Caching Strategy](../../model-serving/inference-frameworks/semantic-caching-strategy.md) - 3-tier cache, similarity thresholds, observability
+- [Semantic Caching Strategy](../../design-architecture/advanced-patterns/semantic-caching-strategy.md) - 3-tier cache, similarity thresholds, observability
 
 ---
 

@@ -1,9 +1,12 @@
 ---
+created: 2026-05-14
 title: "데이터 소스 (AMWAY)"
 sidebar_label: "04. Data Sources"
 description: "자사 ABO·SKU·구독 + 외부 4종 (소셜·기상·환율·규제) cohort_tag 분리"
+last_update:
+  date: 2026-05-14
+reading_time: 3
 ---
-
 # 데이터 소스 (AMWAY)
 
 ---

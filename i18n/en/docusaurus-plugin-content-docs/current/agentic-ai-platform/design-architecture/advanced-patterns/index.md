@@ -16,7 +16,7 @@ tags:
 
 ## Overview
 
-Advanced design patterns for continuously improving production Agentic AI system performance. The Self-Improving Agent Loop provides a closed-loop architecture that combines human feedback with automated evaluation to enhance agent behavior. ADR documents record the rationale and trade-offs for design decisions.
+Advanced design patterns for continuously improving production Agentic AI system performance. The Self-Improving Agent Loop provides a closed-loop architecture that combines human feedback with automated evaluation to enhance agent behavior, and ADR documents record the rationale and trade-offs for design decisions. Knowledge Feature Store covers 3-plane feature management combining ontologies and Knowledge Graphs, while Semantic Caching covers LLM Gateway-level semantic caching optimization.
 
 ## Document List
 

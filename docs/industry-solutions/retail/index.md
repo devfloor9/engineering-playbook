@@ -1,9 +1,12 @@
 ---
+created: 2026-05-14
 title: "Retail Industry Solutions"
 sidebar_label: "Retail"
 description: "리테일(이커머스/오프라인 종합/생활용품·뷰티·음료 제조-유통/직접판매/백화점) 산업용 PoC 자산"
+last_update:
+  date: 2026-06-04
+reading_time: 6
 ---
-
 # Retail Industry Solutions
 
 > 종합 이커머스·오프라인 대형 리테일·생활용품·뷰티·음료 제조-유통·글로벌 직접판매·백화점 등 리테일 산업 PoC 자산.

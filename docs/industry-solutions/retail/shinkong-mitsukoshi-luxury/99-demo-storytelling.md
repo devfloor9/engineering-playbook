@@ -1,9 +1,12 @@
 ---
+created: 2026-05-14
 title: "30분 시연 스크립트 (Mitsukoshi)"
 sidebar_label: "99. Demo Storytelling"
 description: "Mitsukoshi 임원·MD·VIP팀 미팅용 30분 시연"
+last_update:
+  date: 2026-05-14
+reading_time: 3
 ---
-
 # 30분 시연 스크립트 (Mitsukoshi)
 
 ## 0. 시연 전 준비

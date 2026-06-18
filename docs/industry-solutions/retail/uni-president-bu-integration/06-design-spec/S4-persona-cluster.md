@@ -1,9 +1,12 @@
 ---
+created: 2026-05-14
 title: "S4. 페르소나 매칭 + 클러스터링 (Uni-President)"
 sidebar_label: "S4. Persona & Cluster"
 description: "라이프스타일 페르소나 5종 + RFM × BU 친화도 + 소셜"
+last_update:
+  date: 2026-05-14
+reading_time: 1
 ---
-
 # S4. 라이프스타일 페르소나 매칭 + 클러스터링 (Uni-President)
 
 ## 라이프스타일 5종

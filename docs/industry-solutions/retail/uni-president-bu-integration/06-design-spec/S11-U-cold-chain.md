@@ -1,9 +1,12 @@
 ---
+created: 2026-05-14
 title: "S11-U. 콜드체인·물류 SLA + 매장 발주 (UPI 특화)"
 sidebar_label: "S11-U. Cold Chain"
 description: "President Transnet 콜드체인 SLA + 외기온 + 매장 발주 최적화"
+last_update:
+  date: 2026-05-14
+reading_time: 2
 ---
-
 # S11-U. 콜드체인·물류 SLA + 매장 발주 최적화
 
 > **Uni-President 차별 포인트** ⭐ — 자체 물류 (President Transnet) 콜드체인은 우유·아이스크림·도시락 등 핵심 SKU의 품질 직결. 외기온 결합 + 매장 발주 최적화.

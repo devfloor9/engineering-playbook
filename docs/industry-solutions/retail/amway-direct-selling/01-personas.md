@@ -1,9 +1,12 @@
 ---
+created: 2026-05-14
 title: "5 부서 페르소나 (AMWAY)"
 sidebar_label: "01. Personas"
 description: "AMWAY 글로벌 직접판매 컨텍스트 — ABO Field / Insights / D&A·MarTech / CX / Compliance"
+last_update:
+  date: 2026-05-14
+reading_time: 6
 ---
-
 # 5 부서 페르소나 (AMWAY)
 
 > 동일 데이터를 5개 부서가 각자의 KPI·언어로 활용. 페르소나 스위처가 사이드바·카드·챗봇 어조를 모두 변경.

@@ -1,3 +1,9 @@
+---
+created: 2026-04-06
+last_update:
+  date: 2026-04-06
+reading_time: 20
+---
 # KubeCon + CloudNativeCon Japan 2026 — CFP Submissions
 
 > **Event**: July 29-30, 2026 | Yokohama, Japan

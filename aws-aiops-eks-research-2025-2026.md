@@ -1,3 +1,9 @@
+---
+created: 2026-02-16
+last_update:
+  date: 2026-02-16
+reading_time: 49
+---
 # AWS AIOps Methodologies for EKS Environments (2025-2026)
 
 **Research Date:** February 12, 2026
