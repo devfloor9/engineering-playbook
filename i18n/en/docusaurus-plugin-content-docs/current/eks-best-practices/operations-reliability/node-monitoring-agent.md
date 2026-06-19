@@ -5,13 +5,13 @@ description: "Architecture, deployment strategies, limitations, and best practic
 tags: [eks, monitoring, node-monitoring, aws, observability, cloudwatch]
 category: "observability-monitoring"
 last_update:
-  date: 2026-02-13
+  date: 2026-06-19
   author: devfloor9
 ---
 
 # EKS Node Monitoring Agent
 
-> **Written**: 2025-08-26 | **Updated**: 2026-02-13 | **Reading time**: ~7 min
+> **Written**: 2025-08-26 | **Updated**: 2026-06-19 | **Reading time**: ~9 min
 
 ## Overview
 
@@ -24,28 +24,64 @@ The EKS Node Monitoring Agent (NMA) is an AWS-provided node health monitoring to
 - **CloudWatch integration**: Centralized monitoring via CloudWatch
 - **EKS Add-on support**: Simple installation and management
 
+## Enablement
+
+No special AWS request is required — NMA is self-service. It is built into EKS Auto Mode by default; for other compute types (managed node groups, Karpenter, self-managed) it is added as an EKS managed add-on (`eks-node-monitoring-agent`) or via Helm. Linux only; not supported on Fargate.
+
 ## Architecture
 
 DaemonSet-based deployment monitoring: Container Runtime, Storage, Networking, Kernel, and Accelerated Hardware (GPU/Neuron). Uses controller-runtime for K8s-native integration.
 
 ### Node Conditions
 
-- `ContainerRuntimeReady`, `StorageReady`, `NetworkingReady`, `KernelReady`, `AcceleratedHardwareReady`
+`ContainerRuntimeReady`, `StorageReady`, `NetworkingReady`, `KernelReady`, `AcceleratedHardwareReady` (in addition to the standard `Ready`, `DiskPressure`, `MemoryPressure`).
 
-### Detectable Issues
+### Severity: Condition vs. Event
 
-**Conditions (auto-repair targets)**: DiskPressure, MemoryPressure, PIDPressure, NetworkUnavailable, KubeletUnhealthy, ContainerRuntimeUnhealthy
+NMA classifies issues by severity, which determines whether Node Auto Repair acts:
 
-**Events (warning only)**: Kernel soft lockup, I/O delays, filesystem errors, network packet loss, hardware error indicators
+- **Condition**: terminal issue warranting a Replace/Reboot. Triggers Auto Repair when enabled.
+- **Event**: temporary or non-critical issue. **Does not** trigger Auto Repair — recorded for investigation only.
 
-### Limitations
+**containerd scenario**: A runtime failure where a pod is stuck terminating surfaces as `PodStuckTerminating` (Condition → Replace). A plain container-create failure (`ContainerRuntimeFailed`) is an Event only and is not auto-remediated.
+
+## Node Auto Repair Integration
+
+NMA alone provides visibility; pairing it with Auto Repair enables automatic Replace/Reboot.
+
+- **Auto Repair alone (no NMA)** reacts to: kubelet `Ready`, manually deleted node objects, managed node group instances that fail to join.
+- **Auto Repair + NMA** additionally reacts to: `AcceleratedHardwareReady`, `ContainerRuntimeReady`, `KernelReady`, `NetworkingReady`, `StorageReady`.
+
+| Condition | Repair after | Action |
+|-----------|-------------|--------|
+| `AcceleratedHardwareReady` | 10 min | Replace or Reboot |
+| `ContainerRuntimeReady` | 30 min | Replace |
+| `KernelReady` / `NetworkingReady` / `StorageReady` / `Ready` | 30 min | Replace |
+| `DiskPressure` / `MemoryPressure` | N/A | None |
+
+:::warning DiskPressure / MemoryPressure / PIDPressure are NOT auto-repair targets
+
+Auto Repair intentionally does not act on these standard Kubernetes conditions — they usually reflect application or workload-configuration issues rather than node-level faults, and are handled by Kubernetes node-pressure eviction. So container load that surfaces as memory/disk/PID pressure will not trigger node replacement; only genuine runtime failures (Conditions like `PodStuckTerminating`) do.
+
+:::
+
+**Guardrails**: new repair actions are halted when more than 20% of nodes in a node group/NodePool are unhealthy (managed node groups: also requires >5 nodes; halts on ARC zonal shift). Enablement: Auto Mode (always on), Karpenter (feature gate `NodeRepair=true`), managed node groups (`--node-repair-config enabled=true`).
+
+## Limitations
 
 - Not a metrics collection tool — log-based analysis only
 - Cannot detect sudden hardware failures or complete network disconnection
 - Limited Prometheus endpoint (port 8080)
 
-### Best Practices
+## Best Practices
 
 Use NMA as L1 (state detection) in a multi-layer monitoring stack: L1 NMA → L2 Container Insights/Prometheus → L3 Node Auto Repair → L4 Unified Dashboard.
 
-Resource usage: CPU 10m-250m, Memory 30Mi-100Mi.
+Resource usage (add-on/Helm defaults): requests CPU 10m / Memory 30Mi, limits CPU 250m / Memory 100Mi.
+
+## References
+
+- [Detect node health issues and enable automatic node repair](https://docs.aws.amazon.com/eks/latest/userguide/node-health.html)
+- [Detect node health issues with the EKS node monitoring agent](https://docs.aws.amazon.com/eks/latest/userguide/node-health-nma.html)
+- [Automatically repair nodes in EKS clusters](https://docs.aws.amazon.com/eks/latest/userguide/node-repair.html)
+- [aws/eks-node-monitoring-agent](https://github.com/aws/eks-node-monitoring-agent)
