@@ -1,6 +1,6 @@
 ---
 title: Inference Optimization on EKS
-description: LLM Inference 성능을 극대화하는 EKS 아키텍처 개요 — vLLM, KV Cache-Aware Routing, Disaggregated Serving, LWS 멀티노드, Hybrid Node 통합의 시작점
+description: LLM Inference 성능을 극대화하는 EKS 아키텍처 개요 — vLLM, KV Cache-Aware Routing, Disaggregated Serving, LWS 멀티노드, GPU 오토스케일링의 시작점
 created: "2026-04-03"
 last_update:
   date: "2026-06-15"
@@ -69,9 +69,9 @@ import DocCardList from '@theme/DocCardList';
   },
   {
     type: 'link',
-    href: '/docs/agentic-ai-platform/model-serving/inference-optimization/cost-optimization',
-    label: 'GPU 리소스·관측·Hybrid Node·실전 교훈',
-    description: '2-Tier 오토스케일링, DCGM/vLLM 모니터링, Bifrost→Bedrock Cascade Fallback, Hybrid Node 온프레 통합, 대형 MoE 배포 실전 교훈'
+    href: '/docs/agentic-ai-platform/model-serving/inference-optimization/gpu-autoscaling-operations',
+    label: 'GPU 오토스케일링과 대형 모델 배포 운영',
+    description: '2-Tier 오토스케일링(KEDA·Karpenter), DRA 호환성, 대형 MoE(GLM-5·Kimi K2.5) 배포 실전 교훈'
   }
 ]} />
 
@@ -82,10 +82,8 @@ import DocCardList from '@theme/DocCardList';
 3. **KV Cache-Aware Routing** — llm-d와 NVIDIA Dynamo 비교 ([KV Cache 최적화](./kv-cache-optimization.md))
 4. **Disaggregated Serving** — Prefill/Decode 분리 아키텍처 ([Disaggregated Serving](./disaggregated-serving.md))
 5. **LWS 멀티노드 서빙** — LeaderWorkerSet 기반 700B+ 모델 배포 ([Disaggregated Serving](./disaggregated-serving.md))
-6. **GPU 리소스 관리** — 2-Tier 오토스케일링과 DRA ([비용·관측성·Hybrid](./cost-optimization.md))
-7. **Observability & Fallback** — GPU 모니터링, Bifrost→Bedrock 폴백 ([비용·관측성·Hybrid](./cost-optimization.md))
-8. **Hybrid Node** — 온프레미스 GPU 팜과 EKS 통합 ([비용·관측성·Hybrid](./cost-optimization.md))
-9. **실전 교훈** — 이미지 다운로드 실패 대응, 대형 MoE 배포 함정 ([비용·관측성·Hybrid](./cost-optimization.md))
+6. **GPU 오토스케일링** — 2-Tier 스케일링(KEDA·Karpenter)과 DRA 호환성 ([오토스케일링 & 배포 운영](./gpu-autoscaling-operations.md))
+7. **대형 모델 배포 실전 교훈** — 모델 다운로드 실패 대응, MoE 배포 함정 ([오토스케일링 & 배포 운영](./gpu-autoscaling-operations.md))
 
 ## 핵심 성능 지표
 

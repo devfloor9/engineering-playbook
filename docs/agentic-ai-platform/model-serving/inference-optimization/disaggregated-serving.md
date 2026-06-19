@@ -289,6 +289,6 @@ env:
 
 ### 관련 문서
 - [KV Cache 최적화 (vLLM Deep Dive + Cache-Aware Routing)](./kv-cache-optimization.md) — vLLM 병렬화 전략
-- [GPU 리소스·관측·Hybrid Node·실전 교훈](./cost-optimization.md) — NodePool 기반 오토스케일링
+- [GPU 오토스케일링과 대형 모델 배포 운영](./gpu-autoscaling-operations.md) — NodePool 기반 오토스케일링
 - [MoE 모델 서빙 가이드](../inference-frameworks/moe-model-serving.md) — MoE 모델 배포
 - [llm-d 기반 EKS 분산 추론](../inference-frameworks/llm-d-eks-automode.md) — llm-d 배포 가이드

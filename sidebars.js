@@ -229,7 +229,7 @@ const sidebars = {
                 'agentic-ai-platform/model-serving/inference-routing/routing-strategy',
                 'agentic-ai-platform/model-serving/inference-routing/cascade-routing-tuning',
                 'agentic-ai-platform/model-serving/inference-routing/openclaw-example',
-                'agentic-ai-platform/model-serving/inference-optimization/cost-optimization',
+                'agentic-ai-platform/model-serving/inference-optimization/gpu-autoscaling-operations',
               ],
             },
           ],

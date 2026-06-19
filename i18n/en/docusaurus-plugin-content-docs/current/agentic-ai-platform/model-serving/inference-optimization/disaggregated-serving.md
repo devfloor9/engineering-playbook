@@ -289,6 +289,6 @@ Setting `restartPolicy: RecreateGroupOnPodRestart` recreates the entire group wh
 
 ### Related Documentation
 - [KV Cache Optimization (vLLM Deep Dive + Cache-Aware Routing)](./kv-cache-optimization.md) — vLLM parallelization strategies
-- [GPU Resources · Observability · Hybrid Node · Lessons Learned](./cost-optimization.md) — NodePool-based autoscaling
+- [GPU Autoscaling & Large Model Deployment Operations](./gpu-autoscaling-operations.md) — NodePool-based autoscaling
 - [MoE Model Serving Guide](../inference-frameworks/moe-model-serving.md) — MoE model deployment
 - [llm-d-based EKS Distributed Inference](../inference-frameworks/llm-d-eks-automode.md) — llm-d deployment guide

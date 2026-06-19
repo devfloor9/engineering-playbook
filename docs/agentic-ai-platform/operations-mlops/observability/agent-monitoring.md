@@ -326,7 +326,69 @@ tenant_monthly_budget_usd
 
 ---
 
-## 7. 비용 추적
+## 7. Cascade Fallback 전략
+
+Self-hosted 모델(vLLM/llm-d)이 과부하이거나 장애일 때, Amazon Bedrock의 관리형 모델로 자동 폴백하는 Cascade Routing을 구성하면 GPU 장애·Spot 중단 시에도 무중단 서비스를 유지할 수 있습니다. Bifrost(또는 LiteLLM)가 Gateway 역할을 하며, 응답 실패·타임아웃 시 Bedrock으로 요청을 전환합니다.
+
+```mermaid
+flowchart LR
+    C[Client App] --> BF[Bifrost Gateway]
+
+    subgraph SelfHosted["Self-Hosted (EKS)"]
+        LLMD[llm-d + vLLM<br/>Qwen3-32B / GLM-5]
+    end
+
+    subgraph Managed["AWS Managed"]
+        BR[Amazon Bedrock<br/>Claude Sonnet<br/>Nova Pro]
+    end
+
+    BF -->|"1차: Self-hosted"| LLMD
+    BF -->|"2차: Fallback"| BR
+
+    LLMD -.->|"500/502/503/timeout"| BF
+    BF -.->|"자동 전환"| BR
+
+    style BF fill:#ff9900,color:#fff
+    style LLMD fill:#326ce5,color:#fff
+    style BR fill:#ff6b6b,color:#fff
+```
+
+### Fallback 조건 설정
+
+Bifrost Cascade Routing은 상태 코드·레이턴시·에러율 기준으로 폴백을 트리거합니다.
+
+```yaml
+# bifrost-config.yaml
+routing:
+  defaultModel: self-hosted-qwen3
+  strategy: cascade
+  cascadeOrder:
+    - self-hosted-qwen3      # 1차: EKS Self-hosted (비용 최적)
+    - bedrock-claude-sonnet   # 2차: Bedrock 관리형 (폴백)
+  fallbackConditions:
+    - statusCode: [500, 502, 503, 504]
+    - latencyMs: "> 30000"    # 30초 초과 시 폴백
+    - errorRate: "> 0.1"      # 에러율 10% 초과 시 폴백
+```
+
+### 가용성·비용 관점 비교
+
+| 관점 | Self-hosted 단독 | Cascade (Self-hosted + Bedrock) |
+|------|----------------|-------------------------------|
+| **가용성** | GPU 장애 시 서비스 중단 | Bedrock 폴백으로 무중단 |
+| **비용** | GPU 고정 비용 | 평시 Self-hosted(저비용) + 피크 Bedrock(종량제) |
+| **용량 계획** | 피크 트래픽 기준 GPU 확보 | 기본 트래픽만 GPU, 초과분 Bedrock |
+| **Cold Start** | Spot 중단 시 수 분 지연 | Bedrock 즉시 응답 |
+
+:::tip 비용 최적화 패턴
+평시 트래픽의 80%를 Self-hosted로 처리하고 피크 시 20%를 Bedrock으로 오프로드하면, GPU를 피크 기준으로 프로비저닝할 필요가 없어 인프라 비용을 30-40% 추가 절감할 수 있습니다.
+:::
+
+온프레미스 GPU 팜까지 포함한 3-Tier Cascade(On-Prem → Cloud → Bedrock) 구성은 [EKS Hybrid Nodes 완전 가이드 — 온프레미스 GPU 추론](/docs/hybrid-infrastructure/hybrid-nodes-adoption-guide), Gateway 레벨 라우팅 튜닝은 [Cascade 라우팅 튜닝](../../model-serving/inference-routing/cascade-routing-tuning.md)을 참조하세요.
+
+---
+
+## 8. 비용 추적
 
 ### 비용 추적 개념
 
@@ -366,7 +428,7 @@ LLM 사용 비용을 다음 기준으로 추적합니다:
 
 ---
 
-## 8. 운영 체크리스트
+## 9. 운영 체크리스트
 
 ### 일일 점검 항목
 
@@ -378,13 +440,13 @@ LLM 사용 비용을 다음 기준으로 추적합니다:
 
 ---
 
-## 9. 모니터링 성숙도 모델
+## 10. 모니터링 성숙도 모델
 
 <MaturityModelTable />
 
 ---
 
-## 10. 다음 단계
+## 11. 다음 단계
 
 - [모니터링 스택 구성 가이드](../../reference-architecture/integrations/monitoring-observability-setup.md) - AMP/AMG 배포, Langfuse Helm 설치, ServiceMonitor, Grafana 대시보드 실전 구성
 - [LLMOps Observability 비교 가이드](./llmops-observability.md) - Langfuse vs LangSmith vs Helicone 심층 비교

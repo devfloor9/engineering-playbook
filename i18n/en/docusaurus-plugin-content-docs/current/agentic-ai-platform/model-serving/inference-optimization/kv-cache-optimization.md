@@ -223,7 +223,7 @@ flowchart TB
 
 ### Related Documentation
 - [Disaggregated Serving + LWS Multi-Node](./disaggregated-serving.md) — Prefill/Decode separation, NIXL KV transfer
-- [GPU Resources · Observability · Hybrid Node · Lessons Learned](./cost-optimization.md) — KEDA scaling, monitoring
+- [GPU Autoscaling & Large Model Deployment Operations](./gpu-autoscaling-operations.md) — KEDA scaling, monitoring
 - [vLLM-based FM Deployment and Performance Optimization](../inference-frameworks/vllm-model-serving.md) — vLLM detailed guide
 - [llm-d-based EKS Distributed Inference](../inference-frameworks/llm-d-eks-automode.md) — llm-d deployment guide
 - [NVIDIA GPU Software Stack](../gpu-infrastructure/nvidia-gpu-stack.md) — GPU Operator, DCGM, Dynamo

@@ -705,6 +705,132 @@ spec:
     - retrans=2
 ```
 
+## 온프레미스 GPU 추론 & 3-Tier Cascade
+
+이미 보유한 DGX·GPU 서버를 Hybrid Node로 등록한 뒤, 클라우드 GPU 및 Amazon Bedrock과 결합하면 비용 효율성과 가용성을 동시에 극대화하는 3-Tier 추론 아키텍처를 구성할 수 있습니다.
+
+```mermaid
+flowchart LR
+    subgraph AWS["AWS Cloud"]
+        EKS[EKS Control Plane]
+        CN1[p5.48xlarge<br/>H100×8<br/>Spot]
+    end
+
+    subgraph OnPrem["On-Premises (VPN/Direct Connect)"]
+        HN1[Hybrid Node<br/>DGX A100×8]
+    end
+
+    subgraph Gateway["Inference Gateway"]
+        BF[Bifrost<br/>Cascade Routing]
+    end
+
+    BF -->|"1차: On-Prem (고정 비용)"| HN1
+    BF -->|"2차: Cloud GPU (Spot)"| CN1
+    BF -->|"3차: Bedrock (종량제 폴백)"| BR[Amazon Bedrock]
+
+    HN1 -.->|"VPN / DX"| EKS
+    CN1 -.-> EKS
+
+    style OnPrem fill:#e8f5e9
+    style BF fill:#ff9900,color:#fff
+```
+
+### 3-Tier Cascade 비용 구조
+
+| Tier | 인프라 | 비용 구조 | 역할 |
+|------|--------|---------|------|
+| **Tier 1** | On-Prem Hybrid Node (DGX) | 고정 비용 (이미 보유) | 기본 트래픽 처리 (항상 활성) |
+| **Tier 2** | Cloud GPU (EKS Spot/OD) | 변동 비용 (시간당) | 피크 트래픽 버스트 |
+| **Tier 3** | Amazon Bedrock | 종량제 (토큰당) | 장애·과부하 폴백 |
+
+```yaml
+# Bifrost 3-Tier Cascade 설정
+routing:
+  strategy: cascade
+  cascadeOrder:
+    - onprem-dgx-llm          # 1차: On-Prem (고정 비용, 항상 활성)
+    - cloud-eks-llm            # 2차: Cloud GPU (Spot, 탄력적)
+    - bedrock-fallback         # 3차: Bedrock (종량제, 무제한 용량)
+
+models:
+  - name: onprem-dgx-llm
+    provider: openai-compatible
+    baseUrl: http://hybrid-node-vllm.inference:8000/v1
+    model: Qwen/Qwen3-32B
+    priority: 1
+    healthCheck:
+      endpoint: /health
+      intervalMs: 10000
+  - name: cloud-eks-llm
+    provider: openai-compatible
+    baseUrl: http://inference-gateway.llm-d:8080/v1
+    model: Qwen/Qwen3-32B
+    priority: 2
+  - name: bedrock-fallback
+    provider: bedrock
+    model: anthropic.claude-sonnet-4-20250514-v1:0
+    region: us-east-1
+    priority: 3
+```
+
+### Pod 배치 전략: nodeSelector로 워크로드 분리
+
+On-Prem 노드에는 기본 추론을, Cloud 노드에는 버스트 트래픽을 배치하여 고정 비용과 탄력성을 분리합니다.
+
+```yaml
+# On-Prem Hybrid Node에 배치 (기본 추론)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vllm-onprem
+spec:
+  template:
+    spec:
+      nodeSelector:
+        node-type: hybrid
+      tolerations:
+        - key: nvidia.com/gpu
+          operator: Exists
+          effect: NoSchedule
+      containers:
+        - name: vllm
+          image: vllm/vllm-openai:v0.23.0
+          args: ["Qwen/Qwen3-32B-FP8", "--gpu-memory-utilization=0.95"]
+          resources:
+            limits:
+              nvidia.com/gpu: 1
+---
+# Cloud GPU Node에 배치 (버스트 트래픽)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vllm-cloud-burst
+spec:
+  template:
+    spec:
+      nodeSelector:
+        karpenter.sh/nodepool: gpu-inference
+      tolerations:
+        - key: nvidia.com/gpu
+          operator: Exists
+          effect: NoSchedule
+      containers:
+        - name: vllm
+          image: vllm/vllm-openai:v0.23.0
+          args: ["Qwen/Qwen3-32B-FP8", "--gpu-memory-utilization=0.95"]
+          resources:
+            limits:
+              nvidia.com/gpu: 1
+```
+
+:::warning Hybrid Node 추론 네트워크 고려사항
+- **레이턴시**: VPN/Direct Connect 경유로 클라우드 노드 대비 10-50ms 추가 지연
+- **대역폭**: 멀티노드 NCCL 통신은 고대역폭 필요 → On-Prem 내 Pipeline Parallelism은 가능하나, On-Prem↔Cloud 간 PP는 비권장
+- **권장**: On-Prem 노드는 독립적인 모델을 서빙하고, Cloud 노드와는 Gateway 레벨에서 Cascade Routing으로 연결
+:::
+
+Gateway 레벨 폴백 동작·관측성은 [Agent 모니터링 & 운영 — Cascade Fallback 전략](/docs/agentic-ai-platform/operations-mlops/observability/agent-monitoring)을 참조하세요.
+
 ## 비용 분석 및 최적화
 
 ### Hybrid Nodes 가격 구조

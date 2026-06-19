@@ -1272,6 +1272,61 @@ if __name__ == '__main__':
             apply_recommendations(recs, dry_run=False)
 ```
 
+## GPU 워크로드 비용 최적화
+
+LLM 서빙·학습 워크로드는 GPU 가동 시간이 비용의 대부분을 차지하므로, 일반 CPU 워크로드와 다른 최적화 전략이 필요합니다. p5.48xlarge(H100×8) 한 대의 On-Demand 가격은 시간당 약 $98로, 월 2대 운영 시 약 $141,000에 달합니다.
+
+### GPU 비용 절감 스택
+
+다음 4가지 전략을 조합하면 GPU 인프라 비용을 최대 ~85% 절감할 수 있습니다.
+
+| 전략 | 절감 효과 | 적용 방법 |
+|------|---------|---------|
+| **Spot 인스턴스** | 60-90% | Karpenter `capacity-type: spot`, p5 Spot $13-15/hr (us-east-2, On-Demand $98/hr 대비) |
+| **Consolidation** | 20-30% | `consolidationPolicy: WhenEmptyOrUnderutilized`, 30초 대기 |
+| **Right-sizing** | 15-25% | 모델 크기별 인스턴스 타입 자동 선택 (NodePool weight) |
+| **시간대별 스케줄링** | 30-40% | disruption budget으로 비업무 시간 50%+ 축소 |
+
+:::warning GPU Spot 중단 대응
+GPU 인스턴스는 Spot 중단 시 모델 가중치 재로딩(수 분)이 필요하므로, 추론 워크로드는 Bedrock 등 관리형 폴백과 함께 구성하여 무중단성을 확보하는 것이 권장됩니다. 상세 패턴은 [Agent 모니터링 & 운영 — Cascade Fallback](/docs/agentic-ai-platform/operations-mlops/observability/agent-monitoring)을 참조하세요.
+:::
+
+### 시간대별 disruption budget
+
+업무 시간에는 안정성을, 비업무 시간에는 비용을 우선하도록 Karpenter disruption budget을 시간대별로 구성합니다.
+
+```yaml
+# Karpenter 시간대별 disruption budget 예시 (GPU NodePool)
+disruption:
+  consolidationPolicy: WhenEmptyOrUnderutilized
+  consolidateAfter: 30s
+  budgets:
+    # 업무 시간: 안정성 우선 (10%만 중단 허용)
+    - nodes: "10%"
+      schedule: "0 9 * * 1-5"
+      duration: 9h
+    # 비업무 시간: 비용 우선 (50%까지 통합)
+    - nodes: "50%"
+      schedule: "0 18 * * 1-5"
+      duration: 15h
+```
+
+### GPU 인스턴스 용량 확보
+
+서울/도쿄 리전에서 p5.48xlarge는 `InsufficientCapacity`가 빈번합니다. us-east-2(Ohio) Spot에서 시간당 $13-15로 확보 가능하며, On-Demand $98/hr 대비 약 85%를 절감합니다.
+
+| 리전 | p5.48xlarge On-Demand | p5.48xlarge Spot |
+|------|---------------------|-----------------|
+| ap-northeast-2 (서울) | InsufficientCapacity 빈번 | 미확인 |
+| ap-northeast-1 (도쿄) | InsufficientCapacity 빈번 | 미확인 |
+| **us-east-2 (Ohio)** | 가용성 변동 | **$13~15/hr 확보 가능** |
+
+:::tip GPU 쿼터 함정
+EC2 vCPU 쿼터는 인스턴스 버킷별로 분리됩니다. `Running On-Demand G and VT instances` 기본값은 64 vCPU로, g6e.48xlarge 1대도 불가하여 쿼터 증가가 필요합니다. GPU NodePool에 `instance-category: [g, p]`를 함께 설정하면 Karpenter가 G 타입을 먼저 시도하여 G 쿼터에 걸릴 수 있으므로, P 타입만 필요하면 명시적으로 지정합니다.
+:::
+
+GPU 워크로드의 오토스케일링·서빙 최적화 상세는 [GPU 오토스케일링과 대형 모델 배포 운영](/docs/agentic-ai-platform/model-serving/inference-optimization/gpu-autoscaling-operations)을 참조하세요.
+
 ## 검증
 
 ### 비용 절감 효과 측정

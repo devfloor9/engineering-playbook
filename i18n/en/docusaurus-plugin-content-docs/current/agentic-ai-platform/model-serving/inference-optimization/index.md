@@ -1,6 +1,6 @@
 ---
 title: Inference Optimization on EKS
-description: EKS architecture overview for maximizing LLM Inference performance — starting point for vLLM, KV Cache-Aware Routing, Disaggregated Serving, LWS multi-node, and Hybrid Node integration
+description: EKS architecture overview for maximizing LLM Inference performance — starting point for vLLM, KV Cache-Aware Routing, Disaggregated Serving, LWS multi-node, and GPU autoscaling
 created: "2026-04-03"
 last_update:
   date: "2026-04-20"
@@ -45,9 +45,9 @@ This category consists of three deep-dive documents.
   },
   {
     type: 'link',
-    href: '/docs/agentic-ai-platform/model-serving/inference-optimization/cost-optimization',
-    label: 'GPU Resources · Observability · Hybrid Node · Lessons Learned',
-    description: '2-Tier autoscaling, DCGM/vLLM monitoring, Bifrost→Bedrock Cascade Fallback, Hybrid Node on-premises integration, large MoE deployment lessons learned'
+    href: '/docs/agentic-ai-platform/model-serving/inference-optimization/gpu-autoscaling-operations',
+    label: 'GPU Autoscaling & Large Model Deployment Operations',
+    description: '2-Tier autoscaling (KEDA·Karpenter), DRA compatibility, and lessons learned from deploying large MoE models (GLM-5·Kimi K2.5)'
   }
 ]} />
 
@@ -58,10 +58,8 @@ This category consists of three deep-dive documents.
 3. **KV Cache-Aware Routing** — Comparison of llm-d and NVIDIA Dynamo ([KV Cache Optimization](./kv-cache-optimization.md))
 4. **Disaggregated Serving** — Prefill/Decode separation architecture ([Disaggregated Serving](./disaggregated-serving.md))
 5. **LWS Multi-Node Serving** — LeaderWorkerSet-based 700B+ model deployment ([Disaggregated Serving](./disaggregated-serving.md))
-6. **GPU Resource Management** — 2-Tier autoscaling and DRA ([Cost · Observability · Hybrid](./cost-optimization.md))
-7. **Observability & Fallback** — GPU monitoring, Bifrost→Bedrock fallback ([Cost · Observability · Hybrid](./cost-optimization.md))
-8. **Hybrid Node** — On-premises GPU farm integration with EKS ([Cost · Observability · Hybrid](./cost-optimization.md))
-9. **Lessons Learned** — Image download failure mitigation, large MoE deployment pitfalls ([Cost · Observability · Hybrid](./cost-optimization.md))
+6. **GPU Autoscaling** — 2-Tier scaling (KEDA·Karpenter) and DRA compatibility ([Autoscaling & Deployment Ops](./gpu-autoscaling-operations.md))
+7. **Large Model Deployment Lessons** — Model download failure mitigation, MoE deployment pitfalls ([Autoscaling & Deployment Ops](./gpu-autoscaling-operations.md))
 
 ## Key Performance Metrics
 
