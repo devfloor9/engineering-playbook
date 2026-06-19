@@ -4,9 +4,9 @@ sidebar_label: "Nitro 아키텍처 & 튜닝"
 description: "AWS Nitro System의 구성 요소와 v2~v6 세대별 네트워크 변경 사항, 그리고 EKS 노드에서 요구되는 ENA 드라이버·커널 버전과 PPS/CPS 중심 성능 튜닝 전략을 다룹니다."
 created: 2026-06-19
 last_update:
-  date: 2026-06-19
+  date: 2026-06-20
   author: devfloor9
-reading_time: 11
+reading_time: 14
 tags:
   - eks
   - networking
@@ -23,7 +23,7 @@ keywords:
 
 # AWS Nitro 아키텍처와 성능 튜닝
 
-> 📅 **작성일**: 2026-06-19 | **수정일**: 2026-06-19 | ⏱️ **읽는 시간**: 약 11분
+> 📅 **작성일**: 2026-06-19 | **수정일**: 2026-06-20 | ⏱️ **읽는 시간**: 약 14분
 
 ## 개요
 
@@ -98,19 +98,85 @@ Graviton 프로세서 인스턴스는 64-bit ARM 아키텍처 AMI와 ACPI 테이
 - **동일 AZ 내 통신 선호**: 장거리 연결은 TCP windowing과 RTT 증가로 PPS가 감소합니다.
 - **BQL(Byte Queue Limit)**: ENA 드라이버와 대부분의 배포판에서 기본 비활성. fragment proxy override와 동시 활성 시 성능 제약이 발생할 수 있습니다.
 
+### 커널 파라미터 및 드라이버 튜닝
+
+Nitro 인스턴스의 네트워크 성능은 ENA 드라이버 모듈 파라미터, ethtool 설정, 그리고 커널 sysctl 값으로 조정할 수 있습니다. 아래 항목은 AWS 공식 문서가 명시한 튜닝 포인트와, 워크로드 특성에 따라 조정하는 일반 커널 파라미터를 구분해 정리합니다. 모든 값은 적용 전후로 피크 active flow 기준 벤치마크를 권장합니다.
+
+#### ENA 드라이버 모듈 파라미터
+
+| 항목 | 설명 | 적용 방법 |
+|------|------|-----------|
+| `enable_frag_bypass` | egress fragment의 PPS 제한(1024)을 우회하는 fragment proxy mode. MTU 초과로 단편화가 잦은 워크로드에 유효 | 드라이버 로드 시 `sudo insmod ena.ko enable_frag_bypass=1` |
+
+fragment proxy mode는 BQL과 동시 활성 시 성능 제약이 발생할 수 있으므로 함께 사용하지 않습니다. 세부 옵션은 ENA Linux 드라이버 README와 Best Practices 가이드를 참조합니다.
+
+#### ENA 큐 및 링 버퍼 (ethtool)
+
+고성능 네트워크 워크로드는 다수의 ENA 큐를 활용해 vCPU당 처리를 분산해야 합니다. 지원 인스턴스 타입에서는 ENI별로 큐를 동적 할당(Flexible ENA queue allocation)할 수 있습니다. 큐 개수와 링 버퍼 크기는 `ethtool`로 확인·조정합니다.
+
+```bash
+# 현재 채널(큐) 수 확인 및 조정
+ethtool -l eth0
+ethtool -L eth0 combined <N>
+
+# 링 버퍼 크기 확인 및 조정 (드롭 발생 시 상향)
+ethtool -g eth0
+ethtool -G eth0 rx <SIZE> tx <SIZE>
+```
+
+#### 연결 관리 (conntrack · TCP keepalive)
+
+- **유휴 연결 타임아웃**: 보안 그룹 connection tracking은 유휴 연결을 추적해 conntrack allowance를 소비합니다. idle 연결을 빨리 닫으려면 connection tracking 타임아웃을, 반대로 유휴 연결을 유지하려면 TCP keepalive를 사용합니다.
+- **Nitro v6 대응**: v6는 established 타임아웃이 350초로 짧으므로, long-lived 연결 유지가 필요하면 커널 keepalive 주기를 그보다 짧게 설정합니다.
+
+```bash
+# TCP keepalive — 유휴 연결 유지 (350초보다 짧게)
+sysctl -w net.ipv4.tcp_keepalive_time=300
+sysctl -w net.ipv4.tcp_keepalive_intvl=30
+sysctl -w net.ipv4.tcp_keepalive_probes=5
+```
+
+#### 워크로드별 일반 커널 파라미터
+
+다음 sysctl은 AWS가 단일 권장값을 제공하지 않으며, NMA가 노출하는 커널 이벤트(`ApproachingKernelPidMax`, `ApproachingMaxOpenFiles`, `ConntrackExceededKernel`)나 ethtool 드롭 메트릭이 관찰될 때 워크로드에 맞게 상향합니다.
+
+| 파라미터 | 조정 계기 (NMA 이벤트 등) |
+|----------|---------------------------|
+| `net.netfilter.nf_conntrack_max` | `ConntrackExceededKernel` — 커널 conntrack 테이블 포화 |
+| `kernel.pid_max` | `ApproachingKernelPidMax` — PID 고갈 임박 |
+| `fs.file-max` / `fs.nr_open` | `ApproachingMaxOpenFiles` — open file 한계 임박 |
+| `net.core.somaxconn`, `net.ipv4.tcp_max_syn_backlog` | 고CPS 서비스의 연결 수락 큐 포화 |
+| `net.core.rmem_max` / `net.core.wmem_max` | 고대역폭(100Gbps+) 전송 시 소켓 버퍼 |
+
+:::warning EKS 노드에서의 sysctl 적용 방법
+
+EKS 워커 노드에서 위 커널 파라미터를 영구 적용할 때는 노드 OS를 직접 수정하지 않고 노드 부트스트랩 계층에서 설정합니다.
+
+- **관리형 노드그룹 / self-managed**: launch template user data 또는 Bottlerocket의 `[settings.kernel.sysctl]` 설정
+- **Pod 단위**: Pod `securityContext.sysctls`(namespaced sysctl) 또는 init container의 privileged 설정
+- **DaemonSet**: 노드 전역 sysctl이 필요하면 부팅 시 적용하는 node-tuning DaemonSet
+
+`net.core.*`, `net.ipv4.tcp_*` 같은 노드 전역(non-namespaced) 파라미터는 Pod `securityContext`로 설정할 수 없으므로 노드 부트스트랩 계층에서 적용해야 합니다.
+
+:::
+
+성능 지표는 ENA 드라이버가 노출하는 ethtool 메트릭(`bw_in/out_allowance_exceeded`, `pps_allowance_exceeded`, `conntrack_allowance_exceeded`, `conntrack_allowance_available` 등)으로 모니터링합니다. 이 값이 0이 아니면 해당 allowance가 한계에 도달했음을 의미하며, 커널 튜닝 또는 상위 Nitro 세대 인스턴스로의 전환을 검토합니다.
+
 ### EKS 관점의 연계 신호
 
 EKS Node Monitoring Agent(NMA)는 Nitro/ENA 계층의 한계 초과를 노드 이벤트로 노출합니다. `BandwidthInExceeded`·`BandwidthOutExceeded`·`PPSExceeded`·`ConntrackExceeded`·`LinkLocalExceeded`·`NetworkSysctl` 등이 대표적이며, 이들은 Event 심각도라 Auto Repair를 트리거하지 않습니다. 즉 노드 자동 교체로는 해소되지 않으므로, 해당 이벤트가 반복되면 인스턴스 타입 상향(상위 Nitro 세대)이나 워크로드 분산 같은 설계 대응이 필요합니다. 노드 헬스 신호 해석은 [EKS Node Monitoring Agent](../operations-reliability/node-monitoring-agent.md) 문서를 참조합니다.
 
 ## 결론
 
-Nitro 세대는 EKS 노드의 네트워크 대역폭·TCP 동작·드라이버 요건을 결정하는 하드웨어 계층입니다. 워크로드가 배치될 인스턴스 패밀리의 Nitro 버전을 먼저 확인하고, v5 이상은 ENA 드라이버 2.2.9 이상을 충족하는 AMI를 사용해야 합니다. v6 인스턴스는 단축된 TCP established 타임아웃을 고려한 keepalive 조정이 필요하며, 고PPS·고CPS 워크로드는 가속 경로를 최대한 활용하도록 연결 재사용과 비대칭 라우팅 회피를 설계에 반영해야 합니다. AWS 공식 문서는 워크로드별 sysctl 권장값을 단일 표로 제공하지 않으므로, 구체 튜닝 값은 인스턴스 패밀리 스펙과 ENA 드라이버 릴리스 노트를 함께 참조해 결정합니다.
+Nitro 세대는 EKS 노드의 네트워크 대역폭·TCP 동작·드라이버 요건을 결정하는 하드웨어 계층입니다. 워크로드가 배치될 인스턴스 패밀리의 Nitro 버전을 먼저 확인하고, v5 이상은 ENA 드라이버 2.2.9 이상을 충족하는 AMI를 사용해야 합니다. v6 인스턴스는 단축된 TCP established 타임아웃을 고려한 keepalive 조정이 필요하며, 고PPS·고CPS 워크로드는 가속 경로를 최대한 활용하도록 연결 재사용과 비대칭 라우팅 회피를 설계에 반영해야 합니다. 커널 파라미터 튜닝은 ENA 드라이버 모듈 옵션·ethtool 큐/링 버퍼·conntrack/keepalive sysctl을 중심으로 하되, AWS는 워크로드별 단일 권장값을 제공하지 않으므로 ethtool allowance 메트릭과 NMA 이벤트를 근거로 벤치마크하며 조정합니다. EKS 노드에서는 노드 부트스트랩 계층(launch template user data·Bottlerocket 설정) 또는 Pod `securityContext`를 통해 적용합니다.
 
 ## 참고 자료
 
 ### 공식 문서
 - [Instances built on the AWS Nitro System](https://docs.aws.amazon.com/ec2/latest/instancetypes/ec2-nitro-instances.html) — 세대별 네트워크 기능, 인스턴스 매핑, 드라이버·커널 요구사항
-- [Nitro system considerations for performance tuning](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ena-nitro-perf.html) — 패킷 플로우, PPS/CPS, 가속 경로 튜닝
+- [Nitro system considerations for performance tuning](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ena-nitro-perf.html) — 패킷 플로우, PPS/CPS, 가속 경로 및 PPS 튜닝(`enable_frag_bypass`)
+- [ENA Linux Driver Best Practices and Performance Optimization Guide](https://github.com/amzn/amzn-drivers/blob/master/kernel/linux/ena/ENA_Linux_Best_Practices.rst) — ENA 드라이버 큐·링 버퍼·튜닝 모범 사례
+- [Monitor network performance for ENA settings](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/monitoring-network-performance-ena.html) — ethtool allowance 메트릭 모니터링
 - [AWS Nitro System](https://aws.amazon.com/ec2/nitro/) — Nitro 구성 요소 개요
 
 ### 기술 블로그
