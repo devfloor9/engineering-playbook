@@ -37,6 +37,7 @@ const sidebars = {
             },
             'eks-best-practices/networking-performance/coredns-monitoring-optimization',
             'eks-best-practices/networking-performance/east-west-traffic-best-practice',
+            'eks-best-practices/networking-performance/nitro-architecture-performance-tuning',
           ],
         },
         {
