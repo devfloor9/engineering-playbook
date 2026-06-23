@@ -4,8 +4,8 @@ sidebar_label: "3. 트러블슈팅"
 description: "Inference Gateway 배포 및 운영 중 발생하는 일반적인 문제와 해결 방법"
 created: 2026-04-18
 last_update:
-  date: 2026-06-15
-  author: devfloor9
+  date: 2026-06-23
+  author: YoungJoon Jeong
 reading_time: 1
 tags: [troubleshooting, debugging, kgateway, bifrost, 'scope:impl']
 sidebar_position: 3
@@ -304,8 +304,8 @@ kubectl logs -n kgateway-system <pod-name> --previous
 ```
 
 **일반적 원인**:
-- Gateway API CRD 미설치 또는 버전 불일치
-- GatewayClass의 `parametersRef`가 존재하지 않는 GatewayClassConfig 참조
+- Gateway API CRD 또는 kgateway CRD(`kgateway-crds` 차트) 미설치, 버전 불일치
+- Gateway의 `spec.infrastructure.parametersRef`가 존재하지 않는 `GatewayParameters` 참조
 - 리소스 부족 (CPU/Memory)
 
 **해결 방법**:
@@ -316,9 +316,9 @@ kubectl get crd | grep gateway
 # 예상: gatewayclasses.gateway.networking.k8s.io, gateways.gateway.networking.k8s.io, httproutes.gateway.networking.k8s.io
 ```
 
-2. **GatewayClassConfig 존재 확인**:
+2. **GatewayParameters 존재 확인** (참조하는 경우):
 ```bash
-kubectl get gatewayclassconfig -A
+kubectl get gatewayparameters -A
 ```
 
 3. **리소스 증설**:
@@ -356,7 +356,7 @@ spec:
         fsGroup: 1000  # 필수!
       containers:
       - name: bifrost
-        image: maximhq/bifrost:v1.5.1
+        image: maximhq/bifrost:v1.5.16  # 최신 태그는 hub.docker.com/r/maximhq/bifrost 확인
         args: ["-app-dir", "/app/data"]
         volumeMounts:
         - name: bifrost-data
@@ -478,7 +478,7 @@ spec:
 
 ### Q1: kgateway vs Bifrost 차이?
 
-**A**: kgateway는 Kubernetes Gateway API 표준 구현체로 경로 기반 라우팅을 담당하고, Bifrost는 멀티 프로바이더 통합 + Cascade Routing + 거버넌스를 제공합니다. 일반적으로 kgateway → Bifrost → vLLM 순서로 연결합니다.
+**A**: kgateway는 Kubernetes Gateway API 표준 구현체로 진입(L1) 트래픽 라우팅을 담당하고, Bifrost는 멀티 프로바이더 통합 + Cascade Routing + 거버넌스(L1, across-model)를 제공합니다. 일반적으로 `kgateway → Bifrost → vLLM` 순서로 연결합니다. KV-aware(L2, within-model) Pod 선택이 필요하면 Bifrost 대신/함께 [Inference Extension(InferencePool + EPP)](./advanced-features.md#inference-extension)을 구성합니다. 레이어 구분은 [라우팅 전략](../routing-strategy.md#두-개의-라우팅-레이어--반드시-구분) 참조.
 
 ### Q2: config.json 변경 후 즉시 반영 안 됨
 
@@ -511,4 +511,4 @@ kubectl logs -l app=langfuse-web -n observability --tail=20 -f
 - [Langfuse 배포 가이드](../../integrations/monitoring-observability-setup.md) - OTel 연동 및 트러블슈팅
 - [Kubernetes Gateway API 공식 문서](https://gateway-api.sigs.k8s.io/)
 - [kgateway 공식 문서](https://kgateway.dev/docs/)
-- [Bifrost 공식 문서](https://getmaxim.ai/docs/bifrost)
+- [Bifrost 공식 문서](https://docs.getbifrost.ai/)
