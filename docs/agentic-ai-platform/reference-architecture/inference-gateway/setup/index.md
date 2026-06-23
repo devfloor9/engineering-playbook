@@ -4,8 +4,8 @@ sidebar_label: "Inference Gateway 배포"
 description: "kgateway 기반 Inference Gateway의 단계별 배포 가이드 (기본/고급/트러블슈팅)"
 created: 2026-04-18
 last_update:
-  date: 2026-06-15
-  author: devfloor9
+  date: 2026-06-23
+  author: YoungJoon Jeong
 reading_time: 1
 tags: [inference-gateway, kgateway, deployment, 'scope:impl']
 sidebar_position: 4
@@ -44,13 +44,20 @@ export const InferencePipelineDiagram = () => {
 
 ## 프로덕션 추론 파이프라인 참조 아키텍처
 
-EKS Auto Mode 기반 프로덕션 추론 파이프라인의 전체 요청 흐름입니다. CloudFront(WAF/Shield) → NLB → kgateway ExtProc가 프롬프트를 분석하여 LLM 라우팅을 결정하고, Bifrost 거버넌스 레이어와 llm-d KV Cache-aware 라우팅을 거쳐 최적의 모델에 요청을 전달합니다.
+EKS 기반 프로덕션 추론 파이프라인의 전체 요청 흐름입니다. CloudFront(WAF/Shield) → NLB → kgateway가 진입 트래픽을 받고, 이후 두 가지 라우팅 경로를 **목적에 따라 선택**해 구성합니다.
+
+- **L1 — across-model 프록시 / 거버넌스**: Bifrost(또는 LLM Classifier)로 외부/내부 모델 추상화, cascade, 비용 추적, semantic cache. "어느 *모델*인가"를 결정합니다. → [기본 배포](./basic-deployment.md) · [고급 기능](./advanced-features.md)
+- **L2 — within-model KV-aware 라우팅**: Gateway API Inference Extension(InferencePool + EPP)으로 vLLM 메트릭(KV cache·부하) 기반 Pod 선택. "어느 *Pod*인가"를 결정합니다. → [고급 기능: Inference Extension](./advanced-features.md#inference-extension)
+
+두 레이어는 배타적이지 않으며 함께 쓸 수 있습니다(L1 → L2 → vLLM). 레이어 정의와 선택 기준은 [라우팅 전략](../routing-strategy.md#두-개의-라우팅-레이어--반드시-구분)을 참조하세요.
+
+:::note 참조 아키텍처 다이어그램 안내
+아래 다이어그램은 L1(Bifrost)·L2(llm-d EPP)·관측성을 모두 포함한 **목표(reference) 아키텍처**입니다. 실제 배포는 위 두 경로를 선택·조합하며, KV-aware(L2)가 필요한 경우 [Inference Extension 섹션](./advanced-features.md#inference-extension)의 InferencePool + EPP 절차를 따릅니다.
+:::
 
 <InferencePipelineDiagram />
 
 ---
-
-## 배포 단계 개요
 
 ## 배포 단계 개요
 
@@ -76,6 +83,7 @@ EKS Auto Mode 기반 프로덕션 추론 파이프라인의 전체 요청 흐름
 
 **포함 내용:**
 - LLM Classifier 배포 (프롬프트 기반 SLM/LLM 자동 분기)
+- **Gateway API Inference Extension (InferencePool + EPP)** — KV-aware(L2) 라우팅
 - CloudFront + WAF/Shield 보안 레이어
 - Semantic Caching 구현 옵션 (GPTCache, RedisVL, Portkey, Helicone)
 
@@ -141,7 +149,7 @@ graph LR
 
 ### 필수 요구 사항
 
-- [x] EKS 클러스터 (K8s 1.33+, DRA 1.34 GA)
+- [x] EKS 클러스터 (K8s 1.33+ 권장. DRA(Dynamic Resource Allocation)는 K8s 1.34에서 GA)
 - [x] kubectl 설치 및 클러스터 접근 권한
 - [x] Helm 3.x 설치
 - [x] vLLM 또는 llm-d 기반 모델 서빙 Pod 배포 완료
