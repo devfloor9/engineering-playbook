@@ -207,6 +207,7 @@ const sidebars = {
               items: [
                 'agentic-ai-platform/model-serving/inference-frameworks/vllm-model-serving',
                 'agentic-ai-platform/model-serving/inference-frameworks/llm-d-eks-automode',
+                'agentic-ai-platform/model-serving/inference-frameworks/hyperpod-inference-operator',
                 'agentic-ai-platform/model-serving/inference-frameworks/moe-model-serving',
                 'agentic-ai-platform/model-serving/inference-frameworks/nemo-framework',
               ],

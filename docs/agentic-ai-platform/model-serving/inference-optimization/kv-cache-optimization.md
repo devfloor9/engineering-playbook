@@ -4,7 +4,7 @@ sidebar_label: "KV Cache 최적화"
 description: "vLLM PagedAttention·Continuous Batching·FP8 KV Cache 등 핵심 기술 정리와 llm-d/NVIDIA Dynamo의 KV Cache-Aware Routing 비교 및 Gateway 구성"
 created: 2026-04-03
 last_update:
-  date: 2026-06-15
+  date: 2026-06-23
   author: devfloor9
 reading_time: 12
 tags:
@@ -137,6 +137,14 @@ sequenceDiagram
     GW->>P3: LB 폴백
     P3->>C: 일반 응답
 ```
+
+:::note 라우팅 결정과 추론(inference)은 별개의 작업
+KV 캐시 인지 라우팅에서 **라우팅 결정 자체는 추론이 아닙니다.** 게이트웨이는 프롬프트를 고정 크기 블록으로 해시한 뒤, 해당 prefix를 이미 캐시한 Pod를 인덱스에서 조회합니다. 모델 forward pass가 없는 **기계적 해시 조회**입니다(Gateway API Inference Extension의 `prefix-cache-scorer`, vLLM Automatic Prefix Caching, llm-d의 KV-event 인덱서가 모두 이 방식입니다).
+
+반면 **컨텍스트 인지(시맨틱) 라우팅**은 프롬프트를 인코더·분류 모델(BERT 계열)에 통과시켜 의도를 분류하므로, 라우팅 경로에서 **경량 추론**이 한 번 발생합니다(vLLM Semantic Router).
+
+두 경우 모두 라우팅으로 선택된 **Pod가 수행하는 최종 워크로드는 LLM 추론**입니다. 따라서 "라우팅 결정이 추론인가"와 "최종 워크로드가 추론인가"는 분리해서 판단해야 합니다.
+:::
 
 **KV Cache-Aware Routing의 효과:**
 
