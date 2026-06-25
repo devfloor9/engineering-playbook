@@ -15,7 +15,7 @@ In enterprise LLM platforms, Guardrails are **"a technology stack that places sa
 :::info Document Location
 - **This Document**: Guardrails technology stack comparison and implementation patterns (Input/Output guard, gateway integration)
 - [Compliance Framework](./compliance-framework.md): SOC2/ISO27001/financial regulatory mapping (higher-level concepts)
-- [Inference Gateway Routing](../../reference-architecture/inference-gateway/routing-strategy.md): kgateway + Bifrost 2-Tier Gateway
+- [Inference Gateway Routing](../../model-serving/inference-routing/routing-strategy.md): kgateway + Bifrost 2-Tier Gateway
 :::
 
 ---
@@ -413,7 +413,7 @@ func (p *GuardrailsPlugin) PostHook(ctx context.Context, resp *schemas.BifrostRe
 - **Tier 1 (kgateway)**: Authentication, rate limit, tenant routing — Perform **Input Guard** here (cost savings through early blocking)
 - **Tier 2 (Bifrost)**: Model routing, fallback, cost tracking — Perform **Output Guard** here (model response consistency)
 
-For detailed design, refer to [Inference Gateway Routing](../../reference-architecture/inference-gateway/routing-strategy.md).
+For detailed design, refer to [Inference Gateway Routing](../../model-serving/inference-routing/routing-strategy.md).
 :::
 
 ---
@@ -507,7 +507,7 @@ In network-separated environments, **external SaaS-dependent Guardrails** like B
 
 ### 8.4 SaaS LLM API Gateway Data Sovereignty {#openrouter-등-saas-게이트웨이-데이터-주권}
 
-Among [LLM API Gateways](../../reference-architecture/inference-gateway/tiered-gateway-architecture.md) (Tier 2 ②), hosted SaaS like **OpenRouter** routes prompts/responses through an external service. This is advantageous for fast multi-provider integration, but environments with data sovereignty or regulatory requirements must consider the following.
+Among [LLM API Gateways](../../model-serving/inference-routing/tiered-gateway-architecture.md) (Tier 2 ②), hosted SaaS like **OpenRouter** routes prompts/responses through an external service. This is advantageous for fast multi-provider integration, but environments with data sovereignty or regulatory requirements must consider the following.
 
 | Consideration | Detail |
 |---------------|--------|
@@ -580,5 +580,5 @@ Verify OpenRouter's detailed data-handling specifics (prompt caching, BYOK, etc.
 - [Compliance Framework](./compliance-framework.md) — SOC2 / ISO27001 / Financial regulatory mapping
 - [Agent Monitoring](../observability/agent-monitoring.md) — Langfuse integration
 - [LLMOps Observability](../observability/llmops-observability.md) — Langfuse, LangSmith, Helicone Comparison
-- [Inference Gateway Routing](../../reference-architecture/inference-gateway/routing-strategy.md) — 2-Tier Gateway design
+- [Inference Gateway Routing](../../model-serving/inference-routing/routing-strategy.md) — 2-Tier Gateway design
 - [EKS-based Agentic AI Open Architecture](../../design-architecture/platform-selection/agentic-ai-solutions-eks.md)

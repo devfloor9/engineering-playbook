@@ -288,7 +288,7 @@ https://<AMG_ENDPOINT>               → Grafana (별도 관리형)
 
 ## 2. Gateway API Inference Extension (InferencePool + EPP) {#inference-extension}
 
-LLM Classifier·Bifrost가 "어느 **모델**인가"(L1, across-model)를 정한다면, **Gateway API Inference Extension(GIE)** 은 "어느 **Pod**인가"(L2, within-model)를 vLLM 실시간 메트릭(KV cache 위치·부하)으로 결정합니다. kgateway(Envoy 기반)가 매 요청마다 **EPP(Endpoint Picker)** 에 `ext-proc`로 위임해 InferencePool 내 최적 Pod를 고릅니다. 레이어 정의·선택 기준은 [라우팅 전략 — 두 개의 라우팅 레이어](../routing-strategy.md#두-개의-라우팅-레이어--반드시-구분)를 참조하세요.
+LLM Classifier·Bifrost가 "어느 **모델**인가"(L1, across-model)를 정한다면, **Gateway API Inference Extension(GIE)** 은 "어느 **Pod**인가"(L2, within-model)를 vLLM 실시간 메트릭(KV cache 위치·부하)으로 결정합니다. kgateway(Envoy 기반)가 매 요청마다 **EPP(Endpoint Picker)** 에 `ext-proc`로 위임해 InferencePool 내 최적 Pod를 고릅니다. 레이어 정의·선택 기준은 [라우팅 전략 — 두 개의 라우팅 레이어](../../../model-serving/inference-routing/routing-strategy.md#두-개의-라우팅-레이어--반드시-구분)를 참조하세요.
 
 :::info 버전·상태
 GIE는 2025-09 v1.0.0 GA되었고 InferencePool은 `inference.networking.k8s.io/v1`입니다. EPP 코드는 llm-d로 통합되었으며 정책 CRD(`InferenceObjective`)는 llm-d(`llm-d.ai/v1alpha2`, alpha)에 있습니다. GIE 저장소는 InferencePool API + Endpoint Picker Protocol을 담당합니다. ([GIE 문서](https://gateway-api-inference-extension.sigs.k8s.io/))
@@ -925,6 +925,6 @@ redis_key: "cache:org-12345:ko:glm-5:a3f2e1b:c9d8e7f"
 ## 참고 자료
 
 - [Semantic Caching 전략](../../../design-architecture/advanced-patterns/semantic-caching-strategy.md) - 개념, 임계값 설계, 관측성, 도메인별 패턴
-- [추론 게이트웨이 라우팅](../routing-strategy.md) - kgateway 아키텍처 및 라우팅 전략
+- [추론 게이트웨이 라우팅](../../../model-serving/inference-routing/routing-strategy.md) - kgateway 아키텍처 및 라우팅 전략
 - [Langfuse 배포 가이드](../../integrations/monitoring-observability-setup.md) - Helm 설치, OTel 연동, Redis/ClickHouse 구성
 - [Agent 모니터링](../../../operations-mlops/observability/agent-monitoring.md) - Langfuse 아키텍처 및 컴포넌트

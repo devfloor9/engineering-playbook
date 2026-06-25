@@ -343,8 +343,8 @@ Medical/financial/legal domains may require audit log recording even for cache H
 ### Related Documents
 
 - **Implementation Guide**: [Inference Gateway Setup Guide — Semantic Caching Implementation Options](../../reference-architecture/inference-gateway/setup/advanced-features) — Tool comparison tables, configuration examples, deployment snippets
-- [Inference Gateway Routing Strategy](../../reference-architecture/inference-gateway/routing-strategy)
-- [OpenClaw AI Gateway Deployment](../../reference-architecture/inference-gateway/openclaw-example.md)
+- [Inference Gateway Routing Strategy](../../model-serving/inference-routing/routing-strategy)
+- [OpenClaw AI Gateway Deployment](../../model-serving/inference-routing/openclaw-example.md)
 - [LLMOps Observability](../../operations-mlops/observability/llmops-observability)
 - [Milvus Vector Database](../../operations-mlops/data-infrastructure/milvus-vector-database)
 - [Ragas Evaluation](../../operations-mlops/governance/ragas-evaluation)

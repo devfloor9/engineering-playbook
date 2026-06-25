@@ -182,6 +182,7 @@ const sidebars = {
             id: 'agentic-ai-platform/model-serving/index',
           },
           items: [
+            'agentic-ai-platform/model-serving/inference-infrastructure-overview',
             {
               type: 'category',
               label: 'GPU 인프라',
@@ -214,7 +215,7 @@ const sidebars = {
             },
             {
               type: 'category',
-              label: '추론 최적화',
+              label: '추론 최적화 & 라우팅',
               link: {
                 type: 'doc',
                 id: 'agentic-ai-platform/model-serving/inference-optimization/index',
@@ -222,6 +223,12 @@ const sidebars = {
               items: [
                 'agentic-ai-platform/model-serving/inference-optimization/kv-cache-optimization',
                 'agentic-ai-platform/model-serving/inference-optimization/disaggregated-serving',
+                'agentic-ai-platform/model-serving/inference-optimization/lmcache',
+                'agentic-ai-platform/model-serving/inference-optimization/cache-hit-strategy',
+                'agentic-ai-platform/model-serving/inference-routing/tiered-gateway-architecture',
+                'agentic-ai-platform/model-serving/inference-routing/routing-strategy',
+                'agentic-ai-platform/model-serving/inference-routing/cascade-routing-tuning',
+                'agentic-ai-platform/model-serving/inference-routing/openclaw-example',
                 'agentic-ai-platform/model-serving/inference-optimization/cost-optimization',
               ],
             },
@@ -287,29 +294,16 @@ const sidebars = {
           items: [
             {
               type: 'category',
-              label: '추론 게이트웨이',
+              label: '추론 게이트웨이 배포',
               link: {
                 type: 'doc',
                 id: 'agentic-ai-platform/reference-architecture/inference-gateway/index',
               },
               items: [
-                'agentic-ai-platform/reference-architecture/inference-gateway/tiered-gateway-architecture',
-                'agentic-ai-platform/reference-architecture/inference-gateway/routing-strategy',
-                'agentic-ai-platform/reference-architecture/inference-gateway/cascade-routing-tuning',
-                'agentic-ai-platform/reference-architecture/inference-gateway/openclaw-example',
-                {
-                  type: 'category',
-                  label: '배포 가이드',
-                  link: {
-                    type: 'doc',
-                    id: 'agentic-ai-platform/reference-architecture/inference-gateway/setup/index',
-                  },
-                  items: [
-                    'agentic-ai-platform/reference-architecture/inference-gateway/setup/basic-deployment',
-                    'agentic-ai-platform/reference-architecture/inference-gateway/setup/advanced-features',
-                    'agentic-ai-platform/reference-architecture/inference-gateway/setup/troubleshooting-guide',
-                  ],
-                },
+                'agentic-ai-platform/reference-architecture/inference-gateway/setup/index',
+                'agentic-ai-platform/reference-architecture/inference-gateway/setup/basic-deployment',
+                'agentic-ai-platform/reference-architecture/inference-gateway/setup/advanced-features',
+                'agentic-ai-platform/reference-architecture/inference-gateway/setup/troubleshooting-guide',
               ],
             },
             {

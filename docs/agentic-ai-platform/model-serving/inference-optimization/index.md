@@ -28,7 +28,7 @@ import DocCardList from '@theme/DocCardList';
 
 ## 다루는 내용
 
-본 카테고리는 세 개의 심화 문서로 구성됩니다.
+본 카테고리는 추론 최적화 심화 문서와 게이트웨이 라우팅 문서로 구성됩니다. 전체 구조와 계층별 튜닝 레버의 지도는 [추론 인프라 개요](../inference-infrastructure-overview.md)를 먼저 참조하세요.
 
 <DocCardList items={[
   {
@@ -42,6 +42,30 @@ import DocCardList from '@theme/DocCardList';
     href: '/docs/agentic-ai-platform/model-serving/inference-optimization/disaggregated-serving',
     label: 'Disaggregated Serving + LWS 멀티노드',
     description: 'Prefill/Decode 분리 아키텍처, NIXL KV 전송, LeaderWorkerSet 기반 700B+ 대형 모델 멀티노드 배포'
+  },
+  {
+    type: 'link',
+    href: '/docs/agentic-ai-platform/model-serving/inference-optimization/lmcache',
+    label: 'LMCache: KV 캐시 오프로딩과 공유',
+    description: 'GPU 메모리 너머 CPU·디스크로 KV 캐시를 오프로딩하고 인스턴스 간 공유하는 KV 캐시 계층, vLLM·NIXL·kvaware 라우팅과의 관계'
+  },
+  {
+    type: 'link',
+    href: '/docs/agentic-ai-platform/model-serving/inference-optimization/cache-hit-strategy',
+    label: '캐시 히트 전략',
+    description: 'KV/Prefix·Prompt·Semantic 3계층 캐시를 하나의 의사결정 프레임으로 통합, 계층별 히트율 목표와 측정 지점'
+  },
+  {
+    type: 'link',
+    href: '/docs/agentic-ai-platform/model-serving/inference-routing/tiered-gateway-architecture',
+    label: '티어드 게이트웨이 아키텍처',
+    description: 'Tier 1 Ingress, Tier 2 추론 라우팅·LLM API 게이트웨이, Agent Data Plane의 역할 구분과 채움 전략'
+  },
+  {
+    type: 'link',
+    href: '/docs/agentic-ai-platform/model-serving/inference-routing/routing-strategy',
+    label: '라우팅 전략 (Cascade·Semantic·Inference Extension)',
+    description: 'kgateway·Bifrost·LiteLLM 비교, Request Cascading 지능형 모델 라우팅, Gateway API Inference Extension(EPP)'
   },
   {
     type: 'link',

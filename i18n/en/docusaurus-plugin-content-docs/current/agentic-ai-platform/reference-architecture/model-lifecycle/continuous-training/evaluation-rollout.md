@@ -754,5 +754,5 @@ ROI: 400%
 ### Related Documents
 
 - [Ragas Evaluation](../../../operations-mlops/governance/ragas-evaluation.md)
-- [Inference Gateway Routing Strategy](../../inference-gateway/routing-strategy.md)
+- [Inference Gateway Routing Strategy](../../../model-serving/inference-routing/routing-strategy.md)
 - [Monitoring & Observability Setup](../../integrations/monitoring-observability-setup.md)

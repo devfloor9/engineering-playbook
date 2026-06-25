@@ -32,7 +32,7 @@ import { SolutionsComparisonTable } from '@site/src/components/KagentTables';
 
 <SolutionsComparisonTable />
 
-Another open-source self-improving agent runtime is **hermes-agent** (NousResearch, MIT). It supports MCP, 40+ tools, and subagent spawning, and is model-agnostic — it can use OpenRouter and other [LLM API Gateways](../../reference-architecture/inference-gateway/tiered-gateway-architecture.md) (Tier 2 ②) as model providers, forming the **Layer 4 (agent runtime) → Layer 5 (gateway)** flow directly. Consider Kagent when you need Kubernetes-native declarative management, and hermes-agent when you need a standalone self-improving agent.
+Another open-source self-improving agent runtime is **hermes-agent** (NousResearch, MIT). It supports MCP, 40+ tools, and subagent spawning, and is model-agnostic — it can use OpenRouter and other [LLM API Gateways](../../model-serving/inference-routing/tiered-gateway-architecture.md) (Tier 2 ②) as model providers, forming the **Layer 4 (agent runtime) → Layer 5 (gateway)** flow directly. Consider Kagent when you need Kubernetes-native declarative management, and hermes-agent when you need a standalone self-improving agent.
 
 ### Key Features
 

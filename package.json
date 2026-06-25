@@ -41,6 +41,7 @@
   },
   "devDependencies": {
     "@docusaurus/module-type-aliases": "^3.9.2",
+    "@docusaurus/plugin-client-redirects": "3.9.2",
     "@docusaurus/types": "^3.9.2",
     "gray-matter": "^4.0.3",
     "js-yaml": "^4.1.0"

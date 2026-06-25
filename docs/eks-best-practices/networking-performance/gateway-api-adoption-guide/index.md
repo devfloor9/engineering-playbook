@@ -912,7 +912,7 @@ Gateway API는 단순한 Ingress 대체가 아닌, 클라우드 네이티브 트
 
 ### 관련 문서 (Agentic AI 플랫폼)
 
-- **[티어드 게이트웨이 아키텍처](/docs/agentic-ai-platform/reference-architecture/inference-gateway/tiered-gateway-architecture)** — Tier 1(이 문서)·Tier 2 ①추론 라우팅·②LLM API 게이트웨이·Agent Data Plane의 전체 지도와 용어 정의(단일 정의처)
+- **[티어드 게이트웨이 아키텍처](/docs/agentic-ai-platform/model-serving/inference-routing/tiered-gateway-architecture)** — Tier 1(이 문서)·Tier 2 ①추론 라우팅·②LLM API 게이트웨이·Agent Data Plane의 전체 지도와 용어 정의(단일 정의처)
 - **[추론 게이트웨이 레퍼런스](/docs/agentic-ai-platform/reference-architecture/inference-gateway)** — Agentic 워크로드를 위한 Tier 2 추론 게이트웨이 계층(KV 캐시 인지 라우팅, 모델 엔드포인트 관리). 이 문서(Tier 1 범용 게이트웨이)와 함께 2-Tier로 구성
 - **[Inference Gateway 배포 가이드](/docs/agentic-ai-platform/reference-architecture/inference-gateway/setup)** — 추론 게이트웨이 Helm 배포·HTTPRoute·OTel 구성
 

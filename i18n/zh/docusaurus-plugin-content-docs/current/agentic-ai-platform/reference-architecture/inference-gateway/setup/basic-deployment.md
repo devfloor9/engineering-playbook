@@ -656,7 +656,7 @@ curl -s -o /dev/null -w "%{http_code}" http://${NLB_ENDPOINT}/langfuse/
 
 ## 参考资料
 
-- [推理网关路由](../routing-strategy.md) - kgateway 架构及路由策略
+- [推理网关路由](../../../model-serving/inference-routing/routing-strategy.md) - kgateway 架构及路由策略
 - [Kubernetes Gateway API 官方文档](https://gateway-api.sigs.k8s.io/)
 - [kgateway 官方文档](https://kgateway.dev/docs/)
 - [Bifrost 官方文档](https://bifrost.dev/docs)

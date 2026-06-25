@@ -433,4 +433,4 @@ graph TD
 | Anthropic Pricing | [anthropic.com/pricing](https://www.anthropic.com/pricing) |
 | 커스텀 모델 배포 가이드 | [custom-model-deployment.md](../model-lifecycle/custom-model-deployment.md) |
 | 커스텀 모델 파이프라인 | [custom-model-pipeline.md](../model-lifecycle/custom-model-pipeline.md) |
-| Inference Gateway | [inference-gateway-routing.md](../inference-gateway/routing-strategy.md) |
+| Inference Gateway | [inference-gateway-routing.md](../../model-serving/inference-routing/routing-strategy.md) |

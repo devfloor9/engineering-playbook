@@ -100,7 +100,7 @@ Solution selection, detailed comparison, and deployment procedures for each laye
 |-------|---------------|--------------------|
 | **Tier 1** Ingress | Comparison/selection of 6 general Gateway API implementations | [Gateway API Adoption Guide](/docs/eks-best-practices/networking-performance/gateway-api-adoption-guide) (EKS Best Practices) |
 | **Tier 2 ①** Inference Routing | Gateway API Inference Extension (InferencePool · EPP) | [Routing Strategy — Gateway API Inference Extension](./routing-strategy.md#gateway-api-inference-extension) |
-| **Tier 2 ②** LLM API Gateway | Comparison of Bifrost·LiteLLM·OpenRouter etc. and Cascade/Semantic strategies | [Routing Strategy — LLM Gateway Comparison](./routing-strategy.md#llm-gateway-solution-comparison) · [Setup Guide](./setup/) |
+| **Tier 2 ②** LLM API Gateway | Comparison of Bifrost·LiteLLM·OpenRouter etc. and Cascade/Semantic strategies | [Routing Strategy — LLM Gateway Comparison](./routing-strategy.md#llm-gateway-solution-comparison) · [Setup Guide](../../reference-architecture/inference-gateway/setup/) |
 | **Agent Data Plane** | agentgateway (MCP/A2A) | [Routing Strategy — agentgateway Data Plane](./routing-strategy.md#agentgateway-data-plane) |
 
 :::note Relationship between Tier 1 and Tier 2
@@ -121,6 +121,6 @@ Solution selection, detailed comparison, and deployment procedures for each laye
 
 ### Related Documents (internal)
 - [Inference Gateway & LLM Gateway Routing Strategy](./routing-strategy.md) — Tier 2 solution comparison, cascade, semantic strategies
-- [Inference Gateway Setup Guide](./setup/) — Tier 2 deployment procedures (Helm·HTTPRoute·OTel)
+- [Inference Gateway Setup Guide](../../reference-architecture/inference-gateway/setup/) — Tier 2 deployment procedures (Helm·HTTPRoute·OTel)
 - [Gateway API Adoption Guide](/docs/eks-best-practices/networking-performance/gateway-api-adoption-guide) — Tier 1 comparison/selection of 6 general gateways
 - [Platform Architecture](../../design-architecture/foundations/agentic-platform-architecture.md) — Layer 5 (Gateway & Routing) definition

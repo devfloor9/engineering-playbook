@@ -754,5 +754,5 @@ ROI: 400%
 ### 관련 문서
 
 - [Ragas Evaluation](../../../operations-mlops/governance/ragas-evaluation.md)
-- [Inference Gateway 라우팅 전략](../../inference-gateway/routing-strategy.md)
+- [Inference Gateway 라우팅 전략](../../../model-serving/inference-routing/routing-strategy.md)
 - [모니터링 · Observability 셋업](../../integrations/monitoring-observability-setup.md)

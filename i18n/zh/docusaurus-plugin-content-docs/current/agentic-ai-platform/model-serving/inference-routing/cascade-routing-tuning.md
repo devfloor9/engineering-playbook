@@ -927,12 +927,12 @@ STRONG_KEYWORDS = [
 
 ### 架构及策略
 - [网关路由策略](./routing-strategy.md) - 2-Tier 架构、Cascade/Semantic Router、LLM Classifier 概念
-- [推理网关部署指南](./setup/) - kgateway Helm 安装、HTTPRoute YAML、LLM Classifier 部署代码
+- [推理网关部署指南](../../reference-architecture/inference-gateway/setup/) - kgateway Helm 安装、HTTPRoute YAML、LLM Classifier 部署代码
 
 ### 监控及成本
 - [Agent 监控](../../operations-mlops/observability/agent-monitoring.md) - Langfuse 架构、核心指标、告警策略
-- [监控栈配置指南](../integrations/monitoring-observability-setup.md) - Langfuse Helm、AMP/AMG、ServiceMonitor、Grafana 仪表板
-- [编码工具 & 成本分析](../integrations/coding-tools-cost-analysis.md) - Aider/Cline 连接、成本优化技巧
+- [监控栈配置指南](../../reference-architecture/integrations/monitoring-observability-setup.md) - Langfuse Helm、AMP/AMG、ServiceMonitor、Grafana 仪表板
+- [编码工具 & 成本分析](../../reference-architecture/integrations/coding-tools-cost-analysis.md) - Aider/Cline 连接、成本优化技巧
 
 ### 框架及模型
 - [vLLM 模型服务](../../model-serving/inference-frameworks/vllm-model-serving.md) - vLLM 部署、PagedAttention、Multi-LoRA

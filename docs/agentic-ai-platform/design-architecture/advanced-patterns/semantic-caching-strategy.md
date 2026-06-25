@@ -343,8 +343,8 @@ namespace 과도 세분화 점검 → 임계값 0.05 낮춤 → 임베딩 모델
 ### 관련 문서
 
 - **구현 가이드**: [추론 게이트웨이 구성 가이드 — Semantic Caching 구현 옵션](../../reference-architecture/inference-gateway/setup/advanced-features) — 도구 비교 표, 설정 예시, 배포 스니펫
-- [추론 게이트웨이 라우팅 전략](../../reference-architecture/inference-gateway/routing-strategy)
-- [OpenClaw AI Gateway 배포](../../reference-architecture/inference-gateway/openclaw-example.md)
+- [추론 게이트웨이 라우팅 전략](../../model-serving/inference-routing/routing-strategy)
+- [OpenClaw AI Gateway 배포](../../model-serving/inference-routing/openclaw-example.md)
 - [LLMOps Observability](../../operations-mlops/observability/llmops-observability)
 - [Milvus 벡터 데이터베이스](../../operations-mlops/data-infrastructure/milvus-vector-database)
 - [Ragas 평가](../../operations-mlops/governance/ragas-evaluation)

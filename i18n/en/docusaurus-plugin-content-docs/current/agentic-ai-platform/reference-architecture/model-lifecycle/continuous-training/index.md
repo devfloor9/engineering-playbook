@@ -130,7 +130,7 @@ The Continuous Training Pipeline automatically incorporates production feedback 
 
 - [Self-Improving Agent Loop](../../../design-architecture/advanced-patterns/self-improving-agent-loop.md) — Design architecture and strategy
 - [Custom Model Pipeline](../custom-model-pipeline.md) — SFT training prerequisites
-- [Cascade Routing Tuning](../../inference-gateway/cascade-routing-tuning.md) — Post-deployment routing optimization
+- [Cascade Routing Tuning](../../../model-serving/inference-routing/cascade-routing-tuning.md) — Post-deployment routing optimization
 - [Agent Versioning](../../../../aidlc/enterprise/agent-versioning/index.md) — Model/code/prompt synchronization
 
 ## References

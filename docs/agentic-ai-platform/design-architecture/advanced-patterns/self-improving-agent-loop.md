@@ -1341,7 +1341,7 @@ WHERE event_type = 'model_deployed'
 - [Agent 버전 관리](../../../aidlc/enterprise/agent-versioning/index.md) — 모델 버전 관리
 - [Agent 모니터링](../../operations-mlops/observability/agent-monitoring.md) — Langfuse 트레이싱
 - [Ragas 평가](../../operations-mlops/governance/ragas-evaluation.md) — RAG 품질 평가
-- [Cascade Routing 튜닝](../../reference-architecture/inference-gateway/cascade-routing-tuning.md) — 라우팅 최적화
+- [Cascade Routing 튜닝](../../model-serving/inference-routing/cascade-routing-tuning.md) — 라우팅 최적화
 
 :::danger Reward Hacking 디스클레이머
 Self-improving loop는 **"완전 자동화"가 불가능**하다. Reward hacking, mode collapse, policy drift는 언제든 발생할 수 있으며, 휴먼-인-루프 검증과 통계적 모니터링이 **필수**다. 맹목적 자동화는 모델 품질 퇴화로 이어질 수 있다.
@@ -1353,7 +1353,7 @@ Self-improving loop는 **"완전 자동화"가 불가능**하다. Reward hacking
 
 Self-improving loop 도입을 검토 중이라면:
 
-1. **[Cascade Routing 튜닝](../../reference-architecture/inference-gateway/cascade-routing-tuning.md)** — 저비용 모델 우선 시도로 학습 데이터 다양성 확보
+1. **[Cascade Routing 튜닝](../../model-serving/inference-routing/cascade-routing-tuning.md)** — 저비용 모델 우선 시도로 학습 데이터 다양성 확보
 2. **[Continuous Training Pipeline](../../reference-architecture/model-lifecycle/continuous-training/index.md)** — 정기 학습 자동화 파이프라인 설계
 3. **[Agent 변경 관리](../../../aidlc/enterprise/agent-versioning/index.md)** — 모델 버전 관리 및 점진 배포 전략
 4. **[Agent 모니터링](../../operations-mlops/observability/agent-monitoring.md)** — Langfuse 기반 trace 수집 및 비용 추적

@@ -22,7 +22,7 @@ sidebar_position: 99
 - **Related Documents**
   - Design: [Self-Improving Agent Loop](./self-improving-agent-loop.md)
   - Implementation: [Continuous Training Pipeline](../../reference-architecture/model-lifecycle/continuous-training/index.md)
-  - Operations: [Cascade Routing Tuning](../../reference-architecture/inference-gateway/cascade-routing-tuning.md)
+  - Operations: [Cascade Routing Tuning](../../model-serving/inference-routing/cascade-routing-tuning.md)
 
 ---
 
@@ -138,4 +138,4 @@ Traces promoted to training data must pass the following 4 gates sequentially:
 ### Related Documents (Internal)
 - [Self-Improving Agent Loop Design](./self-improving-agent-loop.md) — 5-Stage Loop detailed architecture
 - [Continuous Training Pipeline Implementation](../../reference-architecture/model-lifecycle/continuous-training/index.md) — Actual pipeline specifications
-- [Cascade Routing Tuning Operations](../../reference-architecture/inference-gateway/cascade-routing-tuning.md) — Canary operations guide
+- [Cascade Routing Tuning Operations](../../model-serving/inference-routing/cascade-routing-tuning.md) — Canary operations guide

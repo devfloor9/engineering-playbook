@@ -429,7 +429,7 @@ sequenceDiagram
 ### 다음 단계
 
 - [GPU 리소스 관리](../gpu-infrastructure/gpu-resource-management.md) - GPU 클러스터 동적 리소스 할당
-- [Inference Gateway 라우팅](../../reference-architecture/inference-gateway/routing-strategy.md) - 다중 모델 라우팅 전략
+- [Inference Gateway 라우팅](../../model-serving/inference-routing/routing-strategy.md) - 다중 모델 라우팅 전략
 - [Agentic AI 플랫폼 아키텍처](../../design-architecture/foundations/agentic-platform-architecture.md) - 전체 플랫폼 구성
 
 ---

@@ -1341,7 +1341,7 @@ WHERE event_type = 'model_deployed'
 - [Agent Versioning](../../../aidlc/enterprise/agent-versioning/index.md) — Model version management
 - [Agent Monitoring](../../operations-mlops/observability/agent-monitoring.md) — Langfuse tracing
 - [Ragas Evaluation](../../operations-mlops/governance/ragas-evaluation.md) — RAG quality evaluation
-- [Cascade Routing Tuning](../../reference-architecture/inference-gateway/cascade-routing-tuning.md) — Routing optimization
+- [Cascade Routing Tuning](../../model-serving/inference-routing/cascade-routing-tuning.md) — Routing optimization
 
 :::danger Reward Hacking Disclaimer
 Self-improving loop **cannot be fully automated**. Reward hacking, mode collapse, and policy drift can occur anytime. Human-in-the-loop verification and statistical monitoring are **essential**. Blind automation can lead to model quality degradation.
@@ -1353,7 +1353,7 @@ Self-improving loop **cannot be fully automated**. Reward hacking, mode collapse
 
 If considering Self-improving loop adoption:
 
-1. **[Cascade Routing Tuning](../../reference-architecture/inference-gateway/cascade-routing-tuning.md)** — Ensure training data diversity by prioritizing low-cost models first
+1. **[Cascade Routing Tuning](../../model-serving/inference-routing/cascade-routing-tuning.md)** — Ensure training data diversity by prioritizing low-cost models first
 2. **[Continuous Training Pipeline](../../reference-architecture/model-lifecycle/continuous-training/index.md)** — Design automated regular training pipeline
 3. **[Agent Versioning](../../../aidlc/enterprise/agent-versioning/index.md)** — Model version management and progressive deployment strategy
 4. **[Agent Monitoring](../../operations-mlops/observability/agent-monitoring.md)** — Langfuse-based trace collection and cost tracking

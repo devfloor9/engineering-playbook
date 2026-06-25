@@ -225,7 +225,7 @@ journey
 **Detailed Guide by Level**:
 - **Level 1 (Exploration)**: → [AWS Native Platform](./aws-native-agentic-platform.md)
 - **Level 2 (Build)**: → [SageMaker-EKS Integration](../../reference-architecture/integrations/sagemaker-eks-integration.md)
-- **Level 3 (Optimization)**: → [EKS-based Open Architecture](./agentic-ai-solutions-eks.md), [Inference Gateway](../../reference-architecture/inference-gateway/routing-strategy.md)
+- **Level 3 (Optimization)**: → [EKS-based Open Architecture](./agentic-ai-solutions-eks.md), [Inference Gateway](../../model-serving/inference-routing/routing-strategy.md)
 
 ---
 
@@ -252,7 +252,7 @@ flowchart LR
 
 **Core value**: Maintain Bedrock API quality while reducing costs by 40-60%
 
-**Reference**: [Inference Gateway & Cascade Routing](../../reference-architecture/inference-gateway/routing-strategy.md)
+**Reference**: [Inference Gateway & Cascade Routing](../../model-serving/inference-routing/routing-strategy.md)
 
 ---
 

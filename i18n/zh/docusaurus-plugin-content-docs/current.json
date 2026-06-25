@@ -47,9 +47,9 @@
     "message": "推理框架",
     "description": "The label for category '추론 프레임워크' in sidebar 'docs'"
   },
-  "sidebar.docs.category.추론 최적화": {
-    "message": "推理优化",
-    "description": "The label for category '추론 최적화' in sidebar 'docs'"
+  "sidebar.docs.category.추론 최적화 & 라우팅": {
+    "message": "推理优化与路由",
+    "description": "The label for category '추론 최적화 & 라우팅' in sidebar 'docs'"
   },
   "sidebar.docs.category.플랫폼 기초": {
     "message": "平台基础",
@@ -83,9 +83,9 @@
     "message": "参考架构",
     "description": "The label for category 'Reference Architecture' in sidebar 'docs'"
   },
-  "sidebar.docs.category.추론 게이트웨이": {
-    "message": "推理网关",
-    "description": "The label for category '추론 게이트웨이' in sidebar 'docs'"
+  "sidebar.docs.category.추론 게이트웨이 배포": {
+    "message": "推理网关部署",
+    "description": "The label for category '추론 게이트웨이 배포' in sidebar 'docs'"
   },
   "sidebar.docs.category.배포 가이드": {
     "message": "部署指南",
