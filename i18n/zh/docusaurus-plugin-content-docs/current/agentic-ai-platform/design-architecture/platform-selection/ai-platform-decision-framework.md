@@ -200,7 +200,7 @@ journey
 **各级别详细指南**：
 - **Level 1（探索）**：→ [AWS Native 平台](./aws-native-agentic-platform.md)
 - **Level 2（构建）**：→ [SageMaker-EKS 集成](../../reference-architecture/integrations/sagemaker-eks-integration.md)
-- **Level 3（优化）**：→ [基于 EKS 的开放架构](./agentic-ai-solutions-eks.md)、[推理网关](../../reference-architecture/inference-gateway/routing-strategy.md)
+- **Level 3（优化）**：→ [基于 EKS 的开放架构](./agentic-ai-solutions-eks.md)、[推理网关](../../model-serving/inference-routing/routing-strategy.md)
 
 ---
 
@@ -227,7 +227,7 @@ flowchart LR
 
 **核心价值**：保持 Bedrock API 质量的同时降低 40-60% 成本
 
-**参考**：[推理网关 & Cascade Routing](../../reference-architecture/inference-gateway/routing-strategy.md)
+**参考**：[推理网关 & Cascade Routing](../../model-serving/inference-routing/routing-strategy.md)
 
 ---
 
@@ -326,7 +326,7 @@ flowchart LR
 - [技术挑战](../foundations/agentic-ai-challenges.md) — 5 个核心挑战分析
 - [AWS Native 平台](./aws-native-agentic-platform.md) — Bedrock + Strands SDK + AgentCore 详细
 - [基于 EKS 的开放架构](./agentic-ai-solutions-eks.md) — EKS Auto Mode + 开源栈详细
-- [推理网关 & Cascade Routing](../../reference-architecture/inference-gateway/routing-strategy.md) — 2-Tier Gateway 架构
+- [推理网关 & Cascade Routing](../../model-serving/inference-routing/routing-strategy.md) — 2-Tier Gateway 架构
 
 ### Reference Architecture
 - [SageMaker-EKS 集成](../../reference-architecture/integrations/sagemaker-eks-integration.md) — 混合 ML 流水线实现

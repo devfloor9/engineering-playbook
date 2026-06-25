@@ -15,7 +15,7 @@ reading_time: 12
 :::info 문서 위치
 - **본 문서**: Guardrails 기술 스택 비교 및 구현 패턴 (Input/Output Guard, Gateway 통합)
 - [컴플라이언스 프레임워크](./compliance-framework.md): SOC2/ISO27001/금융 규제 매핑 (상위 개념)
-- [Inference Gateway 라우팅](../../reference-architecture/inference-gateway/routing-strategy.md): kgateway + Bifrost 2-Tier Gateway
+- [Inference Gateway 라우팅](../../model-serving/inference-routing/routing-strategy.md): kgateway + Bifrost 2-Tier Gateway
 :::
 
 ---
@@ -415,7 +415,7 @@ func (p *GuardrailsPlugin) PostHook(ctx context.Context, resp *schemas.BifrostRe
 - **Tier 1 (kgateway)**: 인증, Rate Limit, 테넌트 라우팅 — **Input Guard** 여기서 수행 (조기 차단으로 비용 절감)
 - **Tier 2 (Bifrost)**: 모델 라우팅, Fallback, 비용 추적 — **Output Guard** 여기서 수행 (모델 응답 일관성)
 
-상세 설계는 [Inference Gateway 라우팅](../../reference-architecture/inference-gateway/routing-strategy.md)을 참조하세요.
+상세 설계는 [Inference Gateway 라우팅](../../model-serving/inference-routing/routing-strategy.md)을 참조하세요.
 :::
 
 ---
@@ -509,7 +509,7 @@ Langfuse는 LLM 호출별 span을 제공하므로 `safety_violation=true` 필터
 
 ### 8.4 SaaS LLM API 게이트웨이 데이터 주권 {#openrouter-등-saas-게이트웨이-데이터-주권}
 
-[LLM API 게이트웨이](../../reference-architecture/inference-gateway/tiered-gateway-architecture.md)(Tier 2 ②) 중 **OpenRouter** 같은 호스티드 SaaS는 프롬프트·응답이 외부 서비스를 경유합니다. 빠른 다중 프로바이더 통합에는 유리하지만, 데이터 주권·규제 요건이 있는 환경에서는 다음을 고려해야 합니다.
+[LLM API 게이트웨이](../../model-serving/inference-routing/tiered-gateway-architecture.md)(Tier 2 ②) 중 **OpenRouter** 같은 호스티드 SaaS는 프롬프트·응답이 외부 서비스를 경유합니다. 빠른 다중 프로바이더 통합에는 유리하지만, 데이터 주권·규제 요건이 있는 환경에서는 다음을 고려해야 합니다.
 
 | 고려 항목 | 내용 |
 |----------|------|
@@ -582,5 +582,5 @@ Langfuse는 LLM 호출별 span을 제공하므로 `safety_violation=true` 필터
 - [컴플라이언스 프레임워크](./compliance-framework.md) — SOC2 / ISO27001 / 금융 규제 매핑
 - [Agent 모니터링](../observability/agent-monitoring.md) — Langfuse 통합
 - [LLMOps Observability](../observability/llmops-observability.md) — Langfuse, LangSmith, Helicone 비교
-- [Inference Gateway 라우팅](../../reference-architecture/inference-gateway/routing-strategy.md) — 2-Tier Gateway 설계
+- [Inference Gateway 라우팅](../../model-serving/inference-routing/routing-strategy.md) — 2-Tier Gateway 설계
 - [EKS 기반 Agentic AI 오픈 아키텍처](../../design-architecture/platform-selection/agentic-ai-solutions-eks.md)

@@ -36,7 +36,7 @@ export const InferencePipelineDiagram = () => {
   );
 };
 
-이 문서는 kgateway + Bifrost 기반 추론 게이트웨이의 **실전 배포 절차**를 다룹니다. 아키텍처 개념과 라우팅 전략(Cascade, Semantic Router, 2-Tier 구조)은 [추론 게이트웨이 라우팅](../routing-strategy.md)을 참조하세요.
+이 문서는 kgateway + Bifrost 기반 추론 게이트웨이의 **실전 배포 절차**를 다룹니다. 아키텍처 개념과 라우팅 전략(Cascade, Semantic Router, 2-Tier 구조)은 [추론 게이트웨이 라우팅](../../../model-serving/inference-routing/routing-strategy.md)을 참조하세요.
 
 :::info 가이드 구성
 이 가이드는 3개 문서로 구성됩니다. 순차적으로 학습하거나, 필요한 섹션만 선택하여 참조하세요.
@@ -49,7 +49,7 @@ EKS 기반 프로덕션 추론 파이프라인의 전체 요청 흐름입니다.
 - **L1 — across-model 프록시 / 거버넌스**: Bifrost(또는 LLM Classifier)로 외부/내부 모델 추상화, cascade, 비용 추적, semantic cache. "어느 *모델*인가"를 결정합니다. → [기본 배포](./basic-deployment.md) · [고급 기능](./advanced-features.md)
 - **L2 — within-model KV-aware 라우팅**: Gateway API Inference Extension(InferencePool + EPP)으로 vLLM 메트릭(KV cache·부하) 기반 Pod 선택. "어느 *Pod*인가"를 결정합니다. → [고급 기능: Inference Extension](./advanced-features.md#inference-extension)
 
-두 레이어는 배타적이지 않으며 함께 쓸 수 있습니다(L1 → L2 → vLLM). 레이어 정의와 선택 기준은 [라우팅 전략](../routing-strategy.md#두-개의-라우팅-레이어--반드시-구분)을 참조하세요.
+두 레이어는 배타적이지 않으며 함께 쓸 수 있습니다(L1 → L2 → vLLM). 레이어 정의와 선택 기준은 [라우팅 전략](../../../model-serving/inference-routing/routing-strategy.md#두-개의-라우팅-레이어--반드시-구분)을 참조하세요.
 
 :::note 참조 아키텍처 다이어그램 안내
 아래 다이어그램은 L1(Bifrost)·L2(llm-d EPP)·관측성을 모두 포함한 **목표(reference) 아키텍처**입니다. 실제 배포는 위 두 경로를 선택·조합하며, KV-aware(L2)가 필요한 경우 [Inference Extension 섹션](./advanced-features.md#inference-extension)의 InferencePool + EPP 절차를 따릅니다.
@@ -165,14 +165,14 @@ graph LR
 ## 다음 단계
 
 - **시작하기**: [기본 배포](./basic-deployment.md)로 이동하여 kgateway 설치를 시작하세요.
-- **아키텍처 이해**: 배포 전 [추론 게이트웨이 라우팅](../routing-strategy.md)을 읽고 전체 구조를 파악하세요.
+- **아키텍처 이해**: 배포 전 [추론 게이트웨이 라우팅](../../../model-serving/inference-routing/routing-strategy.md)을 읽고 전체 구조를 파악하세요.
 - **모니터링 준비**: [Langfuse 배포 가이드](../../integrations/monitoring-observability-setup.md)를 참조하여 관측성 스택을 구성하세요.
 
 ---
 
 ## 참고 자료
 
-- [추론 게이트웨이 라우팅](../routing-strategy.md) - kgateway 아키텍처 및 라우팅 전략 상세
+- [추론 게이트웨이 라우팅](../../../model-serving/inference-routing/routing-strategy.md) - kgateway 아키텍처 및 라우팅 전략 상세
 - [Langfuse 배포 가이드](../../integrations/monitoring-observability-setup.md) - Helm 설치, OTel 연동, Redis/ClickHouse 구성
 - [Agent 모니터링](../../../operations-mlops/observability/agent-monitoring.md) - Langfuse 아키텍처 및 컴포넌트
 - [Kubernetes Gateway API 공식 문서](https://gateway-api.sigs.k8s.io/)

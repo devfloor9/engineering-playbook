@@ -28,4 +28,4 @@ OpenClaw（226k+ GitHub stars）是通用 AI Agent 框架，提供利用多种 L
 | **成本控制** | 实例大小调整 | Graviton4 ARM + Spot + 语义缓存 + 预算控制 |
 | **可扩展性** | 手动伸缩 | HPA/Karpenter 自动伸缩、Spot 实例原生中断应对 |
 
-本文档的详细内容（Helm 配置、Bifrost Auto-Router 设置、Hubble 网络可观测性、Langfuse 集成等）由于篇幅原因请参阅[韩文原文](/docs/agentic-ai-platform/reference-architecture/inference-gateway/openclaw-example)。
+本文档的详细内容（Helm 配置、Bifrost Auto-Router 设置、Hubble 网络可观测性、Langfuse 集成等）由于篇幅原因请参阅[韩文原文](/docs/agentic-ai-platform/model-serving/inference-routing/openclaw-example)。

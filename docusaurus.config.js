@@ -105,6 +105,30 @@ const config = {
         disableInDev: false,
       },
     ],
+    [
+      '@docusaurus/plugin-client-redirects',
+      {
+        // 추론 게이트웨이 개념 문서 4종을 model-serving/inference-routing 으로 이동(2026-06-25)
+        redirects: [
+          {
+            from: '/docs/agentic-ai-platform/reference-architecture/inference-gateway/tiered-gateway-architecture',
+            to: '/docs/agentic-ai-platform/model-serving/inference-routing/tiered-gateway-architecture',
+          },
+          {
+            from: '/docs/agentic-ai-platform/reference-architecture/inference-gateway/routing-strategy',
+            to: '/docs/agentic-ai-platform/model-serving/inference-routing/routing-strategy',
+          },
+          {
+            from: '/docs/agentic-ai-platform/reference-architecture/inference-gateway/cascade-routing-tuning',
+            to: '/docs/agentic-ai-platform/model-serving/inference-routing/cascade-routing-tuning',
+          },
+          {
+            from: '/docs/agentic-ai-platform/reference-architecture/inference-gateway/openclaw-example',
+            to: '/docs/agentic-ai-platform/model-serving/inference-routing/openclaw-example',
+          },
+        ],
+      },
+    ],
     // PWA plugin disabled — causes @theme/PwaReloadPopup resolution error
     // [
     //   '@docusaurus/plugin-pwa',

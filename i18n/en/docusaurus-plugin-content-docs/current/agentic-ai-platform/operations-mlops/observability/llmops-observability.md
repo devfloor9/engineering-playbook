@@ -329,6 +329,6 @@ Ragas is a RAG system-specific evaluation framework that integrates with Langfus
 
 ### Related Documentation
 - [Monitoring Stack Configuration Guide](../../reference-architecture/integrations/monitoring-observability-setup.md)
-- [Inference Gateway Routing](../../reference-architecture/inference-gateway/routing-strategy.md)
+- [Inference Gateway Routing](../../model-serving/inference-routing/routing-strategy.md)
 - [RAG Evaluation with Ragas](../governance/ragas-evaluation.md)
 - [Agent Monitoring](./agent-monitoring.md)

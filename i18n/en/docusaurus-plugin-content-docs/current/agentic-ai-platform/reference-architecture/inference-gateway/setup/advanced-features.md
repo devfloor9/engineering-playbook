@@ -820,6 +820,6 @@ Advanced feature configuration is complete. Proceed to the next steps:
 ## References
 
 - [Semantic Caching Strategy](../../../design-architecture/advanced-patterns/semantic-caching-strategy.md) - Concepts, threshold design, observability, domain-specific patterns
-- [Inference Gateway Routing](../routing-strategy.md) - kgateway architecture and routing strategies
+- [Inference Gateway Routing](../../../model-serving/inference-routing/routing-strategy.md) - kgateway architecture and routing strategies
 - [Langfuse Deployment Guide](../../integrations/monitoring-observability-setup.md) - Helm installation, OTel integration, Redis/ClickHouse configuration
 - [Agent Monitoring](../../../operations-mlops/observability/agent-monitoring.md) - Langfuse architecture and components

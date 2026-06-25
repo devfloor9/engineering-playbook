@@ -220,7 +220,7 @@ For concepts and architecture design, refer to the following documents:
 - [Agentic AI Platform Architecture](../design-architecture/foundations/agentic-platform-architecture.md) — Overall design principles and component structure
 - [GPU Resource Management](../model-serving/gpu-infrastructure/gpu-resource-management.md) — Karpenter, KEDA, DRA-based GPU autoscaling
 - [vLLM Model Serving](../model-serving/inference-frameworks/vllm-model-serving.md) — vLLM architecture and optimization techniques
-- [Inference Gateway Routing Strategy](inference-gateway/routing-strategy.md) — 2-Tier architecture and Cascade/Semantic/Hybrid Routing design
+- [Inference Gateway Routing Strategy](../model-serving/inference-routing/routing-strategy.md) — 2-Tier architecture and Cascade/Semantic/Hybrid Routing design
 
 ---
 

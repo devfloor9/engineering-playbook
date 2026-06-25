@@ -821,6 +821,6 @@ redis_key: "cache:org-12345:ko:glm-5:a3f2e1b:c9d8e7f"
 ## 参考资料
 
 - [Semantic Caching 策略](../../../design-architecture/advanced-patterns/semantic-caching-strategy.md) - 概念、阈值设计、可观测性、按域模式
-- [推理网关路由](../routing-strategy.md) - kgateway 架构及路由策略
+- [推理网关路由](../../../model-serving/inference-routing/routing-strategy.md) - kgateway 架构及路由策略
 - [Langfuse 部署指南](../../integrations/monitoring-observability-setup.md) - Helm 安装、OTel 集成、Redis/ClickHouse 配置
 - [Agent 监控](../../../operations-mlops/observability/agent-monitoring.md) - Langfuse 架构及组件

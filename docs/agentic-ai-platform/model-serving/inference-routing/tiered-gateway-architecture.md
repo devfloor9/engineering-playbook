@@ -100,7 +100,7 @@ flowchart TB
 |------|----------------|-----------|
 | **Tier 1** Ingress | 6개 범용 Gateway API 구현체 비교·선정 | [Gateway API 도입 가이드](/docs/eks-best-practices/networking-performance/gateway-api-adoption-guide) (EKS Best Practices) |
 | **Tier 2 ①** Inference Routing | Gateway API Inference Extension (InferencePool·EPP) | [라우팅 전략 — Gateway API Inference Extension](./routing-strategy.md#gateway-api-inference-extension) |
-| **Tier 2 ②** LLM API Gateway | Bifrost·LiteLLM·OpenRouter 등 비교 및 Cascade/Semantic 전략 | [라우팅 전략 — LLM Gateway 솔루션 비교](./routing-strategy.md#llm-gateway-솔루션-비교) · [배포 가이드](./setup/) |
+| **Tier 2 ②** LLM API Gateway | Bifrost·LiteLLM·OpenRouter 등 비교 및 Cascade/Semantic 전략 | [라우팅 전략 — LLM Gateway 솔루션 비교](./routing-strategy.md#llm-gateway-솔루션-비교) · [배포 가이드](../../reference-architecture/inference-gateway/setup/) |
 | **Agent Data Plane** | agentgateway (MCP/A2A) | [라우팅 전략 — agentgateway 데이터 플레인](./routing-strategy.md#agentgateway-데이터-플레인) |
 
 :::note Tier 1과 Tier 2의 관계
@@ -121,6 +121,6 @@ flowchart TB
 
 ### 관련 문서 (내부)
 - [추론 게이트웨이 & LLM Gateway 라우팅 전략](./routing-strategy.md) — Tier 2 솔루션 비교·Cascade·Semantic 전략
-- [Inference Gateway 배포 가이드](./setup/) — Tier 2 배포 절차(Helm·HTTPRoute·OTel)
+- [Inference Gateway 배포 가이드](../../reference-architecture/inference-gateway/setup/) — Tier 2 배포 절차(Helm·HTTPRoute·OTel)
 - [Gateway API 도입 가이드](/docs/eks-best-practices/networking-performance/gateway-api-adoption-guide) — Tier 1 범용 게이트웨이 6종 비교·선정
 - [플랫폼 아키텍처](../../design-architecture/foundations/agentic-platform-architecture.md) — Layer 5(Gateway & Routing) 정의

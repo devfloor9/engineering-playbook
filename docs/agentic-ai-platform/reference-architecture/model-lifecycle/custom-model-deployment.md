@@ -948,7 +948,7 @@ spec:
 
 ### 운영 및 모니터링
 - [모니터링 스택 구성](../integrations/monitoring-observability-setup.md) — Langfuse, Prometheus, Grafana 배포
-- [Inference Gateway 라우팅](../inference-gateway/routing-strategy.md) — kgateway + Bifrost 2-Tier 아키텍처
+- [Inference Gateway 라우팅](../../model-serving/inference-routing/routing-strategy.md) — kgateway + Bifrost 2-Tier 아키텍처
 
 ## 참고 자료
 

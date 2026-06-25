@@ -22,7 +22,7 @@ sidebar_position: 99
 - **관련 문서**
   - 설계: [Self-Improving Agent Loop](./self-improving-agent-loop.md)
   - 구현: [Continuous Training Pipeline](../../reference-architecture/model-lifecycle/continuous-training/index.md)
-  - 운영: [Cascade Routing Tuning](../../reference-architecture/inference-gateway/cascade-routing-tuning.md)
+  - 운영: [Cascade Routing Tuning](../../model-serving/inference-routing/cascade-routing-tuning.md)
 
 ---
 
@@ -138,4 +138,4 @@ Phase 3 문서 개편에서 Andrej Karpathy의 autosearch 담론을 엔터프라
 ### 관련 문서 (내부)
 - [Self-Improving Agent Loop 설계](./self-improving-agent-loop.md) — 5-Stage Loop 상세 아키텍처
 - [Continuous Training Pipeline 구현](../../reference-architecture/model-lifecycle/continuous-training/index.md) — 실제 파이프라인 스펙
-- [Cascade Routing Tuning 운영](../../reference-architecture/inference-gateway/cascade-routing-tuning.md) — Canary 운영 가이드
+- [Cascade Routing Tuning 운영](../../model-serving/inference-routing/cascade-routing-tuning.md) — Canary 운영 가이드

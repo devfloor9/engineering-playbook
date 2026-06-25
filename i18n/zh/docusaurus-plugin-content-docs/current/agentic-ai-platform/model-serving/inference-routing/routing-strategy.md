@@ -12,7 +12,7 @@ last_update:
 
 > 撰写日期：2025-02-05 | 修订日期：2026-04-17 | 阅读时间：约 15 分钟
 
-本文档涵盖 2-Tier 网关架构和路由策略（Cascade / Semantic Router / Hybrid）的**设计原则**。实际的 Helm 安装、HTTPRoute 清单、OTel 联动等**部署步骤**请参考[推理网关配置指南](./setup)。
+本文档涵盖 2-Tier 网关架构和路由策略（Cascade / Semantic Router / Hybrid）的**设计原则**。实际的 Helm 安装、HTTPRoute 清单、OTel 联动等**部署步骤**请参考[推理网关配置指南](../../reference-architecture/inference-gateway/setup/)。
 
 ## 概述
 
@@ -467,7 +467,7 @@ response = router.route(prompt="Explain the architecture...")  # → glm-5-744b
 | **IDE (Claude Code)** | 上下文感知 | 开发工具供应商 |
 | **客户端 (SDK)** | 灵活性高 | 프로토타입 |
 
-**실전 권장**: 自托管环境中 **kgateway → LLM Classifier → vLLM** 结构部署，在中心进行路由。 开发者只使用单一端点（`/v1`），平台团队管理分类策略。 详细部署指南请参考 [网关配置指南](./setup/advanced-features#llm-classifier-部署)。
+**실전 권장**: 自托管环境中 **kgateway → LLM Classifier → vLLM** 结构部署，在中心进行路由。 开发者只使用单一端点（`/v1`），平台团队管理分类策略。 详细部署指南请参考 [网关配置指南](../../reference-architecture/inference-gateway/setup/advanced-features#llm-classifier-部署)。
 
 ---
 
@@ -501,7 +501,7 @@ graph TD
 RouteLLM是研究项目，不推荐 K8s 生产部署. 依赖冲突과 대형 이미지 크기(10GB+)가 문제입니다. MF classifier **概念**有用，但实战中推荐 **LLM Classifier**（自托管）或 **LiteLLM complexity routing**（外部提供商）。
 :::
 
-详细部署代码请参考 [网关配置指南](./setup/advanced-features#llm-classifier-部署)。
+详细部署代码请参考 [网关配置指南](../../reference-architecture/inference-gateway/setup/advanced-features#llm-classifier-部署)。
 
 ---
 
@@ -517,7 +517,7 @@ Kubernetes Gateway API通过 **Inference Extension** 使 LLM 推理可作为 Kub
 | **InferencePool** | 模型服务 Pod 组（vLLM replicas） | `replicas: 3` → 3个 vLLM 实例 |
 | **LLMRoute** | 将请求路由到 InferenceModel 的规则 | `x-model-id: glm-5` → GLM-5 Pool |
 
-详细 YAML manifest 请参考 [网关配置指南](./setup)。
+详细 YAML manifest 请参考 [网关配置指南](../../reference-architecture/inference-gateway/setup/)。
 
 ### Gateway API Inference Extension 集成
 
@@ -538,7 +538,7 @@ graph TB
     style Pool2 fill:#ffd93d,stroke:#333
 ```
 
-**현재 상태**: CNCF 项目正在积极开发中. Kubernetes 1.34+预计提供 alpha，目前不推荐生产使用. 实战部署请参考 [Reference Architecture](../) 指南。
+**현재 상태**: CNCF 项目正在积极开发中. Kubernetes 1.34+预计提供 alpha，目前不推荐生产使用. 实战部署请参考 [Reference Architecture](../../reference-architecture/) 指南。
 
 ---
 
@@ -609,7 +609,7 @@ import { MonitoringMetricsTable } from '@site/src/components/InferenceGatewayTab
 
 ### Langfuse OTel 联动
 
-Bifrost/LiteLLM将 OTel trace 传输到 Langfuse，跟踪提示/完成内容、token 使用 `success_callback: ["langfuse"]` 配置激活。 详细配置请参考 [监控栈设置](../integrations/monitoring-observability-setup.md)。
+Bifrost/LiteLLM将 OTel trace 传输到 Langfuse，跟踪提示/完成内容、token 使用 `success_callback: ["langfuse"]` 配置激活。 详细配置请参考 [监控栈设置](../../reference-architecture/integrations/monitoring-observability-setup.md)。
 
 ### 推荐告警规则
 
@@ -629,14 +629,14 @@ Bifrost/LiteLLM将 OTel trace 传输到 Langfuse，跟踪提示/完成内容、t
 
 实际代码示例和 YAML manifest 请参考 Reference Architecture 部分：
 
-- [网关配置指南](./setup) - kgateway, Bifrost, agentgateway 安装和 YAML manifest
+- [网关配置指南](../../reference-architecture/inference-gateway/setup/) - kgateway, Bifrost, agentgateway 安装和 YAML manifest
 - [OpenClaw AI Gateway 部署](./openclaw-example.md) - OpenClaw + Bifrost + Hubble 实战部署
-- [自定义模型部署](../model-lifecycle/custom-model-deployment.md) - vLLM/llm-d 部署指南
+- [自定义模型部署](../../reference-architecture/model-lifecycle/custom-model-deployment.md) - vLLM/llm-d 部署指南
 
 ### 成本及可观测性
 
-- [编码工具 & 成本分析](../integrations/coding-tools-cost-analysis.md) - Aider/Cline 连接、NLB 集成路由模式
-- [监控栈设置](../integrations/monitoring-observability-setup.md) - Langfuse OTel 联动、Prometheus、Grafana 仪表板
+- [编码工具 & 成本分析](../../reference-architecture/integrations/coding-tools-cost-analysis.md) - Aider/Cline 连接、NLB 集成路由模式
+- [监控栈设置](../../reference-architecture/integrations/monitoring-observability-setup.md) - Langfuse OTel 联动、Prometheus、Grafana 仪表板
 - [LLMOps Observability](../../operations-mlops/observability/llmops-observability.md) - Langfuse/LangSmith 基于 LLM 可观测性
 
 ### 相关基础设施

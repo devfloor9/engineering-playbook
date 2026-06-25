@@ -334,8 +334,8 @@ RAG 是从向量 DB 获取用于生成新响应的上下文，Semantic Cache 是
 ### 相关文档
 
 - **实现指南**：[推理网关配置指南 — Semantic Caching 实现选项](../../reference-architecture/inference-gateway/setup/advanced-features) — 工具比较表、配置示例、部署代码片段
-- [推理网关路由策略](../../reference-architecture/inference-gateway/routing-strategy)
-- [OpenClaw AI Gateway 部署](../../reference-architecture/inference-gateway/openclaw-example.md)
+- [推理网关路由策略](../../model-serving/inference-routing/routing-strategy)
+- [OpenClaw AI Gateway 部署](../../model-serving/inference-routing/openclaw-example.md)
 - [LLMOps Observability](../../operations-mlops/observability/llmops-observability)
 - [Milvus 向量数据库](../../operations-mlops/data-infrastructure/milvus-vector-database)
 - [Ragas 评估](../../operations-mlops/governance/ragas-evaluation)

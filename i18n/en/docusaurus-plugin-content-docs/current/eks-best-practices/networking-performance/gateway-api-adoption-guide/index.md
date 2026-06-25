@@ -911,7 +911,7 @@ The topic-specific deep-dive content of this guide is provided in separate sub-d
 
 ### Related Documents (Agentic AI Platform)
 
-- **[Tiered Gateway Architecture](/docs/agentic-ai-platform/reference-architecture/inference-gateway/tiered-gateway-architecture)** — the full map and terminology of Tier 1 (this document), Tier 2 ① inference routing, ② LLM API gateway, and the Agent Data Plane (single source of definitions)
+- **[Tiered Gateway Architecture](/docs/agentic-ai-platform/model-serving/inference-routing/tiered-gateway-architecture)** — the full map and terminology of Tier 1 (this document), Tier 2 ① inference routing, ② LLM API gateway, and the Agent Data Plane (single source of definitions)
 - **[Inference Gateway Reference](/docs/agentic-ai-platform/reference-architecture/inference-gateway)** — the Tier 2 inference gateway layer for agentic workloads (KV-cache-aware routing, model endpoint management). Configured as a 2-tier setup together with this document (Tier 1 general gateway)
 - **[Inference Gateway Setup Guide](/docs/agentic-ai-platform/reference-architecture/inference-gateway/setup)** — inference gateway Helm deployment, HTTPRoute, and OTel configuration
 

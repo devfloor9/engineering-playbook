@@ -225,7 +225,7 @@ journey
 **각 레벨별 상세 가이드**:
 - **Level 1 (탐색)**: → [AWS Native 플랫폼](./aws-native-agentic-platform.md)
 - **Level 2 (구축)**: → [SageMaker-EKS 통합](../../reference-architecture/integrations/sagemaker-eks-integration.md)
-- **Level 3 (최적화)**: → [EKS 기반 오픈 아키텍처](./agentic-ai-solutions-eks.md), [추론 게이트웨이](../../reference-architecture/inference-gateway/routing-strategy.md)
+- **Level 3 (최적화)**: → [EKS 기반 오픈 아키텍처](./agentic-ai-solutions-eks.md), [추론 게이트웨이](../../model-serving/inference-routing/routing-strategy.md)
 
 ---
 
@@ -252,7 +252,7 @@ flowchart LR
 
 **핵심 가치**: Bedrock API의 품질을 유지하면서 비용을 40-60% 절감
 
-**참고**: [추론 게이트웨이 & Cascade Routing](../../reference-architecture/inference-gateway/routing-strategy.md)
+**참고**: [추론 게이트웨이 & Cascade Routing](../../model-serving/inference-routing/routing-strategy.md)
 
 ---
 

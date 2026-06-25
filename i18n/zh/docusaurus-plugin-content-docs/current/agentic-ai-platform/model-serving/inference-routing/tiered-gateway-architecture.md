@@ -100,7 +100,7 @@ flowchart TB
 |------|-----------|----------|
 | **Tier 1** Ingress | 6 种通用 Gateway API 实现的比较与选型 | [Gateway API 采用指南](/docs/eks-best-practices/networking-performance/gateway-api-adoption-guide)（EKS Best Practices） |
 | **Tier 2 ①** Inference Routing | Gateway API Inference Extension（InferencePool · EPP） | [路由策略 — Gateway API Inference Extension](./routing-strategy.md#gateway-api-inference-extension) |
-| **Tier 2 ②** LLM API Gateway | Bifrost·LiteLLM·OpenRouter 等的比较及 Cascade/Semantic 策略 | [路由策略 — LLM Gateway 比较](./routing-strategy.md#llm-gateway-解决方案比较) · [部署指南](./setup/) |
+| **Tier 2 ②** LLM API Gateway | Bifrost·LiteLLM·OpenRouter 等的比较及 Cascade/Semantic 策略 | [路由策略 — LLM Gateway 比较](./routing-strategy.md#llm-gateway-解决方案比较) · [部署指南](../../reference-architecture/inference-gateway/setup/) |
 | **Agent Data Plane** | agentgateway（MCP/A2A） | [路由策略 — agentgateway 数据平面](./routing-strategy.md#agentgateway-数据平面) |
 
 :::note Tier 1 与 Tier 2 的关系
@@ -121,6 +121,6 @@ flowchart TB
 
 ### 相关文档（内部）
 - [推理网关 & LLM Gateway 路由策略](./routing-strategy.md) — Tier 2 方案比较、Cascade、Semantic 策略
-- [推理网关配置指南](./setup/) — Tier 2 部署步骤（Helm·HTTPRoute·OTel）
+- [推理网关配置指南](../../reference-architecture/inference-gateway/setup/) — Tier 2 部署步骤（Helm·HTTPRoute·OTel）
 - [Gateway API 采用指南](/docs/eks-best-practices/networking-performance/gateway-api-adoption-guide) — Tier 1 通用网关 6 种比较与选型
 - [平台架构](../../design-architecture/foundations/agentic-platform-architecture.md) — Layer 5（Gateway & Routing）定义

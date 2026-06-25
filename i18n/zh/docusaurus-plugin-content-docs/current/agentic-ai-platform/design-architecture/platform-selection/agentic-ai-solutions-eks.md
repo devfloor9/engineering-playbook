@@ -327,7 +327,7 @@ EKS Auto Mode 完全支持包括 NVIDIA GPU 在内的加速计算实例。
 - **Tier 1（kgateway）**：基于 Gateway API 的认证、Rate Limiting、流量管理
 - **Tier 2（Bifrost）**：模型抽象、Fallback、成本追踪、Cascade Routing
 
-> 详细架构请参阅 [Inference Gateway 路由](../../reference-architecture/inference-gateway/routing-strategy.md)。
+> 详细架构请参阅 [Inference Gateway 路由](../../model-serving/inference-routing/routing-strategy.md)。
 
 #### Agent：LangGraph + NeMo Guardrails + MCP/A2A
 
@@ -694,7 +694,7 @@ spec:
       targetPort: 8443
 ```
 
-> 2-Tier Gateway 架构的完整设计请参阅 [LLM Gateway 2-Tier 架构](../../reference-architecture/inference-gateway/routing-strategy.md)。
+> 2-Tier Gateway 架构的完整设计请参阅 [LLM Gateway 2-Tier 架构](../../model-serving/inference-routing/routing-strategy.md)。
 
 ### 核心建议
 

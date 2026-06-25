@@ -228,7 +228,7 @@ Separates traffic management and model routing with 2-Tier Gateway architecture:
 - **Tier 1 (kgateway)**: Gateway API-based authentication, rate limiting, traffic management
 - **Tier 2 (Bifrost)**: Model abstraction, fallback, cost tracking, cascade routing
 
-> For detailed architecture, refer to [Inference Gateway Routing](../../reference-architecture/inference-gateway/routing-strategy.md).
+> For detailed architecture, refer to [Inference Gateway Routing](../../model-serving/inference-routing/routing-strategy.md).
 
 #### Agent: LangGraph + NeMo Guardrails + MCP/A2A
 
@@ -595,7 +595,7 @@ spec:
       targetPort: 8443
 ```
 
-> For complete 2-Tier Gateway architecture design, refer to [LLM Gateway 2-Tier Architecture](../../reference-architecture/inference-gateway/routing-strategy.md).
+> For complete 2-Tier Gateway architecture design, refer to [LLM Gateway 2-Tier Architecture](../../model-serving/inference-routing/routing-strategy.md).
 
 ### Key Recommendations
 

@@ -897,7 +897,7 @@ flowchart TD
 
 ### 混合架构参考
 - [SageMaker-EKS 集成](../../reference-architecture/integrations/sagemaker-eks-integration.md)
-- [推理网关路由](../../reference-architecture/inference-gateway/routing-strategy.md)
+- [推理网关路由](../../model-serving/inference-routing/routing-strategy.md)
 - [编码工具成本分析](../../reference-architecture/integrations/coding-tools-cost-analysis.md)
 
 ### MCP & A2A

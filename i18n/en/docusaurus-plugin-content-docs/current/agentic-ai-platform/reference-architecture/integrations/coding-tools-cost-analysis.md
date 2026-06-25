@@ -433,4 +433,4 @@ Reference: [Custom Model Pipeline](../model-lifecycle/custom-model-pipeline.md)
 | Anthropic Pricing | [anthropic.com/pricing](https://www.anthropic.com/pricing) |
 | Custom Model Deployment Guide | [custom-model-deployment.md](../model-lifecycle/custom-model-deployment.md) |
 | Custom Model Pipeline | [custom-model-pipeline.md](../model-lifecycle/custom-model-pipeline.md) |
-| Inference Gateway | [inference-gateway-routing.md](../inference-gateway/routing-strategy.md) |
+| Inference Gateway | [inference-gateway-routing.md](../../model-serving/inference-routing/routing-strategy.md) |

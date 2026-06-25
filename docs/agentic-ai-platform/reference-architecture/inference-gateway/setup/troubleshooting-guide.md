@@ -478,7 +478,7 @@ spec:
 
 ### Q1: kgateway vs Bifrost 차이?
 
-**A**: kgateway는 Kubernetes Gateway API 표준 구현체로 진입(L1) 트래픽 라우팅을 담당하고, Bifrost는 멀티 프로바이더 통합 + Cascade Routing + 거버넌스(L1, across-model)를 제공합니다. 일반적으로 `kgateway → Bifrost → vLLM` 순서로 연결합니다. KV-aware(L2, within-model) Pod 선택이 필요하면 Bifrost 대신/함께 [Inference Extension(InferencePool + EPP)](./advanced-features.md#inference-extension)을 구성합니다. 레이어 구분은 [라우팅 전략](../routing-strategy.md#두-개의-라우팅-레이어--반드시-구분) 참조.
+**A**: kgateway는 Kubernetes Gateway API 표준 구현체로 진입(L1) 트래픽 라우팅을 담당하고, Bifrost는 멀티 프로바이더 통합 + Cascade Routing + 거버넌스(L1, across-model)를 제공합니다. 일반적으로 `kgateway → Bifrost → vLLM` 순서로 연결합니다. KV-aware(L2, within-model) Pod 선택이 필요하면 Bifrost 대신/함께 [Inference Extension(InferencePool + EPP)](./advanced-features.md#inference-extension)을 구성합니다. 레이어 구분은 [라우팅 전략](../../../model-serving/inference-routing/routing-strategy.md#두-개의-라우팅-레이어--반드시-구분) 참조.
 
 ### Q2: config.json 변경 후 즉시 반영 안 됨
 
