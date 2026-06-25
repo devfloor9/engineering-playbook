@@ -49,16 +49,22 @@ const config = {
   onBrokenLinks: 'warn',
   onBrokenMarkdownLinks: 'warn',
 
+  // Leadfeeder(Dealfront) 트래커 — 방문 기업(B2B) 식별
+  scripts: [
+    {
+      src: 'https://sc.lfeeder.com/lftracker_v1_kn9Eq4R2Yor4RlvP.js',
+      async: true,
+    },
+  ],
+
   // Even if you don't use internationalization, you can use this field to set
-  // useful metadata like html lang. For example, if your site is Chinese, you
-  // may want to replace "en" with "zh-Hans".
+  // useful metadata like html lang.
   i18n: {
     defaultLocale: 'ko',
-    locales: ['ko', 'en', 'zh'],
+    locales: ['ko', 'en'],
     localeConfigs: {
       ko: { label: '한국어' },
       en: { label: 'English' },
-      zh: { label: '中文' },
     },
   },
 
@@ -83,6 +89,11 @@ const config = {
         blog: false,
         theme: {
           customCss: './src/css/custom.css',
+        },
+        // Google Analytics 4 — 방문 지역/언어/브라우저/인기 페이지/체류시간 분석
+        gtag: {
+          trackingID: 'G-GGY1689V3E',
+          anonymizeIP: true,
         },
         sitemap: {
           changefreq: 'weekly',
