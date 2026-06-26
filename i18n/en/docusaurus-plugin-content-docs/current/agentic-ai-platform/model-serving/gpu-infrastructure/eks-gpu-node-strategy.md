@@ -1,12 +1,11 @@
 ---
-title: "EKS GPU Node Strategy"
-sidebar_label: "EKS GPU Node Strategy"
-description: "Optimal node strategies for GPU workloads across EKS Auto Mode, Karpenter, MNG, and Hybrid Nodes"
-created: 2026-03-16
+title: EKS GPU Node Strategy
+description: Optimal node strategies for GPU workloads across EKS Auto Mode, Karpenter, MNG, and Hybrid Nodes
+created: "2026-03-16"
 last_update:
-  date: 2026-04-20
+  date: "2026-04-20"
   author: devfloor9
-reading_time: 25
+reading_time: 33
 tags:
   - eks
   - gpu
@@ -17,6 +16,7 @@ tags:
   - deployment
   - architecture
   - scope:tech
+sidebar_label: EKS GPU Node Strategy
 ---
 
 ## Overview

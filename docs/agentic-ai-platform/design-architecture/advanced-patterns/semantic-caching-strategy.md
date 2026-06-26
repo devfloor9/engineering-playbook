@@ -1,12 +1,11 @@
 ---
-title: "Semantic Caching 전략"
-sidebar_label: "Semantic Caching"
-description: "LLM Gateway 레벨 의미 기반 캐싱 전략과 구현 옵션 비교 (GPTCache, Redis Semantic Cache, Portkey, Helicone, Bifrost+Redis)"
-created: 2026-04-17
+title: Semantic Caching 전략
+description: LLM Gateway 레벨 의미 기반 캐싱 전략과 구현 옵션 비교 (GPTCache, Redis Semantic Cache, Portkey, Helicone, Bifrost+Redis)
+created: "2026-04-17"
 last_update:
-  date: 2026-04-20
+  date: "2026-04-20"
   author: devfloor9
-reading_time: 10
+reading_time: 18
 tags:
   - semantic-caching
   - caching
@@ -19,6 +18,7 @@ tags:
   - helicone
   - inference-gateway
   - scope:tech
+sidebar_label: Semantic Caching
 ---
 
 이 문서는 LLM 추론 파이프라인에서 **게이트웨이 레벨 의미 기반 캐싱(Semantic Caching)** 의 설계 원칙과 운영 고려사항을 다룹니다. 

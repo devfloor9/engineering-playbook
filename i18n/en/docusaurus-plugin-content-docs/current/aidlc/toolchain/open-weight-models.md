@@ -1,10 +1,13 @@
 ---
 title: Open-Weight Models
-sidebar_label: Open-Weight Models
 description: Open-weight model utilization strategies for data residency and cost optimization — on-premises deployment, hybrid configuration, TCO comparison
+created: "2026-04-07"
 last_update:
-  date: 2026-04-18
+  date: "2026-04-18"
   author: devfloor9
+reading_time: 18
+tags: []
+sidebar_label: Open-Weight Models
 ---
 
 # Open-Weight Models

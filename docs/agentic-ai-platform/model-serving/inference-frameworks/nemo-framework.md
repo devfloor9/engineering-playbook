@@ -1,12 +1,11 @@
 ---
-title: "NeMo 프레임워크"
-sidebar_label: "NeMo 프레임워크"
-description: "NVIDIA NeMo Framework의 분산 학습, 파인튜닝, TensorRT-LLM 변환 아키텍처"
-created: 2026-02-05
+title: NeMo 프레임워크
+description: NVIDIA NeMo Framework의 분산 학습, 파인튜닝, TensorRT-LLM 변환 아키텍처
+created: "2026-02-05"
 last_update:
-  date: 2026-04-20
+  date: "2026-04-20"
   author: devfloor9
-reading_time: 12
+reading_time: 9
 tags:
   - nemo
   - nvidia
@@ -17,6 +16,7 @@ tags:
   - distributed-training
   - training
   - scope:tech
+sidebar_label: NeMo 프레임워크
 sidebar_position: 7
 ---
 

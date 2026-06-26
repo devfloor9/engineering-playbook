@@ -1,11 +1,16 @@
 ---
-tags: [aidlc, operations, 'scope:ops']
-title: "AgenticOps"
-sidebar_label: "AgenticOps"
-description: "AIDLC로 개발한 소프트웨어의 AI 에이전트 기반 자율 운영 — 관찰성, 예측, 자동 대응"
+title: AgenticOps
+description: AIDLC로 개발한 소프트웨어의 AI 에이전트 기반 자율 운영 — 관찰성, 예측, 자동 대응
+created: "2026-04-07"
 last_update:
-  date: 2026-04-18
+  date: "2026-04-18"
   author: devfloor9
+reading_time: 3
+tags:
+  - aidlc
+  - operations
+  - scope:ops
+sidebar_label: AgenticOps
 ---
 
 # AgenticOps: AI 에이전트 기반 자율 운영

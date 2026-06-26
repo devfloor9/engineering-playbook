@@ -1,18 +1,18 @@
 ---
 title: Data Infrastructure
-sidebar_label: Data Infrastructure
 description: Operating vector databases, embedding stores, and data layer infrastructure for Agentic AI platforms
-created: 2026-04-20
+created: "2026-04-20"
 last_update:
-  date: 2026-04-20
+  date: "2026-04-20"
   author: devfloor9
-reading_time: 1
+reading_time: 2
 tags:
   - operations
   - data-infrastructure
   - vector-database
   - milvus
   - scope:nav
+sidebar_label: Data Infrastructure
 ---
 
 ## Overview

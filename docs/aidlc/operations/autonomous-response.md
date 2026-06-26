@@ -1,11 +1,16 @@
 ---
-tags: [aidlc, operations, 'scope:ops']
-title: "자율 대응"
-sidebar_label: "자율 대응"
-description: "AI Agent 기반 자율 인시던트 대응 — Strands/Kagent 통합, Chaos Engineering + AI, 온톨로지 피드백 루프"
+title: 자율 대응
+description: AI Agent 기반 자율 인시던트 대응 — Strands/Kagent 통합, Chaos Engineering + AI, 온톨로지 피드백 루프
+created: "2026-04-07"
 last_update:
-  date: 2026-04-18
+  date: "2026-04-18"
   author: devfloor9
+reading_time: 9
+tags:
+  - aidlc
+  - operations
+  - scope:ops
+sidebar_label: 자율 대응
 ---
 
 import { ResponsePatterns, ChaosExperiments } from '@site/src/components/PredictiveOpsTables';

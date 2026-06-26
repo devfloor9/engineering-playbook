@@ -1,13 +1,24 @@
 ---
-title: "AI Gateway Guardrails"
-sidebar_label: "AI Gateway Guardrails"
-description: "LLM Gateway-level Guardrails — PII redaction, prompt injection defense, content filtering, tool comparison, and Korean financial compliance mapping"
-created: 2026-04-17
+title: AI Gateway Guardrails
+description: LLM Gateway-level Guardrails — PII redaction, prompt injection defense, content filtering, tool comparison, and Korean financial compliance mapping
+created: "2026-04-17"
 last_update:
-  date: 2026-04-20
+  date: "2026-04-20"
   author: devfloor9
-reading_time: 12
-tags: [guardrails, pii, prompt-injection, safety, llm-security, compliance, ismsp, bedrock-guardrails, nemo-guardrails, llama-guard, 'scope:ops']
+reading_time: 36
+tags:
+  - guardrails
+  - pii
+  - prompt-injection
+  - safety
+  - llm-security
+  - compliance
+  - ismsp
+  - bedrock-guardrails
+  - nemo-guardrails
+  - llama-guard
+  - scope:ops
+sidebar_label: AI Gateway Guardrails
 ---
 
 In enterprise LLM platforms, Guardrails are **"a technology stack that places safety nets before and after the model."** Relying solely on the model's safety alignment cannot prevent **prompt injection**, **PII leaks**, and **tool misuse**. This document compares Guardrails tools implementable at the LLM gateway level and provides practical defense patterns and Korean financial compliance mapping.

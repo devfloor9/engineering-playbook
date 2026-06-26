@@ -1,12 +1,15 @@
 ---
-created: 2026-05-14
-title: "S8. 마케팅 동의·PII 가드레일 (AMWAY)"
-sidebar_label: "S8. Guardrails"
-description: "Bedrock Guardrails 4 토픽 + 직접판매 + 미성년 + 건기식 광고 가드"
+title: S8. 마케팅 동의·PII 가드레일 (AMWAY)
+description: Bedrock Guardrails 4 토픽 + 직접판매 + 미성년 + 건기식 광고 가드
+created: "2026-05-14"
 last_update:
-  date: 2026-05-14
-reading_time: 2
+  date: "2026-05-14"
+  author: YoungJoon Jeong
+reading_time: 1
+tags: []
+sidebar_label: S8. Guardrails
 ---
+
 # S8. 마케팅 동의·PII·미성년 가드레일 (AMWAY)
 
 ## 1. URL · 페르소나

@@ -1,12 +1,20 @@
 ---
-title: "CoreDNS Monitoring and Performance Optimization Complete Guide"
-sidebar_label: "CoreDNS Monitoring & Optimization"
-description: "Systematically monitor and optimize CoreDNS performance in Amazon EKS. Includes Prometheus metrics, TTL tuning, monitoring architecture, and real-world troubleshooting cases"
-tags: [eks, coredns, dns, monitoring, prometheus, performance]
-category: "performance-networking"
+title: CoreDNS Monitoring and Performance Optimization Complete Guide
+description: Systematically monitor and optimize CoreDNS performance in Amazon EKS. Includes Prometheus metrics, TTL tuning, monitoring architecture, and real-world troubleshooting cases
+created: "2026-02-04"
 last_update:
-  date: 2026-02-18
+  date: "2026-02-18"
   author: devfloor9
+reading_time: 15
+tags:
+  - eks
+  - coredns
+  - dns
+  - monitoring
+  - prometheus
+  - performance
+sidebar_label: CoreDNS Monitoring & Optimization
+category: performance-networking
 ---
 
 import { GoldenSignals, CoreDnsMetricsTable, TtlConfigGuide, MonitoringArchitecture, TroubleshootingTable, PerformanceBenchmarks } from '@site/src/components/CoreDnsTables';

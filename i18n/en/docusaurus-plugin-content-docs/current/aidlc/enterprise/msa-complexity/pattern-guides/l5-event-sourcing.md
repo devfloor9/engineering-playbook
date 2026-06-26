@@ -1,12 +1,19 @@
 ---
 title: "Level 5: Event Sourcing & CQRS"
+description: Application guide for Level 5 distributed transactions + CQRS + Event Sourcing patterns
+created: "2026-04-19"
+last_update:
+  date: "2026-04-18"
+  author: devfloor9
+reading_time: 4
+tags:
+  - msa
+  - aidlc
+  - event-sourcing
+  - cqrs
+  - scope:enterprise
 sidebar_label: "L5: Event Sourcing"
 sidebar_position: 3
-description: "Application guide for Level 5 distributed transactions + CQRS + Event Sourcing patterns"
-tags: [msa, aidlc, event-sourcing, cqrs, 'scope:enterprise']
-last_update:
-  date: 2026-04-18
-  author: devfloor9
 ---
 
 # Level 5: Event Sourcing & CQRS

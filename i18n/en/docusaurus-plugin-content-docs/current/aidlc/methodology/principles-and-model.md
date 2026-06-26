@@ -1,12 +1,20 @@
 ---
-title: "AIDLC 10 Principles and Execution Model"
-sidebar_label: "10 Principles and Execution Model"
-description: "Core philosophy of AIDLC and the Intent → Unit → Bolt execution model"
-category: "aidlc"
-tags: [aidlc, principles, intent, unit, bolt, methodology]
+title: AIDLC 10 Principles and Execution Model
+description: Core philosophy of AIDLC and the Intent → Unit → Bolt execution model
+created: "2026-04-07"
 last_update:
-  date: 2026-04-18
+  date: "2026-04-18"
   author: devfloor9
+reading_time: 24
+tags:
+  - aidlc
+  - principles
+  - intent
+  - unit
+  - bolt
+  - methodology
+sidebar_label: 10 Principles and Execution Model
+category: aidlc
 ---
 
 import { AidlcPrinciples, AidlcArtifacts, AidlcPhaseMapping, AidlcPhaseActivities } from '@site/src/components/AidlcTables';

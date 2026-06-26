@@ -1,11 +1,18 @@
 ---
 title: "PFR: EKS GPU 추론 인프라 개선 요청"
-sidebar_label: "PFR: GPU 추론"
-description: "대형 MoE 모델 배포 과정에서 발견한 EKS Auto Mode 제약 및 개선 요청"
-tags: [pfr, eks, gpu, auto-mode, dynamo]
+description: 대형 MoE 모델 배포 과정에서 발견한 EKS Auto Mode 제약 및 개선 요청
+created: "2026-04-04"
 last_update:
-  date: 2026-06-15
+  date: "2026-06-15"
   author: YoungJoon Jeong
+reading_time: 23
+tags:
+  - pfr
+  - eks
+  - gpu
+  - auto-mode
+  - dynamo
+sidebar_label: "PFR: GPU 추론"
 ---
 
 # PFR: EKS GPU 추론 인프라 개선 요청

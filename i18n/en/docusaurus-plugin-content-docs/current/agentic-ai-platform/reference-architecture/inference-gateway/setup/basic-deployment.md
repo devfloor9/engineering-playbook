@@ -1,13 +1,18 @@
 ---
-title: "Basic Deployment"
-sidebar_label: "1. Basic Deployment"
-description: "kgateway installation, HTTPRoute configuration, Bifrost Gateway Mode setup"
-created: 2026-04-18
+title: Basic Deployment
+description: kgateway installation, HTTPRoute configuration, Bifrost Gateway Mode setup
+created: "2026-04-18"
 last_update:
-  date: 2026-04-20
+  date: "2026-04-20"
   author: devfloor9
-reading_time: 1
-tags: [kgateway, bifrost, httproute, gateway-api, 'scope:impl']
+reading_time: 11
+tags:
+  - kgateway
+  - bifrost
+  - httproute
+  - gateway-api
+  - scope:impl
+sidebar_label: 1. Basic Deployment
 sidebar_position: 1
 ---
 

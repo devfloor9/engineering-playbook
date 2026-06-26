@@ -1,12 +1,11 @@
 ---
 title: Integrations & Cost
-sidebar_label: Integrations & Cost
 description: SageMaker hybrid integration, Observability stack deployment, and coding tools cost analysis
-created: 2026-04-20
+created: "2026-04-20"
 last_update:
-  date: 2026-04-20
+  date: "2026-04-20"
   author: devfloor9
-reading_time: 1
+reading_time: 2
 tags:
   - reference-architecture
   - integrations
@@ -14,6 +13,7 @@ tags:
   - cost-analysis
   - monitoring
   - scope:nav
+sidebar_label: Integrations & Cost
 ---
 
 ## Overview

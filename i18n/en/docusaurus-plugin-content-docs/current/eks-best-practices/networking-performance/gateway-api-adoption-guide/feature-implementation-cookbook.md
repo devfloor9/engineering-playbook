@@ -1,13 +1,20 @@
 ---
 title: "Feature Implementation Cookbook: 6 Gateway API Implementations"
-sidebar_label: "Feature Implementation Cookbook"
-description: "Reference for implementing authentication, rate limiting, IP control, URL rewrite, header manipulation, session affinity, body size limits, and custom error pages as YAML across AWS LBC, Cilium, NGINX GF, Envoy Gateway, and kGateway"
-tags: [eks, gateway-api, cilium, envoy, kong, networking]
-category: "performance-networking"
-created: 2026-06-17
+description: Reference for implementing authentication, rate limiting, IP control, URL rewrite, header manipulation, session affinity, body size limits, and custom error pages as YAML across AWS LBC, Cilium, NGINX GF, Envoy Gateway, and kGateway
+created: "2026-06-17"
 last_update:
-  date: 2026-06-17
+  date: "2026-06-17"
   author: devfloor9
+reading_time: 17
+tags:
+  - eks
+  - gateway-api
+  - cilium
+  - envoy
+  - kong
+  - networking
+sidebar_label: Feature Implementation Cookbook
+category: performance-networking
 ---
 
 import Tabs from '@theme/Tabs';

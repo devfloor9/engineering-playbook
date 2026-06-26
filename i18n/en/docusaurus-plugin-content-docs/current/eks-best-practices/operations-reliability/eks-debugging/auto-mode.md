@@ -1,11 +1,20 @@
 ---
 title: EKS Auto Mode Debugging
-sidebar_label: Auto Mode
 description: Debugging guide for EKS Auto Mode environments
-keywords: [EKS, Auto Mode, NodePool, NodeClaim, VPC CNI, Debugging]
+created: "2026-04-21"
 last_update:
-  date: 2026-04-07
+  date: "2026-04-07"
   author: devfloor9
+reading_time: 10
+tags: []
+keywords:
+  - EKS
+  - Auto Mode
+  - NodePool
+  - NodeClaim
+  - VPC CNI
+  - Debugging
+sidebar_label: Auto Mode
 ---
 
 # EKS Auto Mode Debugging

@@ -1,12 +1,20 @@
 ---
-title: "검증 방법론"
-sidebar_label: "검증 방법론"
-sidebar_position: 3
-description: "복잡 MSA에서 AIDLC 적용 시 품질을 보장하는 검증 방법"
-tags: [verification, testing, quality, aidlc, enterprise, 'scope:enterprise']
+title: 검증 방법론
+description: 복잡 MSA에서 AIDLC 적용 시 품질을 보장하는 검증 방법
+created: "2026-04-18"
 last_update:
-  date: 2026-04-18
+  date: "2026-04-18"
   author: devfloor9
+reading_time: 3
+tags:
+  - verification
+  - testing
+  - quality
+  - aidlc
+  - enterprise
+  - scope:enterprise
+sidebar_label: 검증 방법론
+sidebar_position: 3
 ---
 
 # 검증 방법론

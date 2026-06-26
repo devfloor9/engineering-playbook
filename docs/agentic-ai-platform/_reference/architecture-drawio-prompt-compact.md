@@ -1,8 +1,12 @@
 ---
-title: "Architecture Draw.io Prompt (Compact)"
-sidebar_label: "Draw.io Prompt (Compact)"
+title: Architecture Draw.io Prompt (Compact)
+created: "2026-04-06"
 last_update:
-  date: 2026-03-26
+  date: "2026-03-26"
+  author: YoungJoon Jeong
+reading_time: 1
+tags: []
+sidebar_label: Draw.io Prompt (Compact)
 ---
 
 # LG U+ Agentic AI Platform - Compact Draw.io Prompt

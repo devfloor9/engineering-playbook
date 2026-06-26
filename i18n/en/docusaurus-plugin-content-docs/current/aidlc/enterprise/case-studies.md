@@ -1,10 +1,13 @@
 ---
-title: "Case Studies"
-sidebar_label: "Case Studies"
-description: "AIDLC Enterprise Adoption Case Studies — Anonymized real-world cases, quantitative before/after metrics, failure patterns and lessons learned"
+title: Case Studies
+description: AIDLC Enterprise Adoption Case Studies — Anonymized real-world cases, quantitative before/after metrics, failure patterns and lessons learned
+created: "2026-04-07"
 last_update:
-  date: 2026-04-18
+  date: "2026-04-18"
   author: devfloor9
+reading_time: 32
+tags: []
+sidebar_label: Case Studies
 ---
 
 # AIDLC Case Studies

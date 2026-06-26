@@ -1,13 +1,21 @@
 ---
-title: "Coding Tool Integration & Cost Analysis"
-sidebar_label: "Cost & IDE"
-description: "Aider, Cline, Continue.dev integration + Bedrock vs Kiro vs self-hosting cost comparison"
-created: 2026-04-06
+title: Coding Tool Integration & Cost Analysis
+description: Aider, Cline, Continue.dev integration + Bedrock vs Kiro vs self-hosting cost comparison
+created: "2026-04-06"
 last_update:
-  date: 2026-04-20
+  date: "2026-04-20"
   author: devfloor9
-reading_time: 1
-tags: [aider, cline, cursor, cost-analysis, kiro, bedrock, bifrost, 'scope:impl']
+reading_time: 23
+tags:
+  - aider
+  - cline
+  - cursor
+  - cost-analysis
+  - kiro
+  - bedrock
+  - bifrost
+  - scope:impl
+sidebar_label: Cost & IDE
 ---
 
 ## Overview

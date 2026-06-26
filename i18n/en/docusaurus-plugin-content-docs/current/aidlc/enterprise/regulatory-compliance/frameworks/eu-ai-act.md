@@ -1,11 +1,18 @@
 ---
-title: "EU AI Act — High-Risk AI System Regulation"
-sidebar_label: "EU AI Act"
-description: "EU AI Act risk classification, High-risk AI obligations, GPAI provider duties, and AIDLC integration guide"
-tags: [eu-ai-act, compliance, high-risk-ai, gpai, 'scope:enterprise']
+title: EU AI Act — High-Risk AI System Regulation
+description: EU AI Act risk classification, High-risk AI obligations, GPAI provider duties, and AIDLC integration guide
+created: "2026-04-19"
 last_update:
-  date: 2026-04-18
+  date: "2026-04-18"
   author: devfloor9
+reading_time: 8
+tags:
+  - eu-ai-act
+  - compliance
+  - high-risk-ai
+  - gpai
+  - scope:enterprise
+sidebar_label: EU AI Act
 ---
 
 # EU AI Act (2024-2027)

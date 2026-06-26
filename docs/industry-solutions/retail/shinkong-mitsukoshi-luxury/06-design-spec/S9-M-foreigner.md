@@ -1,12 +1,15 @@
 ---
-created: 2026-05-14
-title: "S9-M. 외국인 관광객 행동 분석 + 면세 추천 (Mitsukoshi 특화)"
-sidebar_label: "S9-M. Foreigner Tax Refund"
-description: "여권·국적·환율·관광 결합 외국인 면세 추천 시스템"
+title: S9-M. 외국인 관광객 행동 분석 + 면세 추천 (Mitsukoshi 특화)
+description: 여권·국적·환율·관광 결합 외국인 면세 추천 시스템
+created: "2026-05-14"
 last_update:
-  date: 2026-05-14
+  date: "2026-05-14"
+  author: YoungJoon Jeong
 reading_time: 2
+tags: []
+sidebar_label: S9-M. Foreigner Tax Refund
 ---
+
 # S9-M. 외국인 관광객 행동 분석 + 면세 추천
 
 > **Mitsukoshi 차별 포인트** ⭐ — 백화점 매출의 큰 비중을 차지하는 외국인 관광객(특히 일본)을 국적·환율·관광 데이터로 분석.

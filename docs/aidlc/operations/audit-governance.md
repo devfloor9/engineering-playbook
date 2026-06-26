@@ -1,13 +1,21 @@
 ---
-title: "Audit & Governance Logging"
-sidebar_label: "Audit & Governance"
-description: "AIDLC Checkpoint Approval 게이트와 ISO 8601 기반 감사 로그 — 규제 산업을 위한 AIDLC 감사 추적 구현 가이드"
-sidebar_position: 4
-category: "aidlc"
-tags: [aidlc, audit, governance, logging, compliance, 'scope:ops']
+title: Audit & Governance Logging
+description: AIDLC Checkpoint Approval 게이트와 ISO 8601 기반 감사 로그 — 규제 산업을 위한 AIDLC 감사 추적 구현 가이드
+created: "2026-04-18"
 last_update:
-  date: 2026-04-18
+  date: "2026-04-18"
   author: devfloor9
+reading_time: 8
+tags:
+  - aidlc
+  - audit
+  - governance
+  - logging
+  - compliance
+  - scope:ops
+sidebar_label: Audit & Governance
+sidebar_position: 4
+category: aidlc
 ---
 
 # Audit & Governance Logging

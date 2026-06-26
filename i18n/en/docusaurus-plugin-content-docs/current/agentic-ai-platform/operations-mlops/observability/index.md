@@ -1,18 +1,18 @@
 ---
 title: Observability & Monitoring
-sidebar_label: Observability
 description: Documentation covering Agent execution tracing, LLM call monitoring, and agent lifecycle observability
-created: 2026-04-20
+created: "2026-04-20"
 last_update:
-  date: 2026-04-20
+  date: "2026-04-20"
   author: devfloor9
-reading_time: 1
+reading_time: 2
 tags:
   - operations
   - observability
   - monitoring
   - langfuse
   - scope:nav
+sidebar_label: Observability
 ---
 
 ## Overview

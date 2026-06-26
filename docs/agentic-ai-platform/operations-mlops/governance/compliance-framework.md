@@ -1,13 +1,20 @@
 ---
-title: "엔터프라이즈 컴플라이언스 프레임워크"
-sidebar_label: "컴플라이언스"
-description: "SOC2, ISO27001, 전자금융감독규정, ISMS-P를 AI 운영에 매핑하는 컴플라이언스 가이드"
-tags: [compliance, soc2, iso27001, isms-p, audit, security, 'scope:ops']
-created: 2026-04-04
+title: 엔터프라이즈 컴플라이언스 프레임워크
+description: SOC2, ISO27001, 전자금융감독규정, ISMS-P를 AI 운영에 매핑하는 컴플라이언스 가이드
+created: "2026-04-04"
 last_update:
-  date: 2026-04-20
+  date: "2026-04-20"
   author: devfloor9
-reading_time: 7
+reading_time: 9
+tags:
+  - compliance
+  - soc2
+  - iso27001
+  - isms-p
+  - audit
+  - security
+  - scope:ops
+sidebar_label: 컴플라이언스
 ---
 
 AI 플랫폼을 엔터프라이즈 환경에서 운영할 때 반드시 준수해야 하는 컴플라이언스 프레임워크와 실전 매핑 가이드를 제공합니다.

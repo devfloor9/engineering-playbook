@@ -1,12 +1,15 @@
 ---
-created: 2026-05-14
-title: "S10-M. 럭셔리 브랜드 SOV + 매대 점유 (Mitsukoshi 특화)"
-sidebar_label: "S10-M. Brand SOV"
-description: "입점 700+ 브랜드 × 19점포 × 시즌 매대 점유 분석"
+title: S10-M. 럭셔리 브랜드 SOV + 매대 점유 (Mitsukoshi 특화)
+description: 입점 700+ 브랜드 × 19점포 × 시즌 매대 점유 분석
+created: "2026-05-14"
 last_update:
-  date: 2026-05-14
+  date: "2026-05-14"
+  author: YoungJoon Jeong
 reading_time: 2
+tags: []
+sidebar_label: S10-M. Brand SOV
 ---
+
 # S10-M. 럭셔리 브랜드 SOV + 백화점 매대 점유
 
 > **Mitsukoshi 차별 포인트** ⭐ — 700+ 입점 브랜드의 매대 점유와 SOV(Share of Voice)를 19점포·층·시즌 단위로 분석.

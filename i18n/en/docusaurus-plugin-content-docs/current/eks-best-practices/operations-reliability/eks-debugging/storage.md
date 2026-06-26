@@ -1,11 +1,19 @@
 ---
-title: "Storage Debugging"
-sidebar_label: "Storage"
-description: "Guide to diagnosing EKS storage issues - EBS/EFS CSI Driver, PVC mount failures"
-tags: [eks, kubernetes, storage, ebs, efs, pvc]
+title: Storage Debugging
+description: Guide to diagnosing EKS storage issues - EBS/EFS CSI Driver, PVC mount failures
+created: "2026-04-21"
 last_update:
-  date: 2026-04-07
+  date: "2026-04-07"
   author: devfloor9
+reading_time: 8
+tags:
+  - eks
+  - kubernetes
+  - storage
+  - ebs
+  - efs
+  - pvc
+sidebar_label: Storage
 ---
 
 # Storage Debugging

@@ -1,12 +1,11 @@
 ---
-title: "AWS Neuron Stack — Trainium2/Inferentia2 on EKS"
-sidebar_label: "AWS Neuron Stack"
-description: "EKS 위에서 AWS 커스텀 AI 가속기(Trainium2/Inferentia2)를 운영하기 위한 Neuron SDK, Device Plugin, NxD Inference 가이드"
-created: 2026-04-17
+title: AWS Neuron Stack — Trainium2/Inferentia2 on EKS
+description: EKS 위에서 AWS 커스텀 AI 가속기(Trainium2/Inferentia2)를 운영하기 위한 Neuron SDK, Device Plugin, NxD Inference 가이드
+created: "2026-04-17"
 last_update:
-  date: 2026-06-15
+  date: "2026-06-15"
   author: devfloor9
-reading_time: 17
+reading_time: 22
 tags:
   - trainium2
   - inferentia2
@@ -17,6 +16,7 @@ tags:
   - nxd-inference
   - inference
   - scope:tech
+sidebar_label: AWS Neuron Stack
 ---
 
 AWS Neuron은 AWS가 설계한 AI 가속기(Trainium, Inferentia) 위에서 학습·추론 워크로드를 실행하기 위한 소프트웨어 스택입니다. NVIDIA의 CUDA + GPU Operator 조합이 NVIDIA GPU 상에서 수행하는 역할과 유사하게, Neuron SDK + Neuron Device Plugin 이 EKS 위에서 Trainium/Inferentia 칩을 Kubernetes 리소스로 추상화합니다.

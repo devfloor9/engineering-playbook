@@ -1,12 +1,11 @@
 ---
-title: "Agentic AI Platform 아키텍처"
-sidebar_label: "플랫폼 아키텍처"
-description: "프로덕션급 Agentic AI 플랫폼의 전체 시스템 아키텍처 — 6개 런타임 레이어와 3개 횡단 플레인 설계"
-created: 2026-02-05
+title: Agentic AI Platform 아키텍처
+description: 프로덕션급 Agentic AI 플랫폼의 전체 시스템 아키텍처 — 6개 런타임 레이어와 3개 횡단 플레인 설계
+created: "2026-02-05"
 last_update:
-  date: 2026-06-13
+  date: "2026-06-13"
   author: devfloor9
-reading_time: 16
+reading_time: 36
 tags:
   - architecture
   - agentic-ai
@@ -14,8 +13,9 @@ tags:
   - kubernetes
   - mlops
   - scope:design
-category: "genai-aiml"
+sidebar_label: 플랫폼 아키텍처
 sidebar_position: 1
+category: genai-aiml
 ---
 
 import { LayerRoles, TenantIsolation, RequestProcessing } from '@site/src/components/ArchitectureTables';

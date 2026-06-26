@@ -50,10 +50,15 @@ const config = {
   onBrokenMarkdownLinks: 'warn',
 
   // Leadfeeder(Dealfront) 트래커 — 방문 기업(B2B) 식별
-  scripts: [
+  // 공식 인라인 스니펫(ldfdr 부트스트랩 포함)으로 설치해야 Leadfeeder 감지기가 인식한다.
+  headTags: [
     {
-      src: 'https://sc.lfeeder.com/lftracker_v1_kn9Eq4R2Yor4RlvP.js',
-      async: true,
+      tagName: 'script',
+      attributes: {
+        type: 'text/javascript',
+      },
+      innerHTML:
+        "(function(ss,ex){ window.ldfdr=window.ldfdr||function(){(ldfdr._q=ldfdr._q||[]).push([].slice.call(arguments));}; (function(d,s){ fs=d.getElementsByTagName(s)[0]; function ce(src){ var cs=d.createElement(s); cs.src=src; cs.async=1; fs.parentNode.insertBefore(cs,fs); }; ce('https://sc.lfeeder.com/lftracker_v1_'+ss+(ex?'_'+ex:'')+'.js'); })(document,'script'); })('kn9Eq4R2Yor4RlvP');",
     },
   ],
 

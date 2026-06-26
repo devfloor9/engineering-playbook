@@ -1,11 +1,20 @@
 ---
-title: "Deployment Strategies — Shadow·Canary·A/B·Blue-Green"
-sidebar_label: "Deployment Strategies"
-description: "Progressive model replacement strategies and Feature Flag-based prompt rollout approaches"
-tags: [deployment, canary, shadow, ab-test, blue-green, feature-flag, 'scope:enterprise']
+title: Deployment Strategies — Shadow·Canary·A/B·Blue-Green
+description: Progressive model replacement strategies and Feature Flag-based prompt rollout approaches
+created: "2026-04-19"
 last_update:
-  date: 2026-04-18
+  date: "2026-04-18"
   author: devfloor9
+reading_time: 13
+tags:
+  - deployment
+  - canary
+  - shadow
+  - ab-test
+  - blue-green
+  - feature-flag
+  - scope:enterprise
+sidebar_label: Deployment Strategies
 ---
 
 # Deployment Strategies

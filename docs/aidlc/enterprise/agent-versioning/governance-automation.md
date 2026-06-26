@@ -1,11 +1,19 @@
 ---
-title: "거버넌스·자동화"
-sidebar_label: "거버넌스·자동화"
-description: "회귀 감지, 자동 롤백, 승인 워크플로, 감사 증빙, AIDLC 단계별 활용 방안"
-tags: [governance, automation, rollback, audit, regression-detection, 'scope:enterprise']
+title: 거버넌스·자동화
+description: 회귀 감지, 자동 롤백, 승인 워크플로, 감사 증빙, AIDLC 단계별 활용 방안
+created: "2026-04-18"
 last_update:
-  date: 2026-04-18
+  date: "2026-04-18"
   author: devfloor9
+reading_time: 5
+tags:
+  - governance
+  - automation
+  - rollback
+  - audit
+  - regression-detection
+  - scope:enterprise
+sidebar_label: 거버넌스·자동화
 ---
 
 # 거버넌스·자동화

@@ -1,12 +1,15 @@
 ---
-created: 2026-05-14
-title: "데이터 소스 (자사 + 외부 4종)"
-sidebar_label: "04. Data Sources"
-description: "PII 마스킹 자사 데이터 + 합성 50K + 외부 4종 명세 및 cohort_tag 분리 전략"
+title: 데이터 소스 (자사 + 외부 4종)
+description: PII 마스킹 자사 데이터 + 합성 50K + 외부 4종 명세 및 cohort_tag 분리 전략
+created: "2026-05-14"
 last_update:
-  date: 2026-05-14
-reading_time: 9
+  date: "2026-05-14"
+  author: YoungJoon Jeong
+reading_time: 5
+tags: []
+sidebar_label: 04. Data Sources
 ---
+
 # 데이터 소스
 
 > **자사 실데이터 (PII 마스킹) + 합성 데이터 + 외부 4종 (소셜·기상·경제·경쟁사)** 를 cohort_tag로 명시 분리.

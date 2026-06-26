@@ -1,12 +1,11 @@
 ---
-title: "MoE Model Serving Concept Guide"
-sidebar_label: "MoE Model Serving"
-description: "Architecture concepts, distributed deployment strategies, and performance optimization principles for Mixture of Experts models"
-created: 2026-02-05
+title: MoE Model Serving Concept Guide
+description: Architecture concepts, distributed deployment strategies, and performance optimization principles for Mixture of Experts models
+created: "2026-02-05"
 last_update:
-  date: 2026-04-20
+  date: "2026-04-20"
   author: devfloor9
-reading_time: 15
+reading_time: 21
 tags:
   - eks
   - moe
@@ -17,8 +16,9 @@ tags:
   - inference
   - architecture
   - scope:tech
-category: "genai-aiml"
+sidebar_label: MoE Model Serving
 sidebar_position: 5
+category: genai-aiml
 ---
 
 import { RoutingMechanisms, MoeVsDense, GpuMemoryRequirements, ParallelizationStrategies, TensorParallelismConfig, VllmVsTgi, KvCacheConfig, BatchOptimization, MonitoringMetrics, GpuVsTrainium2 } from '@site/src/components/MoeModelTables';

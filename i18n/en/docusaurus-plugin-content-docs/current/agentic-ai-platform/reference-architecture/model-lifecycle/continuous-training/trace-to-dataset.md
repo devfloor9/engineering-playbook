@@ -1,12 +1,11 @@
 ---
-title: "Trace → Dataset Materializer"
-sidebar_label: "Trace to Dataset"
-description: "Load Langfuse OTel traces into S3 Parquet/Iceberg and automatically construct GRPO/DPO training datasets by labeling rewards with Ragas + LLM Judge Fleet."
-created: 2026-04-18
+title: Trace → Dataset Materializer
+description: Load Langfuse OTel traces into S3 Parquet/Iceberg and automatically construct GRPO/DPO training datasets by labeling rewards with Ragas + LLM Judge Fleet.
+created: "2026-04-18"
 last_update:
-  date: 2026-04-20
+  date: "2026-04-20"
   author: devfloor9
-reading_time: 10
+reading_time: 8
 tags:
   - continuous-training
   - langfuse
@@ -14,6 +13,7 @@ tags:
   - evaluation
   - s3
   - scope:impl
+sidebar_label: Trace to Dataset
 sidebar_position: 2
 ---
 

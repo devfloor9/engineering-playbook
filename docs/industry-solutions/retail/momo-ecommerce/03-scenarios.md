@@ -1,12 +1,15 @@
 ---
-created: 2026-05-14
-title: "11 시나리오 매핑 (Momo)"
-sidebar_label: "03. Scenarios"
-description: "공통 8 + Momo 특화 3 (라이브 어트리뷰션·배송 SLA·추천 다양성)"
+title: 11 시나리오 매핑 (Momo)
+description: 공통 8 + Momo 특화 3 (라이브 어트리뷰션·배송 SLA·추천 다양성)
+created: "2026-05-14"
 last_update:
-  date: 2026-05-14
+  date: "2026-05-14"
+  author: YoungJoon Jeong
 reading_time: 1
+tags: []
+sidebar_label: 03. Scenarios
 ---
+
 # 11 시나리오 매핑 (Momo)
 
 | # | 시나리오 | URL | 주 페르소나 |

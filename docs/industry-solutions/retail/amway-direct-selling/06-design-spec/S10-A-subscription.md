@@ -1,12 +1,15 @@
 ---
-created: 2026-05-14
-title: "S10-A. 정기구독 라이프타임 분석 (AMWAY 특화)"
-sidebar_label: "S10-A. Subscription"
-description: "정기구독 state machine + 해지 시그너처 탐지 + 자동 회복 캠페인"
+title: S10-A. 정기구독 라이프타임 분석 (AMWAY 특화)
+description: 정기구독 state machine + 해지 시그너처 탐지 + 자동 회복 캠페인
+created: "2026-05-14"
 last_update:
-  date: 2026-05-14
+  date: "2026-05-14"
+  author: YoungJoon Jeong
 reading_time: 3
+tags: []
+sidebar_label: S10-A. Subscription
 ---
+
 # S10-A. 정기구독(Subscription) 라이프타임 분석
 
 > **AMWAY 차별 포인트** ⭐ — Nutrilite·Artistry 정기구독은 AMWAY 매출의 핵심. 가입→갱신→일시정지→해지 state machine과 해지 위험 시그너처를 자동 탐지.

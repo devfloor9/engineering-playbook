@@ -1,13 +1,23 @@
 ---
-title: "Agentic AI Platform"
-sidebar_label: "Agentic AI Platform"
-description: "In-depth technical documentation on the architecture, deployment, and operations of the Agentic AI Platform"
-tags: [eks, kubernetes, genai, agentic-ai, gpu, llm, platform, 'scope:nav']
-category: "genai-aiml"
-sidebar_position: 3
+title: Agentic AI Platform
+description: In-depth technical documentation on the architecture, deployment, and operations of the Agentic AI Platform
+created: "2026-02-04"
 last_update:
-  date: 2026-04-17
+  date: "2026-04-17"
   author: devfloor9
+reading_time: 6
+tags:
+  - eks
+  - kubernetes
+  - genai
+  - agentic-ai
+  - gpu
+  - llm
+  - platform
+  - scope:nav
+sidebar_label: Agentic AI Platform
+sidebar_position: 3
+category: genai-aiml
 ---
 
 import { DocCard, DocCardGrid } from '@site/src/components/DocCards';

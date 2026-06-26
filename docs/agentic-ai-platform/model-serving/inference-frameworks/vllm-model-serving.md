@@ -1,12 +1,11 @@
 ---
-title: "vLLM 모델 서빙"
-sidebar_label: "vLLM 모델 서빙"
-description: "vLLM의 PagedAttention, 병렬화 전략, Multi-LoRA, 하드웨어 지원 아키텍처"
-created: 2026-02-05
+title: vLLM 모델 서빙
+description: vLLM의 PagedAttention, 병렬화 전략, Multi-LoRA, 하드웨어 지원 아키텍처
+created: "2026-02-05"
 last_update:
-  date: 2026-06-15
+  date: "2026-06-15"
   author: devfloor9
-reading_time: 21
+reading_time: 20
 tags:
   - vllm
   - paged-attention
@@ -18,6 +17,7 @@ tags:
   - gpu
   - optimization
   - scope:tech
+sidebar_label: vLLM 모델 서빙
 ---
 
 import ComparisonTable from '@site/src/components/tables/ComparisonTable';

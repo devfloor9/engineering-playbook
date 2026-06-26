@@ -1,12 +1,19 @@
 ---
 title: "Level 5: Event Sourcing & CQRS"
+description: Level 5 분산 트랜잭션 + CQRS + Event Sourcing 패턴 적용 가이드
+created: "2026-04-18"
+last_update:
+  date: "2026-04-18"
+  author: devfloor9
+reading_time: 2
+tags:
+  - msa
+  - aidlc
+  - event-sourcing
+  - cqrs
+  - scope:enterprise
 sidebar_label: "L5: Event Sourcing"
 sidebar_position: 3
-description: "Level 5 분산 트랜잭션 + CQRS + Event Sourcing 패턴 적용 가이드"
-tags: [msa, aidlc, event-sourcing, cqrs, 'scope:enterprise']
-last_update:
-  date: 2026-04-18
-  author: devfloor9
 ---
 
 # Level 5: Event Sourcing & CQRS

@@ -1,11 +1,18 @@
 ---
-title: "NIST AI RMF — U.S. Federal AI Risk Management Framework"
-sidebar_label: "NIST AI RMF"
-description: "NIST AI Risk Management Framework 1.1's 4 Functions (GOVERN/MAP/MEASURE/MANAGE) and AIDLC integration guide"
-tags: [nist, ai-rmf, compliance, federal, 'scope:enterprise']
+title: NIST AI RMF — U.S. Federal AI Risk Management Framework
+description: NIST AI Risk Management Framework 1.1's 4 Functions (GOVERN/MAP/MEASURE/MANAGE) and AIDLC integration guide
+created: "2026-04-19"
 last_update:
-  date: 2026-04-18
+  date: "2026-04-18"
   author: devfloor9
+reading_time: 8
+tags:
+  - nist
+  - ai-rmf
+  - compliance
+  - federal
+  - scope:enterprise
+sidebar_label: NIST AI RMF
 ---
 
 # NIST AI RMF 1.1 (Risk Management Framework)

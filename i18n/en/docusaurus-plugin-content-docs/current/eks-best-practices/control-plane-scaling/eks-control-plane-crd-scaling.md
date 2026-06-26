@@ -1,12 +1,22 @@
 ---
-title: "EKS Control Plane Deep Dive — CRD at Scale Comprehensive Guide"
-sidebar_label: "Control Plane & CRD Scaling"
-description: "Understand EKS Control Plane internals and learn Provisioned Control Plane usage, monitoring strategies, and CRD design best practices for stable scaling of CRD-based platforms"
-tags: [eks, kubernetes, control-plane, crd, etcd, scaling, monitoring, best-practices]
-sidebar_position: 1
+title: EKS Control Plane Deep Dive — CRD at Scale Comprehensive Guide
+description: Understand EKS Control Plane internals and learn Provisioned Control Plane usage, monitoring strategies, and CRD design best practices for stable scaling of CRD-based platforms
+created: "2026-03-24"
 last_update:
-  date: 2026-03-24
+  date: "2026-03-24"
   author: devfloor9
+reading_time: 13
+tags:
+  - eks
+  - kubernetes
+  - control-plane
+  - crd
+  - etcd
+  - scaling
+  - monitoring
+  - best-practices
+sidebar_label: Control Plane & CRD Scaling
+sidebar_position: 1
 ---
 
 # EKS Control Plane Deep Dive — CRD at Scale Comprehensive Guide

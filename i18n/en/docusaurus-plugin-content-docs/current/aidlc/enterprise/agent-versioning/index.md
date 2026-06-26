@@ -1,11 +1,18 @@
 ---
-title: "Agent Versioning & Change Management"
-sidebar_label: "Agent Versioning"
-description: "Integrated change management system for enterprise agent prompts, models, deployment strategies, and governance"
-tags: [agent-versioning, prompt-registry, canary, feature-flag, 'scope:enterprise']
+title: Agent Versioning & Change Management
+description: Integrated change management system for enterprise agent prompts, models, deployment strategies, and governance
+created: "2026-04-19"
 last_update:
-  date: 2026-04-18
+  date: "2026-04-18"
   author: devfloor9
+reading_time: 8
+tags:
+  - agent-versioning
+  - prompt-registry
+  - canary
+  - feature-flag
+  - scope:enterprise
+sidebar_label: Agent Versioning
 ---
 
 # Agent Change Management

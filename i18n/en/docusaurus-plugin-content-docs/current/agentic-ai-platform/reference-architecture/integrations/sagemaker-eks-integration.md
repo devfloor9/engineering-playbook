@@ -1,15 +1,23 @@
 ---
-title: "SageMaker-EKS Hybrid ML Architecture"
-sidebar_label: "SageMaker-EKS Integration"
-description: "A hybrid ML architecture that trains on SageMaker and serves on EKS"
-created: 2026-02-11
+title: SageMaker-EKS Hybrid ML Architecture
+description: A hybrid ML architecture that trains on SageMaker and serves on EKS
+created: "2026-02-11"
 last_update:
-  date: 2026-04-20
+  date: "2026-04-20"
   author: devfloor9
-reading_time: 1
+reading_time: 8
+tags:
+  - sagemaker
+  - eks
+  - hybrid
+  - mlops
+  - model-registry
+  - training
+  - inference
+  - scope:impl
+sidebar_label: SageMaker-EKS Integration
 sidebar_position: 4
-category: "genai-aiml"
-tags: [sagemaker, eks, hybrid, mlops, model-registry, training, inference, 'scope:impl']
+category: genai-aiml
 ---
 
 import SpecificationTable from '@site/src/components/tables/SpecificationTable';

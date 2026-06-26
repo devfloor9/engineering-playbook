@@ -1,11 +1,21 @@
 ---
-title: "EKS API Server Authentication/Authorization Guide"
-sidebar_label: "API Server AuthN/AuthZ"
-description: "Authentication/Authorization best practices for Non-Standard Callers (CI/CD, monitoring, automation) accessing the EKS API Server"
-tags: [eks, security, authentication, authorization, access-entry, pod-identity, oidc, rbac]
+title: EKS API Server Authentication/Authorization Guide
+description: Authentication/Authorization best practices for Non-Standard Callers (CI/CD, monitoring, automation) accessing the EKS API Server
+created: "2026-03-24"
 last_update:
-  date: 2026-03-24
+  date: "2026-03-24"
   author: devfloor9
+reading_time: 6
+tags:
+  - eks
+  - security
+  - authentication
+  - authorization
+  - access-entry
+  - pod-identity
+  - oidc
+  - rbac
+sidebar_label: API Server AuthN/AuthZ
 ---
 
 # EKS API Server Authentication/Authorization Guide

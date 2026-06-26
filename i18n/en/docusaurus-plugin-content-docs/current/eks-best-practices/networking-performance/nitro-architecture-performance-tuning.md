@@ -1,12 +1,11 @@
 ---
-title: "AWS Nitro Architecture and Performance Tuning"
-sidebar_label: "Nitro Architecture & Tuning"
-description: "AWS Nitro System components, per-generation (v2–v6) networking changes, ENA driver/kernel requirements on EKS nodes, and PPS/CPS-focused performance tuning strategies"
-created: 2026-06-19
+title: AWS Nitro Architecture and Performance Tuning
+description: AWS Nitro System components, per-generation (v2–v6) networking changes, ENA driver/kernel requirements on EKS nodes, and PPS/CPS-focused performance tuning strategies
+created: "2026-06-19"
 last_update:
-  date: 2026-06-20
+  date: "2026-06-20"
   author: devfloor9
-reading_time: 14
+reading_time: 23
 tags:
   - eks
   - networking
@@ -19,6 +18,7 @@ keywords:
   - ENA Express
   - PPS
   - conntrack
+sidebar_label: Nitro Architecture & Tuning
 ---
 
 # AWS Nitro Architecture and Performance Tuning

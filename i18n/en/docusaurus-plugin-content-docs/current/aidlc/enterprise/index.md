@@ -1,11 +1,16 @@
 ---
 title: AIDLC Enterprise Adoption
-sidebar_label: AIDLC Enterprise Adoption
 description: AIDLC Enterprise Adoption — Organizational transformation, cost estimation, governance, and case studies
-tags: [aidlc, enterprise, 'scope:enterprise']
+created: "2026-04-07"
 last_update:
-  date: 2026-04-18
+  date: "2026-04-18"
   author: devfloor9
+reading_time: 5
+tags:
+  - aidlc
+  - enterprise
+  - scope:enterprise
+sidebar_label: AIDLC Enterprise Adoption
 ---
 
 # AIDLC Enterprise Adoption

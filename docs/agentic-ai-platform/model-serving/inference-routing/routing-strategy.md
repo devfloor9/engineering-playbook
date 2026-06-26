@@ -1,11 +1,26 @@
 ---
-title: "추론 게이트웨이 & LLM Gateway 라우팅 전략"
-sidebar_label: "게이트웨이 라우팅 전략"
-description: "kgateway + Bifrost/LiteLLM 2-Tier 아키텍처와 Cascade Routing, Semantic Router, Hybrid Routing 설계 패턴"
-tags: [kgateway, bifrost, litellm, gateway-api, agentgateway, cascade-routing, semantic-caching, vllm-semantic-router, epp, hyperpod-inference-operator, kong, kv-cache-aware-routing, 'scope:impl']
+title: 추론 게이트웨이 & LLM Gateway 라우팅 전략
+description: kgateway + Bifrost/LiteLLM 2-Tier 아키텍처와 Cascade Routing, Semantic Router, Hybrid Routing 설계 패턴
+created: "2026-02-05"
 last_update:
-  date: 2026-06-23
+  date: "2026-06-23"
   author: YoungJoon Jeong
+reading_time: 44
+tags:
+  - kgateway
+  - bifrost
+  - litellm
+  - gateway-api
+  - agentgateway
+  - cascade-routing
+  - semantic-caching
+  - vllm-semantic-router
+  - epp
+  - hyperpod-inference-operator
+  - kong
+  - kv-cache-aware-routing
+  - scope:impl
+sidebar_label: 게이트웨이 라우팅 전략
 ---
 
 # 추론 게이트웨이 & LLM Gateway 라우팅 전략

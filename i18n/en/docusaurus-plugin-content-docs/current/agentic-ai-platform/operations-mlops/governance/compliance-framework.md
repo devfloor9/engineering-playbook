@@ -1,13 +1,20 @@
 ---
-title: "Enterprise Compliance Framework"
-sidebar_label: "Compliance"
-description: "Compliance guide mapping SOC2, ISO27001, Electronic Financial Supervisory Regulation (전자금융감독규정), and ISMS-P to AI operations"
-tags: [compliance, soc2, iso27001, isms-p, audit, security, 'scope:ops']
-created: 2026-04-04
+title: Enterprise Compliance Framework
+description: Compliance guide mapping SOC2, ISO27001, Electronic Financial Supervisory Regulation (전자금융감독규정), and ISMS-P to AI operations
+created: "2026-04-04"
 last_update:
-  date: 2026-04-20
+  date: "2026-04-20"
   author: devfloor9
-reading_time: 7
+reading_time: 16
+tags:
+  - compliance
+  - soc2
+  - iso27001
+  - isms-p
+  - audit
+  - security
+  - scope:ops
+sidebar_label: Compliance
 ---
 
 Provides compliance frameworks and practical mapping guides that must be followed when operating AI platforms in enterprise environments.

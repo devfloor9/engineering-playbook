@@ -1,12 +1,11 @@
 ---
-title: "Model Serving & Inference Infrastructure"
-sidebar_label: "Model Serving & Inference Infrastructure"
-description: "Model serving guide divided into GPU infrastructure layer and inference/training framework layer"
-created: 2026-03-06
+title: Model Serving & Inference Infrastructure
+description: Model serving guide divided into GPU infrastructure layer and inference/training framework layer
+created: "2026-03-06"
 last_update:
-  date: 2026-04-20
+  date: "2026-04-20"
   author: devfloor9
-reading_time: 1
+reading_time: 3
 tags:
   - model-serving
   - gpu
@@ -15,6 +14,7 @@ tags:
   - inference
   - eks
   - scope:tech
+sidebar_label: Model Serving & Inference Infrastructure
 ---
 
 import { DocCard, DocCardGrid } from '@site/src/components/DocCards';

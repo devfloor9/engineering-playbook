@@ -1,14 +1,22 @@
 ---
-title: "EKS PCP 티어 사이징 & 성능 검증 가이드"
-sidebar_label: "PCP Tier Sizing"
-description: "PCP 티어별 상세 파라미터, APF seat 산정 공식, 대규모 클러스터 사이징 예시, ClusterLoader2 성능 검증 방법론, 고객 사례"
-tags: [eks, pcp, sizing, performance, apf, clusterloader2, etcd]
-sidebar_position: 2
+title: EKS PCP 티어 사이징 & 성능 검증 가이드
+description: PCP 티어별 상세 파라미터, APF seat 산정 공식, 대규모 클러스터 사이징 예시, ClusterLoader2 성능 검증 방법론, 고객 사례
+created: "2026-04-07"
 last_update:
-  date: 2026-06-15
+  date: "2026-06-15"
   author: devfloor9
+reading_time: 42
+tags:
+  - eks
+  - pcp
+  - sizing
+  - performance
+  - apf
+  - clusterloader2
+  - etcd
+sidebar_label: PCP Tier Sizing
+sidebar_position: 2
 ---
-
 
 > **목적**: 이 가이드는 EKS Provisioned Control Plane (PCP) 티어별 상세 사양, 컨트롤 플레인 아키텍처 개선 효과, 성능 검증 방법론을 제공합니다.
 

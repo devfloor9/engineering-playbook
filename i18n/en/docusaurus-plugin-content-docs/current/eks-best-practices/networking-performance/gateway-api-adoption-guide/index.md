@@ -1,12 +1,25 @@
 ---
 title: "Gateway API Adoption Guide: From NGINX Ingress to Next-Generation Traffic Management"
-sidebar_label: "Gateway API Adoption Guide"
-description: "NGINX Ingress Controller EOL response, tiered gateways for agentic workloads, Gateway API architecture, GAMMA Initiative, AWS Native vs open source solution comparison (AWS LBC, Cilium, NGINX Gateway Fabric, Envoy Gateway, kGateway, Kong), Cilium ENI integration, migration strategy and benchmark plans"
-tags: [eks, gateway-api, nginx, cilium, envoy, kong, networking, migration, ebpf, gamma]
-category: "performance-networking"
+description: NGINX Ingress Controller EOL response, tiered gateways for agentic workloads, Gateway API architecture, GAMMA Initiative, AWS Native vs open source solution comparison (AWS LBC, Cilium, NGINX Gateway Fabric, Envoy Gateway, kGateway, Kong), Cilium ENI integration, migration strategy and benchmark plans
+created: "2026-02-14"
 last_update:
-  date: 2026-06-17
+  date: "2026-06-17"
   author: devfloor9
+reading_time: 47
+tags:
+  - eks
+  - gateway-api
+  - nginx
+  - cilium
+  - envoy
+  - kong
+  - networking
+  - migration
+  - ebpf
+  - gamma
+  - scope:nav
+sidebar_label: Gateway API Adoption Guide
+category: performance-networking
 ---
 
 import Tabs from '@theme/Tabs';

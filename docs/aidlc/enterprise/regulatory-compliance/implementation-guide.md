@@ -1,11 +1,18 @@
 ---
-title: "규제 컴플라이언스 구현 가이드"
-sidebar_label: "Implementation Guide"
-description: "AIDLC 프로세스에 규제 요구사항을 통합하는 실전 구현 가이드 및 단계별 Adoption 로드맵"
-tags: [compliance, implementation, adoption, roadmap, 'scope:enterprise']
+title: 규제 컴플라이언스 구현 가이드
+description: AIDLC 프로세스에 규제 요구사항을 통합하는 실전 구현 가이드 및 단계별 Adoption 로드맵
+created: "2026-04-18"
 last_update:
-  date: 2026-04-18
+  date: "2026-04-18"
   author: devfloor9
+reading_time: 4
+tags:
+  - compliance
+  - implementation
+  - adoption
+  - roadmap
+  - scope:enterprise
+sidebar_label: Implementation Guide
 ---
 
 # 규제 컴플라이언스 구현 가이드

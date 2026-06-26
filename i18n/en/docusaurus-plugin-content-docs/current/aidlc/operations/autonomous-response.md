@@ -1,10 +1,13 @@
 ---
-title: "Autonomous Response"
-sidebar_label: "Autonomous Response"
-description: "AI Agent-based autonomous incident response — Strands/Kagent integration, Chaos Engineering + AI, ontology feedback loop"
+title: Autonomous Response
+description: AI Agent-based autonomous incident response — Strands/Kagent integration, Chaos Engineering + AI, ontology feedback loop
+created: "2026-04-07"
 last_update:
-  date: 2026-04-18
+  date: "2026-04-18"
   author: devfloor9
+reading_time: 16
+tags: []
+sidebar_label: Autonomous Response
 ---
 
 import { ResponsePatterns, ChaosExperiments } from '@site/src/components/PredictiveOpsTables';

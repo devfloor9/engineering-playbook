@@ -1,12 +1,11 @@
 ---
-title: "llm-d Based EKS Distributed Inference Guide"
-sidebar_label: "llm-d Distributed Inference"
-description: "llm-d architecture concepts, KV Cache-aware routing, Disaggregated Serving, EKS Auto Mode integration strategy"
-created: 2026-02-10
+title: llm-d Based EKS Distributed Inference Guide
+description: llm-d architecture concepts, KV Cache-aware routing, Disaggregated Serving, EKS Auto Mode integration strategy
+created: "2026-02-10"
 last_update:
-  date: 2026-04-20
+  date: "2026-04-20"
   author: devfloor9
-reading_time: 18
+reading_time: 25
 tags:
   - eks
   - llm-d
@@ -19,8 +18,9 @@ tags:
   - kubernetes
   - inference
   - scope:tech
-category: "genai-aiml"
+sidebar_label: llm-d Distributed Inference
 sidebar_position: 4
+category: genai-aiml
 ---
 
 import { ComparisonTable, SpecificationTable } from '@site/src/components/tables';

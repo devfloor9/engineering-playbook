@@ -1,11 +1,16 @@
 ---
 title: 비용 효과 프레임워크
-sidebar_label: 비용 효과 프레임워크
 description: AIDLC 엔터프라이즈 - cost-estimation
-tags: [aidlc, enterprise, 'scope:enterprise']
+created: "2026-04-07"
 last_update:
-  date: 2026-04-18
+  date: "2026-04-18"
   author: devfloor9
+reading_time: 19
+tags:
+  - aidlc
+  - enterprise
+  - scope:enterprise
+sidebar_label: 비용 효과 프레임워크
 ---
 
 import { ProductivityMetrics, DetailedMetrics } from '@site/src/components/AidlcTables';

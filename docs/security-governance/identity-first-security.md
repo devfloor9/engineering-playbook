@@ -1,12 +1,19 @@
 ---
-title: "Identity-First Security 아키텍처"
-sidebar_label: "Identity-First Security"
-description: "EKS Pod Identity 기반 제로트러스트 접근 제어 및 IRSA 마이그레이션 가이드"
-category: "security"
-tags: [eks, security, pod-identity, irsa, zero-trust]
+title: Identity-First Security 아키텍처
+description: EKS Pod Identity 기반 제로트러스트 접근 제어 및 IRSA 마이그레이션 가이드
+created: "2026-02-09"
 last_update:
-  date: 2026-06-15
+  date: "2026-06-15"
   author: devfloor9
+reading_time: 1
+tags:
+  - eks
+  - security
+  - pod-identity
+  - irsa
+  - zero-trust
+sidebar_label: Identity-First Security
+category: security
 ---
 
 # Identity-First Security 아키텍처

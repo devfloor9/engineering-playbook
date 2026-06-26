@@ -1,12 +1,15 @@
 ---
-created: 2026-05-14
-title: "S4. 페르소나 매칭 + 클러스터링 (Momo)"
-sidebar_label: "S4. Persona & Cluster"
-description: "라이프스타일 페르소나 5종 + RFM × 라이브 시청 친화도"
+title: S4. 페르소나 매칭 + 클러스터링 (Momo)
+description: 라이프스타일 페르소나 5종 + RFM × 라이브 시청 친화도
+created: "2026-05-14"
 last_update:
-  date: 2026-05-14
+  date: "2026-05-14"
+  author: YoungJoon Jeong
 reading_time: 1
+tags: []
+sidebar_label: S4. Persona & Cluster
 ---
+
 # S4. 라이프스타일 페르소나 매칭 + 클러스터링 (Momo)
 
 ## 1. 라이프스타일 5종

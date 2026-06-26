@@ -1,162 +1,154 @@
 import React from 'react';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
-
 const NextSteps = () => {
-  const {i18n} = useDocusaurusContext();
+  const {
+    i18n
+  } = useDocusaurusContext();
   const isKo = i18n.currentLocale === 'ko';
-  const isZh = i18n.currentLocale === 'zh';
-
-  const steps = [
-    {
-      order: isKo ? '다음' : isZh ? '下一步' : 'Next',
-      doc: isKo ? '지능형 관찰성 스택' : isZh ? '智能可观测性堆栈' : 'Intelligent Observability Stack',
-      link: '/docs/aidlc/operations/observability-stack',
-      content: isKo ? 'ADOT, AMP, AMG, CloudWatch AI 통합 아키텍처 구축' : isZh ? '构建 ADOT、AMP、AMG、CloudWatch AI 集成架构' : 'Build integrated architecture with ADOT, AMP, AMG, CloudWatch AI',
-      color: '#2563eb'
-    },
-    {
-      order: isKo ? '이후' : isZh ? '然后' : 'Then',
-      doc: isKo ? 'AIDLC 프레임워크' : isZh ? 'AIDLC 框架' : 'AIDLC Framework',
-      link: '/docs/aidlc/aidlc-framework',
-      content: isKo ? 'Kiro Spec-driven 개발, EKS Capabilities GitOps 통합' : isZh ? 'Kiro Spec 驱动开发，EKS Capabilities GitOps 集成' : 'Kiro spec-driven development, EKS Capabilities GitOps integration',
-      color: '#7c3aed'
-    },
-    {
-      order: isKo ? '최종' : isZh ? '最后' : 'Finally',
-      doc: isKo ? '예측 운영' : isZh ? '预测性运维' : 'Predictive Operations',
-      link: '/docs/aidlc/operations/predictive-operations',
-      content: isKo ? 'ML 예측 스케일링, AI Agent 자동 인시던트 대응' : isZh ? 'ML 预测性扩展，AI Agent 自动事故响应' : 'ML predictive scaling, AI Agent auto incident response',
-      color: '#059669'
-    }
-  ];
-
-  return (
-    <div style={{
-      maxWidth: '760px',
-      margin: '0 auto',
-      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-      fontSize: '15px',
-      lineHeight: '1.6'
-    }}>
+  const steps = [{
+    order: isKo ? '다음' : 'Next',
+    doc: isKo ? '지능형 관찰성 스택' : 'Intelligent Observability Stack',
+    link: '/docs/aidlc/operations/observability-stack',
+    content: isKo ? 'ADOT, AMP, AMG, CloudWatch AI 통합 아키텍처 구축' : 'Build integrated architecture with ADOT, AMP, AMG, CloudWatch AI',
+    color: '#2563eb'
+  }, {
+    order: isKo ? '이후' : 'Then',
+    doc: isKo ? 'AIDLC 프레임워크' : 'AIDLC Framework',
+    link: '/docs/aidlc/aidlc-framework',
+    content: isKo ? 'Kiro Spec-driven 개발, EKS Capabilities GitOps 통합' : 'Kiro spec-driven development, EKS Capabilities GitOps integration',
+    color: '#7c3aed'
+  }, {
+    order: isKo ? '최종' : 'Finally',
+    doc: isKo ? '예측 운영' : 'Predictive Operations',
+    link: '/docs/aidlc/operations/predictive-operations',
+    content: isKo ? 'ML 예측 스케일링, AI Agent 자동 인시던트 대응' : 'ML predictive scaling, AI Agent auto incident response',
+    color: '#059669'
+  }];
+  return <div style={{
+    maxWidth: '760px',
+    margin: '0 auto',
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+    fontSize: '15px',
+    lineHeight: '1.6'
+  }}>
       <div style={{
-        background: 'linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%)',
-        color: 'white',
-        padding: '20px 24px',
-        borderRadius: '8px 8px 0 0'
+      background: 'linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%)',
+      color: 'white',
+      padding: '20px 24px',
+      borderRadius: '8px 8px 0 0'
+    }}>
+        <div style={{
+        fontSize: '20px',
+        fontWeight: '600',
+        marginBottom: '4px'
       }}>
-        <div style={{ fontSize: '20px', fontWeight: '600', marginBottom: '4px' }}>
-          {isKo ? '다음 단계' : isZh ? '后续步骤' : 'Next Steps'}
+          {isKo ? '다음 단계' : 'Next Steps'}
         </div>
-        <div style={{ fontSize: '14px', opacity: 0.9 }}>
-          {isKo ? 'AIOps & AIDLC 시리즈 학습 경로' : isZh ? 'AIOps & AIDLC 系列学习路径' : 'AIOps & AIDLC series learning path'}
+        <div style={{
+        fontSize: '14px',
+        opacity: 0.9
+      }}>
+          {isKo ? 'AIOps & AIDLC 시리즈 학습 경로' : 'AIOps & AIDLC series learning path'}
         </div>
       </div>
 
       <div style={{
-        background: 'var(--ifm-background-surface-color)',
-        border: '1px solid var(--ifm-color-emphasis-200)',
-        borderTop: 'none',
-        borderRadius: '0 0 8px 8px',
-        overflow: 'hidden'
-      }}>
+      background: 'var(--ifm-background-surface-color)',
+      border: '1px solid var(--ifm-color-emphasis-200)',
+      borderTop: 'none',
+      borderRadius: '0 0 8px 8px',
+      overflow: 'hidden'
+    }}>
         <div style={{
-          display: 'grid',
-          gridTemplateColumns: '80px 200px 1fr',
-          borderBottom: '2px solid var(--ifm-color-emphasis-200)'
+        display: 'grid',
+        gridTemplateColumns: '80px 200px 1fr',
+        borderBottom: '2px solid var(--ifm-color-emphasis-200)'
+      }}>
+          <div style={{
+          padding: '12px 14px',
+          background: 'var(--ifm-background-surface-color)',
+          fontWeight: '600',
+          fontSize: '12px',
+          color: 'var(--ifm-color-emphasis-600)'
         }}>
-          <div style={{
-            padding: '12px 14px',
-            background: 'var(--ifm-background-surface-color)',
-            fontWeight: '600',
-            fontSize: '12px',
-            color: 'var(--ifm-color-emphasis-600)'
-          }}>
-            {isKo ? '순서' : isZh ? '顺序' : 'Order'}
+            {isKo ? '순서' : 'Order'}
           </div>
           <div style={{
-            padding: '12px 14px',
-            background: 'var(--ifm-background-surface-color)',
-            borderLeft: '1px solid var(--ifm-color-emphasis-200)',
-            fontWeight: '600',
-            fontSize: '12px',
-            color: 'var(--ifm-color-emphasis-600)'
-          }}>
-            {isKo ? '문서' : isZh ? '文档' : 'Document'}
+          padding: '12px 14px',
+          background: 'var(--ifm-background-surface-color)',
+          borderLeft: '1px solid var(--ifm-color-emphasis-200)',
+          fontWeight: '600',
+          fontSize: '12px',
+          color: 'var(--ifm-color-emphasis-600)'
+        }}>
+            {isKo ? '문서' : 'Document'}
           </div>
           <div style={{
-            padding: '12px 14px',
-            background: 'var(--ifm-background-surface-color)',
-            borderLeft: '1px solid var(--ifm-color-emphasis-200)',
-            fontWeight: '600',
-            fontSize: '12px',
-            color: 'var(--ifm-color-emphasis-600)'
-          }}>
-            {isKo ? '핵심 내용' : isZh ? '核心内容' : 'Key Content'}
+          padding: '12px 14px',
+          background: 'var(--ifm-background-surface-color)',
+          borderLeft: '1px solid var(--ifm-color-emphasis-200)',
+          fontWeight: '600',
+          fontSize: '12px',
+          color: 'var(--ifm-color-emphasis-600)'
+        }}>
+            {isKo ? '핵심 내용' : 'Key Content'}
           </div>
         </div>
 
-        {steps.map((step, idx) => (
-          <div key={step.order} style={{
-            display: 'grid',
-            gridTemplateColumns: '80px 200px 1fr',
-            borderBottom: idx < steps.length - 1 ? '1px solid #f3f4f6' : 'none'
-          }}>
+        {steps.map((step, idx) => <div key={step.order} style={{
+        display: 'grid',
+        gridTemplateColumns: '80px 200px 1fr',
+        borderBottom: idx < steps.length - 1 ? '1px solid #f3f4f6' : 'none'
+      }}>
             <div style={{
-              padding: '12px 14px',
-              background: `${step.color}08`,
-              fontSize: '13px',
-              fontWeight: '700',
-              color: step.color,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}>
+          padding: '12px 14px',
+          background: `${step.color}08`,
+          fontSize: '13px',
+          fontWeight: '700',
+          color: step.color,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center'
+        }}>
               {step.order}
             </div>
             <div style={{
-              padding: '12px 14px',
-              borderLeft: '1px solid #f3f4f6',
-              display: 'flex',
-              alignItems: 'center'
-            }}>
+          padding: '12px 14px',
+          borderLeft: '1px solid #f3f4f6',
+          display: 'flex',
+          alignItems: 'center'
+        }}>
               <a href={step.link} style={{
-                fontSize: '13px',
-                fontWeight: '600',
-                color: step.color,
-                textDecoration: 'none'
-              }}>
+            fontSize: '13px',
+            fontWeight: '600',
+            color: step.color,
+            textDecoration: 'none'
+          }}>
                 {step.doc}
               </a>
             </div>
             <div style={{
-              padding: '12px 14px',
-              fontSize: '12px',
-              color: 'var(--ifm-font-color-base)',
-              borderLeft: '1px solid #f3f4f6',
-              display: 'flex',
-              alignItems: 'center'
-            }}>
+          padding: '12px 14px',
+          fontSize: '12px',
+          color: 'var(--ifm-font-color-base)',
+          borderLeft: '1px solid #f3f4f6',
+          display: 'flex',
+          alignItems: 'center'
+        }}>
               {step.content}
             </div>
-          </div>
-        ))}
+          </div>)}
 
         <div style={{
-          background: 'var(--ifm-color-emphasis-100)',
-          borderTop: '1px solid #fde68a',
-          padding: '12px 16px',
-          fontSize: '12px',
-          color: 'var(--ifm-color-emphasis-700)'
-        }}>
-          <strong>{isKo ? '학습 팁:' : isZh ? '学习提示:' : 'Learning Tip:'}</strong> {isKo
-            ? '각 문서는 이전 내용을 기반으로 구성되어 있으므로, 순서대로 학습하는 것을 권장합니다. 실제 구축 시에는 관찰성 스택 구축 → AIDLC 적용 → 예측 운영 확장 순서로 진행하세요.'
-            : isZh
-            ? '每个文档都基于前一内容构建，建议按顺序学习。实际实施时，请按以下顺序进行：构建可观测性堆栈 → 应用 AIDLC → 扩展预测性运维。'
-            : 'Each document builds on previous content, so sequential learning is recommended. For actual implementation, proceed in order: Build observability stack → Apply AIDLC → Expand predictive operations.'}
+        background: 'var(--ifm-color-emphasis-100)',
+        borderTop: '1px solid #fde68a',
+        padding: '12px 16px',
+        fontSize: '12px',
+        color: 'var(--ifm-color-emphasis-700)'
+      }}>
+          <strong>{isKo ? '학습 팁:' : 'Learning Tip:'}</strong> {isKo ? '각 문서는 이전 내용을 기반으로 구성되어 있으므로, 순서대로 학습하는 것을 권장합니다. 실제 구축 시에는 관찰성 스택 구축 → AIDLC 적용 → 예측 운영 확장 순서로 진행하세요.' : 'Each document builds on previous content, so sequential learning is recommended. For actual implementation, proceed in order: Build observability stack → Apply AIDLC → Expand predictive operations.'}
         </div>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default NextSteps;

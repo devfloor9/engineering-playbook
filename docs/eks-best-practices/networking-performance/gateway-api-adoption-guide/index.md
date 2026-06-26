@@ -1,12 +1,25 @@
 ---
 title: "Gateway API 도입 가이드: NGINX Ingress에서 차세대 트래픽 관리로"
-sidebar_label: "Gateway API 도입 가이드"
-description: "NGINX Ingress Controller EOL 대응, Gateway API 아키텍처, GAMMA Initiative, AWS Native vs 오픈소스 솔루션 비교(AWS LBC·Cilium·NGINX Gateway Fabric·Envoy Gateway·kGateway·Kong), Cilium ENI 통합, 마이그레이션 전략 및 벤치마크 계획"
-tags: [eks, gateway-api, nginx, cilium, envoy, kong, networking, migration, ebpf, gamma]
-category: "performance-networking"
+description: NGINX Ingress Controller EOL 대응, Gateway API 아키텍처, GAMMA Initiative, AWS Native vs 오픈소스 솔루션 비교(AWS LBC·Cilium·NGINX Gateway Fabric·Envoy Gateway·kGateway·Kong), Cilium ENI 통합, 마이그레이션 전략 및 벤치마크 계획
+created: "2026-02-14"
 last_update:
-  date: 2026-06-17
+  date: "2026-06-17"
   author: devfloor9
+reading_time: 30
+tags:
+  - eks
+  - gateway-api
+  - nginx
+  - cilium
+  - envoy
+  - kong
+  - networking
+  - migration
+  - ebpf
+  - gamma
+  - scope:nav
+sidebar_label: Gateway API 도입 가이드
+category: performance-networking
 ---
 
 import Tabs from '@theme/Tabs';

@@ -1,12 +1,11 @@
 ---
-title: "EKS 기반 Agentic AI 오픈 아키텍처"
-sidebar_label: "EKS 기반 오픈 아키텍처"
-description: "Amazon EKS와 오픈소스 생태계를 활용한 Agentic AI 플랫폼 구축 가이드"
-created: 2026-02-05
+title: EKS 기반 Agentic AI 오픈 아키텍처
+description: Amazon EKS와 오픈소스 생태계를 활용한 Agentic AI 플랫폼 구축 가이드
+created: "2026-02-05"
 last_update:
-  date: 2026-06-15
+  date: "2026-06-15"
   author: devfloor9
-reading_time: 12
+reading_time: 22
 tags:
   - eks
   - aws
@@ -16,8 +15,9 @@ tags:
   - gpu
   - solutions
   - scope:design
-category: "genai-aiml"
+sidebar_label: EKS 기반 오픈 아키텍처
 sidebar_position: 5
+category: genai-aiml
 ---
 
 import Tabs from '@theme/Tabs';

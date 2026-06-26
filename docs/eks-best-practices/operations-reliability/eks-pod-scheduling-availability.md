@@ -1,13 +1,23 @@
 ---
-title: "EKS Pod 스케줄링 & 가용성 패턴"
-sidebar_label: "Pod 스케줄링 & 가용성"
-description: "Kubernetes Pod 스케줄링 전략, Affinity/Anti-Affinity, PDB, Priority/Preemption, Taints/Tolerations 모범 사례"
-tags: [eks, kubernetes, scheduling, affinity, pdb, priority, taints, tolerations, descheduler]
-category: "operations"
+title: EKS Pod 스케줄링 & 가용성 패턴
+description: Kubernetes Pod 스케줄링 전략, Affinity/Anti-Affinity, PDB, Priority/Preemption, Taints/Tolerations 모범 사례
+created: "2026-02-13"
 last_update:
-  date: 2026-06-15
+  date: "2026-06-15"
   author: devfloor9
-  changes: "Section 10.5 추가 (Node Readiness Controller), Section 10 추가 (2025-2026 AWS 혁신), Section 8.4.1 추가 (Descheduler+Karpenter 조합), Section 9.2 추가 (AI/ML 워크로드)"
+reading_time: 69
+tags:
+  - eks
+  - kubernetes
+  - scheduling
+  - affinity
+  - pdb
+  - priority
+  - taints
+  - tolerations
+  - descheduler
+sidebar_label: Pod 스케줄링 & 가용성
+category: operations
 ---
 
 # EKS Pod 스케줄링 & 가용성 패턴

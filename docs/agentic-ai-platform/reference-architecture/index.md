@@ -1,14 +1,20 @@
 ---
-title: "Reference Architecture"
-sidebar_label: "Reference Architecture"
-sidebar_position: 7
-description: "Agentic AI Platform 실전 배포 및 구성 레퍼런스 아키텍처"
-created: 2026-04-06
+title: Reference Architecture
+description: Agentic AI Platform 실전 배포 및 구성 레퍼런스 아키텍처
+created: "2026-04-06"
 last_update:
-  date: 2026-06-15
+  date: "2026-06-15"
   author: devfloor9
-reading_time: 1
-tags: [reference-architecture, deployment, eks, gpu, monitoring, 'scope:impl']
+reading_time: 10
+tags:
+  - reference-architecture
+  - deployment
+  - eks
+  - gpu
+  - monitoring
+  - scope:impl
+sidebar_label: Reference Architecture
+sidebar_position: 7
 ---
 
 import DocCardList from '@theme/DocCardList';

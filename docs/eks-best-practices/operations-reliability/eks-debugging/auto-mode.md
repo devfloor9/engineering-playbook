@@ -1,11 +1,20 @@
 ---
 title: EKS Auto Mode 디버깅
-sidebar_label: Auto Mode
 description: EKS Auto Mode 환경에서의 디버깅 가이드
-keywords: [EKS, Auto Mode, NodePool, NodeClaim, VPC CNI, 디버깅]
+created: "2026-04-07"
 last_update:
-  date: 2026-04-07
+  date: "2026-04-07"
   author: devfloor9
+reading_time: 6
+tags: []
+keywords:
+  - EKS
+  - Auto Mode
+  - NodePool
+  - NodeClaim
+  - VPC CNI
+  - 디버깅
+sidebar_label: Auto Mode
 ---
 
 # EKS Auto Mode 디버깅

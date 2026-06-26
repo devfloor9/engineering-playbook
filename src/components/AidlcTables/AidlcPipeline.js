@@ -1,10 +1,10 @@
 import React from 'react';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
-
 const AidlcPipeline = () => {
-  const {i18n} = useDocusaurusContext();
+  const {
+    i18n
+  } = useDocusaurusContext();
   const isKo = i18n.currentLocale === 'ko';
-  const isZh = i18n.currentLocale === 'zh';
   const styles = {
     container: {
       maxWidth: '760px',
@@ -146,18 +146,19 @@ const AidlcPipeline = () => {
       marginBottom: '0.25rem'
     }
   };
-
-  return (
-    <div style={styles.container}>
+  return <div style={styles.container}>
       {/* Part 1: IaC 자동화 파이프라인 */}
       <div style={styles.section}>
         <div style={styles.header}>
-          <h2 style={styles.title}>🔧 {isKo ? 'IaC 자동화 파이프라인' : isZh ? 'IaC 自动化流水线' : 'IaC Automation Pipeline'}</h2>
+          <h2 style={styles.title}>🔧 {isKo ? 'IaC 자동화 파이프라인' : 'IaC Automation Pipeline'}</h2>
           <p style={styles.subtitle}>Kiro → MCP → IaC → Argo CD</p>
         </div>
         <div style={styles.pipelineContainer}>
           <div style={styles.flowContainer}>
-            <div style={{ ...styles.column, borderTop: '3px solid #3b82f6' }}>
+            <div style={{
+            ...styles.column,
+            borderTop: '3px solid #3b82f6'
+          }}>
               <div style={styles.columnTitle}>Kiro Spec-Driven</div>
               <ul style={styles.itemsList}>
                 <li style={styles.item}>requirements.md</li>
@@ -166,7 +167,10 @@ const AidlcPipeline = () => {
               </ul>
             </div>
             <div style={styles.arrow}>→</div>
-            <div style={{ ...styles.column, borderTop: '3px solid #059669' }}>
+            <div style={{
+            ...styles.column,
+            borderTop: '3px solid #059669'
+          }}>
               <div style={styles.columnTitle}>Hosted MCP Servers</div>
               <ul style={styles.itemsList}>
                 <li style={styles.item}>EKS MCP</li>
@@ -175,8 +179,11 @@ const AidlcPipeline = () => {
               </ul>
             </div>
             <div style={styles.arrow}>→</div>
-            <div style={{ ...styles.column, borderTop: '3px solid #8b5cf6' }}>
-              <div style={styles.columnTitle}>{isKo ? '자동 생성 산출물' : isZh ? '自动生成产出物' : 'Auto-Generated Artifacts'}</div>
+            <div style={{
+            ...styles.column,
+            borderTop: '3px solid #8b5cf6'
+          }}>
+              <div style={styles.columnTitle}>{isKo ? '자동 생성 산출물' : 'Auto-Generated Artifacts'}</div>
               <ul style={styles.itemsList}>
                 <li style={styles.item}>Terraform</li>
                 <li style={styles.item}>Helm Chart</li>
@@ -185,8 +192,11 @@ const AidlcPipeline = () => {
               </ul>
             </div>
             <div style={styles.arrow}>→</div>
-            <div style={{ ...styles.column, borderTop: '3px solid #0891b2' }}>
-              <div style={styles.columnTitle}>{isKo ? '배포' : isZh ? '部署' : 'Deployment'}</div>
+            <div style={{
+            ...styles.column,
+            borderTop: '3px solid #0891b2'
+          }}>
+              <div style={styles.columnTitle}>{isKo ? '배포' : 'Deployment'}</div>
               <ul style={styles.itemsList}>
                 <li style={styles.item}>Git Repository</li>
                 <li style={styles.item}>↓</li>
@@ -200,65 +210,72 @@ const AidlcPipeline = () => {
       {/* Part 2: AI/CD 파이프라인 개념도 */}
       <div style={styles.section}>
         <div style={styles.header}>
-          <h2 style={styles.title}>🚀 {isKo ? 'AI/CD 파이프라인 개념도' : isZh ? 'AI/CD 流水线概念图' : 'AI/CD Pipeline Conceptual Diagram'}</h2>
+          <h2 style={styles.title}>🚀 {isKo ? 'AI/CD 파이프라인 개념도' : 'AI/CD Pipeline Conceptual Diagram'}</h2>
           <p style={styles.subtitle}>Inception → Construction → Deploy</p>
         </div>
         <div style={styles.pipelineContainer}>
           <div style={styles.stagesContainer}>
             <div style={styles.stageCard}>
-              <div style={{ ...styles.stageHeader, background: '#3b82f6' }}>
+              <div style={{
+              ...styles.stageHeader,
+              background: '#3b82f6'
+            }}>
                 Stage 1: Inception
               </div>
               <div style={styles.stageBody}>
                 <ul style={styles.stageList}>
-                  <li style={styles.stageItem}>{isKo ? 'Spec 커밋 감지' : isZh ? 'Spec 提交检测' : 'Spec Commit Detection'}</li>
+                  <li style={styles.stageItem}>{isKo ? 'Spec 커밋 감지' : 'Spec Commit Detection'}</li>
                   <li style={styles.stageItem}>requirements.md</li>
-                  <li style={styles.stageItem}>{isKo ? 'design.md 검증' : isZh ? 'design.md 验证' : 'design.md Validation'}</li>
+                  <li style={styles.stageItem}>{isKo ? 'design.md 검증' : 'design.md Validation'}</li>
                 </ul>
               </div>
             </div>
             <div style={styles.arrow}>→</div>
             <div style={styles.stageCard}>
-              <div style={{ ...styles.stageHeader, background: '#059669' }}>
+              <div style={{
+              ...styles.stageHeader,
+              background: '#059669'
+            }}>
                 Stage 2: Construction
               </div>
               <div style={styles.stageBody}>
                 <ul style={styles.stageList}>
-                  <li style={styles.stageItem}>{isKo ? 'AI 코드 생성' : isZh ? 'AI 代码生成' : 'AI Code Generation'}</li>
-                  <li style={styles.stageItem}>{isKo ? 'AI 보안 스캔 (Q Dev)' : isZh ? 'AI 安全扫描 (Q Dev)' : 'AI Security Scan (Q Dev)'}</li>
-                  <li style={styles.stageItem}>{isKo ? 'AI 코드 리뷰' : isZh ? 'AI 代码审查' : 'AI Code Review'}</li>
-                  <li style={styles.stageItem}>{isKo ? '테스트 실행' : isZh ? '测试执行' : 'Test Execution'}</li>
-                  <li style={styles.stageItem}>{isKo ? 'Loss Function 검증 ◀ (사람)' : isZh ? 'Loss Function 验证 ◀ (人工)' : 'Loss Function Validation ◀ (Human)'}</li>
+                  <li style={styles.stageItem}>{isKo ? 'AI 코드 생성' : 'AI Code Generation'}</li>
+                  <li style={styles.stageItem}>{isKo ? 'AI 보안 스캔 (Q Dev)' : 'AI Security Scan (Q Dev)'}</li>
+                  <li style={styles.stageItem}>{isKo ? 'AI 코드 리뷰' : 'AI Code Review'}</li>
+                  <li style={styles.stageItem}>{isKo ? '테스트 실행' : 'Test Execution'}</li>
+                  <li style={styles.stageItem}>{isKo ? 'Loss Function 검증 ◀ (사람)' : 'Loss Function Validation ◀ (Human)'}</li>
                 </ul>
                 <div style={styles.loopback}>
-                  {isKo ? '↻ Loss Function 실패 시 재생성' : isZh ? '↻ Loss Function 失败时重新生成' : '↻ Regenerate on Loss Function Failure'}
+                  {isKo ? '↻ Loss Function 실패 시 재생성' : '↻ Regenerate on Loss Function Failure'}
                 </div>
               </div>
             </div>
             <div style={styles.arrow}>→</div>
             <div style={styles.stageCard}>
-              <div style={{ ...styles.stageHeader, background: '#8b5cf6' }}>
+              <div style={{
+              ...styles.stageHeader,
+              background: '#8b5cf6'
+            }}>
                 Stage 3: Deploy
               </div>
               <div style={styles.stageBody}>
                 <ul style={styles.stageList}>
-                  <li style={styles.stageItem}>{isKo ? '컨테이너 빌드' : isZh ? '容器构建' : 'Container Build'}</li>
-                  <li style={styles.stageItem}>{isKo ? 'ECR 푸시' : isZh ? 'ECR 推送' : 'ECR Push'}</li>
-                  <li style={styles.stageItem}>{isKo ? 'Kustomize 업데이트' : isZh ? 'Kustomize 更新' : 'Kustomize Update'}</li>
-                  <li style={styles.stageItem}>{isKo ? 'Argo CD 자동 배포' : isZh ? 'Argo CD 自动部署' : 'Argo CD Auto Deploy'}</li>
+                  <li style={styles.stageItem}>{isKo ? '컨테이너 빌드' : 'Container Build'}</li>
+                  <li style={styles.stageItem}>{isKo ? 'ECR 푸시' : 'ECR Push'}</li>
+                  <li style={styles.stageItem}>{isKo ? 'Kustomize 업데이트' : 'Kustomize Update'}</li>
+                  <li style={styles.stageItem}>{isKo ? 'Argo CD 자동 배포' : 'Argo CD Auto Deploy'}</li>
                 </ul>
               </div>
             </div>
           </div>
 
           <div style={styles.footer}>
-            <div style={styles.footerTitle}>{isKo ? '핵심 통찰' : isZh ? '核心洞察' : 'Key Insight'}</div>
-            {isKo ? 'AI/CD는 코드 품질을 Loss Function으로 측정하고, 인간은 품질 기준(임계값)만 설정합니다. 기준 미달 시 AI가 자동으로 재생성하여 지속적 품질 개선을 달성합니다.' : isZh ? 'AI/CD 通过 Loss Function 衡量代码质量，人工仅设置质量标准（阈值）。当未达标时，AI 自动重新生成以实现持续质量改进。' : 'AI/CD measures code quality through Loss Functions, while humans only set quality criteria (thresholds). When standards are not met, AI automatically regenerates to achieve continuous quality improvement.'}
+            <div style={styles.footerTitle}>{isKo ? '핵심 통찰' : 'Key Insight'}</div>
+            {isKo ? 'AI/CD는 코드 품질을 Loss Function으로 측정하고, 인간은 품질 기준(임계값)만 설정합니다. 기준 미달 시 AI가 자동으로 재생성하여 지속적 품질 개선을 달성합니다.' : 'AI/CD measures code quality through Loss Functions, while humans only set quality criteria (thresholds). When standards are not met, AI automatically regenerates to achieve continuous quality improvement.'}
           </div>
         </div>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default AidlcPipeline;

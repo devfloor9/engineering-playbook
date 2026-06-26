@@ -1,12 +1,15 @@
 ---
-created: 2026-05-14
-title: "S7. ABO·Customer 옴니채널 여정 (AMWAY)"
-sidebar_label: "S7. Customer Journey"
-description: "자사몰 → ABO 직판 → 정기구독 → 재가입 단일 타임라인"
+title: S7. ABO·Customer 옴니채널 여정 (AMWAY)
+description: 자사몰 → ABO 직판 → 정기구독 → 재가입 단일 타임라인
+created: "2026-05-14"
 last_update:
-  date: 2026-05-14
+  date: "2026-05-14"
+  author: YoungJoon Jeong
 reading_time: 2
+tags: []
+sidebar_label: S7. Customer Journey
 ---
+
 # S7. ABO·Customer 옴니채널 여정 (AMWAY)
 
 ## 1. URL · 페르소나

@@ -1,12 +1,11 @@
 ---
-title: "EKS Hybrid Nodes 네트워킹 라우팅 설계와 Hybrid Nodes Gateway"
-sidebar_label: "네트워킹 라우팅 & Gateway"
-description: "EKS Hybrid Nodes의 Node/Pod CIDR 라우팅 요건, CNI NAT 구성의 한계, CGNAT(100.64.0.0/10) 대역 지원, 그리고 Pod 라우팅 요건을 제거하는 Hybrid Nodes Gateway 아키텍처 분석"
-created: 2026-06-12
+title: EKS Hybrid Nodes 네트워킹 라우팅 설계와 Hybrid Nodes Gateway
+description: EKS Hybrid Nodes의 Node/Pod CIDR 라우팅 요건, CNI NAT 구성의 한계, CGNAT(100.64.0.0/10) 대역 지원, 그리고 Pod 라우팅 요건을 제거하는 Hybrid Nodes Gateway 아키텍처 분석
+created: "2026-06-12"
 last_update:
-  date: 2026-06-15
+  date: "2026-06-15"
   author: YoungJoon Jeong
-reading_time: 15
+reading_time: 18
 tags:
   - eks
   - hybrid-node
@@ -21,6 +20,7 @@ keywords:
   - VTEP
   - CGNAT
   - RFC 6598
+sidebar_label: 네트워킹 라우팅 & Gateway
 ---
 
 ## 개요

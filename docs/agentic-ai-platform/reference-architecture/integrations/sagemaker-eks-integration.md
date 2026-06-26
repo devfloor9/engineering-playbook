@@ -1,15 +1,23 @@
 ---
-title: "SageMaker-EKS 하이브리드 ML 아키텍처"
-sidebar_label: "SageMaker-EKS 통합"
-description: "SageMaker에서 학습하고 EKS에서 서빙하는 하이브리드 ML 아키텍처"
-created: 2026-02-11
+title: SageMaker-EKS 하이브리드 ML 아키텍처
+description: SageMaker에서 학습하고 EKS에서 서빙하는 하이브리드 ML 아키텍처
+created: "2026-02-11"
 last_update:
-  date: 2026-06-15
+  date: "2026-06-15"
   author: devfloor9
-reading_time: 1
+reading_time: 5
+tags:
+  - sagemaker
+  - eks
+  - hybrid
+  - mlops
+  - model-registry
+  - training
+  - inference
+  - scope:impl
+sidebar_label: SageMaker-EKS 통합
 sidebar_position: 4
-category: "genai-aiml"
-tags: [sagemaker, eks, hybrid, mlops, model-registry, training, inference, 'scope:impl']
+category: genai-aiml
 ---
 
 import SpecificationTable from '@site/src/components/tables/SpecificationTable';

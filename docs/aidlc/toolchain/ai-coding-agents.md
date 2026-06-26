@@ -1,11 +1,23 @@
 ---
 title: AI 코딩 에이전트
-sidebar_label: AI 코딩 에이전트
 description: AIDLC Construction 단계의 AI 코딩 에이전트 — 공식 지원 7개 플랫폼, Kiro Spec-Driven 개발, Q Developer, 에이전트 비교
-tags: [aidlc, ai-coding-agents, toolchain, kiro, q-developer, cursor, cline, claude-code, copilot, 'scope:toolchain']
+created: "2026-04-07"
 last_update:
-  date: 2026-06-15
+  date: "2026-06-15"
   author: devfloor9
+reading_time: 17
+tags:
+  - aidlc
+  - ai-coding-agents
+  - toolchain
+  - kiro
+  - q-developer
+  - cursor
+  - cline
+  - claude-code
+  - copilot
+  - scope:toolchain
+sidebar_label: AI 코딩 에이전트
 ---
 
 import { AiCodingAgentComparison } from '@site/src/components/AidlcTables';

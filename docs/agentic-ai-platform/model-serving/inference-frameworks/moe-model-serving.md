@@ -1,12 +1,11 @@
 ---
-title: "MoE 모델 서빙 개념 가이드"
-sidebar_label: "MoE 모델 서빙"
-description: "Mixture of Experts 모델의 아키텍처 개념, 분산 배포 전략, 성능 최적화 원리"
-created: 2026-02-05
+title: MoE 모델 서빙 개념 가이드
+description: Mixture of Experts 모델의 아키텍처 개념, 분산 배포 전략, 성능 최적화 원리
+created: "2026-02-05"
 last_update:
-  date: 2026-06-15
+  date: "2026-06-15"
   author: devfloor9
-reading_time: 15
+reading_time: 13
 tags:
   - eks
   - moe
@@ -17,8 +16,9 @@ tags:
   - inference
   - architecture
   - scope:tech
-category: "genai-aiml"
+sidebar_label: MoE 모델 서빙
 sidebar_position: 5
+category: genai-aiml
 ---
 
 import { RoutingMechanisms, MoeVsDense, GpuMemoryRequirements, ParallelizationStrategies, TensorParallelismConfig, VllmVsTgi, KvCacheConfig, BatchOptimization, MonitoringMetrics, GpuVsTrainium2 } from '@site/src/components/MoeModelTables';

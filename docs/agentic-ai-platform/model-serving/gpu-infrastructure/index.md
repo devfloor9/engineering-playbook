@@ -1,12 +1,11 @@
 ---
-title: "GPU 인프라"
-sidebar_label: "GPU 인프라"
-description: "EKS GPU 노드 전략, Karpenter·KEDA·DRA 리소스 관리, NVIDIA GPU 스택, AWS Neuron 스택"
-created: 2026-04-17
+title: GPU 인프라
+description: EKS GPU 노드 전략, Karpenter·KEDA·DRA 리소스 관리, NVIDIA GPU 스택, AWS Neuron 스택
+created: "2026-04-17"
 last_update:
-  date: 2026-05-07
+  date: "2026-05-07"
   author: devfloor9
-reading_time: 1
+reading_time: 4
 tags:
   - gpu
   - eks
@@ -14,6 +13,7 @@ tags:
   - gpu-operator
   - neuron
   - scope:tech
+sidebar_label: GPU 인프라
 ---
 
 import { DocCard, DocCardGrid } from '@site/src/components/DocCards';

@@ -1,12 +1,11 @@
 ---
-title: "Tiered Gateway Architecture"
-sidebar_label: "Tiered Gateway Architecture"
+title: Tiered Gateway Architecture
 description: "Single definition of the Agentic AI Platform gateway layers: Tier 1 Ingress, Tier 2 Inference Routing (Inference Extension) and LLM API Gateway, and the Agent Data Plane — their role separation and how to fill each layer"
-created: 2026-06-17
+created: "2026-06-17"
 last_update:
-  date: 2026-06-17
+  date: "2026-06-17"
   author: devfloor9
-reading_time: 9
+reading_time: 12
 tags:
   - gateway-api
   - inference-gateway
@@ -14,6 +13,7 @@ tags:
   - agentgateway
   - networking
   - scope:impl
+sidebar_label: Tiered Gateway Architecture
 ---
 
 import Tabs from '@theme/Tabs';

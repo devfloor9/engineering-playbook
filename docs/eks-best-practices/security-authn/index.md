@@ -1,12 +1,20 @@
 ---
-title: "보안 & 인증"
-sidebar_label: "보안 & 인증"
-description: "EKS API Server 인증/인가, IAM 통합, Pod Identity 등 보안 관련 베스트 프랙티스"
-tags: [eks, security, authentication, authorization, iam]
-sidebar_position: 3
+title: 보안 & 인증
+description: EKS API Server 인증/인가, IAM 통합, Pod Identity 등 보안 관련 베스트 프랙티스
+created: "2026-03-24"
 last_update:
-  date: 2026-06-15
+  date: "2026-06-15"
   author: devfloor9
+reading_time: 1
+tags:
+  - eks
+  - security
+  - authentication
+  - authorization
+  - iam
+  - scope:nav
+sidebar_label: 보안 & 인증
+sidebar_position: 3
 ---
 
 import { DocCard, DocCardGrid } from '@site/src/components/DocCards';

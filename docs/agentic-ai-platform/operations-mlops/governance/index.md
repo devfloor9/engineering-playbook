@@ -1,10 +1,9 @@
 ---
 title: 거버넌스 · 평가 · 컴플라이언스
-sidebar_label: 거버넌스
 description: 품질 평가·운영 플레이북·AI Gateway 가드레일·컴플라이언스·도메인 커스터마이징을 아우르는 거버넌스 문서 모음
-created: 2026-04-20
+created: "2026-04-20"
 last_update:
-  date: 2026-04-20
+  date: "2026-04-20"
   author: devfloor9
 reading_time: 1
 tags:
@@ -14,6 +13,7 @@ tags:
   - guardrails
   - evaluation
   - scope:nav
+sidebar_label: 거버넌스
 ---
 
 ## 개요

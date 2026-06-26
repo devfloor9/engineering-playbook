@@ -1,11 +1,16 @@
 ---
 title: AIDLC 사례 연구
-sidebar_label: AIDLC 사례 연구
 description: AIDLC 엔터프라이즈 - case-studies
-tags: [aidlc, enterprise, 'scope:enterprise']
+created: "2026-04-07"
 last_update:
-  date: 2026-04-18
+  date: "2026-04-18"
   author: devfloor9
+reading_time: 15
+tags:
+  - aidlc
+  - enterprise
+  - scope:enterprise
+sidebar_label: AIDLC 사례 연구
 ---
 
 # AIDLC 사례 연구

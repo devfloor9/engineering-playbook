@@ -1,12 +1,15 @@
 ---
-created: 2026-05-14
-title: "11 시나리오 매핑 (AMWAY)"
-sidebar_label: "03. Scenarios"
-description: "공통 8 시나리오 (S1~S8) + AMWAY 특화 3 시나리오 (S9-A·S10-A·S11-A)"
+title: 11 시나리오 매핑 (AMWAY)
+description: 공통 8 시나리오 (S1~S8) + AMWAY 특화 3 시나리오 (S9-A·S10-A·S11-A)
+created: "2026-05-14"
 last_update:
-  date: 2026-05-14
-reading_time: 6
+  date: "2026-05-14"
+  author: YoungJoon Jeong
+reading_time: 4
+tags: []
+sidebar_label: 03. Scenarios
 ---
+
 # 11 시나리오 매핑 (AMWAY)
 
 > 공통 8 시나리오 (S1~S8) + AMWAY 특화 3 시나리오 (S9-A·S10-A·S11-A) = 총 11개.

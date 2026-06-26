@@ -1,12 +1,16 @@
 ---
-title: "Security & Governance"
-sidebar_label: "보안 & 거버넌스"
-description: "Amazon EKS 환경에서의 보안 강화 및 컴플라이언스 준수에 대한 심화 기술 문서"
-category: "security"
-sidebar_position: 5
+title: Security & Governance
+description: Amazon EKS 환경에서의 보안 강화 및 컴플라이언스 준수에 대한 심화 기술 문서
+created: "2025-09-11"
 last_update:
-  date: 2026-06-15
+  date: "2026-06-15"
   author: devfloor9
+reading_time: 14
+tags:
+  - scope:nav
+sidebar_label: 보안 & 거버넌스
+sidebar_position: 5
+category: security
 ---
 
 # Security & Governance

@@ -1,12 +1,21 @@
 ---
-title: "EKS Debugging Guide"
-sidebar_label: "EKS Debugging Guide"
-description: "Comprehensive troubleshooting guide for systematically diagnosing and resolving application and infrastructure issues in Amazon EKS environments"
-tags: [eks, kubernetes, debugging, troubleshooting, observability, incident-response]
-category: "observability-monitoring"
+title: EKS Debugging Guide
+description: Comprehensive troubleshooting guide for systematically diagnosing and resolving application and infrastructure issues in Amazon EKS environments
+created: "2026-04-21"
 last_update:
-  date: 2026-04-07
+  date: "2026-04-07"
   author: devfloor9
+reading_time: 16
+tags:
+  - eks
+  - kubernetes
+  - debugging
+  - troubleshooting
+  - observability
+  - incident-response
+  - scope:nav
+sidebar_label: EKS Debugging Guide
+category: observability-monitoring
 ---
 
 import { IncidentEscalationTable, ZonalShiftImpactTable, ControlPlaneLogTable, ClusterHealthTable, NodeGroupErrorTable, ErrorQuickRefTable } from '@site/src/components/EksDebugTables';

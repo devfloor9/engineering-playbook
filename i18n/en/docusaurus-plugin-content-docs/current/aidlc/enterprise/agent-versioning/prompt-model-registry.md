@@ -1,11 +1,18 @@
 ---
-title: "Prompt & Model Registry"
-sidebar_label: "Prompt & Model Registry"
-description: "Comparison and implementation guide for Langfuse, PromptLayer, Braintrust, AWS Bedrock Prompt Management"
-tags: [prompt-registry, versioning, langfuse, bedrock, 'scope:enterprise']
+title: Prompt & Model Registry
+description: Comparison and implementation guide for Langfuse, PromptLayer, Braintrust, AWS Bedrock Prompt Management
+created: "2026-04-19"
 last_update:
-  date: 2026-04-18
+  date: "2026-04-18"
   author: devfloor9
+reading_time: 10
+tags:
+  - prompt-registry
+  - versioning
+  - langfuse
+  - bedrock
+  - scope:enterprise
+sidebar_label: Prompt & Model Registry
 ---
 
 # Prompt & Model Registry

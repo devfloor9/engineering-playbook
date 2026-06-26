@@ -1,12 +1,11 @@
 ---
-title: "모델 서빙 & 추론 인프라"
-sidebar_label: "모델 서빙 & 추론 인프라"
-description: "GPU 인프라 계층과 추론·학습 프레임워크 계층으로 나뉜 모델 서빙 가이드"
-created: 2026-03-06
+title: 모델 서빙 & 추론 인프라
+description: GPU 인프라 계층과 추론·학습 프레임워크 계층으로 나뉜 모델 서빙 가이드
+created: "2026-03-06"
 last_update:
-  date: 2026-04-20
+  date: "2026-04-20"
   author: devfloor9
-reading_time: 1
+reading_time: 4
 tags:
   - model-serving
   - gpu
@@ -15,6 +14,7 @@ tags:
   - inference
   - eks
   - scope:tech
+sidebar_label: 모델 서빙 & 추론 인프라
 ---
 
 import { DocCard, DocCardGrid } from '@site/src/components/DocCards';

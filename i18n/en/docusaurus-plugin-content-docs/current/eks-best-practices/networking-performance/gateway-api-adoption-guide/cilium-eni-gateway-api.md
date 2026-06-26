@@ -1,12 +1,21 @@
 ---
-title: "Cilium ENI Mode + Gateway API Deep-dive Configuration"
-sidebar_label: "Cilium ENI + Gateway API"
-description: "Cilium ENI mode architecture, Gateway API resource configuration, performance optimization, Hubble observability, BGP Control Plane v2 deep-dive guide"
-tags: [eks, cilium, eni, gateway-api, ebpf, networking, bgp]
-category: "performance-networking"
+title: Cilium ENI Mode + Gateway API Deep-dive Configuration
+description: Cilium ENI mode architecture, Gateway API resource configuration, performance optimization, Hubble observability, BGP Control Plane v2 deep-dive guide
+created: "2026-02-14"
 last_update:
-  date: 2026-02-14
+  date: "2026-02-14"
   author: devfloor9
+reading_time: 8
+tags:
+  - eks
+  - cilium
+  - eni
+  - gateway-api
+  - ebpf
+  - networking
+  - bgp
+sidebar_label: Cilium ENI + Gateway API
+category: performance-networking
 ---
 
 import Tabs from '@theme/Tabs';

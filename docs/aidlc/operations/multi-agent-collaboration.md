@@ -1,11 +1,21 @@
 ---
-title: "Multi-Agent Collaboration Patterns"
-sidebar_label: "멀티 에이전트 협업"
-description: "Orchestrator-Worker, Voting, Debate, Hierarchical Supervisor 패턴과 LangGraph/CrewAI/AutoGen/Strands Agents SDK 구현"
-tags: [multi-agent, orchestrator, crew-ai, autogen, langgraph, strands, swarm, 'scope:ops']
+title: Multi-Agent Collaboration Patterns
+description: Orchestrator-Worker, Voting, Debate, Hierarchical Supervisor 패턴과 LangGraph/CrewAI/AutoGen/Strands Agents SDK 구현
+created: "2026-04-18"
 last_update:
-  date: 2026-04-18
+  date: "2026-04-18"
   author: YoungJoon Jeong
+reading_time: 22
+tags:
+  - multi-agent
+  - orchestrator
+  - crew-ai
+  - autogen
+  - langgraph
+  - strands
+  - swarm
+  - scope:ops
+sidebar_label: 멀티 에이전트 협업
 ---
 
 # Multi-Agent Collaboration Patterns

@@ -1,13 +1,21 @@
 ---
-title: "Monitoring & Observability Setup Guide"
-sidebar_label: "Monitoring"
-description: "Hands-on setup guide for integrated monitoring with Prometheus to AMP, AMG, Langfuse, and Bifrost OTel"
-created: 2026-04-06
+title: Monitoring & Observability Setup Guide
+description: Hands-on setup guide for integrated monitoring with Prometheus to AMP, AMG, Langfuse, and Bifrost OTel
+created: "2026-04-06"
 last_update:
-  date: 2026-04-20
+  date: "2026-04-20"
   author: devfloor9
-reading_time: 1
-tags: [monitoring, langfuse, amp, amg, prometheus, otel, deployment, 'scope:impl']
+reading_time: 14
+tags:
+  - monitoring
+  - langfuse
+  - amp
+  - amg
+  - prometheus
+  - otel
+  - deployment
+  - scope:impl
+sidebar_label: Monitoring
 ---
 
 This document covers the **hands-on deployment procedures** for integrated monitoring with Prometheus to AMP, AMG, Langfuse, and Bifrost OTel. For architecture concepts and design principles, see [Agent Monitoring](../../operations-mlops/observability/agent-monitoring.md) and [LLMOps Observability](../../operations-mlops/observability/llmops-observability.md).

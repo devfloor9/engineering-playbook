@@ -1,12 +1,15 @@
 ---
-created: 2026-05-14
-title: "5 부서 페르소나 (Momo)"
-sidebar_label: "01. Personas"
-description: "마케팅·카테고리·검색추천·CS·물류 5 부서"
+title: 5 부서 페르소나 (Momo)
+description: 마케팅·카테고리·검색추천·CS·물류 5 부서
+created: "2026-05-14"
 last_update:
-  date: 2026-05-14
+  date: "2026-05-14"
+  author: YoungJoon Jeong
 reading_time: 2
+tags: []
+sidebar_label: 01. Personas
 ---
+
 # 5 부서 페르소나 (Momo)
 
 | 코드 | 부서 | 미션 | KPI | 주 시나리오 |

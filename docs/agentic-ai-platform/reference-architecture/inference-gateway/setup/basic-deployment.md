@@ -1,13 +1,18 @@
 ---
-title: "기본 배포"
-sidebar_label: "1. 기본 배포"
-description: "kgateway 설치, HTTPRoute 설정, Bifrost Gateway Mode 구성"
-created: 2026-04-18
+title: 기본 배포
+description: kgateway 설치, HTTPRoute 설정, Bifrost Gateway Mode 구성
+created: "2026-04-18"
 last_update:
-  date: 2026-06-23
+  date: "2026-06-23"
   author: YoungJoon Jeong
-reading_time: 1
-tags: [kgateway, bifrost, httproute, gateway-api, 'scope:impl']
+reading_time: 8
+tags:
+  - kgateway
+  - bifrost
+  - httproute
+  - gateway-api
+  - scope:impl
+sidebar_label: 1. 기본 배포
 sidebar_position: 1
 ---
 

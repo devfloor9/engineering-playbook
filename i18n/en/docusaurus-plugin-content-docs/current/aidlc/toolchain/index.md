@@ -1,10 +1,14 @@
 ---
-title: "Tools & Implementation"
-sidebar_label: "Tools & Implementation"
-description: "Tools that enable AIDLC — AI Coding Agents, Open-Weight Models, EKS Automation, Technology Roadmap"
+title: Tools & Implementation
+description: Tools that enable AIDLC — AI Coding Agents, Open-Weight Models, EKS Automation, Technology Roadmap
+created: "2026-04-07"
 last_update:
-  date: 2026-04-18
+  date: "2026-04-18"
   author: devfloor9
+reading_time: 2
+tags:
+  - scope:nav
+sidebar_label: Tools & Implementation
 ---
 
 # AIDLC Tools & Implementation

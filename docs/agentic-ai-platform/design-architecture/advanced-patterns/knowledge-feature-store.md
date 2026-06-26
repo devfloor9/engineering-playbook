@@ -1,18 +1,18 @@
 ---
-title: "Knowledge Feature Store 확장"
-sidebar_label: "Knowledge Feature Store"
-description: "전통 Feature Store에 온톨로지·Knowledge Graph를 통합하여 환각 감소·근거 추적·도메인 엔터티 활용을 강화하는 3-plane 설계"
-created: 2026-04-18
+title: Knowledge Feature Store 확장
+description: 전통 Feature Store에 온톨로지·Knowledge Graph를 통합하여 환각 감소·근거 추적·도메인 엔터티 활용을 강화하는 3-plane 설계
+created: "2026-04-18"
 last_update:
-  date: 2026-04-20
+  date: "2026-04-20"
   author: devfloor9
-reading_time: 20
+reading_time: 11
 tags:
   - feature-store
   - knowledge-graph
   - ontology
   - rag
   - scope:design
+sidebar_label: Knowledge Feature Store
 sidebar_position: 7
 ---
 

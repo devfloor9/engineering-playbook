@@ -1,15 +1,25 @@
 ---
-title: "EKS 기반 MLOps 파이프라인 구축"
-sidebar_label: "MLOps 파이프라인"
-description: "Kubeflow + MLflow + vLLM + ArgoCD GitOps 기반 엔드투엔드 ML 라이프사이클 관리"
-created: 2026-02-11
+title: EKS 기반 MLOps 파이프라인 구축
+description: Kubeflow + MLflow + vLLM + ArgoCD GitOps 기반 엔드투엔드 ML 라이프사이클 관리
+created: "2026-02-11"
 last_update:
-  date: 2026-06-15
+  date: "2026-06-15"
   author: devfloor9
-reading_time: 1
+reading_time: 5
+tags:
+  - mlops
+  - kubeflow
+  - mlflow
+  - vllm
+  - argocd
+  - gitops
+  - argo-workflows
+  - eks
+  - ml-pipeline
+  - scope:impl
+sidebar_label: MLOps 파이프라인
 sidebar_position: 3
-category: "genai-aiml"
-tags: [mlops, kubeflow, mlflow, vllm, argocd, gitops, argo-workflows, eks, ml-pipeline, 'scope:impl']
+category: genai-aiml
 ---
 
 import SpecificationTable from '@site/src/components/tables/SpecificationTable';

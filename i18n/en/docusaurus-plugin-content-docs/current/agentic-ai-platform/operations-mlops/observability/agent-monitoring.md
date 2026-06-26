@@ -1,15 +1,25 @@
 ---
-title: "AI Agent Monitoring and Operations"
-sidebar_label: "Agent Monitoring & Operations"
-description: "Agentic AI application monitoring architecture, key metric design, and alerting strategy overview"
-tags: [eks, langfuse, langsmith, monitoring, observability, tracing, opentelemetry, operations, alerting, 'scope:ops']
-category: "genai-aiml"
-created: 2026-02-05
+title: AI Agent Monitoring and Operations
+description: Agentic AI application monitoring architecture, key metric design, and alerting strategy overview
+created: "2026-02-05"
 last_update:
-  date: 2026-04-20
+  date: "2026-04-20"
   author: devfloor9
+reading_time: 15
+tags:
+  - eks
+  - langfuse
+  - langsmith
+  - monitoring
+  - observability
+  - tracing
+  - opentelemetry
+  - operations
+  - alerting
+  - scope:ops
+sidebar_label: Agent Monitoring & Operations
 sidebar_position: 1
-reading_time: 10
+category: genai-aiml
 ---
 
 import {

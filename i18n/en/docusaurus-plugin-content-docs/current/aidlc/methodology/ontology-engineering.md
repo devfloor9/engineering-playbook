@@ -1,10 +1,13 @@
 ---
 title: Ontology Engineering
-sidebar_label: Ontology Engineering
 description: The first axis of AIDLC reliability — An ontology approach to prevent AI hallucination and ensure domain accuracy through a Typed World Model
+created: "2026-04-07"
 last_update:
-  date: 2026-04-18
+  date: "2026-04-18"
   author: devfloor9
+reading_time: 28
+tags: []
+sidebar_label: Ontology Engineering
 ---
 
 # Ontology Engineering

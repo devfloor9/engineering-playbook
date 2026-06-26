@@ -1,12 +1,15 @@
 ---
-created: 2026-05-14
-title: "S4. 페르소나 매칭 + 클러스터링 (Mitsukoshi)"
-sidebar_label: "S4. Persona & Cluster"
-description: "라이프스타일 페르소나 5종 + RFM × 럭셔리 친화도 + 소셜 페르소나"
+title: S4. 페르소나 매칭 + 클러스터링 (Mitsukoshi)
+description: 라이프스타일 페르소나 5종 + RFM × 럭셔리 친화도 + 소셜 페르소나
+created: "2026-05-14"
 last_update:
-  date: 2026-05-14
+  date: "2026-05-14"
+  author: YoungJoon Jeong
 reading_time: 1
+tags: []
+sidebar_label: S4. Persona & Cluster
 ---
+
 # S4. 라이프스타일 페르소나 매칭 + 클러스터링
 
 ## 1. URL · 페르소나

@@ -1,12 +1,11 @@
 ---
-title: "NeMo Framework"
-sidebar_label: "NeMo Framework"
-description: "NVIDIA NeMo Framework distributed training, fine-tuning, and TensorRT-LLM conversion architecture"
-created: 2026-02-05
+title: NeMo Framework
+description: NVIDIA NeMo Framework distributed training, fine-tuning, and TensorRT-LLM conversion architecture
+created: "2026-02-05"
 last_update:
-  date: 2026-04-20
+  date: "2026-04-20"
   author: devfloor9
-reading_time: 12
+reading_time: 16
 tags:
   - nemo
   - nvidia
@@ -17,6 +16,7 @@ tags:
   - distributed-training
   - training
   - scope:tech
+sidebar_label: NeMo Framework
 sidebar_position: 7
 ---
 

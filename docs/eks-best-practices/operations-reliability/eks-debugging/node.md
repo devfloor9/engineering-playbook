@@ -1,11 +1,19 @@
 ---
-title: "노드 레벨 디버깅"
-sidebar_label: "노드"
-description: "EKS 노드 문제 진단 및 해결 가이드"
-tags: [eks, kubernetes, node, debugging, troubleshooting, karpenter]
+title: 노드 레벨 디버깅
+description: EKS 노드 문제 진단 및 해결 가이드
+created: "2026-04-07"
 last_update:
-  date: 2026-04-18
+  date: "2026-04-18"
   author: devfloor9
+reading_time: 7
+tags:
+  - eks
+  - kubernetes
+  - node
+  - debugging
+  - troubleshooting
+  - karpenter
+sidebar_label: 노드
 ---
 
 import { NodeGroupErrorTable } from '@site/src/components/EksDebugTables';

@@ -1,12 +1,15 @@
 ---
-created: 2026-05-14
-title: "11 시나리오 매핑 (Uni-President)"
-sidebar_label: "03. Scenarios"
-description: "공통 8 + UPI 특화 3 (BU 회원 여정·자사 SKU sell-through·콜드체인)"
+title: 11 시나리오 매핑 (Uni-President)
+description: 공통 8 + UPI 특화 3 (BU 회원 여정·자사 SKU sell-through·콜드체인)
+created: "2026-05-14"
 last_update:
-  date: 2026-05-14
-reading_time: 2
+  date: "2026-05-14"
+  author: YoungJoon Jeong
+reading_time: 1
+tags: []
+sidebar_label: 03. Scenarios
 ---
+
 # 11 시나리오 매핑 (Uni-President)
 
 | # | 시나리오 | URL | 주 페르소나 |

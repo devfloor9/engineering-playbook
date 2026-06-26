@@ -1,11 +1,18 @@
 ---
-title: "Control Plane Debugging"
-sidebar_label: "Control Plane"
-description: "Guide to diagnosing and resolving EKS control plane issues"
-tags: [eks, kubernetes, control-plane, debugging, troubleshooting]
+title: Control Plane Debugging
+description: Guide to diagnosing and resolving EKS control plane issues
+created: "2026-04-21"
 last_update:
-  date: 2026-04-07
+  date: "2026-04-07"
   author: devfloor9
+reading_time: 10
+tags:
+  - eks
+  - kubernetes
+  - control-plane
+  - debugging
+  - troubleshooting
+sidebar_label: Control Plane
 ---
 
 import { ControlPlaneLogTable, ClusterHealthTable } from '@site/src/components/EksDebugTables';

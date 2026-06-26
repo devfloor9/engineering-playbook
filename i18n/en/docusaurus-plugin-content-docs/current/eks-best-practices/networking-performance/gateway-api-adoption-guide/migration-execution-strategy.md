@@ -1,12 +1,19 @@
 ---
-title: "Migration Execution Strategy"
-sidebar_label: "Migration Execution"
-description: "Gateway API migration 5-Phase strategy, CRD installation, step-by-step execution guide, validation scripts, and troubleshooting"
-tags: [eks, gateway-api, migration, nginx, deployment]
-category: "performance-networking"
+title: Migration Execution Strategy
+description: Gateway API migration 5-Phase strategy, CRD installation, step-by-step execution guide, validation scripts, and troubleshooting
+created: "2026-02-14"
 last_update:
-  date: 2026-02-14
+  date: "2026-02-14"
   author: devfloor9
+reading_time: 4
+tags:
+  - eks
+  - gateway-api
+  - migration
+  - nginx
+  - deployment
+sidebar_label: Migration Execution
+category: performance-networking
 ---
 
 import Tabs from '@theme/Tabs';

@@ -1,12 +1,19 @@
 ---
-title: "Harness Checklist"
-sidebar_label: "Harness Checklist"
-sidebar_position: 2
-description: "Required harnesses and implementation guide by MSA pattern"
-tags: [harness, testing, aidlc, enterprise, 'scope:enterprise']
+title: Harness Checklist
+description: Required harnesses and implementation guide by MSA pattern
+created: "2026-04-19"
 last_update:
-  date: 2026-04-18
+  date: "2026-04-18"
   author: devfloor9
+reading_time: 4
+tags:
+  - harness
+  - testing
+  - aidlc
+  - enterprise
+  - scope:enterprise
+sidebar_label: Harness Checklist
+sidebar_position: 2
 ---
 
 # Harness Checklist

@@ -1,12 +1,19 @@
 ---
-title: "Identity-First Security Architecture"
-sidebar_label: "Identity-First Security"
-description: "Zero-trust access control based on EKS Pod Identity and IRSA migration guide"
-category: "security"
-tags: [eks, security, pod-identity, irsa, zero-trust]
+title: Identity-First Security Architecture
+description: Zero-trust access control based on EKS Pod Identity and IRSA migration guide
+created: "2026-02-11"
 last_update:
-  date: 2026-02-13
+  date: "2026-02-13"
   author: devfloor9
+reading_time: 1
+tags:
+  - eks
+  - security
+  - pod-identity
+  - irsa
+  - zero-trust
+sidebar_label: Identity-First Security
+category: security
 ---
 
 # Identity-First Security Architecture

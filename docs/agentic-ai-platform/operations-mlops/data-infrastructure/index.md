@@ -1,10 +1,9 @@
 ---
 title: 데이터 인프라
-sidebar_label: 데이터 인프라
 description: Agentic AI 플랫폼의 벡터 데이터베이스·임베딩 스토어 등 데이터 계층 운영
-created: 2026-04-20
+created: "2026-04-20"
 last_update:
-  date: 2026-04-20
+  date: "2026-04-20"
   author: devfloor9
 reading_time: 1
 tags:
@@ -13,6 +12,7 @@ tags:
   - vector-database
   - milvus
   - scope:nav
+sidebar_label: 데이터 인프라
 ---
 
 ## 개요

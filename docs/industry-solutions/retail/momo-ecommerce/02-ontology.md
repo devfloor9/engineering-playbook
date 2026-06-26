@@ -1,12 +1,15 @@
 ---
-created: 2026-05-14
-title: "Knowledge Graph 25 클래스 (Momo)"
-sidebar_label: "02. Ontology"
-description: "방대 SKU + 라이브 시청 + 자체 물류 (~800K edges)"
+title: Knowledge Graph 25 클래스 (Momo)
+description: 방대 SKU + 라이브 시청 + 자체 물류 (~800K edges)
+created: "2026-05-14"
 last_update:
-  date: 2026-05-14
-reading_time: 3
+  date: "2026-05-14"
+  author: YoungJoon Jeong
+reading_time: 2
+tags: []
+sidebar_label: 02. Ontology
 ---
+
 # Knowledge Graph 25 Classes (Momo)
 
 | 그룹 | 클래스 |

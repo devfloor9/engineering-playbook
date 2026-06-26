@@ -1,13 +1,21 @@
 ---
-title: "Extension System"
-sidebar_label: "Extension System"
-description: "AWS Labs AIDLC Extension System — integrate organization-specific security, compliance, and domain rules into AIDLC workflows via opt-in mechanism"
-sidebar_position: 7
-category: "aidlc"
-tags: [aidlc, extension, enterprise, compliance, governance, 'scope:enterprise']
+title: Extension System
+description: AWS Labs AIDLC Extension System — integrate organization-specific security, compliance, and domain rules into AIDLC workflows via opt-in mechanism
+created: "2026-04-18"
 last_update:
-  date: 2026-04-18
+  date: "2026-04-18"
   author: devfloor9
+reading_time: 11
+tags:
+  - aidlc
+  - extension
+  - enterprise
+  - compliance
+  - governance
+  - scope:enterprise
+sidebar_label: Extension System
+sidebar_position: 7
+category: aidlc
 ---
 
 # Extension System

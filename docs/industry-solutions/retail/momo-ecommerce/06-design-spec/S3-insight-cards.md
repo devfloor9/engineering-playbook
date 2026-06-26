@@ -1,12 +1,15 @@
 ---
-created: 2026-05-14
-title: "S3. 카테고리·BU 인사이트 카드 (Momo)"
-sidebar_label: "S3. Insight Cards"
-description: "방대 SKU 카테고리 + 라이브 + 배송 + 외부 결합 자동 보고서"
+title: S3. 카테고리·BU 인사이트 카드 (Momo)
+description: 방대 SKU 카테고리 + 라이브 + 배송 + 외부 결합 자동 보고서
+created: "2026-05-14"
 last_update:
-  date: 2026-05-14
+  date: "2026-05-14"
+  author: YoungJoon Jeong
 reading_time: 2
+tags: []
+sidebar_label: S3. Insight Cards
 ---
+
 # S3. 카테고리·BU 인사이트 카드 (Momo)
 
 ## 1. URL · 페르소나

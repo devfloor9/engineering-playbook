@@ -1,12 +1,15 @@
 ---
-created: 2026-05-14
-title: "S1. 자연어 시맨틱 검색 (Mitsukoshi)"
-sidebar_label: "S1. Semantic Search"
-description: "입점 브랜드 SKU + VIP·Foreigner + 외부 후기 (소홍서·Dcard·인스타) 통합 검색"
+title: S1. 자연어 시맨틱 검색 (Mitsukoshi)
+description: 입점 브랜드 SKU + VIP·Foreigner + 외부 후기 (소홍서·Dcard·인스타) 통합 검색
+created: "2026-05-14"
 last_update:
-  date: 2026-05-14
+  date: "2026-05-14"
+  author: YoungJoon Jeong
 reading_time: 2
+tags: []
+sidebar_label: S1. Semantic Search
 ---
+
 # S1. 자연어 시맨틱 검색 (Mitsukoshi)
 
 ## 1. URL · 페르소나

@@ -1,12 +1,15 @@
 ---
-created: 2026-05-14
-title: "S7. 옴니채널 회원 여정"
-sidebar_label: "S7. Customer Journey"
-description: "단일 회원이 자사몰→SNS 광고→올영→마트→재구매 BU·채널 가로지르는 단일 타임라인"
+title: S7. 옴니채널 회원 여정
+description: 단일 회원이 자사몰→SNS 광고→올영→마트→재구매 BU·채널 가로지르는 단일 타임라인
+created: "2026-05-14"
 last_update:
-  date: 2026-05-14
-reading_time: 3
+  date: "2026-05-14"
+  author: YoungJoon Jeong
+reading_time: 2
+tags: []
+sidebar_label: S7. Customer Journey
 ---
+
 # S7. 옴니채널 회원 여정
 
 > **3 BU 통합 PoC의 결정적 한 컷**: 한 회원이 Beauty(올영) → HDB(마트) → Refreshment(편의점)을 어떻게 이동하는지 단일 타임라인.

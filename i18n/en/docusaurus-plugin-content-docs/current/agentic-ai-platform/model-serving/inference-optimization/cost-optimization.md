@@ -1,12 +1,11 @@
 ---
-title: "GPU Resources · Observability · Hybrid Node · Lessons Learned"
-sidebar_label: "Cost · Observability · Hybrid"
-description: "2-Tier GPU autoscaling, DCGM/vLLM monitoring, Bifrost→Bedrock Cascade Fallback, Hybrid Node on-premises integration, large MoE deployment lessons learned"
-created: 2026-04-03
+title: GPU Resources · Observability · Hybrid Node · Lessons Learned
+description: 2-Tier GPU autoscaling, DCGM/vLLM monitoring, Bifrost→Bedrock Cascade Fallback, Hybrid Node on-premises integration, large MoE deployment lessons learned
+created: "2026-04-03"
 last_update:
-  date: 2026-04-20
+  date: "2026-04-20"
   author: devfloor9
-reading_time: 25
+reading_time: 24
 tags:
   - inference
   - optimization
@@ -18,6 +17,7 @@ tags:
   - langfuse
   - lessons-learned
   - scope:tech
+sidebar_label: Cost · Observability · Hybrid
 sidebar_position: 4
 ---
 

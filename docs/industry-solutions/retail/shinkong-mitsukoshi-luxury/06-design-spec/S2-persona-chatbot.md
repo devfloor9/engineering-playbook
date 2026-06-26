@@ -1,12 +1,15 @@
 ---
-created: 2026-05-14
-title: "S2. 5 부서 페르소나 챗봇 (Mitsukoshi)"
-sidebar_label: "S2. Persona Chatbot"
-description: "마케팅·인사이트·디지털·VIP·MD 5 부서별 도구 자율 호출"
+title: S2. 5 부서 페르소나 챗봇 (Mitsukoshi)
+description: 마케팅·인사이트·디지털·VIP·MD 5 부서별 도구 자율 호출
+created: "2026-05-14"
 last_update:
-  date: 2026-05-14
+  date: "2026-05-14"
+  author: YoungJoon Jeong
 reading_time: 2
+tags: []
+sidebar_label: S2. Persona Chatbot
 ---
+
 # S2. 5 부서 페르소나 챗봇 (Mitsukoshi)
 
 ## 1. URL · 페르소나

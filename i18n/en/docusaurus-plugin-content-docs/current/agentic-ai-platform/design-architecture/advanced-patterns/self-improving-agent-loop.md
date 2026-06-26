@@ -1,12 +1,11 @@
 ---
-title: "Self-Improving Agent Loop (Autosearch)"
-sidebar_label: "Self-Improving Loop"
-description: "5-stage loop design and safety mechanisms for self-hosted SLMs to autonomously learn and improve from production traces based on Karpathy's autosearch concept"
-created: 2026-04-18
+title: Self-Improving Agent Loop (Autosearch)
+description: 5-stage loop design and safety mechanisms for self-hosted SLMs to autonomously learn and improve from production traces based on Karpathy's autosearch concept
+created: "2026-04-18"
 last_update:
-  date: 2026-04-20
+  date: "2026-04-20"
   author: devfloor9
-reading_time: 35
+reading_time: 31
 tags:
   - self-improving
   - autosearch
@@ -14,6 +13,7 @@ tags:
   - grpo
   - dpo
   - scope:design
+sidebar_label: Self-Improving Loop
 sidebar_position: 8
 ---
 

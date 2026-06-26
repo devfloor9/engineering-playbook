@@ -1,12 +1,11 @@
 ---
-title: "Semantic Caching Strategy"
-sidebar_label: "Semantic Caching"
-description: "LLM Gateway-level semantic caching strategy and implementation options comparison (GPTCache, Redis Semantic Cache, Portkey, Helicone, Bifrost+Redis)"
-created: 2026-04-17
+title: Semantic Caching Strategy
+description: LLM Gateway-level semantic caching strategy and implementation options comparison (GPTCache, Redis Semantic Cache, Portkey, Helicone, Bifrost+Redis)
+created: "2026-04-17"
 last_update:
-  date: 2026-04-20
+  date: "2026-04-20"
   author: devfloor9
-reading_time: 10
+reading_time: 32
 tags:
   - semantic-caching
   - caching
@@ -19,6 +18,7 @@ tags:
   - helicone
   - inference-gateway
   - scope:tech
+sidebar_label: Semantic Caching
 ---
 
 This document covers design principles and operational considerations for **gateway-level semantic caching** in LLM inference pipelines.

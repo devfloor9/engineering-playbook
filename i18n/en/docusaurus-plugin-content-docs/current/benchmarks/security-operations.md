@@ -1,13 +1,20 @@
 ---
 title: Security & Operations Benchmark
-sidebar_label: "Report 8. Security & Operations [Upcoming]"
-sidebar_position: 8
 description: Security policy enforcement and operations tool performance benchmark
-category: "benchmarks"
-tags: [benchmark, security, operations, monitoring, gitops]
+created: "2026-02-11"
 last_update:
-  date: 2026-02-14
+  date: "2026-02-14"
   author: devfloor9
+reading_time: 2
+tags:
+  - benchmark
+  - security
+  - operations
+  - monitoring
+  - gitops
+sidebar_label: Report 8. Security & Operations [Upcoming]
+sidebar_position: 8
+category: benchmarks
 ---
 
 # Security & Operations Benchmark

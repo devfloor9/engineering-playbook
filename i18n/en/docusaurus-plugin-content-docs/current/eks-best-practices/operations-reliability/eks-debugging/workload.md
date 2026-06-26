@@ -1,11 +1,19 @@
 ---
-title: "Workload Debugging"
-sidebar_label: "Workload"
-description: "Guide to diagnosing EKS workload issues - Pod state-based debugging, deployment failure patterns, probe configuration"
-tags: [eks, kubernetes, workload, debugging, pod, deployment]
+title: Workload Debugging
+description: Guide to diagnosing EKS workload issues - Pod state-based debugging, deployment failure patterns, probe configuration
+created: "2026-04-21"
 last_update:
-  date: 2026-04-07
+  date: "2026-04-07"
   author: devfloor9
+reading_time: 10
+tags:
+  - eks
+  - kubernetes
+  - workload
+  - debugging
+  - pod
+  - deployment
+sidebar_label: Workload
 ---
 
 # Workload Debugging

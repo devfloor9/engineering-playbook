@@ -1,12 +1,18 @@
 ---
 title: Introduction
 description: Cloud Native Architecture Engineering Playbook & Benchmark Reports
-category: "getting-started"
-tags: [kubernetes, cloud-native, introduction, getting-started]
-sidebar_position: 1
+created: "2025-09-11"
 last_update:
-  date: 2026-02-25
+  date: "2026-02-25"
   author: devfloor9
+reading_time: 1
+tags:
+  - kubernetes
+  - cloud-native
+  - introduction
+  - getting-started
+sidebar_position: 1
+category: getting-started
 ---
 
 # Engineering Playbook

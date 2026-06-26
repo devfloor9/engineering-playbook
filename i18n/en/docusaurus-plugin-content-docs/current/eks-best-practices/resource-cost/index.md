@@ -1,12 +1,20 @@
 ---
-title: "Resource & Cost Optimization"
-sidebar_label: "Resource & Cost"
-description: "Karpenter autoscaling, Pod resource optimization, and EKS cost management strategies"
-tags: [eks, karpenter, cost-management, resource-optimization, finops]
-sidebar_position: 4
+title: Resource & Cost Optimization
+description: Karpenter autoscaling, Pod resource optimization, and EKS cost management strategies
+created: "2026-03-24"
 last_update:
-  date: 2026-03-24
+  date: "2026-03-24"
   author: devfloor9
+reading_time: 3
+tags:
+  - eks
+  - karpenter
+  - cost-management
+  - resource-optimization
+  - finops
+  - scope:nav
+sidebar_label: Resource & Cost
+sidebar_position: 4
 ---
 
 import { DocCard, DocCardGrid } from '@site/src/components/DocCards';

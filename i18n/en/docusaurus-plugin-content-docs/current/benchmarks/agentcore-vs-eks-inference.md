@@ -1,13 +1,25 @@
 ---
 title: "Inference Platform Benchmark: Bedrock AgentCore vs EKS Self-Managed"
-sidebar_label: "Report 4. AgentCore vs EKS [Plan]"
-sidebar_position: 4
-description: "A benchmark plan comparing Bedrock AgentCore as baseline against self-managed EKS (vLLM, llm-d, Bifrost/LiteLLM) across features, performance, and cost"
-tags: [benchmark, bedrock, agentcore, eks, vllm, llm-d, bifrost, litellm, inference, cost]
-category: "benchmark"
+description: A benchmark plan comparing Bedrock AgentCore as baseline against self-managed EKS (vLLM, llm-d, Bifrost/LiteLLM) across features, performance, and cost
+created: "2026-03-20"
 last_update:
-  date: 2026-03-18
+  date: "2026-03-18"
   author: devfloor9
+reading_time: 23
+tags:
+  - benchmark
+  - bedrock
+  - agentcore
+  - eks
+  - vllm
+  - llm-d
+  - bifrost
+  - litellm
+  - inference
+  - cost
+sidebar_label: Report 4. AgentCore vs EKS [Plan]
+sidebar_position: 4
+category: benchmark
 ---
 
 # Inference Platform Benchmark: Bedrock AgentCore vs EKS Self-Managed

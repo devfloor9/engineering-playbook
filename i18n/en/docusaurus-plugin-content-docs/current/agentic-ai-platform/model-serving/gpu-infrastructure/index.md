@@ -1,12 +1,11 @@
 ---
-title: "GPU Infrastructure"
-sidebar_label: "GPU Infrastructure"
-description: "EKS GPU node strategy, Karpenter·KEDA·DRA resource management, NVIDIA GPU stack, AWS Neuron stack"
-created: 2026-04-17
+title: GPU Infrastructure
+description: EKS GPU node strategy, Karpenter·KEDA·DRA resource management, NVIDIA GPU stack, AWS Neuron stack
+created: "2026-04-17"
 last_update:
-  date: 2026-04-20
+  date: "2026-04-20"
   author: devfloor9
-reading_time: 1
+reading_time: 4
 tags:
   - gpu
   - eks
@@ -14,6 +13,7 @@ tags:
   - gpu-operator
   - neuron
   - scope:tech
+sidebar_label: GPU Infrastructure
 ---
 
 import { DocCard, DocCardGrid } from '@site/src/components/DocCards';

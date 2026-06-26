@@ -1,12 +1,15 @@
 ---
-created: 2026-05-14
-title: "AWS 단일 아키텍처 (Uni-President)"
-sidebar_label: "05. Architecture"
-description: "Bedrock + Neptune + OpenSearch + AgentCore + TimeStream (콜드체인) + Glue (BU 간 ETL)"
+title: AWS 단일 아키텍처 (Uni-President)
+description: Bedrock + Neptune + OpenSearch + AgentCore + TimeStream (콜드체인) + Glue (BU 간 ETL)
+created: "2026-05-14"
 last_update:
-  date: 2026-05-14
+  date: "2026-05-14"
+  author: YoungJoon Jeong
 reading_time: 2
+tags: []
+sidebar_label: 05. Architecture
 ---
+
 # AWS 단일 아키텍처 (Uni-President)
 
 > LG H&H 골격 + UPI 특화: **5 BU 데이터 통합 Glue ETL**, **TimeStream 콜드체인**, **Neptune ~900K edges** (BU 다양성 + OPENPOINT)

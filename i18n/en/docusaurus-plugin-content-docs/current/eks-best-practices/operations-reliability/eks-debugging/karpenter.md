@@ -1,11 +1,21 @@
 ---
 title: Karpenter In-Depth Debugging
-sidebar_label: Karpenter
 description: In-depth debugging guide for the Karpenter autoscaler
-keywords: [EKS, Karpenter, NodePool, NodeClaim, Consolidation, Spot, Debugging]
+created: "2026-04-07"
 last_update:
-  date: 2026-04-07
+  date: "2026-04-07"
   author: devfloor9
+reading_time: 7
+tags: []
+keywords:
+  - EKS
+  - Karpenter
+  - NodePool
+  - NodeClaim
+  - Consolidation
+  - Spot
+  - Debugging
+sidebar_label: Karpenter
 ---
 
 # Karpenter In-Depth Debugging

@@ -1,13 +1,17 @@
 ---
-title: "Inference Gateway Deployment Guide"
-sidebar_label: "Inference Gateway Deployment"
-description: "Step-by-step deployment guide for kgateway-based Inference Gateway (basic/advanced/troubleshooting)"
-created: 2026-04-18
+title: Inference Gateway Deployment Guide
+description: Step-by-step deployment guide for kgateway-based Inference Gateway (basic/advanced/troubleshooting)
+created: "2026-04-18"
 last_update:
-  date: 2026-04-20
+  date: "2026-04-20"
   author: devfloor9
-reading_time: 1
-tags: [inference-gateway, kgateway, deployment, 'scope:impl']
+reading_time: 10
+tags:
+  - inference-gateway
+  - kgateway
+  - deployment
+  - scope:impl
+sidebar_label: Inference Gateway Deployment
 sidebar_position: 4
 ---
 

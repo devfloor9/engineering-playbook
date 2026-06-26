@@ -1,12 +1,16 @@
 ---
-title: "Hybrid Infrastructure"
-sidebar_label: "Hybrid Infrastructure"
-description: "In-depth technical documentation on building hybrid cloud and multi-cloud environments with Amazon EKS"
-category: "hybrid"
-sidebar_position: 4
+title: Hybrid Infrastructure
+description: In-depth technical documentation on building hybrid cloud and multi-cloud environments with Amazon EKS
+created: "2026-02-04"
 last_update:
-  date: 2026-02-13
+  date: "2026-02-13"
   author: devfloor9
+reading_time: 7
+tags:
+  - scope:nav
+sidebar_label: Hybrid Infrastructure
+sidebar_position: 4
+category: hybrid
 ---
 
 # Hybrid Infrastructure

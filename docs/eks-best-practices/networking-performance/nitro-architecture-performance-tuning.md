@@ -1,10 +1,9 @@
 ---
-title: "AWS Nitro 아키텍처와 성능 튜닝"
-sidebar_label: "Nitro 아키텍처 & 튜닝"
-description: "AWS Nitro System의 구성 요소와 v2~v6 세대별 네트워크 변경 사항, 그리고 EKS 노드에서 요구되는 ENA 드라이버·커널 버전과 PPS/CPS 중심 성능 튜닝 전략을 다룹니다."
-created: 2026-06-19
+title: AWS Nitro 아키텍처와 성능 튜닝
+description: AWS Nitro System의 구성 요소와 v2~v6 세대별 네트워크 변경 사항, 그리고 EKS 노드에서 요구되는 ENA 드라이버·커널 버전과 PPS/CPS 중심 성능 튜닝 전략을 다룹니다.
+created: "2026-06-19"
 last_update:
-  date: 2026-06-20
+  date: "2026-06-20"
   author: devfloor9
 reading_time: 14
 tags:
@@ -19,6 +18,7 @@ keywords:
   - ENA Express
   - PPS
   - conntrack
+sidebar_label: Nitro 아키텍처 & 튜닝
 ---
 
 # AWS Nitro 아키텍처와 성능 튜닝

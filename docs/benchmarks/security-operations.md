@@ -1,13 +1,20 @@
 ---
 title: 보안 및 운영 벤치마크
-sidebar_label: "Report 8. 보안 및 운영 [예정]"
-sidebar_position: 8
 description: 보안 정책 적용 및 운영 도구 성능 벤치마크
-category: "benchmarks"
-tags: [benchmark, security, operations, monitoring, gitops]
+created: "2026-02-09"
 last_update:
-  date: 2026-02-14
+  date: "2026-02-14"
   author: devfloor9
+reading_time: 1
+tags:
+  - benchmark
+  - security
+  - operations
+  - monitoring
+  - gitops
+sidebar_label: Report 8. 보안 및 운영 [예정]
+sidebar_position: 8
+category: benchmarks
 ---
 
 # 보안 및 운영 벤치마크

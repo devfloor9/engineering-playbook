@@ -1,11 +1,21 @@
 ---
 title: GPU/AI 워크로드 디버깅
-sidebar_label: GPU/AI 워크로드
 description: EKS에서 GPU/AI 워크로드 디버깅 가이드
-keywords: [EKS, GPU, NVIDIA, vLLM, NCCL, AI, 디버깅]
+created: "2026-04-07"
 last_update:
-  date: 2026-04-07
+  date: "2026-04-07"
   author: devfloor9
+reading_time: 6
+tags: []
+keywords:
+  - EKS
+  - GPU
+  - NVIDIA
+  - vLLM
+  - NCCL
+  - AI
+  - 디버깅
+sidebar_label: GPU/AI 워크로드
 ---
 
 # GPU/AI 워크로드 디버깅

@@ -1,13 +1,17 @@
 ---
-title: "Inference Gateway 배포 가이드"
-sidebar_label: "Inference Gateway 배포"
-description: "kgateway 기반 Inference Gateway의 단계별 배포 가이드 (기본/고급/트러블슈팅)"
-created: 2026-04-18
+title: Inference Gateway 배포 가이드
+description: kgateway 기반 Inference Gateway의 단계별 배포 가이드 (기본/고급/트러블슈팅)
+created: "2026-04-18"
 last_update:
-  date: 2026-06-23
+  date: "2026-06-23"
   author: YoungJoon Jeong
-reading_time: 1
-tags: [inference-gateway, kgateway, deployment, 'scope:impl']
+reading_time: 9
+tags:
+  - inference-gateway
+  - kgateway
+  - deployment
+  - scope:impl
+sidebar_label: Inference Gateway 배포
 sidebar_position: 4
 ---
 

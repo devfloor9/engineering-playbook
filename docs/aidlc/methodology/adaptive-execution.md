@@ -1,13 +1,22 @@
 ---
-title: "AIDLC Adaptive Execution"
-sidebar_label: "Adaptive Execution"
-description: "AIDLC 공식 Adaptive Workflows — 조건부 stage 실행 decision tree, Inception 7단계와 Construction per-unit 루프 해설"
-sidebar_position: 7
-category: "aidlc"
-tags: [aidlc, adaptive-execution, inception, construction, workflow, methodology, 'scope:methodology']
+title: AIDLC Adaptive Execution
+description: AIDLC 공식 Adaptive Workflows — 조건부 stage 실행 decision tree, Inception 7단계와 Construction per-unit 루프 해설
+created: "2026-04-18"
 last_update:
-  date: 2026-04-18
+  date: "2026-04-18"
   author: devfloor9
+reading_time: 11
+tags:
+  - aidlc
+  - adaptive-execution
+  - inception
+  - construction
+  - workflow
+  - methodology
+  - scope:methodology
+sidebar_label: Adaptive Execution
+sidebar_position: 7
+category: aidlc
 ---
 
 # AIDLC Adaptive Execution

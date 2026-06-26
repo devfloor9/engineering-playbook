@@ -1,13 +1,25 @@
 ---
-title: "NVIDIA Dynamo 추론 벤치마크"
-sidebar_label: "Report 5. Dynamo 추론 [신규]"
-sidebar_position: 5
-description: "NVIDIA Dynamo 기반 Aggregated/Disaggregated LLM 서빙 성능 비교 벤치마크 — EKS 환경 AIPerf 4가지 모드 실행"
-tags: [benchmark, nvidia, dynamo, vllm, inference, gpu, disaggregated-serving, eks, kv-cache, nixl]
-category: "benchmark"
+title: NVIDIA Dynamo 추론 벤치마크
+description: NVIDIA Dynamo 기반 Aggregated/Disaggregated LLM 서빙 성능 비교 벤치마크 — EKS 환경 AIPerf 4가지 모드 실행
+created: "2026-03-20"
 last_update:
-  date: 2026-06-15
+  date: "2026-06-15"
   author: devfloor9
+reading_time: 9
+tags:
+  - benchmark
+  - nvidia
+  - dynamo
+  - vllm
+  - inference
+  - gpu
+  - disaggregated-serving
+  - eks
+  - kv-cache
+  - nixl
+sidebar_label: Report 5. Dynamo 추론 [신규]
+sidebar_position: 5
+category: benchmark
 ---
 
 # Report 5. NVIDIA Dynamo 추론 벤치마크

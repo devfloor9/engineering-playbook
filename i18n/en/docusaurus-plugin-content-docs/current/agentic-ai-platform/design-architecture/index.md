@@ -1,12 +1,11 @@
 ---
-title: "Design & Architecture"
-sidebar_label: "Design & Architecture"
-description: "Architecture design, technical challenges, and AWS Native and EKS-based implementation approaches for the Agentic AI Platform"
-created: 2026-03-06
+title: Design & Architecture
+description: Architecture design, technical challenges, and AWS Native and EKS-based implementation approaches for the Agentic AI Platform
+created: "2026-03-06"
 last_update:
-  date: 2026-04-20
+  date: "2026-04-20"
   author: devfloor9
-reading_time: 3
+reading_time: 4
 tags:
   - architecture
   - design
@@ -14,6 +13,7 @@ tags:
   - eks
   - aws
   - scope:nav
+sidebar_label: Design & Architecture
 sidebar_position: 0
 ---
 

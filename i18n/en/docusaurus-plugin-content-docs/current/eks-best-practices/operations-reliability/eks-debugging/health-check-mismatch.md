@@ -1,11 +1,20 @@
 ---
-title: "Probe vs Health Check Mismatch Debugging"
-sidebar_label: "Health Check Mismatch"
-description: "Guide to diagnosing outages caused by mechanism differences and timeout mismatches between K8s Probes and ALB/NLB/Ingress Controller Health Checks"
-tags: [eks, debugging, health-check, probe, alb, nlb, ingress]
+title: Probe vs Health Check Mismatch Debugging
+description: Guide to diagnosing outages caused by mechanism differences and timeout mismatches between K8s Probes and ALB/NLB/Ingress Controller Health Checks
+created: "2026-04-21"
 last_update:
-  date: 2026-04-07
+  date: "2026-04-07"
   author: devfloor9
+reading_time: 18
+tags:
+  - eks
+  - debugging
+  - health-check
+  - probe
+  - alb
+  - nlb
+  - ingress
+sidebar_label: Health Check Mismatch
 ---
 
 # Probe vs Health Check Mismatch Debugging

@@ -1,15 +1,23 @@
 ---
-title: "Milvus Vector Database Integration"
-sidebar_label: "Milvus Vector DB"
-description: "Deploying Milvus vector database on Amazon EKS and integrating with RAG pipelines"
-sidebar_position: 9
-category: "genai-aiml"
-created: 2026-02-05
+title: Milvus Vector Database Integration
+description: Deploying Milvus vector database on Amazon EKS and integrating with RAG pipelines
+created: "2026-02-05"
 last_update:
-  date: 2026-04-20
+  date: "2026-04-20"
   author: devfloor9
-tags: [milvus, vector-database, rag, kubernetes, eks, genai, embedding, 'scope:ops']
-reading_time: 11
+reading_time: 16
+tags:
+  - milvus
+  - vector-database
+  - rag
+  - kubernetes
+  - eks
+  - genai
+  - embedding
+  - scope:ops
+sidebar_label: Milvus Vector DB
+sidebar_position: 9
+category: genai-aiml
 ---
 
 import {
