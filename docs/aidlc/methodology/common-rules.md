@@ -1,13 +1,20 @@
 ---
-title: "AIDLC Common Rules"
-sidebar_label: "Common Rules"
-description: "AWS Labs AIDLC 공식 11개 공통 규칙 해설 — Question Format부터 Audit Logging까지, 엔터프라이즈 적용 가이드"
-sidebar_position: 6
-category: "aidlc"
-tags: [aidlc, common-rules, methodology, governance, 'scope:methodology']
+title: AIDLC Common Rules
+description: AWS Labs AIDLC 공식 11개 공통 규칙 해설 — Question Format부터 Audit Logging까지, 엔터프라이즈 적용 가이드
+created: "2026-04-18"
 last_update:
-  date: 2026-04-18
+  date: "2026-04-18"
   author: devfloor9
+reading_time: 14
+tags:
+  - aidlc
+  - common-rules
+  - methodology
+  - governance
+  - scope:methodology
+sidebar_label: Common Rules
+sidebar_position: 6
+category: aidlc
 ---
 
 # AIDLC Common Rules

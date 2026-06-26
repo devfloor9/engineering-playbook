@@ -1,12 +1,19 @@
 ---
 title: "Level 1-2: Simple CRUD & Synchronous MSA"
+description: Application guide for Level 1 simple CRUD services and Level 2 synchronous MSA orchestration patterns
+created: "2026-04-19"
+last_update:
+  date: "2026-04-18"
+  author: devfloor9
+reading_time: 4
+tags:
+  - msa
+  - aidlc
+  - crud
+  - synchronous
+  - scope:enterprise
 sidebar_label: "L1-L2: Simple MSA"
 sidebar_position: 1
-description: "Application guide for Level 1 simple CRUD services and Level 2 synchronous MSA orchestration patterns"
-tags: [msa, aidlc, crud, synchronous, 'scope:enterprise']
-last_update:
-  date: 2026-04-18
-  author: devfloor9
 ---
 
 # Level 1-2: Simple CRUD & Synchronous MSA

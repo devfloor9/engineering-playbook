@@ -1,13 +1,11 @@
 ---
 title: "Sovereign & Hybrid Deployment: Data Sovereignty and Region Enforcement"
-sidebar_label: "Sovereign & Hybrid Deployment"
-sidebar_position: 6
-description: "Agentic AI deployment strategies that meet data sovereignty requirements — SCP region enforcement, Bedrock Geographic cross-Region inference, and EKS Hybrid Nodes-based hybrid/in-country self-hosting"
-created: 2026-06-14
+description: Agentic AI deployment strategies that meet data sovereignty requirements — SCP region enforcement, Bedrock Geographic cross-Region inference, and EKS Hybrid Nodes-based hybrid/in-country self-hosting
+created: "2026-06-14"
 last_update:
-  date: 2026-06-14
+  date: "2026-06-14"
   author: devfloor9
-reading_time: 14
+reading_time: 21
 tags:
   - sovereignty
   - hybrid
@@ -16,7 +14,9 @@ tags:
   - eks
   - compliance
   - scope:design
-category: "genai-aiml"
+sidebar_label: Sovereign & Hybrid Deployment
+sidebar_position: 6
+category: genai-aiml
 ---
 
 import { SovereigntySpectrum } from '@site/src/components/DecisionFrameworkTables';

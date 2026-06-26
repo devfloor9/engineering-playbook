@@ -1,10 +1,9 @@
 ---
 title: 통합 & 비용
-sidebar_label: 통합 & 비용
 description: SageMaker 하이브리드 통합·Observability 스택 배포·코딩 도구 비용 분석
-created: 2026-04-20
+created: "2026-04-20"
 last_update:
-  date: 2026-04-20
+  date: "2026-04-20"
   author: devfloor9
 reading_time: 1
 tags:
@@ -14,6 +13,7 @@ tags:
   - cost-analysis
   - monitoring
   - scope:nav
+sidebar_label: 통합 & 비용
 ---
 
 ## 개요

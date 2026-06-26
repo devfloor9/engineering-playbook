@@ -1,11 +1,17 @@
 ---
-title: "GAMMA Initiative — 서비스 메시 통합의 미래"
-sidebar_label: "GAMMA Initiative"
-description: "GAMMA (Gateway API for Mesh Management and Administration) 소개, East-West 트래픽 관리, 서비스 메시 통합"
-tags: [gateway-api, gamma, service-mesh, east-west]
+title: GAMMA Initiative — 서비스 메시 통합의 미래
+description: GAMMA (Gateway API for Mesh Management and Administration) 소개, East-West 트래픽 관리, 서비스 메시 통합
+created: "2026-02-14"
 last_update:
-  date: 2026-02-14
+  date: "2026-02-14"
   author: devfloor9
+reading_time: 3
+tags:
+  - gateway-api
+  - gamma
+  - service-mesh
+  - east-west
+sidebar_label: GAMMA Initiative
 ---
 
 import {

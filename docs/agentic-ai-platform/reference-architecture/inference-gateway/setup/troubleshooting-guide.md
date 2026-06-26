@@ -1,13 +1,18 @@
 ---
-title: "트러블슈팅 가이드"
-sidebar_label: "3. 트러블슈팅"
-description: "Inference Gateway 배포 및 운영 중 발생하는 일반적인 문제와 해결 방법"
-created: 2026-04-18
+title: 트러블슈팅 가이드
+description: Inference Gateway 배포 및 운영 중 발생하는 일반적인 문제와 해결 방법
+created: "2026-04-18"
 last_update:
-  date: 2026-06-23
+  date: "2026-06-23"
   author: YoungJoon Jeong
-reading_time: 1
-tags: [troubleshooting, debugging, kgateway, bifrost, 'scope:impl']
+reading_time: 7
+tags:
+  - troubleshooting
+  - debugging
+  - kgateway
+  - bifrost
+  - scope:impl
+sidebar_label: 3. 트러블슈팅
 sidebar_position: 3
 ---
 

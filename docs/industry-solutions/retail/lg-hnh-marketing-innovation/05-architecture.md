@@ -1,12 +1,15 @@
 ---
-created: 2026-05-14
-title: "AWS 단일 아키텍처"
-sidebar_label: "05. Architecture"
-description: "Bedrock + Neptune + OpenSearch + AgentCore + Cohere — 8주 PoC 가능한 단일 안"
+title: AWS 단일 아키텍처
+description: Bedrock + Neptune + OpenSearch + AgentCore + Cohere — 8주 PoC 가능한 단일 안
+created: "2026-05-14"
 last_update:
-  date: 2026-06-15
-reading_time: 7
+  date: "2026-06-15"
+  author: YoungJoon Jeong
+reading_time: 4
+tags: []
+sidebar_label: 05. Architecture
 ---
+
 # AWS 단일 아키텍처
 
 > 1차 시도의 "3 옵션 비교"는 PPTX 의존이라 제거. 본 PoC는 **단일 안**으로 8주 안에 동작 시연 가능한 AWS Native 스택.

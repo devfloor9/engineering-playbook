@@ -1,14 +1,20 @@
 ---
-title: "Operations & Governance"
-sidebar_label: "Operations & Governance"
-description: "AI platform monitoring, observability, evaluation, compliance, and domain-specific operations guide"
-tags: [operations, monitoring, observability, mlops, compliance, 'scope:ops']
-sidebar_position: 0
-created: 2026-03-06
+title: Operations & Governance
+description: AI platform monitoring, observability, evaluation, compliance, and domain-specific operations guide
+created: "2026-03-06"
 last_update:
-  date: 2026-04-20
+  date: "2026-04-20"
   author: devfloor9
-reading_time: 1
+reading_time: 9
+tags:
+  - operations
+  - monitoring
+  - observability
+  - mlops
+  - compliance
+  - scope:ops
+sidebar_label: Operations & Governance
+sidebar_position: 0
 ---
 
 import { DocCard, DocCardGrid } from '@site/src/components/DocCards';

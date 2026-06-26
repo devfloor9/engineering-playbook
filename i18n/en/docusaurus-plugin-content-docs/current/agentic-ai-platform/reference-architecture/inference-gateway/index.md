@@ -1,12 +1,11 @@
 ---
 title: Inference Gateway
-sidebar_label: Inference Gateway
 description: Routing strategies, deployment, cascade tuning, and implementation examples for kgateway and Bifrost-based 2-Tier inference gateways
-created: 2026-04-20
+created: "2026-04-20"
 last_update:
-  date: 2026-04-20
+  date: "2026-04-20"
   author: devfloor9
-reading_time: 1
+reading_time: 2
 tags:
   - reference-architecture
   - inference-gateway
@@ -14,6 +13,7 @@ tags:
   - bifrost
   - cascade-routing
   - scope:nav
+sidebar_label: Inference Gateway
 ---
 
 ## Overview

@@ -1,12 +1,11 @@
 ---
-title: "Inference Frameworks"
-sidebar_label: "Inference Frameworks"
-description: "vLLM·llm-d·MoE·NeMo — AI framework layer for actual model serving, distributed inference, and fine-tuning on GPUs"
-created: 2026-04-17
+title: Inference Frameworks
+description: vLLM·llm-d·MoE·NeMo — AI framework layer for actual model serving, distributed inference, and fine-tuning on GPUs
+created: "2026-04-17"
 last_update:
-  date: 2026-04-20
+  date: "2026-04-20"
   author: devfloor9
-reading_time: 1
+reading_time: 4
 tags:
   - vllm
   - llm-d
@@ -16,6 +15,7 @@ tags:
   - fine-tuning
   - serving
   - scope:tech
+sidebar_label: Inference Frameworks
 ---
 
 import { DocCard, DocCardGrid } from '@site/src/components/DocCards';

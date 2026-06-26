@@ -1,13 +1,20 @@
 ---
-title: "Agentic Playbook"
-sidebar_label: "Agentic Playbook"
-description: "Guide for declaratively defining agent workflows like IaC and automating compliance"
-tags: [playbook, agent, langgraph, guardrails, compliance, gitops, 'scope:ops']
-created: 2026-04-04
+title: Agentic Playbook
+description: Guide for declaratively defining agent workflows like IaC and automating compliance
+created: "2026-04-04"
 last_update:
-  date: 2026-04-20
+  date: "2026-04-20"
   author: devfloor9
-reading_time: 8
+reading_time: 13
+tags:
+  - playbook
+  - agent
+  - langgraph
+  - guardrails
+  - compliance
+  - gitops
+  - scope:ops
+sidebar_label: Agentic Playbook
 ---
 
 A practical guide for declaratively defining AI agent workflows like Infrastructure-as-Code (IaC), automating compliance, and ensuring audit trails.

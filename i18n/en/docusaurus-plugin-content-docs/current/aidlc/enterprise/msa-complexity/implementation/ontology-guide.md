@@ -1,12 +1,18 @@
 ---
-title: "Ontology Writing Guide"
-sidebar_label: "Ontology Guide"
-sidebar_position: 1
-description: "Ontology depth and writing guidelines by MSA complexity level"
-tags: [ontology, aidlc, enterprise, 'scope:enterprise']
+title: Ontology Writing Guide
+description: Ontology depth and writing guidelines by MSA complexity level
+created: "2026-04-19"
 last_update:
-  date: 2026-04-18
+  date: "2026-04-18"
   author: devfloor9
+reading_time: 4
+tags:
+  - ontology
+  - aidlc
+  - enterprise
+  - scope:enterprise
+sidebar_label: Ontology Guide
+sidebar_position: 1
 ---
 
 # Ontology Writing Guide

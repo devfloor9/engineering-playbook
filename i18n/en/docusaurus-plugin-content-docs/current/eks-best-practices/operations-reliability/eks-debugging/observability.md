@@ -1,11 +1,19 @@
 ---
-title: "Observability and Monitoring"
-sidebar_label: "Observability"
-description: "EKS observability stack configuration and incident detection strategies - Container Insights, Prometheus, ADOT"
-tags: [eks, kubernetes, observability, monitoring, prometheus, adot]
+title: Observability and Monitoring
+description: EKS observability stack configuration and incident detection strategies - Container Insights, Prometheus, ADOT
+created: "2026-04-07"
 last_update:
-  date: 2026-04-07
+  date: "2026-04-07"
   author: devfloor9
+reading_time: 16
+tags:
+  - eks
+  - kubernetes
+  - observability
+  - monitoring
+  - prometheus
+  - adot
+sidebar_label: Observability
 ---
 
 import { IncidentEscalationTable, ZonalShiftImpactTable } from '@site/src/components/EksDebugTables';

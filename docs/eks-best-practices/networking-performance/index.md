@@ -1,12 +1,20 @@
 ---
-title: "네트워크 & 성능 최적화"
-sidebar_label: "네트워크 & 성능"
-description: "EKS 환경에서의 DNS 최적화, East-West 트래픽, Gateway API 도입 등 네트워크 및 성능 관련 베스트 프랙티스"
-tags: [eks, networking, performance, dns, gateway-api]
-sidebar_position: 1
+title: 네트워크 & 성능 최적화
+description: EKS 환경에서의 DNS 최적화, East-West 트래픽, Gateway API 도입 등 네트워크 및 성능 관련 베스트 프랙티스
+created: "2026-03-24"
 last_update:
-  date: 2026-03-24
+  date: "2026-03-24"
   author: devfloor9
+reading_time: 3
+tags:
+  - eks
+  - networking
+  - performance
+  - dns
+  - gateway-api
+  - scope:nav
+sidebar_label: 네트워크 & 성능
+sidebar_position: 1
 ---
 
 import { DocCard, DocCardGrid } from '@site/src/components/DocCards';

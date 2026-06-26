@@ -1,12 +1,11 @@
 ---
-title: "CRIU-based GPU Live Migration (Preview)"
-sidebar_label: "CRIU GPU Migration"
-description: "Technical status and EKS application scenarios for GPU workload checkpoint/restore during Spot reclaim and scheduling events (Experimental)"
-created: 2026-04-18
+title: CRIU-based GPU Live Migration (Preview)
+description: Technical status and EKS application scenarios for GPU workload checkpoint/restore during Spot reclaim and scheduling events (Experimental)
+created: "2026-04-18"
 last_update:
-  date: 2026-04-20
+  date: "2026-04-20"
   author: devfloor9
-reading_time: 19
+reading_time: 31
 tags:
   - criu
   - gpu
@@ -17,6 +16,7 @@ tags:
   - eks
   - cost-optimization
   - scope:tech
+sidebar_label: CRIU GPU Migration
 ---
 
 :::caution Experimental / Research Preview

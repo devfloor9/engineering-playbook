@@ -1,12 +1,15 @@
 ---
-created: 2026-05-14
-title: "S9-A. ABO 조직 시각화 + 성과 트래킹 (AMWAY 특화)"
-sidebar_label: "S9-A. ABO Tree"
-description: "AMWAY 다단계 ABO Tree 5단 깊이 시각화 + PV/BV·등급 성과 + Sponsor 분석"
+title: S9-A. ABO 조직 시각화 + 성과 트래킹 (AMWAY 특화)
+description: AMWAY 다단계 ABO Tree 5단 깊이 시각화 + PV/BV·등급 성과 + Sponsor 분석
+created: "2026-05-14"
 last_update:
-  date: 2026-05-14
-reading_time: 3
+  date: "2026-05-14"
+  author: YoungJoon Jeong
+reading_time: 2
+tags: []
+sidebar_label: S9-A. ABO Tree
 ---
+
 # S9-A. ABO 조직 시각화 + 성과 트래킹
 
 > **AMWAY 차별 포인트** ⭐ — 다단계 직접판매의 핵심 자산인 ABO 조직 트리를 단일 화면에서 깊이 5단까지 탐색·성과 분석.

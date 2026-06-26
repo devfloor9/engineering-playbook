@@ -1,11 +1,16 @@
 ---
-tags: [aidlc, toolchain, 'scope:toolchain']
 title: EKS 선언적 자동화
-sidebar_label: EKS 선언적 자동화
 description: AIDLC Construction/Operations를 EKS Capabilities로 구현하는 선언적 자동화 패턴
+created: "2026-04-07"
 last_update:
-  date: 2026-04-18
+  date: "2026-04-18"
   author: devfloor9
+reading_time: 16
+tags:
+  - aidlc
+  - toolchain
+  - scope:toolchain
+sidebar_label: EKS 선언적 자동화
 ---
 
 import { EksCapabilities, AidlcPipeline } from '@site/src/components/AidlcTables';

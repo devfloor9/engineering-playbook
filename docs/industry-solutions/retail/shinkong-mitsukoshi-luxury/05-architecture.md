@@ -1,12 +1,15 @@
 ---
-created: 2026-05-14
-title: "AWS 단일 아키텍처 (Mitsukoshi)"
-sidebar_label: "05. Architecture"
-description: "Bedrock + Neptune + OpenSearch + AgentCore — 다국어 + 환율 라이브"
+title: AWS 단일 아키텍처 (Mitsukoshi)
+description: Bedrock + Neptune + OpenSearch + AgentCore — 다국어 + 환율 라이브
+created: "2026-05-14"
 last_update:
-  date: 2026-05-14
+  date: "2026-05-14"
+  author: YoungJoon Jeong
 reading_time: 2
+tags: []
+sidebar_label: 05. Architecture
 ---
+
 # AWS 단일 아키텍처 (Mitsukoshi)
 
 > LG H&H 골격 + Mitsukoshi 특화: 다국어 (번체중·일본어·영어), 환율·관광 EventBridge cron, ~550K edges

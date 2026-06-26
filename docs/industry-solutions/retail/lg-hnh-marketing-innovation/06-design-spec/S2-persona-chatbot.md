@@ -1,12 +1,15 @@
 ---
-created: 2026-05-14
-title: "S2. 5 부서 페르소나 챗봇"
-sidebar_label: "S2. Persona Chatbot"
-description: "5 부서별 도구 자율 호출 챗봇 — Bedrock Sonnet + AgentCore Memory + 12 도구"
+title: S2. 5 부서 페르소나 챗봇
+description: 5 부서별 도구 자율 호출 챗봇 — Bedrock Sonnet + AgentCore Memory + 12 도구
+created: "2026-05-14"
 last_update:
-  date: 2026-05-14
-reading_time: 4
+  date: "2026-05-14"
+  author: YoungJoon Jeong
+reading_time: 3
+tags: []
+sidebar_label: S2. Persona Chatbot
 ---
+
 # S2. 5 부서 페르소나 챗봇
 
 ## 1. URL 경로

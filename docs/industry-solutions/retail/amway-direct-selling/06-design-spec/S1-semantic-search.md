@@ -1,12 +1,15 @@
 ---
-created: 2026-05-14
-title: "S1. 자연어 시맨틱 검색 (AMWAY)"
-sidebar_label: "S1. Semantic Search"
-description: "Nutrilite·Artistry·Home SKU + ABO + 외부 소셜 후기 통합 검색"
+title: S1. 자연어 시맨틱 검색 (AMWAY)
+description: Nutrilite·Artistry·Home SKU + ABO + 외부 소셜 후기 통합 검색
+created: "2026-05-14"
 last_update:
-  date: 2026-06-15
+  date: "2026-06-15"
+  author: YoungJoon Jeong
 reading_time: 3
+tags: []
+sidebar_label: S1. Semantic Search
 ---
+
 # S1. 자연어 시맨틱 검색 (AMWAY)
 
 ## 1. URL · 페르소나

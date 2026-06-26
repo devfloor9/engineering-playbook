@@ -1,12 +1,15 @@
 ---
-created: 2026-05-14
-title: "Knowledge Graph 25 클래스 (Uni-President)"
-sidebar_label: "02. Ontology"
-description: "BU 5종 통합 + OPENPOINT + 자사 제조 SKU + 콜드체인 (~900K edges)"
+title: Knowledge Graph 25 클래스 (Uni-President)
+description: BU 5종 통합 + OPENPOINT + 자사 제조 SKU + 콜드체인 (~900K edges)
+created: "2026-05-14"
 last_update:
-  date: 2026-05-14
+  date: "2026-05-14"
+  author: YoungJoon Jeong
 reading_time: 3
+tags: []
+sidebar_label: 02. Ontology
 ---
+
 # Knowledge Graph 25 Classes (Uni-President)
 
 | 그룹 | 클래스 |

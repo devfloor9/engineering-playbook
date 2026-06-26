@@ -1,12 +1,15 @@
 ---
-created: 2026-05-14
-title: "데이터 소스 (AMWAY)"
-sidebar_label: "04. Data Sources"
-description: "자사 ABO·SKU·구독 + 외부 4종 (소셜·기상·환율·규제) cohort_tag 분리"
+title: 데이터 소스 (AMWAY)
+description: 자사 ABO·SKU·구독 + 외부 4종 (소셜·기상·환율·규제) cohort_tag 분리
+created: "2026-05-14"
 last_update:
-  date: 2026-05-14
-reading_time: 3
+  date: "2026-05-14"
+  author: YoungJoon Jeong
+reading_time: 2
+tags: []
+sidebar_label: 04. Data Sources
 ---
+
 # 데이터 소스 (AMWAY)
 
 ---

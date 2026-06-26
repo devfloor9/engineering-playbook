@@ -1,12 +1,11 @@
 ---
-title: "vLLM Model Serving"
-sidebar_label: "vLLM Model Serving"
-description: "vLLM PagedAttention, parallelization strategies, Multi-LoRA, and hardware support architecture"
-created: 2026-02-05
+title: vLLM Model Serving
+description: vLLM PagedAttention, parallelization strategies, Multi-LoRA, and hardware support architecture
+created: "2026-02-05"
 last_update:
-  date: 2026-04-20
+  date: "2026-04-20"
   author: devfloor9
-reading_time: 21
+reading_time: 31
 tags:
   - vllm
   - paged-attention
@@ -18,6 +17,7 @@ tags:
   - gpu
   - optimization
   - scope:tech
+sidebar_label: vLLM Model Serving
 ---
 
 import ComparisonTable from '@site/src/components/tables/ComparisonTable';

@@ -1,12 +1,15 @@
 ---
-created: 2026-05-14
-title: "S1. 자연어 시맨틱 검색 (Momo)"
-sidebar_label: "S1. Semantic Search"
-description: "방대 SKU + 회원 + 라이브 후기 + Dcard·小紅書 통합 검색"
+title: S1. 자연어 시맨틱 검색 (Momo)
+description: 방대 SKU + 회원 + 라이브 후기 + Dcard·小紅書 통합 검색
+created: "2026-05-14"
 last_update:
-  date: 2026-05-14
+  date: "2026-05-14"
+  author: YoungJoon Jeong
 reading_time: 1
+tags: []
+sidebar_label: S1. Semantic Search
 ---
+
 # S1. 자연어 시맨틱 검색 (Momo)
 
 ## 1. URL · 페르소나

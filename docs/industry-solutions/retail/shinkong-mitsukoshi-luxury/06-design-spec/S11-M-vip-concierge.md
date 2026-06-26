@@ -1,12 +1,15 @@
 ---
-created: 2026-05-14
-title: "S11-M. VIP 등급 라운지 컨시어지 (Mitsukoshi 특화)"
-sidebar_label: "S11-M. VIP Concierge"
-description: "Black/Platinum/Gold 회원 추천·프리세일·개인 컨시어지 챗봇"
+title: S11-M. VIP 등급 라운지 컨시어지 (Mitsukoshi 특화)
+description: Black/Platinum/Gold 회원 추천·프리세일·개인 컨시어지 챗봇
+created: "2026-05-14"
 last_update:
-  date: 2026-05-14
+  date: "2026-05-14"
+  author: YoungJoon Jeong
 reading_time: 2
+tags: []
+sidebar_label: S11-M. VIP Concierge
 ---
+
 # S11-M. VIP 등급 (Black/Platinum/Gold) 라운지 컨시어지
 
 > **Mitsukoshi 차별 포인트** ⭐ — VIP 회원 1:1 컨시어지 경험을 Bedrock + Memory로 자동화.

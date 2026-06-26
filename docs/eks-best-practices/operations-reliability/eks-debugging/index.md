@@ -1,12 +1,21 @@
 ---
-title: "EKS 디버깅 가이드"
-sidebar_label: "EKS 디버깅 가이드"
-description: "Amazon EKS 환경에서 애플리케이션 및 인프라 문제를 체계적으로 진단하고 해결하기 위한 종합 트러블슈팅 가이드"
-tags: [eks, kubernetes, debugging, troubleshooting, observability, incident-response]
-category: "observability-monitoring"
+title: EKS 디버깅 가이드
+description: Amazon EKS 환경에서 애플리케이션 및 인프라 문제를 체계적으로 진단하고 해결하기 위한 종합 트러블슈팅 가이드
+created: "2026-04-07"
 last_update:
-  date: 2026-06-15
+  date: "2026-06-15"
   author: devfloor9
+reading_time: 11
+tags:
+  - eks
+  - kubernetes
+  - debugging
+  - troubleshooting
+  - observability
+  - incident-response
+  - scope:nav
+sidebar_label: EKS 디버깅 가이드
+category: observability-monitoring
 ---
 
 import { IncidentEscalationTable, ZonalShiftImpactTable, ControlPlaneLogTable, ClusterHealthTable, NodeGroupErrorTable, ErrorQuickRefTable } from '@site/src/components/EksDebugTables';

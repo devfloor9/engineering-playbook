@@ -1,12 +1,20 @@
 ---
-title: "Networking & Performance Optimization"
-sidebar_label: "Networking & Performance"
-description: "Best practices for DNS optimization, East-West traffic, and Gateway API adoption in EKS environments"
-tags: [eks, networking, performance, dns, gateway-api]
-sidebar_position: 1
+title: Networking & Performance Optimization
+description: Best practices for DNS optimization, East-West traffic, and Gateway API adoption in EKS environments
+created: "2026-03-24"
 last_update:
-  date: 2026-03-24
+  date: "2026-03-24"
   author: devfloor9
+reading_time: 3
+tags:
+  - eks
+  - networking
+  - performance
+  - dns
+  - gateway-api
+  - scope:nav
+sidebar_label: Networking & Performance
+sidebar_position: 1
 ---
 
 import { DocCard, DocCardGrid } from '@site/src/components/DocCards';

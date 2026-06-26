@@ -1,15 +1,23 @@
 ---
-title: "Milvus 벡터 데이터베이스 통합"
-sidebar_label: "Milvus 벡터 DB"
-description: "Amazon EKS에서 Milvus 벡터 데이터베이스를 배포하고 RAG 파이프라인과 통합하는 방법"
-sidebar_position: 9
-category: "genai-aiml"
-created: 2026-02-05
+title: Milvus 벡터 데이터베이스 통합
+description: Amazon EKS에서 Milvus 벡터 데이터베이스를 배포하고 RAG 파이프라인과 통합하는 방법
+created: "2026-02-05"
 last_update:
-  date: 2026-04-20
+  date: "2026-04-20"
   author: devfloor9
-tags: [milvus, vector-database, rag, kubernetes, eks, genai, embedding, 'scope:ops']
-reading_time: 11
+reading_time: 10
+tags:
+  - milvus
+  - vector-database
+  - rag
+  - kubernetes
+  - eks
+  - genai
+  - embedding
+  - scope:ops
+sidebar_label: Milvus 벡터 DB
+sidebar_position: 9
+category: genai-aiml
 ---
 
 import {

@@ -1,13 +1,18 @@
 ---
-title: "Cascade Routing 실전 튜닝"
-sidebar_label: "Cascade Routing 튜닝"
-description: "Inference Gateway Cascade Routing의 분류 임계값·Canary 롤아웃·Fallback·비용 드리프트 경보를 프로덕션 trace 기반으로 튜닝하는 가이드"
-created: 2026-04-18
+title: Cascade Routing 실전 튜닝
+description: Inference Gateway Cascade Routing의 분류 임계값·Canary 롤아웃·Fallback·비용 드리프트 경보를 프로덕션 trace 기반으로 튜닝하는 가이드
+created: "2026-04-18"
 last_update:
-  date: 2026-06-15
+  date: "2026-06-15"
   author: devfloor9
-reading_time: 1
-tags: [cascade-routing, inference-gateway, langfuse, tuning, 'scope:ops']
+reading_time: 14
+tags:
+  - cascade-routing
+  - inference-gateway
+  - langfuse
+  - tuning
+  - scope:ops
+sidebar_label: Cascade Routing 튜닝
 sidebar_position: 3
 ---
 

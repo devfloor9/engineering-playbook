@@ -1,12 +1,20 @@
 ---
-title: "EKS Performance Benchmark Reports"
-sidebar_position: 7
-description: "Collection of EKS environment performance benchmark reports — Networking, AI/ML Inference, Infrastructure & Operations"
-category: "benchmarks"
-tags: [benchmark, performance, testing, report, eks]
+title: EKS Performance Benchmark Reports
+description: Collection of EKS environment performance benchmark reports — Networking, AI/ML Inference, Infrastructure & Operations
+created: "2026-02-11"
 last_update:
-  date: 2026-03-20
+  date: "2026-03-20"
   author: devfloor9
+reading_time: 4
+tags:
+  - benchmark
+  - performance
+  - testing
+  - report
+  - eks
+  - scope:nav
+sidebar_position: 7
+category: benchmarks
 ---
 
 # EKS Performance Benchmark Reports

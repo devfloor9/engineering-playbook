@@ -1,12 +1,15 @@
 ---
-created: 2026-05-14
-title: "S10-U. 자사 제조 SKU vs 자사 채널 sell-through (UPI 특화)"
-sidebar_label: "S10-U. Own SKU"
-description: "統一食品 자사 SKU(統一麵·麥香 등)의 7ELE/까르푸 회전 vs 외부 채널 비교"
+title: S10-U. 자사 제조 SKU vs 자사 채널 sell-through (UPI 특화)
+description: 統一食品 자사 SKU(統一麵·麥香 등)의 7ELE/까르푸 회전 vs 외부 채널 비교
+created: "2026-05-14"
 last_update:
-  date: 2026-05-14
+  date: "2026-05-14"
+  author: YoungJoon Jeong
 reading_time: 2
+tags: []
+sidebar_label: S10-U. Own SKU
 ---
+
 # S10-U. 자사 제조 SKU vs 자사 채널 sell-through
 
 > **Uni-President 차별 포인트** ⭐ — 제조-유통 수직 통합의 핵심: 자사 統一食品 SKU가 자사 채널(7ELE·까르푸)에서 외부 채널 대비 어떻게 회전하는지 분석.

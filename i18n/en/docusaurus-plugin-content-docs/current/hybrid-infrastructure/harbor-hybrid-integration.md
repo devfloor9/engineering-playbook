@@ -1,12 +1,21 @@
 ---
-title: "Harbor 2.13 and EKS Hybrid Nodes Integration Guide"
-sidebar_label: "Harbor Registry"
-description: "A complete step-by-step guide for integrating Harbor 2.13 private container registry with Amazon EKS Hybrid Nodes (Kubernetes 1.33), covering installation, SSL/TLS configuration, authentication, and troubleshooting."
-tags: [eks, hybrid-nodes, harbor, container-registry, kubernetes, ssl-tls, nodeadm]
-category: "hybrid-multicloud"
+title: Harbor 2.13 and EKS Hybrid Nodes Integration Guide
+description: A complete step-by-step guide for integrating Harbor 2.13 private container registry with Amazon EKS Hybrid Nodes (Kubernetes 1.33), covering installation, SSL/TLS configuration, authentication, and troubleshooting.
+created: "2026-02-04"
 last_update:
-  date: 2026-02-14
+  date: "2026-02-14"
   author: devfloor9
+reading_time: 6
+tags:
+  - eks
+  - hybrid-nodes
+  - harbor
+  - container-registry
+  - kubernetes
+  - ssl-tls
+  - nodeadm
+sidebar_label: Harbor Registry
+category: hybrid-multicloud
 ---
 
 # Harbor 2.13 and EKS Hybrid Nodes Integration Guide

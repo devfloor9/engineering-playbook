@@ -1,12 +1,23 @@
 ---
-title: "EKS Pod Scheduling & Availability Patterns"
-sidebar_label: "Pod Scheduling & Availability"
-description: "Kubernetes Pod scheduling strategies, Affinity/Anti-Affinity, PDB, Priority/Preemption, Taints/Tolerations best practices"
-tags: [eks, kubernetes, scheduling, affinity, pdb, priority, taints, tolerations, descheduler]
-category: "operations"
+title: EKS Pod Scheduling & Availability Patterns
+description: Kubernetes Pod scheduling strategies, Affinity/Anti-Affinity, PDB, Priority/Preemption, Taints/Tolerations best practices
+created: "2026-02-16"
 last_update:
-  date: 2026-02-14
+  date: "2026-02-14"
   author: devfloor9
+reading_time: 5
+tags:
+  - eks
+  - kubernetes
+  - scheduling
+  - affinity
+  - pdb
+  - priority
+  - taints
+  - tolerations
+  - descheduler
+sidebar_label: Pod Scheduling & Availability
+category: operations
 ---
 
 # EKS Pod Scheduling & Availability Patterns

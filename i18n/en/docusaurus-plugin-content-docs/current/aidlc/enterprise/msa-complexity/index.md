@@ -1,12 +1,19 @@
 ---
-title: "MSA Complexity Guide (Enterprise)"
-sidebar_label: "MSA Complexity"
-sidebar_position: 3
-description: "Diagnose MSA difficulty as Level 1-5 in enterprise environments and provide integrated pattern-specific guides, harnesses, and verification"
-tags: [msa, aidlc, enterprise, patterns, 'scope:enterprise']
+title: MSA Complexity Guide (Enterprise)
+description: Diagnose MSA difficulty as Level 1-5 in enterprise environments and provide integrated pattern-specific guides, harnesses, and verification
+created: "2026-04-19"
 last_update:
-  date: 2026-04-18
+  date: "2026-04-18"
   author: devfloor9
+reading_time: 11
+tags:
+  - msa
+  - aidlc
+  - enterprise
+  - patterns
+  - scope:enterprise
+sidebar_label: MSA Complexity
+sidebar_position: 3
 ---
 
 # MSA Complexity Guide

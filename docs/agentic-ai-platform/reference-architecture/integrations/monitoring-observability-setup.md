@@ -1,13 +1,21 @@
 ---
-title: "모니터링 & Observability 구성 가이드"
-sidebar_label: "모니터링"
-description: "Prometheus→AMP, AMG, Langfuse, Bifrost OTel 통합 모니터링 실전 구성 가이드"
-created: 2026-04-06
+title: 모니터링 & Observability 구성 가이드
+description: Prometheus→AMP, AMG, Langfuse, Bifrost OTel 통합 모니터링 실전 구성 가이드
+created: "2026-04-06"
 last_update:
-  date: 2026-06-15
+  date: "2026-06-15"
   author: devfloor9
-reading_time: 1
-tags: [monitoring, langfuse, amp, amg, prometheus, otel, deployment, 'scope:impl']
+reading_time: 9
+tags:
+  - monitoring
+  - langfuse
+  - amp
+  - amg
+  - prometheus
+  - otel
+  - deployment
+  - scope:impl
+sidebar_label: 모니터링
 ---
 
 이 문서는 Prometheus → AMP, AMG, Langfuse, Bifrost OTel 통합 모니터링의 **실전 배포 절차**를 다룹니다. 아키텍처 개념과 설계 원칙은 [Agent 모니터링](../../operations-mlops/observability/agent-monitoring.md) 및 [LLMOps Observability](../../operations-mlops/observability/llmops-observability.md)를 참조하세요.

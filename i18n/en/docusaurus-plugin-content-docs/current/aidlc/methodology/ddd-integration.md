@@ -1,12 +1,23 @@
 ---
-title: "DDD Integration"
-sidebar_label: "DDD Integration"
-description: "Why DDD is an essential core in AIDLC — AI-driven development from domain design to logical design"
-category: "aidlc"
-tags: [ddd, domain-driven-design, mob-elaboration, kiro, mcp, aggregate, entity, cqrs, adr]
+title: DDD Integration
+description: Why DDD is an essential core in AIDLC — AI-driven development from domain design to logical design
+created: "2026-04-07"
 last_update:
-  date: 2026-04-18
+  date: "2026-04-18"
   author: devfloor9
+reading_time: 22
+tags:
+  - ddd
+  - domain-driven-design
+  - mob-elaboration
+  - kiro
+  - mcp
+  - aggregate
+  - entity
+  - cqrs
+  - adr
+sidebar_label: DDD Integration
+category: aidlc
 ---
 
 # DDD Integration — Essential Core in AI-Driven Development

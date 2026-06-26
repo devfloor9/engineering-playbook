@@ -1,12 +1,15 @@
 ---
-created: 2026-05-14
-title: "30분 시연 스크립트 (AMWAY)"
-sidebar_label: "99. Demo Storytelling"
-description: "AMWAY 글로벌 임원·ABO 미팅용 30분 시연 — Top-5 (S1·S9-A·S10-A·S2·S11-A)"
+title: 30분 시연 스크립트 (AMWAY)
+description: AMWAY 글로벌 임원·ABO 미팅용 30분 시연 — Top-5 (S1·S9-A·S10-A·S2·S11-A)
+created: "2026-05-14"
 last_update:
-  date: 2026-05-14
-reading_time: 6
+  date: "2026-05-14"
+  author: YoungJoon Jeong
+reading_time: 4
+tags: []
+sidebar_label: 99. Demo Storytelling
 ---
+
 # 30분 시연 스크립트 (AMWAY)
 
 > **목표**: 30분 안에 PoC가 동작 시연임을 입증 + AMWAY 차별점 (ABO Tree·Subscription·Compliance) 3종 강조.

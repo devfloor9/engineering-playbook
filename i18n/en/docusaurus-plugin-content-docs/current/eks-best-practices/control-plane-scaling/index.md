@@ -1,12 +1,21 @@
 ---
-title: "Control Plane & Scaling"
-sidebar_label: "Control Plane & Scaling"
-description: "EKS Control Plane internals, CRD scaling strategies, and multi-cluster high availability architecture"
-tags: [eks, control-plane, crd, scaling, multi-cluster, ha]
-sidebar_position: 2
+title: Control Plane & Scaling
+description: EKS Control Plane internals, CRD scaling strategies, and multi-cluster high availability architecture
+created: "2026-03-24"
 last_update:
-  date: 2026-03-24
+  date: "2026-03-24"
   author: devfloor9
+reading_time: 2
+tags:
+  - eks
+  - control-plane
+  - crd
+  - scaling
+  - multi-cluster
+  - ha
+  - scope:nav
+sidebar_label: Control Plane & Scaling
+sidebar_position: 2
 ---
 
 import { DocCard, DocCardGrid } from '@site/src/components/DocCards';

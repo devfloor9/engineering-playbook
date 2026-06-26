@@ -1,12 +1,20 @@
 ---
-title: "Verification Methodology"
-sidebar_label: "Verification Methodology"
-sidebar_position: 3
-description: "Verification methods to ensure quality when applying AIDLC in complex MSA"
-tags: [verification, testing, quality, aidlc, enterprise, 'scope:enterprise']
+title: Verification Methodology
+description: Verification methods to ensure quality when applying AIDLC in complex MSA
+created: "2026-04-19"
 last_update:
-  date: 2026-04-18
+  date: "2026-04-18"
   author: devfloor9
+reading_time: 6
+tags:
+  - verification
+  - testing
+  - quality
+  - aidlc
+  - enterprise
+  - scope:enterprise
+sidebar_label: Verification Methodology
+sidebar_position: 3
 ---
 
 # Verification Methodology

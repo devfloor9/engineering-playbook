@@ -1,12 +1,20 @@
 ---
 title: "Level 3-4: Async Events & Saga"
+description: Application guide for Level 3 async event-driven MSA and Level 4 Saga + compensating transaction patterns
+created: "2026-04-19"
+last_update:
+  date: "2026-04-18"
+  author: devfloor9
+reading_time: 5
+tags:
+  - msa
+  - aidlc
+  - async
+  - saga
+  - event-driven
+  - scope:enterprise
 sidebar_label: "L3-L4: Async & Saga"
 sidebar_position: 2
-description: "Application guide for Level 3 async event-driven MSA and Level 4 Saga + compensating transaction patterns"
-tags: [msa, aidlc, async, saga, event-driven, 'scope:enterprise']
-last_update:
-  date: 2026-04-18
-  author: devfloor9
 ---
 
 # Level 3-4: Async Events & Saga

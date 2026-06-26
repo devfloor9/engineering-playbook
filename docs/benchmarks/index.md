@@ -1,12 +1,20 @@
 ---
-title: "EKS 성능 벤치마크 보고서"
-sidebar_position: 7
-description: "EKS 환경 성능 벤치마크 보고서 모음 — 네트워킹, AI/ML 추론, 인프라 & 운영"
-category: "benchmarks"
-tags: [benchmark, performance, testing, report, eks]
+title: EKS 성능 벤치마크 보고서
+description: EKS 환경 성능 벤치마크 보고서 모음 — 네트워킹, AI/ML 추론, 인프라 & 운영
+created: "2026-02-09"
 last_update:
-  date: 2026-03-20
+  date: "2026-03-20"
   author: devfloor9
+reading_time: 2
+tags:
+  - benchmark
+  - performance
+  - testing
+  - report
+  - eks
+  - scope:nav
+sidebar_position: 7
+category: benchmarks
 ---
 
 # EKS 성능 벤치마크 보고서

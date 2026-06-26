@@ -1,18 +1,18 @@
 ---
-title: "Knowledge Feature Store Expansion"
-sidebar_label: "Knowledge Feature Store"
-description: "3-plane design integrating ontology and Knowledge Graph into traditional Feature Store to reduce hallucinations, enable provenance tracking, and enhance domain entity utilization"
-created: 2026-04-18
+title: Knowledge Feature Store Expansion
+description: 3-plane design integrating ontology and Knowledge Graph into traditional Feature Store to reduce hallucinations, enable provenance tracking, and enhance domain entity utilization
+created: "2026-04-18"
 last_update:
-  date: 2026-04-20
+  date: "2026-04-20"
   author: devfloor9
-reading_time: 20
+reading_time: 14
 tags:
   - feature-store
   - knowledge-graph
   - ontology
   - rag
   - scope:design
+sidebar_label: Knowledge Feature Store
 sidebar_position: 7
 ---
 

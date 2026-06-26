@@ -1,12 +1,16 @@
 ---
-created: 2026-05-14
-title: "LG H&H Marketing Innovation PoC"
-sidebar_label: "Overview"
-description: "LG생활건강 Beauty + HDB + Refreshment 3 BU 통합 마케팅 혁신 PoC — Ontology + Agentic AI 기반 8 시나리오 데모"
+title: LG H&H Marketing Innovation PoC
+description: LG생활건강 Beauty + HDB + Refreshment 3 BU 통합 마케팅 혁신 PoC — Ontology + Agentic AI 기반 8 시나리오 데모
+created: "2026-05-14"
 last_update:
-  date: 2026-06-15
-reading_time: 9
+  date: "2026-06-15"
+  author: YoungJoon Jeong
+reading_time: 6
+tags:
+  - scope:nav
+sidebar_label: Overview
 ---
+
 # LG H&H Marketing Innovation PoC
 
 > **"자사 회원·SKU·캠페인·옴니채널 거래 데이터를 외부 트렌드·기상·경제·경쟁사 시그널과 묶어 온톨로지 + Agentic AI로 풀어내는 마케팅 혁신 PoC"**

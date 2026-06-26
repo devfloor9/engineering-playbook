@@ -1,12 +1,19 @@
 ---
-title: "하네스 체크리스트"
-sidebar_label: "하네스 체크리스트"
-sidebar_position: 2
-description: "MSA 패턴별 필수 하네스와 구현 가이드"
-tags: [harness, testing, aidlc, enterprise, 'scope:enterprise']
+title: 하네스 체크리스트
+description: MSA 패턴별 필수 하네스와 구현 가이드
+created: "2026-04-18"
 last_update:
-  date: 2026-04-18
+  date: "2026-04-18"
   author: devfloor9
+reading_time: 2
+tags:
+  - harness
+  - testing
+  - aidlc
+  - enterprise
+  - scope:enterprise
+sidebar_label: 하네스 체크리스트
+sidebar_position: 2
 ---
 
 # 하네스 체크리스트

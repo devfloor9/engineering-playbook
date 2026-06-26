@@ -1,12 +1,19 @@
 ---
-title: "EKS Default Namespace Deletion Incident Response Guide"
-sidebar_label: "Default Namespace Incident"
-description: "Root cause analysis, recovery procedures, and prevention strategies for Control Plane access loss caused by deleting the default namespace in an EKS cluster."
-tags: [eks, security, incident-response, namespace, troubleshooting]
-category: "security-compliance"
+title: EKS Default Namespace Deletion Incident Response Guide
+description: Root cause analysis, recovery procedures, and prevention strategies for Control Plane access loss caused by deleting the default namespace in an EKS cluster.
+created: "2026-02-04"
 last_update:
-  date: 2026-02-14
+  date: "2026-02-14"
   author: devfloor9
+reading_time: 26
+tags:
+  - eks
+  - security
+  - incident-response
+  - namespace
+  - troubleshooting
+sidebar_label: Default Namespace Incident
+category: security-compliance
 ---
 
 # EKS Default Namespace Deletion Incident Response Guide

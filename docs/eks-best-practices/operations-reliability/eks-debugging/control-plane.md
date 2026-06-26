@@ -1,11 +1,18 @@
 ---
-title: "컨트롤 플레인 디버깅"
-sidebar_label: "컨트롤 플레인"
-description: "EKS 컨트롤 플레인 문제 진단 및 해결 가이드"
-tags: [eks, kubernetes, control-plane, debugging, troubleshooting]
+title: 컨트롤 플레인 디버깅
+description: EKS 컨트롤 플레인 문제 진단 및 해결 가이드
+created: "2026-04-07"
 last_update:
-  date: 2026-06-15
+  date: "2026-06-15"
   author: devfloor9
+reading_time: 6
+tags:
+  - eks
+  - kubernetes
+  - control-plane
+  - debugging
+  - troubleshooting
+sidebar_label: 컨트롤 플레인
 ---
 
 import { ControlPlaneLogTable, ClusterHealthTable } from '@site/src/components/EksDebugTables';

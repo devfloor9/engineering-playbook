@@ -1,12 +1,15 @@
 ---
-created: 2026-05-14
-title: "S8. 가드레일 (Mitsukoshi)"
-sidebar_label: "S8. Guardrails"
-description: "Bedrock Guardrails 4 토픽 + 면세 규정 + 미성년 럭셔리 가드"
+title: S8. 가드레일 (Mitsukoshi)
+description: Bedrock Guardrails 4 토픽 + 면세 규정 + 미성년 럭셔리 가드
+created: "2026-05-14"
 last_update:
-  date: 2026-05-14
+  date: "2026-05-14"
+  author: YoungJoon Jeong
 reading_time: 1
+tags: []
+sidebar_label: S8. Guardrails
 ---
+
 # S8. 가드레일 (Mitsukoshi)
 
 ## 1. URL · 페르소나

@@ -1,13 +1,21 @@
 ---
-title: "Custom Model Deployment Guide"
-sidebar_label: "Model Deployment"
-description: "Hands-on guide to deploying large open-source models on EKS, based on the GLM-5.1 experience"
-created: 2026-04-04
+title: Custom Model Deployment Guide
+description: Hands-on guide to deploying large open-source models on EKS, based on the GLM-5.1 experience
+created: "2026-04-04"
 last_update:
-  date: 2026-04-20
+  date: "2026-04-20"
   author: devfloor9
-reading_time: 1
-tags: [deployment, glm-5, vllm, eks, gpu, lws, lessons-learned, 'scope:impl']
+reading_time: 33
+tags:
+  - deployment
+  - glm-5
+  - vllm
+  - eks
+  - gpu
+  - lws
+  - lessons-learned
+  - scope:impl
+sidebar_label: Model Deployment
 ---
 
 This document is a hands-on guide to deploying large open-source models with vLLM on EKS. It uses the **GLM-5.1 744B MoE FP8** model as a working example, but the same patterns apply to other large models such as DeepSeek-V3, Mixtral, and Qwen-MoE.

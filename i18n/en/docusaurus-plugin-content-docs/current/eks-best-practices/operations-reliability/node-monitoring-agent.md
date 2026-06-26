@@ -1,12 +1,20 @@
 ---
-title: "EKS Node Monitoring Agent"
-sidebar_label: "Node Monitoring Agent"
-description: "Architecture, deployment strategies, limitations, and best practices for the AWS EKS Node Monitoring Agent that automatically detects and reports node health issues"
-tags: [eks, monitoring, node-monitoring, aws, observability, cloudwatch]
-category: "observability-monitoring"
+title: EKS Node Monitoring Agent
+description: Architecture, deployment strategies, limitations, and best practices for the AWS EKS Node Monitoring Agent that automatically detects and reports node health issues
+created: "2026-02-04"
 last_update:
-  date: 2026-06-19
+  date: "2026-06-19"
   author: devfloor9
+reading_time: 26
+tags:
+  - eks
+  - monitoring
+  - node-monitoring
+  - aws
+  - observability
+  - cloudwatch
+sidebar_label: Node Monitoring Agent
+category: observability-monitoring
 ---
 
 # EKS Node Monitoring Agent

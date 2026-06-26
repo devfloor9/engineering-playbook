@@ -1,13 +1,20 @@
 ---
 title: "기능별 구현 쿡북: 6개 Gateway API 구현체"
-sidebar_label: "기능별 구현 쿡북"
-description: "인증·Rate Limiting·IP 제어·URL Rewrite·헤더 조작·세션 어피니티·본문 크기 제한·커스텀 에러 페이지를 AWS LBC·Cilium·NGINX GF·Envoy Gateway·kGateway별 YAML로 구현하는 레퍼런스"
-tags: [eks, gateway-api, cilium, envoy, kong, networking]
-category: "performance-networking"
-created: 2026-06-17
+description: 인증·Rate Limiting·IP 제어·URL Rewrite·헤더 조작·세션 어피니티·본문 크기 제한·커스텀 에러 페이지를 AWS LBC·Cilium·NGINX GF·Envoy Gateway·kGateway별 YAML로 구현하는 레퍼런스
+created: "2026-06-17"
 last_update:
-  date: 2026-06-17
+  date: "2026-06-17"
   author: devfloor9
+reading_time: 12
+tags:
+  - eks
+  - gateway-api
+  - cilium
+  - envoy
+  - kong
+  - networking
+sidebar_label: 기능별 구현 쿡북
+category: performance-networking
 ---
 
 import Tabs from '@theme/Tabs';

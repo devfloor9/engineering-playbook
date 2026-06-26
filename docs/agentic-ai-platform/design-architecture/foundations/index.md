@@ -1,16 +1,16 @@
 ---
 title: 플랫폼 기초
-sidebar_label: 플랫폼 기초
 description: Agentic AI 플랫폼의 핵심 아키텍처와 기술적 도전과제
-created: 2026-04-20
+created: "2026-04-20"
 last_update:
-  date: 2026-04-20
+  date: "2026-04-20"
   author: devfloor9
 reading_time: 1
 tags:
   - agentic-ai
   - architecture
   - scope:nav
+sidebar_label: 플랫폼 기초
 ---
 
 ## 개요

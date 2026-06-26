@@ -1,12 +1,16 @@
 ---
-created: 2026-05-14
-title: "Shinkong Mitsukoshi Luxury Retail PoC"
-sidebar_label: "Overview"
-description: "新光三越 대만 럭셔리 백화점·면세 — VIP 멤버십 + 외국인 관광객 + 입점 브랜드 700+를 Ontology + Agentic AI로"
+title: Shinkong Mitsukoshi Luxury Retail PoC
+description: 新光三越 대만 럭셔리 백화점·면세 — VIP 멤버십 + 외국인 관광객 + 입점 브랜드 700+를 Ontology + Agentic AI로
+created: "2026-05-14"
 last_update:
-  date: 2026-05-14
-reading_time: 7
+  date: "2026-05-14"
+  author: YoungJoon Jeong
+reading_time: 4
+tags:
+  - scope:nav
+sidebar_label: Overview
 ---
+
 # Shinkong Mitsukoshi Luxury Retail PoC
 
 > **"VIP·외국인 회원·럭셔리 입점 브랜드·면세·매장 데이터를 외부 트렌드·환율·관광 시그널과 묶어 온톨로지 + Agentic AI로 풀어내는 백화점 혁신 PoC"**

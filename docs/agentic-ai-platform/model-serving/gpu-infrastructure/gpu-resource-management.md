@@ -1,12 +1,11 @@
 ---
-title: "GPU 리소스 관리"
-sidebar_label: "GPU 리소스 관리"
-description: "EKS에서 Karpenter, KEDA, DRA를 활용한 GPU 리소스 관리 및 비용 최적화"
-created: 2026-02-05
+title: GPU 리소스 관리
+description: EKS에서 Karpenter, KEDA, DRA를 활용한 GPU 리소스 관리 및 비용 최적화
+created: "2026-02-05"
 last_update:
-  date: 2026-06-15
+  date: "2026-06-15"
   author: devfloor9
-reading_time: 13
+reading_time: 16
 tags:
   - gpu
   - karpenter
@@ -17,6 +16,7 @@ tags:
   - eks
   - kubernetes
   - scope:tech
+sidebar_label: GPU 리소스 관리
 ---
 
 import Tabs from '@theme/Tabs';

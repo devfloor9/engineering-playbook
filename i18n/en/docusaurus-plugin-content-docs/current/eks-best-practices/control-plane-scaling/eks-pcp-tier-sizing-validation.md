@@ -1,14 +1,22 @@
 ---
-title: "EKS PCP Tier Sizing & Performance Validation Guide"
-sidebar_label: "PCP Tier Sizing"
-description: "Detailed parameters by PCP tier, APF seat calculation formulas, large-scale cluster sizing examples, ClusterLoader2 performance validation methodology, customer case studies"
-tags: [eks, pcp, sizing, performance, apf, clusterloader2, etcd]
-sidebar_position: 2
+title: EKS PCP Tier Sizing & Performance Validation Guide
+description: Detailed parameters by PCP tier, APF seat calculation formulas, large-scale cluster sizing examples, ClusterLoader2 performance validation methodology, customer case studies
+created: "2026-04-07"
 last_update:
-  date: 2026-04-07
+  date: "2026-04-07"
   author: devfloor9
+reading_time: 47
+tags:
+  - eks
+  - pcp
+  - sizing
+  - performance
+  - apf
+  - clusterloader2
+  - etcd
+sidebar_label: PCP Tier Sizing
+sidebar_position: 2
 ---
-
 
 > **Purpose**: This guide provides detailed specifications for EKS Provisioned Control Plane (PCP) tiers, explains control plane architecture improvements, and outlines performance validation methodologies.
 

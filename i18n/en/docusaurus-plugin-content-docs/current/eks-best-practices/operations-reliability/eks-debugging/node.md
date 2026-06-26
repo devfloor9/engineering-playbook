@@ -1,11 +1,19 @@
 ---
-title: "Node-Level Debugging"
-sidebar_label: "Node"
-description: "Guide to diagnosing and resolving EKS node issues"
-tags: [eks, kubernetes, node, debugging, troubleshooting, karpenter]
+title: Node-Level Debugging
+description: Guide to diagnosing and resolving EKS node issues
+created: "2026-04-21"
 last_update:
-  date: 2026-04-18
+  date: "2026-04-18"
   author: devfloor9
+reading_time: 11
+tags:
+  - eks
+  - kubernetes
+  - node
+  - debugging
+  - troubleshooting
+  - karpenter
+sidebar_label: Node
 ---
 
 import { NodeGroupErrorTable } from '@site/src/components/EksDebugTables';

@@ -1,13 +1,20 @@
 ---
-title: "AIDLC Common Rules"
-sidebar_label: "Common Rules"
-description: "AWS Labs AIDLC official 11 common rules explained — Question Format through Audit Logging with enterprise adoption guide"
-sidebar_position: 6
-category: "aidlc"
-tags: [aidlc, common-rules, methodology, governance, 'scope:methodology']
+title: AIDLC Common Rules
+description: AWS Labs AIDLC official 11 common rules explained — Question Format through Audit Logging with enterprise adoption guide
+created: "2026-04-18"
 last_update:
-  date: 2026-04-18
+  date: "2026-04-18"
   author: devfloor9
+reading_time: 24
+tags:
+  - aidlc
+  - common-rules
+  - methodology
+  - governance
+  - scope:methodology
+sidebar_label: Common Rules
+sidebar_position: 6
+category: aidlc
 ---
 
 # AIDLC Common Rules

@@ -1,10 +1,9 @@
 ---
 title: Model Lifecycle
-sidebar_label: Model Lifecycle
 description: Custom model deployment, fine-tuning pipelines, MLOps orchestration, continuous training pipelines
-created: 2026-04-20
+created: "2026-04-20"
 last_update:
-  date: 2026-04-20
+  date: "2026-04-20"
   author: devfloor9
 reading_time: 1
 tags:
@@ -14,6 +13,7 @@ tags:
   - fine-tuning
   - continuous-training
   - scope:nav
+sidebar_label: Model Lifecycle
 ---
 
 ## Overview

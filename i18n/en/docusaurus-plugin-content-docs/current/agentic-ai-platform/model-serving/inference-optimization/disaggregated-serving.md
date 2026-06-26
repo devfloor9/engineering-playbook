@@ -1,12 +1,11 @@
 ---
-title: "Disaggregated Serving + LWS Multi-Node"
-sidebar_label: "Disaggregated Serving"
-description: "Prefill/Decode separation architecture and NIXL common KV transfer engine, LeaderWorkerSet-based 700B+ large MoE model multi-node deployment guide"
-created: 2026-04-03
+title: Disaggregated Serving + LWS Multi-Node
+description: Prefill/Decode separation architecture and NIXL common KV transfer engine, LeaderWorkerSet-based 700B+ large MoE model multi-node deployment guide
+created: "2026-04-03"
 last_update:
-  date: 2026-04-20
+  date: "2026-04-20"
   author: devfloor9
-reading_time: 15
+reading_time: 9
 tags:
   - inference
   - optimization
@@ -16,6 +15,7 @@ tags:
   - nixl
   - distributed-training
   - scope:tech
+sidebar_label: Disaggregated Serving
 sidebar_position: 3
 ---
 

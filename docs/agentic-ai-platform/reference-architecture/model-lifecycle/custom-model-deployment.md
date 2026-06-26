@@ -1,13 +1,21 @@
 ---
-title: "커스텀 모델 배포 가이드"
-sidebar_label: "모델 배포"
-description: "GLM-5.1 사례 기반 — 대형 오픈소스 모델의 EKS 배포 실전 가이드"
-created: 2026-04-04
+title: 커스텀 모델 배포 가이드
+description: GLM-5.1 사례 기반 — 대형 오픈소스 모델의 EKS 배포 실전 가이드
+created: "2026-04-04"
 last_update:
-  date: 2026-06-15
+  date: "2026-06-15"
   author: devfloor9
-reading_time: 1
-tags: [deployment, glm-5, vllm, eks, gpu, lws, lessons-learned, 'scope:impl']
+reading_time: 20
+tags:
+  - deployment
+  - glm-5
+  - vllm
+  - eks
+  - gpu
+  - lws
+  - lessons-learned
+  - scope:impl
+sidebar_label: 모델 배포
 ---
 
 이 문서는 대형 오픈소스 모델을 EKS에서 vLLM으로 배포하기 위한 실전 가이드입니다. GLM-5.1 744B MoE FP8 모델의 배포 사례를 예시로 사용하며, 동일한 패턴을 다른 대형 모델(DeepSeek-V3, Mixtral, Qwen-MoE 등)에도 적용할 수 있습니다.

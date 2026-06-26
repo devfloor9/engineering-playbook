@@ -1,12 +1,16 @@
 ---
-created: 2026-05-14
-title: "AMWAY Direct Selling Innovation PoC"
-sidebar_label: "Overview"
-description: "AMWAY 글로벌 직접판매 — ABO/IBO 다단계 조직 + Nutrilite/Artistry/Home + 정기구독을 Ontology + Agentic AI로 풀어내는 PoC"
+title: AMWAY Direct Selling Innovation PoC
+description: AMWAY 글로벌 직접판매 — ABO/IBO 다단계 조직 + Nutrilite/Artistry/Home + 정기구독을 Ontology + Agentic AI로 풀어내는 PoC
+created: "2026-05-14"
 last_update:
-  date: 2026-06-15
-reading_time: 9
+  date: "2026-06-15"
+  author: YoungJoon Jeong
+reading_time: 6
+tags:
+  - scope:nav
+sidebar_label: Overview
 ---
+
 # AMWAY Direct Selling Innovation PoC
 
 > **"ABO·고객·SKU·정기구독·캠페인 데이터를 외부 트렌드·환율·규제 시그널과 묶어 온톨로지 + Agentic AI로 풀어내는 글로벌 직접판매 혁신 PoC"**

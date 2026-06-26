@@ -1,13 +1,11 @@
 ---
 title: "소버린 & 하이브리드 배포: 데이터 주권과 리전 강제"
-sidebar_label: "소버린 & 하이브리드 배포"
-sidebar_position: 6
-description: "데이터 주권 요구를 충족하는 Agentic AI 배포 전략 — SCP 리전 강제, Bedrock Geographic cross-Region inference, EKS Hybrid Nodes 기반 하이브리드·in-country 자체 호스팅"
-created: 2026-06-14
+description: 데이터 주권 요구를 충족하는 Agentic AI 배포 전략 — SCP 리전 강제, Bedrock Geographic cross-Region inference, EKS Hybrid Nodes 기반 하이브리드·in-country 자체 호스팅
+created: "2026-06-14"
 last_update:
-  date: 2026-06-14
+  date: "2026-06-14"
   author: devfloor9
-reading_time: 14
+reading_time: 12
 tags:
   - sovereignty
   - hybrid
@@ -16,7 +14,9 @@ tags:
   - eks
   - compliance
   - scope:design
-category: "genai-aiml"
+sidebar_label: 소버린 & 하이브리드 배포
+sidebar_position: 6
+category: genai-aiml
 ---
 
 import { SovereigntySpectrum } from '@site/src/components/DecisionFrameworkTables';

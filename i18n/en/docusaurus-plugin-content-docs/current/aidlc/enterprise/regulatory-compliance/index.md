@@ -1,11 +1,19 @@
 ---
-title: "AI Regulatory Compliance Framework"
-sidebar_label: "Regulatory Compliance"
+title: AI Regulatory Compliance Framework
 description: "AIDLC integration guide for 4 frameworks: EU AI Act, NIST AI RMF, ISO/IEC 42001, and Korea AI Basic Act"
-tags: [compliance, regulation, eu-ai-act, nist, iso-42001, 'scope:enterprise']
+created: "2026-04-19"
 last_update:
-  date: 2026-04-18
+  date: "2026-04-18"
   author: devfloor9
+reading_time: 13
+tags:
+  - compliance
+  - regulation
+  - eu-ai-act
+  - nist
+  - iso-42001
+  - scope:enterprise
+sidebar_label: Regulatory Compliance
 ---
 
 # AI Regulatory Framework Mapping

@@ -1,11 +1,19 @@
 ---
-title: "네트워킹 디버깅"
-sidebar_label: "네트워킹"
-description: "EKS 네트워킹 문제 진단 및 해결 가이드 - VPC CNI, DNS, Service, NetworkPolicy"
-tags: [eks, kubernetes, networking, vpc-cni, dns, service]
+title: 네트워킹 디버깅
+description: EKS 네트워킹 문제 진단 및 해결 가이드 - VPC CNI, DNS, Service, NetworkPolicy
+created: "2026-04-07"
 last_update:
-  date: 2026-04-07
+  date: "2026-04-07"
   author: devfloor9
+reading_time: 6
+tags:
+  - eks
+  - kubernetes
+  - networking
+  - vpc-cni
+  - dns
+  - service
+sidebar_label: 네트워킹
 ---
 
 # 네트워킹 디버깅

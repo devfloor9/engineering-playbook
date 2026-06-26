@@ -1,13 +1,20 @@
 ---
 title: 하이브리드 인프라 벤치마크
-sidebar_label: "Report 7. 하이브리드 인프라 [예정]"
-sidebar_position: 7
 description: 하이브리드 클라우드 인프라 네트워크 및 스토리지 성능 벤치마크
-category: "benchmarks"
-tags: [benchmark, hybrid, network, storage, sriov]
+created: "2026-02-09"
 last_update:
-  date: 2026-02-14
+  date: "2026-02-14"
   author: devfloor9
+reading_time: 1
+tags:
+  - benchmark
+  - hybrid
+  - network
+  - storage
+  - sriov
+sidebar_label: Report 7. 하이브리드 인프라 [예정]
+sidebar_position: 7
+category: benchmarks
 ---
 
 # 하이브리드 인프라 벤치마크

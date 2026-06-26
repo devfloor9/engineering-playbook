@@ -1,12 +1,21 @@
 ---
-title: "ROSA Security Compliance Console Access Control"
-sidebar_label: "ROSA Security Compliance"
-description: "Access control strategies for Red Hat Hybrid Cloud Console to meet financial sector security requirements. Secure administrator access control through IdP, MFA, and IP-based access restrictions."
-tags: [rosa, openshift, security, compliance, idp, mfa, financial]
-category: "rosa"
+title: ROSA Security Compliance Console Access Control
+description: Access control strategies for Red Hat Hybrid Cloud Console to meet financial sector security requirements. Secure administrator access control through IdP, MFA, and IP-based access restrictions.
+created: "2026-02-04"
 last_update:
-  date: 2026-02-13
+  date: "2026-02-13"
   author: devfloor9
+reading_time: 7
+tags:
+  - rosa
+  - openshift
+  - security
+  - compliance
+  - idp
+  - mfa
+  - financial
+sidebar_label: ROSA Security Compliance
+category: rosa
 ---
 
 # ROSA Security Compliance Console Access Control

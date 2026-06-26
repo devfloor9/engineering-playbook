@@ -1,12 +1,15 @@
 ---
-created: 2026-05-14
-title: "S11-A. 직접판매·미성년·건강기능식품 컴플라이언스 (AMWAY 특화)"
-sidebar_label: "S11-A. Regulatory"
-description: "FTC·방판법·식약처·EU 직접판매 규제 자동 검수 + 다국가 광고 가드"
+title: S11-A. 직접판매·미성년·건강기능식품 컴플라이언스 (AMWAY 특화)
+description: FTC·방판법·식약처·EU 직접판매 규제 자동 검수 + 다국가 광고 가드
+created: "2026-05-14"
 last_update:
-  date: 2026-05-14
-reading_time: 3
+  date: "2026-05-14"
+  author: YoungJoon Jeong
+reading_time: 2
+tags: []
+sidebar_label: S11-A. Regulatory
 ---
+
 # S11-A. 방판법·미성년·건강기능식품 광고 컴플라이언스
 
 > **AMWAY 차별 포인트** ⭐ — 글로벌 직접판매 사업의 가장 큰 리스크는 규제. 다국가 규제 시그널 + 광고 텍스트 자동 검수 + 미성년 가드.

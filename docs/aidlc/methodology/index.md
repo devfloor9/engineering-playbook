@@ -1,11 +1,16 @@
 ---
-title: "방법론"
-sidebar_label: "방법론"
-description: "AIDLC의 핵심 방법론 — 10대 원칙, 온톨로지, 하네스 엔지니어링, DDD 통합, Common Rules, Adaptive Execution"
-tags: [aidlc, methodology, 'scope:methodology']
+title: 방법론
+description: AIDLC의 핵심 방법론 — 10대 원칙, 온톨로지, 하네스 엔지니어링, DDD 통합, Common Rules, Adaptive Execution
+created: "2026-04-07"
 last_update:
-  date: 2026-04-18
+  date: "2026-04-18"
   author: devfloor9
+reading_time: 3
+tags:
+  - aidlc
+  - methodology
+  - scope:methodology
+sidebar_label: 방법론
 ---
 
 # AIDLC 방법론

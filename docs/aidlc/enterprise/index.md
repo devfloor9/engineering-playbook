@@ -1,12 +1,18 @@
 ---
 title: AIDLC 엔터프라이즈 도입
-sidebar_label: AIDLC 엔터프라이즈 도입
 description: AIDLC 엔터프라이즈 - index
-tags: [aidlc, enterprise, 'scope:enterprise']
+created: "2026-04-07"
 last_update:
-  date: 2026-04-18
+  date: "2026-04-18"
   author: devfloor9
+reading_time: 3
+tags:
+  - aidlc
+  - enterprise
+  - scope:enterprise
+sidebar_label: AIDLC 엔터프라이즈 도입
 ---
+
 ---
 
 # AIDLC 엔터프라이즈 도입

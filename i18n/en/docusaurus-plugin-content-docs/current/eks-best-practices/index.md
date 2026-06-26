@@ -1,13 +1,23 @@
 ---
-title: "EKS Best Practices"
-sidebar_label: "EKS Best Practices"
-description: "Comprehensive guide for Amazon EKS production operations covering networking, Control Plane, security, cost optimization, and more"
-tags: [eks, kubernetes, best-practices, networking, control-plane, security, cost]
-category: "infrastructure"
-sidebar_position: 1
+title: EKS Best Practices
+description: Comprehensive guide for Amazon EKS production operations covering networking, Control Plane, security, cost optimization, and more
+created: "2026-03-24"
 last_update:
-  date: 2026-03-24
+  date: "2026-03-24"
   author: devfloor9
+reading_time: 4
+tags:
+  - eks
+  - kubernetes
+  - best-practices
+  - networking
+  - control-plane
+  - security
+  - cost
+  - scope:nav
+sidebar_label: EKS Best Practices
+sidebar_position: 1
+category: infrastructure
 ---
 
 import { DocCard, DocCardGrid } from '@site/src/components/DocCards';

@@ -1,11 +1,21 @@
 ---
 title: Karpenter 심화 디버깅
-sidebar_label: Karpenter
 description: Karpenter 오토스케일러 심화 디버깅 가이드
-keywords: [EKS, Karpenter, NodePool, NodeClaim, Consolidation, Spot, 디버깅]
+created: "2026-04-07"
 last_update:
-  date: 2026-04-07
+  date: "2026-04-07"
   author: devfloor9
+reading_time: 4
+tags: []
+keywords:
+  - EKS
+  - Karpenter
+  - NodePool
+  - NodeClaim
+  - Consolidation
+  - Spot
+  - 디버깅
+sidebar_label: Karpenter
 ---
 
 # Karpenter 심화 디버깅

@@ -1,13 +1,21 @@
 ---
-title: "도메인 특화 (LoRA + RAG)"
-sidebar_label: "도메인 특화"
-description: "LoRA Fine-tuning, VectorRAG, GraphRAG로 기술 도메인 코딩 퀄리티를 높이는 가이드 — FSI SI 실전 시나리오 포함"
-tags: [lora, rag, graphrag, fsi, fine-tuning, domain, legacy-migration, 'scope:ops']
-created: 2026-04-04
+title: 도메인 특화 (LoRA + RAG)
+description: LoRA Fine-tuning, VectorRAG, GraphRAG로 기술 도메인 코딩 퀄리티를 높이는 가이드 — FSI SI 실전 시나리오 포함
+created: "2026-04-04"
 last_update:
-  date: 2026-04-20
+  date: "2026-04-20"
   author: devfloor9
-reading_time: 10
+reading_time: 9
+tags:
+  - lora
+  - rag
+  - graphrag
+  - fsi
+  - fine-tuning
+  - domain
+  - legacy-migration
+  - scope:ops
+sidebar_label: 도메인 특화
 ---
 
 범용 LLM을 금융/통신/제조 등 **특정 도메인에 최적화**하여 코딩 퀄리티를 대폭 향상시키는 3단계 전략을 제공합니다.

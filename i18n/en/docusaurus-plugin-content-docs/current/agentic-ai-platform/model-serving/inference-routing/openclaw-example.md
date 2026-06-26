@@ -1,15 +1,26 @@
 ---
-title: "OpenClaw AI Agent Gateway Deployment & Full Observability"
-sidebar_label: "OpenClaw AI Gateway"
-description: "Deploy OpenClaw AI Agent Gateway on EKS with cost optimization, and achieve full observability using Bifrost Auto-Router + Cilium Hubble + Langfuse"
-created: 2026-03-06
+title: OpenClaw AI Agent Gateway Deployment & Full Observability
+description: Deploy OpenClaw AI Agent Gateway on EKS with cost optimization, and achieve full observability using Bifrost Auto-Router + Cilium Hubble + Langfuse
+created: "2026-03-06"
 last_update:
-  date: 2026-04-20
+  date: "2026-04-20"
   author: devfloor9
-reading_time: 1
-tags: [eks, openclaw, bifrost, langfuse, cilium, hubble, bedrock, graviton, pod-identity, observability, 'scope:impl']
-category: "genai-aiml"
+reading_time: 23
+tags:
+  - eks
+  - openclaw
+  - bifrost
+  - langfuse
+  - cilium
+  - hubble
+  - bedrock
+  - graviton
+  - pod-identity
+  - observability
+  - scope:impl
+sidebar_label: OpenClaw AI Gateway
 sidebar_position: 5
+category: genai-aiml
 ---
 
 ## Overview

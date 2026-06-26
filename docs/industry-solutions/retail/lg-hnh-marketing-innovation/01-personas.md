@@ -1,12 +1,15 @@
 ---
-created: 2026-05-14
-title: "5 부서 페르소나"
-sidebar_label: "01. Personas"
-description: "브랜드 마케터 / 인사이트 / D&A·MarTech / CRM·LG 멤버스 / MD·채널 영업 5 페르소나"
+title: 5 부서 페르소나
+description: 브랜드 마케터 / 인사이트 / D&A·MarTech / CRM·LG 멤버스 / MD·채널 영업 5 페르소나
+created: "2026-05-14"
 last_update:
-  date: 2026-05-14
-reading_time: 10
+  date: "2026-05-14"
+  author: YoungJoon Jeong
+reading_time: 6
+tags: []
+sidebar_label: 01. Personas
 ---
+
 # 5 부서 페르소나
 
 > 동일 데이터를 5개 부서가 각자의 KPI·언어·의사결정 단위로 활용. **부서 페르소나 스위처**가 사이드바 정렬·카드 강조·챗봇 어조를 모두 바꾼다.

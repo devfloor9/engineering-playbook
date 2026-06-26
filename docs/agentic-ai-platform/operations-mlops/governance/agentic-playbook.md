@@ -1,13 +1,20 @@
 ---
-title: "Agentic Playbook"
-sidebar_label: "Agentic Playbook"
-description: "Agent 워크플로우를 IaC처럼 선언적으로 정의하고 컴플라이언스를 자동화하는 Playbook 가이드"
-tags: [playbook, agent, langgraph, guardrails, compliance, gitops, 'scope:ops']
-created: 2026-04-04
+title: Agentic Playbook
+description: Agent 워크플로우를 IaC처럼 선언적으로 정의하고 컴플라이언스를 자동화하는 Playbook 가이드
+created: "2026-04-04"
 last_update:
-  date: 2026-04-20
+  date: "2026-04-20"
   author: devfloor9
 reading_time: 8
+tags:
+  - playbook
+  - agent
+  - langgraph
+  - guardrails
+  - compliance
+  - gitops
+  - scope:ops
+sidebar_label: Agentic Playbook
 ---
 
 Agent 워크플로우를 Infrastructure-as-Code(IaC)처럼 선언적으로 정의하고, 컴플라이언스를 자동화하며, 감사 추적을 보장하는 실전 가이드입니다.

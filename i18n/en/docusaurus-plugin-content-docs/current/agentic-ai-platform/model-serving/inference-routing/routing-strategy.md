@@ -1,11 +1,22 @@
 ---
-title: "Inference Gateway & LLM Gateway Routing Strategy"
-sidebar_label: "Gateway Routing Strategy"
-description: "kgateway + Bifrost/LiteLLM 2-Tier architecture with Cascade Routing, Semantic Router, and Hybrid Routing design patterns"
-tags: [kgateway, bifrost, litellm, gateway-api, agentgateway, cascade-routing, semantic-caching, vllm-semantic-router, 'scope:impl']
+title: Inference Gateway & LLM Gateway Routing Strategy
+description: kgateway + Bifrost/LiteLLM 2-Tier architecture with Cascade Routing, Semantic Router, and Hybrid Routing design patterns
+created: "2026-04-18"
 last_update:
-  date: 2026-04-17
+  date: "2026-04-17"
   author: YoungJoon Jeong
+reading_time: 51
+tags:
+  - kgateway
+  - bifrost
+  - litellm
+  - gateway-api
+  - agentgateway
+  - cascade-routing
+  - semantic-caching
+  - vllm-semantic-router
+  - scope:impl
+sidebar_label: Gateway Routing Strategy
 ---
 
 # Inference Gateway & LLM Gateway Routing Strategy

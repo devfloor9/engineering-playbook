@@ -1,12 +1,16 @@
 ---
-title: "AIDLC"
-sidebar_label: "AIDLC"
-description: "AI-Driven Development Lifecycle — Enterprise adoption guide for AI-driven software development methodology"
-sidebar_position: 4
-category: "aidlc"
+title: AIDLC
+description: AI-Driven Development Lifecycle — Enterprise adoption guide for AI-driven software development methodology
+created: "2026-03-23"
 last_update:
-  date: 2026-04-18
+  date: "2026-04-18"
   author: devfloor9
+reading_time: 5
+tags:
+  - scope:nav
+sidebar_label: AIDLC
+sidebar_position: 4
+category: aidlc
 ---
 
 # AIDLC: AI-Driven Development Lifecycle

@@ -1,12 +1,11 @@
 ---
-title: "Agentic AI Platform Architecture"
-sidebar_label: "Platform Architecture"
-description: "Overall system architecture of a production-grade Agentic AI Platform — 6 runtime layers and 3 cross-cutting planes"
-created: 2026-02-05
+title: Agentic AI Platform Architecture
+description: Overall system architecture of a production-grade Agentic AI Platform — 6 runtime layers and 3 cross-cutting planes
+created: "2026-02-05"
 last_update:
-  date: 2026-06-14
+  date: "2026-06-14"
   author: devfloor9
-reading_time: 16
+reading_time: 59
 tags:
   - architecture
   - agentic-ai
@@ -14,8 +13,9 @@ tags:
   - kubernetes
   - mlops
   - scope:design
-category: "genai-aiml"
+sidebar_label: Platform Architecture
 sidebar_position: 1
+category: genai-aiml
 ---
 
 import { LayerRoles, TenantIsolation, RequestProcessing } from '@site/src/components/ArchitectureTables';

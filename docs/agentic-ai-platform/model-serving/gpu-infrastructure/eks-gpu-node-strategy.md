@@ -1,12 +1,11 @@
 ---
-title: "EKS GPU 노드 전략"
-sidebar_label: "EKS GPU 노드 전략"
-description: "EKS Auto Mode, Karpenter, MNG, Hybrid Node의 GPU 워크로드별 최적 노드 전략"
-created: 2026-03-16
+title: EKS GPU 노드 전략
+description: EKS Auto Mode, Karpenter, MNG, Hybrid Node의 GPU 워크로드별 최적 노드 전략
+created: "2026-03-16"
 last_update:
-  date: 2026-06-15
+  date: "2026-06-15"
   author: devfloor9
-reading_time: 25
+reading_time: 21
 tags:
   - eks
   - gpu
@@ -17,6 +16,7 @@ tags:
   - deployment
   - architecture
   - scope:tech
+sidebar_label: EKS GPU 노드 전략
 ---
 
 ## 개요

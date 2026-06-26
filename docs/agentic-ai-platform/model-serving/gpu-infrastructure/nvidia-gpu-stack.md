@@ -1,12 +1,11 @@
 ---
-title: "NVIDIA GPU 스택"
-sidebar_label: "NVIDIA GPU 스택"
-description: "GPU Operator, DCGM, MIG, Time-Slicing, Dynamo의 아키텍처와 EKS 통합"
-created: 2026-03-20
+title: NVIDIA GPU 스택
+description: GPU Operator, DCGM, MIG, Time-Slicing, Dynamo의 아키텍처와 EKS 통합
+created: "2026-03-20"
 last_update:
-  date: 2026-06-15
+  date: "2026-06-15"
   author: devfloor9
-reading_time: 14
+reading_time: 19
 tags:
   - nvidia
   - gpu-operator
@@ -18,6 +17,7 @@ tags:
   - gpu
   - monitoring
   - scope:tech
+sidebar_label: NVIDIA GPU 스택
 ---
 
 import Tabs from '@theme/Tabs';

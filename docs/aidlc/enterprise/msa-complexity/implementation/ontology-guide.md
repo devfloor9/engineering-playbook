@@ -1,12 +1,18 @@
 ---
-title: "온톨로지 작성 가이드"
-sidebar_label: "온톨로지 가이드"
-sidebar_position: 1
-description: "MSA 복잡도별 온톨로지 깊이와 작성 가이드라인"
-tags: [ontology, aidlc, enterprise, 'scope:enterprise']
+title: 온톨로지 작성 가이드
+description: MSA 복잡도별 온톨로지 깊이와 작성 가이드라인
+created: "2026-04-18"
 last_update:
-  date: 2026-04-18
+  date: "2026-04-18"
   author: devfloor9
+reading_time: 2
+tags:
+  - ontology
+  - aidlc
+  - enterprise
+  - scope:enterprise
+sidebar_label: 온톨로지 가이드
+sidebar_position: 1
 ---
 
 # 온톨로지 작성 가이드

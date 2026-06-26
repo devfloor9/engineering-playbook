@@ -1,11 +1,9 @@
 ---
 title: "AWS Native Agentic AI Platform: 매니지드 서비스 기반 Agent 중심 접근"
-sidebar_label: "AWS Native 플랫폼"
-sidebar_position: 4
-description: "Amazon Bedrock, Strands Agents SDK, AgentCore를 활용하여 인프라 운영 부담을 줄이고 Agent 개발에 집중하는 플랫폼 접근"
-created: 2026-03-18
+description: Amazon Bedrock, Strands Agents SDK, AgentCore를 활용하여 인프라 운영 부담을 줄이고 Agent 개발에 집중하는 플랫폼 접근
+created: "2026-03-18"
 last_update:
-  date: 2026-06-15
+  date: "2026-06-15"
   author: devfloor9
 reading_time: 18
 tags:
@@ -16,7 +14,9 @@ tags:
   - mcp
   - a2a
   - scope:design
-category: "genai-aiml"
+sidebar_label: AWS Native 플랫폼
+sidebar_position: 4
+category: genai-aiml
 ---
 
 import { EKSMCPFeatures, KagentVsAgentCore, MultiAgentPatterns, MCPServerEcosystem } from '@site/src/components/BedrockMcpTables';

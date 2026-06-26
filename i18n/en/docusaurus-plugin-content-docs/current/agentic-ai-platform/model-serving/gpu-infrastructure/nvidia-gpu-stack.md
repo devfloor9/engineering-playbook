@@ -1,12 +1,11 @@
 ---
-title: "NVIDIA GPU Stack"
-sidebar_label: "NVIDIA GPU Stack"
-description: "Architecture and EKS integration for GPU Operator, DCGM, MIG, Time-Slicing, and Dynamo"
-created: 2026-03-20
+title: NVIDIA GPU Stack
+description: Architecture and EKS integration for GPU Operator, DCGM, MIG, Time-Slicing, and Dynamo
+created: "2026-03-20"
 last_update:
-  date: 2026-04-20
+  date: "2026-04-20"
   author: devfloor9
-reading_time: 14
+reading_time: 27
 tags:
   - nvidia
   - gpu-operator
@@ -18,6 +17,7 @@ tags:
   - gpu
   - monitoring
   - scope:tech
+sidebar_label: NVIDIA GPU Stack
 ---
 
 import Tabs from '@theme/Tabs';

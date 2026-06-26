@@ -1,12 +1,11 @@
 ---
-title: "AWS Neuron Stack — Trainium2/Inferentia2 on EKS"
-sidebar_label: "AWS Neuron Stack"
-description: "Guide to Neuron SDK, Device Plugin, and NxD Inference for operating AWS custom AI accelerators (Trainium2/Inferentia2) on EKS"
-created: 2026-04-17
+title: AWS Neuron Stack — Trainium2/Inferentia2 on EKS
+description: Guide to Neuron SDK, Device Plugin, and NxD Inference for operating AWS custom AI accelerators (Trainium2/Inferentia2) on EKS
+created: "2026-04-17"
 last_update:
-  date: 2026-04-20
+  date: "2026-04-20"
   author: devfloor9
-reading_time: 17
+reading_time: 34
 tags:
   - trainium2
   - inferentia2
@@ -17,6 +16,7 @@ tags:
   - nxd-inference
   - inference
   - scope:tech
+sidebar_label: AWS Neuron Stack
 ---
 
 AWS Neuron is a software stack for running training and inference workloads on AWS-designed AI accelerators (Trainium, Inferentia). Similar to how NVIDIA's CUDA + GPU Operator combination abstracts NVIDIA GPUs as Kubernetes resources, Neuron SDK + Neuron Device Plugin abstracts Trainium/Inferentia chips as Kubernetes resources on EKS.

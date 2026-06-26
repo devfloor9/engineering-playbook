@@ -1,83 +1,67 @@
 import React from 'react';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
-
 const QualityGates = () => {
-  const {i18n} = useDocusaurusContext();
+  const {
+    i18n
+  } = useDocusaurusContext();
   const isKo = i18n.currentLocale === 'ko';
-  const isZh = i18n.currentLocale === 'zh';
-
-  const gates = [
-    {
-      gate: isKo ? '코드 품질' : isZh ? '代码质量' : 'Code Quality',
-      tools: 'Q Developer, Copilot',
-      checks: isKo ? '코딩 표준, 복잡도, 중복' : isZh ? '编码标准、复杂度、重复' : 'Coding standards, Complexity, Duplication',
-      color: '#3b82f6'
-    },
-    {
-      gate: isKo ? '보안 스캔' : isZh ? '安全扫描' : 'Security Scan',
-      tools: 'Q Developer Security',
-      checks: isKo ? 'OWASP Top 10, 시크릿 탐지' : isZh ? 'OWASP Top 10、密钥检测' : 'OWASP Top 10, Secret Detection',
-      color: '#dc2626'
-    },
-    {
-      gate: isKo ? 'IaC 검증' : isZh ? 'IaC 验证' : 'IaC Validation',
-      tools: 'tflint, OPA',
-      checks: isKo ? 'Terraform 모범사례, 정책 준수' : isZh ? 'Terraform 最佳实践、策略合规' : 'Terraform Best Practices, Policy Compliance',
-      color: '#7c3aed'
-    },
-    {
-      gate: isKo ? 'K8s 검증' : isZh ? 'K8s 验证' : 'K8s Validation',
-      tools: 'Kube-linter, Datree',
-      checks: isKo ? '보안 컨텍스트, 리소스 제한' : isZh ? '安全上下文、资源限制' : 'Security Context, Resource Limits',
-      color: '#0891b2'
-    },
-    {
-      gate: isKo ? '테스트 커버리지' : isZh ? '测试覆盖率' : 'Test Coverage',
-      tools: 'Go test, pytest',
-      checks: isKo ? '최소 80% 커버리지' : isZh ? '最低 80% 覆盖率' : 'Minimum 80% Coverage',
-      color: '#059669'
-    },
-    {
-      gate: isKo ? '성능 회귀' : isZh ? '性能回归' : 'Performance Regression',
-      tools: 'k6, Artillery',
-      checks: isKo ? '레이턴시, 처리량 기준' : isZh ? '延迟、吞吐量基准' : 'Latency, Throughput Benchmarks',
-      color: '#ea580c'
-    }
-  ];
-
-  const approvalCriteria = [
-    {
-      condition: isKo ? '보안 스캔 결과' : isZh ? '安全扫描结果' : 'Security Scan Results',
-      autoApprove: isKo ? 'Critical/High 0건' : isZh ? '0个 Critical/High' : '0 Critical/High',
-      manualReview: isKo ? 'Critical/High 1건 이상' : isZh ? '≥1个 Critical/High' : '≥1 Critical/High',
-      severity: 'critical'
-    },
-    {
-      condition: isKo ? '테스트 커버리지' : isZh ? '测试覆盖率' : 'Test Coverage',
-      autoApprove: '≥ 80%',
-      manualReview: '< 80%',
-      severity: 'high'
-    },
-    {
-      condition: isKo ? 'K8s 검증' : isZh ? 'K8s 验证' : 'K8s Validation',
-      autoApprove: isKo ? '경고 0건' : isZh ? '0个警告' : '0 Warnings',
-      manualReview: isKo ? '경고 1건 이상' : isZh ? '≥1个警告' : '≥1 Warning',
-      severity: 'medium'
-    },
-    {
-      condition: isKo ? '성능 회귀' : isZh ? '性能回归' : 'Performance Regression',
-      autoApprove: isKo ? 'P99 < SLO 목표' : isZh ? 'P99 < SLO 目标' : 'P99 < SLO Target',
-      manualReview: isKo ? 'P99 > SLO 목표' : isZh ? 'P99 > SLO 目标' : 'P99 > SLO Target',
-      severity: 'high'
-    },
-    {
-      condition: isKo ? '변경 범위' : isZh ? '变更范围' : 'Change Scope',
-      autoApprove: isKo ? '< 500줄' : isZh ? '< 500行' : '< 500 lines',
-      manualReview: isKo ? '≥ 500줄' : isZh ? '≥ 500行' : '≥ 500 lines',
-      severity: 'medium'
-    }
-  ];
-
+  const gates = [{
+    gate: isKo ? '코드 품질' : 'Code Quality',
+    tools: 'Q Developer, Copilot',
+    checks: isKo ? '코딩 표준, 복잡도, 중복' : 'Coding standards, Complexity, Duplication',
+    color: '#3b82f6'
+  }, {
+    gate: isKo ? '보안 스캔' : 'Security Scan',
+    tools: 'Q Developer Security',
+    checks: isKo ? 'OWASP Top 10, 시크릿 탐지' : 'OWASP Top 10, Secret Detection',
+    color: '#dc2626'
+  }, {
+    gate: isKo ? 'IaC 검증' : 'IaC Validation',
+    tools: 'tflint, OPA',
+    checks: isKo ? 'Terraform 모범사례, 정책 준수' : 'Terraform Best Practices, Policy Compliance',
+    color: '#7c3aed'
+  }, {
+    gate: isKo ? 'K8s 검증' : 'K8s Validation',
+    tools: 'Kube-linter, Datree',
+    checks: isKo ? '보안 컨텍스트, 리소스 제한' : 'Security Context, Resource Limits',
+    color: '#0891b2'
+  }, {
+    gate: isKo ? '테스트 커버리지' : 'Test Coverage',
+    tools: 'Go test, pytest',
+    checks: isKo ? '최소 80% 커버리지' : 'Minimum 80% Coverage',
+    color: '#059669'
+  }, {
+    gate: isKo ? '성능 회귀' : 'Performance Regression',
+    tools: 'k6, Artillery',
+    checks: isKo ? '레이턴시, 처리량 기준' : 'Latency, Throughput Benchmarks',
+    color: '#ea580c'
+  }];
+  const approvalCriteria = [{
+    condition: isKo ? '보안 스캔 결과' : 'Security Scan Results',
+    autoApprove: isKo ? 'Critical/High 0건' : '0 Critical/High',
+    manualReview: isKo ? 'Critical/High 1건 이상' : '≥1 Critical/High',
+    severity: 'critical'
+  }, {
+    condition: isKo ? '테스트 커버리지' : 'Test Coverage',
+    autoApprove: '≥ 80%',
+    manualReview: '< 80%',
+    severity: 'high'
+  }, {
+    condition: isKo ? 'K8s 검증' : 'K8s Validation',
+    autoApprove: isKo ? '경고 0건' : '0 Warnings',
+    manualReview: isKo ? '경고 1건 이상' : '≥1 Warning',
+    severity: 'medium'
+  }, {
+    condition: isKo ? '성능 회귀' : 'Performance Regression',
+    autoApprove: isKo ? 'P99 < SLO 목표' : 'P99 < SLO Target',
+    manualReview: isKo ? 'P99 > SLO 목표' : 'P99 > SLO Target',
+    severity: 'high'
+  }, {
+    condition: isKo ? '변경 범위' : 'Change Scope',
+    autoApprove: isKo ? '< 500줄' : '< 500 lines',
+    manualReview: isKo ? '≥ 500줄' : '≥ 500 lines',
+    severity: 'medium'
+  }];
   const styles = {
     container: {
       maxWidth: '760px',
@@ -213,26 +197,23 @@ const QualityGates = () => {
       lineHeight: '1.6'
     }
   };
-
-  return (
-    <div style={styles.container}>
+  return <div style={styles.container}>
       <div style={styles.header}>
         <h2 style={styles.title}>🛡️ Quality Gates</h2>
-        <p style={styles.subtitle}>{isKo ? 'AI 주도 다중 검증 레이어' : isZh ? 'AI 驱动的多层验证' : 'AI-Driven Multi-Layer Validation'}</p>
+        <p style={styles.subtitle}>{isKo ? 'AI 주도 다중 검증 레이어' : 'AI-Driven Multi-Layer Validation'}</p>
       </div>
 
       <div style={styles.section}>
-        <h3 style={styles.sectionTitle}>{isKo ? 'AI 코드 리뷰 검증 항목' : isZh ? 'AI 代码审查验证项' : 'AI Code Review Validation Items'}</h3>
+        <h3 style={styles.sectionTitle}>{isKo ? 'AI 코드 리뷰 검증 항목' : 'AI Code Review Validation Items'}</h3>
         <div style={styles.gatesGrid}>
-          {gates.map((gate, idx) => (
-            <div
-              key={idx}
-              style={{
-                ...styles.gateRow,
-                borderLeftColor: gate.color
-              }}
-            >
-              <div style={{...styles.gateCell, ...styles.gateName}}>
+          {gates.map((gate, idx) => <div key={idx} style={{
+          ...styles.gateRow,
+          borderLeftColor: gate.color
+        }}>
+              <div style={{
+            ...styles.gateCell,
+            ...styles.gateName
+          }}>
                 {gate.gate}
               </div>
               <div style={styles.gateCell}>
@@ -241,21 +222,19 @@ const QualityGates = () => {
               <div style={styles.gateCell}>
                 {gate.checks}
               </div>
-            </div>
-          ))}
+            </div>)}
         </div>
       </div>
 
       <div style={styles.section}>
-        <h3 style={styles.sectionTitle}>{isKo ? '자동 승인 기준' : isZh ? '自动批准标准' : 'Auto-Approval Criteria'}</h3>
+        <h3 style={styles.sectionTitle}>{isKo ? '자동 승인 기준' : 'Auto-Approval Criteria'}</h3>
         <div style={styles.approvalTable}>
           <div style={styles.approvalHeader}>
-            <div>{isKo ? '조건' : isZh ? '条件' : 'Condition'}</div>
-            <div>{isKo ? '자동 승인' : isZh ? '自动批准' : 'Auto Approve'}</div>
-            <div>{isKo ? '수동 리뷰 필요' : isZh ? '需要人工审查' : 'Manual Review Required'}</div>
+            <div>{isKo ? '조건' : 'Condition'}</div>
+            <div>{isKo ? '자동 승인' : 'Auto Approve'}</div>
+            <div>{isKo ? '수동 리뷰 필요' : 'Manual Review Required'}</div>
           </div>
-          {approvalCriteria.map((criteria, idx) => (
-            <div key={idx} style={styles.approvalRow}>
+          {approvalCriteria.map((criteria, idx) => <div key={idx} style={styles.approvalRow}>
               <div style={styles.conditionCell}>
                 {criteria.condition}
               </div>
@@ -265,15 +244,12 @@ const QualityGates = () => {
               <div style={styles.reviewCell}>
                 ⚠ {criteria.manualReview}
               </div>
-            </div>
-          ))}
+            </div>)}
         </div>
         <div style={styles.footer}>
-          <strong>{isKo ? '주의:' : isZh ? '注意：' : 'Note:'}</strong> {isKo ? 'AI 코드 리뷰는 패턴 기반 문제를 잘 탐지하지만, 비즈니스 로직의 정확성이나 아키텍처 적합성은 사람의 판단이 필요합니다. AI 리뷰를 1차 필터로 활용하고, 핵심 변경사항은 사람이 최종 검토하는 하이브리드 접근을 권장합니다.' : isZh ? 'AI 代码审查擅长检测基于模式的问题，但业务逻辑准确性和架构适用性需要人工判断。我们建议采用混合方法：将 AI 审查用作第一层过滤，由人工对关键变更进行最终审查。' : 'AI code review excels at detecting pattern-based issues, but business logic accuracy and architectural suitability require human judgment. We recommend a hybrid approach: use AI review as a first filter, with humans performing final review of critical changes.'}
+          <strong>{isKo ? '주의:' : 'Note:'}</strong> {isKo ? 'AI 코드 리뷰는 패턴 기반 문제를 잘 탐지하지만, 비즈니스 로직의 정확성이나 아키텍처 적합성은 사람의 판단이 필요합니다. AI 리뷰를 1차 필터로 활용하고, 핵심 변경사항은 사람이 최종 검토하는 하이브리드 접근을 권장합니다.' : 'AI code review excels at detecting pattern-based issues, but business logic accuracy and architectural suitability require human judgment. We recommend a hybrid approach: use AI review as a first filter, with humans performing final review of critical changes.'}
         </div>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default QualityGates;

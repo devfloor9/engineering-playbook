@@ -1,11 +1,18 @@
 ---
-title: "Agent Versioning & Change Management"
-sidebar_label: "Agent Versioning"
-description: "엔터프라이즈 Agent의 프롬프트·모델·배포 전략·거버넌스를 통합하는 Change Management 체계"
-tags: [agent-versioning, prompt-registry, canary, feature-flag, 'scope:enterprise']
+title: Agent Versioning & Change Management
+description: 엔터프라이즈 Agent의 프롬프트·모델·배포 전략·거버넌스를 통합하는 Change Management 체계
+created: "2026-04-18"
 last_update:
-  date: 2026-06-15
+  date: "2026-06-15"
   author: devfloor9
+reading_time: 4
+tags:
+  - agent-versioning
+  - prompt-registry
+  - canary
+  - feature-flag
+  - scope:enterprise
+sidebar_label: Agent Versioning
 ---
 
 # Agent 변경 관리

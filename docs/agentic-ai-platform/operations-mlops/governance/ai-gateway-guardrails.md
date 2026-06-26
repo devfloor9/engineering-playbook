@@ -1,13 +1,24 @@
 ---
-title: "AI Gateway Guardrails"
-sidebar_label: "AI Gateway Guardrails"
-description: "LLM Gateway 레벨 Guardrails — PII Redaction, Prompt Injection 방어, Content Filtering, 도구 비교와 한국 금융권 컴플라이언스 매핑"
-tags: [guardrails, pii, prompt-injection, safety, llm-security, compliance, ismsp, bedrock-guardrails, nemo-guardrails, llama-guard, 'scope:ops']
-created: 2026-04-17
+title: AI Gateway Guardrails
+description: LLM Gateway 레벨 Guardrails — PII Redaction, Prompt Injection 방어, Content Filtering, 도구 비교와 한국 금융권 컴플라이언스 매핑
+created: "2026-04-17"
 last_update:
-  date: 2026-04-20
+  date: "2026-04-20"
   author: devfloor9
-reading_time: 12
+reading_time: 24
+tags:
+  - guardrails
+  - pii
+  - prompt-injection
+  - safety
+  - llm-security
+  - compliance
+  - ismsp
+  - bedrock-guardrails
+  - nemo-guardrails
+  - llama-guard
+  - scope:ops
+sidebar_label: AI Gateway Guardrails
 ---
 
 엔터프라이즈 LLM 플랫폼에서 Guardrails는 **"모델 앞뒤에 안전망을 두는 기술 스택"** 입니다. 모델 자체의 safety alignment에만 의존하면 **프롬프트 인젝션**, **PII 유출**, **도구 오용**을 막을 수 없습니다. 이 문서는 LLM Gateway 레벨에서 구현 가능한 Guardrails 도구들을 비교하고, 실전 방어 패턴과 한국 금융권 컴플라이언스 매핑을 제공합니다.

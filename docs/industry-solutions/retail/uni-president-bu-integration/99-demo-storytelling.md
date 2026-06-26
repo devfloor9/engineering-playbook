@@ -1,12 +1,15 @@
 ---
-created: 2026-05-14
-title: "30분 시연 스크립트 (Uni-President)"
-sidebar_label: "99. Demo Storytelling"
-description: "UPI 그룹 임원·BU 운영팀 미팅용 30분 시연"
+title: 30분 시연 스크립트 (Uni-President)
+description: UPI 그룹 임원·BU 운영팀 미팅용 30분 시연
+created: "2026-05-14"
 last_update:
-  date: 2026-05-14
+  date: "2026-05-14"
+  author: YoungJoon Jeong
 reading_time: 3
+tags: []
+sidebar_label: 99. Demo Storytelling
 ---
+
 # 30분 시연 스크립트 (Uni-President)
 
 ## 0. 시연 전 준비

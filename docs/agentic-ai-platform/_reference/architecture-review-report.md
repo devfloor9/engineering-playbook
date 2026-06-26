@@ -1,10 +1,20 @@
 ---
-title: "LG U+ Agentic AI Platform 아키텍처 개선 리포트"
-sidebar_label: "아키텍처 개선 리포트"
-description: "EKS 기반 Agentic AI Platform의 레이어별 아키텍처 검토 및 개선 권고사항"
-tags: [eks, architecture, review, agentic-ai, gpu, llm, platform]
+title: LG U+ Agentic AI Platform 아키텍처 개선 리포트
+description: EKS 기반 Agentic AI Platform의 레이어별 아키텍처 검토 및 개선 권고사항
+created: "2026-03-17"
 last_update:
-  date: 2026-03-17
+  date: "2026-03-17"
+  author: YoungJoon Jeong
+reading_time: 14
+tags:
+  - eks
+  - architecture
+  - review
+  - agentic-ai
+  - gpu
+  - llm
+  - platform
+sidebar_label: 아키텍처 개선 리포트
 ---
 
 # LG U+ Agentic AI Platform 아키텍처 개선 리포트

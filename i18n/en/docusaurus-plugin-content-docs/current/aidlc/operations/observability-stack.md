@@ -1,12 +1,21 @@
 ---
-title: "Observability Stack"
-sidebar_label: "Observability Stack"
-description: "The data foundation of AIDLC Operations — building 3-Pillar observability + AI analysis layer"
-category: "aidlc-operations"
-tags: [observability, adot, prometheus, grafana, cloudwatch, mcp, aidlc]
+title: Observability Stack
+description: The data foundation of AIDLC Operations — building 3-Pillar observability + AI analysis layer
+created: "2026-04-07"
 last_update:
-  date: 2026-04-18
+  date: "2026-04-18"
   author: devfloor9
+reading_time: 27
+tags:
+  - observability
+  - adot
+  - prometheus
+  - grafana
+  - cloudwatch
+  - mcp
+  - aidlc
+sidebar_label: Observability Stack
+category: aidlc-operations
 ---
 
 import { ObservabilityPillars, ArchitectureLayers, StackSelectionPatterns } from '@site/src/components/ObservabilityStackTables';

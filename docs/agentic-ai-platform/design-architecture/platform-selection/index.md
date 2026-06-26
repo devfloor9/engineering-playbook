@@ -1,10 +1,9 @@
 ---
 title: 플랫폼 선택
-sidebar_label: 플랫폼 선택
 description: AWS 환경에서 Agentic AI 플랫폼 구축을 위한 전략적 선택 가이드
-created: 2026-04-20
+created: "2026-04-20"
 last_update:
-  date: 2026-04-20
+  date: "2026-04-20"
   author: devfloor9
 reading_time: 1
 tags:
@@ -12,6 +11,7 @@ tags:
   - architecture
   - aws
   - scope:nav
+sidebar_label: 플랫폼 선택
 ---
 
 ## 개요

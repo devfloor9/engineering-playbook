@@ -1,11 +1,16 @@
 ---
-tags: [aidlc, toolchain, 'scope:toolchain']
 title: 오픈 웨이트 모델
-sidebar_label: 오픈 웨이트 모델
 description: 데이터 레지던시와 비용 최적화를 위한 오픈 웨이트 모델 활용 전략 — 온프레미스 배포, 하이브리드 구성, TCO 비교
+created: "2026-04-07"
 last_update:
-  date: 2026-06-15
+  date: "2026-06-15"
   author: devfloor9
+reading_time: 10
+tags:
+  - aidlc
+  - toolchain
+  - scope:toolchain
+sidebar_label: 오픈 웨이트 모델
 ---
 
 # 오픈 웨이트 모델

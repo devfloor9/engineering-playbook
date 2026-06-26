@@ -1,12 +1,11 @@
 ---
-title: "ADR — Self-Improving Agent Loop Adoption Decision"
-sidebar_label: "ADR: Self-Improving Loop"
-description: "Architecture Decision Record documenting principles, scope, responsibilities, and rollback boundaries to be agreed upon before introducing the Self-Improving Agent Loop to production"
-created: 2026-04-19
+title: ADR — Self-Improving Agent Loop Adoption Decision
+description: Architecture Decision Record documenting principles, scope, responsibilities, and rollback boundaries to be agreed upon before introducing the Self-Improving Agent Loop to production
+created: "2026-04-19"
 last_update:
-  date: 2026-04-20
+  date: "2026-04-20"
   author: devfloor9
-reading_time: 5
+reading_time: 14
 tags:
   - adr
   - self-improving
@@ -14,6 +13,7 @@ tags:
   - governance
   - agentic-ai
   - scope:design
+sidebar_label: "ADR: Self-Improving Loop"
 sidebar_position: 99
 ---
 

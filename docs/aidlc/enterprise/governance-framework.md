@@ -1,11 +1,16 @@
 ---
 title: 거버넌스 프레임워크
-sidebar_label: 거버넌스 프레임워크
 description: AIDLC 엔터프라이즈 - governance-framework
-tags: [aidlc, enterprise, 'scope:enterprise']
+created: "2026-04-07"
 last_update:
-  date: 2026-04-18
+  date: "2026-04-18"
   author: devfloor9
+reading_time: 10
+tags:
+  - aidlc
+  - enterprise
+  - scope:enterprise
+sidebar_label: 거버넌스 프레임워크
 ---
 
 # 거버넌스 프레임워크

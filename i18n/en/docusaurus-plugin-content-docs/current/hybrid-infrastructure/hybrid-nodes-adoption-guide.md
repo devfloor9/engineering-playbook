@@ -1,12 +1,25 @@
 ---
-title: "EKS Hybrid Nodes Complete Guide"
-sidebar_label: "Hybrid Nodes Complete Guide"
+title: EKS Hybrid Nodes Complete Guide
 description: "A complete guide for adopting Amazon EKS Hybrid Nodes: architecture, configuration, networking, DNS, GPU servers, cost analysis, and Dynamic Resource Allocation (DRA)"
-tags: [eks, hybrid-nodes, nodeadm, kubernetes, harbor, networking, dns, gpu, dra, cost-optimization, architecture]
-category: "hybrid-multicloud"
+created: "2026-02-04"
 last_update:
-  date: 2026-02-14
+  date: "2026-02-14"
   author: devfloor9
+reading_time: 16
+tags:
+  - eks
+  - hybrid-nodes
+  - nodeadm
+  - kubernetes
+  - harbor
+  - networking
+  - dns
+  - gpu
+  - dra
+  - cost-optimization
+  - architecture
+sidebar_label: Hybrid Nodes Complete Guide
+category: hybrid-multicloud
 ---
 
 # EKS Hybrid Nodes Complete Guide

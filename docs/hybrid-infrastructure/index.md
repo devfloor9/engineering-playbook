@@ -1,12 +1,16 @@
 ---
-title: "Hybrid Infrastructure"
-sidebar_label: "하이브리드 인프라"
-description: "Amazon EKS를 활용한 하이브리드 클라우드 및 멀티 클라우드 환경 구축에 대한 심화 기술 문서"
-category: "hybrid"
-sidebar_position: 4
+title: Hybrid Infrastructure
+description: Amazon EKS를 활용한 하이브리드 클라우드 및 멀티 클라우드 환경 구축에 대한 심화 기술 문서
+created: "2025-09-11"
 last_update:
-  date: 2026-02-13
+  date: "2026-02-13"
   author: devfloor9
+reading_time: 4
+tags:
+  - scope:nav
+sidebar_label: 하이브리드 인프라
+sidebar_position: 4
+category: hybrid
 ---
 
 # Hybrid Infrastructure

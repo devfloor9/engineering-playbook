@@ -1,12 +1,11 @@
 ---
-title: "GPU 리소스·관측·Hybrid Node·실전 교훈"
-sidebar_label: "비용·관측성·Hybrid"
-description: "2-Tier GPU 오토스케일링·DCGM/vLLM 모니터링·Bifrost→Bedrock Cascade Fallback·Hybrid Node 온프레 통합·대형 MoE 배포 실전 교훈"
-created: 2026-04-03
+title: GPU 리소스·관측·Hybrid Node·실전 교훈
+description: 2-Tier GPU 오토스케일링·DCGM/vLLM 모니터링·Bifrost→Bedrock Cascade Fallback·Hybrid Node 온프레 통합·대형 MoE 배포 실전 교훈
+created: "2026-04-03"
 last_update:
-  date: 2026-06-15
+  date: "2026-06-15"
   author: devfloor9
-reading_time: 25
+reading_time: 15
 tags:
   - inference
   - optimization
@@ -18,6 +17,7 @@ tags:
   - langfuse
   - lessons-learned
   - scope:tech
+sidebar_label: 비용·관측성·Hybrid
 sidebar_position: 4
 ---
 

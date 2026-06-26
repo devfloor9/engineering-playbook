@@ -1,13 +1,22 @@
 ---
-title: "VPC CNI vs Cilium CNI Performance Comparison Benchmark"
-sidebar_label: "Report 1. CNI Performance"
-sidebar_position: 1
-description: "A benchmark report comparing network and application performance of VPC CNI and Cilium CNI across 5 scenarios (kube-proxy, kube-proxy-less, ENI, tuning) in an EKS environment"
-tags: [benchmark, cni, cilium, vpc-cni, networking, performance, eks]
-category: "benchmark"
+title: VPC CNI vs Cilium CNI Performance Comparison Benchmark
+description: A benchmark report comparing network and application performance of VPC CNI and Cilium CNI across 5 scenarios (kube-proxy, kube-proxy-less, ENI, tuning) in an EKS environment
+created: "2026-02-10"
 last_update:
-  date: 2026-02-14
+  date: "2026-02-14"
   author: devfloor9
+reading_time: 38
+tags:
+  - benchmark
+  - cni
+  - cilium
+  - vpc-cni
+  - networking
+  - performance
+  - eks
+sidebar_label: Report 1. CNI Performance
+sidebar_position: 1
+category: benchmark
 ---
 
 import HttpPerformanceChart from '@site/src/components/HttpPerformanceChart';

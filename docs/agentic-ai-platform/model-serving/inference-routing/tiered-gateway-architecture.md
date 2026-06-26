@@ -1,12 +1,11 @@
 ---
-title: "티어드 게이트웨이 아키텍처"
-sidebar_label: "티어드 게이트웨이 아키텍처"
+title: 티어드 게이트웨이 아키텍처
 description: "Agentic AI 플랫폼의 게이트웨이 계층 단일 정의: Tier 1 Ingress, Tier 2 추론 라우팅(Inference Extension)과 LLM API 게이트웨이, Agent Data Plane의 역할 구분과 채움 전략"
-created: 2026-06-17
+created: "2026-06-17"
 last_update:
-  date: 2026-06-17
+  date: "2026-06-17"
   author: devfloor9
-reading_time: 9
+reading_time: 8
 tags:
   - gateway-api
   - inference-gateway
@@ -14,6 +13,7 @@ tags:
   - agentgateway
   - networking
   - scope:impl
+sidebar_label: 티어드 게이트웨이 아키텍처
 ---
 
 import Tabs from '@theme/Tabs';

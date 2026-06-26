@@ -1,13 +1,18 @@
 ---
-title: "Cascade Routing Production Tuning"
-sidebar_label: "Cascade Routing Tuning"
-description: "Guide to tuning Inference Gateway Cascade Routing classification thresholds, Canary rollout, Fallback, and cost drift alerts based on production traces"
-created: 2026-04-18
+title: Cascade Routing Production Tuning
+description: Guide to tuning Inference Gateway Cascade Routing classification thresholds, Canary rollout, Fallback, and cost drift alerts based on production traces
+created: "2026-04-18"
 last_update:
-  date: 2026-04-20
+  date: "2026-04-20"
   author: devfloor9
-reading_time: 1
-tags: [cascade-routing, inference-gateway, langfuse, tuning, 'scope:ops']
+reading_time: 23
+tags:
+  - cascade-routing
+  - inference-gateway
+  - langfuse
+  - tuning
+  - scope:ops
+sidebar_label: Cascade Routing Tuning
 sidebar_position: 3
 ---
 

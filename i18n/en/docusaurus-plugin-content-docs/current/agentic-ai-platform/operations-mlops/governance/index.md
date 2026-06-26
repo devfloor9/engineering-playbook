@@ -1,12 +1,11 @@
 ---
 title: Governance · Evaluation · Compliance
-sidebar_label: Governance
 description: Comprehensive governance documentation covering quality evaluation, operational playbooks, AI Gateway guardrails, compliance, and domain customization
-created: 2026-04-20
+created: "2026-04-20"
 last_update:
-  date: 2026-04-20
+  date: "2026-04-20"
   author: devfloor9
-reading_time: 1
+reading_time: 2
 tags:
   - operations
   - governance
@@ -14,6 +13,7 @@ tags:
   - guardrails
   - evaluation
   - scope:nav
+sidebar_label: Governance
 ---
 
 ## Overview

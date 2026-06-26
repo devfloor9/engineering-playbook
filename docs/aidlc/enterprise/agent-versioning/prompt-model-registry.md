@@ -1,11 +1,18 @@
 ---
-title: "프롬프트·모델 레지스트리"
-sidebar_label: "프롬프트·모델 레지스트리"
-description: "Langfuse, PromptLayer, Braintrust, AWS Bedrock Prompt Management 비교 및 구축 가이드"
-tags: [prompt-registry, versioning, langfuse, bedrock, 'scope:enterprise']
+title: 프롬프트·모델 레지스트리
+description: Langfuse, PromptLayer, Braintrust, AWS Bedrock Prompt Management 비교 및 구축 가이드
+created: "2026-04-18"
 last_update:
-  date: 2026-04-18
+  date: "2026-04-18"
   author: devfloor9
+reading_time: 6
+tags:
+  - prompt-registry
+  - versioning
+  - langfuse
+  - bedrock
+  - scope:enterprise
+sidebar_label: 프롬프트·모델 레지스트리
 ---
 
 # 프롬프트·모델 레지스트리

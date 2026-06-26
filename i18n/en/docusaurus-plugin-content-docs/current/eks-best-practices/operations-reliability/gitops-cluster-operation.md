@@ -1,12 +1,22 @@
 ---
-title: "GitOps-based EKS Cluster Operations"
-sidebar_label: "GitOps Cluster Operations"
-description: "GitOps architecture, KRO/ACK usage, multi-cluster management strategies and automation for stable large-scale EKS cluster operations"
-tags: [eks, gitops, argocd, kro, ack, kubernetes, automation, infrastructure-as-code]
-category: "observability-monitoring"
+title: GitOps-based EKS Cluster Operations
+description: GitOps architecture, KRO/ACK usage, multi-cluster management strategies and automation for stable large-scale EKS cluster operations
+created: "2026-02-04"
 last_update:
-  date: 2026-02-18
+  date: "2026-02-18"
   author: devfloor9
+reading_time: 4
+tags:
+  - eks
+  - gitops
+  - argocd
+  - kro
+  - ack
+  - kubernetes
+  - automation
+  - infrastructure-as-code
+sidebar_label: GitOps Cluster Operations
+category: observability-monitoring
 ---
 
 # GitOps-based EKS Cluster Operations

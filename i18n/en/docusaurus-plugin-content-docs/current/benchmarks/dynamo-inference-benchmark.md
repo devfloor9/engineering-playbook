@@ -1,13 +1,25 @@
 ---
-title: "NVIDIA Dynamo Inference Benchmark"
-sidebar_label: "Report 5. Dynamo Inference [New]"
-sidebar_position: 5
-description: "Benchmark comparing Aggregated vs Disaggregated LLM serving performance using NVIDIA Dynamo — Running AIPerf 4 modes in an EKS environment"
-tags: [benchmark, nvidia, dynamo, vllm, inference, gpu, disaggregated-serving, eks, kv-cache, nixl]
-category: "benchmark"
+title: NVIDIA Dynamo Inference Benchmark
+description: Benchmark comparing Aggregated vs Disaggregated LLM serving performance using NVIDIA Dynamo — Running AIPerf 4 modes in an EKS environment
+created: "2026-03-20"
 last_update:
-  date: 2026-03-20
+  date: "2026-03-20"
   author: devfloor9
+reading_time: 13
+tags:
+  - benchmark
+  - nvidia
+  - dynamo
+  - vllm
+  - inference
+  - gpu
+  - disaggregated-serving
+  - eks
+  - kv-cache
+  - nixl
+sidebar_label: Report 5. Dynamo Inference [New]
+sidebar_position: 5
+category: benchmark
 ---
 
 # Report 5. NVIDIA Dynamo Inference Benchmark

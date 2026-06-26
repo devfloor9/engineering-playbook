@@ -1,12 +1,16 @@
 ---
-title: "ROSA (Red Hat OpenShift on AWS)"
-sidebar_label: "ROSA"
-description: "Technical documentation on deploying and operating Red Hat OpenShift Service on AWS (ROSA)"
-category: "rosa"
-sidebar_position: 6
+title: ROSA (Red Hat OpenShift on AWS)
+description: Technical documentation on deploying and operating Red Hat OpenShift Service on AWS (ROSA)
+created: "2026-02-04"
 last_update:
-  date: 2026-02-13
+  date: "2026-02-13"
   author: devfloor9
+reading_time: 5
+tags:
+  - scope:nav
+sidebar_label: ROSA
+sidebar_position: 6
+category: rosa
 ---
 
 # ROSA (Red Hat OpenShift on AWS)

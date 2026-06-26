@@ -1,11 +1,19 @@
 ---
-title: "Korea AI Basic Act — High-Impact AI Regulation and Generative AI Labeling"
-sidebar_label: "Korea AI Basic Act"
-description: "Korea AI Basic Act's high-impact AI impact assessment, generative AI labeling obligations, PIPA/ISMS-P cross-compliance, and AIDLC integration guide"
-tags: [korea, ai-law, pipa, isms-p, compliance, 'scope:enterprise']
+title: Korea AI Basic Act — High-Impact AI Regulation and Generative AI Labeling
+description: Korea AI Basic Act's high-impact AI impact assessment, generative AI labeling obligations, PIPA/ISMS-P cross-compliance, and AIDLC integration guide
+created: "2026-04-19"
 last_update:
-  date: 2026-04-18
+  date: "2026-04-18"
   author: devfloor9
+reading_time: 8
+tags:
+  - korea
+  - ai-law
+  - pipa
+  - isms-p
+  - compliance
+  - scope:enterprise
+sidebar_label: Korea AI Basic Act
 ---
 
 # Korea AI Framework Act (AI 기본법, Enforcement Expected 2026)

@@ -1,10 +1,9 @@
 ---
-title: "GRPO/DPO Training Job"
-sidebar_label: "GRPO/DPO Training"
-description: "Production configuration for running NeMo-RL (GRPO) and TRL (DPO) training jobs with labeled preference datasets on Karpenter Spot node pools and Volcano Gang Scheduling."
-created: 2026-04-18
+title: GRPO/DPO Training Job
+description: Production configuration for running NeMo-RL (GRPO) and TRL (DPO) training jobs with labeled preference datasets on Karpenter Spot node pools and Volcano Gang Scheduling.
+created: "2026-04-18"
 last_update:
-  date: 2026-04-20
+  date: "2026-04-20"
   author: devfloor9
 reading_time: 8
 tags:
@@ -15,6 +14,7 @@ tags:
   - nemo
   - trl
   - scope:impl
+sidebar_label: GRPO/DPO Training
 sidebar_position: 3
 ---
 

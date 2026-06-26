@@ -1,13 +1,18 @@
 ---
-title: "Advanced Features"
-sidebar_label: "2. Advanced Features"
-description: "LLM Classifier, CloudFront/WAF, Semantic Caching configuration"
-created: 2026-04-06
+title: Advanced Features
+description: LLM Classifier, CloudFront/WAF, Semantic Caching configuration
+created: "2026-04-06"
 last_update:
-  date: 2026-04-20
+  date: "2026-04-20"
   author: devfloor9
-reading_time: 1
-tags: [llm-classifier, cloudfront, waf, semantic-caching, 'scope:impl']
+reading_time: 20
+tags:
+  - llm-classifier
+  - cloudfront
+  - waf
+  - semantic-caching
+  - scope:impl
+sidebar_label: 2. Advanced Features
 sidebar_position: 2
 ---
 

@@ -1,12 +1,11 @@
 ---
-title: "Continuous Training Pipeline"
-sidebar_label: "Continuous Training"
-description: "Langfuse trace를 자동 학습 데이터로 승격해 GRPO/DPO preference tuning과 Canary 배포까지 연결하는 EKS 기반 5단계 파이프라인 개요."
-created: 2026-04-18
+title: Continuous Training Pipeline
+description: Langfuse trace를 자동 학습 데이터로 승격해 GRPO/DPO preference tuning과 Canary 배포까지 연결하는 EKS 기반 5단계 파이프라인 개요.
+created: "2026-04-18"
 last_update:
-  date: 2026-04-20
+  date: "2026-04-20"
   author: devfloor9
-reading_time: 4
+reading_time: 8
 tags:
   - continuous-training
   - mlops
@@ -14,6 +13,7 @@ tags:
   - grpo
   - dpo
   - scope:impl
+sidebar_label: Continuous Training
 sidebar_position: 1
 ---
 

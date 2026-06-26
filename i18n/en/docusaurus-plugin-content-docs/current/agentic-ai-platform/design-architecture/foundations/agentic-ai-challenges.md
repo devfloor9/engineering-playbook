@@ -1,20 +1,20 @@
 ---
-title: "Technical Challenges of Agentic AI Workloads"
-sidebar_label: "Technical Challenges"
-description: "5 key challenges faced when operating Agentic AI workloads"
-created: 2026-02-05
+title: Technical Challenges of Agentic AI Workloads
+description: 5 key challenges faced when operating Agentic AI workloads
+created: "2026-02-05"
 last_update:
-  date: 2026-06-17
+  date: "2026-06-17"
   author: devfloor9
-reading_time: 9
+reading_time: 32
 tags:
   - genai
   - agentic-ai
   - gpu
   - challenges
   - scope:design
-category: "genai-aiml"
+sidebar_label: Technical Challenges
 sidebar_position: 2
+category: genai-aiml
 ---
 
 import { ChallengeSummary } from '@site/src/components/AgenticChallengesTables';

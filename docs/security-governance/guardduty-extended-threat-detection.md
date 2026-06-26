@@ -1,12 +1,19 @@
 ---
-title: "GuardDuty Extended Threat Detection"
-sidebar_label: "GuardDuty Extended"
-description: "Amazon GuardDuty Extended Threat Detection을 활용한 EKS 위협 탐지 및 대응"
-category: "security"
-tags: [eks, security, guardduty, threat-detection, mitre]
+title: GuardDuty Extended Threat Detection
+description: Amazon GuardDuty Extended Threat Detection을 활용한 EKS 위협 탐지 및 대응
+created: "2026-02-09"
 last_update:
-  date: 2026-06-15
+  date: "2026-06-15"
   author: devfloor9
+reading_time: 1
+tags:
+  - eks
+  - security
+  - guardduty
+  - threat-detection
+  - mitre
+sidebar_label: GuardDuty Extended
+category: security
 ---
 
 # GuardDuty Extended Threat Detection

@@ -1,11 +1,21 @@
 ---
-title: "EKS API Server 인증/인가 가이드"
-sidebar_label: "API Server AuthN/AuthZ"
-description: "Non-Standard Caller(CI/CD, 모니터링, 자동화)의 EKS API Server 접근을 위한 인증/인가 Best Practices"
-tags: [eks, security, authentication, authorization, access-entry, pod-identity, oidc, rbac]
+title: EKS API Server 인증/인가 가이드
+description: Non-Standard Caller(CI/CD, 모니터링, 자동화)의 EKS API Server 접근을 위한 인증/인가 Best Practices
+created: "2026-03-24"
 last_update:
-  date: 2026-03-24
+  date: "2026-03-24"
   author: devfloor9
+reading_time: 11
+tags:
+  - eks
+  - security
+  - authentication
+  - authorization
+  - access-entry
+  - pod-identity
+  - oidc
+  - rbac
+sidebar_label: API Server AuthN/AuthZ
 ---
 
 # EKS API Server 인증/인가 가이드

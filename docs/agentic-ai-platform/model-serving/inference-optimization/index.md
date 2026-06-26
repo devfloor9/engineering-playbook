@@ -1,12 +1,11 @@
 ---
-title: "Inference Optimization on EKS"
-sidebar_label: "추론 최적화"
-description: "LLM Inference 성능을 극대화하는 EKS 아키텍처 개요 — vLLM, KV Cache-Aware Routing, Disaggregated Serving, LWS 멀티노드, Hybrid Node 통합의 시작점"
-created: 2026-04-03
+title: Inference Optimization on EKS
+description: LLM Inference 성능을 극대화하는 EKS 아키텍처 개요 — vLLM, KV Cache-Aware Routing, Disaggregated Serving, LWS 멀티노드, Hybrid Node 통합의 시작점
+created: "2026-04-03"
 last_update:
-  date: 2026-06-15
+  date: "2026-06-15"
   author: devfloor9
-reading_time: 5
+reading_time: 14
 tags:
   - inference
   - optimization
@@ -15,6 +14,7 @@ tags:
   - vllm
   - architecture
   - scope:tech
+sidebar_label: 추론 최적화
 sidebar_position: 1
 ---
 

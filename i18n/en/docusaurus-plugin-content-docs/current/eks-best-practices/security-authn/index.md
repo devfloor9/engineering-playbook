@@ -1,12 +1,20 @@
 ---
-title: "Security & Authentication"
-sidebar_label: "Security & Authentication"
-description: "Best practices for EKS cluster authentication/authorization and security"
-tags: [eks, security, authentication, authorization, iam]
-sidebar_position: 3
+title: Security & Authentication
+description: Best practices for EKS cluster authentication/authorization and security
+created: "2026-03-24"
 last_update:
-  date: 2026-03-24
+  date: "2026-03-24"
   author: devfloor9
+reading_time: 2
+tags:
+  - eks
+  - security
+  - authentication
+  - authorization
+  - iam
+  - scope:nav
+sidebar_label: Security & Authentication
+sidebar_position: 3
 ---
 
 import { DocCard, DocCardGrid } from '@site/src/components/DocCards';

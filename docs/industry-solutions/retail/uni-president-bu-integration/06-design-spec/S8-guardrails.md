@@ -1,12 +1,15 @@
 ---
-created: 2026-05-14
-title: "S8. 가드레일 (Uni-President)"
-sidebar_label: "S8. Guardrails"
-description: "Bedrock Guardrails + PDPA + BU 영업 정보 분리"
+title: S8. 가드레일 (Uni-President)
+description: Bedrock Guardrails + PDPA + BU 영업 정보 분리
+created: "2026-05-14"
 last_update:
-  date: 2026-05-14
+  date: "2026-05-14"
+  author: YoungJoon Jeong
 reading_time: 1
+tags: []
+sidebar_label: S8. Guardrails
 ---
+
 # S8. 가드레일 (Uni-President)
 
 ## 활성 정책

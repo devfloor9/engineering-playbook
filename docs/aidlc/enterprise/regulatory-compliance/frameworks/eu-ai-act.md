@@ -1,11 +1,18 @@
 ---
-title: "EU AI Act — 고위험 AI 시스템 규제"
-sidebar_label: "EU AI Act"
-description: "EU AI Act의 위험도 분류, High-risk AI 의무사항, GPAI 제공자 의무, AIDLC 통합 가이드"
-tags: [eu-ai-act, compliance, high-risk-ai, gpai, 'scope:enterprise']
+title: EU AI Act — 고위험 AI 시스템 규제
+description: EU AI Act의 위험도 분류, High-risk AI 의무사항, GPAI 제공자 의무, AIDLC 통합 가이드
+created: "2026-04-18"
 last_update:
-  date: 2026-04-18
+  date: "2026-04-18"
   author: devfloor9
+reading_time: 4
+tags:
+  - eu-ai-act
+  - compliance
+  - high-risk-ai
+  - gpai
+  - scope:enterprise
+sidebar_label: EU AI Act
 ---
 
 # EU AI Act (2024-2027)

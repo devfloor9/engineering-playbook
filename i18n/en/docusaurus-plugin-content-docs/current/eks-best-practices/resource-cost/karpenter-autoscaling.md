@@ -1,12 +1,21 @@
 ---
-title: "Karpenter-based EKS Scaling Strategy Comprehensive Guide"
-sidebar_label: "Karpenter Scaling Strategy"
-description: "Comprehensive scaling strategy guide using Karpenter on Amazon EKS. Compares reactive, predictive, and architectural resilience approaches, CloudWatch vs Prometheus architecture, HPA configuration, and production patterns"
-tags: [eks, karpenter, autoscaling, performance, cloudwatch, prometheus, spot-instances]
-category: "performance-networking"
+title: Karpenter-based EKS Scaling Strategy Comprehensive Guide
+description: Comprehensive scaling strategy guide using Karpenter on Amazon EKS. Compares reactive, predictive, and architectural resilience approaches, CloudWatch vs Prometheus architecture, HPA configuration, and production patterns
+created: "2026-02-04"
 last_update:
-  date: 2026-02-13
+  date: "2026-02-13"
   author: devfloor9
+reading_time: 6
+tags:
+  - eks
+  - karpenter
+  - autoscaling
+  - performance
+  - cloudwatch
+  - prometheus
+  - spot-instances
+sidebar_label: Karpenter Scaling Strategy
+category: performance-networking
 ---
 
 import { ScalingLatencyBreakdown, ControlPlaneComparison, WarmPoolCostAnalysis, AutoModeComparison, ScalingBenchmark, PracticalGuide } from '@site/src/components/KarpenterTables';

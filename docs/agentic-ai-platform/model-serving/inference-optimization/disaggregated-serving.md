@@ -1,12 +1,11 @@
 ---
-title: "Disaggregated Serving + LWS 멀티노드"
-sidebar_label: "Disaggregated Serving"
-description: "Prefill/Decode 분리 아키텍처와 NIXL 공통 KV 전송 엔진, LeaderWorkerSet 기반 700B+ 대형 MoE 모델 멀티노드 배포 가이드"
-created: 2026-04-03
+title: Disaggregated Serving + LWS 멀티노드
+description: Prefill/Decode 분리 아키텍처와 NIXL 공통 KV 전송 엔진, LeaderWorkerSet 기반 700B+ 대형 MoE 모델 멀티노드 배포 가이드
+created: "2026-04-03"
 last_update:
-  date: 2026-06-15
+  date: "2026-06-15"
   author: devfloor9
-reading_time: 15
+reading_time: 6
 tags:
   - inference
   - optimization
@@ -16,6 +15,7 @@ tags:
   - nixl
   - distributed-training
   - scope:tech
+sidebar_label: Disaggregated Serving
 sidebar_position: 3
 ---
 

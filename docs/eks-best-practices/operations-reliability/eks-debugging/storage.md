@@ -1,11 +1,19 @@
 ---
-title: "스토리지 디버깅"
-sidebar_label: "스토리지"
-description: "EKS 스토리지 문제 진단 및 해결 가이드 - EBS/EFS CSI Driver, PVC 마운트 실패"
-tags: [eks, kubernetes, storage, ebs, efs, pvc]
+title: 스토리지 디버깅
+description: EKS 스토리지 문제 진단 및 해결 가이드 - EBS/EFS CSI Driver, PVC 마운트 실패
+created: "2026-04-07"
 last_update:
-  date: 2026-04-07
+  date: "2026-04-07"
   author: devfloor9
+reading_time: 5
+tags:
+  - eks
+  - kubernetes
+  - storage
+  - ebs
+  - efs
+  - pvc
+sidebar_label: 스토리지
 ---
 
 # 스토리지 디버깅

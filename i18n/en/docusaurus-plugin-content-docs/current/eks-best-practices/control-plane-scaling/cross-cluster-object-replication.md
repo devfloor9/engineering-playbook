@@ -1,13 +1,22 @@
 ---
-title: "Cross-Cluster Object Replication (HA) Architecture Guide"
-sidebar_label: "Cross-Cluster Replication (HA)"
-description: "Architecture patterns and decision guide for achieving high availability through object replication in EKS multi-cluster environments"
-tags: [eks, multi-cluster, high-availability, gitops, argocd, flux, disaster-recovery]
-category: "infrastructure"
-sidebar_position: 3
+title: Cross-Cluster Object Replication (HA) Architecture Guide
+description: Architecture patterns and decision guide for achieving high availability through object replication in EKS multi-cluster environments
+created: "2026-03-24"
 last_update:
-  date: 2026-03-24
+  date: "2026-03-24"
   author: devfloor9
+reading_time: 20
+tags:
+  - eks
+  - multi-cluster
+  - high-availability
+  - gitops
+  - argocd
+  - flux
+  - disaster-recovery
+sidebar_label: Cross-Cluster Replication (HA)
+sidebar_position: 3
+category: infrastructure
 ---
 
 # Cross-Cluster Object Replication (HA) Architecture Guide

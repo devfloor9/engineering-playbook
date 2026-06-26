@@ -1,11 +1,22 @@
 ---
-title: "AIDLC Evaluation Framework"
-sidebar_label: "평가 프레임워크"
-description: "Agent/LLM 개발 프로세스의 Evaluation-driven Loop — SWE-bench Verified, METR, Ragas, DeepEval, LangSmith, Braintrust, AWS Labs aidlc-evaluator 비교"
-tags: [evaluation, ragas, deepeval, langsmith, braintrust, swe-bench, metr, aidlc-evaluator, 'scope:toolchain']
+title: AIDLC Evaluation Framework
+description: Agent/LLM 개발 프로세스의 Evaluation-driven Loop — SWE-bench Verified, METR, Ragas, DeepEval, LangSmith, Braintrust, AWS Labs aidlc-evaluator 비교
+created: "2026-04-18"
 last_update:
-  date: 2026-06-15
+  date: "2026-06-15"
   author: YoungJoon Jeong
+reading_time: 29
+tags:
+  - evaluation
+  - ragas
+  - deepeval
+  - langsmith
+  - braintrust
+  - swe-bench
+  - metr
+  - aidlc-evaluator
+  - scope:toolchain
+sidebar_label: 평가 프레임워크
 ---
 
 # AIDLC Evaluation Framework

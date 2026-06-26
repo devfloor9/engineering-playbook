@@ -1,12 +1,11 @@
 ---
-title: "llm-d 기반 EKS 분산 추론 가이드"
-sidebar_label: "llm-d 분산 추론"
-description: "llm-d 아키텍처 개념, KV Cache-aware 라우팅, Disaggregated Serving, EKS Auto Mode 통합 전략"
-created: 2026-02-10
+title: llm-d 기반 EKS 분산 추론 가이드
+description: llm-d 아키텍처 개념, KV Cache-aware 라우팅, Disaggregated Serving, EKS Auto Mode 통합 전략
+created: "2026-02-10"
 last_update:
-  date: 2026-06-15
+  date: "2026-06-15"
   author: devfloor9
-reading_time: 18
+reading_time: 17
 tags:
   - eks
   - llm-d
@@ -19,8 +18,9 @@ tags:
   - kubernetes
   - inference
   - scope:tech
-category: "genai-aiml"
+sidebar_label: llm-d 분산 추론
 sidebar_position: 4
+category: genai-aiml
 ---
 
 import { ComparisonTable, SpecificationTable } from '@site/src/components/tables';

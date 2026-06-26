@@ -1,12 +1,11 @@
 ---
-title: "HyperPod Inference Operator (관리형 KV 캐시·지능형 라우팅)"
-sidebar_label: "HyperPod Inference Operator"
-description: "SageMaker HyperPod Inference Operator의 관리형 KV 캐시·지능형 라우팅·DPD를 Tiered Gateway와 비교하고, L2 추론 라우팅 레이어로서의 역할과 한계를 정리"
-created: 2026-06-23
+title: HyperPod Inference Operator (관리형 KV 캐시·지능형 라우팅)
+description: SageMaker HyperPod Inference Operator의 관리형 KV 캐시·지능형 라우팅·DPD를 Tiered Gateway와 비교하고, L2 추론 라우팅 레이어로서의 역할과 한계를 정리
+created: "2026-06-23"
 last_update:
-  date: 2026-06-23
+  date: "2026-06-23"
   author: YoungJoon Jeong
-reading_time: 10
+reading_time: 11
 tags:
   - hyperpod
   - sagemaker
@@ -20,6 +19,7 @@ keywords:
   - TieredKvcacheConfig
   - Intelligent Routing
   - Disaggregated Prefill Decode
+sidebar_label: HyperPod Inference Operator
 ---
 
 ## 개요

@@ -1,14 +1,20 @@
 ---
-title: "운영 & 거버넌스"
-sidebar_label: "운영 & 거버넌스"
-description: "AI 플랫폼 모니터링, Observability, 평가, 컴플라이언스, 도메인 특화 운영 가이드"
-tags: [operations, monitoring, observability, mlops, compliance, 'scope:ops']
-sidebar_position: 0
-created: 2026-03-06
+title: 운영 & 거버넌스
+description: AI 플랫폼 모니터링, Observability, 평가, 컴플라이언스, 도메인 특화 운영 가이드
+created: "2026-03-06"
 last_update:
-  date: 2026-04-20
+  date: "2026-04-20"
   author: devfloor9
-reading_time: 1
+reading_time: 6
+tags:
+  - operations
+  - monitoring
+  - observability
+  - mlops
+  - compliance
+  - scope:ops
+sidebar_label: 운영 & 거버넌스
+sidebar_position: 0
 ---
 
 import { DocCard, DocCardGrid } from '@site/src/components/DocCards';

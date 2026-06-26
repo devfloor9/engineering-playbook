@@ -1,12 +1,15 @@
 ---
-created: 2026-05-14
-title: "데이터 소스 (Momo)"
-sidebar_label: "04. Data Sources"
-description: "방대 SKU + 라이브 + 배송 SLA + 외부 4종"
+title: 데이터 소스 (Momo)
+description: 방대 SKU + 라이브 + 배송 SLA + 외부 4종
+created: "2026-05-14"
 last_update:
-  date: 2026-05-14
-reading_time: 2
+  date: "2026-05-14"
+  author: YoungJoon Jeong
+reading_time: 1
+tags: []
+sidebar_label: 04. Data Sources
 ---
+
 # 데이터 소스 (Momo)
 
 ## 1. 데이터 규모

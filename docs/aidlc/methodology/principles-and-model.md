@@ -1,12 +1,21 @@
 ---
-title: "AIDLC 10대 원칙과 실행 모델"
-sidebar_label: "10대 원칙과 실행 모델"
-description: "AIDLC의 핵심 철학과 Intent → Unit → Bolt 실행 모델 — AWS Labs 공식 용어 매핑 포함"
-category: "aidlc"
-tags: [aidlc, principles, intent, unit, bolt, methodology, 'scope:methodology']
+title: AIDLC 10대 원칙과 실행 모델
+description: AIDLC의 핵심 철학과 Intent → Unit → Bolt 실행 모델 — AWS Labs 공식 용어 매핑 포함
+created: "2026-04-07"
 last_update:
-  date: 2026-04-18
+  date: "2026-04-18"
   author: devfloor9
+reading_time: 21
+tags:
+  - aidlc
+  - principles
+  - intent
+  - unit
+  - bolt
+  - methodology
+  - scope:methodology
+sidebar_label: 10대 원칙과 실행 모델
+category: aidlc
 ---
 
 import { AidlcPrinciples, AidlcArtifacts, AidlcPhaseMapping, AidlcPhaseActivities } from '@site/src/components/AidlcTables';

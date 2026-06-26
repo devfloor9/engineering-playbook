@@ -1,12 +1,15 @@
 ---
-created: 2026-05-14
-title: "S9-U. BU 가로지르는 OPENPOINT 회원 여정 (UPI 특화)"
-sidebar_label: "S9-U. BU Crossover"
-description: "한 OPENPOINT 회원이 7-Eleven → 까르푸 → Starbucks → Donut 가로지르는 단일 KG 행동 분석"
+title: S9-U. BU 가로지르는 OPENPOINT 회원 여정 (UPI 특화)
+description: 한 OPENPOINT 회원이 7-Eleven → 까르푸 → Starbucks → Donut 가로지르는 단일 KG 행동 분석
+created: "2026-05-14"
 last_update:
-  date: 2026-05-14
-reading_time: 3
+  date: "2026-05-14"
+  author: YoungJoon Jeong
+reading_time: 2
+tags: []
+sidebar_label: S9-U. BU Crossover
 ---
+
 # S9-U. BU 가로지르는 OPENPOINT 회원 여정
 
 > **Uni-President 차별 포인트** ⭐ (PoC 결정적 한 컷) — 한 OPENPOINT 회원이 5 BU(7ELE/까르푸/Starbucks/Donut/KFC)를 어떻게 가로지르는지 단일 KG로 시각화·분석.

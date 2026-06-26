@@ -1,12 +1,22 @@
 ---
-title: "Operations & Reliability"
-sidebar_label: "Operations & Reliability"
-description: "Best practices for stable EKS cluster operations including GitOps, troubleshooting, high availability, and Pod lifecycle management"
-tags: [eks, operations, reliability, gitops, debugging, ha, pod-lifecycle]
-sidebar_position: 5
+title: Operations & Reliability
+description: Best practices for stable EKS cluster operations including GitOps, troubleshooting, high availability, and Pod lifecycle management
+created: "2026-03-25"
 last_update:
-  date: 2026-03-25
+  date: "2026-03-25"
   author: devfloor9
+reading_time: 4
+tags:
+  - eks
+  - operations
+  - reliability
+  - gitops
+  - debugging
+  - ha
+  - pod-lifecycle
+  - scope:nav
+sidebar_label: Operations & Reliability
+sidebar_position: 5
 ---
 
 import { DocCard, DocCardGrid } from '@site/src/components/DocCards';

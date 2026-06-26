@@ -1,15 +1,22 @@
 ---
-title: "Kagent - Kubernetes AI Agent Management"
-sidebar_label: "Kagent Agent Management"
-description: "Declarative AI agent management architecture and orchestration patterns in Kubernetes using Kagent"
-tags: [eks, kagent, kubernetes, agent, crd, operator, 'scope:ops']
-category: "genai-aiml"
-created: 2026-02-05
+title: Kagent - Kubernetes AI Agent Management
+description: Declarative AI agent management architecture and orchestration patterns in Kubernetes using Kagent
+created: "2026-02-05"
 last_update:
-  date: 2026-04-20
+  date: "2026-04-20"
   author: devfloor9
+reading_time: 19
+tags:
+  - eks
+  - kagent
+  - kubernetes
+  - agent
+  - crd
+  - operator
+  - scope:ops
+sidebar_label: Kagent Agent Management
 sidebar_position: 3
-reading_time: 9
+category: genai-aiml
 ---
 
 # Kagent - Kubernetes AI Agent Management

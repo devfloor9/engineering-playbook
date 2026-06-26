@@ -1,15 +1,23 @@
 ---
-title: "Ragas RAG Evaluation Framework"
-sidebar_label: "Ragas Evaluation"
-description: "RAG pipeline quality evaluation and continuous improvement using Ragas"
-sidebar_position: 4
-category: "genai-aiml"
-tags: [ragas, rag, evaluation, llm, quality, genai, testing, 'scope:ops']
-created: 2026-02-05
+title: Ragas RAG Evaluation Framework
+description: RAG pipeline quality evaluation and continuous improvement using Ragas
+created: "2026-02-05"
 last_update:
-  date: 2026-04-20
+  date: "2026-04-20"
   author: devfloor9
-reading_time: 9
+reading_time: 8
+tags:
+  - ragas
+  - rag
+  - evaluation
+  - llm
+  - quality
+  - genai
+  - testing
+  - scope:ops
+sidebar_label: Ragas Evaluation
+sidebar_position: 4
+category: genai-aiml
 ---
 
 import { RagasVsBedrockComparison, RagasMetrics, CostOptimizationStrategies, CostComparison, ImprovementChecklist } from '@site/src/components/RagasTables';
