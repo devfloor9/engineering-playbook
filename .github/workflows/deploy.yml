@@ -44,6 +44,9 @@ jobs:
       - name: Build website
         run: npm run build
 
+      - name: Generate llms.txt (llmstxt.org)
+        run: npm run generate-llms
+
       - name: Setup Pages
         uses: actions/configure-pages@v4
 

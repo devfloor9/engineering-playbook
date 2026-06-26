@@ -14,6 +14,7 @@
     "write-translations": "docusaurus write-translations",
     "write-heading-ids": "docusaurus write-heading-ids",
     "generate-summary": "node scripts/generate-summary.js",
+    "generate-llms": "node scripts/generate-llms-txt.js --out build",
     "new-post": "node scripts/new-post.js",
     "validate-metadata": "node scripts/validate-metadata-new.js",
     "validate-links": "node scripts/validate-links.js",
