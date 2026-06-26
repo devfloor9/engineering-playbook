@@ -1,10 +1,43 @@
 import React from 'react';
+import Head from '@docusaurus/Head';
 import Link from '@docusaurus/Link';
 import Translate, {translate} from '@docusaurus/Translate';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 import useBaseUrl from '@docusaurus/useBaseUrl';
 import Layout from '@theme/Layout';
 import styles from './index.module.css';
+
+// 홈페이지에 schema.org WebSite + Organization JSON-LD를 주입한다.
+function HomeStructuredData() {
+  const {siteConfig} = useDocusaurusContext();
+  const siteUrl = siteConfig.url + siteConfig.baseUrl.replace(/\/$/, '');
+  const structuredData = [
+    {
+      '@context': 'https://schema.org',
+      '@type': 'WebSite',
+      name: siteConfig.title,
+      url: siteUrl,
+      description: siteConfig.tagline,
+      inLanguage: siteConfig.i18n.defaultLocale,
+    },
+    {
+      '@context': 'https://schema.org',
+      '@type': 'Organization',
+      name: siteConfig.title,
+      url: siteUrl,
+      logo: {
+        '@type': 'ImageObject',
+        url: `${siteUrl}/img/logo.svg`,
+      },
+      sameAs: ['https://github.com/devfloor9/engineering-playbook'],
+    },
+  ];
+  return (
+    <Head>
+      <script type="application/ld+json">{JSON.stringify(structuredData)}</script>
+    </Head>
+  );
+}
 
 const topics = [
   {
@@ -219,6 +252,7 @@ export default function Home() {
         id: 'homepage.description',
         message: 'Amazon EKS 기반 인프라, AI/ML, 보안, 운영에 대한 실전 엔지니어링 가이드',
       })}>
+      <HomeStructuredData />
       <HeroSection />
       <TopicsSection />
       <CTASection />
