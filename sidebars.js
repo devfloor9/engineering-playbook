@@ -343,6 +343,7 @@ const sidebars = {
                 'agentic-ai-platform/reference-architecture/integrations/sagemaker-eks-integration',
                 'agentic-ai-platform/reference-architecture/integrations/monitoring-observability-setup',
                 'agentic-ai-platform/reference-architecture/integrations/coding-tools-cost-analysis',
+                'agentic-ai-platform/reference-architecture/integrations/open-weight-model-deployment',
               ],
             },
           ],
