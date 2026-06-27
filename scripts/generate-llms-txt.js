@@ -106,7 +106,7 @@ function main() {
   const files = collectDocs(DOCS_DIR).sort();
 
   // 카테고리별 그룹화
-  const groups = {}; // category -> [{title, description, permalink, body, filePath}]
+  const groups = {}; // category -> [{title, description, permalink, body, meta, filePath}]
   for (const file of files) {
     const raw = fs.readFileSync(file, 'utf8');
     const { data, content } = matter(raw);
@@ -114,8 +114,17 @@ function main() {
     const description = (data.description || '').trim();
     const permalink = toPermalink(file);
     const cat = topCategory(file);
+    // GEO(인용 친화) 메타: 출처 추적용 작성일/수정일/태그/저자
+    const meta = {
+      created: data.created || null,
+      updated: (data.last_update && data.last_update.date) || data.created || null,
+      author: (data.last_update && data.last_update.author) || data.author || 'devfloor9',
+      tags: Array.isArray(data.tags)
+        ? data.tags.filter((t) => typeof t === 'string' && !t.startsWith('scope:'))
+        : [],
+    };
     if (!groups[cat]) groups[cat] = [];
-    groups[cat].push({ title, description, permalink, body: content, filePath: file });
+    groups[cat].push({ title, description, permalink, body: content, meta, filePath: file });
   }
 
   // 정렬된 카테고리 키: __root__(Getting Started) 먼저, 이후 CATEGORY_ORDER, 나머지 알파벳순
@@ -133,9 +142,14 @@ function main() {
     c === '__root__' ? 'Getting Started' : CATEGORY_LABELS[c] || c;
 
   // ---- llms.txt (인덱스) ----
+  const totalDocs = files.length;
   let llms = `# ${SITE.title}\n\n`;
   llms += `> ${SITE.description}\n\n`;
-  llms += `This file follows the llmstxt.org convention. It indexes all documentation pages with links and summaries.\n\n`;
+  llms += `This file follows the llmstxt.org convention. It indexes all ${totalDocs} documentation pages with links and summaries.\n\n`;
+  llms += `- Site: ${SITE.baseUrl}\n`;
+  llms += `- Full text: ${SITE.baseUrl}/llms-full.txt\n`;
+  llms += `- Language: Korean (ko) primary, English (en) mirror under /en/\n`;
+  llms += `- Topics: Amazon EKS, Agentic AI, model serving (vLLM/llm-d), MLOps, observability, security & governance\n\n`;
 
   let linkCount = 0;
   for (const cat of orderedCats) {
@@ -162,8 +176,13 @@ function main() {
       full += `\n\n---\n\n`;
       full += `# ${d.title}\n\n`;
       if (d.description) full += `> ${d.description}\n\n`;
-      full += `Source: ${url}\n\n`;
-      full += `${d.body.trim()}\n`;
+      // GEO 인용 메타: LLM이 출처를 명확히 인용하도록 구조화된 헤더 제공
+      full += `Source: ${url}\n`;
+      full += `Category: ${catLabel(cat)}\n`;
+      if (d.meta.updated) full += `Last updated: ${d.meta.updated}\n`;
+      if (d.meta.author) full += `Author: ${d.meta.author}\n`;
+      if (d.meta.tags.length) full += `Tags: ${d.meta.tags.join(', ')}\n`;
+      full += `\n${d.body.trim()}\n`;
     }
   }
 
