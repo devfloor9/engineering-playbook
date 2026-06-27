@@ -111,6 +111,8 @@ const config = {
   ],
 
   plugins: [
+    // 문서별 OG 이미지 동적 생성 (postBuild) — 제목/카테고리 기반 1200x630 PNG
+    './plugins/og-image-plugin.js',
     [
       '@docusaurus/plugin-ideal-image',
       {
