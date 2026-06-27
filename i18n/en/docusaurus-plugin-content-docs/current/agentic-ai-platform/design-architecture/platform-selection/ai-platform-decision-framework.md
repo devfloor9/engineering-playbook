@@ -18,6 +18,13 @@ tags:
 sidebar_label: AI Platform Selection Guide
 sidebar_position: 3
 category: genai-aiml
+faq:
+  - q: What are the paths for building an AI platform on AWS?
+    a: There are three main paths. (A) AWS managed — start without infrastructure operations using Bedrock, the Strands SDK, and AgentCore. (B) EKS and open source — self-host vLLM, llm-d, Langfuse, and similar tools for maximum control. (C) Hybrid — combine Bedrock and EKS to balance cost, control, and speed.
+  - q: Should I choose managed services or build with open source?
+    a: If fast time-to-market and minimal operational overhead matter most, a Bedrock AgentCore managed approach fits. If model choice, data sovereignty, and long-term cost optimization matter most, an EKS-based open architecture fits. Most enterprises converge on a hybrid that combines both.
+  - q: When should I choose Bedrock AgentCore?
+    a: Choose it when you want to run production agents without managing infrastructure, using a serverless agent runtime. You avoid operating GPU nodes, scaling, and the model-serving stack directly, which helps when traffic is variable or during early PoC stages where reducing operational overhead is valuable.
 ---
 
 import { PlatformComparisonMatrix, MaturityPathTable, HybridPatternSummary } from '@site/src/components/DecisionFrameworkTables';

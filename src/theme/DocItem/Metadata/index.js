@@ -57,11 +57,41 @@ export default function MetadataWrapper(props) {
   if (datePublished) techArticle.datePublished = datePublished;
   if (dateModified) techArticle.dateModified = dateModified;
 
+  // AEO(Answer Engine Optimization): frontmatter에 faq 배열을 선언한 문서만
+  // FAQPage JSON-LD를 발행한다. 헤딩 자동 추출은 부정확한 마크업을 만들 수 있어
+  // opt-in 방식으로 제한한다(구글 FAQ 가이드라인 준수).
+  //   faq:
+  //     - q: 질문
+  //       a: 답변(평문)
+  const faqItems = Array.isArray(frontMatter.faq) ? frontMatter.faq : [];
+  const validFaq = faqItems.filter(
+    (item) => item && typeof item.q === 'string' && typeof item.a === 'string'
+  );
+  const faqPage =
+    validFaq.length > 0
+      ? {
+          '@context': 'https://schema.org',
+          '@type': 'FAQPage',
+          inLanguage: siteConfig.i18n.defaultLocale,
+          mainEntity: validFaq.map((item) => ({
+            '@type': 'Question',
+            name: item.q,
+            acceptedAnswer: {
+              '@type': 'Answer',
+              text: item.a,
+            },
+          })),
+        }
+      : null;
+
   return (
     <>
       <OriginalMetadata {...props} />
       <Head>
         <script type="application/ld+json">{JSON.stringify(techArticle)}</script>
+        {faqPage && (
+          <script type="application/ld+json">{JSON.stringify(faqPage)}</script>
+        )}
       </Head>
     </>
   );

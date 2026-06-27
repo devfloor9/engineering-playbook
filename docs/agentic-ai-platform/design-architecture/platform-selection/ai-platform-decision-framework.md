@@ -18,6 +18,13 @@ tags:
 sidebar_label: AI 플랫폼 선택 가이드
 sidebar_position: 3
 category: genai-aiml
+faq:
+  - q: AWS에서 AI 플랫폼을 구축하는 경로는 무엇이 있나요?
+    a: 크게 세 가지입니다. (A) AWS 매니지드 — Bedrock과 Strands SDK, AgentCore로 인프라 운영 없이 시작합니다. (B) EKS와 오픈소스 — vLLM, llm-d, Langfuse 등을 자체 호스팅하여 최대 제어권을 확보합니다. (C) 하이브리드 — Bedrock과 EKS를 조합해 비용, 통제, 속도의 균형을 맞춥니다.
+  - q: 매니지드 서비스와 오픈소스 자체 구축 중 무엇을 선택해야 하나요?
+    a: 빠른 출시와 운영 부담 최소화가 중요하면 Bedrock AgentCore 기반 매니지드 접근이 적합합니다. 모델 선택의 자유도, 데이터 주권, 비용의 장기 최적화가 중요하면 EKS 기반 오픈 아키텍처가 적합합니다. 대부분의 엔터프라이즈는 두 가지를 조합한 하이브리드로 수렴합니다.
+  - q: Bedrock AgentCore는 언제 선택하나요?
+    a: 서버리스 Agent 런타임으로 인프라 관리 없이 프로덕션 Agent를 운영하려는 경우 선택합니다. GPU 노드 운영, 스케일링, 모델 서빙 스택을 직접 관리하지 않아도 되며, 트래픽이 가변적이거나 초기 PoC 단계에서 운영 오버헤드를 줄이는 데 유리합니다.
 ---
 
 import { PlatformComparisonMatrix, MaturityPathTable, HybridPatternSummary } from '@site/src/components/DecisionFrameworkTables';
