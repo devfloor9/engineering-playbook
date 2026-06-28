@@ -3,10 +3,16 @@ title: S7. 옴니채널 회원 여정 (Mitsukoshi)
 description: 자사몰 → 매장 → 면세 → 재방문 단일 타임라인
 created: "2026-05-14"
 last_update:
-  date: "2026-05-14"
+  date: "2026-06-27"
   author: YoungJoon Jeong
 reading_time: 1
-tags: []
+tags:
+  - industry-solution
+  - retail
+  - shinkong-mitsukoshi
+  - design-spec
+  - agent
+  - scope:design
 sidebar_label: S7. Customer Journey
 ---
 

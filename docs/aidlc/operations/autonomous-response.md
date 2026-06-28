@@ -3,12 +3,14 @@ title: 자율 대응
 description: AI Agent 기반 자율 인시던트 대응 — Strands/Kagent 통합, Chaos Engineering + AI, 온톨로지 피드백 루프
 created: "2026-04-07"
 last_update:
-  date: "2026-04-18"
-  author: devfloor9
-reading_time: 9
+  date: "2026-06-27"
+  author: YoungJoon Jeong
+reading_time: 8
 tags:
   - aidlc
   - operations
+  - agentops
+  - agentic-ai
   - scope:ops
 sidebar_label: 자율 대응
 ---

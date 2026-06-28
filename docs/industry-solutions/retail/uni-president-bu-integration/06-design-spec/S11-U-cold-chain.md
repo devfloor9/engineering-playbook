@@ -3,10 +3,16 @@ title: S11-U. 콜드체인·물류 SLA + 매장 발주 (UPI 특화)
 description: President Transnet 콜드체인 SLA + 외기온 + 매장 발주 최적화
 created: "2026-05-14"
 last_update:
-  date: "2026-05-14"
+  date: "2026-06-27"
   author: YoungJoon Jeong
 reading_time: 2
-tags: []
+tags:
+  - industry-solution
+  - retail
+  - uni-president
+  - design-spec
+  - agent
+  - scope:design
 sidebar_label: S11-U. Cold Chain
 ---
 

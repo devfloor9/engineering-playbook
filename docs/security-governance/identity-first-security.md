@@ -3,8 +3,8 @@ title: Identity-First Security 아키텍처
 description: EKS Pod Identity 기반 제로트러스트 접근 제어 및 IRSA 마이그레이션 가이드
 created: "2026-02-09"
 last_update:
-  date: "2026-06-15"
-  author: devfloor9
+  date: "2026-06-27"
+  author: YoungJoon Jeong
 reading_time: 1
 tags:
   - eks
@@ -12,6 +12,7 @@ tags:
   - pod-identity
   - irsa
   - zero-trust
+  - scope:ops
 sidebar_label: Identity-First Security
 category: security
 ---

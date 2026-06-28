@@ -3,10 +3,16 @@ title: S6. 외부 시그널 융합 (4종)
 description: 자사 GMV × 외부 4종(소셜·기상·경제·경쟁사) 융합 매크로 분석
 created: "2026-05-14"
 last_update:
-  date: "2026-05-14"
+  date: "2026-06-27"
   author: YoungJoon Jeong
 reading_time: 2
-tags: []
+tags:
+  - industry-solution
+  - retail
+  - lg-hnh
+  - design-spec
+  - agent
+  - scope:design
 sidebar_label: S6. External Signals
 ---
 

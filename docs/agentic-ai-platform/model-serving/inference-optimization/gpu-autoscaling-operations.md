@@ -1,12 +1,11 @@
 ---
-title: "GPU 오토스케일링과 대형 모델 배포 운영"
-sidebar_label: "오토스케일링 & 배포 운영"
-description: "LLM 서빙을 위한 2-Tier GPU 오토스케일링(KEDA·Karpenter)·DRA 호환성과 대형 MoE 모델(GLM-5·Kimi K2.5) 배포에서 축적된 실전 운영 교훈"
-created: 2026-04-03
+title: GPU 오토스케일링과 대형 모델 배포 운영
+description: LLM 서빙을 위한 2-Tier GPU 오토스케일링(KEDA·Karpenter)·DRA 호환성과 대형 MoE 모델(GLM-5·Kimi K2.5) 배포에서 축적된 실전 운영 교훈
+created: "2026-04-03"
 last_update:
-  date: 2026-06-18
-  author: devfloor9
-reading_time: 18
+  date: "2026-06-27"
+  author: YoungJoon Jeong
+reading_time: 13
 tags:
   - inference
   - optimization
@@ -16,6 +15,7 @@ tags:
   - autoscaling
   - lessons-learned
   - scope:tech
+sidebar_label: 오토스케일링 & 배포 운영
 sidebar_position: 4
 ---
 

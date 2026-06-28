@@ -3,10 +3,16 @@ title: S1. 자연어 시맨틱 검색 (AMWAY)
 description: Nutrilite·Artistry·Home SKU + ABO + 외부 소셜 후기 통합 검색
 created: "2026-05-14"
 last_update:
-  date: "2026-06-15"
+  date: "2026-06-27"
   author: YoungJoon Jeong
 reading_time: 3
-tags: []
+tags:
+  - industry-solution
+  - retail
+  - amway
+  - design-spec
+  - agent
+  - scope:design
 sidebar_label: S1. Semantic Search
 ---
 

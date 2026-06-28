@@ -3,9 +3,9 @@ title: EKS Hybrid Nodes 완전 가이드
 description: "Amazon EKS Hybrid Nodes 도입을 위한 완전한 가이드: 아키텍처, 구성, 네트워킹, DNS, GPU 서버, 비용 분석 및 동적 리소스 할당(DRA)"
 created: "2026-02-04"
 last_update:
-  date: "2026-06-15"
-  author: devfloor9
-reading_time: 10
+  date: "2026-06-27"
+  author: YoungJoon Jeong
+reading_time: 12
 tags:
   - eks
   - hybrid-nodes
@@ -18,6 +18,7 @@ tags:
   - dra
   - cost-optimization
   - architecture
+  - scope:design
 sidebar_label: 하이브리드 노드 완전 가이드
 category: hybrid-multicloud
 ---

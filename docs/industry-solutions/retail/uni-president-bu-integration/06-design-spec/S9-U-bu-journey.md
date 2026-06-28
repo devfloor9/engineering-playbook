@@ -3,10 +3,16 @@ title: S9-U. BU 가로지르는 OPENPOINT 회원 여정 (UPI 특화)
 description: 한 OPENPOINT 회원이 7-Eleven → 까르푸 → Starbucks → Donut 가로지르는 단일 KG 행동 분석
 created: "2026-05-14"
 last_update:
-  date: "2026-05-14"
+  date: "2026-06-27"
   author: YoungJoon Jeong
 reading_time: 2
-tags: []
+tags:
+  - industry-solution
+  - retail
+  - uni-president
+  - design-spec
+  - agent
+  - scope:design
 sidebar_label: S9-U. BU Crossover
 ---
 

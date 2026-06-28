@@ -3,9 +3,9 @@ title: OpenClaw AI Agent Gateway 배포 및 Full Observability
 description: OpenClaw AI 에이전트 게이트웨이를 EKS에 비용 최적화 배포하고, Bifrost Auto-Router + Cilium Hubble + Langfuse로 Full Observability 구현
 created: "2026-03-06"
 last_update:
-  date: "2026-06-15"
-  author: devfloor9
-reading_time: 14
+  date: "2026-06-27"
+  author: YoungJoon Jeong
+reading_time: 16
 tags:
   - eks
   - openclaw

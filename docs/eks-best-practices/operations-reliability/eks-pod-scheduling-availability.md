@@ -3,9 +3,9 @@ title: EKS Pod 스케줄링 & 가용성 패턴
 description: Kubernetes Pod 스케줄링 전략, Affinity/Anti-Affinity, PDB, Priority/Preemption, Taints/Tolerations 모범 사례
 created: "2026-02-13"
 last_update:
-  date: "2026-06-15"
-  author: devfloor9
-reading_time: 69
+  date: "2026-06-27"
+  author: YoungJoon Jeong
+reading_time: 79
 tags:
   - eks
   - kubernetes
@@ -16,6 +16,7 @@ tags:
   - taints
   - tolerations
   - descheduler
+  - scope:ops
 sidebar_label: Pod 스케줄링 & 가용성
 category: operations
 ---

@@ -3,10 +3,16 @@ title: S5. 옴니채널 캠페인 ROAS (AMWAY)
 description: 자사몰·ABO 직판·카탈로그·SNS 채널 Bayesian 어트리뷰션
 created: "2026-05-14"
 last_update:
-  date: "2026-05-14"
+  date: "2026-06-27"
   author: YoungJoon Jeong
 reading_time: 2
-tags: []
+tags:
+  - industry-solution
+  - retail
+  - amway
+  - design-spec
+  - agent
+  - scope:design
 sidebar_label: S5. Campaign ROAS
 ---
 

@@ -3,10 +3,16 @@ title: S2. 5 부서 페르소나 챗봇 (Momo)
 description: 마케팅·카테고리·검색추천·CS·물류 5 부서별 도구 자율 호출
 created: "2026-05-14"
 last_update:
-  date: "2026-05-14"
+  date: "2026-06-27"
   author: YoungJoon Jeong
 reading_time: 2
-tags: []
+tags:
+  - industry-solution
+  - retail
+  - momo
+  - design-spec
+  - agent
+  - scope:design
 sidebar_label: S2. Persona Chatbot
 ---
 

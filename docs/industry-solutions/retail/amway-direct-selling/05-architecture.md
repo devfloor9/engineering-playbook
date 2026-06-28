@@ -3,10 +3,16 @@ title: AWS 단일 아키텍처 (AMWAY)
 description: Bedrock + Neptune + OpenSearch + AgentCore + Cohere — ABO Tree·구독·다국어 특화
 created: "2026-05-14"
 last_update:
-  date: "2026-06-15"
+  date: "2026-06-27"
   author: YoungJoon Jeong
-reading_time: 2
-tags: []
+reading_time: 3
+tags:
+  - industry-solution
+  - retail
+  - amway
+  - architecture
+  - agent
+  - scope:design
 sidebar_label: 05. Architecture
 ---
 

@@ -3,10 +3,16 @@ title: 5 부서 페르소나 (Uni-President)
 description: 통합 마케팅·CMI·D&A·OPENPOINT·제조물류 5 부서
 created: "2026-05-14"
 last_update:
-  date: "2026-05-14"
+  date: "2026-06-27"
   author: YoungJoon Jeong
 reading_time: 2
-tags: []
+tags:
+  - industry-solution
+  - retail
+  - uni-president
+  - persona
+  - agentic-ai
+  - scope:design
 sidebar_label: 01. Personas
 ---
 

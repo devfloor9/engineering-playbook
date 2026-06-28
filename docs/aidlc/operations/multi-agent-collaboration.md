@@ -3,9 +3,9 @@ title: Multi-Agent Collaboration Patterns
 description: Orchestrator-Worker, Voting, Debate, Hierarchical Supervisor 패턴과 LangGraph/CrewAI/AutoGen/Strands Agents SDK 구현
 created: "2026-04-18"
 last_update:
-  date: "2026-04-18"
+  date: "2026-06-27"
   author: YoungJoon Jeong
-reading_time: 22
+reading_time: 23
 tags:
   - multi-agent
   - orchestrator

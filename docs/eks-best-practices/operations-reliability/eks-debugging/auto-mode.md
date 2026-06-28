@@ -3,10 +3,16 @@ title: EKS Auto Mode 디버깅
 description: EKS Auto Mode 환경에서의 디버깅 가이드
 created: "2026-04-07"
 last_update:
-  date: "2026-04-07"
-  author: devfloor9
-reading_time: 6
-tags: []
+  date: "2026-06-27"
+  author: YoungJoon Jeong
+reading_time: 7
+tags:
+  - eks
+  - auto-mode
+  - nodepool
+  - nodeclaim
+  - vpc-cni
+  - scope:ops
 keywords:
   - EKS
   - Auto Mode

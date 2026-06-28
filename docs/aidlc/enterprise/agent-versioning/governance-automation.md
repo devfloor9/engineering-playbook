@@ -3,9 +3,9 @@ title: 거버넌스·자동화
 description: 회귀 감지, 자동 롤백, 승인 워크플로, 감사 증빙, AIDLC 단계별 활용 방안
 created: "2026-04-18"
 last_update:
-  date: "2026-04-18"
-  author: devfloor9
-reading_time: 5
+  date: "2026-06-27"
+  author: YoungJoon Jeong
+reading_time: 6
 tags:
   - governance
   - automation

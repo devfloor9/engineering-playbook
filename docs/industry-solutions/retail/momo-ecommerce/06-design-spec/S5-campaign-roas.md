@@ -3,10 +3,16 @@ title: S5. 옴니채널 캠페인 ROAS (Momo)
 description: 앱·라이브·TV·메신저 채널 Bayesian 어트리뷰션
 created: "2026-05-14"
 last_update:
-  date: "2026-05-14"
+  date: "2026-06-27"
   author: YoungJoon Jeong
 reading_time: 1
-tags: []
+tags:
+  - industry-solution
+  - retail
+  - momo
+  - design-spec
+  - agent
+  - scope:design
 sidebar_label: S5. Campaign ROAS
 ---
 

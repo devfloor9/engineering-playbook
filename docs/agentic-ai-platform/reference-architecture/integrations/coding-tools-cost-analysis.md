@@ -3,9 +3,9 @@ title: 코딩 도구 연동 & 비용 분석
 description: Aider, Cline, Continue.dev 연동 + Bedrock vs Kiro vs 자체 호스팅 비용 비교
 created: "2026-04-06"
 last_update:
-  date: "2026-06-15"
-  author: devfloor9
-reading_time: 15
+  date: "2026-06-27"
+  author: YoungJoon Jeong
+reading_time: 17
 tags:
   - aider
   - cline

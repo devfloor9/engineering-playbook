@@ -3,9 +3,9 @@ title: EKS 고가용성 아키텍처 가이드
 description: Amazon EKS 환경에서 고가용성과 장애 회복력을 확보하기 위한 아키텍처 패턴과 운영 전략 가이드
 created: "2026-02-11"
 last_update:
-  date: "2026-06-15"
-  author: devfloor9
-reading_time: 27
+  date: "2026-06-27"
+  author: YoungJoon Jeong
+reading_time: 28
 tags:
   - eks
   - kubernetes
@@ -14,6 +14,7 @@ tags:
   - cell-architecture
   - chaos-engineering
   - multi-az
+  - scope:ops
 sidebar_label: EKS 고가용성 아키텍처
 category: observability-monitoring
 ---

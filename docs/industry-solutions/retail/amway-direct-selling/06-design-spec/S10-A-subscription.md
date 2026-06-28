@@ -3,10 +3,16 @@ title: S10-A. 정기구독 라이프타임 분석 (AMWAY 특화)
 description: 정기구독 state machine + 해지 시그너처 탐지 + 자동 회복 캠페인
 created: "2026-05-14"
 last_update:
-  date: "2026-05-14"
+  date: "2026-06-27"
   author: YoungJoon Jeong
 reading_time: 3
-tags: []
+tags:
+  - industry-solution
+  - retail
+  - amway
+  - design-spec
+  - agent
+  - scope:design
 sidebar_label: S10-A. Subscription
 ---
 

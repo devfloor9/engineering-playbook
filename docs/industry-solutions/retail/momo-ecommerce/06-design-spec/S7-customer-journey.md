@@ -3,10 +3,16 @@ title: S7. 옴니채널 회원 여정 (Momo)
 description: 앱 검색 → 라이브 시청 → TV 홈쇼핑 → 재구매 단일 타임라인
 created: "2026-05-14"
 last_update:
-  date: "2026-05-14"
+  date: "2026-06-27"
   author: YoungJoon Jeong
 reading_time: 1
-tags: []
+tags:
+  - industry-solution
+  - retail
+  - momo
+  - design-spec
+  - agent
+  - scope:design
 sidebar_label: S7. Customer Journey
 ---
 

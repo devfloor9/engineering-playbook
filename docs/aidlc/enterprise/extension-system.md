@@ -3,8 +3,8 @@ title: Extension System
 description: AWS Labs AIDLC Extension System — opt-in 메커니즘으로 조직별 보안·컴플라이언스·도메인 규칙을 AIDLC 워크플로에 통합
 created: "2026-04-18"
 last_update:
-  date: "2026-04-18"
-  author: devfloor9
+  date: "2026-06-27"
+  author: YoungJoon Jeong
 reading_time: 6
 tags:
   - aidlc

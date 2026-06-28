@@ -3,10 +3,16 @@ title: 8 시나리오 매핑
 description: 마케팅 혁신 핵심 8 시나리오. 모든 시나리오에 데이터 믹스 명시 (자사 + 외부 4종)
 created: "2026-05-14"
 last_update:
-  date: "2026-05-14"
+  date: "2026-06-27"
   author: YoungJoon Jeong
-reading_time: 5
-tags: []
+reading_time: 7
+tags:
+  - industry-solution
+  - retail
+  - lg-hnh
+  - scenario
+  - use-case
+  - scope:design
 sidebar_label: 03. Scenarios
 ---
 

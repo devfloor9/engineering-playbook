@@ -3,9 +3,9 @@ title: 한국 AI 기본법 — 고영향 AI 규제와 생성형 AI 표시 의무
 description: 한국 AI 기본법의 고영향 AI 시스템 영향 평가, 생성형 AI 표시 의무, PIPA/ISMS-P 교차 준수 및 AIDLC 통합 가이드
 created: "2026-04-18"
 last_update:
-  date: "2026-04-18"
-  author: devfloor9
-reading_time: 3
+  date: "2026-06-27"
+  author: YoungJoon Jeong
+reading_time: 4
 tags:
   - korea
   - ai-law

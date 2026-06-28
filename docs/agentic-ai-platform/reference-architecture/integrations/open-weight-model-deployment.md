@@ -3,9 +3,9 @@ title: 오픈웨이트 모델 배포 가이드
 description: 토큰 이코노믹스와 데이터 주권 관점에서 오픈웨이트 LLM 자체 배포를 평가하고 결정하기 위한 고객용 의사결정 가이드
 created: "2026-06-26"
 last_update:
-  date: "2026-06-26"
+  date: "2026-06-27"
   author: YoungJoon Jeong
-reading_time: 13
+reading_time: 15
 tags:
   - open-weight
   - token-economics

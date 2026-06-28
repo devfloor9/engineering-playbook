@@ -3,9 +3,9 @@ title: EKS Pod 리소스 최적화 가이드
 description: Kubernetes Pod의 CPU/Memory 리소스 설정, QoS 클래스, VPA/HPA 오토스케일링, 리소스 Right-Sizing 전략
 created: "2026-02-13"
 last_update:
-  date: "2026-06-15"
-  author: devfloor9
-reading_time: 58
+  date: "2026-06-27"
+  author: YoungJoon Jeong
+reading_time: 62
 tags:
   - eks
   - kubernetes
@@ -17,6 +17,7 @@ tags:
   - hpa
   - right-sizing
   - optimization
+  - scope:ops
 sidebar_label: Pod 리소스 최적화
 category: performance-networking
 ---

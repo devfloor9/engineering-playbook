@@ -3,10 +3,16 @@ title: S8. 가드레일 (Momo)
 description: Bedrock Guardrails + 라이브 광고 표현 + 미성년 + 환불 규정
 created: "2026-05-14"
 last_update:
-  date: "2026-05-14"
+  date: "2026-06-27"
   author: YoungJoon Jeong
 reading_time: 1
-tags: []
+tags:
+  - industry-solution
+  - retail
+  - momo
+  - design-spec
+  - agent
+  - scope:design
 sidebar_label: S8. Guardrails
 ---
 

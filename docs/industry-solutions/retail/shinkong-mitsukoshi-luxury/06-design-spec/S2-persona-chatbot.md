@@ -3,10 +3,16 @@ title: S2. 5 부서 페르소나 챗봇 (Mitsukoshi)
 description: 마케팅·인사이트·디지털·VIP·MD 5 부서별 도구 자율 호출
 created: "2026-05-14"
 last_update:
-  date: "2026-05-14"
+  date: "2026-06-27"
   author: YoungJoon Jeong
 reading_time: 2
-tags: []
+tags:
+  - industry-solution
+  - retail
+  - shinkong-mitsukoshi
+  - design-spec
+  - agent
+  - scope:design
 sidebar_label: S2. Persona Chatbot
 ---
 

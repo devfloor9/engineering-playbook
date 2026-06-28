@@ -3,10 +3,16 @@ title: S2. 5 부서 페르소나 챗봇
 description: 5 부서별 도구 자율 호출 챗봇 — Bedrock Sonnet + AgentCore Memory + 12 도구
 created: "2026-05-14"
 last_update:
-  date: "2026-05-14"
+  date: "2026-06-27"
   author: YoungJoon Jeong
 reading_time: 3
-tags: []
+tags:
+  - industry-solution
+  - retail
+  - lg-hnh
+  - design-spec
+  - agent
+  - scope:design
 sidebar_label: S2. Persona Chatbot
 ---
 

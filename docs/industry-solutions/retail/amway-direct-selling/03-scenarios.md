@@ -3,10 +3,16 @@ title: 11 시나리오 매핑 (AMWAY)
 description: 공통 8 시나리오 (S1~S8) + AMWAY 특화 3 시나리오 (S9-A·S10-A·S11-A)
 created: "2026-05-14"
 last_update:
-  date: "2026-05-14"
+  date: "2026-06-27"
   author: YoungJoon Jeong
 reading_time: 4
-tags: []
+tags:
+  - industry-solution
+  - retail
+  - amway
+  - scenario
+  - use-case
+  - scope:design
 sidebar_label: 03. Scenarios
 ---
 

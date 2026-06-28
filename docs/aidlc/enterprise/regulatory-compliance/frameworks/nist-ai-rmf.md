@@ -3,8 +3,8 @@ title: NIST AI RMF — 미국 연방 AI 위험 관리 프레임워크
 description: NIST AI Risk Management Framework 1.1의 4 Functions (GOVERN/MAP/MEASURE/MANAGE)와 AIDLC 통합 가이드
 created: "2026-04-18"
 last_update:
-  date: "2026-04-18"
-  author: devfloor9
+  date: "2026-06-27"
+  author: YoungJoon Jeong
 reading_time: 5
 tags:
   - nist

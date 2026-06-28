@@ -3,10 +3,16 @@ title: 30분 시연 스크립트 (Momo)
 description: Momo 임원·라이브 운영팀·물류팀 미팅용 30분 시연
 created: "2026-05-14"
 last_update:
-  date: "2026-05-14"
+  date: "2026-06-27"
   author: YoungJoon Jeong
 reading_time: 2
-tags: []
+tags:
+  - industry-solution
+  - retail
+  - momo
+  - demo
+  - storytelling
+  - scope:design
 sidebar_label: 99. Demo Storytelling
 ---
 

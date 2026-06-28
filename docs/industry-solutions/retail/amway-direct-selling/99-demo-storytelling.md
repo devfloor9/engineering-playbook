@@ -3,10 +3,16 @@ title: 30분 시연 스크립트 (AMWAY)
 description: AMWAY 글로벌 임원·ABO 미팅용 30분 시연 — Top-5 (S1·S9-A·S10-A·S2·S11-A)
 created: "2026-05-14"
 last_update:
-  date: "2026-05-14"
+  date: "2026-06-27"
   author: YoungJoon Jeong
 reading_time: 4
-tags: []
+tags:
+  - industry-solution
+  - retail
+  - amway
+  - demo
+  - storytelling
+  - scope:design
 sidebar_label: 99. Demo Storytelling
 ---
 

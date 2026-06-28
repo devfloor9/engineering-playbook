@@ -3,10 +3,16 @@ title: S2. 5 부서 페르소나 챗봇 (AMWAY)
 description: ABO Field/CMI/D&A/CX/Compliance 5 부서별 도구 자율 호출 챗봇
 created: "2026-05-14"
 last_update:
-  date: "2026-05-14"
+  date: "2026-06-27"
   author: YoungJoon Jeong
-reading_time: 2
-tags: []
+reading_time: 3
+tags:
+  - industry-solution
+  - retail
+  - amway
+  - design-spec
+  - agent
+  - scope:design
 sidebar_label: S2. Persona Chatbot
 ---
 

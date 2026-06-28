@@ -3,10 +3,16 @@ title: AWS 단일 아키텍처 (Uni-President)
 description: Bedrock + Neptune + OpenSearch + AgentCore + TimeStream (콜드체인) + Glue (BU 간 ETL)
 created: "2026-05-14"
 last_update:
-  date: "2026-05-14"
+  date: "2026-06-27"
   author: YoungJoon Jeong
 reading_time: 2
-tags: []
+tags:
+  - industry-solution
+  - retail
+  - uni-president
+  - architecture
+  - agent
+  - scope:design
 sidebar_label: 05. Architecture
 ---
 

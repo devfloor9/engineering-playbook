@@ -3,12 +3,13 @@ title: 도입 전략
 description: AIDLC 엔터프라이즈 도입 전략 — 워터폴→하이브리드 전환, 챔피언 모델, 단계별 확산 로드맵
 created: "2026-04-07"
 last_update:
-  date: "2026-04-18"
-  author: devfloor9
-reading_time: 12
+  date: "2026-06-27"
+  author: YoungJoon Jeong
+reading_time: 13
 tags:
   - aidlc
   - enterprise
+  - agentic-ai
   - scope:enterprise
 sidebar_label: 도입 전략
 ---

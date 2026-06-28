@@ -3,10 +3,16 @@ title: GPU/AI 워크로드 디버깅
 description: EKS에서 GPU/AI 워크로드 디버깅 가이드
 created: "2026-04-07"
 last_update:
-  date: "2026-04-07"
-  author: devfloor9
-reading_time: 6
-tags: []
+  date: "2026-06-27"
+  author: YoungJoon Jeong
+reading_time: 7
+tags:
+  - eks
+  - gpu
+  - nvidia
+  - vllm
+  - nccl
+  - scope:ops
 keywords:
   - EKS
   - GPU

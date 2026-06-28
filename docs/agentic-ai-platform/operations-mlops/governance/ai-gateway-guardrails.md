@@ -3,8 +3,8 @@ title: AI Gateway Guardrails
 description: LLM Gateway 레벨 Guardrails — PII Redaction, Prompt Injection 방어, Content Filtering, 도구 비교와 한국 금융권 컴플라이언스 매핑
 created: "2026-04-17"
 last_update:
-  date: "2026-04-20"
-  author: devfloor9
+  date: "2026-06-27"
+  author: YoungJoon Jeong
 reading_time: 24
 tags:
   - guardrails

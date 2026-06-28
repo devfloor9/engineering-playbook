@@ -3,10 +3,16 @@ title: S3. 카테고리·BU 인사이트 카드
 description: 자사 GMV + 검색 트렌드 + 기상 + 경쟁사 결합 자동 보고서 카드
 created: "2026-05-14"
 last_update:
-  date: "2026-05-14"
+  date: "2026-06-27"
   author: YoungJoon Jeong
 reading_time: 3
-tags: []
+tags:
+  - industry-solution
+  - retail
+  - lg-hnh
+  - design-spec
+  - agent
+  - scope:design
 sidebar_label: S3. Insight Cards
 ---
 

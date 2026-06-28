@@ -3,10 +3,16 @@ title: 데이터 소스 (자사 + 외부 4종)
 description: PII 마스킹 자사 데이터 + 합성 50K + 외부 4종 명세 및 cohort_tag 분리 전략
 created: "2026-05-14"
 last_update:
-  date: "2026-05-14"
+  date: "2026-06-27"
   author: YoungJoon Jeong
-reading_time: 5
-tags: []
+reading_time: 6
+tags:
+  - industry-solution
+  - retail
+  - lg-hnh
+  - data-source
+  - rag
+  - scope:design
 sidebar_label: 04. Data Sources
 ---
 

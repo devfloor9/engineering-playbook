@@ -3,8 +3,8 @@ title: 보안 및 운영 벤치마크
 description: 보안 정책 적용 및 운영 도구 성능 벤치마크
 created: "2026-02-09"
 last_update:
-  date: "2026-02-14"
-  author: devfloor9
+  date: "2026-06-27"
+  author: YoungJoon Jeong
 reading_time: 1
 tags:
   - benchmark
@@ -12,6 +12,7 @@ tags:
   - operations
   - monitoring
   - gitops
+  - scope:tech
 sidebar_label: Report 8. 보안 및 운영 [예정]
 sidebar_position: 8
 category: benchmarks

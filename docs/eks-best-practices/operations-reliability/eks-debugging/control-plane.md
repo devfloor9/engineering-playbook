@@ -3,15 +3,16 @@ title: 컨트롤 플레인 디버깅
 description: EKS 컨트롤 플레인 문제 진단 및 해결 가이드
 created: "2026-04-07"
 last_update:
-  date: "2026-06-15"
-  author: devfloor9
-reading_time: 6
+  date: "2026-06-27"
+  author: YoungJoon Jeong
+reading_time: 7
 tags:
   - eks
   - kubernetes
   - control-plane
   - debugging
   - troubleshooting
+  - scope:ops
 sidebar_label: 컨트롤 플레인
 ---
 

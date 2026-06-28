@@ -3,7 +3,7 @@ title: "LMCache: KV 캐시 오프로딩과 공유"
 description: GPU 메모리 너머 CPU·디스크로 KV 캐시를 오프로딩하고 추론 인스턴스 간 공유하는 LMCache의 개념과, vLLM prefix cache·NIXL·kvaware 라우팅과의 관계
 created: "2026-06-25"
 last_update:
-  date: "2026-06-25"
+  date: "2026-06-27"
   author: YoungJoon Jeong
 reading_time: 6
 tags:

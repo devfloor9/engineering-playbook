@@ -3,10 +3,16 @@ title: Knowledge Graph 25 클래스 (Mitsukoshi)
 description: 新光三越 KG 25 클래스 — VIP·외국인·입점 브랜드·면세·점포 (~550K edges)
 created: "2026-05-14"
 last_update:
-  date: "2026-05-14"
+  date: "2026-06-27"
   author: YoungJoon Jeong
-reading_time: 3
-tags: []
+reading_time: 4
+tags:
+  - industry-solution
+  - retail
+  - shinkong-mitsukoshi
+  - ontology
+  - agentic-ai
+  - scope:design
 sidebar_label: 02. Ontology
 ---
 

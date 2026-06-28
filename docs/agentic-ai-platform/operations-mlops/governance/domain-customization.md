@@ -3,9 +3,9 @@ title: 도메인 특화 (LoRA + RAG)
 description: LoRA Fine-tuning, VectorRAG, GraphRAG로 기술 도메인 코딩 퀄리티를 높이는 가이드 — FSI SI 실전 시나리오 포함
 created: "2026-04-04"
 last_update:
-  date: "2026-04-20"
-  author: devfloor9
-reading_time: 9
+  date: "2026-06-27"
+  author: YoungJoon Jeong
+reading_time: 10
 tags:
   - lora
   - rag

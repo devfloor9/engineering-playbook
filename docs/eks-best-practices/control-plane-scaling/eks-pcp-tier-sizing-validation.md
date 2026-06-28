@@ -3,9 +3,9 @@ title: EKS PCP 티어 사이징 & 성능 검증 가이드
 description: PCP 티어별 상세 파라미터, APF seat 산정 공식, 대규모 클러스터 사이징 예시, ClusterLoader2 성능 검증 방법론, 고객 사례
 created: "2026-04-07"
 last_update:
-  date: "2026-06-15"
-  author: devfloor9
-reading_time: 42
+  date: "2026-06-27"
+  author: YoungJoon Jeong
+reading_time: 45
 tags:
   - eks
   - pcp
@@ -14,6 +14,7 @@ tags:
   - apf
   - clusterloader2
   - etcd
+  - scope:ops
 sidebar_label: PCP Tier Sizing
 sidebar_position: 2
 ---

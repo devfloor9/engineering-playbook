@@ -3,8 +3,8 @@ title: Self-Improving Agent Loop (Autosearch)
 description: Karpathy의 autosearch 개념을 기반으로 self-hosted SLM이 프로덕션 trace로부터 스스로 학습·강화하는 5-stage 루프 설계와 안전장치
 created: "2026-04-18"
 last_update:
-  date: "2026-04-20"
-  author: devfloor9
+  date: "2026-06-27"
+  author: YoungJoon Jeong
 reading_time: 19
 tags:
   - self-improving

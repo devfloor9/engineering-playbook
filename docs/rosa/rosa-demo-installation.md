@@ -3,9 +3,9 @@ title: ROSA 데모 설치 가이드
 description: ROSA 클러스터 설치 데모 - STS 기반 클러스터 생성, IAM 역할 구성, 오토스케일링 설정 및 관리자 접근 구성 가이드
 created: "2026-02-04"
 last_update:
-  date: "2026-06-15"
-  author: devfloor9
-reading_time: 2
+  date: "2026-06-27"
+  author: YoungJoon Jeong
+reading_time: 3
 tags:
   - rosa
   - openshift
@@ -14,6 +14,7 @@ tags:
   - demo
   - autoscaling
   - iam
+  - scope:ops
 sidebar_label: ROSA 데모 설치
 category: rosa
 ---

@@ -3,10 +3,16 @@ title: S4. 페르소나 매칭 + 클러스터링
 description: 라이프스타일 페르소나 자동 분류 + RFM × 카테고리 친화도 KMeans 통합
 created: "2026-05-14"
 last_update:
-  date: "2026-05-14"
+  date: "2026-06-27"
   author: YoungJoon Jeong
 reading_time: 2
-tags: []
+tags:
+  - industry-solution
+  - retail
+  - lg-hnh
+  - design-spec
+  - agent
+  - scope:design
 sidebar_label: S4. Persona & Cluster
 ---
 

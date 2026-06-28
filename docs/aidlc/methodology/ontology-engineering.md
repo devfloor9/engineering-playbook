@@ -3,8 +3,8 @@ title: 온톨로지 엔지니어링
 description: AIDLC 신뢰성의 첫 번째 축 — Typed World Model로 AI 환각을 방지하고 도메인 정확성을 보장하는 온톨로지 접근법 (engineering-playbook 확장 콘텐츠)
 created: "2026-04-07"
 last_update:
-  date: "2026-04-18"
-  author: devfloor9
+  date: "2026-06-27"
+  author: YoungJoon Jeong
 reading_time: 16
 tags:
   - aidlc

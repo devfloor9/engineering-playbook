@@ -3,9 +3,9 @@ title: MoE 모델 서빙 개념 가이드
 description: Mixture of Experts 모델의 아키텍처 개념, 분산 배포 전략, 성능 최적화 원리
 created: "2026-02-05"
 last_update:
-  date: "2026-06-15"
-  author: devfloor9
-reading_time: 13
+  date: "2026-06-27"
+  author: YoungJoon Jeong
+reading_time: 12
 tags:
   - eks
   - moe

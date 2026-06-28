@@ -3,9 +3,9 @@ title: Agentic AI Platform 아키텍처
 description: 프로덕션급 Agentic AI 플랫폼의 전체 시스템 아키텍처 — 6개 런타임 레이어와 3개 횡단 플레인 설계
 created: "2026-02-05"
 last_update:
-  date: "2026-06-13"
-  author: devfloor9
-reading_time: 36
+  date: "2026-06-27"
+  author: YoungJoon Jeong
+reading_time: 34
 tags:
   - architecture
   - agentic-ai

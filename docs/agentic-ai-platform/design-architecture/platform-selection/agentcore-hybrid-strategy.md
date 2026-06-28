@@ -3,9 +3,9 @@ title: AgentCore 하이브리드 전략
 description: Bedrock AgentCore 매니지드 서비스와 EKS 기반 self-hosted 에이전트를 결합한 하이브리드 전략 의사결정·패턴 카탈로그
 created: "2026-04-18"
 last_update:
-  date: "2026-04-20"
-  author: devfloor9
-reading_time: 14
+  date: "2026-06-27"
+  author: YoungJoon Jeong
+reading_time: 15
 tags:
   - agentcore
   - bedrock

@@ -3,9 +3,9 @@ title: Agentic Playbook
 description: Agent 워크플로우를 IaC처럼 선언적으로 정의하고 컴플라이언스를 자동화하는 Playbook 가이드
 created: "2026-04-04"
 last_update:
-  date: "2026-04-20"
-  author: devfloor9
-reading_time: 8
+  date: "2026-06-27"
+  author: YoungJoon Jeong
+reading_time: 9
 tags:
   - playbook
   - agent

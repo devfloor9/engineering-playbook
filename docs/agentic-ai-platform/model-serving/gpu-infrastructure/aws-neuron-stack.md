@@ -3,9 +3,9 @@ title: AWS Neuron Stack — Trainium2/Inferentia2 on EKS
 description: EKS 위에서 AWS 커스텀 AI 가속기(Trainium2/Inferentia2)를 운영하기 위한 Neuron SDK, Device Plugin, NxD Inference 가이드
 created: "2026-04-17"
 last_update:
-  date: "2026-06-15"
-  author: devfloor9
-reading_time: 22
+  date: "2026-06-27"
+  author: YoungJoon Jeong
+reading_time: 23
 tags:
   - trainium2
   - inferentia2

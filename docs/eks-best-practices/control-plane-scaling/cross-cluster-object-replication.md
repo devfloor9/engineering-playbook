@@ -3,8 +3,8 @@ title: Cross-Cluster Object Replication (HA) 아키텍처 가이드
 description: EKS 멀티 클러스터 환경에서 오브젝트 복제를 통한 고가용성 아키텍처 패턴과 의사결정 가이드
 created: "2026-03-24"
 last_update:
-  date: "2026-06-15"
-  author: devfloor9
+  date: "2026-06-27"
+  author: YoungJoon Jeong
 reading_time: 12
 tags:
   - eks
@@ -14,6 +14,7 @@ tags:
   - argocd
   - flux
   - disaster-recovery
+  - scope:ops
 sidebar_label: Cross-Cluster Replication (HA)
 sidebar_position: 3
 category: infrastructure

@@ -3,10 +3,16 @@ title: S8. 가드레일 (Mitsukoshi)
 description: Bedrock Guardrails 4 토픽 + 면세 규정 + 미성년 럭셔리 가드
 created: "2026-05-14"
 last_update:
-  date: "2026-05-14"
+  date: "2026-06-27"
   author: YoungJoon Jeong
 reading_time: 1
-tags: []
+tags:
+  - industry-solution
+  - retail
+  - shinkong-mitsukoshi
+  - design-spec
+  - agent
+  - scope:design
 sidebar_label: S8. Guardrails
 ---
 

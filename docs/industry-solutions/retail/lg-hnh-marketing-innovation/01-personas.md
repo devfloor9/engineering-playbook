@@ -3,10 +3,16 @@ title: 5 부서 페르소나
 description: 브랜드 마케터 / 인사이트 / D&A·MarTech / CRM·LG 멤버스 / MD·채널 영업 5 페르소나
 created: "2026-05-14"
 last_update:
-  date: "2026-05-14"
+  date: "2026-06-27"
   author: YoungJoon Jeong
 reading_time: 6
-tags: []
+tags:
+  - industry-solution
+  - retail
+  - lg-hnh
+  - persona
+  - agentic-ai
+  - scope:design
 sidebar_label: 01. Personas
 ---
 

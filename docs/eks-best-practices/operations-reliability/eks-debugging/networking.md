@@ -3,8 +3,8 @@ title: 네트워킹 디버깅
 description: EKS 네트워킹 문제 진단 및 해결 가이드 - VPC CNI, DNS, Service, NetworkPolicy
 created: "2026-04-07"
 last_update:
-  date: "2026-04-07"
-  author: devfloor9
+  date: "2026-06-27"
+  author: YoungJoon Jeong
 reading_time: 6
 tags:
   - eks
@@ -13,6 +13,7 @@ tags:
   - vpc-cni
   - dns
   - service
+  - scope:ops
 sidebar_label: 네트워킹
 ---
 

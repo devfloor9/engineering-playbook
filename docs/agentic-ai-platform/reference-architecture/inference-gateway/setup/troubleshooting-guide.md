@@ -3,9 +3,9 @@ title: 트러블슈팅 가이드
 description: Inference Gateway 배포 및 운영 중 발생하는 일반적인 문제와 해결 방법
 created: "2026-04-18"
 last_update:
-  date: "2026-06-23"
+  date: "2026-06-27"
   author: YoungJoon Jeong
-reading_time: 7
+reading_time: 9
 tags:
   - troubleshooting
   - debugging

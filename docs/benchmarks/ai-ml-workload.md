@@ -3,9 +3,9 @@ title: "Llama 4 FM 서빙 벤치마크: GPU vs AWS Custom Silicon"
 description: vLLM 기반 Llama 4 모델 서빙에서 GPU 인스턴스(p5, p4d, g6e)와 AWS 커스텀 실리콘(Trainium2, Inferentia2)의 성능 및 비용 효율성 비교 벤치마크
 created: "2026-02-09"
 last_update:
-  date: "2026-06-15"
-  author: devfloor9
-reading_time: 13
+  date: "2026-06-27"
+  author: YoungJoon Jeong
+reading_time: 12
 tags:
   - benchmark
   - ai
@@ -17,6 +17,7 @@ tags:
   - trainium
   - inferentia
   - eks
+  - scope:tech
 sidebar_label: Report 3. AI/ML 서빙
 sidebar_position: 3
 category: benchmark

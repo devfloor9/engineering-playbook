@@ -3,9 +3,9 @@ title: 온톨로지 작성 가이드
 description: MSA 복잡도별 온톨로지 깊이와 작성 가이드라인
 created: "2026-04-18"
 last_update:
-  date: "2026-04-18"
-  author: devfloor9
-reading_time: 2
+  date: "2026-06-27"
+  author: YoungJoon Jeong
+reading_time: 3
 tags:
   - ontology
   - aidlc

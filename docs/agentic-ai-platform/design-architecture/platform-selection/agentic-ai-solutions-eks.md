@@ -3,8 +3,8 @@ title: EKS 기반 Agentic AI 오픈 아키텍처
 description: Amazon EKS와 오픈소스 생태계를 활용한 Agentic AI 플랫폼 구축 가이드
 created: "2026-02-05"
 last_update:
-  date: "2026-06-15"
-  author: devfloor9
+  date: "2026-06-27"
+  author: YoungJoon Jeong
 reading_time: 22
 tags:
   - eks

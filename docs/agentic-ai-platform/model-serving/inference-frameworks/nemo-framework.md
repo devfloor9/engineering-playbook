@@ -3,8 +3,8 @@ title: NeMo 프레임워크
 description: NVIDIA NeMo Framework의 분산 학습, 파인튜닝, TensorRT-LLM 변환 아키텍처
 created: "2026-02-05"
 last_update:
-  date: "2026-04-20"
-  author: devfloor9
+  date: "2026-06-27"
+  author: YoungJoon Jeong
 reading_time: 9
 tags:
   - nemo

@@ -3,10 +3,16 @@ title: Knowledge Graph 25 클래스 (AMWAY)
 description: AMWAY ABO 다단계 + 정기구독 + 글로벌 다국어 컨텍스트 KG 25 클래스 (~700K edges)
 created: "2026-05-14"
 last_update:
-  date: "2026-05-14"
+  date: "2026-06-27"
   author: YoungJoon Jeong
 reading_time: 4
-tags: []
+tags:
+  - industry-solution
+  - retail
+  - amway
+  - ontology
+  - agentic-ai
+  - scope:design
 sidebar_label: 02. Ontology
 ---
 

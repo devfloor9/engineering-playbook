@@ -3,10 +3,16 @@ title: 5 부서 페르소나 (AMWAY)
 description: AMWAY 글로벌 직접판매 컨텍스트 — ABO Field / Insights / D&A·MarTech / CX / Compliance
 created: "2026-05-14"
 last_update:
-  date: "2026-05-14"
+  date: "2026-06-27"
   author: YoungJoon Jeong
 reading_time: 4
-tags: []
+tags:
+  - industry-solution
+  - retail
+  - amway
+  - persona
+  - agentic-ai
+  - scope:design
 sidebar_label: 01. Personas
 ---
 

@@ -3,10 +3,16 @@ title: AWS 단일 아키텍처
 description: Bedrock + Neptune + OpenSearch + AgentCore + Cohere — 8주 PoC 가능한 단일 안
 created: "2026-05-14"
 last_update:
-  date: "2026-06-15"
+  date: "2026-06-27"
   author: YoungJoon Jeong
-reading_time: 4
-tags: []
+reading_time: 5
+tags:
+  - industry-solution
+  - retail
+  - lg-hnh
+  - architecture
+  - agent
+  - scope:design
 sidebar_label: 05. Architecture
 ---
 

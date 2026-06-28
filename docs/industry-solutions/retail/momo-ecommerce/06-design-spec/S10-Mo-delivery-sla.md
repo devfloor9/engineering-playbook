@@ -3,10 +3,16 @@ title: S10-Mo. 자체 물류 배송 SLA + 발주 최적화 (Momo 특화)
 description: 24시간 배송 약속 vs 실측 + 권역별 fulfillment center 부하 + 외기온 결합
 created: "2026-05-14"
 last_update:
-  date: "2026-05-14"
+  date: "2026-06-27"
   author: YoungJoon Jeong
 reading_time: 2
-tags: []
+tags:
+  - industry-solution
+  - retail
+  - momo
+  - design-spec
+  - agent
+  - scope:design
 sidebar_label: S10-Mo. Delivery SLA
 ---
 

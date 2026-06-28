@@ -3,10 +3,16 @@ title: 데이터 소스 (Uni-President)
 description: 5 BU 통합 + OPENPOINT + 자사 SKU + 콜드체인 + 외부 4종
 created: "2026-05-14"
 last_update:
-  date: "2026-05-14"
+  date: "2026-06-27"
   author: YoungJoon Jeong
 reading_time: 2
-tags: []
+tags:
+  - industry-solution
+  - retail
+  - uni-president
+  - data-source
+  - rag
+  - scope:design
 sidebar_label: 04. Data Sources
 ---
 

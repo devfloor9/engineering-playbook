@@ -3,10 +3,16 @@ title: S6. 외부 시그널 융합 (Momo)
 description: 소셜·기상·경제·경쟁사 4종 융합
 created: "2026-05-14"
 last_update:
-  date: "2026-05-14"
+  date: "2026-06-27"
   author: YoungJoon Jeong
 reading_time: 1
-tags: []
+tags:
+  - industry-solution
+  - retail
+  - momo
+  - design-spec
+  - agent
+  - scope:design
 sidebar_label: S6. External Signals
 ---
 

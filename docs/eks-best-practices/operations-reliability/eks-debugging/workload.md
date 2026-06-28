@@ -3,8 +3,8 @@ title: 워크로드 디버깅
 description: EKS 워크로드 문제 진단 및 해결 가이드 - Pod 상태별 디버깅, 배포 실패 패턴, Probe 설정
 created: "2026-04-07"
 last_update:
-  date: "2026-04-07"
-  author: devfloor9
+  date: "2026-06-27"
+  author: YoungJoon Jeong
 reading_time: 7
 tags:
   - eks
@@ -13,6 +13,7 @@ tags:
   - debugging
   - pod
   - deployment
+  - scope:ops
 sidebar_label: 워크로드
 ---
 

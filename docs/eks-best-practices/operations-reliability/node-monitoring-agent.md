@@ -3,9 +3,9 @@ title: EKS Node Monitoring Agent
 description: AWS EKS 클러스터의 노드 상태를 자동으로 감지하고 보고하는 Node Monitoring Agent의 아키텍처, 배포 전략, 제한사항, 모범 사례를 다룹니다.
 created: "2026-02-04"
 last_update:
-  date: "2026-06-19"
-  author: devfloor9
-reading_time: 15
+  date: "2026-06-27"
+  author: YoungJoon Jeong
+reading_time: 18
 tags:
   - eks
   - monitoring
@@ -13,6 +13,7 @@ tags:
   - aws
   - observability
   - cloudwatch
+  - scope:ops
 sidebar_label: 노드 모니터링 에이전트
 category: observability-monitoring
 ---

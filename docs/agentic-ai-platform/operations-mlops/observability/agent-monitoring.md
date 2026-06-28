@@ -3,9 +3,9 @@ title: AI Agent 모니터링 및 운영
 description: Agentic AI 애플리케이션 모니터링 아키텍처, 핵심 메트릭 설계, 알림 전략 개요
 created: "2026-02-05"
 last_update:
-  date: "2026-06-15"
-  author: devfloor9
-reading_time: 10
+  date: "2026-06-27"
+  author: YoungJoon Jeong
+reading_time: 12
 tags:
   - eks
   - langfuse

@@ -3,8 +3,8 @@ title: EKS 기반 MLOps 파이프라인 구축
 description: Kubeflow + MLflow + vLLM + ArgoCD GitOps 기반 엔드투엔드 ML 라이프사이클 관리
 created: "2026-02-11"
 last_update:
-  date: "2026-06-15"
-  author: devfloor9
+  date: "2026-06-27"
+  author: YoungJoon Jeong
 reading_time: 5
 tags:
   - mlops
