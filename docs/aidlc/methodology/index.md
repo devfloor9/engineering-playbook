@@ -9,7 +9,7 @@ reading_time: 3
 tags:
   - aidlc
   - methodology
-  - scope:methodology
+  - scope:nav
 sidebar_label: 방법론
 ---
 

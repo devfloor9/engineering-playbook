@@ -9,7 +9,7 @@ reading_time: 3
 tags:
   - aidlc
   - operations
-  - scope:ops
+  - scope:nav
 sidebar_label: AgenticOps
 ---
 

@@ -9,7 +9,7 @@ reading_time: 2
 tags:
   - aidlc
   - toolchain
-  - scope:toolchain
+  - scope:nav
 sidebar_label: 도구 & 구현
 ---
 

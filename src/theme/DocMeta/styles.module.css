@@ -1,0 +1,31 @@
+/* 문서 제목 아래 메타 라인 — 작성일 · 읽는 시간 */
+.docMeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+  margin: -0.4rem 0 1.75rem;
+  padding-bottom: 1.1rem;
+  border-bottom: 1px solid var(--ifm-color-emphasis-200);
+  font-size: 0.875rem;
+  line-height: 1.4;
+  color: var(--ifm-color-emphasis-600);
+}
+
+.item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  white-space: nowrap;
+}
+
+.icon {
+  font-size: 0.9rem;
+  line-height: 1;
+  /* 이모지 컬러가 본문 톤과 튀지 않도록 약간 가라앉힌다 */
+  opacity: 0.85;
+}
+
+.divider {
+  color: var(--ifm-color-emphasis-400);
+}
