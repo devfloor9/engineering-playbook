@@ -20,10 +20,6 @@ sidebar_label: Control Plane & CRD Scaling
 sidebar_position: 1
 ---
 
-# EKS Control Plane Deep Dive — CRD at Scale 종합 가이드
-
-> 📅 **작성일**: 2026-03-24 | ⏱️ **읽는 시간**: 약 25분
-
 CRD(Custom Resource Definition) 기반 플랫폼을 EKS 위에서 운영할 때, Control Plane은 가장 먼저 병목이 되는 지점입니다. 이 가이드는 **Control Plane이 어떻게 동작하는지 이해**하고, **CRD가 미치는 구체적 영향을 파악**한 뒤, **Provisioned Control Plane(PCP)과 모니터링을 통해 선제적으로 대응**하는 실전 전략을 제공합니다.
 
 ---

@@ -15,8 +15,6 @@ sidebar_label: Ontology Guide
 sidebar_position: 1
 ---
 
-# Ontology Writing Guide
-
 Recommended ontology levels and writing guidelines organized by complexity.
 
 ## Ontology Levels by Complexity

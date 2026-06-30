@@ -16,8 +16,6 @@ tags:
 sidebar_label: 03. Scenarios
 ---
 
-# 11 시나리오 매핑 (Momo)
-
 | # | 시나리오 | URL | 주 페르소나 |
 |---|---|---|---|
 | S1 | 자연어 시맨틱 검색 | `/semantic-search` | P1, P3 |

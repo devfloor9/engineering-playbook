@@ -16,8 +16,6 @@ tags:
 sidebar_label: 02. Ontology
 ---
 
-# Knowledge Graph 25 Classes (Uni-President)
-
 | 그룹 | 클래스 |
 |---|---|
 | **고객/회원** | Customer · **OPENPOINTMembership** · Household · Persona · Segment |

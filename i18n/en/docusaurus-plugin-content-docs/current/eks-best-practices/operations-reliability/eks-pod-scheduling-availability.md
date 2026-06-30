@@ -1,7 +1,7 @@
 ---
 title: EKS Pod Scheduling & Availability Patterns
 description: Kubernetes Pod scheduling strategies, Affinity/Anti-Affinity, PDB, Priority/Preemption, Taints/Tolerations best practices
-created: "2026-02-16"
+created: "2026-02-12"
 last_update:
   date: "2026-02-14"
   author: devfloor9
@@ -19,10 +19,6 @@ tags:
 sidebar_label: Pod Scheduling & Availability
 category: operations
 ---
-
-# EKS Pod Scheduling & Availability Patterns
-
-> **Written**: 2026-02-12 | **Updated**: 2026-02-14 | **Reading time**: ~54 min
 
 > **Reference Environment**: EKS 1.30+, Karpenter v1.x, Kubernetes 1.30+
 

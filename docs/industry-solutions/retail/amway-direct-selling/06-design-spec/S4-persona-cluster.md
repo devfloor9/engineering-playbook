@@ -16,8 +16,6 @@ tags:
 sidebar_label: S4. Persona & Cluster
 ---
 
-# S4. 라이프스타일 페르소나 매칭 + 클러스터링 (AMWAY)
-
 ## 1. URL · 페르소나
 - `/personas` · P2 (Consumer Insights)
 

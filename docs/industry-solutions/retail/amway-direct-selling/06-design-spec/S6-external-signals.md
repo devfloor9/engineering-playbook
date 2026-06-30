@@ -16,8 +16,6 @@ tags:
 sidebar_label: S6. External Signals
 ---
 
-# S6. 외부 시그널 융합 (AMWAY)
-
 ## 1. URL · 페르소나
 - `/signals` · P2, P3
 

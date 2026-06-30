@@ -1,5 +1,5 @@
 ---
-title: Introduction
+title: Engineering Playbook
 description: Cloud Native Architecture Engineering Playbook & Benchmark Reports
 created: "2025-09-11"
 last_update:
@@ -14,8 +14,6 @@ tags:
 sidebar_position: 1
 category: getting-started
 ---
-
-# Engineering Playbook
 
 A practical guide for Amazon EKS-based cloud native infrastructure optimization, Agentic AI platform engineering, and AIOps methodologies. Each document provides architectural decision rationale along with quantitative benchmark data, covering patterns that can be directly applied in production environments.
 

@@ -16,8 +16,6 @@ tags:
 sidebar_label: 05. Architecture
 ---
 
-# AWS 단일 아키텍처 (AMWAY)
-
 > LG H&H와 동일 골격 + AMWAY 특화: ABO Tree (Neptune 깊이 쿼리), 정기구독 (state machine), 글로벌 다국어, 직접판매 규제 가드
 
 ---

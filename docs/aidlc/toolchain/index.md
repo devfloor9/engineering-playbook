@@ -1,5 +1,5 @@
 ---
-title: 도구 & 구현
+title: AIDLC 도구 & 구현
 description: AIDLC를 실현하는 도구 — AI 코딩 에이전트, 오픈 웨이트 모델, EKS 자동화, 기술 로드맵
 created: "2026-04-07"
 last_update:
@@ -14,8 +14,6 @@ sidebar_label: 도구 & 구현
 ---
 
 # AIDLC 도구 & 구현
-
-> **읽는 시간**: 약 2분
 
 AIDLC [방법론](/docs/aidlc/methodology)을 실제 프로젝트에서 구현하기 위한 도구와 기술 스택을 다룹니다. AI 코딩 에이전트부터 오픈 웨이트 모델 활용, EKS 기반 선언적 자동화, 기술 투자 로드맵까지 실무 수준의 가이드를 제공합니다.
 

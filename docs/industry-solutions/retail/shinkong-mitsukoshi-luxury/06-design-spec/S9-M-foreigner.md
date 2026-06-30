@@ -16,8 +16,6 @@ tags:
 sidebar_label: S9-M. Foreigner Tax Refund
 ---
 
-# S9-M. 외국인 관광객 행동 분석 + 면세 추천
-
 > **Mitsukoshi 차별 포인트** ⭐ — 백화점 매출의 큰 비중을 차지하는 외국인 관광객(특히 일본)을 국적·환율·관광 데이터로 분석.
 
 ## 1. URL · 페르소나

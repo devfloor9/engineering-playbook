@@ -20,8 +20,6 @@ import {
   GammaSupportTable,
 } from '@site/src/components/GatewayApiTables';
 
-# GAMMA Initiative — 서비스 메시 통합의 미래
-
 ## 4.1 GAMMA란?
 
 **GAMMA (Gateway API for Mesh Management and Administration)**는 Gateway API를 서비스 메시 영역으로 확장한 이니셔티브입니다.

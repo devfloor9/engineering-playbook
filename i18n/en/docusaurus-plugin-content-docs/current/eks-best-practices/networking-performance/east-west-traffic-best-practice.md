@@ -19,10 +19,6 @@ category: performance-networking
 
 import { ServiceTypeComparison, LatencyCostComparison, CostSimulation, ScenarioMatrix } from '@site/src/components/EastWestTrafficTables';
 
-# EKS East-West Traffic Optimization Guide
-
-> **Written**: 2026-02-09 | **Updated**: 2026-02-14 | **Reading time**: ~21 min
-
 ## Overview
 
 This guide covers optimizing inter-service communication (East-West traffic) in Amazon EKS from **latency minimization** and **cost efficiency** perspectives. It progressively addresses scenarios from single cluster to multi-AZ, multi-cluster, and multi-account environments.

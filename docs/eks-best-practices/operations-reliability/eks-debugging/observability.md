@@ -19,8 +19,6 @@ sidebar_label: 옵저버빌리티
 
 import { IncidentEscalationTable, ZonalShiftImpactTable } from '@site/src/components/EksDebugTables';
 
-# 옵저버빌리티 및 모니터링
-
 ## 옵저버빌리티 스택 아키텍처
 
 ```mermaid

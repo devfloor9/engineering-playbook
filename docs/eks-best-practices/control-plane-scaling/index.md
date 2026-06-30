@@ -20,8 +20,6 @@ sidebar_position: 2
 
 import { DocCard, DocCardGrid } from '@site/src/components/DocCards';
 
-# Control Plane & 확장
-
 EKS Control Plane의 내부 동작을 이해하고, CRD 기반 플랫폼의 안정적 확장과 멀티 클러스터 고가용성 전략을 다룹니다.
 
 ---

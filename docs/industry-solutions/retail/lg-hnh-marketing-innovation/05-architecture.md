@@ -16,8 +16,6 @@ tags:
 sidebar_label: 05. Architecture
 ---
 
-# AWS 단일 아키텍처
-
 > 1차 시도의 "3 옵션 비교"는 PPTX 의존이라 제거. 본 PoC는 **단일 안**으로 8주 안에 동작 시연 가능한 AWS Native 스택.
 
 ---

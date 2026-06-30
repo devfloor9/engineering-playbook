@@ -24,8 +24,6 @@ keywords:
 sidebar_label: GPU/AI 워크로드
 ---
 
-# GPU/AI 워크로드 디버깅
-
 EKS에서 GPU 기반 AI 워크로드를 운영할 때 발생하는 일반적인 문제와 해결 방법을 다룹니다.
 
 ## GPU 노드 진단 워크플로우

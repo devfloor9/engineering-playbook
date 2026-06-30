@@ -32,8 +32,6 @@ import {
   MaturityModelTable
 } from '@site/src/components/AgentMonitoringTables';
 
-# AI Agent Monitoring and Operations
-
 This document covers the monitoring architecture, key metric design, and alerting strategy for Agentic AI applications at a conceptual level.
 
 :::info Production Deployment Guide
@@ -106,24 +104,24 @@ flowchart TB
         NODE[Node Exporter<br/>:9100/metrics]
         KGATEWAY[kgateway<br/>:9091/metrics]
     end
-    
+
     subgraph Collector["Collector"]
         PROM[Prometheus<br/>ServiceMonitor]
     end
-    
+
     subgraph AWS["AWS Managed Services"]
         AMP[Amazon Managed<br/>Prometheus]
         AMG[Amazon Managed<br/>Grafana]
     end
-    
+
     VLLM --> PROM
     DCGM --> PROM
     NODE --> PROM
     KGATEWAY --> PROM
-    
+
     PROM -->|Remote Write<br/>SigV4 Auth| AMP
     AMP -->|Query| AMG
-    
+
     style VLLM fill:#ffd93d,stroke:#333
     style DCGM fill:#76b900,stroke:#333
     style NODE fill:#326ce5,stroke:#333

@@ -14,8 +14,6 @@ tags:
 sidebar_label: 온톨로지 엔지니어링
 ---
 
-# 온톨로지 엔지니어링
-
 :::info 확장 개념 (engineering-playbook 독자 콘텐츠)
 온톨로지·하네스 엔지니어링은 [AWS Labs AIDLC 공식 방법론](https://github.com/awslabs/aidlc-workflows) 에 포함되지 않은, engineering-playbook 의 독자 확장 콘텐츠입니다. DDD + 2026년 Agentic AI 베스트 프랙티스를 반영해 엔터프라이즈 AI 신뢰성을 강화했습니다. 공식 AIDLC 적용 시 이 축은 선택적으로 도입 가능합니다.
 :::
@@ -125,13 +123,13 @@ domain_ontology:
         - PaymentFailed:
             trigger: "PG 거부 또는 타임아웃"
             data: ["paymentId", "errorCode", "reason"]
-  
+
   relationships:
     - "Payment CONTAINS PaymentMethod (1:1)"
     - "Customer INITIATES Payment (1:N)"
     - "Payment EMITS PaymentCreated (1:1)"
     - "Payment EMITS PaymentCompleted | PaymentFailed (1:1, mutually exclusive)"
-  
+
   constraints:
     - "동일 Customer의 동시 결제는 최대 3건"
     - "PROCESSING 상태는 최대 30초 유지, 초과 시 자동 FAILED 전환"
@@ -171,7 +169,7 @@ rule_templates:
       condition: "Payment.amount > 0"
       error_message: "결제 금액은 0보다 커야 합니다"
       severity: "ERROR"
-    
+
     - rule_id: "PAYMENT_STATUS_TRANSITION"
       condition: |
         IF current_status == "CREATED" THEN next_status IN ["PROCESSING", "FAILED"]
@@ -179,7 +177,7 @@ rule_templates:
         ELSE invalid_transition
       error_message: "잘못된 결제 상태 전환"
       severity: "ERROR"
-  
+
   business_rules:
     - rule_id: "MAX_CONCURRENT_PAYMENTS"
       condition: "COUNT(Payment WHERE customer_id = X AND status = 'PROCESSING') <= 3"
@@ -312,7 +310,7 @@ aggregates:
   Payment:
     entities:
       - CustomerReference (ID만 참조)
-  
+
   CustomerProfile:  # 별도 Aggregate로 분리
     entities:
       - PaymentHistory

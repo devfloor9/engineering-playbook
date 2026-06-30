@@ -19,8 +19,6 @@ sidebar_label: Tiered Gateway Architecture
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
-> 📅 **Written**: 2026-06-17 | **Updated**: 2026-06-17 | ⏱️ **Reading time**: ~9 min
-
 ## Overview
 
 The gateway layer of the Agentic AI Platform consists of multiple components with distinct responsibilities. The term "Inference Gateway" has been ambiguous — it referred to both **in-cluster inference pod routing** and **external LLM provider proxying**, causing confusion. This document **defines the gateway-layer terminology and roles unambiguously** and provides criteria for deciding which solution fills each layer.

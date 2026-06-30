@@ -1,7 +1,7 @@
 ---
 title: ROSA Demo Installation Guide
 description: ROSA cluster installation demo - STS-based cluster creation, IAM role configuration, autoscaling setup, and admin access configuration guide
-created: "2026-02-04"
+created: "2025-02-05"
 last_update:
   date: "2026-02-14"
   author: devfloor9
@@ -17,11 +17,6 @@ tags:
 sidebar_label: ROSA Demo Installation
 category: rosa
 ---
-
-# ROSA Demo Installation Guide
-
-> **Created**: 2025-02-05 | **Updated**: 2026-02-14 | **Reading time**: ~2 min
-
 
 This document is a demo guide recording the installation process and results of a ROSA (Red Hat OpenShift Service on AWS) cluster. It includes STS-based security-enhanced installation and autoscaling configuration.
 

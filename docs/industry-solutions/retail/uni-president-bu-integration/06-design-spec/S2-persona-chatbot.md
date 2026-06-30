@@ -16,8 +16,6 @@ tags:
 sidebar_label: S2. Persona Chatbot
 ---
 
-# S2. 5 부서 페르소나 챗봇 (Uni-President)
-
 ## 도구 12종
 
 | 도구 | 설명 |

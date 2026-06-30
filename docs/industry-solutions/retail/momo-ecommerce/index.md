@@ -11,8 +11,6 @@ tags:
 sidebar_label: Overview
 ---
 
-# Momo eCommerce & Live Innovation PoC
-
 > **"방대한 SKU·회원·라이브 방송·캠페인·자체 물류 데이터를 외부 트렌드·기상·경제·경쟁사 시그널과 묶어 온톨로지 + Agentic AI로 풀어내는 이커머스 혁신 PoC"**
 
 momo.com의 수백만 SKU, TV 홈쇼핑·라이브커머스, 모바일 앱, 자체 물류(24시간 배송)를 단일 KG로 통합. 공개 정보만 활용.

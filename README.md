@@ -1,7 +1,7 @@
 ---
 created: 2025-09-09
 last_update:
-  date: 2026-04-06
+  date: 2026-06-29
 reading_time: 14
 ---
 # Engineering Playbook
@@ -13,7 +13,7 @@ reading_time: 14
 
 ## About
 
-**Engineering Playbook** is a comprehensive collection of cloud native architecture engineering practices accumulated from production environments. It covers Amazon EKS infrastructure optimization, Agentic AI platform engineering, AIDLC/AgenticOps methodology, hybrid infrastructure, security governance, and quantitative benchmark results.
+**Engineering Playbook** is a comprehensive collection of cloud native architecture engineering practices accumulated from production environments. It covers Amazon EKS infrastructure optimization, Agentic AI platform engineering, AIDLC/AgenticOps methodology, hybrid infrastructure, security governance, industry-specific solution patterns, and quantitative benchmark results.
 
 Each technical domain provides implementation guides alongside measurable performance data to support data-driven architecture decisions.
 
@@ -25,13 +25,10 @@ Each technical domain provides implementation guides alongside measurable perfor
 
 End-to-end guide for building enterprise Agentic AI platforms on EKS.
 
-- **Design & Architecture**: Technical challenges, EKS-based solutions, platform architecture, AWS-native patterns
-- **Model Serving & Inference**: EKS GPU node strategy (Auto Mode / Karpenter / MNG / DRA), GPU resource management, vLLM, llm-d distributed inference, MoE model serving, NVIDIA GPU stack (Dynamo / GPU Operator / DCGM / KAI Scheduler), NeMo Framework
-- **Inference Gateway & Routing**: LLM Gateway 2-tier architecture (kgateway + agentgateway + Bifrost), inference gateway routing, OpenClaw AI Gateway
-- **Agent & Data**: Kagent Kubernetes agents, Milvus vector database
-- **Operations & MLOps**: Agent monitoring, RAGAS evaluation, LLMOps observability, MLOps pipeline, SageMaker-EKS integration
-- **Enterprise Ops**: Agentic playbook, compliance framework, domain customization
-- **Inference Optimization**: EKS architecture for inference & model performance optimization — vLLM, KV Cache-aware routing, disaggregated serving, LWS multi-node, Bifrost→Bedrock fallback, Hybrid Node integration
+- **Design & Architecture**: Platform foundations (architecture, challenges), platform selection (SageMaker / AgentCore / EKS decision framework, AWS-native, EKS open architecture), advanced patterns (self-improving agent loop, knowledge feature store, semantic caching)
+- **Model Serving & Inference**: GPU infrastructure (EKS GPU node strategy, GPU resource management, NVIDIA GPU stack, AWS Neuron stack), inference frameworks (vLLM, llm-d, MoE serving, NeMo, HyperPod inference operator), inference optimization (KV Cache-aware routing, disaggregated serving, LMCache, cache-hit strategy), inference routing
+- **Operations & MLOps**: Agent monitoring & observability (Langfuse, LLMOps tooling), RAGAS evaluation, Kagent Kubernetes agents, AI Gateway guardrails, compliance framework, domain customization, Milvus vector database
+- **Reference Architecture**: Inference Gateway setup & routing (kgateway + agentgateway + Bifrost), custom model deployment & pipeline, model lifecycle (continuous training), SageMaker-EKS integration, open-weight model deployment, OpenClaw AI Gateway
 
 ### EKS Best Practices
 
@@ -73,6 +70,17 @@ Enterprise security governance practices.
 
 Red Hat OpenShift on AWS installation, security, and compliance guide.
 
+### Industry Solutions
+
+Industry-validated PoC patterns and runnable demo assets — focused on *what value to show customers and why*, complementing the *how-to* engineering guides in other sections.
+
+- **Retail**: Five reference PoCs built on a common stack (Knowledge Graph on Neptune, hybrid search with OpenSearch + Cohere, persona switcher, Agentic AI on Bedrock + AgentCore, Bedrock Guardrails)
+  - **LG H&H Marketing Innovation** — 3-BU (Beauty + HDB + Refreshment) integrated marketing, 8 scenarios with 4 external signal sources
+  - **AMWAY Direct Selling** — ABO/IBO multi-level org visualization, subscription lifetime, direct-selling compliance (11 scenarios)
+  - **Shinkong Mitsukoshi Luxury** — department-store VIP membership, foreign-tourist tax-free recommendation, luxury brand SOV (11 scenarios)
+  - **Momo eCommerce** — live-commerce attribution, 24h delivery SLA, recommendation diversity (11 scenarios)
+  - **Uni-President BU Integration** — cross-BU OPENPOINT journey, own-SKU sell-through, cold-chain SLA (11 scenarios)
+
 ### Benchmark Reports
 
 Quantitative benchmarks for infrastructure, AI/ML, and hybrid environments.
@@ -104,12 +112,10 @@ Quantitative benchmarks for infrastructure, AI/ML, and hybrid environments.
 ```
 docs/
 ├── agentic-ai-platform/           # Agentic AI Platform
-│   ├── design-architecture/        #   Design & Architecture
-│   ├── model-serving/              #   Model Serving (GPU strategy, vLLM, llm-d, MoE, NeMo)
-│   ├── gateway-agents/             #   Gateway & Agents (LLM Gateway, Inference GW, OpenClaw)
-│   ├── agent-data/                 #   Agent & Data (Kagent, Milvus)
-│   ├── operations-mlops/           #   Operations & MLOps (monitoring, RAGAS, LLMOps)
-│   └── enterprise-ops/             #   Enterprise Ops (playbook, compliance, customization)
+│   ├── design-architecture/        #   Foundations, platform selection, advanced patterns
+│   ├── model-serving/              #   GPU infra, inference frameworks, optimization, routing
+│   ├── operations-mlops/           #   Observability, governance, data infrastructure
+│   └── reference-architecture/     #   Inference gateway, model lifecycle, integrations
 ├── eks-best-practices/             # EKS Best Practices
 │   ├── networking-performance/     #   Networking (Cilium, Gateway API, CoreDNS)
 │   ├── control-plane-scaling/      #   Control Plane Scaling
@@ -117,11 +123,16 @@ docs/
 │   ├── operations-reliability/     #   Operations & Reliability
 │   └── security-authn/             #   Security & Authentication
 ├── aidlc/                          # AIDLC Framework
-│   └── agentic-ops/                #   AgenticOps
+│   ├── methodology/                #   Methodology (DDD integration, ontology × harness)
+│   ├── toolchain/                  #   Tools & implementation
+│   ├── enterprise/                 #   Enterprise adoption
+│   └── operations/                 #   AgenticOps
 ├── hybrid-infrastructure/          # Hybrid Infrastructure
 ├── security-governance/            # Security & Governance
-├── benchmarks/                     # Benchmark Reports
-└── rosa/                           # ROSA (OpenShift on AWS)
+├── rosa/                           # ROSA (OpenShift on AWS)
+├── industry-solutions/             # Industry Solutions
+│   └── retail/                     #   Retail PoCs (LG H&H, AMWAY, Shinkong, Momo, Uni-President)
+└── benchmarks/                     # Benchmark Reports
 ```
 
 ## Slides

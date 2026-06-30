@@ -14,8 +14,6 @@ tags:
 sidebar_label: 거버넌스 프레임워크
 ---
 
-# 거버넌스 프레임워크
-
 AIDLC가 전사로 확산될 때 AI 생성 코드의 품질, 보안, 컴플라이언스를 체계적으로 관리하는 거버넌스 프레임워크를 제시합니다.
 
 ## 거버넌스의 필요성
@@ -65,29 +63,29 @@ graph TB
         EP3[승인된 AI 도구 목록]
         EP4[모델 사용 정책]
     end
-    
+
     subgraph Layer2["Layer 2: 시스템별 정책<br/>(System Standards)"]
         SS1[MSA 통신 규칙]
         SS2[데이터 모델 제약]
         SS3[API 설계 가이드]
         SS4[아키텍처 패턴]
     end
-    
+
     subgraph Layer3["Layer 3: 프로젝트 스티어링<br/>(Project Steering)"]
         PS1[온톨로지]
         PS2[하네스 설정]
         PS3[모델 선택]
         PS4[프로젝트별 제약]
     end
-    
+
     Layer1 --> Layer2
     Layer2 --> Layer3
-    
+
     PS1 --> CODE[AI 생성 코드]
     PS2 --> CODE
     PS3 --> CODE
     PS4 --> CODE
-    
+
     SS1 -.상속.-> PS1
     SS2 -.상속.-> PS1
     EP1 -.상속.-> SS1
@@ -357,17 +355,17 @@ jobs:
 graph LR
     DEV[개발자]
     CLS[AI Classifier]
-    
+
     subgraph CLOUD["클라우드 (AWS Bedrock)"]
         CLAUDE[Claude 3.7 Sonnet]
         GPT[GPT-4 Turbo]
     end
-    
+
     subgraph ONPREM["온프레미스 (EKS)"]
         QWEN[Qwen 3 Coder 32B]
         LLAMA[Llama 3.3 70B]
     end
-    
+
     DEV -->|작업 요청| CLS
     CLS -->|민감 작업<br/>코드 리뷰,<br/>보안 분석| ONPREM
     CLS -->|일반 작업<br/>단위 테스트,<br/>문서 생성| CLOUD
@@ -559,7 +557,7 @@ panels:
       FROM audit_log
       WHERE timestamp > now() - interval '30 days'
     target: 95%
-  
+
   - title: 보안 취약점 트렌드
     query: |
       SELECT 
@@ -568,7 +566,7 @@ panels:
       FROM audit_log
       GROUP BY day
       ORDER BY day
-  
+
   - title: 모델별 코드 품질
     query: |
       SELECT 
@@ -598,7 +596,7 @@ from datetime import datetime, timedelta
 
 def generate_monthly_report():
     logs = load_audit_logs(last_30_days=True)
-    
+
     report = {
         "period": f"{datetime.now().strftime('%Y-%m')}",
         "total_generations": len(logs),
@@ -607,7 +605,7 @@ def generate_monthly_report():
         "models_used": count_by_model(logs),
         "compliance_status": "COMPLIANT"
     }
-    
+
     with open(f"reports/governance-{datetime.now().strftime('%Y-%m')}.json", "w") as f:
         json.dump(report, f, indent=2)
 

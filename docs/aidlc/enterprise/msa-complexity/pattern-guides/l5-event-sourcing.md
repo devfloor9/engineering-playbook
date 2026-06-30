@@ -16,8 +16,6 @@ sidebar_label: "L5: Event Sourcing"
 sidebar_position: 3
 ---
 
-# Level 5: Event Sourcing & CQRS
-
 가장 높은 복잡도의 아키텍처 패턴으로, 전문가 지원과 정교한 온톨로지가 필수입니다.
 
 ## 특징
@@ -40,7 +38,7 @@ graph TB
     G --> H{통과?}
     H -->|Yes| I[배포]
     H -->|No| C
-    
+
     style B fill:#FFF9C4
     style C fill:#C8E6C9
     style D fill:#E3F2FD
@@ -68,7 +66,7 @@ events:
       customerId: string
       initialBalance: decimal
       openedAt: timestamp
-  
+
   MoneyDeposited:
     version: v1
     schema:
@@ -76,7 +74,7 @@ events:
       amount: decimal
       transactionId: string
       depositedAt: timestamp
-  
+
   MoneyWithdrawn:
     version: v1
     schema:
@@ -95,7 +93,7 @@ projections:
     source: [AccountOpened, MoneyDeposited, MoneyWithdrawn]
     target: read_db.account_balance
     updateStrategy: eventually_consistent
-  
+
   TransactionHistoryView:
     source: [MoneyDeposited, MoneyWithdrawn]
     target: read_db.transaction_history
@@ -131,14 +129,14 @@ def test_projection_consistency():
         MoneyDepositedEvent(accountId="A1", amount=500),
         MoneyWithdrawnEvent(accountId="A1", amount=200),
     ]
-    
+
     # 2. 이벤트 저장
     for event in events:
         event_store.append(event)
-    
+
     # 3. 프로젝션 업데이트
     projection_service.rebuild("AccountBalanceView")
-    
+
     # 4. Read Model 검증
     balance_view = read_db.get_account_balance("A1")
     assert balance_view.balance == 1300  # 1000 + 500 - 200
@@ -152,15 +150,15 @@ def test_projection_consistency():
 def test_duplicate_event_handling():
     """동일 이벤트를 여러 번 받아도 결과가 동일한지 검증"""
     event = OrderCreatedEvent(orderId="123", ...)
-    
+
     # 첫 번째 처리
     result1 = event_handler.handle(event)
     state1 = get_order_state("123")
-    
+
     # 두 번째 처리 (중복)
     result2 = event_handler.handle(event)
     state2 = get_order_state("123")
-    
+
     # 결과가 동일해야 함
     assert result1 == result2
     assert state1 == state2

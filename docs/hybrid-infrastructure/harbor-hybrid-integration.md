@@ -1,7 +1,7 @@
 ---
 title: Harbor 2.13과 EKS Hybrid Nodes 통합 가이드
 description: Harbor 2.13 프라이빗 컨테이너 레지스트리를 Amazon EKS Hybrid Nodes (Kubernetes 1.33)와 통합하기 위한 완전한 단계별 가이드로, 설치, SSL/TLS 구성, 인증 및 문제 해결을 다룹니다.
-created: "2026-02-04"
+created: "2025-08-20"
 last_update:
   date: "2026-06-27"
   author: YoungJoon Jeong
@@ -18,11 +18,6 @@ tags:
 sidebar_label: Harbor 레지스트리
 category: hybrid-multicloud
 ---
-
-# Harbor 2.13과 EKS Hybrid Nodes 통합 가이드
-
-> 📅 **작성일**: 2025-08-20 | **수정일**: 2026-02-14 | ⏱️ **읽는 시간**: 약 3분
-
 
 ## 개요
 

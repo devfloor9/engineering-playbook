@@ -19,10 +19,6 @@ sidebar_label: Control Plane & CRD Scaling
 sidebar_position: 1
 ---
 
-# EKS Control Plane Deep Dive — CRD at Scale Comprehensive Guide
-
-> **Written**: 2026-03-24 | **Reading time**: ~25 min
-
 When operating CRD-based platforms on EKS, the Control Plane is the first bottleneck. This guide covers Control Plane internals, CRD impacts, Provisioned Control Plane (PCP), and monitoring strategies.
 
 ---

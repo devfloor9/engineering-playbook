@@ -15,12 +15,6 @@ tags:
 sidebar_label: NIST AI RMF
 ---
 
-# NIST AI RMF 1.1 (Risk Management Framework)
-
-> 📅 **Published**: 2026-04-18 | ⏱️ **Reading Time**: ~5 minutes
-
----
-
 ## Overview
 
 **NIST AI RMF (Risk Management Framework)** is the AI risk management framework published by the U.S. National Institute of Standards and Technology (NIST) in 2023.
@@ -44,12 +38,12 @@ graph LR
     MAP[MAP<br/>Context & Risk ID]
     MEASURE[MEASURE<br/>Assessment & Testing]
     MANAGE[MANAGE<br/>Response & Monitoring]
-    
+
     GOV --> MAP
     MAP --> MEASURE
     MEASURE --> MANAGE
     MANAGE -.Feedback.-> GOV
-    
+
     style GOV fill:#9c27b0,color:#fff
     style MAP fill:#2196f3,color:#fff
     style MEASURE fill:#ff9800,color:#fff
@@ -145,7 +139,7 @@ assessment_date: 2026-04-18
 governance:
   strategy: "Federal contract-compliant AI code generation tool"
   responsible_party: "AI Governance Team"
-  
+
 # MAP-1.1: Business Context
 business_context:
   use_case: "Federal agency backend service code generation"
@@ -177,14 +171,14 @@ quality_gates:
     metrics:
       code_coverage: ">= 80%"
       duplication: "<= 3%"
-      
+
   # MEASURE-2.2: Bias Testing
   - gate: bias_test
     enabled: true
     tests:
       - "demographic_parity_check"
       - "equalized_odds_check"
-    
+
   # MEASURE-2.3: Robustness Testing
   - gate: adversarial_robustness
     enabled: true
@@ -206,7 +200,7 @@ continuous_monitoring:
     - name: "bias_score"
       target: "< 0.05"
       alert_threshold: 0.04
-  
+
   # MANAGE-4.1: Feedback Loop
   feedback_loop:
     frequency: "monthly"

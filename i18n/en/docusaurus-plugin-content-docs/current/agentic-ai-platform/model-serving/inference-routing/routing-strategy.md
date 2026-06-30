@@ -1,7 +1,7 @@
 ---
 title: Inference Gateway & LLM Gateway Routing Strategy
 description: kgateway + Bifrost/LiteLLM 2-Tier architecture with Cascade Routing, Semantic Router, and Hybrid Routing design patterns
-created: "2026-04-18"
+created: "2025-02-05"
 last_update:
   date: "2026-04-17"
   author: YoungJoon Jeong
@@ -18,10 +18,6 @@ tags:
   - scope:impl
 sidebar_label: Gateway Routing Strategy
 ---
-
-# Inference Gateway & LLM Gateway Routing Strategy
-
-> Created: 2025-02-05 | Updated: 2026-04-17 | Reading Time: ~15 minutes
 
 This document covers **design principles** for 2-Tier gateway architecture and routing strategies (Cascade / Semantic Router / Hybrid). For actual **deployment procedures** including Helm installation, HTTPRoute manifests, and OTel integration, refer to [Inference Gateway Deployment Guide](../../reference-architecture/inference-gateway/setup/).
 
@@ -63,7 +59,7 @@ graph LR
     IFG -->|Complex| LLM[GLM-5 744B<br/>Reasoning]
     IFG -->|Simple| SLM[Qwen3-Coder 3B<br/>Fast Response]
     IGW -->|MCP/A2A| AGW[agentgateway<br/>Session Mgmt<br/>Tool Routing]
-    
+
     style IGW fill:#326ce5,stroke:#333,color:#fff
     style IFG fill:#e53935,stroke:#333,color:#fff
     style AGW fill:#ff9900,stroke:#333,color:#000
@@ -265,34 +261,34 @@ In the table above, Bifrost·LiteLLM·Helicone·vLLM Semantic Router are **self-
 ```mermaid
 flowchart TB
     Q[User Query]
-    
+
     subgraph P1["Pattern 1: Weight-based"]
         W1[70% → Cheap]
         W2[30% → Premium]
     end
-    
+
     subgraph P2["Pattern 2: Fallback-based"]
         F1[Primary Model]
         F2{5xx/Timeout?}
         F3[Fallback Model]
     end
-    
+
     subgraph P3["Pattern 3: Intelligent Routing"]
         R1[LLM Classifier]
         R2{Prompt Analysis}
         R3[Strong Model]
         R4[Weak Model]
     end
-    
+
     Q --> P1 & P2 & P3
-    
+
     F1 --> F2
     F2 -->|Yes| F3
-    
+
     R1 --> R2
     R2 -->|Complex| R3
     R2 -->|Simple| R4
-    
+
     style P1 fill:#ffd93d,stroke:#333
     style P2 fill:#ff9900,stroke:#333
     style P3 fill:#e53935,stroke:#333,color:#fff
@@ -313,7 +309,7 @@ graph LR
     CLS -->|weak: no keywords, <500 chars| SLM[Qwen3-4B<br/>L4 $0.3/hr]
     CLS -->|strong: refactor, design, analysis| LLM[GLM-5 744B<br/>H200 $12/hr]
     CLS -->|OTel| LF[Langfuse]
-    
+
     style KGW fill:#326ce5,stroke:#333,color:#fff
     style CLS fill:#e53935,stroke:#333,color:#fff
     style SLM fill:#ffd93d,stroke:#333,color:#000
@@ -503,7 +499,7 @@ graph TD
     Router -->|weak: simple query<br/><500 chars, ≤5 turns| SLM[Weak Model<br/>Qwen3-4B<br/>L4 $0.3/hr]
     LLM --> Resp[Response]
     SLM --> Resp
-    
+
     style Router fill:#326ce5,stroke:#333,color:#fff
     style LLM fill:#e53935,stroke:#333,color:#fff
     style SLM fill:#76b900,stroke:#333,color:#000
@@ -552,7 +548,7 @@ graph TB
     LLMRoute --> Pool2[InferencePool<br/>Qwen3]
     Pool1 --> LLMD1[llm-d EPP<br/>Disaggregated]
     Pool2 --> VLLM[vLLM<br/>Aggregated]
-    
+
     style Gateway fill:#326ce5,stroke:#333,color:#fff
     style LLMRoute fill:#e53935,stroke:#333,color:#fff
     style Pool1 fill:#ff9900,stroke:#333

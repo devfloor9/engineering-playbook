@@ -17,8 +17,6 @@ sidebar_label: EKS 선언적 자동화
 
 import { EksCapabilities, AidlcPipeline } from '@site/src/components/AidlcTables';
 
-# EKS 선언적 자동화
-
 EKS Capabilities(2025.11)는 인기 있는 오픈소스 도구를 AWS 관리형으로 제공하여, AIDLC Construction 단계의 산출물을 선언적으로 배포하고 Operations 단계에서 지속적으로 관리하는 핵심 인프라입니다.
 
 <EksCapabilities />

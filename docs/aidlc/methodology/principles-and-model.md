@@ -20,12 +20,6 @@ category: aidlc
 
 import { AidlcPrinciples, AidlcArtifacts, AidlcPhaseMapping, AidlcPhaseActivities } from '@site/src/components/AidlcTables';
 
-# AIDLC 10대 원칙과 실행 모델
-
-> 📅 **작성일**: 2026-04-07 | ⏱️ **읽는 시간**: 약 15분
-
----
-
 ## 1. 왜 AIDLC인가
 
 전통적 소프트웨어 개발 라이프사이클(SDLC)은 사람 중심의 장기 반복 주기(주/월 단위)를 전제로 설계되었습니다. 데일리 스탠드업, 스프린트 리뷰, 회고 같은 리추얼은 이 긴 주기에 최적화된 것입니다. AI의 등장으로 이 전제가 무너집니다.

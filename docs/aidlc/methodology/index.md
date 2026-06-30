@@ -1,5 +1,5 @@
 ---
-title: 방법론
+title: AIDLC 방법론
 description: AIDLC의 핵심 방법론 — 10대 원칙, 온톨로지, 하네스 엔지니어링, DDD 통합, Common Rules, Adaptive Execution
 created: "2026-04-07"
 last_update:
@@ -14,8 +14,6 @@ sidebar_label: 방법론
 ---
 
 # AIDLC 방법론
-
-> **읽는 시간**: 약 2분
 
 :::info 공식 AIDLC 레퍼런스
 본 섹션은 [AWS Labs AIDLC Workflows](https://github.com/awslabs/aidlc-workflows) (v0.1.7, 2026-04-02) 를 기반으로 DDD·Ontology·Harness 확장을 덧붙였습니다. 공식 5대 원칙·11개 Common Rules·7 stage Adaptive Execution 은 그대로 준수하되, engineering-playbook 은 **엔터프라이즈 신뢰성** 을 위한 온톨로지·하네스 축을 독자 확장했습니다.

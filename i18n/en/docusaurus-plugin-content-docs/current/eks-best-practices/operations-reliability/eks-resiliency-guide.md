@@ -1,7 +1,7 @@
 ---
 title: EKS High Availability Architecture Guide
 description: Architecture patterns and operational strategies for achieving high availability and fault tolerance in Amazon EKS environments
-created: "2026-02-11"
+created: "2026-02-10"
 last_update:
   date: "2026-02-13"
   author: devfloor9
@@ -17,10 +17,6 @@ tags:
 sidebar_label: EKS High Availability Architecture
 category: observability-monitoring
 ---
-
-# EKS High Availability Architecture Guide
-
-> **Written**: 2026-02-10 | **Updated**: 2026-02-13 | **Reading time**: ~20 min
 
 > **Reference Environment**: EKS 1.30+, Karpenter v1.x, Istio 1.22+
 

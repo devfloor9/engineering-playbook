@@ -18,10 +18,6 @@ tags:
 sidebar_label: Health Check 불일치
 ---
 
-# Probe vs Health Check 불일치 디버깅
-
-> 📅 **작성일**: 2026-04-07 | ⏱️ **읽는 시간**: 약 20분
-
 > **📌 기준 환경**: EKS 1.33+, AWS Load Balancer Controller v2.9+, Ingress-NGINX v1.11+
 
 ## 1. 개요
@@ -140,24 +136,24 @@ flowchart TD
     START[503 Service Unavailable 발생] --> CHECK_POD{kubectl get pods<br/>Pod Ready?}
     CHECK_POD -->|Ready 1/1| CHECK_EP{kubectl get endpoints<br/>Pod IP 존재?}
     CHECK_POD -->|Not Ready| FIX_PROBE[Probe 설정 수정]
-    
+
     CHECK_EP -->|존재함| CHECK_TG{aws elbv2<br/>describe-target-health<br/>Target Healthy?}
     CHECK_EP -->|없음| FIX_PROBE
-    
+
     CHECK_TG -->|healthy| CHECK_SG[Security Group 확인]
     CHECK_TG -->|unhealthy| PATH_MISMATCH{HC Path 일치?}
-    
+
     PATH_MISMATCH -->|불일치| FIX_PATH[Service annotation<br/>health-check-path 수정]
     PATH_MISMATCH -->|일치| TIMEOUT{Timeout 설정?}
-    
+
     TIMEOUT -->|ALB timeout 짧음| FIX_TIMEOUT[health-check-timeout<br/>증가]
     TIMEOUT -->|정상| CHECK_SG
-    
+
     CHECK_SG --> CHECK_APP[애플리케이션 로그 확인]
     FIX_PATH --> VERIFY[검증]
     FIX_TIMEOUT --> VERIFY
     CHECK_APP --> VERIFY
-    
+
     style START fill:#ff4444,stroke:#cc3636,color:#fff
     style FIX_PATH fill:#34a853,stroke:#2a8642,color:#fff
     style FIX_TIMEOUT fill:#34a853,stroke:#2a8642,color:#fff
@@ -257,22 +253,22 @@ terminationGracePeriodSeconds > deregistration_delay + preStop_duration + app_sh
 ```mermaid
 flowchart TD
     START[502 Bad Gateway<br/>Pod 종료 중] --> CHECK_TIMING{preStop hook 존재?}
-    
+
     CHECK_TIMING -->|없음| ADD_PRESTOP[preStop sleep 15 추가]
     CHECK_TIMING -->|있음| CHECK_GRACE{terminationGracePeriodSeconds<br/>충분?}
-    
+
     CHECK_GRACE -->|짧음| INCREASE_GRACE[terminationGracePeriodSeconds<br/>증가]
     CHECK_GRACE -->|충분| CHECK_DEREG{ALB deregistration_delay<br/>설정?}
-    
+
     CHECK_DEREG -->|300s 기본값| DECREASE_DEREG[deregistration_delay<br/>감소 15-30s]
     CHECK_DEREG -->|이미 짧음| CHECK_SIGTERM{SIGTERM 핸들러<br/>구현?}
-    
+
     ADD_PRESTOP --> VERIFY[검증:<br/>kubectl delete pod 테스트]
     INCREASE_GRACE --> VERIFY
     DECREASE_DEREG --> VERIFY
     CHECK_SIGTERM --> IMPLEMENT_SIGTERM[언어별 Graceful Shutdown<br/>구현]
     IMPLEMENT_SIGTERM --> VERIFY
-    
+
     style START fill:#ff4444,stroke:#cc3636,color:#fff
     style ADD_PRESTOP fill:#34a853,stroke:#2a8642,color:#fff
     style VERIFY fill:#4286f4,stroke:#2a6acf,color:#fff
@@ -337,12 +333,12 @@ app.use((req, res, next) => {
 process.on('SIGTERM', () => {
   console.log('SIGTERM received, starting graceful shutdown');
   isShuttingDown = true;
-  
+
   server.close(() => {
     console.log('All connections closed, exiting');
     process.exit(0);
   });
-  
+
   // 강제 종료 타임아웃 (25초 후)
   setTimeout(() => {
     console.error('Forced shutdown after timeout');
@@ -379,22 +375,22 @@ T+30s  ALB가 새 Pod로 트래픽 전송 시작
 ```mermaid
 flowchart TD
     START[Rolling Update 중<br/>일시적 503] --> CHECK_MINREADY{minReadySeconds<br/>설정?}
-    
+
     CHECK_MINREADY -->|0 (기본)| SET_MINREADY[minReadySeconds ≥<br/>ALB HC interval × threshold<br/>예: 15s × 2 = 30s]
     CHECK_MINREADY -->|설정됨| CHECK_READINESS{readinessProbe<br/>충분히 엄격?}
-    
+
     CHECK_READINESS -->|너무 관대| STRICT_PROBE[failureThreshold 감소<br/>1-2로 설정]
     CHECK_READINESS -->|엄격함| CHECK_MAXUNAVAIL{maxUnavailable<br/>설정?}
-    
+
     CHECK_MAXUNAVAIL -->|너무 큼| ADJUST_MAXUNAVAIL[maxUnavailable 감소<br/>25% 또는 1]
     CHECK_MAXUNAVAIL -->|적절| CHECK_PDB{PodDisruptionBudget<br/>설정?}
-    
+
     SET_MINREADY --> VERIFY[검증:<br/>kubectl rollout restart]
     STRICT_PROBE --> VERIFY
     ADJUST_MAXUNAVAIL --> VERIFY
     CHECK_PDB --> ADD_PDB[PDB 추가<br/>minAvailable: 50%]
     ADD_PDB --> VERIFY
-    
+
     style START fill:#ff4444,stroke:#cc3636,color:#fff
     style SET_MINREADY fill:#34a853,stroke:#2a8642,color:#fff
     style VERIFY fill:#4286f4,stroke:#2a6acf,color:#fff
@@ -520,10 +516,10 @@ metadata:
     nginx.ingress.kubernetes.io/proxy-read-timeout: "300"    # 백엔드 응답 대기
     nginx.ingress.kubernetes.io/proxy-send-timeout: "300"    # 백엔드로 전송 대기
     nginx.ingress.kubernetes.io/proxy-connect-timeout: "10"  # 백엔드 연결 대기
-    
+
     # 파일 업로드 크기 제한 (기본 1m)
     nginx.ingress.kubernetes.io/proxy-body-size: "100m"
-    
+
     # 버퍼 설정 (대용량 응답)
     nginx.ingress.kubernetes.io/proxy-buffer-size: "8k"
     nginx.ingress.kubernetes.io/proxy-buffers-number: "4"
@@ -614,7 +610,7 @@ metadata:
     alb.ingress.kubernetes.io/healthcheck-timeout-seconds: "5"
     alb.ingress.kubernetes.io/healthy-threshold-count: "2"
     alb.ingress.kubernetes.io/unhealthy-threshold-count: "2"
-    
+
     # Graceful Shutdown 설정
     alb.ingress.kubernetes.io/target-group-attributes: deregistration_delay.timeout_seconds=15
 spec:
@@ -646,7 +642,7 @@ spec:
         - containerPort: 8080
           name: http
           protocol: TCP
-        
+
         # Startup Probe (느린 시작 앱)
         startupProbe:
           httpGet:
@@ -656,7 +652,7 @@ spec:
           periodSeconds: 5
           timeoutSeconds: 3
           failureThreshold: 30  # 최대 150초 대기
-        
+
         # Liveness Probe (데드락 감지)
         livenessProbe:
           httpGet:
@@ -666,7 +662,7 @@ spec:
           periodSeconds: 10
           timeoutSeconds: 1
           failureThreshold: 3
-        
+
         # Readiness Probe (트래픽 수신 제어)
         readinessProbe:
           httpGet:
@@ -677,7 +673,7 @@ spec:
           timeoutSeconds: 1
           failureThreshold: 2
           successThreshold: 1
-        
+
         # Graceful Shutdown
         lifecycle:
           preStop:

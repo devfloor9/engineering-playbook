@@ -1,7 +1,7 @@
 ---
 title: "Llama 4 FM Serving Benchmark: GPU vs AWS Custom Silicon"
 description: Benchmark comparing performance and cost efficiency of GPU instances (p5, p4d, g6e) and AWS custom silicon (Trainium2, Inferentia2) for vLLM-based Llama 4 model serving
-created: "2026-02-11"
+created: "2026-02-10"
 last_update:
   date: "2026-02-14"
   author: devfloor9
@@ -32,10 +32,6 @@ import ConcurrencyChart from '@site/src/components/ConcurrencyChart';
 import CostPerTokenChart from '@site/src/components/CostPerTokenChart';
 import KeyFindingsMLChart from '@site/src/components/KeyFindingsMLChart';
 import MLRecommendationChart from '@site/src/components/MLRecommendationChart';
-
-# Llama 4 FM Serving Benchmark: GPU vs AWS Custom Silicon
-
-> 📅 **Created**: 2026-02-10 | **Updated**: 2026-02-14 | ⏱️ **Reading time**: ~9 min
 
 ## Overview
 

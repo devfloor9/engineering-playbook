@@ -15,12 +15,6 @@ tags:
 sidebar_label: EU AI Act
 ---
 
-# EU AI Act (2024-2027)
-
-> 📅 **Published**: 2026-04-18 | ⏱️ **Reading Time**: ~6 minutes
-
----
-
 ## Overview
 
 **EU AI Act** is the world's first comprehensive AI regulation, adopted in May 2024 and **enforced in phases starting from 2026**.
@@ -112,27 +106,27 @@ flowchart LR
         I2[Risk Management Plan<br/>Art. 9]
         I3[Data Governance<br/>Art. 10]
     end
-    
+
     subgraph Construction["Construction (EU AI Act)"]
         C1[Technical Documentation<br/>Art. 11]
         C2[Automated Logging<br/>Art. 12]
         C3[Robustness Testing<br/>Art. 15]
         C4[Transparency Labeling<br/>Art. 13]
     end
-    
+
     subgraph Operations["Operations (EU AI Act)"]
         O1[Post-market Monitoring<br/>Art. 72]
         O2[Incident Reporting<br/>Art. 73]
         O3[Human Oversight<br/>Art. 14]
     end
-    
+
     I1 --> C1
     I2 --> C2
     I3 --> C3
     C1 --> O1
     C2 --> O2
     C3 --> O3
-    
+
     style Inception fill:#4caf50,color:#fff
     style Construction fill:#2196f3,color:#fff
     style Operations fill:#ff9800,color:#fff

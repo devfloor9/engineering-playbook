@@ -11,8 +11,6 @@ tags:
 sidebar_label: Overview
 ---
 
-# AMWAY Direct Selling Innovation PoC
-
 > **"ABO·고객·SKU·정기구독·캠페인 데이터를 외부 트렌드·환율·규제 시그널과 묶어 온톨로지 + Agentic AI로 풀어내는 글로벌 직접판매 혁신 PoC"**
 
 전 세계 100여 국가의 ABO(Amway Business Owner) 다단계 조직과 Nutrilite·Artistry·Amway Home 등 자사 SKU, 정기구독(Subscription), 직접판매 컴플라이언스를 단일 KG로 통합해 의미적으로 연결하는 동작 시연 자료. 공개 정보만 활용.

@@ -15,12 +15,6 @@ tags:
 sidebar_label: NIST AI RMF
 ---
 
-# NIST AI RMF 1.1 (Risk Management Framework)
-
-> 📅 **작성일**: 2026-04-18 | ⏱️ **읽는 시간**: 약 5분
-
----
-
 ## 개요
 
 **NIST AI RMF (Risk Management Framework)**는 미국 국립표준기술연구소(NIST)가 2023년 발표한 AI 위험 관리 프레임워크입니다.
@@ -44,12 +38,12 @@ graph LR
     MAP[MAP<br/>맥락·위험 식별]
     MEASURE[MEASURE<br/>평가·테스트]
     MANAGE[MANAGE<br/>대응·모니터링]
-    
+
     GOV --> MAP
     MAP --> MEASURE
     MEASURE --> MANAGE
     MANAGE -.피드백.-> GOV
-    
+
     style GOV fill:#9c27b0,color:#fff
     style MAP fill:#2196f3,color:#fff
     style MEASURE fill:#ff9800,color:#fff
@@ -145,7 +139,7 @@ assessment_date: 2026-04-18
 governance:
   strategy: "연방 계약 준수 AI 코드 생성 도구"
   responsible_party: "AI Governance Team"
-  
+
 # MAP-1.1: 비즈니스 맥락
 business_context:
   use_case: "연방 기관 백엔드 서비스 코드 생성"
@@ -177,14 +171,14 @@ quality_gates:
     metrics:
       code_coverage: ">= 80%"
       duplication: "<= 3%"
-      
+
   # MEASURE-2.2: 편향 테스트
   - gate: bias_test
     enabled: true
     tests:
       - "demographic_parity_check"
       - "equalized_odds_check"
-    
+
   # MEASURE-2.3: 견고성 테스트
   - gate: adversarial_robustness
     enabled: true
@@ -206,7 +200,7 @@ continuous_monitoring:
     - name: "bias_score"
       target: "< 0.05"
       alert_threshold: 0.04
-  
+
   # MANAGE-4.1: 피드백 루프
   feedback_loop:
     frequency: "monthly"

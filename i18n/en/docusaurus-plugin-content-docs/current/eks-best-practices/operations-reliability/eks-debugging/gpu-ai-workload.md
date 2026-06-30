@@ -18,8 +18,6 @@ keywords:
 sidebar_label: GPU/AI Workload
 ---
 
-# GPU/AI Workload Debugging
-
 This document covers common issues and solutions when operating GPU-based AI workloads on EKS.
 
 ## GPU Node Diagnostic Workflow

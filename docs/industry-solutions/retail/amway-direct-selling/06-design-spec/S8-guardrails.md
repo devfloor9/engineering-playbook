@@ -16,8 +16,6 @@ tags:
 sidebar_label: S8. Guardrails
 ---
 
-# S8. 마케팅 동의·PII·미성년 가드레일 (AMWAY)
-
 ## 1. URL · 페르소나
 - `/compliance` · P4 (CX), P5 (Compliance)
 

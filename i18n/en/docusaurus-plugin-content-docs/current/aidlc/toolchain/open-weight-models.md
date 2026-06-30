@@ -10,8 +10,6 @@ tags: []
 sidebar_label: Open-Weight Models
 ---
 
-# Open-Weight Models
-
 When operating AI Development Lifecycle (AIDLC) in enterprise environments, data residency and cost efficiency are critical decision factors. Open-weight models provide three differentiated values compared to cloud APIs (Claude, GPT-4): **securing data sovereignty**, **predictable TCO**, and **domain-specialized customization**.
 
 ## Why Open-Weight Models
@@ -339,17 +337,17 @@ from typing import Dict, List
 class OntologyInjector:
     def __init__(self, ontology_path: str):
         self.ontology = self.load_ontology(ontology_path)
-    
+
     def inject_context(self, prompt: str, domain: str) -> str:
         """Add domain ontology to prompt"""
         domain_terms = self.ontology.get(domain, {})
-        
+
         context = "# Domain Knowledge\n"
         for term, definition in domain_terms.items():
             context += f"- {term}: {definition}\n"
-        
+
         return f"{context}\n# Task\n{prompt}"
-    
+
     def load_ontology(self, path: str) -> Dict[str, Dict[str, str]]:
         # Load ontology file in JSON/YAML format
         pass
@@ -401,13 +399,13 @@ class OutputFilter:
             (r'\b[\w\.-]+@[\w\.-]+\.\w+\b', '[EMAIL-REDACTED]'),  # Email
             (r'\b\d{4}-\d{4}-\d{4}-\d{4}\b', '[CARD-REDACTED]')  # Card number
         ]
-    
+
     def filter(self, text: str) -> str:
         """Automatically remove sensitive information"""
         for pattern, replacement in self.patterns:
             text = re.sub(pattern, replacement, text)
         return text
-    
+
     def audit_log(self, text: str, redacted_count: int) -> None:
         """Record filtering history"""
         # Send to CloudWatch Logs or S3

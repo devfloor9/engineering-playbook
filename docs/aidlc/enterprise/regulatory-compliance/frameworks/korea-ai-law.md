@@ -16,12 +16,6 @@ tags:
 sidebar_label: 한국 AI 기본법
 ---
 
-# 한국 AI 기본법 (2026 시행 예정)
-
-> 📅 **작성일**: 2026-04-18 | ⏱️ **읽는 시간**: 약 5분
-
----
-
 ## 개요
 
 **인공지능 기본법**은 한국 최초의 포괄적 AI 규제법으로, **2026년 상반기 시행 예정**입니다.
@@ -90,21 +84,21 @@ def login(credentials: LoginRequest):
 impact_assessment:
   project: payment-service-v2
   assessment_date: 2026-04-18
-  
+
   # 고영향 AI 판정
   high_impact: false
   rationale: "개발 도구로 사용, 최종 결정은 개발자"
-  
+
   # 위험 요인
   risk_factors:
     - factor: "생성 코드 보안 취약점"
       severity: medium
       mitigation: "SAST 자동 스캔 + 독립 리뷰"
-    
+
     - factor: "PII 노출"
       severity: high
       mitigation: "Guardrails 필터 + 로그 마스킹"
-  
+
   # 사후 모니터링
   post_monitoring:
     frequency: daily
@@ -128,7 +122,7 @@ impact_assessment:
 # .aidlc/monitoring/korea-post-market.yaml
 post_market_monitoring:
   responsible_party: "AI Governance Team"
-  
+
   # 지속적 모니터링
   monitoring:
     frequency: daily
@@ -137,7 +131,7 @@ post_market_monitoring:
         target: "< 1%"
       - name: "security_vulnerabilities"
         target: "0 critical"
-  
+
   # 시정 조치
   corrective_action:
     sla: 7d  # 오작동 발견 시 7일 이내 시정
@@ -167,7 +161,7 @@ privacy_compliance:
     consent: "명시적 동의 획득"
     data_minimization: "최소한의 개인정보만 수집"
     purpose_limitation: "수집 목적 외 사용 금지"
-    
+
   # AI 기본법 준수
   ai_law:
     transparency: "AI 사용 사실 고지"
@@ -192,15 +186,15 @@ isms_p_integration:
     - "2.5.1 개인정보 수집·이용"
     - "2.6.2 개인정보 저장·보관"
     - "3.1.1 정보보호 정책"
-    
+
   # AI 기본법 추가 통제
   ai_controls:
     - control: "고영향 AI 영향 평가"
       mapping: "ISMS-P 2.1.2 위험 관리"
-    
+
     - control: "생성형 AI 표시 의무"
       mapping: "ISMS-P 2.5.6 정보 주체 권리"
-    
+
     - control: "AI 시스템 사후 관리"
       mapping: "ISMS-P 3.2.1 모니터링"
 ```

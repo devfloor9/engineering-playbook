@@ -12,8 +12,6 @@ sidebar_label: AI Coding Agents
 
 import { AiCodingAgentComparison } from '@site/src/components/AidlcTables';
 
-# AI Coding Agents
-
 This document covers AI coding agent strategies for implementing design as code in the AIDLC Construction phase. It focuses on Kiro's Spec-Driven approach, Amazon Q Developer's real-time build and test capabilities, MCP-based context collection, and CI/CD integration patterns.
 
 ## 1. AI Coding Agents Overview

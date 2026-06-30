@@ -21,10 +21,6 @@ keywords:
 sidebar_label: Nitro Architecture & Tuning
 ---
 
-# AWS Nitro Architecture and Performance Tuning
-
-> 📅 **Written**: 2026-06-19 | **Updated**: 2026-06-20 | ⏱️ **Reading time**: ~14 min
-
 ## Overview
 
 The AWS Nitro System is the underlying platform for current-generation Amazon EC2 instances and governs the networking, storage, and security behavior of EKS worker nodes. Nitro generations (v2–v6) differ in network bandwidth, ENA (Elastic Network Adapter) features, and TCP behavior, which in turn change the ENA driver/kernel version requirements and performance tuning points for node AMIs. This document summarizes the Nitro components and per-generation changes, then covers the driver/kernel requirements to verify from an EKS-node perspective along with PPS (Packets Per Second)/CPS (Connections Per Second)-focused tuning strategies.

@@ -1,7 +1,7 @@
 ---
 title: 추론 게이트웨이 & LLM Gateway 라우팅 전략
 description: kgateway + Bifrost/LiteLLM 2-Tier 아키텍처와 Cascade Routing, Semantic Router, Hybrid Routing 설계 패턴
-created: "2026-02-05"
+created: "2025-02-05"
 last_update:
   date: "2026-06-27"
   author: YoungJoon Jeong
@@ -22,10 +22,6 @@ tags:
   - scope:impl
 sidebar_label: 게이트웨이 라우팅 전략
 ---
-
-# 추론 게이트웨이 & LLM Gateway 라우팅 전략
-
-> 작성일: 2025-02-05 | 수정일: 2026-04-17 | 읽는 시간: 약 15분
 
 이 문서는 2-Tier 게이트웨이 아키텍처와 라우팅 전략(Cascade / Semantic Router / Hybrid)의 **설계 원칙**을 다룹니다. 실제 Helm 설치, HTTPRoute 매니페스트, OTel 연동 등 **배포 절차**는 [추론 게이트웨이 배포 가이드](../../reference-architecture/inference-gateway/setup/)를 참조하세요.
 
@@ -67,7 +63,7 @@ graph LR
     IFG -->|복잡| LLM[GLM-5 744B<br/>Reasoning]
     IFG -->|단순| SLM[Qwen3-Coder 3B<br/>빠른 응답]
     IGW -->|MCP/A2A| AGW[agentgateway<br/>세션 관리<br/>도구 라우팅]
-    
+
     style IGW fill:#326ce5,stroke:#333,color:#fff
     style IFG fill:#e53935,stroke:#333,color:#fff
     style AGW fill:#ff9900,stroke:#333,color:#000
@@ -269,34 +265,34 @@ import { TopologyEffectsTable } from '@site/src/components/InferenceGatewayTable
 ```mermaid
 flowchart TB
     Q[User Query]
-    
+
     subgraph P1["패턴 1: Weight 기반"]
         W1[70% → Cheap]
         W2[30% → Premium]
     end
-    
+
     subgraph P2["패턴 2: Fallback 기반"]
         F1[Primary Model]
         F2{5xx/Timeout?}
         F3[Fallback Model]
     end
-    
+
     subgraph P3["패턴 3: 지능형 라우팅"]
         R1[LLM Classifier]
         R2{프롬프트 분석}
         R3[Strong Model]
         R4[Weak Model]
     end
-    
+
     Q --> P1 & P2 & P3
-    
+
     F1 --> F2
     F2 -->|Yes| F3
-    
+
     R1 --> R2
     R2 -->|복잡| R3
     R2 -->|단순| R4
-    
+
     style P1 fill:#ffd93d,stroke:#333
     style P2 fill:#ff9900,stroke:#333
     style P3 fill:#e53935,stroke:#333,color:#fff
@@ -317,7 +313,7 @@ graph LR
     CLS -->|weak: 키워드없음, 500자미만| SLM[Qwen3-4B<br/>L4 $0.3/hr]
     CLS -->|strong: 리팩터,설계,분석| LLM[GLM-5 744B<br/>H200 $12/hr]
     CLS -->|OTel| LF[Langfuse]
-    
+
     style KGW fill:#326ce5,stroke:#333,color:#fff
     style CLS fill:#e53935,stroke:#333,color:#fff
     style SLM fill:#ffd93d,stroke:#333,color:#000
@@ -504,7 +500,7 @@ graph TD
     Router -->|weak: 단순 질의<br/>500자미만, 5턴이하| SLM[Weak Model<br/>Qwen3-4B<br/>L4 $0.3/hr]
     LLM --> Resp[응답]
     SLM --> Resp
-    
+
     style Router fill:#326ce5,stroke:#333,color:#fff
     style LLM fill:#e53935,stroke:#333,color:#fff
     style SLM fill:#76b900,stroke:#333,color:#000
@@ -554,7 +550,7 @@ graph TB
     Pool2 --> EPP2[EPP<br/>Endpoint Picker]
     EPP1 --> LLMD1[llm-d EPP<br/>Disaggregated]
     EPP2 --> VLLM[vLLM<br/>Aggregated]
-    
+
     style Gateway fill:#326ce5,stroke:#333,color:#fff
     style HTTPRoute fill:#4caf50,stroke:#333,color:#fff
     style Pool1 fill:#ff9900,stroke:#333

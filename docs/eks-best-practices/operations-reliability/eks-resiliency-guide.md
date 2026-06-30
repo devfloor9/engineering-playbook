@@ -1,7 +1,7 @@
 ---
 title: EKS 고가용성 아키텍처 가이드
 description: Amazon EKS 환경에서 고가용성과 장애 회복력을 확보하기 위한 아키텍처 패턴과 운영 전략 가이드
-created: "2026-02-11"
+created: "2026-02-10"
 last_update:
   date: "2026-06-27"
   author: YoungJoon Jeong
@@ -18,10 +18,6 @@ tags:
 sidebar_label: EKS 고가용성 아키텍처
 category: observability-monitoring
 ---
-
-# EKS 고가용성 아키텍처 가이드
-
-> 📅 **작성일**: 2026-02-10 | **수정일**: 2026-02-13 | ⏱️ **읽는 시간**: 약 20분
 
 > **📌 기준 환경**: EKS 1.33+, Karpenter v1.x, Istio 1.22+
 

@@ -19,10 +19,6 @@ tags:
 sidebar_label: 평가 프레임워크
 ---
 
-# AIDLC Evaluation Framework
-
-> **읽는 시간**: 약 12분
-
 AIDLC (AI Development Life Cycle) 는 기존 SDLC 와 달리 **확률적(stochastic) 산출물** 을 다룹니다. 같은 입력에도 LLM/Agent 의 응답이 달라지고, 한 번의 단위 테스트 통과가 "항상 맞다"를 보장하지 않습니다. 본 문서는 AIDLC 의 세 루프(Inner/Middle/Outer) 에 평가(Evaluation) 를 어떻게 심어야 하는지, 2026-04 기준 실전에서 사용되는 벤치마크·도구·아키텍처를 정리합니다.
 
 ---

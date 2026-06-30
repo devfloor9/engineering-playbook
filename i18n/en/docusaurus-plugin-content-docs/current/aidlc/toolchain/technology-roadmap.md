@@ -10,8 +10,6 @@ tags: []
 sidebar_label: Technology Roadmap
 ---
 
-# Technology Roadmap
-
 The tool ecosystem supporting AIDLC is evolving rapidly. **"Should we build now, or wait until the technology matures?"** is a critical decision to make quarterly. This document assesses the maturity of AWS and open-source AIDLC tools as of Q2 2026 and presents investment priorities.
 
 ## 1. The Technology Investment Dilemma
@@ -136,22 +134,22 @@ The following 2x2 matrix presents tool adoption strategies based on **business u
 graph TD
     subgraph matrix[" "]
         direction TB
-        
+
         subgraph high_urgency["<b>High Urgency</b>"]
             direction LR
             quadrant1["<b>🟢 Immediate Adoption</b><br/>- Kiro<br/>- Q Developer<br/>- Managed Argo CD<br/>- ACK<br/>- KRO<br/>- vLLM (data residency)"]
             quadrant2["<b>🟡 Quick PoC</b><br/>- Kagent<br/>- Specific MCP servers<br/>- llm-d (advanced users)<br/>→ Go/No-Go decision within 3 months"]
         end
-        
+
         subgraph low_urgency["<b>Low Urgency</b>"]
             direction LR
             quadrant3["<b>🟡 Monitor</b><br/>- Gateway API<br/>- Langfuse<br/>- Ragas<br/>→ Track community trends"]
             quadrant4["<b>🔴 Wait</b><br/>- Strands Agents (Early Access)<br/>- Bedrock AgentCore (Preview)<br/>→ Wait for GA transition"]
         end
     end
-    
+
     high_urgency -.->|Technology Maturity| low_urgency
-    
+
     style quadrant1 fill:#d4edda,stroke:#28a745,stroke-width:2px
     style quadrant2 fill:#fff3cd,stroke:#ffc107,stroke-width:2px
     style quadrant3 fill:#fff3cd,stroke:#ffc107,stroke-width:2px
@@ -196,17 +194,17 @@ gantt
     title AIDLC Technology Investment Horizons (Q2 2026)
     dateFormat YYYY-MM
     axisFormat %Y-%m
-    
+
     section 6 Months: Foundation
     Kiro + Q Developer Adoption :done, foundation1, 2026-04, 2026-06
     Managed Argo CD + ACK :done, foundation2, 2026-04, 2026-07
     GitOps Workflow Transition :active, foundation3, 2026-05, 2026-09
-    
+
     section 12 Months: Automation Expansion
     MCP Integration (stable servers) :crit, automation1, 2026-07, 2026-10
     Quality Gates + Harness :automation2, 2026-08, 2026-11
     AI Agent Operations (Kagent PoC) :automation3, 2026-09, 2026-12
-    
+
     section 18 Months: Autonomous Operations
     AgenticOps Transition :milestone, autonomous1, 2026-10, 2027-01
     Predictive Scaling (KEDA+AI) :autonomous2, 2026-11, 2027-03

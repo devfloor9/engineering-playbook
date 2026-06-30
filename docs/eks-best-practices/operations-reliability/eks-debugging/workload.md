@@ -17,8 +17,6 @@ tags:
 sidebar_label: 워크로드
 ---
 
-# 워크로드 디버깅
-
 ## Pod 상태별 디버깅 플로우차트
 
 ```mermaid
@@ -148,18 +146,18 @@ kubectl describe pod api-server-xxx | grep -A 10 "Readiness probe failed"
 flowchart TD
     NOTREADY["`Pod 0/1 Ready`"] --> CHECK_PROBE{"`readinessProbe
     설정 확인`"}
-    
+
     CHECK_PROBE -->|path 불일치| FIX_PATH["`헬스체크 경로 수정
     /health → /healthz`"]
-    
+
     CHECK_PROBE -->|initialDelaySeconds 부족| FIX_DELAY["`앱 부팅 시간 측정
     initialDelaySeconds 증가
     또는 startupProbe 추가`"]
-    
+
     CHECK_PROBE -->|앱이 실제 실패| FIX_APP["`로그 확인
     kubectl logs <pod>
     의존 서비스 점검`"]
-    
+
     CHECK_PROBE -->|timeout 부족| FIX_TIMEOUT["`timeoutSeconds 증가
     (기본 1초는 너무 짧음)`"]
 
@@ -626,42 +624,42 @@ spec:
 flowchart TD
     START["`Pod 상태 확인
     kubectl get pods`"] --> PENDING{"`Pending?`"}
-    
+
     PENDING -->|Yes| CHECK_SCHED["`스케줄링 실패 원인
     kubectl describe pod`"]
     CHECK_SCHED --> SCHED_FIX["`• 리소스 부족 → Node 추가
     • nodeSelector 불일치 → 라벨 수정
     • PVC Pending → 스토리지 문서 참조`"]
-    
+
     PENDING -->|No| IMGPULL{"`ImagePullBackOff?`"}
     IMGPULL -->|Yes| IMG_FIX["`• 이미지 이름/태그 확인
     • 레지스트리 접근 권한
     • imagePullSecrets`"]
-    
+
     IMGPULL -->|No| CRASH{"`CrashLoopBackOff?`"}
     CRASH -->|Yes| CRASH_FIX["`kubectl logs --previous
     • 앱 설정 점검
     • 리소스 limits 확인
     • Liveness probe 점검`"]
-    
+
     CRASH -->|No| OOM{"`OOMKilled?`"}
     OOM -->|Yes| OOM_FIX["`메모리 limits 증가
     앱 메모리 누수 분석
     JVM heap 조정`"]
-    
+
     OOM -->|No| INIT_ERR{"`Init:Error?`"}
     INIT_ERR -->|Yes| INIT_FIX["`initContainer 로그 확인
     kubectl logs <pod> -c <init-container>`"]
-    
+
     INIT_ERR -->|No| CONFIG_ERR{"`CreateContainerConfigError?`"}
     CONFIG_ERR -->|Yes| CONFIG_FIX["`ConfigMap/Secret 존재 확인
     volumeMount 경로 검증`"]
-    
+
     CONFIG_ERR -->|No| RUNNING{"`Running but 0/1 Ready?`"}
     RUNNING -->|Yes| READY_FIX["`readinessProbe 설정 확인
     initialDelaySeconds 조정
     헬스체크 경로 검증`"]
-    
+
     RUNNING -->|No| TERMINATING{"`Terminating?`"}
     TERMINATING -->|Yes| TERM_FIX["`Finalizer 확인
     preStop hook 점검

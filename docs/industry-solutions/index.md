@@ -11,8 +11,6 @@ tags:
 sidebar_label: Industry Solutions
 ---
 
-# Industry Solutions
-
 > 산업별로 실증된 PoC 패턴과 시연 데모 자산. Engineering Playbook의 다른 섹션이 "어떻게 만드는가(How)"를 다룬다면, 여기는 **"고객에게 어떤 가치를 어떻게 보여주는가(What/Why)"**에 집중합니다.
 
 ---

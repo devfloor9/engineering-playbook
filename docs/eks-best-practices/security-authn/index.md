@@ -19,8 +19,6 @@ sidebar_position: 3
 
 import { DocCard, DocCardGrid } from '@site/src/components/DocCards';
 
-# 보안 & 인증
-
 EKS 클러스터의 인증/인가 체계와 보안 베스트 프랙티스를 다룹니다.
 
 ---

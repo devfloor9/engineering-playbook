@@ -1,7 +1,7 @@
 ---
 title: ROSA (Red Hat OpenShift on AWS)
 description: Red Hat OpenShift Service on AWS (ROSA) 구축 및 운영에 대한 기술 문서
-created: "2026-02-04"
+created: "2025-02-05"
 last_update:
   date: "2026-02-13"
   author: devfloor9
@@ -12,10 +12,6 @@ sidebar_label: ROSA
 sidebar_position: 6
 category: rosa
 ---
-
-# ROSA (Red Hat OpenShift on AWS)
-
-> 📅 **작성일**: 2025-02-05 | **수정일**: 2026-02-13 | ⏱️ **읽는 시간**: 약 6분
 
 이 섹션에서는 Red Hat OpenShift Service on AWS (ROSA) 구축 및 운영에 대한 기술 문서들을 다룹니다. ROSA는 AWS와 Red Hat이 함께 관리하는 완전 관리형 OpenShift 서비스로, 엔터프라이즈급 Kubernetes 플랫폼을 쉽게 구축할 수 있습니다.
 
@@ -67,19 +63,19 @@ graph TB
         VPC["VPC & Networking<br/>(Customer VPC)"]
         KMS["KMS & Secrets<br/>(Encryption)"]
     end
-    
+
     subgraph RedHat["Red Hat"]
         HCC["Hybrid Cloud Console<br/>(Central Management)"]
         Registry["Quay Registry<br/>(Container Images)"]
         OIDC["OIDC Provider<br/>(Authentication)"]
     end
-    
+
     subgraph Customer["Customer Environment"]
         IdP["Identity Provider<br/>(Okta/Azure AD/etc)"]
         Admin["Administrators<br/>(Access Management)"]
         OnPrem["On-Premises Systems<br/>(Hybrid Integration)"]
     end
-    
+
     Admin -->|Authentication| IdP
     IdP -->|OIDC Tokens| OIDC
     OIDC -->|Identity| HCC
@@ -92,7 +88,7 @@ graph TB
     VPC <-->|Networking| ROSA
     HCC -->|Container Images| Registry
     OnPrem <-->|Hybrid Workloads| ROSA
-    
+
     style AWS fill:#ff9900
     style RedHat fill:#c41e3a
     style Customer fill:#34a853

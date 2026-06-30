@@ -16,8 +16,6 @@ tags:
 sidebar_label: S6. External Signals
 ---
 
-# S6. 외부 시그널 융합
-
 > 외부 데이터 4종 모두 활용 — 마케팅 혁신 PoC의 핵심 가치 중 하나.
 
 ## 1. URL 경로

@@ -13,12 +13,6 @@ sidebar_label: Autonomous Response
 import { ResponsePatterns, ChaosExperiments } from '@site/src/components/PredictiveOpsTables';
 import { OperationPatternsComparison, AiopsMaturityModel } from '@site/src/components/AiopsIntroTables';
 
-# Autonomous Response
-
-> 📅 **Date**: 2026-04-07 | ⏱️ **Reading time**: About 12 minutes
-
----
-
 ## 1. Overview
 
 **Autonomous Response** is an operational paradigm where AI Agents detect incidents, collect and analyze context, and autonomously execute recovery within predefined guardrails.
@@ -586,7 +580,7 @@ graph LR
     C --> D[Harness<br/>Improvement]
     D --> E[Deployment]
     E --> A
-    
+
     style C fill:#fff4e6,stroke:#f57c00
     style D fill:#e8f5e9,stroke:#388e3c
 ```

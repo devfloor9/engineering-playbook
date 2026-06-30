@@ -16,8 +16,6 @@ tags:
 sidebar_label: S9-U. BU Crossover
 ---
 
-# S9-U. BU 가로지르는 OPENPOINT 회원 여정
-
 > **Uni-President 차별 포인트** ⭐ (PoC 결정적 한 컷) — 한 OPENPOINT 회원이 5 BU(7ELE/까르푸/Starbucks/Donut/KFC)를 어떻게 가로지르는지 단일 KG로 시각화·분석.
 
 ## 1. URL · 페르소나

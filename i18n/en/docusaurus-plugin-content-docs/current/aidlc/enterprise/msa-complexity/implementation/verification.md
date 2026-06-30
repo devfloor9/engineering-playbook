@@ -17,8 +17,6 @@ sidebar_label: Verification Methodology
 sidebar_position: 3
 ---
 
-# Verification Methodology
-
 Methods to ensure quality when applying AIDLC in complex MSA environments.
 
 ## Verification Checklist
@@ -62,7 +60,7 @@ jobs:
       - name: Validate Ontology
         run: |
           aidlc-cli validate-ontology --path ontology/
-  
+
   run-harness:
     runs-on: ubuntu-latest
     steps:
@@ -71,7 +69,7 @@ jobs:
         run: |
           aidlc-cli run-harness --suite saga
           aidlc-cli run-harness --suite idempotency
-  
+
   quality-gate:
     runs-on: ubuntu-latest
     needs: [validate-ontology, run-harness]

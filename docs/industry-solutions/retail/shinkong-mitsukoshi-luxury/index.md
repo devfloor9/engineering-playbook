@@ -11,8 +11,6 @@ tags:
 sidebar_label: Overview
 ---
 
-# Shinkong Mitsukoshi Luxury Retail PoC
-
 > **"VIP·외국인 회원·럭셔리 입점 브랜드·면세·매장 데이터를 외부 트렌드·환율·관광 시그널과 묶어 온톨로지 + Agentic AI로 풀어내는 백화점 혁신 PoC"**
 
 新光三越 19개 점포의 VIP 멤버십, 입점 럭셔리 브랜드 700+, 외국인 관광객(일본·홍콩·동남아) 행동, 면세점 데이터를 단일 KG로 통합. 공개 정보만 활용.

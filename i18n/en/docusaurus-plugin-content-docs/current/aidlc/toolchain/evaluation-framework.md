@@ -19,8 +19,6 @@ tags:
 sidebar_label: Evaluation Framework
 ---
 
-# AIDLC Evaluation Framework
-
 > **Reading Time**: ~12 minutes
 
 AIDLC (AI Development Life Cycle) deals with **stochastic outputs** unlike traditional SDLC. LLM/Agent responses vary even with the same input, and passing a unit test once doesn't guarantee "always correct." This document organizes how to embed evaluation into AIDLC's three loops (Inner/Middle/Outer), and the benchmarks, tools, and architectures used in production as of April 2026.

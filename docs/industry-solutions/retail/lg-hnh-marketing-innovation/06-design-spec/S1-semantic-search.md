@@ -16,8 +16,6 @@ tags:
 sidebar_label: S1. Semantic Search
 ---
 
-# S1. 자연어 시맨틱 검색
-
 ## 1. URL 경로
 - `/semantic-search`
 - 페르소나 스위처 헤더 자동 적용

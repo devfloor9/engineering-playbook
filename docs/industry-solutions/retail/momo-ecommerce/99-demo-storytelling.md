@@ -16,8 +16,6 @@ tags:
 sidebar_label: 99. Demo Storytelling
 ---
 
-# 30분 시연 스크립트 (Momo)
-
 ## 0. 시연 전 준비
 | ✅ | Top-5 응답 1분 내 / 라이브 이벤트 mock 동작 / 배송 SLA 라이브 |
 

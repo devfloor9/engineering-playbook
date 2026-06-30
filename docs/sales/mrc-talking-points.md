@@ -15,8 +15,6 @@ tags:
 sidebar_label: MRC 토킹포인트
 ---
 
-# MRC 토킹포인트
-
 > **핵심 테제**: "디지털 전환에 성공한 기업이 Agentic AI도 잘 합니다."
 
 ---

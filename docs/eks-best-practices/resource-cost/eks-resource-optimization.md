@@ -1,7 +1,7 @@
 ---
 title: EKS Pod 리소스 최적화 가이드
 description: Kubernetes Pod의 CPU/Memory 리소스 설정, QoS 클래스, VPA/HPA 오토스케일링, 리소스 Right-Sizing 전략
-created: "2026-02-13"
+created: "2026-02-12"
 last_update:
   date: "2026-06-27"
   author: YoungJoon Jeong
@@ -21,10 +21,6 @@ tags:
 sidebar_label: Pod 리소스 최적화
 category: performance-networking
 ---
-
-# EKS Pod 리소스 최적화 가이드
-
-> 📅 **작성일**: 2026-02-12 | **수정일**: 2026-02-14 | ⏱️ **읽는 시간**: 약 46분
 
 > **📌 기준 환경**: EKS 1.33+, Kubernetes 1.33+, Metrics Server v0.7+
 

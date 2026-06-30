@@ -1,7 +1,7 @@
 ---
 title: EKS Debugging Guide
 description: Comprehensive troubleshooting guide for systematically diagnosing and resolving application and infrastructure issues in Amazon EKS environments
-created: "2026-04-21"
+created: "2026-02-10"
 last_update:
   date: "2026-04-07"
   author: devfloor9
@@ -21,8 +21,6 @@ category: observability-monitoring
 import { IncidentEscalationTable, ZonalShiftImpactTable, ControlPlaneLogTable, ClusterHealthTable, NodeGroupErrorTable, ErrorQuickRefTable } from '@site/src/components/EksDebugTables';
 
 # EKS Debugging Guide
-
-> **Created**: 2026-02-10 | **Updated**: 2026-04-07 | **Reading time**: about 8 minutes
 
 > **Baseline environment**: EKS 1.32+, kubectl 1.30+, AWS CLI v2
 

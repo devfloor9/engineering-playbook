@@ -16,8 +16,6 @@ tags:
 sidebar_label: S4. Persona & Cluster
 ---
 
-# S4. 라이프스타일 페르소나 매칭 + 클러스터링 (Momo)
-
 ## 1. 라이프스타일 5종
 
 | 페르소나 | 시그널 |

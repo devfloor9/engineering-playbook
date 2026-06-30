@@ -17,8 +17,6 @@ sidebar_label: "L3-L4: 비동기 & Saga"
 sidebar_position: 2
 ---
 
-# Level 3-4: 비동기 이벤트 & Saga
-
 이벤트 기반 아키텍처와 분산 트랜잭션을 다루는 중급~고급 복잡도 패턴입니다.
 
 ## Level 3: 비동기 이벤트 기반 MSA
@@ -39,7 +37,7 @@ graph LR
     D --> E[이벤트 스키마 검증]
     E --> F[Eventually Consistent 테스트]
     F --> G[배포]
-    
+
     style B fill:#FFF9C4
     style C fill:#E8F5E9
     style D fill:#E3F2FD
@@ -121,7 +119,7 @@ graph TB
     F --> G{모든 시나리오 통과?}
     G -->|Yes| H[배포]
     G -->|No| C
-    
+
     style B fill:#FFF9C4
     style C fill:#E8F5E9
     style D fill:#E3F2FD
@@ -169,11 +167,11 @@ saga:
     - scenario: FlightReservationFailed
       compensations:
         - (none, 첫 단계 실패)
-    
+
     - scenario: HotelReservationFailed
       compensations:
         - cancelFlightReservation
-    
+
     - scenario: PaymentFailed
       compensations:
         - cancelHotelReservation
@@ -203,19 +201,19 @@ saga:
 def test_saga_compensation():
     """Saga 실패 시 보상 로직이 정확히 동작하는지 검증"""
     saga = TravelBookingSaga()
-    
+
     # 1. Flight 예약 성공
     saga.execute_step("ReserveFlight")
     assert flight_service.is_reserved("flight123")
-    
+
     # 2. Hotel 예약 성공
     saga.execute_step("ReserveHotel")
     assert hotel_service.is_reserved("hotel456")
-    
+
     # 3. Payment 실패 시뮬레이션
     with pytest.raises(PaymentFailedException):
         saga.execute_step("ChargePayment")
-    
+
     # 4. 보상 트랜잭션 검증
     saga.compensate()
     assert not hotel_service.is_reserved("hotel456")  # 취소됨

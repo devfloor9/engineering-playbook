@@ -1,5 +1,5 @@
 ---
-title: Case Studies
+title: AIDLC Case Studies
 description: AIDLC Enterprise Adoption Case Studies — Anonymized real-world cases, quantitative before/after metrics, failure patterns and lessons learned
 created: "2026-04-07"
 last_update:
@@ -9,10 +9,6 @@ reading_time: 32
 tags: []
 sidebar_label: Case Studies
 ---
-
-# AIDLC Case Studies
-
-> **Reading time**: Approximately 25 minutes
 
 This document provides **real-world cases** of AIDLC enterprise adoption in anonymized form. Each case includes quantitative metrics, challenges, adoption strategies, and lessons learned, offering concrete insights you can reference when adopting AIDLC in your organization.
 

@@ -21,8 +21,6 @@ category: performance-networking
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
-> 📅 **작성일**: 2026-06-17 | **수정일**: 2026-06-17
-
 :::info
 이 문서는 [Gateway API 도입 가이드](/docs/eks-best-practices/networking-performance/gateway-api-adoption-guide)의 심화 가이드입니다. NGINX Ingress에서 사용하던 8가지 주요 기능을 각 Gateway API 구현체에서 어떻게 구현하는지 YAML 예제로 비교합니다. 솔루션 선정·비교표·의사결정 트리는 본 가이드의 [섹션 4](/docs/eks-best-practices/networking-performance/gateway-api-adoption-guide#4-gateway-api-구현체-비교---aws-native-vs-open-source)를 참조하세요.
 :::

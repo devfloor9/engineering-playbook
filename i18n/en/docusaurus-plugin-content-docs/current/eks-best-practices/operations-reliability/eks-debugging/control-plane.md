@@ -17,8 +17,6 @@ sidebar_label: Control Plane
 
 import { ControlPlaneLogTable, ClusterHealthTable } from '@site/src/components/EksDebugTables';
 
-# Control Plane Debugging
-
 ## Control Plane Log Types
 
 The EKS control plane can send five log types to CloudWatch Logs.

@@ -16,8 +16,6 @@ sidebar_label: GuardDuty Extended
 category: security
 ---
 
-# GuardDuty Extended Threat Detection
-
 :::info Coming Soon
 This document is currently being written. The following topics will be covered:
 

@@ -16,8 +16,6 @@ tags:
 sidebar_label: Governance & Automation
 ---
 
-# Governance & Automation
-
 ## Regression Detection Integration
 
 ### Integration with Evaluation Framework
@@ -317,7 +315,7 @@ groups:
         annotations:
           summary: "Prompt v6 regression detected"
           description: "{{ $labels.prompt_name }} v6 Exact Match dropped 5%p or more compared to v5"
-          
+
       - alert: LatencyRegressionDetected
         expr: |
           histogram_quantile(0.99, 
@@ -347,24 +345,24 @@ def lambda_handler(event, context):
     alert = event['alerts'][0]
     prompt_name = alert['labels']['prompt_name']
     current_version = alert['labels']['prompt_version']
-    
+
     # Query previous version from Langfuse
     client = Langfuse()
     versions = client.list_prompt_versions(prompt_name)
     previous_version = int(current_version.replace('v', '')) - 1
-    
+
     # Rollback production label to previous version
     client.update_prompt_label(
         prompt_name, 
         version=previous_version, 
         label="production"
     )
-    
+
     # Slack notification
     slack_webhook(
         f"🔴 Automatic rollback executed: {prompt_name} recovered to v{previous_version}"
     )
-    
+
     return {"status": "rolled_back", "version": previous_version}
 ```
 

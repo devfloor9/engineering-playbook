@@ -17,8 +17,6 @@ sidebar_label: 검증 방법론
 sidebar_position: 3
 ---
 
-# 검증 방법론
-
 복잡 MSA에서 AIDLC 적용 시 품질을 보장하는 방법입니다.
 
 ## 검증 체크리스트
@@ -62,7 +60,7 @@ jobs:
       - name: Validate Ontology
         run: |
           aidlc-cli validate-ontology --path ontology/
-  
+
   run-harness:
     runs-on: ubuntu-latest
     steps:
@@ -71,7 +69,7 @@ jobs:
         run: |
           aidlc-cli run-harness --suite saga
           aidlc-cli run-harness --suite idempotency
-  
+
   quality-gate:
     runs-on: ubuntu-latest
     needs: [validate-ontology, run-harness]

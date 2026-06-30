@@ -16,8 +16,6 @@ tags:
 sidebar_label: S7. Customer Journey
 ---
 
-# S7. 옴니채널 회원 여정 (Uni-President)
-
 > S9-U와 유사하지만 S7은 **개별 회원 90일 타임라인** 중심, S9-U는 **통계적 BU 교차 패턴** 중심.
 
 ## 데이터 믹스

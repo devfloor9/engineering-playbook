@@ -16,8 +16,6 @@ tags:
 sidebar_label: 04. Data Sources
 ---
 
-# 데이터 소스 (Uni-President)
-
 ## 1. 데이터 규모
 
 | 항목 | 규모 |

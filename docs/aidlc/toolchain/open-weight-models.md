@@ -15,8 +15,6 @@ tags:
 sidebar_label: 오픈 웨이트 모델
 ---
 
-# 오픈 웨이트 모델
-
 엔터프라이즈 환경에서 AI 개발 라이프사이클(AIDLC)을 운영할 때, 데이터 레지던시와 비용 효율성은 핵심 의사결정 요소입니다. 오픈 웨이트 모델은 클라우드 API(Claude, GPT-4) 대비 세 가지 차별화된 가치를 제공합니다: **데이터 주권 확보**, **예측 가능한 TCO**, **도메인 특화 커스터마이징**.
 
 ## 왜 오픈 웨이트 모델인가
@@ -344,17 +342,17 @@ from typing import Dict, List
 class OntologyInjector:
     def __init__(self, ontology_path: str):
         self.ontology = self.load_ontology(ontology_path)
-    
+
     def inject_context(self, prompt: str, domain: str) -> str:
         """도메인 온톨로지를 프롬프트에 추가"""
         domain_terms = self.ontology.get(domain, {})
-        
+
         context = "# Domain Knowledge\n"
         for term, definition in domain_terms.items():
             context += f"- {term}: {definition}\n"
-        
+
         return f"{context}\n# Task\n{prompt}"
-    
+
     def load_ontology(self, path: str) -> Dict[str, Dict[str, str]]:
         # JSON/YAML 형식의 온톨로지 파일 로드
         pass
@@ -406,13 +404,13 @@ class OutputFilter:
             (r'\b[\w\.-]+@[\w\.-]+\.\w+\b', '[EMAIL-REDACTED]'),  # 이메일
             (r'\b\d{4}-\d{4}-\d{4}-\d{4}\b', '[CARD-REDACTED]')  # 카드번호
         ]
-    
+
     def filter(self, text: str) -> str:
         """민감 정보 자동 제거"""
         for pattern, replacement in self.patterns:
             text = re.sub(pattern, replacement, text)
         return text
-    
+
     def audit_log(self, text: str, redacted_count: int) -> None:
         """필터링 이력 기록"""
         # CloudWatch Logs 또는 S3로 전송

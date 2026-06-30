@@ -1,7 +1,7 @@
 ---
 title: Security & Governance
 description: Amazon EKS 환경에서의 보안 강화 및 컴플라이언스 준수에 대한 심화 기술 문서
-created: "2025-09-11"
+created: "2025-02-05"
 last_update:
   date: "2026-06-15"
   author: devfloor9
@@ -12,10 +12,6 @@ sidebar_label: 보안 & 거버넌스
 sidebar_position: 5
 category: security
 ---
-
-# Security & Governance
-
-> 📅 **작성일**: 2025-02-05 | **수정일**: 2026-02-13 | ⏱️ **읽는 시간**: 약 10분
 
 현대 클라우드 환경에서 보안은 단순한 방어벽 구축을 넘어 다층 방어 전략과 지속적인 보안 태세 평가를 요구합니다. Amazon EKS 환경에서의 보안 강화는 클러스터 레벨의 접근 제어부터 네트워크 격리, 데이터 암호화, 런타임 보안 모니터링에 이르기까지 포괄적인 접근이 필요합니다. 이 섹션에서는 방어 심층화(Defense in Depth) 원칙에 기반한 보안 아키텍처 설계와 구현 방법을 다룹니다.
 
@@ -56,39 +52,39 @@ graph TB
         IdP["Identity Provider"]
         API["API Gateway"]
     end
-    
+
     subgraph EdgeSecurity["Edge Security"]
         WAF["AWS WAF"]
         Shield["AWS Shield"]
         NLB["Network Load Balancer"]
     end
-    
+
     subgraph Network["Network Layer"]
         VPC["VPC"]
         SG["Security Groups"]
         NACL["Network ACLs"]
     end
-    
+
     subgraph EKS["EKS Cluster"]
         CP["Control Plane"]
         RBAC["RBAC Policies"]
         NetworkPolicy["Network Policies"]
         IRSA["Pod Identity / IRSA"]
     end
-    
+
     subgraph DataProtection["Data Protection"]
         KMS["AWS KMS"]
         Secrets["Secrets Manager"]
         Encryption["etcd Encryption"]
     end
-    
+
     subgraph Monitoring["Security Monitoring"]
         CloudTrail["AWS CloudTrail"]
         GuardDuty["Amazon GuardDuty"]
         SecurityHub["AWS Security Hub"]
         Logs["Application Logs"]
     end
-    
+
     Users --> IdP
     IdP --> API
     API --> WAF
@@ -107,7 +103,7 @@ graph TB
     CP --> GuardDuty
     GuardDuty --> SecurityHub
     CP --> Logs
-    
+
     style External fill:#ea4335
     style EdgeSecurity fill:#fbbc04
     style Network fill:#4286f4

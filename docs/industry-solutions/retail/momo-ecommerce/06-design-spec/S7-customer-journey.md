@@ -16,8 +16,6 @@ tags:
 sidebar_label: S7. Customer Journey
 ---
 
-# S7. 옴니채널 회원 여정 (Momo)
-
 ## 1. URL · 페르소나
 - `/journey` · P4 (CS·CRM)
 

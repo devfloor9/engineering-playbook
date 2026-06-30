@@ -17,8 +17,6 @@ sidebar_label: Supply Chain Security
 category: security
 ---
 
-# Container Supply Chain Security
-
 :::info Coming Soon
 This document is currently being written. The following topics will be covered:
 

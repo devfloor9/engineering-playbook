@@ -16,8 +16,6 @@ tags:
 sidebar_label: S10-Mo. Delivery SLA
 ---
 
-# S10-Mo. 자체 물류 배송 SLA + 발주 최적화
-
 > **Momo 차별 포인트** ⭐ — 자체 물류(momo Fast)의 24시간 배송 약속 위반률을 권역·시간대·외기온 결합 분석.
 
 ## 1. URL · 페르소나

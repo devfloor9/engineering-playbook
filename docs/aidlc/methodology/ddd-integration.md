@@ -1,5 +1,5 @@
 ---
-title: DDD 통합
+title: DDD 통합 — AI 주도 개발에서의 필수 코어
 description: AIDLC에서 DDD가 필수 코어인 이유 — 도메인 설계부터 논리 설계까지 AI 주도 개발
 created: "2026-04-07"
 last_update:
@@ -20,8 +20,6 @@ tags:
 sidebar_label: DDD 통합
 category: aidlc
 ---
-
-# DDD 통합 — AI 주도 개발에서의 필수 코어
 
 > **핵심 메시지**: AIDLC에서 DDD는 선택사항이 아닌 방법론의 내장 요소입니다. AI가 비즈니스 로직을 자동으로 DDD 원칙에 따라 모델링하고, 팀이 이를 검증·조정합니다.
 
@@ -103,7 +101,7 @@ graph LR
     B --> C[tasks.md]
     C --> D[코드 생성]
     D --> E[검증]
-    
+
     style A fill:#e8f5e9,stroke:#4caf50
     style B fill:#e3f2fd,stroke:#2196f3
     style C fill:#fff3e0,stroke:#ff9800
@@ -357,12 +355,12 @@ func (r *DynamoDBPaymentRepository) Save(ctx context.Context, p *Payment) error 
         TableName: aws.String("payment-service"),
         Item:      item,
     })
-    
+
     // Domain Event 발행
     for _, event := range p.Events {
         publishToSQS(event)
     }
-    
+
     return err
 }
 ```
@@ -472,11 +470,11 @@ func TestPaymentNotificationIntegration(t *testing.T) {
     // Payment Unit이 PaymentCompleted 이벤트 발행
     payment := CreatePayment(amount)
     payment.Complete()
-    
+
     // SQS에서 이벤트 수신 확인
     event := sqsClient.ReceiveMessage("payment-events.fifo")
     assert.Equal(t, "PaymentCompleted", event.Type)
-    
+
     // Notification Unit이 이메일 발송했는지 확인
     notification := notificationClient.GetLastNotification()
     assert.Contains(t, notification.Body, payment.TransactionID)
@@ -517,7 +515,7 @@ graph TD
     E --> F[Domain Design 생성]
     F --> G[Logical Design]
     G --> H[리팩터링 코드 생성]
-    
+
     style A fill:#ffebee,stroke:#c62828
     style F fill:#e8f5e9,stroke:#4caf50
     style H fill:#e3f2fd,stroke:#2196f3

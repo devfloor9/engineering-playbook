@@ -16,8 +16,6 @@ tags:
 sidebar_label: S10-M. Brand SOV
 ---
 
-# S10-M. 럭셔리 브랜드 SOV + 백화점 매대 점유
-
 > **Mitsukoshi 차별 포인트** ⭐ — 700+ 입점 브랜드의 매대 점유와 SOV(Share of Voice)를 19점포·층·시즌 단위로 분석.
 
 ## 1. URL · 페르소나

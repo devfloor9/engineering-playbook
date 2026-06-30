@@ -18,8 +18,6 @@ sidebar_label: 컨트롤 플레인
 
 import { ControlPlaneLogTable, ClusterHealthTable } from '@site/src/components/EksDebugTables';
 
-# 컨트롤 플레인 디버깅
-
 ## 컨트롤 플레인 로그 타입
 
 EKS 컨트롤 플레인은 5가지 로그 타입을 CloudWatch Logs에 전송할 수 있습니다.

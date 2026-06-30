@@ -16,8 +16,6 @@ tags:
 sidebar_label: 02. Ontology
 ---
 
-# Knowledge Graph 25 Classes (Momo)
-
 | 그룹 | 클래스 |
 |---|---|
 | **고객/회원** | Customer · Membership · Household · Persona · **LiveViewer** (라이브 시청 이벤트 단위) |

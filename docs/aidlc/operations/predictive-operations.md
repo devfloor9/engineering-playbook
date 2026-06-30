@@ -17,8 +17,6 @@ sidebar_label: 예측 운영
 
 import { ScalingComparison, MLModelComparison, MaturityTable } from '@site/src/components/PredictiveOpsTables';
 
-# 예측 운영
-
 > **핵심**: 반응형 운영에서 예측형 운영으로 — ML 기반 예측 스케일링, 이상 감지, 자동 최적화
 
 ---
@@ -98,7 +96,7 @@ import pandas as pd
 def predict_scaling(metrics_df, forecast_hours=2):
     """Prophet으로 향후 트래픽 예측"""
     df = metrics_df.rename(columns={'timestamp': 'ds', 'value': 'y'})
-    
+
     model = Prophet(
         changepoint_prior_scale=0.05,
         seasonality_mode='multiplicative',
@@ -106,10 +104,10 @@ def predict_scaling(metrics_df, forecast_hours=2):
         weekly_seasonality=True
     )
     model.fit(df)
-    
+
     future = model.make_future_dataframe(periods=forecast_hours * 12, freq='5min')
     forecast = model.predict(future)
-    
+
     return forecast[['ds', 'yhat', 'yhat_upper', 'yhat_lower']]
 
 def calculate_required_pods(predicted_rps, pod_capacity_rps=100):

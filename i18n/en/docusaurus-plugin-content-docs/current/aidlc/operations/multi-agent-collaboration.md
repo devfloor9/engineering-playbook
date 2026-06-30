@@ -18,8 +18,6 @@ tags:
 sidebar_label: Multi-Agent Collaboration
 ---
 
-# Multi-Agent Collaboration Patterns
-
 > 📅 **Date**: 2026-04-18 | ⏱️ **Reading Time**: ~15 minutes
 
 ---

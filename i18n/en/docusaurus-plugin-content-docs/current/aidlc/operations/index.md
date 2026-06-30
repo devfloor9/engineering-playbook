@@ -1,5 +1,5 @@
 ---
-title: AgenticOps
+title: "AgenticOps: AI Agent-Based Autonomous Operations"
 description: AI agent-based autonomous operations for software developed with AIDLC — observability, prediction, and automated response
 created: "2026-04-07"
 last_update:
@@ -12,8 +12,6 @@ sidebar_label: AgenticOps
 ---
 
 # AgenticOps: AI Agent-Based Autonomous Operations
-
-> **Reading time**: About 2 minutes
 
 AgenticOps is an approach to autonomously build a feedback loop through AI agents for continuous improvement in production environments after developing software with [AIDLC](/docs/aidlc/methodology). While traditional AIOps used AI as a monitoring aid, AgenticOps enables AI agents to autonomously perform **detection → decision → execution** based on observability data.
 

@@ -18,10 +18,6 @@ sidebar_position: 7
 category: aidlc
 ---
 
-# Extension System
-
-> 📅 **Written**: 2026-04-18 | ⏱️ **Reading Time**: ~15 minutes
-
 AWS Labs [AIDLC Workflows](https://github.com/awslabs/aidlc-workflows) provides an **Extension System** that allows organizations to add **regulatory and domain-specific rules** beyond the official 5 principles and 11 Common Rules. This document covers Extension architecture, Built-in extensions, opt-in activation mechanism, and Korean enterprise (ISMS-P · financial regulations) application examples.
 
 ---

@@ -1,5 +1,5 @@
 ---
-title: 도입 전략
+title: 엔터프라이즈 AIDLC 도입 전략
 description: AIDLC 엔터프라이즈 도입 전략 — 워터폴→하이브리드 전환, 챔피언 모델, 단계별 확산 로드맵
 created: "2026-04-07"
 last_update:
@@ -13,8 +13,6 @@ tags:
   - scope:enterprise
 sidebar_label: 도입 전략
 ---
-
-# 엔터프라이즈 AIDLC 도입 전략
 
 엔터프라이즈 SI 환경에서 워터폴 중심 개발 문화를 AIDLC로 전환하기 위한 실전 도입 전략을 제시한다.
 
@@ -53,10 +51,10 @@ graph LR
     Phase1["Phase 1<br/>워터폴 + AI 보조"]
     Phase2["Phase 2<br/>하이브리드"]
     Phase3["Phase 3<br/>AIDLC 네이티브"]
-    
+
     Phase1 -->|3-6개월| Phase2
     Phase2 -->|6-12개월| Phase3
-    
+
     style Phase1 fill:#e8f4f8
     style Phase2 fill:#b3e5fc
     style Phase3 fill:#4fc3f7
@@ -105,12 +103,12 @@ graph TD
     Unit["Unit 분해<br/>(1-3일 작업)"]
     Dev["Mob Programming<br/>(Daily Unit 완료)"]
     Val["Bolt Validation<br/>(Working Demo)"]
-    
+
     Intent --> Unit
     Unit --> Dev
     Dev --> Val
     Val -->|다음 Bolt| Intent
-    
+
     style Intent fill:#fff9c4
     style Dev fill:#c5e1a5
     style Val fill:#90caf9
@@ -180,10 +178,10 @@ graph LR
     Small["소형 프로젝트<br/>(10억 이하)<br/>Brownfield 최적화"]
     Medium["중형 프로젝트<br/>(10-50억)<br/>부분 Greenfield"]
     Large["대형 프로젝트<br/>(50억+)<br/>전면 AIDLC"]
-    
+
     Small -->|성공 사례 축적| Medium
     Medium -->|조직 신뢰 확보| Large
-    
+
     style Small fill:#c8e6c9
     style Medium fill:#81c784
     style Large fill:#4caf50
@@ -223,10 +221,10 @@ graph TD
     Champion["1인 챔피언<br/>(주 1일 AIDLC 적용)"]
     Team["팀 확산<br/>(챔피언이 팀원 교육)"]
     Org["조직 표준화<br/>(전사 거버넌스)"]
-    
+
     Champion -->|3개월| Team
     Team -->|6개월| Org
-    
+
     style Champion fill:#fff9c4
     style Team fill:#c5e1a5
     style Org fill:#90caf9

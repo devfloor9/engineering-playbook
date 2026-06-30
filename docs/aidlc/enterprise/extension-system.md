@@ -18,10 +18,6 @@ sidebar_position: 7
 category: aidlc
 ---
 
-# Extension System
-
-> 📅 **작성일**: 2026-04-18 | ⏱️ **읽는 시간**: 약 15분
-
 AWS Labs [AIDLC Workflows](https://github.com/awslabs/aidlc-workflows) 는 공식 5대 원칙과 11개 Common Rules 외에, **조직별 규제·도메인 특화 규칙을 추가**할 수 있는 **Extension System** 을 제공합니다. 본 문서는 Extension 아키텍처, Built-in 확장, opt-in 작동 메커니즘, 그리고 한국 엔터프라이즈(ISMS-P · 금융감독규정) 적용 예시를 다룹니다.
 
 ---

@@ -21,10 +21,6 @@ keywords:
 sidebar_label: Nitro 아키텍처 & 튜닝
 ---
 
-# AWS Nitro 아키텍처와 성능 튜닝
-
-> 📅 **작성일**: 2026-06-19 | **수정일**: 2026-06-20 | ⏱️ **읽는 시간**: 약 14분
-
 ## 개요
 
 AWS Nitro System은 현세대 Amazon EC2 인스턴스의 기반 플랫폼이며, EKS 워커 노드의 네트워크·스토리지·보안 동작을 결정합니다. Nitro는 세대(v2~v6)별로 네트워크 대역폭, ENA(Elastic Network Adapter) 기능, TCP 동작이 다르고, 이에 따라 노드 AMI의 ENA 드라이버·커널 버전 요구사항과 성능 튜닝 포인트가 달라집니다. 이 문서는 Nitro 구성 요소와 세대별 변경 사항을 정리하고, EKS 노드 관점에서 확인해야 할 드라이버·커널 요건과 PPS(Packets Per Second)/CPS(Connections Per Second) 중심 튜닝 전략을 다룹니다.

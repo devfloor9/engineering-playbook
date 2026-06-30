@@ -17,8 +17,6 @@ sidebar_position: 7
 category: benchmarks
 ---
 
-# Hybrid Infrastructure Benchmark
-
 Measure the performance of hybrid infrastructure between cloud and on-premises.
 
 ## Network Performance

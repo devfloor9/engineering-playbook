@@ -16,8 +16,6 @@ sidebar_label: MSA Complexity
 sidebar_position: 3
 ---
 
-# MSA Complexity Guide
-
 A guide to evaluate project suitability for AIDLC (AI-Driven Development Life Cycle) and determine ontology and harness strategies based on MSA difficulty levels.
 
 ## Why MSA Complexity Matters
@@ -85,47 +83,47 @@ graph TB
         style L1B fill:#90EE90
         style L1C fill:#90EE90
         style L1D fill:#90EE90
-        
+
         style L2A fill:#FFD700
         style L2B fill:#90EE90
         style L2C fill:#90EE90
         style L2D fill:#90EE90
-        
+
         style L3A fill:#FF6347
         style L3B fill:#FFD700
         style L3C fill:#90EE90
         style L3D fill:#90EE90
-        
+
         style L4A fill:#FF0000
         style L4B fill:#FF6347
         style L4C fill:#FFD700
         style L4D fill:#90EE90
-        
+
         style L5A fill:#FF0000
         style L5B fill:#FF0000
         style L5C fill:#FF6347
         style L5D fill:#FFD700
-        
+
         L1A["L1-A<br/>🟢 Ready"]
         L1B["L1-B<br/>🟢 Ready"]
         L1C["L1-C<br/>🟢 Ready"]
         L1D["L1-D<br/>🟢 Ready"]
-        
+
         L2A["L2-A<br/>🟡 POC Required"]
         L2B["L2-B<br/>🟢 After Training"]
         L2C["L2-C<br/>🟢 Ready"]
         L2D["L2-D<br/>🟢 Ready"]
-        
+
         L3A["L3-A<br/>🔴 High Risk"]
         L3B["L3-B<br/>🟡 Expert Needed"]
         L3C["L3-C<br/>🟢 Team Review"]
         L3D["L3-D<br/>🟢 Ready"]
-        
+
         L4A["L4-A<br/>⛔ Not Recommended"]
         L4B["L4-B<br/>🔴 High Risk"]
         L4C["L4-C<br/>🟡 Proceed Carefully"]
         L4D["L4-D<br/>🟢 Feasible"]
-        
+
         L5A["L5-A<br/>⛔ Not Recommended"]
         L5B["L5-B<br/>⛔ Not Recommended"]
         L5C["L5-C<br/>🔴 Expert Required"]
@@ -146,28 +144,28 @@ Flowchart for deciding whether to apply AIDLC to a project.
 ```mermaid
 graph TB
     Start([AIDLC Application Review]) --> Q1{Project Scale?}
-    
+
     Q1 -->|Small<br/>Single Service| Q2A{Team AIDLC Experience?}
     Q1 -->|Medium<br/>Sync MSA| Q2B{Team AIDLC Experience?}
     Q1 -->|Large<br/>Async/Saga| Q2C{Team AIDLC Experience?}
-    
+
     Q2A -->|Yes| Go1[✅ Go Immediately]
     Q2A -->|No| Q3A{Quick Learning Possible?}
     Q3A -->|Yes| Go2[✅ Go<br/>With Training]
     Q3A -->|No| Partial1[⚠️ Partial<br/>POC First]
-    
+
     Q2B -->|Yes| Q3B{DDD Experience?}
     Q2B -->|No| Partial2[⚠️ Partial<br/>DDD Training First]
     Q3B -->|Yes| Go3[✅ Go]
     Q3B -->|No| Partial3[⚠️ Partial<br/>DDD Integration Required]
-    
+
     Q2C -->|Yes| Q3C{Saga/Event Sourcing<br/>Experience?}
     Q2C -->|No| NoGo1[🛑 No-Go<br/>Insufficient Readiness]
     Q3C -->|Yes| Q4C{Expert Support Available?}
     Q3C -->|No| NoGo2[🛑 No-Go<br/>Expert Required]
     Q4C -->|Yes| Go4[✅ Go<br/>Expert Review Required]
     Q4C -->|No| Partial4[⚠️ Partial<br/>After Expert Secured]
-    
+
     style Go1 fill:#90EE90
     style Go2 fill:#90EE90
     style Go3 fill:#90EE90

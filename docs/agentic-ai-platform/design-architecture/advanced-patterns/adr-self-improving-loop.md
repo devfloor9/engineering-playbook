@@ -18,7 +18,6 @@ sidebar_position: 99
 ---
 
 - **상태**: Proposed (실 운영 착수 전 합의 필요)
-- **작성일**: 2026-04-19
 - **관련 문서**
   - 설계: [Self-Improving Agent Loop](./self-improving-agent-loop.md)
   - 구현: [Continuous Training Pipeline](../../reference-architecture/model-lifecycle/continuous-training/index.md)

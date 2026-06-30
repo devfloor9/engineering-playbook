@@ -51,8 +51,6 @@ import {
 
 > **📌 Reference Versions**: Gateway API v1.5.1, Cilium v1.19.0, EKS 1.33+, AWS LBC v3.0.0, Envoy Gateway v1.7.0
 
-> 📅 **Written**: 2025-02-12 | **Updated**: 2026-06-17 | ⏱️ **Reading time**: ~13 min
-
 ## 1. Overview
 
 Kubernetes traffic management is converging on the Gateway API, driven by two forces.

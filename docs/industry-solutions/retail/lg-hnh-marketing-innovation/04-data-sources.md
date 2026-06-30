@@ -16,8 +16,6 @@ tags:
 sidebar_label: 04. Data Sources
 ---
 
-# 데이터 소스
-
 > **자사 실데이터 (PII 마스킹) + 합성 데이터 + 외부 4종 (소셜·기상·경제·경쟁사)** 를 cohort_tag로 명시 분리.
 
 ---

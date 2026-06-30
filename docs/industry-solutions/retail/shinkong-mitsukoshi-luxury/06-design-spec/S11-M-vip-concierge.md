@@ -16,8 +16,6 @@ tags:
 sidebar_label: S11-M. VIP Concierge
 ---
 
-# S11-M. VIP 등급 (Black/Platinum/Gold) 라운지 컨시어지
-
 > **Mitsukoshi 차별 포인트** ⭐ — VIP 회원 1:1 컨시어지 경험을 Bedrock + Memory로 자동화.
 
 ## 1. URL · 페르소나

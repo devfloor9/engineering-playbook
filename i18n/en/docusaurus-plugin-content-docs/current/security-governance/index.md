@@ -1,7 +1,7 @@
 ---
 title: Security & Governance
 description: In-depth technical documentation on security hardening and compliance in Amazon EKS environments
-created: "2026-02-04"
+created: "2025-02-05"
 last_update:
   date: "2026-02-13"
   author: devfloor9
@@ -14,8 +14,6 @@ category: security
 ---
 
 # Security & Governance
-
-> 📅 **Created**: 2025-02-05 | **Updated**: 2026-02-13 | ⏱️ **Reading time**: ~10 min
 
 Security in modern cloud environments requires multi-layered defense strategies and continuous security posture assessment beyond simple perimeter protection. Security hardening in Amazon EKS environments demands a comprehensive approach spanning cluster-level access control, network isolation, data encryption, and runtime security monitoring. This section covers security architecture design and implementation based on Defense in Depth principles.
 

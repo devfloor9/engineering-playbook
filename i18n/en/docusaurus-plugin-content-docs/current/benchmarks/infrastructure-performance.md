@@ -17,8 +17,6 @@ sidebar_position: 6
 category: benchmarks
 ---
 
-# Infrastructure Performance Benchmark
-
 Measure and analyze key performance indicators of EKS cluster infrastructure.
 
 ## Network Performance

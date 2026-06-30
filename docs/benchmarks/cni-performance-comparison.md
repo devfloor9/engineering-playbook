@@ -1,7 +1,7 @@
 ---
 title: VPC CNI vs Cilium CNI 성능 비교 벤치마크
 description: EKS 환경에서 VPC CNI와 Cilium CNI의 네트워크 및 애플리케이션 성능을 5개 시나리오(kube-proxy, kube-proxy-less, ENI, 튜닝)로 비교한 벤치마크 보고서
-created: "2026-02-10"
+created: "2026-02-09"
 last_update:
   date: "2026-06-27"
   author: YoungJoon Jeong
@@ -38,10 +38,6 @@ import RecommendationChart from '@site/src/components/RecommendationChart';
 import XdpCompatibilityChart from '@site/src/components/XdpCompatibilityChart';
 import NetworkPolicyChart from '@site/src/components/NetworkPolicyChart';
 import CniConclusionInfographic from '@site/src/components/CniConclusionInfographic';
-
-# VPC CNI vs Cilium CNI 성능 비교 벤치마크
-
-> 📅 **작성일**: 2026-02-09 | **수정일**: 2026-02-14 | ⏱️ **읽는 시간**: 약 16분
 
 ## 개요
 

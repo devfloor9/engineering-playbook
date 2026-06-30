@@ -15,8 +15,6 @@ tags:
 sidebar_label: Prompt & Model Registry
 ---
 
-# Prompt & Model Registry
-
 ## Why Prompt Registry is Needed
 
 Central repository managing prompt and model versions like code. Solves the following problems:

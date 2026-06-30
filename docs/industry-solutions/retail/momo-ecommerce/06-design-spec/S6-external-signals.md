@@ -16,8 +16,6 @@ tags:
 sidebar_label: S6. External Signals
 ---
 
-# S6. 외부 시그널 융합 (Momo)
-
 ## 1. 외부 4종
 
 | 종류 | 출처 |

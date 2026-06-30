@@ -19,12 +19,6 @@ sidebar_position: 7
 category: aidlc
 ---
 
-# AIDLC Adaptive Execution
-
-> 📅 **작성일**: 2026-04-18 | ⏱️ **읽는 시간**: 약 20분
-
----
-
 ## 1. 개요: 왜 Adaptive 인가
 
 AWS Labs [AIDLC Workflows](https://github.com/awslabs/aidlc-workflows) 는 **고정 워크플로가 아닌 조건부(adaptive) 실행**을 기본으로 합니다. 전통적 SDLC 의 단계가 "항상 순차 실행" 이었다면, AIDLC 는 프로젝트 특성·코드베이스 상태·요구사항 복잡도에 따라 **필요한 stage 만 선택·재정렬**합니다.

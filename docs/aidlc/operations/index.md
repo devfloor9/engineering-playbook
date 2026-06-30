@@ -1,5 +1,5 @@
 ---
-title: AgenticOps
+title: "AgenticOps: AI 에이전트 기반 자율 운영"
 description: AIDLC로 개발한 소프트웨어의 AI 에이전트 기반 자율 운영 — 관찰성, 예측, 자동 대응
 created: "2026-04-07"
 last_update:
@@ -14,8 +14,6 @@ sidebar_label: AgenticOps
 ---
 
 # AgenticOps: AI 에이전트 기반 자율 운영
-
-> **읽는 시간**: 약 2분
 
 AgenticOps는 [AIDLC](/docs/aidlc/methodology)로 소프트웨어를 개발한 이후, **실제 운영 환경에서의 지속적 개선을 위한 피드백 루프를 AI 에이전트를 통해 자율적으로 구축하는 접근 방법**입니다. 기존 AIOps가 AI를 모니터링 보조 도구로 활용했다면, AgenticOps는 AI 에이전트가 관찰성 데이터를 기반으로 **감지 → 판단 → 실행**까지 자율적으로 수행합니다.
 

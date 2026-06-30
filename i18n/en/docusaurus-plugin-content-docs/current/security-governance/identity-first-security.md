@@ -16,8 +16,6 @@ sidebar_label: Identity-First Security
 category: security
 ---
 
-# Identity-First Security Architecture
-
 :::info Coming Soon
 This document is currently being written. The following topics will be covered:
 

@@ -12,10 +12,6 @@ sidebar_label: Cost Effectiveness Framework
 
 import { ProductivityMetrics, DetailedMetrics } from '@site/src/components/AidlcTables';
 
-# Cost Effectiveness Framework
-
-> **Reading time**: Approximately 18 minutes
-
 AIDLC adoption is not a technical transition but **cost structure redesign**. However, lack of actual data creates difficulties in RFP estimation, ROI justification, and budget securing. This document provides a practical framework for quantifying AIDLC cost effectiveness and reflecting it in project proposals.
 
 ## 1. RFP Cost Estimation Dilemma
@@ -37,7 +33,7 @@ Problems arising with AIDLC adoption:
 1. **How to quantify AI productivity?**
    - The fact that "AI generates code" alone cannot justify MM reduction
    - Issuers expect "AI = automatic cost reduction", but bidders estimate conservatively due to lack of actual data
-   
+
 2. **Additional cost items emerge**:
    - Ontology design: Initial 2-4 weeks
    - Harness engineering: Continuous effort

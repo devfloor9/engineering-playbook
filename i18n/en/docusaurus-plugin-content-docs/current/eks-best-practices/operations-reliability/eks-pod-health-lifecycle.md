@@ -1,7 +1,7 @@
 ---
 title: EKS Pod Health Checks & Lifecycle Management
 description: Kubernetes Probe configuration strategies, Graceful Shutdown patterns, and Pod lifecycle management best practices
-created: "2026-02-13"
+created: "2026-02-12"
 last_update:
   date: "2026-02-14"
   author: devfloor9
@@ -17,10 +17,6 @@ tags:
 sidebar_label: Pod Health Checks & Lifecycle
 category: operations
 ---
-
-# EKS Pod Health Checks & Lifecycle Management
-
-> **Written**: 2026-02-12 | **Updated**: 2026-02-14 | **Reading time**: ~48 min
 
 > **Reference Environment**: EKS 1.30+, Kubernetes 1.30+, AWS Load Balancer Controller v2.7+
 

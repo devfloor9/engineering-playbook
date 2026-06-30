@@ -18,8 +18,6 @@ keywords:
 sidebar_label: Karpenter
 ---
 
-# Karpenter In-Depth Debugging
-
 Karpenter is the next-generation autoscaler for EKS, delivering fast and efficient node provisioning based on NodePool/NodeClaim. This document covers Karpenter-specific debugging patterns.
 
 ## NodeClaim Lifecycle
@@ -33,22 +31,22 @@ stateDiagram-v2
     Launched --> Registered: kubelet registered
     Registered --> Initialized: Taints/Labels applied
     Initialized --> Ready: Node Ready
-    
+
     Ready --> Drifted: AMI/NodePool change
     Ready --> Expired: TTL reached (ttlSecondsAfterEmpty)
     Ready --> Consolidation: Underutilized
-    
+
     Drifted --> Terminating: Replacement begins
     Expired --> Terminating
     Consolidation --> Terminating
-    
+
     Terminating --> [*]: Node deleted
-    
+
     note right of Ready
         Normal operating state
         Workloads running
     end note
-    
+
     note right of Consolidation
         Consolidation conditions:
         - Idle nodes
@@ -78,18 +76,18 @@ flowchart TD
     A[Pod Pending] --> B{Karpenter logs show<br/>'incompatible'?}
     B -->|Yes| C[Compare NodePool requirements<br/>vs Pod requirements]
     B -->|No| D{Provisioned but<br/>instance launch failed?}
-    
+
     C --> E{Label/taint<br/>mismatch?}
     E -->|Yes| F[Fix NodePool selector]
     E -->|No| G{Instance type<br/>constraints?}
-    
+
     G -->|Yes| H[Match Pod resource requests<br/>with instance types]
     G -->|No| I[Check availability zone constraints]
-    
+
     D -->|Yes| J{Spot capacity shortage?}
     J -->|Yes| K[Add On-Demand fallback]
     J -->|No| L{IAM permission error?}
-    
+
     L -->|Yes| M[Check Karpenter IAM Role]
     L -->|No| N{Subnet/SG issues?}
     N -->|Yes| O[Check subnet tags<br/>karpenter.sh/discovery]
@@ -158,7 +156,7 @@ kubectl get nodepool <nodepool-name> -o yaml | grep -A 20 "requirements"
 # Pod requires
 nodeSelector:
   workload: gpu
-  
+
 # NodePool provides (no label)
 spec:
   template:
@@ -197,24 +195,24 @@ flowchart TD
     A[Karpenter Consolidation Loop] --> B{Idle node<br/>detected}
     B -->|Yes| C[Start ttlSecondsAfterEmpty<br/>timer]
     B -->|No| D{Underutilized<br/>node?}
-    
+
     C --> E{Timer expired?}
     E -->|Yes| F[Pod replacement possible?]
     E -->|No| A
-    
+
     D -->|Yes| G{Can consolidate into<br/>smaller node?}
     D -->|No| A
-    
+
     G -->|Yes| F
     G -->|No| A
-    
+
     F --> H{PDB blocks?}
     H -->|Yes| I[Defer consolidation]
     H -->|No| J{do-not-disrupt<br/>annotation?}
-    
+
     J -->|Yes| I
     J -->|No| K[Launch new node]
-    
+
     I --> A
     K --> L[Pod migration]
     L --> M[Terminate old node]
@@ -325,7 +323,7 @@ spec:
     consolidationPolicy: WhenUnderutilized  # WhenEmpty / WhenUnderutilized
     consolidateAfter: 30s  # wait before consolidation (default 15s)
     expireAfter: 720h      # max node lifetime (30 days)
-    
+
     # Budgets (concurrent disruption control)
     budgets:
       - nodes: "10%"       # at most 10% of all nodes at once
@@ -347,7 +345,7 @@ sequenceDiagram
     participant Karpenter
     participant Node
     participant Pod
-    
+
     EC2->>Node: Spot Interruption Notice (2-minute warning)
     Node->>Karpenter: Interruption event
     Karpenter->>Karpenter: Launch replacement node (immediate)
@@ -356,10 +354,10 @@ sequenceDiagram
     Pod->>Pod: Run preStop hook
     Pod->>Pod: Handle SIGTERM (30s)
     Pod-->>Node: Termination complete
-    
+
     Note over EC2,Node: After 2 minutes
     EC2->>Node: Instance terminated
-    
+
     Karpenter->>Pod: Reschedule on new node
 ```
 
@@ -463,7 +461,7 @@ spec:
   disruption:
     consolidationPolicy: WhenUnderutilized
     expireAfter: 720h
-    
+
     # Drift replacement control
     budgets:
       - nodes: "10%"  # replace 10% at a time

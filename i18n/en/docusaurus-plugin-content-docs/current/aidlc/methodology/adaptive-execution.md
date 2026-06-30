@@ -19,12 +19,6 @@ sidebar_position: 7
 category: aidlc
 ---
 
-# AIDLC Adaptive Execution
-
-> 📅 **Written**: 2026-04-18 | ⏱️ **Reading Time**: ~20 minutes
-
----
-
 ## 1. Overview: Why Adaptive?
 
 AWS Labs [AIDLC Workflows](https://github.com/awslabs/aidlc-workflows) defaults to **conditional (adaptive) execution rather than fixed workflows**. Where traditional SDLC stages were "always sequential," AIDLC **selects and reorders only necessary stages** based on project characteristics, codebase state, and requirement complexity.

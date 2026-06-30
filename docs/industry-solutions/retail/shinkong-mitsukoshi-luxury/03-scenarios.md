@@ -16,8 +16,6 @@ tags:
 sidebar_label: 03. Scenarios
 ---
 
-# 11 시나리오 매핑 (Mitsukoshi)
-
 | # | 시나리오 | 자사 데이터 | 외부 데이터 | URL | 주 페르소나 |
 |---|---|---|---|---|---|
 | **S1** | 자연어 시맨틱 검색 | Product · 회원 · 자사 리뷰 | 소홍서·Dcard 후기 | `/semantic-search` | P1, P5 |

@@ -18,8 +18,6 @@ sidebar_position: 6
 category: benchmarks
 ---
 
-# 인프라 성능 벤치마크
-
 EKS 클러스터 인프라의 핵심 성능 지표를 측정하고 분석합니다.
 
 ## 네트워크 성능

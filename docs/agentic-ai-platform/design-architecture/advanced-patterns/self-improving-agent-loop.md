@@ -25,8 +25,6 @@ sidebar_position: 8
 실 운영 적용 전에 스코프·자동화 경계·데이터 거버넌스·롤백 기준에 대한 합의가 필요하다. 자세한 합의 대상은 [ADR — Self-Improving Agent Loop 도입 의사결정](./adr-self-improving-loop.md)을 참조.
 :::
 
-# Self-Improving Agent Loop (Autosearch)
-
 ## Autosearch 담론과 엔터프라이즈 해석
 
 ### Karpathy의 핵심 주장
@@ -47,7 +45,7 @@ graph LR
     D --> F[Preference Tuning<br/>GRPO/DPO/RLAIF]
     F --> G[Improved Model]
     G -->|Deploy| A
-    
+
     style A fill:#4285f4
     style D fill:#34a853
     style E fill:#ea4335
@@ -90,7 +88,7 @@ graph TB
         B --> C[Multi-Path Execution]
         C --> D[Trace Logger<br/>Langfuse]
     end
-    
+
     subgraph Stage2["2. Score"]
         D --> E[Reward Calculator]
         E --> F[LLM-as-Judge<br/>Qwen3 Fleet]
@@ -98,7 +96,7 @@ graph TB
         E --> H[User Feedback<br/>Thumb/Retry]
         F & G & H --> I[Composite Score<br/>0-1]
     end
-    
+
     subgraph Stage3["3. Filter"]
         I --> J{Quality Gate}
         J -->|Score > 0.7| K[PII Scanner<br/>Presidio]
@@ -106,13 +104,13 @@ graph TB
         K -->|Clean| M[S3 Iceberg Table]
         K -->|PII Detected| N[Anonymize or Discard]
     end
-    
+
     subgraph Stage4["4. Train"]
         M --> O[Dataset Builder<br/>Preference Pairs]
         O --> P[Training Pipeline<br/>GRPO/DPO]
         P --> Q[Candidate Model]
     end
-    
+
     subgraph Stage5["5. Deploy"]
         Q --> R[Golden Dataset Eval<br/>Regression Check]
         R -->|Pass| S[Shadow Test<br/>5% Traffic]
@@ -120,9 +118,9 @@ graph TB
         S -->|Success| U[Canary 25% → 100%]
         S -->|Regression| T
     end
-    
+
     U --> B
-    
+
     style Stage1 fill:#e3f2fd
     style Stage2 fill:#f3e5f5
     style Stage3 fill:#fff3e0
@@ -149,17 +147,17 @@ langfuse = Langfuse()
 @trace_agent_call  # 데코레이터로 자동 trace
 def execute_agent(user_query: str, context: dict):
     trace = langfuse.trace(name="agent-execution", metadata={"user_id": context["user_id"]})
-    
+
     with trace.span(name="retrieval"):
         docs = vector_db.search(user_query)
-    
+
     with trace.span(name="reasoning"):
         response = llm.generate(prompt=build_prompt(user_query, docs))
-    
+
     with trace.span(name="tool-execution"):
         if response.requires_tool:
             tool_result = execute_tool(response.tool_name, response.tool_args)
-    
+
     trace.event(name="completion", metadata={"tokens": response.token_count})
     return response
 ```
@@ -265,21 +263,21 @@ def filter_traces(scored_traces):
         # 1. 최소 점수 임계값
         if trace.reward_score < 0.7:
             continue
-        
+
         # 2. Latency 이상치 제거 (P99 > 30초)
         if trace.latency > 30:
             continue
-        
+
         # 3. 에러 발생 trace 제외
         if trace.error_count > 0:
             continue
-        
+
         # 4. 중복 제거 (동일 question+answer 조합)
         if is_duplicate(trace):
             continue
-        
+
         filtered.append(trace)
-    
+
     return filtered
 ```
 
@@ -295,10 +293,10 @@ anonymizer = AnonymizerEngine()
 def scan_and_anonymize(text: str) -> tuple[str, bool]:
     """PII 탐지 후 익명화. (익명화된 텍스트, PII 발견 여부) 반환"""
     results = analyzer.analyze(text=text, language='ko')
-    
+
     if not results:
         return text, False  # PII 없음
-    
+
     # PII 발견 → 익명화
     anonymized = anonymizer.anonymize(text=text, analyzer_results=results)
     return anonymized.text, True
@@ -307,7 +305,7 @@ def scan_and_anonymize(text: str) -> tuple[str, bool]:
 for trace in filtered_traces:
     trace.question, q_has_pii = scan_and_anonymize(trace.question)
     trace.answer, a_has_pii = scan_and_anonymize(trace.answer)
-    
+
     if q_has_pii or a_has_pii:
         trace.metadata["pii_detected"] = True
 ```
@@ -321,7 +319,7 @@ def check_k_anonymity(traces, k=5):
     for trace in traces:
         query_pattern = extract_pattern(trace.question)  # 엔티티 제거 후 패턴 추출
         query_counts[query_pattern] += 1
-    
+
     return [t for t in traces if query_counts[extract_pattern(t.question)] >= k]
 ```
 
@@ -367,30 +365,30 @@ def build_preference_pairs(traces):
     grouped = defaultdict(list)
     for trace in traces:
         grouped[trace.question].append(trace)
-    
+
     pairs = []
     for question, trace_list in grouped.items():
         if len(trace_list) < 2:
             continue  # pair 불가
-        
+
         # Reward 기준 정렬
         sorted_traces = sorted(trace_list, key=lambda t: t.reward_score, reverse=True)
-        
+
         # Top 1 vs Bottom 1 pair
         preferred = sorted_traces[0]
         rejected = sorted_traces[-1]
-        
+
         # Reward 차이가 충분히 커야 유의미한 pair
         if preferred.reward_score - rejected.reward_score < 0.2:
             continue
-        
+
         pairs.append({
             "prompt": question,
             "chosen": preferred.answer,
             "rejected": rejected.answer,
             "reward_diff": preferred.reward_score - rejected.reward_score
         })
-    
+
     return pairs
 ```
 
@@ -540,7 +538,7 @@ ld_client = LDClient(sdk_key="sdk-key")
 def select_model(user_id: str) -> str:
     context = Context.builder(user_id).kind("user").build()
     variant = ld_client.get_variant("agent-model-shadow-test", context)
-    
+
     # 95% baseline, 5% candidate (shadow)
     return "qwen3-7b-baseline" if variant.name == "control" else "qwen3-7b-candidate"
 
@@ -548,12 +546,12 @@ def select_model(user_id: str) -> str:
 async def execute_with_shadow(query: str, user_id: str):
     baseline_task = agent_call(model="qwen3-7b-baseline", query=query)
     candidate_task = agent_call(model="qwen3-7b-candidate", query=query, shadow=True)
-    
+
     baseline_resp, candidate_resp = await asyncio.gather(baseline_task, candidate_task)
-    
+
     # 비교 로깅
     log_shadow_comparison(query, baseline_resp, candidate_resp)
-    
+
     return baseline_resp  # 사용자에게는 baseline만
 ```
 
@@ -622,29 +620,29 @@ REWARD_WEIGHTS = {
 
 def compute_reward(trace):
     score = 0.0
-    
+
     # 1. LLM-as-Judge
     judge_score = llm_judge_evaluate(trace.question, trace.answer, trace.context)
     score += REWARD_WEIGHTS["llm_judge"] * judge_score
-    
+
     # 2. Ragas faithfulness
     faith_score = ragas.faithfulness.score(trace.answer, trace.context)
     score += REWARD_WEIGHTS["faithfulness"] * faith_score
-    
+
     # 3. Ragas context recall
     recall_score = ragas.context_recall.score(trace.context, trace.ground_truth)
     score += REWARD_WEIGHTS["context_recall"] * recall_score
-    
+
     # 4. User feedback
     feedback_score = 1.0 if trace.user_feedback == "positive" else \
                      0.0 if trace.user_feedback == "negative" else 0.5
     score += REWARD_WEIGHTS["user_feedback"] * feedback_score
-    
+
     # 5. Latency penalty (P99 > 10초 시 감점)
     if trace.latency > 10:
         penalty = min(0.05, (trace.latency - 10) / 100)  # 최대 5% 감점
         score -= penalty
-    
+
     return max(0.0, min(1.0, score))  # 0-1 범위로 clamp
 ```
 
@@ -663,13 +661,13 @@ experiments = [
 # 각 실험군에 대해 별도 학습 파이프라인 실행
 for exp in experiments:
     model = train_with_rewards(base_model, preference_pairs, reward_weights=exp["weights"])
-    
+
     # Golden dataset 평가
     results = evaluate(model, golden_dataset)
-    
+
     # 프로덕션 테스트 (Canary 5%)
     production_metrics = deploy_canary(model, traffic_pct=0.05, duration_hours=24)
-    
+
     # 비즈니스 메트릭 추적
     print(f"{exp['name']}: Accuracy={results.accuracy}, User Satisfaction={production_metrics.satisfaction}")
 ```
@@ -695,7 +693,7 @@ graph LR
     C -->|Clean Data| D[S3 Iceberg<br/>Parquet]
     C -->|PII Detected| E[Anonymize or<br/>Discard]
     E --> D
-    
+
     style A fill:#4285f4
     style C fill:#ea4335
     style D fill:#34a853
@@ -719,29 +717,29 @@ def lambda_handler(event, context):
           AND score > 0.7
     """)
     traces = cursor.fetchall()
-    
+
     # 2. PII 스캐닝
     analyzer = AnalyzerEngine()
     clean_traces = []
-    
+
     for trace in traces:
         input_results = analyzer.analyze(text=trace["input"], language="ko")
         output_results = analyzer.analyze(text=trace["output"], language="ko")
-        
+
         if input_results or output_results:
             # PII 발견 → 익명화 or 폐기
             if should_anonymize(trace):
                 trace = anonymize_trace(trace, input_results, output_results)
             else:
                 continue  # 폐기
-        
+
         clean_traces.append(trace)
-    
+
     # 3. Iceberg 테이블에 저장
     catalog = load_catalog("glue", **{"s3.endpoint": "https://s3.amazonaws.com"})
     table = catalog.load_table("training_data.agent_traces")
     table.append(clean_traces)
-    
+
     return {"status": "success", "traces_processed": len(clean_traces)}
 ```
 
@@ -775,13 +773,13 @@ from collections import defaultdict
 
 def apply_k_anonymity(traces, k=5):
     """k-anonymity 기준 미달 trace 제거"""
-    
+
     # 1. Query 패턴 추출 (named entity 제거)
     pattern_groups = defaultdict(list)
     for trace in traces:
         pattern = extract_pattern(trace.question)  # "홍길동" → "[NAME]", "2026-04-18" → "[DATE]"
         pattern_groups[pattern].append(trace)
-    
+
     # 2. k개 미만 그룹 제거
     filtered = []
     for pattern, group in pattern_groups.items():
@@ -789,7 +787,7 @@ def apply_k_anonymity(traces, k=5):
             filtered.extend(group)
         else:
             print(f"⚠️ 패턴 '{pattern}' 제거 (k={len(group)} < {k})")
-    
+
     return filtered
 
 def extract_pattern(text: str) -> str:
@@ -1026,12 +1024,12 @@ trainer.train()
 def diverse_rollout(prompt: str, n=4):
     """다양성 확보를 위한 샘플링"""
     responses = []
-    
+
     for i in range(n):
         # Temperature, top_p 변화
         temp = 0.7 + i * 0.1  # 0.7, 0.8, 0.9, 1.0
         top_p = 0.9 - i * 0.05  # 0.9, 0.85, 0.8, 0.75
-        
+
         response = llm.generate(
             prompt=prompt,
             temperature=temp,
@@ -1039,7 +1037,7 @@ def diverse_rollout(prompt: str, n=4):
             max_tokens=512,
         )
         responses.append(response)
-    
+
     return responses
 ```
 
@@ -1055,10 +1053,10 @@ def measure_diversity(responses: list[str]) -> float:
     """응답 간 cosine similarity 평균 (낮을수록 diverse)"""
     embeddings = embedder.encode(responses)
     similarities = cosine_similarity(embeddings)
-    
+
     # 대각선 제외 (자기 자신과의 유사도)
     avg_sim = (similarities.sum() - len(responses)) / (len(responses) * (len(responses) - 1))
-    
+
     return 1 - avg_sim  # diversity score (높을수록 diverse)
 
 # 알림 설정
@@ -1076,17 +1074,17 @@ import torch.nn.functional as F
 
 def entropy_regularized_loss(logits, labels, entropy_coef=0.01):
     """Cross-entropy loss + entropy regularization"""
-    
+
     # 1. 기본 loss
     ce_loss = F.cross_entropy(logits, labels)
-    
+
     # 2. Output distribution의 entropy 계산
     probs = F.softmax(logits, dim=-1)
     entropy = -torch.sum(probs * torch.log(probs + 1e-10), dim=-1).mean()
-    
+
     # 3. Entropy를 loss에서 빼서 high-entropy 선호
     total_loss = ce_loss - entropy_coef * entropy
-    
+
     return total_loss
 ```
 
@@ -1110,22 +1108,22 @@ import torch.nn.functional as F
 
 def compute_kl_divergence(base_model, new_model, test_prompts):
     """Base model과 new model의 KL divergence 계산"""
-    
+
     kl_divs = []
     for prompt in test_prompts:
         # Base model logits
         with torch.no_grad():
             base_logits = base_model(prompt).logits
             base_probs = F.softmax(base_logits, dim=-1)
-        
+
         # New model logits
         new_logits = new_model(prompt).logits
         new_probs = F.softmax(new_logits, dim=-1)
-        
+
         # KL(new || base)
         kl = F.kl_div(new_probs.log(), base_probs, reduction='batchmean')
         kl_divs.append(kl.item())
-    
+
     return sum(kl_divs) / len(kl_divs)
 
 # 배포 전 체크
@@ -1144,17 +1142,17 @@ if avg_kl > kl_threshold:
 ```python
 def sample_for_human_review(traces, sample_rate=0.02):
     """랜덤 샘플링 + edge case 우선 선택"""
-    
+
     # 1. 랜덤 샘플
     random_sample = random.sample(traces, int(len(traces) * sample_rate * 0.5))
-    
+
     # 2. Edge case 우선 샘플 (높은 reward + 낮은 user feedback)
     edge_cases = sorted(
         traces,
         key=lambda t: abs(t.reward_score - t.user_feedback_score),
         reverse=True
     )[:int(len(traces) * sample_rate * 0.5)]
-    
+
     return random_sample + edge_cases
 
 # Weekly review

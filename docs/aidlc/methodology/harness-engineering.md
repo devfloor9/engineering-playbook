@@ -23,8 +23,6 @@ sidebar_label: 하네스 엔지니어링
 
 import { QualityGates } from '@site/src/components/AidlcTables';
 
-# 하네스 엔지니어링
-
 :::info 확장 개념 (engineering-playbook 독자 콘텐츠)
 온톨로지·하네스 엔지니어링은 [AWS Labs AIDLC 공식 방법론](https://github.com/awslabs/aidlc-workflows) 에 포함되지 않은, engineering-playbook 의 독자 확장 콘텐츠입니다. DDD + 2026년 Agentic AI 베스트 프랙티스를 반영해 엔터프라이즈 AI 신뢰성을 강화했습니다. 공식 AIDLC 적용 시 이 축은 선택적으로 도입 가능합니다.
 :::

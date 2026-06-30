@@ -1,7 +1,7 @@
 ---
 title: EKS Pod 헬스체크 & 라이프사이클 관리
 description: Kubernetes Probe 설정 전략, Graceful Shutdown 패턴, Pod 라이프사이클 관리 모범 사례
-created: "2026-02-13"
+created: "2026-02-12"
 last_update:
   date: "2026-06-27"
   author: YoungJoon Jeong
@@ -18,10 +18,6 @@ tags:
 sidebar_label: Pod 헬스체크 & 라이프사이클
 category: operations
 ---
-
-# EKS Pod 헬스체크 & 라이프사이클 관리
-
-> 📅 **작성일**: 2026-02-12 | **수정일**: 2026-02-14 | ⏱️ **읽는 시간**: 약 48분
 
 > **📌 기준 환경**: EKS 1.33+, Kubernetes 1.30+, AWS Load Balancer Controller v2.7+
 

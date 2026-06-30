@@ -23,9 +23,9 @@ sidebar_position: 5
 category: benchmark
 ---
 
-# Report 5. NVIDIA Dynamo 추론 벤치마크
-
-> 📅 **작성일**: 2026-03-20 | **상태**: 신규
+:::info 문서 상태
+**신규** — 벤치마크 실행 계획 수립 단계입니다.
+:::
 
 ## 개요
 

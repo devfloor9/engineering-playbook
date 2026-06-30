@@ -1,5 +1,5 @@
 ---
-title: AIDLC
+title: "AIDLC: AI-Driven Development Lifecycle"
 description: AI-Driven Development Lifecycle — Enterprise adoption guide for AI-driven software development methodology
 created: "2026-03-23"
 last_update:
@@ -14,8 +14,6 @@ category: aidlc
 ---
 
 # AIDLC: AI-Driven Development Lifecycle
-
-> **Reading time**: Approximately 3 minutes
 
 AIDLC (AI-Driven Development Lifecycle) is a new development methodology where AI drives the entire software development process. While traditional SDLC was a human-centric process, AIDLC accelerates the entire development cycle from requirements analysis to design, implementation, and testing through the **Intent → Unit → Bolt** model.
 

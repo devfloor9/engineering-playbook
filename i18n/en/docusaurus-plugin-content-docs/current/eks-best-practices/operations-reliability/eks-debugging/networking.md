@@ -16,8 +16,6 @@ tags:
 sidebar_label: Networking
 ---
 
-# Networking Debugging
-
 ## Networking Debugging Workflow
 
 ```mermaid

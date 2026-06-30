@@ -18,8 +18,6 @@ sidebar_position: 7
 category: benchmarks
 ---
 
-# 하이브리드 인프라 벤치마크
-
 클라우드와 온프레미스 간 하이브리드 인프라의 성능을 측정합니다.
 
 ## 네트워크 성능

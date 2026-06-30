@@ -1,5 +1,5 @@
 ---
-title: Tools & Implementation
+title: AIDLC Tools & Implementation
 description: Tools that enable AIDLC — AI Coding Agents, Open-Weight Models, EKS Automation, Technology Roadmap
 created: "2026-04-07"
 last_update:
@@ -12,8 +12,6 @@ sidebar_label: Tools & Implementation
 ---
 
 # AIDLC Tools & Implementation
-
-> **Reading time**: Approx. 2 minutes
 
 This section covers tools and technology stacks for implementing the AIDLC [methodology](/docs/aidlc/methodology) in real-world projects. From AI coding agents to open-weight model utilization, EKS-based declarative automation, and technology investment roadmaps, we provide practical implementation guides.
 

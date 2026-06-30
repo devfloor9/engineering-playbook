@@ -17,12 +17,6 @@ sidebar_label: EKS Cost Management
 category: performance-networking
 ---
 
-# Large-Scale EKS Cost Management Guide
-
-> **Updated**: 2025-02-09 - Karpenter v1.6 GA and EKS Auto Mode cost analysis reflected
-
-> **Written**: 2025-02-05 | **Updated**: 2026-02-14 | **Reading time**: ~11 min
-
 ## Overview
 
 EKS cost management is one of the most critical cloud operations challenges. With AWS customer spending projected to exceed $100B in 2024, an average of 30-35% of cloud costs are wasted. In Kubernetes environments, 68% of organizations experience cost overruns.

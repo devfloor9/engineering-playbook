@@ -16,8 +16,6 @@ sidebar_label: MSA 복잡도
 sidebar_position: 3
 ---
 
-# MSA 복잡도 가이드
-
 AIDLC(AI-Driven Development Life Cycle)의 프로젝트 적합성을 평가하고, MSA 난이도에 따른 온톨로지·하네스 전략을 결정하는 가이드입니다.
 
 ## 왜 MSA 복잡도가 중요한가
@@ -85,47 +83,47 @@ graph TB
         style L1B fill:#90EE90
         style L1C fill:#90EE90
         style L1D fill:#90EE90
-        
+
         style L2A fill:#FFD700
         style L2B fill:#90EE90
         style L2C fill:#90EE90
         style L2D fill:#90EE90
-        
+
         style L3A fill:#FF6347
         style L3B fill:#FFD700
         style L3C fill:#90EE90
         style L3D fill:#90EE90
-        
+
         style L4A fill:#FF0000
         style L4B fill:#FF6347
         style L4C fill:#FFD700
         style L4D fill:#90EE90
-        
+
         style L5A fill:#FF0000
         style L5B fill:#FF0000
         style L5C fill:#FF6347
         style L5D fill:#FFD700
-        
+
         L1A["L1-A<br/>🟢 즉시 가능"]
         L1B["L1-B<br/>🟢 즉시 가능"]
         L1C["L1-C<br/>🟢 즉시 가능"]
         L1D["L1-D<br/>🟢 즉시 가능"]
-        
+
         L2A["L2-A<br/>🟡 POC 필요"]
         L2B["L2-B<br/>🟢 교육 후 가능"]
         L2C["L2-C<br/>🟢 즉시 가능"]
         L2D["L2-D<br/>🟢 즉시 가능"]
-        
+
         L3A["L3-A<br/>🔴 리스크 높음"]
         L3B["L3-B<br/>🟡 전문가 필요"]
         L3C["L3-C<br/>🟢 팀 리뷰"]
         L3D["L3-D<br/>🟢 즉시 가능"]
-        
+
         L4A["L4-A<br/>⛔ 권장 않음"]
         L4B["L4-B<br/>🔴 고위험"]
         L4C["L4-C<br/>🟡 신중히 진행"]
         L4D["L4-D<br/>🟢 가능"]
-        
+
         L5A["L5-A<br/>⛔ 권장 않음"]
         L5B["L5-B<br/>⛔ 권장 않음"]
         L5C["L5-C<br/>🔴 전문가 필수"]
@@ -146,28 +144,28 @@ graph TB
 ```mermaid
 graph TB
     Start([AIDLC 적용 검토]) --> Q1{프로젝트 규모?}
-    
+
     Q1 -->|소규모<br/>단일 서비스| Q2A{팀 AIDLC 경험?}
     Q1 -->|중규모<br/>동기 MSA| Q2B{팀 AIDLC 경험?}
     Q1 -->|대규모<br/>비동기/Saga| Q2C{팀 AIDLC 경험?}
-    
+
     Q2A -->|있음| Go1[✅ 즉시 Go]
     Q2A -->|없음| Q3A{빠른 학습 가능?}
     Q3A -->|Yes| Go2[✅ Go<br/>교육 병행]
     Q3A -->|No| Partial1[⚠️ Partial<br/>POC 먼저]
-    
+
     Q2B -->|있음| Q3B{DDD 경험?}
     Q2B -->|없음| Partial2[⚠️ Partial<br/>DDD 교육 먼저]
     Q3B -->|Yes| Go3[✅ Go]
     Q3B -->|No| Partial3[⚠️ Partial<br/>DDD 통합 필요]
-    
+
     Q2C -->|있음| Q3C{Saga/Event Sourcing<br/>경험?}
     Q2C -->|없음| NoGo1[🛑 No-Go<br/>준비 부족]
     Q3C -->|Yes| Q4C{전문가 지원 가능?}
     Q3C -->|No| NoGo2[🛑 No-Go<br/>전문가 필요]
     Q4C -->|Yes| Go4[✅ Go<br/>전문가 리뷰 필수]
     Q4C -->|No| Partial4[⚠️ Partial<br/>전문가 확보 후]
-    
+
     style Go1 fill:#90EE90
     style Go2 fill:#90EE90
     style Go3 fill:#90EE90

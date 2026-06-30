@@ -16,12 +16,6 @@ tags:
 sidebar_label: Korea AI Basic Act
 ---
 
-# Korea AI Framework Act (AI 기본법, Enforcement Expected 2026)
-
-> 📅 **Published**: 2026-04-18 | ⏱️ **Reading Time**: ~5 minutes
-
----
-
 ## Overview
 
 **Korea AI Framework Act (AI 기본법, Artificial Intelligence Framework Act)** is Korea's first comprehensive AI regulation law, **expected to be enforced in H1 2026**.
@@ -90,21 +84,21 @@ def login(credentials: LoginRequest):
 impact_assessment:
   project: payment-service-v2
   assessment_date: 2026-04-18
-  
+
   # High-impact AI determination
   high_impact: false
   rationale: "Used as development tool, final decisions by developers"
-  
+
   # Risk factors
   risk_factors:
     - factor: "Security vulnerabilities in generated code"
       severity: medium
       mitigation: "Automated SAST scanning + independent review"
-    
+
     - factor: "PII exposure"
       severity: high
       mitigation: "Guardrails filtering + log masking"
-  
+
   # Post-deployment monitoring
   post_monitoring:
     frequency: daily
@@ -128,7 +122,7 @@ impact_assessment:
 # .aidlc/monitoring/korea-post-market.yaml
 post_market_monitoring:
   responsible_party: "AI Governance Team"
-  
+
   # Continuous monitoring
   monitoring:
     frequency: daily
@@ -137,7 +131,7 @@ post_market_monitoring:
         target: "< 1%"
       - name: "security_vulnerabilities"
         target: "0 critical"
-  
+
   # Corrective action
   corrective_action:
     sla: 7d  # Correct within 7 days of malfunction detection
@@ -167,7 +161,7 @@ privacy_compliance:
     consent: "Obtain explicit consent"
     data_minimization: "Collect minimal personal information only"
     purpose_limitation: "Prohibit use beyond collection purpose"
-    
+
   # Korea AI Basic Act compliance
   ai_law:
     transparency: "Inform AI usage"
@@ -192,15 +186,15 @@ isms_p_integration:
     - "2.5.1 Personal information collection & use"
     - "2.6.2 Personal information storage & retention"
     - "3.1.1 Information security policy"
-    
+
   # Korea AI Basic Act additional controls
   ai_controls:
     - control: "High-impact AI impact assessment"
       mapping: "ISMS-P 2.1.2 Risk management"
-    
+
     - control: "Generative AI labeling obligation"
       mapping: "ISMS-P 2.5.6 Data subject rights"
-    
+
     - control: "AI system post-deployment management"
       mapping: "ISMS-P 3.2.1 Monitoring"
 ```

@@ -16,8 +16,6 @@ tags:
 sidebar_label: S7. Customer Journey
 ---
 
-# S7. ABO·Customer 옴니채널 여정 (AMWAY)
-
 ## 1. URL · 페르소나
 - `/journey` · P4 (CX)
 

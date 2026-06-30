@@ -1,7 +1,7 @@
 ---
 title: DGX H200 SR-IOV Networking Configuration
 description: Resolving SR-IOV VF naming inconsistencies on NVIDIA DGX H200 systems running Amazon EKS Hybrid Nodes through driver compatibility, persistent naming, and systemd orchestration.
-created: "2026-02-04"
+created: "2025-09-01"
 last_update:
   date: "2026-02-14"
   author: devfloor9
@@ -17,11 +17,6 @@ tags:
 sidebar_label: SR-IOV Networking
 category: hybrid-multicloud
 ---
-
-# DGX H200 SR-IOV Networking Configuration
-
-> **Created**: 2025-09-01 | **Updated**: 2026-02-14 | **Reading time**: ~7 min
-
 
 ## Introduction
 

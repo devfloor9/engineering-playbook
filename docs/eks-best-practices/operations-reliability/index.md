@@ -21,8 +21,6 @@ sidebar_position: 5
 
 import { DocCard, DocCardGrid } from '@site/src/components/DocCards';
 
-# 운영 & 안정성
-
 EKS 클러스터의 안정적인 운영을 위한 실전 가이드입니다. GitOps 기반 운영 자동화부터 장애 진단, 고가용성 아키텍처, Pod 라이프사이클 관리까지를 다룹니다.
 
 ---

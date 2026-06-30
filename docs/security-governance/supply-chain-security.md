@@ -18,8 +18,6 @@ sidebar_label: 공급망 보안
 category: security
 ---
 
-# 컨테이너 공급망 보안
-
 :::info 작성 예정
 이 문서는 현재 작성 중입니다. 다음 내용이 포함될 예정입니다:
 

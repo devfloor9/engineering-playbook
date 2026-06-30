@@ -16,8 +16,6 @@ sidebar_label: 하네스 체크리스트
 sidebar_position: 2
 ---
 
-# 하네스 체크리스트
-
 패턴별 필수 하네스와 선택 하네스를 정리합니다.
 
 ## 패턴별 필수 하네스
@@ -39,15 +37,15 @@ sidebar_position: 2
 def test_duplicate_event_handling():
     """동일 이벤트를 여러 번 받아도 결과가 동일한지 검증"""
     event = OrderCreatedEvent(orderId="123", ...)
-    
+
     # 첫 번째 처리
     result1 = event_handler.handle(event)
     state1 = get_order_state("123")
-    
+
     # 두 번째 처리 (중복)
     result2 = event_handler.handle(event)
     state2 = get_order_state("123")
-    
+
     # 결과가 동일해야 함
     assert result1 == result2
     assert state1 == state2
@@ -60,19 +58,19 @@ def test_duplicate_event_handling():
 def test_saga_compensation():
     """Saga 실패 시 보상 로직이 정확히 동작하는지 검증"""
     saga = TravelBookingSaga()
-    
+
     # 1. Flight 예약 성공
     saga.execute_step("ReserveFlight")
     assert flight_service.is_reserved("flight123")
-    
+
     # 2. Hotel 예약 성공
     saga.execute_step("ReserveHotel")
     assert hotel_service.is_reserved("hotel456")
-    
+
     # 3. Payment 실패 시뮬레이션
     with pytest.raises(PaymentFailedException):
         saga.execute_step("ChargePayment")
-    
+
     # 4. 보상 트랜잭션 검증
     saga.compensate()
     assert not hotel_service.is_reserved("hotel456")  # 취소됨
@@ -91,14 +89,14 @@ def test_projection_consistency():
         MoneyDepositedEvent(accountId="A1", amount=500),
         MoneyWithdrawnEvent(accountId="A1", amount=200),
     ]
-    
+
     # 2. 이벤트 저장
     for event in events:
         event_store.append(event)
-    
+
     # 3. 프로젝션 업데이트
     projection_service.rebuild("AccountBalanceView")
-    
+
     # 4. Read Model 검증
     balance_view = read_db.get_account_balance("A1")
     assert balance_view.balance == 1300  # 1000 + 500 - 200
@@ -137,7 +135,7 @@ jobs:
       - name: Validate Ontology
         run: |
           aidlc-cli validate-ontology --path ontology/
-  
+
   run-harness:
     runs-on: ubuntu-latest
     steps:
@@ -146,7 +144,7 @@ jobs:
         run: |
           aidlc-cli run-harness --suite saga
           aidlc-cli run-harness --suite idempotency
-  
+
   quality-gate:
     runs-on: ubuntu-latest
     needs: [validate-ontology, run-harness]

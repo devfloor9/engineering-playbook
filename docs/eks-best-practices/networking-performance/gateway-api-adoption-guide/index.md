@@ -51,8 +51,6 @@ import {
 
 > **📌 기준 버전**: Gateway API v1.5.1, Cilium v1.19.0, EKS 1.33+, AWS LBC v3.0.0, Envoy Gateway v1.7.0
 
-> 📅 **작성일**: 2025-02-12 | **수정일**: 2026-06-17 | ⏱️ **읽는 시간**: 약 13분
-
 ## 1. 개요
 
 Kubernetes 트래픽 관리는 두 가지 동인으로 Gateway API로 수렴하고 있습니다.

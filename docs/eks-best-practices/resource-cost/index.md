@@ -19,8 +19,6 @@ sidebar_position: 4
 
 import { DocCard, DocCardGrid } from '@site/src/components/DocCards';
 
-# 리소스 & 비용 최적화
-
 EKS 클러스터의 리소스 효율화와 비용 절감을 위한 실전 전략을 다룹니다. Karpenter 기반 지능형 노드 프로비저닝, Pod 리소스 Rightsizing, FinOps 기반 비용 관리를 포함합니다.
 
 ---

@@ -1,5 +1,5 @@
 ---
-title: Adoption Strategy
+title: Enterprise AIDLC Adoption Strategy
 description: AIDLC Enterprise Adoption Strategy — Waterfall→Hybrid Transition, Champion Model, Phased Rollout Roadmap
 created: "2026-04-07"
 last_update:
@@ -9,8 +9,6 @@ reading_time: 26
 tags: []
 sidebar_label: Adoption Strategy
 ---
-
-# Enterprise AIDLC Adoption Strategy
 
 A practical adoption strategy for transitioning waterfall-centric development culture to AIDLC in enterprise SI environments.
 
@@ -49,10 +47,10 @@ graph LR
     Phase1["Phase 1<br/>Waterfall + AI Assist"]
     Phase2["Phase 2<br/>Hybrid"]
     Phase3["Phase 3<br/>AIDLC Native"]
-    
+
     Phase1 -->|3-6 months| Phase2
     Phase2 -->|6-12 months| Phase3
-    
+
     style Phase1 fill:#e8f4f8
     style Phase2 fill:#b3e5fc
     style Phase3 fill:#4fc3f7
@@ -101,12 +99,12 @@ graph TD
     Unit["Decompose Units<br/>(1-3 day tasks)"]
     Dev["Mob Programming<br/>(Complete daily Units)"]
     Val["Bolt Validation<br/>(Working Demo)"]
-    
+
     Intent --> Unit
     Unit --> Dev
     Dev --> Val
     Val -->|Next Bolt| Intent
-    
+
     style Intent fill:#fff9c4
     style Dev fill:#c5e1a5
     style Val fill:#90caf9
@@ -176,10 +174,10 @@ graph LR
     Small["Small Project<br/>(< ₩1B)<br/>Brownfield Optimization"]
     Medium["Medium Project<br/>(₩1-5B)<br/>Partial Greenfield"]
     Large["Large Project<br/>(₩5B+)<br/>Full AIDLC"]
-    
+
     Small -->|Build Success Cases| Medium
     Medium -->|Establish Organizational Trust| Large
-    
+
     style Small fill:#c8e6c9
     style Medium fill:#81c784
     style Large fill:#4caf50
@@ -219,10 +217,10 @@ graph TD
     Champion["Single Champion<br/>(AIDLC 1 day/week)"]
     Team["Team Expansion<br/>(Champion trains team)"]
     Org["Organizational Standardization<br/>(Enterprise governance)"]
-    
+
     Champion -->|3 months| Team
     Team -->|6 months| Org
-    
+
     style Champion fill:#fff9c4
     style Team fill:#c5e1a5
     style Org fill:#90caf9

@@ -16,12 +16,6 @@ tags:
 sidebar_label: Regulatory Compliance
 ---
 
-# AI 규제 프레임워크 매핑
-
-> 📅 **작성일**: 2026-04-18 | ⏱️ **읽는 시간**: 약 8분
-
----
-
 ## 개요
 
 2026년 현재, 글로벌 기업은 **여러 지역의 AI 규제를 동시에 준수**해야 하는 복잡한 환경에 직면했습니다:
@@ -48,28 +42,28 @@ graph TB
         ISO[ISO/IEC 42001]
         KR[한국 AI 기본법]
     end
-    
+
     subgraph AIDLC["AIDLC 프로세스"]
         INC[Inception<br/>요구사항·설계]
         CON[Construction<br/>구현·테스트]
         OPS[Operations<br/>배포·모니터링]
     end
-    
+
     EU -->|risk tier 분류| INC
     NIST -->|GOVERN/MAP| INC
     ISO -->|PDCA 계획| INC
     KR -->|영향평가| INC
-    
+
     EU -->|robustness tests| CON
     NIST -->|MEASURE| CON
     ISO -->|구현·검증| CON
     KR -->|투명성 표시| CON
-    
+
     EU -->|post-market monitoring| OPS
     NIST -->|MANAGE| OPS
     ISO -->|감사·개선| OPS
     KR -->|사후관리| OPS
-    
+
     style Regulations fill:#ff9800,color:#fff
     style AIDLC fill:#2196f3,color:#fff
 ```
@@ -167,33 +161,33 @@ graph TB
         I3["ISO 42001: Plan (PDCA)"]
         I4["한국: 영향 평가"]
     end
-    
+
     subgraph Construction["Construction 단계"]
         C1["EU AI Act: 문서화 (Art. 11), 로깅 (Art. 12)"]
         C2["NIST: MEASURE"]
         C3["ISO 42001: Do + Check (PDCA)"]
         C4["한국: 생성 표시 의무"]
     end
-    
+
     subgraph Operations["Operations 단계"]
         O1["EU AI Act: Post-market monitoring (Art. 72)"]
         O2["NIST: MANAGE"]
         O3["ISO 42001: Act (PDCA)"]
         O4["한국: 사후 관리"]
     end
-    
+
     I1 -.공통 목표: 위험 식별.-> I2
     I2 -.공통 목표: 위험 식별.-> I3
     I3 -.공통 목표: 위험 식별.-> I4
-    
+
     C1 -.공통 목표: 안전성 검증.-> C2
     C2 -.공통 목표: 안전성 검증.-> C3
     C3 -.공통 목표: 안전성 검증.-> C4
-    
+
     O1 -.공통 목표: 지속 모니터링.-> O2
     O2 -.공통 목표: 지속 모니터링.-> O3
     O3 -.공통 목표: 지속 모니터링.-> O4
-    
+
     style Inception fill:#4caf50,color:#fff
     style Construction fill:#2196f3,color:#fff
     style Operations fill:#ff9800,color:#fff

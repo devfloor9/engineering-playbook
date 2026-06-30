@@ -16,8 +16,6 @@ tags:
 sidebar_label: 99. Demo Storytelling
 ---
 
-# 30분 시연 스크립트 (AMWAY)
-
 > **목표**: 30분 안에 PoC가 동작 시연임을 입증 + AMWAY 차별점 (ABO Tree·Subscription·Compliance) 3종 강조.
 
 ---

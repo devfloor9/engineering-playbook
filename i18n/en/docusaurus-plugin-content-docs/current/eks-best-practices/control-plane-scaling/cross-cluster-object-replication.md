@@ -19,10 +19,6 @@ sidebar_position: 3
 category: infrastructure
 ---
 
-# Cross-Cluster Object Replication (HA) Architecture Guide
-
-> **Written**: 2026-03-24 | **Updated**: 2026-03-24 | **Reading time**: ~12 min
-
 > **Reference Environment**: EKS 1.32+, ArgoCD 2.13+, Flux v2.4+, Velero 1.15+
 
 ## 1. Overview

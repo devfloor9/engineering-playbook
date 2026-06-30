@@ -17,8 +17,6 @@ sidebar_position: 8
 category: benchmarks
 ---
 
-# Security & Operations Benchmark
-
 Measure the performance overhead and efficiency of security policies, monitoring, and GitOps tools.
 
 ## Security Policy Overhead

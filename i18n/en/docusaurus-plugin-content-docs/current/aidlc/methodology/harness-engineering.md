@@ -19,8 +19,6 @@ sidebar_label: Harness Engineering
 
 import { QualityGates } from '@site/src/components/AidlcTables';
 
-# Harness Engineering
-
 > "Agents aren't hard, harnesses are" — NxCode, 2026
 
 ## Overview

@@ -16,8 +16,6 @@ sidebar_label: Harness Checklist
 sidebar_position: 2
 ---
 
-# Harness Checklist
-
 Required and optional harnesses organized by pattern.
 
 ## Required Harnesses by Pattern
@@ -39,15 +37,15 @@ Required and optional harnesses organized by pattern.
 def test_duplicate_event_handling():
     """Verify identical results when receiving same event multiple times"""
     event = OrderCreatedEvent(orderId="123", ...)
-    
+
     # First processing
     result1 = event_handler.handle(event)
     state1 = get_order_state("123")
-    
+
     # Second processing (duplicate)
     result2 = event_handler.handle(event)
     state2 = get_order_state("123")
-    
+
     # Results must be identical
     assert result1 == result2
     assert state1 == state2
@@ -60,19 +58,19 @@ def test_duplicate_event_handling():
 def test_saga_compensation():
     """Verify that compensation logic works correctly on Saga failure"""
     saga = TravelBookingSaga()
-    
+
     # 1. Flight reservation success
     saga.execute_step("ReserveFlight")
     assert flight_service.is_reserved("flight123")
-    
+
     # 2. Hotel reservation success
     saga.execute_step("ReserveHotel")
     assert hotel_service.is_reserved("hotel456")
-    
+
     # 3. Payment failure simulation
     with pytest.raises(PaymentFailedException):
         saga.execute_step("ChargePayment")
-    
+
     # 4. Compensating transaction verification
     saga.compensate()
     assert not hotel_service.is_reserved("hotel456")  # cancelled
@@ -91,14 +89,14 @@ def test_projection_consistency():
         MoneyDepositedEvent(accountId="A1", amount=500),
         MoneyWithdrawnEvent(accountId="A1", amount=200),
     ]
-    
+
     # 2. Store events
     for event in events:
         event_store.append(event)
-    
+
     # 3. Update projection
     projection_service.rebuild("AccountBalanceView")
-    
+
     # 4. Verify Read Model
     balance_view = read_db.get_account_balance("A1")
     assert balance_view.balance == 1300  # 1000 + 500 - 200
@@ -137,7 +135,7 @@ jobs:
       - name: Validate Ontology
         run: |
           aidlc-cli validate-ontology --path ontology/
-  
+
   run-harness:
     runs-on: ubuntu-latest
     steps:
@@ -146,7 +144,7 @@ jobs:
         run: |
           aidlc-cli run-harness --suite saga
           aidlc-cli run-harness --suite idempotency
-  
+
   quality-gate:
     runs-on: ubuntu-latest
     needs: [validate-ontology, run-harness]

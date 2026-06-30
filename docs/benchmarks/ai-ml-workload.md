@@ -34,10 +34,6 @@ import CostPerTokenChart from '@site/src/components/CostPerTokenChart';
 import KeyFindingsMLChart from '@site/src/components/KeyFindingsMLChart';
 import MLRecommendationChart from '@site/src/components/MLRecommendationChart';
 
-# Llama 4 FM 서빙 벤치마크: GPU vs AWS Custom Silicon
-
-> 📅 **작성일**: 2026-02-10 | **수정일**: 2026-02-14 | ⏱️ **읽는 시간**: 약 9분
-
 ## 개요
 
 AWS EKS 환경에서 vLLM을 이용한 Llama 4 모델 서빙 성능을 5개 시나리오로 비교한 벤치마크 보고서입니다.

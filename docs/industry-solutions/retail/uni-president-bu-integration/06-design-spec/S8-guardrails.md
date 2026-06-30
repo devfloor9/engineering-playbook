@@ -16,8 +16,6 @@ tags:
 sidebar_label: S8. Guardrails
 ---
 
-# S8. 가드레일 (Uni-President)
-
 ## 활성 정책
 
 | 정책 | 액션 |

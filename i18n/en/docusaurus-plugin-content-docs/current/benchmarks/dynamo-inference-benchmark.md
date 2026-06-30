@@ -22,9 +22,9 @@ sidebar_position: 5
 category: benchmark
 ---
 
-# Report 5. NVIDIA Dynamo Inference Benchmark
-
-> 📅 **Created**: 2026-03-20 | **Status**: New
+:::info Document Status
+**New** — Benchmark execution planning stage.
+:::
 
 ## Overview
 

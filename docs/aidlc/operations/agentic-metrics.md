@@ -16,10 +16,6 @@ tags:
 sidebar_label: Agentic 메트릭
 ---
 
-# AgenticOps 메트릭 — 운영 중 관측할 Agent KPI
-
-> **읽는 시간**: 약 5분
-
 AI Agent가 프로덕션에 배포되면, **시스템이 정상 응답하는가**만으로는 품질을 판단할 수 없다. "사용자 의도를 정확히 이해했는가?", "올바른 도구를 호출했는가?", "답변이 충실한가?"와 같은 **사용자 지각 품질(Perceived Quality)**을 측정해야 한다. 이 문서는 Agent 운영에 필수적인 **KPI 카테고리**와 **Langfuse·OTel 기반 계측 방법**을 다룬다.
 
 ---
@@ -47,18 +43,18 @@ flowchart LR
     TOOLS[도구 호출]
     LLM[LLM 추론]
     RESPONSE[응답]
-    
+
     SYSTEM_OK[시스템 정상<br/>HTTP 200<br/>latency 500ms]
     USER_FAIL[사용자 불만족<br/>환각 답변<br/>불필요한 도구 3회 호출<br/>비용 $2.5]
-    
+
     USER --> AGENT
     AGENT --> TOOLS
     AGENT --> LLM
     LLM --> RESPONSE
-    
+
     RESPONSE -.->|시스템 관점| SYSTEM_OK
     RESPONSE -.->|사용자 관점| USER_FAIL
-    
+
     style SYSTEM_OK fill:#76b900,color:#fff
     style USER_FAIL fill:#ea4335,color:#fff
 ```
@@ -236,7 +232,7 @@ async for chunk in llm_stream():
     if first_token_time is None:
         first_token_time = time.time()
         ttft_ms = (first_token_time - request_time) * 1000
-        
+
         trace.event(
             name="time_to_first_token",
             metadata={"ttft_ms": ttft_ms, "model": "gpt-4o"}
@@ -289,13 +285,13 @@ flowchart TB
     SESSION[Session<br/>multi-turn 대화]
     CONV1[Conversation 1<br/>user turn + agent turn]
     CONV2[Conversation 2]
-    
+
     AGENT_RUN[Agent Run<br/>추론 사이클]
     TOOL1[Tool Call 1<br/>get_weather]
     TOOL2[Tool Call 2<br/>search_web]
     LLM1[LLM Generation 1<br/>gpt-4o]
     LLM2[LLM Generation 2<br/>gpt-4o-mini]
-    
+
     SESSION --> CONV1
     SESSION --> CONV2
     CONV1 --> AGENT_RUN
@@ -303,7 +299,7 @@ flowchart TB
     AGENT_RUN --> TOOL2
     AGENT_RUN --> LLM1
     TOOL1 --> LLM2
-    
+
     style SESSION fill:#326ce5,color:#fff
     style CONV1 fill:#4285f4,color:#fff
     style AGENT_RUN fill:#fbbc04,color:#000
@@ -570,9 +566,9 @@ def detect_anomaly(current_rate, historical_rates, threshold_sigma=3):
     """
     baseline_mean = np.mean(historical_rates)
     baseline_std = np.std(historical_rates)
-    
+
     z_score = (current_rate - baseline_mean) / baseline_std
-    
+
     if z_score > threshold_sigma:
         return {
             "anomaly": True,
@@ -606,7 +602,7 @@ def lambda_handler(event, context):
     alarm_name = event["detail"]["alarmName"]
     metric = event["detail"]["metric"]
     value = event["detail"]["state"]["value"]
-    
+
     # PagerDuty Events API v2
     payload = {
         "routing_key": "PAGERDUTY_ROUTING_KEY",
@@ -622,7 +618,7 @@ def lambda_handler(event, context):
             }
         }
     }
-    
+
     response = requests.post(
         "https://events.pagerduty.com/v2/enqueue",
         json=payload
@@ -681,11 +677,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Run Ragas evaluation
         run: |
           pytest tests/test_agent_quality.py --ragas
-      
+
       - name: Check metrics regression
         run: |
           python scripts/check_regression.py \

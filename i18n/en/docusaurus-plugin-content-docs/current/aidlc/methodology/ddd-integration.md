@@ -1,5 +1,5 @@
 ---
-title: DDD Integration
+title: DDD Integration — Essential Core in AI-Driven Development
 description: Why DDD is an essential core in AIDLC — AI-driven development from domain design to logical design
 created: "2026-04-07"
 last_update:
@@ -19,8 +19,6 @@ tags:
 sidebar_label: DDD Integration
 category: aidlc
 ---
-
-# DDD Integration — Essential Core in AI-Driven Development
 
 > **Key Message**: In AIDLC, DDD is not optional but a built-in element of the methodology. AI automatically models business logic according to DDD principles, and teams validate and adjust.
 
@@ -105,7 +103,7 @@ graph LR
     B --> C[tasks.md]
     C --> D[Code Generation]
     D --> E[Validation]
-    
+
     style A fill:#e8f5e9,stroke:#4caf50
     style B fill:#e3f2fd,stroke:#2196f3
     style C fill:#fff3e0,stroke:#ff9800
@@ -359,12 +357,12 @@ func (r *DynamoDBPaymentRepository) Save(ctx context.Context, p *Payment) error 
         TableName: aws.String("payment-service"),
         Item:      item,
     })
-    
+
     // Publish Domain Events
     for _, event := range p.Events {
         publishToSQS(event)
     }
-    
+
     return err
 }
 ```
@@ -474,11 +472,11 @@ func TestPaymentNotificationIntegration(t *testing.T) {
     // Payment Unit publishes PaymentCompleted event
     payment := CreatePayment(amount)
     payment.Complete()
-    
+
     // Verify event received from SQS
     event := sqsClient.ReceiveMessage("payment-events.fifo")
     assert.Equal(t, "PaymentCompleted", event.Type)
-    
+
     // Verify Notification Unit sent email
     notification := notificationClient.GetLastNotification()
     assert.Contains(t, notification.Body, payment.TransactionID)
@@ -519,7 +517,7 @@ graph TD
     E --> F[Generate Domain Design]
     F --> G[Logical Design]
     G --> H[Generate Refactoring Code]
-    
+
     style A fill:#ffebee,stroke:#c62828
     style F fill:#e8f5e9,stroke:#4caf50
     style H fill:#e3f2fd,stroke:#2196f3

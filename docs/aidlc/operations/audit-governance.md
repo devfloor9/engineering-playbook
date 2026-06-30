@@ -18,10 +18,6 @@ sidebar_position: 4
 category: aidlc
 ---
 
-# Audit & Governance Logging
-
-> 📅 **작성일**: 2026-04-18 | ⏱️ **읽는 시간**: 약 17분
-
 AWS Labs [AIDLC Common Rules](https://github.com/awslabs/aidlc-workflows/tree/main/aws-aidlc-rule-details/common) 중 가장 거버넌스 비중이 높은 두 규칙은 **Checkpoint Approval (규칙 7)** 과 **Audit Logging (규칙 8)** 입니다. 본 문서는 이 두 규칙을 운영 환경에서 **규제 산업(금융·의료·공공)** 의 감사 요구를 충족하도록 구현하는 실전 가이드입니다.
 
 ---
@@ -285,7 +281,7 @@ event:
   answer:
     raw_text: |                              # 사용자 원본 응답 절대 수정 금지
       [Answer]: B
-      
+
       조직 표준으로 PostgreSQL 을 사용하므로 Aurora 선택.
     parsed_option: B
     user_comment: "조직 표준으로 PostgreSQL 을 사용하므로 Aurora 선택."
@@ -417,7 +413,7 @@ audit_manifest:
   events_count: 1_284
   gates_count: 7
   artifacts_count: 42
-  
+
   compliance_mappings:
     - standard: ISMS-P
       version: "2.1"
@@ -466,11 +462,11 @@ aidlc audit gates --session sess-20260315-payment-api-v2
 → Gate 1: requirements_analysis → user_stories
   Approved by: architect@bank.com (2026-03-15T14:20:00Z)
   Signature: verified ✓
-  
+
 → Gate 2: user_stories → workflow_planning  
   Approved by: architect@bank.com, security-lead@bank.com (2026-03-15T16:10:00Z)
   Signatures: all verified ✓
-  
+
 → Gate 3: construction → production_deploy
   Approved by: architect + security + compliance + sre (2026-03-16T09:00:00Z)
   Signatures: all verified ✓

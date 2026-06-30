@@ -16,8 +16,6 @@ tags:
 sidebar_label: S7. Customer Journey
 ---
 
-# S7. 옴니채널 회원 여정
-
 > **3 BU 통합 PoC의 결정적 한 컷**: 한 회원이 Beauty(올영) → HDB(마트) → Refreshment(편의점)을 어떻게 이동하는지 단일 타임라인.
 
 ## 1. URL 경로

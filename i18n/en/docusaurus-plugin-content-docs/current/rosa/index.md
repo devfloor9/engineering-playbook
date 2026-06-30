@@ -1,7 +1,7 @@
 ---
 title: ROSA (Red Hat OpenShift on AWS)
 description: Technical documentation on deploying and operating Red Hat OpenShift Service on AWS (ROSA)
-created: "2026-02-04"
+created: "2025-02-05"
 last_update:
   date: "2026-02-13"
   author: devfloor9
@@ -14,8 +14,6 @@ category: rosa
 ---
 
 # ROSA (Red Hat OpenShift on AWS)
-
-> 📅 **Created**: 2025-02-05 | **Updated**: 2026-02-13 | ⏱️ **Reading time**: ~6 min
 
 This section covers technical documentation for deploying and operating Red Hat OpenShift Service on AWS (ROSA). ROSA is a fully managed OpenShift service jointly managed by AWS and Red Hat, enabling easy deployment of enterprise-grade Kubernetes platforms.
 

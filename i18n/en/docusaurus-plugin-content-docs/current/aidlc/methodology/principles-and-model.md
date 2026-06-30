@@ -19,12 +19,6 @@ category: aidlc
 
 import { AidlcPrinciples, AidlcArtifacts, AidlcPhaseMapping, AidlcPhaseActivities } from '@site/src/components/AidlcTables';
 
-# AIDLC 10 Principles and Execution Model
-
-> 📅 **Created**: 2026-04-07 | ⏱️ **Reading time**: Approximately 15 minutes
-
----
-
 ## 1. Why AIDLC
 
 Traditional Software Development Life Cycle (SDLC) was designed around human-centric long iteration cycles (weekly/monthly cadence). Rituals like daily standups, sprint reviews, and retrospectives are optimized for these long cycles. The emergence of AI disrupts this premise.

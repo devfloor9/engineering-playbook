@@ -18,8 +18,6 @@ sidebar_position: 8
 category: benchmarks
 ---
 
-# 보안 및 운영 벤치마크
-
 보안 정책, 모니터링, GitOps 도구의 성능 오버헤드와 효율성을 측정합니다.
 
 ## 보안 정책 오버헤드

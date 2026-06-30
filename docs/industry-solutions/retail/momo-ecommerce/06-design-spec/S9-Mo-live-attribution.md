@@ -16,8 +16,6 @@ tags:
 sidebar_label: S9-Mo. Live Attribution
 ---
 
-# S9-Mo. 라이브 커머스 방송 효과 어트리뷰션
-
 > **Momo 차별 포인트** ⭐ — 라이브 방송 시청·핀·구매 이벤트를 Kinesis로 실시간 수집해 진행자·SKU·시간대별 어트리뷰션.
 
 ## 1. URL · 페르소나

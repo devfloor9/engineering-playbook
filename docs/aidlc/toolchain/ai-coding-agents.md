@@ -22,8 +22,6 @@ sidebar_label: AI 코딩 에이전트
 
 import { AiCodingAgentComparison } from '@site/src/components/AidlcTables';
 
-# AI 코딩 에이전트
-
 AIDLC Construction 단계에서 설계를 코드로 구현하는 AI 코딩 에이전트 전략을 다룹니다. 본 문서는 먼저 **AWS Labs AIDLC 공식 지원 7개 플랫폼**을 요약한 뒤, Kiro의 Spec-Driven 접근과 Amazon Q Developer의 실시간 빌드·테스트를 심화합니다. 그리고 MCP 기반 컨텍스트 수집, CI/CD 통합 패턴, 에이전트 선택 가이드로 마무리합니다.
 
 ## 0. 공식 AIDLC 지원 플랫폼 7종

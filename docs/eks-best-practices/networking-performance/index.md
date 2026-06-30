@@ -19,8 +19,6 @@ sidebar_position: 1
 
 import { DocCard, DocCardGrid } from '@site/src/components/DocCards';
 
-# 네트워크 & 성능 최적화
-
 EKS 클러스터의 네트워크 성능을 극대화하기 위한 실전 가이드입니다. DNS 튜닝, 서비스 간 트래픽 최적화, 그리고 차세대 트래픽 라우팅인 Gateway API 도입 전략을 다룹니다.
 
 ---

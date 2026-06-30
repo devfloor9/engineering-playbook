@@ -1,7 +1,7 @@
 ---
 title: Probe vs Health Check Mismatch Debugging
 description: Guide to diagnosing outages caused by mechanism differences and timeout mismatches between K8s Probes and ALB/NLB/Ingress Controller Health Checks
-created: "2026-04-21"
+created: "2026-04-07"
 last_update:
   date: "2026-04-07"
   author: devfloor9
@@ -16,10 +16,6 @@ tags:
   - ingress
 sidebar_label: Health Check Mismatch
 ---
-
-# Probe vs Health Check Mismatch Debugging
-
-> **Created**: 2026-04-07 | **Reading time**: about 20 minutes
 
 > **Baseline environment**: EKS 1.32+, AWS Load Balancer Controller v2.9+, Ingress-NGINX v1.11+
 
@@ -139,24 +135,24 @@ flowchart TD
     START[503 Service Unavailable occurs] --> CHECK_POD{kubectl get pods<br/>Pod Ready?}
     CHECK_POD -->|Ready 1/1| CHECK_EP{kubectl get endpoints<br/>Pod IP present?}
     CHECK_POD -->|Not Ready| FIX_PROBE[Fix Probe configuration]
-    
+
     CHECK_EP -->|Present| CHECK_TG{aws elbv2<br/>describe-target-health<br/>Target Healthy?}
     CHECK_EP -->|Absent| FIX_PROBE
-    
+
     CHECK_TG -->|healthy| CHECK_SG[Check Security Group]
     CHECK_TG -->|unhealthy| PATH_MISMATCH{HC Path matches?}
-    
+
     PATH_MISMATCH -->|mismatch| FIX_PATH[Fix Service annotation<br/>health-check-path]
     PATH_MISMATCH -->|match| TIMEOUT{Timeout setting?}
-    
+
     TIMEOUT -->|ALB timeout too short| FIX_TIMEOUT[Increase<br/>health-check-timeout]
     TIMEOUT -->|normal| CHECK_SG
-    
+
     CHECK_SG --> CHECK_APP[Inspect application logs]
     FIX_PATH --> VERIFY[Verify]
     FIX_TIMEOUT --> VERIFY
     CHECK_APP --> VERIFY
-    
+
     style START fill:#ff4444,stroke:#cc3636,color:#fff
     style FIX_PATH fill:#34a853,stroke:#2a8642,color:#fff
     style FIX_TIMEOUT fill:#34a853,stroke:#2a8642,color:#fff
@@ -256,22 +252,22 @@ Example: `deregistration_delay=15s`, `preStop=10s`, `app_shutdown=5s`
 ```mermaid
 flowchart TD
     START[502 Bad Gateway<br/>during Pod termination] --> CHECK_TIMING{preStop hook present?}
-    
+
     CHECK_TIMING -->|No| ADD_PRESTOP[Add preStop sleep 15]
     CHECK_TIMING -->|Yes| CHECK_GRACE{terminationGracePeriodSeconds<br/>sufficient?}
-    
+
     CHECK_GRACE -->|Too short| INCREASE_GRACE[Increase<br/>terminationGracePeriodSeconds]
     CHECK_GRACE -->|Sufficient| CHECK_DEREG{ALB deregistration_delay<br/>configured?}
-    
+
     CHECK_DEREG -->|Default 300s| DECREASE_DEREG[Reduce<br/>deregistration_delay to 15–30s]
     CHECK_DEREG -->|Already short| CHECK_SIGTERM{SIGTERM handler<br/>implemented?}
-    
+
     ADD_PRESTOP --> VERIFY[Verify:<br/>kubectl delete pod test]
     INCREASE_GRACE --> VERIFY
     DECREASE_DEREG --> VERIFY
     CHECK_SIGTERM --> IMPLEMENT_SIGTERM[Implement language-specific<br/>Graceful Shutdown]
     IMPLEMENT_SIGTERM --> VERIFY
-    
+
     style START fill:#ff4444,stroke:#cc3636,color:#fff
     style ADD_PRESTOP fill:#34a853,stroke:#2a8642,color:#fff
     style VERIFY fill:#4286f4,stroke:#2a6acf,color:#fff
@@ -336,12 +332,12 @@ app.use((req, res, next) => {
 process.on('SIGTERM', () => {
   console.log('SIGTERM received, starting graceful shutdown');
   isShuttingDown = true;
-  
+
   server.close(() => {
     console.log('All connections closed, exiting');
     process.exit(0);
   });
-  
+
   // Force shutdown after 25s
   setTimeout(() => {
     console.error('Forced shutdown after timeout');
@@ -378,22 +374,22 @@ Issue: during T+10s ~ T+30s, traffic reaches the new Pod before it is ready → 
 ```mermaid
 flowchart TD
     START[Transient 503<br/>during rolling update] --> CHECK_MINREADY{minReadySeconds<br/>set?}
-    
+
     CHECK_MINREADY -->|0 default| SET_MINREADY[minReadySeconds ≥<br/>ALB HC interval × threshold<br/>e.g. 15s × 2 = 30s]
     CHECK_MINREADY -->|Set| CHECK_READINESS{readinessProbe<br/>strict enough?}
-    
+
     CHECK_READINESS -->|Too lenient| STRICT_PROBE[Reduce failureThreshold<br/>to 1-2]
     CHECK_READINESS -->|Strict| CHECK_MAXUNAVAIL{maxUnavailable<br/>set?}
-    
+
     CHECK_MAXUNAVAIL -->|Too large| ADJUST_MAXUNAVAIL[Reduce maxUnavailable<br/>to 25% or 1]
     CHECK_MAXUNAVAIL -->|Adequate| CHECK_PDB{PodDisruptionBudget<br/>set?}
-    
+
     SET_MINREADY --> VERIFY[Verify:<br/>kubectl rollout restart]
     STRICT_PROBE --> VERIFY
     ADJUST_MAXUNAVAIL --> VERIFY
     CHECK_PDB --> ADD_PDB[Add PDB<br/>minAvailable: 50%]
     ADD_PDB --> VERIFY
-    
+
     style START fill:#ff4444,stroke:#cc3636,color:#fff
     style SET_MINREADY fill:#34a853,stroke:#2a8642,color:#fff
     style VERIFY fill:#4286f4,stroke:#2a6acf,color:#fff
@@ -519,10 +515,10 @@ metadata:
     nginx.ingress.kubernetes.io/proxy-read-timeout: "300"    # Wait for backend response
     nginx.ingress.kubernetes.io/proxy-send-timeout: "300"    # Wait while sending to backend
     nginx.ingress.kubernetes.io/proxy-connect-timeout: "10"  # Wait for backend connection
-    
+
     # File upload size limit (default 1m)
     nginx.ingress.kubernetes.io/proxy-body-size: "100m"
-    
+
     # Buffer settings (large responses)
     nginx.ingress.kubernetes.io/proxy-buffer-size: "8k"
     nginx.ingress.kubernetes.io/proxy-buffers-number: "4"
@@ -613,7 +609,7 @@ metadata:
     alb.ingress.kubernetes.io/healthcheck-timeout-seconds: "5"
     alb.ingress.kubernetes.io/healthy-threshold-count: "2"
     alb.ingress.kubernetes.io/unhealthy-threshold-count: "2"
-    
+
     # Graceful Shutdown settings
     alb.ingress.kubernetes.io/target-group-attributes: deregistration_delay.timeout_seconds=15
 spec:
@@ -645,7 +641,7 @@ spec:
         - containerPort: 8080
           name: http
           protocol: TCP
-        
+
         # Startup Probe (for slow-starting apps)
         startupProbe:
           httpGet:
@@ -655,7 +651,7 @@ spec:
           periodSeconds: 5
           timeoutSeconds: 3
           failureThreshold: 30  # Wait up to 150s
-        
+
         # Liveness Probe (deadlock detection)
         livenessProbe:
           httpGet:
@@ -665,7 +661,7 @@ spec:
           periodSeconds: 10
           timeoutSeconds: 1
           failureThreshold: 3
-        
+
         # Readiness Probe (traffic gating)
         readinessProbe:
           httpGet:
@@ -676,7 +672,7 @@ spec:
           timeoutSeconds: 1
           failureThreshold: 2
           successThreshold: 1
-        
+
         # Graceful Shutdown
         lifecycle:
           preStop:

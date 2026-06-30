@@ -17,8 +17,6 @@ sidebar_label: Kyverno 정책 관리
 category: security
 ---
 
-# Kyverno 기반 정책 관리
-
 :::info 작성 예정
 이 문서는 현재 작성 중입니다. 다음 내용이 포함될 예정입니다:
 

@@ -1,7 +1,7 @@
 ---
 title: EKS Pod Resource Optimization Guide
 description: Kubernetes Pod CPU/Memory resource configuration, QoS classes, VPA/HPA autoscaling, and resource right-sizing strategies
-created: "2026-02-13"
+created: "2026-02-12"
 last_update:
   date: "2026-02-14"
   author: devfloor9
@@ -20,10 +20,6 @@ tags:
 sidebar_label: Pod Resource Optimization
 category: performance-networking
 ---
-
-# EKS Pod Resource Optimization Guide
-
-> **Written**: 2026-02-12 | **Updated**: 2026-02-14 | **Reading time**: ~46 min
 
 > **Reference Environment**: EKS 1.30+, Kubernetes 1.30+, Metrics Server v0.7+
 

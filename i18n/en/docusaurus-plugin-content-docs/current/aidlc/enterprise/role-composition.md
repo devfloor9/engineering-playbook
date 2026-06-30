@@ -10,8 +10,6 @@ tags: []
 sidebar_label: Role Composition
 ---
 
-# Role Composition
-
 AIDLC fundamentally transforms traditional SI team structures through code generation automation. The core insight: **When AI handles code generation, humans transition to harness design, ontology management, and AI output verification**.
 
 ## Traditional SI Role Model

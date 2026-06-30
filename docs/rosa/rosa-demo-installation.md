@@ -1,7 +1,7 @@
 ---
 title: ROSA 데모 설치 가이드
 description: ROSA 클러스터 설치 데모 - STS 기반 클러스터 생성, IAM 역할 구성, 오토스케일링 설정 및 관리자 접근 구성 가이드
-created: "2026-02-04"
+created: "2025-02-05"
 last_update:
   date: "2026-06-27"
   author: YoungJoon Jeong
@@ -18,11 +18,6 @@ tags:
 sidebar_label: ROSA 데모 설치
 category: rosa
 ---
-
-# ROSA 데모 설치 가이드
-
-> 📅 **작성일**: 2025-02-05 | **수정일**: 2026-02-14 | ⏱️ **읽는 시간**: 약 2분
-
 
 이 문서는 ROSA(Red Hat OpenShift Service on AWS) 클러스터의 설치 과정과 결과를 기록한 데모 가이드입니다. STS 기반의 보안 강화 설치 방식과 오토스케일링 구성을 포함합니다.
 

@@ -16,8 +16,6 @@ tags:
 sidebar_label: S2. Persona Chatbot
 ---
 
-# S2. 5 부서 페르소나 챗봇 (AMWAY)
-
 ## 1. URL · 페르소나
 - `/chat` · 모든 페르소나
 

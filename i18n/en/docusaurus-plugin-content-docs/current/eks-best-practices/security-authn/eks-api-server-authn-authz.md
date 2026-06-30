@@ -18,10 +18,6 @@ tags:
 sidebar_label: API Server AuthN/AuthZ
 ---
 
-# EKS API Server Authentication/Authorization Guide
-
-> **Written**: 2026-03-24 | **Reading time**: ~20 min
-
 ## Overview
 
 The EKS API Server is accessed not only by kubectl users but by various **Non-Standard Callers**: CI/CD pipelines (GitHub Actions, Jenkins, ArgoCD), monitoring systems (Prometheus, Datadog), automation tools (Terraform, custom controllers), and enterprise users.

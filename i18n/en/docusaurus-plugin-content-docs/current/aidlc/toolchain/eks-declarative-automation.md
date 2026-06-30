@@ -12,8 +12,6 @@ sidebar_label: EKS Declarative Automation
 
 import { EksCapabilities, AidlcPipeline } from '@site/src/components/AidlcTables';
 
-# EKS Declarative Automation
-
 EKS Capabilities (Nov 2025) provides popular open-source tools as AWS managed services, serving as the core infrastructure for declaratively deploying AIDLC Construction phase outputs and continuously managing them in the Operations phase.
 
 <EksCapabilities />

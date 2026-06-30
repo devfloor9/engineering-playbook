@@ -1,7 +1,7 @@
 ---
 title: Hybrid Infrastructure
 description: Amazon EKS를 활용한 하이브리드 클라우드 및 멀티 클라우드 환경 구축에 대한 심화 기술 문서
-created: "2025-09-11"
+created: "2025-02-05"
 last_update:
   date: "2026-02-13"
   author: devfloor9
@@ -12,10 +12,6 @@ sidebar_label: 하이브리드 인프라
 sidebar_position: 4
 category: hybrid
 ---
-
-# Hybrid Infrastructure
-
-> 📅 **작성일**: 2025-02-05 | **수정일**: 2026-02-13 | ⏱️ **읽는 시간**: 약 3분
 
 현대 기업의 인프라 환경은 클라우드와 온프레미스의 경계를 넘어서고 있습니다. Amazon EKS 하이브리드 노드를 통해 기업들은 클라우드 네이티브 플랫폼의 강력함을 자사 데이터센터로 확장할 수 있게 되었습니다. 이러한 접근 방식은 단순히 두 환경을 연결하는 것을 넘어, 통합된 관리 평면 아래에서 온프레미스와 클라우드 리소스를 하나의 Kubernetes 클러스터로 운영할 수 있게 합니다.
 

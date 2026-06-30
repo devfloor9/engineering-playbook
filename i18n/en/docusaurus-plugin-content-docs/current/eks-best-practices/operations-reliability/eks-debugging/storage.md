@@ -16,8 +16,6 @@ tags:
 sidebar_label: Storage
 ---
 
-# Storage Debugging
-
 ## Storage Debugging Decision Tree
 
 ```mermaid

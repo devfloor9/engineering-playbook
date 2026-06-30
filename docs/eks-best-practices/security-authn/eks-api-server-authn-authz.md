@@ -19,10 +19,6 @@ tags:
 sidebar_label: API Server AuthN/AuthZ
 ---
 
-# EKS API Server 인증/인가 가이드
-
-> 📅 **작성일**: 2026-03-24 | ⏱️ **읽는 시간**: 약 20분
-
 ## 개요
 
 EKS 클러스터의 API Server는 kubectl 사용자뿐 아니라 다양한 **Non-Standard Caller**가 접근합니다:

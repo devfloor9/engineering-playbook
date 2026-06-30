@@ -1,7 +1,7 @@
 ---
 title: Hybrid Infrastructure
 description: In-depth technical documentation on building hybrid cloud and multi-cloud environments with Amazon EKS
-created: "2026-02-04"
+created: "2025-02-05"
 last_update:
   date: "2026-02-13"
   author: devfloor9
@@ -14,8 +14,6 @@ category: hybrid
 ---
 
 # Hybrid Infrastructure
-
-> 📅 **Created**: 2025-02-05 | **Updated**: 2026-02-13 | ⏱️ **Reading time**: ~3 min
 
 Modern enterprise infrastructure extends beyond the boundaries of cloud and on-premises. With Amazon EKS Hybrid Nodes, organizations can extend the power of cloud-native platforms to their own data centers. This approach goes beyond simply connecting two environments — it enables operating on-premises and cloud resources as a single Kubernetes cluster under a unified management plane.
 

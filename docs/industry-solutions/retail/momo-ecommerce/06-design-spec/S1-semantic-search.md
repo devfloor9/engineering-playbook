@@ -16,8 +16,6 @@ tags:
 sidebar_label: S1. Semantic Search
 ---
 
-# S1. 자연어 시맨틱 검색 (Momo)
-
 ## 1. URL · 페르소나
 - `/semantic-search` · P1 (마케팅), P3 (검색·추천)
 

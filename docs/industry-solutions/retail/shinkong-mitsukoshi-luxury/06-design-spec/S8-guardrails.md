@@ -16,8 +16,6 @@ tags:
 sidebar_label: S8. Guardrails
 ---
 
-# S8. 가드레일 (Mitsukoshi)
-
 ## 1. URL · 페르소나
 - `/compliance` · P4
 

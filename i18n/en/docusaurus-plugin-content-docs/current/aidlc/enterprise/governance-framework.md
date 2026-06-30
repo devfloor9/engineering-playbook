@@ -10,8 +10,6 @@ tags: []
 sidebar_label: Governance Framework
 ---
 
-# Governance Framework
-
 This document presents a governance framework for systematic management of AI-generated code quality, security, and compliance as AIDLC expands enterprise-wide.
 
 ## Need for Governance
@@ -61,29 +59,29 @@ graph TB
         EP3[Approved AI Tools List]
         EP4[Model Usage Policy]
     end
-    
+
     subgraph Layer2["Layer 2: System-Level Policy<br/>(System Standards)"]
         SS1[MSA Communication Rules]
         SS2[Data Model Constraints]
         SS3[API Design Guide]
         SS4[Architecture Patterns]
     end
-    
+
     subgraph Layer3["Layer 3: Project Steering<br/>(Project Steering)"]
         PS1[Ontology]
         PS2[Harness Configuration]
         PS3[Model Selection]
         PS4[Project-Specific Constraints]
     end
-    
+
     Layer1 --> Layer2
     Layer2 --> Layer3
-    
+
     PS1 --> CODE[AI Generated Code]
     PS2 --> CODE
     PS3 --> CODE
     PS4 --> CODE
-    
+
     SS1 -.Inherit.-> PS1
     SS2 -.Inherit.-> PS1
     EP1 -.Inherit.-> SS1
@@ -353,17 +351,17 @@ Handle sensitive tasks with on-premises open weight models, general tasks with c
 graph LR
     DEV[Developer]
     CLS[AI Classifier]
-    
+
     subgraph CLOUD["Cloud (AWS Bedrock)"]
         CLAUDE[Claude 3.7 Sonnet]
         GPT[GPT-4 Turbo]
     end
-    
+
     subgraph ONPREM["On-Premises (EKS)"]
         QWEN[Qwen 3 Coder 32B]
         LLAMA[Llama 3.3 70B]
     end
-    
+
     DEV -->|Task Request| CLS
     CLS -->|Sensitive Tasks<br/>Code Review,<br/>Security Analysis| ONPREM
     CLS -->|General Tasks<br/>Unit Tests,<br/>Documentation| CLOUD
@@ -555,7 +553,7 @@ panels:
       FROM audit_log
       WHERE timestamp > now() - interval '30 days'
     target: 95%
-  
+
   - title: Security Vulnerability Trend
     query: |
       SELECT 
@@ -564,7 +562,7 @@ panels:
       FROM audit_log
       GROUP BY day
       ORDER BY day
-  
+
   - title: Code Quality by Model
     query: |
       SELECT 
@@ -594,7 +592,7 @@ from datetime import datetime, timedelta
 
 def generate_monthly_report():
     logs = load_audit_logs(last_30_days=True)
-    
+
     report = {
         "period": f"{datetime.now().strftime('%Y-%m')}",
         "total_generations": len(logs),
@@ -603,7 +601,7 @@ def generate_monthly_report():
         "models_used": count_by_model(logs),
         "compliance_status": "COMPLIANT"
     }
-    
+
     with open(f"reports/governance-{datetime.now().strftime('%Y-%m')}.json", "w") as f:
         json.dump(report, f, indent=2)
 

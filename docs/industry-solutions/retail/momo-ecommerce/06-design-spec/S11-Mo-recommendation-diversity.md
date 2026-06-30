@@ -16,8 +16,6 @@ tags:
 sidebar_label: S11-Mo. Recommendation Diversity
 ---
 
-# S11-Mo. 모바일 앱 추천·검색 다양성
-
 > **Momo 차별 포인트** ⭐ — 방대한 SKU 자산이 모바일 앱에서 발견되도록 추천 다양성 + 롱테일 노출을 모니터.
 
 ## 1. URL · 페르소나

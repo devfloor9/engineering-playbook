@@ -16,8 +16,6 @@ tags:
 sidebar_label: 02. Ontology
 ---
 
-# Knowledge Graph 25 Classes (AMWAY)
-
 > Neptune (openCypher) 기반 25 클래스 KG. 추정 ~700K edges (ABO Tree 깊이 반영). **ABO 다단계 조직 + 정기구독 + 글로벌 다국어** 특성 반영.
 
 ---

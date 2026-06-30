@@ -16,8 +16,6 @@ tags:
 sidebar_label: 02. Ontology
 ---
 
-# Knowledge Graph 25 Classes
-
 > Neptune (openCypher) 기반 25 클래스 KG. 추정 ~500K edges. **3 BU(Beauty + HDB + Refreshment) 통합** + 외부 4종 시그널 반영.
 
 ---

@@ -16,8 +16,6 @@ tags:
 sidebar_label: 05. Architecture
 ---
 
-# AWS 단일 아키텍처 (Momo)
-
 > LG H&H 골격 + Momo 특화: **Kinesis Data Streams** (라이브 방송 이벤트), **TimeStream** (배송 SLA 시계열), 다국어, ~800K edges.
 
 ## 1. 아키텍처

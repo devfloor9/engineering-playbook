@@ -15,8 +15,6 @@ tags:
 sidebar_label: Agent Versioning
 ---
 
-# Agent Change Management
-
 ## Why Agent Change Management is Needed
 
 ### Differences from Traditional Software Changes

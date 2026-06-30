@@ -16,8 +16,6 @@ sidebar_label: "L1-L2: Simple MSA"
 sidebar_position: 1
 ---
 
-# Level 1-2: Simple CRUD & Synchronous MSA
-
 AIDLC application guide for simple services through synchronous MSA with relatively low complexity.
 
 ## Level 1: Simple Service CRUD
@@ -37,7 +35,7 @@ graph LR
     C --> D[Basic Harness]
     D --> E[Quality Gate]
     E --> F[Deploy]
-    
+
     style B fill:#E8F5E9
     style D fill:#E3F2FD
 ```
@@ -106,7 +104,7 @@ graph LR
     D --> E[Service Contract Harness]
     E --> F[Integration Tests]
     F --> G[Deploy]
-    
+
     style B fill:#FFF9C4
     style D fill:#E8F5E9
     style E fill:#E3F2FD

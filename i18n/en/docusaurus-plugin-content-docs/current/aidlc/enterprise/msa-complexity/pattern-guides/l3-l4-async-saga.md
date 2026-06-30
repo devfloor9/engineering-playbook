@@ -17,8 +17,6 @@ sidebar_label: "L3-L4: Async & Saga"
 sidebar_position: 2
 ---
 
-# Level 3-4: Async Events & Saga
-
 Intermediate to advanced complexity patterns covering event-driven architecture and distributed transactions.
 
 ## Level 3: Async Event-Driven MSA
@@ -39,7 +37,7 @@ graph LR
     D --> E[Event Schema Verification]
     E --> F[Eventually Consistent Tests]
     F --> G[Deploy]
-    
+
     style B fill:#FFF9C4
     style C fill:#E8F5E9
     style D fill:#E3F2FD
@@ -121,7 +119,7 @@ graph TB
     F --> G{All Scenarios Pass?}
     G -->|Yes| H[Deploy]
     G -->|No| C
-    
+
     style B fill:#FFF9C4
     style C fill:#E8F5E9
     style D fill:#E3F2FD
@@ -169,11 +167,11 @@ saga:
     - scenario: FlightReservationFailed
       compensations:
         - (none, first step failure)
-    
+
     - scenario: HotelReservationFailed
       compensations:
         - cancelFlightReservation
-    
+
     - scenario: PaymentFailed
       compensations:
         - cancelHotelReservation
@@ -203,19 +201,19 @@ saga:
 def test_saga_compensation():
     """Verify that compensation logic works correctly on Saga failure"""
     saga = TravelBookingSaga()
-    
+
     # 1. Flight reservation success
     saga.execute_step("ReserveFlight")
     assert flight_service.is_reserved("flight123")
-    
+
     # 2. Hotel reservation success
     saga.execute_step("ReserveHotel")
     assert hotel_service.is_reserved("hotel456")
-    
+
     # 3. Payment failure simulation
     with pytest.raises(PaymentFailedException):
         saga.execute_step("ChargePayment")
-    
+
     # 4. Compensating transaction verification
     saga.compensate()
     assert not hotel_service.is_reserved("hotel456")  # cancelled

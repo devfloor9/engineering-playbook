@@ -18,8 +18,6 @@ sidebar_label: Node
 
 import { NodeGroupErrorTable } from '@site/src/components/EksDebugTables';
 
-# Node-Level Debugging
-
 ## Node Join Failure Debugging
 
 Nodes can fail to join a cluster for a variety of reasons. The following are the eight most common causes and how to diagnose them.

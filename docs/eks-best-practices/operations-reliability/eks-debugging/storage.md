@@ -17,8 +17,6 @@ tags:
 sidebar_label: 스토리지
 ---
 
-# 스토리지 디버깅
-
 ## 스토리지 디버깅 Decision Tree
 
 ```mermaid

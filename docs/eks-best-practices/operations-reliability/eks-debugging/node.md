@@ -19,8 +19,6 @@ sidebar_label: 노드
 
 import { NodeGroupErrorTable } from '@site/src/components/EksDebugTables';
 
-# 노드 레벨 디버깅
-
 ## 노드 조인 실패 디버깅
 
 노드가 클러스터에 조인하지 못하는 경우 다양한 원인이 있습니다. 다음은 가장 흔한 8가지 원인과 진단 방법입니다.

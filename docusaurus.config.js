@@ -84,8 +84,10 @@ const config = {
           // Remove this to remove the "edit this page" links.
           editUrl:
             'https://github.com/devfloor9/engineering-playbook/tree/main/',
-          showLastUpdateAuthor: true,
-          showLastUpdateTime: true,
+          // 작성일·수정일·읽는 시간은 제목 아래 DocMeta(src/theme/DocMeta) 단일 라인으로 통일한다.
+          // 페이지 하단 네이티브 last-updated 표시는 중복이므로 비활성화한다.
+          showLastUpdateAuthor: false,
+          showLastUpdateTime: false,
           breadcrumbs: true,
           // Configure sidebar routing
           routeBasePath: 'docs',

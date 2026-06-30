@@ -18,7 +18,6 @@ sidebar_position: 99
 ---
 
 - **Status**: Proposed (consensus required before production deployment)
-- **Date**: 2026-04-19
 - **Related Documents**
   - Design: [Self-Improving Agent Loop](./self-improving-agent-loop.md)
   - Implementation: [Continuous Training Pipeline](../../reference-architecture/model-lifecycle/continuous-training/index.md)

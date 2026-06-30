@@ -1,7 +1,7 @@
 ---
 title: "대규모 EKS 비용 관리: 30-90% 절감 전략"
 description: Amazon EKS 환경에서 30-90%의 획기적 비용 절감을 달성하는 FinOps 전략. 비용 구조 분석, Karpenter 최적화, 도구 선택, 실제 성공 사례 포함
-created: "2026-02-05"
+created: "2025-02-05"
 last_update:
   date: "2026-06-27"
   author: YoungJoon Jeong
@@ -18,11 +18,7 @@ sidebar_label: EKS 비용 관리
 category: performance-networking
 ---
 
-# 대규모 EKS 환경 비용 관리 가이드
-
 > **📌 업데이트**: 2026-06-15 - Karpenter v1.13+ 및 EKS Auto Mode 비용 분석 반영
-
-> 📅 **작성일**: 2025-02-05 | **수정일**: 2026-02-14 | ⏱️ **읽는 시간**: 약 11분
 
 ## 개요
 

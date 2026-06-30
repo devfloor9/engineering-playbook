@@ -16,8 +16,6 @@ tags:
 sidebar_label: 05. Architecture
 ---
 
-# AWS 단일 아키텍처 (Uni-President)
-
 > LG H&H 골격 + UPI 특화: **5 BU 데이터 통합 Glue ETL**, **TimeStream 콜드체인**, **Neptune ~900K edges** (BU 다양성 + OPENPOINT)
 
 ## 1. 아키텍처

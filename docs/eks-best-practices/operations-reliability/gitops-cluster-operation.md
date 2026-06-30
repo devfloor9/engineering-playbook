@@ -1,7 +1,7 @@
 ---
 title: GitOps 기반 EKS 클러스터 운영
 description: 대규모 EKS 클러스터의 안정적인 운영을 위한 GitOps 아키텍처, KRO/ACK 활용 방법, 멀티클러스터 관리 전략 및 자동화 기법을 다룹니다.
-created: "2026-02-04"
+created: "2025-02-09"
 last_update:
   date: "2026-06-27"
   author: YoungJoon Jeong
@@ -20,12 +20,7 @@ sidebar_label: GitOps 클러스터 운영
 category: observability-monitoring
 ---
 
-# GitOps 기반 EKS 클러스터 운영
-
-> 📅 **작성일**: 2025-02-09 | **수정일**: 2026-02-18 | ⏱️ **읽는 시간**: 약 6분
-
 > **📌 기준 버전**: ArgoCD v3.x GA (현재 v3.3+), EKS Capability for Argo CD (GA), Kubernetes 1.33+
-
 
 ## 개요
 

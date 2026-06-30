@@ -16,8 +16,6 @@ tags:
 sidebar_label: S1. Semantic Search
 ---
 
-# S1. 자연어 시맨틱 검색 (Mitsukoshi)
-
 ## 1. URL · 페르소나
 - `/semantic-search` · P1, P5
 

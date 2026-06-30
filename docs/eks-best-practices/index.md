@@ -22,8 +22,6 @@ category: infrastructure
 
 import { DocCard, DocCardGrid } from '@site/src/components/DocCards';
 
-# EKS Best Practices
-
 Amazon EKS를 프로덕션 환경에서 운영할 때 직면하는 심화 주제를 다룹니다. 네트워크 성능 최적화부터 Control Plane 확장, 보안, 비용 관리, 운영 안정성까지 5개 영역의 베스트 프랙티스를 제공합니다.
 
 ---

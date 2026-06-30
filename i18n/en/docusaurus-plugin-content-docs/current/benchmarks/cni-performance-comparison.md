@@ -1,7 +1,7 @@
 ---
 title: VPC CNI vs Cilium CNI Performance Comparison Benchmark
 description: A benchmark report comparing network and application performance of VPC CNI and Cilium CNI across 5 scenarios (kube-proxy, kube-proxy-less, ENI, tuning) in an EKS environment
-created: "2026-02-10"
+created: "2026-02-09"
 last_update:
   date: "2026-02-14"
   author: devfloor9
@@ -37,10 +37,6 @@ import RecommendationChart from '@site/src/components/RecommendationChart';
 import XdpCompatibilityChart from '@site/src/components/XdpCompatibilityChart';
 import NetworkPolicyChart from '@site/src/components/NetworkPolicyChart';
 import CniConclusionInfographic from '@site/src/components/CniConclusionInfographic';
-
-# VPC CNI vs Cilium CNI Performance Comparison Benchmark
-
-> 📅 **Created**: 2026-02-09 | **Updated**: 2026-02-14 | ⏱️ **Reading time**: ~16 min
 
 ## Overview
 

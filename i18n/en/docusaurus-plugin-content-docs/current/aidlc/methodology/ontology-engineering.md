@@ -10,8 +10,6 @@ tags: []
 sidebar_label: Ontology Engineering
 ---
 
-# Ontology Engineering
-
 > "Prompt engineering is ontology engineering" — 2026 AI Community Consensus
 
 **Ontology Engineering**, the first axis of AIDLC reliability, elevates DDD's Ubiquitous Language to a **formal schema (typed world model)** that AI can mechanically understand and comply with. This is a fundamental approach to block AI agent hallucination at the source and ensure domain accuracy.
@@ -117,13 +115,13 @@ domain_ontology:
         - PaymentFailed:
             trigger: "PG rejection or timeout"
             data: ["paymentId", "errorCode", "reason"]
-  
+
   relationships:
     - "Payment CONTAINS PaymentMethod (1:1)"
     - "Customer INITIATES Payment (1:N)"
     - "Payment EMITS PaymentCreated (1:1)"
     - "Payment EMITS PaymentCompleted | PaymentFailed (1:1, mutually exclusive)"
-  
+
   constraints:
     - "Maximum 3 concurrent payments per Customer"
     - "PROCESSING state maintained for max 30 seconds, auto-transition to FAILED if exceeded"
@@ -163,7 +161,7 @@ rule_templates:
       condition: "Payment.amount > 0"
       error_message: "Payment amount must be greater than 0"
       severity: "ERROR"
-    
+
     - rule_id: "PAYMENT_STATUS_TRANSITION"
       condition: |
         IF current_status == "CREATED" THEN next_status IN ["PROCESSING", "FAILED"]
@@ -171,7 +169,7 @@ rule_templates:
         ELSE invalid_transition
       error_message: "Invalid payment status transition"
       severity: "ERROR"
-  
+
   business_rules:
     - rule_id: "MAX_CONCURRENT_PAYMENTS"
       condition: "COUNT(Payment WHERE customer_id = X AND status = 'PROCESSING') <= 3"
@@ -304,7 +302,7 @@ aggregates:
   Payment:
     entities:
       - CustomerReference (ID reference only)
-  
+
   CustomerProfile:  # Separated into distinct Aggregate
     entities:
       - PaymentHistory

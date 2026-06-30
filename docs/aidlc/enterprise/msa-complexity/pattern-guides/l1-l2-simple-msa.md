@@ -16,8 +16,6 @@ sidebar_label: "L1-L2: 단순 MSA"
 sidebar_position: 1
 ---
 
-# Level 1-2: 단순 CRUD & 동기 MSA
-
 단순 서비스부터 동기 MSA까지, 상대적으로 낮은 복잡도의 AIDLC 적용 가이드입니다.
 
 ## Level 1: 단순 서비스 CRUD
@@ -37,7 +35,7 @@ graph LR
     C --> D[기본 하네스]
     D --> E[Quality Gate]
     E --> F[배포]
-    
+
     style B fill:#E8F5E9
     style D fill:#E3F2FD
 ```
@@ -106,7 +104,7 @@ graph LR
     D --> E[서비스 계약 하네스]
     E --> F[통합 테스트]
     F --> G[배포]
-    
+
     style B fill:#FFF9C4
     style D fill:#E8F5E9
     style E fill:#E3F2FD

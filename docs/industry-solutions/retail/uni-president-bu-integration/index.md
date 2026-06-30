@@ -11,8 +11,6 @@ tags:
 sidebar_label: Overview
 ---
 
-# Uni-President BU Integration PoC
-
 > **"OPENPOINT 회원·식품 제조·7-Eleven·까르푸·Starbucks·물류 데이터를 외부 트렌드·기상·경제·경쟁사 시그널과 묶어 온톨로지 + Agentic AI로 풀어내는 BU 통합 혁신 PoC"**
 
 統一企業의 자사 BU(統一食品 제조 + 7-Eleven Taiwan + 까르푸 + Starbucks + Mister Donut + KFC) 1,400만 OPENPOINT 회원이 BU·채널을 가로지르는 행동을 단일 KG로. 공개 정보만 활용.

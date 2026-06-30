@@ -1,7 +1,7 @@
 ---
 title: CoreDNS 모니터링과 성능 최적화 완벽 가이드
 description: Amazon EKS의 CoreDNS 성능을 체계적으로 모니터링하고 최적화하는 방법. Prometheus 메트릭, TTL 튜닝, 모니터링 아키텍처, 실제 문제 해결 사례 포함
-created: "2026-02-04"
+created: "2025-05-20"
 last_update:
   date: "2026-06-27"
   author: YoungJoon Jeong
@@ -19,11 +19,6 @@ category: performance-networking
 ---
 
 import { GoldenSignals, CoreDnsMetricsTable, TtlConfigGuide, MonitoringArchitecture, TroubleshootingTable, PerformanceBenchmarks } from '@site/src/components/CoreDnsTables';
-
-# CoreDNS 모니터링 및 최적화 가이드
-
-> 📅 **작성일**: 2025-05-20 | **수정일**: 2026-02-18 | ⏱️ **읽는 시간**: 약 13분
-
 
 Amazon EKS와 최신 Kubernetes 클러스터에서 **CoreDNS**는 클러스터 내 모든 서비스 디스커버리와 외부 도메인 이름 해석을 담당하는 핵심 컴포넌트입니다. CoreDNS의 성능과 가용성은 애플리케이션 응답 시간과 안정성에 직접적인 영향을 미치기 때문에, **효과적인 모니터링 및 최적화 아키텍처**를 구축하는 것이 중요합니다. 이 아티클에서는 **CoreDNS 성능 모니터링 메트릭**, **TTL 설정 가이드**, **모니터링 아키텍처 모범 사례**, **AWS 권장 사항 및 실무 사례**를 분석합니다. 각 섹션에서는 Prometheus 메트릭, Amazon EKS 환경에서의 적용 예시를 활용하여 CoreDNS 모니터링 전략을 알아봅니다.
 

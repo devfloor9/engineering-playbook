@@ -17,8 +17,6 @@ tags:
 sidebar_label: 배포 전략
 ---
 
-# 배포 전략
-
 ## 모델 교체 전략
 
 ### Shadow Testing
@@ -57,12 +55,12 @@ async def shadow_call(user_request):
     old_task = acompletion(model="gpt-4", messages=user_request)
     # 신모델(shadow)
     new_task = acompletion(model="claude-3-5-sonnet-20241022", messages=user_request)
-    
+
     old_resp, new_resp = await asyncio.gather(old_task, new_task, return_exceptions=True)
-    
+
     # 로깅: 두 응답 비교
     log_to_langfuse(user_request, old_resp, new_resp, shadow=True)
-    
+
     # 사용자에게는 구모델 응답만 반환
     return old_resp
 ```
@@ -294,7 +292,7 @@ def get_prompt_version(user_id: str, org_id: str) -> int:
         .kind("user") \
         .set("org_id", org_id) \
         .build()
-    
+
     # flag 'prompt-version-financial': 조직별 타게팅 가능
     # 예: org_id='acme-corp' → version=5, 나머지 → version=4
     version = ld_client.variation("prompt-version-financial", context, default=4)

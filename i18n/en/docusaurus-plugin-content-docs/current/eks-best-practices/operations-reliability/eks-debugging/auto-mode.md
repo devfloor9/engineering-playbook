@@ -17,8 +17,6 @@ keywords:
 sidebar_label: Auto Mode
 ---
 
-# EKS Auto Mode Debugging
-
 EKS Auto Mode is an operational model in which AWS fully manages node provisioning, networking, and storage. While convenient, the reduced management surface also changes the debugging approach.
 
 ## Auto Mode vs Standard Mode Differences
@@ -47,13 +45,13 @@ flowchart LR
     E --> F[kubelet registration]
     F --> G[Node Ready]
     G --> H[Pod scheduling]
-    
+
     H --> I{Idle?}
     I -->|Yes| J[Consolidation]
     I -->|No| H
     J --> K[Delete NodeClaim]
     K --> L[Terminate node]
-    
+
     G --> M{Drift detected?}
     M -->|Yes| N[New NodeClaim]
     N --> E
@@ -281,14 +279,14 @@ flowchart TB
             B[Web servers]
             C[Batch jobs]
         end
-        
+
         subgraph "Managed Node Group (GPU)"
             D[GPU Operator<br/>devicePlugin=false]
             E[vLLM Pod]
             F[Training Job]
         end
     end
-    
+
     G[Scheduler] --> A
     G --> B
     G --> C

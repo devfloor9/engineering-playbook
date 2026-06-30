@@ -16,8 +16,6 @@ tags:
 sidebar_label: 05. Architecture
 ---
 
-# AWS 단일 아키텍처 (Mitsukoshi)
-
 > LG H&H 골격 + Mitsukoshi 특화: 다국어 (번체중·일본어·영어), 환율·관광 EventBridge cron, ~550K edges
 
 ## 1. 아키텍처

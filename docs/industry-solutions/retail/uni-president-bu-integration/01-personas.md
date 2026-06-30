@@ -16,8 +16,6 @@ tags:
 sidebar_label: 01. Personas
 ---
 
-# 5 부서 페르소나 (Uni-President)
-
 | 코드 | 부서 | 미션 | KPI | 주 시나리오 |
 |---|---|---|---|---|
 | **P1** | 통합 마케팅 (BU 가로) | OPENPOINT 캠페인·BU 교차 사용 유도 | 캠페인 ROAS / BU 교차 비중 | S1·S2·S5·**S9-U** |

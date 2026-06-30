@@ -18,8 +18,6 @@ sidebar_position: 4
 category: aidlc
 ---
 
-# Audit & Governance Logging
-
 > 📅 **Date**: 2026-04-18 | ⏱️ **Reading Time**: ~17 minutes
 
 Among AWS Labs [AIDLC Common Rules](https://github.com/awslabs/aidlc-workflows/tree/main/aws-aidlc-rule-details/common), the two rules with the highest governance weight are **Checkpoint Approval (Rule 7)** and **Audit Logging (Rule 8)**. This document is a practical guide for implementing these rules in production environments to meet audit requirements in **regulated industries (finance, healthcare, public sector)**.
@@ -285,7 +283,7 @@ event:
   answer:
     raw_text: |                              # Never modify user's original response
       [Answer]: B
-      
+
       Choosing Aurora as organization standard is PostgreSQL.
     parsed_option: B
     user_comment: "Choosing Aurora as organization standard is PostgreSQL."
@@ -417,7 +415,7 @@ audit_manifest:
   events_count: 1_284
   gates_count: 7
   artifacts_count: 42
-  
+
   compliance_mappings:
     - standard: ISMS-P
       version: "2.1"
@@ -466,11 +464,11 @@ aidlc audit gates --session sess-20260315-payment-api-v2
 → Gate 1: requirements_analysis → user_stories
   Approved by: architect@bank.com (2026-03-15T14:20:00Z)
   Signature: verified ✓
-  
+
 → Gate 2: user_stories → workflow_planning  
   Approved by: architect@bank.com, security-lead@bank.com (2026-03-15T16:10:00Z)
   Signatures: all verified ✓
-  
+
 → Gate 3: construction → production_deploy
   Approved by: architect + security + compliance + sre (2026-03-16T09:00:00Z)
   Signatures: all verified ✓

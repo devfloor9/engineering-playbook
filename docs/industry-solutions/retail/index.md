@@ -11,8 +11,6 @@ tags:
 sidebar_label: Retail
 ---
 
-# Retail Industry Solutions
-
 > 종합 이커머스·오프라인 대형 리테일·생활용품·뷰티·음료 제조-유통·글로벌 직접판매·백화점 등 리테일 산업 PoC 자산.
 
 ---

@@ -17,10 +17,6 @@ sidebar_position: 6
 category: aidlc
 ---
 
-# AIDLC Common Rules
-
-> 📅 **작성일**: 2026-04-18 | ⏱️ **읽는 시간**: 약 18분
-
 AWS Labs [AIDLC Workflows](https://github.com/awslabs/aidlc-workflows) 의 `aws-aidlc-rule-details/common/` 디렉터리는 **모든 stage 가 공통으로 준수해야 하는 11개 규칙**을 정의합니다. 이 규칙들은 Inception → Construction → Operations 전 단계에서 AI 에이전트와 사람이 협업하는 방식을 규정하며, **결과물의 재현성·감사 가능성·안전성을 담보**합니다.
 
 본 문서는 각 규칙을 "무엇(What) / 왜(Why) / 어떻게(How)" 3단 구조로 해설하고, 엔터프라이즈 환경에서의 적용 팁을 덧붙입니다.

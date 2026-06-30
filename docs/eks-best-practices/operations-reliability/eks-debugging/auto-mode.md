@@ -23,8 +23,6 @@ keywords:
 sidebar_label: Auto Mode
 ---
 
-# EKS Auto Mode 디버깅
-
 EKS Auto Mode는 노드 프로비저닝, 네트워킹, 스토리지를 AWS가 완전 관리하는 운영 모델입니다. 편리하지만, 관리 영역이 줄어든 만큼 디버깅 접근 방식도 달라집니다.
 
 ## Auto Mode vs Standard Mode 차이점
@@ -53,13 +51,13 @@ flowchart LR
     E --> F[kubelet 등록]
     F --> G[Node Ready]
     G --> H[Pod 스케줄링]
-    
+
     H --> I{유휴 상태?}
     I -->|Yes| J[Consolidation]
     I -->|No| H
     J --> K[NodeClaim 삭제]
     K --> L[노드 종료]
-    
+
     G --> M{Drift 감지?}
     M -->|Yes| N[새 NodeClaim]
     N --> E
@@ -287,14 +285,14 @@ flowchart TB
             B[웹 서버]
             C[배치 작업]
         end
-        
+
         subgraph "Managed Node Group (GPU)"
             D[GPU Operator<br/>devicePlugin=false]
             E[vLLM Pod]
             F[학습 Job]
         end
     end
-    
+
     G[Scheduler] --> A
     G --> B
     G --> C

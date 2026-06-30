@@ -17,8 +17,6 @@ tags:
 sidebar_label: Deployment Strategies
 ---
 
-# Deployment Strategies
-
 ## Model Replacement Strategies
 
 ### Shadow Testing
@@ -57,12 +55,12 @@ async def shadow_call(user_request):
     old_task = acompletion(model="gpt-4", messages=user_request)
     # New model (shadow)
     new_task = acompletion(model="claude-3-5-sonnet-20241022", messages=user_request)
-    
+
     old_resp, new_resp = await asyncio.gather(old_task, new_task, return_exceptions=True)
-    
+
     # Logging: compare both responses
     log_to_langfuse(user_request, old_resp, new_resp, shadow=True)
-    
+
     # Return only old model response to user
     return old_resp
 ```
@@ -294,7 +292,7 @@ def get_prompt_version(user_id: str, org_id: str) -> int:
         .kind("user") \
         .set("org_id", org_id) \
         .build()
-    
+
     # flag 'prompt-version-financial': organization-level targeting
     # Example: org_id='acme-corp' → version=5, others → version=4
     version = ld_client.variation("prompt-version-financial", context, default=4)

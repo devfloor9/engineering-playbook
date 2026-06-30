@@ -16,8 +16,6 @@ tags:
 sidebar_label: 02. Ontology
 ---
 
-# Knowledge Graph 25 Classes (Mitsukoshi)
-
 > Neptune (~550K edges). **VIP + 외국인 회원 + 입점 700 브랜드 + 면세** 특성 반영.
 
 ---

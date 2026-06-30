@@ -18,12 +18,6 @@ sidebar_label: 자율 대응
 import { ResponsePatterns, ChaosExperiments } from '@site/src/components/PredictiveOpsTables';
 import { OperationPatternsComparison, AiopsMaturityModel } from '@site/src/components/AiopsIntroTables';
 
-# 자율 대응
-
-> 📅 **작성일**: 2026-04-07 | ⏱️ **읽는 시간**: 약 12분
-
----
-
 ## 1. 개요
 
 **자율 대응(Autonomous Response)**은 AI Agent가 인시던트를 감지하고, 컨텍스트를 수집·분석하여, 사전 정의된 가드레일 내에서 자율적으로 복구를 실행하는 운영 패러다임입니다.
@@ -591,7 +585,7 @@ graph LR
     C --> D[하네스<br/>개선]
     D --> E[배포]
     E --> A
-    
+
     style C fill:#fff4e6,stroke:#f57c00
     style D fill:#e8f5e9,stroke:#388e3c
 ```

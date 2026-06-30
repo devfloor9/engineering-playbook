@@ -23,9 +23,9 @@ sidebar_position: 4
 category: benchmark
 ---
 
-# 추론 플랫폼 벤치마크: Bedrock AgentCore vs EKS 자체 구축
-
-> **작성일**: 2026-03-18 | **상태**: 계획 (Plan)
+:::info 문서 상태
+**계획(Plan)** — 벤치마크 설계 단계이며 실측 데이터는 추후 갱신됩니다.
+:::
 
 ## 목적
 

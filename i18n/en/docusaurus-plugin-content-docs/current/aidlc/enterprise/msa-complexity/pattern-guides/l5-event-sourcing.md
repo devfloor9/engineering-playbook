@@ -16,8 +16,6 @@ sidebar_label: "L5: Event Sourcing"
 sidebar_position: 3
 ---
 
-# Level 5: Event Sourcing & CQRS
-
 The highest complexity architectural pattern requiring expert support and sophisticated ontology.
 
 ## Characteristics
@@ -40,7 +38,7 @@ graph TB
     G --> H{Pass?}
     H -->|Yes| I[Deploy]
     H -->|No| C
-    
+
     style B fill:#FFF9C4
     style C fill:#C8E6C9
     style D fill:#E3F2FD
@@ -68,7 +66,7 @@ events:
       customerId: string
       initialBalance: decimal
       openedAt: timestamp
-  
+
   MoneyDeposited:
     version: v1
     schema:
@@ -76,7 +74,7 @@ events:
       amount: decimal
       transactionId: string
       depositedAt: timestamp
-  
+
   MoneyWithdrawn:
     version: v1
     schema:
@@ -95,7 +93,7 @@ projections:
     source: [AccountOpened, MoneyDeposited, MoneyWithdrawn]
     target: read_db.account_balance
     updateStrategy: eventually_consistent
-  
+
   TransactionHistoryView:
     source: [MoneyDeposited, MoneyWithdrawn]
     target: read_db.transaction_history
@@ -131,14 +129,14 @@ def test_projection_consistency():
         MoneyDepositedEvent(accountId="A1", amount=500),
         MoneyWithdrawnEvent(accountId="A1", amount=200),
     ]
-    
+
     # 2. Store events
     for event in events:
         event_store.append(event)
-    
+
     # 3. Update projection
     projection_service.rebuild("AccountBalanceView")
-    
+
     # 4. Verify Read Model
     balance_view = read_db.get_account_balance("A1")
     assert balance_view.balance == 1300  # 1000 + 500 - 200
@@ -152,15 +150,15 @@ def test_projection_consistency():
 def test_duplicate_event_handling():
     """Verify identical results when receiving same event multiple times"""
     event = OrderCreatedEvent(orderId="123", ...)
-    
+
     # First processing
     result1 = event_handler.handle(event)
     state1 = get_order_state("123")
-    
+
     # Second processing (duplicate)
     result2 = event_handler.handle(event)
     state2 = get_order_state("123")
-    
+
     # Results must be identical
     assert result1 == result2
     assert state1 == state2

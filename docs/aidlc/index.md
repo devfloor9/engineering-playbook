@@ -1,5 +1,5 @@
 ---
-title: AIDLC
+title: "AIDLC: AI-Driven Development Lifecycle"
 description: AI-Driven Development Lifecycle — AWS Labs 공식 방법론 기반 + DDD·Ontology·Harness 엔터프라이즈 확장
 created: "2026-03-23"
 last_update:
@@ -16,8 +16,6 @@ category: aidlc
 ---
 
 # AIDLC: AI-Driven Development Lifecycle
-
-> **읽는 시간**: 약 3분
 
 :::info 공식 AIDLC 레퍼런스
 본 섹션은 [AWS Labs AIDLC Workflows](https://github.com/awslabs/aidlc-workflows) (v0.1.7, 2026-04-02) 를 기반으로 DDD·Ontology·Harness 확장을 덧붙였습니다. 공식 용어(User Request/Requirements, Unit of Work)와 engineering-playbook 용어(Intent, Unit, Bolt)의 매핑은 [10대 원칙과 실행 모델](./methodology/principles-and-model.md#12-aws-labs-aidlc-공식-용어-매핑) 에서 확인하세요.

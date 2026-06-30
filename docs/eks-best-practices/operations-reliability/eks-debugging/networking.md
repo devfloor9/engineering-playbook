@@ -17,8 +17,6 @@ tags:
 sidebar_label: 네트워킹
 ---
 
-# 네트워킹 디버깅
-
 ## 네트워킹 디버깅 워크플로우
 
 ```mermaid

@@ -20,8 +20,6 @@ sidebar_position: 7
 To be refined in separate ontology session (2026-Q2). This document proposes conceptual design and pilot scope.
 :::
 
-# Knowledge Feature Store Expansion
-
 ## Problem Definition: Why Feature Store Alone Is Insufficient
 
 Traditional Feature Stores (Feast, SageMaker Feature Store, Tecton) are optimized for efficiently providing **scalar values and embedding vectors**. However, in Agentic AI environments, the following limitations emerge:
@@ -35,22 +33,22 @@ flowchart LR
         SC[Scalar Features]
         VEC[Embedding Vectors]
     end
-    
+
     subgraph Missing["Missing Capabilities"]
         REL[Entity Relations]
         ONT[Ontology]
         PROV[Provenance Tracking]
         CTX[Context Reasoning]
     end
-    
+
     FS --> SC
     FS --> VEC
-    
+
     SC -.->|Cannot provide| REL
     VEC -.->|Cannot provide| ONT
     REL -.->|When absent| PROV
     ONT -.->|When absent| CTX
-    
+
     style Missing fill:#ffe1e1
     style Traditional fill:#e1f5ff
 ```
@@ -95,54 +93,54 @@ flowchart TB
         AGENT[Agent/LLM]
         RAG[RAG Pipeline]
     end
-    
+
     subgraph KFS["Knowledge Feature Store"]
         direction TB
-        
+
         subgraph FP["Feature Plane"]
             FEAST[Feast/SageMaker FS]
             SCALAR[Scalar Features]
             EMBED[Embeddings]
         end
-        
+
         subgraph KP["Knowledge Plane"]
             ONT[Ontology]
             KG[(Knowledge Graph)]
             ENTITY[Entity Relations]
         end
-        
+
         subgraph RP["Retrieval Plane"]
             MILVUS[(Milvus Vector DB)]
             GRAPH[Graph Traversal]
             HYBRID[Hybrid Search]
         end
     end
-    
+
     subgraph Storage["Storage"]
         S3[(S3 Parquet)]
         NEPTUNE[(Neptune Analytics)]
         CACHE[(Redis Cache)]
     end
-    
+
     AGENT --> FP
     AGENT --> RP
     RAG --> RP
-    
+
     FP --> SCALAR
     FP --> EMBED
-    
+
     KP --> ONT
     KP --> KG
     KP --> ENTITY
-    
+
     RP --> MILVUS
     RP --> GRAPH
     RP --> HYBRID
-    
+
     FP -.->|Read| S3
     KP -.->|Read| NEPTUNE
     RP -.->|Read| MILVUS
-    
+
     style FP fill:#e1f5ff
     style KP fill:#fff4e1
     style RP fill:#e1ffe1
@@ -303,7 +301,7 @@ flowchart LR
     R[Re-rank]
     F[Final Context]
     L[LLM Generation]
-    
+
     Q --> E
     E --> V
     V --> T
@@ -313,7 +311,7 @@ flowchart LR
     N --> R
     R --> F
     F --> L
-    
+
     style V fill:#4285f4
     style G fill:#f39c12
     style R fill:#34a853
@@ -332,7 +330,7 @@ kfs = KnowledgeFeatureStore(...)
 def kg_aware_rag(query: str) -> dict:
     # 1. Question Embedding
     query_embedding = embedding_model.encode(query)
-    
+
     # 2. Milvus top-k Vector Search
     vector_results = kfs.vector_search(
         embedding=query_embedding,
@@ -340,21 +338,21 @@ def kg_aware_rag(query: str) -> dict:
         top_k=20,
         metric="COSINE"
     )
-    
+
     # 3. Extract connected entities from each document
     entities = []
     for doc in vector_results:
         # Identify entities mentioned in documents
         doc_entities = kfs.extract_entities(doc.text)
         entities.extend(doc_entities)
-    
+
     # 4. 1-hop expansion in Knowledge Graph
     expanded_entities = kfs.graph_expand(
         entities=entities,
         depth=1,
         relations=["HAS_CONTRACT", "USES_DEVICE", "RECORDED_USAGE"]
     )
-    
+
     # 5. Re-rank by distance between expanded entities and question
     scored_contexts = []
     for doc in vector_results:
@@ -365,17 +363,17 @@ def kg_aware_rag(query: str) -> dict:
             query_entities
         )
         graph_score = 1 / (1 + entity_distance)  # Inverse distance
-        
+
         final_score = 0.7 * vector_score + 0.3 * graph_score
         scored_contexts.append((doc, final_score))
-    
+
     # 6. Select top-5 contexts
     final_contexts = sorted(
         scored_contexts, 
         key=lambda x: x[1], 
         reverse=True
     )[:5]
-    
+
     return {
         "contexts": [doc.text for doc, score in final_contexts],
         "entities": expanded_entities,
@@ -427,12 +425,12 @@ flowchart LR
         DB[(App DB)]
         DW[(Data Warehouse)]
     end
-    
+
     subgraph CDC["Change Data Capture"]
         DEBEZIUM[Debezium]
         KAFKA[Kafka]
     end
-    
+
     subgraph Materializer["KFS Materializer"]
         direction TB
         STREAM[Stream Processor]
@@ -440,26 +438,26 @@ flowchart LR
         KW[Knowledge Writer]
         VW[Vector Writer]
     end
-    
+
     subgraph KFS["Knowledge Feature Store"]
         FEAST[Feast Online]
         KG[(Knowledge Graph)]
         MILVUS[(Milvus)]
     end
-    
+
     DB --> DEBEZIUM
     DW --> KAFKA
     DEBEZIUM --> KAFKA
     KAFKA --> STREAM
-    
+
     STREAM --> FW
     STREAM --> KW
     STREAM --> VW
-    
+
     FW --> FEAST
     KW --> KG
     VW --> MILVUS
-    
+
     style CDC fill:#4285f4
     style Materializer fill:#f39c12
     style KFS fill:#34a853
@@ -505,10 +503,10 @@ def kfs_materializer():
         bootstrap_servers=['kafka.svc.cluster.local:9092'],
         value_deserializer=lambda m: json.loads(m.decode('utf-8'))
     )
-    
+
     for message in consumer:
         event = message.value
-        
+
         # 1. Update Feature Plane
         feast_client.push(
             feature_view="customer_features",
@@ -518,7 +516,7 @@ def kfs_materializer():
                 "event_timestamp": event["timestamp"]
             }]
         )
-        
+
         # 2. Update Knowledge Graph
         if event["type"] == "CONTRACT_CREATED":
             neptune_client.execute(f"""
@@ -529,7 +527,7 @@ def kfs_materializer():
                         start_date: '{event["start_date"]}'
                     }})
             """)
-        
+
         # 3. Update Vector DB (when documents change)
         if event["type"] == "DOCUMENT_UPDATED":
             embedding = embedding_model.encode(event["content"])
@@ -542,7 +540,7 @@ def kfs_materializer():
                     "timestamp": event["timestamp"]
                 }
             )
-        
+
         # 4. Record provenance
         provenance_store.record(
             entity_id=event["customer_id"],

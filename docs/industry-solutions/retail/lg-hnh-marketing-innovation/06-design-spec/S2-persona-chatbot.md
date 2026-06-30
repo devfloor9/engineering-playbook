@@ -16,8 +16,6 @@ tags:
 sidebar_label: S2. Persona Chatbot
 ---
 
-# S2. 5 부서 페르소나 챗봇
-
 ## 1. URL 경로
 - `/chat`
 - 좌측 채팅 / 우측 도구 호출 트레이스 (SSE)

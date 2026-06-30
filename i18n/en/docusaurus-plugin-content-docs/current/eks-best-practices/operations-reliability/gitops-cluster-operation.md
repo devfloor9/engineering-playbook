@@ -1,7 +1,7 @@
 ---
 title: GitOps-based EKS Cluster Operations
 description: GitOps architecture, KRO/ACK usage, multi-cluster management strategies and automation for stable large-scale EKS cluster operations
-created: "2026-02-04"
+created: "2025-02-09"
 last_update:
   date: "2026-02-18"
   author: devfloor9
@@ -18,10 +18,6 @@ tags:
 sidebar_label: GitOps Cluster Operations
 category: observability-monitoring
 ---
-
-# GitOps-based EKS Cluster Operations
-
-> **Written**: 2025-02-09 | **Updated**: 2026-02-18 | **Reading time**: ~6 min
 
 > **Reference Versions**: ArgoCD v2.13+ / v3 (pre-release), EKS Capability for Argo CD (GA), Kubernetes 1.32
 

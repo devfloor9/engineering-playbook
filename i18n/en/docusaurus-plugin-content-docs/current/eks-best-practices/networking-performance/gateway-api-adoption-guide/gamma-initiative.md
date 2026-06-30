@@ -19,8 +19,6 @@ import {
   GammaSupportTable,
 } from '@site/src/components/GatewayApiTables';
 
-# GAMMA Initiative — The Future of Service Mesh Integration
-
 ## 4.1 What is GAMMA?
 
 **GAMMA (Gateway API for Mesh Management and Administration)** is an initiative that extends Gateway API into the service mesh domain.

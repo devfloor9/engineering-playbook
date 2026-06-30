@@ -24,8 +24,6 @@ keywords:
 sidebar_label: Karpenter
 ---
 
-# Karpenter 심화 디버깅
-
 Karpenter는 EKS의 차세대 오토스케일러로, NodePool/NodeClaim 기반으로 빠르고 효율적인 노드 프로비저닝을 제공합니다. 이 문서는 Karpenter 특유의 디버깅 패턴을 다룹니다.
 
 ## NodeClaim 라이프사이클
@@ -39,22 +37,22 @@ stateDiagram-v2
     Launched --> Registered: kubelet 등록
     Registered --> Initialized: Taints/Labels 설정
     Initialized --> Ready: Node Ready
-    
+
     Ready --> Drifted: AMI/NodePool 변경
     Ready --> Expired: TTL 만료 (ttlSecondsAfterEmpty)
     Ready --> Consolidation: 리소스 미활용
-    
+
     Drifted --> Terminating: 교체 시작
     Expired --> Terminating
     Consolidation --> Terminating
-    
+
     Terminating --> [*]: 노드 삭제
-    
+
     note right of Ready
         정상 운영 상태
         워크로드 실행 중
     end note
-    
+
     note right of Consolidation
         통합 조건:
         - 유휴 노드
@@ -84,18 +82,18 @@ flowchart TD
     A[Pod Pending] --> B{Karpenter 로그에<br/>'incompatible' 메시지?}
     B -->|Yes| C[NodePool requirements<br/>vs Pod requirements]
     B -->|No| D{provisioned but<br/>instance launch failed?}
-    
+
     C --> E{레이블/테인트<br/>불일치?}
     E -->|Yes| F[NodePool selector 수정]
     E -->|No| G{인스턴스 타입<br/>제약?}
-    
+
     G -->|Yes| H[Pod 리소스 요청과<br/>인스턴스 타입 매칭]
     G -->|No| I[가용 영역 제약 확인]
-    
+
     D -->|Yes| J{Spot 용량 부족?}
     J -->|Yes| K[On-Demand 폴백 추가]
     J -->|No| L{IAM 권한 오류?}
-    
+
     L -->|Yes| M[Karpenter IAM Role 확인]
     L -->|No| N{서브넷/SG 문제?}
     N -->|Yes| O[서브넷 태그 확인<br/>karpenter.sh/discovery]
@@ -164,7 +162,7 @@ kubectl get nodepool <nodepool-name> -o yaml | grep -A 20 "requirements"
 # Pod가 요구하는 것
 nodeSelector:
   workload: gpu
-  
+
 # NodePool이 제공하는 것 (레이블 없음)
 spec:
   template:
@@ -203,24 +201,24 @@ flowchart TD
     A[Karpenter Consolidation Loop] --> B{유휴 노드<br/>감지}
     B -->|Yes| C[ttlSecondsAfterEmpty<br/>타이머 시작]
     B -->|No| D{저활용<br/>노드?}
-    
+
     C --> E{타이머 만료?}
     E -->|Yes| F[Pod 대체 가능?]
     E -->|No| A
-    
+
     D -->|Yes| G{더 작은 노드로<br/>통합 가능?}
     D -->|No| A
-    
+
     G -->|Yes| F
     G -->|No| A
-    
+
     F --> H{PDB 차단?}
     H -->|Yes| I[통합 연기]
     H -->|No| J{do-not-disrupt<br/>annotation?}
-    
+
     J -->|Yes| I
     J -->|No| K[새 노드 시작]
-    
+
     I --> A
     K --> L[Pod 마이그레이션]
     L --> M[기존 노드 종료]
@@ -331,7 +329,7 @@ spec:
     consolidationPolicy: WhenUnderutilized  # WhenEmpty / WhenUnderutilized
     consolidateAfter: 30s  # 통합 전 대기 시간 (기본 15s)
     expireAfter: 720h      # 노드 최대 수명 (30일)
-    
+
     # 버짓 설정 (동시 중단 제어)
     budgets:
       - nodes: "10%"       # 전체 노드의 10%까지만 동시 중단
@@ -353,7 +351,7 @@ sequenceDiagram
     participant Karpenter
     participant Node
     participant Pod
-    
+
     EC2->>Node: Spot Interruption Notice (2분 경고)
     Node->>Karpenter: Interruption 이벤트
     Karpenter->>Karpenter: 대체 노드 시작 (즉시)
@@ -362,10 +360,10 @@ sequenceDiagram
     Pod->>Pod: preStop hook 실행
     Pod->>Pod: SIGTERM 처리 (30초)
     Pod-->>Node: 종료 완료
-    
+
     Note over EC2,Node: 2분 경과
     EC2->>Node: 인스턴스 종료
-    
+
     Karpenter->>Pod: 새 노드에 재스케줄
 ```
 
@@ -469,7 +467,7 @@ spec:
   disruption:
     consolidationPolicy: WhenUnderutilized
     expireAfter: 720h
-    
+
     # Drift 교체 제어
     budgets:
       - nodes: "10%"  # 한 번에 10%씩만 교체

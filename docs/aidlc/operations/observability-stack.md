@@ -21,8 +21,6 @@ category: aidlc-operations
 
 import { ObservabilityPillars, ArchitectureLayers, StackSelectionPatterns } from '@site/src/components/ObservabilityStackTables';
 
-# 관찰성 스택
-
 > **AIDLC Operations의 데이터 기반** — 3-Pillar 텔레메트리 + AI 분석 레이어를 통한 운영 인텔리전스 구축
 
 ---

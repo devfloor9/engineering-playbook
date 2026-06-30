@@ -16,8 +16,6 @@ tags:
 sidebar_label: Workload
 ---
 
-# Workload Debugging
-
 ## Pod State-Based Debugging Flowchart
 
 ```mermaid
@@ -146,18 +144,18 @@ kubectl describe pod api-server-xxx | grep -A 10 "Readiness probe failed"
 flowchart TD
     NOTREADY["`Pod 0/1 Ready`"] --> CHECK_PROBE{"`Check
     readinessProbe configuration`"}
-    
+
     CHECK_PROBE -->|Path mismatch| FIX_PATH["`Fix health check path
     /health → /healthz`"]
-    
+
     CHECK_PROBE -->|initialDelaySeconds too low| FIX_DELAY["`Measure app startup time
     Increase initialDelaySeconds
     Or add a startupProbe`"]
-    
+
     CHECK_PROBE -->|App actually failing| FIX_APP["`Check logs
     kubectl logs <pod>
     Inspect dependencies`"]
-    
+
     CHECK_PROBE -->|Timeout too low| FIX_TIMEOUT["`Increase timeoutSeconds
     (default 1s is too short)`"]
 
@@ -624,42 +622,42 @@ spec:
 flowchart TD
     START["`Check Pod status
     kubectl get pods`"] --> PENDING{"`Pending?`"}
-    
+
     PENDING -->|Yes| CHECK_SCHED["`Scheduling failure cause
     kubectl describe pod`"]
     CHECK_SCHED --> SCHED_FIX["`• Resource shortage → add nodes
     • nodeSelector mismatch → fix labels
     • PVC Pending → see Storage doc`"]
-    
+
     PENDING -->|No| IMGPULL{"`ImagePullBackOff?`"}
     IMGPULL -->|Yes| IMG_FIX["`• Check image name/tag
     • Registry access
     • imagePullSecrets`"]
-    
+
     IMGPULL -->|No| CRASH{"`CrashLoopBackOff?`"}
     CRASH -->|Yes| CRASH_FIX["`kubectl logs --previous
     • Review app config
     • Check resource limits
     • Review Liveness probe`"]
-    
+
     CRASH -->|No| OOM{"`OOMKilled?`"}
     OOM -->|Yes| OOM_FIX["`Increase memory limits
     Analyze memory leaks
     Tune JVM heap`"]
-    
+
     OOM -->|No| INIT_ERR{"`Init:Error?`"}
     INIT_ERR -->|Yes| INIT_FIX["`Check initContainer logs
     kubectl logs <pod> -c <init-container>`"]
-    
+
     INIT_ERR -->|No| CONFIG_ERR{"`CreateContainerConfigError?`"}
     CONFIG_ERR -->|Yes| CONFIG_FIX["`Check ConfigMap/Secret existence
     Verify volumeMount paths`"]
-    
+
     CONFIG_ERR -->|No| RUNNING{"`Running but 0/1 Ready?`"}
     RUNNING -->|Yes| READY_FIX["`Check readinessProbe
     Adjust initialDelaySeconds
     Validate health check path`"]
-    
+
     RUNNING -->|No| TERMINATING{"`Terminating?`"}
     TERMINATING -->|Yes| TERM_FIX["`Check finalizers
     Review preStop hook

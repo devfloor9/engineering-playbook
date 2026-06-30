@@ -16,8 +16,6 @@ sidebar_label: Kyverno Policy Management
 category: security
 ---
 
-# Kyverno-Based Policy Management
-
 :::info Coming Soon
 This document is currently being written. The following topics will be covered:
 

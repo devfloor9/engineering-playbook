@@ -29,8 +29,6 @@ The practical alternative (graceful drain + warm start) ordering and EKS Auto Mo
 Verification tracking: [Issue #7](https://github.com/devfloor9/engineering-playbook/issues/7)
 :::
 
-# CRIU-based GPU Live Migration (Preview)
-
 ## 1. Why CRIU: Spot Reclaim and KV Cache Loss Problems
 
 ### Problem Statement

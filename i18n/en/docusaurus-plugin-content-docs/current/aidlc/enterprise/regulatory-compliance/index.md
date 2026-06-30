@@ -16,12 +16,6 @@ tags:
 sidebar_label: Regulatory Compliance
 ---
 
-# AI Regulatory Framework Mapping
-
-> 📅 **Published**: 2026-04-18 | ⏱️ **Reading Time**: ~8 minutes
-
----
-
 ## Overview
 
 As of 2026, global enterprises face a complex environment requiring **simultaneous compliance with AI regulations across multiple jurisdictions**:
@@ -48,28 +42,28 @@ graph TB
         ISO[ISO/IEC 42001]
         KR[Korea AI Basic Act]
     end
-    
+
     subgraph AIDLC["AIDLC Process"]
         INC[Inception<br/>Requirements & Design]
         CON[Construction<br/>Implementation & Testing]
         OPS[Operations<br/>Deployment & Monitoring]
     end
-    
+
     EU -->|risk tier classification| INC
     NIST -->|GOVERN/MAP| INC
     ISO -->|PDCA planning| INC
     KR -->|impact assessment| INC
-    
+
     EU -->|robustness tests| CON
     NIST -->|MEASURE| CON
     ISO -->|implementation & validation| CON
     KR -->|transparency labeling| CON
-    
+
     EU -->|post-market monitoring| OPS
     NIST -->|MANAGE| OPS
     ISO -->|audit & improvement| OPS
     KR -->|post-deployment management| OPS
-    
+
     style Regulations fill:#ff9800,color:#fff
     style AIDLC fill:#2196f3,color:#fff
 ```
@@ -167,33 +161,33 @@ graph TB
         I3["ISO 42001: Plan (PDCA)"]
         I4["Korea: Impact assessment"]
     end
-    
+
     subgraph Construction["Construction Stage"]
         C1["EU AI Act: Documentation (Art. 11), Logging (Art. 12)"]
         C2["NIST: MEASURE"]
         C3["ISO 42001: Do + Check (PDCA)"]
         C4["Korea: Generation labeling obligation"]
     end
-    
+
     subgraph Operations["Operations Stage"]
         O1["EU AI Act: Post-market monitoring (Art. 72)"]
         O2["NIST: MANAGE"]
         O3["ISO 42001: Act (PDCA)"]
         O4["Korea: Post-deployment management"]
     end
-    
+
     I1 -.Common goal: Risk identification.-> I2
     I2 -.Common goal: Risk identification.-> I3
     I3 -.Common goal: Risk identification.-> I4
-    
+
     C1 -.Common goal: Safety validation.-> C2
     C2 -.Common goal: Safety validation.-> C3
     C3 -.Common goal: Safety validation.-> C4
-    
+
     O1 -.Common goal: Continuous monitoring.-> O2
     O2 -.Common goal: Continuous monitoring.-> O3
     O3 -.Common goal: Continuous monitoring.-> O4
-    
+
     style Inception fill:#4caf50,color:#fff
     style Construction fill:#2196f3,color:#fff
     style Operations fill:#ff9800,color:#fff

@@ -16,8 +16,6 @@ tags:
 sidebar_label: S3. Insight Cards
 ---
 
-# S3. 카테고리·BU 인사이트 카드
-
 ## 1. URL 경로
 - `/insights`
 

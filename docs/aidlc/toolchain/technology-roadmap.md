@@ -15,8 +15,6 @@ tags:
 sidebar_label: 기술 로드맵
 ---
 
-# 기술 로드맵
-
 AIDLC를 지원하는 도구 생태계는 빠르게 진화하고 있습니다. **"지금 당장 구축할 것인가, 기술이 더 성숙할 때까지 기다릴 것인가"**는 매 분기 내려야 하는 핵심 의사결정입니다. 이 문서는 2026년 2분기 기준으로 AWS 및 오픈소스 AIDLC 도구의 성숙도를 평가하고, 투자 우선순위를 제시합니다.
 
 ## 1. 기술 투자의 딜레마
@@ -141,22 +139,22 @@ MCP 서버 목록 및 평가: [mcp.run](https://mcp.run)
 graph TD
     subgraph matrix[" "]
         direction TB
-        
+
         subgraph high_urgency["<b>높은 긴급도</b>"]
             direction LR
             quadrant1["<b>🟢 즉시 도입</b><br/>- Kiro<br/>- Q Developer<br/>- Managed Argo CD<br/>- ACK<br/>- KRO<br/>- vLLM (데이터 레지던시)"]
             quadrant2["<b>🟡 빠른 PoC</b><br/>- Kagent<br/>- 특정 MCP 서버<br/>- llm-d (고급 사용자)<br/>→ 3개월 내 Go/No-Go 결정"]
         end
-        
+
         subgraph low_urgency["<b>낮은 긴급도</b>"]
             direction LR
             quadrant3["<b>🟡 모니터링</b><br/>- Gateway API<br/>- Langfuse<br/>- Ragas<br/>→ 커뮤니티 동향 추적"]
             quadrant4["<b>🔴 대기</b><br/>- Strands Agents (Early Access)<br/>- Bedrock AgentCore (Preview)<br/>→ GA 전환 대기"]
         end
     end
-    
+
     high_urgency -.->|기술 성숙도| low_urgency
-    
+
     style quadrant1 fill:#d4edda,stroke:#28a745,stroke-width:2px
     style quadrant2 fill:#fff3cd,stroke:#ffc107,stroke-width:2px
     style quadrant3 fill:#fff3cd,stroke:#ffc107,stroke-width:2px
@@ -201,17 +199,17 @@ gantt
     title AIDLC 기술 투자 호라이즌 (2026 Q2 기준)
     dateFormat YYYY-MM
     axisFormat %Y-%m
-    
+
     section 6개월: 기반 구축
     Kiro + Q Developer 도입 :done, foundation1, 2026-04, 2026-06
     Managed Argo CD + ACK :done, foundation2, 2026-04, 2026-07
     GitOps 워크플로우 전환 :active, foundation3, 2026-05, 2026-09
-    
+
     section 12개월: 자동화 확장
     MCP 통합 (안정 서버) :crit, automation1, 2026-07, 2026-10
     Quality Gates + Harness :automation2, 2026-08, 2026-11
     AI Agent 운영 (Kagent PoC) :automation3, 2026-09, 2026-12
-    
+
     section 18개월: 자율 운영
     AgenticOps 전환 :milestone, autonomous1, 2026-10, 2027-01
     예측 스케일링 (KEDA+AI) :autonomous2, 2026-11, 2027-03

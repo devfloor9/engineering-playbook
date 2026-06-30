@@ -1,7 +1,7 @@
 ---
 title: EKS Default Namespace 삭제 시 장애 대응 가이드
 description: EKS 클러스터에서 default namespace 삭제로 인한 Control Plane 접근 불가 장애의 원인 분석, 복구 절차, 그리고 재발 방지 전략을 다룹니다.
-created: "2026-02-04"
+created: "2025-01-07"
 last_update:
   date: "2026-06-27"
   author: YoungJoon Jeong
@@ -16,11 +16,6 @@ tags:
 sidebar_label: Default Namespace 장애
 category: security-compliance
 ---
-
-# EKS Default Namespace 삭제 시 장애 대응 가이드
-
-> 📅 **작성일**: 2025-01-07 | **수정일**: 2026-02-14 | ⏱️ **읽는 시간**: 약 12분
-
 
 ## 1. 개요 (TL;DR)
 

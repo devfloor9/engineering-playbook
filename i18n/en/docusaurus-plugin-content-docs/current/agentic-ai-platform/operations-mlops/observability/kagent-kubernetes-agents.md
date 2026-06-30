@@ -19,8 +19,6 @@ sidebar_position: 3
 category: genai-aiml
 ---
 
-# Kagent - Kubernetes AI Agent Management
-
 In a multi-model ecosystem, AI agents must call multiple LLMs/SLMs, connect to tools and other agents via MCP/A2A protocols, and dynamically scale based on traffic. Kubernetes' **Operator pattern** is the most natural approach for declaratively defining such agents as CRDs and automatically managing their lifecycles. Kagent is a reference architecture that applies this pattern to AI agents.
 
 ## 1. Overview

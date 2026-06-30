@@ -16,8 +16,6 @@ tags:
 sidebar_label: S10-A. Subscription
 ---
 
-# S10-A. 정기구독(Subscription) 라이프타임 분석
-
 > **AMWAY 차별 포인트** ⭐ — Nutrilite·Artistry 정기구독은 AMWAY 매출의 핵심. 가입→갱신→일시정지→해지 state machine과 해지 위험 시그너처를 자동 탐지.
 
 ## 1. URL · 페르소나

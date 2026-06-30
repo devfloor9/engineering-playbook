@@ -18,8 +18,6 @@ sidebar_label: Observability
 
 import { IncidentEscalationTable, ZonalShiftImpactTable } from '@site/src/components/EksDebugTables';
 
-# Observability and Monitoring
-
 ## Observability Stack Architecture
 
 ```mermaid

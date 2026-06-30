@@ -20,8 +20,6 @@ category: performance-networking
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
-> 📅 **Written**: 2026-06-17 | **Updated**: 2026-06-17
-
 :::info
 This document is a deep-dive guide for the [Gateway API Adoption Guide](/docs/eks-best-practices/networking-performance/gateway-api-adoption-guide). It compares, with YAML examples, how the 8 major features used in NGINX Ingress are implemented in each Gateway API implementation. For solution selection, comparison matrices, and the decision tree, see [Section 4](/docs/eks-best-practices/networking-performance/gateway-api-adoption-guide#4-gateway-api-implementation-comparison--aws-native-vs-open-source) of the main guide.
 :::
@@ -1401,7 +1399,6 @@ spec:
 
 </TabItem>
 </Tabs>
-
 
 ---
 

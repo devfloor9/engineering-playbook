@@ -16,8 +16,6 @@ tags:
 sidebar_label: 거버넌스·자동화
 ---
 
-# 거버넌스·자동화
-
 ## 회귀 감지 연동
 
 ### Evaluation Framework와 연결
@@ -317,7 +315,7 @@ groups:
         annotations:
           summary: "프롬프트 v6 회귀 감지"
           description: "{{ $labels.prompt_name }} v6 Exact Match가 v5 대비 5%p 이상 하락"
-          
+
       - alert: LatencyRegressionDetected
         expr: |
           histogram_quantile(0.99, 
@@ -347,24 +345,24 @@ def lambda_handler(event, context):
     alert = event['alerts'][0]
     prompt_name = alert['labels']['prompt_name']
     current_version = alert['labels']['prompt_version']
-    
+
     # Langfuse에서 이전 버전 조회
     client = Langfuse()
     versions = client.list_prompt_versions(prompt_name)
     previous_version = int(current_version.replace('v', '')) - 1
-    
+
     # Production 라벨을 이전 버전으로 롤백
     client.update_prompt_label(
         prompt_name, 
         version=previous_version, 
         label="production"
     )
-    
+
     # Slack 알림
     slack_webhook(
         f"🔴 자동 롤백 실행: {prompt_name} v{previous_version}로 복구"
     )
-    
+
     return {"status": "rolled_back", "version": previous_version}
 ```
 

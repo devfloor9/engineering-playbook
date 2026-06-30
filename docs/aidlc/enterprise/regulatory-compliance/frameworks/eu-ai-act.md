@@ -15,12 +15,6 @@ tags:
 sidebar_label: EU AI Act
 ---
 
-# EU AI Act (2024-2027)
-
-> 📅 **작성일**: 2026-04-18 | ⏱️ **읽는 시간**: 약 6분
-
----
-
 ## 개요
 
 **EU AI Act**는 2024년 5월 채택되어 **2026년부터 단계적으로 적용**되는 세계 최초의 포괄적 AI 규제입니다.
@@ -112,27 +106,27 @@ flowchart LR
         I2[위험 관리 계획<br/>Art. 9]
         I3[데이터 거버넌스<br/>Art. 10]
     end
-    
+
     subgraph Construction["Construction (EU AI Act)"]
         C1[기술 문서 작성<br/>Art. 11]
         C2[자동 로깅 구현<br/>Art. 12]
         C3[Robustness 테스트<br/>Art. 15]
         C4[투명성 표시<br/>Art. 13]
     end
-    
+
     subgraph Operations["Operations (EU AI Act)"]
         O1[Post-market monitoring<br/>Art. 72]
         O2[사고 보고<br/>Art. 73]
         O3[인간 감독<br/>Art. 14]
     end
-    
+
     I1 --> C1
     I2 --> C2
     I3 --> C3
     C1 --> O1
     C2 --> O2
     C3 --> O3
-    
+
     style Inception fill:#4caf50,color:#fff
     style Construction fill:#2196f3,color:#fff
     style Operations fill:#ff9800,color:#fff

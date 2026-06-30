@@ -20,8 +20,6 @@ category: aidlc-operations
 
 import { ObservabilityPillars, ArchitectureLayers, StackSelectionPatterns } from '@site/src/components/ObservabilityStackTables';
 
-# Observability Stack
-
 > **The data foundation of AIDLC Operations** — building operational intelligence through 3-Pillar telemetry + AI analysis layer
 
 ---
