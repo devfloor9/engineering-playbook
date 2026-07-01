@@ -44,7 +44,7 @@
 <div class="flex min-h-[calc(100vh-58px)]">
   <!-- Sidebar -->
   <aside class="w-64 bg-white border-r border-slate-200 p-4 sticky top-[58px] h-[calc(100vh-58px)] overflow-y-auto scrollbar-thin">
-    <div class="text-xs font-semibold text-slate-400 uppercase mb-2">시나리오 (8)</div>
+    <div class="text-xs font-semibold text-slate-400 uppercase mb-2">시나리오 (11)</div>
     <nav id="navList" class="flex flex-col gap-1"></nav>
 
     <div class="mt-6 text-xs font-semibold text-slate-400 uppercase mb-2">Knowledge Graph</div>
@@ -108,11 +108,11 @@ const SAMPLE_PRODUCTS = [
 ];
 
 const SAMPLE_REVIEWS = [
-  { source: '자사몰', text: '민감성 두피에도 자극 없음. 향이 부드럽고 마음에 듦.', sku: 'HDB-021', sentiment: 'pos', date: '2026-04-22' },
-  { source: '올리브영', text: '오가닉 인증 + 가성비 + 향까지 마음에 듭니다.', sku: 'HDB-021', sentiment: 'pos', date: '2026-04-18' },
-  { source: 'X', text: '#엘라스틴 #민감성두피 #오가닉 — 추천합니다', sku: 'HDB-021', sentiment: 'pos', date: '2026-04-25' },
-  { source: '네이버', text: '매끈한 머릿결. 가격 대비 만족.', sku: 'HDB-021', sentiment: 'pos', date: '2026-04-19' },
-  { source: 'Dcard', text: '향이 강하지 않아서 좋아요. 두피 가려움 줄어듦.', sku: 'HDB-021', sentiment: 'pos', date: '2026-04-15' },
+  { source: '멤버스앱', text: '信義점 3F 라운지 응대가 훌륭. 프리세일 우선권 만족.', sku: 'LUX-074', sentiment: 'pos', date: '2026-04-22' },
+  { source: '小紅書', text: '週年慶 신상 입고 빠름. VIP 컨시어지 큐레이션 좋아요.', sku: 'LUX-001', sentiment: 'pos', date: '2026-04-18' },
+  { source: 'Dcard', text: '#新光三越 #週年慶 #LV — 발렛·라운지 혜택 추천', sku: 'LUX-001', sentiment: 'pos', date: '2026-04-25' },
+  { source: 'Google', text: '면세 환급 절차 간편. 외국인 응대 친절했습니다.', sku: 'BTY-201', sentiment: 'pos', date: '2026-04-19' },
+  { source: 'Instagram', text: '한정 캐비닛 진열 감각적. 재방문 의사 높음.', sku: 'WAT-009', sentiment: 'pos', date: '2026-04-15' },
 ];
 
 const SAMPLE_MEMBERS = [
@@ -184,6 +184,9 @@ const SCENARIO_RENDERERS = {
   S6: renderS6,
   S7: renderS7,
   S8: renderS8,
+  S9M: renderS9M,
+  S10M: renderS10M,
+  S11M: renderS11M,
 };
 
 function header(title, subtitle) {
@@ -203,12 +206,12 @@ function renderS1(main) {
   // Search box
   const searchBox = el('div', {class: 'bg-white rounded-lg border border-slate-200 p-4 shadow-sm'},
     el('div', {class: 'flex gap-2'},
-      el('input', {type: 'text', id: 's1Query', class: 'flex-1 px-4 py-2 border border-slate-300 rounded-md text-sm', placeholder: '예: 30대 여성 민감성 두피, 오가닉 선호, 최근 90일 미구매', value: '30대 여성 민감성 두피, 오가닉 선호, 최근 90일 미구매'}),
+      el('input', {type: 'text', id: 's1Query', class: 'flex-1 px-4 py-2 border border-slate-300 rounded-md text-sm', placeholder: '예: 일본 30대 여성 관광객, LV·Hermes 선호, 최근 90일 면세 구매', value: '일본 30대 여성 관광객, LV·Hermes 선호, 최근 90일 면세 구매'}),
       el('button', {class: 'bg-rose-600 hover:bg-rose-700 text-white px-5 py-2 rounded-md text-sm font-semibold', onclick: () => runS1Search()}, 'Search')
     ),
     el('div', {class: 'mt-3 flex gap-2 text-xs text-slate-500'},
       el('span', {class: 'px-2 py-1 bg-slate-100 rounded'}, 'BU: All'),
-      el('span', {class: 'px-2 py-1 bg-slate-100 rounded'}, '가격: ₩2,000~₩200,000'),
+      el('span', {class: 'px-2 py-1 bg-slate-100 rounded'}, '가격: NT$1,000~NT$20M'),
       el('span', {class: 'px-2 py-1 bg-slate-100 rounded'}, '기간: 90일'),
       el('span', {class: 'px-2 py-1 bg-slate-100 rounded'}, `페르소나: ${PERSONAS[currentPersona].name}`)
     )
@@ -230,7 +233,7 @@ function renderS1(main) {
   // 1-hop graph
   const graphCard = el('div', {class: 'bg-white rounded-lg border border-slate-200 p-4 shadow-sm'},
     el('div', {class: 'flex justify-between items-center mb-3'},
-      el('h3', {class: 'font-semibold'}, '🕸️ Neptune 1-hop 그래프 (선택: 엘라스틴 퍼펙트 케어 샴푸)'),
+      el('h3', {class: 'font-semibold'}, '🕸️ Neptune 1-hop 그래프 (선택: LV Petite Malle)'),
       el('span', {class: 'text-xs text-slate-500'}, '5 노드 · 7 엣지')
     ),
     el('div', {id: 's1Graph', style: 'height: 280px;'})
@@ -242,12 +245,12 @@ function renderS1(main) {
   // Render network
   setTimeout(() => renderKGGraph('s1Graph', {
     nodes: [
-      {id: 1, label: 'HDB-021\n엘라스틴', shape: 'box', color: '#fee2e2', font: {size: 11}},
-      {id: 2, label: 'HDB', shape: 'ellipse', color: '#dbeafe', font: {size: 11}},
-      {id: 3, label: '엘라스틴 (Brand)', shape: 'ellipse', color: '#fef3c7', font: {size: 11}},
-      {id: 4, label: '샴푸 (Category)', shape: 'ellipse', color: '#dcfce7', font: {size: 11}},
-      {id: 5, label: '리뷰 41건\n(올영 28 · X 9 · 자사 4)', shape: 'box', color: '#e0e7ff', font: {size: 10}},
-      {id: 6, label: '구매 회원 12명', shape: 'box', color: '#fce7f3', font: {size: 10}},
+      {id: 1, label: 'LUX-001\nPetite Malle', shape: 'box', color: '#fee2e2', font: {size: 11}},
+      {id: 2, label: '럭셔리 (BU)', shape: 'ellipse', color: '#dbeafe', font: {size: 11}},
+      {id: 3, label: 'Louis Vuitton (Brand)', shape: 'ellipse', color: '#fef3c7', font: {size: 11}},
+      {id: 4, label: '핸드백 (Category)', shape: 'ellipse', color: '#dcfce7', font: {size: 11}},
+      {id: 5, label: '리뷰 41건\n(小紅書 28 · Dcard 9 · 자사 4)', shape: 'box', color: '#e0e7ff', font: {size: 10}},
+      {id: 6, label: 'VIP 회원 12명', shape: 'box', color: '#fce7f3', font: {size: 10}},
     ],
     edges: [
       {from: 1, to: 2, label: 'BU'},
@@ -273,7 +276,7 @@ function skuCard(p) {
       el('span', {class: 'font-semibold'}, p.name),
       el('span', {html: badge('real')})
     ),
-    el('div', {class: 'text-slate-500'}, `${p.brand} · ${p.bu} · ₩${p.price.toLocaleString()}`),
+    el('div', {class: 'text-slate-500'}, `${p.brand} · ${p.bu} · NT$${p.price.toLocaleString()}`),
     el('div', {class: 'mt-1 text-slate-600'}, `★ ${p.rating} · ${p.social}`)
   );
 }
@@ -294,8 +297,8 @@ function memberCard(m) {
 }
 
 function reviewCard(r) {
-  const sourceColor = {'자사몰': 'bg-rose-100 text-rose-700', '올리브영': 'bg-emerald-100 text-emerald-700', 'X': 'bg-slate-100 text-slate-700', '네이버': 'bg-green-100 text-green-700', 'Dcard': 'bg-pink-100 text-pink-700'};
-  const cohort = r.source === '자사몰' ? 'real' : 'external';
+  const sourceColor = {'멤버스앱': 'bg-rose-100 text-rose-700', '小紅書': 'bg-red-100 text-red-700', 'Dcard': 'bg-pink-100 text-pink-700', 'Google': 'bg-sky-100 text-sky-700', 'Instagram': 'bg-violet-100 text-violet-700'};
+  const cohort = r.source === '멤버스앱' ? 'real' : 'external';
   return el('div', {class: 'border border-slate-200 rounded-md p-3 text-xs'},
     el('div', {class: 'flex justify-between items-start mb-1'},
       el('span', {class: `text-[10px] font-semibold px-1.5 py-0.5 rounded ${sourceColor[r.source] || 'bg-slate-100'}`}, r.source),
@@ -309,9 +312,19 @@ function reviewCard(r) {
 function runS1Search() {
   const counter = document.getElementById('s1Counter');
   if (!counter) return;
+  const queryEl = document.getElementById('s1Query');
+  const q = (queryEl?.value || '').trim();
   counter.textContent = '검색 중... (BM25 + KNN 병렬 실행)';
+  // 쿼리 길이·토큰 수에 따라 결과 수를 결정적으로 변동시켜 "입력에 반응"하는 인상
+  const tokens = q ? q.split(/\s+/).filter(Boolean).length : 0;
+  const bm25 = q ? 4 + (q.length % 9) : 0;
+  const knn = q ? 6 + (tokens * 2) % 11 : 0;
+  const common = q ? Math.max(1, Math.min(bm25, knn) - 3) : 0;
+  const total = bm25 + knn - common;
+  const took = (0.7 + (q.length % 13) / 10).toFixed(1);
   setTimeout(() => {
-    counter.innerHTML = '검색 결과: <strong>23건</strong> (BM25 8 · KNN 11 · 공통 4) <span class="text-xs text-emerald-600 ml-2">✓ 1.2초</span>';
+    if (!q) { counter.textContent = '검색어를 입력하세요.'; return; }
+    counter.innerHTML = `검색 결과: <strong>${total}건</strong> (BM25 ${bm25} · KNN ${knn} · 공통 ${common}) <span class="text-xs text-emerald-600 ml-2">✓ ${took}초</span> <span class="text-xs text-slate-400 ml-1">· "${q.slice(0, 30)}${q.length > 30 ? '…' : ''}"</span>`;
   }, 600);
 }
 
@@ -333,7 +346,7 @@ function renderS2(main) {
   chat.appendChild(messagesDiv);
 
   const inputBox = el('div', {class: 'border-t border-slate-200 p-3 flex gap-2'},
-    el('input', {id: 's2Input', class: 'flex-1 px-3 py-2 border border-slate-300 rounded-md text-sm', placeholder: '질문을 입력하세요...', value: '이번 달 페리오 매출이 떨어진 채널 TOP 5와 원인은?'}),
+    el('input', {id: 's2Input', class: 'flex-1 px-3 py-2 border border-slate-300 rounded-md text-sm', placeholder: '질문을 입력하세요...', value: '週年慶 기간 信義점 LV 매대 SOV가 하락한 원인은?'}),
     el('button', {class: 'bg-rose-600 hover:bg-rose-700 text-white px-4 py-2 rounded-md text-sm font-semibold', onclick: () => runS2Chat()}, 'Send')
   );
   chat.appendChild(inputBox);
@@ -352,14 +365,14 @@ function renderS2(main) {
 
   // Suggested queries
   const suggestions = el('div', {class: 'mt-4 flex flex-wrap gap-2'},
-    ...['숨37 신상 런칭 ROAS 시뮬', '최근 인스타에서 떠오른 키워드와 자사 매출 연결', '동의 미수신 회원 발송 차단 확인'].map(t =>
+    ...['일본 관광객 면세 추천 시뮬', '小紅書에서 떠오른 브랜드와 자사 매출 연결', 'Black VIP 라운지 활용률과 NPS 추이'].map(t =>
       el('button', {class: 'text-xs px-3 py-1.5 bg-white border border-slate-200 rounded-md hover:border-rose-300', onclick: () => { document.getElementById('s2Input').value = t; }}, t)
     )
   );
   main.appendChild(suggestions);
 
   // Initial message
-  appendChat('user', '이번 달 페리오 매출이 떨어진 채널 TOP 5와 원인은?');
+  appendChat('user', '週年慶 기간 信義점 LV 매대 SOV가 하락한 원인은?');
 }
 
 function appendChat(role, text) {
@@ -390,6 +403,25 @@ function appendTrace(toolName, input, output, durationMs) {
   cnt.textContent = `${div.children.length} calls`;
 }
 
+// 입력에서 도메인 엔티티 추출 (mock NLU) — 사용자 질문에 반응하는 핵심
+function extractEntities(q) {
+  const lower = q.toLowerCase();
+  const found = { brand: null, channel: null, metric: null, period: null, intent: null, raw: q };
+  const brands = ['Louis Vuitton', 'LV', 'Hermes', 'Chanel', 'Tom Ford', 'Tiffany', 'Pierre Hermé', '루이비통', '에르메스', '샤넬'];
+  const channels = ['信義', '南西', '台中', '高雄', '멤버스앱', '라운지', '컨시어지', '면세', '프리세일', '週年慶', '小紅書'];
+  const metrics = ['GMV', 'SOV', '객단가', 'LTV', 'NPS', '회전율', '면세', '환급', '활용률', '점유', '매대'];
+  for (const b of brands) if (q.includes(b)) { found.brand = b; break; }
+  for (const c of channels) if (q.includes(c)) { found.channel = c; break; }
+  for (const m of metrics) if (lower.includes(m.toLowerCase())) { found.metric = m; break; }
+  const pm = q.match(/(\d+)\s*(일|주|개월|달|년|day|week|month)/);
+  if (pm) found.period = pm[0];
+  if (/왜|원인|이유|분석|why/.test(q)) found.intent = '원인분석';
+  else if (/추천|제안|해야|어떻게|전략/.test(q)) found.intent = '액션추천';
+  else if (/얼마|몇|순위|top|랭킹|비교/i.test(q)) found.intent = '집계';
+  else found.intent = '탐색';
+  return found;
+}
+
 function runS2Chat() {
   const input = document.getElementById('s2Input');
   const q = input.value.trim();
@@ -400,37 +432,44 @@ function runS2Chat() {
   document.getElementById('s2Trace').innerHTML = '';
   document.getElementById('s2TraceCount').textContent = '0 calls';
 
-  // Mock tool calls based on persona
+  // 입력 기반 엔티티 추출 → 트레이스·답변에 반영
+  const e = extractEntities(q);
+  const brand = e.brand || 'Louis Vuitton';
+  const channel = e.channel || '信義';
+  const period = e.period || '30일';
+  const metric = e.metric || (currentPersona === 'P1' ? 'ROAS' : currentPersona === 'P5' ? '회전율' : 'GMV');
+
+  // 도구 호출 트레이스 — 추출 엔티티를 input 인자로 사용
   const calls = currentPersona === 'P1' ? [
-    ['campaign_simulator', 'brand=페리오, period=30d', 'Bayesian posterior 1000 샘플 완료', 1820],
-    ['attribution_calc', 'method=time_decay, brand=페리오', 'SMS 35% / 마트 28% / SNS 22% / 카톡 15%', 940],
-    ['social_trend_join', 'keyword=페리오 치약, days=30', '검색량 -8% vs 전월', 620],
+    ['campaign_simulator', `brand=${brand}, period=${period}`, 'Bayesian posterior 1000 샘플 완료', 1820],
+    ['attribution_calc', `method=time_decay, brand=${brand}`, '멤버스앱 34% / 小紅書 27% / 라운지 22% / 이메일 17%', 940],
+    ['social_trend_join', `keyword=${brand}, days=${(period.match(/\d+/) || [30])[0]}`, '小紅書 언급 +12% vs 전월', 620],
   ] : currentPersona === 'P5' ? [
-    ['channel_metrics_push', 'sku_brand=페리오', 'GMV by channel 집계 완료', 480],
-    ['neptune_query', 'POSTransaction × Channel × Brand', '5개 채널 GMV 추출', 620],
-    ['weather_join', 'KMA 일별 기온/강수', '서울·부산 폭염 영향 데이터', 320],
-    ['social_trend_join', 'keyword=페리오 치약, days=30', '검색량 -8%, 부정 리뷰 +14%', 720],
-    ['behavior_change_detect', 'sku=HDB-074', 'z-score 2.1, 시그너처 매칭', 450],
+    ['pos_metrics_pull', `store=${channel}, brand=${brand}`, '층·매대별 GMV 집계 완료', 480],
+    ['neptune_query', `POSTransaction × Store=${channel} × Brand`, '19점포 매대 점유 추출', 620],
+    ['shelf_efficiency', `metric=${metric}`, '면적 대비 GMV 산점 계산', 320],
+    ['competitor_sov', `season=週年慶, brand=${brand}`, '경쟁사 SOV +18% 탐지', 720],
+    ['behavior_change_detect', `sku=${brand}`, 'z-score 2.1, 시그너처 매칭', 450],
   ] : [
-    ['neptune_query', 'POSTransaction × Brand=페리오', '5채널 GMV 집계', 620],
-    ['behavior_change_detect', 'sku=HDB-074', 'z-score 2.1', 450],
-    ['social_trend_join', 'keyword=페리오 치약', '검색 -8%', 620],
+    ['neptune_query', `POSTransaction × Store=${channel} × Brand=${brand}`, '매대 GMV 집계', 620],
+    ['behavior_change_detect', `metric=${metric}`, 'z-score 2.1', 450],
+    ['social_trend_join', `keyword=${brand}`, '小紅書 언급 +12%', 620],
   ];
 
-  // Simulate delays
   let delay = 200;
-  calls.forEach(([tool, input, output, ms]) => {
-    setTimeout(() => appendTrace(tool, input, output, ms), delay);
+  calls.forEach(([tool, inp, output, ms]) => {
+    setTimeout(() => appendTrace(tool, inp, output, ms), delay);
     delay += 700;
   });
 
-  // Final answer
+  // 최종 답변 — 추출 엔티티를 본문에 직접 반영해 "내 질문에 반응한다"는 인상
   setTimeout(() => {
+    const focus = `**분석 대상**: ${brand} · ${channel} · 기간 ${period} (질의 의도: ${e.intent})`;
     const answer = currentPersona === 'P1' ?
-      '**캠페인 효과 분석 (브랜드 마케터 시각)**\n• 채널별 ROAS: SMS 4.2x · 마트 3.1x · SNS 2.8x\n• 다음 캠페인 제안: SNS 비중 +15% 재배분\n• 예산 1억 시뮬: 응답률 +18% 예상\n\n출처: 자사 캠페인 데이터(real) + 검색 트렌드(external)' :
+      `${focus}\n\n**마케팅·캠페인 시각**\n• ${brand} 채널별 ROAS: 멤버스앱 5.2x · 小紅書 3.4x · 라운지 2.9x\n• ${channel} 외국인 유치: 面稅 프로모 노출 +15% 재배분\n• 週年慶 프리세일 연계 시 예상 응답률 +18%\n\n출처: 캠페인 성과 데이터(real) + 小紅書 트렌드(external)` :
       currentPersona === 'P5' ?
-      '**채널·매장 시각 (MD)**\n• TOP 5 매출 하락 채널: ① 이마트 -18% ② 롯데마트 -14% ③ 자사몰 -9% ④ CU -7% ⑤ 올영 -5%\n• 주요 원인 (근거 시그널):\n  - 폭염 영향 → 칫솔·치약 카테고리 전반 둔화 (KMA 기상)\n  - 경쟁사 신제품 출시 → 페리오 SOV -12% (CompetitorSignal)\n  - 검색 트렌드 -8%, 부정 리뷰 +14% (SocialSignal)\n• MD 액션: 매대 진열 강화 + 1+1 프로모션 4주\n\n출처: POS(real) + 외부 4종(external)' :
-      '**데이터 분석 시각 (D&A)**\n• 매출 z-score 2.1 (이상치 임계 초과)\n• 검색 트렌드 -8% 시차 14일 선행\n• 모델 drift 유의 (predictor distribution shift)\n• 권장: 모델 재학습 + 외부 시그널 weight 조정';
+      `${focus}\n\n**MD·매장 운영 시각**\n• ${channel}점 ${brand} 매대 SOV: 자사 -12% / 경쟁사 +18% (週年慶 4주)\n• 주요 원인 (근거 시그널):\n  - 경쟁사 SS 신상 캐비닛 확장 → SOV 흡수 (CompetitorSignal)\n  - 小紅書 언급 +12%, 회전율 -0.4 (SocialSignal)\n• MD 액션: B1 식품 → 1F 신상 캐비닛 이동 시 +8%\n\n출처: POS(real) + 외부 4종(external)` :
+      `${focus}\n\n**데이터·디지털 시각**\n• ${channel}점 ${metric} z-score 2.1 (이상치 임계 초과)\n• 小紅書 언급 +12% 시차 7일 선행\n• 모델 drift 유의 (predictor distribution shift)\n• 권장: 모델 재학습 + 외부 시그널 weight 조정`;
     appendChat('assistant', answer);
   }, delay + 300);
 }
@@ -443,22 +482,22 @@ function renderS3(main) {
   const grid = el('div', {class: 'grid grid-cols-2 gap-4'});
 
   // Card 1: BU 월별 GMV
-  const card1 = insightCard('월별 BU GMV 추이', 'real', 'Beauty (rose) / HDB (sky) / Refreshment (amber)', PERSONAS[currentPersona].comment3_1 || s3PersonaComment(1));
+  const card1 = insightCard('월별 BU GMV 추이', 'real', '럭셔리 (rose) / 뷰티 (sky) / 식품 (amber)', PERSONAS[currentPersona].comment3_1 || s3PersonaComment(1));
   grid.appendChild(card1);
   setTimeout(() => drawBUChart(card1.querySelector('canvas')), 100);
 
-  // Card 2: 자외선차단 vs 기온
-  const card2 = insightCard('자외선차단 GMV vs 기온 (지난 90일)', 'external', 'WeatherSignal 결합 · R² 0.68', s3PersonaComment(2));
+  // Card 2: 외국인 객단가 vs 환율
+  const card2 = insightCard('외국인 면세 GMV vs 엔/TWD 환율 (지난 90일)', 'external', 'EconomicSignal 결합 · R² 0.68', s3PersonaComment(2));
   grid.appendChild(card2);
   setTimeout(() => drawSunCareChart(card2.querySelector('canvas')), 150);
 
-  // Card 3: 검색 트렌드 vs 자사
-  const card3 = insightCard('검색 트렌드 vs 자사 GMV (Beauty)', 'external', 'SocialSignal 듀얼 축', s3PersonaComment(3));
+  // Card 3: 小紅書 트렌드 vs 자사
+  const card3 = insightCard('小紅書 트렌드 vs 자사 GMV (럭셔리)', 'external', 'SocialSignal 듀얼 축', s3PersonaComment(3));
   grid.appendChild(card3);
   setTimeout(() => drawTrendChart(card3.querySelector('canvas')), 200);
 
   // Card 4: 경쟁사 출시 영향
-  const card4 = insightCard('경쟁사 신제품 출시 후 자사 영향', 'external', 'CompetitorSignal annotation', s3PersonaComment(4));
+  const card4 = insightCard('경쟁 백화점 SS 컬렉션 후 자사 영향', 'external', 'CompetitorSignal annotation', s3PersonaComment(4));
   grid.appendChild(card4);
   setTimeout(() => drawCompetitorChart(card4.querySelector('canvas')), 250);
 
@@ -485,10 +524,10 @@ function insightCard(title, cohort, subtitle, comment) {
 function s3PersonaComment(cardIdx) {
   const p = currentPersona;
   const tones = {
-    1: { P1: '11월 후 +12%, 사전 SMS 캠페인 효과로 추정. 12월은 SNS 위주 재배분 권장.', P2: 'Beauty BU가 30대 이상 코호트에서 비중 급상승. 새 세그먼트 후보.', P3: '11월 분포가 평년 대비 +1.5σ. 외부(기온) 변수 결합 분석 필요.', P4: 'VIP 등급 적립률 +3pt 상승. 등급 유지 캠페인 효과로 추정.', P5: '11월 GMV +12%, 매대·재고 회전 +0.4. 백화점·올영 매대 확장 제안.' },
-    2: { P1: '기온 ↑5℃ 시 자외선차단 매출 +28%. 5월 캠페인 세팅에 반영.', P2: '여름 진입 시점에 트렌드세터 페르소나 우선 노출.', P3: 'R² 0.68. lag 0~2일 가장 강한 상관. 모델 feature로 추가.', P4: 'VIP에 자외선차단 신상 무료 샘플 큐레이션.', P5: '기온 25℃ 이상 진입 후 진열 50% 확대 권장.' },
-    3: { P1: '"비건뷰티" 검색 +35% → 자사 비건 SKU 캠페인 즉시 재가동.', P2: '키워드 SOV 자사 12%, 경쟁사 21%. SOV 격차 분석 필요.', P3: '검색 → GMV 시차 7일. 단기 수요 예측 모델에 반영.', P4: 'VIP 적립 캠페인에 비건 키워드 결합.', P5: '비건 카테고리 매대 신설 + 신상 5종 도입 제안.' },
-    4: { P1: '경쟁사 출시 후 자사 GMV -8%, 4주 후 회복. 카운터 캠페인 타이밍.', P2: '경쟁사 SOV +18% 흡수. 자사 페르소나 이탈 모니터링.', P3: '시차 -2주~+4주 영향. 캠페인 효과 분리 고려.', P4: 'VIP 이탈 위험 +6%. 리텐션 혜택 강화.', P5: '신상 출시 4주 내 카운터 프로모션 권장.' },
+    1: { P1: '週年慶 후 +12%, 사전 VIP 프리세일 효과로 추정. 다음 시즌은 小紅書 위주 재배분 권장.', P2: '럭셔리 BU가 40대 이상 코호트에서 비중 급상승. 새 세그먼트 후보.', P3: '週年慶 분포가 평년 대비 +1.5σ. 외부(환율) 변수 결합 분석 필요.', P4: 'Black 등급 적립률 +3pt 상승. 라운지 유지 캠페인 효과로 추정.', P5: '週年慶 GMV +12%, 매대·재고 회전 +0.4. 信義점 1F 캐비닛 확장 제안.' },
+    2: { P1: '엔저 ↓5% 시 일본 관광객 면세 GMV +28%. 다음 시즌 세팅에 반영.', P2: '엔저 진입 시점에 일본 관광객 페르소나 우선 노출.', P3: 'R² 0.68. lag 0~2일 가장 강한 상관. 모델 feature로 추가.', P4: 'Black VIP에 신상 무료 큐레이션.', P5: '엔저 지속 시 면세 진열 50% 확대 권장.' },
+    3: { P1: '"Quiet Luxury" 언급 +35% → 자사 관련 SKU 캠페인 즉시 재가동.', P2: '브랜드 SOV 자사 12%, 경쟁사 21%. SOV 격차 분석 필요.', P3: '小紅書 언급 → GMV 시차 7일. 단기 수요 예측 모델에 반영.', P4: 'VIP 프리세일에 트렌드 키워드 결합.', P5: '트렌드 브랜드 캐비닛 신설 + 신상 5종 도입 제안.' },
+    4: { P1: '경쟁 SS 컬렉션 후 자사 GMV -8%, 4주 후 회복. 카운터 캠페인 타이밍.', P2: '경쟁사 SOV +18% 흡수. 자사 VIP 이탈 모니터링.', P3: '시차 -2주~+4주 영향. 캠페인 효과 분리 고려.', P4: 'VIP 이탈 위험 +6%. 라운지 혜택 강화.', P5: 'SS 컬렉션 4주 내 카운터 프로모션 권장.' },
   };
   return tones[cardIdx][p] || '';
 }
@@ -500,9 +539,9 @@ function drawBUChart(canvas) {
     data: {
       labels: ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'],
       datasets: [
-        { label: 'Beauty', data: [82,85,88,91,95,99,102,98,104,108,121,118], borderColor: '#e11d48', backgroundColor: 'rgba(225,29,72,0.1)', tension: 0.4 },
-        { label: 'HDB', data: [70,72,74,73,75,77,80,82,79,81,84,86], borderColor: '#0284c7', backgroundColor: 'rgba(2,132,199,0.1)', tension: 0.4 },
-        { label: 'Refreshment', data: [58,60,63,65,68,72,76,80,75,72,69,68], borderColor: '#f59e0b', backgroundColor: 'rgba(245,158,11,0.1)', tension: 0.4 },
+        { label: '럭셔리', data: [82,85,88,91,95,99,102,98,104,108,121,118], borderColor: '#e11d48', backgroundColor: 'rgba(225,29,72,0.1)', tension: 0.4 },
+        { label: '뷰티', data: [70,72,74,73,75,77,80,82,79,81,84,86], borderColor: '#0284c7', backgroundColor: 'rgba(2,132,199,0.1)', tension: 0.4 },
+        { label: '식품', data: [58,60,63,65,68,72,76,80,75,72,69,68], borderColor: '#f59e0b', backgroundColor: 'rgba(245,158,11,0.1)', tension: 0.4 },
       ]
     },
     options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: {boxWidth: 8, font: {size: 10}} } }, scales: { y: { ticks: {font: {size: 9}} }, x: { ticks: {font: {size: 9}} } } }
@@ -513,14 +552,14 @@ function drawSunCareChart(canvas) {
   if (!canvas) return;
   const points = [];
   for (let i = 0; i < 90; i++) {
-    const t = 5 + 25 * Math.sin(i / 90 * Math.PI) + (Math.random()-0.5)*4;
-    const g = 50 + (t-5) * 4 + (Math.random()-0.5)*15;
-    points.push({x: t, y: g});
+    const jpy = 4.6 + 0.5 * Math.sin(i / 90 * Math.PI) + (Math.random()-0.5)*0.15;
+    const g = 250 - (jpy-4.6) * 180 + (Math.random()-0.5)*30;
+    points.push({x: jpy, y: g});
   }
   new Chart(canvas, {
     type: 'scatter',
-    data: { datasets: [{ label: '자외선차단 GMV vs 기온', data: points, backgroundColor: '#0ea5e9', pointRadius: 3 }] },
-    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: {display:false} }, scales: { x: { title: {display: true, text: '기온 °C', font:{size:9}}, ticks:{font:{size:9}} }, y: { title:{display:true, text:'GMV (단위:M)', font:{size:9}}, ticks:{font:{size:9}} } } }
+    data: { datasets: [{ label: '일본 관광객 면세 GMV vs JPY/TWD', data: points, backgroundColor: '#0ea5e9', pointRadius: 3 }] },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: {display:false} }, scales: { x: { title: {display: true, text: 'JPY/TWD 환율', font:{size:9}}, ticks:{font:{size:9}} }, y: { title:{display:true, text:'면세 GMV (NT$K)', font:{size:9}}, ticks:{font:{size:9}} } } }
   });
 }
 
@@ -531,8 +570,8 @@ function drawTrendChart(canvas) {
     data: {
       labels: ['W1','W2','W3','W4','W5','W6','W7','W8','W9','W10','W11','W12'],
       datasets: [
-        { label: '검색 트렌드 (네이버)', data: [40,42,48,55,62,70,68,75,82,80,88,92], borderColor: '#8b5cf6', tension: 0.4, yAxisID: 'y' },
-        { label: '자사 Beauty GMV', data: [82,85,88,91,95,99,102,108,114,118,121,128], borderColor: '#e11d48', tension: 0.4, yAxisID: 'y1' },
+        { label: '小紅書 언급 (인덱스)', data: [40,42,48,55,62,70,68,75,82,80,88,92], borderColor: '#8b5cf6', tension: 0.4, yAxisID: 'y' },
+        { label: '자사 럭셔리 GMV', data: [82,85,88,91,95,99,102,108,114,118,121,128], borderColor: '#e11d48', tension: 0.4, yAxisID: 'y1' },
       ]
     },
     options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels:{boxWidth:8, font:{size:10}} } }, scales: { y: { position: 'left', ticks:{font:{size:9}} }, y1: { position: 'right', grid:{drawOnChartArea:false}, ticks:{font:{size:9}} }, x: {ticks:{font:{size:9}}} } }
@@ -563,11 +602,11 @@ function renderS4(main) {
 
   // 페르소나 카드 5종
   const personas = [
-    { name: '키즈맘', desc: '유아용품·생활용품·평일 낮', count: 8420, color: 'pink' },
-    { name: '골드미스', desc: '프리미엄 PB·뷰티·주말 오전', count: 5210, color: 'rose' },
-    { name: '1인가구', desc: '소량·간편·심야', count: 12300, color: 'sky' },
-    { name: '시니어', desc: '신선·전단·매장 결제', count: 6800, color: 'amber' },
-    { name: '트렌드세터', desc: '신상품·SNS 캠페인 응답', count: 4100, color: 'violet' },
+    { name: '럭셔리 콜렉터', desc: '하이엔드 핸드백·주얼리·프리세일', count: 5210, color: 'rose' },
+    { name: '외국인 관광객', desc: '면세·엔저 반응·JP/HK/SG', count: 8420, color: 'sky' },
+    { name: '시즌 트렌드세터', desc: '週年慶·SS 신상·小紅書 응답', count: 6800, color: 'violet' },
+    { name: '가족 쇼핑객', desc: '식품·주말·복합 구매', count: 12300, color: 'amber' },
+    { name: 'VIP 멤버', desc: '라운지·컨시어지·등급 유지', count: 4100, color: 'pink' },
   ];
 
   const personaPanel = el('div', {class: 'bg-white rounded-lg border border-slate-200 p-4 shadow-sm'},
@@ -592,12 +631,12 @@ function renderS4(main) {
   const clusterPanel = el('div', {class: 'bg-white rounded-lg border border-slate-200 p-4 shadow-sm'},
     el('h3', {class: 'font-semibold text-sm mb-3'}, 'KMeans 6 클러스터 (LLM 라벨링)'),
     el('div', {class: 'space-y-2'},
-      clusterRow('C1', '프리미엄 Beauty 충성층', 4200, 'rose', 'R 5 / F 8.2 / M ₩280K'),
-      clusterRow('C2', '할인 민감 1인가구', 8800, 'sky', 'R 3 / F 4.1 / M ₩48K'),
-      clusterRow('C3', '주말 가족 쇼핑객', 6100, 'amber', 'R 4 / F 5.6 / M ₩125K'),
-      clusterRow('C4', 'HDB 정기구매 키즈맘', 7300, 'pink', 'R 5 / F 7.8 / M ₩98K'),
-      clusterRow('C5', '편의점 음료 트렌드세터', 3900, 'violet', 'R 5 / F 12.4 / M ₩35K'),
-      clusterRow('C6', '시니어 신선·생활용품', 5400, 'emerald', 'R 4 / F 6.2 / M ₩72K'),
+      clusterRow('C1', '하이엔드 핸드백 충성층', 4200, 'rose', 'R 5 / F 8.2 / M NT$680K'),
+      clusterRow('C2', '면세 민감 외국인 관광객', 8800, 'sky', 'R 3 / F 4.1 / M NT$120K'),
+      clusterRow('C3', '주말 식품·가족 쇼핑객', 6100, 'amber', 'R 4 / F 5.6 / M NT$85K'),
+      clusterRow('C4', '週年慶 프리세일 VIP', 7300, 'pink', 'R 5 / F 7.8 / M NT$420K'),
+      clusterRow('C5', '뷰티 신상 트렌드세터', 3900, 'violet', 'R 5 / F 12.4 / M NT$45K'),
+      clusterRow('C6', '주얼리·워치 시니어', 5400, 'emerald', 'R 4 / F 6.2 / M NT$320K'),
     )
   );
   grid.appendChild(clusterPanel);
@@ -655,11 +694,11 @@ function renderS5(main) {
   const campaignPanel = el('div', {class: 'bg-white rounded-lg border border-slate-200 p-4 shadow-sm'},
     el('h3', {class: 'font-semibold text-sm mb-3'}, '캠페인 정의'),
     el('div', {class: 'space-y-2 text-sm'},
-      kvRow('대상 BU', 'Beauty (숨37 신상)'),
-      kvRow('세그먼트', 'VIP + 골드 5만명 (LG 멤버스)'),
+      kvRow('대상 BU', '럭셔리 (週年慶 SS 신상)'),
+      kvRow('세그먼트', 'Black + Platinum 5만명 (멤버스)'),
       kvRow('기간', '2026-05-20 ~ 2026-06-19'),
-      kvRow('예산', '₩100,000,000'),
-      kvRow('타겟', '신제품 도입 30일 ROAS 4.0+ ')
+      kvRow('예산', 'NT$30,000,000'),
+      kvRow('타겟', '週年慶 30일 ROAS 4.0+ ')
     )
   );
   wrap.appendChild(campaignPanel);
@@ -698,7 +737,7 @@ function drawS5Donut() {
   new Chart(c, {
     type: 'doughnut',
     data: {
-      labels: ['SMS', '카톡', 'SNS 광고', '자사몰 배너', '올영 매대', '인플루언서'],
+      labels: ['멤버스앱', '컨시어지 SMS', '小紅書 광고', '라운지 초대', '매장 VIP', 'KOL'],
       datasets: [{
         data: [22, 18, 28, 12, 12, 8],
         backgroundColor: ['#e11d48', '#f59e0b', '#8b5cf6', '#0ea5e9', '#10b981', '#ec4899']
@@ -712,7 +751,7 @@ function drawS5Violin() {
   const c = document.getElementById('s5Violin');
   if (!c) return;
   // approximate violin via line area
-  const channels = ['SMS', '카톡', 'SNS 광고', '자사몰 배너', '올영 매대', '인플루언서'];
+  const channels = ['멤버스앱', '컨시어지 SMS', '小紅書 광고', '라운지 초대', '매장 VIP', 'KOL'];
   const datasets = channels.map((ch, i) => {
     const center = [4.2, 3.8, 5.1, 3.2, 4.5, 4.0][i];
     const spread = 0.6;
@@ -733,7 +772,7 @@ function drawS5Violin() {
 // ============= S6. External Signals =============
 function renderS6(main) {
   main.appendChild(header('🌐 S6. 외부 시그널 융합 (4종)',
-    '소셜 트렌드 · KMA 기상 · BOK·통계청 경제 · 경쟁사 동향'));
+    '小紅書·Dcard 소셜 · 대만 관광청 · 환율(JPY/USD/HKD)·경제 · 경쟁 백화점 동향'));
 
   const grid = el('div', {class: 'grid grid-cols-2 gap-4'});
 
@@ -771,10 +810,10 @@ function drawS6Series() {
     data: {
       labels,
       datasets: [
-        { label: '소셜 트렌드 (인덱스)', data: labels.map((_,i) => 50+Math.sin(i/4)*20+i*1.5), borderColor: '#8b5cf6', tension: 0.3, yAxisID: 'y' },
-        { label: '기온 (°C)', data: labels.map((_,i) => 12+i*0.4+(Math.random()-0.5)*3), borderColor: '#0ea5e9', tension: 0.3, yAxisID: 'y' },
-        { label: '환율 (USD/KRW)', data: labels.map((_,i) => 1300+(Math.random()-0.5)*40), borderColor: '#f59e0b', tension: 0.3, yAxisID: 'y' },
-        { label: '자사 Beauty GMV', data: labels.map((_,i) => 80+i*2+Math.sin(i/3)*8), borderColor: '#e11d48', tension: 0.3, yAxisID: 'y1', borderWidth: 3 },
+        { label: '小紅書 트렌드 (인덱스)', data: labels.map((_,i) => 50+Math.sin(i/4)*20+i*1.5), borderColor: '#8b5cf6', tension: 0.3, yAxisID: 'y' },
+        { label: '방한 관광객 (천명)', data: labels.map((_,i) => 12+i*0.4+(Math.random()-0.5)*3), borderColor: '#0ea5e9', tension: 0.3, yAxisID: 'y' },
+        { label: '환율 (JPY/TWD ×10)', data: labels.map((_,i) => 46+(Math.random()-0.5)*3), borderColor: '#f59e0b', tension: 0.3, yAxisID: 'y' },
+        { label: '자사 럭셔리 GMV', data: labels.map((_,i) => 80+i*2+Math.sin(i/3)*8), borderColor: '#e11d48', tension: 0.3, yAxisID: 'y1', borderWidth: 3 },
       ]
     },
     options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels:{boxWidth:8, font:{size:10}} } }, scales: { y: { position: 'left', ticks:{font:{size:9}} }, y1: { position: 'right', grid:{drawOnChartArea:false}, ticks:{font:{size:9}} }, x:{ticks:{font:{size:9}, autoSkip:true, maxTicksLimit:10}} } }
@@ -784,8 +823,8 @@ function drawS6Series() {
 function drawS6Heatmap() {
   const div = document.getElementById('s6Heatmap');
   if (!div) return;
-  const cats = ['자외선차단','샴푸','치약','음료','핸드크림'];
-  const sigs = ['소셜','기상','환율','경쟁사'];
+  const cats = ['핸드백','주얼리','뷰티','식품','워치'];
+  const sigs = ['小紅書','관광객','환율','경쟁사'];
   // header
   div.innerHTML = '';
   const head = el('div', {class: 'grid gap-1 font-semibold text-slate-500', style: 'grid-template-columns: 80px repeat(4, 1fr)'},
@@ -813,7 +852,7 @@ function drawS6Lag() {
     type: 'bar',
     data: {
       labels: Array.from({length: 15}, (_, i) => `lag${i}`),
-      datasets: [{ label: '검색 트렌드 → 자사 GMV cross-corr', data: [0.18, 0.22, 0.31, 0.42, 0.55, 0.68, 0.71, 0.62, 0.49, 0.38, 0.29, 0.21, 0.15, 0.10, 0.06], backgroundColor: '#8b5cf6' }]
+      datasets: [{ label: '小紅書 언급 → 자사 GMV cross-corr', data: [0.18, 0.22, 0.31, 0.42, 0.55, 0.68, 0.71, 0.62, 0.49, 0.38, 0.29, 0.21, 0.15, 0.10, 0.06], backgroundColor: '#8b5cf6' }]
     },
     options: { responsive: true, maintainAspectRatio: false, plugins: { legend:{display:false} }, scales: { y:{ticks:{font:{size:9}}}, x:{ticks:{font:{size:9}}} } }
   });
@@ -822,15 +861,15 @@ function drawS6Lag() {
 // ============= S7. Customer Journey =============
 function renderS7(main) {
   main.appendChild(header('🛒 S7. 옴니채널 회원 여정 (3 BU 통합)',
-    '단일 LG 멤버스 회원이 자사몰 → SNS 광고 → 올영 → 마트 → CU 가로지르는 단일 타임라인'));
+    '단일 멤버스 회원이 온라인몰 → 小紅書 → 매장 라운지 → 뷰티관 → 식품관 가로지르는 단일 타임라인'));
 
   // member info
   const memCard = el('div', {class: 'bg-white rounded-lg border border-slate-200 p-4 shadow-sm mb-4 grid grid-cols-5 gap-3'},
-    kvBox('회원 ID', 'cust_a4f2c1', 'real'),
-    kvBox('연령·지역', '30대 / 서울 강남'),
-    kvBox('페르소나', '골드미스 (0.62)'),
-    kvBox('등급 (LG 멤버스)', 'VIP'),
-    kvBox('90일 LTV', '₩2,418,000')
+    kvBox('회원 ID', 'mem_a4f2c1', 'real'),
+    kvBox('연령·지역', '40대 / 台北 信義'),
+    kvBox('페르소나', '럭셔리 콜렉터 (0.62)'),
+    kvBox('등급 (멤버스)', 'Black'),
+    kvBox('90일 LTV', 'NT$2,418,000')
   );
   main.appendChild(memCard);
 
@@ -866,7 +905,7 @@ function drawS7BU() {
   if (!c) return;
   new Chart(c, {
     type: 'doughnut',
-    data: { labels: ['Beauty','HDB','Refreshment'], datasets: [{ data: [62, 28, 10], backgroundColor: ['#e11d48','#0ea5e9','#f59e0b'] }] },
+    data: { labels: ['럭셔리','뷰티','식품'], datasets: [{ data: [62, 28, 10], backgroundColor: ['#e11d48','#0ea5e9','#f59e0b'] }] },
     options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels:{boxWidth:8, font:{size:10}} } } }
   });
 }
@@ -875,11 +914,11 @@ function drawS7Lanes() {
   const div = document.getElementById('s7Lanes');
   if (!div) return;
   const lanes = [
-    { name: '자사몰 (검색·구매)', color: 'rose', events: [{d: 5, label: '검색', icon: '🔍'}, {d: 12, label: '구매(숨37)', icon: '🛒'}, {d: 47, label: '재구매', icon: '🛒'}, {d: 78, label: '리뷰', icon: '⭐'}] },
-    { name: 'SNS 광고 응답', color: 'violet', events: [{d: 3, label: '인스타 클릭', icon: '📱'}, {d: 28, label: '카톡 친구', icon: '💬'}, {d: 56, label: '쇼츠 시청', icon: '🎬'}] },
-    { name: '올리브영 (오프라인)', color: 'emerald', events: [{d: 18, label: 'CNP 구매', icon: '🏪'}, {d: 60, label: '신상 시연', icon: '🏪'}] },
-    { name: '대형마트 (HDB)', color: 'sky', events: [{d: 34, label: '엘라스틴', icon: '🛒'}, {d: 71, label: '자연퐁', icon: '🛒'}] },
-    { name: '편의점 (Refreshment)', color: 'amber', events: [{d: 23, label: '환타', icon: '🥤'}, {d: 52, label: '코카콜라', icon: '🥤'}, {d: 84, label: '토레타', icon: '🥤'}] },
+    { name: '온라인몰 (검색·구매)', color: 'rose', events: [{d: 5, label: '검색', icon: '🔍'}, {d: 12, label: '구매(LV)', icon: '👜'}, {d: 47, label: '재구매', icon: '👜'}, {d: 78, label: '리뷰', icon: '⭐'}] },
+    { name: '小紅書·SNS 응답', color: 'violet', events: [{d: 3, label: '小紅書 클릭', icon: '📱'}, {d: 28, label: '멤버스 친구', icon: '💬'}, {d: 56, label: 'KOL 영상', icon: '🎬'}] },
+    { name: '매장 라운지 (VIP)', color: 'emerald', events: [{d: 18, label: '프리세일', icon: '🏬'}, {d: 60, label: '신상 시연', icon: '🏬'}] },
+    { name: '뷰티관 (信義)', color: 'sky', events: [{d: 34, label: 'Tom Ford', icon: '💄'}, {d: 71, label: 'Chanel 뷰티', icon: '💄'}] },
+    { name: '식품관 (B1)', color: 'amber', events: [{d: 23, label: 'Pierre Hermé', icon: '🍰'}, {d: 52, label: '와인', icon: '🍷'}, {d: 84, label: '디저트', icon: '🍰'}] },
   ];
 
   div.innerHTML = '';
@@ -909,7 +948,7 @@ function drawS7Lanes() {
   // 핵심 전환 표시
   div.appendChild(el('div', {class: 'mt-3 text-xs bg-slate-50 p-2 rounded text-slate-600'},
     el('div', {class: 'font-semibold mb-1'}, '🌟 핵심 전환'),
-    '• D+12 첫 Beauty 구매 → D+18 올영 매장 방문 → D+47 자사몰 재구매 → 90일 내 VIP 등급 유지'
+    '• D+12 첫 럭셔리 구매 → D+18 매장 라운지 프리세일 → D+47 온라인몰 재구매 → 90일 내 Black 등급 유지'
   ));
 }
 
@@ -942,9 +981,9 @@ function renderS8(main) {
   const testCard = el('div', {class: 'bg-white rounded-lg border border-slate-200 p-4 shadow-sm'},
     el('h3', {class: 'font-semibold text-sm mb-3'}, '🧪 테스트'),
     el('div', {class: 'flex gap-2 mb-3'},
-      el('button', {class: 'text-xs px-3 py-1.5 bg-slate-100 rounded hover:bg-slate-200', onclick: () => testGuardrail('pii')}, '회원 cust_001234 연락처 알려줘'),
+      el('button', {class: 'text-xs px-3 py-1.5 bg-slate-100 rounded hover:bg-slate-200', onclick: () => testGuardrail('pii')}, '회원 mem_001234 연락처·여권 알려줘'),
       el('button', {class: 'text-xs px-3 py-1.5 bg-slate-100 rounded hover:bg-slate-200', onclick: () => testGuardrail('consent')}, '동의 미수신 5만명 SMS 발송'),
-      el('button', {class: 'text-xs px-3 py-1.5 bg-slate-100 rounded hover:bg-slate-200', onclick: () => testGuardrail('minor')}, '미성년에게 화장품 캠페인'),
+      el('button', {class: 'text-xs px-3 py-1.5 bg-slate-100 rounded hover:bg-slate-200', onclick: () => testGuardrail('minor')}, '미성년에게 주류·화장품 캠페인'),
     ),
     el('div', {id: 's8Result', class: 'text-sm bg-slate-50 rounded p-3 text-slate-500'}, '버튼을 클릭하면 가드레일 처리 결과가 표시됩니다.')
   );
@@ -970,9 +1009,9 @@ function testGuardrail(type) {
   const div = document.getElementById('s8Result');
   if (!div) return;
   const samples = {
-    pii: { input: '회원 cust_001234 연락처 알려줘', action: 'PII 자동 마스킹', output: '연락처: 010-****-**** (마스킹) · 마지막 구매 92일 전', color: 'sky' },
+    pii: { input: '회원 mem_001234 연락처·여권 알려줘', action: 'PII 자동 마스킹', output: '연락처: +886-9**-***-*** · 여권: psn_9a2f** (마스킹) · 마지막 구매 5일 전', color: 'sky' },
     consent: { input: '동의 미수신 5만명 SMS 발송 시뮬', action: '도구 차단', output: '`channel_metrics_push` 호출 차단됨 — 사유: 마케팅 동의 미수신 회원 47,832명 / 전체 차단', color: 'rose' },
-    minor: { input: '미성년 추정 회원 1,234명에게 화장품 캠페인', action: '컨텍스트 차단', output: 'Bedrock Guardrails block — 미성년 + 화장품 컨텍스트 정책 위반 / 정책 ID GDR-MINOR-COSM-01', color: 'rose' },
+    minor: { input: '미성년 추정 회원 1,234명에게 주류·화장품 캠페인', action: '컨텍스트 차단', output: 'Bedrock Guardrails block — 미성년 + 주류·화장품 컨텍스트 정책 위반 / 정책 ID GDR-MINOR-ALC-01', color: 'rose' },
   };
   const s = samples[type];
   div.innerHTML = '';
@@ -990,6 +1029,376 @@ function testGuardrail(type) {
       el('span', {class: 'text-slate-700'}, s.output)
     )
   ));
+}
+
+// ============= S9-M. 외국인 관광객 행동 분석 + 면세 추천 =============
+function renderS9M(main) {
+  main.appendChild(header('🛂 S9-M. 외국인 관광객 행동 분석 + 면세 추천',
+    'Foreigner ×  TaxRefundTransaction + 환율 EconomicSignal(JPY/USD/HKD/SGD↔TWD) + 대만 관광청 TourismSignal + 외국인 후기 OpenSearch'));
+
+  const grid = el('div', {class: 'grid grid-cols-3 gap-4'});
+
+  // 좌: 국적별 외국인 분포 도넛
+  const natCard = el('div', {class: 'bg-white rounded-lg border border-slate-200 p-4 shadow-sm'},
+    el('div', {class: 'flex justify-between items-start mb-3'},
+      el('h3', {class: 'font-semibold text-sm'}, '국적별 외국인 분포'),
+      el('span', {html: badge('real')})
+    ),
+    el('div', {class: 'h-52'}, el('canvas', {id: 's9mNat'}))
+  );
+  grid.appendChild(natCard);
+
+  // 중앙: 국적 × 카테고리 선호 히트맵
+  const heatCard = el('div', {class: 'bg-white rounded-lg border border-slate-200 p-4 shadow-sm'},
+    el('h3', {class: 'font-semibold text-sm mb-3'}, '국적 × 카테고리 선호 히트맵'),
+    el('div', {id: 's9mHeatmap', class: 'space-y-1 text-xs'})
+  );
+  grid.appendChild(heatCard);
+
+  // 우: 환율 결합 추천 카드
+  const recoCard = el('div', {class: 'bg-white rounded-lg border border-slate-200 p-4 shadow-sm'},
+    el('div', {class: 'flex justify-between items-start mb-3'},
+      el('h3', {class: 'font-semibold text-sm'}, '환율 결합 타겟 추천'),
+      el('span', {html: badge('external', 'external')})
+    ),
+    el('div', {class: 'space-y-2 text-sm'},
+      kvRow('JPY/TWD 추세', '엔저 -4% (7일 시차)'),
+      kvRow('일본인 면세', '-25% ▼ (엔저 영향)'),
+      kvRow('동남아(SG/MY)', '+15% ▲'),
+      kvRow('추천 타겟', 'SG·MY 30대 · 뷰티·주얼리'),
+      kvRow('추천 채널', '小紅書 KOL + 공항 라운지')
+    ),
+    el('div', {class: 'mt-3 p-2 bg-red-50 rounded text-xs text-red-700'},
+      '⭐ 엔저 지속 시 일본 타겟 예산 → 동남아 관광객으로 +15% 재배분 권장')
+  );
+  grid.appendChild(recoCard);
+  main.appendChild(grid);
+
+  // 하단: TaxRefund 활용률 + 면세 SKU TOP 10
+  const bottomGrid = el('div', {class: 'grid grid-cols-2 gap-4 mt-4'});
+  const utilCard = el('div', {class: 'bg-white rounded-lg border border-slate-200 p-4 shadow-sm'},
+    el('h3', {class: 'font-semibold text-sm mb-3'}, 'TaxRefund 활용률 (국적별)'),
+    el('div', {class: 'h-56'}, el('canvas', {id: 's9mUtil'}))
+  );
+  bottomGrid.appendChild(utilCard);
+
+  const skuCard = el('div', {class: 'bg-white rounded-lg border border-slate-200 p-4 shadow-sm'},
+    el('h3', {class: 'font-semibold text-sm mb-3'}, '면세 SKU TOP 10'),
+    el('div', {class: 'h-56'}, el('canvas', {id: 's9mSku'}))
+  );
+  bottomGrid.appendChild(skuCard);
+  main.appendChild(bottomGrid);
+
+  // 인사이트
+  main.appendChild(el('div', {class: 'mt-4 p-3 bg-slate-50 rounded text-xs text-slate-600'},
+    el('span', {class: 'font-semibold text-slate-700'}, '💡 인사이트 · '),
+    '일본 30대 여성 평균 객단가 NT$25K, LV·Hermes 선호 — 엔저로 일본 면세 -25%(시차 7일), 동남아 +15%. 면세 활용률 낮은 SG/MY 관광객에 환급 안내 강화 시 전환 상승 예상.'
+  ));
+
+  setTimeout(() => { drawS9MNat(); drawS9MHeatmap(); drawS9MUtil(); drawS9MSku(); }, 60);
+}
+
+function drawS9MNat() {
+  const c = document.getElementById('s9mNat');
+  if (!c) return;
+  new Chart(c, {
+    type: 'doughnut',
+    data: {
+      labels: ['일본 (JP)', '홍콩 (HK)', '싱가포르 (SG)', '말레이시아 (MY)', '기타'],
+      datasets: [{ data: [188, 96, 72, 58, 86], backgroundColor: ['#e11d48', '#f59e0b', '#8b5cf6', '#0ea5e9', '#94a3b8'] }]
+    },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { boxWidth: 10, font: { size: 10 } } } } }
+  });
+}
+
+function drawS9MHeatmap() {
+  const div = document.getElementById('s9mHeatmap');
+  if (!div) return;
+  const nats = ['JP', 'HK', 'SG', 'MY'];
+  const cats = ['핸드백', '주얼리', '뷰티', '식품'];
+  // 국적별 카테고리 선호 (0~1)
+  const matrix = {
+    JP: [0.92, 0.71, 0.78, 0.45],
+    HK: [0.85, 0.88, 0.62, 0.40],
+    SG: [0.74, 0.66, 0.81, 0.52],
+    MY: [0.68, 0.58, 0.84, 0.61],
+  };
+  div.innerHTML = '';
+  const head = el('div', {class: 'grid gap-1 font-semibold text-slate-500', style: 'grid-template-columns: 44px repeat(4, 1fr)'},
+    el('div', {}, ''),
+    ...cats.map(c => el('div', {class: 'text-center'}, c))
+  );
+  div.appendChild(head);
+  nats.forEach(nat => {
+    const row = el('div', {class: 'grid gap-1', style: 'grid-template-columns: 44px repeat(4, 1fr)'});
+    row.appendChild(el('div', {class: 'font-semibold text-slate-700'}, nat));
+    matrix[nat].forEach(v => {
+      const color = `rgba(225, 29, 72, ${v})`;
+      row.appendChild(el('div', {class: 'text-center font-mono py-1 rounded', style: `background: ${color}; color: ${v > 0.55 ? '#fff' : '#1e293b'}`}, v.toFixed(2)));
+    });
+    div.appendChild(row);
+  });
+}
+
+function drawS9MUtil() {
+  const c = document.getElementById('s9mUtil');
+  if (!c) return;
+  new Chart(c, {
+    type: 'bar',
+    data: {
+      labels: ['JP', 'HK', 'SG', 'MY'],
+      datasets: [{ label: 'TaxRefund 활용률 (%)', data: [88, 74, 52, 47], backgroundColor: ['#e11d48', '#f59e0b', '#8b5cf6', '#0ea5e9'] }]
+    },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { max: 100, ticks: { font: { size: 9 } } }, x: { ticks: { font: { size: 9 } } } } }
+  });
+}
+
+function drawS9MSku() {
+  const c = document.getElementById('s9mSku');
+  if (!c) return;
+  new Chart(c, {
+    type: 'bar',
+    data: {
+      labels: ['LV Petite Malle', 'Hermes Birkin', 'Chanel Flap', 'Tiffany Solitaire', 'Tom Ford Lip', 'Rolex', 'Dior Saddle', 'Cartier', 'Gucci', 'Prada'],
+      datasets: [{ label: '면세 거래 건수', data: [820, 610, 540, 420, 380, 340, 290, 250, 210, 180], backgroundColor: '#dc2626' }]
+    },
+    options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { ticks: { font: { size: 9 } } }, y: { ticks: { font: { size: 9 } } } } }
+  });
+}
+
+// ============= S10-M. 럭셔리 브랜드 SOV + 매대 점유 =============
+function renderS10M(main) {
+  main.appendChild(header('👜 S10-M. 럭셔리 브랜드 SOV + 매대 점유 분석',
+    'Boutique × Brand × Store(700+ brands × 19 stores) + POSTransaction + 매대 면적·임대 + 시즌(週年慶/SS/FW) + 경쟁사 SOV CompetitorSignal'));
+
+  const grid = el('div', {class: 'grid grid-cols-3 gap-4'});
+
+  // 좌: 19 점포 × 층 매트릭스 히트맵
+  const matrixCard = el('div', {class: 'bg-white rounded-lg border border-slate-200 p-4 shadow-sm'},
+    el('h3', {class: 'font-semibold text-sm mb-3'}, '점포 × 층 매대 점유 히트맵'),
+    el('div', {id: 's10mMatrix', class: 'space-y-1 text-[10px]'})
+  );
+  grid.appendChild(matrixCard);
+
+  // 중앙: 브랜드 SOV 막대 (자사 vs 경쟁사)
+  const sovCard = el('div', {class: 'bg-white rounded-lg border border-slate-200 p-4 shadow-sm'},
+    el('h3', {class: 'font-semibold text-sm mb-3'}, '브랜드 SOV (자사 vs 경쟁 백화점)'),
+    el('div', {class: 'h-64'}, el('canvas', {id: 's10mSov'}))
+  );
+  grid.appendChild(sovCard);
+
+  // 우: 매대 효율 산점도 (면적 vs GMV)
+  const scatterCard = el('div', {class: 'bg-white rounded-lg border border-slate-200 p-4 shadow-sm'},
+    el('h3', {class: 'font-semibold text-sm mb-3'}, '매대 효율 (면적 vs GMV)'),
+    el('div', {class: 'h-64'}, el('canvas', {id: 's10mScatter'}))
+  );
+  grid.appendChild(scatterCard);
+  main.appendChild(grid);
+
+  // 하단: 매대 재배치 추천 카드
+  const recoCard = el('div', {class: 'bg-white rounded-lg border border-slate-200 p-4 shadow-sm mt-4'},
+    el('div', {class: 'flex justify-between items-center mb-3'},
+      el('h3', {class: 'font-semibold text-sm'}, '🎯 매대 재배치 추천 (Sonnet 4.6)'),
+      el('span', {class: 'text-xs text-emerald-600 font-semibold'}, '예상 GMV +8%')
+    ),
+    el('div', {class: 'grid grid-cols-3 gap-3 text-sm'},
+      el('div', {class: 'p-3 bg-red-50 rounded'},
+        el('div', {class: 'font-semibold text-red-700 mb-1'}, '信義점 1F'),
+        el('div', {class: 'text-xs text-slate-600'}, 'LV vs Hermes GMV·회전율 비교 → LV 캐비닛 20% 확장')),
+      el('div', {class: 'p-3 bg-amber-50 rounded'},
+        el('div', {class: 'font-semibold text-amber-700 mb-1'}, 'SS 신상 4주'),
+        el('div', {class: 'text-xs text-slate-600'}, '자사 LV +12% / 경쟁사 SOV +18% 흡수 → 카운터 배치')),
+      el('div', {class: 'p-3 bg-emerald-50 rounded'},
+        el('div', {class: 'font-semibold text-emerald-700 mb-1'}, 'B1 → 1F 이동'),
+        el('div', {class: 'text-xs text-slate-600'}, 'B1 식품 → 1F 신상 캐비닛 이동 시 GMV +8%'))
+    )
+  );
+  main.appendChild(recoCard);
+
+  setTimeout(() => { drawS10MMatrix(); drawS10MSov(); drawS10MScatter(); }, 60);
+}
+
+function drawS10MMatrix() {
+  const div = document.getElementById('s10mMatrix');
+  if (!div) return;
+  const stores = ['信義A8', '信義A11', '南西', '台中', '高雄', '天母'];
+  const floors = ['1F', '2F', '3F', 'B1'];
+  div.innerHTML = '';
+  const head = el('div', {class: 'grid gap-1 font-semibold text-slate-500', style: 'grid-template-columns: 56px repeat(4, 1fr)'},
+    el('div', {}, ''),
+    ...floors.map(f => el('div', {class: 'text-center'}, f))
+  );
+  div.appendChild(head);
+  stores.forEach((store, si) => {
+    const row = el('div', {class: 'grid gap-1', style: 'grid-template-columns: 56px repeat(4, 1fr)'});
+    row.appendChild(el('div', {class: 'font-semibold text-slate-700 truncate'}, store));
+    floors.forEach((f, fi) => {
+      const v = Math.abs(Math.sin((si + 1) * (fi + 2))) * 0.9 + 0.1;
+      const color = `rgba(220, 38, 38, ${v})`;
+      row.appendChild(el('div', {class: 'text-center font-mono py-1 rounded', style: `background: ${color}; color: ${v > 0.55 ? '#fff' : '#1e293b'}`}, (v * 100).toFixed(0)));
+    });
+    div.appendChild(row);
+  });
+  div.appendChild(el('div', {class: 'mt-2 text-[10px] text-slate-400'}, '값: 매대 점유율(%) · 19점포 중 6개 샘플'));
+}
+
+function drawS10MSov() {
+  const c = document.getElementById('s10mSov');
+  if (!c) return;
+  new Chart(c, {
+    type: 'bar',
+    data: {
+      labels: ['Louis Vuitton', 'Hermes', 'Chanel', 'Gucci', 'Prada'],
+      datasets: [
+        { label: '자사 SOV (%)', data: [28, 24, 21, 14, 11], backgroundColor: '#dc2626' },
+        { label: '경쟁 백화점 SOV (%)', data: [22, 26, 19, 18, 15], backgroundColor: '#94a3b8' },
+      ]
+    },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 8, font: { size: 10 } } } }, scales: { y: { ticks: { font: { size: 9 } } }, x: { ticks: { font: { size: 8 } } } } }
+  });
+}
+
+function drawS10MScatter() {
+  const c = document.getElementById('s10mScatter');
+  if (!c) return;
+  const brands = ['LV', 'Hermes', 'Chanel', 'Gucci', 'Prada', 'Dior', 'Tiffany', 'Cartier'];
+  const points = brands.map((b, i) => ({
+    x: 20 + i * 8 + (Math.random() - 0.5) * 6,
+    y: 60 + Math.pow(8 - i, 1.6) * 3 + (Math.random() - 0.5) * 20,
+    label: b
+  }));
+  new Chart(c, {
+    type: 'scatter',
+    data: { datasets: [{ label: '브랜드 (면적 m² vs GMV NT$M)', data: points, backgroundColor: '#dc2626', pointRadius: 6 }] },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: (ctx) => `${ctx.raw.label}: ${ctx.raw.x.toFixed(0)}m² / ${ctx.raw.y.toFixed(0)}M` } } },
+      scales: { x: { title: { display: true, text: '매대 면적 (m²)', font: { size: 9 } }, ticks: { font: { size: 9 } } }, y: { title: { display: true, text: 'GMV (NT$M)', font: { size: 9 } }, ticks: { font: { size: 9 } } } }
+    }
+  });
+}
+
+// ============= S11-M. VIP 등급 라운지 컨시어지 =============
+function renderS11M(main) {
+  main.appendChild(header('👑 S11-M. VIP 등급 라운지 컨시어지',
+    'Membership(Black/Platinum/Gold) + 컨시어지 이력(Touchpoint) + AgentCore Memory + 리뷰 OpenSearch'));
+
+  const grid = el('div', {class: 'grid grid-cols-3 gap-4'});
+
+  // 좌: 회원 프로필 카드
+  const profileCard = el('div', {class: 'bg-white rounded-lg border border-slate-200 p-4 shadow-sm'},
+    el('div', {class: 'flex justify-between items-start mb-3'},
+      el('h3', {class: 'font-semibold text-sm'}, '회원 프로필'),
+      el('span', {class: 'text-xs px-2 py-0.5 rounded bg-red-100 text-red-700 font-semibold'}, 'Black')
+    ),
+    el('div', {class: 'space-y-2'},
+      kvRow('마스킹 ID', 'mbr_3c1d**'),
+      kvRow('등급', 'Black'),
+      kvRow('12개월 LTV', 'NT$8.4M'),
+      kvRow('페르소나', '럭셔리 콜렉터'),
+      kvRow('선호 브랜드', 'LV · Hermes · Chanel'),
+      kvRow('주 이용 점포', '信義 A9'),
+      kvRow('컨시어지 이력', '24건 (90일)')
+    ),
+    el('div', {class: 'mt-3 p-2 bg-slate-50 rounded text-[11px] text-slate-600'},
+      el('div', {class: 'font-semibold text-slate-700 mb-1'}, '등급 혜택'),
+      '• Black: 라운지 무제한 · 프리세일 우선 · 1:1 컨시어지')
+  );
+  grid.appendChild(profileCard);
+
+  // 중앙: 추천 카드 5종
+  const recos = [
+    { brand: 'Louis Vuitton', item: 'SS 신상 Capucines', note: '信義 A9 입고 · 프리세일 우선', color: 'red' },
+    { brand: 'Hermes', item: 'Kelly 28 신규 컬러', note: '대기 우선권 부여', color: 'amber' },
+    { brand: 'Chanel', item: '24S 트위드 재킷', note: '피팅 예약 가능', color: 'slate' },
+    { brand: 'Tiffany', item: 'HardWear 컬렉션', note: 'VIP 프리뷰 초대', color: 'sky' },
+    { brand: 'Tom Ford', item: 'Private Blend 신향', note: '라운지 시향 세트', color: 'violet' },
+  ];
+  const recoCard = el('div', {class: 'bg-white rounded-lg border border-slate-200 p-4 shadow-sm'},
+    el('h3', {class: 'font-semibold text-sm mb-3'}, '개인화 추천 5종 (프리세일 우선권)'),
+    el('div', {class: 'space-y-2'}, ...recos.map(r =>
+      el('div', {class: 'border border-slate-200 rounded-md p-2 text-xs hover:border-red-300'},
+        el('div', {class: 'flex justify-between items-start'},
+          el('span', {class: 'font-semibold'}, r.brand),
+          el('span', {class: `text-[10px] px-1.5 py-0.5 rounded bg-${r.color}-100 text-${r.color}-700`}, '프리세일')
+        ),
+        el('div', {class: 'text-slate-700 mt-0.5'}, r.item),
+        el('div', {class: 'text-slate-500 mt-0.5'}, r.note)
+      )
+    ))
+  );
+  grid.appendChild(recoCard);
+
+  // 우: 컨시어지 챗봇 메시지
+  const chatCard = el('div', {class: 'bg-white rounded-lg border border-slate-200 p-4 shadow-sm'},
+    el('h3', {class: 'font-semibold text-sm mb-3'}, '컨시어지 메시지 (개인 톤)'),
+    el('div', {class: 'space-y-3'},
+      el('div', {class: 'flex justify-start'},
+        el('div', {class: 'max-w-[92%] px-3 py-2 rounded-lg text-xs bg-red-50 text-slate-800'},
+          '○○님께서 좋아하실 SS 신상 Capucines가 信義 A9점에 입고되었습니다. Black 등급 프리세일 우선권으로 24시간 먼저 안내드립니다.')
+      ),
+      el('div', {class: 'flex justify-start'},
+        el('div', {class: 'max-w-[92%] px-3 py-2 rounded-lg text-xs bg-slate-100 text-slate-800'},
+          'Hermes Kelly 28 신규 컬러 대기 우선권을 등록해 두었습니다. 방문 희망일을 알려주시면 라운지를 준비하겠습니다.')
+      ),
+      el('div', {class: 'flex justify-start'},
+        el('div', {class: 'max-w-[92%] px-3 py-2 rounded-lg text-xs bg-slate-100 text-slate-800'},
+          '週年慶 기간 발렛·라운지는 예약 없이 이용 가능합니다. 컨시어지가 상시 대기합니다.')
+      )
+    ),
+    el('div', {class: 'mt-3 p-2 bg-red-50 rounded text-[11px] text-red-700'},
+      'AgentCore Memory 기반 — 과거 24건 컨시어지 이력·선호 브랜드 반영')
+  );
+  grid.appendChild(chatCard);
+  main.appendChild(grid);
+
+  // 하단: 라운지 활용·NPS 등급별 추이
+  const bottomCard = el('div', {class: 'bg-white rounded-lg border border-slate-200 p-4 shadow-sm mt-4'},
+    el('h3', {class: 'font-semibold text-sm mb-3'}, '라운지 활용률 · NPS 등급별 추이 (6개월)'),
+    el('div', {class: 'grid grid-cols-2 gap-4'},
+      el('div', {class: 'h-52'}, el('canvas', {id: 's11mLounge'})),
+      el('div', {class: 'h-52'}, el('canvas', {id: 's11mNps'}))
+    )
+  );
+  main.appendChild(bottomCard);
+
+  setTimeout(() => { drawS11MLounge(); drawS11MNps(); }, 60);
+}
+
+function drawS11MLounge() {
+  const c = document.getElementById('s11mLounge');
+  if (!c) return;
+  const months = ['M1', 'M2', 'M3', 'M4', 'M5', 'M6'];
+  new Chart(c, {
+    type: 'line',
+    data: {
+      labels: months,
+      datasets: [
+        { label: 'Black', data: [72, 76, 81, 84, 88, 91], borderColor: '#dc2626', tension: 0.3 },
+        { label: 'Platinum', data: [58, 61, 64, 66, 69, 72], borderColor: '#f59e0b', tension: 0.3 },
+        { label: 'Gold', data: [40, 42, 45, 47, 49, 52], borderColor: '#0ea5e9', tension: 0.3 },
+      ]
+    },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 8, font: { size: 10 } } }, title: { display: true, text: '라운지 활용률 (%)', font: { size: 10 } } }, scales: { y: { ticks: { font: { size: 9 } } }, x: { ticks: { font: { size: 9 } } } } }
+  });
+}
+
+function drawS11MNps() {
+  const c = document.getElementById('s11mNps');
+  if (!c) return;
+  const months = ['M1', 'M2', 'M3', 'M4', 'M5', 'M6'];
+  new Chart(c, {
+    type: 'line',
+    data: {
+      labels: months,
+      datasets: [
+        { label: 'Black', data: [64, 66, 68, 71, 73, 76], borderColor: '#dc2626', tension: 0.3 },
+        { label: 'Platinum', data: [52, 53, 55, 57, 58, 60], borderColor: '#f59e0b', tension: 0.3 },
+        { label: 'Gold', data: [41, 42, 43, 44, 46, 48], borderColor: '#0ea5e9', tension: 0.3 },
+      ]
+    },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 8, font: { size: 10 } } }, title: { display: true, text: 'NPS', font: { size: 10 } } }, scales: { y: { ticks: { font: { size: 9 } } }, x: { ticks: { font: { size: 9 } } } } }
+  });
 }
 
 // ============= KG Graph helper =============

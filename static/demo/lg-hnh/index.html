@@ -306,9 +306,19 @@ function reviewCard(r) {
 function runS1Search() {
   const counter = document.getElementById('s1Counter');
   if (!counter) return;
+  const queryEl = document.getElementById('s1Query');
+  const q = (queryEl?.value || '').trim();
   counter.textContent = '검색 중... (BM25 + KNN 병렬 실행)';
+  // 쿼리 길이·토큰 수에 따라 결과 수를 결정적으로 변동시켜 "입력에 반응"하는 인상
+  const tokens = q ? q.split(/\s+/).filter(Boolean).length : 0;
+  const bm25 = q ? 4 + (q.length % 9) : 0;
+  const knn = q ? 6 + (tokens * 2) % 11 : 0;
+  const common = q ? Math.max(1, Math.min(bm25, knn) - 3) : 0;
+  const total = bm25 + knn - common;
+  const took = (0.7 + (q.length % 13) / 10).toFixed(1);
   setTimeout(() => {
-    counter.innerHTML = '검색 결과: <strong>23건</strong> (BM25 8 · KNN 11 · 공통 4) <span class="text-xs text-emerald-600 ml-2">✓ 1.2초</span>';
+    if (!q) { counter.textContent = '검색어를 입력하세요.'; return; }
+    counter.innerHTML = `검색 결과: <strong>${total}건</strong> (BM25 ${bm25} · KNN ${knn} · 공통 ${common}) <span class="text-xs text-emerald-600 ml-2">✓ ${took}초</span> <span class="text-xs text-slate-400 ml-1">· "${q.slice(0, 30)}${q.length > 30 ? '…' : ''}"</span>`;
   }, 600);
 }
 
@@ -387,6 +397,29 @@ function appendTrace(toolName, input, output, durationMs) {
   cnt.textContent = `${div.children.length} calls`;
 }
 
+// 입력에서 도메인 엔티티 추출 (mock NLU) — 사용자 질문에 반응하는 핵심
+function extractEntities(q) {
+  const lower = q.toLowerCase();
+  const found = { brand: null, bu: null, channel: null, metric: null, period: null, intent: null, raw: q };
+  const beauty = ['후', '숨37', '오휘', '빌리프', 'CNP', 'VDL', '더페이스샵'];
+  const hdb = ['엘라스틴', '페리오', '테크플러스', '죽염', '닥터그루트', '자연퐁', '샤프란'];
+  const refreshment = ['코카콜라', '환타', '스프라이트', '미닛메이드', '토레타', '파워에이드', '씨그램', '갈배사이다'];
+  const channels = ['면세점', '백화점', '자사몰', '올리브영', '쿠팡', '대형마트', '편의점', 'QSR', '자판기', 'SNS'];
+  const metrics = ['ROAS', 'LTV', 'SOV', 'GMV', '재구매', '등급', '활성회원', 'NPS', 'sell-through', '검색량'];
+  for (const b of beauty) if (q.includes(b)) { found.brand = b; found.bu = 'Beauty'; break; }
+  if (!found.brand) for (const b of hdb) if (q.includes(b)) { found.brand = b; found.bu = 'HDB'; break; }
+  if (!found.brand) for (const b of refreshment) if (q.includes(b)) { found.brand = b; found.bu = 'Refreshment'; break; }
+  for (const c of channels) if (q.includes(c)) { found.channel = c; break; }
+  for (const m of metrics) if (lower.includes(m.toLowerCase())) { found.metric = m; break; }
+  const pm = q.match(/(\d+)\s*(일|주|개월|달|년)/);
+  if (pm) found.period = pm[0];
+  if (/왜|원인|이유|분석|why/.test(q)) found.intent = '원인분석';
+  else if (/추천|제안|해야|어떻게|전략/.test(q)) found.intent = '액션추천';
+  else if (/얼마|몇|순위|top|랭킹|비교/i.test(q)) found.intent = '집계';
+  else found.intent = '탐색';
+  return found;
+}
+
 function runS2Chat() {
   const input = document.getElementById('s2Input');
   const q = input.value.trim();
@@ -397,37 +430,58 @@ function runS2Chat() {
   document.getElementById('s2Trace').innerHTML = '';
   document.getElementById('s2TraceCount').textContent = '0 calls';
 
-  // Mock tool calls based on persona
+  // 입력 기반 엔티티 추출 → 트레이스·답변에 반영
+  const e = extractEntities(q);
+  const brand = e.brand || '페리오';
+  const bu = e.bu || 'HDB';
+  const channel = e.channel || '대형마트';
+  const period = e.period || '30일';
+  const days = (period.match(/\d+/) || [30])[0];
+  const metric = e.metric || (currentPersona === 'P1' ? 'ROAS' : currentPersona === 'P2' ? 'LTV' : currentPersona === 'P3' ? '정확도' : currentPersona === 'P4' ? '등급' : 'GMV');
+
+  // 도구 호출 트레이스 — 추출 엔티티를 input 인자로 사용
   const calls = currentPersona === 'P1' ? [
-    ['campaign_simulator', 'brand=페리오, period=30d', 'Bayesian posterior 1000 샘플 완료', 1820],
-    ['attribution_calc', 'method=time_decay, brand=페리오', 'SMS 35% / 마트 28% / SNS 22% / 카톡 15%', 940],
-    ['social_trend_join', 'keyword=페리오 치약, days=30', '검색량 -8% vs 전월', 620],
-  ] : currentPersona === 'P5' ? [
-    ['channel_metrics_push', 'sku_brand=페리오', 'GMV by channel 집계 완료', 480],
-    ['neptune_query', 'POSTransaction × Channel × Brand', '5개 채널 GMV 추출', 620],
-    ['weather_join', 'KMA 일별 기온/강수', '서울·부산 폭염 영향 데이터', 320],
-    ['social_trend_join', 'keyword=페리오 치약, days=30', '검색량 -8%, 부정 리뷰 +14%', 720],
-    ['behavior_change_detect', 'sku=HDB-074', 'z-score 2.1, 시그너처 매칭', 450],
+    ['campaign_simulator', `brand=${brand}, period=${period}`, 'Bayesian posterior 1000 샘플 완료', 1820],
+    ['attribution_calc', `method=time_decay, brand=${brand}`, `${channel} 32% / SNS 24% / 검색 21% / 카톡 13%`, 940],
+    ['social_trend_join', `keyword=${brand}, days=${days}`, '검색량 +6% vs 전월', 620],
+  ] : currentPersona === 'P2' ? [
+    ['neptune_query', `Persona × ${brand} × ${channel}`, '코호트별 LTV·SOV 집계', 640],
+    ['cohort_ltv_calc', `brand=${brand}, months=12`, `${bu} 30대 코호트 LTV +14%`, 720],
+    ['sov_join', `keyword=${brand}, days=${days}`, `SOV 자사 13% / 경쟁 21%`, 580],
+  ] : currentPersona === 'P3' ? [
+    ['model_metrics_pull', `target=${metric}, brand=${brand}`, 'AUC 0.87 · precision 0.81', 520],
+    ['drift_detect', `feature_set=${channel}, window=${days}d`, 'PSI 0.18 (경계) drift 유의', 610],
+    ['sla_check', 'endpoint=inference-gw, p99', 'p99 182ms · SLA 준수', 340],
+  ] : currentPersona === 'P4' ? [
+    ['neptune_query', `Member × ${channel} × 등급`, '등급 전환·활성회원 집계', 620],
+    ['grade_transition_calc', `brand=${brand}, months=6`, 'VIP 전환 +3.2pt, 이탈 -1.8pt', 540],
+    ['consent_scan', `channel=${channel}, brand=${brand}`, '동의 미수신 발송 차단 확인', 380],
   ] : [
-    ['neptune_query', 'POSTransaction × Brand=페리오', '5채널 GMV 집계', 620],
-    ['behavior_change_detect', 'sku=HDB-074', 'z-score 2.1', 450],
-    ['social_trend_join', 'keyword=페리오 치약', '검색 -8%', 620],
+    ['channel_metrics_push', `sku_brand=${brand}`, `${channel} GMV by channel 집계 완료`, 480],
+    ['neptune_query', `POSTransaction × ${channel} × ${brand}`, '5개 채널 GMV 추출', 620],
+    ['inventory_turn_calc', `brand=${brand}, channel=${channel}`, '재고 회전 2.4→2.8', 420],
+    ['social_trend_join', `keyword=${brand}, days=${days}`, '검색량 -8%, 부정 리뷰 +14%', 720],
   ];
 
-  // Simulate delays
+  // Simulate delays — 추출 엔티티를 input 인자로 사용
   let delay = 200;
-  calls.forEach(([tool, input, output, ms]) => {
-    setTimeout(() => appendTrace(tool, input, output, ms), delay);
+  calls.forEach(([tool, inp, output, ms]) => {
+    setTimeout(() => appendTrace(tool, inp, output, ms), delay);
     delay += 700;
   });
 
-  // Final answer
+  // 최종 답변 — 추출 엔티티를 본문에 직접 반영해 "내 질문에 반응한다"는 인상
   setTimeout(() => {
+    const focus = `**분석 대상**: ${brand}(${bu}) · ${channel} · 기간 ${period} (질의 의도: ${e.intent})`;
     const answer = currentPersona === 'P1' ?
-      '**캠페인 효과 분석 (브랜드 마케터 시각)**\n• 채널별 ROAS: SMS 4.2x · 마트 3.1x · SNS 2.8x\n• 다음 캠페인 제안: SNS 비중 +15% 재배분\n• 예산 1억 시뮬: 응답률 +18% 예상\n\n출처: 자사 캠페인 데이터(real) + 검색 트렌드(external)' :
-      currentPersona === 'P5' ?
-      '**채널·매장 시각 (MD)**\n• TOP 5 매출 하락 채널: ① 이마트 -18% ② 롯데마트 -14% ③ 자사몰 -9% ④ CU -7% ⑤ 올영 -5%\n• 주요 원인 (근거 시그널):\n  - 폭염 영향 → 칫솔·치약 카테고리 전반 둔화 (KMA 기상)\n  - 경쟁사 신제품 출시 → 페리오 SOV -12% (CompetitorSignal)\n  - 검색 트렌드 -8%, 부정 리뷰 +14% (SocialSignal)\n• MD 액션: 매대 진열 강화 + 1+1 프로모션 4주\n\n출처: POS(real) + 외부 4종(external)' :
-      '**데이터 분석 시각 (D&A)**\n• 매출 z-score 2.1 (이상치 임계 초과)\n• 검색 트렌드 -8% 시차 14일 선행\n• 모델 drift 유의 (predictor distribution shift)\n• 권장: 모델 재학습 + 외부 시그널 weight 조정';
+      `${focus}\n\n**브랜드 마케터 시각**\n• ${brand} 채널별 ROAS: ${channel} 4.2x · SNS 2.8x · 검색 3.4x\n• 다음 캠페인 제안: SNS 비중 +15% 재배분\n• 신상 런칭 시뮬: 응답률 +18% 예상\n\n출처: 자사 캠페인 데이터(real) + 검색 트렌드(external)` :
+      currentPersona === 'P2' ?
+      `${focus}\n\n**소비자·트렌드 인사이트 시각**\n• ${bu} 30대 코호트 LTV +14% (${brand} 기여도 상위)\n• ${brand} SOV 자사 13% vs 경쟁 21% — 격차 8pt\n• 페르소나 큐레이션: 트렌드세터 세그먼트 우선 노출\n\n출처: Member(real) + SocialSignal(external)` :
+      currentPersona === 'P3' ?
+      `${focus}\n\n**D&A·MarTech 시각**\n• ${brand} ${metric} 모델 AUC 0.87 · precision 0.81\n• ${channel} feature drift PSI 0.18 (경계) — 재학습 권장\n• 추론 SLA p99 182ms 준수\n• 권장: ${days}일 윈도 재학습 + 외부 시그널 weight 조정\n\n출처: 모델 레지스트리(real) + 외부 시그널(external)` :
+      currentPersona === 'P4' ?
+      `${focus}\n\n**CRM·LG 멤버스 시각**\n• ${channel} VIP 등급 전환 +3.2pt, 이탈 -1.8pt\n• ${brand} 활성회원 재구매율 +6%, NPS +4\n• 동의 미수신 회원 발송 차단 정상 확인\n• 권장: 등급 유지 리텐션 혜택 강화\n\n출처: LG 멤버스(real) + 동의 원장(real)` :
+      `${focus}\n\n**MD·채널 영업 시각**\n• ${channel} TOP 5 GMV 하락: ① 이마트 -18% ② 롯데마트 -14% ③ 자사몰 -9% ④ CU -7% ⑤ 올영 -5%\n• 주요 원인 (근거 시그널):\n  - 폭염 영향 → ${bu} 카테고리 전반 둔화 (KMA 기상)\n  - 경쟁사 신제품 출시 → ${brand} SOV -12% (CompetitorSignal)\n  - 검색 트렌드 -8%, 부정 리뷰 +14% (SocialSignal)\n• MD 액션: 매대 진열 강화 + 1+1 프로모션 4주\n\n출처: POS(real) + 외부 4종(external)`;
     appendChat('assistant', answer);
   }, delay + 300);
 }

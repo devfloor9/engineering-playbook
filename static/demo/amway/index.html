@@ -44,7 +44,7 @@
 <div class="flex min-h-[calc(100vh-58px)]">
   <!-- Sidebar -->
   <aside class="w-64 bg-white border-r border-slate-200 p-4 sticky top-[58px] h-[calc(100vh-58px)] overflow-y-auto scrollbar-thin">
-    <div class="text-xs font-semibold text-slate-400 uppercase mb-2">시나리오 (8)</div>
+    <div class="text-xs font-semibold text-slate-400 uppercase mb-2">시나리오 (11)</div>
     <nav id="navList" class="flex flex-col gap-1"></nav>
 
     <div class="mt-6 text-xs font-semibold text-slate-400 uppercase mb-2">Knowledge Graph</div>
@@ -108,11 +108,11 @@ const SAMPLE_PRODUCTS = [
 ];
 
 const SAMPLE_REVIEWS = [
-  { source: '자사몰', text: '민감성 두피에도 자극 없음. 향이 부드럽고 마음에 듦.', sku: 'HDB-021', sentiment: 'pos', date: '2026-04-22' },
-  { source: '올리브영', text: '오가닉 인증 + 가성비 + 향까지 마음에 듭니다.', sku: 'HDB-021', sentiment: 'pos', date: '2026-04-18' },
-  { source: 'X', text: '#엘라스틴 #민감성두피 #오가닉 — 추천합니다', sku: 'HDB-021', sentiment: 'pos', date: '2026-04-25' },
-  { source: '네이버', text: '매끈한 머릿결. 가격 대비 만족.', sku: 'HDB-021', sentiment: 'pos', date: '2026-04-19' },
-  { source: 'Dcard', text: '향이 강하지 않아서 좋아요. 두피 가려움 줄어듦.', sku: 'HDB-021', sentiment: 'pos', date: '2026-04-15' },
+  { source: '자사몰', text: '민감성 두피에도 자극 없음. 향이 부드럽고 마음에 듦.', sku: 'HPC-021', sentiment: 'pos', date: '2026-04-22' },
+  { source: 'ABO 리뷰', text: '식물 유래 성분 + 가성비 + 향까지 마음에 듭니다.', sku: 'HPC-021', sentiment: 'pos', date: '2026-04-18' },
+  { source: 'X', text: '#Satinique #민감성두피 #식물유래 — 추천합니다', sku: 'HPC-021', sentiment: 'pos', date: '2026-04-25' },
+  { source: 'YouTube', text: '매끈한 머릿결. 가격 대비 만족.', sku: 'HPC-021', sentiment: 'pos', date: '2026-04-19' },
+  { source: '커뮤니티', text: '향이 강하지 않아서 좋아요. 두피 가려움 줄어듦.', sku: 'HPC-021', sentiment: 'pos', date: '2026-04-15' },
 ];
 
 const SAMPLE_MEMBERS = [
@@ -184,6 +184,9 @@ const SCENARIO_RENDERERS = {
   S6: renderS6,
   S7: renderS7,
   S8: renderS8,
+  S9A: renderS9A,
+  S10A: renderS10A,
+  S11A: renderS11A,
 };
 
 function header(title, subtitle) {
@@ -207,7 +210,7 @@ function renderS1(main) {
       el('button', {class: 'bg-rose-600 hover:bg-rose-700 text-white px-5 py-2 rounded-md text-sm font-semibold', onclick: () => runS1Search()}, 'Search')
     ),
     el('div', {class: 'mt-3 flex gap-2 text-xs text-slate-500'},
-      el('span', {class: 'px-2 py-1 bg-slate-100 rounded'}, 'BU: All'),
+      el('span', {class: 'px-2 py-1 bg-slate-100 rounded'}, '카테고리: All'),
       el('span', {class: 'px-2 py-1 bg-slate-100 rounded'}, '가격: ₩2,000~₩200,000'),
       el('span', {class: 'px-2 py-1 bg-slate-100 rounded'}, '기간: 90일'),
       el('span', {class: 'px-2 py-1 bg-slate-100 rounded'}, `페르소나: ${PERSONAS[currentPersona].name}`)
@@ -230,7 +233,7 @@ function renderS1(main) {
   // 1-hop graph
   const graphCard = el('div', {class: 'bg-white rounded-lg border border-slate-200 p-4 shadow-sm'},
     el('div', {class: 'flex justify-between items-center mb-3'},
-      el('h3', {class: 'font-semibold'}, '🕸️ Neptune 1-hop 그래프 (선택: 엘라스틴 퍼펙트 케어 샴푸)'),
+      el('h3', {class: 'font-semibold'}, '🕸️ Neptune 1-hop 그래프 (선택: Satinique 데일리 케어 샴푸)'),
       el('span', {class: 'text-xs text-slate-500'}, '5 노드 · 7 엣지')
     ),
     el('div', {id: 's1Graph', style: 'height: 280px;'})
@@ -242,15 +245,15 @@ function renderS1(main) {
   // Render network
   setTimeout(() => renderKGGraph('s1Graph', {
     nodes: [
-      {id: 1, label: 'HDB-021\n엘라스틴', shape: 'box', color: '#fee2e2', font: {size: 11}},
-      {id: 2, label: 'HDB', shape: 'ellipse', color: '#dbeafe', font: {size: 11}},
-      {id: 3, label: '엘라스틴 (Brand)', shape: 'ellipse', color: '#fef3c7', font: {size: 11}},
+      {id: 1, label: 'HPC-021\nSatinique', shape: 'box', color: '#fee2e2', font: {size: 11}},
+      {id: 2, label: 'Home & Personal Care', shape: 'ellipse', color: '#dbeafe', font: {size: 11}},
+      {id: 3, label: 'Satinique (Brand)', shape: 'ellipse', color: '#fef3c7', font: {size: 11}},
       {id: 4, label: '샴푸 (Category)', shape: 'ellipse', color: '#dcfce7', font: {size: 11}},
-      {id: 5, label: '리뷰 41건\n(올영 28 · X 9 · 자사 4)', shape: 'box', color: '#e0e7ff', font: {size: 10}},
+      {id: 5, label: '리뷰 41건\n(ABO 28 · X 9 · 자사 4)', shape: 'box', color: '#e0e7ff', font: {size: 10}},
       {id: 6, label: '구매 회원 12명', shape: 'box', color: '#fce7f3', font: {size: 10}},
     ],
     edges: [
-      {from: 1, to: 2, label: 'BU'},
+      {from: 1, to: 2, label: 'CATEGORY'},
       {from: 1, to: 3, label: 'OF_BRAND'},
       {from: 1, to: 4, label: 'IN_CATEGORY'},
       {from: 1, to: 5, label: 'REVIEWED'},
@@ -294,7 +297,7 @@ function memberCard(m) {
 }
 
 function reviewCard(r) {
-  const sourceColor = {'자사몰': 'bg-rose-100 text-rose-700', '올리브영': 'bg-emerald-100 text-emerald-700', 'X': 'bg-slate-100 text-slate-700', '네이버': 'bg-green-100 text-green-700', 'Dcard': 'bg-pink-100 text-pink-700'};
+  const sourceColor = {'자사몰': 'bg-rose-100 text-rose-700', 'ABO 리뷰': 'bg-emerald-100 text-emerald-700', 'X': 'bg-slate-100 text-slate-700', 'YouTube': 'bg-green-100 text-green-700', '커뮤니티': 'bg-pink-100 text-pink-700'};
   const cohort = r.source === '자사몰' ? 'real' : 'external';
   return el('div', {class: 'border border-slate-200 rounded-md p-3 text-xs'},
     el('div', {class: 'flex justify-between items-start mb-1'},
@@ -309,9 +312,19 @@ function reviewCard(r) {
 function runS1Search() {
   const counter = document.getElementById('s1Counter');
   if (!counter) return;
+  const queryEl = document.getElementById('s1Query');
+  const q = (queryEl?.value || '').trim();
   counter.textContent = '검색 중... (BM25 + KNN 병렬 실행)';
+  // 쿼리 길이·토큰 수에 따라 결과 수를 결정적으로 변동시켜 "입력에 반응"하는 인상
+  const tokens = q ? q.split(/\s+/).filter(Boolean).length : 0;
+  const bm25 = q ? 4 + (q.length % 9) : 0;
+  const knn = q ? 6 + (tokens * 2) % 11 : 0;
+  const common = q ? Math.max(1, Math.min(bm25, knn) - 3) : 0;
+  const total = bm25 + knn - common;
+  const took = (0.7 + (q.length % 13) / 10).toFixed(1);
   setTimeout(() => {
-    counter.innerHTML = '검색 결과: <strong>23건</strong> (BM25 8 · KNN 11 · 공통 4) <span class="text-xs text-emerald-600 ml-2">✓ 1.2초</span>';
+    if (!q) { counter.textContent = '검색어를 입력하세요.'; return; }
+    counter.innerHTML = `검색 결과: <strong>${total}건</strong> (BM25 ${bm25} · KNN ${knn} · 공통 ${common}) <span class="text-xs text-emerald-600 ml-2">✓ ${took}초</span> <span class="text-xs text-slate-400 ml-1">· "${q.slice(0, 30)}${q.length > 30 ? '…' : ''}"</span>`;
   }, 600);
 }
 
@@ -333,7 +346,7 @@ function renderS2(main) {
   chat.appendChild(messagesDiv);
 
   const inputBox = el('div', {class: 'border-t border-slate-200 p-3 flex gap-2'},
-    el('input', {id: 's2Input', class: 'flex-1 px-3 py-2 border border-slate-300 rounded-md text-sm', placeholder: '질문을 입력하세요...', value: '이번 달 페리오 매출이 떨어진 채널 TOP 5와 원인은?'}),
+    el('input', {id: 's2Input', class: 'flex-1 px-3 py-2 border border-slate-300 rounded-md text-sm', placeholder: '질문을 입력하세요...', value: '이번 달 Nutrilite 매출이 떨어진 채널(ABO·정기구독·카탈로그) TOP 5와 원인은?'}),
     el('button', {class: 'bg-rose-600 hover:bg-rose-700 text-white px-4 py-2 rounded-md text-sm font-semibold', onclick: () => runS2Chat()}, 'Send')
   );
   chat.appendChild(inputBox);
@@ -352,14 +365,14 @@ function renderS2(main) {
 
   // Suggested queries
   const suggestions = el('div', {class: 'mt-4 flex flex-wrap gap-2'},
-    ...['숨37 신상 런칭 ROAS 시뮬', '최근 인스타에서 떠오른 키워드와 자사 매출 연결', '동의 미수신 회원 발송 차단 확인'].map(t =>
+    ...['Artistry 신상 런칭 ROAS 시뮬', '최근 인스타에서 떠오른 키워드와 자사 매출 연결', '동의 미수신 회원 발송 차단 확인'].map(t =>
       el('button', {class: 'text-xs px-3 py-1.5 bg-white border border-slate-200 rounded-md hover:border-rose-300', onclick: () => { document.getElementById('s2Input').value = t; }}, t)
     )
   );
   main.appendChild(suggestions);
 
   // Initial message
-  appendChat('user', '이번 달 페리오 매출이 떨어진 채널 TOP 5와 원인은?');
+  appendChat('user', '이번 달 Nutrilite 매출이 떨어진 채널(ABO·정기구독·카탈로그) TOP 5와 원인은?');
 }
 
 function appendChat(role, text) {
@@ -390,6 +403,25 @@ function appendTrace(toolName, input, output, durationMs) {
   cnt.textContent = `${div.children.length} calls`;
 }
 
+// 입력에서 도메인 엔티티 추출 (mock NLU) — 사용자 질문에 반응하는 핵심
+function extractEntities(q) {
+  const lower = q.toLowerCase();
+  const found = { brand: null, channel: null, metric: null, period: null, intent: null, raw: q };
+  const brands = ['Nutrilite', 'Artistry', 'eSpring', 'XS', 'Satinique', '뉴트리라이트', '아티스트리'];
+  const channels = ['ABO', 'Downline', '정기구독', '카탈로그', 'SNS', '자사몰', '이메일', 'Sponsor'];
+  const metrics = ['PV', 'BV', 'GMV', 'ROAS', 'LTV', 'retention', '리텐션', '해지', '활성도', '등급', 'SOV'];
+  for (const b of brands) if (q.includes(b)) { found.brand = b; break; }
+  for (const c of channels) if (q.includes(c)) { found.channel = c; break; }
+  for (const m of metrics) if (lower.includes(m.toLowerCase())) { found.metric = m; break; }
+  const pm = q.match(/(\d+)\s*(일|주|개월|달|년|day|week|month)/);
+  if (pm) found.period = pm[0];
+  if (/왜|원인|이유|분석|why/.test(q)) found.intent = '원인분석';
+  else if (/추천|제안|해야|어떻게|전략/.test(q)) found.intent = '액션추천';
+  else if (/얼마|몇|순위|top|랭킹|비교/i.test(q)) found.intent = '집계';
+  else found.intent = '탐색';
+  return found;
+}
+
 function runS2Chat() {
   const input = document.getElementById('s2Input');
   const q = input.value.trim();
@@ -400,37 +432,43 @@ function runS2Chat() {
   document.getElementById('s2Trace').innerHTML = '';
   document.getElementById('s2TraceCount').textContent = '0 calls';
 
-  // Mock tool calls based on persona
+  // 입력 기반 엔티티 추출 → 트레이스·답변에 반영
+  const e = extractEntities(q);
+  const brand = e.brand || 'Nutrilite';
+  const channel = e.channel || 'ABO';
+  const period = e.period || '30일';
+  const metric = e.metric || (currentPersona === 'P1' ? 'ROAS' : currentPersona === 'P5' ? '등급' : '활성도');
+
+  // 도구 호출 트레이스 — 추출 엔티티를 input 인자로 사용
   const calls = currentPersona === 'P1' ? [
-    ['campaign_simulator', 'brand=페리오, period=30d', 'Bayesian posterior 1000 샘플 완료', 1820],
-    ['attribution_calc', 'method=time_decay, brand=페리오', 'SMS 35% / 마트 28% / SNS 22% / 카톡 15%', 940],
-    ['social_trend_join', 'keyword=페리오 치약, days=30', '검색량 -8% vs 전월', 620],
+    ['campaign_simulator', `brand=${brand}, period=${period}`, 'Bayesian posterior 1000 샘플 완료', 1820],
+    ['attribution_calc', `method=time_decay, brand=${brand}`, 'Sponsor 38% / 카탈로그 27% / SNS 21% / 이메일 14%', 940],
+    ['social_trend_join', `keyword=${brand}, days=${(period.match(/\d+/) || [30])[0]}`, '검색량 +6% vs 전월', 620],
   ] : currentPersona === 'P5' ? [
-    ['channel_metrics_push', 'sku_brand=페리오', 'GMV by channel 집계 완료', 480],
-    ['neptune_query', 'POSTransaction × Channel × Brand', '5개 채널 GMV 추출', 620],
-    ['weather_join', 'KMA 일별 기온/강수', '서울·부산 폭염 영향 데이터', 320],
-    ['social_trend_join', 'keyword=페리오 치약, days=30', '검색량 -8%, 부정 리뷰 +14%', 720],
-    ['behavior_change_detect', 'sku=HDB-074', 'z-score 2.1, 시그너처 매칭', 450],
+    ['regulatory_match', `text="${q.slice(0, 24)}...", country=KR/US`, 'FTC·식약처 룰 매칭', 520],
+    ['guardrail_scan', `topics=4, brand=${brand}`, '효능 표현 위험 탐지', 480],
+    ['neptune_query', `RegulatorySignal × ${channel}`, '위반 룰 3건 추출', 620],
+    ['rewrite_suggest', 'model=Sonnet 4.6, lang=KR/US', '다국어 수정안 생성', 720],
   ] : [
-    ['neptune_query', 'POSTransaction × Brand=페리오', '5채널 GMV 집계', 620],
-    ['behavior_change_detect', 'sku=HDB-074', 'z-score 2.1', 450],
-    ['social_trend_join', 'keyword=페리오 치약', '검색 -8%', 620],
+    ['neptune_query', `Subscription × ${channel} × ${brand}`, 'state별 카운트 집계', 620],
+    ['behavior_change_detect', `metric=${metric}`, 'z-score 2.1, 해지 시그너처 매칭', 450],
+    ['retention_curve', `cohort=${channel}, months=12`, '6개월 retention 52%', 620],
   ];
 
-  // Simulate delays
   let delay = 200;
-  calls.forEach(([tool, input, output, ms]) => {
-    setTimeout(() => appendTrace(tool, input, output, ms), delay);
+  calls.forEach(([tool, inp, output, ms]) => {
+    setTimeout(() => appendTrace(tool, inp, output, ms), delay);
     delay += 700;
   });
 
-  // Final answer
+  // 최종 답변 — 추출 엔티티를 본문에 직접 반영해 "내 질문에 반응한다"는 인상
   setTimeout(() => {
+    const focus = `**분석 대상**: ${brand} · ${channel} · 기간 ${period} (질의 의도: ${e.intent})`;
     const answer = currentPersona === 'P1' ?
-      '**캠페인 효과 분석 (브랜드 마케터 시각)**\n• 채널별 ROAS: SMS 4.2x · 마트 3.1x · SNS 2.8x\n• 다음 캠페인 제안: SNS 비중 +15% 재배분\n• 예산 1억 시뮬: 응답률 +18% 예상\n\n출처: 자사 캠페인 데이터(real) + 검색 트렌드(external)' :
+      `${focus}\n\n**ABO Field 시각**\n• ${brand} 채널별 ROAS: Sponsor 5.2x · 카탈로그 3.4x · SNS 2.9x\n• ${channel} 모집 제안: Sponsor 알림 비중 +15% 재배분\n• 정기구독 연계 시 예상 응답률 +18%\n\n출처: ABO 성과 데이터(real) + 검색 트렌드(external)` :
       currentPersona === 'P5' ?
-      '**채널·매장 시각 (MD)**\n• TOP 5 매출 하락 채널: ① 이마트 -18% ② 롯데마트 -14% ③ 자사몰 -9% ④ CU -7% ⑤ 올영 -5%\n• 주요 원인 (근거 시그널):\n  - 폭염 영향 → 칫솔·치약 카테고리 전반 둔화 (KMA 기상)\n  - 경쟁사 신제품 출시 → 페리오 SOV -12% (CompetitorSignal)\n  - 검색 트렌드 -8%, 부정 리뷰 +14% (SocialSignal)\n• MD 액션: 매대 진열 강화 + 1+1 프로모션 4주\n\n출처: POS(real) + 외부 4종(external)' :
-      '**데이터 분석 시각 (D&A)**\n• 매출 z-score 2.1 (이상치 임계 초과)\n• 검색 트렌드 -8% 시차 14일 선행\n• 모델 drift 유의 (predictor distribution shift)\n• 권장: 모델 재학습 + 외부 시그널 weight 조정';
+      `${focus}\n\n**Compliance 시각**\n• "${q.slice(0, 28)}…" 검수 결과: 위반 룰 3건\n  - 식약처(KR): 효능·치료 표현 (높음)\n  - FTC(US): 등급·수익 보장 표현 (높음)\n  - 방판법(KR): 청약철회 표시 누락 (중간)\n• 권장: 효능 표현 제거 + income disclosure 추가\n\n출처: RegulatorySignal(Neptune) + Bedrock Guardrails` :
+      `${focus}\n\n**Data & CX 시각**\n• ${channel} ${metric} z-score 2.1 (이상치 임계 초과)\n• 6개월 retention 52% → 해지 시그너처 3종 매칭\n• 권장: 자동 회복 캠페인 트리거 + 모델 weight 조정\n\n출처: Subscription(real) + 외부 시그널(external)`;
     appendChat('assistant', answer);
   }, delay + 300);
 }
@@ -443,7 +481,7 @@ function renderS3(main) {
   const grid = el('div', {class: 'grid grid-cols-2 gap-4'});
 
   // Card 1: BU 월별 GMV
-  const card1 = insightCard('월별 BU GMV 추이', 'real', 'Beauty (rose) / HDB (sky) / Refreshment (amber)', PERSONAS[currentPersona].comment3_1 || s3PersonaComment(1));
+  const card1 = insightCard('월별 카테고리 GMV 추이', 'real', 'Beauty (rose) / Nutrition (sky) / Home (amber)', PERSONAS[currentPersona].comment3_1 || s3PersonaComment(1));
   grid.appendChild(card1);
   setTimeout(() => drawBUChart(card1.querySelector('canvas')), 100);
 
@@ -485,10 +523,10 @@ function insightCard(title, cohort, subtitle, comment) {
 function s3PersonaComment(cardIdx) {
   const p = currentPersona;
   const tones = {
-    1: { P1: '11월 후 +12%, 사전 SMS 캠페인 효과로 추정. 12월은 SNS 위주 재배분 권장.', P2: 'Beauty BU가 30대 이상 코호트에서 비중 급상승. 새 세그먼트 후보.', P3: '11월 분포가 평년 대비 +1.5σ. 외부(기온) 변수 결합 분석 필요.', P4: 'VIP 등급 적립률 +3pt 상승. 등급 유지 캠페인 효과로 추정.', P5: '11월 GMV +12%, 매대·재고 회전 +0.4. 백화점·올영 매대 확장 제안.' },
-    2: { P1: '기온 ↑5℃ 시 자외선차단 매출 +28%. 5월 캠페인 세팅에 반영.', P2: '여름 진입 시점에 트렌드세터 페르소나 우선 노출.', P3: 'R² 0.68. lag 0~2일 가장 강한 상관. 모델 feature로 추가.', P4: 'VIP에 자외선차단 신상 무료 샘플 큐레이션.', P5: '기온 25℃ 이상 진입 후 진열 50% 확대 권장.' },
-    3: { P1: '"비건뷰티" 검색 +35% → 자사 비건 SKU 캠페인 즉시 재가동.', P2: '키워드 SOV 자사 12%, 경쟁사 21%. SOV 격차 분석 필요.', P3: '검색 → GMV 시차 7일. 단기 수요 예측 모델에 반영.', P4: 'VIP 적립 캠페인에 비건 키워드 결합.', P5: '비건 카테고리 매대 신설 + 신상 5종 도입 제안.' },
-    4: { P1: '경쟁사 출시 후 자사 GMV -8%, 4주 후 회복. 카운터 캠페인 타이밍.', P2: '경쟁사 SOV +18% 흡수. 자사 페르소나 이탈 모니터링.', P3: '시차 -2주~+4주 영향. 캠페인 효과 분리 고려.', P4: 'VIP 이탈 위험 +6%. 리텐션 혜택 강화.', P5: '신상 출시 4주 내 카운터 프로모션 권장.' },
+    1: { P1: '11월 후 +12%, 사전 SMS 캠페인 효과로 추정. 12월은 SNS 위주 재배분 권장.', P2: 'Beauty 카테고리가 30대 이상 코호트에서 비중 급상승. 새 세그먼트 후보.', P3: '11월 분포가 평년 대비 +1.5σ. 외부(기온) 변수 결합 분석 필요.', P4: 'ABO 등급 적립률 +3pt 상승. 등급 유지 캠페인 효과로 추정.', P5: '11월 GMV +12%, 정기구독·재고 회전 +0.4. ABO 추천·카탈로그 확장 제안.' },
+    2: { P1: '기온 ↑5℃ 시 스킨케어 매출 +28%. 5월 캠페인 세팅에 반영.', P2: '여름 진입 시점에 트렌드세터 페르소나 우선 노출.', P3: 'R² 0.68. lag 0~2일 가장 강한 상관. 모델 feature로 추가.', P4: 'Platinum 등급에 스킨케어 신상 무료 샘플 큐레이션.', P5: '기온 25℃ 이상 진입 후 정기구독 노출 50% 확대 권장.' },
+    3: { P1: '"식물유래 영양" 검색 +35% → 자사 Nutrilite SKU 캠페인 즉시 재가동.', P2: '키워드 SOV 자사 12%, 경쟁사 21%. SOV 격차 분석 필요.', P3: '검색 → GMV 시차 7일. 단기 수요 예측 모델에 반영.', P4: 'ABO 적립 캠페인에 식물유래 키워드 결합.', P5: '식물유래 카테고리 카탈로그 신설 + 신상 5종 도입 제안.' },
+    4: { P1: '경쟁사 출시 후 자사 GMV -8%, 4주 후 회복. 카운터 캠페인 타이밍.', P2: '경쟁사 SOV +18% 흡수. 자사 페르소나 이탈 모니터링.', P3: '시차 -2주~+4주 영향. 캠페인 효과 분리 고려.', P4: 'ABO 이탈 위험 +6%. 리텐션 혜택 강화.', P5: '신상 출시 4주 내 카운터 프로모션 권장.' },
   };
   return tones[cardIdx][p] || '';
 }
@@ -501,8 +539,8 @@ function drawBUChart(canvas) {
       labels: ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'],
       datasets: [
         { label: 'Beauty', data: [82,85,88,91,95,99,102,98,104,108,121,118], borderColor: '#e11d48', backgroundColor: 'rgba(225,29,72,0.1)', tension: 0.4 },
-        { label: 'HDB', data: [70,72,74,73,75,77,80,82,79,81,84,86], borderColor: '#0284c7', backgroundColor: 'rgba(2,132,199,0.1)', tension: 0.4 },
-        { label: 'Refreshment', data: [58,60,63,65,68,72,76,80,75,72,69,68], borderColor: '#f59e0b', backgroundColor: 'rgba(245,158,11,0.1)', tension: 0.4 },
+        { label: 'Nutrition', data: [70,72,74,73,75,77,80,82,79,81,84,86], borderColor: '#0284c7', backgroundColor: 'rgba(2,132,199,0.1)', tension: 0.4 },
+        { label: 'Home', data: [58,60,63,65,68,72,76,80,75,72,69,68], borderColor: '#f59e0b', backgroundColor: 'rgba(245,158,11,0.1)', tension: 0.4 },
       ]
     },
     options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: {boxWidth: 8, font: {size: 10}} } }, scales: { y: { ticks: {font: {size: 9}} }, x: { ticks: {font: {size: 9}} } } }
@@ -564,9 +602,9 @@ function renderS4(main) {
   // 페르소나 카드 5종
   const personas = [
     { name: '키즈맘', desc: '유아용품·생활용품·평일 낮', count: 8420, color: 'pink' },
-    { name: '골드미스', desc: '프리미엄 PB·뷰티·주말 오전', count: 5210, color: 'rose' },
+    { name: '골드미스', desc: '프리미엄 Artistry·뷰티·주말 오전', count: 5210, color: 'rose' },
     { name: '1인가구', desc: '소량·간편·심야', count: 12300, color: 'sky' },
-    { name: '시니어', desc: '신선·전단·매장 결제', count: 6800, color: 'amber' },
+    { name: '시니어', desc: 'Nutrilite·건강기능식품·정기구독', count: 6800, color: 'amber' },
     { name: '트렌드세터', desc: '신상품·SNS 캠페인 응답', count: 4100, color: 'violet' },
   ];
 
@@ -595,8 +633,8 @@ function renderS4(main) {
       clusterRow('C1', '프리미엄 Beauty 충성층', 4200, 'rose', 'R 5 / F 8.2 / M ₩280K'),
       clusterRow('C2', '할인 민감 1인가구', 8800, 'sky', 'R 3 / F 4.1 / M ₩48K'),
       clusterRow('C3', '주말 가족 쇼핑객', 6100, 'amber', 'R 4 / F 5.6 / M ₩125K'),
-      clusterRow('C4', 'HDB 정기구매 키즈맘', 7300, 'pink', 'R 5 / F 7.8 / M ₩98K'),
-      clusterRow('C5', '편의점 음료 트렌드세터', 3900, 'violet', 'R 5 / F 12.4 / M ₩35K'),
+      clusterRow('C4', '홈케어 정기구독 키즈맘', 7300, 'pink', 'R 5 / F 7.8 / M ₩98K'),
+      clusterRow('C5', '에너지드링크 트렌드세터', 3900, 'violet', 'R 5 / F 12.4 / M ₩35K'),
       clusterRow('C6', '시니어 신선·생활용품', 5400, 'emerald', 'R 4 / F 6.2 / M ₩72K'),
     )
   );
@@ -655,8 +693,8 @@ function renderS5(main) {
   const campaignPanel = el('div', {class: 'bg-white rounded-lg border border-slate-200 p-4 shadow-sm'},
     el('h3', {class: 'font-semibold text-sm mb-3'}, '캠페인 정의'),
     el('div', {class: 'space-y-2 text-sm'},
-      kvRow('대상 BU', 'Beauty (숨37 신상)'),
-      kvRow('세그먼트', 'VIP + 골드 5만명 (LG 멤버스)'),
+      kvRow('대상 카테고리', 'Beauty (Artistry 신상)'),
+      kvRow('세그먼트', 'Platinum + Gold ABO 5만명'),
       kvRow('기간', '2026-05-20 ~ 2026-06-19'),
       kvRow('예산', '₩100,000,000'),
       kvRow('타겟', '신제품 도입 30일 ROAS 4.0+ ')
@@ -698,7 +736,7 @@ function drawS5Donut() {
   new Chart(c, {
     type: 'doughnut',
     data: {
-      labels: ['SMS', '카톡', 'SNS 광고', '자사몰 배너', '올영 매대', '인플루언서'],
+      labels: ['SMS', '카톡', 'SNS 광고', '자사몰 배너', '카탈로그', '인플루언서'],
       datasets: [{
         data: [22, 18, 28, 12, 12, 8],
         backgroundColor: ['#e11d48', '#f59e0b', '#8b5cf6', '#0ea5e9', '#10b981', '#ec4899']
@@ -712,7 +750,7 @@ function drawS5Violin() {
   const c = document.getElementById('s5Violin');
   if (!c) return;
   // approximate violin via line area
-  const channels = ['SMS', '카톡', 'SNS 광고', '자사몰 배너', '올영 매대', '인플루언서'];
+  const channels = ['SMS', '카톡', 'SNS 광고', '자사몰 배너', '카탈로그', '인플루언서'];
   const datasets = channels.map((ch, i) => {
     const center = [4.2, 3.8, 5.1, 3.2, 4.5, 4.0][i];
     const spread = 0.6;
@@ -784,7 +822,7 @@ function drawS6Series() {
 function drawS6Heatmap() {
   const div = document.getElementById('s6Heatmap');
   if (!div) return;
-  const cats = ['자외선차단','샴푸','치약','음료','핸드크림'];
+  const cats = ['비타민','샴푸','스킨케어','에너지드링크','구강케어'];
   const sigs = ['소셜','기상','환율','경쟁사'];
   // header
   div.innerHTML = '';
@@ -821,15 +859,15 @@ function drawS6Lag() {
 
 // ============= S7. Customer Journey =============
 function renderS7(main) {
-  main.appendChild(header('🛒 S7. 옴니채널 회원 여정 (3 BU 통합)',
-    '단일 LG 멤버스 회원이 자사몰 → SNS 광고 → 올영 → 마트 → CU 가로지르는 단일 타임라인'));
+  main.appendChild(header('🛒 S7. 옴니채널 회원 여정 (3 카테고리 통합)',
+    '단일 ABO 회원이 자사몰 → SNS 광고 → ABO 추천 → Downline → 카탈로그 가로지르는 단일 타임라인'));
 
   // member info
   const memCard = el('div', {class: 'bg-white rounded-lg border border-slate-200 p-4 shadow-sm mb-4 grid grid-cols-5 gap-3'},
     kvBox('회원 ID', 'cust_a4f2c1', 'real'),
     kvBox('연령·지역', '30대 / 서울 강남'),
     kvBox('페르소나', '골드미스 (0.62)'),
-    kvBox('등급 (LG 멤버스)', 'VIP'),
+    kvBox('등급 (ABO)', 'Platinum'),
     kvBox('90일 LTV', '₩2,418,000')
   );
   main.appendChild(memCard);
@@ -837,7 +875,7 @@ function renderS7(main) {
   // BU 비중 도넛 + Swimlane
   const grid = el('div', {class: 'grid grid-cols-4 gap-4'});
   const buCard = el('div', {class: 'col-span-1 bg-white rounded-lg border border-slate-200 p-4 shadow-sm'},
-    el('h3', {class: 'font-semibold text-sm mb-3'}, '90일 BU 비중'),
+    el('h3', {class: 'font-semibold text-sm mb-3'}, '90일 카테고리 비중'),
     el('div', {class: 'h-44'}, el('canvas', {id: 's7BU'}))
   );
   grid.appendChild(buCard);
@@ -866,7 +904,7 @@ function drawS7BU() {
   if (!c) return;
   new Chart(c, {
     type: 'doughnut',
-    data: { labels: ['Beauty','HDB','Refreshment'], datasets: [{ data: [62, 28, 10], backgroundColor: ['#e11d48','#0ea5e9','#f59e0b'] }] },
+    data: { labels: ['Beauty','Nutrition','Home'], datasets: [{ data: [62, 28, 10], backgroundColor: ['#e11d48','#0ea5e9','#f59e0b'] }] },
     options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels:{boxWidth:8, font:{size:10}} } } }
   });
 }
@@ -875,11 +913,11 @@ function drawS7Lanes() {
   const div = document.getElementById('s7Lanes');
   if (!div) return;
   const lanes = [
-    { name: '자사몰 (검색·구매)', color: 'rose', events: [{d: 5, label: '검색', icon: '🔍'}, {d: 12, label: '구매(숨37)', icon: '🛒'}, {d: 47, label: '재구매', icon: '🛒'}, {d: 78, label: '리뷰', icon: '⭐'}] },
+    { name: '자사몰 (Amway.com)', color: 'rose', events: [{d: 5, label: '검색', icon: '🔍'}, {d: 12, label: '구매(Artistry)', icon: '🛒'}, {d: 47, label: '재구매', icon: '🛒'}, {d: 78, label: '리뷰', icon: '⭐'}] },
     { name: 'SNS 광고 응답', color: 'violet', events: [{d: 3, label: '인스타 클릭', icon: '📱'}, {d: 28, label: '카톡 친구', icon: '💬'}, {d: 56, label: '쇼츠 시청', icon: '🎬'}] },
-    { name: '올리브영 (오프라인)', color: 'emerald', events: [{d: 18, label: 'CNP 구매', icon: '🏪'}, {d: 60, label: '신상 시연', icon: '🏪'}] },
-    { name: '대형마트 (HDB)', color: 'sky', events: [{d: 34, label: '엘라스틴', icon: '🛒'}, {d: 71, label: '자연퐁', icon: '🛒'}] },
-    { name: '편의점 (Refreshment)', color: 'amber', events: [{d: 23, label: '환타', icon: '🥤'}, {d: 52, label: '코카콜라', icon: '🥤'}, {d: 84, label: '토레타', icon: '🥤'}] },
+    { name: 'ABO 추천', color: 'emerald', events: [{d: 18, label: 'Nutrilite 구매', icon: '🤝'}, {d: 60, label: '신상 시연', icon: '🤝'}] },
+    { name: 'Downline', color: 'sky', events: [{d: 34, label: 'Satinique', icon: '🛒'}, {d: 71, label: 'eSpring', icon: '🛒'}] },
+    { name: '카탈로그·정기구독', color: 'amber', events: [{d: 23, label: 'XS', icon: '🥤'}, {d: 52, label: 'Nutrilite', icon: '💊'}, {d: 84, label: 'Artistry', icon: '💄'}] },
   ];
 
   div.innerHTML = '';
@@ -909,7 +947,7 @@ function drawS7Lanes() {
   // 핵심 전환 표시
   div.appendChild(el('div', {class: 'mt-3 text-xs bg-slate-50 p-2 rounded text-slate-600'},
     el('div', {class: 'font-semibold mb-1'}, '🌟 핵심 전환'),
-    '• D+12 첫 Beauty 구매 → D+18 올영 매장 방문 → D+47 자사몰 재구매 → 90일 내 VIP 등급 유지'
+    '• D+12 첫 Artistry 구매 → D+18 ABO 추천 → D+47 정기구독 등록 → 90일 내 Platinum 등급 유지'
   ));
 }
 
@@ -990,6 +1028,337 @@ function testGuardrail(type) {
       el('span', {class: 'text-slate-700'}, s.output)
     )
   ));
+}
+
+// ============= S9-A. ABO 조직 시각화 + 성과 트래킹 =============
+function renderS9A(main) {
+  main.appendChild(header('🌳 S9-A. ABO 조직 시각화 + 성과 트래킹',
+    'Neptune openCypher MATCH (root)-[:HAS_DOWNLINE*1..5]->(d) + PV/BV·등급·활성도 enrichment'));
+
+  // 입력 UI
+  const controls = el('div', {class: 'bg-white rounded-lg border border-slate-200 p-4 shadow-sm mb-4'},
+    el('div', {class: 'flex flex-wrap gap-3 items-center'},
+      el('input', {type: 'text', class: 'flex-1 min-w-[240px] px-4 py-2 border border-slate-300 rounded-md text-sm', value: 'Diamond 등급 + 미국', placeholder: '루트 ABO 검색 (마스킹 ID 또는 자연어)'}),
+      el('div', {class: 'flex items-center gap-2 text-sm text-slate-600'}, '깊이', el('input', {type: 'range', min: '1', max: '5', value: '5', class: 'accent-blue-600'}), el('span', {class: 'font-mono text-blue-700'}, '5단')),
+      el('button', {class: 'bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-md text-sm font-semibold'}, '트리 탐색')
+    ),
+    el('div', {class: 'mt-3 flex flex-wrap gap-2 text-xs'},
+      ...['Founders Platinum', 'Diamond', 'Founders Diamond', 'EDC', 'EC'].map((g, i) =>
+        el('span', {class: `px-2 py-1 rounded ${i < 2 ? 'bg-blue-100 text-blue-700 font-semibold' : 'bg-slate-100 text-slate-500'}`}, g)),
+      el('span', {class: 'px-2 py-1 bg-slate-100 rounded'}, '표시: PV / BV / 활성도')
+    )
+  );
+  main.appendChild(controls);
+
+  const grid = el('div', {class: 'grid grid-cols-3 gap-4'});
+
+  // 좌: 트리 시각화 (vis-network, 2 cols)
+  const treeCard = el('div', {class: 'col-span-2 bg-white rounded-lg border border-slate-200 p-4 shadow-sm'},
+    el('div', {class: 'flex justify-between items-center mb-3'},
+      el('h3', {class: 'font-semibold text-sm'}, '🌳 Downline 트리 (5단, ~120 노드 샘플)'),
+      el('div', {class: 'flex gap-3 text-[10px] text-slate-500'},
+        el('span', {}, '🟡 Diamond'), el('span', {}, '⬜ Platinum'), el('span', {}, '🔵 EDC'), el('span', {class: 'text-rose-600'}, '🔴 활성도<30일'))
+    ),
+    el('div', {id: 's9aTree', style: 'height: 360px;'})
+  );
+  grid.appendChild(treeCard);
+
+  // 우: 선택 ABO 상세
+  const detailCard = el('div', {class: 'bg-white rounded-lg border border-slate-200 p-4 shadow-sm'},
+    el('h3', {class: 'font-semibold text-sm mb-3'}, '선택 ABO 상세'),
+    el('div', {class: 'space-y-2'},
+      kvRow('마스킹 ID', 'abo_4f2c**'),
+      kvRow('등급', 'Diamond'),
+      kvRow('PV (Personal Volume)', '4,820'),
+      kvRow('BV (Business Volume)', '38,400'),
+      kvRow('Downline 인원', '112명 (5단)'),
+      kvRow('Sponsor 점수', '8.4 / 10'),
+      kvRow('90일 활성도', '활성')
+    ),
+    el('div', {class: 'mt-3 p-2 bg-blue-50 rounded text-xs text-blue-700'},
+      '⭐ Downline 중 활성도<30일 ABO 9명 자동 강조 → CRM 캠페인 후보')
+  );
+  grid.appendChild(detailCard);
+  main.appendChild(grid);
+
+  // 하단: Sponsor 성과 매트릭스
+  const matrixCard = el('div', {class: 'bg-white rounded-lg border border-slate-200 p-4 shadow-sm mt-4'},
+    el('h3', {class: 'font-semibold text-sm mb-3'}, 'Sponsor 성과 매트릭스 (등급 × Downline 생산성)'),
+    el('div', {class: 'h-56'}, el('canvas', {id: 's9aMatrix'}))
+  );
+  main.appendChild(matrixCard);
+
+  setTimeout(() => {
+    drawS9ATree();
+    drawS9AMatrix();
+  }, 60);
+}
+
+function drawS9ATree() {
+  // 5단 트리 mock 생성: 루트 1 → 등급별 색상, 활성도<30일 빨강 외곽
+  const gradeColor = { D: '#fde047', P: '#e2e8f0', EDC: '#bae6fd', EC: '#dbeafe' };
+  const nodes = [{ id: 1, label: 'Diamond\nabo_4f2c**', shape: 'dot', size: 26, color: { background: gradeColor.D, border: '#ca8a04' }, font: { size: 11 } }];
+  const edges = [];
+  let nid = 2;
+  const fanout = [3, 2, 2, 2]; // 단별 자식 수
+  let frontier = [1];
+  for (let depth = 0; depth < 4; depth++) {
+    const next = [];
+    frontier.forEach(parent => {
+      for (let k = 0; k < fanout[depth]; k++) {
+        const grades = ['P', 'EDC', 'EC'];
+        const g = grades[(nid + k) % grades.length];
+        const inactive = (nid % 7 === 0); // 일부 비활성
+        nodes.push({
+          id: nid, shape: 'dot', size: 20 - depth * 2,
+          color: { background: gradeColor[g], border: inactive ? '#e11d48' : '#94a3b8' },
+          borderWidth: inactive ? 3 : 1, font: { size: 9 },
+          label: `${g}${inactive ? ' ⚠' : ''}`
+        });
+        edges.push({ from: parent, to: nid });
+        next.push(nid);
+        nid++;
+        if (nid > 90) break;
+      }
+    });
+    frontier = next;
+    if (nid > 90) break;
+  }
+  const container = document.getElementById('s9aTree');
+  if (!container) return;
+  new vis.Network(container, { nodes: new vis.DataSet(nodes), edges: new vis.DataSet(edges.map(e => ({ ...e, color: '#cbd5e1', width: 1 }))) }, {
+    layout: { hierarchical: { enabled: true, direction: 'UD', sortMethod: 'directed', levelSeparation: 70, nodeSpacing: 18 } },
+    physics: false, interaction: { hover: true, dragNodes: false }, edges: { smooth: true }
+  });
+}
+
+function drawS9AMatrix() {
+  const c = document.getElementById('s9aMatrix');
+  if (!c) return;
+  new Chart(c, {
+    type: 'bar',
+    data: {
+      labels: ['Founders Platinum', 'Diamond', 'Founders Diamond', 'EDC', 'EC'],
+      datasets: [
+        { label: '평균 Downline GMV (M)', data: [42, 128, 210, 18, 6], backgroundColor: '#2563eb' },
+        { label: '활성 Downline 비율 (%)', data: [88, 82, 91, 64, 51], backgroundColor: '#93c5fd' },
+      ]
+    },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 8, font: { size: 10 } } } }, scales: { y: { ticks: { font: { size: 9 } } }, x: { ticks: { font: { size: 9 } } } } }
+  });
+}
+
+// ============= S10-A. 정기구독 라이프타임 분석 =============
+function renderS10A(main) {
+  main.appendChild(header('🔁 S10-A. 정기구독 라이프타임 분석',
+    'Subscription state machine + 해지 시그너처 z-score 탐지 + 자동 회복 캠페인 (Nutrilite·Artistry)'));
+
+  // state machine 카운트
+  const stateGrid = el('div', {class: 'grid grid-cols-4 gap-4 mb-4'},
+    statCard('활성 (Active)', 10240, 'Subscription', 'emerald'),
+    statCard('일시정지 (Paused)', 1820, 'Subscription', 'amber'),
+    statCard('해지 (Cancelled)', 5010, '누적', 'rose'),
+    statCard('해지 후 재가입', 940, '90일', 'sky')
+  );
+  main.appendChild(stateGrid);
+
+  const grid = el('div', {class: 'grid grid-cols-2 gap-4'});
+
+  // retention curve
+  const retCard = el('div', {class: 'bg-white rounded-lg border border-slate-200 p-4 shadow-sm'},
+    el('h3', {class: 'font-semibold text-sm mb-3'}, '12개월 Retention Curve (코호트별)'),
+    el('div', {class: 'h-60'}, el('canvas', {id: 's10aRet'}))
+  );
+  grid.appendChild(retCard);
+
+  // 해지 위험 TOP
+  const riskCard = el('div', {class: 'bg-white rounded-lg border border-slate-200 p-4 shadow-sm'},
+    el('h3', {class: 'font-semibold text-sm mb-3'}, '해지 위험 ABO TOP (시그너처 라벨)'),
+    el('div', {class: 'space-y-2 text-xs'},
+      s10aRiskRow('abo_a91f**', 'Diamond', ['결제 실패 다발', '활동 0'], 0.91),
+      s10aRiskRow('abo_c33d**', 'EDC', ['Downline 이탈'], 0.84),
+      s10aRiskRow('cust_7b2e**', 'Customer', ['가격 인상 후 폭증'], 0.78),
+      s10aRiskRow('abo_e5a0**', 'Platinum', ['활동 0', '시즌 영향'], 0.73),
+      s10aRiskRow('cust_1f8c**', 'Customer', ['결제 실패 다발'], 0.69)
+    )
+  );
+  grid.appendChild(riskCard);
+  main.appendChild(grid);
+
+  // Sankey 대체: state 전이 막대 + 자동 회복 캠페인
+  const bottomGrid = el('div', {class: 'grid grid-cols-2 gap-4 mt-4'});
+  const flowCard = el('div', {class: 'bg-white rounded-lg border border-slate-200 p-4 shadow-sm'},
+    el('h3', {class: 'font-semibold text-sm mb-3'}, 'State 전이 (최근 90일)'),
+    el('div', {class: 'h-52'}, el('canvas', {id: 's10aFlow'}))
+  );
+  bottomGrid.appendChild(flowCard);
+
+  const campCard = el('div', {class: 'bg-white rounded-lg border border-slate-200 p-4 shadow-sm'},
+    el('h3', {class: 'font-semibold text-sm mb-3'}, '🎯 자동 회복 캠페인 시뮬 (S5 연계)'),
+    el('div', {class: 'space-y-2 text-sm'},
+      kvRow('대상', '해지 위험 TOP 100 ABO'),
+      kvRow('추천 채널', 'Sponsor 알림 + 카탈로그 SMS'),
+      kvRow('메시지', '정기구독 1회 무료 + 등급 유지 혜택'),
+      kvRow('예상 회복률', '34% (Bayesian)'),
+      kvRow('예상 ROAS', '5.1x')
+    ),
+    el('div', {class: 'mt-3 p-2 bg-amber-50 rounded text-xs text-amber-700'},
+      '⚠ 자동 발송 차단 — P4(CX) 검토 후 액션 / 동의 미수신 회원 자동 제외')
+  );
+  bottomGrid.appendChild(campCard);
+  main.appendChild(bottomGrid);
+
+  setTimeout(() => { drawS10ARet(); drawS10AFlow(); }, 60);
+}
+
+function s10aRiskRow(id, grade, sigs, score) {
+  return el('div', {class: 'flex items-center gap-2 border-b border-slate-100 pb-2'},
+    el('span', {class: 'font-mono text-slate-700 w-24'}, id),
+    el('span', {class: 'px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded text-[10px]'}, grade),
+    el('div', {class: 'flex-1 flex flex-wrap gap-1'}, ...sigs.map(s => el('span', {class: 'px-1.5 py-0.5 bg-rose-100 text-rose-700 rounded text-[10px]'}, s))),
+    el('span', {class: 'font-mono text-rose-600 font-semibold'}, score.toFixed(2))
+  );
+}
+
+function drawS10ARet() {
+  const c = document.getElementById('s10aRet');
+  if (!c) return;
+  const months = Array.from({ length: 13 }, (_, i) => `M${i}`);
+  new Chart(c, {
+    type: 'line',
+    data: {
+      labels: months,
+      datasets: [
+        { label: '신규 ABO', data: [100, 86, 74, 65, 58, 52, 48, 44, 41, 39, 37, 35, 34], borderColor: '#2563eb', tension: 0.3 },
+        { label: '기존 ABO', data: [100, 96, 93, 90, 88, 86, 85, 83, 82, 81, 80, 79, 78], borderColor: '#10b981', tension: 0.3 },
+        { label: 'Customer', data: [100, 78, 62, 51, 44, 39, 35, 32, 30, 28, 27, 26, 25], borderColor: '#f59e0b', tension: 0.3 },
+      ]
+    },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 8, font: { size: 10 } } } }, scales: { y: { title: { display: true, text: 'retention %', font: { size: 9 } }, ticks: { font: { size: 9 } } }, x: { ticks: { font: { size: 9 } } } } }
+  });
+}
+
+function drawS10AFlow() {
+  const c = document.getElementById('s10aFlow');
+  if (!c) return;
+  new Chart(c, {
+    type: 'bar',
+    data: {
+      labels: ['Active→Renew', 'Active→Pause', 'Pause→Active', 'Pause→Cancel', 'Active→Cancel', 'Cancel→Restart'],
+      datasets: [{ label: '전이 건수 (90일)', data: [7820, 1180, 640, 920, 1340, 940], backgroundColor: ['#10b981', '#f59e0b', '#3b82f6', '#ef4444', '#ef4444', '#0ea5e9'] }]
+    },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { ticks: { font: { size: 9 } } }, x: { ticks: { font: { size: 8 } } } } }
+  });
+}
+
+// ============= S11-A. 직접판매·컴플라이언스 검수 =============
+function renderS11A(main) {
+  main.appendChild(header('⚖️ S11-A. 직접판매·미성년·건강기능식품 컴플라이언스',
+    'Bedrock Guardrails + 국가별 RegulatorySignal (FTC·방판법·식약처·FDA·EU) + 광고 텍스트 자동 검수'));
+
+  // 24h 차단 카운트
+  const statGrid = el('div', {class: 'grid grid-cols-4 gap-4 mb-4'},
+    statCard('광고 검수', 184, '오늘', 'sky'),
+    statCard('위반 탐지', 39, '오늘', 'rose'),
+    statCard('미성년 가입 차단', 12, '24h', 'amber'),
+    statCard('AuditLog 기록', 235, '오늘', 'emerald')
+  );
+  main.appendChild(statGrid);
+
+  const grid = el('div', {class: 'grid grid-cols-3 gap-4'});
+
+  // 좌: 입력 텍스트 (위험 하이라이트)
+  const inputCard = el('div', {class: 'bg-white rounded-lg border border-slate-200 p-4 shadow-sm'},
+    el('h3', {class: 'font-semibold text-sm mb-3'}, '광고 텍스트 (위험 하이라이트)'),
+    el('div', {class: 'text-sm leading-relaxed border border-slate-200 rounded p-3 bg-slate-50'},
+      el('span', {}, '"Nutrilite로 '),
+      el('span', {class: 'bg-rose-200 text-rose-800 px-1 rounded font-semibold'}, '면역력 강화 — 의사들이 추천'),
+      el('span', {}, '! 그리고 '),
+      el('span', {class: 'bg-rose-200 text-rose-800 px-1 rounded font-semibold'}, 'Diamond 등급으로 월 1만 달러 보장'),
+      el('span', {}, '"')
+    ),
+    el('div', {class: 'mt-3 flex gap-2 text-xs'},
+      ...['US', 'KR', 'JP', 'CN', 'EU'].map((c, i) =>
+        el('span', {class: `px-2 py-1 rounded ${i < 2 ? 'bg-blue-100 text-blue-700 font-semibold' : 'bg-slate-100 text-slate-500'}`}, c))
+    )
+  );
+  grid.appendChild(inputCard);
+
+  // 중앙: 위반 룰 카드
+  const violCard = el('div', {class: 'bg-white rounded-lg border border-slate-200 p-4 shadow-sm'},
+    el('h3', {class: 'font-semibold text-sm mb-3'}, '위반 룰'),
+    el('div', {class: 'space-y-2'},
+      s11aViolRow('식약처 (KR)', '효능·치료 표현 / 의약품 오인', '높음', 'rose'),
+      s11aViolRow('FDA (US)', 'Health Claim 사전 승인 누락', '높음', 'rose'),
+      s11aViolRow('FTC (US)', '등급·수익 보장 표현', '높음', 'rose'),
+      s11aViolRow('방판법 (KR)', '청약철회 표시 누락', '중간', 'amber')
+    )
+  );
+  grid.appendChild(violCard);
+
+  // 우: 권장 수정안
+  const fixCard = el('div', {class: 'bg-white rounded-lg border border-slate-200 p-4 shadow-sm'},
+    el('h3', {class: 'font-semibold text-sm mb-3'}, '권장 수정안 (Sonnet 4.6, 다국어)'),
+    el('div', {class: 'space-y-2 text-xs'},
+      el('div', {class: 'p-2 bg-emerald-50 rounded'},
+        el('div', {class: 'font-semibold text-emerald-700 mb-1'}, '🇰🇷 KR'),
+        '"Nutrilite는 균형 잡힌 영양 보충을 돕습니다. 개인차가 있을 수 있습니다." (효능 표현 제거)'),
+      el('div', {class: 'p-2 bg-emerald-50 rounded'},
+        el('div', {class: 'font-semibold text-emerald-700 mb-1'}, '🇺🇸 US'),
+        '"Individual results vary. Income depends on effort. See income disclosure." (FTC 16 CFR Part 437)')
+    ),
+    el('div', {class: 'mt-2 text-[10px] text-slate-400'}, '출처: FTC 16 CFR Part 437 · 방판법 §17 · 식약처 건기식 표시기준')
+  );
+  grid.appendChild(fixCard);
+  main.appendChild(grid);
+
+  // 하단: 미성년 차단 사유 분포
+  const bottomCard = el('div', {class: 'bg-white rounded-lg border border-slate-200 p-4 shadow-sm mt-4'},
+    el('h3', {class: 'font-semibold text-sm mb-3'}, '24시간 차단 사유 분포 + 국가별 위험도'),
+    el('div', {class: 'grid grid-cols-2 gap-4'},
+      el('div', {class: 'h-52'}, el('canvas', {id: 's11aBlock'})),
+      el('div', {class: 'h-52'}, el('canvas', {id: 's11aCountry'}))
+    )
+  );
+  main.appendChild(bottomCard);
+
+  setTimeout(() => { drawS11ABlock(); drawS11ACountry(); }, 60);
+}
+
+function s11aViolRow(rule, desc, risk, color) {
+  return el('div', {class: 'border-b border-slate-100 pb-2'},
+    el('div', {class: 'flex justify-between items-center'},
+      el('span', {class: 'font-semibold text-sm text-slate-700'}, rule),
+      el('span', {class: `px-2 py-0.5 rounded text-[10px] font-semibold bg-${color}-100 text-${color}-700`}, risk)
+    ),
+    el('div', {class: 'text-xs text-slate-500 mt-0.5'}, desc)
+  );
+}
+
+function drawS11ABlock() {
+  const c = document.getElementById('s11aBlock');
+  if (!c) return;
+  new Chart(c, {
+    type: 'doughnut',
+    data: {
+      labels: ['미성년 + 건기식', '효능 표현', '등급 보장', 'PII 노출', '청약철회 누락'],
+      datasets: [{ data: [12, 9, 8, 6, 4], backgroundColor: ['#ef4444', '#f59e0b', '#8b5cf6', '#0ea5e9', '#64748b'] }]
+    },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { boxWidth: 10, font: { size: 10 } } } } }
+  });
+}
+
+function drawS11ACountry() {
+  const c = document.getElementById('s11aCountry');
+  if (!c) return;
+  new Chart(c, {
+    type: 'bar',
+    data: {
+      labels: ['US', 'KR', 'JP', 'CN', 'EU'],
+      datasets: [{ label: '위험도 점수', data: [0.82, 0.91, 0.54, 0.73, 0.61], backgroundColor: ['#ef4444', '#ef4444', '#f59e0b', '#f59e0b', '#f59e0b'] }]
+    },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, title: { display: true, text: '다국가 동시 검수', font: { size: 10 } } }, scales: { y: { max: 1, ticks: { font: { size: 9 } } }, x: { ticks: { font: { size: 9 } } } } }
+  });
 }
 
 // ============= KG Graph helper =============

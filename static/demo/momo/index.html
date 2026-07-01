@@ -44,7 +44,7 @@
 <div class="flex min-h-[calc(100vh-58px)]">
   <!-- Sidebar -->
   <aside class="w-64 bg-white border-r border-slate-200 p-4 sticky top-[58px] h-[calc(100vh-58px)] overflow-y-auto scrollbar-thin">
-    <div class="text-xs font-semibold text-slate-400 uppercase mb-2">시나리오 (8)</div>
+    <div class="text-xs font-semibold text-slate-400 uppercase mb-2">시나리오 (11)</div>
     <nav id="navList" class="flex flex-col gap-1"></nav>
 
     <div class="mt-6 text-xs font-semibold text-slate-400 uppercase mb-2">Knowledge Graph</div>
@@ -108,11 +108,11 @@ const SAMPLE_PRODUCTS = [
 ];
 
 const SAMPLE_REVIEWS = [
-  { source: '자사몰', text: '민감성 두피에도 자극 없음. 향이 부드럽고 마음에 듦.', sku: 'HDB-021', sentiment: 'pos', date: '2026-04-22' },
-  { source: '올리브영', text: '오가닉 인증 + 가성비 + 향까지 마음에 듭니다.', sku: 'HDB-021', sentiment: 'pos', date: '2026-04-18' },
-  { source: 'X', text: '#엘라스틴 #민감성두피 #오가닉 — 추천합니다', sku: 'HDB-021', sentiment: 'pos', date: '2026-04-25' },
-  { source: '네이버', text: '매끈한 머릿결. 가격 대비 만족.', sku: 'HDB-021', sentiment: 'pos', date: '2026-04-19' },
-  { source: 'Dcard', text: '향이 강하지 않아서 좋아요. 두피 가려움 줄어듦.', sku: 'HDB-021', sentiment: 'pos', date: '2026-04-15' },
+  { source: '자사앱', text: '라이브에서 보고 바로 구매. 발색 좋고 지속력 만족.', sku: 'BTY-205', sentiment: 'pos', date: '2026-04-22' },
+  { source: 'Dcard', text: '资生堂 紅妍肌活露 가성비 최고. 재구매 예정.', sku: 'BTY-205', sentiment: 'pos', date: '2026-04-18' },
+  { source: 'PTT', text: '#资生堂 #라이브구매 #24시간배송 — 추천', sku: 'BTY-205', sentiment: 'pos', date: '2026-04-25' },
+  { source: 'Google', text: '배송 빠르고 포장 꼼꼼. 다음 라이브도 기대.', sku: 'BTY-205', sentiment: 'pos', date: '2026-04-19' },
+  { source: 'Instagram', text: '진행자 추천 조합 그대로 샀는데 만족도 높음.', sku: 'BTY-205', sentiment: 'pos', date: '2026-04-15' },
 ];
 
 const SAMPLE_MEMBERS = [
@@ -184,6 +184,9 @@ const SCENARIO_RENDERERS = {
   S6: renderS6,
   S7: renderS7,
   S8: renderS8,
+  S9Mo: renderS9Mo,
+  S10Mo: renderS10Mo,
+  S11Mo: renderS11Mo,
 };
 
 function header(title, subtitle) {
@@ -230,7 +233,7 @@ function renderS1(main) {
   // 1-hop graph
   const graphCard = el('div', {class: 'bg-white rounded-lg border border-slate-200 p-4 shadow-sm'},
     el('div', {class: 'flex justify-between items-center mb-3'},
-      el('h3', {class: 'font-semibold'}, '🕸️ Neptune 1-hop 그래프 (선택: 엘라스틴 퍼펙트 케어 샴푸)'),
+      el('h3', {class: 'font-semibold'}, '🕸️ Neptune 1-hop 그래프 (선택: 资生堂 紅妍肌活露)'),
       el('span', {class: 'text-xs text-slate-500'}, '5 노드 · 7 엣지')
     ),
     el('div', {id: 's1Graph', style: 'height: 280px;'})
@@ -242,11 +245,11 @@ function renderS1(main) {
   // Render network
   setTimeout(() => renderKGGraph('s1Graph', {
     nodes: [
-      {id: 1, label: 'HDB-021\n엘라스틴', shape: 'box', color: '#fee2e2', font: {size: 11}},
-      {id: 2, label: 'HDB', shape: 'ellipse', color: '#dbeafe', font: {size: 11}},
-      {id: 3, label: '엘라스틴 (Brand)', shape: 'ellipse', color: '#fef3c7', font: {size: 11}},
-      {id: 4, label: '샴푸 (Category)', shape: 'ellipse', color: '#dcfce7', font: {size: 11}},
-      {id: 5, label: '리뷰 41건\n(올영 28 · X 9 · 자사 4)', shape: 'box', color: '#e0e7ff', font: {size: 10}},
+      {id: 1, label: 'BTY-205\n资生堂', shape: 'box', color: '#fee2e2', font: {size: 11}},
+      {id: 2, label: '뷰티', shape: 'ellipse', color: '#dbeafe', font: {size: 11}},
+      {id: 3, label: '资生堂 (Brand)', shape: 'ellipse', color: '#fef3c7', font: {size: 11}},
+      {id: 4, label: '스킨케어 (Category)', shape: 'ellipse', color: '#dcfce7', font: {size: 11}},
+      {id: 5, label: '리뷰 41건\n(Dcard 28 · PTT 9 · 자사 4)', shape: 'box', color: '#e0e7ff', font: {size: 10}},
       {id: 6, label: '구매 회원 12명', shape: 'box', color: '#fce7f3', font: {size: 10}},
     ],
     edges: [
@@ -294,8 +297,8 @@ function memberCard(m) {
 }
 
 function reviewCard(r) {
-  const sourceColor = {'자사몰': 'bg-rose-100 text-rose-700', '올리브영': 'bg-emerald-100 text-emerald-700', 'X': 'bg-slate-100 text-slate-700', '네이버': 'bg-green-100 text-green-700', 'Dcard': 'bg-pink-100 text-pink-700'};
-  const cohort = r.source === '자사몰' ? 'real' : 'external';
+  const sourceColor = {'자사앱': 'bg-rose-100 text-rose-700', 'Dcard': 'bg-pink-100 text-pink-700', 'PTT': 'bg-slate-100 text-slate-700', 'Google': 'bg-green-100 text-green-700', 'Instagram': 'bg-violet-100 text-violet-700'};
+  const cohort = r.source === '자사앱' ? 'real' : 'external';
   return el('div', {class: 'border border-slate-200 rounded-md p-3 text-xs'},
     el('div', {class: 'flex justify-between items-start mb-1'},
       el('span', {class: `text-[10px] font-semibold px-1.5 py-0.5 rounded ${sourceColor[r.source] || 'bg-slate-100'}`}, r.source),
@@ -309,9 +312,19 @@ function reviewCard(r) {
 function runS1Search() {
   const counter = document.getElementById('s1Counter');
   if (!counter) return;
+  const queryEl = document.getElementById('s1Query');
+  const q = (queryEl?.value || '').trim();
   counter.textContent = '검색 중... (BM25 + KNN 병렬 실행)';
+  // 쿼리 길이·토큰 수에 따라 결과 수를 결정적으로 변동시켜 "입력에 반응"하는 인상
+  const tokens = q ? q.split(/\s+/).filter(Boolean).length : 0;
+  const bm25 = q ? 4 + (q.length % 9) : 0;
+  const knn = q ? 6 + (tokens * 2) % 11 : 0;
+  const common = q ? Math.max(1, Math.min(bm25, knn) - 3) : 0;
+  const total = bm25 + knn - common;
+  const took = (0.7 + (q.length % 13) / 10).toFixed(1);
   setTimeout(() => {
-    counter.innerHTML = '검색 결과: <strong>23건</strong> (BM25 8 · KNN 11 · 공통 4) <span class="text-xs text-emerald-600 ml-2">✓ 1.2초</span>';
+    if (!q) { counter.textContent = '검색어를 입력하세요.'; return; }
+    counter.innerHTML = `검색 결과: <strong>${total}건</strong> (BM25 ${bm25} · KNN ${knn} · 공통 ${common}) <span class="text-xs text-emerald-600 ml-2">✓ ${took}초</span> <span class="text-xs text-slate-400 ml-1">· "${q.slice(0, 30)}${q.length > 30 ? '…' : ''}"</span>`;
   }, 600);
 }
 
@@ -333,7 +346,7 @@ function renderS2(main) {
   chat.appendChild(messagesDiv);
 
   const inputBox = el('div', {class: 'border-t border-slate-200 p-3 flex gap-2'},
-    el('input', {id: 's2Input', class: 'flex-1 px-3 py-2 border border-slate-300 rounded-md text-sm', placeholder: '질문을 입력하세요...', value: '이번 달 페리오 매출이 떨어진 채널 TOP 5와 원인은?'}),
+    el('input', {id: 's2Input', class: 'flex-1 px-3 py-2 border border-slate-300 rounded-md text-sm', placeholder: '질문을 입력하세요...', value: '어제 라이브 방송에서 진행자별 전환률과 GMV 기여는?'}),
     el('button', {class: 'bg-rose-600 hover:bg-rose-700 text-white px-4 py-2 rounded-md text-sm font-semibold', onclick: () => runS2Chat()}, 'Send')
   );
   chat.appendChild(inputBox);
@@ -352,14 +365,14 @@ function renderS2(main) {
 
   // Suggested queries
   const suggestions = el('div', {class: 'mt-4 flex flex-wrap gap-2'},
-    ...['숨37 신상 런칭 ROAS 시뮬', '최근 인스타에서 떠오른 키워드와 자사 매출 연결', '동의 미수신 회원 발송 차단 확인'].map(t =>
+    ...['신상 라이브 캠페인 ROAS 시뮬', '북부 권역 24시간 배송 SLA 위반 원인', '여름텐트 추천 다양성 낮은 이유'].map(t =>
       el('button', {class: 'text-xs px-3 py-1.5 bg-white border border-slate-200 rounded-md hover:border-rose-300', onclick: () => { document.getElementById('s2Input').value = t; }}, t)
     )
   );
   main.appendChild(suggestions);
 
   // Initial message
-  appendChat('user', '이번 달 페리오 매출이 떨어진 채널 TOP 5와 원인은?');
+  appendChat('user', '어제 라이브 방송에서 진행자별 전환률과 GMV 기여는?');
 }
 
 function appendChat(role, text) {
@@ -390,6 +403,27 @@ function appendTrace(toolName, input, output, durationMs) {
   cnt.textContent = `${div.children.length} calls`;
 }
 
+// 입력에서 도메인 엔티티 추출 (mock NLU) — 사용자 질문에 반응하는 핵심
+function extractEntities(q) {
+  const lower = q.toLowerCase();
+  const found = { category: null, channel: null, metric: null, period: null, region: null, intent: null, raw: q };
+  const categories = ['뷰티', '아웃도어', '가전', '식품', '키즈', '펫', '텐트', '체리', '공기청정기'];
+  const channels = ['라이브', '앱', 'TV', 'TV홈쇼핑', '검색', '추천', '배송', '카톡', 'SNS'];
+  const metrics = ['GMV', 'ROAS', 'LTV', 'SLA', '전환률', '전환', '동시접속', '다양성', 'CTR', '위반률', 'SOV', '노출', 'NPS', '환불률'];
+  const regions = ['북부', '중부', '남부', '台北', '台中', '高雄'];
+  for (const c of categories) if (q.includes(c)) { found.category = c; break; }
+  for (const c of channels) if (q.includes(c)) { found.channel = c; break; }
+  for (const m of metrics) if (lower.includes(m.toLowerCase())) { found.metric = m; break; }
+  for (const r of regions) if (q.includes(r)) { found.region = r; break; }
+  const pm = q.match(/(\d+)\s*(일|주|개월|달|년|시간|day|week|month|hour)/);
+  if (pm) found.period = pm[0];
+  if (/왜|원인|이유|분석|why/.test(q)) found.intent = '원인분석';
+  else if (/추천|제안|해야|어떻게|전략/.test(q)) found.intent = '액션추천';
+  else if (/얼마|몇|순위|top|랭킹|비교|기여/i.test(q)) found.intent = '집계';
+  else found.intent = '탐색';
+  return found;
+}
+
 function runS2Chat() {
   const input = document.getElementById('s2Input');
   const q = input.value.trim();
@@ -400,60 +434,67 @@ function runS2Chat() {
   document.getElementById('s2Trace').innerHTML = '';
   document.getElementById('s2TraceCount').textContent = '0 calls';
 
-  // Mock tool calls based on persona
+  // 입력 기반 엔티티 추출 → 트레이스·답변에 반영
+  const e = extractEntities(q);
+  const category = e.category || (currentPersona === 'P1' ? '뷰티' : '아웃도어');
+  const channel = e.channel || (currentPersona === 'P5' ? '배송' : currentPersona === 'P1' ? '라이브' : '추천');
+  const period = e.period || '30일';
+  const region = e.region || '북부';
+  const metric = e.metric || (currentPersona === 'P1' ? 'ROAS' : currentPersona === 'P5' ? 'SLA' : '다양성');
+
+  // 도구 호출 트레이스 — 추출 엔티티를 input 인자로 사용
   const calls = currentPersona === 'P1' ? [
-    ['campaign_simulator', 'brand=페리오, period=30d', 'Bayesian posterior 1000 샘플 완료', 1820],
-    ['attribution_calc', 'method=time_decay, brand=페리오', 'SMS 35% / 마트 28% / SNS 22% / 카톡 15%', 940],
-    ['social_trend_join', 'keyword=페리오 치약, days=30', '검색량 -8% vs 전월', 620],
+    ['campaign_simulator', `category=${category}, channel=${channel}, period=${period}`, 'Bayesian posterior 1000 샘플 완료', 1820],
+    ['live_attribution', `stream=어제 19시, host=A vs B`, 'A 전환률 12% / B 4% / 핀 직후 GMV spike', 940],
+    ['social_trend_join', `keyword=${category}, days=${(period.match(/\d+/) || [30])[0]}`, '검색량 +6% vs 전월', 620],
   ] : currentPersona === 'P5' ? [
-    ['channel_metrics_push', 'sku_brand=페리오', 'GMV by channel 집계 완료', 480],
-    ['neptune_query', 'POSTransaction × Channel × Brand', '5개 채널 GMV 추출', 620],
-    ['weather_join', 'KMA 일별 기온/강수', '서울·부산 폭염 영향 데이터', 320],
-    ['social_trend_join', 'keyword=페리오 치약, days=30', '검색량 -8%, 부정 리뷰 +14%', 720],
-    ['behavior_change_detect', 'sku=HDB-074', 'z-score 2.1, 시그너처 매칭', 450],
+    ['delivery_sla_query', `region=${region}, window=24h`, '권역별 위반률 집계 완료', 620],
+    ['weather_join', `source=中央氣象署, region=${region}`, '폭우 -50mm, 시차 1일 영향', 320],
+    ['fulfillment_load', `center=${region}, period=${period}`, '시간대×권역 부하 히트맵', 480],
+    ['reorder_optimizer', `sku_top=200, horizon=7d`, '발주 +30% 권장 (光棍節 다음날)', 720],
   ] : [
-    ['neptune_query', 'POSTransaction × Brand=페리오', '5채널 GMV 집계', 620],
-    ['behavior_change_detect', 'sku=HDB-074', 'z-score 2.1', 450],
-    ['social_trend_join', 'keyword=페리오 치약', '검색 -8%', 620],
+    ['neptune_query', `Recommendation × ${category} × ${channel}`, '다양성 점수·노출 집계', 620],
+    ['diversity_calc', `metric=intra-list entropy`, `${category} 다양성 0.31 (낮음)`, 450],
+    ['longtail_monitor', `days=${(period.match(/\d+/) || [30])[0]}`, '롱테일 노출 8% → 보정 후 12%', 620],
   ];
 
-  // Simulate delays
   let delay = 200;
-  calls.forEach(([tool, input, output, ms]) => {
-    setTimeout(() => appendTrace(tool, input, output, ms), delay);
+  calls.forEach(([tool, inp, output, ms]) => {
+    setTimeout(() => appendTrace(tool, inp, output, ms), delay);
     delay += 700;
   });
 
-  // Final answer
+  // 최종 답변 — 추출 엔티티를 본문에 직접 반영해 "내 질문에 반응한다"는 인상
   setTimeout(() => {
+    const focus = `**분석 대상**: ${category} · ${channel} · 기간 ${period} (질의 의도: ${e.intent})`;
     const answer = currentPersona === 'P1' ?
-      '**캠페인 효과 분석 (브랜드 마케터 시각)**\n• 채널별 ROAS: SMS 4.2x · 마트 3.1x · SNS 2.8x\n• 다음 캠페인 제안: SNS 비중 +15% 재배분\n• 예산 1억 시뮬: 응답률 +18% 예상\n\n출처: 자사 캠페인 데이터(real) + 검색 트렌드(external)' :
+      `${focus}\n\n**마케팅 (앱·캠페인) 시각**\n• 라이브 진행자별 전환률: A 12% · B 4% (동일 SKU 핀)\n• ${channel} 캠페인 ROAS: 앱 푸시 4.6x · 라이브 5.2x · SNS 2.9x\n• 핀 직후 5분 GMV spike → 진행자 A 슬롯 확대 제안\n\n출처: LiveStream·앱 캠페인(real) + 검색 트렌드(external)` :
       currentPersona === 'P5' ?
-      '**채널·매장 시각 (MD)**\n• TOP 5 매출 하락 채널: ① 이마트 -18% ② 롯데마트 -14% ③ 자사몰 -9% ④ CU -7% ⑤ 올영 -5%\n• 주요 원인 (근거 시그널):\n  - 폭염 영향 → 칫솔·치약 카테고리 전반 둔화 (KMA 기상)\n  - 경쟁사 신제품 출시 → 페리오 SOV -12% (CompetitorSignal)\n  - 검색 트렌드 -8%, 부정 리뷰 +14% (SocialSignal)\n• MD 액션: 매대 진열 강화 + 1+1 프로모션 4주\n\n출처: POS(real) + 외부 4종(external)' :
-      '**데이터 분석 시각 (D&A)**\n• 매출 z-score 2.1 (이상치 임계 초과)\n• 검색 트렌드 -8% 시차 14일 선행\n• 모델 drift 유의 (predictor distribution shift)\n• 권장: 모델 재학습 + 외부 시그널 weight 조정';
+      `${focus}\n\n**물류·MD 시각**\n• ${region} 24h 배송 SLA 위반률 32% (권역 최고)\n• 주요 원인: 폭우 -50mm (中央氣象署, 시차 1일)\n• 光棍節 다음날 위반 +25% → 발주 +30% 권장\n• 다음 7일 fulfillment 발주 시뮬 완료\n\n출처: DeliverySLA(real) + WeatherSignal(external)` :
+      `${focus}\n\n**검색·추천·MarTech 시각**\n• "${q.slice(0, 20)}…" 다양성 점수 0.31 (intra-list entropy 낮음)\n• 롱테일 노출 8% → 보정 후 12%, 신상 노출 비율 개선\n• A/B: 다양성↑ 후 CTR -2% / GMV +6% (탐색-구매 균형)\n• 권장: 다양성 가중치 상향 + 신상 슬롯 확대\n\n출처: Recommendation 로그(real) + 탐색 행동(synth)`;
     appendChat('assistant', answer);
   }, delay + 300);
 }
 
 // ============= S3. Insight Cards =============
 function renderS3(main) {
-  main.appendChild(header('📊 S3. 카테고리·BU 인사이트 카드',
+  main.appendChild(header('📊 S3. 카테고리 인사이트 카드',
     'Neptune 집계 + AgentCore Code Interpreter (matplotlib) + Sonnet 4.6 페르소나 코멘트'));
 
   const grid = el('div', {class: 'grid grid-cols-2 gap-4'});
 
-  // Card 1: BU 월별 GMV
-  const card1 = insightCard('월별 BU GMV 추이', 'real', 'Beauty (rose) / HDB (sky) / Refreshment (amber)', PERSONAS[currentPersona].comment3_1 || s3PersonaComment(1));
+  // Card 1: 카테고리 월별 GMV
+  const card1 = insightCard('월별 카테고리 GMV 추이', 'real', '3C·가전 (rose) / 뷰티 (sky) / 패션·식품 (amber)', PERSONAS[currentPersona].comment3_1 || s3PersonaComment(1));
   grid.appendChild(card1);
   setTimeout(() => drawBUChart(card1.querySelector('canvas')), 100);
 
-  // Card 2: 자외선차단 vs 기온
-  const card2 = insightCard('자외선차단 GMV vs 기온 (지난 90일)', 'external', 'WeatherSignal 결합 · R² 0.68', s3PersonaComment(2));
+  // Card 2: 여름 계절가전 vs 기온
+  const card2 = insightCard('여름 계절가전(에어컨·선풍기) GMV vs 기온 (지난 90일)', 'external', 'WeatherSignal 결합 · R² 0.68', s3PersonaComment(2));
   grid.appendChild(card2);
   setTimeout(() => drawSunCareChart(card2.querySelector('canvas')), 150);
 
   // Card 3: 검색 트렌드 vs 자사
-  const card3 = insightCard('검색 트렌드 vs 자사 GMV (Beauty)', 'external', 'SocialSignal 듀얼 축', s3PersonaComment(3));
+  const card3 = insightCard('검색 트렌드 vs 자사 GMV (3C·가전)', 'external', 'SocialSignal 듀얼 축', s3PersonaComment(3));
   grid.appendChild(card3);
   setTimeout(() => drawTrendChart(card3.querySelector('canvas')), 200);
 
@@ -485,9 +526,9 @@ function insightCard(title, cohort, subtitle, comment) {
 function s3PersonaComment(cardIdx) {
   const p = currentPersona;
   const tones = {
-    1: { P1: '11월 후 +12%, 사전 SMS 캠페인 효과로 추정. 12월은 SNS 위주 재배분 권장.', P2: 'Beauty BU가 30대 이상 코호트에서 비중 급상승. 새 세그먼트 후보.', P3: '11월 분포가 평년 대비 +1.5σ. 외부(기온) 변수 결합 분석 필요.', P4: 'VIP 등급 적립률 +3pt 상승. 등급 유지 캠페인 효과로 추정.', P5: '11월 GMV +12%, 매대·재고 회전 +0.4. 백화점·올영 매대 확장 제안.' },
-    2: { P1: '기온 ↑5℃ 시 자외선차단 매출 +28%. 5월 캠페인 세팅에 반영.', P2: '여름 진입 시점에 트렌드세터 페르소나 우선 노출.', P3: 'R² 0.68. lag 0~2일 가장 강한 상관. 모델 feature로 추가.', P4: 'VIP에 자외선차단 신상 무료 샘플 큐레이션.', P5: '기온 25℃ 이상 진입 후 진열 50% 확대 권장.' },
-    3: { P1: '"비건뷰티" 검색 +35% → 자사 비건 SKU 캠페인 즉시 재가동.', P2: '키워드 SOV 자사 12%, 경쟁사 21%. SOV 격차 분석 필요.', P3: '검색 → GMV 시차 7일. 단기 수요 예측 모델에 반영.', P4: 'VIP 적립 캠페인에 비건 키워드 결합.', P5: '비건 카테고리 매대 신설 + 신상 5종 도입 제안.' },
+    1: { P1: '11월 후 +12%, 사전 SMS 캠페인 효과로 추정. 12월은 SNS 위주 재배분 권장.', P2: '3C·가전 카테고리가 30대 이상 코호트에서 비중 급상승. 새 세그먼트 후보.', P3: '11월 분포가 평년 대비 +1.5σ. 외부(기온) 변수 결합 분석 필요.', P4: 'VIP 등급 적립률 +3pt 상승. 등급 유지 캠페인 효과로 추정.', P5: '11월 GMV +12%, 재고 회전 +0.4. fulfillment 재고 배분 확대 제안.' },
+    2: { P1: '기온 ↑5℃ 시 여름 계절가전 매출 +28%. 5월 캠페인 세팅에 반영.', P2: '여름 진입 시점에 트렌드세터 페르소나 우선 노출.', P3: 'R² 0.68. lag 0~2일 가장 강한 상관. 모델 feature로 추가.', P4: 'VIP에 여름 계절가전 신상 우선 큐레이션.', P5: '기온 25℃ 이상 진입 후 진열 50% 확대 권장.' },
+    3: { P1: '"캠핑용품" 검색 +35% → 자사 캠핑 SKU 캠페인 즉시 재가동.', P2: '키워드 SOV 자사 12%, 경쟁사 21%. SOV 격차 분석 필요.', P3: '검색 → GMV 시차 7일. 단기 수요 예측 모델에 반영.', P4: 'VIP 적립 캠페인에 캠핑 키워드 결합.', P5: '캠핑 카테고리 매대 신설 + 신상 5종 도입 제안.' },
     4: { P1: '경쟁사 출시 후 자사 GMV -8%, 4주 후 회복. 카운터 캠페인 타이밍.', P2: '경쟁사 SOV +18% 흡수. 자사 페르소나 이탈 모니터링.', P3: '시차 -2주~+4주 영향. 캠페인 효과 분리 고려.', P4: 'VIP 이탈 위험 +6%. 리텐션 혜택 강화.', P5: '신상 출시 4주 내 카운터 프로모션 권장.' },
   };
   return tones[cardIdx][p] || '';
@@ -500,9 +541,9 @@ function drawBUChart(canvas) {
     data: {
       labels: ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'],
       datasets: [
-        { label: 'Beauty', data: [82,85,88,91,95,99,102,98,104,108,121,118], borderColor: '#e11d48', backgroundColor: 'rgba(225,29,72,0.1)', tension: 0.4 },
-        { label: 'HDB', data: [70,72,74,73,75,77,80,82,79,81,84,86], borderColor: '#0284c7', backgroundColor: 'rgba(2,132,199,0.1)', tension: 0.4 },
-        { label: 'Refreshment', data: [58,60,63,65,68,72,76,80,75,72,69,68], borderColor: '#f59e0b', backgroundColor: 'rgba(245,158,11,0.1)', tension: 0.4 },
+        { label: '3C·가전', data: [82,85,88,91,95,99,102,98,104,108,121,118], borderColor: '#e11d48', backgroundColor: 'rgba(225,29,72,0.1)', tension: 0.4 },
+        { label: '뷰티', data: [70,72,74,73,75,77,80,82,79,81,84,86], borderColor: '#0284c7', backgroundColor: 'rgba(2,132,199,0.1)', tension: 0.4 },
+        { label: '패션·식품', data: [58,60,63,65,68,72,76,80,75,72,69,68], borderColor: '#f59e0b', backgroundColor: 'rgba(245,158,11,0.1)', tension: 0.4 },
       ]
     },
     options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: {boxWidth: 8, font: {size: 10}} } }, scales: { y: { ticks: {font: {size: 9}} }, x: { ticks: {font: {size: 9}} } } }
@@ -519,7 +560,7 @@ function drawSunCareChart(canvas) {
   }
   new Chart(canvas, {
     type: 'scatter',
-    data: { datasets: [{ label: '자외선차단 GMV vs 기온', data: points, backgroundColor: '#0ea5e9', pointRadius: 3 }] },
+    data: { datasets: [{ label: '여름 계절가전 GMV vs 기온', data: points, backgroundColor: '#0ea5e9', pointRadius: 3 }] },
     options: { responsive: true, maintainAspectRatio: false, plugins: { legend: {display:false} }, scales: { x: { title: {display: true, text: '기온 °C', font:{size:9}}, ticks:{font:{size:9}} }, y: { title:{display:true, text:'GMV (단위:M)', font:{size:9}}, ticks:{font:{size:9}} } } }
   });
 }
@@ -532,7 +573,7 @@ function drawTrendChart(canvas) {
       labels: ['W1','W2','W3','W4','W5','W6','W7','W8','W9','W10','W11','W12'],
       datasets: [
         { label: '검색 트렌드 (네이버)', data: [40,42,48,55,62,70,68,75,82,80,88,92], borderColor: '#8b5cf6', tension: 0.4, yAxisID: 'y' },
-        { label: '자사 Beauty GMV', data: [82,85,88,91,95,99,102,108,114,118,121,128], borderColor: '#e11d48', tension: 0.4, yAxisID: 'y1' },
+        { label: '자사 3C GMV', data: [82,85,88,91,95,99,102,108,114,118,121,128], borderColor: '#e11d48', tension: 0.4, yAxisID: 'y1' },
       ]
     },
     options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels:{boxWidth:8, font:{size:10}} } }, scales: { y: { position: 'left', ticks:{font:{size:9}} }, y1: { position: 'right', grid:{drawOnChartArea:false}, ticks:{font:{size:9}} }, x: {ticks:{font:{size:9}}} } }
@@ -592,10 +633,10 @@ function renderS4(main) {
   const clusterPanel = el('div', {class: 'bg-white rounded-lg border border-slate-200 p-4 shadow-sm'},
     el('h3', {class: 'font-semibold text-sm mb-3'}, 'KMeans 6 클러스터 (LLM 라벨링)'),
     el('div', {class: 'space-y-2'},
-      clusterRow('C1', '프리미엄 Beauty 충성층', 4200, 'rose', 'R 5 / F 8.2 / M ₩280K'),
+      clusterRow('C1', '프리미엄 3C 얼리어답터', 4200, 'rose', 'R 5 / F 8.2 / M ₩280K'),
       clusterRow('C2', '할인 민감 1인가구', 8800, 'sky', 'R 3 / F 4.1 / M ₩48K'),
       clusterRow('C3', '주말 가족 쇼핑객', 6100, 'amber', 'R 4 / F 5.6 / M ₩125K'),
-      clusterRow('C4', 'HDB 정기구매 키즈맘', 7300, 'pink', 'R 5 / F 7.8 / M ₩98K'),
+      clusterRow('C4', '유아·완구 정기구매 맘', 7300, 'pink', 'R 5 / F 7.8 / M ₩98K'),
       clusterRow('C5', '편의점 음료 트렌드세터', 3900, 'violet', 'R 5 / F 12.4 / M ₩35K'),
       clusterRow('C6', '시니어 신선·생활용품', 5400, 'emerald', 'R 4 / F 6.2 / M ₩72K'),
     )
@@ -655,11 +696,11 @@ function renderS5(main) {
   const campaignPanel = el('div', {class: 'bg-white rounded-lg border border-slate-200 p-4 shadow-sm'},
     el('h3', {class: 'font-semibold text-sm mb-3'}, '캠페인 정의'),
     el('div', {class: 'space-y-2 text-sm'},
-      kvRow('대상 BU', 'Beauty (숨37 신상)'),
-      kvRow('세그먼트', 'VIP + 골드 5만명 (LG 멤버스)'),
+      kvRow('대상 카테고리', '뷰티 (资生堂 신상 라이브)'),
+      kvRow('세그먼트', 'VIP + 골드 5만명 (momo 회원)'),
       kvRow('기간', '2026-05-20 ~ 2026-06-19'),
-      kvRow('예산', '₩100,000,000'),
-      kvRow('타겟', '신제품 도입 30일 ROAS 4.0+ ')
+      kvRow('예산', 'NT$3,000,000'),
+      kvRow('타겟', '신상 도입 30일 ROAS 4.0+ ')
     )
   );
   wrap.appendChild(campaignPanel);
@@ -698,7 +739,7 @@ function drawS5Donut() {
   new Chart(c, {
     type: 'doughnut',
     data: {
-      labels: ['SMS', '카톡', 'SNS 광고', '자사몰 배너', '올영 매대', '인플루언서'],
+      labels: ['앱 푸시', 'LINE', 'SNS 광고', '라이브 배너', '검색 광고', '인플루언서'],
       datasets: [{
         data: [22, 18, 28, 12, 12, 8],
         backgroundColor: ['#e11d48', '#f59e0b', '#8b5cf6', '#0ea5e9', '#10b981', '#ec4899']
@@ -712,7 +753,7 @@ function drawS5Violin() {
   const c = document.getElementById('s5Violin');
   if (!c) return;
   // approximate violin via line area
-  const channels = ['SMS', '카톡', 'SNS 광고', '자사몰 배너', '올영 매대', '인플루언서'];
+  const channels = ['앱 푸시', 'LINE', 'SNS 광고', '라이브 배너', '검색 광고', '인플루언서'];
   const datasets = channels.map((ch, i) => {
     const center = [4.2, 3.8, 5.1, 3.2, 4.5, 4.0][i];
     const spread = 0.6;
@@ -774,7 +815,7 @@ function drawS6Series() {
         { label: '소셜 트렌드 (인덱스)', data: labels.map((_,i) => 50+Math.sin(i/4)*20+i*1.5), borderColor: '#8b5cf6', tension: 0.3, yAxisID: 'y' },
         { label: '기온 (°C)', data: labels.map((_,i) => 12+i*0.4+(Math.random()-0.5)*3), borderColor: '#0ea5e9', tension: 0.3, yAxisID: 'y' },
         { label: '환율 (USD/KRW)', data: labels.map((_,i) => 1300+(Math.random()-0.5)*40), borderColor: '#f59e0b', tension: 0.3, yAxisID: 'y' },
-        { label: '자사 Beauty GMV', data: labels.map((_,i) => 80+i*2+Math.sin(i/3)*8), borderColor: '#e11d48', tension: 0.3, yAxisID: 'y1', borderWidth: 3 },
+        { label: '자사 3C GMV', data: labels.map((_,i) => 80+i*2+Math.sin(i/3)*8), borderColor: '#e11d48', tension: 0.3, yAxisID: 'y1', borderWidth: 3 },
       ]
     },
     options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels:{boxWidth:8, font:{size:10}} } }, scales: { y: { position: 'left', ticks:{font:{size:9}} }, y1: { position: 'right', grid:{drawOnChartArea:false}, ticks:{font:{size:9}} }, x:{ticks:{font:{size:9}, autoSkip:true, maxTicksLimit:10}} } }
@@ -784,7 +825,7 @@ function drawS6Series() {
 function drawS6Heatmap() {
   const div = document.getElementById('s6Heatmap');
   if (!div) return;
-  const cats = ['자외선차단','샴푸','치약','음료','핸드크림'];
+  const cats = ['3C·가전','뷰티','패션','식품','완구'];
   const sigs = ['소셜','기상','환율','경쟁사'];
   // header
   div.innerHTML = '';
@@ -821,16 +862,16 @@ function drawS6Lag() {
 
 // ============= S7. Customer Journey =============
 function renderS7(main) {
-  main.appendChild(header('🛒 S7. 옴니채널 회원 여정 (3 BU 통합)',
-    '단일 LG 멤버스 회원이 자사몰 → SNS 광고 → 올영 → 마트 → CU 가로지르는 단일 타임라인'));
+  main.appendChild(header('🛒 S7. 옴니채널 회원 여정 (앱·라이브·TV·오프라인 통합)',
+    '단일 momo 회원이 앱 검색 → 라이브 방송 → TV홈쇼핑 → 24h배송 → 매장픽업 가로지르는 단일 타임라인'));
 
   // member info
   const memCard = el('div', {class: 'bg-white rounded-lg border border-slate-200 p-4 shadow-sm mb-4 grid grid-cols-5 gap-3'},
-    kvBox('회원 ID', 'cust_a4f2c1', 'real'),
-    kvBox('연령·지역', '30대 / 서울 강남'),
-    kvBox('페르소나', '골드미스 (0.62)'),
-    kvBox('등급 (LG 멤버스)', 'VIP'),
-    kvBox('90일 LTV', '₩2,418,000')
+    kvBox('회원 ID', 'mem_a4f2c1', 'real'),
+    kvBox('연령·지역', '30대 / 台北'),
+    kvBox('페르소나', '라이브 즉흥 구매 (0.62)'),
+    kvBox('등급 (momo 회원)', 'VIP'),
+    kvBox('90일 LTV', 'NT$185,000')
   );
   main.appendChild(memCard);
 
@@ -866,7 +907,7 @@ function drawS7BU() {
   if (!c) return;
   new Chart(c, {
     type: 'doughnut',
-    data: { labels: ['Beauty','HDB','Refreshment'], datasets: [{ data: [62, 28, 10], backgroundColor: ['#e11d48','#0ea5e9','#f59e0b'] }] },
+    data: { labels: ['뷰티','가전','식품'], datasets: [{ data: [62, 28, 10], backgroundColor: ['#e11d48','#0ea5e9','#f59e0b'] }] },
     options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels:{boxWidth:8, font:{size:10}} } } }
   });
 }
@@ -875,11 +916,11 @@ function drawS7Lanes() {
   const div = document.getElementById('s7Lanes');
   if (!div) return;
   const lanes = [
-    { name: '자사몰 (검색·구매)', color: 'rose', events: [{d: 5, label: '검색', icon: '🔍'}, {d: 12, label: '구매(숨37)', icon: '🛒'}, {d: 47, label: '재구매', icon: '🛒'}, {d: 78, label: '리뷰', icon: '⭐'}] },
-    { name: 'SNS 광고 응답', color: 'violet', events: [{d: 3, label: '인스타 클릭', icon: '📱'}, {d: 28, label: '카톡 친구', icon: '💬'}, {d: 56, label: '쇼츠 시청', icon: '🎬'}] },
-    { name: '올리브영 (오프라인)', color: 'emerald', events: [{d: 18, label: 'CNP 구매', icon: '🏪'}, {d: 60, label: '신상 시연', icon: '🏪'}] },
-    { name: '대형마트 (HDB)', color: 'sky', events: [{d: 34, label: '엘라스틴', icon: '🛒'}, {d: 71, label: '자연퐁', icon: '🛒'}] },
-    { name: '편의점 (Refreshment)', color: 'amber', events: [{d: 23, label: '환타', icon: '🥤'}, {d: 52, label: '코카콜라', icon: '🥤'}, {d: 84, label: '토레타', icon: '🥤'}] },
+    { name: '앱 (검색·구매)', color: 'rose', events: [{d: 5, label: '검색', icon: '🔍'}, {d: 12, label: '구매(资生堂)', icon: '🛒'}, {d: 47, label: '재구매', icon: '🛒'}, {d: 78, label: '리뷰', icon: '⭐'}] },
+    { name: '라이브 방송', color: 'violet', events: [{d: 3, label: '방송 시청', icon: '📺'}, {d: 28, label: '핀 클릭', icon: '📌'}, {d: 56, label: '재시청', icon: '🎬'}] },
+    { name: 'TV홈쇼핑', color: 'emerald', events: [{d: 18, label: '공기청정기', icon: '📞'}, {d: 60, label: '신상 주문', icon: '📞'}] },
+    { name: '24시간 배송', color: 'sky', events: [{d: 34, label: '체리 1kg', icon: '🚚'}, {d: 71, label: '펫 사료', icon: '🚚'}] },
+    { name: '매장 픽업', color: 'amber', events: [{d: 23, label: '키즈 태블릿', icon: '🏬'}, {d: 52, label: '텐트', icon: '🏬'}, {d: 84, label: '가전', icon: '🏬'}] },
   ];
 
   div.innerHTML = '';
@@ -909,7 +950,7 @@ function drawS7Lanes() {
   // 핵심 전환 표시
   div.appendChild(el('div', {class: 'mt-3 text-xs bg-slate-50 p-2 rounded text-slate-600'},
     el('div', {class: 'font-semibold mb-1'}, '🌟 핵심 전환'),
-    '• D+12 첫 Beauty 구매 → D+18 올영 매장 방문 → D+47 자사몰 재구매 → 90일 내 VIP 등급 유지'
+    '• D+12 첫 뷰티 구매 → D+18 TV홈쇼핑 주문 → D+47 앱 재구매 → 90일 내 VIP 등급 유지'
   ));
 }
 
@@ -990,6 +1031,368 @@ function testGuardrail(type) {
       el('span', {class: 'text-slate-700'}, s.output)
     )
   ));
+}
+
+// ============= S9-Mo. 라이브 커머스 방송 효과 어트리뷰션 =============
+function renderS9Mo(main) {
+  main.appendChild(header('📺 S9-Mo. 라이브 커머스 방송 효과 어트리뷰션',
+    'LiveViewer (Kinesis→Neptune) + LiveStreamPurchase ~50K + Pin 이벤트 + SocialSignal 결합 어트리뷰션'));
+
+  // 방송 요약 카운트
+  const statGrid = el('div', {class: 'grid grid-cols-4 gap-4 mb-4'},
+    statCard('시청 (Viewer)', 50000, '어제 19시 · 1시간', 'pink'),
+    statCard('카트 담기', 8000, 'Live 세션', 'violet'),
+    statCard('구매 (Purchase)', 3200, 'Live 세션', 'emerald'),
+    statCard('GMV (NT$)', 120000000, 'Live 세션', 'sky')
+  );
+  main.appendChild(statGrid);
+
+  const grid = el('div', {class: 'grid grid-cols-3 gap-4'});
+
+  // 좌: 퍼널 (시청→카트→구매)
+  const funnelCard = el('div', {class: 'bg-white rounded-lg border border-slate-200 p-4 shadow-sm'},
+    el('h3', {class: 'font-semibold text-sm mb-3'}, '전환 퍼널 (시청→카트→구매)'),
+    el('div', {class: 'h-60'}, el('canvas', {id: 's9moFunnel'}))
+  );
+  grid.appendChild(funnelCard);
+
+  // 중앙: 진행자별 GMV + 평점
+  const hostCard = el('div', {class: 'bg-white rounded-lg border border-slate-200 p-4 shadow-sm'},
+    el('h3', {class: 'font-semibold text-sm mb-3'}, '진행자별 GMV + 전환률'),
+    el('div', {class: 'h-60'}, el('canvas', {id: 's9moHost'}))
+  );
+  grid.appendChild(hostCard);
+
+  // 우: SKU 핀 vs 구매 타임라인
+  const pinCard = el('div', {class: 'bg-white rounded-lg border border-slate-200 p-4 shadow-sm'},
+    el('h3', {class: 'font-semibold text-sm mb-3'}, 'SKU 핀 직후 구매 (5분 window)'),
+    el('div', {class: 'h-60'}, el('canvas', {id: 's9moPin'}))
+  );
+  grid.appendChild(pinCard);
+  main.appendChild(grid);
+
+  // 하단: 시청 시간 분포 + 구매 확률 곡선
+  const bottomCard = el('div', {class: 'bg-white rounded-lg border border-slate-200 p-4 shadow-sm mt-4'},
+    el('div', {class: 'flex justify-between items-center mb-3'},
+      el('h3', {class: 'font-semibold text-sm'}, '시청 시간 분포 + 구매 확률 곡선'),
+      el('span', {class: 'text-xs text-pink-600 font-semibold'}, '진행자 A 핀 전환률 12% vs B 4%')
+    ),
+    el('div', {class: 'h-56'}, el('canvas', {id: 's9moDwell'}))
+  );
+  main.appendChild(bottomCard);
+
+  // 인사이트
+  main.appendChild(el('div', {class: 'mt-4 p-3 bg-pink-50 rounded text-xs text-pink-700'},
+    '⭐ 진행자 A 슬롯 시 SKU 핀 직후 5분 GMV spike 확인 → A 방송 편성 확대 + B 진행자 코칭 제안'));
+
+  setTimeout(() => { drawS9moFunnel(); drawS9moHost(); drawS9moPin(); drawS9moDwell(); }, 60);
+}
+
+function drawS9moFunnel(canvas) {
+  const c = document.getElementById('s9moFunnel');
+  if (!c) return;
+  new Chart(c, {
+    type: 'bar',
+    data: {
+      labels: ['시청', '카트', '구매'],
+      datasets: [{ label: '인원', data: [50000, 8000, 3200], backgroundColor: ['#ec4899', '#a855f7', '#10b981'] }]
+    },
+    options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, title: { display: true, text: '시청 5만 → 카트 8천 → 구매 3,200', font: { size: 10 } } }, scales: { x: { ticks: { font: { size: 9 } } }, y: { ticks: { font: { size: 10 } } } } }
+  });
+}
+
+function drawS9moHost(canvas) {
+  const c = document.getElementById('s9moHost');
+  if (!c) return;
+  new Chart(c, {
+    type: 'bar',
+    data: {
+      labels: ['진행자 A', '진행자 B', '진행자 C', '진행자 D'],
+      datasets: [
+        { label: 'GMV (M NT$)', data: [72, 24, 15, 9], backgroundColor: '#ec4899', yAxisID: 'y' },
+        { label: '전환률 (%)', data: [12, 4, 6, 5], backgroundColor: '#a855f7', yAxisID: 'y1', type: 'line', borderColor: '#a855f7', tension: 0.3 },
+      ]
+    },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 8, font: { size: 10 } } } }, scales: { y: { position: 'left', ticks: { font: { size: 9 } } }, y1: { position: 'right', grid: { drawOnChartArea: false }, ticks: { font: { size: 9 } } }, x: { ticks: { font: { size: 9 } } } } }
+  });
+}
+
+function drawS9moPin(canvas) {
+  const c = document.getElementById('s9moPin');
+  if (!c) return;
+  const labels = Array.from({ length: 12 }, (_, i) => `${i * 5}m`);
+  new Chart(c, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        { label: 'SKU 핀 이벤트', data: [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0].map(v => v * 6), backgroundColor: '#f9a8d4' },
+        { label: '구매 (핀 직후 spike)', data: [42, 28, 55, 30, 61, 24, 48, 20, 58, 22, 44, 18], backgroundColor: '#ec4899' },
+      ]
+    },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 8, font: { size: 10 } } } }, scales: { y: { ticks: { font: { size: 9 } } }, x: { ticks: { font: { size: 8 }, autoSkip: true, maxTicksLimit: 8 } } } }
+  });
+}
+
+function drawS9moDwell(canvas) {
+  const c = document.getElementById('s9moDwell');
+  if (!c) return;
+  const labels = Array.from({ length: 13 }, (_, i) => `${i * 5}분`);
+  new Chart(c, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        { label: '시청자 수 (분포)', data: [50000, 42000, 36000, 31000, 27000, 24000, 21000, 18500, 16000, 14000, 12000, 10500, 9000], borderColor: '#ec4899', backgroundColor: 'rgba(236,72,153,0.1)', tension: 0.4, fill: true, yAxisID: 'y' },
+        { label: '구매 확률 (%)', data: [1, 3, 6, 10, 15, 22, 30, 38, 45, 51, 56, 60, 63], borderColor: '#8b5cf6', tension: 0.4, yAxisID: 'y1' },
+      ]
+    },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 8, font: { size: 10 } } } }, scales: { y: { position: 'left', title: { display: true, text: '시청자', font: { size: 9 } }, ticks: { font: { size: 9 } } }, y1: { position: 'right', max: 100, grid: { drawOnChartArea: false }, title: { display: true, text: '구매 확률 %', font: { size: 9 } }, ticks: { font: { size: 9 } } }, x: { ticks: { font: { size: 9 } } } } }
+  });
+}
+
+// ============= S10-Mo. 자체 물류 배송 SLA + 발주 최적화 =============
+function renderS10Mo(main) {
+  main.appendChild(header('🚚 S10-Mo. 자체 물류 배송 SLA + 발주 최적화',
+    'DeliverySLA 로그 ~250K + Fulfillment center 부하 + 권역(북·중·남) + WeatherSignal (中央氣象署) 결합'));
+
+  // SLA 요약 카운트
+  const statGrid = el('div', {class: 'grid grid-cols-4 gap-4 mb-4'},
+    statCard('24h 배송 건수', 250000, '최근 30일', 'sky'),
+    statCard('북부 위반률', 32, '% · 폭우 영향', 'rose'),
+    statCard('光棍節 다음날', 25, '% 위반 증가', 'amber'),
+    statCard('권장 발주 증가', 30, '% · 다음날', 'emerald')
+  );
+  main.appendChild(statGrid);
+
+  const grid = el('div', {class: 'grid grid-cols-2 gap-4'});
+
+  // 좌: 권역별 SLA 위반률 시계열
+  const slaCard = el('div', {class: 'bg-white rounded-lg border border-slate-200 p-4 shadow-sm'},
+    el('h3', {class: 'font-semibold text-sm mb-3'}, '권역별 24h SLA 위반률 (14일)'),
+    el('div', {class: 'h-60'}, el('canvas', {id: 's10moSla'}))
+  );
+  grid.appendChild(slaCard);
+
+  // 우: 외기온 vs SLA 위반 산점도
+  const scatterCard = el('div', {class: 'bg-white rounded-lg border border-slate-200 p-4 shadow-sm'},
+    el('h3', {class: 'font-semibold text-sm mb-3'}, '강수량 vs SLA 위반률 산점도'),
+    el('div', {class: 'h-60'}, el('canvas', {id: 's10moScatter'}))
+  );
+  grid.appendChild(scatterCard);
+  main.appendChild(grid);
+
+  // 중앙: fulfillment center 부하 히트맵 (시간대 × 권역)
+  const heatCard = el('div', {class: 'bg-white rounded-lg border border-slate-200 p-4 shadow-sm mt-4'},
+    el('h3', {class: 'font-semibold text-sm mb-3'}, 'Fulfillment Center 부하 히트맵 (시간대 × 권역)'),
+    el('div', {id: 's10moHeatmap', class: 'space-y-1 text-xs'})
+  );
+  main.appendChild(heatCard);
+
+  // 하단: 다음날 발주 시뮬 카드
+  const simGrid = el('div', {class: 'grid grid-cols-3 gap-4 mt-4'},
+    s10moReorderCard('북부 (台北)', '18,400', '24,000', '+30%', 'rose'),
+    s10moReorderCard('중부 (台中)', '9,200', '10,500', '+14%', 'amber'),
+    s10moReorderCard('남부 (高雄)', '7,800', '8,400', '+8%', 'emerald')
+  );
+  main.appendChild(simGrid);
+
+  main.appendChild(el('div', {class: 'mt-4 p-3 bg-pink-50 rounded text-xs text-pink-700'},
+    '⭐ 폭우 -50mm 시 북부 위반률 시차 1일로 급등 → 光棍節 다음날 대비 발주 +30% + fulfillment 인력 재배치 권장'));
+
+  setTimeout(() => { drawS10moSla(); drawS10moScatter(); drawS10moHeatmap(); }, 60);
+}
+
+function s10moReorderCard(region, stock, recommend, delta, color) {
+  return el('div', {class: 'bg-white rounded-lg border border-slate-200 p-4 shadow-sm'},
+    el('div', {class: 'font-semibold text-sm mb-2'}, region),
+    el('div', {class: 'space-y-1'},
+      kvRow('현재 재고', stock),
+      kvRow('예상 수요 (7일)', recommend),
+      kvRow('권장 발주', delta)
+    ),
+    el('div', {class: `mt-2 text-center text-xs px-2 py-1 rounded bg-${color}-100 text-${color}-700 font-semibold`}, `발주 ${delta}`)
+  );
+}
+
+function drawS10moSla(canvas) {
+  const c = document.getElementById('s10moSla');
+  if (!c) return;
+  const labels = Array.from({ length: 14 }, (_, i) => `D-${14 - i}`);
+  new Chart(c, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        { label: '북부', data: [12, 14, 13, 18, 32, 28, 22, 16, 14, 15, 30, 25, 18, 14], borderColor: '#ef4444', tension: 0.3 },
+        { label: '중부', data: [8, 9, 8, 10, 14, 12, 11, 9, 8, 9, 13, 11, 9, 8], borderColor: '#f59e0b', tension: 0.3 },
+        { label: '남부', data: [6, 7, 6, 7, 9, 8, 7, 6, 6, 7, 8, 7, 6, 6], borderColor: '#10b981', tension: 0.3 },
+      ]
+    },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 8, font: { size: 10 } } } }, scales: { y: { title: { display: true, text: 'SLA 위반률 %', font: { size: 9 } }, ticks: { font: { size: 9 } } }, x: { ticks: { font: { size: 8 }, autoSkip: true, maxTicksLimit: 8 } } } }
+  });
+}
+
+function drawS10moScatter(canvas) {
+  const c = document.getElementById('s10moScatter');
+  if (!c) return;
+  const points = [];
+  for (let i = 0; i < 80; i++) {
+    const rain = Math.random() * 60;
+    const viol = 6 + rain * 0.5 + (Math.random() - 0.5) * 8;
+    points.push({ x: rain, y: Math.max(2, viol) });
+  }
+  new Chart(c, {
+    type: 'scatter',
+    data: { datasets: [{ label: '강수량 vs 위반률', data: points, backgroundColor: '#ec4899', pointRadius: 3 }] },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { title: { display: true, text: '강수량 mm', font: { size: 9 } }, ticks: { font: { size: 9 } } }, y: { title: { display: true, text: 'SLA 위반률 %', font: { size: 9 } }, ticks: { font: { size: 9 } } } } }
+  });
+}
+
+function drawS10moHeatmap() {
+  const div = document.getElementById('s10moHeatmap');
+  if (!div) return;
+  const hours = ['00-06', '06-12', '12-18', '18-24'];
+  const regions = ['북부', '중부', '남부'];
+  const load = {
+    '북부': [0.42, 0.78, 0.91, 0.85],
+    '중부': [0.31, 0.55, 0.68, 0.62],
+    '남부': [0.24, 0.44, 0.52, 0.48],
+  };
+  div.innerHTML = '';
+  const head = el('div', { class: 'grid gap-1 font-semibold text-slate-500', style: 'grid-template-columns: 80px repeat(4, 1fr)' },
+    el('div', {}, ''),
+    ...hours.map(h => el('div', { class: 'text-center' }, h))
+  );
+  div.appendChild(head);
+  regions.forEach(region => {
+    const row = el('div', { class: 'grid gap-1', style: 'grid-template-columns: 80px repeat(4, 1fr)' });
+    row.appendChild(el('div', { class: 'font-semibold text-slate-700' }, region));
+    load[region].forEach(v => {
+      const color = `rgba(236, 72, 153, ${v})`;
+      row.appendChild(el('div', { class: 'text-center font-mono py-1 rounded', style: `background: ${color}; color: ${v > 0.5 ? '#fff' : '#1e293b'}` }, (v * 100).toFixed(0) + '%'));
+    });
+    div.appendChild(row);
+  });
+}
+
+// ============= S11-Mo. 모바일 앱 추천·검색 다양성 =============
+function renderS11Mo(main) {
+  main.appendChild(header('🎲 S11-Mo. 모바일 앱 추천·검색 다양성',
+    'intra-list entropy 다양성 점수 + 신상 노출 비율 + 롱테일 노출률 + 탐색-구매 균형 최적화'));
+
+  // 다양성 요약 카운트
+  const statGrid = el('div', {class: 'grid grid-cols-4 gap-4 mb-4'},
+    statCard('다양성 점수', 31, '"여름텐트" · /100', 'rose'),
+    statCard('신상 노출 비율', 14, '% · 앱 홈', 'violet'),
+    statCard('롱테일 노출률', 8, '% → 보정 12%', 'amber'),
+    statCard('탐색-구매 균형', 62, '/100', 'sky')
+  );
+  main.appendChild(statGrid);
+
+  const grid = el('div', {class: 'grid grid-cols-3 gap-4'});
+
+  // 좌: 카테고리별 다양성 점수
+  const divCard = el('div', {class: 'bg-white rounded-lg border border-slate-200 p-4 shadow-sm'},
+    el('h3', {class: 'font-semibold text-sm mb-3'}, '카테고리별 다양성 점수'),
+    el('div', {class: 'h-60'}, el('canvas', {id: 's11moDiv'}))
+  );
+  grid.appendChild(divCard);
+
+  // 중앙: 신상·롱테일 노출 시계열
+  const expCard = el('div', {class: 'bg-white rounded-lg border border-slate-200 p-4 shadow-sm'},
+    el('h3', {class: 'font-semibold text-sm mb-3'}, '신상·롱테일 노출 시계열 (보정 전후)'),
+    el('div', {class: 'h-60'}, el('canvas', {id: 's11moExp'}))
+  );
+  grid.appendChild(expCard);
+
+  // 우: 탐색-구매 균형 점수
+  const balanceCard = el('div', {class: 'bg-white rounded-lg border border-slate-200 p-4 shadow-sm'},
+    el('h3', {class: 'font-semibold text-sm mb-3'}, '탐색-구매 균형'),
+    el('div', {class: 'space-y-2 text-sm'},
+      kvRow('탐색 세션 비율', '58%'),
+      kvRow('구매 전환 세션', '42%'),
+      kvRow('평균 조회 카테고리', '4.2'),
+      kvRow('추천 클릭 다양성', '0.47'),
+      kvRow('균형 점수', '62 / 100')
+    ),
+    el('div', {class: 'mt-3 p-2 bg-sky-50 rounded text-xs text-sky-700'},
+      '탐색 우위 → 다양성 상향 시 구매 전환과의 균형 유지 필요')
+  );
+  grid.appendChild(balanceCard);
+  main.appendChild(grid);
+
+  // 하단: 다양성↑ A/B 결과 카드
+  const abGrid = el('div', {class: 'grid grid-cols-2 gap-4 mt-4'});
+  const abCard = el('div', {class: 'bg-white rounded-lg border border-slate-200 p-4 shadow-sm'},
+    el('h3', {class: 'font-semibold text-sm mb-3'}, '🎯 다양성↑ A/B 결과'),
+    el('div', {class: 'space-y-2 text-sm'},
+      kvRow('실험군', '다양성 가중치 +30%'),
+      kvRow('CTR 변화', '-2% (미미)'),
+      kvRow('GMV 변화', '+6%'),
+      kvRow('롱테일 노출', '8% → 12%'),
+      kvRow('결론', '다양성↑ 채택 권장')
+    ),
+    el('div', {class: 'mt-3 p-2 bg-emerald-50 rounded text-xs text-emerald-700'},
+      '⭐ 다양성 상향 시 CTR -2% 손실 대비 GMV +6% 이득 → 롱테일 노출 확대 정책 채택')
+  );
+  abGrid.appendChild(abCard);
+
+  const abChartCard = el('div', {class: 'bg-white rounded-lg border border-slate-200 p-4 shadow-sm'},
+    el('h3', {class: 'font-semibold text-sm mb-3'}, 'A/B 지표 비교 (대조군 vs 다양성↑)'),
+    el('div', {class: 'h-52'}, el('canvas', {id: 's11moAb'}))
+  );
+  abGrid.appendChild(abChartCard);
+  main.appendChild(abGrid);
+
+  setTimeout(() => { drawS11moDiv(); drawS11moExp(); drawS11moAb(); }, 60);
+}
+
+function drawS11moDiv(canvas) {
+  const c = document.getElementById('s11moDiv');
+  if (!c) return;
+  new Chart(c, {
+    type: 'bar',
+    data: {
+      labels: ['여름텐트', '뷰티', '가전', '식품', '키즈', '펫'],
+      datasets: [{ label: '다양성 점수', data: [31, 68, 55, 72, 61, 58], backgroundColor: ['#ef4444', '#10b981', '#f59e0b', '#10b981', '#a855f7', '#0ea5e9'] }]
+    },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, title: { display: true, text: '"여름텐트" 0.31 (낮음) 자동 강조', font: { size: 10 } } }, scales: { y: { max: 100, title: { display: true, text: '다양성 /100', font: { size: 9 } }, ticks: { font: { size: 9 } } }, x: { ticks: { font: { size: 9 } } } } }
+  });
+}
+
+function drawS11moExp(canvas) {
+  const c = document.getElementById('s11moExp');
+  if (!c) return;
+  const labels = Array.from({ length: 12 }, (_, i) => `W${i + 1}`);
+  new Chart(c, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        { label: '신상 노출 %', data: [10, 11, 10, 12, 11, 13, 12, 14, 13, 15, 14, 16], borderColor: '#a855f7', tension: 0.4 },
+        { label: '롱테일 노출 % (보정 전)', data: [8, 7, 8, 8, 7, 8, 8, 7, 8, 8, 7, 8], borderColor: '#94a3b8', borderDash: [4, 3], tension: 0.4 },
+        { label: '롱테일 노출 % (보정 후)', data: [8, 9, 10, 11, 11, 12, 12, 12, 12, 12, 12, 12], borderColor: '#ec4899', tension: 0.4 },
+      ]
+    },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 8, font: { size: 9 } } } }, scales: { y: { title: { display: true, text: '노출 비율 %', font: { size: 9 } }, ticks: { font: { size: 9 } } }, x: { ticks: { font: { size: 9 } } } } }
+  });
+}
+
+function drawS11moAb(canvas) {
+  const c = document.getElementById('s11moAb');
+  if (!c) return;
+  new Chart(c, {
+    type: 'bar',
+    data: {
+      labels: ['CTR', 'GMV', '롱테일 노출', '다양성 점수'],
+      datasets: [
+        { label: '대조군', data: [100, 100, 8, 31], backgroundColor: '#94a3b8' },
+        { label: '다양성↑', data: [98, 106, 12, 52], backgroundColor: '#ec4899' },
+      ]
+    },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 8, font: { size: 10 } } } }, scales: { y: { ticks: { font: { size: 9 } } }, x: { ticks: { font: { size: 9 } } } } }
+  });
 }
 
 // ============= KG Graph helper =============
