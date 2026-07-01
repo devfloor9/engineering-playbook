@@ -95,12 +95,12 @@ Same as LG H&H + multilingual (Traditional Chinese, Japanese, English), live FX 
 | 4 | **S11-M** ⭐ VIP concierge | "Pre-sale recommendation for a Black-tier member" | 5 min |
 | 5 | **S2** Persona chatbot | "Anniversary Sale ROAS" P1 vs P5 comparison | 4 min |
 
-Details: [99. Demo Storytelling](./demo-storytelling)
+Details: [99. Demo Storytelling](./99-demo-storytelling.md)
 
 ---
 
 ## 7. Deliverable Index
 
-- [01. Personas](./personas) · [02. Ontology](./ontology) · [03. Scenarios](./scenarios) · [04. Data Sources](./data-sources) · [05. Architecture](./architecture)
-- [06. Design Specs](./06-design-spec/S1-semantic-search) (11)
-- [99. Demo Storytelling](./demo-storytelling)
+- [01. Personas](./01-personas.md) · [02. Ontology](./02-ontology.md) · [03. Scenarios](./03-scenarios.md) · [04. Data Sources](./04-data-sources.md) · [05. Architecture](./05-architecture.md)
+- [06. Design Specs](./06-design-spec/S1-semantic-search.md) (11)
+- [99. Demo Storytelling](./99-demo-storytelling.md)

@@ -106,16 +106,16 @@ Channels: in-house e-commerce (amway.com) · ABO direct selling · catalog · mo
 | 4 | **S2** Persona chatbot | "Upline revisit recommendation" P1 vs P5 (Compliance) | 5 min |
 | 5 | **S11-A** ⭐ Compliance | Demonstration of blocking a minor's ABO sign-up attempt | 3 min |
 
-Details: [99. Demo Storytelling](./demo-storytelling)
+Details: [99. Demo Storytelling](./99-demo-storytelling.md)
 
 ---
 
 ## 7. Deliverables Index
 
-- [01. Personas](./personas) — 5-department personas
-- [02. Ontology](./ontology) — 25 KG classes (emphasizing ABO Tree and Subscription)
-- [03. Scenarios](./scenarios) — 11-scenario mapping
-- [04. Data Sources](./data-sources) — In-house + 4 external sources
-- [05. Architecture](./architecture) — Single AWS architecture
-- [06. Design Specs](./06-design-spec/S1-semantic-search) — 11-scenario specifications
-- [99. Demo Storytelling](./demo-storytelling) — 30-minute demo script
+- [01. Personas](./01-personas.md) — 5-department personas
+- [02. Ontology](./02-ontology.md) — 25 KG classes (emphasizing ABO Tree and Subscription)
+- [03. Scenarios](./03-scenarios.md) — 11-scenario mapping
+- [04. Data Sources](./04-data-sources.md) — In-house + 4 external sources
+- [05. Architecture](./05-architecture.md) — Single AWS architecture
+- [06. Design Specs](./06-design-spec/S1-semantic-search.md) — 11-scenario specifications
+- [99. Demo Storytelling](./99-demo-storytelling.md) — 30-minute demo script

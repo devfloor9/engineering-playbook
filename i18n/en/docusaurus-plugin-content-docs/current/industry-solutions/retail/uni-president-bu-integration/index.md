@@ -99,6 +99,6 @@ Same as LG H&H + reinforced cross-BU ETL via Glue, TimeStream for cold chain, ~9
 
 ## 7. Deliverables
 
-- [01. Personas](./personas) · [02. Ontology](./ontology) · [03. Scenarios](./scenarios) · [04. Data Sources](./data-sources) · [05. Architecture](./architecture)
-- [06. Design Specs](./06-design-spec/S1-semantic-search) (11)
-- [99. Demo Storytelling](./demo-storytelling)
+- [01. Personas](./01-personas.md) · [02. Ontology](./02-ontology.md) · [03. Scenarios](./03-scenarios.md) · [04. Data Sources](./04-data-sources.md) · [05. Architecture](./05-architecture.md)
+- [06. Design Specs](./06-design-spec/S1-semantic-search.md) (11)
+- [99. Demo Storytelling](./99-demo-storytelling.md)

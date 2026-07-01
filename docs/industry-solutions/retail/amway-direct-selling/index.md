@@ -106,16 +106,16 @@ sidebar_label: Overview
 | 4 | **S2** 페르소나 챗봇 | "Upline 재방문 추천" P1 vs P5 (Compliance) | 5분 |
 | 5 | **S11-A** ⭐ 컴플라이언스 | 미성년 ABO 가입 시도 차단 시연 | 3분 |
 
-상세: [99. Demo Storytelling](./demo-storytelling)
+상세: [99. Demo Storytelling](./99-demo-storytelling.md)
 
 ---
 
 ## 7. 산출물 인덱스
 
-- [01. Personas](./personas) — 5 부서 페르소나
-- [02. Ontology](./ontology) — KG 25 클래스 (ABO Tree·Subscription 강조)
-- [03. Scenarios](./scenarios) — 11 시나리오 매핑
-- [04. Data Sources](./data-sources) — 자사 + 외부 4종
-- [05. Architecture](./architecture) — AWS 단일 아키텍처
-- [06. Design Specs](./06-design-spec/S1-semantic-search) — 11 시나리오 명세
-- [99. Demo Storytelling](./demo-storytelling) — 30분 시연 스크립트
+- [01. Personas](./01-personas.md) — 5 부서 페르소나
+- [02. Ontology](./02-ontology.md) — KG 25 클래스 (ABO Tree·Subscription 강조)
+- [03. Scenarios](./03-scenarios.md) — 11 시나리오 매핑
+- [04. Data Sources](./04-data-sources.md) — 자사 + 외부 4종
+- [05. Architecture](./05-architecture.md) — AWS 단일 아키텍처
+- [06. Design Specs](./06-design-spec/S1-semantic-search.md) — 11 시나리오 명세
+- [99. Demo Storytelling](./99-demo-storytelling.md) — 30분 시연 스크립트

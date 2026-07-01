@@ -97,6 +97,6 @@ LG H&H 동일 + 라이브 스트림 어트리뷰션 (Kinesis), 배송 SLA (TimeS
 
 ## 7. 산출물
 
-- [01. Personas](./personas) · [02. Ontology](./ontology) · [03. Scenarios](./scenarios) · [04. Data Sources](./data-sources) · [05. Architecture](./architecture)
-- [06. Design Specs](./06-design-spec/S1-semantic-search) (11)
-- [99. Demo Storytelling](./demo-storytelling)
+- [01. Personas](./01-personas.md) · [02. Ontology](./02-ontology.md) · [03. Scenarios](./03-scenarios.md) · [04. Data Sources](./04-data-sources.md) · [05. Architecture](./05-architecture.md)
+- [06. Design Specs](./06-design-spec/S1-semantic-search.md) (11)
+- [99. Demo Storytelling](./99-demo-storytelling.md)
