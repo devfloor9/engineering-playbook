@@ -76,7 +76,7 @@ Switch between the 8 scenarios in the sidebar to directly experience core UI pat
 | **S7** | Omnichannel member journey | Owned mall → SNS ads → Olive Young → Mart → Repurchase |
 | **S8** | Marketing consent · PII · minor guardrails | Bedrock Guardrails + cosmetics guard |
 
-Detailed mapping: [03. Scenarios](./scenarios)
+Detailed mapping: [03. Scenarios](./03-scenarios.md)
 
 ---
 
@@ -105,7 +105,7 @@ Detailed mapping: [03. Scenarios](./scenarios)
 | **Data** | S3 + DynamoDB (sessions) + Glue (external data ETL) |
 | **Governance** | Bedrock Guardrails (4 topics + consent + minor) |
 
-Details: [05. Architecture](./architecture)
+Details: [05. Architecture](./05-architecture.md)
 
 ---
 
@@ -119,16 +119,16 @@ Details: [05. Architecture](./architecture)
 | 4 | **S5 Campaign ROAS** | Bayesian attribution + channel mix | 4 min |
 | 5 | **S7 Member Journey** | Omnichannel single timeline | 3 min |
 
-Details: [99. Demo Storytelling](./demo-storytelling)
+Details: [99. Demo Storytelling](./99-demo-storytelling.md)
 
 ---
 
 ## 8. Deliverables Index
 
-- [01. Personas](./personas) — 5-department persona definitions
-- [02. Ontology](./ontology) — KG 25 classes + Mermaid
-- [03. Scenarios](./scenarios) — 8-scenario mapping + prioritization
-- [04. Data Sources](./data-sources) — First-party + 4 external types specification
-- [05. Architecture](./architecture) — AWS single architecture
-- [06. Design Specs](./06-design-spec/S1-semantic-search) — Design specs for 8 scenarios
-- [99. Demo Storytelling](./demo-storytelling) — 30-minute demo script
+- [01. Personas](./01-personas.md) — 5-department persona definitions
+- [02. Ontology](./02-ontology.md) — KG 25 classes + Mermaid
+- [03. Scenarios](./03-scenarios.md) — 8-scenario mapping + prioritization
+- [04. Data Sources](./04-data-sources.md) — First-party + 4 external types specification
+- [05. Architecture](./05-architecture.md) — AWS single architecture
+- [06. Design Specs](./06-design-spec/S1-semantic-search.md) — Design specs for 8 scenarios
+- [99. Demo Storytelling](./99-demo-storytelling.md) — 30-minute demo script

@@ -20,7 +20,7 @@ sidebar_label: Industry Solutions
 ### Retail
 종합 이커머스 / 오프라인 대형 리테일 / 생활용품·뷰티·음료 제조-유통 등 리테일 산업 도메인.
 
-- **[LG H&H Marketing Innovation PoC](./retail/lg-hnh-marketing-innovation/)** — Beauty + HDB + Refreshment 3 BU 통합 마케팅 혁신 PoC. 자사 데이터 + 외부 4종 시그널 × Ontology + Agentic AI 8 시나리오 데모
+- **[LG H&H Marketing Innovation PoC](./retail/lg-hnh-marketing-innovation/index.md)** — Beauty + HDB + Refreshment 3 BU 통합 마케팅 혁신 PoC. 자사 데이터 + 외부 4종 시그널 × Ontology + Agentic AI 8 시나리오 데모
 
 ### Energy (예정)
 정유·주유 네트워크 멤버십·캠페인.

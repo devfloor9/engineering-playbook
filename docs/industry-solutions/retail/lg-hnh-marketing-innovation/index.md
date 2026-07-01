@@ -76,7 +76,7 @@ sidebar_label: Overview
 | **S7** | 옴니채널 회원 여정 | 자사몰→SNS 광고→올영→마트→재구매 |
 | **S8** | 마케팅 동의·PII·미성년 가드레일 | Bedrock Guardrails + 화장품 가드 |
 
-상세 매핑: [03. Scenarios](./scenarios)
+상세 매핑: [03. Scenarios](./03-scenarios.md)
 
 ---
 
@@ -105,7 +105,7 @@ sidebar_label: Overview
 | **Data** | S3 + DynamoDB (세션) + Glue (외부 데이터 ETL) |
 | **거버넌스** | Bedrock Guardrails (4 토픽 + 동의 + 미성년) |
 
-상세: [05. Architecture](./architecture)
+상세: [05. Architecture](./05-architecture.md)
 
 ---
 
@@ -119,16 +119,16 @@ sidebar_label: Overview
 | 4 | **S5 캠페인 ROAS** | Bayesian 어트리뷰션 + 채널 믹스 | 4분 |
 | 5 | **S7 회원 여정** | 옴니채널 단일 타임라인 | 3분 |
 
-상세: [99. Demo Storytelling](./demo-storytelling)
+상세: [99. Demo Storytelling](./99-demo-storytelling.md)
 
 ---
 
 ## 8. 산출물 인덱스
 
-- [01. Personas](./personas) — 5 부서 페르소나 정의
-- [02. Ontology](./ontology) — KG 25 클래스 + Mermaid
-- [03. Scenarios](./scenarios) — 8 시나리오 매핑 + 우선순위
-- [04. Data Sources](./data-sources) — 자사 + 외부 4종 명세
-- [05. Architecture](./architecture) — AWS 단일 아키텍처
-- [06. Design Specs](./06-design-spec/S1-semantic-search) — 8 시나리오 디자인 명세
-- [99. Demo Storytelling](./demo-storytelling) — 30분 시연 스크립트
+- [01. Personas](./01-personas.md) — 5 부서 페르소나 정의
+- [02. Ontology](./02-ontology.md) — KG 25 클래스 + Mermaid
+- [03. Scenarios](./03-scenarios.md) — 8 시나리오 매핑 + 우선순위
+- [04. Data Sources](./04-data-sources.md) — 자사 + 외부 4종 명세
+- [05. Architecture](./05-architecture.md) — AWS 단일 아키텍처
+- [06. Design Specs](./06-design-spec/S1-semantic-search.md) — 8 시나리오 디자인 명세
+- [99. Demo Storytelling](./99-demo-storytelling.md) — 30분 시연 스크립트

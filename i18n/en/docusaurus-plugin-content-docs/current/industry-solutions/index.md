@@ -20,7 +20,7 @@ sidebar_label: Industry Solutions
 ### Retail
 Comprehensive e-commerce, large-scale offline retail, household goods, beauty, beverages manufacturing-distribution, and other retail industry domains.
 
-- **[LG H&H Marketing Innovation PoC](./retail/lg-hnh-marketing-innovation/)** — Integrated marketing innovation PoC across 3 BUs (Beauty + HDB + Refreshment). First-party data + 4 external signals × Ontology + Agentic AI 8-scenario demo.
+- **[LG H&H Marketing Innovation PoC](./retail/lg-hnh-marketing-innovation/index.md)** — Integrated marketing innovation PoC across 3 BUs (Beauty + HDB + Refreshment). First-party data + 4 external signals × Ontology + Agentic AI 8-scenario demo.
 
 ### Energy (Planned)
 Refining, gas station network memberships, and campaigns.
