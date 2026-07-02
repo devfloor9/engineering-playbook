@@ -19,7 +19,7 @@ sidebar_label: Overview
 
 ## 🚀 인터랙티브 데모
 
-> **[👉 데모 페이지 열기 (새 창)](/engineering-playbook/demo/upi/)**
+> <strong><a href="/engineering-playbook/demo/upi/" target="_blank" rel="noopener noreferrer">👉 데모 페이지 열기 (새 창)</a></strong>
 
 11 시나리오 + BU 가로지르는 OPENPOINT 회원 여정·콜드체인 SLA·자사 SKU sell-through 등 핵심 UI 직접 체험.
 

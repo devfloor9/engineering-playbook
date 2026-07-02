@@ -19,7 +19,7 @@ sidebar_label: Overview
 
 ## 🚀 인터랙티브 데모
 
-> **[👉 데모 페이지 열기 (새 창)](/engineering-playbook/demo/lg-hnh/)**
+> <strong><a href="/engineering-playbook/demo/lg-hnh/" target="_blank" rel="noopener noreferrer">👉 데모 페이지 열기 (새 창)</a></strong>
 
 8 시나리오를 사이드바에서 전환하며 페르소나 스위처·차트·KG 그래프·SSE 챗봇 트레이스·Swimlane 타임라인 등 핵심 UI 패턴을 직접 체험할 수 있습니다.
 

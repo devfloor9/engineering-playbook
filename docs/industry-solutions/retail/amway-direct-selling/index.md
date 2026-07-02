@@ -19,7 +19,7 @@ sidebar_label: Overview
 
 ## 🚀 인터랙티브 데모
 
-> **[👉 데모 페이지 열기 (새 창)](/engineering-playbook/demo/amway/)**
+> <strong><a href="/engineering-playbook/demo/amway/" target="_blank" rel="noopener noreferrer">👉 데모 페이지 열기 (새 창)</a></strong>
 
 11 시나리오를 사이드바에서 전환하며 ABO 조직 트리·페르소나 스위처·정기구독 분석·차트·KG 그래프 등 핵심 UI를 직접 체험할 수 있습니다.
 

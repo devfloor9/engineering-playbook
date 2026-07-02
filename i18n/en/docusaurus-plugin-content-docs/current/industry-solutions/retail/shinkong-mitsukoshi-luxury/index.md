@@ -19,7 +19,7 @@ VIP membership across 19 Shinkong Mitsukoshi stores, 700+ luxury tenant brands, 
 
 ## 🚀 Interactive Demo
 
-> **[👉 Open demo page (new window)](/engineering-playbook/demo/mitsukoshi/)**
+> <strong><a href="/engineering-playbook/demo/mitsukoshi/" target="_blank" rel="noopener noreferrer">👉 Open demo page (new window)</a></strong>
 
 Switch between 11 scenarios from the sidebar to experience the persona switcher, foreign tourist analysis, luxury SOV, and VIP concierge UIs hands-on.
 

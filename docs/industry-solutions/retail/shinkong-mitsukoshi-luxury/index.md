@@ -19,7 +19,7 @@ sidebar_label: Overview
 
 ## 🚀 인터랙티브 데모
 
-> **[👉 데모 페이지 열기 (새 창)](/engineering-playbook/demo/mitsukoshi/)**
+> <strong><a href="/engineering-playbook/demo/mitsukoshi/" target="_blank" rel="noopener noreferrer">👉 데모 페이지 열기 (새 창)</a></strong>
 
 11 시나리오를 사이드바에서 전환하며 페르소나 스위처·외국인 관광객 분석·럭셔리 SOV·VIP 컨시어지 등 핵심 UI를 직접 체험.
 

@@ -19,7 +19,7 @@ A **working demonstration** that semantically connects scattered data so that 5 
 
 ## Interactive Demo
 
-> **[Open Demo Page (new window)](/engineering-playbook/demo/lg-hnh/)**
+> <strong><a href="/engineering-playbook/demo/lg-hnh/" target="_blank" rel="noopener noreferrer">👉 Open Demo Page (new window)</a></strong>
 
 Switch between the 8 scenarios in the sidebar to directly experience core UI patterns such as the persona switcher, charts, KG graphs, SSE chatbot traces, and Swimlane timelines.
 

@@ -19,7 +19,7 @@ Momo (富邦媒 / momo.com)'s millions of SKUs, TV home-shopping and live commer
 
 ## 🚀 Interactive Demo
 
-> **[👉 Open the demo page (new window)](/engineering-playbook/demo/momo/)**
+> <strong><a href="/engineering-playbook/demo/momo/" target="_blank" rel="noopener noreferrer">👉 Open the demo page (new window)</a></strong>
 
 Hands-on with 11 scenarios plus the core UIs for live-commerce attribution, delivery SLA, and recommendation diversity.
 

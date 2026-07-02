@@ -19,7 +19,7 @@ For Uni-President (統一企業), this PoC unifies its own BUs (Uni-President Fo
 
 ## 🚀 Interactive Demo
 
-> **[👉 Open Demo Page (new window)](/engineering-playbook/demo/upi/)**
+> <strong><a href="/engineering-playbook/demo/upi/" target="_blank" rel="noopener noreferrer">👉 Open Demo Page (new window)</a></strong>
 
 Experience the core UIs hands-on: 11 scenarios + cross-BU OPENPOINT member journey, cold-chain SLA, and own-SKU sell-through.
 

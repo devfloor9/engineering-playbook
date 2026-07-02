@@ -19,7 +19,7 @@ A working demonstration that integrates the ABO (Amway Business Owner) multi-lev
 
 ## 🚀 Interactive Demo
 
-> **[👉 Open Demo Page (new window)](/engineering-playbook/demo/amway/)**
+> <strong><a href="/engineering-playbook/demo/amway/" target="_blank" rel="noopener noreferrer">👉 Open Demo Page (new window)</a></strong>
 
 Switch between 11 scenarios in the sidebar to interact with the core UI: ABO organization tree, persona switcher, subscription analytics, charts, KG graph, and more.
 
