@@ -3,8 +3,8 @@ title: AgentCore Hybrid Strategy
 description: Decision framework and pattern catalog for combining Bedrock AgentCore managed service with EKS-based self-hosted agents in hybrid deployment
 created: "2026-04-18"
 last_update:
-  date: "2026-04-20"
-  author: devfloor9
+  date: "2026-07-03"
+  author: YoungJoon Jeong
 reading_time: 21
 tags:
   - agentcore
@@ -16,23 +16,13 @@ sidebar_label: AgentCore Hybrid Strategy
 sidebar_position: 5
 ---
 
-:::info Verification Status
-The implementation samples in this document (IAM OAuth propagation, Lambda Trace Forwarder, Dual-write Memory, Cost-arbitrage Router) are **for design reference** and have no E2E integration test history for AgentCore·EKS combinations in us-east-2 after teardown (2026-04-18). E2E verification for IAM boundaries, Trace correlation, and 3 PrivateLink endpoint types will be performed before Phase 3 deployment.
-:::
-
-:::caution Verification Pending
-Decision Matrix 8-axis weights, Hand-off pattern catalog, IAM session sharing flow, and migration roadmap are in pre-review state awaiting MLOps lead review and real-deployment E2E verification. Value footnotes and banner will be updated upon validation.
-
-Deployment verification tracking: [Issue #6](https://github.com/devfloor9/engineering-playbook/issues/6)
-:::
-
 ## Overview
 
-Bedrock AgentCore is a powerful managed Agent platform, but enterprise environments often require combination with self-hosted infrastructure. This document provides a decision framework and validated pattern catalog for designing optimal hybrid architecture that **combines AgentCore's serverless advantages with EKS-based Self-hosted infrastructure flexibility**.
+Bedrock AgentCore is a powerful managed Agent platform, but enterprise environments often require combination with self-hosted infrastructure. This document provides a decision framework and pattern catalog for designing optimal hybrid architecture that **combines AgentCore's serverless advantages with EKS-based Self-hosted infrastructure flexibility**.
 
 :::info Prerequisite Documents
 Before reading this document, refer to:
-- [AWS Native Platform](./aws-native-agentic-platform.md) — AgentCore 7-service overview (avoid duplication)
+- [AWS Native Platform](./aws-native-agentic-platform.md) — AgentCore service overview (avoid duplication)
 - [EKS-based Open Architecture](./agentic-ai-solutions-eks.md) — Self-hosted stack composition
 - [AI Platform Selection Guide](./ai-platform-decision-framework.md) — Managed vs open-source decision
 - [SageMaker-EKS Integration](../../reference-architecture/integrations/sagemaker-eks-integration.md) — Hybrid VPC/IAM reference
@@ -45,10 +35,10 @@ Before reading this document, refer to:
 ### Single Approach Limitations
 
 **Constraints of AgentCore Only**:
-- Bedrock GA 100+ model-centric (cannot host self fine-tuned SLMs)
+- Custom models served only via Custom Model Import (no inference-engine-level control such as vLLM)
 - Token-based pricing (cost increase for high-frequency simple tasks)
 - Latency with on-premises data sources
-- Complex PrivateLink setup when MCP servers are inside VPC
+- VPC connectivity or PrivateLink configuration required for VPC-internal tool access
 
 **Constraints of EKS Self-hosted Only**:
 - Agent Runtime infrastructure operational burden (Kagent Pod + Redis State Store)
@@ -117,8 +107,8 @@ Evaluate agent placement using 8 core dimensions.
 |--------|-----------|------------|--------|----------|
 | **Inference Latency** | Medium (50-200ms) | Low (10-50ms) | **Low** | VPC internal tool calls → EKS |
 | **Cost** | High for high-frequency | Low for high-frequency | **Optimal** | Simple=EKS, Complex=AgentCore |
-| **PII Handling** | VPC external (constraints) | VPC internal (advantageous) | **Flexible** | Sensitive data → EKS MCP |
-| **Model Customization** | Bedrock models only | Free (Qwen3, custom) | **Free** | Fine-tuned models → EKS |
+| **PII Handling** | VPC connectivity configuration required | VPC internal (advantageous) | **Flexible** | Sensitive data → EKS MCP |
+| **Model Customization** | Bedrock + Custom Model Import | Free (direct vLLM serving) | **Free** | Inference-engine-level control → EKS |
 | **Tool Chain** | REST→MCP conversion | K8s native | **Both** | External SaaS → AgentCore Gateway |
 | **Session Length** | Max 8 hours | Unlimited | **Unlimited** | Long conversations → EKS State |
 | **Audit Requirements** | CloudTrail automatic | Direct implementation required | **CloudTrail + Custom** | Regulatory → AgentCore priority |
@@ -173,12 +163,16 @@ Placing computing where data resides minimizes network latency and cost.
 
 **Typical Scenario**:
 - Milvus vector DB inside EKS VPC (GB~TB scale)
-- AgentCore Runtime outside VPC (Bedrock service account)
-- When Agent queries Milvus for RAG search **PrivateLink traversal required** → Increased latency + complexity
+- AgentCore Runtime runs in Public network mode by default (VPC-connected mode configurable)
+- Without VPC connectivity, Milvus queries **require PrivateLink traversal** → Increased latency + complexity
 
 ### Reverse Call Pattern
 
 Architecture where AgentCore Runtime calls MCP servers inside EKS VPC.
+
+:::info Runtime VPC Connectivity
+AgentCore Runtime, Gateway, and built-in tools support VPC connectivity. Attaching the Runtime to subnets and security groups enables direct access to VPC-internal resources (such as EKS-hosted MCP servers) without PrivateLink. The PrivateLink pattern below remains valid for cross-account integration or configurations that do not use VPC connectivity. See the [AgentCore VPC documentation](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/agentcore-vpc.html) for details.
+:::
 
 ```mermaid
 sequenceDiagram
@@ -343,13 +337,14 @@ sequenceDiagram
 from strands import Agent
 from strands.models import BedrockModel
 import boto3
+import json
 
-bedrock_runtime = boto3.client('bedrock-agent-runtime')
+agentcore = boto3.client('bedrock-agentcore')
 
 class HybridRouter:
     def __init__(self):
         self.classifier = Agent(
-            model=BedrockModel(model_id="anthropic.claude-haiku-20250320"),
+            model=BedrockModel(model_id="anthropic.claude-haiku-4-5-20251001-v1:0"),
             system_prompt="""You are a request complexity classifier.
 Evaluate complexity on a 0.0-1.0 scale and respond with JSON.
 {"complexity": 0.0-1.0, "reason": "explanation"}"""
@@ -377,11 +372,10 @@ Evaluate complexity on a 0.0-1.0 scale and respond with JSON.
     
     def _route_to_agentcore(self, request: str, model: str) -> dict:
         """Route to AgentCore"""
-        response = bedrock_runtime.invoke_agent(
-            agentId='AGENT123',
-            agentAliasId='ALIAS456',
-            sessionId='session-' + str(hash(request)),
-            inputText=request
+        response = agentcore.invoke_agent_runtime(
+            agentRuntimeArn='arn:aws:bedrock-agentcore:us-east-1:ACCOUNT:runtime/complex-task-agent',
+            runtimeSessionId='session-' + str(hash(request)),
+            payload=json.dumps({"prompt": request})
         )
         return {"response": response, "routed_to": f"agentcore-{model}"}
 ```
@@ -414,6 +408,7 @@ flowchart LR
 # escalation_agent.py
 from strands import Agent
 import boto3
+import json
 
 class EscalatingAgent:
     def __init__(self):
@@ -421,7 +416,7 @@ class EscalatingAgent:
             model=LocalModel("http://vllm-qwen3.vllm.svc.cluster.local"),
             tools=["code_completion", "translation"]
         )
-        self.bedrock_runtime = boto3.client('bedrock-agent-runtime')
+        self.agentcore = boto3.client('bedrock-agentcore')
     
     def process(self, user_request: str) -> dict:
         # 1st attempt: EKS Self-hosted Agent
@@ -433,11 +428,12 @@ class EscalatingAgent:
         
         # Escalation: AgentCore Claude Sonnet
         print(f"⚠️ Low confidence ({confidence}) → AgentCore escalation")
-        agentcore_response = self.bedrock_runtime.invoke_agent(
-            agentId='EXPERT_AGENT_ID',
-            agentAliasId='PROD_ALIAS',
-            sessionId='escalation-session',
-            inputText=f"Original request: {user_request}\n\nInitial attempt failed (Confidence: {confidence}). Accurate answer required."
+        agentcore_response = self.agentcore.invoke_agent_runtime(
+            agentRuntimeArn='arn:aws:bedrock-agentcore:us-east-1:ACCOUNT:runtime/expert-agent',
+            runtimeSessionId='escalation-session',
+            payload=json.dumps({
+                "prompt": f"Original request: {user_request}\n\nInitial attempt failed (Confidence: {confidence}). Accurate answer required."
+            })
         )
         return {"response": agentcore_response, "agent": "agentcore-sonnet", "escalated": True}
 ```
@@ -481,6 +477,7 @@ sequenceDiagram
 ```python
 # dual_memory_sync.py
 import boto3
+import json
 from langfuse import Langfuse
 from datetime import datetime
 
@@ -637,11 +634,11 @@ def validate_agentcore_token(f):
             return jsonify({"error": "Missing authorization token"}), 401
         
         try:
-            # Verify with AgentCore Identity public key
+            # Verify with IdP (Okta) public key — original issuer of the token propagated by AgentCore Identity
             payload = jwt.decode(
                 token,
                 audience="mcp-server",
-                issuer="https://bedrock.amazonaws.com/agentcore/identity",
+                issuer="https://YOUR_OKTA_DOMAIN/oauth2/default",
                 algorithms=["RS256"],
                 options={"verify_signature": True}
             )
@@ -710,6 +707,7 @@ flowchart LR
 # trace_forwarder_lambda.py
 import boto3
 import json
+import os
 import requests
 from datetime import datetime
 
@@ -900,21 +898,23 @@ Quantitative metrics to determine each Phase transition.
 
 ### Official Documentation
 
-- [Amazon Bedrock AgentCore](https://docs.aws.amazon.com/bedrock/latest/userguide/agents.html) — AgentCore official documentation
-- [AgentCore Identity & Policy](https://docs.aws.amazon.com/bedrock/latest/userguide/agents-identity.html) — Authentication & policy guide
+- [Amazon Bedrock AgentCore](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/what-is-bedrock-agentcore.html) — AgentCore official developer guide
+- [AgentCore Identity](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/identity.html) — Authentication & credential guide
+- [AgentCore VPC Connectivity](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/agentcore-vpc.html) — Runtime & built-in tools VPC configuration
 - [EKS PrivateLink](https://docs.aws.amazon.com/eks/latest/userguide/private-clusters.html) — VPC internal connection
 - [AWS PrivateLink for Services](https://docs.aws.amazon.com/vpc/latest/privatelink/) — Service endpoints
 
 ### Papers / Technical Blogs
 
 - [CloudWatch Generative AI Observability](https://aws.amazon.com/blogs/mt/launching-amazon-cloudwatch-generative-ai-observability-preview/) — Observability integration
-- [Hybrid AI Architecture Patterns](https://aws.amazon.com/blogs/machine-learning/) — Hybrid patterns
+- [Network Connectivity Patterns for AgentCore Runtime](https://aws.amazon.com/blogs/networking-and-content-delivery/network-connectivity-patterns-for-agents-deployed-on-amazon-bedrock-agentcore-runtime/) — Runtime VPC & PrivateLink connectivity patterns
 - [Langfuse Self-Hosting Guide](https://langfuse.com/docs/deployment/self-host) — Self-hosting guide
 - [Building Cost-Effective AI Systems](https://huyenchip.com/2023/04/11/llm-engineering.html) — Cost optimization
 
 ### Related Documents (Internal)
 
-- [AWS Native Platform](./aws-native-agentic-platform.md) — AgentCore 7-service overview
+- [AWS Native Platform](./aws-native-agentic-platform.md) — AgentCore service overview
 - [EKS-based Open Architecture](./agentic-ai-solutions-eks.md) — Self-hosted stack
+- [Inference Platform Benchmark: AgentCore vs EKS](../../../benchmarks/agentcore-vs-eks-inference.md) — Feature/performance/cost benchmark plan
 - [SageMaker-EKS Integration](../../reference-architecture/integrations/sagemaker-eks-integration.md) — VPC/IAM reference
 - [Coding Tools Cost Analysis](../../reference-architecture/integrations/coding-tools-cost-analysis.md) — Break-even calculation
