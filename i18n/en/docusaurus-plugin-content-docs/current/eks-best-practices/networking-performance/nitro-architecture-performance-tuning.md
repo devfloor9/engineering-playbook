@@ -3,7 +3,7 @@ title: AWS Nitro Architecture and Performance Tuning
 description: AWS Nitro System components, per-generation (v2–v6) networking changes, ENA driver/kernel requirements on EKS nodes, and PPS/CPS-focused performance tuning strategies
 created: "2026-06-19"
 last_update:
-  date: "2026-06-20"
+  date: "2026-06-30"
   author: devfloor9
 reading_time: 23
 tags:

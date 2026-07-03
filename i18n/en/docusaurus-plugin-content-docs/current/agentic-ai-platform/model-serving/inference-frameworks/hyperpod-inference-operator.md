@@ -3,7 +3,7 @@ title: HyperPod Inference Operator (Managed KV Cache and Intelligent Routing)
 description: Comparing SageMaker HyperPod Inference Operator's managed KV cache, intelligent routing, and DPD with a Tiered Gateway, and clarifying its role and limitations as an L2 inference routing layer.
 created: "2026-06-23"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 12
 tags:

@@ -3,7 +3,7 @@ title: "AI 플랫폼 선택 가이드: 매니지드 vs 오픈소스 vs 하이브
 description: SageMaker Unified Studio, Bedrock AgentCore, EKS 오픈 아키텍처 중 고객 상황에 맞는 최적 접근 선택을 위한 의사결정 프레임워크
 created: "2026-04-17"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-28"
   author: YoungJoon Jeong
 reading_time: 12
 tags:

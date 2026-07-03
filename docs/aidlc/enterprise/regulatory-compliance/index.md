@@ -3,7 +3,7 @@ title: AI 규제 컴플라이언스 프레임워크
 description: EU AI Act, NIST AI RMF, ISO/IEC 42001, 한국 AI 기본법 4개 프레임워크의 AIDLC 통합 가이드
 created: "2026-04-18"
 last_update:
-  date: "2026-04-18"
+  date: "2026-06-30"
   author: devfloor9
 reading_time: 8
 tags:

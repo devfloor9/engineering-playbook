@@ -3,7 +3,7 @@ title: Hybrid Infrastructure
 description: Amazon EKS를 활용한 하이브리드 클라우드 및 멀티 클라우드 환경 구축에 대한 심화 기술 문서
 created: "2025-02-05"
 last_update:
-  date: "2026-02-13"
+  date: "2026-06-30"
   author: devfloor9
 reading_time: 4
 tags:

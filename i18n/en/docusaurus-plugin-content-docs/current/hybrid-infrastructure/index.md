@@ -3,7 +3,7 @@ title: Hybrid Infrastructure
 description: In-depth technical documentation on building hybrid cloud and multi-cloud environments with Amazon EKS
 created: "2025-02-05"
 last_update:
-  date: "2026-02-13"
+  date: "2026-06-30"
   author: devfloor9
 reading_time: 7
 tags:

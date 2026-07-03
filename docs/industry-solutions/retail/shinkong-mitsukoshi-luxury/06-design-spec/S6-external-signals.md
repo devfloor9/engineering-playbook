@@ -3,7 +3,7 @@ title: S6. 외부 시그널 융합 (Mitsukoshi)
 description: 소셜·기상·환율(JPY/USD/HKD)·관광 4종 융합
 created: "2026-05-14"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 1
 tags:

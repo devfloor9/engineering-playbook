@@ -3,7 +3,7 @@ title: 규제 컴플라이언스 구현 가이드
 description: AIDLC 프로세스에 규제 요구사항을 통합하는 실전 구현 가이드 및 단계별 Adoption 로드맵
 created: "2026-04-18"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 4
 tags:

@@ -3,7 +3,7 @@ title: AWS 단일 아키텍처 (Momo)
 description: Bedrock + Neptune + OpenSearch + Kinesis (라이브) + TimeStream (배송 SLA)
 created: "2026-05-14"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 1
 tags:

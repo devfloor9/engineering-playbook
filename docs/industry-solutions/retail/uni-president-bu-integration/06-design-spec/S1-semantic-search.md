@@ -3,7 +3,7 @@ title: S1. 자연어 시맨틱 검색 (Uni-President)
 description: 5 BU SKU + OPENPOINT 회원 + 외부 후기 통합 검색
 created: "2026-05-14"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 1
 tags:

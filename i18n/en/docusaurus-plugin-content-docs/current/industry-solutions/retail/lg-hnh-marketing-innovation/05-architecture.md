@@ -3,7 +3,7 @@ title: AWS Single Architecture
 description: Bedrock + Neptune + OpenSearch + AgentCore + Cohere — a single architecture that delivers a working demo in 8 weeks
 created: "2026-05-14"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 5
 tags:

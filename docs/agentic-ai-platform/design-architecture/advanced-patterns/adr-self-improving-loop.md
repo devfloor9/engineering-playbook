@@ -3,7 +3,7 @@ title: ADR — Self-Improving Agent Loop 도입 의사결정
 description: Self-Improving Agent Loop(자가학습 강화 파이프라인)를 실 운영에 도입하기 전 합의해야 할 원칙·스코프·책임·롤백 경계를 정리한 Architecture Decision Record
 created: "2026-04-19"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 12
 tags:

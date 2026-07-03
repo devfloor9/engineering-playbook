@@ -3,7 +3,7 @@ title: Agentic AI Platform
 description: Agentic AI 플랫폼의 아키텍처, 구축, 운영에 대한 심화 기술 문서
 created: "2025-09-11"
 last_update:
-  date: "2026-06-15"
+  date: "2026-06-30"
   author: devfloor9
 reading_time: 4
 tags:

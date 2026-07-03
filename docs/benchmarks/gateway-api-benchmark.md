@@ -3,7 +3,7 @@ title: Gateway API 구현체 성능 벤치마크 계획
 description: 5개 Gateway API 구현체(AWS LBC v3, Cilium, NGINX Gateway Fabric, Envoy Gateway, kGateway)의 EKS 환경 성능 비교 벤치마크 계획
 created: "2026-02-12"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 6
 tags:

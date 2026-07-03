@@ -3,7 +3,7 @@ title: Knowledge Graph 25 클래스
 description: 3 BU 통합 KG 25 클래스 — 회원 / 상품 / 거래 / 채널 / 운영·외부
 created: "2026-05-14"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 8
 tags:

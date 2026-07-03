@@ -3,7 +3,7 @@ title: LLMOps Observability 비교 가이드
 description: Langfuse, LangSmith, Helicone 비교 및 하이브리드 Observability 아키텍처 개요
 created: "2026-03-16"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-28"
   author: YoungJoon Jeong
 reading_time: 13
 tags:

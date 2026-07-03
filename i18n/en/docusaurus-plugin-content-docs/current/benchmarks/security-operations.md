@@ -3,7 +3,7 @@ title: Security & Operations Benchmark
 description: Security policy enforcement and operations tool performance benchmark
 created: "2026-02-11"
 last_update:
-  date: "2026-02-14"
+  date: "2026-06-30"
   author: devfloor9
 reading_time: 2
 tags:

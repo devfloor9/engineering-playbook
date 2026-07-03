@@ -3,7 +3,7 @@ title: Control Plane & 확장
 description: EKS Control Plane 동작 원리, CRD 스케일링 전략, 멀티 클러스터 고가용성 아키텍처
 created: "2026-03-24"
 last_update:
-  date: "2026-03-24"
+  date: "2026-06-30"
   author: devfloor9
 reading_time: 2
 tags:

@@ -3,7 +3,7 @@ title: "AgenticOps: AI 에이전트 기반 자율 운영"
 description: AIDLC로 개발한 소프트웨어의 AI 에이전트 기반 자율 운영 — 관찰성, 예측, 자동 대응
 created: "2026-04-07"
 last_update:
-  date: "2026-04-18"
+  date: "2026-06-30"
   author: devfloor9
 reading_time: 3
 tags:

@@ -3,7 +3,7 @@ title: Advanced Patterns
 description: Self-improving feedback loops and advanced agent design patterns
 created: "2026-04-20"
 last_update:
-  date: "2026-04-20"
+  date: "2026-06-26"
   author: devfloor9
 reading_time: 2
 tags:

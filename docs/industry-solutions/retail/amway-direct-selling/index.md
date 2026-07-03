@@ -3,7 +3,7 @@ title: AMWAY Direct Selling Innovation PoC
 description: AMWAY 글로벌 직접판매 — ABO/IBO 다단계 조직 + Nutrilite/Artistry/Home + 정기구독을 Ontology + Agentic AI로 풀어내는 PoC
 created: "2026-05-14"
 last_update:
-  date: "2026-06-15"
+  date: "2026-07-02"
   author: YoungJoon Jeong
 reading_time: 6
 tags:

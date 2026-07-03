@@ -3,7 +3,7 @@ title: S5. Omnichannel Campaign ROAS (Mitsukoshi)
 description: Bayesian attribution across store, DM, and social channels for events such as the Anniversary Sale
 created: "2026-05-14"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 1
 tags:

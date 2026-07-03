@@ -3,7 +3,7 @@ title: Governance Framework
 description: AIDLC Enterprise Governance — 3-Layer Model, Steering File Automation, Data Sovereignty, AI Act Compliance
 created: "2026-04-07"
 last_update:
-  date: "2026-04-18"
+  date: "2026-06-30"
   author: devfloor9
 reading_time: 21
 tags: []

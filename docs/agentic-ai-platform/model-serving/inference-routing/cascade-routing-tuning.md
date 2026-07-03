@@ -3,7 +3,7 @@ title: Cascade Routing 실전 튜닝
 description: Inference Gateway Cascade Routing의 분류 임계값·Canary 롤아웃·Fallback·비용 드리프트 경보를 프로덕션 trace 기반으로 튜닝하는 가이드
 created: "2026-04-18"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-28"
   author: YoungJoon Jeong
 reading_time: 15
 tags:

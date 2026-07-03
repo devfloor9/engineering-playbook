@@ -3,7 +3,7 @@ title: Cache-Hit Strategy
 description: Unifying the three layers of inference caching (KV/Prefix, Prompt, Semantic) into a single decision framework with hit-rate targets, measurement points, and tuning levers for each layer.
 created: "2026-06-25"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 6
 tags:

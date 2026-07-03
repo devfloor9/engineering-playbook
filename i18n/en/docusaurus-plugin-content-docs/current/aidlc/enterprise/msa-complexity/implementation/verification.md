@@ -3,7 +3,7 @@ title: Verification Methodology
 description: Verification methods to ensure quality when applying AIDLC in complex MSA
 created: "2026-04-19"
 last_update:
-  date: "2026-04-18"
+  date: "2026-06-30"
   author: devfloor9
 reading_time: 6
 tags:

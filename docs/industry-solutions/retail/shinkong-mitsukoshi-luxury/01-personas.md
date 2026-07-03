@@ -3,7 +3,7 @@ title: 5 부서 페르소나 (Mitsukoshi)
 description: 新光三越 마케팅·인사이트·디지털·VIP·MD 5 부서 페르소나
 created: "2026-05-14"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 3
 tags:

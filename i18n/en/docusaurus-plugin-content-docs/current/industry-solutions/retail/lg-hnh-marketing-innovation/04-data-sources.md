@@ -3,7 +3,7 @@ title: Data Sources (First-Party + 4 External Types)
 description: PII-masked first-party data + 50K synthetic + 4 external type specifications and cohort_tag separation strategy
 created: "2026-05-14"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 6
 tags:

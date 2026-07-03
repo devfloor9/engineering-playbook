@@ -3,7 +3,7 @@ title: EKS Hybrid Nodes Networking Routing Design and Hybrid Nodes Gateway
 description: Analysis of EKS Hybrid Nodes Node/Pod CIDR routing requirements, CNI NAT configuration limits, CGNAT (100.64.0.0/10) support, and the Hybrid Nodes Gateway architecture that removes the Pod-routing requirement.
 created: "2026-06-12"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 18
 tags:

@@ -3,7 +3,7 @@ title: 모니터링 & Observability 구성 가이드
 description: Prometheus→AMP, AMG, Langfuse, Bifrost OTel 통합 모니터링 실전 구성 가이드
 created: "2026-04-06"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-28"
   author: YoungJoon Jeong
 reading_time: 12
 tags:

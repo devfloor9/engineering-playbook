@@ -3,7 +3,7 @@ title: Karpenter In-Depth Debugging
 description: In-depth debugging guide for the Karpenter autoscaler
 created: "2026-04-07"
 last_update:
-  date: "2026-04-07"
+  date: "2026-06-30"
   author: devfloor9
 reading_time: 7
 tags: []

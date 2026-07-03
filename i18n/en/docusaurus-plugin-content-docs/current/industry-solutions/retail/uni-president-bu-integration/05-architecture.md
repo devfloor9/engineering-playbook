@@ -3,7 +3,7 @@ title: AWS Single Architecture (Uni-President)
 description: Bedrock + Neptune + OpenSearch + AgentCore + TimeStream (cold chain) + Glue (cross-BU ETL)
 created: "2026-05-14"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 2
 tags:

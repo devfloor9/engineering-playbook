@@ -3,7 +3,7 @@ title: S8. Guardrails (Mitsukoshi)
 description: Bedrock Guardrails 4 topics + duty-free regulations + minors-and-luxury guard
 created: "2026-05-14"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 1
 tags:

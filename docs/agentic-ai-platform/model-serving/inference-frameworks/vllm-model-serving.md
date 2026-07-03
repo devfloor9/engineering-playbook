@@ -3,7 +3,7 @@ title: vLLM 모델 서빙
 description: vLLM의 PagedAttention, 병렬화 전략, Multi-LoRA, 하드웨어 지원 아키텍처
 created: "2026-02-05"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-28"
   author: YoungJoon Jeong
 reading_time: 19
 tags:

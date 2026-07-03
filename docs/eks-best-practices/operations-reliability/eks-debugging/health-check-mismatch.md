@@ -3,7 +3,7 @@ title: Probe vs Health Check 불일치 디버깅
 description: K8s Probe와 ALB/NLB/Ingress Controller Health Check의 메커니즘 차이 및 timeout 불일치로 인한 장애 진단 가이드
 created: "2026-04-07"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 15
 tags:

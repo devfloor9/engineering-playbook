@@ -3,7 +3,7 @@ title: S11-M. VIP Tier Lounge Concierge (Mitsukoshi-specific)
 description: Recommendations, pre-sale priority, and personal concierge chatbot for Black/Platinum/Gold members
 created: "2026-05-14"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 2
 tags:

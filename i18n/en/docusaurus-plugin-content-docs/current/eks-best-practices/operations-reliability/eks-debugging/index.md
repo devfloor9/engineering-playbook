@@ -3,7 +3,7 @@ title: EKS Debugging Guide
 description: Comprehensive troubleshooting guide for systematically diagnosing and resolving application and infrastructure issues in Amazon EKS environments
 created: "2026-02-10"
 last_update:
-  date: "2026-04-07"
+  date: "2026-06-30"
   author: devfloor9
 reading_time: 16
 tags:

@@ -3,7 +3,7 @@ title: Agentic Playbook
 description: Guide for declaratively defining agent workflows like IaC and automating compliance
 created: "2026-04-04"
 last_update:
-  date: "2026-04-20"
+  date: "2026-06-26"
   author: devfloor9
 reading_time: 13
 tags:

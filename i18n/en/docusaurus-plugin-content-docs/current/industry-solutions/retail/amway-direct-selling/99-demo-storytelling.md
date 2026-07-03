@@ -3,7 +3,7 @@ title: 30-Minute Demo Script (AMWAY)
 description: A 30-minute demonstration for AMWAY global executives and ABO meetings — Top-5 (S1 · S9-A · S10-A · S2 · S11-A)
 created: "2026-05-14"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 4
 tags:

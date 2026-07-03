@@ -3,7 +3,7 @@ title: Retail Industry Solutions
 description: PoC assets for retail industries — e-commerce, offline general retail, household goods/beauty/beverage manufacturing-distribution, direct selling, and department stores.
 created: "2026-05-14"
 last_update:
-  date: "2026-06-04"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 5
 tags:

@@ -3,7 +3,7 @@ title: Kyverno-Based Policy Management
 description: Kubernetes policy management and governance using Kyverno v1.16
 created: "2026-02-11"
 last_update:
-  date: "2026-02-13"
+  date: "2026-06-30"
   author: devfloor9
 reading_time: 1
 tags:

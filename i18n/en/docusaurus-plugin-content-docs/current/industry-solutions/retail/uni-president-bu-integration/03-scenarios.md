@@ -3,7 +3,7 @@ title: 11-Scenario Map (Uni-President)
 description: 8 common + 3 UPI-specific (cross-BU member journey · own-SKU sell-through · cold chain)
 created: "2026-05-14"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 2
 tags:

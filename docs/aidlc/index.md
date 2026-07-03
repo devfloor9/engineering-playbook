@@ -3,7 +3,7 @@ title: "AIDLC: AI-Driven Development Lifecycle"
 description: AI-Driven Development Lifecycle — AWS Labs 공식 방법론 기반 + DDD·Ontology·Harness 엔터프라이즈 확장
 created: "2026-03-23"
 last_update:
-  date: "2026-04-18"
+  date: "2026-06-30"
   author: devfloor9
 reading_time: 6
 tags:

@@ -3,7 +3,7 @@ title: Agentic AI Platform
 description: In-depth technical documentation on the architecture, deployment, and operations of the Agentic AI Platform
 created: "2026-02-04"
 last_update:
-  date: "2026-04-17"
+  date: "2026-06-26"
   author: devfloor9
 reading_time: 6
 tags:

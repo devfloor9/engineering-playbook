@@ -3,7 +3,7 @@ title: S8. 가드레일 (Uni-President)
 description: Bedrock Guardrails + PDPA + BU 영업 정보 분리
 created: "2026-05-14"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 1
 tags:

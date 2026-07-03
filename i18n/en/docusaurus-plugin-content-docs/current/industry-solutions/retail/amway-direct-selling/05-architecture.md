@@ -3,7 +3,7 @@ title: Single AWS Architecture (AMWAY)
 description: Bedrock + Neptune + OpenSearch + AgentCore + Cohere — specialized for ABO tree, subscriptions, multilingual operations
 created: "2026-05-14"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 3
 tags:

@@ -3,7 +3,7 @@ title: Observability and Monitoring
 description: EKS observability stack configuration and incident detection strategies - Container Insights, Prometheus, ADOT
 created: "2026-04-07"
 last_update:
-  date: "2026-04-07"
+  date: "2026-06-30"
   author: devfloor9
 reading_time: 16
 tags:

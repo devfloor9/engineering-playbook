@@ -3,7 +3,7 @@ title: Reference Architecture
 description: Agentic AI Platform 실전 배포 및 구성 레퍼런스 아키텍처
 created: "2026-04-06"
 last_update:
-  date: "2026-06-15"
+  date: "2026-06-26"
   author: devfloor9
 reading_time: 10
 tags:

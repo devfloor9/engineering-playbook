@@ -3,7 +3,7 @@ title: 데이터 소스 (Mitsukoshi)
 description: 자사 + 외부 4종 — 환율·관광 시그널 강화
 created: "2026-05-14"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 2
 tags:

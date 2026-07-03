@@ -3,7 +3,7 @@ title: CRIU 기반 GPU 무중단 마이그레이션 (Preview)
 description: Spot reclaim·스케줄링 이벤트 시 GPU 워크로드 checkpoint/restore로 무중단 이관하는 기술 현황과 EKS 적용 가능 시나리오 분석 (Experimental)
 created: "2026-04-18"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-28"
   author: YoungJoon Jeong
 reading_time: 21
 tags:

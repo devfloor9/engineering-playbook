@@ -3,7 +3,7 @@ title: S4. Persona Matching + Clustering
 description: Auto-classified lifestyle personas + RFM × Category affinity KMeans integrated
 created: "2026-05-14"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 2
 tags:

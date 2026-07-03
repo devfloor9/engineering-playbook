@@ -3,7 +3,7 @@ title: S10-U. 자사 제조 SKU vs 자사 채널 sell-through (UPI 특화)
 description: 統一食品 자사 SKU(統一麵·麥香 등)의 7ELE/까르푸 회전 vs 외부 채널 비교
 created: "2026-05-14"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 2
 tags:

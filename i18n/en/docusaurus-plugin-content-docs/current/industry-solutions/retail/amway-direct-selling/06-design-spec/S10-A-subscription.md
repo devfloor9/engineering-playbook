@@ -3,7 +3,7 @@ title: S10-A. Subscription Lifetime Analysis (AMWAY-specific)
 description: Subscription state machine + churn signature detection + automated win-back campaigns
 created: "2026-05-14"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 3
 tags:

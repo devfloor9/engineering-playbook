@@ -3,7 +3,7 @@ title: "Large-Scale EKS Cost Management: 30-90% Reduction Strategy"
 description: FinOps strategies for achieving 30-90% cost reduction in Amazon EKS environments. Includes cost structure analysis, Karpenter optimization, tool selection, and real-world success cases
 created: "2026-02-04"
 last_update:
-  date: "2026-02-14"
+  date: "2026-06-30"
   author: devfloor9
 reading_time: 5
 tags:

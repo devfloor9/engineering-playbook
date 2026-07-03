@@ -3,7 +3,7 @@ title: S7. Omnichannel Member Journey
 description: A single member's owned mall → SNS ad → Olive Young → Mart → Repurchase single timeline crossing BUs · channels
 created: "2026-05-14"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 2
 tags:

@@ -3,7 +3,7 @@ title: EKS PCP Tier Sizing & Performance Validation Guide
 description: Detailed parameters by PCP tier, APF seat calculation formulas, large-scale cluster sizing examples, ClusterLoader2 performance validation methodology, customer case studies
 created: "2026-04-07"
 last_update:
-  date: "2026-04-07"
+  date: "2026-06-26"
   author: devfloor9
 reading_time: 47
 tags:

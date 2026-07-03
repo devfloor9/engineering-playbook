@@ -3,7 +3,7 @@ title: DGX H200 SR-IOV 네트워킹 구성
 description: NVIDIA DGX H200 시스템에서 Amazon EKS Hybrid Nodes를 실행할 때 발생하는 SR-IOV VF 이름 불일치 문제를 드라이버 호환성, 영구 명명 및 systemd 오케스트레이션을 통해 해결합니다.
 created: "2025-09-01"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 12
 tags:

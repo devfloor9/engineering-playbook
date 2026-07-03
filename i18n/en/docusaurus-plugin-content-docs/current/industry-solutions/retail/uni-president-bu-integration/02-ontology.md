@@ -3,7 +3,7 @@ title: Knowledge Graph — 25 Classes (Uni-President)
 description: Integration of 5 BUs + OPENPOINT + own-manufactured SKUs + cold chain (~900K edges)
 created: "2026-05-14"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 3
 tags:

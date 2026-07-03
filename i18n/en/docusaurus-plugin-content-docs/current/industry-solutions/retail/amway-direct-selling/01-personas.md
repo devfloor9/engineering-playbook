@@ -3,7 +3,7 @@ title: 5-Department Personas (AMWAY)
 description: AMWAY global direct-selling context — ABO Field / Insights / D&A · MarTech / CX / Compliance
 created: "2026-05-14"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 4
 tags:

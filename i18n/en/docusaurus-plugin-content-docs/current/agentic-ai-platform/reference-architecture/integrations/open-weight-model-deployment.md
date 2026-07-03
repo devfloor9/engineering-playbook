@@ -3,7 +3,7 @@ title: Open-Weight Model Deployment Guide
 description: A customer-facing decision guide for evaluating and choosing self-hosted open-weight LLM deployment from the perspectives of token economics and data sovereignty.
 created: "2026-06-26"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 15
 tags:

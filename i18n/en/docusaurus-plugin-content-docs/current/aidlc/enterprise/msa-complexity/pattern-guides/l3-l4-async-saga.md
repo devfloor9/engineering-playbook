@@ -3,7 +3,7 @@ title: "Level 3-4: Async Events & Saga"
 description: Application guide for Level 3 async event-driven MSA and Level 4 Saga + compensating transaction patterns
 created: "2026-04-19"
 last_update:
-  date: "2026-04-18"
+  date: "2026-06-30"
   author: devfloor9
 reading_time: 5
 tags:

@@ -3,7 +3,7 @@ title: S4. Persona Matching + Clustering (Uni-President)
 description: 5 lifestyle personas + RFM × BU affinity + social
 created: "2026-05-14"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 1
 tags:

@@ -3,7 +3,7 @@ title: S6. External Signal Fusion (Uni-President)
 description: Fusion of 4 external sources — social · weather · economic · competitor
 created: "2026-05-14"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 1
 tags:

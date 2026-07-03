@@ -3,7 +3,7 @@ title: S11-M. VIP 등급 라운지 컨시어지 (Mitsukoshi 특화)
 description: Black/Platinum/Gold 회원 추천·프리세일·개인 컨시어지 챗봇
 created: "2026-05-14"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 2
 tags:

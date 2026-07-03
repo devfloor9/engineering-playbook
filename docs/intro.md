@@ -3,7 +3,7 @@ title: Engineering Playbook 소개
 description: 클라우드 네이티브 아키텍처 엔지니어링 플레이북 & 벤치마크 리포트
 created: "2025-09-11"
 last_update:
-  date: "2026-03-06"
+  date: "2026-06-30"
   author: devfloor9
 reading_time: 1
 tags:

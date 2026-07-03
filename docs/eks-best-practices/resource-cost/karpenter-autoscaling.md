@@ -3,7 +3,7 @@ title: Karpenter 기반 EKS 스케일링 전략 종합 가이드
 description: Amazon EKS에서 Karpenter를 활용한 스케일링 전략 종합 가이드. 반응형/예측형/아키텍처적 복원력 접근법 비교, CloudWatch와 Prometheus 아키텍처 비교, HPA 구성, 프로덕션 패턴 포함
 created: "2025-02-09"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 28
 tags:

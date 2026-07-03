@@ -3,7 +3,7 @@ title: 데이터 소스 (Momo)
 description: 방대 SKU + 라이브 + 배송 SLA + 외부 4종
 created: "2026-05-14"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 2
 tags:

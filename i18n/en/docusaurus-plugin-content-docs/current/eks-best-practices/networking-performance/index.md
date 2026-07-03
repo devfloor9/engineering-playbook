@@ -3,7 +3,7 @@ title: Networking & Performance Optimization
 description: Best practices for DNS optimization, East-West traffic, and Gateway API adoption in EKS environments
 created: "2026-03-24"
 last_update:
-  date: "2026-03-24"
+  date: "2026-06-26"
   author: devfloor9
 reading_time: 3
 tags:

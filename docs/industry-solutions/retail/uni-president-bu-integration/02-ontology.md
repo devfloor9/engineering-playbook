@@ -3,7 +3,7 @@ title: Knowledge Graph 25 클래스 (Uni-President)
 description: BU 5종 통합 + OPENPOINT + 자사 제조 SKU + 콜드체인 (~900K edges)
 created: "2026-05-14"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 3
 tags:

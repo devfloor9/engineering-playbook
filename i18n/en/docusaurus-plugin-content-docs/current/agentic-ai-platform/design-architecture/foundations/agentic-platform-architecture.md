@@ -3,7 +3,7 @@ title: Agentic AI Platform Architecture
 description: Overall system architecture of a production-grade Agentic AI Platform — 6 runtime layers and 3 cross-cutting planes
 created: "2026-02-05"
 last_update:
-  date: "2026-06-14"
+  date: "2026-06-26"
   author: devfloor9
 reading_time: 59
 tags:

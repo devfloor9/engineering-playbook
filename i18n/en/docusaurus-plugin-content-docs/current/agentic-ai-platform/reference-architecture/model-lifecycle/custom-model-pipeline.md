@@ -3,7 +3,7 @@ title: Custom Model Pipeline Guide
 description: Building a domain-optimized model serving pipeline with LoRA Fine-tuning, Multi-LoRA Hot-swap, and SLM Cascade Routing
 created: "2026-04-06"
 last_update:
-  date: "2026-04-20"
+  date: "2026-06-26"
   author: devfloor9
 reading_time: 21
 tags:

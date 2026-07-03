@@ -3,7 +3,7 @@ title: S2. 5-Department Persona Chatbot
 description: Per-department autonomous tool-invoking chatbot — Bedrock Sonnet + AgentCore Memory + 12 tools
 created: "2026-05-14"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 3
 tags:

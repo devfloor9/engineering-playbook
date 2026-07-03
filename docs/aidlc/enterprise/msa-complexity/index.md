@@ -3,7 +3,7 @@ title: MSA 복잡도 가이드 (Enterprise)
 description: 엔터프라이즈 환경에서 MSA 난이도를 Level 1-5로 진단하고 패턴별 가이드·하네스·검증을 통합 제공
 created: "2026-04-18"
 last_update:
-  date: "2026-04-18"
+  date: "2026-06-30"
   author: devfloor9
 reading_time: 6
 tags:

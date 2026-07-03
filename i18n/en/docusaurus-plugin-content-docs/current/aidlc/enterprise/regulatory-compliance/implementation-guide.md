@@ -3,7 +3,7 @@ title: Regulatory Compliance Implementation Guide
 description: Practical implementation guide and phased adoption roadmap for integrating regulatory requirements into AIDLC process
 created: "2026-04-18"
 last_update:
-  date: "2026-04-18"
+  date: "2026-06-30"
   author: devfloor9
 reading_time: 7
 tags:

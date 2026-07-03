@@ -3,7 +3,7 @@ title: Shinkong Mitsukoshi Luxury Retail PoC
 description: Shinkong Mitsukoshi (新光三越) Taiwan luxury department store and duty-free — VIP membership, foreign tourists, and 700+ tenant brands unified through Ontology + Agentic AI
 created: "2026-05-14"
 last_update:
-  date: "2026-05-14"
+  date: "2026-07-02"
   author: YoungJoon Jeong
 reading_time: 4
 tags:

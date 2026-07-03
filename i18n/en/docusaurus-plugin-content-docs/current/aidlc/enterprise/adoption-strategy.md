@@ -3,7 +3,7 @@ title: Enterprise AIDLC Adoption Strategy
 description: AIDLC Enterprise Adoption Strategy — Waterfall→Hybrid Transition, Champion Model, Phased Rollout Roadmap
 created: "2026-04-07"
 last_update:
-  date: "2026-04-18"
+  date: "2026-06-30"
   author: devfloor9
 reading_time: 26
 tags: []

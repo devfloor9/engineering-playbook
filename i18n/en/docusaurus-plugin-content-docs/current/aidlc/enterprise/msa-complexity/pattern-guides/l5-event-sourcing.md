@@ -3,7 +3,7 @@ title: "Level 5: Event Sourcing & CQRS"
 description: Application guide for Level 5 distributed transactions + CQRS + Event Sourcing patterns
 created: "2026-04-19"
 last_update:
-  date: "2026-04-18"
+  date: "2026-06-30"
   author: devfloor9
 reading_time: 4
 tags:

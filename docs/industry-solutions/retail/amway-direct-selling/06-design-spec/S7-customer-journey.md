@@ -3,7 +3,7 @@ title: S7. ABO·Customer 옴니채널 여정 (AMWAY)
 description: 자사몰 → ABO 직판 → 정기구독 → 재가입 단일 타임라인
 created: "2026-05-14"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 2
 tags:

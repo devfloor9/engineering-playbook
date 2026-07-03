@@ -3,7 +3,7 @@ title: 엔터프라이즈 컴플라이언스 프레임워크
 description: SOC2, ISO27001, 전자금융감독규정, ISMS-P를 AI 운영에 매핑하는 컴플라이언스 가이드
 created: "2026-04-04"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-28"
   author: YoungJoon Jeong
 reading_time: 10
 tags:

@@ -3,7 +3,7 @@ title: 11 Scenario Mapping (Momo)
 description: 8 common + 3 Momo-specific (Live attribution · Delivery SLA · Recommendation diversity)
 created: "2026-05-14"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 1
 tags:

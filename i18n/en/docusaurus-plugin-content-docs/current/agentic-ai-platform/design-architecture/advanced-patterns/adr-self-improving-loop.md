@@ -3,7 +3,7 @@ title: ADR — Self-Improving Agent Loop Adoption Decision
 description: Architecture Decision Record documenting principles, scope, responsibilities, and rollback boundaries to be agreed upon before introducing the Self-Improving Agent Loop to production
 created: "2026-04-19"
 last_update:
-  date: "2026-04-20"
+  date: "2026-06-30"
   author: devfloor9
 reading_time: 14
 tags:

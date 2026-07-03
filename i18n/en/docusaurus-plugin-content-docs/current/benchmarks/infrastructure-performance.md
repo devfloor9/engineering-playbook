@@ -3,7 +3,7 @@ title: Infrastructure Performance Benchmark
 description: EKS cluster infrastructure performance benchmark - Network, DNS, Autoscaling
 created: "2026-02-11"
 last_update:
-  date: "2026-02-13"
+  date: "2026-06-30"
   author: devfloor9
 reading_time: 3
 tags:

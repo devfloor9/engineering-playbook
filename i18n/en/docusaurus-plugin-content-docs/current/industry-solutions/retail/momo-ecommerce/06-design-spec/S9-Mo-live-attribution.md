@@ -3,7 +3,7 @@ title: S9-Mo. Live-Commerce Broadcast Attribution (Momo-Specific)
 description: Live viewer → cart → purchase funnel + per-host and per-SKU effect
 created: "2026-05-14"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 2
 tags:

@@ -3,7 +3,7 @@ title: Run:ai + EKS Auto Mode + AMP/AMG 테스트 가이드
 description: EKS Auto Mode에서 Run:ai 설치, GPU 워크로드 배포, AMP/AMG 모니터링 검증을 위한 hands-on 테스트 가이드
 created: "2026-04-06"
 last_update:
-  date: "2026-06-15"
+  date: "2026-06-26"
   author: devfloor9
 reading_time: 8
 tags:

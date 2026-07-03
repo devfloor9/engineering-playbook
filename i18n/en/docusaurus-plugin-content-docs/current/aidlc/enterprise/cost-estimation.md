@@ -3,7 +3,7 @@ title: Cost Effectiveness Framework
 description: Quantifying AIDLC Cost Effectiveness — RFP Estimation Model, Ontology/Harness ROI, Open Weight TCO Comparison
 created: "2026-04-07"
 last_update:
-  date: "2026-04-18"
+  date: "2026-06-30"
   author: devfloor9
 reading_time: 38
 tags: []

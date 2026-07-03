@@ -3,7 +3,7 @@ title: "LMCache: KV Cache Offloading and Sharing"
 description: The concept of LMCache — offloading KV cache beyond GPU memory to CPU and disk and sharing it across inference instances — and its relationship to vLLM prefix cache, NIXL, and kvaware routing.
 created: "2026-06-25"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 6
 tags:

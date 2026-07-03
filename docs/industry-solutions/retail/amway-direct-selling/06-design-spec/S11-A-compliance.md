@@ -3,7 +3,7 @@ title: S11-A. 직접판매·미성년·건강기능식품 컴플라이언스 (AM
 description: FTC·방판법·식약처·EU 직접판매 규제 자동 검수 + 다국가 광고 가드
 created: "2026-05-14"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 3
 tags:

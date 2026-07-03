@@ -3,7 +3,7 @@ title: 고급 패턴
 description: 자기개선 피드백 루프 및 고급 Agent 설계 패턴
 created: "2026-04-20"
 last_update:
-  date: "2026-04-20"
+  date: "2026-06-26"
   author: devfloor9
 reading_time: 1
 tags:

@@ -3,7 +3,7 @@ title: EKS Hybrid Nodes Shared File Storage Solutions
 description: A comprehensive guide for implementing shared file storage in EKS Hybrid Nodes environments, covering AWS managed services, enterprise storage integration, and Amazon Linux 2023 alternative approaches.
 created: "2025-09-15"
 last_update:
-  date: "2026-02-14"
+  date: "2026-06-30"
   author: devfloor9
 reading_time: 25
 tags:

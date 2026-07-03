@@ -3,7 +3,7 @@ title: S4. 페르소나 매칭 + 클러스터링 (Uni-President)
 description: 라이프스타일 페르소나 5종 + RFM × BU 친화도 + 소셜
 created: "2026-05-14"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 1
 tags:

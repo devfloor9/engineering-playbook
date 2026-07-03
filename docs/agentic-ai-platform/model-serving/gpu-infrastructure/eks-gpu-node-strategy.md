@@ -3,7 +3,7 @@ title: EKS GPU 노드 전략
 description: EKS Auto Mode, Karpenter, MNG, Hybrid Node의 GPU 워크로드별 최적 노드 전략
 created: "2026-03-16"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-28"
   author: YoungJoon Jeong
 reading_time: 22
 tags:

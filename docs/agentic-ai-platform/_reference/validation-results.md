@@ -3,7 +3,7 @@ title: 문서 검증 결과 (Archived 2026-02-13)
 description: Agentic AI Platform 문서의 기술적 정확성 검증 결과 — Archived, 현행 아님
 created: "2026-02-16"
 last_update:
-  date: "2026-02-13"
+  date: "2026-06-26"
   author: validation-system
 reading_time: 13
 tags:

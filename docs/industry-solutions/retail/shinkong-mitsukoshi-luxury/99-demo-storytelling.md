@@ -3,7 +3,7 @@ title: 30분 시연 스크립트 (Mitsukoshi)
 description: Mitsukoshi 임원·MD·VIP팀 미팅용 30분 시연
 created: "2026-05-14"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 2
 tags:

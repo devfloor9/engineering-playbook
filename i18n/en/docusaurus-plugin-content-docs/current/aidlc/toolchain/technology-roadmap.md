@@ -3,7 +3,7 @@ title: Technology Roadmap
 description: AIDLC technology investment decision-making — Build-vs-Wait matrix, tool maturity assessment, 6/12/18-month horizons
 created: "2026-04-07"
 last_update:
-  date: "2026-04-18"
+  date: "2026-06-30"
   author: devfloor9
 reading_time: 32
 tags: []

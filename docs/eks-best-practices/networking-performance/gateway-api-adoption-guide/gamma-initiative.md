@@ -3,7 +3,7 @@ title: GAMMA Initiative — 서비스 메시 통합의 미래
 description: GAMMA (Gateway API for Mesh Management and Administration) 소개, East-West 트래픽 관리, 서비스 메시 통합
 created: "2026-02-14"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 2
 tags:

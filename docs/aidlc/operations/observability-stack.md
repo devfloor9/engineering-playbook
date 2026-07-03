@@ -3,7 +3,7 @@ title: 관찰성 스택
 description: AIDLC Operations의 데이터 기반 — 3-Pillar 관찰성 + AI 분석 레이어 구축
 created: "2026-04-07"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 16
 tags:

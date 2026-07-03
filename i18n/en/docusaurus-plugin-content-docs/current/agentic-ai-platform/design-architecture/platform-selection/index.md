@@ -3,7 +3,7 @@ title: Platform Selection
 description: Strategic selection guide for building Agentic AI platforms in AWS environments
 created: "2026-04-20"
 last_update:
-  date: "2026-04-20"
+  date: "2026-06-26"
   author: devfloor9
 reading_time: 2
 tags:

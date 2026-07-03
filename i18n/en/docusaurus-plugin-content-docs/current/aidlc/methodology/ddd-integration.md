@@ -3,7 +3,7 @@ title: DDD Integration — Essential Core in AI-Driven Development
 description: Why DDD is an essential core in AIDLC — AI-driven development from domain design to logical design
 created: "2026-04-07"
 last_update:
-  date: "2026-04-18"
+  date: "2026-06-30"
   author: devfloor9
 reading_time: 22
 tags:

@@ -3,7 +3,7 @@ title: S9-Mo. 라이브 커머스 방송 효과 어트리뷰션 (Momo 특화)
 description: 라이브 시청자 → 장바구니 → 구매 funnel + 진행자별·SKU별 효과
 created: "2026-05-14"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 2
 tags:

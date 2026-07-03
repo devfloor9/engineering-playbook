@@ -3,7 +3,7 @@ title: 운영 & 안정성
 description: EKS 클러스터의 안정적인 운영을 위한 GitOps, 장애 진단, 고가용성, Pod 라이프사이클 관리 베스트 프랙티스
 created: "2026-03-25"
 last_update:
-  date: "2026-03-25"
+  date: "2026-06-30"
   author: devfloor9
 reading_time: 3
 tags:

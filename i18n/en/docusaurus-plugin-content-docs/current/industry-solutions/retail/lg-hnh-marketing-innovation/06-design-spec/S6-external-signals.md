@@ -3,7 +3,7 @@ title: S6. External Signal Fusion (4 Types)
 description: First-party GMV × 4 external types (social · weather · economy · competitor) macro analysis
 created: "2026-05-14"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 2
 tags:

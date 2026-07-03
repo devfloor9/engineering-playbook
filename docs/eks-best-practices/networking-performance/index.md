@@ -3,7 +3,7 @@ title: 네트워크 & 성능 최적화
 description: EKS 환경에서의 DNS 최적화, East-West 트래픽, Gateway API 도입 등 네트워크 및 성능 관련 베스트 프랙티스
 created: "2026-03-24"
 last_update:
-  date: "2026-03-24"
+  date: "2026-06-30"
   author: devfloor9
 reading_time: 3
 tags:

@@ -3,7 +3,7 @@ title: Industry Solutions
 description: 산업별로 검증된 PoC 패턴과 동작 시연 데모 자산. Retail, Energy, Financial Services, Manufacturing 등.
 created: "2026-05-14"
 last_update:
-  date: "2026-05-14"
+  date: "2026-07-01"
   author: YoungJoon Jeong
 reading_time: 3
 tags:

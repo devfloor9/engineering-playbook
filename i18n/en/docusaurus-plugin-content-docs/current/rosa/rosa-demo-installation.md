@@ -3,7 +3,7 @@ title: ROSA Demo Installation Guide
 description: ROSA cluster installation demo - STS-based cluster creation, IAM role configuration, autoscaling setup, and admin access configuration guide
 created: "2025-02-05"
 last_update:
-  date: "2026-02-14"
+  date: "2026-06-30"
   author: devfloor9
 reading_time: 4
 tags:

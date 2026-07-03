@@ -3,7 +3,7 @@ title: Ragas RAG Evaluation Framework
 description: RAG pipeline quality evaluation and continuous improvement using Ragas
 created: "2026-02-05"
 last_update:
-  date: "2026-04-20"
+  date: "2026-06-26"
   author: devfloor9
 reading_time: 8
 tags:

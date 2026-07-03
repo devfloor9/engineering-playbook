@@ -3,7 +3,7 @@ title: GuardDuty Extended Threat Detection
 description: Amazon GuardDuty Extended Threat Detection을 활용한 EKS 위협 탐지 및 대응
 created: "2026-02-09"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 1
 tags:

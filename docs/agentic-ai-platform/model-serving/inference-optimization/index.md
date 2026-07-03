@@ -3,7 +3,7 @@ title: Inference Optimization on EKS
 description: LLM Inference 성능을 극대화하는 EKS 아키텍처 개요 — vLLM, KV Cache-Aware Routing, Disaggregated Serving, LWS 멀티노드, GPU 오토스케일링의 시작점
 created: "2026-04-03"
 last_update:
-  date: "2026-06-15"
+  date: "2026-06-26"
   author: devfloor9
 reading_time: 14
 tags:

@@ -2,7 +2,7 @@
 title: Architecture Draw.io Prompt
 created: "2026-03-17"
 last_update:
-  date: "2026-03-26"
+  date: "2026-06-26"
   author: YoungJoon Jeong
 reading_time: 41
 tags: []

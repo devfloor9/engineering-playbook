@@ -3,7 +3,7 @@ title: S11-A. Direct Selling, Minors, and Health Functional Food Compliance (AMW
 description: Automated review of FTC, Korea Door-to-Door Sales Act, MFDS, and EU direct-selling regulations + multi-country ad guards
 created: "2026-05-14"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 3
 tags:

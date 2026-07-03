@@ -3,7 +3,7 @@ title: NVIDIA GPU 스택
 description: GPU Operator, DCGM, MIG, Time-Slicing, Dynamo의 아키텍처와 EKS 통합
 created: "2026-03-20"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-28"
   author: YoungJoon Jeong
 reading_time: 19
 tags:

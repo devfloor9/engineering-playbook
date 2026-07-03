@@ -3,7 +3,7 @@ title: Karpenter-based EKS Scaling Strategy Comprehensive Guide
 description: Comprehensive scaling strategy guide using Karpenter on Amazon EKS. Compares reactive, predictive, and architectural resilience approaches, CloudWatch vs Prometheus architecture, HPA configuration, and production patterns
 created: "2025-02-09"
 last_update:
-  date: "2026-02-13"
+  date: "2026-06-30"
   author: devfloor9
 reading_time: 6
 tags:

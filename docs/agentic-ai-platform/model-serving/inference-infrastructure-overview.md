@@ -3,7 +3,7 @@ title: 추론 인프라 전체 구조와 튜닝 레이어
 description: LLM 추론이 인프라 레벨에서 동작하는 전체 요청 경로와, 계층별 튜닝 레버(인퍼런스 게이트웨이·prefill/decode 분리·context/KV cache-aware 라우팅·LMCache·캐시 히트 전략)를 한 장의 지도로 정리
 created: "2026-06-25"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-28"
   author: YoungJoon Jeong
 reading_time: 15
 tags:

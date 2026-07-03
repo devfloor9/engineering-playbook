@@ -3,7 +3,7 @@ title: "Feature Implementation Cookbook: 6 Gateway API Implementations"
 description: Reference for implementing authentication, rate limiting, IP control, URL rewrite, header manipulation, session affinity, body size limits, and custom error pages as YAML across AWS LBC, Cilium, NGINX GF, Envoy Gateway, and kGateway
 created: "2026-06-17"
 last_update:
-  date: "2026-06-17"
+  date: "2026-06-30"
   author: devfloor9
 reading_time: 17
 tags:

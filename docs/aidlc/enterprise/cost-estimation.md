@@ -3,7 +3,7 @@ title: 비용 효과 프레임워크
 description: AIDLC 엔터프라이즈 - cost-estimation
 created: "2026-04-07"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 21
 tags:

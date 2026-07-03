@@ -3,7 +3,7 @@ title: S3. Category · BU Insight Cards (Momo)
 description: Automated reports combining massive-SKU categories + Live + Delivery + External signals
 created: "2026-05-14"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 2
 tags:

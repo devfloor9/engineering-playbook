@@ -3,7 +3,7 @@ title: AgenticOps Metrics — Agent KPIs for Operations Monitoring
 description: Agent operations KPIs including task success rate, tool-call accuracy, hallucination rate, cost per interaction, escalation rate, and Langfuse·OTel schema
 created: "2026-04-18"
 last_update:
-  date: "2026-04-18"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 16
 tags:

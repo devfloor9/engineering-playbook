@@ -3,7 +3,7 @@ title: S5. 옴니채널 캠페인 ROAS 시뮬
 description: 옴니채널(자사몰/마트/H&B/SNS) Bayesian 어트리뷰션 + 검색·SNS 반응 결합
 created: "2026-05-14"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 2
 tags:

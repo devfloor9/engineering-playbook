@@ -3,7 +3,7 @@ title: Operations & Reliability
 description: Best practices for stable EKS cluster operations including GitOps, troubleshooting, high availability, and Pod lifecycle management
 created: "2026-03-25"
 last_update:
-  date: "2026-03-25"
+  date: "2026-06-26"
   author: devfloor9
 reading_time: 4
 tags:

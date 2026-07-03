@@ -3,7 +3,7 @@ title: S7. ABO & Customer Omnichannel Journey (AMWAY)
 description: A single timeline of in-house store → ABO direct sale → subscription → resignup
 created: "2026-05-14"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 2
 tags:

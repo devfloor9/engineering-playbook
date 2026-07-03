@@ -3,7 +3,7 @@ title: S1. Natural-Language Semantic Search (Mitsukoshi)
 description: Unified search across tenant brand SKUs + VIP/Foreigner + external reviews (Xiaohongshu, Dcard, Instagram)
 created: "2026-05-14"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 2
 tags:

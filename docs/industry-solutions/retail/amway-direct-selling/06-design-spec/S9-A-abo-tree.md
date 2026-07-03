@@ -3,7 +3,7 @@ title: S9-A. ABO 조직 시각화 + 성과 트래킹 (AMWAY 특화)
 description: AMWAY 다단계 ABO Tree 5단 깊이 시각화 + PV/BV·등급 성과 + Sponsor 분석
 created: "2026-05-14"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 2
 tags:

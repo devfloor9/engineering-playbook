@@ -3,7 +3,7 @@ title: Eval Gate · Registry · KPI
 description: 학습된 체크포인트의 Threshold 검증, kgateway 기반 Canary 점진 배포, MLflow Registry 버전 관리, 회귀 시 자동 롤백, 비용·품질 KPI 대시보드 구성.
 created: "2026-04-18"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-28"
   author: YoungJoon Jeong
 reading_time: 6
 tags:

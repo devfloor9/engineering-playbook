@@ -3,7 +3,7 @@ title: Industry Solutions
 description: Industry-validated PoC patterns and working demo assets — Retail, Energy, Financial Services, Manufacturing, and more.
 created: "2026-05-14"
 last_update:
-  date: "2026-05-14"
+  date: "2026-07-01"
   author: YoungJoon Jeong
 reading_time: 3
 tags:

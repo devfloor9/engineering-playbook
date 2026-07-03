@@ -3,7 +3,7 @@ title: S6. External Signal Fusion (AMWAY)
 description: Fusion of 4 sources — social, weather, FX (multi-country), regulatory
 created: "2026-05-14"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 1
 tags:

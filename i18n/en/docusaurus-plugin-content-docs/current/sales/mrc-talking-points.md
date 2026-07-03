@@ -3,7 +3,7 @@ title: MRC Talking Points - Modern Agentic Applications Day
 description: MRC (Marketing Representative for Customers) sales pitch guide for customer invitations to the 2026-04-09 Modern Agentic Applications Day.
 created: "2026-03-19"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 10
 tags:

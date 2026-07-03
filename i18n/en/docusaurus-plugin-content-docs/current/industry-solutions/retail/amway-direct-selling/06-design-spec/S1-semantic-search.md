@@ -3,7 +3,7 @@ title: S1. Natural-Language Semantic Search (AMWAY)
 description: Integrated search across Nutrilite, Artistry, Home SKUs + ABOs + external social posts
 created: "2026-05-14"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 3
 tags:

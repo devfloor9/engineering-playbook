@@ -3,7 +3,7 @@ title: S10-U. Own-Manufactured SKU vs Own-Channel Sell-Through (UPI-Specific)
 description: Compare 7ELE / Carrefour turnover of Uni-President Food own SKUs (Uni-Noodle, Mai-Hsiang, etc.) against external channels
 created: "2026-05-14"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 2
 tags:

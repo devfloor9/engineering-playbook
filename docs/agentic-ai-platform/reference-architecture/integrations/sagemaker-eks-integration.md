@@ -3,7 +3,7 @@ title: SageMaker-EKS 하이브리드 ML 아키텍처
 description: SageMaker에서 학습하고 EKS에서 서빙하는 하이브리드 ML 아키텍처
 created: "2026-02-11"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-28"
   author: YoungJoon Jeong
 reading_time: 5
 tags:

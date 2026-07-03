@@ -3,7 +3,7 @@ title: Observability Stack
 description: The data foundation of AIDLC Operations — building 3-Pillar observability + AI analysis layer
 created: "2026-04-07"
 last_update:
-  date: "2026-04-18"
+  date: "2026-06-30"
   author: devfloor9
 reading_time: 27
 tags:

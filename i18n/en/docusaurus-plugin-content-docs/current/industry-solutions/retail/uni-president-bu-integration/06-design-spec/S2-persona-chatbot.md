@@ -3,7 +3,7 @@ title: S2. 5-Department Persona Chatbot (Uni-President)
 description: Autonomous tool invocation across 5 departments — Integrated Marketing · CMI · D&A · OPENPOINT · Manufacturing & Logistics
 created: "2026-05-14"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 2
 tags:

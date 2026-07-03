@@ -3,7 +3,7 @@ title: GRPO/DPO 학습 Job
 description: 레이블링된 preference 데이터셋으로 NeMo-RL(GRPO)·TRL(DPO) 학습 Job을 Karpenter Spot 노드풀 + Volcano Gang Scheduling으로 실행하는 실전 구성.
 created: "2026-04-18"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-28"
   author: YoungJoon Jeong
 reading_time: 5
 tags:

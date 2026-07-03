@@ -3,7 +3,7 @@ title: S5. Omnichannel Campaign ROAS Simulation
 description: Omnichannel (Owned mall/Mart/H&B/SNS) Bayesian attribution + search · SNS response combined
 created: "2026-05-14"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 2
 tags:

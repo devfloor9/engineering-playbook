@@ -3,7 +3,7 @@ title: 커스텀 모델 파이프라인 구축 가이드
 description: LoRA Fine-tuning, Multi-LoRA 핫스왑, SLM Cascade Routing으로 도메인별 최적화된 모델 서빙 파이프라인 구축
 created: "2026-04-06"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-28"
   author: YoungJoon Jeong
 reading_time: 14
 tags:

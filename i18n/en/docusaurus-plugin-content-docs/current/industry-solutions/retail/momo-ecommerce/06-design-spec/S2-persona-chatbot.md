@@ -3,7 +3,7 @@ title: S2. 5-Department Persona Chatbot (Momo)
 description: Autonomous tool invocation tailored to each of 5 departments — Marketing · Category · Search-Recommendation · CS · Logistics
 created: "2026-05-14"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 2
 tags:

@@ -3,7 +3,7 @@ title: 옵저버빌리티 및 모니터링
 description: EKS 옵저버빌리티 스택 구성 및 인시던트 디텍팅 전략 - Container Insights, Prometheus, ADOT
 created: "2026-04-07"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 9
 tags:

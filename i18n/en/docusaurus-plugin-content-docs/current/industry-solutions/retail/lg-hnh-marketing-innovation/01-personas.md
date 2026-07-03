@@ -3,7 +3,7 @@ title: 5-Department Personas
 description: 5 personas — Brand Marketer / Insights / D&A · MarTech / CRM · LG Members / MD · Channel Sales
 created: "2026-05-14"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 6
 tags:

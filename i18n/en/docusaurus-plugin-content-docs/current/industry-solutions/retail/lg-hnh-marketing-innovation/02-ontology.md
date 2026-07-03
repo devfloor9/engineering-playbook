@@ -3,7 +3,7 @@ title: Knowledge Graph 25 Classes
 description: 3-BU integrated KG with 25 classes — Customer / Product / Transaction / Channel / Operations · External
 created: "2026-05-14"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 8
 tags:

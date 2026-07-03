@@ -3,7 +3,7 @@ title: EKS 디버깅 가이드
 description: Amazon EKS 환경에서 애플리케이션 및 인프라 문제를 체계적으로 진단하고 해결하기 위한 종합 트러블슈팅 가이드
 created: "2026-02-10"
 last_update:
-  date: "2026-06-15"
+  date: "2026-06-30"
   author: devfloor9
 reading_time: 11
 tags:

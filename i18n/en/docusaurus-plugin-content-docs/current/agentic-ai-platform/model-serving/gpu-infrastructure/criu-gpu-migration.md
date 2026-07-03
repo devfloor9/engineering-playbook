@@ -3,7 +3,7 @@ title: CRIU-based GPU Live Migration (Preview)
 description: Technical status and EKS application scenarios for GPU workload checkpoint/restore during Spot reclaim and scheduling events (Experimental)
 created: "2026-04-18"
 last_update:
-  date: "2026-04-20"
+  date: "2026-06-30"
   author: devfloor9
 reading_time: 31
 tags:

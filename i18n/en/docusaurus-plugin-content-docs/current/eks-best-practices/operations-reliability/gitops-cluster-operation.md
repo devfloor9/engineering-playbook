@@ -3,7 +3,7 @@ title: GitOps-based EKS Cluster Operations
 description: GitOps architecture, KRO/ACK usage, multi-cluster management strategies and automation for stable large-scale EKS cluster operations
 created: "2025-02-09"
 last_update:
-  date: "2026-02-18"
+  date: "2026-06-30"
   author: devfloor9
 reading_time: 4
 tags:

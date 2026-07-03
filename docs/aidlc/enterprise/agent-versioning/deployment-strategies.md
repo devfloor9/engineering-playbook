@@ -3,7 +3,7 @@ title: 배포 전략 — Shadow·Canary·A/B·Blue-Green
 description: 점진적 모델 교체 전략과 Feature Flag 기반 프롬프트 전개 방식
 created: "2026-04-18"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 8
 tags:

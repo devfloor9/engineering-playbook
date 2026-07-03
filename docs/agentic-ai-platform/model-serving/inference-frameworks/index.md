@@ -3,7 +3,7 @@ title: 추론 프레임워크
 description: vLLM·llm-d·MoE·NeMo — GPU 위에서 실제로 모델을 서빙·분산 추론·파인튜닝하는 AI 프레임워크 계층
 created: "2026-04-17"
 last_update:
-  date: "2026-04-20"
+  date: "2026-06-26"
   author: devfloor9
 reading_time: 4
 tags:

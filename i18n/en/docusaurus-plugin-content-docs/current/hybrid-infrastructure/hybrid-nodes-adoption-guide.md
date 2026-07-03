@@ -3,7 +3,7 @@ title: EKS Hybrid Nodes Complete Guide
 description: "A complete guide for adopting Amazon EKS Hybrid Nodes: architecture, configuration, networking, DNS, GPU servers, cost analysis, and Dynamic Resource Allocation (DRA)"
 created: "2025-08-20"
 last_update:
-  date: "2026-02-14"
+  date: "2026-06-30"
   author: devfloor9
 reading_time: 16
 tags:

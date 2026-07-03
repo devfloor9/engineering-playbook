@@ -3,7 +3,7 @@ title: EKS 선언적 자동화
 description: AIDLC Construction/Operations를 EKS Capabilities로 구현하는 선언적 자동화 패턴
 created: "2026-04-07"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 16
 tags:

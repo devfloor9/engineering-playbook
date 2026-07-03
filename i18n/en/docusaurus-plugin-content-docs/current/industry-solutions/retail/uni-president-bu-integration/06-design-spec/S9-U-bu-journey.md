@@ -3,7 +3,7 @@ title: S9-U. Cross-BU OPENPOINT Member Journey (UPI-Specific)
 description: Single-KG behavior analysis of one OPENPOINT member crossing 7-Eleven → Carrefour → Starbucks → Donut
 created: "2026-05-14"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 2
 tags:

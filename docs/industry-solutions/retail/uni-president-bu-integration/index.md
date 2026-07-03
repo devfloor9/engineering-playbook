@@ -3,7 +3,7 @@ title: Uni-President BU Integration PoC
 description: 統一企業 — 7-Eleven Taiwan + 까르푸 + Starbucks + 식품 제조 BU 통합을 Ontology + Agentic AI로
 created: "2026-05-14"
 last_update:
-  date: "2026-05-14"
+  date: "2026-07-02"
   author: YoungJoon Jeong
 reading_time: 4
 tags:

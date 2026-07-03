@@ -3,7 +3,7 @@ title: NVIDIA Dynamo 추론 벤치마크
 description: NVIDIA Dynamo 기반 Aggregated/Disaggregated LLM 서빙 성능 비교 벤치마크 — EKS 환경 AIPerf 4가지 모드 실행
 created: "2026-03-20"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 9
 tags:

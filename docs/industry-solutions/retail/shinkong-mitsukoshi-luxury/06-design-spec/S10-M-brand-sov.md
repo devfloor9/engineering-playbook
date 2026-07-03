@@ -3,7 +3,7 @@ title: S10-M. 럭셔리 브랜드 SOV + 매대 점유 (Mitsukoshi 특화)
 description: 입점 700+ 브랜드 × 19점포 × 시즌 매대 점유 분석
 created: "2026-05-14"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 2
 tags:

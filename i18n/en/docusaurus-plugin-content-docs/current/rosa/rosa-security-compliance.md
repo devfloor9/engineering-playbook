@@ -3,7 +3,7 @@ title: ROSA Security Compliance Console Access Control
 description: Access control strategies for Red Hat Hybrid Cloud Console to meet financial sector security requirements. Secure administrator access control through IdP, MFA, and IP-based access restrictions.
 created: "2025-02-05"
 last_update:
-  date: "2026-02-13"
+  date: "2026-06-30"
   author: devfloor9
 reading_time: 7
 tags:

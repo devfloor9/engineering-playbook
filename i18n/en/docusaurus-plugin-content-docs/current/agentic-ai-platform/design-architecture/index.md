@@ -3,7 +3,7 @@ title: Design & Architecture
 description: Architecture design, technical challenges, and AWS Native and EKS-based implementation approaches for the Agentic AI Platform
 created: "2026-03-06"
 last_update:
-  date: "2026-04-20"
+  date: "2026-06-26"
   author: devfloor9
 reading_time: 4
 tags:

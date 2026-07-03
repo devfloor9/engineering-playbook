@@ -3,7 +3,7 @@ title: MRC 토킹포인트 - Modern Agentic Applications Day
 description: 2026.4.9 Modern Agentic Applications Day 고객 초대를 위한 MRC(Marketing Representative for Customers) 세일즈 피치 가이드
 created: "2026-03-19"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 10
 tags:

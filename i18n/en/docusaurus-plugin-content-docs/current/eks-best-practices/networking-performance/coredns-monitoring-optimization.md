@@ -3,7 +3,7 @@ title: CoreDNS Monitoring and Performance Optimization Complete Guide
 description: Systematically monitor and optimize CoreDNS performance in Amazon EKS. Includes Prometheus metrics, TTL tuning, monitoring architecture, and real-world troubleshooting cases
 created: "2025-05-20"
 last_update:
-  date: "2026-02-18"
+  date: "2026-06-30"
   author: devfloor9
 reading_time: 15
 tags:

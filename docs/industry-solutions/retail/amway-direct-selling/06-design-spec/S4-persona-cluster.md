@@ -3,7 +3,7 @@ title: S4. 페르소나 매칭 + 클러스터링 (AMWAY)
 description: 라이프스타일 페르소나 5종 + RFM × 카테고리 친화도 KMeans + 소셜 페르소나 보강
 created: "2026-05-14"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 2
 tags:

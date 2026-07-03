@@ -3,7 +3,7 @@ title: S10-M. Luxury Brand SOV + Counter Occupancy (Mitsukoshi-specific)
 description: Counter occupancy analysis across 700+ tenant brands × 19 stores × seasons
 created: "2026-05-14"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 2
 tags:

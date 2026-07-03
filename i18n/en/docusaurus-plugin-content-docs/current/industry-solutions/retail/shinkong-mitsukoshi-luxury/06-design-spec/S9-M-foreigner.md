@@ -3,7 +3,7 @@ title: S9-M. Foreign Tourist Behavior Analysis + Duty-Free Recommendation (Mitsu
 description: Duty-free recommendation system for foreigners combining passport, nationality, FX, and tourism data
 created: "2026-05-14"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 2
 tags:

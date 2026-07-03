@@ -3,7 +3,7 @@ title: Kagent - Kubernetes AI Agent 관리
 description: Kagent를 활용한 Kubernetes 환경에서의 AI 에이전트 선언적 관리 아키텍처 및 오케스트레이션 패턴
 created: "2026-02-05"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 12
 tags:

@@ -3,7 +3,7 @@ title: 보안 및 운영 벤치마크
 description: 보안 정책 적용 및 운영 도구 성능 벤치마크
 created: "2026-02-09"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 1
 tags:

@@ -3,7 +3,7 @@ title: S3. Category · BU Insight Cards (Uni-President)
 description: Combination of 5-BU GMV + own-SKU sell-through + 4 external sources
 created: "2026-05-14"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 2
 tags:

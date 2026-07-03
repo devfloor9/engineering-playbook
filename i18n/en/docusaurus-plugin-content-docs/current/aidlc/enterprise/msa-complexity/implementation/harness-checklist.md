@@ -3,7 +3,7 @@ title: Harness Checklist
 description: Required harnesses and implementation guide by MSA pattern
 created: "2026-04-19"
 last_update:
-  date: "2026-04-18"
+  date: "2026-06-30"
   author: devfloor9
 reading_time: 4
 tags:

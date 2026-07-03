@@ -3,7 +3,7 @@ title: 보안 & 인증
 description: EKS API Server 인증/인가, IAM 통합, Pod Identity 등 보안 관련 베스트 프랙티스
 created: "2026-03-24"
 last_update:
-  date: "2026-06-15"
+  date: "2026-06-30"
   author: devfloor9
 reading_time: 1
 tags:

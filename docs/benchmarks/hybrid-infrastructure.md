@@ -3,7 +3,7 @@ title: 하이브리드 인프라 벤치마크
 description: 하이브리드 클라우드 인프라 네트워크 및 스토리지 성능 벤치마크
 created: "2026-02-09"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 1
 tags:

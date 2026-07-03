@@ -3,7 +3,7 @@ title: Cilium ENI Mode + Gateway API Deep-dive Configuration
 description: Cilium ENI mode architecture, Gateway API resource configuration, performance optimization, Hubble observability, BGP Control Plane v2 deep-dive guide
 created: "2026-02-14"
 last_update:
-  date: "2026-02-14"
+  date: "2026-06-26"
   author: devfloor9
 reading_time: 8
 tags:

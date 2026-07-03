@@ -3,7 +3,7 @@ title: 컨테이너 공급망 보안
 description: 컨테이너 이미지 서명, SBOM, CI/CD 보안 게이트를 통한 공급망 보안 강화
 created: "2026-02-09"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 1
 tags:

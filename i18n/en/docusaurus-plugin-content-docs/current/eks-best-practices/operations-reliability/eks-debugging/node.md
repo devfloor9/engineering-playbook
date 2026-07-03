@@ -3,7 +3,7 @@ title: Node-Level Debugging
 description: Guide to diagnosing and resolving EKS node issues
 created: "2026-04-21"
 last_update:
-  date: "2026-04-18"
+  date: "2026-06-30"
   author: devfloor9
 reading_time: 11
 tags:

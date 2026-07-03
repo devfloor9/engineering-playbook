@@ -3,7 +3,7 @@ title: 5-Department Personas (Mitsukoshi)
 description: Shinkong Mitsukoshi 5-department personas — Marketing, Insights, Digital, VIP, MD
 created: "2026-05-14"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 3
 tags:

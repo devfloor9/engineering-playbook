@@ -3,7 +3,7 @@ title: Eval Gate · Registry · KPI
 description: Threshold verification of trained checkpoints, kgateway-based gradual Canary deployment, MLflow Registry version management, automatic rollback on regression, cost and quality KPI dashboard configuration.
 created: "2026-04-18"
 last_update:
-  date: "2026-04-20"
+  date: "2026-06-26"
   author: devfloor9
 reading_time: 8
 tags:

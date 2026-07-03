@@ -3,7 +3,7 @@ title: Predictive Operations
 description: ML-based predictive scaling and anomaly detection — Karpenter+AI, CloudWatch Anomaly Detection, AI Right-Sizing
 created: "2026-04-07"
 last_update:
-  date: "2026-04-18"
+  date: "2026-06-30"
   author: devfloor9
 reading_time: 14
 tags: []

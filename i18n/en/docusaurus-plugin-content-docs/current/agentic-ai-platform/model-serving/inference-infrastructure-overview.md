@@ -3,7 +3,7 @@ title: Inference Infrastructure Overview and Tuning Layers
 description: A single map of the end-to-end LLM inference request path at the infrastructure layer, with tuning levers organized by layer — inference gateway, prefill/decode disaggregation, context/KV cache-aware routing, LMCache, and cache-hit strategy.
 created: "2026-06-25"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 15
 tags:

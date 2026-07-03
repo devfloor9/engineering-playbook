@@ -3,7 +3,7 @@ title: Data Sources (Mitsukoshi)
 description: First-party + 4 external signal types — reinforced with FX and tourism signals
 created: "2026-05-14"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 2
 tags:

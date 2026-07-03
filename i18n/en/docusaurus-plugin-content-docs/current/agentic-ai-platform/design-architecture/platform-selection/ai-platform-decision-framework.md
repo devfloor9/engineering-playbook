@@ -3,7 +3,7 @@ title: "AI Platform Selection Guide: Managed vs Open Source vs Hybrid"
 description: Decision framework for selecting the optimal approach between SageMaker Unified Studio, Bedrock AgentCore, and EKS open architecture based on customer needs
 created: "2026-04-17"
 last_update:
-  date: "2026-04-20"
+  date: "2026-06-27"
   author: devfloor9
 reading_time: 21
 tags:

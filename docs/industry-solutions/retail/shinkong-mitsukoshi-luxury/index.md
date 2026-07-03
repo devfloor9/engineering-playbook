@@ -3,7 +3,7 @@ title: Shinkong Mitsukoshi Luxury Retail PoC
 description: 新光三越 대만 럭셔리 백화점·면세 — VIP 멤버십 + 외국인 관광객 + 입점 브랜드 700+를 Ontology + Agentic AI로
 created: "2026-05-14"
 last_update:
-  date: "2026-05-14"
+  date: "2026-07-02"
   author: YoungJoon Jeong
 reading_time: 4
 tags:

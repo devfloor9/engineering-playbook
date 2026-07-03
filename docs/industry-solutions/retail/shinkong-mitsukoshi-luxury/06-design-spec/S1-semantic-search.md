@@ -3,7 +3,7 @@ title: S1. 자연어 시맨틱 검색 (Mitsukoshi)
 description: 입점 브랜드 SKU + VIP·Foreigner + 외부 후기 (소홍서·Dcard·인스타) 통합 검색
 created: "2026-05-14"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 2
 tags:

@@ -3,7 +3,7 @@ title: CoreDNS 모니터링과 성능 최적화 완벽 가이드
 description: Amazon EKS의 CoreDNS 성능을 체계적으로 모니터링하고 최적화하는 방법. Prometheus 메트릭, TTL 튜닝, 모니터링 아키텍처, 실제 문제 해결 사례 포함
 created: "2025-05-20"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 16
 tags:

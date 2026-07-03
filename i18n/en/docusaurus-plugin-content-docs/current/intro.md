@@ -3,7 +3,7 @@ title: Engineering Playbook
 description: Cloud Native Architecture Engineering Playbook & Benchmark Reports
 created: "2025-09-11"
 last_update:
-  date: "2026-02-25"
+  date: "2026-06-30"
   author: devfloor9
 reading_time: 1
 tags:

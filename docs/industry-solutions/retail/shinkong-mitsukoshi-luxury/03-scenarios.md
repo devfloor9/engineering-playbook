@@ -3,7 +3,7 @@ title: 11 시나리오 매핑 (Mitsukoshi)
 description: 공통 8 + Mitsukoshi 특화 3 (외국인 면세·럭셔리 SOV·VIP 컨시어지)
 created: "2026-05-14"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 3
 tags:

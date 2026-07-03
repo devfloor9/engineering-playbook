@@ -3,7 +3,7 @@ title: LG H&H Marketing Innovation PoC
 description: LG H&H Beauty + HDB + Refreshment 3-BU integrated marketing innovation PoC — Ontology + Agentic AI based 8-scenario demo
 created: "2026-05-14"
 last_update:
-  date: "2026-06-15"
+  date: "2026-07-02"
   author: YoungJoon Jeong
 reading_time: 6
 tags:

@@ -3,7 +3,7 @@ title: S7. Omnichannel Member Journey (Momo)
 description: Single timeline — App search → Live viewing → TV home-shopping → Re-purchase
 created: "2026-05-14"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 1
 tags:

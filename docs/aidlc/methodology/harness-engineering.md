@@ -3,7 +3,7 @@ title: 하네스 엔지니어링
 description: AIDLC 신뢰성의 두 번째 축 — AI 실행의 안전성을 아키텍처적으로 강제하는 하네스 설계 (engineering-playbook 확장 콘텐츠)
 created: "2026-04-07"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 9
 tags:

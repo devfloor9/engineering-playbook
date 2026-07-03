@@ -3,7 +3,7 @@ title: Uni-President BU Integration PoC
 description: Uni-President (統一企業) — 7-Eleven Taiwan + Carrefour + Starbucks + food manufacturing BU integration via Ontology + Agentic AI
 created: "2026-05-14"
 last_update:
-  date: "2026-05-14"
+  date: "2026-07-02"
   author: YoungJoon Jeong
 reading_time: 4
 tags:

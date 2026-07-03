@@ -3,7 +3,7 @@ title: 설계 & 아키텍처
 description: Agentic AI 플랫폼의 아키텍처 설계, 기술적 도전과제, AWS Native 및 EKS 기반 구현 접근
 created: "2026-03-06"
 last_update:
-  date: "2026-04-20"
+  date: "2026-06-26"
   author: devfloor9
 reading_time: 3
 tags:

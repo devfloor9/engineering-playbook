@@ -3,7 +3,7 @@ title: "Level 1-2: 단순 CRUD & 동기 MSA"
 description: Level 1 단순 CRUD 서비스와 Level 2 동기 MSA 오케스트레이션 패턴 적용 가이드
 created: "2026-04-18"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 2
 tags:

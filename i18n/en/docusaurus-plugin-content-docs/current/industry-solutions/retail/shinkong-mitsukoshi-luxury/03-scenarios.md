@@ -3,7 +3,7 @@ title: 11 Scenario Mapping (Mitsukoshi)
 description: 8 common + 3 Mitsukoshi-specific (Foreigner duty-free, Luxury SOV, VIP concierge)
 created: "2026-05-14"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 3
 tags:

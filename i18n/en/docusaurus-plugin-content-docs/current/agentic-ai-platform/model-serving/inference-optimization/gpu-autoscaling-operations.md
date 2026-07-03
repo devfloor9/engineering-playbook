@@ -4,7 +4,7 @@ sidebar_label: "Autoscaling & Deployment Ops"
 description: "2-Tier GPU autoscaling (KEDA·Karpenter), DRA compatibility, and operational lessons learned from large MoE model (GLM-5·Kimi K2.5) deployments for LLM serving"
 created: 2026-04-03
 last_update:
-  date: 2026-06-18
+  date: 2026-06-26
   author: devfloor9
 reading_time: 18
 tags:

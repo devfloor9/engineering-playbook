@@ -3,7 +3,7 @@ title: "AWS Native Agentic AI Platform: Agent-Centric Approach with Managed Serv
 description: A platform approach that reduces infrastructure operational burden using Amazon Bedrock, Strands Agents SDK, and AgentCore to focus on agent development
 created: "2026-03-18"
 last_update:
-  date: "2026-04-20"
+  date: "2026-06-26"
   author: devfloor9
 reading_time: 33
 tags:

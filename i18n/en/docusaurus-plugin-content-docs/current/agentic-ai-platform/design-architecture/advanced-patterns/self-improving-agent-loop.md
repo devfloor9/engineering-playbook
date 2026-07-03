@@ -3,7 +3,7 @@ title: Self-Improving Agent Loop (Autosearch)
 description: 5-stage loop design and safety mechanisms for self-hosted SLMs to autonomously learn and improve from production traces based on Karpathy's autosearch concept
 created: "2026-04-18"
 last_update:
-  date: "2026-04-20"
+  date: "2026-06-30"
   author: devfloor9
 reading_time: 31
 tags:

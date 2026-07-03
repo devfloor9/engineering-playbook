@@ -3,7 +3,7 @@ title: S5. Omnichannel Campaign ROAS (AMWAY)
 description: Bayesian attribution across in-house store, ABO direct sale, catalog, and SNS channels
 created: "2026-05-14"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 2
 tags:

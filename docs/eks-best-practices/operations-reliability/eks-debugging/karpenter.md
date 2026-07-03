@@ -3,7 +3,7 @@ title: Karpenter 심화 디버깅
 description: Karpenter 오토스케일러 심화 디버깅 가이드
 created: "2026-04-07"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 4
 tags:

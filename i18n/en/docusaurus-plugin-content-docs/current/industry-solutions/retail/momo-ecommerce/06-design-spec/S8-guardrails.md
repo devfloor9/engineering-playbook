@@ -3,7 +3,7 @@ title: S8. Guardrails (Momo)
 description: Bedrock Guardrails + Live-broadcast ad language + Minors + Refund regulations
 created: "2026-05-14"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 1
 tags:

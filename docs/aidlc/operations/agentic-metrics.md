@@ -3,7 +3,7 @@ title: AgenticOps 메트릭 — 운영 중 관측할 Agent KPI
 description: task success rate, tool-call accuracy, hallucination rate, cost per interaction, escalation rate 등 Agent 운영 KPI와 Langfuse·OTel 스키마
 created: "2026-04-18"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 12
 tags:

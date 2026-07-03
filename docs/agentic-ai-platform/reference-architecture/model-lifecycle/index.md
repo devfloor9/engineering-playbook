@@ -3,7 +3,7 @@ title: 모델 수명주기
 description: 커스텀 모델 배포·파인튜닝 파이프라인·MLOps 오케스트레이션·지속 학습 파이프라인
 created: "2026-04-20"
 last_update:
-  date: "2026-04-20"
+  date: "2026-06-26"
   author: devfloor9
 reading_time: 1
 tags:

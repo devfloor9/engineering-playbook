@@ -3,7 +3,7 @@ title: Inference Gateway & LLM Gateway Routing Strategy
 description: kgateway + Bifrost/LiteLLM 2-Tier architecture with Cascade Routing, Semantic Router, and Hybrid Routing design patterns
 created: "2025-02-05"
 last_update:
-  date: "2026-04-17"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 51
 tags:

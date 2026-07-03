@@ -3,7 +3,7 @@ title: S7. 옴니채널 회원 여정 (Uni-President)
 description: OPENPOINT 회원의 자사 BU 가로지르는 여정
 created: "2026-05-14"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 1
 tags:

@@ -3,7 +3,7 @@ title: EKS 고가용성 아키텍처 가이드
 description: Amazon EKS 환경에서 고가용성과 장애 회복력을 확보하기 위한 아키텍처 패턴과 운영 전략 가이드
 created: "2026-02-10"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 28
 tags:

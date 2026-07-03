@@ -3,7 +3,7 @@ title: Cross-Cluster Object Replication (HA) Architecture Guide
 description: Architecture patterns and decision guide for achieving high availability through object replication in EKS multi-cluster environments
 created: "2026-03-24"
 last_update:
-  date: "2026-03-24"
+  date: "2026-06-30"
   author: devfloor9
 reading_time: 20
 tags:

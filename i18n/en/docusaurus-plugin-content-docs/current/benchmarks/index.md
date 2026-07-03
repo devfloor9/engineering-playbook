@@ -3,7 +3,7 @@ title: EKS Performance Benchmark Reports
 description: Collection of EKS environment performance benchmark reports — Networking, AI/ML Inference, Infrastructure & Operations
 created: "2026-02-11"
 last_update:
-  date: "2026-03-20"
+  date: "2026-06-26"
   author: devfloor9
 reading_time: 4
 tags:

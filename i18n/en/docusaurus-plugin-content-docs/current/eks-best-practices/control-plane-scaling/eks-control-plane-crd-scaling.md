@@ -3,7 +3,7 @@ title: EKS Control Plane Deep Dive — CRD at Scale Comprehensive Guide
 description: Understand EKS Control Plane internals and learn Provisioned Control Plane usage, monitoring strategies, and CRD design best practices for stable scaling of CRD-based platforms
 created: "2026-03-24"
 last_update:
-  date: "2026-03-24"
+  date: "2026-06-30"
   author: devfloor9
 reading_time: 13
 tags:

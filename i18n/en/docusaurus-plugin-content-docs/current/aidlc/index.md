@@ -3,7 +3,7 @@ title: "AIDLC: AI-Driven Development Lifecycle"
 description: AI-Driven Development Lifecycle — Enterprise adoption guide for AI-driven software development methodology
 created: "2026-03-23"
 last_update:
-  date: "2026-04-18"
+  date: "2026-06-30"
   author: devfloor9
 reading_time: 5
 tags:

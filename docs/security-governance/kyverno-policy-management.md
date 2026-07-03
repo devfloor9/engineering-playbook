@@ -3,7 +3,7 @@ title: Kyverno 기반 정책 관리
 description: Kyverno v1.17+ (현재 v1.18)을 활용한 Kubernetes 정책 관리 및 거버넌스
 created: "2026-02-09"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 1
 tags:

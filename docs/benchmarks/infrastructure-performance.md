@@ -3,7 +3,7 @@ title: 인프라 성능 벤치마크
 description: EKS 클러스터 인프라 성능 벤치마크 - 네트워크, DNS, 오토스케일링
 created: "2026-02-09"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 2
 tags:

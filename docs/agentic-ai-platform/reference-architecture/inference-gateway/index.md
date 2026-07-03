@@ -3,7 +3,7 @@ title: 추론 게이트웨이 배포
 description: kgateway·Bifrost 기반 2-Tier 추론 게이트웨이의 실전 배포 가이드 — Helm 설치, HTTPRoute 구성, OTel 연동, 트러블슈팅
 created: "2026-04-20"
 last_update:
-  date: "2026-06-25"
+  date: "2026-06-26"
   author: YoungJoon Jeong
 reading_time: 2
 tags:

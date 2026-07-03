@@ -3,7 +3,7 @@ title: S11-Mo. Mobile-App Recommendation · Search Diversity (Momo-Specific)
 description: Recommendation diversity · New-product exposure · Long-tail SKU discovery — exploration-purchase balance monitor
 created: "2026-05-14"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 2
 tags:

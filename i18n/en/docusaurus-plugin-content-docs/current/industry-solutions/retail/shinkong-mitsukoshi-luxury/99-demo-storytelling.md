@@ -3,7 +3,7 @@ title: 30-Minute Demo Script (Mitsukoshi)
 description: 30-minute demo for Mitsukoshi executives, MD, and VIP team meetings
 created: "2026-05-14"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 2
 tags:

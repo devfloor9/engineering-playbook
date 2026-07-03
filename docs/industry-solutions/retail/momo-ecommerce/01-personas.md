@@ -3,7 +3,7 @@ title: 5 부서 페르소나 (Momo)
 description: 마케팅·카테고리·검색추천·CS·물류 5 부서
 created: "2026-05-14"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 2
 tags:

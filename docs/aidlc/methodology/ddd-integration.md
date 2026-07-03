@@ -3,7 +3,7 @@ title: DDD 통합 — AI 주도 개발에서의 필수 코어
 description: AIDLC에서 DDD가 필수 코어인 이유 — 도메인 설계부터 논리 설계까지 AI 주도 개발
 created: "2026-04-07"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 13
 tags:

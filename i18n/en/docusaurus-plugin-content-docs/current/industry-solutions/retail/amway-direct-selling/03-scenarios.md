@@ -3,7 +3,7 @@ title: 11-Scenario Mapping (AMWAY)
 description: 8 common scenarios (S1–S8) + 3 AMWAY-specific scenarios (S9-A · S10-A · S11-A)
 created: "2026-05-14"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 4
 tags:

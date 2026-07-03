@@ -3,7 +3,7 @@ title: "Level 1-2: Simple CRUD & Synchronous MSA"
 description: Application guide for Level 1 simple CRUD services and Level 2 synchronous MSA orchestration patterns
 created: "2026-04-19"
 last_update:
-  date: "2026-04-18"
+  date: "2026-06-30"
   author: devfloor9
 reading_time: 4
 tags:

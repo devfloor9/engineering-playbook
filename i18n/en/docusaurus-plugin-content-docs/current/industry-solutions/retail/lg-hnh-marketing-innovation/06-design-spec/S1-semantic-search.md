@@ -3,7 +3,7 @@ title: S1. Natural-Language Semantic Search
 description: Integrated semantic search across first-party SKU · Member · Reviews + external social reviews (Olive Young · X)
 created: "2026-05-14"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 3
 tags:

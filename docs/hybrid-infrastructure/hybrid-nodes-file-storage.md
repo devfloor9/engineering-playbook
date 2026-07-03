@@ -3,7 +3,7 @@ title: EKS Hybrid Nodes 공유 파일 스토리지 솔루션
 description: EKS Hybrid Nodes 환경에서 공유 파일 스토리지 구현을 위한 포괄적 가이드로, AWS 관리형 서비스, 엔터프라이즈 스토리지 통합 및 Amazon Linux 2023 대체 접근법을 다룹니다.
 created: "2025-09-15"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 11
 tags:

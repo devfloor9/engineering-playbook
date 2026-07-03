@@ -3,7 +3,7 @@ title: KV Cache 최적화 (vLLM Deep Dive + Cache-Aware Routing)
 description: vLLM PagedAttention·Continuous Batching·FP8 KV Cache 등 핵심 기술 정리와 llm-d/NVIDIA Dynamo의 KV Cache-Aware Routing 비교 및 Gateway 구성
 created: "2026-04-03"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-28"
   author: YoungJoon Jeong
 reading_time: 9
 tags:

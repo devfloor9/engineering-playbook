@@ -3,7 +3,7 @@ title: "Level 3-4: 비동기 이벤트 & Saga"
 description: Level 3 비동기 이벤트 기반 MSA와 Level 4 Saga + 보상 트랜잭션 패턴 적용 가이드
 created: "2026-04-18"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 3
 tags:

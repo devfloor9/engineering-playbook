@@ -3,7 +3,7 @@ title: Cascade Routing Production Tuning
 description: Guide to tuning Inference Gateway Cascade Routing classification thresholds, Canary rollout, Fallback, and cost drift alerts based on production traces
 created: "2026-04-18"
 last_update:
-  date: "2026-04-20"
+  date: "2026-06-26"
   author: devfloor9
 reading_time: 23
 tags:

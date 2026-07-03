@@ -3,7 +3,7 @@ title: S2. Persona Chatbot Across 5 Departments (AMWAY)
 description: A chatbot autonomously invoking tools for ABO Field, CMI, D&A, CX, and Compliance personas
 created: "2026-05-14"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 3
 tags:

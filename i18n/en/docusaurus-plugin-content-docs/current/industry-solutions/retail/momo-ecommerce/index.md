@@ -3,7 +3,7 @@ title: Momo eCommerce & Live Innovation PoC
 description: Momo (富邦媒 / momo.com) — Taiwan's #1 eCommerce — Live commerce + 24-hour delivery + massive SKU catalog, unlocked with Ontology + Agentic AI
 created: "2026-05-14"
 last_update:
-  date: "2026-05-14"
+  date: "2026-07-02"
   author: YoungJoon Jeong
 reading_time: 4
 tags:

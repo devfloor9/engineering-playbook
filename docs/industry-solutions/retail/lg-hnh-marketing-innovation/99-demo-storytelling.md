@@ -3,7 +3,7 @@ title: 30분 시연 스크립트
 description: LG생활건강 마케팅 본부 임원 미팅용 30분 시연 — Top-5(S1·S2·S3·S5·S7)
 created: "2026-05-14"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 6
 tags:

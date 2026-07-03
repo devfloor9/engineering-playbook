@@ -3,7 +3,7 @@ title: 8-Scenario Mapping
 description: Eight core scenarios for marketing innovation. Data mix (first-party + 4 external types) is specified for every scenario
 created: "2026-05-14"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 7
 tags:

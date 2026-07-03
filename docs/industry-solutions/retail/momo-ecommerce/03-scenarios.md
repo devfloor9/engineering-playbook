@@ -3,7 +3,7 @@ title: 11 시나리오 매핑 (Momo)
 description: 공통 8 + Momo 특화 3 (라이브 어트리뷰션·배송 SLA·추천 다양성)
 created: "2026-05-14"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 1
 tags:

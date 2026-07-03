@@ -3,7 +3,7 @@ title: 커스텀 모델 배포 가이드
 description: GLM-5.1 사례 기반 — 대형 오픈소스 모델의 EKS 배포 실전 가이드
 created: "2026-04-04"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-28"
   author: YoungJoon Jeong
 reading_time: 21
 tags:

@@ -3,7 +3,7 @@ title: EKS GPU Node Strategy
 description: Optimal node strategies for GPU workloads across EKS Auto Mode, Karpenter, MNG, and Hybrid Nodes
 created: "2026-03-16"
 last_update:
-  date: "2026-04-20"
+  date: "2026-06-26"
   author: devfloor9
 reading_time: 33
 tags:

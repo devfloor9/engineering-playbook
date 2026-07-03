@@ -3,7 +3,7 @@ title: 하네스 체크리스트
 description: MSA 패턴별 필수 하네스와 구현 가이드
 created: "2026-04-18"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 2
 tags:

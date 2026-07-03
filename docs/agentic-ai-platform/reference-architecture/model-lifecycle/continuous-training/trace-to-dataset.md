@@ -3,7 +3,7 @@ title: Trace → Dataset Materializer
 description: Langfuse OTel 트레이스를 S3 Parquet/Iceberg로 적재하고 Ragas + LLM Judge Fleet로 Reward를 레이블링해 GRPO/DPO 학습 데이터셋을 자동 구성합니다.
 created: "2026-04-18"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-28"
   author: YoungJoon Jeong
 reading_time: 5
 tags:

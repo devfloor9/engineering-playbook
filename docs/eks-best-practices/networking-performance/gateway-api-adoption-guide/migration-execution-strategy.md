@@ -3,7 +3,7 @@ title: 마이그레이션 실행 전략
 description: Gateway API 마이그레이션 5-Phase 전략, CRD 설치, 단계별 실행 가이드, 검증 스크립트, 트러블슈팅
 created: "2026-02-14"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-28"
   author: YoungJoon Jeong
 reading_time: 5
 tags:

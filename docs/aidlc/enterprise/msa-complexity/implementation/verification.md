@@ -3,7 +3,7 @@ title: 검증 방법론
 description: 복잡 MSA에서 AIDLC 적용 시 품질을 보장하는 검증 방법
 created: "2026-04-18"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 3
 tags:

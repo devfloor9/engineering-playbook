@@ -3,7 +3,7 @@ title: Security & Governance
 description: Amazon EKS 환경에서의 보안 강화 및 컴플라이언스 준수에 대한 심화 기술 문서
 created: "2025-02-05"
 last_update:
-  date: "2026-06-15"
+  date: "2026-06-30"
   author: devfloor9
 reading_time: 14
 tags:

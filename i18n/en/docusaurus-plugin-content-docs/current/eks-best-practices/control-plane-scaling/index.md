@@ -3,7 +3,7 @@ title: Control Plane & Scaling
 description: EKS Control Plane internals, CRD scaling strategies, and multi-cluster high availability architecture
 created: "2026-03-24"
 last_update:
-  date: "2026-03-24"
+  date: "2026-06-26"
   author: devfloor9
 reading_time: 2
 tags:

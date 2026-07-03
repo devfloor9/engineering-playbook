@@ -3,7 +3,7 @@ title: Networking Debugging
 description: Guide to diagnosing EKS networking issues - VPC CNI, DNS, Service, NetworkPolicy
 created: "2026-04-21"
 last_update:
-  date: "2026-04-07"
+  date: "2026-06-30"
   author: devfloor9
 reading_time: 9
 tags:

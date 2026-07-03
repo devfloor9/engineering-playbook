@@ -3,7 +3,7 @@ title: S3. 카테고리·BU 인사이트 카드 (Uni-President)
 description: 5 BU GMV + 자사 SKU sell-through + 외부 4종 결합
 created: "2026-05-14"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-30"
   author: YoungJoon Jeong
 reading_time: 2
 tags:

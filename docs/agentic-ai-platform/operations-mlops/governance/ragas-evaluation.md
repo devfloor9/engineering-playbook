@@ -3,7 +3,7 @@ title: Ragas RAG 평가 프레임워크
 description: Ragas를 활용한 RAG 파이프라인 품질 평가 및 지속적 개선 방법
 created: "2026-02-05"
 last_update:
-  date: "2026-06-27"
+  date: "2026-06-28"
   author: YoungJoon Jeong
 reading_time: 21
 tags:

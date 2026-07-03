@@ -3,7 +3,7 @@ title: AI Agent Monitoring and Operations
 description: Agentic AI application monitoring architecture, key metric design, and alerting strategy overview
 created: "2026-02-05"
 last_update:
-  date: "2026-04-20"
+  date: "2026-06-30"
   author: devfloor9
 reading_time: 15
 tags:

@@ -3,7 +3,7 @@ title: EKS API Server Authentication/Authorization Guide
 description: Authentication/Authorization best practices for Non-Standard Callers (CI/CD, monitoring, automation) accessing the EKS API Server
 created: "2026-03-24"
 last_update:
-  date: "2026-03-24"
+  date: "2026-06-30"
   author: devfloor9
 reading_time: 6
 tags:

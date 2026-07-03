@@ -3,7 +3,7 @@ title: Enterprise Compliance Framework
 description: Compliance guide mapping SOC2, ISO27001, Electronic Financial Supervisory Regulation (전자금융감독규정), and ISMS-P to AI operations
 created: "2026-04-04"
 last_update:
-  date: "2026-04-20"
+  date: "2026-06-26"
   author: devfloor9
 reading_time: 16
 tags:
