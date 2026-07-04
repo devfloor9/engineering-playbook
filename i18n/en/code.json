@@ -517,5 +517,37 @@
   "cta.getGuide": {
     "message": "Get the Full Guide",
     "description": "CTA button"
+  },
+  "topic.eks.desc": {
+    "message": "Amazon EKS networking, control plane scaling, security authentication, Karpenter cost optimization, operational reliability",
+    "description": "EKS Best Practices topic description"
+  },
+  "topic.rosa.desc": {
+    "message": "Red Hat OpenShift on AWS installation, security compliance, enterprise operations guide",
+    "description": "ROSA topic description"
+  },
+  "topic.aidlc.desc": {
+    "message": "AI-driven development methodology, Intent→Unit→Bolt model, DDD integration",
+    "description": "AIDLC topic description"
+  },
+  "topics.browse": {
+    "message": "Browse Guides",
+    "description": "Topic card link label"
+  },
+  "stats.guides": {
+    "message": "Engineering Guides",
+    "description": "Stats strip: guides count label"
+  },
+  "stats.domains": {
+    "message": "Knowledge Domains",
+    "description": "Stats strip: domains count label"
+  },
+  "stats.refarch": {
+    "message": "Reference Architectures",
+    "description": "Stats strip: reference architectures label"
+  },
+  "stats.languages": {
+    "message": "Bilingual Docs",
+    "description": "Stats strip: languages label"
   }
 }

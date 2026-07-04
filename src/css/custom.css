@@ -811,3 +811,231 @@ table tr:hover td {
 .markdown div[style*="border-radius: 8px"] {
   overflow: hidden;
 }
+
+/* ═══════════════════════════════════════════════════════
+   TECH BLOG READABILITY — Document typography & rhythm
+   AWS Tech Blog / CNCF-blog level reading experience
+   ═══════════════════════════════════════════════════════ */
+
+/* Reading measure — 본문 텍스트는 읽기 좋은 행폭으로 제한하되,
+   표·코드·다이어그램은 전체 폭 활용 */
+.theme-doc-markdown {
+  font-size: 1.02rem;
+  line-height: 1.8;
+}
+
+.theme-doc-markdown > p,
+.theme-doc-markdown > ul,
+.theme-doc-markdown > ol,
+.theme-doc-markdown > blockquote {
+  max-width: 46rem;
+}
+
+/* 문단 리듬 — 단락 간 여백 */
+.theme-doc-markdown p {
+  margin-bottom: 1.25rem;
+}
+
+.theme-doc-markdown li {
+  margin-bottom: 0.4rem;
+}
+
+.theme-doc-markdown li > p {
+  margin-bottom: 0.5rem;
+}
+
+/* ── 헤딩 계층 — 명확한 시각적 위계 ── */
+.theme-doc-markdown h1 {
+  font-size: 2.25rem;
+  font-weight: 800;
+  line-height: 1.25;
+  margin-bottom: 1.25rem;
+}
+
+.theme-doc-markdown h2 {
+  font-size: 1.6rem;
+  font-weight: 700;
+  margin-top: 3.5rem;
+  margin-bottom: 1.25rem;
+  padding-bottom: 0.6rem;
+  border-bottom: 1px solid rgba(193, 198, 212, 0.35);
+}
+
+[data-theme='dark'] .theme-doc-markdown h2 {
+  border-bottom-color: rgba(255, 255, 255, 0.1);
+}
+
+.theme-doc-markdown h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-top: 2.5rem;
+  margin-bottom: 0.875rem;
+}
+
+.theme-doc-markdown h4 {
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin-top: 2rem;
+  margin-bottom: 0.75rem;
+}
+
+/* 헤딩 앵커 링크 — 호버 시에만 표시 */
+.theme-doc-markdown .hash-link {
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.theme-doc-markdown h2:hover .hash-link,
+.theme-doc-markdown h3:hover .hash-link,
+.theme-doc-markdown h4:hover .hash-link {
+  opacity: 0.6;
+}
+
+/* ── 인라인 코드 — 톤다운 배경 + 프라이머리 컬러 ── */
+.theme-doc-markdown code:not([class*="codeBlock"]):not(pre code) {
+  background: rgba(0, 93, 172, 0.07);
+  color: #00468A;
+  border: none;
+  border-radius: 0.3rem;
+  padding: 0.15em 0.4em;
+  font-size: 0.86em;
+  font-weight: 500;
+}
+
+[data-theme='dark'] .theme-doc-markdown code:not([class*="codeBlock"]):not(pre code) {
+  background: rgba(109, 179, 248, 0.12);
+  color: #8DC3FA;
+}
+
+/* 헤딩 안의 인라인 코드는 크기 상속 */
+.theme-doc-markdown h2 code,
+.theme-doc-markdown h3 code,
+.theme-doc-markdown h4 code {
+  font-size: 0.9em;
+}
+
+/* ── 블록 인용 — 에디토리얼 스타일 ── */
+.theme-doc-markdown blockquote {
+  border-left: 3px solid var(--ifm-color-primary);
+  background: var(--ep-surface-container-low);
+  border-radius: 0 0.5rem 0.5rem 0;
+  padding: 1rem 1.5rem;
+  color: var(--ep-on-surface-variant);
+  font-style: normal;
+  margin: 1.5rem 0;
+}
+
+.theme-doc-markdown blockquote p:last-child {
+  margin-bottom: 0;
+}
+
+/* ── 본문 링크 — 밑줄 + 부드러운 호버 ── */
+.theme-doc-markdown a:not(.hash-link):not(.card) {
+  text-decoration: underline;
+  text-decoration-color: rgba(0, 93, 172, 0.3);
+  text-underline-offset: 3px;
+  transition: text-decoration-color 0.15s ease;
+}
+
+.theme-doc-markdown a:not(.hash-link):not(.card):hover {
+  text-decoration-color: var(--ifm-color-primary);
+}
+
+[data-theme='dark'] .theme-doc-markdown a:not(.hash-link):not(.card) {
+  text-decoration-color: rgba(109, 179, 248, 0.35);
+}
+
+/* ── 수평선 — 섹션 구분 여백 강화 ── */
+.theme-doc-markdown hr {
+  margin: 3rem 0;
+  border: none;
+  height: 1px;
+  background: rgba(193, 198, 212, 0.35);
+}
+
+[data-theme='dark'] .theme-doc-markdown hr {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* ── 문서 제목 아래 메타(수정일·읽기시간) 여백 ── */
+.theme-doc-markdown header {
+  margin-bottom: 2rem;
+}
+
+/* ── 이미지 — 캡션 느낌의 여백과 그림자 ── */
+.theme-doc-markdown img {
+  margin: 1rem 0;
+  box-shadow: var(--ep-shadow-sm);
+}
+
+/* ── 코드블록 — 파일명 타이틀 대비 강화 ── */
+div[class*="codeBlockTitle"] {
+  font-family: 'SFMono-Regular', 'JetBrains Mono', monospace !important;
+  letter-spacing: 0.01em;
+}
+
+/* ── 표 스크롤 그림자 힌트 ── */
+.markdown table {
+  box-shadow: var(--ep-shadow-sm);
+  border: 1px solid rgba(193, 198, 212, 0.25);
+}
+
+[data-theme='dark'] .markdown table {
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+/* ── TOC — 좌측 인디케이터 라인 ── */
+.table-of-contents {
+  border-left: 1px solid rgba(193, 198, 212, 0.3);
+  padding-left: 0.75rem;
+}
+
+[data-theme='dark'] .table-of-contents {
+  border-left-color: rgba(255, 255, 255, 0.1);
+}
+
+.table-of-contents__link {
+  padding: 0.15rem 0;
+  display: block;
+  transition: color 0.15s ease, transform 0.15s ease;
+}
+
+.table-of-contents__link:hover {
+  color: var(--ifm-color-primary);
+}
+
+.table-of-contents__link--active {
+  transform: translateX(2px);
+}
+
+/* ── 페이지네이션 카드 — 라벨 강조 ── */
+.pagination-nav__sublabel {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 600;
+  color: var(--ep-outline);
+}
+
+.pagination-nav__label {
+  font-family: var(--ifm-heading-font-family);
+  font-weight: 700;
+}
+
+/* ── 사이드바 카테고리 라벨 — 상위 그룹 시각 구분 ── */
+.theme-doc-sidebar-item-category-level-1 > .menu__list-item-collapsible > .menu__link {
+  text-transform: none;
+  font-weight: 700;
+}
+
+/* ── 콘텐츠 페이드인 — 문서 진입 시 부드러운 등장 ── */
+@media (prefers-reduced-motion: no-preference) {
+  .theme-doc-markdown {
+    animation: docFadeIn 0.4s ease both;
+  }
+
+  @keyframes docFadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+}
