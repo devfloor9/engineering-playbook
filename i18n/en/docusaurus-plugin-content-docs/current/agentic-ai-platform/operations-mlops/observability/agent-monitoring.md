@@ -1,9 +1,9 @@
 ---
 title: AI Agent Monitoring and Operations
-description: Agentic AI application monitoring architecture, key metric design, and alerting strategy overview
+description: Langfuse-based agent monitoring operations — monitoring architecture, key metrics, PromQL, alerting, and cost tracking (for tool comparison, see LLMOps Observability)
 created: "2026-02-05"
 last_update:
-  date: "2026-06-30"
+  date: "2026-07-04"
   author: devfloor9
 reading_time: 15
 tags:
@@ -23,7 +23,6 @@ category: genai-aiml
 ---
 
 import {
-  LangFuseVsLangSmithTable,
   LatencyMetricsTable,
   TokenUsageMetricsTable,
   ErrorRateMetricsTable,
@@ -143,30 +142,7 @@ flowchart TB
 
 ---
 
-## 3. Langfuse vs LangSmith Comparison
-
-<LangFuseVsLangSmithTable />
-
-:::tip Selection Guide
-
-- **Langfuse**: When data sovereignty is important or cost optimization is needed
-- **LangSmith**: When LangChain-based development is the focus and quick start is needed
-:::
-
-### AWS Native Observability: CloudWatch Generative AI Observability
-
-Amazon CloudWatch Generative AI Observability is an AWS-native solution for LLM and AI agent monitoring:
-
-- **Infrastructure-agnostic monitoring**: Supports AI workloads across Bedrock, EKS, ECS, on-premises, and more
-- **Agent/tool tracking**: Built-in views for agents, knowledge bases, and tool calls
-- **End-to-end tracing**: Tracking across the entire AI stack
-- **Framework compatibility**: Support for external frameworks like LangChain, LangGraph, CrewAI
-
-Using Langfuse v3.x (self-hosted data sovereignty) together with CloudWatch Gen AI Observability (AWS-native integration) provides the most comprehensive observability.
-
----
-
-## 4. Key Monitoring Metrics
+## 3. Key Monitoring Metrics
 
 Defines the key metrics to track in Agentic AI applications.
 
@@ -222,7 +198,7 @@ flowchart TB
 
 ---
 
-## 5. PromQL Query Reference
+## 4. PromQL Query Reference
 
 ### GPU Metrics
 
@@ -293,7 +269,7 @@ tenant_monthly_budget_usd
 
 ---
 
-## 6. Alerting Strategy
+## 5. Alerting Strategy
 
 ### Alert Threshold Design
 
@@ -324,7 +300,7 @@ tenant_monthly_budget_usd
 
 ---
 
-## 7. Cost Tracking
+## 6. Cost Tracking
 
 ### Cost Tracking Concepts
 
@@ -364,7 +340,7 @@ Track LLM usage costs by the following criteria:
 
 ---
 
-## 8. Operations Checklist
+## 7. Operations Checklist
 
 ### Daily Checks
 
@@ -376,13 +352,13 @@ Track LLM usage costs by the following criteria:
 
 ---
 
-## 9. Monitoring Maturity Model
+## 8. Monitoring Maturity Model
 
 <MaturityModelTable />
 
 ---
 
-## 10. Next Steps
+## 9. Next Steps
 
 - [Monitoring Stack Setup Guide](../../reference-architecture/integrations/monitoring-observability-setup.md) - AMP/AMG deployment, Langfuse Helm installation, ServiceMonitor, Grafana dashboard production setup
 - [LLMOps Observability Comparison Guide](./llmops-observability.md) - In-depth comparison of Langfuse vs LangSmith vs Helicone

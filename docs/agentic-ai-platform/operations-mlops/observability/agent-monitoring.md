@@ -1,9 +1,9 @@
 ---
 title: AI Agent 모니터링 및 운영
-description: Agentic AI 애플리케이션 모니터링 아키텍처, 핵심 메트릭 설계, 알림 전략 개요
+description: Langfuse 기반 Agent 모니터링 운영 전용 문서 — 모니터링 아키텍처·핵심 메트릭·PromQL·알림·비용 추적 (도구 비교는 LLMOps Observability 문서 참조)
 created: "2026-02-05"
 last_update:
-  date: "2026-06-30"
+  date: "2026-07-04"
   author: YoungJoon Jeong
 reading_time: 12
 tags:
@@ -23,7 +23,6 @@ category: genai-aiml
 ---
 
 import {
-  LangFuseVsLangSmithTable,
   LatencyMetricsTable,
   TokenUsageMetricsTable,
   ErrorRateMetricsTable,
@@ -143,30 +142,7 @@ flowchart TB
 
 ---
 
-## 3. Langfuse vs LangSmith 비교
-
-<LangFuseVsLangSmithTable />
-
-:::tip 선택 가이드
-
-- **Langfuse**: 데이터 주권이 중요하거나, 비용 최적화가 필요한 경우
-- **LangSmith**: LangChain 기반 개발이 주력이고, 빠른 시작이 필요한 경우
-:::
-
-### AWS 네이티브 관측성: CloudWatch Generative AI Observability
-
-Amazon CloudWatch Generative AI Observability는 LLM 및 AI 에이전트 모니터링을 위한 AWS 네이티브 솔루션입니다:
-
-- **인프라 무관 모니터링**: Bedrock, EKS, ECS, 온프레미스 등 모든 환경의 AI 워크로드 지원
-- **에이전트/도구 추적**: 에이전트, 지식 베이스, 도구 호출에 대한 기본 제공 뷰
-- **엔드투엔드 트레이싱**: 전체 AI 스택에 걸친 추적
-- **프레임워크 호환**: LangChain, LangGraph, CrewAI 등 외부 프레임워크 지원
-
-Langfuse v3.x (Self-hosted 데이터 주권)와 CloudWatch Gen AI Observability(AWS 네이티브 통합)를 함께 사용하면 가장 포괄적인 관측성을 확보할 수 있습니다.
-
----
-
-## 4. 핵심 모니터링 메트릭
+## 3. 핵심 모니터링 메트릭
 
 Agentic AI 애플리케이션에서 추적해야 할 핵심 메트릭을 정의합니다.
 
@@ -222,7 +198,7 @@ flowchart TB
 
 ---
 
-## 5. PromQL 쿼리 레퍼런스
+## 4. PromQL 쿼리 레퍼런스
 
 ### GPU 메트릭
 
@@ -293,7 +269,7 @@ tenant_monthly_budget_usd
 
 ---
 
-## 6. 알림 전략
+## 5. 알림 전략
 
 ### 알림 임계값 설계
 
@@ -324,7 +300,7 @@ tenant_monthly_budget_usd
 
 ---
 
-## 7. Cascade Fallback 전략
+## 6. Cascade Fallback 전략
 
 Self-hosted 모델(vLLM/llm-d)이 과부하이거나 장애일 때, Amazon Bedrock의 관리형 모델로 자동 폴백하는 Cascade Routing을 구성하면 GPU 장애·Spot 중단 시에도 무중단 서비스를 유지할 수 있습니다. Bifrost(또는 LiteLLM)가 Gateway 역할을 하며, 응답 실패·타임아웃 시 Bedrock으로 요청을 전환합니다.
 
@@ -386,7 +362,7 @@ routing:
 
 ---
 
-## 8. 비용 추적
+## 7. 비용 추적
 
 ### 비용 추적 개념
 
@@ -426,7 +402,7 @@ LLM 사용 비용을 다음 기준으로 추적합니다:
 
 ---
 
-## 9. 운영 체크리스트
+## 8. 운영 체크리스트
 
 ### 일일 점검 항목
 
@@ -438,13 +414,13 @@ LLM 사용 비용을 다음 기준으로 추적합니다:
 
 ---
 
-## 10. 모니터링 성숙도 모델
+## 9. 모니터링 성숙도 모델
 
 <MaturityModelTable />
 
 ---
 
-## 11. 다음 단계
+## 10. 다음 단계
 
 - [모니터링 스택 구성 가이드](../../reference-architecture/integrations/monitoring-observability-setup.md) - AMP/AMG 배포, Langfuse Helm 설치, ServiceMonitor, Grafana 대시보드 실전 구성
 - [LLMOps Observability 비교 가이드](./llmops-observability.md) - Langfuse vs LangSmith vs Helicone 심층 비교

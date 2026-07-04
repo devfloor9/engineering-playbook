@@ -1,9 +1,9 @@
 ---
 title: LLMOps Observability 비교 가이드
-description: Langfuse, LangSmith, Helicone 비교 및 하이브리드 Observability 아키텍처 개요
+description: LLMOps Observability 도구 비교 전용 문서 — Langfuse·LangSmith·Helicone·CloudWatch 선택 기준과 하이브리드 아키텍처 (Langfuse 운영은 Agent 모니터링 문서 참조)
 created: "2026-03-16"
 last_update:
-  date: "2026-06-28"
+  date: "2026-07-04"
   author: YoungJoon Jeong
 reading_time: 13
 tags:
@@ -146,6 +146,17 @@ flowchart TB
 | **Gateway 기능** | 없음 | 없음 | ★★★★★ |
 | **스케일 한계** | 무제한 (셀프호스트) | 플랜 제한 | 플랜 제한 |
 | **데이터 주권** | ★★★★★ | ★★ | ★★★★ |
+
+### 3.5 AWS 네이티브 관측성: CloudWatch Generative AI Observability
+
+Amazon CloudWatch Generative AI Observability는 LLM 및 AI 에이전트 모니터링을 위한 AWS 네이티브 솔루션입니다:
+
+- **인프라 무관 모니터링**: Bedrock, EKS, ECS, 온프레미스 등 모든 환경의 AI 워크로드 지원
+- **에이전트/도구 추적**: 에이전트, 지식 베이스, 도구 호출에 대한 기본 제공 뷰
+- **엔드투엔드 트레이싱**: 전체 AI 스택에 걸친 추적
+- **프레임워크 호환**: LangChain, LangGraph, CrewAI 등 외부 프레임워크 지원
+
+Langfuse v3.x(Self-hosted 데이터 주권)와 CloudWatch Gen AI Observability(AWS 네이티브 통합)를 함께 사용하면 가장 포괄적인 관측성을 확보할 수 있습니다.
 
 ---
 
