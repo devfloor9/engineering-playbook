@@ -227,6 +227,7 @@ const sidebars = {
                 'agentic-ai-platform/model-serving/inference-optimization/semantic-caching-strategy',
                 'agentic-ai-platform/model-serving/inference-routing/tiered-gateway-architecture',
                 'agentic-ai-platform/model-serving/inference-routing/routing-strategy',
+                'agentic-ai-platform/model-serving/inference-routing/request-cascading',
                 'agentic-ai-platform/model-serving/inference-routing/cascade-routing-tuning',
                 'agentic-ai-platform/model-serving/inference-routing/openclaw-example',
                 'agentic-ai-platform/model-serving/inference-optimization/gpu-autoscaling-operations',

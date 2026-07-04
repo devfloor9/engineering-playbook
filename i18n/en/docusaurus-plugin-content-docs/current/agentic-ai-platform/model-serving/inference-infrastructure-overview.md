@@ -148,7 +148,7 @@ Context-aware routing is a strategy that selects an appropriate model or path by
 - **RouteLLM**: Selects models via an MF (Matrix Factorization) classifier
 - **vLLM Semantic Router**: Meaning-based routing
 
-For detailed implementations and evaluation results, see [Routing Strategy — Request Cascading: Intelligent Model Routing](./inference-routing/routing-strategy.md#request-cascading-지능형-모델-라우팅). The relationship to meaning-based caching is covered in [Semantic Caching Strategy](./inference-optimization/semantic-caching-strategy.md).
+For detailed implementations and evaluation results, see [Routing Strategy — Request Cascading: Intelligent Model Routing](./inference-routing/request-cascading.md). The relationship to meaning-based caching is covered in [Semantic Caching Strategy](./inference-optimization/semantic-caching-strategy.md).
 
 ## KV Cache-Aware Routing
 
