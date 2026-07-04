@@ -146,6 +146,11 @@ const config = {
             from: '/docs/agentic-ai-platform/reference-architecture/inference-gateway/openclaw-example',
             to: '/docs/agentic-ai-platform/model-serving/inference-routing/openclaw-example',
           },
+          // Semantic Caching 전략 문서를 model-serving/inference-optimization 으로 이동(2026-07-04, #13)
+          {
+            from: '/docs/agentic-ai-platform/design-architecture/advanced-patterns/semantic-caching-strategy',
+            to: '/docs/agentic-ai-platform/model-serving/inference-optimization/semantic-caching-strategy',
+          },
         ],
       },
     ],

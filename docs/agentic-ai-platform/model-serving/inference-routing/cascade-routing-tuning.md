@@ -955,7 +955,7 @@ STRONG_KEYWORDS = [
 
 ### 프레임워크 및 모델
 - [vLLM 모델 서빙](../../model-serving/inference-frameworks/vllm-model-serving.md) - vLLM 배포, PagedAttention, Multi-LoRA
-- [Semantic Caching 전략](../../design-architecture/advanced-patterns/semantic-caching-strategy.md) - 3계층 캐시, 유사도 임계값, 관측성
+- [Semantic Caching 전략](../inference-optimization/semantic-caching-strategy.md) - 3계층 캐시, 유사도 임계값, 관측성
 
 ---
 

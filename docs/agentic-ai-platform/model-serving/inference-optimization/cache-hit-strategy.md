@@ -33,7 +33,7 @@ sidebar_label: 캐시 히트 전략
 |------|----------|-------------|----------|----------|
 | **KV / Prefix 캐시** | 동일 prefix(시스템 프롬프트·공통 컨텍스트) | prefill 일부 | Pod 또는 공유 KV 계층 | [KV Cache 최적화](./kv-cache-optimization.md) |
 | **Prompt 캐시** | 완전 동일 요청(정확 매칭) | 전체 추론 | 게이트웨이/앱 | [라우팅 전략](../inference-routing/routing-strategy.md) |
-| **Semantic 캐시** | 의미적으로 유사한 요청(임베딩 유사도) | 전체 추론 | 게이트웨이/앱 | [Semantic Caching 전략](../../design-architecture/advanced-patterns/semantic-caching-strategy.md) |
+| **Semantic 캐시** | 의미적으로 유사한 요청(임베딩 유사도) | 전체 추론 | 게이트웨이/앱 | [Semantic Caching 전략](./semantic-caching-strategy.md) |
 
 세 계층은 배타적이지 않습니다. 게이트웨이 레벨에서 Semantic·Prompt 캐시로 전체 추론을 회피하고, 캐시 미스 시 서빙 엔진 레벨에서 KV/Prefix 캐시로 prefill을 줄이는 식으로 **중첩 적용**하는 것이 일반적입니다.
 
@@ -80,7 +80,7 @@ Prefix 캐시는 동일 시스템 프롬프트나 공통 컨텍스트를 가진 
 - **임계값이 높으면**: 정확하지만 히트율이 낮습니다.
 - **임계값이 낮으면**: 히트율은 높지만 부정확한 응답(오탐)을 반환할 위험이 커집니다.
 
-임계값 설계, 캐시 키 구성, 멀티테넌시 처리는 [Semantic Caching 전략](../../design-architecture/advanced-patterns/semantic-caching-strategy.md)에서 상세히 다룹니다.
+임계값 설계, 캐시 키 구성, 멀티테넌시 처리는 [Semantic Caching 전략](./semantic-caching-strategy.md)에서 상세히 다룹니다.
 
 ## 히트율 목표와 측정
 
@@ -96,7 +96,7 @@ Prefix 캐시는 동일 시스템 프롬프트나 공통 컨텍스트를 가진 
 위 목표값은 공유 프롬프트·반복 질의가 많은 워크로드 기준의 참고치입니다. 다양성이 높은 요청에서는 동일 목표가 비현실적일 수 있으므로, 실제 트래픽으로 측정한 baseline에서 출발해야 합니다.
 :::
 
-관측 도구 연동(Langfuse OTel)과 대시보드 패널 구성은 [Semantic Caching 전략 — 관측성](../../design-architecture/advanced-patterns/semantic-caching-strategy.md#6-관측성-langfuse-연동)과 [라우팅 전략 — 모니터링 & Observability](../inference-routing/routing-strategy.md#모니터링--observability)를 참조하세요.
+관측 도구 연동(Langfuse OTel)과 대시보드 패널 구성은 [Semantic Caching 전략 — 관측성](./semantic-caching-strategy.md#6-관측성-langfuse-연동)과 [라우팅 전략 — 모니터링 & Observability](../inference-routing/routing-strategy.md#모니터링--observability)를 참조하세요.
 
 ## 참고 자료
 
@@ -110,5 +110,5 @@ Prefix 캐시는 동일 시스템 프롬프트나 공통 컨텍스트를 가진 
 
 ### 관련 문서 (내부)
 - [KV Cache 최적화](./kv-cache-optimization.md) — Prefix Caching과 KV Cache-Aware Routing
-- [Semantic Caching 전략](../../design-architecture/advanced-patterns/semantic-caching-strategy.md) — 유사도 임계값·캐시 키 설계
+- [Semantic Caching 전략](./semantic-caching-strategy.md) — 유사도 임계값·캐시 키 설계
 - [LMCache](./lmcache.md) — 공유 KV 캐시 계층

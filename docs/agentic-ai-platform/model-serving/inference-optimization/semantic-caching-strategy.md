@@ -3,7 +3,7 @@ title: Semantic Caching 전략
 description: LLM Gateway 레벨 의미 기반 캐싱 전략과 구현 옵션 비교 (GPTCache, Redis Semantic Cache, Portkey, Helicone, Bifrost+Redis)
 created: "2026-04-17"
 last_update:
-  date: "2026-06-28"
+  date: "2026-07-04"
   author: YoungJoon Jeong
 reading_time: 20
 tags:
@@ -17,7 +17,7 @@ tags:
   - portkey
   - helicone
   - inference-gateway
-  - scope:design
+  - scope:tech
 sidebar_label: Semantic Caching
 ---
 

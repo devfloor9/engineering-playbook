@@ -357,7 +357,7 @@ Since all models are invoked through Bedrock, no separate API keys are needed. I
 - Service: ClusterIP (port 4000, OpenAI-compatible API)
 
 :::tip Semantic Cache Design Principles
-The above configuration is a practical example using LiteLLM `cache: true` + Redis. For overall design principles including similarity threshold selection, cache key design (multi-tenant namespace), PII-safe handling, and observability metrics, refer to [Semantic Caching Strategy](../../design-architecture/advanced-patterns/semantic-caching-strategy.md).
+The above configuration is a practical example using LiteLLM `cache: true` + Redis. For overall design principles including similarity threshold selection, cache key design (multi-tenant namespace), PII-safe handling, and observability metrics, refer to [Semantic Caching Strategy](../inference-optimization/semantic-caching-strategy.md).
 :::
 
 ### 5.3 OpenClaw Gateway

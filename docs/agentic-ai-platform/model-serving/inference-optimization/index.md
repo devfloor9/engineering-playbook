@@ -57,6 +57,12 @@ import DocCardList from '@theme/DocCardList';
   },
   {
     type: 'link',
+    href: '/docs/agentic-ai-platform/model-serving/inference-optimization/semantic-caching-strategy',
+    label: 'Semantic Caching 전략',
+    description: 'LLM Gateway 레벨 의미 기반 캐싱 설계 원칙 — 유사도 임계값, 캐시 키 설계, 멀티테넌시, 관측성'
+  },
+  {
+    type: 'link',
     href: '/docs/agentic-ai-platform/model-serving/inference-routing/tiered-gateway-architecture',
     label: '티어드 게이트웨이 아키텍처',
     description: 'Tier 1 Ingress, Tier 2 추론 라우팅·LLM API 게이트웨이, Agent Data Plane의 역할 구분과 채움 전략'

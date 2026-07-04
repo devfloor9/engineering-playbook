@@ -96,4 +96,5 @@ In AWS managed environments, the SageMaker HyperPod Inference Operator provides 
 ### Related Documents (Internal)
 - [KV Cache Optimization](./kv-cache-optimization.md) — PagedAttention · Prefix Caching · KV Cache-Aware Routing
 - [Cache-Hit Strategy](./cache-hit-strategy.md) — Unified strategy across the KV/Prompt/Semantic 3-layer cache
+- [Semantic Caching Strategy](./semantic-caching-strategy.md) — Gateway-level semantic caching design principles
 - [Disaggregated Serving](./disaggregated-serving.md) — NIXL-based KV transfer and Prefill/Decode disaggregation

@@ -17,7 +17,7 @@ tags:
   - portkey
   - helicone
   - inference-gateway
-  - scope:design
+  - scope:tech
 sidebar_label: Semantic Caching
 ---
 

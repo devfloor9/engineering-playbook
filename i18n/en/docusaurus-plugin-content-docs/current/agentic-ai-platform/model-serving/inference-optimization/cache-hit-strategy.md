@@ -33,7 +33,7 @@ The detailed implementation of each layer is covered in dedicated documents. Thi
 |------|----------|-------------|----------|----------|
 | **KV / Prefix Cache** | Same prefix (system prompts, common context) | Part of prefill | Pod or shared KV layer | [KV Cache Optimization](./kv-cache-optimization.md) |
 | **Prompt Cache** | Exact-match request | Entire inference | Gateway / app | [Routing Strategy](../inference-routing/routing-strategy.md) |
-| **Semantic Cache** | Semantically similar request (embedding similarity) | Entire inference | Gateway / app | [Semantic Caching Strategy](../../design-architecture/advanced-patterns/semantic-caching-strategy.md) |
+| **Semantic Cache** | Semantically similar request (embedding similarity) | Entire inference | Gateway / app | [Semantic Caching Strategy](./semantic-caching-strategy.md) |
 
 The three layers are not mutually exclusive. It is common to **stack them**: avoid entire inference at the gateway via Semantic and Prompt caches, and on cache miss reduce prefill via KV/Prefix cache at the serving engine.
 
@@ -80,7 +80,7 @@ Converts requests to embeddings and returns the response of a **semantically sim
 - **High threshold**: Accurate but low hit rate.
 - **Low threshold**: High hit rate but increased risk of returning inaccurate responses (false hits).
 
-Threshold design, cache key composition, and multi-tenancy handling are covered in detail in [Semantic Caching Strategy](../../design-architecture/advanced-patterns/semantic-caching-strategy.md).
+Threshold design, cache key composition, and multi-tenancy handling are covered in detail in [Semantic Caching Strategy](./semantic-caching-strategy.md).
 
 ## Hit-Rate Targets and Measurement
 
@@ -96,7 +96,7 @@ Cache effectiveness cannot be managed without measurement. Hit rates must be mea
 The targets above are reference values for workloads with many shared prompts and repeated queries. For high-diversity requests, the same targets may be unrealistic, so start from a baseline measured on actual traffic.
 :::
 
-For observability integration (Langfuse OTel) and dashboard panel composition, see [Semantic Caching Strategy — Observability](../../design-architecture/advanced-patterns/semantic-caching-strategy.md#6-관측성-langfuse-연동) and [Routing Strategy — Monitoring & Observability](../inference-routing/routing-strategy.md#모니터링--observability).
+For observability integration (Langfuse OTel) and dashboard panel composition, see [Semantic Caching Strategy — Observability](./semantic-caching-strategy.md#6-observability-langfuse-integration) and [Routing Strategy — Monitoring & Observability](../inference-routing/routing-strategy.md#모니터링--observability).
 
 ## References
 
@@ -110,5 +110,5 @@ For observability integration (Langfuse OTel) and dashboard panel composition, s
 
 ### Related Documents (Internal)
 - [KV Cache Optimization](./kv-cache-optimization.md) — Prefix Caching and KV Cache-Aware Routing
-- [Semantic Caching Strategy](../../design-architecture/advanced-patterns/semantic-caching-strategy.md) — Similarity threshold and cache-key design
+- [Semantic Caching Strategy](./semantic-caching-strategy.md) — Similarity threshold and cache-key design
 - [LMCache](./lmcache.md) — Shared KV cache layer

@@ -567,7 +567,7 @@ Semantic Caching detects semantically similar prompts and reuses previous respon
 
 Design principles (3-tier cache comparison, similarity threshold tradeoffs, tool comparison table, cache key design, observability·production checklist) are covered in detail in separate documentation.
 
-- **Design Principles**: [Semantic Caching Strategy](../../design-architecture/advanced-patterns/semantic-caching-strategy.md)
+- **Design Principles**: [Semantic Caching Strategy](../inference-optimization/semantic-caching-strategy.md)
 - **Production Deployment Example**: LiteLLM + Redis configuration in [OpenClaw AI Gateway Deployment](./openclaw-example.md)
 
 ---

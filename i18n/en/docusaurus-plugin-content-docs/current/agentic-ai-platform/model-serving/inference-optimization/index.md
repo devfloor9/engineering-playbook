@@ -45,6 +45,12 @@ This category consists of three deep-dive documents.
   },
   {
     type: 'link',
+    href: '/docs/agentic-ai-platform/model-serving/inference-optimization/semantic-caching-strategy',
+    label: 'Semantic Caching Strategy',
+    description: 'LLM Gateway-level semantic caching design principles — similarity thresholds, cache key design, multi-tenancy, observability'
+  },
+  {
+    type: 'link',
     href: '/docs/agentic-ai-platform/model-serving/inference-optimization/gpu-autoscaling-operations',
     label: 'GPU Autoscaling & Large Model Deployment Operations',
     description: '2-Tier autoscaling (KEDA·Karpenter), DRA compatibility, and lessons learned from deploying large MoE models (GLM-5·Kimi K2.5)'

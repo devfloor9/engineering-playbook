@@ -148,7 +148,7 @@ Context-aware routing is a strategy that selects an appropriate model or path by
 - **RouteLLM**: Selects models via an MF (Matrix Factorization) classifier
 - **vLLM Semantic Router**: Meaning-based routing
 
-For detailed implementations and evaluation results, see [Routing Strategy — Request Cascading: Intelligent Model Routing](./inference-routing/routing-strategy.md#request-cascading-지능형-모델-라우팅). The relationship to meaning-based caching is covered in [Semantic Caching Strategy](../design-architecture/advanced-patterns/semantic-caching-strategy.md).
+For detailed implementations and evaluation results, see [Routing Strategy — Request Cascading: Intelligent Model Routing](./inference-routing/routing-strategy.md#request-cascading-지능형-모델-라우팅). The relationship to meaning-based caching is covered in [Semantic Caching Strategy](./inference-optimization/semantic-caching-strategy.md).
 
 ## KV Cache-Aware Routing
 
@@ -176,7 +176,7 @@ Inference caches are split into **three layers**, not a single one, and each has
 | **Prompt Cache** | Exact identical request | Avoids full inference |
 | **Semantic Cache** | Semantically similar request (embedding similarity) | Avoids inference for similar queries |
 
-A unified decision framework for how to raise hit rates and where to measure them at each layer is covered in [Cache-Hit Strategy](./inference-optimization/cache-hit-strategy.md). For threshold design of the Semantic cache, see [Semantic Caching Strategy](../design-architecture/advanced-patterns/semantic-caching-strategy.md); for Prefix cache effects, see [KV Cache Optimization](./inference-optimization/kv-cache-optimization.md).
+A unified decision framework for how to raise hit rates and where to measure them at each layer is covered in [Cache-Hit Strategy](./inference-optimization/cache-hit-strategy.md). For threshold design of the Semantic cache, see [Semantic Caching Strategy](./inference-optimization/semantic-caching-strategy.md); for Prefix cache effects, see [KV Cache Optimization](./inference-optimization/kv-cache-optimization.md).
 
 ## Next Documents
 
