@@ -857,12 +857,6 @@ table tr:hover td {
   font-weight: 700;
   margin-top: 3.5rem;
   margin-bottom: 1.25rem;
-  padding-bottom: 0.6rem;
-  border-bottom: 1px solid rgba(193, 198, 212, 0.35);
-}
-
-[data-theme='dark'] .theme-doc-markdown h2 {
-  border-bottom-color: rgba(255, 255, 255, 0.1);
 }
 
 .theme-doc-markdown h3 {

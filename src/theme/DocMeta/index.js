@@ -9,7 +9,7 @@ import styles from './styles.module.css';
 //   로케일 공유이므로 ko/en/zh 콘텐츠 파일은 그대로 두고 라벨만 현재 로케일로 분기한다.
 // - 수정일(last_update)은 작성일과 다를 때만 표시한다(동일 시 중복 노출 방지). 페이지 하단의
 //   네이티브 last-updated 표시는 docusaurus.config.js에서 비활성화해 단일 메타 라인으로 통일한다.
-// - scope:nav 문서(카테고리/index 네비게이션)는 메타 라인을 표시하지 않는다.
+// - scope:nav 문서(카테고리/index 네비게이션)도 일반 문서와 동일하게 메타 라인을 표시한다.
 
 const LABELS = {
   ko: {
@@ -44,9 +44,6 @@ export default function DocMeta() {
   const {
     i18n: {currentLocale},
   } = useDocusaurusContext();
-
-  const tags = Array.isArray(frontMatter.tags) ? frontMatter.tags : [];
-  if (tags.includes('scope:nav')) return null;
 
   const L = LABELS[currentLocale] || LABELS.ko;
   const created = toDateStr(frontMatter.created);
