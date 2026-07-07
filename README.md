@@ -19,6 +19,17 @@ Each technical domain provides implementation guides alongside measurable perfor
 
 **Live Documentation**: [https://devfloor9.github.io/engineering-playbook/](https://devfloor9.github.io/engineering-playbook/)
 
+### Machine-Readable Endpoints (for AI agents & MCP servers)
+
+| Endpoint | Purpose |
+|----------|---------|
+| [llms.txt](https://devfloor9.github.io/engineering-playbook/llms.txt) | llmstxt.org index — all technical docs with links and summaries |
+| [llms-full.txt](https://devfloor9.github.io/engineering-playbook/llms-full.txt) | Full-text merge of all technical docs (single file) |
+| [llm-wiki/manifest.json](https://devfloor9.github.io/engineering-playbook/llm-wiki/manifest.json) | LLM Wiki manifest — per-doc metadata (slug, domain, tags, related docs, markdown URL) |
+| [llm-wiki/index.md](https://devfloor9.github.io/engineering-playbook/llm-wiki/index.md) | LLM Wiki index — per-page clean markdown files grouped by domain |
+
+The LLM Wiki mirrors the 7 technical domains (industry demos excluded) as clean per-page markdown — MDX/JSX stripped, links normalized — so agents can fetch exactly the pages they need without HTML parsing. Each doc page also exposes `<link rel="alternate" type="text/markdown">` pointing to its markdown source.
+
 ## What's Inside
 
 ### Agentic AI Platform

@@ -47,6 +47,9 @@ jobs:
       - name: Generate llms.txt (llmstxt.org)
         run: npm run generate-llms
 
+      - name: Generate LLM Wiki (per-page markdown + manifest)
+        run: npm run generate-llm-wiki
+
       - name: Setup Pages
         uses: actions/configure-pages@v4
 

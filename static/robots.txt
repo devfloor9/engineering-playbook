@@ -1,0 +1,10 @@
+# Engineering Playbook — https://devfloor9.github.io/engineering-playbook/
+User-agent: *
+Allow: /
+
+Sitemap: https://devfloor9.github.io/engineering-playbook/sitemap.xml
+
+# LLM-friendly endpoints (llmstxt.org convention)
+# Index:     https://devfloor9.github.io/engineering-playbook/llms.txt
+# Full text: https://devfloor9.github.io/engineering-playbook/llms-full.txt
+# LLM Wiki:  https://devfloor9.github.io/engineering-playbook/llm-wiki/manifest.json

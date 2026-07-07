@@ -35,9 +35,10 @@ const CATEGORY_ORDER = [
   'security-governance',
   'rosa',
   'benchmarks',
-  'industry-solutions',
-  'sales',
 ];
+
+// LLM 산출물에서 제외할 카테고리 — 기술 도메인이 아닌 고객사 데모/영업 자료
+const EXCLUDED_CATEGORIES = ['industry-solutions', 'sales'];
 
 const CATEGORY_LABELS = {
   'eks-best-practices': 'EKS Best Practices',
@@ -105,9 +106,10 @@ function main() {
   const outDir = parseOutDir();
   const files = collectDocs(DOCS_DIR).sort();
 
-  // 카테고리별 그룹화
+  // 카테고리별 그룹화 (제외 카테고리 필터: 기술 도메인만 포함)
   const groups = {}; // category -> [{title, description, permalink, body, meta, filePath}]
   for (const file of files) {
+    if (EXCLUDED_CATEGORIES.includes(topCategory(file))) continue;
     const raw = fs.readFileSync(file, 'utf8');
     const { data, content } = matter(raw);
     const title = data.title || path.basename(file, '.md');
@@ -142,12 +144,13 @@ function main() {
     c === '__root__' ? 'Getting Started' : CATEGORY_LABELS[c] || c;
 
   // ---- llms.txt (인덱스) ----
-  const totalDocs = files.length;
+  const totalDocs = orderedCats.reduce((n, c) => n + groups[c].length, 0);
   let llms = `# ${SITE.title}\n\n`;
   llms += `> ${SITE.description}\n\n`;
   llms += `This file follows the llmstxt.org convention. It indexes all ${totalDocs} documentation pages with links and summaries.\n\n`;
   llms += `- Site: ${SITE.baseUrl}\n`;
   llms += `- Full text: ${SITE.baseUrl}/llms-full.txt\n`;
+  llms += `- LLM Wiki (per-page markdown + manifest): ${SITE.baseUrl}/llm-wiki/manifest.json\n`;
   llms += `- Language: Korean (ko) primary, English (en) mirror under /en/\n`;
   llms += `- Topics: Amazon EKS, Agentic AI, model serving (vLLM/llm-d), MLOps, observability, security & governance\n\n`;
 
@@ -193,7 +196,7 @@ function main() {
   fs.writeFileSync(fullPath, full, 'utf8');
 
   const kb = (p) => (fs.statSync(p).size / 1024).toFixed(1);
-  console.log(`✓ ${path.relative(ROOT, llmsPath)} — ${files.length} docs, ${linkCount} links (${kb(llmsPath)} KB)`);
+  console.log(`✓ ${path.relative(ROOT, llmsPath)} — ${totalDocs} docs, ${linkCount} links (${kb(llmsPath)} KB)`);
   console.log(`✓ ${path.relative(ROOT, fullPath)} — full text merge (${kb(fullPath)} KB)`);
 }
 
