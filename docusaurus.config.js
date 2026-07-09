@@ -300,6 +300,23 @@ const config = {
               },
             ],
           },
+          {
+            title: 'For AI Agents',
+            items: [
+              {
+                label: 'llms.txt',
+                href: 'https://devfloor9.github.io/engineering-playbook/llms.txt',
+              },
+              {
+                label: 'LLM Wiki (manifest.json)',
+                href: 'https://devfloor9.github.io/engineering-playbook/llm-wiki/manifest.json',
+              },
+              {
+                label: 'LLM Wiki (index.md)',
+                href: 'https://devfloor9.github.io/engineering-playbook/llm-wiki/index.md',
+              },
+            ],
+          },
         ],
         copyright: `Copyright © ${new Date().getFullYear()} Engineering Playbook.`,
       },
