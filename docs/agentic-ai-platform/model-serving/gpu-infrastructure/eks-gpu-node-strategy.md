@@ -3,9 +3,9 @@ title: EKS GPU 노드 전략
 description: EKS Auto Mode, Karpenter, MNG, Hybrid Node의 GPU 워크로드별 최적 노드 전략
 created: "2026-03-16"
 last_update:
-  date: "2026-06-28"
-  author: YoungJoon Jeong
-reading_time: 22
+  date: "2026-07-14"
+  author: devfloor9
+reading_time: 24
 tags:
   - eks
   - gpu
@@ -227,6 +227,48 @@ Auto Mode가 관리하는 EC2 인스턴스는 `ec2:TerminateInstances`를 차단
 2. NodeClaim 삭제: `kubectl delete nodeclaim <nodeclaim-name>`
 3. Karpenter가 Empty 노드 감지 후 자동 종료 (5-10분)
 4. 새 NodeClaim 생성으로 정상 노드 시작
+
+### Consolidation과 단일 Replica 서비스 가용성 (2026.07 검증)
+
+Auto Mode의 내장 Karpenter는 비용 최적화를 위해 노드 consolidation(통합·회수)을 상시 수행합니다. 이 과정에서 **replica 1개로 운영되는 서비스는 Pod 재배치 동안 ALB 타깃그룹에 healthy 타깃이 없어져 503을 반환**합니다. 응답 헤더가 `server: awselb/2.0`이면 애플리케이션이 아닌 ALB가 직접 생성한 503입니다.
+
+실제 사례: Langfuse(replica 1)를 Auto Mode 클러스터에서 운영할 때, consolidation이 하루 수차례 노드를 교체하면서 타깃 Deregister → 신규 Pod 기동 → Register 사이의 공백마다 503이 발생했습니다. CloudTrail에서 `eks-auto-mode-compute` 역할의 `TerminateInstances`와 타깃그룹 `DeregisterTargets`/`RegisterTargets` 이벤트가 반복되는 패턴으로 확인할 수 있습니다.
+
+**해결 — 4가지를 세트로 적용해야 합니다. replicas 증설만으로는 불충분합니다:**
+
+1. **replicas 2 + PodDisruptionBudget**: Karpenter는 PDB를 존중하므로 `minAvailable: 1` PDB가 있어야 순차 evict가 강제됩니다. PDB 없이 replicas만 늘리면 두 Pod가 연달아 evict될 수 있습니다.
+
+```yaml
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: langfuse-web
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: langfuse-web
+```
+
+2. **노드 분산**: 두 replica가 같은 노드에 스케줄되면 노드 1개 회수로 동시에 중단됩니다. `topologySpreadConstraints` 또는 hostname 기준 `podAntiAffinity`로 분산합니다.
+
+```yaml
+topologySpreadConstraints:
+  - maxSkew: 1
+    topologyKey: kubernetes.io/hostname
+    whenUnsatisfiable: DoNotSchedule
+    labelSelector:
+      matchLabels:
+        app: langfuse-web
+```
+
+3. **ALB Pod Readiness Gate**: Pod가 Ready여도 ALB 타깃은 아직 `initial` 상태일 수 있습니다. 네임스페이스에 readiness gate 주입 라벨을 추가하면 ALB 헬스체크 통과까지 Pod가 Ready로 간주되지 않아, "신규 타깃 healthy 확인 → 기존 타깃 제거" 순서가 강제됩니다.
+
+```bash
+kubectl label namespace <ns> elbv2.k8s.aws/pod-readiness-gate-inject=enabled
+```
+
+4. **(대안) Disruption 제외**: replica를 늘릴 수 없는 워크로드는 Pod에 `karpenter.sh/do-not-disrupt: "true"` 어노테이션을 추가해 consolidation 대상에서 제외합니다. 단, 해당 노드는 비용 최적화 대상에서도 제외됩니다.
 
 ### Auto Mode 인스턴스 지원 확인 방법
 
