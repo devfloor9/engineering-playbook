@@ -642,3 +642,4 @@ Too many alerts lead ops teams to ignore them (alert fatigue). Route P3/P4 alert
 - [Workload Debugging](./workload.md) - Pod state-based troubleshooting
 - [Networking Debugging](./networking.md) - Service and DNS issues
 - [Storage Debugging](./storage.md) - PVC mount failures
+- [Kubernetes Event Retention and AI Agent Query Architecture](../k8s-event-management.md) - Event export pipelines and MCP-based queries
