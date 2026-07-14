@@ -87,6 +87,7 @@ const sidebars = {
           items: [
             'eks-best-practices/operations-reliability/gitops-cluster-operation',
             'eks-best-practices/operations-reliability/node-monitoring-agent',
+            'eks-best-practices/operations-reliability/k8s-event-management',
             {
               type: 'category',
               label: 'EKS 디버깅',

@@ -643,3 +643,4 @@ aws events put-rule \
 - [워크로드 디버깅](./workload.md) - Pod 상태별 문제 해결
 - [네트워킹 디버깅](./networking.md) - Service, DNS 문제 해결
 - [스토리지 디버깅](./storage.md) - PVC 마운트 실패
+- [Kubernetes 이벤트 보존과 AI Agent 조회 아키텍처](../k8s-event-management.md) - 이벤트 export 파이프라인과 MCP 조회
