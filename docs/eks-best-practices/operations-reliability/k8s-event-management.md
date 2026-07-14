@@ -35,7 +35,7 @@ EKS는 최근 Kubernetes control plane customization 기능을 통해 scheduler,
 
 ### Best-effort 데이터
 
-Kubernetes `events.k8s.io/v1` API 문서는 이벤트를 다음과 같이 정의합니다: *"Events have a limited retention time... should be treated as informative, best-effort, supplemental data."* 이벤트는 보존과 전달이 보장되지 않는 보조 신호이며, 장애 분석의 유일한 근거로 삼을 수 없습니다.
+Kubernetes Event v1 API 문서는 이벤트를 다음과 같이 정의합니다: *"Events have a limited retention time... should be treated as informative, best-effort, supplemental data."* 이벤트는 보존과 전달이 보장되지 않는 보조 신호이며, 장애 분석의 유일한 근거로 삼을 수 없습니다.
 
 ### Audit 로그로 대체 불가
 
@@ -85,7 +85,7 @@ flowchart LR
 | 방식 | 수집 대상 | 특징 | 적합한 경우 |
 |------|----------|------|------------|
 | **CloudWatch Observability add-on (Container Insights)** | 컨테이너/호스트/데이터플레인 로그 | 관리형 add-on, Fluent Bit 기반 | CloudWatch 중심 스택 |
-| **kubernetes-event-exporter** | Event 객체 전체 | 속성 기반 필터·라우팅, leader election HA, 30개 이상 sink | 이벤트 전용 파이프라인 |
+| **kubernetes-event-exporter** | Event 객체 전체 | 속성 기반 필터·라우팅, leader election HA, 20개 이상 sink | 이벤트 전용 파이프라인 |
 | **ADOT / OTel Collector (`k8sobjects` receiver)** | Event 포함 K8s 객체 | 기존 OTel 파이프라인에 통합 | OTel 표준화 환경 |
 | **자체 watcher (aws-samples/eks-event-watcher)** | 선택한 이벤트 | Kubernetes API watch 기반 커스텀 | 특수 필터링 요구 |
 
@@ -107,15 +107,14 @@ receivers:
   - name: "loki"
     loki:
       url: http://loki.monitoring:3100/loki/api/v1/push
-      streamLabels:
+      streamLabels:          # 정적 라벨만 지원 (템플릿은 layout/headers에서만 동작)
         app: kube-events
-        namespace: "{{ .InvolvedObject.Namespace }}"
 route:
   routes:
     - match:
         - receiver: "loki"
       drop:
-        - type: "Normal"   # Warning만 저장해 수집 비용 절감 (60-80%)
+        - type: "Normal"   # Warning만 저장 — Normal이 대부분이므로 수집량 대폭 절감
 ```
 
 ## 저장 계층: 조회 패턴 기준 선택
@@ -143,7 +142,7 @@ AWS는 fully managed EKS MCP 서버(2025년 11월 발표, preview)와 CloudWatch
 | 관점 | 클러스터·K8s 리소스의 **현재 상태** | 축적된 로그·메트릭·알람 **히스토리** |
 | 핵심 도구 | `get_k8s_events`, `get_pod_logs`, `list_k8s_resources`, `get_cloudwatch_logs`, `get_eks_insights` | Alarm 기반 트러블슈팅, Log Analyzer(이상·에러 패턴), Metric Definition Analyzer, Alarm Recommendations |
 | 인증 | AWS IAM (SigV4), CloudTrail 감사 | AWS IAM (SigV4) |
-| 접근 제어 | `--read-only` 플래그, `AmazonEKSMCPReadOnlyAccess` 관리형 정책 | 읽기 중심 도구 구성 |
+| 접근 제어 | IAM 권한 단위 분리(`eks-mcp:CallReadOnlyTool` / `CallPrivilegedTool`), `AmazonEKSMCPReadOnlyAccess` 관리형 정책 | 읽기 중심 도구 구성 |
 
 :::warning EKS MCP 서버의 `get_k8s_events`는 보존 솔루션이 아님
 `get_k8s_events`는 라이브 Kubernetes API를 조회해 특정 리소스(kind/name/namespace)의 이벤트를 반환합니다. 별도 저장 계층 없이 API 서버를 조회하는 구조이므로 **etcd TTL 제약이 그대로 적용됩니다.** 1시간 이전의 이벤트가 필요하면 export 파이프라인으로 저장한 로그 그룹을 `get_cloudwatch_logs` 또는 CloudWatch MCP 서버로 조회해야 합니다. EKS MCP 서버는 현재 preview 상태이므로 프로덕션 채택 전 GA 여부와 도구 변경 사항을 재확인해야 합니다.
