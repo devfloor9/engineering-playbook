@@ -3,7 +3,7 @@ title: 기본 배포
 description: kgateway 설치, HTTPRoute 설정, Bifrost Gateway Mode 구성
 created: "2026-04-18"
 last_update:
-  date: "2026-06-28"
+  date: "2026-07-13"
   author: YoungJoon Jeong
 reading_time: 10
 tags:
@@ -679,6 +679,8 @@ curl -s -o /dev/null -w "%{http_code}" http://${NLB_ENDPOINT}/langfuse/
 
 ## 참고 자료
 
+- [트러블슈팅 가이드](./troubleshooting-guide.md) - kgateway·HTTPRoute·Bifrost 배포 오류 진단과 해결
+- [고급 기능](./advanced-features.md) - LLM Classifier, CloudFront/WAF, Semantic Caching
 - [추론 게이트웨이 라우팅](../../../model-serving/inference-routing/routing-strategy.md) - kgateway 아키텍처 및 라우팅 전략
 - [Kubernetes Gateway API 공식 문서](https://gateway-api.sigs.k8s.io/)
 - [kgateway 공식 문서](https://kgateway.dev/docs/)

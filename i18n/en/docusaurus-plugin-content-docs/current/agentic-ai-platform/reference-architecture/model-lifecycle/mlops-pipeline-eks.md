@@ -3,7 +3,7 @@ title: MLOps Pipeline on EKS
 description: End-to-end ML lifecycle management with Kubeflow + MLflow + vLLM + ArgoCD GitOps
 created: "2026-02-11"
 last_update:
-  date: "2026-06-26"
+  date: "2026-07-13"
   author: devfloor9
 reading_time: 8
 tags:
@@ -740,6 +740,9 @@ The EKS-based MLOps pipeline integrates Kubeflow, MLflow, vLLM, and ArgoCD to pr
 
 ### Next Steps
 
+- [Custom Model Pipeline](./custom-model-pipeline.md) - LoRA fine-tuning training pipeline (details of the training stage in this document)
+- [Custom Model Deployment](./custom-model-deployment.md) - Hands-on EKS deployment guide for large models such as GLM-5
+- [Continuous Training Pipeline](./continuous-training/index.md) - Trace-based retraining and automated Canary rollout
 - [SageMaker-EKS Integration](../integrations/sagemaker-eks-integration.md) - Hybrid ML architecture
 - [GPU Resource Management](../../model-serving/gpu-infrastructure/gpu-resource-management.md) - GPU cluster optimization
 - [Model Monitoring](../../operations-mlops/observability/agent-monitoring.md) - Production model observability

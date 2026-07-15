@@ -3,7 +3,7 @@ title: Advanced Features
 description: LLM Classifier, CloudFront/WAF, Semantic Caching configuration
 created: "2026-04-06"
 last_update:
-  date: "2026-06-26"
+  date: "2026-07-13"
   author: devfloor9
 reading_time: 20
 tags:
@@ -824,6 +824,8 @@ Advanced feature configuration is complete. Proceed to the next steps:
 
 ## References
 
+- [Troubleshooting Guide](./troubleshooting-guide.md) - Diagnosing and resolving errors in advanced features such as LLM Classifier and Semantic Caching
+- [Basic Deployment](./basic-deployment.md) - kgateway, HTTPRoute, and Bifrost base configuration
 - [Semantic Caching Strategy](../../../model-serving/inference-optimization/semantic-caching-strategy.md) - Concepts, threshold design, observability, domain-specific patterns
 - [Inference Gateway Routing](../../../model-serving/inference-routing/routing-strategy.md) - kgateway architecture and routing strategies
 - [Langfuse Deployment Guide](../../integrations/monitoring-observability-setup.md) - Helm installation, OTel integration, Redis/ClickHouse configuration

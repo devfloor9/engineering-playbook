@@ -3,7 +3,7 @@ title: 고급 기능
 description: LLM Classifier, CloudFront/WAF, Semantic Caching 구성
 created: "2026-04-06"
 last_update:
-  date: "2026-06-28"
+  date: "2026-07-13"
   author: YoungJoon Jeong
 reading_time: 17
 tags:
@@ -932,6 +932,8 @@ redis_key: "cache:org-12345:ko:glm-5:a3f2e1b:c9d8e7f"
 
 ## 참고 자료
 
+- [트러블슈팅 가이드](./troubleshooting-guide.md) - LLM Classifier·Semantic Caching 등 고급 기능 오류 진단과 해결
+- [기본 배포](./basic-deployment.md) - kgateway, HTTPRoute, Bifrost 기본 구성
 - [Semantic Caching 전략](../../../model-serving/inference-optimization/semantic-caching-strategy.md) - 개념, 임계값 설계, 관측성, 도메인별 패턴
 - [추론 게이트웨이 라우팅](../../../model-serving/inference-routing/routing-strategy.md) - kgateway 아키텍처 및 라우팅 전략
 - [Langfuse 배포 가이드](../../integrations/monitoring-observability-setup.md) - Helm 설치, OTel 연동, Redis/ClickHouse 구성

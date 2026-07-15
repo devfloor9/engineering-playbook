@@ -3,7 +3,7 @@ title: Custom Model Deployment Guide
 description: Hands-on guide to deploying large open-source models on EKS, based on the GLM-5.1 experience
 created: "2026-04-04"
 last_update:
-  date: "2026-06-26"
+  date: "2026-07-13"
   author: devfloor9
 reading_time: 33
 tags:
@@ -947,6 +947,11 @@ For large GPU instances (p5en, p6), use **EKS Standard Mode**. Auto Mode + MNG h
 7. **GPU Operator with devicePlugin=false** -- Use Auto Mode's built-in Device Plugin
 
 ## Next Steps
+
+### Model Lifecycle Flow
+- [Custom Model Pipeline](./custom-model-pipeline.md) -- LoRA fine-tuning and Multi-LoRA hot-swap deployment (training stage before deployment)
+- [MLOps Pipeline](./mlops-pipeline-eks.md) -- Kubeflow, MLflow, and ArgoCD-based training-to-deployment orchestration
+- [Continuous Training Pipeline](./continuous-training/index.md) -- Post-deployment trace collection, retraining, and Canary rollout loop
 
 ### Model Serving and Infrastructure
 - [vLLM Model Serving](../../model-serving/inference-frameworks/vllm-model-serving.md) -- vLLM configuration, performance optimization, tensor parallelism

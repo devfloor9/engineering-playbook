@@ -3,7 +3,7 @@ title: Custom Model Pipeline Guide
 description: Building a domain-optimized model serving pipeline with LoRA Fine-tuning, Multi-LoRA Hot-swap, and SLM Cascade Routing
 created: "2026-04-06"
 last_update:
-  date: "2026-06-26"
+  date: "2026-07-13"
   author: devfloor9
 reading_time: 21
 tags:
@@ -538,3 +538,5 @@ Upon completing Phase 4:
 | Agent Monitoring | [agent-monitoring.md](../../operations-mlops/observability/agent-monitoring.md) |
 | LLM Tracing Deployment | [monitoring-observability-setup.md](../integrations/monitoring-observability-setup.md) |
 | Custom Model Deployment Guide | [custom-model-deployment.md](./custom-model-deployment.md) |
+| MLOps Pipeline (Kubeflow, MLflow, ArgoCD) | [mlops-pipeline-eks.md](./mlops-pipeline-eks.md) |
+| Continuous Training Pipeline | [continuous-training/index.md](./continuous-training/index.md) |

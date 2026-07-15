@@ -3,7 +3,7 @@ title: Basic Deployment
 description: kgateway installation, HTTPRoute configuration, Bifrost Gateway Mode setup
 created: "2026-04-18"
 last_update:
-  date: "2026-06-26"
+  date: "2026-07-13"
   author: devfloor9
 reading_time: 11
 tags:
@@ -661,6 +661,8 @@ Basic deployment is complete. Proceed to the next steps:
 
 ## References
 
+- [Troubleshooting Guide](./troubleshooting-guide.md) - Diagnosing and resolving kgateway, HTTPRoute, and Bifrost deployment errors
+- [Advanced Features](./advanced-features.md) - LLM Classifier, CloudFront/WAF, Semantic Caching
 - [Inference Gateway Routing](../../../model-serving/inference-routing/routing-strategy.md) - kgateway architecture and routing strategies
 - [Kubernetes Gateway API Official Documentation](https://gateway-api.sigs.k8s.io/)
 - [kgateway Official Documentation](https://kgateway.dev/docs/)

@@ -3,7 +3,7 @@ title: 커스텀 모델 배포 가이드
 description: GLM-5.1 사례 기반 — 대형 오픈소스 모델의 EKS 배포 실전 가이드
 created: "2026-04-04"
 last_update:
-  date: "2026-06-28"
+  date: "2026-07-13"
   author: YoungJoon Jeong
 reading_time: 21
 tags:
@@ -947,6 +947,11 @@ spec:
 7. **GPU Operator는 devicePlugin=false** — Auto Mode 내장 Device Plugin 사용
 
 ## 다음 단계
+
+### 모델 수명주기 흐름
+- [커스텀 모델 파이프라인](./custom-model-pipeline.md) — LoRA Fine-tuning과 Multi-LoRA 핫스왑 배포 (배포 이전 학습 단계)
+- [MLOps 파이프라인](./mlops-pipeline-eks.md) — Kubeflow·MLflow·ArgoCD 기반 학습-배포 오케스트레이션
+- [Continuous Training Pipeline](./continuous-training/index.md) — 배포 후 트레이스 수집 → 재학습 → Canary 롤아웃 루프
 
 ### 모델 서빙 및 인프라
 - [vLLM 모델 서빙](../../model-serving/inference-frameworks/vllm-model-serving.md) — vLLM 설정, 성능 최적화, 텐서 병렬화
