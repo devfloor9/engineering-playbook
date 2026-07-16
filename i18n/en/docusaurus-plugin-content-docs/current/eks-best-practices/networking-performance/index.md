@@ -34,6 +34,13 @@ A practical guide to maximizing network performance in EKS clusters. Covers DNS 
     color="#667eea"
   />
   <DocCard
+    to="/docs/eks-best-practices/networking-performance/service-mesh"
+    icon="🕸️"
+    title="Service Mesh Comparison"
+    description="Data plane architecture, feature matrix, performance overhead, and selection guide for Istio, Cilium, Linkerd, and VPC Lattice — plus GAMMA Initiative"
+    color="#8e44ad"
+  />
+  <DocCard
     to="/docs/eks-best-practices/networking-performance/coredns-monitoring-optimization"
     icon="🔍"
     title="CoreDNS Monitoring & Performance Optimization"

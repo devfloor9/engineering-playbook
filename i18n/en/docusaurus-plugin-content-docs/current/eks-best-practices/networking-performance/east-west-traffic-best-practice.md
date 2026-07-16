@@ -46,6 +46,10 @@ When East-West hops increase from 1 to 2, p99 latency grows by milliseconds. Cro
 5. **Internal LB IP Mode** — Direct Pod IP targeting
 6. **Istio Service Mesh** (optional) — mTLS, locality-aware routing
 
+:::tip Choosing a Mesh Solution
+Which service mesh to adopt (Istio, Cilium, Linkerd, VPC Lattice) is covered in the [Service Mesh Comparison Guide](./service-mesh/index.md). This document focuses on post-adoption latency and cost optimization.
+:::
+
 ### Multi-Cluster Connection Strategies
 
 - **Cilium ClusterMesh**: Lowest latency, Pod-to-Pod direct, eBPF-based
@@ -64,3 +68,7 @@ When East-West hops increase from 1 to 2, p99 latency grows by milliseconds. Cro
 3. [Kubernetes Topology Aware Routing](https://kubernetes.io/docs/concepts/services-networking/topology-aware-routing/)
 4. [Cilium ClusterMesh](https://docs.cilium.io/en/stable/network/clustermesh/)
 5. [AWS VPC Lattice Pricing](https://aws.amazon.com/vpc/lattice/pricing/)
+
+### Related Documents (Internal)
+- [Service Mesh Comparison Guide](./service-mesh/index.md) — Architecture, feature, and operations comparison of Istio, Cilium, Linkerd, and VPC Lattice
+- [GAMMA Initiative](./service-mesh/gamma-initiative.md) — Managing mesh traffic with the Gateway API

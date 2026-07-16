@@ -130,6 +130,11 @@ const config = {
       {
         // 추론 게이트웨이 개념 문서 4종을 model-serving/inference-routing 으로 이동(2026-06-25)
         redirects: [
+          // GAMMA Initiative 문서를 service-mesh 카테고리로 이동 (2026-07)
+          {
+            from: '/docs/eks-best-practices/networking-performance/gateway-api-adoption-guide/gamma-initiative',
+            to: '/docs/eks-best-practices/networking-performance/service-mesh/gamma-initiative',
+          },
           {
             from: '/docs/agentic-ai-platform/reference-architecture/inference-gateway/tiered-gateway-architecture',
             to: '/docs/agentic-ai-platform/model-serving/inference-routing/tiered-gateway-architecture',

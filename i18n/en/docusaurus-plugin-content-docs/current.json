@@ -11,6 +11,10 @@
     "message": "Networking & Performance",
     "description": "The label for category '네트워크 & 성능' in sidebar 'docs'"
   },
+  "sidebar.docs.category.서비스 메시": {
+    "message": "Service Mesh",
+    "description": "The label for category '서비스 메시' in sidebar 'docs'"
+  },
   "sidebar.docs.category.Control Plane & 확장": {
     "message": "Control Plane & Scaling",
     "description": "The label for category 'Control Plane & 확장' in sidebar 'docs'"

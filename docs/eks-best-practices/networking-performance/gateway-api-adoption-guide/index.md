@@ -916,10 +916,16 @@ Gateway API는 단순한 Ingress 대체가 아닌, 클라우드 네이티브 트
 
 이 가이드의 주제별 심화 내용은 별도 하위 문서로 제공됩니다.
 
-- **[1. GAMMA Initiative — 서비스 메시 통합의 미래](/docs/eks-best-practices/networking-performance/gateway-api-adoption-guide/gamma-initiative)** — GAMMA 개요, East-West 트래픽 관리, 서비스 메시 통합 아키텍처, 구현체별 지원 현황
-- **[2. Cilium ENI 모드 + Gateway API 심화 구성](/docs/eks-best-practices/networking-performance/gateway-api-adoption-guide/cilium-eni-gateway-api)** — ENI 모드 아키텍처, 설치/구성, 성능 최적화(eBPF, XDP), Hubble 관측성, BGP Control Plane v2, 하이브리드 노드 아키텍처
-- **[3. 마이그레이션 실행 전략](/docs/eks-best-practices/networking-performance/gateway-api-adoption-guide/migration-execution-strategy)** — 5-Phase 마이그레이션 프로세스, CRD 설치, 검증 스크립트, 트러블슈팅 가이드
-- **[4. 기능별 구현 쿡북](/docs/eks-best-practices/networking-performance/gateway-api-adoption-guide/feature-implementation-cookbook)** — 인증·Rate Limiting·IP 제어·URL Rewrite·헤더·세션 어피니티·본문 크기·에러 페이지를 6개 구현체별 YAML로 구현하는 레퍼런스
+- **[1. Cilium ENI 모드 + Gateway API 심화 구성](/docs/eks-best-practices/networking-performance/gateway-api-adoption-guide/cilium-eni-gateway-api)** — ENI 모드 아키텍처, 설치/구성, 성능 최적화(eBPF, XDP), Hubble 관측성, BGP Control Plane v2, 하이브리드 노드 아키텍처
+- **[2. 마이그레이션 실행 전략](/docs/eks-best-practices/networking-performance/gateway-api-adoption-guide/migration-execution-strategy)** — 5-Phase 마이그레이션 프로세스, CRD 설치, 검증 스크립트, 트러블슈팅 가이드
+- **[3. 기능별 구현 쿡북](/docs/eks-best-practices/networking-performance/gateway-api-adoption-guide/feature-implementation-cookbook)** — 인증·Rate Limiting·IP 제어·URL Rewrite·헤더·세션 어피니티·본문 크기·에러 페이지를 6개 구현체별 YAML로 구현하는 레퍼런스
+
+### 관련 문서 (서비스 메시)
+
+East-West(서비스 간) 트래픽으로의 확장은 별도 서비스 메시 카테고리에서 다룹니다.
+
+- **[서비스 메시 비교 가이드](/docs/eks-best-practices/networking-performance/service-mesh)** — Istio·Cilium·Linkerd·VPC Lattice 아키텍처·기능·운영 비교, App Mesh EOL 마이그레이션
+- **[GAMMA Initiative — 서비스 메시 통합의 미래](/docs/eks-best-practices/networking-performance/service-mesh/gamma-initiative)** — GAMMA 개요, East-West 트래픽 관리, 구현체별 지원 현황
 
 ### 관련 문서 (Agentic AI 플랫폼)
 

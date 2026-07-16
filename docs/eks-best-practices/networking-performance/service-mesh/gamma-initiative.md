@@ -3,7 +3,7 @@ title: GAMMA Initiative — 서비스 메시 통합의 미래
 description: GAMMA (Gateway API for Mesh Management and Administration) 소개, East-West 트래픽 관리, 서비스 메시 통합
 created: "2026-02-14"
 last_update:
-  date: "2026-06-30"
+  date: "2026-07-15"
   author: YoungJoon Jeong
 reading_time: 2
 tags:
@@ -20,9 +20,9 @@ import {
   GammaSupportTable,
 } from '@site/src/components/GatewayApiTables';
 
-## 4.1 GAMMA란?
+## GAMMA란?
 
-**GAMMA (Gateway API for Mesh Management and Administration)**는 Gateway API를 서비스 메시 영역으로 확장한 이니셔티브입니다.
+**GAMMA (Gateway API for Mesh Management and Administration)**는 [Gateway API](../gateway-api-adoption-guide/index.md)를 서비스 메시 영역으로 확장한 이니셔티브입니다.
 
 - **GA 달성**: Gateway API v1.1.0 (2025년 10월)
 - **통합 범위**: North-South (인그레스) + East-West (서비스 메시) 트래픽
@@ -54,13 +54,13 @@ flowchart LR
     style gw fill:#1565c0,color:#fff
 ```
 
-## 4.2 핵심 목표 & 메시 구성 패턴
+## 핵심 목표 & 메시 구성 패턴
 
 <GammaInfographic />
 
-## 4.3 GAMMA 지원 현황
+## GAMMA 지원 현황
 
-다음은 주요 서비스 메시 구현체의 GAMMA 지원 현황입니다.
+다음은 주요 서비스 메시 구현체의 GAMMA 지원 현황입니다. 구현체별 아키텍처·기능·운영 비교는 [서비스 메시 비교 가이드](./index.md)를 참조합니다.
 
 <GammaSupportTable />
 
@@ -68,7 +68,7 @@ flowchart LR
 AWS 환경에서는 **VPC Lattice + ACK**로 사이드카 없이 GAMMA 패턴을 구현할 수 있습니다. IAM 기반 mTLS, CloudWatch/X-Ray 관측성, AWS FIS를 통한 장애 주입까지 완전한 서비스 메시 기능을 관리형으로 제공합니다.
 :::
 
-## 4.4 GAMMA의 장점
+## GAMMA의 장점
 
 ### 1. 학습 곡선 단축
 
@@ -99,3 +99,14 @@ spec:
 ### 4. 벤더 중립성
 
 여러 메시 구현체를 동일한 API로 관리할 수 있어 벤더 종속을 방지합니다.
+
+## 참고 자료
+
+### 공식 문서
+- [GAMMA Initiative](https://gateway-api.sigs.k8s.io/mesh/gamma/) — Gateway API 공식 GAMMA 사양·목표·구성 패턴
+- [Gateway API for Service Mesh](https://gateway-api.sigs.k8s.io/mesh/) — 메시 트래픽에 Gateway API를 적용하는 공식 가이드
+
+### 관련 문서 (내부)
+- [서비스 메시 비교 가이드](./index.md) — Istio·Cilium·Linkerd·VPC Lattice 아키텍처·기능·운영 비교
+- [Gateway API 도입 가이드](../gateway-api-adoption-guide/index.md) — North-South 트래픽 관리, 구현체 비교, 마이그레이션 전략
+- [East-West 트래픽 최적화](../east-west-traffic-best-practice.md) — 도입 후 지연·크로스-AZ 비용 최적화 전략

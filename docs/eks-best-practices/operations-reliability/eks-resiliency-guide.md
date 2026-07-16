@@ -1473,6 +1473,7 @@ echo "============================================"
 - [EKS 장애 진단 및 대응 가이드](eks-debugging/index.md) — 운영 중 장애 진단 및 트러블슈팅
 - [GitOps 기반 EKS 클러스터 운영](./gitops-cluster-operation.md) — ArgoCD, KRO 기반 클러스터 관리
 - [Karpenter를 활용한 초고속 오토스케일링](/docs/eks-best-practices/resource-cost/karpenter-autoscaling) — Karpenter 심층 설정 및 HPA 최적화
+- [EKS 서비스 메시 솔루션 비교 가이드](/docs/eks-best-practices/networking-performance/service-mesh) — 재시도·서킷브레이커 등 복원력 패턴을 제공하는 메시 솔루션 선택 기준
 
 ### 외부 참조
 

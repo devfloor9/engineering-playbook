@@ -915,10 +915,16 @@ The Gateway API is not just an Ingress replacement — it is the future of cloud
 
 The topic-specific deep-dive content of this guide is provided in separate sub-documents.
 
-- **[1. GAMMA Initiative — The Future of Service Mesh Integration](/docs/eks-best-practices/networking-performance/gateway-api-adoption-guide/gamma-initiative)** — GAMMA overview, East-West traffic management, service mesh integration architecture, per-implementation support status
-- **[2. Cilium ENI Mode + Gateway API Deep-Dive Configuration](/docs/eks-best-practices/networking-performance/gateway-api-adoption-guide/cilium-eni-gateway-api)** — ENI mode architecture, installation/configuration, performance optimization (eBPF, XDP), Hubble observability, BGP Control Plane v2, hybrid node architecture
-- **[3. Migration Execution Strategy](/docs/eks-best-practices/networking-performance/gateway-api-adoption-guide/migration-execution-strategy)** — 5-phase migration process, CRD installation, verification scripts, troubleshooting guide
-- **[4. Feature Implementation Cookbook](/docs/eks-best-practices/networking-performance/gateway-api-adoption-guide/feature-implementation-cookbook)** — reference for implementing authentication, rate limiting, IP control, URL rewrite, headers, session affinity, body size, and error pages as YAML across the 6 implementations
+- **[1. Cilium ENI Mode + Gateway API Deep-Dive Configuration](/docs/eks-best-practices/networking-performance/gateway-api-adoption-guide/cilium-eni-gateway-api)** — ENI mode architecture, installation/configuration, performance optimization (eBPF, XDP), Hubble observability, BGP Control Plane v2, hybrid node architecture
+- **[2. Migration Execution Strategy](/docs/eks-best-practices/networking-performance/gateway-api-adoption-guide/migration-execution-strategy)** — 5-phase migration process, CRD installation, verification scripts, troubleshooting guide
+- **[3. Feature Implementation Cookbook](/docs/eks-best-practices/networking-performance/gateway-api-adoption-guide/feature-implementation-cookbook)** — reference for implementing authentication, rate limiting, IP control, URL rewrite, headers, session affinity, body size, and error pages as YAML across the 6 implementations
+
+### Related Documents (Service Mesh)
+
+East-West (service mesh) topics, which extend the Gateway API into mesh traffic, are covered in a separate category.
+
+- **[Service Mesh Comparison Guide](/docs/eks-best-practices/networking-performance/service-mesh)** — Data plane architecture, feature matrix, performance overhead, and selection guide for Istio, Cilium, Linkerd, and VPC Lattice
+- **[GAMMA Initiative](/docs/eks-best-practices/networking-performance/service-mesh/gamma-initiative)** — GAMMA overview, East-West traffic management, per-implementation support status
 
 ### Related Documents (Agentic AI Platform)
 

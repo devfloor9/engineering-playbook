@@ -3,7 +3,7 @@ title: GAMMA Initiative — The Future of Service Mesh Integration
 description: GAMMA (Gateway API for Mesh Management and Administration) introduction, East-West traffic management, and service mesh integration
 created: "2026-02-14"
 last_update:
-  date: "2026-06-30"
+  date: "2026-07-15"
   author: devfloor9
 reading_time: 4
 tags:
@@ -19,9 +19,9 @@ import {
   GammaSupportTable,
 } from '@site/src/components/GatewayApiTables';
 
-## 4.1 What is GAMMA?
+## What is GAMMA?
 
-**GAMMA (Gateway API for Mesh Management and Administration)** is an initiative that extends Gateway API into the service mesh domain.
+**GAMMA (Gateway API for Mesh Management and Administration)** is an initiative that extends the [Gateway API](../gateway-api-adoption-guide/index.md) into the service mesh domain.
 
 - **GA achieved**: Gateway API v1.1.0 (October 2025)
 - **Unified scope**: North-South (ingress) + East-West (service mesh) traffic
@@ -53,11 +53,13 @@ flowchart LR
     style gw fill:#1565c0,color:#fff
 ```
 
-## 4.2 Core Goals & Mesh Configuration Patterns
+## Core Goals & Mesh Configuration Patterns
 
 <GammaInfographic />
 
-## 4.3 GAMMA Support Status
+## GAMMA Support Status
+
+The following shows GAMMA support status across major service mesh implementations. For a detailed comparison of architecture, features, and operations, see the [Service Mesh Comparison Guide](./index.md).
 
 <GammaSupportTable />
 
@@ -65,7 +67,7 @@ flowchart LR
 In AWS environments, **VPC Lattice + ACK** can implement GAMMA patterns without sidecars. Provides fully managed service mesh capabilities including IAM-based mTLS, CloudWatch/X-Ray observability, and fault injection through AWS FIS.
 :::
 
-## 4.4 Advantages of GAMMA
+## Advantages of GAMMA
 
 ### 1. Reduced Learning Curve
 Teams only need to learn one API (Gateway API) to manage both ingress and mesh.
@@ -92,3 +94,14 @@ Clear responsibility separation — infra teams manage Gateways, dev teams manag
 
 ### 4. Vendor Neutrality
 Multiple mesh implementations can be managed with the same API, preventing vendor lock-in.
+
+## References
+
+### Official Documentation
+- [GAMMA Initiative](https://gateway-api.sigs.k8s.io/mesh/gamma/) — Official Gateway API GAMMA specification, goals, and configuration patterns
+- [Gateway API for Service Mesh](https://gateway-api.sigs.k8s.io/mesh/) — Official guide for applying Gateway API to mesh traffic
+
+### Related Documents (Internal)
+- [Service Mesh Comparison Guide](./index.md) — Architecture, feature, and operations comparison of Istio, Cilium, Linkerd, and VPC Lattice
+- [Gateway API Adoption Guide](../gateway-api-adoption-guide/index.md) — North-South traffic management, implementation comparison, migration strategy
+- [East-West Traffic Optimization](../east-west-traffic-best-practice.md) — Post-adoption latency and cross-AZ cost optimization

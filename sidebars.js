@@ -29,10 +29,20 @@ const sidebars = {
                 id: 'eks-best-practices/networking-performance/gateway-api-adoption-guide/index',
               },
               items: [
-                'eks-best-practices/networking-performance/gateway-api-adoption-guide/gamma-initiative',
                 'eks-best-practices/networking-performance/gateway-api-adoption-guide/cilium-eni-gateway-api',
                 'eks-best-practices/networking-performance/gateway-api-adoption-guide/migration-execution-strategy',
                 'eks-best-practices/networking-performance/gateway-api-adoption-guide/feature-implementation-cookbook',
+              ],
+            },
+            {
+              type: 'category',
+              label: '서비스 메시',
+              link: {
+                type: 'doc',
+                id: 'eks-best-practices/networking-performance/service-mesh/index',
+              },
+              items: [
+                'eks-best-practices/networking-performance/service-mesh/gamma-initiative',
               ],
             },
             'eks-best-practices/networking-performance/coredns-monitoring-optimization',

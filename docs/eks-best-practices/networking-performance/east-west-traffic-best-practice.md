@@ -450,6 +450,10 @@ spec:
 
 보안 요구사항(mTLS, Zero-Trust)이 있거나 고급 트래픽 관리가 필요한 경우 Istio를 선택적으로 도입합니다.
 
+:::tip 메시 솔루션 선택
+어떤 서비스 메시를 선택할지(Istio·Cilium·Linkerd·VPC Lattice)는 [서비스 메시 비교 가이드](./service-mesh/index.md)에서 다룹니다. 본 문서는 도입 후 지연·비용 최적화 관점에 집중합니다.
+:::
+
 **Istio의 주요 이점:**
 
 - **Locality 기반 라우팅**: Envoy 사이드카 간 로컬리티 정보를 활용하여 동일 AZ 또는 동일 지역의 인스턴스로 라우팅
@@ -925,3 +929,7 @@ kubectl exec -it test-pod -- cat /etc/resolv.conf
 9. [Cilium ClusterMesh Documentation](https://docs.cilium.io/en/stable/network/clustermesh/)
 10. [AWS EKS Best Practices - Cost Optimization](https://docs.aws.amazon.com/eks/latest/best-practices/cost-opt.html)
 11. [Kubernetes Pod Topology Spread Constraints](https://kubernetes.io/docs/concepts/scheduling-eviction/topology-spread-constraints/)
+
+### 관련 문서 (내부)
+- [서비스 메시 비교 가이드](./service-mesh/index.md) — Istio·Cilium·Linkerd·VPC Lattice 선택 기준
+- [GAMMA Initiative](./service-mesh/gamma-initiative.md) — Gateway API 기반 East-West 트래픽 표준화

@@ -4877,6 +4877,7 @@ ENTRYPOINT ["/main"]
 - [EKS 장애 진단 및 대응 가이드](/docs/eks-best-practices/operations-reliability/eks-debugging) — Probe 디버깅, Pod 트러블슈팅
 - [EKS 고가용성 아키텍처 가이드](/docs/eks-best-practices/operations-reliability/eks-resiliency-guide) — PDB, Graceful Shutdown, Pod Readiness Gates
 - [Karpenter를 활용한 초고속 오토스케일링](/docs/eks-best-practices/resource-cost/karpenter-autoscaling) — Karpenter Disruption, Spot 인스턴스 관리
+- [EKS 서비스 메시 솔루션 비교 가이드](/docs/eks-best-practices/networking-performance/service-mesh) — Native Sidecar 등 사이드카 라이프사이클과 연관된 메시 솔루션 비교
 
 ### 7.3 외부 참조
 
