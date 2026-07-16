@@ -3,7 +3,7 @@ title: Eval Gate · Registry · KPI
 description: Threshold verification of trained checkpoints, kgateway-based gradual Canary deployment, MLflow Registry version management, automatic rollback on regression, cost and quality KPI dashboard configuration.
 created: "2026-04-18"
 last_update:
-  date: "2026-06-26"
+  date: "2026-07-16"
   author: devfloor9
 reading_time: 8
 tags:
@@ -85,7 +85,7 @@ passed = check_eval_gate(new_model_results, baseline_results, THRESHOLDS, REGRES
 
 ### Canary Deployment (kgateway)
 
-Use [Gateway API](https://gateway-api.sigs.k8s.io/) HTTPRoute to gradually shift traffic.
+Use [Gateway API](https://gateway-api.sigs.k8s.io/) HTTPRoute to gradually shift traffic. The general principles and selection criteria of the Shadow, Canary, A/B, and Blue-Green strategies are covered in [Deployment Strategies](../../../../aidlc/enterprise/agent-versioning/deployment-strategies.md); this document focuses on the **kgateway-based Canary implementation integrated with the training pipeline's Eval Gate**.
 
 #### Stage 1: 5% Canary
 
@@ -753,6 +753,7 @@ ROI: 400%
 
 ### Related Documents
 
+- [Deployment Strategies — Shadow·Canary·A/B·Blue-Green](../../../../aidlc/enterprise/agent-versioning/deployment-strategies.md) — General deployment strategy principles, selection criteria, and Feature Flag rollout (canonical for general strategy)
 - [Ragas Evaluation](../../../operations-mlops/governance/ragas-evaluation.md)
 - [Inference Gateway Routing Strategy](../../../model-serving/inference-routing/routing-strategy.md)
 - [Monitoring & Observability Setup](../../integrations/monitoring-observability-setup.md)

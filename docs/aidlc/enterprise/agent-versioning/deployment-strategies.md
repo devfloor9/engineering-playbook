@@ -3,7 +3,7 @@ title: 배포 전략 — Shadow·Canary·A/B·Blue-Green
 description: 점진적 모델 교체 전략과 Feature Flag 기반 프롬프트 전개 방식
 created: "2026-04-18"
 last_update:
-  date: "2026-06-30"
+  date: "2026-07-16"
   author: YoungJoon Jeong
 reading_time: 8
 tags:
@@ -128,6 +128,10 @@ def get_model_for_user(user_id: str):
 **단점**:
 - 배포 기간 길어짐(수일~수주)
 - 모니터링 인프라 필수
+
+:::info EKS 모델 서빙에서의 Canary 구현
+이 문서는 배포 전략의 **일반론과 선택 기준**을 다룹니다. EKS 모델 서빙 환경에서 kgateway HTTPRoute weight 기반 Canary 구현, Eval Gate 연계, Argo Workflows 자동화, MLflow Registry 롤백은 [Eval Gate · Registry · KPI](../../../agentic-ai-platform/reference-architecture/model-lifecycle/continuous-training/evaluation-rollout.md)에서 다룹니다.
+:::
 
 ---
 
@@ -418,6 +422,10 @@ CloudWatch 알람(`LLMErrorRate > threshold`) 발생 시 자동 롤백.
 ### 통계 검정
 - **A/B Test Calculator**: [evanmiller.org/ab-testing](https://www.evanmiller.org/ab-testing/sample-size.html)
 - **scipy.stats**: [docs.scipy.org/doc/scipy/reference/stats.html](https://docs.scipy.org/doc/scipy/reference/stats.html)
+
+### 관련 문서 (내부)
+- [Eval Gate · Registry · KPI](../../../agentic-ai-platform/reference-architecture/model-lifecycle/continuous-training/evaluation-rollout.md) — kgateway HTTPRoute 기반 Canary 구현·Eval Gate·MLflow 롤백 (모델 평가 게이트 특화 canonical)
+- [거버넌스·자동화](./governance-automation.md) — 자동 회귀 감지·롤백 체계
 
 ---
 

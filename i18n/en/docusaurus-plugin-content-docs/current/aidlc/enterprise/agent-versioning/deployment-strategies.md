@@ -3,7 +3,7 @@ title: Deployment Strategies — Shadow·Canary·A/B·Blue-Green
 description: Progressive model replacement strategies and Feature Flag-based prompt rollout approaches
 created: "2026-04-19"
 last_update:
-  date: "2026-06-30"
+  date: "2026-07-16"
   author: devfloor9
 reading_time: 13
 tags:
@@ -128,6 +128,10 @@ def get_model_for_user(user_id: str):
 **Disadvantages**:
 - Longer deployment period (days to weeks)
 - Monitoring infrastructure required
+
+:::info Canary Implementation for EKS Model Serving
+This document covers the **general principles and selection criteria** of deployment strategies. For kgateway HTTPRoute weight-based Canary implementation in EKS model serving, Eval Gate integration, Argo Workflows automation, and MLflow Registry rollback, see [Eval Gate · Registry · KPI](../../../agentic-ai-platform/reference-architecture/model-lifecycle/continuous-training/evaluation-rollout.md).
+:::
 
 ---
 
@@ -418,6 +422,10 @@ Automatic rollback when CloudWatch alarm (`LLMErrorRate > threshold`) fires.
 ### Statistical Testing
 - **A/B Test Calculator**: [evanmiller.org/ab-testing](https://www.evanmiller.org/ab-testing/sample-size.html)
 - **scipy.stats**: [docs.scipy.org/doc/scipy/reference/stats.html](https://docs.scipy.org/doc/scipy/reference/stats.html)
+
+### Related Documents (Internal)
+- [Eval Gate · Registry · KPI](../../../agentic-ai-platform/reference-architecture/model-lifecycle/continuous-training/evaluation-rollout.md) — kgateway HTTPRoute-based Canary implementation, Eval Gate, and MLflow rollback (canonical for model evaluation gates)
+- [Governance & Automation](./governance-automation.md) — Automatic regression detection and rollback system
 
 ---
 

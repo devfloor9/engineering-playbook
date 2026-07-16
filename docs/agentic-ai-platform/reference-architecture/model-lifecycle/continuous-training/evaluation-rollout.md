@@ -3,7 +3,7 @@ title: Eval Gate · Registry · KPI
 description: 학습된 체크포인트의 Threshold 검증, kgateway 기반 Canary 점진 배포, MLflow Registry 버전 관리, 회귀 시 자동 롤백, 비용·품질 KPI 대시보드 구성.
 created: "2026-04-18"
 last_update:
-  date: "2026-06-28"
+  date: "2026-07-16"
   author: YoungJoon Jeong
 reading_time: 6
 tags:
@@ -85,7 +85,7 @@ passed = check_eval_gate(new_model_results, baseline_results, THRESHOLDS, REGRES
 
 ### Canary Deployment (kgateway)
 
-[Gateway API](https://gateway-api.sigs.k8s.io/)의 HTTPRoute를 사용하여 트래픽을 점진적으로 전환합니다.
+[Gateway API](https://gateway-api.sigs.k8s.io/)의 HTTPRoute를 사용하여 트래픽을 점진적으로 전환합니다. Shadow·Canary·A/B·Blue-Green 각 전략의 일반론과 선택 기준은 [배포 전략](../../../../aidlc/enterprise/agent-versioning/deployment-strategies.md)에서 다루며, 이 문서는 학습 파이프라인의 **Eval Gate와 연계된 kgateway 기반 Canary 구현**에 집중합니다.
 
 #### Stage 1: 5% Canary
 
@@ -753,6 +753,7 @@ ROI: 400%
 
 ### 관련 문서
 
+- [배포 전략 — Shadow·Canary·A/B·Blue-Green](../../../../aidlc/enterprise/agent-versioning/deployment-strategies.md) — 배포 전략 일반론·선택 기준·Feature Flag 전개 (일반론 canonical)
 - [Ragas Evaluation](../../../operations-mlops/governance/ragas-evaluation.md)
 - [Inference Gateway 라우팅 전략](../../../model-serving/inference-routing/routing-strategy.md)
 - [모니터링 · Observability 셋업](../../integrations/monitoring-observability-setup.md)
