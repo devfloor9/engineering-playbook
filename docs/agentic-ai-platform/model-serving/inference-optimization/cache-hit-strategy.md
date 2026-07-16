@@ -3,7 +3,7 @@ title: 캐시 히트 전략
 description: KV/Prefix·Prompt·Semantic 3계층 추론 캐시를 하나의 의사결정 프레임으로 통합하고, 계층별 히트율 목표와 측정 지점, 튜닝 레버를 정리
 created: "2026-06-25"
 last_update:
-  date: "2026-06-28"
+  date: "2026-07-15"
   author: YoungJoon Jeong
 reading_time: 6
 tags:
@@ -25,7 +25,7 @@ sidebar_label: 캐시 히트 전략
 
 추론 캐시는 단일 계층이 아니라 **서로 다른 적중 조건을 가진 세 계층**으로 구성됩니다. 각 계층은 회피하는 연산의 범위가 다르고, 히트율을 높이는 레버와 측정 지점도 다릅니다. 이 문서는 KV/Prefix·Prompt·Semantic 캐시를 하나의 의사결정 프레임으로 통합하고, 계층별 히트율 목표와 튜닝 방법을 정리합니다.
 
-각 계층의 상세 구현은 전용 문서에서 다룹니다. 이 문서는 **세 계층을 함께 보고 어디를 튜닝할지 판단**하는 지도 역할을 합니다. 추론 인프라 전체에서의 위치는 [추론 인프라 개요](../inference-infrastructure-overview.md)의 L5 캐시 계층에 해당합니다.
+각 계층의 상세 구현은 전용 문서에서 다룹니다. 이 문서는 **세 계층을 함께 보고 어디를 튜닝할지 판단**하는 지도 역할을 합니다. 추론 인프라 전체에서의 위치는 [추론 인프라 개요](../index.md)의 L5 캐시 계층에 해당합니다.
 
 ## 3계층 캐시 비교
 
@@ -64,7 +64,7 @@ flowchart TB
 Prefix 캐시는 동일 시스템 프롬프트나 공통 컨텍스트를 가진 요청의 prefill을 재사용합니다. 히트율을 높이는 레버는 다음과 같습니다.
 
 - **프롬프트 구조 정렬**: 변하지 않는 부분(시스템 프롬프트·few-shot 예시)을 요청 앞쪽에 고정하면 prefix 일치 구간이 길어집니다.
-- **KV cache-aware 라우팅**: 같은 prefix를 가진 요청을 캐시 보유 Pod로 보냅니다. Round-Robin은 이 캐시를 무력화합니다([기존 L7 게이트웨이의 한계](../inference-infrastructure-overview.md#기존-l7-게이트웨이의-한계)).
+- **KV cache-aware 라우팅**: 같은 prefix를 가진 요청을 캐시 보유 Pod로 보냅니다. Round-Robin은 이 캐시를 무력화합니다([기존 L7 게이트웨이의 한계](../index.md#기존-l7-게이트웨이의-한계)).
 - **공유 KV 계층(LMCache)**: GPU 밖으로 캐시를 확장해 Pod·노드를 넘어 재사용합니다([LMCache](./lmcache.md)).
 
 상세 동작은 [KV Cache 최적화](./kv-cache-optimization.md)를 참조하세요.

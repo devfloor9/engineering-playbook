@@ -3,7 +3,7 @@ title: Inference Optimization on EKS
 description: LLM Inference 성능을 극대화하는 EKS 아키텍처 개요 — vLLM, KV Cache-Aware Routing, Disaggregated Serving, LWS 멀티노드, GPU 오토스케일링의 시작점
 created: "2026-04-03"
 last_update:
-  date: "2026-06-26"
+  date: "2026-07-15"
   author: devfloor9
 reading_time: 14
 tags:
@@ -28,7 +28,7 @@ import DocCardList from '@theme/DocCardList';
 
 ## 다루는 내용
 
-본 카테고리는 추론 최적화 심화 문서와 게이트웨이 라우팅 문서로 구성됩니다. 전체 구조와 계층별 튜닝 레버의 지도는 [추론 인프라 개요](../inference-infrastructure-overview.md)를 먼저 참조하세요.
+본 카테고리는 추론 최적화 심화 문서와 게이트웨이 라우팅 문서로 구성됩니다. 전체 구조와 계층별 튜닝 레버의 지도는 [추론 인프라 개요](../index.md)를 먼저 참조하세요.
 
 <DocCardList items={[
   {

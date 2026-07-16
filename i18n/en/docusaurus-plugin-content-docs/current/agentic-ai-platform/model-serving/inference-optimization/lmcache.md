@@ -3,7 +3,7 @@ title: "LMCache: KV Cache Offloading and Sharing"
 description: The concept of LMCache — offloading KV cache beyond GPU memory to CPU and disk and sharing it across inference instances — and its relationship to vLLM prefix cache, NIXL, and kvaware routing.
 created: "2026-06-25"
 last_update:
-  date: "2026-06-30"
+  date: "2026-07-15"
   author: YoungJoon Jeong
 reading_time: 6
 tags:
@@ -36,7 +36,7 @@ LMCache mitigates both limitations by moving the KV cache to a layer outside the
 
 ## Position of LMCache
 
-LMCache sits between the serving engine and the routing layer, handling KV cache storage and lookup. Its position in the overall inference infrastructure corresponds to L5 (cache layer) in the layered tuning model of the [Inference Infrastructure Overview](../inference-infrastructure-overview.md).
+LMCache sits between the serving engine and the routing layer, handling KV cache storage and lookup. Its position in the overall inference infrastructure corresponds to L5 (cache layer) in the layered tuning model of the [Inference Infrastructure Overview](../index.md).
 
 ```mermaid
 flowchart LR

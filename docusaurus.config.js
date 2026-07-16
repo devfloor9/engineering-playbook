@@ -156,6 +156,11 @@ const config = {
             from: '/docs/agentic-ai-platform/design-architecture/advanced-patterns/semantic-caching-strategy',
             to: '/docs/agentic-ai-platform/model-serving/inference-optimization/semantic-caching-strategy',
           },
+          // 추론 인프라 개요 문서를 model-serving/index.md 로 병합(2026-07-15, #18)
+          {
+            from: '/docs/agentic-ai-platform/model-serving/inference-infrastructure-overview',
+            to: '/docs/agentic-ai-platform/model-serving',
+          },
         ],
       },
     ],

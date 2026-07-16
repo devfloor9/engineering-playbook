@@ -3,7 +3,7 @@ title: Cache-Hit Strategy
 description: Unifying the three layers of inference caching (KV/Prefix, Prompt, Semantic) into a single decision framework with hit-rate targets, measurement points, and tuning levers for each layer.
 created: "2026-06-25"
 last_update:
-  date: "2026-06-30"
+  date: "2026-07-15"
   author: YoungJoon Jeong
 reading_time: 6
 tags:
@@ -25,7 +25,7 @@ sidebar_label: Cache-Hit Strategy
 
 Inference caching is not a single layer but consists of **three layers with different hit conditions**. Each layer avoids a different scope of computation and has different levers to raise its hit rate and different measurement points. This document unifies the KV/Prefix, Prompt, and Semantic caches into a single decision framework and organizes per-layer hit-rate targets and tuning methods.
 
-The detailed implementation of each layer is covered in dedicated documents. This document serves as a map for **looking at all three layers together to decide where to tune**. Its position in the overall inference infrastructure corresponds to the L5 cache layer in the [Inference Infrastructure Overview](../inference-infrastructure-overview.md).
+The detailed implementation of each layer is covered in dedicated documents. This document serves as a map for **looking at all three layers together to decide where to tune**. Its position in the overall inference infrastructure corresponds to the L5 cache layer in the [Inference Infrastructure Overview](../index.md).
 
 ## 3-Layer Cache Comparison
 
@@ -64,7 +64,7 @@ flowchart TB
 Prefix cache reuses prefill for requests that share the same system prompt or common context. The levers that raise the hit rate are as follows.
 
 - **Prompt structure alignment**: Fixing the invariant part (system prompts and few-shot examples) at the front of the request lengthens the prefix-match segment.
-- **KV cache-aware routing**: Sends requests sharing the same prefix to the Pod holding the cache. Round-Robin neutralizes this cache (see [Limitations of Conventional L7 Gateways](../inference-infrastructure-overview.md#기존-l7-게이트웨이의-한계)).
+- **KV cache-aware routing**: Sends requests sharing the same prefix to the Pod holding the cache. Round-Robin neutralizes this cache (see [Limitations of Conventional L7 Gateways](../index.md#limitations-of-conventional-l7-gateways)).
 - **Shared KV layer (LMCache)**: Extends the cache outside the GPU, allowing reuse across Pods and nodes (see [LMCache](./lmcache.md)).
 
 For detailed behavior, see [KV Cache Optimization](./kv-cache-optimization.md).

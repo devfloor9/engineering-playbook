@@ -192,7 +192,6 @@ const sidebars = {
             id: 'agentic-ai-platform/model-serving/index',
           },
           items: [
-            'agentic-ai-platform/model-serving/inference-infrastructure-overview',
             {
               type: 'category',
               label: 'GPU 인프라',
