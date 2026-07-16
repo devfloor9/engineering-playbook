@@ -42,6 +42,7 @@ const sidebars = {
                 id: 'eks-best-practices/networking-performance/service-mesh/index',
               },
               items: [
+                'eks-best-practices/networking-performance/service-mesh/multi-cluster-communication',
                 'eks-best-practices/networking-performance/service-mesh/gamma-initiative',
               ],
             },

@@ -266,7 +266,7 @@ flowchart TD
 | Istio multi-cluster | Full mesh features across cluster boundaries, highest operational complexity |
 | VPC Lattice | Cluster, VPC, and account boundaries all solved as a managed service |
 
-For quantitative latency/cost comparison and the Route53-based alternative, see the [multi-cluster connectivity strategies in East-West Traffic Optimization](../east-west-traffic-best-practice.md).
+A detailed four-axis (functionality/stability/operability/cost) comparison of these three options and the migration path from Istio are covered in [Multi-Cluster East-West Communication](./multi-cluster-communication.md). For quantitative latency/cost comparison and the Route53-based alternative, see the [multi-cluster connectivity strategies in East-West Traffic Optimization](../east-west-traffic-best-practice.md).
 
 ## Summary
 
@@ -282,6 +282,7 @@ Service mesh selection on EKS is determined not by "the best mesh" but by the or
 - [AWS App Mesh End of Support](https://aws.amazon.com/blogs/containers/migrating-from-aws-app-mesh-to-amazon-ecs-service-connect/) — App Mesh end-of-support notice and migration guide
 
 ### Related Documents (Internal)
+- [Multi-Cluster East-West Communication](./multi-cluster-communication.md) — Four-axis comparison of cross-cluster East-West architectures and the Istio migration path
 - [GAMMA Initiative](./gamma-initiative.md) — Gateway API-based mesh standardization and per-implementation GAMMA support
 - [Gateway API Adoption Guide](../gateway-api-adoption-guide/index.md) — North-South traffic management, 6-implementation comparison
 - [East-West Traffic Optimization](../east-west-traffic-best-practice.md) — Post-adoption latency and cross-AZ cost optimization, quantitative Istio overhead
