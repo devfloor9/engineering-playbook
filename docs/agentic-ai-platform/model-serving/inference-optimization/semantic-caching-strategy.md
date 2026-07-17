@@ -3,7 +3,7 @@ title: Semantic Caching 전략
 description: LLM Gateway 레벨 의미 기반 캐싱 전략과 구현 옵션 비교 (GPTCache, Redis Semantic Cache, Portkey, Helicone, Bifrost+Redis)
 created: "2026-04-17"
 last_update:
-  date: "2026-07-04"
+  date: "2026-07-17"
   author: YoungJoon Jeong
 reading_time: 20
 tags:
@@ -37,15 +37,15 @@ sidebar_label: Semantic Caching
 
 ### 예상 절감률 (임계값별)
 
-절감률은 **사용자 질의의 반복성**, **도메인**(FAQ/고객 지원/코드 생성), **프롬프트 구조** 에 따라 크게 달라지므로 아래 수치는 공개된 구현체 문서·벤더 블로그에서 관측되는 일반적 범위입니다. 각 조직은 **점진적 롤아웃** 과 A/B 평가로 실제 효과를 검증해야 합니다.
+절감률은 **사용자 질의의 반복성**, **도메인**(FAQ/고객 지원/코드 생성), **프롬프트 구조** 에 따라 크게 달라지므로 아래 수치는 워크로드별 편차가 매우 큰 예시적 범위입니다. 각 조직은 **점진적 롤아웃** 과 A/B 평가로 실제 효과를 검증해야 합니다.
 
 | 유사도 임계값 | 운영 정책 | 관측되는 절감률 범위 | 특징 |
 |--------------|----------|-------------------|------|
-| **0.95 (엄격)** | 거의 동일한 질의만 캐시 | 약 10-15% | 오답 위험 매우 낮음, 엄격한 품질 요구 서비스 |
-| **0.85 (균형)** | 의미 동일·표현 차이 허용 | 약 30-40% | 일반 LLM 챗/어시스턴트 권장 기본값 |
-| **0.70 (공격적)** | 관련 주제까지 묶음 | 약 50-60% | FAQ/정적 KB 등 반복률 매우 높은 워크로드 한정 |
+| **0.95 (엄격)** | 거의 동일한 질의만 캐시 | 약 15-50% | 오답 위험 매우 낮음, 엄격한 품질 요구 서비스 (AWS 실측 약 52%, Portkey 블로그) |
+| **0.85 (균형)** | 의미 동일·표현 차이 허용 | 약 30-60% | 일반 LLM 챗/어시스턴트 권장 기본값 |
+| **0.75 (공격적)** | 관련 주제까지 묶음 | 약 60-85% | FAQ/정적 KB 등 반복률 매우 높은 워크로드 한정 (AWS 실측 86.3%) |
 
-출처 참고: [Redis — Building an LLM semantic cache](https://redis.io/blog/building-llm-applications-with-kernel-memory-and-redis/), [Portkey Semantic Cache 문서](https://docs.portkey.ai/docs/product/ai-gateway/cache-simple-and-semantic), [Helicone Caching 문서](https://docs.helicone.ai/features/advanced-usage/caching), [GPTCache README](https://github.com/zilliztech/GPTCache).
+참고: AWS 실측 데이터(Claude 3 Haiku + Titan Embeddings 챗봇 질의, Portkey 블로그 인용)는 0.99→15.8%, 0.95→51.9%, 0.75→86.3% 절감률을 보고. 워크로드 특성에 따라 편차가 크므로 자사 데이터로 검증 필수.
 
 :::warning 절감률 수치는 반드시 검증
 위 숫자는 공개 자료 기반의 **대략적 범위** 입니다. 모든 도메인에서 동일한 HIT 률이 나오지 않습니다. 대시보드(§6)로 **자사 워크로드의 실제 HIT 률·false-positive 률** 을 측정한 후 임계값을 확정하세요.
@@ -84,7 +84,7 @@ flowchart LR
 | 항목 | KV Cache (vLLM PagedAttention) | Prompt Cache (Anthropic/OpenAI managed) | Semantic Cache (Gateway 레벨) |
 |------|-------------------------------|----------------------------------------|-------------------------------|
 | **동작 위치** | 추론 엔진 내부 (GPU HBM) | 모델 프로바이더 측 | Gateway (Bifrost/LiteLLM/Portkey) 앞단 |
-| **저장 단위** | 토큰 단위 KV 블록 | 명시적 `cache_control` 마커 구간 | 전체 응답 객체 (텍스트/JSON) |
+| **저장 단위** | 토큰 단위 KV 블록 | Anthropic: `cache_control` 마커 구간 / OpenAI: 자동 prefix 캐싱 | 전체 응답 객체 (텍스트/JSON) |
 | **매칭 방식** | **접두사(prefix) 완전 일치** | 프로바이더 내부 해시 기반 완전 일치 | **임베딩 코사인 유사도** |
 | **주 목적** | TTFT·throughput 개선 | 반복 시스템 프롬프트 비용 절감 | **중복 LLM 호출 자체를 제거** |
 | **비용 영향** | GPU 시간 절감 (자체 호스팅) | 입력 토큰 단가 할인 (관리형) | API 호출 자체를 건너뜀 |
@@ -337,7 +337,7 @@ namespace 과도 세분화 점검 → 임계값 0.05 낮춤 → 임베딩 모델
 - [Portkey — Semantic Cache](https://docs.portkey.ai/docs/product/ai-gateway/cache-simple-and-semantic)
 - [Helicone — Caching](https://docs.helicone.ai/features/advanced-usage/caching)
 - [LiteLLM — Caching](https://docs.litellm.ai/docs/proxy/caching)
-- [Bifrost 공식 문서](https://www.getmaxim.ai/bifrost/docs)
+- [Bifrost 공식 문서](https://docs.getbifrost.ai)
 - [GPTCache (Zilliz)](https://github.com/zilliztech/GPTCache)
 
 ### 관련 문서

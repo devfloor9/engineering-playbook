@@ -3,7 +3,7 @@ title: 트러블슈팅 가이드
 description: Inference Gateway 배포 및 운영 중 발생하는 일반적인 문제와 해결 방법
 created: "2026-04-18"
 last_update:
-  date: "2026-06-28"
+  date: "2026-07-17"
   author: YoungJoon Jeong
 reading_time: 9
 tags:
@@ -91,10 +91,10 @@ spec:
 
 | 에러 메시지 | 원인 | 해결 |
 |------------|------|------|
-| `Provider not found: vllm` | 빌트인 provider 이름 미사용 | `openai`, `anthropic` 등 빌트인 이름 사용 |
+| `Provider not found: vllm` | config.json에 provider 미등록 | `vllm` provider 추가 또는 `custom_provider_config`로 임의 이름 등록 |
 | `Model not found: glm-5` | provider prefix 누락 | 요청 시 `openai/glm-5` 형태로 전송 |
 | UI에서 설정 미표시 | providers가 배열로 작성됨 | `"providers": [...]` -> `"providers": {...}` (map) |
-| OTel trace 미도착 | trace_type 오류 | `"genai_extension"` -> `"otel"` |
+| OTel trace 미도착 | trace_type 오류 | 레거시 `"otel"` -> `"genai_extension"` (v1.5.0+ 필수) |
 | Langfuse 403/401 | Authorization 포맷 오류 | `Basic <BASE64(public_key:secret_key)>` 확인 |
 
 **올바른 config.json 포맷**:
@@ -129,7 +129,7 @@ spec:
       "name": "otel",
       "config": {
         "service_name": "bifrost",
-        "trace_type": "otel",  # NOT "genai_extension"
+        "trace_type": "genai_extension",  # v1.5.0+ 필수 (레거시 "otel"은 제거됨)
         "protocol": "http",
         "collector_url": "http://langfuse-web.langfuse.svc.cluster.local:3000/api/public/otel/v1/traces",
         "headers": {
@@ -144,18 +144,18 @@ spec:
 
 ---
 
-## 3. Bifrost 모델명 정규화 문제
+## 3. Bifrost 모델명 매핑 문제
 
 **증상**: `openai/glm-5`로 요청했지만 vLLM에서 `model not found`
 
-**원인**: Bifrost는 모델명에서 하이픈을 제거하여 정규화합니다 (`glm-5` -> `glm5`).
+**원인**: Bifrost는 요청 시 provider prefix만 제거하고 모델명은 그대로 전달합니다 (`openai/glm-5` → vLLM에 `glm-5` 전달). vLLM의 `--served-model-name`이 일치하지 않으면 에러가 발생합니다.
 
-**해결**: vLLM의 `--served-model-name`을 정규화된 이름과 일치시킵니다.
+**해결**: vLLM의 `--served-model-name`을 요청 모델명과 일치시킵니다.
 
 ```bash
 # vLLM 서버 시작 시
 vllm serve zai-org/GLM-5-FP8 \
-  --served-model-name=glm5 \  # 하이픈 없는 이름
+  --served-model-name=glm-5 \  # 하이픈 포함, Bifrost 전달 이름과 일치
   --tensor-parallel-size=8
 ```
 
@@ -165,16 +165,31 @@ from openai import OpenAI
 
 client = OpenAI(base_url="http://<NLB_ENDPOINT>/v1", api_key="dummy")
 
-# Bifrost는 glm-5 → glm5로 정규화하므로, vLLM에서 glm5로 서빙해야 함
+# openai/ prefix는 Bifrost가 제거 → vLLM에 glm-5 전달
 response = client.chat.completions.create(
-    model="openai/glm-5",  # 요청 시 원래 이름 사용
+    model="openai/glm-5",
     messages=[{"role": "user", "content": "Hello"}]
 )
 ```
 
-:::info Bifrost 모델 alias 기능
-Bifrost에서 모델 alias 기능이 [#1058](https://github.com/maximhq/bifrost/issues/1058)로 요청되어 있으나, 2026.04 기준 미구현 상태입니다.
-:::
+**커스텀 이름 매핑이 필요한 경우**, Bifrost v1.5.0+의 모델 alias 기능을 사용하세요:
+
+```json
+{
+  "providers": {
+    "openai": {
+      "keys": [{
+        "name": "local-vllm",
+        "aliases": {
+          "glm-5": "glm5-prod"  # glm-5 요청 → vLLM의 glm5-prod로 매핑
+        }
+      }]
+    }
+  }
+}
+```
+
+상세는 [Bifrost Aliasing Models 문서](https://docs.getbifrost.ai/providers/aliasing-models)를 참조하세요.
 
 ---
 
@@ -501,7 +516,7 @@ kubectl logs -l app=langfuse-web -n observability --tail=20 -f
 
 ### Q4: NLB 직접 접근 vs CloudFront 경유 속도 차이?
 
-**A**: CloudFront 경유 시 TLS 종단 + WAF 검사로 인해 약 10-50ms 추가 지연 발생. 프로덕션에서는 보안 트레이드오프로 수용 권장.
+**A**: AWS WAF 검사는 통상 한 자릿수 ms 수준이며, CloudFront 엣지 TLS 종단은 오히려 클라이언트-엣지 간 지연을 감소시킬 수 있습니다. 캐시 미스 시 추가 홉으로 인한 지연은 상황에 따라 다르므로, 실제 지연은 워크로드별로 측정이 필요합니다. 프로덕션에서는 보안 트레이드오프를 고려하여 CloudFront + WAF 사용을 권장합니다.
 
 ### Q5: Bifrost double-prefix 트릭이 필요한 이유?
 

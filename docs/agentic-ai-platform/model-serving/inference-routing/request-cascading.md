@@ -3,7 +3,7 @@ title: Request Cascading — 지능형 모델 라우팅
 description: 요청 복잡도 기반 모델 자동 라우팅 — LLM Classifier·LiteLLM·vLLM Semantic Router 구현 접근 비교와 RouteLLM 연구 참조, 비용 절감 효과
 created: "2026-07-04"
 last_update:
-  date: "2026-07-04"
+  date: "2026-07-15"
   author: YoungJoon Jeong
 reading_time: 12
 tags:
@@ -219,25 +219,25 @@ similarity_threshold: 0.85
 
 **복잡도 분류 기준 (2026-04 기준):**
 
-| 복잡도 | 조건 | 권장 모델 | 토큰당 비용 |
+| 복잡도 | 조건 | 권장 모델 | 입력 토큰 비용 ($/1M) |
 |--------|------|----------|-----------|
-| **Simple** | 토큰 < 200, 키워드 없음 | Haiku 4.5 / GPT-4.1 nano | $0.80-$0.15/M |
-| **Medium** | 토큰 200-1000, 코드 포함 | Sonnet 4.6 / Gemini 2.5 Flash | $3-$0.10/M |
-| **Complex** | 토큰 1000+, reasoning 키워드 | Opus 4.7 / GPT-4.1 | $15-$10/M |
+| **Simple** | 토큰 < 200, 키워드 없음 | Haiku 4.5 / GPT-4.1 nano | $1.00 / $0.10 |
+| **Medium** | 토큰 200-1000, 코드 포함 | Sonnet 4.6 / Gemini 2.5 Flash | $3.00 / $0.30 |
+| **Complex** | 토큰 1000+, reasoning 키워드 | Opus 4.7 / GPT-4.1 | $5.00 / $2.00 |
 
 **Fallback 조건**: HTTP 5xx, Rate Limit 초과, Timeout, Quality Score < 0.7 (옵션)
 
-### 비용 절감 효과 (2026-04 기준)
+### 비용 절감 효과 (2026-07 기준)
 
-일 10,000 요청 시나리오:
-- Simple (50%): Haiku 4.5 — 50 tok in, 100 tok out → $0.50/일
-- Medium (30%): Sonnet 4.6 — 500 tok in, 500 tok out → $2.70/일
-- Complex (15%): Opus 4.7 — 1500 tok in, 1000 tok out → $3.38/일
-- Very Complex (5%): Opus 4.7 — 3000 tok in, 2000 tok out → $3.00/일
+일 10,000 요청 시나리오 (Haiku 4.5 $1.00/$5.00, Sonnet 4.6 $3.00/$15.00, Opus 4.7 $5.00/$25.00 per 1M tokens):
+- Simple (50%): Haiku 4.5 — 50 tok in, 100 tok out → $2.75/일
+- Medium (30%): Sonnet 4.6 — 500 tok in, 500 tok out → $27.00/일
+- Complex (15%): Opus 4.7 — 1500 tok in, 1000 tok out → $48.75/일
+- Very Complex (5%): Opus 4.7 — 3000 tok in, 2000 tok out → $32.50/일
 
-**총 비용: $9.58/일 ($287/월)**
+**총 비용: $111.00/일 ($3,330/월)**
 
-모든 요청을 Opus 4.7로 처리 시: $45/일 ($1,350/월) 대비 **79% 절감**
+모든 요청을 Opus 4.7로 처리 시 (평균 1K tok in/out): $300/일 ($9,000/월) 대비 **63% 절감**
 
 **자체 호스팅 LLM Classifier 시나리오** (2026-04 기준):
 - Qwen3-4B (70% weak, L4 $0.3/hr × 24hr × 30d) = $216/월

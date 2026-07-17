@@ -3,7 +3,7 @@ title: Cascade Routing 실전 튜닝
 description: Inference Gateway Cascade Routing의 분류 임계값·Canary 롤아웃·Fallback·비용 드리프트 경보를 프로덕션 trace 기반으로 튜닝하는 가이드
 created: "2026-04-18"
 last_update:
-  date: "2026-06-28"
+  date: "2026-07-17"
   author: YoungJoon Jeong
 reading_time: 15
 tags:
@@ -116,12 +116,13 @@ STRONG_KEYWORDS = [
 #### TOKEN_THRESHOLD (500자)
 
 ```python
-TOKEN_THRESHOLD = 500  # 한글 기준 약 250-300 토큰
+TOKEN_THRESHOLD = 500  # 한글 기준 약 330-400 토큰 (o200k), 500-1,000+ 토큰 (cl100k)
 ```
 
 **근거**:
 - **500자 미만**: 단순 질의 (코드 스니펫 설명, 단일 함수 작성) — Qwen3-4B 충분
 - **500자 이상**: 멀티턴 대화 누적, 긴 코드 블록 포함 — GLM-5 필요
+- 한글 토큰 수는 토크나이저에 따라 차이가 큼: 최신 다국어 토크나이저(o200k 등)는 약 1.5자/토큰(500자 ≈ 330-400 토큰), 구형 cl100k는 음절당 2-3 토큰(500자 ≈ 500-1,000+ 토큰)
 - 한/영 혼용 시 영어는 토큰 밀도가 높으므로 `len(content.encode('utf-8')) > 600` 조건 추가 권장
 
 #### TURN_THRESHOLD (5턴)
@@ -591,32 +592,29 @@ spec:
         - name: llm-classifier
           port: 8080
           weight: 100
-      # Fallback 설정
-      filters:
-        - type: ExtensionRef
-          extensionRef:
-            group: gateway.envoyproxy.io
-            kind: EnvoyRetry
-            name: llm-fallback-policy
 ---
 apiVersion: gateway.envoyproxy.io/v1alpha1
-kind: EnvoyRetry
+kind: BackendTrafficPolicy
 metadata:
   name: llm-fallback-policy
   namespace: ai-inference
 spec:
-  retryOn:
-    - "5xx"
-    - "connect-failure"
-    - "refused-stream"
-    - "retriable-status-codes"
-  retriableStatusCodes:
-    - 503  # Service Unavailable (Spot 중단)
-    - 429  # Rate Limit
-  numRetries: 2
-  perTryTimeout: 30s
-  retryHostPredicate:
-    - name: envoy.retry_host_predicates.previous_hosts
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      name: llm-classifier-route
+  retry:
+    numRetries: 2
+    perRetry:
+      timeout: 30s
+    retryOn:
+      triggers:
+        - "5xx"
+        - "connect-failure"
+        - "refused-stream"
+      httpStatusCodes:
+        - 503  # Service Unavailable (Spot 중단)
+        - 429  # Rate Limit
 ```
 
 #### LLM Classifier 내부 Fallback 로직
@@ -679,36 +677,41 @@ router_settings:
   fallbacks:
     - gpt-4o: ["us.anthropic.claude-sonnet-4-6-v1:0"]
   retry_policy:
-    - TimeoutError
-    - InternalServerError
-    - RateLimitError  # 429 자동 Fallback
-  num_retries: 2
+    TimeoutErrorRetries: 2
+    InternalServerErrorRetries: 2
+    RateLimitErrorRetries: 2  # 429 자동 Fallback
 ```
 
-#### Bifrost CEL Rules Fallback
+#### Bifrost Governance Routing Rules Fallback
 
-Bifrost는 CEL Rules로 헤더 기반 Fallback을 구현합니다.
+Bifrost는 `governance.routing_rules`로 CEL 기반 라우팅을 구현합니다. 429 Rate Limit 처리는 Bifrost 내장 `retries-and-fallbacks` 기능이 자동으로 수행하므로 별도 규칙이 불필요합니다.
 
 ```json
 {
-  "plugins": [
-    {
-      "enabled": true,
-      "name": "cel_rules",
-      "config": {
-        "rules": [
-          {
-            "condition": "response.status == 429",
-            "action": "retry",
-            "target": "anthropic",
-            "max_retries": 2
-          }
-        ]
+  "governance": {
+    "routing_rules": [
+      {
+        "cel_expression": "request.headers['x-priority'] == 'high'",
+        "targets": ["anthropic-premium"],
+        "fallbacks": ["openai-fallback"]
+      },
+      {
+        "cel_expression": "request.body.model.contains('gpt')",
+        "targets": ["openai"],
+        "fallbacks": ["anthropic"]
       }
-    }
-  ]
+    ]
+  },
+  "retries": {
+    "max_retries": 2,
+    "retry_on": ["timeout", "rate_limit"]
+  }
 }
 ```
+
+:::note CEL 라우팅 제약
+CEL 표현식은 요청 측 변수(`request.headers`, `request.body`)만 참조 가능하며, 응답 상태(`response.status`)는 참조할 수 없습니다. 429 Rate Limit 등 응답 기반 Fallback은 Bifrost 내장 `retries-and-fallbacks`가 자동 처리합니다.
+:::
 
 ---
 
@@ -851,9 +854,9 @@ sum(increase(cascade:total_cost_usd_per_hour[7d] offset 7d))
 
 ## 안티패턴과 실전 함정
 
-### 안티패턴 1: Bifrost single base_url 우회 실패
+### 안티패턴 1: Bifrost custom provider 미활용
 
-**문제**: Bifrost는 provider당 단일 `network_config.base_url`만 지원하므로, SLM과 LLM이 다른 Service에 있으면 동일 provider로 라우팅 불가.
+**문제**: SLM과 LLM이 다른 Service에 있을 때 단일 provider 엔트리에 여러 base_url을 설정하려는 시도.
 
 **잘못된 시도**:
 ```json
@@ -865,14 +868,41 @@ sum(increase(cascade:total_cost_usd_per_hour[7d] offset 7d))
         {"name": "glm5", "models": ["glm-5"]}
       ],
       "network_config": {
-        "base_url": "???"  // 2개의 base_url을 설정할 수 없음
+        "base_url": "???"  // 단일 provider에 2개 base_url 설정 불가
       }
     }
   }
 }
 ```
 
-**올바른 해결책**: LLM Classifier를 Bifrost 앞에 배치하여 백엔드 자동 선택.
+**올바른 해결책**: `custom_provider_config`로 동일 base provider 타입의 인스턴스를 여러 개 생성하여 각기 다른 base_url 설정.
+
+```json
+{
+  "providers": {
+    "qwen3-slm": {
+      "custom_provider_config": {
+        "base_provider_type": "openai"
+      },
+      "network_config": {
+        "base_url": "http://qwen3-serving:8000"
+      },
+      "models": ["qwen3-4b"]
+    },
+    "glm5-llm": {
+      "custom_provider_config": {
+        "base_provider_type": "openai"
+      },
+      "network_config": {
+        "base_url": "http://glm5-serving:8000"
+      },
+      "models": ["glm-5"]
+    }
+  }
+}
+```
+
+이 기능은 2025년부터 지원되며, `request_path_overrides`에 전체 URL을 지정하면 요청 타입별로 다른 엔드포인트 라우팅도 가능합니다.
 
 ### 안티패턴 2: RouteLLM 프로덕션 배포 강행
 
@@ -964,15 +994,16 @@ STRONG_KEYWORDS = [
 ### 공식 문서
 - [Langfuse Documentation](https://langfuse.com/docs)
 - [LiteLLM Routing](https://docs.litellm.ai/docs/routing)
-- [Bifrost Documentation](https://getmaxim.ai/docs/bifrost)
+- [Bifrost Documentation](https://docs.getbifrost.ai)
 - [Kubernetes Gateway API](https://gateway-api.sigs.k8s.io/)
 - [Amazon Managed Prometheus](https://docs.aws.amazon.com/prometheus/)
 
 ### 연구 자료
 - [RouteLLM: Learning to Route LLMs with Preference Data (arXiv)](https://arxiv.org/abs/2406.18665)
+- [A Unified Approach to Routing and Cascading for LLMs (ETH Zurich)](https://arxiv.org/abs/2410.10347)
 - [LMSYS Chatbot Arena Leaderboard](https://chat.lmsys.org/?leaderboard)
 - [FrugalGPT: How to Use Large Language Models While Reducing Cost and Improving Performance](https://arxiv.org/abs/2305.05176)
 
 ### 관련 블로그
 - [LLM Router Pattern: Model Switching](https://markaicode.com/llm-router-pattern-model-switching/)
-- [Cost-Effective LLM Inference with Cascade Routing](https://www.anthropic.com/research/cost-effective-inference)
+- [Building Effective AI Agents (Anthropic)](https://www.anthropic.com/research/building-effective-agents)

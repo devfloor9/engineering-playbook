@@ -3,7 +3,7 @@ title: LLMOps Observability 비교 가이드
 description: LLMOps Observability 도구 비교 전용 문서 — Langfuse·LangSmith·Helicone·CloudWatch 선택 기준과 하이브리드 아키텍처 (Langfuse 운영은 Agent 모니터링 문서 참조)
 created: "2026-03-16"
 last_update:
-  date: "2026-07-04"
+  date: "2026-07-17"
   author: YoungJoon Jeong
 reading_time: 13
 tags:
@@ -127,7 +127,7 @@ flowchart TB
 - Gateway 기능 내장: Rate limiting, Caching, Retries, Load balancing (Rust 기반 고성능 게이트웨이)
 - 실시간 비용 대시보드
 
-**장점**: 초고속 통합(URL 변경만), Go 기반 고성능 게이트웨이(10ms 미만 지연), Gateway 기능 내장
+**장점**: 초고속 통합(URL 변경만), Rust 기반 고성능 게이트웨이(P95 5ms 미만 지연), Gateway 기능 내장
 
 **단점**: 프롬프트 관리/평가 파이프라인 부재, 중첩 Span 추적 제한적
 

@@ -3,7 +3,7 @@ title: Knowledge Feature Store 확장
 description: 전통 Feature Store에 온톨로지·Knowledge Graph를 통합하여 환각 감소·근거 추적·도메인 엔터티 활용을 강화하는 3-plane 설계
 created: "2026-04-18"
 last_update:
-  date: "2026-06-30"
+  date: "2026-07-17"
   author: YoungJoon Jeong
 reading_time: 12
 tags:
@@ -272,9 +272,9 @@ kfs:HighValue a skos:Concept ;
 **Neptune Analytics 장점:**
 - 서버리스 그래프 분석 (프로비저닝 불필요)
 - 밀리초 단위 쿼리 지연 시간
-- Gremlin, openCypher 지원
+- openCypher 쿼리 언어 지원 (Gremlin·SPARQL은 Neptune Database 전용)
 - S3 데이터 직접 로드
-- 비용: $1.08/vCPU/hr (on-demand), 쿼리당 $0.10/Compute Unit
+- 비용: m-NCU(memory-optimized Neptune Capacity Unit) 기반 시간당 과금. us-east-1 기준 32 m-NCUs $0.96/hr, 64 m-NCUs $1.92/hr, 128 m-NCUs $3.84/hr, 256 m-NCUs $7.68/hr. 초 단위 과금, 일시정지 시 컴퓨트 가격의 10% 스토리지 비용
 
 **Neo4j 장점:**
 - 성숙한 생태계, 풍부한 플러그인
@@ -405,7 +405,7 @@ print(ragas_result)
 **참고 문헌:**
 - Edge et al., *From Local to Global: A Graph RAG Approach to Query-Focused Summarization* (Microsoft Research, 2024) — [arXiv:2404.16130](https://arxiv.org/abs/2404.16130). "comprehensiveness and diversity" 개선 보고(정성 평가 중심, 수치는 평가 QA셋에 의존)
 - Peng et al., *Graph Retrieval-Augmented Generation: A Survey* (2024) — [arXiv:2408.08921](https://arxiv.org/abs/2408.08921). 엔터티 관계 활용 시 Faithfulness/Recall 개선 경향 정리
-- LightRAG / HippoRAG 등 공개 벤치마크: Vector-only RAG 대비 다중 엔터티 질의에서 Recall 15-30%p 개선 사례
+- HippoRAG 논문(NeurIPS 2024, arXiv:2405.14831): dense retriever(ColBERTv2) 대비 다중 홉 질의 Recall@5 최대 약 21%p 개선(2WikiMultiHopQA 68.2→89.1). 데이터셋 의존성이 크며 MuSiQue는 +2.7%p, HotpotQA는 소폭 하락. LightRAG는 LLM 판정 win-rate 우위 보고(NaiveRAG 대비 67.6% vs 32.4%). 수치는 모두 논문 저자 자체 벤치마크임
 :::
 
 | 메트릭 | Vector-only RAG (참고) | KG-aware RAG (참고) | 개선률 (참고) |

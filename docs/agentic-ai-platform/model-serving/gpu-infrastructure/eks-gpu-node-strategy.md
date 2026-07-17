@@ -3,7 +3,7 @@ title: EKS GPU 노드 전략
 description: EKS Auto Mode, Karpenter, MNG, Hybrid Node의 GPU 워크로드별 최적 노드 전략
 created: "2026-03-16"
 last_update:
-  date: "2026-07-14"
+  date: "2026-07-17"
   author: devfloor9
 reading_time: 24
 tags:
@@ -61,7 +61,7 @@ AWS EKS는 GPU 워크로드를 위해 4가지 노드 타입을 제공합니다:
 | **GPU Operator** | **가능** (Device Plugin 레이블 비활성화) | **가능** | 가능 | 가능 |
 | **Root Filesystem** | Read-Only | Read-Write | Read-Write | Read-Write |
 | **MIG 지원** | 불가 (NodeClass read-only) | 가능 | 가능 | 가능 |
-| **DRA 호환** | **불가** (내부 Karpenter 기반) | **불가** ([#1231](https://github.com/kubernetes-sigs/karpenter/issues/1231)) | **가능** (권장) | 가능 |
+| **DRA 호환** | **불가** (내부 Karpenter 기반) | **v1.14.0+ 지원** ([v1.13 이하 미지원](https://github.com/kubernetes-sigs/karpenter/issues/1231)) | **가능** (권장) | 가능 |
 | **DCGM Exporter** | GPU Operator로 설치 | GPU Operator 포함 | 수동 설치 | GPU Operator 포함 |
 | **Run:ai 호환** | **가능** (Device Plugin 비활성화) | **가능** | 가능 | 가능 |
 | **비용** | 낮음 (관리 불필요) | 중간 | 중간 | 낮음 (Capex) |
@@ -516,9 +516,9 @@ spec:
 
 | 인스턴스 | On-Demand | Spot (최저) | VRAM | 절감률 |
 |---------|-----------|------------|------|-------|
-| p5.48xlarge | $98/hr | $12.5/hr | 640GB | 87% |
-| p5en.48xlarge | ~$120/hr | $12.1/hr | 1,128GB | 90% |
-| p6-b200.48xlarge | $180/hr | $11.4/hr | 1,440GB | 94% |
+| p5.48xlarge | $55.04/hr | ~$9.4/hr | 640GB | 약 83% |
+| p5en.48xlarge | $63.30/hr | ~$9.9/hr | 1,128GB | 약 84% |
+| p6-b200.48xlarge | $113.93/hr | ~$17.6-36/hr | 1,432GB | 약 69-85% |
 
 :::tip Spot 활용 권장
 대형 GPU 인스턴스는 Spot으로 85-94% 비용 절감이 가능합니다. PoC/데모 환경에서는 Spot을 적극 활용하되, `consolidationPolicy: WhenEmpty`로 설정하여 불필요한 중단을 방지하세요. 가격은 approximate 수치이며 실시간 가격은 [AWS Spot Pricing](https://aws.amazon.com/ec2/spot/pricing/)에서 확인하세요.
@@ -586,10 +586,12 @@ flowchart TB
 
 DRA(Dynamic Resource Allocation)는 K8s 1.34에서 GA로 승격되었으며, GPU 메모리 세밀 할당, NVLink 토폴로지 인식 스케줄링 등 Device Plugin을 넘어서는 고급 GPU 관리를 제공합니다. **단, DRA는 Karpenter와 Auto Mode에서 사용할 수 없습니다.**
 
-:::danger DRA + Karpenter/Auto Mode 비호환
-Karpenter는 Pod의 `spec.resourceClaims`를 감지하면 노드 프로비저닝을 skip합니다 ([PR #2384](https://github.com/kubernetes-sigs/karpenter/pull/2384)). Karpenter는 Pod 요구사항을 시뮬레이션해서 최적 인스턴스를 계산하는데, DRA의 ResourceSlice는 노드가 존재한 후에야 DRA Driver가 발행하므로 **노드 생성 전 시뮬레이션이 불가능**합니다 (닭과 달걀 문제).
+:::info DRA 지원 현황 (2026.07 갱신)
+**Karpenter v1.14.0+ (2026-07-11 릴리스)**: DRA를 공식 지원합니다 (consumable capacity·partitionable devices 포함, [upgrade guide](https://karpenter.sh/docs/upgrading/upgrade-guide/) 참조). v1.13 이하에서는 Pod의 `spec.resourceClaims`를 감지하면 노드 프로비저닝을 skip했으나 ([PR #2384](https://github.com/kubernetes-sigs/karpenter/pull/2384)), v1.14.0의 DRA allocator 통합([PR #3113](https://github.com/kubernetes-sigs/karpenter/pull/3113))으로 해결되었습니다.
 
-DRA 워크로드의 노드 관리는 **Managed Node Group + Cluster Autoscaler**가 유일한 정식 지원 방법입니다.
+**EKS Auto Mode**: 여전히 DRA 미지원 (내부 Karpenter 기반이나 버전 업데이트 정책 별도).
+
+**Managed Node Group**: DRA를 지원하며, Karpenter v1.13 이하 환경 또는 Auto Mode 사용 시 DRA 워크로드의 권장 방식입니다.
 :::
 
 ```mermaid
@@ -629,7 +631,7 @@ flowchart TB
 
 | 모델 크기 | 예시 | 권장 노드 | 이유 |
 |---|---|---|---|
-| **70B+** | Qwen3-72B, Llama-3-70B | Auto Mode + llm-d | GPU를 거의 다 사용, 관리 편의성 |
+| **70B+** | Qwen2.5-72B, Llama-3.3-70B | Auto Mode + llm-d | GPU를 거의 다 사용, 관리 편의성 |
 | **30B-65B** | Qwen3-32B | Auto Mode 또는 Karpenter | GPU 50%+ 사용, 상황에 따라 선택 |
 | **13B-30B** | Llama-3-13B | Karpenter + MIG 2분할 | GPU 활용률 개선 필요 |
 | **7B 이하** | Llama-3-8B, Mistral-7B | Karpenter + MIG 4-7분할 | GPU 낭비 심각, MIG 필수 |

@@ -3,7 +3,7 @@ title: "AI 플랫폼 선택 가이드: 매니지드 vs 오픈소스 vs 하이브
 description: SageMaker Unified Studio, Bedrock AgentCore, EKS 오픈 아키텍처 중 고객 상황에 맞는 최적 접근 선택을 위한 의사결정 프레임워크
 created: "2026-04-17"
 last_update:
-  date: "2026-06-28"
+  date: "2026-07-17"
   author: YoungJoon Jeong
 reading_time: 12
 tags:
@@ -96,7 +96,7 @@ graph TB
 
 ### 통합 AI 개발 환경
 
-**SageMaker Unified Studio**는 2024년 하반기에 출시된 통합 AI 개발 환경으로, ML/데이터/분석 작업을 하나의 IDE에서 수행할 수 있도록 설계되었습니다. 기존에는 SageMaker Studio Classic, Athena, Glue Studio 등 분산된 도구를 개별적으로 사용해야 했지만, Unified Studio는 이를 하나로 통합합니다.
+**SageMaker Unified Studio**는 2024년 12월 re:Invent에서 프리뷰로 공개되고 2025년 3월 정식 출시(GA)된 통합 AI 개발 환경으로, ML/데이터/분석 작업을 하나의 IDE에서 수행할 수 있도록 설계되었습니다. 기존에는 SageMaker Studio Classic, Athena, Glue Studio 등 분산된 도구를 개별적으로 사용해야 했지만, Unified Studio는 이를 하나로 통합합니다.
 
 ### 핵심 차별점
 
@@ -355,7 +355,7 @@ flowchart LR
 
 ### 공식 문서
 
-- [Amazon SageMaker Unified Studio](https://docs.aws.amazon.com/sagemaker/latest/dg/unified-studio.html) — 통합 AI 개발 환경
+- [Amazon SageMaker Unified Studio](https://docs.aws.amazon.com/sagemaker-unified-studio/latest/userguide/what-is-sagemaker-unified-studio.html) — 통합 AI 개발 환경
 - [Amazon Bedrock Documentation](https://docs.aws.amazon.com/bedrock/) — Bedrock 공식 문서
 - [Amazon EKS Best Practices](https://aws.github.io/aws-eks-best-practices/) — EKS 권장사항
 - [AWS Well-Architected Framework](https://aws.amazon.com/architecture/well-architected/) — 아키텍처 프레임워크

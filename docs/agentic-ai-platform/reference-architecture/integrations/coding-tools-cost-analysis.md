@@ -3,7 +3,7 @@ title: 코딩 도구 연동 & 비용 분석
 description: Aider, Cline, Continue.dev 연동 + Bedrock vs Kiro vs 자체 호스팅 비용 비교
 created: "2026-04-06"
 last_update:
-  date: "2026-06-28"
+  date: "2026-07-17"
   author: YoungJoon Jeong
 reading_time: 17
 tags:
@@ -116,7 +116,7 @@ Settings -> API Provider -> OpenAI Compatible
 |------|--------------------------|------------|
 | **적합 환경** | 자체 호스팅 vLLM cascade | 외부 프로바이더 통합 (OpenAI/Anthropic) |
 | **모델명 포맷** | `auto` (임의값 가능) | `provider/model` 강제 |
-| **프롬프트 분석** | ✅ body 직접 접근 | ❌ CEL은 headers만 접근 |
+| **프롬프트 분석** | ✅ body 직접 접근 | ⚠️ body 직접 접근 불가, 단 Complexity Router의 complexity_tier로 프롬프트 기반 라우팅 가능 |
 | **멀티 백엔드** | ✅ WEAK/STRONG URL 분리 | ❌ provider당 단일 base_url |
 | **Aider 호환** | ✅ 트릭 불필요 | ⚠️ double-prefix 필요 |
 | **Cursor 호환** | ✅ | ❌ 슬래시 불가 |

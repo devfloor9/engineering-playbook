@@ -3,7 +3,7 @@ title: EKS 기반 MLOps 파이프라인 구축
 description: Kubeflow + MLflow + vLLM + ArgoCD GitOps 기반 엔드투엔드 ML 라이프사이클 관리
 created: "2026-02-11"
 last_update:
-  date: "2026-07-13"
+  date: "2026-07-17"
   author: YoungJoon Jeong
 reading_time: 5
 tags:
@@ -107,11 +107,13 @@ flowchart LR
 
 ## Kubeflow Pipelines 아키텍처
 
-### Kubeflow 설치 (AWS 배포판)
+### Kubeflow 설치
 
-AWS에서는 Kubeflow on AWS 배포판을 제공하며, EKS와 통합된 구성을 제공합니다.
+:::caution awslabs/kubeflow-manifests 유지관리 중단
+awslabs/kubeflow-manifests는 2023-09 이후 업데이트가 중단되었습니다 (마지막 릴리스 v1.7.0-aws-b1.0.3, Kubeflow 1.8+ 미지원). 신규 설치는 동작하지 않으며 kubeflow.org 공식 배포판 목록에서도 제외되었습니다. EKS에서 Kubeflow를 사용하려면 upstream [kubeflow/manifests](https://github.com/kubeflow/manifests) (현행 1.11)를 직접 배포하거나 다른 유지관리 배포판을 사용하세요.
+:::
 
-> 배포 가이드는 [Kubeflow on AWS 공식 문서](https://awslabs.github.io/kubeflow-manifests/)를 참조하세요.
+> 배포 가이드는 [Kubeflow 공식 설치 문서](https://www.kubeflow.org/docs/started/installing-kubeflow/)를 참조하세요.
 
 ### Kubeflow 아키텍처
 
@@ -345,7 +347,7 @@ spec:
       serviceAccountName: mlflow-sa
       containers:
         - name: mlflow
-          image: ghcr.io/mlflow/mlflow:v2.10.2
+          image: ghcr.io/mlflow/mlflow:v3.14.0  # 2026-06-17 릴리스, 최신 안정 버전
           ports:
             - name: http
               containerPort: 5000
@@ -518,7 +520,7 @@ spec:
               containerPort: 8000
           args:
             - --model
-            - meta-llama/Llama-3-70B-Instruct
+            - meta-llama/Meta-Llama-3-70B-Instruct  # 실제 HuggingFace 리포지토리 ID (Llama-3-70B-Instruct는 존재하지 않음)
             - --tensor-parallel-size
             - "4"
             - --max-model-len
@@ -668,7 +670,7 @@ spec:
     
     - name: argocd-deployment
       script:
-        image: argoproj/argocd:v2.13
+        image: quay.io/argoproj/argocd:v3.4.4  # 2026-06-18 릴리스 (공식 레지스트리, 패치 단위 태그 필수)
         command: [sh]
         source: |
           argocd app sync vllm-{{workflow.parameters.model-name}} --force

@@ -96,7 +96,7 @@ Cache effectiveness cannot be managed without measurement. Hit rates must be mea
 The targets above are reference values for workloads with many shared prompts and repeated queries. For high-diversity requests, the same targets may be unrealistic, so start from a baseline measured on actual traffic.
 :::
 
-For observability integration (Langfuse OTel) and dashboard panel composition, see [Semantic Caching Strategy — Observability](./semantic-caching-strategy.md#6-observability-langfuse-integration) and [Routing Strategy — Monitoring & Observability](../inference-routing/routing-strategy.md#모니터링--observability).
+For observability integration (Langfuse OTel) and dashboard panel composition, see [Semantic Caching Strategy — Observability](./semantic-caching-strategy.md#6-observability-langfuse-integration) and [Routing Strategy — Monitoring & Observability](../inference-routing/routing-strategy.md#monitoring--observability).
 
 ## References
 

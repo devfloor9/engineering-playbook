@@ -1,14 +1,14 @@
 ---
-title: Self-Improving Agent Loop (Autosearch)
-description: Karpathy의 autosearch 개념을 기반으로 self-hosted SLM이 프로덕션 trace로부터 스스로 학습·강화하는 5-stage 루프 설계와 안전장치
+title: Self-Improving Agent Loop (Autoresearch)
+description: Karpathy의 autoresearch 개념을 기반으로 self-hosted SLM이 프로덕션 trace로부터 스스로 학습·강화하는 5-stage 루프 설계와 안전장치
 created: "2026-04-18"
 last_update:
-  date: "2026-06-30"
+  date: "2026-07-17"
   author: YoungJoon Jeong
 reading_time: 19
 tags:
   - self-improving
-  - autosearch
+  - autoresearch
   - rlaif
   - grpo
   - dpo
@@ -25,11 +25,11 @@ sidebar_position: 8
 실 운영 적용 전에 스코프·자동화 경계·데이터 거버넌스·롤백 기준에 대한 합의가 필요하다. 자세한 합의 대상은 [ADR — Self-Improving Agent Loop 도입 의사결정](./adr-self-improving-loop.md)을 참조.
 :::
 
-## Autosearch 담론과 엔터프라이즈 해석
+## Autoresearch 담론과 엔터프라이즈 해석
 
 ### Karpathy의 핵심 주장
 
-Andrej Karpathy는 LLM이 단순한 "next token prediction" 기계를 넘어 **자가 탐색(autosearch)** 시스템으로 진화할 것이라고 주장했다. 핵심 메커니즘:
+Andrej Karpathy는 2026년 3월 [autoresearch](https://github.com/karpathy/autoresearch) 프로젝트를 통해 LLM이 단순한 "next token prediction" 기계를 넘어 **자가 탐색(autoresearch)** 시스템으로 진화할 것이라고 주장했다. 핵심 메커니즘:
 
 1. **Tool-use Rollout**: LLM이 도구(코드 실행, 웹 검색, 계산기 등)를 사용하며 여러 추론 경로를 탐색
 2. **Success as Signal**: 성공한 경로(정답 도달, 작업 완료)가 다음 학습의 시그널이 됨
@@ -212,7 +212,7 @@ judge_prompt = f"""
 {{"score": 0.85, "reasoning": "정확하고 완전하나 약간 장황함"}}
 """
 
-judge_response = cheap_llm.generate(judge_prompt)  # Qwen3-7B 사용 (비용 절감)
+judge_response = cheap_llm.generate(judge_prompt)  # Qwen3-8B 사용 (비용 절감)
 ```
 
 **Ragas 평가**:
@@ -239,7 +239,7 @@ user_score = 1.0 if feedback.value == "positive" else 0.0 if feedback.value == "
 ```
 
 **비용 최적화**:
-- LLM-as-Judge는 저비용 모델(Qwen3-7B, Llama 4 Scout) 사용
+- LLM-as-Judge는 저비용 모델(Qwen3-8B, Llama 4 Scout) 사용
 - Ragas는 캐싱(동일 question+context 조합 재사용)
 - 유저 피드백 우선 — 피드백 있으면 LLM-as-Judge 스킨
 
@@ -284,10 +284,38 @@ def filter_traces(scored_traces):
 **PII 스캐닝 (Presidio)**:
 
 ```python
-from presidio_analyzer import AnalyzerEngine
+from presidio_analyzer import AnalyzerEngine, PatternRecognizer, Pattern
+from presidio_analyzer.nlp_engine import NlpEngineProvider
 from presidio_anonymizer import AnonymizerEngine
 
-analyzer = AnalyzerEngine()
+# 한국어 NLP 모델 구성 (기본 AnalyzerEngine은 영어만 지원하므로 한국어 엔진 필요)
+nlp_config = {
+    "nlp_engine_name": "spacy",
+    "models": [{"lang_code": "ko", "model_name": "ko_core_news_lg"}]
+}
+nlp_engine_provider = NlpEngineProvider(nlp_configuration=nlp_config)
+
+analyzer = AnalyzerEngine(
+    nlp_engine=nlp_engine_provider.create_engine(),
+    supported_languages=["ko"]
+)
+
+# 한국어 주민등록번호 커스텀 인식기 (Presidio는 한국 특화 recognizer 미제공)
+rrn_recognizer = PatternRecognizer(
+    supported_entity="KR_RRN",
+    patterns=[Pattern("rrn", r"\d{6}-\d{7}", 0.85)],
+    supported_language="ko"
+)
+analyzer.registry.add_recognizer(rrn_recognizer)
+
+# 한국 계좌번호 커스텀 인식기
+account_recognizer = PatternRecognizer(
+    supported_entity="KR_ACCOUNT",
+    patterns=[Pattern("account", r"\d{3}-\d{2,6}-\d{2,7}", 0.8)],
+    supported_language="ko"
+)
+analyzer.registry.add_recognizer(account_recognizer)
+
 anonymizer = AnonymizerEngine()
 
 def scan_and_anonymize(text: str) -> tuple[str, bool]:
@@ -394,12 +422,16 @@ def build_preference_pairs(traces):
 
 **학습 방법 선택 가이드**:
 
-| 방법 | 데이터 요구량 | GPU-hours (7B 모델) | 수렴 안정성 | 적합 시나리오 |
+| 방법 | 데이터 요구량 | GPU-hours (대략적 범위) | 수렴 안정성 | 적합 시나리오 |
 |------|-------------|---------------------|------------|-------------|
-| **GRPO** | 1k+ pairs | ~50 (4×H100) | ⭐⭐⭐ | 초기 self-improvement, 빠른 iteration |
-| **DPO** | 5k+ pairs | ~200 (8×H100) | ⭐⭐⭐⭐ | 충분한 데이터 확보 후, 안정적 학습 |
-| **RLAIF** | 10k+ pairs + reward model | ~500 (8×H100) | ⭐⭐ | 복잡한 reward 모델링 필요 시 |
-| **RFT** | 10k+ high-quality traces | ~300 (8×H100) | ⭐⭐⭐⭐⭐ | Supervised 학습 가능한 golden dataset 확보 시 |
+| **GRPO** | 1k+ pairs | 수십 GPU-hours | ⭐⭐⭐ | 초기 self-improvement, 빠른 iteration |
+| **DPO** | 5k+ pairs | 수~수십 GPU-hours | ⭐⭐⭐⭐ | 충분한 데이터 확보 후, 안정적 학습 |
+| **RLAIF** | 10k+ pairs + reward model | 수십~수백 GPU-hours | ⭐⭐ | 복잡한 reward 모델링 필요 시 |
+| **RFT** | 10k+ high-quality traces | 최저 (SFT 수준) | ⭐⭐⭐⭐⭐ | Supervised 학습 가능한 golden dataset 확보 시 |
+
+:::note GPU-hours 수치는 환경 의존적
+위 범위는 7B-8B 모델 기준 대략적 추정입니다. 실제 소요 시간은 모델 크기, 데이터셋 크기, 하드웨어 구성, 하이퍼파라미터에 따라 크게 달라집니다. DPO 7B 전체 파인튜닝은 16×A100에서 2-4시간(Zephyr-7B 실측) 수준이며, 이는 약 32-64 GPU-hours에 해당합니다.
+:::
 
 :::tip 선택 가이드
 - **초기 (데이터 &lt;2k pairs)**: GRPO — 가장 빠르고 적은 데이터로 효과
@@ -410,29 +442,33 @@ def build_preference_pairs(traces):
 **GRPO 학습 예시 (NeMo-RL)**:
 
 ```python
+# NeMo-Aligner는 2025-11-19 아카이브됨. NeMo-RL로 이전
+from nemo_rl.algorithms.grpo import setup, grpo_train
 from nemo.collections.nlp.models.language_modeling import MegatronGPTSFTModel
-from nemo_aligner.algorithms.grpo import GRPOTrainer
 
 # Base model 로드
-model = MegatronGPTSFTModel.restore_from("qwen3-7b-base.nemo")
+model = MegatronGPTSFTModel.restore_from("qwen3-8b-base.nemo")
 
-# GRPO 설정
-grpo_config = {
-    "num_rollouts": 4,  # 질문당 4개 응답 생성
-    "kl_coef": 0.05,    # KL divergence penalty (policy drift 방지)
-    "clip_range": 0.2,
-    "learning_rate": 1e-6,
-    "batch_size": 16,
-    "gradient_accumulation": 4,
-}
-
-trainer = GRPOTrainer(model=model, config=grpo_config)
+# GRPO 설정 (함수 기반 API)
+grpo_config = setup(
+    model=model,
+    num_rollouts=4,         # 질문당 4개 응답 생성
+    kl_coef=0.05,           # KL divergence penalty (policy drift 방지)
+    clip_range=0.2,
+    learning_rate=1e-6,
+    batch_size=16,
+    gradient_accumulation_steps=4,
+)
 
 # 학습 실행
-trainer.fit(train_dataset=preference_pairs, val_dataset=golden_dataset)
+grpo_train(
+    config=grpo_config,
+    train_dataset=preference_pairs,
+    val_dataset=golden_dataset
+)
 
 # 체크포인트 저장
-model.save_to("qwen3-7b-grpo-2026-04-18.nemo")
+model.save_to("qwen3-8b-grpo-2026-04-18.nemo")
 ```
 
 **DPO 학습 예시 (TRL)**:
@@ -441,8 +477,8 @@ model.save_to("qwen3-7b-grpo-2026-04-18.nemo")
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from trl import DPOTrainer, DPOConfig
 
-model = AutoModelForCausalLM.from_pretrained("Qwen/Qwen3-7B-Instruct")
-tokenizer = AutoTokenizer.from_pretrained("Qwen/Qwen3-7B-Instruct")
+model = AutoModelForCausalLM.from_pretrained("Qwen/Qwen3-8B")
+tokenizer = AutoTokenizer.from_pretrained("Qwen/Qwen3-8B")
 
 dpo_config = DPOConfig(
     beta=0.1,  # Temperature for DPO loss
@@ -457,11 +493,11 @@ trainer = DPOTrainer(
     model=model,
     args=dpo_config,
     train_dataset=preference_dataset,
-    tokenizer=tokenizer,
+    processing_class=tokenizer,
 )
 
 trainer.train()
-model.save_pretrained("qwen3-7b-dpo-2026-04-18")
+model.save_pretrained("qwen3-8b-dpo-2026-04-18")
 ```
 
 **학습 모니터링**:
@@ -480,10 +516,10 @@ wandb.init(project="self-improving-agent", name="grpo-2026-04-18")
 - Training time per epoch
 ```
 
-**비용 추정 (Qwen3-7B, 5k pairs, DPO)**:
+**비용 추정 (Qwen3-8B, 5k pairs, DPO)**:
 - GPU: 8× H100 × 25시간 = 200 GPU-hours
-- 클라우드 비용 (p5.48xlarge, $98.32/hr): ~$2,458
-- 비교: 매주 학습 시 월 $10k, 월간 학습 시 월 $2.5k
+- 클라우드 비용 (p5.48xlarge, $55.04/hr, 2025-06-01 이후 44% 인하 반영): ~$1,376
+- 비교: 매주 학습 시 월 $5.5k, 월간 학습 시 월 $1.4k
 
 ---
 
@@ -831,12 +867,12 @@ if not user_consents[trace.user_id].consent_to_training:
 
 ### GRPO (Group Relative Policy Optimization)
 
-**원리**: 동일 프롬프트에 대한 여러 응답(rollout)의 상대적 reward를 기준으로 policy 업데이트. PPO의 변형이지만 reference model 불필요.
+**원리**: 동일 프롬프트에 대한 여러 응답(rollout)의 상대적 reward를 기준으로 policy 업데이트. PPO의 변형이지만 Critic(Value) model을 제거하여 메모리를 절약합니다. Reference model은 KL divergence penalty 계산에 여전히 사용됩니다(DeepSeekMath 원 논문 β=0.04).
 
 **장점**:
 - 적은 데이터로도 효과 (1k pairs부터)
-- 빠른 수렴 (50 GPU-hours)
-- Reference model 불필요 → 메모리 절약
+- 빠른 수렴
+- Critic(Value) model 불필요 → 메모리 절약
 
 **단점**:
 - 수렴 불안정 (learning rate 조정 민감)
@@ -845,10 +881,10 @@ if not user_consents[trace.user_id].consent_to_training:
 **사용 예시**:
 
 ```python
-# NeMo-Aligner GRPO
-from nemo_aligner.algorithms.grpo import GRPOTrainer
+# NeMo-RL GRPO
+from nemo_rl.algorithms.grpo import setup, grpo_train
 
-trainer = GRPOTrainer(
+grpo_config = setup(
     model=base_model,
     num_rollouts=4,           # 질문당 4개 응답 생성
     kl_coef=0.05,             # KL penalty
@@ -856,7 +892,7 @@ trainer = GRPOTrainer(
     batch_size=16,
 )
 
-trainer.fit(train_dataset)
+grpo_train(config=grpo_config, train_dataset=train_dataset)
 ```
 
 **적합 시나리오**: 초기 self-improvement, 빠른 iteration 필요 시
@@ -892,7 +928,7 @@ trainer = DPOTrainer(
     model=base_model,
     args=config,
     train_dataset=preference_dataset,  # {"prompt", "chosen", "rejected"} 형식
-    tokenizer=tokenizer,
+    processing_class=tokenizer,
 )
 
 trainer.train()
@@ -921,7 +957,7 @@ trainer.train()
 # 1. Reward model 학습
 from transformers import AutoModelForSequenceClassification
 
-reward_model = AutoModelForSequenceClassification.from_pretrained("Qwen/Qwen3-7B", num_labels=1)
+reward_model = AutoModelForSequenceClassification.from_pretrained("Qwen/Qwen3-8B", num_labels=1)
 
 reward_trainer = Trainer(
     model=reward_model,
@@ -987,7 +1023,7 @@ trainer.train()
 
 ---
 
-### 실전 비교 (Qwen3-7B, 5k pairs 기준)
+### 실전 비교 (Qwen3-8B, 5k pairs 기준)
 
 | 메트릭 | GRPO | DPO | RLAIF | RFT |
 |--------|------|-----|-------|-----|
@@ -1193,7 +1229,7 @@ if corr < 0.7:
 |------|-----------|------|
 | **GPU 학습** | $2,500 | 주간 DPO 학습, 8×H100 × 25h |
 | **Trace 저장** | $300 | S3 + Iceberg (1TB) |
-| **LLM-as-Judge 추론** | $500 | Qwen3-7B, 시간당 10k 평가 |
+| **LLM-as-Judge 추론** | $500 | Qwen3-8B, 시간당 10k 평가 |
 | **Ragas 평가** | $200 | 캐싱 활용 |
 | **인프라 운영** | $500 | Lambda, Glue, Athena |
 | **총계** | **$4,000** | 월간 운영 비용 |
@@ -1218,10 +1254,10 @@ if corr < 0.7:
 
 ```yaml
 # model-card.yaml
-model_name: "qwen3-7b-agent-v2"
+model_name: "qwen3-8b-agent-v2"
 version: "2.0"
 training_date: "2026-04-18"
-base_model: "Qwen/Qwen3-7B-Instruct"
+base_model: "Qwen/Qwen3-8B"
 
 training_data:
   source: "Production traces (2026-01 ~ 2026-03)"
@@ -1330,9 +1366,10 @@ WHERE event_type = 'model_deployed'
 ### 논문 / 기술 블로그
 
 - [DPO: Direct Preference Optimization (NeurIPS 2023)](https://arxiv.org/abs/2305.18290) — DPO 논문
-- [DeepSeek-R1: GRPO for Reasoning (2024)](https://arxiv.org/abs/2401.02954) — GRPO 논문
+- [DeepSeekMath: GRPO (2024)](https://arxiv.org/abs/2402.03300) — GRPO 원 논문
+- [DeepSeek-R1: Incentivizing Reasoning Capability in LLMs (2025)](https://arxiv.org/abs/2501.12948) — DeepSeek-R1 강화학습 기반 추론 능력 향상
 - [Constitutional AI: RLAIF (Anthropic 2022)](https://arxiv.org/abs/2212.08073) — RLAIF 논문
-- [Andrej Karpathy on Autosearch](https://karpathy.github.io/) — Autosearch 개념
+- [Andrej Karpathy — autoresearch (2026년 3월)](https://github.com/karpathy/autoresearch) — 자율 ML 연구 루프 프로젝트
 
 ### 관련 문서 (내부)
 

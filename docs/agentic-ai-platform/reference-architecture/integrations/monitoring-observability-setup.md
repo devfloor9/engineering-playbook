@@ -3,7 +3,7 @@ title: 모니터링 & Observability 구성 가이드
 description: Prometheus→AMP, AMG, Langfuse, Bifrost OTel 통합 모니터링 실전 구성 가이드
 created: "2026-04-06"
 last_update:
-  date: "2026-06-28"
+  date: "2026-07-17"
   author: YoungJoon Jeong
 reading_time: 12
 tags:
@@ -532,11 +532,11 @@ POST /api/public/otel/v1/traces
 | vLLM TTFT P99 | `histogram_quantile(0.99, rate(vllm:time_to_first_token_seconds_bucket[5m]))` | 첫 토큰 지연 |
 | vLLM E2E P99 | `histogram_quantile(0.99, rate(vllm_e2e_request_latency_seconds_bucket[5m]))` | 전체 요청 지연 |
 | vLLM 배치 크기 | `avg(vllm_num_requests_running)` | 동시 추론 수 |
-| kgateway RPS | `sum(rate(kgateway_requests_total[5m])) by (route)` | 초당 요청 수 |
-| kgateway 5xx 에러율 | `sum(rate(kgateway_upstream_rq_5xx[5m])) / sum(rate(kgateway_requests_total[5m])) * 100` | 에러율 (%) |
-| kgateway P99 지연 | `histogram_quantile(0.99, sum(rate(kgateway_request_duration_seconds_bucket[5m])) by (le, route))` | 게이트웨이 지연 |
+| kgateway RPS | `sum(rate(envoy_http_downstream_rq_total[5m])) by (route)` | 초당 요청 수 |
+| kgateway 5xx 에러율 | `sum(rate(envoy_cluster_upstream_rq_xx{envoy_response_code_class="5"}[5m])) / sum(rate(envoy_http_downstream_rq_total[5m])) * 100` | 에러율 (%) |
+| kgateway P99 지연 | `histogram_quantile(0.99, sum(rate(envoy_cluster_upstream_rq_time_bucket[5m])) by (le, route))` | 게이트웨이 지연 |
 | Bifrost 요청률 | `rate(bifrost_requests_total[5m])` | 게이트웨이 요청률 |
-| 활성 연결 수 | `sum(kgateway_upstream_cx_active) by (upstream_cluster)` | 백엔드별 활성 연결 |
+| 활성 연결 수 | `sum(envoy_cluster_upstream_cx_active) by (upstream_cluster)` | 백엔드별 활성 연결 |
 
 ### 알림 규칙 예시
 

@@ -105,7 +105,7 @@ DPD는 KV 캐시 전송을 위해 **EFA·GPUDirect RDMA 지원 인스턴스**를
 
 | 레버 | 효과 | HyperPod에서 |
 |------|------|-------------|
-| prefix 캐시 재사용 | 동일 시스템 프롬프트 TTFT 50-80%↓, 처리량 400%+ | `prefixaware`/`kvaware` 라우팅 + L2 tiered 캐시 |
+| prefix 캐시 재사용 | TTFT 최대 40%(P90)~94%(P50)↓, 처리량 24~38%↑ (AWS 공식 벤치마크, Llama-3.1-70B/p5.48xlarge 기준) | `prefixaware`/`kvaware` 라우팅 + L2 tiered 캐시 |
 | Automatic Prefix Caching (vLLM) | 반복 prefix prefill 스킵 | vLLM 컨테이너 `--enable-prefix-caching` |
 | Chunked Prefill | TTFT/처리량 균형 | vLLM 엔진 옵션 |
 | DPD | 긴 컨텍스트 tail latency 개선 | v3.2 관리형(EFA P5/P6 요구) |

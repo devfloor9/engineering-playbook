@@ -3,7 +3,7 @@ title: Trace → Dataset Materializer
 description: Langfuse OTel 트레이스를 S3 Parquet/Iceberg로 적재하고 Ragas + LLM Judge Fleet로 Reward를 레이블링해 GRPO/DPO 학습 데이터셋을 자동 구성합니다.
 created: "2026-04-18"
 last_update:
-  date: "2026-06-28"
+  date: "2026-07-17"
   author: YoungJoon Jeong
 reading_time: 5
 tags:
@@ -44,37 +44,28 @@ flowchart LR
 
 ### Langfuse Trace Schema
 
-```sql
--- Langfuse traces 테이블 구조 (PostgreSQL)
-CREATE TABLE traces (
-    id UUID PRIMARY KEY,
-    timestamp TIMESTAMP,
-    user_id TEXT,
-    session_id TEXT,
-    input TEXT,
-    output TEXT,
-    model TEXT,
-    latency_ms INT,
-    token_count INT,
-    metadata JSONB,
-    user_consent BOOLEAN  -- GDPR 동의 여부
-);
+Langfuse v3는 traces를 ClickHouse에 저장합니다 (PostgreSQL은 transactional data만 보관).
 
--- 예시 데이터
+```sql
+-- ClickHouse traces 테이블 (실제 스키마)
+-- 컬럼: id, timestamp, name, user_id, metadata (Map), release, version,
+--       project_id, public, bookmarked, tags, input, output, session_id,
+--       created_at, updated_at, event_ts, is_deleted
+
+-- GDPR 동의는 metadata 또는 tags에 포함
+-- 예시 데이터 (Langfuse API 응답 형식)
 {
   "id": "trace-12345",
   "timestamp": "2026-04-18T03:15:00Z",
   "user_id": "user-abc",
   "input": "EKS Auto Mode와 Karpenter의 차이점은?",
   "output": "EKS Auto Mode는 AWS 완전 관리형 노드 그룹이며...",
-  "model": "glm-5-32b",
-  "latency_ms": 850,
-  "token_count": 512,
   "metadata": {
     "domain": "eks-documentation",
-    "feedback_score": 4.5
+    "feedback_score": 4.5,
+    "user_consent": true  -- GDPR 동의는 metadata에 포함
   },
-  "user_consent": true
+  "tags": ["training-eligible"]
 }
 ```
 
@@ -325,7 +316,7 @@ spec:
     - name: kserve-container
       image: vllm/vllm-openai:v0.23.0
       args:
-      - --model=Qwen/Qwen3-Coder-4B-Instruct
+      - --model=Qwen/Qwen2.5-Coder-3B-Instruct
       - --served-model-name=qwen3-judge
       - --tensor-parallel-size=1
       - --max-model-len=8192
@@ -348,7 +339,9 @@ metadata:
   namespace: training-pipeline
 spec:
   scaleTargetRef:
-    name: reward-labeler-qwen3
+    apiVersion: apps/v1
+    kind: Deployment
+    name: reward-labeler-qwen3-predictor  # KServe RawDeployment 모드는 -predictor Deployment 생성
   minReplicaCount: 3
   maxReplicaCount: 10
   triggers:
@@ -433,12 +426,16 @@ df.to_parquet('s3://training-data-lake/labeled-dataset/2026-04-18.parquet')
 
 | 리소스 | 스펙 | 시간당 비용 | 일일 비용 (10시간 가동) |
 |--------|------|-----------|----------------------|
-| **Qwen3-4B Judge Fleet** | g6.xlarge × 3 | $0.93 | $9.30 |
+| **Qwen3-4B Judge Fleet** | g6.xlarge × 3 (Spot) | $0.93 | $9.30 |
 | **Ragas 평가 (Bedrock Claude)** | - | API 호출당 | $5-10 (1만 trace 기준) |
 | **Airflow/Kubernetes** | 기존 인프라 | - | - |
 | **총 비용** | - | - | **$15-20/일** |
 
-연간 $5,000-7,000 수준으로 수동 라벨링($10K/월) 대비 **95% 절감** 효과.
+:::info 비용 기준
+g6.xlarge 비용은 Spot 인스턴스 기준 ($0.31/hr × 3대 = $0.93/hr)입니다. On-Demand 기준은 $2.41/hr ($0.8048 × 3대)로, 연간 비용이 약 $10,600-12,400 (수동 대비 절감률 ~90%)입니다.
+:::
+
+연간 $5,000-7,000 수준으로 수동 라벨링($10K/월) 대비 **95% 절감** 효과 (Spot 기준).
 
 ## 다음 단계
 

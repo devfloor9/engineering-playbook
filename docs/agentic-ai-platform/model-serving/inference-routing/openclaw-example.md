@@ -3,7 +3,7 @@ title: OpenClaw AI Agent Gateway 배포 및 Full Observability
 description: OpenClaw AI 에이전트 게이트웨이를 EKS에 비용 최적화 배포하고, Bifrost Auto-Router + Cilium Hubble + Langfuse로 Full Observability 구현
 created: "2026-03-06"
 last_update:
-  date: "2026-06-28"
+  date: "2026-07-17"
   author: YoungJoon Jeong
 reading_time: 16
 tags:
@@ -61,7 +61,7 @@ import OpenClawArchitecture from '@site/src/components/OpenClawArchitecture';
 
 | 결정 영역 | 선택 | 대안 | 핵심 근거 |
 |-----------|------|------|-----------|
-| **호스팅 플랫폼** | EKS | EC2 단독 / AgentCore | Karpenter 자동 스케일링, o11y 스택 자유도, Spot/Graviton 조합 가능. AgentCore는 Experimental 단계로 cron 미지원, o11y 커스터마이징 제한 |
+| **호스팅 플랫폼** | EKS | EC2 단독 / AgentCore | Karpenter 자동 스케일링, o11y 스택 완전 자체 제어, Spot/Graviton 조합 가능, 비용 구조 유연성. AgentCore는 2025-10 GA 전환 완료(스케줄링·o11y 지원)되었으나, 관리형 추상화 vs 직접 제어 트레이드오프 고려 필요 |
 | **LLM Gateway** | Bifrost Proxy | LiteLLM / llm-d | Bedrock 멀티 모델 구조에 최적. Go 기반 고성능 게이트웨이, 100+ 프로바이더, 예산 제어, `success_callback: ["langfuse"]` 한 줄 연동. 자체 vLLM 추가 시 `Bifrost → llm-d → vLLM` 하이브리드 가능. LiteLLM은 대안으로 사용 가능 |
 | **LLM Observability** | Langfuse (self-hosted) | Tempo / Loki | LLM 네이티브: 토큰 사용량, 비용, 도구 호출 체인, 프롬프트/완료 내용 추적. Tempo/Loki는 범용 인프라 o11y로 프롬프트 수준 추적 불가 |
 | **Network Observability** | Cilium Hubble (ENI 모드) | CW Network Flow Monitor | L3/L4/L7 가시성(HTTP 경로, 상태코드, DNS), 인터랙티브 서비스맵, $0. CW NFM은 L3/L4만 지원하며 $20-45/월 |
@@ -116,7 +116,7 @@ spec:
 |-----------|------|-----------|------|
 | 범용 (기본) | **Claude Sonnet 4.6** | Bedrock | 1M context, 최고 에이전트 성능 |
 | 코딩 / 프로그래밍 | **GLM-4.7** | Bedrock | 355B-A32B, 코드 생성 최적화 |
-| 한국어 / 한국 관련 | **Solar Pro 3** | Bedrock | 128K context, 한국어 최적화, MoE 12B active |
+| 한국어 / 한국 관련 | **Solar Pro 3** | OpenRouter | 128K context, 한국어 최적화, MoE 12B active (Bedrock 미제공 — OpenRouter/Upstage Console API 경유) |
 
 ### Networking
 
@@ -206,7 +206,7 @@ spec:
 ```
 
 ```yaml
-# NodePool — Graviton 4세대 이상 전체, Spot 우선, On-Demand 폴백
+# NodePool — Graviton4 이상, Spot 우선, On-Demand 폴백
 apiVersion: karpenter.sh/v1
 kind: NodePool
 metadata:
@@ -226,7 +226,7 @@ spec:
           values: ["spot", "on-demand"]  # Spot 우선, 가용 시
         - key: karpenter.k8s.aws/instance-generation
           operator: Gt
-          values: ["3"]                   # 4세대 이상 → m8g, c8g, r8g, m9g 등 모두 포함
+          values: ["7"]                   # 8세대 이상 → m8g, c8g, r8g (Graviton4+)
         - key: karpenter.k8s.aws/instance-size
           operator: In
           values: ["medium", "large"]
@@ -243,8 +243,8 @@ spec:
     memory: 16Gi
 ```
 
-:::tip Graviton 세대 자동 전환
-`instance-family`를 특정하지 않고 `instance-generation: Gt "3"` + `arch: arm64`로 지정했으므로, Graviton 4세대 이상의 **모든 패밀리**(m8g, c8g, r8g, m9g 등)가 후보에 포함됩니다. 새로운 Graviton 세대가 GA 되면 NodePool 수정 없이 Karpenter가 가격/성능 기준으로 최적 인스턴스를 자동 선택합니다.
+:::tip Graviton 세대 선택
+`instance-generation: Gt "7"` + `arch: arm64`로 지정하면 **8세대 이상 Graviton 인스턴스**(m8g, c8g, r8g = Graviton4)만 선택됩니다. `Gt "3"`은 t4g(Graviton2), m6g/m7g(Graviton2/3)까지 모두 포함하므로 구세대가 프로비저닝될 수 있습니다. 새로운 Graviton 세대가 GA 되면 NodePool 수정 없이 Karpenter가 가격/성능 기준으로 최적 인스턴스를 자동 선택합니다.
 :::
 
 #### Node Monitoring Agent — 노드 건강 상태 감시
@@ -297,39 +297,24 @@ model_list:
 
   - model_name: glm-4.7
     litellm_params:
-      model: bedrock/zhipu.glm-4.7
+      model: bedrock/zai.glm-4.7
 
   - model_name: solar-pro-3
     litellm_params:
-      model: bedrock/upstage.solar-pro-3
+      model: openrouter/upstage/solar-pro-3
+      api_key: os.environ/OPENROUTER_API_KEY
+
+  # Auto Router 설정
+  - model_name: auto_router_1
+    litellm_params:
+      model: auto_router/auto_router_1
+      auto_router_config_path: /config/router.json
 
 router_settings:
-  routing_strategy: "content-based"
-  auto_router:
-    encoder_type: openai
-    encoder_name: text-embedding-3-small
-    routes:
-      - name: korean-queries
-        model: solar-pro-3
-        utterances:
-          - "한국어로 답변해줘"
-          - "한국 관련 질문"
-          - "Korean language query"
-          - "한국 뉴스"
-          - "한국어 번역"
-        description: "한국어 질의 또는 한국 관련 질의"
-        score_threshold: 0.5
-      - name: coding-queries
-        model: glm-4.7
-        utterances:
-          - "write code"
-          - "debug this function"
-          - "코드 작성해줘"
-          - "프로그래밍"
-          - "fix this bug"
-        description: "코딩, 프로그래밍, 디버깅 관련 질의"
-        score_threshold: 0.5
-    default_route: claude-sonnet
+  routing_strategy: simple-shuffle
+  fallbacks:
+    - claude-sonnet: ["glm-4.7"]
+    - glm-4.7: ["claude-sonnet"]
 
 litellm_settings:
   cache: true
@@ -343,6 +328,50 @@ litellm_settings:
 general_settings:
   master_key: os.environ/LITELLM_MASTER_KEY
 ```
+
+**Auto Router 구성 파일** (`/config/router.json`):
+
+```json
+{
+  "routes": [
+    {
+      "name": "korean-queries",
+      "model": "solar-pro-3",
+      "utterances": [
+        "한국어로 답변해줘",
+        "한국 관련 질문",
+        "Korean language query",
+        "한국 뉴스",
+        "한국어 번역"
+      ],
+      "description": "한국어 질의 또는 한국 관련 질의",
+      "score_threshold": 0.5
+    },
+    {
+      "name": "coding-queries",
+      "model": "glm-4.7",
+      "utterances": [
+        "write code",
+        "debug this function",
+        "코드 작성해줘",
+        "프로그래밍",
+        "fix this bug"
+      ],
+      "description": "코딩, 프로그래밍, 디버깅 관련 질의",
+      "score_threshold": 0.5
+    }
+  ],
+  "default_route": "claude-sonnet",
+  "encoder": {
+    "type": "openai",
+    "name": "text-embedding-3-small"
+  }
+}
+```
+
+:::note LiteLLM Auto Router
+LiteLLM Auto Router는 `model_list`에 `auto_router/auto_router_1` 형태로 모델을 추가하고, `auto_router_config_path`로 라우팅 규칙 JSON을 지정합니다. 요청 시 `model: "auto_router_1"`을 지정하면 utterances 기반 자동 라우팅이 활성화됩니다.
+:::
 
 #### Secrets 생성
 

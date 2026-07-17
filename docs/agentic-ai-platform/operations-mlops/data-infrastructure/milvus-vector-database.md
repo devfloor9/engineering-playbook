@@ -3,7 +3,7 @@ title: Milvus 벡터 데이터베이스 통합
 description: Amazon EKS에서 Milvus 벡터 데이터베이스를 배포하고 RAG 파이프라인과 통합하는 방법
 created: "2026-02-05"
 last_update:
-  date: "2026-06-28"
+  date: "2026-07-17"
   author: YoungJoon Jeong
 reading_time: 10
 tags:
@@ -145,7 +145,7 @@ MinIO 대신 Amazon S3를 직접 사용하면 운영 부담을 줄일 수 있습
 
 - **10배 빠른 성능**: 표준 S3 대비 10배 빠른 데이터 액세스
 - **일관된 밀리초 지연**: 단일 자리 밀리초 지연 시간
-- **비용 효율**: 요청 비용 50% 절감
+- **비용 효율**: 요청 비용 최대 80% 절감 (2025-04 가격 인하 반영: PUT -55%, GET -85%, 스토리지 -31%)
 - **단일 AZ**: 동일 AZ 내 컴퓨팅 리소스와 함께 사용 시 최적
 
 :::
@@ -165,9 +165,9 @@ Milvus 배포 상세 절차, Helm values 설정, S3 IAM 정책 예제는 [Milvus
 
 <IndexComparisonTable />
 
-### SCANN 인덱스 (Milvus 2.4+)
+### SCANN 인덱스 (Milvus 2.3+)
 
-Google의 Scalable Nearest Neighbors(SCANN) 인덱스는 Milvus 2.4에서 추가된 고성능 인덱스입니다:
+Google의 Scalable Nearest Neighbors(SCANN) 인덱스는 Milvus 2.3.0(2023-08)에서 추가된 고성능 인덱스입니다:
 
 ```python
 # SCANN 인덱스 생성
@@ -383,8 +383,8 @@ vector_search = AnnSearchRequest(
     limit=20
 )
 
-# 키워드 검색을 위한 BM25 스코어 (별도 필드 필요)
-# Milvus 2.4+ 에서 지원
+# 키워드 검색을 위한 BM25 스코어 (내장 Sparse-BM25 full-text search)
+# Milvus 2.5+ 에서 지원 (v2.5.0, 2024-12-23)
 
 # RRF(Reciprocal Rank Fusion)로 결과 병합
 results = collection.hybrid_search(
@@ -404,7 +404,7 @@ Milvus는 공식 백업 도구(`milvus-backup`)를 제공하여 컬렉션 데이
 **백업 고려사항:**
 - 백업 대상: MinIO/S3 버킷으로 컬렉션 데이터 내보내기
 - 백업 주기: 일일 또는 주간 백업 권장
-- 백업 크기 제한: `maxSegmentGroupSize` 설정으로 청크 크기 제어
+- 백업 동작 제어: `backup.parallelism` (copydata, backupCollection, backupSegment) 및 `multipartCopyThresholdMiB` 설정으로 병렬 처리 조정. 대규모 복원은 멀티 세그먼트 restore가 네이티브 지원됨 (milvus-backup v0.5.10+ 기준, `maxSegmentGroupSize` 옵션은 제거됨)
 - 복원 전략: 동일 클러스터 또는 다른 클러스터로 복원 가능
 
 ### 재해 복구 구성
@@ -513,10 +513,10 @@ Milvus Operator 설치, CRD 스키마, GPU 설정 예제는 [Milvus Operator 문
 - 프로덕션 환경에서는 최소 3개의 Query Node를 운영하세요
 - 대규모 데이터셋(1억+ 벡터)에서는 DISKANN 인덱스를 고려하세요
 - S3를 스토리지로 사용하면 운영 복잡도를 크게 줄일 수 있습니다
-- S3 Express One Zone을 사용하면 10배 빠른 성능과 50% 저렴한 요청 비용을 제공합니다
+- S3 Express One Zone을 사용하면 10배 빠른 성능과 최대 80% 저렴한 요청 비용을 제공합니다 (2025-04 가격 인하)
 - GPU를 사용한 인덱싱으로 빌드 시간을 크게 단축할 수 있습니다 (g5.xlarge 권장)
 - Milvus v2.4.x는 SCANN 인덱스, 하이브리드 검색, 스칼라 필터링, 동적 스키마 등 고급 기능을 제공합니다
-- Helm 차트 버전 4.1.x를 사용하여 Milvus 2.4.x를 배포하세요
+- Helm 차트 버전 4.2.x를 사용하여 Milvus 2.4.x를 배포하세요 (4.1.x는 2.4.0~2.4.5까지만 지원, 4.2.0부터 Milvus 2.3.x 미지원)
 :::
 
 ### 스토리지 비용 비교

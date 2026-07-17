@@ -70,12 +70,12 @@ LMCache does not operate in isolation; it is used together with other inference 
 | Technology | Relationship | Notes |
 |------|------|------|
 | **vLLM Prefix Cache** | LMCache extends it beyond the GPU | LMCache catches and preserves blocks evicted from the in-GPU cache |
-| **NIXL** | KV transfer path | Used to move KV from prefill to decode in Disaggregated Serving (see [Disaggregated Serving](./disaggregated-serving.md#nixl-공통-kv-cache-전송-엔진)) |
+| **NIXL** | KV transfer path | Used to move KV from prefill to decode in Disaggregated Serving (see [Disaggregated Serving](./disaggregated-serving.md#nixl-common-kv-cache-transfer-engine)) |
 | **kvaware Routing** | Leverages LMCache's shared cache | Routes to Pods holding the cache, raising hit rate |
 
-In particular, **kvaware/prefixaware routing** becomes more effective when there is a shared KV layer like LMCache. If the router knows which Pod holds which KV blocks, it can send requests to a Pod with the cache and skip prefill. This routing strategy is covered in [KV Cache-Aware Routing](./kv-cache-optimization.md#kv-cache-aware-routing), and router option comparisons (EPP · HyperPod · Dynamo) are covered in [Routing Strategy — L2 Option Comparison](../inference-routing/routing-strategy.md#l2-옵션-비교-epp-vs-hyperpod-inference-operator-vs-dynamo).
+In particular, **kvaware/prefixaware routing** becomes more effective when there is a shared KV layer like LMCache. If the router knows which Pod holds which KV blocks, it can send requests to a Pod with the cache and skip prefill. This routing strategy is covered in [KV Cache-Aware Routing](./kv-cache-optimization.md#kv-cache-aware-routing), and router option comparisons (EPP · HyperPod · Dynamo) are covered in [Routing Strategy — L2 Option Comparison](../inference-routing/routing-strategy.md#request-cascading-intelligent-model-routing).
 
-In AWS managed environments, the SageMaker HyperPod Inference Operator provides KV cache configuration compatible with LMCache. For details, see [HyperPod Inference Operator — KV Cache Configuration](../inference-frameworks/hyperpod-inference-operator.md#kv-캐시-구성-l1l2-캐시와-라우팅-전략).
+In AWS managed environments, the SageMaker HyperPod Inference Operator provides KV cache configuration compatible with LMCache. For details, see [HyperPod Inference Operator — KV Cache Configuration](../inference-frameworks/hyperpod-inference-operator.md#kv-cache-configuration-l1l2-cache-and-routing-strategies).
 
 ## Adoption Considerations
 

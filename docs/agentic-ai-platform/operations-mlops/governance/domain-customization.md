@@ -3,7 +3,7 @@ title: 도메인 특화 (LoRA + RAG)
 description: LoRA Fine-tuning, VectorRAG, GraphRAG로 기술 도메인 코딩 퀄리티를 높이는 가이드 — FSI SI 실전 시나리오 포함
 created: "2026-04-04"
 last_update:
-  date: "2026-06-28"
+  date: "2026-07-17"
   author: YoungJoon Jeong
 reading_time: 10
 tags:
@@ -178,23 +178,60 @@ graph LR
 LG U+ Agentic AI Platform의 **Layer 5: Knowledge Feature Store**와 통합하여 벡터 검색을 수행합니다.
 
 ```yaml
-apiVersion: feast.dev/v1alpha1
+apiVersion: feast.dev/v1
 kind: FeatureStore
 metadata:
   name: knowledge-feature-store
+  namespace: ai-platform
 spec:
-  online_store:
-    type: milvus
-    connection:
+  feastProject: knowledge_feature_store
+  services:
+    onlineStore:
+      persistence:
+        store:
+          type: milvus
+          secretRef:
+            name: milvus-connection
+---
+# Milvus 연결 정보는 Secret으로 관리 (feature_store.yaml 형식)
+apiVersion: v1
+kind: Secret
+metadata:
+  name: milvus-connection
+  namespace: ai-platform
+type: Opaque
+stringData:
+  feature_store.yaml: |
+    project: knowledge_feature_store
+    provider: local
+    online_store:
+      type: milvus
       host: milvus.cluster.local
       port: 19530
-  entities:
-  - name: api_doc
-    value_type: STRING
-  features:
-  - name: api_embedding
-    dtype: FLOAT_LIST
-    dimensions: 1536  # OpenAI ada-002
+```
+
+**entities와 features 정의는 CRD가 아닌 Feast feature repo(Python 정의 + `feast apply`)로 관리**:
+
+```python
+# features.py - feast apply로 배포
+from feast import Entity, FeatureView, Field
+from feast.types import String, Array, Float64
+
+# Entity 정의
+api_doc = Entity(
+    name="api_doc",
+    join_keys=["doc_id"],
+    value_type=String
+)
+
+# Feature 정의
+api_embedding_view = FeatureView(
+    name="api_embeddings",
+    entities=[api_doc],
+    schema=[
+        Field(name="api_embedding", dtype=Array(Float64)),
+    ],
+)
 ```
 
 ### 데이터 흐름

@@ -3,7 +3,7 @@ title: 엔터프라이즈 컴플라이언스 프레임워크
 description: SOC2, ISO27001, 전자금융감독규정, ISMS-P를 AI 운영에 매핑하는 컴플라이언스 가이드
 created: "2026-04-04"
 last_update:
-  date: "2026-06-28"
+  date: "2026-07-17"
   author: YoungJoon Jeong
 reading_time: 10
 tags:
@@ -103,18 +103,18 @@ roleRef:
 
 ## ISO27001 Annex A ↔ AI 운영 매핑
 
-ISO27001은 정보보안경영시스템(ISMS)의 국제 표준입니다. Annex A는 114개 통제 항목을 정의합니다.
+ISO27001은 정보보안경영시스템(ISMS)의 국제 표준입니다. 현행 ISO/IEC 27001:2022 Annex A는 93개 통제를 4개 테마로 재편했습니다 (2013판 114개 통제는 2025-10-31 전환 기한으로 만료).
 
-### ISO27001 통제 매핑 테이블
+### ISO27001:2022 통제 매핑 테이블
 
-| Annex A | 통제 영역 | AI 운영 구현 | 기술 스택 |
+| Annex A | 통제 영역 (2022판) | AI 운영 구현 | 기술 스택 |
 |---------|----------|-------------|----------|
-| **A.8** | 자산 관리 | 모델 레지스트리 + LoRA 어댑터 관리 | **ECR + MLflow Model Registry** |
-| **A.9** | 접근 통제 | API Key 관리 + RBAC + 멀티테넌트 격리 | **kgateway + Pod Identity** |
-| **A.12** | 운영 보안 | 로깅 + 모니터링 + 백업 | **CloudTrail + AMP/AMG + S3** |
-| **A.14** | 시스템 개발 보안 | Playbook CI/CD + 코드 리뷰 자동화 | **ArgoCD + Guardrails API** |
-| **A.16** | 정보보안 인시던트 관리 | 자동 감지 + 자동 대응 | **알림 + Playbook rollback** |
-| **A.17** | 업무 연속성 | 멀티 AZ 배포 + 오토스케일링 | **EKS + Karpenter** |
+| **A.5.9, A.8.1** | 자산 관리 (조직적·기술적 통제) | 모델 레지스트리 + LoRA 어댑터 관리 | **ECR + MLflow Model Registry** |
+| **A.5.15-5.18, A.8.2-8.5** | 접근 통제 (조직적·기술적 통제) | API Key 관리 + RBAC + 멀티테넌트 격리 | **kgateway + Pod Identity** |
+| **A.8.15-8.16** | 운영 보안 로깅 (기술적 통제) | 로깅 + 모니터링 + 백업 | **CloudTrail + AMP/AMG + S3** |
+| **A.8.25-8.31** | 개발 보안 (기술적 통제) | Playbook CI/CD + 코드 리뷰 자동화 | **ArgoCD + Guardrails API** |
+| **A.5.24-5.28** | 인시던트 관리 (조직적 통제) | 자동 감지 + 자동 대응 | **알림 + Playbook rollback** |
+| **A.5.29-5.30, A.8.14** | 업무 연속성 (조직적·기술적 통제) | 멀티 AZ 배포 + 오토스케일링 | **EKS + Karpenter** |
 
 ### A.14 구현: Playbook CI/CD 파이프라인
 

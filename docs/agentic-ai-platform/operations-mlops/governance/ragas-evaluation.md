@@ -3,7 +3,7 @@ title: Ragas RAG 평가 프레임워크
 description: Ragas를 활용한 RAG 파이프라인 품질 평가 및 지속적 개선 방법
 created: "2026-02-05"
 last_update:
-  date: "2026-06-28"
+  date: "2026-07-17"
   author: YoungJoon Jeong
 reading_time: 21
 tags:
@@ -629,7 +629,7 @@ response = bedrock.evaluate_rag(
         'CORRECTNESS',
         'FAITHFULNESS'
     ],
-    modelId='anthropic.claude-3-sonnet-20240229-v1:0',
+    modelId='anthropic.claude-sonnet-4-5-20250929-v1:0',  # 또는 cross-region inference profile: us.anthropic.claude-sonnet-4-5-20250929-v1:0
     outputDataConfig={
         's3Uri': 's3://my-bucket/eval-results/'
     }

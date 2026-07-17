@@ -3,7 +3,7 @@ title: AI Agent 모니터링 및 운영
 description: Langfuse 기반 Agent 모니터링 운영 전용 문서 — 모니터링 아키텍처·핵심 메트릭·PromQL·알림·비용 추적 (도구 비교는 LLMOps Observability 문서 참조)
 created: "2026-02-05"
 last_update:
-  date: "2026-07-04"
+  date: "2026-07-17"
   author: YoungJoon Jeong
 reading_time: 12
 tags:
@@ -223,10 +223,10 @@ rate(vllm_generation_tokens_total[5m])
 sum(rate(vllm_generation_tokens_total[5m])) by (model)
 
 # TTFT P99 (Time to First Token)
-histogram_quantile(0.99, rate(vllm_time_to_first_token_seconds_bucket[5m]))
+histogram_quantile(0.99, rate(vllm:time_to_first_token_seconds_bucket[5m]))
 
 # TTFT P95
-histogram_quantile(0.95, rate(vllm_time_to_first_token_seconds_bucket[5m]))
+histogram_quantile(0.95, rate(vllm:time_to_first_token_seconds_bucket[5m]))
 
 # E2E 지연 P99
 histogram_quantile(0.99, rate(vllm_e2e_request_latency_seconds_bucket[5m]))
@@ -329,20 +329,22 @@ flowchart LR
 
 ### Fallback 조건 설정
 
-Bifrost Cascade Routing은 상태 코드·레이턴시·에러율 기준으로 폴백을 트리거합니다.
+Bifrost는 요청 본문의 `fallbacks` 배열과 governance `routing_rules`(CEL 표현식 + weighted targets)로 폴백을 구성합니다. 폴백 트리거는 5xx/429 등 재시도 가능한 에러로 하드코딩되어 있습니다(status code/latency/error-rate 기반 조건부 폴백은 2026-05 기준 feature request, issue #3261).
 
 ```yaml
-# bifrost-config.yaml
-routing:
-  defaultModel: self-hosted-qwen3
-  strategy: cascade
-  cascadeOrder:
-    - self-hosted-qwen3      # 1차: EKS Self-hosted (비용 최적)
-    - bedrock-claude-sonnet   # 2차: Bedrock 관리형 (폴백)
-  fallbackConditions:
-    - statusCode: [500, 502, 503, 504]
-    - latencyMs: "> 30000"    # 30초 초과 시 폴백
-    - errorRate: "> 0.1"      # 에러율 10% 초과 시 폴백
+# bifrost Helm values - governance routing_rules 예시
+routing_rules:
+  - name: cost-optimized-cascade
+    match: "request.model == 'qwen3-32b'"
+    targets:
+      - provider: "self-hosted"
+        model: "qwen3-32b"
+        weight: 80
+      - provider: "bedrock"
+        model: "claude-sonnet"
+        weight: 20
+    fallbacks:
+      - "bedrock/claude-sonnet"  # 순서대로 시도
 ```
 
 ### 가용성·비용 관점 비교
@@ -355,7 +357,7 @@ routing:
 | **Cold Start** | Spot 중단 시 수 분 지연 | Bedrock 즉시 응답 |
 
 :::tip 비용 최적화 패턴
-평시 트래픽의 80%를 Self-hosted로 처리하고 피크 시 20%를 Bedrock으로 오프로드하면, GPU를 피크 기준으로 프로비저닝할 필요가 없어 인프라 비용을 30-40% 추가 절감할 수 있습니다.
+평시 트래픽의 80%를 Self-hosted로 처리하고 피크 시 20%를 Bedrock으로 오프로드하는 하이브리드 패턴은 GPU를 피크 기준으로 프로비저닝할 필요를 줄입니다. 실제 절감률은 트래픽 패턴에 따라 크게 달라지며(제3자 추정 30-70%), 일반화는 어렵습니다.
 :::
 
 온프레미스 GPU 팜까지 포함한 3-Tier Cascade(On-Prem → Cloud → Bedrock) 구성은 [EKS Hybrid Nodes 완전 가이드 — 온프레미스 GPU 추론](/docs/hybrid-infrastructure/hybrid-nodes-adoption-guide), Gateway 레벨 라우팅 튜닝은 [Cascade 라우팅 튜닝](../../model-serving/inference-routing/cascade-routing-tuning.md)을 참조하세요.
@@ -376,8 +378,8 @@ LLM 사용 비용을 다음 기준으로 추적합니다:
 
 | Tier | 모델 | 입력 ($/1M tok) | 출력 ($/1M tok) | 특징 |
 |------|------|----------------|----------------|------|
-| **Frontier** | Claude Opus 4.7 | $15 | $75 | 최고 품질 추론 |
-| **Frontier** | GPT-4.1 / o3 | $10 | $30 | 복잡한 reasoning |
+| **Frontier** | Claude Opus 4.7 / 4.8 | $5 | $25 | 최고 품질 추론 |
+| **Frontier** | GPT-4.1 / o3 | $2 | $8 | 복잡한 reasoning (o3는 2025-06 80% 인하, GPT-5로 승계) |
 | **Frontier** | Gemini 2.5 Pro | $1.25 | $5 | 멀티모달 강화 |
 | **Balanced** | Claude Sonnet 4.6 | $3 | $15 | 품질-비용 균형 |
 | **Balanced** | GPT-4.1 mini | $0.40 | $1.60 | 빠른 추론 |
@@ -387,7 +389,7 @@ LLM 사용 비용을 다음 기준으로 추적합니다:
 | **Fast/Cheap** | Gemini 2.5 Flash-Lite | $0.05 | $0.20 | 최소 지연 |
 | **Open-weight** | DeepSeek V3.1 | Self-hosted | Self-hosted | 오픈 라이선스 |
 | **Open-weight** | Llama 4 Scout | Self-hosted | Self-hosted | Meta 공식 |
-| **Open-weight** | Qwen3-72B | Self-hosted | Self-hosted | Alibaba Cloud |
+| **Open-weight** | Qwen3-32B | Self-hosted | Self-hosted | Alibaba Cloud (Qwen3 최대 dense 모델) |
 
 [^1]: 2026-04-17 기준. 최신 가격은 공식 pricing 페이지를 참조하세요: [OpenAI Pricing](https://openai.com/api/pricing/), [Anthropic Pricing](https://www.anthropic.com/pricing), [Google AI Pricing](https://ai.google.dev/pricing)
 

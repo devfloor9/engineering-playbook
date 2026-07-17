@@ -3,7 +3,7 @@ title: Agentic AI 워크로드의 기술적 도전과제
 description: Agentic AI 워크로드 운영 시 직면하는 5가지 핵심 도전과제
 created: "2026-02-05"
 last_update:
-  date: "2026-06-28"
+  date: "2026-07-17"
   author: YoungJoon Jeong
 reading_time: 16
 tags:
@@ -52,8 +52,8 @@ Agentic AI 시대를 맞아 기업이 가장 먼저 직면하는 질문은 *"가
 |------------|------|------|------------------------|
 | **DRA** (Dynamic Resource Allocation) | 1.34 GA (1.35+ stable) | GPU를 MIG 단위로 세밀 분할·할당 | SLM은 MIG 파티션, LLM은 전체 GPU — 하나의 클러스터에서 공존 |
 | **Gateway API + Inference Extension** | 2025 | LLM 추론 요청의 표준화된 라우팅 | KV Cache 상태 기반 지능형 라우팅, 모델별 트래픽 분배 |
-| **Kueue** | GA | AI 워크로드 큐잉·스케줄링 | 학습/추론 작업의 공정한 GPU 자원 분배, 팀별 쿼터 |
-| **LeaderWorkerSet** | 1.31 | 분산 추론·학습 워크로드 패턴 | 70B+ 모델의 Tensor Parallel 분산 추론을 K8s 네이티브로 관리 |
+| **Kueue** | v0.18.x (베타 API) | AI 워크로드 큐잉·스케줄링 | 학습/추론 작업의 공정한 GPU 자원 분배, 팀별 쿼터 |
+| **LeaderWorkerSet** | v0.9 (kubernetes-sigs 별도 프로젝트) | 분산 추론·학습 워크로드 패턴 | 70B+ 모델의 Tensor Parallel 분산 추론을 K8s 네이티브로 관리 |
 | **KAI Scheduler** | 2025 | GPU-aware Pod 스케줄링 | GPU 토폴로지(NVLink, NVSwitch)를 고려한 최적 배치 |
 
 이처럼 Kubernetes는 단순한 컨테이너 오케스트레이터를 넘어 **AI 워크로드의 기반 인프라**로 진화하고 있으며, 다중 모델 생태계를 운영하기 위한 가장 성숙한 플랫폼입니다.
@@ -130,7 +130,7 @@ GPU는 Agentic AI 플랫폼에서 **가장 비용이 높은 리소스**입니다
 
 **왜 어려운가:**
 
-- **높은 비용**: GPU 인스턴스는 CPU 대비 10~100배 비싼 비용 (H100 8장 기준 시간당 ~$98)
+- **높은 비용**: GPU 인스턴스는 CPU 대비 10~100배 비싼 비용 (H100 8장 p5.48xlarge 기준 us-east-1 시간당 ~$55, 리전별 $55~$92)
 - **다양한 모델 크기**: 3B 파라미터 모델부터 70B+ 모델까지 요구하는 GPU 메모리가 극단적으로 다름
 - **동적 워크로드**: 추론 트래픽이 시간대에 따라 10배 이상 변동
 - **유휴 낭비**: GPU 프로비저닝 후 활용률이 낮으면 막대한 비용 낭비
@@ -138,7 +138,7 @@ GPU는 Agentic AI 플랫폼에서 **가장 비용이 높은 리소스**입니다
 
 | 모델 크기 | GPU 요구사항 | 비용 압박 |
 |-----------|-------------|----------|
-| 70B+ 파라미터 | Full GPU (H100/A100) 8장 | 시간당 $30~$98 |
+| 70B+ 파라미터 | Full GPU (H100/A100) 8장 | 시간당 $30~$92 |
 | 7B~30B 파라미터 | GPU 1~2장 또는 MIG 파티션 | 시간당 $1~$10 |
 | 3B 이하 파라미터 | Time-Slicing 또는 공유 GPU | 시간당 $0.5~$2 |
 
@@ -326,7 +326,7 @@ flowchart LR
 - [Kubernetes Gateway API](https://gateway-api.sigs.k8s.io/) — K8s 공식 게이트웨이 API 명세
 - [CNCF AI/ML Landscape](https://landscape.cncf.io/) — Cloud Native AI/ML 생태계 전체 조감
 - [NVIDIA GPU Operator Documentation](https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/) — GPU 오퍼레이터 공식 가이드
-- [AWS EKS Best Practices for AI/ML](https://aws.github.io/aws-eks-best-practices/) — EKS AI/ML 워크로드 최적화
+- [AWS EKS Best Practices for AI/ML](https://docs.aws.amazon.com/eks/latest/best-practices/) — EKS AI/ML 워크로드 최적화
 
 ### 논문 / 기술 블로그
 

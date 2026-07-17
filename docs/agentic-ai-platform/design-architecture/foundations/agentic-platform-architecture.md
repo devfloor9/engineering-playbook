@@ -3,7 +3,7 @@ title: Agentic AI Platform 아키텍처
 description: 프로덕션급 Agentic AI 플랫폼의 전체 시스템 아키텍처 — 6개 런타임 레이어와 3개 횡단 플레인 설계
 created: "2026-02-05"
 last_update:
-  date: "2026-06-28"
+  date: "2026-07-17"
   author: YoungJoon Jeong
 reading_time: 34
 tags:
@@ -819,7 +819,7 @@ Agentic AI Platform 아키텍처의 핵심 원칙:
 
 ### 논문 / 기술 블로그
 
-- [A2A (Agent-to-Agent Protocol)](https://google.github.io/A2A/) — Google 멀티 에이전트 통신 프로토콜
+- [A2A (Agent-to-Agent Protocol)](https://a2a-protocol.org/) — Google이 개발, 현재 Linux Foundation 관리하는 멀티 에이전트 통신 프로토콜
 - [LangChain Architecture Patterns](https://blog.langchain.dev/) — Agent 아키텍처 패턴
 - [Building Production-Ready LLM Applications](https://huyenchip.com/2023/04/11/llm-engineering.html) — 프로덕션 LLM 엔지니어링
 - [AWS Well-Architected Framework for AI/ML](https://aws.amazon.com/architecture/) — AI/ML 워크로드 설계 원칙
