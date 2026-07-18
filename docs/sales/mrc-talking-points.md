@@ -128,7 +128,7 @@ GCP, Azure도 유사한 서비스를 제공합니다. AWS의 차별점은 **LLMO
 | **컨트롤 플레인** | PCP 전용 (99.99% SLA) | 공유 (99.95% SLA) | 공유 (99.95% SLA) |
 | **데이터 플레인 자동화** | Auto Mode + Karpenter | Autopilot + NAP | NAP (Node Auto-provisioning) |
 | **AI 에이전트 런타임** | AgentCore (MCP 네이티브) | Vertex AI Agent Builder | Azure AI Agent Service |
-| **GPU 최적화** | Karpenter + MIG/DRA 통합 | MIG 지원 + GKE NAP | MIG 지원 |
+| **GPU 최적화** | Karpenter + MIG/DRA (Karpenter v1.14+ DRA 지원) | MIG 지원 + GKE NAP | MIG 지원 |
 | **AI 전용 칩** | Inferentia2, Trainium | TPU v5e/v5p | Maia 100 (제한적) |
 | **마이그레이션** | Transform (K8s 통합) | Migrate to Containers | Azure Migrate |
 | **GPU 인스턴스** | H100, L40S, Inferentia2, Trainium | H100, A100, L4, L40S | H100, A100, MI300X |

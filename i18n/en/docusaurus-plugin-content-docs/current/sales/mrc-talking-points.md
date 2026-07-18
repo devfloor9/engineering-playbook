@@ -128,7 +128,7 @@ The primary audience is **CTOs, VPs of Engineering, platform engineering leaders
 | **Control plane** | PCP dedicated (99.99% SLA) | Shared (99.95% SLA) | Shared (99.95% SLA) |
 | **Data-plane automation** | Auto Mode + Karpenter | Autopilot + NAP | NAP (Node Auto-provisioning) |
 | **AI agent runtime** | AgentCore (MCP-native) | Vertex AI Agent Builder | Azure AI Agent Service |
-| **GPU optimization** | Karpenter + MIG/DRA integrated | MIG support + GKE NAP | MIG support |
+| **GPU optimization** | Karpenter + MIG/DRA (Karpenter v1.14+ supports DRA) | MIG support + GKE NAP | MIG support |
 | **AI-dedicated chips** | Inferentia2, Trainium | TPU v5e/v5p | Maia 100 (limited) |
 | **Migration** | Transform (K8s integrated) | Migrate to Containers | Azure Migrate |
 | **GPU instances** | H100, L40S, Inferentia2, Trainium | H100, A100, L4, L40S | H100, A100, MI300X |

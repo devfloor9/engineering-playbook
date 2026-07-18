@@ -61,7 +61,7 @@ This document focuses on **node type selection and hybrid architecture design**.
 | **GPU Operator** | **Available** (Device Plugin label disabled) | **Available** | Available | Available |
 | **Root Filesystem** | Read-Only | Read-Write | Read-Write | Read-Write |
 | **MIG Support** | Not available (NodeClass read-only) | Available | Available | Available |
-| **DRA Compatible** | **Not available** (internal Karpenter-based) | **Not available** ([#1231](https://github.com/kubernetes-sigs/karpenter/issues/1231)) | **Available** (recommended) | Available |
+| **DRA Compatible** | **Not available** (managed internal Karpenter, version-locked) | **v1.14.0+ supported** (from Provider v1.14.0; [≤ v1.13 not supported](https://github.com/kubernetes-sigs/karpenter/pull/2384)) | **Available** (recommended) | Available |
 | **DCGM Exporter** | Install via GPU Operator | Included in GPU Operator | Manual installation | Included in GPU Operator |
 | **Run:ai Compatible** | **Available** (Device Plugin disabled) | **Available** | Available | Available |
 | **Cost** | Low (no management needed) | Medium | Medium | Low (Capex) |
@@ -542,12 +542,14 @@ flowchart TB
 
 ### 5.3 MNG Hybrid for DRA Workloads
 
-DRA (Dynamic Resource Allocation) was promoted to GA in K8s 1.34, providing advanced GPU management beyond Device Plugin including fine-grained GPU memory allocation and NVLink topology-aware scheduling. **However, DRA cannot be used with Karpenter and Auto Mode.**
+DRA (Dynamic Resource Allocation) was promoted to GA in K8s 1.34, providing advanced GPU management beyond Device Plugin including fine-grained GPU memory allocation and NVLink topology-aware scheduling. **DRA support depends on the Karpenter version and deployment method.**
 
-:::danger DRA + Karpenter/Auto Mode Incompatibility
-Karpenter skips node provisioning when it detects `spec.resourceClaims` in a Pod ([PR #2384](https://github.com/kubernetes-sigs/karpenter/pull/2384)). Karpenter simulates Pod requirements to calculate optimal instances, but DRA's ResourceSlice is only issued by the DRA Driver after a node exists — making **pre-node-creation simulation impossible** (chicken-and-egg problem).
+:::warning DRA support status (as of 2026.07)
+**Self-managed Karpenter v1.14.0+**: DRA is supported. The DRA allocator was merged into core Karpenter v1.14.0 ([PR #3113](https://github.com/kubernetes-sigs/karpenter/pull/3113), including consumable capacity & partitionable devices), and the AWS Provider v1.14.0 that includes it was released on 2026-07-11. Versions ≤ v1.13 skip node provisioning when they detect `spec.resourceClaims` in a Pod ([PR #2384](https://github.com/kubernetes-sigs/karpenter/pull/2384)): they simulate Pod requirements to calculate optimal instances, but DRA's ResourceSlice is only issued by the DRA Driver after a node exists — making **pre-node-creation simulation impossible** (chicken-and-egg problem).
 
-The only officially supported node management method for DRA workloads is **Managed Node Group + Cluster Autoscaler**.
+**EKS Auto Mode**: Not supported today. It uses an AWS-managed internal Karpenter, so users cannot raise its version to v1.14+; DRA is unavailable until Auto Mode's Karpenter is updated.
+
+**Managed Node Group**: Supports DRA on all versions; recommended for DRA workloads when using Auto Mode or when self-managed Karpenter upgrades are impractical.
 :::
 
 ```mermaid

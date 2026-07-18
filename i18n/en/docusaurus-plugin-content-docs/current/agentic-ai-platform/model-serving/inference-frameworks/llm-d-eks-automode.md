@@ -214,8 +214,10 @@ Auto Mode is suitable for large model serving without GPU driver management burd
 - **g6e family (L40S)**: 13B-70B models, cost-efficient inference
 :::
 
-:::danger llm-d + DRA Karpenter/Auto Mode Constraints
-When llm-d ModelService requests GPUs via DRA (ResourceClaim), node provisioning does not work on Karpenter and EKS Auto Mode. DRA workloads require **Managed Node Group + Cluster Autoscaler** configuration.
+:::danger llm-d + DRA Karpenter version constraints
+When llm-d ModelService requests GPUs via DRA (ResourceClaim), support depends on the Karpenter version and deployment method.
+- **Self-managed Karpenter v1.14.0+**: DRA is supported (AWS Provider v1.14.0 includes the core v1.14.0 DRA allocator, with consumable capacity & partitionable devices). Versions ≤ v1.13 skip Pods with `spec.resourceClaims`.
+- **EKS Auto Mode**: Not supported today — it uses an AWS-managed internal Karpenter that users cannot bump to v1.14+. With Auto Mode, **Managed Node Group + Cluster Autoscaler** is the recommended approach.
 
 Details: [EKS GPU Node Strategy — MNG Hybrid for DRA Workloads](../gpu-infrastructure/eks-gpu-node-strategy.md#53-mng-hybrid-for-dra-workloads)
 :::

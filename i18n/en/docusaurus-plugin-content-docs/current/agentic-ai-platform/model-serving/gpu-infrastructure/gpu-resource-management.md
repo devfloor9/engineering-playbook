@@ -235,25 +235,26 @@ flowchart LR
 
 ### Node Provisioning Compatibility
 
-:::danger DRA is not compatible with Karpenter/Auto Mode
+:::warning DRA node provisioning compatibility (as of 2026.07)
 
 | Node Provisioning | DRA Compatible | Notes |
 |---|---|---|
-| **Managed Node Group** | ✅ Supported | Recommended |
+| **Managed Node Group** | ✅ Supported | Recommended (all versions), with Cluster Autoscaler |
 | **Self-Managed Node Group** | ✅ Supported | Manual configuration required |
-| **Karpenter** | ❌ Not supported | Skips Pods with ResourceClaim |
-| **EKS Auto Mode** | ❌ Not supported | Same limitation due to internal Karpenter |
+| **Self-managed Karpenter v1.14.0+** | ✅ Supported | AWS Provider v1.14.0 (2026-07-11) includes the core v1.14.0 DRA allocator ([PR #3113](https://github.com/kubernetes-sigs/karpenter/pull/3113)); consumable capacity & partitionable devices supported |
+| **Self-managed Karpenter ≤ v1.13** | ❌ Not supported | Skips Pods with `spec.resourceClaims` ([PR #2384](https://github.com/kubernetes-sigs/karpenter/pull/2384)) |
+| **EKS Auto Mode** | ❌ Not supported (current) | AWS-managed internal Karpenter — users cannot bump the version. DRA is unavailable until Auto Mode's Karpenter is updated to v1.14+ |
 :::
 
-**Why Karpenter cannot support DRA:**
+**Behavior differences by version:**
 
-Karpenter analyzes Pod requirements to calculate optimal instances for **nodes that don't yet exist**. This calculation is impossible with DRA.
+The DRA allocator was merged into core Karpenter v1.14.0, and the AWS Provider v1.14.0 that includes it has also been released. So **installing self-managed Karpenter v1.14.0+** enables DRA node provisioning on EKS. Karpenter before v1.14.0 skipped Pods with `spec.resourceClaims` due to the following structural constraints:
 
 1. **ResourceSlice is created after node exists**: DRA Driver issues ResourceSlice after detecting GPUs on the node, but Karpenter needs this information before node creation (chicken-and-egg problem)
 2. **No instance→ResourceSlice mapping**: With Device Plugin, `p5.48xlarge → nvidia.com/gpu: 8` is statically known, but with DRA the content varies by Driver implementation
 3. **CEL expression simulation impossible**: ResourceSlice attribute values needed for evaluation don't exist before node creation
 
-In contrast, **Cluster Autoscaler works without interpreting DRA**. It only needs the simple decision "there are Pending Pods, so scale up MNG."
+The v1.14.0 DRA allocator resolves this simulation problem at the core level. However, **EKS Auto Mode uses an AWS-managed internal Karpenter**, so users cannot raise its version arbitrarily — DRA remains unavailable until Auto Mode's Karpenter reaches v1.14+. In that case **MNG + Cluster Autoscaler** is recommended (Cluster Autoscaler works without interpreting DRA — it only needs "there are Pending Pods, so scale up" — and has no version constraint).
 
 ### DRA Selection Guide
 

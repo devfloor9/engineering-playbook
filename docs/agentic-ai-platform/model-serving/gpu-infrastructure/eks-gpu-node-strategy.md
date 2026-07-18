@@ -61,7 +61,7 @@ AWS EKS는 GPU 워크로드를 위해 4가지 노드 타입을 제공합니다:
 | **GPU Operator** | **가능** (Device Plugin 레이블 비활성화) | **가능** | 가능 | 가능 |
 | **Root Filesystem** | Read-Only | Read-Write | Read-Write | Read-Write |
 | **MIG 지원** | 불가 (NodeClass read-only) | 가능 | 가능 | 가능 |
-| **DRA 호환** | **불가** (내부 Karpenter 기반) | **v1.14.0+ 지원** ([v1.13 이하 미지원](https://github.com/kubernetes-sigs/karpenter/issues/1231)) | **가능** (권장) | 가능 |
+| **DRA 호환** | **불가** (관리형 내부 Karpenter, 버전 고정) | **v1.14.0+ 지원** (Provider v1.14.0부터, [v1.13 이하 미지원](https://github.com/kubernetes-sigs/karpenter/pull/2384)) | **가능** (권장) | 가능 |
 | **DCGM Exporter** | GPU Operator로 설치 | GPU Operator 포함 | 수동 설치 | GPU Operator 포함 |
 | **Run:ai 호환** | **가능** (Device Plugin 비활성화) | **가능** | 가능 | 가능 |
 | **비용** | 낮음 (관리 불필요) | 중간 | 중간 | 낮음 (Capex) |
@@ -584,14 +584,14 @@ flowchart TB
 
 ### DRA 워크로드를 위한 MNG 하이브리드
 
-DRA(Dynamic Resource Allocation)는 K8s 1.34에서 GA로 승격되었으며, GPU 메모리 세밀 할당, NVLink 토폴로지 인식 스케줄링 등 Device Plugin을 넘어서는 고급 GPU 관리를 제공합니다. **단, DRA는 Karpenter와 Auto Mode에서 사용할 수 없습니다.**
+DRA(Dynamic Resource Allocation)는 K8s 1.34에서 GA로 승격되었으며, GPU 메모리 세밀 할당, NVLink 토폴로지 인식 스케줄링 등 Device Plugin을 넘어서는 고급 GPU 관리를 제공합니다. **DRA 지원 여부는 Karpenter 버전과 배포 방식에 따라 갈립니다.**
 
-:::info DRA 지원 현황 (2026.07 갱신)
-**Karpenter v1.14.0+ (2026-07-11 릴리스)**: DRA를 공식 지원합니다 (consumable capacity·partitionable devices 포함, [upgrade guide](https://karpenter.sh/docs/upgrading/upgrade-guide/) 참조). v1.13 이하에서는 Pod의 `spec.resourceClaims`를 감지하면 노드 프로비저닝을 skip했으나 ([PR #2384](https://github.com/kubernetes-sigs/karpenter/pull/2384)), v1.14.0의 DRA allocator 통합([PR #3113](https://github.com/kubernetes-sigs/karpenter/pull/3113))으로 해결되었습니다.
+:::warning DRA 지원 현황 (2026.07 기준)
+**Self-managed Karpenter v1.14.0+**: DRA를 지원합니다. DRA allocator가 코어 Karpenter v1.14.0에 병합되었고([PR #3113](https://github.com/kubernetes-sigs/karpenter/pull/3113), consumable capacity·partitionable devices 포함), 이를 포함한 AWS Provider v1.14.0도 2026-07-11에 릴리스되었습니다. v1.13 이하는 Pod의 `spec.resourceClaims`를 감지하면 노드 프로비저닝을 skip합니다([PR #2384](https://github.com/kubernetes-sigs/karpenter/pull/2384)).
 
-**EKS Auto Mode**: 여전히 DRA 미지원 (내부 Karpenter 기반이나 버전 업데이트 정책 별도).
+**EKS Auto Mode**: 현재 DRA 미지원. AWS 관리형 내부 Karpenter라 사용자가 버전을 v1.14+로 올릴 수 없으며, Auto Mode의 Karpenter가 갱신되기 전까지는 DRA를 사용할 수 없습니다.
 
-**Managed Node Group**: DRA를 지원하며, Karpenter v1.13 이하 환경 또는 Auto Mode 사용 시 DRA 워크로드의 권장 방식입니다.
+**Managed Node Group**: 모든 버전에서 DRA를 지원하며, Auto Mode를 사용하거나 self-managed Karpenter 업그레이드가 어려운 환경에서 DRA 워크로드의 권장 방식입니다.
 :::
 
 ```mermaid
@@ -640,12 +640,12 @@ flowchart TB
 
 ### 모델 크기별 비용 영향
 
-p5.48xlarge (H100 x8) 기준, 월 비용 약 $98,000:
+p5.48xlarge (H100 x8) On-Demand $55.04/hr 기준, 월 비용 약 $40,000 (2025-06 가격 인하 반영):
 
 | 구성 | 7B 모델 인스턴스 수 | GPU 사용량 | GPU 활용률 | 실효 비용/인스턴스 |
 |---|---|---|---|---|
-| Auto Mode (GPU 전체 할당) | 8개 | GPU 8개 | ~25% | $12,250 |
-| Karpenter + MIG (4분할) | 8개 | GPU 2개 | ~80% | **$3,063** |
+| Auto Mode (GPU 전체 할당) | 8개 | GPU 8개 | ~25% | $5,020 |
+| Karpenter + MIG (4분할) | 8개 | GPU 2개 | ~80% | **$1,256** |
 | **절감 효과** | 동일 | **75% 절감** | **3.2배 향상** | **75% 절감** |
 
 :::warning 모델 크기와 비용 효율
@@ -735,14 +735,14 @@ flowchart TB
 | Multi-Node NVLink / IMEX 필요 | 필수 (ComputeDomain은 DRA 전용) |
 | CEL 기반 세밀한 GPU 속성 선택 | 권장 |
 | GPU 공유 (MPS) | 권장 |
-| Karpenter DRA 지원 GA | 전환 최적 시점 (MNG 불필요) |
+| Self-managed Karpenter v1.14.0+ (DRA 지원) | 전환 최적 시점 (MNG 불필요) |
 
 :::tip 전환 전략
 **지금**: Karpenter + GPU Operator (Device Plugin + MIG) -- 가장 빠르고 운영 가능한 프로덕션 구성
 
 **P6e-GB200 도입 시**: MNG (DRA, GPU) + Karpenter (비GPU) 하이브리드
 
-**Karpenter DRA GA 후**: Karpenter + DRA 통합 -- 최종 목표 구성
+**Self-managed Karpenter v1.14.0+ 채택 시**: Karpenter + DRA 통합 -- 최종 목표 구성
 :::
 
 ---
