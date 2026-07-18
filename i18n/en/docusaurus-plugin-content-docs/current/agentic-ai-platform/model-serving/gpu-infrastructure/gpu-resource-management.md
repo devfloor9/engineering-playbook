@@ -3,8 +3,8 @@ title: GPU Resource Management
 description: GPU resource management and cost optimization using Karpenter, KEDA, and DRA on EKS
 created: "2026-02-05"
 last_update:
-  date: "2026-06-26"
-  author: devfloor9
+  date: "2026-07-18"
+  author: YoungJoon Jeong
 reading_time: 24
 tags:
   - gpu
@@ -44,8 +44,8 @@ This document covers the architecture and design decision criteria for each axis
 
 ## Karpenter GPU NodePool
 
-:::info Karpenter v1.2+ GA
-Karpenter has been GA since v1.0, and all examples in this document use the `karpenter.sh/v1` API.
+:::info Karpenter GA (v1.0+)
+Karpenter has been GA since v1.0, and all examples in this document use the `karpenter.sh/v1` API. The DRA allocator was added to core (`kubernetes-sigs/karpenter`) v1.14.0, and the AWS Provider (`karpenter-provider-aws`) **v1.14.0** that includes it was released on 2026-07-11. So **installing self-managed Karpenter v1.14.0+** enables DRA node provisioning on EKS. However, the controller setting `ignoreDRARequests` **defaults to `true` (DRA requests ignored)**, so it must be flipped to `false` for DRA to actually work. See [Node Provisioning Compatibility](#node-provisioning-compatibility) and [Karpenter DRA Enablement Parameters](#karpenter-dra-enablement-parameters-v1140) below.
 :::
 
 ### GPU Node Auto-Provisioning Concept
@@ -165,15 +165,18 @@ apiVersion: v1
 kind: Service
 metadata:
   name: vllm-inference
-  annotations:
-    service.kubernetes.io/topology-mode: "Auto"
 spec:
   selector:
     app: vllm
   ports:
     - port: 8000
-  trafficDistribution: PreferClose
+  trafficDistribution: PreferSameZone
 ```
+
+:::caution Using the trafficDistribution field
+- `PreferSameZone` is the standard (`PreferClose` is a deprecated alias).
+- If the `service.kubernetes.io/topology-mode: Auto` annotation is used together, the annotation takes precedence over the `trafficDistribution` field, so the field is ignored. The annotation is slated for deprecation, so use only the `trafficDistribution` field.
+:::
 
 ### Gang Scheduling
 
@@ -195,12 +198,13 @@ DRA is Kubernetes' new GPU resource management paradigm that overcomes Device Pl
 <DraLimitationsTable />
 
 :::info DRA Version History
-- **K8s 1.26-1.30**: Alpha (`v1alpha2` API, feature gate required)
-- **K8s 1.31**: Promoted to Beta, enabled by default
-- **K8s 1.32**: New implementation (KEP #4381), `v1beta1` API
-- **K8s 1.33+**: `v1beta1` stabilized
-- **K8s 1.34+**: **DRA GA (Stable)**, prioritized alternatives support
-- **K8s 1.35**: GA, recommended for production
+- **K8s 1.26**: Alpha (classic DRA, KEP-3063)
+- **K8s 1.30**: structured parameters Alpha (KEP-4381)
+- **K8s 1.31**: Alpha (v1alpha3, classic DRA deprecation announced)
+- **K8s 1.32**: Promoted to Beta (v1beta1, KEP-4381 new implementation, disabled by default)
+- **K8s 1.33**: Beta (v1beta1/v1beta2, disabled by default — beta APIs are default-off)
+- **K8s 1.34**: **DRA GA** (`resource.k8s.io/v1`, enabled by default)
+- **K8s 1.35**: feature gate locked-to-default (remains stable)
 :::
 
 ### DRA Core Model
@@ -228,7 +232,7 @@ flowchart LR
     { id: '2', cells: ['Allocation Unit', 'Whole GPU only', 'GPU partitioning possible (MIG, Time-Slicing)'] },
     { id: '3', cells: ['Attribute-based Selection', 'Not possible (index-based)', 'GPU attribute matching via CEL expressions'] },
     { id: '4', cells: ['Multi-resource Coordination', 'Not possible', 'Pod-level coordination of multiple resources'] },
-    { id: '5', cells: ['Karpenter Compatible', 'Fully supported', 'Not supported (MNG required)'] },
+    { id: '5', cells: ['Karpenter Compatible', 'Fully supported', 'Supported on v1.14.0+ (ignoreDRARequests=false); not supported on v1.13 or below'] },
     { id: '6', cells: ['Maturity', 'Production', 'K8s 1.34+ GA'], recommended: true }
   ]}
 />
@@ -256,6 +260,71 @@ The DRA allocator was merged into core Karpenter v1.14.0, and the AWS Provider v
 
 The v1.14.0 DRA allocator resolves this simulation problem at the core level. However, **EKS Auto Mode uses an AWS-managed internal Karpenter**, so users cannot raise its version arbitrarily — DRA remains unavailable until Auto Mode's Karpenter reaches v1.14+. In that case **MNG + Cluster Autoscaler** is recommended (Cluster Autoscaler works without interpreting DRA — it only needs "there are Pending Pods, so scale up" — and has no version constraint).
 
+### Karpenter DRA Enablement Parameters (v1.14.0+)
+
+Karpenter v1.14.0+ ships the DRA allocator code, but the **controller is deployed to ignore DRA requests by default**. To enable DRA node provisioning on self-managed Karpenter, the following parameters must be set explicitly.
+
+| Layer | Parameter | Default | Setting for DRA |
+|---|---|---|---|
+| **Karpenter controller** | `settings.ignoreDRARequests` (env `IGNORE_DRA_REQUESTS`) | `true` (ignore DRA requests) | **`false`** — reflect Pods' DRA requests in scheduling simulations |
+| **Karpenter version** | core + provider-aws | — | **v1.14.0+** (v1.13 and below skip `spec.resourceClaims` Pods) |
+
+```yaml
+# Karpenter Helm values (karpenter-provider-aws v1.14.0+)
+settings:
+  # Flip the default true (ignore DRA requests) to false so DRA scheduling simulation works
+  ignoreDRARequests: false
+```
+
+```bash
+# When upgrading an existing installation
+helm upgrade karpenter oci://public.ecr.aws/karpenter/karpenter \
+  --version "1.14.0" \
+  --namespace kube-system \
+  --reuse-values \
+  --set settings.ignoreDRARequests=false
+```
+
+:::caution `ignoreDRARequests` is a temporary flag
+The official Karpenter documentation notes that this flag "**will be removed once formal DRA support is GA in Karpenter**." That is, the current (v1.14.x) DRA support is early-stage; a future version may enable it by default and drop the flag itself. Check the release notes when upgrading.
+:::
+
+:::info NodePool spec requires no changes
+The Karpenter upgrade guide's statement that "DRA is additive and requires no configuration changes to existing NodePools" refers to the **NodePool CRD spec**. The `ignoreDRARequests` above is a **controller-global setting** — a separate concern that must be flipped to use DRA.
+:::
+
+This Karpenter setting alone does not allocate GPUs. The component that actually advertises and allocates GPUs via DRA is the **NVIDIA DRA driver**, so the cluster and driver layer parameters below must also be in place.
+
+### Full DRA Stack Parameters (3 Layers)
+
+To use GPUs via DRA, parameters across three layers must all be satisfied: **node provisioning (Karpenter) + cluster DRA enablement + NVIDIA DRA driver**.
+
+| Layer | Parameter | Default | Setting for DRA |
+|---|---|---|---|
+| **1. K8s feature gate** | `DynamicResourceAllocation` | on by default on K8s 1.34+ | on (on 1.33 and below, set `--feature-gates=DynamicResourceAllocation=true` on kube-apiserver, scheduler, controller-manager, and kubelet) |
+| **1. K8s API group** | `--runtime-config=resource.k8s.io/v1=true` | served by default on 1.34+ | served (EKS control-plane-managed — automatic if cluster is 1.34/1.35) |
+| **2. Node provisioning** | Karpenter `ignoreDRARequests` | `true` | **`false`** (see table above) |
+| **3. NVIDIA DRA driver GPU allocation** | `resources.gpus.enabled` (v25.10+ charts use `gpuResourcesEnabledOverride`) | **`false`** (GPU subsystem disabled by default) | **`true`** |
+| **3. Disable Device Plugin** | GPU Operator `devicePlugin.enabled` | `true` | **`false`** (avoid conflict with DRA driver) |
+| **3. Container runtime CDI** | containerd/CRI-O CDI | on by default in GPU Operator v25.10+ | enabled (requires NVIDIA Driver 580+) |
+
+```bash
+# Install NVIDIA DRA driver — enable the GPU allocation subsystem (disabled by default)
+helm install nvidia-dra-driver-gpu nvidia/nvidia-dra-driver-gpu \
+  --namespace nvidia-dra-driver-gpu --create-namespace \
+  --set gpuResourcesEnabledOverride=true \
+  --set nvidiaDriverRoot=/run/nvidia/driver
+
+# Deploy GPU Operator with the Device Plugin disabled (avoid GPU allocation conflict with the DRA driver)
+helm upgrade -i gpu-operator nvidia/gpu-operator \
+  --namespace gpu-operator --create-namespace \
+  --set devicePlugin.enabled=false
+```
+
+:::warning The NVIDIA DRA driver GPU subsystem is disabled by default
+The NVIDIA DRA driver (`nvidia-dra-driver-gpu`) consists of two subsystems: **GPU allocation** and **ComputeDomain** (Multi-Node NVLink). The **GPU allocation subsystem (`resources.gpus.enabled`) defaults to `false`** in the Helm chart, so it must be explicitly enabled to allocate GPUs via DRA. NVIDIA Driver 580+ and container-runtime CDI enablement are prerequisites.
+:::
+
 ### DRA Selection Guide
 
 :::tip When to use DRA
@@ -268,7 +337,7 @@ The v1.14.0 DRA allocator resolves this simulation problem at the core level. Ho
 
 **Device Plugin is sufficient when:**
 - Only whole GPU allocation needed
-- Using Karpenter or EKS Auto Mode
+- Using EKS Auto Mode (internal Karpenter below v1.14)
 - K8s 1.33 or below
 :::
 
@@ -310,12 +379,12 @@ spec:
     # KV Cache saturation — most sensitive signal for LLM serving
     - type: prometheus
       metadata:
-        query: avg(vllm_gpu_cache_usage_perc{model="exaone"})
+        query: avg(vllm:kv_cache_usage_perc{model="exaone"})
         threshold: "80"
     # Waiting request count
     - type: prometheus
       metadata:
-        query: sum(vllm_num_requests_waiting{model="exaone"})
+        query: sum(vllm:num_requests_waiting{model="exaone"})
         threshold: "10"
     # TTFT SLO violation approaching
     - type: prometheus
@@ -349,7 +418,7 @@ When operating Prefill and Decode separately, the bottleneck signals differ for 
 
 ### DRA Workload Scale-out
 
-DRA workloads cannot use Karpenter, so they are configured with **MNG + Cluster Autoscaler + KEDA**.
+DRA workload node scale-out is configured with **self-managed Karpenter v1.14.0+ (`ignoreDRARequests=false`)** or **MNG + Cluster Autoscaler**. EKS Auto Mode cannot bump its internal Karpenter version, so the latter is required there. The flow below shows the MNG + Cluster Autoscaler + KEDA combination.
 
 ```
 LLM Metrics (KV Cache, TTFT, Queue)
