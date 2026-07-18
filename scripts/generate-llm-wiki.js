@@ -116,19 +116,49 @@ function toPermalink(filePath) {
   return routePath ? `/docs/${routePath}` : '/docs';
 }
 
+// 자식이 마크다운 본문인 컨테이너 컴포넌트 — 태그 라인만 제거하고 내용은 보존한다
+const MARKDOWN_CONTAINER_TAGS = new Set(['Tabs', 'TabItem']);
+
 // MDX import 라인과 JSX 컴포넌트 블록을 제거한다.
 // - import ... from '...' 라인 제거
-// - 대문자로 시작하는 JSX 태그(<XxxTables />, <Xxx>...</Xxx>) 블록 제거
+// - 대문자로 시작하는 JSX 요소(<XxxTables />, <Xxx>...</Xxx>)는 닫는 태그까지 통째로 제거
+//   (내부의 자기 닫힘 자식 <DocCard ... /> 이 바깥 블록을 조기 종료시키지 않도록
+//    여는 태그의 속성 구간과 자식 구간을 구분해 처리)
+// - Tabs/TabItem 은 자식이 일반 마크다운이므로 태그 라인만 벗겨낸다
 //   (라인 단위 보수적 처리 — 문서 내 컴포넌트는 항상 독립 라인/블록으로 사용된다)
 function stripMdx(content) {
   const lines = content.split('\n');
   const out = [];
-  let inJsxBlock = false;
-  let jsxTag = null;
   let inCodeFence = false;
+  let stripTag = null; // 통째 제거 중인 요소의 태그명 (닫는 태그 대기)
+  let stripInAttrs = false; // 여는 태그의 속성 라인(>가 아직 안 나옴)을 지나는 중
+  let containerInAttrs = false; // 컨테이너 여는 태그가 여러 줄일 때 속성 라인 스킵
 
   for (const line of lines) {
     const trimmed = line.trim();
+
+    // 통째 제거 모드: 요소가 끝날 때까지 모든 라인을 버린다
+    if (stripTag) {
+      if (stripInAttrs) {
+        if (/\/>\s*$/.test(trimmed)) {
+          // 여는 태그가 자기 닫힘으로 종료: <Comp ... />
+          stripTag = null;
+          stripInAttrs = false;
+        } else if (/>\s*$/.test(trimmed)) {
+          // 속성 구간 끝 → 자식 구간 진입
+          stripInAttrs = false;
+        }
+      } else if (new RegExp(`^</${stripTag}>\\s*$`).test(trimmed)) {
+        stripTag = null;
+      }
+      continue;
+    }
+
+    // 컨테이너 여는 태그의 속성 라인 스킵
+    if (containerInAttrs) {
+      if (/\/?>\s*$/.test(trimmed)) containerInAttrs = false;
+      continue;
+    }
 
     // 코드 펜스 내부는 건드리지 않는다
     if (/^(```|~~~)/.test(trimmed)) {
@@ -141,25 +171,21 @@ function stripMdx(content) {
       continue;
     }
 
-    if (inJsxBlock) {
-      // 블록 종료: 자기 닫힘(/>) 또는 닫는 태그(</Tag>)
-      if (
-        /\/>\s*$/.test(trimmed) ||
-        new RegExp(`</${jsxTag}>\\s*$`).test(trimmed)
-      ) {
-        inJsxBlock = false;
-        jsxTag = null;
-      }
-      continue;
-    }
-
     // import 라인 제거
     if (/^import\s+.+\s+from\s+['"].+['"];?\s*$/.test(trimmed)) continue;
+
+    // 닫는 JSX 태그 단독 라인 제거 (컨테이너의 </Tabs>, </TabItem> 등)
+    if (/^<\/[A-Z][A-Za-z0-9]*>\s*$/.test(trimmed)) continue;
 
     // JSX 컴포넌트 시작 (대문자 태그)
     const jsxOpen = trimmed.match(/^<([A-Z][A-Za-z0-9]*)/);
     if (jsxOpen) {
       const tag = jsxOpen[1];
+      if (MARKDOWN_CONTAINER_TAGS.has(tag)) {
+        // 컨테이너: 태그 라인만 제거, 자식 마크다운은 보존
+        if (!/\/?>\s*$/.test(trimmed)) containerInAttrs = true;
+        continue;
+      }
       // 한 줄로 끝나는 경우: <Comp ... /> 또는 <Comp>...</Comp>
       if (
         /\/>\s*$/.test(trimmed) ||
@@ -167,8 +193,9 @@ function stripMdx(content) {
       ) {
         continue;
       }
-      inJsxBlock = true;
-      jsxTag = tag;
+      stripTag = tag;
+      // 여는 태그가 같은 줄에서 닫혔으면(<Comp ...>) 바로 자식 구간
+      stripInAttrs = !/>\s*$/.test(trimmed);
       continue;
     }
 
