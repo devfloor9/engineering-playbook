@@ -3,7 +3,7 @@ title: Request Cascading — 지능형 모델 라우팅
 description: 요청 복잡도 기반 모델 자동 라우팅 — LLM Classifier·LiteLLM·vLLM Semantic Router 구현 접근 비교와 RouteLLM 연구 참조, 비용 절감 효과
 created: "2026-07-04"
 last_update:
-  date: "2026-07-15"
+  date: "2026-07-17"
   author: YoungJoon Jeong
 reading_time: 12
 tags:
@@ -82,8 +82,8 @@ flowchart TB
 graph LR
     Client[Aider/Cline] --> KGW[kgateway NLB]
     KGW -->|/v1/*| CLS[LLM Classifier<br/>FastAPI]
-    CLS -->|weak: 키워드없음, 500자미만| SLM[Qwen3-4B<br/>L4 $0.3/hr]
-    CLS -->|strong: 리팩터,설계,분석| LLM[GLM-5 744B<br/>H200 $12/hr]
+    CLS -->|weak: 키워드없음, 500자미만| SLM[Qwen3-4B<br/>L4 ~$0.80/hr]
+    CLS -->|strong: 리팩터,설계,분석| LLM[GLM-5 744B<br/>8xH200 ~$63/hr]
     CLS -->|OTel| LF[Langfuse]
 
     style KGW fill:#326ce5,stroke:#333,color:#fff
@@ -147,7 +147,7 @@ Bifrost는 OpenAI/Anthropic/Bedrock 등 **외부 프로바이더 통합**과 **f
 
 #### RouteLLM 평가 결과
 
-[RouteLLM](https://github.com/lm-sys/RouteLLM)은 LMSYS가 개발한 오픈소스 라우팅 프레임워크로, Matrix Factorization 기반 분류 모델이 학술적으로 검증되었습니다 (LMSYS Chatbot Arena 데이터 기반 90%+ 정확도).
+[RouteLLM](https://github.com/lm-sys/RouteLLM)은 LMSYS가 개발한 오픈소스 라우팅 프레임워크로, Matrix Factorization 라우터가 Chatbot Arena 선호 데이터로 학습되었으며, MT Bench에서 GPT-4 호출 26%만으로 GPT-4 성능의 95%를 유지함이 논문(arXiv:2406.18665)으로 검증되었습니다.
 
 그러나 K8s 배포 시 다음 이슈가 확인되었습니다:
 
@@ -239,12 +239,12 @@ similarity_threshold: 0.85
 
 모든 요청을 Opus 4.7로 처리 시 (평균 1K tok in/out): $300/일 ($9,000/월) 대비 **63% 절감**
 
-**자체 호스팅 LLM Classifier 시나리오** (2026-04 기준):
-- Qwen3-4B (70% weak, L4 $0.3/hr × 24hr × 30d) = $216/월
-- GLM-5 744B (30% strong, H200 $12/hr × 24hr × 30d × 0.3) = $2,592/월
+**자체 호스팅 LLM Classifier 시나리오** (Spot 가격 기준, 2026-07):
+- Qwen3-4B (70% weak, g6.xlarge L4 Spot ~$0.31/hr × 24hr × 30d) = 약 $223/월
+- GLM-5 744B (30% strong, p5en.48xlarge 8xH200 Spot ~$16/hr × 24hr × 30d × 0.3) = 약 $3,456/월
 - Langfuse + AMP/AMG = $200/월
 
-**총 비용: $3,008/월** (GLM-5 단독 $8,900/월 대비 **66% 절감**)
+**총 비용: 약 $3,879/월** (GLM-5 단독 상시 운영 약 $11,520/월 대비 **66% 절감**)
 
 ### 엔터프라이즈 모델 라우팅 패턴
 
@@ -268,8 +268,8 @@ similarity_threshold: 0.85
 ```mermaid
 graph TD
     Req[요청] --> Router[LLM Classifier<br/>프롬프트 분석]
-    Router -->|strong: 리팩터,설계,분석<br/>500자이상, 5턴초과| LLM[Strong Model<br/>GLM-5 744B<br/>H200 $12/hr]
-    Router -->|weak: 단순 질의<br/>500자미만, 5턴이하| SLM[Weak Model<br/>Qwen3-4B<br/>L4 $0.3/hr]
+    Router -->|strong: 리팩터,설계,분석<br/>500자이상, 5턴초과| LLM[Strong Model<br/>GLM-5 744B<br/>8xH200 ~$63/hr]
+    Router -->|weak: 단순 질의<br/>500자미만, 5턴이하| SLM[Weak Model<br/>Qwen3-4B<br/>L4 ~$0.80/hr]
     LLM --> Resp[응답]
     SLM --> Resp
 

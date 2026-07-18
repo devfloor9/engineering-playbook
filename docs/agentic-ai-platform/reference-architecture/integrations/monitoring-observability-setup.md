@@ -578,8 +578,8 @@ spec:
 
         - alert: HighGatewayErrorRate
           expr: |
-            sum(rate(kgateway_upstream_rq_5xx[5m])) /
-            sum(rate(kgateway_requests_total[5m])) > 0.05
+            sum(rate(envoy_cluster_upstream_rq_xx{envoy_response_code_class="5"}[5m])) /
+            sum(rate(envoy_cluster_upstream_rq_total[5m])) > 0.05
           for: 5m
           labels:
             severity: critical

@@ -78,12 +78,12 @@ spec:
     # 1. KV Cache 포화 — 가장 민감한 시그널
     - type: prometheus
       metadata:
-        query: avg(vllm_gpu_cache_usage_perc)
+        query: avg(vllm:kv_cache_usage_perc)
         threshold: "80"
     # 2. 대기 중인 요청 수
     - type: prometheus
       metadata:
-        query: sum(vllm_num_requests_waiting)
+        query: sum(vllm:num_requests_waiting)
         threshold: "10"
     # 3. TTFT SLO 위반 근접
     - type: prometheus

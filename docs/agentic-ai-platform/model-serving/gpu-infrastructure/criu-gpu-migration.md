@@ -3,7 +3,7 @@ title: CRIU 기반 GPU 무중단 마이그레이션 (Preview)
 description: Spot reclaim·스케줄링 이벤트 시 GPU 워크로드 checkpoint/restore로 무중단 이관하는 기술 현황과 EKS 적용 가능 시나리오 분석 (Experimental)
 created: "2026-04-18"
 last_update:
-  date: "2026-06-28"
+  date: "2026-07-17"
   author: YoungJoon Jeong
 reading_time: 21
 tags:
@@ -515,8 +515,8 @@ spec:
 ```
 
 **비용:**
-- 2대 운영 시 비용 2배 → Spot 사용 시 **On-Demand 1대와 비슷한 비용**
-- p5.48xlarge Spot $12/hr × 2 = $24/hr vs On-Demand $98/hr × 1
+- 2대 운영 시 비용 2배 → Spot 사용 시 **On-Demand 1대의 절반 수준 비용**
+- p5.48xlarge Spot 약 $13-15/hr × 2 = $26-30/hr vs On-Demand $55.04/hr × 1
 
 **장점:**
 - 1개 replica Spot reclaim 시 나머지 1개가 트래픽 처리
