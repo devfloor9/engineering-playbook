@@ -3,7 +3,7 @@ title: NVIDIA GPU Stack
 description: Architecture and EKS integration for GPU Operator, DCGM, MIG, Time-Slicing, and Dynamo
 created: "2026-03-20"
 last_update:
-  date: "2026-06-26"
+  date: "2026-07-19"
   author: devfloor9
 reading_time: 27
 tags:
@@ -139,6 +139,79 @@ spec:
         kind: NodeClass
         name: default
 ```
+
+Auto Mode Helm values keep the Device Plugin globally enabled and selectively disable it via node labels.
+
+```yaml
+# GPU Operator Helm values for Auto Mode
+driver:
+  enabled: false          # Pre-installed in the AMI by AWS
+toolkit:
+  enabled: false          # Pre-installed in the AMI by AWS
+devicePlugin:
+  enabled: true           # Globally enabled, selectively disabled via node labels
+dcgmExporter:
+  enabled: true
+  serviceMonitor:
+    enabled: true
+nfd:
+  enabled: true
+gfd:
+  enabled: true
+```
+
+### GPU Operator Configuration for Karpenter Nodes
+
+On Karpenter (self-managed) nodes, enable the full stack including MIG Manager, while excluding Auto Mode nodes via `nodeSelector`.
+
+```yaml
+# helm install gpu-operator nvidia/gpu-operator -f values.yaml
+driver:
+  enabled: false          # AL2023: Pre-installed in AMI
+toolkit:
+  enabled: false          # AL2023: Pre-installed in AMI
+devicePlugin:
+  enabled: true
+  nodeSelector:
+    gpu-operator: enabled
+  tolerations:
+    - key: nvidia.com/gpu
+      operator: Exists
+      effect: NoSchedule
+migManager:
+  enabled: true
+  nodeSelector:
+    gpu-operator: enabled
+  config:
+    name: mig-parted-config
+    default: "all-balanced"
+dcgmExporter:
+  enabled: true
+  serviceMonitor:
+    enabled: true
+    interval: 15s
+  nodeSelector:
+    gpu-operator: enabled
+nfd:
+  enabled: true
+gfd:
+  enabled: true
+  nodeSelector:
+    gpu-operator: enabled
+operator:
+  nodeSelector:
+    node-type: gpu-inference  # Karpenter NodePool label
+  tolerations:
+    - key: nvidia.com/gpu
+      operator: Exists
+      effect: NoSchedule
+  defaultRuntime: containerd
+```
+
+**Key configuration points:**
+- `nodeSelector: gpu-operator: enabled` — Excludes Auto Mode nodes
+- `driver/toolkit: false` — Pre-installed in the AL2023 AMI
+- `migManager: true` — Enables MIG functionality on Karpenter nodes
 
 ---
 

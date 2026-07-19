@@ -412,7 +412,7 @@ As of April 2026, EKS Auto Mode's managed Karpenter **cannot provision p6-b200.4
 | ap-northeast-2 (Seoul) | InsufficientCapacity | Unconfirmed | -- |
 | **us-east-2 (Ohio)** | Availability varies | **Successfully acquired** | **$13-15/hr** |
 
-**Spot Price Comparison (us-east-2, 2026.04)**: p5 instances offer 85-90% cost savings on Spot. For detailed pricing, see [EKS GPU Node Strategy — Spot Price Comparison](../gpu-infrastructure/eks-gpu-node-strategy.md#47-spot-price-comparison-us-east-2-202604).
+**Spot Price Comparison (us-east-2, 2026.04)**: p5 instances offer 85-90% cost savings on Spot. For detailed pricing, see [GPU Resource Management — Cost Optimization Strategies](../gpu-infrastructure/gpu-resource-management.md#cost-optimization-strategies).
 
 ### GPU Quota Notes
 

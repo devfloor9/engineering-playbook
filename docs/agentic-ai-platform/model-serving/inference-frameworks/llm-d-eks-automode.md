@@ -412,7 +412,7 @@ EKS Auto Mode는 2026-04-10부터 **p6-b200.48xlarge를 공식 지원**합니다
 | ap-northeast-2 (서울) | InsufficientCapacity | 미확인 | -- |
 | **us-east-2 (Ohio)** | 가용성 변동 | **확보 성공** | **$13~15/hr** |
 
-**Spot 가격 비교 (us-east-2, 2026.04 기준)**: p5 인스턴스는 Spot으로 약 73~76% 비용 절감이 가능합니다 (On-Demand $55.04/hr 대비 Spot $13~15/hr 관측치 기준). 상세 가격표는 [EKS GPU 노드 전략 — Spot 가격 비교](../gpu-infrastructure/eks-gpu-node-strategy.md#spot-가격-참고-us-east-2-202604)를 참조하세요.
+**Spot 가격 비교 (us-east-2, 2026.04 기준)**: p5 인스턴스는 Spot으로 약 73~76% 비용 절감이 가능합니다 (On-Demand $55.04/hr 대비 Spot $13~15/hr 관측치 기준). 상세 가격표는 [GPU 리소스 관리 — 비용 최적화 전략](../gpu-infrastructure/gpu-resource-management.md#비용-최적화-전략)를 참조하세요.
 
 ### GPU 쿼타 주의사항
 

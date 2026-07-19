@@ -3,9 +3,9 @@ title: GPU Resource Management
 description: GPU resource management and cost optimization using Karpenter, KEDA, and DRA on EKS
 created: "2026-02-05"
 last_update:
-  date: "2026-07-18"
+  date: "2026-07-19"
   author: YoungJoon Jeong
-reading_time: 24
+reading_time: 33
 tags:
   - gpu
   - karpenter
@@ -110,6 +110,43 @@ spec:
 - `limits.nvidia.com/gpu: 64` — Cluster-wide GPU cap to prevent cost runaway
 - `disruption.consolidateAfter: 30s` — Quick cleanup is key since GPU nodes are expensive
 - `weight: 100` — Priority setting among multiple NodePools
+- Per-workload separation: inference uses On-Demand + `WhenEmpty`; training uses `[spot, on-demand]` + `consolidateAfter: 30m` to prevent interruption
+
+### EC2NodeClass Configuration Example
+
+```yaml
+apiVersion: karpenter.k8s.aws/v1
+kind: EC2NodeClass
+metadata:
+  name: gpu-nodeclass
+spec:
+  amiSelectorTerms:
+    - alias: al2023
+  role: KarpenterNodeRole-eks-genai-cluster
+  subnetSelectorTerms:
+    - tags:
+        karpenter.sh/discovery: eks-genai-cluster
+        subnet-type: private
+  securityGroupSelectorTerms:
+    - tags:
+        karpenter.sh/discovery: eks-genai-cluster
+  blockDeviceMappings:
+    - deviceName: /dev/xvda
+      ebs:
+        volumeSize: 200Gi
+        volumeType: gp3
+        iops: 16000
+        throughput: 1000
+        encrypted: true
+        deleteOnTermination: true
+  metadataOptions:
+    httpEndpoint: enabled
+    httpPutResponseHopLimit: 2
+    httpTokens: required  # IMDSv2
+  tags:
+    Environment: production
+    ManagedBy: karpenter
+```
 
 ### GPU Instance Type Comparison
 

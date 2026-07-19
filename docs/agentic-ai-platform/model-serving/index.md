@@ -36,7 +36,7 @@ import { TieredGatewayDiagram } from '@site/src/components/GatewayApiTables';
 
 ## 카테고리 구성
 
-- **GPU 인프라 계층**: Kubernetes 위에서 GPU 인스턴스·드라이버·스케줄러·파티셔닝을 관리하는 계층. 어느 노드에 어떻게 GPU 를 할당할지 결정합니다.
+- **가속 컴퓨팅 인프라 계층**: Kubernetes 위에서 GPU·AWS 커스텀 가속기(Trainium/Inferentia) 인스턴스·드라이버·스케줄러·파티셔닝을 관리하는 계층. 어느 노드에 어떻게 가속기를 할당할지 결정합니다.
 - **추론 프레임워크 계층**: 확보된 GPU 위에서 실제로 모델을 서빙·분산 추론·파인튜닝하는 AI 프레임워크 계층. vLLM·llm-d·MoE·NeMo 가 여기 속합니다.
 - **추론 최적화 & 라우팅 계층**: KV 캐시·Disaggregated Serving·LMCache·캐시 히트 전략과 게이트웨이 라우팅으로 성능과 비용을 최적화하는 계층.
 
@@ -44,7 +44,7 @@ import { TieredGatewayDiagram } from '@site/src/components/GatewayApiTables';
   <DocCard
     to="/docs/agentic-ai-platform/model-serving/gpu-infrastructure"
     icon="🖥️"
-    title="GPU 인프라"
+    title="가속 컴퓨팅 인프라"
     description="EKS GPU 노드 전략, Karpenter·KEDA·DRA 기반 리소스 관리, NVIDIA GPU 스택(ClusterPolicy·DCGM·MIG·Time-Slicing), AWS Neuron Stack(Trainium2/Inferentia2)."
     color="#326ce5"
   />
@@ -65,7 +65,7 @@ import { TieredGatewayDiagram } from '@site/src/components/GatewayApiTables';
 </DocCardGrid>
 
 :::tip 학습 순서
-아래 지도로 전체 그림을 잡은 뒤 **GPU 인프라 → 추론 프레임워크 → 추론 최적화 & 라우팅** 순으로 읽는 것이 자연스럽습니다. GPU 인프라에서 "어떤 노드·파티셔닝·드라이버 스택을 쓸 것인가" 를 결정하고, 추론 프레임워크에서 "그 위에 vLLM·llm-d 를 어떻게 배포할 것인가" 를, 추론 최적화 & 라우팅에서 "어떻게 성능·비용을 최적화하고 트래픽을 라우팅할 것인가" 를 다룹니다.
+아래 지도로 전체 그림을 잡은 뒤 **가속 컴퓨팅 인프라 → 추론 프레임워크 → 추론 최적화 & 라우팅** 순으로 읽는 것이 자연스럽습니다. 가속 컴퓨팅 인프라에서 "어떤 노드·파티셔닝·드라이버 스택을 쓸 것인가" 를 결정하고, 추론 프레임워크에서 "그 위에 vLLM·llm-d 를 어떻게 배포할 것인가" 를, 추론 최적화 & 라우팅에서 "어떻게 성능·비용을 최적화하고 트래픽을 라우팅할 것인가" 를 다룹니다.
 :::
 
 ## 추론 요청의 전체 경로

@@ -1,6 +1,6 @@
 ---
-title: GPU 인프라
-description: EKS GPU 노드 전략, Karpenter·KEDA·DRA 리소스 관리, NVIDIA GPU 스택, AWS Neuron 스택
+title: 가속 컴퓨팅 인프라
+description: EKS GPU 노드 전략, Karpenter·KEDA·DRA 리소스 관리, NVIDIA GPU 스택, AWS Neuron 스택 — GPU·AWS 커스텀 가속기를 포괄하는 가속 컴퓨팅 계층
 created: "2026-04-17"
 last_update:
   date: "2026-07-19"
@@ -13,12 +13,12 @@ tags:
   - gpu-operator
   - neuron
   - scope:tech
-sidebar_label: GPU 인프라
+sidebar_label: 가속 컴퓨팅 인프라
 ---
 
 import { DocCard, DocCardGrid } from '@site/src/components/DocCards';
 
-Kubernetes 위에서 **어떤 GPU 인스턴스를 · 어떻게 스케줄링하고 · 어떤 드라이버·파티셔닝 스택으로 관리할지** 를 다루는 계층입니다. 이 계층이 확립되어야 상위의 추론 프레임워크(vLLM·llm-d 등)가 안정적으로 돌아갑니다.
+Kubernetes 위에서 **어떤 가속 인스턴스를 · 어떻게 스케줄링하고 · 어떤 드라이버·파티셔닝 스택으로 관리할지** 를 다루는 계층입니다. NVIDIA GPU 뿐 아니라 AWS 커스텀 가속기(Trainium/Inferentia)까지 포괄합니다. 이 계층이 확립되어야 상위의 추론 프레임워크(vLLM·llm-d 등)가 안정적으로 돌아갑니다.
 
 <DocCardGrid columns={2}>
   <DocCard

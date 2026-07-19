@@ -3,9 +3,9 @@ title: EKS GPU Node Strategy
 description: Optimal node strategies for GPU workloads across EKS Auto Mode, Karpenter, MNG, and Hybrid Nodes
 created: "2026-03-16"
 last_update:
-  date: "2026-06-26"
+  date: "2026-07-19"
   author: devfloor9
-reading_time: 33
+reading_time: 32
 tags:
   - eks
   - gpu
@@ -121,8 +121,6 @@ GPU Operator **can be installed** on Auto Mode. The key is to **disable only the
 
 **Why is GPU Operator needed?** Several projects including KAI Scheduler and Run:ai depend on GPU Operator's **ClusterPolicy CRD**. Without ClusterPolicy, these projects cannot even start. This is the core reason for installing GPU Operator on Auto Mode.
 
-For complete GPU Operator architecture and component details, see [NVIDIA GPU Stack](./nvidia-gpu-stack.md).
-
 ```
 ClusterPolicy CRD (GPU Operator)
   ↓ depends on
@@ -133,55 +131,7 @@ DCGM Exporter (GPU metrics)
 NFD/GFD (Hardware labels)
 ```
 
-| GPU Operator Component | Auto Mode Setting | Reason |
-|----------------------|------------------|--------|
-| **Driver** | `enabled: false` | Pre-installed in AMI |
-| **Container Toolkit** | `enabled: false` | Pre-installed in AMI |
-| **Device Plugin** | Disabled via label | AWS manages its own Device Plugin |
-| **DCGM Exporter** | `enabled: true` | GPU metrics collection |
-| **NFD / GFD** | `enabled: true` | Hardware feature detection and GPU attribute labeling |
-
-NodePool label configuration to disable Device Plugin:
-
-```yaml
-apiVersion: karpenter.sh/v1
-kind: NodePool
-metadata:
-  name: gpu-auto-mode
-spec:
-  template:
-    metadata:
-      labels:
-        nvidia.com/gpu.deploy.device-plugin: "false"
-    spec:
-      requirements:
-        - key: eks.amazonaws.com/instance-family
-          operator: In
-          values: ["p5", "g6e", "g5"]
-      nodeClassRef:
-        group: eks.amazonaws.com
-        kind: NodeClass
-        name: default
-```
-
-Helm Values (for Auto Mode):
-
-```yaml
-driver:
-  enabled: false
-toolkit:
-  enabled: false
-devicePlugin:
-  enabled: true           # Globally enabled, selectively disabled via node labels
-dcgmExporter:
-  enabled: true
-  serviceMonitor:
-    enabled: true
-nfd:
-  enabled: true
-gfd:
-  enabled: true
-```
+For the per-component activation matrix, the Device Plugin disable NodePool label, and complete Helm values for Auto Mode/Karpenter, see [NVIDIA GPU Stack — GPU Operator Configuration per EKS Environment](./nvidia-gpu-stack.md#gpu-operator-configuration-per-eks-environment).
 
 :::caution Actual Auto Mode Limitations
 While GPU Operator installation is possible, since NodeClass is read-only, the following are not available:
@@ -260,227 +210,17 @@ If `NoCompatibleInstanceTypes` appears in `kubectl get nodeclaim` events after d
 
 ### 4.1 Why Karpenter
 
-Karpenter is the optimal balance point that maintains Auto Mode's auto-scaling advantages while fully utilizing GPU Operator.
+Karpenter is the optimal balance point that maintains Auto Mode's auto-scaling advantages while fully utilizing GPU Operator. For per-item differences with Auto Mode, see the [Feature Comparison Table](#21-feature-comparison-table) above. In short, full Custom AMI, MIG, and Spot support are the deciding factors for choosing Karpenter.
 
-| Feature | Auto Mode | Karpenter |
-|---------|-----------|-----------|
-| **Auto-scaling** | Automatic (AWS controlled) | Automatic (NodePool-based) |
-| **GPU Operator** | Available (Device Plugin disabled) | Fully available |
-| **Custom AMI** | Not available | Available |
-| **MIG Support** | Not available | Available |
-| **Spot Instance** | Limited | Fully supported |
-| **Node Replacement Speed** | Fast | Very fast |
+### 4.2 NodePool and Cost Configuration References
 
-### 4.2 Inference Workload NodePool
+Inference/training NodePool YAML, EC2NodeClass, Spot + On-Demand fallback, topology and Gang Scheduling, Spot price comparison, and cost optimization strategies are covered in [GPU Resource Management](./gpu-resource-management.md). For Karpenter-node-specific GPU Operator Helm values, see [NVIDIA GPU Stack — GPU Operator Configuration per EKS Environment](./nvidia-gpu-stack.md#gpu-operator-configuration-per-eks-environment).
 
-```yaml
-apiVersion: karpenter.sh/v1
-kind: NodePool
-metadata:
-  name: gpu-inference
-spec:
-  template:
-    metadata:
-      labels:
-        node-type: gpu-inference
-        gpu-operator: enabled
-    spec:
-      requirements:
-        - key: node.kubernetes.io/instance-type
-          operator: In
-          values:
-            - p5.48xlarge      # H100 x8 (640GB HBM3)
-            - g6e.12xlarge     # L40S x4 (192GB GDDR6)
-            - g5.12xlarge      # A10G x4 (96GB GDDR6)
-        - key: karpenter.sh/capacity-type
-          operator: In
-          values: [on-demand]
-        - key: topology.kubernetes.io/zone
-          operator: In
-          values: [us-west-2a, us-west-2b, us-west-2c]
-      taints:
-        - key: nvidia.com/gpu
-          effect: NoSchedule
-          value: "true"
-      kubelet:
-        maxPods: 110
-        evictionHard:
-          memory.available: "10Gi"
-  disruption:
-    consolidationPolicy: WhenEmpty
-    consolidateAfter: 5m
-  limits:
-    cpu: "1000"
-    memory: "4000Gi"
-    nvidia.com/gpu: "32"
-```
+Key points from the node strategy perspective:
 
-### 4.3 Training Workload NodePool (Spot + On-Demand fallback)
-
-```yaml
-apiVersion: karpenter.sh/v1
-kind: NodePool
-metadata:
-  name: gpu-training
-spec:
-  template:
-    metadata:
-      labels:
-        node-type: gpu-training
-        gpu-operator: enabled
-    spec:
-      requirements:
-        - key: node.kubernetes.io/instance-type
-          operator: In
-          values:
-            - p5.48xlarge      # H100 x8
-        - key: karpenter.sh/capacity-type
-          operator: In
-          values: [spot, on-demand]  # Spot first, On-Demand fallback
-      taints:
-        - key: workload
-          effect: NoSchedule
-          value: "training"
-      kubelet:
-        maxPods: 50
-        evictionHard:
-          memory.available: "20Gi"
-  disruption:
-    consolidationPolicy: WhenUnderutilized
-    consolidateAfter: 30m  # Prevent training interruption
-  limits:
-    nvidia.com/gpu: "64"
-```
-
-### 4.4 EC2NodeClass Configuration
-
-```yaml
-apiVersion: karpenter.k8s.aws/v1
-kind: EC2NodeClass
-metadata:
-  name: gpu-inference
-spec:
-  amiSelectorTerms:
-    - alias: al2023
-  role: KarpenterNodeRole-eks-genai-cluster
-  subnetSelectorTerms:
-    - tags:
-        karpenter.sh/discovery: eks-genai-cluster
-        subnet-type: private
-  securityGroupSelectorTerms:
-    - tags:
-        karpenter.sh/discovery: eks-genai-cluster
-  blockDeviceMappings:
-    - deviceName: /dev/xvda
-      ebs:
-        volumeSize: 200Gi
-        volumeType: gp3
-        iops: 16000
-        throughput: 1000
-        encrypted: true
-        deleteOnTermination: true
-  metadataOptions:
-    httpEndpoint: enabled
-    httpPutResponseHopLimit: 2
-    httpTokens: required  # IMDSv2
-  tags:
-    Environment: production
-    ManagedBy: karpenter
-```
-
-### 4.5 GPU Operator Helm Values (for Karpenter Nodes)
-
-```yaml
-# helm install gpu-operator nvidia/gpu-operator -f values.yaml
-driver:
-  enabled: false          # AL2023: Pre-installed in AMI
-
-toolkit:
-  enabled: false          # AL2023: Pre-installed in AMI
-
-devicePlugin:
-  enabled: true
-  nodeSelector:
-    gpu-operator: enabled
-  tolerations:
-    - key: nvidia.com/gpu
-      operator: Exists
-      effect: NoSchedule
-
-migManager:
-  enabled: true
-  nodeSelector:
-    gpu-operator: enabled
-  config:
-    name: mig-parted-config
-    default: "all-balanced"
-
-dcgmExporter:
-  enabled: true
-  serviceMonitor:
-    enabled: true
-    interval: 15s
-  nodeSelector:
-    gpu-operator: enabled
-
-nfd:
-  enabled: true
-
-gfd:
-  enabled: true
-  nodeSelector:
-    gpu-operator: enabled
-
-operator:
-  nodeSelector:
-    node-type: gpu-inference  # Karpenter NodePool label
-  tolerations:
-    - key: nvidia.com/gpu
-      operator: Exists
-      effect: NoSchedule
-  defaultRuntime: containerd
-```
-
-**Key Configuration Points:**
-- `nodeSelector: gpu-operator: enabled` -- Excludes Auto Mode nodes
-- `driver/toolkit: false` -- Pre-installed in AL2023 AMI
-- `migManager: true` -- Enables MIG functionality on Karpenter nodes
-
-### 4.6 GPU Topology-Based Scheduling
-
-In distributed training, placing GPUs connected via NVLink on the same node is critical for performance:
-
-```yaml
-# GPU topology hints in Pod configuration
-apiVersion: v1
-kind: Pod
-spec:
-  containers:
-  - name: pytorch-ddp
-    resources:
-      limits:
-        nvidia.com/gpu: 4
-  # Place GPUs within the same NVLink domain
-  topologySpreadConstraints:
-    - maxSkew: 1
-      topologyKey: topology.kubernetes.io/zone
-      whenUnsatisfiable: DoNotSchedule
-      labelSelector:
-        matchLabels:
-          app: distributed-training
-```
-
-### 4.7 Spot Price Comparison (us-east-2, 2026.04)
-
-| Instance | On-Demand | Spot (Lowest) | VRAM | Savings |
-|---------|-----------|------------|------|---------|
-| p5.48xlarge | $98/hr | $12.5/hr | 640GB | 87% |
-| p5en.48xlarge | ~$120/hr | $12.1/hr | 1,128GB | 90% |
-| p6-b200.48xlarge | $180/hr | $11.4/hr | 1,536GB | 94% |
-
-:::tip Spot Usage Recommendation
-Large GPU instances can achieve 85-94% cost savings with Spot. Actively use Spot for PoC/demo environments, and set `consolidationPolicy: WhenEmpty` to prevent unnecessary disruption. Prices are approximate; verify real-time pricing at [AWS Spot Pricing](https://aws.amazon.com/ec2/spot/pricing/).
-:::
+- **Inference NodePool**: Prefer On-Demand; minimize serving disruption with `consolidationPolicy: WhenEmpty`
+- **Training NodePool**: `capacity-type: [spot, on-demand]` for Spot-first + fallback; prevent training interruption with `consolidateAfter: 30m`
+- **Spot savings**: p5/p5en/p6 family instances can save roughly 69-85% with Spot (use actively for PoC/demo environments)
 
 ---
 
@@ -542,15 +282,7 @@ flowchart TB
 
 ### 5.3 MNG Hybrid for DRA Workloads
 
-DRA (Dynamic Resource Allocation) was promoted to GA in K8s 1.34, providing advanced GPU management beyond Device Plugin including fine-grained GPU memory allocation and NVLink topology-aware scheduling. **DRA support depends on the Karpenter version and deployment method.**
-
-:::warning DRA support status (as of 2026.07)
-**Self-managed Karpenter v1.14.0+**: DRA is supported. The DRA allocator was merged into core Karpenter v1.14.0 ([PR #3113](https://github.com/kubernetes-sigs/karpenter/pull/3113), including consumable capacity & partitionable devices), and the AWS Provider v1.14.0 that includes it was released on 2026-07-11. Versions ≤ v1.13 skip node provisioning when they detect `spec.resourceClaims` in a Pod ([PR #2384](https://github.com/kubernetes-sigs/karpenter/pull/2384)): they simulate Pod requirements to calculate optimal instances, but DRA's ResourceSlice is only issued by the DRA Driver after a node exists — making **pre-node-creation simulation impossible** (chicken-and-egg problem).
-
-**EKS Auto Mode**: Not supported today. It uses an AWS-managed internal Karpenter, so users cannot raise its version to v1.14+; DRA is unavailable until Auto Mode's Karpenter is updated.
-
-**Managed Node Group**: Supports DRA on all versions; recommended for DRA workloads when using Auto Mode or when self-managed Karpenter upgrades are impractical.
-:::
+DRA (Dynamic Resource Allocation) was promoted to GA in K8s 1.34, providing advanced GPU management beyond Device Plugin including fine-grained GPU memory allocation and NVLink topology-aware scheduling. **DRA support depends on the Karpenter version and deployment method** — self-managed Karpenter v1.14.0+ (`ignoreDRARequests=false`) and MNG support it, while EKS Auto Mode currently does not due to its internal Karpenter version constraint. For the per-provisioning-method compatibility table and enablement parameters, see [GPU Resource Management — Node Provisioning Compatibility](./gpu-resource-management.md#node-provisioning-compatibility).
 
 ```mermaid
 flowchart TB
@@ -589,7 +321,7 @@ For detailed DRA scale-out strategies, see [GPU Resource Management](./gpu-resou
 
 | Model Size | Example | Recommended Node | Reason |
 |---|---|---|---|
-| **70B+** | Qwen3-72B, Llama-3-70B | Auto Mode + llm-d | Uses nearly all GPU, management convenience |
+| **70B+** | Qwen2.5-72B, Llama-3.3-70B | Auto Mode + llm-d | Uses nearly all GPU, management convenience |
 | **30B-65B** | Qwen3-32B | Auto Mode or Karpenter | 50%+ GPU usage, choose based on situation |
 | **13B-30B** | Llama-3-13B | Karpenter + MIG 2-way split | GPU utilization improvement needed |
 | **7B and below** | Llama-3-8B, Mistral-7B | Karpenter + MIG 4-7 way split | Severe GPU waste, MIG essential |
@@ -598,12 +330,12 @@ For detailed DRA scale-out strategies, see [GPU Resource Management](./gpu-resou
 
 ### 5.5 Cost Impact by Model Size
 
-Based on p5.48xlarge (H100 x8), monthly cost approximately $98,000:
+Based on p5.48xlarge (H100 x8) On-Demand $55.04/hr, monthly cost is approximately $40,000 (reflecting the 2025-06 price cut):
 
 | Configuration | 7B Model Instances | GPU Usage | GPU Utilization | Effective Cost/Instance |
 |---|---|---|---|---|
-| Auto Mode (full GPU allocation) | 8 | 8 GPUs | ~25% | $12,250 |
-| Karpenter + MIG (4-way split) | 8 | 2 GPUs | ~80% | **$3,063** |
+| Auto Mode (full GPU allocation) | 8 | 8 GPUs | ~25% | $5,020 |
+| Karpenter + MIG (4-way split) | 8 | 2 GPUs | ~80% | **$1,256** |
 | **Savings** | Same | **75% reduction** | **3.2x improvement** | **75% reduction** |
 
 :::warning Model Size and Cost Efficiency
@@ -693,7 +425,7 @@ Cost: $80,000 - $500,000/month (cloud) + Capex (on-premises)
 | Multi-Node NVLink / IMEX Needed | Required (ComputeDomain is DRA-exclusive) |
 | CEL-Based Fine-Grained GPU Attribute Selection | Recommended |
 | GPU Sharing (MPS) | Recommended |
-| Karpenter DRA Support GA | Optimal transition timing (MNG not needed) |
+| Self-managed Karpenter v1.14.0+ (DRA supported) | Optimal transition timing (MNG not needed) |
 
 :::tip Transition Strategy
 **Now**: Karpenter + GPU Operator (Device Plugin + MIG) -- Fastest and most operationally viable production configuration

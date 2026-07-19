@@ -36,7 +36,7 @@ Inference optimization is achieved not by a single technology but by **a combina
 
 ## Category Structure
 
-- **GPU Infrastructure Layer**: The layer that manages GPU instances, drivers, schedulers, and partitioning on top of Kubernetes. Determines which nodes get GPU allocation and how.
+- **Accelerated Computing Infrastructure Layer**: The layer that manages GPU and AWS custom accelerator (Trainium/Inferentia) instances, drivers, schedulers, and partitioning on top of Kubernetes. Determines which nodes get accelerator allocation and how.
 - **Inference Framework Layer**: The AI framework layer that actually serves models, performs distributed inference, and fine-tunes on the secured GPUs. vLLM, llm-d, MoE, and NeMo belong here.
 - **Inference Optimization & Routing Layer**: The layer that optimizes performance and cost through KV cache, Disaggregated Serving, LMCache, cache-hit strategy, and gateway routing.
 
@@ -44,7 +44,7 @@ Inference optimization is achieved not by a single technology but by **a combina
   <DocCard
     to="/docs/agentic-ai-platform/model-serving/gpu-infrastructure"
     icon="🖥️"
-    title="GPU Infrastructure"
+    title="Accelerated Computing Infrastructure"
     description="EKS GPU node strategy, Karpenter·KEDA·DRA-based resource management, NVIDIA GPU stack (ClusterPolicy·DCGM·MIG·Time-Slicing), AWS Neuron Stack (Trainium2/Inferentia2)."
     color="#326ce5"
   />
@@ -65,7 +65,7 @@ Inference optimization is achieved not by a single technology but by **a combina
 </DocCardGrid>
 
 :::tip Learning Order
-After grasping the full picture with the map below, reading in the order **GPU Infrastructure → Inference Frameworks → Inference Optimization & Routing** is natural. First decide "which nodes, partitioning, and driver stack to use" in GPU Infrastructure, then cover "how to deploy vLLM and llm-d on top of that" in Inference Frameworks, and finally "how to optimize performance/cost and route traffic" in Inference Optimization & Routing.
+After grasping the full picture with the map below, reading in the order **Accelerated Computing Infrastructure → Inference Frameworks → Inference Optimization & Routing** is natural. First decide "which nodes, partitioning, and driver stack to use" in Accelerated Computing Infrastructure, then cover "how to deploy vLLM and llm-d on top of that" in Inference Frameworks, and finally "how to optimize performance/cost and route traffic" in Inference Optimization & Routing.
 :::
 
 ## End-to-End Path of an Inference Request

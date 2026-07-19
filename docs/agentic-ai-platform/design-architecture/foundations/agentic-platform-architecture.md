@@ -212,7 +212,7 @@ flowchart TB
 가속 컴퓨팅의 운영은 모델 서빙(Layer 2)과 책임이 분리됩니다. 모델 서빙은 "어떤 모델을 어떻게 추론하는가"를, AI Infrastructure는 "그 추론을 어떤 가속기 위에서 얼마나 효율적으로 돌리는가"를 책임집니다. GPU 모니터링·스케줄링·파티셔닝은 vLLM·llm-d 같은 서빙 엔진과 독립적으로 진화하며, 학습 워크로드(라이프사이클 플레인)도 동일한 인프라 레이어를 공유합니다.
 
 :::info 상세 가이드
-GPU 노드 전략, Karpenter·KEDA·DRA 리소스 관리, NVIDIA GPU 스택(GPU Operator·DCGM·MIG), AWS Neuron 스택은 [모델 서빙 & 추론 인프라](../../model-serving/index.md)의 GPU 인프라 섹션을 참조하세요.
+GPU 노드 전략, Karpenter·KEDA·DRA 리소스 관리, NVIDIA GPU 스택(GPU Operator·DCGM·MIG), AWS Neuron 스택은 [모델 서빙 & 추론 인프라](../../model-serving/index.md)의 가속 컴퓨팅 인프라 섹션을 참조하세요.
 :::
 
 ---

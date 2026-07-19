@@ -196,7 +196,7 @@ const sidebars = {
           items: [
             {
               type: 'category',
-              label: 'GPU 인프라',
+              label: '가속 컴퓨팅 인프라',
               link: {
                 type: 'doc',
                 id: 'agentic-ai-platform/model-serving/gpu-infrastructure/index',

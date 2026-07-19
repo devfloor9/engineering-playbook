@@ -20,7 +20,7 @@ sidebar_label: 추론 프레임워크
 
 import { DocCard, DocCardGrid } from '@site/src/components/DocCards';
 
-[GPU 인프라](../gpu-infrastructure/index.md) 위에서 실제로 **LLM 을 서빙·분산 추론·파인튜닝** 하는 AI 프레임워크 계층입니다. 단일 노드 고성능 서빙(vLLM), Kubernetes 네이티브 분산 추론(llm-d), MoE 모델 처리, NVIDIA NeMo 기반 학습까지 포함합니다.
+[가속 컴퓨팅 인프라](../gpu-infrastructure/index.md) 위에서 실제로 **LLM 을 서빙·분산 추론·파인튜닝** 하는 AI 프레임워크 계층입니다. 단일 노드 고성능 서빙(vLLM), Kubernetes 네이티브 분산 추론(llm-d), MoE 모델 처리, NVIDIA NeMo 기반 학습까지 포함합니다.
 
 <DocCardGrid columns={2}>
   <DocCard

@@ -3,9 +3,9 @@ title: NVIDIA GPU 스택
 description: GPU Operator, DCGM, MIG, Time-Slicing, Dynamo의 아키텍처와 EKS 통합
 created: "2026-03-20"
 last_update:
-  date: "2026-07-17"
+  date: "2026-07-19"
   author: YoungJoon Jeong
-reading_time: 19
+reading_time: 21
 tags:
   - nvidia
   - gpu-operator
@@ -139,6 +139,79 @@ spec:
         kind: NodeClass
         name: default
 ```
+
+Auto Mode용 Helm values는 Device Plugin을 전역 활성화한 채 노드 레이블로 선택 비활성화합니다.
+
+```yaml
+# Auto Mode용 GPU Operator Helm values
+driver:
+  enabled: false          # AWS가 AMI에 사전 설치
+toolkit:
+  enabled: false          # AWS가 AMI에 사전 설치
+devicePlugin:
+  enabled: true           # 전역 활성화, 노드 레이블로 선택적 비활성화
+dcgmExporter:
+  enabled: true
+  serviceMonitor:
+    enabled: true
+nfd:
+  enabled: true
+gfd:
+  enabled: true
+```
+
+### Karpenter 노드 전용 GPU Operator 구성
+
+Karpenter(Self-Managed) 노드에서는 MIG Manager까지 포함한 전체 스택을 활성화하되, `nodeSelector`로 Auto Mode 노드를 제외합니다.
+
+```yaml
+# helm install gpu-operator nvidia/gpu-operator -f values.yaml
+driver:
+  enabled: false          # AL2023: AMI 사전 설치
+toolkit:
+  enabled: false          # AL2023: AMI 사전 설치
+devicePlugin:
+  enabled: true
+  nodeSelector:
+    gpu-operator: enabled
+  tolerations:
+    - key: nvidia.com/gpu
+      operator: Exists
+      effect: NoSchedule
+migManager:
+  enabled: true
+  nodeSelector:
+    gpu-operator: enabled
+  config:
+    name: mig-parted-config
+    default: "all-balanced"
+dcgmExporter:
+  enabled: true
+  serviceMonitor:
+    enabled: true
+    interval: 15s
+  nodeSelector:
+    gpu-operator: enabled
+nfd:
+  enabled: true
+gfd:
+  enabled: true
+  nodeSelector:
+    gpu-operator: enabled
+operator:
+  nodeSelector:
+    node-type: gpu-inference  # Karpenter NodePool 레이블
+  tolerations:
+    - key: nvidia.com/gpu
+      operator: Exists
+      effect: NoSchedule
+  defaultRuntime: containerd
+```
+
+**핵심 설정 포인트:**
+- `nodeSelector: gpu-operator: enabled` — Auto Mode 노드 제외
+- `driver/toolkit: false` — AL2023 AMI에 사전 설치
+- `migManager: true` — Karpenter 노드에서 MIG 기능 활용
 
 ---
 

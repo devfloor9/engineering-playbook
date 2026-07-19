@@ -1,6 +1,6 @@
 ---
-title: GPU Infrastructure
-description: EKS GPU node strategy, Karpenter·KEDA·DRA resource management, NVIDIA GPU stack, AWS Neuron stack
+title: Accelerated Computing Infrastructure
+description: EKS GPU node strategy, Karpenter·KEDA·DRA resource management, NVIDIA GPU stack, AWS Neuron stack — the accelerated computing layer covering GPUs and AWS custom accelerators
 created: "2026-04-17"
 last_update:
   date: "2026-07-19"
@@ -13,12 +13,12 @@ tags:
   - gpu-operator
   - neuron
   - scope:tech
-sidebar_label: GPU Infrastructure
+sidebar_label: Accelerated Computing Infrastructure
 ---
 
 import { DocCard, DocCardGrid } from '@site/src/components/DocCards';
 
-The layer that determines **which GPU instances · how to schedule · and which driver/partitioning stack to manage** on Kubernetes. This layer must be established for upper-layer inference frameworks (vLLM, llm-d, etc.) to run stably.
+The layer that determines **which accelerated instances · how to schedule · and which driver/partitioning stack to manage** on Kubernetes. It covers not only NVIDIA GPUs but also AWS custom accelerators (Trainium/Inferentia). This layer must be established for upper-layer inference frameworks (vLLM, llm-d, etc.) to run stably.
 
 <DocCardGrid columns={2}>
   <DocCard

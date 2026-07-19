@@ -3,9 +3,9 @@ title: GPU 리소스 관리
 description: EKS에서 Karpenter, KEDA, DRA를 활용한 GPU 리소스 관리 및 비용 최적화
 created: "2026-02-05"
 last_update:
-  date: "2026-07-18"
+  date: "2026-07-19"
   author: YoungJoon Jeong
-reading_time: 15
+reading_time: 23
 tags:
   - gpu
   - karpenter
@@ -110,6 +110,43 @@ spec:
 - `limits.nvidia.com/gpu: 64` — 클러스터 전체 GPU 상한으로 비용 폭주 방지
 - `disruption.consolidateAfter: 30s` — GPU 노드는 비용이 높으므로 빠른 정리가 핵심
 - `weight: 100` — 여러 NodePool 중 이 풀의 우선순위 설정
+- 워크로드별 분리: 추론은 On-Demand + `WhenEmpty`, 훈련은 `[spot, on-demand]` + `consolidateAfter: 30m`으로 중단 방지
+
+### EC2NodeClass 설정 예시
+
+```yaml
+apiVersion: karpenter.k8s.aws/v1
+kind: EC2NodeClass
+metadata:
+  name: gpu-nodeclass
+spec:
+  amiSelectorTerms:
+    - alias: al2023
+  role: KarpenterNodeRole-eks-genai-cluster
+  subnetSelectorTerms:
+    - tags:
+        karpenter.sh/discovery: eks-genai-cluster
+        subnet-type: private
+  securityGroupSelectorTerms:
+    - tags:
+        karpenter.sh/discovery: eks-genai-cluster
+  blockDeviceMappings:
+    - deviceName: /dev/xvda
+      ebs:
+        volumeSize: 200Gi
+        volumeType: gp3
+        iops: 16000
+        throughput: 1000
+        encrypted: true
+        deleteOnTermination: true
+  metadataOptions:
+    httpEndpoint: enabled
+    httpPutResponseHopLimit: 2
+    httpTokens: required  # IMDSv2
+  tags:
+    Environment: production
+    ManagedBy: karpenter
+```
 
 ### GPU 인스턴스 타입 비교
 

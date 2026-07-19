@@ -212,7 +212,7 @@ flowchart TB
 The operation of accelerated compute is separated in responsibility from model serving (Layer 2). Model serving owns "which model is served and how"; AI Infrastructure owns "on which accelerator that inference runs and how efficiently." GPU monitoring, scheduling, and partitioning evolve independently of serving engines such as vLLM and llm-d, and training workloads (lifecycle plane) share the same infrastructure layer.
 
 :::info Detailed Guides
-For GPU node strategy, Karpenter·KEDA·DRA resource management, the NVIDIA GPU stack (GPU Operator·DCGM·MIG), and the AWS Neuron stack, see the GPU infrastructure section of [Model Serving & Inference Infrastructure](../../model-serving/index.md).
+For GPU node strategy, Karpenter·KEDA·DRA resource management, the NVIDIA GPU stack (GPU Operator·DCGM·MIG), and the AWS Neuron stack, see the Accelerated Computing Infrastructure section of [Model Serving & Inference Infrastructure](../../model-serving/index.md).
 :::
 
 ---
