@@ -193,17 +193,17 @@ For large-scale LLM training or tensor parallel inference, multiple GPU Pods mus
 
 ### Concept and Necessity
 
-DRA is a Kubernetes resource allocation paradigm that overcomes Device Plugin limitations. DRA itself is not GPU-specific — it is a general-purpose framework covering specialized devices such as NICs, interconnects, and FPGAs. The core API model (DeviceClass, ResourceClaim, ResourceSlice) and the per-resource-type driver ecosystem are covered in [Kubernetes DRA](./kubernetes-dra.md). This section focuses on **operating DRA in EKS GPU environments**.
+DRA is a Kubernetes resource allocation paradigm that overcomes Device Plugin limitations. DRA itself is not GPU-specific — it is a general-purpose framework covering specialized devices such as NICs, interconnects, and FPGAs. The core API model (DeviceClass, ResourceClaim, ResourceSlice) and the per-resource-type driver ecosystem are covered in [Kubernetes DRA](../../../eks-best-practices/resource-cost/kubernetes-dra.md). This section focuses on **operating DRA in EKS GPU environments**.
 
 <DraLimitationsTable />
 
 :::info DRA Maturity
-The DRA core reached GA in K8s 1.34 (`resource.k8s.io/v1`, enabled by default) and is locked-to-default in 1.35. For the version history and per-feature maturity, see [Kubernetes DRA — Version History](./kubernetes-dra.md#version-history).
+The DRA core reached GA in K8s 1.34 (`resource.k8s.io/v1`, enabled by default) and is locked-to-default in 1.35. For the version history and per-feature maturity, see [Kubernetes DRA — Version History](../../../eks-best-practices/resource-cost/kubernetes-dra.md#version-history).
 :::
 
 ### GPU Allocation Flow
 
-DRA separates **declarative resource requests** (ResourceClaim) from **immediate allocation**. When a Pod requests GPUs based on attributes like "1 H100 GPU, MIG 3g.20gb profile", the DRA Driver matches it with actual hardware. For the general API object model and CEL matching principles, see [Kubernetes DRA — Core Model](./kubernetes-dra.md#the-dra-core-model). The flow below shows GPU allocation combined with node scale-out on EKS.
+DRA separates **declarative resource requests** (ResourceClaim) from **immediate allocation**. When a Pod requests GPUs based on attributes like "1 H100 GPU, MIG 3g.20gb profile", the DRA Driver matches it with actual hardware. For the general API object model and CEL matching principles, see [Kubernetes DRA — Core Model](../../../eks-best-practices/resource-cost/kubernetes-dra.md#the-dra-core-model). The flow below shows GPU allocation combined with node scale-out on EKS.
 
 ```mermaid
 flowchart LR
@@ -499,7 +499,7 @@ flowchart LR
 
 ## Related Documents
 
-- [Kubernetes DRA](./kubernetes-dra.md) — DRA as a general-purpose framework — core model, non-GPU resource types, adoption criteria
+- [Kubernetes DRA](../../../eks-best-practices/resource-cost/kubernetes-dra.md) — DRA as a general-purpose framework — core model, non-GPU resource types, adoption criteria
 - [NVIDIA GPU Stack](./nvidia-gpu-stack.md) — GPU Operator, DCGM, MIG, Time-Slicing, Dynamo
 - [EKS GPU Node Strategy](./eks-gpu-node-strategy.md) — Auto Mode + Karpenter + Hybrid Node configuration
 - [vLLM Model Serving](../inference-frameworks/vllm-model-serving.md) — Inference engine deployment

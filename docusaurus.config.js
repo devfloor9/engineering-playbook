@@ -130,6 +130,11 @@ const config = {
       {
         // 추론 게이트웨이 개념 문서 4종을 model-serving/inference-routing 으로 이동(2026-06-25)
         redirects: [
+          // Kubernetes DRA 문서를 gpu-infrastructure 에서 eks-best-practices/resource-cost 로 이동 (2026-07-19)
+          {
+            from: '/docs/agentic-ai-platform/model-serving/gpu-infrastructure/kubernetes-dra',
+            to: '/docs/eks-best-practices/resource-cost/kubernetes-dra',
+          },
           // GAMMA Initiative 문서를 service-mesh 카테고리로 이동 (2026-07)
           {
             from: '/docs/eks-best-practices/networking-performance/gateway-api-adoption-guide/gamma-initiative',

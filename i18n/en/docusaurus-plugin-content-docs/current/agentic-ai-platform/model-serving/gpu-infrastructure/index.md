@@ -3,7 +3,7 @@ title: GPU Infrastructure
 description: EKS GPU node strategy, Karpenter·KEDA·DRA resource management, NVIDIA GPU stack, AWS Neuron stack
 created: "2026-04-17"
 last_update:
-  date: "2026-06-26"
+  date: "2026-07-19"
   author: devfloor9
 reading_time: 4
 tags:
@@ -34,13 +34,6 @@ The layer that determines **which GPU instances · how to schedule · and which 
     title="GPU Resource Management"
     description="Karpenter NodePool, KEDA scaling, DRA dynamic resource allocation, Spot/Consolidation cost optimization strategies."
     color="#f59e0b"
-  />
-  <DocCard
-    to="/docs/agentic-ai-platform/model-serving/gpu-infrastructure/kubernetes-dra"
-    icon="🎛️"
-    title="Kubernetes DRA"
-    description="Dynamic Resource Allocation as a general-purpose framework — DeviceClass/ResourceClaim core model, non-GPU resource types (NIC, interconnect, FPGA), adoption criteria."
-    color="#4a90e2"
   />
   <DocCard
     to="/docs/agentic-ai-platform/model-serving/gpu-infrastructure/nvidia-gpu-stack"

@@ -3,7 +3,7 @@ title: Resource & Cost Optimization
 description: Karpenter autoscaling, Pod resource optimization, and EKS cost management strategies
 created: "2026-03-24"
 last_update:
-  date: "2026-06-26"
+  date: "2026-07-19"
   author: devfloor9
 reading_time: 3
 tags:
@@ -32,6 +32,13 @@ Practical strategies for resource efficiency and cost reduction in EKS clusters.
     title="Karpenter Autoscaling"
     description="Intelligent node provisioning with Karpenter, Spot instance utilization, and cost optimization strategies"
     color="#ff6b35"
+  />
+  <DocCard
+    to="/docs/eks-best-practices/resource-cost/kubernetes-dra"
+    icon="🎛️"
+    title="Kubernetes DRA"
+    description="Dynamic Resource Allocation as a general-purpose framework — DeviceClass/ResourceClaim core model, non-GPU resource types (NIC, interconnect, FPGA), adoption criteria"
+    color="#4a90e2"
   />
   <DocCard
     to="/docs/eks-best-practices/resource-cost/eks-resource-optimization"

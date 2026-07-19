@@ -193,17 +193,17 @@ spec:
 
 ### 개념과 필요성
 
-DRA는 Device Plugin의 한계를 극복하는 Kubernetes의 리소스 할당 패러다임입니다. DRA 자체는 GPU 전용이 아니라 NIC·인터커넥트·FPGA 등 특수 디바이스 전반을 다루는 범용 프레임워크이며, 핵심 API 모델(DeviceClass·ResourceClaim·ResourceSlice)과 리소스 유형별 드라이버 생태계는 [Kubernetes DRA](./kubernetes-dra.md)에서 다룹니다. 본 섹션은 **EKS GPU 환경의 DRA 운영** 관점에 집중합니다.
+DRA는 Device Plugin의 한계를 극복하는 Kubernetes의 리소스 할당 패러다임입니다. DRA 자체는 GPU 전용이 아니라 NIC·인터커넥트·FPGA 등 특수 디바이스 전반을 다루는 범용 프레임워크이며, 핵심 API 모델(DeviceClass·ResourceClaim·ResourceSlice)과 리소스 유형별 드라이버 생태계는 [Kubernetes DRA](../../../eks-best-practices/resource-cost/kubernetes-dra.md)에서 다룹니다. 본 섹션은 **EKS GPU 환경의 DRA 운영** 관점에 집중합니다.
 
 <DraLimitationsTable />
 
 :::info DRA 성숙도
-DRA 코어는 K8s 1.34에서 GA(`resource.k8s.io/v1`, 기본 활성화)되었고 1.35에서 locked-to-default입니다. 버전 히스토리와 기능별 성숙도는 [Kubernetes DRA — 버전 히스토리](./kubernetes-dra.md#버전-히스토리)를 참조하세요.
+DRA 코어는 K8s 1.34에서 GA(`resource.k8s.io/v1`, 기본 활성화)되었고 1.35에서 locked-to-default입니다. 버전 히스토리와 기능별 성숙도는 [Kubernetes DRA — 버전 히스토리](../../../eks-best-practices/resource-cost/kubernetes-dra.md#버전-히스토리)를 참조하세요.
 :::
 
 ### GPU 할당 흐름
 
-DRA는 **선언적 리소스 요청**(ResourceClaim)과 **즉시 할당**을 분리합니다. Pod가 "H100 GPU 1개, MIG 3g.20gb 프로필"처럼 속성 기반으로 GPU를 요청하면, DRA Driver가 실제 하드웨어와 매칭합니다. API 오브젝트 모델과 CEL 매칭의 일반 원리는 [Kubernetes DRA — 핵심 모델](./kubernetes-dra.md#dra-핵심-모델)을 참조하세요. 아래는 EKS에서 노드 스케일아웃이 결합된 GPU 할당 흐름입니다.
+DRA는 **선언적 리소스 요청**(ResourceClaim)과 **즉시 할당**을 분리합니다. Pod가 "H100 GPU 1개, MIG 3g.20gb 프로필"처럼 속성 기반으로 GPU를 요청하면, DRA Driver가 실제 하드웨어와 매칭합니다. API 오브젝트 모델과 CEL 매칭의 일반 원리는 [Kubernetes DRA — 핵심 모델](../../../eks-best-practices/resource-cost/kubernetes-dra.md#dra-핵심-모델)을 참조하세요. 아래는 EKS에서 노드 스케일아웃이 결합된 GPU 할당 흐름입니다.
 
 ```mermaid
 flowchart LR
@@ -499,7 +499,7 @@ flowchart LR
 
 ## 관련 문서
 
-- [Kubernetes DRA](./kubernetes-dra.md) — DRA 범용 프레임워크 — 핵심 모델, GPU 외 리소스 유형, 도입 판단
+- [Kubernetes DRA](../../../eks-best-practices/resource-cost/kubernetes-dra.md) — DRA 범용 프레임워크 — 핵심 모델, GPU 외 리소스 유형, 도입 판단
 - [NVIDIA GPU 스택](./nvidia-gpu-stack.md) — GPU Operator, DCGM, MIG, Time-Slicing, Dynamo
 - [EKS GPU 노드 전략](./eks-gpu-node-strategy.md) — Auto Mode + Karpenter + Hybrid Node 구성
 - [vLLM 모델 서빙](../inference-frameworks/vllm-model-serving.md) — 추론 엔진 배포

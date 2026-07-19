@@ -3,7 +3,7 @@ title: Kubernetes DRA — Dynamic Resource Allocation Framework
 description: A framework guide covering the DRA core model (DeviceClass, ResourceClaim, ResourceSlice), resource types beyond GPUs (NICs, interconnects, FPGAs), and adoption criteria
 created: "2026-07-18"
 last_update:
-  date: "2026-07-18"
+  date: "2026-07-19"
   author: YoungJoon Jeong
 reading_time: 13
 tags:
@@ -12,7 +12,7 @@ tags:
   - eks
   - gpu
   - platform
-  - scope:tech
+  - scope:ops
 keywords:
   - Dynamic Resource Allocation
   - ResourceClaim
@@ -25,7 +25,7 @@ sidebar_label: Kubernetes DRA
 
 DRA (Dynamic Resource Allocation) is not a GPU-only feature — it is a **general-purpose device allocation framework** that Kubernetes designed for requesting, configuring, and sharing specialized hardware of all kinds. Once a vendor provides a DRA driver, any device — GPUs, high-performance NICs, RDMA adapters, NVLink interconnects, FPGAs — can be dynamically allocated through the same API.
 
-This document covers DRA from a framework perspective — the core API model, the resource types DRA handles, and adoption criteria with prerequisites. The parameters for actually enabling DRA in EKS GPU environments (Karpenter `ignoreDRARequests`, the NVIDIA DRA driver 3-layer settings) are covered in [GPU Resource Management](./gpu-resource-management.md).
+This document covers DRA from a framework perspective — the core API model, the resource types DRA handles, and adoption criteria with prerequisites. The parameters for actually enabling DRA in EKS GPU environments (Karpenter `ignoreDRARequests`, the NVIDIA DRA driver 3-layer settings) are covered in [GPU Resource Management](../../agentic-ai-platform/model-serving/gpu-infrastructure/gpu-resource-management.md).
 
 ---
 
@@ -119,7 +119,7 @@ DRA's extension point is the driver. Once a vendor or project writes a driver fo
 
 ### GPU
 
-The most mature application area. The NVIDIA DRA driver consists of two subsystems — **GPU allocation** and **ComputeDomain** — and the GPU allocation subsystem provides capabilities impossible with the Device Plugin, such as dynamic creation and allocation of MIG partitions. For the enablement parameters and Karpenter combination on EKS, see [GPU Resource Management](./gpu-resource-management.md#full-dra-stack-parameters-3-layers).
+The most mature application area. The NVIDIA DRA driver consists of two subsystems — **GPU allocation** and **ComputeDomain** — and the GPU allocation subsystem provides capabilities impossible with the Device Plugin, such as dynamic creation and allocation of MIG partitions. For the enablement parameters and Karpenter combination on EKS, see [GPU Resource Management](../../agentic-ai-platform/model-serving/gpu-infrastructure/gpu-resource-management.md#full-dra-stack-parameters-3-layers).
 
 ### Network Devices — DraNet
 
@@ -175,7 +175,7 @@ Of these, **multi-heterogeneous-resource coordination** matters most in practice
 | Kubernetes version | 1.34+ (DRA core GA, enabled by default). EKS 1.34/1.35 serves `resource.k8s.io/v1` automatically |
 | Container runtime | CDI support (containerd 1.7+ / CRI-O 1.23+) |
 | DRA driver | Deploy the vendor driver for the target device (GPU: NVIDIA DRA driver, NIC: DraNet, etc.) |
-| Node autoscaling | Karpenter v1.14.0+ (`ignoreDRARequests=false`) or MNG + Cluster Autoscaler — see [GPU Resource Management](./gpu-resource-management.md#karpenter-dra-enablement-parameters-v1140) |
+| Node autoscaling | Karpenter v1.14.0+ (`ignoreDRARequests=false`) or MNG + Cluster Autoscaler — see [GPU Resource Management](../../agentic-ai-platform/model-serving/gpu-infrastructure/gpu-resource-management.md#karpenter-dra-enablement-parameters-v1140) |
 | When using beta features | Enable the relevant feature gates and API groups (EKS control plane is managed, so check supported scope) |
 
 ### Device Plugin vs DRA Decision Criteria
@@ -188,7 +188,7 @@ Of these, **multi-heterogeneous-resource coordination** matters most in practice
 | Aligned placement of heterogeneous devices such as GPU + NIC | DRA (impossible with Device Plugin) |
 | Managing RDMA/Multi-NIC as schedulable resources | DRA + DraNet |
 | Multi-Node NVLink (GB200 NVL72, etc.) | DRA required (ComputeDomain) |
-| Using EKS Auto Mode | DRA currently unavailable — internal Karpenter is below v1.14. See [GPU Resource Management](./gpu-resource-management.md#node-provisioning-compatibility) |
+| Using EKS Auto Mode | DRA currently unavailable — internal Karpenter is below v1.14. See [GPU Resource Management](../../agentic-ai-platform/model-serving/gpu-infrastructure/gpu-resource-management.md#node-provisioning-compatibility) |
 
 Migration can proceed incrementally. To avoid the Device Plugin and DRA driver double-advertising the same devices, switch per workload group; for GPUs, the turning point is when you flip GPU Operator's `devicePlugin.enabled=false`.
 
@@ -207,6 +207,6 @@ DRA is Kubernetes' general-purpose device allocation framework, not limited to G
 - [dra-example-driver](https://github.com/kubernetes-sigs/dra-example-driver) — Reference implementation for developing custom DRA drivers
 
 ### Related Documents (Internal)
-- [GPU Resource Management](./gpu-resource-management.md) — DRA enablement parameters, Karpenter combination, and selection guide for EKS GPU environments
-- [EKS GPU Node Strategy](./eks-gpu-node-strategy.md) — Node provisioning strategies for DRA workloads
-- [NVIDIA GPU Stack](./nvidia-gpu-stack.md) — GPU Operator, MIG, Time-Slicing details
+- [GPU Resource Management](../../agentic-ai-platform/model-serving/gpu-infrastructure/gpu-resource-management.md) — DRA enablement parameters, Karpenter combination, and selection guide for EKS GPU environments
+- [EKS GPU Node Strategy](../../agentic-ai-platform/model-serving/gpu-infrastructure/eks-gpu-node-strategy.md) — Node provisioning strategies for DRA workloads
+- [NVIDIA GPU Stack](../../agentic-ai-platform/model-serving/gpu-infrastructure/nvidia-gpu-stack.md) — GPU Operator, MIG, Time-Slicing details
