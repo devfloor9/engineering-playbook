@@ -36,6 +36,13 @@ The layer that determines **which GPU instances · how to schedule · and which 
     color="#f59e0b"
   />
   <DocCard
+    to="/docs/agentic-ai-platform/model-serving/gpu-infrastructure/kubernetes-dra"
+    icon="🎛️"
+    title="Kubernetes DRA"
+    description="Dynamic Resource Allocation as a general-purpose framework — DeviceClass/ResourceClaim core model, non-GPU resource types (NIC, interconnect, FPGA), adoption criteria."
+    color="#4a90e2"
+  />
+  <DocCard
     to="/docs/agentic-ai-platform/model-serving/gpu-infrastructure/nvidia-gpu-stack"
     icon="💚"
     title="NVIDIA GPU Stack"

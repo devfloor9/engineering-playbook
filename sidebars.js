@@ -203,6 +203,7 @@ const sidebars = {
               items: [
                 'agentic-ai-platform/model-serving/gpu-infrastructure/eks-gpu-node-strategy',
                 'agentic-ai-platform/model-serving/gpu-infrastructure/gpu-resource-management',
+                'agentic-ai-platform/model-serving/gpu-infrastructure/kubernetes-dra',
                 'agentic-ai-platform/model-serving/gpu-infrastructure/nvidia-gpu-stack',
                 'agentic-ai-platform/model-serving/gpu-infrastructure/aws-neuron-stack',
                 'agentic-ai-platform/model-serving/gpu-infrastructure/criu-gpu-migration',
