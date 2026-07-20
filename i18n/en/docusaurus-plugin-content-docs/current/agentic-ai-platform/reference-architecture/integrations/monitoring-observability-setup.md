@@ -532,11 +532,11 @@ POST /api/public/otel/v1/traces
 | vLLM TTFT P99 | `histogram_quantile(0.99, rate(vllm:time_to_first_token_seconds_bucket[5m]))` | Time to first token |
 | vLLM E2E P99 | `histogram_quantile(0.99, rate(vllm_e2e_request_latency_seconds_bucket[5m]))` | End-to-end request latency |
 | vLLM Batch Size | `avg(vllm_num_requests_running)` | Concurrent inference count |
-| kgateway RPS | `sum(rate(kgateway_requests_total[5m])) by (route)` | Requests per second |
-| kgateway 5xx Error Rate | `sum(rate(kgateway_upstream_rq_5xx[5m])) / sum(rate(kgateway_requests_total[5m])) * 100` | Error rate (%) |
-| kgateway P99 Latency | `histogram_quantile(0.99, sum(rate(kgateway_request_duration_seconds_bucket[5m])) by (le, route))` | Gateway latency |
+| kgateway RPS | `sum(rate(envoy_http_downstream_rq_total[5m])) by (route)` | Requests per second |
+| kgateway 5xx Error Rate | `sum(rate(envoy_cluster_upstream_rq_xx{envoy_response_code_class="5"}[5m])) / sum(rate(envoy_http_downstream_rq_total[5m])) * 100` | Error rate (%) |
+| kgateway P99 Latency | `histogram_quantile(0.99, sum(rate(envoy_cluster_upstream_rq_time_bucket[5m])) by (le, route))` | Gateway latency |
 | Bifrost Request Rate | `rate(bifrost_requests_total[5m])` | Gateway request rate |
-| Active Connections | `sum(kgateway_upstream_cx_active) by (upstream_cluster)` | Active connections per backend |
+| Active Connections | `sum(envoy_cluster_upstream_cx_active) by (upstream_cluster)` | Active connections per backend |
 
 ### Alert Rule Examples
 
@@ -578,8 +578,8 @@ spec:
 
         - alert: HighGatewayErrorRate
           expr: |
-            sum(rate(kgateway_upstream_rq_5xx[5m])) /
-            sum(rate(kgateway_requests_total[5m])) > 0.05
+            sum(rate(envoy_cluster_upstream_rq_xx{envoy_response_code_class="5"}[5m])) /
+            sum(rate(envoy_cluster_upstream_rq_total[5m])) > 0.05
           for: 5m
           labels:
             severity: critical

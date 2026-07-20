@@ -324,8 +324,8 @@ Sending every request to a large model (LLM) is wasteful. 70% of requests can be
 ```mermaid
 graph LR
     Req[Request] --> BF[Bifrost]
-    BF -->|Low complexity| SLM[SLM Llama-3.3-8B<br/>g6.xlarge $0.3/hr]
-    BF -->|High complexity| LLM[GLM-5 744B<br/>p5en.48xlarge $12/hr]
+    BF -->|Low complexity| SLM[SLM Llama-3.1-8B<br/>g6.xlarge ~$0.80/hr]
+    BF -->|High complexity| LLM[GLM-5 744B<br/>p5en.48xlarge ~$63/hr]
     SLM --> Resp[Response]
     LLM --> Resp
     
@@ -402,7 +402,7 @@ spec:
         image: vllm/vllm-openai:latest
         command: ["vllm", "serve"]
         args:
-          - "meta-llama/Llama-3.3-8B-Instruct"
+          - "meta-llama/Llama-3.1-8B-Instruct"
           - "--served-model-name=llama-8b"
           - "--tensor-parallel-size=1"
           - "--max-model-len=32768"

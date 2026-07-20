@@ -78,12 +78,12 @@ spec:
     # 1. KV Cache saturation — most sensitive signal
     - type: prometheus
       metadata:
-        query: avg(vllm_gpu_cache_usage_perc)
+        query: avg(vllm:kv_cache_usage_perc)
         threshold: "80"
     # 2. Number of waiting requests
     - type: prometheus
       metadata:
-        query: sum(vllm_num_requests_waiting)
+        query: sum(vllm:num_requests_waiting)
         threshold: "10"
     # 3. TTFT SLO violation proximity
     - type: prometheus

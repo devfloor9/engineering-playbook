@@ -515,8 +515,8 @@ spec:
 ```
 
 **Cost:**
-- Running 2 instances doubles cost → With Spot usage **similar to On-Demand 1 instance cost**
-- p5.48xlarge Spot $12/hr × 2 = $24/hr vs On-Demand $98/hr × 1
+- Running 2 instances doubles cost → With Spot usage **about half the cost of a single On-Demand instance**
+- p5.48xlarge Spot ~$13-15/hr × 2 = $26-30/hr vs On-Demand $55.04/hr × 1
 
 **Advantages:**
 - Remaining 1 replica handles traffic during 1 replica Spot reclaim

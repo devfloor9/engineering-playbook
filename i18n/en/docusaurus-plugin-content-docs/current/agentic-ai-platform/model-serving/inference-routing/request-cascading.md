@@ -82,8 +82,8 @@ Intelligent cascade routing analyzes request complexity and auto-routes to appro
 graph LR
     Client[Aider/Cline] --> KGW[kgateway NLB]
     KGW -->|/v1/*| CLS[LLM Classifier<br/>FastAPI]
-    CLS -->|weak: no keywords, <500 chars| SLM[Qwen3-4B<br/>L4 $0.3/hr]
-    CLS -->|strong: refactor, design, analysis| LLM[GLM-5 744B<br/>H200 $12/hr]
+    CLS -->|weak: no keywords, <500 chars| SLM[Qwen3-4B<br/>L4 ~$0.80/hr]
+    CLS -->|strong: refactor, design, analysis| LLM[GLM-5 744B<br/>8xH200 ~$63/hr]
     CLS -->|OTel| LF[Langfuse]
 
     style KGW fill:#326ce5,stroke:#333,color:#fff
@@ -243,7 +243,7 @@ Try **cheap -> balanced -> frontier** models progressively based on complexity.
 Processing all requests with Opus 4.7: $45/day ($1,350/month) → **79% savings**
 
 **Self-hosted LLM Classifier Scenario** (as of 2026-04):
-- Qwen3-4B (70% weak, L4 $0.3/hr × 24hr × 30d) = $216/month
+- Qwen3-4B (70% weak, L4 ~$0.80/hr × 24hr × 30d) = $216/month
 - GLM-5 744B (30% strong, H200 $12/hr × 24hr × 30d × 0.3) = $2,592/month
 - Langfuse + AMP/AMG = $200/month
 
@@ -271,8 +271,8 @@ Processing all requests with Opus 4.7: $45/day ($1,350/month) → **79% savings*
 ```mermaid
 graph TD
     Req[Request] --> Router[LLM Classifier<br/>Prompt Analysis]
-    Router -->|strong: refactor, design, analysis<br/>≥500 chars, >5 turns| LLM[Strong Model<br/>GLM-5 744B<br/>H200 $12/hr]
-    Router -->|weak: simple query<br/><500 chars, ≤5 turns| SLM[Weak Model<br/>Qwen3-4B<br/>L4 $0.3/hr]
+    Router -->|strong: refactor, design, analysis<br/>≥500 chars, >5 turns| LLM[Strong Model<br/>GLM-5 744B<br/>8xH200 ~$63/hr]
+    Router -->|weak: simple query<br/><500 chars, ≤5 turns| SLM[Weak Model<br/>Qwen3-4B<br/>L4 ~$0.80/hr]
     LLM --> Resp[Response]
     SLM --> Resp
 

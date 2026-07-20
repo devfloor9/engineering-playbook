@@ -325,7 +325,7 @@ Track LLM usage costs by the following criteria:
 | **Fast/Cheap** | Gemini 2.5 Flash-Lite | $0.05 | $0.20 | Minimal latency |
 | **Open-weight** | DeepSeek V3.1 | Self-hosted | Self-hosted | Open license |
 | **Open-weight** | Llama 4 Scout | Self-hosted | Self-hosted | Meta official |
-| **Open-weight** | Qwen3-72B | Self-hosted | Self-hosted | Alibaba Cloud |
+| **Open-weight** | Qwen3-32B | Self-hosted | Self-hosted | Alibaba Cloud (largest Qwen3 dense model) |
 
 [^1]: As of 2026-04-17. For latest pricing, see official pricing pages: [OpenAI Pricing](https://openai.com/api/pricing/), [Anthropic Pricing](https://www.anthropic.com/pricing), [Google AI Pricing](https://ai.google.dev/pricing)
 

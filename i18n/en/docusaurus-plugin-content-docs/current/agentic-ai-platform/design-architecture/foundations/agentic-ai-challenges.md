@@ -130,7 +130,7 @@ GPUs are the **most expensive resource** in the Agentic AI Platform. Appropriate
 
 **Why it's difficult:**
 
-- **High cost**: GPU instances are 10-100x more expensive than CPU (H100 x8: ~$98/hr)
+- **High cost**: GPU instances are 10-100x more expensive than CPU (~$55/hr for p5.48xlarge H100 x8 in us-east-1; $55-$92/hr by region)
 - **Varied model sizes**: GPU memory requirements vary dramatically from 3B parameter models to 70B+
 - **Dynamic workloads**: Inference traffic fluctuates by more than 10x depending on time of day
 - **Idle waste**: Low utilization after GPU provisioning leads to massive cost waste
@@ -138,7 +138,7 @@ GPUs are the **most expensive resource** in the Agentic AI Platform. Appropriate
 
 | Model Size | GPU Requirements | Cost Pressure |
 |-----------|-----------------|--------------|
-| 70B+ parameters | Full GPU (H100/A100) x8 | $30-$98/hr |
+| 70B+ parameters | Full GPU (H100/A100) x8 | $30-$92/hr |
 | 7B-30B parameters | 1-2 GPUs or MIG partition | $1-$10/hr |
 | Under 3B parameters | Time-Slicing or shared GPU | $0.5-$2/hr |
 
