@@ -330,6 +330,7 @@ const sidebars = {
                 'agentic-ai-platform/reference-architecture/model-lifecycle/custom-model-deployment',
                 'agentic-ai-platform/reference-architecture/model-lifecycle/custom-model-pipeline',
                 'agentic-ai-platform/reference-architecture/model-lifecycle/mlops-pipeline-eks',
+                'agentic-ai-platform/reference-architecture/model-lifecycle/open-weight-model-pipeline',
                 {
                   type: 'category',
                   label: 'Continuous Training',
