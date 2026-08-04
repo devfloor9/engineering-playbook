@@ -46,6 +46,7 @@ const sidebars = {
                 'eks-best-practices/networking-performance/service-mesh/gamma-initiative',
               ],
             },
+            'eks-best-practices/networking-performance/vpc-cni-deep-dive',
             'eks-best-practices/networking-performance/coredns-monitoring-optimization',
             'eks-best-practices/networking-performance/east-west-traffic-best-practice',
             'eks-best-practices/networking-performance/nitro-architecture-performance-tuning',
@@ -99,6 +100,7 @@ const sidebars = {
           items: [
             'eks-best-practices/operations-reliability/gitops-cluster-operation',
             'eks-best-practices/operations-reliability/node-monitoring-agent',
+            'eks-best-practices/operations-reliability/network-flow-monitor',
             'eks-best-practices/operations-reliability/k8s-event-management',
             {
               type: 'category',

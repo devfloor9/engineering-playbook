@@ -41,6 +41,13 @@ EKS 클러스터의 안정적인 운영을 위한 실전 가이드입니다. Git
     color="#4a90d9"
   />
   <DocCard
+    to="/docs/eks-best-practices/operations-reliability/network-flow-monitor"
+    icon="🛰️"
+    title="Network Flow Monitor"
+    description="eBPF sock_ops 기반 TCP flow 관측, K8s enrichment, EKS add-on 배포와 3계층 진단"
+    color="#2a9d8f"
+  />
+  <DocCard
     to="/docs/eks-best-practices/operations-reliability/eks-debugging"
     icon="🔍"
     title="EKS 장애 진단 및 대응"

@@ -25,6 +25,13 @@ EKS 클러스터의 네트워크 성능을 극대화하기 위한 실전 가이�
 
 <DocCardGrid columns={2}>
   <DocCard
+    to="/docs/eks-best-practices/networking-performance/vpc-cni-deep-dive"
+    icon="🔌"
+    title="VPC CNI 동작 원리"
+    description="L3 routed mode 데이터패스, ipamd warm pool·Prefix Delegation·IP 쿨다운, eBPF NetworkPolicy 아키텍처"
+    color="#2a9d8f"
+  />
+  <DocCard
     to="/docs/eks-best-practices/networking-performance/gateway-api-adoption-guide"
     icon="🌐"
     title="Gateway API 도입 가이드"
