@@ -3,7 +3,7 @@ title: Reference Architecture
 description: Agentic AI Platform 실전 배포 및 구성 레퍼런스 아키텍처
 created: "2026-04-06"
 last_update:
-  date: "2026-07-17"
+  date: "2026-08-06"
   author: devfloor9
 reading_time: 10
 tags:
@@ -42,7 +42,7 @@ Agentic AI Platform의 전체 아키텍처입니다. Ontology 기반 Knowledge F
 />
 
 :::tip draw.io에서 편집
-[draw.io에서 열기](https://app.diagrams.net/?src=about#Hdevfloor9%2Fengineering-playbook%2Fmain%2Fstatic%2FAgentic%20AI%20Platform(with%20Ontology%20and%20fine%20tunning%20feature).drawio) — GitHub 연동으로 직접 편집 가능합니다.
+[draw.io에서 열기](https://app.diagrams.net/?src=about#Uhttps%3A%2F%2Fraw.githubusercontent.com%2Fdevfloor9%2Fengineering-playbook%2Fmain%2Fstatic%2FAgentic%2520AI%2520Platform(with%2520Ontology%2520and%2520fine%2520tunning%2520feature).drawio) — 로그인 없이 바로 열람·편집할 수 있습니다. 편집 후 File → Save As로 사본을 저장합니다.
 :::
 
 ---

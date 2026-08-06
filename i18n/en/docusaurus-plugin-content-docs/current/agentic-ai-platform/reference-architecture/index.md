@@ -3,7 +3,7 @@ title: Reference Architecture
 description: Production deployment and configuration reference architecture for the Agentic AI Platform
 created: "2026-04-06"
 last_update:
-  date: "2026-06-26"
+  date: "2026-08-06"
   author: devfloor9
 reading_time: 15
 tags:
@@ -42,7 +42,7 @@ The complete architecture of the Agentic AI Platform, including the Ontology-bas
 />
 
 :::tip Edit in draw.io
-[Open in draw.io](https://app.diagrams.net/?src=about#Hdevfloor9%2Fengineering-playbook%2Fmain%2Fstatic%2FAgentic%20AI%20Platform(with%20Ontology%20and%20fine%20tunning%20feature).drawio) — Edit directly with GitHub integration.
+[Open in draw.io](https://app.diagrams.net/?src=about#Uhttps%3A%2F%2Fraw.githubusercontent.com%2Fdevfloor9%2Fengineering-playbook%2Fmain%2Fstatic%2FAgentic%2520AI%2520Platform(with%2520Ontology%2520and%2520fine%2520tunning%2520feature).drawio) — Opens without login for viewing and editing. Use File → Save As to save a copy.
 :::
 
 ---
