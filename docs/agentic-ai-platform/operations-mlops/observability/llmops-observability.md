@@ -3,7 +3,7 @@ title: LLMOps Observability 비교 가이드
 description: LLMOps Observability 도구 비교 전용 문서 — Langfuse·LangSmith·Helicone·CloudWatch 선택 기준과 하이브리드 아키텍처 (Langfuse 운영은 Agent 모니터링 문서 참조)
 created: "2026-03-16"
 last_update:
-  date: "2026-07-17"
+  date: "2026-08-11"
   author: YoungJoon Jeong
 reading_time: 13
 tags:
@@ -36,7 +36,7 @@ category: genai-aiml
 1. **Tracing**: 전체 요청 라이프사이클 추적 (프롬프트 -> LLM -> 응답), 중첩된 체인/에이전트 단계별 가시성
 2. **Evaluation**: 자동/수동 평가를 통한 응답 품질 측정 (정확도, 충실도, 관련성, 독성 등)
 3. **Prompt Management**: 프롬프트 템플릿 버전 관리, A/B 테스트, 프로덕션 배포 파이프라인
-4. **Cost Tracking**: 프로바이더별/모델별 토큰 비용 실시간 집계, 팀/프로젝트별 예산 관리
+4. **Cost Tracking**: 프로바이더별/모델별 토큰 비용 실시간 집계. 관측 도구의 비용 추적은 **가시화**까지이며, 팀/프로젝트별 예산 **강제**는 게이트웨이 레벨([AI Gateway 멀티테넌시](../governance/ai-gateway-multi-tenancy.md)), 비용 **배부**는 FinOps 방법론([LLM FinOps Chargeback](../governance/llm-finops-chargeback.md))에서 다룹니다
 
 :::info 실전 배포 가이드
 Langfuse Helm 배포, Redis/ClickHouse 구성, kgateway sub-path 라우팅, Bifrost OTel 연동 등 실전 구성은 [모니터링 스택 구성 가이드](../../reference-architecture/integrations/monitoring-observability-setup.md)를 참조하세요.
@@ -351,3 +351,5 @@ Ragas는 RAG 시스템 전용 평가 프레임워크로, Langfuse와 통합하�
 - [Inference Gateway 라우팅](../../model-serving/inference-routing/routing-strategy.md)
 - [RAG Evaluation with Ragas](../governance/ragas-evaluation.md)
 - [Agent 모니터링](./agent-monitoring.md)
+- [LLM FinOps Chargeback](../governance/llm-finops-chargeback.md) — 비용 배부·예산 정책 방법론
+- [AI Gateway 멀티테넌시](../governance/ai-gateway-multi-tenancy.md) — 게이트웨이 레벨 예산 강제

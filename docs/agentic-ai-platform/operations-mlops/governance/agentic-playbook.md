@@ -3,9 +3,9 @@ title: Agentic Playbook
 description: Agent 워크플로우를 IaC처럼 선언적으로 정의하고 컴플라이언스를 자동화하는 Playbook 가이드
 created: "2026-04-04"
 last_update:
-  date: "2026-07-17"
+  date: "2026-08-11"
   author: YoungJoon Jeong
-reading_time: 9
+reading_time: 10
 tags:
   - playbook
   - agent
@@ -241,6 +241,16 @@ graph TB
 
 ## 5. 승인 게이트 패턴
 
+승인 게이트는 **폭발 반경(Blast Radius)** — 에이전트 행동이 잘못되었을 때 영향이 미치는 범위 — 을 기준으로 선택합니다. 게이트 유형을 나열식으로 고르는 것이 아니라, 액션의 위험도를 먼저 분류하고 그에 맞는 게이트를 매핑합니다.
+
+| 폭발 반경 등급 | 액션 예시 | 실패 시 영향 | 권장 게이트 |
+|--------------|----------|------------|------------|
+| **읽기 (Read-only)** | 로그 조회, 상태 확인, 코드 분석 | 없음 (정보 노출은 별도 PII 정책으로 통제) | Auto |
+| **저영향 쓰기 (Low-impact Write)** | 포매팅 수정, 티켓 코멘트, dev 환경 배포 | 되돌리기 쉬움, 범위 한정 | Auto + 가드레일 |
+| **고영향 쓰기 (High-impact Write)** | 프로덕션 배포, 데이터 삭제·변경, 권한 변경, 외부 발신 | 되돌리기 어려움, 조직·고객 영향 | Manual 또는 Conditional (human-in-the-loop) |
+
+고영향 쓰기 경로에 사람 승인(human-in-the-loop) 게이트를 강제하는 것이 에이전트 자율성 설계의 핵심 안전장치입니다. 에이전트의 도구 접근 자체를 제한하는 Tool Allow-list·Scoped Token은 [AI Gateway Guardrails](./ai-gateway-guardrails.md)를 참조하세요.
+
 ### 1. Auto Approval (자동 통과)
 
 가드레일을 통과하면 즉시 다음 스테이지 진행:
@@ -291,7 +301,7 @@ graph TB
   sla: 1h
 ```
 
-**적용 시나리오**: 위험도 기반 승인, 비용 기반 승인, 영향 범위 기반 승인
+**적용 시나리오**: 위험도 기반 승인, 비용 기반 승인, 영향 범위 기반 승인. 비용 기반 조건(예: 예상 토큰 비용 임계 초과 시 승인 요구)은 [LLM FinOps: 토큰 메터링과 Chargeback](./llm-finops-chargeback.md)의 예산 정책과 연계할 수 있습니다.
 
 :::tip 조건 표현식
 - **비교 연산자**: `>`, `<`, `>=`, `<=`, `==`, `!=`
@@ -604,6 +614,8 @@ spec:
 ### 관련 문서
 - [커스텀 모델 파이프라인](../../reference-architecture/model-lifecycle/custom-model-pipeline.md)
 - [Milvus 벡터 데이터베이스](../data-infrastructure/milvus-vector-database.md)
+- [AI Gateway Guardrails](./ai-gateway-guardrails.md) — Tool Allow-list·Scoped Token 등 에이전트 도구 접근 통제
+- [LLM FinOps: 토큰 메터링과 Chargeback](./llm-finops-chargeback.md) — 비용 기반 승인 조건과 연계되는 예산 정책
 - [AgenticOps](/docs/aidlc/operations)
 
 ## 다음 단계

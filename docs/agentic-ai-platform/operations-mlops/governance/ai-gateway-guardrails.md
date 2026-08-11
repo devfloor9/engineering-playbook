@@ -3,7 +3,7 @@ title: AI Gateway Guardrails
 description: LLM Gateway 레벨 Guardrails — PII Redaction, Prompt Injection 방어, Content Filtering, 도구 비교와 한국 금융권 컴플라이언스 매핑
 created: "2026-04-17"
 last_update:
-  date: "2026-07-17"
+  date: "2026-08-11"
   author: YoungJoon Jeong
 reading_time: 24
 tags:
@@ -92,7 +92,7 @@ flowchart LR
 | 레이어 | 위치 | 책임 | 지연 영향 |
 |--------|------|------|----------|
 | **Input Guard** | 게이트웨이 진입 직후 | PII redaction, prompt injection 탐지, 언어/길이 검증 | +20~100ms |
-| **Gateway Policy** | 게이트웨이 코어 | 인증/인가, 테넌트 격리, Rate Limit, 모델 라우팅 | +5~20ms |
+| **Gateway Policy** | 게이트웨이 코어 | 인증/인가, 테넌트 격리, Rate Limit, 모델 라우팅 — 테넌시 계층 모델·예산 강제는 [AI Gateway 멀티테넌시](./ai-gateway-multi-tenancy.md) 참조 | +5~20ms |
 | **Tool Allow-list** | Agent/MCP 레이어 | MCP 서버 화이트리스트, scoped token, 인자 검증 | +10~30ms |
 | **Model (LLM Safety)** | 모델 자체 | 학습 단계에 주입된 safety alignment | 0ms (모델 내장) |
 | **Output Guard** | 응답 스트림 이후 | PII scrub, toxicity, hallucination 재검증 | +50~200ms |
@@ -262,8 +262,9 @@ Claude, GPT-4, Gemini 모두 공식 문서에서 **XML 태그 델리미터** 또
 
 ### 5.2 Tool Allow-list + Scoped Token
 
+Tool 접근 통제의 전제는 **에이전트 전용 자격증명(Agent Identity)** 입니다. 에이전트가 사람 사용자의 자격증명을 차용하면 감사 로그에서 행위 주체를 구분할 수 없고, 사람 권한 전체가 에이전트의 폭발 반경(Blast Radius)이 됩니다. 에이전트별 서비스 계정(Kubernetes ServiceAccount, EKS Pod Identity 등)에 최소 권한의 scoped token을 발급하고, 고영향 write-path에는 [Agentic Playbook](./agentic-playbook.md)의 승인 게이트를 결합합니다.
+
 ```yaml
-```
 # pseudo-config: Agent가 호출 가능한 Tool 제한
 agent:
   name: customer-support-agent
@@ -569,6 +570,8 @@ Langfuse는 LLM 호출별 span을 제공하므로 `safety_violation=true` 필터
 - [ ] Tool Allow-list YAML 형상 관리 (Git + Kyverno 정책)
 - [ ] MCP 서버 fingerprint 검증 (SHA256 해시 or TLS pinning)
 - [ ] Scoped token으로 개별 Tool 권한 최소화
+- [ ] 에이전트 전용 identity 분리 (사람 자격증명 차용 금지, 감사 로그에서 행위 주체 구분)
+- [ ] 고영향 write-path Tool에 human-in-the-loop 승인 게이트 결합 ([Agentic Playbook](./agentic-playbook.md) §5)
 
 ### 9.4 Output Guard
 - [ ] 스트리밍 응답 chunk-level 검증 (문장 경계)
@@ -609,6 +612,9 @@ Langfuse는 LLM 호출별 span을 제공하므로 `safety_violation=true` 필터
 
 ### 관련 문서
 - [컴플라이언스 프레임워크](./compliance-framework.md) — SOC2 / ISO27001 / 금융 규제 매핑
+- [AI Gateway 멀티테넌시](./ai-gateway-multi-tenancy.md) — 테넌시 계층 모델, 예산 강제, 격리 3단
+- [Agentic Playbook](./agentic-playbook.md) — 폭발 반경 기반 승인 게이트, 감사 추적
+- [MCP 툴 토큰 최적화 패턴](../../design-architecture/advanced-patterns/mcp-token-optimization.md) — Tool 정의 토큰 효율 (보안과 직교하는 관점)
 - [Agent 모니터링](../observability/agent-monitoring.md) — Langfuse 통합
 - [LLMOps Observability](../observability/llmops-observability.md) — Langfuse, LangSmith, Helicone 비교
 - [Inference Gateway 라우팅](../../model-serving/inference-routing/routing-strategy.md) — 2-Tier Gateway 설계

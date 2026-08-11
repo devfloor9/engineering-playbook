@@ -3,7 +3,7 @@ title: AI Agent 모니터링 및 운영
 description: Langfuse 기반 Agent 모니터링 운영 전용 문서 — 모니터링 아키텍처·핵심 메트릭·PromQL·알림·비용 추적 (도구 비교는 LLMOps Observability 문서 참조)
 created: "2026-02-05"
 last_update:
-  date: "2026-07-17"
+  date: "2026-08-11"
   author: YoungJoon Jeong
 reading_time: 12
 tags:
@@ -367,6 +367,8 @@ routing_rules:
 ## 7. 비용 추적
 
 ### 비용 추적 개념
+
+본 섹션은 비용의 **관측(Observation)** — 메트릭 수집·PromQL 쿼리·대시보드 — 을 다룹니다. 관측된 비용을 테넌트에 **배부(showback/chargeback)** 하는 방법론과 예산 정책 설계는 [LLM FinOps — Chargeback 및 비용 배부](../governance/llm-finops-chargeback.md)를 참조하고, 게이트웨이 레벨 예산 강제는 [AI Gateway 멀티테넌시](../governance/ai-gateway-multi-tenancy.md)를 참조하세요.
 
 LLM 사용 비용을 다음 기준으로 추적합니다:
 

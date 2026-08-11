@@ -3,7 +3,7 @@ title: 추론 게이트웨이 & LLM Gateway 라우팅 전략
 description: kgateway + Bifrost/LiteLLM 2-Tier 아키텍처와 Cascade Routing, Semantic Router, Hybrid Routing 설계 패턴
 created: "2025-02-05"
 last_update:
-  date: "2026-07-17"
+  date: "2026-08-11"
   author: YoungJoon Jeong
 reading_time: 46
 tags:
@@ -214,6 +214,10 @@ import { TopologyEffectsTable } from '@site/src/components/InferenceGatewayTable
 | **Helicone** | Rust | Gateway + Observability 통합, 고성능 | 지원 | Apache 2.0 | 고성능 + 관측성 동시 필요 |
 | **OpenRouter** | SaaS (호스티드) | 400+ 모델·70+ 프로바이더 통합 API, 프로바이더 폴백, OpenAI 호환 | 프로바이더 라우팅 지원 | SaaS (상용) | 멀티 프로바이더 빠른 통합, 프로토타이핑 |
 
+:::note LiteLLM과 Kong은 택일
+LiteLLM과 Kong AI Gateway는 모두 L1 게이트웨이로, **둘 중 하나를 선택**합니다. 두 제품을 조합하는 아키텍처(예: Kong 앞단 + LiteLLM 후단)는 검증된 레퍼런스가 없습니다. 테넌시 모델·예산 강제 관점의 선택 기준은 [AI Gateway 멀티테넌시 — 선택 기준](../../operations-mlops/governance/ai-gateway-multi-tenancy.md#4-선택-기준-litellm-vs-kong-택일)을 참조하세요.
+:::
+
 :::note 셀프호스트 vs SaaS
 위 표에서 Bifrost·LiteLLM·Helicone·vLLM Semantic Router는 **셀프호스트**(클러스터 내 배포)이고, **OpenRouter는 호스티드 SaaS**입니다. SaaS는 즉시 400+ 모델에 접근하고 프로바이더 폴백·빌링을 위임할 수 있어 빠른 통합·프로토타이핑에 유리합니다. 단, 프롬프트가 외부 서비스로 전송되므로 데이터 주권·규제 요건이 있는 환경에서는 [거버넌스 주의점](../../operations-mlops/governance/ai-gateway-guardrails.md#openrouter-등-saas-게이트웨이-데이터-주권)을 검토하세요.
 :::
@@ -302,6 +306,10 @@ LLM 추론 플랫폼에서 "게이트웨이"는 **서로 다른 두 레이어**�
 | **L2 — 추론 라우팅 (KV-aware)** | "어느 GPU Pod?" | vLLM 내부 메트릭(KV cache util·prefix 위치·queue depth) | 개별 Pod | **EPP(GIE)**, HyperPod router, Dynamo, vLLM production-stack |
 
 > GIE 공식 문서는 EPP 위에 **LiteLLM·Solo AI Gateway·Apigee 같은 상위 AI Gateway**를 두는 조합을 (강제 권고가 아닌) 통합 예로 소개한다. L1(across-model)과 L2(within-model)는 상호 보완이다.
+
+:::info L1 예산 신호와 폴백 라우팅의 연결
+L1 신호 중 **예산**은 거버넌스 정책과 직결됩니다. 테넌트 예산이 소진되면 L1 게이트웨이가 요청을 차단하거나(하드 예산) 저가 모델로 다운그레이드하는 폴백 경로를 태울 수 있습니다. 테넌트별 예산 계층·강제 방식은 [AI Gateway 멀티테넌시](../../operations-mlops/governance/ai-gateway-multi-tenancy.md), 예산 초과 시 차단/알림/폴백 정책 매트릭스는 [LLM FinOps Chargeback](../../operations-mlops/governance/llm-finops-chargeback.md)을 참조하세요. 이 정책 판단은 전부 L1에서 이루어지며, L2(KV-aware Pod 선택)는 예산 신호를 다루지 않습니다.
+:::
 
 :::note 라우팅 "결정"은 추론이 아니다 — KV-aware vs 컨텍스트 인지
 L2의 KV-cache-aware(prefix-aware) 라우팅에서 **라우팅 결정 자체는 추론이 아니다.** prefix 블록 해시 + 인덱스 조회라는 기계적 연산이며 모델 forward pass가 없다. 반면 **컨텍스트 인지(시맨틱) 라우팅**은 인코더·분류 모델을 돌려 의도를 분류하므로 라우팅 경로에서 경량 추론이 발생한다. 어느 경우든 선택된 Pod가 수행하는 **최종 워크로드는 LLM 추론**이다. 상세 구분은 [KV Cache 최적화 — Cache-Aware Routing](../../model-serving/inference-optimization/kv-cache-optimization.md#kv-cache-aware-routing)을 참조.
@@ -496,6 +504,11 @@ Bifrost/LiteLLM에서 Langfuse로 OTel trace를 전송하여 프롬프트/완료
 - [코딩 도구 & 비용 분석](../../reference-architecture/integrations/coding-tools-cost-analysis.md) - Aider/Cline 연결, NLB 통합 라우팅 패턴
 - [모니터링 스택 설정](../../reference-architecture/integrations/monitoring-observability-setup.md) - Langfuse OTel 연동, Prometheus, Grafana 대시보드
 - [LLMOps Observability](../../operations-mlops/observability/llmops-observability.md) - Langfuse/LangSmith 기반 LLM 관측성
+
+### 거버넌스 & 테넌시
+
+- [AI Gateway 멀티테넌시](../../operations-mlops/governance/ai-gateway-multi-tenancy.md) - L1 게이트웨이 테넌트 격리·예산 강제
+- [LLM FinOps Chargeback](../../operations-mlops/governance/llm-finops-chargeback.md) - 예산 소진 시 폴백/차단 정책과 비용 배부
 
 ### 관련 인프라
 

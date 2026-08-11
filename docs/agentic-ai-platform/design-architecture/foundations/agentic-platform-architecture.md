@@ -3,7 +3,7 @@ title: Agentic AI Platform 아키텍처
 description: 프로덕션급 Agentic AI 플랫폼의 전체 시스템 아키텍처 — 6개 런타임 레이어와 3개 횡단 플레인 설계
 created: "2026-02-05"
 last_update:
-  date: "2026-07-17"
+  date: "2026-08-11"
   author: YoungJoon Jeong
 reading_time: 34
 tags:
@@ -393,6 +393,12 @@ flowchart LR
 
 요청별, Agent별, 테넌트별 비용 한도를 설정합니다. 월간 예산 초과 시 자동으로 저비용 모델로 폴백하거나, 알림을 발송하여 비용 폭증을 방지합니다. (정책 강제 자체는 거버넌스 플레인과 연동)
 
+Layer 5의 운영 상세는 다음 문서에서 다룹니다.
+
+- 테넌트별 키·예산 계층과 격리 3단 모델: [AI Gateway 멀티테넌시](../../operations-mlops/governance/ai-gateway-multi-tenancy.md)
+- 토큰 메터링·showback/chargeback·예산 정책 매트릭스: [LLM FinOps Chargeback](../../operations-mlops/governance/llm-finops-chargeback.md)
+- Agent가 게이트웨이 경유로 MCP 툴을 사용할 때의 토큰 오버헤드 최적화: [MCP 툴 토큰 최적화 패턴](../advanced-patterns/mcp-token-optimization.md)
+
 :::info 상세 가이드
 2-Tier Gateway 아키텍처(kgateway + Bifrost), Cascade Routing 튜닝, Semantic Router는 [Inference Gateway](../../reference-architecture/inference-gateway/index.md)를 참조하세요.
 :::
@@ -647,7 +653,7 @@ Layer 6(Experience & Channels)은 별도 네임스페이스 없이 ai-gateway �
 
 ### 멀티 테넌트 지원
 
-여러 팀이나 프로젝트가 동일한 플랫폼을 공유할 수 있도록 네임스페이스 격리, 리소스 쿼터, 네트워크 정책을 조합한 멀티 테넌트를 지원합니다.
+여러 팀이나 프로젝트가 동일한 플랫폼을 공유할 수 있도록 네임스페이스 격리, 리소스 쿼터, 네트워크 정책을 조합한 멀티 테넌트를 지원합니다. 여기서 다루는 것은 **인프라(Kubernetes) 레벨** 격리이며, LLM 요청 경로의 테넌트 격리 — 게이트웨이 키·예산, 벡터 DB 네임스페이스, 팀별 트레이스 분리 — 는 [AI Gateway 멀티테넌시](../../operations-mlops/governance/ai-gateway-multi-tenancy.md)의 격리 3단 모델이 canonical입니다.
 
 <TenantIsolation />
 
@@ -828,6 +834,9 @@ Agentic AI Platform 아키텍처의 핵심 원칙:
 
 - [기술적 도전과제](./agentic-ai-challenges.md) — 플랫폼이 해결하는 5가지 핵심 문제
 - [Knowledge Feature Store](../advanced-patterns/knowledge-feature-store.md) — 온톨로지 기반 특성 관리
+- [MCP 툴 토큰 최적화 패턴](../advanced-patterns/mcp-token-optimization.md) — Layer 4 Agent의 MCP 툴 토큰 오버헤드 최적화
+- [AI Gateway 멀티테넌시](../../operations-mlops/governance/ai-gateway-multi-tenancy.md) — Layer 5 테넌트 격리·예산 강제
+- [LLM FinOps Chargeback](../../operations-mlops/governance/llm-finops-chargeback.md) — 토큰 메터링·비용 배부 방법론
 - [Model Serving & 추론 인프라](../../model-serving/index.md) — vLLM, llm-d, MoE 배포 가이드
 - [Operations & 거버넌스](../../operations-mlops/index.md) — Langfuse, RAGAS, Guardrails 운영
 - [Reference Architecture](../../reference-architecture/index.md) — 단계별 구현 가이드

@@ -3,7 +3,7 @@ title: "AWS Native Agentic AI Platform: 매니지드 서비스 기반 Agent 중�
 description: Amazon Bedrock, Strands Agents SDK, AgentCore를 활용하여 인프라 운영 부담을 줄이고 Agent 개발에 집중하는 플랫폼 접근
 created: "2026-03-18"
 last_update:
-  date: "2026-07-17"
+  date: "2026-08-11"
   author: YoungJoon Jeong
 reading_time: 18
 tags:
@@ -546,6 +546,10 @@ MCP는 AI 에이전트와 도구 간의 **표준 통신 프로토콜**입니다:
 - **결과 반환**: 도구 실행 결과를 구조화된 형식으로 반환
 - **에이전트 간 통신**: A2A 프로토콜을 통한 멀티 에이전트 협업
 
+:::info MCP 토큰 비용 관점
+MCP 서버 연결 수가 늘어나면 툴 정의의 업프론트 로딩이 컨텍스트 윈도우와 입력 토큰 비용을 잠식합니다. Progressive Discovery, 툴 압축 프록시, Code Execution 등 토큰 최적화 기법은 [MCP 툴 토큰 최적화 패턴](../advanced-patterns/mcp-token-optimization.md)을 참조하세요. 본 문서는 통합 방법에 집중합니다.
+:::
+
 ### EKS MCP 서버 통합
 
 AWS는 EKS 전용 호스팅 MCP 서버를 제공하여 Kubernetes 클러스터와 AI 에이전트 간의 통합을 지원합니다:
@@ -686,4 +690,5 @@ CloudWatch Generative AI Observability는 **2025년 10월 GA**되었습니다. A
 - [플랫폼 아키텍처](../foundations/agentic-platform-architecture.md) — 6 레이어 + 3 플레인
 - [기술적 도전과제](../foundations/agentic-ai-challenges.md) — 5가지 핵심 과제
 - [AI 플랫폼 선택 가이드](./ai-platform-decision-framework.md) — 매니지드 vs 오픈소스
+- [MCP 툴 토큰 최적화 패턴](../advanced-patterns/mcp-token-optimization.md) — 툴 정의 업프론트 로딩 비용과 4가지 절감 기법
 - [EKS 기반 오픈 아키텍처](./agentic-ai-solutions-eks.md) — 자체 호스팅 비교
