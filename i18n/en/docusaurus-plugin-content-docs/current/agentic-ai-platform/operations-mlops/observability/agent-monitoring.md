@@ -3,7 +3,7 @@ title: AI Agent Monitoring and Operations
 description: Langfuse-based agent monitoring operations — monitoring architecture, key metrics, PromQL, alerting, and cost tracking (for tool comparison, see LLMOps Observability)
 created: "2026-02-05"
 last_update:
-  date: "2026-07-04"
+  date: "2026-08-11"
   author: devfloor9
 reading_time: 15
 tags:
@@ -303,6 +303,8 @@ tenant_monthly_budget_usd
 ## 6. Cost Tracking
 
 ### Cost Tracking Concepts
+
+This section covers the **observation** of cost — metric collection, PromQL queries, and dashboards. For the methodology of **allocating** observed costs to tenants (showback/chargeback) and budget policy design, see [LLM FinOps — Chargeback and Cost Allocation](../governance/llm-finops-chargeback.md); for gateway-level budget enforcement, see [AI Gateway Multi-Tenancy](../governance/ai-gateway-multi-tenancy.md).
 
 Track LLM usage costs by the following criteria:
 

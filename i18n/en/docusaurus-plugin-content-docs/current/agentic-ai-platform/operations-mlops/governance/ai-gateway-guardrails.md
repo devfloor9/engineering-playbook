@@ -3,7 +3,7 @@ title: AI Gateway Guardrails
 description: LLM Gateway-level Guardrails — PII redaction, prompt injection defense, content filtering, tool comparison, and Korean financial compliance mapping
 created: "2026-04-17"
 last_update:
-  date: "2026-06-26"
+  date: "2026-08-11"
   author: devfloor9
 reading_time: 36
 tags:
@@ -92,7 +92,7 @@ flowchart LR
 | Layer | Location | Responsibility | Latency Impact |
 |--------|------|------|----------|
 | **Input Guard** | Right after gateway entry | PII redaction, prompt injection detection, language/length validation | +20~100ms |
-| **Gateway Policy** | Gateway core | Authentication/authorization, tenant isolation, rate limit, model routing | +5~20ms |
+| **Gateway Policy** | Gateway core | Authentication/authorization, tenant isolation, rate limit, model routing — for the tenancy hierarchy model and budget enforcement, see [AI Gateway Multi-Tenancy](./ai-gateway-multi-tenancy.md) | +5~20ms |
 | **Tool Allow-list** | Agent/MCP layer | MCP server whitelist, scoped token, argument validation | +10~30ms |
 | **Model (LLM Safety)** | Model itself | Safety alignment injected during training | 0ms (Built into model) |
 | **Output Guard** | After response stream | PII scrub, toxicity, hallucination revalidation | +50~200ms |
@@ -261,6 +261,8 @@ user:
 Claude, GPT-4, and Gemini all recommend **XML tag delimiters** or **role-separated prompts** as injection mitigation in official documentation.
 
 ### 5.2 Tool Allow-list + Scoped Token
+
+The prerequisite for tool access control is a **dedicated agent credential (Agent Identity)**. If an agent borrows a human user's credentials, the acting principal cannot be distinguished in audit logs, and the human's full permission set becomes the agent's blast radius. Issue least-privilege scoped tokens to per-agent service accounts (Kubernetes ServiceAccount, EKS Pod Identity, etc.), and combine high-impact write paths with the approval gates in [Agentic Playbook](./agentic-playbook.md).
 
 ```yaml
 # pseudo-config: Restrict tools agent can call
@@ -549,6 +551,8 @@ Verify OpenRouter's detailed data-handling specifics (prompt caching, BYOK, etc.
 - [ ] Manage tool allow-list YAML configuration (Git + Kyverno policy)
 - [ ] Verify MCP server fingerprint (SHA256 hash or TLS pinning)
 - [ ] Minimize individual tool permissions with scoped token
+- [ ] Separate dedicated agent identity (no borrowing of human credentials; distinguish acting principal in audit logs)
+- [ ] Combine human-in-the-loop approval gates on high-impact write-path tools ([Agentic Playbook](./agentic-playbook.md) §5)
 
 ### 9.4 Output Guard
 - [ ] Chunk-level validation of streaming responses (sentence boundaries)
@@ -589,6 +593,9 @@ Verify OpenRouter's detailed data-handling specifics (prompt caching, BYOK, etc.
 
 ### Related Documentation
 - [Compliance Framework](./compliance-framework.md) — SOC2 / ISO27001 / Financial regulatory mapping
+- [AI Gateway Multi-Tenancy](./ai-gateway-multi-tenancy.md) — Tenancy hierarchy model, budget enforcement, three-level isolation
+- [Agentic Playbook](./agentic-playbook.md) — Blast-radius-based approval gates, audit trail
+- [MCP Tool Token Optimization Patterns](../../design-architecture/advanced-patterns/mcp-token-optimization.md) — Tool definition token efficiency (orthogonal to security)
 - [Agent Monitoring](../observability/agent-monitoring.md) — Langfuse integration
 - [LLMOps Observability](../observability/llmops-observability.md) — Langfuse, LangSmith, Helicone Comparison
 - [Inference Gateway Routing](../../model-serving/inference-routing/routing-strategy.md) — 2-Tier Gateway design

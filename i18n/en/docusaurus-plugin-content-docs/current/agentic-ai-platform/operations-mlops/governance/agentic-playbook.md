@@ -3,9 +3,9 @@ title: Agentic Playbook
 description: Guide for declaratively defining agent workflows like IaC and automating compliance
 created: "2026-04-04"
 last_update:
-  date: "2026-06-26"
+  date: "2026-08-11"
   author: devfloor9
-reading_time: 13
+reading_time: 14
 tags:
   - playbook
   - agent
@@ -241,6 +241,16 @@ graph TB
 
 ## 5. Approval Gate Patterns
 
+Approval gates are selected based on **blast radius** — the scope of impact when an agent action goes wrong. Rather than picking gate types from a list, first classify the action's risk level and map it to the appropriate gate.
+
+| Blast Radius Class | Action Examples | Impact on Failure | Recommended Gate |
+|--------------------|-----------------|-------------------|------------------|
+| **Read-only** | Log queries, status checks, code analysis | None (information exposure is governed by separate PII policy) | Auto |
+| **Low-impact Write** | Formatting fixes, ticket comments, dev environment deploys | Easy to revert, limited scope | Auto + guardrails |
+| **High-impact Write** | Production deploys, data deletion/modification, permission changes, external outbound messages | Hard to revert, organization/customer impact | Manual or Conditional (human-in-the-loop) |
+
+Enforcing a human-in-the-loop gate on high-impact write paths is the core safety mechanism of agent autonomy design. For restricting the agent's tool access itself via Tool Allow-list and Scoped Token, see [AI Gateway Guardrails](./ai-gateway-guardrails.md).
+
 ### 1. Auto Approval
 
 Proceeds immediately to next stage if guardrails pass:
@@ -291,7 +301,7 @@ Requires manual approval only under specific conditions:
   sla: 1h
 ```
 
-**Applicable scenarios**: Risk-based approval, cost-based approval, impact scope-based approval
+**Applicable scenarios**: Risk-based approval, cost-based approval, impact scope-based approval. Cost-based conditions (e.g., requiring approval when estimated token cost exceeds a threshold) can be tied to the budget policies in [LLM FinOps: Token Metering and Chargeback](./llm-finops-chargeback.md).
 
 :::tip Conditional Expressions
 - **Comparison operators**: `>`, `<`, `>=`, `<=`, `==`, `!=`
@@ -604,6 +614,8 @@ spec:
 ### Related Documents
 - [Custom Model Pipeline](../../reference-architecture/model-lifecycle/custom-model-pipeline.md)
 - [Milvus Vector Database](../data-infrastructure/milvus-vector-database.md)
+- [AI Gateway Guardrails](./ai-gateway-guardrails.md) — Agent tool access control via Tool Allow-list and Scoped Token
+- [LLM FinOps: Token Metering and Chargeback](./llm-finops-chargeback.md) — Budget policies tied to cost-based approval conditions
 - [AgenticOps](/docs/aidlc/operations)
 
 ## Next Steps

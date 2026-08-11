@@ -3,7 +3,7 @@ title: Agentic AI Platform Architecture
 description: Overall system architecture of a production-grade Agentic AI Platform — 6 runtime layers and 3 cross-cutting planes
 created: "2026-02-05"
 last_update:
-  date: "2026-06-26"
+  date: "2026-08-11"
   author: devfloor9
 reading_time: 59
 tags:
@@ -389,6 +389,12 @@ flowchart LR
 
 Sets cost limits per request, per agent, and per tenant. On exceeding the monthly budget, automatically falls back to a low-cost model or sends alerts to prevent cost spikes. (Policy enforcement itself integrates with the governance plane.)
 
+Operational details for Layer 5 are covered in the following documents.
+
+- Per-tenant key/budget hierarchy and the three-level isolation model: [AI Gateway Multi-Tenancy](../../operations-mlops/governance/ai-gateway-multi-tenancy.md)
+- Token metering, showback/chargeback, and the budget policy matrix: [LLM FinOps Chargeback](../../operations-mlops/governance/llm-finops-chargeback.md)
+- Optimizing token overhead when agents use MCP tools through the gateway: [MCP Tool Token Optimization Patterns](../advanced-patterns/mcp-token-optimization.md)
+
 :::info Detailed Guides
 For the 2-Tier Gateway architecture (kgateway + Bifrost), Cascade Routing tuning, and Semantic Router, see [Inference Gateway](../../reference-architecture/inference-gateway/index.md).
 :::
@@ -644,7 +650,7 @@ Each component can be horizontally scaled independently.
 
 ### Multi-Tenant Support
 
-Supports multi-tenancy through a combination of namespace isolation, resource quotas, and network policies, enabling multiple teams or projects to share the same platform.
+Supports multi-tenancy through a combination of namespace isolation, resource quotas, and network policies, enabling multiple teams or projects to share the same platform. This covers **infrastructure (Kubernetes) level** isolation; for tenant isolation on the LLM request path — gateway keys/budgets, vector DB namespaces, per-team trace separation — the three-level isolation model in [AI Gateway Multi-Tenancy](../../operations-mlops/governance/ai-gateway-multi-tenancy.md) is canonical.
 
 <TenantIsolation />
 
@@ -819,6 +825,9 @@ Specific methods for implementing this platform architecture are covered in the 
 
 - [Technical Challenges](./agentic-ai-challenges.md) — Analysis of 5 key challenges
 - [Knowledge Feature Store](../advanced-patterns/knowledge-feature-store.md) — Ontology-based feature management
+- [MCP Tool Token Optimization Patterns](../advanced-patterns/mcp-token-optimization.md) — Optimizing MCP tool token overhead for Layer 4 agents
+- [AI Gateway Multi-Tenancy](../../operations-mlops/governance/ai-gateway-multi-tenancy.md) — Layer 5 tenant isolation and budget enforcement
+- [LLM FinOps Chargeback](../../operations-mlops/governance/llm-finops-chargeback.md) — Token metering and cost allocation methodology
 - [Model Serving & Inference Infrastructure](../../model-serving/index.md) — vLLM, llm-d, MoE deployment guides
 - [Operations & Governance](../../operations-mlops/index.md) — Langfuse, RAGAS, Guardrails operations
 - [Reference Architecture](../../reference-architecture/index.md) — Step-by-step implementation guides

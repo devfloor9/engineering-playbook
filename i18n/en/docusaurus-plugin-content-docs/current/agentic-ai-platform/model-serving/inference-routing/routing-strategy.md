@@ -3,7 +3,7 @@ title: Inference Gateway & LLM Gateway Routing Strategy
 description: kgateway + Bifrost/LiteLLM 2-Tier architecture with Cascade Routing, Semantic Router, and Hybrid Routing design patterns
 created: "2025-02-05"
 last_update:
-  date: "2026-07-04"
+  date: "2026-08-11"
   author: YoungJoon Jeong
 reading_time: 51
 tags:
@@ -210,6 +210,14 @@ For streaming responses, `backendRequest` timeout is for first byte, `request` i
 | **Helicone** | Rust | Gateway + Observability integrated, high performance | Supported | Apache 2.0 | High performance + observability needed |
 | **OpenRouter** | SaaS (hosted) | Unified API for 400+ models·60+ providers, provider fallback, OpenAI-compatible | Provider routing supported | SaaS (commercial) | Fast multi-provider integration, prototyping |
 
+:::note LiteLLM and Kong Are Either/Or
+LiteLLM and Kong AI Gateway are both L1 gateways — **choose one of the two**. There is no verified reference for an architecture combining both products (e.g., Kong in front + LiteLLM behind). For selection criteria from the tenancy-model and budget-enforcement perspective, see [AI Gateway Multi-Tenancy — Selection Criteria](../../operations-mlops/governance/ai-gateway-multi-tenancy.md#4-selection-criteria-litellm-vs-kong).
+:::
+
+:::info Connecting L1 Budget Signals to Fallback Routing
+Among L1 signals, **budget** is directly tied to governance policy. When a tenant's budget is exhausted, the L1 gateway can block the request (hard budget) or take a fallback path that downgrades to a lower-cost model. For per-tenant budget hierarchies and enforcement, see [AI Gateway Multi-Tenancy](../../operations-mlops/governance/ai-gateway-multi-tenancy.md); for the block/alert/fallback policy matrix on budget overrun, see [LLM FinOps Chargeback](../../operations-mlops/governance/llm-finops-chargeback.md). These policy decisions all happen at L1; L2 (KV-aware Pod selection) does not handle budget signals.
+:::
+
 :::note Self-hosted vs SaaS
 In the table above, Bifrost·LiteLLM·Helicone·vLLM Semantic Router are **self-hosted** (deployed in-cluster), whereas **OpenRouter is hosted SaaS**. SaaS provides instant access to 400+ models and delegates provider fallback/billing, which is advantageous for fast integration and prototyping. However, since prompts are sent to an external service, review the [governance considerations](../../operations-mlops/governance/ai-gateway-guardrails.md#openrouter-등-saas-게이트웨이-데이터-주권) for environments with data sovereignty or regulatory requirements.
 :::
@@ -384,6 +392,11 @@ For actual code examples and YAML manifests, refer to Reference Architecture sec
 - [Coding Tools & Cost Analysis](../../reference-architecture/integrations/coding-tools-cost-analysis.md) - Aider/Cline connection, NLB unified routing patterns
 - [Monitoring Stack Setup](../../reference-architecture/integrations/monitoring-observability-setup.md) - Langfuse OTel integration, Prometheus, Grafana dashboards
 - [LLMOps Observability](../../operations-mlops/observability/llmops-observability.md) - Langfuse/LangSmith-based LLM observability
+
+### Governance & Tenancy
+
+- [AI Gateway Multi-Tenancy](../../operations-mlops/governance/ai-gateway-multi-tenancy.md) - L1 gateway tenant isolation and budget enforcement
+- [LLM FinOps Chargeback](../../operations-mlops/governance/llm-finops-chargeback.md) - Fallback/block policies on budget exhaustion and cost allocation
 
 ### Related Infrastructure
 

@@ -3,7 +3,7 @@ title: LLMOps Observability Comparison Guide
 description: LLMOps observability tool comparison — Langfuse·LangSmith·Helicone·CloudWatch selection criteria and hybrid architecture (for Langfuse operations, see Agent Monitoring)
 created: "2026-03-16"
 last_update:
-  date: "2026-07-04"
+  date: "2026-08-11"
   author: devfloor9
 reading_time: 21
 tags:
@@ -36,7 +36,7 @@ Traditional Application Performance Monitoring (APM) tools fail to meet the spec
 1. **Tracing**: Track entire request lifecycle (prompt -> LLM -> response), visibility into nested chain/agent steps
 2. **Evaluation**: Measure response quality through automated/manual assessment (accuracy, faithfulness, relevance, toxicity, etc.)
 3. **Prompt Management**: Prompt template version control, A/B testing, production deployment pipeline
-4. **Cost Tracking**: Real-time aggregation of token costs by provider/model, team/project budget management
+4. **Cost Tracking**: Real-time aggregation of token costs by provider/model. Cost tracking in observability tools stops at **visibility**; per-team/project budget **enforcement** is handled at the gateway level ([AI Gateway Multi-Tenancy](../governance/ai-gateway-multi-tenancy.md)), and cost **allocation** is covered by FinOps methodology ([LLM FinOps Chargeback](../governance/llm-finops-chargeback.md))
 
 :::info Practical Deployment Guide
 For practical configuration including Langfuse Helm deployment, Redis/ClickHouse setup, kgateway sub-path routing, and Bifrost OTel integration, refer to [Monitoring Stack Configuration Guide](../../reference-architecture/integrations/monitoring-observability-setup.md).
@@ -351,3 +351,5 @@ Ragas is a RAG system-specific evaluation framework that integrates with Langfus
 - [Inference Gateway Routing](../../model-serving/inference-routing/routing-strategy.md)
 - [RAG Evaluation with Ragas](../governance/ragas-evaluation.md)
 - [Agent Monitoring](./agent-monitoring.md)
+- [LLM FinOps Chargeback](../governance/llm-finops-chargeback.md) — Cost allocation and budget policy methodology
+- [AI Gateway Multi-Tenancy](../governance/ai-gateway-multi-tenancy.md) — Gateway-level budget enforcement

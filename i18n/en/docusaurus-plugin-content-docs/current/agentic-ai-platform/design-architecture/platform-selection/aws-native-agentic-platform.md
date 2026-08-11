@@ -548,6 +548,10 @@ MCP is a **standard communication protocol** between AI Agents and tools:
 - **Result Return**: Tool execution results returned in structured format
 - **Inter-Agent Communication**: Multi-agent collaboration via A2A protocol
 
+:::info MCP Token Cost Perspective
+As the number of connected MCP servers grows, upfront loading of tool definitions erodes the context window and input token cost. For token optimization techniques such as Progressive Discovery, tool compression proxies, and Code Execution, see [MCP Tool Token Optimization Patterns](../advanced-patterns/mcp-token-optimization.md). This document focuses on integration methods.
+:::
+
 ### EKS MCP Server Integration
 
 AWS provides EKS-dedicated hosted MCP servers to support integration between Kubernetes clusters and AI Agents:
@@ -688,4 +692,5 @@ CloudWatch Generative AI Observability became **GA in October 2025**. Natively i
 - [Platform Architecture](../foundations/agentic-platform-architecture.md) — 6 layers + 3 planes
 - [Technical Challenges](../foundations/agentic-ai-challenges.md) — 5 core challenges
 - [AI Platform Selection Guide](./ai-platform-decision-framework.md) — Managed vs open source
+- [MCP Tool Token Optimization Patterns](../advanced-patterns/mcp-token-optimization.md) — Upfront tool definition loading cost and 4 reduction techniques
 - [EKS-based Open Architecture](./agentic-ai-solutions-eks.md) — Self-hosting comparison
