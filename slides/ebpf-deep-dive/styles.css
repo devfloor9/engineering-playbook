@@ -325,6 +325,20 @@ h1.display.md { font-size: clamp(30px, 3.8vw, 54px); }
   .split, .split.w64, .split.w46, .rescols { grid-template-columns: 1fr; }
 }
 
+/* ---- speaker notes (S: 스피커 뷰 팝업 · N: 오버레이) ---- */
+.slide .notes { display: none; }  /* 발표자 노트 — 청중 화면에 렌더되지 않음 */
+#notesbar {
+  position: fixed; left: 50%; bottom: 9vh; transform: translateX(-50%);
+  width: min(72vw, 980px); max-height: 26vh; overflow-y: auto; z-index: 55;
+  background: rgba(11, 16, 23, .93); border: 1px solid var(--line);
+  border-left: 3px solid var(--orange); border-radius: 10px;
+  padding: 14px 20px; font-size: 15px; line-height: 1.65; color: var(--paper);
+  backdrop-filter: blur(6px); box-shadow: 0 16px 44px rgba(0,0,0,.5);
+}
+#notesbar em { color: var(--fog); }
+#notesbar b { color: var(--orange-hot); }
+#notesbar code { font-family: var(--mono); font-size: .9em; color: var(--blue); }
+
 /* ---- presenter · speakers · survey QR ---- */
 .hud .keys { font-family: var(--mono); font-size: 11px; letter-spacing: .1em; color: var(--fog); opacity: .55; margin-left: 26px; }
 .hud .keys b { color: var(--orange); font-weight: 700; }
