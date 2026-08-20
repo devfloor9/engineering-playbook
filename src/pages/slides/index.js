@@ -53,6 +53,20 @@ const slideDecks = [
     ],
   },
   {
+    category: 'Kernel & Networking Deep Dive',
+    categoryIcon: '🐝',
+    categoryColor: '#f59e0b',
+    items: [
+      {
+        title: 'eBPF Deep Dive — 커널을 프로그래밍하다',
+        description: 'eBPF VM · Verifier · JIT · CO-RE/BTF · Ring Buffer · Falco vs Tetragon · Off-CPU 분석 · VPC CNI NetworkPolicy · NFM sock_ops · Cilium ENI · 실측 벤치마크',
+        badge: 'Deep Dive',
+        slides: 33,
+        href: '/slides/ebpf-deep-dive/',
+      },
+    ],
+  },
+  {
     category: 'EKS Operations Training',
     categoryIcon: '⚙️',
     categoryColor: '#60a5fa',
