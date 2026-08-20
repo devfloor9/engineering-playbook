@@ -61,7 +61,7 @@ const slideDecks = [
         title: 'eBPF Deep Dive — 커널을 프로그래밍하다',
         description: 'eBPF VM · Verifier · JIT · CO-RE/BTF · Ring Buffer · Falco vs Tetragon · Off-CPU 분석 · VPC CNI NetworkPolicy · NFM sock_ops · Cilium ENI · 실측 벤치마크',
         badge: 'Deep Dive',
-        slides: 33,
+        slides: 34,
         href: '/slides/ebpf-deep-dive/',
       },
     ],
