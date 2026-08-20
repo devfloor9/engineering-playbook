@@ -921,6 +921,15 @@ $ <span class="ck">memleak</span> -p 1234 --older 60000</div>
       </ul>
     </div>
   </div>
+  <table class="compare" data-a="5" style="margin-top:2.4vh">
+    <thead>
+      <tr><th>관측 조합</th><th class="hl">진단</th><th>처방</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>runqlat <b>스파이크</b> + 스택에 블로킹 흔적 <b>없음</b> — 깨어 있는데 못 뛴다</td><td><b>CFS 스로틀링</b> — CPU 할당 부족</td><td class="good">limits.cpu 상향이 유효</td></tr>
+      <tr><td>runqlat <b>정상</b> + 스택 끝에 <code>io_schedule</code>·<code>futex_wait</code> — 스스로 잠들었다</td><td><b>I/O·락 병목</b> — CPU와 무관</td><td class="bad">limits 상향 무효 — 스토리지·락 설계를 개선</td></tr>
+    </tbody>
+  </table>
 </section>
 
 <!-- ============ 26 · FALCO ============ -->
