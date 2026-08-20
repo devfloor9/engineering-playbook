@@ -324,3 +324,59 @@ h1.display.md { font-size: clamp(30px, 3.8vw, 54px); }
   .tiles, .tiles.four, .takeaways { grid-template-columns: 1fr 1fr; }
   .split, .split.w64, .split.w46, .rescols { grid-template-columns: 1fr; }
 }
+
+/* ---- presenter · speakers · survey QR ---- */
+.hud .keys { font-family: var(--mono); font-size: 11px; letter-spacing: .1em; color: var(--fog); opacity: .55; margin-left: 26px; }
+.hud .keys b { color: var(--orange); font-weight: 700; }
+
+.speakers { display: flex; gap: 46px; margin-top: 4.2vh; flex-wrap: wrap; }
+.speakers[hidden] { display: none; }
+.speakers .spk { border-left: 2px solid var(--line); padding-left: 18px; }
+.speakers .spk h4 { font-family: var(--disp); font-size: 21px; font-weight: 800; color: var(--paper); margin: 0 0 6px; }
+.speakers .spk p { margin: 2px 0; font-family: var(--mono); font-size: 12px; letter-spacing: .06em; }
+.speakers .spk .t { color: var(--fog); text-transform: uppercase; }
+.speakers .spk .c { color: var(--orange); font-weight: 700; }
+.speakers .spk .l { color: var(--fog); opacity: .8; }
+
+.qrbox { position: absolute; right: 3.8vw; bottom: 13vh; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.qrbox[hidden] { display: none; }
+.qrbox .qr { width: 128px; height: 128px; background: #fff; border-radius: 10px; padding: 8px; box-sizing: border-box; }
+.qrbox .qr svg { width: 100%; height: 100%; display: block; }
+.qrbox > span { font-family: var(--mono); font-size: 11px; letter-spacing: .18em; color: var(--fog); }
+
+.setup {
+  position: fixed; top: 50%; right: 28px; transform: translateY(-50%);
+  width: 360px; max-height: 88vh; overflow-y: auto;
+  background: var(--panel); border: 1px solid var(--line); border-radius: 16px;
+  padding: 22px 24px; z-index: 60; box-shadow: 0 24px 64px rgba(0,0,0,.55);
+}
+.setup[hidden] { display: none; }
+.setup header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.setup .st { font-family: var(--mono); font-size: 13px; letter-spacing: .22em; color: var(--orange); font-weight: 700; }
+.setup header button { background: none; border: 0; color: var(--fog); font-size: 20px; cursor: pointer; line-height: 1; padding: 2px 6px; }
+.setup header button:hover { color: var(--paper); }
+.setup .note { font-size: 12.5px; color: var(--fog); line-height: 1.55; margin: 0 0 14px; }
+.setup .seg { display: flex; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; margin-bottom: 14px; }
+.setup .seg button { flex: 1; padding: 8px 0; background: none; border: 0; color: var(--fog); font-family: var(--mono); font-size: 12px; cursor: pointer; }
+.setup .seg button.on { background: var(--orange); color: var(--ink); font-weight: 700; }
+.setup fieldset { border: 0; padding: 0; margin: 0 0 12px; }
+.setup fieldset[hidden] { display: none; }
+.setup legend { font-family: var(--mono); font-size: 12px; font-weight: 700; color: var(--paper); letter-spacing: .08em; margin-bottom: 6px; padding: 0; }
+.setup label { display: block; font-size: 11.5px; color: var(--fog); margin-bottom: 8px; }
+.setup input[type="text"], .setup input[type="url"] {
+  display: block; width: 100%; margin-top: 4px; padding: 8px 10px; box-sizing: border-box;
+  background: #0d141d; border: 1px solid var(--line); border-radius: 8px;
+  color: var(--paper); font-family: var(--mono); font-size: 13px;
+}
+.setup input:focus { outline: none; border-color: var(--orange); }
+.setup .chk { display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--paper); margin: 12px 0; }
+.setup .chk input { accent-color: var(--orange); }
+.setup .survey em { font-style: normal; color: var(--fog); opacity: .8; }
+.setup .actions { display: flex; justify-content: space-between; gap: 10px; margin-top: 14px; }
+.setup .actions button {
+  padding: 9px 16px; border-radius: 9px; border: 1px solid var(--line);
+  background: none; color: var(--fog); font-family: var(--mono); font-size: 12px; cursor: pointer;
+}
+.setup .actions button:hover { border-color: var(--fog); color: var(--paper); }
+.setup .actions button.primary { background: var(--orange); border-color: var(--orange); color: var(--ink); font-weight: 700; }
+.setup .actions button.primary:hover { background: var(--orange-hot); color: var(--ink); }

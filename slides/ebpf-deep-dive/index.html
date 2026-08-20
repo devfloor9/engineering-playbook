@@ -19,6 +19,7 @@
 
 <div class="hud">
   <span class="legal">Engineering Playbook · Deep Dive Session · 2026</span>
+  <span class="keys"><b>E</b> presenter · <b>Q</b> QR</span>
   <span class="brand"><b>e</b>BPF DEEP DIVE</span>
   <span id="counter">01 / 39</span>
 </div>
@@ -40,6 +41,7 @@
     <span class="chip">02 · OBSERVABILITY &amp; SECURITY</span>
     <span class="chip">03 · eBPF ON EKS</span>
   </div>
+  <div class="speakers" data-speakers data-a="5"></div>
 </section>
 
 <!-- ============ 02 · AGENDA ============ -->
@@ -1501,8 +1503,47 @@ $ <span class="ck">memleak</span> -p 1234 --older 60000</div>
     <span class="chip">Q &amp; A</span>
     <span class="chip">Engineering Playbook — devfloor9.github.io/engineering-playbook</span>
   </div>
+  <div class="speakers" data-speakers data-a="7"></div>
+  <div class="qrbox" id="qrBox" hidden>
+    <div class="qr" id="qrTarget"></div>
+    <span>CSAT SURVEY</span>
+  </div>
 </section>
 
+<!-- presenter setup — 브라우저 localStorage에만 저장, 링크 공유로 전달되지 않음 -->
+<aside class="setup" id="setup" hidden>
+  <header>
+    <span class="st">PRESENTER SETUP</span>
+    <button id="setupClose" aria-label="닫기">×</button>
+  </header>
+  <p class="note">이 브라우저에만 저장됩니다 — 한 번 설정하면 유지되고, 링크를 공유해도 발표자 정보는 전달되지 않습니다.</p>
+  <div class="seg" id="spkCount">
+    <button type="button" data-count="1">1 speaker</button>
+    <button type="button" data-count="2">2 speakers</button>
+  </div>
+  <fieldset id="spk1">
+    <legend>Speaker 1</legend>
+    <label>이름<input id="s1name" type="text" autocomplete="off"></label>
+    <label>직함<input id="s1title" type="text" autocomplete="off"></label>
+    <label>소속<input id="s1company" type="text" autocomplete="off"></label>
+    <label>LinkedIn<input id="s1linkedin" type="text" autocomplete="off"></label>
+  </fieldset>
+  <fieldset id="spk2" hidden>
+    <legend>Speaker 2</legend>
+    <label>이름<input id="s2name" type="text" autocomplete="off"></label>
+    <label>직함<input id="s2title" type="text" autocomplete="off"></label>
+    <label>소속<input id="s2company" type="text" autocomplete="off"></label>
+    <label>LinkedIn<input id="s2linkedin" type="text" autocomplete="off"></label>
+  </fieldset>
+  <label class="chk"><input id="hideSpk" type="checkbox"> 발표자 정보 숨기기 (커버 + 클로징)</label>
+  <label class="survey">CSAT survey 링크 <em>(클로징 슬라이드에 QR 표시)</em><input id="surveyUrl" type="url" placeholder="https://… survey URL" autocomplete="off"></label>
+  <div class="actions">
+    <button type="button" id="setupReset">기본값 복원</button>
+    <button type="button" id="setupSave" class="primary">저장</button>
+  </div>
+</aside>
+
+<script src="./qrcode.min.js"></script>
 <script src="./deck.js"></script>
 </body>
 </html>
