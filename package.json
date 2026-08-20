@@ -39,7 +39,8 @@
     "prismjs": "^1.30.0",
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
-    "roughjs": "^4.6.6"
+    "roughjs": "^4.6.6",
+    "shell-quote": "^1.8.4"
   },
   "devDependencies": {
     "@docusaurus/module-type-aliases": "^3.9.2",
