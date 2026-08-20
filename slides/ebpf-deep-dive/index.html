@@ -20,7 +20,7 @@
 <div class="hud">
   <span class="legal">Engineering Playbook · Deep Dive Session · 2026</span>
   <span class="brand"><b>e</b>BPF DEEP DIVE</span>
-  <span id="counter">01 / 34</span>
+  <span id="counter">01 / 36</span>
 </div>
 <div class="navbtns">
   <button id="navPrev" aria-label="이전 슬라이드">‹</button>
@@ -54,7 +54,7 @@
     </div>
     <div class="ag" data-a="4">
       <span class="n">02</span>
-      <div><h3>Observability &amp; Security</h3><p>memleak · Off-CPU 분석 · Falco vs Tetragon · 프로덕션 튜닝 — eBPF가 실전에서 쓰이는 방식</p></div>
+      <div><h3>Observability &amp; Security</h3><p>제품 지형도 · memleak · Off-CPU · CPU 스로틀링 · Falco vs Tetragon — eBPF가 실전에서 쓰이는 방식</p></div>
       <span class="tag">PRACTICE</span>
     </div>
     <div class="ag" data-a="5">
@@ -745,7 +745,7 @@
   <span class="num">02</span>
   <div class="kicker" data-a="1">Chapter two</div>
   <h1 class="display" data-a="2">관측과 <span class="hot">방어</span></h1>
-  <p class="mono-tag" data-a="3">memleak · off-cpu · falco vs tetragon · production tuning</p>
+  <p class="mono-tag" data-a="3">landscape · memleak · off-cpu · throttling · falco vs tetragon · tuning</p>
 </section>
 
 <!-- ============ 21 · TOOL LANDSCAPE ============ -->
@@ -777,7 +777,44 @@
   <div class="dial-axis" data-a="7"><span>← 빠른 실험</span><span>프로덕션 배포 →</span></div>
 </section>
 
-<!-- ============ 22 · MEMLEAK ============ -->
+<!-- ============ 22 · ECOSYSTEM MAP ============ -->
+<section class="slide">
+  <div class="kicker" data-a="1">Ecosystem</div>
+  <h1 class="display md" data-a="2">제품 지형도 — 관측 · 탐지 · <span class="hot">차단</span></h1>
+  <p class="sub" data-a="3">같은 eBPF 위에서도 제품이 서는 자리는 다릅니다 — <b>어디까지 보고, 어디부터 막는가</b>가 분류 기준입니다.</p>
+  <div class="tiles four">
+    <div class="tile tc-green" data-a="4">
+      <span class="tn">OBSERVE</span>
+      <h3>관측 · 프로파일링</h3>
+      <p><b>Pixie</b> — 코드 수정 없이 HTTP·gRPC·SQL 자동 계측, 서비스 맵 생성. <b>Parca</b> — 상시 저빈도 스택 샘플링, 연속 프로파일링. <b>Hubble</b> — 사이드카 없는 L3–L7 가시화(33장).</p>
+      <span class="tt">NO-INSTRUMENT</span>
+    </div>
+    <div class="tile tc-blue" data-a="5">
+      <span class="tn">DETECT</span>
+      <h3>런타임 탐지</h3>
+      <p><b>Falco</b> — 룰 기반 syscall 행위 탐지, 가장 방대한 룰셋(26장). <b>Tracee</b> — Aqua Security, 커널 이벤트를 정밀 수집하는 포렌식 지향 탐지.</p>
+      <span class="tt">ALERT-ONLY</span>
+    </div>
+    <div class="tile tc-pink" data-a="6">
+      <span class="tn">ENFORCE</span>
+      <h3>인커널 차단</h3>
+      <p><b>Tetragon</b> — LSM 훅에서 동기 판정·차단(27장). <b>KubeArmor</b> — BPF-LSM·AppArmor로 파일·프로세스·소켓 접근을 선제 봉쇄하는 워크로드 하드닝.</p>
+      <span class="tt">IN-KERNEL BLOCK</span>
+    </div>
+    <div class="tile tc-purple" data-a="7">
+      <span class="tn">CORRELATE</span>
+      <h3>다차원 연계 — CADR</h3>
+      <p><b>ARMO</b> 등 — 커널 eBPF 시그널을 클라우드 API·K8s 컨트롤 플레인·앱 코드와 상관 분석, 개별 알림 대신 <b>공격 스토리 단위</b>로 재구성.</p>
+      <span class="tt">ATTACK STORY</span>
+    </div>
+  </div>
+  <div class="chips" data-a="8" style="display:flex;gap:12px;margin-top:2.6vh;flex-wrap:wrap">
+    <span class="chip">분류 축 — 이벤트를 유저스페이스로 보내 '보고'하는가, 커널 안에서 '판정'까지 하는가</span>
+    <span class="chip hot">탐지 ↔ 차단의 구조적 차이는 26–27장에서 해부</span>
+  </div>
+</section>
+
+<!-- ============ 23 · MEMLEAK ============ -->
 <section class="slide">
   <div class="kicker" data-a="1">Case study № 1</div>
   <h1 class="display md" data-a="2">메모리 누수 추적 — 집계는 전부 커널 안에서</h1>
@@ -785,7 +822,7 @@
     <div class="panel" style="--pc:var(--green)" data-a="3">
       <h3>동작 원리</h3>
       <ul>
-        <li>할당 경로에 프로브 — 유저 <code>malloc</code>은 uprobe, 커널 할당은 kprobe → <b>주소 → (스택 ID · 크기 · 시각)</b>을 맵에 기록</li>
+        <li>할당 경로에 프로브 — 유저 <code>malloc·calloc·realloc·mmap</code>은 uprobe, 커널 <code>kmalloc</code>은 kprobe → <b>주소 → (스택 ID · 크기 · 시각)</b>을 맵에 기록</li>
         <li>해제 시 해당 엔트리 삭제 — <b>오래 남은 엔트리 = 누수 후보</b></li>
         <li><code>bpf_get_stackid()</code>가 호출 스택을 <code>STACK_TRACE</code> 맵에 저장</li>
         <li>유저스페이스는 주기적으로 맵만 읽음 — <b>이벤트 스트리밍 없음, 오버헤드 최소</b></li>
@@ -799,15 +836,19 @@ $ <span class="ck">memleak</span> -p 1234 --interval 10
     malloc+0x1f
     <span class="cv">grow_request_buffer</span>+0x42
     <span class="cv">handle_connection</span>+0x8d
-    start_thread+0xd9</div>
+    start_thread+0xd9
+
+<span class="cm"># --older: 60초 이상 미해제 '진성 누수'만 · -p 생략 시 커널 누수 추적</span>
+$ <span class="ck">memleak</span> -p 1234 --older 60000</div>
   </div>
   <div class="chips" data-a="5" style="display:flex;gap:12px;margin-top:2.6vh;flex-wrap:wrap">
+    <span class="chip">Valgrind와 달리 <b>재기동 불필요</b> — 실행 중인 프로세스에 동적 부착, CPU 에뮬레이션 없이 커널 내 집계</span>
     <span class="chip">uprobe의 비용 — <code>int3</code> 브레이크포인트 트랩으로 매 호출마다 커널 왕복, 고빈도 malloc에선 트랩 자체가 병목</span>
     <span class="chip hot">우회로는 커널 진입 제거 — bpftime이 프로브를 유저스페이스 인라인 훅으로 실행, 약 10배 단축 (19장)</span>
   </div>
 </section>
 
-<!-- ============ 23 · OFF-CPU ============ -->
+<!-- ============ 24 · OFF-CPU ============ -->
 <section class="slide">
   <div class="kicker" data-a="1">Case study № 2</div>
   <h1 class="display md" data-a="2">Off-CPU 분석 — <span class="hot">CPU 밖의 시간</span>을 본다</h1>
@@ -845,7 +886,44 @@ $ <span class="ck">memleak</span> -p 1234 --interval 10
   </div>
 </section>
 
-<!-- ============ 24 · FALCO ============ -->
+<!-- ============ 25 · CFS THROTTLING ============ -->
+<section class="slide">
+  <div class="kicker" data-a="1">Case study № 3</div>
+  <h1 class="display md" data-a="2">CPU 스로틀링 진단 — <span class="hot">Runnable인데 달리지 못하는</span> 시간</h1>
+  <div class="split w64">
+    <div class="arch" data-a="3" style="margin-top:0">
+      <svg viewBox="0 0 760 300">
+        <text x="20" y="34" class="am" font-size="14" fill="#a6b2c3">CFS(Completely Fair Scheduler) Bandwidth Control — limits.cpu → quota / 100ms 주기</text>
+        <rect x="20" y="60" width="180" height="56" rx="10" fill="rgba(0,229,0,.1)" stroke="#00e500" stroke-width="1.5"/>
+        <text x="110" y="86" class="an" font-size="15" text-anchor="middle">실행</text>
+        <text x="110" y="106" class="am" font-size="12" text-anchor="middle">quota 40ms 소진</text>
+        <rect x="230" y="60" width="330" height="56" rx="10" fill="rgba(255,92,133,.08)" stroke="#ff5c85" stroke-width="1.5" stroke-dasharray="5 4"/>
+        <text x="395" y="86" class="an" font-size="15" text-anchor="middle" fill="#ff5c85">THROTTLED — 60ms 강제 대기</text>
+        <text x="395" y="106" class="am" font-size="12" text-anchor="middle" fill="#ff5c85">Runnable인데 스케줄 금지 — cgroup 전체</text>
+        <rect x="590" y="60" width="150" height="56" rx="10" fill="rgba(0,229,0,.1)" stroke="#00e500" stroke-width="1.5"/>
+        <text x="665" y="86" class="an" font-size="15" text-anchor="middle">다음 주기</text>
+        <text x="665" y="106" class="am" font-size="12" text-anchor="middle">quota 리필 → 재개</text>
+
+        <rect x="140" y="185" width="480" height="62" rx="12" fill="rgba(255,153,0,.08)" stroke="#ff9900" stroke-width="2"/>
+        <text x="380" y="212" class="an" font-size="16" text-anchor="middle">runqlat — Runnable → 실행까지의 대기 분포</text>
+        <text x="380" y="236" class="am" font-size="13" text-anchor="middle">평소 수십 µs → 스로틀링 시 100ms대 스파이크로 오른쪽 왜곡</text>
+        <path class="wire" d="M395 116 C 395 150, 390 165, 380 185" stroke="#ff5c85"/>
+        <text x="380" y="285" class="am" font-size="13" text-anchor="middle" fill="#a6b2c3">스로틀 구간이 런큐 대기 히스토그램의 긴 꼬리로 그대로 드러난다</text>
+      </svg>
+    </div>
+    <div class="panel" style="--pc:var(--pink)" data-a="4">
+      <h3>왜 기존 지표론 안 보이나</h3>
+      <ul>
+        <li>CPU 사용률 그래프는 limit에 붙어 <b>평평</b> — 일하는 중인지 목이 졸린 중인지 구분 불가</li>
+        <li>cAdvisor 스로틀 카운터는 <b>횟수·총량만</b> — 어느 코드 경로가 얼마나 늦었는지 없음</li>
+        <li><code>runqlat</code> 스파이크 + Off-CPU 스택(24장)에 <b>블로킹 흔적 없음</b>(<code>io_schedule</code>·<code>futex_wait</code> 부재) → I/O도 락도 아닌 <b>스로틀링</b>으로 확정</li>
+        <li>두 도구의 <b>교차 판독</b>이 limits 재산정의 정량 근거가 된다</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 26 · FALCO ============ -->
 <section class="slide">
   <div class="kicker" data-a="1">Runtime security № 1</div>
   <h1 class="display md" data-a="2">Falco — 관측은 하지만, <span class="hot">막지는 못한다</span></h1>
@@ -884,7 +962,7 @@ $ <span class="ck">memleak</span> -p 1234 --interval 10
   </div>
 </section>
 
-<!-- ============ 25 · TETRAGON ============ -->
+<!-- ============ 27 · TETRAGON ============ -->
 <section class="slide">
   <div class="kicker" data-a="1">Runtime security № 2</div>
   <h1 class="display md" data-a="2">Tetragon — 커널 안에서 판단하고, <span class="hot">그 자리에서 차단</span>한다</h1>
@@ -927,7 +1005,7 @@ $ <span class="ck">memleak</span> -p 1234 --interval 10
   </div>
 </section>
 
-<!-- ============ 26 · PRODUCTION TUNING ============ -->
+<!-- ============ 28 · PRODUCTION TUNING ============ -->
 <section class="slide">
   <div class="kicker" data-a="1">Operations</div>
   <h1 class="display md" data-a="2">프로덕션 체크리스트</h1>
@@ -955,7 +1033,7 @@ $ <span class="ck">memleak</span> -p 1234 --interval 10
   </div>
 </section>
 
-<!-- ============ 27 · CHAPTER 03 ============ -->
+<!-- ============ 29 · CHAPTER 03 ============ -->
 <section class="slide chapter">
   <span class="num">03</span>
   <div class="kicker" data-a="1">Chapter three</div>
@@ -963,7 +1041,7 @@ $ <span class="ck">memleak</span> -p 1234 --interval 10
   <p class="mono-tag" data-a="3">vpc cni · cilium · hubble · benchmarks</p>
 </section>
 
-<!-- ============ 28 · EKS LANDSCAPE ============ -->
+<!-- ============ 30 · EKS LANDSCAPE ============ -->
 <section class="slide">
   <div class="kicker" data-a="1">Already in production</div>
   <h1 class="display md" data-a="2">EKS eBPF 지형도 — <span class="hot">이미 프로덕션에 있다</span></h1>
@@ -996,7 +1074,7 @@ $ <span class="ck">memleak</span> -p 1234 --interval 10
   </div>
 </section>
 
-<!-- ============ 29 · VPC CNI NETWORKPOLICY ============ -->
+<!-- ============ 31 · VPC CNI NETWORKPOLICY ============ -->
 <section class="slide">
   <div class="kicker" data-a="1">eBPF on EKS № 1</div>
   <h1 class="display md" data-a="2">VPC CNI NetworkPolicy — 컨트롤러와 에이전트의 <span class="hot">분업</span></h1>
@@ -1045,7 +1123,7 @@ $ <span class="ck">memleak</span> -p 1234 --interval 10
   </div>
 </section>
 
-<!-- ============ 30 · NFM CASE STUDY ============ -->
+<!-- ============ 32 · NFM CASE STUDY ============ -->
 <section class="slide">
   <div class="kicker" data-a="1">eBPF on EKS № 2</div>
   <h1 class="display md" data-a="2">Network Flow Monitor — AWS가 쓴 eBPF를 <span class="hot">소스로 읽는다</span></h1>
@@ -1078,7 +1156,7 @@ $ <span class="ck">memleak</span> -p 1234 --interval 10
   </div>
 </section>
 
-<!-- ============ 31 · CILIUM ENI ============ -->
+<!-- ============ 33 · CILIUM ENI ============ -->
 <section class="slide">
   <div class="kicker" data-a="1">eBPF on EKS № 3</div>
   <h1 class="display md" data-a="2">Cilium ENI 모드 — 오버레이 없는 <span class="hot">eBPF 데이터패스</span></h1>
@@ -1131,7 +1209,7 @@ $ <span class="ck">memleak</span> -p 1234 --interval 10
   </div>
 </section>
 
-<!-- ============ 32 · BENCHMARK ============ -->
+<!-- ============ 34 · BENCHMARK ============ -->
 <section class="slide">
   <div class="kicker" data-a="1">Numbers, not vibes</div>
   <h1 class="display md" data-a="2">숫자로 보는 eBPF — 실측 벤치마크</h1>
@@ -1153,7 +1231,7 @@ $ <span class="ck">memleak</span> -p 1234 --interval 10
   </div>
 </section>
 
-<!-- ============ 33 · TAKEAWAYS ============ -->
+<!-- ============ 35 · TAKEAWAYS ============ -->
 <section class="slide">
   <div class="kicker" data-a="1">Take these home</div>
   <h1 class="display md" data-a="2">커널을 읽을 수 있으면, <span class="hot">클러스터가 보인다</span></h1>
@@ -1165,7 +1243,7 @@ $ <span class="ck">memleak</span> -p 1234 --interval 10
   <p class="sub" data-a="6" style="margin-top:4vh">세 챕터를 관통하는 한 문장 — <b>eBPF는 커널을 고치지 않고 커널의 동작을 바꾸는, 검증된 프로그래밍 계층</b>입니다.</p>
 </section>
 
-<!-- ============ 34 · CLOSING ============ -->
+<!-- ============ 36 · CLOSING ============ -->
 <section class="slide cover">
   <div class="kicker" data-a="1">Wrap-up</div>
   <h1 class="display md" data-a="2">커널은 더 이상 <span class="hot">블랙박스</span>가 아닙니다</h1>
