@@ -20,7 +20,7 @@
 <div class="hud">
   <span class="legal">Engineering Playbook · Deep Dive Session · 2026</span>
   <span class="brand"><b>e</b>BPF DEEP DIVE</span>
-  <span id="counter">01 / 36</span>
+  <span id="counter">01 / 39</span>
 </div>
 <div class="navbtns">
   <button id="navPrev" aria-label="이전 슬라이드">‹</button>
@@ -504,7 +504,152 @@
   </div>
 </section>
 
-<!-- ============ 14 · PERFBUF LIMITS ============ -->
+<!-- ============ 14 · RINGBUF PRIMER ============ -->
+<section class="slide">
+  <div class="kicker" data-a="1">Data structure primer</div>
+  <h1 class="display md" data-a="2">링 버퍼 — 고정 배열과 <span class="hot">포인터 두 개</span>로 만드는 무한 큐</h1>
+  <p class="sub" data-a="3">eBPF가 발명한 구조가 아닙니다 — <b>printk/dmesg 로그 · NIC RX/TX 링 · ftrace · perf · io_uring</b>까지,
+  커널 도처에서 수십 년 검증된 자료구조입니다.</p>
+  <div class="split w64">
+    <div class="arch" data-a="4" style="margin-top:0">
+      <svg viewBox="0 0 760 310">
+        <text x="20" y="26" class="am" font-size="14" fill="#a6b2c3">고정 크기 N 슬롯 — 쓰기·읽기 O(1) · 런타임 메모리 할당 없음</text>
+
+        <text x="167.5" y="48" class="an" font-size="13" text-anchor="middle" fill="#00e500">C — 읽기</text>
+        <line x1="167.5" y1="53" x2="167.5" y2="62" stroke="#00e500" stroke-width="2"/>
+        <text x="467.5" y="48" class="an" font-size="13" text-anchor="middle" fill="#ff9900">P — 쓰기</text>
+        <line x1="467.5" y1="53" x2="467.5" y2="62" stroke="#ff9900" stroke-width="2"/>
+
+        <rect x="20"  y="64" width="55" height="64" rx="9" fill="rgba(166,178,195,.06)" stroke="#3a4656" stroke-width="1.5"/>
+        <rect x="80"  y="64" width="55" height="64" rx="9" fill="rgba(166,178,195,.06)" stroke="#3a4656" stroke-width="1.5"/>
+        <rect x="140" y="64" width="55" height="64" rx="9" fill="rgba(255,153,0,.18)" stroke="#ff9900" stroke-width="1.5"/>
+        <rect x="200" y="64" width="55" height="64" rx="9" fill="rgba(255,153,0,.18)" stroke="#ff9900" stroke-width="1.5"/>
+        <rect x="260" y="64" width="55" height="64" rx="9" fill="rgba(255,153,0,.18)" stroke="#ff9900" stroke-width="1.5"/>
+        <rect x="320" y="64" width="55" height="64" rx="9" fill="rgba(255,153,0,.18)" stroke="#ff9900" stroke-width="1.5"/>
+        <rect x="380" y="64" width="55" height="64" rx="9" fill="rgba(255,153,0,.18)" stroke="#ff9900" stroke-width="1.5"/>
+        <rect x="440" y="64" width="55" height="64" rx="9" fill="rgba(166,178,195,.06)" stroke="#3a4656" stroke-width="1.5"/>
+        <rect x="500" y="64" width="55" height="64" rx="9" fill="rgba(166,178,195,.06)" stroke="#3a4656" stroke-width="1.5"/>
+        <rect x="560" y="64" width="55" height="64" rx="9" fill="rgba(166,178,195,.06)" stroke="#3a4656" stroke-width="1.5"/>
+        <rect x="620" y="64" width="55" height="64" rx="9" fill="rgba(166,178,195,.06)" stroke="#3a4656" stroke-width="1.5"/>
+        <rect x="680" y="64" width="55" height="64" rx="9" fill="rgba(166,178,195,.06)" stroke="#3a4656" stroke-width="1.5"/>
+
+        <text x="47.5"  y="150" class="am" font-size="12" text-anchor="middle">0</text>
+        <text x="107.5" y="150" class="am" font-size="12" text-anchor="middle">1</text>
+        <text x="167.5" y="150" class="am" font-size="12" text-anchor="middle">2</text>
+        <text x="227.5" y="150" class="am" font-size="12" text-anchor="middle">3</text>
+        <text x="287.5" y="150" class="am" font-size="12" text-anchor="middle">4</text>
+        <text x="347.5" y="150" class="am" font-size="12" text-anchor="middle">5</text>
+        <text x="407.5" y="150" class="am" font-size="12" text-anchor="middle">6</text>
+        <text x="467.5" y="150" class="am" font-size="12" text-anchor="middle">7</text>
+        <text x="527.5" y="150" class="am" font-size="12" text-anchor="middle">8</text>
+        <text x="587.5" y="150" class="am" font-size="12" text-anchor="middle">9</text>
+        <text x="647.5" y="150" class="am" font-size="12" text-anchor="middle">10</text>
+        <text x="707.5" y="150" class="am" font-size="12" text-anchor="middle">11</text>
+
+        <path class="wire-static" d="M707.5 158 C 707.5 205, 47.5 205, 47.5 162" stroke="#a6b2c3" stroke-dasharray="6 5" opacity=".7"/>
+        <text x="380" y="218" class="am" font-size="13" text-anchor="middle" fill="#a6b2c3">끝에 닿으면 처음으로 — index = pos &amp; (N−1) · 크기는 2ᵏ로 강제</text>
+
+        <line x1="20" y1="240" x2="740" y2="240" stroke="rgba(166,178,195,.25)" stroke-width="1"/>
+        <text x="140" y="272" class="an" font-size="15" text-anchor="middle">P == C</text>
+        <text x="140" y="294" class="am" font-size="12" text-anchor="middle">비어 있음</text>
+        <text x="380" y="272" class="an" font-size="15" text-anchor="middle">C ~ P 사이</text>
+        <text x="380" y="294" class="am" font-size="12" text-anchor="middle">읽을 데이터</text>
+        <text x="620" y="272" class="an" font-size="15" text-anchor="middle">P 바로 앞이 C</text>
+        <text x="620" y="294" class="am" font-size="12" text-anchor="middle">가득 참 — 정책 분기</text>
+      </svg>
+    </div>
+    <div class="panel" style="--pc:var(--blue)" data-a="5">
+      <h3>커널이 이 구조를 쓰는 이유</h3>
+      <ul>
+        <li>인터럽트·스케줄러 같은 핫패스에선 <code>malloc</code> 불가 — 미리 잡은 슬롯에 <b>쓰기만</b> 한다</li>
+        <li>메모리 사용량 <b>상한이 설계 시점에 보장</b> — 폭주해도 버퍼 크기까지만</li>
+        <li>ns 단위 생산자와 ms 단위 소비자의 <b>속도 분리</b> — 버퍼가 완충</li>
+        <li>연속 메모리 한 덩어리 — <b>mmap으로 유저스페이스와 공유</b>해 복사 없이 읽는다</li>
+      </ul>
+    </div>
+  </div>
+  <div class="chips" data-a="6" style="display:flex;gap:12px;margin-top:2.6vh;flex-wrap:wrap">
+    <span class="chip">가득 참 정책이 용도를 가른다 — 로그(dmesg)는 오래된 것 덮어쓰기, 이벤트 파이프(perf·eBPF)는 새 이벤트 손실 + 카운트</span>
+    <span class="chip hot">Perf Buffer도 BPF Ring Buffer도 이 구조의 후예 — 무엇이 달라졌는가가 다음 네 장</span>
+  </div>
+</section>
+
+<!-- ============ 15 · PERFBUF FLOW ============ -->
+<section class="slide">
+  <div class="kicker" data-a="1">Legacy path — how it worked</div>
+  <h1 class="display md" data-a="2">기존 동작 방식 — CPU별 링에 <span class="hot">조립 → 복사 → 즉시 알림</span></h1>
+  <p class="sub" data-a="3">Perf Buffer는 앞 장의 링을 <b>CPU마다 하나씩</b> 둡니다 — BPF 프로그램은 자기 CPU의 링에만 쓰고,
+  소비자가 CPU 수만큼의 링을 따로 읽어 병합합니다.</p>
+  <div class="arch" data-a="4">
+    <svg viewBox="0 0 1200 430">
+      <!-- kernel zone -->
+      <rect x="15" y="20" width="1170" height="284" rx="18" fill="rgba(0,229,0,.03)" stroke="#00e500" stroke-width="1.2" stroke-dasharray="8 6"/>
+      <text x="45" y="50" class="am" font-size="14" fill="#00e500" letter-spacing="3">KERNEL SPACE</text>
+
+      <!-- CPU 0 column -->
+      <rect x="45" y="64" width="340" height="56" rx="12" fill="#131a24" stroke="#a6b2c3" stroke-width="1.5"/>
+      <text x="215" y="88" class="an" font-size="15" text-anchor="middle">CPU 0 — BPF 프로그램</text>
+      <text x="215" y="107" class="am" font-size="11" text-anchor="middle">① 스택에 레코드 조립</text>
+      <path class="wire" d="M215 120 V150" stroke="#ff9900"/>
+      <text x="228" y="141" class="am" font-size="11" fill="#ff9900">② 복사</text>
+      <rect x="50"  y="152" width="50" height="50" rx="8" fill="rgba(255,153,0,.18)" stroke="#ff9900" stroke-width="1.5"/>
+      <rect x="106" y="152" width="50" height="50" rx="8" fill="rgba(255,153,0,.18)" stroke="#ff9900" stroke-width="1.5"/>
+      <rect x="162" y="152" width="50" height="50" rx="8" fill="rgba(255,153,0,.18)" stroke="#ff9900" stroke-width="1.5"/>
+      <rect x="218" y="152" width="50" height="50" rx="8" fill="rgba(255,153,0,.18)" stroke="#ff9900" stroke-width="1.5"/>
+      <rect x="274" y="152" width="50" height="50" rx="8" fill="rgba(255,153,0,.18)" stroke="#ff9900" stroke-width="1.5"/>
+      <rect x="330" y="152" width="50" height="50" rx="8" fill="rgba(255,153,0,.18)" stroke="#ff9900" stroke-width="1.5"/>
+      <text x="215" y="228" class="am" font-size="12" text-anchor="middle" fill="#ff5c85">가득 참 — 새 이벤트 유실</text>
+
+      <!-- CPU 1 column -->
+      <rect x="425" y="64" width="340" height="56" rx="12" fill="#131a24" stroke="#a6b2c3" stroke-width="1.5"/>
+      <text x="595" y="88" class="an" font-size="15" text-anchor="middle">CPU 1 — BPF 프로그램</text>
+      <text x="595" y="107" class="am" font-size="11" text-anchor="middle">① 스택에 레코드 조립</text>
+      <path class="wire" d="M595 120 V150" stroke="#ff9900"/>
+      <text x="608" y="141" class="am" font-size="11" fill="#ff9900">② 복사</text>
+      <rect x="430" y="152" width="50" height="50" rx="8" fill="rgba(255,153,0,.18)" stroke="#ff9900" stroke-width="1.5"/>
+      <rect x="486" y="152" width="50" height="50" rx="8" fill="rgba(255,153,0,.18)" stroke="#ff9900" stroke-width="1.5"/>
+      <rect x="542" y="152" width="50" height="50" rx="8" fill="rgba(255,153,0,.18)" stroke="#ff9900" stroke-width="1.5"/>
+      <rect x="598" y="152" width="50" height="50" rx="8" fill="rgba(166,178,195,.06)" stroke="#3a4656" stroke-width="1.5"/>
+      <rect x="654" y="152" width="50" height="50" rx="8" fill="rgba(166,178,195,.06)" stroke="#3a4656" stroke-width="1.5"/>
+      <rect x="710" y="152" width="50" height="50" rx="8" fill="rgba(166,178,195,.06)" stroke="#3a4656" stroke-width="1.5"/>
+      <text x="595" y="228" class="am" font-size="12" text-anchor="middle" fill="#a6b2c3">부하는 CPU마다 제각각</text>
+
+      <!-- CPU 2 column -->
+      <rect x="805" y="64" width="340" height="56" rx="12" fill="#131a24" stroke="#a6b2c3" stroke-width="1.5"/>
+      <text x="975" y="88" class="an" font-size="15" text-anchor="middle">CPU 2 — BPF 프로그램</text>
+      <text x="975" y="107" class="am" font-size="11" text-anchor="middle">① 스택에 레코드 조립</text>
+      <path class="wire" d="M975 120 V150" stroke="#ff9900"/>
+      <text x="988" y="141" class="am" font-size="11" fill="#ff9900">② 복사</text>
+      <rect x="810"  y="152" width="50" height="50" rx="8" fill="rgba(255,153,0,.18)" stroke="#ff9900" stroke-width="1.5"/>
+      <rect x="866"  y="152" width="50" height="50" rx="8" fill="rgba(166,178,195,.06)" stroke="#3a4656" stroke-width="1.5"/>
+      <rect x="922"  y="152" width="50" height="50" rx="8" fill="rgba(166,178,195,.06)" stroke="#3a4656" stroke-width="1.5"/>
+      <rect x="978"  y="152" width="50" height="50" rx="8" fill="rgba(166,178,195,.06)" stroke="#3a4656" stroke-width="1.5"/>
+      <rect x="1034" y="152" width="50" height="50" rx="8" fill="rgba(166,178,195,.06)" stroke="#3a4656" stroke-width="1.5"/>
+      <rect x="1090" y="152" width="50" height="50" rx="8" fill="rgba(166,178,195,.06)" stroke="#3a4656" stroke-width="1.5"/>
+      <text x="975" y="228" class="am" font-size="12" text-anchor="middle" fill="#a6b2c3">텅 빔 — 선점 메모리 낭비</text>
+
+      <!-- wires to consumer -->
+      <path class="wire" d="M215 240 V346" stroke="#ad5cff"/>
+      <path class="wire" d="M595 240 V346" stroke="#ad5cff"/>
+      <path class="wire" d="M975 240 C 975 300, 800 316, 726 346" stroke="#ad5cff"/>
+
+      <!-- user zone -->
+      <rect x="15" y="316" width="1170" height="100" rx="18" fill="rgba(65,179,255,.03)" stroke="#41b3ff" stroke-width="1.2" stroke-dasharray="8 6"/>
+      <text x="45" y="340" class="am" font-size="13" fill="#41b3ff" letter-spacing="3">USER SPACE</text>
+      <rect x="45" y="346" width="690" height="56" rx="12" fill="rgba(65,179,255,.08)" stroke="#41b3ff" stroke-width="1.5"/>
+      <text x="390" y="370" class="an" font-size="16" text-anchor="middle">유저스페이스 소비자</text>
+      <text x="390" y="392" class="am" font-size="12" text-anchor="middle">fd × CPU 수를 epoll — 링마다 따로 읽고, 시간순 병합은 소비자 몫</text>
+      <text x="770" y="368" class="am" font-size="12" fill="#ad5cff">③ 이벤트마다 무조건 알림</text>
+      <text x="770" y="388" class="am" font-size="12" fill="#ad5cff">— 소비자 상태 무관 · 고빈도에서 웨이크업 폭풍</text>
+    </svg>
+  </div>
+  <div class="chips" data-a="5" style="display:flex;gap:12px;flex-wrap:wrap">
+    <span class="chip">링 자체는 앞 장 그대로 — 다른 것은 배치: CPU마다 따로 두고, 다 만든 레코드를 복사해 넣는다</span>
+    <span class="chip hot">이 그림에서 네 가지 대가가 그대로 파생 (다음 장)</span>
+  </div>
+</section>
+
+<!-- ============ 16 · PERFBUF LIMITS ============ -->
 <section class="slide">
   <div class="kicker" data-a="1">Legacy — perf buffer</div>
   <h1 class="display md" data-a="2">구세대 Perf Buffer — <span class="hot">CPU마다 따로</span>인 버퍼의 대가</h1>
@@ -537,7 +682,87 @@
   </div>
 </section>
 
-<!-- ============ 15 · RING BUFFER ============ -->
+<!-- ============ 17 · RINGBUF FLOW ============ -->
+<section class="slide">
+  <div class="kicker" data-a="1">New path — how it works</div>
+  <h1 class="display md" data-a="2">새 동작 방식 — <span class="hot">예약 → 제자리 작성 → 커밋</span>, 알림은 필요할 때만</h1>
+  <p class="sub" data-a="3">링은 전역에 하나 — 모든 CPU가 <code>reserve()</code>로 자리를 먼저 확보하고, 그 자리에 직접 쓴 뒤
+  <code>submit()</code>으로 공개합니다. 복사가 사라지고, 순서는 예약 순서로 고정됩니다.</p>
+  <div class="arch" data-a="4">
+    <svg viewBox="0 0 1200 430">
+      <!-- kernel zone -->
+      <rect x="15" y="20" width="1170" height="270" rx="18" fill="rgba(0,229,0,.03)" stroke="#00e500" stroke-width="1.2" stroke-dasharray="8 6"/>
+      <text x="45" y="50" class="am" font-size="14" fill="#00e500" letter-spacing="3">KERNEL SPACE</text>
+
+      <!-- producers -->
+      <rect x="45" y="60" width="190" height="55" rx="12" fill="#131a24" stroke="#a6b2c3" stroke-width="1.5"/>
+      <text x="140" y="83" class="an" font-size="15" text-anchor="middle">CPU 0</text>
+      <text x="140" y="102" class="am" font-size="11" text-anchor="middle">BPF 프로그램</text>
+      <rect x="45" y="135" width="190" height="55" rx="12" fill="#131a24" stroke="#a6b2c3" stroke-width="1.5"/>
+      <text x="140" y="158" class="an" font-size="15" text-anchor="middle">CPU 1</text>
+      <text x="140" y="177" class="am" font-size="11" text-anchor="middle">BPF 프로그램</text>
+      <rect x="45" y="210" width="190" height="55" rx="12" fill="#131a24" stroke="#a6b2c3" stroke-width="1.5"/>
+      <text x="140" y="233" class="an" font-size="15" text-anchor="middle">CPU 2</text>
+      <text x="140" y="252" class="am" font-size="11" text-anchor="middle">BPF 프로그램</text>
+
+      <path class="wire" d="M235 87 C 300 87, 330 132, 400 142" stroke="#ff9900"/>
+      <path class="wire" d="M235 162 C 300 162, 330 152, 400 152" stroke="#ff9900"/>
+      <path class="wire" d="M235 237 C 300 237, 330 172, 400 162" stroke="#ff9900"/>
+      <text x="258" y="52" class="am" font-size="12" fill="#ff9900">① reserve() — 위치만 확보 · 공간 부족이면 즉시 실패</text>
+
+      <!-- single shared ring: cells 0-3 committed, 4 busy, 5-8 free -->
+      <rect x="400"  y="120" width="80" height="64" rx="9" fill="rgba(255,153,0,.18)" stroke="#ff9900" stroke-width="1.5"/>
+      <rect x="484"  y="120" width="80" height="64" rx="9" fill="rgba(255,153,0,.18)" stroke="#ff9900" stroke-width="1.5"/>
+      <rect x="568"  y="120" width="80" height="64" rx="9" fill="rgba(255,153,0,.18)" stroke="#ff9900" stroke-width="1.5"/>
+      <rect x="652"  y="120" width="80" height="64" rx="9" fill="rgba(255,153,0,.18)" stroke="#ff9900" stroke-width="1.5"/>
+      <rect x="736"  y="120" width="80" height="64" rx="9" fill="rgba(255,92,133,.15)" stroke="#ff5c85" stroke-width="1.5" stroke-dasharray="5 4"/>
+      <text x="776" y="158" class="am" font-size="12" text-anchor="middle" fill="#ff5c85">BUSY</text>
+      <rect x="820"  y="120" width="80" height="64" rx="9" fill="rgba(166,178,195,.06)" stroke="#3a4656" stroke-width="1.5"/>
+      <rect x="904"  y="120" width="80" height="64" rx="9" fill="rgba(166,178,195,.06)" stroke="#3a4656" stroke-width="1.5"/>
+      <rect x="988"  y="120" width="80" height="64" rx="9" fill="rgba(166,178,195,.06)" stroke="#3a4656" stroke-width="1.5"/>
+      <rect x="1072" y="120" width="80" height="64" rx="9" fill="rgba(166,178,195,.06)" stroke="#3a4656" stroke-width="1.5"/>
+      <text x="776" y="108" class="am" font-size="12" text-anchor="middle" fill="#ff5c85">② 제자리 직접 작성 — 복사 없음</text>
+      <text x="568" y="210" class="am" font-size="12" text-anchor="middle" fill="#00e500">③ submit() — busy 비트 해제 = 공개</text>
+      <text x="1030" y="210" class="am" font-size="12" text-anchor="middle" fill="#a6b2c3">빈 공간</text>
+
+      <!-- double mapping strip -->
+      <text x="460" y="252" class="am" font-size="12" fill="#a6b2c3">가상 메모리 이중 매핑</text>
+      <text x="460" y="270" class="am" font-size="12" fill="#a6b2c3">같은 물리 페이지 ×2 매핑</text>
+      <text x="732" y="234" class="am" font-size="11" text-anchor="middle" fill="#a6b2c3">매핑 1</text>
+      <text x="916" y="234" class="am" font-size="11" text-anchor="middle" fill="#a6b2c3">매핑 2</text>
+      <rect x="640" y="240" width="42" height="28" rx="5" fill="rgba(166,178,195,.06)" stroke="#3a4656" stroke-width="1.2"/>
+      <rect x="686" y="240" width="42" height="28" rx="5" fill="rgba(166,178,195,.06)" stroke="#3a4656" stroke-width="1.2"/>
+      <rect x="732" y="240" width="42" height="28" rx="5" fill="rgba(166,178,195,.06)" stroke="#3a4656" stroke-width="1.2"/>
+      <rect x="778" y="240" width="42" height="28" rx="5" fill="rgba(166,178,195,.06)" stroke="#3a4656" stroke-width="1.2"/>
+      <rect x="824" y="240" width="42" height="28" rx="5" fill="rgba(166,178,195,.06)" stroke="#3a4656" stroke-width="1.2"/>
+      <rect x="870" y="240" width="42" height="28" rx="5" fill="rgba(166,178,195,.06)" stroke="#3a4656" stroke-width="1.2"/>
+      <rect x="916" y="240" width="42" height="28" rx="5" fill="rgba(166,178,195,.06)" stroke="#3a4656" stroke-width="1.2"/>
+      <rect x="962" y="240" width="42" height="28" rx="5" fill="rgba(166,178,195,.06)" stroke="#3a4656" stroke-width="1.2"/>
+      <rect x="778" y="240" width="88" height="28" rx="5" fill="rgba(255,153,0,.30)" stroke="#ff9900" stroke-width="1.5"/>
+      <line x1="822" y1="234" x2="822" y2="272" stroke="#a6b2c3" stroke-width="1" stroke-dasharray="3 3"/>
+      <text x="1040" y="259" class="am" font-size="11" fill="#a6b2c3">경계 걸친 레코드 —</text>
+      <text x="1040" y="275" class="am" font-size="11" fill="#a6b2c3">분할 없이 이어 읽는다</text>
+
+      <!-- wire to consumer + adaptive notify -->
+      <path class="wire" d="M420 188 V336" stroke="#ad5cff"/>
+
+      <!-- user zone -->
+      <rect x="15" y="302" width="1170" height="110" rx="18" fill="rgba(65,179,255,.03)" stroke="#41b3ff" stroke-width="1.2" stroke-dasharray="8 6"/>
+      <text x="45" y="328" class="am" font-size="13" fill="#41b3ff" letter-spacing="3">USER SPACE</text>
+      <text x="60" y="366" class="am" font-size="12" fill="#ad5cff">④ 적응형 알림</text>
+      <text x="60" y="386" class="am" font-size="12" fill="#ad5cff">— 소비자가 밀릴 때만 깨움</text>
+      <rect x="400" y="336" width="560" height="60" rx="12" fill="rgba(65,179,255,.08)" stroke="#41b3ff" stroke-width="1.5"/>
+      <text x="680" y="362" class="an" font-size="16" text-anchor="middle">유저스페이스 소비자</text>
+      <text x="680" y="384" class="am" font-size="12" text-anchor="middle">fd 1개 — mmap으로 직접 읽기 · 전역 순서 그대로</text>
+    </svg>
+  </div>
+  <div class="chips" data-a="5" style="display:flex;gap:12px;flex-wrap:wrap">
+    <span class="chip">소비자는 BUSY 레코드 앞에서 멈춘다 — 커밋된 레코드만 예약 순서대로 공개</span>
+    <span class="chip hot">단일 링 · 예약 · 제자리 쓰기 · 적응형 알림 — 각각 무엇을 해소했는지는 다음 장</span>
+  </div>
+</section>
+
+<!-- ============ 18 · RING BUFFER ============ -->
 <section class="slide">
   <div class="kicker" data-a="1">Kernel → userspace</div>
   <h1 class="display md" data-a="2">BPF Ring Buffer — <span class="hot">기본값</span>이 된 새 아키텍처 (v5.8+)</h1>
@@ -575,7 +800,7 @@
   </div>
 </section>
 
-<!-- ============ 16 · RINGBUF COMPARE ============ -->
+<!-- ============ 19 · RINGBUF COMPARE ============ -->
 <section class="slide">
   <div class="kicker" data-a="1">Side by side</div>
   <h1 class="display md" data-a="2">링 버퍼 세대 비교 — 같은 이름, <span class="hot">다른 설계</span></h1>
@@ -600,7 +825,7 @@
   </div>
 </section>
 
-<!-- ============ 17 · CO-RE & BTF ============ -->
+<!-- ============ 20 · CO-RE & BTF ============ -->
 <section class="slide">
   <div class="kicker" data-a="1">Compile once — run everywhere</div>
   <h1 class="display md" data-a="2">CO-RE — 한 번 컴파일해서 <span class="hot">어디서나 실행</span></h1>
@@ -649,7 +874,7 @@
   </div>
 </section>
 
-<!-- ============ 18 · INTEGRATION MAP ============ -->
+<!-- ============ 21 · INTEGRATION MAP ============ -->
 <section class="slide">
   <div class="kicker" data-a="1">The whole picture</div>
   <h1 class="display md" data-a="2">아키텍처 통합 흐름도 — <span class="hot">조각들이 맞물리는</span> 자리</h1>
@@ -664,14 +889,14 @@
       <text x="140" y="136" class="am" font-size="12" text-anchor="middle">§10 · .o + .BTF.ext</text>
       <rect x="45" y="205" width="190" height="90" rx="12" fill="rgba(255,153,0,.08)" stroke="#ff9900" stroke-width="2"/>
       <text x="140" y="240" class="an" font-size="17" text-anchor="middle">libbpf 로더</text>
-      <text x="140" y="266" class="am" font-size="12" text-anchor="middle">§17 · 오프셋 패치</text>
+      <text x="140" y="266" class="am" font-size="12" text-anchor="middle">§20 · 오프셋 패치</text>
       <rect x="265" y="205" width="185" height="90" rx="12" fill="rgba(0,229,0,.05)" stroke="#00e500" stroke-width="1.5"/>
       <text x="357" y="238" class="an" font-size="15" text-anchor="middle">커널 BTF</text>
       <text x="357" y="262" class="am" font-size="11" text-anchor="middle">/sys/kernel/btf/vmlinux</text>
       <text x="357" y="280" class="am" font-size="11" text-anchor="middle">커널 타입 사전</text>
       <rect x="45" y="330" width="405" height="70" rx="12" fill="rgba(65,179,255,.08)" stroke="#41b3ff" stroke-width="1.5"/>
       <text x="247" y="360" class="an" font-size="16" text-anchor="middle">유저스페이스 소비자</text>
-      <text x="247" y="384" class="am" font-size="12" text-anchor="middle">§15 · Ring Buffer 읽기 · 맵 폴링</text>
+      <text x="247" y="384" class="am" font-size="12" text-anchor="middle">§18 · Ring Buffer 읽기 · 맵 폴링</text>
 
       <!-- kernel zone -->
       <rect x="505" y="20" width="680" height="390" rx="18" fill="rgba(0,229,0,.03)" stroke="#00e500" stroke-width="1.2" stroke-dasharray="8 6"/>
@@ -691,7 +916,7 @@
       <text x="958" y="272" class="am" font-size="12" text-anchor="middle">§13 · Helpers / KFuncs · Maps</text>
       <rect x="535" y="330" width="420" height="70" rx="12" fill="rgba(0,229,0,.07)" stroke="#00e500" stroke-width="1.5"/>
       <text x="745" y="360" class="an" font-size="16" text-anchor="middle">MPSC Ring Buffer</text>
-      <text x="745" y="384" class="am" font-size="12" text-anchor="middle">§15 · reserve / submit · 적응형 알림</text>
+      <text x="745" y="384" class="am" font-size="12" text-anchor="middle">§18 · reserve / submit · 적응형 알림</text>
 
       <!-- wires -->
       <path class="wire" d="M140 165 V205" stroke="#a6b2c3"/>
@@ -710,7 +935,7 @@
   </div>
 </section>
 
-<!-- ============ 19 · FRONTIER ============ -->
+<!-- ============ 22 · FRONTIER ============ -->
 <section class="slide">
   <div class="kicker" data-a="1">The frontier</div>
   <h1 class="display md" data-a="2">경계를 넓히는 최신 기능</h1>
@@ -740,7 +965,7 @@
   </div>
 </section>
 
-<!-- ============ 20 · CHAPTER 02 ============ -->
+<!-- ============ 23 · CHAPTER 02 ============ -->
 <section class="slide chapter">
   <span class="num">02</span>
   <div class="kicker" data-a="1">Chapter two</div>
@@ -748,7 +973,7 @@
   <p class="mono-tag" data-a="3">landscape · memleak · off-cpu · throttling · falco vs tetragon · tuning</p>
 </section>
 
-<!-- ============ 21 · TOOL LANDSCAPE ============ -->
+<!-- ============ 24 · TOOL LANDSCAPE ============ -->
 <section class="slide">
   <div class="kicker" data-a="1">Tooling</div>
   <h1 class="display md" data-a="2">도구 지형도 — 추상화의 사다리</h1>
@@ -777,7 +1002,7 @@
   <div class="dial-axis" data-a="7"><span>← 빠른 실험</span><span>프로덕션 배포 →</span></div>
 </section>
 
-<!-- ============ 22 · ECOSYSTEM MAP ============ -->
+<!-- ============ 25 · ECOSYSTEM MAP ============ -->
 <section class="slide">
   <div class="kicker" data-a="1">Ecosystem</div>
   <h1 class="display md" data-a="2">제품 지형도 — 관측 · 탐지 · <span class="hot">차단</span></h1>
@@ -786,19 +1011,19 @@
     <div class="tile tc-green" data-a="4">
       <span class="tn">OBSERVE</span>
       <h3>관측 · 프로파일링</h3>
-      <p><b>Pixie</b> — 코드 수정 없이 HTTP·gRPC·SQL 자동 계측, 서비스 맵 생성. <b>Parca</b> — 상시 저빈도 스택 샘플링, 연속 프로파일링. <b>Hubble</b> — 사이드카 없는 L3–L7 가시화(33장).</p>
+      <p><b>Pixie</b> — 코드 수정 없이 HTTP·gRPC·SQL 자동 계측, 서비스 맵 생성. <b>Parca</b> — 상시 저빈도 스택 샘플링, 연속 프로파일링. <b>Hubble</b> — 사이드카 없는 L3–L7 가시화(36장).</p>
       <span class="tt">NO-INSTRUMENT</span>
     </div>
     <div class="tile tc-blue" data-a="5">
       <span class="tn">DETECT</span>
       <h3>런타임 탐지</h3>
-      <p><b>Falco</b> — 룰 기반 syscall 행위 탐지, 가장 방대한 룰셋(26장). <b>Tracee</b> — Aqua Security, 커널 이벤트를 정밀 수집하는 포렌식 지향 탐지.</p>
+      <p><b>Falco</b> — 룰 기반 syscall 행위 탐지, 가장 방대한 룰셋(29장). <b>Tracee</b> — Aqua Security, 커널 이벤트를 정밀 수집하는 포렌식 지향 탐지.</p>
       <span class="tt">ALERT-ONLY</span>
     </div>
     <div class="tile tc-pink" data-a="6">
       <span class="tn">ENFORCE</span>
       <h3>인커널 차단</h3>
-      <p><b>Tetragon</b> — LSM 훅에서 동기 판정·차단(27장). <b>KubeArmor</b> — BPF-LSM·AppArmor로 파일·프로세스·소켓 접근을 선제 봉쇄하는 워크로드 하드닝.</p>
+      <p><b>Tetragon</b> — LSM 훅에서 동기 판정·차단(30장). <b>KubeArmor</b> — BPF-LSM·AppArmor로 파일·프로세스·소켓 접근을 선제 봉쇄하는 워크로드 하드닝.</p>
       <span class="tt">IN-KERNEL BLOCK</span>
     </div>
     <div class="tile tc-purple" data-a="7">
@@ -814,7 +1039,7 @@
   </div>
 </section>
 
-<!-- ============ 23 · MEMLEAK ============ -->
+<!-- ============ 26 · MEMLEAK ============ -->
 <section class="slide">
   <div class="kicker" data-a="1">Case study № 1</div>
   <h1 class="display md" data-a="2">메모리 누수 추적 — 집계는 전부 커널 안에서</h1>
@@ -844,11 +1069,11 @@ $ <span class="ck">memleak</span> -p 1234 --older 60000</div>
   <div class="chips" data-a="5" style="display:flex;gap:12px;margin-top:2.6vh;flex-wrap:wrap">
     <span class="chip">Valgrind와 달리 <b>재기동 불필요</b> — 실행 중인 프로세스에 동적 부착, CPU 에뮬레이션 없이 커널 내 집계</span>
     <span class="chip">uprobe의 비용 — <code>int3</code> 브레이크포인트 트랩으로 매 호출마다 커널 왕복, 고빈도 malloc에선 트랩 자체가 병목</span>
-    <span class="chip hot">우회로는 커널 진입 제거 — bpftime이 프로브를 유저스페이스 인라인 훅으로 실행, 약 10배 단축 (19장)</span>
+    <span class="chip hot">우회로는 커널 진입 제거 — bpftime이 프로브를 유저스페이스 인라인 훅으로 실행, 약 10배 단축 (22장)</span>
   </div>
 </section>
 
-<!-- ============ 24 · OFF-CPU ============ -->
+<!-- ============ 27 · OFF-CPU ============ -->
 <section class="slide">
   <div class="kicker" data-a="1">Case study № 2</div>
   <h1 class="display md" data-a="2">Off-CPU 분석 — <span class="hot">CPU 밖의 시간</span>을 본다</h1>
@@ -886,7 +1111,7 @@ $ <span class="ck">memleak</span> -p 1234 --older 60000</div>
   </div>
 </section>
 
-<!-- ============ 25 · CFS THROTTLING ============ -->
+<!-- ============ 28 · CFS THROTTLING ============ -->
 <section class="slide">
   <div class="kicker" data-a="1">Case study № 3</div>
   <h1 class="display md" data-a="2">CPU 스로틀링 진단 — <span class="hot">Runnable인데 달리지 못하는</span> 시간</h1>
@@ -916,7 +1141,7 @@ $ <span class="ck">memleak</span> -p 1234 --older 60000</div>
       <ul>
         <li>CPU 사용률 그래프는 limit에 붙어 <b>평평</b> — 일하는 중인지 목이 졸린 중인지 구분 불가</li>
         <li>cAdvisor 스로틀 카운터는 <b>횟수·총량만</b> — 어느 코드 경로가 얼마나 늦었는지 없음</li>
-        <li><code>runqlat</code> 스파이크 + Off-CPU 스택(24장)에 <b>블로킹 흔적 없음</b>(<code>io_schedule</code>·<code>futex_wait</code> 부재) → I/O도 락도 아닌 <b>스로틀링</b>으로 확정</li>
+        <li><code>runqlat</code> 스파이크 + Off-CPU 스택(27장)에 <b>블로킹 흔적 없음</b>(<code>io_schedule</code>·<code>futex_wait</code> 부재) → I/O도 락도 아닌 <b>스로틀링</b>으로 확정</li>
         <li>두 도구의 <b>교차 판독</b>이 limits 재산정의 정량 근거가 된다</li>
       </ul>
     </div>
@@ -932,7 +1157,7 @@ $ <span class="ck">memleak</span> -p 1234 --older 60000</div>
   </table>
 </section>
 
-<!-- ============ 26 · FALCO ============ -->
+<!-- ============ 29 · FALCO ============ -->
 <section class="slide">
   <div class="kicker" data-a="1">Runtime security № 1</div>
   <h1 class="display md" data-a="2">Falco — 관측은 하지만, <span class="hot">막지는 못한다</span></h1>
@@ -971,7 +1196,7 @@ $ <span class="ck">memleak</span> -p 1234 --older 60000</div>
   </div>
 </section>
 
-<!-- ============ 27 · TETRAGON ============ -->
+<!-- ============ 30 · TETRAGON ============ -->
 <section class="slide">
   <div class="kicker" data-a="1">Runtime security № 2</div>
   <h1 class="display md" data-a="2">Tetragon — 커널 안에서 판단하고, <span class="hot">그 자리에서 차단</span>한다</h1>
@@ -1014,7 +1239,7 @@ $ <span class="ck">memleak</span> -p 1234 --older 60000</div>
   </div>
 </section>
 
-<!-- ============ 28 · PRODUCTION TUNING ============ -->
+<!-- ============ 31 · PRODUCTION TUNING ============ -->
 <section class="slide">
   <div class="kicker" data-a="1">Operations</div>
   <h1 class="display md" data-a="2">프로덕션 체크리스트</h1>
@@ -1042,7 +1267,7 @@ $ <span class="ck">memleak</span> -p 1234 --older 60000</div>
   </div>
 </section>
 
-<!-- ============ 29 · CHAPTER 03 ============ -->
+<!-- ============ 32 · CHAPTER 03 ============ -->
 <section class="slide chapter">
   <span class="num">03</span>
   <div class="kicker" data-a="1">Chapter three</div>
@@ -1050,7 +1275,7 @@ $ <span class="ck">memleak</span> -p 1234 --older 60000</div>
   <p class="mono-tag" data-a="3">vpc cni · cilium · hubble · benchmarks</p>
 </section>
 
-<!-- ============ 30 · EKS LANDSCAPE ============ -->
+<!-- ============ 33 · EKS LANDSCAPE ============ -->
 <section class="slide">
   <div class="kicker" data-a="1">Already in production</div>
   <h1 class="display md" data-a="2">EKS eBPF 지형도 — <span class="hot">이미 프로덕션에 있다</span></h1>
@@ -1083,7 +1308,7 @@ $ <span class="ck">memleak</span> -p 1234 --older 60000</div>
   </div>
 </section>
 
-<!-- ============ 31 · VPC CNI NETWORKPOLICY ============ -->
+<!-- ============ 34 · VPC CNI NETWORKPOLICY ============ -->
 <section class="slide">
   <div class="kicker" data-a="1">eBPF on EKS № 1</div>
   <h1 class="display md" data-a="2">VPC CNI NetworkPolicy — 컨트롤러와 에이전트의 <span class="hot">분업</span></h1>
@@ -1132,7 +1357,7 @@ $ <span class="ck">memleak</span> -p 1234 --older 60000</div>
   </div>
 </section>
 
-<!-- ============ 32 · NFM CASE STUDY ============ -->
+<!-- ============ 35 · NFM CASE STUDY ============ -->
 <section class="slide">
   <div class="kicker" data-a="1">eBPF on EKS № 2</div>
   <h1 class="display md" data-a="2">Network Flow Monitor — AWS가 쓴 eBPF를 <span class="hot">소스로 읽는다</span></h1>
@@ -1146,7 +1371,7 @@ $ <span class="ck">memleak</span> -p 1234 --older 60000</div>
     <div class="rung" style="--rc:var(--blue)" data-a="5">
       <span class="k">MAP</span>
       <div><h3>Ring Buffer 대신 맵 폴링</h3><p>소켓별 누적 통계를 맵에 쌓고 유저스페이스가 500ms 주기로 수거 — <b>이벤트 스트림이 아니면 링 버퍼가 정답이 아니다</b></p></div>
-      <span class="tag">§15 반례</span>
+      <span class="tag">§18 반례</span>
     </div>
     <div class="rung" style="--rc:var(--green)" data-a="6">
       <span class="k">SAMPLE</span>
@@ -1165,7 +1390,7 @@ $ <span class="ck">memleak</span> -p 1234 --older 60000</div>
   </div>
 </section>
 
-<!-- ============ 33 · CILIUM ENI ============ -->
+<!-- ============ 36 · CILIUM ENI ============ -->
 <section class="slide">
   <div class="kicker" data-a="1">eBPF on EKS № 3</div>
   <h1 class="display md" data-a="2">Cilium ENI 모드 — 오버레이 없는 <span class="hot">eBPF 데이터패스</span></h1>
@@ -1218,7 +1443,7 @@ $ <span class="ck">memleak</span> -p 1234 --older 60000</div>
   </div>
 </section>
 
-<!-- ============ 34 · BENCHMARK ============ -->
+<!-- ============ 37 · BENCHMARK ============ -->
 <section class="slide">
   <div class="kicker" data-a="1">Numbers, not vibes</div>
   <h1 class="display md" data-a="2">숫자로 보는 eBPF — 실측 벤치마크</h1>
@@ -1240,7 +1465,7 @@ $ <span class="ck">memleak</span> -p 1234 --older 60000</div>
   </div>
 </section>
 
-<!-- ============ 35 · TAKEAWAYS ============ -->
+<!-- ============ 38 · TAKEAWAYS ============ -->
 <section class="slide">
   <div class="kicker" data-a="1">Take these home</div>
   <h1 class="display md" data-a="2">커널을 읽을 수 있으면, <span class="hot">클러스터가 보인다</span></h1>
@@ -1252,7 +1477,7 @@ $ <span class="ck">memleak</span> -p 1234 --older 60000</div>
   <p class="sub" data-a="6" style="margin-top:4vh">세 챕터를 관통하는 한 문장 — <b>eBPF는 커널을 고치지 않고 커널의 동작을 바꾸는, 검증된 프로그래밍 계층</b>입니다.</p>
 </section>
 
-<!-- ============ 36 · CLOSING ============ -->
+<!-- ============ 39 · CLOSING ============ -->
 <section class="slide cover">
   <div class="kicker" data-a="1">Wrap-up</div>
   <h1 class="display md" data-a="2">커널은 더 이상 <span class="hot">블랙박스</span>가 아닙니다</h1>
