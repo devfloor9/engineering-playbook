@@ -19,7 +19,7 @@
 
 <div class="hud">
   <span class="legal">Engineering Playbook · Deep Dive Session · 2026</span>
-  <span class="keys"><b>E</b> presenter · <b>S</b> notes · <b>Q</b> QR</span>
+  <span class="keys"><b>E</b> presenter · <b>S</b> notes · <b>Q</b> QR · <b>P</b> pdf</span>
   <span class="brand"><b>e</b>BPF DEEP DIVE</span>
   <span id="counter">01 / 39</span>
 </div>
@@ -27,10 +27,11 @@
   <button id="navPrev" aria-label="이전 슬라이드">‹</button>
   <button id="navNext" aria-label="다음 슬라이드">›</button>
 </div>
+<button class="pdfbtn" id="pdfBtn" title="전체 슬라이드를 PDF로 출력 (P)">PDF</button>
 
 <!-- ============ 01 · COVER ============ -->
 <section class="slide cover">
-  <div class="kicker" data-a="1">Engineering Playbook · Deep Dive Session</div>
+  <div class="kicker" data-a="1"><span data-edit="cover-kicker">Engineering Playbook · Deep Dive Session</span></div>
   <div class="titleblock">
     <h1 class="display" data-a="2">eBPF —<br>커널을 <span class="hot">프로그래밍</span>하다</h1>
     <p class="sub" data-a="3">재부팅 없이, 크래시 없이. <b>커널 내부에서 안전하게 실행되는 샌드박스 프로그램</b> —

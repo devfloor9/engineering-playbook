@@ -38,11 +38,13 @@ function retreat() { show(cur - 1); }
 addEventListener('keydown', (e) => {
   if (e.key === 'Escape' && !setup.hidden) { setup.hidden = true; return; }
   if (e.target && e.target.closest && e.target.closest('input, textarea, select')) return;
+  if (e.target && e.target.isContentEditable) return;
   if (!e.metaKey && !e.ctrlKey && !e.altKey) {
     if (e.code === 'KeyE') { e.preventDefault(); setup.hidden = !setup.hidden; if (!setup.hidden) pFill(); return; }
     if (e.code === 'KeyQ') { e.preventDefault(); pcfg.qrHidden = !pcfg.qrHidden; pStore(); pRender(); return; }
     if (e.code === 'KeyS') { e.preventDefault(); sOpen(); return; }
     if (e.code === 'KeyN') { e.preventDefault(); notesbar.hidden = !notesbar.hidden; nRender(); return; }
+    if (e.code === 'KeyP') { e.preventDefault(); window.print(); return; }
   }
   if (!setup.hidden) return;
   if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') { e.preventDefault(); advance(); }
@@ -58,6 +60,8 @@ addEventListener('hashchange', () => {
 
 document.getElementById('navPrev').addEventListener('click', retreat);
 document.getElementById('navNext').addEventListener('click', advance);
+const pdfBtn = document.getElementById('pdfBtn');
+if (pdfBtn) pdfBtn.addEventListener('click', () => window.print());
 
 // touch swipe
 let tx0 = null;
@@ -270,6 +274,23 @@ F('setupReset').addEventListener('click', () => {
   pRender();
 });
 pRender();
+
+// ---- inline edit ([data-edit="key"] — 클릭해서 텍스트 수정, 이 브라우저 localStorage에만 저장) ----
+// 같은 key를 가진 요소끼리 실시간 동기화 (예: 커버·클로징에 같은 문구)
+document.querySelectorAll('[data-edit]').forEach((el) => {
+  el.contentEditable = 'true';
+  el.spellcheck = false;
+  const key = DECK_ID + '-edit-' + el.dataset.edit;
+  const saved = localStorage.getItem(key);
+  if (saved !== null && saved.trim() !== '') el.textContent = saved;
+  el.addEventListener('input', () => {
+    localStorage.setItem(key, el.textContent);
+    document.querySelectorAll('[data-edit="' + el.dataset.edit + '"]').forEach((o) => {
+      if (o !== el && o.textContent !== el.textContent) o.textContent = el.textContent;
+    });
+  });
+  el.addEventListener('keydown', (ev) => { if (ev.key === 'Enter') { ev.preventDefault(); el.blur(); } });
+});
 
 const init = parseInt(location.hash.slice(1), 10);
 show(!isNaN(init) ? init - 1 : 0, false);

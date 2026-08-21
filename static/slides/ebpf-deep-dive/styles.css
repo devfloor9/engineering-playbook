@@ -394,3 +394,37 @@ h1.display.md { font-size: clamp(30px, 3.8vw, 54px); }
 .setup .actions button:hover { border-color: var(--fog); color: var(--paper); }
 .setup .actions button.primary { background: var(--orange); border-color: var(--orange); color: var(--ink); font-weight: 700; }
 .setup .actions button.primary:hover { background: var(--orange-hot); color: var(--ink); }
+
+/* ---- PDF 버튼 (P 키와 동일 — window.print) ---- */
+.pdfbtn {
+  position: fixed; top: 14px; right: 22px; z-index: 43; cursor: pointer;
+  font-family: var(--mono); font-size: 11px; font-weight: 700; letter-spacing: .14em;
+  color: var(--fog); background: rgba(19,26,36,.8); border: 1px solid var(--line);
+  border-radius: 8px; padding: 6px 12px; transition: border-color .25s, color .25s;
+}
+.pdfbtn:hover { border-color: var(--orange); color: var(--orange); }
+
+/* ---- 인라인 편집 ([data-edit] — 클릭해서 수정, deck.js가 localStorage에 저장) ---- */
+[data-edit] { cursor: text; border-radius: 4px; }
+[data-edit]:hover { outline: 1px dashed rgba(255,153,0,.45); outline-offset: 3px; }
+[data-edit]:focus { outline: 1px dashed rgba(255,153,0,.8); outline-offset: 3px; }
+
+/* ---- print / PDF (P 키 또는 PDF 버튼 → 브라우저 인쇄 → PDF 저장) ---- */
+@media print {
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  @page { size: 13.333in 7.5in; margin: 0; }
+  html, body { height: auto !important; overflow: visible !important; }
+  .navbtns, .pdfbtn, .progress, .setup, #notesbar, #splash, .hud .keys { display: none !important; }
+  /* 노이즈(blend-mode)·그리드(mask)는 페이지 전체 래스터화를 유발해 PDF가 수십 MB로 커진다 — 인쇄 제외 */
+  .atmosphere::after, .gridlines { display: none !important; }
+  .slide {
+    position: relative !important; inset: auto !important; display: flex !important;
+    visibility: visible !important; opacity: 1 !important; transform: none !important;
+    width: 100vw; height: 100vh; overflow: hidden;
+    background: linear-gradient(118deg, #0b0d20 0%, #10123a 55%, #150f3e 100%);
+    page-break-after: always; break-after: page;
+  }
+  .slide [data-a] {
+    opacity: 1 !important; transform: none !important; transition: none !important; animation: none !important;
+  }
+}
