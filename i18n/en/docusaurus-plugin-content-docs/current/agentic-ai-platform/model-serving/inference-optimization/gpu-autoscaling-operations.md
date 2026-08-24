@@ -24,7 +24,7 @@ sidebar_position: 4
 In LLM serving operations, GPU uptime directly drives cost, and autoscaling that elastically scales resources up and down with traffic is the key to efficiency. This document consolidates 2-Tier scaling (Pod·node) tailored for LLM serving, the practical constraints of DRA (Dynamic Resource Allocation), and operational lessons learned from deploying large MoE models such as GLM-5 (744B) and Kimi K2.5 (1T).
 
 :::info Related Topics
-For GPU cost optimization (Spot·Consolidation·time-based scheduling), see [EKS Cost Management](/docs/eks-best-practices/resource-cost/cost-management); for GPU/vLLM monitoring and Cascade Fallback, see [Agent Monitoring & Operations](../../operations-mlops/observability/agent-monitoring.md); for on-premises GPU integration, see [EKS Hybrid Nodes Complete Guide](/docs/hybrid-infrastructure/hybrid-nodes-adoption-guide).
+For GPU cost optimization (Spot·Consolidation·time-based scheduling), see [EKS Cost Management](/docs/eks-best-practices/resource-cost/cost-management); for GPU/vLLM monitoring and Cascade Fallback, see [Agent Monitoring & Operations](../../operations-mlops/observability/agent-monitoring.md); for on-premises GPU integration, see [Hybrid GPU Workloads & SR-IOV Networking](/docs/eks-hybrid-nodes/compute-gpu/gpu-sriov-networking).
 :::
 
 ## GPU Resource Management & Autoscaling
@@ -364,4 +364,4 @@ Setting `instance-category: [g, p]` together in GPU NodePool may cause Karpenter
 - [GPU Resource Management](../gpu-infrastructure/gpu-resource-management.md) — GPU scaling, DRA
 - [EKS Cost Management](/docs/eks-best-practices/resource-cost/cost-management) — GPU workload cost optimization (Spot·Consolidation)
 - [Agent Monitoring & Operations](../../operations-mlops/observability/agent-monitoring.md) — GPU/vLLM monitoring, Cascade Fallback
-- [EKS Hybrid Nodes Complete Guide](/docs/hybrid-infrastructure/hybrid-nodes-adoption-guide) — On-premises GPU inference, 3-Tier Cascade
+- [Hybrid GPU Workloads & SR-IOV Networking](/docs/eks-hybrid-nodes/compute-gpu/gpu-sriov-networking) — On-premises GPU inference, 3-Tier Cascade

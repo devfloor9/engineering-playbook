@@ -27,9 +27,9 @@
     "message": "AIDLC",
     "description": "Navbar item with label AIDLC"
   },
-  "item.label.Hybrid Infrastructure": {
-    "message": "Hybrid Infrastructure",
-    "description": "Navbar item with label Hybrid Infrastructure"
+  "item.label.EKS Hybrid Nodes": {
+    "message": "EKS Hybrid Nodes",
+    "description": "Navbar item with label EKS Hybrid Nodes"
   },
   "item.label.Security & Governance": {
     "message": "Security & Governance",

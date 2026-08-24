@@ -130,6 +130,27 @@ const config = {
       {
         // 추론 게이트웨이 개념 문서 4종을 model-serving/inference-routing 으로 이동(2026-06-25)
         redirects: [
+          // hybrid-infrastructure 카테고리를 eks-hybrid-nodes Best Practices 챕터 구조로 재편 (2026-08-25)
+          {
+            from: '/docs/hybrid-infrastructure',
+            to: '/docs/eks-hybrid-nodes',
+          },
+          {
+            from: '/docs/hybrid-infrastructure/hybrid-nodes-adoption-guide',
+            to: '/docs/eks-hybrid-nodes/overview-architecture/hybrid-nodes-fundamentals',
+          },
+          {
+            from: '/docs/hybrid-infrastructure/hybrid-nodes-file-storage',
+            to: '/docs/eks-hybrid-nodes/storage-registry/file-storage',
+          },
+          {
+            from: '/docs/hybrid-infrastructure/harbor-hybrid-integration',
+            to: '/docs/eks-hybrid-nodes/storage-registry/harbor-registry',
+          },
+          {
+            from: '/docs/hybrid-infrastructure/sriov-dgx-h200-hybrid',
+            to: '/docs/eks-hybrid-nodes/compute-gpu/gpu-sriov-networking',
+          },
           // Kubernetes DRA 문서를 gpu-infrastructure 에서 eks-best-practices/resource-cost 로 이동 (2026-07-19)
           {
             from: '/docs/agentic-ai-platform/model-serving/gpu-infrastructure/kubernetes-dra',
@@ -233,7 +254,7 @@ const config = {
               { to: '/docs/eks-best-practices', label: 'EKS Best Practices' },
               { to: '/docs/agentic-ai-platform', label: 'Agentic AI Platform' },
               { to: '/docs/aidlc', label: 'AIDLC' },
-              { to: '/docs/hybrid-infrastructure', label: 'Hybrid Infrastructure' },
+              { to: '/docs/eks-hybrid-nodes', label: 'EKS Hybrid Nodes' },
               { to: '/docs/security-governance', label: 'Security & Governance' },
               { to: '/docs/rosa', label: 'ROSA' },
             ],
@@ -285,8 +306,8 @@ const config = {
             title: 'More',
             items: [
               {
-                label: 'Hybrid Infrastructure',
-                to: '/docs/hybrid-infrastructure',
+                label: 'EKS Hybrid Nodes',
+                to: '/docs/eks-hybrid-nodes',
               },
               {
                 label: 'Security & Governance',

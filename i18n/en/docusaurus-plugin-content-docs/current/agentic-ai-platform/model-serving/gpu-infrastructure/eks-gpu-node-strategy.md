@@ -573,7 +573,7 @@ For GPU autoscaling strategies based on Karpenter, KEDA, and DRA, see:
 
 For EKS Hybrid Node registration of on-premises GPU servers, VPN/Direct Connect configuration, and GPU Operator installation, see:
 
-- **[Hybrid Infrastructure](/docs/hybrid-infrastructure)** - On-premises + cloud hybrid architecture
+- **[EKS Hybrid Nodes](/docs/eks-hybrid-nodes)** - On-premises + cloud hybrid architecture
 
 ### Deployment and Security
 

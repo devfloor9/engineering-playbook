@@ -43,6 +43,6 @@ Security governance is the process of embedding organizational policies, process
 
 ## Related Categories
 
-[Hybrid Infrastructure](/docs/hybrid-infrastructure) - Hybrid environment security
+[EKS Hybrid Nodes](/docs/eks-hybrid-nodes) - Hybrid environment security
 
 [EKS Best Practices](/docs/eks-best-practices) - Security monitoring and network security

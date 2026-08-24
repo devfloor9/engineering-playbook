@@ -3,18 +3,18 @@ title: EKS Hybrid Nodes 공유 파일 스토리지 솔루션
 description: EKS Hybrid Nodes 환경에서 공유 파일 스토리지 구현을 위한 포괄적 가이드로, AWS 관리형 서비스, 엔터프라이즈 스토리지 통합 및 Amazon Linux 2023 대체 접근법을 다룹니다.
 created: "2025-09-15"
 last_update:
-  date: "2026-06-30"
+  date: "2026-08-25"
   author: YoungJoon Jeong
-reading_time: 11
+reading_time: 10
 tags:
   - eks
-  - hybrid-nodes
+  - hybrid-node
   - storage
   - efs
   - fsx
   - nfs
   - amazon-linux-2023
-  - scope:design
+  - scope:impl
 sidebar_label: 파일 스토리지
 category: hybrid-multicloud
 ---
@@ -36,31 +36,15 @@ Amazon Linux 2에서 Amazon Linux 2023으로 전환하면서 다음과 같은 �
 
 이러한 변화는 AWS의 전략적 방향성을 반영합니다. 복잡한 인프라 수준의 클러스터링 대신 검증된 관리형 서비스를 통해 더 높은 안정성과 운영 효율성을 제공하고자 하는 것입니다.
 
-### EKS Hybrid Nodes 지원 운영체제 (2025년 업데이트)
+### 지원 운영체제
 
-2024년 12월 EKS Hybrid Nodes가 정식 출시(GA)될때 언급된 지원 운영체제는 다음과 같습니다.
-
-**공식 지원 운영체제 (2025년 기준):**
-
-- **Amazon Linux 2023**: AWS 최적화 운영체제, 온프레미스에서는 가상화 환경에서만 사용 가능
-- **Ubuntu**: 20.04, 22.04, 24.04 LTS 버전 지원
-- **Red Hat Enterprise Linux (RHEL)**: 8, 9 버전 지원
-
-**중요한 변경사항:**
-
-- **Bottlerocket 지원**: VMware vSphere 변형(v1.37+, Kubernetes 1.28+, x86_64)에서 지원됩니다.
-- **Rocky Linux**: 여전히 공식 지원 목록에 포함되지 않아 AWS Support 범위를 벗어남
-
-**지원 범위:**
-
-- AWS는 EKS Hybrid 통합 기능만 지원하며, 운영체제 자체에 대한 지원은 각 벤더의 책임
-- 하이브리드 노드 연결 및 관리 기능에 대해서만 AWS Support 제공
+EKS Hybrid Nodes는 Amazon Linux 2023, Ubuntu (20.04/22.04/24.04 LTS), RHEL (8/9)을 공식 지원합니다. Bottlerocket은 VMware vSphere 환경(v1.37+)에서 프리뷰로 지원되며, Rocky Linux는 공식 지원 목록에 포함되지 않아 AWS Support 범위를 벗어납니다. 전체 시스템 요구 사항은 [EKS Hybrid Nodes 개념과 동작 원리](../overview-architecture/hybrid-nodes-fundamentals.md)를 참조합니다.
 
 ## 공유 파일 스토리지 솔루션 아키텍처
 
 ### 1. AWS 관리형 서비스 기반 솔루션
 
-### Amazon EFS (Elastic File System)
+#### Amazon EFS (Elastic File System)
 
 Amazon EFS는 EKS Hybrid Nodes 환경에서 가장 권장되는 공유 파일 스토리지 솔루션입니다.
 
@@ -83,7 +67,7 @@ Amazon EFS는 EKS Hybrid Nodes 환경에서 가장 권장되는 공유 파일 �
 - 대역폭 사용량에 따른 네트워크 비용 계산
 - 백업 및 라이프사이클 정책 설정
 
-### Amazon FSx
+#### Amazon FSx
 
 고성능이 요구되는 워크로드의 경우 Amazon FSx를 고려할 수 있습니다.
 
@@ -110,7 +94,7 @@ Amazon EFS는 EKS Hybrid Nodes 환경에서 가장 권장되는 공유 파일 �
 
 기존 온프레미스 스토리지 투자를 활용하면서 Kubernetes 환경과 통합하는 방안입니다.
 
-### CSI Driver 기반 통합
+#### CSI Driver 기반 통합
 
 **NetApp Trident:**
 
@@ -130,7 +114,7 @@ Amazon EFS는 EKS Hybrid Nodes 환경에서 가장 권장되는 공유 파일 �
 - 올플래시 성능과 데이터 압축/중복제거
 - 클라우드 네이티브 데이터 서비스
 
-### 구현 아키텍처
+#### 구현 아키텍처
 
 엔터프라이즈 스토리지 통합 시 다음과 같은 아키텍처를 권장합니다:
 
@@ -143,7 +127,7 @@ Amazon EFS는 EKS Hybrid Nodes 환경에서 가장 권장되는 공유 파일 �
 
 특별한 요구사항이나 기존 운영 노하우를 활용해야 하는 경우의 대안입니다.
 
-### Ubuntu/RHEL 기반 전통적 NFS 클러스터
+#### Ubuntu/RHEL 기반 전통적 NFS 클러스터
 
 **Ubuntu 22.04 LTS 활용:**
 
@@ -201,7 +185,7 @@ Dell Technologies에서 수행한 공식 레퍼런스 구현으로, PostgreSQL �
 
 ### 패키지 추가 요청 가능성
 
-Amazon Linux 2023 리포지토리에 특정 패키지(예: pacemaker, corosync) 추가 요청은 기술적으로 가능하지만, 현실적으로는 매우 제한적입니다.
+Amazon Linux 2023 리포지토리에 특정 패키지(예: pacemaker, corosync) 추가 요청은 기술적으로 가능하지만, 현실적으로는 제한적입니다.
 
 ### 공식 요청 절차
 
@@ -273,8 +257,6 @@ Amazon Linux 2023에서 직접 소스 컴파일을 통한 패키지 설치는 �
 
 ## 비용 최적화 전략
 
-### 솔루션별 비용 구조 분석
-
 ### 비용 최적화 권장사항
 
 **단기 전략:**
@@ -335,11 +317,15 @@ EKS Hybrid Nodes 환경에서 공유 파일 스토리지 구성은 전통적인 
 
 ---
 
-### 참고 자료
+## 참고 자료
 
-- Amazon EKS Hybrid Nodes 공식 문서
-- Amazon EFS 사용자 가이드
-- EKS Hybrid Nodes 네트워크 베스트 프랙티스
-- Dell PowerFlex EKS Hybrid Nodes 레퍼런스
-- Amazon Linux 2023 릴리스 노트
-- Kubernetes CSI 드라이버 개발 가이드
+### 공식 문서
+- [Amazon EKS Hybrid Nodes](https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-overview.html) — EKS Hybrid Nodes 공식 사용자 가이드
+- [Amazon EFS User Guide](https://docs.aws.amazon.com/efs/latest/ug/) — Amazon Elastic File System 사용자 가이드
+- [Amazon Linux 2023 Release Notes](https://docs.aws.amazon.com/linux/al2023/release-notes/) — Amazon Linux 2023 릴리스 노트 및 변경사항
+- Dell PowerFlex EKS Hybrid Nodes 레퍼런스 — PostgreSQL 성능 검증 레퍼런스 아키텍처
+- Kubernetes CSI 드라이버 개발 가이드 — Container Storage Interface 공식 명세
+
+### 관련 문서 (내부)
+- [EKS Hybrid Nodes 개념과 동작 원리](../overview-architecture/hybrid-nodes-fundamentals.md) — Hybrid Nodes 정의·요구 사항·동작 원리
+- [Harbor 프라이빗 레지스트리 EKS 통합](./harbor-registry.md) — 하이브리드 환경 컨테이너 레지스트리 구성

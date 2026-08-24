@@ -615,7 +615,7 @@ Karpenter, KEDA, DRA 기반 GPU 오토스케일링 전략은 다음을 참조하
 
 온프레미스 GPU 서버의 EKS Hybrid Node 등록, VPN/Direct Connect 구성, GPU Operator 설치는 다음을 참조하세요.
 
-- **[Hybrid Infrastructure](/docs/hybrid-infrastructure)** - 온프레미스 + 클라우드 하이브리드 아키텍처
+- **[EKS Hybrid Nodes](/docs/eks-hybrid-nodes)** - 온프레미스 + 클라우드 하이브리드 아키텍처
 
 ### 배포 및 보안
 

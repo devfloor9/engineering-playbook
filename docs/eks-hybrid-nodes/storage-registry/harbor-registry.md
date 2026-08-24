@@ -1,27 +1,27 @@
 ---
-title: Harbor 2.13과 EKS Hybrid Nodes 통합 가이드
-description: Harbor 2.13 프라이빗 컨테이너 레지스트리를 Amazon EKS Hybrid Nodes (Kubernetes 1.33)와 통합하기 위한 완전한 단계별 가이드로, 설치, SSL/TLS 구성, 인증 및 문제 해결을 다룹니다.
+title: Harbor 2.15와 EKS Hybrid Nodes 통합 가이드
+description: Harbor 2.15 프라이빗 컨테이너 레지스트리를 Amazon EKS Hybrid Nodes (Kubernetes 1.33)와 통합하기 위한 완전한 단계별 가이드로, 설치, SSL/TLS 구성, 인증 및 문제 해결을 다룹니다.
 created: "2025-08-20"
 last_update:
-  date: "2026-06-30"
+  date: "2026-08-25"
   author: YoungJoon Jeong
-reading_time: 4
+reading_time: 8
 tags:
   - eks
-  - hybrid-nodes
+  - hybrid-node
   - harbor
   - container-registry
   - kubernetes
   - ssl-tls
   - nodeadm
-  - scope:design
+  - scope:impl
 sidebar_label: Harbor 레지스트리
 category: hybrid-multicloud
 ---
 
 ## 개요
 
-이 가이드는 Harbor 2.13과 EKS Hybrid Nodes (Kubernetes 1.33)를 통합하는 단계별 구성 방법을 제공합니다. 2024년 12월 정식 출시된 EKS Hybrid Nodes는 온프레미스 인프라와 AWS EKS를 통합 관리할 수 있게 해주며, Harbor 2.13은 향상된 보안 기능과 AI 모델 관리 기능을 제공합니다.
+이 가이드는 Harbor 2.15와 EKS Hybrid Nodes (Kubernetes 1.33)를 통합하는 단계별 구성 방법을 제공합니다. 2024년 12월 정식 출시된 EKS Hybrid Nodes는 온프레미스 인프라와 AWS EKS를 통합 관리할 수 있게 해주며, Harbor 2.15는 향상된 보안 기능과 AI 모델 관리 기능을 제공합니다.
 
 ## Part 1: Harbor Private Repository 설치 및 구성
 
@@ -216,32 +216,7 @@ curl -X POST "https://harbor.yourdomain.com/api/v2.0/robots" \
 
 ### Step 6: nodeadm 설치 및 준비
 
-#### nodeadm 다운로드
-
-```bash
-# x86_64 아키텍처용
-curl -OL 'https://hybrid-assets.eks.amazonaws.com/releases/latest/bin/linux/amd64/nodeadm'
-
-# ARM 아키텍처용 (필요시)
-# curl -OL 'https://hybrid-assets.eks.amazonaws.com/releases/latest/bin/linux/arm64/nodeadm'
-
-# 실행 권한 부여
-chmod +x nodeadm
-sudo mv nodeadm /usr/local/bin/
-
-# 버전 확인
-nodeadm version
-```
-
-#### 필수 구성 요소 설치
-
-```bash
-# Kubernetes 1.33 지원 컴포넌트 설치
-sudo nodeadm install 1.33 --credential-provider ssm
-
-# 또는 IAM Roles Anywhere 사용시
-# sudo nodeadm install 1.33 --credential-provider iam-ra
-```
+nodeadm 바이너리를 다운로드하고 Kubernetes 1.33 지원 컴포넌트를 설치합니다. 자격 증명 공급자는 SSM(Systems Manager) 또는 IAM Roles Anywhere를 선택할 수 있습니다. nodeadm 설치 절차와 자격 증명 공급자 선택 기준은 [EKS Hybrid Nodes 개념과 동작 원리](../overview-architecture/hybrid-nodes-fundamentals.md)와 [노드 인증 방식](../security-authn/node-authentication.md)을 참조합니다.
 
 ### Step 7: NodeConfig 파일 생성
 
@@ -602,11 +577,25 @@ data:
 
 ## 결론
 
-이 가이드는 Harbor 2.13과 EKS Hybrid Nodes (Kubernetes 1.33)의 통합 구성을 단계별로 설명했습니다. 주요 성공 요인은:
+이 가이드는 Harbor 2.15와 EKS Hybrid Nodes (Kubernetes 1.33)의 통합 구성을 단계별로 설명했습니다. 주요 성공 요인은:
 
 1. **적절한 인증서 관리**: 자체 서명 인증서 사용 시 모든 노드에 CA 인증서 설치
 2. **네트워크 구성**: Harbor와 EKS 노드 간 안전한 통신 경로 확보
 3. **인증 설정**: Robot Account를 통한 자동화된 인증 구성
 4. **지속적인 검증**: 각 단계별 테스트를 통한 구성 검증
 
-Harbor 2.13의 향상된 기능과 EKS Hybrid Nodes의 유연성을 활용하면, 온프레미스와 클라우드를 아우르는 통합 컨테이너 관리 환경을 구축할 수 있습니다.
+Harbor 2.15의 향상된 기능과 EKS Hybrid Nodes의 유연성을 활용하면, 온프레미스와 클라우드를 아우르는 통합 컨테이너 관리 환경을 구축할 수 있습니다.
+
+## 참고 자료
+
+### 공식 문서
+- [Harbor Documentation](https://goharbor.io/docs/) — Harbor 프라이빗 레지스트리 공식 문서
+- [Harbor GitHub Repository](https://github.com/goharbor/harbor) — Harbor 오픈소스 프로젝트 저장소
+- [Amazon EKS Hybrid Nodes](https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-overview.html) — EKS Hybrid Nodes 공식 사용자 가이드
+- [Trivy Vulnerability Scanner](https://github.com/aquasecurity/trivy) — Harbor 통합 취약점 스캐너
+
+### 관련 문서 (내부)
+- [EKS Hybrid Nodes 개념과 동작 원리](../overview-architecture/hybrid-nodes-fundamentals.md) — Hybrid Nodes 아키텍처 및 nodeadm 구성 요소
+- [노드 인증 방식](../security-authn/node-authentication.md) — SSM 및 IAM Roles Anywhere 자격 증명 공급자 선택 기준
+- [방화벽과 네트워크 연결성](../networking/firewall-connectivity.md) — FQDN 제한 환경에서 프라이빗 레지스트리 사전 등록 전략
+- [파일 스토리지](./file-storage.md) — EKS Hybrid Nodes 스토리지 옵션

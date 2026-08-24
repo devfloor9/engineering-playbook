@@ -360,7 +360,7 @@ routing_rules:
 평시 트래픽의 80%를 Self-hosted로 처리하고 피크 시 20%를 Bedrock으로 오프로드하는 하이브리드 패턴은 GPU를 피크 기준으로 프로비저닝할 필요를 줄입니다. 실제 절감률은 트래픽 패턴에 따라 크게 달라지며(제3자 추정 30-70%), 일반화는 어렵습니다.
 :::
 
-온프레미스 GPU 팜까지 포함한 3-Tier Cascade(On-Prem → Cloud → Bedrock) 구성은 [EKS Hybrid Nodes 완전 가이드 — 온프레미스 GPU 추론](/docs/hybrid-infrastructure/hybrid-nodes-adoption-guide), Gateway 레벨 라우팅 튜닝은 [Cascade 라우팅 튜닝](../../model-serving/inference-routing/cascade-routing-tuning.md)을 참조하세요.
+온프레미스 GPU 팜까지 포함한 3-Tier Cascade(On-Prem → Cloud → Bedrock) 구성은 [하이브리드 GPU 워크로드와 SR-IOV 네트워킹](/docs/eks-hybrid-nodes/compute-gpu/gpu-sriov-networking), Gateway 레벨 라우팅 튜닝은 [Cascade 라우팅 튜닝](../../model-serving/inference-routing/cascade-routing-tuning.md)을 참조하세요.
 
 ---
 

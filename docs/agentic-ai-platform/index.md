@@ -75,5 +75,5 @@ Agentic AI Platform은 자율적인 AI 에이전트가 복잡한 작업을 수�
 ## 관련 카테고리
 
 - [AIDLC](/docs/aidlc) — AI Development Lifecycle 및 AgenticOps
-- [Hybrid Infrastructure](/docs/hybrid-infrastructure) — 하이브리드 환경의 AI 배포
+- [EKS Hybrid Nodes](/docs/eks-hybrid-nodes) — 하이브리드 환경의 AI 배포
 - [EKS Best Practices](/docs/eks-best-practices) — EKS 운영 베스트 프랙티스

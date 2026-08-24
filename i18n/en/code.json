@@ -499,8 +499,8 @@
     "description": "AIOps & AIDLC topic description"
   },
   "topic.hybrid.desc": {
-    "message": "On-premises to cloud hybrid architecture, ROSA, multi-cloud strategies",
-    "description": "Hybrid Infrastructure topic description"
+    "message": "EKS Hybrid Nodes Best Practices — networking, security, storage, GPU, and operations reference guide",
+    "description": "EKS Hybrid Nodes topic description"
   },
   "topic.benchmarks.desc": {
     "message": "Performance benchmarks, cost analysis, architecture comparison reports",

@@ -489,17 +489,85 @@ const sidebars = {
     },
     {
       type: 'category',
-      label: 'Hybrid Infrastructure',
+      label: 'EKS Hybrid Nodes',
       collapsed: true,
       link: {
         type: 'doc',
-        id: 'hybrid-infrastructure/index',
+        id: 'eks-hybrid-nodes/index',
       },
       items: [
-        'hybrid-infrastructure/hybrid-nodes-adoption-guide',
-        'hybrid-infrastructure/sriov-dgx-h200-hybrid',
-        'hybrid-infrastructure/hybrid-nodes-file-storage',
-        'hybrid-infrastructure/harbor-hybrid-integration',
+        {
+          type: 'category',
+          label: '개요 & 아키텍처',
+          link: {
+            type: 'doc',
+            id: 'eks-hybrid-nodes/overview-architecture/index',
+          },
+          items: [
+            'eks-hybrid-nodes/overview-architecture/hybrid-nodes-fundamentals',
+            'eks-hybrid-nodes/overview-architecture/architecture-decision-guide',
+          ],
+        },
+        {
+          type: 'category',
+          key: 'eks-hybrid-nodes-networking',
+          label: '네트워킹',
+          link: {
+            type: 'doc',
+            id: 'eks-hybrid-nodes/networking/index',
+          },
+          items: [
+            'eks-hybrid-nodes/networking/cidr-network-design',
+            'eks-hybrid-nodes/networking/hybrid-nodes-gateway',
+            'eks-hybrid-nodes/networking/firewall-connectivity',
+          ],
+        },
+        {
+          type: 'category',
+          key: 'eks-hybrid-nodes-security-authn',
+          label: '보안 & 인증',
+          link: {
+            type: 'doc',
+            id: 'eks-hybrid-nodes/security-authn/index',
+          },
+          items: [
+            'eks-hybrid-nodes/security-authn/node-authentication',
+          ],
+        },
+        {
+          type: 'category',
+          label: '스토리지 & 레지스트리',
+          link: {
+            type: 'doc',
+            id: 'eks-hybrid-nodes/storage-registry/index',
+          },
+          items: [
+            'eks-hybrid-nodes/storage-registry/file-storage',
+            'eks-hybrid-nodes/storage-registry/harbor-registry',
+          ],
+        },
+        {
+          type: 'category',
+          label: '컴퓨트 & GPU',
+          link: {
+            type: 'doc',
+            id: 'eks-hybrid-nodes/compute-gpu/index',
+          },
+          items: [
+            'eks-hybrid-nodes/compute-gpu/gpu-sriov-networking',
+          ],
+        },
+        {
+          type: 'category',
+          label: '운영 & 비용',
+          link: {
+            type: 'doc',
+            id: 'eks-hybrid-nodes/operations-cost/index',
+          },
+          items: [
+            'eks-hybrid-nodes/operations-cost/operations-cost-optimization',
+          ],
+        },
       ],
     },
     {

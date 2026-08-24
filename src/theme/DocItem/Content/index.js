@@ -20,7 +20,7 @@ const LLM_WIKI_DOMAINS = [
   'eks-best-practices',
   'agentic-ai-platform',
   'aidlc',
-  'hybrid-infrastructure',
+  'eks-hybrid-nodes',
   'security-governance',
   'rosa',
   'benchmarks',

@@ -127,9 +127,37 @@
     "message": "AgenticOps",
     "description": "The label for category 'AgenticOps' in sidebar 'docs'"
   },
-  "sidebar.docs.category.Hybrid Infrastructure": {
-    "message": "Hybrid Infrastructure",
-    "description": "The label for category 'Hybrid Infrastructure' in sidebar 'docs'"
+  "sidebar.docs.category.EKS Hybrid Nodes": {
+    "message": "EKS Hybrid Nodes",
+    "description": "The label for category 'EKS Hybrid Nodes' in sidebar 'docs'"
+  },
+  "sidebar.docs.category.개요 & 아키텍처": {
+    "message": "Overview & Architecture",
+    "description": "The label for category '개요 & 아키텍처' in sidebar 'docs'"
+  },
+  "sidebar.docs.category.네트워킹": {
+    "message": "Networking",
+    "description": "The label for category '네트워킹' in sidebar 'docs'"
+  },
+  "sidebar.docs.category.eks-hybrid-nodes-networking": {
+    "message": "Networking",
+    "description": "The label for category '네트워킹' (EKS Hybrid Nodes) in sidebar 'docs'"
+  },
+  "sidebar.docs.category.eks-hybrid-nodes-security-authn": {
+    "message": "Security & Authentication",
+    "description": "The label for category '보안 & 인증' (EKS Hybrid Nodes) in sidebar 'docs'"
+  },
+  "sidebar.docs.category.스토리지 & 레지스트리": {
+    "message": "Storage & Registry",
+    "description": "The label for category '스토리지 & 레지스트리' in sidebar 'docs'"
+  },
+  "sidebar.docs.category.컴퓨트 & GPU": {
+    "message": "Compute & GPU",
+    "description": "The label for category '컴퓨트 & GPU' in sidebar 'docs'"
+  },
+  "sidebar.docs.category.운영 & 비용": {
+    "message": "Operations & Cost",
+    "description": "The label for category '운영 & 비용' in sidebar 'docs'"
   },
   "sidebar.docs.category.Security & Governance": {
     "message": "Security & Governance",

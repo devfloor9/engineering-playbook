@@ -261,10 +261,10 @@ const topics = [
     size: 'third',
   },
   {
-    title: 'Hybrid Infrastructure',
+    title: 'EKS Hybrid Nodes',
     descriptionId: 'topic.hybrid.desc',
-    description: '온프레미스-클라우드 하이브리드 아키텍처, ROSA, 멀티 클라우드 전략',
-    href: '/docs/hybrid-infrastructure',
+    description: 'EKS Hybrid Nodes Best Practices — 네트워킹·보안·스토리지·GPU·운영 레퍼런스 가이드',
+    href: '/docs/eks-hybrid-nodes',
     icon: '☁️',
     iconBg: '#E0F7FA',
     size: 'third',

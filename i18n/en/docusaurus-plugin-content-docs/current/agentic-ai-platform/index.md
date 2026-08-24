@@ -77,5 +77,5 @@ Model Serving (vLLM) → Distributed Inference (llm-d) → Gateway (Inference Ga
 ## Related Categories
 
 - [AIDLC](/docs/aidlc) — AI Development Lifecycle and AgenticOps
-- [Hybrid Infrastructure](/docs/hybrid-infrastructure) — AI deployment in hybrid environments
+- [EKS Hybrid Nodes](/docs/eks-hybrid-nodes) — AI deployment in hybrid environments
 - [EKS Best Practices](/docs/eks-best-practices) — EKS operational best practices
