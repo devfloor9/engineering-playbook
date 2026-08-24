@@ -3,7 +3,7 @@ title: Hybrid Infrastructure
 description: Amazon EKS를 활용한 하이브리드 클라우드 및 멀티 클라우드 환경 구축에 대한 심화 기술 문서
 created: "2025-02-05"
 last_update:
-  date: "2026-06-30"
+  date: "2026-08-24"
   author: devfloor9
 reading_time: 4
 tags:
@@ -25,27 +25,22 @@ EKS 하이브리드 노드는 각 온프레미스 서버에 경량 에이전트�
 
 ## 문서 목록 (구현 순서)
 
-### 1단계: 하이브리드 노드 기본 가이드
+### 1단계: 하이브리드 노드 완전 가이드
 
-**[1. 하이브리드 노드 완전 가이드](./hybrid-nodes-adoption-guide.md)**
-온프레미스 노드를 EKS 클러스터에 연결하는 기본 방법, 하이브리드 네트워킹 구성 및 보안 설정, 하이브리드 환경으로의 마이그레이션 전략, 워크로드 선택 및 배치 기준
+**[1. EKS Hybrid Nodes 완전 가이드](./hybrid-nodes-adoption-guide.md)**
+개념(Hybrid Nodes란 무엇인가) → 동작 원리(아키텍처·노드 등록·네트워킹 기본 구조·트래픽 흐름) → 주요 기술 특징(라우팅 요건·Hybrid Nodes Gateway·CGNAT 지원) → 기술 쟁점별 딥다이브(CIDR 설계, 아키텍처 결정, Gateway 구축·운영, 방화벽 사전 등록, 노드 인증 방식, TGW 토폴로지)
 
-### 2단계: 네트워킹 라우팅 설계
+### 2단계: 고성능 네트워킹 (SR-IOV)
 
-**[2. 네트워킹 라우팅 & Hybrid Nodes Gateway](./hybrid-nodes-networking-gateway.md)**
-Node/Pod CIDR 라우팅 요건 분석, CNI NAT 구성의 방향별 한계, CGNAT(100.64.0.0/10) 대역 지원, VXLAN 터널 기반 Hybrid Nodes Gateway 아키텍처
-
-### 3단계: 고성능 네트워킹 (SR-IOV)
-
-**[3. SR-IOV 네트워킹](./sriov-dgx-h200-hybrid.md)**
+**[2. SR-IOV 네트워킹](./sriov-dgx-h200-hybrid.md)**
 SR-IOV를 통한 고성능 네트워킹, NVIDIA DGX H200 시스템 통합 및 최적화
 
-### 4단계: 공유 스토리지 구성
+### 3단계: 공유 스토리지 구성
 
-**[4. 파일 스토리지](./hybrid-nodes-file-storage.md)**
+**[3. 파일 스토리지](./hybrid-nodes-file-storage.md)**
 온프레미스 노드의 파일 스토리지 구성, NFS/iSCSI 활용 및 데이터 동기화
 
-### 5단계: 컨테이너 레지스트리 통합
+### 4단계: 컨테이너 레지스트리 통합
 
-**[5. Harbor 레지스트리](./harbor-hybrid-integration.md)**
+**[4. Harbor 레지스트리](./harbor-hybrid-integration.md)**
 Harbor를 통한 컨테이너 이미지 레지스트리 운영, 온프레미스와 클라우드 간 이미지 동기화

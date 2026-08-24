@@ -497,7 +497,6 @@ const sidebars = {
       },
       items: [
         'hybrid-infrastructure/hybrid-nodes-adoption-guide',
-        'hybrid-infrastructure/hybrid-nodes-networking-gateway',
         'hybrid-infrastructure/sriov-dgx-h200-hybrid',
         'hybrid-infrastructure/hybrid-nodes-file-storage',
         'hybrid-infrastructure/harbor-hybrid-integration',
