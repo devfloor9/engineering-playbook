@@ -206,7 +206,7 @@ Primary Region (ROSA)
 ## 🔗 관련 카테고리
 
 - [EKS Hybrid Nodes](/docs/eks-hybrid-nodes) - 하이브리드 환경 관리
-- [Security & Governance](/docs/security-governance) - ROSA 보안 아키텍처
+- [보안 & 거버넌스](/docs/eks-best-practices/security-authn) - EKS 보안 거버넌스 베스트 프랙티스
 - [EKS Best Practices](/docs/eks-best-practices) - 네트워킹 최적화 및 클러스터 모니터링
 
 ---

@@ -46,8 +46,8 @@ Amazon EKS를 프로덕션 환경에서 운영할 때 직면하는 심화 주제
   <DocCard
     to="/docs/eks-best-practices/security-authn"
     icon="🔐"
-    title="보안 & 인증"
-    description="EKS API Server 인증/인가, Access Entry, Pod Identity, OIDC 통합 가이드"
+    title="보안 & 거버넌스"
+    description="EKS API Server 인증/인가, Identity-First 보안, Kyverno 정책 관리, 공급망 보안, 위협 탐지·컴플라이언스"
     color="#e63946"
   />
   <DocCard
