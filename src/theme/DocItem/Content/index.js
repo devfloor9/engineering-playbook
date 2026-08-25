@@ -21,7 +21,6 @@ const LLM_WIKI_DOMAINS = [
   'agentic-ai-platform',
   'aidlc',
   'eks-hybrid-nodes',
-  'security-governance',
   'rosa',
   'benchmarks',
 ];

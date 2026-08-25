@@ -32,7 +32,6 @@ const CATEGORY_ORDER = [
   'agentic-ai-platform',
   'aidlc',
   'hybrid-infrastructure',
-  'security-governance',
   'rosa',
   'benchmarks',
 ];
@@ -45,7 +44,6 @@ const CATEGORY_LABELS = {
   'agentic-ai-platform': 'Agentic AI Platform',
   aidlc: 'AIDLC',
   'hybrid-infrastructure': 'Hybrid Infrastructure',
-  'security-governance': 'Security & Governance',
   rosa: 'ROSA',
   benchmarks: 'Benchmarks',
   'industry-solutions': 'Industry Solutions',

@@ -52,7 +52,6 @@ const CATEGORY_THEME = {
   'agentic-ai-platform': { label: 'AGENTIC AI PLATFORM', accent: '#818cf8' },
   aidlc: { label: 'AIDLC', accent: '#a78bfa' },
   'hybrid-infrastructure': { label: 'HYBRID INFRASTRUCTURE', accent: '#22d3ee' },
-  'security-governance': { label: 'SECURITY & GOVERNANCE', accent: '#fb7185' },
   rosa: { label: 'ROSA', accent: '#f87171' },
   benchmarks: { label: 'BENCHMARKS', accent: '#34d399' },
   'industry-solutions': { label: 'INDUSTRY SOLUTIONS', accent: '#fbbf24' },

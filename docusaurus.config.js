@@ -130,6 +130,31 @@ const config = {
       {
         // 추론 게이트웨이 개념 문서 4종을 model-serving/inference-routing 으로 이동(2026-06-25)
         redirects: [
+          // security-governance 카테고리를 eks-best-practices/security-authn 챕터로 통합 (2026-08-25)
+          {
+            from: '/docs/security-governance',
+            to: '/docs/eks-best-practices/security-authn',
+          },
+          {
+            from: '/docs/security-governance/default-namespace-incident',
+            to: '/docs/eks-best-practices/security-authn/default-namespace-incident',
+          },
+          {
+            from: '/docs/security-governance/identity-first-security',
+            to: '/docs/eks-best-practices/security-authn/identity-first-security',
+          },
+          {
+            from: '/docs/security-governance/guardduty-extended-threat-detection',
+            to: '/docs/eks-best-practices/security-authn/guardduty-extended-threat-detection',
+          },
+          {
+            from: '/docs/security-governance/kyverno-policy-management',
+            to: '/docs/eks-best-practices/security-authn/kyverno-policy-management',
+          },
+          {
+            from: '/docs/security-governance/supply-chain-security',
+            to: '/docs/eks-best-practices/security-authn/supply-chain-security',
+          },
           // hybrid-infrastructure 카테고리를 eks-hybrid-nodes Best Practices 챕터 구조로 재편 (2026-08-25)
           {
             from: '/docs/hybrid-infrastructure',
@@ -255,7 +280,6 @@ const config = {
               { to: '/docs/agentic-ai-platform', label: 'Agentic AI Platform' },
               { to: '/docs/aidlc', label: 'AIDLC' },
               { to: '/docs/eks-hybrid-nodes', label: 'EKS Hybrid Nodes' },
-              { to: '/docs/security-governance', label: 'Security & Governance' },
               { to: '/docs/rosa', label: 'ROSA' },
             ],
           },
@@ -308,10 +332,6 @@ const config = {
               {
                 label: 'EKS Hybrid Nodes',
                 to: '/docs/eks-hybrid-nodes',
-              },
-              {
-                label: 'Security & Governance',
-                to: '/docs/security-governance',
               },
               {
                 label: 'ROSA',

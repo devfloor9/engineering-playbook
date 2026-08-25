@@ -225,11 +225,11 @@ const topics = [
   {
     title: 'EKS Best Practices',
     descriptionId: 'topic.eks.desc',
-    description: 'Amazon EKS 네트워킹, 컨트롤 플레인 확장, 보안 인증, Karpenter 비용 최적화, 운영 안정성',
+    description: 'Amazon EKS 네트워킹, 컨트롤 플레인 확장, 보안 & 거버넌스, Karpenter 비용 최적화, 운영 안정성',
     href: '/docs/eks-best-practices',
     icon: '🏗️',
     iconBg: '#E3F2FD',
-    tags: ['EKS', 'Karpenter', 'Gateway API'],
+    tags: ['EKS', 'Karpenter', 'Security'],
     size: 'small',
     accent: true,
   },
@@ -243,22 +243,13 @@ const topics = [
     size: 'wide',
   },
   {
-    title: 'Security & Governance',
-    descriptionId: 'topic.security.desc',
-    description: 'Zero-Trust 네트워킹, IAM 역할 관리, 컨테이너 보안 스캐닝 자동화',
-    href: '/docs/security-governance',
-    icon: '🔒',
-    iconBg: '#FFEBEE',
-    size: 'wide',
-  },
-  {
     title: 'AIDLC',
     descriptionId: 'topic.aidlc.desc',
     description: 'AI 주도 개발 방법론, Intent→Unit→Bolt 모델, DDD 통합',
     href: '/docs/aidlc',
     icon: '🧠',
     iconBg: '#E3F2FD',
-    size: 'third',
+    size: 'wide',
   },
   {
     title: 'EKS Hybrid Nodes',
@@ -267,7 +258,7 @@ const topics = [
     href: '/docs/eks-hybrid-nodes',
     icon: '☁️',
     iconBg: '#E0F7FA',
-    size: 'third',
+    size: 'wide',
   },
   {
     title: 'Benchmarks',
@@ -276,7 +267,7 @@ const topics = [
     href: '/docs/benchmarks',
     icon: '📈',
     iconBg: '#FCE4EC',
-    size: 'third',
+    size: 'wide',
   },
 ];
 

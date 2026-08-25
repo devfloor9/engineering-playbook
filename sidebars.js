@@ -67,13 +67,18 @@ const sidebars = {
         },
         {
           type: 'category',
-          label: '보안 & 인증',
+          label: '보안 & 거버넌스',
           link: {
             type: 'doc',
             id: 'eks-best-practices/security-authn/index',
           },
           items: [
             'eks-best-practices/security-authn/eks-api-server-authn-authz',
+            'eks-best-practices/security-authn/identity-first-security',
+            'eks-best-practices/security-authn/kyverno-policy-management',
+            'eks-best-practices/security-authn/guardduty-extended-threat-detection',
+            'eks-best-practices/security-authn/supply-chain-security',
+            'eks-best-practices/security-authn/default-namespace-incident',
           ],
         },
         {
@@ -522,6 +527,7 @@ const sidebars = {
             'eks-hybrid-nodes/networking/hybrid-nodes-gateway',
             'eks-hybrid-nodes/networking/load-balancing',
             'eks-hybrid-nodes/networking/firewall-connectivity',
+            'eks-hybrid-nodes/networking/private-vpc-endpoints',
           ],
         },
         {
@@ -557,6 +563,7 @@ const sidebars = {
           },
           items: [
             'eks-hybrid-nodes/compute-gpu/gpu-sriov-networking',
+            'eks-hybrid-nodes/compute-gpu/gpu-scheduling-failover',
           ],
         },
         {
@@ -568,24 +575,10 @@ const sidebars = {
           },
           items: [
             'eks-hybrid-nodes/operations-cost/operations-cost-optimization',
+            'eks-hybrid-nodes/operations-cost/upgrade-lifecycle',
+            'eks-hybrid-nodes/operations-cost/observability-monitoring',
           ],
         },
-      ],
-    },
-    {
-      type: 'category',
-      label: 'Security & Governance',
-      collapsed: true,
-      link: {
-        type: 'doc',
-        id: 'security-governance/index',
-      },
-      items: [
-        'security-governance/default-namespace-incident',
-        'security-governance/identity-first-security',
-        'security-governance/guardduty-extended-threat-detection',
-        'security-governance/kyverno-policy-management',
-        'security-governance/supply-chain-security',
       ],
     },
     {

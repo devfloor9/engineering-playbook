@@ -132,14 +132,13 @@ docs/
 │   ├── control-plane-scaling/      #   Control Plane Scaling
 │   ├── resource-cost/              #   Resource & Cost Optimization
 │   ├── operations-reliability/     #   Operations & Reliability
-│   └── security-authn/             #   Security & Authentication
+│   └── security-authn/             #   Security & Governance
 ├── aidlc/                          # AIDLC Framework
 │   ├── methodology/                #   Methodology (DDD integration, ontology × harness)
 │   ├── toolchain/                  #   Tools & implementation
 │   ├── enterprise/                 #   Enterprise adoption
 │   └── operations/                 #   AgenticOps
 ├── hybrid-infrastructure/          # Hybrid Infrastructure
-├── security-governance/            # Security & Governance
 ├── rosa/                           # ROSA (OpenShift on AWS)
 ├── industry-solutions/             # Industry Solutions
 │   └── retail/                     #   Retail PoCs (LG H&H, AMWAY, Shinkong, Momo, Uni-President)

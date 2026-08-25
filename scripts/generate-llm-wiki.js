@@ -33,7 +33,6 @@ const INCLUDED_DOMAINS = [
   'agentic-ai-platform',
   'aidlc',
   'eks-hybrid-nodes',
-  'security-governance',
   'rosa',
   'benchmarks',
 ];
@@ -44,7 +43,6 @@ const DOMAIN_LABELS = {
   'agentic-ai-platform': 'Agentic AI Platform',
   aidlc: 'AIDLC',
   'eks-hybrid-nodes': 'EKS Hybrid Nodes',
-  'security-governance': 'Security & Governance',
   rosa: 'ROSA',
   benchmarks: 'Benchmarks',
 };

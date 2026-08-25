@@ -3,7 +3,7 @@ title: GuardDuty Extended Threat Detection
 description: Amazon GuardDuty Extended Threat Detection을 활용한 EKS 위협 탐지 및 대응
 created: "2026-02-09"
 last_update:
-  date: "2026-06-30"
+  date: "2026-08-25"
   author: YoungJoon Jeong
 reading_time: 1
 tags:
@@ -24,4 +24,6 @@ category: security
 - MITRE ATT&CK 매핑
 - 자동화된 위협 대응
 - EKS Runtime Monitoring 통합
+
+작성 전까지는 [EKS Pod 헬스체크 & 라이프사이클 관리](../operations-reliability/eks-pod-health-lifecycle.md)의 GuardDuty Extended Threat Detection 연계 절을 참조합니다.
 :::
