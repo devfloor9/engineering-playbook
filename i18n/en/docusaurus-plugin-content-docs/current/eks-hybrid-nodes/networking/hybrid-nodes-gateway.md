@@ -241,6 +241,40 @@ Observe actual usage with metrics (`hybrid_gateway_primary_nic_*`, `hybrid_gatew
 - The default leader election parameters (lease 3s / renew 2s / retry 1s) are tuned for fast failover. Reducing them further increases the risk of false-positive failovers during transient network blips, so the defaults are appropriate for most environments.
 - Standard cross-AZ data transfer charges apply to cross-AZ traffic between the gateway and VPC resources.
 
+### Failure Impact Scope
+
+A gateway instance failure does not mean the entire hybrid network goes down. Only cross-network Pod traffic encapsulated in VXLAN traverses the Gateway; node-level communication and on-premises internal traffic flow over paths independent of the Gateway.
+
+```mermaid
+flowchart TB
+    subgraph VPC["VPC (AWS Region)"]
+        CP["EKS Control Plane"]
+        CPOD["Cloud Pods<br/>(webhooks, system add-ons)"]
+        GWL["Gateway Leader<br/>(AZ-a)"]
+        GWS["Gateway Standby<br/>(AZ-b)"]
+    end
+    subgraph ONPREM["On-premises"]
+        HN["Hybrid Nodes<br/>(kubelet + Cilium VTEP)"]
+        P1["Hybrid Pod A"]
+        P2["Hybrid Pod B"]
+    end
+    CPOD =="① VPC ↔ hybrid Pods<br/>via leader — 3–5s interruption on failure"==> GWL
+    GWL <-. "VXLAN tunnel<br/>UDP 8472" .-> HN
+    GWS -. "takes over on leader failure" .- GWL
+    CP --"② kubelet ↔ control plane (node CIDR)<br/>routed directly over DX/VPN — unaffected"--> HN
+    P1 --"③ on-prem local Pod traffic — unaffected"--- P2
+    HN --- P1
+```
+
+| Traffic path | Traverses the Gateway | Impact on leader failure |
+|--------------|-----------------------|--------------------------|
+| ① VPC ↔ hybrid Pods (webhook calls, east-west, NLB/ALB IP targets) | Yes — VXLAN encapsulation | Interrupted for approximately 3–5 seconds until the standby takes over |
+| ② kubelet ↔ control plane (TCP 10250, API server) | No — the node CIDR is routed directly over DX/VPN | None — nodes remain Ready |
+| ③ On-premises Pod ↔ Pod | No — handled locally by on-prem Cilium | None |
+| Hybrid Pod execution itself | No | None — workloads keep running |
+
+Only when both gateway instances fail simultaneously (for example, an AZ failure with single-AZ placement) is VPC-to-hybrid-Pod communication interrupted until node replacement and Pod rescheduling — and even then, paths ② and ③ remain intact. This is why placement in different AZs is recommended. If even a few seconds of interruption is unacceptable, evaluate option A (full BGP routing), which has no single gateway chokepoint, in the [Architecture Decision Guide](../overview-architecture/architecture-decision-guide.md).
+
 ## Monitoring
 
 The gateway exposes health (`/healthz`) and readiness (`/readyz`) endpoints on port 8088, and Prometheus metrics (`/metrics`) on port 10080. The key observability metrics are as follows.

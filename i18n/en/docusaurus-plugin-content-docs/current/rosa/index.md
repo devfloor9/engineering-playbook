@@ -64,7 +64,7 @@ This section covers technical documentation for deploying and operating Red Hat 
 ## Related Categories
 
 - [EKS Hybrid Nodes](/docs/eks-hybrid-nodes) - Hybrid environment management
-- [Security & Governance](/docs/security-governance) - ROSA security architecture
+- [Security & Governance](/docs/eks-best-practices/security-authn) - EKS security governance best practices
 - [EKS Best Practices](/docs/eks-best-practices) - Networking optimization and cluster monitoring
 
 :::warning Licensing Notice

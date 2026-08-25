@@ -48,8 +48,8 @@ This section covers advanced topics encountered when operating Amazon EKS in pro
   <DocCard
     to="/docs/eks-best-practices/security-authn"
     icon="🔐"
-    title="Security & Authentication"
-    description="EKS API Server authentication/authorization, Access Entry, Pod Identity, and OIDC integration guide"
+    title="Security & Governance"
+    description="EKS API Server authentication/authorization, Identity-First security, Kyverno policy management, supply chain security, threat detection and compliance"
     color="#e63946"
   />
   <DocCard

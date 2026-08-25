@@ -31,10 +31,6 @@
     "message": "EKS Hybrid Nodes",
     "description": "The label of footer link with label=EKS Hybrid Nodes linking to /docs/eks-hybrid-nodes"
   },
-  "link.item.label.Security & Governance": {
-    "message": "Security & Governance",
-    "description": "The label of footer link with label=Security & Governance linking to /docs/security-governance"
-  },
   "link.item.label.ROSA": {
     "message": "ROSA",
     "description": "The label of footer link with label=ROSA linking to /docs/rosa"

@@ -490,10 +490,6 @@
     "message": "Full-stack observability with Prometheus, Grafana, OpenTelemetry and automated incident response",
     "description": "Operations & Observability topic description"
   },
-  "topic.security.desc": {
-    "message": "Zero-Trust networking, IAM role management, automated container security scanning",
-    "description": "Security & Governance topic description"
-  },
   "topic.aiops.desc": {
     "message": "AI-driven operations automation, AI development lifecycle management, intelligent monitoring",
     "description": "AIOps & AIDLC topic description"
@@ -519,7 +515,7 @@
     "description": "CTA button"
   },
   "topic.eks.desc": {
-    "message": "Amazon EKS networking, control plane scaling, security authentication, Karpenter cost optimization, operational reliability",
+    "message": "Amazon EKS networking, control plane scaling, security & governance, Karpenter cost optimization, operational reliability",
     "description": "EKS Best Practices topic description"
   },
   "topic.rosa.desc": {

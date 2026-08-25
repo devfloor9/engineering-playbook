@@ -19,9 +19,9 @@
     "message": "Control Plane & Scaling",
     "description": "The label for category 'Control Plane & 확장' in sidebar 'docs'"
   },
-  "sidebar.docs.category.보안 & 인증": {
-    "message": "Security & Authentication",
-    "description": "The label for category '보안 & 인증' in sidebar 'docs'"
+  "sidebar.docs.category.보안 & 거버넌스": {
+    "message": "Security & Governance",
+    "description": "The label for category '보안 & 거버넌스' in sidebar 'docs'"
   },
   "sidebar.docs.category.리소스 & 비용": {
     "message": "Resources & Cost",
@@ -158,10 +158,6 @@
   "sidebar.docs.category.운영 & 비용": {
     "message": "Operations & Cost",
     "description": "The label for category '운영 & 비용' in sidebar 'docs'"
-  },
-  "sidebar.docs.category.Security & Governance": {
-    "message": "Security & Governance",
-    "description": "The label for category 'Security & Governance' in sidebar 'docs'"
   },
   "sidebar.docs.category.ROSA (OpenShift on AWS)": {
     "message": "ROSA (OpenShift on AWS)",
