@@ -36,7 +36,7 @@ Amazon EKS Hybrid Nodes는 온프레미스·엣지 인프라의 서버를 AWS �
     to="/docs/eks-hybrid-nodes/networking"
     icon="🌐"
     title="네트워킹"
-    description="CIDR 설계와 대역 최소화, Hybrid Nodes Gateway 구축·운영, 방화벽 사전 등록·TGW 토폴로지"
+    description="CIDR 설계와 대역 최소화, CNI 구성과 Pod CIDR 라우팅, Hybrid Nodes Gateway, 로드밸런싱, 방화벽 사전 등록·TGW 토폴로지"
     color="#4a90d9"
   />
   <DocCard

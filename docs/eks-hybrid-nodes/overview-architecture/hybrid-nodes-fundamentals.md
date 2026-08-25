@@ -78,7 +78,7 @@ EKS Hybrid Nodes는 하이브리드 노드의 vCPU-시간 기준 티어드 과�
 | 컨테이너 런타임 | containerd (nodeadm이 설치·관리) |
 | 네트워크 연결 | AWS Direct Connect, Site-to-Site VPN, 또는 자체 VPN 기반 사설 연결 |
 | 대역폭·지연시간 | 최소 100Mbps, 왕복 지연(RTT) 200ms 이하 권장 (공식 가이드) |
-| CNI | Cilium 또는 Calico (VPC CNI는 하이브리드 노드 미지원) |
+| CNI | Cilium — AWS 지원 CNI (VPC CNI는 하이브리드 노드 비호환, Calico는 커뮤니티 지원 경로) |
 
 :::note 대역폭 요건의 해석
 100Mbps/200ms는 대부분의 사용 사례를 수용하는 일반 가이드이며 엄격한 요구사항이 아닙니다. 실제 필요 대역폭은 노드 수, 컨테이너 이미지 크기, 모니터링·로깅 구성, AWS 서비스 데이터 접근 패턴에 따라 달라집니다. 대용량 모델 이미지를 사용하는 GPU 추론 환경은 프로덕션 적용 전 자체 워크로드로 검증이 필요합니다.
@@ -196,7 +196,7 @@ EKS Control Plane ─► webhook Pod IP(10.85.1.23:8443) ─► ???
 
 ### CNI 동작과 라우팅 부담의 비대칭
 
-이 차이는 CNI 동작 방식에서 기인합니다. 클라우드 노드의 VPC CNI는 Pod IP를 VPC 대역에서 직접 할당하므로 별도 라우팅이 불필요합니다. 온프레미스의 Cilium/Calico는 기본적으로 VXLAN 오버레이에서 Pod를 실행하므로, 물리 네트워크가 오버레이 대역을 인지하지 못하면 Pod IP 목적지 트래픽은 폐기됩니다. 해결하려면 BGP(권장) 또는 정적 라우팅으로 Pod CIDR을 온프레미스 네트워크에 광고해야 하며, AWS는 Cilium과 Calico의 BGP 기능을 지원합니다.
+이 차이는 CNI 동작 방식에서 기인합니다. 클라우드 노드의 VPC CNI는 Pod IP를 VPC 대역에서 직접 할당하므로 별도 라우팅이 불필요합니다. 온프레미스의 Cilium/Calico는 기본적으로 VXLAN 오버레이에서 Pod를 실행하므로, 물리 네트워크가 오버레이 대역을 인지하지 못하면 Pod IP 목적지 트래픽은 폐기됩니다. 해결하려면 BGP(권장) 또는 정적 라우팅으로 Pod CIDR을 온프레미스 네트워크에 광고해야 합니다. CNI 선택 기준과 Cilium BGP Control Plane 구성 절차는 [CNI 구성과 Pod CIDR 라우팅](../networking/cni-selection-routing.md)에서 다룹니다.
 
 라우팅 부담은 비대칭적입니다. VPC 측은 "Pod CIDR → 게이트웨이" 경로 하나로 충분하지만, 온프레미스 측은 하이브리드 노드와 같은 서브넷의 로컬 라우터가 노드별 Pod CIDR 슬라이스까지 알아야 합니다. 네트워크 조직이 분리된 대기업 환경에서 이 협의 부담이 도입의 최대 장벽이 되며, 이것이 Hybrid Nodes Gateway 출시의 배경입니다.
 

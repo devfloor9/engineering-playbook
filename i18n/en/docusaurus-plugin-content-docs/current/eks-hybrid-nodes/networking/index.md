@@ -1,6 +1,6 @@
 ---
 title: Networking
-description: EKS Hybrid Nodes networking best practices — covers CIDR design and address-range minimization, building and operating the Hybrid Nodes Gateway, firewall pre-registration, and TGW topology.
+description: EKS Hybrid Nodes networking best practices — covers CIDR design and address-range minimization, CNI configuration and Pod CIDR routing, building and operating the Hybrid Nodes Gateway, load balancing and service exposure, firewall pre-registration, and TGW topology.
 created: "2026-08-25"
 last_update:
   date: "2026-08-25"
@@ -31,11 +31,25 @@ This section covers networking, the biggest hurdle in hybrid cluster adoption. I
     color="#667eea"
   />
   <DocCard
+    to="/docs/eks-hybrid-nodes/networking/cni-selection-routing"
+    icon="🔀"
+    title="CNI Configuration and Pod CIDR Routing"
+    description="Cilium (AWS-supported CNI) selection criteria, hybrid affinity and cluster-pool IPAM, BGP Control Plane vs static routing configuration"
+    color="#34a853"
+  />
+  <DocCard
     to="/docs/eks-hybrid-nodes/networking/hybrid-nodes-gateway"
     icon="🚇"
     title="Building and Operating the Hybrid Nodes Gateway"
     description="Cilium VTEP configuration, Helm installation, instance sizing (vertical scaling), 3–5 second failover HA model, monitoring, removal caveats"
     color="#4a90d9"
+  />
+  <DocCard
+    to="/docs/eks-hybrid-nodes/networking/load-balancing"
+    icon="⚖️"
+    title="Load Balancing and Service Exposure"
+    description="Traffic-origin-based NLB vs Cilium built-in LB decision principle, AWS Load Balancer Controller IP targets, LB IPAM and BGP advertisement, MetalLB"
+    color="#f4a261"
   />
   <DocCard
     to="/docs/eks-hybrid-nodes/networking/firewall-connectivity"

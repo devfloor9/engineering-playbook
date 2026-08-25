@@ -78,7 +78,7 @@ For example, running one 224-vCPU server (DGX H200 class) continuously incurs ro
 | Container runtime | containerd (installed and managed by nodeadm) |
 | Network connectivity | AWS Direct Connect, Site-to-Site VPN, or self-managed VPN-based private connection |
 | Bandwidth and latency | Minimum 100Mbps, round-trip time (RTT) of 200ms or less recommended (official guidance) |
-| CNI | Cilium or Calico (VPC CNI is not supported on hybrid nodes) |
+| CNI | Cilium — the AWS-supported CNI (the VPC CNI is incompatible with hybrid nodes; Calico is a community-supported path) |
 
 :::note Interpreting the Bandwidth Requirement
 100Mbps/200ms is general guidance that accommodates most use cases, not a strict requirement. Actual bandwidth needs depend on node count, container image size, monitoring and logging configuration, and AWS service data access patterns. GPU inference environments that use large model images require validation with their own workloads before production adoption.
@@ -196,7 +196,7 @@ EKS Control Plane ─► webhook Pod IP(10.85.1.23:8443) ─► ???
 
 ### CNI Behavior and the Asymmetry of Routing Burden
 
-This difference stems from how CNIs operate. The VPC CNI on cloud nodes allocates Pod IPs directly from the VPC range, so no additional routing is needed. On-premises, Cilium/Calico run Pods in a VXLAN overlay by default, so if the physical network is unaware of the overlay range, traffic destined for Pod IPs is dropped. Solving this requires advertising the Pod CIDR to the on-premises network via BGP (recommended) or static routing, and AWS supports the BGP capabilities of both Cilium and Calico.
+This difference stems from how CNIs operate. The VPC CNI on cloud nodes allocates Pod IPs directly from the VPC range, so no additional routing is needed. On-premises, Cilium/Calico run Pods in a VXLAN overlay by default, so if the physical network is unaware of the overlay range, traffic destined for Pod IPs is dropped. Solving this requires advertising the Pod CIDR to the on-premises network via BGP (recommended) or static routing. CNI selection criteria and the Cilium BGP Control Plane configuration procedure are covered in [CNI Configuration and Pod CIDR Routing](../networking/cni-selection-routing.md).
 
 The routing burden is asymmetric. On the VPC side, a single "Pod CIDR → gateway" route suffices, but on the on-premises side, the local router in the same subnet as the hybrid nodes must know each node's Pod CIDR slice. In large enterprises with separate network organizations, this coordination burden becomes the biggest barrier to adoption, and this is the background behind the launch of the Hybrid Nodes Gateway.
 

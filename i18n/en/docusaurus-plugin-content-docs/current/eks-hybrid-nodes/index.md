@@ -36,7 +36,7 @@ Amazon EKS Hybrid Nodes connects servers in on-premises and edge infrastructure 
     to="/docs/eks-hybrid-nodes/networking"
     icon="🌐"
     title="Networking"
-    description="CIDR design and address-range minimization, building and operating the Hybrid Nodes Gateway, firewall pre-registration and TGW topology"
+    description="CIDR design and address-range minimization, CNI configuration and Pod CIDR routing, Hybrid Nodes Gateway, load balancing, firewall pre-registration and TGW topology"
     color="#4a90d9"
   />
   <DocCard

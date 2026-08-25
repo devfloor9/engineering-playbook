@@ -1,11 +1,11 @@
 ---
 title: 노드 인증 방식 — SSM vs IAM Roles Anywhere
-description: "EKS Hybrid Nodes의 IAM 자격 증명 공급자 선택 가이드 — SSM hybrid activation과 IAM Roles Anywhere의 동작 방식 비교, 조직 유형별 선택 기준, 자격 증명 수명주기 관리를 다룹니다."
+description: "EKS Hybrid Nodes의 IAM 자격 증명 공급자 선택 가이드 — SSM hybrid activation과 IAM Roles Anywhere 비교, Vault PKI 연동 패턴, Hybrid Nodes IAM role 최소 권한, 자격 증명 수명주기 관리를 다룹니다."
 created: "2026-08-25"
 last_update:
   date: "2026-08-25"
   author: YoungJoon Jeong
-reading_time: 4
+reading_time: 5
 tags:
   - eks
   - hybrid-node
@@ -41,18 +41,34 @@ category: hybrid-multicloud
 
 - **PKI를 운영하지 않는 조직**: SSM이 기본 선택입니다. 별도 인프라 없이 activation 발급만으로 시작할 수 있고, 공식 quickstart 경로도 SSM 기준입니다.
 - **사설 CA·인증서 거버넌스를 이미 갖춘 조직**(금융·통신 보안팀 관리 체계): IAM Roles Anywhere가 기존 통제 체계와 자연스럽게 통합됩니다. 인증서 폐기가 곧 노드 자격 차단이라는 운영 모델을 선호하는 보안 조직에 적합합니다.
+- **기존 HashiCorp Vault 운영 조직**: Vault가 독립적인 자격 증명 공급자로 지원되는 것은 아니며, Vault의 PKI Secrets Engine을 사설 CA로 사용해 IAM Roles Anywhere의 신뢰 앵커(trust anchor)로 등록하는 통합 패턴이 AWS 공식 블로그로 제공됩니다. 기존 Vault 기반 시크릿·인증서 관리 체계를 유지하면서 하이브리드 노드 인증에 연결할 수 있습니다.
 - 어느 쪽이든 노드별 IAM role은 Hybrid Nodes IAM role 하나로 수렴하며, 방화벽 등록 대상 엔드포인트가 달라진다는 점([존 C 도메인 목록](../networking/firewall-connectivity.md#존-c-aws-서비스-엔드포인트-outbound-도메인))을 신청서에 반영해야 합니다.
 
 :::note nodeadm 버전 주의 (SSM)
 SSM을 자격 증명 공급자로 사용하는 경우 `nodeadm` 1.0.19 이상이 필요합니다. 이전 버전은 만료된 SSM 서명 키를 포함해 `nodeadm install`/`upgrade`가 서명 검증 오류로 실패합니다.
 :::
 
+## Hybrid Nodes IAM Role 최소 권한
+
+Hybrid Nodes IAM role에는 다음 권한이 필요합니다. 공식 문서가 명시하는 최소 구성이며, 워크로드용 권한을 이 role에 추가하지 않습니다.
+
+| 권한 | 용도 | 미부여 시 대안 |
+|------|------|---------------|
+| `eks:DescribeCluster` | `nodeadm`이 API 엔드포인트·CA 번들·Service CIDR 등 클러스터 정보 조회 | NodeConfig에 해당 값을 직접 기입 |
+| `eks:ListAccessEntries` | `nodeadm`이 클러스터 access entry 사전 검증 | `nodeadm init`에 `--skip cluster-access-validation` 지정 |
+| `AmazonEC2ContainerRegistryPullOnly` (관리형 정책) | kubelet의 ECR 컨테이너 이미지 pull | 없음 (필수) |
+| `AmazonSSMManagedInstanceCore` (관리형 정책, SSM 사용 시) | hybrid activation 등록과 자격 증명 갱신 | 없음 (SSM 필수) |
+| `ssm:DeregisterManagedInstance` + `ssm:DescribeInstanceInformation` (SSM 사용 시) | `nodeadm uninstall`의 관리형 인스턴스 등록 해제 | 노드 제거 시 SSM 항목 수동 정리 |
+| `eks-auth:AssumeRoleForPodIdentity` (선택) | EKS Pod Identity Agent의 Pod 자격 증명 발급 | Pod Identity 미사용 시 불필요 |
+
+`ssm:DeregisterManagedInstance`는 공식 CloudFormation 예제처럼 해당 hybrid activation과 연결된 인스턴스로 리소스 조건을 좁혀 부여하는 것이 권장됩니다.
+
 ## 자격 증명 수명주기 관리
 
 인증 방식 결정 이후에는 자격 증명의 발급·갱신·폐기 흐름을 운영 절차로 정착시켜야 합니다.
 
 - **SSM**: activation은 만료 기한과 등록 가능 수량을 갖습니다. 노드 증설 계획에 맞춰 activation을 발급·관리하고, 만료된 activation으로는 신규 노드를 등록할 수 없다는 점을 증설 런북에 반영합니다. 등록 해제된 노드의 SSM 관리형 인스턴스 항목은 정리 대상입니다.
-- **IAM Roles Anywhere**: 인증서 만료가 곧 노드 인증 실패입니다. 인증서 갱신 자동화(만료 전 교체)와 만료 임박 알림을 구성하고, 유출 의심 시 인증서 폐기(CRL) → 노드 자격 즉시 차단 절차를 보안 대응 플레이북에 포함합니다.
+- **IAM Roles Anywhere**: 인증서 만료가 곧 노드 인증 실패입니다. 인증서 갱신 자동화(만료 전 교체)와 만료 임박 알림을 구성하고, 유출 의심 시 인증서 폐기(CRL) → 노드 자격 즉시 차단 절차를 보안 대응 플레이북에 포함합니다. 임시 자격 증명의 세션 유효 기간은 기본 1시간이며 최대 12시간까지 설정할 수 있습니다.
 - **최소 권한**: Hybrid Nodes IAM role에는 노드 운영에 필요한 권한만 부여하고, 워크로드 권한은 IRSA 또는 EKS Pod Identity로 Pod 단위 분리합니다. 노드 role에 워크로드용 광범위 권한을 얹는 구성은 피합니다.
 
 ## 권장 사항 요약
@@ -69,6 +85,9 @@ SSM을 자격 증명 공급자로 사용하는 경우 `nodeadm` 1.0.19 이상이
 - [Prepare credentials for hybrid nodes](https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-creds.html) — SSM·IAM Roles Anywhere 자격 증명 구성
 - [Amazon EKS Hybrid Nodes overview](https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-overview.html) — Hybrid Nodes 전제 조건
 - [IAM Roles Anywhere User Guide](https://docs.aws.amazon.com/rolesanywhere/latest/userguide/introduction.html) — 신뢰 앵커·프로파일 구성
+
+### 기술 블로그
+- [Extending EKS with Hybrid Nodes: IAM Roles Anywhere and HashiCorp Vault — AWS Containers Blog](https://aws.amazon.com/blogs/containers/extending-eks-with-hybrid-nodes-iam-roles-anywhere-and-hashicorp-vault/) — Vault PKI를 신뢰 앵커로 사용하는 통합 패턴
 
 ### 관련 문서 (내부)
 - [EKS Hybrid Nodes 개념과 동작 원리](../overview-architecture/hybrid-nodes-fundamentals.md) — nodeadm 등록 흐름

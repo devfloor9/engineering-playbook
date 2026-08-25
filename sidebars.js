@@ -518,7 +518,9 @@ const sidebars = {
           },
           items: [
             'eks-hybrid-nodes/networking/cidr-network-design',
+            'eks-hybrid-nodes/networking/cni-selection-routing',
             'eks-hybrid-nodes/networking/hybrid-nodes-gateway',
+            'eks-hybrid-nodes/networking/load-balancing',
             'eks-hybrid-nodes/networking/firewall-connectivity',
           ],
         },
