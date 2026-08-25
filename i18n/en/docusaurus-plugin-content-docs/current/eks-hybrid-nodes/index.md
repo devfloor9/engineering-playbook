@@ -29,7 +29,7 @@ Amazon EKS Hybrid Nodes connects servers in on-premises and edge infrastructure 
     to="/docs/eks-hybrid-nodes/overview-architecture"
     icon="🧭"
     title="Overview & Architecture"
-    description="Hybrid Nodes concepts, how it works, key technical characteristics, and the Routable Pod CIDR vs Gateway architecture decision framework"
+    description="Hybrid Nodes concepts, how it works, key technical characteristics, and a guide to the six design decisions — connectivity, topology, Pod CIDR exposure, and more"
     color="#667eea"
   />
   <DocCard

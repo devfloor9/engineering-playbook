@@ -29,7 +29,7 @@ Amazon EKS Hybrid Nodes는 온프레미스·엣지 인프라의 서버를 AWS �
     to="/docs/eks-hybrid-nodes/overview-architecture"
     icon="🧭"
     title="개요 & 아키텍처"
-    description="Hybrid Nodes 개념·동작 원리·주요 기술 특징, Routable Pod CIDR vs Gateway 아키텍처 결정 프레임워크"
+    description="Hybrid Nodes 개념·동작 원리·주요 기술 특징, 연결·토폴로지·Pod CIDR 노출 등 6가지 설계 결정 가이드"
     color="#667eea"
   />
   <DocCard

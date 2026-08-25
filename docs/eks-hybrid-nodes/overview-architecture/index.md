@@ -1,6 +1,6 @@
 ---
 title: 개요 & 아키텍처
-description: EKS Hybrid Nodes의 개념·동작 원리·주요 기술 특징과 Routable Pod CIDR vs Hybrid Nodes Gateway 아키텍처 결정 프레임워크를 다룹니다.
+description: EKS Hybrid Nodes의 개념·동작 원리·주요 기술 특징과 연결·토폴로지·Pod CIDR 노출·CNI·인증·워크로드 노출 6가지 설계 결정 가이드를 다룹니다.
 created: "2026-08-25"
 last_update:
   date: "2026-08-25"
@@ -18,7 +18,7 @@ category: hybrid
 
 import { DocCard, DocCardGrid } from '@site/src/components/DocCards';
 
-EKS Hybrid Nodes가 무엇이고 어떻게 동작하는지, 그리고 하이브리드 설계의 핵심 결정인 "Pod 대역을 라우팅 가능하게 만들 것인가"를 어떤 기준으로 판단하는지를 다룹니다.
+EKS Hybrid Nodes가 무엇이고 어떻게 동작하는지, 그리고 하이브리드 아키텍처를 구성하는 6가지 설계 결정 — 연결 방식, 클러스터 토폴로지, Pod CIDR 노출, CNI·라우팅, 노드 인증, 워크로드 노출 — 을 어떤 기준과 순서로 판단하는지를 다룹니다.
 
 ---
 
@@ -34,7 +34,7 @@ EKS Hybrid Nodes가 무엇이고 어떻게 동작하는지, 그리고 하이브�
     to="/docs/eks-hybrid-nodes/overview-architecture/architecture-decision-guide"
     icon="🧭"
     title="아키텍처 결정 가이드"
-    description="Routable Pod CIDR(BGP) vs CNI NAT vs Hybrid Nodes Gateway — 3가지 옵션의 의사결정 기준과 판정 플로우"
+    description="연결(DX/VPN)·토폴로지(Mixed mode)·Pod CIDR 노출·CNI·노드 인증·워크로드 노출 — 6가지 설계 결정의 판단 기준과 의존 관계"
     color="#4a90d9"
   />
 </DocCardGrid>

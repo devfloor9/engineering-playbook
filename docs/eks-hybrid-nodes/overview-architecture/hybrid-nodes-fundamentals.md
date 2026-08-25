@@ -295,7 +295,7 @@ EKS Hybrid Nodes는 온프레미스 데이터 플레인을 AWS 관리형 컨트�
 - [Deep dive into cluster networking for Amazon EKS Hybrid Nodes — AWS Containers Blog](https://aws.amazon.com/blogs/containers/deep-dive-into-cluster-networking-for-amazon-eks-hybrid-nodes/) — BGP·정적 라우팅 구성 상세
 
 ### 관련 문서 (내부)
-- [아키텍처 결정 가이드](./architecture-decision-guide.md) — Routable Pod CIDR vs Gateway 의사결정 프레임워크
+- [아키텍처 결정 가이드](./architecture-decision-guide.md) — 6가지 설계 결정의 판단 기준과 의존 관계
 - [CIDR 설계와 대역 최소화](../networking/cidr-network-design.md) — VPC 사이징, ENI 전용 서브넷, 멀티 환경 주소 계획
 - [Hybrid Nodes Gateway 구축과 운영](../networking/hybrid-nodes-gateway.md) — Gateway 동작 메커니즘·설치·운영
 - [방화벽·DNS 사전 등록 가이드](../networking/firewall-connectivity.md) — 5존 방화벽 룰과 TGW 토폴로지

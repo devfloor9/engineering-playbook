@@ -295,7 +295,7 @@ EKS Hybrid Nodes connects an on-premises data plane to an AWS-managed control pl
 - [Deep dive into cluster networking for Amazon EKS Hybrid Nodes — AWS Containers Blog](https://aws.amazon.com/blogs/containers/deep-dive-into-cluster-networking-for-amazon-eks-hybrid-nodes/) — Detailed BGP and static routing configuration
 
 ### Related Documents (Internal)
-- [Architecture Decision Guide](./architecture-decision-guide.md) — Decision framework for Routable Pod CIDR vs Gateway
+- [Architecture Decision Guide](./architecture-decision-guide.md) — Decision criteria and dependencies for the six design decisions
 - [CIDR Design and Range Minimization](../networking/cidr-network-design.md) — VPC sizing, dedicated ENI subnets, multi-environment address planning
 - [Hybrid Nodes Gateway Deployment and Operations](../networking/hybrid-nodes-gateway.md) — Gateway mechanism, installation, and operations
 - [Firewall and DNS Pre-registration Guide](../networking/firewall-connectivity.md) — 5-zone firewall rules and TGW topology
