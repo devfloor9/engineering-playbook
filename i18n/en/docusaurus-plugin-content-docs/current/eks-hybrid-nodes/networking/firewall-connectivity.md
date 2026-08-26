@@ -130,20 +130,20 @@ Resolver endpoint IPs are also firewall targets (TCP/UDP 53), so include them in
 
 ## Handling Environments Without FQDN Wildcard Support
 
-In environments where the FQDN firewall does not support wildcards (`*.amazonaws.com`), domains must be enumerated individually. Concrete values for the Seoul region (ap-northeast-2) are as follows.
+In environments where the FQDN firewall does not support wildcards (`*.amazonaws.com`), domains must be enumerated individually. Concrete values for the us-west-2 region are as follows.
 
-| Purpose | Domain (ap-northeast-2) |
+| Purpose | Domain (us-west-2) |
 |------|------------------------|
 | EKS node artifacts | `hybrid-assets.eks.amazonaws.com` |
-| EKS API | `eks.ap-northeast-2.amazonaws.com` |
-| ECR API | `api.ecr.ap-northeast-2.amazonaws.com` |
-| **EKS add-on image registry** | `602401143452.dkr.ecr.ap-northeast-2.amazonaws.com` |
+| EKS API | `eks.us-west-2.amazonaws.com` |
+| ECR API | `api.ecr.us-west-2.amazonaws.com` |
+| **EKS add-on image registry** | `602401143452.dkr.ecr.us-west-2.amazonaws.com` |
 | ECR Public (Cilium/Gateway charts) | `public.ecr.aws` |
-| SSM | `ssm.ap-northeast-2.amazonaws.com`, `amazon-ssm-ap-northeast-2.s3.ap-northeast-2.amazonaws.com` |
-| IAM Roles Anywhere | `rolesanywhere.ap-northeast-2.amazonaws.com`, `rolesanywhere.amazonaws.com` |
-| STS (for IRSA) | `sts.ap-northeast-2.amazonaws.com` |
+| SSM | `ssm.us-west-2.amazonaws.com`, `amazon-ssm-us-west-2.s3.us-west-2.amazonaws.com` |
+| IAM Roles Anywhere | `rolesanywhere.us-west-2.amazonaws.com`, `rolesanywhere.amazonaws.com` |
+| STS (for IRSA) | `sts.us-west-2.amazonaws.com` |
 
-The add-on registry account ID `602401143452` is common across major regions including Seoul, but **some regions use a different account** (e.g., ap-southeast-5 uses `151610086707`), so verify your target region in the [official registry list](https://docs.aws.amazon.com/eks/latest/userguide/add-ons-images.html). ECR pulls may fetch image layers from S3, so in environments with strict FQDN control, mirroring through a private registry (Harbor) or going through ECR PrivateLink (VPC endpoints) is a practical alternative. For Harbor configuration, see [Harbor Registry Integration](../storage-registry/harbor-registry.md).
+The add-on registry account ID `602401143452` is common across major regions, but **some regions use a different account** (e.g., ap-southeast-5 uses `151610086707`), so verify your target region in the [official registry list](https://docs.aws.amazon.com/eks/latest/userguide/add-ons-images.html). ECR pulls may fetch image layers from S3, so in environments with strict FQDN control, mirroring through a private registry (Harbor) or going through ECR PrivateLink (VPC endpoints) is a practical alternative. For Harbor configuration, see [Harbor Registry Integration](../storage-registry/harbor-registry.md).
 
 ## Registration Request Checklist per Environment
 

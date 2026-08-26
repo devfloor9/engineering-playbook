@@ -70,7 +70,7 @@ Private 모드 클러스터의 API 도메인은 VPC에 연결된 Private Hosted 
 aws ec2 create-vpc-endpoint \
   --vpc-id VPC_ID \
   --vpc-endpoint-type Interface \
-  --service-name com.amazonaws.ap-northeast-2.ecr.api \
+  --service-name com.amazonaws.us-west-2.ecr.api \
   --subnet-ids SUBNET_ID_1 SUBNET_ID_2 \
   --security-group-ids ENDPOINT_SG_ID \
   --private-dns-enabled
@@ -79,7 +79,7 @@ aws ec2 create-vpc-endpoint \
 aws ec2 create-vpc-endpoint \
   --vpc-id VPC_ID \
   --vpc-endpoint-type Gateway \
-  --service-name com.amazonaws.ap-northeast-2.s3 \
+  --service-name com.amazonaws.us-west-2.s3 \
   --route-table-ids ROUTE_TABLE_ID_1 ROUTE_TABLE_ID_2
 ```
 
@@ -87,7 +87,7 @@ aws ec2 create-vpc-endpoint \
 
 인터페이스 엔드포인트는 VPC 서브넷에 ENI(사설 IP)로 존재합니다. 온프레미스 노드가 이를 사용하려면 두 조건이 충족되어야 합니다.
 
-1. **DNS 해석**: `--private-dns-enabled`로 생성한 엔드포인트는 서비스 기본 도메인(`ssm.ap-northeast-2.amazonaws.com` 등)을 엔드포인트 사설 IP로 해석하는 Private Hosted Zone을 VPC에 연결합니다. 이 해석 역시 VPC 내부에서만 유효하므로, 온프레미스 DNS가 `amazonaws.com` 계열 조회를 **Route 53 Resolver inbound endpoint로 조건부 포워딩**하도록 구성합니다.
+1. **DNS 해석**: `--private-dns-enabled`로 생성한 엔드포인트는 서비스 기본 도메인(`ssm.us-west-2.amazonaws.com` 등)을 엔드포인트 사설 IP로 해석하는 Private Hosted Zone을 VPC에 연결합니다. 이 해석 역시 VPC 내부에서만 유효하므로, 온프레미스 DNS가 `amazonaws.com` 계열 조회를 **Route 53 Resolver inbound endpoint로 조건부 포워딩**하도록 구성합니다.
 2. **라우팅**: 온프레미스에서 엔드포인트 ENI가 위치한 서브넷 CIDR로의 경로가 DX/VPN을 통해 존재해야 합니다. 통상 VPC CIDR 전체 경로로 충족됩니다.
 
 ```mermaid
@@ -138,11 +138,11 @@ VPC 엔드포인트로 대체되지 않는 다운로드 경로가 있습니다. 
 sudo nodeadm debug -c file://nodeConfig.yaml
 
 # 엔드포인트 DNS 해석 확인 (온프레미스 노드에서 사설 IP가 나와야 정상)
-dig +short ecr.api.ap-northeast-2.amazonaws.com   # 예: 10.0.x.x
-dig +short ssm.ap-northeast-2.amazonaws.com
+dig +short ecr.api.us-west-2.amazonaws.com   # 예: 10.0.x.x
+dig +short ssm.us-west-2.amazonaws.com
 
 # ECR pull 경로 확인
-aws ecr get-login-password --region ap-northeast-2 > /dev/null && echo "ECR API OK"
+aws ecr get-login-password --region us-west-2 > /dev/null && echo "ECR API OK"
 ```
 
 `nodeadm debug`는 자격 증명 엔드포인트 도달성, Hybrid Nodes IAM role 자격 증명 발급, Kubernetes API 엔드포인트 도달성·인증서 유효성, 클러스터 인증을 순서대로 검증하고 실패 시 조치를 제시합니다.

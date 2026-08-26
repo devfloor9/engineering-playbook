@@ -55,14 +55,14 @@ openssl genrsa -out ca.key 4096
 openssl req -x509 -new -nodes -sha512 -days 3650 \
   -key ca.key \
   -out ca.crt \
-  -subj "/C=KR/ST=Seoul/L=Seoul/O=MyOrganization/CN=Harbor-CA"
+  -subj "/C=US/ST=Washington/L=Seattle/O=MyOrganization/CN=Harbor-CA"
 
 # 2. 서버 인증서 생성
 openssl genrsa -out harbor.key 4096
 openssl req -new -sha512 \
   -key harbor.key \
   -out harbor.csr \
-  -subj "/C=KR/ST=Seoul/L=Seoul/O=MyOrganization/CN=harbor.yourdomain.com"
+  -subj "/C=US/ST=Washington/L=Seattle/O=MyOrganization/CN=harbor.yourdomain.com"
 
 # 3. v3.ext 파일 생성 (SAN 설정)
 cat > v3.ext <<EOF
@@ -229,7 +229,7 @@ kind: NodeConfig
 spec:
   cluster:
     name: my-hybrid-cluster
-    region: ap-northeast-2  # 서울 리전
+    region: us-west-2
 
   # SSM을 사용한 하이브리드 노드 구성
   hybrid:
@@ -311,7 +311,7 @@ aws ec2 authorize-security-group-ingress \
   --protocol tcp \
   --port 443 \
   --source-group sg-eks-nodes-xxxxx \
-  --region ap-northeast-2
+  --region us-west-2
 ```
 
 #### DNS 구성

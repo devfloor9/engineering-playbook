@@ -58,7 +58,7 @@ EKS Hybrid Nodes fits environments where "the equipment already exists and the g
 
 ### Two Definitions of Air-Gap Environments
 
-In Korean finance and public-sector environments, the term "closed network" often refers to two environments of very different natures. Whether EKS Hybrid Nodes is supported depends entirely on this distinction, so determine which one applies to your environment before starting the design.
+In highly regulated environments such as finance and the public sector, the term "closed network" often refers to two environments of very different natures. Whether EKS Hybrid Nodes is supported depends entirely on this distinction, so determine which one applies to your environment before starting the design.
 
 | Aspect | Disconnected Air-Gap (physically isolated network) | Private Air-gapped VPC (private closed network) |
 |--------|---------------------------------------------------|------------------------------------------------|
@@ -165,7 +165,7 @@ kind: NodeConfig
 spec:
   cluster:
     name: my-hybrid-cluster
-    region: ap-northeast-2
+    region: us-west-2
   hybrid:
     ssm:
       activationCode: "YOUR-ACTIVATION-CODE"

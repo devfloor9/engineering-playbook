@@ -58,7 +58,7 @@ EKS Hybrid Nodes는 "장비는 이미 있고, 컨트롤 플레인 운영 부담�
 
 ### 에어갭(Air-Gap) 환경의 두 가지 정의
 
-국내 금융·공공 환경에서 "폐쇄망"이라는 용어는 성격이 다른 두 환경을 함께 지칭하는 경우가 많습니다. EKS Hybrid Nodes의 지원 여부는 이 구분에 따라 완전히 달라지므로, 설계 착수 전에 자사 환경이 어느 쪽인지 먼저 판정해야 합니다.
+금융·공공 등 규제가 엄격한 환경에서 "폐쇄망"이라는 용어는 성격이 다른 두 환경을 함께 지칭하는 경우가 많습니다. EKS Hybrid Nodes의 지원 여부는 이 구분에 따라 완전히 달라지므로, 설계 착수 전에 자사 환경이 어느 쪽인지 먼저 판정해야 합니다.
 
 | 구분 | Disconnected Air-Gap (물리적 차단망) | Private Air-gapped VPC (사설 폐쇄망) |
 |------|-------------------------------------|-------------------------------------|
@@ -165,7 +165,7 @@ kind: NodeConfig
 spec:
   cluster:
     name: my-hybrid-cluster
-    region: ap-northeast-2
+    region: us-west-2
   hybrid:
     ssm:
       activationCode: "YOUR-ACTIVATION-CODE"

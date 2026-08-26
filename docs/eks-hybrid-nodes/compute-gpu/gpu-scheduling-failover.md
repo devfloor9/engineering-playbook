@@ -37,7 +37,7 @@ kind: NodeConfig
 spec:
   cluster:
     name: my-hybrid-cluster
-    region: ap-northeast-2
+    region: us-west-2
   hybrid:
     ssm:
       activationCode: "YOUR-ACTIVATION-CODE"

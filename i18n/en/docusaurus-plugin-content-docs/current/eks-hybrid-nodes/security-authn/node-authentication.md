@@ -64,7 +64,7 @@ aws ssm create-activation \
   --iam-role AmazonEKSHybridNodesRole \
   --registration-limit 10 \
   --expiration-date "2026-09-25T00:00:00" \
-  --region ap-northeast-2
+  --region us-west-2
 ```
 
 ## IAM Roles Anywhere Configuration and Certificate Chain Verification
@@ -77,12 +77,12 @@ kind: NodeConfig
 spec:
   cluster:
     name: my-hybrid-cluster
-    region: ap-northeast-2
+    region: us-west-2
   hybrid:
     iamRolesAnywhere:
       nodeName: hybrid-node-01            # must match the certificate CN
-      trustAnchorArn: arn:aws:rolesanywhere:ap-northeast-2:ACCOUNT_ID:trust-anchor/TA_ID
-      profileArn: arn:aws:rolesanywhere:ap-northeast-2:ACCOUNT_ID:profile/PROFILE_ID
+      trustAnchorArn: arn:aws:rolesanywhere:us-west-2:ACCOUNT_ID:trust-anchor/TA_ID
+      profileArn: arn:aws:rolesanywhere:us-west-2:ACCOUNT_ID:profile/PROFILE_ID
       roleArn: arn:aws:iam::ACCOUNT_ID:role/AmazonEKSHybridNodesRole
       certificatePath: /etc/iam/pki/node.crt   # certificate (respect concatenation order if chained)
       privateKeyPath: /etc/iam/pki/node.key

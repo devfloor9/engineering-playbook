@@ -130,20 +130,20 @@ Resolver endpoint IP도 방화벽 대상(TCP·UDP 53)이므로 Zone A 신청서�
 
 ## FQDN 와일드카드 미지원 환경 대응
 
-FQDN 방화벽이 와일드카드(`*.amazonaws.com`)를 지원하지 않는 환경에서는 도메인을 개별 열거해야 합니다. 서울 리전(ap-northeast-2) 기준 구체 값은 다음과 같습니다.
+FQDN 방화벽이 와일드카드(`*.amazonaws.com`)를 지원하지 않는 환경에서는 도메인을 개별 열거해야 합니다. us-west-2 리전 기준 구체 값은 다음과 같습니다.
 
-| 용도 | 도메인 (ap-northeast-2) |
+| 용도 | 도메인 (us-west-2) |
 |------|------------------------|
 | EKS 노드 아티팩트 | `hybrid-assets.eks.amazonaws.com` |
-| EKS API | `eks.ap-northeast-2.amazonaws.com` |
-| ECR API | `api.ecr.ap-northeast-2.amazonaws.com` |
-| **EKS 애드온 이미지 레지스트리** | `602401143452.dkr.ecr.ap-northeast-2.amazonaws.com` |
+| EKS API | `eks.us-west-2.amazonaws.com` |
+| ECR API | `api.ecr.us-west-2.amazonaws.com` |
+| **EKS 애드온 이미지 레지스트리** | `602401143452.dkr.ecr.us-west-2.amazonaws.com` |
 | ECR Public (Cilium·Gateway 차트) | `public.ecr.aws` |
-| SSM | `ssm.ap-northeast-2.amazonaws.com`, `amazon-ssm-ap-northeast-2.s3.ap-northeast-2.amazonaws.com` |
-| IAM Roles Anywhere | `rolesanywhere.ap-northeast-2.amazonaws.com`, `rolesanywhere.amazonaws.com` |
-| STS (IRSA 시) | `sts.ap-northeast-2.amazonaws.com` |
+| SSM | `ssm.us-west-2.amazonaws.com`, `amazon-ssm-us-west-2.s3.us-west-2.amazonaws.com` |
+| IAM Roles Anywhere | `rolesanywhere.us-west-2.amazonaws.com`, `rolesanywhere.amazonaws.com` |
+| STS (IRSA 시) | `sts.us-west-2.amazonaws.com` |
 
-애드온 레지스트리 계정 ID `602401143452`는 서울 리전을 포함한 주요 리전 공통이나 **리전별로 다른 계정을 쓰는 리전이 있으므로**(예: ap-southeast-5는 `151610086707`) 대상 리전을 [공식 레지스트리 목록](https://docs.aws.amazon.com/eks/latest/userguide/add-ons-images.html)에서 확인합니다. ECR pull은 이미지 레이어를 S3에서 받는 경우가 있어, FQDN 제어가 엄격한 환경에서는 프라이빗 레지스트리(Harbor) 미러링 또는 ECR PrivateLink(VPC 엔드포인트) 경유가 현실적인 대안입니다. Harbor 구성은 [Harbor 레지스트리 통합](../storage-registry/harbor-registry.md)을 참조합니다.
+애드온 레지스트리 계정 ID `602401143452`는 주요 리전 공통이나 **리전별로 다른 계정을 쓰는 리전이 있으므로**(예: ap-southeast-5는 `151610086707`) 대상 리전을 [공식 레지스트리 목록](https://docs.aws.amazon.com/eks/latest/userguide/add-ons-images.html)에서 확인합니다. ECR pull은 이미지 레이어를 S3에서 받는 경우가 있어, FQDN 제어가 엄격한 환경에서는 프라이빗 레지스트리(Harbor) 미러링 또는 ECR PrivateLink(VPC 엔드포인트) 경유가 현실적인 대안입니다. Harbor 구성은 [Harbor 레지스트리 통합](../storage-registry/harbor-registry.md)을 참조합니다.
 
 ## 환경별 등록 요청 체크리스트
 

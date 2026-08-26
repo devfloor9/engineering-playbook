@@ -55,14 +55,14 @@ openssl genrsa -out ca.key 4096
 openssl req -x509 -new -nodes -sha512 -days 3650 \
   -key ca.key \
   -out ca.crt \
-  -subj "/C=KR/ST=Seoul/L=Seoul/O=MyOrganization/CN=Harbor-CA"
+  -subj "/C=US/ST=Washington/L=Seattle/O=MyOrganization/CN=Harbor-CA"
 
 # 2. Generate the server certificate
 openssl genrsa -out harbor.key 4096
 openssl req -new -sha512 \
   -key harbor.key \
   -out harbor.csr \
-  -subj "/C=KR/ST=Seoul/L=Seoul/O=MyOrganization/CN=harbor.yourdomain.com"
+  -subj "/C=US/ST=Washington/L=Seattle/O=MyOrganization/CN=harbor.yourdomain.com"
 
 # 3. Create the v3.ext file (SAN configuration)
 cat > v3.ext <<EOF
@@ -229,7 +229,7 @@ kind: NodeConfig
 spec:
   cluster:
     name: my-hybrid-cluster
-    region: ap-northeast-2  # Seoul region
+    region: us-west-2
 
   # Hybrid node configuration using SSM
   hybrid:
@@ -311,7 +311,7 @@ aws ec2 authorize-security-group-ingress \
   --protocol tcp \
   --port 443 \
   --source-group sg-eks-nodes-xxxxx \
-  --region ap-northeast-2
+  --region us-west-2
 ```
 
 #### DNS Configuration

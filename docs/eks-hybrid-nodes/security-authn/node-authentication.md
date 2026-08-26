@@ -63,7 +63,7 @@ aws ssm create-activation \
   --iam-role AmazonEKSHybridNodesRole \
   --registration-limit 10 \
   --expiration-date "2026-09-25T00:00:00" \
-  --region ap-northeast-2
+  --region us-west-2
 ```
 
 ## IAM Roles Anywhere 구성과 인증서 체인 검증
@@ -76,12 +76,12 @@ kind: NodeConfig
 spec:
   cluster:
     name: my-hybrid-cluster
-    region: ap-northeast-2
+    region: us-west-2
   hybrid:
     iamRolesAnywhere:
       nodeName: hybrid-node-01            # 인증서 CN과 일치해야 함
-      trustAnchorArn: arn:aws:rolesanywhere:ap-northeast-2:ACCOUNT_ID:trust-anchor/TA_ID
-      profileArn: arn:aws:rolesanywhere:ap-northeast-2:ACCOUNT_ID:profile/PROFILE_ID
+      trustAnchorArn: arn:aws:rolesanywhere:us-west-2:ACCOUNT_ID:trust-anchor/TA_ID
+      profileArn: arn:aws:rolesanywhere:us-west-2:ACCOUNT_ID:profile/PROFILE_ID
       roleArn: arn:aws:iam::ACCOUNT_ID:role/AmazonEKSHybridNodesRole
       certificatePath: /etc/iam/pki/node.crt   # 인증서 (체인 포함 시 결합 순서 준수)
       privateKeyPath: /etc/iam/pki/node.key

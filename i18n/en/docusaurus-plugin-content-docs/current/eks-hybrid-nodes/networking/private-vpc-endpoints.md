@@ -70,7 +70,7 @@ Mapping the services that hybrid nodes call — both continuously and at install
 aws ec2 create-vpc-endpoint \
   --vpc-id VPC_ID \
   --vpc-endpoint-type Interface \
-  --service-name com.amazonaws.ap-northeast-2.ecr.api \
+  --service-name com.amazonaws.us-west-2.ecr.api \
   --subnet-ids SUBNET_ID_1 SUBNET_ID_2 \
   --security-group-ids ENDPOINT_SG_ID \
   --private-dns-enabled
@@ -79,7 +79,7 @@ aws ec2 create-vpc-endpoint \
 aws ec2 create-vpc-endpoint \
   --vpc-id VPC_ID \
   --vpc-endpoint-type Gateway \
-  --service-name com.amazonaws.ap-northeast-2.s3 \
+  --service-name com.amazonaws.us-west-2.s3 \
   --route-table-ids ROUTE_TABLE_ID_1 ROUTE_TABLE_ID_2
 ```
 
@@ -87,7 +87,7 @@ aws ec2 create-vpc-endpoint \
 
 Interface endpoints exist as ENIs (private IPs) in VPC subnets. For on-premises nodes to use them, two conditions must hold.
 
-1. **DNS resolution**: An endpoint created with `--private-dns-enabled` associates a Private Hosted Zone with the VPC that resolves the service default domain (e.g. `ssm.ap-northeast-2.amazonaws.com`) to the endpoint's private IPs. This resolution is also valid only inside the VPC, so configure the on-premises DNS to **conditionally forward `amazonaws.com`-family queries to a Route 53 Resolver inbound endpoint**.
+1. **DNS resolution**: An endpoint created with `--private-dns-enabled` associates a Private Hosted Zone with the VPC that resolves the service default domain (e.g. `ssm.us-west-2.amazonaws.com`) to the endpoint's private IPs. This resolution is also valid only inside the VPC, so configure the on-premises DNS to **conditionally forward `amazonaws.com`-family queries to a Route 53 Resolver inbound endpoint**.
 2. **Routing**: A route from on-premises to the subnet CIDRs where the endpoint ENIs reside must exist over DX/VPN. This is usually satisfied by a route covering the entire VPC CIDR.
 
 ```mermaid
@@ -138,11 +138,11 @@ Some download paths are not replaced by VPC endpoints. Finalize the alternatives
 sudo nodeadm debug -c file://nodeConfig.yaml
 
 # Verify endpoint DNS resolution (private IPs should be returned on on-premises nodes)
-dig +short ecr.api.ap-northeast-2.amazonaws.com   # e.g. 10.0.x.x
-dig +short ssm.ap-northeast-2.amazonaws.com
+dig +short ecr.api.us-west-2.amazonaws.com   # e.g. 10.0.x.x
+dig +short ssm.us-west-2.amazonaws.com
 
 # Verify the ECR pull path
-aws ecr get-login-password --region ap-northeast-2 > /dev/null && echo "ECR API OK"
+aws ecr get-login-password --region us-west-2 > /dev/null && echo "ECR API OK"
 ```
 
 `nodeadm debug` verifies, in order, credential endpoint reachability, Hybrid Nodes IAM role credential issuance, Kubernetes API endpoint reachability and certificate validity, and cluster authentication, and suggests remediation on failure.
