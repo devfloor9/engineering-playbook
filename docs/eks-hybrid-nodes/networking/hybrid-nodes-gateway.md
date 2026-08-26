@@ -241,6 +241,40 @@ t 계열 저사양 인스턴스(t2.small 등)는 게이트웨이 노드로 부�
 - leader election 파라미터 기본값(lease 3s / renew 2s / retry 1s)은 빠른 failover에 튜닝되어 있습니다. 더 줄이면 네트워크 순단 시 오탐 failover 위험이 커지므로 대부분의 환경에서 기본값이 적절합니다.
 - 게이트웨이-VPC 리소스 간 크로스 AZ 트래픽에는 표준 크로스 AZ 데이터 전송 요금이 부과됩니다.
 
+### 장애 영향 범위
+
+게이트웨이 인스턴스 장애가 하이브리드 네트워크 전체의 다운을 의미하지는 않습니다. Gateway를 경유하는 것은 VXLAN으로 캡슐화되는 크로스 네트워크 Pod 트래픽뿐이며, 노드 레벨 통신과 온프레미스 내부 트래픽은 Gateway와 무관한 경로로 흐릅니다.
+
+```mermaid
+flowchart TB
+    subgraph VPC["VPC (AWS 리전)"]
+        CP["EKS 컨트롤 플레인"]
+        CPOD["클라우드 Pod<br/>(웹훅·시스템 애드온)"]
+        GWL["Gateway Leader<br/>(AZ-a)"]
+        GWS["Gateway Standby<br/>(AZ-b)"]
+    end
+    subgraph ONPREM["온프레미스"]
+        HN["하이브리드 노드<br/>(kubelet + Cilium VTEP)"]
+        P1["하이브리드 Pod A"]
+        P2["하이브리드 Pod B"]
+    end
+    CPOD =="① VPC↔하이브리드 Pod<br/>leader 경유 — 장애 시 3~5초 순단"==> GWL
+    GWL <-. "VXLAN 터널<br/>UDP 8472" .-> HN
+    GWS -. "leader 장애 시 승계" .- GWL
+    CP --"② kubelet↔컨트롤 플레인 (Node CIDR)<br/>DX/VPN 직접 라우팅 — 영향 없음"--> HN
+    P1 --"③ 온프렘 로컬 Pod 트래픽 — 영향 없음"--- P2
+    HN --- P1
+```
+
+| 트래픽 경로 | Gateway 경유 | leader 장애 시 영향 |
+|-------------|--------------|--------------------|
+| ① VPC ↔ 하이브리드 Pod (웹훅 호출, east-west, NLB/ALB IP 타겟) | O — VXLAN 캡슐화 | 약 3~5초 순단 후 standby 승계 |
+| ② kubelet ↔ 컨트롤 플레인 (TCP 10250, API server) | X — Node CIDR이 DX/VPN을 직접 라우팅 | 영향 없음 — 노드 Ready 상태 유지 |
+| ③ 온프레미스 내부 Pod ↔ Pod | X — 온프렘 Cilium이 로컬 처리 | 영향 없음 |
+| 하이브리드 Pod 실행 자체 | X | 영향 없음 — 워크로드 실행 지속 |
+
+게이트웨이 2대가 동시에 실패하는 경우(단일 AZ 배치에서의 AZ 장애 등)에만 VPC↔하이브리드 Pod 통신이 노드 교체·Pod 재스케줄 시점까지 중단되며, 이때도 ②·③ 경로는 유지됩니다. 서로 다른 AZ 배치를 권장하는 이유가 여기에 있습니다. 수 초의 순단도 허용되지 않는 요건이라면 게이트웨이라는 단일 통과 지점이 없는 A(BGP 풀 라우팅) 옵션을 [아키텍처 결정 가이드](../overview-architecture/architecture-decision-guide.md)에서 검토합니다.
+
 ## 모니터링
 
 게이트웨이는 8088 포트에 health(`/healthz`)·readiness(`/readyz`) 엔드포인트를, 10080 포트에 Prometheus 메트릭(`/metrics`)을 노출합니다. 핵심 관측 지표는 다음과 같습니다.

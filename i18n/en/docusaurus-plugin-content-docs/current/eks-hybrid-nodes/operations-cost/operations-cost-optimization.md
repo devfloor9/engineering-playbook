@@ -3,7 +3,7 @@ title: Operations and Cost Optimization
 description: "Operational best practices for EKS Hybrid Nodes — mixed mode workload placement, configuration validation with Cluster Insights and nodeadm debug, monitoring architecture, and cost optimization based on tiered vCPU-hour billing."
 created: "2026-08-25"
 last_update:
-  date: "2026-08-25"
+  date: "2026-08-26"
   author: YoungJoon Jeong
 reading_time: 6
 tags:
@@ -58,6 +58,7 @@ The operational key point is that **the cross-network path is a single point of 
 
 - If Pod metric collection is required, the AMP managed collector assumes Pod CIDR routing, so replace it with ADOT add-on based collection in unroutable configurations.
 - Collect system logs and kubelet logs from hybrid nodes via the CloudWatch Logs agent or the existing on-premises logging stack, and ensure time synchronization (NTP) with cluster events.
+- Per-tool implementation — Cluster Insights self-diagnosis, the Container Insights hybrid configuration (`RUN_WITH_IRSA`), the Cilium Hubble eBPF dashboard, and Network Flow Monitor applicability — is covered in [Observability Integration](./observability-monitoring).
 
 ## Cost Optimization
 

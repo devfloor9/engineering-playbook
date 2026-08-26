@@ -28,7 +28,7 @@ category: hybrid-multicloud
 
 ## 방화벽 등록 5존 구조
 
-| 존 | 등록 지점 | 관리 주체 (통상) |
+| Zone | 등록 지점 | 관리 주체 (통상) |
 |----|-----------|------------------|
 | A | 온프레미스 방화벽 (상시 운영 룰) | 네트워크·보안팀 |
 | B | AWS 보안 그룹 | 클라우드 플랫폼팀 |
@@ -36,7 +36,7 @@ category: hybrid-multicloud
 | D | 컨트롤 플레인 ENI 대역·DNS | 양쪽 협의 |
 | E | 권장 추가 룰 (CNI·ICMP) | 네트워크·보안팀 |
 
-### 존 A: 온프레미스 방화벽 상시 운영 룰
+### Zone A: 온프레미스 방화벽 상시 운영 룰
 
 공식 문서의 상시 운영(ongoing operations) 요건을 신청서 형식으로 정리하면 다음과 같습니다.
 
@@ -61,7 +61,7 @@ TCP 10250은 **AWS(컨트롤 플레인)에서 온프레미스로 들어오는 in
 
 방화벽이 stateful(연결 추적 기반)이라는 전제로 응답 패킷 룰은 생략했습니다. stateless ACL 장비가 경로에 있다면 역방향 ephemeral 포트 룰이 별도로 필요합니다.
 
-### 존 B: AWS 보안 그룹
+### Zone B: AWS 보안 그룹
 
 EKS는 원격 네트워크가 구성된 클러스터의 **inbound 규칙을 자동 생성**합니다. outbound는 SG 기본값(전체 허용)에 의존하므로, outbound를 제한 운영하는 조직은 아래 규칙을 명시적으로 등록해야 합니다.
 
@@ -75,7 +75,7 @@ EKS는 원격 네트워크가 구성된 클러스터의 **inbound 규칙을 자�
 
 운영상 주의 두 가지입니다. ① SG inbound 규칙 기본 한도는 60개로, 한도 근접 시 자동 생성 규칙이 적용되지 않을 수 있어 수동 보완이 필요합니다. ② 클러스터에서 원격 네트워크를 제거해도 EKS는 대응 SG 규칙을 자동 삭제하지 않으므로 정리는 운영자 책임입니다.
 
-### 존 C: AWS 서비스 엔드포인트 (outbound 도메인)
+### Zone C: AWS 서비스 엔드포인트 (outbound 도메인)
 
 **설치·업그레이드 시** 필요한 도메인입니다(OS 이미지 빌드 시점에 반영하거나 호스트별 런타임 허용).
 
@@ -91,9 +91,9 @@ EKS는 원격 네트워크가 구성된 클러스터의 **inbound 규칙을 자�
 | IAM Roles Anywhere 서비스 | `rolesanywhere.<region>.amazonaws.com` (IAM RA 사용 시) | TCP 443 |
 | OS 패키지 저장소 | OS·지역별 상이 (yum/apt/snap 저장소) | TCP 443 |
 
-**상시 운영 시**에는 존 A 표의 자격 증명 엔드포인트(ssm/rolesanywhere/sts/eks-auth)와 `eks.<region>` 접근이 유지되어야 합니다. Cilium·Gateway 차트를 사용하는 경우 `public.ecr.aws`(Amazon ECR Public)도 허용 대상입니다.
+**상시 운영 시**에는 Zone A 표의 자격 증명 엔드포인트(ssm/rolesanywhere/sts/eks-auth)와 `eks.<region>` 접근이 유지되어야 합니다. Cilium·Gateway 차트를 사용하는 경우 `public.ecr.aws`(Amazon ECR Public)도 허용 대상입니다.
 
-### 존 D: 컨트롤 플레인 ENI 대역과 DNS
+### Zone D: 컨트롤 플레인 ENI 대역과 DNS
 
 **ENI IP는 고정이 아닙니다.** 클러스터 업그레이드 등 변경 시 기존 ENI가 삭제·재생성되므로 개별 IP 단위 방화벽 등록은 반드시 깨집니다. [CIDR 설계의 전용 서브넷 전략](./cidr-network-design.md#컨트롤-플레인-eni-전용-서브넷-전략)대로 /28 전용 서브넷 2개를 클러스터에 전달하고, 방화벽에는 **서브넷 CIDR 2개를 등록**합니다.
 
@@ -118,9 +118,9 @@ aws route53resolver create-resolver-rule \
   --resolver-endpoint-id rslvr-out-xxxxx
 ```
 
-Resolver endpoint IP도 방화벽 대상(TCP·UDP 53)이므로 존 A 신청서에 포함합니다.
+Resolver endpoint IP도 방화벽 대상(TCP·UDP 53)이므로 Zone A 신청서에 포함합니다.
 
-### 존 E: 권장 추가 룰
+### Zone E: 권장 추가 룰
 
 | 항목 | 룰 | 사유 |
 |------|-----|------|
@@ -152,8 +152,8 @@ dev/stg/prd 환경마다 아래 값을 채워 신청서를 작성합니다.
 - [ ] Node CIDR (환경별 온프레미스 대역)
 - [ ] Pod CIDR (Gateway 미사용 시에만 온프렘 등록 필요)
 - [ ] EKS 컨트롤 플레인 ENI 전용 서브넷 CIDR ×2
-- [ ] 존 A 상시 룰 표 (방향 검증 완료본)
-- [ ] 존 C 도메인 목록 (인증 방식에 따라 SSM 또는 IAM RA 행 선택)
+- [ ] Zone A 상시 룰 표 (방향 검증 완료본)
+- [ ] Zone C 도메인 목록 (인증 방식에 따라 SSM 또는 IAM RA 행 선택)
 - [ ] Gateway 사용 시: UDP 8472 룰 (게이트웨이 노드 IP 또는 게이트웨이 서브넷 CIDR ↔ Node CIDR)
 - [ ] Route 53 Resolver endpoint IP (DNS 연동 시)
 - [ ] 웹훅 포트 목록 (하이브리드 노드에서 웹훅 실행 시)

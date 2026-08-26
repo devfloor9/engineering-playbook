@@ -3,7 +3,7 @@ title: Networking
 description: EKS Hybrid Nodes networking best practices — covers CIDR design and address-range minimization, CNI configuration and Pod CIDR routing, building and operating the Hybrid Nodes Gateway, load balancing and service exposure, firewall pre-registration, and TGW topology.
 created: "2026-08-25"
 last_update:
-  date: "2026-08-25"
+  date: "2026-08-26"
   author: YoungJoon Jeong
 reading_time: 1
 tags:
@@ -57,5 +57,12 @@ This section covers networking, the biggest hurdle in hybrid cluster adoption. I
     title="Firewall Pre-Registration & TGW Topology"
     description="5-zone firewall rule table (request-form level), handling lack of FQDN wildcard support, TGW route design, on-premises LB → cloud Pod path"
     color="#e63946"
+  />
+  <DocCard
+    to="/docs/eks-hybrid-nodes/networking/private-vpc-endpoints"
+    icon="🔒"
+    title="Private Air-gapped VPC Endpoint Design"
+    description="Private API endpoint mode, required interface endpoint list (ECR, SSM, STS, EKS Auth), S3 Gateway, air-gapped DNS resolution design"
+    color="#6d597a"
   />
 </DocCardGrid>

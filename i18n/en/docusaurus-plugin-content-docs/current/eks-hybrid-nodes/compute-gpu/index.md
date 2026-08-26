@@ -3,7 +3,7 @@ title: Compute & GPU
 description: Covers GPU workload architecture for EKS Hybrid Nodes and DGX H200 SR-IOV and InfiniBand high-performance networking configuration.
 created: "2026-08-25"
 last_update:
-  date: "2026-08-25"
+  date: "2026-08-26"
   author: YoungJoon Jeong
 reading_time: 1
 tags:
@@ -29,5 +29,12 @@ This section covers the compute layer that utilizes existing GPU assets as hybri
     title="GPU Workloads & SR-IOV Networking"
     description="3-Tier Cascade (on-premises GPU, cloud GPU, Bedrock) architecture, DGX H200 SR-IOV VF configuration, MLNX_OFED and systemd orchestration"
     color="#f4a261"
+  />
+  <DocCard
+    to="/docs/eks-hybrid-nodes/compute-gpu/gpu-scheduling-failover"
+    icon="🎛️"
+    title="GPU Scheduling & Cloud Fallback"
+    description="GPU taint isolation at node registration time, hybrid-only NVIDIA Device Plugin nodeSelector, Karpenter-based cloud GPU fallback NodePool"
+    color="#e76f51"
   />
 </DocCardGrid>

@@ -159,7 +159,7 @@ cilium bgp peers
 cilium bgp routes
 ```
 
-세션이 수립되지 않으면 ASN·피어 IP·타이머 값의 라우터 측 정합성과 함께 방화벽의 TCP 179 허용 여부를 점검합니다. Cilium 자체 포트(BGP TCP 179, VXLAN UDP 8472, health TCP 4240)는 [방화벽 사전 등록](./firewall-connectivity.md)의 존 E 룰에 포함해 신청합니다.
+세션이 수립되지 않으면 ASN·피어 IP·타이머 값의 라우터 측 정합성과 함께 방화벽의 TCP 179 허용 여부를 점검합니다. Cilium 자체 포트(BGP TCP 179, VXLAN UDP 8472, health TCP 4240)는 [방화벽 사전 등록](./firewall-connectivity.md)의 Zone E 룰에 포함해 신청합니다.
 
 ## 권장 사항 요약
 

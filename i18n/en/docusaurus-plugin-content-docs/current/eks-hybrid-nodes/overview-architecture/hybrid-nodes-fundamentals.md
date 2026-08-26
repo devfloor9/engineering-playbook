@@ -3,9 +3,9 @@ title: EKS Hybrid Nodes Concepts and How They Work
 description: "Covers Amazon EKS Hybrid Nodes from definition, use cases, and pricing model to the nodeadm registration flow, RemoteNodeNetwork/RemotePodNetwork networking structure, traffic flows, and key technical characteristics."
 created: "2026-08-25"
 last_update:
-  date: "2026-08-25"
+  date: "2026-08-26"
   author: YoungJoon Jeong
-reading_time: 18
+reading_time: 20
 tags:
   - eks
   - hybrid-node
@@ -55,6 +55,37 @@ EKS Hybrid Nodes is a capability that connects physical servers or virtual machi
 | Best fit | Existing equipment + managed control plane | Extending AWS infrastructure on-premises | Air-gapped or disconnected environments | Full self-governance required |
 
 EKS Hybrid Nodes fits environments where "the equipment already exists and the goal is to eliminate control plane operational burden." Because the control plane resides in an AWS Region, a stable private connection between on-premises and the Region is a prerequisite.
+
+### Two Definitions of Air-Gap Environments
+
+In Korean finance and public-sector environments, the term "closed network" often refers to two environments of very different natures. Whether EKS Hybrid Nodes is supported depends entirely on this distinction, so determine which one applies to your environment before starting the design.
+
+| Aspect | Disconnected Air-Gap (physically isolated network) | Private Air-gapped VPC (private closed network) |
+|--------|---------------------------------------------------|------------------------------------------------|
+| Communication with the AWS Region | Fully blocked or intermittently disrupted (DDIL) | Always-on private communication over DX/private VPN |
+| Public internet | Blocked | Blocked (no IGW/NAT) |
+| EKS Hybrid Nodes | **Not supported** | **Supported** — via interface VPC endpoints (PrivateLink) |
+| Correct architecture | Amazon EKS Anywhere | EKS Hybrid Nodes + Private API endpoint |
+
+:::danger Disconnected environments are not a Hybrid Nodes target
+Because the control plane runs in an AWS Region, hybrid nodes presuppose an **always-on, reliable connection** to the Region. In DDIL (Denied, Disrupted, Intermittent, Limited) environments where communication is fully blocked or drops intermittently, node credential renewal, scheduling, and `kubectl` operations all become impossible. The correct answer for such environments is **Amazon EKS Anywhere**, which runs the control plane on-premises as well — do not attempt a workaround with Hybrid Nodes.
+:::
+
+By contrast, a **private closed network where only the public internet is blocked** is fully supported. Create the EKS cluster API endpoint in Private mode and open the AWS services the nodes need — ECR, SSM, STS, and others — as interface VPC endpoints inside the VPC, and all communication completes over the private path of DX/VPN → VPC → PrivateLink. Detailed per-endpoint design is covered in [Private Air-gapped VPC Endpoint Design](../networking/private-vpc-endpoints).
+
+### Shared Responsibility Model
+
+Hybrid nodes carry a wider customer responsibility scope than cloud nodes. Use the following boundaries when finalizing the operating organization and role division.
+
+| Area | AWS responsibility | Customer responsibility |
+|------|--------------------|-------------------------|
+| Control plane | API server and etcd operations, availability (SLA), control plane version upgrades and patches | Deciding to initiate cluster version upgrades |
+| Data plane (hybrid nodes) | Providing `nodeadm` and node artifacts | Physical servers and virtualization infrastructure, OS installation and patching, kubelet/containerd upgrades (`nodeadm upgrade`), node drains |
+| Networking | Control plane ENIs, VPC routing infrastructure | DX/VPN connectivity, on-premises routing and firewalls, CNI (Cilium) installation and lifecycle |
+| Security and authentication | The IAM, SSM, and IAM Roles Anywhere services | Operating the credential infrastructure (activations, private PKI), certificate renewal and revocation, node IAM role least privilege |
+| Observability | Control plane logs and metrics, Cluster Insights | Node and workload metric collection, cross-network path monitoring |
+
+The practical difference is that the AMI patching and node replacement AWS handles for cloud nodes (managed node groups) fall entirely on the customer for hybrid nodes. Upgrade procedures and the runbook are covered in [Upgrades and Lifecycle Management](../operations-cost/upgrade-lifecycle).
 
 ### Pricing Model
 
@@ -290,6 +321,7 @@ EKS Hybrid Nodes connects an on-premises data plane to an AWS-managed control pl
 - [Prepare networking for hybrid nodes](https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-networking.html) — CIDR requirements, firewall/SG rules, endpoint list
 - [AWS::EKS::Cluster RemotePodNetwork (CloudFormation)](https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/aws-properties-eks-cluster-remotepodnetwork.html) — IaC reference still missing the CGNAT notation
 - [EKS Hybrid Nodes pricing](https://aws.amazon.com/eks/pricing/) — Tiered vCPU-hour pricing
+- [Amazon EKS Anywhere](https://anywhere.eks.amazonaws.com/) — Alternative architecture for disconnected/air-gapped environments
 
 ### Technical Blogs
 - [Deep dive into cluster networking for Amazon EKS Hybrid Nodes — AWS Containers Blog](https://aws.amazon.com/blogs/containers/deep-dive-into-cluster-networking-for-amazon-eks-hybrid-nodes/) — Detailed BGP and static routing configuration

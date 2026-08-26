@@ -3,7 +3,7 @@ title: EKS Hybrid Nodes Best Practices
 description: Amazon EKS Hybrid Nodes 도입·운영을 위한 베스트 프랙티스 레퍼런스 가이드. 개념·아키텍처부터 네트워킹, 보안·인증, 스토리지·레지스트리, GPU, 운영·비용까지 6개 영역을 다룹니다.
 created: "2025-02-05"
 last_update:
-  date: "2026-08-25"
+  date: "2026-08-26"
   author: YoungJoon Jeong
 reading_time: 2
 tags:
@@ -36,7 +36,7 @@ Amazon EKS Hybrid Nodes는 온프레미스·엣지 인프라의 서버를 AWS �
     to="/docs/eks-hybrid-nodes/networking"
     icon="🌐"
     title="네트워킹"
-    description="CIDR 설계와 대역 최소화, CNI 구성과 Pod CIDR 라우팅, Hybrid Nodes Gateway, 로드밸런싱, 방화벽 사전 등록·TGW 토폴로지"
+    description="CIDR 설계와 대역 최소화, CNI 구성과 Pod CIDR 라우팅, Hybrid Nodes Gateway, 로드밸런싱, 방화벽 사전 등록·TGW 토폴로지, 폐쇄망 VPC 엔드포인트"
     color="#4a90d9"
   />
   <DocCard
@@ -57,14 +57,14 @@ Amazon EKS Hybrid Nodes는 온프레미스·엣지 인프라의 서버를 AWS �
     to="/docs/eks-hybrid-nodes/compute-gpu"
     icon="⚡"
     title="컴퓨트 & GPU"
-    description="하이브리드 GPU 워크로드 3-Tier 아키텍처, DGX H200 SR-IOV·InfiniBand 고성능 네트워킹"
+    description="하이브리드 GPU 워크로드 3-Tier 아키텍처, GPU taint 격리·Device Plugin·클라우드 폴백, DGX H200 SR-IOV·InfiniBand 고성능 네트워킹"
     color="#f4a261"
   />
   <DocCard
     to="/docs/eks-hybrid-nodes/operations-cost"
     icon="📊"
     title="운영 & 비용"
-    description="Mixed Mode 운영 패턴, Cluster Insights 구성 검증, 모니터링, vCPU-시간 과금 기반 비용 최적화"
+    description="Mixed Mode 운영 패턴, Cluster Insights 구성 검증, 관측성 통합(eBPF·Container Insights), 업그레이드·수명주기, vCPU-시간 과금 기반 비용 최적화"
     color="#9b59b6"
   />
 </DocCardGrid>

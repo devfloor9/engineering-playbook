@@ -3,7 +3,7 @@ title: 운영과 비용 최적화
 description: "EKS Hybrid Nodes의 운영 베스트 프랙티스 — Mixed Mode 워크로드 배치, Cluster Insights·nodeadm debug 구성 검증, 모니터링 체계, vCPU-시간 티어드 과금 기반 비용 최적화를 다룹니다."
 created: "2026-08-25"
 last_update:
-  date: "2026-08-25"
+  date: "2026-08-26"
   author: YoungJoon Jeong
 reading_time: 6
 tags:
@@ -58,6 +58,7 @@ sudo nodeadm debug --config-source file://nodeconfig.yaml
 
 - Pod 메트릭 수집이 필요한 경우 AMP managed collector는 Pod CIDR 라우팅을 전제하므로, unroutable 구성에서는 ADOT 애드온 기반 수집으로 대체합니다.
 - 하이브리드 노드의 시스템 로그·kubelet 로그는 CloudWatch Logs 에이전트 또는 기존 온프레미스 로깅 체계로 수집하되, 클러스터 이벤트와 시간 동기화(NTP)를 보장합니다.
+- 도구별 구현 — Cluster Insights 자가진단, Container Insights 하이브리드 구성(`RUN_WITH_IRSA`), Cilium Hubble eBPF 대시보드, Network Flow Monitor 적용성 — 은 [관측성 통합](./observability-monitoring)에서 다룹니다.
 
 ## 비용 최적화
 

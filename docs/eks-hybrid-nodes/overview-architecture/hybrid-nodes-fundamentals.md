@@ -3,9 +3,9 @@ title: EKS Hybrid Nodes 개념과 동작 원리
 description: "Amazon EKS Hybrid Nodes의 정의·사용 사례·요금 모델부터 nodeadm 등록 흐름, RemoteNodeNetwork/RemotePodNetwork 네트워킹 구조, 트래픽 흐름, 주요 기술 특징까지 다룹니다."
 created: "2026-08-25"
 last_update:
-  date: "2026-08-25"
+  date: "2026-08-26"
   author: YoungJoon Jeong
-reading_time: 18
+reading_time: 20
 tags:
   - eks
   - hybrid-node
@@ -55,6 +55,37 @@ EKS Hybrid Nodes는 온프레미스·엣지 인프라의 물리 서버 또는 �
 | 적합한 경우 | 기존 장비 + 관리형 컨트롤 플레인 | AWS 인프라를 온프렘에 확장 | 에어갭·단절 환경 | 완전한 자체 통제 필요 |
 
 EKS Hybrid Nodes는 "장비는 이미 있고, 컨트롤 플레인 운영 부담은 없애고 싶은" 환경에 적합합니다. 컨트롤 플레인이 AWS 리전에 있으므로 온프레미스와 리전 간 안정적인 사설 연결이 전제 조건입니다.
+
+### 에어갭(Air-Gap) 환경의 두 가지 정의
+
+국내 금융·공공 환경에서 "폐쇄망"이라는 용어는 성격이 다른 두 환경을 함께 지칭하는 경우가 많습니다. EKS Hybrid Nodes의 지원 여부는 이 구분에 따라 완전히 달라지므로, 설계 착수 전에 자사 환경이 어느 쪽인지 먼저 판정해야 합니다.
+
+| 구분 | Disconnected Air-Gap (물리적 차단망) | Private Air-gapped VPC (사설 폐쇄망) |
+|------|-------------------------------------|-------------------------------------|
+| AWS 리전과의 통신 | 완전 차단 또는 간헐 단절(DDIL) | DX/사설 VPN으로 상시 사설 통신 가능 |
+| 퍼블릭 인터넷 | 차단 | 차단 (IGW·NAT 없음) |
+| EKS Hybrid Nodes | **지원 불가** | **지원** — 인터페이스 VPC 엔드포인트(PrivateLink) 경유 |
+| 정답 아키텍처 | Amazon EKS Anywhere | EKS Hybrid Nodes + Private API 엔드포인트 |
+
+:::danger Disconnected 환경은 Hybrid Nodes 대상이 아닙니다
+컨트롤 플레인이 AWS 리전에서 실행되므로, 하이브리드 노드는 리전과의 **상시 신뢰성 있는 연결**을 전제합니다. 통신이 완전히 차단되거나 단속적으로 끊기는 DDIL(Denied, Disrupted, Intermittent, Limited) 환경에서는 노드 자격 증명 갱신·스케줄링·`kubectl` 조작이 모두 불가능해집니다. 이 환경의 정답은 컨트롤 플레인까지 온프레미스에서 실행하는 **Amazon EKS Anywhere**이며, Hybrid Nodes로 우회 구성해서는 안 됩니다.
+:::
+
+반면 **퍼블릭 인터넷만 차단된 사설 폐쇄망**은 완전 지원 대상입니다. EKS 클러스터 API 엔드포인트를 Private 모드로 생성하고, ECR·SSM·STS 등 노드가 필요로 하는 AWS 서비스를 인터페이스 VPC 엔드포인트로 VPC 내부에 개설하면, 모든 통신이 DX/VPN → VPC → PrivateLink의 사설 경로로 완결됩니다. 엔드포인트별 상세 설계는 [사설 폐쇄망 VPC 엔드포인트 설계](../networking/private-vpc-endpoints)에서 다룹니다.
+
+### 공유 책임 모델 (Shared Responsibility Model)
+
+하이브리드 노드는 클라우드 노드보다 고객 책임 범위가 넓습니다. 운영 조직·역할 분담을 확정할 때 다음 경계를 기준으로 합니다.
+
+| 영역 | AWS 책임 | 고객 책임 |
+|------|----------|----------|
+| 컨트롤 플레인 | API server·etcd 운영, 가용성(SLA), 컨트롤 플레인 버전 업그레이드·패치 | 클러스터 버전 업그레이드 개시 결정 |
+| 데이터 플레인 (하이브리드 노드) | `nodeadm`·노드 아티팩트 제공 | 물리 서버·가상화 인프라, OS 설치·패치, kubelet/containerd 업그레이드(`nodeadm upgrade`), 노드 드레인 |
+| 네트워킹 | 컨트롤 플레인 ENI, VPC 라우팅 인프라 | DX/VPN 연결, 온프레미스 라우팅·방화벽, CNI(Cilium) 설치·수명주기 |
+| 보안·인증 | IAM·SSM·IAM Roles Anywhere 서비스 | 자격 증명 인프라(activation·사설 PKI) 운영, 인증서 갱신·폐기, 노드 IAM role 최소 권한 |
+| 관측성 | 컨트롤 플레인 로그·메트릭, Cluster Insights | 노드·워크로드 메트릭 수집, 크로스 네트워크 경로 모니터링 |
+
+클라우드 노드(managed node group)에서 AWS가 담당하던 AMI 패치·노드 교체가 하이브리드 노드에서는 전부 고객 몫이라는 점이 실질적인 차이입니다. 업그레이드 절차와 런북은 [업그레이드와 수명주기 관리](../operations-cost/upgrade-lifecycle)에서 다룹니다.
 
 ### 요금 모델
 
@@ -290,6 +321,7 @@ EKS Hybrid Nodes는 온프레미스 데이터 플레인을 AWS 관리형 컨트�
 - [Prepare networking for hybrid nodes](https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-networking.html) — CIDR 요건, 방화벽·SG 규칙, 엔드포인트 목록
 - [AWS::EKS::Cluster RemotePodNetwork (CloudFormation)](https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/aws-properties-eks-cluster-remotepodnetwork.html) — CGNAT 표기 누락 상태의 IaC 레퍼런스
 - [EKS Hybrid Nodes 가격](https://aws.amazon.com/eks/pricing/) — 티어드 vCPU-시간 요금
+- [Amazon EKS Anywhere](https://anywhere.eks.amazonaws.com/) — Disconnected/에어갭 환경용 대안 아키텍처
 
 ### 기술 블로그
 - [Deep dive into cluster networking for Amazon EKS Hybrid Nodes — AWS Containers Blog](https://aws.amazon.com/blogs/containers/deep-dive-into-cluster-networking-for-amazon-eks-hybrid-nodes/) — BGP·정적 라우팅 구성 상세
