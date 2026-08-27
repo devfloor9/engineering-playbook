@@ -4,7 +4,7 @@ description: GPU 메모리 너머 CPU·디스크로 KV 캐시를 오프로딩하
 created: "2026-06-25"
 last_update:
   date: "2026-08-23"
-  author: Juwon Hwang
+  author: YoungJoon Jeong · Juwon Hwang
 reading_time: 11
 tags:
   - lmcache
@@ -65,7 +65,7 @@ KV 캐시는 접근 속도와 용량이 다른 계층에 단계적으로 저장�
 
 ## vLLM 연동 설정
 
-LMCache는 두 가지 실행 모드가 있고, **현재 권장은 MP(multiprocess) 모드**입니다. LMCache를 독립 서비스로 띄우고 vLLM 엔진이 ZMQ로 접속하는 구조로, 프로세스 격리·Pod 간 캐시 공유·GPU와 무관한 캐시 메모리 증설이 가능합니다. 기존 in-process 모드는 legacy로 분류되어 있습니다.
+LMCache는 두 가지 실행 모드가 있고, **현재 권장은 MP(multiprocess) 모드**입니다. LMCache를 독립 서비스로 띄우고 vLLM 엔진이 ZMQ로 접속하는 구조로, 프로세스 격리·Pod 간 캐시 공유·GPU와 무관한 캐시 메모리 증설이 가능합니다. 기존 in-process 모드는 legacy로 분류되어 있습니다. 아래 플래그·설정 키는 2026-08 기준 공식 문서와 대조한 내용이며, LMCache가 MP 모드의 최소 버전을 명시하지 않고 최신 dev 브랜치를 권장하므로 도입 시점에 다시 확인하세요.
 
 먼저 LMCache 서버를 기동합니다.
 
@@ -77,7 +77,7 @@ lmcache server \
   --http-port 8080
 ```
 
-ZMQ 포트(기본 5555)로 vLLM 엔진이 접속하고, HTTP 포트(기본 8080)는 Prometheus 호환 메트릭과 관리 API를 노출합니다.
+ZMQ 포트(기본 5555)로 vLLM 엔진이 접속합니다. HTTP 포트(`--http-port`, 기본 8080)는 관리·헬스체크용 FastAPI 프런트엔드이고, Prometheus 메트릭은 별도의 `--prometheus-port`(기본 9090)가 `/metrics`로 노출합니다.
 
 vLLM 쪽은 커넥터와 접속 정보를 지정합니다.
 
@@ -123,11 +123,11 @@ lmcache server --l1-size-gb 100 --eviction-policy LRU \
   --l2-adapter '{"type": "nixl_store", "backend": "POSIX", "backend_params": {"file_path": "/data/ssd/l2"}, "pool_size": 64}'
 ```
 
-지원하는 어댑터 `type`은 다음과 같습니다.
+주요 어댑터 `type`은 다음과 같습니다.
 
 | 분류 | `type` 값 |
 |------|-----------|
-| 로컬 파일시스템·블록 | `fs`, `fs_native`, `nixl_store`, `raw_block`, `dax` |
+| 로컬 파일시스템·블록 | `fs`, `fs_native`, `nixl_store`, `nixl_store_dynamic`, `raw_block`, `dax` |
 | 분산 KV 스토어 | `mooncake_store`, `aerospike` |
 | Redis 계열 | `resp`, `valkey` |
 | 객체·관리형 스토리지 | `s3`, `bigtable`, `hfbucket`, `sagemaker-hyperpod` |
@@ -151,14 +151,14 @@ LMCache MP 모드의 L1·L2는 **LMCache 서버 내부의 계층 명칭**으로,
 | `/dev/shm` 호스트 마운트 | 공식 예시는 양쪽 컨테이너에 마운트. **전송 경로에 딸린 조건**이며 아래 조합으로 제거 가능 |
 | GPU 리소스 | DaemonSet에는 GPU를 요청하지 않음. 단 IPC 전송을 위해 컨테이너 런타임이 GPU 접근을 제공하므로 GPU 노드에만 스케줄해야 하며, GPU 없는 노드에서는 CUDA 초기화 오류로 크래시 |
 
-### 전송 경로에 따라 요구사항이 달라집니다
+### 전송 경로별 요구사항
 
 `--supported-transfer-mode`가 서버에 어떤 전송 경로를 적재할지 결정합니다.
 
 | 모드 | 경로 | 용도 |
 |------|------|------|
-| `auto` (기본) | 양쪽 적재 | 어느 디바이스 타입 워커든 접속 가능 |
-| `lmcache_driven` | 서버 주도 — CUDA 디바이스는 IPC, CPU 디바이스는 SHM | GPU 직결 전송 |
+| `auto` | 양쪽 적재 | 어느 디바이스 타입 워커든 접속 가능 |
+| `lmcache_driven` (기본) | 서버 주도 — CUDA 디바이스는 IPC, CPU 디바이스는 SHM | GPU 직결 전송 |
 | `engine_driven` | 엔진(워커) 주도 | CPU-only·비CUDA 가속기 워커 |
 
 `--shm-name`은 SHM 풀 동작을 제어하며, 빈 문자열이면 pickle 기반 전송을 사용합니다. 공식 문서는 이 조합이 **`/dev/shm`을 쓸 수 없는 환경이나 Docker에서 `--ipc host` 없이 돌릴 때 동작**한다고 명시합니다.
@@ -169,7 +169,7 @@ LMCache MP 모드의 L1·L2는 **LMCache 서버 내부의 계층 명칭**으로,
 
 다만 위 표처럼 요구사항은 전송 경로에 따라 달라집니다. 정책이 엄격한 클러스터라면 `engine_driven` + pickle 전송으로 `/dev/shm` 의존을 먼저 제거해볼 수 있습니다. 대신 서버 주도 경로의 GPU 직결 전송 이점은 포기하게 되며, 그 성능 차이는 워크로드에 따라 직접 측정해야 합니다.
 
-프로파일별 제약 내용은 [보안 & 거버넌스](../../../security-governance/index.md)의 워크로드 보안 절을 참조하세요.
+프로파일별 제약 내용은 [보안 & 거버넌스](../../../eks-best-practices/security-authn/index.md)의 워크로드 보안 절을 참조하세요.
 
 :::
 
