@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>eBPF Deep Dive — 커널을 프로그래밍하다</title>
+<title>eBPF Deep Dive — Programming the Kernel</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpolygon points='16,2 28,9 28,23 16,30 4,23 4,9' fill='none' stroke='%23ff9900' stroke-width='2.5'/%3E%3Ctext x='16' y='21' font-family='monospace' font-size='11' font-weight='bold' fill='%23ff9900' text-anchor='middle'%3EBPF%3C/text%3E%3C/svg%3E">
 <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -24,18 +24,19 @@
   <span id="counter">01 / 39</span>
 </div>
 <div class="navbtns">
-  <button id="navPrev" aria-label="이전 슬라이드">‹</button>
-  <button id="navNext" aria-label="다음 슬라이드">›</button>
+  <button id="navPrev" aria-label="Previous slide">‹</button>
+  <button id="navNext" aria-label="Next slide">›</button>
 </div>
-<button class="pdfbtn" id="pdfBtn" title="전체 슬라이드를 PDF로 출력 (P)">PDF</button>
+<button class="pdfbtn" id="pdfBtn" title="Print all slides to PDF (P)">PDF</button>
+<button class="langbtn" id="langBtn" data-target="./index-ko.html" title="한국어 버전으로 전환">KO</button>
 
 <!-- ============ 01 · COVER ============ -->
 <section class="slide cover">
   <div class="kicker" data-a="1"><span data-edit="cover-kicker">Engineering Playbook · Deep Dive Session</span></div>
   <div class="titleblock">
-    <h1 class="display" data-a="2">eBPF —<br>커널을 <span class="hot">프로그래밍</span>하다</h1>
-    <p class="sub" data-a="3">재부팅 없이, 크래시 없이. <b>커널 내부에서 안전하게 실행되는 샌드박스 프로그램</b> —
-    가상머신의 내부 구조부터 EKS 프로덕션 적용까지 세 챕터로 해부합니다.</p>
+    <h1 class="display" data-a="2">eBPF —<br><span class="hot">Programming</span> the Kernel</h1>
+    <p class="sub" data-a="3">No reboots. No crashes. <b>Sandboxed programs running safely inside the kernel</b> —
+    dissected in three chapters, from the virtual machine internals to production on EKS.</p>
   </div>
   <div class="chips" data-a="4">
     <span class="chip hot">01 · CORE INTERNALS</span>
@@ -44,33 +45,33 @@
   </div>
   <div class="speakers" data-speakers data-a="5"></div>
   <aside class="notes">
-    오프닝 — "eBPF 써본 분?" 질문으로 시작. 핵심 약속 한 문장: <b>재부팅 없이, 크래시 없이 커널을 프로그래밍한다</b>. 세 챕터 구성(내부 구조 → 실전 도구 → EKS)을 칩 순서대로 짚고 넘어간다.
+    Opening — start with the question "Who here has used eBPF?". One-sentence promise: <b>program the kernel with no reboots and no crashes</b>. Walk the three chapters (internals → real-world tools → EKS) in chip order.
   </aside>
 </section>
 
 <!-- ============ 02 · AGENDA ============ -->
 <section class="slide">
   <div class="kicker" data-a="1">Agenda</div>
-  <h1 class="display md" data-a="2">세 개의 챕터, 하나의 질문 —<br><span class="dim">"커널 안에서 무슨 일이 일어나는가"</span></h1>
+  <h1 class="display md" data-a="2">Three chapters, one question —<br><span class="dim">"What is happening inside the kernel?"</span></h1>
   <div class="agenda">
     <div class="ag" data-a="3">
       <span class="n">01</span>
-      <div><h3>Core Internals</h3><p>eBPF VM · Verifier · JIT · Maps · CO-RE/BTF · Ring Buffer — 안전의 근거를 커널 소스 레벨에서 확인</p></div>
+      <div><h3>Core Internals</h3><p>eBPF VM · Verifier · JIT · Maps · CO-RE/BTF · Ring Buffer — grounding the safety guarantees at the kernel-source level</p></div>
       <span class="tag">FOUNDATION</span>
     </div>
     <div class="ag" data-a="4">
       <span class="n">02</span>
-      <div><h3>Observability &amp; Security</h3><p>제품 지형도 · memleak · Off-CPU · CPU 스로틀링 · Falco vs Tetragon — eBPF가 실전에서 쓰이는 방식</p></div>
+      <div><h3>Observability &amp; Security</h3><p>Product landscape · memleak · Off-CPU · CPU throttling · Falco vs Tetragon — how eBPF is used in the field</p></div>
       <span class="tag">PRACTICE</span>
     </div>
     <div class="ag" data-a="5">
       <span class="n">03</span>
-      <div><h3>eBPF on EKS</h3><p>VPC CNI NetworkPolicy · Cilium ENI · Hubble · 실측 벤치마크 — EKS는 이미 eBPF 위에서 돈다</p></div>
+      <div><h3>eBPF on EKS</h3><p>VPC CNI NetworkPolicy · Cilium ENI · Hubble · hands-on benchmarks — EKS already runs on eBPF</p></div>
       <span class="tag">AWS</span>
     </div>
   </div>
   <aside class="notes">
-    시간 배분 안내 — 챕터 1이 가장 깊고 길다(전체의 절반). 관통 질문 "커널 안에서 무슨 일이 일어나는가"를 소리 내어 읽고, 각 챕터가 이 질문의 어느 부분을 답하는지 한 줄씩.
+    Time allocation — chapter 1 is the deepest and longest (half the session). Read the through-line question "what is happening inside the kernel" out loud, then one line on which part of it each chapter answers.
   </aside>
 </section>
 
@@ -78,111 +79,111 @@
 <section class="slide chapter">
   <span class="num">01</span>
   <div class="kicker" data-a="1">Chapter one</div>
-  <h1 class="display" data-a="2">커널 안의 <span class="hot">가상머신</span></h1>
+  <h1 class="display" data-a="2">A <span class="hot">virtual machine</span> inside the kernel</h1>
   <p class="mono-tag" data-a="3">origins · vm · verifier · jit · maps · co-re</p>
   <aside class="notes">
-    챕터 전환 — "커널 안의 <b>가상머신</b>이라는 말, 이상하지 않습니까?"로 물음표를 심어두면 8장(VM의 실체)에서 회수된다.
+    Chapter break — plant the question "a <b>virtual machine</b> inside the kernel — doesn't that sound odd?". It pays off in §8 (what the VM really is).
   </aside>
 </section>
 
 <!-- ============ 04 · WHY EBPF ============ -->
 <section class="slide">
   <div class="kicker" data-a="1">The problem</div>
-  <h1 class="display md" data-a="2">커널 확장의 두 가지 길</h1>
-  <p class="sub" data-a="3">커널에 코드를 넣는 전통적 방법은 <b>커널 모듈</b> — 강력하지만 커널과 운명을 함께합니다.</p>
+  <h1 class="display md" data-a="2">Two ways to extend the kernel</h1>
+  <p class="sub" data-a="3">The traditional way to put code in the kernel is a <b>kernel module</b> — powerful, but its fate is tied to the kernel's.</p>
   <div class="split">
     <div class="panel" style="--pc:var(--pink)" data-a="4">
-      <h3>커널 모듈 (LKM · Loadable Kernel Module)</h3>
+      <h3>Kernel module (LKM · Loadable Kernel Module)</h3>
       <ul>
-        <li>버그 하나 = <b>커널 패닉, 시스템 전체 다운</b></li>
-        <li>커널 버전마다 <b>재컴파일·재검증</b> — ABI(Application Binary Interface) 비보장</li>
-        <li>서명·배포·감사 부담, 보안팀의 승인 장벽</li>
-        <li>메모리 접근 무제한 — 격리 장치 없음</li>
+        <li>One bug = <b>kernel panic, whole system down</b></li>
+        <li><b>Recompile &amp; revalidate</b> for every kernel version — no ABI (Application Binary Interface) guarantee</li>
+        <li>Signing, distribution, audit burden — a hard sell to the security team</li>
+        <li>Unrestricted memory access — no isolation whatsoever</li>
       </ul>
     </div>
     <div class="panel" style="--pc:var(--green)" data-a="5">
-      <h3>eBPF 프로그램</h3>
+      <h3>eBPF program</h3>
       <ul>
-        <li><b>Verifier가 로드 전에 안전성을 증명</b> — 크래시 불가</li>
-        <li>레지스터 기반 샌드박스 VM에서 실행, JIT(Just-In-Time) 컴파일로 네이티브 성능</li>
-        <li><b>CO-RE</b>(Compile Once – Run Everywhere)로 커널 버전 간 이식 — 재컴파일 없음</li>
-        <li>재부팅·모듈 로드 없이 즉시 attach / detach</li>
+        <li><b>The Verifier proves safety before load</b> — crashing is impossible</li>
+        <li>Runs in a register-based sandboxed VM, JIT (Just-In-Time) compiled to native speed</li>
+        <li><b>CO-RE</b> (Compile Once – Run Everywhere) ports across kernel versions — no recompilation</li>
+        <li>Attach / detach instantly — no reboot, no module load</li>
       </ul>
     </div>
   </div>
   <div class="chips" data-a="6" style="display:flex;gap:12px;margin-top:2.6vh;flex-wrap:wrap">
-    <span class="chip">계측도 같은 딜레마 — ptrace·strace는 이벤트마다 대상 정지 + 컨텍스트 스위칭 왕복, 프로덕션에선 감당 불가</span>
-    <span class="chip hot">"안전하게 커널을 프로그래밍한다" — 이 설계의 원형은 30년 전에 이미 있었다</span>
+    <span class="chip">Instrumentation faces the same dilemma — ptrace/strace stop the target and round-trip a context switch per event; untenable in production</span>
+    <span class="chip hot">"Program the kernel safely" — the prototype of this design existed 30 years ago</span>
   </div>
   <aside class="notes">
-    커널 모듈의 공포부터 — <b>버그 하나 = 커널 패닉</b>, 보안팀이 왜 모듈을 싫어하는지 경험담이 있으면 여기서. ptrace/strace 칩은 계측 쪽도 같은 딜레마라는 보조 논거. 브릿지: "이 문제의 답은 30년 전에 있었다".
+    Start with kernel-module dread — <b>one bug = kernel panic</b>; if you have a war story about why security teams hate modules, tell it here. The ptrace/strace chip is the supporting argument that instrumentation shares the dilemma. Bridge: "the answer to this problem existed 30 years ago".
   </aside>
 </section>
 
 <!-- ============ 05 · CBPF PRIOR ART ============ -->
 <section class="slide">
   <div class="kicker" data-a="1">Prior art — 1992</div>
-  <h1 class="display md" data-a="2">해답의 원형 — <span class="hot">tcpdump의 패킷 필터</span></h1>
-  <p class="sub" data-a="3">tcpdump는 필터를 유저스페이스에서 돌리지 않습니다 — 표현식을 바이트코드로 컴파일해
-  <b>커널 안으로 내려보내고, 매치된 패킷만 돌려받습니다.</b></p>
+  <h1 class="display md" data-a="2">The prototype answer — <span class="hot">tcpdump's packet filter</span></h1>
+  <p class="sub" data-a="3">tcpdump does not run its filter in userspace — it compiles the expression to bytecode,
+  <b>pushes it down into the kernel, and gets back only the packets that match.</b></p>
   <div class="split w64">
     <div class="arch" data-a="4" style="margin-top:0">
       <svg viewBox="0 0 760 360">
         <!-- userspace zone -->
         <rect x="15" y="15" width="730" height="100" rx="14" fill="rgba(173,92,255,.04)" stroke="#ad5cff" stroke-width="1.2" stroke-dasharray="8 6"/>
-        <text x="40" y="42" class="am" font-size="12" fill="#ad5cff" letter-spacing="3">유저스페이스</text>
+        <text x="40" y="42" class="am" font-size="12" fill="#ad5cff" letter-spacing="3">USER SPACE</text>
         <rect x="60" y="50" width="280" height="52" rx="10" fill="#131a24" stroke="#ad5cff" stroke-width="1.5"/>
         <text x="200" y="72" class="an" font-size="15" text-anchor="middle">tcpdump 'port 443'</text>
-        <text x="200" y="92" class="am" font-size="11" text-anchor="middle">표현식 → BPF 바이트코드 컴파일</text>
+        <text x="200" y="92" class="am" font-size="11" text-anchor="middle">expression → BPF bytecode</text>
         <rect x="470" y="50" width="245" height="52" rx="10" fill="#131a24" stroke="#00e500" stroke-width="1.5"/>
-        <text x="592" y="72" class="an" font-size="15" text-anchor="middle">매치된 패킷만 수신</text>
-        <text x="592" y="92" class="am" font-size="11" text-anchor="middle">복사 비용 최소화</text>
+        <text x="592" y="72" class="an" font-size="15" text-anchor="middle">Receives matches only</text>
+        <text x="592" y="92" class="am" font-size="11" text-anchor="middle">copy cost minimized</text>
 
         <!-- kernel zone -->
         <rect x="15" y="170" width="730" height="175" rx="14" fill="rgba(255,153,0,.03)" stroke="#ff9900" stroke-width="1.2" stroke-dasharray="8 6"/>
-        <text x="40" y="197" class="am" font-size="12" fill="#ff9900" letter-spacing="3">커널</text>
+        <text x="40" y="197" class="am" font-size="12" fill="#ff9900" letter-spacing="3">KERNEL</text>
         <rect x="45" y="230" width="160" height="80" rx="10" fill="rgba(65,179,255,.07)" stroke="#41b3ff" stroke-width="1.5"/>
         <text x="125" y="264" class="an" font-size="15" text-anchor="middle">NIC</text>
-        <text x="125" y="288" class="am" font-size="11" text-anchor="middle">전체 패킷 스트림</text>
+        <text x="125" y="288" class="am" font-size="11" text-anchor="middle">full packet stream</text>
         <rect x="290" y="230" width="230" height="80" rx="10" fill="rgba(255,153,0,.09)" stroke="#ff9900" stroke-width="2"/>
-        <text x="405" y="264" class="an" font-size="15" text-anchor="middle">BPF 인터프리터</text>
-        <text x="405" y="288" class="am" font-size="11" text-anchor="middle">패킷마다 필터 프로그램 실행</text>
+        <text x="405" y="264" class="an" font-size="15" text-anchor="middle">BPF interpreter</text>
+        <text x="405" y="288" class="am" font-size="11" text-anchor="middle">runs the filter on every packet</text>
 
         <!-- wires -->
         <path class="wire" d="M200 102 C 200 160, 300 190, 350 230" stroke="#ad5cff"/>
-        <text x="155" y="150" class="am" font-size="12" fill="#ad5cff">바이트코드 주입</text>
+        <text x="155" y="150" class="am" font-size="12" fill="#ad5cff">inject bytecode</text>
         <path class="wire" d="M205 270 H290" stroke="#41b3ff"/>
         <path class="wire" d="M500 240 C 550 210, 570 160, 585 102" stroke="#00e500"/>
-        <text x="565" y="150" class="am" font-size="12" fill="#00e500">매치만 복사</text>
+        <text x="565" y="150" class="am" font-size="12" fill="#00e500">copy matches only</text>
         <path class="wire-static" d="M520 290 H640" stroke="#ff5c85" stroke-dasharray="4 5"/>
-        <text x="648" y="295" class="am" font-size="12" fill="#ff5c85">불일치 — 즉시 폐기</text>
+        <text x="648" y="295" class="am" font-size="12" fill="#ff5c85">no match — dropped</text>
       </svg>
     </div>
     <div class="panel" style="--pc:var(--orange)" data-a="5">
-      <h3>eBPF가 물려받은 세 가지</h3>
+      <h3>Three things eBPF inherited</h3>
       <ul>
-        <li><b>코드를 데이터가 있는 곳으로</b> — 패킷 전체를 복사해 거르지 않고, 필터를 커널에 주입</li>
-        <li><b>검증 가능한 제한 명령어</b> — 임의 기계어가 아닌 바이트코드</li>
-        <li><b>커널 수정 없는 프로그래밍</b> — 커널 내 엔진이 실행</li>
-        <li>eBPF는 이 원리를 그대로 두고 <b>엔진만 재설계</b> — 'e'는 extended</li>
+        <li><b>Move code to where the data is</b> — inject the filter into the kernel instead of copying every packet out to filter it</li>
+        <li><b>A verifiable, restricted instruction set</b> — bytecode, not arbitrary machine code</li>
+        <li><b>Programmability without kernel changes</b> — an in-kernel engine does the execution</li>
+        <li>eBPF keeps these principles intact and <b>redesigns only the engine</b> — the 'e' is for extended</li>
       </ul>
     </div>
   </div>
   <div class="chips" data-a="6" style="display:flex;gap:12px;flex-wrap:wrap">
-    <span class="chip">cBPF(classic Berkeley Packet Filter) — 레지스터 2개 · 32-bit · 소켓 전용 → eBPF(extended BPF) — 11개 · 64-bit · 커널 전역</span>
-    <span class="chip hot">지금도 tcpdump 필터는 커널에서 eBPF로 변환되어 실행된다</span>
+    <span class="chip">cBPF (classic Berkeley Packet Filter) — 2 registers · 32-bit · sockets only → eBPF (extended BPF) — 11 registers · 64-bit · kernel-wide</span>
+    <span class="chip hot">To this day, tcpdump filters are translated to eBPF and executed in the kernel</span>
   </div>
   <aside class="notes">
-    tcpdump는 다들 쓴다 — <code>port 443</code> 필터가 유저스페이스가 아니라 <b>커널 안에서</b> 돈다는 게 반전 포인트. 물려받은 세 가지(코드를 데이터로 · 검증 가능한 바이트코드 · 커널 무수정)를 또박또박. e = extended.
+    Everyone uses tcpdump — the twist is that the <code>port 443</code> filter runs <b>inside the kernel</b>, not in userspace. Enunciate the three inheritances (code to data · verifiable bytecode · no kernel changes). e = extended.
   </aside>
 </section>
 
 <!-- ============ 06 · EVOLUTION ============ -->
 <section class="slide">
   <div class="kicker" data-a="1">Evolution — 1992 to today</div>
-  <h1 class="display md" data-a="2">패킷 필터에서 <span class="hot">범용 커널 VM</span>까지</h1>
-  <p class="sub" data-a="3">도입 배경: 커널 기능 하나가 메인라인을 거쳐 배포판에 닿기까지 수년 —
-  컨테이너 시대의 네트워킹·관측·보안 요구를 <b>커널 릴리스 주기가 따라가지 못했습니다.</b></p>
+  <h1 class="display md" data-a="2">From packet filter to <span class="hot">general-purpose kernel VM</span></h1>
+  <p class="sub" data-a="3">The backdrop: a kernel feature takes years to travel from mainline to your distro —
+  <b>the kernel release cycle could not keep up</b> with container-era networking, observability, and security demands.</p>
   <div class="arch" data-a="4">
     <svg viewBox="0 0 1200 330">
       <!-- timeline axis -->
@@ -194,16 +195,16 @@
       <line x1="110" y1="157" x2="110" y2="122" stroke="#a6b2c3" stroke-width="1.2"/>
       <rect x="20" y="38" width="200" height="84" rx="12" fill="#131a24" stroke="#a6b2c3" stroke-width="1.5"/>
       <text x="120" y="66" class="an" font-size="16" text-anchor="middle">1992 · BPF</text>
-      <text x="120" y="90" class="am" font-size="12" text-anchor="middle">tcpdump 패킷 필터</text>
-      <text x="120" y="110" class="am" font-size="12" text-anchor="middle">레지스터 2개 · 32-bit 해석기</text>
+      <text x="120" y="90" class="am" font-size="12" text-anchor="middle">tcpdump packet filter</text>
+      <text x="120" y="110" class="am" font-size="12" text-anchor="middle">2 registers · 32-bit interpreter</text>
 
       <!-- 2014 eBPF (below, highlighted) -->
       <circle cx="330" cy="165" r="10" fill="#0b1017" stroke="#ff9900" stroke-width="2.5"/>
       <line x1="330" y1="175" x2="330" y2="210" stroke="#ff9900" stroke-width="1.2"/>
       <rect x="215" y="210" width="230" height="96" rx="12" fill="rgba(255,153,0,.08)" stroke="#ff9900" stroke-width="2"/>
-      <text x="330" y="240" class="an" font-size="16" text-anchor="middle">2014 · eBPF — 커널 3.18</text>
-      <text x="330" y="264" class="am" font-size="12" text-anchor="middle">64-bit · 레지스터 11개 · Maps</text>
-      <text x="330" y="284" class="am" font-size="12" text-anchor="middle">bpf() 시스템 콜 — 범용 VM으로</text>
+      <text x="330" y="240" class="an" font-size="16" text-anchor="middle">2014 · eBPF — kernel 3.18</text>
+      <text x="330" y="264" class="am" font-size="12" text-anchor="middle">64-bit · 11 registers · Maps</text>
+      <text x="330" y="284" class="am" font-size="12" text-anchor="middle">bpf() syscall — general-purpose VM</text>
 
       <!-- 2016 XDP (above) -->
       <circle cx="550" cy="165" r="8" fill="#0b1017" stroke="#00e500" stroke-width="2"/>
@@ -211,7 +212,7 @@
       <rect x="455" y="38" width="190" height="84" rx="12" fill="rgba(0,229,0,.06)" stroke="#00e500" stroke-width="1.5"/>
       <text x="550" y="66" class="an" font-size="16" text-anchor="middle">2016 · XDP — 4.8</text>
       <text x="550" y="90" class="am" font-size="12" text-anchor="middle">eXpress Data Path</text>
-      <text x="550" y="110" class="am" font-size="12" text-anchor="middle">NIC 레벨 처리 · Cilium 등장</text>
+      <text x="550" y="110" class="am" font-size="12" text-anchor="middle">NIC-level processing · Cilium debuts</text>
 
       <!-- 2019 CO-RE (below) -->
       <circle cx="760" cy="165" r="8" fill="#0b1017" stroke="#41b3ff" stroke-width="2"/>
@@ -219,173 +220,173 @@
       <rect x="665" y="210" width="190" height="84" rx="12" fill="rgba(65,179,255,.07)" stroke="#41b3ff" stroke-width="1.5"/>
       <text x="760" y="238" class="an" font-size="16" text-anchor="middle">2019 · BTF · CO-RE</text>
       <text x="760" y="262" class="am" font-size="12" text-anchor="middle">BPF Type Format</text>
-      <text x="760" y="282" class="am" font-size="11" text-anchor="middle">이식성 해결 · bounded loop 5.3</text>
+      <text x="760" y="282" class="am" font-size="11" text-anchor="middle">portability solved · bounded loops 5.3</text>
 
       <!-- 2020 LSM/Ringbuf (above) -->
       <circle cx="960" cy="165" r="8" fill="#0b1017" stroke="#ad5cff" stroke-width="2"/>
       <line x1="960" y1="157" x2="960" y2="122" stroke="#ad5cff" stroke-width="1.2"/>
       <rect x="855" y="38" width="210" height="84" rx="12" fill="rgba(173,92,255,.07)" stroke="#ad5cff" stroke-width="1.5"/>
       <text x="960" y="66" class="an" font-size="16" text-anchor="middle">2020 · LSM 5.7 · Ringbuf 5.8</text>
-      <text x="960" y="90" class="am" font-size="11" text-anchor="middle">Linux Security Module — 차단</text>
-      <text x="960" y="110" class="am" font-size="12" text-anchor="middle">관측 → 방어로 확장</text>
+      <text x="960" y="90" class="am" font-size="11" text-anchor="middle">Linux Security Module — blocking</text>
+      <text x="960" y="110" class="am" font-size="12" text-anchor="middle">from observing to enforcing</text>
 
       <!-- 2021+ Foundation (below) -->
       <circle cx="1120" cy="165" r="8" fill="#0b1017" stroke="#fbd332" stroke-width="2"/>
       <line x1="1120" y1="175" x2="1120" y2="210" stroke="#fbd332" stroke-width="1.2"/>
       <rect x="1015" y="210" width="175" height="84" rx="12" fill="#131a24" stroke="#fbd332" stroke-width="1.5"/>
       <text x="1102" y="238" class="an" font-size="16" text-anchor="middle">2021+ · Foundation</text>
-      <text x="1102" y="262" class="am" font-size="12" text-anchor="middle">eBPF Foundation 설립</text>
-      <text x="1102" y="282" class="am" font-size="12" text-anchor="middle">Windows eBPF — 사실상 표준</text>
+      <text x="1102" y="262" class="am" font-size="12" text-anchor="middle">eBPF Foundation founded</text>
+      <text x="1102" y="282" class="am" font-size="12" text-anchor="middle">Windows eBPF — de facto standard</text>
     </svg>
   </div>
   <div class="chips" data-a="5" style="display:flex;gap:12px;flex-wrap:wrap">
-    <span class="chip">커널 릴리스 주기 ≫ 인프라 요구의 변화 속도</span>
-    <span class="chip">모듈은 위험하고, 커널 포크는 유지비용이 크다</span>
-    <span class="chip">선행 기술 DTrace는 CDDL 라이선스 — GPL 커널에 통합 불가, 독자 노선을 강제한 배경</span>
-    <span class="chip hot">해법 — 커널 안에 안전한 프로그래밍 계층을 내장한다</span>
+    <span class="chip">Kernel release cycle ≫ the pace at which infra requirements change</span>
+    <span class="chip">Modules are dangerous; forking the kernel is a maintenance sink</span>
+    <span class="chip">Prior art DTrace was CDDL-licensed — un-mergeable into the GPL kernel, forcing an independent path</span>
+    <span class="chip hot">The answer — build a safe programming layer into the kernel itself</span>
   </div>
   <aside class="notes">
-    타임라인은 왼쪽부터 순서대로 — <b>2014 커널 3.18이 진짜 탄생</b>(bpf() 시스템 콜 + Maps). DTrace CDDL 칩은 꼭 언급: 라이선스가 기술 노선을 강제한 사례로, 35장 NFM에서 현대판이 다시 나온다.
+    Walk the timeline left to right — <b>2014, kernel 3.18 is the real birth</b> (bpf() syscall + Maps). Do mention the DTrace CDDL chip: a license dictating a technology's path — the modern rerun shows up in §35 (NFM).
   </aside>
 </section>
 
 <!-- ============ 07 · CONCEPT ============ -->
 <section class="slide">
   <div class="kicker" data-a="1">The concept</div>
-  <h1 class="display md" data-a="2">기술 컨셉 — 커널 이벤트에 반응하는 <span class="hot">이벤트 구동 프로그램</span></h1>
+  <h1 class="display md" data-a="2">The core idea — <span class="hot">event-driven programs</span> reacting to kernel events</h1>
   <div class="arch" data-a="3">
     <svg viewBox="0 0 1200 440">
       <!-- userspace zone -->
       <rect x="20" y="18" width="1160" height="128" rx="16" fill="rgba(173,92,255,.04)" stroke="#ad5cff" stroke-width="1.2" stroke-dasharray="8 6"/>
-      <text x="50" y="48" class="am" font-size="14" fill="#ad5cff" letter-spacing="3">유저스페이스</text>
+      <text x="50" y="48" class="am" font-size="14" fill="#ad5cff" letter-spacing="3">USER SPACE</text>
       <rect x="90" y="60" width="290" height="72" rx="12" fill="#131a24" stroke="#ad5cff" stroke-width="1.5"/>
-      <text x="235" y="90" class="an" font-size="17" text-anchor="middle">제어 애플리케이션</text>
+      <text x="235" y="90" class="an" font-size="17" text-anchor="middle">Control application</text>
       <text x="235" y="116" class="am" font-size="13" text-anchor="middle">Go · Rust · C — libbpf</text>
       <rect x="810" y="60" width="290" height="72" rx="12" fill="#131a24" stroke="#fbd332" stroke-width="1.5"/>
-      <text x="955" y="90" class="an" font-size="17" text-anchor="middle">데이터 소비자</text>
-      <text x="955" y="116" class="am" font-size="13" text-anchor="middle">CLI · 에이전트 · 모니터링</text>
+      <text x="955" y="90" class="an" font-size="17" text-anchor="middle">Data consumers</text>
+      <text x="955" y="116" class="am" font-size="13" text-anchor="middle">CLI · agents · monitoring</text>
 
       <!-- kernel zone -->
       <rect x="20" y="192" width="1160" height="230" rx="16" fill="rgba(255,153,0,.03)" stroke="#ff9900" stroke-width="1.2" stroke-dasharray="8 6"/>
-      <text x="50" y="222" class="am" font-size="14" fill="#ff9900" letter-spacing="3">커널</text>
+      <text x="50" y="222" class="am" font-size="14" fill="#ff9900" letter-spacing="3">KERNEL</text>
 
       <rect x="60" y="248" width="270" height="150" rx="12" fill="#131a24" stroke="#ff5c85" stroke-width="1.5"/>
-      <text x="195" y="280" class="an" font-size="17" text-anchor="middle">이벤트 소스</text>
-      <text x="195" y="310" class="am" font-size="13" text-anchor="middle">시스템 콜 · 네트워크 패킷</text>
-      <text x="195" y="334" class="am" font-size="13" text-anchor="middle">함수 진입/복귀 · 스케줄러</text>
-      <text x="195" y="358" class="am" font-size="13" text-anchor="middle">perf 이벤트 · LSM 훅</text>
+      <text x="195" y="280" class="an" font-size="17" text-anchor="middle">Event sources</text>
+      <text x="195" y="310" class="am" font-size="13" text-anchor="middle">syscalls · network packets</text>
+      <text x="195" y="334" class="am" font-size="13" text-anchor="middle">function entry/exit · scheduler</text>
+      <text x="195" y="358" class="am" font-size="13" text-anchor="middle">perf events · LSM hooks</text>
 
       <rect x="440" y="268" width="310" height="110" rx="14" fill="rgba(255,153,0,.09)" stroke="#ff9900" stroke-width="2.5"/>
-      <text x="595" y="308" class="an" font-size="20" text-anchor="middle">eBPF 프로그램</text>
-      <text x="595" y="336" class="am" font-size="13" text-anchor="middle">훅에 attach — 상주하지 않고</text>
-      <text x="595" y="356" class="am" font-size="13" text-anchor="middle">이벤트가 발생할 때만 실행</text>
+      <text x="595" y="308" class="an" font-size="20" text-anchor="middle">eBPF program</text>
+      <text x="595" y="336" class="am" font-size="13" text-anchor="middle">attached to a hook — not resident,</text>
+      <text x="595" y="356" class="am" font-size="13" text-anchor="middle">runs only when the event fires</text>
 
       <rect x="850" y="268" width="280" height="110" rx="12" fill="rgba(65,179,255,.08)" stroke="#41b3ff" stroke-width="1.5"/>
       <text x="990" y="308" class="an" font-size="18" text-anchor="middle">Maps · Ring Buffer</text>
-      <text x="990" y="336" class="am" font-size="13" text-anchor="middle">커널 ↔ 유저스페이스</text>
-      <text x="990" y="356" class="am" font-size="13" text-anchor="middle">공유 상태 · 이벤트 스트림</text>
+      <text x="990" y="336" class="am" font-size="13" text-anchor="middle">kernel ↔ userspace</text>
+      <text x="990" y="356" class="am" font-size="13" text-anchor="middle">shared state · event stream</text>
 
       <!-- wires -->
       <path class="wire" d="M235 132 C 235 200, 400 240, 470 268" stroke="#ad5cff"/>
-      <text x="270" y="172" class="am" font-size="13" fill="#ad5cff">bpf() — 로드 · attach</text>
+      <text x="270" y="172" class="am" font-size="13" fill="#ad5cff">bpf() — load · attach</text>
       <path class="wire" d="M330 323 H440" stroke="#ff5c85"/>
-      <text x="385" y="310" class="am" font-size="13" text-anchor="middle" fill="#ff5c85">트리거</text>
+      <text x="385" y="310" class="am" font-size="13" text-anchor="middle" fill="#ff5c85">trigger</text>
       <path class="wire" d="M750 323 H850" stroke="#ff9900"/>
       <path class="wire" d="M850 348 H750" stroke="#41b3ff"/>
-      <text x="800" y="310" class="am" font-size="13" text-anchor="middle" fill="#a6b2c3">읽기 · 쓰기</text>
+      <text x="800" y="310" class="am" font-size="13" text-anchor="middle" fill="#a6b2c3">read · write</text>
       <path class="wire" d="M990 268 C 990 210, 970 170, 955 132" stroke="#41b3ff"/>
-      <text x="1008" y="172" class="am" font-size="13" fill="#41b3ff">폴링 · 스트림 소비</text>
+      <text x="1008" y="172" class="am" font-size="13" fill="#41b3ff">polling · stream consumption</text>
     </svg>
   </div>
   <div class="chips" data-a="4" style="display:flex;gap:12px;flex-wrap:wrap">
-    <span class="chip hot">① 이벤트 구동 — 데몬이 아니라 커널 이벤트에 반응하는 코드 조각</span>
-    <span class="chip">② 샌드박스 — Verifier가 증명한 프로그램만 실행</span>
-    <span class="chip">③ 공유 상태 — 데이터 교환은 모두 Maps 경유</span>
+    <span class="chip hot">① Event-driven — not a daemon, but a code fragment reacting to kernel events</span>
+    <span class="chip">② Sandboxed — only Verifier-proven programs ever run</span>
+    <span class="chip">③ Shared state — all data exchange goes through Maps</span>
   </div>
   <aside class="notes">
-    핵심 문장: eBPF 프로그램은 데몬이 아니라 <b>이벤트에 반응하는 코드 조각</b>. 그림의 ①트리거 ②샌드박스 ③Maps 경유 소통 세 가지가 챕터 1 전체의 목차이기도 하다.
+    Key sentence: an eBPF program is not a daemon — it is <b>a code fragment that reacts to events</b>. The diagram's three points — ① trigger, ② sandbox, ③ communication via Maps — double as the table of contents for chapter 1.
   </aside>
 </section>
 
 <!-- ============ 08 · VM CLARIFIED ============ -->
 <section class="slide">
   <div class="kicker" data-a="1">"Virtual machine"?</div>
-  <h1 class="display md" data-a="2">'가상머신'의 실체 — <span class="hot">JVM처럼</span>, VMware가 아니라</h1>
-  <p class="sub" data-a="3">eBPF VM은 하드웨어 가상화가 아니라 <b>커널이 정의한 명령어 실행 모델</b>입니다 —
-  바이트코드라는 중간 표현이 있어야 Verifier가 정적 분석을 할 수 있습니다.</p>
+  <h1 class="display md" data-a="2">What the 'VM' really is — <span class="hot">like the JVM</span>, not VMware</h1>
+  <p class="sub" data-a="3">The eBPF VM is not hardware virtualization — it is <b>an instruction execution model defined by the kernel</b>.
+  The bytecode intermediate representation is what makes static analysis by the Verifier possible.</p>
   <table class="compare" data-a="4">
     <thead>
-      <tr><th>구분</th><th>하드웨어 VM — KVM · VMware</th><th class="hl">eBPF VM</th></tr>
+      <tr><th></th><th>Hardware VM — KVM · VMware</th><th class="hl">eBPF VM</th></tr>
     </thead>
     <tbody>
-      <tr><td>가상화 대상</td><td>CPU · 메모리 · 디바이스 전체</td><td>명령어 세트 규격 — 레지스터 11개 · 64-bit · 스택 512 B</td></tr>
-      <tr><td>존재 이유</td><td>OS 단위 격리</td><td><b>검증 가능한 중간 표현</b> + 아키텍처 독립 (x86 · ARM · RISC-V)</td></tr>
-      <tr><td>실행 방식</td><td>하이퍼바이저 경유</td><td class="good">JIT 컴파일 → <b>네이티브 기계어</b>로 커널에 상주</td></tr>
-      <tr><td>런타임 오버헤드</td><td class="bad">상시 존재</td><td class="good">사실상 0 — 커널 함수 호출과 동일 비용, 인터프리터 없음</td></tr>
+      <tr><td>What is virtualized</td><td>Entire CPU · memory · devices</td><td>An instruction-set spec — 11 registers · 64-bit · 512 B stack</td></tr>
+      <tr><td>Reason to exist</td><td>OS-level isolation</td><td><b>A verifiable intermediate representation</b> + architecture independence (x86 · ARM · RISC-V)</td></tr>
+      <tr><td>Execution</td><td>Via hypervisor</td><td class="good">JIT-compiled → resides in the kernel as <b>native machine code</b></td></tr>
+      <tr><td>Runtime overhead</td><td class="bad">Always present</td><td class="good">Effectively zero — same cost as a kernel function call, no interpreter</td></tr>
     </tbody>
   </table>
   <div class="chips" data-a="5" style="display:flex;gap:12px;margin-top:2.6vh;flex-wrap:wrap">
-    <span class="chip hot">VM이라 부를 수 있는 4가지 근거</span>
-    <span class="chip">① 전용 바이트코드 + 레지스터 11개 실행 레이어</span>
-    <span class="chip">② JIT 내장 — 가상 명령어를 네이티브 기계어로</span>
-    <span class="chip">③ Verifier — 실행 전 안전을 증명하는 샌드박스</span>
-    <span class="chip">④ 소통 창구는 Maps · Helper/KFunc뿐 — 임의 커널 메모리 접근 차단</span>
+    <span class="chip hot">Four reasons it earns the name "VM"</span>
+    <span class="chip">① A dedicated bytecode + 11-register execution layer</span>
+    <span class="chip">② Built-in JIT — virtual instructions to native machine code</span>
+    <span class="chip">③ Verifier — a sandbox that proves safety before execution</span>
+    <span class="chip">④ Maps and Helpers/KFuncs are the only doors — arbitrary kernel memory access is blocked</span>
   </div>
   <div class="chips" data-a="6" style="display:flex;gap:12px;margin-top:1.4vh;flex-wrap:wrap">
-    <span class="chip">실제 비용은 로드 타임 1회 — Verifier 검증 + JIT 컴파일</span>
-    <span class="chip">런타임 제약은 속도가 아니라 표현력 — 512 B 스택 · 명령어 한도는 증명의 대가</span>
+    <span class="chip">The real cost is paid once at load time — Verifier analysis + JIT compilation</span>
+    <span class="chip">Runtime limits constrain expressiveness, not speed — the 512 B stack and instruction cap are the price of the proof</span>
   </div>
   <aside class="notes">
-    JVM 비유가 가장 잘 통한다 — VMware가 아니라 <b>바이트코드 실행 규격</b>. 표보다 아래 칩의 "VM이라 부를 수 있는 4가지 근거"가 핵심 메시지. 런타임 비용은 사실상 0, 실제 비용은 로드 타임 1회.
+    The JVM analogy lands best — not VMware, but <b>a bytecode execution spec</b>. The chips below ("four reasons it earns the name VM") matter more than the table. Runtime cost is effectively zero; the real cost is one-time at load.
   </aside>
 </section>
 
 <!-- ============ 09 · REGISTERS ============ -->
 <section class="slide">
   <div class="kicker" data-a="1">Register machine</div>
-  <h1 class="display md" data-a="2">레지스터 11개 — <span class="hot">하드웨어에 1:1</span>로 매핑되는 설계</h1>
-  <p class="sub" data-a="3">명령어는 <b>8바이트 고정 길이</b>, 레지스터는 x86_64·ARM64 레지스터에 직접 대응 —
-  JIT가 추가 변환 계층 없이 곧바로 네이티브 기계어를 뽑아내는 근거입니다.</p>
+  <h1 class="display md" data-a="2">11 registers — designed to map <span class="hot">1:1 onto hardware</span></h1>
+  <p class="sub" data-a="3">Instructions are <b>fixed 8-byte</b>; registers correspond directly to x86_64/ARM64 registers —
+  which is why the JIT emits native machine code with no extra translation layer.</p>
   <div class="ladder">
     <div class="rung" style="--rc:var(--orange)" data-a="4">
       <span class="k">R0</span>
-      <div><h3>반환 값</h3><p>프로그램의 종료 코드와 <b>헬퍼 함수 호출의 결과</b>가 담기는 자리</p></div>
+      <div><h3>Return value</h3><p>Holds the program's exit code and <b>the result of helper function calls</b></p></div>
       <span class="tag">RETURN</span>
     </div>
     <div class="rung" style="--rc:var(--blue)" data-a="5">
       <span class="k">R1–R5</span>
-      <div><h3>인자 전달</h3><p>헬퍼 함수 호출 인자 — 진입 시 컨텍스트 포인터는 <code>R1</code>로 전달</p></div>
+      <div><h3>Argument passing</h3><p>Helper call arguments — on entry, the context pointer arrives in <code>R1</code></p></div>
       <span class="tag">ARGUMENTS</span>
     </div>
     <div class="rung" style="--rc:var(--green)" data-a="6">
       <span class="k">R6–R9</span>
-      <div><h3>Callee-saved</h3><p>헬퍼 호출을 건너서도 <b>값이 보존되는</b> 레지스터 — 지역 상태의 거처</p></div>
+      <div><h3>Callee-saved</h3><p>Registers whose values <b>survive across helper calls</b> — home for local state</p></div>
       <span class="tag">PRESERVED</span>
     </div>
     <div class="rung" style="--rc:var(--pink)" data-a="7">
       <span class="k">R10</span>
-      <div><h3>읽기 전용 프레임 포인터</h3><p>512 B 전용 스택을 가리키며 <b>쓰기 불가</b> — 스택 주소 조작을 통한 커널 메모리 파괴를 원천 차단</p></div>
+      <div><h3>Read-only frame pointer</h3><p>Points to the dedicated 512 B stack and is <b>non-writable</b> — kernel-memory corruption via stack-pointer manipulation is ruled out by design</p></div>
       <span class="tag">READ-ONLY</span>
     </div>
   </div>
   <div class="chips" data-a="8" style="display:flex;gap:12px;margin-top:2.6vh;flex-wrap:wrap">
-    <span class="chip">고정 길이 명령어 + 1:1 레지스터 매핑 — JIT 번역 비용의 최소화가 설계 단계에 내장</span>
-    <span class="chip hot">실증 — Meta Strobelight: eBPF 프로파일링으로 찾은 코드 한 줄 수정이 연간 서버 15,000대 상당 절감</span>
+    <span class="chip">Fixed-length instructions + 1:1 register mapping — minimal JIT translation cost is baked into the design</span>
+    <span class="chip hot">Proof point — Meta Strobelight: one code-line fix found via eBPF profiling saved the equivalent of 15,000 servers a year</span>
   </div>
   <aside class="notes">
-    R10 <b>읽기 전용 프레임 포인터</b>가 이 장의 주인공 — 스택 조작 차단이 설계에 박혀 있다. 하드웨어 1:1 매핑 = JIT가 빠른 이유. 마지막 Strobelight 칩(서버 15,000대 절감)으로 "왜 배우는가"를 환기.
+    R10, the <b>read-only frame pointer</b>, is the star of this slide — stack manipulation is blocked by design. Hardware 1:1 mapping = why the JIT is fast. Close with the Strobelight chip (15,000 servers saved) to remind everyone why this is worth learning.
   </aside>
 </section>
 
 <!-- ============ 10 · PIPELINE ============ -->
 <section class="slide">
   <div class="kicker" data-a="1">From C to kernel</div>
-  <h1 class="display md" data-a="2">소스에서 커널까지 — 실행 파이프라인</h1>
+  <h1 class="display md" data-a="2">From source to kernel — the execution pipeline</h1>
   <div class="arch" data-a="3">
     <svg viewBox="0 0 1200 430">
       <!-- row 1: compile -->
       <rect x="20" y="60" width="200" height="90" rx="14" fill="#131a24" stroke="#a6b2c3" stroke-width="1.5"/>
-      <text x="120" y="100" class="an" font-size="20" text-anchor="middle">BPF C 소스</text>
+      <text x="120" y="100" class="an" font-size="20" text-anchor="middle">BPF C source</text>
       <text x="120" y="128" class="am" font-size="13" text-anchor="middle" letter-spacing="2">prog.bpf.c</text>
 
       <rect x="310" y="60" width="200" height="90" rx="14" fill="rgba(65,179,255,.08)" stroke="#41b3ff" stroke-width="1.5"/>
@@ -393,21 +394,21 @@
       <text x="410" y="128" class="am" font-size="13" text-anchor="middle" letter-spacing="2">-target bpf</text>
 
       <rect x="600" y="60" width="220" height="90" rx="14" fill="rgba(173,92,255,.08)" stroke="#ad5cff" stroke-width="1.5"/>
-      <text x="710" y="100" class="an" font-size="20" text-anchor="middle">바이트코드 (.o)</text>
+      <text x="710" y="100" class="an" font-size="20" text-anchor="middle">Bytecode (.o)</text>
       <text x="710" y="128" class="am" font-size="13" text-anchor="middle" letter-spacing="2">ELF + .BTF</text>
 
       <rect x="910" y="60" width="230" height="90" rx="14" fill="#131a24" stroke="#fbd332" stroke-width="1.5"/>
-      <text x="1025" y="100" class="an" font-size="20" text-anchor="middle">bpf() 시스템 콜</text>
+      <text x="1025" y="100" class="an" font-size="20" text-anchor="middle">bpf() syscall</text>
       <text x="1025" y="128" class="am" font-size="13" text-anchor="middle" letter-spacing="2">BPF_PROG_LOAD</text>
 
       <!-- row 2: kernel side -->
       <rect x="910" y="260" width="230" height="100" rx="14" fill="rgba(255,153,0,.08)" stroke="#ff9900" stroke-width="2"/>
       <text x="1025" y="302" class="an" font-size="21" text-anchor="middle">Verifier</text>
-      <text x="1025" y="332" class="am" font-size="13" text-anchor="middle" letter-spacing="2">안전성 증명 관문</text>
+      <text x="1025" y="332" class="am" font-size="13" text-anchor="middle" letter-spacing="2">the safety-proof gate</text>
 
       <rect x="580" y="260" width="230" height="100" rx="14" fill="rgba(0,229,0,.07)" stroke="#00e500" stroke-width="1.5"/>
-      <text x="695" y="302" class="an" font-size="21" text-anchor="middle">JIT 컴파일러</text>
-      <text x="695" y="332" class="am" font-size="13" text-anchor="middle" letter-spacing="2">네이티브 기계어</text>
+      <text x="695" y="302" class="an" font-size="21" text-anchor="middle">JIT compiler</text>
+      <text x="695" y="332" class="am" font-size="13" text-anchor="middle" letter-spacing="2">native machine code</text>
 
       <rect x="250" y="260" width="230" height="100" rx="14" fill="rgba(65,179,255,.08)" stroke="#41b3ff" stroke-width="1.5"/>
       <text x="365" y="302" class="an" font-size="21" text-anchor="middle">Hook attach</text>
@@ -415,7 +416,7 @@
 
       <!-- reject path -->
       <rect x="20" y="270" width="160" height="80" rx="14" fill="rgba(255,92,133,.06)" stroke="#ff5c85" stroke-width="1.5" stroke-dasharray="5 4"/>
-      <text x="100" y="305" class="an" font-size="18" text-anchor="middle" fill="#ff5c85">로드 거부</text>
+      <text x="100" y="305" class="an" font-size="18" text-anchor="middle" fill="#ff5c85">Load rejected</text>
       <text x="100" y="330" class="am" font-size="13" text-anchor="middle" fill="#ff5c85">-EACCES</text>
 
       <!-- wires -->
@@ -426,140 +427,140 @@
       <path class="wire" d="M910 310 H810" stroke="#00e500"/>
       <path class="wire" d="M580 310 H480" stroke="#41b3ff"/>
       <path class="wire-static" d="M955 360 C 800 420, 340 420, 180 340" stroke="#ff5c85" stroke-dasharray="4 5"/>
-      <text x="560" y="418" class="am" font-size="13" text-anchor="middle" fill="#ff5c85">검증 실패 시 — 프로그램은 커널에 발을 들이지 못함</text>
+      <text x="560" y="418" class="am" font-size="13" text-anchor="middle" fill="#ff5c85">on verification failure — the program never sets foot in the kernel</text>
     </svg>
   </div>
   <div class="chips" data-a="4" style="display:flex;gap:12px;flex-wrap:wrap">
-    <span class="chip">레지스터 11개 · R0–R10</span>
-    <span class="chip">R10 = 읽기 전용 프레임 포인터</span>
-    <span class="chip">스택 512 B</span>
-    <span class="chip hot">Verifier를 통과해야만 실행</span>
+    <span class="chip">11 registers · R0–R10</span>
+    <span class="chip">R10 = read-only frame pointer</span>
+    <span class="chip">512 B stack</span>
+    <span class="chip hot">Nothing runs without passing the Verifier</span>
   </div>
   <aside class="notes">
-    흐름을 손으로 따라가며 — 소스 → Clang → .o → bpf() → <b>Verifier 관문</b> → JIT → attach. 빨간 점선(로드 거부)을 꼭 짚을 것: 검증 실패 프로그램은 커널에 발도 못 들인다. 다음 장이 그 관문의 내부.
+    Trace the flow by hand — source → Clang → .o → bpf() → <b>the Verifier gate</b> → JIT → attach. Point at the red dashed path (load rejected): a failed program never sets foot in the kernel. The next slide goes inside that gate.
   </aside>
 </section>
 
 <!-- ============ 11 · VERIFIER ============ -->
 <section class="slide">
   <div class="kicker" data-a="1">The gatekeeper</div>
-  <h1 class="display md" data-a="2">Verifier — 실행 전에 <span class="hot">안전을 증명</span>한다</h1>
-  <p class="sub" data-a="3">런타임 격리가 아니라 <b>로드 타임 정적 검증</b>. 증명에 실패하면 커널은 프로그램을 받지 않습니다.</p>
+  <h1 class="display md" data-a="2">The Verifier — <span class="hot">proving safety</span> before execution</h1>
+  <p class="sub" data-a="3">Not runtime isolation but <b>load-time static verification</b>. If the proof fails, the kernel refuses the program.</p>
   <div class="split">
     <div class="panel" style="--pc:var(--orange)" data-a="4">
-      <h3>무엇을 검사하는가</h3>
+      <h3>What it checks</h3>
       <ul>
-        <li><b>CFG(Control Flow Graph) 전수 탐색</b> — 모든 분기 경로를 시뮬레이션, <b>한 경로라도 증명 실패 시 전체 거부</b></li>
-        <li><b>유한성 증명</b> — 프로그램이 반드시 종료함을 정적으로 보장, 무한 루프 불가</li>
-        <li><b>레지스터·스택 상태 추적</b> — scalar / 포인터 타입과 값 범위 분석, 스택에 스필(spill)된 값의 타입까지 추적</li>
-        <li>포인터 연산 <b>경계 검증</b> — 맵 밖 접근·널 역참조·미초기화 읽기 거부</li>
-        <li><b>레퍼런스 추적</b> — ringbuf <code>reserve</code>는 반드시 <code>submit</code>·<code>discard</code>로 종결, 커널 자원 누수 차단</li>
+        <li><b>Exhaustive CFG (Control Flow Graph) walk</b> — simulates every branch path; <b>one unprovable path rejects the whole program</b></li>
+        <li><b>Termination proof</b> — statically guarantees the program finishes; infinite loops are impossible</li>
+        <li><b>Register &amp; stack state tracking</b> — scalar/pointer types and value ranges, including types of values spilled to the stack</li>
+        <li>Pointer arithmetic <b>bounds checking</b> — rejects out-of-map access, null dereference, uninitialized reads</li>
+        <li><b>Reference tracking</b> — a ringbuf <code>reserve</code> must end in <code>submit</code>/<code>discard</code>; kernel resource leaks are cut off</li>
       </ul>
     </div>
     <div class="panel" style="--pc:var(--blue)" data-a="5">
-      <h3>한계와 진화</h3>
+      <h3>Limits and evolution</h3>
       <ul>
-        <li>검증 복잡도 상한 — <b>명령어 100만 개</b> 탐색 한도</li>
-        <li>루프: 초기엔 금지 → <b>커널 5.3+ bounded loop</b>, <code>bpf_loop()</code> 헬퍼</li>
-        <li>스택 <b>512 B</b> — 큰 버퍼는 맵을 스크래치 공간으로 사용</li>
-        <li>보수적 판정 — <b>안전해도 증명이 안 되면 거부</b>가 원칙</li>
+        <li>Verification complexity cap — a <b>1 million instruction</b> exploration budget</li>
+        <li>Loops: banned at first → <b>bounded loops in kernel 5.3+</b>, plus the <code>bpf_loop()</code> helper</li>
+        <li><b>512 B</b> stack — use maps as scratch space for large buffers</li>
+        <li>Conservative by principle — <b>safe-but-unprovable still gets rejected</b></li>
       </ul>
     </div>
   </div>
   <aside class="notes">
-    챕터 1에서 가장 중요한 장 — 시간을 써도 된다. <b>런타임 격리가 아니라 로드 타임 증명</b>이라는 문장을 두 번 말해도 좋다. 레퍼런스 추적(reserve→submit)은 17~18장 링 버퍼에서 그대로 회수된다. 한계 패널: "안전해도 증명 안 되면 거부"가 보수성의 본질.
+    The most important slide in chapter 1 — spend time here. Saying "<b>not runtime isolation, but a load-time proof</b>" twice is fine. Reference tracking (reserve→submit) is collected again in the ring buffer slides (§17–18). Limits panel: "safe but unprovable = rejected" is the essence of its conservatism.
   </aside>
 </section>
 
 <!-- ============ 12 · HOOK MAP ============ -->
 <section class="slide">
   <div class="kicker" data-a="1">Where programs attach</div>
-  <h1 class="display md" data-a="2">프로그램 타입과 훅 — 커널 전역의 관측점</h1>
+  <h1 class="display md" data-a="2">Program types and hooks — observation points across the kernel</h1>
   <div class="arch" data-a="3">
     <svg viewBox="0 0 1200 480">
       <!-- userspace -->
       <rect x="30" y="20" width="1140" height="80" rx="14" fill="rgba(173,92,255,.06)" stroke="#ad5cff" stroke-width="1.5"/>
-      <text x="70" y="68" class="an" font-size="20">유저스페이스</text>
+      <text x="70" y="68" class="an" font-size="20">User space</text>
       <rect x="770" y="38" width="130" height="44" rx="8" fill="#131a24" stroke="#ad5cff"/><text x="835" y="66" class="am" font-size="15" text-anchor="middle" fill="#ad5cff">uprobe</text>
       <rect x="920" y="38" width="130" height="44" rx="8" fill="#131a24" stroke="#ad5cff"/><text x="985" y="66" class="am" font-size="15" text-anchor="middle" fill="#ad5cff">USDT</text>
 
       <!-- syscall boundary -->
       <rect x="30" y="115" width="1140" height="80" rx="14" fill="rgba(255,92,133,.05)" stroke="#ff5c85" stroke-width="1.5"/>
-      <text x="70" y="163" class="an" font-size="20">시스템 콜 경계</text>
+      <text x="70" y="163" class="an" font-size="20">Syscall boundary</text>
       <rect x="620" y="133" width="180" height="44" rx="8" fill="#131a24" stroke="#ff5c85"/><text x="710" y="161" class="am" font-size="15" text-anchor="middle" fill="#ff5c85">tracepoint</text>
       <rect x="820" y="133" width="130" height="44" rx="8" fill="#131a24" stroke="#ff5c85"/><text x="885" y="161" class="am" font-size="15" text-anchor="middle" fill="#ff5c85">LSM</text>
       <rect x="970" y="133" width="160" height="44" rx="8" fill="#131a24" stroke="#ff5c85"/><text x="1050" y="161" class="am" font-size="15" text-anchor="middle" fill="#ff5c85">seccomp</text>
 
       <!-- kernel core -->
       <rect x="30" y="210" width="1140" height="80" rx="14" fill="rgba(255,153,0,.05)" stroke="#ff9900" stroke-width="1.5"/>
-      <text x="70" y="258" class="an" font-size="20">커널 코어</text>
+      <text x="70" y="258" class="an" font-size="20">Kernel core</text>
       <rect x="540" y="228" width="140" height="44" rx="8" fill="#131a24" stroke="#ff9900"/><text x="610" y="256" class="am" font-size="15" text-anchor="middle" fill="#ff9900">kprobe</text>
       <rect x="700" y="228" width="200" height="44" rx="8" fill="#131a24" stroke="#ff9900"/><text x="800" y="256" class="am" font-size="15" text-anchor="middle" fill="#ff9900">fentry / fexit</text>
       <rect x="920" y="228" width="180" height="44" rx="8" fill="#131a24" stroke="#ff9900"/><text x="1010" y="256" class="am" font-size="15" text-anchor="middle" fill="#ff9900">perf_event</text>
 
       <!-- network stack -->
       <rect x="30" y="305" width="1140" height="80" rx="14" fill="rgba(65,179,255,.06)" stroke="#41b3ff" stroke-width="1.5"/>
-      <text x="70" y="353" class="an" font-size="20">네트워크 스택</text>
+      <text x="70" y="353" class="an" font-size="20">Network stack</text>
       <rect x="480" y="323" width="200" height="44" rx="8" fill="#131a24" stroke="#41b3ff"/><text x="580" y="351" class="am" font-size="15" text-anchor="middle" fill="#41b3ff">socket filter</text>
       <rect x="700" y="323" width="170" height="44" rx="8" fill="#131a24" stroke="#41b3ff"/><text x="785" y="351" class="am" font-size="15" text-anchor="middle" fill="#41b3ff">sock_ops</text>
       <rect x="890" y="323" width="220" height="44" rx="8" fill="#131a24" stroke="#41b3ff"/><text x="1000" y="351" class="am" font-size="15" text-anchor="middle" fill="#41b3ff">tc (ingress/egress)</text>
 
       <!-- driver -->
       <rect x="30" y="400" width="1140" height="70" rx="14" fill="rgba(0,229,0,.05)" stroke="#00e500" stroke-width="1.5"/>
-      <text x="70" y="443" class="an" font-size="20">NIC 드라이버</text>
+      <text x="70" y="443" class="an" font-size="20">NIC driver</text>
       <rect x="480" y="412" width="140" height="44" rx="8" fill="#131a24" stroke="#00e500"/><text x="550" y="440" class="am" font-size="15" text-anchor="middle" fill="#00e500">XDP</text>
-      <text x="660" y="440" class="am" font-size="14" fill="#00e500">← 패킷이 스택에 닿기 전, 가장 빠른 지점</text>
+      <text x="660" y="440" class="am" font-size="14" fill="#00e500">← before the packet touches the stack — the earliest point</text>
     </svg>
   </div>
   <aside class="notes">
-    위(유저스페이스)에서 아래(NIC)로 훑기 — 깊이 갈수록 빠르고 원시적. <code>sock_ops</code>는 35장 NFM의 훅이라고 예고해두면 좋다. XDP는 패킷이 스택에 닿기도 전 — Cilium의 무기.
+    Sweep top (userspace) to bottom (NIC) — the deeper you go, the faster and more primitive. Worth foreshadowing that <code>sock_ops</code> is the hook NFM uses (§35). XDP fires before the packet even touches the stack — Cilium's weapon.
   </aside>
 </section>
 
 <!-- ============ 13 · MAPS & HELPERS ============ -->
 <section class="slide">
   <div class="kicker" data-a="1">Shared state</div>
-  <h1 class="display md" data-a="2">Maps — 커널과 유저스페이스의 <span class="hot">공유 상태</span></h1>
-  <p class="sub" data-a="3">eBPF 프로그램은 상태를 가질 수 없습니다 — 상태는 전부 <b>맵</b>에, 커널 확장 기능은 <b>헬퍼와 kfunc</b>에 있습니다.</p>
+  <h1 class="display md" data-a="2">Maps — <span class="hot">shared state</span> between kernel and userspace</h1>
+  <p class="sub" data-a="3">eBPF programs cannot hold state — all state lives in <b>maps</b>, and all kernel functionality is reached through <b>helpers and kfuncs</b>.</p>
   <div class="split">
     <div class="panel" style="--pc:var(--blue)" data-a="4">
-      <h3>주요 맵 타입</h3>
+      <h3>Key map types</h3>
       <ul>
-        <li><code>HASH</code> / <code>ARRAY</code> — 범용 키-값, LRU(Least Recently Used) 변형으로 자동 축출</li>
-        <li><code>PERCPU_*</code> — CPU별 사본으로 <b>락 없는 고속 집계</b></li>
-        <li><code>STACK_TRACE</code> — <code>bpf_get_stackid()</code>가 채우는 호출 스택 저장소</li>
-        <li><code>RINGBUF</code> — 커널 v5.8+ 이벤트 스트림의 표준</li>
+        <li><code>HASH</code> / <code>ARRAY</code> — general key-value; LRU (Least Recently Used) variants evict automatically</li>
+        <li><code>PERCPU_*</code> — per-CPU copies for <b>lock-free, high-speed aggregation</b></li>
+        <li><code>STACK_TRACE</code> — the call-stack store populated by <code>bpf_get_stackid()</code></li>
+        <li><code>RINGBUF</code> — the standard event stream since kernel v5.8+</li>
       </ul>
     </div>
     <div class="panel" style="--pc:var(--purple)" data-a="5">
-      <h3>커널 기능의 창구</h3>
+      <h3>Doors into kernel functionality</h3>
       <ul>
-        <li><b>Helper Function</b> — 고정 ABI의 안정 API (<code>bpf_map_lookup_elem</code>, <code>bpf_ktime_get_ns</code> …)</li>
-        <li><b>KFunc</b> — 커널 함수를 직접 노출, 유연하지만 <b>안정성 비보장</b></li>
-        <li>헬퍼는 느리게 늘고, 신규 기능은 kfunc로 먼저 나오는 추세</li>
-        <li>프로그램 타입별로 <b>호출 가능한 헬퍼 집합이 다름</b> — Verifier가 강제</li>
+        <li><b>Helper functions</b> — a stable, fixed-ABI API (<code>bpf_map_lookup_elem</code>, <code>bpf_ktime_get_ns</code> …)</li>
+        <li><b>KFuncs</b> — kernel functions exposed directly; flexible but <b>no stability guarantee</b></li>
+        <li>Helpers grow slowly; new capabilities tend to ship as kfuncs first</li>
+        <li>Each program type has a <b>different callable helper set</b> — enforced by the Verifier</li>
       </ul>
     </div>
   </div>
   <aside class="notes">
-    한 문장 요약: <b>상태는 맵에, 커널 기능은 helper/kfunc에</b>. 프로그램 타입마다 호출 가능한 헬퍼 집합이 다르고 이것도 Verifier가 강제 — 11장과 연결. RINGBUF가 다음 다섯 장의 주제라고 브릿지.
+    One-sentence summary: <b>state lives in maps, kernel functionality behind helpers/kfuncs</b>. The callable helper set differs per program type and is Verifier-enforced — ties back to §11. Bridge: RINGBUF is the subject of the next five slides.
   </aside>
 </section>
 
 <!-- ============ 14 · RINGBUF PRIMER ============ -->
 <section class="slide">
   <div class="kicker" data-a="1">Data structure primer</div>
-  <h1 class="display md" data-a="2">링 버퍼 — 고정 배열과 <span class="hot">포인터 두 개</span>로 만드는 무한 큐</h1>
-  <p class="sub" data-a="3">eBPF가 발명한 구조가 아닙니다 — <b>printk/dmesg 로그 · NIC RX/TX 링 · ftrace · perf · io_uring</b>까지,
-  커널 도처에서 수십 년 검증된 자료구조입니다.</p>
+  <h1 class="display md" data-a="2">The ring buffer — an infinite queue from a fixed array and <span class="hot">two pointers</span></h1>
+  <p class="sub" data-a="3">eBPF did not invent this — <b>printk/dmesg logs · NIC RX/TX rings · ftrace · perf · io_uring</b>:
+  a data structure proven for decades all over the kernel.</p>
   <div class="split w64">
     <div class="arch" data-a="4" style="margin-top:0">
       <svg viewBox="0 0 760 310">
-        <text x="20" y="26" class="am" font-size="14" fill="#a6b2c3">고정 크기 N 슬롯 — 쓰기·읽기 O(1) · 런타임 메모리 할당 없음</text>
+        <text x="20" y="26" class="am" font-size="14" fill="#a6b2c3">Fixed N slots — O(1) read &amp; write · no runtime allocation</text>
 
-        <text x="167.5" y="48" class="an" font-size="13" text-anchor="middle" fill="#00e500">C — 읽기</text>
+        <text x="167.5" y="48" class="an" font-size="13" text-anchor="middle" fill="#00e500">C — read</text>
         <line x1="167.5" y1="53" x2="167.5" y2="62" stroke="#00e500" stroke-width="2"/>
-        <text x="467.5" y="48" class="an" font-size="13" text-anchor="middle" fill="#ff9900">P — 쓰기</text>
+        <text x="467.5" y="48" class="an" font-size="13" text-anchor="middle" fill="#ff9900">P — write</text>
         <line x1="467.5" y1="53" x2="467.5" y2="62" stroke="#ff9900" stroke-width="2"/>
 
         <rect x="20"  y="64" width="55" height="64" rx="9" fill="rgba(166,178,195,.06)" stroke="#3a4656" stroke-width="1.5"/>
@@ -589,42 +590,42 @@
         <text x="707.5" y="150" class="am" font-size="12" text-anchor="middle">11</text>
 
         <path class="wire-static" d="M707.5 158 C 707.5 205, 47.5 205, 47.5 162" stroke="#a6b2c3" stroke-dasharray="6 5" opacity=".7"/>
-        <text x="380" y="218" class="am" font-size="13" text-anchor="middle" fill="#a6b2c3">끝에 닿으면 처음으로 — index = pos &amp; (N−1) · 크기는 2ᵏ로 강제</text>
+        <text x="380" y="218" class="am" font-size="13" text-anchor="middle" fill="#a6b2c3">wrap at the end — index = pos &amp; (N−1) · size forced to 2ᵏ</text>
 
         <line x1="20" y1="240" x2="740" y2="240" stroke="rgba(166,178,195,.25)" stroke-width="1"/>
         <text x="140" y="272" class="an" font-size="15" text-anchor="middle">P == C</text>
-        <text x="140" y="294" class="am" font-size="12" text-anchor="middle">비어 있음</text>
-        <text x="380" y="272" class="an" font-size="15" text-anchor="middle">C ~ P 사이</text>
-        <text x="380" y="294" class="am" font-size="12" text-anchor="middle">읽을 데이터</text>
-        <text x="620" y="272" class="an" font-size="15" text-anchor="middle">P 바로 앞이 C</text>
-        <text x="620" y="294" class="am" font-size="12" text-anchor="middle">가득 참 — 정책 분기</text>
+        <text x="140" y="294" class="am" font-size="12" text-anchor="middle">empty</text>
+        <text x="380" y="272" class="an" font-size="15" text-anchor="middle">between C and P</text>
+        <text x="380" y="294" class="am" font-size="12" text-anchor="middle">data to read</text>
+        <text x="620" y="272" class="an" font-size="15" text-anchor="middle">C right ahead of P</text>
+        <text x="620" y="294" class="am" font-size="12" text-anchor="middle">full — policy decision</text>
       </svg>
     </div>
     <div class="panel" style="--pc:var(--blue)" data-a="5">
-      <h3>커널이 이 구조를 쓰는 이유</h3>
+      <h3>Why the kernel loves this structure</h3>
       <ul>
-        <li>인터럽트·스케줄러 같은 핫패스에선 <code>malloc</code> 불가 — 미리 잡은 슬롯에 <b>쓰기만</b> 한다</li>
-        <li>메모리 사용량 <b>상한이 설계 시점에 보장</b> — 폭주해도 버퍼 크기까지만</li>
-        <li>ns 단위 생산자와 ms 단위 소비자의 <b>속도 분리</b> — 버퍼가 완충</li>
-        <li>연속 메모리 한 덩어리 — <b>mmap으로 유저스페이스와 공유</b>해 복사 없이 읽는다</li>
+        <li>No <code>malloc</code> on hot paths like interrupts or the scheduler — <b>only writes</b> into pre-allocated slots</li>
+        <li>Memory usage has a <b>ceiling guaranteed at design time</b> — even a flood stops at the buffer size</li>
+        <li><b>Decouples</b> ns-scale producers from ms-scale consumers — the buffer absorbs the gap</li>
+        <li>One contiguous memory block — <b>shared with userspace via mmap</b>, read without copying</li>
       </ul>
     </div>
   </div>
   <div class="chips" data-a="6" style="display:flex;gap:12px;margin-top:2.6vh;flex-wrap:wrap">
-    <span class="chip">가득 참 정책이 용도를 가른다 — 로그(dmesg)는 오래된 것 덮어쓰기, 이벤트 파이프(perf·eBPF)는 새 이벤트 손실 + 카운트</span>
-    <span class="chip hot">Perf Buffer도 BPF Ring Buffer도 이 구조의 후예 — 무엇이 달라졌는가가 다음 네 장</span>
+    <span class="chip">The full-buffer policy defines the use case — logs (dmesg) overwrite the oldest; event pipes (perf · eBPF) drop the new event and count it</span>
+    <span class="chip hot">Perf Buffer and BPF Ring Buffer both descend from this structure — what changed is the next four slides</span>
   </div>
   <aside class="notes">
-    자료구조 기초부터 까는 이유: 다음 네 장이 전부 이 구조 위의 변주라서. <b>포인터 두 개(P·C)와 고정 배열</b>, 크기 2ᵏ 강제(& 연산), 가득 참 정책이 용도를 가른다 — 여기까지만 확실히 하면 뒤가 쉽다.
+    Why start with data-structure basics: the next four slides are all variations on this structure. <b>Two pointers (P·C) plus a fixed array</b>, size forced to 2ᵏ (the &amp; trick), and the full-buffer policy defining the use case — nail these and the rest is easy.
   </aside>
 </section>
 
 <!-- ============ 15 · PERFBUF FLOW ============ -->
 <section class="slide">
   <div class="kicker" data-a="1">Legacy path — how it worked</div>
-  <h1 class="display md" data-a="2">기존 동작 방식 — CPU별 링에 <span class="hot">조립 → 복사 → 즉시 알림</span></h1>
-  <p class="sub" data-a="3">Perf Buffer는 앞 장의 링을 <b>CPU마다 하나씩</b> 둡니다 — BPF 프로그램은 자기 CPU의 링에만 쓰고,
-  소비자가 CPU 수만큼의 링을 따로 읽어 병합합니다.</p>
+  <h1 class="display md" data-a="2">The old path — per-CPU rings: <span class="hot">assemble → copy → notify every time</span></h1>
+  <p class="sub" data-a="3">Perf Buffer takes the ring from the last slide and puts <b>one on every CPU</b> — each BPF program writes
+  only to its own CPU's ring, and the consumer reads and merges as many rings as there are CPUs.</p>
   <div class="arch" data-a="4">
     <svg viewBox="0 0 1200 430">
       <!-- kernel zone -->
@@ -633,45 +634,45 @@
 
       <!-- CPU 0 column -->
       <rect x="45" y="64" width="340" height="56" rx="12" fill="#131a24" stroke="#a6b2c3" stroke-width="1.5"/>
-      <text x="215" y="88" class="an" font-size="15" text-anchor="middle">CPU 0 — BPF 프로그램</text>
-      <text x="215" y="107" class="am" font-size="11" text-anchor="middle">① 스택에 레코드 조립</text>
+      <text x="215" y="88" class="an" font-size="15" text-anchor="middle">CPU 0 — BPF program</text>
+      <text x="215" y="107" class="am" font-size="11" text-anchor="middle">① assemble record on stack</text>
       <path class="wire" d="M215 120 V150" stroke="#ff9900"/>
-      <text x="228" y="141" class="am" font-size="11" fill="#ff9900">② 복사</text>
+      <text x="228" y="141" class="am" font-size="11" fill="#ff9900">② copy</text>
       <rect x="50"  y="152" width="50" height="50" rx="8" fill="rgba(255,153,0,.18)" stroke="#ff9900" stroke-width="1.5"/>
       <rect x="106" y="152" width="50" height="50" rx="8" fill="rgba(255,153,0,.18)" stroke="#ff9900" stroke-width="1.5"/>
       <rect x="162" y="152" width="50" height="50" rx="8" fill="rgba(255,153,0,.18)" stroke="#ff9900" stroke-width="1.5"/>
       <rect x="218" y="152" width="50" height="50" rx="8" fill="rgba(255,153,0,.18)" stroke="#ff9900" stroke-width="1.5"/>
       <rect x="274" y="152" width="50" height="50" rx="8" fill="rgba(255,153,0,.18)" stroke="#ff9900" stroke-width="1.5"/>
       <rect x="330" y="152" width="50" height="50" rx="8" fill="rgba(255,153,0,.18)" stroke="#ff9900" stroke-width="1.5"/>
-      <text x="215" y="228" class="am" font-size="12" text-anchor="middle" fill="#ff5c85">가득 참 — 새 이벤트 유실</text>
+      <text x="215" y="228" class="am" font-size="12" text-anchor="middle" fill="#ff5c85">full — new events lost</text>
 
       <!-- CPU 1 column -->
       <rect x="425" y="64" width="340" height="56" rx="12" fill="#131a24" stroke="#a6b2c3" stroke-width="1.5"/>
-      <text x="595" y="88" class="an" font-size="15" text-anchor="middle">CPU 1 — BPF 프로그램</text>
-      <text x="595" y="107" class="am" font-size="11" text-anchor="middle">① 스택에 레코드 조립</text>
+      <text x="595" y="88" class="an" font-size="15" text-anchor="middle">CPU 1 — BPF program</text>
+      <text x="595" y="107" class="am" font-size="11" text-anchor="middle">① assemble record on stack</text>
       <path class="wire" d="M595 120 V150" stroke="#ff9900"/>
-      <text x="608" y="141" class="am" font-size="11" fill="#ff9900">② 복사</text>
+      <text x="608" y="141" class="am" font-size="11" fill="#ff9900">② copy</text>
       <rect x="430" y="152" width="50" height="50" rx="8" fill="rgba(255,153,0,.18)" stroke="#ff9900" stroke-width="1.5"/>
       <rect x="486" y="152" width="50" height="50" rx="8" fill="rgba(255,153,0,.18)" stroke="#ff9900" stroke-width="1.5"/>
       <rect x="542" y="152" width="50" height="50" rx="8" fill="rgba(255,153,0,.18)" stroke="#ff9900" stroke-width="1.5"/>
       <rect x="598" y="152" width="50" height="50" rx="8" fill="rgba(166,178,195,.06)" stroke="#3a4656" stroke-width="1.5"/>
       <rect x="654" y="152" width="50" height="50" rx="8" fill="rgba(166,178,195,.06)" stroke="#3a4656" stroke-width="1.5"/>
       <rect x="710" y="152" width="50" height="50" rx="8" fill="rgba(166,178,195,.06)" stroke="#3a4656" stroke-width="1.5"/>
-      <text x="595" y="228" class="am" font-size="12" text-anchor="middle" fill="#a6b2c3">부하는 CPU마다 제각각</text>
+      <text x="595" y="228" class="am" font-size="12" text-anchor="middle" fill="#a6b2c3">load varies per CPU</text>
 
       <!-- CPU 2 column -->
       <rect x="805" y="64" width="340" height="56" rx="12" fill="#131a24" stroke="#a6b2c3" stroke-width="1.5"/>
-      <text x="975" y="88" class="an" font-size="15" text-anchor="middle">CPU 2 — BPF 프로그램</text>
-      <text x="975" y="107" class="am" font-size="11" text-anchor="middle">① 스택에 레코드 조립</text>
+      <text x="975" y="88" class="an" font-size="15" text-anchor="middle">CPU 2 — BPF program</text>
+      <text x="975" y="107" class="am" font-size="11" text-anchor="middle">① assemble record on stack</text>
       <path class="wire" d="M975 120 V150" stroke="#ff9900"/>
-      <text x="988" y="141" class="am" font-size="11" fill="#ff9900">② 복사</text>
+      <text x="988" y="141" class="am" font-size="11" fill="#ff9900">② copy</text>
       <rect x="810"  y="152" width="50" height="50" rx="8" fill="rgba(255,153,0,.18)" stroke="#ff9900" stroke-width="1.5"/>
       <rect x="866"  y="152" width="50" height="50" rx="8" fill="rgba(166,178,195,.06)" stroke="#3a4656" stroke-width="1.5"/>
       <rect x="922"  y="152" width="50" height="50" rx="8" fill="rgba(166,178,195,.06)" stroke="#3a4656" stroke-width="1.5"/>
       <rect x="978"  y="152" width="50" height="50" rx="8" fill="rgba(166,178,195,.06)" stroke="#3a4656" stroke-width="1.5"/>
       <rect x="1034" y="152" width="50" height="50" rx="8" fill="rgba(166,178,195,.06)" stroke="#3a4656" stroke-width="1.5"/>
       <rect x="1090" y="152" width="50" height="50" rx="8" fill="rgba(166,178,195,.06)" stroke="#3a4656" stroke-width="1.5"/>
-      <text x="975" y="228" class="am" font-size="12" text-anchor="middle" fill="#a6b2c3">텅 빔 — 선점 메모리 낭비</text>
+      <text x="975" y="228" class="am" font-size="12" text-anchor="middle" fill="#a6b2c3">near-empty — reserved memory wasted</text>
 
       <!-- wires to consumer -->
       <path class="wire" d="M215 240 V346" stroke="#ad5cff"/>
@@ -682,63 +683,63 @@
       <rect x="15" y="316" width="1170" height="100" rx="18" fill="rgba(65,179,255,.03)" stroke="#41b3ff" stroke-width="1.2" stroke-dasharray="8 6"/>
       <text x="45" y="340" class="am" font-size="13" fill="#41b3ff" letter-spacing="3">USER SPACE</text>
       <rect x="45" y="346" width="690" height="56" rx="12" fill="rgba(65,179,255,.08)" stroke="#41b3ff" stroke-width="1.5"/>
-      <text x="390" y="370" class="an" font-size="16" text-anchor="middle">유저스페이스 소비자</text>
-      <text x="390" y="392" class="am" font-size="12" text-anchor="middle">fd × CPU 수를 epoll — 링마다 따로 읽고, 시간순 병합은 소비자 몫</text>
-      <text x="770" y="368" class="am" font-size="12" fill="#ad5cff">③ 이벤트마다 무조건 알림</text>
-      <text x="770" y="388" class="am" font-size="12" fill="#ad5cff">— 소비자 상태 무관 · 고빈도에서 웨이크업 폭풍</text>
+      <text x="390" y="370" class="an" font-size="16" text-anchor="middle">Userspace consumer</text>
+      <text x="390" y="392" class="am" font-size="12" text-anchor="middle">epoll on fd × CPU count — reads each ring separately; time-ordering is the consumer's job</text>
+      <text x="770" y="368" class="am" font-size="12" fill="#ad5cff">③ unconditional notify per event</text>
+      <text x="770" y="388" class="am" font-size="12" fill="#ad5cff">— ignores consumer state · wakeup storms at high rates</text>
     </svg>
   </div>
   <div class="chips" data-a="5" style="display:flex;gap:12px;flex-wrap:wrap">
-    <span class="chip">링 자체는 앞 장 그대로 — 다른 것은 배치: CPU마다 따로 두고, 다 만든 레코드를 복사해 넣는다</span>
-    <span class="chip hot">이 그림에서 네 가지 대가가 그대로 파생 (다음 장)</span>
+    <span class="chip">The ring itself is unchanged from the last slide — what differs is the arrangement: one per CPU, records assembled then copied in</span>
+    <span class="chip hot">Four costs fall straight out of this picture (next slide)</span>
   </div>
   <aside class="notes">
-    Perf Buffer의 동작을 비난 없이 담담하게 — <b>CPU마다 링 하나, 스택에서 조립 후 복사, 이벤트마다 알림</b>. 그림의 세 CPU 불균형(넘침/제각각/텅 빔)을 손으로 가리키며. 판단은 다음 장으로 미룬다.
+    Describe Perf Buffer's behavior neutrally, no judgment — <b>a ring per CPU, assemble on the stack then copy, notify on every event</b>. Point at the three unbalanced CPUs in the figure (overflowing / uneven / near-empty). Save the verdict for the next slide.
   </aside>
 </section>
 
 <!-- ============ 16 · PERFBUF LIMITS ============ -->
 <section class="slide">
   <div class="kicker" data-a="1">Legacy — perf buffer</div>
-  <h1 class="display md" data-a="2">구세대 Perf Buffer — <span class="hot">CPU마다 따로</span>인 버퍼의 대가</h1>
-  <p class="sub" data-a="3">커널이 유저스페이스로 이벤트를 올리던 기존 통로는 <b>CPU별 독립 버퍼</b>였습니다 —
-  네 가지 한계가 전부 이 설계 하나에서 파생됩니다.</p>
+  <h1 class="display md" data-a="2">Legacy Perf Buffer — the price of <span class="hot">per-CPU</span> buffers</h1>
+  <p class="sub" data-a="3">The legacy channel for shipping events from kernel to userspace was an <b>independent buffer per CPU</b> —
+  all four limitations derive from that single design choice.</p>
   <div class="ladder">
     <div class="rung" style="--rc:var(--orange)" data-a="4">
       <span class="k">01</span>
-      <div><h3>메모리 과다 할당</h3><p>CPU 수 × 버퍼 크기만큼 선점 — <b>한쪽 버퍼는 넘치고 다른 쪽은 텅 빈</b> 채로 낭비</p></div>
+      <div><h3>Memory over-allocation</h3><p>Reserves CPU count × buffer size — <b>one buffer overflows while another sits empty</b>, wasted either way</p></div>
       <span class="tag">OVER-ALLOC</span>
     </div>
     <div class="rung" style="--rc:var(--blue)" data-a="5">
       <span class="k">02</span>
-      <div><h3>이벤트 순서 꼬임</h3><p>CPU 간 순서 보장 없음 — 프로세스가 CPU를 옮기면 <b>fork → exec이 뒤집혀</b> 도착할 수 있음</p></div>
+      <div><h3>Event reordering</h3><p>No ordering across CPUs — if a process migrates, <b>fork → exec can arrive reversed</b></p></div>
       <span class="tag">REORDER</span>
     </div>
     <div class="rung" style="--rc:var(--pink)" data-a="6">
       <span class="k">03</span>
-      <div><h3>뒤늦은 유실 감지</h3><p>스택에 데이터를 만들어 복사하는 시점에야 공간 부족을 발견 — <b>만든 비용은 이미 지불</b>한 뒤</p></div>
+      <div><h3>Late loss detection</h3><p>Out-of-space is only discovered when copying the record built on the stack — <b>the assembly cost is already paid</b></p></div>
       <span class="tag">LATE FAIL</span>
     </div>
     <div class="rung" style="--rc:var(--purple)" data-a="7">
       <span class="k">04</span>
-      <div><h3>웨이크업 폭풍</h3><p>소비자 상태와 무관하게 <b>이벤트마다 무조건 신호</b> — 고빈도 이벤트에서 알림 비용이 지배</p></div>
+      <div><h3>Wakeup storms</h3><p><b>Unconditional signal per event</b>, regardless of consumer state — at high event rates the notification cost dominates</p></div>
       <span class="tag">SIGNAL STORM</span>
     </div>
   </div>
   <div class="chips" data-a="8" style="display:flex;gap:12px;margin-top:2.6vh;flex-wrap:wrap">
-    <span class="chip hot">해법도 하나로 수렴 — 버퍼를 전역 하나로 합친다 (다음 장)</span>
+    <span class="chip hot">The fix converges to one move — merge the buffers into a single global one (next slide)</span>
   </div>
   <aside class="notes">
-    네 한계를 하나씩 — 전부 <b>"버퍼가 CPU마다 따로"라는 한 가지 설계</b>에서 파생됨을 강조. fork → exec 역전 사례가 가장 직관적. 해법도 하나로 수렴: 버퍼를 합친다.
+    Walk the four limits one by one — stress that all of them derive from <b>the single choice of "a buffer per CPU"</b>. The fork → exec reversal is the most intuitive example. The fix converges too: merge the buffers.
   </aside>
 </section>
 
 <!-- ============ 17 · RINGBUF FLOW ============ -->
 <section class="slide">
   <div class="kicker" data-a="1">New path — how it works</div>
-  <h1 class="display md" data-a="2">새 동작 방식 — <span class="hot">예약 → 제자리 작성 → 커밋</span>, 알림은 필요할 때만</h1>
-  <p class="sub" data-a="3">링은 전역에 하나 — 모든 CPU가 <code>reserve()</code>로 자리를 먼저 확보하고, 그 자리에 직접 쓴 뒤
-  <code>submit()</code>으로 공개합니다. 복사가 사라지고, 순서는 예약 순서로 고정됩니다.</p>
+  <h1 class="display md" data-a="2">The new path — <span class="hot">reserve → write in place → commit</span>, notify only when needed</h1>
+  <p class="sub" data-a="3">One global ring — every CPU claims space first with <code>reserve()</code>, writes directly into it,
+  then publishes with <code>submit()</code>. The copy disappears, and ordering is fixed by reservation order.</p>
   <div class="arch" data-a="4">
     <svg viewBox="0 0 1200 430">
       <!-- kernel zone -->
@@ -748,18 +749,18 @@
       <!-- producers -->
       <rect x="45" y="60" width="190" height="55" rx="12" fill="#131a24" stroke="#a6b2c3" stroke-width="1.5"/>
       <text x="140" y="83" class="an" font-size="15" text-anchor="middle">CPU 0</text>
-      <text x="140" y="102" class="am" font-size="11" text-anchor="middle">BPF 프로그램</text>
+      <text x="140" y="102" class="am" font-size="11" text-anchor="middle">BPF program</text>
       <rect x="45" y="135" width="190" height="55" rx="12" fill="#131a24" stroke="#a6b2c3" stroke-width="1.5"/>
       <text x="140" y="158" class="an" font-size="15" text-anchor="middle">CPU 1</text>
-      <text x="140" y="177" class="am" font-size="11" text-anchor="middle">BPF 프로그램</text>
+      <text x="140" y="177" class="am" font-size="11" text-anchor="middle">BPF program</text>
       <rect x="45" y="210" width="190" height="55" rx="12" fill="#131a24" stroke="#a6b2c3" stroke-width="1.5"/>
       <text x="140" y="233" class="an" font-size="15" text-anchor="middle">CPU 2</text>
-      <text x="140" y="252" class="am" font-size="11" text-anchor="middle">BPF 프로그램</text>
+      <text x="140" y="252" class="am" font-size="11" text-anchor="middle">BPF program</text>
 
       <path class="wire" d="M235 87 C 300 87, 330 132, 400 142" stroke="#ff9900"/>
       <path class="wire" d="M235 162 C 300 162, 330 152, 400 152" stroke="#ff9900"/>
       <path class="wire" d="M235 237 C 300 237, 330 172, 400 162" stroke="#ff9900"/>
-      <text x="258" y="52" class="am" font-size="12" fill="#ff9900">① reserve() — 위치만 확보 · 공간 부족이면 즉시 실패</text>
+      <text x="258" y="52" class="am" font-size="12" fill="#ff9900">① reserve() — claims a slot only · fails immediately if space is short</text>
 
       <!-- single shared ring: cells 0-3 committed, 4 busy, 5-8 free -->
       <rect x="400"  y="120" width="80" height="64" rx="9" fill="rgba(255,153,0,.18)" stroke="#ff9900" stroke-width="1.5"/>
@@ -772,15 +773,15 @@
       <rect x="904"  y="120" width="80" height="64" rx="9" fill="rgba(166,178,195,.06)" stroke="#3a4656" stroke-width="1.5"/>
       <rect x="988"  y="120" width="80" height="64" rx="9" fill="rgba(166,178,195,.06)" stroke="#3a4656" stroke-width="1.5"/>
       <rect x="1072" y="120" width="80" height="64" rx="9" fill="rgba(166,178,195,.06)" stroke="#3a4656" stroke-width="1.5"/>
-      <text x="776" y="108" class="am" font-size="12" text-anchor="middle" fill="#ff5c85">② 제자리 직접 작성 — 복사 없음</text>
-      <text x="568" y="210" class="am" font-size="12" text-anchor="middle" fill="#00e500">③ submit() — busy 비트 해제 = 공개</text>
-      <text x="1030" y="210" class="am" font-size="12" text-anchor="middle" fill="#a6b2c3">빈 공간</text>
+      <text x="776" y="108" class="am" font-size="12" text-anchor="middle" fill="#ff5c85">② write in place — no copy</text>
+      <text x="568" y="210" class="am" font-size="12" text-anchor="middle" fill="#00e500">③ submit() — clearing the busy bit = published</text>
+      <text x="1030" y="210" class="am" font-size="12" text-anchor="middle" fill="#a6b2c3">free space</text>
 
       <!-- double mapping strip -->
-      <text x="460" y="252" class="am" font-size="12" fill="#a6b2c3">가상 메모리 이중 매핑</text>
-      <text x="460" y="270" class="am" font-size="12" fill="#a6b2c3">같은 물리 페이지 ×2 매핑</text>
-      <text x="732" y="234" class="am" font-size="11" text-anchor="middle" fill="#a6b2c3">매핑 1</text>
-      <text x="916" y="234" class="am" font-size="11" text-anchor="middle" fill="#a6b2c3">매핑 2</text>
+      <text x="460" y="252" class="am" font-size="12" fill="#a6b2c3">double mapping</text>
+      <text x="460" y="270" class="am" font-size="12" fill="#a6b2c3">same phys pages ×2</text>
+      <text x="732" y="234" class="am" font-size="11" text-anchor="middle" fill="#a6b2c3">mapping 1</text>
+      <text x="916" y="234" class="am" font-size="11" text-anchor="middle" fill="#a6b2c3">mapping 2</text>
       <rect x="640" y="240" width="42" height="28" rx="5" fill="rgba(166,178,195,.06)" stroke="#3a4656" stroke-width="1.2"/>
       <rect x="686" y="240" width="42" height="28" rx="5" fill="rgba(166,178,195,.06)" stroke="#3a4656" stroke-width="1.2"/>
       <rect x="732" y="240" width="42" height="28" rx="5" fill="rgba(166,178,195,.06)" stroke="#3a4656" stroke-width="1.2"/>
@@ -791,8 +792,8 @@
       <rect x="962" y="240" width="42" height="28" rx="5" fill="rgba(166,178,195,.06)" stroke="#3a4656" stroke-width="1.2"/>
       <rect x="778" y="240" width="88" height="28" rx="5" fill="rgba(255,153,0,.30)" stroke="#ff9900" stroke-width="1.5"/>
       <line x1="822" y1="234" x2="822" y2="272" stroke="#a6b2c3" stroke-width="1" stroke-dasharray="3 3"/>
-      <text x="1040" y="259" class="am" font-size="11" fill="#a6b2c3">경계 걸친 레코드 —</text>
-      <text x="1040" y="275" class="am" font-size="11" fill="#a6b2c3">분할 없이 이어 읽는다</text>
+      <text x="1040" y="259" class="am" font-size="11" fill="#a6b2c3">record across the boundary —</text>
+      <text x="1040" y="275" class="am" font-size="11" fill="#a6b2c3">read contiguously, no split</text>
 
       <!-- wire to consumer + adaptive notify -->
       <path class="wire" d="M420 188 V336" stroke="#ad5cff"/>
@@ -800,124 +801,124 @@
       <!-- user zone -->
       <rect x="15" y="302" width="1170" height="110" rx="18" fill="rgba(65,179,255,.03)" stroke="#41b3ff" stroke-width="1.2" stroke-dasharray="8 6"/>
       <text x="45" y="328" class="am" font-size="13" fill="#41b3ff" letter-spacing="3">USER SPACE</text>
-      <text x="60" y="366" class="am" font-size="12" fill="#ad5cff">④ 적응형 알림</text>
-      <text x="60" y="386" class="am" font-size="12" fill="#ad5cff">— 소비자가 밀릴 때만 깨움</text>
+      <text x="60" y="366" class="am" font-size="12" fill="#ad5cff">④ adaptive notification</text>
+      <text x="60" y="386" class="am" font-size="12" fill="#ad5cff">— wake only when the consumer lags</text>
       <rect x="400" y="336" width="560" height="60" rx="12" fill="rgba(65,179,255,.08)" stroke="#41b3ff" stroke-width="1.5"/>
-      <text x="680" y="362" class="an" font-size="16" text-anchor="middle">유저스페이스 소비자</text>
-      <text x="680" y="384" class="am" font-size="12" text-anchor="middle">fd 1개 — mmap으로 직접 읽기 · 전역 순서 그대로</text>
+      <text x="680" y="362" class="an" font-size="16" text-anchor="middle">Userspace consumer</text>
+      <text x="680" y="384" class="am" font-size="12" text-anchor="middle">one fd — direct reads via mmap · global order preserved</text>
     </svg>
   </div>
   <div class="chips" data-a="5" style="display:flex;gap:12px;flex-wrap:wrap">
-    <span class="chip">소비자는 BUSY 레코드 앞에서 멈춘다 — 커밋된 레코드만 예약 순서대로 공개</span>
-    <span class="chip hot">단일 링 · 예약 · 제자리 쓰기 · 적응형 알림 — 각각 무엇을 해소했는지는 다음 장</span>
+    <span class="chip">The consumer stops at a BUSY record — only committed records are visible, in reservation order</span>
+    <span class="chip hot">Single ring · reserve · in-place writes · adaptive notification — what each one fixes is the next slide</span>
   </div>
   <aside class="notes">
-    새 경로의 3단계 리듬 — <b>reserve(자리 확보, 부족하면 즉시 실패) → 제자리 작성(복사 없음) → submit(공개)</b>. BUSY 비트와 이중 매핑(경계 걸친 레코드도 이어 읽기)은 그림에서 위치만 짚으면 충분.
+    The new path's three-beat rhythm — <b>reserve (claim a slot, fail fast if short) → write in place (no copy) → submit (publish)</b>. For the BUSY bit and double mapping (boundary-straddling records read contiguously), just pointing at them in the figure is enough.
   </aside>
 </section>
 
 <!-- ============ 18 · RING BUFFER ============ -->
 <section class="slide">
   <div class="kicker" data-a="1">Kernel → userspace</div>
-  <h1 class="display md" data-a="2">BPF Ring Buffer — <span class="hot">기본값</span>이 된 새 아키텍처 (v5.8+)</h1>
-  <p class="sub" data-a="3">모든 CPU가 하나의 버퍼를 공유하는 <b>MPSC(Multi-Producer Single-Consumer)</b> 구조 —
-  Perf Buffer의 네 가지 한계를 네 가지 메커니즘으로 되갚습니다.</p>
+  <h1 class="display md" data-a="2">BPF Ring Buffer — the new architecture that became the <span class="hot">default</span> (v5.8+)</h1>
+  <p class="sub" data-a="3">An <b>MPSC (Multi-Producer Single-Consumer)</b> design where all CPUs share one buffer —
+  answering Perf Buffer's four limitations with four mechanisms.</p>
   <div class="tiles four">
     <div class="tile" data-a="4">
       <span class="tn">MPSC</span>
-      <h3>전역 단일 공유 버퍼</h3>
-      <p>모든 CPU가 한 버퍼에 쓰고 유저스페이스가 읽음 — <b>전역 이벤트 순서 보장</b> + 메모리 효율을 동시에.</p>
+      <h3>One global shared buffer</h3>
+      <p>Every CPU writes to one buffer; userspace reads it — <b>global event ordering</b> and memory efficiency at once.</p>
       <span class="tt">ORDER + MEMORY</span>
     </div>
     <div class="tile tc-blue" data-a="5">
       <span class="tn">RESERVE / SUBMIT</span>
-      <h3>2단계 제로카피</h3>
-      <p><code>reserve()</code>가 공간을 먼저 확보 — 부족하면 <b>즉시 실패</b>해 대응 가능. 버퍼 메모리에 직접 쓰고 <code>submit()</code> — 중간 복사 제거.</p>
+      <h3>Two-phase zero-copy</h3>
+      <p><code>reserve()</code> claims space first — if short, it <b>fails immediately</b> so the program can react. Write directly into buffer memory, then <code>submit()</code> — the intermediate copy is gone.</p>
       <span class="tt">§11 REF TRACKING</span>
     </div>
     <div class="tile tc-purple" data-a="6">
       <span class="tn">ADAPTIVE</span>
-      <h3>적응형 알림</h3>
-      <p>소비자가 이미 처리 중이면 <b>신호 억제</b>, 지연될 때만 깨움 — 알림 비용을 데이터 양이 아닌 소비자 상태에 비례시킴.</p>
+      <h3>Adaptive notification</h3>
+      <p>If the consumer is already processing, <b>the signal is suppressed</b>; wake only when it lags — notification cost scales with consumer state, not data volume.</p>
       <span class="tt">NO SIGNAL STORM</span>
     </div>
     <div class="tile" data-a="7">
       <span class="tn">DOUBLE MAP</span>
-      <h3>가상 메모리 이중 매핑</h3>
-      <p>같은 물리 페이지를 주소 공간에 <b>두 번 연속 매핑</b> — 경계를 넘는 레코드도 wrap-around 처리 없이 연속 읽기.</p>
+      <h3>Virtual-memory double mapping</h3>
+      <p>The same physical pages are mapped <b>twice, back to back</b> — records straddling the boundary read contiguously, no wrap-around handling.</p>
       <span class="tt">ZERO WRAP COST</span>
     </div>
   </div>
   <div class="chips" data-a="8" style="display:flex;gap:12px;margin-top:2.6vh;flex-wrap:wrap">
-    <span class="chip">reserve는 반드시 submit·discard로 종결 — Verifier의 레퍼런스 추적이 강제(11장)</span>
-    <span class="chip hot">순서 꼬임·과다 할당·뒤늦은 유실·웨이크업 폭풍 — 전부 단일 버퍼 설계로 해소</span>
+    <span class="chip">Every reserve must end in submit/discard — enforced by the Verifier's reference tracking (§11)</span>
+    <span class="chip hot">Reordering · over-allocation · late loss detection · wakeup storms — all resolved by the single-buffer design</span>
   </div>
   <aside class="notes">
-    한계 ↔ 메커니즘 1:1 매핑으로 정리 — 과다할당→MPSC, 복사→reserve/submit, 유실 감지→즉시 실패, 웨이크업 폭풍→적응형 알림. <b>reserve는 반드시 submit/discard로 종결 — 11장 Verifier 레퍼런스 추적이 여기서 회수</b>된다.
+    Wrap up with the 1:1 limitation ↔ mechanism mapping — over-allocation→MPSC, copying→reserve/submit, loss detection→fail-fast, wakeup storms→adaptive notification. <b>reserve must end in submit/discard — §11's Verifier reference tracking pays off right here</b>.
   </aside>
 </section>
 
 <!-- ============ 19 · RINGBUF COMPARE ============ -->
 <section class="slide">
   <div class="kicker" data-a="1">Side by side</div>
-  <h1 class="display md" data-a="2">링 버퍼 세대 비교 — 같은 이름, <span class="hot">다른 설계</span></h1>
-  <p class="sub" data-a="3">Perf Buffer도 내부는 링 버퍼입니다 — eBPF Ring Buffer가 바꾼 것은 '링' 자체가 아니라
-  <b>링을 배치하고, 쓰고, 읽는 방식</b> 전부입니다.</p>
+  <h1 class="display md" data-a="2">Ring buffer generations — same name, <span class="hot">different design</span></h1>
+  <p class="sub" data-a="3">Perf Buffer is a ring buffer inside, too — what the eBPF Ring Buffer changed is not the ring itself but
+  <b>everything about how rings are placed, written, and read</b>.</p>
   <table class="compare" data-a="4">
     <thead>
-      <tr><th>구분</th><th>기존 링 버퍼 — Perf Buffer</th><th class="hl">BPF Ring Buffer (v5.8+)</th></tr>
+      <tr><th></th><th>Legacy ring — Perf Buffer</th><th class="hl">BPF Ring Buffer (v5.8+)</th></tr>
     </thead>
     <tbody>
-      <tr><td>배치 구조</td><td class="bad">CPU마다 독립 링 — CPU 수만큼 존재</td><td class="good">전역 단일 링 — MPSC, 모든 CPU가 공유</td></tr>
-      <tr><td>쓰기 경로</td><td class="bad">스택에 레코드 조립 후 버퍼로 <b>복사</b></td><td class="good"><code>reserve()</code> → 버퍼에 <b>직접 작성</b> → <code>submit()</code> — 제로카피</td></tr>
-      <tr><td>공간 부족</td><td class="bad">복사 시점에야 발견 — 조립 비용은 선지불</td><td class="good"><code>reserve()</code>가 즉시 실패 — 프로그램이 대응 가능</td></tr>
-      <tr><td>이벤트 순서</td><td class="bad">CPU 간 비보장 — fork → exec 역전</td><td class="good">단일 버퍼라 전역 순서 보장</td></tr>
-      <tr><td>경계 처리</td><td class="bad">경계에 걸친 레코드는 분할 — 두 번 읽어 재조립</td><td class="good">가상 메모리 이중 매핑 — 분할 없이 연속 읽기</td></tr>
-      <tr><td>소비자 알림</td><td class="bad">이벤트마다 무조건 신호</td><td class="good">적응형 — 소비자가 밀릴 때만 깨움</td></tr>
+      <tr><td>Layout</td><td class="bad">Independent ring per CPU — as many rings as CPUs</td><td class="good">One global ring — MPSC, shared by all CPUs</td></tr>
+      <tr><td>Write path</td><td class="bad">Assemble record on the stack, then <b>copy</b> into the buffer</td><td class="good"><code>reserve()</code> → <b>write directly</b> into the buffer → <code>submit()</code> — zero-copy</td></tr>
+      <tr><td>Out of space</td><td class="bad">Discovered only at copy time — assembly cost already paid</td><td class="good"><code>reserve()</code> fails immediately — the program can react</td></tr>
+      <tr><td>Event ordering</td><td class="bad">No cross-CPU guarantee — fork → exec can reverse</td><td class="good">Single buffer — global order guaranteed</td></tr>
+      <tr><td>Boundary handling</td><td class="bad">Records split at the boundary — read twice and reassemble</td><td class="good">Virtual-memory double mapping — contiguous read, no split</td></tr>
+      <tr><td>Consumer notification</td><td class="bad">Unconditional signal per event</td><td class="good">Adaptive — wake only when the consumer lags</td></tr>
     </tbody>
   </table>
   <div class="chips" data-a="5" style="display:flex;gap:12px;margin-top:2.4vh;flex-wrap:wrap">
-    <span class="chip">소비 API 형태는 유사 — <code>perf_buffer__poll</code> ↔ <code>ring_buffer__poll</code>, 이전 비용은 낮다</span>
-    <span class="chip hot">신규 개발 기본값은 Ring Buffer — Perf Buffer는 v5.8 미만 커널 호환용으로만</span>
+    <span class="chip">Consumer APIs look alike — <code>perf_buffer__poll</code> ↔ <code>ring_buffer__poll</code>; migration is cheap</span>
+    <span class="chip hot">Ring Buffer is the default for new development — Perf Buffer only for pre-v5.8 kernel compatibility</span>
   </div>
   <aside class="notes">
-    표는 위에서 아래로 빠르게 — 청중이 읽게 두고 결론만: <b>신규 개발 기본값은 Ring Buffer</b>, Perf Buffer는 v5.8 미만 호환용. API 형태가 유사해 이전 비용도 낮다.
+    Run the table top to bottom quickly — let the audience read, state only the conclusion: <b>Ring Buffer is the default for new development</b>; Perf Buffer is for pre-v5.8 compatibility. Similar APIs keep migration cost low.
   </aside>
 </section>
 
 <!-- ============ 20 · CO-RE & BTF ============ -->
 <section class="slide">
   <div class="kicker" data-a="1">Compile once — run everywhere</div>
-  <h1 class="display md" data-a="2">CO-RE — 한 번 컴파일해서 <span class="hot">어디서나 실행</span></h1>
-  <p class="sub" data-a="3">문제의 근원: <b>커널 구조체 오프셋은 버전·설정마다 다릅니다.</b> CO-RE는 오프셋을 런타임에 다시 계산합니다.</p>
+  <h1 class="display md" data-a="2">CO-RE — compile once, <span class="hot">run everywhere</span></h1>
+  <p class="sub" data-a="3">The root problem: <b>kernel struct offsets differ across versions and configs.</b> CO-RE recomputes the offsets at runtime.</p>
   <div class="arch" data-a="4">
     <svg viewBox="0 0 1200 400">
       <!-- compile time zone -->
       <rect x="15" y="20" width="560" height="360" rx="18" fill="rgba(65,179,255,.03)" stroke="#41b3ff" stroke-width="1.2" stroke-dasharray="8 6"/>
-      <text x="45" y="56" class="am" font-size="14" fill="#41b3ff" letter-spacing="3">컴파일 타임 · 개발 머신</text>
+      <text x="45" y="56" class="am" font-size="14" fill="#41b3ff" letter-spacing="3">COMPILE TIME · DEV MACHINE</text>
       <rect x="45" y="85" width="230" height="90" rx="12" fill="#131a24" stroke="#a6b2c3" stroke-width="1.5"/>
-      <text x="160" y="123" class="an" font-size="18" text-anchor="middle">BPF C 소스</text>
-      <text x="160" y="150" class="am" font-size="13" text-anchor="middle">vmlinux.h 포함</text>
+      <text x="160" y="123" class="an" font-size="18" text-anchor="middle">BPF C source</text>
+      <text x="160" y="150" class="am" font-size="13" text-anchor="middle">includes vmlinux.h</text>
       <rect x="45" y="250" width="230" height="90" rx="12" fill="rgba(65,179,255,.08)" stroke="#41b3ff" stroke-width="1.5"/>
       <text x="160" y="288" class="an" font-size="18" text-anchor="middle">Clang -g</text>
-      <text x="160" y="315" class="am" font-size="13" text-anchor="middle">재배치 레코드 생성</text>
+      <text x="160" y="315" class="am" font-size="13" text-anchor="middle">emits relocation records</text>
       <rect x="330" y="165" width="220" height="105" rx="12" fill="rgba(173,92,255,.08)" stroke="#ad5cff" stroke-width="1.5"/>
       <text x="440" y="202" class="an" font-size="18" text-anchor="middle">.o (ELF)</text>
       <text x="440" y="228" class="am" font-size="13" text-anchor="middle">.BTF + .BTF.ext</text>
-      <text x="440" y="250" class="am" font-size="13" text-anchor="middle">"어떤 필드에 접근하는가"</text>
+      <text x="440" y="250" class="am" font-size="13" text-anchor="middle">"which fields does it touch"</text>
 
       <!-- runtime zone -->
       <rect x="625" y="20" width="560" height="360" rx="18" fill="rgba(0,229,0,.03)" stroke="#00e500" stroke-width="1.2" stroke-dasharray="8 6"/>
-      <text x="655" y="56" class="am" font-size="14" fill="#00e500" letter-spacing="3">런타임 · 타깃 노드</text>
+      <text x="655" y="56" class="am" font-size="14" fill="#00e500" letter-spacing="3">RUNTIME · TARGET NODE</text>
       <rect x="655" y="85" width="250" height="90" rx="12" fill="#131a24" stroke="#00e500" stroke-width="1.5"/>
-      <text x="780" y="118" class="an" font-size="17" text-anchor="middle">커널 자체 BTF</text>
+      <text x="780" y="118" class="an" font-size="17" text-anchor="middle">The kernel's own BTF</text>
       <text x="780" y="146" class="am" font-size="12" text-anchor="middle">/sys/kernel/btf/vmlinux</text>
       <rect x="655" y="250" width="250" height="90" rx="12" fill="rgba(255,153,0,.08)" stroke="#ff9900" stroke-width="2"/>
       <text x="780" y="288" class="an" font-size="18" text-anchor="middle">libbpf</text>
-      <text x="780" y="315" class="am" font-size="13" text-anchor="middle">오프셋 재계산 · 명령어 패치</text>
+      <text x="780" y="315" class="am" font-size="13" text-anchor="middle">recompute offsets · patch instructions</text>
       <rect x="960" y="165" width="200" height="105" rx="12" fill="rgba(0,229,0,.07)" stroke="#00e500" stroke-width="1.5"/>
-      <text x="1060" y="207" class="an" font-size="18" text-anchor="middle">커널 로드</text>
-      <text x="1060" y="234" class="am" font-size="13" text-anchor="middle">이 커널에 맞는 오프셋</text>
+      <text x="1060" y="207" class="an" font-size="18" text-anchor="middle">Kernel load</text>
+      <text x="1060" y="234" class="am" font-size="13" text-anchor="middle">offsets fit this kernel</text>
 
       <!-- wires -->
       <path class="wire" d="M160 175 V250" stroke="#a6b2c3"/>
@@ -928,20 +929,20 @@
     </svg>
   </div>
   <div class="chips" data-a="5" style="display:flex;gap:12px;flex-wrap:wrap">
-    <span class="chip">BTF dedup 5단계 — 문자열 → 비참조 타입 → struct/union 정준화 → 참조 타입 → 컴팩션, 수백 MB DWARF를 수 MB로</span>
-    <span class="chip">실측 — x86_64 pt_regs 오프셋(di=112 · si=104 · dx=96)을 로드 시점에 바이트코드로 패치</span>
-    <span class="chip hot">BCC(BPF Compiler Collection)의 런타임 컴파일(clang 내장) 없이 경량 정적 바이너리 배포</span>
+    <span class="chip">BTF dedup in 5 stages — strings → non-reference types → struct/union canonicalization → reference types → compaction; hundreds of MB of DWARF down to a few MB</span>
+    <span class="chip">Measured — x86_64 pt_regs offsets (di=112 · si=104 · dx=96) patched into the bytecode at load time</span>
+    <span class="chip hot">Slim static binaries with no runtime compilation — unlike BCC (BPF Compiler Collection) embedding clang</span>
   </div>
   <aside class="notes">
-    문제 제기부터 — <b>커널 구조체 오프셋은 버전마다 다르다</b>. 컴파일 타임(재배치 레코드) → 런타임(커널 BTF + libbpf 패치) 순으로. pt_regs 실측 칩(di=112…)이 "진짜 바이트코드를 고친다"는 증거.
+    Start with the problem — <b>kernel struct offsets differ per version</b>. Then compile time (relocation records) → runtime (kernel BTF + libbpf patching). The measured pt_regs chip (di=112…) is the proof that real bytecode gets patched.
   </aside>
 </section>
 
 <!-- ============ 21 · INTEGRATION MAP ============ -->
 <section class="slide">
   <div class="kicker" data-a="1">The whole picture</div>
-  <h1 class="display md" data-a="2">아키텍처 통합 흐름도 — <span class="hot">조각들이 맞물리는</span> 자리</h1>
-  <p class="sub" data-a="3">지금까지 본 로드 경로(컴파일 → 검증 → JIT)와 런타임 소통(Helpers · Maps · Ring Buffer)을 한 장에 겹칩니다.</p>
+  <h1 class="display md" data-a="2">The integrated flow — where <span class="hot">the pieces interlock</span></h1>
+  <p class="sub" data-a="3">Overlaying everything so far: the load path (compile → verify → JIT) and the runtime channels (Helpers · Maps · Ring Buffer) on one slide.</p>
   <div class="arch" data-a="4">
     <svg viewBox="0 0 1200 430">
       <!-- user space zone -->
@@ -951,35 +952,35 @@
       <text x="140" y="110" class="an" font-size="17" text-anchor="middle">Clang / LLVM</text>
       <text x="140" y="136" class="am" font-size="12" text-anchor="middle">§10 · .o + .BTF.ext</text>
       <rect x="45" y="205" width="190" height="90" rx="12" fill="rgba(255,153,0,.08)" stroke="#ff9900" stroke-width="2"/>
-      <text x="140" y="240" class="an" font-size="17" text-anchor="middle">libbpf 로더</text>
-      <text x="140" y="266" class="am" font-size="12" text-anchor="middle">§20 · 오프셋 패치</text>
+      <text x="140" y="240" class="an" font-size="17" text-anchor="middle">libbpf loader</text>
+      <text x="140" y="266" class="am" font-size="12" text-anchor="middle">§20 · offset patching</text>
       <rect x="265" y="205" width="185" height="90" rx="12" fill="rgba(0,229,0,.05)" stroke="#00e500" stroke-width="1.5"/>
-      <text x="357" y="238" class="an" font-size="15" text-anchor="middle">커널 BTF</text>
+      <text x="357" y="238" class="an" font-size="15" text-anchor="middle">Kernel BTF</text>
       <text x="357" y="262" class="am" font-size="11" text-anchor="middle">/sys/kernel/btf/vmlinux</text>
-      <text x="357" y="280" class="am" font-size="11" text-anchor="middle">커널 타입 사전</text>
+      <text x="357" y="280" class="am" font-size="11" text-anchor="middle">the kernel's type dictionary</text>
       <rect x="45" y="330" width="405" height="70" rx="12" fill="rgba(65,179,255,.08)" stroke="#41b3ff" stroke-width="1.5"/>
-      <text x="247" y="360" class="an" font-size="16" text-anchor="middle">유저스페이스 소비자</text>
-      <text x="247" y="384" class="am" font-size="12" text-anchor="middle">§18 · Ring Buffer 읽기 · 맵 폴링</text>
+      <text x="247" y="360" class="an" font-size="16" text-anchor="middle">Userspace consumer</text>
+      <text x="247" y="384" class="am" font-size="12" text-anchor="middle">§18 · Ring Buffer reads · map polling</text>
 
       <!-- kernel zone -->
       <rect x="505" y="20" width="680" height="390" rx="18" fill="rgba(0,229,0,.03)" stroke="#00e500" stroke-width="1.2" stroke-dasharray="8 6"/>
       <text x="535" y="52" class="am" font-size="14" fill="#00e500" letter-spacing="3">KERNEL SPACE</text>
       <rect x="535" y="75" width="180" height="80" rx="12" fill="#131a24" stroke="#a6b2c3" stroke-width="1.5"/>
-      <text x="625" y="107" class="an" font-size="16" text-anchor="middle">bpf() 시스템 콜</text>
+      <text x="625" y="107" class="an" font-size="16" text-anchor="middle">bpf() syscall</text>
       <text x="625" y="132" class="am" font-size="12" text-anchor="middle">BPF_PROG_LOAD</text>
       <rect x="757" y="75" width="205" height="80" rx="12" fill="rgba(255,92,133,.08)" stroke="#ff5c85" stroke-width="1.5"/>
       <text x="859" y="103" class="an" font-size="16" text-anchor="middle">Verifier</text>
-      <text x="859" y="125" class="am" font-size="11" text-anchor="middle">§11 · CFG 전수 탐색</text>
-      <text x="859" y="142" class="am" font-size="11" text-anchor="middle">레퍼런스 추적</text>
+      <text x="859" y="125" class="am" font-size="11" text-anchor="middle">§11 · exhaustive CFG walk</text>
+      <text x="859" y="142" class="am" font-size="11" text-anchor="middle">reference tracking</text>
       <rect x="1000" y="75" width="160" height="80" rx="12" fill="rgba(173,92,255,.08)" stroke="#ad5cff" stroke-width="1.5"/>
       <text x="1080" y="107" class="an" font-size="16" text-anchor="middle">JIT</text>
-      <text x="1080" y="132" class="am" font-size="12" text-anchor="middle">§10 · 네이티브 기계어</text>
+      <text x="1080" y="132" class="am" font-size="12" text-anchor="middle">§10 · native machine code</text>
       <rect x="757" y="210" width="403" height="90" rx="12" fill="rgba(255,153,0,.08)" stroke="#ff9900" stroke-width="2"/>
-      <text x="958" y="245" class="an" font-size="17" text-anchor="middle">BPF VM 실행</text>
+      <text x="958" y="245" class="an" font-size="17" text-anchor="middle">BPF VM execution</text>
       <text x="958" y="272" class="am" font-size="12" text-anchor="middle">§13 · Helpers / KFuncs · Maps</text>
       <rect x="535" y="330" width="420" height="70" rx="12" fill="rgba(0,229,0,.07)" stroke="#00e500" stroke-width="1.5"/>
       <text x="745" y="360" class="an" font-size="16" text-anchor="middle">MPSC Ring Buffer</text>
-      <text x="745" y="384" class="am" font-size="12" text-anchor="middle">§18 · reserve / submit · 적응형 알림</text>
+      <text x="745" y="384" class="am" font-size="12" text-anchor="middle">§18 · reserve / submit · adaptive notification</text>
 
       <!-- wires -->
       <path class="wire" d="M140 165 V205" stroke="#a6b2c3"/>
@@ -993,44 +994,44 @@
     </svg>
   </div>
   <div class="chips" data-a="5" style="display:flex;gap:12px;flex-wrap:wrap">
-    <span class="chip">윗줄이 로드 경로, 아랫줄이 런타임 소통 — § 번호는 상세를 다룬 슬라이드</span>
-    <span class="chip hot">커널을 고치지 않고 — 검증된 바이트코드가 커널 안에서 산다</span>
+    <span class="chip">Top row is the load path, bottom row the runtime channels — § numbers point to the detail slides</span>
+    <span class="chip hot">Without patching the kernel — verified bytecode lives inside it</span>
   </div>
   <aside class="notes">
-    챕터 1 총정리 — 새 내용 없음, 회수만. <b>윗줄이 로드 경로, 아랫줄이 런타임 소통</b>. § 번호를 따라 "이 조각 기억나시죠"를 반복. 여기서 챕터 1 질문을 받고 쉬어가는 타이밍.
+    Chapter 1 recap — nothing new, only collection. <b>Top row = load path, bottom row = runtime channels</b>. Follow the § numbers repeating "remember this piece?". Good moment to take chapter 1 questions and breathe.
   </aside>
 </section>
 
 <!-- ============ 22 · FRONTIER ============ -->
 <section class="slide">
   <div class="kicker" data-a="1">The frontier</div>
-  <h1 class="display md" data-a="2">경계를 넓히는 최신 기능</h1>
-  <p class="sub" data-a="3">권한 위임, 대용량 메모리, 유저스페이스 실행 — eBPF의 제약이 하나씩 풀리고 있습니다.</p>
+  <h1 class="display md" data-a="2">Recent features pushing the boundary</h1>
+  <p class="sub" data-a="3">Privilege delegation, large memory, userspace execution — eBPF's constraints are being lifted one by one.</p>
   <div class="tiles">
     <div class="tile" data-a="4">
       <span class="tn">KERNEL v6.9+</span>
       <h3>BPF Token</h3>
-      <p><code>CAP_BPF</code> 전체를 주는 대신 <b>위임 토큰</b>을 발급 — 컨테이너가 user namespace 안에서
-      허용된 프로그램·맵 타입만 로드. 멀티테넌트 환경의 최소 권한 원칙.</p>
+      <p>Instead of granting all of <code>CAP_BPF</code>, issue a <b>delegation token</b> — a container inside a user namespace
+      loads only the allowed program and map types. Least privilege for multi-tenant environments.</p>
       <span class="tt">DELEGATION</span>
     </div>
     <div class="tile tc-blue" data-a="5">
       <span class="tn">KERNEL v6.9+</span>
       <h3>BPF Arena</h3>
-      <p>커널과 유저스페이스가 <b>같은 페이지를 공유</b>하는 대용량 메모리 영역.
-      맵 API 대신 포인터로 접근하는 자료구조(트리·리스트) 구현이 가능.</p>
+      <p>A large memory region where kernel and userspace <b>share the same pages</b>.
+      Enables pointer-based data structures (trees, lists) instead of the map API.</p>
       <span class="tt">SHARED MEMORY</span>
     </div>
     <div class="tile tc-purple" data-a="6">
       <span class="tn">EXPERIMENTAL</span>
       <h3>bpftime</h3>
-      <p>커널 uprobe는 <code>int3</code> 트랩으로 <b>커널 왕복 오버헤드</b>가 큼 —
-      바이너리 재작성으로 프로브를 유저스페이스에서 실행해 약 10배 이상 단축. 커널 진입 자체를 제거.</p>
+      <p>Kernel uprobes trap via <code>int3</code> with a <b>heavy kernel round-trip</b> —
+      bpftime rewrites the binary to run probes in userspace, roughly 10× faster. Kernel entry is removed entirely.</p>
       <span class="tt">USERSPACE RUNTIME</span>
     </div>
   </div>
   <aside class="notes">
-    가볍게 세 가지 트렌드만 — Token(권한 위임), Arena(대용량 공유 메모리), bpftime(유저스페이스 실행). <b>bpftime은 26장 memleak의 uprobe 병목에서 다시 나온다</b>고 예고.
+    Keep it light — three trends: Token (privilege delegation), Arena (large shared memory), bpftime (userspace execution). Foreshadow: <b>bpftime returns in §26 at the memleak uprobe bottleneck</b>.
   </aside>
 </section>
 
@@ -1038,100 +1039,100 @@
 <section class="slide chapter">
   <span class="num">02</span>
   <div class="kicker" data-a="1">Chapter two</div>
-  <h1 class="display" data-a="2">관측과 <span class="hot">방어</span></h1>
+  <h1 class="display" data-a="2">Observe and <span class="hot">defend</span></h1>
   <p class="mono-tag" data-a="3">landscape · memleak · off-cpu · throttling · falco vs tetragon · tuning</p>
   <aside class="notes">
-    챕터 전환 — "이제 이 이론이 실전에서 어떻게 쓰이는지". 사례 셋(메모리 누수 · Off-CPU · 스로틀링)과 보안 둘(Falco vs Tetragon)이 이 챕터의 뼈대.
+    Chapter break — "now, how does this theory get used in the field". Three case studies (memory leaks · Off-CPU · throttling) and two security tools (Falco vs Tetragon) form the spine of this chapter.
   </aside>
 </section>
 
 <!-- ============ 24 · TOOL LANDSCAPE ============ -->
 <section class="slide">
   <div class="kicker" data-a="1">Tooling</div>
-  <h1 class="display md" data-a="2">도구 지형도 — 추상화의 사다리</h1>
+  <h1 class="display md" data-a="2">The tool landscape — a ladder of abstraction</h1>
   <div class="ladder">
     <div class="rung" style="--rc:var(--yellow)" data-a="3">
       <span class="k">↑</span>
-      <div><h3>bpftrace</h3><p>DSL(Domain-Specific Language) 원라이너 — <b>즉석 진단의 표준</b>. awk처럼 쓰고 버린다. <code>bpftrace -e 'kprobe:do_sys_open {...}'</code></p></div>
+      <div><h3>bpftrace</h3><p>DSL (Domain-Specific Language) one-liners — <b>the standard for ad-hoc diagnosis</b>. Use like awk, then throw away. <code>bpftrace -e 'kprobe:do_sys_open {...}'</code></p></div>
       <span class="tag">AD-HOC</span>
     </div>
     <div class="rung" style="--rc:var(--purple)" data-a="4">
       <span class="k">·</span>
-      <div><h3>BCC</h3><p>Python + C 프레임워크, <code>memleak</code>·<code>offcputime</code> 등 검증된 도구 모음. 단, <b>런타임 clang 컴파일</b> — 배포가 무겁다.</p></div>
+      <div><h3>BCC</h3><p>Python + C framework with proven tools like <code>memleak</code> and <code>offcputime</code>. Caveat: <b>runtime clang compilation</b> — heavy to ship.</p></div>
       <span class="tag">TOOLBOX</span>
     </div>
     <div class="rung" style="--rc:var(--orange)" data-a="5">
       <span class="k">·</span>
-      <div><h3>libbpf + CO-RE</h3><p><b>프로덕션 표준</b> — 정적 경량 바이너리, 커널별 재컴파일 없음. Cilium·Tetragon·대부분의 상용 에이전트가 이 방식.</p></div>
+      <div><h3>libbpf + CO-RE</h3><p><b>The production standard</b> — slim static binaries, no per-kernel recompilation. Cilium, Tetragon, and most commercial agents ship this way.</p></div>
       <span class="tag">PRODUCTION</span>
     </div>
     <div class="rung" style="--rc:var(--blue)" data-a="6">
       <span class="k">↓</span>
-      <div><h3>bpftool</h3><p>커널에 로드된 프로그램·맵·BTF를 <b>조회하고 덤프</b>하는 표준 CLI. "지금 커널에 뭐가 붙어 있나"의 답.</p></div>
+      <div><h3>bpftool</h3><p>The standard CLI to <b>inspect and dump</b> programs, maps, and BTF loaded in the kernel. The answer to "what is attached to my kernel right now?"</p></div>
       <span class="tag">INTROSPECTION</span>
     </div>
   </div>
-  <div class="dial-axis" data-a="7"><span>← 빠른 실험</span><span>프로덕션 배포 →</span></div>
+  <div class="dial-axis" data-a="7"><span>← quick experiments</span><span>production rollout →</span></div>
   <aside class="notes">
-    축이 핵심 — <b>왼쪽 위가 빠른 실험(bpftrace), 오른쪽 아래가 프로덕션(libbpf CO-RE)</b>. BCC의 런타임 clang 컴파일이 왜 무거운지 한 줄. bpftool은 "지금 커널에 뭐가 붙어 있나"의 답.
+    The axis is the point — <b>top-left is quick experimentation (bpftrace), bottom-right is production (libbpf CO-RE)</b>. One line on why BCC's runtime clang compilation is heavy. bpftool answers "what is attached to my kernel right now".
   </aside>
 </section>
 
 <!-- ============ 25 · ECOSYSTEM MAP ============ -->
 <section class="slide">
   <div class="kicker" data-a="1">Ecosystem</div>
-  <h1 class="display md" data-a="2">제품 지형도 — 관측 · 탐지 · <span class="hot">차단</span></h1>
-  <p class="sub" data-a="3">같은 eBPF 위에서도 제품이 서는 자리는 다릅니다 — <b>어디까지 보고, 어디부터 막는가</b>가 분류 기준입니다.</p>
+  <h1 class="display md" data-a="2">Product landscape — observe · detect · <span class="hot">enforce</span></h1>
+  <p class="sub" data-a="3">Products on the same eBPF stand in different places — <b>how far they see, and where they start blocking</b>, is the axis.</p>
   <div class="tiles four">
     <div class="tile tc-green" data-a="4">
       <span class="tn">OBSERVE</span>
-      <h3>관측 · 프로파일링</h3>
-      <p><b>Pixie</b> — 코드 수정 없이 HTTP·gRPC·SQL 자동 계측, 서비스 맵 생성. <b>Parca</b> — 상시 저빈도 스택 샘플링, 연속 프로파일링. <b>Hubble</b> — 사이드카 없는 L3–L7 가시화(36장).</p>
+      <h3>Observability · profiling</h3>
+      <p><b>Pixie</b> — auto-instruments HTTP/gRPC/SQL with zero code change, builds service maps. <b>Parca</b> — always-on low-rate stack sampling, continuous profiling. <b>Hubble</b> — sidecar-free L3–L7 visibility (§36).</p>
       <span class="tt">NO-INSTRUMENT</span>
     </div>
     <div class="tile tc-blue" data-a="5">
       <span class="tn">DETECT</span>
-      <h3>런타임 탐지</h3>
-      <p><b>Falco</b> — 룰 기반 syscall 행위 탐지, 가장 방대한 룰셋(29장). <b>Tracee</b> — Aqua Security, 커널 이벤트를 정밀 수집하는 포렌식 지향 탐지.</p>
+      <h3>Runtime detection</h3>
+      <p><b>Falco</b> — rule-based syscall behavior detection with the largest ruleset (§29). <b>Tracee</b> — Aqua Security; forensics-oriented detection with precise kernel event capture.</p>
       <span class="tt">ALERT-ONLY</span>
     </div>
     <div class="tile tc-pink" data-a="6">
       <span class="tn">ENFORCE</span>
-      <h3>인커널 차단</h3>
-      <p><b>Tetragon</b> — LSM 훅에서 동기 판정·차단(30장). <b>KubeArmor</b> — BPF-LSM·AppArmor로 파일·프로세스·소켓 접근을 선제 봉쇄하는 워크로드 하드닝.</p>
+      <h3>In-kernel blocking</h3>
+      <p><b>Tetragon</b> — synchronous verdicts and blocking at LSM hooks (§30). <b>KubeArmor</b> — workload hardening that pre-empts file/process/socket access via BPF-LSM and AppArmor.</p>
       <span class="tt">IN-KERNEL BLOCK</span>
     </div>
     <div class="tile tc-purple" data-a="7">
       <span class="tn">CORRELATE</span>
-      <h3>다차원 연계 — CADR</h3>
-      <p><b>ARMO</b> 등 — 커널 eBPF 시그널을 클라우드 API·K8s 컨트롤 플레인·앱 코드와 상관 분석, 개별 알림 대신 <b>공격 스토리 단위</b>로 재구성.</p>
+      <h3>Multi-dimensional — CADR</h3>
+      <p><b>ARMO</b> and peers — correlate kernel eBPF signals with cloud APIs, the K8s control plane, and app code; reconstruct <b>attack stories</b> instead of isolated alerts.</p>
       <span class="tt">ATTACK STORY</span>
     </div>
   </div>
   <div class="chips" data-a="8" style="display:flex;gap:12px;margin-top:2.6vh;flex-wrap:wrap">
-    <span class="chip">분류 축 — 이벤트를 유저스페이스로 보내 '보고'하는가, 커널 안에서 '판정'까지 하는가</span>
-    <span class="chip hot">탐지 ↔ 차단의 구조적 차이는 29–30장에서 해부</span>
+    <span class="chip">The classification axis — does it ship events to userspace to 'report', or does it 'decide' inside the kernel?</span>
+    <span class="chip hot">The structural gap between detect ↔ enforce is dissected in §29–30</span>
   </div>
   <aside class="notes">
-    분류 축 하나만 기억 — <b>이벤트를 보내 보고하는가, 커널 안에서 판정까지 하는가</b>. OBSERVE→DETECT→ENFORCE→CORRELATE 순으로 개입 강도가 올라간다. CADR은 최신 트렌드로 가볍게. Falco/Tetragon 해부는 29~30장.
+    Remember one axis — <b>does it ship events out and report, or decide inside the kernel</b>. Intervention strength rises OBSERVE→DETECT→ENFORCE→CORRELATE. Touch CADR lightly as the recent trend. The Falco/Tetragon dissection is §29–30.
   </aside>
 </section>
 
 <!-- ============ 26 · MEMLEAK ============ -->
 <section class="slide">
   <div class="kicker" data-a="1">Case study № 1</div>
-  <h1 class="display md" data-a="2">메모리 누수 추적 — 집계는 전부 커널 안에서</h1>
+  <h1 class="display md" data-a="2">Tracking memory leaks — all aggregation stays in the kernel</h1>
   <div class="split w46">
     <div class="panel" style="--pc:var(--green)" data-a="3">
-      <h3>동작 원리</h3>
+      <h3>How it works</h3>
       <ul>
-        <li>할당 경로에 프로브 — 유저 <code>malloc·calloc·realloc·mmap</code>은 uprobe, 커널 <code>kmalloc</code>은 kprobe → <b>주소 → (스택 ID · 크기 · 시각)</b>을 맵에 기록</li>
-        <li>해제 시 해당 엔트리 삭제 — <b>오래 남은 엔트리 = 누수 후보</b></li>
-        <li><code>bpf_get_stackid()</code>가 호출 스택을 <code>STACK_TRACE</code> 맵에 저장</li>
-        <li>유저스페이스는 주기적으로 맵만 읽음 — <b>이벤트 스트리밍 없음, 오버헤드 최소</b></li>
+        <li>Probes on the allocation paths — uprobes for user <code>malloc·calloc·realloc·mmap</code>, kprobes for kernel <code>kmalloc</code> → record <b>address → (stack ID · size · timestamp)</b> in a map</li>
+        <li>On free, delete the entry — <b>long-lived entries = leak candidates</b></li>
+        <li><code>bpf_get_stackid()</code> stores the call stack in a <code>STACK_TRACE</code> map</li>
+        <li>Userspace only reads the map periodically — <b>no event streaming, minimal overhead</b></li>
       </ul>
     </div>
-    <div class="codeblock" data-file="BCC memleak" data-a="4"><span class="cm"># PID 1234의 미해제 할당을 10초 간격으로 추적</span>
+    <div class="codeblock" data-file="BCC memleak" data-a="4"><span class="cm"># track outstanding allocations of PID 1234 every 10 s</span>
 $ <span class="ck">memleak</span> -p 1234 --interval 10
 
 <span class="cm">[13:42:01] Top 10 stacks with outstanding allocations:</span>
@@ -1141,176 +1142,176 @@ $ <span class="ck">memleak</span> -p 1234 --interval 10
     <span class="cv">handle_connection</span>+0x8d
     start_thread+0xd9
 
-<span class="cm"># --older: 60초 이상 미해제 '진성 누수'만 · -p 생략 시 커널 누수 추적</span>
+<span class="cm"># --older: only "true leaks" unfreed for 60 s+ · omit -p to trace kernel leaks</span>
 $ <span class="ck">memleak</span> -p 1234 --older 60000</div>
   </div>
   <div class="chips" data-a="5" style="display:flex;gap:12px;margin-top:2.6vh;flex-wrap:wrap">
-    <span class="chip">Valgrind와 달리 <b>재기동 불필요</b> — 실행 중인 프로세스에 동적 부착, CPU 에뮬레이션 없이 커널 내 집계</span>
-    <span class="chip">uprobe의 비용 — <code>int3</code> 브레이크포인트 트랩으로 매 호출마다 커널 왕복, 고빈도 malloc에선 트랩 자체가 병목</span>
-    <span class="chip hot">우회로는 커널 진입 제거 — bpftime이 프로브를 유저스페이스 인라인 훅으로 실행, 약 10배 단축 (22장)</span>
+    <span class="chip">Unlike Valgrind, <b>no restart needed</b> — attaches dynamically to a running process; in-kernel aggregation, no CPU emulation</span>
+    <span class="chip">The cost of uprobes — an <code>int3</code> breakpoint trap round-trips the kernel per call; at high malloc rates the trap itself is the bottleneck</span>
+    <span class="chip hot">The workaround removes kernel entry — bpftime runs the probe as a userspace inline hook, ~10× faster (§22)</span>
   </div>
   <aside class="notes">
-    케이스 스터디 시작 — Valgrind와의 대비(<b>재기동 불필요, 실행 중 프로세스에 부착</b>)가 첫 반응 포인트. 집계가 전부 커널 안 = 오버헤드 최소. uprobe int3 트랩 비용 → bpftime(22장) 회수로 마무리.
+    First case study — the Valgrind contrast (<b>no restart, attaches to a live process</b>) gets the first reaction. All aggregation in-kernel = minimal overhead. Close by collecting the uprobe int3 trap cost → bpftime (§22).
   </aside>
 </section>
 
 <!-- ============ 27 · OFF-CPU ============ -->
 <section class="slide">
   <div class="kicker" data-a="1">Case study № 2</div>
-  <h1 class="display md" data-a="2">Off-CPU 분석 — <span class="hot">CPU 밖의 시간</span>을 본다</h1>
+  <h1 class="display md" data-a="2">Off-CPU analysis — seeing the <span class="hot">time spent off the CPU</span></h1>
   <div class="split w64">
     <div class="arch" data-a="3" style="margin-top:0">
       <svg viewBox="0 0 760 300">
-        <text x="20" y="34" class="am" font-size="14" fill="#a6b2c3">Task A 타임라인</text>
+        <text x="20" y="34" class="am" font-size="14" fill="#a6b2c3">Task A timeline</text>
         <rect x="20" y="60" width="200" height="56" rx="10" fill="rgba(0,229,0,.1)" stroke="#00e500" stroke-width="1.5"/>
         <text x="120" y="94" class="an" font-size="16" text-anchor="middle">ON-CPU</text>
         <rect x="250" y="60" width="290" height="56" rx="10" fill="rgba(255,92,133,.08)" stroke="#ff5c85" stroke-width="1.5" stroke-dasharray="5 4"/>
-        <text x="395" y="86" class="an" font-size="16" text-anchor="middle" fill="#ff5c85">BLOCKED — 락 · I/O 대기</text>
-        <text x="395" y="107" class="am" font-size="12" text-anchor="middle" fill="#ff5c85">프로파일러의 사각지대</text>
+        <text x="395" y="86" class="an" font-size="16" text-anchor="middle" fill="#ff5c85">BLOCKED — locks · I/O waits</text>
+        <text x="395" y="107" class="am" font-size="12" text-anchor="middle" fill="#ff5c85">the profiler's blind spot</text>
         <rect x="570" y="60" width="170" height="56" rx="10" fill="rgba(0,229,0,.1)" stroke="#00e500" stroke-width="1.5"/>
         <text x="655" y="94" class="an" font-size="16" text-anchor="middle">ON-CPU</text>
 
         <rect x="140" y="185" width="480" height="62" rx="12" fill="rgba(255,153,0,.08)" stroke="#ff9900" stroke-width="2"/>
         <text x="380" y="212" class="an" font-size="16" text-anchor="middle">kprobe: finish_task_switch()</text>
-        <text x="380" y="236" class="am" font-size="13" text-anchor="middle">모든 컨텍스트 스위치가 지나는 단일 관측점</text>
+        <text x="380" y="236" class="am" font-size="13" text-anchor="middle">the single point every context switch passes through</text>
         <path class="wire" d="M250 116 C 250 150, 260 165, 280 185" stroke="#ff5c85"/>
-        <text x="215" y="160" class="am" font-size="12" fill="#ff5c85">t₀ 기록</text>
+        <text x="215" y="160" class="am" font-size="12" fill="#ff5c85">record t₀</text>
         <path class="wire" d="M570 116 C 570 150, 560 165, 540 185" stroke="#00e500"/>
-        <text x="590" y="160" class="am" font-size="12" fill="#00e500">Δt 집계</text>
-        <text x="380" y="285" class="am" font-size="13" text-anchor="middle" fill="#a6b2c3">Δt를 스택별 히스토그램 맵에 누적 — 초당 수만 이벤트도 커널 안에서 소화</text>
+        <text x="590" y="160" class="am" font-size="12" fill="#00e500">aggregate Δt</text>
+        <text x="380" y="285" class="am" font-size="13" text-anchor="middle" fill="#a6b2c3">Δt accumulated in a per-stack histogram map — tens of thousands of events per second digested in-kernel</text>
       </svg>
     </div>
     <div class="panel" style="--pc:var(--orange)" data-a="4">
-      <h3>왜 필요한가</h3>
+      <h3>Why it matters</h3>
       <ul>
-        <li>On-CPU 프로파일은 <b>절반만 본다</b> — 대기 시간은 샘플에 안 잡힘</li>
-        <li>락 경합·디스크 I/O·페이지 폴트가 <b>지연의 주범</b>인 경우가 많음</li>
-        <li>스위치 아웃 시각 → 복귀 시 <b>Δt를 스택별로 커널 내 집계</b></li>
-        <li>결과물은 <b>Off-CPU Flame Graph</b> — 어떤 스택이 얼마나 기다렸나</li>
+        <li>On-CPU profiles see <b>only half the story</b> — waiting time never shows up in samples</li>
+        <li>Lock contention, disk I/O, page faults are often <b>the real latency culprits</b></li>
+        <li>Record switch-out time → on return, <b>aggregate Δt per stack, in-kernel</b></li>
+        <li>The deliverable is an <b>Off-CPU Flame Graph</b> — which stacks waited, and for how long</li>
       </ul>
     </div>
   </div>
   <aside class="notes">
-    질문으로 열기 — "프로파일러에 안 잡히는 지연, 어디서 찾습니까?" On-CPU 프로파일은 절반만 본다. <b>finish_task_switch() 하나로 모든 컨텍스트 스위치를 관측</b>한다는 게 이 장의 감탄 포인트.
+    Open with the question — "latency the profiler can't see: where do you look?" On-CPU profiles see half the story. The wow moment of this slide: <b>finish_task_switch() alone observes every context switch</b>.
   </aside>
 </section>
 
 <!-- ============ 28 · CFS THROTTLING ============ -->
 <section class="slide">
   <div class="kicker" data-a="1">Case study № 3</div>
-  <h1 class="display md" data-a="2">CPU 스로틀링 진단 — <span class="hot">Runnable인데 달리지 못하는</span> 시간</h1>
+  <h1 class="display md" data-a="2">Diagnosing CPU throttling — <span class="hot">runnable but not allowed to run</span></h1>
   <div class="split w64">
     <div class="arch" data-a="3" style="margin-top:0">
       <svg viewBox="0 0 760 300">
-        <text x="20" y="34" class="am" font-size="14" fill="#a6b2c3">CFS(Completely Fair Scheduler) Bandwidth Control — limits.cpu → quota / 100ms 주기</text>
+        <text x="20" y="34" class="am" font-size="14" fill="#a6b2c3">CFS (Completely Fair Scheduler) Bandwidth Control — limits.cpu → quota / 100 ms period</text>
         <rect x="20" y="60" width="180" height="56" rx="10" fill="rgba(0,229,0,.1)" stroke="#00e500" stroke-width="1.5"/>
-        <text x="110" y="86" class="an" font-size="15" text-anchor="middle">실행</text>
-        <text x="110" y="106" class="am" font-size="12" text-anchor="middle">quota 40ms 소진</text>
+        <text x="110" y="86" class="an" font-size="15" text-anchor="middle">Running</text>
+        <text x="110" y="106" class="am" font-size="12" text-anchor="middle">40 ms quota spent</text>
         <rect x="230" y="60" width="330" height="56" rx="10" fill="rgba(255,92,133,.08)" stroke="#ff5c85" stroke-width="1.5" stroke-dasharray="5 4"/>
-        <text x="395" y="86" class="an" font-size="15" text-anchor="middle" fill="#ff5c85">THROTTLED — 60ms 강제 대기</text>
-        <text x="395" y="106" class="am" font-size="12" text-anchor="middle" fill="#ff5c85">Runnable인데 스케줄 금지 — cgroup 전체</text>
+        <text x="395" y="86" class="an" font-size="15" text-anchor="middle" fill="#ff5c85">THROTTLED — forced 60 ms wait</text>
+        <text x="395" y="106" class="am" font-size="12" text-anchor="middle" fill="#ff5c85">runnable but unschedulable — whole cgroup</text>
         <rect x="590" y="60" width="150" height="56" rx="10" fill="rgba(0,229,0,.1)" stroke="#00e500" stroke-width="1.5"/>
-        <text x="665" y="86" class="an" font-size="15" text-anchor="middle">다음 주기</text>
-        <text x="665" y="106" class="am" font-size="12" text-anchor="middle">quota 리필 → 재개</text>
+        <text x="665" y="86" class="an" font-size="15" text-anchor="middle">Next period</text>
+        <text x="665" y="106" class="am" font-size="12" text-anchor="middle">refill → resume</text>
 
         <rect x="140" y="185" width="480" height="62" rx="12" fill="rgba(255,153,0,.08)" stroke="#ff9900" stroke-width="2"/>
-        <text x="380" y="212" class="an" font-size="16" text-anchor="middle">runqlat — Runnable → 실행까지의 대기 분포</text>
-        <text x="380" y="236" class="am" font-size="13" text-anchor="middle">평소 수십 µs → 스로틀링 시 100ms대 스파이크로 오른쪽 왜곡</text>
+        <text x="380" y="212" class="an" font-size="16" text-anchor="middle">runqlat — wait distribution from runnable to running</text>
+        <text x="380" y="236" class="am" font-size="13" text-anchor="middle">normally tens of µs → skews right with 100 ms-class spikes under throttling</text>
         <path class="wire" d="M395 116 C 395 150, 390 165, 380 185" stroke="#ff5c85"/>
-        <text x="380" y="285" class="am" font-size="13" text-anchor="middle" fill="#a6b2c3">스로틀 구간이 런큐 대기 히스토그램의 긴 꼬리로 그대로 드러난다</text>
+        <text x="380" y="285" class="am" font-size="13" text-anchor="middle" fill="#a6b2c3">throttled windows surface directly as the long tail of the run-queue latency histogram</text>
       </svg>
     </div>
     <div class="panel" style="--pc:var(--pink)" data-a="4">
-      <h3>왜 기존 지표론 안 보이나</h3>
+      <h3>Why the usual metrics miss it</h3>
       <ul>
-        <li>CPU 사용률 그래프는 limit에 붙어 <b>평평</b> — 일하는 중인지 목이 졸린 중인지 구분 불가</li>
-        <li>cAdvisor 스로틀 카운터는 <b>횟수·총량만</b> — 어느 코드 경로가 얼마나 늦었는지 없음</li>
-        <li><code>runqlat</code> 스파이크 + Off-CPU 스택(27장)에 <b>블로킹 흔적 없음</b>(<code>io_schedule</code>·<code>futex_wait</code> 부재) → I/O도 락도 아닌 <b>스로틀링</b>으로 확정</li>
-        <li>두 도구의 <b>교차 판독</b>이 limits 재산정의 정량 근거가 된다</li>
+        <li>The CPU utilization graph sits <b>flat</b> against the limit — busy and strangled look identical</li>
+        <li>cAdvisor throttle counters give <b>counts and totals only</b> — no idea which code path got delayed by how much</li>
+        <li><code>runqlat</code> spikes + Off-CPU stacks (§27) showing <b>no blocking traces</b> (no <code>io_schedule</code>, no <code>futex_wait</code>) → not I/O, not locks: <b>throttling, confirmed</b></li>
+        <li>The <b>cross-reading</b> of the two tools is your quantitative basis for resizing limits</li>
       </ul>
     </div>
   </div>
   <table class="compare" data-a="5" style="margin-top:2.4vh">
     <thead>
-      <tr><th>관측 조합</th><th class="hl">진단</th><th>처방</th></tr>
+      <tr><th>Observed combination</th><th class="hl">Diagnosis</th><th>Prescription</th></tr>
     </thead>
     <tbody>
-      <tr><td>runqlat <b>스파이크</b> + 스택에 블로킹 흔적 <b>없음</b> — 깨어 있는데 못 뛴다</td><td><b>CFS 스로틀링</b> — CPU 할당 부족</td><td class="good">limits.cpu 상향이 유효</td></tr>
-      <tr><td>runqlat <b>정상</b> + 스택 끝에 <code>io_schedule</code>·<code>futex_wait</code> — 스스로 잠들었다</td><td><b>I/O·락 병목</b> — CPU와 무관</td><td class="bad">limits 상향 무효 — 스토리지·락 설계를 개선</td></tr>
+      <tr><td>runqlat <b>spikes</b> + <b>no</b> blocking traces in stacks — awake but can't run</td><td><b>CFS throttling</b> — CPU allocation too small</td><td class="good">Raising limits.cpu is effective</td></tr>
+      <tr><td>runqlat <b>normal</b> + stacks ending in <code>io_schedule</code>/<code>futex_wait</code> — went to sleep voluntarily</td><td><b>I/O / lock bottleneck</b> — unrelated to CPU</td><td class="bad">Raising limits does nothing — fix storage or lock design</td></tr>
     </tbody>
   </table>
   <aside class="notes">
-    증상부터 — CPU 그래프는 평평한데 지연이 튄다. <b>runqlat 스파이크 + Off-CPU 스택에 블로킹 흔적 없음 = 스로틀링 확정</b>이라는 교차 판독 논리가 핵심. 아래 표의 두 행이 "limits 상향이 유효한가"를 가르는 처방 분기.
+    Symptom first — the CPU graph is flat, but latency spikes. The core logic is the cross-reading: <b>runqlat spikes + no blocking traces in Off-CPU stacks = throttling, confirmed</b>. The two table rows are the prescription fork: "will raising limits help?".
   </aside>
 </section>
 
 <!-- ============ 29 · FALCO ============ -->
 <section class="slide">
   <div class="kicker" data-a="1">Runtime security № 1</div>
-  <h1 class="display md" data-a="2">Falco — 관측은 하지만, <span class="hot">막지는 못한다</span></h1>
+  <h1 class="display md" data-a="2">Falco — sees everything, <span class="hot">stops nothing</span></h1>
   <div class="arch" data-a="3">
     <svg viewBox="0 0 1200 340">
       <rect x="20" y="120" width="180" height="90" rx="12" fill="#131a24" stroke="#a6b2c3" stroke-width="1.5"/>
-      <text x="110" y="158" class="an" font-size="18" text-anchor="middle">프로세스</text>
+      <text x="110" y="158" class="an" font-size="18" text-anchor="middle">Process</text>
       <text x="110" y="184" class="am" font-size="13" text-anchor="middle">execve("/bin/sh")</text>
 
       <rect x="280" y="120" width="220" height="90" rx="12" fill="rgba(255,92,133,.06)" stroke="#ff5c85" stroke-width="1.5"/>
       <text x="390" y="158" class="an" font-size="18" text-anchor="middle">tracepoint</text>
-      <text x="390" y="184" class="am" font-size="13" text-anchor="middle">sys_enter · 인자 스냅샷</text>
+      <text x="390" y="184" class="am" font-size="13" text-anchor="middle">sys_enter · argument snapshot</text>
 
       <rect x="580" y="120" width="200" height="90" rx="12" fill="rgba(173,92,255,.08)" stroke="#ad5cff" stroke-width="1.5"/>
       <text x="680" y="158" class="an" font-size="18" text-anchor="middle">Ring Buffer</text>
-      <text x="680" y="184" class="am" font-size="13" text-anchor="middle">이벤트 스트림</text>
+      <text x="680" y="184" class="am" font-size="13" text-anchor="middle">event stream</text>
 
       <rect x="860" y="120" width="310" height="90" rx="12" fill="#131a24" stroke="#fbd332" stroke-width="1.5"/>
-      <text x="1015" y="152" class="an" font-size="18" text-anchor="middle">유저스페이스 룰 엔진</text>
-      <text x="1015" y="180" class="am" font-size="13" text-anchor="middle">판정: "컨테이너에서 셸 실행!"</text>
+      <text x="1015" y="152" class="an" font-size="18" text-anchor="middle">Userspace rule engine</text>
+      <text x="1015" y="180" class="am" font-size="13" text-anchor="middle">verdict: "shell spawned in a container!"</text>
 
       <path class="wire" d="M200 165 H280" stroke="#ff5c85"/>
       <path class="wire" d="M500 165 H580" stroke="#ad5cff"/>
       <path class="wire" d="M780 165 H860" stroke="#fbd332"/>
 
       <rect x="280" y="255" width="890" height="60" rx="12" fill="rgba(255,92,133,.05)" stroke="#ff5c85" stroke-width="1.5" stroke-dasharray="6 5"/>
-      <text x="725" y="280" class="an" font-size="16" text-anchor="middle" fill="#ff5c85">판정이 도착했을 때, 시스템 콜은 이미 실행이 끝나 있다</text>
-      <text x="725" y="303" class="am" font-size="13" text-anchor="middle" fill="#ff5c85">인자 검사 시점 ≠ 사용 시점 → TOCTOU(Time-of-Check to Time-of-Use) 경쟁 조건</text>
-      <text x="110" y="70" class="am" font-size="14" fill="#a6b2c3">비동기 파이프라인 —</text>
-      <text x="110" y="92" class="am" font-size="14" fill="#a6b2c3">탐지(detect)까지만</text>
+      <text x="725" y="280" class="an" font-size="16" text-anchor="middle" fill="#ff5c85">by the time the verdict arrives, the syscall has already finished executing</text>
+      <text x="725" y="303" class="am" font-size="13" text-anchor="middle" fill="#ff5c85">time of argument check ≠ time of use → TOCTOU (Time-of-Check to Time-of-Use) race</text>
+      <text x="110" y="70" class="am" font-size="14" fill="#a6b2c3">an asynchronous pipeline —</text>
+      <text x="110" y="92" class="am" font-size="14" fill="#a6b2c3">detection only</text>
     </svg>
   </div>
   <div class="chips" data-a="4" style="display:flex;gap:12px;flex-wrap:wrap">
-    <span class="chip">탐지는 강력 — 방대한 룰셋과 생태계</span>
-    <span class="chip hot">그러나 차단은 사후 대응 — kill은 이미 늦은 시점</span>
+    <span class="chip">Detection is strong — the largest ruleset and ecosystem</span>
+    <span class="chip hot">But blocking is after the fact — by kill time, it's already too late</span>
   </div>
   <aside class="notes">
-    그림의 파이프라인을 왼→오로 따라간 뒤 반전 — <b>판정이 도착했을 때 시스템 콜은 이미 끝나 있다</b>. TOCTOU 한 줄 설명. Falco 폄하가 아니라 구조적 위치의 문제임을 분명히(탐지 자체는 강력).
+    Follow the pipeline left to right, then the twist — <b>by the time the verdict arrives, the syscall has already finished</b>. One line on TOCTOU. Be clear this is a structural placement issue, not a knock on Falco (its detection is genuinely strong).
   </aside>
 </section>
 
 <!-- ============ 30 · TETRAGON ============ -->
 <section class="slide">
   <div class="kicker" data-a="1">Runtime security № 2</div>
-  <h1 class="display md" data-a="2">Tetragon — 커널 안에서 판단하고, <span class="hot">그 자리에서 차단</span>한다</h1>
+  <h1 class="display md" data-a="2">Tetragon — decides in the kernel, <span class="hot">blocks on the spot</span></h1>
   <div class="arch" data-a="3">
     <svg viewBox="0 0 1200 340">
       <rect x="20" y="120" width="180" height="90" rx="12" fill="#131a24" stroke="#a6b2c3" stroke-width="1.5"/>
-      <text x="110" y="158" class="an" font-size="18" text-anchor="middle">프로세스</text>
+      <text x="110" y="158" class="an" font-size="18" text-anchor="middle">Process</text>
       <text x="110" y="184" class="am" font-size="13" text-anchor="middle">execve("/bin/sh")</text>
 
       <rect x="290" y="120" width="240" height="90" rx="12" fill="rgba(65,179,255,.08)" stroke="#41b3ff" stroke-width="1.5"/>
       <text x="410" y="152" class="an" font-size="18" text-anchor="middle">LSM Hook</text>
-      <text x="410" y="180" class="am" font-size="13" text-anchor="middle">인자 확정 후 호출 — TOCTOU 없음</text>
+      <text x="410" y="180" class="am" font-size="13" text-anchor="middle">called after args are final — no TOCTOU</text>
 
       <rect x="620" y="105" width="270" height="120" rx="12" fill="rgba(255,153,0,.08)" stroke="#ff9900" stroke-width="2"/>
       <text x="755" y="145" class="an" font-size="19" text-anchor="middle">In-kernel Policy</text>
       <text x="755" y="172" class="am" font-size="13" text-anchor="middle">TracingPolicy CRD → BPF</text>
-      <text x="755" y="196" class="am" font-size="13" text-anchor="middle">동기(synchronous) 판정</text>
+      <text x="755" y="196" class="am" font-size="13" text-anchor="middle">synchronous verdict</text>
 
       <rect x="970" y="45" width="200" height="80" rx="12" fill="rgba(0,229,0,.07)" stroke="#00e500" stroke-width="1.5"/>
-      <text x="1070" y="80" class="an" font-size="17" text-anchor="middle">허용</text>
-      <text x="1070" y="106" class="am" font-size="13" text-anchor="middle">이벤트 로그만 송출</text>
+      <text x="1070" y="80" class="an" font-size="17" text-anchor="middle">Allow</text>
+      <text x="1070" y="106" class="am" font-size="13" text-anchor="middle">emit an event log only</text>
 
       <rect x="970" y="185" width="200" height="110" rx="12" fill="rgba(255,92,133,.08)" stroke="#ff5c85" stroke-width="1.5"/>
-      <text x="1070" y="218" class="an" font-size="17" text-anchor="middle" fill="#ff5c85">차단</text>
+      <text x="1070" y="218" class="an" font-size="17" text-anchor="middle" fill="#ff5c85">Block</text>
       <text x="1070" y="245" class="am" font-size="12" text-anchor="middle" fill="#ff5c85">bpf_override_return → -EPERM</text>
       <text x="1070" y="268" class="am" font-size="12" text-anchor="middle" fill="#ff5c85">bpf_send_signal → SIGKILL</text>
 
@@ -1318,48 +1319,48 @@ $ <span class="ck">memleak</span> -p 1234 --older 60000</div>
       <path class="wire" d="M530 165 H620" stroke="#41b3ff"/>
       <path class="wire" d="M890 135 C 925 120, 935 100, 970 90" stroke="#00e500"/>
       <path class="wire" d="M890 195 C 925 210, 935 225, 970 232" stroke="#ff5c85"/>
-      <text x="410" y="290" class="am" font-size="14" fill="#a6b2c3">유저스페이스 왕복 없음 — 판정과 실행 차단이 같은 커널 컨텍스트에서 완결</text>
+      <text x="410" y="290" class="am" font-size="14" fill="#a6b2c3">no userspace round-trip — verdict and enforcement complete in the same kernel context</text>
     </svg>
   </div>
   <div class="chips" data-a="4" style="display:flex;gap:12px;flex-wrap:wrap">
-    <span class="chip">Falco = 사후 탐지 (detection)</span>
-    <span class="chip hot">Tetragon = 동기 실행 차단 (enforcement)</span>
-    <span class="chip">Kubernetes-aware — TracingPolicy CRD(Custom Resource Definition)로 Pod·네임스페이스 단위 정책</span>
-    <span class="chip">다음 단계는 상관 분석 — 커널 eBPF 데이터를 클라우드 API·앱 시그널과 엮어 전체 공격 스토리 재구성 (ARMO CADR · Cloud Application Detection &amp; Response)</span>
+    <span class="chip">Falco = after-the-fact detection</span>
+    <span class="chip hot">Tetragon = synchronous execution blocking (enforcement)</span>
+    <span class="chip">Kubernetes-aware — per-Pod/namespace policies via the TracingPolicy CRD (Custom Resource Definition)</span>
+    <span class="chip">The next step is correlation — weaving kernel eBPF data with cloud API and app signals into full attack stories (ARMO CADR · Cloud Application Detection &amp; Response)</span>
   </div>
   <aside class="notes">
-    대비가 전부 — Falco는 비동기 사후 탐지, <b>Tetragon은 LSM 훅에서 동기 판정, 같은 커널 컨텍스트에서 차단까지 완결</b>. -EPERM vs SIGKILL 두 차단 수단. TracingPolicy CRD로 K8s 네이티브라는 점도.
+    The contrast is everything — Falco detects asynchronously after the fact; <b>Tetragon issues a synchronous verdict at the LSM hook and completes the block in the same kernel context</b>. Two blocking levers: -EPERM vs SIGKILL. Also K8s-native via the TracingPolicy CRD.
   </aside>
 </section>
 
 <!-- ============ 31 · PRODUCTION TUNING ============ -->
 <section class="slide">
   <div class="kicker" data-a="1">Operations</div>
-  <h1 class="display md" data-a="2">프로덕션 체크리스트</h1>
+  <h1 class="display md" data-a="2">Production checklist</h1>
   <div class="ladder">
     <div class="rung" style="--rc:var(--orange)" data-a="3">
       <span class="k">01</span>
-      <div><h3>JIT 설정</h3><p><code>net.core.bpf_jit_enable=1</code> — 최신 배포판 대부분 기본값. <code>bpf_jit_harden</code>은 상수 블라인딩으로 JIT 스프레이를 막지만 <b>성능 비용</b> — 신뢰 경계에 따라 선택.</p></div>
+      <div><h3>JIT settings</h3><p><code>net.core.bpf_jit_enable=1</code> — the default on most modern distros. <code>bpf_jit_harden</code> blinds constants against JIT spraying but <b>costs performance</b> — choose by trust boundary.</p></div>
       <span class="tag">SYSCTL</span>
     </div>
     <div class="rung" style="--rc:var(--blue)" data-a="4">
       <span class="k">02</span>
-      <div><h3>메모리 회계 — 커널 버전 분기</h3><p>v5.11 미만: 맵 메모리가 <code>RLIMIT_MEMLOCK</code>에 잡힘 — <code>ulimit -l</code> 상향 필수. <b>v5.11+: cgroup memory 회계로 전환</b> — 컨테이너 memory limit이 BPF 맵을 포함하므로 limit 산정에 반영.</p></div>
+      <div><h3>Memory accounting — a kernel-version fork</h3><p>Before v5.11: map memory counts against <code>RLIMIT_MEMLOCK</code> — raising <code>ulimit -l</code> is mandatory. <b>v5.11+: switched to cgroup memory accounting</b> — container memory limits now include BPF maps, so size them accordingly.</p></div>
       <span class="tag">MEMLOCK</span>
     </div>
     <div class="rung" style="--rc:var(--green)" data-a="5">
       <span class="k">03</span>
-      <div><h3>배포 전략</h3><p>BCC 런타임 컴파일 대신 <b>libbpf CO-RE 정적 바이너리</b>. BTF가 없는 구형 커널은 BTFHub에서 외부 BTF 주입.</p></div>
+      <div><h3>Shipping strategy</h3><p><b>libbpf CO-RE static binaries</b> instead of BCC runtime compilation. For older kernels without BTF, inject external BTF from BTFHub.</p></div>
       <span class="tag">CO-RE</span>
     </div>
     <div class="rung" style="--rc:var(--purple)" data-a="6">
       <span class="k">04</span>
-      <div><h3>오버헤드 관리</h3><p>필터링은 <b>최대한 커널 안에서</b> — 유저스페이스로 이벤트를 넘기는 순간 비용 급증. 집계는 per-CPU 맵으로 락 경합 제거.</p></div>
+      <div><h3>Overhead management</h3><p>Filter <b>as much as possible inside the kernel</b> — cost jumps the moment events cross into userspace. Aggregate in per-CPU maps to eliminate lock contention.</p></div>
       <span class="tag">OVERHEAD</span>
     </div>
   </div>
   <aside class="notes">
-    운영 체크리스트 — 2번(메모리 회계)이 실전에서 가장 잘 물리는 항목: <b>v5.11 경계로 RLIMIT_MEMLOCK ↔ cgroup 회계가 갈린다</b>. 컨테이너 memory limit에 BPF 맵이 포함된다는 걸 모르면 OOM으로 고생한다.
+    Ops checklist — item 2 (memory accounting) bites hardest in practice: <b>RLIMIT_MEMLOCK ↔ cgroup accounting splits at v5.11</b>. Not knowing that container memory limits include BPF maps means OOM pain.
   </aside>
 </section>
 
@@ -1367,83 +1368,83 @@ $ <span class="ck">memleak</span> -p 1234 --older 60000</div>
 <section class="slide chapter">
   <span class="num">03</span>
   <div class="kicker" data-a="1">Chapter three</div>
-  <h1 class="display" data-a="2">EKS 위의 <span class="hot">eBPF</span></h1>
+  <h1 class="display" data-a="2"><span class="hot">eBPF</span> on EKS</h1>
   <p class="mono-tag" data-a="3">vpc cni · cilium · hubble · benchmarks</p>
   <aside class="notes">
-    챕터 전환 — 핵심 반전: <b>EKS에서 eBPF는 도입할 기술이 아니라 이미 돌고 있는 기술</b>. 다음 장 지형도가 그 증거.
+    Chapter break — the key reversal: <b>on EKS, eBPF is not a technology to adopt — it is already running</b>. The next slide's landscape is the evidence.
   </aside>
 </section>
 
 <!-- ============ 33 · EKS LANDSCAPE ============ -->
 <section class="slide">
   <div class="kicker" data-a="1">Already in production</div>
-  <h1 class="display md" data-a="2">EKS eBPF 지형도 — <span class="hot">이미 프로덕션에 있다</span></h1>
-  <p class="sub" data-a="3">eBPF는 도입할 기술이 아니라 <b>이미 클러스터에서 돌고 있는 기술</b>입니다. 이해하면 디버깅 계층이 하나 늘어납니다.</p>
+  <h1 class="display md" data-a="2">The EKS eBPF landscape — <span class="hot">already in production</span></h1>
+  <p class="sub" data-a="3">eBPF is not something to adopt — it is <b>already running in your cluster</b>. Understanding it adds a debugging layer.</p>
   <div class="tiles four">
     <div class="tile" data-a="4">
       <span class="tn">AWS · v1.14+</span>
       <h3>VPC CNI NetworkPolicy</h3>
-      <p>노드 에이전트가 <b>eBPF 프로브를 Pod host veth에 attach</b>. iptables 체인 없이 정책 적용.</p>
+      <p>The node agent <b>attaches eBPF probes to each Pod's host veth</b>. Policy enforcement with no iptables chains.</p>
       <span class="tt">POLICY</span>
     </div>
     <div class="tile tc-blue" data-a="5">
       <span class="tn">CNCF</span>
       <h3>Cilium</h3>
-      <p>CNI(Container Network Interface) 전체를 eBPF로 — <b>kube-proxy 대체</b>, ENI(Elastic Network Interface) 라우팅, O(1) 룩업.</p>
+      <p>The whole CNI (Container Network Interface) in eBPF — <b>kube-proxy replacement</b>, ENI (Elastic Network Interface) routing, O(1) lookups.</p>
       <span class="tt">CNI</span>
     </div>
     <div class="tile tc-green" data-a="6">
       <span class="tn">CILIUM</span>
       <h3>Hubble</h3>
-      <p>같은 eBPF 데이터패스에서 <b>L3/L4/L7 플로우 관측</b> — 추가 계측 없이 서비스 맵 획득.</p>
+      <p><b>L3/L4/L7 flow observability</b> from the same eBPF datapath — service maps with zero extra instrumentation.</p>
       <span class="tt">OBSERVABILITY</span>
     </div>
     <div class="tile tc-purple" data-a="7">
-      <span class="tn">AWS 관리형</span>
+      <span class="tn">AWS MANAGED</span>
       <h3>Network Flow Monitor</h3>
-      <p><b>sock_ops 훅</b>으로 TCP 플로우의 재전송·RTT(Round-Trip Time)를 수집하는 에이전트 DaemonSet.</p>
+      <p>An agent DaemonSet collecting TCP retransmits and RTT (Round-Trip Time) via the <b>sock_ops hook</b>.</p>
       <span class="tt">MONITORING</span>
     </div>
   </div>
   <aside class="notes">
-    네 타일 모두 "이미 프로덕션" — VPC CNI NetworkPolicy(v1.14+), Cilium, Hubble, NFM. <b>이해하면 디버깅 계층이 하나 늘어난다</b>는 문장이 챕터 3의 주제문.
+    All four tiles are "already in production" — VPC CNI NetworkPolicy (v1.14+), Cilium, Hubble, NFM. The chapter's thesis sentence: <b>understanding it adds a debugging layer</b>.
   </aside>
 </section>
 
 <!-- ============ 34 · VPC CNI NETWORKPOLICY ============ -->
 <section class="slide">
   <div class="kicker" data-a="1">eBPF on EKS № 1</div>
-  <h1 class="display md" data-a="2">VPC CNI NetworkPolicy — 컨트롤러와 에이전트의 <span class="hot">분업</span></h1>
+  <h1 class="display md" data-a="2">VPC CNI NetworkPolicy — a <span class="hot">division of labor</span>: controller and agent</h1>
   <div class="arch" data-a="3">
     <svg viewBox="0 0 1200 400">
       <rect x="20" y="60" width="230" height="95" rx="12" fill="#131a24" stroke="#a6b2c3" stroke-width="1.5"/>
       <text x="135" y="100" class="an" font-size="18" text-anchor="middle">NetworkPolicy</text>
-      <text x="135" y="128" class="am" font-size="13" text-anchor="middle">사용자 정의 오브젝트</text>
+      <text x="135" y="128" class="am" font-size="13" text-anchor="middle">user-defined object</text>
 
       <rect x="340" y="45" width="310" height="125" rx="12" fill="rgba(255,153,0,.06)" stroke="#ff9900" stroke-width="1.5"/>
       <text x="495" y="85" class="an" font-size="18" text-anchor="middle">Network Policy Controller</text>
-      <text x="495" y="112" class="am" font-size="13" text-anchor="middle">EKS 컨트롤 플레인 · AWS 관리</text>
-      <text x="495" y="136" class="am" font-size="13" text-anchor="middle">셀렉터 → 실제 Pod IP 집합으로 해석</text>
+      <text x="495" y="112" class="am" font-size="13" text-anchor="middle">EKS control plane · AWS-managed</text>
+      <text x="495" y="136" class="am" font-size="13" text-anchor="middle">resolves selectors → concrete Pod IP sets</text>
 
       <rect x="740" y="60" width="230" height="95" rx="12" fill="rgba(173,92,255,.08)" stroke="#ad5cff" stroke-width="1.5"/>
       <text x="855" y="100" class="an" font-size="18" text-anchor="middle">PolicyEndpoints</text>
-      <text x="855" y="128" class="am" font-size="13" text-anchor="middle">CRD — 해석 결과 발행</text>
+      <text x="855" y="128" class="am" font-size="13" text-anchor="middle">CRD — resolved results published</text>
 
       <!-- node boundary -->
       <rect x="240" y="230" width="930" height="150" rx="16" fill="rgba(65,179,255,.03)" stroke="#41b3ff" stroke-width="1.2" stroke-dasharray="8 6"/>
-      <text x="270" y="262" class="am" font-size="13" fill="#41b3ff" letter-spacing="2">워커 노드</text>
+      <text x="270" y="262" class="am" font-size="13" fill="#41b3ff" letter-spacing="2">WORKER NODE</text>
 
       <rect x="290" y="285" width="330" height="80" rx="12" fill="rgba(65,179,255,.08)" stroke="#41b3ff" stroke-width="1.5"/>
       <text x="455" y="318" class="an" font-size="17" text-anchor="middle">aws-network-policy-agent</text>
-      <text x="455" y="344" class="am" font-size="13" text-anchor="middle">DaemonSet — PolicyEndpoints watch</text>
+      <text x="455" y="344" class="am" font-size="13" text-anchor="middle">DaemonSet — watches PolicyEndpoints</text>
 
       <rect x="720" y="285" width="200" height="80" rx="12" fill="rgba(0,229,0,.07)" stroke="#00e500" stroke-width="1.5"/>
-      <text x="820" y="318" class="an" font-size="17" text-anchor="middle">eBPF 프로브</text>
-      <text x="820" y="344" class="am" font-size="13" text-anchor="middle">ingress / egress 판정</text>
+      <text x="820" y="318" class="an" font-size="17" text-anchor="middle">eBPF probes</text>
+      <text x="820" y="344" class="am" font-size="13" text-anchor="middle">ingress / egress verdicts</text>
 
       <rect x="990" y="285" width="150" height="80" rx="12" fill="#131a24" stroke="#fbd332" stroke-width="1.5"/>
       <text x="1065" y="318" class="an" font-size="17" text-anchor="middle">host veth</text>
-      <text x="1065" y="344" class="am" font-size="13" text-anchor="middle">Pod 인터페이스</text>
+      <text x="1065" y="344" class="am" font-size="13" text-anchor="middle">Pod interface</text>
 
       <path class="wire" d="M250 107 H340" stroke="#a6b2c3"/>
       <path class="wire" d="M650 107 H740" stroke="#ff9900"/>
@@ -1453,85 +1454,85 @@ $ <span class="ck">memleak</span> -p 1234 --older 60000</div>
     </svg>
   </div>
   <div class="chips" data-a="4" style="display:flex;gap:12px;flex-wrap:wrap">
-    <span class="chip hot">iptables 체인 없음 — 정책이 늘어도 규칙 순회 비용 선형 증가 없음</span>
-    <span class="chip">트러블슈팅 1순위: NetworkPolicy가 아니라 PolicyEndpoints CRD 확인</span>
-    <span class="chip">적용 범위 — Pod eth0 한정 · host networking / Windows / Fargate 미적용</span>
+    <span class="chip hot">No iptables chains — rule traversal cost does not grow linearly with policy count</span>
+    <span class="chip">Troubleshooting step one: check the PolicyEndpoints CRD, not the NetworkPolicy</span>
+    <span class="chip">Scope — Pod eth0 only · does not apply to host networking / Windows / Fargate</span>
   </div>
   <aside class="notes">
-    분업 구조 — 컨트롤러(AWS 관리, 셀렉터→IP 해석)와 노드 에이전트(eBPF attach)의 역할을 나눠 설명. 실전 팁 두 개: <b>트러블슈팅은 PolicyEndpoints CRD부터</b>, 적용 범위는 Pod eth0 한정(host networking/Windows/Fargate 미적용).
+    Explain the division of labor — controller (AWS-managed, selector→IP resolution) vs node agent (eBPF attach). Two field tips: <b>troubleshoot starting from the PolicyEndpoints CRD</b>, and scope is Pod eth0 only (no host networking / Windows / Fargate).
   </aside>
 </section>
 
 <!-- ============ 35 · NFM CASE STUDY ============ -->
 <section class="slide">
   <div class="kicker" data-a="1">eBPF on EKS № 2</div>
-  <h1 class="display md" data-a="2">Network Flow Monitor — AWS가 쓴 eBPF를 <span class="hot">소스로 읽는다</span></h1>
-  <p class="sub" data-a="3">NFM 에이전트는 오픈소스(Rust · Apache-2.0)입니다 — 챕터 1의 개념들이 프로덕션 코드에서 어떻게 쓰이는지 그대로 보여줍니다.</p>
+  <h1 class="display md" data-a="2">Network Flow Monitor — reading AWS's own eBPF <span class="hot">in the source</span></h1>
+  <p class="sub" data-a="3">The NFM agent is open source (Rust · Apache-2.0) — it shows exactly how chapter 1's concepts are used in production code.</p>
   <div class="ladder">
     <div class="rung" style="--rc:var(--orange)" data-a="4">
       <span class="k">HOOK</span>
-      <div><h3>sock_ops 단일 프로그램</h3><p><code>BPF_PROG_TYPE_SOCK_OPS</code>를 cgroup v2에 attach — 패킷 캡처 없이 커널 TCP 스택의 콜백(연결·RTT·재전송)만 구독. 콜백 리턴은 무조건 <code>BPF_OK</code> — <b>고객 연결에 개입하지 않는다</b>(소스 주석)</p></div>
-      <span class="tag">§12 실전</span>
+      <div><h3>A single sock_ops program</h3><p><code>BPF_PROG_TYPE_SOCK_OPS</code> on cgroup v2 — no packet capture, only TCP-stack callbacks (connect · RTT · retransmit). Always returns <code>BPF_OK</code> — <b>never touches customer connections</b> (source comment)</p></div>
+      <span class="tag">§12 APPLIED</span>
     </div>
     <div class="rung" style="--rc:var(--blue)" data-a="5">
       <span class="k">MAP</span>
-      <div><h3>Ring Buffer 대신 맵 폴링</h3><p>소켓별 누적 통계를 맵에 쌓고 유저스페이스가 500ms 주기로 수거 — <b>이벤트 스트림이 아니면 링 버퍼가 정답이 아니다</b></p></div>
-      <span class="tag">§18 반례</span>
+      <div><h3>Map polling instead of a Ring Buffer</h3><p>Per-socket stats accumulate in maps; userspace collects every 500 ms — <b>not an event stream → the ring buffer isn't the answer</b></p></div>
+      <span class="tag">§18 COUNTERPOINT</span>
     </div>
     <div class="rung" style="--rc:var(--green)" data-a="6">
       <span class="k">SAMPLE</span>
-      <div><h3>입구에서만 샘플링</h3><p>신규 소켓 진입 시에만 샘플링 판정 — 일단 추적을 시작한 소켓의 이벤트는 전부 수집, <b>flow 통계의 내적 일관성</b> 보장</p></div>
+      <div><h3>Sampling at the entrance only</h3><p>Sampling is decided once, at new-socket entry — every event of a tracked socket is collected: <b>internally consistent flow stats</b></p></div>
       <span class="tag">CONSISTENCY</span>
     </div>
     <div class="rung" style="--rc:var(--pink)" data-a="7">
       <span class="k">CAP</span>
-      <div><h3>스스로 권한을 내려놓는다</h3><p>eBPF 로드가 끝나면 <code>CAP_SYS_ADMIN</code>·<code>CAP_NET_ADMIN</code>을 드롭하고 <b>맵 읽기용 CAP_BPF만 유지</b> — 최소 권한 원칙의 실행</p></div>
+      <div><h3>Drops its own privileges</h3><p>After loading, drops <code>CAP_SYS_ADMIN</code>/<code>CAP_NET_ADMIN</code>, keeping <b>only CAP_BPF for map reads</b> — least privilege, executed</p></div>
       <span class="tag">LEAST PRIV</span>
     </div>
   </div>
   <div class="chips" data-a="8" style="display:flex;gap:12px;margin-top:2.6vh;flex-wrap:wrap">
-    <span class="chip hot">라이선스 회귀 — GPL 전용 helper 강제 커널(SUSE 15 SP5 · Ubuntu 20.04)에선 Apache-2.0 에이전트 미동작, DTrace CDDL 장벽(6장)의 현대판</span>
-    <span class="chip">운영 상세(NHI · enrichment · 배포)는 Playbook NFM 문서 참조</span>
+    <span class="chip hot">License history rhymes — GPL-only-helper kernels (SUSE 15 SP5 · Ubuntu 20.04) reject the Apache-2.0 agent; the DTrace CDDL wall again (§6)</span>
+    <span class="chip">Ops detail (NHI · enrichment · rollout) — Playbook NFM doc</span>
   </div>
   <aside class="notes">
-    이 장이 챕터 1 회수의 하이라이트 — AWS가 직접 쓴 eBPF를 소스로 읽는다. <b>맵 폴링 rung이 백미: 이벤트 스트림이 아니면 Ring Buffer가 정답이 아니다</b>(18장의 의도적 반례). CAP 셀프 드롭, 그리고 라이선스 회귀 칩 — 6장 DTrace CDDL의 현대판.
+    The highlight of chapter 1 collection — reading AWS's own eBPF in the source. <b>The map-polling rung is the gem: if it isn't an event stream, the Ring Buffer isn't the answer</b> (a deliberate counterpoint to §18). CAP self-drop, then the license chip — the modern rerun of §6's DTrace CDDL.
   </aside>
 </section>
 
 <!-- ============ 36 · CILIUM ENI ============ -->
 <section class="slide">
   <div class="kicker" data-a="1">eBPF on EKS № 3</div>
-  <h1 class="display md" data-a="2">Cilium ENI 모드 — 오버레이 없는 <span class="hot">eBPF 데이터패스</span></h1>
+  <h1 class="display md" data-a="2">Cilium ENI mode — an <span class="hot">eBPF datapath</span> with no overlay</h1>
   <div class="split w64">
     <div class="arch" data-a="3" style="margin-top:0">
       <svg viewBox="0 0 760 380">
         <rect x="20" y="30" width="150" height="80" rx="12" fill="#131a24" stroke="#a6b2c3" stroke-width="1.5"/>
         <text x="95" y="65" class="an" font-size="16" text-anchor="middle">Pod</text>
-        <text x="95" y="90" class="am" font-size="12" text-anchor="middle">VPC 네이티브 IP</text>
+        <text x="95" y="90" class="am" font-size="12" text-anchor="middle">VPC-native IP</text>
 
         <rect x="240" y="30" width="220" height="80" rx="12" fill="rgba(255,153,0,.08)" stroke="#ff9900" stroke-width="2"/>
         <text x="350" y="60" class="an" font-size="16" text-anchor="middle">eBPF (tc hook)</text>
-        <text x="350" y="85" class="am" font-size="12" text-anchor="middle">서비스 해석 · 정책 · O(1) 룩업</text>
+        <text x="350" y="85" class="am" font-size="12" text-anchor="middle">service resolution · policy · O(1) lookup</text>
 
         <rect x="530" y="30" width="200" height="80" rx="12" fill="rgba(65,179,255,.08)" stroke="#41b3ff" stroke-width="1.5"/>
-        <text x="630" y="60" class="an" font-size="16" text-anchor="middle">ENI → VPC 라우팅</text>
-        <text x="630" y="85" class="am" font-size="12" text-anchor="middle">오버레이 캡슐화 없음</text>
+        <text x="630" y="60" class="an" font-size="16" text-anchor="middle">ENI → VPC routing</text>
+        <text x="630" y="85" class="am" font-size="12" text-anchor="middle">no overlay encapsulation</text>
 
         <rect x="240" y="170" width="220" height="75" rx="12" fill="rgba(255,92,133,.06)" stroke="#ff5c85" stroke-width="1.5" stroke-dasharray="5 4"/>
         <text x="350" y="200" class="an" font-size="15" text-anchor="middle" fill="#ff5c85">kube-proxy</text>
-        <text x="350" y="224" class="am" font-size="12" text-anchor="middle" fill="#ff5c85">제거됨 — iptables 서비스 체인 소멸</text>
+        <text x="350" y="224" class="am" font-size="12" text-anchor="middle" fill="#ff5c85">removed — iptables service chains gone</text>
 
         <rect x="20" y="290" width="230" height="75" rx="12" fill="rgba(173,92,255,.08)" stroke="#ad5cff" stroke-width="1.5"/>
         <text x="135" y="320" class="an" font-size="15" text-anchor="middle">Cilium Operator</text>
-        <text x="135" y="344" class="am" font-size="12" text-anchor="middle">EC2 API — ENI/IP 할당</text>
+        <text x="135" y="344" class="am" font-size="12" text-anchor="middle">EC2 API — ENI/IP allocation</text>
 
         <rect x="330" y="290" width="190" height="75" rx="12" fill="#131a24" stroke="#fbd332" stroke-width="1.5"/>
         <text x="425" y="320" class="an" font-size="15" text-anchor="middle">CiliumNode CRD</text>
-        <text x="425" y="344" class="am" font-size="12" text-anchor="middle">노드별 IP Pool</text>
+        <text x="425" y="344" class="am" font-size="12" text-anchor="middle">per-node IP pool</text>
 
         <rect x="600" y="290" width="140" height="75" rx="12" fill="rgba(0,229,0,.07)" stroke="#00e500" stroke-width="1.5"/>
         <text x="670" y="320" class="an" font-size="15" text-anchor="middle">Agent</text>
-        <text x="670" y="344" class="am" font-size="12" text-anchor="middle">Pod IP 부여</text>
+        <text x="670" y="344" class="am" font-size="12" text-anchor="middle">assigns Pod IPs</text>
 
         <path class="wire" d="M170 70 H240" stroke="#a6b2c3"/>
         <path class="wire" d="M460 70 H530" stroke="#ff9900"/>
@@ -1540,65 +1541,65 @@ $ <span class="ck">memleak</span> -p 1234 --older 60000</div>
       </svg>
     </div>
     <div class="panel" style="--pc:var(--blue)" data-a="4">
-      <h3>무엇이 달라지나</h3>
+      <h3>What changes</h3>
       <ul>
-        <li><b>kube-proxy replacement</b> — iptables O(n) 체인 순회 → eBPF 해시맵 <b>O(1) 조회</b>, 서비스 수가 늘어도 룩업 비용 일정</li>
-        <li><b>ENI IPAM</b>(IP Address Management) — Pod에 VPC IP 직접 부여, 오버레이 오버헤드 제거</li>
-        <li><b>Hubble</b> — 동일 데이터패스에서 플로우 관측을 덤으로 획득</li>
-        <li>Gateway API·mTLS·Bandwidth Manager 등 메시 기능 흡수</li>
+        <li><b>kube-proxy replacement</b> — iptables O(n) chain traversal → eBPF hash-map <b>O(1) lookup</b>; lookup cost stays flat as services grow</li>
+        <li><b>ENI IPAM</b> (IP Address Management) — Pods get VPC IPs directly, overlay overhead removed</li>
+        <li><b>Hubble</b> — flow observability for free, from the same datapath</li>
+        <li>Absorbs mesh features — Gateway API · mTLS · Bandwidth Manager</li>
       </ul>
     </div>
   </div>
   <aside class="notes">
-    Cilium ENI 모드의 3대 변화 — <b>kube-proxy 제거(iptables O(n) → eBPF O(1))</b>, Pod에 VPC IP 직접 부여(오버레이 없음), Hubble 관측 덤. 빨간 점선 박스(kube-proxy 소멸)를 가리키며.
+    Cilium ENI mode's three big changes — <b>kube-proxy removed (iptables O(n) → eBPF O(1))</b>, Pods get VPC IPs directly (no overlay), Hubble observability for free. Point at the red dashed box (kube-proxy gone).
   </aside>
 </section>
 
 <!-- ============ 37 · BENCHMARK ============ -->
 <section class="slide">
   <div class="kicker" data-a="1">Numbers, not vibes</div>
-  <h1 class="display md" data-a="2">숫자로 보는 eBPF — 실측 벤치마크</h1>
-  <p class="sub" data-a="3">이 플레이북의 자체 측정 결과입니다 — <b>EKS 1.31 · m6i.xlarge · 시나리오 5종</b>, 3회 반복 중앙값.</p>
+  <h1 class="display md" data-a="2">eBPF in numbers — hands-on benchmarks</h1>
+  <p class="sub" data-a="3">Measured by this playbook — <b>EKS 1.31 · m6i.xlarge · 5 scenarios</b>, median of 3 runs.</p>
   <table class="compare" data-a="4">
     <thead>
-      <tr><th>메트릭</th><th>A · VPC CNI (기본)</th><th class="hl">E · Cilium ENI + 풀 튜닝</th><th>해석</th></tr>
+      <tr><th>Metric</th><th>A · VPC CNI (default)</th><th class="hl">E · Cilium ENI + full tuning</th><th>Reading</th></tr>
     </thead>
     <tbody>
-      <tr><td>TCP 처리량</td><td>12.41 Gbps</td><td>12.40 Gbps</td><td>모든 시나리오가 <b>NIC 대역폭(12.5 Gbps)에 포화</b> — 처리량으론 차이 없음</td></tr>
-      <tr><td>Pod-to-Pod RTT p50</td><td>4,894 µs</td><td class="good">3,135 µs</td><td>eBPF 데이터패스 + 튜닝으로 <b>약 36% 단축</b></td></tr>
-      <tr><td>UDP 손실 (iperf3 포화)</td><td class="bad">20.4%</td><td class="good">0.03%</td><td>Bandwidth Manager — EDT(Earliest Departure Time) rate limiting, 성능이 아닌 <b>기능</b> 차이</td></tr>
-      <tr><td>HTTP p99 @1k QPS</td><td>10.9 ms</td><td class="good">9.9 ms</td><td>애플리케이션 레벨에선 격차 축소 — <b>CNI는 병목의 일부일 뿐</b></td></tr>
+      <tr><td>TCP throughput</td><td>12.41 Gbps</td><td>12.40 Gbps</td><td>Every scenario <b>saturates the NIC (12.5 Gbps)</b> — throughput doesn't differentiate</td></tr>
+      <tr><td>Pod-to-Pod RTT p50</td><td>4,894 µs</td><td class="good">3,135 µs</td><td>eBPF datapath + tuning — <b>~36% lower</b></td></tr>
+      <tr><td>UDP loss (iperf3 saturation)</td><td class="bad">20.4%</td><td class="good">0.03%</td><td>Bandwidth Manager — EDT (Earliest Departure Time) rate limiting; a <b>feature</b> difference, not performance</td></tr>
+      <tr><td>HTTP p99 @1k QPS</td><td>10.9 ms</td><td class="good">9.9 ms</td><td>The gap narrows at the application level — <b>the CNI is only part of the bottleneck</b></td></tr>
     </tbody>
   </table>
   <div class="chips" data-a="5" style="display:flex;gap:12px;margin-top:2.4vh;flex-wrap:wrap">
-    <span class="chip hot">결론: CNI 선택 기준은 처리량이 아니라 지연 · 기능 · 운영 모델</span>
-    <span class="chip">서비스 메시도 같은 흐름 — 사이드카(Pod당 프록시) → eBPF + 노드 프록시(Cilium Mesh · Istio Ambient)</span>
+    <span class="chip hot">Conclusion: pick a CNI on latency · features · operating model — not throughput</span>
+    <span class="chip">Service meshes follow the same arc — sidecars (a proxy per Pod) → eBPF + node proxies (Cilium Mesh · Istio Ambient)</span>
   </div>
   <aside class="notes">
-    자체 실측임을 강조 — 벤더 수치가 아니다. 반전 포인트: <b>처리량은 전부 NIC 포화로 동일</b>, 차이는 RTT 36%·UDP 손실 20.4%→0.03%(기능 차이). 결론 칩: CNI 선택 기준은 처리량이 아니라 지연·기능·운영 모델.
+    Stress these are our own measurements — not vendor numbers. The twist: <b>throughput is identical everywhere — all NIC-saturated</b>; the differences are RTT (−36%) and UDP loss 20.4%→0.03% (a feature difference). Conclusion chip: pick a CNI on latency, features, and operating model — not throughput.
   </aside>
 </section>
 
 <!-- ============ 38 · TAKEAWAYS ============ -->
 <section class="slide">
   <div class="kicker" data-a="1">Take these home</div>
-  <h1 class="display md" data-a="2">커널을 읽을 수 있으면, <span class="hot">클러스터가 보인다</span></h1>
+  <h1 class="display md" data-a="2">Read the kernel, and <span class="hot">the cluster comes into focus</span></h1>
   <div class="takeaways">
-    <div class="take" data-a="3"><span class="tk">1</span><h3>Verifier가 계약이다</h3><p>eBPF의 안전은 런타임 격리가 아니라 <b>로드 타임 증명</b>. 512 B 스택·bounded loop 같은 제약은 그 증명의 대가다.</p></div>
-    <div class="take" data-a="4"><span class="tk">2</span><h3>CO-RE가 배포를 바꿨다</h3><p>BTF 재배치로 커널별 재컴파일이 사라졌다. <b>libbpf 정적 바이너리</b>가 프로덕션 표준 — BCC는 실험용으로.</p></div>
-    <div class="take" data-a="5"><span class="tk">3</span><h3>EKS에선 이미 기본기</h3><p>NetworkPolicy 에이전트·Cilium·NFM 모두 eBPF 위에서 돌고, NFM은 소스까지 공개되어 있다. <b>이해하는 순간 디버깅 계층이 하나 더 생긴다.</b></p></div>
+    <div class="take" data-a="3"><span class="tk">1</span><h3>The Verifier is the contract</h3><p>eBPF's safety is a <b>load-time proof</b>, not runtime isolation. Constraints like the 512 B stack and bounded loops are the price of that proof.</p></div>
+    <div class="take" data-a="4"><span class="tk">2</span><h3>CO-RE changed shipping</h3><p>BTF relocation ended per-kernel recompilation. <b>libbpf static binaries</b> are the production standard — keep BCC for experiments.</p></div>
+    <div class="take" data-a="5"><span class="tk">3</span><h3>On EKS it's already table stakes</h3><p>The NetworkPolicy agent, Cilium, and NFM all run on eBPF — and NFM's source is public. <b>The moment you understand it, you gain a debugging layer.</b></p></div>
   </div>
-  <p class="sub" data-a="6" style="margin-top:4vh">세 챕터를 관통하는 한 문장 — <b>eBPF는 커널을 고치지 않고 커널의 동작을 바꾸는, 검증된 프로그래밍 계층</b>입니다.</p>
+  <p class="sub" data-a="6" style="margin-top:4vh">One sentence through all three chapters — <b>eBPF is a verified programming layer that changes the kernel's behavior without changing the kernel</b>.</p>
   <aside class="notes">
-    세 가지를 손가락으로 꼽으며 — Verifier가 계약, CO-RE가 배포를 바꿈, EKS에선 이미 기본기. 관통 문장을 천천히: <b>커널을 고치지 않고 커널의 동작을 바꾸는, 검증된 프로그래밍 계층</b>.
+    Count the three on your fingers — the Verifier is the contract, CO-RE changed shipping, already table stakes on EKS. Deliver the through-line slowly: <b>a verified programming layer that changes the kernel's behavior without changing the kernel</b>.
   </aside>
 </section>
 
 <!-- ============ 39 · CLOSING ============ -->
 <section class="slide cover">
   <div class="kicker" data-a="1">Wrap-up</div>
-  <h1 class="display md" data-a="2">커널은 더 이상 <span class="hot">블랙박스</span>가 아닙니다</h1>
-  <p class="sub" data-a="3">더 깊이 들어갈 수 있는 자료들입니다 — 질문과 토론을 환영합니다.</p>
+  <h1 class="display md" data-a="2">The kernel is no longer a <span class="hot">black box</span></h1>
+  <p class="sub" data-a="3">Resources to go deeper — questions and discussion welcome.</p>
   <div class="rescols">
     <div data-a="4">
       <h3>Learn</h3>
@@ -1610,7 +1611,7 @@ $ <span class="ck">memleak</span> -p 1234 --older 60000</div>
       <h3>Build on EKS</h3>
       <div class="rl"><span class="mglyph">C</span><a href="https://docs.cilium.io/en/stable/network/concepts/ipam/eni/" target="_blank" rel="noopener">Cilium ENI Mode</a><span class="rtag">CNI</span></div>
       <div class="rl"><span class="mglyph">T</span><a href="https://tetragon.io/" target="_blank" rel="noopener">Tetragon — eBPF Security Observability</a><span class="rtag">SECURITY</span></div>
-      <div class="rl"><span class="mglyph">PB</span><a href="https://devfloor9.github.io/engineering-playbook/docs/eks-best-practices/networking-performance/vpc-cni-deep-dive" target="_blank" rel="noopener">Playbook — VPC CNI 동작 원리 Deep Dive</a><span class="rtag">INTERNAL</span></div>
+      <div class="rl"><span class="mglyph">PB</span><a href="https://devfloor9.github.io/engineering-playbook/docs/eks-best-practices/networking-performance/vpc-cni-deep-dive" target="_blank" rel="noopener">Playbook — VPC CNI Deep Dive</a><span class="rtag">INTERNAL</span></div>
     </div>
   </div>
   <div class="chips" data-a="6">
@@ -1624,40 +1625,40 @@ $ <span class="ck">memleak</span> -p 1234 --older 60000</div>
     <span>CSAT SURVEY</span>
   </div>
   <aside class="notes">
-    Q&A — 자료는 Learn(개념)/Build on EKS(실전) 2열. CSAT QR은 <b>Q 키</b>로 표시(E 키에서 survey URL 설정). 마지막 멘트: "커널은 더 이상 블랙박스가 아닙니다".
+    Q&amp;A — resources in two columns: Learn (concepts) / Build on EKS (practice). The CSAT QR shows with the <b>Q key</b> (set the survey URL via E). Closing line: "the kernel is no longer a black box".
   </aside>
 </section>
 
-<!-- presenter setup — 브라우저 localStorage에만 저장, 링크 공유로 전달되지 않음 -->
+<!-- presenter setup — stored in this browser's localStorage only; never travels with a shared link -->
 <aside class="setup" id="setup" hidden>
   <header>
     <span class="st">PRESENTER SETUP</span>
-    <button id="setupClose" aria-label="닫기">×</button>
+    <button id="setupClose" aria-label="Close">×</button>
   </header>
-  <p class="note">이 브라우저에만 저장됩니다 — 한 번 설정하면 유지되고, 링크를 공유해도 발표자 정보는 전달되지 않습니다.</p>
+  <p class="note">Saved in this browser only — set it once and it persists; sharing the link never shares your speaker info.</p>
   <div class="seg" id="spkCount">
     <button type="button" data-count="1">1 speaker</button>
     <button type="button" data-count="2">2 speakers</button>
   </div>
   <fieldset id="spk1">
     <legend>Speaker 1</legend>
-    <label>이름<input id="s1name" type="text" autocomplete="off"></label>
-    <label>직함<input id="s1title" type="text" autocomplete="off"></label>
-    <label>소속<input id="s1company" type="text" autocomplete="off"></label>
+    <label>Name<input id="s1name" type="text" autocomplete="off"></label>
+    <label>Title<input id="s1title" type="text" autocomplete="off"></label>
+    <label>Company<input id="s1company" type="text" autocomplete="off"></label>
     <label>LinkedIn<input id="s1linkedin" type="text" autocomplete="off"></label>
   </fieldset>
   <fieldset id="spk2" hidden>
     <legend>Speaker 2</legend>
-    <label>이름<input id="s2name" type="text" autocomplete="off"></label>
-    <label>직함<input id="s2title" type="text" autocomplete="off"></label>
-    <label>소속<input id="s2company" type="text" autocomplete="off"></label>
+    <label>Name<input id="s2name" type="text" autocomplete="off"></label>
+    <label>Title<input id="s2title" type="text" autocomplete="off"></label>
+    <label>Company<input id="s2company" type="text" autocomplete="off"></label>
     <label>LinkedIn<input id="s2linkedin" type="text" autocomplete="off"></label>
   </fieldset>
-  <label class="chk"><input id="hideSpk" type="checkbox"> 발표자 정보 숨기기 (커버 + 클로징)</label>
-  <label class="survey">CSAT survey 링크 <em>(클로징 슬라이드에 QR 표시)</em><input id="surveyUrl" type="url" placeholder="https://… survey URL" autocomplete="off"></label>
+  <label class="chk"><input id="hideSpk" type="checkbox"> Hide speaker info (cover + closing)</label>
+  <label class="survey">CSAT survey link <em>(rendered as a QR on the closing slide)</em><input id="surveyUrl" type="url" placeholder="https://… survey URL" autocomplete="off"></label>
   <div class="actions">
-    <button type="button" id="setupReset">기본값 복원</button>
-    <button type="button" id="setupSave" class="primary">저장</button>
+    <button type="button" id="setupReset">Restore defaults</button>
+    <button type="button" id="setupSave" class="primary">Save</button>
   </div>
 </aside>
 

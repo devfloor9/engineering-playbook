@@ -404,6 +404,15 @@ h1.display.md { font-size: clamp(30px, 3.8vw, 54px); }
 }
 .pdfbtn:hover { border-color: var(--orange); color: var(--orange); }
 
+/* ---- 언어 전환 버튼 (EN ↔ KO — deck.js가 현재 슬라이드 해시를 유지한 채 이동) ---- */
+.langbtn {
+  position: fixed; top: 14px; right: 84px; z-index: 43; cursor: pointer;
+  font-family: var(--mono); font-size: 11px; font-weight: 700; letter-spacing: .14em;
+  color: var(--fog); background: rgba(19,26,36,.8); border: 1px solid var(--line);
+  border-radius: 8px; padding: 6px 12px; transition: border-color .25s, color .25s;
+}
+.langbtn:hover { border-color: var(--orange); color: var(--orange); }
+
 /* ---- 인라인 편집 ([data-edit] — 클릭해서 수정, deck.js가 localStorage에 저장) ---- */
 [data-edit] { cursor: text; border-radius: 4px; }
 [data-edit]:hover { outline: 1px dashed rgba(255,153,0,.45); outline-offset: 3px; }
@@ -414,7 +423,7 @@ h1.display.md { font-size: clamp(30px, 3.8vw, 54px); }
   * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   @page { size: 13.333in 7.5in; margin: 0; }
   html, body { height: auto !important; overflow: visible !important; }
-  .navbtns, .pdfbtn, .progress, .setup, #notesbar, #splash, .hud .keys { display: none !important; }
+  .navbtns, .pdfbtn, .langbtn, .progress, .setup, #notesbar, #splash, .hud .keys { display: none !important; }
   /* 노이즈(blend-mode)·그리드(mask)는 페이지 전체 래스터화를 유발해 PDF가 수십 MB로 커진다 — 인쇄 제외 */
   .atmosphere::after, .gridlines { display: none !important; }
   .slide {

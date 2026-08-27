@@ -2,6 +2,16 @@
 // DECK_ID는 덱마다 고유 — localStorage 키(프레젠터 설정)가 여기서 파생된다.
 const DECK_ID = 'ebpf-deck';
 
+// 언어별 UI 문자열 — <html lang="…">으로 판별 (index.html=en, index-ko.html=ko)
+const LANG = document.documentElement.lang === 'ko' ? 'ko' : 'en';
+const T = LANG === 'ko' ? {
+  noNotes: '이 슬라이드에는 노트가 없습니다', untitled: '(제목 없음)',
+  prev: '‹ 이전', next: '다음 ›', last: '(마지막 슬라이드)', timerTip: '클릭하면 타이머 리셋',
+} : {
+  noNotes: 'No notes for this slide', untitled: '(untitled)',
+  prev: '‹ Prev', next: 'Next ›', last: '(last slide)', timerTip: 'Click to reset timer',
+};
+
 const slides = [...document.querySelectorAll('.slide')];
 const progress = document.getElementById('progress');
 const counter = document.getElementById('counter');
@@ -62,6 +72,13 @@ document.getElementById('navPrev').addEventListener('click', retreat);
 document.getElementById('navNext').addEventListener('click', advance);
 const pdfBtn = document.getElementById('pdfBtn');
 if (pdfBtn) pdfBtn.addEventListener('click', () => window.print());
+// 언어 전환 — data-target의 반대 언어 파일로, 현재 슬라이드 해시를 유지한 채 이동.
+// 패킹된 단일 파일(.dosirak.html — styles.css가 인라인)에는 상대 대상 파일이 없으므로 버튼을 숨긴다.
+const langBtn = document.getElementById('langBtn');
+if (langBtn) {
+  if (!document.querySelector('link[href$="styles.css"]')) langBtn.hidden = true;
+  else langBtn.addEventListener('click', () => { location.href = langBtn.dataset.target + location.hash; });
+}
 
 // touch swipe
 let tx0 = null;
@@ -82,7 +99,7 @@ const noteOf = (n) => {
 };
 const titleOf = (n) => {
   const h = slides[n] && slides[n].querySelector('h1, h2, h3');
-  return h ? h.textContent.replace(/\s+/g, ' ').trim() : '(제목 없음)';
+  return h ? h.textContent.replace(/\s+/g, ' ').trim() : T.untitled;
 };
 
 const notesbar = document.createElement('div');
@@ -91,7 +108,7 @@ notesbar.hidden = true;
 document.body.appendChild(notesbar);
 function nRender() {
   if (notesbar.hidden) return;
-  notesbar.innerHTML = noteOf(cur) || '<em>이 슬라이드에는 노트가 없습니다</em>';
+  notesbar.innerHTML = noteOf(cur) || '<em>' + T.noNotes + '</em>';
 }
 
 let sWin = null, sT0 = null, sTick = null;
@@ -102,7 +119,7 @@ function sOpen() {
   if (!sWin) { notesbar.hidden = false; nRender(); return; } // 팝업 차단 → 오버레이 폴백
   const d = sWin.document;
   d.open();
-  d.write('<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8">'
+  d.write('<!DOCTYPE html><html lang="' + LANG + '"><head><meta charset="UTF-8">'
     + '<title>Speaker View — ' + esc(document.title) + '</title><style>'
     + ':root{color-scheme:dark}'
     + '*{box-sizing:border-box;margin:0}'
@@ -125,14 +142,14 @@ function sOpen() {
     + '.ctl button{flex:1;background:#131a24;border:1px solid #2a3543;color:#f3f3f7;border-radius:8px;padding:10px 0;font-size:14px;cursor:pointer}'
     + '.ctl button:hover{border-color:#ff9900;color:#ff9900}'
     + '</style></head><body>'
-    + '<header><span id="svCounter"></span><span id="svTimer" title="클릭하면 타이머 리셋">00:00</span><span id="svClock"></span></header>'
+    + '<header><span id="svCounter"></span><span id="svTimer" title="' + T.timerTip + '">00:00</span><span id="svClock"></span></header>'
     + '<main><section class="pv">'
     + '<div class="fr"><label>CURRENT</label><iframe id="svCur"></iframe></div>'
     + '<div class="fr next"><label>NEXT</label><iframe id="svNext"></iframe></div>'
     + '</section><section class="nt">'
     + '<h2 id="svTitle"></h2><div class="nx" id="svNextTitle"></div>'
     + '<div id="svNotes"></div>'
-    + '<div class="ctl"><button id="svPrev">‹ 이전</button><button id="svNextBtn">다음 ›</button></div>'
+    + '<div class="ctl"><button id="svPrev">' + T.prev + '</button><button id="svNextBtn">' + T.next + '</button></div>'
     + '</section></main></body></html>');
   d.close();
 
@@ -157,7 +174,7 @@ function sOpen() {
     const s = Math.floor((Date.now() - sT0) / 1000);
     d.getElementById('svTimer').textContent =
       String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0');
-    d.getElementById('svClock').textContent = new Date().toLocaleTimeString('ko-KR', { hour12: false });
+    d.getElementById('svClock').textContent = new Date().toLocaleTimeString(LANG === 'ko' ? 'ko-KR' : 'en-GB', { hour12: false });
   }, 1000);
   sUpdate();
 }
@@ -169,8 +186,8 @@ function sUpdate() {
   if (!$('svNotes')) return;
   $('svCounter').textContent = String(cur + 1).padStart(2, '0') + ' / ' + String(TOTAL).padStart(2, '0');
   $('svTitle').textContent = (cur + 1) + ' · ' + titleOf(cur);
-  $('svNextTitle').textContent = cur + 1 < TOTAL ? 'NEXT → ' + titleOf(cur + 1) : 'NEXT → (마지막 슬라이드)';
-  $('svNotes').innerHTML = noteOf(cur) || '<em>이 슬라이드에는 노트가 없습니다</em>';
+  $('svNextTitle').textContent = cur + 1 < TOTAL ? 'NEXT → ' + titleOf(cur + 1) : 'NEXT → ' + T.last;
+  $('svNotes').innerHTML = noteOf(cur) || '<em>' + T.noNotes + '</em>';
   const base = location.href.split('#')[0];
   $('svCur').src = base + '#' + (cur + 1);
   const nx = $('svNext');
