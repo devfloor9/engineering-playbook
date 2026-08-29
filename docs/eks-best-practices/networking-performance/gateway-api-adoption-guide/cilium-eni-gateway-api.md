@@ -3,8 +3,8 @@ title: Cilium ENI 모드 + Gateway API 심화 구성
 description: Cilium ENI 모드 아키텍처, Gateway API 리소스 구성, 성능 최적화, Hubble 관측성, BGP Control Plane v2 심화 가이드
 created: "2026-02-14"
 last_update:
-  date: "2026-06-28"
-  author: YoungJoon Jeong
+  date: "2026-08-29"
+  author: YoungJoon Jeong · SiYeon Hwang
 reading_time: 22
 tags:
   - eks
@@ -1816,7 +1816,7 @@ Gateway API Inference Extension이 GA되기 전까지는 **Option 1 (Cilium + Ci
 - **[Gateway API 도입 가이드](/docs/eks-best-practices/networking-performance/gateway-api-adoption-guide)** - 전체 Gateway API 마이그레이션 가이드
 - **[llm-d + EKS 배포 가이드](/docs/agentic-ai-platform/model-serving/inference-frameworks/llm-d-eks-automode)** - llm-d 분산 추론 스택 구성
 - **[Cilium 공식 문서](https://docs.cilium.io/)** - Cilium 프로젝트 공식 문서
-- **[Cilium Gateway API 문서](https://docs.cilium.io/en/stable/network/servicemesh/gateway-api/)** - Cilium의 Gateway API 구현 가이드
+- **[Cilium Gateway API 문서](https://docs.cilium.io/en/stable/network/servicemesh/gateway-api/gateway-api/)** - Cilium의 Gateway API 구현 가이드
 - **[Gateway API Inference Extension](https://gateway-api.sigs.k8s.io/geps/gep-3567/)** - AI/ML 추론 전용 Gateway API 확장
 - **[AWS EKS Best Practices](https://aws.github.io/aws-eks-best-practices/)** - EKS 모범 사례 가이드
 - **[eBPF 소개](https://ebpf.io/)** - eBPF 기술 개요 및 학습 자료

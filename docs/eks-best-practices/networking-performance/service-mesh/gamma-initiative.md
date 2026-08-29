@@ -3,8 +3,8 @@ title: GAMMA Initiative — 서비스 메시 통합의 미래
 description: GAMMA (Gateway API for Mesh Management and Administration) 소개, East-West 트래픽 관리, 서비스 메시 통합
 created: "2026-02-14"
 last_update:
-  date: "2026-07-15"
-  author: YoungJoon Jeong
+  date: "2026-08-29"
+  author: YoungJoon Jeong · SiYeon Hwang
 reading_time: 2
 tags:
   - gateway-api
@@ -103,8 +103,8 @@ spec:
 ## 참고 자료
 
 ### 공식 문서
-- [GAMMA Initiative](https://gateway-api.sigs.k8s.io/mesh/gamma/) — Gateway API 공식 GAMMA 사양·목표·구성 패턴
-- [Gateway API for Service Mesh](https://gateway-api.sigs.k8s.io/mesh/) — 메시 트래픽에 Gateway API를 적용하는 공식 가이드
+- [GAMMA Initiative](https://gateway-api.sigs.k8s.io/docs/mesh/gamma/) — Gateway API 공식 GAMMA 사양·목표·구성 패턴
+- [Gateway API for Service Mesh](https://gateway-api.sigs.k8s.io/docs/mesh/mesh-overview/) — 메시 트래픽에 Gateway API를 적용하는 공식 가이드
 
 ### 관련 문서 (내부)
 - [서비스 메시 비교 가이드](./index.md) — Istio·Cilium·Linkerd·VPC Lattice 아키텍처·기능·운영 비교
