@@ -3,8 +3,8 @@ title: "Gateway API 도입 가이드: NGINX Ingress에서 차세대 트래픽 �
 description: NGINX Ingress Controller EOL 대응, Gateway API 아키텍처, GAMMA Initiative, AWS Native vs 오픈소스 솔루션 비교(AWS LBC·Cilium·NGINX Gateway Fabric·Envoy Gateway·kGateway·Kong), Cilium ENI 통합, 마이그레이션 전략 및 벤치마크 계획
 created: "2026-02-14"
 last_update:
-  date: "2026-06-30"
-  author: devfloor9
+  date: "2026-08-29"
+  author: YoungJoon Jeong · SiYeon Hwang
 reading_time: 30
 tags:
   - eks
@@ -411,7 +411,7 @@ Gateway API는 다음과 같은 계층 구조로 책임을 분리합니다:
 
   ![Gateway API 리소스 모델 — 출처: gateway-api.sigs.k8s.io](https://gateway-api.sigs.k8s.io/images/resource-model.png)
 
-  *출처: [Kubernetes Gateway API 공식 문서](https://gateway-api.sigs.k8s.io/concepts/api-overview/) — GatewayClass → Gateway → xRoute → Service 계층 구조*
+  *출처: [Kubernetes Gateway API 공식 문서](https://gateway-api.sigs.k8s.io/docs/concepts/api-overview/) — GatewayClass → Gateway → xRoute → Service 계층 구조*
 
   <RoleSeparationTable />
 
