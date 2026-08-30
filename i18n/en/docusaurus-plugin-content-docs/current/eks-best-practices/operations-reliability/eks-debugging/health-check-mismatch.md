@@ -32,7 +32,7 @@ This document clarifies the mechanism differences between K8s Probes and ALB/NLB
 
 :::tip Related Documents
 - **Probe basics**: [Pod Health & Lifecycle](../eks-pod-health-lifecycle.md) — Detailed Probe configuration
-- **Networking debugging**: [Networking Troubleshooting](#) — Service/DNS issues (coming soon)
+- **Networking debugging**: [Networking Troubleshooting](./networking.md) — Service/DNS issues
 - **High availability**: [EKS Resiliency Guide](../eks-resiliency-guide.md) — PDB, Graceful Shutdown
 :::
 
@@ -856,4 +856,4 @@ Diagnosis order during an outage:
 
 ---
 
-**Next**: [Networking Troubleshooting](#) (coming soon) — Service Discovery, DNS, CNI debugging
+**Next**: [Networking Troubleshooting](./networking.md) — Service Discovery, DNS, CNI debugging
