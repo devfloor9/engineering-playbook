@@ -15,8 +15,8 @@ const GatewayCRDTable = () => {
     crd: 'InferencePool',
     role: isKo ? 'vLLM Pod 그룹 (서빙 엔드포인트 풀) 정의' : 'Defines vLLM Pod groups (serving endpoint pools)'
   }, {
-    crd: 'InferenceModel',
-    role: isKo ? '모델 이름과 InferencePool 매핑' : 'Maps model names to InferencePools'
+    crd: 'InferenceObjective',
+    role: isKo ? '모델별 서빙 정책 정의 (criticality, 우선순위)' : 'Defines per-model serving policy (criticality, priority)'
   }];
   return <div style={{
     maxWidth: '700px',

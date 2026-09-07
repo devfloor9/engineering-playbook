@@ -28,7 +28,7 @@ const VllmComparisonTable = () => {
   }, {
     feature: isKo ? '모델 정의' : 'Model Definition',
     traditional: isKo ? 'Deployment YAML 직접 작성' : 'Writing Deployment YAML directly',
-    llmd: isKo ? 'InferenceModel CRD 선언적 관리' : 'Declarative management via InferenceModel CRD'
+    llmd: isKo ? 'InferenceObjective CRD 선언적 관리' : 'Declarative management via InferenceObjective CRD'
   }];
   return <div style={{
     maxWidth: '100%',
