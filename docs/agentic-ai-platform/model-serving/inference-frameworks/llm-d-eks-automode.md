@@ -77,7 +77,7 @@ flowchart TB
 
     subgraph Gateway["Gateway Layer"]
         GW[Inference<br/>Gateway]
-        IM[InferenceModel<br/>CRD]
+        IO[InferenceObjective<br/>CRD]
         IP[InferencePool<br/>CRD]
     end
 
@@ -93,8 +93,8 @@ flowchart TB
     end
 
     CLIENT --> GW
-    GW --> IM
-    IM --> IP
+    GW --> IO
+    IO --> IP
     IP --> V1
     IP --> V2
     IP --> VN
@@ -231,7 +231,7 @@ llm-d ModelService가 DRA (ResourceClaim) 방식으로 GPU를 요청하는 경�
 | **Prefill/Decode Disaggregation** | Prefill과 Decode를 별도 Pod 그룹으로 분리, 대규모 배치와 긴 컨텍스트 처리량 극대화 | Well-lit path |
 | **Expert Parallelism (Wide EP)** | MoE 모델(Mixtral, DeepSeek)의 Expert를 여러 노드에 분산 서빙 | Well-lit path |
 | **LoRA 어댑터 지원** | 단일 기본 모델에 여러 LoRA 어댑터를 동적 로드, LoRA-aware 스케줄링 지원 | Experimental |
-| **멀티 모델 서빙** | 하나의 클러스터에서 여러 모델을 InferenceModel CRD로 동시 서빙 | Stable |
+| **멀티 모델 서빙** | 하나의 클러스터에서 여러 모델을 InferenceObjective CRD로 동시 서빙 | Stable |
 | **Gateway API Inference Extension** | InferencePool (v1 GA), InferenceModel (deprecated → InferenceObjective v1alpha2) | v1/v1alpha2 |
 
 ### Disaggregated Serving 개념

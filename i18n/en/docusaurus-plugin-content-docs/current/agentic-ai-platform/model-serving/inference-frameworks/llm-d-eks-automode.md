@@ -53,7 +53,7 @@ For llm-d EKS deployment YAML, helmfile commands, and cluster creation, see the 
 :::warning llm-d Inference Gateway =/= General-purpose Gateway API Implementation
 llm-d's Envoy-based Inference Gateway is a **special-purpose gateway designed exclusively for LLM inference requests**.
 
-- **llm-d Gateway**: InferenceModel/InferencePool CRD-based, KV Cache-aware routing, inference traffic only
+- **llm-d Gateway**: InferencePool/InferenceObjective CRD-based (Gateway API Inference Extension v1.0+), KV Cache-aware routing, inference traffic only
 - **General Gateway API**: HTTPRoute/GRPCRoute-based, TLS/auth/Rate Limiting, cluster-wide traffic management
 
 In production, the recommended architecture has a general Gateway API implementation handling the cluster entry point, with llm-d optimizing AI inference traffic underneath.
@@ -77,7 +77,7 @@ flowchart TB
 
     subgraph Gateway["Gateway Layer"]
         GW[Inference<br/>Gateway]
-        IM[InferenceModel<br/>CRD]
+        IO[InferenceObjective<br/>CRD]
         IP[InferencePool<br/>CRD]
     end
 
@@ -93,8 +93,8 @@ flowchart TB
     end
 
     CLIENT --> GW
-    GW --> IM
-    IM --> IP
+    GW --> IO
+    IO --> IP
     IP --> V1
     IP --> V2
     IP --> VN
@@ -231,8 +231,8 @@ Details: [EKS GPU Node Strategy — MNG Hybrid for DRA Workloads](../gpu-infrast
 | **Prefill/Decode Disaggregation** | Separate Prefill and Decode into distinct Pod groups, maximizing throughput for large batches and long contexts | GA |
 | **Expert Parallelism** | Distributed serving of MoE model (Mixtral, DeepSeek) Experts across multiple nodes | GA |
 | **LoRA Adapter Hot-swap** | Dynamically load/unload multiple LoRA adapters on a single base model | GA |
-| **Multi-model Serving** | Simultaneously serve multiple models via InferenceModel CRD in a single cluster | GA |
-| **Gateway API Inference Extension** | K8s-native routing based on InferencePool/InferenceModel CRDs | GA |
+| **Multi-model Serving** | Simultaneously serve multiple models via InferenceObjective CRD in a single cluster | GA |
+| **Gateway API Inference Extension** | InferencePool (v1 GA), InferenceModel (deprecated → InferenceObjective v1alpha2) | v1/v1alpha2 |
 
 ### Disaggregated Serving Concept
 
