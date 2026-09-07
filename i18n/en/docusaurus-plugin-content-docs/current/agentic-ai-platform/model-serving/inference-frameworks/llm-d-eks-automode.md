@@ -232,7 +232,7 @@ Details: [EKS GPU Node Strategy — MNG Hybrid for DRA Workloads](../gpu-infrast
 | **Expert Parallelism** | Distributed serving of MoE model (Mixtral, DeepSeek) Experts across multiple nodes | GA |
 | **LoRA Adapter Hot-swap** | Dynamically load/unload multiple LoRA adapters on a single base model | GA |
 | **Multi-model Serving** | Per-model InferencePools; IPP (Inference Payload Processor) extracts the model name into routing headers and HTTPRoutes match them to the target pool | GA |
-| **Gateway API Inference Extension** | InferencePool (v1 GA), InferenceModel (deprecated → InferenceObjective v1alpha2) | v1/v1alpha2 |
+| **Gateway API Inference Extension** | InferencePool belongs to GIE (`inference.networking.k8s.io/v1`, GA). The former InferenceModel was renamed InferenceObjective and moved to llm-d (`llm-d.ai/v1alpha2`, alpha) | v1 / v1alpha2 |
 
 ### Disaggregated Serving Concept
 

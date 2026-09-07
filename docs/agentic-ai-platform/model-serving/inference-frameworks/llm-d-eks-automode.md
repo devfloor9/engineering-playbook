@@ -232,7 +232,7 @@ llm-d ModelService가 DRA (ResourceClaim) 방식으로 GPU를 요청하는 경�
 | **Expert Parallelism (Wide EP)** | MoE 모델(Mixtral, DeepSeek)의 Expert를 여러 노드에 분산 서빙 | Well-lit path |
 | **LoRA 어댑터 지원** | 단일 기본 모델에 여러 LoRA 어댑터를 동적 로드, LoRA-aware 스케줄링 지원 | Experimental |
 | **멀티 모델 서빙** | 모델별 InferencePool을 두고, IPP(Inference Payload Processor)가 요청 본문에서 모델명을 추출해 헤더로 설정하면 HTTPRoute가 해당 pool로 라우팅 | Stable |
-| **Gateway API Inference Extension** | InferencePool (v1 GA), InferenceModel (deprecated → InferenceObjective v1alpha2) | v1/v1alpha2 |
+| **Gateway API Inference Extension** | InferencePool은 GIE(`inference.networking.k8s.io/v1`, GA) 소속. 구 InferenceModel은 InferenceObjective로 개명되어 llm-d(`llm-d.ai/v1alpha2`, alpha)로 이전 | v1 / v1alpha2 |
 
 ### Disaggregated Serving 개념
 
