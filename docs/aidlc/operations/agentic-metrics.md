@@ -3,7 +3,7 @@ title: AgenticOps 메트릭 — 운영 중 관측할 Agent KPI
 description: task success rate, tool-call accuracy, hallucination rate, cost per interaction, escalation rate 등 Agent 운영 KPI와 Langfuse·OTel 스키마
 created: "2026-04-18"
 last_update:
-  date: "2026-06-30"
+  date: "2026-09-13"
   author: YoungJoon Jeong
 reading_time: 12
 tags:
@@ -415,21 +415,23 @@ flowchart TB
 
 ## 4. OpenTelemetry Semantic Conventions
 
-### 4.1 GenAI Semantic Conventions (2026-04 기준)
+### 4.1 GenAI Semantic Conventions (2026-09 기준)
 
-OpenTelemetry는 **Gen AI Semantic Conventions**를 통해 LLM 계측 표준을 정의한다 ([v1.28.0 experimental](https://opentelemetry.io/docs/specs/semconv/gen-ai/)).
+OpenTelemetry는 **GenAI Semantic Conventions**를 통해 LLM 계측 표준을 정의한다 ([semconv 1.44.0](https://opentelemetry.io/docs/specs/semconv/gen-ai/), stability: Development).
+
+GenAI 규약의 정본은 2026년 5월 [`semantic-conventions-genai`](https://github.com/open-telemetry/semantic-conventions-genai) 저장소로 분리되었고, 기존 `semantic-conventions` 저장소의 `gen_ai.*` 속성은 모두 Deprecated 처리되었다. 아래 표는 [레지스트리 `0c87594`](https://github.com/open-telemetry/semantic-conventions-genai/blob/0c87594975195608dc91b3f702e250a7b240c151/docs/registry/attributes/gen-ai.md) 기준이다.
 
 **핵심 attribute**:
 
 | Attribute | 예시 | 설명 |
 |-----------|------|------|
-| `gen_ai.system` | `openai` | LLM 제공자 |
+| `gen_ai.provider.name` | `openai` | GenAI 제공자 (`gcp.gen_ai`, `gcp.vertex_ai` 등) |
 | `gen_ai.request.model` | `gpt-4o-2025-01-31` | 모델명 |
 | `gen_ai.request.temperature` | `0.7` | 샘플링 온도 |
 | `gen_ai.request.max_tokens` | `2048` | 최대 출력 토큰 |
 | `gen_ai.usage.input_tokens` | `1200` | 입력 토큰 수 |
 | `gen_ai.usage.output_tokens` | `80` | 출력 토큰 수 |
-| `gen_ai.response.finish_reason` | `stop` | 종료 이유 (stop, length, tool_calls) |
+| `gen_ai.response.finish_reasons` | `["stop"]` | 종료 이유 배열(`string[]`) — stop, length, tool_calls |
 
 ### 4.2 Span Kind
 
@@ -440,15 +442,20 @@ OpenTelemetry는 **Gen AI Semantic Conventions**를 통해 LLM 계측 표준을 
 
 ```python
 # OpenTelemetry instrumentation → Langfuse 자동 전송
+import base64
+
 from opentelemetry import trace
-from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
+from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
 
-# OTLP Exporter → Langfuse OTLP endpoint
+# Langfuse는 Basic 인증을 사용한다 (public_key:secret_key 를 base64 인코딩)
+AUTH = base64.b64encode(b"pk-lf-...:sk-lf-...").decode()
+
+# Langfuse OTLP는 HTTP 엔드포인트다 (트레이스 경로: /api/public/otel/v1/traces)
 exporter = OTLPSpanExporter(
-    endpoint="https://langfuse.example.com/api/public/otlp",
-    headers={"Authorization": "Bearer <LANGFUSE_API_KEY>"}
+    endpoint="https://cloud.langfuse.com/api/public/otel/v1/traces",
+    headers={"Authorization": f"Basic {AUTH}"},
 )
 
 provider = TracerProvider()
@@ -459,7 +466,7 @@ trace.set_tracer_provider(provider)
 tracer = trace.get_tracer(__name__)
 
 with tracer.start_as_current_span("agent_run") as span:
-    span.set_attribute("gen_ai.system", "openai")
+    span.set_attribute("gen_ai.provider.name", "openai")
     span.set_attribute("gen_ai.request.model", "gpt-4o")
     # ... Agent 실행
 ```
@@ -720,7 +727,8 @@ Agent KPI SLO (프로덕션)
 
 ### 8.2 OpenTelemetry
 
-- [GenAI Semantic Conventions](https://opentelemetry.io/docs/specs/semconv/gen-ai/): LLM 계측 표준 (v1.28.0 experimental)
+- [GenAI Semantic Conventions](https://opentelemetry.io/docs/specs/semconv/gen-ai/): LLM 계측 표준 (semconv 1.44.0)
+- [semantic-conventions-genai](https://github.com/open-telemetry/semantic-conventions-genai): GenAI 규약 정본 저장소 (2026-05 분리)
 - [OTel Python SDK](https://opentelemetry.io/docs/languages/python/): Python instrumentation
 
 ### 8.3 평가 프레임워크
