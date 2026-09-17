@@ -1,102 +1,40 @@
 ---
 created: 2026-02-16
 last_update:
-  date: 2026-02-16
-reading_time: 6
+  date: 2026-09-17
+reading_time: 2
 ---
-# Translation Status: eks-resource-optimization.md
+# Translation Status: EKS Pod Resource Optimization
 
-## Current State
+The English page is a short overview, not a complete translation of the Korean guide.
 
-The English translation at:
-```
-i18n/en/docusaurus-plugin-content-docs/current/infrastructure-optimization/eks-resource-optimization.md
-```
+## Source and current translation
 
-Has been **partially completed** with the following sections fully translated:
+| File | Lines on 2026-09-17 | Coverage |
+|---|---:|---|
+| [Korean guide](docs/eks-best-practices/resource-cost/eks-resource-optimization.md) | 5,411 | Full source guide |
+| [English overview](i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/resource-cost/eks-resource-optimization.md) | 73 | Resource basics, QoS, VPA, and right-sizing summaries |
 
-✅ **Complete:**
-- Frontmatter (title, description, metadata)
-- Document header and overview
-- Prerequisites section
-- Learning objectives
-- Basic structure and formatting
+Line counts describe file size; they are not a translation-completion percentage. The English page does not yet carry the source's detailed procedures, examples, tables, or full discussion of HPA and other workload patterns.
 
-⚠️ **Needs Translation:**
-- Remaining 95% of technical content (5000+ lines)
-- All detailed sections on VPA, HPA, QoS, Auto Mode, Graviton, etc.
+## Remaining work
 
-## File Statistics
+Translate and review the source in bounded sections:
 
-- **Source file**: 5,582 lines, 132KB
-- **Current translation**: ~5% complete
-- **Remaining Korean text**: ~9,651 characters
+1. Resource requests and limits, including CPU, memory, and ephemeral storage.
+2. QoS, eviction behavior, and workload-specific settings.
+3. VPA and HPA behavior, prerequisites, and interactions.
+4. Right-sizing procedures, quotas, and operational checks.
+5. Auto Mode, architecture-specific considerations, and references.
 
-## Recommended Next Steps
+For each section, preserve configuration values and cross-links, translate diagram labels, and check that recommendations still match their cited sources. Review the existing English summary as well; brevity does not establish technical accuracy.
 
-Given the massive size of this technical document, here are the recommended approaches:
+## Completion checks
 
-### Option 1: Professional Translation Service (Recommended)
-Use a professional technical translation service:
-- **DeepL Pro**: Best quality for technical docs
-- **Google Cloud Translation API**: Good for bulk translation
-- **Professional translator**: For publication-quality output
+- [ ] Every source section has an English counterpart or an explicitly documented omission.
+- [ ] Code, tables, diagrams, and links are reviewed alongside prose.
+- [ ] Kubernetes and AWS terminology is consistent.
+- [ ] Examples distinguish runnable configurations from excerpts.
+- [ ] Reading time and update metadata match the finished page.
 
-### Option 2: Machine Translation + Human Review
-1. Use Google Translate or DeepL to translate the entire Korean source
-2. Review and correct technical terms
-3. Verify code blocks and examples remain intact
-4. Proofread for consistency
-
-### Option 3: Incremental Manual Translation
-Continue the current approach section by section:
-1. Section 2: Resource Requests & Limits (CPU, Memory, Ephemeral Storage, Auto Mode)
-2. Section 3: QoS Classes
-3. Section 4: VPA Guide
-4. Section 5: HPA Patterns
-5. Section 6: Right-Sizing Methodology
-6. Section 7: Resource Quotas
-
-## Translation Command (if using Google Translate API)
-
-```bash
-# Install Google Cloud SDK and authenticate
-# Then use this approach:
-
-# Extract Korean text only (excluding code blocks)
-python3 extract_text.py source.md > korean_text.txt
-
-# Translate via API
-gcloud ml translate translate-text \
-  --source-language=ko \
-  --target-language=en \
-  --content="$(cat korean_text.txt)"
-
-# Merge back into structure
-python3 merge_translation.py
-```
-
-## Quality Assurance Checklist
-
-When completing translation, verify:
-
-- [ ] All section headers are translated
-- [ ] Code blocks remain unchanged
-- [ ] YAML examples are preserved exactly
-- [ ] Mermaid diagrams have English labels
-- [ ] Tables are properly formatted
-- [ ] Technical terms are consistent
-- [ ] Links work correctly
-- [ ] No Korean characters remain (except in code comments if intentional)
-
-## Contact
-
-If you need assistance completing this translation, consider:
-- Engaging a technical translator familiar with Kubernetes/AWS
-- Using the existing partial translation as a quality reference
-- Ensuring technical accuracy over literal translation
-
----
-
-**Created**: 2026-02-13
-**Status**: Partial translation complete, awaiting full content translation
+Tracked in #31. The creation date follows the file's first repository commit on 2026-02-16; the earlier duplicate footer date has been removed.
