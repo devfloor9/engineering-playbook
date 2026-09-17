@@ -33,7 +33,7 @@ Kubernetes Probe와 Load Balancer/Ingress Controller의 Health Check는 **독립
 
 :::tip 관련 문서 참조
 - **Probe 기초**: [Pod 헬스체크 & 라이프사이클](../eks-pod-health-lifecycle.md) — Probe 설정 상세
-- **네트워킹 디버깅**: [네트워킹 문제 해결](#) — Service/DNS 이슈 (추후 작성 예정)
+- **네트워킹 디버깅**: [네트워킹 문제 해결](./networking.md) — Service/DNS 이슈
 - **고가용성**: [EKS 고가용성 아키텍처 가이드](../eks-resiliency-guide.md) — PDB, Graceful Shutdown
 :::
 
@@ -857,4 +857,4 @@ aws ec2 describe-security-groups --group-ids sg-xxxxxxxx
 
 ---
 
-**다음 단계**: [네트워킹 문제 해결](#) (추후 작성 예정) — Service Discovery, DNS, CNI 디버깅
+**다음 단계**: [네트워킹 문제 해결](./networking.md) — Service Discovery, DNS, CNI 디버깅
