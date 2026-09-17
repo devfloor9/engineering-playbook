@@ -1,5 +1,7 @@
 import React from 'react';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
+import CopyButton from '../CopyButton';
+import styles from './CoreDnsMetricsTable.module.css';
 const CoreDnsMetricsTable = () => {
   const {
     i18n
@@ -62,136 +64,39 @@ const CoreDnsMetricsTable = () => {
     description: isKo ? 'CoreDNS 패닉 횟수. 0이 아니면 즉시 조사 필요' : 'CoreDNS panic count. Investigate immediately if non-zero',
     query: 'coredns_panics_total'
   }];
-  return <div style={{
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-    maxWidth: '760px',
-    margin: '2rem auto',
-    padding: '0 1rem'
-  }}>
-      <div style={{
-      background: 'linear-gradient(135deg, #1e3a5f 0%, #2563eb 100%)',
-      color: 'white',
-      padding: '20px 24px',
-      borderRadius: '8px 8px 0 0'
-    }}>
-        <div style={{
-        fontSize: '20px',
-        fontWeight: '600',
-        marginBottom: '4px'
-      }}>
-          {isKo ? '📊 CoreDNS Prometheus 핵심 메트릭' : '📊 CoreDNS Core Prometheus Metrics'}
-        </div>
-        <div style={{
-        fontSize: '14px',
-        opacity: 0.9
-      }}>
-          {isKo ? 'EKS 기본 포트 9153 (/metrics)으로 노출' : 'Exposed via port 9153 (/metrics) by default on EKS'}
-        </div>
-      </div>
-
-      <div style={{
-      background: 'var(--ifm-background-surface-color)',
-      border: '1px solid var(--ifm-color-emphasis-200)',
-      borderTop: 'none',
-      borderRadius: '0 0 8px 8px',
-      overflow: 'hidden'
-    }}>
-        {/* Header Row */}
-        <div style={{
-        display: 'grid',
-        gridTemplateColumns: '1fr 80px 1fr',
-        borderBottom: '2px solid var(--ifm-color-emphasis-200)',
-        background: 'var(--ifm-background-surface-color)'
-      }}>
-          <div style={{
-          padding: '10px 14px',
-          fontWeight: '600',
-          fontSize: '12px',
-          color: 'var(--ifm-color-emphasis-600)',
-          textTransform: 'uppercase'
-        }}>
-            {isKo ? '메트릭' : 'Metric'}
-          </div>
-          <div style={{
-          padding: '10px 14px',
-          fontWeight: '600',
-          fontSize: '12px',
-          color: 'var(--ifm-color-emphasis-600)',
-          textTransform: 'uppercase',
-          borderLeft: '1px solid var(--ifm-color-emphasis-200)'
-        }}>
-            {isKo ? '시그널' : 'Signal'}
-          </div>
-          <div style={{
-          padding: '10px 14px',
-          fontWeight: '600',
-          fontSize: '12px',
-          color: 'var(--ifm-color-emphasis-600)',
-          textTransform: 'uppercase',
-          borderLeft: '1px solid var(--ifm-color-emphasis-200)'
-        }}>
-            {isKo ? '설명 / PromQL' : 'Description / PromQL'}
-          </div>
-        </div>
-
-        {/* Data Rows */}
-        {metrics.map((m, idx) => <div key={idx} style={{
-        display: 'grid',
-        gridTemplateColumns: '1fr 80px 1fr',
-        borderBottom: idx < metrics.length - 1 ? '1px solid #f3f4f6' : 'none'
-      }}>
-            <div style={{
-          padding: '12px 14px'
-        }}>
-              <code style={{
-            fontSize: '12px',
-            color: '#2563eb',
-            fontWeight: '600',
-            wordBreak: 'break-all'
-          }}>{m.name}</code>
-              <div style={{
-            fontSize: '11px',
-            color: 'var(--ifm-color-emphasis-500)',
-            marginTop: '2px'
-          }}>{m.type}</div>
-            </div>
-            <div style={{
-          padding: '12px 14px',
-          borderLeft: '1px solid #f3f4f6',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center'
-        }}>
-              <span style={{
-            display: 'inline-block',
-            background: m.signalColor,
-            color: 'white',
-            padding: '2px 8px',
-            borderRadius: '4px',
-            fontSize: '11px',
-            fontWeight: '600'
-          }}>{m.signal}</span>
-            </div>
-            <div style={{
-          padding: '12px 14px',
-          borderLeft: '1px solid #f3f4f6'
-        }}>
-              <div style={{
-            fontSize: '13px',
-            color: 'var(--ifm-font-color-base)',
-            marginBottom: '4px'
-          }}>{m.description}</div>
-              <code style={{
-            fontSize: '11px',
-            color: '#7c3aed',
-            background: 'var(--ifm-color-emphasis-100)',
-            padding: '2px 6px',
-            borderRadius: '3px',
-            wordBreak: 'break-all'
-          }}>{m.query}</code>
-            </div>
-          </div>)}
-      </div>
-    </div>;
+  const labels = isKo
+    ? ['메트릭', '시그널', '설명 / PromQL']
+    : ['Metric', 'Signal', 'Description / PromQL'];
+  return (
+    <div className={styles.frame}>
+      <table className={styles.table} role="table">
+        <caption>{isKo ? 'CoreDNS Prometheus 핵심 메트릭' : 'CoreDNS Prometheus metrics'}</caption>
+        <thead role="rowgroup">
+          <tr role="row">{labels.map(label => <th key={label} scope="col" role="columnheader">{label}</th>)}</tr>
+        </thead>
+        <tbody role="rowgroup">
+          {metrics.map(metric => (
+            <tr key={metric.name} role="row">
+              <th scope="row" role="rowheader">
+                <code className={styles.metric}>{metric.name}</code>
+                <span className={styles.type}>{metric.type}</span>
+              </th>
+              <td role="cell">
+                <span className={styles.mobileLabel} aria-hidden="true">{labels[1]}</span>
+                <span className={styles.signal}>{metric.signal}</span>
+              </td>
+              <td role="cell">
+                <span className={styles.mobileLabel} aria-hidden="true">{labels[2]}</span>
+                <p>{metric.description}</p>
+                <pre className={styles.query} tabIndex={0} aria-label={`PromQL: ${metric.name}`}><code>{metric.query}</code></pre>
+                <CopyButton text={metric.query} label={isKo ? '쿼리 복사' : 'Copy query'}
+                  ariaLabel={`${isKo ? '쿼리 복사' : 'Copy query'}: ${metric.name}`} />
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
 };
 export default CoreDnsMetricsTable;

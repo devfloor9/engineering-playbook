@@ -1,0 +1,80 @@
+.frame {
+  margin: 1.5rem 0;
+  min-width: 0;
+}
+
+.table {
+  display: table !important;
+  table-layout: fixed;
+  width: 100%;
+  background: var(--ifm-background-surface-color);
+}
+
+.table caption {
+  padding: 1rem;
+  text-align: left;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--ifm-font-color-base);
+}
+
+.table th, .table td {
+  padding: 1rem;
+  text-align: left;
+  vertical-align: top;
+  font-size: 0.9rem;
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+.table thead th:first-child { width: 34%; }
+.table thead th:nth-child(2) { width: 15%; }
+.table tbody th { background: transparent; font-weight: 500; }
+.table td p { margin: 0 0 0.75rem; }
+.metric { overflow-wrap: anywhere; word-break: normal; }
+.type { display: block; margin-top: 0.5rem; font-size: 0.875rem; color: var(--ep-on-surface-variant); }
+.signal { font-weight: 600; }
+.mobileLabel { display: none; }
+
+.query {
+  padding: 0.75rem;
+  margin: 0 0 0.75rem;
+  background: var(--ep-surface-container-low);
+  overflow-x: auto;
+  white-space: pre;
+  font-size: 0.875rem;
+}
+
+.query code {
+  padding: 0 !important;
+  background: transparent !important;
+  color: inherit !important;
+  font-size: inherit !important;
+  white-space: pre;
+  word-break: normal;
+}
+
+.query:focus-visible { outline: 2px solid var(--ifm-color-primary); outline-offset: 2px; }
+
+@media (max-width: 768px) {
+  .table, .table tbody, .table tr, .table th, .table td { display: block !important; }
+  .table { border: none; box-shadow: none; background: transparent; overflow: visible; }
+  .table caption { display: block; padding-inline: 0; }
+  .table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+  .table tbody tr {
+    margin-bottom: 1rem;
+    border: 1px solid var(--ep-outline-variant);
+    border-radius: 0.5rem;
+    background: var(--ifm-background-surface-color);
+  }
+  .table tbody th, .table tbody td { width: auto; border: none; }
+  .table tbody td { padding-top: 0; }
+  .table tbody th { padding-bottom: 0.75rem; }
+  .mobileLabel { display: block; margin-bottom: 0.25rem; color: var(--ep-on-surface-variant); font-size: 0.875rem; }
+}
