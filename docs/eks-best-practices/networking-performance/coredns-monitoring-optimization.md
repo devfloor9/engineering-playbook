@@ -3,7 +3,7 @@ title: CoreDNS 모니터링과 성능 최적화 완벽 가이드
 description: Amazon EKS의 CoreDNS 성능을 체계적으로 모니터링하고 최적화하는 방법. Prometheus 메트릭, TTL 튜닝, 모니터링 아키텍처, 실제 문제 해결 사례 포함
 created: "2025-05-20"
 last_update:
-  date: "2026-06-30"
+  date: "2026-09-17"
   author: YoungJoon Jeong
 reading_time: 16
 tags:
@@ -34,7 +34,9 @@ CoreDNS는 `metrics` 플러그인을 통해 **Prometheus 형식의 메트릭**�
 
 <CoreDnsMetricsTable />
 
-이 외에도 **요청/응답 크기**(`coredns_dns_request_size_bytes`, `...response_size_bytes`), **DO 비트 설정 여부**(`coredns_dns_do_requests_total`) 등의 메트릭이 제공되며, CoreDNS에 로드된 **플러그인별 추가 메트릭**도 존재할 수 있습니다. 예를 들어 **Forward 플러그인**을 통한 업스트림 질의 시간(`coredns_forward_request_duration_seconds`)이나 **kubernetes 플러그인**의 API 업데이트 지연(`coredns_kubernetes_dns_programming_duration_seconds`) 등이 있습니다.
+메트릭 이름은 [forward 플러그인](https://coredns.io/plugins/forward/)과 [cache 플러그인](https://coredns.io/plugins/cache/)의 현재 레퍼런스를 기준으로 합니다. 기존 `coredns_forward_requests_total`·`coredns_forward_responses_total`은 proxy histogram의 `_count`로, `coredns_cache_misses_total`은 requests − hits로 대체합니다. 실행 중인 CoreDNS 버전에서 노출 여부를 확인하세요.
+
+이 외에도 **요청/응답 크기**(`coredns_dns_request_size_bytes`, `...response_size_bytes`), **DO 비트 설정 여부**(`coredns_dns_do_requests_total`) 등의 메트릭이 제공되며, CoreDNS에 로드된 **플러그인별 추가 메트릭**도 존재할 수 있습니다. 예를 들어 **Forward 플러그인**을 통한 업스트림 질의 시간(`coredns_proxy_request_duration_seconds{proxy_name="forward"}`)이나 **kubernetes 플러그인**의 API 업데이트 지연(`coredns_kubernetes_dns_programming_duration_seconds`) 등이 있습니다.
 
 ### 주요 메트릭 의미 및 활용
 

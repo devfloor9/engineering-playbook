@@ -1,0 +1,112 @@
+{
+  "scope": {
+    "ko": "예제는 단일 클러스터의 job=\"coredns\" 수집 범위를 가정합니다. 실제 job 이름으로 바꾸고, 여러 클러스터를 조회하면 cluster 등의 레이블로 범위를 제한하세요. 수집한 /metrics에서 메트릭과 레이블을 확인한 뒤 적용합니다.",
+    "en": "Examples assume one cluster scraped as job=\"coredns\". Use your actual job name and add a cluster selector when querying multiple clusters. Verify metric and label names on the scraped /metrics endpoint before use."
+  },
+  "rows": [
+    {
+      "name": "coredns_dns_requests_total",
+      "type": "Counter",
+      "signal": {
+        "ko": "트래픽",
+        "en": "Traffic"
+      },
+      "description": {
+        "ko": "수집 범위 전체의 DNS QPS. 서버·Pod·프로토콜별 시계열을 합산합니다.",
+        "en": "DNS QPS across the selected scrape scope, summed over servers, Pods, and protocols."
+      },
+      "query": "sum(rate(coredns_dns_requests_total{job=\"coredns\"}[5m]))"
+    },
+    {
+      "name": "coredns_dns_request_duration_seconds",
+      "type": "Histogram",
+      "signal": {
+        "ko": "지연",
+        "en": "Latency"
+      },
+      "description": {
+        "ko": "전체 요청 분포의 P99. Pod별 P99의 평균이 아니라 bucket을 le별로 합산합니다.",
+        "en": "P99 of the combined request distribution. Sum buckets by le rather than averaging Pod quantiles."
+      },
+      "query": "histogram_quantile(0.99, sum by (le) (rate(coredns_dns_request_duration_seconds_bucket{job=\"coredns\"}[5m])))"
+    },
+    {
+      "name": "coredns_dns_responses_total",
+      "type": "Counter",
+      "signal": {
+        "ko": "응답 코드",
+        "en": "Response codes"
+      },
+      "description": {
+        "ko": "rcode별 응답 QPS. SERVFAIL을 추적하고 NXDOMAIN은 예상한 부정 응답인지 구분합니다.",
+        "en": "Response QPS by rcode. Track SERVFAIL and distinguish expected negative answers from unexpected NXDOMAIN responses."
+      },
+      "query": "sum by (rcode) (rate(coredns_dns_responses_total{job=\"coredns\"}[5m]))"
+    },
+    {
+      "name": "coredns_cache_hits_total",
+      "type": "Counter",
+      "signal": {
+        "ko": "캐시",
+        "en": "Cache"
+      },
+      "description": {
+        "ko": "전체 캐시 적중률(0–1). 요청이 없으면 비율이 정의되지 않으므로 트래픽 조건과 함께 평가합니다.",
+        "en": "Aggregate cache hit ratio (0–1). The ratio is undefined without requests; evaluate it with a traffic condition."
+      },
+      "query": "sum(rate(coredns_cache_hits_total{job=\"coredns\"}[5m])) / sum(rate(coredns_cache_requests_total{job=\"coredns\"}[5m]))"
+    },
+    {
+      "name": "coredns_cache_requests_total",
+      "type": "Counter",
+      "signal": {
+        "ko": "캐시",
+        "en": "Cache"
+      },
+      "description": {
+        "ko": "캐시 미스 QPS = requests − hits. 폐기 예정인 cache_misses_total 대신 계산합니다.",
+        "en": "Cache miss QPS = requests minus hits, replacing the deprecated cache_misses_total counter."
+      },
+      "query": "sum(rate(coredns_cache_requests_total{job=\"coredns\"}[5m])) - sum(rate(coredns_cache_hits_total{job=\"coredns\"}[5m]))"
+    },
+    {
+      "name": "coredns_proxy_request_duration_seconds_count{proxy_name=\"forward\"}",
+      "type": "Histogram count",
+      "signal": {
+        "ko": "포워드",
+        "en": "Forward"
+      },
+      "description": {
+        "ko": "forward 프록시의 처리 요청 QPS. to 레이블로 업스트림별 분포를 유지합니다.",
+        "en": "Forward proxy request QPS by upstream, preserving the to label."
+      },
+      "query": "sum by (to) (rate(coredns_proxy_request_duration_seconds_count{job=\"coredns\",proxy_name=\"forward\"}[5m]))"
+    },
+    {
+      "name": "coredns_proxy_request_duration_seconds_count{proxy_name=\"forward\",rcode=\"SERVFAIL\"}",
+      "type": "Histogram count",
+      "signal": {
+        "ko": "포워드 오류",
+        "en": "Forward errors"
+      },
+      "description": {
+        "ko": "업스트림별 SERVFAIL QPS. 전체 오류 수를 뜻하지 않으며 다른 rcode도 별도로 확인합니다.",
+        "en": "SERVFAIL QPS by upstream. This is not an all-error count; inspect other rcodes separately."
+      },
+      "query": "sum by (to) (rate(coredns_proxy_request_duration_seconds_count{job=\"coredns\",proxy_name=\"forward\",rcode=\"SERVFAIL\"}[5m]))"
+    },
+    {
+      "name": "coredns_panics_total",
+      "type": "Counter",
+      "signal": {
+        "ko": "안정성",
+        "en": "Stability"
+      },
+      "description": {
+        "ko": "최근 5분의 새 패닉 발생 수. 과거 누적값과 현재 발생을 구분합니다.",
+        "en": "New panics over the last five minutes, distinguishing current incidents from historical totals."
+      },
+      "query": "sum(increase(coredns_panics_total{job=\"coredns\"}[5m]))"
+    }
+  ]
+}

@@ -78,3 +78,5 @@
   .table tbody th { padding-bottom: 0.75rem; }
   .mobileLabel { display: block; margin-bottom: 0.25rem; color: var(--ep-on-surface-variant); font-size: 0.875rem; }
 }
+
+.scope { color: var(--ep-on-surface-variant); font-size: 0.9rem; line-height: 1.7; }

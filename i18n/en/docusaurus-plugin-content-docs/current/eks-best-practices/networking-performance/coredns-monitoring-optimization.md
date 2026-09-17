@@ -3,7 +3,7 @@ title: CoreDNS Monitoring and Performance Optimization Complete Guide
 description: Systematically monitor and optimize CoreDNS performance in Amazon EKS. Includes Prometheus metrics, TTL tuning, monitoring architecture, and real-world troubleshooting cases
 created: "2025-05-20"
 last_update:
-  date: "2026-06-30"
+  date: "2026-09-17"
   author: devfloor9
 reading_time: 15
 tags:
@@ -33,7 +33,9 @@ CoreDNS exposes **Prometheus-format metrics** through the `metrics` plugin, avai
 
 <CoreDnsMetricsTable />
 
-Beyond these, additional metrics such as **request/response size** (`coredns_dns_request_size_bytes`, `...response_size_bytes`), **DO bit presence** (`coredns_dns_do_requests_total`), and **plugin-specific metrics** are available. For example, the **Forward plugin** provides upstream query time (`coredns_forward_request_duration_seconds`), and the **kubernetes plugin** provides API update latency (`coredns_kubernetes_dns_programming_duration_seconds`).
+Metric names follow the current [forward](https://coredns.io/plugins/forward/) and [cache](https://coredns.io/plugins/cache/) references. Replace `coredns_forward_requests_total` and `coredns_forward_responses_total` with the proxy histogram's `_count`, and derive cache misses from requests minus hits. Check which metrics your running CoreDNS version exposes.
+
+Beyond these, additional metrics such as **request/response size** (`coredns_dns_request_size_bytes`, `...response_size_bytes`), **DO bit presence** (`coredns_dns_do_requests_total`), and **plugin-specific metrics** are available. For example, the **Forward plugin** provides upstream query time (`coredns_proxy_request_duration_seconds{proxy_name="forward"}`), and the **kubernetes plugin** provides API update latency (`coredns_kubernetes_dns_programming_duration_seconds`).
 
 ### Key Metric Meanings and Usage
 
