@@ -28,7 +28,7 @@ const config = {
         docsRouteBasePath: '/docs',
         indexBlog: false,
         searchBarShortcutHint: true,
-        searchBarPosition: 'left',
+        searchBarPosition: 'right',
       },
     ],
   ],

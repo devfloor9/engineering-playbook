@@ -1,0 +1,14 @@
+{
+  "theme.SearchBar.label": {
+    "message": "문서 검색",
+    "description": "Search field placeholder"
+  },
+  "theme.SearchBar.seeAll": {
+    "message": "검색 결과 모두 보기",
+    "description": "Link to the full search results"
+  },
+  "theme.SearchBar.noResultsText": {
+    "message": "검색 결과가 없습니다.",
+    "description": "Empty search results"
+  }
+}
