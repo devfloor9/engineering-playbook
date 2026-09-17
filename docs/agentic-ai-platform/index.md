@@ -3,7 +3,7 @@ title: Agentic AI Platform
 description: Agentic AI 플랫폼의 아키텍처, 구축, 운영에 대한 심화 기술 문서
 created: "2025-09-11"
 last_update:
-  date: "2026-06-30"
+  date: "2026-09-17"
   author: devfloor9
 reading_time: 4
 tags:
@@ -22,9 +22,13 @@ category: genai-aiml
 
 import { DocCard, DocCardGrid } from '@site/src/components/DocCards';
 
-Agentic AI Platform은 자율적인 AI 에이전트가 복잡한 작업을 수행할 수 있도록 지원하는 통합 플랫폼입니다. 단일 거대 LLM을 기업의 주요 업무에 투입하기에는 **비용**, **응답 지연**, **정보 정확성(환각)**, **거버넌스** 측면에서 분명한 한계가 존재합니다. 기업은 복잡한 추론은 LLM이, 반복적 실무는 도메인 특화 SLM이 담당하는 **이질적 다중 모델 생태계**로 전환해야 하며, 이를 효율적으로 운영하기 위한 **인프라 플랫폼화**가 핵심입니다. Kubernetes는 DRA, Gateway API Inference Extension, Kueue 등 AI 네이티브 기능을 빠르게 확장하고 있으며, 이 플랫폼은 이러한 K8s 생태계 위에서 다중 모델 전환을 **코드 변경 없이** 지원합니다.
+AI 플랫폼의 설계, 모델 서빙, 운영, 구현 예제를 다룹니다. 목적에 따라 아래 경로에서 시작할 수 있습니다.
 
-이 문서 시리즈는 플랫폼의 아키텍처를 이해하고, 구축 시 직면하는 **5가지 핵심 도전과제**를 파악한 후, **AWS Native 매니지드 접근**과 **EKS 기반 오픈 아키텍처** 두 가지 방식으로 해결하는 여정을 안내합니다. 두 접근은 상호 보완적이며, AWS Native로 시작하여 필요에 따라 EKS로 확장하는 점진적 여정을 권장합니다.
+## 추천 시작 경로
+
+- **설계**: [아키텍처](./design-architecture/index.md) → [구현 방식 비교](./design-architecture/platform-selection/ai-platform-decision-framework.md)
+- **구축**: [모델 서빙](./model-serving/index.md) → [Reference Architecture](./reference-architecture/index.md)
+- **운영**: [운영 & 거버넌스](./operations-mlops/index.md)
 
 ---
 
@@ -63,14 +67,12 @@ Agentic AI Platform은 자율적인 AI 에이전트가 복잡한 작업을 수�
 
 ---
 
-:::info 추천 학습 경로
+## 배경
 
-**플랫폼 구축 경로:**
-설계 & 아키텍처 → 모델 서빙 & 추론 인프라 → 운영 & 거버넌스 → Reference Architecture
+Agentic AI Platform은 자율적인 AI 에이전트가 복잡한 작업을 수행할 수 있도록 지원하는 통합 플랫폼입니다. 단일 거대 LLM을 기업의 주요 업무에 투입하기에는 **비용**, **응답 지연**, **정보 정확성(환각)**, **거버넌스** 측면에서 분명한 한계가 존재합니다. 기업은 복잡한 추론은 LLM이, 반복적 실무는 도메인 특화 SLM이 담당하는 **이질적 다중 모델 생태계**로 전환해야 하며, 이를 효율적으로 운영하기 위한 **인프라 플랫폼화**가 핵심입니다. Kubernetes는 DRA, Gateway API Inference Extension, Kueue 등 AI 네이티브 기능을 빠르게 확장하고 있으며, 이 플랫폼은 이러한 K8s 생태계 위에서 다중 모델 전환을 **코드 변경 없이** 지원합니다.
 
-**GenAI 애플리케이션 개발 경로:**
-모델 서빙(vLLM) → 분산 추론(llm-d) → 게이트웨이(Inference Gateway) → RAG(Milvus) → Agent(Kagent) → 평가(Ragas)
-:::
+이 문서 시리즈는 플랫폼의 아키텍처를 이해하고, 구축 시 직면하는 **5가지 핵심 도전과제**를 파악한 후, **AWS Native 매니지드 접근**과 **EKS 기반 오픈 아키텍처** 두 가지 방식으로 해결하는 여정을 안내합니다. 두 접근은 상호 보완적이며, AWS Native로 시작하여 필요에 따라 EKS로 확장하는 점진적 여정을 권장합니다.
+
 
 ## 관련 카테고리
 

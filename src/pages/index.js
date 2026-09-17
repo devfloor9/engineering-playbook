@@ -1,6 +1,7 @@
 import React, {useEffect, useRef, useState} from 'react';
 import Head from '@docusaurus/Head';
 import Link from '@docusaurus/Link';
+import useBaseUrl from '@docusaurus/useBaseUrl';
 import Translate, {translate} from '@docusaurus/Translate';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 import Layout from '@theme/Layout';
@@ -81,55 +82,7 @@ function Reveal({children, delay = 0, className = ''}) {
   );
 }
 
-/* ── 카운트업 스탯: 뷰포트 진입 시 0 → 목표값 ── */
-function CountUp({end, suffix = '', duration = 1400}) {
-  const [value, setValue] = useState(0);
-  const ref = useRef(null);
-  const started = useRef(false);
-
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return undefined;
-    const reduced =
-      typeof window !== 'undefined' &&
-      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (reduced || typeof IntersectionObserver === 'undefined') {
-      setValue(end);
-      return undefined;
-    }
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting && !started.current) {
-            started.current = true;
-            const start = performance.now();
-            const tick = (now) => {
-              const progress = Math.min((now - start) / duration, 1);
-              // ease-out cubic
-              const eased = 1 - Math.pow(1 - progress, 3);
-              setValue(Math.round(end * eased));
-              if (progress < 1) requestAnimationFrame(tick);
-            };
-            requestAnimationFrame(tick);
-            observer.unobserve(entry.target);
-          }
-        });
-      },
-      {threshold: 0.4},
-    );
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, [end, duration]);
-
-  return (
-    <span ref={ref}>
-      {value}
-      {suffix}
-    </span>
-  );
-}
-
-/* ── 타이핑 터미널: 명령어 순환 타이핑 애니메이션 ── */
+// Decorative implementation preview below the reading paths.
 const TERMINAL_LINES = [
   {cmd: 'eksctl create cluster --config-file=prod.yaml', out: '✓ EKS cluster "prod" ready · 3 nodes'},
   {cmd: 'kubectl apply -f vllm-deployment.yaml', out: '✓ deployment.apps/vllm-llama4 created'},
@@ -269,79 +222,40 @@ const topics = [
     iconBg: '#FCE4EC',
     size: 'wide',
   },
+  {
+    title: 'Industry Solutions',
+    descriptionId: 'topic.industry.desc',
+    description: '산업별 요구사항과 활용 시나리오를 다루는 구현 가이드',
+    href: '/docs/industry-solutions', icon: '◇', iconBg: '#EDE7F6', size: 'wide',
+  },
 ];
 
 function HeroSection() {
+  const {i18n} = useDocusaurusContext();
+  const ko = i18n.currentLocale === 'ko';
+  const searchUrl = useBaseUrl('/search/');
+  const paths = [
+    {to: '/docs/eks-best-practices/operations-reliability/eks-debugging', title: ko ? 'EKS 운영 문제 해결' : 'Troubleshoot EKS'},
+    {to: '/docs/agentic-ai-platform/model-serving', title: ko ? 'AI 추론 환경 구축' : 'Build an inference platform'},
+    {to: '/docs/agentic-ai-platform/design-architecture/platform-selection/ai-platform-decision-framework', title: ko ? '아키텍처 비교' : 'Compare architectures'},
+    {to: 'https://github.com/devfloor9/sample-genai-on-eks-starter-kit', title: ko ? 'Starter Kit 시작 ↗' : 'Start with the starter kit ↗'},
+  ];
   return (
-    <section className={styles.hero}>
-      {/* 애니메이션 배경: 그리드 + 글로우 오브 */}
-      <div className={styles.heroGrid} aria-hidden="true" />
-      <div className={`${styles.heroOrb} ${styles.heroOrbA}`} aria-hidden="true" />
-      <div className={`${styles.heroOrb} ${styles.heroOrbB}`} aria-hidden="true" />
-      <div className={styles.heroInner}>
-        <div className={styles.heroContent}>
-          <div className={styles.heroBadge}>
-            <span className={styles.heroBadgeDot} />
-            <Translate id="hero.badge">Engineering Playbook</Translate>
+    <section className={styles.readingHero}>
+      <div className={styles.readingHeroInner}>
+        <span className={styles.eyebrow}>{ko ? '설계 · 구축 · 운영' : 'Design · Build · Operate'}</span>
+        <h1>Engineering <span>Playbook</span></h1>
+        <p>{ko ? 'Amazon EKS 운영과 AI 플랫폼 구축에 필요한 설계 근거, 설정, 검증 방법을 찾습니다.' : 'Find architecture decisions, configuration examples, and validation steps for Amazon EKS and AI platforms.'}</p>
+        <form role="search" action={searchUrl} method="get" className={styles.homeSearch}>
+          <label htmlFor="home-search">{ko ? '어떤 문서가 필요한가요?' : 'What are you working on?'}</label>
+          <div>
+            <input id="home-search" type="search" name="q" required placeholder={ko ? 'CoreDNS, KV Cache, 장애 진단…' : 'CoreDNS, KV cache, troubleshooting…'} />
+            <button type="submit">{ko ? '검색' : 'Search'}</button>
           </div>
-          <h1 className={styles.heroTitle}>
-            The Engineering{' '}
-            <span className={styles.heroTitleAccent}>Playbook</span>
-          </h1>
-          <p className={styles.heroSubtitle}>
-            <Translate id="hero.subtitle">
-              Amazon EKS 기반 인프라, AI/ML 워크플로우, 보안, 자동화된 운영에 대한 실전 엔지니어링 가이드
-            </Translate>
-          </p>
-          <div className={styles.heroButtons}>
-            <Link className={styles.btnPrimary} to="/docs/intro">
-              <Translate id="hero.startReading">Start Reading</Translate>
-              <span className={styles.btnArrow}>→</span>
-            </Link>
-            <Link className={styles.btnSecondary} to="/docs/agentic-ai-platform">
-              <Translate id="hero.exploreTopics">Explore Topics</Translate>
-            </Link>
-          </div>
-        </div>
-        <div className={styles.heroVisual}>
-          <TypingTerminal />
-        </div>
-      </div>
-      {/* 스탯 스트립 */}
-      <div className={styles.statsStrip}>
-        <div className={styles.statItem}>
-          <div className={styles.statValue}>
-            <CountUp end={270} suffix="+" />
-          </div>
-          <div className={styles.statLabel}>
-            <Translate id="stats.guides">Engineering Guides</Translate>
-          </div>
-        </div>
-        <div className={styles.statDivider} />
-        <div className={styles.statItem}>
-          <div className={styles.statValue}>
-            <CountUp end={7} />
-          </div>
-          <div className={styles.statLabel}>
-            <Translate id="stats.domains">Knowledge Domains</Translate>
-          </div>
-        </div>
-        <div className={styles.statDivider} />
-        <div className={styles.statItem}>
-          <div className={styles.statValue}>
-            <CountUp end={40} suffix="+" />
-          </div>
-          <div className={styles.statLabel}>
-            <Translate id="stats.refarch">Reference Architectures</Translate>
-          </div>
-        </div>
-        <div className={styles.statDivider} />
-        <div className={styles.statItem}>
-          <div className={styles.statValue}>KO · EN</div>
-          <div className={styles.statLabel}>
-            <Translate id="stats.languages">Bilingual Docs</Translate>
-          </div>
-        </div>
+        </form>
+        <nav className={styles.startingPaths} aria-label={ko ? '목적별 시작 경로' : 'Starting paths'}>
+          {paths.map(path => <Link key={path.to} to={path.to}>{path.title}<span aria-hidden="true">→</span></Link>)}
+        </nav>
       </div>
     </section>
   );
@@ -379,7 +293,7 @@ function TopicCard({title, description, descriptionId, href, icon, iconBg, tags,
           </div>
         )}
         <span className={styles.bentoLink}>
-          <Translate id="topics.browse">Browse Guides</Translate>{' '}
+          <Translate id="topics.browse">문서 보기</Translate>{' '}
           <span className={styles.btnArrow}>→</span>
         </span>
       </Link>
@@ -389,13 +303,13 @@ function TopicCard({title, description, descriptionId, href, icon, iconBg, tags,
 
 function TopicsSection() {
   return (
-    <section className={styles.topics}>
+    <section id="topics" className={styles.topics}>
       <div className={styles.topicsInner}>
         <Reveal>
           <div className={styles.topicsHeader}>
             <div>
               <h2 className={styles.topicsTitle}>
-                <Translate id="topics.title">Core Knowledge Domains</Translate>
+                <Translate id="topics.title">주제별 문서</Translate>
               </h2>
               <p className={styles.topicsSubtitle}>
                 <Translate id="topics.subtitle">
@@ -404,7 +318,7 @@ function TopicsSection() {
               </p>
             </div>
             <Link className={styles.viewAll} to="/docs/intro">
-              <Translate id="topics.viewAll">View all modules</Translate> ↗
+              <Translate id="topics.viewAll">전체 문서 안내</Translate> →
             </Link>
           </div>
         </Reveal>
@@ -419,27 +333,21 @@ function TopicsSection() {
 }
 
 function CTASection() {
+  const {i18n} = useDocusaurusContext();
+  const ko = i18n.currentLocale === 'ko';
   return (
-    <section className={styles.cta}>
-      <Reveal>
-        <div className={styles.ctaInner}>
-          <div className={styles.ctaGlow} aria-hidden="true" />
-          <h2 className={styles.ctaTitle}>
-            <Translate id="cta.title">Ready to architect for scale?</Translate>
-          </h2>
-          <p className={styles.ctaSubtitle}>
-            <Translate id="cta.subtitle">
-              Engineering Playbook으로 더 안정적인 시스템을 구축하세요.
-            </Translate>
-          </p>
-          <div className={styles.ctaButtons}>
-            <Link className={styles.btnPrimary} to="/docs/intro">
-              <Translate id="cta.getGuide">Get the Full Guide</Translate>
-              <span className={styles.btnArrow}>→</span>
-            </Link>
-          </div>
+    <section className={styles.referenceSection}>
+      <div>
+        <h2>{ko ? '문서에서 구현으로' : 'From documentation to implementation'}</h2>
+        <p>{ko ? '구현 예제와 배포 구성을 함께 확인할 수 있습니다.' : 'Continue with deployment configurations and implementation examples.'}</p>
+        <div className={styles.referenceLinks}>
+          <Link to="https://github.com/devfloor9/ai-on-eks">AI on EKS ↗</Link>
+          <Link to="https://github.com/devfloor9/sample-genai-on-eks-starter-kit">GenAI on EKS Starter Kit ↗</Link>
+          <Link to="/docs/intro">{ko ? '추천 읽기 경로' : 'Suggested reading paths'} →</Link>
         </div>
-      </Reveal>
+        <p className={styles.referenceMeta}>{ko ? `${topics.length}개 주제 · 한국어 / English` : `${topics.length} topics · Korean / English`}</p>
+      </div>
+      <div className={styles.referenceTerminal} aria-hidden="true"><TypingTerminal /></div>
     </section>
   );
 }

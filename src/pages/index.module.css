@@ -394,7 +394,7 @@
 /* ── Bento Grid Section ── */
 .topics {
   background: var(--ep-surface-container-low);
-  padding: 5rem 0;
+  padding: 2.5rem 0;
 }
 
 .topicsInner {
@@ -677,4 +677,40 @@
   .ctaTitle { font-size: 1.75rem; }
   .ctaInner { padding: 2.5rem 1.5rem; }
   .terminalBody { min-height: 13rem; font-size: 0.75rem; }
+}
+
+.readingHero { padding: 2.5rem 1.5rem 2rem; background: var(--ep-surface); }
+.readingHeroInner { max-width: 69rem; margin: 0 auto; }
+.eyebrow { color: var(--ep-secondary); font-size: 0.875rem; font-weight: 600; }
+[data-theme='dark'] .eyebrow { color: var(--ep-on-secondary-container); }
+.readingHero h1 { margin: 0.5rem 0 0.75rem; font-size: clamp(2rem, 4vw, 3rem); line-height: 1.15; }
+.readingHero h1 span { color: var(--ifm-color-primary); }
+.readingHero p { max-width: 46rem; margin-bottom: 1.25rem; color: var(--ep-on-surface-variant); }
+.homeSearch { max-width: 46rem; }
+.homeSearch label { display: block; margin-bottom: 0.5rem; font-weight: 600; font-size: 0.9rem; }
+.homeSearch > div { display: flex; gap: 0.5rem; }
+.homeSearch input { flex: 1; min-width: 0; height: 3rem; padding: 0.75rem 1rem; border: 1px solid var(--ep-outline); border-radius: 0.5rem; background: var(--ep-surface-container-lowest); color: var(--ep-on-surface); font: inherit; }
+.homeSearch button { padding: 0.6rem 1.25rem; border: none; border-radius: 0.5rem; background: var(--ifm-color-primary); color: var(--ifm-background-color); font: inherit; font-weight: 600; cursor: pointer; }
+.startingPaths { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.75rem; margin-top: 1.5rem; }
+.startingPaths a { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; min-height: 3.25rem; padding: 0.75rem 1rem; border: 1px solid var(--ep-outline-variant); border-radius: 0.5rem; background: var(--ep-surface-container-lowest); color: var(--ep-on-surface); font-size: 0.9rem; font-weight: 600; }
+.startingPaths a:hover { background: var(--ep-surface-container-low); text-decoration: none; }
+.startingPaths a span { color: var(--ifm-color-primary); }
+.readingHero :is(input, button, a):focus-visible,
+.referenceSection a:focus-visible { outline: 3px solid var(--ifm-color-primary); outline-offset: 3px; }
+.referenceSection { max-width: 72rem; margin: 0 auto; padding: 3rem 1.5rem; display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; align-items: center; }
+.referenceLinks { display: flex; flex-direction: column; align-items: flex-start; gap: 0.75rem; }
+.referenceMeta { color: var(--ep-on-surface-variant); font-size: 0.875rem; margin-top: 1.5rem; }
+.referenceTerminal { min-width: 0; }
+
+@media (max-width: 996px) {
+  .startingPaths { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .referenceSection { grid-template-columns: 1fr; }
+  .referenceTerminal { display: none; }
+}
+
+@media (max-width: 576px) {
+  .readingHero { padding: 1.5rem 1rem; }
+  .startingPaths { grid-template-columns: 1fr; gap: 0.5rem; margin-top: 1rem; }
+  .startingPaths a { min-height: 2.75rem; padding: 0.6rem 0.875rem; }
+  .homeSearch button { padding-inline: 0.875rem; }
 }

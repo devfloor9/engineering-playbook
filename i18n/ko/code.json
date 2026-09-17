@@ -10,5 +10,17 @@
   "theme.SearchBar.noResultsText": {
     "message": "검색 결과가 없습니다.",
     "description": "Empty search results"
+  },
+  "topics.title": {
+    "message": "주제별 문서"
+  },
+  "topics.viewAll": {
+    "message": "전체 문서 안내"
+  },
+  "topics.browse": {
+    "message": "문서 보기"
+  },
+  "topic.industry.desc": {
+    "message": "산업별 요구사항과 활용 시나리오를 다루는 구현 가이드"
   }
 }

@@ -467,16 +467,14 @@
     "description": "Hero secondary button"
   },
   "topics.title": {
-    "message": "Core Knowledge Domains",
-    "description": "Topics section title"
+    "message": "Browse by topic"
   },
   "topics.subtitle": {
     "message": "A curated collection of in-depth guides covering essential cloud engineering domains",
     "description": "Topics section subtitle"
   },
   "topics.viewAll": {
-    "message": "View all modules",
-    "description": "View all link"
+    "message": "All topics and guides"
   },
   "topic.agentic.desc": {
     "message": "EKS-based Agentic AI platform design, 2-Tier Gateway, Knowledge Feature Store, model serving, MLOps pipelines",
@@ -527,8 +525,7 @@
     "description": "AIDLC topic description"
   },
   "topics.browse": {
-    "message": "Browse Guides",
-    "description": "Topic card link label"
+    "message": "Read guides"
   },
   "stats.guides": {
     "message": "Engineering Guides",
@@ -545,5 +542,8 @@
   "stats.languages": {
     "message": "Bilingual Docs",
     "description": "Stats strip: languages label"
+  },
+  "topic.industry.desc": {
+    "message": "Implementation guides for industry requirements and use cases"
   }
 }

@@ -3,7 +3,7 @@ title: Agentic AI Platform
 description: In-depth technical documentation on the architecture, deployment, and operations of the Agentic AI Platform
 created: "2026-02-04"
 last_update:
-  date: "2026-06-26"
+  date: "2026-09-17"
   author: devfloor9
 reading_time: 6
 tags:
@@ -22,13 +22,13 @@ category: genai-aiml
 
 import { DocCard, DocCardGrid } from '@site/src/components/DocCards';
 
-# Agentic AI Platform
+Design, model serving, operations, and implementation guides for AI platforms. Choose a starting path below.
 
-The Agentic AI Platform is a unified platform that enables autonomous AI agents to perform complex tasks. Deploying a single monolithic LLM for mission-critical enterprise workloads has clear limitations in terms of **cost**, **latency**, **accuracy (hallucination)**, and **governance**. Organizations must transition to a **heterogeneous multi-model ecosystem** where LLMs handle complex reasoning while domain-specific SLMs handle repetitive tasks — and **platform-level infrastructure** is the key to operating this efficiently. Kubernetes is rapidly expanding AI-native capabilities such as DRA, Gateway API Inference Extension, and Kueue, and this platform supports multi-model switching **without code changes** on top of the K8s ecosystem.
+## Starting paths
 
-This documentation series guides you through understanding the platform architecture, identifying the **5 key challenges** faced during deployment, and addressing them through two approaches: **AWS Native managed services** and **EKS-based open architecture**. These two approaches are complementary, and we recommend a gradual journey starting with AWS Native and expanding to EKS as needed.
-
----
+- **Design**: [Architecture](./design-architecture/index.md) → [Platform decisions](./design-architecture/platform-selection/ai-platform-decision-framework.md)
+- **Build**: [Model serving](./model-serving/index.md) → [Reference architectures](./reference-architecture/index.md)
+- **Operate**: [Operations and governance](./operations-mlops/index.md)
 
 ## Documentation Structure
 
@@ -65,14 +65,12 @@ This documentation series guides you through understanding the platform architec
 
 ---
 
-:::info Recommended Learning Paths
+## Background
 
-**Platform Building Path:**
-Design & Architecture → Model Serving & Inference Infrastructure → Operations & Governance → Reference Architecture
+The Agentic AI Platform is a unified platform that enables autonomous AI agents to perform complex tasks. Deploying a single monolithic LLM for mission-critical enterprise workloads has clear limitations in terms of **cost**, **latency**, **accuracy (hallucination)**, and **governance**. Organizations must transition to a **heterogeneous multi-model ecosystem** where LLMs handle complex reasoning while domain-specific SLMs handle repetitive tasks — and **platform-level infrastructure** is the key to operating this efficiently. Kubernetes is rapidly expanding AI-native capabilities such as DRA, Gateway API Inference Extension, and Kueue, and this platform supports multi-model switching **without code changes** on top of the K8s ecosystem.
 
-**GenAI Application Development Path:**
-Model Serving (vLLM) → Distributed Inference (llm-d) → Gateway (Inference Gateway) → RAG (Milvus) → Agent (Kagent) → Evaluation (Ragas)
-:::
+This documentation series guides you through understanding the platform architecture, identifying the **5 key challenges** faced during deployment, and addressing them through two approaches: **AWS Native managed services** and **EKS-based open architecture**. These two approaches are complementary, and we recommend a gradual journey starting with AWS Native and expanding to EKS as needed.
+
 
 ## Related Categories
 

@@ -281,6 +281,7 @@ const config = {
               { to: '/docs/aidlc', label: 'AIDLC' },
               { to: '/docs/eks-hybrid-nodes', label: 'EKS Hybrid Nodes' },
               { to: '/docs/rosa', label: 'ROSA' },
+              { to: '/docs/industry-solutions', label: 'Industry Solutions' },
             ],
           },
           { to: '/docs/benchmarks', label: 'Benchmarks', position: 'left' },
@@ -329,6 +330,7 @@ const config = {
           {
             title: 'More',
             items: [
+              { label: 'Industry Solutions', to: '/docs/industry-solutions' },
               {
                 label: 'EKS Hybrid Nodes',
                 to: '/docs/eks-hybrid-nodes',
