@@ -3,8 +3,8 @@ title: VPC CNI vs Cilium CNI 성능 비교 벤치마크
 description: EKS 환경에서 VPC CNI와 Cilium CNI의 네트워크 및 애플리케이션 성능을 5개 시나리오(kube-proxy, kube-proxy-less, ENI, 튜닝)로 비교한 벤치마크 보고서
 created: "2026-02-09"
 last_update:
-  date: "2026-06-30"
-  author: YoungJoon Jeong
+  date: "2026-08-29"
+  author: YoungJoon Jeong · SiYeon Hwang
 reading_time: 22
 tags:
   - benchmark
@@ -97,21 +97,21 @@ VPC CNI(kube-proxy)와 Cilium(eBPF)에서 Pod-to-Service 트래픽의 패킷 경
 Cilium Daemon이 커널의 BPF 프로그램을 관리하며, 각 컨테이너와 네트워크 인터페이스(eth0)에 eBPF 프로그램을 주입합니다.
 
 ![Cilium Architecture](/img/benchmarks/cilium-arch.png)
-*출처: [Cilium Component Overview](https://docs.cilium.io/en/stable/overview/component-overview.html)*
+*출처: [Cilium Component Overview](https://docs.cilium.io/en/stable/overview/component-overview/)*
 
 #### Cilium eBPF 패킷 경로
 
 Pod-to-Pod 통신에서 eBPF 프로그램은 veth pair(lxc)에 부착되어 iptables를 완전히 우회합니다. 아래 다이어그램은 Endpoint 간 직접 통신 경로를 보여줍니다.
 
 ![Cilium eBPF Endpoint-to-Endpoint](/img/benchmarks/cilium_bpf_endpoint.svg)
-*출처: [Cilium - Life of a Packet](https://docs.cilium.io/en/stable/network/ebpf/lifeofapacket.html)*
+*출처: [Cilium - Life of a Packet](https://docs.cilium.io/en/stable/network/ebpf/lifeofapacket/)*
 
 #### Cilium Native Routing (ENI 모드)
 
 Native Routing 모드에서 Pod 트래픽은 VXLAN 캡슐화 없이 호스트의 라우팅 테이블을 통해 직접 전달됩니다. ENI 모드에서는 Pod IP가 VPC CIDR에서 직접 할당됩니다.
 
 ![Cilium Native Routing](/img/benchmarks/cilium_native_routing.png)
-*출처: [Cilium Routing](https://docs.cilium.io/en/stable/network/concepts/routing.html)*
+*출처: [Cilium Routing](https://docs.cilium.io/en/stable/network/concepts/routing/)*
 
 #### Cilium ENI IPAM 아키텍처
 
