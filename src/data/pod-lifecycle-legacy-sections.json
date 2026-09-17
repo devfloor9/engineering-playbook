@@ -371,7 +371,7 @@
     "path": "shutdown-fargate",
     "title": "Fargate Pod OS 패치 자동 Eviction"
   },
-  "fargate-pod-시\u0000\u0000작-시간-특성": {
+  "fargate-pod-시작-시간-특성": {
     "path": "shutdown-fargate",
     "title": "Fargate Pod 시작 시간 특성"
   },
