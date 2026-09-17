@@ -411,7 +411,7 @@ The Gateway API separates responsibilities across the following layered structur
 
   ![Gateway API resource model — Source: gateway-api.sigs.k8s.io](https://gateway-api.sigs.k8s.io/images/resource-model.png)
 
-  *Source: [Kubernetes Gateway API official documentation](https://gateway-api.sigs.k8s.io/concepts/api-overview/) — GatewayClass → Gateway → xRoute → Service layered structure*
+  *Source: [Kubernetes Gateway API official documentation](https://gateway-api.sigs.k8s.io/docs/concepts/api-overview/) — GatewayClass → Gateway → xRoute → Service layered structure*
 
   <RoleSeparationTable locale="en" />
 

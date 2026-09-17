@@ -96,21 +96,21 @@ Compares the packet path differences for Pod-to-Service traffic between VPC CNI 
 The Cilium Daemon manages BPF programs in the kernel, injecting eBPF programs into each container and network interface (eth0).
 
 ![Cilium Architecture](/img/benchmarks/cilium-arch.png)
-*Source: [Cilium Component Overview](https://docs.cilium.io/en/stable/overview/component-overview.html)*
+*Source: [Cilium Component Overview](https://docs.cilium.io/en/stable/overview/component-overview/)*
 
 #### Cilium eBPF Packet Path
 
 In Pod-to-Pod communication, eBPF programs are attached to veth pairs (lxc), completely bypassing iptables. The diagram below shows the direct communication path between Endpoints.
 
 ![Cilium eBPF Endpoint-to-Endpoint](/img/benchmarks/cilium_bpf_endpoint.svg)
-*Source: [Cilium - Life of a Packet](https://docs.cilium.io/en/stable/network/ebpf/lifeofapacket.html)*
+*Source: [Cilium - Life of a Packet](https://docs.cilium.io/en/stable/network/ebpf/lifeofapacket/)*
 
 #### Cilium Native Routing (ENI Mode)
 
 In Native Routing mode, Pod traffic is forwarded directly through the host's routing table without VXLAN encapsulation. In ENI mode, Pod IPs are allocated directly from the VPC CIDR.
 
 ![Cilium Native Routing](/img/benchmarks/cilium_native_routing.png)
-*Source: [Cilium Routing](https://docs.cilium.io/en/stable/network/concepts/routing.html)*
+*Source: [Cilium Routing](https://docs.cilium.io/en/stable/network/concepts/routing/)*
 
 #### Cilium ENI IPAM Architecture
 

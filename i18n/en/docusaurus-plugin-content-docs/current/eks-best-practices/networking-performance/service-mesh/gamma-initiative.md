@@ -98,8 +98,8 @@ Multiple mesh implementations can be managed with the same API, preventing vendo
 ## References
 
 ### Official Documentation
-- [GAMMA Initiative](https://gateway-api.sigs.k8s.io/mesh/gamma/) — Official Gateway API GAMMA specification, goals, and configuration patterns
-- [Gateway API for Service Mesh](https://gateway-api.sigs.k8s.io/mesh/) — Official guide for applying Gateway API to mesh traffic
+- [GAMMA Initiative](https://gateway-api.sigs.k8s.io/docs/mesh/gamma/) — Official Gateway API GAMMA specification, goals, and configuration patterns
+- [Gateway API for Service Mesh](https://gateway-api.sigs.k8s.io/docs/mesh/mesh-overview/) — Official guide for applying Gateway API to mesh traffic
 
 ### Related Documents (Internal)
 - [Service Mesh Comparison Guide](./index.md) — Architecture, feature, and operations comparison of Istio, Cilium, Linkerd, and VPC Lattice
