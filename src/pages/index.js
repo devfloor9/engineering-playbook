@@ -1,370 +1,183 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React from 'react';
 import Head from '@docusaurus/Head';
 import Link from '@docusaurus/Link';
 import useBaseUrl from '@docusaurus/useBaseUrl';
-import Translate, {translate} from '@docusaurus/Translate';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 import Layout from '@theme/Layout';
 import styles from './index.module.css';
 
-// 홈페이지에 schema.org WebSite + Organization JSON-LD를 주입한다.
+const topics = [
+  {title: 'EKS Best Practices', href: '/docs/eks-best-practices', category: 'Infrastructure',
+    ko: '네트워크, 보안, 확장, 비용. EKS 운영의 기본기를 쌓고 문제의 원인을 좁힙니다.',
+    en: 'Networking, security, scaling, and cost. Build an operational foundation and trace problems to their source.',
+    subjects: ['Networking', 'Reliability', 'Karpenter']},
+  {title: 'Agentic AI Platform', href: '/docs/agentic-ai-platform', category: 'AI systems',
+    ko: '모델 서빙부터 Gateway, 데이터, 관측까지. AI 플랫폼을 구성하는 요소와 선택 기준을 다룹니다.',
+    en: 'Model serving, gateways, data, and observability. Understand the components and decisions behind an AI platform.',
+    subjects: ['Model serving', 'AI Gateway', 'MLOps']},
+  {title: 'EKS Hybrid Nodes', href: '/docs/eks-hybrid-nodes', category: 'Hybrid infrastructure',
+    ko: '온프레미스 노드를 EKS에 연결하고 네트워크, 스토리지, GPU를 운영합니다.',
+    en: 'Connect on-premises nodes to EKS and operate networking, storage, and GPU workloads.'},
+  {title: 'ROSA', href: '/docs/rosa', category: 'OpenShift on AWS',
+    ko: 'Red Hat OpenShift on AWS의 설치, 보안, 엔터프라이즈 운영을 다룹니다.',
+    en: 'Installation, security, and enterprise operations for Red Hat OpenShift on AWS.'},
+  {title: 'AIDLC', href: '/docs/aidlc', category: 'Development practice',
+    ko: '요구사항에서 구현과 검증까지, AI와 협업하는 개발 과정을 정리합니다.',
+    en: 'A development workflow for working with AI, from requirements through implementation and validation.'},
+  {title: 'Benchmarks', href: '/docs/benchmarks', category: 'Measurement',
+    ko: '측정 조건과 결과를 함께 읽고 성능, 비용, 아키텍처의 차이를 비교합니다.',
+    en: 'Read results alongside their test conditions to compare performance, cost, and architecture.'},
+  {title: 'Industry Solutions', href: '/docs/industry-solutions', category: 'Applied engineering',
+    ko: '산업별 요구사항을 실제 설계와 구현 시나리오로 연결합니다.',
+    en: 'Connect industry requirements to concrete designs and implementation scenarios.'},
+];
+
+function Arrow() {
+  return <span aria-hidden="true" className={styles.arrow}>↗</span>;
+}
+
 function HomeStructuredData() {
-  const {siteConfig} = useDocusaurusContext();
+  const {siteConfig, i18n} = useDocusaurusContext();
+  const homePath = useBaseUrl('/');
   const siteUrl = siteConfig.url + siteConfig.baseUrl.replace(/\/$/, '');
   const structuredData = [
-    {
-      '@context': 'https://schema.org',
-      '@type': 'WebSite',
-      name: siteConfig.title,
-      url: siteUrl,
-      description: siteConfig.tagline,
-      inLanguage: siteConfig.i18n.defaultLocale,
-    },
-    {
-      '@context': 'https://schema.org',
-      '@type': 'Organization',
-      name: siteConfig.title,
-      url: siteUrl,
-      logo: {
-        '@type': 'ImageObject',
-        url: `${siteUrl}/img/logo.svg`,
-      },
-      sameAs: ['https://github.com/devfloor9/engineering-playbook'],
-    },
+    {'@context': 'https://schema.org', '@type': 'WebSite', name: siteConfig.title,
+      url: `${siteConfig.url}${homePath}`, description: siteConfig.tagline, inLanguage: i18n.currentLocale},
+    {'@context': 'https://schema.org', '@type': 'Organization', name: siteConfig.title, url: siteUrl,
+      logo: {'@type': 'ImageObject', url: `${siteUrl}/img/logo.svg`},
+      sameAs: ['https://github.com/devfloor9/engineering-playbook']},
   ];
-  return (
-    <Head>
-      <script type="application/ld+json">{JSON.stringify(structuredData)}</script>
-    </Head>
-  );
+  return <Head><script type="application/ld+json">{JSON.stringify(structuredData)}</script></Head>;
 }
 
-/* ── Scroll reveal: IntersectionObserver로 뷰포트 진입 시 애니메이션 ── */
-function useReveal() {
-  const ref = useRef(null);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return undefined;
-    if (
-      typeof IntersectionObserver === 'undefined' ||
-      window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    ) {
-      el.classList.add(styles.revealed);
-      return undefined;
-    }
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add(styles.revealed);
-            observer.unobserve(entry.target);
-          }
-        });
-      },
-      {threshold: 0.12},
-    );
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, []);
-  return ref;
-}
-
-function Reveal({children, delay = 0, className = ''}) {
-  const ref = useReveal();
-  return (
-    <div
-      ref={ref}
-      className={`${styles.reveal} ${className}`}
-      style={{transitionDelay: `${delay}ms`}}
-    >
-      {children}
+function ManualCover() {
+  return <div className={styles.coverScene} aria-hidden="true">
+    <div className={styles.coverAnnotation}>THE ENGINEERING REFERENCE</div>
+    <div className={styles.cover}>
+      <div className={styles.coverTop}><span>EP / FIELD NOTES</span><span>01 — 07</span></div>
+      <div className={styles.coverTitle}>Design.<br />Build.<br /><span>Operate.</span></div>
+      <svg className={styles.coverDiagram} viewBox="0 0 360 170" fill="none">
+        <path d="M30 85H115M180 30V140M245 85H330M115 30H245V140H115Z" stroke="currentColor" strokeWidth="1" />
+        <path d="M30 30H115M245 140H330M65 30V140M295 30V140" stroke="currentColor" strokeOpacity=".35" />
+        <circle cx="30" cy="85" r="10" fill="#C8F5DD" /><circle cx="330" cy="85" r="10" fill="#C8F5DD" />
+        <path d="m180 57 28 28-28 28-28-28Z" fill="#C8F5DD" />
+        <circle cx="115" cy="30" r="5" fill="#172E3B" stroke="currentColor" />
+        <circle cx="245" cy="140" r="5" fill="#172E3B" stroke="currentColor" />
+        <path d="M22 25v10m-5-5h10M328 135v10m-5-5h10" stroke="currentColor" strokeOpacity=".6" />
+      </svg>
+      <div className={styles.coverBottom}><span>CLOUD INFRASTRUCTURE<br />& AI PLATFORMS</span><span className={styles.coverMark}>ep.</span></div>
     </div>
-  );
+    <span className={styles.coverTab}>ENGINEERING PLAYBOOK</span>
+    <span className={styles.coverCaption}>Architecture / Implementation / Operations</span>
+  </div>;
 }
 
-// Decorative implementation preview below the reading paths.
-const TERMINAL_LINES = [
-  {cmd: 'eksctl create cluster --config-file=prod.yaml', out: '✓ EKS cluster "prod" ready · 3 nodes'},
-  {cmd: 'kubectl apply -f vllm-deployment.yaml', out: '✓ deployment.apps/vllm-llama4 created'},
-  {cmd: 'helm install kgateway kgateway/kgateway', out: '✓ 2-Tier AI Gateway deployed'},
-  {cmd: 'karpenter get nodepools', out: '✓ gpu-pool · p5.48xlarge · spot 68% saved'},
-];
-
-function TypingTerminal() {
-  const [lineIdx, setLineIdx] = useState(0);
-  const [charCount, setCharCount] = useState(0);
-  const [showOutput, setShowOutput] = useState(false);
-  const [history, setHistory] = useState([]);
-  const reducedRef = useRef(false);
-
-  useEffect(() => {
-    reducedRef.current =
-      typeof window !== 'undefined' &&
-      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (reducedRef.current) {
-      // 모션 최소화: 전체 히스토리를 정적으로 표시
-      setHistory(TERMINAL_LINES.slice(0, 3));
-      setLineIdx(3);
-      setCharCount(TERMINAL_LINES[3].cmd.length);
-      setShowOutput(true);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (reducedRef.current) return undefined;
-    const line = TERMINAL_LINES[lineIdx];
-    if (charCount < line.cmd.length) {
-      const t = setTimeout(() => setCharCount((c) => c + 1), 38);
-      return () => clearTimeout(t);
-    }
-    if (!showOutput) {
-      const t = setTimeout(() => setShowOutput(true), 350);
-      return () => clearTimeout(t);
-    }
-    const t = setTimeout(() => {
-      setHistory((h) => [...h.slice(-2), line]);
-      setLineIdx((i) => (i + 1) % TERMINAL_LINES.length);
-      setCharCount(0);
-      setShowOutput(false);
-    }, 2200);
-    return () => clearTimeout(t);
-  }, [charCount, showOutput, lineIdx]);
-
-  const current = TERMINAL_LINES[lineIdx];
-
-  return (
-    <div className={styles.terminal}>
-      <div className={styles.terminalBar}>
-        <span className={styles.terminalDot} style={{background: '#FF5F57'}} />
-        <span className={styles.terminalDot} style={{background: '#FEBC2E'}} />
-        <span className={styles.terminalDot} style={{background: '#28C840'}} />
-        <span className={styles.terminalTitle}>playbook — zsh</span>
-      </div>
-      <div className={styles.terminalBody}>
-        {history.map((line, i) => (
-          <div key={`${line.cmd}-${i}`} className={styles.terminalHistory}>
-            <div className={styles.terminalLine}>
-              <span className={styles.terminalPrompt}>$</span> {line.cmd}
-            </div>
-            <div className={styles.terminalOutput}>{line.out}</div>
-          </div>
-        ))}
-        <div className={styles.terminalLine}>
-          <span className={styles.terminalPrompt}>$</span>{' '}
-          {current.cmd.slice(0, charCount)}
-          <span className={styles.terminalCursor} />
-        </div>
-        {showOutput && (
-          <div className={`${styles.terminalOutput} ${styles.terminalOutputNew}`}>
-            {current.out}
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-const topics = [
-  {
-    title: 'Agentic AI Platform',
-    descriptionId: 'topic.agentic.desc',
-    description: 'EKS 기반 Agentic AI 플랫폼 설계, 2-Tier Gateway, Knowledge Feature Store, 모델 서빙, MLOps 파이프라인',
-    href: '/docs/agentic-ai-platform',
-    icon: '🧠',
-    iconBg: '#EDE7F6',
-    tags: ['EKS', 'vLLM', 'Bifrost', 'AgentCore'],
-    size: 'large',
-  },
-  {
-    title: 'EKS Best Practices',
-    descriptionId: 'topic.eks.desc',
-    description: 'Amazon EKS 네트워킹, 컨트롤 플레인 확장, 보안 & 거버넌스, Karpenter 비용 최적화, 운영 안정성',
-    href: '/docs/eks-best-practices',
-    icon: '🏗️',
-    iconBg: '#E3F2FD',
-    tags: ['EKS', 'Karpenter', 'Security'],
-    size: 'small',
-    accent: true,
-  },
-  {
-    title: 'ROSA (OpenShift on AWS)',
-    descriptionId: 'topic.rosa.desc',
-    description: 'Red Hat OpenShift on AWS 설치, 보안 컴플라이언스, 엔터프라이즈 운영 가이드',
-    href: '/docs/rosa',
-    icon: '🔴',
-    iconBg: '#FFEBEE',
-    size: 'wide',
-  },
-  {
-    title: 'AIDLC',
-    descriptionId: 'topic.aidlc.desc',
-    description: 'AI 주도 개발 방법론, Intent→Unit→Bolt 모델, DDD 통합',
-    href: '/docs/aidlc',
-    icon: '🧠',
-    iconBg: '#E3F2FD',
-    size: 'wide',
-  },
-  {
-    title: 'EKS Hybrid Nodes',
-    descriptionId: 'topic.hybrid.desc',
-    description: 'EKS Hybrid Nodes Best Practices — 네트워킹·보안·스토리지·GPU·운영 레퍼런스 가이드',
-    href: '/docs/eks-hybrid-nodes',
-    icon: '☁️',
-    iconBg: '#E0F7FA',
-    size: 'wide',
-  },
-  {
-    title: 'Benchmarks',
-    descriptionId: 'topic.benchmarks.desc',
-    description: '성능 벤치마크, 비용 분석, 아키텍처 비교 리포트',
-    href: '/docs/benchmarks',
-    icon: '📈',
-    iconBg: '#FCE4EC',
-    size: 'wide',
-  },
-  {
-    title: 'Industry Solutions',
-    descriptionId: 'topic.industry.desc',
-    description: '산업별 요구사항과 활용 시나리오를 다루는 구현 가이드',
-    href: '/docs/industry-solutions', icon: '◇', iconBg: '#EDE7F6', size: 'wide',
-  },
-];
-
-function HeroSection() {
-  const {i18n} = useDocusaurusContext();
-  const ko = i18n.currentLocale === 'ko';
+function Hero({ko}) {
   const searchUrl = useBaseUrl('/search/');
-  const paths = [
-    {to: '/docs/eks-best-practices/operations-reliability/eks-debugging', title: ko ? 'EKS 운영 문제 해결' : 'Troubleshoot EKS'},
-    {to: '/docs/agentic-ai-platform/model-serving', title: ko ? 'AI 추론 환경 구축' : 'Build an inference platform'},
-    {to: '/docs/agentic-ai-platform/design-architecture/platform-selection/ai-platform-decision-framework', title: ko ? '아키텍처 비교' : 'Compare architectures'},
-    {to: 'https://github.com/devfloor9/sample-genai-on-eks-starter-kit', title: ko ? 'Starter Kit 시작 ↗' : 'Start with the starter kit ↗'},
-  ];
-  return (
-    <section className={styles.readingHero}>
-      <div className={styles.readingHeroInner}>
-        <span className={styles.eyebrow}>{ko ? '설계 · 구축 · 운영' : 'Design · Build · Operate'}</span>
-        <h1>Engineering <span>Playbook</span></h1>
-        <p>{ko ? 'Amazon EKS 운영과 AI 플랫폼 구축에 필요한 설계 근거, 설정, 검증 방법을 찾습니다.' : 'Find architecture decisions, configuration examples, and validation steps for Amazon EKS and AI platforms.'}</p>
-        <form role="search" action={searchUrl} method="get" className={styles.homeSearch}>
-          <label htmlFor="home-search">{ko ? '어떤 문서가 필요한가요?' : 'What are you working on?'}</label>
-          <div>
-            <input id="home-search" type="search" name="q" required placeholder={ko ? 'CoreDNS, KV Cache, 장애 진단…' : 'CoreDNS, KV cache, troubleshooting…'} />
-            <button type="submit">{ko ? '검색' : 'Search'}</button>
-          </div>
+  return <header className={styles.hero}>
+    <div className={styles.heroRule}>
+      <span><span className={styles.square} /> A FIELD GUIDE FOR ENGINEERS</span>
+      <span className={styles.heroRuleRight}>AWS · KUBERNETES · AI</span>
+    </div>
+    <div className={styles.heroGrid}>
+      <div className={styles.heroCopy}>
+        <h1>Engineering<br /><span>Playbook.</span></h1>
+        <p className={styles.heroLead}>{ko ? '설계의 이유부터, 운영의 디테일까지.' : 'From architecture decisions to operational detail.'}</p>
+        <p className={styles.heroDescription}>{ko
+          ? 'EKS 운영, AI 플랫폼 구축, 성능 검증을 다루는 기술 매뉴얼입니다. 개념과 선택 기준을 이해하고, 구현 예제와 운영 절차로 이어가세요.'
+          : 'A practical manual for EKS operations, AI platforms, and performance testing. Connect concepts and design choices with implementation examples and operational procedures.'}</p>
+        <div className={styles.heroActions}>
+          <Link className={styles.primaryLink} to="/docs/intro">{ko ? '매뉴얼 펼치기' : 'Open the manual'}<span aria-hidden="true">→</span></Link>
+          <a className={styles.contentsLink} href="#contents">{ko ? '전체 목차' : 'Explore the contents'}<span aria-hidden="true">↓</span></a>
+        </div>
+        <form role="search" aria-label={ko ? '문서 검색' : 'Search the manual'} action={searchUrl} method="get" className={styles.homeSearch}>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" stroke="currentColor" strokeWidth="1.6" /><path d="m16 16 5 5" stroke="currentColor" strokeWidth="1.6" /></svg>
+          <label className={styles.srOnly} htmlFor="home-search">{ko ? '검색어' : 'Search terms'}</label>
+          <input id="home-search" type="search" name="q" required placeholder={ko ? 'CoreDNS, KV Cache, 장애 진단…' : 'CoreDNS, KV cache, troubleshooting…'} />
+          <button type="submit">{ko ? '검색' : 'Search'}<span aria-hidden="true">↵</span></button>
         </form>
-        <nav className={styles.startingPaths} aria-label={ko ? '목적별 시작 경로' : 'Starting paths'}>
-          {paths.map(path => <Link key={path.to} to={path.to}>{path.title}<span aria-hidden="true">→</span></Link>)}
-        </nav>
+        <p className={styles.heroMeta}>{ko ? `${topics.length}개 주제 · 한국어 중심, English 번역 제공` : `${topics.length} topics · Korean with English translations`}</p>
       </div>
-    </section>
-  );
+      <ManualCover />
+    </div>
+    <nav className={styles.quickLinks} aria-label={ko ? '바로 찾기' : 'Quick reference'}>
+      <span className={styles.quickLabel}>{ko ? '바로 찾기' : 'QUICK REFERENCE'}</span>
+      <Link to="/docs/eks-best-practices/operations-reliability/eks-debugging">{ko ? 'EKS 장애 진단' : 'EKS troubleshooting'}<Arrow /></Link>
+      <Link to="/docs/agentic-ai-platform/model-serving">{ko ? '모델 서빙' : 'Model serving'}<Arrow /></Link>
+      <Link to="/docs/agentic-ai-platform/design-architecture/platform-selection/ai-platform-decision-framework">{ko ? '아키텍처 선택' : 'Architecture decisions'}<Arrow /></Link>
+    </nav>
+  </header>;
 }
 
-function TopicCard({title, description, descriptionId, href, icon, iconBg, tags, size, accent, index}) {
-  const sizeClass = {
-    large: styles.bentoLarge,
-    small: styles.bentoSmall,
-    wide: styles.bentoWide,
-    third: styles.bentoThird,
-  }[size] || styles.bentoThird;
-
-  return (
-    <Reveal delay={index * 70} className={sizeClass}>
-      <Link
-        to={href}
-        className={`${styles.bentoCard} ${accent ? styles.bentoAccent : ''}`}
-      >
-        <div
-          className={styles.bentoIcon}
-          style={{background: accent ? 'rgba(255,255,255,0.15)' : iconBg}}
-        >
-          {icon}
-        </div>
-        <h3 className={styles.bentoCardTitle}>{title}</h3>
-        <p className={styles.bentoDescription}>
-          <Translate id={descriptionId}>{description}</Translate>
-        </p>
-        {tags && (
-          <div className={styles.bentoTags}>
-            {tags.map((tag) => (
-              <span key={tag} className={styles.bentoTag}>{tag}</span>
-            ))}
-          </div>
-        )}
-        <span className={styles.bentoLink}>
-          <Translate id="topics.browse">문서 보기</Translate>{' '}
-          <span className={styles.btnArrow}>→</span>
-        </span>
-      </Link>
-    </Reveal>
-  );
+function Contents({ko}) {
+  return <section id="contents" className={styles.contents} aria-labelledby="contents-title">
+    <div className={styles.sectionHeading}>
+      <div><span className={styles.kicker}>THE CONTENTS</span><h2 id="contents-title">{ko ? '필요한 깊이까지, 한 장씩.' : 'Find your next chapter.'}</h2></div>
+      <p>{ko ? '기반 인프라에서 AI 시스템까지.\n지금 다루는 문제에 맞는 주제로 들어가세요.' : 'From the underlying infrastructure to AI systems.\nStart with the problem in front of you.'}</p>
+    </div>
+    <div className={styles.featuredTopics}>
+      {topics.slice(0, 2).map((topic, index) => <Link to={topic.href} key={topic.href} className={`${styles.featuredTopic} ${index === 1 ? styles.aiTopic : ''}`}>
+        <div className={styles.chapterHeading}><span className={styles.chapterNumber}>0{index + 1}</span><span>{topic.category}</span><Arrow /></div>
+        <h3>{topic.title}</h3><p>{ko ? topic.ko : topic.en}</p>
+        <div className={styles.topicFoot}><span>{topic.subjects.join(' / ')}</span><span>{ko ? '읽기' : 'Read'} →</span></div>
+      </Link>)}
+    </div>
+    <div className={styles.chapterList}>
+      {topics.slice(2).map((topic, index) => <Link to={topic.href} key={topic.href} className={styles.chapterRow}>
+        <span className={styles.chapterNumber}>0{index + 3}</span>
+        <div className={styles.chapterName}><h3>{topic.title}</h3><span>{topic.category}</span></div>
+        <p>{ko ? topic.ko : topic.en}</p><Arrow />
+      </Link>)}
+    </div>
+  </section>;
 }
 
-function TopicsSection() {
-  return (
-    <section id="topics" className={styles.topics}>
-      <div className={styles.topicsInner}>
-        <Reveal>
-          <div className={styles.topicsHeader}>
-            <div>
-              <h2 className={styles.topicsTitle}>
-                <Translate id="topics.title">주제별 문서</Translate>
-              </h2>
-              <p className={styles.topicsSubtitle}>
-                <Translate id="topics.subtitle">
-                  클라우드 엔지니어링의 핵심 영역을 깊이 있게 다루는 가이드 모음
-                </Translate>
-              </p>
-            </div>
-            <Link className={styles.viewAll} to="/docs/intro">
-              <Translate id="topics.viewAll">전체 문서 안내</Translate> →
-            </Link>
-          </div>
-        </Reveal>
-        <div className={styles.bentoGrid}>
-          {topics.map((topic, i) => (
-            <TopicCard key={topic.title} {...topic} index={i} />
-          ))}
-        </div>
-      </div>
-    </section>
-  );
+function ReadingPaths({ko}) {
+  const paths = [
+    {number: '01', verb: 'Understand', title: ko ? '구조와 선택 기준을 이해합니다.' : 'Understand the design choices.',
+      description: ko ? '구성 요소의 역할과 대안을 비교하고, 요구사항에 맞는 설계를 찾습니다.' : 'Compare component roles and alternatives against your requirements.',
+      to: '/docs/agentic-ai-platform/design-architecture/platform-selection/ai-platform-decision-framework', link: ko ? 'AI 플랫폼 의사결정 가이드' : 'AI platform decision framework'},
+    {number: '02', verb: 'Implement', title: ko ? '구현을 따라가며 확인합니다.' : 'Work through the implementation.',
+      description: ko ? '모델 서빙 구성과 배포 예제를 살펴보고, 환경에 맞는 적용 조건을 확인합니다.' : 'Review serving configurations and deployment examples, including the conditions they depend on.',
+      to: '/docs/agentic-ai-platform/model-serving', link: ko ? '모델 서빙 가이드' : 'Model serving guide'},
+    {number: '03', verb: 'Operate', title: ko ? '동작을 관찰하고 원인을 찾습니다.' : 'Observe behavior and diagnose problems.',
+      description: ko ? '메트릭, 장애 진단 순서, 운영 체크리스트를 통해 시스템의 상태를 읽습니다.' : 'Use metrics, diagnostic procedures, and checklists to understand how the system behaves.',
+      to: '/docs/eks-best-practices/operations-reliability/eks-debugging', link: ko ? 'EKS 장애 진단 가이드' : 'EKS troubleshooting guide'},
+  ];
+  return <section className={styles.readingSection} aria-labelledby="reading-title"><div className={styles.readingInner}>
+    <div className={styles.sectionHeading}>
+      <div><span className={styles.kicker}>HOW TO READ</span><h2 id="reading-title">{ko ? '이해하고, 적용하고, 검증합니다.' : 'Understand. Apply. Verify.'}</h2></div>
+      <Link className={styles.textLink} to="/docs/intro">{ko ? '읽기 경로 안내' : 'Guide to the manual'}<Arrow /></Link>
+    </div>
+    <div className={styles.readingGrid}>{paths.map(path => <article key={path.number} className={styles.readingStep}>
+      <div className={styles.stepLabel}><span>{path.number}</span>{path.verb}</div>
+      <h3>{path.title}</h3><p>{path.description}</p>
+      <Link to={path.to}>{path.link}<span aria-hidden="true">→</span></Link>
+    </article>)}</div>
+  </div></section>;
 }
 
-function CTASection() {
-  const {i18n} = useDocusaurusContext();
-  const ko = i18n.currentLocale === 'ko';
-  return (
-    <section className={styles.referenceSection}>
-      <div>
-        <h2>{ko ? '문서에서 구현으로' : 'From documentation to implementation'}</h2>
-        <p>{ko ? '구현 예제와 배포 구성을 함께 확인할 수 있습니다.' : 'Continue with deployment configurations and implementation examples.'}</p>
-        <div className={styles.referenceLinks}>
-          <Link to="https://github.com/devfloor9/ai-on-eks">AI on EKS ↗</Link>
-          <Link to="https://github.com/devfloor9/sample-genai-on-eks-starter-kit">GenAI on EKS Starter Kit ↗</Link>
-          <Link to="/docs/intro">{ko ? '추천 읽기 경로' : 'Suggested reading paths'} →</Link>
-        </div>
-        <p className={styles.referenceMeta}>{ko ? `${topics.length}개 주제 · 한국어 / English` : `${topics.length} topics · Korean / English`}</p>
-      </div>
-      <div className={styles.referenceTerminal} aria-hidden="true"><TypingTerminal /></div>
-    </section>
-  );
+function Repositories({ko}) {
+  return <section className={styles.repositories} aria-labelledby="repositories-title">
+    <div><span className={styles.kicker}>PUT IT INTO PRACTICE</span><h2 id="repositories-title">{ko ? '문서 옆에, 실행할 코드.' : 'The code beside the manual.'}</h2>
+      <p>{ko ? '참고 아키텍처와 배포 구성을 저장소에서 확인하세요.' : 'Continue with reference architectures and deployment configurations in the repositories.'}</p></div>
+    <div className={styles.repositoryLinks}>
+      <Link to="https://github.com/devfloor9/ai-on-eks"><span><strong>AI on EKS</strong><small>{ko ? 'AI 워크로드 구성과 운영 예제' : 'AI workload configurations and examples'}</small></span><Arrow /></Link>
+      <Link to="https://github.com/devfloor9/sample-genai-on-eks-starter-kit"><span><strong>GenAI on EKS Starter Kit</strong><small>{ko ? '플랫폼 구성 요소와 시작 가이드' : 'Platform components and a starting guide'}</small></span><Arrow /></Link>
+    </div>
+    <div className={styles.sourceNote}>
+      <span>{ko ? '함께 고쳐가는 기술 매뉴얼' : 'An engineering manual, maintained in the open'}</span>
+      <Link to="https://github.com/devfloor9/engineering-playbook">{ko ? '소스와 변경 이력' : 'Source and revision history'} ↗</Link>
+      <Link to="/ai-docs">{ko ? 'AI용 문서 안내' : 'AI documentation guide'} →</Link>
+    </div>
+  </section>;
 }
 
 export default function Home() {
-  const {siteConfig} = useDocusaurusContext();
-  return (
-    <Layout
-      title={siteConfig.title}
-      description={translate({
-        id: 'homepage.description',
-        message: 'Amazon EKS 기반 인프라, AI/ML, 보안, 운영에 대한 실전 엔지니어링 가이드',
-      })}>
-      <HomeStructuredData />
-      <HeroSection />
-      <TopicsSection />
-      <CTASection />
-    </Layout>
-  );
+  const {i18n} = useDocusaurusContext();
+  const ko = i18n.currentLocale === 'ko';
+  return <Layout title="Engineering Playbook" description={ko ? 'EKS 운영, AI 플랫폼 구축, 성능 검증을 다루는 실전 엔지니어링 매뉴얼' : 'A practical engineering manual for EKS operations, AI platforms, and performance testing.'}>
+    <HomeStructuredData />
+    <main className={styles.home}><Hero ko={ko} /><Contents ko={ko} /><ReadingPaths ko={ko} /><Repositories ko={ko} /></main>
+  </Layout>;
 }
