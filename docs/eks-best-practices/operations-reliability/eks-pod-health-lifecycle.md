@@ -3,7 +3,7 @@ title: EKS Pod 헬스체크 & 라이프사이클 관리
 description: Kubernetes Probe 설정 전략, Graceful Shutdown 패턴, Pod 라이프사이클 관리 모범 사례
 created: "2026-02-12"
 last_update:
-  date: "2026-06-30"
+  date: "2026-09-17"
   author: YoungJoon Jeong
 reading_time: 68
 tags:
@@ -81,6 +81,12 @@ Readiness Probe는 Pod이 트래픽을 받을 준비가 되었는지 확인합�
 - 의존 서비스 연결 확인 (DB, 캐시)
 - 초기 데이터 로딩 완료 확인
 - 배포 중 단계적 트래픽 수신
+
+**흐름 요약**
+
+1. Init Container와 메인 컨테이너가 시작된 뒤 Startup Probe가 초기화 완료를 확인합니다.
+2. Liveness Probe는 재시작 여부를, Readiness Probe는 Service Endpoint 참여 여부를 판단합니다.
+3. 종료 요청 후 preStop과 SIGTERM 처리, Graceful Shutdown을 거쳐 컨테이너가 종료됩니다.
 
 ```mermaid
 flowchart TB
