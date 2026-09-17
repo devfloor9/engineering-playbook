@@ -184,7 +184,7 @@ Agent 운영 비용과 리소스 효율을 측정한다.
 # Generation span에 토큰 및 비용 기록
 generation = trace.generation(
     name="llm_call",
-    model="gpt-4o-2025-01-31",
+    model="example-model",
     input="What is the weather in Seoul?",
     output="The current weather in Seoul is...",
     usage={
@@ -312,7 +312,7 @@ flowchart TB
 모든 trace/span에 다음 태그를 부여한다:
 
 - `agent_name`: Agent 식별자 (예: `customer-support-agent`)
-- `model`: LLM 모델명 (예: `gpt-4o-2025-01-31`)
+- `model`: LLM 모델명 (예: `example-model`)
 - `prompt_version`: 프롬프트 템플릿 버전 (예: `v1.2.3`)
 - `tool`: 호출된 도구명 (예: `get_weather`)
 - `guardrails`: 적용된 guardrails (예: `pii_redaction,prompt_injection`)
@@ -374,7 +374,7 @@ flowchart TB
       "parent_span_id": "span_001",
       "name": "llm_generation",
       "type": "generation",
-      "model": "gpt-4o-2025-01-31",
+      "model": "example-model",
       "input": [{"role": "system", "content": "You are a support agent..."}, {"role": "user", "content": "I want a refund..."}],
       "output": "Based on your order status...",
       "usage": {
@@ -426,7 +426,7 @@ GenAI 규약의 정본은 2026년 5월 [`semantic-conventions-genai`](https://gi
 | Attribute | 예시 | 설명 |
 |-----------|------|------|
 | `gen_ai.provider.name` | `openai` | GenAI 제공자 (`gcp.gen_ai`, `gcp.vertex_ai` 등) |
-| `gen_ai.request.model` | `gpt-4o-2025-01-31` | 모델명 |
+| `gen_ai.request.model` | `example-model` | 모델명 |
 | `gen_ai.request.temperature` | `0.7` | 샘플링 온도 |
 | `gen_ai.request.max_tokens` | `2048` | 최대 출력 토큰 |
 | `gen_ai.usage.input_tokens` | `1200` | 입력 토큰 수 |
@@ -642,7 +642,7 @@ def lambda_handler(event, context):
 - Current hourly cost: $142.50 (baseline $18.20)
 - Time: 2026-04-18 14:30 UTC
 - Agent: customer-support-agent
-- Model: gpt-4o-2025-01-31
+- Model: example-model
 
 **Probable Cause**: Unusual traffic spike (3.2k requests vs 800 baseline)
 

@@ -3,7 +3,7 @@ title: LLMOps Observability 비교 가이드
 description: LLMOps Observability 도구 비교 전용 문서 — Langfuse·LangSmith·Helicone·CloudWatch 선택 기준과 하이브리드 아키텍처 (Langfuse 운영은 Agent 모니터링 문서 참조)
 created: "2026-03-16"
 last_update:
-  date: "2026-08-11"
+  date: "2026-09-17"
   author: YoungJoon Jeong
 reading_time: 13
 tags:
@@ -252,15 +252,19 @@ Langfuse는 LLM 특화 Observability를 제공하지만, 전체 애플리케이�
 
 ### 5.2 OTel Semantic Conventions 매핑
 
-| OTEL 속성 | Langfuse 필드 | 설명 |
-|-----------|---------------|------|
-| `llm.model` | `model` | 모델명 (gpt-4o, claude-3-opus 등) |
-| `llm.input_tokens` | `usage.input` | 입력 토큰 수 |
-| `llm.output_tokens` | `usage.output` | 출력 토큰 수 |
-| `llm.temperature` | `modelParameters.temperature` | Temperature 파라미터 |
-| `llm.request.prompt` | `input` | 프롬프트 |
-| `llm.response.completion` | `output` | 응답 텍스트 |
-| `llm.total_cost` | `calculatedTotalCost` | 계산된 비용 |
+GenAI semantic conventions의 `gen_ai.*` 속성과 Langfuse 전용 `langfuse.*` 속성을 구분합니다. 아래 Langfuse 열은 수집 후의 의미를 설명하며, SDK 메서드의 인자 이름을 정의하지 않습니다.
+
+| 구분 | Span 속성 | Langfuse에서의 의미 |
+|---|---|---|
+| GenAI | `gen_ai.request.model` | 요청 모델명 |
+| GenAI | `gen_ai.usage.input_tokens` | 입력 토큰 사용량 |
+| GenAI | `gen_ai.usage.output_tokens` | 출력 토큰 사용량 |
+| GenAI | `gen_ai.request.temperature` | 모델 호출 파라미터 |
+| Langfuse 전용 | `langfuse.observation.input` | 관측 입력, 문자열 또는 JSON 문자열 |
+| Langfuse 전용 | `langfuse.observation.output` | 관측 출력, 문자열 또는 JSON 문자열 |
+| Langfuse 전용 | `langfuse.observation.cost_details` | 전달하는 비용 내역, JSON 문자열 |
+
+속성 이름과 타입은 [GenAI attribute registry](https://github.com/open-telemetry/semantic-conventions-genai/blob/0c87594975195608dc91b3f702e250a7b240c151/docs/registry/attributes/gen-ai.md)와 [Langfuse OTel property mapping](https://langfuse.com/integrations/native/opentelemetry#property-mapping)을 대조하세요. GenAI 규약은 발전 중이므로 계측·수집기·대시보드의 규약 버전을 함께 관리합니다. 비용 내역은 Langfuse에 명시적으로 전달하는 값이며 GenAI 표준의 자동 계산 결과가 아닙니다. 입력·출력 본문에는 민감한 데이터가 포함될 수 있으므로 수집 범위를 정하고 필요한 마스킹을 적용하세요.
 
 ### 5.3 Grafana Tempo + Langfuse 조합
 

@@ -3,7 +3,7 @@ title: LLMOps Observability Comparison Guide
 description: LLMOps observability tool comparison — Langfuse·LangSmith·Helicone·CloudWatch selection criteria and hybrid architecture (for Langfuse operations, see Agent Monitoring)
 created: "2026-03-16"
 last_update:
-  date: "2026-08-11"
+  date: "2026-09-17"
   author: devfloor9
 reading_time: 21
 tags:
@@ -252,15 +252,19 @@ Langfuse provides LLM-specific observability, but overall application context is
 
 ### 5.2 OTel Semantic Conventions Mapping
 
-| OTEL Attribute | Langfuse Field | Description |
-|----------------|----------------|-------------|
-| `llm.model` | `model` | Model name (gpt-4o, claude-3-opus, etc.) |
-| `llm.input_tokens` | `usage.input` | Input token count |
-| `llm.output_tokens` | `usage.output` | Output token count |
-| `llm.temperature` | `modelParameters.temperature` | Temperature parameter |
-| `llm.request.prompt` | `input` | Prompt |
-| `llm.response.completion` | `output` | Response text |
-| `llm.total_cost` | `calculatedTotalCost` | Calculated cost |
+Distinguish the `gen_ai.*` semantic-convention attributes from Langfuse-specific `langfuse.*` attributes. The Langfuse column describes the ingested meaning, not SDK method parameter names.
+
+| Namespace | Span attribute | Meaning in Langfuse |
+|---|---|---|
+| GenAI | `gen_ai.request.model` | Requested model name |
+| GenAI | `gen_ai.usage.input_tokens` | Input token usage |
+| GenAI | `gen_ai.usage.output_tokens` | Output token usage |
+| GenAI | `gen_ai.request.temperature` | Model invocation parameter |
+| Langfuse-specific | `langfuse.observation.input` | Observation input as a string or JSON string |
+| Langfuse-specific | `langfuse.observation.output` | Observation output as a string or JSON string |
+| Langfuse-specific | `langfuse.observation.cost_details` | Explicit cost details as a JSON string |
+
+Check names and types against the [GenAI attribute registry](https://github.com/open-telemetry/semantic-conventions-genai/blob/0c87594975195608dc91b3f702e250a7b240c151/docs/registry/attributes/gen-ai.md) and [Langfuse OTel property mapping](https://langfuse.com/integrations/native/opentelemetry#property-mapping). GenAI conventions are evolving, so manage their version across instrumentation, collectors, and dashboards. Cost details are values supplied to Langfuse, not an automatically calculated GenAI standard attribute. Define the collection scope and redaction policy before recording potentially sensitive input or output content.
 
 ### 5.3 Grafana Tempo + Langfuse Combination
 

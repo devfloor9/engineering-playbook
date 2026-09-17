@@ -186,7 +186,7 @@ Measures Agent operational cost and resource efficiency.
 # Record tokens and cost in generation span
 generation = trace.generation(
     name="llm_call",
-    model="gpt-4o-2025-01-31",
+    model="example-model",
     input="What is the weather in Seoul?",
     output="The current weather in Seoul is...",
     usage={
@@ -314,7 +314,7 @@ flowchart TB
 Apply the following tags to all traces/spans:
 
 - `agent_name`: Agent identifier (e.g., `customer-support-agent`)
-- `model`: LLM model name (e.g., `gpt-4o-2025-01-31`)
+- `model`: LLM model name (e.g., `example-model`)
 - `prompt_version`: Prompt template version (e.g., `v1.2.3`)
 - `tool`: Tool name called (e.g., `get_weather`)
 - `guardrails`: Applied guardrails (e.g., `pii_redaction,prompt_injection`)
@@ -376,7 +376,7 @@ Quality evaluation is recorded as `score` events:
       "parent_span_id": "span_001",
       "name": "llm_generation",
       "type": "generation",
-      "model": "gpt-4o-2025-01-31",
+      "model": "example-model",
       "input": [{"role": "system", "content": "You are a support agent..."}, {"role": "user", "content": "I want a refund..."}],
       "output": "Based on your order status...",
       "usage": {
@@ -428,7 +428,7 @@ The GenAI conventions were split into the [`semantic-conventions-genai`](https:/
 | Attribute | Example | Description |
 |-----------|---------|-------------|
 | `gen_ai.provider.name` | `openai` | GenAI provider (`gcp.gen_ai`, `gcp.vertex_ai`, etc.) |
-| `gen_ai.request.model` | `gpt-4o-2025-01-31` | Model name |
+| `gen_ai.request.model` | `example-model` | Model name |
 | `gen_ai.request.temperature` | `0.7` | Sampling temperature |
 | `gen_ai.request.max_tokens` | `2048` | Max output tokens |
 | `gen_ai.usage.input_tokens` | `1200` | Input token count |
@@ -644,7 +644,7 @@ def lambda_handler(event, context):
 - Current hourly cost: $142.50 (baseline $18.20)
 - Time: 2026-04-18 14:30 UTC
 - Agent: customer-support-agent
-- Model: gpt-4o-2025-01-31
+- Model: example-model
 
 **Probable Cause**: Unusual traffic spike (3.2k requests vs 800 baseline)
 
