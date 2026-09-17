@@ -182,5 +182,21 @@
   "sidebar.benchmarks.category.인프라 & 운영": {
     "message": "Infrastructure & Operations",
     "description": "The label for category '인프라 & 운영' in sidebar 'benchmarks'"
+  },
+  "sidebar.docs.category.Pod 헬스체크 & 라이프사이클": {
+    "message": "Pod Health Checks & Lifecycle",
+    "description": "The label for category 'Pod 헬스체크 & 라이프사이클' in sidebar 'docs'"
+  },
+  "sidebar.docs.category.Probe": {
+    "message": "Probes",
+    "description": "The label for category 'Probe' in sidebar 'docs'"
+  },
+  "sidebar.docs.category.종료와 노드 수명 주기": {
+    "message": "Shutdown and node lifecycle",
+    "description": "The label for category '종료와 노드 수명 주기' in sidebar 'docs'"
+  },
+  "sidebar.docs.category.시작·배포·최적화": {
+    "message": "Startup, deployment, and optimization",
+    "description": "The label for category '시작·배포·최적화' in sidebar 'docs'"
   }
 }

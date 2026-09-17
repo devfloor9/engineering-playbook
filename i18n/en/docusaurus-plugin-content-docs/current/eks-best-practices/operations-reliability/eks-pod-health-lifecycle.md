@@ -3,7 +3,7 @@ title: EKS Pod Health Checks & Lifecycle Management
 description: Kubernetes Probe configuration strategies, Graceful Shutdown patterns, and Pod lifecycle management best practices
 created: "2026-02-12"
 last_update:
-  date: "2026-06-30"
+  date: "2026-09-17"
   author: devfloor9
 reading_time: 4
 tags:
@@ -23,6 +23,28 @@ category: operations
 ## 1. Overview
 
 Pod health checks and lifecycle management are fundamental to service stability and availability. Proper Probe configuration and Graceful Shutdown implementation ensure: zero-downtime deployments, fast failure detection, resource optimization, and data integrity.
+
+## Reading paths
+
+The full Korean guide is now organized into focused chapters. Each chapter page links to its examples and references.
+
+- [Probe types and configuration](./pod-lifecycle/probe-basics.md)
+- [Probe patterns by workload](./pod-lifecycle/probe-workloads.md)
+- [Probe antipatterns](./pod-lifecycle/probe-antipatterns.md)
+- [Load balancer health checks](./pod-lifecycle/probe-load-balancers.md)
+- [EKS features and probes](./pod-lifecycle/probe-eks-features.md)
+- [Pod termination sequence](./pod-lifecycle/shutdown-basics.md)
+- [SIGTERM handling by language](./pod-lifecycle/shutdown-languages.md)
+- [Connection draining](./pod-lifecycle/shutdown-draining.md)
+- [Karpenter and node drain](./pod-lifecycle/shutdown-karpenter.md)
+- [Node Readiness Controller](./pod-lifecycle/node-readiness.md)
+- [Fargate Pod lifecycle](./pod-lifecycle/shutdown-fargate.md)
+- [Init container patterns](./pod-lifecycle/init-containers.md)
+- [Pod lifecycle hooks](./pod-lifecycle/lifecycle-hooks.md)
+- [Container images and startup time](./pod-lifecycle/container-images.md)
+- [Deployment checklist and references](./pod-lifecycle/checklist-references.md)
+- [EKS Auto Mode checklist](./pod-lifecycle/auto-mode-checklist.md)
+- [AI-assisted probe optimization](./pod-lifecycle/ai-probe-optimization.md)
 
 ## 2. Kubernetes Probe Deep-dive
 

@@ -1,0 +1,590 @@
+{
+  "2-kubernetes-probe-심층-가이드": {
+    "path": "probe-basics",
+    "title": "Kubernetes Probe 심층 가이드"
+  },
+  "21-세-가지-probe-유형과-동작-원리": {
+    "path": "probe-basics",
+    "title": "세 가지 Probe 유형과 동작 원리"
+  },
+  "startup-probe-느린-시작-앱-보호": {
+    "path": "probe-basics",
+    "title": "Startup Probe: 느린 시작 앱 보호"
+  },
+  "liveness-probe-데드락-감지": {
+    "path": "probe-basics",
+    "title": "Liveness Probe: 데드락 감지"
+  },
+  "readiness-probe-트래픽-수신-제어": {
+    "path": "probe-basics",
+    "title": "Readiness Probe: 트래픽 수신 제어"
+  },
+  "22-probe-메커니즘": {
+    "path": "probe-basics",
+    "title": "Probe 메커니즘"
+  },
+  "httpget-예시": {
+    "path": "probe-basics",
+    "title": "httpGet 예시"
+  },
+  "tcpsocket-예시": {
+    "path": "probe-basics",
+    "title": "tcpSocket 예시"
+  },
+  "exec-예시": {
+    "path": "probe-basics",
+    "title": "exec 예시"
+  },
+  "grpc-예시-kubernetes-127": {
+    "path": "probe-basics",
+    "title": "grpc 예시 (Kubernetes 1.27+)"
+  },
+  "23-probe-타이밍-설계": {
+    "path": "probe-basics",
+    "title": "Probe 타이밍 설계"
+  },
+  "타이밍-설계-공식": {
+    "path": "probe-basics",
+    "title": "타이밍 설계 공식"
+  },
+  "워크로드별-권장-타이밍": {
+    "path": "probe-basics",
+    "title": "워크로드별 권장 타이밍"
+  },
+  "24-워크로드별-probe-패턴": {
+    "path": "probe-workloads",
+    "title": "워크로드별 Probe 패턴"
+  },
+  "패턴-1-웹-서비스-rest-api": {
+    "path": "probe-workloads",
+    "title": "패턴 1: 웹 서비스 (REST API)"
+  },
+  "패턴-2-grpc-서비스": {
+    "path": "probe-workloads",
+    "title": "패턴 2: gRPC 서비스"
+  },
+  "패턴-3-워커배치-처리": {
+    "path": "probe-workloads",
+    "title": "패턴 3: 워커/배치 처리"
+  },
+  "패턴-4-느린-시작-앱-spring-boot-jvm": {
+    "path": "probe-workloads",
+    "title": "패턴 4: 느린 시작 앱 (Spring Boot, JVM)"
+  },
+  "패턴-5-사이드카-패턴-istio-proxy--앱": {
+    "path": "probe-workloads",
+    "title": "패턴 5: 사이드카 패턴 (Istio Proxy + 앱)"
+  },
+  "native-sidecar-containers-k8s-128-ga": {
+    "path": "probe-workloads",
+    "title": "Native Sidecar Containers (K8s 1.28+ GA)"
+  },
+  "246-windows-컨테이너-probe-고려사항": {
+    "path": "probe-workloads",
+    "title": "Windows 컨테이너 Probe 고려사항"
+  },
+  "windows-vs-linux-probe-동작-차이": {
+    "path": "probe-workloads",
+    "title": "Windows vs Linux Probe 동작 차이"
+  },
+  "windows-워크로드-probe-설정-예시": {
+    "path": "probe-workloads",
+    "title": "Windows 워크로드 Probe 설정 예시"
+  },
+  "windows-워크로드-probe-타임아웃-주의사항": {
+    "path": "probe-workloads",
+    "title": "Windows 워크로드 Probe 타임아웃 주의사항"
+  },
+  "cloudwatch-container-insights-for-windows-2025-08": {
+    "path": "probe-workloads",
+    "title": "CloudWatch Container Insights for Windows (2025-08)"
+  },
+  "혼합-클러스터-linux--windows-통합-모니터링-전략": {
+    "path": "probe-workloads",
+    "title": "혼합 클러스터 (Linux + Windows) 통합 모니터링 전략"
+  },
+  "25-probe-안티패턴과-함정": {
+    "path": "probe-antipatterns",
+    "title": "Probe 안티패턴과 함정"
+  },
+  "-안티패턴-1-liveness-probe에-외부-의존성-포함": {
+    "path": "probe-antipatterns",
+    "title": "❌ 안티패턴 1: Liveness Probe에 외부 의존성 포함"
+  },
+  "-안티패턴-2-startup-probe-없이-높은-initialdelayseconds": {
+    "path": "probe-antipatterns",
+    "title": "❌ 안티패턴 2: Startup Probe 없이 높은 initialDelaySeconds"
+  },
+  "-안티패턴-3-liveness와-readiness에-같은-엔드포인트": {
+    "path": "probe-antipatterns",
+    "title": "❌ 안티패턴 3: Liveness와 Readiness에 같은 엔드포인트"
+  },
+  "-안티패턴-4-너무-공격적인-failurethreshold": {
+    "path": "probe-antipatterns",
+    "title": "❌ 안티패턴 4: 너무 공격적인 failureThreshold"
+  },
+  "-안티패턴-5-과도하게-긴-timeoutseconds": {
+    "path": "probe-antipatterns",
+    "title": "❌ 안티패턴 5: 과도하게 긴 timeoutSeconds"
+  },
+  "26-albnlb-헬스체크와-probe-통합": {
+    "path": "probe-load-balancers",
+    "title": "ALB/NLB 헬스체크와 Probe 통합"
+  },
+  "alb-target-group-헬스체크-vs-readiness-probe": {
+    "path": "probe-load-balancers",
+    "title": "ALB Target Group 헬스체크 vs Readiness Probe"
+  },
+  "헬스체크-타이밍-동기화-전략": {
+    "path": "probe-load-balancers",
+    "title": "헬스체크 타이밍 동기화 전략"
+  },
+  "pod-readiness-gates-무중단-배포-보장": {
+    "path": "probe-load-balancers",
+    "title": "Pod Readiness Gates (무중단 배포 보장)"
+  },
+  "264-gateway-api-헬스체크-통합-alb-controller-v214": {
+    "path": "probe-load-balancers",
+    "title": "Gateway API 헬스체크 통합 (ALB Controller v2.14+)"
+  },
+  "gateway-api-vs-ingress-헬스체크-비교": {
+    "path": "probe-load-balancers",
+    "title": "Gateway API vs Ingress 헬스체크 비교"
+  },
+  "gateway-api-아키텍처와-헬스체크": {
+    "path": "probe-load-balancers",
+    "title": "Gateway API 아키텍처와 헬스체크"
+  },
+  "l7-헬스체크-httproutegrpcroute-with-alb": {
+    "path": "probe-load-balancers",
+    "title": "L7 헬스체크: HTTPRoute/GRPCRoute with ALB"
+  },
+  "l4-헬스체크-tcprouteudproute-with-nlb": {
+    "path": "probe-load-balancers",
+    "title": "L4 헬스체크: TCPRoute/UDPRoute with NLB"
+  },
+  "gateway-api-pod-readiness-gates": {
+    "path": "probe-load-balancers",
+    "title": "Gateway API Pod Readiness Gates"
+  },
+  "ingress에서-gateway-api로-마이그레이션-시-헬스체크-전환-체크리스트": {
+    "path": "probe-load-balancers",
+    "title": "Ingress에서 Gateway API로 마이그레이션 시 헬스체크 전환 체크리스트"
+  },
+  "27-2025-2026-eks-신규-기능과-probe-통합": {
+    "path": "probe-eks-features",
+    "title": "2025-2026 EKS 신규 기능과 Probe 통합"
+  },
+  "271-container-network-observability로-probe-연결성-검증": {
+    "path": "probe-eks-features",
+    "title": "Container Network Observability로 Probe 연결성 검증"
+  },
+  "272-cloudwatch-observability-operator--control-plane-메트릭": {
+    "path": "probe-eks-features",
+    "title": "CloudWatch Observability Operator + Control Plane 메트릭"
+  },
+  "273-provisioned-control-plane에서-probe-성능-보장": {
+    "path": "probe-eks-features",
+    "title": "Provisioned Control Plane에서 Probe 성능 보장"
+  },
+  "274-guardduty-extended-threat-detection-연계": {
+    "path": "probe-eks-features",
+    "title": "GuardDuty Extended Threat Detection 연계"
+  },
+  "3-graceful-shutdown-완벽-가이드": {
+    "path": "shutdown-basics",
+    "title": "Graceful Shutdown 완벽 가이드"
+  },
+  "31-pod-종료-시퀀스-상세": {
+    "path": "shutdown-basics",
+    "title": "Pod 종료 시퀀스 상세"
+  },
+  "32-언어별-sigterm-처리-패턴": {
+    "path": "shutdown-languages",
+    "title": "언어별 SIGTERM 처리 패턴"
+  },
+  "nodejs-express": {
+    "path": "shutdown-languages",
+    "title": "Node.js (Express)"
+  },
+  "javaspring-boot": {
+    "path": "shutdown-languages",
+    "title": "Java/Spring Boot"
+  },
+  "go": {
+    "path": "shutdown-languages",
+    "title": "Go"
+  },
+  "python-flask": {
+    "path": "shutdown-languages",
+    "title": "Python (Flask)"
+  },
+  "33-connection-draining-패턴": {
+    "path": "shutdown-draining",
+    "title": "Connection Draining 패턴"
+  },
+  "http-keep-alive-연결-처리": {
+    "path": "shutdown-draining",
+    "title": "HTTP Keep-Alive 연결 처리"
+  },
+  "websocket-연결-정리": {
+    "path": "shutdown-draining",
+    "title": "WebSocket 연결 정리"
+  },
+  "grpc-graceful-shutdown": {
+    "path": "shutdown-draining",
+    "title": "gRPC Graceful Shutdown"
+  },
+  "데이터베이스-연결-풀-정리": {
+    "path": "shutdown-draining",
+    "title": "데이터베이스 연결 풀 정리"
+  },
+  "34-karpenternode-drain과의-상호작용": {
+    "path": "shutdown-karpenter",
+    "title": "Karpenter/Node Drain과의 상호작용"
+  },
+  "karpenter-disruption과-graceful-shutdown": {
+    "path": "shutdown-karpenter",
+    "title": "Karpenter Disruption과 Graceful Shutdown"
+  },
+  "343-arc--karpenter-통합-az-대피-패턴": {
+    "path": "shutdown-karpenter",
+    "title": "ARC + Karpenter 통합 AZ 대피 패턴"
+  },
+  "spot-인스턴스-2분-경고-처리": {
+    "path": "shutdown-karpenter",
+    "title": "Spot 인스턴스 2분 경고 처리"
+  },
+  "344-node-readiness-controller--노드-수준-readiness-관리": {
+    "path": "node-readiness",
+    "title": "Node Readiness Controller — 노드 수준 Readiness 관리"
+  },
+  "개요": {
+    "path": "node-readiness",
+    "title": "개요"
+  },
+  "핵심-기능": {
+    "path": "node-readiness",
+    "title": "핵심 기능"
+  },
+  "1-continuous-모드---지속-모니터링": {
+    "path": "node-readiness",
+    "title": "Continuous 모드 - 지속 모니터링"
+  },
+  "2-bootstrap-only-모드---초기화-전용": {
+    "path": "node-readiness",
+    "title": "Bootstrap-only 모드 - 초기화 전용"
+  },
+  "3-dry-run-모드---안전한-검증": {
+    "path": "node-readiness",
+    "title": "Dry-run 모드 - 안전한 검증"
+  },
+  "4-nodeselector---타겟-노드-선택": {
+    "path": "node-readiness",
+    "title": "nodeSelector - 타겟 노드 선택"
+  },
+  "yaml-예시": {
+    "path": "node-readiness",
+    "title": "YAML 예시"
+  },
+  "cni-부트스트랩---bootstrap-only-모드": {
+    "path": "node-readiness",
+    "title": "CNI 부트스트랩 - Bootstrap-only 모드"
+  },
+  "gpu-노드-continuous-모니터링": {
+    "path": "node-readiness",
+    "title": "GPU 노드 Continuous 모니터링"
+  },
+  "ebs-csi-드라이버-준비-확인": {
+    "path": "node-readiness",
+    "title": "EBS CSI 드라이버 준비 확인"
+  },
+  "dry-run-모드---테스트-규칙": {
+    "path": "node-readiness",
+    "title": "Dry-run 모드 - 테스트 규칙"
+  },
+  "eks-적용-시나리오": {
+    "path": "node-readiness",
+    "title": "EKS 적용 시나리오"
+  },
+  "1-vpc-cni-초기화-대기": {
+    "path": "node-readiness",
+    "title": "VPC CNI 초기화 대기"
+  },
+  "2-gpu-노드-nvidia-드라이버-준비": {
+    "path": "node-readiness",
+    "title": "GPU 노드 NVIDIA 드라이버 준비"
+  },
+  "3-node-problem-detector-통합": {
+    "path": "node-readiness",
+    "title": "Node Problem Detector 통합"
+  },
+  "워크플로우-다이어그램": {
+    "path": "node-readiness",
+    "title": "워크플로우 다이어그램"
+  },
+  "pod-readiness와의-관계": {
+    "path": "node-readiness",
+    "title": "Pod Readiness와의 관계"
+  },
+  "설치-및-설정": {
+    "path": "node-readiness",
+    "title": "설치 및 설정"
+  },
+  "1-node-readiness-controller-설치": {
+    "path": "node-readiness",
+    "title": "Node Readiness Controller 설치"
+  },
+  "2-설치-확인": {
+    "path": "node-readiness",
+    "title": "설치 확인"
+  },
+  "3-노드-상태-확인": {
+    "path": "node-readiness",
+    "title": "노드 상태 확인"
+  },
+  "디버깅-및-트러블슈팅": {
+    "path": "node-readiness",
+    "title": "디버깅 및 트러블슈팅"
+  },
+  "taint가-제거되지-않는-경우": {
+    "path": "node-readiness",
+    "title": "Taint가 제거되지 않는 경우"
+  },
+  "dry-run-모드로-규칙-테스트": {
+    "path": "node-readiness",
+    "title": "Dry-run 모드로 규칙 테스트"
+  },
+  "참조-자료": {
+    "path": "node-readiness",
+    "title": "참조 자료"
+  },
+  "35-fargate-pod-라이프사이클-특수-고려사항": {
+    "path": "shutdown-fargate",
+    "title": "Fargate Pod 라이프사이클 특수 고려사항"
+  },
+  "fargate-vs-ec2-vs-auto-mode-아키텍처-비교": {
+    "path": "shutdown-fargate",
+    "title": "Fargate vs EC2 vs Auto Mode 아키텍처 비교"
+  },
+  "fargate-pod-os-패치-자동-eviction": {
+    "path": "shutdown-fargate",
+    "title": "Fargate Pod OS 패치 자동 Eviction"
+  },
+  "fargate-pod-시\u0000\u0000작-시간-특성": {
+    "path": "shutdown-fargate",
+    "title": "Fargate Pod 시작 시간 특성"
+  },
+  "fargate-daemonset-미지원으로-인한-사이드카-패턴": {
+    "path": "shutdown-fargate",
+    "title": "Fargate DaemonSet 미지원으로 인한 사이드카 패턴"
+  },
+  "fargate-graceful-shutdown-타이밍-권장사항": {
+    "path": "shutdown-fargate",
+    "title": "Fargate Graceful Shutdown 타이밍 권장사항"
+  },
+  "fargate-vs-ec2-vs-auto-mode-비교표-probe-관점": {
+    "path": "shutdown-fargate",
+    "title": "Fargate vs EC2 vs Auto Mode 비교표: Probe 관점"
+  },
+  "4-init-container-모범-사례": {
+    "path": "init-containers",
+    "title": "Init Container 모범 사례"
+  },
+  "41-init-container-동작-원리": {
+    "path": "init-containers",
+    "title": "Init Container 동작 원리"
+  },
+  "42-init-container-사용-사례": {
+    "path": "init-containers",
+    "title": "Init Container 사용 사례"
+  },
+  "사례-1-데이터베이스-마이그레이션": {
+    "path": "init-containers",
+    "title": "사례 1: 데이터베이스 마이그레이션"
+  },
+  "사례-2-설정-파일-생성-configmap-변환": {
+    "path": "init-containers",
+    "title": "사례 2: 설정 파일 생성 (ConfigMap 변환)"
+  },
+  "사례-3-종속-서비스-대기": {
+    "path": "init-containers",
+    "title": "사례 3: 종속 서비스 대기"
+  },
+  "사례-4-볼륨-권한-설정": {
+    "path": "init-containers",
+    "title": "사례 4: 볼륨 권한 설정"
+  },
+  "43-init-container-vs-sidecar-container-kubernetes-129": {
+    "path": "init-containers",
+    "title": "Init Container vs Sidecar Container (Kubernetes 1.29+)"
+  },
+  "5-pod-lifecycle-hooks": {
+    "path": "lifecycle-hooks",
+    "title": "Pod Lifecycle Hooks"
+  },
+  "51-poststart-hook": {
+    "path": "lifecycle-hooks",
+    "title": "PostStart Hook"
+  },
+  "52-prestop-hook": {
+    "path": "lifecycle-hooks",
+    "title": "PreStop Hook"
+  },
+  "53-hook-실행-메커니즘": {
+    "path": "lifecycle-hooks",
+    "title": "Hook 실행 메커니즘"
+  },
+  "exec-hook-예시": {
+    "path": "lifecycle-hooks",
+    "title": "exec Hook 예시"
+  },
+  "httpget-hook-예시": {
+    "path": "lifecycle-hooks",
+    "title": "httpGet Hook 예시"
+  },
+  "6-컨테이너-이미지-최적화와-시작-시간": {
+    "path": "container-images",
+    "title": "컨테이너 이미지 최적화와 시작 시간"
+  },
+  "61-멀티스테이지-빌드": {
+    "path": "container-images",
+    "title": "멀티스테이지 빌드"
+  },
+  "go-애플리케이션": {
+    "path": "container-images",
+    "title": "Go 애플리케이션"
+  },
+  "nodejs-애플리케이션": {
+    "path": "container-images",
+    "title": "Node.js 애플리케이션"
+  },
+  "javaspring-boot-애플리케이션": {
+    "path": "container-images",
+    "title": "Java/Spring Boot 애플리케이션"
+  },
+  "62-이미지-프리풀-전략": {
+    "path": "container-images",
+    "title": "이미지 프리풀 전략"
+  },
+  "karpenter-이미지-프리풀": {
+    "path": "container-images",
+    "title": "Karpenter 이미지 프리풀"
+  },
+  "daemonset으로-이미지-프리풀": {
+    "path": "container-images",
+    "title": "DaemonSet으로 이미지 프리풀"
+  },
+  "63-distroless와-scratch-이미지": {
+    "path": "container-images",
+    "title": "distroless와 scratch 이미지"
+  },
+  "distroless-예시": {
+    "path": "container-images",
+    "title": "distroless 예시"
+  },
+  "64-시작-시간-벤치마크": {
+    "path": "container-images",
+    "title": "시작 시간 벤치마크"
+  },
+  "7-종합-체크리스트--참고-자료": {
+    "path": "checklist-references",
+    "title": "종합 체크리스트 & 참고 자료"
+  },
+  "71-프로덕션-배포-전-체크리스트": {
+    "path": "checklist-references",
+    "title": "프로덕션 배포 전 체크리스트"
+  },
+  "pod-헬스체크": {
+    "path": "checklist-references",
+    "title": "Pod 헬스체크"
+  },
+  "graceful-shutdown": {
+    "path": "checklist-references",
+    "title": "Graceful Shutdown"
+  },
+  "리소스-및-이미지": {
+    "path": "checklist-references",
+    "title": "리소스 및 이미지"
+  },
+  "고가용성": {
+    "path": "checklist-references",
+    "title": "고가용성"
+  },
+  "72-관련-문서": {
+    "path": "checklist-references",
+    "title": "관련 문서"
+  },
+  "73-외부-참조": {
+    "path": "checklist-references",
+    "title": "외부 참조"
+  },
+  "kubernetes-공식-문서": {
+    "path": "checklist-references",
+    "title": "Kubernetes 공식 문서"
+  },
+  "aws-공식-문서": {
+    "path": "checklist-references",
+    "title": "AWS 공식 문서"
+  },
+  "red-hat-openshift-문서": {
+    "path": "checklist-references",
+    "title": "Red Hat OpenShift 문서"
+  },
+  "추가-참고-자료": {
+    "path": "checklist-references",
+    "title": "추가 참고 자료"
+  },
+  "74-eks-auto-mode-환경-체크리스트": {
+    "path": "auto-mode-checklist",
+    "title": "EKS Auto Mode 환경 체크리스트"
+  },
+  "eks-auto-mode란": {
+    "path": "auto-mode-checklist",
+    "title": "EKS Auto Mode란?"
+  },
+  "auto-mode-특성이-probe에-미치는-영향": {
+    "path": "auto-mode-checklist",
+    "title": "Auto Mode 특성이 Probe에 미치는 영향"
+  },
+  "auto-mode-환경-probe-체크리스트": {
+    "path": "auto-mode-checklist",
+    "title": "Auto Mode 환경 Probe 체크리스트"
+  },
+  "auto-mode-vs-수동-관리-시-probe-설정-차이": {
+    "path": "auto-mode-checklist",
+    "title": "Auto Mode vs 수동 관리 시 Probe 설정 차이"
+  },
+  "auto-mode-환경의-os-패치-자동-eviction-대응": {
+    "path": "auto-mode-checklist",
+    "title": "Auto Mode 환경의 OS 패치 자동 eviction 대응"
+  },
+  "auto-mode-활성화-확인": {
+    "path": "auto-mode-checklist",
+    "title": "Auto Mode 활성화 확인"
+  },
+  "75-aiagentic-기반-probe-최적화": {
+    "path": "ai-probe-optimization",
+    "title": "AI/Agentic 기반 Probe 최적화"
+  },
+  "cns421-세션-핵심---agentic-ai-for-eks-operations": {
+    "path": "ai-probe-optimization",
+    "title": "CNS421 세션 핵심 - Agentic AI for EKS Operations"
+  },
+  "kiro--eks-mcp를-활용한-probe-자동-최적화": {
+    "path": "ai-probe-optimization",
+    "title": "Kiro + EKS MCP를 활용한 Probe 자동 최적화"
+  },
+  "amazon-q-developer를-활용한-probe-이슈-디버깅": {
+    "path": "ai-probe-optimization",
+    "title": "Amazon Q Developer를 활용한 Probe 이슈 디버깅"
+  },
+  "tribal-knowledge-기반-probe-패턴-학습": {
+    "path": "ai-probe-optimization",
+    "title": "Tribal Knowledge 기반 Probe 패턴 학습"
+  },
+  "probe-최적화-통합-대시보드": {
+    "path": "ai-probe-optimization",
+    "title": "Probe 최적화 통합 대시보드"
+  }
+}
