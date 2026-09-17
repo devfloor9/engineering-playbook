@@ -3,7 +3,7 @@ title: AgenticOps Metrics — Agent KPIs for Operations Monitoring
 description: Agent operations KPIs including task success rate, tool-call accuracy, hallucination rate, cost per interaction, escalation rate, and Langfuse·OTel schema
 created: "2026-04-18"
 last_update:
-  date: "2026-06-30"
+  date: "2026-09-13"
   author: YoungJoon Jeong
 reading_time: 16
 tags:
@@ -417,21 +417,23 @@ Quality evaluation is recorded as `score` events:
 
 ## 4. OpenTelemetry Semantic Conventions
 
-### 4.1 GenAI Semantic Conventions (As of 2026-04)
+### 4.1 GenAI Semantic Conventions (As of 2026-09)
 
-OpenTelemetry defines LLM instrumentation standards through **Gen AI Semantic Conventions** ([v1.28.0 experimental](https://opentelemetry.io/docs/specs/semconv/gen-ai/)).
+OpenTelemetry defines LLM instrumentation standards through **GenAI Semantic Conventions** ([semconv 1.44.0](https://opentelemetry.io/docs/specs/semconv/gen-ai/), stability: Development).
+
+The GenAI conventions were split into the [`semantic-conventions-genai`](https://github.com/open-telemetry/semantic-conventions-genai) repository in May 2026, and all `gen_ai.*` attributes in the original `semantic-conventions` repository are now deprecated. The table below follows [registry `0c87594`](https://github.com/open-telemetry/semantic-conventions-genai/blob/0c87594975195608dc91b3f702e250a7b240c151/docs/registry/attributes/gen-ai.md).
 
 **Core attributes**:
 
 | Attribute | Example | Description |
 |-----------|---------|-------------|
-| `gen_ai.system` | `openai` | LLM provider |
+| `gen_ai.provider.name` | `openai` | GenAI provider (`gcp.gen_ai`, `gcp.vertex_ai`, etc.) |
 | `gen_ai.request.model` | `gpt-4o-2025-01-31` | Model name |
 | `gen_ai.request.temperature` | `0.7` | Sampling temperature |
 | `gen_ai.request.max_tokens` | `2048` | Max output tokens |
 | `gen_ai.usage.input_tokens` | `1200` | Input token count |
 | `gen_ai.usage.output_tokens` | `80` | Output token count |
-| `gen_ai.response.finish_reason` | `stop` | Termination reason (stop, length, tool_calls) |
+| `gen_ai.response.finish_reasons` | `["stop"]` | Array of termination reasons (`string[]`) — stop, length, tool_calls |
 
 ### 4.2 Span Kind
 
@@ -442,15 +444,20 @@ OpenTelemetry defines LLM instrumentation standards through **Gen AI Semantic Co
 
 ```python
 # OpenTelemetry instrumentation → Automatic Langfuse transmission
+import base64
+
 from opentelemetry import trace
-from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
+from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
 
-# OTLP Exporter → Langfuse OTLP endpoint
+# Langfuse uses Basic auth (base64-encoded public_key:secret_key)
+AUTH = base64.b64encode(b"pk-lf-...:sk-lf-...").decode()
+
+# Langfuse OTLP is an HTTP endpoint (traces path: /api/public/otel/v1/traces)
 exporter = OTLPSpanExporter(
-    endpoint="https://langfuse.example.com/api/public/otlp",
-    headers={"Authorization": "Bearer <LANGFUSE_API_KEY>"}
+    endpoint="https://cloud.langfuse.com/api/public/otel/v1/traces",
+    headers={"Authorization": f"Basic {AUTH}"},
 )
 
 provider = TracerProvider()
@@ -461,7 +468,7 @@ trace.set_tracer_provider(provider)
 tracer = trace.get_tracer(__name__)
 
 with tracer.start_as_current_span("agent_run") as span:
-    span.set_attribute("gen_ai.system", "openai")
+    span.set_attribute("gen_ai.provider.name", "openai")
     span.set_attribute("gen_ai.request.model", "gpt-4o")
     # ... Agent execution
 ```
@@ -722,7 +729,8 @@ Agent KPI SLO (Production)
 
 ### 8.2 OpenTelemetry
 
-- [GenAI Semantic Conventions](https://opentelemetry.io/docs/specs/semconv/gen-ai/): LLM instrumentation standard (v1.28.0 experimental)
+- [GenAI Semantic Conventions](https://opentelemetry.io/docs/specs/semconv/gen-ai/): LLM instrumentation standard (semconv 1.44.0)
+- [semantic-conventions-genai](https://github.com/open-telemetry/semantic-conventions-genai): Canonical repository for GenAI conventions (split off 2026-05)
 - [OTel Python SDK](https://opentelemetry.io/docs/languages/python/): Python instrumentation
 
 ### 8.3 Evaluation Frameworks
