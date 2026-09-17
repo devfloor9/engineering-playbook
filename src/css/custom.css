@@ -547,7 +547,7 @@ table tr:hover td {
 @media screen and (max-width: 996px) {
   /* 검색바: navbar 레이아웃을 깨지 않도록 제한 */
   .navbar__search-input { min-width: auto !important; width: auto !important; }
-  .navbar__search-input:focus { min-width: 180px !important; width: 180px !important; }
+  .navbar__search-input:focus { min-width: 0 !important; width: 100% !important; }
   [class*="navbarSearchContainer"] { position: static !important; transform: none !important; width: auto; margin: 0 !important; flex-shrink: 1; }
 
   /* 모바일 사이드바: 햄버거 메뉴 클릭 시 정상 표시 */
@@ -584,6 +584,18 @@ table tr:hover td {
     z-index: 199;
     background: rgba(0, 0, 0, 0.5) !important;
   }
+}
+
+@media (max-width: 576px) {
+  .theme-doc-breadcrumbs .breadcrumbs {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    row-gap: 0.25rem;
+  }
+  .theme-doc-breadcrumbs .breadcrumbs__item:not(:first-child):not(:nth-last-child(2)):not(:last-child) { display: none; }
+  .theme-doc-breadcrumbs .breadcrumbs__item:last-child { min-width: 0; max-width: 100%; }
+  .theme-doc-breadcrumbs .breadcrumbs__link { white-space: normal; overflow-wrap: anywhere; }
 }
 
 /* ── Markdown content ── */

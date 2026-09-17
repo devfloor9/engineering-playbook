@@ -6,6 +6,8 @@
 
 import { themes as prismThemes } from 'prism-react-renderer';
 
+const documentationBaseUrl = '/engineering-playbook/';
+
 /** @type {import('@docusaurus/types').Config} */
 const config = {
   title: 'Engineering Playbook',
@@ -37,7 +39,8 @@ const config = {
   url: 'https://devfloor9.github.io',
   // Set the /<baseUrl>/ pathname under which your site is served
   // For GitHub pages deployment, it is often '/<projectName>/'
-  baseUrl: '/engineering-playbook/',
+  baseUrl: documentationBaseUrl,
+  customFields: {documentationBaseUrl},
 
   // GitHub pages deployment config.
   // If you aren't using GitHub pages, you don't need these.
@@ -361,6 +364,10 @@ const config = {
           {
             title: 'For AI Agents',
             items: [
+              {
+                label: 'AI documentation guide',
+                to: '/ai-docs',
+              },
               {
                 label: 'llms.txt',
                 href: 'https://devfloor9.github.io/engineering-playbook/llms.txt',

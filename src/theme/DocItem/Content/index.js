@@ -6,6 +6,8 @@ import {useDoc} from '@docusaurus/plugin-content-docs/client';
 import Heading from '@theme/Heading';
 import MDXContent from '@theme/MDXContent';
 import DocMeta from '@theme/DocMeta';
+import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
+import DocTools from '@site/src/components/DocTools';
 
 // Docusaurus 기본 DocItem/Content를 eject한다.
 // 변경점:
@@ -29,6 +31,8 @@ const LLM_WIKI_DOMAINS = [
 // ko 원본(docs/)만 대상 — i18n 미러(@site/i18n/...)와 제외 도메인은 null.
 function useLlmWikiMdUrl() {
   const {metadata} = useDoc();
+  const {i18n} = useDocusaurusContext();
+  if (i18n.currentLocale !== 'ko') return null;
   const source = metadata && metadata.source;
   if (!source || !source.startsWith('@site/docs/')) return null;
   const rel = source.slice('@site/docs/'.length);
@@ -73,6 +77,7 @@ export default function DocItemContent({children}) {
         </header>
       )}
       <DocMeta />
+      <DocTools />
       <MDXContent>{children}</MDXContent>
     </div>
   );
