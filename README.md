@@ -1,12 +1,12 @@
 ---
 created: 2025-09-09
 last_update:
-  date: 2026-06-29
+  date: 2026-09-17
 reading_time: 14
 ---
 # Engineering Playbook
 
-> Cloud Native Architecture Engineering Playbook & Benchmark Reports — Battle-tested engineering know-how from production environments
+> Cloud Native Architecture Engineering Playbook & Benchmark Reports — Practical references for AWS, Kubernetes, and AI platforms
 
 [![Deploy](https://github.com/devfloor9/engineering-playbook/actions/workflows/deploy.yml/badge.svg)](https://github.com/devfloor9/engineering-playbook/actions/workflows/deploy.yml)
 [![GitHub Pages](https://img.shields.io/badge/docs-GitHub%20Pages-blue)](https://devfloor9.github.io/engineering-playbook/)
@@ -28,7 +28,7 @@ Each technical domain provides implementation guides alongside measurable perfor
 | [llm-wiki/manifest.json](https://devfloor9.github.io/engineering-playbook/llm-wiki/manifest.json) | LLM Wiki manifest — per-doc metadata (slug, domain, tags, related docs, markdown URL) |
 | [llm-wiki/index.md](https://devfloor9.github.io/engineering-playbook/llm-wiki/index.md) | LLM Wiki index — per-page clean markdown files grouped by domain |
 
-The LLM Wiki mirrors the 7 technical domains (industry demos excluded) as clean per-page markdown — MDX/JSX stripped, links normalized — so agents can fetch exactly the pages they need without HTML parsing. Each doc page also exposes `<link rel="alternate" type="text/markdown">` pointing to its markdown source.
+The LLM Wiki exports Korean pages from six technical domains plus the root introduction. Industry Solutions and sales material are excluded. Supported component tables use the same data as the website; unsupported components have an export note and a web link. Each manifest entry reports `content_coverage`, including omitted components. Korean pages in the export scope expose a Markdown alternate link, while document tools use the manifest to show available Markdown actions.
 
 ## What's Inside
 
@@ -138,10 +138,11 @@ docs/
 │   ├── toolchain/                  #   Tools & implementation
 │   ├── enterprise/                 #   Enterprise adoption
 │   └── operations/                 #   AgenticOps
-├── hybrid-infrastructure/          # Hybrid Infrastructure
+├── eks-hybrid-nodes/               # EKS Hybrid Nodes
 ├── rosa/                           # ROSA (OpenShift on AWS)
 ├── industry-solutions/             # Industry Solutions
 │   └── retail/                     #   Retail PoCs (LG H&H, AMWAY, Shinkong, Momo, Uni-President)
+├── sales/                          # Customer engagement material (excluded from LLM exports)
 └── benchmarks/                     # Benchmark Reports
 ```
 
