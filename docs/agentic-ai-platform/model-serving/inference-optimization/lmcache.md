@@ -84,14 +84,14 @@ vLLM 쪽은 커넥터와 접속 정보를 지정합니다.
 ```bash
 vllm serve Qwen/Qwen3-8B \
   --port 8000 \
-  --kv-transfer-config '{"kv_connector":"LMCacheMPConnector","kv_role":"kv_both","kv_connector_extra_config":{"lmcache.mp.host":"localhost","lmcache.mp.port":5555}}'
+  --kv-transfer-config '{"kv_connector":"LMCacheMPConnector","kv_connector_module_path":"lmcache.integration.vllm.lmcache_mp_connector","kv_role":"kv_both","kv_connector_extra_config":{"lmcache.mp.host":"localhost","lmcache.mp.port":5555}}'
 ```
 
 `lmcache.mp.server_urls`로 `"tcp://host1:6667,tcp://host2:6667"` 형태의 다중 서버를 지정할 수도 있습니다.
 
 :::warning vLLM 버전에 따라 커넥터 해석이 달라집니다
 
-vLLM 0.20.0 이상에서는 `kv_connector_extra_config`에 `"kv_connector_module_path":"lmcache.integration.vllm.lmcache_mp_connector"`를 함께 지정해야 LMCache가 배포하는 구현을 사용합니다. 생략하면 vLLM에 벤더링된 버전이 선택되며, LMCache 배포판이 최신 서버 프로토콜과 수정사항을 먼저 반영합니다.
+위 예시는 vLLM 0.20.0 이상을 대상으로 합니다. `kv_connector_module_path`는 `kv_connector_extra_config` 내부가 아니라 `kv_connector`와 같은 최상위 필드입니다. `"kv_connector_module_path":"lmcache.integration.vllm.lmcache_mp_connector"`를 지정하면 LMCache가 배포하는 구현을 사용합니다. 생략하면 vLLM에 벤더링된 버전이 선택되며, LMCache 배포판이 최신 서버 프로토콜과 수정사항을 먼저 반영합니다.
 
 vLLM 0.20.0 미만에서는 `LMCacheMPConnector`가 항상 vLLM 내장 커넥터로 해석되어, LMCache 배포판으로 우회할 방법이 없습니다.
 
@@ -197,6 +197,7 @@ AWS 관리형 환경에서는 SageMaker HyperPod Inference Operator가 LMCache�
 
 ### 공식 문서
 - [LMCache GitHub](https://github.com/LMCache/LMCache) — LMCache 오픈소스 프로젝트 저장소
+- [LMCache Compatibility](https://docs.lmcache.ai/getting_started/compatibility.html) — vLLM 버전별 커넥터 로딩과 설정 위치
 - [LMCache MP Mode](https://docs.lmcache.ai/mp/index.html) — 권장 실행 모드 개요
 - [MP Configuration Reference](https://docs.lmcache.ai/mp/configuration.html) — 서버 플래그·L2 어댑터 전체 레퍼런스
 - [MP Deployment Guide](https://docs.lmcache.ai/mp/deployment.html) — K8s DaemonSet 배포 패턴
