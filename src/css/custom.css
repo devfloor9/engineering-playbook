@@ -368,9 +368,9 @@ table th {
   background: var(--ep-surface-container-low);
   font-family: var(--ifm-heading-font-family);
   font-weight: 600;
-  font-size: 0.85rem;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
+  font-size: 0.9rem;
+  text-transform: none;
+  letter-spacing: normal;
   border: none;
   border-bottom: 1px solid var(--ep-outline-variant);
   padding: 0.875rem 1rem;
@@ -931,6 +931,12 @@ table tr:hover td {
 .theme-doc-markdown h3:hover .hash-link,
 .theme-doc-markdown h4:hover .hash-link {
   opacity: 0.6;
+}
+
+.theme-doc-markdown .hash-link:focus-visible {
+  opacity: 1;
+  outline: 2px solid var(--ifm-color-primary);
+  outline-offset: 3px;
 }
 
 /* ── 인라인 코드 — 톤다운 배경 + 프라이머리 컬러 ── */

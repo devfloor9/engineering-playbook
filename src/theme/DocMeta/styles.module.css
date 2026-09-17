@@ -9,7 +9,7 @@
   border-bottom: 1px solid var(--ifm-color-emphasis-200);
   font-size: 0.875rem;
   line-height: 1.4;
-  color: var(--ifm-color-emphasis-600);
+  color: var(--ep-on-surface-variant);
 }
 
 .item {
@@ -27,5 +27,5 @@
 }
 
 .divider {
-  color: var(--ifm-color-emphasis-400);
+  color: var(--ep-outline);
 }

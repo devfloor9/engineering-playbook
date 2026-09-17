@@ -1,0 +1,9 @@
+.frame { margin: 1.5rem 0; min-width: 0; }
+.frame figcaption { margin-bottom: 0.5rem; font-weight: 700; font-size: 1rem; }
+.description, .hint { margin: 0 0 0.75rem !important; color: var(--ep-on-surface-variant); font-size: 0.875rem; }
+.scroller { overflow-x: auto; overscroll-behavior-inline: contain; border: 1px solid var(--ep-outline-variant); border-radius: 0.5rem; background: var(--ifm-background-surface-color); }
+.scroller:focus-visible { outline: 2px solid var(--ifm-color-primary); outline-offset: 3px; }
+.scroller table { display: table !important; min-width: var(--table-min-width); width: 100%; margin: 0; border: 0; border-radius: 0; box-shadow: none; }
+.scroller th, .scroller td { padding: 0.8rem 1rem; font-size: 0.9rem; text-transform: none; letter-spacing: normal; vertical-align: top; line-height: 1.6; font-variant-numeric: tabular-nums; }
+.scroller th[scope='row'] { position: sticky; left: 0; z-index: 1; min-width: 10rem; max-width: 14rem; font-weight: 600; background: var(--ifm-background-surface-color); border-right: 1px solid var(--ep-outline-variant); }
+.scroller thead th:first-child { position: sticky; left: 0; z-index: 2; background: var(--ep-surface-container-low); }

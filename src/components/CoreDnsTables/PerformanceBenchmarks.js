@@ -1,5 +1,6 @@
 import React from 'react';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
+import DataTableFrame from '../DataTableFrame';
 const PerformanceBenchmarks = () => {
   const {
     i18n
@@ -52,196 +53,29 @@ const PerformanceBenchmarks = () => {
     tuned: '30s',
     note: isKo ? '롤링 업데이트 시 DNS 실패 방지' : 'Prevent DNS failures during rolling updates'
   }];
-  return <div style={{
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-    maxWidth: '760px',
-    margin: '2rem auto',
-    padding: '0 1rem'
-  }}>
-      {/* Header */}
-      <div style={{
-      background: 'linear-gradient(135deg, #312e81 0%, #4f46e5 100%)',
-      color: 'white',
-      padding: '20px 24px',
-      borderRadius: '8px 8px 0 0'
-    }}>
-        <div style={{
-        fontSize: '20px',
-        fontWeight: '600',
-        marginBottom: '4px'
-      }}>
-          {isKo ? '🎯 성능 벤치마크 & 튜닝 가이드' : '🎯 Performance Benchmarks & Tuning Guide'}
-        </div>
-        <div style={{
-        fontSize: '14px',
-        opacity: 0.9
-      }}>
-          {isKo ? 'CoreDNS 핵심 성능 목표치와 튜닝 파라미터' : 'CoreDNS core performance targets and tuning parameters'}
-        </div>
-      </div>
-
-      <div style={{
-      background: 'var(--ifm-background-surface-color)',
-      border: '1px solid var(--ifm-color-emphasis-200)',
-      borderTop: 'none',
-      overflow: 'hidden'
-    }}>
-        {/* Benchmarks header */}
-        <div style={{
-        display: 'grid',
-        gridTemplateColumns: '1fr 80px 80px 1fr',
-        borderBottom: '2px solid var(--ifm-color-emphasis-200)',
-        background: 'var(--ifm-background-surface-color)'
-      }}>
-          {[isKo ? '지표' : 'Metric', isKo ? '목표' : 'Target', isKo ? '임계' : 'Critical', isKo ? '설명' : 'Note'].map((h, i) => <div key={i} style={{
-          padding: '10px 14px',
-          fontWeight: '600',
-          fontSize: '12px',
-          color: 'var(--ifm-color-emphasis-600)',
-          textTransform: 'uppercase',
-          borderLeft: i > 0 ? '1px solid var(--ifm-color-emphasis-200)' : 'none'
-        }}>{h}</div>)}
-        </div>
-
-        {/* Benchmark rows */}
-        {benchmarks.map((b, idx) => <div key={idx} style={{
-        display: 'grid',
-        gridTemplateColumns: '1fr 80px 80px 1fr',
-        borderBottom: idx < benchmarks.length - 1 ? '1px solid #f3f4f6' : '1px solid var(--ifm-color-emphasis-200)'
-      }}>
-            <div style={{
-          padding: '10px 14px',
-          fontWeight: '600',
-          fontSize: '13px',
-          color: 'var(--ifm-font-color-base)',
-          display: 'flex',
-          alignItems: 'center'
-        }}>
-              {b.metric}
-            </div>
-            <div style={{
-          padding: '10px 14px',
-          borderLeft: '1px solid #f3f4f6',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center'
-        }}>
-              <span style={{
-            color: '#059669',
-            fontWeight: '700',
-            fontSize: '13px'
-          }}>{b.target}</span>
-            </div>
-            <div style={{
-          padding: '10px 14px',
-          borderLeft: '1px solid #f3f4f6',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center'
-        }}>
-              <span style={{
-            color: '#dc2626',
-            fontWeight: '600',
-            fontSize: '12px'
-          }}>{b.critical}</span>
-            </div>
-            <div style={{
-          padding: '10px 14px',
-          borderLeft: '1px solid #f3f4f6',
-          fontSize: '12px',
-          color: 'var(--ifm-font-color-base)',
-          display: 'flex',
-          alignItems: 'center'
-        }}>
-              {b.note}
-            </div>
-          </div>)}
-
-        {/* Tuning section */}
-        <div style={{
-        padding: '10px 20px',
-        background: 'var(--ifm-background-surface-color)',
-        borderBottom: '1px solid var(--ifm-color-emphasis-200)',
-        fontSize: '12px',
-        fontWeight: '600',
-        color: 'var(--ifm-color-emphasis-600)',
-        textTransform: 'uppercase'
-      }}>
-          {isKo ? '튜닝 파라미터' : 'Tuning Parameters'}
-        </div>
-
-        {tuning.map((t, idx) => <div key={idx} style={{
-        display: 'grid',
-        gridTemplateColumns: '140px 80px 100px 1fr',
-        borderBottom: idx < tuning.length - 1 ? '1px solid #f3f4f6' : 'none'
-      }}>
-            <div style={{
-          padding: '10px 14px',
-          display: 'flex',
-          alignItems: 'center'
-        }}>
-              <code style={{
-            fontSize: '12px',
-            color: '#2563eb',
-            fontWeight: '600'
-          }}>{t.param}</code>
-            </div>
-            <div style={{
-          padding: '10px 14px',
-          borderLeft: '1px solid #f3f4f6',
-          fontSize: '12px',
-          color: 'var(--ifm-color-emphasis-600)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center'
-        }}>
-              {t.defaultVal}
-            </div>
-            <div style={{
-          padding: '10px 14px',
-          borderLeft: '1px solid #f3f4f6',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center'
-        }}>
-              <span style={{
-            color: '#059669',
-            fontWeight: '700',
-            fontSize: '12px'
-          }}>{t.tuned}</span>
-            </div>
-            <div style={{
-          padding: '10px 14px',
-          borderLeft: '1px solid #f3f4f6',
-          fontSize: '12px',
-          color: 'var(--ifm-font-color-base)',
-          display: 'flex',
-          alignItems: 'center'
-        }}>
-              {t.note}
-            </div>
-          </div>)}
-      </div>
-
-      {/* Footer */}
-      <div style={{
-      background: 'var(--ifm-color-emphasis-100)',
-      border: '1px solid #ddd6fe',
-      borderRadius: '0 0 8px 8px',
-      padding: '12px 16px',
-      fontSize: '12px',
-      color: '#5b21b6',
-      lineHeight: '1.6'
-    }}>
-        💡 <strong>{isKo ? '벤치마크 도구:' : 'Benchmark Tool:'}</strong>{' '}
-        <code style={{
-        background: '#ede9fe',
-        padding: '1px 4px',
-        borderRadius: '3px',
-        fontSize: '11px'
-      }}>dnsperf -s {'<COREDNS_IP>'} -d queries.txt -c 10 -T 10</code>
-        {isKo ? ' 으로 CoreDNS QPS 및 레이턴시를 측정할 수 있습니다.' : ' to measure CoreDNS QPS and latency.'}
-      </div>
-    </div>;
+  const benchmarkColumns = isKo ? ['지표', '목표', '임계', '설명'] : ['Metric', 'Target', 'Critical', 'Note'];
+  const tuningColumns = isKo ? ['파라미터', '기본값', '조정값', '설명'] : ['Parameter', 'Default', 'Tuned', 'Note'];
+  return <>
+    <DataTableFrame title={isKo ? 'CoreDNS 성능 목표' : 'CoreDNS performance targets'}>
+      <table>
+        <thead><tr>{benchmarkColumns.map(label => <th key={label} scope="col">{label}</th>)}</tr></thead>
+        <tbody>{benchmarks.map(row => <tr key={row.metric}>
+          <th scope="row">{row.metric}</th><td>{row.target}</td><td>{row.critical}</td><td>{row.note}</td>
+        </tr>)}</tbody>
+      </table>
+    </DataTableFrame>
+    <DataTableFrame title={isKo ? 'CoreDNS 튜닝 파라미터' : 'CoreDNS tuning parameters'}>
+      <table>
+        <thead><tr>{tuningColumns.map(label => <th key={label} scope="col">{label}</th>)}</tr></thead>
+        <tbody>{tuning.map(row => <tr key={row.param}>
+          <th scope="row"><code>{row.param}</code></th><td>{row.defaultVal}</td><td>{row.tuned}</td><td>{row.note}</td>
+        </tr>)}</tbody>
+      </table>
+    </DataTableFrame>
+    <p><strong>{isKo ? '벤치마크 도구: ' : 'Benchmark tool: '}</strong>
+      <code>dnsperf -s {'<COREDNS_IP>'} -d queries.txt -c 10 -T 10</code>
+      {isKo ? '으로 CoreDNS QPS 및 레이턴시를 측정할 수 있습니다.' : ' to measure CoreDNS QPS and latency.'}
+    </p>
+  </>;
 };
 export default PerformanceBenchmarks;

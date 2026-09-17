@@ -1,5 +1,6 @@
 import React from 'react';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
+import DataTableFrame from '../DataTableFrame';
 const GpuMemoryRequirements = () => {
   const {
     i18n
@@ -78,143 +79,22 @@ const GpuMemoryRequirements = () => {
     recommendedGpu: '1x p5.48xlarge (INT4)',
     color: '#6366f1'
   }];
-  return <div style={{
-    maxWidth: '1100px',
-    margin: '20px auto',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif'
-  }}>
-      <div style={{
-      background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
-      color: 'white',
-      padding: '20px 24px',
-      borderRadius: '8px 8px 0 0'
-    }}>
-        <div style={{
-        fontSize: '20px',
-        fontWeight: '600'
-      }}>
-          {isKo ? 'MoE 모델 GPU 메모리 요구사항' : 'MoE Model GPU Memory Requirements'}
-        </div>
-      </div>
-
-      <div style={{
-      background: 'var(--ifm-background-surface-color)',
-      border: '1px solid var(--ifm-color-emphasis-200)',
-      borderTop: 'none',
-      borderRadius: '0 0 8px 8px',
-      overflow: 'auto'
-    }}>
-        <table style={{
-        width: '100%',
-        borderCollapse: 'collapse',
-        fontSize: '14px'
-      }}>
-          <thead>
-            <tr style={{
-            background: 'var(--ifm-color-emphasis-100)',
-            fontWeight: '600',
-            color: 'var(--ifm-font-color-base)'
-          }}>
-              <th style={{
-              padding: '12px 16px',
-              textAlign: 'left',
-              borderBottom: '2px solid var(--ifm-color-emphasis-300)'
-            }}>
-                {isKo ? '모델' : 'Model'}
-              </th>
-              <th style={{
-              padding: '12px 16px',
-              textAlign: 'center',
-              borderBottom: '2px solid var(--ifm-color-emphasis-300)'
-            }}>
-                {isKo ? '총 파라미터' : 'Total Parameters'}
-              </th>
-              <th style={{
-              padding: '12px 16px',
-              textAlign: 'center',
-              borderBottom: '2px solid var(--ifm-color-emphasis-300)'
-            }}>
-                {isKo ? '활성 파라미터' : 'Active Parameters'}
-              </th>
-              <th style={{
-              padding: '12px 16px',
-              textAlign: 'center',
-              borderBottom: '2px solid var(--ifm-color-emphasis-300)'
-            }}>
-                FP16 {isKo ? '메모리' : 'Memory'}
-              </th>
-              <th style={{
-              padding: '12px 16px',
-              textAlign: 'center',
-              borderBottom: '2px solid var(--ifm-color-emphasis-300)'
-            }}>
-                INT8 {isKo ? '메모리' : 'Memory'}
-              </th>
-              <th style={{
-              padding: '12px 16px',
-              textAlign: 'left',
-              borderBottom: '2px solid var(--ifm-color-emphasis-300)'
-            }}>
-                {isKo ? '권장 GPU' : 'Recommended GPU'}
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {models.map((model, index) => <tr key={index} style={{
-            borderBottom: index < models.length - 1 ? '1px solid var(--ifm-color-emphasis-200)' : 'none'
-          }}>
-                <td style={{
-              padding: '14px 16px',
-              fontWeight: '600',
-              color: model.color,
-              borderLeft: `4px solid ${model.color}`
-            }}>
-                  {model.model}
-                </td>
-                <td style={{
-              padding: '14px 16px',
-              textAlign: 'center',
-              fontFamily: 'monospace',
-              color: 'var(--ifm-color-emphasis-800)'
-            }}>
-                  {model.totalParams}
-                </td>
-                <td style={{
-              padding: '14px 16px',
-              textAlign: 'center',
-              fontFamily: 'monospace',
-              color: 'var(--ifm-color-emphasis-800)'
-            }}>
-                  {model.activeParams}
-                </td>
-                <td style={{
-              padding: '14px 16px',
-              textAlign: 'center',
-              fontFamily: 'monospace',
-              color: 'var(--ifm-color-emphasis-800)'
-            }}>
-                  {model.fp16Memory}
-                </td>
-                <td style={{
-              padding: '14px 16px',
-              textAlign: 'center',
-              fontFamily: 'monospace',
-              color: 'var(--ifm-color-emphasis-800)'
-            }}>
-                  {model.int8Memory}
-                </td>
-                <td style={{
-              padding: '14px 16px',
-              fontFamily: 'monospace',
-              fontSize: '13px',
-              color: 'var(--ifm-color-emphasis-700)'
-            }}>
-                  {model.recommendedGpu}
-                </td>
-              </tr>)}
-          </tbody>
-        </table>
-      </div>
-    </div>;
+  const columns = isKo
+    ? ['모델', '총 파라미터', '활성 파라미터', 'FP16 메모리', 'INT8 메모리', '권장 GPU']
+    : ['Model', 'Total parameters', 'Active parameters', 'FP16 memory', 'INT8 memory', 'Recommended GPU'];
+  return (
+    <DataTableFrame title={isKo ? 'MoE 모델 GPU 메모리 요구사항' : 'MoE model GPU memory requirements'} minWidth="58rem">
+      <table>
+        <thead><tr>{columns.map(label => <th key={label} scope="col">{label}</th>)}</tr></thead>
+        <tbody>{models.map(model => (
+          <tr key={model.model}>
+            <th scope="row">{model.model}</th>
+            <td>{model.totalParams}</td><td>{model.activeParams}</td>
+            <td>{model.fp16Memory}</td><td>{model.int8Memory}</td><td>{model.recommendedGpu}</td>
+          </tr>
+        ))}</tbody>
+      </table>
+    </DataTableFrame>
+  );
 };
 export default GpuMemoryRequirements;
