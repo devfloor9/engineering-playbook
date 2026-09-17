@@ -43,7 +43,7 @@ VPC CNI is not a single binary. It consists of two components with different rol
 
 When a Pod starts, the CNI binary requests an IP from the local ipamd over gRPC, and ipamd immediately returns one from the warm pool it has already reserved. EC2 API calls (ENI creation, IP allocation) are decoupled from the Pod creation path and run asynchronously in the background. This separation is why Pod startup latency is not tied to EC2 API latency.
 
-The number of Pods a node can host is determined by the instance type's ENI count and the number of secondary IPs per ENI. For example, an instance with 4 ENIs × 15 IPs per ENI provides up to `4 × (15 - 1) + 2 = 58` Pod IPs in the default mode (the first IP on each ENI is used by the node itself).
+In secondary-IP mode, address capacity depends on the instance type's ENI count and secondary IPs per ENI. An instance with 4 ENIs and 15 IPs per ENI has `4 × (15 - 1) = 56` secondary IPs available for Pods. The `+ 2` in the [VPC CNI recommended `max-pods` formula](https://github.com/aws/amazon-vpc-cni-k8s#setup) accounts for `hostNetwork` Pods that do not consume separate Pod IPs. Its result, 58, is a Pod-count setting, not 58 Pod IPs. Kubelet configuration and workload resource requirements also constrain actual capacity.
 
 ## Architecture: L3 Routed Mode Datapath
 
@@ -123,7 +123,7 @@ ipamd pre-reserves spare IPs (the warm pool) so it can respond to Pod creation r
 
 With `ENABLE_PREFIX_DELEGATION=true` (v1.9.0+), ipamd assigns addresses to ENIs in **/28 prefixes (16 contiguous IPs)** instead of individual secondary IPs (/80 for IPv6). This delivers two benefits.
 
-- **Higher Pod density** — Each slot on an ENI expands from 1 IP to 16. Example: c5.xlarge goes from 58 Pods in the default mode to the node maximum (110 Pods) in Prefix mode
+- **Higher Pod density** — Each ENI slot expands from 1 IP to 16. For example, c5.xlarge has a recommended count of 58 Pods in secondary-IP mode and can obtain a larger address pool in Prefix mode. Check the separately configured kubelet `max-pods`, available subnet addresses, and CPU and memory capacity before increasing Pod density.
 - **Fewer EC2 API calls** — 16 IPs are acquired with a single API call, greatly reducing API load during scaling
 
 There is a prerequisite. A /28 is 16 contiguous addresses, so heavy subnet fragmentation can cause prefix acquisition to fail, and when it does, ipamd does not fall back to individual IP mode but returns an error. Using a new dedicated subnet or a subnet CIDR reservation is the safe approach. In Prefix mode, warm target calculations also switch to prefix units, and `WARM_PREFIX_TARGET` (default `1`) comes into play.

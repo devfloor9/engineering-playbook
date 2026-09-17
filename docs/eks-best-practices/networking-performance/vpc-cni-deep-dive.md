@@ -43,7 +43,7 @@ VPC CNI는 단일 바이너리가 아니라 역할이 다른 두 컴포넌트로
 
 CNI 바이너리는 Pod가 뜰 때 로컬 ipamd에 gRPC로 IP 할당을 요청하고, ipamd는 미리 확보해 둔 warm pool에서 즉시 IP를 반환합니다. EC2 API 호출(ENI 생성·IP 할당)은 Pod 생성 경로에서 분리되어 백그라운드에서 비동기로 수행됩니다. Pod 기동 지연이 EC2 API 지연에 좌우되지 않는 이유가 이 분리 구조입니다.
 
-노드가 수용 가능한 Pod 수는 인스턴스 타입의 ENI 수와 ENI당 보조 IP 수로 결정됩니다. 예를 들어 ENI 4개 × ENI당 IP 15개인 인스턴스는 기본 모드에서 최대 `4 × (15 - 1) + 2 = 58`개의 Pod IP를 제공합니다(각 ENI의 첫 IP는 노드 자신이 사용).
+기본 secondary-IP 모드의 주소 용량은 인스턴스 타입의 ENI 수와 ENI당 보조 IP 수로 결정됩니다. ENI 4개 × ENI당 IP 15개인 인스턴스라면 Pod에 할당할 보조 IP는 `4 × (15 - 1) = 56`개입니다. [VPC CNI의 권장 `max-pods` 계산식](https://github.com/aws/amazon-vpc-cni-k8s#setup)의 `+ 2`는 별도 Pod IP를 소비하지 않는 `hostNetwork` Pod를 위한 수량이므로, 결과인 58은 Pod 수 설정값이며 Pod IP 58개를 뜻하지 않습니다. 실제 수용량에는 kubelet 설정과 워크로드 리소스 요구량도 영향을 줍니다.
 
 ## 아키텍처: L3 Routed Mode 데이터패스
 
@@ -123,7 +123,7 @@ ipamd는 Pod 생성 요청에 즉시 응답하기 위해 여유 IP를 미리 확
 
 `ENABLE_PREFIX_DELEGATION=true`(v1.9.0+)를 설정하면 ipamd는 개별 보조 IP 대신 **/28 프리픽스(연속 IP 16개)** 단위로 ENI에 주소를 할당합니다(IPv6는 /80). 도입 효과는 두 가지입니다.
 
-- **Pod 밀도 향상** — ENI당 슬롯 하나가 IP 1개가 아니라 16개로 확장됩니다. 예: c5.xlarge는 기본 모드 58 Pod → Prefix 모드에서 노드 최대치(110 Pod)까지 수용
+- **Pod 밀도 향상** — ENI당 슬롯 하나가 IP 1개가 아니라 16개로 확장됩니다. 예를 들어 c5.xlarge의 기본 secondary-IP 모드 권장값은 58 Pod이며, Prefix 모드에서는 더 큰 IP 풀을 확보할 수 있습니다. 실제 Pod 수는 별도로 구성한 kubelet `max-pods`, 서브넷 가용 주소, CPU·메모리 여유를 함께 확인해야 합니다.
 - **EC2 API 호출 감소** — IP 16개를 API 호출 1번으로 확보하므로 스케일링 시 API 부하가 크게 줄어듦
 
 전제 조건이 있습니다. /28은 연속된 16개 주소이므로 서브넷 단편화(fragmentation)가 심하면 프리픽스 확보에 실패할 수 있고, 이때 개별 IP 모드로 폴백하지 않고 에러가 됩니다. 신규 전용 서브넷 또는 CIDR 예약(subnet CIDR reservation)과 함께 사용하는 것이 안전합니다. Prefix 모드에서는 warm 타깃 계산도 프리픽스 단위로 바뀌며 `WARM_PREFIX_TARGET`(기본 `1`)이 추가로 관여합니다.
