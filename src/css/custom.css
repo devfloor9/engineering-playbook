@@ -277,13 +277,35 @@ nav.menu {
 }
 
 article {
-  max-width: min(95%, 72rem);
+  width: 100%;
+  min-width: 0;
+  max-width: 72rem;
 }
 
-/* Docusaurus 기본 컨테이너 너비 확장 */
-.docMainContainer_node_modules-\@docusaurus-theme-classic-lib-theme-DocPage-Layout-Main-styles-module,
-[class*="docMainContainer"] {
-  max-width: 100% !important;
+/* Allow the document column to shrink beside the sidebar. */
+main[class*='docMainContainer'],
+main[class*='docMainContainer'] > .container,
+main[class*='docMainContainer'] .row > .col,
+[class*='docItemContainer'] {
+  min-width: 0;
+}
+
+.theme-doc-markdown {
+  overflow-wrap: anywhere;
+}
+
+.theme-doc-markdown > div[style] {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+/* Use the existing collapsible outline on narrower laptop screens. */
+@media (min-width: 997px) and (max-width: 1279px) {
+  .theme-doc-toc-mobile { display: block !important; }
+  main[class*='docMainContainer'] > .container > .row > .col--3 { display: none; }
+  main[class*='docMainContainer'] [class*='docItemCol'] {
+    max-width: 100% !important;
+  }
 }
 
 /* 테이블, 코드블록은 article보다 넓게 허용 */
