@@ -53,7 +53,7 @@ llm-d의 EKS 배포 YAML, helmfile 명령어, 클러스터 생성 등 실전 배
 :::warning llm-d Inference Gateway =/= 범용 Gateway API 구현체
 llm-d의 Envoy 기반 Inference Gateway는 **LLM 추론 요청 전용**으로 설계된 특수 목적 게이트웨이입니다.
 
-- **llm-d Gateway**: InferencePool/InferenceObjective CRD 기반 (Gateway API Inference Extension v1.0+), KV Cache-aware 라우팅, 추론 트래픽 전용
+- **llm-d Gateway**: InferencePool(GIE, `inference.networking.k8s.io/v1`) + InferenceObjective(llm-d, `llm-d.ai/v1alpha2`) CRD 기반, KV Cache-aware 라우팅, 추론 트래픽 전용
 - **범용 Gateway API**: HTTPRoute/GRPCRoute 기반, TLS/인증/Rate Limiting, 클러스터 전체 트래픽 관리
 
 프로덕션 환경에서는 범용 Gateway API 구현체가 클러스터 진입점을 담당하고, llm-d는 그 하위에서 AI 추론 트래픽을 최적화하는 구조를 권장합니다.
@@ -77,7 +77,7 @@ flowchart TB
 
     subgraph Gateway["Gateway Layer"]
         GW[Inference<br/>Gateway]
-        IM[InferenceModel<br/>CRD]
+        IO[InferenceObjective<br/>CRD]
         IP[InferencePool<br/>CRD]
     end
 
@@ -93,8 +93,8 @@ flowchart TB
     end
 
     CLIENT --> GW
-    GW --> IM
-    IM --> IP
+    GW --> IP
+    IO -.->|poolRef| IP
     IP --> V1
     IP --> V2
     IP --> VN
@@ -231,8 +231,8 @@ llm-d ModelService가 DRA (ResourceClaim) 방식으로 GPU를 요청하는 경�
 | **Prefill/Decode Disaggregation** | Prefill과 Decode를 별도 Pod 그룹으로 분리, 대규모 배치와 긴 컨텍스트 처리량 극대화 | Well-lit path |
 | **Expert Parallelism (Wide EP)** | MoE 모델(Mixtral, DeepSeek)의 Expert를 여러 노드에 분산 서빙 | Well-lit path |
 | **LoRA 어댑터 지원** | 단일 기본 모델에 여러 LoRA 어댑터를 동적 로드, LoRA-aware 스케줄링 지원 | Experimental |
-| **멀티 모델 서빙** | 하나의 클러스터에서 여러 모델을 InferenceModel CRD로 동시 서빙 | Stable |
-| **Gateway API Inference Extension** | InferencePool (v1 GA), InferenceModel (deprecated → InferenceObjective v1alpha2) | v1/v1alpha2 |
+| **멀티 모델 서빙** | 모델별 InferencePool을 두고, IPP(Inference Payload Processor)가 요청 본문에서 모델명을 추출해 헤더로 설정하면 HTTPRoute가 해당 pool로 라우팅 | Stable |
+| **Gateway API Inference Extension** | InferencePool은 GIE(`inference.networking.k8s.io/v1`, GA) 소속. 구 InferenceModel은 InferenceObjective로 개명되어 llm-d(`llm-d.ai/v1alpha2`, alpha)로 이전 | v1 / v1alpha2 |
 
 ### Disaggregated Serving 개념
 
