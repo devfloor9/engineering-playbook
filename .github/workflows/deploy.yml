@@ -41,6 +41,9 @@ jobs:
       - name: Generate tag pages
         run: npm run generate-tags
 
+      - name: Verify LLM wiki component exports
+        run: npm run test:llm-wiki
+
       - name: Build website
         run: npm run build
 

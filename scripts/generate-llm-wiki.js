@@ -15,6 +15,7 @@
 const fs = require('fs');
 const path = require('path');
 const matter = require('gray-matter');
+const {renderComponent, supportedComponents} = require('./llm-wiki-components');
 
 const ROOT = path.resolve(__dirname, '..');
 const DOCS_DIR = path.join(ROOT, 'docs');
@@ -124,7 +125,7 @@ const MARKDOWN_CONTAINER_TAGS = new Set(['Tabs', 'TabItem']);
 //    여는 태그의 속성 구간과 자식 구간을 구분해 처리)
 // - Tabs/TabItem 은 자식이 일반 마크다운이므로 태그 라인만 벗겨낸다
 //   (라인 단위 보수적 처리 — 문서 내 컴포넌트는 항상 독립 라인/블록으로 사용된다)
-function stripMdx(content) {
+function stripMdx(content, {sourceUrl = '', omitted = new Set(), serialized = new Set()} = {}) {
   const lines = content.split('\n');
   const out = [];
   let inCodeFence = false;
@@ -184,6 +185,15 @@ function stripMdx(content) {
         if (!/\/?>\s*$/.test(trimmed)) containerInAttrs = true;
         continue;
       }
+      const rendered = renderComponent(trimmed);
+      if (rendered) {
+        out.push('', rendered.markdown, '');
+        serialized.add(rendered.name);
+        continue;
+      }
+      omitted.add(tag);
+      const reference = sourceUrl ? `[web version](${sourceUrl})` : 'web version';
+      out.push('', `> Export note: the \`${tag}\` component is not included in this Markdown export. Read its content in the ${reference}.`, '');
       // 한 줄로 끝나는 경우: <Comp ... /> 또는 <Comp>...</Comp>
       if (
         /\/>\s*$/.test(trimmed) ||
@@ -280,7 +290,9 @@ function main() {
     const mdUrl = `${SITE.baseUrl}/llm-wiki/${wikiRel}`;
 
     // 본문 정제: MDX 제거 → 링크 재작성
-    const stripped = stripMdx(content);
+    const omitted = new Set();
+    const serialized = new Set();
+    const stripped = stripMdx(content, {sourceUrl: url, omitted, serialized});
     const { rewritten, related } = rewriteLinks(stripped, file, includedSet);
 
     // 표준화된 최소 frontmatter로 재작성
@@ -314,6 +326,10 @@ function main() {
       url,
       md_url: mdUrl,
       related,
+      content_coverage: {
+        serialized_components: [...serialized].sort(),
+        omitted_components: [...omitted].sort(),
+      },
     };
     docs.push(entry);
     if (!byDomain[domain]) byDomain[domain] = [];
@@ -327,6 +343,10 @@ function main() {
     generated_at: new Date().toISOString().slice(0, 10),
     language: 'ko',
     doc_count: docs.length,
+    component_coverage: {
+      supported_components: supportedComponents,
+      docs_with_omissions: docs.filter(doc => doc.content_coverage.omitted_components.length).length,
+    },
     domains: Object.keys(byDomain).map((d) => ({
       id: d === '__root__' ? 'getting-started' : d,
       label: DOMAIN_LABELS[d] || d,
@@ -348,6 +368,7 @@ function main() {
   index += `> ${SITE.description}\n\n`;
   index += `Machine-friendly markdown mirror of the technical domains (industry demos excluded).\n`;
   index += `Each entry links to a clean per-page markdown file. Programmatic access: [manifest.json](${SITE.baseUrl}/llm-wiki/manifest.json)\n\n`;
+  index += 'Component coverage: supported tables are exported from the same data used by the website. Other components have an inline export note and a link to the web version. Check each manifest entry\\\'s `content_coverage` before treating a Markdown page as complete.\\n\\n';
   index += `- Documents: ${docs.length}\n`;
   index += `- Language: Korean (ko)\n`;
   index += `- Discovery: ${SITE.baseUrl}/llms.txt\n\n`;
@@ -366,6 +387,7 @@ function main() {
     `✓ llm-wiki: ${docs.length} docs exported (${excludedCount} excluded: industry-solutions/sales), ${Object.keys(byDomain).length} domains`,
   );
   console.log(`  → ${path.relative(ROOT, outDir)}/{manifest.json, index.md, <domain>/*.md}`);
+  console.log(`Component coverage: ${supportedComponents.length} serializers; ${manifest.component_coverage.docs_with_omissions} pages identify omitted components.`);
 }
 
 // created가 Date 객체로 파싱된 경우 방어
@@ -374,4 +396,5 @@ function toDateStr(v) {
   return String(v).slice(0, 10);
 }
 
-main();
+if (require.main === module) main();
+module.exports = {stripMdx};

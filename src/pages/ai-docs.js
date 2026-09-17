@@ -21,6 +21,7 @@ export default function AiDocs() {
           </ul>
           <h2>{ko ? '제공 범위' : 'Coverage'}</h2>
           <p>{ko ? '현재 LLM Wiki는 한국어 기술 문서를 제공합니다. 영어 페이지와 Industry Solutions처럼 내보내기 대상이 아닌 문서에는 Markdown 버튼이 표시되지 않습니다. 표나 대화형 컴포넌트의 시각적 정보가 필요한 경우 웹 문서도 함께 확인하세요.' : 'The LLM Wiki currently exports Korean technical documentation. English pages and excluded topics such as Industry Solutions do not show Markdown buttons. Use the web page alongside Markdown when you need visual tables or interactive components.'}</p>
+          <p>{ko ? 'CoreDNS 메트릭과 MoE 가중치 표는 웹과 같은 원본 데이터에서 내보냅니다. 아직 변환하지 못하는 컴포넌트는 본문에 Export note로 표시하고 웹 문서로 연결합니다. manifest의 content_coverage에서 serialized_components와 omitted_components를 확인하여 누락 여부를 판단하세요.' : 'CoreDNS metrics and MoE weight tables are exported from the same data as the website. Components without a serializer have an inline Export note linking to the web page. Inspect serialized_components and omitted_components under content_coverage in the manifest before treating an export as complete.'}</p>
         </article>
       </main>
     </Layout>
