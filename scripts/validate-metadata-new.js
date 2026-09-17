@@ -17,13 +17,24 @@ const REQUIRED_FIELDS = {
   blog: ['title', 'authors', 'tags']
 };
 
+// Keep established document categories and aliases valid as the manual grows.
 const VALID_CATEGORIES = [
   'performance-networking',
   'observability-monitoring', 
   'genai-aiml',
   'hybrid-multicloud',
   'security-compliance',
-  'setup'
+  'setup',
+  'aidlc',
+  'aidlc-operations',
+  'benchmark',
+  'benchmarks',
+  'infrastructure',
+  'operations',
+  'security',
+  'hybrid',
+  'getting-started',
+  'rosa',
 ];
 
 const VALID_DIFFICULTIES = ['beginner', 'intermediate', 'advanced'];
