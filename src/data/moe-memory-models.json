@@ -1,0 +1,10 @@
+[
+  {"model": "Mixtral 8x7B", "totalBillions": 46.7, "activeBillions": 12.9},
+  {"model": "Mixtral 8x22B", "totalBillions": 141, "activeBillions": 39},
+  {"model": "DeepSeek-V3 (main model)", "totalBillions": 671, "activeBillions": 37},
+  {"model": "DeepSeek-MoE 16B", "totalBillions": 16.4, "activeBillions": 2.8},
+  {"model": "Qwen1.5-MoE-A2.7B", "totalBillions": 14.3, "activeBillions": 2.7},
+  {"model": "DBRX", "totalBillions": 132, "activeBillions": 36},
+  {"model": "GLM-5", "totalBillions": 744, "activeBillions": 40},
+  {"model": "Kimi K2.5", "totalBillions": 1000, "activeBillions": 32}
+]

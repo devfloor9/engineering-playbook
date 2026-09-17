@@ -3,7 +3,7 @@ title: MoE 모델 서빙 개념 가이드
 description: Mixture of Experts 모델의 아키텍처 개념, 분산 배포 전략, 성능 최적화 원리
 created: "2026-02-05"
 last_update:
-  date: "2026-07-17"
+  date: "2026-09-17"
   author: YoungJoon Jeong
 reading_time: 12
 tags:
@@ -134,23 +134,19 @@ MoE 모델은 활성화되는 파라미터는 적지만, 전체 Expert를 메모
 
 <GpuMemoryRequirements />
 
-:::info 최신 MoE 모델 메모리 최적화
+:::info 가중치 크기와 서빙 메모리를 구분하세요
 
-**DeepSeek-V3**: Multi-head Latent Attention (MLA) 아키텍처를 사용하여 KV 캐시 메모리를 대폭 절감합니다. 전통적인 MHA 대비 KV 캐시를 93.3% 절감하며 (DeepSeek-V2 논문 기준), 실제 메모리 요구량은 표기된 값보다 낮을 수 있습니다.
+표는 전체 파라미터 수에 2, 1, 0.5 byte를 곱한 **가중치만의 산술 추정**입니다. B는 10억 파라미터, GB는 10⁹ byte이며 GiB와 다릅니다. 8-bit는 INT8/FP8의 저장 폭을, 4-bit는 이상적인 패킹 크기를 나타냅니다. 해당 정밀도의 체크포인트나 서빙 엔진 지원을 보장하지 않습니다.
 
-**GLM-5** (2026년 2월 출시, 모델 카드 기준): 744B 총 파라미터 / 40B 활성, 256개 experts 중 8개 활성화. SWE-bench Verified 77.8%, Agentic Coding #1 (55.00), MIT 라이선스. FP8 양자화 버전은 ~744GB VRAM 필요 (2x p5.48xlarge, PP=2). HuggingFace: `zai-org/GLM-5-FP8`
+- **DeepSeek-V3**: 본체 671B를 16-bit로 저장하면 약 1,342GB, 8-bit로 저장하면 약 671GB입니다. [공식 모델 설명](https://github.com/deepseek-ai/DeepSeek-V3#2-model-summary)의 전체 체크포인트는 MTP 모듈 14B를 포함한 685B입니다. MLA는 KV 캐시를 줄이며, 같은 정밀도의 가중치 크기를 줄이지 않습니다.
+- **GLM-5**: [모델 카드](https://huggingface.co/zai-org/GLM-5)는 총 744B / 활성 40B를 명시합니다. 744GB는 이상적인 8-bit 가중치 크기로, 전체 VRAM 요구량이 아닙니다.
+- **Kimi K2.5**: [모델 카드](https://huggingface.co/moonshotai/Kimi-K2.5)는 총 1T / 활성 32B와 native INT4를 명시합니다. 약 500GB는 이상적인 4-bit 크기이며, 8-bit 추정치는 약 1,000GB입니다. 실제 체크포인트에는 양자화 메타데이터와 다른 정밀도의 텐서가 포함될 수 있습니다.
 
-**Kimi K2.5** (2026년 1월 출시): ~1T 총 파라미터 / 32B 활성, Modified DeepSeek V3 MoE 아키텍처. SWE-bench Verified 76.8%, Agent Swarm 지원. INT4 양자화 버전은 ~595GB 가중치로 8x H200 권장 (KV 캐시 포함 시 단일 p5.48xlarge 부족). HuggingFace: `moonshotai/Kimi-K2.5`
-
-정확한 메모리 요구량은 배치 크기와 시퀀스 길이에 따라 달라지므로 프로파일링을 권장합니다.
 :::
 
-:::warning 메모리 계산 시 주의사항
+:::warning GPU 수는 가중치 표만으로 결정할 수 없습니다
 
-- **KV Cache**: 배치 크기와 시퀀스 길이에 따라 추가 메모리 필요
-- **Activation Memory**: 추론 중 중간 활성화 값 저장 공간
-- **CUDA Context**: GPU당 약 1-2GB의 CUDA 오버헤드
-- **Safety Margin**: 실제 운영 시 10-20% 여유 공간 확보 권장
+체크포인트 revision, 가중치·KV 캐시 정밀도, 엔진 버전, 병렬화 방식을 고정한 뒤 최대 컨텍스트와 동시 요청 수로 측정하세요. KV 캐시, 활성화 값, CUDA graph·통신 버퍼, 런타임 메모리, 복제되는 텐서를 포함해야 합니다. 총 HBM뿐 아니라 **가장 메모리를 많이 쓰는 rank**의 여유를 확인하세요. 여기서는 특정 GPU 수나 단일 노드 수용 가능성을 검증된 구성으로 제시하지 않습니다.
 
 :::
 
@@ -250,25 +246,14 @@ flowchart TB
 
 ### 700B+ MoE 모델 멀티노드 배포 개념
 
-GLM-5, Kimi K2.5와 같은 700B+ MoE 모델은 단일 노드에 로드할 수 없어 멀티노드 배포가 필수입니다. vLLM v0.24+/v0.25.x에서는 **LeaderWorkerSet(LWS)** 기반 멀티노드 배포를 지원합니다.
+멀티노드 필요 여부는 파라미터 수만으로 결정되지 않습니다. 체크포인트의 정밀도, 노드당 가용 HBM, KV 캐시 예산, 목표 동시성을 함께 확인해야 합니다. Kimi K2.5의 이상적인 INT4 가중치 크기만으로 단일 노드 수용 가능성이나 멀티노드 필수 여부를 단정할 수 없습니다.
 
-| 모델 | 총 파라미터 | 활성 파라미터 | 권장 구성 | VRAM 요구량 |
-|------|-----------|------------|---------|-----------|
-| GLM-5 FP8 | 744B | 40B | 2x p5.48xlarge, PP=2, TP=8 | ~744GB |
-| Kimi K2.5 INT4 | ~1T | 32B | 2x p5en.48xlarge, TP=8, PP=2 | ~595GB 가중치 |
-| DeepSeek-V3 | 671B | 37B | 2x p5.48xlarge, PP=2, TP=8 | ~671GB |
-| Mixtral 8x22B | 141B | 39B | 1x p5.48xlarge, TP=4 | ~282GB |
-| Mixtral 8x7B | 47B | 13B | 1x p4d.24xlarge, TP=2 | ~94GB |
+1. 실제 체크포인트 파일과 엔진의 로드 후 메모리를 확인합니다. 가중치 산술 추정은 위 표를 사용합니다.
+2. 엔진과 모델이 지원하는 TP·PP·EP 조합을 선택하고, 레이어 또는 Expert 분할의 제약을 확인합니다.
+3. 노드 사이 통신 경로와 대역폭을 점검합니다. 총 GPU 메모리가 충분해도 통신이 병목이 될 수 있습니다.
+4. 최대 컨텍스트·동시 요청 부하에서 rank별 peak 메모리, TTFT, 처리량을 측정하고 구성과 결과를 함께 기록합니다.
 
-:::tip 700B+ MoE 모델 배포 권장사항
-
-- **LeaderWorkerSet 사용**: Ray 의존성 없이 Kubernetes 네이티브 멀티노드 배포
-- **Pipeline Parallelism**: PP=2 이상으로 레이어를 노드 간 분할
-- **FP8 양자화**: 메모리 절감 (GLM-5 FP8 버전 권장)
-- **Network 최적화**: NCCL 설정으로 노드 간 통신 최적화 (EFA 권장)
-- **INT4/AWQ 양자화**: 메모리 절감 (단, Kimi K2.5는 INT4에서도 ~595GB로 멀티노드 권장)
-
-:::
+LeaderWorkerSet 같은 배포 도구는 분산 워커의 배치를 관리합니다. 도구를 사용한다는 사실 자체가 특정 모델의 메모리 수용 가능성이나 성능을 보장하지는 않습니다.
 
 :::warning 멀티노드 배포 주의사항
 

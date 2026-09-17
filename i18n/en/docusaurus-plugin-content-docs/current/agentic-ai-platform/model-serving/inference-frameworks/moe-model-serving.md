@@ -3,7 +3,7 @@ title: MoE Model Serving Concept Guide
 description: Architecture concepts, distributed deployment strategies, and performance optimization principles for Mixture of Experts models
 created: "2026-02-05"
 last_update:
-  date: "2026-06-26"
+  date: "2026-09-17"
   author: devfloor9
 reading_time: 21
 tags:
@@ -134,23 +134,19 @@ MoE models activate fewer parameters but must load all Experts into memory.
 
 <GpuMemoryRequirements />
 
-:::info Latest MoE Model Memory Optimization
+:::info Distinguish weight size from serving memory
 
-**DeepSeek-V3**: Uses Multi-head Latent Attention (MLA) architecture to significantly reduce KV cache memory. Achieves approximately 40% memory savings compared to traditional MHA, so actual memory requirements may be lower than listed values.
+The table estimates **weights only** by multiplying total parameter count by 2, 1, or 0.5 bytes. B means one billion parameters; GB means 10⁹ bytes, not GiB. The 8-bit column describes the storage width of INT8/FP8, and the 4-bit column assumes ideal packing. These columns do not imply that a checkpoint or serving engine supports every precision.
 
-**GLM-5** (released February 2026): 744B total parameters / 40B active, 8 of 256 experts activated. SWE-bench Verified 77.8%, Agentic Coding #1 (55.00), MIT license. FP8 quantized version requires approximately 744GB VRAM (2x p5.48xlarge, PP=2). HuggingFace: `zai-org/GLM-5-FP8`
+- **DeepSeek-V3**: The 671B main model needs about 1,342GB at 16-bit or 671GB at 8-bit. The [official model summary](https://github.com/deepseek-ai/DeepSeek-V3#2-model-summary) describes a 685B checkpoint including a 14B MTP module. MLA reduces KV cache size; it does not reduce weight size at a fixed precision.
+- **GLM-5**: The [model card](https://huggingface.co/zai-org/GLM-5) specifies 744B total / 40B active parameters. 744GB is an ideal 8-bit weight estimate, not a total VRAM requirement.
+- **Kimi K2.5**: The [model card](https://huggingface.co/moonshotai/Kimi-K2.5) specifies 1T total / 32B active parameters and native INT4. About 500GB is the ideal 4-bit size; the 8-bit estimate is about 1,000GB. Actual checkpoints may include quantization metadata and tensors stored at other precisions.
 
-**Kimi K2.5** (released January 2026): approximately 1T total parameters / 32B active, Modified DeepSeek V3 MoE architecture. SWE-bench Verified 76.8%, HumanEval 99%, Agent Swarm support. INT4 quantized version requires approximately 500GB VRAM (1x p5.48xlarge, TP=8). HuggingFace: `moonshotai/Kimi-K2.5`
-
-Exact memory requirements vary with batch size and sequence length, so profiling is recommended.
 :::
 
-:::warning Memory Calculation Considerations
+:::warning Weight size alone does not determine GPU count
 
-- **KV Cache**: Additional memory needed based on batch size and sequence length
-- **Activation Memory**: Storage space for intermediate activation values during inference
-- **CUDA Context**: Approximately 1-2GB CUDA overhead per GPU
-- **Safety Margin**: Recommended 10-20% headroom in production
+Pin the checkpoint revision, weight and KV cache precision, engine version, and parallelism configuration. Measure at the intended maximum context and concurrency. Include KV cache, activations, CUDA graphs, communication buffers, runtime allocations, and replicated tensors. Check headroom on the **most heavily loaded rank**, not just total HBM. No GPU count or single-node fit is presented here as a validated deployment.
 
 :::
 
@@ -250,25 +246,14 @@ flowchart TB
 
 ### 700B+ MoE Model Multi-node Deployment Concepts
 
-700B+ MoE models like GLM-5 and Kimi K2.5 cannot be loaded on a single node, making multi-node deployment essential. vLLM v0.18+ supports multi-node deployment based on **LeaderWorkerSet (LWS)**.
+Parameter count alone does not determine whether multiple nodes are required. Check checkpoint precision, usable HBM per node, KV cache budget, and target concurrency. Kimi K2.5's ideal INT4 weight size does not prove either single-node fit or a mandatory multi-node configuration.
 
-| Model | Total Parameters | Active Parameters | Recommended Config | VRAM Requirement |
-|-------|-----------------|-------------------|-------------------|-----------------|
-| GLM-5 FP8 | 744B | 40B | 2x p5.48xlarge, PP=2, TP=8 | approximately 744GB |
-| Kimi K2.5 INT4 | approximately 1T | 32B | 1x p5.48xlarge, TP=8 | approximately 500GB |
-| DeepSeek-V3 | 671B | 37B | 2x p5.48xlarge, PP=2, TP=8 | approximately 671GB |
-| Mixtral 8x22B | 141B | 39B | 1x p5.48xlarge, TP=4 | approximately 282GB |
-| Mixtral 8x7B | 47B | 13B | 1x p4d.24xlarge, TP=2 | approximately 94GB |
+1. Inspect the actual checkpoint files and memory after the engine loads them. Use the table above only for weight-size arithmetic.
+2. Select TP, PP, and EP combinations supported by the engine and model, including layer and expert partitioning constraints.
+3. Check the inter-node transport and bandwidth. Communication can be the bottleneck even when total GPU memory is sufficient.
+4. Measure peak memory per rank, TTFT, and throughput at maximum context and concurrency. Record the configuration alongside the results.
 
-:::tip 700B+ MoE Model Deployment Recommendations
-
-- **Use LeaderWorkerSet**: Kubernetes-native multi-node deployment without Ray dependency
-- **Pipeline Parallelism**: PP=2 or more to partition layers across nodes
-- **FP8 Quantization**: Memory savings (GLM-5 FP8 version recommended)
-- **Network Optimization**: NCCL configuration for inter-node communication optimization (EFA recommended)
-- **INT4/AWQ Quantization**: Consider when single-node deployment is possible (Kimi K2.5)
-
-:::
+Deployment tools such as LeaderWorkerSet manage distributed worker placement. Using one does not establish that a model fits in memory or meets a performance target.
 
 :::warning Multi-node Deployment Cautions
 
