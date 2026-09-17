@@ -65,8 +65,14 @@ metadata:
     # 네트워크 관찰성 메트릭 수집 활성화
     network-observability.amazonaws.com/enabled: "true"
 spec:
+  selector:
+    matchLabels:
+      app: "api-gateway"
   replicas: 3
   template:
+    metadata:
+      labels:
+        app: "api-gateway"
     spec:
       containers:
       - name: gateway
@@ -242,8 +248,14 @@ kind: Deployment
 metadata:
   name: large-scale-api
 spec:
+  selector:
+    matchLabels:
+      app: "large-scale-api"
   replicas: 100
   template:
+    metadata:
+      labels:
+        app: "large-scale-api"
     spec:
       containers:
       - name: api
@@ -364,8 +376,14 @@ metadata:
     # Provisioned Control Plane에서 최적화된 Probe 설정
     eks.amazonaws.com/control-plane-tier: "XL"
 spec:
+  selector:
+    matchLabels:
+      app: "training-coordinator"
   replicas: 50
   template:
+    metadata:
+      labels:
+        app: "training-coordinator"
     spec:
       containers:
       - name: coordinator
@@ -465,8 +483,14 @@ kind: Deployment
 metadata:
   name: secure-api
 spec:
+  selector:
+    matchLabels:
+      app: "secure-api"
   replicas: 3
   template:
+    metadata:
+      labels:
+        app: "secure-api"
     spec:
       containers:
       - name: api

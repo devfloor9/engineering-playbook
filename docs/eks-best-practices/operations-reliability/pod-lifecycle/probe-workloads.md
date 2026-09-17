@@ -20,6 +20,8 @@ category: operations
 
 ## 워크로드별 Probe 패턴 {#24-워크로드별-probe-패턴}
 
+이미지 이름과 헬스 엔드포인트는 예시입니다. 조직에서 검증한 이미지·설정으로 교체하고, Probe와 종료 시간을 실제 워크로드에서 측정하세요.
+
 ### 패턴 1: 웹 서비스 (REST API) {#패턴-1-웹-서비스-rest-api}
 
 ```yaml
@@ -84,22 +86,21 @@ spec:
               - -c
               - sleep 5
       terminationGracePeriodSeconds: 60
-
-:::tip preStop에서 kill -TERM 1이 불필요한 이유
-Kubernetes는 preStop Hook 완료 후 자동으로 컨테이너의 PID 1에 SIGTERM을 전송합니다. preStop에서 별도로 `kill -TERM 1`을 실행하면 SIGTERM이 중복 전송되며, PID 1이 init 프로세스(tini, dumb-init)인 경우 예상과 다르게 동작할 수 있습니다. 따라서 preStop에서는 `sleep 5`만으로 Endpoint 제거 시간을 확보하고, SIGTERM 전송은 kubelet에 맡기는 것이 안전합니다.
-:::
 ```
 
+:::tip preStop에서 kill -TERM 1이 불필요한 이유
+Kubernetes는 preStop Hook 완료 후 자동으로 컨테이너의 PID 1에 SIGTERM을 전송합니다. preStop에서 별도로 `kill -TERM 1`을 실행하면 SIGTERM이 중복 전송되며, PID 1이 init 프로세스(tini, dumb-init)인 경우 예상과 다르게 동작할 수 있습니다. SIGTERM 전송은 kubelet에 맡깁니다. 위 `sleep 5`는 트래픽 전파 지연을 가정한 예시이며, 실제 EndpointSlice·로드 밸런서 전파 시간을 측정해 필요 여부와 길이를 정하세요. preStop 실행 시간도 전체 종료 유예 시간에 포함됩니다.
+:::
+
 **헬스체크 엔드포인트 구현 (Node.js/Express):**
+
+기존 Express 앱에 추가하는 부분 예제입니다. `app`, `db`, `redis`의 초기화와 의존성 호출의 타임아웃은 앱에서 구성해야 합니다. DB와 Redis가 요청 처리에 필수인지, 공통 장애가 모든 복제본을 동시에 제외시키는지 확인한 뒤 readiness에 포함하세요.
 
 ```javascript
 // /healthz - Liveness: 애플리케이션 자체 상태만 확인
 app.get('/healthz', (req, res) => {
-  // 내부 상태만 확인 (메모리, CPU 등)
-  const memUsage = process.memoryUsage();
-  if (memUsage.heapUsed / memUsage.heapTotal > 0.95) {
-    return res.status(500).json({ status: 'unhealthy', reason: 'memory_pressure' });
-  }
+  // 이벤트 루프가 응답하는지 확인하는 최소 예제입니다.
+  // 순간 메모리 사용률이나 외부 서비스 장애를 재시작 조건으로 쓰지 않습니다.
   res.status(200).json({ status: 'ok' });
 });
 
@@ -175,7 +176,8 @@ spec:
 package main
 
 import (
-    "context"
+    "log"
+    "net"
     "google.golang.org/grpc"
     "google.golang.org/grpc/health"
     "google.golang.org/grpc/health/grpc_health_v1"
@@ -195,8 +197,13 @@ func main() {
     // healthServer.SetServingStatus("myapp.HealthService", grpc_health_v1.HealthCheckResponse_NOT_SERVING)
 
     // gRPC 서버 시작
-    lis, _ := net.Listen("tcp", ":9090")
-    server.Serve(lis)
+    lis, err := net.Listen("tcp", ":9090")
+    if err != nil {
+        log.Fatal(err)
+    }
+    if err := server.Serve(lis); err != nil {
+        log.Fatal(err)
+    }
 }
 ```
 
@@ -440,9 +447,9 @@ spec:
 Istio가 자동 주입을 사용하는 경우 (`istio-injection=enabled` 레이블), Istio가 사이드카에 적절한 Probe를 자동으로 추가합니다. 수동 설정은 불필요합니다.
 :::
 
-### Native Sidecar Containers (K8s 1.28+ GA) {#native-sidecar-containers-k8s-128-ga}
+### Native Sidecar Containers (K8s 1.33 Stable) {#native-sidecar-containers-k8s-128-ga}
 
-Kubernetes 1.28부터 GA된 Native Sidecar Container는 Init Container에 `restartPolicy: Always`를 설정하여 사이드카로 동작시키는 공식 기능입니다. 이를 통해 기존 사이드카 패턴의 **종료 순서 문제**를 해결합니다.
+[Native Sidecar Container](https://kubernetes.io/docs/concepts/workloads/pods/sidecar-containers/)는 Kubernetes 1.28에서 처음 도입되었고, 1.29부터 기본 활성화되었으며, 1.33에서 Stable이 되었습니다. 이 기능은 Init Container에 `restartPolicy: Always`를 설정하여 사이드카로 동작시키는 공식 기능입니다. 이를 통해 기존 사이드카 패턴의 **종료 순서 문제**를 해결합니다.
 
 **기존 문제**: 일반 사이드카는 메인 컨테이너와 동시에 SIGTERM을 수신하므로, Istio proxy가 먼저 종료되면 메인 앱의 네트워크가 끊기는 문제가 발생합니다.
 
@@ -454,12 +461,18 @@ kind: Deployment
 metadata:
   name: app-with-native-sidecar
 spec:
+  selector:
+    matchLabels:
+      app: "app-with-native-sidecar"
   template:
+    metadata:
+      labels:
+        app: "app-with-native-sidecar"
     spec:
       initContainers:
       # Native Sidecar: 메인 컨테이너보다 먼저 시작, 나중에 종료
       - name: log-collector
-        image: fluentbit:latest
+        image: ghcr.io/your-org/log-collector:replace-with-tested-tag
         restartPolicy: Always  # 이 설정이 Native Sidecar로 동작하게 함
         ports:
         - containerPort: 2020
@@ -610,22 +623,33 @@ Windows 컨테이너는 다음 이유로 Probe 타임아웃이 길어질 수 있
 3. **.NET Framework 워밍업**: CLR JIT 컴파일 및 어셈블리 로딩 시간
 4. **Windows Defender**: 실시간 스캔으로 인한 프로세스 시작 지연
 
-**권장 Probe 타이밍 (Windows):**
+**Probe 타이밍 예시 (Windows):**
+
+아래는 컨테이너 설정에 합치는 부분 예제입니다. 숫자는 측정 후 조정해야 하며, `5-10` 같은 범위 문자열은 Kubernetes 정수 필드에 사용할 수 없습니다. 헬스 엔드포인트도 앱에 맞게 변경하세요.
 
 ```yaml
 startupProbe:
-  timeoutSeconds: 5-10      # Linux: 3-5초
+  httpGet:
+    path: /healthz
+    port: 8080
+  timeoutSeconds: 5
   periodSeconds: 5
-  failureThreshold: 12-20   # Linux: 6-10
+  failureThreshold: 12
 
 livenessProbe:
-  timeoutSeconds: 5-10      # Linux: 3-5초
-  periodSeconds: 10-15      # Linux: 10초
+  httpGet:
+    path: /healthz
+    port: 8080
+  timeoutSeconds: 5
+  periodSeconds: 10
   failureThreshold: 3
 
 readinessProbe:
-  timeoutSeconds: 5-10      # Linux: 3-5초
-  periodSeconds: 5-10       # Linux: 5초
+  httpGet:
+    path: /ready
+    port: 8080
+  timeoutSeconds: 5
+  periodSeconds: 5
   failureThreshold: 3
 ```
 
@@ -780,7 +804,7 @@ fields @timestamp, kubernetes.namespace_name, kubernetes.pod_name, kubernetes.ho
 
 **3. Grafana 대시보드 통합:**
 
-```yaml
+```promql
 # Prometheus Query (혼합 클러스터)
 # Linux + Windows Pod CPU 사용률
 sum(rate(container_cpu_usage_seconds_total{namespace="default", pod=~"unified-app-.*"}[5m])) by (pod, node, os)

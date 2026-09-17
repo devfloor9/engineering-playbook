@@ -26,7 +26,7 @@ Kubernetes는 세 가지 유형의 Probe를 제공하여 Pod의 상태를 모니
 
 | Probe 유형 | 목적 | 실패 시 동작 | 활성화 타이밍 |
 |-----------|------|-------------|-------------|
-| **Startup Probe** | 애플리케이션 초기화 완료 확인 | Pod 재시작 (failureThreshold 도달 시) | Pod 시작 직후 |
+| **Startup Probe** | 애플리케이션 초기화 완료 확인 | 컨테이너 종료 및 restartPolicy에 따른 재시작 (failureThreshold 도달 시) | Pod 시작 직후 |
 | **Liveness Probe** | 애플리케이션 데드락/교착 상태 감지 | 컨테이너 재시작 | Startup Probe 성공 후 |
 | **Readiness Probe** | 트래픽 수신 준비 상태 확인 | Service Endpoint에서 제거 (재시작 없음) | Startup Probe 성공 후 |
 
@@ -186,12 +186,12 @@ Probe의 타이밍 파라미터는 장애 감지 속도와 안정성 간의 균�
 #### 타이밍 설계 공식 {#타이밍-설계-공식}
 
 ```
-최대 감지 시간 = failureThreshold × periodSeconds
+연속 실패 감지 예산의 근사값 = failureThreshold × periodSeconds
 최소 복구 시간 = successThreshold × periodSeconds
 ```
 
 **예시:**
-- `failureThreshold: 3, periodSeconds: 10` → 최대 30초 후 장애 감지
+- `failureThreshold: 3, periodSeconds: 10` → 약 30초의 연속 실패 감지 예산
 - `successThreshold: 2, periodSeconds: 5` → 최소 10초 후 복구 판정 (Readiness만)
 
 #### 워크로드별 권장 타이밍 {#워크로드별-권장-타이밍}
