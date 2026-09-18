@@ -1,0 +1,2537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="generator" content="dosirak-slides">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>eBPF Deep Dive — Programming the Kernel</title>
+<!--
+  NOTICE ─ 도시락(dosirak) deck (packed single-file build)
+  This file inlines qrcode-generator (Copyright (c) Kazuhiko Arase,
+  MIT License). Fonts (Pretendard, JetBrains Mono ─ SIL Open Font License
+  1.1) load from public CDNs and are NOT embedded; offline, the deck falls
+  back to system fonts. Everything else is the deck itself: plain
+  HTML/CSS/JS, no build step, no tracking. Presenter settings (E key) live
+  only in this browser's localStorage and do not travel with the file.
+-->
+<!-- Reviewed packed export for #64 (2026-09-18). Original 39-slide draft retained.
+     Regeneration requires the accompanying canonical-source correction patch
+     identified in slides/eks-networking/REVIEW.md; shared source files were outside review ownership. -->
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpolygon points='16,2 28,9 28,23 16,30 4,23 4,9' fill='none' stroke='%23ff9900' stroke-width='2.5'/%3E%3Ctext x='16' y='21' font-family='monospace' font-size='11' font-weight='bold' fill='%23ff9900' text-anchor='middle'%3EBPF%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap">
+<style>
+/* ============================================================
+   eBPF DEEP DIVE — Mission Control Editorial theme adaptation
+   deep navy → indigo drift + orange lead accent. No build step.
+   ============================================================ */
+
+:root {
+  --ink: #0b1017;
+  --squid: #161d26;
+  --panel: #131a24;
+  --line: #2a3543;
+  --fog: #a6b2c3;
+  --paper: #f3f3f7;
+  --orange: #ff9900;
+  --orange-hot: #ffb84d;
+  --blue: #41b3ff;
+  --green: #00e500;
+  --pink: #ff5c85;
+  --purple: #ad5cff;
+  --yellow: #fbd332;
+  --step: cubic-bezier(.19, 1, .22, 1);
+  --disp: 'Pretendard Variable', Pretendard, -apple-system, sans-serif;
+  --mono: 'JetBrains Mono', 'SF Mono', ui-monospace, monospace;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+  height: 100%; overflow: hidden;
+  background: linear-gradient(118deg, #0b0d20 0%, #10123a 55%, #150f3e 100%);
+}
+
+body {
+  font-family: var(--disp);
+  color: var(--paper);
+  -webkit-font-smoothing: antialiased;
+  word-break: keep-all;
+}
+
+/* ---------- atmosphere ---------- */
+.atmosphere { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
+.atmosphere::before {
+  content: ''; position: absolute; inset: 0;
+  background:
+    radial-gradient(1100px 750px at 102% -8%, rgba(139, 60, 255, .16), transparent 58%),
+    radial-gradient(1000px 800px at 105% 110%, rgba(65, 90, 255, .12), transparent 55%),
+    radial-gradient(1200px 700px at 8% -10%, rgba(255, 153, 0, .05), transparent 60%);
+}
+.atmosphere::after {
+  content: ''; position: absolute; inset: 0; opacity: .05; mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='240' height='240' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+.gridlines {
+  position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: .5;
+  background:
+    linear-gradient(to right, rgba(139,149,165,.045) 1px, transparent 1px) 0 0 / 8.333vw 100%,
+    linear-gradient(to bottom, rgba(139,149,165,.03) 1px, transparent 1px) 0 0 / 100% 12.5vh;
+  mask-image: radial-gradient(120% 90% at 50% 45%, #000 55%, transparent 100%);
+  -webkit-mask-image: radial-gradient(120% 90% at 50% 45%, #000 55%, transparent 100%);
+}
+
+/* ---------- deck chrome ---------- */
+.brandstripe {
+  position: fixed; z-index: 42; top: 0; left: 0; bottom: 0; width: 6px;
+  background: linear-gradient(180deg, #ff9900 0%, #ff415e 32%, #b43bf0 66%, #3b2bdb 100%);
+}
+.hud {
+  position: fixed; z-index: 40; left: 0; right: 0; bottom: 0;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 28px; pointer-events: none;
+  font-family: var(--mono); font-size: 13px; letter-spacing: .14em;
+  color: var(--fog); text-transform: uppercase;
+}
+.hud .brand b { color: var(--orange); }
+.hud .legal { font-size: 11px; letter-spacing: .04em; text-transform: none; opacity: .75; }
+.hud .brand { margin-left: auto; margin-right: 26px; }
+.progress {
+  position: fixed; z-index: 41; top: 0; left: 6px; height: 3px; width: 0;
+  background: linear-gradient(90deg, var(--orange), var(--orange-hot));
+  box-shadow: 0 0 12px rgba(255,153,0,.6);
+  transition: width .45s var(--step);
+}
+.navbtns {
+  position: fixed; z-index: 43; right: 22px; bottom: 52px; display: flex; gap: 8px;
+}
+.navbtns button {
+  width: 38px; height: 38px; border-radius: 10px; cursor: pointer;
+  background: rgba(19,26,36,.8); border: 1px solid var(--line); color: var(--fog);
+  font-size: 16px; transition: border-color .25s, color .25s;
+}
+.navbtns button:hover { border-color: var(--orange); color: var(--orange); }
+
+/* ---------- slides ---------- */
+.slide {
+  position: fixed; inset: 0; z-index: 1;
+  display: flex; flex-direction: column; justify-content: center;
+  padding: 4.5vh 3.8vw 7vh;
+  visibility: hidden; opacity: 0; transform: translateY(14px);
+  transition: opacity .55s var(--step), transform .55s var(--step), visibility 0s .55s;
+}
+.slide.active {
+  visibility: visible; opacity: 1; transform: none; z-index: 2;
+  transition: opacity .55s var(--step), transform .55s var(--step), visibility 0s 0s;
+}
+
+/* staggered child reveals */
+.slide [data-a] { opacity: 0; transform: translateY(22px); }
+.slide.active [data-a] {
+  opacity: 1; transform: none;
+  transition: opacity .7s var(--step), transform .7s var(--step);
+}
+.slide.active [data-a="1"] { transition-delay: .05s; }
+.slide.active [data-a="2"] { transition-delay: .16s; }
+.slide.active [data-a="3"] { transition-delay: .27s; }
+.slide.active [data-a="4"] { transition-delay: .38s; }
+.slide.active [data-a="5"] { transition-delay: .49s; }
+.slide.active [data-a="6"] { transition-delay: .60s; }
+.slide.active [data-a="7"] { transition-delay: .71s; }
+.slide.active [data-a="8"] { transition-delay: .82s; }
+
+/* ---------- shared typographic system ---------- */
+.kicker {
+  font-family: var(--mono); font-size: 13px; font-weight: 700;
+  letter-spacing: .3em; text-transform: uppercase; color: var(--orange);
+  display: flex; align-items: center; gap: 14px; margin-bottom: 2.2vh;
+}
+.kicker::after { content: ''; height: 1px; width: 120px; background: linear-gradient(90deg, var(--orange), transparent); }
+
+h1.display {
+  font-weight: 900; font-size: clamp(38px, 5.6vw, 80px); line-height: 1.06;
+  letter-spacing: -0.015em; text-wrap: balance;
+}
+h1.display .dim { color: var(--fog); font-weight: 300; }
+h1.display .hot { color: var(--orange); }
+h1.display.md { font-size: clamp(30px, 3.8vw, 54px); }
+
+.sub {
+  margin-top: 2.4vh; font-weight: 300; font-size: clamp(17px, 1.7vw, 24px);
+  color: #c7d0dc; max-width: 82ch; line-height: 1.6;
+}
+.sub b, .sub strong { color: var(--paper); font-weight: 700; }
+.sub .hot { color: var(--orange); }
+
+.mono-tag {
+  font-family: var(--mono); color: var(--fog); font-size: 13px;
+  letter-spacing: .25em; text-transform: uppercase; margin-top: 3vh;
+}
+
+/* ---------- cover ---------- */
+.cover .chips { display: flex; gap: 14px; margin-top: 4.5vh; flex-wrap: wrap; }
+.chip {
+  font-family: var(--mono); font-size: 14px; letter-spacing: .08em; color: #c7d0dc;
+  border: 1px solid var(--line); border-radius: 999px; padding: 11px 20px; background: var(--panel);
+}
+.chip.hot { color: var(--orange); border-color: rgba(255,153,0,.45); }
+
+/* ---------- chapter dividers ---------- */
+.chapter { justify-content: center; }
+.chapter .num {
+  position: absolute; right: 4vw; bottom: -6vh; z-index: -1;
+  font-weight: 900; font-size: 44vh; line-height: 1; letter-spacing: -.04em;
+  color: transparent; -webkit-text-stroke: 2px rgba(255,153,0,.28); user-select: none;
+}
+.chapter h1.display { font-size: clamp(48px, 6.8vw, 100px); max-width: 16ch; }
+
+/* ---------- tile grid ---------- */
+.tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 3.2vh; }
+.tiles.four { grid-template-columns: repeat(4, 1fr); }
+.tiles.two { grid-template-columns: repeat(2, 1fr); }
+.tile {
+  background: var(--panel); border: 1px solid var(--line); border-radius: 14px;
+  padding: 28px 22px 20px; position: relative; display: flex; flex-direction: column;
+  transition: transform .35s var(--step), border-color .35s;
+}
+.tile:hover { transform: translateY(-4px); border-color: rgba(255,153,0,.5); }
+.tile .tn {
+  position: absolute; top: -11px; left: 16px; font-family: var(--mono); font-size: 12px;
+  font-weight: 700; color: var(--orange); background: var(--ink);
+  border: 1px solid rgba(255,153,0,.4); border-radius: 5px; padding: 2px 8px; letter-spacing: .1em;
+}
+.tile.tc-blue .tn { color: var(--blue); border-color: rgba(65,179,255,.4); }
+.tile.tc-green .tn { color: var(--green); border-color: rgba(0,229,0,.4); }
+.tile.tc-purple .tn { color: var(--purple); border-color: rgba(173,92,255,.4); }
+.tile.tc-pink .tn { color: var(--pink); border-color: rgba(255,92,133,.4); }
+.tile h3 { font-size: clamp(17px, 1.5vw, 21px); font-weight: 700; margin: 6px 0 8px; color: var(--paper); }
+.tile p { font-size: clamp(14px, 1.25vw, 17px); font-weight: 300; color: #c7d0dc; line-height: 1.55; }
+.tile p b { color: var(--paper); }
+.tile .tt {
+  display: inline-block; margin-top: auto; align-self: flex-start;
+  font-family: var(--mono); font-size: 12px; color: var(--fog); letter-spacing: .08em;
+  border: 1px solid var(--line); border-radius: 5px; padding: 4px 10px; margin-top: 14px;
+}
+
+/* ---------- ladder / rungs ---------- */
+.ladder { margin-top: 2.8vh; display: flex; flex-direction: column; gap: 14px; }
+.rung {
+  display: grid; grid-template-columns: 60px 1fr auto; gap: 1.6vw; align-items: center;
+  background: var(--panel); border: 1px solid var(--line); border-radius: 14px;
+  padding: 2.4vh 1.6vw; position: relative; overflow: hidden;
+}
+.rung::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--rc, var(--fog)); }
+.rung .k { font-family: var(--mono); font-weight: 700; font-size: 19px; color: var(--rc, var(--fog)); }
+.rung h3 { font-size: clamp(17px, 1.7vw, 22px); font-weight: 700; }
+.rung h3 code { font-family: var(--mono); font-size: .85em; color: var(--rc, var(--paper)); }
+.rung p { font-weight: 300; font-size: clamp(14.5px, 1.35vw, 18px); color: #c7d0dc; margin-top: 4px; line-height: 1.5; }
+.rung p b { color: var(--paper); }
+.rung .tag {
+  font-family: var(--mono); font-size: 12px; letter-spacing: .1em; white-space: nowrap;
+  color: var(--rc, var(--fog)); border: 1px solid var(--rc, var(--line)); border-radius: 6px; padding: 4px 10px;
+}
+.dial-axis {
+  display: flex; justify-content: space-between; margin-top: 1.6vh;
+  font-family: var(--mono); font-size: 12px; color: var(--fog); letter-spacing: .18em; text-transform: uppercase;
+}
+
+/* ---------- split layouts ---------- */
+.split { display: grid; grid-template-columns: 1fr 1fr; gap: 2.4vw; margin-top: 3vh; align-items: stretch; }
+.split.w64 { grid-template-columns: 1.6fr 1fr; }
+.split.w46 { grid-template-columns: 1fr 1.6fr; }
+
+.panel {
+  background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 2.6vh 1.6vw;
+}
+.panel > h3 {
+  font-family: var(--mono); font-size: 13px; font-weight: 700; letter-spacing: .2em;
+  text-transform: uppercase; color: var(--pc, var(--orange)); margin-bottom: 1.6vh;
+}
+.panel ul { list-style: none; }
+.panel li {
+  font-weight: 300; font-size: clamp(14.5px, 1.35vw, 18px); color: #c7d0dc;
+  line-height: 1.55; padding: .9vh 0 .9vh 22px; position: relative;
+  border-bottom: 1px solid rgba(42,53,67,.6);
+}
+.panel li:last-child { border-bottom: none; }
+.panel li::before { content: '▸'; position: absolute; left: 0; color: var(--pc, var(--orange)); }
+.panel li b { color: var(--paper); font-weight: 700; }
+.panel li code, .rung p code, .tile p code, .take p code, .compare td code {
+  font-family: var(--mono); font-size: .85em; color: var(--blue);
+  background: rgba(65,179,255,.08); border-radius: 4px; padding: 1px 6px;
+}
+
+/* ---------- code block ---------- */
+.codeblock {
+  margin-top: 2.6vh; background: #0d1420; border: 1px solid var(--line); border-radius: 14px;
+  font-family: var(--mono); font-size: clamp(13px, 1.15vw, 16.5px); line-height: 1.75;
+  padding: 2.8vh 2vw; overflow: hidden; position: relative; white-space: pre;
+}
+.codeblock::before {
+  content: attr(data-file); position: absolute; top: 0; right: 0; font-size: 12px;
+  color: var(--fog); background: var(--panel); border-bottom-left-radius: 10px;
+  padding: 6px 14px; letter-spacing: .1em; font-family: var(--mono);
+}
+.codeblock .cm { color: #93a1b5; }
+.codeblock .ck { color: var(--orange); }
+.codeblock .cs { color: var(--green); }
+.codeblock .cv { color: var(--blue); }
+.split .codeblock { margin-top: 0; }
+
+/* ---------- compare table ---------- */
+.compare { width: 100%; border-collapse: collapse; margin-top: 2.8vh; }
+.compare th {
+  font-family: var(--mono); font-size: 13px; letter-spacing: .12em; text-transform: uppercase;
+  color: var(--fog); text-align: left; padding: 1.4vh 1.2vw; border-bottom: 2px solid var(--line);
+}
+.compare th.hl { color: var(--orange); }
+.compare td {
+  font-weight: 300; font-size: clamp(14px, 1.3vw, 18px); color: #c7d0dc;
+  padding: 1.5vh 1.2vw; border-bottom: 1px solid rgba(42,53,67,.6); line-height: 1.5; vertical-align: top;
+}
+.compare td:first-child { font-weight: 700; color: var(--paper); white-space: nowrap; }
+.compare td b { color: var(--paper); }
+.compare td.good { color: var(--green); }
+.compare td.bad { color: var(--pink); }
+
+/* ---------- takeaways ---------- */
+.takeaways { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 3.2vh; }
+.take { border-top: 4px solid var(--orange); background: var(--panel); border-radius: 0 0 16px 16px; padding: 2.8vh 1.6vw; }
+.take .tk { font-family: var(--mono); font-weight: 700; font-size: 42px; color: transparent; -webkit-text-stroke: 1.5px var(--orange); }
+.take h3 { font-size: clamp(17px, 1.7vw, 23px); font-weight: 900; margin: 1.2vh 0 1vh; }
+.take p { font-weight: 300; font-size: clamp(14px, 1.3vw, 18px); color: #c7d0dc; line-height: 1.55; }
+.take p b { color: var(--paper); }
+
+/* ---------- resources ---------- */
+.rescols { display: grid; grid-template-columns: 1fr 1fr; gap: 3vw; margin-top: 2.6vh; }
+.rescols h3 {
+  font-family: var(--mono); font-size: 13px; letter-spacing: .22em; color: var(--orange);
+  text-transform: uppercase; margin-bottom: 1.4vh;
+}
+.rl { display: flex; align-items: center; gap: 14px; padding: 1.3vh 0; border-bottom: 1px solid var(--line); }
+.rl .mglyph { width: 28px; height: 28px; font-size: 12px; border: 1px solid var(--line); color: var(--fog); flex: none; }
+.rl a { color: var(--paper); text-decoration: none; font-weight: 400; font-size: clamp(14px, 1.3vw, 17px); }
+.rl a:hover { color: var(--orange-hot); }
+.rl span.rtag { font-family: var(--mono); font-size: 12px; color: var(--fog); margin-left: auto; letter-spacing: .06em; white-space: nowrap; }
+
+/* monogram glyph */
+.mglyph {
+  border-radius: 7px; display: flex; align-items: center; justify-content: center;
+  font-family: var(--mono); font-weight: 700; font-size: 13px;
+}
+
+/* ---------- SVG diagrams ---------- */
+.arch { position: relative; margin-top: 2vh; flex: 1; min-height: 0; }
+.arch svg { width: 100%; height: 100%; max-height: 66vh; display: block; margin: 0 auto; }
+.arch .an { font-family: var(--disp); font-weight: 700; fill: var(--paper); }
+.arch .am { font-family: var(--mono); fill: var(--fog); }
+.wire { stroke-dasharray: 7 7; animation: wireflow 1.2s linear infinite; fill: none; stroke-width: 2; }
+@keyframes wireflow { to { stroke-dashoffset: -14; } }
+.wire-static { fill: none; stroke-width: 2; }
+
+/* ---------- overview agenda ---------- */
+.agenda { display: flex; flex-direction: column; gap: 18px; margin-top: 3.4vh; }
+.ag {
+  display: grid; grid-template-columns: 90px 1fr auto; gap: 2vw; align-items: center;
+  background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 3vh 2vw;
+}
+.ag .n { font-family: var(--mono); font-weight: 700; font-size: 34px; color: transparent; -webkit-text-stroke: 1.5px var(--orange); }
+.ag h3 { font-size: clamp(20px, 2vw, 28px); font-weight: 900; }
+.ag p { font-weight: 300; font-size: clamp(14.5px, 1.4vw, 19px); color: #c7d0dc; margin-top: 4px; }
+.ag .tag {
+  font-family: var(--mono); font-size: 12px; letter-spacing: .12em; color: var(--fog);
+  border: 1px solid var(--line); border-radius: 6px; padding: 5px 12px; white-space: nowrap;
+}
+
+@media (max-width: 900px) {
+  .tiles, .tiles.four, .takeaways { grid-template-columns: 1fr 1fr; }
+  .split, .split.w64, .split.w46, .rescols { grid-template-columns: 1fr; }
+}
+
+/* ---- speaker notes (S: 스피커 뷰 팝업 · N: 오버레이) ---- */
+.slide .notes { display: none; }  /* 발표자 노트 — 청중 화면에 렌더되지 않음 */
+#notesbar {
+  position: fixed; left: 50%; bottom: 9vh; transform: translateX(-50%);
+  width: min(72vw, 980px); max-height: 26vh; overflow-y: auto; z-index: 55;
+  background: rgba(11, 16, 23, .93); border: 1px solid var(--line);
+  border-left: 3px solid var(--orange); border-radius: 10px;
+  padding: 14px 20px; font-size: 15px; line-height: 1.65; color: var(--paper);
+  backdrop-filter: blur(6px); box-shadow: 0 16px 44px rgba(0,0,0,.5);
+}
+#notesbar em { color: var(--fog); }
+#notesbar b { color: var(--orange-hot); }
+#notesbar code { font-family: var(--mono); font-size: .9em; color: var(--blue); }
+
+/* ---- presenter · speakers · survey QR ---- */
+.hud .keys { font-family: var(--mono); font-size: 11px; letter-spacing: .1em; color: var(--fog); opacity: .55; margin-left: 26px; }
+.hud .keys b { color: var(--orange); font-weight: 700; }
+
+.speakers { display: flex; gap: 46px; margin-top: 4.2vh; flex-wrap: wrap; }
+.speakers[hidden] { display: none; }
+.speakers .spk { border-left: 2px solid var(--line); padding-left: 18px; }
+.speakers .spk h4 { font-family: var(--disp); font-size: 21px; font-weight: 800; color: var(--paper); margin: 0 0 6px; }
+.speakers .spk p { margin: 2px 0; font-family: var(--mono); font-size: 12px; letter-spacing: .06em; }
+.speakers .spk .t { color: var(--fog); text-transform: uppercase; }
+.speakers .spk .c { color: var(--orange); font-weight: 700; }
+.speakers .spk .l { color: var(--fog); opacity: .8; }
+
+.qrbox { position: absolute; right: 3.8vw; bottom: 13vh; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.qrbox[hidden] { display: none; }
+.qrbox .qr { width: 128px; height: 128px; background: #fff; border-radius: 10px; padding: 8px; box-sizing: border-box; }
+.qrbox .qr svg { width: 100%; height: 100%; display: block; }
+.qrbox > span { font-family: var(--mono); font-size: 11px; letter-spacing: .18em; color: var(--fog); }
+
+.setup {
+  position: fixed; top: 50%; right: 28px; transform: translateY(-50%);
+  width: 360px; max-height: 88vh; overflow-y: auto;
+  background: var(--panel); border: 1px solid var(--line); border-radius: 16px;
+  padding: 22px 24px; z-index: 60; box-shadow: 0 24px 64px rgba(0,0,0,.55);
+}
+.setup[hidden] { display: none; }
+.setup header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.setup .st { font-family: var(--mono); font-size: 13px; letter-spacing: .22em; color: var(--orange); font-weight: 700; }
+.setup header button { background: none; border: 0; color: var(--fog); font-size: 20px; cursor: pointer; line-height: 1; padding: 2px 6px; }
+.setup header button:hover { color: var(--paper); }
+.setup .note { font-size: 12.5px; color: var(--fog); line-height: 1.55; margin: 0 0 14px; }
+.setup .seg { display: flex; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; margin-bottom: 14px; }
+.setup .seg button { flex: 1; padding: 8px 0; background: none; border: 0; color: var(--fog); font-family: var(--mono); font-size: 12px; cursor: pointer; }
+.setup .seg button.on { background: var(--orange); color: var(--ink); font-weight: 700; }
+.setup fieldset { border: 0; padding: 0; margin: 0 0 12px; }
+.setup fieldset[hidden] { display: none; }
+.setup legend { font-family: var(--mono); font-size: 12px; font-weight: 700; color: var(--paper); letter-spacing: .08em; margin-bottom: 6px; padding: 0; }
+.setup label { display: block; font-size: 11.5px; color: var(--fog); margin-bottom: 8px; }
+.setup input[type="text"], .setup input[type="url"] {
+  display: block; width: 100%; margin-top: 4px; padding: 8px 10px; box-sizing: border-box;
+  background: #0d141d; border: 1px solid var(--line); border-radius: 8px;
+  color: var(--paper); font-family: var(--mono); font-size: 13px;
+}
+.setup input:focus { outline: none; border-color: var(--orange); }
+.setup .chk { display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--paper); margin: 12px 0; }
+.setup .chk input { accent-color: var(--orange); }
+.setup .survey em { font-style: normal; color: var(--fog); opacity: .8; }
+.setup .actions { display: flex; justify-content: space-between; gap: 10px; margin-top: 14px; }
+.setup .actions button {
+  padding: 9px 16px; border-radius: 9px; border: 1px solid var(--line);
+  background: none; color: var(--fog); font-family: var(--mono); font-size: 12px; cursor: pointer;
+}
+.setup .actions button:hover { border-color: var(--fog); color: var(--paper); }
+.setup .actions button.primary { background: var(--orange); border-color: var(--orange); color: var(--ink); font-weight: 700; }
+.setup .actions button.primary:hover { background: var(--orange-hot); color: var(--ink); }
+
+/* ---- PDF 버튼 (P 키와 동일 — window.print) ---- */
+.pdfbtn {
+  position: fixed; top: 14px; right: 22px; z-index: 43; cursor: pointer;
+  font-family: var(--mono); font-size: 11px; font-weight: 700; letter-spacing: .14em;
+  color: var(--fog); background: rgba(19,26,36,.8); border: 1px solid var(--line);
+  border-radius: 8px; padding: 6px 12px; transition: border-color .25s, color .25s;
+}
+.pdfbtn:hover { border-color: var(--orange); color: var(--orange); }
+
+/* ---- 언어 전환 버튼 (EN ↔ KO — deck.js가 현재 슬라이드 해시를 유지한 채 이동) ---- */
+.langbtn {
+  position: fixed; top: 14px; right: 84px; z-index: 43; cursor: pointer;
+  font-family: var(--mono); font-size: 11px; font-weight: 700; letter-spacing: .14em;
+  color: var(--fog); background: rgba(19,26,36,.8); border: 1px solid var(--line);
+  border-radius: 8px; padding: 6px 12px; transition: border-color .25s, color .25s;
+}
+.langbtn:hover { border-color: var(--orange); color: var(--orange); }
+
+/* ---- 인라인 편집 ([data-edit] — 클릭해서 수정, deck.js가 localStorage에 저장) ---- */
+[data-edit] { cursor: text; border-radius: 4px; }
+[data-edit]:hover { outline: 1px dashed rgba(255,153,0,.45); outline-offset: 3px; }
+[data-edit]:focus { outline: 1px dashed rgba(255,153,0,.8); outline-offset: 3px; }
+
+/* ---- print / PDF (P 키 또는 PDF 버튼 → 브라우저 인쇄 → PDF 저장) ---- */
+@media print {
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  @page { size: 13.333in 7.5in; margin: 0; }
+  html, body { height: auto !important; overflow: visible !important; }
+  .navbtns, .pdfbtn, .langbtn, .progress, .setup, #notesbar, #splash, .hud .keys { display: none !important; }
+  /* 노이즈(blend-mode)·그리드(mask)는 페이지 전체 래스터화를 유발해 PDF가 수십 MB로 커진다 — 인쇄 제외 */
+  .atmosphere::after, .gridlines { display: none !important; }
+  .slide {
+    position: relative !important; inset: auto !important; display: flex !important;
+    visibility: visible !important; opacity: 1 !important; transform: none !important;
+    width: 100vw; height: 100vh; overflow: hidden;
+    background: linear-gradient(118deg, #0b0d20 0%, #10123a 55%, #150f3e 100%);
+    page-break-after: always; break-after: page;
+  }
+  .slide [data-a] {
+    opacity: 1 !important; transform: none !important; transition: none !important; animation: none !important;
+  }
+}
+
+/* #64: keyboard access and overflow-safe reading of the packed deck. */
+[hidden] { display: none !important; }
+:focus-visible { outline: 3px solid var(--blue); outline-offset: 4px; }
+.slide { overflow-y: auto; justify-content: safe center; padding-bottom: 100px; }
+.chapter { overflow: hidden; }
+.slide[aria-hidden="true"] { visibility: hidden; }
+.navbtns button { width: 44px; height: 44px; }
+.setup header button { min-width: 44px; min-height: 44px; }
+@media (max-width: 700px) {
+  .slide { padding: 64px 24px 125px; justify-content: flex-start; }
+  .tiles, .tiles.four, .tiles.two, .takeaways { grid-template-columns: 1fr; }
+  .arch { overflow-x: auto; flex-shrink: 0; }
+  .arch svg { min-width: 660px; }
+  .compare { display: block; overflow-x: auto; flex-shrink: 0; }
+  .chip { border-radius: 12px; font-size: 12px; overflow-wrap: anywhere; }
+  .hud .keys, .hud .legal, .hud .brand { display: none; }
+  .setup { width: calc(100vw - 32px); right: 16px; }
+  .ag { grid-template-columns: 44px 1fr; padding: 18px; }
+  .ag .tag { grid-column: 2; justify-self: start; }
+  .rung { grid-template-columns: minmax(0, 1fr); gap: 8px; padding: 16px; }
+  .rung .tag { justify-self: start; }
+  .qrbox { position: relative; inset: auto; margin-top: 24px; }
+  #notesbar { width: 90vw; max-height: 35vh; bottom: 110px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+  #splash { display: none !important; }
+}
+@media print {
+  .slide[aria-hidden="true"] { visibility: visible; }
+  .slide { overflow: hidden; }
+}
+
+@media screen and (min-width: 701px) and (max-height: 800px) {
+  .slide { padding-top: 42px; padding-bottom: 88px; }
+  h1.display.md { font-size: 36px; }
+  .sub { font-size: 17px; line-height: 1.45; margin-top: 12px; }
+  .kicker { margin-bottom: 14px; }
+  .slide .chips { margin-top: 14px !important; gap: 8px !important; }
+  .chip { font-size: 12px; padding: 8px 12px; }
+  .panel { padding: 18px; }
+  .panel li, .panel p, .tile p { font-size: 15px; line-height: 1.45; }
+  .compare th, .compare td { padding: 9px 12px; font-size: 14px; }
+  .rung { padding-top: 12px; padding-bottom: 12px; }
+  .rung p { font-size: 15px; line-height: 1.45; }
+  .arch { margin-top: 16px; }
+}
+
+.codeblock { white-space: pre-wrap; overflow-wrap: anywhere; overflow-x: auto; }
+
+</style>
+</head>
+<body>
+
+<div class="atmosphere"></div>
+<div class="gridlines"></div>
+<div class="brandstripe"></div>
+<div class="progress" id="progress"></div>
+
+<div class="hud">
+  <span class="legal">Engineering Playbook · Deep Dive Session · 2026</span>
+  <span class="keys"><b>E</b> presenter · <b>S</b> notes · <b>Q</b> QR · <b>P</b> pdf</span>
+  <span class="brand"><b>e</b>BPF DEEP DIVE</span>
+  <span id="counter">01 / 39</span>
+</div>
+<div class="navbtns">
+  <button id="navPrev" aria-label="Previous slide">‹</button>
+  <button id="navNext" aria-label="Next slide">›</button>
+</div>
+<button class="pdfbtn" id="pdfBtn" title="Print all slides to PDF (P)">PDF</button>
+<button class="langbtn" id="langBtn" data-target="./index-ko.html" title="한국어 버전으로 전환">KO</button>
+
+<!-- ============ 01 · COVER ============ -->
+<section class="slide cover">
+  <div class="kicker" data-a="1"><span data-edit="cover-kicker">Engineering Playbook · Deep Dive Session</span></div>
+  <div class="titleblock">
+    <h1 class="display" data-a="2">eBPF —<br><span class="hot">Programming</span> the Kernel</h1>
+    <p class="sub" data-a="3">No reboot required. <b>Restricted programs verified before running inside the kernel</b> —
+    dissected in three chapters, from the virtual machine internals to production on EKS.</p>
+  </div>
+  <div class="chips" data-a="4">
+    <span class="chip hot">01 · CORE INTERNALS</span>
+    <span class="chip">02 · OBSERVABILITY &amp; SECURITY</span>
+    <span class="chip">03 · eBPF ON EKS</span>
+  </div>
+  <div class="speakers" data-speakers data-a="5"></div>
+  <aside class="notes">
+    Opening — start with the question "Who here has used eBPF?". One-sentence promise: <b>extend the kernel without rebooting, subject to verifier constraints and kernel correctness</b>. Walk the three chapters (internals → real-world tools → EKS) in chip order.
+  </aside>
+</section>
+
+<!-- ============ 02 · AGENDA ============ -->
+<section class="slide">
+  <div class="kicker" data-a="1">Agenda</div>
+  <h1 class="display md" data-a="2">Three chapters, one question —<br><span class="dim">"What is happening inside the kernel?"</span></h1>
+  <div class="agenda">
+    <div class="ag" data-a="3">
+      <span class="n">01</span>
+      <div><h3>Core Internals</h3><p>eBPF VM · Verifier · JIT · Maps · CO-RE/BTF · Ring Buffer — grounding the safety guarantees at the kernel-source level</p></div>
+      <span class="tag">FOUNDATION</span>
+    </div>
+    <div class="ag" data-a="4">
+      <span class="n">02</span>
+      <div><h3>Observability &amp; Security</h3><p>Product landscape · memleak · Off-CPU · CPU throttling · Falco vs Tetragon — how eBPF is used in the field</p></div>
+      <span class="tag">PRACTICE</span>
+    </div>
+    <div class="ag" data-a="5">
+      <span class="n">03</span>
+      <div><h3>eBPF on EKS</h3><p>VPC CNI NetworkPolicy · Cilium ENI · Hubble · hands-on benchmarks — EKS already runs on eBPF</p></div>
+      <span class="tag">AWS</span>
+    </div>
+  </div>
+  <aside class="notes">
+    Time allocation — chapter 1 is the deepest and longest (half the session). Read the through-line question "what is happening inside the kernel" out loud, then one line on which part of it each chapter answers.
+  </aside>
+</section>
+
+<!-- ============ 03 · CHAPTER 01 ============ -->
+<section class="slide chapter">
+  <span class="num">01</span>
+  <div class="kicker" data-a="1">Chapter one</div>
+  <h1 class="display" data-a="2">A <span class="hot">virtual machine</span> inside the kernel</h1>
+  <p class="mono-tag" data-a="3">origins · vm · verifier · jit · maps · co-re</p>
+  <aside class="notes">
+    Chapter break — plant the question "a <b>virtual machine</b> inside the kernel — doesn't that sound odd?". It pays off in §8 (what the VM really is).
+  </aside>
+</section>
+
+<!-- ============ 04 · WHY EBPF ============ -->
+<section class="slide">
+  <div class="kicker" data-a="1">The problem</div>
+  <h1 class="display md" data-a="2">Two ways to extend the kernel</h1>
+  <p class="sub" data-a="3">The traditional way to put code in the kernel is a <b>kernel module</b> — powerful, but its fate is tied to the kernel's.</p>
+  <div class="split">
+    <div class="panel" style="--pc:var(--pink)" data-a="4">
+      <h3>Kernel module (LKM · Loadable Kernel Module)</h3>
+      <ul>
+        <li>One bug = <b>kernel panic, whole system down</b></li>
+        <li><b>Recompile &amp; revalidate</b> for every kernel version — no ABI (Application Binary Interface) guarantee</li>
+        <li>Signing, distribution, audit burden — a hard sell to the security team</li>
+        <li>Unrestricted memory access — no isolation whatsoever</li>
+      </ul>
+    </div>
+    <div class="panel" style="--pc:var(--green)" data-a="5">
+      <h3>eBPF program</h3>
+      <ul>
+        <li><b>The Verifier checks safety constraints before load</b> — verifier checks reduce risk but do not eliminate kernel bugs</li>
+        <li>Runs in a register-based restricted instruction model, JIT (Just-In-Time) compiled to native speed</li>
+        <li><b>CO-RE</b> (Compile Once – Run Everywhere) adapts to compatible kernel layouts — required hooks and features must still exist</li>
+        <li>Attach / detach instantly — no reboot, no module load</li>
+      </ul>
+    </div>
+  </div>
+  <div class="chips" data-a="6" style="display:flex;gap:12px;margin-top:2.6vh;flex-wrap:wrap">
+    <span class="chip">Instrumentation faces the same dilemma — ptrace/strace stop the target and round-trip a context switch per event; untenable in production</span>
+    <span class="chip hot">"Program the kernel safely" — the prototype of this design existed 30 years ago</span>
+  </div>
+  <aside class="notes">
+    Start with kernel-module dread — <b>one bug = kernel panic</b>; if you have a war story about why security teams hate modules, tell it here. The ptrace/strace chip is the supporting argument that instrumentation shares the dilemma. Bridge: "the answer to this problem existed 30 years ago".
+  <p>Source: <a href="https://docs.kernel.org/bpf/verifier.html" target="_blank" rel="noopener">Kernel verifier</a>.</p>
+  </aside>
+</section>
+
+<!-- ============ 05 · CBPF PRIOR ART ============ -->
+<section class="slide">
+  <div class="kicker" data-a="1">Prior art — 1992</div>
+  <h1 class="display md" data-a="2">The prototype answer — <span class="hot">tcpdump's packet filter</span></h1>
+  <p class="sub" data-a="3">tcpdump does not run its filter in userspace — it compiles the expression to bytecode,
+  <b>pushes it down into the kernel, and gets back only the packets that match.</b></p>
+  <div class="split w64">
+    <div class="arch" data-a="4" style="margin-top:0">
+      <svg viewBox="0 0 760 360">
+        <!-- userspace zone -->
+        <rect x="15" y="15" width="730" height="100" rx="14" fill="rgba(173,92,255,.04)" stroke="#ad5cff" stroke-width="1.2" stroke-dasharray="8 6"/>
+        <text x="40" y="42" class="am" font-size="12" fill="#ad5cff" letter-spacing="3">USER SPACE</text>
+        <rect x="60" y="50" width="280" height="52" rx="10" fill="#131a24" stroke="#ad5cff" stroke-width="1.5"/>
+        <text x="200" y="72" class="an" font-size="15" text-anchor="middle">tcpdump 'port 443'</text>
+        <text x="200" y="92" class="am" font-size="11" text-anchor="middle">expression → BPF bytecode</text>
+        <rect x="470" y="50" width="245" height="52" rx="10" fill="#131a24" stroke="#00e500" stroke-width="1.5"/>
+        <text x="592" y="72" class="an" font-size="15" text-anchor="middle">Receives matches only</text>
+        <text x="592" y="92" class="am" font-size="11" text-anchor="middle">copy cost minimized</text>
+
+        <!-- kernel zone -->
+        <rect x="15" y="170" width="730" height="175" rx="14" fill="rgba(255,153,0,.03)" stroke="#ff9900" stroke-width="1.2" stroke-dasharray="8 6"/>
+        <text x="40" y="197" class="am" font-size="12" fill="#ff9900" letter-spacing="3">KERNEL</text>
+        <rect x="45" y="230" width="160" height="80" rx="10" fill="rgba(65,179,255,.07)" stroke="#41b3ff" stroke-width="1.5"/>
+        <text x="125" y="264" class="an" font-size="15" text-anchor="middle">NIC</text>
+        <text x="125" y="288" class="am" font-size="11" text-anchor="middle">full packet stream</text>
+        <rect x="290" y="230" width="230" height="80" rx="10" fill="rgba(255,153,0,.09)" stroke="#ff9900" stroke-width="2"/>
+        <text x="405" y="264" class="an" font-size="15" text-anchor="middle">BPF interpreter</text>
+        <text x="405" y="288" class="am" font-size="11" text-anchor="middle">runs the filter on every packet</text>
+
+        <!-- wires -->
+        <path class="wire" d="M200 102 C 200 160, 300 190, 350 230" stroke="#ad5cff"/>
+        <text x="155" y="150" class="am" font-size="12" fill="#ad5cff">inject bytecode</text>
+        <path class="wire" d="M205 270 H290" stroke="#41b3ff"/>
+        <path class="wire" d="M500 240 C 550 210, 570 160, 585 102" stroke="#00e500"/>
+        <text x="565" y="150" class="am" font-size="12" fill="#00e500">copy matches only</text>
+        <path class="wire-static" d="M520 290 H640" stroke="#ff5c85" stroke-dasharray="4 5"/>
+        <text x="648" y="295" class="am" font-size="12" fill="#ff5c85">no match — dropped</text>
+      </svg>
+    </div>
+    <div class="panel" style="--pc:var(--orange)" data-a="5">
+      <h3>Three things eBPF inherited</h3>
+      <ul>
+        <li><b>Move code to where the data is</b> — inject the filter into the kernel instead of copying every packet out to filter it</li>
+        <li><b>A verifiable, restricted instruction set</b> — bytecode, not arbitrary machine code</li>
+        <li><b>Programmability without kernel changes</b> — an in-kernel engine does the execution</li>
+        <li>eBPF keeps these principles intact and <b>redesigns only the engine</b> — the 'e' is for extended</li>
+      </ul>
+    </div>
+  </div>
+  <div class="chips" data-a="6" style="display:flex;gap:12px;flex-wrap:wrap">
+    <span class="chip">cBPF (classic Berkeley Packet Filter) — 2 registers · 32-bit · sockets only → eBPF (extended BPF) — 11 registers · 64-bit · kernel-wide</span>
+    <span class="chip hot">To this day, tcpdump filters are translated to eBPF and executed in the kernel</span>
+  </div>
+  <aside class="notes">
+    Everyone uses tcpdump — the twist is that the <code>port 443</code> filter runs <b>inside the kernel</b>, not in userspace. Enunciate the three inheritances (code to data · verifiable bytecode · no kernel changes). e = extended.
+  </aside>
+</section>
+
+<!-- ============ 06 · EVOLUTION ============ -->
+<section class="slide">
+  <div class="kicker" data-a="1">Evolution — 1992 to today</div>
+  <h1 class="display md" data-a="2">From packet filter to <span class="hot">general-purpose kernel VM</span></h1>
+  <p class="sub" data-a="3">The backdrop: a kernel feature takes years to travel from mainline to your distro —
+  <b>the kernel release cycle could not keep up</b> with container-era networking, observability, and security demands.</p>
+  <div class="arch" data-a="4">
+    <svg viewBox="0 0 1200 330">
+      <!-- timeline axis -->
+      <line x1="40" y1="165" x2="1170" y2="165" stroke="#2a3543" stroke-width="2"/>
+      <path class="wire" d="M40 165 H1170" stroke="rgba(255,153,0,.35)"/>
+
+      <!-- 1992 BPF (above) -->
+      <circle cx="110" cy="165" r="8" fill="#0b1017" stroke="#a6b2c3" stroke-width="2"/>
+      <line x1="110" y1="157" x2="110" y2="122" stroke="#a6b2c3" stroke-width="1.2"/>
+      <rect x="20" y="38" width="200" height="84" rx="12" fill="#131a24" stroke="#a6b2c3" stroke-width="1.5"/>
+      <text x="120" y="66" class="an" font-size="16" text-anchor="middle">1992 · BPF</text>
+      <text x="120" y="90" class="am" font-size="12" text-anchor="middle">tcpdump packet filter</text>
+      <text x="120" y="110" class="am" font-size="12" text-anchor="middle">2 registers · 32-bit interpreter</text>
+
+      <!-- 2014 eBPF (below, highlighted) -->
+      <circle cx="330" cy="165" r="10" fill="#0b1017" stroke="#ff9900" stroke-width="2.5"/>
+      <line x1="330" y1="175" x2="330" y2="210" stroke="#ff9900" stroke-width="1.2"/>
+      <rect x="215" y="210" width="230" height="96" rx="12" fill="rgba(255,153,0,.08)" stroke="#ff9900" stroke-width="2"/>
+      <text x="330" y="240" class="an" font-size="16" text-anchor="middle">2014 · eBPF — kernel 3.18</text>
+      <text x="330" y="264" class="am" font-size="12" text-anchor="middle">64-bit · 11 registers · Maps</text>
+      <text x="330" y="284" class="am" font-size="12" text-anchor="middle">bpf() syscall — general-purpose VM</text>
+
+      <!-- 2016 XDP (above) -->
+      <circle cx="550" cy="165" r="8" fill="#0b1017" stroke="#00e500" stroke-width="2"/>
+      <line x1="550" y1="157" x2="550" y2="122" stroke="#00e500" stroke-width="1.2"/>
+      <rect x="455" y="38" width="190" height="84" rx="12" fill="rgba(0,229,0,.06)" stroke="#00e500" stroke-width="1.5"/>
+      <text x="550" y="66" class="an" font-size="16" text-anchor="middle">2016 · XDP — 4.8</text>
+      <text x="550" y="90" class="am" font-size="12" text-anchor="middle">eXpress Data Path</text>
+      <text x="550" y="110" class="am" font-size="12" text-anchor="middle">NIC-level processing · Cilium debuts</text>
+
+      <!-- 2019 CO-RE (below) -->
+      <circle cx="760" cy="165" r="8" fill="#0b1017" stroke="#41b3ff" stroke-width="2"/>
+      <line x1="760" y1="175" x2="760" y2="210" stroke="#41b3ff" stroke-width="1.2"/>
+      <rect x="665" y="210" width="190" height="84" rx="12" fill="rgba(65,179,255,.07)" stroke="#41b3ff" stroke-width="1.5"/>
+      <text x="760" y="238" class="an" font-size="16" text-anchor="middle">2019 · BTF · CO-RE</text>
+      <text x="760" y="262" class="am" font-size="12" text-anchor="middle">BPF Type Format</text>
+      <text x="760" y="282" class="am" font-size="11" text-anchor="middle">portability solved · bounded loops 5.3</text>
+
+      <!-- 2020 LSM/Ringbuf (above) -->
+      <circle cx="960" cy="165" r="8" fill="#0b1017" stroke="#ad5cff" stroke-width="2"/>
+      <line x1="960" y1="157" x2="960" y2="122" stroke="#ad5cff" stroke-width="1.2"/>
+      <rect x="855" y="38" width="210" height="84" rx="12" fill="rgba(173,92,255,.07)" stroke="#ad5cff" stroke-width="1.5"/>
+      <text x="960" y="66" class="an" font-size="16" text-anchor="middle">2020 · LSM 5.7 · Ringbuf 5.8</text>
+      <text x="960" y="90" class="am" font-size="11" text-anchor="middle">Linux Security Module — blocking</text>
+      <text x="960" y="110" class="am" font-size="12" text-anchor="middle">from observing to enforcing</text>
+
+      <!-- 2021+ Foundation (below) -->
+      <circle cx="1120" cy="165" r="8" fill="#0b1017" stroke="#fbd332" stroke-width="2"/>
+      <line x1="1120" y1="175" x2="1120" y2="210" stroke="#fbd332" stroke-width="1.2"/>
+      <rect x="1015" y="210" width="175" height="84" rx="12" fill="#131a24" stroke="#fbd332" stroke-width="1.5"/>
+      <text x="1102" y="238" class="an" font-size="16" text-anchor="middle">2021+ · Foundation</text>
+      <text x="1102" y="262" class="am" font-size="12" text-anchor="middle">eBPF Foundation founded</text>
+      <text x="1102" y="282" class="am" font-size="12" text-anchor="middle">Windows eBPF — de facto standard</text>
+    </svg>
+  </div>
+  <div class="chips" data-a="5" style="display:flex;gap:12px;flex-wrap:wrap">
+    <span class="chip">Kernel release cycle ≫ the pace at which infra requirements change</span>
+    <span class="chip">Modules are dangerous; forking the kernel is a maintenance sink</span>
+    <span class="chip">Prior art DTrace was CDDL-licensed — un-mergeable into the GPL kernel, forcing an independent path</span>
+    <span class="chip hot">The answer — build a safe programming layer into the kernel itself</span>
+  </div>
+  <aside class="notes">
+    Walk the timeline left to right — <b>2014, kernel 3.18 is the real birth</b> (bpf() syscall + Maps). Do mention the DTrace CDDL chip: a license dictating a technology's path — the modern rerun shows up in §35 (NFM).
+  </aside>
+</section>
+
+<!-- ============ 07 · CONCEPT ============ -->
+<section class="slide">
+  <div class="kicker" data-a="1">The concept</div>
+  <h1 class="display md" data-a="2">The core idea — <span class="hot">event-driven programs</span> reacting to kernel events</h1>
+  <div class="arch" data-a="3">
+    <svg viewBox="0 0 1200 440">
+      <!-- userspace zone -->
+      <rect x="20" y="18" width="1160" height="128" rx="16" fill="rgba(173,92,255,.04)" stroke="#ad5cff" stroke-width="1.2" stroke-dasharray="8 6"/>
+      <text x="50" y="48" class="am" font-size="14" fill="#ad5cff" letter-spacing="3">USER SPACE</text>
+      <rect x="90" y="60" width="290" height="72" rx="12" fill="#131a24" stroke="#ad5cff" stroke-width="1.5"/>
+      <text x="235" y="90" class="an" font-size="17" text-anchor="middle">Control application</text>
+      <text x="235" y="116" class="am" font-size="13" text-anchor="middle">Go · Rust · C — libbpf</text>
+      <rect x="810" y="60" width="290" height="72" rx="12" fill="#131a24" stroke="#fbd332" stroke-width="1.5"/>
+      <text x="955" y="90" class="an" font-size="17" text-anchor="middle">Data consumers</text>
+      <text x="955" y="116" class="am" font-size="13" text-anchor="middle">CLI · agents · monitoring</text>
+
+      <!-- kernel zone -->
+      <rect x="20" y="192" width="1160" height="230" rx="16" fill="rgba(255,153,0,.03)" stroke="#ff9900" stroke-width="1.2" stroke-dasharray="8 6"/>
+      <text x="50" y="222" class="am" font-size="14" fill="#ff9900" letter-spacing="3">KERNEL</text>
+
+      <rect x="60" y="248" width="270" height="150" rx="12" fill="#131a24" stroke="#ff5c85" stroke-width="1.5"/>
+      <text x="195" y="280" class="an" font-size="17" text-anchor="middle">Event sources</text>
+      <text x="195" y="310" class="am" font-size="13" text-anchor="middle">syscalls · network packets</text>
+      <text x="195" y="334" class="am" font-size="13" text-anchor="middle">function entry/exit · scheduler</text>
+      <text x="195" y="358" class="am" font-size="13" text-anchor="middle">perf events · LSM hooks</text>
+
+      <rect x="440" y="268" width="310" height="110" rx="14" fill="rgba(255,153,0,.09)" stroke="#ff9900" stroke-width="2.5"/>
+      <text x="595" y="308" class="an" font-size="20" text-anchor="middle">eBPF program</text>
+      <text x="595" y="336" class="am" font-size="13" text-anchor="middle">attached to a hook — not resident,</text>
+      <text x="595" y="356" class="am" font-size="13" text-anchor="middle">runs only when the event fires</text>
+
+      <rect x="850" y="268" width="280" height="110" rx="12" fill="rgba(65,179,255,.08)" stroke="#41b3ff" stroke-width="1.5"/>
+      <text x="990" y="308" class="an" font-size="18" text-anchor="middle">Maps · Ring Buffer</text>
+      <text x="990" y="336" class="am" font-size="13" text-anchor="middle">kernel ↔ userspace</text>
+      <text x="990" y="356" class="am" font-size="13" text-anchor="middle">shared state · event stream</text>
+
+      <!-- wires -->
+      <path class="wire" d="M235 132 C 235 200, 400 240, 470 268" stroke="#ad5cff"/>
+      <text x="270" y="172" class="am" font-size="13" fill="#ad5cff">bpf() — load · attach</text>
+      <path class="wire" d="M330 323 H440" stroke="#ff5c85"/>
+      <text x="385" y="310" class="am" font-size="13" text-anchor="middle" fill="#ff5c85">trigger</text>
+      <path class="wire" d="M750 323 H850" stroke="#ff9900"/>
+      <path class="wire" d="M850 348 H750" stroke="#41b3ff"/>
+      <text x="800" y="310" class="am" font-size="13" text-anchor="middle" fill="#a6b2c3">read · write</text>
+      <path class="wire" d="M990 268 C 990 210, 970 170, 955 132" stroke="#41b3ff"/>
+      <text x="1008" y="172" class="am" font-size="13" fill="#41b3ff">polling · stream consumption</text>
+    </svg>
+  </div>
+  <div class="chips" data-a="4" style="display:flex;gap:12px;flex-wrap:wrap">
+    <span class="chip hot">① Event-driven — not a daemon, but a code fragment reacting to kernel events</span>
+    <span class="chip">② Sandboxed — only Verifier-proven programs ever run</span>
+    <span class="chip">③ Shared state — all data exchange goes through Maps</span>
+  </div>
+  <aside class="notes">
+    Key sentence: an eBPF program is not a daemon — it is <b>a code fragment that reacts to events</b>. The diagram's three points — ① trigger, ② sandbox, ③ communication via Maps — double as the table of contents for chapter 1.
+  </aside>
+</section>
+
+<!-- ============ 08 · VM CLARIFIED ============ -->
+<section class="slide">
+  <div class="kicker" data-a="1">"Virtual machine"?</div>
+  <h1 class="display md" data-a="2">What the 'VM' really is — <span class="hot">like the JVM</span>, not VMware</h1>
+  <p class="sub" data-a="3">The eBPF VM is not hardware virtualization — it is <b>an instruction execution model defined by the kernel</b>.
+  The bytecode intermediate representation is what makes static analysis by the Verifier possible.</p>
+  <table class="compare" data-a="4">
+    <thead>
+      <tr><th></th><th>Hardware VM — KVM · VMware</th><th class="hl">eBPF VM</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>What is virtualized</td><td>Entire CPU · memory · devices</td><td>An instruction-set spec — 11 registers · 64-bit · 512 B stack</td></tr>
+      <tr><td>Reason to exist</td><td>OS-level isolation</td><td><b>A verifiable intermediate representation</b> + architecture independence (x86 · ARM · RISC-V)</td></tr>
+      <tr><td>Execution</td><td>Via hypervisor</td><td class="good">JIT-compiled → resides in the kernel as <b>native machine code</b></td></tr>
+      <tr><td>Runtime overhead</td><td class="bad">Always present</td><td class="good">JIT avoids interpretation; hooks, helpers, maps and the program still consume CPU</td></tr>
+    </tbody>
+  </table>
+  <div class="chips" data-a="5" style="display:flex;gap:12px;margin-top:2.6vh;flex-wrap:wrap">
+    <span class="chip hot">Four reasons it earns the name "VM"</span>
+    <span class="chip">① A dedicated bytecode + 11-register execution layer</span>
+    <span class="chip">② Built-in JIT — virtual instructions to native machine code</span>
+    <span class="chip">③ Verifier — a sandbox that proves safety before execution</span>
+    <span class="chip">④ Maps and Helpers/KFuncs are the only doors — arbitrary kernel memory access is blocked</span>
+  </div>
+  <div class="chips" data-a="6" style="display:flex;gap:12px;margin-top:1.4vh;flex-wrap:wrap">
+    <span class="chip">Load-time costs: Verifier analysis + JIT compilation; runtime cost depends on the program and hook</span>
+    <span class="chip">Runtime limits constrain expressiveness, not speed — the 512 B stack and instruction cap are the price of the proof</span>
+  </div>
+  <aside class="notes">
+    The JVM analogy lands best — not VMware, but <b>a bytecode execution spec</b>. The chips below ("four reasons it earns the name VM") matter more than the table. Runtime cost is effectively zero; the real cost is one-time at load.
+  <p>Source: <a href="https://docs.kernel.org/bpf/libbpf/libbpf_overview.html" target="_blank" rel="noopener">Kernel libbpf</a>.</p>
+  </aside>
+</section>
+
+<!-- ============ 09 · REGISTERS ============ -->
+<section class="slide">
+  <div class="kicker" data-a="1">Register machine</div>
+  <h1 class="display md" data-a="2">11 registers — designed to map <span class="hot">1:1 onto hardware</span></h1>
+  <p class="sub" data-a="3">Basic instructions are <b>8 bytes; wide instructions use 16 bytes</b>; registers correspond directly to x86_64/ARM64 registers —
+  which is why the JIT emits native machine code with no extra translation layer.</p>
+  <div class="ladder">
+    <div class="rung" style="--rc:var(--orange)" data-a="4">
+      <span class="k">R0</span>
+      <div><h3>Return value</h3><p>Holds the program's exit code and <b>the result of helper function calls</b></p></div>
+      <span class="tag">RETURN</span>
+    </div>
+    <div class="rung" style="--rc:var(--blue)" data-a="5">
+      <span class="k">R1–R5</span>
+      <div><h3>Argument passing</h3><p>Helper call arguments — on entry, the context pointer arrives in <code>R1</code></p></div>
+      <span class="tag">ARGUMENTS</span>
+    </div>
+    <div class="rung" style="--rc:var(--green)" data-a="6">
+      <span class="k">R6–R9</span>
+      <div><h3>Callee-saved</h3><p>Registers whose values <b>survive across helper calls</b> — home for local state</p></div>
+      <span class="tag">PRESERVED</span>
+    </div>
+    <div class="rung" style="--rc:var(--pink)" data-a="7">
+      <span class="k">R10</span>
+      <div><h3>Read-only frame pointer</h3><p>Points to the dedicated 512 B stack and is <b>non-writable</b> — kernel-memory corruption via stack-pointer manipulation is ruled out by design</p></div>
+      <span class="tag">READ-ONLY</span>
+    </div>
+  </div>
+  <div class="chips" data-a="8" style="display:flex;gap:12px;margin-top:2.6vh;flex-wrap:wrap">
+    <span class="chip">Compact instructions + architecture-specific register mapping — minimal JIT translation cost is baked into the design</span>
+    <span class="chip hot">Profiling can identify expensive code paths — quantify improvements with workload-specific measurements</span>
+  </div>
+  <aside class="notes">
+    R10, the <b>read-only frame pointer</b>, is the star of this slide — stack manipulation is blocked by design. Hardware 1:1 mapping = why the JIT is fast. Close with the Strobelight chip (15,000 servers saved) to remind everyone why this is worth learning.
+  <p>Source: <a href="https://docs.kernel.org/bpf/standardization/instruction-set.html" target="_blank" rel="noopener">BPF instruction set</a>.</p>
+  </aside>
+</section>
+
+<!-- ============ 10 · PIPELINE ============ -->
+<section class="slide">
+  <div class="kicker" data-a="1">From C to kernel</div>
+  <h1 class="display md" data-a="2">From source to kernel — the execution pipeline</h1>
+  <div class="arch" data-a="3">
+    <svg viewBox="0 0 1200 430">
+      <!-- row 1: compile -->
+      <rect x="20" y="60" width="200" height="90" rx="14" fill="#131a24" stroke="#a6b2c3" stroke-width="1.5"/>
+      <text x="120" y="100" class="an" font-size="20" text-anchor="middle">BPF C source</text>
+      <text x="120" y="128" class="am" font-size="13" text-anchor="middle" letter-spacing="2">prog.bpf.c</text>
+
+      <rect x="310" y="60" width="200" height="90" rx="14" fill="rgba(65,179,255,.08)" stroke="#41b3ff" stroke-width="1.5"/>
+      <text x="410" y="100" class="an" font-size="20" text-anchor="middle">Clang / LLVM</text>
+      <text x="410" y="128" class="am" font-size="13" text-anchor="middle" letter-spacing="2">-target bpf</text>
+
+      <rect x="600" y="60" width="220" height="90" rx="14" fill="rgba(173,92,255,.08)" stroke="#ad5cff" stroke-width="1.5"/>
+      <text x="710" y="100" class="an" font-size="20" text-anchor="middle">Bytecode (.o)</text>
+      <text x="710" y="128" class="am" font-size="13" text-anchor="middle" letter-spacing="2">ELF + .BTF</text>
+
+      <rect x="910" y="60" width="230" height="90" rx="14" fill="#131a24" stroke="#fbd332" stroke-width="1.5"/>
+      <text x="1025" y="100" class="an" font-size="20" text-anchor="middle">bpf() syscall</text>
+      <text x="1025" y="128" class="am" font-size="13" text-anchor="middle" letter-spacing="2">BPF_PROG_LOAD</text>
+
+      <!-- row 2: kernel side -->
+      <rect x="910" y="260" width="230" height="100" rx="14" fill="rgba(255,153,0,.08)" stroke="#ff9900" stroke-width="2"/>
+      <text x="1025" y="302" class="an" font-size="21" text-anchor="middle">Verifier</text>
+      <text x="1025" y="332" class="am" font-size="13" text-anchor="middle" letter-spacing="2">the safety-proof gate</text>
+
+      <rect x="580" y="260" width="230" height="100" rx="14" fill="rgba(0,229,0,.07)" stroke="#00e500" stroke-width="1.5"/>
+      <text x="695" y="302" class="an" font-size="21" text-anchor="middle">JIT compiler</text>
+      <text x="695" y="332" class="am" font-size="13" text-anchor="middle" letter-spacing="2">native machine code</text>
+
+      <rect x="250" y="260" width="230" height="100" rx="14" fill="rgba(65,179,255,.08)" stroke="#41b3ff" stroke-width="1.5"/>
+      <text x="365" y="302" class="an" font-size="21" text-anchor="middle">Hook attach</text>
+      <text x="365" y="332" class="am" font-size="13" text-anchor="middle" letter-spacing="2">kprobe · tc · xdp · lsm</text>
+
+      <!-- reject path -->
+      <rect x="20" y="270" width="160" height="80" rx="14" fill="rgba(255,92,133,.06)" stroke="#ff5c85" stroke-width="1.5" stroke-dasharray="5 4"/>
+      <text x="100" y="305" class="an" font-size="18" text-anchor="middle" fill="#ff5c85">Load rejected</text>
+      <text x="100" y="330" class="am" font-size="13" text-anchor="middle" fill="#ff5c85">-EACCES</text>
+
+      <!-- wires -->
+      <path class="wire" d="M220 105 H310" stroke="#a6b2c3"/>
+      <path class="wire" d="M510 105 H600" stroke="#41b3ff"/>
+      <path class="wire" d="M820 105 H910" stroke="#ad5cff"/>
+      <path class="wire" d="M1025 150 V260" stroke="#fbd332"/>
+      <path class="wire" d="M910 310 H810" stroke="#00e500"/>
+      <path class="wire" d="M580 310 H480" stroke="#41b3ff"/>
+      <path class="wire-static" d="M955 360 C 800 420, 340 420, 180 340" stroke="#ff5c85" stroke-dasharray="4 5"/>
+      <text x="560" y="418" class="am" font-size="13" text-anchor="middle" fill="#ff5c85">on verification failure — the program never sets foot in the kernel</text>
+    </svg>
+  </div>
+  <div class="chips" data-a="4" style="display:flex;gap:12px;flex-wrap:wrap">
+    <span class="chip">11 registers · R0–R10</span>
+    <span class="chip">R10 = read-only frame pointer</span>
+    <span class="chip">512 B stack</span>
+    <span class="chip hot">Nothing runs without passing the Verifier</span>
+  </div>
+  <aside class="notes">
+    Trace the flow by hand — source → Clang → .o → bpf() → <b>the Verifier gate</b> → JIT → attach. Point at the red dashed path (load rejected): a failed program never sets foot in the kernel. The next slide goes inside that gate.
+  </aside>
+</section>
+
+<!-- ============ 11 · VERIFIER ============ -->
+<section class="slide">
+  <div class="kicker" data-a="1">The gatekeeper</div>
+  <h1 class="display md" data-a="2">The Verifier — <span class="hot">proving safety</span> before execution</h1>
+  <p class="sub" data-a="3">Not runtime isolation but <b>load-time static verification</b>. If the proof fails, the kernel refuses the program.</p>
+  <div class="split">
+    <div class="panel" style="--pc:var(--orange)" data-a="4">
+      <h3>What it checks</h3>
+      <ul>
+        <li><b>Exhaustive CFG (Control Flow Graph) walk</b> — simulates every branch path; <b>one unprovable path rejects the whole program</b></li>
+        <li><b>Termination proof</b> — statically guarantees the program finishes; infinite loops are impossible</li>
+        <li><b>Register &amp; stack state tracking</b> — scalar/pointer types and value ranges, including types of values spilled to the stack</li>
+        <li>Pointer arithmetic <b>bounds checking</b> — rejects out-of-map access, null dereference, uninitialized reads</li>
+        <li><b>Reference tracking</b> — a ringbuf <code>reserve</code> must end in <code>submit</code>/<code>discard</code>; kernel resource leaks are cut off</li>
+      </ul>
+    </div>
+    <div class="panel" style="--pc:var(--blue)" data-a="5">
+      <h3>Limits and evolution</h3>
+      <ul>
+        <li>Verification complexity cap — a <b>1 million instruction</b> exploration budget</li>
+        <li>Loops: banned at first → <b>bounded loops in kernel 5.3+</b>, plus the <code>bpf_loop()</code> helper</li>
+        <li><b>512 B</b> stack — use maps as scratch space for large buffers</li>
+        <li>Conservative by principle — <b>safe-but-unprovable still gets rejected</b></li>
+      </ul>
+    </div>
+  </div>
+  <aside class="notes">
+    The most important slide in chapter 1 — spend time here. Saying "<b>not runtime isolation, but a load-time proof</b>" twice is fine. Reference tracking (reserve→submit) is collected again in the ring buffer slides (§17–18). Limits panel: "safe but unprovable = rejected" is the essence of its conservatism.
+  </aside>
+</section>
+
+<!-- ============ 12 · HOOK MAP ============ -->
+<section class="slide">
+  <div class="kicker" data-a="1">Where programs attach</div>
+  <h1 class="display md" data-a="2">Program types and hooks — observation points across the kernel</h1>
+  <div class="arch" data-a="3">
+    <svg viewBox="0 0 1200 480">
+      <!-- userspace -->
+      <rect x="30" y="20" width="1140" height="80" rx="14" fill="rgba(173,92,255,.06)" stroke="#ad5cff" stroke-width="1.5"/>
+      <text x="70" y="68" class="an" font-size="20">User space</text>
+      <rect x="770" y="38" width="130" height="44" rx="8" fill="#131a24" stroke="#ad5cff"/><text x="835" y="66" class="am" font-size="15" text-anchor="middle" fill="#ad5cff">uprobe</text>
+      <rect x="920" y="38" width="130" height="44" rx="8" fill="#131a24" stroke="#ad5cff"/><text x="985" y="66" class="am" font-size="15" text-anchor="middle" fill="#ad5cff">USDT</text>
+
+      <!-- syscall boundary -->
+      <rect x="30" y="115" width="1140" height="80" rx="14" fill="rgba(255,92,133,.05)" stroke="#ff5c85" stroke-width="1.5"/>
+      <text x="70" y="163" class="an" font-size="20">Syscall boundary</text>
+      <rect x="620" y="133" width="180" height="44" rx="8" fill="#131a24" stroke="#ff5c85"/><text x="710" y="161" class="am" font-size="15" text-anchor="middle" fill="#ff5c85">tracepoint</text>
+      <rect x="820" y="133" width="130" height="44" rx="8" fill="#131a24" stroke="#ff5c85"/><text x="885" y="161" class="am" font-size="15" text-anchor="middle" fill="#ff5c85">LSM</text>
+      <rect x="970" y="133" width="160" height="44" rx="8" fill="#131a24" stroke="#ff5c85"/><text x="1050" y="161" class="am" font-size="15" text-anchor="middle" fill="#ff5c85">seccomp</text>
+
+      <!-- kernel core -->
+      <rect x="30" y="210" width="1140" height="80" rx="14" fill="rgba(255,153,0,.05)" stroke="#ff9900" stroke-width="1.5"/>
+      <text x="70" y="258" class="an" font-size="20">Kernel core</text>
+      <rect x="540" y="228" width="140" height="44" rx="8" fill="#131a24" stroke="#ff9900"/><text x="610" y="256" class="am" font-size="15" text-anchor="middle" fill="#ff9900">kprobe</text>
+      <rect x="700" y="228" width="200" height="44" rx="8" fill="#131a24" stroke="#ff9900"/><text x="800" y="256" class="am" font-size="15" text-anchor="middle" fill="#ff9900">fentry / fexit</text>
+      <rect x="920" y="228" width="180" height="44" rx="8" fill="#131a24" stroke="#ff9900"/><text x="1010" y="256" class="am" font-size="15" text-anchor="middle" fill="#ff9900">perf_event</text>
+
+      <!-- network stack -->
+      <rect x="30" y="305" width="1140" height="80" rx="14" fill="rgba(65,179,255,.06)" stroke="#41b3ff" stroke-width="1.5"/>
+      <text x="70" y="353" class="an" font-size="20">Network stack</text>
+      <rect x="480" y="323" width="200" height="44" rx="8" fill="#131a24" stroke="#41b3ff"/><text x="580" y="351" class="am" font-size="15" text-anchor="middle" fill="#41b3ff">socket filter</text>
+      <rect x="700" y="323" width="170" height="44" rx="8" fill="#131a24" stroke="#41b3ff"/><text x="785" y="351" class="am" font-size="15" text-anchor="middle" fill="#41b3ff">sock_ops</text>
+      <rect x="890" y="323" width="220" height="44" rx="8" fill="#131a24" stroke="#41b3ff"/><text x="1000" y="351" class="am" font-size="15" text-anchor="middle" fill="#41b3ff">tc (ingress/egress)</text>
+
+      <!-- driver -->
+      <rect x="30" y="400" width="1140" height="70" rx="14" fill="rgba(0,229,0,.05)" stroke="#00e500" stroke-width="1.5"/>
+      <text x="70" y="443" class="an" font-size="20">NIC driver</text>
+      <rect x="480" y="412" width="140" height="44" rx="8" fill="#131a24" stroke="#00e500"/><text x="550" y="440" class="am" font-size="15" text-anchor="middle" fill="#00e500">XDP</text>
+      <text x="660" y="440" class="am" font-size="14" fill="#00e500">← before the packet touches the stack — the earliest point</text>
+    </svg>
+  </div>
+  <aside class="notes">
+    Sweep top (userspace) to bottom (NIC) — the deeper you go, the faster and more primitive. Worth foreshadowing that <code>sock_ops</code> is the hook NFM uses (§35). XDP fires before the packet even touches the stack — Cilium's weapon.
+  </aside>
+</section>
+
+<!-- ============ 13 · MAPS & HELPERS ============ -->
+<section class="slide">
+  <div class="kicker" data-a="1">Shared state</div>
+  <h1 class="display md" data-a="2">Maps — <span class="hot">shared state</span> between kernel and userspace</h1>
+  <p class="sub" data-a="3">Persistent state is commonly stored in <b>maps</b>; global variables are also backed by maps, and all kernel functionality is reached through <b>helpers and kfuncs</b>.</p>
+  <div class="split">
+    <div class="panel" style="--pc:var(--blue)" data-a="4">
+      <h3>Key map types</h3>
+      <ul>
+        <li><code>HASH</code> / <code>ARRAY</code> — general key-value; LRU (Least Recently Used) variants evict automatically</li>
+        <li><code>PERCPU_*</code> — per-CPU copies for <b>lock-free, high-speed aggregation</b></li>
+        <li><code>STACK_TRACE</code> — the call-stack store populated by <code>bpf_get_stackid()</code></li>
+        <li><code>RINGBUF</code> — the standard event stream since kernel v5.8+</li>
+      </ul>
+    </div>
+    <div class="panel" style="--pc:var(--purple)" data-a="5">
+      <h3>Doors into kernel functionality</h3>
+      <ul>
+        <li><b>Helper functions</b> — a stable, fixed-ABI API (<code>bpf_map_lookup_elem</code>, <code>bpf_ktime_get_ns</code> …)</li>
+        <li><b>KFuncs</b> — kernel functions exposed directly; flexible but <b>no stability guarantee</b></li>
+        <li>Helpers grow slowly; new capabilities tend to ship as kfuncs first</li>
+        <li>Each program type has a <b>different callable helper set</b> — enforced by the Verifier</li>
+      </ul>
+    </div>
+  </div>
+  <aside class="notes">
+    One-sentence summary: <b>state lives in maps, kernel functionality behind helpers/kfuncs</b>. The callable helper set differs per program type and is Verifier-enforced — ties back to §11. Bridge: RINGBUF is the subject of the next five slides.
+  </aside>
+</section>
+
+<!-- ============ 14 · RINGBUF PRIMER ============ -->
+<section class="slide">
+  <div class="kicker" data-a="1">Data structure primer</div>
+  <h1 class="display md" data-a="2">The ring buffer — a bounded queue from a fixed array and <span class="hot">two pointers</span></h1>
+  <p class="sub" data-a="3">eBPF did not invent this — <b>printk/dmesg logs · NIC RX/TX rings · ftrace · perf · io_uring</b>:
+  a data structure proven for decades all over the kernel.</p>
+  <div class="split w64">
+    <div class="arch" data-a="4" style="margin-top:0">
+      <svg viewBox="0 0 760 310">
+        <text x="20" y="26" class="am" font-size="14" fill="#a6b2c3">Fixed N slots — O(1) read &amp; write · no runtime allocation</text>
+
+        <text x="167.5" y="48" class="an" font-size="13" text-anchor="middle" fill="#00e500">C — read</text>
+        <line x1="167.5" y1="53" x2="167.5" y2="62" stroke="#00e500" stroke-width="2"/>
+        <text x="467.5" y="48" class="an" font-size="13" text-anchor="middle" fill="#ff9900">P — write</text>
+        <line x1="467.5" y1="53" x2="467.5" y2="62" stroke="#ff9900" stroke-width="2"/>
+
+        <rect x="20"  y="64" width="55" height="64" rx="9" fill="rgba(166,178,195,.06)" stroke="#3a4656" stroke-width="1.5"/>
+        <rect x="80"  y="64" width="55" height="64" rx="9" fill="rgba(166,178,195,.06)" stroke="#3a4656" stroke-width="1.5"/>
+        <rect x="140" y="64" width="55" height="64" rx="9" fill="rgba(255,153,0,.18)" stroke="#ff9900" stroke-width="1.5"/>
+        <rect x="200" y="64" width="55" height="64" rx="9" fill="rgba(255,153,0,.18)" stroke="#ff9900" stroke-width="1.5"/>
+        <rect x="260" y="64" width="55" height="64" rx="9" fill="rgba(255,153,0,.18)" stroke="#ff9900" stroke-width="1.5"/>
+        <rect x="320" y="64" width="55" height="64" rx="9" fill="rgba(255,153,0,.18)" stroke="#ff9900" stroke-width="1.5"/>
+        <rect x="380" y="64" width="55" height="64" rx="9" fill="rgba(255,153,0,.18)" stroke="#ff9900" stroke-width="1.5"/>
+        <rect x="440" y="64" width="55" height="64" rx="9" fill="rgba(166,178,195,.06)" stroke="#3a4656" stroke-width="1.5"/>
+        <rect x="500" y="64" width="55" height="64" rx="9" fill="rgba(166,178,195,.06)" stroke="#3a4656" stroke-width="1.5"/>
+        <rect x="560" y="64" width="55" height="64" rx="9" fill="rgba(166,178,195,.06)" stroke="#3a4656" stroke-width="1.5"/>
+        <rect x="620" y="64" width="55" height="64" rx="9" fill="rgba(166,178,195,.06)" stroke="#3a4656" stroke-width="1.5"/>
+        <rect x="680" y="64" width="55" height="64" rx="9" fill="rgba(166,178,195,.06)" stroke="#3a4656" stroke-width="1.5"/>
+
+        <text x="47.5"  y="150" class="am" font-size="12" text-anchor="middle">0</text>
+        <text x="107.5" y="150" class="am" font-size="12" text-anchor="middle">1</text>
+        <text x="167.5" y="150" class="am" font-size="12" text-anchor="middle">2</text>
+        <text x="227.5" y="150" class="am" font-size="12" text-anchor="middle">3</text>
+        <text x="287.5" y="150" class="am" font-size="12" text-anchor="middle">4</text>
+        <text x="347.5" y="150" class="am" font-size="12" text-anchor="middle">5</text>
+        <text x="407.5" y="150" class="am" font-size="12" text-anchor="middle">6</text>
+        <text x="467.5" y="150" class="am" font-size="12" text-anchor="middle">7</text>
+        <text x="527.5" y="150" class="am" font-size="12" text-anchor="middle">8</text>
+        <text x="587.5" y="150" class="am" font-size="12" text-anchor="middle">9</text>
+        <text x="647.5" y="150" class="am" font-size="12" text-anchor="middle">10</text>
+        <text x="707.5" y="150" class="am" font-size="12" text-anchor="middle">11</text>
+
+        <path class="wire-static" d="M707.5 158 C 707.5 205, 47.5 205, 47.5 162" stroke="#a6b2c3" stroke-dasharray="6 5" opacity=".7"/>
+        <text x="380" y="218" class="am" font-size="13" text-anchor="middle" fill="#a6b2c3">wrap at the end — index = pos &amp; (N−1) · size forced to 2ᵏ</text>
+
+        <line x1="20" y1="240" x2="740" y2="240" stroke="rgba(166,178,195,.25)" stroke-width="1"/>
+        <text x="140" y="272" class="an" font-size="15" text-anchor="middle">P == C</text>
+        <text x="140" y="294" class="am" font-size="12" text-anchor="middle">empty</text>
+        <text x="380" y="272" class="an" font-size="15" text-anchor="middle">between C and P</text>
+        <text x="380" y="294" class="am" font-size="12" text-anchor="middle">data to read</text>
+        <text x="620" y="272" class="an" font-size="15" text-anchor="middle">C right ahead of P</text>
+        <text x="620" y="294" class="am" font-size="12" text-anchor="middle">full — policy decision</text>
+      </svg>
+    </div>
+    <div class="panel" style="--pc:var(--blue)" data-a="5">
+      <h3>Why the kernel loves this structure</h3>
+      <ul>
+        <li>No <code>malloc</code> on hot paths like interrupts or the scheduler — <b>only writes</b> into pre-allocated slots</li>
+        <li>Memory usage has a <b>ceiling guaranteed at design time</b> — even a flood stops at the buffer size</li>
+        <li><b>Decouples</b> ns-scale producers from ms-scale consumers — the buffer absorbs the gap</li>
+        <li>One contiguous memory block — <b>shared with userspace via mmap</b>, read without copying</li>
+      </ul>
+    </div>
+  </div>
+  <div class="chips" data-a="6" style="display:flex;gap:12px;margin-top:2.6vh;flex-wrap:wrap">
+    <span class="chip">The full-buffer policy defines the use case — logs (dmesg) overwrite the oldest; event pipes can reject new records; programs must account for failed ringbuf reservations</span>
+    <span class="chip hot">Perf Buffer and BPF Ring Buffer both descend from this structure — what changed is the next four slides</span>
+  </div>
+  <aside class="notes">
+    Why start with data-structure basics: the next four slides are all variations on this structure. <b>Two pointers (P·C) plus a fixed array</b>, size forced to 2ᵏ (the &amp; trick), and the full-buffer policy defining the use case — nail these and the rest is easy.
+  </aside>
+</section>
+
+<!-- ============ 15 · PERFBUF FLOW ============ -->
+<section class="slide">
+  <div class="kicker" data-a="1">Legacy path — how it worked</div>
+  <h1 class="display md" data-a="2">The old path — per-CPU rings: <span class="hot">assemble → copy → threshold-based notification</span></h1>
+  <p class="sub" data-a="3">Perf Buffer takes the ring from the last slide and puts <b>one on every CPU</b> — each BPF program writes
+  only to its own CPU's ring, and the consumer reads and merges as many rings as there are CPUs.</p>
+  <div class="arch" data-a="4">
+    <svg viewBox="0 0 1200 430">
+      <!-- kernel zone -->
+      <rect x="15" y="20" width="1170" height="284" rx="18" fill="rgba(0,229,0,.03)" stroke="#00e500" stroke-width="1.2" stroke-dasharray="8 6"/>
+      <text x="45" y="50" class="am" font-size="14" fill="#00e500" letter-spacing="3">KERNEL SPACE</text>
+
+      <!-- CPU 0 column -->
+      <rect x="45" y="64" width="340" height="56" rx="12" fill="#131a24" stroke="#a6b2c3" stroke-width="1.5"/>
+      <text x="215" y="88" class="an" font-size="15" text-anchor="middle">CPU 0 — BPF program</text>
+      <text x="215" y="107" class="am" font-size="11" text-anchor="middle">① assemble record on stack</text>
+      <path class="wire" d="M215 120 V150" stroke="#ff9900"/>
+      <text x="228" y="141" class="am" font-size="11" fill="#ff9900">② copy</text>
+      <rect x="50"  y="152" width="50" height="50" rx="8" fill="rgba(255,153,0,.18)" stroke="#ff9900" stroke-width="1.5"/>
+      <rect x="106" y="152" width="50" height="50" rx="8" fill="rgba(255,153,0,.18)" stroke="#ff9900" stroke-width="1.5"/>
+      <rect x="162" y="152" width="50" height="50" rx="8" fill="rgba(255,153,0,.18)" stroke="#ff9900" stroke-width="1.5"/>
+      <rect x="218" y="152" width="50" height="50" rx="8" fill="rgba(255,153,0,.18)" stroke="#ff9900" stroke-width="1.5"/>
+      <rect x="274" y="152" width="50" height="50" rx="8" fill="rgba(255,153,0,.18)" stroke="#ff9900" stroke-width="1.5"/>
+      <rect x="330" y="152" width="50" height="50" rx="8" fill="rgba(255,153,0,.18)" stroke="#ff9900" stroke-width="1.5"/>
+      <text x="215" y="228" class="am" font-size="12" text-anchor="middle" fill="#ff5c85">full — new events lost</text>
+
+      <!-- CPU 1 column -->
+      <rect x="425" y="64" width="340" height="56" rx="12" fill="#131a24" stroke="#a6b2c3" stroke-width="1.5"/>
+      <text x="595" y="88" class="an" font-size="15" text-anchor="middle">CPU 1 — BPF program</text>
+      <text x="595" y="107" class="am" font-size="11" text-anchor="middle">① assemble record on stack</text>
+      <path class="wire" d="M595 120 V150" stroke="#ff9900"/>
+      <text x="608" y="141" class="am" font-size="11" fill="#ff9900">② copy</text>
+      <rect x="430" y="152" width="50" height="50" rx="8" fill="rgba(255,153,0,.18)" stroke="#ff9900" stroke-width="1.5"/>
+      <rect x="486" y="152" width="50" height="50" rx="8" fill="rgba(255,153,0,.18)" stroke="#ff9900" stroke-width="1.5"/>
+      <rect x="542" y="152" width="50" height="50" rx="8" fill="rgba(255,153,0,.18)" stroke="#ff9900" stroke-width="1.5"/>
+      <rect x="598" y="152" width="50" height="50" rx="8" fill="rgba(166,178,195,.06)" stroke="#3a4656" stroke-width="1.5"/>
+      <rect x="654" y="152" width="50" height="50" rx="8" fill="rgba(166,178,195,.06)" stroke="#3a4656" stroke-width="1.5"/>
+      <rect x="710" y="152" width="50" height="50" rx="8" fill="rgba(166,178,195,.06)" stroke="#3a4656" stroke-width="1.5"/>
+      <text x="595" y="228" class="am" font-size="12" text-anchor="middle" fill="#a6b2c3">load varies per CPU</text>
+
+      <!-- CPU 2 column -->
+      <rect x="805" y="64" width="340" height="56" rx="12" fill="#131a24" stroke="#a6b2c3" stroke-width="1.5"/>
+      <text x="975" y="88" class="an" font-size="15" text-anchor="middle">CPU 2 — BPF program</text>
+      <text x="975" y="107" class="am" font-size="11" text-anchor="middle">① assemble record on stack</text>
+      <path class="wire" d="M975 120 V150" stroke="#ff9900"/>
+      <text x="988" y="141" class="am" font-size="11" fill="#ff9900">② copy</text>
+      <rect x="810"  y="152" width="50" height="50" rx="8" fill="rgba(255,153,0,.18)" stroke="#ff9900" stroke-width="1.5"/>
+      <rect x="866"  y="152" width="50" height="50" rx="8" fill="rgba(166,178,195,.06)" stroke="#3a4656" stroke-width="1.5"/>
+      <rect x="922"  y="152" width="50" height="50" rx="8" fill="rgba(166,178,195,.06)" stroke="#3a4656" stroke-width="1.5"/>
+      <rect x="978"  y="152" width="50" height="50" rx="8" fill="rgba(166,178,195,.06)" stroke="#3a4656" stroke-width="1.5"/>
+      <rect x="1034" y="152" width="50" height="50" rx="8" fill="rgba(166,178,195,.06)" stroke="#3a4656" stroke-width="1.5"/>
+      <rect x="1090" y="152" width="50" height="50" rx="8" fill="rgba(166,178,195,.06)" stroke="#3a4656" stroke-width="1.5"/>
+      <text x="975" y="228" class="am" font-size="12" text-anchor="middle" fill="#a6b2c3">near-empty — reserved memory wasted</text>
+
+      <!-- wires to consumer -->
+      <path class="wire" d="M215 240 V346" stroke="#ad5cff"/>
+      <path class="wire" d="M595 240 V346" stroke="#ad5cff"/>
+      <path class="wire" d="M975 240 C 975 300, 800 316, 726 346" stroke="#ad5cff"/>
+
+      <!-- user zone -->
+      <rect x="15" y="316" width="1170" height="100" rx="18" fill="rgba(65,179,255,.03)" stroke="#41b3ff" stroke-width="1.2" stroke-dasharray="8 6"/>
+      <text x="45" y="340" class="am" font-size="13" fill="#41b3ff" letter-spacing="3">USER SPACE</text>
+      <rect x="45" y="346" width="690" height="56" rx="12" fill="rgba(65,179,255,.08)" stroke="#41b3ff" stroke-width="1.5"/>
+      <text x="390" y="370" class="an" font-size="16" text-anchor="middle">Userspace consumer</text>
+      <text x="390" y="392" class="am" font-size="12" text-anchor="middle">epoll on fd × CPU count — reads each ring separately; time-ordering is the consumer's job</text>
+      <text x="770" y="368" class="am" font-size="12" fill="#ad5cff">③ event-count / byte-watermark notification</text>
+      <text x="770" y="388" class="am" font-size="12" fill="#ad5cff">— tune thresholds to batch wakeups</text>
+    </svg>
+  </div>
+  <div class="chips" data-a="5" style="display:flex;gap:12px;flex-wrap:wrap">
+    <span class="chip">The ring itself is unchanged from the last slide — what differs is the arrangement: one per CPU, records assembled then copied in</span>
+    <span class="chip hot">Four costs fall straight out of this picture (next slide)</span>
+  </div>
+  <aside class="notes">
+    Describe Perf Buffer's behavior neutrally, no judgment — <b>a ring per CPU, assemble on the stack then copy, notify at configured thresholds</b>. Point at the three unbalanced CPUs in the figure (overflowing / uneven / near-empty). Save the verdict for the next slide.
+  </aside>
+</section>
+
+<!-- ============ 16 · PERFBUF LIMITS ============ -->
+<section class="slide">
+  <div class="kicker" data-a="1">Legacy — perf buffer</div>
+  <h1 class="display md" data-a="2">Legacy Perf Buffer — the price of <span class="hot">per-CPU</span> buffers</h1>
+  <p class="sub" data-a="3">The legacy channel for shipping events from kernel to userspace was an <b>independent buffer per CPU</b> —
+  all four limitations derive from that single design choice.</p>
+  <div class="ladder">
+    <div class="rung" style="--rc:var(--orange)" data-a="4">
+      <span class="k">01</span>
+      <div><h3>Memory over-allocation</h3><p>Reserves CPU count × buffer size — <b>one buffer overflows while another sits empty</b>, wasted either way</p></div>
+      <span class="tag">OVER-ALLOC</span>
+    </div>
+    <div class="rung" style="--rc:var(--blue)" data-a="5">
+      <span class="k">02</span>
+      <div><h3>Event reordering</h3><p>No ordering across CPUs — if a process migrates, <b>fork → exec can arrive reversed</b></p></div>
+      <span class="tag">REORDER</span>
+    </div>
+    <div class="rung" style="--rc:var(--pink)" data-a="6">
+      <span class="k">03</span>
+      <div><h3>Late loss detection</h3><p>Out-of-space is only discovered when copying the record built on the stack — <b>the assembly cost is already paid</b></p></div>
+      <span class="tag">LATE FAIL</span>
+    </div>
+    <div class="rung" style="--rc:var(--purple)" data-a="7">
+      <span class="k">04</span>
+      <div><h3>Wakeup storms</h3><p>Notifications use <b>event-count or byte thresholds</b>; low thresholds can increase wakeup overhead</p></div>
+      <span class="tag">SIGNAL STORM</span>
+    </div>
+  </div>
+  <div class="chips" data-a="8" style="display:flex;gap:12px;margin-top:2.6vh;flex-wrap:wrap">
+    <span class="chip hot">The fix converges to one move — merge the buffers into a single global one (next slide)</span>
+  </div>
+  <aside class="notes">
+    Walk the four limits one by one — stress that all of them derive from <b>the single choice of "a buffer per CPU"</b>. The fork → exec reversal is the most intuitive example. The fix converges too: merge the buffers.
+  <p>Source: <a href="https://github.com/torvalds/linux/blob/master/include/uapi/linux/perf_event.h" target="_blank" rel="noopener">perf_event.h thresholds</a>.</p>
+  </aside>
+</section>
+
+<!-- ============ 17 · RINGBUF FLOW ============ -->
+<section class="slide">
+  <div class="kicker" data-a="1">New path — how it works</div>
+  <h1 class="display md" data-a="2">The new path — <span class="hot">reserve → write in place → commit</span>, notify only when needed</h1>
+  <p class="sub" data-a="3">One global ring — every CPU claims space first with <code>reserve()</code>, writes directly into it,
+  then publishes with <code>submit()</code>. The copy disappears, and ordering is fixed by reservation order.</p>
+  <div class="arch" data-a="4">
+    <svg viewBox="0 0 1200 430">
+      <!-- kernel zone -->
+      <rect x="15" y="20" width="1170" height="270" rx="18" fill="rgba(0,229,0,.03)" stroke="#00e500" stroke-width="1.2" stroke-dasharray="8 6"/>
+      <text x="45" y="50" class="am" font-size="14" fill="#00e500" letter-spacing="3">KERNEL SPACE</text>
+
+      <!-- producers -->
+      <rect x="45" y="60" width="190" height="55" rx="12" fill="#131a24" stroke="#a6b2c3" stroke-width="1.5"/>
+      <text x="140" y="83" class="an" font-size="15" text-anchor="middle">CPU 0</text>
+      <text x="140" y="102" class="am" font-size="11" text-anchor="middle">BPF program</text>
+      <rect x="45" y="135" width="190" height="55" rx="12" fill="#131a24" stroke="#a6b2c3" stroke-width="1.5"/>
+      <text x="140" y="158" class="an" font-size="15" text-anchor="middle">CPU 1</text>
+      <text x="140" y="177" class="am" font-size="11" text-anchor="middle">BPF program</text>
+      <rect x="45" y="210" width="190" height="55" rx="12" fill="#131a24" stroke="#a6b2c3" stroke-width="1.5"/>
+      <text x="140" y="233" class="an" font-size="15" text-anchor="middle">CPU 2</text>
+      <text x="140" y="252" class="am" font-size="11" text-anchor="middle">BPF program</text>
+
+      <path class="wire" d="M235 87 C 300 87, 330 132, 400 142" stroke="#ff9900"/>
+      <path class="wire" d="M235 162 C 300 162, 330 152, 400 152" stroke="#ff9900"/>
+      <path class="wire" d="M235 237 C 300 237, 330 172, 400 162" stroke="#ff9900"/>
+      <text x="258" y="52" class="am" font-size="12" fill="#ff9900">① reserve() — claims a slot only · fails immediately if space is short</text>
+
+      <!-- single shared ring: cells 0-3 committed, 4 busy, 5-8 free -->
+      <rect x="400"  y="120" width="80" height="64" rx="9" fill="rgba(255,153,0,.18)" stroke="#ff9900" stroke-width="1.5"/>
+      <rect x="484"  y="120" width="80" height="64" rx="9" fill="rgba(255,153,0,.18)" stroke="#ff9900" stroke-width="1.5"/>
+      <rect x="568"  y="120" width="80" height="64" rx="9" fill="rgba(255,153,0,.18)" stroke="#ff9900" stroke-width="1.5"/>
+      <rect x="652"  y="120" width="80" height="64" rx="9" fill="rgba(255,153,0,.18)" stroke="#ff9900" stroke-width="1.5"/>
+      <rect x="736"  y="120" width="80" height="64" rx="9" fill="rgba(255,92,133,.15)" stroke="#ff5c85" stroke-width="1.5" stroke-dasharray="5 4"/>
+      <text x="776" y="158" class="am" font-size="12" text-anchor="middle" fill="#ff5c85">BUSY</text>
+      <rect x="820"  y="120" width="80" height="64" rx="9" fill="rgba(166,178,195,.06)" stroke="#3a4656" stroke-width="1.5"/>
+      <rect x="904"  y="120" width="80" height="64" rx="9" fill="rgba(166,178,195,.06)" stroke="#3a4656" stroke-width="1.5"/>
+      <rect x="988"  y="120" width="80" height="64" rx="9" fill="rgba(166,178,195,.06)" stroke="#3a4656" stroke-width="1.5"/>
+      <rect x="1072" y="120" width="80" height="64" rx="9" fill="rgba(166,178,195,.06)" stroke="#3a4656" stroke-width="1.5"/>
+      <text x="776" y="108" class="am" font-size="12" text-anchor="middle" fill="#ff5c85">② write in place — no copy</text>
+      <text x="568" y="210" class="am" font-size="12" text-anchor="middle" fill="#00e500">③ submit() — clearing the busy bit = published</text>
+      <text x="1030" y="210" class="am" font-size="12" text-anchor="middle" fill="#a6b2c3">free space</text>
+
+      <!-- double mapping strip -->
+      <text x="460" y="252" class="am" font-size="12" fill="#a6b2c3">double mapping</text>
+      <text x="460" y="270" class="am" font-size="12" fill="#a6b2c3">same phys pages ×2</text>
+      <text x="732" y="234" class="am" font-size="11" text-anchor="middle" fill="#a6b2c3">mapping 1</text>
+      <text x="916" y="234" class="am" font-size="11" text-anchor="middle" fill="#a6b2c3">mapping 2</text>
+      <rect x="640" y="240" width="42" height="28" rx="5" fill="rgba(166,178,195,.06)" stroke="#3a4656" stroke-width="1.2"/>
+      <rect x="686" y="240" width="42" height="28" rx="5" fill="rgba(166,178,195,.06)" stroke="#3a4656" stroke-width="1.2"/>
+      <rect x="732" y="240" width="42" height="28" rx="5" fill="rgba(166,178,195,.06)" stroke="#3a4656" stroke-width="1.2"/>
+      <rect x="778" y="240" width="42" height="28" rx="5" fill="rgba(166,178,195,.06)" stroke="#3a4656" stroke-width="1.2"/>
+      <rect x="824" y="240" width="42" height="28" rx="5" fill="rgba(166,178,195,.06)" stroke="#3a4656" stroke-width="1.2"/>
+      <rect x="870" y="240" width="42" height="28" rx="5" fill="rgba(166,178,195,.06)" stroke="#3a4656" stroke-width="1.2"/>
+      <rect x="916" y="240" width="42" height="28" rx="5" fill="rgba(166,178,195,.06)" stroke="#3a4656" stroke-width="1.2"/>
+      <rect x="962" y="240" width="42" height="28" rx="5" fill="rgba(166,178,195,.06)" stroke="#3a4656" stroke-width="1.2"/>
+      <rect x="778" y="240" width="88" height="28" rx="5" fill="rgba(255,153,0,.30)" stroke="#ff9900" stroke-width="1.5"/>
+      <line x1="822" y1="234" x2="822" y2="272" stroke="#a6b2c3" stroke-width="1" stroke-dasharray="3 3"/>
+      <text x="1040" y="259" class="am" font-size="11" fill="#a6b2c3">record across the boundary —</text>
+      <text x="1040" y="275" class="am" font-size="11" fill="#a6b2c3">read contiguously, no split</text>
+
+      <!-- wire to consumer + adaptive notify -->
+      <path class="wire" d="M420 188 V336" stroke="#ad5cff"/>
+
+      <!-- user zone -->
+      <rect x="15" y="302" width="1170" height="110" rx="18" fill="rgba(65,179,255,.03)" stroke="#41b3ff" stroke-width="1.2" stroke-dasharray="8 6"/>
+      <text x="45" y="328" class="am" font-size="13" fill="#41b3ff" letter-spacing="3">USER SPACE</text>
+      <text x="60" y="366" class="am" font-size="12" fill="#ad5cff">④ adaptive notification</text>
+      <text x="60" y="386" class="am" font-size="12" fill="#ad5cff">— notify when the consumer has caught up</text>
+      <rect x="400" y="336" width="560" height="60" rx="12" fill="rgba(65,179,255,.08)" stroke="#41b3ff" stroke-width="1.5"/>
+      <text x="680" y="362" class="an" font-size="16" text-anchor="middle">Userspace consumer</text>
+      <text x="680" y="384" class="am" font-size="12" text-anchor="middle">one fd — direct reads via mmap · global order preserved</text>
+    </svg>
+  </div>
+  <div class="chips" data-a="5" style="display:flex;gap:12px;flex-wrap:wrap">
+    <span class="chip">The consumer stops at a BUSY record — only committed records are visible, in reservation order</span>
+    <span class="chip hot">Single ring · reserve · in-place writes · adaptive notification — what each one fixes is the next slide</span>
+  </div>
+  <aside class="notes">
+    The new path's three-beat rhythm — <b>reserve (claim a slot, fail fast if short) → write in place (no copy) → submit (publish)</b>. For the BUSY bit and double mapping (boundary-straddling records read contiguously), just pointing at them in the figure is enough.
+  </aside>
+</section>
+
+<!-- ============ 18 · RING BUFFER ============ -->
+<section class="slide">
+  <div class="kicker" data-a="1">Kernel → userspace</div>
+  <h1 class="display md" data-a="2">BPF Ring Buffer — a shared-buffer <span class="hot">alternative</span> (v5.8+)</h1>
+  <p class="sub" data-a="3">An <b>MPSC (Multi-Producer Single-Consumer)</b> design where all CPUs share one buffer —
+  answering Perf Buffer's four limitations with four mechanisms.</p>
+  <div class="tiles four">
+    <div class="tile" data-a="4">
+      <span class="tn">MPSC</span>
+      <h3>One global shared buffer</h3>
+      <p>Every CPU writes to one buffer; userspace reads it — <b>reservation ordering within one ring</b> and memory efficiency at once.</p>
+      <span class="tt">ORDER + MEMORY</span>
+    </div>
+    <div class="tile tc-blue" data-a="5">
+      <span class="tn">RESERVE / SUBMIT</span>
+      <h3>Two-phase zero-copy</h3>
+      <p><code>reserve()</code> claims space first — if short, it <b>fails immediately</b> so the program can react. Write directly into buffer memory, then <code>submit()</code> — the intermediate copy is gone.</p>
+      <span class="tt">§11 REF TRACKING</span>
+    </div>
+    <div class="tile tc-purple" data-a="6">
+      <span class="tn">ADAPTIVE</span>
+      <h3>Adaptive notification</h3>
+      <p>Notify if the consumer has <b>caught up to the committed record</b>; otherwise it will reach the record without another wakeup.</p>
+      <span class="tt">NO SIGNAL STORM</span>
+    </div>
+    <div class="tile" data-a="7">
+      <span class="tn">DOUBLE MAP</span>
+      <h3>Virtual-memory double mapping</h3>
+      <p>The same physical pages are mapped <b>twice, back to back</b> — records straddling the boundary read contiguously, no wrap-around handling.</p>
+      <span class="tt">ZERO WRAP COST</span>
+    </div>
+  </div>
+  <div class="chips" data-a="8" style="display:flex;gap:12px;margin-top:2.6vh;flex-wrap:wrap">
+    <span class="chip">Every reserve must end in submit/discard — enforced by the Verifier's reference tracking (§11)</span>
+    <span class="chip hot">Reordering · over-allocation · late loss detection · wakeup storms — all resolved by the single-buffer design</span>
+  </div>
+  <aside class="notes">
+    Wrap up with the 1:1 limitation ↔ mechanism mapping — over-allocation→MPSC, copying→reserve/submit, loss detection→fail-fast, wakeup storms→adaptive notification. <b>reserve must end in submit/discard — §11's Verifier reference tracking pays off right here</b>.
+  <p>Source: <a href="https://docs.kernel.org/bpf/ringbuf.html" target="_blank" rel="noopener">Kernel ring buffer</a>.</p>
+  </aside>
+</section>
+
+<!-- ============ 19 · RINGBUF COMPARE ============ -->
+<section class="slide">
+  <div class="kicker" data-a="1">Side by side</div>
+  <h1 class="display md" data-a="2">Ring buffer generations — same name, <span class="hot">different design</span></h1>
+  <p class="sub" data-a="3">Perf Buffer is a ring buffer inside, too — what the eBPF Ring Buffer changed is not the ring itself but
+  <b>everything about how rings are placed, written, and read</b>.</p>
+  <table class="compare" data-a="4">
+    <thead>
+      <tr><th></th><th>Legacy ring — Perf Buffer</th><th class="hl">BPF Ring Buffer (v5.8+)</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Layout</td><td class="bad">Independent ring per CPU — as many rings as CPUs</td><td class="good">One global ring — MPSC, shared by all CPUs</td></tr>
+      <tr><td>Write path</td><td class="bad">Assemble record on the stack, then <b>copy</b> into the buffer</td><td class="good"><code>reserve()</code> → <b>write directly</b> into the buffer → <code>submit()</code> — zero-copy</td></tr>
+      <tr><td>Out of space</td><td class="bad">Discovered only at copy time — assembly cost already paid</td><td class="good"><code>reserve()</code> fails immediately — the program can react</td></tr>
+      <tr><td>Event ordering</td><td class="bad">No cross-CPU guarantee — fork → exec can reverse</td><td class="good">Single buffer — reservation order within one ring</td></tr>
+      <tr><td>Boundary handling</td><td class="bad">Records split at the boundary — read twice and reassemble</td><td class="good">Virtual-memory double mapping — contiguous read, no split</td></tr>
+      <tr><td>Consumer notification</td><td class="bad">Configurable event-count / byte thresholds</td><td class="good">Adaptive — notify when the consumer has caught up</td></tr>
+    </tbody>
+  </table>
+  <div class="chips" data-a="5" style="display:flex;gap:12px;margin-top:2.4vh;flex-wrap:wrap">
+    <span class="chip">Consumer APIs look alike — <code>perf_buffer__poll</code> ↔ <code>ring_buffer__poll</code>; migration is cheap</span>
+    <span class="chip hot">Choose by ordering, contention and compatibility requirements — per-CPU Perf Buffers remain useful</span>
+  </div>
+  <aside class="notes">
+    Run the table top to bottom quickly — let the audience read, state only the conclusion: <b>Ring Buffer is the default for new development</b>; Perf Buffer is for pre-v5.8 compatibility. Similar APIs keep migration cost low.
+  <p>Source: <a href="https://docs.kernel.org/bpf/ringbuf.html" target="_blank" rel="noopener">Kernel ring buffer</a>.</p>
+  </aside>
+</section>
+
+<!-- ============ 20 · CO-RE & BTF ============ -->
+<section class="slide">
+  <div class="kicker" data-a="1">Compile once — run everywhere</div>
+  <h1 class="display md" data-a="2">CO-RE — compile once, <span class="hot">run everywhere</span></h1>
+  <p class="sub" data-a="3">The root problem: <b>kernel struct offsets differ across versions and configs.</b> CO-RE resolves relocations at load time using target BTF.</p>
+  <div class="arch" data-a="4">
+    <svg viewBox="0 0 1200 400">
+      <!-- compile time zone -->
+      <rect x="15" y="20" width="560" height="360" rx="18" fill="rgba(65,179,255,.03)" stroke="#41b3ff" stroke-width="1.2" stroke-dasharray="8 6"/>
+      <text x="45" y="56" class="am" font-size="14" fill="#41b3ff" letter-spacing="3">COMPILE TIME · DEV MACHINE</text>
+      <rect x="45" y="85" width="230" height="90" rx="12" fill="#131a24" stroke="#a6b2c3" stroke-width="1.5"/>
+      <text x="160" y="123" class="an" font-size="18" text-anchor="middle">BPF C source</text>
+      <text x="160" y="150" class="am" font-size="13" text-anchor="middle">includes vmlinux.h</text>
+      <rect x="45" y="250" width="230" height="90" rx="12" fill="rgba(65,179,255,.08)" stroke="#41b3ff" stroke-width="1.5"/>
+      <text x="160" y="288" class="an" font-size="18" text-anchor="middle">Clang -g</text>
+      <text x="160" y="315" class="am" font-size="13" text-anchor="middle">emits relocation records</text>
+      <rect x="330" y="165" width="220" height="105" rx="12" fill="rgba(173,92,255,.08)" stroke="#ad5cff" stroke-width="1.5"/>
+      <text x="440" y="202" class="an" font-size="18" text-anchor="middle">.o (ELF)</text>
+      <text x="440" y="228" class="am" font-size="13" text-anchor="middle">.BTF + .BTF.ext</text>
+      <text x="440" y="250" class="am" font-size="13" text-anchor="middle">"which fields does it touch"</text>
+
+      <!-- runtime zone -->
+      <rect x="625" y="20" width="560" height="360" rx="18" fill="rgba(0,229,0,.03)" stroke="#00e500" stroke-width="1.2" stroke-dasharray="8 6"/>
+      <text x="655" y="56" class="am" font-size="14" fill="#00e500" letter-spacing="3">RUNTIME · TARGET NODE</text>
+      <rect x="655" y="85" width="250" height="90" rx="12" fill="#131a24" stroke="#00e500" stroke-width="1.5"/>
+      <text x="780" y="118" class="an" font-size="17" text-anchor="middle">The kernel's own BTF</text>
+      <text x="780" y="146" class="am" font-size="12" text-anchor="middle">/sys/kernel/btf/vmlinux</text>
+      <rect x="655" y="250" width="250" height="90" rx="12" fill="rgba(255,153,0,.08)" stroke="#ff9900" stroke-width="2"/>
+      <text x="780" y="288" class="an" font-size="18" text-anchor="middle">libbpf</text>
+      <text x="780" y="315" class="am" font-size="13" text-anchor="middle">recompute offsets · patch instructions</text>
+      <rect x="960" y="165" width="200" height="105" rx="12" fill="rgba(0,229,0,.07)" stroke="#00e500" stroke-width="1.5"/>
+      <text x="1060" y="207" class="an" font-size="18" text-anchor="middle">Kernel load</text>
+      <text x="1060" y="234" class="am" font-size="13" text-anchor="middle">offsets fit this kernel</text>
+
+      <!-- wires -->
+      <path class="wire" d="M160 175 V250" stroke="#a6b2c3"/>
+      <path class="wire" d="M275 295 C 305 295, 305 240, 330 230" stroke="#41b3ff"/>
+      <path class="wire" d="M550 217 C 590 217, 600 295, 655 295" stroke="#ad5cff"/>
+      <path class="wire" d="M780 175 V250" stroke="#00e500"/>
+      <path class="wire" d="M905 295 C 935 295, 935 230, 960 222" stroke="#ff9900"/>
+    </svg>
+  </div>
+  <div class="chips" data-a="5" style="display:flex;gap:12px;flex-wrap:wrap">
+    <span class="chip">BTF dedup in 5 stages — strings → non-reference types → struct/union canonicalization → reference types → compaction; hundreds of MB of DWARF down to a few MB</span>
+    <span class="chip">Measured — x86_64 pt_regs offsets (di=112 · si=104 · dx=96) patched into the bytecode at load time</span>
+    <span class="chip hot">Slim static binaries with no runtime compilation — unlike BCC (BPF Compiler Collection) embedding clang</span>
+  </div>
+  <aside class="notes">
+    Start with the problem — <b>kernel struct offsets differ per version</b>. Then compile time (relocation records) → runtime (kernel BTF + libbpf patching). The measured pt_regs chip (di=112…) is the proof that real bytecode gets patched.
+  </aside>
+</section>
+
+<!-- ============ 21 · INTEGRATION MAP ============ -->
+<section class="slide">
+  <div class="kicker" data-a="1">The whole picture</div>
+  <h1 class="display md" data-a="2">The integrated flow — where <span class="hot">the pieces interlock</span></h1>
+  <p class="sub" data-a="3">Overlaying everything so far: the load path (compile → verify → JIT) and the runtime channels (Helpers · Maps · Ring Buffer) on one slide.</p>
+  <div class="arch" data-a="4">
+    <svg viewBox="0 0 1200 430">
+      <!-- user space zone -->
+      <rect x="15" y="20" width="460" height="390" rx="18" fill="rgba(65,179,255,.03)" stroke="#41b3ff" stroke-width="1.2" stroke-dasharray="8 6"/>
+      <text x="45" y="52" class="am" font-size="14" fill="#41b3ff" letter-spacing="3">USER SPACE</text>
+      <rect x="45" y="75" width="190" height="90" rx="12" fill="#131a24" stroke="#a6b2c3" stroke-width="1.5"/>
+      <text x="140" y="110" class="an" font-size="17" text-anchor="middle">Clang / LLVM</text>
+      <text x="140" y="136" class="am" font-size="12" text-anchor="middle">§10 · .o + .BTF.ext</text>
+      <rect x="45" y="205" width="190" height="90" rx="12" fill="rgba(255,153,0,.08)" stroke="#ff9900" stroke-width="2"/>
+      <text x="140" y="240" class="an" font-size="17" text-anchor="middle">libbpf loader</text>
+      <text x="140" y="266" class="am" font-size="12" text-anchor="middle">§20 · offset patching</text>
+      <rect x="265" y="205" width="185" height="90" rx="12" fill="rgba(0,229,0,.05)" stroke="#00e500" stroke-width="1.5"/>
+      <text x="357" y="238" class="an" font-size="15" text-anchor="middle">Kernel BTF</text>
+      <text x="357" y="262" class="am" font-size="11" text-anchor="middle">/sys/kernel/btf/vmlinux</text>
+      <text x="357" y="280" class="am" font-size="11" text-anchor="middle">the kernel's type dictionary</text>
+      <rect x="45" y="330" width="405" height="70" rx="12" fill="rgba(65,179,255,.08)" stroke="#41b3ff" stroke-width="1.5"/>
+      <text x="247" y="360" class="an" font-size="16" text-anchor="middle">Userspace consumer</text>
+      <text x="247" y="384" class="am" font-size="12" text-anchor="middle">§18 · Ring Buffer reads · map polling</text>
+
+      <!-- kernel zone -->
+      <rect x="505" y="20" width="680" height="390" rx="18" fill="rgba(0,229,0,.03)" stroke="#00e500" stroke-width="1.2" stroke-dasharray="8 6"/>
+      <text x="535" y="52" class="am" font-size="14" fill="#00e500" letter-spacing="3">KERNEL SPACE</text>
+      <rect x="535" y="75" width="180" height="80" rx="12" fill="#131a24" stroke="#a6b2c3" stroke-width="1.5"/>
+      <text x="625" y="107" class="an" font-size="16" text-anchor="middle">bpf() syscall</text>
+      <text x="625" y="132" class="am" font-size="12" text-anchor="middle">BPF_PROG_LOAD</text>
+      <rect x="757" y="75" width="205" height="80" rx="12" fill="rgba(255,92,133,.08)" stroke="#ff5c85" stroke-width="1.5"/>
+      <text x="859" y="103" class="an" font-size="16" text-anchor="middle">Verifier</text>
+      <text x="859" y="125" class="am" font-size="11" text-anchor="middle">§11 · exhaustive CFG walk</text>
+      <text x="859" y="142" class="am" font-size="11" text-anchor="middle">reference tracking</text>
+      <rect x="1000" y="75" width="160" height="80" rx="12" fill="rgba(173,92,255,.08)" stroke="#ad5cff" stroke-width="1.5"/>
+      <text x="1080" y="107" class="an" font-size="16" text-anchor="middle">JIT</text>
+      <text x="1080" y="132" class="am" font-size="12" text-anchor="middle">§10 · native machine code</text>
+      <rect x="757" y="210" width="403" height="90" rx="12" fill="rgba(255,153,0,.08)" stroke="#ff9900" stroke-width="2"/>
+      <text x="958" y="245" class="an" font-size="17" text-anchor="middle">BPF VM execution</text>
+      <text x="958" y="272" class="am" font-size="12" text-anchor="middle">§13 · Helpers / KFuncs · Maps</text>
+      <rect x="535" y="330" width="420" height="70" rx="12" fill="rgba(0,229,0,.07)" stroke="#00e500" stroke-width="1.5"/>
+      <text x="745" y="360" class="an" font-size="16" text-anchor="middle">MPSC Ring Buffer</text>
+      <text x="745" y="384" class="am" font-size="12" text-anchor="middle">§18 · reserve / submit · adaptive notification</text>
+
+      <!-- wires -->
+      <path class="wire" d="M140 165 V205" stroke="#a6b2c3"/>
+      <path class="wire" d="M265 250 H235" stroke="#00e500"/>
+      <path class="wire" d="M235 232 C 380 190, 430 115, 535 115" stroke="#ff9900"/>
+      <path class="wire" d="M715 115 H757" stroke="#a6b2c3"/>
+      <path class="wire" d="M962 115 H1000" stroke="#ff5c85"/>
+      <path class="wire" d="M1080 155 C 1080 185, 1010 195, 985 210" stroke="#ad5cff"/>
+      <path class="wire" d="M860 300 C 860 318, 800 322, 775 330" stroke="#ff9900"/>
+      <path class="wire" d="M535 365 H450" stroke="#00e500"/>
+    </svg>
+  </div>
+  <div class="chips" data-a="5" style="display:flex;gap:12px;flex-wrap:wrap">
+    <span class="chip">Top row is the load path, bottom row the runtime channels — § numbers point to the detail slides</span>
+    <span class="chip hot">Without patching the kernel — verified bytecode lives inside it</span>
+  </div>
+  <aside class="notes">
+    Chapter 1 recap — nothing new, only collection. <b>Top row = load path, bottom row = runtime channels</b>. Follow the § numbers repeating "remember this piece?". Good moment to take chapter 1 questions and breathe.
+  </aside>
+</section>
+
+<!-- ============ 22 · FRONTIER ============ -->
+<section class="slide">
+  <div class="kicker" data-a="1">The frontier</div>
+  <h1 class="display md" data-a="2">Recent features pushing the boundary</h1>
+  <p class="sub" data-a="3">Privilege delegation, large memory, userspace execution — eBPF's constraints are being lifted one by one.</p>
+  <div class="tiles">
+    <div class="tile" data-a="4">
+      <span class="tn">KERNEL v6.9+</span>
+      <h3>BPF Token</h3>
+      <p>Instead of granting all of <code>CAP_BPF</code>, issue a <b>delegation token</b> — a container inside a user namespace
+      loads only the allowed program and map types. Least privilege for multi-tenant environments.</p>
+      <span class="tt">DELEGATION</span>
+    </div>
+    <div class="tile tc-blue" data-a="5">
+      <span class="tn">KERNEL v6.9+</span>
+      <h3>BPF Arena</h3>
+      <p>A large memory region where kernel and userspace <b>share the same pages</b>.
+      Enables pointer-based data structures (trees, lists) instead of the map API.</p>
+      <span class="tt">SHARED MEMORY</span>
+    </div>
+    <div class="tile tc-purple" data-a="6">
+      <span class="tn">EXPERIMENTAL</span>
+      <h3>bpftime</h3>
+      <p>Kernel uprobes trap via <code>int3</code> with a <b>heavy kernel round-trip</b> —
+      bpftime instruments supported probes in userspace. Performance and compatibility depend on the workload.</p>
+      <span class="tt">USERSPACE RUNTIME</span>
+    </div>
+  </div>
+  <aside class="notes">
+    Keep it light — three trends: Token (privilege delegation), Arena (large shared memory), bpftime (userspace execution). Foreshadow: <b>bpftime returns in §26 at the memleak uprobe bottleneck</b>.
+  </aside>
+</section>
+
+<!-- ============ 23 · CHAPTER 02 ============ -->
+<section class="slide chapter">
+  <span class="num">02</span>
+  <div class="kicker" data-a="1">Chapter two</div>
+  <h1 class="display" data-a="2">Observe and <span class="hot">defend</span></h1>
+  <p class="mono-tag" data-a="3">landscape · memleak · off-cpu · throttling · falco vs tetragon · tuning</p>
+  <aside class="notes">
+    Chapter break — "now, how does this theory get used in the field". Three case studies (memory leaks · Off-CPU · throttling) and two security tools (Falco vs Tetragon) form the spine of this chapter.
+  </aside>
+</section>
+
+<!-- ============ 24 · TOOL LANDSCAPE ============ -->
+<section class="slide">
+  <div class="kicker" data-a="1">Tooling</div>
+  <h1 class="display md" data-a="2">The tool landscape — a ladder of abstraction</h1>
+  <div class="ladder">
+    <div class="rung" style="--rc:var(--yellow)" data-a="3">
+      <span class="k">↑</span>
+      <div><h3>bpftrace</h3><p>DSL (Domain-Specific Language) one-liners — <b>the standard for ad-hoc diagnosis</b>. Use like awk, then throw away. <code>bpftrace -e 'tracepoint:syscalls:sys_enter_openat { @[comm] = count(); }'</code></p></div>
+      <span class="tag">AD-HOC</span>
+    </div>
+    <div class="rung" style="--rc:var(--purple)" data-a="4">
+      <span class="k">·</span>
+      <div><h3>BCC</h3><p>Python + C framework with proven tools like <code>memleak</code> and <code>offcputime</code>. Caveat: <b>runtime clang compilation</b> — heavy to ship.</p></div>
+      <span class="tag">TOOLBOX</span>
+    </div>
+    <div class="rung" style="--rc:var(--orange)" data-a="5">
+      <span class="k">·</span>
+      <div><h3>libbpf + CO-RE</h3><p><b>The production standard</b> — slim static binaries, no per-kernel recompilation. Cilium, Tetragon, and most commercial agents ship this way.</p></div>
+      <span class="tag">PRODUCTION</span>
+    </div>
+    <div class="rung" style="--rc:var(--blue)" data-a="6">
+      <span class="k">↓</span>
+      <div><h3>bpftool</h3><p>The standard CLI to <b>inspect and dump</b> programs, maps, and BTF loaded in the kernel. The answer to "what is attached to my kernel right now?"</p></div>
+      <span class="tag">INTROSPECTION</span>
+    </div>
+  </div>
+  <div class="dial-axis" data-a="7"><span>← quick experiments</span><span>production rollout →</span></div>
+  <aside class="notes">
+    The axis is the point — <b>top-left is quick experimentation (bpftrace), bottom-right is production (libbpf CO-RE)</b>. One line on why BCC's runtime clang compilation is heavy. bpftool answers "what is attached to my kernel right now".
+  </aside>
+</section>
+
+<!-- ============ 25 · ECOSYSTEM MAP ============ -->
+<section class="slide">
+  <div class="kicker" data-a="1">Ecosystem</div>
+  <h1 class="display md" data-a="2">Product landscape — observe · detect · <span class="hot">enforce</span></h1>
+  <p class="sub" data-a="3">Products on the same eBPF stand in different places — <b>how far they see, and where they start blocking</b>, is the axis.</p>
+  <div class="tiles four">
+    <div class="tile tc-green" data-a="4">
+      <span class="tn">OBSERVE</span>
+      <h3>Observability · profiling</h3>
+      <p><b>Pixie</b> — auto-instruments HTTP/gRPC/SQL with zero code change, builds service maps. <b>Parca</b> — always-on low-rate stack sampling, continuous profiling. <b>Hubble</b> — sidecar-free L3–L7 visibility (§36).</p>
+      <span class="tt">NO-INSTRUMENT</span>
+    </div>
+    <div class="tile tc-blue" data-a="5">
+      <span class="tn">DETECT</span>
+      <h3>Runtime detection</h3>
+      <p><b>Falco</b> — rule-based syscall behavior detection with configurable rules (§29). <b>Tracee</b> — Aqua Security; forensics-oriented detection with precise kernel event capture.</p>
+      <span class="tt">ALERT-ONLY</span>
+    </div>
+    <div class="tile tc-pink" data-a="6">
+      <span class="tn">ENFORCE</span>
+      <h3>In-kernel blocking</h3>
+      <p><b>Tetragon</b> — synchronous verdicts and blocking at LSM hooks (§30). <b>KubeArmor</b> — workload hardening that pre-empts file/process/socket access via BPF-LSM and AppArmor.</p>
+      <span class="tt">IN-KERNEL BLOCK</span>
+    </div>
+    <div class="tile tc-purple" data-a="7">
+      <span class="tn">CORRELATE</span>
+      <h3>Multi-dimensional — CADR</h3>
+      <p><b>ARMO</b> and peers — correlate kernel eBPF signals with cloud APIs, the K8s control plane, and app code; reconstruct <b>attack stories</b> instead of isolated alerts.</p>
+      <span class="tt">ATTACK STORY</span>
+    </div>
+  </div>
+  <div class="chips" data-a="8" style="display:flex;gap:12px;margin-top:2.6vh;flex-wrap:wrap">
+    <span class="chip">The classification axis — does it ship events to userspace to 'report', or does it 'decide' inside the kernel?</span>
+    <span class="chip hot">The structural gap between detect ↔ enforce is dissected in §29–30</span>
+  </div>
+  <aside class="notes">
+    Remember one axis — <b>does it ship events out and report, or decide inside the kernel</b>. Intervention strength rises OBSERVE→DETECT→ENFORCE→CORRELATE. Touch CADR lightly as the recent trend. The Falco/Tetragon dissection is §29–30.
+  </aside>
+</section>
+
+<!-- ============ 26 · MEMLEAK ============ -->
+<section class="slide">
+  <div class="kicker" data-a="1">Case study № 1</div>
+  <h1 class="display md" data-a="2">Tracking memory leaks — all aggregation stays in the kernel</h1>
+  <div class="split w46">
+    <div class="panel" style="--pc:var(--green)" data-a="3">
+      <h3>How it works</h3>
+      <ul>
+        <li>Probes on the allocation paths — uprobes for user <code>malloc·calloc·realloc·mmap</code>, kprobes for kernel <code>kmalloc</code> → record <b>address → (stack ID · size · timestamp)</b> in a map</li>
+        <li>On free, delete the entry — <b>long-lived entries = leak candidates</b></li>
+        <li><code>bpf_get_stackid()</code> stores the call stack in a <code>STACK_TRACE</code> map</li>
+        <li>Userspace only reads the map periodically — <b>no event streaming, minimal overhead</b></li>
+      </ul>
+    </div>
+    <div class="codeblock" data-file="BCC memleak" data-a="4"><span class="cm"># track outstanding allocations of PID 1234 every 10 s</span>
+$ <span class="ck">memleak</span> -p 1234 10
+
+<span class="cm">[13:42:01] Top 10 stacks with outstanding allocations:</span>
+  <span class="cs">524288 bytes</span> in <span class="cs">128 allocations</span> from stack
+    malloc+0x1f
+    <span class="cv">grow_request_buffer</span>+0x42
+    <span class="cv">handle_connection</span>+0x8d
+    start_thread+0xd9
+
+<span class="cm"># --older: allocation candidates still outstanding after 60 s · omit -p to trace kernel leaks</span>
+$ <span class="ck">memleak</span> -p 1234 --older 60000</div>
+  </div>
+  <div class="chips" data-a="5" style="display:flex;gap:12px;margin-top:2.6vh;flex-wrap:wrap">
+    <span class="chip">Unlike Valgrind, <b>no restart needed</b> — attaches dynamically to a running process; in-kernel aggregation, no CPU emulation</span>
+    <span class="chip">The cost of uprobes — an <code>int3</code> breakpoint trap round-trips the kernel per call; at high malloc rates the trap itself is the bottleneck</span>
+    <span class="chip hot">The workaround removes kernel entry — bpftime runs the probe as a userspace inline hook, with workload-dependent overhead (§22)</span>
+  </div>
+  <aside class="notes">
+    First case study — the Valgrind contrast (<b>no restart, attaches to a live process</b>) gets the first reaction. All aggregation in-kernel = minimal overhead. Close by collecting the uprobe int3 trap cost → bpftime (§22).
+  <p>Source: <a href="https://github.com/iovisor/bcc/blob/master/tools/memleak.py" target="_blank" rel="noopener">BCC memleak source</a>.</p>
+  </aside>
+</section>
+
+<!-- ============ 27 · OFF-CPU ============ -->
+<section class="slide">
+  <div class="kicker" data-a="1">Case study № 2</div>
+  <h1 class="display md" data-a="2">Off-CPU analysis — seeing the <span class="hot">time spent off the CPU</span></h1>
+  <div class="split w64">
+    <div class="arch" data-a="3" style="margin-top:0">
+      <svg viewBox="0 0 760 300">
+        <text x="20" y="34" class="am" font-size="14" fill="#a6b2c3">Task A timeline</text>
+        <rect x="20" y="60" width="200" height="56" rx="10" fill="rgba(0,229,0,.1)" stroke="#00e500" stroke-width="1.5"/>
+        <text x="120" y="94" class="an" font-size="16" text-anchor="middle">ON-CPU</text>
+        <rect x="250" y="60" width="290" height="56" rx="10" fill="rgba(255,92,133,.08)" stroke="#ff5c85" stroke-width="1.5" stroke-dasharray="5 4"/>
+        <text x="395" y="86" class="an" font-size="16" text-anchor="middle" fill="#ff5c85">BLOCKED — locks · I/O waits</text>
+        <text x="395" y="107" class="am" font-size="12" text-anchor="middle" fill="#ff5c85">the profiler's blind spot</text>
+        <rect x="570" y="60" width="170" height="56" rx="10" fill="rgba(0,229,0,.1)" stroke="#00e500" stroke-width="1.5"/>
+        <text x="655" y="94" class="an" font-size="16" text-anchor="middle">ON-CPU</text>
+
+        <rect x="140" y="185" width="480" height="62" rx="12" fill="rgba(255,153,0,.08)" stroke="#ff9900" stroke-width="2"/>
+        <text x="380" y="212" class="an" font-size="16" text-anchor="middle">kprobe: finish_task_switch()</text>
+        <text x="380" y="236" class="am" font-size="13" text-anchor="middle">the single point every context switch passes through</text>
+        <path class="wire" d="M250 116 C 250 150, 260 165, 280 185" stroke="#ff5c85"/>
+        <text x="215" y="160" class="am" font-size="12" fill="#ff5c85">record t₀</text>
+        <path class="wire" d="M570 116 C 570 150, 560 165, 540 185" stroke="#00e500"/>
+        <text x="590" y="160" class="am" font-size="12" fill="#00e500">aggregate Δt</text>
+        <text x="380" y="285" class="am" font-size="13" text-anchor="middle" fill="#a6b2c3">Δt accumulated in a per-stack histogram map — tens of thousands of events per second digested in-kernel</text>
+      </svg>
+    </div>
+    <div class="panel" style="--pc:var(--orange)" data-a="4">
+      <h3>Why it matters</h3>
+      <ul>
+        <li>On-CPU profiles see <b>only half the story</b> — waiting time never shows up in samples</li>
+        <li>Lock contention, disk I/O, page faults are often <b>the real latency culprits</b></li>
+        <li>Record switch-out time → on return, <b>aggregate Δt per stack, in-kernel</b></li>
+        <li>The deliverable is an <b>Off-CPU Flame Graph</b> — which stacks waited, and for how long</li>
+      </ul>
+    </div>
+  </div>
+  <aside class="notes">
+    Open with the question — "latency the profiler can't see: where do you look?" On-CPU profiles see half the story. The wow moment of this slide: <b>finish_task_switch() alone observes every context switch</b>.
+  </aside>
+</section>
+
+<!-- ============ 28 · CFS THROTTLING ============ -->
+<section class="slide">
+  <div class="kicker" data-a="1">Case study № 3</div>
+  <h1 class="display md" data-a="2">Diagnosing CPU throttling — <span class="hot">runnable but not allowed to run</span></h1>
+  <div class="split w64">
+    <div class="arch" data-a="3" style="margin-top:0">
+      <svg viewBox="0 0 760 300">
+        <text x="20" y="34" class="am" font-size="14" fill="#a6b2c3">CFS (Completely Fair Scheduler) Bandwidth Control — limits.cpu → quota / 100 ms period</text>
+        <rect x="20" y="60" width="180" height="56" rx="10" fill="rgba(0,229,0,.1)" stroke="#00e500" stroke-width="1.5"/>
+        <text x="110" y="86" class="an" font-size="15" text-anchor="middle">Running</text>
+        <text x="110" y="106" class="am" font-size="12" text-anchor="middle">40 ms quota spent</text>
+        <rect x="230" y="60" width="330" height="56" rx="10" fill="rgba(255,92,133,.08)" stroke="#ff5c85" stroke-width="1.5" stroke-dasharray="5 4"/>
+        <text x="395" y="86" class="an" font-size="15" text-anchor="middle" fill="#ff5c85">THROTTLED — forced 60 ms wait</text>
+        <text x="395" y="106" class="am" font-size="12" text-anchor="middle" fill="#ff5c85">runnable but unschedulable — whole cgroup</text>
+        <rect x="590" y="60" width="150" height="56" rx="10" fill="rgba(0,229,0,.1)" stroke="#00e500" stroke-width="1.5"/>
+        <text x="665" y="86" class="an" font-size="15" text-anchor="middle">Next period</text>
+        <text x="665" y="106" class="am" font-size="12" text-anchor="middle">refill → resume</text>
+
+        <rect x="140" y="185" width="480" height="62" rx="12" fill="rgba(255,153,0,.08)" stroke="#ff9900" stroke-width="2"/>
+        <text x="380" y="212" class="an" font-size="16" text-anchor="middle">runqlat — wait distribution from runnable to running</text>
+        <text x="380" y="236" class="am" font-size="13" text-anchor="middle">normally tens of µs → skews right with 100 ms-class spikes under throttling</text>
+        <path class="wire" d="M395 116 C 395 150, 390 165, 380 185" stroke="#ff5c85"/>
+        <text x="380" y="285" class="am" font-size="13" text-anchor="middle" fill="#a6b2c3">cross-check scheduler delay with cpu.stat throttling counters and node CPU pressure</text>
+      </svg>
+    </div>
+    <div class="panel" style="--pc:var(--pink)" data-a="4">
+      <h3>Why the usual metrics miss it</h3>
+      <ul>
+        <li>The CPU utilization graph sits <b>flat</b> against the limit — busy and strangled look identical</li>
+        <li>cAdvisor throttle counters give <b>counts and totals only</b> — no idea which code path got delayed by how much</li>
+        <li><code>runqlat</code> spikes + Off-CPU stacks (§27) showing <b>no blocking traces</b> (no <code>io_schedule</code>, no <code>futex_wait</code>) → investigate <b>CPU contention or quota throttling</b>; confirm with cpu.stat throttle deltas</li>
+        <li>The <b>cross-reading</b> of the two tools is your quantitative basis for resizing limits</li>
+      </ul>
+    </div>
+  </div>
+  <table class="compare" data-a="5" style="margin-top:2.4vh">
+    <thead>
+      <tr><th>Observed combination</th><th class="hl">Diagnosis</th><th>Prescription</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>runqlat <b>spikes</b> + <b>no</b> blocking traces in stacks — awake but can't run</td><td><b>CPU contention or quota throttling</b> — correlate cpu.stat</td><td class="good">Raise quota only after confirming throttling and available node CPU</td></tr>
+      <tr><td>runqlat <b>normal</b> + stacks ending in <code>io_schedule</code>/<code>futex_wait</code> — went to sleep voluntarily</td><td><b>I/O / lock bottleneck</b> — unrelated to CPU</td><td class="bad">Raising limits does nothing — fix storage or lock design</td></tr>
+    </tbody>
+  </table>
+  <aside class="notes">
+    Symptom first — the CPU graph is flat, but latency spikes. The core logic is the cross-reading: <b>runqlat spikes without blocking traces suggest scheduling delay, not proof of throttling; correlate cpu.stat nr_throttled/throttled_usec and node contention</b>. The two table rows are the prescription fork: "will raising limits help?".
+  <p>Source: <a href="https://docs.kernel.org/admin-guide/cgroup-v2.html" target="_blank" rel="noopener">cgroup v2 cpu.stat</a>.</p>
+  </aside>
+</section>
+
+<!-- ============ 29 · FALCO ============ -->
+<section class="slide">
+  <div class="kicker" data-a="1">Runtime security № 1</div>
+  <h1 class="display md" data-a="2">Falco — syscall detection and <span class="hot">alerts</span></h1>
+  <div class="arch" data-a="3">
+    <svg viewBox="0 0 1200 340">
+      <rect x="20" y="120" width="180" height="90" rx="12" fill="#131a24" stroke="#a6b2c3" stroke-width="1.5"/>
+      <text x="110" y="158" class="an" font-size="18" text-anchor="middle">Process</text>
+      <text x="110" y="184" class="am" font-size="13" text-anchor="middle">execve("/bin/sh")</text>
+
+      <rect x="280" y="120" width="220" height="90" rx="12" fill="rgba(255,92,133,.06)" stroke="#ff5c85" stroke-width="1.5"/>
+      <text x="390" y="158" class="an" font-size="18" text-anchor="middle">tracepoint</text>
+      <text x="390" y="184" class="am" font-size="13" text-anchor="middle">sys_enter · argument snapshot</text>
+
+      <rect x="580" y="120" width="200" height="90" rx="12" fill="rgba(173,92,255,.08)" stroke="#ad5cff" stroke-width="1.5"/>
+      <text x="680" y="158" class="an" font-size="18" text-anchor="middle">Ring Buffer</text>
+      <text x="680" y="184" class="am" font-size="13" text-anchor="middle">event stream</text>
+
+      <rect x="860" y="120" width="310" height="90" rx="12" fill="#131a24" stroke="#fbd332" stroke-width="1.5"/>
+      <text x="1015" y="152" class="an" font-size="18" text-anchor="middle">Userspace rule engine</text>
+      <text x="1015" y="180" class="am" font-size="13" text-anchor="middle">verdict: "shell spawned in a container!"</text>
+
+      <path class="wire" d="M200 165 H280" stroke="#ff5c85"/>
+      <path class="wire" d="M500 165 H580" stroke="#ad5cff"/>
+      <path class="wire" d="M780 165 H860" stroke="#fbd332"/>
+
+      <rect x="280" y="255" width="890" height="60" rx="12" fill="rgba(255,92,133,.05)" stroke="#ff5c85" stroke-width="1.5" stroke-dasharray="6 5"/>
+      <text x="725" y="280" class="an" font-size="16" text-anchor="middle" fill="#ff5c85">asynchronous detection does not guarantee blocking before the syscall completes</text>
+      <text x="725" y="303" class="am" font-size="13" text-anchor="middle" fill="#ff5c85">time of argument check ≠ time of use → TOCTOU (Time-of-Check to Time-of-Use) race</text>
+      <text x="110" y="70" class="am" font-size="14" fill="#a6b2c3">an asynchronous pipeline —</text>
+      <text x="110" y="92" class="am" font-size="14" fill="#a6b2c3">detection only</text>
+    </svg>
+  </div>
+  <div class="chips" data-a="4" style="display:flex;gap:12px;flex-wrap:wrap">
+    <span class="chip">Rule-based detection with ecosystem integrations</span>
+    <span class="chip hot">But blocking is after the fact — by kill time, it's already too late</span>
+  </div>
+  <aside class="notes">
+    Follow the pipeline left to right, then the twist — <b>asynchronous detection does not guarantee pre-execution blocking</b>. One line on TOCTOU. Be clear this is a structural placement issue, not a knock on Falco (its detection is genuinely strong).
+  </aside>
+</section>
+
+<!-- ============ 30 · TETRAGON ============ -->
+<section class="slide">
+  <div class="kicker" data-a="1">Runtime security № 2</div>
+  <h1 class="display md" data-a="2">Tetragon — decides in the kernel, <span class="hot">blocks on the spot</span></h1>
+  <div class="arch" data-a="3">
+    <svg viewBox="0 0 1200 340">
+      <rect x="20" y="120" width="180" height="90" rx="12" fill="#131a24" stroke="#a6b2c3" stroke-width="1.5"/>
+      <text x="110" y="158" class="an" font-size="18" text-anchor="middle">Process</text>
+      <text x="110" y="184" class="am" font-size="13" text-anchor="middle">execve("/bin/sh")</text>
+
+      <rect x="290" y="120" width="240" height="90" rx="12" fill="rgba(65,179,255,.08)" stroke="#41b3ff" stroke-width="1.5"/>
+      <text x="410" y="152" class="an" font-size="18" text-anchor="middle">LSM Hook</text>
+      <text x="410" y="180" class="am" font-size="13" text-anchor="middle">called after args are final — no TOCTOU</text>
+
+      <rect x="620" y="105" width="270" height="120" rx="12" fill="rgba(255,153,0,.08)" stroke="#ff9900" stroke-width="2"/>
+      <text x="755" y="145" class="an" font-size="19" text-anchor="middle">In-kernel Policy</text>
+      <text x="755" y="172" class="am" font-size="13" text-anchor="middle">TracingPolicy CRD → BPF</text>
+      <text x="755" y="196" class="am" font-size="13" text-anchor="middle">synchronous verdict</text>
+
+      <rect x="970" y="45" width="200" height="80" rx="12" fill="rgba(0,229,0,.07)" stroke="#00e500" stroke-width="1.5"/>
+      <text x="1070" y="80" class="an" font-size="17" text-anchor="middle">Allow</text>
+      <text x="1070" y="106" class="am" font-size="13" text-anchor="middle">emit an event log only</text>
+
+      <rect x="970" y="185" width="200" height="110" rx="12" fill="rgba(255,92,133,.08)" stroke="#ff5c85" stroke-width="1.5"/>
+      <text x="1070" y="218" class="an" font-size="17" text-anchor="middle" fill="#ff5c85">Block</text>
+      <text x="1070" y="245" class="am" font-size="12" text-anchor="middle" fill="#ff5c85">LSM return value → denial</text>
+      <text x="1070" y="268" class="am" font-size="12" text-anchor="middle" fill="#ff5c85">other actions depend on hook type</text>
+
+      <path class="wire" d="M200 165 H290" stroke="#a6b2c3"/>
+      <path class="wire" d="M530 165 H620" stroke="#41b3ff"/>
+      <path class="wire" d="M890 135 C 925 120, 935 100, 970 90" stroke="#00e500"/>
+      <path class="wire" d="M890 195 C 925 210, 935 225, 970 232" stroke="#ff5c85"/>
+      <text x="410" y="290" class="am" font-size="14" fill="#a6b2c3">no userspace round-trip — verdict and enforcement complete in the same kernel context</text>
+    </svg>
+  </div>
+  <div class="chips" data-a="4" style="display:flex;gap:12px;flex-wrap:wrap">
+    <span class="chip">Falco = after-the-fact detection</span>
+    <span class="chip hot">Tetragon = synchronous execution blocking (enforcement)</span>
+    <span class="chip">Kubernetes-aware — per-Pod/namespace policies via the TracingPolicy CRD (Custom Resource Definition)</span>
+    <span class="chip">The next step is correlation — weaving kernel eBPF data with cloud API and app signals into full attack stories (ARMO CADR · Cloud Application Detection &amp; Response)</span>
+  </div>
+  <aside class="notes">
+    The contrast is everything — Falco detects asynchronously after the fact; <b>Tetragon issues a synchronous verdict at the LSM hook and completes the block in the same kernel context</b>. Two blocking levers: -EPERM vs SIGKILL. Also K8s-native via the TracingPolicy CRD.
+  </aside>
+</section>
+
+<!-- ============ 31 · PRODUCTION TUNING ============ -->
+<section class="slide">
+  <div class="kicker" data-a="1">Operations</div>
+  <h1 class="display md" data-a="2">Production checklist</h1>
+  <div class="ladder">
+    <div class="rung" style="--rc:var(--orange)" data-a="3">
+      <span class="k">01</span>
+      <div><h3>JIT settings</h3><p><code>net.core.bpf_jit_enable=1</code> — the default on most modern distros. <code>bpf_jit_harden</code> blinds constants against JIT spraying but <b>costs performance</b> — choose by trust boundary.</p></div>
+      <span class="tag">SYSCTL</span>
+    </div>
+    <div class="rung" style="--rc:var(--blue)" data-a="4">
+      <span class="k">02</span>
+      <div><h3>Memory accounting — a kernel-version fork</h3><p>Before v5.11: map memory counts against <code>RLIMIT_MEMLOCK</code> — check and raise <code>ulimit -l</code> when the configured limit is insufficient. <b>v5.11+: switched to cgroup memory accounting</b> — container memory limits now include BPF maps, so size them accordingly.</p></div>
+      <span class="tag">MEMLOCK</span>
+    </div>
+    <div class="rung" style="--rc:var(--green)" data-a="5">
+      <span class="k">03</span>
+      <div><h3>Shipping strategy</h3><p><b>libbpf CO-RE static binaries</b> instead of BCC runtime compilation. For older kernels without BTF, inject external BTF from BTFHub.</p></div>
+      <span class="tag">CO-RE</span>
+    </div>
+    <div class="rung" style="--rc:var(--purple)" data-a="6">
+      <span class="k">04</span>
+      <div><h3>Overhead management</h3><p>Filter <b>as much as possible inside the kernel</b> — cost jumps the moment events cross into userspace. Aggregate in per-CPU maps to eliminate lock contention.</p></div>
+      <span class="tag">OVERHEAD</span>
+    </div>
+  </div>
+  <aside class="notes">
+    Ops checklist — item 2 (memory accounting) bites hardest in practice: <b>RLIMIT_MEMLOCK ↔ cgroup accounting splits at v5.11</b>. Not knowing that container memory limits include BPF maps means OOM pain.
+  </aside>
+</section>
+
+<!-- ============ 32 · CHAPTER 03 ============ -->
+<section class="slide chapter">
+  <span class="num">03</span>
+  <div class="kicker" data-a="1">Chapter three</div>
+  <h1 class="display" data-a="2"><span class="hot">eBPF</span> on EKS</h1>
+  <p class="mono-tag" data-a="3">vpc cni · cilium · hubble · benchmarks</p>
+  <aside class="notes">
+    Chapter break — the key reversal: <b>EKS offers several components that use eBPF when installed and enabled</b>. The next slide's landscape is the evidence.
+  </aside>
+</section>
+
+<!-- ============ 33 · EKS LANDSCAPE ============ -->
+<section class="slide">
+  <div class="kicker" data-a="1">Already in production</div>
+  <h1 class="display md" data-a="2">The EKS eBPF landscape — <span class="hot">already in production</span></h1>
+  <p class="sub" data-a="3">eBPF powers these EKS networking options <b>when installed and enabled</b>. Understanding it adds a debugging layer.</p>
+  <div class="tiles four">
+    <div class="tile" data-a="4">
+      <span class="tn">AWS · v1.14+</span>
+      <h3>VPC CNI NetworkPolicy</h3>
+      <p>When NetworkPolicy is enabled, the agent <b>attaches eBPF programs to supported Pods' host veth</b>. Policy enforcement with no iptables chains.</p>
+      <span class="tt">POLICY</span>
+    </div>
+    <div class="tile tc-blue" data-a="5">
+      <span class="tn">CNCF</span>
+      <h3>Cilium</h3>
+      <p>An eBPF network datapath with userspace IPAM/control components. Optional <b>kube-proxy replacement</b> and ENI routing.</p>
+      <span class="tt">CNI</span>
+    </div>
+    <div class="tile tc-green" data-a="6">
+      <span class="tn">CILIUM</span>
+      <h3>Hubble</h3>
+      <p><b>L3/L4/L7 flow observability</b> from the same eBPF datapath — service maps with zero extra instrumentation.</p>
+      <span class="tt">OBSERVABILITY</span>
+    </div>
+    <div class="tile tc-purple" data-a="7">
+      <span class="tn">AWS MANAGED</span>
+      <h3>Network Flow Monitor</h3>
+      <p>An agent DaemonSet collecting TCP retransmits and RTT (Round-Trip Time) via the <b>sock_ops hook</b>.</p>
+      <span class="tt">MONITORING</span>
+    </div>
+  </div>
+  <aside class="notes">
+    All four tiles are "already in production" — VPC CNI NetworkPolicy (v1.14+), Cilium, Hubble, NFM. The chapter's thesis sentence: <b>understanding it adds a debugging layer</b>.
+  </aside>
+</section>
+
+<!-- ============ 34 · VPC CNI NETWORKPOLICY ============ -->
+<section class="slide">
+  <div class="kicker" data-a="1">eBPF on EKS № 1</div>
+  <h1 class="display md" data-a="2">VPC CNI NetworkPolicy — a <span class="hot">division of labor</span>: controller and agent</h1>
+  <div class="arch" data-a="3">
+    <svg viewBox="0 0 1200 400">
+      <rect x="20" y="60" width="230" height="95" rx="12" fill="#131a24" stroke="#a6b2c3" stroke-width="1.5"/>
+      <text x="135" y="100" class="an" font-size="18" text-anchor="middle">NetworkPolicy</text>
+      <text x="135" y="128" class="am" font-size="13" text-anchor="middle">user-defined object</text>
+
+      <rect x="340" y="45" width="310" height="125" rx="12" fill="rgba(255,153,0,.06)" stroke="#ff9900" stroke-width="1.5"/>
+      <text x="495" y="85" class="an" font-size="18" text-anchor="middle">Network Policy Controller</text>
+      <text x="495" y="112" class="am" font-size="13" text-anchor="middle">EKS control plane · AWS-managed</text>
+      <text x="495" y="136" class="am" font-size="13" text-anchor="middle">resolves selectors → concrete Pod IP sets</text>
+
+      <rect x="740" y="60" width="230" height="95" rx="12" fill="rgba(173,92,255,.08)" stroke="#ad5cff" stroke-width="1.5"/>
+      <text x="855" y="100" class="an" font-size="18" text-anchor="middle">PolicyEndpoints</text>
+      <text x="855" y="128" class="am" font-size="13" text-anchor="middle">CRD — resolved results published</text>
+
+      <!-- node boundary -->
+      <rect x="240" y="230" width="930" height="150" rx="16" fill="rgba(65,179,255,.03)" stroke="#41b3ff" stroke-width="1.2" stroke-dasharray="8 6"/>
+      <text x="270" y="262" class="am" font-size="13" fill="#41b3ff" letter-spacing="2">WORKER NODE</text>
+
+      <rect x="290" y="285" width="330" height="80" rx="12" fill="rgba(65,179,255,.08)" stroke="#41b3ff" stroke-width="1.5"/>
+      <text x="455" y="318" class="an" font-size="17" text-anchor="middle">aws-network-policy-agent</text>
+      <text x="455" y="344" class="am" font-size="13" text-anchor="middle">DaemonSet — watches PolicyEndpoints</text>
+
+      <rect x="720" y="285" width="200" height="80" rx="12" fill="rgba(0,229,0,.07)" stroke="#00e500" stroke-width="1.5"/>
+      <text x="820" y="318" class="an" font-size="17" text-anchor="middle">eBPF probes</text>
+      <text x="820" y="344" class="am" font-size="13" text-anchor="middle">ingress / egress verdicts</text>
+
+      <rect x="990" y="285" width="150" height="80" rx="12" fill="#131a24" stroke="#fbd332" stroke-width="1.5"/>
+      <text x="1065" y="318" class="an" font-size="17" text-anchor="middle">host veth</text>
+      <text x="1065" y="344" class="am" font-size="13" text-anchor="middle">Pod interface</text>
+
+      <path class="wire" d="M250 107 H340" stroke="#a6b2c3"/>
+      <path class="wire" d="M650 107 H740" stroke="#ff9900"/>
+      <path class="wire" d="M855 155 C 855 210, 600 220, 500 285" stroke="#ad5cff"/>
+      <path class="wire" d="M620 325 H720" stroke="#41b3ff"/>
+      <path class="wire" d="M920 325 H990" stroke="#00e500"/>
+    </svg>
+  </div>
+  <div class="chips" data-a="4" style="display:flex;gap:12px;flex-wrap:wrap">
+    <span class="chip hot">eBPF policy enforcement — enable NetworkPolicy and check supported nodes</span>
+    <span class="chip">Troubleshooting step one: inspect PolicyEndpoint resources alongside the NetworkPolicy</span>
+    <span class="chip">Scope — Pod eth0 only · does not apply to host networking / Windows / Fargate</span>
+  </div>
+  <aside class="notes">
+    Explain the division of labor — controller (AWS-managed, selector→IP resolution) vs node agent (eBPF attach). Two field tips: <b>troubleshoot starting from the PolicyEndpoints CRD</b>, and scope is Pod eth0 only (no host networking / Windows / Fargate).
+  </aside>
+</section>
+
+<!-- ============ 35 · NFM CASE STUDY ============ -->
+<section class="slide">
+  <div class="kicker" data-a="1">eBPF on EKS № 2</div>
+  <h1 class="display md" data-a="2">Network Flow Monitor — reading AWS's own eBPF <span class="hot">in the source</span></h1>
+  <p class="sub" data-a="3">The NFM agent is open source (Rust · Apache-2.0) — it shows exactly how chapter 1's concepts are used in production code.</p>
+  <div class="ladder">
+    <div class="rung" style="--rc:var(--orange)" data-a="4">
+      <span class="k">HOOK</span>
+      <div><h3>A single sock_ops program</h3><p><code>sock_ops</code> callbacks on cgroup v2 collect TCP connect, RTT and retransmits. The BPF_OK return does not block connections.</p></div>
+      <span class="tag">§12 APPLIED</span>
+    </div>
+    <div class="rung" style="--rc:var(--blue)" data-a="5">
+      <span class="k">MAP</span>
+      <div><h3>Map polling instead of a Ring Buffer</h3><p>Per-socket maps are aggregated every <b>500 ms</b> by default. This design does not stream every event through a ring buffer.</p></div>
+      <span class="tag">§18 COUNTERPOINT</span>
+    </div>
+    <div class="rung" style="--rc:var(--green)" data-a="6">
+      <span class="k">SAMPLE</span>
+      <div><h3>Sampling at the entrance only</h3><p>Sampling is decided at new-socket entry. <b>Map capacity, eviction and processing errors</b> can still limit tracking.</p></div>
+      <span class="tag">CONSISTENCY</span>
+    </div>
+    <div class="rung" style="--rc:var(--pink)" data-a="7">
+      <span class="k">CAP</span>
+      <div><h3>Drops its own privileges</h3><p>Drops <code>CAP_SYS_ADMIN</code>, <code>CAP_PERFMON</code> and <code>CAP_NET_ADMIN</code> after initialization; retains CAP_BPF. Other privileges depend on deployment.</p></div>
+      <span class="tag">LEAST PRIV</span>
+    </div>
+  </div>
+  <div class="chips" data-a="8" style="display:flex;gap:12px;margin-top:2.6vh;flex-wrap:wrap">
+    <span class="chip hot">Support is version-specific — consult AWS supported Linux distributions and kernel requirements (5.8+)</span>
+    <span class="chip">Ops detail (NHI · enrichment · rollout) — Playbook NFM doc</span>
+  </div>
+  <aside class="notes">
+    The highlight of chapter 1 collection — reading AWS's own eBPF in the source. <b>The map-polling rung is the gem: if it isn't an event stream, the Ring Buffer isn't the answer</b> (a deliberate counterpoint to §18). CAP self-drop, then the license chip — the modern rerun of §6's DTrace CDDL.
+  <p>Source: <a href="https://github.com/aws/network-flow-monitor-agent/blob/3bf328bc44c53ffb2a35696e58484c06fc4259f8/nfm-controller/src/lib.rs" target="_blank" rel="noopener">NFM privileges source</a>.</p>
+  </aside>
+</section>
+
+<!-- ============ 36 · CILIUM ENI ============ -->
+<section class="slide">
+  <div class="kicker" data-a="1">eBPF on EKS № 3</div>
+  <h1 class="display md" data-a="2">Cilium ENI mode — an <span class="hot">eBPF datapath</span> with no overlay</h1>
+  <div class="split w64">
+    <div class="arch" data-a="3" style="margin-top:0">
+      <svg viewBox="0 0 760 380">
+        <rect x="20" y="30" width="150" height="80" rx="12" fill="#131a24" stroke="#a6b2c3" stroke-width="1.5"/>
+        <text x="95" y="65" class="an" font-size="16" text-anchor="middle">Pod</text>
+        <text x="95" y="90" class="am" font-size="12" text-anchor="middle">VPC-native IP</text>
+
+        <rect x="240" y="30" width="220" height="80" rx="12" fill="rgba(255,153,0,.08)" stroke="#ff9900" stroke-width="2"/>
+        <text x="350" y="60" class="an" font-size="16" text-anchor="middle">eBPF (tc hook)</text>
+        <text x="350" y="85" class="am" font-size="12" text-anchor="middle">service resolution · policy · O(1) lookup</text>
+
+        <rect x="530" y="30" width="200" height="80" rx="12" fill="rgba(65,179,255,.08)" stroke="#41b3ff" stroke-width="1.5"/>
+        <text x="630" y="60" class="an" font-size="16" text-anchor="middle">ENI → VPC routing</text>
+        <text x="630" y="85" class="am" font-size="12" text-anchor="middle">no overlay encapsulation</text>
+
+        <rect x="240" y="170" width="220" height="75" rx="12" fill="rgba(255,92,133,.06)" stroke="#ff5c85" stroke-width="1.5" stroke-dasharray="5 4"/>
+        <text x="350" y="200" class="an" font-size="15" text-anchor="middle" fill="#ff5c85">kube-proxy</text>
+        <text x="350" y="224" class="am" font-size="12" text-anchor="middle" fill="#ff5c85">optional replacement — separate setting</text>
+
+        <rect x="20" y="290" width="230" height="75" rx="12" fill="rgba(173,92,255,.08)" stroke="#ad5cff" stroke-width="1.5"/>
+        <text x="135" y="320" class="an" font-size="15" text-anchor="middle">Cilium Operator</text>
+        <text x="135" y="344" class="am" font-size="12" text-anchor="middle">EC2 API — ENI/IP allocation</text>
+
+        <rect x="330" y="290" width="190" height="75" rx="12" fill="#131a24" stroke="#fbd332" stroke-width="1.5"/>
+        <text x="425" y="320" class="an" font-size="15" text-anchor="middle">CiliumNode CRD</text>
+        <text x="425" y="344" class="am" font-size="12" text-anchor="middle">per-node IP pool</text>
+
+        <rect x="600" y="290" width="140" height="75" rx="12" fill="rgba(0,229,0,.07)" stroke="#00e500" stroke-width="1.5"/>
+        <text x="670" y="320" class="an" font-size="15" text-anchor="middle">Agent</text>
+        <text x="670" y="344" class="am" font-size="12" text-anchor="middle">assigns Pod IPs</text>
+
+        <path class="wire" d="M170 70 H240" stroke="#a6b2c3"/>
+        <path class="wire" d="M460 70 H530" stroke="#ff9900"/>
+        <path class="wire" d="M250 327 H330" stroke="#ad5cff"/>
+        <path class="wire" d="M520 327 H600" stroke="#fbd332"/>
+      </svg>
+    </div>
+    <div class="panel" style="--pc:var(--blue)" data-a="4">
+      <h3>What changes</h3>
+      <ul>
+        <li><b>Optional kube-proxy replacement</b> — configured separately from ENI IPAM; eBPF maps replace iptables Service chains</li>
+        <li><b>ENI IPAM</b> (IP Address Management) — Pods get VPC IPs directly, overlay overhead removed</li>
+        <li><b>Hubble</b> — enable flow observability; L7 requires protocol-aware proxy configuration</li>
+        <li>Optional integrations — Gateway API · mutual authentication · Bandwidth Manager; ENI mode alone does not enable them</li>
+      </ul>
+    </div>
+  </div>
+  <aside class="notes">
+    Cilium ENI mode's three big changes — <b>optional kube-proxy replacement (separate from ENI IPAM)</b>, Pods get VPC IPs directly (no overlay), Hubble observability when enabled. The red dashed box applies when kube-proxy replacement is configured.
+  </aside>
+</section>
+
+<!-- ============ 37 · BENCHMARK ============ -->
+<section class="slide">
+  <div class="kicker" data-a="1">Numbers, not vibes</div>
+  <h1 class="display md" data-a="2">eBPF in numbers — hands-on benchmarks</h1>
+  <p class="sub" data-a="3">Reported in the playbook benchmark — <b>2026-02-09 · EKS 1.31 · m6i.xlarge</b>, median of at least 3 runs. Not rerun for this review.</p>
+  <table class="compare" data-a="4">
+    <thead>
+      <tr><th>Metric</th><th>A · VPC CNI (default)</th><th class="hl">E · Cilium ENI + full tuning</th><th>Reading</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>TCP throughput</td><td>12.41 Gbps</td><td>12.40 Gbps</td><td>Similar measured throughput in this test; not proof of sustained instance bandwidth</td></tr>
+      <tr><td>Pod-to-Pod RTT p50</td><td>4,894 µs</td><td class="good">3,135 µs</td><td>eBPF datapath + tuning — <b>~36% lower</b></td></tr>
+      <tr><td>UDP loss (iperf3 saturation)</td><td class="bad">20.4%</td><td class="good">0.03%</td><td>Tuned configuration differs; the table alone cannot isolate the cause of UDP loss</td></tr>
+      <tr><td>HTTP p99 @1k QPS</td><td>10.9 ms</td><td class="good">9.9 ms</td><td>The gap narrows at the application level — <b>the CNI is only part of the bottleneck</b></td></tr>
+    </tbody>
+  </table>
+  <div class="chips" data-a="5" style="display:flex;gap:12px;margin-top:2.4vh;flex-wrap:wrap">
+    <span class="chip hot">Conclusion: pick a CNI on latency · features · operating model — not throughput</span>
+    <span class="chip">Cilium service mesh and Istio Ambient use different datapaths; both can reduce per-Pod sidecar deployment</span>
+  </div>
+  <aside class="notes">
+    These are historical figures reported in the repository benchmark, not reproduced in this review. Throughput is similar; RTT and UDP loss differ. Multiple settings changed, so causal attribution requires a controlled test. Conclusion chip: pick a CNI on latency, features, and operating model — not throughput.
+  <p>Source: <a href="https://devfloor9.github.io/engineering-playbook/docs/benchmarks/cni-performance-comparison" target="_blank" rel="noopener">Historical benchmark</a>.</p>
+  </aside>
+</section>
+
+<!-- ============ 38 · TAKEAWAYS ============ -->
+<section class="slide">
+  <div class="kicker" data-a="1">Take these home</div>
+  <h1 class="display md" data-a="2">Read the kernel, and <span class="hot">the cluster comes into focus</span></h1>
+  <div class="takeaways">
+    <div class="take" data-a="3"><span class="tk">1</span><h3>The Verifier is the contract</h3><p>eBPF uses <b>load-time verification</b>, not runtime isolation. Constraints like the 512 B stack and bounded loops are the price of that proof.</p></div>
+    <div class="take" data-a="4"><span class="tk">2</span><h3>CO-RE changed shipping</h3><p>BTF relocation reduces per-kernel recompilation on compatible targets. <b>libbpf static binaries</b> are the production standard — keep BCC for experiments.</p></div>
+    <div class="take" data-a="5"><span class="tk">3</span><h3>On EKS it's already table stakes</h3><p>The NetworkPolicy agent, Cilium, and NFM all run on eBPF — and NFM's source is public. <b>The moment you understand it, you gain a debugging layer.</b></p></div>
+  </div>
+  <p class="sub" data-a="6" style="margin-top:4vh">One sentence through all three chapters — <b>eBPF is a verified programming layer that changes the kernel's behavior without changing the kernel</b>.</p>
+  <aside class="notes">
+    Count the three on your fingers — the Verifier is the contract, CO-RE changed shipping, already table stakes on EKS. Deliver the through-line slowly: <b>a verified programming layer that changes the kernel's behavior without changing the kernel</b>.
+  </aside>
+</section>
+
+<!-- ============ 39 · CLOSING ============ -->
+<section class="slide cover">
+  <div class="kicker" data-a="1">Wrap-up</div>
+  <h1 class="display md" data-a="2">The kernel is no longer a <span class="hot">black box</span></h1>
+  <p class="sub" data-a="3">Resources to go deeper — questions and discussion welcome.</p>
+  <div class="rescols">
+    <div data-a="4">
+      <h3>Learn</h3>
+      <div class="rl"><span class="mglyph">eB</span><a href="https://ebpf.io/what-is-ebpf/" target="_blank" rel="noopener">ebpf.io — What is eBPF?</a><span class="rtag">OVERVIEW</span></div>
+      <div class="rl"><span class="mglyph">K</span><a href="https://docs.kernel.org/bpf/" target="_blank" rel="noopener">kernel.org BPF Documentation</a><span class="rtag">KERNEL</span></div>
+      <div class="rl"><span class="mglyph">BG</span><a href="https://www.brendangregg.com/bpf-performance-tools-book.html" target="_blank" rel="noopener">Brendan Gregg — BPF Performance Tools</a><span class="rtag">BOOK</span></div>
+    </div>
+    <div data-a="5">
+      <h3>Build on EKS</h3>
+      <div class="rl"><span class="mglyph">C</span><a href="https://docs.cilium.io/en/stable/network/concepts/ipam/eni/" target="_blank" rel="noopener">Cilium ENI Mode</a><span class="rtag">CNI</span></div>
+      <div class="rl"><span class="mglyph">T</span><a href="https://tetragon.io/" target="_blank" rel="noopener">Tetragon — eBPF Security Observability</a><span class="rtag">SECURITY</span></div>
+      <div class="rl"><span class="mglyph">PB</span><a href="https://devfloor9.github.io/engineering-playbook/docs/eks-best-practices/networking-performance/vpc-cni-deep-dive" target="_blank" rel="noopener">Playbook — VPC CNI Deep Dive</a><span class="rtag">PLAYBOOK</span></div>
+    </div>
+  </div>
+  <div class="chips" data-a="6">
+    <span class="chip hot">THANK YOU</span>
+    <span class="chip">Q &amp; A</span>
+    <span class="chip">Engineering Playbook — devfloor9.github.io/engineering-playbook</span>
+  </div>
+  <div class="speakers" data-speakers data-a="7"></div>
+  <div class="qrbox" id="qrBox" hidden>
+    <div class="qr" id="qrTarget"></div>
+    <span>CSAT SURVEY</span>
+  </div>
+  <aside class="notes">
+    Q&amp;A — resources in two columns: Learn (concepts) / Build on EKS (practice). The CSAT QR shows with the <b>Q key</b> (set the survey URL via E). Closing line: "the kernel is no longer a black box".
+  </aside>
+</section>
+
+<!-- presenter setup — stored in this browser's localStorage only; never travels with a shared link -->
+<aside class="setup" id="setup" role="dialog" aria-modal="true" aria-labelledby="setupTitle" hidden>
+  <header>
+    <span class="st" id="setupTitle">PRESENTER SETUP</span>
+    <button id="setupClose" aria-label="Close">×</button>
+  </header>
+  <p class="note">Saved in this browser only — set it once and it persists; sharing the link never shares your speaker info.</p>
+  <div class="seg" id="spkCount">
+    <button type="button" data-count="1">1 speaker</button>
+    <button type="button" data-count="2">2 speakers</button>
+  </div>
+  <fieldset id="spk1">
+    <legend>Speaker 1</legend>
+    <label>Name<input id="s1name" type="text" autocomplete="off"></label>
+    <label>Title<input id="s1title" type="text" autocomplete="off"></label>
+    <label>Company<input id="s1company" type="text" autocomplete="off"></label>
+    <label>LinkedIn<input id="s1linkedin" type="text" autocomplete="off"></label>
+  </fieldset>
+  <fieldset id="spk2" hidden>
+    <legend>Speaker 2</legend>
+    <label>Name<input id="s2name" type="text" autocomplete="off"></label>
+    <label>Title<input id="s2title" type="text" autocomplete="off"></label>
+    <label>Company<input id="s2company" type="text" autocomplete="off"></label>
+    <label>LinkedIn<input id="s2linkedin" type="text" autocomplete="off"></label>
+  </fieldset>
+  <label class="chk"><input id="hideSpk" type="checkbox"> Hide speaker info (cover + closing)</label>
+  <label class="survey">CSAT survey link <em>(rendered as a QR on the closing slide)</em><input id="surveyUrl" type="url" placeholder="https://… survey URL" autocomplete="off"></label>
+  <div class="actions">
+    <button type="button" id="setupReset">Restore defaults</button>
+    <button type="button" id="setupSave" class="primary">Save</button>
+  </div>
+</aside>
+
+<script>
+/**
+ * Minified by jsDelivr using Terser v5.37.0.
+ * Original file: /npm/qrcode-generator@1.4.4/qrcode.js
+ *
+ * Do NOT use SRI with dynamically generated files! More information: https://www.jsdelivr.com/using-sri-with-dynamic-files
+ */
+var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],f={},c=function(t,r){o=function(t){for(var r=new Array(t),e=0;e<t;e+=1){r[e]=new Array(t);for(var n=0;n<t;n+=1)r[e][n]=null}return r}(i=4*e+17),l(0,0),l(i-7,0),l(0,i-7),s(),h(),d(t,r),e>=7&&v(t),null==a&&(a=p(e,n,u)),w(a,r)},l=function(t,r){for(var e=-1;e<=7;e+=1)if(!(t+e<=-1||i<=t+e))for(var n=-1;n<=7;n+=1)r+n<=-1||i<=r+n||(o[t+e][r+n]=0<=e&&e<=6&&(0==n||6==n)||0<=n&&n<=6&&(0==e||6==e)||2<=e&&e<=4&&2<=n&&n<=4)},h=function(){for(var t=8;t<i-8;t+=1)null==o[t][6]&&(o[t][6]=t%2==0);for(var r=8;r<i-8;r+=1)null==o[6][r]&&(o[6][r]=r%2==0)},s=function(){for(var t=B.getPatternPosition(e),r=0;r<t.length;r+=1)for(var n=0;n<t.length;n+=1){var i=t[r],a=t[n];if(null==o[i][a])for(var u=-2;u<=2;u+=1)for(var f=-2;f<=2;f+=1)o[i+u][a+f]=-2==u||2==u||-2==f||2==f||0==u&&0==f}},v=function(t){for(var r=B.getBCHTypeNumber(e),n=0;n<18;n+=1){var a=!t&&1==(r>>n&1);o[Math.floor(n/3)][n%3+i-8-3]=a}for(n=0;n<18;n+=1){a=!t&&1==(r>>n&1);o[n%3+i-8-3][Math.floor(n/3)]=a}},d=function(t,r){for(var e=n<<3|r,a=B.getBCHTypeInfo(e),u=0;u<15;u+=1){var f=!t&&1==(a>>u&1);u<6?o[u][8]=f:u<8?o[u+1][8]=f:o[i-15+u][8]=f}for(u=0;u<15;u+=1){f=!t&&1==(a>>u&1);u<8?o[8][i-u-1]=f:u<9?o[8][15-u-1+1]=f:o[8][15-u-1]=f}o[i-8][8]=!t},w=function(t,r){for(var e=-1,n=i-1,a=7,u=0,f=B.getMaskFunction(r),c=i-1;c>0;c-=2)for(6==c&&(c-=1);;){for(var g=0;g<2;g+=1)if(null==o[n][c-g]){var l=!1;u<t.length&&(l=1==(t[u]>>>a&1)),f(n,c-g)&&(l=!l),o[n][c-g]=l,-1==(a-=1)&&(u+=1,a=7)}if((n+=e)<0||i<=n){n-=e,e=-e;break}}},p=function(t,r,e){for(var n=A.getRSBlocks(t,r),o=b(),i=0;i<e.length;i+=1){var a=e[i];o.put(a.getMode(),4),o.put(a.getLength(),B.getLengthInBits(a.getMode(),t)),a.write(o)}var u=0;for(i=0;i<n.length;i+=1)u+=n[i].dataCount;if(o.getLengthInBits()>8*u)throw"code length overflow. ("+o.getLengthInBits()+">"+8*u+")";for(o.getLengthInBits()+4<=8*u&&o.put(0,4);o.getLengthInBits()%8!=0;)o.putBit(!1);for(;!(o.getLengthInBits()>=8*u||(o.put(236,8),o.getLengthInBits()>=8*u));)o.put(17,8);return function(t,r){for(var e=0,n=0,o=0,i=new Array(r.length),a=new Array(r.length),u=0;u<r.length;u+=1){var f=r[u].dataCount,c=r[u].totalCount-f;n=Math.max(n,f),o=Math.max(o,c),i[u]=new Array(f);for(var g=0;g<i[u].length;g+=1)i[u][g]=255&t.getBuffer()[g+e];e+=f;var l=B.getErrorCorrectPolynomial(c),h=k(i[u],l.getLength()-1).mod(l);for(a[u]=new Array(l.getLength()-1),g=0;g<a[u].length;g+=1){var s=g+h.getLength()-a[u].length;a[u][g]=s>=0?h.getAt(s):0}}var v=0;for(g=0;g<r.length;g+=1)v+=r[g].totalCount;var d=new Array(v),w=0;for(g=0;g<n;g+=1)for(u=0;u<r.length;u+=1)g<i[u].length&&(d[w]=i[u][g],w+=1);for(g=0;g<o;g+=1)for(u=0;u<r.length;u+=1)g<a[u].length&&(d[w]=a[u][g],w+=1);return d}(o,n)};f.addData=function(t,r){var e=null;switch(r=r||"Byte"){case"Numeric":e=M(t);break;case"Alphanumeric":e=x(t);break;case"Byte":e=m(t);break;case"Kanji":e=L(t);break;default:throw"mode:"+r}u.push(e),a=null},f.isDark=function(t,r){if(t<0||i<=t||r<0||i<=r)throw t+","+r;return o[t][r]},f.getModuleCount=function(){return i},f.make=function(){if(e<1){for(var t=1;t<40;t++){for(var r=A.getRSBlocks(t,n),o=b(),i=0;i<u.length;i++){var a=u[i];o.put(a.getMode(),4),o.put(a.getLength(),B.getLengthInBits(a.getMode(),t)),a.write(o)}var g=0;for(i=0;i<r.length;i++)g+=r[i].dataCount;if(o.getLengthInBits()<=8*g)break}e=t}c(!1,function(){for(var t=0,r=0,e=0;e<8;e+=1){c(!0,e);var n=B.getLostPoint(f);(0==e||t>n)&&(t=n,r=e)}return r}())},f.createTableTag=function(t,r){t=t||2;var e="";e+='<table style="',e+=" border-width: 0px; border-style: none;",e+=" border-collapse: collapse;",e+=" padding: 0px; margin: "+(r=void 0===r?4*t:r)+"px;",e+='">',e+="<tbody>";for(var n=0;n<f.getModuleCount();n+=1){e+="<tr>";for(var o=0;o<f.getModuleCount();o+=1)e+='<td style="',e+=" border-width: 0px; border-style: none;",e+=" border-collapse: collapse;",e+=" padding: 0px; margin: 0px;",e+=" width: "+t+"px;",e+=" height: "+t+"px;",e+=" background-color: ",e+=f.isDark(n,o)?"#000000":"#ffffff",e+=";",e+='"/>';e+="</tr>"}return e+="</tbody>",e+="</table>"},f.createSvgTag=function(t,r,e,n){var o={};"object"==typeof arguments[0]&&(t=(o=arguments[0]).cellSize,r=o.margin,e=o.alt,n=o.title),t=t||2,r=void 0===r?4*t:r,(e="string"==typeof e?{text:e}:e||{}).text=e.text||null,e.id=e.text?e.id||"qrcode-description":null,(n="string"==typeof n?{text:n}:n||{}).text=n.text||null,n.id=n.text?n.id||"qrcode-title":null;var i,a,u,c,g=f.getModuleCount()*t+2*r,l="";for(c="l"+t+",0 0,"+t+" -"+t+",0 0,-"+t+"z ",l+='<svg version="1.1" xmlns="http://www.w3.org/2000/svg"',l+=o.scalable?"":' width="'+g+'px" height="'+g+'px"',l+=' viewBox="0 0 '+g+" "+g+'" ',l+=' preserveAspectRatio="xMinYMin meet"',l+=n.text||e.text?' role="img" aria-labelledby="'+y([n.id,e.id].join(" ").trim())+'"':"",l+=">",l+=n.text?'<title id="'+y(n.id)+'">'+y(n.text)+"</title>":"",l+=e.text?'<description id="'+y(e.id)+'">'+y(e.text)+"</description>":"",l+='<rect width="100%" height="100%" fill="white" cx="0" cy="0"/>',l+='<path d="',a=0;a<f.getModuleCount();a+=1)for(u=a*t+r,i=0;i<f.getModuleCount();i+=1)f.isDark(a,i)&&(l+="M"+(i*t+r)+","+u+c);return l+='" stroke="transparent" fill="black"/>',l+="</svg>"},f.createDataURL=function(t,r){t=t||2,r=void 0===r?4*t:r;var e=f.getModuleCount()*t+2*r,n=r,o=e-r;return I(e,e,(function(r,e){if(n<=r&&r<o&&n<=e&&e<o){var i=Math.floor((r-n)/t),a=Math.floor((e-n)/t);return f.isDark(a,i)?0:1}return 1}))},f.createImgTag=function(t,r,e){t=t||2,r=void 0===r?4*t:r;var n=f.getModuleCount()*t+2*r,o="";return o+="<img",o+=' src="',o+=f.createDataURL(t,r),o+='"',o+=' width="',o+=n,o+='"',o+=' height="',o+=n,o+='"',e&&(o+=' alt="',o+=y(e),o+='"'),o+="/>"};var y=function(t){for(var r="",e=0;e<t.length;e+=1){var n=t.charAt(e);switch(n){case"<":r+="&lt;";break;case">":r+="&gt;";break;case"&":r+="&amp;";break;case'"':r+="&quot;";break;default:r+=n}}return r};return f.createASCII=function(t,r){if((t=t||1)<2)return function(t){t=void 0===t?2:t;var r,e,n,o,i,a=1*f.getModuleCount()+2*t,u=t,c=a-t,g={"██":"█","█ ":"▀"," █":"▄","  ":" "},l={"██":"▀","█ ":"▀"," █":" ","  ":" "},h="";for(r=0;r<a;r+=2){for(n=Math.floor((r-u)/1),o=Math.floor((r+1-u)/1),e=0;e<a;e+=1)i="█",u<=e&&e<c&&u<=r&&r<c&&f.isDark(n,Math.floor((e-u)/1))&&(i=" "),u<=e&&e<c&&u<=r+1&&r+1<c&&f.isDark(o,Math.floor((e-u)/1))?i+=" ":i+="█",h+=t<1&&r+1>=c?l[i]:g[i];h+="\n"}return a%2&&t>0?h.substring(0,h.length-a-1)+Array(a+1).join("▀"):h.substring(0,h.length-1)}(r);t-=1,r=void 0===r?2*t:r;var e,n,o,i,a=f.getModuleCount()*t+2*r,u=r,c=a-r,g=Array(t+1).join("██"),l=Array(t+1).join("  "),h="",s="";for(e=0;e<a;e+=1){for(o=Math.floor((e-u)/t),s="",n=0;n<a;n+=1)i=1,u<=n&&n<c&&u<=e&&e<c&&f.isDark(o,Math.floor((n-u)/t))&&(i=0),s+=i?g:l;for(o=0;o<t;o+=1)h+=s+"\n"}return h.substring(0,h.length-1)},f.renderTo2dContext=function(t,r){r=r||2;for(var e=f.getModuleCount(),n=0;n<e;n++)for(var o=0;o<e;o++)t.fillStyle=f.isDark(n,o)?"black":"white",t.fillRect(n*r,o*r,r,r)},f};t.stringToBytes=(t.stringToBytesFuncs={default:function(t){for(var r=[],e=0;e<t.length;e+=1){var n=t.charCodeAt(e);r.push(255&n)}return r}}).default,t.createStringToBytes=function(t,r){var e=function(){for(var e=S(t),n=function(){var t=e.read();if(-1==t)throw"eof";return t},o=0,i={};;){var a=e.read();if(-1==a)break;var u=n(),f=n()<<8|n();i[String.fromCharCode(a<<8|u)]=f,o+=1}if(o!=r)throw o+" != "+r;return i}(),n="?".charCodeAt(0);return function(t){for(var r=[],o=0;o<t.length;o+=1){var i=t.charCodeAt(o);if(i<128)r.push(i);else{var a=e[t.charAt(o)];"number"==typeof a?(255&a)==a?r.push(a):(r.push(a>>>8),r.push(255&a)):r.push(n)}}return r}};var r,e,n,o,i,a=1,u=2,f=4,c=8,g={L:1,M:0,Q:3,H:2},l=0,h=1,s=2,v=3,d=4,w=5,p=6,y=7,B=(r=[[],[6,18],[6,22],[6,26],[6,30],[6,34],[6,22,38],[6,24,42],[6,26,46],[6,28,50],[6,30,54],[6,32,58],[6,34,62],[6,26,46,66],[6,26,48,70],[6,26,50,74],[6,30,54,78],[6,30,56,82],[6,30,58,86],[6,34,62,90],[6,28,50,72,94],[6,26,50,74,98],[6,30,54,78,102],[6,28,54,80,106],[6,32,58,84,110],[6,30,58,86,114],[6,34,62,90,118],[6,26,50,74,98,122],[6,30,54,78,102,126],[6,26,52,78,104,130],[6,30,56,82,108,134],[6,34,60,86,112,138],[6,30,58,86,114,142],[6,34,62,90,118,146],[6,30,54,78,102,126,150],[6,24,50,76,102,128,154],[6,28,54,80,106,132,158],[6,32,58,84,110,136,162],[6,26,54,82,110,138,166],[6,30,58,86,114,142,170]],e=1335,n=7973,i=function(t){for(var r=0;0!=t;)r+=1,t>>>=1;return r},(o={}).getBCHTypeInfo=function(t){for(var r=t<<10;i(r)-i(e)>=0;)r^=e<<i(r)-i(e);return 21522^(t<<10|r)},o.getBCHTypeNumber=function(t){for(var r=t<<12;i(r)-i(n)>=0;)r^=n<<i(r)-i(n);return t<<12|r},o.getPatternPosition=function(t){return r[t-1]},o.getMaskFunction=function(t){switch(t){case l:return function(t,r){return(t+r)%2==0};case h:return function(t,r){return t%2==0};case s:return function(t,r){return r%3==0};case v:return function(t,r){return(t+r)%3==0};case d:return function(t,r){return(Math.floor(t/2)+Math.floor(r/3))%2==0};case w:return function(t,r){return t*r%2+t*r%3==0};case p:return function(t,r){return(t*r%2+t*r%3)%2==0};case y:return function(t,r){return(t*r%3+(t+r)%2)%2==0};default:throw"bad maskPattern:"+t}},o.getErrorCorrectPolynomial=function(t){for(var r=k([1],0),e=0;e<t;e+=1)r=r.multiply(k([1,C.gexp(e)],0));return r},o.getLengthInBits=function(t,r){if(1<=r&&r<10)switch(t){case a:return 10;case u:return 9;case f:case c:return 8;default:throw"mode:"+t}else if(r<27)switch(t){case a:return 12;case u:return 11;case f:return 16;case c:return 10;default:throw"mode:"+t}else{if(!(r<41))throw"type:"+r;switch(t){case a:return 14;case u:return 13;case f:return 16;case c:return 12;default:throw"mode:"+t}}},o.getLostPoint=function(t){for(var r=t.getModuleCount(),e=0,n=0;n<r;n+=1)for(var o=0;o<r;o+=1){for(var i=0,a=t.isDark(n,o),u=-1;u<=1;u+=1)if(!(n+u<0||r<=n+u))for(var f=-1;f<=1;f+=1)o+f<0||r<=o+f||0==u&&0==f||a==t.isDark(n+u,o+f)&&(i+=1);i>5&&(e+=3+i-5)}for(n=0;n<r-1;n+=1)for(o=0;o<r-1;o+=1){var c=0;t.isDark(n,o)&&(c+=1),t.isDark(n+1,o)&&(c+=1),t.isDark(n,o+1)&&(c+=1),t.isDark(n+1,o+1)&&(c+=1),0!=c&&4!=c||(e+=3)}for(n=0;n<r;n+=1)for(o=0;o<r-6;o+=1)t.isDark(n,o)&&!t.isDark(n,o+1)&&t.isDark(n,o+2)&&t.isDark(n,o+3)&&t.isDark(n,o+4)&&!t.isDark(n,o+5)&&t.isDark(n,o+6)&&(e+=40);for(o=0;o<r;o+=1)for(n=0;n<r-6;n+=1)t.isDark(n,o)&&!t.isDark(n+1,o)&&t.isDark(n+2,o)&&t.isDark(n+3,o)&&t.isDark(n+4,o)&&!t.isDark(n+5,o)&&t.isDark(n+6,o)&&(e+=40);var g=0;for(o=0;o<r;o+=1)for(n=0;n<r;n+=1)t.isDark(n,o)&&(g+=1);return e+=Math.abs(100*g/r/r-50)/5*10},o),C=function(){for(var t=new Array(256),r=new Array(256),e=0;e<8;e+=1)t[e]=1<<e;for(e=8;e<256;e+=1)t[e]=t[e-4]^t[e-5]^t[e-6]^t[e-8];for(e=0;e<255;e+=1)r[t[e]]=e;var n={glog:function(t){if(t<1)throw"glog("+t+")";return r[t]},gexp:function(r){for(;r<0;)r+=255;for(;r>=256;)r-=255;return t[r]}};return n}();function k(t,r){if(void 0===t.length)throw t.length+"/"+r;var e=function(){for(var e=0;e<t.length&&0==t[e];)e+=1;for(var n=new Array(t.length-e+r),o=0;o<t.length-e;o+=1)n[o]=t[o+e];return n}(),n={getAt:function(t){return e[t]},getLength:function(){return e.length},multiply:function(t){for(var r=new Array(n.getLength()+t.getLength()-1),e=0;e<n.getLength();e+=1)for(var o=0;o<t.getLength();o+=1)r[e+o]^=C.gexp(C.glog(n.getAt(e))+C.glog(t.getAt(o)));return k(r,0)},mod:function(t){if(n.getLength()-t.getLength()<0)return n;for(var r=C.glog(n.getAt(0))-C.glog(t.getAt(0)),e=new Array(n.getLength()),o=0;o<n.getLength();o+=1)e[o]=n.getAt(o);for(o=0;o<t.getLength();o+=1)e[o]^=C.gexp(C.glog(t.getAt(o))+r);return k(e,0).mod(t)}};return n}var A=function(){var t=[[1,26,19],[1,26,16],[1,26,13],[1,26,9],[1,44,34],[1,44,28],[1,44,22],[1,44,16],[1,70,55],[1,70,44],[2,35,17],[2,35,13],[1,100,80],[2,50,32],[2,50,24],[4,25,9],[1,134,108],[2,67,43],[2,33,15,2,34,16],[2,33,11,2,34,12],[2,86,68],[4,43,27],[4,43,19],[4,43,15],[2,98,78],[4,49,31],[2,32,14,4,33,15],[4,39,13,1,40,14],[2,121,97],[2,60,38,2,61,39],[4,40,18,2,41,19],[4,40,14,2,41,15],[2,146,116],[3,58,36,2,59,37],[4,36,16,4,37,17],[4,36,12,4,37,13],[2,86,68,2,87,69],[4,69,43,1,70,44],[6,43,19,2,44,20],[6,43,15,2,44,16],[4,101,81],[1,80,50,4,81,51],[4,50,22,4,51,23],[3,36,12,8,37,13],[2,116,92,2,117,93],[6,58,36,2,59,37],[4,46,20,6,47,21],[7,42,14,4,43,15],[4,133,107],[8,59,37,1,60,38],[8,44,20,4,45,21],[12,33,11,4,34,12],[3,145,115,1,146,116],[4,64,40,5,65,41],[11,36,16,5,37,17],[11,36,12,5,37,13],[5,109,87,1,110,88],[5,65,41,5,66,42],[5,54,24,7,55,25],[11,36,12,7,37,13],[5,122,98,1,123,99],[7,73,45,3,74,46],[15,43,19,2,44,20],[3,45,15,13,46,16],[1,135,107,5,136,108],[10,74,46,1,75,47],[1,50,22,15,51,23],[2,42,14,17,43,15],[5,150,120,1,151,121],[9,69,43,4,70,44],[17,50,22,1,51,23],[2,42,14,19,43,15],[3,141,113,4,142,114],[3,70,44,11,71,45],[17,47,21,4,48,22],[9,39,13,16,40,14],[3,135,107,5,136,108],[3,67,41,13,68,42],[15,54,24,5,55,25],[15,43,15,10,44,16],[4,144,116,4,145,117],[17,68,42],[17,50,22,6,51,23],[19,46,16,6,47,17],[2,139,111,7,140,112],[17,74,46],[7,54,24,16,55,25],[34,37,13],[4,151,121,5,152,122],[4,75,47,14,76,48],[11,54,24,14,55,25],[16,45,15,14,46,16],[6,147,117,4,148,118],[6,73,45,14,74,46],[11,54,24,16,55,25],[30,46,16,2,47,17],[8,132,106,4,133,107],[8,75,47,13,76,48],[7,54,24,22,55,25],[22,45,15,13,46,16],[10,142,114,2,143,115],[19,74,46,4,75,47],[28,50,22,6,51,23],[33,46,16,4,47,17],[8,152,122,4,153,123],[22,73,45,3,74,46],[8,53,23,26,54,24],[12,45,15,28,46,16],[3,147,117,10,148,118],[3,73,45,23,74,46],[4,54,24,31,55,25],[11,45,15,31,46,16],[7,146,116,7,147,117],[21,73,45,7,74,46],[1,53,23,37,54,24],[19,45,15,26,46,16],[5,145,115,10,146,116],[19,75,47,10,76,48],[15,54,24,25,55,25],[23,45,15,25,46,16],[13,145,115,3,146,116],[2,74,46,29,75,47],[42,54,24,1,55,25],[23,45,15,28,46,16],[17,145,115],[10,74,46,23,75,47],[10,54,24,35,55,25],[19,45,15,35,46,16],[17,145,115,1,146,116],[14,74,46,21,75,47],[29,54,24,19,55,25],[11,45,15,46,46,16],[13,145,115,6,146,116],[14,74,46,23,75,47],[44,54,24,7,55,25],[59,46,16,1,47,17],[12,151,121,7,152,122],[12,75,47,26,76,48],[39,54,24,14,55,25],[22,45,15,41,46,16],[6,151,121,14,152,122],[6,75,47,34,76,48],[46,54,24,10,55,25],[2,45,15,64,46,16],[17,152,122,4,153,123],[29,74,46,14,75,47],[49,54,24,10,55,25],[24,45,15,46,46,16],[4,152,122,18,153,123],[13,74,46,32,75,47],[48,54,24,14,55,25],[42,45,15,32,46,16],[20,147,117,4,148,118],[40,75,47,7,76,48],[43,54,24,22,55,25],[10,45,15,67,46,16],[19,148,118,6,149,119],[18,75,47,31,76,48],[34,54,24,34,55,25],[20,45,15,61,46,16]],r=function(t,r){var e={};return e.totalCount=t,e.dataCount=r,e},e={};return e.getRSBlocks=function(e,n){var o=function(r,e){switch(e){case g.L:return t[4*(r-1)+0];case g.M:return t[4*(r-1)+1];case g.Q:return t[4*(r-1)+2];case g.H:return t[4*(r-1)+3];default:return}}(e,n);if(void 0===o)throw"bad rs block @ typeNumber:"+e+"/errorCorrectionLevel:"+n;for(var i=o.length/3,a=[],u=0;u<i;u+=1)for(var f=o[3*u+0],c=o[3*u+1],l=o[3*u+2],h=0;h<f;h+=1)a.push(r(c,l));return a},e}(),b=function(){var t=[],r=0,e={getBuffer:function(){return t},getAt:function(r){var e=Math.floor(r/8);return 1==(t[e]>>>7-r%8&1)},put:function(t,r){for(var n=0;n<r;n+=1)e.putBit(1==(t>>>r-n-1&1))},getLengthInBits:function(){return r},putBit:function(e){var n=Math.floor(r/8);t.length<=n&&t.push(0),e&&(t[n]|=128>>>r%8),r+=1}};return e},M=function(t){var r=a,e=t,n={getMode:function(){return r},getLength:function(t){return e.length},write:function(t){for(var r=e,n=0;n+2<r.length;)t.put(o(r.substring(n,n+3)),10),n+=3;n<r.length&&(r.length-n==1?t.put(o(r.substring(n,n+1)),4):r.length-n==2&&t.put(o(r.substring(n,n+2)),7))}},o=function(t){for(var r=0,e=0;e<t.length;e+=1)r=10*r+i(t.charAt(e));return r},i=function(t){if("0"<=t&&t<="9")return t.charCodeAt(0)-"0".charCodeAt(0);throw"illegal char :"+t};return n},x=function(t){var r=u,e=t,n={getMode:function(){return r},getLength:function(t){return e.length},write:function(t){for(var r=e,n=0;n+1<r.length;)t.put(45*o(r.charAt(n))+o(r.charAt(n+1)),11),n+=2;n<r.length&&t.put(o(r.charAt(n)),6)}},o=function(t){if("0"<=t&&t<="9")return t.charCodeAt(0)-"0".charCodeAt(0);if("A"<=t&&t<="Z")return t.charCodeAt(0)-"A".charCodeAt(0)+10;switch(t){case" ":return 36;case"$":return 37;case"%":return 38;case"*":return 39;case"+":return 40;case"-":return 41;case".":return 42;case"/":return 43;case":":return 44;default:throw"illegal char :"+t}};return n},m=function(r){var e=f,n=t.stringToBytes(r),o={getMode:function(){return e},getLength:function(t){return n.length},write:function(t){for(var r=0;r<n.length;r+=1)t.put(n[r],8)}};return o},L=function(r){var e=c,n=t.stringToBytesFuncs.SJIS;if(!n)throw"sjis not supported.";!function(){var t=n("友");if(2!=t.length||38726!=(t[0]<<8|t[1]))throw"sjis not supported."}();var o=n(r),i={getMode:function(){return e},getLength:function(t){return~~(o.length/2)},write:function(t){for(var r=o,e=0;e+1<r.length;){var n=(255&r[e])<<8|255&r[e+1];if(33088<=n&&n<=40956)n-=33088;else{if(!(57408<=n&&n<=60351))throw"illegal char at "+(e+1)+"/"+n;n-=49472}n=192*(n>>>8&255)+(255&n),t.put(n,13),e+=2}if(e<r.length)throw"illegal char at "+(e+1)}};return i},D=function(){var t=[],r={writeByte:function(r){t.push(255&r)},writeShort:function(t){r.writeByte(t),r.writeByte(t>>>8)},writeBytes:function(t,e,n){e=e||0,n=n||t.length;for(var o=0;o<n;o+=1)r.writeByte(t[o+e])},writeString:function(t){for(var e=0;e<t.length;e+=1)r.writeByte(t.charCodeAt(e))},toByteArray:function(){return t},toString:function(){var r="";r+="[";for(var e=0;e<t.length;e+=1)e>0&&(r+=","),r+=t[e];return r+="]"}};return r},S=function(t){var r=t,e=0,n=0,o=0,i={read:function(){for(;o<8;){if(e>=r.length){if(0==o)return-1;throw"unexpected end of file./"+o}var t=r.charAt(e);if(e+=1,"="==t)return o=0,-1;t.match(/^\s$/)||(n=n<<6|a(t.charCodeAt(0)),o+=6)}var i=n>>>o-8&255;return o-=8,i}},a=function(t){if(65<=t&&t<=90)return t-65;if(97<=t&&t<=122)return t-97+26;if(48<=t&&t<=57)return t-48+52;if(43==t)return 62;if(47==t)return 63;throw"c:"+t};return i},I=function(t,r,e){for(var n=function(t,r){var e=t,n=r,o=new Array(t*r),i={setPixel:function(t,r,n){o[r*e+t]=n},write:function(t){t.writeString("GIF87a"),t.writeShort(e),t.writeShort(n),t.writeByte(128),t.writeByte(0),t.writeByte(0),t.writeByte(0),t.writeByte(0),t.writeByte(0),t.writeByte(255),t.writeByte(255),t.writeByte(255),t.writeString(","),t.writeShort(0),t.writeShort(0),t.writeShort(e),t.writeShort(n),t.writeByte(0);var r=a(2);t.writeByte(2);for(var o=0;r.length-o>255;)t.writeByte(255),t.writeBytes(r,o,255),o+=255;t.writeByte(r.length-o),t.writeBytes(r,o,r.length-o),t.writeByte(0),t.writeString(";")}},a=function(t){for(var r=1<<t,e=1+(1<<t),n=t+1,i=u(),a=0;a<r;a+=1)i.add(String.fromCharCode(a));i.add(String.fromCharCode(r)),i.add(String.fromCharCode(e));var f,c,g,l=D(),h=(f=l,c=0,g=0,{write:function(t,r){if(t>>>r!=0)throw"length over";for(;c+r>=8;)f.writeByte(255&(t<<c|g)),r-=8-c,t>>>=8-c,g=0,c=0;g|=t<<c,c+=r},flush:function(){c>0&&f.writeByte(g)}});h.write(r,n);var s=0,v=String.fromCharCode(o[s]);for(s+=1;s<o.length;){var d=String.fromCharCode(o[s]);s+=1,i.contains(v+d)?v+=d:(h.write(i.indexOf(v),n),i.size()<4095&&(i.size()==1<<n&&(n+=1),i.add(v+d)),v=d)}return h.write(i.indexOf(v),n),h.write(e,n),h.flush(),l.toByteArray()},u=function(){var t={},r=0,e={add:function(n){if(e.contains(n))throw"dup key:"+n;t[n]=r,r+=1},size:function(){return r},indexOf:function(r){return t[r]},contains:function(r){return void 0!==t[r]}};return e};return i}(t,r),o=0;o<r;o+=1)for(var i=0;i<t;i+=1)n.setPixel(i,o,e(i,o));var a=D();n.write(a);for(var u=function(){var t=0,r=0,e=0,n="",o={},i=function(t){n+=String.fromCharCode(a(63&t))},a=function(t){if(t<0);else{if(t<26)return 65+t;if(t<52)return t-26+97;if(t<62)return t-52+48;if(62==t)return 43;if(63==t)return 47}throw"n:"+t};return o.writeByte=function(n){for(t=t<<8|255&n,r+=8,e+=1;r>=6;)i(t>>>r-6),r-=6},o.flush=function(){if(r>0&&(i(t<<6-r),t=0,r=0),e%3!=0)for(var o=3-e%3,a=0;a<o;a+=1)n+="="},o.toString=function(){return n},o}(),f=a.toByteArray(),c=0;c<f.length;c+=1)u.writeByte(f[c]);return u.flush(),"data:image/gif;base64,"+u};return t}();qrcode.stringToBytesFuncs["UTF-8"]=function(t){return function(t){for(var r=[],e=0;e<t.length;e++){var n=t.charCodeAt(e);n<128?r.push(n):n<2048?r.push(192|n>>6,128|63&n):n<55296||n>=57344?r.push(224|n>>12,128|n>>6&63,128|63&n):(e++,n=65536+((1023&n)<<10|1023&t.charCodeAt(e)),r.push(240|n>>18,128|n>>12&63,128|n>>6&63,128|63&n))}return r}(t)},function(t){"function"==typeof define&&define.amd?define([],t):"object"==typeof exports&&(module.exports=t())}((function(){return qrcode}));
+//# sourceMappingURL=/sm/26b4b0d0b1e283d6b3ec9857ac597d7a60c76ac17be1ef4c965f03086de426bb.map
+</script>
+<script>
+// eBPF Deep Dive — compact deck navigation + presenter setup. No build step.
+// DECK_ID는 덱마다 고유 — localStorage 키(프레젠터 설정)가 여기서 파생된다.
+const DECK_ID = 'ebpf-deck';
+
+// 언어별 UI 문자열 — <html lang="…">으로 판별 (index.html=en, index-ko.html=ko)
+const LANG = document.documentElement.lang === 'ko' ? 'ko' : 'en';
+const T = LANG === 'ko' ? {
+  noNotes: '이 슬라이드에는 노트가 없습니다', untitled: '(제목 없음)',
+  prev: '‹ 이전', next: '다음 ›', last: '(마지막 슬라이드)', timerTip: '클릭하면 타이머 리셋',
+} : {
+  noNotes: 'No notes for this slide', untitled: '(untitled)',
+  prev: '‹ Prev', next: 'Next ›', last: '(last slide)', timerTip: 'Click to reset timer',
+};
+
+const slides = [...document.querySelectorAll('.slide')];
+const progress = document.getElementById('progress');
+const counter = document.getElementById('counter');
+const TOTAL = slides.length;
+counter.setAttribute('role', 'status');
+counter.setAttribute('aria-live', 'polite');
+counter.setAttribute('aria-atomic', 'true');
+let cur = 0;
+
+function clamp(n) { return Math.max(0, Math.min(TOTAL - 1, n)); }
+
+function show(n, push = true) {
+  n = clamp(n);
+  slides.forEach((s, i) => {
+    s.classList.toggle('active', i === n);
+    s.inert = i !== n;
+    s.setAttribute('aria-hidden', String(i !== n));
+    s.setAttribute('role', 'group');
+    s.setAttribute('aria-roledescription', LANG === 'ko' ? '슬라이드' : 'slide');
+    s.setAttribute('aria-label', (i + 1) + ' / ' + TOTAL);
+    if (i === n) s.scrollTop = 0;
+    if (i !== n) s.classList.remove('built');
+  });
+  cur = n;
+  counter.textContent = String(n + 1).padStart(2, '0') + ' / ' + String(TOTAL).padStart(2, '0');
+  progress.style.width = ((n + 1) / TOTAL * 100) + '%';
+  if (push) history.replaceState(null, '', '#' + (n + 1));
+  nRender();
+  sUpdate();
+}
+
+function advance() {
+  const s = slides[cur];
+  if (s.querySelector('[data-build]') && !s.classList.contains('built')) {
+    s.classList.add('built');
+    return;
+  }
+  show(cur + 1);
+}
+
+function retreat() { show(cur - 1); }
+
+addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && !setup.hidden) { e.preventDefault(); closeSetup(); return; }
+  if (!setup.hidden && e.key === 'Tab') {
+    const controls = [...setup.querySelectorAll('button, input, select, a[href]')].filter(el => el.getClientRects().length);
+    const first = controls[0], last = controls[controls.length - 1];
+    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    return;
+  }
+  if (e.ctrlKey || e.metaKey || e.altKey) return;
+  if (e.target && e.target.closest && e.target.closest('input, textarea, select')) return;
+  if (e.target && e.target.isContentEditable) return;
+  if (!e.metaKey && !e.ctrlKey && !e.altKey) {
+    if (e.code === 'KeyE') { e.preventDefault(); if (setup.hidden) openSetup(); else closeSetup(); return; }
+    if (e.code === 'KeyQ') { e.preventDefault(); pcfg.qrHidden = !pcfg.qrHidden; pStore(); pRender(); return; }
+    if (e.code === 'KeyS') { e.preventDefault(); sOpen(); return; }
+    if (e.code === 'KeyN') { e.preventDefault(); notesbar.hidden = !notesbar.hidden; nRender(); return; }
+    if (e.code === 'KeyP') { e.preventDefault(); window.print(); return; }
+  }
+  if (!setup.hidden) return;
+  if (e.target?.closest?.('button, a[href]')) return;
+  if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') { e.preventDefault(); advance(); }
+  else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); retreat(); }
+  else if (e.key === 'Home') { e.preventDefault(); show(0); }
+  else if (e.key === 'End') { e.preventDefault(); show(TOTAL - 1); }
+});
+
+addEventListener('hashchange', () => {
+  const n = parseInt(location.hash.slice(1), 10);
+  if (!isNaN(n)) show(n - 1, false);
+});
+
+document.getElementById('navPrev').addEventListener('click', retreat);
+document.getElementById('navNext').addEventListener('click', advance);
+const pdfBtn = document.getElementById('pdfBtn');
+if (pdfBtn) pdfBtn.addEventListener('click', () => window.print());
+// 언어 전환 — data-target의 반대 언어 파일로, 현재 슬라이드 해시를 유지한 채 이동.
+// 패킹된 단일 파일(.dosirak.html — styles.css가 인라인)에는 상대 대상 파일이 없으므로 버튼을 숨긴다.
+const langBtn = document.getElementById('langBtn');
+if (langBtn) {
+  if (!document.querySelector('link[href$="styles.css"]')) langBtn.hidden = true;
+  else langBtn.addEventListener('click', () => { location.href = langBtn.dataset.target + location.hash; });
+}
+
+// touch swipe
+let tx0 = null, ty0 = null;
+addEventListener('touchstart', (e) => { if (!setup.hidden || e.target?.closest?.('input, button, a, [contenteditable]')) { tx0 = null; return; } tx0 = e.touches[0].clientX; ty0 = e.touches[0].clientY; }, { passive: true });
+addEventListener('touchend', (e) => {
+  if (tx0 === null) return;
+  const dx = e.changedTouches[0].clientX - tx0;
+  const dy = e.changedTouches[0].clientY - ty0;
+  if (Math.abs(dy) >= Math.abs(dx)) { tx0 = null; return; }
+  if (dx < -40) advance(); else if (dx > 40) retreat();
+  tx0 = null;
+}, { passive: true });
+
+// ---- speaker notes (슬라이드 안 <aside class="notes"> — 화면에는 렌더되지 않음) ----
+// S 키: 스피커 뷰 팝업 (현재/다음 미리보기 + 노트 + 경과 타이머 — 두 번째 모니터로 드래그)
+// N 키: 같은 창 노트 오버레이 (팝업이 차단된 환경의 폴백)
+const noteOf = (n) => {
+  const el = slides[n] && slides[n].querySelector('.notes');
+  return el ? el.innerHTML.trim() : '';
+};
+const titleOf = (n) => {
+  const h = slides[n] && slides[n].querySelector('h1, h2, h3');
+  return h ? h.textContent.replace(/\s+/g, ' ').trim() : T.untitled;
+};
+
+const notesbar = document.createElement('div');
+notesbar.id = 'notesbar';
+notesbar.hidden = true;
+document.body.appendChild(notesbar);
+function nRender() {
+  if (notesbar.hidden) return;
+  notesbar.innerHTML = noteOf(cur) || '<em>' + T.noNotes + '</em>';
+}
+
+let sWin = null, sT0 = null, sTick = null;
+
+function sOpen() {
+  if (sWin && !sWin.closed) { sWin.focus(); return; }
+  sWin = window.open('', DECK_ID + '-speaker', 'width=1080,height=720');
+  if (!sWin) { notesbar.hidden = false; nRender(); return; } // 팝업 차단 → 오버레이 폴백
+  const d = sWin.document;
+  d.open();
+  d.write('<!DOCTYPE html><html lang="' + LANG + '"><head><meta charset="UTF-8">'
+    + '<title>Speaker View — ' + esc(document.title) + '</title><style>'
+    + ':root{color-scheme:dark}'
+    + '*{box-sizing:border-box;margin:0}'
+    + 'body{background:#0b1017;color:#f3f3f7;font:14px/1.6 Pretendard,system-ui,sans-serif;height:100vh;display:flex;flex-direction:column;overflow:hidden}'
+    + 'header{display:flex;align-items:center;gap:18px;padding:10px 18px;border-bottom:1px solid #2a3543;font-family:"JetBrains Mono",monospace;font-size:13px;color:#a6b2c3}'
+    + '#svTimer{font-size:22px;font-weight:700;color:#ff9900;cursor:pointer;user-select:none}'
+    + '#svClock{margin-left:auto}'
+    + 'main{flex:1;display:grid;grid-template-columns:1.15fr 1fr;gap:14px;padding:14px;min-height:0}'
+    + '.pv{display:flex;flex-direction:column;gap:12px;min-height:0}'
+    + '.fr{flex:1;min-height:0;position:relative;border:1px solid #2a3543;border-radius:10px;overflow:hidden;background:#05070a}'
+    + '.fr label{position:absolute;top:8px;left:10px;z-index:2;font-family:"JetBrains Mono",monospace;font-size:10px;letter-spacing:.14em;color:#a6b2c3;background:rgba(11,16,23,.8);padding:2px 8px;border-radius:6px}'
+    + '.fr.next label{color:#41b3ff}'
+    + '.fr iframe{width:1280px;height:800px;border:0;transform-origin:0 0;pointer-events:none}'
+    + '.nt{display:flex;flex-direction:column;min-height:0;border:1px solid #2a3543;border-radius:10px;padding:16px 18px;background:#0e141d}'
+    + '.nt h2{font-size:16px;color:#ffb84d;margin-bottom:4px}'
+    + '.nt .nx{font-family:"JetBrains Mono",monospace;font-size:11px;color:#a6b2c3;margin-bottom:10px}'
+    + '#svNotes{flex:1;overflow-y:auto;font-size:16.5px;line-height:1.7;white-space:normal}'
+    + '#svNotes em{color:#a6b2c3}#svNotes b{color:#ffb84d}#svNotes code{font-family:"JetBrains Mono",monospace;font-size:.9em;color:#41b3ff}'
+    + '.ctl{display:flex;gap:8px;margin-top:12px}'
+    + '.ctl button{flex:1;background:#131a24;border:1px solid #2a3543;color:#f3f3f7;border-radius:8px;padding:10px 0;font-size:14px;cursor:pointer}'
+    + '.ctl button:hover{border-color:#ff9900;color:#ff9900}'
+    + '</style></head><body>'
+    + '<header><span id="svCounter"></span><span id="svTimer" title="' + T.timerTip + '">00:00</span><span id="svClock"></span></header>'
+    + '<main><section class="pv">'
+    + '<div class="fr"><label>CURRENT</label><iframe id="svCur"></iframe></div>'
+    + '<div class="fr next"><label>NEXT</label><iframe id="svNext"></iframe></div>'
+    + '</section><section class="nt">'
+    + '<h2 id="svTitle"></h2><div class="nx" id="svNextTitle"></div>'
+    + '<div id="svNotes"></div>'
+    + '<div class="ctl"><button id="svPrev">' + T.prev + '</button><button id="svNextBtn">' + T.next + '</button></div>'
+    + '</section></main></body></html>');
+  d.close();
+
+  d.getElementById('svPrev').addEventListener('click', retreat);
+  d.getElementById('svNextBtn').addEventListener('click', advance);
+  d.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') { e.preventDefault(); advance(); }
+    else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); retreat(); }
+  });
+  d.getElementById('svTimer').addEventListener('click', () => { sT0 = Date.now(); });
+
+  const sScale = () => d.querySelectorAll('.fr iframe').forEach((f) => {
+    f.style.transform = 'scale(' + (f.parentElement.clientWidth / 1280) + ')';
+  });
+  sWin.addEventListener('resize', sScale);
+  setTimeout(sScale, 50);
+
+  sT0 = sT0 || Date.now();
+  clearInterval(sTick);
+  sTick = setInterval(() => {
+    if (sWin.closed) { clearInterval(sTick); return; }
+    const s = Math.floor((Date.now() - sT0) / 1000);
+    d.getElementById('svTimer').textContent =
+      String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0');
+    d.getElementById('svClock').textContent = new Date().toLocaleTimeString(LANG === 'ko' ? 'ko-KR' : 'en-GB', { hour12: false });
+  }, 1000);
+  sUpdate();
+}
+
+function sUpdate() {
+  if (!sWin || sWin.closed) return;
+  const d = sWin.document;
+  const $ = (id) => d.getElementById(id);
+  if (!$('svNotes')) return;
+  $('svCounter').textContent = String(cur + 1).padStart(2, '0') + ' / ' + String(TOTAL).padStart(2, '0');
+  $('svTitle').textContent = (cur + 1) + ' · ' + titleOf(cur);
+  $('svNextTitle').textContent = cur + 1 < TOTAL ? 'NEXT → ' + titleOf(cur + 1) : 'NEXT → ' + T.last;
+  $('svNotes').innerHTML = noteOf(cur) || '<em>' + T.noNotes + '</em>';
+  const base = location.href.split('#')[0];
+  $('svCur').src = base + '#' + (cur + 1);
+  const nx = $('svNext');
+  if (cur + 1 < TOTAL) { nx.src = base + '#' + (cur + 2); nx.style.opacity = 1; }
+  else { nx.style.opacity = .25; }
+}
+
+addEventListener('beforeunload', () => { if (sWin && !sWin.closed) sWin.close(); });
+
+// ---- presenter setup · survey QR (이 브라우저의 localStorage에만 저장) ----
+const PKEY = DECK_ID + '-presenter-v1';
+const P_DEFAULT = {
+  count: 1, hide: false, survey: '', qrHidden: false,
+  speakers: [
+    { name: 'YoungJoon Jeong', title: '', company: 'AWS', linkedin: '' },
+    { name: '', title: '', company: '', linkedin: '' },
+  ],
+};
+const setup = document.getElementById('setup');
+let setupReturnFocus = null;
+function openSetup() {
+  setupReturnFocus = document.activeElement;
+  setup.hidden = false; pFill();
+  document.getElementById('setupClose').focus();
+}
+function closeSetup() {
+  setup.hidden = true;
+  if (setupReturnFocus?.isConnected) setupReturnFocus.focus();
+}
+const F = (id) => document.getElementById(id);
+const esc = (s) => String(s == null ? '' : s)
+  .replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+function pLoad() {
+  const base = JSON.parse(JSON.stringify(P_DEFAULT));
+  try {
+    const saved = JSON.parse(localStorage.getItem(PKEY) || 'null');
+    if (saved) {
+      Object.assign(base, saved);
+      base.speakers = [0, 1].map((i) => Object.assign({}, P_DEFAULT.speakers[i], (saved.speakers || [])[i]));
+    }
+  } catch (_) { /* 손상된 저장값은 기본값으로 대체 */ }
+  return base;
+}
+let pcfg = pLoad();
+
+function pStore() { try { localStorage.setItem(PKEY, JSON.stringify(pcfg)); } catch (_) { /* Private/file contexts may deny storage; keep session settings. */ } }
+
+function pRender() {
+  document.querySelectorAll('[data-speakers]').forEach((el) => {
+    const list = pcfg.speakers.slice(0, pcfg.count).filter((s) => s.name);
+    el.hidden = pcfg.hide || list.length === 0;
+    el.innerHTML = list.map((s) => `
+      <div class="spk">
+        <h4>${esc(s.name)}</h4>
+        ${s.title ? `<p class="t">${esc(s.title)}</p>` : ''}
+        ${s.company ? `<p class="c">${esc(s.company)}</p>` : ''}
+        ${s.linkedin ? `<p class="l">LINKEDIN: ${esc(s.linkedin)}</p>` : ''}
+      </div>`).join('');
+  });
+  const box = document.getElementById('qrBox');
+  if (!box) return;
+  const showQr = pcfg.survey && !pcfg.qrHidden && typeof qrcode === 'function';
+  box.hidden = !showQr;
+  if (showQr) {
+    try {
+      const qr = qrcode(0, 'M');
+      qr.addData(pcfg.survey);
+      qr.make();
+      F('qrTarget').innerHTML = qr.createSvgTag({ scalable: true, margin: 2 });
+    } catch (_) { box.hidden = true; }
+  }
+}
+
+function pFill() {
+  ['1', '2'].forEach((n) => {
+    const s = pcfg.speakers[n - 1];
+    F('s' + n + 'name').value = s.name;
+    F('s' + n + 'title').value = s.title;
+    F('s' + n + 'company').value = s.company;
+    F('s' + n + 'linkedin').value = s.linkedin;
+  });
+  F('hideSpk').checked = pcfg.hide;
+  F('surveyUrl').value = pcfg.survey;
+  setup.querySelectorAll('.seg button').forEach((b) => b.classList.toggle('on', +b.dataset.count === pcfg.count));
+  F('spk2').hidden = pcfg.count < 2;
+}
+
+function pSave() {
+  pcfg.speakers = ['1', '2'].map((n) => ({
+    name: F('s' + n + 'name').value.trim(),
+    title: F('s' + n + 'title').value.trim(),
+    company: F('s' + n + 'company').value.trim(),
+    linkedin: F('s' + n + 'linkedin').value.trim(),
+  }));
+  pcfg.hide = F('hideSpk').checked;
+  pcfg.survey = F('surveyUrl').value.trim();
+  pStore();
+  pRender();
+  closeSetup();
+}
+
+setup.querySelectorAll('.seg button').forEach((b) =>
+  b.addEventListener('click', () => { pcfg.count = +b.dataset.count; pFill(); }));
+F('setupClose').addEventListener('click', closeSetup);
+F('setupSave').addEventListener('click', pSave);
+F('setupReset').addEventListener('click', () => {
+  pcfg = JSON.parse(JSON.stringify(P_DEFAULT));
+  try { localStorage.removeItem(PKEY); } catch (_) { /* Defaults still apply in memory. */ }
+  pFill();
+  pRender();
+});
+pRender();
+
+// ---- inline edit ([data-edit="key"] — 클릭해서 텍스트 수정, 이 브라우저 localStorage에만 저장) ----
+// 같은 key를 가진 요소끼리 실시간 동기화 (예: 커버·클로징에 같은 문구)
+document.querySelectorAll('[data-edit]').forEach((el) => {
+  el.contentEditable = 'true';
+  el.spellcheck = false;
+  const key = DECK_ID + '-edit-' + el.dataset.edit;
+  let saved = null;
+  try { saved = localStorage.getItem(key); } catch (_) { /* Continue with default text. */ }
+  if (saved !== null && saved.trim() !== '') el.textContent = saved;
+  el.addEventListener('input', () => {
+    try { localStorage.setItem(key, el.textContent); } catch (_) { /* Keep edits in this session. */ }
+    document.querySelectorAll('[data-edit="' + el.dataset.edit + '"]').forEach((o) => {
+      if (o !== el && o.textContent !== el.textContent) o.textContent = el.textContent;
+    });
+  });
+  el.addEventListener('keydown', (ev) => { if (ev.key === 'Enter') { ev.preventDefault(); el.blur(); } });
+});
+
+const init = parseInt(location.hash.slice(1), 10);
+show(!isNaN(init) ? init - 1 : 0, false);
+
+</script>
+</body>
+</html>
