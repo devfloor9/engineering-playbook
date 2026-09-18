@@ -15,6 +15,7 @@
 const fs = require('fs');
 const path = require('path');
 const matter = require('gray-matter');
+const {parse} = require('@babel/parser');
 const {
   renderComponent, renderNavigation, componentName,
   supportedComponents, supportedNavigationComponents,
@@ -134,22 +135,26 @@ function readImports(content) {
     }
     if (fence || !/^import\s/.test(lines[index].trim())) continue;
     let end = index;
-    let declaration = lines[index];
-    while (!/\sfrom\s+['"][^'"]+['"];?\s*$/.test(declaration) &&
-           end + 1 < lines.length && end - index < 30) {
-      declaration += `\n${lines[++end]}`;
-    }
-    const match = declaration.trim().match(/^import\s+([\s\S]+?)\s+from\s+(['"])([^'"]+)\2;?\s*$/);
-    if (!match) continue;
-    const specifiers = match[1].trim();
-    const defaultName = specifiers.match(/^([A-Za-z_$][\w$]*)(?:\s*,|\s*$)/);
-    if (defaultName) imports.set(defaultName[1], {source: match[3], exported: 'default'});
-    const named = specifiers.match(/\{([^}]+)\}/);
-    if (named) {
-      for (const specifier of named[1].split(',')) {
-        const binding = specifier.trim().match(/^([A-Za-z_$][\w$]*)(?:\s+as\s+([A-Za-z_$][\w$]*))?$/);
-        if (binding) imports.set(binding[2] || binding[1], {source: match[3], exported: binding[1]});
+    let declaration = null;
+    // Parse one declaration at a time. Comments and side-effect imports must
+    // never make the first import consume prose or borrow the next module.
+    for (; end < lines.length && end - index < 30; end++) {
+      if (end > index && /^import\s/.test(lines[end].trim())) break;
+      let program;
+      try {
+        program = parse(lines.slice(index, end + 1).join('\n'), {sourceType: 'module'}).program;
+      } catch {
+        continue;
       }
+      if (program.body.length === 1 && program.body[0].type === 'ImportDeclaration') declaration = program.body[0];
+      break;
+    }
+    if (!declaration) continue;
+    for (const specifier of declaration.specifiers) {
+      const exported = specifier.type === 'ImportDefaultSpecifier' ? 'default'
+        : specifier.type === 'ImportSpecifier' ? specifier.imported.name ?? specifier.imported.value
+          : null;
+      if (exported) imports.set(specifier.local.name, {source: declaration.source.value, exported});
     }
     for (let removed = index; removed <= end; removed++) lines[removed] = '';
     index = end;

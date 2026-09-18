@@ -95,6 +95,48 @@ test('named aliases, multiline imports and direct default imports resolve the sa
   }
 });
 
+test('trailing import comments cannot borrow another module for a serializer', () => {
+  const source = `import { GpuMemoryRequirements as Weights } from '@site/src/components/OtherTables'; // Same local name
+import { ParallelizationStrategies } from '@site/src/components/MoeModelTables';
+<Weights />
+<ParallelizationStrategies />`;
+  const omitted = new Set();
+  const serialized = new Set();
+  const output = stripMdx(source, {omitted, serialized});
+  assert.ok(omitted.has('Weights'));
+  assert.ok(!output.includes('335.5'));
+  assert.deepEqual([...serialized], ['ParallelizationStrategies']);
+});
+
+test('side-effect imports cannot remove intervening prose or code fences', () => {
+  const source = `import './styles.css';
+Keep this explanation.
+
+\`\`\`js
+import { GpuMemoryRequirements } from './example';
+\`\`\`
+
+${moeImport}
+<GpuMemoryRequirements />`;
+  const output = stripMdx(source);
+  assert.ok(output.includes('Keep this explanation.'));
+  assert.ok(output.includes("import { GpuMemoryRequirements } from './example';"));
+  assert.ok(output.includes('335.5'));
+  assert.ok(!output.includes('styles.css'));
+});
+
+test('multiline import comments stay within their own declaration', () => {
+  const source = `import {
+  /* Shared data */ GpuMemoryRequirements as Weights,
+} from '@site/src/components/MoeModelTables'; // Import comment
+Keep the paragraph.
+<Weights />`;
+  const output = stripMdx(source);
+  assert.ok(output.includes('Keep the paragraph.'));
+  assert.ok(output.includes('335.5'));
+  assert.ok(!output.includes('Import comment'));
+});
+
 test('static navigation preserves each card title, destination and description', () => {
   const file = path.join(__dirname, '../../docs/agentic-ai-platform/index.md');
   const source = fs.readFileSync(file, 'utf8');
