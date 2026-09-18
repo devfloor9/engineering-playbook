@@ -6,7 +6,13 @@ last_update:
   date: "2026-06-30"
   author: devfloor9
 reading_time: 7
-tags: []
+tags:
+  - eks
+  - karpenter
+  - nodepool
+  - nodeclaim
+  - consolidation
+  - scope:ops
 keywords:
   - EKS
   - Karpenter
