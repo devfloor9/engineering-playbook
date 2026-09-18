@@ -143,15 +143,19 @@ test('static navigation preserves each card title, destination and description',
   const serialized = new Set();
   const navigation = new Set();
   const omitted = new Set();
-  const output = stripMdx(source, {serialized, navigation, omitted});
-  assert.deepEqual([...navigation].sort(), ['DocCard', 'DocCardGrid']);
-  assert.ok(serialized.has('DocCardGrid'));
+  const output = stripMdx(source, {filePath: file, serialized, navigation, omitted});
+  assert.deepEqual([...navigation], ['DocCardList']);
+  assert.ok(serialized.has('DocCardList'));
   assert.equal(omitted.size, 0);
-  const cards = [...source.matchAll(/<DocCard\s+to="([^"]+)"\s+icon="[^"]+"\s+title="([^"]+)"\s+description="([^"]+)"/g)];
+  const cards = [...output.matchAll(/^- \[([^\]]+)\]\((\/docs\/agentic-ai-platform\/[^)]+)\) — (.+)$/gm)];
   assert.equal(cards.length, 4);
-  for (const [, destination, title, description] of cards) {
-    assert.ok(output.includes(`[${title}](${destination}) — ${description}`));
+  const matter = require('gray-matter');
+  for (const [, title, destination, description] of cards) {
+    const document = matter(fs.readFileSync(path.join(__dirname, '../..', destination.slice(1), 'index.md'), 'utf8')).data;
+    assert.equal(description, document.description);
+    assert.ok(title.length > 0);
   }
+  for (const title of ['설계 & 아키텍처', '모델 서빙 & 추론 인프라', '운영 & 거버넌스', 'Reference Architecture']) assert.ok(cards.some(card => card[1] === title));
   assert.ok(!output.includes('color='));
 });
 
@@ -197,3 +201,4 @@ After`;
 // Keep the established npm test:llm-wiki entry point; no root package changes.
 require('./llm-wiki-boundaries.test');
 require('./llm-wiki-parity.test');
+require('./llm-wiki-manual.test');

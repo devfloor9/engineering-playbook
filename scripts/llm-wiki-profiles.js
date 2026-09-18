@@ -11,6 +11,16 @@ const stateProfiles = {
 };
 
 const adapters = {
+  'src/components/Icon/index.js': props => props.title || null,
+  'src/components/Figure/index.js': (props, renderer) => element('figure', {}, [
+    props.children,
+    props.dataFallback,
+    element('figcaption', {}, [
+      props.title,
+      props.description ? element('p', {}, [props.description]) : null,
+      props.source != null ? element('p', {}, [renderer.locale === 'ko' ? '출처: ' : 'Source: ', props.source]) : null,
+    ]),
+  ]),
   'src/components/OpenClawArchitecture.js': openClaw,
   'src/components/AimlRelevanceChart.js': (props, renderer, file) => {
     const scope = renderer.componentScope(file, props);
@@ -27,13 +37,34 @@ const adapters = {
   // source order, including cells produced by the specialized table component.
   'src/components/tables/BaseTable.js': props => {
     if (!Array.isArray(props.headers) || !Array.isArray(props.rows)) throw new StaticGap('Table headers/rows are not static arrays');
-    return element('table', {}, [
+    return [
+      props.description != null ? element('p', {}, [props.description]) : null,
+      element('table', {}, [
+      (props.caption ?? props.title) != null
+        ? element('caption', {}, [props.caption ?? props.title]) : null,
       element('thead', {}, [element('tr', {}, props.headers.map(h => element('th', {}, [h])))]),
       element('tbody', {}, props.rows.map(row => {
         if (!Array.isArray(row.cells) || row.cells.length !== props.headers.length) throw new StaticGap('Table row width does not match headers');
         return element('tr', {}, row.cells.map(c => element('td', {}, [c])));
       })),
-    ]);
+    ])];
+  },
+  'src/components/tables/TroubleshootingTable.js': (props, renderer) => {
+    if (!Array.isArray(props.issues)) throw new StaticGap('Troubleshooting issues are not a static array');
+    const labels = renderer.locale === 'ko'
+      ? {low: '낮음', medium: '중간', high: '높음', critical: '심각', cause: '원인', solution: '해결 방법'}
+      : {low: 'Low', medium: 'Medium', high: 'High', critical: 'Critical', cause: 'Cause', solution: 'Solution'};
+    return props.issues.map(issue => {
+      if (!['problem', 'cause', 'solution'].every(key => typeof issue[key] === 'string')) {
+        throw new StaticGap('Troubleshooting issue fields are not static text');
+      }
+      return element('section', {}, [
+        element('h4', {}, [issue.problem]),
+        issue.severity ? element('p', {}, [labels[issue.severity]]) : null,
+        element('p', {}, [element('strong', {}, [`${labels.cause}: `]), issue.cause]),
+        element('p', {}, [element('strong', {}, [`${labels.solution}: `]), issue.solution]),
+      ]);
+    });
   },
   'src/components/DataTableFrame/index.js': props => element('figure', {}, [
     element('figcaption', {}, [props.title]),

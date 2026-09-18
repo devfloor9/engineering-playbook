@@ -113,7 +113,7 @@ function inlinePipeline(tag, {filePath, declarations, renderer}) {
   };
 }
 
-function embeddedDiagram(block, {filePath, renderer}) {
+function embeddedDiagram(block, {filePath, renderer, includeTree = false}) {
   if (block.node.openingElement.name.name !== 'iframe') return null;
   const src = block.node.openingElement.attributes.find(a => a.name?.name === 'src')?.value;
   if (src?.type !== 'StringLiteral') throw new StaticGap('Runtime iframe source is not static');
@@ -159,6 +159,7 @@ function embeddedDiagram(block, {filePath, renderer}) {
   return {name: 'iframe', method: 'static-drawio-source',
     markdown: markdown(tree), source: `static/${name}`,
     source_files: [renderer.relative(filePath), renderer.relative(file)],
+    ...(includeTree ? {tree} : {}),
     graph_counts: {vertices: vertices.length, edges: edges.length}};
 }
 

@@ -117,7 +117,7 @@ test('every supported corpus component retains independently rendered React text
         }
       }
       for (const a of descendants(tree, 'a')) {
-        if (a.props.href) assert.ok(result.markdown.includes(a.props.href.replace(/[()]/g, c => encodeURIComponent(c))), `Missing link: ${a.props.href}`);
+        if (a.props.href) assert.ok(result.markdown.includes(a.props.href.replace(/[()]/g, c => c === '(' ? '%28' : '%29')), `Missing link: ${a.props.href}`);
       }
     });
     checked++;

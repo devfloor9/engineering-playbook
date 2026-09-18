@@ -2,11 +2,12 @@ const metrics = require('../src/data/coredns-metrics.json');
 const models = require('../src/data/moe-memory-models.json');
 const parallelization = require('../src/data/moe-parallelization.json');
 const path = require('node:path');
-const {StaticRenderer, StaticGap} = require('./llm-wiki-static');
+const {StaticRenderer, StaticGap, OPTIONS} = require('./llm-wiki-static');
+const {parseExpression} = require('@babel/parser');
 const {markdown} = require('./llm-wiki-markdown');
 const {adapters, stateProfiles} = require('./llm-wiki-profiles');
 const {sidebarCards} = require('./llm-wiki-navigation');
-const {inlinePipeline} = require('./llm-wiki-diagrams');
+const {inlinePipeline, embeddedDiagram} = require('./llm-wiki-diagrams');
 const root = path.resolve(__dirname, '..');
 const staticRenderer = new StaticRenderer({root, adapters, stateProfiles});
 const sharedSources = {
@@ -58,6 +59,43 @@ const componentModules = {
   ParallelizationStrategies: 'MoeModelTables',
 };
 
+// Only the repository's Figure may wrap a repository-owned draw.io resource.
+// Replace one direct iframe with its already validated graph tree; all other
+// JSX, props, and imports still pass through the bounded source interpreter.
+function figureWithDiagram(source, imports, context, resolved) {
+  if (staticRenderer.relative(resolved) !== 'src/components/Figure/index.js') return null;
+  const node = parseExpression(source, OPTIONS);
+  const frames = node.children?.filter(child =>
+    child.type === 'JSXElement' && child.openingElement.name.name === 'iframe') || [];
+  if (!frames.length) return null;
+  if (frames.length !== 1) throw new StaticGap('Figure must have one static drawing');
+  const frame = frames[0];
+  const diagram = embeddedDiagram({node: frame}, {
+    ...context, renderer: staticRenderer, includeTree: true,
+  });
+  const marker = 'llm-static-figure-drawing';
+  if (source.includes(marker)) throw new StaticGap('Reserved static figure marker');
+  const replaced = source.slice(0, frame.start) +
+    `<span data-llm-drawing="${marker}" />` + source.slice(frame.end);
+  const replaceDrawing = tree => {
+    if (Array.isArray(tree)) return tree.map(replaceDrawing);
+    if (!tree || typeof tree !== 'object') return tree;
+    if (tree.tag === 'span' && tree.props?.['data-llm-drawing'] === marker) return diagram.tree;
+    return {...tree, children: tree.children?.map(replaceDrawing)};
+  };
+  const tree = replaceDrawing(staticRenderer.expression(replaced, imports, context.filePath));
+  return {
+    name: 'Figure', method: 'static-drawio-source',
+    markdown: markdown(tree), source: diagram.source,
+    component_source: '@site/src/components/Figure#default',
+    source_files: [...new Set([
+      ...diagram.source_files,
+      ...[...staticRenderer.files].map(file => staticRenderer.relative(file)),
+    ])].sort(),
+    graph_counts: diagram.graph_counts,
+  };
+}
+
 // Component names are not unique across the site. Resolve the imported module
 // and exported name before choosing a serializer, including local aliases.
 function componentName(tag, imports = new Map()) {
@@ -104,6 +142,10 @@ function renderComponent(line, imports, context = {}) {
     }
     const resolved = staticRenderer.resolve(binding.source, context.filePath || path.join(root, 'docs/unknown.md'));
     if (!resolved || !staticRenderer.relative(resolved).startsWith('src/components/')) return null;
+    if (binding.exported === 'default') {
+      const figure = figureWithDiagram(line, imports, context, resolved);
+      if (figure) return figure;
+    }
     const fn = staticRenderer.imported(binding.source, binding.exported, context.filePath || path.join(root, 'docs/unknown.md'));
     // Unknown props on a prop-free component must not select default data.
     if (fn?.kind === 'closure' && !fn.node.params.length && !/^<[A-Z][\w.]*\s*\/>$/.test(line.trim())) {

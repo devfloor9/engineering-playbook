@@ -96,6 +96,7 @@ class StaticRenderer {
     for (const [name, fn] of Object.entries({
       String, Number, parseFloat, parseInt, isNaN, encodeURIComponent, decodeURIComponent,
     })) scope.set(name, native(args => fn(...args)));
+    scope.get('Number').isFinite = native(([value]) => Number.isFinite(value));
     scope.set('Math', Object.fromEntries(['min', 'max', 'ceil', 'floor', 'round', 'abs', 'pow']
       .map(name => [name, native(args => Math[name](...args))])));
     scope.set('Object', {
