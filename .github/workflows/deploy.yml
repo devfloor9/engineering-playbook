@@ -44,6 +44,9 @@ jobs:
       - name: Verify generated tag routes
         run: npm run test:tags
 
+      - name: Verify document tools
+        run: npm run test:tools
+
       - name: Verify LLM wiki component exports
         run: npm run test:llm-wiki
 

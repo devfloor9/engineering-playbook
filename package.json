@@ -19,6 +19,7 @@
     "test:llm-wiki": "node --test scripts/tests/llm-wiki-components.test.js",
     "test:links": "node --test scripts/tests/validate-links.test.js",
     "test:tags": "node --test scripts/tests/tag-pages.test.js",
+    "test:tools": "node --test scripts/tests/document-tools/*.test.cjs",
     "test:ssr": "node --test scripts/tests/ssr-unicode.test.js",
     "new-post": "node scripts/new-post.js",
     "validate-metadata": "node scripts/validate-metadata-new.js",
