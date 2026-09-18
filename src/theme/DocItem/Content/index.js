@@ -1,5 +1,6 @@
 import React from 'react';
 import clsx from 'clsx';
+import {MDXProvider} from '@mdx-js/react';
 import Head from '@docusaurus/Head';
 import {ThemeClassNames} from '@docusaurus/theme-common';
 import {useDoc} from '@docusaurus/plugin-content-docs/client';
@@ -8,6 +9,7 @@ import MDXContent from '@theme/MDXContent';
 import DocMeta from '@theme/DocMeta';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 import DocTools from '@site/src/components/DocTools';
+import useBrokenLinks from '@docusaurus/useBrokenLinks';
 
 // Docusaurus 기본 DocItem/Content를 eject한다.
 // 변경점:
@@ -61,7 +63,27 @@ function useSyntheticTitle() {
   }
   return metadata.title;
 }
+
+// Docusaurus wraps a source H1 in <header>. Override only its heading, inside
+// MDXContent's provider, so the source title, inline markup and anchor survive.
+// The rest of the MDX component mapping remains owned by the theme.
+function ContentTitleHeading(props) {
+  const brokenLinks = useBrokenLinks();
+  if (props.id) brokenLinks.collectAnchor(props.id);
+  return (
+    <>
+      <h1 {...props} data-ep-theme="manual" />
+      <DocMeta />
+      <DocTools />
+    </>
+  );
+}
+
+const contentTitleComponents = {h1: ContentTitleHeading};
+
 export default function DocItemContent({children}) {
+  const {contentTitle} = useDoc();
+  const hasContentTitle = typeof contentTitle !== 'undefined';
   const syntheticTitle = useSyntheticTitle();
   const llmWikiMdUrl = useLlmWikiMdUrl();
   return (
@@ -72,13 +94,16 @@ export default function DocItemContent({children}) {
         </Head>
       )}
       {syntheticTitle && (
-        <header>
+        <header data-ep-theme="manual">
           <Heading as="h1">{syntheticTitle}</Heading>
         </header>
       )}
-      <DocMeta />
-      <DocTools />
-      <MDXContent>{children}</MDXContent>
+      {!hasContentTitle && <><DocMeta /><DocTools /></>}
+      <MDXContent>
+        {hasContentTitle ? (
+          <MDXProvider components={contentTitleComponents}>{children}</MDXProvider>
+        ) : children}
+      </MDXContent>
     </div>
   );
 }
