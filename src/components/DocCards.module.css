@@ -1,46 +1,73 @@
+.gridContainer {
+  container-type: inline-size;
+  min-width: 0;
+}
+
 .grid {
   display: grid;
-  grid-template-columns: repeat(var(--doc-card-columns, 2), minmax(0, 1fr));
-  gap: 1rem;
-  margin: 1rem 0 1.5rem;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--ep-space-4);
+  margin: var(--ep-space-4) 0 var(--ep-space-5);
+}
+
+@container (min-width: 44rem) {
+  .grid:not([data-columns='1']) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 .card {
   display: flex;
   flex-direction: column;
-  gap: 0.6rem;
+  align-items: flex-start;
+  gap: var(--ep-space-2);
   min-width: 0;
-  padding: 1.25rem;
+  padding: var(--ep-card-padding);
   border: 1px solid var(--ep-outline-variant);
-  border-top: 3px solid var(--doc-card-accent);
-  border-radius: 0.75rem;
-  background: var(--ifm-background-surface-color);
-  color: var(--ifm-font-color-base);
-  text-decoration: none !important;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  border-radius: var(--ep-radius-card);
+  background: var(--ep-surface-container-lowest);
+  color: var(--ep-on-surface);
+  text-decoration: none;
+  box-shadow: none;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
 }
 
 .card:hover {
-  color: var(--ifm-font-color-base);
-  border-color: var(--doc-card-accent);
-  box-shadow: var(--ep-shadow-sm);
+  background: var(--ep-surface-container-low);
+  border-color: var(--ifm-color-primary);
+  color: var(--ep-on-surface);
+  text-decoration: none;
+  box-shadow: none;
+  transform: none;
 }
 
 .card:focus-visible {
-  outline: 3px solid var(--ifm-color-primary);
-  outline-offset: 3px;
+  outline: var(--ep-focus-ring);
+  outline-offset: var(--ep-focus-offset);
 }
 
-.icon { font-size: 1.75rem; line-height: 1; }
-.title { font-size: 1rem; font-weight: 700; line-height: 1.4; word-break: keep-all; }
-.description {
-  font-size: 0.9rem;
-  color: var(--ep-on-surface-variant);
-  line-height: 1.7;
+.icon { color: var(--ifm-color-primary); }
+
+/* Repeated selector beats prose h2 rules without truncation or !important. */
+.card .title {
+  margin: 0;
+  font-family: var(--ifm-heading-font-family);
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--ep-on-surface);
   word-break: keep-all;
   overflow-wrap: anywhere;
 }
 
-@media (max-width: 768px) {
-  .grid { grid-template-columns: minmax(0, 1fr); }
+.description {
+  font-size: var(--ep-font-size-table);
+  color: var(--ep-on-surface-variant);
+  line-height: var(--ep-line-height-table);
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card { transition: none; }
 }
