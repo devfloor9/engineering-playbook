@@ -114,28 +114,29 @@ Existing vLLM deployments rely on simple Round-Robin load balancing. When reques
 
 llm-d and NVIDIA Dynamo recognize the KV Cache state of each vLLM Pod and route requests with identical prefixes to Pods that already hold the corresponding KV Cache.
 
+This flow is a simplified example of configured EPP plugins. A Pod with cached prefixes may still lose selection because of load.
+
 ```mermaid
 sequenceDiagram
     participant C as Client
-    participant GW as Inference Gateway
-    participant P1 as Pod 1 (Cache: K8s)
-    participant P2 as Pod 2 (Cache: AWS)
-    participant P3 as Pod 3 (Empty)
-
-    C->>GW: "What is K8s?"
-    GW->>GW: Prefix Hash → Cache Lookup
-    GW->>P1: Cache Hit → Direct Route
-    P1->>C: Fast Response (TTFT ↓↓)
-
-    C->>GW: "What is AWS?"
-    GW->>GW: Prefix Hash → Cache Lookup
-    GW->>P2: Cache Hit → Direct Route
-    P2->>C: Fast Response (TTFT ↓↓)
-
-    C->>GW: Completely new question
-    GW->>GW: Cache Miss
-    GW->>P3: LB Fallback
-    P3->>C: Normal Response
+    participant GW as Gateway proxy
+    participant E as EPP
+    participant P1 as Pod 1 (cached prefix)
+    participant P2 as Pod 2 (lower load)
+    C->>GW: Request with repeated prefix
+    GW->>E: ext-proc request
+    Note over E: Score prefix reuse and load
+    E-->>GW: Selected endpoint: Pod 1
+    GW->>P1: Forward request
+    P1-->>GW: Response stream
+    GW-->>C: Response stream
+    C->>GW: Request with new prefix
+    GW->>E: ext-proc request
+    Note over E: No prefix match, use configured load scores
+    E-->>GW: Selected endpoint: Pod 2
+    GW->>P2: Forward request
+    P2-->>GW: Response stream
+    GW-->>C: Response stream
 ```
 
 **Effects of KV Cache-Aware Routing:**
@@ -148,9 +149,9 @@ sequenceDiagram
 
 ### llm-d vs NVIDIA Dynamo Comparison
 
-Both projects provide KV Cache-aware routing but with different approaches.
+Both projects provide KV Cache-aware routing but with different approaches. The llm-d review is pinned to [v0.8.1 (2026-06-26)](https://github.com/llm-d/llm-d/releases/tag/v0.8.1). Routing to a Pod that holds cached prefixes is separate from configuring KV transfer or offloading across Pods.
 
-| Item | llm-d v0.5+ | NVIDIA Dynamo v1.0 |
+| Item | llm-d v0.8.1 | NVIDIA Dynamo v1.0 |
 |------|------------|-------------------|
 | **Led by** | Red Hat (Apache 2.0) | NVIDIA (Apache 2.0) |
 | **KV Cache Indexing** | Prefix-aware routing | Flash Indexer (radix tree) |
@@ -158,54 +159,65 @@ Both projects provide KV Cache-aware routing but with different approaches.
 | **Routing** | Gateway API + Envoy EPP | Dynamo Router + custom EPP |
 | **Pod Scheduling** | K8s default scheduler | KAI Scheduler (GPU-aware) |
 | **Autoscaling** | HPA/KEDA integration | Planner (SLO-based profiling) |
-| **KV Cache Tiering** | Memory only | 3-tier: GPU→CPU→SSD |
+| **KV Cache Tiering** | [HBM → CPU RAM → filesystem](https://github.com/llm-d/llm-d/blob/v0.8.1/docs/well-lit-paths/foundations/tiered-prefix-cache.md), with connector and storage configuration | 3-tier: GPU→CPU→SSD |
 | **Complexity** | Low | High |
 | **Benchmark Performance** | Lightweight, K8s native | 7x (Flash Indexer + Planner) |
 
 :::tip Selection Criteria
-- **Small~Medium Scale (GPU ≤16)**: llm-d — Rapid adoption, K8s Gateway API native
+- **Small~Medium Scale (GPU ≤16)**: llm-d — Rapid adoption, K8s Gateway API native, tiered KV offloading support
 - **Large Scale (GPU 16+), Maximum Throughput**: Dynamo — Flash Indexer, SLO-based autoscaling
-- **Long Context (128K+)**: Dynamo — 3-tier KV Cache (GPU→CPU→SSD)
+- **Long Context (128K+)**: Both projects support CPU/storage offloading; evaluate capacity and transfer cost for the workload
 - **Gradual Transition**: Start with llm-d → Switch to Dynamo when scaling (both use NIXL)
 :::
 
 ### Gateway Architecture: llm-d Deployment Configuration
 
+This is a single-Gateway example of [llm-d v0.8.1 Gateway Mode](https://github.com/llm-d/llm-d/blob/v0.8.1/docs/architecture/core/router/proxy.md). Solid lines show traffic/ext-proc calls; dotted lines show configuration references. InferencePool (`inference.networking.k8s.io/v1`) selects Pods and connects the EPP; optional InferenceObjective (`llm-d.ai/v1alpha2`) defines request priority. The historical `InferenceModel` is not a workload definition. Images, replicas, and GPU requests belong in the workload; the counts are illustrative.
+
 ```mermaid
 flowchart TB
-    CLIENT[Client App<br/>OpenAI Compatible API]
-
-    subgraph Gateway["Gateway Layer"]
-        GW[Inference Gateway<br/>Envoy-based]
-        IM[InferenceModel CRD]
-        IP[InferencePool CRD]
+    CLIENT[Client App<br/>OpenAI API]
+    subgraph Routing["Gateway and EPP"]
+        GW[Gateway proxy]
+        EPP[EPP<br/>Endpoint Picker]
+        HR[HTTPRoute]
+        IP[InferencePool<br/>inference.networking.k8s.io/v1]
+        IO[InferenceObjective<br/>llm-d.ai/v1alpha2]
     end
-
-    subgraph Inference["Inference Layer"]
-        V1[vLLM Pod 1<br/>GPU 0-1, TP=2]
-        V2[vLLM Pod 2<br/>GPU 2-3, TP=2]
-        VN[vLLM Pod N<br/>GPU 14-15, TP=2]
+    subgraph Workload["Workload deployment"]
+        DEP[Deployment / LeaderWorkerSet]
+        V1[vLLM Pod 1<br/>2 GPUs, TP=2]
+        V2[vLLM Pod 2<br/>2 GPUs, TP=2]
+        VN[vLLM Pod N<br/>2 GPUs, TP=2]
     end
-
-    subgraph Node["EKS Node Management"]
-        NP[Karpenter NodePool]
+    subgraph Nodes["EKS Auto Mode node configuration"]
+        NP[NodePool]
         NC[NodeClass]
     end
-
     CLIENT --> GW
-    GW --> IM
-    IM --> IP
-    IP --> V1
-    IP --> V2
-    IP --> VN
-    NP -.->|Provisioning| NC
-
-    style CLIENT fill:#34a853,color:#fff
+    GW <-->|ext-proc| EPP
+    GW --> V1
+    GW --> V2
+    GW --> VN
+    HR -.->|configures| GW
+    HR -.->|backendRef| IP
+    IP -.->|endpointPickerRef| EPP
+    IP -.->|selector| V1
+    IP -.->|selector| V2
+    IP -.->|selector| VN
+    IO -.->|poolRef| IP
+    IO -.->|priority| EPP
+    DEP -.-> V1
+    DEP -.-> V2
+    DEP -.-> VN
+    NP -.->|nodeClassRef| NC
+    style CLIENT fill:#34a853
     style GW fill:#326ce5,color:#fff
+    style EPP fill:#8b5cf6,color:#fff
     style V1 fill:#ffd93d
     style V2 fill:#ffd93d
     style VN fill:#ffd93d
-    style NP fill:#ff9900,color:#fff
+    style NP fill:#ff9900
 ```
 
 ## References

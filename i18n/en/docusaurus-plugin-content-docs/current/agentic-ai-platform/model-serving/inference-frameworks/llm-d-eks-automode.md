@@ -31,37 +31,36 @@ import {
   P5InstanceTable,
   P5eInstanceTable,
   GatewayCRDTable,
-  DefaultDeploymentTable,
   KVCacheEffectsTable,
   MonitoringMetricsTable,
   ModelLoadingTable,
   CostOptimizationTable
 } from '@site/src/components/LlmdTables';
 
-> **Current Version**: llm-d v0.5+ (2026.03)
+> **Reviewed baseline**: [llm-d v0.8.1](https://github.com/llm-d/llm-d/releases/tag/v0.8.1) (released 2026-06-26; documentation reviewed 2026-09-18). Components: llm-d Router v0.9.0, GIE v1.5.0, Gateway API v1.5.1. Joining CNCF Sandbox in March 2026 is a separate milestone from this release.
 
 ## Overview
 
-llm-d is an Apache 2.0-licensed Kubernetes-native distributed inference stack led by Red Hat. It combines the vLLM inference engine, Envoy-based Inference Gateway, and Kubernetes Gateway API to provide intelligent inference routing for large language models.
+llm-d is an Apache 2.0-licensed Kubernetes-native distributed inference stack led by Red Hat. It combines the vLLM inference engine, an Inference Gateway connecting a compatible proxy to an EPP, and Kubernetes Gateway API to provide intelligent inference routing for large language models.
 
 While existing vLLM deployments rely on simple Round-Robin load balancing, llm-d delivers intelligent routing that is KV Cache state-aware, forwarding requests with identical prefixes to Pods that already hold the corresponding KV Cache. This significantly reduces Time To First Token (TTFT) and saves GPU computation.
 
 :::tip Production Deployment Guide
-For llm-d EKS deployment YAML, helmfile commands, and cluster creation, see the [Custom Model Deployment Guide](../../reference-architecture/model-lifecycle/custom-model-deployment.md).
+For llm-d EKS deployment design and cluster preparation, see the [Custom Model Deployment Guide](../../reference-architecture/model-lifecycle/custom-model-deployment.md).
 :::
 
-:::warning llm-d Inference Gateway =/= General-purpose Gateway API Implementation
-llm-d's Envoy-based Inference Gateway is a **special-purpose gateway designed exclusively for LLM inference requests**.
+:::info Choosing a Gateway topology
+llm-d v0.8.1 [Gateway Mode](https://github.com/llm-d/llm-d/blob/v0.8.1/docs/architecture/core/router/proxy.md) integrates an existing Gateway API implementation with an EPP (Endpoint Picker). **One compatible Gateway can route to both traditional Services and InferencePools.** The EPP selects endpoints; it is not a second traffic proxy.
 
-- **llm-d Gateway**: Based on InferencePool (GIE, `inference.networking.k8s.io/v1`) and InferenceObjective (llm-d, `llm-d.ai/v1alpha2`) CRDs, KV Cache-aware routing, inference traffic only
-- **General Gateway API**: HTTPRoute/GRPCRoute-based, TLS/auth/Rate Limiting, cluster-wide traffic management
+- **Single Gateway**: The selected implementation and version must support `HTTPRoute → InferencePool` and EPP external processing integration. Check its policies and configuration for TLS, authentication, and rate limiting.
+- **Separate edge and inference Gateways**: Choose this when retaining an existing ingress or separating security boundaries, ownership, or scaling. Account for the extra proxy hop, latency, cost, and consistent timeout, retry, streaming, authentication-header, and observability handling.
 
-In production, the recommended architecture has a general Gateway API implementation handling the cluster entry point, with llm-d optimizing AI inference traffic underneath.
+Two Gateways are not a universal llm-d deployment requirement. The diagram below shows a single Gateway configuration.
 :::
 
 ### llm-d's 3 Well-Lit Paths
 
-llm-d provides three validated deployment paths.
+The table summarizes three representative patterns. The complete v0.8.1 [Well-Lit Paths](https://github.com/llm-d/llm-d/blob/v0.8.1/docs/well-lit-paths/README.md) are organized into Foundations and Workloads; [Optimized Baseline](https://github.com/llm-d/llm-d/blob/v0.8.1/guides/optimized-baseline/README.md) is the current starting point for Intelligent Inference Scheduling.
 
 <WellLitPathTable />
 
@@ -71,37 +70,48 @@ llm-d provides three validated deployment paths.
 
 llm-d's Intelligent Inference Scheduling architecture is composed as follows.
 
+Solid lines show requests/responses and ext-proc calls; dotted lines show configuration references and Pod management. GPU counts and TP are illustrative workload values. InferencePool selects existing Pods and references an EPP; images, GPU requests, and replica counts belong to workloads such as Deployment/LeaderWorkerSet.
+
 ```mermaid
 flowchart TB
     CLIENT[Client App<br/>OpenAI API]
-
-    subgraph Gateway["Gateway Layer"]
-        GW[Inference<br/>Gateway]
-        IO[InferenceObjective<br/>CRD]
-        IP[InferencePool<br/>CRD]
+    subgraph Routing["Gateway and EPP"]
+        GW[Gateway proxy]
+        EPP[EPP<br/>Endpoint Picker]
+        HR[HTTPRoute]
+        IP[InferencePool<br/>inference.networking.k8s.io/v1]
+        IO[InferenceObjective<br/>llm-d.ai/v1alpha2]
     end
-
-    subgraph Inference["Inference Layer"]
-        V1[vLLM Pod 1<br/>GPU 0-1<br/>TP=2]
-        V2[vLLM Pod 2<br/>GPU 2-3<br/>TP=2]
-        VN[vLLM Pod N<br/>GPU 14-15<br/>TP=2]
+    subgraph Workload["Workload deployment"]
+        DEP[Deployment / LeaderWorkerSet]
+        V1[vLLM Pod 1<br/>2 GPUs, TP=2]
+        V2[vLLM Pod 2<br/>2 GPUs, TP=2]
+        VN[vLLM Pod N<br/>2 GPUs, TP=2]
     end
-
-    subgraph NodeMgmt["EKS Node Management"]
-        NP[Karpenter<br/>NodePool]
+    subgraph Nodes["EKS Auto Mode node configuration"]
+        NP[NodePool]
         NC[NodeClass]
     end
-
     CLIENT --> GW
-    GW --> IP
+    GW <-->|ext-proc| EPP
+    GW --> V1
+    GW --> V2
+    GW --> VN
+    HR -.->|configures| GW
+    HR -.->|backendRef| IP
+    IP -.->|endpointPickerRef| EPP
+    IP -.->|selector| V1
+    IP -.->|selector| V2
+    IP -.->|selector| VN
     IO -.->|poolRef| IP
-    IP --> V1
-    IP --> V2
-    IP --> VN
-    NP -.->|Provisioning| NC
-
+    IO -.->|priority| EPP
+    DEP -.-> V1
+    DEP -.-> V2
+    DEP -.-> VN
+    NP -.->|nodeClassRef| NC
     style CLIENT fill:#34a853
-    style GW fill:#326ce5
+    style GW fill:#326ce5,color:#fff
+    style EPP fill:#8b5cf6,color:#fff
     style V1 fill:#ffd93d
     style V2 fill:#ffd93d
     style VN fill:#ffd93d
@@ -114,20 +124,30 @@ flowchart TB
 
 ### Gateway API CRD
 
-llm-d uses Kubernetes Gateway API and Inference Extension CRDs.
+This guide uses the following Gateway Mode resources. Gateway API/GIE CRDs and the optional llm-d InferenceObjective CRD have different owners and installation packages. Baseline schemas: [llm-d v0.8.1](https://github.com/llm-d/llm-d/releases/tag/v0.8.1), [InferencePool v1](https://github.com/kubernetes-sigs/gateway-api-inference-extension/blob/v1.5.0/config/crd/bases/inference.networking.k8s.io_inferencepools.yaml), [InferenceObjective v1alpha2](https://github.com/llm-d/llm-d-router/blob/v0.9.0/config/crd/bases/llm-d.ai_inferenceobjectives.yaml), [HTTPRoute v1](https://github.com/kubernetes-sigs/gateway-api/blob/v1.5.1/config/crd/standard/gateway.networking.k8s.io_httproutes.yaml).
 
 <GatewayCRDTable />
 
 ### Default Deployment Configuration
 
-<DefaultDeploymentTable />
+This configuration follows the NVIDIA GPU example in [Optimized Baseline v0.8.1](https://github.com/llm-d/llm-d/blob/v0.8.1/guides/optimized-baseline/README.md). These are recipe values, not EKS-validated defaults or universal defaults for every deployment path. This release uses a router Helm chart and model-server Kustomize manifests.
+
+| Setting | Example value | Defined in |
+|---------|---------------|------------|
+| Model | `Qwen/Qwen3-32B` | Model-server arguments |
+| vLLM image | `vllm/vllm-openai:v0.23.0` | Workload container image, per the release component table |
+| Replicas | 8 | Workload replica configuration |
+| Tensor Parallelism / GPU | TP=2 / 2 GPUs per replica | Model-server arguments and Pod GPU requests |
+| Total GPUs | 16 | 8 replicas × 2 GPUs; node placement is a separate decision |
+
+InferencePool selects this workload's Pod labels. InferenceObjective expresses request policy and does not replace these deployment settings.
 
 ### Qwen3-32B Model Selection Rationale
 
 <Qwen3SpecsTable />
 
 :::info Qwen3-32B Selection Background
-Qwen3-32B is llm-d's official default model and is Apache 2.0-licensed for free commercial use. Requiring ~65GB VRAM at BF16, it can be stably served with TP=2 (2x GPU) on H100 80GB.
+Qwen3-32B is the default model in the Optimized Baseline example above and is Apache 2.0-licensed for free commercial use. Requiring ~65GB VRAM at BF16, it can be stably served with TP=2 (2x GPU) on H100 80GB.
 :::
 
 ---
@@ -136,38 +156,37 @@ Qwen3-32B is llm-d's official default model and is Apache 2.0-licensed for free 
 
 The core differentiator of llm-d is intelligent routing that is aware of KV Cache state.
 
+This flow is a simplified example of configured EPP plugins. A Pod with cached prefixes may still lose selection because of load.
+
 ```mermaid
 sequenceDiagram
     participant C as Client
-    participant GW as Gateway
-    participant P1 as Pod 1<br/>Cache: K8s
-    participant P2 as Pod 2<br/>Cache: AWS
-    participant P3 as Pod 3<br/>Empty
-
-    Note over GW: KV Cache-aware
-
-    C->>GW: What is K8s?
-    GW->>GW: Prefix Matching
-    GW->>P1: Cache Hit
-    P1->>C: Fast Response
-
-    C->>GW: What is AWS?
-    GW->>GW: Prefix Matching
-    GW->>P2: Cache Hit
-    P2->>C: Fast Response
-
-    C->>GW: New Question
-    GW->>GW: Cache Miss
-    GW->>P3: LB Fallback
-    P3->>C: Normal Response
+    participant GW as Gateway proxy
+    participant E as EPP
+    participant P1 as Pod 1 (cached prefix)
+    participant P2 as Pod 2 (lower load)
+    C->>GW: Request with repeated prefix
+    GW->>E: ext-proc request
+    Note over E: Score prefix reuse and load
+    E-->>GW: Selected endpoint: Pod 1
+    GW->>P1: Forward request
+    P1-->>GW: Response stream
+    GW-->>C: Response stream
+    C->>GW: Request with new prefix
+    GW->>E: ext-proc request
+    Note over E: No prefix match, use configured load scores
+    E-->>GW: Selected endpoint: Pod 2
+    GW->>P2: Forward request
+    P2-->>GW: Response stream
+    GW-->>C: Response stream
 ```
 
 ### Routing Operation Principles
 
 1. **Request reception**: Client sends inference request to Inference Gateway
-2. **Prefix analysis**: Gateway hashes the request's prompt prefix for identification
-3. **Cache lookup**: Checks KV Cache state of each vLLM Pod to find Pods holding the prefix
-4. **Intelligent routing**: Routes to matching Pod on cache hit; load-balanced on miss
+2. **Prefix analysis**: Gateway calls the EPP through ext-proc; configured EPP plugins analyze the prefix
+3. **Cache lookup**: EPP evaluates candidate Pods using the configured cache index and metrics
+4. **Intelligent routing**: EPP combines cache and load scores to select an endpoint; Gateway proxies to that Pod
 5. **Response return**: vLLM returns inference results to client via Gateway
 
 ### KV Cache-aware Routing Effects
@@ -193,7 +212,7 @@ KV Cache-aware routing is most effective in applications using identical system 
 
 **Limitations:**
 
-- **MIG/Time-Slicing not available**: Auto Mode's NodeClass is AWS-managed (read-only), so GPU partitioning configuration is not possible
+- **MIG/Time-Slicing restrictions**: Users cannot change the NVIDIA device plugin configuration managed by Auto Mode. This does not mean that NodeClass itself is read-only.
 - **Custom AMI not available**: Cannot pin specific CUDA versions or drivers
 
 ### Auto Mode vs Karpenter + GPU Operator Comparison
@@ -224,16 +243,20 @@ Details: [EKS GPU Node Strategy — MNG Hybrid for DRA Workloads](../gpu-infrast
 
 ---
 
-## llm-d v0.5+ Key Features
+## llm-d v0.8.1 Key Features {#llm-d-v05-key-features}
 
-| Feature | Description | Status |
-|---------|-------------|:------:|
-| **Prefill/Decode Disaggregation** | Separate Prefill and Decode into distinct Pod groups, maximizing throughput for large batches and long contexts | GA |
-| **Expert Parallelism** | Distributed serving of MoE model (Mixtral, DeepSeek) Experts across multiple nodes | GA |
-| **LoRA Adapter Hot-swap** | Dynamically load/unload multiple LoRA adapters on a single base model | GA |
-| **Multi-model Serving** | Per-model InferencePools; IPP (Inference Payload Processor) extracts the model name into routing headers and HTTPRoutes match them to the target pool | GA |
-| **Gateway API Inference Extension** | InferencePool belongs to GIE (`inference.networking.k8s.io/v1`, GA). The former InferenceModel was renamed InferenceObjective and moved to llm-d (`llm-d.ai/v1alpha2`, alpha) | v1 / v1alpha2 |
+Status follows the [v0.8.1 release](https://github.com/llm-d/llm-d/releases/tag/v0.8.1) and documentation at that tag. Deployment patterns, implemented features, and API stability describe different things.
 
+| Feature | Description | Status at the reviewed baseline |
+|---------|-------------|---------------------------------|
+| **Prefill/Decode Disaggregation** | Deploy separate Prefill and Decode Pod groups with KV transfer | [Well-lit path](https://github.com/llm-d/llm-d/blob/v0.8.1/docs/well-lit-paths/foundations/pd-disaggregation.md) |
+| **Expert Parallelism (Wide EP)** | Distribute experts for supported MoE model and hardware combinations | [Well-lit path](https://github.com/llm-d/llm-d/blob/v0.8.1/docs/well-lit-paths/foundations/wide-expert-parallelism.md) |
+| **LoRA-aware scheduling** | `lora-affinity-scorer` considers loaded adapters and loading capacity; dynamic loading depends on model-server configuration | [Implemented plugin](https://github.com/llm-d/llm-d-router/blob/v0.9.0/pkg/epp/framework/plugins/scheduling/scorer/loraaffinity/README.md), not a blanket GA hot-swap guarantee |
+| **Multi-model routing** | HTTPRoute paths, headers, and weights select per-model InferencePools; routing on the JSON `model` body requires separate implementation/configuration | [Gateway Mode pattern](https://github.com/llm-d/llm-d/blob/v0.8.1/docs/architecture/core/router/proxy.md); distinguish the IPP proposal from default behavior |
+| **Gateway API Inference Extension** | InferencePool `inference.networking.k8s.io/v1`; optional request policy uses llm-d InferenceObjective `llm-d.ai/v1alpha2` | GIE v1 API / llm-d alpha API |
+| **Flow control** | Integer InferenceObjective `priority` orders request queues | Graduated to production in the release; the [configuration guide](https://github.com/llm-d/llm-d/blob/v0.8.1/docs/architecture/core/router/epp/flow-control.md) requires explicitly enabling the `flowControl` feature gate |
+
+`InferenceModel` is the historical name of the earlier policy API. These schemas do not define model images, GPU allocation, or replica counts, and `priority` does not reserve GPUs.
 ### Disaggregated Serving Concept
 
 Disaggregated Serving separates the two phases of LLM inference for independent optimization:
@@ -270,27 +293,16 @@ flowchart LR
 
 ### Disaggregated Serving on EKS Auto Mode
 
-Since MIG partitioning is not possible on Auto Mode, **Prefill/Decode roles are separated at the instance (node) level**.
+Allocate GPUs through Pod `nvidia.com/gpu` requests, as in the [AWS GPU workload example](https://docs.aws.amazon.com/eks/latest/userguide/auto-accelerated.html). Auto Mode [does not support MIG](https://docs.aws.amazon.com/eks/latest/userguide/device-management-nvidia-mig.html), but this does not require Prefill and Decode to run on different nodes. Pods can request different whole GPUs on the same multi-GPU node; placement depends on available GPUs, memory, and Pod scheduling constraints.
 
+Separate NodePools are a design option when hardware or scaling policies need isolation. The counts below are illustrative, not measured performance results.
+
+```text
+Prefill NodePool: TP=4, nvidia.com/gpu: 4 per Pod
+Decode NodePool: TP=2, nvidia.com/gpu: 2 per Pod
 ```
-Prefill NodePool (compute-heavy):
-  p5.48xlarge x N → Prefill Pod (each TP=4, 4 GPUs)
 
-Decode NodePool (memory-heavy):
-  p5.48xlarge x N → Decode Pod (each TP=2, 2 GPUs x 4 Pods/node)
-```
-
-| Item | Auto Mode (Node Separation) | Karpenter + GPU Operator (MIG Separation) |
-|------|---------------------------|------------------------------------------|
-| **Separation Unit** | Instance (node) | GPU unit (MIG partition) |
-| **GPU Utilization** | Optimizable with Decode Pod TP=2 x 4/node | High utilization with intra-GPU MIG partitioning |
-| **Operational Complexity** | Low | Medium (GPU Operator + MIG configuration) |
-| **Scaling** | Easy independent Prefill/Decode scaling | Node-level MIG reconfiguration causes disruption |
-
-:::tip Minimizing GPU Idle
-**Recommended strategy**: Validate on Auto Mode first, then transition to Karpenter + GPU Operator + MIG when cost optimization is needed.
-:::
-
+Configure replicas, GPU requests, and nodeSelector/affinity in the model-server workload; use InferencePool to select those Pods. InferenceObjective request priority does not replace node placement or GPU isolation.
 ---
 
 ## llm-d vs NVIDIA Dynamo

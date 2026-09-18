@@ -31,37 +31,36 @@ import {
   P5InstanceTable,
   P5eInstanceTable,
   GatewayCRDTable,
-  DefaultDeploymentTable,
   KVCacheEffectsTable,
   MonitoringMetricsTable,
   ModelLoadingTable,
   CostOptimizationTable
 } from '@site/src/components/LlmdTables';
 
-> **현재 버전**: llm-d v0.8+ (CNCF Sandbox, 2026.03)
+> **검토 기준**: [llm-d v0.8.1](https://github.com/llm-d/llm-d/releases/tag/v0.8.1) (2026-06-26 릴리스, 문서 검토 2026-09-18). 구성 버전: llm-d Router v0.9.0, GIE v1.5.0, Gateway API v1.5.1. CNCF Sandbox 합류(2026-03)는 릴리스 날짜와 별개입니다.
 
 ## 개요
 
-llm-d는 Red Hat이 주도하는 Apache 2.0 라이선스의 Kubernetes 네이티브 분산 추론 스택입니다. vLLM 추론 엔진, Envoy 기반 Inference Gateway, 그리고 Kubernetes Gateway API를 결합하여 대규모 언어 모델의 지능적인 추론 라우팅을 제공합니다.
+llm-d는 Red Hat이 주도하는 Apache 2.0 라이선스의 Kubernetes 네이티브 분산 추론 스택입니다. vLLM 추론 엔진, 호환 프록시와 EPP를 연결하는 Inference Gateway, 그리고 Kubernetes Gateway API를 결합하여 대규모 언어 모델의 지능적인 추론 라우팅을 제공합니다.
 
 기존 vLLM 배포가 단순한 Round-Robin 로드 밸런싱에 의존하는 반면, llm-d는 KV Cache 상태를 인식하는 지능적 라우팅을 통해 동일한 prefix를 가진 요청을 이미 해당 KV Cache를 보유한 Pod로 전달합니다. 이를 통해 Time To First Token(TTFT)을 크게 단축하고 GPU 연산을 절약할 수 있습니다.
 
 :::tip 실전 배포 가이드
-llm-d의 EKS 배포 YAML, helmfile 명령어, 클러스터 생성 등 실전 배포는 [커스텀 모델 배포 가이드](../../reference-architecture/model-lifecycle/custom-model-deployment.md)를 참조하세요.
+llm-d의 EKS 배포 설계와 클러스터 준비는 [커스텀 모델 배포 가이드](../../reference-architecture/model-lifecycle/custom-model-deployment.md)를 참조하세요.
 :::
 
-:::warning llm-d Inference Gateway =/= 범용 Gateway API 구현체
-llm-d의 Envoy 기반 Inference Gateway는 **LLM 추론 요청 전용**으로 설계된 특수 목적 게이트웨이입니다.
+:::info Gateway 토폴로지 선택
+llm-d v0.8.1의 [Gateway Mode](https://github.com/llm-d/llm-d/blob/v0.8.1/docs/architecture/core/router/proxy.md)는 기존 Gateway API 구현체를 EPP(Endpoint Picker)와 연동합니다. **호환 Gateway 하나가 일반 Service와 InferencePool을 모두 라우팅할 수 있습니다.** EPP는 엔드포인트를 선택하는 서비스이며, 두 번째 트래픽 프록시가 아닙니다.
 
-- **llm-d Gateway**: InferencePool(GIE, `inference.networking.k8s.io/v1`) + InferenceObjective(llm-d, `llm-d.ai/v1alpha2`) CRD 기반, KV Cache-aware 라우팅, 추론 트래픽 전용
-- **범용 Gateway API**: HTTPRoute/GRPCRoute 기반, TLS/인증/Rate Limiting, 클러스터 전체 트래픽 관리
+- **단일 Gateway**: 선택한 구현체·버전이 `HTTPRoute → InferencePool`과 EPP external processing 연동을 지원해야 합니다. TLS·인증·rate limiting 지원은 해당 구현체의 정책과 설정을 확인합니다.
+- **별도 edge Gateway + inference Gateway**: 기존 ingress를 유지하거나 보안 경계·운영 소유권·스케일링을 분리해야 할 때 선택합니다. 추가 프록시 홉, 지연, 비용, timeout·retry·스트리밍·인증 헤더·관측성의 일관성을 함께 검토해야 합니다.
 
-프로덕션 환경에서는 범용 Gateway API 구현체가 클러스터 진입점을 담당하고, llm-d는 그 하위에서 AI 추론 트래픽을 최적화하는 구조를 권장합니다.
+두 게이트웨이를 모든 llm-d 배포의 필수 조건으로 가정하지 않습니다. 아래 다이어그램은 단일 Gateway 구성을 보여줍니다.
 :::
 
 ### llm-d의 3가지 Well-Lit Path
 
-llm-d는 세 가지 검증된 배포 경로를 제공합니다.
+아래 표는 대표적인 세 가지 패턴을 요약합니다. v0.8.1의 전체 [Well-Lit Paths](https://github.com/llm-d/llm-d/blob/v0.8.1/docs/well-lit-paths/README.md)는 Foundations와 Workloads로 구성되며, Intelligent Inference Scheduling의 현재 시작점은 [Optimized Baseline](https://github.com/llm-d/llm-d/blob/v0.8.1/guides/optimized-baseline/README.md)입니다.
 
 <WellLitPathTable />
 
@@ -71,37 +70,48 @@ llm-d는 세 가지 검증된 배포 경로를 제공합니다.
 
 llm-d의 Intelligent Inference Scheduling 아키텍처는 다음과 같이 구성됩니다.
 
+실선은 요청·응답 및 ext-proc 호출, 점선은 설정 참조·Pod 관리 관계입니다. GPU 수와 TP는 설명용 워크로드 값입니다. InferencePool은 기존 Pod를 선택하고 EPP를 참조하며, 이미지·GPU 요청·replica 수는 Deployment/LeaderWorkerSet 등의 워크로드에 정의합니다.
+
 ```mermaid
 flowchart TB
     CLIENT[Client App<br/>OpenAI API]
-
-    subgraph Gateway["Gateway Layer"]
-        GW[Inference<br/>Gateway]
-        IO[InferenceObjective<br/>CRD]
-        IP[InferencePool<br/>CRD]
+    subgraph Routing["Gateway and EPP"]
+        GW[Gateway proxy]
+        EPP[EPP<br/>Endpoint Picker]
+        HR[HTTPRoute]
+        IP[InferencePool<br/>inference.networking.k8s.io/v1]
+        IO[InferenceObjective<br/>llm-d.ai/v1alpha2]
     end
-
-    subgraph Inference["Inference Layer"]
-        V1[vLLM Pod 1<br/>GPU 0-1<br/>TP=2]
-        V2[vLLM Pod 2<br/>GPU 2-3<br/>TP=2]
-        VN[vLLM Pod N<br/>GPU 14-15<br/>TP=2]
+    subgraph Workload["워크로드 배포"]
+        DEP[Deployment / LeaderWorkerSet]
+        V1[vLLM Pod 1<br/>2 GPUs, TP=2]
+        V2[vLLM Pod 2<br/>2 GPUs, TP=2]
+        VN[vLLM Pod N<br/>2 GPUs, TP=2]
     end
-
-    subgraph NodeMgmt["EKS Node Management"]
-        NP[Karpenter<br/>NodePool]
+    subgraph Nodes["EKS Auto Mode node configuration"]
+        NP[NodePool]
         NC[NodeClass]
     end
-
     CLIENT --> GW
-    GW --> IP
+    GW <-->|ext-proc| EPP
+    GW --> V1
+    GW --> V2
+    GW --> VN
+    HR -.->|configures| GW
+    HR -.->|backendRef| IP
+    IP -.->|endpointPickerRef| EPP
+    IP -.->|selector| V1
+    IP -.->|selector| V2
+    IP -.->|selector| VN
     IO -.->|poolRef| IP
-    IP --> V1
-    IP --> V2
-    IP --> VN
-    NP -.->|프로비저닝| NC
-
+    IO -.->|priority| EPP
+    DEP -.-> V1
+    DEP -.-> V2
+    DEP -.-> VN
+    NP -.->|nodeClassRef| NC
     style CLIENT fill:#34a853
-    style GW fill:#326ce5
+    style GW fill:#326ce5,color:#fff
+    style EPP fill:#8b5cf6,color:#fff
     style V1 fill:#ffd93d
     style V2 fill:#ffd93d
     style VN fill:#ffd93d
@@ -114,20 +124,30 @@ flowchart TB
 
 ### Gateway API CRD
 
-llm-d는 Kubernetes Gateway API와 Inference Extension CRD를 사용합니다.
+이 가이드의 Gateway Mode는 아래 리소스를 사용합니다. Gateway API/GIE CRD와 llm-d의 선택적 InferenceObjective CRD는 소속과 설치 패키지가 다릅니다. 기준 스키마: [llm-d v0.8.1](https://github.com/llm-d/llm-d/releases/tag/v0.8.1), [InferencePool v1](https://github.com/kubernetes-sigs/gateway-api-inference-extension/blob/v1.5.0/config/crd/bases/inference.networking.k8s.io_inferencepools.yaml), [InferenceObjective v1alpha2](https://github.com/llm-d/llm-d-router/blob/v0.9.0/config/crd/bases/llm-d.ai_inferenceobjectives.yaml), [HTTPRoute v1](https://github.com/kubernetes-sigs/gateway-api/blob/v1.5.1/config/crd/standard/gateway.networking.k8s.io_httproutes.yaml).
 
 <GatewayCRDTable />
 
 ### 기본 배포 구성
 
-<DefaultDeploymentTable />
+[Optimized Baseline v0.8.1](https://github.com/llm-d/llm-d/blob/v0.8.1/guides/optimized-baseline/README.md)의 NVIDIA GPU 예제를 기준으로 한 구성입니다. EKS에서 실행 검증한 기본값이나 모든 배포 경로의 공통값은 아닙니다. 이 릴리스는 router Helm chart와 모델 서버 Kustomize 매니페스트를 사용합니다.
+
+| 설정 | 예제 값 | 정의 위치 |
+|------|---------|-----------|
+| 모델 | `Qwen/Qwen3-32B` | 모델 서버 인수 |
+| vLLM 이미지 | `vllm/vllm-openai:v0.23.0` | 워크로드 container image, 릴리스 구성표 기준 |
+| Replicas | 8 | 워크로드 replica 설정 |
+| Tensor Parallelism / GPU | TP=2 / replica당 2 GPU | 모델 서버 인수와 Pod GPU 요청 |
+| 총 GPU | 16 | 8 replicas × 2 GPU, 노드 배치는 별도 결정 |
+
+InferencePool은 이 워크로드의 Pod 레이블을 선택합니다. InferenceObjective는 요청 정책이며 위 배포 설정을 대체하지 않습니다.
 
 ### Qwen3-32B 모델 선정 이유
 
 <Qwen3SpecsTable />
 
 :::info Qwen3-32B 선정 배경
-Qwen3-32B는 llm-d의 공식 기본 모델이며, Apache 2.0 라이선스로 상업적 사용이 자유롭습니다. BF16 기준 약 65GB VRAM이 필요하여 TP=2 (2x GPU)로 H100 80GB에서 안정적으로 서빙할 수 있습니다.
+Qwen3-32B는 위 Optimized Baseline 예제의 기본 모델이며, Apache 2.0 라이선스로 상업적 사용이 자유롭습니다. BF16 기준 약 65GB VRAM이 필요하여 TP=2 (2x GPU)로 H100 80GB에서 안정적으로 서빙할 수 있습니다.
 :::
 
 ---
@@ -136,38 +156,37 @@ Qwen3-32B는 llm-d의 공식 기본 모델이며, Apache 2.0 라이선스로 상
 
 llm-d의 핵심 차별점은 KV Cache 상태를 인식하는 지능적 라우팅입니다.
 
+다음 흐름은 설정된 EPP 플러그인의 동작을 단순화한 예시입니다. 캐시가 있는 Pod도 부하에 따라 선택되지 않을 수 있습니다.
+
 ```mermaid
 sequenceDiagram
     participant C as Client
-    participant GW as Gateway
-    participant P1 as Pod 1<br/>Cache: K8s
-    participant P2 as Pod 2<br/>Cache: AWS
-    participant P3 as Pod 3<br/>Empty
-
-    Note over GW: KV Cache-aware
-
-    C->>GW: K8s란?
-    GW->>GW: Prefix 매칭
-    GW->>P1: Cache Hit
-    P1->>C: 빠른 응답
-
-    C->>GW: AWS란?
-    GW->>GW: Prefix 매칭
-    GW->>P2: Cache Hit
-    P2->>C: 빠른 응답
-
-    C->>GW: 새 질문
-    GW->>GW: Cache Miss
-    GW->>P3: LB 폴백
-    P3->>C: 일반 응답
+    participant GW as Gateway proxy
+    participant E as EPP
+    participant P1 as Pod 1 (cached prefix)
+    participant P2 as Pod 2 (lower load)
+    C->>GW: 반복 prefix 요청
+    GW->>E: ext-proc request
+    Note over E: prefix 재사용과 부하 점수 평가
+    E-->>GW: 선택된 엔드포인트: Pod 1
+    GW->>P1: 요청 전달
+    P1-->>GW: 응답 스트림
+    GW-->>C: 응답 스트림
+    C->>GW: 새 prefix 요청
+    GW->>E: ext-proc request
+    Note over E: prefix 매칭 없음, 설정된 부하 점수 사용
+    E-->>GW: 선택된 엔드포인트: Pod 2
+    GW->>P2: 요청 전달
+    P2-->>GW: 응답 스트림
+    GW-->>C: 응답 스트림
 ```
 
 ### 라우팅 동작 원리
 
 1. **요청 수신**: 클라이언트가 Inference Gateway로 추론 요청 전송
-2. **Prefix 분석**: Gateway가 요청의 prompt prefix를 해시하여 식별
-3. **Cache 조회**: 각 vLLM Pod의 KV Cache 상태를 확인하여 해당 prefix를 보유한 Pod 탐색
-4. **지능적 라우팅**: Cache hit 시 해당 Pod로 라우팅, miss 시 부하 기반 로드 밸런싱
+2. **Prefix 분석**: Gateway가 EPP에 ext-proc 호출을 전달하고, 설정된 EPP 플러그인이 prefix를 분석
+3. **Cache 조회**: EPP가 설정된 캐시 인덱스·메트릭으로 후보 Pod의 캐시 재사용 가능성을 평가
+4. **지능적 라우팅**: EPP가 캐시와 부하 점수를 종합해 엔드포인트를 선택하고 Gateway가 해당 Pod로 프록시
 5. **응답 반환**: vLLM이 추론 결과를 Gateway를 통해 클라이언트에 반환
 
 ### KV Cache-aware 라우팅의 효과
@@ -193,7 +212,7 @@ sequenceDiagram
 
 **제한사항:**
 
-- **MIG/Time-Slicing 불가**: Auto Mode의 NodeClass는 AWS 관리형(read-only)이므로 GPU 분할 설정 불가
+- **MIG/Time-Slicing 제한**: Auto Mode가 관리하는 NVIDIA device plugin 설정은 사용자가 변경할 수 없습니다. NodeClass 자체가 read-only라는 의미는 아닙니다.
 - **커스텀 AMI 불가**: 특정 CUDA 버전이나 드라이버 핀 필요 시 대응 불가
 
 ### Auto Mode vs Karpenter + GPU Operator 비교
@@ -224,16 +243,20 @@ llm-d ModelService가 DRA (ResourceClaim) 방식으로 GPU를 요청하는 경�
 
 ---
 
-## llm-d v0.5+ 주요 기능
+## llm-d v0.8.1 주요 기능 {#llm-d-v05-주요-기능}
 
-| 기능 | 설명 | 상태 |
-|------|------|:----:|
-| **Prefill/Decode Disaggregation** | Prefill과 Decode를 별도 Pod 그룹으로 분리, 대규모 배치와 긴 컨텍스트 처리량 극대화 | Well-lit path |
-| **Expert Parallelism (Wide EP)** | MoE 모델(Mixtral, DeepSeek)의 Expert를 여러 노드에 분산 서빙 | Well-lit path |
-| **LoRA 어댑터 지원** | 단일 기본 모델에 여러 LoRA 어댑터를 동적 로드, LoRA-aware 스케줄링 지원 | Experimental |
-| **멀티 모델 서빙** | 모델별 InferencePool을 두고, IPP(Inference Payload Processor)가 요청 본문에서 모델명을 추출해 헤더로 설정하면 HTTPRoute가 해당 pool로 라우팅 | Stable |
-| **Gateway API Inference Extension** | InferencePool은 GIE(`inference.networking.k8s.io/v1`, GA) 소속. 구 InferenceModel은 InferenceObjective로 개명되어 llm-d(`llm-d.ai/v1alpha2`, alpha)로 이전 | v1 / v1alpha2 |
+상태는 [v0.8.1 릴리스](https://github.com/llm-d/llm-d/releases/tag/v0.8.1)와 해당 태그의 문서 기준입니다. 배포 패턴·구현 기능·API 안정성은 서로 다른 상태를 나타냅니다.
 
+| 기능 | 설명 | 검토 기준의 상태 |
+|------|------|------------------|
+| **Prefill/Decode Disaggregation** | Prefill과 Decode를 별도 Pod 그룹으로 배포하고 KV를 전송 | [Well-lit path](https://github.com/llm-d/llm-d/blob/v0.8.1/docs/well-lit-paths/foundations/pd-disaggregation.md) |
+| **Expert Parallelism (Wide EP)** | 지원되는 MoE 모델과 하드웨어 조합에서 Expert 분산 | [Well-lit path](https://github.com/llm-d/llm-d/blob/v0.8.1/docs/well-lit-paths/foundations/wide-expert-parallelism.md) |
+| **LoRA-aware 스케줄링** | 이미 로드된 어댑터와 로딩 여유를 고려하는 `lora-affinity-scorer`; 동적 로딩은 모델 서버 설정에 의존 | [구현된 플러그인](https://github.com/llm-d/llm-d-router/blob/v0.9.0/pkg/epp/framework/plugins/scheduling/scorer/loraaffinity/README.md), 일괄 GA hot-swap 보장 아님 |
+| **멀티 모델 라우팅** | HTTPRoute의 경로·헤더·가중치로 모델별 InferencePool 선택; JSON `model` 본문 기반 라우팅은 별도 구현·설정 필요 | [Gateway Mode 패턴](https://github.com/llm-d/llm-d/blob/v0.8.1/docs/architecture/core/router/proxy.md); IPP 제안과 기본 동작을 구분 |
+| **Gateway API Inference Extension** | InferencePool `inference.networking.k8s.io/v1`; 선택적 요청 정책은 llm-d InferenceObjective `llm-d.ai/v1alpha2` | GIE v1 API / llm-d alpha API |
+| **Flow control** | InferenceObjective의 정수 `priority`로 요청 큐 우선순위 지정 | 릴리스에서 production 승격; [설정 문서](https://github.com/llm-d/llm-d/blob/v0.8.1/docs/architecture/core/router/epp/flow-control.md)는 `flowControl` feature gate의 명시적 활성화 요구 |
+
+`InferenceModel`은 이전 정책 API의 역사적 이름입니다. 위 스키마에는 모델 이미지·GPU 할당·replica 수가 없으며, `priority`가 GPU를 예약하지 않습니다.
 ### Disaggregated Serving 개념
 
 Disaggregated Serving은 LLM 추론의 두 단계를 분리하여 각각 독립적으로 최적화합니다:
@@ -270,27 +293,16 @@ flowchart LR
 
 ### EKS Auto Mode에서의 Disaggregated Serving
 
-Auto Mode에서는 MIG 파티셔닝이 불가능하므로, **인스턴스(노드) 단위로 Prefill/Decode 역할을 분리**합니다.
+[AWS의 GPU 워크로드 예제](https://docs.aws.amazon.com/eks/latest/userguide/auto-accelerated.html)처럼 GPU는 Pod의 `nvidia.com/gpu` 요청으로 할당합니다. Auto Mode에서 [MIG는 지원되지 않지만](https://docs.aws.amazon.com/eks/latest/userguide/device-management-nvidia-mig.html), 이것이 Prefill/Decode를 반드시 다른 노드에 배치해야 한다는 뜻은 아닙니다. 같은 다중 GPU 노드의 서로 다른 전체 GPU를 각 Pod가 요청할 수 있으며, 실제 배치는 가용 GPU·메모리와 Pod 배치 제약에 달려 있습니다.
 
+별도 NodePool은 하드웨어·확장 정책을 분리하려는 경우의 설계 선택입니다. 다음 수량은 예시이며 성능 측정 결과가 아닙니다.
+
+```text
+Prefill NodePool: Pod당 TP=4, nvidia.com/gpu: 4
+Decode NodePool: Pod당 TP=2, nvidia.com/gpu: 2
 ```
-Prefill NodePool (compute-heavy):
-  p5.48xlarge x N대 -> Prefill Pod (각 TP=4, GPU 4개)
 
-Decode NodePool (memory-heavy):
-  p5.48xlarge x N대 -> Decode Pod (각 TP=2, GPU 2개 x 4 Pod/노드)
-```
-
-| 항목 | Auto Mode (노드 분리) | Karpenter + GPU Operator (MIG 분리) |
-|------|----------------------|-------------------------------------|
-| **분리 단위** | 인스턴스(노드) | GPU 단위 (MIG 파티션) |
-| **GPU 활용률** | Decode Pod TP=2 x 4개/노드로 최적화 가능 | MIG로 한 GPU 내 분할, 높은 활용률 |
-| **운영 복잡도** | 낮음 | 중간 (GPU Operator + MIG 설정) |
-| **스케일링** | Prefill/Decode 독립 스케일링 용이 | 노드 내 MIG 재설정 시 중단 발생 |
-
-:::tip GPU 유휴 최소화
-**권장 전략**: Auto Mode로 먼저 검증한 후, 비용 최적화가 필요하면 Karpenter + GPU Operator + MIG로 전환하세요.
-:::
-
+모델 서버 워크로드에서 replica 수·GPU 요청·nodeSelector/affinity를 설정하고, InferencePool에서는 해당 Pod를 선택합니다. InferenceObjective의 요청 우선순위는 노드 배치나 GPU 격리를 대신하지 않습니다.
 ---
 
 ## llm-d vs NVIDIA Dynamo

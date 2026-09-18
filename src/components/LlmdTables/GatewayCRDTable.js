@@ -7,16 +7,16 @@ const GatewayCRDTable = () => {
   const isKo = i18n.currentLocale === 'ko';
   const crds = [{
     crd: 'Gateway',
-    role: isKo ? 'Envoy 기반 프록시 인스턴스 정의' : 'Defines Envoy-based proxy instances'
+    role: isKo ? 'Gateway API v1: 선택한 GatewayClass의 리스너와 진입점 정의' : 'Gateway API v1: listeners and entry point for the selected GatewayClass'
   }, {
     crd: 'HTTPRoute',
-    role: isKo ? '라우팅 규칙 정의' : 'Defines routing rules'
+    role: isKo ? 'Gateway API v1: 경로·헤더·가중치로 Service 또는 InferencePool 참조' : 'Gateway API v1: path/header/weight rules referencing Services or InferencePools'
   }, {
     crd: 'InferencePool',
-    role: isKo ? 'vLLM Pod 그룹 (서빙 엔드포인트 풀) 정의' : 'Defines vLLM Pod groups (serving endpoint pools)'
+    role: isKo ? 'GIE v1: Pod selector·targetPorts·endpointPickerRef 정의; replica/GPU 관리 제외' : 'GIE v1: Pod selector, targetPorts, endpointPickerRef; no replica/GPU management'
   }, {
     crd: 'InferenceObjective',
-    role: isKo ? 'InferencePool 내 모델의 요청 우선순위(priority) 정의' : 'Defines request priority for a model within an InferencePool'
+    role: isKo ? 'llm-d v1alpha2 (선택): poolRef와 정수 priority로 요청 정책 정의; GPU 예약 아님' : 'llm-d v1alpha2 (optional): poolRef and integer priority for request policy; no GPU reservation'
   }];
   return <div style={{
     maxWidth: '700px',
@@ -32,7 +32,7 @@ const GatewayCRDTable = () => {
       fontWeight: '600',
       fontSize: '16px'
     }}>
-        {isKo ? '설치되는 CRD' : 'Installed CRDs'}
+        {isKo ? '검토 기준의 API 리소스' : 'API Resources at the Reviewed Baseline'}
       </div>
 
       <div style={{
