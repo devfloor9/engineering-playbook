@@ -332,7 +332,7 @@ Medical/financial/legal domains may require audit log recording even for cache H
 
 ### Official Documentation & Repositories
 
-- [Redis — Semantic Caching (RedisVL)](https://redis.io/docs/latest/develop/ai/redisvl/user_guide/semantic_caching/)
+- [Redis — Semantic Caching (RedisVL)](https://redis.io/docs/latest/develop/ai/redisvl/user_guide/how_to_guides/llmcache/)
 - [Redis LangCache (managed)](https://redis.io/langcache/)
 - [Portkey — Semantic Cache](https://docs.portkey.ai/docs/product/ai-gateway/cache-simple-and-semantic)
 - [Helicone — Caching](https://docs.helicone.ai/features/advanced-usage/caching)

@@ -685,7 +685,7 @@ CloudWatch Generative AI Observability became **GA in October 2025**. Natively i
 - [CloudWatch Generative AI Observability](https://aws.amazon.com/blogs/mt/launching-amazon-cloudwatch-generative-ai-observability-preview/) — Observability GA announcement
 - [Building Production Agent Systems](https://aws.amazon.com/blogs/machine-learning/) — Production Agent construction
 - [CNS421: Streamline EKS Operations with Agentic AI](https://www.youtube.com/watch?v=4s-a0jY4kSE) — re:Invent 2025 session
-- [Agent-to-Agent Protocol Deep Dive](https://google.github.io/A2A/) — Multi-agent communication
+- [Agent-to-Agent Protocol Deep Dive](https://a2a-protocol.org/latest/) — Multi-agent communication
 
 ### Related Documents (Internal)
 

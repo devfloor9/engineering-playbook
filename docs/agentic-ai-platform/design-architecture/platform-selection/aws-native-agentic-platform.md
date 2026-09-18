@@ -683,7 +683,7 @@ CloudWatch Generative AI Observability는 **2025년 10월 GA**되었습니다. A
 - [CloudWatch Generative AI Observability](https://aws.amazon.com/blogs/mt/launching-amazon-cloudwatch-generative-ai-observability-preview/) — 관측성 GA 발표
 - [Building Production Agent Systems](https://aws.amazon.com/blogs/machine-learning/) — 프로덕션 Agent 구축
 - [CNS421: Streamline EKS Operations with Agentic AI](https://www.youtube.com/watch?v=4s-a0jY4kSE) — re:Invent 2025 세션
-- [Agent-to-Agent Protocol Deep Dive](https://google.github.io/A2A/) — 멀티 에이전트 통신
+- [Agent-to-Agent Protocol Deep Dive](https://a2a-protocol.org/latest/) — 멀티 에이전트 통신
 
 ### 관련 문서 (내부)
 

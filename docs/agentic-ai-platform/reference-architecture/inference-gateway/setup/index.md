@@ -181,4 +181,4 @@ graph LR
 - [Agent 모니터링](../../../operations-mlops/observability/agent-monitoring.md) - Langfuse 아키텍처 및 컴포넌트
 - [Kubernetes Gateway API 공식 문서](https://gateway-api.sigs.k8s.io/)
 - [kgateway 공식 문서](https://kgateway.dev/docs/)
-- [Bifrost 공식 문서](https://bifrost.dev/docs)
+- [Bifrost 공식 문서](https://docs.getbifrost.ai/overview)

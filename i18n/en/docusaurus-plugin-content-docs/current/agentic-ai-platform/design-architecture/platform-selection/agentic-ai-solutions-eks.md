@@ -678,7 +678,6 @@ For deployment guide, refer to [Reference Architecture](../../reference-architec
 
 - [vLLM: Easy, Fast, and Cheap LLM Serving](https://blog.vllm.ai/) — vLLM official blog
 - [Efficient Memory Management for LLM Serving](https://arxiv.org/abs/2309.06180) — PagedAttention paper
-- [AWS re:Invent 2024: EKS Auto Mode Deep Dive](https://www.youtube.com/watch?v=) — Auto Mode session
 - [NVIDIA Developer Blog: AI on Kubernetes](https://developer.nvidia.com/blog/) — GPU workload optimization
 
 ### Related Documents (Internal)

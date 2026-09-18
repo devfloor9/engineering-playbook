@@ -348,7 +348,7 @@ flowchart TD
 - [Argo Events](https://argoproj.github.io/argo-events/) — Calendar·Webhook 이벤트 소스
 - [lm-evaluation-harness](https://github.com/EleutherAI/lm-evaluation-harness) — 공개 벤치마크 재현 하네스
 - [huggingface_hub API](https://huggingface.co/docs/huggingface_hub/) — 모델 검색·메타데이터 조회
-- [vLLM — Distributed Inference](https://docs.vllm.ai/en/latest/serving/distributed_serving.html) — 멀티 노드 TP/PP 구성
+- [vLLM — Distributed Inference](https://docs.vllm.ai/en/latest/serving/parallelism_scaling/) — 멀티 노드 TP/PP 구성
 
 ### 관련 문서 (내부)
 - [EKS 기반 MLOps 파이프라인 구축](./mlops-pipeline-eks.md) — Kubeflow·ArgoCD 기반 학습 파이프라인

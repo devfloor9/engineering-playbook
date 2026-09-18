@@ -680,7 +680,6 @@ spec:
 
 - [vLLM: Easy, Fast, and Cheap LLM Serving](https://blog.vllm.ai/) — vLLM 공식 블로그
 - [Efficient Memory Management for LLM Serving](https://arxiv.org/abs/2309.06180) — PagedAttention 논문
-- [AWS re:Invent 2024: EKS Auto Mode Deep Dive](https://www.youtube.com/watch?v=) — Auto Mode 세션
 - [NVIDIA Developer Blog: AI on Kubernetes](https://developer.nvidia.com/blog/) — GPU 워크로드 최적화
 
 ### 관련 문서 (내부)

@@ -816,7 +816,7 @@ Specific methods for implementing this platform architecture are covered in the 
 
 ### Papers / Technical Blogs
 
-- [A2A (Agent-to-Agent Protocol)](https://google.github.io/A2A/) — Google multi-agent communication protocol
+- [A2A (Agent-to-Agent Protocol)](https://a2a-protocol.org/latest/) — Google multi-agent communication protocol
 - [LangChain Architecture Patterns](https://blog.langchain.dev/) — Agent architecture patterns
 - [Building Production-Ready LLM Applications](https://huyenchip.com/2023/04/11/llm-engineering.html) — Production LLM engineering
 - [AWS Well-Architected Framework for AI/ML](https://aws.amazon.com/architecture/) — AI/ML workload design principles
