@@ -22,7 +22,10 @@ export function markdownUrlFromManifest(manifest, {locale, permalink, root, site
   const entry = manifest.docs.find(doc => {
     try {
       const url = absoluteUrl(doc?.url);
-      return url.origin === origin && url.pathname === permalink;
+      // Docusaurus category permalinks end in "/", while the static manifest
+      // uses the equivalent route without it.
+      return url.origin === origin &&
+        url.pathname.replace(/\/$/, '') === permalink.replace(/\/$/, '');
     } catch {
       return false;
     }

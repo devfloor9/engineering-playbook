@@ -13,9 +13,11 @@ const options = {siteUrl, root: rootPath, permalink, locale: 'ko'};
 const manifest = (md_url = mdUrl, url = `${siteUrl}${permalink}`) =>
   ({language: 'ko', docs: [{url, md_url}]});
 
-test('Markdown lookup uses the manifest URL, exact permalink and locale', () => {
+test('Markdown lookup uses the manifest route and locale, allowing a category trailing slash', () => {
   assert.equal(markdownUrlFromManifest(manifest(), options), `${rootPath}llm-wiki/aidlc/index.md`);
-  assert.equal(markdownUrlFromManifest(manifest(), {...options, permalink: `${permalink}/`}), null);
+  assert.equal(markdownUrlFromManifest(manifest(), {...options, permalink: `${permalink}/`}), `${rootPath}llm-wiki/aidlc/index.md`);
+  assert.equal(markdownUrlFromManifest(manifest(mdUrl, `${siteUrl}${permalink}/`), options), `${rootPath}llm-wiki/aidlc/index.md`);
+  assert.equal(markdownUrlFromManifest(manifest(), {...options, permalink: `${permalink}-other`}), null);
   assert.equal(markdownUrlFromManifest(manifest(), {...options, locale: 'en'}), null);
   assert.equal(markdownUrlFromManifest(manifest(), {...options, permalink: `${rootPath}en/docs/aidlc`}), null);
   assert.equal(markdownUrlFromManifest({language: 'ko', docs: []}, options), null);
