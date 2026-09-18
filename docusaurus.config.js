@@ -49,7 +49,7 @@ const config = {
   deploymentBranch: 'gh-pages', // The branch of your docs repo that you are publishing to GitHub pages
   trailingSlash: false, // GitHub Pages adds a trailing slash to Docusaurus URLs by default
 
-  onBrokenLinks: 'warn',
+  onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'warn',
 
   // Leadfeeder(Dealfront) 트래커 — 방문 기업(B2B) 식별

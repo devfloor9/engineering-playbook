@@ -18,6 +18,7 @@
     "generate-llm-wiki": "node scripts/generate-llm-wiki.js --out build",
     "test:llm-wiki": "node --test scripts/tests/llm-wiki-components.test.js",
     "test:links": "node --test scripts/tests/validate-links.test.js",
+    "test:tags": "node --test scripts/tests/tag-pages.test.js",
     "test:ssr": "node --test scripts/tests/ssr-unicode.test.js",
     "new-post": "node scripts/new-post.js",
     "validate-metadata": "node scripts/validate-metadata-new.js",
