@@ -1718,6 +1718,8 @@ Cilium's `ipam.mode=eni` **works only on AWS EC2 instances**. There are three wa
 3. **One cluster-pool design**: Using compatible cluster-pool/routing across all nodes requires separate validation. It gives up EC2 ENI IPAM benefits and still requires a solution for control-plane-to-Pod reachability.
 :::
 
+<span id="92-deployment-option-cilium--gateway--llm-d" />
+
 ### 9.2 Deployment option: Cilium + Gateway + llm-d {#92-권장-아키텍처-cilium--cilium-gateway-api--llm-d}
 
 Using Cilium as the CNI and supporting InferencePool in Cilium Gateway are separate capabilities. The following is an **optional topology that retains the existing Cilium ingress and adds a compatible inference Gateway**. Validate the cost and latency of two proxy hops, as well as timeout, retry, streaming, and authentication header forwarding behavior. Cloud and hybrid node locations are illustrative; validate each node's CNI/IPAM and Pod connectivity separately.
@@ -1760,6 +1762,8 @@ flowchart TB
 | **Direct integration with Cilium Gateway** | Cilium CNI + Cilium Gateway + EPP | Choose only after verifying InferencePool backends and EPP integration in the specific Cilium release; using Envoy alone does not establish support |
 
 The [Cilium v1.18.0 Gateway API documentation](https://github.com/cilium/cilium/blob/v1.18.0/Documentation/network/servicemesh/gateway-api/gateway-api.rst) does not establish that the InferencePool/EPP integration required here has been verified. This document does not claim to have validated direct Cilium integration. Installing a CRD alone does not enable a Gateway controller to handle a new backend kind.
+
+<span id="94-gateway-api-inference-extension-resources" />
 
 ### 9.4 Gateway API Inference Extension resources {#94-gateway-api-inference-extension-미래-방향}
 
