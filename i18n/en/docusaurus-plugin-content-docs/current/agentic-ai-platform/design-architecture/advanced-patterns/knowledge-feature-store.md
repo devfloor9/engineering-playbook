@@ -16,726 +16,315 @@ sidebar_label: Knowledge Feature Store
 sidebar_position: 7
 ---
 
-:::info Forward-looking Design
-To be refined in separate ontology session (2026-Q2). This document proposes conceptual design and pilot scope.
+:::caution Forward-looking design / Verification pending
+KFS is the composed architecture proposed in this document, not a standard product or a drop-in superset of Feast/SageMaker APIs. Completion/acceptance evidence for the planned 2026-Q2 session was not established. The concept, schema, and consistency contract remain proposals pending operator/domain-owner approval. This review performed no data-store mutations or model evaluation. [Issue #4](https://github.com/devfloor9/engineering-playbook/issues/4)
 :::
 
 ## Problem Definition: Why Feature Store Alone Is Insufficient
 
-Traditional Feature Stores (Feast, SageMaker Feature Store, Tecton) are optimized for efficiently providing **scalar values and embedding vectors**. However, in Agentic AI environments, the following limitations emerge:
+Feature stores and knowledge graphs serve different roles. The earlier claim that feature stores provide no provenance or temporal correctness was inaccurate. Distinguish Feast historical point-in-time joins from online serving. KFS proposes an application contract combining relationship retrieval and feature access.
 
 ### Traditional Feature Store Limitations
 
-```mermaid
-flowchart LR
-    subgraph Traditional["Traditional Feature Store"]
-        FS[Feast/Tecton]
-        SC[Scalar Features]
-        VEC[Embedding Vectors]
-    end
+Feature stores focus on feature serving by entity key. Relationship traversal, terminology, and result fusion may need additional design. Using a feature store alone does not inherently cause hallucinations or compliance failure.
 
-    subgraph Missing["Missing Capabilities"]
-        REL[Entity Relations]
-        ONT[Ontology]
-        PROV[Provenance Tracking]
-        CTX[Context Reasoning]
-    end
-
-    FS --> SC
-    FS --> VEC
-
-    SC -.->|Cannot provide| REL
-    VEC -.->|Cannot provide| ONT
-    REL -.->|When absent| PROV
-    ONT -.->|When absent| CTX
-
-    style Missing fill:#ffe1e1
-    style Traditional fill:#e1f5ff
-```
-
-**Specific Problem Cases:**
-
-1. **Absence of Entity Relations** → Hallucinations
-   - Question: "What devices are connected to customer A's recent contracts?"
-   - Traditional FS: Returns customer embedding and contract embedding separately
-   - Result: LLM connects unrelated devices causing hallucination
-   - Required: `(Customer)-[:HAS_CONTRACT]->(Contract)-[:USES]->(Device)` relationship
-
-2. **Absence of Ontology** → Domain Term Misunderstanding
-   - Question: "Usage patterns of Premium grade users"
-   - Traditional FS: Treats 'Premium' as simple string
-   - Result: Cannot understand relationships with 'VIP', 'Gold', 'Platinum'
-   - Required: `Premium subClassOf HighValueCustomer`, `VIP equivalentTo Premium` definition
-
-3. **Absence of Provenance** → Audit Failure
-   - Requirement: "What is the data source for this answer?"
-   - Traditional FS: Only provides vector similarity, cannot track source data
-   - Result: Compliance (SOC2, GDPR) failure
-   - Required: Feature → Raw Data → Source System → Timestamp chain
-
-4. **Absence of Temporal Relationships** → Context Errors
-   - Question: "Prior usage patterns of customers who churned in 2025 Q4"
-   - Traditional FS: Only supports point-in-time queries
-   - Result: Cannot connect relationships before and after churn
-   - Required: Temporal edge `BEFORE`, `AFTER` relationship
-
----
+Customer → Contract → Device → Usage is a **synthetic example**. Domain owners must decide Premium/VIP meanings, post-termination relationships, shared devices, and temporal validity.
 
 ## Knowledge Feature Store Conceptual Model
 
-Knowledge Feature Store (KFS) extends the traditional Feature Store with a 3-plane architecture, adding **relationships and semantics** to scalar/vector data.
+The three planes divide responsibilities. A coordinator and adapters must implement unified reads, authorization, and write publication; the backends’ consistency guarantees do not automatically compose.
 
 ### 3-Plane Architecture
 
+This is a logical data flow. Each store has its own commit boundary.
+
 ```mermaid
 flowchart TB
-    subgraph App["Application Layer"]
-        AGENT[Agent/LLM]
-        RAG[RAG Pipeline]
-    end
-
-    subgraph KFS["Knowledge Feature Store"]
-        direction TB
-
-        subgraph FP["Feature Plane"]
-            FEAST[Feast/SageMaker FS]
-            SCALAR[Scalar Features]
-            EMBED[Embeddings]
-        end
-
-        subgraph KP["Knowledge Plane"]
-            ONT[Ontology]
-            KG[(Knowledge Graph)]
-            ENTITY[Entity Relations]
-        end
-
-        subgraph RP["Retrieval Plane"]
-            MILVUS[(Milvus Vector DB)]
-            GRAPH[Graph Traversal]
-            HYBRID[Hybrid Search]
-        end
-    end
-
-    subgraph Storage["Storage"]
-        S3[(S3 Parquet)]
-        NEPTUNE[(Neptune Analytics)]
-        CACHE[(Redis Cache)]
-    end
-
-    AGENT --> FP
-    AGENT --> RP
-    RAG --> RP
-
-    FP --> SCALAR
-    FP --> EMBED
-
-    KP --> ONT
-    KP --> KG
-    KP --> ENTITY
-
-    RP --> MILVUS
-    RP --> GRAPH
-    RP --> HYBRID
-
-    FP -.->|Read| S3
-    KP -.->|Read| NEPTUNE
-    RP -.->|Read| MILVUS
-
-    style FP fill:#e1f5ff
-    style KP fill:#fff4e1
-    style RP fill:#e1ffe1
+    SOURCE[Canonical source and transactional outbox] --> EVENTS[Versioned events]
+    EVENTS --> FP[Feature projection]
+    EVENTS --> KP[Knowledge projection]
+    EVENTS --> RP[Retrieval projection]
+    FP --> GATE[Publication manifest and watermarks]
+    KP --> GATE
+    RP --> GATE
+    PRINCIPAL[Authenticated principal] --> READ[Authorized read coordinator]
+    GATE --> READ
+    READ --> ANSWER[Contexts entities features provenance]
 ```
 
 ### Role of Each Plane
 
-| Plane | Responsibility | Data Format | Read Latency | Example Query |
-|-------|------|------------|---------|----------|
-| **Feature Plane** | Provide Scalar/Vector features | Parquet, Protobuf | &lt;10ms | `get_features(entity_id, feature_names)` |
-| **Knowledge Plane** | Entity Relations·Ontology | RDF, Property Graph | &lt;50ms | `traverse(Customer, depth=2, relation='HAS_CONTRACT')` |
-| **Retrieval Plane** | Vector search + graph expansion | HNSW Index, Cypher | &lt;100ms | `hybrid_search(query_embedding, kg_expand=True)` |
+| Plane | Responsibility | Separate verification |
+|---|---|---|
+| Feature | Feature values/definitions by entity key | Online latest values versus offline history and timestamp semantics |
+| Knowledge | Relations, terminology, entity resolution | Ontology version and RDF/property-graph mapping |
+| Retrieval | Embeddings, document retrieval, reranking | Model/chunk/index versions and search visibility |
+| Coordinator | Authorization, publication, provenance composition | Cross-plane generation selection and partial failure |
 
 ### Unified Read API
 
-```python
-from kfs import KnowledgeFeatureStore
+kfs.retrieve names a facade contract to implement. It does not imply an installable kfs SDK or unified feast:// and neptune:// protocols. The server supplies the authenticated principal; callers cannot choose their own role.
 
-kfs = KnowledgeFeatureStore(
-    feature_store="feast://cluster.local",
-    knowledge_graph="neptune://cluster.amazonaws.com",
-    vector_store="milvus://milvus.svc.cluster.local:19530"
-)
-
-# Unified query: Vector search + graph expansion + feature loading
-result = kfs.retrieve(
-    query="Recent usage patterns of Premium grade users",
-    retrieval_config={
-        "vector_top_k": 10,
-        "graph_expand": {
-            "depth": 2,
-            "relations": ["HAS_CONTRACT", "USES_DEVICE"]
-        },
-        "features": ["usage_last_30d", "churn_risk_score"]
-    }
-)
-
-# Result:
-# - contexts: 10 documents found by vector search
-# - entities: Entity nodes connected by graph expansion
-# - features: Scalar/vector features of each entity
-# - provenance: Source and timestamp of each data point
+```text
+retrieve(query, authenticated_principal, requested_generation):
+  authorize tenant, entity types, attributes, relationships, and purpose
+  choose a published generation supported by ALL required stores
+  search only authorized, visible documents at that generation
+  expand allowed relationships and fetch version-compatible features
+  return contexts, entities, features, provenance, generation,
+         source_watermarks, freshness, and completeness
+  if the contract cannot be met: fail explicitly or apply approved stale policy
 ```
-
----
 
 ## Ontology Schema and Entity Interpretation
 
+Schema semantics, entity resolution, and store mapping are distinct contracts. Syntactically valid Turtle does not establish domain suitability.
+
 ### Domain Ontology Definition
 
-Defines domain entities in Agentic AI Platform (Customer, Contract, Device, Usage) using SKOS/OWL-lite subset.
+The example separates RDF/OWL classes/properties from SKOS concepts. It fixes missing rdfs/xsd prefixes and defines customerGrade as a relation to a concept rather than a string. SKOS broader is not OWL subClassOf; exactMatch is not identity-resolution evidence or proof that VIP equals Premium. Domain/range have inference semantics; closed-world input validation needs SHACL/application rules.
 
 ```turtle
-@prefix kfs: <http://platform.ai/ontology/kfs#> .
+@prefix kfs: <https://example.org/kfs/> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
-# Core Entities
-kfs:Customer a owl:Class ;
-    skos:prefLabel "Customer"@en, "고객"@ko ;
-    skos:definition "Individual or organization using the service" .
+kfs:Customer a owl:Class ; rdfs:label "Customer"@en .
+kfs:Contract a owl:Class ; rdfs:label "Contract"@en .
+kfs:Device a owl:Class ; rdfs:label "Device"@en .
+kfs:Usage a owl:Class ; rdfs:label "Usage"@en .
 
-kfs:Contract a owl:Class ;
-    skos:prefLabel "Contract"@en, "계약"@ko ;
-    skos:definition "Service contract with customer" .
-
-kfs:Device a owl:Class ;
-    skos:prefLabel "Device"@en, "디바이스"@ko ;
-    skos:definition "Device for service delivery" .
-
-kfs:Usage a owl:Class ;
-    skos:prefLabel "Usage"@en, "이용"@ko ;
-    skos:definition "Service usage event" .
-
-# Relationship definition
 kfs:hasContract a owl:ObjectProperty ;
-    rdfs:domain kfs:Customer ;
-    rdfs:range kfs:Contract ;
-    skos:prefLabel "Has contract"@en .
-
+    rdfs:domain kfs:Customer ; rdfs:range kfs:Contract .
 kfs:usesDevice a owl:ObjectProperty ;
-    rdfs:domain kfs:Contract ;
-    rdfs:range kfs:Device ;
-    skos:prefLabel "Uses device"@en .
-
+    rdfs:domain kfs:Contract ; rdfs:range kfs:Device .
 kfs:recordedUsage a owl:ObjectProperty ;
-    rdfs:domain kfs:Device ;
-    rdfs:range kfs:Usage ;
-    skos:prefLabel "Usage record"@en .
-
-# Attributes definition
-kfs:customerGrade a owl:DatatypeProperty ;
-    rdfs:domain kfs:Customer ;
-    rdfs:range xsd:string ;
-    skos:prefLabel "Customer grade"@en .
-
+    rdfs:domain kfs:Device ; rdfs:range kfs:Usage .
+kfs:customerGrade a owl:ObjectProperty ;
+    rdfs:domain kfs:Customer ; rdfs:range skos:Concept .
 kfs:churnRisk a owl:DatatypeProperty ;
-    rdfs:domain kfs:Customer ;
-    rdfs:range xsd:float ;
-    skos:prefLabel "Churn risk"@en .
+    rdfs:domain kfs:Customer ; rdfs:range xsd:decimal .
 
-# Grade Hierarchy (SKOS Concept Scheme)
-kfs:CustomerGradeScheme a skos:ConceptScheme ;
-    skos:prefLabel "Customer grade system"@en .
-
-kfs:Premium a skos:Concept ;
-    skos:inScheme kfs:CustomerGradeScheme ;
-    skos:prefLabel "Premium"@en, "Premium"@ko ;
-    skos:broader kfs:HighValue .
-
-kfs:VIP a skos:Concept ;
-    skos:inScheme kfs:CustomerGradeScheme ;
-    skos:exactMatch kfs:Premium ;
-    skos:prefLabel "VIP"@en .
-
+kfs:CustomerGradeScheme a skos:ConceptScheme .
 kfs:HighValue a skos:Concept ;
-    skos:inScheme kfs:CustomerGradeScheme ;
-    skos:prefLabel "High-value customer"@ko .
+    skos:inScheme kfs:CustomerGradeScheme ; skos:prefLabel "High value"@en .
+kfs:Premium a skos:Concept ;
+    skos:inScheme kfs:CustomerGradeScheme ; skos:prefLabel "Premium"@en ;
+    skos:broader kfs:HighValue .
+kfs:VIP a skos:Concept ;
+    skos:inScheme kfs:CustomerGradeScheme ; skos:prefLabel "VIP"@en .
+# No equivalence is asserted between VIP and Premium.
 ```
+
+Version the property-graph mapping: HAS_CONTRACT → kfs:hasContract, USES_DEVICE → kfs:usesDevice, RECORDED_USAGE → kfs:recordedUsage, and grade_id → concept IRI. Scope entity keys by tenant/source namespace. Preserve separate resolution decisions and evidence for namesakes, shared devices, contract renewal, and alias conflicts.
 
 ### Managed vs Open Source Options
 
-| Implementation | Managed Option | Open Source Option | Selection Criteria |
-|------|-----------|-------------|----------|
-| **Knowledge Graph** | Amazon Neptune Analytics | Neo4j, JanusGraph | Scale, operational capability, cost |
-| **Ontology Store** | AWS RDF Store (Neptune) | Oxigraph, Apache Jena | Ontology complexity, inference requirements |
-| **Vector DB** | - | Milvus, Weaviate | Already built on EKS |
+| Role | Options | Distinction |
+|---|---|---|
+| Transactional graph/RDF | Neptune Database or suitable self-hosted store | Distinguish Neptune Database RDF/SPARQL from property-graph APIs |
+| Graph analytics | Neptune Analytics | Managed analytics with selected graph memory in m-NCUs and openCypher |
+| Vector retrieval | Milvus and alternatives | Independent consistency/visibility and index lifecycle |
 
-**Neptune Analytics Advantages:**
-- Serverless graph analytics (no provisioning required)
-- Millisecond query latency
-- Gremlin, openCypher support
-- Direct S3 data loading
-- Cost: $1.08/vCPU/hr (on-demand), $0.10/Compute Unit per query
-
-**Neo4j Advantages:**
-- Mature ecosystem, rich plugins
-- Complete control of EKS deployment
-- Cypher query language standard
-- APOC for advanced algorithms
-
----
+Neptune Analytics is not a capacity-free RDF store and is distinct from Neptune Database Serverless. Latency/pricing depend on data, query, capacity, and region; do not present fixed milliseconds or hourly prices as measured design performance.
 
 ## KG-aware RAG Pattern
 
+Graph expansion may improve recall, but incorrect edges and excessive context can reduce quality. Improvement is a hypothesis to evaluate.
+
 ### Vector Search + Graph Expansion
 
-Traditional RAG selects context only by vector similarity, but KG-aware RAG **leverages graph relationships to expand context**.
+Apply retrieval, entity resolution, authorization filters, graph expansion, evidence-document fusion, and reranking. Expanding entities alone does not add answer evidence unless their authorized supporting context reaches the final result.
 
 ```mermaid
-flowchart LR
-    Q[Question]
-    E[Embedding]
-    V[Vector Search]
-    T[Top-K documents]
-    G[Graph Expansion]
-    N[Related Nodes]
-    R[Re-rank]
-    F[Final Context]
-    L[LLM Generation]
-
-    Q --> E
-    E --> V
-    V --> T
-    T --> G
-    G --> N
-    T --> R
-    N --> R
-    R --> F
-    F --> L
-
-    style V fill:#4285f4
-    style G fill:#f39c12
-    style R fill:#34a853
-    style L fill:#9c27b0
+flowchart TB
+    Q[Query] --> V[Authorized vector candidates]
+    Q --> E[Resolve query entities]
+    V --> E
+    E --> G[Allowed graph expansion]
+    G --> D[Fetch supporting documents]
+    V --> U[Deduplicate union]
+    D --> U
+    U --> R[Calibrated rerank and token budget]
+    R --> C[Context with provenance]
 ```
 
 ### Implementation Example
 
-```python
-from kfs import KnowledgeFeatureStore
-from ragas import evaluate
-from ragas.metrics import faithfulness, context_recall
+This pseudocode defines adapter interfaces; it is not an SDK API or executable evaluation script. Do not add cosine scores and graph distances with uncalibrated 0.7/0.3 weights.
 
-kfs = KnowledgeFeatureStore(...)
-
-def kg_aware_rag(query: str) -> dict:
-    # 1. Question Embedding
-    query_embedding = embedding_model.encode(query)
-
-    # 2. Milvus top-k Vector Search
-    vector_results = kfs.vector_search(
-        embedding=query_embedding,
-        collection="documents",
-        top_k=20,
-        metric="COSINE"
-    )
-
-    # 3. Extract connected entities from each document
-    entities = []
-    for doc in vector_results:
-        # Identify entities mentioned in documents
-        doc_entities = kfs.extract_entities(doc.text)
-        entities.extend(doc_entities)
-
-    # 4. 1-hop expansion in Knowledge Graph
-    expanded_entities = kfs.graph_expand(
-        entities=entities,
-        depth=1,
-        relations=["HAS_CONTRACT", "USES_DEVICE", "RECORDED_USAGE"]
-    )
-
-    # 5. Re-rank by distance between expanded entities and question
-    scored_contexts = []
-    for doc in vector_results:
-        # Document score = vector similarity + graph distance weight
-        vector_score = doc.score
-        entity_distance = kfs.min_distance(
-            doc.entities, 
-            query_entities
-        )
-        graph_score = 1 / (1 + entity_distance)  # Inverse distance
-
-        final_score = 0.7 * vector_score + 0.3 * graph_score
-        scored_contexts.append((doc, final_score))
-
-    # 6. Select top-5 contexts
-    final_contexts = sorted(
-        scored_contexts, 
-        key=lambda x: x[1], 
-        reverse=True
-    )[:5]
-
-    return {
-        "contexts": [doc.text for doc, score in final_contexts],
-        "entities": expanded_entities,
-        "provenance": [doc.metadata for doc, score in final_contexts]
-    }
-
-# 7. Evaluation with Ragas
-result = kg_aware_rag("Recent usage patterns of Premium grade users")
-
-eval_dataset = {
-    "question": ["Recent usage patterns of Premium grade users"],
-    "contexts": [result["contexts"]],
-    "answer": [llm.generate(result["contexts"])],
-    "ground_truth": ["Premium customers average 150GB monthly..."]
-}
-
-ragas_result = evaluate(
-    eval_dataset,
-    metrics=[faithfulness, context_recall]
-)
-print(ragas_result)
+```text
+query_entities = resolve_entities(query, ontology_version, principal)
+vector_docs = vector_search(query, principal, published_generation)
+seed_entities = union(query_entities, linked_entities(vector_docs))
+expanded = graph_expand(seed_entities, allowed_relations, max_depth,
+                        principal, published_generation)
+graph_docs = supporting_documents(expanded, principal, published_generation)
+candidates = deduplicate_by_document_version(vector_docs + graph_docs)
+ranked = calibrated_rerank(query, candidates, principal)
+contexts = select_with_token_budget(ranked)
+return contexts, source_ids, document_versions, retrieval_generation
 ```
 
-### Expected Improvements
+### Quality Hypothesis and Evaluation Contract {#expected-improvements}
 
-| Metric | Vector-only RAG | KG-aware RAG | Improvement |
-|--------|----------------|-------------|--------|
-| **Faithfulness** | 0.72 | 0.89 | +24% |
-| **Context Recall** | 0.68 | 0.85 | +25% |
-| **Answer Relevancy** | 0.81 | 0.87 | +7% |
-| **Hallucination Rate** | 18% | 7% | -61% |
+No improvements are accepted for this platform. The former faithfulness 0.72→0.89 and recall 0.68→0.85 numbers lacked linked measurements and have been removed. The GraphRAG paper and survey do not validate those specific figures. Do not average different papers’ datasets/metrics into a target improvement.
 
-**Improvement Mechanism:**
-1. Remove irrelevant contexts via graph relationships → Increase Precision
-2. Supplement missing entities with 1-hop expansion → Increase Recall
-3. Clarify provenance with tracking → Increase Faithfulness
-
----
+Compare vector-only and graph-augmented retrieval with the same corpus snapshot, QA split, generator, embedding, token budget, and judge/version. Define faithfulness, context recall, answer relevance, human judgments, latency, and cost; report sample counts, paired confidence intervals, entity-linking failures, and denied-access cases. Keep baseline/candidate/results pending before evaluation.
 
 ## Write Path and Consistency Model
 
+This proposal defaults to eventual consistency across asynchronous projections. Sequentially writing one event to three stores does not create an atomic commit or strong consistency.
+
 ### CDC-based Event Flow
 
-Knowledge Feature Store **detects changes in source database in real-time** and propagates them to Feature Plane, Knowledge Plane, and Retrieval Plane.
+Design the source transaction and outbox to commit together, then deliver versioned events through CDC. Preserve source commit/partition ordering without assuming a global order across sources. Distinguish successful persistence from searchable visibility in each writer.
 
 ```mermaid
-flowchart LR
-    subgraph Source["Source Systems"]
-        DB[(App DB)]
-        DW[(Data Warehouse)]
-    end
-
-    subgraph CDC["Change Data Capture"]
-        DEBEZIUM[Debezium]
-        KAFKA[Kafka]
-    end
-
-    subgraph Materializer["KFS Materializer"]
-        direction TB
-        STREAM[Stream Processor]
-        FW[Feature Writer]
-        KW[Knowledge Writer]
-        VW[Vector Writer]
-    end
-
-    subgraph KFS["Knowledge Feature Store"]
-        FEAST[Feast Online]
-        KG[(Knowledge Graph)]
-        MILVUS[(Milvus)]
-    end
-
-    DB --> DEBEZIUM
-    DW --> KAFKA
-    DEBEZIUM --> KAFKA
-    KAFKA --> STREAM
-
-    STREAM --> FW
-    STREAM --> KW
-    STREAM --> VW
-
-    FW --> FEAST
-    KW --> KG
-    VW --> MILVUS
-
-    style CDC fill:#4285f4
-    style Materializer fill:#f39c12
-    style KFS fill:#34a853
+flowchart TB
+    DB[Source transaction and outbox] --> CDC[CDC event log]
+    CDC --> F[Idempotent feature writer]
+    CDC --> K[Idempotent graph writer]
+    CDC --> V[Idempotent vector writer]
+    F --> M[Per-plane acknowledgments]
+    K --> M
+    V --> M
+    M --> P[Publish only when required projections are visible]
+    P --> R[Read coordinator]
 ```
 
 ### Offline Batch vs Online Stream
 
-| Characteristic | Offline Batch | Online Stream | Hybrid |
-|------|--------------|--------------|-----------|
-| **Latency** | Hourly (Glue/EMR) | Seconds (Kinesis) | Batch → Online |
-| **Accuracy** | 100% (Full recomputation) | 99%+ (Incremental update) | Periodic accuracy calibration |
-| **Cost** | Low | High | Medium |
-| **Use Case** | Historical data loading | Real-time recommendation | Production standard |
+| Mode | Benefit | Risk to verify |
+|---|---|---|
+| Batch | Snapshot replay and reconciliation | Snapshot boundaries, late data, recomputation cost |
+| Stream | Lower propagation delay | Duplicates, reordering, partial failure, DLQ |
+| Combined | Stream plus periodic reconciliation | Version checks prevent batch overwriting newer stream data |
+
+There is no fixed Batch=100%, Stream=99% accuracy guarantee.
 
 ### Eventual Consistency Model
 
-Knowledge Feature Store adopts **Eventual Consistency**. The 3 planes may not update simultaneously but eventually reach a consistent state.
+Feast online stores retain the latest features per entity key, not arbitrary historical values. Offline point-in-time joins differ from a common snapshot across three stores. Timestamp filters alone do not guarantee cross-plane point-in-time consistency.
 
-```python
-# Ensure point-in-time consistency
-result = kfs.retrieve(
-    query="...",
-    consistency_mode="point_in_time",
-    timestamp="2026-04-18T10:30:00Z"
-)
-
-# This query:
-# 1. Feature Plane: Returns only features before timestamp
-# 2. Knowledge Plane: Traverses only relationships before timestamp
-# 3. Retrieval Plane: Searches only documents indexed before timestamp
-# → All 3 planes aligned to same point in time
-```
+A consistent generation requires immutable versions/history in every plane and queries capable of selecting that version. The coordinator exposes only publication manifests whose required visibility watermarks are met. If a plane serves latest-only values, reject this mode or use a versioned store. Separate event time from ingestion time and define late-event/deletion handling. Promise strong consistency/read-your-writes only within a demonstrated backend/coordinator boundary.
 
 ### Write Pipeline Example
 
-```python
-from kafka import KafkaConsumer
-import json
+The following pseudocode defines the contract each storage adapter must implement. Within each backend transaction, combine event-version checks, mutation, and deduplication markers. A committed Kafka offset alone does not establish completion in all three stores.
 
-def kfs_materializer():
-    consumer = KafkaConsumer(
-        'customer-events',
-        bootstrap_servers=['kafka.svc.cluster.local:9092'],
-        value_deserializer=lambda m: json.loads(m.decode('utf-8'))
-    )
-
-    for message in consumer:
-        event = message.value
-
-        # 1. Update Feature Plane
-        feast_client.push(
-            feature_view="customer_features",
-            entity_rows=[{
-                "customer_id": event["customer_id"],
-                "churn_risk_score": event["churn_risk"],
-                "event_timestamp": event["timestamp"]
-            }]
-        )
-
-        # 2. Update Knowledge Graph
-        if event["type"] == "CONTRACT_CREATED":
-            neptune_client.execute(f"""
-                MATCH (c:Customer {{id: '{event["customer_id"]}'}})
-                CREATE (c)-[:HAS_CONTRACT]->
-                    (contract:Contract {{
-                        id: '{event["contract_id"]}',
-                        start_date: '{event["start_date"]}'
-                    }})
-            """)
-
-        # 3. Update Vector DB (when documents change)
-        if event["type"] == "DOCUMENT_UPDATED":
-            embedding = embedding_model.encode(event["content"])
-            milvus_client.insert(
-                collection_name="documents",
-                data={
-                    "id": event["doc_id"],
-                    "embedding": embedding.tolist(),
-                    "metadata": event["metadata"],
-                    "timestamp": event["timestamp"]
-                }
-            )
-
-        # 4. Record provenance
-        provenance_store.record(
-            entity_id=event["customer_id"],
-            source_system="app-db",
-            source_table="customers",
-            change_type=event["type"],
-            timestamp=event["timestamp"]
-        )
+```text
+event = {tenant, source, entity_id, event_id, source_version,
+         schema_version, event_time, ingestion_time, operation, payload}
+validate_schema_and_authority(event)
+for plane in required_planes(event):
+  begin plane transaction or equivalent conditional write
+    marker = read marker for (tenant, source, event_id)
+    if marker exists:
+      verify the stored payload digest matches this event
+      version_to_ack = marker.version
+    else:
+      if source_version is older: reject stale mutation
+      apply parameterized upsert or versioned tombstone
+      persist event_id/source_version, payload digest and provenance with mutation
+      version_to_ack = source_version
+  commit plane write
+  wait for version_to_ack to be visible to that plane's read path
+  upsert durable acknowledgment for this event, plane and version_to_ack
+  continue to the next required plane
+if every required plane acknowledges this exact generation:
+  conditionally publish its manifest without replacing a newer generation
+commit/advance source progress only under the durable replay contract
+on failure: retry idempotently; quarantine poison events; reconcile gaps
 ```
 
----
+Graph adapters use bound parameters and unique entity/edge keys. Vector adapters implement upsert/delete without duplicate document versions. Replay after partial failure must preserve completed planes. Propagate deletion tombstones across every plane and prevent old retries from resurrecting data. Do not directly compare version numbers from different sources; apply an explicit conflict policy.
+
+Run these fixtures for synthetic tenant test-a and entity customer-001. Each row starts from an independent initial state. v1 upserts Premium, v2 upserts VIP, and v3 deletes the entity. The test assumes version history in all three planes; adapters without it must reject consistent-generation mode. These are expected outcomes, not observed results.
+
+| Fixture | Input/failure sequence | Expected result |
+|---|---|---|
+| Duplicate | v1, redelivery of v1 with the same event_id | No duplicate entity/edge/document; one v1 publication |
+| Out of order | v2 followed by v1 | Retain v2; no regression to v1 |
+| Partial failure | Publish v1, fail the vector writer for v2 | Keep v1 published; no mixed-v2 read; publish v2 after successful replay |
+| Crash before acknowledgment | Persist v2 mutation and marker, then stop the process | Replay reuses the marker, rechecks visibility, records the acknowledgment, and continues through remaining planes |
+| Visibility delay | Persist v2 but delay vector search visibility | Do not publish v2 before visibility is established |
+| Replay after deletion | Publish v3, then redeliver v2 | Retain tombstone v3; no resurrected entity/document |
+| Late data | Deliver old-event-time v2 after v3 | Reject stale source version; retain deletion |
+| Poison event | New event with invalid schema | Quarantine/audit; retain previous published generation |
+
+At each step, record event_id/source_version, persisted and visible versions per plane, manifest generation, and read output. Check reads during failure, not only eventual convergence after replay.
 
 ## Governance, Security, and Roadmap
 
+Authorization, sensitive-data handling, lineage, and audit are implementation requirements at both read and write boundaries. Declaring an example configuration does not enable them.
+
 ### Row/Attribute-level Authorization
 
-Knowledge Feature Store performs access control at both **entity level** and **attribute level**.
-
-```python
-# Role-based Access Control
-kfs_config = {
-    "access_control": {
-        "roles": {
-            "data_scientist": {
-                "entities": ["Customer", "Usage"],
-                "attributes": {
-                    "Customer": ["id", "grade", "churn_risk"],
-                    "Usage": ["*"]  # All attributes
-                },
-                "relations": ["HAS_CONTRACT", "RECORDED_USAGE"]
-            },
-            "compliance_officer": {
-                "entities": ["Customer", "Contract"],
-                "attributes": {
-                    "Customer": ["*"],
-                    "Contract": ["*"]
-                },
-                "relations": ["*"],
-                "provenance": True  # Provenance read permission
-            },
-            "external_analyst": {
-                "entities": ["Usage"],
-                "attributes": {
-                    "Usage": ["device_type", "usage_gb"]  # Exclude PII
-                },
-                "pii_masking": True
-            }
-        }
-    }
-}
-
-# Verify role on query execution
-result = kfs.retrieve(
-    query="...",
-    role="external_analyst"
-)
-# → Customer.name, Customer.ssn etc. automatically masked
-```
+Derive tenant, scope, and purpose from the authenticated principal on the server. Enforce policy on vector candidates, graph nodes/edges, feature fields, and final context. A caller-supplied role="external_analyst" is not authorization. Test cross-tenant ID collisions, unauthorized graph expansion, and cache reuse.
 
 ### PII Masking On-Read
 
-Sensitive information is masked **at read time**, minimizing data copies.
-
-```python
-# Attribute-level Masking
-masking_rules = {
-    "Customer": {
-        "ssn": lambda x: f"{x[:3]}-**-****",
-        "phone": lambda x: f"{x[:3]}-****-{x[-4:]}",
-        "email": lambda x: f"{x.split('@')[0][:2]}***@{x.split('@')[1]}"
-    }
-}
-
-# Automatically applied to query results
-masked_result = kfs.retrieve(
-    query="...",
-    masking_rules=masking_rules,
-    audit_log=True  # Audit log for masking application
-)
-```
+Display-string masking does not remove exposure in retrieval, embeddings, logs, or graph relationships. Combine minimization, appropriate tokenization/redaction, store authorization, and output review. Verify deletion propagation to summaries, caches, and indexes, plus deny behavior on policy failure.
 
 ### Lineage (OpenLineage)
 
-Knowledge Feature Store follows the **OpenLineage** standard to track data lineage.
+OpenLineage describes job/run/dataset lineage; it does not automatically prove row-level provenance or a distributed transaction. The synthetic RunEvent below includes UUID, producer, and schemaURL. Validate the integration against a pinned schema and dataset/custom facets; emit COMPLETE according to the defined job completion semantics.
 
 ```json
 {
   "eventType": "COMPLETE",
-  "eventTime": "2026-04-18T10:30:00.000Z",
-  "run": {
-    "runId": "abc-123-def"
-  },
-  "job": {
-    "namespace": "kfs",
-    "name": "materialize_customer_features"
-  },
-  "inputs": [
-    {
-      "namespace": "postgres",
-      "name": "app_db.customers",
-      "facets": {
-        "schema": {...},
-        "dataSource": {
-          "name": "postgres://prod-db:5432/app"
-        }
-      }
-    }
-  ],
-  "outputs": [
-    {
-      "namespace": "feast",
-      "name": "customer_features",
-      "facets": {
-        "schema": {...}
-      }
-    },
-    {
-      "namespace": "neptune",
-      "name": "Customer",
-      "facets": {
-        "schema": {...}
-      }
-    }
-  ]
+  "eventTime": "2026-09-18T00:00:00Z",
+  "run": {"runId": "a9067eb1-12ca-4cfa-a5e1-623b8bbf72ed"},
+  "job": {"namespace": "example-kfs", "name": "materialize-projections"},
+  "inputs": [{"namespace": "example-source", "name": "synthetic-entities"}],
+  "outputs": [{"namespace": "example-kfs", "name": "published-generation"}],
+  "producer": "https://example.org/kfs/materializer",
+  "schemaURL": "https://openlineage.io/spec/2-0-2/OpenLineage.json#/$defs/RunEvent"
 }
 ```
 
 ### Audit Log
 
-Records all read/write operations in audit log.
-
-```python
-# Automatically record audit log
-kfs.retrieve(
-    query="...",
-    audit_context={
-        "user": "data-scientist@company.com",
-        "purpose": "churn prediction model",
-        "ticket": "JIRA-1234"
-    }
-)
-
-# Recorded in CloudWatch Logs:
-# {
-#   "timestamp": "2026-04-18T10:30:00Z",
-#   "user": "data-scientist@company.com",
-#   "action": "retrieve",
-#   "entities": ["Customer", "Contract"],
-#   "features": ["churn_risk_score", "usage_last_30d"],
-#   "purpose": "churn prediction model",
-#   "ticket": "JIRA-1234",
-#   "pii_accessed": false,
-#   "masking_applied": false
-# }
-```
+Record request/event IDs, pseudonymous principal, tenant scope, policy version, accessed generation, allow/deny, provenance references, and outcome. Do not store full queries, PII, tokens, or secrets as default audit fields. Include denials, partial failures, deletion, and replay in coverage.
 
 ### Pilot Roadmap
 
-| Phase | Duration | Goal | Key Actions |
-|-------|------|------|----------|
-| **Phase 0** | 2 weeks | Schema Design | Draft domain ontology, define entities & relationships |
-| **Phase 1** | 4 weeks | Read API | Integrate Milvus + Neptune, develop unified query API |
-| **Phase 2** | 6 weeks | Write Pipeline | Build Debezium CDC → Kafka → Materializer |
-| **Phase 3** | 4 weeks | Governance | RBAC, PII masking, OpenLineage integration |
-| **Phase 4** | 2 weeks | Evaluation | Evaluate Ragas KG-aware RAG, establish metric baseline |
+Completion of the planned 2026-Q2 work remains unverified. Record new acceptance in this order.
 
-**Phase 0 Schema Draft Scope:**
-- 4 Core Entities: Customer, Contract, Device, Usage
-- 6 relationships: HAS_CONTRACT, USES_DEVICE, RECORDED_USAGE, BEFORE, AFTER, RELATED_TO
-- 10 attributes: customer_grade, churn_risk, contract_type, device_model, usage_gb, ...
-- 1 SKOS scheme: CustomerGradeScheme (Premium, VIP, Standard, ...)
-
----
+1. **Concept/domain acceptance:** State in an ADR whether the three planes replace or compose with existing feature stores, including ownership and API compatibility. Domain owners adjudicate synthetic Customer/Contract/Device/Usage, Premium/VIP, namesakes, shared devices, and validity periods.
+2. **Schema/mapping acceptance:** Check Turtle parsing, SHACL/application constraints, namespaces, entity keys, RDF/property-graph mappings, and migration versions.
+3. **Write-failure fixtures:** Reproduce duplicates, out-of-order/late events, one-plane failure, visibility lag, deletion followed by stale replay, and DLQ recovery. Reconcile event logs, plane versions, acknowledgments, and publication manifests. Unpublished or unauthorized generations must not be returned.
+4. **Read consistency:** Approve latest-read freshness bounds, stale/partial behavior, availability of historical reads, and event-time versus ingestion-time boundaries. Preregister lag limits and sample sizes.
+5. **Quality/security:** Evaluate baseline/candidate on the same QA/corpus versions and verify cross-tenant denials, PII handling, and deletion propagation.
+6. **Evidence:** Preserve configuration/source/data hashes, UTC timestamps, expected/observed results, owner/approver, and residual items. Keep verification pending until measurements, domain semantics, and consistency are accepted.
 
 ## Conclusion
 
-Knowledge Feature Store integrates **Ontology and Knowledge Graph** with the traditional Feature Store's **scalar/vector feature provisioning** capability to achieve the following:
-
-1. **Reduced Hallucinations**: Explicitly models Entity Relations to prevent LLMs from connecting unrelated information
-2. **Provenance Tracking**: Enables tracing answer sources through provenance chain to meet compliance requirements
-3. **Domain Entity Utilization**: Defines domain terminology and hierarchy through Ontology to improve LLM domain understanding
-4. **KG-aware RAG**: Combines vector search with graph expansion to improve Faithfulness +24%, Context Recall +25%
-
-The Phase 0 schema draft will be reviewed in the 2026-Q2 Ontology session to finalize pilot scope.
-
----
+KFS proposes composing feature, graph, and retrieval capabilities. It requires implemented ontology mappings, authorization, asynchronous writes, publication, and evaluation contracts. Adding a graph alone guarantees neither hallucination reduction, compliance, nor strong consistency. Domain/operator acceptance and measurements remain outstanding.
 
 ## References
 
-- [Feast Feature Store](https://feast.dev/)
-- [SageMaker Feature Store](https://aws.amazon.com/sagemaker/feature-store/)
-- [Amazon Neptune Analytics](https://docs.aws.amazon.com/neptune-analytics/latest/userguide/what-is-neptune-analytics.html)
-- [Neo4j Graph Database](https://neo4j.com/)
-- [Milvus Vector Database](https://milvus.io/)
-- [SKOS Simple Knowledge Organization System](https://www.w3.org/2004/02/skos/)
-- [OWL Web Ontology Language](https://www.w3.org/OWL/)
-- [OpenLineage](https://openlineage.io/)
-- [Ragas RAG Evaluation](https://docs.ragas.io/)
+### Official Documentation
+
+- [Feast online store](https://docs.feast.dev/getting-started/components/online-store) — latest-value serving
+- [Feast point-in-time joins](https://docs.feast.dev/getting-started/concepts/point-in-time-joins) — historical feature retrieval
+- [Neptune Analytics guide](https://docs.aws.amazon.com/neptune-analytics/latest/userguide/what-is-neptune-analytics.html) — graph analytics and capacity
+- [SKOS Reference](https://www.w3.org/TR/skos-reference/) — concepts, relations, mapping semantics
+- [OWL Web Ontology Language](https://www.w3.org/OWL/) — ontology language
+- [SHACL](https://www.w3.org/TR/shacl/) — RDF graph validation
+- [OpenLineage object model](https://openlineage.io/docs/spec/object-model/) — run/job/dataset contracts
+
+### Papers / Technical Blogs
+
+- [From Local to Global: A Graph RAG Approach to Query-Focused Summarization](https://arxiv.org/abs/2404.16130) — task-specific graph retrieval evaluation
+- [Graph Retrieval-Augmented Generation: A Survey](https://arxiv.org/abs/2408.08921) — research overview, not platform measurements
+
+### Related Documents (Internal)
+
+- [Platform architecture](../foundations/agentic-platform-architecture.md) — data layer
+- [Milvus vector database](../../operations-mlops/data-infrastructure/milvus-vector-database.md) — vector retrieval
+- [Ragas evaluation](../../operations-mlops/governance/ragas-evaluation.md) — RAG quality evaluation
+- [Domain customization](../../operations-mlops/governance/domain-customization.md) — domain adaptation

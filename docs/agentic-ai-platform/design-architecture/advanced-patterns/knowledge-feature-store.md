@@ -16,748 +16,315 @@ sidebar_label: Knowledge Feature Store
 sidebar_position: 7
 ---
 
-:::info Forward-looking Design
-별도 온톨로지 세션(2026-Q2)에서 구체화 예정. 본 문서는 개념 설계와 파일럿 범위 제안이다.
+:::caution Forward-looking design / Verification pending
+KFS는 이 문서의 합성 아키텍처 제안이며 표준 제품이나 Feast/SageMaker의 상위 호환 API가 아닙니다. 2026-Q2 세션의 완료·승인 증거는 확인되지 않았습니다. 운영자/도메인 소유자의 승인 전까지 개념·스키마·일관성 계약은 제안 상태를 유지합니다. 이 검토에서는 데이터 저장소 변경이나 모델 평가를 수행하지 않았습니다. [Issue #4](https://github.com/devfloor9/engineering-playbook/issues/4)
 :::
 
 ## 문제 정의: Feature Store만으로 부족한 이유
 
-전통적인 Feature Store(Feast, SageMaker Feature Store, Tecton)는 **scalar 값과 embedding 벡터**를 효율적으로 제공하는 데 최적화되어 있습니다. 하지만 Agentic AI 환경에서는 다음과 같은 한계가 드러납니다:
+Feature Store와 Knowledge Graph는 다른 역할을 수행합니다. Feature Store가 provenance·시간 정합성을 전혀 제공하지 않는다는 기존 설명은 부정확합니다. Feast의 historical point-in-time join과 online serving을 구분합니다. KFS는 관계 검색과 feature 조회를 한 애플리케이션 계약으로 조합하는 제안입니다.
 
 ### 전통 Feature Store의 한계
 
-```mermaid
-flowchart LR
-    subgraph Traditional["전통 Feature Store"]
-        FS[Feast/Tecton]
-        SC[Scalar Features]
-        VEC[Embedding Vectors]
-    end
+Feature Store는 entity key별 feature serving에 초점을 둡니다. 관계 traversal·용어 체계·검색 결과 통합은 별도 설계가 필요할 수 있습니다. 이것이 Feature Store 사용만으로 환각이나 규제 준수 실패가 발생한다는 뜻은 아닙니다.
 
-    subgraph Missing["누락된 역량"]
-        REL[엔터티 관계]
-        ONT[온톨로지]
-        PROV[근거 추적]
-        CTX[컨텍스트 추론]
-    end
-
-    FS --> SC
-    FS --> VEC
-
-    SC -.->|제공 불가| REL
-    VEC -.->|제공 불가| ONT
-    REL -.->|부재시| PROV
-    ONT -.->|부재시| CTX
-
-    style Missing fill:#ffe1e1
-    style Traditional fill:#e1f5ff
-```
-
-**구체적인 문제 사례:**
-
-1. **엔터티 관계 부재** → 환각 발생
-   - 질문: "고객 A의 최근 계약과 연결된 디바이스는?"
-   - 전통 FS: 고객 임베딩, 계약 임베딩을 별도로 반환
-   - 결과: LLM이 관계 없는 디바이스를 연결하여 환각 발생
-   - 필요: `(Customer)-[:HAS_CONTRACT]->(Contract)-[:USES]->(Device)` 관계
-
-2. **온톨로지 부재** → 도메인 용어 오해
-   - 질문: "고객 등급이 'Premium'인 사용자의 이용 패턴"
-   - 전통 FS: 'Premium'을 단순 문자열로 처리
-   - 결과: 'VIP', 'Gold', 'Platinum'과의 관계를 이해하지 못함
-   - 필요: `Premium subClassOf HighValueCustomer`, `VIP equivalentTo Premium` 정의
-
-3. **Provenance 부재** → 감사 실패
-   - 요구: "이 답변의 근거 데이터 출처는?"
-   - 전통 FS: 벡터 유사도만 제공, 원천 데이터 추적 불가
-   - 결과: 규제 준수(SOC2, GDPR) 실패
-   - 필요: Feature → Raw Data → Source System → Timestamp 체인
-
-4. **시간적 관계 부재** → 컨텍스트 오류
-   - 질문: "2025년 Q4에 해지한 고객의 이전 이용 패턴"
-   - 전통 FS: Point-in-time 조회만 지원
-   - 결과: 해지 전후 관계를 연결하지 못함
-   - 필요: Temporal edge `BEFORE`, `AFTER` 관계
-
----
+아래 Customer→Contract→Device→Usage 모델은 **합성 예시**입니다. Premium과 VIP의 의미, 계약 종료 후 관계, device 공유와 temporal 유효성은 도메인 소유자가 결정해야 합니다.
 
 ## Knowledge Feature Store 개념 모델
 
-Knowledge Feature Store(KFS)는 전통 Feature Store를 3-plane 구조로 확장하여 scalar/vector 데이터에 **관계와 의미**를 추가합니다.
+3-plane 모델은 책임 분리입니다. 통합 읽기·인가·write publication은 별도 coordinator와 adapter가 구현해야 하며 backend들의 일관성 보장을 자동으로 합치지 않습니다.
 
 ### 3-Plane 아키텍처
 
+아래 구조는 논리적 데이터 흐름입니다. 각 저장소는 독립 commit 경계를 갖습니다.
+
 ```mermaid
 flowchart TB
-    subgraph App["애플리케이션 레이어"]
-        AGENT[Agent/LLM]
-        RAG[RAG Pipeline]
-    end
-
-    subgraph KFS["Knowledge Feature Store"]
-        direction TB
-
-        subgraph FP["Feature Plane"]
-            FEAST[Feast/SageMaker FS]
-            SCALAR[Scalar Features]
-            EMBED[Embeddings]
-        end
-
-        subgraph KP["Knowledge Plane"]
-            ONT[Ontology]
-            KG[(Knowledge Graph)]
-            ENTITY[Entity Relations]
-        end
-
-        subgraph RP["Retrieval Plane"]
-            MILVUS[(Milvus Vector DB)]
-            GRAPH[Graph Traversal]
-            HYBRID[Hybrid Search]
-        end
-    end
-
-    subgraph Storage["스토리지"]
-        S3[(S3 Parquet)]
-        NEPTUNE[(Neptune Analytics)]
-        CACHE[(Redis Cache)]
-    end
-
-    AGENT --> FP
-    AGENT --> RP
-    RAG --> RP
-
-    FP --> SCALAR
-    FP --> EMBED
-
-    KP --> ONT
-    KP --> KG
-    KP --> ENTITY
-
-    RP --> MILVUS
-    RP --> GRAPH
-    RP --> HYBRID
-
-    FP -.->|읽기| S3
-    KP -.->|읽기| NEPTUNE
-    RP -.->|읽기| MILVUS
-
-    style FP fill:#e1f5ff
-    style KP fill:#fff4e1
-    style RP fill:#e1ffe1
+    SOURCE[Canonical source and transactional outbox] --> EVENTS[Versioned events]
+    EVENTS --> FP[Feature projection]
+    EVENTS --> KP[Knowledge projection]
+    EVENTS --> RP[Retrieval projection]
+    FP --> GATE[Publication manifest and watermarks]
+    KP --> GATE
+    RP --> GATE
+    PRINCIPAL[Authenticated principal] --> READ[Authorized read coordinator]
+    GATE --> READ
+    READ --> ANSWER[Contexts entities features provenance]
 ```
 
 ### 각 Plane의 역할
 
-| Plane | 책임 | 데이터 형식 | 읽기 지연 | 예시 쿼리 |
-|-------|------|------------|---------|----------|
-| **Feature Plane** | Scalar/Vector 피처 제공 | Parquet, Protobuf | &lt;10ms | `get_features(entity_id, feature_names)` |
-| **Knowledge Plane** | 엔터티 관계·온톨로지 | RDF, Property Graph | &lt;50ms | `traverse(Customer, depth=2, relation='HAS_CONTRACT')` |
-| **Retrieval Plane** | 벡터 검색 + 그래프 확장 | HNSW Index, Cypher | &lt;100ms | `hybrid_search(query_embedding, kg_expand=True)` |
+| Plane | 책임 | 별도 검증 조건 |
+|---|---|---|
+| Feature | entity key별 feature 값/feature definition | online 최신 값과 offline history·timestamp 의미 |
+| Knowledge | 관계·용어·entity resolution | ontology version·RDF/property graph mapping |
+| Retrieval | embedding·문서 검색·rerank | model/chunk/index version·검색 visibility |
+| Coordinator | 인가·publication·provenance 조합 | cross-plane generation 선택·부분 실패 처리 |
 
 ### 통합 읽기 API
 
-```python
-from kfs import KnowledgeFeatureStore
+`kfs.retrieve`는 구현할 facade 계약의 이름입니다. 설치 가능한 `kfs` SDK 또는 `feast://`, `neptune://` 통합 protocol을 가정하지 않습니다. 인증된 principal을 서버가 전달하고 caller가 임의로 role을 고르지 못하게 합니다.
 
-kfs = KnowledgeFeatureStore(
-    feature_store="feast://cluster.local",
-    knowledge_graph="neptune://cluster.amazonaws.com",
-    vector_store="milvus://milvus.svc.cluster.local:19530"
-)
-
-# 통합 쿼리: 벡터 검색 + 그래프 확장 + 피처 로드
-result = kfs.retrieve(
-    query="고객 등급이 Premium인 사용자의 최근 이용 패턴",
-    retrieval_config={
-        "vector_top_k": 10,
-        "graph_expand": {
-            "depth": 2,
-            "relations": ["HAS_CONTRACT", "USES_DEVICE"]
-        },
-        "features": ["usage_last_30d", "churn_risk_score"]
-    }
-)
-
-# 결과:
-# - contexts: 벡터 검색으로 찾은 문서 10개
-# - entities: 그래프 확장으로 연결된 Customer, Contract, Device 노드
-# - features: 각 엔터티의 scalar/vector 피처
-# - provenance: 각 데이터의 출처와 타임스탬프
+```text
+retrieve(query, authenticated_principal, requested_generation):
+  authorize tenant, entity types, attributes, relationships, and purpose
+  choose a published generation supported by ALL required stores
+  search only authorized, visible documents at that generation
+  expand allowed relationships and fetch version-compatible features
+  return contexts, entities, features, provenance, generation,
+         source_watermarks, freshness, and completeness
+  if the contract cannot be met: fail explicitly or apply approved stale policy
 ```
-
----
 
 ## 온톨로지 스키마와 엔터티 해석
 
+스키마 의미·entity resolution·저장소 mapping은 서로 다른 계약입니다. 문법적으로 유효한 Turtle만으로 도메인 적합성이 증명되지는 않습니다.
+
 ### 도메인 온톨로지 정의
 
-Agentic AI 플랫폼에서 다루는 도메인 엔터티(고객, 계약, 디바이스, 이용)를 SKOS/OWL-lite 서브셋으로 정의합니다.
+예시는 RDF/OWL class/property와 SKOS concept를 구분합니다. `rdfs`·`xsd` prefix 누락을 수정하고 customerGrade를 문자열이 아닌 concept 관계로 정의합니다. SKOS broader는 OWL subClassOf가 아니며 exactMatch는 고객 동일인 판정이나 VIP/Premium 동등성의 증거가 아닙니다. domain/range는 추론 의미이며 폐쇄형 입력 검증은 별도 SHACL/애플리케이션 규칙이 필요합니다.
 
 ```turtle
-@prefix kfs: <http://platform.ai/ontology/kfs#> .
+@prefix kfs: <https://example.org/kfs/> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
-# 핵심 엔터티
-kfs:Customer a owl:Class ;
-    skos:prefLabel "고객"@ko ;
-    skos:definition "서비스를 이용하는 개인 또는 법인"@ko .
+kfs:Customer a owl:Class ; rdfs:label "Customer"@en .
+kfs:Contract a owl:Class ; rdfs:label "Contract"@en .
+kfs:Device a owl:Class ; rdfs:label "Device"@en .
+kfs:Usage a owl:Class ; rdfs:label "Usage"@en .
 
-kfs:Contract a owl:Class ;
-    skos:prefLabel "계약"@ko ;
-    skos:definition "고객과 체결한 서비스 계약"@ko .
-
-kfs:Device a owl:Class ;
-    skos:prefLabel "디바이스"@ko ;
-    skos:definition "서비스 제공을 위한 단말"@ko .
-
-kfs:Usage a owl:Class ;
-    skos:prefLabel "이용"@ko ;
-    skos:definition "서비스 이용 이벤트"@ko .
-
-# 관계 정의
 kfs:hasContract a owl:ObjectProperty ;
-    rdfs:domain kfs:Customer ;
-    rdfs:range kfs:Contract ;
-    skos:prefLabel "계약 보유"@ko .
-
+    rdfs:domain kfs:Customer ; rdfs:range kfs:Contract .
 kfs:usesDevice a owl:ObjectProperty ;
-    rdfs:domain kfs:Contract ;
-    rdfs:range kfs:Device ;
-    skos:prefLabel "디바이스 사용"@ko .
-
+    rdfs:domain kfs:Contract ; rdfs:range kfs:Device .
 kfs:recordedUsage a owl:ObjectProperty ;
-    rdfs:domain kfs:Device ;
-    rdfs:range kfs:Usage ;
-    skos:prefLabel "이용 기록"@ko .
-
-# 속성 정의
-kfs:customerGrade a owl:DatatypeProperty ;
-    rdfs:domain kfs:Customer ;
-    rdfs:range xsd:string ;
-    skos:prefLabel "고객 등급"@ko .
-
+    rdfs:domain kfs:Device ; rdfs:range kfs:Usage .
+kfs:customerGrade a owl:ObjectProperty ;
+    rdfs:domain kfs:Customer ; rdfs:range skos:Concept .
 kfs:churnRisk a owl:DatatypeProperty ;
-    rdfs:domain kfs:Customer ;
-    rdfs:range xsd:float ;
-    skos:prefLabel "이탈 위험도"@ko .
+    rdfs:domain kfs:Customer ; rdfs:range xsd:decimal .
 
-# 등급 계층 (SKOS Concept Scheme)
-kfs:CustomerGradeScheme a skos:ConceptScheme ;
-    skos:prefLabel "고객 등급 체계"@ko .
-
-kfs:Premium a skos:Concept ;
-    skos:inScheme kfs:CustomerGradeScheme ;
-    skos:prefLabel "Premium"@en, "프리미엄"@ko ;
-    skos:broader kfs:HighValue .
-
-kfs:VIP a skos:Concept ;
-    skos:inScheme kfs:CustomerGradeScheme ;
-    skos:exactMatch kfs:Premium ;
-    skos:prefLabel "VIP"@en .
-
+kfs:CustomerGradeScheme a skos:ConceptScheme .
 kfs:HighValue a skos:Concept ;
-    skos:inScheme kfs:CustomerGradeScheme ;
-    skos:prefLabel "고가치 고객"@ko .
+    skos:inScheme kfs:CustomerGradeScheme ; skos:prefLabel "High value"@en .
+kfs:Premium a skos:Concept ;
+    skos:inScheme kfs:CustomerGradeScheme ; skos:prefLabel "Premium"@en ;
+    skos:broader kfs:HighValue .
+kfs:VIP a skos:Concept ;
+    skos:inScheme kfs:CustomerGradeScheme ; skos:prefLabel "VIP"@en .
+# No equivalence is asserted between VIP and Premium.
 ```
+
+property graph adapter는 HAS_CONTRACT→kfs:hasContract, USES_DEVICE→kfs:usesDevice, RECORDED_USAGE→kfs:recordedUsage 및 grade_id→concept IRI mapping을 버전 관리합니다. entity key는 tenant·source namespace를 포함하고 동명이인·공유 device·계약 갱신·alias 충돌은 별도 resolution 결과와 근거를 남깁니다.
 
 ### 관리형 vs 오픈소스 옵션
 
-| 구현 | 관리형 옵션 | 오픈소스 옵션 | 선택 기준 |
-|------|-----------|-------------|----------|
-| **Knowledge Graph** | Amazon Neptune Analytics | Neo4j, JanusGraph | 규모, 운영 역량, 비용 |
-| **Ontology Store** | AWS RDF Store (Neptune) | Oxigraph, Apache Jena | 온톨로지 복잡도, 추론 필요성 |
-| **Vector DB** | - | Milvus, Weaviate | 이미 EKS 기반 구축 |
+| 역할 | 옵션 | 구분 |
+|---|---|---|
+| Transactional graph/RDF | Neptune Database, 적합한 자체 호스팅 저장소 | Neptune Database의 RDF/SPARQL과 property graph API를 구분 |
+| Graph analytics | Neptune Analytics | graph memory를 m-NCU로 선택하는 관리형 분석; openCypher 기반 |
+| Vector retrieval | Milvus 등 | 자체 consistency/visibility 및 index lifecycle |
 
-**Neptune Analytics 장점:**
-- 서버리스 그래프 분석 (프로비저닝 불필요)
-- 밀리초 단위 쿼리 지연 시간
-- openCypher 쿼리 언어 지원 (Gremlin·SPARQL은 Neptune Database 전용)
-- S3 데이터 직접 로드
-- 비용: m-NCU(memory-optimized Neptune Capacity Unit) 기반 시간당 과금. us-east-1 기준 32 m-NCUs $0.96/hr, 64 m-NCUs $1.92/hr, 128 m-NCUs $3.84/hr, 256 m-NCUs $7.68/hr. 초 단위 과금, 일시정지 시 컴퓨트 가격의 10% 스토리지 비용
-
-**Neo4j 장점:**
-- 성숙한 생태계, 풍부한 플러그인
-- EKS 배포 완전 제어
-- Cypher 쿼리 언어 표준
-- APOC 프로시저로 고급 알고리즘
-
----
+Neptune Analytics를 “용량 프로비저닝 없는 RDF store”로 설명하지 않습니다. Neptune Database Serverless와도 구분합니다. 지연과 가격은 데이터·query·용량·리전에 의존하므로 고정 밀리초나 시간당 가격을 이 설계의 성능으로 제시하지 않습니다.
 
 ## KG-aware RAG 패턴
 
+그래프 확장으로 recall이 늘 수 있지만 오류 관계·과도한 context가 품질을 낮출 수도 있습니다. 품질 향상은 평가할 가설입니다.
+
 ### 벡터 검색 + 그래프 확장
 
-전통 RAG는 벡터 유사도만으로 컨텍스트를 선택하지만, KG-aware RAG는 **그래프 관계를 활용하여 컨텍스트를 확장**합니다.
+검색·entity resolution·권한 필터·graph expansion·문서 합성·rerank를 모두 적용해야 합니다. 확장한 entity를 최종 context에 넣지 않으면 graph expansion을 수행했다는 것만으로 답변 근거가 늘지 않습니다.
 
 ```mermaid
-flowchart LR
-    Q[질문]
-    E[임베딩]
-    V[벡터 검색]
-    T[Top-K 문서]
-    G[그래프 확장]
-    N[관련 노드]
-    R[Re-rank]
-    F[최종 컨텍스트]
-    L[LLM 생성]
-
-    Q --> E
-    E --> V
-    V --> T
-    T --> G
-    G --> N
-    T --> R
-    N --> R
-    R --> F
-    F --> L
-
-    style V fill:#4285f4
-    style G fill:#f39c12
-    style R fill:#34a853
-    style L fill:#9c27b0
+flowchart TB
+    Q[Query] --> V[Authorized vector candidates]
+    Q --> E[Resolve query entities]
+    V --> E
+    E --> G[Allowed graph expansion]
+    G --> D[Fetch supporting documents]
+    V --> U[Deduplicate union]
+    D --> U
+    U --> R[Calibrated rerank and token budget]
+    R --> C[Context with provenance]
 ```
 
 ### 구현 예제
 
-```python
-from kfs import KnowledgeFeatureStore
-from ragas import evaluate
-from ragas.metrics import faithfulness, context_recall
+다음은 adapter 인터페이스를 정의하는 의사 코드입니다. SDK API나 실행 가능한 평가 script로 제시하지 않습니다. cosine score와 graph distance를 보정 없이 0.7/0.3으로 더하지 않습니다.
 
-kfs = KnowledgeFeatureStore(...)
-
-def kg_aware_rag(query: str) -> dict:
-    # 1. 질문 임베딩
-    query_embedding = embedding_model.encode(query)
-
-    # 2. Milvus top-k 벡터 검색
-    vector_results = kfs.vector_search(
-        embedding=query_embedding,
-        collection="documents",
-        top_k=20,
-        metric="COSINE"
-    )
-
-    # 3. 각 문서의 연결된 엔터티 추출
-    entities = []
-    for doc in vector_results:
-        # 문서에서 언급된 엔터티 식별
-        doc_entities = kfs.extract_entities(doc.text)
-        entities.extend(doc_entities)
-
-    # 4. Knowledge Graph에서 1-hop 확장
-    expanded_entities = kfs.graph_expand(
-        entities=entities,
-        depth=1,
-        relations=["HAS_CONTRACT", "USES_DEVICE", "RECORDED_USAGE"]
-    )
-
-    # 5. 확장된 엔터티와 질문의 거리로 re-rank
-    scored_contexts = []
-    for doc in vector_results:
-        # 문서 점수 = 벡터 유사도 + 그래프 거리 가중치
-        vector_score = doc.score
-        entity_distance = kfs.min_distance(
-            doc.entities, 
-            query_entities
-        )
-        graph_score = 1 / (1 + entity_distance)  # 거리 역수
-
-        final_score = 0.7 * vector_score + 0.3 * graph_score
-        scored_contexts.append((doc, final_score))
-
-    # 6. Top-5 컨텍스트 선택
-    final_contexts = sorted(
-        scored_contexts, 
-        key=lambda x: x[1], 
-        reverse=True
-    )[:5]
-
-    return {
-        "contexts": [doc.text for doc, score in final_contexts],
-        "entities": expanded_entities,
-        "provenance": [doc.metadata for doc, score in final_contexts]
-    }
-
-# 7. Ragas로 평가
-result = kg_aware_rag("고객 등급이 Premium인 사용자의 최근 이용 패턴")
-
-eval_dataset = {
-    "question": ["고객 등급이 Premium인 사용자의 최근 이용 패턴"],
-    "contexts": [result["contexts"]],
-    "answer": [llm.generate(result["contexts"])],
-    "ground_truth": ["Premium 고객은 월평균 150GB를..."]
-}
-
-ragas_result = evaluate(
-    eval_dataset,
-    metrics=[faithfulness, context_recall]
-)
-print(ragas_result)
+```text
+query_entities = resolve_entities(query, ontology_version, principal)
+vector_docs = vector_search(query, principal, published_generation)
+seed_entities = union(query_entities, linked_entities(vector_docs))
+expanded = graph_expand(seed_entities, allowed_relations, max_depth,
+                        principal, published_generation)
+graph_docs = supporting_documents(expanded, principal, published_generation)
+candidates = deduplicate_by_document_version(vector_docs + graph_docs)
+ranked = calibrated_rerank(query, candidates, principal)
+contexts = select_with_token_budget(ranked)
+return contexts, source_ids, document_versions, retrieval_generation
 ```
 
-### 기대 개선치 (외부 공개 연구 기반 추정)
+### 품질 개선 가설과 평가 계약 {#기대-개선치-외부-공개-연구-기반-추정}
 
-:::caution 수치 출처·해석 주의
-아래 수치는 **본 플랫폼의 실측값이 아니며**, 외부 공개 연구에서 보고된 GraphRAG/KG-RAG 개선 범위를 참고한 추정치입니다. 실 파일럿(2026-Q2 온톨로지 세션 이후) 완료 전까지는 베이스라인·목표치 설정용으로만 사용하십시오.
+이 플랫폼에 대해 승인된 개선 수치는 없습니다. 기존 Faithfulness 0.72→0.89, Recall 0.68→0.85 등은 연결된 실측이 없어 삭제했습니다. GraphRAG 논문과 survey는 이 특정 수치를 검증하지 않습니다. 다른 논문의 다른 dataset·metric 수치를 평균내어 목표 개선율로 쓰지 않습니다.
 
-**참고 문헌:**
-- Edge et al., *From Local to Global: A Graph RAG Approach to Query-Focused Summarization* (Microsoft Research, 2024) — [arXiv:2404.16130](https://arxiv.org/abs/2404.16130). "comprehensiveness and diversity" 개선 보고(정성 평가 중심, 수치는 평가 QA셋에 의존)
-- Peng et al., *Graph Retrieval-Augmented Generation: A Survey* (2024) — [arXiv:2408.08921](https://arxiv.org/abs/2408.08921). 엔터티 관계 활용 시 Faithfulness/Recall 개선 경향 정리
-- HippoRAG 논문(NeurIPS 2024, arXiv:2405.14831): dense retriever(ColBERTv2) 대비 다중 홉 질의 Recall@5 최대 약 21%p 개선(2WikiMultiHopQA 68.2→89.1). 데이터셋 의존성이 크며 MuSiQue는 +2.7%p, HotpotQA는 소폭 하락. LightRAG는 LLM 판정 win-rate 우위 보고(NaiveRAG 대비 67.6% vs 32.4%). 수치는 모두 논문 저자 자체 벤치마크임
-:::
-
-| 메트릭 | Vector-only RAG (참고) | KG-aware RAG (참고) | 개선률 (참고) |
-|--------|----------------|-------------|--------|
-| **Faithfulness** | 0.72 | 0.89 | +24% |
-| **Context Recall** | 0.68 | 0.85 | +25% |
-| **Answer Relevancy** | 0.81 | 0.87 | +7% |
-| **환각 발생률** | 18% | 7% | -61% |
-
-> 위 수치는 **외부 연구 평균 범위 내 가정값**이며, LG U+ 도메인 데이터·Phase 0 스키마 확정 후 내부 Ragas 평가로 재측정 예정입니다. 내부 QA셋·모델 조합(GLM-5 + Qwen3-4B)에서는 다른 결과가 나올 수 있습니다.
-
-**개선 메커니즘 (연구 문헌 정성 분석):**
-1. 그래프 관계로 관련 없는 컨텍스트 제거 → Precision 증가
-2. 1-hop 확장으로 누락된 엔터티 보완 → Recall 증가
-3. Provenance 추적으로 근거 명확화 → Faithfulness 증가
-
----
+동일 corpus snapshot·QA split·generator·embedding·token budget·judge/version으로 vector-only와 graph-augmented를 비교합니다. Faithfulness·context recall·answer relevance·인간 판정·지연·비용을 정의하고 표본 수·paired confidence interval·entity-linking 오류·접근 거부 사례를 보고합니다. 평가 실행 전에는 baseline/candidate/result를 pending으로 둡니다.
 
 ## Write 경로와 일관성 모델
 
+이 제안은 비동기 projection의 eventual consistency를 기본으로 합니다. 단일 이벤트를 세 저장소에 순차 기록해도 원자적 commit이나 strong consistency가 생기지 않습니다.
+
 ### CDC 기반 이벤트 흐름
 
-Knowledge Feature Store는 **소스 데이터베이스의 변경을 실시간으로 감지**하여 Feature Plane, Knowledge Plane, Retrieval Plane에 전파합니다.
+원천 DB transaction과 outbox를 함께 commit하고 CDC가 versioned event를 전달하도록 설계합니다. source DB의 commit/partition 순서를 기록하고 multi-source 전역 순서를 가정하지 않습니다. 각 writer의 저장 성공과 검색 가능 상태를 분리해 확인합니다.
 
 ```mermaid
-flowchart LR
-    subgraph Source["소스 시스템"]
-        DB[(App DB)]
-        DW[(Data Warehouse)]
-    end
-
-    subgraph CDC["Change Data Capture"]
-        DEBEZIUM[Debezium]
-        KAFKA[Kafka]
-    end
-
-    subgraph Materializer["KFS Materializer"]
-        direction TB
-        STREAM[Stream Processor]
-        FW[Feature Writer]
-        KW[Knowledge Writer]
-        VW[Vector Writer]
-    end
-
-    subgraph KFS["Knowledge Feature Store"]
-        FEAST[Feast Online]
-        KG[(Knowledge Graph)]
-        MILVUS[(Milvus)]
-    end
-
-    DB --> DEBEZIUM
-    DW --> KAFKA
-    DEBEZIUM --> KAFKA
-    KAFKA --> STREAM
-
-    STREAM --> FW
-    STREAM --> KW
-    STREAM --> VW
-
-    FW --> FEAST
-    KW --> KG
-    VW --> MILVUS
-
-    style CDC fill:#4285f4
-    style Materializer fill:#f39c12
-    style KFS fill:#34a853
+flowchart TB
+    DB[Source transaction and outbox] --> CDC[CDC event log]
+    CDC --> F[Idempotent feature writer]
+    CDC --> K[Idempotent graph writer]
+    CDC --> V[Idempotent vector writer]
+    F --> M[Per-plane acknowledgments]
+    K --> M
+    V --> M
+    M --> P[Publish only when required projections are visible]
+    P --> R[Read coordinator]
 ```
 
 ### Offline Batch vs Online Stream
 
-| 특성 | Offline Batch | Online Stream | 하이브리드 |
-|------|--------------|--------------|-----------|
-| **지연 시간** | 시간 단위 (Glue/EMR) | 초 단위 (Kinesis) | Batch → Online |
-| **정확도** | 100% (전체 재계산) | 99%+ (증분 업데이트) | 주기적 Batch 보정 |
-| **비용** | 낮음 | 높음 | 중간 |
-| **사용 사례** | 역사 데이터 로드 | 실시간 추천 | 프로덕션 표준 |
+| 방식 | 장점 | 검증할 위험 |
+|---|---|---|
+| Batch | snapshot 재처리와 정합성 점검 | snapshot 경계·늦은 데이터·재계산 비용 |
+| Stream | 짧은 전파 지연 | 중복·역순·부분 실패·DLQ |
+| 결합 | stream+정기 reconciliation | batch가 최신 stream을 덮어쓰지 않도록 version 검사 |
+
+Batch=100%, Stream=99% 정확도라는 고정 보장은 없습니다.
 
 ### Eventual Consistency 모델
 
-Knowledge Feature Store는 **Eventual Consistency**를 채택합니다. 3개 plane이 동시에 업데이트되지 않을 수 있지만, 최종적으로는 일관된 상태에 도달합니다.
+Feast online store는 entity key별 최신 feature만 보관하며 임의 과거 시점 조회를 제공하지 않습니다. Feast offline point-in-time join과 세 저장소 공통 snapshot은 다릅니다. timestamp 필터만 넣어 cross-plane point-in-time consistency를 보장할 수 없습니다.
 
-```python
-# Point-in-time 일관성 보장
-result = kfs.retrieve(
-    query="...",
-    consistency_mode="point_in_time",
-    timestamp="2026-04-18T10:30:00Z"
-)
-
-# 이 쿼리는:
-# 1. Feature Plane: timestamp 이전의 피처만 반환
-# 2. Knowledge Plane: timestamp 이전의 관계만 탐색
-# 3. Retrieval Plane: timestamp 이전에 인덱싱된 문서만 검색
-# → 3개 plane이 동일 시점으로 정렬됨
-```
+일관된 generation을 요구한다면 각 plane에 immutable version/history를 보존하고 query가 그 version을 선택할 수 있어야 합니다. coordinator는 모든 plane의 visibility watermark가 충족된 publication manifest만 노출합니다. 일부 plane이 최신 값만 제공하면 이 모드를 거부하거나 별도 versioned store를 사용합니다. event time과 ingestion time을 분리하고 늦은 이벤트·삭제의 처리 규칙을 정의합니다. strong consistency/read-your-writes는 backend와 coordinator가 증명한 범위만 약속합니다.
 
 ### Write 파이프라인 예제
 
-```python
-from kafka import KafkaConsumer
-import json
+아래 의사 코드는 저장소별 adapter가 구현해야 할 계약입니다. backend transaction 안에서 event version 검사·mutation·deduplication marker를 함께 적용해야 하며 Kafka offset을 commit한 사실만으로 세 저장소의 완료를 보장할 수 없습니다.
 
-def kfs_materializer():
-    consumer = KafkaConsumer(
-        'customer-events',
-        bootstrap_servers=['kafka.svc.cluster.local:9092'],
-        value_deserializer=lambda m: json.loads(m.decode('utf-8'))
-    )
-
-    for message in consumer:
-        event = message.value
-
-        # 1. Feature Plane 업데이트
-        feast_client.push(
-            feature_view="customer_features",
-            entity_rows=[{
-                "customer_id": event["customer_id"],
-                "churn_risk_score": event["churn_risk"],
-                "event_timestamp": event["timestamp"]
-            }]
-        )
-
-        # 2. Knowledge Graph 업데이트
-        if event["type"] == "CONTRACT_CREATED":
-            neptune_client.execute(f"""
-                MATCH (c:Customer {{id: '{event["customer_id"]}'}})
-                CREATE (c)-[:HAS_CONTRACT]->
-                    (contract:Contract {{
-                        id: '{event["contract_id"]}',
-                        start_date: '{event["start_date"]}'
-                    }})
-            """)
-
-        # 3. Vector DB 업데이트 (문서 변경 시)
-        if event["type"] == "DOCUMENT_UPDATED":
-            embedding = embedding_model.encode(event["content"])
-            milvus_client.insert(
-                collection_name="documents",
-                data={
-                    "id": event["doc_id"],
-                    "embedding": embedding.tolist(),
-                    "metadata": event["metadata"],
-                    "timestamp": event["timestamp"]
-                }
-            )
-
-        # 4. Provenance 기록
-        provenance_store.record(
-            entity_id=event["customer_id"],
-            source_system="app-db",
-            source_table="customers",
-            change_type=event["type"],
-            timestamp=event["timestamp"]
-        )
+```text
+event = {tenant, source, entity_id, event_id, source_version,
+         schema_version, event_time, ingestion_time, operation, payload}
+validate_schema_and_authority(event)
+for plane in required_planes(event):
+  begin plane transaction or equivalent conditional write
+    marker = read marker for (tenant, source, event_id)
+    if marker exists:
+      verify the stored payload digest matches this event
+      version_to_ack = marker.version
+    else:
+      if source_version is older: reject stale mutation
+      apply parameterized upsert or versioned tombstone
+      persist event_id/source_version, payload digest and provenance with mutation
+      version_to_ack = source_version
+  commit plane write
+  wait for version_to_ack to be visible to that plane's read path
+  upsert durable acknowledgment for this event, plane and version_to_ack
+  continue to the next required plane
+if every required plane acknowledges this exact generation:
+  conditionally publish its manifest without replacing a newer generation
+commit/advance source progress only under the durable replay contract
+on failure: retry idempotently; quarantine poison events; reconcile gaps
 ```
 
----
+graph adapter는 parameter binding과 unique entity/edge key를 사용합니다. vector adapter는 동일 document/version을 중복 insert하지 않도록 upsert/delete를 구현합니다. 중간 실패 후 재처리해도 이미 완료된 plane을 손상시키지 않아야 합니다. 삭제 tombstone은 모든 plane에 전파되고 오래된 retry가 데이터를 되살리지 못해야 합니다. 서로 다른 원천 source의 version은 직접 비교하지 말고 conflict policy를 적용합니다.
+
+이 fixture는 합성 tenant `test-a`, entity `customer-001` 하나로 실행합니다. 각 행은 독립 초기 상태에서 시작합니다. v1은 Premium upsert, v2는 VIP upsert, v3은 delete입니다. 세 plane은 version history를 보존하는 시험 구성을 가정하며 이를 지원하지 않는 adapter는 일관된 generation 모드를 거부해야 합니다. 이는 기대 결과이며 실행 결과는 아닙니다.
+
+| Fixture | 입력·장애 순서 | 기대 결과 |
+|---|---|---|
+| 중복 | v1, 같은 event_id의 v1 재전달 | entity/edge/document 중복 없음, publication v1 한 개 |
+| 역순 | v2 후 v1 | v2 유지, v1로 퇴행하지 않음 |
+| 부분 실패 | v1 공개 후 v2의 vector writer 실패 | publication은 v1, v2 혼합 읽기 금지; retry 완료 후 v2 |
+| acknowledgment 저장 전 장애 | v2 mutation·marker 저장 후 프로세스 중단 | retry가 marker로 쓰기 중복을 방지하고 visibility·acknowledgment 확인을 재개한 뒤 남은 plane 처리 |
+| 검색 지연 | v2 저장 성공, vector visibility 지연 | 검색 가능 확인 전 v2 공개 금지 |
+| 삭제 후 replay | v3 공개 후 v2 재전달 | tombstone v3 유지, entity/document 재등장 금지 |
+| 늦은 데이터 | v3 이후 도착한 과거 event_time의 v2 | source version으로 stale 판정, 삭제 상태 유지 |
+| Poison event | 유효하지 않은 schema의 새 이벤트 | 격리·감사, 공개 generation은 이전 상태 유지 |
+
+각 단계에서 event_id/source_version, plane별 저장·검색 가능 version, manifest generation, read 결과를 기록합니다. retry 후 수렴만 확인하지 말고 실패 중의 읽기 결과도 검사합니다.
 
 ## 거버넌스·보안·로드맵
 
+인가·민감 정보·lineage·감사는 read/write 경계 모두에 적용할 구현 요건입니다. 예시 config를 선언하는 것만으로 활성화되지 않습니다.
+
 ### Row/Attribute-level 인가
 
-Knowledge Feature Store는 **엔터티 수준**과 **속성 수준**에서 접근 제어를 수행합니다.
-
-```python
-# Role-based Access Control
-kfs_config = {
-    "access_control": {
-        "roles": {
-            "data_scientist": {
-                "entities": ["Customer", "Usage"],
-                "attributes": {
-                    "Customer": ["id", "grade", "churn_risk"],
-                    "Usage": ["*"]  # 모든 속성
-                },
-                "relations": ["HAS_CONTRACT", "RECORDED_USAGE"]
-            },
-            "compliance_officer": {
-                "entities": ["Customer", "Contract"],
-                "attributes": {
-                    "Customer": ["*"],
-                    "Contract": ["*"]
-                },
-                "relations": ["*"],
-                "provenance": True  # Provenance 읽기 권한
-            },
-            "external_analyst": {
-                "entities": ["Usage"],
-                "attributes": {
-                    "Usage": ["device_type", "usage_gb"]  # PII 제외
-                },
-                "pii_masking": True
-            }
-        }
-    }
-}
-
-# 쿼리 실행 시 Role 검증
-result = kfs.retrieve(
-    query="...",
-    role="external_analyst"
-)
-# → Customer.name, Customer.ssn 등 PII 자동 마스킹
-```
+인증된 principal의 tenant·scope·purpose를 서버에서 계산합니다. vector search의 후보, graph traversal의 node/edge, feature field와 최종 context 모두에 정책을 적용합니다. caller가 `role="external_analyst"`를 넘기는 방식으로 권한을 부여하지 않습니다. 계정 간 ID 충돌·unauthorized graph expansion·cache reuse를 검증합니다.
 
 ### PII 마스킹 On-Read
 
-민감 정보는 **읽기 시점**에 마스킹하여 데이터 복사본을 최소화합니다.
-
-```python
-# Attribute-level Masking
-masking_rules = {
-    "Customer": {
-        "ssn": lambda x: f"{x[:3]}-**-****",
-        "phone": lambda x: f"{x[:3]}-****-{x[-4:]}",
-        "email": lambda x: f"{x.split('@')[0][:2]}***@{x.split('@')[1]}"
-    }
-}
-
-# 쿼리 결과에서 자동 적용
-masked_result = kfs.retrieve(
-    query="...",
-    masking_rules=masking_rules,
-    audit_log=True  # 마스킹 적용 감사 로그
-)
-```
+표시용 문자열 마스킹은 검색·embedding·로그·그래프 관계의 노출을 제거하지 않습니다. 수집 최소화, 필요 시 tokenization/redaction, 저장소 인가, 출력 검토를 함께 적용합니다. 파생 요약·cache·index의 삭제 전파와 실패 시 deny 정책을 검증합니다.
 
 ### Lineage (OpenLineage)
 
-Knowledge Feature Store는 [OpenLineage](https://openlineage.io/) 표준을 따라 데이터 계보를 추적합니다.
+OpenLineage는 job/run/dataset 계보 표준입니다. row-level provenance나 분산 transaction 완료를 자동으로 증명하지 않습니다. 아래 합성 RunEvent는 UUID·producer·schemaURL을 포함합니다. 실제 통합은 고정한 schema 및 dataset/custom facet 정의로 검증하고 COMPLETE는 정의한 job 완료 의미에 맞게 기록합니다.
 
 ```json
 {
   "eventType": "COMPLETE",
-  "eventTime": "2026-04-18T10:30:00.000Z",
-  "run": {
-    "runId": "abc-123-def"
-  },
-  "job": {
-    "namespace": "kfs",
-    "name": "materialize_customer_features"
-  },
-  "inputs": [
-    {
-      "namespace": "postgres",
-      "name": "app_db.customers",
-      "facets": {
-        "schema": {...},
-        "dataSource": {
-          "name": "postgres://prod-db:5432/app"
-        }
-      }
-    }
-  ],
-  "outputs": [
-    {
-      "namespace": "feast",
-      "name": "customer_features",
-      "facets": {
-        "schema": {...}
-      }
-    },
-    {
-      "namespace": "neptune",
-      "name": "Customer",
-      "facets": {
-        "schema": {...}
-      }
-    }
-  ]
+  "eventTime": "2026-09-18T00:00:00Z",
+  "run": {"runId": "a9067eb1-12ca-4cfa-a5e1-623b8bbf72ed"},
+  "job": {"namespace": "example-kfs", "name": "materialize-projections"},
+  "inputs": [{"namespace": "example-source", "name": "synthetic-entities"}],
+  "outputs": [{"namespace": "example-kfs", "name": "published-generation"}],
+  "producer": "https://example.org/kfs/materializer",
+  "schemaURL": "https://openlineage.io/spec/2-0-2/OpenLineage.json#/$defs/RunEvent"
 }
 ```
 
 ### Audit Log
 
-모든 읽기/쓰기 작업을 감사 로그로 기록합니다.
-
-```python
-# 감사 로그 자동 기록
-kfs.retrieve(
-    query="...",
-    audit_context={
-        "user": "data-scientist@company.com",
-        "purpose": "churn prediction model",
-        "ticket": "JIRA-1234"
-    }
-)
-
-# CloudWatch Logs에 기록:
-# {
-#   "timestamp": "2026-04-18T10:30:00Z",
-#   "user": "data-scientist@company.com",
-#   "action": "retrieve",
-#   "entities": ["Customer", "Contract"],
-#   "features": ["churn_risk_score", "usage_last_30d"],
-#   "purpose": "churn prediction model",
-#   "ticket": "JIRA-1234",
-#   "pii_accessed": false,
-#   "masking_applied": false
-# }
-```
+request/event ID, principal의 가명 식별자, tenant scope, policy version, 접근한 generation, allow/deny, provenance 참조와 결과를 기록합니다. query 전문·PII·token·secret은 기본 감사 필드로 저장하지 않습니다. 읽기 성공뿐 아니라 접근 거부·부분 실패·삭제·재처리도 coverage에 포함합니다.
 
 ### 파일럿 로드맵
 
-| Phase | 기간 | 목표 | 주요 작업 |
-|-------|------|------|----------|
-| **Phase 0** | 2주 | 스키마 설계 | 도메인 온톨로지 초안, 엔터티·관계 정의 |
-| **Phase 1** | 4주 | Read API | Milvus + Neptune 통합, 통합 쿼리 API 개발 |
-| **Phase 2** | 6주 | Write Pipeline | Debezium CDC → Kafka → Materializer 구축 |
-| **Phase 3** | 4주 | 거버넌스 | RBAC, PII 마스킹, OpenLineage 통합 |
-| **Phase 4** | 2주 | 평가 | Ragas KG-aware RAG 평가, 메트릭 베이스라인 수립 |
+2026-Q2 계획의 완료 여부는 증거 대기입니다. 다음 순서로 새 승인 기록을 남깁니다.
 
-**Phase 0 스키마 초안 범위:**
-- 4개 핵심 엔터티: Customer, Contract, Device, Usage
-- 6개 관계: HAS_CONTRACT, USES_DEVICE, RECORDED_USAGE, BEFORE, AFTER, RELATED_TO
-- 10개 속성: customer_grade, churn_risk, contract_type, device_model, usage_gb, ...
-- 1개 SKOS 체계: CustomerGradeScheme (Premium, VIP, Standard, ...)
-
----
+1. **개념/도메인 승인**: 3-plane이 기존 FS를 대체하는지 조합하는지, 소유권·API compatibility 범위를 ADR에 명시합니다. 합성 Customer/Contract/Device/Usage와 Premium/VIP·동명이인·공유 device·유효 기간 사례를 domain owner가 판정합니다.
+2. **스키마/매핑 승인**: Turtle parse, SHACL/앱 제약, namespace·entity key·RDF/property graph mapping·migration version을 확인합니다.
+3. **Write 장애 fixture**: duplicate, out-of-order, late event, 한 plane 실패, visibility 지연, delete 후 stale replay, DLQ 복구를 재현합니다. 각 경우의 event log·plane version·ack·공개 manifest를 대조합니다. unpublished/권한 밖 generation이 조회되지 않아야 합니다.
+4. **읽기 정합성 승인**: 최신 읽기 freshness bound와 stale/partial 처리, history 모드 가능 여부, event-time/ingestion-time 경계를 확정합니다. 허용 지연과 최소 표본 수를 사전에 정합니다.
+5. **품질/보안 승인**: 동일 QA/corpus 버전에서 baseline/candidate 평가 및 tenant 간 접근 거부·PII·삭제 전파를 검증합니다.
+6. **증거 기록**: configuration/source/data hash, UTC 시각, 기대/실제 결과, 담당자·승인자·잔여 항목을 보존합니다. 수치·도메인·일관성 승인 전에는 검증 대기 배너를 유지합니다.
 
 ## 결론
 
-Knowledge Feature Store는 전통 Feature Store의 **scalar/vector 피처 제공** 역량에 **온톨로지와 지식 그래프**를 통합하여 다음을 달성합니다:
-
-1. **환각 감소**: 엔터티 관계를 명시적으로 모델링하여 LLM이 관계 없는 정보를 연결하는 것을 방지
-2. **근거 추적**: Provenance 체인으로 답변의 출처를 역추적하여 규제 준수 요구사항 충족
-3. **도메인 엔터티 활용**: 온톨로지로 도메인 용어와 계층을 정의하여 LLM의 도메인 이해도 향상
-4. **KG-aware RAG**: 벡터 검색과 그래프 확장을 결합하여 Faithfulness +24%, Context Recall +25% 개선
-
-2026-Q2 온톨로지 세션에서 Phase 0 스키마 초안을 검토하고, 파일럿 범위를 확정할 예정입니다.
-
----
+KFS는 feature·관계·검색을 결합하는 설계 제안입니다. ontology mapping, 인가, 비동기 write, publication과 평가 계약을 구현해야 합니다. graph 추가만으로 환각 감소·규제 준수·strong consistency를 보장하지 않습니다. 도메인/운영 승인과 실제 측정은 남은 작업입니다.
 
 ## 참고 자료
 
 ### 공식 문서
 
-- [Feast Feature Store](https://feast.dev/) — 오픈소스 Feature Store
-- [SageMaker Feature Store](https://aws.amazon.com/sagemaker/feature-store/) — AWS 관리형 Feature Store
-- [Amazon Neptune Analytics](https://docs.aws.amazon.com/neptune-analytics/latest/userguide/what-is-neptune-analytics.html) — 메모리 최적화 그래프 분석
-- [Neo4j Graph Database](https://neo4j.com/) — 그래프 데이터베이스
+- [Feast online store](https://docs.feast.dev/getting-started/components/online-store) — latest-value serving
+- [Feast point-in-time joins](https://docs.feast.dev/getting-started/concepts/point-in-time-joins) — historical feature retrieval
+- [Neptune Analytics guide](https://docs.aws.amazon.com/neptune-analytics/latest/userguide/what-is-neptune-analytics.html) — graph analytics and capacity
+- [SKOS Reference](https://www.w3.org/TR/skos-reference/) — concepts, relations, mapping semantics
+- [OWL Web Ontology Language](https://www.w3.org/OWL/) — ontology language
+- [SHACL](https://www.w3.org/TR/shacl/) — RDF graph validation
+- [OpenLineage object model](https://openlineage.io/docs/spec/object-model/) — run/job/dataset contracts
 
 ### 논문 / 기술 블로그
 
-- [SKOS Simple Knowledge Organization System](https://www.w3.org/2004/02/skos/) — 온톨로지 표준
-- [OWL Web Ontology Language](https://www.w3.org/OWL/) — 웹 온톨로지 언어
-- [OpenLineage](https://openlineage.io/) — 데이터 계보 추적 표준
-- [GraphRAG: Unlocking LLM discovery on narrative private data](https://arxiv.org/abs/2404.16130) — Microsoft Research 그래프 RAG
+- [From Local to Global: A Graph RAG Approach to Query-Focused Summarization](https://arxiv.org/abs/2404.16130) — task-specific graph retrieval evaluation
+- [Graph Retrieval-Augmented Generation: A Survey](https://arxiv.org/abs/2408.08921) — research overview, not platform measurements
 
 ### 관련 문서 (내부)
 
-- [플랫폼 아키텍처](../foundations/agentic-platform-architecture.md) — 데이터 레이어 설계
-- [Milvus 벡터 DB](../../operations-mlops/data-infrastructure/milvus-vector-database.md) — 벡터 검색 구현
-- [Ragas RAG 평가](../../operations-mlops/governance/ragas-evaluation.md) — RAG 품질 측정
-- [도메인 커스터마이징](../../operations-mlops/governance/domain-customization.md) — 도메인 특화 전략
+- [Platform architecture](../foundations/agentic-platform-architecture.md) — data layer
+- [Milvus vector database](../../operations-mlops/data-infrastructure/milvus-vector-database.md) — vector retrieval
+- [Ragas evaluation](../../operations-mlops/governance/ragas-evaluation.md) — RAG quality evaluation
+- [Domain customization](../../operations-mlops/governance/domain-customization.md) — domain adaptation
