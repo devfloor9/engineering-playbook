@@ -19,11 +19,11 @@ category: performance-networking
 
 import { GoldenSignals, CoreDnsMetricsTable, TtlConfigGuide, MonitoringArchitecture, TroubleshootingTable, PerformanceBenchmarks } from '@site/src/components/CoreDnsTables';
 
-In Amazon EKS and modern Kubernetes clusters, **CoreDNS** is the core component responsible for all in-cluster service discovery and external domain name resolution. Since CoreDNS performance and availability directly impact application response times and stability, building an **effective monitoring and optimization architecture** is critical. This article analyzes **CoreDNS performance monitoring metrics**, **TTL configuration guide**, **monitoring architecture best practices**, and **AWS recommendations with real-world cases**. Each section leverages Prometheus metrics and Amazon EKS environment examples.
+In Amazon EKS and modern Kubernetes clusters, **CoreDNS** is the core component responsible for all in-cluster service discovery and external domain name resolution. Since CoreDNS performance and availability directly impact application response times and stability, building an **effective monitoring and optimization architecture** is critical. This article analyzes **CoreDNS performance monitoring metrics**, **TTL configuration guide**, **monitoring architecture best practices**, and **AWS operational checks and diagnostic examples**. Each section leverages Prometheus metrics and Amazon EKS environment examples.
 
 ## 1. CoreDNS Performance Monitoring: Key Prometheus Metrics
 
-CoreDNS exposes **Prometheus-format metrics** through the `metrics` plugin, available by default in EKS on port `9153` of the `kube-dns` service. The core metrics cover **DNS request throughput, latency, errors, and caching efficiency**, enabling rapid detection of DNS performance bottlenecks or failure indicators.
+CoreDNS exposes **Prometheus-format metrics** with `prometheus :9153` in the Corefile. Port `9153` is the scrape example in this guide; verify the Pod listener and collection configuration. Do not assume the `kube-dns` Service exposes it. Core metrics cover **DNS throughput, latency, response codes, and caching efficiency**. Plugin and EKS references are listed under [Primary sources](#primary-sources).
 
 ### CoreDNS 4 Golden Signals
 
@@ -39,38 +39,48 @@ Beyond these, additional metrics such as **request/response size** (`coredns_dns
 
 ### Key Metric Meanings and Usage
 
-Track `coredns_dns_requests_total` per-second rate for **DNS QPS**, distributed per CoreDNS Pod to verify **load balance**. If QPS consistently grows, evaluate whether CoreDNS **scale-out** is needed. When `coredns_dns_request_duration_seconds` p99 rises above normal, CoreDNS is experiencing **response latency** — check for **upstream DNS delays** or CoreDNS **CPU/memory saturation**. If cache hit ratio (`coredns_cache_hits_total`) is low, check whether TTL is too short. If `coredns_dns_responses_total` shows increasing `SERVFAIL` or `REFUSED`, check CoreDNS **external communication** or **access control** issues. A spike in `NXDOMAIN` for specific domains may indicate applications querying incorrect domains.
+Track `coredns_dns_requests_total` per-second rate for **DNS QPS**, distributed per CoreDNS Pod to verify **load balance**. If QPS consistently grows, evaluate scale-out. When p99 latency rises above normal, check upstream delays and CPU/memory saturation. A low cache hit ratio requires checking query reuse, TTLs, and evictions together. `SERVFAIL` indicates a resolution failure; `REFUSED` can reflect policy or the `forward max_concurrent` limit. `NXDOMAIN` can be expected for nonexistent names and search-domain expansion. Compare response-code baselines, application failures, and narrowly scoped query logs before treating an increase as an incident or an incorrect lookup.
 
-System resource metrics (CPU/memory) are also important. Monitor CoreDNS Pod CPU/memory utilization and alert when approaching **resource limits**. EKS default CoreDNS **memory request/limit is 70Mi/170Mi** — track if usage exceeds 150Mi. CPU throttling by kubelet causes DNS latency, so consider scaling when CPU approaches limits.
+Monitor CPU and memory against the **installed EKS add-on version, configuration, and Deployment resources**. Do not assume **70Mi/170Mi** are universal EKS memory defaults. If the actual limit is 170Mi, an alert at 150Mi is one trial threshold for that deployment. Account for growth, OOM history, cache capacity, and Kubernetes object counts. Compare CPU usage with the configured limit and observed throttling.
 
 :::warning VPC ENI DNS Packet Limit
-Each node ENI allows only 1024 DNS packets per second. Even if you increase CoreDNS `max_concurrent`, the ENI PPS limit (1024 PPS) may prevent reaching desired performance.
+Traffic to link-local services such as Amazon DNS shares a **1024 PPS per ENI** allowance with IMDS and Amazon Time Sync. This is not a limit on all DNS traffic. Increasing `max_concurrent` does not increase it. Monitor `linklocal_allowance_exceeded` from the [AWS ENA metrics](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/monitoring-network-performance-ena.html).
 :::
 
 ## 2. CoreDNS TTL Configuration Guide and Amazon EKS Examples
 
 **TTL (Time-To-Live)** defines the DNS record cache validity period, balancing **DNS traffic load** and **information freshness**. CoreDNS handles TTL at two levels:
 
-- **Authoritative zone record (SOA) TTL:** The `kubernetes` plugin response TTL for internal cluster domains (`cluster.local`, etc.), defaulting to **5 seconds**. Configurable in the `kubernetes` section of the Corefile with the `ttl` option (min 0, max 3600 seconds).
-- **Cache TTL:** The `cache` plugin maximum cache retention time, defaulting to **3600 seconds (success responses)**. The specified TTL acts as an **upper limit** — if the actual DNS record TTL is shorter, the cache respects the shorter value.
+The plugin defaults below are scoped to **upstream CoreDNS v1.11.3**, using the [kubernetes reference](https://github.com/coredns/coredns/blob/v1.11.3/plugin/kubernetes/README.md) and [cache reference](https://github.com/coredns/coredns/blob/v1.11.3/plugin/cache/README.md). They do not imply that an EKS add-on uses the same configuration.
+
+- **Kubernetes response TTL:** The TTL of records generated by the `kubernetes` plugin, not just SOA records. Omitting `ttl` gives **5 seconds**; the allowed range is **0–3600 seconds**. When using TTL 0 to avoid caching, also check that caches along the path respect zero.
+- **Cache TTL:** The `cache` plugin defaults to a maximum of **3600 seconds for success and 1800 seconds for denial**, with a **5-second minimum TTL (`MINTTL`) for each**. Denial includes NXDOMAIN and NODATA responses. `cache 30` sets both ceilings to 30 seconds; `success CAPACITY TTL MINTTL` and `denial CAPACITY TTL MINTTL` override them separately. SERVFAIL caching has a separate `servfail` option, defaulting to 5 seconds in this version.
+
+For ordinary success/denial entries, the effective cache lifetime is `min(max(TTL derived from the response, MINTTL), maximum TTL)` ([v1.11.3 implementation](https://github.com/coredns/coredns/blob/v1.11.3/plugin/cache/cache.go)). Thus **a 5-second record + `cache 30` + the default 5-second minimum = 5 seconds**, not 30 seconds. Explicitly raising the minimum with `success 9984 30 10` permits caching that successful response for **10 seconds**. Capacity pressure can evict entries earlier; enabling `serve_stale` separately changes the policy for serving expired answers.
 
 <TtlConfigGuide />
 
 ### Amazon EKS Default CoreDNS Configuration
 
-The default EKS CoreDNS Corefile uses **5-second default TTL** for the `kubernetes` plugin (no explicit TTL) and `cache 30` to **cache all DNS responses for up to 30 seconds**. Internal service record TTL is 5 seconds in the response packet, but CoreDNS itself caches for up to 30 seconds to avoid frequent Kubernetes API queries. External domains are also cached up to 30 seconds.
+Check the installed **add-on version, Corefile, and Deployment** together. With no `ttl` in the `kubernetes` block and only `cache 30`, internal records remain valid in cache for 5 seconds under the version described above. With an explicit `ttl 30`, the internal record TTL itself is 30 seconds. Long external TTLs are capped; short TTLs are evaluated against the minimum as well.
+
+The `kubernetes` plugin **watches Kubernetes API objects and maintains local state**. A DNS cache miss does not imply another API request, so increasing DNS cache TTL should not be described as preventing per-query Kubernetes API lookups.
 
 ### TTL Configuration Guide
 
-Short TTLs (≤5s) reflect DNS changes quickly but increase CoreDNS load. Long TTLs (minutes+) reduce query frequency but delay change propagation. The **recommended approach** is to moderately increase TTL (tens of seconds) to **improve cache hit rate** while avoiding severe information delays. Many Kubernetes environments use **30 seconds** as a baseline.
+Short TTLs can propagate changes sooner but increase repeat queries; longer TTLs can reduce repeat queries while extending use of old addresses. **30 seconds is a trial value in this guide, not a universal optimum.** Choose values using service/endpoint churn, failover objectives, and measured cache hit ratios. Evaluate denial TTL separately because it can delay discovery of newly created names or records.
+
+For `prefetch AMOUNT [[DURATION] [PERCENTAGE%]]`, `prefetch 5 60s 10%` identifies popular entries using a threshold of five queries without gaps of 60 seconds or more. On a cache hit, refresh is considered when the remaining TTL reaches the 10% threshold. **60 seconds is not the time before expiry to refresh.** In v1.11.3, omitted DURATION defaults to one minute and omitted PERCENTAGE to 10%, with a range of 10–90%. The reference's one-second-before-expiry boundary is also evaluated on subsequent queries; this is not a timer that runs without traffic.
 
 ### Amazon EKS Application Examples
 
-To adjust TTL in EKS, modify the **CoreDNS ConfigMap**. Add `ttl 30` to the `kubernetes cluster.local ...` block. Note that standard Linux glibc resolver doesn't cache — without **NodeLocal DNSCache**, TTL increases mainly reduce CoreDNS's own load.
+If a workload tolerates using internal answers for up to 30 seconds, trial `ttl 30` in the `kubernetes` block together with the cache settings. Client, NodeLocal DNSCache, and application-runtime caching policies also affect the result. For the EKS managed add-on, check the installed version's supported schema and manage custom Corefiles through `configurationValues.corefile`. Direct ConfigMap edits can be overwritten during add-on updates ([EKS management guide](https://docs.aws.amazon.com/eks/latest/userguide/managing-coredns.html)).
 
 :::warning Aurora DNS Load Balancing Issue
-**AWS Aurora** uses very low TTL (1 second) for DNS load balancing. CoreDNS's default minimum TTL of 5 seconds **over-caches** the 1-second TTL, distorting Aurora reader endpoint traffic distribution. Apply **domain-specific low TTL settings** for such cases.
+For Aurora or similar endpoints, check the **actual DNS response TTL and connection-pool behavior**. If an observed endpoint returns a 1-second TTL and the cache ceiling is 30 seconds, the v1.11.3 default 5-second minimum can extend it to 5 seconds. Do not assume every Aurora endpoint has a 1-second TTL.
 :::
+
+In a server block for a **verified DNS zone** that needs low TTLs, trial an explicit zero minimum such as `success 9984 30 0` and `denial 2048 10 0`. The first number is **capacity**, not TTL: `success 1` and `denial 1` do not mean one-second caching. Check the entire path, including NodeLocal DNSCache, and avoid broadening an exception to all of `amazonaws.com`.
 
 ## 3. CoreDNS Monitoring Architecture Best Practices
 
@@ -81,10 +91,10 @@ To adjust TTL in EKS, modify the **CoreDNS ConfigMap**. Add `ttl 30` to the `kub
 Two common approaches in Amazon EKS:
 
 1. **Amazon Managed Service for Prometheus (AMP)**: Fully managed Prometheus-compatible service. Install **ADOT Collector** or **Prometheus** to scrape and forward CoreDNS metrics.
-2. **CloudWatch Container Insights**: Use CloudWatch agent as DaemonSet to scrape CoreDNS metrics from `kube-dns` service port 9153.
+2. **CloudWatch Container Insights**: Configure the CloudWatch agent's Prometheus collection to scrape CoreDNS Pod metrics endpoints. Verify application-metric targets and ports separately.
 
 :::tip ServiceMonitor Configuration
-EKS's kube-dns service provides a metrics port. With Prometheus Operator, create a ServiceMonitor targeting the `k8s-app=kube-dns` label on port 9153.
+First verify the Corefile `prometheus` listener, Service ports, and labels. If a Service exposes the metrics port, select that named port in the ServiceMonitor; otherwise configure a dedicated metrics Service or Pod-based discovery. The `k8s-app=kube-dns` label alone does not guarantee that port 9153 is exposed.
 :::
 
 ### Log Collection
@@ -101,98 +111,132 @@ Use **Grafana** (or Amazon Managed Grafana) to visualize CoreDNS metrics: **QPS,
 
 ### Alerting
 
-Set alerts via **Prometheus Alertmanager** or CloudWatch Alarms:
-- **CoreDNSDown**: CoreDNS metrics unreported for 15+ minutes
-- **HighDNSLatency**: p99 latency exceeding 100ms
-- **DNSErrorsSpike**: SERVFAIL/NXDOMAIN ratio above threshold
-- **ENIThrottling**: ENI DNS packet limit exceeded
+Use **Prometheus alerting rules with Alertmanager**, or CloudWatch Alarms:
+
+- **CoreDNSDown**: Detect all selected `up{job="coredns"}` targets being down or absent. This measures scrape availability; use a separate DNS query probe to check resolution availability.
+- **HighDNSLatency**: The appendix trials p99 above **50ms for five minutes** while traffic is present. Adjust it to the workload baseline and SLO.
+- **DNSErrorsSpike**: Track the `SERVFAIL` response ratio. Investigate `REFUSED` against intended policy and concurrency limits, and `NXDOMAIN` against its baseline and application impact.
+- **ENIThrottling**: Increases in `linklocal_allowance_exceeded` indicate dropped link-local service packets, including Amazon DNS traffic.
 - **HighCoreDNSCPU/Memory**: Resource utilization alerts
 
 ## 4. Amazon EKS Best Practices and Customer Cases
 
+The following are **operational checks and diagnostic scenarios** based on public CoreDNS and AWS documentation. They are not measured customer case studies; validate causes in the installed configuration and workload.
+
 <TroubleshootingTable />
 
 ### CoreDNS Horizontal Scaling
-Default 2 replicas; use **Cluster Proportional Autoscaler** to scale based on node count or CPU cores.
+Verify replicas in the current Deployment and add-on configuration. Evaluate supported EKS managed add-on autoscaling or Cluster Proportional Autoscaler using node count, CPU cores, and measured query load. Avoid two controllers managing the same replica count.
 
 ### NodeLocal DNSCache
-For large clusters or high DNS traffic, deploy NodeLocal DNSCache DaemonSet for **local DNS caching** on every node.
+For large clusters or high DNS traffic, deploy NodeLocal DNSCache DaemonSet for **local DNS caching** on supported nodes.
 
 ### DNS Packet Limits and Traffic Distribution
-VPC DNS packet limit is **1024 PPS/ENI**. Ensure CoreDNS Pods are distributed across nodes.
+Link-local traffic to Amazon DNS shares a **1024 PPS/ENI** allowance. Co-located CoreDNS Pods can concentrate upstream traffic on one ENI. Spread Pods and reduce repeat queries through caching; NodeLocal DNSCache still sends upstream queries on misses and does not remove ENI limits.
 
 ### Graceful Termination (Lameduck & Ready Plugin)
-Apply **lameduck 30s** and configure Readiness Probe on `/ready` endpoint.
+`health { lameduck DURATION }` delays shutdown. During that interval, `/health` still returns 200 while `/ready` no longer reports readiness ([health reference](https://github.com/coredns/coredns/blob/v1.11.3/plugin/health/README.md)). Upstream v1.11.3 adds no delay when `lameduck` is omitted. **30 seconds is not a universal AWS recommendation**, and the appendix's 5 seconds is also a trial value. Measure endpoint propagation and shutdown time; budget `terminationGracePeriodSeconds` for preStop, lameduck, and shutdown with headroom.
+
+The [EKS guide](https://docs.aws.amazon.com/eks/latest/userguide/managing-coredns.html) identifies `/ready` probes in **v1.9.3-eksbuild.3 and later and v1.10.1-eksbuild.6 and later**. Custom Corefiles for those configurations must include `ready`. Check the actual add-on version and probe configuration together.
 
 ### Higher QPS Requirements
-1. Increase `max_concurrent` to 2000+
+1. Evaluate `max_concurrent`: upstream v1.11.3 imposes no concurrency cap through this option when it is omitted. Size an explicit cap from upstream QPS × latency plus headroom. The appendix's `2000` is illustrative; account for roughly 2 KB per concurrent query and `REFUSED` responses when the cap is exceeded ([forward reference](https://github.com/coredns/coredns/blob/v1.11.3/plugin/forward/README.md)).
 2. Scale CoreDNS horizontally or deploy NodeLocal DNSCache
-3. Monitor ENI limits via `aws_ec2_eni_allowance_exceeded`
+3. Collect increases in ENA `linklocal_allowance_exceeded`. Publishing it to CloudWatch requires agent configuration; verify the emitted metric name and dimensions.
 
 ## Key Summary
 
 <PerformanceBenchmarks />
 
-- **Monitoring Metrics**: `requests_total`, `request_duration_seconds`, `cache_hits/misses`, `responses_total{rcode}`, CPU/memory
-- **Recommended TTL**: Service records 30s, cache (success 30, denial 5-10), prefetch 5 60s
-- **Monitoring**: kube-prometheus-stack dashboards + Alertmanager rules, NodeLocal DNSCache for scale-out
+- **Monitoring Metrics**: Requests, latency, cache requests/hits, rcode distribution, and CPU/memory. Derive cache misses from requests minus hits.
+- **Trial TTLs**: Internal answers 30s, success ceiling 30s, denial ceiling 10s, `prefetch 5 60s 10%`. Choose values from freshness objectives and measurements; `cache 30` alone does not cache a 5-second record for 30 seconds.
+- **Monitoring**: Grafana dashboards matched to the scrape configuration + Prometheus alerting rules, NodeLocal DNSCache for scale-out
 
 ## Appendix: Configuration Examples
 
 ### Recommended Corefile
 
+This is a **Corefile example requiring workload validation**, not a universal replacement for an EKS Corefile. Verify the 30-second internal-answer freshness budget, cache capacity, upstream concurrency, and shutdown grace period. Capacities are rounded down to multiples of 256, so this example uses 9984 and 2048. Enable query `log` only for a scoped diagnostic period.
+
 ```text
 .:53 {
+  errors
   kubernetes cluster.local in-addr.arpa ip6.arpa {
     pods insecure
     fallthrough in-addr.arpa ip6.arpa
-    ttl 30           # Service/POD record TTL
+    ttl 30                # Trial response TTL; requires a 30s freshness budget
   }
 
-  cache 30 {         # Max 30s retention
-    success 10000 30 # capacity 10k, maxTTL 30s
-    denial 2000 10   # negative cache 2k, maxTTL 10s
-    prefetch 5 60s   # refresh before expiry if 5+ identical queries
+  cache 30 {              # Ceiling, not a forced lifetime for every response
+    success 9984 30 5     # Capacity, maximum TTL, minimum TTL (seconds)
+    denial 2048 10 5      # Separate negative-cache capacity and TTL bounds
+    prefetch 5 60s 10%    # Popularity: gaps <60s; refresh at remaining-TTL threshold
   }
 
   forward . /etc/resolv.conf {
-    max_concurrent 2000
-    prefer_udp
+    max_concurrent 2000   # Trial cap; size from upstream QPS and latency
   }
 
   prometheus :9153
   health {
-    lameduck 30s
+    lameduck 5s           # Trial delay; allow shutdown headroom in the Pod grace period
   }
   ready
+  loop
   reload
-  log
+  loadbalance
 }
 ```
 
 ### Alertmanager Rule Examples
 
-```yaml
-- alert: CoreDNSHighErrorRate
-  expr: >
-    (sum(rate(coredns_dns_responses_total{rcode!~"NOERROR"}[5m])) /
-     sum(rate(coredns_dns_requests_total[5m]))) > 0.01
-  for: 10m
-  labels:
-    severity: critical
-  annotations:
-    description: "CoreDNS error rate > 1% for 10 min"
+This YAML is a **Prometheus rule file whose alerts are sent to Alertmanager**. Like the metric table, it assumes **one cluster scraped as `job="coredns"`**. Substitute the real job name and add the same cluster condition to **every selector** for a multi-cluster backend. Verify `/metrics` and scrape labels first. Ratios, latency, and durations are trial thresholds. Expected NXDOMAIN is excluded from the critical error alert; evaluate REFUSED separately against policy and concurrency limits. Response-code ratios cannot detect unanswered queries or unavailable Pods alone, so check scrape state and actual DNS query probes as well.
 
-- alert: CoreDNSP99Latency
-  expr: >
-    histogram_quantile(0.99,
-      sum(rate(coredns_dns_request_duration_seconds_bucket[5m])) by (le)) > 0.05
-  for: 5m
-  labels:
-    severity: warning
+```yaml
+groups:
+  - name: coredns-example
+    rules:
+      - alert: CoreDNSHighErrorRate
+        expr: >
+          (sum(rate(coredns_dns_responses_total{job="coredns",rcode="SERVFAIL"}[5m])) /
+           sum(rate(coredns_dns_responses_total{job="coredns"}[5m]))) > 0.01
+          and on() sum(rate(coredns_dns_responses_total{job="coredns"}[5m])) > 0
+        for: 10m
+        labels:
+          severity: critical
+        annotations:
+          description: "CoreDNS SERVFAIL response ratio > 1% for 10 min"
+
+      - alert: CoreDNSP99Latency
+        expr: >
+          histogram_quantile(0.99,
+            sum by (le) (rate(coredns_dns_request_duration_seconds_bucket{job="coredns"}[5m]))) > 0.05
+          and on() sum(rate(coredns_dns_requests_total{job="coredns"}[5m])) > 0
+        for: 5m
+        labels:
+          severity: warning
+
+      - alert: CoreDNSScrapeUnavailable
+        expr: sum(up{job="coredns"}) == 0 or absent(up{job="coredns"})
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          description: "No healthy CoreDNS scrape target; check collection and DNS probes"
 ```
 
 ### Large Clusters (>100 Nodes or QPS > 5k)
 
 1. **NodeLocal DNSCache** (DaemonSet) for local caching and RTT reduction
 2. **CloudWatch Container Insights** as alternative when Prometheus collection is difficult
+
+## Primary sources {#primary-sources}
+
+- [CoreDNS v1.11.3 cache reference](https://github.com/coredns/coredns/blob/v1.11.3/plugin/cache/README.md), [TTL implementation](https://github.com/coredns/coredns/blob/v1.11.3/plugin/cache/cache.go), [prefetch implementation](https://github.com/coredns/coredns/blob/v1.11.3/plugin/cache/handler.go)
+- [CoreDNS v1.11.3 kubernetes reference](https://github.com/coredns/coredns/blob/v1.11.3/plugin/kubernetes/README.md)
+- [CoreDNS v1.11.3 health reference](https://github.com/coredns/coredns/blob/v1.11.3/plugin/health/README.md), [health implementation](https://github.com/coredns/coredns/blob/v1.11.3/plugin/health/health.go), [forward reference](https://github.com/coredns/coredns/blob/v1.11.3/plugin/forward/README.md), [forward implementation](https://github.com/coredns/coredns/blob/v1.11.3/plugin/forward/forward.go)
+- [CoreDNS Prometheus plugin](https://coredns.io/plugins/metrics/)
+- [Amazon EKS: Manage CoreDNS](https://docs.aws.amazon.com/eks/latest/userguide/managing-coredns.html)
+- [Amazon EC2: ENA network performance metrics](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/monitoring-network-performance-ena.html), [link-local PPS limit](https://docs.aws.amazon.com/vpc/latest/userguide/AmazonDNS-concepts.html)
+- [Kubernetes NodeLocal DNSCache](https://kubernetes.io/docs/tasks/administer-cluster/nodelocaldns/)
+- [Prometheus alerting rules](https://github.com/prometheus/prometheus/blob/v3.5.0/docs/configuration/alerting_rules.md), [query functions](https://github.com/prometheus/prometheus/blob/v3.5.0/docs/querying/functions.md)

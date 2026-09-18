@@ -16,7 +16,7 @@ const MonitoringArchitecture = () => {
     name: 'CloudWatch Container Insights',
     badge: 'AWS Native',
     badgeColor: '#3b82f6',
-    description: isKo ? 'CloudWatch Agent DaemonSet → kube-dns:9153 스크랩 → CloudWatch Metrics 저장 → CloudWatch 대시보드/알람' : 'CloudWatch Agent DaemonSet → kube-dns:9153 scrape → CloudWatch Metrics storage → CloudWatch dashboard/alarms',
+    description: isKo ? 'Prometheus 수집을 구성한 CloudWatch Agent → CoreDNS Pod 메트릭 스크랩 → CloudWatch Metrics → 대시보드/알람' : 'CloudWatch Agent with Prometheus collection configured → CoreDNS Pod metrics scrape → CloudWatch Metrics → dashboards/alarms',
     pros: isKo ? ['AWS 관리형 - 추가 인프라 불필요', 'CloudWatch Alarm 네이티브 연동', 'AMG에서 데이터 소스로 활용 가능'] : ['AWS managed - no extra infra', 'Native CloudWatch Alarm integration', 'Usable as AMG data source'],
     cons: isKo ? ['CloudWatch 메트릭 수집/저장 요금', 'PromQL 대신 CloudWatch 쿼리 문법'] : ['CloudWatch metrics collection/storage charges', 'CloudWatch query syntax instead of PromQL']
   }];
@@ -205,7 +205,7 @@ const MonitoringArchitecture = () => {
       lineHeight: '1.6'
     }}>
         💡 <strong>{isKo ? '권장:' : 'Recommended:'}</strong>{' '}
-        {isKo ? 'Prometheus Operator(kube-prometheus-stack) 사용 시 ServiceMonitor로 kube-system/kube-dns(k8s-app=kube-dns) 서비스의 9153 포트를 자동 스크랩할 수 있습니다.' : 'With Prometheus Operator (kube-prometheus-stack), ServiceMonitor can auto-scrape kube-system/kube-dns (k8s-app=kube-dns) service on port 9153.'}
+        {isKo ? 'Corefile의 prometheus 리스너와 Service 포트를 먼저 확인하세요. 메트릭 포트를 노출한 Service에 ServiceMonitor를 연결하거나 Pod 대상 수집을 구성합니다. kube-dns가 9153 포트를 제공한다고 가정하지 않습니다.' : 'First verify the Corefile prometheus listener and Service ports. Attach a ServiceMonitor to a Service exposing metrics, or configure Pod-based collection. Do not assume kube-dns exposes port 9153.'}
       </div>
     </div>;
 };
