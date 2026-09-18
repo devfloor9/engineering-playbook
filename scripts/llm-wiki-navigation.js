@@ -44,21 +44,30 @@ function sidebarCards(block, imports, {filePath, renderer}) {
   const initializer = declaration?.declarations.find(d => d.id.name === 'sidebars')?.init;
   if (!initializer) throw new StaticGap('Static sidebar declaration not found');
   const sidebar = renderer.evaluate(initializer, renderer.globals(sidebarFile));
-  const id = path.relative(path.join(renderer.root, 'docs'), filePath).replace(/\.mdx?$/, '').replaceAll(path.sep, '/');
+  const docsRoot = path.join(renderer.root, renderer.locale === 'en'
+    ? 'i18n/en/docusaurus-plugin-content-docs/current' : 'docs');
+  if (!filePath.startsWith(docsRoot + path.sep)) throw new StaticGap('Navigation source is outside the locale document root');
+  const id = path.relative(docsRoot, filePath).replace(/\.mdx?$/, '').replaceAll(path.sep, '/');
+  let translations = {};
+  if (renderer.locale === 'en') {
+    const translationFile = path.join(renderer.root, 'i18n/en/docusaurus-plugin-content-docs/current.json');
+    translations = JSON.parse(fs.readFileSync(translationFile, 'utf8'));
+    renderer.files.add(translationFile);
+  }
   const categories = [];
-  function visit(items) {
+  function visit(items, sidebarName) {
     for (const item of items) {
       if (item?.type === 'category') {
-        if (item.link?.type === 'doc' && item.link.id === id) categories.push(item);
-        visit(item.items || []);
+        if (item.link?.type === 'doc' && item.link.id === id) categories.push({...item, sidebarName});
+        visit(item.items || [], sidebarName);
       }
     }
   }
-  Object.values(sidebar).forEach(visit);
+  Object.entries(sidebar).forEach(([name, items]) => visit(items, name));
   if (categories.length !== 1) throw new StaticGap('Source sidebar category is missing or ambiguous');
   function docMetadata(docId) {
-    const base = path.resolve(renderer.root, 'docs', docId);
-    if (!base.startsWith(path.join(renderer.root, 'docs') + path.sep)) throw new StaticGap('Sidebar doc outside docs root');
+    const base = path.resolve(docsRoot, docId);
+    if (!base.startsWith(docsRoot + path.sep)) throw new StaticGap('Sidebar doc outside docs root');
     const file = ['.md', '.mdx'].map(ext => base + ext).find(f => fs.existsSync(f));
     if (!file) throw new StaticGap(`Sidebar target missing: ${docId}`);
     renderer.files.add(file);
@@ -76,7 +85,8 @@ function sidebarCards(block, imports, {filePath, renderer}) {
       cards.push({title: item.label || doc.title, description: doc.description, route: doc.route});
     } else if (item.type === 'category' && item.link?.type === 'doc') {
       const doc = docMetadata(item.link.id);
-      cards.push({title: item.label, description: doc.description, route: doc.route});
+      const title = translations[`sidebar.${categories[0].sidebarName}.category.${item.label}`]?.message || item.label;
+      cards.push({title, description: doc.description, route: doc.route});
     } else if (item.type === 'category' && !item.link) {
       // An unlinked group still has useful descendant navigation.
       item.items.forEach(card);
