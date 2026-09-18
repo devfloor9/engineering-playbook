@@ -42,7 +42,7 @@ export default function AlgorithmComparisonTable({ locale = 'ko' }) {
                 <td style={{ padding: '0.7rem 1rem', fontSize: '0.82rem', fontWeight: 700 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                     <code style={{ background: row.recommended ? '#1565c0' : '#64b5f6', color: '#fff', padding: '2px 8px', borderRadius: 4, fontSize: '0.78rem' }}>{row.algorithm}</code>
-                    {row.recommended && <span style={{ background: '#4caf50', color: '#fff', fontSize: '0.7rem', padding: '2px 6px', borderRadius: 4, fontWeight: 600 }}>추천</span>}
+                    {row.recommended && <span style={{ background: '#4caf50', color: '#fff', fontSize: '0.7rem', padding: '2px 6px', borderRadius: 4, fontWeight: 600 }}>{locale === 'ko' ? '추천' : 'Recommended'}</span>}
                   </div>
                 </td>
                 <td style={{ padding: '0.7rem 1rem', textAlign: 'center', fontSize: '0.78rem', color: 'var(--ifm-font-color-base)', fontWeight: row.recommended ? 600 : 400 }}>{row.affinity}</td>

@@ -40,11 +40,11 @@ export default function TroubleshootingTable({ locale = 'ko' }) {
             </div>
             <div style={{ marginBottom: '0.4rem' }}>
               <span style={{ background: 'var(--ifm-color-emphasis-100)', color: '#e65100', padding: '2px 8px', borderRadius: 4, fontSize: '0.74rem', fontWeight: 600 }}>
-                원인: {row.cause}
+                {locale === 'ko' ? '원인' : 'Cause'}: {row.cause}
               </span>
             </div>
             <div style={{ fontSize: '0.76rem', color: 'var(--ifm-font-color-base)', paddingLeft: '0.5rem', borderLeft: '3px solid #4caf50', marginLeft: '0.2rem' }}>
-              <strong style={{ color: '#2e7d32' }}>해결:</strong> {row.solution}
+              <strong style={{ color: '#2e7d32' }}>{locale === 'ko' ? '해결' : 'Resolution'}:</strong> {row.solution}
             </div>
           </div>
         ))}
