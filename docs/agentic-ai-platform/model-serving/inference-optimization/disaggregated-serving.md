@@ -284,7 +284,7 @@ env:
 ### 논문·기술 블로그
 - [DistServe (OSDI 2024)](https://arxiv.org/abs/2401.09670) — "DistServe: Disaggregating Prefill and Decoding for Goodput-optimized Large Language Model Serving"
 - [Splitwise Paper (Microsoft)](https://arxiv.org/abs/2311.18677) — "Splitwise: Efficient Generative LLM Inference Using Phase Splitting"
-- [llm-d Disaggregated Design](https://llm-d.ai/docs/architecture/disaggregated-serving) — llm-d 분리 서빙 아키텍처
+- [llm-d Disaggregated Design](https://llm-d.ai/docs/architecture/advanced/disaggregation) — llm-d 분리 서빙 아키텍처
 - [NIXL Overview (NVIDIA)](https://developer.nvidia.com/blog/introducing-nvidia-dynamo-a-low-latency-distributed-inference-framework-for-scaling-reasoning-ai-models/) — 공통 KV 전송 엔진
 
 ### 관련 문서

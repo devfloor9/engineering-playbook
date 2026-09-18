@@ -27,7 +27,7 @@ sidebar_label: 게이트웨이 라우팅 전략
 
 ## 개요
 
-대규모 AI 모델 서빙 환경에서는 **인프라 트래픽 관리**와 **LLM 프로바이더 추상화**를 분리해야 합니다. 단일 Gateway는 복잡성이 급증하고 각 레이어 최적화가 어렵습니다.
+대규모 AI 모델 서빙 환경에서 **인프라 트래픽 관리**와 **LLM 프로바이더 추상화**의 책임을 구분하면 운영에 도움이 됩니다. 아래 2-Tier 구성은 소유권·정책·스케일링을 분리하려는 설계 선택이며, 모든 llm-d 배포가 두 트래픽 게이트웨이를 요구하는 것은 아닙니다.
 
 **2-Tier Gateway 아키텍처**:
 - **L1 (Ingress Gateway)**: kgateway — Kubernetes Gateway API 표준, 트래픽 라우팅, mTLS, rate limiting
@@ -266,39 +266,109 @@ Kubernetes Gateway API는 **Inference Extension**을 통해 LLM 추론을 쿠버
 
 ### 핵심 CRD (Custom Resource Definitions)
 
-| CRD | 소속 / 상태 | 역할 | 예시 |
-|-----|------------|------|------|
-| **InferencePool** | GIE, `inference.networking.k8s.io/v1` (GA) | 모델 서빙 Pod 그룹 (vLLM replicas) | `replicas: 3` → 3개 vLLM 인스턴스 |
-| **InferenceObjective** | llm-d, `llm-d.ai/v1alpha2` (alpha) | 모델별 서빙 정책 정의 (criticality, 우선순위) | `criticality: high` → 전용 GPU 할당 |
+검토 기준은 llm-d v0.8.1(2026-06-26), router v0.9.0, GIE v1.5.0, Gateway API v1.5.1입니다. 1차 스키마: [llm-d v0.8.1](https://github.com/llm-d/llm-d/releases/tag/v0.8.1), [InferencePool v1](https://github.com/kubernetes-sigs/gateway-api-inference-extension/blob/v1.5.0/config/crd/bases/inference.networking.k8s.io_inferencepools.yaml), [InferenceObjective v1alpha2](https://github.com/llm-d/llm-d-router/blob/v0.9.0/config/crd/bases/llm-d.ai_inferenceobjectives.yaml), [HTTPRoute v1](https://github.com/kubernetes-sigs/gateway-api/blob/v1.5.1/config/crd/standard/gateway.networking.k8s.io_httproutes.yaml).
 
-> GA 정리 이후 **GIE는 InferencePool API + Endpoint Picker Protocol만** 보유하며, 정책 CRD(`InferenceObjective`, 구 `InferenceModel`)는 llm-d 프로젝트로 이전되었습니다. 상세 YAML 매니페스트는 [추론 게이트웨이 배포 가이드](../../reference-architecture/inference-gateway/setup/)를 참조하세요.
+| 리소스 | 소속 / API | 책임 | 예시 |
+|--------|-----------|------|------|
+| **Deployment / LeaderWorkerSet** | Kubernetes / 별도 워크로드 API | 이미지·모델 인수·Pod GPU 요청·replica 수 | 워크로드의 `replicas: 3`과 `nvidia.com/gpu` |
+| **InferencePool** | GIE, `inference.networking.k8s.io/v1` | 같은 namespace의 Pod를 선택하고 포트·EPP 참조 정의 | `selector.matchLabels`, `targetPorts`, `endpointPickerRef` |
+| **InferenceObjective** | llm-d, `llm-d.ai/v1alpha2` (alpha, 선택) | 특정 pool에 대한 요청 처리 우선순위 | `poolRef`, 정수 `priority: 10` |
+| **HTTPRoute** | Gateway API, `gateway.networking.k8s.io/v1` | 경로·헤더·가중치로 pool 선택 | `backendRefs.kind: InferencePool` |
+
+`InferenceModel`은 이전 정책 API의 역사적 이름입니다. 이 검토 기준에서는 llm-d의 InferenceObjective를 사용합니다. `criticality: high`, 모델 이미지, GPU 요청, replica 수는 InferenceObjective/InferencePool의 필드가 아닙니다. GIE v1 InferencePool과 llm-d alpha 정책 API의 안정성을 구분해야 합니다.
+
+`LLMRoute`라는 kind는 검토한 GIE·llm-d Router CRD에 없습니다. router의 [`llmroute.yaml` 테스트 파일](https://github.com/llm-d/llm-d-router/blob/v0.9.0/test/sidecar/config/gateway/llmroute.yaml)도 `kind: HTTPRoute`입니다. 파일 이름을 API kind로 해석하거나 그 파일의 구 API 그룹을 그대로 복사하지 않습니다.
 
 ### Gateway API Inference Extension 통합
 
-Gateway API Inference Extension은 **kgateway + llm-d EPP**와 연동하여 쿠버네티스 네이티브 추론 라우팅을 제공합니다:
+[Gateway Mode](https://github.com/llm-d/llm-d/blob/v0.8.1/docs/architecture/core/router/proxy.md)에서는 호환 Gateway 하나가 일반 Service와 InferencePool을 함께 처리할 수 있습니다. EPP는 선택 결과를 Gateway에 반환하며 직접 추론 트래픽을 프록시하지 않습니다. 별도 edge Gateway는 기존 ingress 유지나 보안·소유권 분리가 필요할 때 선택하고, 추가 홉·운영 비용과 timeout·retry·스트리밍·인증 헤더의 일관성을 검토합니다.
+
+실선은 요청·응답과 EPP 호출, 점선은 설정 참조입니다.
 
 ```mermaid
-graph TB
-    Client[클라이언트] --> Gateway[kgateway]
-    Gateway --> HTTPRoute[HTTPRoute<br/>라우팅 규칙]
-    HTTPRoute --> Pool1[InferencePool<br/>GLM-5]
-    HTTPRoute --> Pool2[InferencePool<br/>Qwen3]
-    Pool1 --> EPP1[EPP<br/>Endpoint Picker]
-    Pool2 --> EPP2[EPP<br/>Endpoint Picker]
-    EPP1 --> LLMD1[llm-d EPP<br/>Disaggregated]
-    EPP2 --> VLLM[vLLM<br/>Aggregated]
-
+flowchart TB
+    Client[Client] --> Gateway[Compatible Gateway]
+    Gateway <-->|ext-proc| EPP1[EPP for Pool A]
+    Gateway <-->|ext-proc| EPP2[EPP for Pool B]
+    Gateway --> Model1[vLLM Pods<br/>Model A]
+    Gateway --> Model2[vLLM Pods<br/>Model B]
+    Route[HTTPRoute] -.->|configures| Gateway
+    Route -.->|backendRef| Pool1[InferencePool A]
+    Route -.->|backendRef| Pool2[InferencePool B]
+    Pool1 -.->|endpointPickerRef| EPP1
+    Pool2 -.->|endpointPickerRef| EPP2
+    Pool1 -.->|selector| Model1
+    Pool2 -.->|selector| Model2
+    Objective[InferenceObjective] -.->|poolRef| Pool1
+    Objective -.->|priority| EPP1
+    Workload[Deployment / LeaderWorkerSet] -.-> Model1
+    Workload -.-> Model2
     style Gateway fill:#326ce5,stroke:#333,color:#fff
-    style HTTPRoute fill:#4caf50,stroke:#333,color:#fff
+    style Route fill:#4caf50,stroke:#333,color:#fff
+    style EPP1 fill:#8b5cf6,stroke:#333,color:#fff
+    style EPP2 fill:#8b5cf6,stroke:#333,color:#fff
     style Pool1 fill:#ff9900,stroke:#333
     style Pool2 fill:#ffd93d,stroke:#333
 ```
 
-**현재 상태**: **Gateway API Inference Extension은 2025년 9월 v1.0.0 GA 되었습니다**(이후 v1.4에서 alpha 라벨 제거, v1.5가 2026-04 최신). InferencePool은 `inference.networking.k8s.io/v1` API로 프로덕션 사용이 가능합니다. GA 시점에 GIE는 **InferencePool API + Endpoint Picker Protocol만** 보유하도록 정리되었고, 기존 `InferenceModel`은 **`InferenceObjective`로 개명되어 llm-d 프로젝트(`llm-d.ai/v1alpha2`, alpha)로 이전**되었습니다. 라우팅은 HTTPRoute에서 InferencePool을 백엔드로 참조하며, EPP(Endpoint Picker)가 엔드포인트를 선택합니다. 실전 배포는 [Reference Architecture](../../reference-architecture/) 가이드를 참조하세요.
+이 예제는 라우팅 리소스만 정의합니다. `llm-d` namespace, `inference-gateway` Gateway, `inference-epp` Service(9002 포트의 EPP와 `gpu-pool` 연동 설정), `app: vllm` 레이블과 8000 포트를 가진 모델 서버 Pod가 이미 있어야 합니다. Gateway API v1.5.1, GIE v1.5.0의 InferencePool CRD, router v0.9.0의 InferenceObjective CRD와 호환 컨트롤러가 필요합니다.
+
+```yaml
+apiVersion: inference.networking.k8s.io/v1
+kind: InferencePool
+metadata:
+  name: gpu-pool
+  namespace: llm-d
+spec:
+  selector:
+    matchLabels:
+      app: vllm
+  targetPorts:
+    - number: 8000
+  endpointPickerRef:
+    name: inference-epp
+    kind: Service
+    port:
+      number: 9002
+    failureMode: FailClose
+---
+apiVersion: llm-d.ai/v1alpha2
+kind: InferenceObjective
+metadata:
+  name: interactive
+  namespace: llm-d
+spec:
+  poolRef:
+    group: inference.networking.k8s.io
+    kind: InferencePool
+    name: gpu-pool
+  priority: 10
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: inference-route
+  namespace: llm-d
+spec:
+  parentRefs:
+    - name: inference-gateway
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /v1
+      backendRefs:
+        - group: inference.networking.k8s.io
+          kind: InferencePool
+          name: gpu-pool
+          port: 8000
+```
+
+`priority: 10`은 같은 pool의 우선순위 0 요청보다 먼저 처리하도록 표현한 정책 예시입니다. [Flow control](https://github.com/llm-d/llm-d/blob/v0.8.1/docs/architecture/core/router/epp/flow-control.md)을 사용하는 경우 EPP에서 `flowControl` feature gate를 활성화하고, 신뢰할 수 있는 인증 계층이 `x-llm-d-inference-objective: interactive` 헤더를 설정해야 합니다. Objective를 만드는 것만으로 모든 요청에 자동 적용되지 않습니다. 외부 사용자가 우선순위를 임의로 올리지 못하도록 헤더를 검증·재설정합니다. 이 값은 전용 GPU 예약이나 Pod `PriorityClass`가 아닙니다.
 
 ### 두 개의 라우팅 레이어 — 반드시 구분
 
-LLM 추론 플랫폼에서 "게이트웨이"는 **서로 다른 두 레이어**를 가리키며, 합칠 수 없습니다. 이 구분이 컴포넌트 선택의 출발점입니다.
+LLM 추론 플랫폼에서는 **모델/프로바이더 선택**과 **모델 내 Pod 선택**의 책임을 구분합니다. 논리적 역할의 차이가 곧 물리적인 두 게이트웨이 요구사항은 아닙니다. 지원되는 Gateway는 HTTPRoute와 EPP를 함께 사용해 두 역할을 연결할 수 있습니다.
 
 | 레이어 | 결정 질문 | 신호 | 단위 | 구현체 |
 |--------|----------|------|------|--------|
@@ -335,7 +405,7 @@ L2의 KV-cache-aware(prefix-aware) 라우팅에서 **라우팅 결정 자체는 
 | 레이어 | 역할 |
 |--------|------|
 | Data Layer | InferencePool Pod 목록 + vLLM 메트릭 수집·가공 |
-| Routing Layer | InferenceObjective 룰, 모델명 rewrite, 가중치 분할 |
+| Routing / Policy | HTTPRoute의 pool 선택·가중치, 별도 모델 rewrite 설정, InferenceObjective의 요청 우선순위 |
 | Flow Control | priority·fairness·queueing (Saturation Detector 과부하 방어) |
 | Scheduling Layer | **scorer + picker** — 실제 Pod 선택 |
 
@@ -540,10 +610,10 @@ Bifrost/LiteLLM에서 Langfuse로 OTel trace를 전송하여 프롬프트/완료
 ### 관련 프로토콜
 
 - [Model Context Protocol (MCP) Spec](https://modelcontextprotocol.io/specification)
-- [Agent-to-Agent (A2A) Protocol](https://github.com/a2a-protocol/spec)
+- [Agent-to-Agent (A2A) Protocol](https://a2a-protocol.org/latest/specification/)
 
 ### 연구 자료 & 패턴
 
 - [RouteLLM: Learning to Route LLMs with Preference Data (arXiv)](https://arxiv.org/abs/2406.18665)
-- [LMSYS Chatbot Arena Leaderboard](https://chat.lmsys.org/?leaderboard)
+- [LMSYS Chatbot Arena Leaderboard](https://arena.ai/leaderboard/text)
 - [LLM Router Pattern: Model Switching](https://markaicode.com/llm-router-pattern-model-switching/)

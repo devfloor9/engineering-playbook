@@ -16,19 +16,19 @@ const VllmComparisonTable = () => {
   }, {
     feature: isKo ? '스케일링 관리' : 'Scaling Management',
     traditional: isKo ? '수동 HPA 구성' : 'Manual HPA configuration',
-    llmd: isKo ? 'InferencePool 기반 자동 관리' : 'Automatic management via InferencePool'
+    llmd: isKo ? '별도 워크로드/오토스케일러가 replica 수 관리; InferencePool은 Pod 검색' : 'Workload/autoscaler manages replicas; InferencePool discovers Pods'
   }, {
     feature: isKo ? 'KV Cache 활용' : 'KV Cache Utilization',
     traditional: isKo ? 'Pod별 독립적 관리' : 'Independent management per Pod',
-    llmd: isKo ? 'Cross-pod prefix 재사용으로 TTFT 단축' : 'Cross-pod prefix reuse for reduced TTFT'
+    llmd: isKo ? '캐시를 보유한 Pod로 라우팅; 전송/오프로딩은 별도 설정' : 'Routes to cached Pods; transfer/offloading requires separate configuration'
   }, {
     feature: isKo ? '설치 방식' : 'Installation Method',
     traditional: isKo ? '개별 Helm chart 조합' : 'Combining individual Helm charts',
-    llmd: isKo ? 'helmfile 통합 배포 (원커맨드)' : 'Unified helmfile deployment (single command)'
+    llmd: isKo ? 'v0.8.1 예제: router Helm chart + 모델 서버 Kustomize' : 'v0.8.1 recipe: router Helm chart + model-server Kustomize'
   }, {
     feature: isKo ? '모델 정의' : 'Model Definition',
     traditional: isKo ? 'Deployment YAML 직접 작성' : 'Writing Deployment YAML directly',
-    llmd: isKo ? 'InferenceModel CRD 선언적 관리' : 'Declarative management via InferenceModel CRD'
+    llmd: isKo ? 'Deployment/LeaderWorkerSet 등에서 이미지·GPU·replica 정의; InferencePool은 엔드포인트, InferenceObjective는 요청 우선순위' : 'Deployment/LeaderWorkerSet defines image, GPUs, and replicas; InferencePool selects endpoints and InferenceObjective sets request priority'
   }];
   return <div style={{
     maxWidth: '100%',

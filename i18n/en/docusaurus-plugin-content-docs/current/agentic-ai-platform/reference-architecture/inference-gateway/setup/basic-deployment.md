@@ -666,4 +666,4 @@ Basic deployment is complete. Proceed to the next steps:
 - [Inference Gateway Routing](../../../model-serving/inference-routing/routing-strategy.md) - kgateway architecture and routing strategies
 - [Kubernetes Gateway API Official Documentation](https://gateway-api.sigs.k8s.io/)
 - [kgateway Official Documentation](https://kgateway.dev/docs/)
-- [Bifrost Official Documentation](https://bifrost.dev/docs)
+- [Bifrost Official Documentation](https://docs.getbifrost.ai/overview)

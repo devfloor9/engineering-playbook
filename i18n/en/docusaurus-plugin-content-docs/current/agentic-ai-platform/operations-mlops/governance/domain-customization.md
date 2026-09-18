@@ -472,7 +472,7 @@ For detailed per-phase implementation guides, see the [Custom Model Pipeline Gui
 ### Official Documentation
 - [LoRA Paper (Hu et al., 2021)](https://arxiv.org/abs/2106.09685)
 - [QLoRA Paper (Dettmers et al., 2023)](https://arxiv.org/abs/2305.14314)
-- [vLLM Multi-LoRA](https://docs.vllm.ai/en/latest/models/lora.html)
+- [vLLM Multi-LoRA](https://docs.vllm.ai/en/latest/features/lora/)
 - [Langchain RAG Tutorial](https://python.langchain.com/docs/tutorials/rag/)
 - [Neo4j GraphRAG](https://neo4j.com/labs/genai-ecosystem/langchain/)
 - [RAGAS Evaluation](https://docs.ragas.io/)

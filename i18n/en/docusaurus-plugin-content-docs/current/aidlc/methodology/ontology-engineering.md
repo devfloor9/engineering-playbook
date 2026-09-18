@@ -6,7 +6,11 @@ last_update:
   date: "2026-06-30"
   author: devfloor9
 reading_time: 28
-tags: []
+tags:
+  - aidlc
+  - ontology
+  - methodology
+  - scope:methodology
 sidebar_label: Ontology Engineering
 ---
 

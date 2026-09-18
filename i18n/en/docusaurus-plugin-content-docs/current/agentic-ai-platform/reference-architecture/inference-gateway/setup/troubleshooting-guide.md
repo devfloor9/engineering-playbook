@@ -515,4 +515,4 @@ kubectl logs -l app=langfuse-web -n observability --tail=20 -f
 - [Langfuse Deployment Guide](../../integrations/monitoring-observability-setup.md) - OTel integration and troubleshooting
 - [Kubernetes Gateway API Official Documentation](https://gateway-api.sigs.k8s.io/)
 - [kgateway Official Documentation](https://kgateway.dev/docs/)
-- [Bifrost Official Documentation](https://bifrost.dev/docs)
+- [Bifrost Official Documentation](https://docs.getbifrost.ai/overview)

@@ -23,7 +23,7 @@ This document covers **design principles** for 2-Tier gateway architecture and r
 
 ## Overview
 
-In large-scale AI model serving environments, **infrastructure traffic management** and **LLM provider abstraction** must be separated. A single gateway leads to exponential complexity and makes optimizing each layer difficult.
+In large-scale AI model serving environments, distinguishing **infrastructure traffic management** from **LLM provider abstraction** helps clarify responsibilities. The 2-Tier layout below is a design option for separating ownership, policies, and scaling; it is not a requirement for two traffic gateways in every llm-d deployment.
 
 **2-Tier Gateway Architecture**:
 - **L1 (Ingress Gateway)**: kgateway — Kubernetes Gateway API standard, traffic routing, mTLS, rate limiting
@@ -266,34 +266,106 @@ Kubernetes Gateway API enables managing LLM inference as Kubernetes-native resou
 
 ### Core CRDs (Custom Resource Definitions)
 
-| CRD | Role | Example |
-|-----|------|------|
-| **InferenceModel** | Define per-model serving policies (criticality, routing rules) | `criticality: high` → dedicated GPU allocation |
-| **InferencePool** | Model serving Pod group (vLLM replicas) | `replicas: 3` → 3 vLLM instances |
-| **LLMRoute** | Rules for routing requests to InferenceModel | `x-model-id: glm-5` → GLM-5 Pool |
+The reviewed baseline is llm-d v0.8.1 (2026-06-26), router v0.9.0, GIE v1.5.0, and Gateway API v1.5.1. Primary schemas: [llm-d v0.8.1](https://github.com/llm-d/llm-d/releases/tag/v0.8.1), [InferencePool v1](https://github.com/kubernetes-sigs/gateway-api-inference-extension/blob/v1.5.0/config/crd/bases/inference.networking.k8s.io_inferencepools.yaml), [InferenceObjective v1alpha2](https://github.com/llm-d/llm-d-router/blob/v0.9.0/config/crd/bases/llm-d.ai_inferenceobjectives.yaml), [HTTPRoute v1](https://github.com/kubernetes-sigs/gateway-api/blob/v1.5.1/config/crd/standard/gateway.networking.k8s.io_httproutes.yaml).
 
-For detailed YAML manifests, refer to [Inference Gateway Deployment Guide](../../reference-architecture/inference-gateway/setup/).
+| Resource | Owner / API | Responsibility | Example |
+|----------|-------------|----------------|---------|
+| **Deployment / LeaderWorkerSet** | Kubernetes / separate workload API | Images, model arguments, Pod GPU requests, replica counts | Workload `replicas: 3` and `nvidia.com/gpu` |
+| **InferencePool** | GIE, `inference.networking.k8s.io/v1` | Select same-namespace Pods and define ports/EPP reference | `selector.matchLabels`, `targetPorts`, `endpointPickerRef` |
+| **InferenceObjective** | llm-d, `llm-d.ai/v1alpha2` (alpha, optional) | Request priority for a specific pool | `poolRef`, integer `priority: 10` |
+| **HTTPRoute** | Gateway API, `gateway.networking.k8s.io/v1` | Select pools by path, header, or weight | `backendRefs.kind: InferencePool` |
+
+`InferenceModel` is the historical name of the earlier policy API. This baseline uses llm-d InferenceObjective. `criticality: high`, model images, GPU requests, and replica counts are not InferenceObjective/InferencePool fields. Distinguish the GIE v1 InferencePool API from the llm-d alpha policy API.
+
+There is no `LLMRoute` kind in the reviewed GIE or llm-d Router CRDs. Even the router's [`llmroute.yaml` test file](https://github.com/llm-d/llm-d-router/blob/v0.9.0/test/sidecar/config/gateway/llmroute.yaml) uses `kind: HTTPRoute`. Do not treat a filename as an API kind or copy that test file's old API group.
 
 ### Gateway API Inference Extension Integration
 
-Gateway API Inference Extension integrates with **kgateway + llm-d EPP** to provide Kubernetes-native inference routing:
+In [Gateway Mode](https://github.com/llm-d/llm-d/blob/v0.8.1/docs/architecture/core/router/proxy.md), one compatible Gateway can handle both traditional Services and InferencePools. The EPP returns its selection to the Gateway and does not proxy inference traffic itself. A separate edge Gateway is an option when retaining existing ingress or separating security/ownership; account for extra hops, operational cost, and consistent timeout, retry, streaming, and authentication-header handling.
+
+Solid lines show requests/responses and EPP calls; dotted lines show configuration references.
 
 ```mermaid
-graph TB
-    Client[Client] --> Gateway[kgateway]
-    Gateway --> LLMRoute[LLMRoute CRD<br/>Routing Rules]
-    LLMRoute --> Pool1[InferencePool<br/>GLM-5]
-    LLMRoute --> Pool2[InferencePool<br/>Qwen3]
-    Pool1 --> LLMD1[llm-d EPP<br/>Disaggregated]
-    Pool2 --> VLLM[vLLM<br/>Aggregated]
-
+flowchart TB
+    Client[Client] --> Gateway[Compatible Gateway]
+    Gateway <-->|ext-proc| EPP1[EPP for Pool A]
+    Gateway <-->|ext-proc| EPP2[EPP for Pool B]
+    Gateway --> Model1[vLLM Pods<br/>Model A]
+    Gateway --> Model2[vLLM Pods<br/>Model B]
+    Route[HTTPRoute] -.->|configures| Gateway
+    Route -.->|backendRef| Pool1[InferencePool A]
+    Route -.->|backendRef| Pool2[InferencePool B]
+    Pool1 -.->|endpointPickerRef| EPP1
+    Pool2 -.->|endpointPickerRef| EPP2
+    Pool1 -.->|selector| Model1
+    Pool2 -.->|selector| Model2
+    Objective[InferenceObjective] -.->|poolRef| Pool1
+    Objective -.->|priority| EPP1
+    Workload[Deployment / LeaderWorkerSet] -.-> Model1
+    Workload -.-> Model2
     style Gateway fill:#326ce5,stroke:#333,color:#fff
-    style LLMRoute fill:#e53935,stroke:#333,color:#fff
+    style Route fill:#4caf50,stroke:#333,color:#fff
+    style EPP1 fill:#8b5cf6,stroke:#333,color:#fff
+    style EPP2 fill:#8b5cf6,stroke:#333,color:#fff
     style Pool1 fill:#ff9900,stroke:#333
     style Pool2 fill:#ffd93d,stroke:#333
 ```
 
-**Current Status**: Actively developed as CNCF project. Expected to provide alpha in Kubernetes 1.34+; production use not currently recommended. For production deployment, refer to [Reference Architecture](../../reference-architecture/) guides.
+This example defines routing resources only. It requires an existing `llm-d` namespace, `inference-gateway` Gateway, `inference-epp` Service (EPP on port 9002 configured for `gpu-pool`), and model-server Pods labeled `app: vllm` listening on port 8000. Install Gateway API v1.5.1, the GIE v1.5.0 InferencePool CRD, the router v0.9.0 InferenceObjective CRD, and compatible controllers.
+
+```yaml
+apiVersion: inference.networking.k8s.io/v1
+kind: InferencePool
+metadata:
+  name: gpu-pool
+  namespace: llm-d
+spec:
+  selector:
+    matchLabels:
+      app: vllm
+  targetPorts:
+    - number: 8000
+  endpointPickerRef:
+    name: inference-epp
+    kind: Service
+    port:
+      number: 9002
+    failureMode: FailClose
+---
+apiVersion: llm-d.ai/v1alpha2
+kind: InferenceObjective
+metadata:
+  name: interactive
+  namespace: llm-d
+spec:
+  poolRef:
+    group: inference.networking.k8s.io
+    kind: InferencePool
+    name: gpu-pool
+  priority: 10
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: inference-route
+  namespace: llm-d
+spec:
+  parentRefs:
+    - name: inference-gateway
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /v1
+      backendRefs:
+        - group: inference.networking.k8s.io
+          kind: InferencePool
+          name: gpu-pool
+          port: 8000
+```
+
+`priority: 10` is an illustrative policy that prioritizes requests over priority 0 requests in the same pool. When using [flow control](https://github.com/llm-d/llm-d/blob/v0.8.1/docs/architecture/core/router/epp/flow-control.md), enable the EPP `flowControl` feature gate and have a trusted authentication layer set `x-llm-d-inference-objective: interactive`. Creating the Objective alone does not automatically classify all requests. Validate or replace externally supplied headers to prevent clients from self-assigning priority. This value does not reserve dedicated GPUs or define a Pod `PriorityClass`.
+
 
 ---
 
@@ -428,10 +500,10 @@ For actual code examples and YAML manifests, refer to Reference Architecture sec
 ### Related Protocols
 
 - [Model Context Protocol (MCP) Spec](https://modelcontextprotocol.io/specification)
-- [Agent-to-Agent (A2A) Protocol](https://github.com/a2a-protocol/spec)
+- [Agent-to-Agent (A2A) Protocol](https://a2a-protocol.org/latest/specification/)
 
 ### Research Papers & Patterns
 
 - [RouteLLM: Learning to Route LLMs with Preference Data (arXiv)](https://arxiv.org/abs/2406.18665)
-- [LMSYS Chatbot Arena Leaderboard](https://chat.lmsys.org/?leaderboard)
+- [LMSYS Chatbot Arena Leaderboard](https://arena.ai/leaderboard/text)
 - [LLM Router Pattern: Model Switching](https://markaicode.com/llm-router-pattern-model-switching/)

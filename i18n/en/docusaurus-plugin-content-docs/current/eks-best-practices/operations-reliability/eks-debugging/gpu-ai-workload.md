@@ -6,7 +6,13 @@ last_update:
   date: "2026-06-30"
   author: devfloor9
 reading_time: 9
-tags: []
+tags:
+  - eks
+  - gpu
+  - nvidia
+  - vllm
+  - nccl
+  - scope:ops
 keywords:
   - EKS
   - GPU

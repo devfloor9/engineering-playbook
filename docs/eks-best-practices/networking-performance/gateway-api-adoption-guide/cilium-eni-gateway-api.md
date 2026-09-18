@@ -1717,97 +1717,111 @@ Cilium의 `ipam.mode=eni`는 **AWS EC2 인스턴스에서만 동작**합니다. 
 3. **Cluster-pool IPAM 통일**: ENI 모드를 포기하고 전체를 `cluster-pool` + VXLAN로 운영. 가장 단순하지만 클라우드에서 ENI 네이티브 라우팅 이점을 잃음.
 :::
 
-### 9.2 권장 아키텍처: Cilium + Cilium Gateway API + llm-d
+### 9.2 구성 옵션: Cilium + Gateway + llm-d {#92-권장-아키텍처-cilium--cilium-gateway-api--llm-d}
 
-AI/ML 추론 워크로드를 하이브리드 노드에서 운영할 때, **컴포넌트 수를 최소화하면서 최적의 성능을 달성**하는 구조입니다.
+Cilium을 CNI로 사용하는 것과 Cilium Gateway에서 InferencePool을 지원하는지는 별도 기능입니다. 아래는 **기존 Cilium ingress를 유지하면서 호환 inference Gateway를 추가하는 선택적 토폴로지**입니다. 두 프록시 홉의 비용·지연, timeout·retry·스트리밍·인증 헤더 전달을 검증해야 합니다. 클라우드/하이브리드 노드 위치는 설명용이며, 각 노드의 CNI/IPAM 및 Pod 연결성을 별도로 검증해야 합니다.
+
+llm-d의 [v0.8.1 Gateway Mode](https://github.com/llm-d/llm-d/blob/v0.8.1/docs/architecture/core/router/proxy.md)는 단일 호환 Gateway에서 일반 Service와 InferencePool을 처리할 수도 있습니다. EPP는 엔드포인트 선택 서비스이며 두 번째 Gateway가 아닙니다.
 
 ```mermaid
-graph TB
-    subgraph "Cloud Nodes (EKS)"
-        CG[Cilium Gateway API<br/>범용 L7 라우팅]
-        APP[일반 워크로드<br/>API, Web, DB]
+flowchart TB
+    subgraph Edge["Existing ingress - optional"]
+        CG[Cilium Gateway]
+        APP[Traditional Services]
     end
-
-    subgraph "On-Prem / GPU Nodes (Hybrid)"
-        LLMD[llm-d Inference Gateway<br/>KV Cache-aware 라우팅]
-        VLLM[vLLM 인스턴스<br/>GPU 추론 엔진]
+    subgraph Inference["Inference deployment"]
+        GW[Compatible inference Gateway]
+        EPP[llm-d EPP]
+        VLLM[vLLM Pods]
+        POOL[InferencePool v1]
+        OBJ[InferenceObjective v1alpha2]
     end
-
-    CLIENT[외부 트래픽] --> CG
-    CG -->|일반 요청| APP
-    CG -->|/v1/completions| LLMD
-    LLMD -->|KV Cache 최적화| VLLM
-
-    HUBBLE[Hubble<br/>통합 관측성] -.->|L3-L7 모니터링| CG
-    HUBBLE -.->|L3-L7 모니터링| LLMD
-
+    CLIENT[Client] --> CG
+    CG --> APP
+    CG -->|inference API| GW
+    GW <-->|ext-proc| EPP
+    GW --> VLLM
+    POOL -.->|endpointPickerRef| EPP
+    POOL -.->|selector| VLLM
+    OBJ -.->|poolRef| POOL
+    OBJ -.->|priority| EPP
     style CG fill:#00D4AA
-    style LLMD fill:#AC58E6
-    style HUBBLE fill:#00BFA5
+    style GW fill:#326ce5,color:#fff
+    style EPP fill:#AC58E6,color:#fff
 ```
-
-**구성 요소 역할:**
-
-| 컴포넌트 | 역할 | 범위 |
-|----------|------|------|
-| **Cilium CNI** | 클라우드+온프레미스 통합 네트워킹 | 전체 클러스터 |
-| **Cilium Gateway API** | 범용 L7 라우팅 (HTTPRoute, TLS 종료) | North-South 트래픽 |
-| **llm-d** | LLM 추론 전용 게이트웨이 (KV Cache-aware, prefix-aware) | AI 추론 트래픽만 |
-| **Hubble** | 전체 트래픽 L3-L7 관측성 | 전체 클러스터 |
-
-:::warning llm-d는 범용 Gateway API 구현체가 아닙니다
-llm-d의 Envoy 기반 Inference Gateway는 **LLM 추론 요청 전용**으로 설계되었습니다. 일반적인 웹/API 트래픽 라우팅에는 Cilium Gateway API나 다른 범용 Gateway API 구현체를 사용해야 합니다. 자세한 내용은 [llm-d 문서](/docs/agentic-ai-platform/model-serving/inference-frameworks/llm-d-eks-automode)를 참조하세요.
-:::
 
 ### 9.3 대안 아키텍처 비교
 
-| 옵션 | 구성 | 장점 | 단점 |
-|------|------|------|------|
-| **Option 1 (권장)** | Cilium CNI + Cilium Gateway API + llm-d | 컴포넌트 최소, Hubble 통합 관측성, 단일 벤더 | Cilium Gateway API는 Envoy Gateway 대비 기능이 적을 수 있음 |
-| **Option 2** | Cilium CNI + Envoy Gateway + llm-d | CNCF 표준, 풍부한 L7 기능 | 추가 컴포넌트(Envoy Gateway) 관리 필요 |
-| **Option 3** | Cilium CNI + kgateway + llm-d | kgateway의 AI 라우팅 기능 | 가장 많은 컴포넌트, 라이선스 확인 필요 |
-| **Option 4 (미래)** | Cilium CNI + Gateway API Inference Extension | 단일 Gateway로 통합, 표준화된 InferenceModel/InferencePool CRD | 아직 알파 단계 (2025 Q3 베타 예상) |
+| 옵션 | 구성 | 선택 조건 / trade-off |
+|------|------|----------------------|
+| **기존 ingress 유지** | Cilium CNI + Cilium Gateway + 호환 inference Gateway/EPP | ingress 소유권 유지; 추가 Gateway와 정책·관측성 관리 필요 |
+| **단일 호환 Gateway** | Cilium CNI + InferencePool/EPP 연동을 지원하는 Gateway | 일반 Service와 추론 pool을 같은 Gateway에서 라우팅; 해당 구현체·버전의 지원과 보안 정책 확인 |
+| **Cilium Gateway로 직접 통합** | Cilium CNI + Cilium Gateway + EPP | 해당 Cilium 릴리스에서 InferencePool backend와 EPP 연동을 검증한 경우만 선택; Envoy를 사용한다는 사실만으로 지원을 추정하지 않음 |
 
-### 9.4 Gateway API Inference Extension (미래 방향)
+[Cilium v1.18.0 Gateway API 문서](https://github.com/cilium/cilium/blob/v1.18.0/Documentation/network/servicemesh/gateway-api/gateway-api.rst)는 여기서 필요한 InferencePool/EPP 통합의 검증 근거가 아닙니다. 이 문서는 Cilium의 직접 통합을 검증했다고 주장하지 않습니다. CRD를 설치하는 것만으로 Gateway controller가 새 backend kind를 처리할 수 있게 되지는 않습니다.
 
-[Gateway API Inference Extension](https://gateway-api.sigs.k8s.io/geps/gep-3567/)은 Gateway API에 AI/ML 추론 전용 리소스를 추가하는 표준화 작업입니다. 이 확장이 GA되면 **범용 Gateway API 구현체 하나로 일반 트래픽과 AI 추론 트래픽을 모두 처리**할 수 있게 됩니다.
+### 9.4 Gateway API Inference Extension 리소스 {#94-gateway-api-inference-extension-미래-방향}
 
-**핵심 CRD:**
+기준은 llm-d v0.8.1(2026-06-26), router v0.9.0, GIE v1.5.0, Gateway API v1.5.1입니다. `InferencePool`은 GIE의 `inference.networking.k8s.io/v1` API이고, `InferenceObjective`는 llm-d의 `llm-d.ai/v1alpha2` alpha 정책 API입니다. `InferenceModel`은 이전 정책 API의 역사적 이름입니다. 과거의 v1alpha1 예제와 예정 GA 날짜를 현재 배포 지침으로 사용하지 않습니다.
+
+1차 스키마: [llm-d v0.8.1](https://github.com/llm-d/llm-d/releases/tag/v0.8.1), [InferencePool v1](https://github.com/kubernetes-sigs/gateway-api-inference-extension/blob/v1.5.0/config/crd/bases/inference.networking.k8s.io_inferencepools.yaml), [InferenceObjective v1alpha2](https://github.com/llm-d/llm-d-router/blob/v0.9.0/config/crd/bases/llm-d.ai_inferenceobjectives.yaml), [HTTPRoute v1](https://github.com/kubernetes-sigs/gateway-api/blob/v1.5.1/config/crd/standard/gateway.networking.k8s.io_httproutes.yaml).
+
+이미지·모델 인수·replica 수·GPU 요청은 Deployment/LeaderWorkerSet 등의 워크로드에 정의합니다. Pool은 해당 Pod의 레이블·포트·EPP를 연결하며, Objective는 요청 우선순위를 표현합니다.
+
+이 예제는 라우팅 리소스만 정의합니다. `llm-d` namespace, `inference-gateway` Gateway, `inference-epp` Service(9002 포트의 EPP와 `gpu-pool` 연동 설정), `app: vllm` 레이블과 8000 포트를 가진 모델 서버 Pod가 이미 있어야 합니다. Gateway API v1.5.1, GIE v1.5.0의 InferencePool CRD, router v0.9.0의 InferenceObjective CRD와 호환 컨트롤러가 필요합니다.
 
 ```yaml
-# InferenceModel: AI 모델 엔드포인트 정의
-apiVersion: inference.gateway.networking.k8s.io/v1alpha1
-kind: InferenceModel
-metadata:
-  name: llama-3-70b
-spec:
-  modelName: meta-llama/Llama-3-70B-Instruct
-  poolRef:
-    name: gpu-pool
-  criticality: Critical
-
----
-# InferencePool: GPU 백엔드 풀 정의
-apiVersion: inference.gateway.networking.k8s.io/v1alpha1
+apiVersion: inference.networking.k8s.io/v1
 kind: InferencePool
 metadata:
   name: gpu-pool
+  namespace: llm-d
 spec:
-  targetPortNumber: 8000
   selector:
     matchLabels:
       app: vllm
+  targetPorts:
+    - number: 8000
+  endpointPickerRef:
+    name: inference-epp
+    kind: Service
+    port:
+      number: 9002
+    failureMode: FailClose
+---
+apiVersion: llm-d.ai/v1alpha2
+kind: InferenceObjective
+metadata:
+  name: interactive
+  namespace: llm-d
+spec:
+  poolRef:
+    group: inference.networking.k8s.io
+    kind: InferencePool
+    name: gpu-pool
+  priority: 10
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: inference-route
+  namespace: llm-d
+spec:
+  parentRefs:
+    - name: inference-gateway
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /v1
+      backendRefs:
+        - group: inference.networking.k8s.io
+          kind: InferencePool
+          name: gpu-pool
+          port: 8000
 ```
 
-**현재 상태 (2025년 기준):**
-
-- `InferenceModel`, `InferencePool` CRD: v1alpha1
-- 구현체: llm-d, Envoy Gateway, kgateway 등에서 실험적 지원
-- 예상 GA: 2026년 상반기
-
-:::tip 현재 권장 전략
-Gateway API Inference Extension이 GA되기 전까지는 **Option 1 (Cilium + Cilium Gateway API + llm-d)**을 채택하고, 추후 Inference Extension이 안정화되면 llm-d를 Inference Extension 기반 구성으로 전환하는 점진적 마이그레이션을 권장합니다.
-:::
+`priority: 10`은 같은 pool의 우선순위 0 요청보다 먼저 처리하도록 표현한 정책 예시입니다. [Flow control](https://github.com/llm-d/llm-d/blob/v0.8.1/docs/architecture/core/router/epp/flow-control.md)을 사용하는 경우 EPP에서 `flowControl` feature gate를 활성화하고, 신뢰할 수 있는 인증 계층이 `x-llm-d-inference-objective: interactive` 헤더를 설정해야 합니다. Objective를 만드는 것만으로 모든 요청에 자동 적용되지 않습니다. 외부 사용자가 우선순위를 임의로 올리지 못하도록 헤더를 검증·재설정합니다. 이 값은 전용 GPU 예약이나 Pod `PriorityClass`가 아닙니다.
 
 ---
 

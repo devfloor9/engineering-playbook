@@ -6,7 +6,13 @@ last_update:
   date: "2026-06-30"
   author: devfloor9
 reading_time: 10
-tags: []
+tags:
+  - eks
+  - auto-mode
+  - nodepool
+  - nodeclaim
+  - vpc-cni
+  - scope:ops
 keywords:
   - EKS
   - Auto Mode

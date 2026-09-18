@@ -726,4 +726,4 @@ kubectl set env deploy/langfuse-web -n langfuse \
 - [LLMOps Observability](../../operations-mlops/observability/llmops-observability.md) - Langfuse/LangSmith/Helicone comparison and evaluation pipelines
 - [Amazon Managed Prometheus](https://docs.aws.amazon.com/prometheus/)
 - [Amazon Managed Grafana](https://docs.aws.amazon.com/grafana/)
-- [Langfuse Helm Chart](https://github.com/langfuse/langfuse-helm)
+- [Langfuse Helm Chart](https://github.com/langfuse/langfuse-k8s)

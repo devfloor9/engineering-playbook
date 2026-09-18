@@ -6,7 +6,11 @@ last_update:
   date: "2026-06-30"
   author: devfloor9
 reading_time: 15
-tags: []
+tags:
+  - aidlc
+  - harness
+  - methodology
+  - scope:methodology
 keywords:
   - harness engineering
   - quality gates

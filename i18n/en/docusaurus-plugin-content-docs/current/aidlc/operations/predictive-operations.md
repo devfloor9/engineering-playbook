@@ -6,7 +6,12 @@ last_update:
   date: "2026-06-30"
   author: devfloor9
 reading_time: 14
-tags: []
+tags:
+  - aidlc
+  - operations
+  - agentops
+  - agentic-ai
+  - scope:ops
 sidebar_label: Predictive Operations
 ---
 

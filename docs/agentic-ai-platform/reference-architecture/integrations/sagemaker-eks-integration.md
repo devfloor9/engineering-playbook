@@ -837,7 +837,7 @@ SageMaker-EKS 하이브리드 아키텍처는 관리형 학습과 유연한 서�
 - [SageMaker Model Registry](https://docs.aws.amazon.com/sagemaker/latest/dg/model-registry.html)
 - [SageMaker Model Monitor](https://docs.aws.amazon.com/sagemaker/latest/dg/model-monitor.html)
 - [vLLM Documentation](https://docs.vllm.ai/)
-- [vLLM Deployment Guide](https://docs.vllm.ai/en/latest/serving/deploying_with_docker.html)
+- [vLLM Deployment Guide](https://docs.vllm.ai/en/latest/deployment/docker/)
 - [ArgoCD Documentation](https://argo-cd.readthedocs.io/)
 - [OpenTelemetry Collector](https://opentelemetry.io/docs/collector/)
 - [Langfuse Self-Hosting](https://langfuse.com/docs/deployment/self-host)

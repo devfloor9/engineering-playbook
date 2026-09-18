@@ -332,7 +332,7 @@ namespace 과도 세분화 점검 → 임계값 0.05 낮춤 → 임베딩 모델
 
 ### 공식 문서 & 레포지토리
 
-- [Redis — Semantic Caching (RedisVL)](https://redis.io/docs/latest/develop/ai/redisvl/user_guide/semantic_caching/)
+- [Redis — Semantic Caching (RedisVL)](https://redis.io/docs/latest/develop/ai/redisvl/user_guide/how_to_guides/llmcache/)
 - [Redis LangCache (관리형)](https://redis.io/langcache/)
 - [Portkey — Semantic Cache](https://docs.portkey.ai/docs/product/ai-gateway/cache-simple-and-semantic)
 - [Helicone — Caching](https://docs.helicone.ai/features/advanced-usage/caching)

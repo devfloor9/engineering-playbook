@@ -114,28 +114,29 @@ vllm serve Qwen/Qwen3-32B-FP8 \
 
 llm-d와 NVIDIA Dynamo는 각 vLLM Pod의 KV Cache 상태를 인식하여, 동일한 prefix를 가진 요청을 이미 해당 KV Cache를 보유한 Pod로 라우팅합니다.
 
+다음 흐름은 설정된 EPP 플러그인의 동작을 단순화한 예시입니다. 캐시가 있는 Pod도 부하에 따라 선택되지 않을 수 있습니다.
+
 ```mermaid
 sequenceDiagram
     participant C as Client
-    participant GW as Inference Gateway
-    participant P1 as Pod 1 (Cache: K8s)
-    participant P2 as Pod 2 (Cache: AWS)
-    participant P3 as Pod 3 (Empty)
-
-    C->>GW: "K8s란?"
-    GW->>GW: Prefix Hash → Cache 조회
-    GW->>P1: Cache Hit → 직접 라우팅
-    P1->>C: 빠른 응답 (TTFT ↓↓)
-
-    C->>GW: "AWS란?"
-    GW->>GW: Prefix Hash → Cache 조회
-    GW->>P2: Cache Hit → 직접 라우팅
-    P2->>C: 빠른 응답 (TTFT ↓↓)
-
-    C->>GW: 완전히 새로운 질문
-    GW->>GW: Cache Miss
-    GW->>P3: LB 폴백
-    P3->>C: 일반 응답
+    participant GW as Gateway proxy
+    participant E as EPP
+    participant P1 as Pod 1 (cached prefix)
+    participant P2 as Pod 2 (lower load)
+    C->>GW: 반복 prefix 요청
+    GW->>E: ext-proc request
+    Note over E: prefix 재사용과 부하 점수 평가
+    E-->>GW: 선택된 엔드포인트: Pod 1
+    GW->>P1: 요청 전달
+    P1-->>GW: 응답 스트림
+    GW-->>C: 응답 스트림
+    C->>GW: 새 prefix 요청
+    GW->>E: ext-proc request
+    Note over E: prefix 매칭 없음, 설정된 부하 점수 사용
+    E-->>GW: 선택된 엔드포인트: Pod 2
+    GW->>P2: 요청 전달
+    P2-->>GW: 응답 스트림
+    GW-->>C: 응답 스트림
 ```
 
 :::note 라우팅 결정과 추론(inference)은 별개의 작업
@@ -156,9 +157,9 @@ KV 캐시 인지 라우팅에서 **라우팅 결정 자체는 추론이 아닙�
 
 ### llm-d vs NVIDIA Dynamo 비교
 
-두 프로젝트 모두 KV Cache-aware 라우팅을 제공하지만 접근 방식이 다릅니다.
+두 프로젝트 모두 KV Cache-aware 라우팅을 제공하지만 접근 방식이 다릅니다. llm-d는 [v0.8.1 (2026-06-26)](https://github.com/llm-d/llm-d/releases/tag/v0.8.1) 기준으로 검토했습니다. 캐시를 보유한 Pod로 요청을 보내는 동작과 Pod 간 KV 전송·오프로딩은 별도 설정입니다.
 
-| 항목 | llm-d v0.8+ | NVIDIA Dynamo v1.2.x |
+| 항목 | llm-d v0.8.1 | NVIDIA Dynamo v1.2.x |
 |------|------------|-------------------|
 | **주도** | Red Hat (Apache 2.0) | NVIDIA (Apache 2.0) |
 | **KV Cache 인덱싱** | Prefix-aware 라우팅 | Flash Indexer (radix tree) |
@@ -166,7 +167,7 @@ KV 캐시 인지 라우팅에서 **라우팅 결정 자체는 추론이 아닙�
 | **라우팅** | Gateway API + Envoy EPP | Dynamo Router + 자체 EPP |
 | **Pod 스케줄링** | K8s 기본 스케줄러 | KAI Scheduler (GPU-aware) |
 | **오토스케일링** | HPA/KEDA 연동 | Planner (SLO 기반 profiling) |
-| **KV Cache 계층화** | HBM→CPU RAM→공유 파일시스템 (OffloadingConnector/LMCache/Mooncake) | 4-tier: G1 GPU / G2 CPU / G3 로컬 SSD / G4 원격 스토리지 |
+| **KV Cache 계층화** | [HBM → CPU RAM → 파일시스템](https://github.com/llm-d/llm-d/blob/v0.8.1/docs/well-lit-paths/foundations/tiered-prefix-cache.md), connector·스토리지 설정 필요 | 4-tier: G1 GPU / G2 CPU / G3 로컬 SSD / G4 원격 스토리지 |
 | **복잡도** | 낮음 | 높음 |
 | **벤치마크 성능** | 경량, K8s 네이티브 | 최대 7x (disaggregation + wide EP, GB200 NVL72) |
 
@@ -179,41 +180,52 @@ KV 캐시 인지 라우팅에서 **라우팅 결정 자체는 추론이 아닙�
 
 ### Gateway 아키텍처: llm-d 배포 구성
 
+아래 구성은 [llm-d v0.8.1 Gateway Mode](https://github.com/llm-d/llm-d/blob/v0.8.1/docs/architecture/core/router/proxy.md)의 단일 Gateway 예시입니다. 실선은 트래픽·ext-proc 호출, 점선은 설정 참조입니다. InferencePool(`inference.networking.k8s.io/v1`)은 Pod 선택과 EPP 연결을, 선택적 InferenceObjective(`llm-d.ai/v1alpha2`)는 요청 우선순위를 정의합니다. 구 `InferenceModel`을 워크로드 정의로 사용하지 않습니다. 이미지·replica·GPU 요청은 워크로드에서 설정하며 수치는 설명용입니다.
+
 ```mermaid
 flowchart TB
-    CLIENT[Client App<br/>OpenAI 호환 API]
-
-    subgraph Gateway["Gateway Layer"]
-        GW[Inference Gateway<br/>Envoy 기반]
-        IM[InferenceModel CRD]
-        IP[InferencePool CRD]
+    CLIENT[Client App<br/>OpenAI API]
+    subgraph Routing["Gateway and EPP"]
+        GW[Gateway proxy]
+        EPP[EPP<br/>Endpoint Picker]
+        HR[HTTPRoute]
+        IP[InferencePool<br/>inference.networking.k8s.io/v1]
+        IO[InferenceObjective<br/>llm-d.ai/v1alpha2]
     end
-
-    subgraph Inference["Inference Layer"]
-        V1[vLLM Pod 1<br/>GPU 0-1, TP=2]
-        V2[vLLM Pod 2<br/>GPU 2-3, TP=2]
-        VN[vLLM Pod N<br/>GPU 14-15, TP=2]
+    subgraph Workload["워크로드 배포"]
+        DEP[Deployment / LeaderWorkerSet]
+        V1[vLLM Pod 1<br/>2 GPUs, TP=2]
+        V2[vLLM Pod 2<br/>2 GPUs, TP=2]
+        VN[vLLM Pod N<br/>2 GPUs, TP=2]
     end
-
-    subgraph Node["EKS Node Management"]
-        NP[Karpenter NodePool]
+    subgraph Nodes["EKS Auto Mode node configuration"]
+        NP[NodePool]
         NC[NodeClass]
     end
-
     CLIENT --> GW
-    GW --> IM
-    IM --> IP
-    IP --> V1
-    IP --> V2
-    IP --> VN
-    NP -.->|프로비저닝| NC
-
-    style CLIENT fill:#34a853,color:#fff
+    GW <-->|ext-proc| EPP
+    GW --> V1
+    GW --> V2
+    GW --> VN
+    HR -.->|configures| GW
+    HR -.->|backendRef| IP
+    IP -.->|endpointPickerRef| EPP
+    IP -.->|selector| V1
+    IP -.->|selector| V2
+    IP -.->|selector| VN
+    IO -.->|poolRef| IP
+    IO -.->|priority| EPP
+    DEP -.-> V1
+    DEP -.-> V2
+    DEP -.-> VN
+    NP -.->|nodeClassRef| NC
+    style CLIENT fill:#34a853
     style GW fill:#326ce5,color:#fff
+    style EPP fill:#8b5cf6,color:#fff
     style V1 fill:#ffd93d
     style V2 fill:#ffd93d
     style VN fill:#ffd93d
-    style NP fill:#ff9900,color:#fff
+    style NP fill:#ff9900
 ```
 
 ## 참고 자료

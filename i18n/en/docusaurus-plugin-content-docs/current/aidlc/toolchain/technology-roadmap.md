@@ -6,7 +6,12 @@ last_update:
   date: "2026-06-30"
   author: devfloor9
 reading_time: 32
-tags: []
+tags:
+  - aidlc
+  - toolchain
+  - tooling
+  - agentic-ai
+  - scope:toolchain
 sidebar_label: Technology Roadmap
 ---
 

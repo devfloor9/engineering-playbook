@@ -1,32 +1,18 @@
 import React from 'react';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
+import parallelization from '../../data/moe-parallelization.json';
 const ParallelizationStrategies = () => {
   const {
     i18n
   } = useDocusaurusContext();
   const isKo = i18n.currentLocale === 'ko';
-  const strategies = [{
-    strategy: isKo ? 'Tensor Parallelism (TP)' : 'Tensor Parallelism (TP)',
-    description: isKo ? '레이어 내 텐서를 GPU 간 분할' : 'Split tensors within layers across GPUs',
-    advantages: isKo ? '낮은 지연시간' : 'Low latency',
-    disadvantages: isKo ? '높은 통신 오버헤드' : 'High communication overhead',
-    color: '#3b82f6',
-    icon: '🔷'
-  }, {
-    strategy: isKo ? 'Expert Parallelism (EP)' : 'Expert Parallelism (EP)',
-    description: isKo ? 'Expert를 GPU 간 분산' : 'Distribute experts across GPUs',
-    advantages: isKo ? 'MoE에 최적화' : 'Optimized for MoE',
-    disadvantages: isKo ? 'All-to-All 통신 필요' : 'Requires all-to-all communication',
-    color: '#8b5cf6',
-    icon: '🎯'
-  }, {
-    strategy: isKo ? 'Pipeline Parallelism (PP)' : 'Pipeline Parallelism (PP)',
-    description: isKo ? '레이어를 GPU 간 순차 분할' : 'Split layers sequentially across GPUs',
-    advantages: isKo ? '메모리 효율적' : 'Memory efficient',
-    disadvantages: isKo ? '파이프라인 버블 발생' : 'Pipeline bubble overhead',
-    color: '#10b981',
-    icon: '📊'
-  }];
+  const locale = isKo ? 'ko' : 'en';
+  const strategies = parallelization.map(row => ({
+    ...row,
+    description: row.description[locale],
+    advantages: row.advantages[locale],
+    disadvantages: row.disadvantages[locale],
+  }));
   return <div style={{
     maxWidth: '1000px',
     margin: '20px auto',

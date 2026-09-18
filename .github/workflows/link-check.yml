@@ -1,185 +1,76 @@
 name: Link Checker
 
 on:
-  # Trigger on pushes to main that affect documentation
   push:
-    branches:
-      - main
+    branches: [main]
     paths:
       - 'docs/**'
-      - '*.md'
+      - 'blog/**'
+      - 'i18n/**'
+      - 'src/pages/**'
+      - 'static/**'
+      - 'scripts/validate-links.js'
+      - 'scripts/tests/validate-links.test.js'
+      - 'docusaurus.config.*'
+      - 'package*.json'
       - '.github/workflows/link-check.yml'
-
-  # Trigger on pull requests targeting main
   pull_request:
-    branches:
-      - main
-
-  # Weekly scheduled check (every Monday at 9:00 AM UTC)
+    branches: [main]
   schedule:
     - cron: '0 9 * * 1'
-
-  # Allow manual workflow dispatch
   workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   link-check:
-    name: Check Links
+    name: External link findings (advisory)
     runs-on: ubuntu-latest
-
+    timeout-minutes: 30
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Restore lychee cache
-        uses: actions/cache@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          path: .lycheecache
-          key: cache-lychee-${{ github.sha }}
-          restore-keys: cache-lychee-
+          node-version: 20
+          cache: npm
 
-      - name: Create lychee configuration
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Verify link validator regressions
+        run: node --test scripts/tests/validate-links.test.js
+
+      # The validator sends only extracted HTTP(S) URLs to the network checker.
+      # Extensionless Docusaurus routes never become filesystem inputs here.
+      # The build workflow must run the internal validator after producing build/.
+      - name: Collect external findings
+        run: >-
+          node scripts/validate-links.js
+          --external-only --advisory
+          --timeout-ms 10000 --concurrency 8
+          --json link-check-report.json
+          --markdown link-check-report.md
+
+      - name: Publish advisory status and counts
+        if: always()
         run: |
-          cat > .lychee.toml << 'EOF'
-          # Maximum number of concurrent network requests
-          max_concurrency = 10
+          if [ -f link-check-report.md ]; then
+            cat link-check-report.md >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo 'Link validation did not finish. No link-validity conclusion is available.' >> "$GITHUB_STEP_SUMMARY"
+          fi
 
-          # Request timeout in seconds
-          timeout = 30
-
-          # Number of retries for failed requests
-          max_retries = 3
-
-          # Delay between retries in seconds
-          retry_wait_time = 2
-
-          # Accept these HTTP status codes as valid
-          accept = [200, 301, 302]
-
-          # Check links with these schemes
-          scheme = ["https", "http"]
-
-          # Exclude these URLs from checking
-          exclude = [
-            # Examples and placeholders
-            'https?://example\\.com.*',
-            'https?://.*\\.example\\.com.*',
-            'http://localhost.*',
-            'https?://127\\.0\\.0\\.1.*',
-
-            # Common problematic domains (block automated requests)
-            'https?://.*linkedin\\.com.*',
-            'https?://.*facebook\\.com.*',
-            'https?://.*twitter\\.com.*',
-            'https?://.*x\\.com.*',
-
-            # Domains with intermittent SSL/connection issues in CI
-            'https?://netflixtechblog\\.com.*',
-            'https?://keda\\.sh/?$',
-
-            # Domains that block automated requests (bot protection)
-            'https?://milvus\\.io.*',
-            'https?://medium\\.com.*',
-            'https?://.*\\.medium\\.com.*',
-            'https?://.*eksworkshop\\.com.*',
-
-            # Documentation placeholders
-            'https?://your-.*',
-            'https?://.*your-org.*',
-            'https?://.*yourdomain.*',
-            'https?://.*\\.local.*',
-
-            # Common CI/CD variables
-            'https?://\\$\\{.*\\}.*',
-            'https?://%.*%.*',
-          ]
-
-          # Exclude links with these patterns
-          exclude_path = [
-            '.git',
-            'node_modules',
-            'vendor',
-            '.github/workflows',
-            'SUMMARY.md',
-          ]
-
-          # Check anchors/fragments
-          include_fragments = true
-
-          # Follow redirects
-          max_redirects = 5
-
-          # User agent string
-          user_agent = "Mozilla/5.0 (compatible; LinkChecker/1.0; +https://github.com/lycheeverse/lychee)"
-
-          # HTTP headers to send with requests
-          [headers]
-          "Accept" = "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
-          EOF
-
-      - name: Run lychee link checker
-        uses: lycheeverse/lychee-action@v2
-        with:
-          # Check external URLs only (Docusaurus build validates internal links)
-          # Note: lychee cannot resolve Docusaurus-specific routing (extensionless
-          # paths, /img/ -> static/img/), so local link errors are expected.
-          args: >-
-            --verbose
-            --no-progress
-            --cache
-            --max-cache-age 1d
-            --root-dir '${{ github.workspace }}'
-            --include 'https?://.*'
-            --exclude-path './.github'
-            --exclude-path './node_modules'
-            --exclude-path './SUMMARY.md'
-            --exclude 'https?://milvus\.io.*'
-            --exclude 'https?://.*kubeflow\.org.*'
-            --exclude 'https?://gateway-api\.sigs\.k8s\.io.*'
-            --exclude 'https?://.*envoyproxy\.io.*'
-            --exclude 'https?://netflixtechblog\.com.*'
-            --exclude 'https?://aws\.amazon\.com/blogs/aws/investigate-and-remediate.*'
-            --exclude 'https?://opentelemetry\.io.*'
-            'docs/**/*.md'
-            'docs/**/*.mdx'
-
-          # Advisory only — Docusaurus build validates internal links
-          fail: false
-
-          # Output format
-          format: markdown
-
-          # Custom output file
-          output: ./lychee-report.md
-        env:
-          # Add GitHub token for API rate limits
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Upload link check report
+      - name: Upload detailed findings
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: lychee-report
-          path: lychee-report.md
+          name: link-check-report
+          path: |
+            link-check-report.json
+            link-check-report.md
+          if-no-files-found: error
           retention-days: 30
-
-      - name: Comment PR with results
-        if: github.event_name == 'pull_request' && failure()
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const fs = require('fs');
-            let report = 'Link check failed. Please review the broken links.';
-
-            try {
-              report = fs.readFileSync('./lychee-report.md', 'utf8');
-            } catch (err) {
-              console.log('Could not read lychee report:', err.message);
-            }
-
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: `## 🔗 Link Check Results\n\n${report}`
-            });

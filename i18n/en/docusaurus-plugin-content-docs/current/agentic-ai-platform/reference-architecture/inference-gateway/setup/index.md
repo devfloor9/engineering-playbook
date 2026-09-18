@@ -173,4 +173,4 @@ Verify the following before proceeding with all deployment stages.
 - [Agent Monitoring](../../../operations-mlops/observability/agent-monitoring.md) - Langfuse architecture and components
 - [Kubernetes Gateway API Official Documentation](https://gateway-api.sigs.k8s.io/)
 - [kgateway Official Documentation](https://kgateway.dev/docs/)
-- [Bifrost Official Documentation](https://bifrost.dev/docs)
+- [Bifrost Official Documentation](https://docs.getbifrost.ai/overview)

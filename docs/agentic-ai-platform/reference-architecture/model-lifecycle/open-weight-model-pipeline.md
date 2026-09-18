@@ -230,11 +230,13 @@ sweep:
 
 **프레임워크 비교.** 동일 모델·동일 인스턴스·동일 워크로드(ISL/OSL 분포 고정)에서 vLLM·SGLang·TensorRT-LLM을 각각 최적 설정으로 실행하고 동일 지표로 비교합니다. 비교 조건 고정이 핵심입니다 — 프레임워크마다 다른 동시성·시퀀스 길이로 측정한 결과는 리포트에 실을 수 없습니다.
 
-**인터커넥트 비교 (NVLink vs EFA).** 단일 노드에 들어가지 않는 모델(70B+ 비양자화, MoE 대형)에 대해서만 실행합니다.
+**인터커넥트 비교 (NVLink vs EFA).** 단일 노드와 멀티 노드 양쪽에서 실행 가능한 모델을 사용합니다. 모델·정밀도·컨텍스트 길이·워크로드와 GPU 종류를 고정합니다.
 
 - 단일 노드 TP(NVLink/NVSwitch 경유) vs 멀티 노드 TP·PP(EFA 경유)를 동일 총 GPU 수로 비교합니다.
 - 멀티 노드 실행은 vLLM + Ray 또는 LeaderWorkerSet 기반으로 구성하고, EFA는 aws-ofi-nccl 플러그인과 `nccl-tests`(all_reduce_perf)로 대역폭 기준선을 먼저 검증합니다.
-- 판정 기준: 단일 노드 대비 멀티 노드의 tok/s per GPU 열화율. 통상 TP는 노드 경계를 넘지 않는 구성이 우위이므로, 리포트에는 "멀티 노드가 필요한 최소 모델 크기"를 명시합니다.
+- 비교 지표: 단일 노드 대비 멀티 노드의 tok/s per GPU 변화율과 TTFT·TPOT. TP·PP 배치와 GPU별 메모리 사용량을 함께 기록하며, 측정 전 성능 우열을 가정하지 않습니다.
+
+**멀티 노드 전용 모델.** 동일 조건에서 단일 노드에 적재할 수 없는 모델은 별도의 확장성 평가로 분류합니다. 단일 노드 기준선은 `N/A`로 표시하고, 실행 가능한 최소 노드 구성과 노드를 늘린 구성을 비교합니다. 이 경우 단일 노드 대비 성능 저하율을 계산하지 않습니다.
 
 **SME 중간 개입.** 각 스윕 라운드 종료 시 워크플로가 중간 결과 요약과 함께 suspend 스텝에 진입합니다. SME는 세 가지 행동을 선택할 수 있습니다.
 
@@ -348,7 +350,7 @@ flowchart TD
 - [Argo Events](https://argoproj.github.io/argo-events/) — Calendar·Webhook 이벤트 소스
 - [lm-evaluation-harness](https://github.com/EleutherAI/lm-evaluation-harness) — 공개 벤치마크 재현 하네스
 - [huggingface_hub API](https://huggingface.co/docs/huggingface_hub/) — 모델 검색·메타데이터 조회
-- [vLLM — Distributed Inference](https://docs.vllm.ai/en/latest/serving/distributed_serving.html) — 멀티 노드 TP/PP 구성
+- [vLLM — Distributed Inference](https://docs.vllm.ai/en/latest/serving/parallelism_scaling/) — 멀티 노드 TP/PP 구성
 
 ### 관련 문서 (내부)
 - [EKS 기반 MLOps 파이프라인 구축](./mlops-pipeline-eks.md) — Kubeflow·ArgoCD 기반 학습 파이프라인

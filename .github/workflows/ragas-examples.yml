@@ -1,0 +1,40 @@
+name: Ragas Example Checks
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'examples/ragas-evaluation/**'
+      - 'docs/agentic-ai-platform/operations-mlops/governance/ragas-evaluation.md'
+      - 'i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/operations-mlops/governance/ragas-evaluation.md'
+      - '.github/workflows/ragas-examples.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'examples/ragas-evaluation/**'
+      - 'docs/agentic-ai-platform/operations-mlops/governance/ragas-evaluation.md'
+      - 'i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/operations-mlops/governance/ragas-evaluation.md'
+      - '.github/workflows/ragas-examples.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  offline-examples:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      RAGAS_DO_NOT_TRACK: 'true'
+      HF_HUB_DISABLE_TELEMETRY: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+          cache-dependency-path: examples/ragas-evaluation/requirements.txt
+      - name: Install pinned example dependencies
+        run: python -m pip install -r examples/ragas-evaluation/requirements.txt
+      - name: Run evaluator checks with mocked transport and blocked sockets
+        run: python examples/ragas-evaluation/test_smoke.py

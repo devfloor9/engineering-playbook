@@ -511,7 +511,7 @@ SI 회사가 **여러 고객을 동일 플랫폼에서 운영**할 때, 고객�
 ### 공식 문서
 - [LoRA Paper (Hu et al., 2021)](https://arxiv.org/abs/2106.09685)
 - [QLoRA Paper (Dettmers et al., 2023)](https://arxiv.org/abs/2305.14314)
-- [vLLM Multi-LoRA](https://docs.vllm.ai/en/latest/models/lora.html)
+- [vLLM Multi-LoRA](https://docs.vllm.ai/en/latest/features/lora/)
 - [Langchain RAG Tutorial](https://python.langchain.com/docs/tutorials/rag/)
 - [Neo4j GraphRAG](https://neo4j.com/labs/genai-ecosystem/langchain/)
 - [RAGAS Evaluation](https://docs.ragas.io/)

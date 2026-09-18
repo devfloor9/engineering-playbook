@@ -6,7 +6,11 @@ last_update:
   date: "2026-06-30"
   author: devfloor9
 reading_time: 21
-tags: []
+tags:
+  - aidlc
+  - enterprise
+  - agentic-ai
+  - scope:enterprise
 sidebar_label: Governance Framework
 ---
 

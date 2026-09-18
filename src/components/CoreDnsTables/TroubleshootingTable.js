@@ -8,39 +8,39 @@ const TroubleshootingTable = () => {
   const bestPractices = [{
     icon: '📈',
     title: isKo ? 'Cluster Proportional Autoscaler' : 'Cluster Proportional Autoscaler',
-    description: isKo ? 'EKS 기본 CoreDNS 복제수는 2개. 노드 수/CPU 코어에 비례하여 자동 확장하여 DNS 부하를 분산합니다.' : 'EKS default CoreDNS replicas is 2. Auto-scale proportionally to node count/CPU cores to distribute DNS load.',
-    impact: isKo ? 'DNS QPS 선형 확장' : 'Linear DNS QPS scaling',
+    description: isKo ? '현재 Deployment 복제수와 애드온의 자동 확장 지원을 확인합니다. 노드·CPU 코어 수와 실제 DNS 부하를 기준으로 확장을 평가합니다.' : 'Inspect current Deployment replicas and add-on autoscaling support. Evaluate scaling using node/core counts and measured DNS load.',
+    impact: isKo ? 'DNS 처리 용량 확장' : 'Increase DNS capacity',
     impactColor: '#059669'
   }, {
     icon: '🗄️',
     title: 'NodeLocal DNSCache',
-    description: isKo ? '모든 노드에서 DNS 캐시 에이전트(DaemonSet)를 실행하여 로컬 DNS 제공. 네트워크 지연 및 ENI 한계 해소.' : 'Run DNS cache agent (DaemonSet) on all nodes for local DNS. Eliminates network latency and ENI limits.',
-    impact: isKo ? 'RTT 감소, ENI 병목 해소' : 'Reduced RTT, ENI bottleneck eliminated',
+    description: isKo ? '지원되는 노드에 DNS 캐시 에이전트를 배치하여 반복 조회의 네트워크 비용을 줄입니다. cache miss의 업스트림 질의와 ENI 한도는 남습니다.' : 'Place DNS cache agents on supported nodes to reduce network overhead for repeated queries. Upstream queries on misses and ENI limits still apply.',
+    impact: isKo ? '반복 질의 RTT 감소' : 'Reduce repeated-query RTT',
     impactColor: '#3b82f6'
   }, {
     icon: '🔒',
     title: isKo ? 'DNS 패킷 한계 & 트래픽 분산' : 'DNS Packet Limit & Traffic Distribution',
-    description: isKo ? 'VPC ENI는 초당 1024 DNS 패킷 제한. CoreDNS Pod를 서로 다른 노드에 분산(Pod Anti-Affinity)하여 ENI 한도 분산.' : 'VPC ENI limits 1024 DNS packets/sec. Spread CoreDNS Pods across nodes (Pod Anti-Affinity) to distribute ENI limits.',
+    description: isKo ? 'Amazon DNS·IMDS·Time Sync 링크 로컬 트래픽은 1024 PPS/ENI 한도를 공유합니다. CoreDNS Pod를 노드에 분산하고 linklocal_allowance_exceeded를 확인합니다.' : 'Amazon DNS, IMDS, and Time Sync link-local traffic share 1024 PPS/ENI. Spread CoreDNS Pods across nodes and inspect linklocal_allowance_exceeded.',
     impact: isKo ? 'ENI PPS 병목 회피' : 'Avoid ENI PPS bottleneck',
     impactColor: '#f59e0b'
   }, {
     icon: '🔄',
     title: isKo ? 'Graceful Termination (Lameduck)' : 'Graceful Termination (Lameduck)',
-    description: isKo ? 'CoreDNS 재시작/축소 시 일시적 DNS 실패 방지. lameduck 30s 설정 + /ready Readiness Probe 구성.' : 'Prevent transient DNS failures during CoreDNS restart/scale-down. Configure lameduck 30s + /ready Readiness Probe.',
-    impact: isKo ? 'Zero-downtime DNS 롤링 업데이트' : 'Zero-downtime DNS rolling updates',
+    description: isKo ? 'lameduck은 종료 지연입니다. 5s는 시험값이며 30s도 보편적 권장값이 아닙니다. /ready 설정과 Pod 종료 유예 시간의 여유를 함께 확인합니다.' : 'lameduck delays shutdown. 5s is a trial value; 30s is not universally recommended either. Check /ready configuration and Pod shutdown headroom together.',
+    impact: isKo ? '종료 중 실패 위험 완화' : 'Reduce shutdown failure risk',
     impactColor: '#8b5cf6'
   }];
   const cases = [{
     title: isKo ? '사례 1: ENI PPS 한도로 인한 DNS 지연' : 'Case 1: DNS Latency from ENI PPS Limit',
-    symptom: isKo ? '특정 서비스 DNS 응답 지연 → 전체 응답시간 1초 이상 추가' : 'Specific service DNS response delay → 1s+ added to total response time',
-    cause: isKo ? 'CoreDNS가 질의하는 VPC DNS Resolver가 ENI PPS 한도(1024 PPS)에 걸려 패킷 드롭' : 'VPC DNS Resolver hit ENI PPS limit (1024 PPS) causing packet drops',
+    symptom: isKo ? '외부 DNS 조회 지연 또는 타임아웃 증가' : 'Increased external DNS lookup latency or timeouts',
+    cause: isKo ? '링크 로컬 PPS 한도로 패킷이 드롭되는지 ENA 카운터로 확인' : 'Check ENA counters for packet drops at the link-local PPS allowance',
     solution: isKo ? 'NodeLocal DNSCache 도입 + CoreDNS Pod 노드 분산(Anti-Affinity)' : 'Deploy NodeLocal DNSCache + CoreDNS Pod node distribution (Anti-Affinity)',
     color: '#ef4444'
   }, {
     title: isKo ? '사례 2: Aurora DNS TTL 캐싱으로 인한 리더 편중' : 'Case 2: Aurora Reader Skew from DNS TTL Caching',
     symptom: isKo ? 'Aurora 리더 노드에 세션 편중 → 일부 리더만 과부하' : 'Aurora reader node session skew → Some readers overloaded',
-    cause: isKo ? 'Aurora Reader 엔드포인트 DNS TTL 1초인데 CoreDNS 최소 TTL 5초로 과도 캐싱' : 'Aurora Reader endpoint DNS TTL is 1s but CoreDNS min TTL 5s causes over-caching',
-    solution: isKo ? 'NodeLocal DNSCache에서 amazonaws.com에 cache 1, success/denial 1 설정 적용' : 'Configure cache 1 with success/denial 1 for amazonaws.com in NodeLocal DNSCache',
+    cause: isKo ? '관측한 TTL이 1s이고 상한이 30s라면 v1.11.3 기본 최소 TTL 5s가 캐싱을 연장할 수 있음. 실제 TTL과 연결 풀도 확인' : 'If the observed TTL is 1s and the ceiling is 30s, the v1.11.3 default 5s minimum can extend caching. Verify actual TTLs and connection pooling',
+    solution: isKo ? '확인된 DNS 영역에서 success 9984 30 0 / denial 2048 10 0을 시험. 첫 숫자는 용량이며 amazonaws.com 전체에 적용하지 않음' : 'Trial success 9984 30 0 / denial 2048 10 0 for the verified DNS zone. First number is capacity; do not apply to all amazonaws.com',
     color: '#f59e0b'
   }];
   return <div style={{
@@ -61,13 +61,13 @@ const TroubleshootingTable = () => {
         fontWeight: '600',
         marginBottom: '4px'
       }}>
-          {isKo ? '🛡️ EKS 모범 사례 & 실무 사례' : '🛡️ EKS Best Practices & Real-World Cases'}
+          {isKo ? '🛡️ EKS 운영 점검과 진단 예시' : '🛡️ EKS Operational Checks & Diagnostic Examples'}
         </div>
         <div style={{
         fontSize: '14px',
         opacity: 0.9
       }}>
-          {isKo ? 'AWS 권장 CoreDNS 최적화 전략과 장애 대응 사례' : 'AWS recommended CoreDNS optimization strategies and incident response cases'}
+          {isKo ? '설치된 애드온 구성을 확인하고 워크로드에서 검증할 항목' : 'Inspect the installed add-on configuration and validate against the workload'}
         </div>
       </div>
 
@@ -134,7 +134,7 @@ const TroubleshootingTable = () => {
         color: 'var(--ifm-color-emphasis-600)',
         textTransform: 'uppercase'
       }}>
-          {isKo ? '실무 장애 대응 사례' : 'Real-World Incident Cases'}
+          {isKo ? '진단 시나리오 예시 — 측정된 고객 사례가 아님' : 'Illustrative diagnostic scenarios — not measured customer cases'}
         </div>
 
         {/* Cases */}
@@ -210,7 +210,12 @@ const TroubleshootingTable = () => {
       lineHeight: '1.6'
     }}>
         ⚠️ <strong>{isKo ? 'ENI DNS 패킷 제한:' : 'ENI DNS Packet Limit:'}</strong>{' '}
-        {isKo ? '각 노드 ENI는 초당 1024개의 DNS 패킷만 허용합니다. CoreDNS의 max_concurrent를 높여도 ENI PPS 한계(1024 PPS)로 인해 성능이 제한될 수 있습니다.' : 'Each node ENI allows only 1024 DNS packets per second. Even with higher CoreDNS max_concurrent, ENI PPS limit (1024 PPS) may constrain performance.'}
+        {isKo ? '링크 로컬 서비스의 한도이며 모든 DNS 트래픽의 한도가 아닙니다. 출처: ' : 'This allowance applies to link-local services, not all DNS traffic. Sources: '}
+        <a href="https://docs.aws.amazon.com/vpc/latest/userguide/AmazonDNS-concepts.html">AWS PPS</a>
+        {' · '}
+        <a href="https://docs.aws.amazon.com/eks/latest/userguide/managing-coredns.html">EKS CoreDNS</a>
+        {' · '}
+        <a href="https://github.com/coredns/coredns/blob/v1.11.3/plugin/cache/README.md">cache v1.11.3</a>
       </div>
     </div>;
 };

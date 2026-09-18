@@ -364,6 +364,11 @@ table {
   border-radius: 0.5rem;
 }
 
+/* Keep words intact when tables calculate column widths. */
+.theme-doc-markdown table {
+  overflow-wrap: break-word;
+}
+
 table th {
   background: var(--ep-surface-container-low);
   font-family: var(--ifm-heading-font-family);

@@ -20,14 +20,14 @@ const GoldenSignals = () => {
   }, {
     icon: '❌',
     name: isKo ? '오류 (Errors)' : 'Errors',
-    metric: 'coredns_dns_responses_total{rcode=SERVFAIL}',
-    description: isKo ? 'SERVFAIL/REFUSED 비율 증가 시 외부 통신 또는 접근 권한 문제를 점검합니다. NXDOMAIN 급증은 잘못된 도메인 조회를 의미합니다.' : 'Check external connectivity or ACL issues on SERVFAIL/REFUSED spike. NXDOMAIN surge indicates wrong domain lookups.',
+    metric: 'coredns_dns_responses_total{job="coredns",rcode="SERVFAIL"}',
+    description: isKo ? 'SERVFAIL은 이름 해석 실패입니다. REFUSED는 정책이나 동시 질의 제한을 점검합니다. NXDOMAIN은 검색 도메인 확장 등에서 예상할 수 있으므로 평소 분포와 애플리케이션 영향을 함께 확인합니다.' : 'SERVFAIL indicates resolution failure. Check policy or concurrency limits for REFUSED. NXDOMAIN can be expected during search-domain expansion; compare its baseline and application impact.',
     color: '#ef4444'
   }, {
     icon: '💻',
     name: isKo ? '자원 사용량 (Resource)' : 'Resource',
     metric: 'CPU / Memory utilization',
-    description: isKo ? 'EKS 기본 메모리 요청/제한: 70Mi/170Mi. 150Mi 초과 시 경보 설정. CPU 제한 도달 시 스로틀링으로 DNS 지연 발생.' : 'EKS default memory request/limit: 70Mi/170Mi. Alert above 150Mi. CPU throttling at limit causes DNS latency.',
+    description: isKo ? '애드온 버전과 실제 Deployment의 requests/limits를 확인합니다. 메모리 증가·OOM 이력·CPU throttling으로 임계치를 정하며, 70Mi/170Mi를 공통 EKS 기본값으로 가정하지 않습니다.' : 'Check the add-on version and actual Deployment requests/limits. Set thresholds from memory growth, OOM history, and CPU throttling; do not assume universal EKS defaults of 70Mi/170Mi.',
     color: '#8b5cf6'
   }];
   return <div style={{
@@ -92,6 +92,7 @@ const GoldenSignals = () => {
             display: 'flex',
             alignItems: 'center',
             gap: '8px',
+            flexWrap: 'wrap',
             marginBottom: '4px'
           }}>
                 <span style={{
@@ -105,7 +106,8 @@ const GoldenSignals = () => {
               borderRadius: '4px',
               fontSize: '11px',
               color: signal.color,
-              fontWeight: '600'
+              fontWeight: '600',
+              overflowWrap: 'anywhere'
             }}>{signal.metric}</code>
               </div>
               <div style={{

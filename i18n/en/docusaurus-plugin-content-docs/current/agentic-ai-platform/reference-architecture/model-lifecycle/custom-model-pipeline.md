@@ -530,7 +530,7 @@ Upon completing Phase 4:
 |----------|------|
 | LoRA Paper (Hu et al., 2021) | [arxiv.org/abs/2106.09685](https://arxiv.org/abs/2106.09685) |
 | QLoRA Paper (Dettmers et al., 2023) | [arxiv.org/abs/2305.14314](https://arxiv.org/abs/2305.14314) |
-| vLLM Multi-LoRA | [docs.vllm.ai/en/latest/models/lora.html](https://docs.vllm.ai/en/latest/models/lora.html) |
+| vLLM Multi-LoRA | [docs.vllm.ai/en/latest/features/lora/](https://docs.vllm.ai/en/latest/features/lora/) |
 | Unsloth Fast Training | [github.com/unslothai/unsloth](https://github.com/unslothai/unsloth) |
 | NeMo Framework | [docs.nvidia.com/nemo-framework](https://docs.nvidia.com/nemo-framework/user-guide/latest/) |
 | RAGAS Evaluation | [docs.ragas.io](https://docs.ragas.io/) |

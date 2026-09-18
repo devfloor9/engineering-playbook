@@ -6,7 +6,17 @@ last_update:
   date: "2026-06-30"
   author: devfloor9
 reading_time: 21
-tags: []
+tags:
+  - aidlc
+  - ai-coding-agents
+  - toolchain
+  - kiro
+  - q-developer
+  - cursor
+  - cline
+  - claude-code
+  - copilot
+  - scope:toolchain
 sidebar_label: AI Coding Agents
 ---
 
