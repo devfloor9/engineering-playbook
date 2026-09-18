@@ -500,10 +500,10 @@ For actual code examples and YAML manifests, refer to Reference Architecture sec
 ### Related Protocols
 
 - [Model Context Protocol (MCP) Spec](https://modelcontextprotocol.io/specification)
-- [Agent-to-Agent (A2A) Protocol](https://github.com/a2a-protocol/spec)
+- [Agent-to-Agent (A2A) Protocol](https://a2a-protocol.org/latest/specification/)
 
 ### Research Papers & Patterns
 
 - [RouteLLM: Learning to Route LLMs with Preference Data (arXiv)](https://arxiv.org/abs/2406.18665)
-- [LMSYS Chatbot Arena Leaderboard](https://chat.lmsys.org/?leaderboard)
+- [LMSYS Chatbot Arena Leaderboard](https://arena.ai/leaderboard/text)
 - [LLM Router Pattern: Model Switching](https://markaicode.com/llm-router-pattern-model-switching/)

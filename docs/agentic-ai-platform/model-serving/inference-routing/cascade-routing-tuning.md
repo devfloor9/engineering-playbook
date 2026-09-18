@@ -1001,7 +1001,7 @@ STRONG_KEYWORDS = [
 ### 연구 자료
 - [RouteLLM: Learning to Route LLMs with Preference Data (arXiv)](https://arxiv.org/abs/2406.18665)
 - [A Unified Approach to Routing and Cascading for LLMs (ETH Zurich)](https://arxiv.org/abs/2410.10347)
-- [LMSYS Chatbot Arena Leaderboard](https://chat.lmsys.org/?leaderboard)
+- [LMSYS Chatbot Arena Leaderboard](https://arena.ai/leaderboard/text)
 - [FrugalGPT: How to Use Large Language Models While Reducing Cost and Improving Performance](https://arxiv.org/abs/2305.05176)
 
 ### 관련 블로그

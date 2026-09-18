@@ -970,7 +970,7 @@ STRONG_KEYWORDS = [
 
 ### Research Materials
 - [RouteLLM: Learning to Route LLMs with Preference Data (arXiv)](https://arxiv.org/abs/2406.18665)
-- [LMSYS Chatbot Arena Leaderboard](https://chat.lmsys.org/?leaderboard)
+- [LMSYS Chatbot Arena Leaderboard](https://arena.ai/leaderboard/text)
 - [FrugalGPT: How to Use Large Language Models While Reducing Cost and Improving Performance](https://arxiv.org/abs/2305.05176)
 
 ### Related Blogs
