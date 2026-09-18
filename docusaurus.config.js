@@ -236,6 +236,11 @@ const config = {
   themeConfig:
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     ({
+      colorMode: {
+        defaultMode: 'dark',
+        disableSwitch: false,
+        respectPrefersColorScheme: false,
+      },
       // Mermaid theme for light/dark mode
       mermaid: {
         theme: {
@@ -244,16 +249,7 @@ const config = {
         },
         options: {
           themeVariables: {
-            darkMode: true,
-            primaryColor: '#2C3038',
-            primaryTextColor: '#ECEEF4',
-            primaryBorderColor: '#9AA0AD',
-            lineColor: '#9AA0AD',
-            secondaryColor: '#22262D',
-            tertiaryColor: '#1B1F25',
-            noteBkgColor: '#22262D',
-            noteTextColor: '#B4BAC8',
-            fontFamily: 'Inter, sans-serif',
+            fontFamily: 'Inter, Pretendard Variable, sans-serif',
           },
         },
       },

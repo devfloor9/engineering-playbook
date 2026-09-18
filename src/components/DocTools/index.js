@@ -54,7 +54,7 @@ function DocumentTools({metadata, siteConfig, i18n}) {
         <CopyButton icon="link" label={ko ? '링크 복사' : 'Copy link'}
           getText={() => new URL(metadata.permalink, siteConfig.url).href + window.location.hash} />
         {markdown.status === 'supported' && <>
-          <a className={controlStyles.button} href={markdown.url} target="_blank" rel="noopener noreferrer">
+          <a data-ep-action="" className={controlStyles.button} href={markdown.url} target="_blank" rel="noopener noreferrer">
             <Icon name="file-text" size={18} />
             <span>{ko ? 'Markdown 보기' : 'View Markdown'}</span>
             <span className={styles.srOnly}>{ko ? ' (새 탭에서 열림)' : ' (opens in a new tab)'}</span>
@@ -62,7 +62,7 @@ function DocumentTools({metadata, siteConfig, i18n}) {
           <CopyButton icon="copy" label={ko ? 'Markdown 복사' : 'Copy Markdown'}
             getText={() => loadMarkdownText(markdown.url)} />
         </>}
-        <Link className={controlStyles.button} to={helpUrl}>
+        <Link data-ep-action="" className={controlStyles.button} to={helpUrl}>
           <Icon name="book-open" size={18} />
           <span>{ko ? 'AI용 문서 안내' : 'AI documentation guide'}</span>
         </Link>

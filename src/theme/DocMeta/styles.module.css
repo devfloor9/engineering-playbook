@@ -1,4 +1,4 @@
-/* 문서 제목 아래 메타 라인 — 작성일 · 읽는 시간 */
+/* Dates and reading time share the manual navigation typography. */
 .docMeta {
   display: flex;
   flex-wrap: wrap;
@@ -7,6 +7,7 @@
   margin-block: var(--ep-space-3) var(--ep-space-4);
   padding-bottom: var(--ep-space-4);
   border-bottom: 1px solid var(--ep-outline-variant);
+  font-family: var(--ep-font-mono);
   font-size: var(--ep-font-size-caption);
   line-height: 1.5;
   color: var(--ep-on-surface-variant);

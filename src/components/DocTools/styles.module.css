@@ -23,7 +23,7 @@
   color: var(--ep-error);
 }
 
-.status {
+.tools .status {
   display: flex;
   align-items: flex-start;
   gap: var(--ep-space-2);

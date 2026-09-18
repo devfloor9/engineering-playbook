@@ -4,33 +4,33 @@
  * Component migrations must preserve technical data and semantic colors.
  */
 
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
 
-/* Foundation contract v1: structure-audit.json. Shared by cards, tools and data. */
+/* Shared editorial system: charcoal, paper, and one restrained accent. */
 @import 'pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css';
 
 :root {
-  --ep-surface: #f8f9f6;
+  --ep-surface: #fafafa;
   --ep-surface-container-lowest: #ffffff;
-  --ep-surface-container-low: #eef2ec;
-  --ep-surface-container: #e7ede6;
-  --ep-surface-container-high: #e0e7df;
-  --ep-surface-container-highest: #d9e2d8;
+  --ep-surface-container-low: #f2f2f3;
+  --ep-surface-container: #ebebed;
+  --ep-surface-container-high: #e4e4e7;
+  --ep-surface-container-highest: #dddde1;
   --ep-surface-bright: var(--ep-surface-container-lowest);
-  --ep-on-surface: #172e3b;
-  --ep-on-surface-variant: #52616a;
-  --ep-outline-variant: #d2dad5;
-  --ep-outline: #52616a;
-  --ifm-color-primary: #006b57;
-  --ifm-color-primary-dark: #00604e;
-  --ifm-color-primary-darker: #005846;
-  --ifm-color-primary-darkest: #004437;
-  --ifm-color-primary-light: #147b66;
-  --ifm-color-primary-lighter: #258672;
-  --ifm-color-primary-lightest: #39947f;
+  --ep-on-surface: #202024;
+  --ep-on-surface-variant: #5b5b65;
+  --ep-outline-variant: #d8d8de;
+  --ep-outline: #5b5b65;
+  --ifm-color-primary: #b31567;
+  --ifm-color-primary-dark: #9e1159;
+  --ifm-color-primary-darker: #8b0f4e;
+  --ifm-color-primary-darkest: #710c40;
+  --ifm-color-primary-light: #c7287c;
+  --ifm-color-primary-lighter: #d13a8b;
+  --ifm-color-primary-lightest: #de5a9f;
   --ep-secondary: var(--ifm-color-primary);
-  --ep-secondary-container: #d6efe3;
-  --ep-on-secondary-container: #005441;
+  --ep-secondary-container: #f8e5ef;
+  --ep-on-secondary-container: #870d4c;
 
   /* Status text stays separate from categorical chart series. */
   --ep-success: #176443;
@@ -72,7 +72,8 @@
   --ep-focus-offset: 3px;
 
   --ifm-font-family-base: 'Inter', 'Pretendard Variable', 'Pretendard', system-ui, sans-serif;
-  --ifm-heading-font-family: 'Plus Jakarta Sans', 'Pretendard Variable', 'Pretendard', system-ui, sans-serif;
+  --ep-font-mono: 'JetBrains Mono', 'SFMono-Regular', 'Pretendard Variable', monospace;
+  --ifm-heading-font-family: var(--ep-font-mono);
   --ifm-font-color-base: var(--ep-on-surface);
   --ifm-heading-color: var(--ep-on-surface);
   --ifm-link-color: var(--ifm-color-primary);
@@ -85,7 +86,7 @@
   --ifm-border-color: var(--ep-outline-variant);
   --ifm-navbar-background-color: var(--ep-surface);
   --ifm-navbar-shadow: none;
-  --ifm-navbar-height: 3.75rem;
+  --ifm-navbar-height: 5rem;
   --ifm-toc-border-color: var(--ep-outline-variant);
   --doc-sidebar-width: 280px;
   --ifm-footer-background-color: var(--ep-surface-container-lowest);
@@ -102,25 +103,25 @@
 }
 
 :root[data-theme='dark'] {
-  --ep-surface: #141b20;
-  --ep-surface-container-lowest: #1c282c;
-  --ep-surface-container-low: #1c282c;
-  --ep-surface-container: #253237;
-  --ep-surface-container-high: #2f3d42;
-  --ep-surface-container-highest: #39484d;
-  --ep-on-surface: #edf2ec;
-  --ep-on-surface-variant: #b4c2c4;
-  --ep-outline-variant: #35444a;
-  --ep-outline: #b4c2c4;
-  --ifm-color-primary: #a7e7cb;
-  --ifm-color-primary-dark: #91d8b8;
-  --ifm-color-primary-darker: #7fcdab;
-  --ifm-color-primary-darkest: #61b88f;
-  --ifm-color-primary-light: #b8eed6;
-  --ifm-color-primary-lighter: #c9f3e1;
-  --ifm-color-primary-lightest: #dff9ed;
-  --ep-secondary-container: #204b3c;
-  --ep-on-secondary-container: #a7e7cb;
+  --ep-surface: #171719;
+  --ep-surface-container-lowest: #202023;
+  --ep-surface-container-low: #202023;
+  --ep-surface-container: #28282c;
+  --ep-surface-container-high: #323237;
+  --ep-surface-container-highest: #3b3b42;
+  --ep-on-surface: #f2f2f5;
+  --ep-on-surface-variant: #b6b6c0;
+  --ep-outline-variant: #3e3e46;
+  --ep-outline: #b6b6c0;
+  --ifm-color-primary: #f28cbc;
+  --ifm-color-primary-dark: #ed73ad;
+  --ifm-color-primary-darker: #e85a9e;
+  --ifm-color-primary-darkest: #e2408e;
+  --ifm-color-primary-light: #f6a8cc;
+  --ifm-color-primary-lighter: #f9bed9;
+  --ifm-color-primary-lightest: #fcd8e8;
+  --ep-secondary-container: #3b2431;
+  --ep-on-secondary-container: #f28cbc;
   --ep-success: #9bdfb5;
   --ep-success-surface: #1e3b2d;
   --ep-warning: #f1cd7a;
@@ -233,11 +234,29 @@ p, li {
 
 /* ── Navbar — Glassmorphism ── */
 .navbar {
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-bottom: 1px solid var(--ep-outline-variant);
+  padding: 0.75rem 1rem;
+  background: var(--ep-surface);
   box-shadow: none;
 }
+.navbar__inner {
+  max-width: 96rem;
+  margin-inline: auto;
+  padding-inline: 1.25rem;
+  border: 1px solid var(--ep-outline-variant);
+  border-radius: 999px;
+  background: var(--ep-surface-container-lowest);
+}
+.navbar__brand { min-width: 0; }
+.navbar__title { overflow: hidden; text-overflow: ellipsis; }
+.navbar__logo { height: 1.55rem; }
+.navbar__link { letter-spacing: 0.01em; }
+.navbar-sidebar { background: var(--ep-surface-container-lowest); }
+@media (max-width: 576px) {
+  .navbar { padding-inline: 0.5rem; }
+  .navbar__inner { padding-inline: 0.75rem; border-radius: 1rem; }
+  .navbar__title { font-size: 0.8rem; }
+}
+
 
 .navbar__title {
   font-family: var(--ifm-heading-font-family);
@@ -263,8 +282,8 @@ p, li {
 }
 
 nav.menu {
-  background: var(--ep-surface-container-low);
-  padding: 1rem 0.75rem;
+  background: var(--ep-surface);
+  padding: 1.25rem 0.75rem;
 }
 
 .menu__link {
@@ -283,7 +302,7 @@ nav.menu {
   background: var(--ep-surface-container-lowest);
   color: var(--ifm-color-primary);
   font-weight: 600;
-  box-shadow: var(--ep-shadow-sm);
+  box-shadow: inset 2px 0 var(--ifm-color-primary);
 }
 
 .menu__list-item-collapsible > .menu__link {
@@ -935,7 +954,9 @@ div[class*="codeBlockTitle"] {
 
 /* ── 헤딩 계층 — 명확한 시각적 위계 ── */
 .theme-doc-markdown h1 {
-  font-size: 2.25rem;
+  font-size: clamp(2rem, 3.3vw, 3rem);
+  letter-spacing: -0.055em;
+  text-wrap: balance;
   font-weight: 800;
   line-height: 1.25;
   margin-bottom: 1.25rem;
@@ -943,6 +964,7 @@ div[class*="codeBlockTitle"] {
 
 .theme-doc-markdown h2 {
   font-size: 1.6rem;
+  letter-spacing: -0.04em;
   line-height: 1.35;
   font-weight: 700;
   margin-top: 3.5rem;
@@ -1018,14 +1040,14 @@ div[class*="codeBlockTitle"] {
 }
 
 /* ── 본문 링크 — 밑줄 + 부드러운 호버 ── */
-.theme-doc-markdown a:not(.hash-link):not(.card) {
+.theme-doc-markdown a:not(.hash-link):not(.card):not([data-ep-action]) {
   text-decoration: underline;
   text-decoration-color: var(--ifm-color-primary);
   text-underline-offset: 3px;
   transition: text-decoration-color 0.15s ease;
 }
 
-.theme-doc-markdown a:not(.hash-link):not(.card):hover {
+.theme-doc-markdown a:not(.hash-link):not(.card):not([data-ep-action]):hover {
   text-decoration-color: var(--ifm-color-primary);
 }
 
@@ -1041,7 +1063,7 @@ div[class*="codeBlockTitle"] {
 
 /* ── 문서 제목 아래 메타(수정일·읽기시간) 여백 ── */
 .theme-doc-markdown header {
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
 }
 
 /* ── 이미지 — 캡션 느낌의 여백과 그림자 ── */
@@ -1111,3 +1133,17 @@ div[class*="codeBlockTitle"] {
     transition: none;
   }
 }
+
+/* Navigation labels connect the cover and article without shrinking the prose. */
+.theme-doc-breadcrumbs,
+.pagination-nav__sublabel,
+.footer__title {
+  font-family: var(--ep-font-mono);
+  letter-spacing: 0.025em;
+}
+.theme-doc-breadcrumbs { margin-bottom: 1.75rem; }
+.theme-doc-sidebar-menu { font-size: 0.875rem; }
+.footer { border-top: 1px solid var(--ep-outline-variant); }
+.footer__title { font-size: 0.875rem; }
+.footer__link-item { line-height: 2; }
+::selection { background: var(--ep-secondary-container); color: var(--ep-on-secondary-container); }
