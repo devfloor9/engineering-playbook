@@ -3,9 +3,9 @@ title: EKS Control Plane Deep Dive — CRD at Scale 종합 가이드
 description: EKS Control Plane 동작 원리를 이해하고, CRD 기반 플랫폼을 안정적으로 확장하기 위한 Provisioned Control Plane 활용법, 모니터링 전략, CRD 설계 베스트 프랙티스
 created: "2026-03-24"
 last_update:
-  date: "2026-06-30"
+  date: 2026-09-18
   author: YoungJoon Jeong
-reading_time: 27
+reading_time: 21
 tags:
   - eks
   - kubernetes
@@ -569,8 +569,8 @@ EKS Console → Cluster 선택 → Observability 탭
 :::info 참고 자료
 
 **AWS 공식 문서:**
-- [Amazon EKS Provisioned Control Plane](https://docs.aws.amazon.com/eks/latest/userguide/provisioned-control-plane.html)
-- [EKS Control Plane Metrics](https://docs.aws.amazon.com/eks/latest/userguide/control-plane-metrics.html)
+- [Amazon EKS Provisioned Control Plane](https://docs.aws.amazon.com/eks/latest/userguide/eks-provisioned-control-plane.html)
+- [EKS Control Plane Metrics](https://docs.aws.amazon.com/eks/latest/userguide/view-raw-metrics.html)
 - [EKS Best Practices — Control Plane](https://docs.aws.amazon.com/eks/latest/best-practices/control-plane.html)
 - [EKS Cluster Insights](https://docs.aws.amazon.com/eks/latest/userguide/cluster-insights.html)
 - [EKS Pricing](https://aws.amazon.com/eks/pricing/)

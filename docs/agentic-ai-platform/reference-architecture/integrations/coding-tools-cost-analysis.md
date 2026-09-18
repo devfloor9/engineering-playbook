@@ -3,9 +3,9 @@ title: 코딩 도구 연동 & 비용 분석
 description: Aider, Cline, Continue.dev 연동 + Bedrock vs Kiro vs 자체 호스팅 비용 비교
 created: "2026-04-06"
 last_update:
-  date: "2026-07-17"
+  date: 2026-09-18
   author: YoungJoon Jeong
-reading_time: 17
+reading_time: 13
 tags:
   - aider
   - cline
@@ -433,7 +433,7 @@ graph TD
 |------|------|
 | Aider 공식 문서 | [aider.chat](https://aider.chat) |
 | Continue.dev 문서 | [continue.dev](https://www.continue.dev/) |
-| Bifrost Gateway | [getbifrost.ai](https://getbifrost.ai/) |
+| Bifrost Gateway | [Bifrost](https://www.getmaxim.ai/bifrost) |
 | Langfuse Observability | [langfuse.com](https://langfuse.com/) |
 | Kiro 가격 정책 | [kiro.dev/pricing](https://kiro.dev/pricing) |
 | AWS Bedrock Pricing | [aws.amazon.com/bedrock/pricing](https://aws.amazon.com/bedrock/pricing/) |

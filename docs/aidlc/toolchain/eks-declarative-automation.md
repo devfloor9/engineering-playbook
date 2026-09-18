@@ -3,9 +3,9 @@ title: EKS 선언적 자동화
 description: AIDLC Construction/Operations를 EKS Capabilities로 구현하는 선언적 자동화 패턴
 created: "2026-04-07"
 last_update:
-  date: "2026-09-18"
+  date: 2026-09-18
   author: YoungJoon Jeong
-reading_time: 16
+reading_time: 15
 tags:
   - aidlc
   - toolchain
@@ -55,7 +55,7 @@ Managed Argo CD는 GitOps를 AWS 인프라에서 관리형으로 운영합니다
 
 ### 참고 자료
 
-- [EKS User Guide: Managed Argo CD](https://docs.aws.amazon.com/eks/latest/userguide/eks-capabilities-argocd.html)
+- [EKS User Guide: Managed Argo CD](https://docs.aws.amazon.com/eks/latest/userguide/argocd.html)
 - [Argo CD Best Practices](https://argo-cd.readthedocs.io/en/stable/operator-manual/declarative-setup/)
 
 ---

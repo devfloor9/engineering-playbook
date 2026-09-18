@@ -3,9 +3,9 @@ title: EKS API Server Authentication/Authorization Guide
 description: Authentication/Authorization best practices for Non-Standard Callers (CI/CD, monitoring, automation) accessing the EKS API Server
 created: "2026-03-24"
 last_update:
-  date: "2026-09-18"
+  date: 2026-09-18
   author: devfloor9
-reading_time: 6
+reading_time: 17
 tags:
   - eks
   - security
@@ -408,4 +408,4 @@ For external systems that need API server access, **IAM Role + Access Entry** is
 - [EKS Pod Identity - AWS Official Documentation](https://docs.aws.amazon.com/eks/latest/userguide/pod-identities.html)
 - [EKS Auto Mode - AWS Official Documentation](https://docs.aws.amazon.com/eks/latest/userguide/automode.html)
 - [Authenticating Users from an OIDC Identity Provider](https://docs.aws.amazon.com/eks/latest/userguide/authenticate-oidc-identity-provider.html)
-- [Kubernetes TokenRequest API](https://kubernetes.io/docs/reference/kubernetes-api/authentication-resources/token-request-v1/)
+- [Kubernetes Service Accounts and TokenRequest](https://kubernetes.io/docs/reference/access-authn-authz/service-accounts-admin/)

@@ -3,9 +3,9 @@ title: Open-Weight Models
 description: Open-weight model utilization strategies for data residency and cost optimization — on-premises deployment, hybrid configuration, TCO comparison
 created: "2026-04-07"
 last_update:
-  date: "2026-09-18"
+  date: 2026-09-18
   author: devfloor9
-reading_time: 18
+reading_time: 16
 tags:
   - aidlc
   - toolchain
@@ -441,7 +441,7 @@ European AI Act, Korean AI Basic Act, and other regulations require the followin
 
 ### Official Model Documentation
 - [GLM-5 GitHub](https://github.com/zai-org/GLM-5) — Apache 2.0 license
-- [Qwen3 Model Card](https://huggingface.co/Qwen/Qwen3-235B) — MoE architecture details
+- [Qwen3 Model Card](https://huggingface.co/Qwen/Qwen3-235B-A22B) — MoE architecture details
 - [DeepSeek-R1 Paper](https://arxiv.org/abs/2501.12948) — RL training methodology
 - [vLLM Documentation](https://docs.vllm.ai/en/v0.18.2/) — Serving optimization
 

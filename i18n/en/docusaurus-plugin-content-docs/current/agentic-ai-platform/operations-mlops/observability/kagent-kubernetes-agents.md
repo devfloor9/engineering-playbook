@@ -3,7 +3,7 @@ title: Kagent - Kubernetes AI Agent Management
 description: Declarative AI agent management architecture and orchestration patterns in Kubernetes using Kagent
 created: "2026-02-05"
 last_update:
-  date: "2026-06-30"
+  date: 2026-09-18
   author: devfloor9
 reading_time: 19
 tags:
@@ -435,7 +435,7 @@ Using Kagent enables declarative management of AI agents in Kubernetes environme
 ### Official Documentation
 - [Kagent Concepts and Design Patterns](https://github.com/kagent-dev/kagent)
 - [KubeAI - Kubernetes AI Platform](https://github.com/substratusai/kubeai)
-- [Bedrock AgentCore](https://docs.aws.amazon.com/bedrock/latest/userguide/agents-core.html)
+- [Bedrock AgentCore](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/what-is-bedrock-agentcore.html)
 - [LangGraph Platform](https://langchain-ai.github.io/langgraph/)
 - [Kubernetes Operator Pattern](https://kubernetes.io/docs/concepts/extend-kubernetes/operator/)
 - [KEDA Documentation](https://keda.sh/docs/)

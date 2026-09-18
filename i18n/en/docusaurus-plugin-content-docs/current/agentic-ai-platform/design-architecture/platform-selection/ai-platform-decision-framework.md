@@ -3,9 +3,9 @@ title: "AI Platform Selection Guide: Managed vs Open Source vs Hybrid"
 description: Decision framework for selecting the optimal approach between SageMaker Unified Studio, Bedrock AgentCore, and EKS open architecture based on customer needs
 created: "2026-04-17"
 last_update:
-  date: "2026-06-27"
+  date: 2026-09-18
   author: devfloor9
-reading_time: 21
+reading_time: 22
 tags:
   - decision-framework
   - sagemaker
@@ -355,7 +355,7 @@ For detailed analysis of instance costs, Spot savings rates, and Cascade Routing
 
 ### Official Documentation
 
-- [Amazon SageMaker Unified Studio](https://docs.aws.amazon.com/sagemaker/latest/dg/unified-studio.html) — Integrated AI development environment
+- [Amazon SageMaker Unified Studio](https://docs.aws.amazon.com/sagemaker-unified-studio/latest/userguide/what-is-sagemaker-unified-studio.html) — Integrated AI development environment
 - [Amazon Bedrock Documentation](https://docs.aws.amazon.com/bedrock/) — Bedrock official documentation
 - [Amazon EKS Best Practices](https://aws.github.io/aws-eks-best-practices/) — EKS recommendations
 - [AWS Well-Architected Framework](https://aws.amazon.com/architecture/well-architected/) — Architecture framework

@@ -3,9 +3,9 @@ title: EKS API Server 인증/인가 가이드
 description: Non-Standard Caller(CI/CD, 모니터링, 자동화)의 EKS API Server 접근을 위한 인증/인가 Best Practices
 created: "2026-03-24"
 last_update:
-  date: "2026-06-30"
+  date: 2026-09-18
   author: YoungJoon Jeong
-reading_time: 12
+reading_time: 10
 tags:
   - eks
   - security
@@ -407,4 +407,4 @@ flowchart TB
 - [EKS Pod Identity - AWS 공식 문서](https://docs.aws.amazon.com/eks/latest/userguide/pod-identities.html)
 - [EKS Auto Mode - AWS 공식 문서](https://docs.aws.amazon.com/eks/latest/userguide/automode.html)
 - [Authenticating users from an OIDC identity provider](https://docs.aws.amazon.com/eks/latest/userguide/authenticate-oidc-identity-provider.html)
-- [Kubernetes TokenRequest API](https://kubernetes.io/docs/reference/kubernetes-api/authentication-resources/token-request-v1/)
+- [Kubernetes Service Accounts and TokenRequest](https://kubernetes.io/docs/reference/access-authn-authz/service-accounts-admin/)

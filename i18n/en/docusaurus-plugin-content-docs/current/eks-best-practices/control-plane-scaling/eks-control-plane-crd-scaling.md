@@ -3,9 +3,9 @@ title: EKS Control Plane Deep Dive — CRD at Scale Comprehensive Guide
 description: Understand EKS Control Plane internals and learn Provisioned Control Plane usage, monitoring strategies, and CRD design best practices for stable scaling of CRD-based platforms
 created: "2026-03-24"
 last_update:
-  date: "2026-09-18"
+  date: 2026-09-18
   author: devfloor9
-reading_time: 13
+reading_time: 35
 tags:
   - eks
   - kubernetes
@@ -569,8 +569,8 @@ Integrated Monitoring Architecture
 :::info References
 
 **AWS Official Documentation:**
-- [Amazon EKS Provisioned Control Plane](https://docs.aws.amazon.com/eks/latest/userguide/provisioned-control-plane.html)
-- [EKS Control Plane Metrics](https://docs.aws.amazon.com/eks/latest/userguide/control-plane-metrics.html)
+- [Amazon EKS Provisioned Control Plane](https://docs.aws.amazon.com/eks/latest/userguide/eks-provisioned-control-plane.html)
+- [EKS Control Plane Metrics](https://docs.aws.amazon.com/eks/latest/userguide/view-raw-metrics.html)
 - [EKS Best Practices — Control Plane](https://docs.aws.amazon.com/eks/latest/best-practices/control-plane.html)
 - [EKS Cluster Insights](https://docs.aws.amazon.com/eks/latest/userguide/cluster-insights.html)
 - [EKS Pricing](https://aws.amazon.com/eks/pricing/)

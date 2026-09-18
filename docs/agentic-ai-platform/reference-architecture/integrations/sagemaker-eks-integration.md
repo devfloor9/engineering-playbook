@@ -3,9 +3,9 @@ title: SageMaker-EKS 하이브리드 ML 아키텍처
 description: SageMaker에서 학습하고 EKS에서 서빙하는 하이브리드 ML 아키텍처
 created: "2026-02-11"
 last_update:
-  date: "2026-06-28"
+  date: 2026-09-18
   author: YoungJoon Jeong
-reading_time: 5
+reading_time: 4
 tags:
   - sagemaker
   - eks
@@ -841,5 +841,5 @@ SageMaker-EKS 하이브리드 아키텍처는 관리형 학습과 유연한 서�
 - [ArgoCD Documentation](https://argo-cd.readthedocs.io/)
 - [OpenTelemetry Collector](https://opentelemetry.io/docs/collector/)
 - [Langfuse Self-Hosting](https://langfuse.com/docs/deployment/self-host)
-- [AWS Multi-Region Architecture](https://aws.amazon.com/solutions/implementations/multi-region-application-architecture/)
+- [AWS Multi-Region Fundamentals](https://docs.aws.amazon.com/prescriptive-guidance/latest/aws-multi-region-fundamentals/introduction.html)
 

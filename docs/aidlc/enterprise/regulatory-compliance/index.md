@@ -3,9 +3,9 @@ title: AI 규제 컴플라이언스 프레임워크
 description: EU AI Act, NIST AI RMF, ISO/IEC 42001, 한국 AI 기본법 4개 프레임워크의 AIDLC 통합 가이드
 created: "2026-04-18"
 last_update:
-  date: "2026-09-18"
+  date: 2026-09-18
   author: devfloor9
-reading_time: 8
+reading_time: 6
 tags:
   - compliance
   - regulation
@@ -213,7 +213,7 @@ import DocCardList from '@theme/DocCardList';
 
 **NIST AI RMF:**
 - [NIST AI RMF 1.0 (2023.01)](https://www.nist.gov/itl/ai-risk-management-framework)
-- [Executive Order 14110 (White House)](https://www.whitehouse.gov/briefing-room/presidential-actions/2023/10/30/executive-order-on-the-safe-secure-and-trustworthy-development-and-use-of-artificial-intelligence/)
+- [Executive Order 14110 (Federal Register)](https://www.federalregister.gov/documents/2023/11/01/2023-24283/safe-secure-and-trustworthy-development-and-use-of-artificial-intelligence)
 
 **ISO/IEC 42001:**
 - [ISO/IEC 42001:2023 (ISO Store)](https://www.iso.org/standard/81230.html)

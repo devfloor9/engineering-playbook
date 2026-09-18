@@ -3,9 +3,9 @@ title: Technology Roadmap
 description: AIDLC technology investment decision-making — Build-vs-Wait matrix, tool maturity assessment, 6/12/18-month horizons
 created: "2026-04-07"
 last_update:
-  date: "2026-06-30"
+  date: 2026-09-18
   author: devfloor9
-reading_time: 32
+reading_time: 29
 tags:
   - aidlc
   - toolchain
@@ -73,7 +73,7 @@ The following table summarizes maturity, recommendations, and alternative availa
 | **ACK (AWS Controllers for Kubernetes)** | GA (50+ services) | ✅ Immediate Adoption | Declarative AWS resource management. Alternative: Crossplane |
 | **KRO (Kubernetes Resource Orchestrator)** | GA | ✅ Immediate Adoption | Complex Kubernetes resource graph automation. Alternatives: Helm, Kustomize |
 | **Gateway API + LBC v3** | GA | ✅ Immediate Adoption | ExtProc support, AI Gateway foundation. Alternative: Istio + EnvoyFilter |
-| **MCP Servers** | 50+ GA | 🟡 Selective Adoption | Large maturity variance by tool. Adopt only stabilized ones after experimentation. See [mcp.run](https://mcp.run) |
+| **MCP Servers** | Varies by server | 🟡 Selective Adoption | Large maturity variance by tool. Adopt only stabilized ones after experimentation. See [MCP Registry](https://registry.modelcontextprotocol.io) |
 | **Kagent** | Early | 🟠 Experimental | K8s AI Agent automation. Thorough testing before production. Alternative: kubectl + scripts |
 | **Strands Agents SDK** | GA | ✅ For Custom Agents | Bedrock Agents + CDK based. Alternatives: LangGraph, CrewAI |
 | **vLLM** | v0.18+ (Mature) | ✅ For Data Residency | Open-weight model serving. Alternatives: TensorRT-LLM, SGLang |
@@ -120,7 +120,7 @@ See **[AI Coding Agents](./ai-coding-agents.md)** for details.
 - **Recommendation**: Adopt only stability-verified servers (e.g., `@modelcontextprotocol/server-filesystem`, `@modelcontextprotocol/server-github`)
 - **Alternatives**: Direct API integration (without MCP)
 
-MCP server list and evaluation: [mcp.run](https://mcp.run)
+MCP server directory: [MCP Registry](https://registry.modelcontextprotocol.io)
 
 #### Kagent
 - **Maturity**: Early (open-sourced 2025)
@@ -433,7 +433,7 @@ The AIDLC tool ecosystem is rapidly changing. **Review this document quarterly**
 - [AWS Labs AIDLC Workflows (GitHub)](https://github.com/awslabs/aidlc-workflows)
 
 **Tool Evaluation References:**
-- [MCP Servers List](https://mcp.run)
+- [MCP Servers List](https://registry.modelcontextprotocol.io)
 - [CNCF Technology Radar](https://radar.cncf.io/)
 - [ThoughtWorks Technology Radar](https://www.thoughtworks.com/radar)
 

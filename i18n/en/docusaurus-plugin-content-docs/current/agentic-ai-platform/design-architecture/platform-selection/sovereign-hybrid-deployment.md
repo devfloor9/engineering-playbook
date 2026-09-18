@@ -3,9 +3,9 @@ title: "Sovereign & Hybrid Deployment: Data Sovereignty and Region Enforcement"
 description: Agentic AI deployment strategies that meet data sovereignty requirements — SCP region enforcement, Bedrock Geographic cross-Region inference, and EKS Hybrid Nodes-based hybrid/in-country self-hosting
 created: "2026-06-14"
 last_update:
-  date: "2026-06-26"
+  date: 2026-09-18
   author: devfloor9
-reading_time: 21
+reading_time: 19
 tags:
   - sovereignty
   - hybrid
@@ -292,7 +292,7 @@ Data sovereignty is not a single switch but a spectrum from Public → In-countr
 ### Papers / Technical Blogs
 
 - [AWS Well-Architected Generative AI Lens](https://docs.aws.amazon.com/wellarchitected/latest/generative-ai-lens/generative-ai-lens.html) — Generative AI design principles, data governance
-- [Data Residency and Hybrid Cloud Lens](https://docs.aws.amazon.com/wellarchitected/latest/financial-services-industry-lens/data-residency.html) — Data residency design
+- [Financial Services Industry Lens - FSISUS02](https://docs.aws.amazon.com/wellarchitected/latest/financial-services-industry-lens/fsisus02.html) — Data residency design
 - [Amazon EKS Hybrid Nodes](https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-overview.html) — Incorporating on-premises nodes
 
 ### Related Documents (Internal)

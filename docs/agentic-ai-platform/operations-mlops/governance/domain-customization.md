@@ -3,9 +3,9 @@ title: 도메인 특화 (LoRA + RAG)
 description: LoRA Fine-tuning, VectorRAG, GraphRAG로 기술 도메인 코딩 퀄리티를 높이는 가이드 — FSI SI 실전 시나리오 포함
 created: "2026-04-04"
 last_update:
-  date: "2026-07-17"
+  date: 2026-09-18
   author: YoungJoon Jeong
-reading_time: 10
+reading_time: 7
 tags:
   - lora
   - rag
@@ -512,7 +512,7 @@ SI 회사가 **여러 고객을 동일 플랫폼에서 운영**할 때, 고객�
 - [LoRA Paper (Hu et al., 2021)](https://arxiv.org/abs/2106.09685)
 - [QLoRA Paper (Dettmers et al., 2023)](https://arxiv.org/abs/2305.14314)
 - [vLLM Multi-LoRA](https://docs.vllm.ai/en/latest/features/lora/)
-- [Langchain RAG Tutorial](https://python.langchain.com/docs/tutorials/rag/)
+- [LangChain Retrieval and RAG](https://docs.langchain.com/oss/python/langchain/retrieval)
 - [Neo4j GraphRAG](https://neo4j.com/labs/genai-ecosystem/langchain/)
 - [RAGAS Evaluation](https://docs.ragas.io/)
 - [Unsloth Fast Training](https://github.com/unslothai/unsloth)

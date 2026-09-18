@@ -3,9 +3,9 @@ title: Deployment checklist and references
 description: Review pre-deployment checks and the complete reference list.
 created: "2026-02-12"
 last_update:
-  date: "2026-09-18"
+  date: 2026-09-18
   author: devfloor9
-reading_time: 8
+reading_time: 7
 tags:
   - eks
   - kubernetes
@@ -97,5 +97,5 @@ category: operations
 
 - [gRPC Health Checking Protocol](https://github.com/grpc/grpc/blob/master/doc/health-checking.md)
 - [Google Distroless Images](https://github.com/GoogleContainerTools/distroless)
-- [AWS Prescriptive Guidance - Container Image Optimization](https://docs.aws.amazon.com/prescriptive-guidance/latest/patterns/optimize-docker-images-for-eks.html)
+- [EKS Best Practices - Container Image Size](https://docs.aws.amazon.com/eks/latest/best-practices/cost-opt-storage.html)
 - [Learnk8s - Graceful Shutdown](https://learnk8s.io/graceful-shutdown)

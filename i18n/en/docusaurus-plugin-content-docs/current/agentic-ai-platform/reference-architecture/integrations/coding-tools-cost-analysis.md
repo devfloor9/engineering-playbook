@@ -3,9 +3,9 @@ title: Coding Tool Integration & Cost Analysis
 description: Aider, Cline, Continue.dev integration + Bedrock vs Kiro vs self-hosting cost comparison
 created: "2026-04-06"
 last_update:
-  date: "2026-06-26"
+  date: 2026-09-18
   author: devfloor9
-reading_time: 23
+reading_time: 20
 tags:
   - aider
   - cline
@@ -433,7 +433,7 @@ Reference: [Custom Model Pipeline](../model-lifecycle/custom-model-pipeline.md)
 |----------|------|
 | Aider Official Docs | [aider.chat](https://aider.chat) |
 | Continue.dev Docs | [continue.dev](https://www.continue.dev/) |
-| Bifrost Gateway | [getbifrost.ai](https://getbifrost.ai/) |
+| Bifrost Gateway | [Bifrost](https://www.getmaxim.ai/bifrost) |
 | Langfuse Observability | [langfuse.com](https://langfuse.com/) |
 | Kiro Pricing | [kiro.dev/pricing](https://kiro.dev/pricing) |
 | AWS Bedrock Pricing | [aws.amazon.com/bedrock/pricing](https://aws.amazon.com/bedrock/pricing/) |

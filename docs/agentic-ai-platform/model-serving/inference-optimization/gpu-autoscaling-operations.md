@@ -3,9 +3,9 @@ title: GPU 오토스케일링과 대형 모델 배포 운영
 description: LLM 서빙을 위한 2-Tier GPU 오토스케일링(KEDA·Karpenter)·DRA 호환성과 대형 MoE 모델(GLM-5·Kimi K2.5) 배포에서 축적된 실전 운영 교훈
 created: "2026-04-03"
 last_update:
-  date: "2026-09-18"
+  date: 2026-09-18
   author: YoungJoon Jeong
-reading_time: 13
+reading_time: 11
 tags:
   - inference
   - optimization
@@ -355,7 +355,6 @@ GPU NodePool에 `instance-category: [g, p]`를 함께 설정하면, Karpenter가
 - [KEDA Documentation](https://keda.sh/docs/) — Kubernetes Event-driven Autoscaling
 - [Karpenter Documentation](https://karpenter.sh/docs/) — 노드 오토프로비저닝, Disruption, Consolidation
 - [NVIDIA DCGM Exporter](https://github.com/NVIDIA/dcgm-exporter) — GPU 센서 메트릭 수집
-- [SOCI (Seekable OCI)](https://docs.aws.amazon.com/AmazonECR/latest/userguide/container-images-soci.html) — 컨테이너 이미지 lazy-loading
 
 ### 논문·기술 블로그
 - [a16z "The Economics of AI"](https://a16z.com/navigating-the-high-cost-of-ai-compute/) — GPU 비용 구조 분석

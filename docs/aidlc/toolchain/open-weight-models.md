@@ -3,9 +3,9 @@ title: 오픈 웨이트 모델
 description: 데이터 레지던시와 비용 최적화를 위한 오픈 웨이트 모델 활용 전략 — 온프레미스 배포, 하이브리드 구성, TCO 비교
 created: "2026-04-07"
 last_update:
-  date: "2026-09-18"
+  date: 2026-09-18
   author: YoungJoon Jeong
-reading_time: 11
+reading_time: 8
 tags:
   - aidlc
   - toolchain
@@ -441,7 +441,7 @@ class OutputFilter:
 
 ### 모델 공식 문서
 - [GLM-5 GitHub](https://github.com/zai-org/GLM-5) — Apache 2.0 라이선스
-- [Qwen3 Model Card](https://huggingface.co/Qwen/Qwen3-235B) — MoE 아키텍처 상세
+- [Qwen3 Model Card](https://huggingface.co/Qwen/Qwen3-235B-A22B) — MoE 아키텍처 상세
 - [DeepSeek-R1 Paper](https://arxiv.org/abs/2501.12948) — RL 훈련 방법론
 - [vLLM Documentation](https://docs.vllm.ai/en/v0.18.2/) — 서빙 최적화
 
