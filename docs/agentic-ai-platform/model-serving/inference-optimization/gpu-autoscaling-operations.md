@@ -3,7 +3,7 @@ title: GPU 오토스케일링과 대형 모델 배포 운영
 description: LLM 서빙을 위한 2-Tier GPU 오토스케일링(KEDA·Karpenter)·DRA 호환성과 대형 MoE 모델(GLM-5·Kimi K2.5) 배포에서 축적된 실전 운영 교훈
 created: "2026-04-03"
 last_update:
-  date: "2026-07-17"
+  date: "2026-09-18"
   author: YoungJoon Jeong
 reading_time: 13
 tags:
@@ -359,7 +359,7 @@ GPU NodePool에 `instance-category: [g, p]`를 함께 설정하면, Karpenter가
 
 ### 논문·기술 블로그
 - [a16z "The Economics of AI"](https://a16z.com/navigating-the-high-cost-of-ai-compute/) — GPU 비용 구조 분석
-- [AWS Bottlerocket & SOCI](https://aws.amazon.com/blogs/containers/introducing-seekable-oci-for-lazy-loading-container-images/) — 컨테이너 이미지 lazy-loading
+- [SOCI Snapshotter](https://github.com/awslabs/soci-snapshotter) — 컨테이너 이미지 lazy-loading
 - [Spot 인스턴스 운영 가이드 (AWS)](https://aws.amazon.com/ec2/spot/) — Karpenter Spot 중단 대응
 
 ### 관련 문서

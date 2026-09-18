@@ -3,7 +3,7 @@ title: Knowledge Feature Store 확장
 description: 전통 Feature Store에 온톨로지·Knowledge Graph를 통합하여 환각 감소·근거 추적·도메인 엔터티 활용을 강화하는 3-plane 설계
 created: "2026-04-18"
 last_update:
-  date: "2026-07-17"
+  date: "2026-09-18"
   author: YoungJoon Jeong
 reading_time: 12
 tags:
@@ -745,7 +745,7 @@ Knowledge Feature Store는 전통 Feature Store의 **scalar/vector 피처 제공
 
 - [Feast Feature Store](https://feast.dev/) — 오픈소스 Feature Store
 - [SageMaker Feature Store](https://aws.amazon.com/sagemaker/feature-store/) — AWS 관리형 Feature Store
-- [Amazon Neptune Analytics](https://aws.amazon.com/neptune/analytics/) — 서버리스 그래프 분석
+- [Amazon Neptune Analytics](https://docs.aws.amazon.com/neptune-analytics/latest/userguide/what-is-neptune-analytics.html) — 메모리 최적화 그래프 분석
 - [Neo4j Graph Database](https://neo4j.com/) — 그래프 데이터베이스
 
 ### 논문 / 기술 블로그

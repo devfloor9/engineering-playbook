@@ -3,7 +3,7 @@ title: "AIDLC: AI-Driven Development Lifecycle"
 description: AI-Driven Development Lifecycle — AWS Labs 공식 방법론 기반 + DDD·Ontology·Harness 엔터프라이즈 확장
 created: "2026-03-23"
 last_update:
-  date: "2026-06-30"
+  date: "2026-09-18"
   author: devfloor9
 reading_time: 6
 tags:
@@ -97,8 +97,8 @@ AI 생성 코드의 신뢰성을 체계적으로 보장하기 위해 AIDLC는 �
 
 ### 공식 레퍼런스
 - [AWS Labs AIDLC Workflows](https://github.com/awslabs/aidlc-workflows) — 공식 저장소 (v0.1.7)
-- [AWS Labs Common Rules](https://github.com/awslabs/aidlc-workflows/tree/main/aws-aidlc-rule-details/common) — 11개 공통 규칙
-- [AWS Labs Inception Stages](https://github.com/awslabs/aidlc-workflows/tree/main/aws-aidlc-rule-details/inception) — 7 stage Adaptive Execution
-- [AWS Labs Extensions](https://github.com/awslabs/aidlc-workflows/tree/main/aws-aidlc-rule-details/extensions) — opt-in 확장 메커니즘
+- [AWS Labs Common Rules](https://github.com/awslabs/aidlc-workflows/tree/v0.1.7/aidlc-rules/aws-aidlc-rule-details/common) — 11개 공통 규칙
+- [AWS Labs Inception Stages](https://github.com/awslabs/aidlc-workflows/tree/v0.1.7/aidlc-rules/aws-aidlc-rule-details/inception) — 7 stage Adaptive Execution
+- [AWS Labs Extensions](https://github.com/awslabs/aidlc-workflows/tree/v0.1.7/aidlc-rules/aws-aidlc-rule-details/extensions) — opt-in 확장 메커니즘
 - [AWS AI-Driven Development Life Cycle Blog](https://aws.amazon.com/blogs/devops/ai-driven-development-life-cycle/)
 - [Open-Sourcing Adaptive Workflows for AI-DLC](https://aws.amazon.com/blogs/devops/open-sourcing-adaptive-workflows-for-ai-driven-development-life-cycle-ai-dlc/)

@@ -3,7 +3,7 @@ title: Hybrid GPU Workloads and SR-IOV Networking
 description: A hands-on guide to using on-premises GPU nodes as the primary inference tier on EKS Hybrid Nodes, and resolving DGX H200 SR-IOV VF name inconsistency through driver compatibility, persistent naming, and systemd orchestration
 created: "2025-09-01"
 last_update:
-  date: "2026-08-25"
+  date: "2026-09-18"
   author: YoungJoon Jeong
 reading_time: 7
 tags:
@@ -309,13 +309,13 @@ The three-layer solution (driver fix, persistent naming, VF creation orchestrati
 ## References
 
 ### Official Documentation
-- [NVIDIA Linux InfiniBand Drivers Documentation](https://docs.nvidia.com/networking/display/MLNXOFEDv24100000) — Official MLNX_OFED documentation
+- [NVIDIA Linux InfiniBand Drivers Documentation](https://networking-docs.nvidia.com/mlnxofedswum/24.10-5.1.6.1lts) — Official MLNX_OFED documentation
 - [systemd Predictable Network Interface Names](https://www.freedesktop.org/wiki/Software/systemd/PredictableNetworkInterfaceNames/) — systemd predictable network interface naming
 - [Amazon EKS Hybrid Nodes Overview](https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-overview.html) — Official EKS Hybrid Nodes guide
 - [systemd.link Manual Page](https://www.freedesktop.org/software/systemd/man/systemd.link.html) — systemd.link manual
 - [Kubernetes SR-IOV Network Device Plugin](https://github.com/k8snetworkplumbingwg/sriov-network-device-plugin) — SR-IOV Device Plugin repository
 - [SR-IOV CNI Plugin Documentation](https://github.com/k8snetworkplumbingwg/sriov-cni) — SR-IOV CNI plugin documentation
-- [NVIDIA SR-IOV Configuration Guide](https://docs.nvidia.com/networking/display/MLNXOFEDv24100000/SR-IOV) — NVIDIA SR-IOV configuration guide
+- [NVIDIA SR-IOV Configuration Guide](https://networking-docs.nvidia.com/mlnxofedswum/24.10-5.1.6.1lts/single-root-io-virtualization-sr-iov) — NVIDIA SR-IOV configuration guide
 - [NVIDIA Firmware Support and Downloads](https://network.nvidia.com/support/firmware/firmware-downloads/) — NVIDIA firmware downloads
 
 ### Technical Blogs

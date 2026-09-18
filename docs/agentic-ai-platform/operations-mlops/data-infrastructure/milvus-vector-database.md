@@ -3,7 +3,7 @@ title: Milvus 벡터 데이터베이스 통합
 description: Amazon EKS에서 Milvus 벡터 데이터베이스를 배포하고 RAG 파이프라인과 통합하는 방법
 created: "2026-02-05"
 last_update:
-  date: "2026-07-17"
+  date: "2026-09-18"
   author: YoungJoon Jeong
 reading_time: 10
 tags:
@@ -418,7 +418,7 @@ Milvus는 공식 백업 도구(`milvus-backup`)를 제공하여 컬렉션 데이
 - **자동화**: CronJob을 사용한 주기적 백업 및 동기화
 
 :::info 상세 백업 가이드
-백업 도구 설치, 설정 파일 작성, CronJob 구성 등 상세 절차는 [Milvus 백업 및 복원 가이드](https://milvus.io/docs/backup_and_restore.md)를 참조하세요.
+백업 도구 설치, 설정 파일 작성, CronJob 구성 등 상세 절차는 [Milvus 백업 및 복원 가이드](https://milvus.io/docs/milvus_backup_cli.md)를 참조하세요.
 :::
 
 ## 8. 모니터링 및 메트릭
@@ -497,7 +497,7 @@ Milvus Operator 설치, CRD 스키마, GPU 설정 예제는 [Milvus Operator 문
 ### 공식 문서
 - [Milvus 공식 문서](https://milvus.io/docs)
 - [Milvus Helm 차트](https://milvus.io/docs/install_cluster-helm.md)
-- [Milvus 백업 및 복원](https://milvus.io/docs/backup_and_restore.md)
+- [Milvus 백업 및 복원](https://milvus.io/docs/milvus_backup_cli.md)
 - [Milvus 모니터링](https://milvus.io/docs/monitor.md)
 - [Milvus Operator](https://milvus.io/docs/install_cluster-milvusoperator.md)
 

@@ -3,7 +3,7 @@ title: 하이브리드 GPU 워크로드와 SR-IOV 네트워킹
 description: EKS Hybrid Nodes에서 온프렘 GPU 노드를 1차 추론 계층으로 활용하고, DGX H200 SR-IOV VF 이름 불일치 문제를 드라이버 호환성·영구 명명·systemd 오케스트레이션으로 해결하는 실전 가이드
 created: "2025-09-01"
 last_update:
-  date: "2026-08-25"
+  date: "2026-09-18"
   author: YoungJoon Jeong
 reading_time: 7
 tags:
@@ -309,13 +309,13 @@ Amazon EKS Hybrid Nodes를 실행하는 DGX H200 시스템에서 SR-IOV VF 명�
 ## 참고 자료
 
 ### 공식 문서
-- [NVIDIA Linux InfiniBand Drivers Documentation](https://docs.nvidia.com/networking/display/MLNXOFEDv24100000) — MLNX_OFED 공식 문서
+- [NVIDIA Linux InfiniBand Drivers Documentation](https://networking-docs.nvidia.com/mlnxofedswum/24.10-5.1.6.1lts) — MLNX_OFED 공식 문서
 - [systemd Predictable Network Interface Names](https://www.freedesktop.org/wiki/Software/systemd/PredictableNetworkInterfaceNames/) — systemd 예측 가능한 네트워크 인터페이스 명명
 - [Amazon EKS Hybrid Nodes Overview](https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-overview.html) — EKS Hybrid Nodes 공식 가이드
 - [systemd.link Manual Page](https://www.freedesktop.org/software/systemd/man/systemd.link.html) — systemd.link 매뉴얼
 - [Kubernetes SR-IOV Network Device Plugin](https://github.com/k8snetworkplumbingwg/sriov-network-device-plugin) — SR-IOV Device Plugin 저장소
 - [SR-IOV CNI Plugin Documentation](https://github.com/k8snetworkplumbingwg/sriov-cni) — SR-IOV CNI 플러그인 문서
-- [NVIDIA SR-IOV Configuration Guide](https://docs.nvidia.com/networking/display/MLNXOFEDv24100000/SR-IOV) — NVIDIA SR-IOV 구성 가이드
+- [NVIDIA SR-IOV Configuration Guide](https://networking-docs.nvidia.com/mlnxofedswum/24.10-5.1.6.1lts/single-root-io-virtualization-sr-iov) — NVIDIA SR-IOV 구성 가이드
 - [NVIDIA Firmware Support and Downloads](https://network.nvidia.com/support/firmware/firmware-downloads/) — NVIDIA 펌웨어 다운로드
 
 ### 기술 블로그

@@ -3,7 +3,7 @@ title: EKS Declarative Automation
 description: Declarative automation patterns for implementing AIDLC Construction/Operations with EKS Capabilities
 created: "2026-04-07"
 last_update:
-  date: "2026-06-30"
+  date: "2026-09-18"
   author: devfloor9
 reading_time: 25
 tags:
@@ -77,7 +77,7 @@ With ACK, **AWS resources outside the cluster can also be managed with the K8s d
 ### References
 
 - [AWS Controllers for Kubernetes (ACK)](https://aws-controllers-k8s.github.io/community/)
-- [EKS Best Practices: ACK](https://aws.github.io/aws-eks-best-practices/security/docs/ack/)
+- [EKS managed ACK capability](https://docs.aws.amazon.com/eks/latest/userguide/ack.html)
 
 ---
 
@@ -103,7 +103,7 @@ KRO bundles multiple K8s resources into a **single deployment unit (ResourceGrou
 ### References
 
 - [Kubernetes Resource Orchestrator (KRO)](https://github.com/awslabs/kro)
-- [EKS Best Practices: KRO](https://aws.github.io/aws-eks-best-practices/scalability/docs/kro/)
+- [EKS managed kro capability](https://docs.aws.amazon.com/eks/latest/userguide/kro.html)
 
 ---
 

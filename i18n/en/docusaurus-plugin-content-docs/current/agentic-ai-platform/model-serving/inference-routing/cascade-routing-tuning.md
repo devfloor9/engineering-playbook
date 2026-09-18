@@ -3,7 +3,7 @@ title: Cascade Routing Production Tuning
 description: Guide to tuning Inference Gateway Cascade Routing classification thresholds, Canary rollout, Fallback, and cost drift alerts based on production traces
 created: "2026-04-18"
 last_update:
-  date: "2026-06-26"
+  date: "2026-09-18"
   author: devfloor9
 reading_time: 23
 tags:
@@ -975,4 +975,3 @@ STRONG_KEYWORDS = [
 
 ### Related Blogs
 - [LLM Router Pattern: Model Switching](https://markaicode.com/llm-router-pattern-model-switching/)
-- [Cost-Effective LLM Inference with Cascade Routing](https://www.anthropic.com/research/cost-effective-inference)

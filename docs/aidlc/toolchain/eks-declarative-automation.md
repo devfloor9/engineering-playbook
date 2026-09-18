@@ -3,7 +3,7 @@ title: EKS 선언적 자동화
 description: AIDLC Construction/Operations를 EKS Capabilities로 구현하는 선언적 자동화 패턴
 created: "2026-04-07"
 last_update:
-  date: "2026-06-30"
+  date: "2026-09-18"
   author: YoungJoon Jeong
 reading_time: 16
 tags:
@@ -77,7 +77,7 @@ ACK를 사용하면 **클러스터 외부의 AWS 리소스도 K8s 선언적 모�
 ### 참고 자료
 
 - [AWS Controllers for Kubernetes (ACK)](https://aws-controllers-k8s.github.io/community/)
-- [EKS Best Practices: ACK](https://aws.github.io/aws-eks-best-practices/security/docs/ack/)
+- [EKS managed ACK capability](https://docs.aws.amazon.com/eks/latest/userguide/ack.html)
 
 ---
 
@@ -103,7 +103,7 @@ KRO는 여러 K8s 리소스를 **단일 배포 단위(ResourceGroup)**로 묶습
 ### 참고 자료
 
 - [Kubernetes Resource Orchestrator (KRO)](https://github.com/awslabs/kro)
-- [EKS Best Practices: KRO](https://aws.github.io/aws-eks-best-practices/scalability/docs/kro/)
+- [EKS managed kro capability](https://docs.aws.amazon.com/eks/latest/userguide/kro.html)
 
 ---
 

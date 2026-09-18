@@ -3,7 +3,7 @@ title: Knowledge Feature Store Expansion
 description: 3-plane design integrating ontology and Knowledge Graph into traditional Feature Store to reduce hallucinations, enable provenance tracking, and enhance domain entity utilization
 created: "2026-04-18"
 last_update:
-  date: "2026-06-30"
+  date: "2026-09-18"
   author: devfloor9
 reading_time: 14
 tags:
@@ -732,7 +732,7 @@ The Phase 0 schema draft will be reviewed in the 2026-Q2 Ontology session to fin
 
 - [Feast Feature Store](https://feast.dev/)
 - [SageMaker Feature Store](https://aws.amazon.com/sagemaker/feature-store/)
-- [Amazon Neptune Analytics](https://aws.amazon.com/neptune/analytics/)
+- [Amazon Neptune Analytics](https://docs.aws.amazon.com/neptune-analytics/latest/userguide/what-is-neptune-analytics.html)
 - [Neo4j Graph Database](https://neo4j.com/)
 - [Milvus Vector Database](https://milvus.io/)
 - [SKOS Simple Knowledge Organization System](https://www.w3.org/2004/02/skos/)

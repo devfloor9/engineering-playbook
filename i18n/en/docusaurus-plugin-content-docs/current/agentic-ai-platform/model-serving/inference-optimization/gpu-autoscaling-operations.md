@@ -4,7 +4,7 @@ sidebar_label: "Autoscaling & Deployment Ops"
 description: "2-Tier GPU autoscaling (KEDA·Karpenter), DRA compatibility, and operational lessons learned from large MoE model (GLM-5·Kimi K2.5) deployments for LLM serving"
 created: 2026-04-03
 last_update:
-  date: 2026-06-26
+  date: "2026-09-18"
   author: devfloor9
 reading_time: 18
 tags:
@@ -354,7 +354,7 @@ Setting `instance-category: [g, p]` together in GPU NodePool may cause Karpenter
 
 ### Papers & Technical Blogs
 - [a16z "The Economics of AI"](https://a16z.com/navigating-the-high-cost-of-ai-compute/) — GPU cost structure analysis
-- [AWS Bottlerocket & SOCI](https://aws.amazon.com/blogs/containers/introducing-seekable-oci-for-lazy-loading-container-images/) — Container image lazy-loading
+- [SOCI Snapshotter](https://github.com/awslabs/soci-snapshotter) — Container image lazy-loading
 - [Spot Instance Operations Guide (AWS)](https://aws.amazon.com/ec2/spot/) — Karpenter Spot interruption response
 
 ### Related Documentation

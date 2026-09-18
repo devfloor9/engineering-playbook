@@ -3,7 +3,7 @@ title: Extension System
 description: AWS Labs AIDLC Extension System — integrate organization-specific security, compliance, and domain rules into AIDLC workflows via opt-in mechanism
 created: "2026-04-18"
 last_update:
-  date: "2026-06-30"
+  date: "2026-09-18"
   author: devfloor9
 reading_time: 11
 tags:
@@ -477,8 +477,8 @@ Measure whether Extensions actually provide value:
 ## 7. References
 
 ### Official Repositories
-- [AWS Labs AIDLC Extensions](https://github.com/awslabs/aidlc-workflows/tree/main/aws-aidlc-rule-details/extensions) — Built-in extension sources
-- [AWS Labs AIDLC Common Rules](https://github.com/awslabs/aidlc-workflows/tree/main/aws-aidlc-rule-details/common) — Common rules interacting with Extensions
+- [AWS Labs AIDLC Extensions](https://github.com/awslabs/aidlc-workflows/tree/v0.1.7/aidlc-rules/aws-aidlc-rule-details/extensions) — Built-in extension sources
+- [AWS Labs AIDLC Common Rules](https://github.com/awslabs/aidlc-workflows/tree/v0.1.7/aidlc-rules/aws-aidlc-rule-details/common) — Common rules interacting with Extensions
 
 ### Related Documents
 - [Common Rules](../methodology/common-rules.md) — 11 common rules applied with Extensions

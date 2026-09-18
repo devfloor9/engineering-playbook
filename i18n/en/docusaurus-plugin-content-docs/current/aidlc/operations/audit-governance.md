@@ -3,7 +3,7 @@ title: Audit & Governance Logging
 description: AIDLC Checkpoint Approval gates and ISO 8601-based audit logs — Implementation guide for AIDLC audit trails in regulated industries
 created: "2026-04-18"
 last_update:
-  date: "2026-06-30"
+  date: "2026-09-18"
   author: devfloor9
 reading_time: 14
 tags:
@@ -20,7 +20,7 @@ category: aidlc
 
 > 📅 **Date**: 2026-04-18 | ⏱️ **Reading Time**: ~17 minutes
 
-Among AWS Labs [AIDLC Common Rules](https://github.com/awslabs/aidlc-workflows/tree/main/aws-aidlc-rule-details/common), the two rules with the highest governance weight are **Checkpoint Approval (Rule 7)** and **Audit Logging (Rule 8)**. This document is a practical guide for implementing these rules in production environments to meet audit requirements in **regulated industries (finance, healthcare, public sector)**.
+Among AWS Labs [AIDLC Common Rules](https://github.com/awslabs/aidlc-workflows/tree/v0.1.7/aidlc-rules/aws-aidlc-rule-details/common), the two rules with the highest governance weight are **Checkpoint Approval (Rule 7)** and **Audit Logging (Rule 8)**. This document is a practical guide for implementing these rules in production environments to meet audit requirements in **regulated industries (finance, healthcare, public sector)**.
 
 ---
 
@@ -617,7 +617,7 @@ aidlc audit restore-artifact --session <id> --timestamp 2026-03-15T10:00:00Z
 ## 8. References
 
 ### Official Repository
-- [AWS Labs AIDLC Common Rules](https://github.com/awslabs/aidlc-workflows/tree/main/aws-aidlc-rule-details/common) — Checkpoint Approval, Audit Logging original text
+- [AWS Labs AIDLC Common Rules](https://github.com/awslabs/aidlc-workflows/tree/v0.1.7/aidlc-rules/aws-aidlc-rule-details/common) — Checkpoint Approval, Audit Logging original text
 
 ### Related Documentation
 - [Common Rules](../methodology/common-rules.md) — 11Common Rules Complete explanation

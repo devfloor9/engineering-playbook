@@ -3,7 +3,7 @@ title: AIDLC Adaptive Execution
 description: AIDLC 공식 Adaptive Workflows — 조건부 stage 실행 decision tree, Inception 7단계와 Construction per-unit 루프 해설
 created: "2026-04-18"
 last_update:
-  date: "2026-06-30"
+  date: "2026-09-18"
   author: YoungJoon Jeong
 reading_time: 11
 tags:
@@ -522,8 +522,8 @@ workspace_detection (1min)
 ## 8. 참고 자료
 
 ### 공식 저장소
-- [AWS Labs AIDLC Inception Stages](https://github.com/awslabs/aidlc-workflows/tree/main/aws-aidlc-rule-details/inception) — 7 stage 상세 규칙
-- [AWS Labs AIDLC Construction](https://github.com/awslabs/aidlc-workflows/tree/main/aws-aidlc-rule-details/construction) — per-Unit loop 규격
+- [AWS Labs AIDLC Inception Stages](https://github.com/awslabs/aidlc-workflows/tree/v0.1.7/aidlc-rules/aws-aidlc-rule-details/inception) — 7 stage 상세 규칙
+- [AWS Labs AIDLC Construction](https://github.com/awslabs/aidlc-workflows/tree/v0.1.7/aidlc-rules/aws-aidlc-rule-details/construction) — per-Unit loop 규격
 - [Open-Sourcing Adaptive Workflows for AI-DLC (AWS Blog)](https://aws.amazon.com/blogs/devops/open-sourcing-adaptive-workflows-for-ai-driven-development-life-cycle-ai-dlc/) — Adaptive 컨셉 원문
 
 ### 관련 문서

@@ -3,7 +3,7 @@ title: Observability Stack
 description: The data foundation of AIDLC Operations — building 3-Pillar observability + AI analysis layer
 created: "2026-04-07"
 last_update:
-  date: "2026-06-30"
+  date: "2026-09-18"
   author: devfloor9
 reading_time: 27
 tags:
@@ -555,7 +555,7 @@ graph LR
 - [ADOT (AWS Distro for OpenTelemetry) Documentation](https://aws-otel.github.io/docs/introduction)
 - [CloudWatch Container Insights for EKS](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/ContainerInsights.html)
 - [CloudWatch Application Signals](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-Application-Signals.html)
-- [AWS MCP Servers](https://github.com/aws/mcp-servers)
+- [AWS MCP Servers](https://github.com/awslabs/mcp)
 
 **Community Resources**:
 - [OpenTelemetry Operator for Kubernetes](https://opentelemetry.io/docs/kubernetes/operator/)

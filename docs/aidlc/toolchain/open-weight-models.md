@@ -3,7 +3,7 @@ title: 오픈 웨이트 모델
 description: 데이터 레지던시와 비용 최적화를 위한 오픈 웨이트 모델 활용 전략 — 온프레미스 배포, 하이브리드 구성, TCO 비교
 created: "2026-04-07"
 last_update:
-  date: "2026-06-30"
+  date: "2026-09-18"
   author: YoungJoon Jeong
 reading_time: 11
 tags:
@@ -440,7 +440,7 @@ class OutputFilter:
 - [온톨로지 엔지니어링](../methodology/ontology-engineering.md) — 온톨로지 주입 패턴
 
 ### 모델 공식 문서
-- [GLM-5 GitHub](https://github.com/THUDM/GLM-5) — Apache 2.0 라이선스
+- [GLM-5 GitHub](https://github.com/zai-org/GLM-5) — Apache 2.0 라이선스
 - [Qwen3 Model Card](https://huggingface.co/Qwen/Qwen3-235B) — MoE 아키텍처 상세
 - [DeepSeek-R1 Paper](https://arxiv.org/abs/2501.12948) — RL 훈련 방법론
 - [vLLM Documentation](https://docs.vllm.ai/en/v0.18.2/) — 서빙 최적화
@@ -448,7 +448,6 @@ class OutputFilter:
 ### 비용 분석 도구
 - [AWS Pricing Calculator](https://calculator.aws/) — EKS GPU 인스턴스 비용
 - [Hugging Face LLM Leaderboard](https://huggingface.co/spaces/open-llm-leaderboard/open_llm_leaderboard) — 모델 성능 비교
-- [LLM TCO Calculator](https://github.com/anthropics/llm-tco-calculator) — 자체 호스팅 vs API 비교
 
 ## 다음 단계
 

@@ -3,7 +3,7 @@ title: Open-Weight Models
 description: Open-weight model utilization strategies for data residency and cost optimization — on-premises deployment, hybrid configuration, TCO comparison
 created: "2026-04-07"
 last_update:
-  date: "2026-06-30"
+  date: "2026-09-18"
   author: devfloor9
 reading_time: 18
 tags:
@@ -440,7 +440,7 @@ European AI Act, Korean AI Basic Act, and other regulations require the followin
 - [Ontology Engineering](../methodology/ontology-engineering.md) — Ontology injection patterns
 
 ### Official Model Documentation
-- [GLM-5 GitHub](https://github.com/THUDM/GLM-5) — Apache 2.0 license
+- [GLM-5 GitHub](https://github.com/zai-org/GLM-5) — Apache 2.0 license
 - [Qwen3 Model Card](https://huggingface.co/Qwen/Qwen3-235B) — MoE architecture details
 - [DeepSeek-R1 Paper](https://arxiv.org/abs/2501.12948) — RL training methodology
 - [vLLM Documentation](https://docs.vllm.ai/en/v0.18.2/) — Serving optimization
@@ -448,7 +448,6 @@ European AI Act, Korean AI Basic Act, and other regulations require the followin
 ### Cost Analysis Tools
 - [AWS Pricing Calculator](https://calculator.aws/) — EKS GPU instance costs
 - [Hugging Face LLM Leaderboard](https://huggingface.co/spaces/open-llm-leaderboard/open_llm_leaderboard) — Model performance comparison
-- [LLM TCO Calculator](https://github.com/anthropics/llm-tco-calculator) — Self-hosting vs API comparison
 
 ## Next Steps
 

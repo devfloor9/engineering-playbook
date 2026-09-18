@@ -3,7 +3,7 @@ title: "AWS Native Agentic AI Platform: Agent-Centric Approach with Managed Serv
 description: A platform approach that reduces infrastructure operational burden using Amazon Bedrock, Strands Agents SDK, and AgentCore to focus on agent development
 created: "2026-03-18"
 last_update:
-  date: "2026-06-26"
+  date: "2026-09-18"
   author: devfloor9
 reading_time: 33
 tags:
@@ -676,7 +676,7 @@ CloudWatch Generative AI Observability became **GA in October 2025**. Natively i
 ### Official Documentation
 
 - [Amazon Bedrock AgentCore Documentation](https://docs.aws.amazon.com/bedrock/latest/userguide/agents.html) — AgentCore official guide
-- [Strands Agents SDK (GitHub)](https://github.com/awslabs/strands) — Open-source Agent framework
+- [Strands Agents SDK repository](https://github.com/strands-agents/harness-sdk) — Open-source Agent framework
 - [Model Context Protocol Specification](https://modelcontextprotocol.io/) — MCP protocol specification
 - [AWS MCP Servers (GitHub)](https://github.com/awslabs/mcp) — AWS official MCP servers
 

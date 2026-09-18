@@ -3,7 +3,7 @@ title: AIDLC Evaluation Framework
 description: Agent/LLM 개발 프로세스의 Evaluation-driven Loop — SWE-bench Verified, METR, Ragas, DeepEval, LangSmith, Braintrust, AWS Labs aidlc-evaluator 비교
 created: "2026-04-18"
 last_update:
-  date: "2026-06-30"
+  date: "2026-09-18"
   author: YoungJoon Jeong
 reading_time: 28
 tags:
@@ -519,7 +519,7 @@ def evaluate_trace(trace_id):
 ### 연구 보고서
 
 - METR — Measuring AI Ability to Complete Long Tasks — [metr.org/blog/2025-03-19-measuring-ai-ability-to-complete-long-tasks](https://metr.org/blog/2025-03-19-measuring-ai-ability-to-complete-long-tasks/)
-- METR HCAST — [metr.org/blog/2025-01-27-hcast](https://metr.org/blog/2025-01-27-hcast/)
+- METR HCAST — [HCAST paper](https://metr.org/hcast.pdf)
 
 ### 내부 문서
 
