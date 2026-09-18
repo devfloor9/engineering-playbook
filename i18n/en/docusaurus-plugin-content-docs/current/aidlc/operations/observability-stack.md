@@ -14,6 +14,7 @@ tags:
   - cloudwatch
   - mcp
   - aidlc
+  - scope:ops
 sidebar_label: Observability Stack
 category: aidlc-operations
 ---

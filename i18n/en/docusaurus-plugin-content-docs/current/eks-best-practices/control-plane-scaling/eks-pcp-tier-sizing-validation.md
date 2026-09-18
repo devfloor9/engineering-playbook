@@ -14,6 +14,7 @@ tags:
   - apf
   - clusterloader2
   - etcd
+  - scope:ops
 sidebar_label: PCP Tier Sizing
 sidebar_position: 2
 ---

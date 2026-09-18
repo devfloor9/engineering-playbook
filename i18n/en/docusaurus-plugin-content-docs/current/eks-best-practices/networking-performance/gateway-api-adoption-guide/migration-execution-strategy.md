@@ -12,6 +12,7 @@ tags:
   - migration
   - nginx
   - deployment
+  - scope:tech
 sidebar_label: Migration Execution
 category: performance-networking
 ---

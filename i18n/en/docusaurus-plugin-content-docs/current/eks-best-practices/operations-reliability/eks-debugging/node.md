@@ -13,6 +13,7 @@ tags:
   - debugging
   - troubleshooting
   - karpenter
+  - scope:ops
 sidebar_label: Node
 ---
 

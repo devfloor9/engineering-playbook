@@ -14,6 +14,7 @@ tags:
   - idp
   - mfa
   - financial
+  - scope:ops
 sidebar_label: ROSA Security Compliance
 category: rosa
 ---

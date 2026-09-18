@@ -16,6 +16,7 @@ tags:
   - entity
   - cqrs
   - adr
+  - scope:methodology
 sidebar_label: DDD Integration
 category: aidlc
 ---

@@ -14,6 +14,7 @@ tags:
   - nginx
   - performance
   - eks
+  - scope:tech
 sidebar_label: Report 2. Gateway API [Plan]
 sidebar_position: 2
 category: benchmark

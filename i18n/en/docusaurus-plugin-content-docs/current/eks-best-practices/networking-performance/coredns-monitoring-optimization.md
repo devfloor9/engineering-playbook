@@ -13,6 +13,7 @@ tags:
   - monitoring
   - prometheus
   - performance
+  - scope:tech
 sidebar_label: CoreDNS Monitoring & Optimization
 category: performance-networking
 ---

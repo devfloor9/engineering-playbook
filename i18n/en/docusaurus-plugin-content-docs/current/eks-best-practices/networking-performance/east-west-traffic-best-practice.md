@@ -13,6 +13,7 @@ tags:
   - cost-optimization
   - service-mesh
   - topology-aware-routing
+  - scope:tech
 sidebar_label: East-West Traffic Optimization
 category: performance-networking
 ---

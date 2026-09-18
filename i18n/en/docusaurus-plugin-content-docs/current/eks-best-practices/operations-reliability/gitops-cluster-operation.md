@@ -15,6 +15,7 @@ tags:
   - kubernetes
   - automation
   - infrastructure-as-code
+  - scope:ops
 sidebar_label: GitOps Cluster Operations
 category: observability-monitoring
 ---

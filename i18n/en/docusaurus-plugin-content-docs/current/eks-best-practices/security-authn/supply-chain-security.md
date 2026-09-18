@@ -13,6 +13,7 @@ tags:
   - ecr
   - sigstore
   - sbom
+  - scope:ops
 sidebar_label: Supply Chain Security
 category: security
 ---

@@ -13,6 +13,7 @@ tags:
   - unit
   - bolt
   - methodology
+  - scope:methodology
 sidebar_label: 10 Principles and Execution Model
 category: aidlc
 ---

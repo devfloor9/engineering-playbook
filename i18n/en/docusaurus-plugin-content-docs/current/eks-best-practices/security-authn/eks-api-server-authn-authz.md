@@ -15,6 +15,7 @@ tags:
   - pod-identity
   - oidc
   - rbac
+  - scope:ops
 sidebar_label: API Server AuthN/AuthZ
 ---
 

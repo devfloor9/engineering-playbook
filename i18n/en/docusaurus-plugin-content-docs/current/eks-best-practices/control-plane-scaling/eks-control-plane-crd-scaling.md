@@ -15,6 +15,7 @@ tags:
   - scaling
   - monitoring
   - best-practices
+  - scope:ops
 sidebar_label: Control Plane & CRD Scaling
 sidebar_position: 1
 ---

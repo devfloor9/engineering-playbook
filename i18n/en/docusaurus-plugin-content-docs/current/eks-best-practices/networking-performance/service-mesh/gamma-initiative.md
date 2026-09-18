@@ -11,6 +11,7 @@ tags:
   - gamma
   - service-mesh
   - east-west
+  - scope:tech
 sidebar_label: GAMMA Initiative
 ---
 

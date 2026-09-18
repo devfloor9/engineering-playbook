@@ -17,6 +17,7 @@ tags:
   - eks
   - kv-cache
   - nixl
+  - scope:tech
 sidebar_label: Report 5. Dynamo Inference [New]
 sidebar_position: 5
 category: benchmark

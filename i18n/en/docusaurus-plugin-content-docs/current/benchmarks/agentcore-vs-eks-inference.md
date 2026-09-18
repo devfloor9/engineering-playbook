@@ -17,6 +17,7 @@ tags:
   - litellm
   - inference
   - cost
+  - scope:tech
 sidebar_label: Report 4. AgentCore vs EKS [Plan]
 sidebar_position: 4
 category: benchmark

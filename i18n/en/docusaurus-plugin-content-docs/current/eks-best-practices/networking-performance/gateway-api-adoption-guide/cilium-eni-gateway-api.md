@@ -14,6 +14,7 @@ tags:
   - ebpf
   - networking
   - bgp
+  - scope:tech
 sidebar_label: Cilium ENI + Gateway API
 category: performance-networking
 ---

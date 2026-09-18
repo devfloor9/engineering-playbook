@@ -13,6 +13,7 @@ tags:
   - aws
   - observability
   - cloudwatch
+  - scope:ops
 sidebar_label: Node Monitoring Agent
 category: observability-monitoring
 ---

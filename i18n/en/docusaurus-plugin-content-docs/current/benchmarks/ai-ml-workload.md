@@ -17,6 +17,7 @@ tags:
   - trainium
   - inferentia
   - eks
+  - scope:tech
 sidebar_label: Report 3. AI/ML Serving
 sidebar_position: 3
 category: benchmark

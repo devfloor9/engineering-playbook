@@ -12,6 +12,7 @@ tags:
   - operations
   - monitoring
   - gitops
+  - scope:tech
 sidebar_label: Report 8. Security & Operations [Upcoming]
 sidebar_position: 8
 category: benchmarks
