@@ -5,7 +5,7 @@ created: "2026-02-04"
 last_update:
   date: 2026-09-18
   author: devfloor9
-reading_time: 43
+reading_time: 46
 tags:
   - eks
   - networking
@@ -22,9 +22,11 @@ import { ServiceTypeComparison, LatencyCostComparison, CostSimulation, ScenarioM
 
 ## Overview
 
+Latency and reduction percentages shown below are illustrative planning assumptions, not measurements from this document. Cost estimates depend on region, charged traffic direction, billing units, and usage; verify current rates before budgeting.
+
 This guide describes how to optimize internal service-to-service communication (East-West traffic) on Amazon EKS for **minimum latency** and **cost efficiency**. It progresses from a single cluster to multiple Availability Zones (AZs), then to multi-cluster and multi-account environments.
 
-When the hop count for East-West traffic (service↔service) increases from 1 to 2, p99 latency increases by milliseconds. Crossing an AZ boundary incurs AWS bandwidth charges ($0.01/GB). This guide analyzes options at each layer, from **Kubernetes-native features (Topology Aware Routing and InternalTrafficPolicy) to Cilium ClusterMesh, AWS VPC Lattice, and the Istio service mesh**, and quantitatively compares latency, overhead, and cost.
+Additional hops and cross-AZ transfers can affect East-West latency and cost. Measure the effect for the actual path, load, and service billing model. This guide explains options from **Kubernetes-native features (Topology Aware Routing and InternalTrafficPolicy) to Cilium ClusterMesh, AWS VPC Lattice, and the Istio service mesh**, along with the conditions needed to compare them.
 
 ### Background and Challenges
 
@@ -112,7 +114,7 @@ graph TB
     ALB_ENI_A -.->|"LB distribution"| PodB1
     ALB_ENI_A -.->|"May cross AZs<br/>+$0.01/GB"| PodB2
 
-    PodA2 -->|"① ClusterIP<br/>+ Topology Hints<br/>Stays in the same AZ"| PodB2
+    PodA2 -->|"① ClusterIP<br/>+ Topology Hints<br/>Prefers zone locality"| PodB2
 
     style PodA1 fill:#4A90D9,color:#fff
     style PodA2 fill:#4A90D9,color:#fff
@@ -126,7 +128,7 @@ graph TB
 
 - **ClusterIP path**: Pod → kube-proxy (iptables/IPVS NAT) → target Pod (1 hop)
 - **Internal ALB path**: Pod → AZ-local ALB ENI → target Pod (2 hops)
-- With Topology Aware Routing, the ClusterIP path remains within the same AZ
+- Topology Aware Routing can improve zone locality; hints and fallback behavior do not guarantee same-AZ routing
 :::
 
 ### Multi-Cluster Connectivity Options
@@ -180,7 +182,7 @@ Performance and cost vary with the connectivity method used between services:
 When using an internal load balancer, the differences between instance mode and IP mode affect traffic paths:
 
 - **Instance mode**: LB → NodePort → kube-proxy → Pod. The kube-proxy on the node receiving the NodePort traffic forwards packets to a node in another AZ that hosts the target Pod, **creating cross-AZ communication**
-- **IP mode**: LB → Pod IP directly. Traffic is delivered directly to Pod IPs in each AZ, **reaching Pods in the same AZ without an intermediate node**
+- **IP mode**: LB → Pod IP directly, bypassing an intermediate node. IP targeting alone does not guarantee same-AZ routing; load balancer cross-zone configuration and target availability still determine AZ selection.
 
 :::warning Instance Mode Considerations
 Instance mode increases cross-AZ traffic through NodePort. AWS best practices recommend **IP mode** where possible for internal load balancers to reduce unnecessary inter-AZ traffic. IP mode requires the AWS Load Balancer Controller.
@@ -210,7 +212,7 @@ Instance mode increases cross-AZ traffic through NodePort. AWS best practices re
 
 ### Step 1: Enable Topology Aware Routing
 
-Reducing latency and cost in a multi-AZ environment depends on keeping traffic within the same AZ whenever possible. Enabling Topology Aware Routing in Kubernetes 1.27+ records each endpoint's AZ information (hints) in EndpointSlices. kube-proxy then routes traffic only to Pods in the same zone as the client.
+In a multi-AZ environment, processing requests within the same AZ can reduce latency and transfer charges. Topology Aware Routing allocates endpoint sets to zones through EndpointSlice hints. An assigned zone is not necessarily the endpoint’s physical zone, and kube-proxy falls back to all endpoints when safeguards are not satisfied. It therefore does not guarantee elimination of cross-AZ traffic. See the [official routing conditions](https://kubernetes.io/docs/concepts/services-networking/topology-aware-routing/).
 
 ```yaml
 apiVersion: v1
@@ -236,7 +238,7 @@ spec:
 
 ```bash
 # Check whether topology hints are set on EndpointSlices
-kubectl get endpointslices -l kubernetes.io/service-name=my-service -o yaml
+kubectl get endpointslices -n production -l kubernetes.io/service-name=my-service -o yaml
 
 # Inspect the hints field in the output
 # hints:
@@ -246,9 +248,9 @@ kubectl get endpointslices -l kubernetes.io/service-name=my-service -o yaml
 
 :::warning Topology Aware Routing Requirements
 
-- Each AZ must contain **enough endpoints**
-- If Pods are concentrated in a particular AZ, hints are disabled for the Service and traffic is routed to all endpoints
-- Hints are not generated when the EndpointSlice controller determines that Pod proportions are uneven across AZs
+- Routing works best with **at least three endpoints per zone**; this is guidance, not a guarantee.
+- The allocation heuristic considers each zone’s share of **node allocatable CPU**, not just equal Pod counts.
+- Safeguards can disable hints because of insufficient endpoints, projected overload, or missing node zone/CPU information.
 :::
 
 ### Step 2: Configure InternalTrafficPolicy Local
@@ -274,19 +276,19 @@ spec:
 ```
 
 :::danger InternalTrafficPolicy: Local Considerations
-If the local node has no target Pod, **traffic is dropped**. A Service using this policy must have at least one Pod on every node, or at least on every node that originates calls to the Service. Use Pod Topology Spread or PodAffinity together with this policy.
+If a node has no ready local target endpoint, **requests from that node fail**. Every node that originates calls needs a ready target Pod. Zone-level spread constraints and preferred PodAffinity do not guarantee placement on the same node.
 :::
 
 :::info Topology Aware Routing vs InternalTrafficPolicy
-The two features **cannot be used simultaneously**; select the one that fits the workload:
+The fields can coexist, but kube-proxy does not use topology hints when `internalTrafficPolicy: Local` is set.
 
-- **Multi-AZ environments**: Consider Topology Aware Routing first to ensure distribution at the AZ level
-- **Frequent calls within the same node**: Use InternalTrafficPolicy(Local) with Pod co-location for tightly coupled communication between paired Pods
+- **Multi-AZ environments**: Consider Topology Aware Routing to improve zone locality.
+- **Frequent same-node calls**: Use InternalTrafficPolicy(Local) when node co-location and ready local endpoints can be assured.
 :::
 
 ### Step 3: Pod Topology Spread Constraints
 
-The placement strategy for application replicas determines the effectiveness of topology-based optimization. Each AZ must contain enough endpoints for Topology Aware Routing to work correctly.
+Topology Aware Routing needs enough ready endpoints per zone. The nine-replica example assumes three eligible zones with sufficient capacity. `maxSkew` alone guarantees neither the number of zones nor the number of ready endpoints.
 
 ```yaml
 apiVersion: apps/v1
@@ -295,7 +297,7 @@ metadata:
   name: my-app
   namespace: production
 spec:
-  replicas: 6
+  replicas: 9
   selector:
     matchLabels:
       app: my-app
@@ -332,7 +334,7 @@ spec:
 
 **Co-location with Pod Affinity:**
 
-PodAffinity rules can place frequently communicating services A and B on the same node or in the same AZ:
+This Pod spec fragment prefers the same node as service B. A preferred rule does not enforce co-location and cannot guarantee availability with InternalTrafficPolicy(Local).
 
 ```yaml
 spec:
@@ -345,7 +347,7 @@ spec:
             labelSelector:
               matchLabels:
                 app: service-b
-            topologyKey: topology.kubernetes.io/zone
+            topologyKey: kubernetes.io/hostname
 ```
 
 :::tip Autoscaling Considerations
@@ -356,9 +358,11 @@ During HPA scale-out, Spread Constraints can distribute new Pods. During **scale
 
 DNS lookup delays and failures can unexpectedly increase latency in microservice environments. NodeLocal DNSCache runs a DNS cache agent on each node as a DaemonSet, substantially reducing DNS response times.
 
+The download below is a **template**, not an immediately deployable manifest. Follow the [official NodeLocal DNSCache setup](https://kubernetes.io/docs/tasks/administer-cluster/nodelocaldns/) to substitute the DNS IP/domain and select the kube-proxy iptables/IPVS configuration before applying it. IPVS also requires the kubelet clusterDNS change described there.
+
 ```bash
 # Download and deploy the NodeLocal DNSCache manifest
-kubectl apply -f https://raw.githubusercontent.com/kubernetes/kubernetes/master/cluster/addons/dns/nodelocaldns/nodelocaldns.yaml
+curl -fsSLo nodelocaldns.yaml https://raw.githubusercontent.com/kubernetes/kubernetes/v1.32.0/cluster/addons/dns/nodelocaldns/nodelocaldns.yaml
 ```
 
 Alternatively, use a Helm chart:
@@ -556,17 +560,27 @@ An existing Istio deployment can be extended into a multi-cluster service mesh. 
 
 The simplest multi-cluster connectivity approach registers each cluster's services in a Route53 Private Hosted Zone and accesses them through DNS.
 
+ExternalDNS IAM permissions, private hosted zone filtering and VPC associations, and AWS Load Balancer Controller must already be configured. Adapt the selector and ports to the actual workload.
+
 ```yaml
-# Example ExternalDNS configuration
 apiVersion: v1
 kind: Service
 metadata:
   name: my-service
+  namespace: production
   annotations:
     external-dns.alpha.kubernetes.io/hostname: my-service.internal.example.com
+    service.beta.kubernetes.io/aws-load-balancer-scheme: internal
+    service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: ip
 spec:
   type: LoadBalancer
-  ...
+  loadBalancerClass: service.k8s.aws/nlb
+  selector:
+    app: my-app
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8080
 ```
 
 **Suitable for:** 2-3 clusters, infrequent service calls, or disaster recovery configurations
@@ -581,7 +595,7 @@ spec:
 
 ### Cost Simulation for 10 TB/Month of East-West Traffic
 
-Assumptions: An EKS cluster spanning 3 AZs in the same Region, with 10 TB (= 10,240 GB) of total service-to-service traffic
+Assumptions: An EKS cluster spanning 3 AZs in the same Region, using 10,240 GB of total service-to-service traffic for the illustrative calculation (approximately 10 TB)
 
 <CostSimulation />
 
@@ -600,7 +614,7 @@ Assumptions: An EKS cluster spanning 3 AZs in the same Region, with 10 TB (= 10,
 
 ```bash
 # Check EndpointSlice hints
-kubectl get endpointslices -l kubernetes.io/service-name=my-service \
+kubectl get endpointslices -n production -l kubernetes.io/service-name=my-service \
   -o jsonpath='{range .items[*].endpoints[*]}{.addresses}{"\t"}{.zone}{"\t"}{.hints.forZones[*].name}{"\n"}{end}'
 
 # Expected output:
@@ -755,7 +769,7 @@ Traffic is still distributed across AZs
 
 ```bash
 # Check EndpointSlice status
-kubectl get endpointslices -l kubernetes.io/service-name=my-service -o yaml
+kubectl get endpointslices -n production -l kubernetes.io/service-name=my-service -o yaml
 
 # Check Pod distribution across AZs
 kubectl get pods -l app=my-app -o json | \
@@ -768,11 +782,11 @@ kubectl get pods -l app=my-app -o json | \
 
 **Resolution:**
 
-1. Verify that Pods are **evenly distributed across all AZs** (at least 2 per AZ)
-2. Add `topologySpreadConstraints` to the Deployment
-3. Check the conditions under which the EndpointSlice controller generates hints:
-   - Endpoint proportions must be approximately equal across AZs
-   - Hints are not generated when 50% or more of all endpoints are concentrated in one AZ
+1. Check ready endpoints per zone and each zone’s share of node allocatable CPU. Routing generally works best with at least three endpoints per zone.
+2. Add `topologySpreadConstraints` and check eligible zones and capacity.
+3. Check the EndpointSlice controller safeguards.
+   - Allocation considers allocatable CPU proportions and overload thresholds.
+   - There is no rule that disables hints when one AZ holds 50% of endpoints. The approximately 50% figure in the official documentation describes the chance of failing to allocate hints when there are fewer than three endpoints per zone.
 
 ### Issue: Traffic Drops with InternalTrafficPolicy Local
 
@@ -811,6 +825,10 @@ spec:
   # Remove internalTrafficPolicy: Local
   selector:
     app: my-app
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8080
 ```
 
 ### Issue: Cross-AZ Costs Do Not Decrease

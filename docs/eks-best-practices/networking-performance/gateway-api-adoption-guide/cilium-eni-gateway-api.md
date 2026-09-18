@@ -3,9 +3,9 @@ title: Cilium ENI 모드 + Gateway API 심화 구성
 description: Cilium ENI 모드 아키텍처, Gateway API 리소스 구성, 성능 최적화, Hubble 관측성, BGP Control Plane v2 심화 가이드
 created: "2026-02-14"
 last_update:
-  date: "2026-08-29"
+  date: 2026-09-18
   author: YoungJoon Jeong · SiYeon Hwang
-reading_time: 22
+reading_time: 27
 tags:
   - eks
   - cilium
@@ -36,10 +36,10 @@ Cilium ENI 모드는 AWS의 Elastic Network Interface를 직접 활용하여 파
 ### 핵심 특징
 
 **AWS ENI 직접 사용**<br/>
-각 파드가 VPC의 실제 IP 주소를 직접 할당받아 AWS 네트워크 스택과 완전히 통합됩니다. 이를 통해 Security Groups, NACLs, VPC Flow Logs 등 AWS 네이티브 네트워킹 기능을 파드 레벨에서 직접 활용할 수 있습니다.
+각 Pod는 VPC IP를 받습니다. Security Group은 ENI에, NACL은 서브넷에 적용되며 VPC Flow Logs로 흐름을 관찰할 수 있습니다. 이것만으로 AWS VPC CNI의 Security Groups for Pods와 같은 Pod별 Security Group 할당이 제공되는 것은 아닙니다.
 
 **eBPF 기반 고성능 네트워킹**<br/>
-Cilium은 리눅스 커널의 eBPF(extended Berkeley Packet Filter) 기술을 활용하여 패킷 처리를 커널 레벨에서 수행합니다. 이는 전통적인 iptables 기반 솔루션 대비 10배 이상의 성능 향상을 제공하며, CPU 오버헤드를 최소화합니다.
+Cilium은 Linux 커널의 eBPF로 패킷 전달과 Service 처리를 구현합니다. iptables 대비 개선 폭은 트래픽, 규칙 수, 인스턴스와 구성에 따라 달라지며 이 문서에는 이를 측정한 벤치마크가 없습니다.
 
 ```mermaid
 graph TB
@@ -52,7 +52,7 @@ graph TB
     end
 
     subgraph "Cilium eBPF"
-        G[Packet] --> H[XDP Hook]
+        G[Packet] --> H[eBPF hook<br/>경로에 따라 다름]
         H --> I[eBPF Program]
         I --> J[Direct Action]
         J --> K[Packet Out]
@@ -66,7 +66,7 @@ graph TB
 VXLAN이나 Geneve와 같은 오버레이 캡슐화를 사용하지 않고, VPC 라우팅 테이블을 직접 활용합니다. 이를 통해 네트워크 홉을 최소화하고 MTU 문제를 원천적으로 방지합니다.
 
 :::tip
-Cilium ENI 모드는 AWS EKS에서 최고 성능을 달성하기 위한 권장 구성입니다. Datadog의 벤치마크에 따르면, ENI 모드는 오버레이 모드 대비 레이턴시를 40% 감소시키고 처리량을 35% 향상시킵니다.
+ENI 모드는 VPC IP와 네이티브 라우팅이 필요한 EC2 노드에서 고려할 수 있습니다. 기존 Datadog 출처 표기의 40% 지연 감소·35% 처리량 향상은 이를 뒷받침하는 원본 실험을 확인하지 못했으므로 성능 근거로 사용하지 않습니다. 동일한 워크로드와 노드 구성으로 측정하세요.
 :::
 
 ## 2. 아키텍처 오버뷰
@@ -145,10 +145,10 @@ graph LR
 - TLS 패스스루 모드 지원
 
 **2. eBPF TPROXY (Transparent Proxy)**
-- XDP (eXpress Data Path) 계층에서 패킷 가로채기
-- 커널 우회를 통한 초저지연 처리
-- 연결 추적 테이블을 eBPF 맵으로 관리
-- CPU 코어당 독립적인 처리 (락 없는 설계)
+- Service 트래픽을 eBPF로 가로채 TPROXY를 통해 Envoy로 전달
+- Envoy의 L7 처리는 사용자 공간에서 실행되므로 전체 커널 우회가 아님
+- 연결 추적과 Service 상태를 eBPF 맵으로 관리
+- XDP 가속은 지원되는 별도 L4 전달 경로의 옵션이며 TPROXY와 동일한 기능이 아님
 
 **3. Cilium Envoy (L7 Gateway)**
 - Envoy Proxy 기반 L7 처리 엔진
@@ -172,7 +172,7 @@ graph LR
 - AWS VPC 네트워크 인터페이스
 - 인스턴스 타입별 최대 ENI 수 제한 (예: m5.large = 3개)
 - ENI당 최대 IP 수 제한 (예: m5.large = 10개/ENI)
-- Prefix Delegation 사용 시 ENI당 최대 16개 /28 블록
+- IPv4 Prefix Delegation은 /28당 16개 주소를 제공하며, 각 prefix는 ENI의 secondary IPv4 주소 슬롯 하나를 사용
 
 **7. Hubble (Observability)**
 - 네트워크 플로우 실시간 가시화
@@ -194,7 +194,7 @@ sequenceDiagram
     C->>NLB: TCP SYN (443)
     NLB->>TPROXY: 헬스체크 기반 노드 선택
 
-    Note over C,POD: 2. 투명 프록시 (XDP)
+    Note over C,POD: 2. 투명 프록시 (TPROXY)
     TPROXY->>TPROXY: eBPF 프로그램 실행<br/>연결 추적 맵 업데이트
     TPROXY->>ENVOY: 로컬 Envoy로 리다이렉트
 
@@ -216,10 +216,10 @@ sequenceDiagram
 - Flow Hash 알고리즘으로 연결 고정성 유지 (5-tuple 기반)
 
 **단계 2: 투명 프록시 (eBPF TPROXY)**
-- XDP 훅에서 패킷을 가로채고 연결 추적 맵 조회
+- eBPF로 Service 트래픽을 가로채고 연결 추적 상태 확인
 - 신규 연결인 경우 로컬 Envoy 리스너로 투명하게 리다이렉트
 - 기존 연결인 경우 맵에서 목적지 정보를 읽어 빠른 전달
-- 모든 처리가 커널 공간에서 완료되어 컨텍스트 스위칭 없음
+- L7 처리는 사용자 공간 Envoy로 전달하므로 컨텍스트 스위치가 발생
 
 **단계 3: L7 라우팅 (Cilium Envoy)**
 - HTTP/2 프로토콜 파싱 및 요청 헤더 추출
@@ -246,7 +246,7 @@ Cilium ENI 모드를 성공적으로 배포하기 위해서는 다음 요구사�
 <EksRequirementsTable />
 
 :::warning
-신규 클러스터를 생성할 때 반드시 `--bootstrapSelfManagedAddons false` 플래그를 사용해야 합니다. 이를 통해 AWS VPC CNI가 자동 설치되지 않으며, Cilium을 클린하게 배포할 수 있습니다.
+신규 일반 EKS 클러스터는 eksctl 설정의 `addonsConfig.disableDefaultAddons: true`로 기본 VPC CNI, kube-proxy, CoreDNS 설치를 끌 수 있습니다. 이는 Auto Mode의 네트워킹을 교체하는 설정이 아닙니다. 이후 Cilium과 CoreDNS를 별도로 설치해야 합니다.
 
 기존 클러스터에서는 VPC CNI를 제거하는 과정에서 파드 네트워크 연결이 끊기므로, **다운타임을 감수해야 합니다**.
 :::
@@ -301,6 +301,10 @@ Cilium Operator와 Node가 ENI를 관리하기 위해서는 다음 IAM 권한이
         "ec2:AssignPrivateIpAddresses",
         "ec2:UnassignPrivateIpAddresses",
         "ec2:DescribeSubnets",
+        "ec2:DescribeVpcs",
+        "ec2:DescribeRouteTables",
+        "ec2:DescribeTags",
+        "ec2:DescribeInstanceTypes",
         "ec2:DescribeSecurityGroups",
         "ec2:CreateTags"
       ],
@@ -319,6 +323,7 @@ eksctl create iamserviceaccount \
   --namespace kube-system \
   --cluster <클러스터명> \
   --role-name CiliumOperatorRole \
+  --role-only \
   --attach-policy-arn arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy \
   --approve
 
@@ -347,17 +352,9 @@ aws iam attach-role-policy \
 
 :::tip EKS Auto Mode와 Cilium 관계
 
-**EKS Auto Mode** (2024년 12월 GA)는 노드 프로비저닝, 컴퓨팅 용량 관리, 보안 패치를 자동화하는 EKS의 새로운 운영 모드입니다.
+[AWS 공식 문서](https://docs.aws.amazon.com/eks/latest/userguide/auto-networking.html)는 Auto Mode 노드에서 Cilium·Calico 등의 대체 CNI를 지원하지 않는다고 명시합니다. Auto Mode 노드의 내장 네트워킹을 제거하거나 bootstrap 플래그로 Cilium ENI로 바꾸지 마세요.
 
-**Cilium과의 호환성:**
-- ✅ **호환 가능**: EKS Auto Mode는 CNI 플러그인 선택을 제한하지 않음
-- ✅ **Karpenter 통합**: Auto Mode의 노드 프로비저닝은 Karpenter 기반이므로, Cilium ENI 모드와 자연스럽게 통합
-- ⚠️ **주의사항**: Auto Mode에서는 `--bootstrapSelfManagedAddons false` 플래그가 기본값이므로, VPC CNI 충돌 없음
-- 📊 **모니터링**: Auto Mode의 관리형 모니터링은 Hubble 메트릭과 병행 사용 가능
-
-**권장 사항:**
-- 신규 프로젝트: EKS Auto Mode + Cilium ENI 조합 권장
-- 기존 클러스터: 수동 관리에서 Auto Mode로 마이그레이션 시 Cilium 재배포 불필요
+이 장의 설치 예시는 **Auto Mode가 아닌 일반 EKS managed/self-managed EC2 노드**를 대상으로 합니다. Cilium ENI가 필요하면 이 노드 유형을 사용하고, Auto Mode로 전환할 때는 CNI와 워크로드 이동을 별도로 계획해야 합니다. AWS의 EKS Hybrid Nodes용 Cilium 지원 범위와 EC2 노드의 업스트림 Cilium 운영도 구분하세요.
 :::
 
 ## 4. 설치 흐름
@@ -388,7 +385,7 @@ vpc:
 
 # VPC CNI 자동 설치 비활성화 (핵심!)
 addonsConfig:
-  autoApplyPodIdentityAssociations: false
+  disableDefaultAddons: true
 
 managedNodeGroups:
   - name: ng-1
@@ -408,24 +405,22 @@ managedNodeGroups:
     tags:
       nodegroup-name: ng-1
 
-# kube-proxy 비활성화 (Cilium이 대체)
-kubeProxy:
-  disable: true
+# kube-proxy와 CoreDNS도 disableDefaultAddons로 생략됨
 EOF
 
 # 클러스터 생성 (10-15분 소요)
-eksctl create cluster -f cluster-config.yaml --bootstrapSelfManagedAddons false
+eksctl create cluster -f cluster-config.yaml
 ```
 
 :::warning
-`--bootstrapSelfManagedAddons false` 플래그를 **반드시** 포함해야 합니다. 이 플래그가 없으면 VPC CNI가 자동 설치되어 Cilium과 충돌합니다.
+`addonsConfig.disableDefaultAddons: true`가 필요합니다. Cilium과 CoreDNS 설치가 완료되기 전에는 일반 Pod 네트워킹과 DNS가 준비되지 않습니다.
 :::
 
 **Step 2: Gateway API CRDs 설치**
 
 ```bash
-# Gateway API v1.5.1 표준 CRDs 설치
-kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.5.1/standard-install.yaml
+# Cilium 1.19.3 지원 기준: Gateway API v1.4.1
+kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.4.1/standard-install.yaml
 
 # 설치 확인
 kubectl get crd | grep gateway
@@ -447,7 +442,7 @@ helm repo update
 ```
 
 **Step 4: Cilium Helm 설치**
-
+다음 값은 [Cilium 1.19.3 차트](https://github.com/cilium/cilium/blob/v1.19.3/install/kubernetes/cilium/values.yaml) 기준입니다. IRSA 역할, EKS OIDC provider, AWS Load Balancer Controller와 Prometheus Operator의 ServiceMonitor CRD가 먼저 필요합니다. 계정·API 주소를 교체하세요. 9.4절의 별도 추론 Gateway 버전 조합을 이 Cilium 설치의 검증된 호환성으로 간주하지 마세요.
 ```yaml
 # cilium-values.yaml
 # ENI 모드 활성화
@@ -455,19 +450,15 @@ eni:
   enabled: true
   awsEnablePrefixDelegation: true  # /28 Prefix Delegation
   awsReleaseExcessIPs: true        # 미사용 IP 자동 해제
-  updateEC2AdapterLimitViaAPI: true
   iamRole: "arn:aws:iam::123456789012:role/CiliumOperatorRole"
 
 # IPAM 모드를 ENI로 설정
 ipam:
   mode: "eni"
-  operator:
-    clusterPoolIPv4PodCIDRList:
-      - 10.0.0.0/16  # VPC CIDR과 동일
 
 # 네이티브 라우팅 활성화
 routingMode: native
-autoDirectNodeRoutes: true
+autoDirectNodeRoutes: false
 ipv4NativeRoutingCIDR: 10.0.0.0/16
 
 # kube-proxy 대체
@@ -520,7 +511,7 @@ prometheus:
 # 보안 강화
 policyEnforcementMode: "default"
 encryption:
-  enabled: false  # AWS VPC 자체 암호화 사용 시 비활성화
+  enabled: false  # 이 예시는 Pod 트래픽 암호화를 활성화하지 않음
   type: wireguard  # 필요 시 WireGuard 활성화
 
 # 성능 최적화
@@ -533,10 +524,8 @@ bpf:
 # Maglev 로드밸런싱
 loadBalancer:
   algorithm: maglev
-  mode: dsr
-
-# XDP 가속 (지원 NIC 필요)
-enableXDPPrefilter: true
+  mode: snat
+  acceleration: disabled  # XDP는 드라이버·MTU 검증 후 별도 활성화
 ```
 
 ```bash
@@ -548,7 +537,7 @@ API_SERVER=$(aws eks describe-cluster \
 
 # Helm 차트 설치
 helm install cilium cilium/cilium \
-  --version 1.19.0 \
+  --version 1.19.3 \
   --namespace kube-system \
   --values cilium-values.yaml \
   --set k8sServiceHost=${API_SERVER} \
@@ -557,11 +546,11 @@ helm install cilium cilium/cilium \
 
 **Step 5: CoreDNS 설치**
 
-Cilium 설치 시 kube-proxy를 비활성화했으므로, CoreDNS가 아직 없을 수 있습니다.
+`disableDefaultAddons`로 CoreDNS 설치도 생략했으므로 Cilium이 준비된 뒤 EKS add-on으로 설치합니다.
 
 ```bash
 # CoreDNS 배포
-kubectl apply -f https://raw.githubusercontent.com/cilium/cilium/v1.17/examples/kubernetes/addons/coredns/coredns.yaml
+aws eks create-addon --cluster-name cilium-gateway-cluster --addon-name coredns
 
 # CoreDNS 파드 확인
 kubectl get pods -n kube-system -l k8s-app=kube-dns
@@ -604,6 +593,12 @@ Containers:       cilium             Running: 3
 ```
 
 **Step 7: Gateway 리소스 생성**
+`default/tls-cert`에는 호스트 이름과 일치하는 유효한 인증서와 개인 키가 필요합니다. 아래 명령의 파일을 준비한 뒤 실행하세요.
+
+```bash
+kubectl create secret tls tls-cert -n default --cert=tls.crt --key=tls.key
+```
+Cilium 1.19.3은 실제 백엔드 Pod 목록이 아닌 합성 Gateway EndpointSlice(`192.192.192.192:9999`)를 생성합니다. 이 구성에서는 NLB **instance target과 생성된 Service의 NodePort**를 사용합니다. 이후 Envoy→Pod 구간이 ENI IP를 사용합니다. 합성 엔드포인트를 NLB IP target으로 등록하지 마세요. [고정 버전 컨트롤러 소스](https://github.com/cilium/cilium/blob/v1.19.3/operator/pkg/model/translation/gateway-api/translator.go).
 
 ```yaml
 # gateway-resources.yaml
@@ -620,15 +615,15 @@ kind: Gateway
 metadata:
   name: cilium-gateway
   namespace: default
-  annotations:
-    # NLB 생성 어노테이션
-    service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
-    service.beta.kubernetes.io/aws-load-balancer-scheme: "internet-facing"
-    service.beta.kubernetes.io/aws-load-balancer-backend-protocol: "tcp"
-    service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled: "true"
-    service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: "ip"  # ENI IP 직접 사용
 spec:
   gatewayClassName: cilium
+  infrastructure:
+    annotations:
+      service.beta.kubernetes.io/aws-load-balancer-type: external
+      service.beta.kubernetes.io/aws-load-balancer-scheme: internet-facing
+      service.beta.kubernetes.io/aws-load-balancer-backend-protocol: tcp
+      service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled: "true"
+      service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: instance
   listeners:
     - name: http
       protocol: HTTP
@@ -647,22 +642,6 @@ spec:
         certificateRefs:
           - kind: Secret
             name: tls-cert
----
-apiVersion: v1
-kind: Secret
-metadata:
-  name: tls-cert
-  namespace: default
-type: kubernetes.io/tls
-stringData:
-  tls.crt: |
-    -----BEGIN CERTIFICATE-----
-    MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AEXAMPLECERTIFICATE
-    -----END CERTIFICATE-----
-  tls.key: |
-    -----BEGIN EC PARAMETERS-----
-    MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AEXAMPLEKEYDATA
-    -----END EC PARAMETERS-----
 ```
 
 ```bash
@@ -684,7 +663,7 @@ status:
       status: "True"
       reason: Programmed
   addresses:
-    - type: IPAddress
+    - type: Hostname
       value: "a1234567890abcdef.elb.ap-northeast-2.amazonaws.com"
 ```
 
@@ -695,7 +674,7 @@ status:
 :::danger 다운타임 경고
 이 프로세스는 **전체 클러스터의 파드 네트워크를 중단**시킵니다. 프로덕션 환경에서는 블루-그린 클러스터 전환 또는 유지보수 창(maintenance window) 설정을 강력히 권장합니다.
 
-예상 다운타임: **5-10분** (클러스터 크기에 따라 변동)
+다운타임은 이 문서에서 측정하지 않았습니다. 노드 교체·Pod 재생성·검증 시간을 포함해 별도 유지보수 계획을 세우세요.
 :::
 
 **Step 1: 백업 수행**
@@ -724,7 +703,7 @@ kubectl delete daemonset kube-proxy -n kube-system
 
 ```bash
 # 모든 노드에 NoSchedule 테인트 추가
-kubectl get nodes -o name | xargs -I {} kubectl taint node {} key=value:NoSchedule
+kubectl get nodes -o name | xargs -I {} kubectl taint {} key=value:NoSchedule
 ```
 
 **Step 4: Cilium 설치 (신규 클러스터와 동일)**
@@ -732,6 +711,14 @@ kubectl get nodes -o name | xargs -I {} kubectl taint node {} key=value:NoSchedu
 위의 "신규 클러스터" 섹션의 Step 2-7을 동일하게 수행합니다.
 
 **Step 5: 파드 재시작**
+
+워크로드 재시작 전에 Cilium과 DNS를 확인하고 위에서 추가한 임시 taint만 제거하세요. 이 유지보수 개요는 완결된 마이그레이션 runbook이 아닙니다. 관리형 VPC CNI add-on 소유권, StatefulSet·단독 Pod, 롤백과 노드 교체를 실제 클러스터에 맞게 계획해야 합니다.
+
+```bash
+kubectl taint nodes --all key:NoSchedule-
+```
+
+
 
 ```bash
 # 모든 네임스페이스의 파드 재시작 (Rolling Restart)
@@ -838,6 +825,7 @@ metadata:
 spec:
   parentRefs:
     - name: cilium-gateway
+      namespace: default
   hostnames:
     - "api.example.com"
   rules:
@@ -873,6 +861,7 @@ metadata:
 spec:
   parentRefs:
     - name: cilium-gateway
+      namespace: default
   hostnames:
     - "api.example.com"
   rules:
@@ -1064,6 +1053,9 @@ subjects:
 
 ## 6. 성능 최적화
 
+이 절의 지연 다이어그램·비교표·메모리 추정·인스턴스 이점 수치는 **측정하지 않은 설명용 가정**이며 벤치마크나 서비스 보장이 아닙니다. 워크로드·하드웨어·Cilium 버전·측정 방법을 명시해 검증하세요.
+
+
 Cilium ENI 모드에서 최대 성능을 달성하기 위한 튜닝 방법입니다.
 
 ### NLB + Cilium Envoy 조합 이점
@@ -1111,7 +1103,7 @@ graph TB
 ### ENI/IP 관리 최적화
 
 **Prefix Delegation 활성화**<br/>
-단일 IP 할당 대신 /28 블록(16개 IP)을 한 번에 할당받아 ENI 어태치 오버헤드를 줄입니다.
+단일 IP 대신 /28 블록(16개 IP)을 할당합니다. 이는 주소 할당 효율을 높일 수 있지만 ENI 어태치 횟수나 Pod 시작 시간의 고정 개선율을 보장하지 않습니다.
 
 ```yaml
 # cilium-values.yaml (ENI 섹션)
@@ -1121,17 +1113,14 @@ eni:
   # 미사용 IP 초과분 자동 해제 (비용 절감)
   awsReleaseExcessIPs: true
 
-  # 노드당 최소 예약 IP 수
-  minAllocate: 10
-
-  # 사전 할당 IP 수 (파드 스케일 아웃 대비)
-  preAllocate: 8
+# min-allocate/pre-allocate는 Helm의 eni 하위 키가 아니라
+# CiliumNode spec.ipam.min-allocate / spec.ipam.pre-allocate 설정입니다.
 ```
 
 **효과:**
-- ENI 어태치 횟수 최대 16배 감소
-- 파드 시작 시간 30-50% 단축
-- AWS API 호출 횟수 감소 (Rate Limiting 회피)
+- 연속된 /28 블록과 인스턴스의 prefix 지원이 필요
+- CiliumNode IP 풀과 AWS API 지표를 통해 실제 할당 효율 확인
+- ENI 어태치 횟수·시작 지연·API throttling은 워크로드별 측정 필요
 
 **인스턴스 타입별 ENI/IP 한도 확인:**
 
@@ -1146,7 +1135,8 @@ aws ec2 describe-instance-types \
 #   "MaxENI": 4,
 #   "IPv4PerENI": 15
 # }
-# Prefix Delegation 사용 시: 4 ENI × 16 IP/Prefix = 최대 64개 파드
+# 위 한도에서 이론적 주소 슬롯: 4 × (15 - 1) × 16 = 896
+# 실제 Pod 상한은 kubelet maxPods, 사용 ENI/슬롯, 예약·가용 서브넷 주소에 의해 더 낮아짐
 ```
 
 ### BPF 튜닝
@@ -1190,12 +1180,12 @@ bpf:
 # cilium-values.yaml
 loadBalancer:
   algorithm: maglev  # 기본값: random
-  mode: dsr          # Direct Server Return
+  mode: snat
 
-  # Maglev 테이블 크기 (소수여야 함)
-  maglev:
-    tableSize: 65521  # 권장: 65521 (소수)
-    hashSeed: "JLfvgnHc2kaSUFaI"  # 클러스터별 고유 시드
+# Maglev는 최상위 키이며 모든 노드에서 동일한 값 사용
+maglev:
+  tableSize: 65521
+  hashSeed: "JLfvgnHc2kaSUFaI"
 ```
 
 **알고리즘 비교:**
@@ -1203,16 +1193,12 @@ loadBalancer:
 <AlgorithmComparisonTable />
 
 **XDP 가속 (eXpress Data Path)**<br/>
-네트워크 드라이버 레벨에서 패킷을 처리하여 커널 네트워크 스택을 완전히 우회합니다.
+[XDP 가속](https://docs.cilium.io/en/stable/network/kubernetes/kubeproxy-free/#loadbalancer-nodeport-xdp-acceleration)은 원격 노드의 백엔드로 전달하는 지원되는 LoadBalancer/NodePort 경로에 적용됩니다. Gateway의 TPROXY와 Envoy L7 처리를 통째로 우회하지는 않습니다.
 
 ```yaml
 # cilium-values.yaml
-# XDP 프리필터 활성화 (DDoS 방어, 잘못된 패킷 조기 드롭)
-enableXDPPrefilter: true
-
-# XDP 모드 선택
-xdp:
-  mode: native  # native(최고 성능) 또는 generic(호환성)
+loadBalancer:
+  acceleration: native  # 지원 NIC/드라이버, MTU와 채널 수를 먼저 확인
 ```
 
 **XDP 지원 확인:**
@@ -1226,9 +1212,9 @@ ip link show eth0 | grep xdp
 ```
 
 **성능 향상:**
-- 패킷 필터링 성능 10배 이상 향상
-- DDoS 방어 시 CPU 사용량 80% 감소
-- AWS ENA 드라이버 (Nitro 인스턴스)에서 완벽 지원
+- 고정된 성능 향상 배수나 CPU 절감률은 이 문서에서 검증하지 않음
+- AWS ENA는 드라이버 버전, XDP 지원 MTU, 채널 수 제한 확인 필요
+- `cilium-dbg status --verbose`로 실제 XDP 가속 상태 확인
 
 ### 인스턴스 타입 고려사항
 
@@ -1347,23 +1333,25 @@ hubble observe --protocol kafka
 rate(cilium_forward_count_total[5m])
 
 # Drop된 패킷 비율
-rate(cilium_drop_count_total[5m]) / rate(cilium_forward_count_total[5m])
+sum(rate(cilium_drop_count_total[5m]))
+/
+(sum(rate(cilium_drop_count_total[5m])) + sum(rate(cilium_forward_count_total[5m])))
 
 # eBPF 맵 사용률
-cilium_bpf_map_ops_total
+cilium_bpf_map_pressure
 
-# NAT 테이블 사용률
-cilium_nat_max_entries_used / cilium_nat_max_entries_total * 100
+# 가장 포화된 NAT 매핑의 포트 사용률 (%)
+cilium_nat_endpoint_max_connection
 
-# 노드 간 레이턴시 (P99)
-histogram_quantile(0.99, rate(cilium_network_round_trip_time_seconds_bucket[5m]))
+# 노드 health probe 지연 (현재 관측값의 P99, 초)
+histogram_quantile(0.99, sum by (le, type, protocol, address_type) (cilium_node_health_connectivity_latency_seconds_bucket))
 ```
 
 **Gateway 메트릭 (Envoy)**
 
 ```promql
 # 초당 요청 수 (RPS)
-rate(envoy_http_downstream_rq_total{envoy_cluster_name="cilium-gateway"}[5m])
+rate(envoy_http_downstream_rq_total[5m])
 
 # 응답 레이턴시 P95
 histogram_quantile(0.95, rate(envoy_http_downstream_rq_time_bucket[5m]))
@@ -1384,16 +1372,16 @@ envoy_http_downstream_cx_active
 
 ```promql
 # 노드별 사용 중인 ENI 수
-cilium_operator_eni_attached
+cilium_operator_ipam_interface_candidates
 
 # 사용 가능한 IP 주소 수
-cilium_operator_eni_available_ips
+cilium_operator_ipam_available_ips
 
 # IP 할당 속도
-rate(cilium_operator_eni_ip_allocations[5m])
+rate(cilium_operator_ipam_ip_allocation_ops[5m])
 
 # ENI 할당 에러
-rate(cilium_operator_eni_allocation_errors[5m])
+rate(cilium_operator_ipam_allocation_duration_seconds_count{status!="success"}[5m])
 ```
 
 ### Grafana 대시보드
@@ -1423,7 +1411,9 @@ curl -o hubble-dashboard.json https://grafana.com/api/dashboards/16612/revisions
 
 ### Source IP 보존
 
-NLB IP 타겟 모드에서는 클라이언트 IP가 자동으로 보존되지만, Envoy에서 추가 헤더를 통해 확인할 수 있습니다.
+[AWS NLB 문서](https://docs.aws.amazon.com/elasticloadbalancing/latest/network/edit-target-group-attributes.html#client-ip-preservation)에 따르면 TCP/TLS IP target group은 클라이언트 IP 보존이 기본적으로 꺼져 있습니다. 지원되는 네트워크 경로에서 `preserve_client_ip.enabled=true`를 설정해야 Envoy가 원래 클라이언트 IP를 볼 수 있습니다. Cilium Gateway는 `externalTrafficPolicy`가 Cluster 또는 Local인 경우 모두 자신에게 도달한 원격 주소를 보존하지만, NLB가 이미 SNAT한 주소를 복원하지는 못합니다. Envoy는 X-Forwarded-For와 X-Envoy-External-Address를 설정합니다. Proxy Protocol v2는 별도 바이너리 프로토콜이며 XFF 헤더 생성 옵션이 아닙니다.
+
+이 장의 Gateway 예시는 instance target을 사용하며 TCP instance target은 기본적으로 클라이언트 IP를 보존합니다. 위 IP target 기본값은 다른 target 유형의 조건입니다. 아래 속성은 보존 의도를 명시합니다.
 
 **X-Forwarded-For 헤더 추가**
 
@@ -1433,14 +1423,13 @@ apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
 metadata:
   name: cilium-gateway
-  annotations:
-    # NLB IP 타겟 모드 (Source IP 보존)
-    service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: "ip"
-
-    # Envoy에서 X-Forwarded-For 헤더 추가
-    service.beta.kubernetes.io/aws-load-balancer-proxy-protocol: "*"
 spec:
   gatewayClassName: cilium
+  infrastructure:
+    annotations:
+      service.beta.kubernetes.io/aws-load-balancer-type: external
+      service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: instance
+      service.beta.kubernetes.io/aws-load-balancer-target-group-attributes: preserve_client_ip.enabled=true
   listeners:
     - name: https
       protocol: HTTPS
@@ -1452,7 +1441,7 @@ spec:
 ```
 
 **백엔드에서 클라이언트 IP 읽기 (Python 예시)**
-
+이 예시는 백엔드가 신뢰하는 Cilium Gateway에서만 접근 가능하고 Envoy의 trusted-hop 설정이 실제 프록시 체인과 일치한다는 전제입니다. 외부에서 백엔드에 직접 접근할 수 있다면 헤더를 신뢰하지 마세요. TLS passthrough에서는 Envoy가 HTTP 헤더를 설정하지 않습니다.
 ```python
 from flask import Flask, request
 
@@ -1460,21 +1449,11 @@ app = Flask(__name__)
 
 @app.route('/api/info')
 def get_client_ip():
-    # 1순위: X-Forwarded-For 헤더 (프록시 체인)
-    if 'X-Forwarded-For' in request.headers:
-        client_ip = request.headers['X-Forwarded-For'].split(',')[0].strip()
-
-    # 2순위: X-Envoy-External-Address (Envoy가 추가)
-    elif 'X-Envoy-External-Address' in request.headers:
-        client_ip = request.headers['X-Envoy-External-Address']
-
-    # 3순위: 직접 연결 (NLB IP 타겟 모드)
-    else:
-        client_ip = request.remote_addr
-
+    # Trusted Gateway-only backend; do not trust the leftmost client-supplied XFF entry.
+    client_ip = request.headers.get('X-Envoy-External-Address')
     return {
         "client_ip": client_ip,
-        "headers": dict(request.headers)
+        "proxy_peer_ip": request.remote_addr
     }
 ```
 
@@ -1492,10 +1471,10 @@ kubectl get gateway cilium-gateway -o jsonpath='{.status.conditions[?(@.type=="P
 kubectl get httproute -A -o wide
 
 # 4. Envoy 리스너 확인
-kubectl exec -n kube-system ds/cilium -- cilium envoy admin listeners
+kubectl exec -n kube-system ds/cilium -- cilium-dbg envoy admin listeners
 
 # 5. 백엔드 엔드포인트 확인
-kubectl exec -n kube-system ds/cilium -- cilium service list
+kubectl exec -n kube-system ds/cilium -- cilium-dbg service list
 
 # 6. ENI 할당 상태
 kubectl get ciliumnodes -o jsonpath='{range .items[*]}{.metadata.name}{"\t"}{.status.eni.available}{"\t"}{.status.ipam.used}{"\n"}{end}'
@@ -1507,7 +1486,7 @@ hubble observe --all --since 30s
 cilium endpoint list
 
 # 9. BPF 맵 통계
-kubectl exec -n kube-system ds/cilium -- cilium bpf metrics list
+kubectl exec -n kube-system ds/cilium -- cilium-dbg bpf metrics list
 
 # 10. 연결성 테스트
 cilium connectivity test --test egress-gateway,to-cidr
@@ -1518,71 +1497,98 @@ cilium connectivity test --test egress-gateway,to-cidr
 Cilium BGP Control Plane v2는 온프레미스 데이터센터나 하이브리드 환경에서 LoadBalancer IP를 BGP로 광고하는 기능입니다.
 
 :::info
-AWS EKS에서는 NLB를 사용하므로 BGP가 필수는 아니지만, 하이브리드 클라우드 환경에서 온프레미스와 EKS 간 트래픽 라우팅이 필요한 경우 유용합니다.
+AWS NLB 주소를 Cilium에서 BGP로 광고하는 구성은 아닙니다. 아래는 BGP로 도달 가능한 **별도 Service VIP 풀**을 소유·라우팅하는 환경의 구성 예시입니다. `bgpControlPlane.enabled=true`, 선택된 노드, TCP/179 연결, 왕복 데이터 경로와 라우터 설정이 필요하며 Direct Connect/VPN만으로 VIP 라우팅이 자동 구성되지는 않습니다. [Cilium v2 구성](https://docs.cilium.io/en/stable/network/bgp-control-plane/bgp-control-plane-configuration/)을 기준으로 합니다.
 :::
 
 ### CiliumBGPPeeringPolicy CRD
+`CiliumBGPPeeringPolicy`는 이전 v1 API입니다. 이 절의 v2 예시는 다음 세 리소스를 사용합니다. 피어 주소와 ASN은 환경에 맞게 바꾸세요.
 
 ```yaml
-# bgp-peering-policy.yaml
-apiVersion: cilium.io/v2alpha1
-kind: CiliumBGPPeeringPolicy
+apiVersion: cilium.io/v2
+kind: CiliumBGPClusterConfig
 metadata:
   name: bgp-policy
 spec:
-  # 어느 노드에서 BGP 피어링을 수행할지 선택
   nodeSelector:
     matchLabels:
       role: gateway
-
-  # BGP 가상 라우터 설정
-  virtualRouters:
-    - localASN: 64512  # EKS 클러스터의 AS 번호
-      exportPodCIDR: false  # Pod CIDR은 광고하지 않음 (ENI 모드)
-
-      # 광고할 서비스 선택
-      serviceSelector:
+  bgpInstances:
+    - name: gateway
+      localASN: 64512
+      peers:
+        - name: router-1
+          peerAddress: 192.168.1.1
+          peerASN: 64500
+          peerConfigRef:
+            name: on-premises
+        - name: router-2
+          peerAddress: 192.168.1.2
+          peerASN: 64500
+          peerConfigRef:
+            name: on-premises
+---
+apiVersion: cilium.io/v2
+kind: CiliumBGPPeerConfig
+metadata:
+  name: on-premises
+spec:
+  ebgpMultihop: 10
+  timers:
+    connectRetryTimeSeconds: 120
+    holdTimeSeconds: 90
+    keepAliveTimeSeconds: 30
+  families:
+    - afi: ipv4
+      safi: unicast
+      advertisements:
+        matchLabels:
+          advertise: bgp
+---
+apiVersion: cilium.io/v2
+kind: CiliumBGPAdvertisement
+metadata:
+  name: gateway-vips
+  labels:
+    advertise: bgp
+spec:
+  advertisements:
+    - advertisementType: Service
+      service:
+        addresses:
+          - LoadBalancerIP
+      selector:
         matchLabels:
           bgp-advertise: "true"
-
-      # BGP 피어 목록 (온프레미스 라우터)
-      neighbors:
-        - peerAddress: 192.168.1.1/32  # 피어 라우터 IP
-          peerASN: 64500                # 피어 AS 번호
-          eBGPMultihopTTL: 10
-
-          # 연결 유지 타이머
-          connectRetryTimeSeconds: 120
-          holdTimeSeconds: 90
-          keepAliveTimeSeconds: 30
-
-        - peerAddress: 192.168.1.2/32
-          peerASN: 64500
-          eBGPMultihopTTL: 10
 ```
 
 ### LoadBalancer IP 광고
 
+아래 풀의 `10.0.100.50/32`는 라우팅 개념을 보여 주는 예시입니다. 실제 VPC·Pod·Service CIDR과 겹치지 않고 라우터에서 노드로 전달할 수 있는 소유 VIP로 교체해야 합니다. `app: gateway-backend`인 기존 워크로드가 443 포트에서 수신한다고 가정합니다. Cilium Gateway가 자동 생성하는 Service를 대신하는 매니페스트는 아닙니다.
+
 ```yaml
-# service-with-bgp.yaml
+apiVersion: cilium.io/v2
+kind: CiliumLoadBalancerIPPool
+metadata:
+  name: gateway-vips
+spec:
+  blocks:
+    - cidr: 10.0.100.50/32
+  serviceSelector:
+    matchLabels:
+      bgp-advertise: "true"
+---
 apiVersion: v1
 kind: Service
 metadata:
   name: gateway-service
   namespace: default
   labels:
-    bgp-advertise: "true"  # BGP로 광고
-  annotations:
-    # EKS에서는 NLB 사용
-    service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
-
-    # Cilium BGP 설정
-    io.cilium/bgp-announce: "true"
-    io.cilium/bgp-local-pref: "100"
+    bgp-advertise: "true"
 spec:
   type: LoadBalancer
+  loadBalancerClass: io.cilium/bgp-control-plane
   selector:
-    app: cilium-gateway
+    app: gateway-backend
   ports:
     - name: https
       port: 443
@@ -1610,11 +1616,11 @@ graph TB
                 NODE2[Worker Node 2<br/>BGP Speaker<br/>AS 64512]
             end
 
-            NLB[Network Load Balancer<br/>a.b.c.d]
-            ENVOY[Cilium Gateway]
+            NLB[Service VIP<br/>10.0.100.50]
+            ENVOY[Service backend]
 
-            NODE1 -.->|Advertise a.b.c.d/32| ROUTER1
-            NODE2 -.->|Advertise a.b.c.d/32| ROUTER2
+            NODE1 -.->|Advertise VIP /32| ROUTER1
+            NODE2 -.->|Advertise VIP /32| ROUTER2
 
             NLB --> ENVOY
         end
@@ -1638,22 +1644,22 @@ graph TB
 ```
 
 **트래픽 흐름:**
-1. 온프레미스 클라이언트가 EKS의 서비스 IP (a.b.c.d)로 요청
-2. 온프레미스 코어 라우터가 BGP 라우팅 테이블 조회
-3. Direct Connect/VPN을 통해 EKS Gateway 노드로 전달
-4. Cilium Gateway가 요청을 처리하여 백엔드 파드로 라우팅
+1. 온프레미스 클라이언트가 소유 Service VIP로 요청 전송
+2. 온프레미스 라우터가 BGP 경로 선택
+3. 사전 구성된 왕복 네트워크 경로로 Cilium 노드에 전달
+4. Cilium Service 데이터 경로가 준비된 백엔드로 전달
 
 **BGP 상태 확인:**
 
 ```bash
 # BGP 피어 상태 확인
-kubectl get ciliumbgppeeringstatus
+kubectl get ciliumbgpnodeconfigs
 
 # 광고 중인 경로 확인
-kubectl exec -n kube-system ds/cilium -- cilium bgp routes
+cilium bgp routes advertised ipv4 unicast
 
 # 피어 연결 상태
-kubectl exec -n kube-system ds/cilium -- cilium bgp peers
+cilium bgp peers
 ```
 
 **출력 예시:**
@@ -1678,22 +1684,17 @@ AWS VPC CNI는 **VPC 내부의 EC2 인스턴스에서만 동작**합니다. EKS 
 
 하이브리드 노드 환경에서 CNI를 구성하는 방법은 크게 세 가지입니다.
 
-| 구분 | VPC CNI + Calico | VPC CNI + Cilium | Cilium 단일 (권장) |
+| 구분 | VPC CNI + Calico | VPC CNI + Cilium | Cilium Only (별도 검증 필요) |
 |------|-----------------|-----------------|-------------------|
-| 클라우드 노드 CNI | VPC CNI | VPC CNI | Cilium ENI 모드 |
-| 온프레미스 노드 CNI | Calico 별도 설치 | Cilium 별도 설치 | Cilium VXLAN/Native |
-| 온프레미스 네트워킹 | Calico VXLAN/BGP | Cilium VXLAN 또는 BGP | Cilium VXLAN 또는 BGP |
-| CNI 단일화 | ❌ 2개 CNI | ❌ 2개 CNI | ✅ 단일 CNI |
-| 네트워크 정책 엔진 | 이원화 (VPC CNI + Calico) | 이원화 (VPC CNI + Cilium) | 단일 eBPF 엔진 |
-| 관측성 | CloudWatch + 별도 도구 | CloudWatch + Hubble (온프렘만) | Hubble 통합 (전체 클러스터) |
-| Gateway API | 별도 구현체 필요 | 온프렘에서만 Cilium Gateway API | Cilium Gateway API 내장 |
-| eBPF 가속 | ❌ 클라우드 미지원 | ❌ 클라우드 미지원 | ✅ 전체 노드 eBPF |
-| 운영 복잡도 | 높음 (2개 CNI + 2개 정책 엔진) | 중간 (2개 CNI, Cilium 경험 활용) | 낮음 (단일 스택) |
+| 클라우드 노드 CNI | VPC CNI | VPC CNI | 일반 EC2 노드의 Cilium; Auto Mode 제외 |
+| 온프레미스 노드 CNI | Calico | Hybrid Nodes용 Cilium | 클러스터 전체에 호환되는 IPAM/라우팅 설계 필요 |
+| IPAM | 노드 유형별 별도 관리 | VPC CNI와 hybrid cluster-pool 분리 | 단일 설치에서 ENI와 cluster-pool 혼합을 가정하면 안 됨 |
+| 관측성 | CNI별 도구 | 클라우드 도구 + hybrid Hubble | Cilium 구성 범위에 따른 Hubble |
+| Gateway API | 호환 컨트롤러 별도 확인 | Cilium 노드의 Gateway 기능 별도 확인 | CNI 선택만으로 모든 Gateway 기능 지원이 보장되지 않음 |
+| 운영 판단 | 라우팅·정책 검증 필요 | AWS Hybrid Nodes 지원 범위 확인 | 통합만으로 운영 복잡도가 낮다고 단정할 수 없음 |
 
 :::warning 온프레미스 노드의 오버레이 네트워크
-어떤 CNI를 선택하든 **온프레미스 노드에서는 오버레이 네트워크(VXLAN/Geneve)가 기본 구성**입니다. 온프레미스에는 AWS VPC 라우팅 테이블이 없으므로 Pod CIDR 간 통신을 위해 캡슐화가 필요합니다.
-
-오버레이를 제거하려면 **BGP 피어링**이 필요합니다. Cilium BGP Control Plane v2로 Pod CIDR를 온프레미스 라우터에 광고하면 네이티브 라우팅이 가능하지만, 온프레미스 네트워크 장비의 BGP 지원이 전제됩니다.
+온프레미스 Pod CIDR 간 통신은 **overlay 또는 라우팅된 underlay**로 구성할 수 있습니다. Native routing에는 Pod CIDR 왕복 도달성이 필요하며 BGP는 이를 자동화하는 한 방법입니다. 정적 라우팅 등 다른 방식도 가능하므로 BGP가 필수인 것은 아닙니다.
 :::
 
 :::info Admission Webhook 라우팅 문제와 해결 방법
@@ -1706,15 +1707,15 @@ EKS 컨트롤 플레인(AWS VPC 내)이 하이브리드 노드의 웹훅 파드�
 **Pod CIDR가 라우팅 불가능한 경우 (BGP 없이):**
 
 - **웹훅을 클라우드 노드에서 실행** (AWS 공식 권장) — `nodeSelector` 또는 `nodeAffinity`로 웹훅 파드를 클라우드 노드에 고정. API 서버가 VPC 내에서 직접 접근 가능
-- **Cilium 오버레이(VXLAN) 모드를 전체 클러스터에 단일 CNI로 사용** — [참고 아티클](https://medium.com/@the.jfnadeau/eks-cilium-as-the-only-cni-driver-with-simplified-hybrid-nodes-and-admission-webhooks-routing-1f351d11f9dd). 오버레이 모드에서는 노드 IP 간 유니캐스트 통신만 필요하므로, API 서버가 VXLAN 터널을 통해 웹훅 파드에 도달 가능. 단, 클라우드 노드에서 ENI 네이티브 라우팅 이점을 포기해야 함
+- **Overlay만으로 control plane 도달성은 해결되지 않음** — EKS control plane은 Cilium VXLAN 엔드포인트가 아닙니다. Overlay를 사용하더라도 control plane에서 webhook Pod까지 지원되는 라우팅 경로나 AWS 문서의 cloud-node 배치 방식이 필요합니다.
 :::
 
 :::tip Cilium 단일 구성 시 IPAM 고려사항
 Cilium의 `ipam.mode=eni`는 **AWS EC2 인스턴스에서만 동작**합니다. 온프레미스 노드가 포함된 하이브리드 클러스터에서 Cilium 단일 구성을 구현하는 방법은 세 가지입니다.
 
-1. **ClusterMesh (권장)**: 클라우드 클러스터(ENI 모드) + 온프렘 클러스터(cluster-pool 모드)를 별도로 운영하고 [Cilium ClusterMesh](https://docs.cilium.io/en/stable/network/clustermesh/)로 연결. 각 환경에 최적화된 IPAM을 사용하면서 통합 관측성 확보.
-2. **Multi-pool IPAM**: 단일 클러스터에서 노드 레이블 기반으로 다른 IPAM 풀을 할당 (Cilium 1.15+). 클라우드 노드에는 ENI 풀, 온프렘 노드에는 cluster-pool을 사용.
-3. **Cluster-pool IPAM 통일**: ENI 모드를 포기하고 전체를 `cluster-pool` + VXLAN로 운영. 가장 단순하지만 클라우드에서 ENI 네이티브 라우팅 이점을 잃음.
+1. **별도 클러스터 + ClusterMesh**: cloud ENI 클러스터와 on-premises cluster-pool 클러스터를 별도로 운영할 수 있습니다. 이는 단일 EKS Hybrid Nodes 클러스터가 아니며 Pod/노드 도달성과 지원 범위를 검증해야 합니다.
+2. **Multi-pool IPAM**: `ipam.mode=multi-pool`은 CiliumPodIPPool에서 CIDR을 할당합니다. ENI allocator와 cluster-pool allocator를 노드 라벨로 혼합하는 기능이 아닙니다.
+3. **단일 cluster-pool 설계**: 전체 노드를 호환되는 cluster-pool/라우팅으로 구성하는 방안은 별도 검증 대상입니다. EC2 ENI IPAM 이점을 포기하며, control plane의 Pod 도달성도 따로 해결해야 합니다.
 :::
 
 ### 9.2 구성 옵션: Cilium + Gateway + llm-d {#92-권장-아키텍처-cilium--cilium-gateway-api--llm-d}

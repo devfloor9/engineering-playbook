@@ -3,9 +3,9 @@ title: "East-West 트래픽 최적화: 성능과 비용의 균형"
 description: EKS에서 서비스 간 통신(East-West)의 지연시간을 최소화하고 크로스-AZ 비용을 절감하는 심층 최적화 전략. Topology Aware Routing, InternalTrafficPolicy부터 Cilium ClusterMesh, AWS VPC Lattice, Istio 멀티클러스터까지
 created: "2026-02-04"
 last_update:
-  date: "2026-06-30"
+  date: 2026-09-18
   author: YoungJoon Jeong
-reading_time: 22
+reading_time: 26
 tags:
   - eks
   - networking
@@ -22,9 +22,11 @@ import { ServiceTypeComparison, LatencyCostComparison, CostSimulation, ScenarioM
 
 ## 개요
 
+아래 지연과 절감률 수치는 이 문서에서 측정한 결과가 아닌 설명용 계획 가정입니다. 비용은 리전·과금 방향·단위·사용량에 따라 달라지므로 예산 산정 전에 현재 요금을 확인하세요.
+
 Amazon EKS 기반의 내부 서비스 간 통신(East-West 트래픽)을 **지연(latency) 최소화**와 **비용 효율화** 관점에서 최적화하는 방안을 정리합니다. 단일 클러스터에서 시작하여 멀티 AZ(Availability Zone) 구성, 나아가 멀티 클러스터/멀티 계정 환경으로 확장되는 시나리오를 단계적으로 다룹니다.
 
-East-West(서비스↔서비스)의 홉 수가 1 → 2로 늘어나면 p99 지연이 밀리초 단위로 증가하고, AZ를 가로지르면 AWS 대역폭 요금(GB 단가 $0.01)이 발생합니다. 이 가이드는 **Kubernetes 네이티브 기능(Topology Aware Routing·InternalTrafficPolicy)부터 Cilium ClusterMesh, AWS VPC Lattice, Istio 서비스 메쉬**까지 레이어별 옵션을 분석하고, 지연·오버헤드·비용을 정량 비교합니다.
+East-West(서비스↔서비스) 경로의 추가 홉과 AZ 간 전송은 지연과 비용에 영향을 줄 수 있습니다. 실제 영향은 경로·부하·서비스별 과금 방식에 따라 측정합니다. 이 가이드는 **Kubernetes 네이티브 기능(Topology Aware Routing·InternalTrafficPolicy)부터 Cilium ClusterMesh, AWS VPC Lattice, Istio 서비스 메쉬**까지 레이어별 옵션과 비교에 필요한 조건을 설명합니다.
 
 ### 배경 및 문제점
 
@@ -112,7 +114,7 @@ graph TB
     ALB_ENI_A -.->|"LB 분산"| PodB1
     ALB_ENI_A -.->|"cross-AZ 가능<br/>+$0.01/GB"| PodB2
 
-    PodA2 -->|"① ClusterIP<br/>+ Topology Hints<br/>동일 AZ 유지"| PodB2
+    PodA2 -->|"① ClusterIP<br/>+ Topology Hints<br/>Zone 지역성 선호"| PodB2
 
     style PodA1 fill:#4A90D9,color:#fff
     style PodA2 fill:#4A90D9,color:#fff
@@ -126,7 +128,7 @@ graph TB
 
 - **ClusterIP 경로**: Pod → kube-proxy (iptables/IPVS NAT) → target Pod (1 hop)
 - **Internal ALB 경로**: Pod → AZ-local ALB ENI → target Pod (2 hops)
-- Topology Aware Routing 적용 시 ClusterIP 경로는 동일 AZ 내에서 완결됩니다
+- Topology Aware Routing은 Zone 지역성을 개선할 수 있지만 hints와 폴백 동작 때문에 동일 AZ 라우팅을 보장하지 않습니다
 :::
 
 ### 멀티 클러스터 연결 옵션 비교
@@ -180,7 +182,7 @@ graph LR
 Internal LB 사용 시 Instance 모드와 IP 모드의 차이를 이해하는 것이 중요합니다:
 
 - **Instance 모드**: LB → NodePort → kube-proxy → Pod. NodePort를 받은 노드의 kube-proxy가 대상 Pod이 위치한 다른 AZ의 노드로 패킷을 전달하면서 **교차 AZ 통신이 발생**합니다
-- **IP 모드**: LB → Pod IP 직접 연결. 각 AZ에서 Pod IP로 직접 트래픽을 전달하기 때문에 **중간 Node를 거치지 않고 동일 AZ의 Pod으로 연결**됩니다
+- **IP 모드**: 중간 Node를 거치지 않고 LB → Pod IP로 직접 연결합니다. IP target만으로 동일 AZ 라우팅을 보장하지 않으며, LB의 cross-zone 설정과 대상 가용성이 AZ 선택에 영향을 줍니다.
 
 :::warning Instance 모드 주의
 Instance 모드에서는 NodePort 경유로 cross-AZ 트래픽이 증가합니다. AWS 모범사례는 내부 LB 사용 시 가능하면 **IP 모드**로 설정하여 불필요한 AZ 간 트래픽을 줄일 것을 권장합니다. IP 모드를 사용하려면 AWS Load Balancer Controller가 필요합니다.
@@ -210,7 +212,7 @@ Instance 모드에서는 NodePort 경유로 cross-AZ 트래픽이 증가합니�
 
 ### 단계 1: Topology Aware Routing 활성화
 
-멀티 AZ 환경에서 지연과 비용을 줄이는 핵심은 트래픽이 가능한 한 동일 AZ 내에서 처리되도록 하는 것입니다. Kubernetes 1.27+ 버전에서 Topology Aware Routing을 활성화하면, EndpointSlice에 각 엔드포인트의 AZ 정보(hints)가 기록되고 kube-proxy가 클라이언트와 같은 Zone의 Pod으로만 트래픽을 라우팅합니다.
+멀티 AZ 환경에서는 가능한 한 동일 AZ에서 요청을 처리해 지연과 전송 비용을 줄일 수 있습니다. Topology Aware Routing은 EndpointSlice의 hints로 Zone별 엔드포인트 집합을 할당합니다. 이는 엔드포인트의 실제 위치와 항상 같지는 않으며, kube-proxy는 안전 조건을 충족하지 못하면 전체 엔드포인트로 폴백합니다. 따라서 Cross-AZ 트래픽 제거를 보장하지 않습니다. [공식 동작 조건](https://kubernetes.io/docs/concepts/services-networking/topology-aware-routing/)을 함께 확인하세요.
 
 ```yaml
 apiVersion: v1
@@ -236,7 +238,7 @@ spec:
 
 ```bash
 # EndpointSlice에 topology hints가 설정되었는지 확인
-kubectl get endpointslices -l kubernetes.io/service-name=my-service -o yaml
+kubectl get endpointslices -n production -l kubernetes.io/service-name=my-service -o yaml
 
 # 출력에서 hints 필드 확인
 # hints:
@@ -246,9 +248,9 @@ kubectl get endpointslices -l kubernetes.io/service-name=my-service -o yaml
 
 :::warning Topology Aware Routing 동작 조건
 
-- 각 AZ에 **충분한 엔드포인트**가 존재해야 합니다
-- Pod가 특정 AZ에만 치우쳐 있으면 해당 서비스는 힌트를 비활성화하고 전체로 라우팅합니다
-- EndpointSlice 컨트롤러가 AZ별 Pod 비율이 균등하지 않다고 판단하면 hints가 생성되지 않습니다
+- Zone별 **3개 이상의 엔드포인트**가 있을 때 가장 잘 동작합니다. 이는 보장 조건이 아닌 권장 기준입니다.
+- 할당 휴리스틱은 Zone별 **노드의 allocatable CPU 비율**을 고려하며, Pod 수의 균등 분포만 검사하지 않습니다.
+- 엔드포인트 부족, 과부하 임계값 초과 예상, 누락된 노드 Zone/CPU 정보 등의 안전 조건에 따라 hints를 사용하지 않을 수 있습니다.
 :::
 
 ### 단계 2: InternalTrafficPolicy Local 설정
@@ -274,19 +276,19 @@ spec:
 ```
 
 :::danger InternalTrafficPolicy: Local 주의사항
-로컬 노드에 대상 Pod이 하나도 없는 경우 **트래픽이 드롭**됩니다. 이 정책을 사용하는 서비스는 모든 노드(혹은 최소 해당 서비스 호출이 발생하는 노드)에 적어도 하나 이상의 Pod가 배치되어야 합니다. Pod Topology Spread 또는 PodAffinity를 반드시 함께 사용하세요.
+로컬 노드에 준비된 대상 엔드포인트가 없으면 **해당 노드의 요청이 실패**합니다. 호출이 발생하는 모든 노드에 준비된 대상 Pod가 있어야 합니다. AZ 단위 Spread Constraints나 preferred PodAffinity만으로는 동일 노드 공배치를 보장하지 않습니다.
 :::
 
 :::info Topology Aware Routing vs InternalTrafficPolicy
-두 기능은 **동시에 사용할 수 없으며** 선택적으로 적용해야 합니다:
+두 필드는 함께 설정할 수 있지만, `internalTrafficPolicy: Local`이면 kube-proxy는 topology hints를 사용하지 않습니다.
 
-- **멀티 AZ 환경**: 우선 AZ 단위 분산을 보장하는 Topology Aware Routing 고려
-- **같은 노드 내 빈번한 호출**: 짝을 이루는 파드들 간 강한 결합 통신에 InternalTrafficPolicy(Local) + Pod 공배치 활용
+- **멀티 AZ 환경**: AZ 지역성을 개선하려면 Topology Aware Routing을 고려합니다.
+- **같은 노드 내 빈번한 호출**: 노드 공배치와 준비된 로컬 엔드포인트를 보장할 수 있을 때 InternalTrafficPolicy(Local)를 사용합니다.
 :::
 
 ### 단계 3: Pod Topology Spread Constraints
 
-토폴로지 기반 최적화의 효과를 얻으려면 애플리케이션 복제본의 배치 전략이 중요합니다. Topology Aware Routing이 제대로 동작하려면 각 AZ에 충분한 엔드포인트가 존재해야 합니다.
+Topology Aware Routing에는 Zone별 충분한 준비된 엔드포인트가 필요합니다. 아래 9개 복제본 예시는 스케줄 가능한 Zone이 3개이고 용량이 충분하다는 가정입니다. `maxSkew`만으로 Zone 수나 Ready 엔드포인트 수가 보장되지는 않습니다.
 
 ```yaml
 apiVersion: apps/v1
@@ -295,7 +297,7 @@ metadata:
   name: my-app
   namespace: production
 spec:
-  replicas: 6
+  replicas: 9
   selector:
     matchLabels:
       app: my-app
@@ -332,7 +334,7 @@ spec:
 
 **Pod Affinity를 이용한 공동 배치(co-location):**
 
-자주 통신하는 서비스 A와 B를 동일 노드 또는 동일 AZ에 배치하도록 PodAffinity 규칙을 적용할 수 있습니다:
+다음 Pod spec 조각은 서비스 B와 동일 노드에 배치되도록 선호합니다. preferred 규칙은 공배치를 강제하지 않으므로 InternalTrafficPolicy(Local)의 가용성 조건을 충족시키는 보장으로 사용하지 마세요.
 
 ```yaml
 spec:
@@ -345,7 +347,7 @@ spec:
             labelSelector:
               matchLabels:
                 app: service-b
-            topologyKey: topology.kubernetes.io/zone
+            topologyKey: kubernetes.io/hostname
 ```
 
 :::tip 오토스케일링 주의사항
@@ -356,9 +358,11 @@ HPA로 스케일 아웃할 때는 Spread Constraints에 따라 새 파드를 퍼
 
 DNS 조회 지연과 실패는 마이크로서비스 환경에서 예상 외로 지연을 증가시키는 요소가 될 수 있습니다. NodeLocal DNSCache는 각 노드에 DNS 캐시 에이전트를 DaemonSet으로 구동하여 DNS 응답시간을 크게 단축합니다.
 
+아래 다운로드는 **템플릿**이며 바로 배포할 완성 매니페스트가 아닙니다. [공식 NodeLocal DNSCache 설정](https://kubernetes.io/docs/tasks/administer-cluster/nodelocaldns/)에 따라 DNS IP·도메인을 치환하고 kube-proxy iptables/IPVS 구성에 맞춘 뒤 적용하세요. IPVS에서는 문서에 설명된 kubelet clusterDNS 변경도 필요합니다.
+
 ```bash
 # NodeLocal DNSCache 매니페스트 다운로드 및 배포
-kubectl apply -f https://raw.githubusercontent.com/kubernetes/kubernetes/master/cluster/addons/dns/nodelocaldns/nodelocaldns.yaml
+curl -fsSLo nodelocaldns.yaml https://raw.githubusercontent.com/kubernetes/kubernetes/v1.32.0/cluster/addons/dns/nodelocaldns/nodelocaldns.yaml
 ```
 
 또는 Helm 차트를 사용합니다:
@@ -556,17 +560,27 @@ spec:
 
 가장 단순한 멀티클러스터 연결 방법으로, 각 클러스터의 서비스를 Route53 Private Hosted Zone에 등록하고 DNS로 접근합니다.
 
+ExternalDNS의 IAM 권한, Private Hosted Zone 필터와 VPC 연결, AWS Load Balancer Controller가 이미 구성되어 있어야 합니다. selector와 포트는 실제 워크로드에 맞게 바꾸세요.
+
 ```yaml
-# ExternalDNS 설정 예시
 apiVersion: v1
 kind: Service
 metadata:
   name: my-service
+  namespace: production
   annotations:
     external-dns.alpha.kubernetes.io/hostname: my-service.internal.example.com
+    service.beta.kubernetes.io/aws-load-balancer-scheme: internal
+    service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: ip
 spec:
   type: LoadBalancer
-  ...
+  loadBalancerClass: service.k8s.aws/nlb
+  selector:
+    app: my-app
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8080
 ```
 
 **적합한 경우:** 클러스터 2-3개, 서비스 호출이 빈번하지 않은 경우, DR 구성
@@ -581,7 +595,7 @@ spec:
 
 ### 10 TB/월 East-West 트래픽 비용 시뮬레이션
 
-가정: 동일 리전 3-AZ EKS 클러스터, 총 10 TB (= 10,240 GB) 서비스 간 트래픽
+가정: 동일 리전 3-AZ EKS 클러스터, 설명용 계산에 서비스 간 트래픽 10,240 GB 사용 (약 10 TB)
 
 <CostSimulation />
 
@@ -600,7 +614,7 @@ spec:
 
 ```bash
 # EndpointSlice의 hints 확인
-kubectl get endpointslices -l kubernetes.io/service-name=my-service \
+kubectl get endpointslices -n production -l kubernetes.io/service-name=my-service \
   -o jsonpath='{range .items[*].endpoints[*]}{.addresses}{"\t"}{.zone}{"\t"}{.hints.forZones[*].name}{"\n"}{end}'
 
 # 출력 예상:
@@ -755,7 +769,7 @@ EndpointSlice에 hints 필드가 비어있음
 
 ```bash
 # EndpointSlice 상태 확인
-kubectl get endpointslices -l kubernetes.io/service-name=my-service -o yaml
+kubectl get endpointslices -n production -l kubernetes.io/service-name=my-service -o yaml
 
 # AZ별 Pod 분포 확인
 kubectl get pods -l app=my-app -o json | \
@@ -768,11 +782,11 @@ kubectl get pods -l app=my-app -o json | \
 
 **해결 방법:**
 
-1. Pod가 **모든 AZ에 균등 분산**되었는지 확인 (최소 2개 이상/AZ)
-2. `topologySpreadConstraints`를 Deployment에 추가
-3. EndpointSlice 컨트롤러가 hints를 생성하는 조건 확인:
-   - 각 AZ의 엔드포인트 비율이 대략 균등해야 함
-   - 하나의 AZ에 전체 엔드포인트의 50% 이상이 집중되면 hints가 생성되지 않음
+1. Zone별 준비된 엔드포인트 수와 노드의 allocatable CPU 비율을 확인합니다. 일반적으로 Zone별 3개 이상일 때 가장 잘 동작합니다.
+2. `topologySpreadConstraints`를 추가하고 스케줄 가능한 Zone과 용량을 확인합니다.
+3. EndpointSlice 컨트롤러의 안전 조건을 확인합니다.
+   - Zone별 엔드포인트 할당은 allocatable CPU 비율과 과부하 임계값을 고려합니다.
+   - “한 AZ에 50% 이상이면 hints 비활성화”라는 규칙은 없습니다. 공식 문서의 약 50%는 Zone별 엔드포인트가 3개 미만일 때 hints 할당에 실패할 가능성을 설명하는 수치입니다.
 
 ### 문제: InternalTrafficPolicy Local에서 트래픽 드롭
 
@@ -811,6 +825,10 @@ spec:
   # internalTrafficPolicy: Local 제거
   selector:
     app: my-app
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8080
 ```
 
 ### 문제: Cross-AZ 비용이 줄지 않음

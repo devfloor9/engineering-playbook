@@ -5,7 +5,7 @@ created: "2026-02-14"
 last_update:
   date: 2026-09-18
   author: devfloor9
-reading_time: 41
+reading_time: 47
 tags:
   - eks
   - cilium
@@ -36,10 +36,10 @@ Cilium ENI mode is a high-performance networking solution that uses AWS Elastic 
 ### Key Features
 
 **Direct use of AWS ENIs**<br/>
-Each Pod receives an actual VPC IP address, integrating directly with the AWS networking stack. This enables native AWS networking features, including Security Groups, NACLs, and VPC Flow Logs, at the Pod level.
+Each Pod receives a VPC IP. Security groups apply to ENIs, NACLs apply to subnets, and VPC Flow Logs provide flow visibility. This does not by itself provide per-Pod security group assignment equivalent to AWS VPC CNI Security Groups for Pods.
 
 **High-performance networking with eBPF**<br/>
-Cilium uses eBPF (extended Berkeley Packet Filter) in the Linux kernel to process packets at the kernel level. This provides more than a 10-fold performance improvement over traditional iptables-based solutions while minimizing CPU overhead.
+Cilium implements packet forwarding and Service handling with eBPF in the Linux kernel. Improvement over iptables depends on traffic, rule count, instance type, and configuration; this document does not contain a measured comparison.
 
 ```mermaid
 graph TB
@@ -52,7 +52,7 @@ graph TB
     end
 
     subgraph "Cilium eBPF"
-        G[Packet] --> H[XDP Hook]
+        G[Packet] --> H[eBPF hook<br/>Path dependent]
         H --> I[eBPF Program]
         I --> J[Direct Action]
         J --> K[Packet Out]
@@ -66,7 +66,7 @@ graph TB
 ENI mode uses VPC routing tables directly, without overlay encapsulation such as VXLAN or Geneve. This minimizes network hops and prevents MTU issues caused by encapsulation.
 
 :::tip
-Cilium ENI mode is the recommended configuration for achieving the highest performance on AWS EKS. According to Datadog benchmarks, ENI mode reduces latency by 40% and improves throughput by 35% compared with overlay mode.
+Consider ENI mode for EC2 nodes that need VPC IPs and native routing. The previously attributed Datadog figures of 40% lower latency and 35% higher throughput are not supported by an identified original experiment and must not be used as performance evidence. Measure with the same workload and node configuration.
 :::
 
 ## 2. Architecture Overview
@@ -145,10 +145,10 @@ graph LR
 - TLS passthrough mode support
 
 **2. eBPF TPROXY (Transparent Proxy)**
-- Intercepts packets at the XDP (eXpress Data Path) layer
-- Ultra-low-latency processing through kernel bypass
-- Manages connection tracking tables as eBPF maps
-- Independent processing per CPU core with a lock-free design
+- Intercepts Service traffic with eBPF and redirects it to Envoy through TPROXY
+- Envoy performs L7 processing in userspace; this is not a complete kernel bypass
+- Maintains connection tracking and Service state in eBPF maps
+- XDP acceleration is an option for supported L4 forwarding paths, distinct from TPROXY
 
 **3. Cilium Envoy (L7 Gateway)**
 - L7 processing engine based on Envoy Proxy
@@ -172,7 +172,7 @@ graph LR
 - AWS VPC network interface
 - Maximum ENI count depends on the instance type (for example, 3 for m5.large)
 - Maximum IP count per ENI is limited (for example, 10 per ENI for m5.large)
-- Up to 16 /28 blocks per ENI with Prefix Delegation
+- IPv4 prefix delegation provides 16 addresses per /28; each prefix consumes one secondary IPv4 address slot on the ENI
 
 **7. Hubble (Observability)**
 - Real-time visibility into network flows
@@ -194,7 +194,7 @@ sequenceDiagram
     C->>NLB: TCP SYN (443)
     NLB->>TPROXY: Select node based on health checks
 
-    Note over C,POD: 2. Transparent proxying (XDP)
+    Note over C,POD: 2. Transparent proxying (TPROXY)
     TPROXY->>TPROXY: Execute eBPF program<br/>Update connection tracking map
     TPROXY->>ENVOY: Redirect to local Envoy
 
@@ -216,10 +216,10 @@ sequenceDiagram
 - Maintains connection affinity with a flow hash algorithm based on the 5-tuple
 
 **Stage 2: Transparent proxying (eBPF TPROXY)**
-- Intercepts packets at the XDP hook and looks up the connection tracking map
+- Intercepts Service traffic with eBPF and looks up connection tracking state
 - Transparently redirects new connections to the local Envoy listener
 - Reads destination information from the map for fast forwarding of existing connections
-- Completes all processing in kernel space without context switches
+- Redirects to userspace Envoy for L7 processing; context switches still occur
 
 **Stage 3: L7 routing (Cilium Envoy)**
 - Parses HTTP/2 and extracts request headers
@@ -246,7 +246,7 @@ The following requirements must be met to deploy Cilium ENI mode successfully.
 <EksRequirementsTable locale="en" />
 
 :::warning
-When creating a cluster, use the `--bootstrapSelfManagedAddons false` flag. This prevents automatic installation of the AWS VPC CNI and allows a clean Cilium deployment.
+For a new standard EKS cluster, set `addonsConfig.disableDefaultAddons: true` in eksctl to skip the default VPC CNI, kube-proxy, and CoreDNS add-ons. This does not replace Auto Mode networking. Install Cilium and CoreDNS separately afterward.
 
 On an existing cluster, removing the VPC CNI interrupts Pod networking, so **downtime is required**.
 :::
@@ -301,6 +301,10 @@ The Cilium Operator and nodes require the following IAM permissions to manage EN
         "ec2:AssignPrivateIpAddresses",
         "ec2:UnassignPrivateIpAddresses",
         "ec2:DescribeSubnets",
+        "ec2:DescribeVpcs",
+        "ec2:DescribeRouteTables",
+        "ec2:DescribeTags",
+        "ec2:DescribeInstanceTypes",
         "ec2:DescribeSecurityGroups",
         "ec2:CreateTags"
       ],
@@ -319,6 +323,7 @@ eksctl create iamserviceaccount \
   --namespace kube-system \
   --cluster <cluster-name> \
   --role-name CiliumOperatorRole \
+  --role-only \
   --attach-policy-arn arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy \
   --approve
 
@@ -347,17 +352,9 @@ aws iam attach-role-policy \
 
 :::tip EKS Auto Mode and Cilium
 
-**EKS Auto Mode** (GA in December 2024) is a new EKS operating mode that automates node provisioning, compute capacity management, and security patching.
+[AWS documentation](https://docs.aws.amazon.com/eks/latest/userguide/auto-networking.html) explicitly excludes alternate CNIs such as Cilium and Calico on Auto Mode nodes. Do not remove their built-in networking or attempt to replace it with Cilium ENI through a bootstrap flag.
 
-**Compatibility with Cilium:**
-- ✅ **Compatible**: EKS Auto Mode does not restrict the choice of CNI plugin
-- ✅ **Karpenter integration**: Auto Mode node provisioning is based on Karpenter and integrates naturally with Cilium ENI mode
-- ⚠️ **Consideration**: Auto Mode defaults to `--bootstrapSelfManagedAddons false`, avoiding VPC CNI conflicts
-- 📊 **Monitoring**: Auto Mode managed monitoring can be used alongside Hubble metrics
-
-**Recommendations:**
-- New projects: Use EKS Auto Mode with Cilium ENI
-- Existing clusters: Cilium does not need to be redeployed when migrating from manual management to Auto Mode
+The installation examples here target **standard EKS managed/self-managed EC2 nodes outside Auto Mode**. Use those node types when Cilium ENI is required, and plan CNI and workload migration separately when moving to Auto Mode. AWS support for Cilium on EKS Hybrid Nodes is distinct from operating upstream Cilium on EC2 nodes.
 :::
 
 ## 4. Installation Flow
@@ -388,7 +385,7 @@ vpc:
 
 # Disable automatic VPC CNI installation (required)
 addonsConfig:
-  autoApplyPodIdentityAssociations: false
+  disableDefaultAddons: true
 
 managedNodeGroups:
   - name: ng-1
@@ -408,24 +405,22 @@ managedNodeGroups:
     tags:
       nodegroup-name: ng-1
 
-# Disable kube-proxy; Cilium replaces it
-kubeProxy:
-  disable: true
+# disableDefaultAddons also skips kube-proxy and CoreDNS
 EOF
 
 # Create the cluster (takes 10-15 minutes)
-eksctl create cluster -f cluster-config.yaml --bootstrapSelfManagedAddons false
+eksctl create cluster -f cluster-config.yaml
 ```
 
 :::warning
-The `--bootstrapSelfManagedAddons false` flag is **required**. Without it, the VPC CNI is installed automatically and conflicts with Cilium.
+`addonsConfig.disableDefaultAddons: true` is required for this example. Ordinary Pod networking and DNS are not ready until Cilium and CoreDNS have been installed.
 :::
 
 **Step 2: Install Gateway API CRDs**
 
 ```bash
-# Install Gateway API v1.5.1 standard CRDs
-kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.5.1/standard-install.yaml
+# Cilium 1.19.3 compatibility baseline: Gateway API v1.4.1
+kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.4.1/standard-install.yaml
 
 # Verify the installation
 kubectl get crd | grep gateway
@@ -447,7 +442,7 @@ helm repo update
 ```
 
 **Step 4: Install Cilium with Helm**
-
+These values target the [Cilium 1.19.3 chart](https://github.com/cilium/cilium/blob/v1.19.3/install/kubernetes/cilium/values.yaml). Configure the IRSA role, EKS OIDC provider, AWS Load Balancer Controller, and Prometheus Operator ServiceMonitor CRD first. Replace the account and API endpoint values. The separate inference Gateway versions in section 9.4 do not establish compatibility for this Cilium installation.
 ```yaml
 # cilium-values.yaml
 # Enable ENI mode
@@ -455,19 +450,15 @@ eni:
   enabled: true
   awsEnablePrefixDelegation: true  # /28 Prefix Delegation
   awsReleaseExcessIPs: true        # Automatically release unused IPs
-  updateEC2AdapterLimitViaAPI: true
   iamRole: "arn:aws:iam::123456789012:role/CiliumOperatorRole"
 
 # Set the IPAM mode to ENI
 ipam:
   mode: "eni"
-  operator:
-    clusterPoolIPv4PodCIDRList:
-      - 10.0.0.0/16  # Same as the VPC CIDR
 
 # Enable native routing
 routingMode: native
-autoDirectNodeRoutes: true
+autoDirectNodeRoutes: false
 ipv4NativeRoutingCIDR: 10.0.0.0/16
 
 # Replace kube-proxy
@@ -520,7 +511,7 @@ prometheus:
 # Security hardening
 policyEnforcementMode: "default"
 encryption:
-  enabled: false  # Disable when using AWS VPC's own encryption
+  enabled: false  # This example does not enable Pod traffic encryption
   type: wireguard  # Enable WireGuard when required
 
 # Performance optimization
@@ -533,10 +524,8 @@ bpf:
 # Maglev load balancing
 loadBalancer:
   algorithm: maglev
-  mode: dsr
-
-# XDP acceleration (requires a supported NIC)
-enableXDPPrefilter: true
+  mode: snat
+  acceleration: disabled  # Enable XDP separately after driver/MTU validation
 ```
 
 ```bash
@@ -548,7 +537,7 @@ API_SERVER=$(aws eks describe-cluster \
 
 # Install the Helm chart
 helm install cilium cilium/cilium \
-  --version 1.19.0 \
+  --version 1.19.3 \
   --namespace kube-system \
   --values cilium-values.yaml \
   --set k8sServiceHost=${API_SERVER} \
@@ -557,11 +546,11 @@ helm install cilium cilium/cilium \
 
 **Step 5: Install CoreDNS**
 
-CoreDNS may not yet be present because kube-proxy was disabled when installing Cilium.
+Because `disableDefaultAddons` also skipped CoreDNS, install it as an EKS add-on after Cilium is ready.
 
 ```bash
 # Deploy CoreDNS
-kubectl apply -f https://raw.githubusercontent.com/cilium/cilium/v1.17/examples/kubernetes/addons/coredns/coredns.yaml
+aws eks create-addon --cluster-name cilium-gateway-cluster --addon-name coredns
 
 # Check CoreDNS Pods
 kubectl get pods -n kube-system -l k8s-app=kube-dns
@@ -604,6 +593,12 @@ Containers:       cilium             Running: 3
 ```
 
 **Step 7: Create Gateway resources**
+`default/tls-cert` must contain a valid certificate and private key for the hostname. Prepare those files before running:
+
+```bash
+kubectl create secret tls tls-cert -n default --cert=tls.crt --key=tls.key
+```
+Cilium 1.19.3 creates a synthetic Gateway EndpointSlice (`192.192.192.192:9999`), not a list of backend Pod IPs. Use NLB **instance targets and the generated Service NodePorts** here. The subsequent Envoy-to-Pod hop uses ENI IPs. Do not register the synthetic endpoint as an NLB IP target. [Pinned controller source](https://github.com/cilium/cilium/blob/v1.19.3/operator/pkg/model/translation/gateway-api/translator.go).
 
 ```yaml
 # gateway-resources.yaml
@@ -620,15 +615,15 @@ kind: Gateway
 metadata:
   name: cilium-gateway
   namespace: default
-  annotations:
-    # Annotations for NLB creation
-    service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
-    service.beta.kubernetes.io/aws-load-balancer-scheme: "internet-facing"
-    service.beta.kubernetes.io/aws-load-balancer-backend-protocol: "tcp"
-    service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled: "true"
-    service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: "ip"  # Use ENI IPs directly
 spec:
   gatewayClassName: cilium
+  infrastructure:
+    annotations:
+      service.beta.kubernetes.io/aws-load-balancer-type: external
+      service.beta.kubernetes.io/aws-load-balancer-scheme: internet-facing
+      service.beta.kubernetes.io/aws-load-balancer-backend-protocol: tcp
+      service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled: "true"
+      service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: instance
   listeners:
     - name: http
       protocol: HTTP
@@ -647,22 +642,6 @@ spec:
         certificateRefs:
           - kind: Secret
             name: tls-cert
----
-apiVersion: v1
-kind: Secret
-metadata:
-  name: tls-cert
-  namespace: default
-type: kubernetes.io/tls
-stringData:
-  tls.crt: |
-    -----BEGIN CERTIFICATE-----
-    MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AEXAMPLECERTIFICATE
-    -----END CERTIFICATE-----
-  tls.key: |
-    -----BEGIN EC PARAMETERS-----
-    MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AEXAMPLEKEYDATA
-    -----END EC PARAMETERS-----
 ```
 
 ```bash
@@ -684,7 +663,7 @@ status:
       status: "True"
       reason: Programmed
   addresses:
-    - type: IPAddress
+    - type: Hostname
       value: "a1234567890abcdef.elb.ap-northeast-2.amazonaws.com"
 ```
 
@@ -695,7 +674,7 @@ On an existing cluster, removing the VPC CNI and replacing it with Cilium tempor
 :::danger Downtime Warning
 This process **interrupts Pod networking across the entire cluster**. For production environments, a blue-green cluster cutover or a scheduled maintenance window is strongly recommended.
 
-Expected downtime: **5-10 minutes**, depending on cluster size
+Downtime has not been measured here. Plan a maintenance window that includes node replacement, Pod recreation, and validation.
 :::
 
 **Step 1: Create backups**
@@ -724,7 +703,7 @@ kubectl delete daemonset kube-proxy -n kube-system
 
 ```bash
 # Add a NoSchedule taint to every node
-kubectl get nodes -o name | xargs -I {} kubectl taint node {} key=value:NoSchedule
+kubectl get nodes -o name | xargs -I {} kubectl taint {} key=value:NoSchedule
 ```
 
 **Step 4: Install Cilium using the new-cluster procedure**
@@ -732,6 +711,14 @@ kubectl get nodes -o name | xargs -I {} kubectl taint node {} key=value:NoSchedu
 Follow Steps 2-7 in the "New Cluster" section above.
 
 **Step 5: Restart Pods**
+
+Before restarting workloads, verify Cilium and DNS, then remove only the temporary taint added above. This maintenance outline is not a complete migration runbook; managed VPC CNI add-on ownership, StatefulSets, standalone Pods, rollback, and node replacement must be planned for the actual cluster.
+
+```bash
+kubectl taint nodes --all key:NoSchedule-
+```
+
+
 
 ```bash
 # Restart Pods in all namespaces (rolling restart)
@@ -838,6 +825,7 @@ metadata:
 spec:
   parentRefs:
     - name: cilium-gateway
+      namespace: default
   hostnames:
     - "api.example.com"
   rules:
@@ -873,6 +861,7 @@ metadata:
 spec:
   parentRefs:
     - name: cilium-gateway
+      namespace: default
   hostnames:
     - "api.example.com"
   rules:
@@ -1064,6 +1053,9 @@ subjects:
 
 ## 6. Performance Optimization
 
+The latency diagram, comparison table, memory estimates, and instance benefit figures in this section are **illustrative, unmeasured assumptions**, not benchmark results or service guarantees. Validate them with a stated workload, hardware, Cilium version, and measurement method.
+
+
 The following tuning options aim to maximize performance in Cilium ENI mode.
 
 ### Benefits of NLB + Cilium Envoy
@@ -1111,7 +1103,7 @@ graph TB
 ### ENI and IP Management Optimization
 
 **Enable Prefix Delegation**<br/>
-Allocate /28 blocks of 16 IP addresses at a time instead of individual IP addresses to reduce ENI attachment overhead.
+Allocate /28 blocks of 16 IPs instead of individual addresses. This can improve address allocation efficiency but does not guarantee a fixed reduction in ENI attachments or Pod startup time.
 
 ```yaml
 # cilium-values.yaml (ENI section)
@@ -1121,17 +1113,14 @@ eni:
   # Automatically release excess unused IPs to reduce costs
   awsReleaseExcessIPs: true
 
-  # Minimum reserved IP count per node
-  minAllocate: 10
-
-  # Preallocated IP count for Pod scale-out
-  preAllocate: 8
+# min-allocate/pre-allocate are CiliumNode spec.ipam.min-allocate /
+# spec.ipam.pre-allocate fields, not Helm keys under eni.
 ```
 
 **Benefits:**
-- Up to a 16-fold reduction in ENI attachments
-- 30-50% shorter Pod startup time
-- Fewer AWS API calls, helping avoid rate limits
+- Requires contiguous /28 blocks and instance support for prefixes
+- Check the CiliumNode IP pool and AWS API metrics to assess allocation efficiency
+- Measure ENI attachments, startup latency, and API throttling for the actual workload
 
 **Check ENI/IP limits by instance type:**
 
@@ -1146,7 +1135,8 @@ aws ec2 describe-instance-types \
 #   "MaxENI": 4,
 #   "IPv4PerENI": 15
 # }
-# With Prefix Delegation: 4 ENIs × 16 IPs/prefix = up to 64 Pods
+# With those limits, theoretical address slots: 4 × (15 - 1) × 16 = 896
+# Actual Pod capacity is lower when constrained by kubelet maxPods, ENIs/slots in use, reservations, or available subnet addresses
 ```
 
 ### BPF Tuning
@@ -1190,12 +1180,12 @@ Developed by Google, Maglev uses consistent hashing to preserve connection affin
 # cilium-values.yaml
 loadBalancer:
   algorithm: maglev  # Default: random
-  mode: dsr          # Direct Server Return
+  mode: snat
 
-  # Maglev table size (must be a prime number)
-  maglev:
-    tableSize: 65521  # Recommended: 65521 (prime)
-    hashSeed: "JLfvgnHc2kaSUFaI"  # Unique seed per cluster
+# Maglev is a top-level key; use the same values on every node
+maglev:
+  tableSize: 65521
+  hashSeed: "JLfvgnHc2kaSUFaI"
 ```
 
 **Algorithm comparison:**
@@ -1203,16 +1193,12 @@ loadBalancer:
 <AlgorithmComparisonTable locale="en" />
 
 **XDP acceleration (eXpress Data Path)**<br/>
-XDP processes packets at the network driver level, bypassing the kernel networking stack entirely.
+[XDP acceleration](https://docs.cilium.io/en/stable/network/kubernetes/kubeproxy-free/#loadbalancer-nodeport-xdp-acceleration) applies to supported LoadBalancer/NodePort forwarding paths with a backend on a remote node. It does not bypass the Gateway’s TPROXY and Envoy L7 processing.
 
 ```yaml
 # cilium-values.yaml
-# Enable the XDP prefilter for DDoS protection and early dropping of invalid packets
-enableXDPPrefilter: true
-
-# Select the XDP mode
-xdp:
-  mode: native  # native (highest performance) or generic (compatibility)
+loadBalancer:
+  acceleration: native  # Verify NIC/driver support, MTU, and channel count first
 ```
 
 **Check XDP support:**
@@ -1226,9 +1212,9 @@ ip link show eth0 | grep xdp
 ```
 
 **Performance improvements:**
-- More than a 10-fold improvement in packet filtering performance
-- 80% lower CPU usage during DDoS mitigation
-- Full support with the AWS ENA driver on Nitro instances
+- No fixed speedup or CPU reduction has been measured for this example
+- AWS ENA requires checks for driver version, supported XDP MTU, and channel limits
+- Verify the actual acceleration state with `cilium-dbg status --verbose`
 
 ### Instance Type Considerations
 
@@ -1347,23 +1333,25 @@ hubble observe --protocol kafka
 rate(cilium_forward_count_total[5m])
 
 # Dropped packet ratio
-rate(cilium_drop_count_total[5m]) / rate(cilium_forward_count_total[5m])
+sum(rate(cilium_drop_count_total[5m]))
+/
+(sum(rate(cilium_drop_count_total[5m])) + sum(rate(cilium_forward_count_total[5m])))
 
 # eBPF map utilization
-cilium_bpf_map_ops_total
+cilium_bpf_map_pressure
 
-# NAT table utilization
-cilium_nat_max_entries_used / cilium_nat_max_entries_total * 100
+# Saturation of the most saturated NAT mapping (%)
+cilium_nat_endpoint_max_connection
 
-# Inter-node latency (P99)
-histogram_quantile(0.99, rate(cilium_network_round_trip_time_seconds_bucket[5m]))
+# Node health probe latency (P99 of the current observation, seconds)
+histogram_quantile(0.99, sum by (le, type, protocol, address_type) (cilium_node_health_connectivity_latency_seconds_bucket))
 ```
 
 **Gateway metrics (Envoy)**
 
 ```promql
 # Requests per second (RPS)
-rate(envoy_http_downstream_rq_total{envoy_cluster_name="cilium-gateway"}[5m])
+rate(envoy_http_downstream_rq_total[5m])
 
 # P95 response latency
 histogram_quantile(0.95, rate(envoy_http_downstream_rq_time_bucket[5m]))
@@ -1383,17 +1371,17 @@ envoy_http_downstream_cx_active
 **ENI metrics**
 
 ```promql
-# ENIs in use per node
-cilium_operator_eni_attached
+# Attached interfaces with allocatable IP capacity (operator view)
+cilium_operator_ipam_interface_candidates
 
 # Available IP address count
-cilium_operator_eni_available_ips
+cilium_operator_ipam_available_ips
 
 # IP allocation rate
-rate(cilium_operator_eni_ip_allocations[5m])
+rate(cilium_operator_ipam_ip_allocation_ops[5m])
 
 # ENI allocation errors
-rate(cilium_operator_eni_allocation_errors[5m])
+rate(cilium_operator_ipam_allocation_duration_seconds_count{status!="success"}[5m])
 ```
 
 ### Grafana Dashboards
@@ -1423,7 +1411,9 @@ curl -o hubble-dashboard.json https://grafana.com/api/dashboards/16612/revisions
 
 ### Source IP Preservation
 
-NLB IP target mode automatically preserves the client IP, which can also be inspected through additional headers in Envoy.
+[AWS NLB documentation](https://docs.aws.amazon.com/elasticloadbalancing/latest/network/edit-target-group-attributes.html#client-ip-preservation) states that client IP preservation is disabled by default for TCP/TLS IP target groups. Set `preserve_client_ip.enabled=true` on a supported network path for Envoy to see the original client IP. Cilium Gateway preserves the peer address reaching it with either Cluster or Local `externalTrafficPolicy`, but cannot recover an address already SNATed by the NLB. Envoy sets X-Forwarded-For and X-Envoy-External-Address. Proxy Protocol v2 is a separate binary protocol, not an XFF-generation option.
+
+The Gateway examples here use instance targets; TCP instance targets preserve client IP by default. The IP-target default above applies to a different target type. The explicit attribute below keeps the intent visible.
 
 **Add the X-Forwarded-For header**
 
@@ -1433,14 +1423,13 @@ apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
 metadata:
   name: cilium-gateway
-  annotations:
-    # NLB IP target mode (source IP preservation)
-    service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: "ip"
-
-    # Add the X-Forwarded-For header through Envoy
-    service.beta.kubernetes.io/aws-load-balancer-proxy-protocol: "*"
 spec:
   gatewayClassName: cilium
+  infrastructure:
+    annotations:
+      service.beta.kubernetes.io/aws-load-balancer-type: external
+      service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: instance
+      service.beta.kubernetes.io/aws-load-balancer-target-group-attributes: preserve_client_ip.enabled=true
   listeners:
     - name: https
       protocol: HTTPS
@@ -1452,7 +1441,7 @@ spec:
 ```
 
 **Read the client IP in the backend (Python example)**
-
+This example assumes that only the trusted Cilium Gateway can reach the backend and that Envoy’s trusted-hop configuration matches the actual proxy chain. Do not trust headers from clients that can reach the backend directly. TLS passthrough does not let Envoy set HTTP headers.
 ```python
 from flask import Flask, request
 
@@ -1460,21 +1449,11 @@ app = Flask(__name__)
 
 @app.route('/api/info')
 def get_client_ip():
-    # First choice: X-Forwarded-For header (proxy chain)
-    if 'X-Forwarded-For' in request.headers:
-        client_ip = request.headers['X-Forwarded-For'].split(',')[0].strip()
-
-    # Second choice: X-Envoy-External-Address (added by Envoy)
-    elif 'X-Envoy-External-Address' in request.headers:
-        client_ip = request.headers['X-Envoy-External-Address']
-
-    # Third choice: Direct connection (NLB IP target mode)
-    else:
-        client_ip = request.remote_addr
-
+    # Trusted Gateway-only backend; do not trust the leftmost client-supplied XFF entry.
+    client_ip = request.headers.get('X-Envoy-External-Address')
     return {
         "client_ip": client_ip,
-        "headers": dict(request.headers)
+        "proxy_peer_ip": request.remote_addr
     }
 ```
 
@@ -1492,10 +1471,10 @@ kubectl get gateway cilium-gateway -o jsonpath='{.status.conditions[?(@.type=="P
 kubectl get httproute -A -o wide
 
 # 4. Inspect Envoy listeners
-kubectl exec -n kube-system ds/cilium -- cilium envoy admin listeners
+kubectl exec -n kube-system ds/cilium -- cilium-dbg envoy admin listeners
 
 # 5. Check backend endpoints
-kubectl exec -n kube-system ds/cilium -- cilium service list
+kubectl exec -n kube-system ds/cilium -- cilium-dbg service list
 
 # 6. Check ENI allocation status
 kubectl get ciliumnodes -o jsonpath='{range .items[*]}{.metadata.name}{"\t"}{.status.eni.available}{"\t"}{.status.ipam.used}{"\n"}{end}'
@@ -1507,7 +1486,7 @@ hubble observe --all --since 30s
 cilium endpoint list
 
 # 9. Inspect BPF map statistics
-kubectl exec -n kube-system ds/cilium -- cilium bpf metrics list
+kubectl exec -n kube-system ds/cilium -- cilium-dbg bpf metrics list
 
 # 10. Test connectivity
 cilium connectivity test --test egress-gateway,to-cidr
@@ -1518,71 +1497,98 @@ cilium connectivity test --test egress-gateway,to-cidr
 Cilium BGP Control Plane v2 advertises LoadBalancer IPs through BGP in on-premises data centers and hybrid environments.
 
 :::info
-BGP is not required when AWS EKS uses an NLB. It is useful, however, when hybrid cloud environments need traffic routing between on-premises systems and EKS.
+This does not advertise AWS NLB addresses through Cilium BGP. The example assumes ownership and routing of a **separate Service VIP pool** reachable through BGP. It requires `bgpControlPlane.enabled=true`, selected nodes, TCP/179 connectivity, return paths, and router configuration. Direct Connect/VPN alone does not configure VIP routing. See the [Cilium v2 configuration](https://docs.cilium.io/en/stable/network/bgp-control-plane/bgp-control-plane-configuration/).
 :::
 
 ### CiliumBGPPeeringPolicy CRD
+`CiliumBGPPeeringPolicy` belongs to the legacy v1 API. The v2 example uses the following three resources. Replace peer addresses and ASNs for your environment.
 
 ```yaml
-# bgp-peering-policy.yaml
-apiVersion: cilium.io/v2alpha1
-kind: CiliumBGPPeeringPolicy
+apiVersion: cilium.io/v2
+kind: CiliumBGPClusterConfig
 metadata:
   name: bgp-policy
 spec:
-  # Select the nodes that participate in BGP peering
   nodeSelector:
     matchLabels:
       role: gateway
-
-  # Configure BGP virtual routers
-  virtualRouters:
-    - localASN: 64512  # AS number of the EKS cluster
-      exportPodCIDR: false  # Do not advertise Pod CIDRs in ENI mode
-
-      # Select Services to advertise
-      serviceSelector:
+  bgpInstances:
+    - name: gateway
+      localASN: 64512
+      peers:
+        - name: router-1
+          peerAddress: 192.168.1.1
+          peerASN: 64500
+          peerConfigRef:
+            name: on-premises
+        - name: router-2
+          peerAddress: 192.168.1.2
+          peerASN: 64500
+          peerConfigRef:
+            name: on-premises
+---
+apiVersion: cilium.io/v2
+kind: CiliumBGPPeerConfig
+metadata:
+  name: on-premises
+spec:
+  ebgpMultihop: 10
+  timers:
+    connectRetryTimeSeconds: 120
+    holdTimeSeconds: 90
+    keepAliveTimeSeconds: 30
+  families:
+    - afi: ipv4
+      safi: unicast
+      advertisements:
+        matchLabels:
+          advertise: bgp
+---
+apiVersion: cilium.io/v2
+kind: CiliumBGPAdvertisement
+metadata:
+  name: gateway-vips
+  labels:
+    advertise: bgp
+spec:
+  advertisements:
+    - advertisementType: Service
+      service:
+        addresses:
+          - LoadBalancerIP
+      selector:
         matchLabels:
           bgp-advertise: "true"
-
-      # BGP peers (on-premises routers)
-      neighbors:
-        - peerAddress: 192.168.1.1/32  # Peer router IP
-          peerASN: 64500                # Peer AS number
-          eBGPMultihopTTL: 10
-
-          # Connection maintenance timers
-          connectRetryTimeSeconds: 120
-          holdTimeSeconds: 90
-          keepAliveTimeSeconds: 30
-
-        - peerAddress: 192.168.1.2/32
-          peerASN: 64500
-          eBGPMultihopTTL: 10
 ```
 
 ### LoadBalancer IP Advertisement
 
+The pool’s `10.0.100.50/32` illustrates routing only. Replace it with a VIP you own that does not overlap actual VPC, Pod, or Service CIDRs and that routers can forward to the nodes. An existing workload labeled `app: gateway-backend` is assumed to listen on port 443. This manifest does not replace the Service generated by Cilium Gateway.
+
 ```yaml
-# service-with-bgp.yaml
+apiVersion: cilium.io/v2
+kind: CiliumLoadBalancerIPPool
+metadata:
+  name: gateway-vips
+spec:
+  blocks:
+    - cidr: 10.0.100.50/32
+  serviceSelector:
+    matchLabels:
+      bgp-advertise: "true"
+---
 apiVersion: v1
 kind: Service
 metadata:
   name: gateway-service
   namespace: default
   labels:
-    bgp-advertise: "true"  # Advertise through BGP
-  annotations:
-    # Use an NLB on EKS
-    service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
-
-    # Cilium BGP configuration
-    io.cilium/bgp-announce: "true"
-    io.cilium/bgp-local-pref: "100"
+    bgp-advertise: "true"
 spec:
   type: LoadBalancer
+  loadBalancerClass: io.cilium/bgp-control-plane
   selector:
-    app: cilium-gateway
+    app: gateway-backend
   ports:
     - name: https
       port: 443
@@ -1610,11 +1616,11 @@ graph TB
                 NODE2[Worker Node 2<br/>BGP Speaker<br/>AS 64512]
             end
 
-            NLB[Network Load Balancer<br/>a.b.c.d]
-            ENVOY[Cilium Gateway]
+            NLB[Service VIP<br/>10.0.100.50]
+            ENVOY[Service backend]
 
-            NODE1 -.->|Advertise a.b.c.d/32| ROUTER1
-            NODE2 -.->|Advertise a.b.c.d/32| ROUTER2
+            NODE1 -.->|Advertise VIP /32| ROUTER1
+            NODE2 -.->|Advertise VIP /32| ROUTER2
 
             NLB --> ENVOY
         end
@@ -1638,22 +1644,22 @@ graph TB
 ```
 
 **Traffic flow:**
-1. An on-premises client sends a request to an EKS service IP (a.b.c.d)
-2. The on-premises core router looks up the BGP routing table
-3. Traffic is forwarded through Direct Connect/VPN to an EKS Gateway node
-4. Cilium Gateway processes the request and routes it to a backend Pod
+1. An on-premises client requests the owned Service VIP
+2. The on-premises router selects the BGP route
+3. The preconfigured network and return paths deliver traffic to a Cilium node
+4. The Cilium Service datapath forwards to a ready backend
 
 **Check BGP status:**
 
 ```bash
 # Check BGP peer status
-kubectl get ciliumbgppeeringstatus
+kubectl get ciliumbgpnodeconfigs
 
 # Inspect advertised routes
-kubectl exec -n kube-system ds/cilium -- cilium bgp routes
+cilium bgp routes advertised ipv4 unicast
 
 # Check peer connection status
-kubectl exec -n kube-system ds/cilium -- cilium bgp peers
+cilium bgp peers
 ```
 
 **Example output:**
@@ -1678,22 +1684,17 @@ The AWS VPC CNI **runs only on EC2 instances inside a VPC**. When on-premises GP
 
 There are three main approaches to CNI configuration in a hybrid node environment.
 
-| Category | VPC CNI + Calico | VPC CNI + Cilium | Cilium Only (Recommended) |
+| Category | VPC CNI + Calico | VPC CNI + Cilium | Cilium Only (requires separate validation) |
 |------|-----------------|-----------------|-------------------|
-| Cloud node CNI | VPC CNI | VPC CNI | Cilium ENI mode |
-| On-premises node CNI | Separate Calico installation | Separate Cilium installation | Cilium VXLAN/Native |
-| On-premises networking | Calico VXLAN/BGP | Cilium VXLAN or BGP | Cilium VXLAN or BGP |
-| CNI unification | ❌ 2 CNIs | ❌ 2 CNIs | ✅ Single CNI |
-| Network policy engine | Separate engines (VPC CNI + Calico) | Separate engines (VPC CNI + Cilium) | Single eBPF engine |
-| Observability | CloudWatch + separate tools | CloudWatch + Hubble (on-premises only) | Unified Hubble (entire cluster) |
-| Gateway API | Separate implementation required | Cilium Gateway API on-premises only | Built-in Cilium Gateway API |
-| eBPF acceleration | ❌ Not supported in the cloud | ❌ Not supported in the cloud | ✅ eBPF on all nodes |
-| Operational complexity | High (2 CNIs + 2 policy engines) | Medium (2 CNIs, reusing Cilium expertise) | Low (single stack) |
+| Cloud node CNI | VPC CNI | VPC CNI | Cilium on standard EC2 nodes; excludes Auto Mode |
+| On-premises node CNI | Calico | Cilium for Hybrid Nodes | Requires compatible cluster-wide IPAM/routing design |
+| IPAM | Separate by node type | VPC CNI separate from hybrid cluster-pool | Do not assume one installation can mix ENI and cluster-pool |
+| Observability | CNI-specific tools | Cloud tools + hybrid Hubble | Hubble according to Cilium deployment scope |
+| Gateway API | Verify a compatible controller | Verify Gateway features on Cilium nodes | CNI choice alone does not establish Gateway feature support |
+| Operational assessment | Validate routing and policies | Check AWS Hybrid Nodes support scope | Unification alone does not establish lower complexity |
 
 :::warning Overlay Networking on On-Premises Nodes
-Regardless of the CNI, **overlay networking (VXLAN/Geneve) is the default for on-premises nodes**. Without AWS VPC routing tables on-premises, communication between Pod CIDRs requires encapsulation.
-
-Removing the overlay requires **BGP peering**. Advertising Pod CIDRs to on-premises routers through Cilium BGP Control Plane v2 enables native routing, provided that the on-premises network equipment supports BGP.
+On-premises Pod CIDRs can communicate through an **overlay or a routed underlay**. Native routing requires bidirectional Pod CIDR reachability. BGP can automate this, but static routing and other routing arrangements are also possible; BGP is not mandatory.
 :::
 
 :::info Admission Webhook Routing Issues and Solutions
@@ -1706,15 +1707,15 @@ For the EKS control plane, located in an AWS VPC, to reach webhook Pods on hybri
 **When Pod CIDRs are not routable (without BGP):**
 
 - **Run webhooks on cloud nodes** (the official AWS recommendation) — Pin webhook Pods to cloud nodes with `nodeSelector` or `nodeAffinity`. The API server can access them directly within the VPC
-- **Use Cilium overlay (VXLAN) mode as the only CNI across the cluster** — See the [reference article](https://medium.com/@the.jfnadeau/eks-cilium-as-the-only-cni-driver-with-simplified-hybrid-nodes-and-admission-webhooks-routing-1f351d11f9dd). Overlay mode requires only unicast communication between node IPs, allowing the API server to reach webhook Pods through VXLAN tunnels. This sacrifices the benefits of ENI native routing on cloud nodes
+- **An overlay alone does not establish control-plane reachability** — The EKS control plane is not a Cilium VXLAN endpoint. Even with an overlay, provide a supported route from the control plane to webhook Pods or place those webhooks on cloud nodes as described by AWS.
 :::
 
 :::tip IPAM Considerations for a Cilium-Only Configuration
 Cilium's `ipam.mode=eni` **works only on AWS EC2 instances**. There are three ways to implement a Cilium-only configuration in a hybrid cluster that includes on-premises nodes.
 
-1. **ClusterMesh (recommended)**: Operate separate cloud clusters (ENI mode) and on-premises clusters (cluster-pool mode), connected through [Cilium ClusterMesh](https://docs.cilium.io/en/stable/network/clustermesh/). This provides unified observability while using IPAM optimized for each environment.
-2. **Multi-pool IPAM**: Assign different IPAM pools based on node labels within a single cluster (Cilium 1.15+). Use an ENI pool for cloud nodes and cluster-pool for on-premises nodes.
-3. **Unified cluster-pool IPAM**: Use `cluster-pool` + VXLAN throughout, without ENI mode. This is the simplest option, but it loses the benefits of ENI native routing in the cloud.
+1. **Separate clusters + ClusterMesh**: A cloud ENI cluster and an on-premises cluster-pool cluster can be operated separately. This is not one EKS Hybrid Nodes cluster; validate Pod/node reachability and support scope.
+2. **Multi-pool IPAM**: `ipam.mode=multi-pool` allocates CIDRs from CiliumPodIPPool resources. It does not mix the ENI and cluster-pool allocators by node label.
+3. **One cluster-pool design**: Using compatible cluster-pool/routing across all nodes requires separate validation. It gives up EC2 ENI IPAM benefits and still requires a solution for control-plane-to-Pod reachability.
 :::
 
 ### 9.2 Deployment option: Cilium + Gateway + llm-d {#92-권장-아키텍처-cilium--cilium-gateway-api--llm-d}
