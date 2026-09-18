@@ -55,6 +55,7 @@ export default function MermaidViewer(props) {
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
     dialog.current.showModal();
+    setZoom(Math.max(0.1, Math.min(1, (viewport.current.clientWidth - 32) / width)));
     closeButton.current?.focus();
     return () => {
       document.body.style.overflow = previousOverflow;

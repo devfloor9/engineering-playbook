@@ -245,7 +245,7 @@ const config = {
       mermaid: {
         theme: {
           light: 'neutral',
-          dark: 'dark',
+          dark: 'neutral',
         },
         options: {
           themeVariables: {

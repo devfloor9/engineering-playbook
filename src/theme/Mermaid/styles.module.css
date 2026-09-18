@@ -1,5 +1,7 @@
 .figure { min-width: 0; }
 .preview { max-height: 32rem; overflow: auto; overscroll-behavior: contain; }
+/* Keep authored diagram colors on a paper canvas in both reading modes. */
+.preview, .viewport { background: #faf9f6; color: #222; color-scheme: light; }
 .actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.75rem; margin-top: 0.75rem; font-size: var(--ep-font-size-caption, 0.875rem); line-height: 1.5; color: var(--ep-on-surface-variant); }
 .figure button { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; min-height: var(--ep-control-height, 44px); padding: 0.625rem 0.75rem; border: 1px solid var(--ep-outline); border-radius: var(--ep-radius-control, 6px); background: var(--ep-surface-container-lowest); color: var(--ep-on-surface); font: inherit; font-size: var(--ep-font-size-caption, 0.875rem); line-height: 1.5; cursor: pointer; }
 .figure button:hover:not(:disabled) { background: var(--ep-surface-container); }
@@ -12,7 +14,7 @@
 .controls { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
 .controls output { min-width: 3.5rem; text-align: center; font-size: var(--ep-font-size-caption, 0.875rem); }
 .hint { font-size: var(--ep-font-size-caption, 0.875rem); line-height: 1.5; margin: 0.75rem 0; color: var(--ep-on-surface-variant); }
-.viewport { overflow: auto; max-height: calc(100dvh - 14rem); overscroll-behavior: contain; padding: 1rem; background: var(--ep-surface-container-lowest); }
+.viewport { overflow: auto; max-height: calc(100dvh - 14rem); overscroll-behavior: contain; padding: 1rem; }
 .canvas { max-width: none; }
 .canvas :global(.docusaurus-mermaid-container) { padding: 0; }
 .canvas svg { width: 100% !important; max-width: none !important; height: auto; }
