@@ -1,7 +1,7 @@
 ---
 created: 2026-02-14
 last_update:
-  date: 2026-02-14
+  date: 2026-09-18
 reading_time: 10
 ---
 # Table Components Library
@@ -20,7 +20,7 @@ The foundation component providing core table functionality.
 - Pagination
 - Responsive design
 - Dark mode support
-- Accessibility (WCAG 2.1 AA)
+- Native table semantics and keyboard controls
 
 **Usage:**
 
@@ -166,7 +166,7 @@ import { MetricsTable } from '@site/src/components/tables';
 
 | Prop | Type | Default | Description |
 |------|------|---------|-------------|
-| `headers` | `string[]` | required | Array of column headers |
+| `headers` | `ReactNode[]` | required | Array of column headers |
 | `rows` | `Row[]` | required | Array of row objects |
 | `sortable` | `boolean` | `false` | Enable column sorting |
 | `searchable` | `boolean` | `false` | Enable search functionality |
@@ -174,13 +174,21 @@ import { MetricsTable } from '@site/src/components/tables';
 | `pageSize` | `number` | `10` | Rows per page |
 | `className` | `string` | `''` | Additional CSS class |
 | `responsive` | `boolean` | `true` | Enable responsive wrapper |
-| `ariaLabel` | `string` | `'Data table'` | ARIA label for accessibility |
+| `ariaLabel` | `string` | section or column labels | Explicit accessible name override |
+| `title` / `caption` | `ReactNode` | - | Native caption; `caption` takes precedence |
+| `description` | `ReactNode` | - | Description associated with the table and scroll region |
+| `minWidth` | `string` | no minimum | Explicit minimum for wide tables only |
+| `rowHeaderColumn` | `number` or `null` | `0` | Identity column rendered as a row header; `null` opts out |
+| `columnAlignments` | `Array<left/center/right>` | numeric inference | Explicit column alignment |
 
 **Row Object:**
 ```typescript
 {
-  id: string;              // Unique identifier
-  cells: React.Node[];     // Array of cell content
+  id: string | number;     // Unique identifier
+  cells: React.ReactNode[]; // Complete display values, including units/status
+  sortValues?: (string | number | null)[]; // Optional primitive keys for opaque cells
+  searchValues?: string[]; // Optional searchable text for opaque cells
+  recommended?: boolean;  // ComparisonTable also accepts row-level recommendations
   className?: string;      // Optional CSS class
   highlighted?: boolean;   // Highlight the row
 }
@@ -227,17 +235,17 @@ Extends BaseTable props with:
 
 | Prop | Type | Default | Description |
 |------|------|---------|-------------|
-| `headers` | `string[]` | required | Array of column headers |
+| `headers` | `ReactNode[]` | required | Array of column headers |
 | `rows` | `Row[]` | required | Array of row objects |
 | `thresholds` | `object` | `{}` | Thresholds `{metricName: {warning, critical}}` |
 | `currentValues` | `object` | `{}` | Current values `{metricName: number}` |
 | `showLegend` | `boolean` | `true` | Display status legend |
-| `sortable` | `boolean` | `true` | Enable sorting |
+| `sortable` | `boolean` | `false` | Enable sorting |
 | `searchable` | `boolean` | `false` | Enable search |
 | `paginated` | `boolean` | `false` | Enable pagination |
 | `pageSize` | `number` | `10` | Rows per page |
 | `className` | `string` | `''` | Additional CSS class |
-| `ariaLabel` | `string` | `'Metrics table'` | ARIA label |
+| `ariaLabel` | `string` | section or column labels | Explicit accessible name override |
 
 ## Styling
 
@@ -333,3 +341,131 @@ When adding new table components:
 ## License
 
 Part of the engineering-playbook project.
+
+
+## Shared data and figure contract (#65)
+
+`DataTableFrame` is the single caption/overflow boundary. Existing
+`title`, `description`, `children`, and `minWidth` props remain supported.
+It additionally accepts `className`, `ariaLabel`, `aria-labelledby`,
+`aria-describedby`, and `scrollable` (default true). The default minimum width
+is now zero; pass `minWidth="42rem"` or another explicit width only for a wide
+comparison. Nested frames share the outer scroll region. Set the width on that
+outer frame when nesting. Native captions, IDs, header scopes, and authored
+ARIA references remain intact. Short tables do not enter the tab order; an
+actually overflowing region has a tab stop and localized scroll guidance.
+
+BaseTable uses the frame and a native `caption`, with the first column rendered
+as `th scope="row"`. Sorting is opt-in across the shared table family. Existing
+`sortable`, `searchable`, pagination, row classes and highlighting remain
+supported. `responsive={false}` retains the explicit non-scrolling presentation.
+Finite numeric values and numeric strings sort numerically. React element
+children supply plain text without `String(element)` coercion; opaque components
+should provide `row.sortValues` and optionally `row.searchValues`. Units and
+status markup remain in `row.cells`. Sort and search never mutate source rows.
+
+ComparisonTable supports both `recommendedId` and `row.recommended === true`.
+Recommendation labels are visible in Korean and English. SpecificationTable
+supports both `rows` and its existing `data` matrix; its `title` is now a caption.
+Its normal/warning/danger labels and units stay visible in either locale.
+MetricsTable shows per-metric status text as well as its optional legend.
+TroubleshootingTable retains search/expand props and uses native buttons with
+unique controlled-panel IDs. Collapsed panels remain in the DOM, and print
+styles expose their complete content.
+
+Only `src/theme/MDXComponents/index.js` maps Markdown `table` to `Table.js`,
+which uses DataTableFrame and preserves all original mappings, including `h1`.
+Existing table attributes/alignment are forwarded. Body first-column cells
+become row headers; explicit authored scopes are preserved. Without a caption,
+the closest preceding section supplies the hydrated table/region name; column
+labels provide an SSR fallback. No document source is rewritten.
+
+### Figure
+
+```jsx
+import Figure from '@site/src/components/Figure';
+
+<Figure
+  title="Author-provided title"
+  description="Author-provided explanation"
+  source={<a href={sourceUrl}>Original diagram</a>}
+  dataFallback={<BaseTable headers={headers} rows={rows} />}
+>
+  <iframe src={sourceUrl} title="Diagram title" height="480" loading="lazy" />
+</Figure>
+```
+
+All five content props (`title`, `description`, `source`, `children`,
+`dataFallback`) accept ReactNodes; `className` is optional. Source is a ReactNode,
+so supply an anchor for a clickable URL. The shell invents no title, description,
+units or data. It renders a native figure with its figcaption last and visible
+fallback data before the caption. Direct iframe children retain their `src` and
+attributes, with scoped 100% inline size, 480px block size, 32rem maximum block
+size and no border. No inline document style is necessary.
+
+Mermaid uses this figure shell. Source `accTitle` and single/multiline `accDescr`
+are preserved as text. When no title exists, the surrounding section supplies a
+contextual name only; no technical description is generated. The native dialog,
+Escape close, focus return, 10–200% zoom, actual size and fit controls remain.
+Shared SVG icons always have adjacent visible localized control labels.
+
+### Exporter handoff (coordinator-owned; exporter files unchanged)
+
+The current source-qualified BaseTable profile bypasses React rendering and
+already exports every `props.rows` item in source order. Extend it to emit
+`props.caption ?? props.title` as a native caption and `props.description` as
+prose. Continue using **every `row.cells` item**, never `sortValues`, `searchValues`,
+filtered rows or the current page. `headers` and `cells` can be ReactNodes.
+`rowHeaderColumn` changes semantics only; no row/column/value is omitted.
+
+The DataTableFrame profile still consumes `title`, `description`, and `children`;
+keep all three and nested native captions. New layout/ARIA props carry no
+additional export content. The Figure profile must preserve title, description,
+source, children and dataFallback; a source-qualified iframe child must retain
+the existing draw.io source serializer. **The current static evaluator rejects
+iframe during JSX/props evaluation, before a normal Figure adapter receives
+children** (`scripts/llm-wiki-static.js`). Intercept that embedded child using
+its actual source rather than treating the figure as unsupported or dropping it.
+
+The shared Icon needs a source-qualified decorative adapter returning no content.
+ComparisonTable/SpecificationTable then statically evaluate their display cells:
+visible localized status/recommendation labels and units are already plain text
+in those cells. `recommendedId` and row-level `recommended` must both survive.
+No new adapter is necessary for these two specialized tables.
+
+MetricsTable's `Number.isFinite` requires a safe static intrinsic, or a
+source-qualified MetricsTable adapter preserving all rows, threshold status and
+optional legend. TroubleshootingTable needs an exhaustive profile/adapter for
+all `issues` (problem, severity, cause, solution), independent of search or expand
+state. Both were probed; the unmodified exporter reports these as unsupported
+instead of silently returning complete output. The present three production
+manuals importing shared tables use ComparisonTable/SpecificationTable, not
+MetricsTable/TroubleshootingTable.
+
+### Scoped verification
+
+```sh
+EP_TEST_DEPS=/absolute/path/to/node_modules \
+EP_FOUNDATION_ROOT=/absolute/path/to/foundation-checkout \
+node --test src/components/tables/__tests__/data-primitives.test.cjs
+node --test src/components/tables/__tests__/export-contract.test.cjs
+```
+
+The harness bundles only the fixture and its component imports, reads Foundation
+Icon/CSS through an external source alias, and starts its own headless Chrome
+profile. It neither copies shared implementation nor installs dependencies.
+It reads the installed Infima CSS, supplies locale context and substitutes only
+the upstream Mermaid SVG renderer. The real wrapper/dialog/focus/zoom code runs.
+`CHROME_BIN` selects another Chromium binary; `EP_KEEP_TEST_ARTIFACTS=1` retains
+screenshots and the temporary bundle. The coordinator must still run integrated
+Docusaurus/Mermaid and export parity checks after merging profiles and content.
+
+The export contract test injects example profiles and the `Number.isFinite`
+intrinsic into an isolated renderer in memory. It verifies all 30 shared-table
+occurrences in the existing three Korean/English manual pairs with no omissions,
+as well as captions, descriptions, recommendation flags, threshold labels and
+rows beyond the visible page. These examples are handoff material, not installed
+production adapters. The unmodified exporter suite in this isolated worktree
+currently reports 55 passing tests, 3 failures and 1 skip because the external
+Foundation Icon is not present in its normal source resolver. Integrate the
+Foundation and source-qualified profiles before rerunning that complete suite.

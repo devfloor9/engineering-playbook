@@ -1,5 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
+import Icon from '@site/src/components/Icon';
 import BaseTable from './BaseTable';
 import styles from './SpecificationTable.module.css';
 
@@ -40,10 +42,12 @@ export default function SpecificationTable({
   rows,
   units = {},
   thresholds = {},
-  sortable = true,
+  sortable = false,
   searchable = false,
   ...baseProps
 }) {
+  const {i18n} = useDocusaurusContext();
+  const ko = i18n.currentLocale === 'ko';
   // Convert simple data array to rows format if needed
   const tableRows = rows || (data ? data.map((row, index) => ({
     id: `row-${index}`,
@@ -52,6 +56,7 @@ export default function SpecificationTable({
 
   const enhancedRows = tableRows.map(row => ({
     ...row,
+    sortValues: row.sortValues || row.cells,
     cells: row.cells.map((cell, index) => {
       // Handle non-numeric cells
       if (typeof cell !== 'number' && !units[index] && !thresholds[index]) {
@@ -59,27 +64,31 @@ export default function SpecificationTable({
       }
 
       // Add units
-      const cellValue = typeof cell === 'number' ? cell : parseFloat(cell);
-      const displayValue = units[index] ? `${cell} ${units[index]}` : cell;
+      const cellValue = typeof cell === 'number' ? cell : typeof cell === 'string' ? parseFloat(cell) : NaN;
+      const displayValue = units[index] ? <>{cell}{' '}{units[index]}</> : cell;
       
       // Add threshold indicators
       if (thresholds[index] && !isNaN(cellValue)) {
         const { warning, danger } = thresholds[index];
         let className = styles.normal;
-        let statusLabel = '정상';
+        let statusLabel = ko ? '정상' : 'Normal';
+        let icon = 'check';
         
         if (cellValue >= danger) {
           className = styles.danger;
-          statusLabel = '위험';
+          statusLabel = ko ? '위험' : 'Danger';
+          icon = 'x-circle';
         } else if (cellValue >= warning) {
           className = styles.warning;
-          statusLabel = '경고';
+          statusLabel = ko ? '경고' : 'Warning';
+          icon = 'alert-triangle';
         }
         
         return (
           <span className={`${styles.valueCell} ${className}`}>
-            <span className={styles.statusDot} aria-label={statusLabel} />
             {displayValue}
+            {' '}
+            <span className={styles.statusLabel}><Icon name={icon} size={16} />{statusLabel}</span>
           </span>
         );
       }
@@ -89,14 +98,13 @@ export default function SpecificationTable({
   }));
 
   return (
-    <div className={styles.specTableWrapper}>
-      {title && <h4 className={styles.tableTitle}>{title}</h4>}
+    <div data-ep-theme="manual" className={styles.specTableWrapper}>
       <BaseTable
+        title={title}
         headers={headers}
         rows={enhancedRows}
         sortable={sortable}
         searchable={searchable}
-        ariaLabel="사양 테이블"
         {...baseProps}
       />
     </div>
@@ -105,15 +113,15 @@ export default function SpecificationTable({
 
 SpecificationTable.propTypes = {
   /** Optional table title */
-  title: PropTypes.string,
+  title: PropTypes.node,
   /** Array of header labels */
-  headers: PropTypes.arrayOf(PropTypes.string).isRequired,
+  headers: PropTypes.arrayOf(PropTypes.node).isRequired,
   /** Simple 2D array of data (alternative to rows) */
   data: PropTypes.arrayOf(PropTypes.arrayOf(PropTypes.node)),
   /** Array of row objects (alternative to data) */
   rows: PropTypes.arrayOf(
     PropTypes.shape({
-      id: PropTypes.string.isRequired,
+      id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
       cells: PropTypes.arrayOf(PropTypes.node).isRequired,
       className: PropTypes.string
     })

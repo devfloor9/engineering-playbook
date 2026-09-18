@@ -1,31 +1,20 @@
-.figure {
-  min-width: 0;
-  margin: 1.5rem 0;
-  padding: 0.75rem;
-  border: 1px solid var(--ep-outline-variant);
-  border-radius: 0.5rem;
-  background: var(--ep-surface-container-lowest);
-}
-
-.preview { max-height: 32rem; overflow: auto; }
-.caption { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.75rem; margin-top: 0.75rem; font-size: 0.875rem; color: var(--ep-on-surface-variant); }
-.figure button { min-height: 2.5rem; padding: 0.4rem 0.75rem; border: 1px solid var(--ep-outline-variant); border-radius: 0.375rem; background: var(--ep-surface-container-low); color: var(--ifm-font-color-base); font: inherit; font-size: 0.875rem; cursor: pointer; }
-.figure button:hover { background: var(--ep-surface-container); }
-.figure button:focus-visible, .viewport:focus-visible { outline: 2px solid var(--ifm-color-primary); outline-offset: 2px; }
+.figure { min-width: 0; }
+.preview { max-height: 32rem; overflow: auto; overscroll-behavior: contain; }
+.actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.75rem; margin-top: 0.75rem; font-size: var(--ep-font-size-caption, 0.875rem); line-height: 1.5; color: var(--ep-on-surface-variant); }
+.figure button { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; min-height: var(--ep-control-height, 44px); padding: 0.625rem 0.75rem; border: 1px solid var(--ep-outline); border-radius: var(--ep-radius-control, 6px); background: var(--ep-surface-container-lowest); color: var(--ep-on-surface); font: inherit; font-size: var(--ep-font-size-caption, 0.875rem); line-height: 1.5; cursor: pointer; }
+.figure button:hover:not(:disabled) { background: var(--ep-surface-container); }
+.figure button:focus-visible, .viewport:focus-visible, .preview:focus-visible { outline: var(--ep-focus-ring, 3px solid var(--ifm-color-primary)); outline-offset: 3px; }
 .figure button:disabled { opacity: 0.5; cursor: default; }
-.dialog { width: calc(100vw - 2rem); max-width: 100rem; max-height: calc(100dvh - 2rem); padding: 1rem; border: 1px solid var(--ep-outline-variant); border-radius: 0.75rem; background: var(--ep-surface); color: var(--ifm-font-color-base); }
+.dialog { box-sizing: border-box; width: calc(100vw - 2rem); max-width: 100rem; max-height: calc(100dvh - 2rem); padding: 1rem; border: 1px solid var(--ep-outline); border-radius: var(--ep-radius-card, 8px); background: var(--ep-surface); color: var(--ep-on-surface); }
 .dialog::backdrop { background: rgb(0 0 0 / 65%); }
 .toolbar { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; justify-content: space-between; }
-.toolbar h2 { margin: 0 !important; font-size: 1.25rem !important; }
+.toolbar h2 { margin: 0; font-size: 1.25rem; line-height: 1.4; overflow-wrap: anywhere; }
 .controls { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
-.controls output { min-width: 3.5rem; text-align: center; font-size: 0.875rem; }
-.hint { font-size: 0.875rem; margin: 0.75rem 0 !important; color: var(--ep-on-surface-variant); }
-.viewport { overflow: auto; max-height: calc(100dvh - 12rem); overscroll-behavior: contain; padding: 1rem; background: var(--ep-surface-container-lowest); }
+.controls output { min-width: 3.5rem; text-align: center; font-size: var(--ep-font-size-caption, 0.875rem); }
+.hint { font-size: var(--ep-font-size-caption, 0.875rem); line-height: 1.5; margin: 0.75rem 0; color: var(--ep-on-surface-variant); }
+.viewport { overflow: auto; max-height: calc(100dvh - 14rem); overscroll-behavior: contain; padding: 1rem; background: var(--ep-surface-container-lowest); }
 .canvas { max-width: none; }
-.canvas :global(.docusaurus-mermaid-container) { padding: 0 !important; }
+.canvas :global(.docusaurus-mermaid-container) { padding: 0; }
 .canvas svg { width: 100% !important; max-width: none !important; height: auto; }
-
-@media (max-width: 576px) {
-  .dialog { padding: 0.75rem; }
-  .viewport { max-height: calc(100dvh - 17rem); }
-}
+@media (max-width: 576px) { .dialog { padding: 0.75rem; } .viewport { max-height: 45dvh; } }
+@media print { .actions, .dialog { display: none; } .preview { max-height: none; overflow: visible; } }

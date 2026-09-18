@@ -1,0 +1,8 @@
+.figure { min-width: 0; max-width: 100%; margin: 1.5rem 0; padding: 0.75rem; border: 1px solid var(--ep-outline-variant); border-radius: var(--ep-radius-card, 8px); background: var(--ep-surface-container-lowest); color: var(--ep-on-surface); }
+.caption { display: grid; gap: 0.5rem; margin-top: 0.75rem; font-size: var(--ep-font-size-caption, 0.875rem); line-height: 1.5; color: var(--ep-on-surface-variant); overflow-wrap: anywhere; }
+.title { color: var(--ep-on-surface); font-weight: 600; }
+.source { min-width: 0; }
+.dataFallback { margin-top: 1rem; min-width: 0; }
+.dataFallback > :first-child { margin-top: 0; }
+.dataFallback > :last-child { margin-bottom: 0; }
+.figure > iframe { display: block; inline-size: 100%; max-inline-size: 100%; block-size: 480px; max-block-size: 32rem; border: 0; border-radius: var(--ep-radius-control, 6px); }
