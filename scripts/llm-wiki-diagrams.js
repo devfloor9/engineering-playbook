@@ -115,21 +115,46 @@ function inlinePipeline(tag, {filePath, declarations, renderer}) {
 
 function embeddedDiagram(block, {filePath, renderer, includeTree = false}) {
   if (block.node.openingElement.name.name !== 'iframe') return null;
+  const allowed = new Set(['src', 'title', 'width', 'height', 'loading', 'frameBorder', 'allowFullScreen', 'className']);
+  const seen = new Set();
+  for (const attribute of block.node.openingElement.attributes) {
+    const name = attribute.name?.name;
+    if (attribute.type !== 'JSXAttribute' || !allowed.has(name) || seen.has(name)) {
+      throw new StaticGap('Iframe has duplicate, runtime, or unsupported attributes');
+    }
+    seen.add(name);
+    const value = attribute.value;
+    if (value && value.type !== 'StringLiteral' &&
+        !(value.type === 'JSXExpressionContainer' && ['StringLiteral', 'NumericLiteral', 'BooleanLiteral'].includes(value.expression.type))) {
+      throw new StaticGap('Iframe attributes must be literal');
+    }
+  }
+  if (block.node.children.some(child => child.type !== 'JSXText' || child.value.trim())) {
+    throw new StaticGap('Iframe fallback content requires review');
+  }
   const src = block.node.openingElement.attributes.find(a => a.name?.name === 'src')?.value;
   if (src?.type !== 'StringLiteral') throw new StaticGap('Runtime iframe source is not static');
   let url;
   try { url = new URL(src.value); }
   catch { throw new StaticGap('Iframe URL is not a supported static resource'); }
-  if (url.hostname !== 'viewer.diagrams.net') throw new StaticGap('External iframe content has no static source adapter');
+  if (url.protocol !== 'https:' || url.hostname !== 'viewer.diagrams.net' || url.port || url.username || url.password ||
+      url.hash || url.searchParams.getAll('url').length !== 1 ||
+      [...url.searchParams.keys()].some(key => !['url', 'highlight', 'nav', 'title'].includes(key))) {
+    throw new StaticGap('External or overridden iframe content has no static source adapter');
+  }
   let raw;
   try { raw = new URL(url.searchParams.get('url')); }
   catch { throw new StaticGap('Viewer URL does not identify a static drawing'); }
   const prefix = '/devfloor9/engineering-playbook/main/static/';
-  if (raw.hostname !== 'raw.githubusercontent.com' || !raw.pathname.startsWith(prefix)) throw new StaticGap('Diagram is not a repository-owned static file');
+  if (raw.protocol !== 'https:' || raw.hostname !== 'raw.githubusercontent.com' || raw.port || raw.username || raw.password ||
+      raw.search || raw.hash || !raw.pathname.startsWith(prefix)) throw new StaticGap('Diagram is not a repository-owned static file');
   const name = decodeURIComponent(raw.pathname.slice(prefix.length));
   const file = path.resolve(renderer.root, 'static', name);
   if (!file.startsWith(path.join(renderer.root, 'static') + path.sep) || !file.endsWith('.drawio')) throw new StaticGap('Unsupported diagram source path');
   if (!fs.existsSync(file)) throw new StaticGap('Local diagram source is missing');
+  if (!fs.realpathSync(file).startsWith(fs.realpathSync(path.join(renderer.root, 'static')) + path.sep)) {
+    throw new StaticGap('Diagram source leaves the static directory');
+  }
   const xml = fs.readFileSync(file, 'utf8');
   if (!xml.includes('<mxGraphModel') || /<!DOCTYPE|<!ENTITY/i.test(xml)) throw new StaticGap('Only uncompressed draw.io graph data is supported');
   // Parse each XML start tag as an isolated HTML fragment. Explicit mxCell IDs,

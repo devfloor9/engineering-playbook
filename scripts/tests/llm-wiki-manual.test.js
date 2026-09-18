@@ -43,6 +43,11 @@ test('Figure refuses remote, runtime, duplicate, and injected embedded content',
     `<div>${frame}</div>`,
     `${frame}<script>secret()</script>`,
     `${frame}<p>{process.env.SECRET}</p>`,
+    frame.replace('<iframe', '<iframe srcDoc="<p>Different article</p>"'),
+    frame.replace('<iframe', '<iframe src="https://example.com/alternate"'),
+    frame.replace('<iframe', '<iframe {...runtimeProps}'),
+    frame.replace('<iframe', '<iframe onLoad={runtimeHandler}'),
+    frame.replace('?highlight=', '?data=override&highlight='),
   ]) {
     const omitted = new Set();
     const output = stripMdx(`${figureImport}<Figure title="Example">${body}</Figure>`, {filePath: reference, omitted});
