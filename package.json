@@ -17,6 +17,7 @@
     "generate-llms": "node scripts/generate-llms-txt.js --out build",
     "generate-llm-wiki": "node scripts/generate-llm-wiki.js --out build",
     "test:llm-wiki": "node --test scripts/tests/llm-wiki-components.test.js",
+    "test:links": "node --test scripts/tests/validate-links.test.js",
     "new-post": "node scripts/new-post.js",
     "validate-metadata": "node scripts/validate-metadata-new.js",
     "validate-links": "node scripts/validate-links.js",
@@ -47,11 +48,16 @@
     "@docusaurus/module-type-aliases": "^3.9.2",
     "@docusaurus/plugin-client-redirects": "3.9.2",
     "@docusaurus/types": "^3.9.2",
+    "@docusaurus/utils": "3.9.2",
     "@resvg/resvg-js": "^2.6.2",
     "gray-matter": "^4.0.3",
     "js-yaml": "^4.1.0",
+    "parse5": "7.3.0",
     "pretendard": "^1.3.9",
-    "satori": "^0.26.0"
+    "remark-gfm": "4.0.1",
+    "remark-parse": "11.0.0",
+    "satori": "^0.26.0",
+    "unified": "11.0.5"
   },
   "browserslist": {
     "production": [

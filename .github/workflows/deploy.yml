@@ -44,6 +44,9 @@ jobs:
       - name: Verify LLM wiki component exports
         run: npm run test:llm-wiki
 
+      - name: Verify link validator regressions
+        run: npm run test:links
+
       - name: Build website
         run: npm run build
 
@@ -52,6 +55,22 @@ jobs:
 
       - name: Generate LLM Wiki (per-page markdown + manifest)
         run: npm run generate-llm-wiki
+
+      - name: Verify internal routes and fragments
+        run: >-
+          node scripts/validate-links.js --build-dir build
+          --json link-check-internal.json
+          --markdown link-check-internal.md
+
+      - name: Upload internal link findings
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: internal-link-check
+          path: |
+            link-check-internal.json
+            link-check-internal.md
+          if-no-files-found: warn
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
