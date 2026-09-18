@@ -5,7 +5,7 @@ created: "2026-04-18"
 last_update:
   date: 2026-09-18
   author: YoungJoon Jeong
-reading_time: 46
+reading_time: 52
 tags:
   - evaluation
   - ragas
@@ -146,7 +146,7 @@ The following comparison focuses on the AIDLC Middle Loop: CI integration and co
 | Tool | License | Main Metrics | CI Integration | Production Sampling | Strengths | Limitations |
 |------|---------|-----------|-------------|----------------|------|------|
 | **Ragas v0.2+** | Apache 2.0 | faithfulness, context_precision, context_recall, answer_relevancy, noise_sensitivity | Python SDK, GH Actions, CodeBuild | Official support through Langfuse/Phoenix integration | Most mature for RAG evaluation, with extensive references | LLM-as-judge invocation costs |
-| **DeepEval** | Apache 2.0 | 30+ metrics, including G-Eval, Toxicity, PII, Hallucination, Bias, and Correctness | PyTest-like DSL (`@pytest.mark.llm_eval`) | Confident AI integration | Familiar to PyTest users; custom metric DSL | Moderately mature ecosystem; some metrics require validation |
+| **DeepEval** | Apache 2.0 | 30+ metrics, including G-Eval, Toxicity, PII, Hallucination, Bias, and Correctness | PyTest integration (`assert_test()`) | Confident AI integration | Familiar to PyTest users; custom metric DSL | Moderately mature ecosystem; some metrics require validation |
 | **LangSmith** | SaaS + self-host beta | Trace, Dataset, Auto/Custom Evaluator, LLM-as-judge | `langsmith evaluate` CLI, GH Actions | Managed (native to LangChain) | LangChain/LangGraph integration and A/B experiment management | SaaS dependency and data governance concerns |
 | **Braintrust** | SaaS + self-host Enterprise | Dataset, Grading, Replay, Playground | `braintrust eval` CLI | Managed, log SDK | Strong developer experience and Playground UX | Vendor lock-in and on-premises constraints |
 | **AWS Labs aidlc-evaluator** | Apache 2.0 (early, v0.1.6+) | AIDLC phase deliverable compliance, Common Rules compliance, and Stage Transition metrics | Python execution through `scripts/` | - | Evaluates adherence to the AIDLC methodology itself | Lacks general-purpose quality metrics; pair with Ragas/DeepEval |
@@ -179,7 +179,7 @@ Retrieval quality and generation quality are intertwined in a RAG pipeline, comp
 
 ### 3.3 DeepEval PyTest Integration
 
-DeepEval uses the `@pytest.mark.llm_eval` marker and `assert_test()` helper to insert evaluation cases into existing PyTest pipelines. Results can be sent to the Confident AI dashboard or saved as local JSON.
+DeepEval integrates evaluation cases into PyTest pipelines with `assert_test()` and the `deepeval test run` command. `assert_test()` fails the test when a metric falls below its threshold. Configure dashboard uploads and result storage separately in the execution environment. [Official CI/CD guide](https://deepeval.com/docs/evaluation-unit-testing-in-ci-cd)
 
 - **G-Eval**: Define an arbitrary rubric in natural language and score it with an LLM judge.
 - **Hallucination / Bias / Toxicity**: Built-in safety metrics.
@@ -214,24 +214,31 @@ At the v0.1.x stage, its general applicability and stability are limited. For or
 
 ### 4.1 Inner Loop — Developer Workstation
 
-- Tools: `pytest-deepeval`, `promptfoo`, or inline calls to `ragas.evaluate()`
+- Tools: PyTest integration through `deepeval`, `promptfoo`, or inline calls to `ragas.evaluate()`
 - Data: 10–20 fixed samples (smoke set)
 - Cadence: Pre-commit on code save or `make eval-fast`
 - Purpose: Block critical regressions immediately with feedback in seconds
 
+This code is a **scaffold that requires project integration**. In addition to `deepeval` and PyTest, supply three fixtures: `smoke_questions`, a nonempty list of questions; `run_pipeline(q)`, a function returning `(response string, list of actual retrieved document strings)` from the same execution; and `judge_model`, an explicitly selected model ID or `DeepEvalBaseLLM` implementation. Pin validated library versions and configure model access and a cost budget before running it. Fixture implementations are not included here.
+
 ```python
-# Inner Loop example — DeepEval smoke test
-import pytest
-from deepeval import evaluate
+# Inner Loop scaffold — DeepEval smoke test
+from deepeval import assert_test
 from deepeval.metrics import FaithfulnessMetric, AnswerRelevancyMetric
 from deepeval.test_case import LLMTestCase
 
-@pytest.mark.llm_eval
-def test_rag_smoke():
-    cases = [LLMTestCase(input=q, actual_output=run_pipeline(q), retrieval_context=ctx)
-             for q, ctx in smoke_dataset]
-    metrics = [FaithfulnessMetric(threshold=0.85), AnswerRelevancyMetric(threshold=0.80)]
-    evaluate(cases, metrics)
+def test_rag_smoke(run_pipeline, smoke_questions, judge_model):
+    assert smoke_questions, "Smoke dataset must not be empty"
+    for question in smoke_questions:
+        response, contexts = run_pipeline(question)
+        case = LLMTestCase(
+            input=question, actual_output=response, retrieval_context=contexts
+        )
+        metrics = [
+            FaithfulnessMetric(threshold=0.85, model=judge_model),
+            AnswerRelevancyMetric(threshold=0.80, model=judge_model),
+        ]
+        assert_test(test_case=case, metrics=metrics)
 ```
 
 ### 4.2 Middle Loop — CI (GitHub Actions)
@@ -240,6 +247,8 @@ def test_rag_smoke():
 - Data: 200–500 regression cases combining domain-specific cases with public benchmark subsets
 - Cadence: Pull requests and merges into main
 - Purpose: Detect regressions, visualize change impact, and gate deployment
+
+The YAML below is also an **integration scaffold**. The project must supply `requirements-eval.txt`, the dataset, `run_ragas.py`, and `gate.py`. When choosing Ragas, use an `EvaluationDataset` and judge/embedding configuration that follow its [official `evaluate()` contract](https://docs.ragas.io/en/stable/references/evaluate/), then adapt the result to the schema consumed by `gate.py`. Do not pass DeepEval's `LLMTestCase` directly to Ragas.
 
 ```yaml
 # .github/workflows/eval.yml (excerpt)
@@ -258,14 +267,15 @@ jobs:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: python eval/run_ragas.py --dataset eval/datasets/regression.jsonl --out results.json
       - name: Gate on thresholds
-        run: python eval/gate.py results.json \
-               --faithfulness 0.90 --context-precision 0.85 --answer-relevancy 0.85
+        run: |
+          python eval/gate.py results.json \
+            --faithfulness 0.90 --context-precision 0.85 --answer-relevancy 0.85
       - uses: actions/upload-artifact@v4
         with: {name: eval-results, path: results.json}
 ```
 
-- `gate.py` returns `exit 1` when a metric fails its threshold, blocking the PR.
-- Results are uploaded as artifacts and pushed to Langfuse/Braintrust dashboards.
+- Implement `gate.py` to return `exit 1` for a failed threshold, missing/nonfinite score, or evaluation error. Ragas returns `NaN` for failed evaluations by default; the gate must not treat it as a pass.
+- The example includes artifact upload only. Sending results to Langfuse/Braintrust dashboards requires a separate adapter.
 
 ### 4.3 Outer Loop — Production Sampling
 
@@ -379,38 +389,47 @@ Address data drift by expanding coverage, concept drift by rewriting ground trut
 
 ### 7.1 LLM-as-Judge Cost Structure
 
-- Two to five evaluation calls per case, depending on the number of metrics, multiplied by judge-model tokens and dataset size.
-- For 500 cases × five metrics with GPT-4.1: **thousands to tens of thousands of tokens per run**.
+- Metric count differs from judge-call count. A metric can make multiple LLM calls, so measure actual calls, including retries, and input/output tokens per call. [DeepEval Faithfulness calculation](https://deepeval.com/docs/metrics-faithfulness)
+- Assuming 500 cases × five metrics × one call per metric × 2,000 combined input/output tokens per call gives **5,000,000 tokens (5M) per run**. Actual usage depends on call counts and token lengths.
 - Running evaluations for every PR in CI can create substantial monthly costs; set a cost ceiling.
 
 ### 7.2 Cost Reduction Strategies
 
 1. **Use a smaller judge model**: Replace GPT-4.1 with GPT-4.1-mini or Claude Haiku 4.5 for the initial assessment, then recheck only borderline cases with a larger model.
-2. **Local evaluator models**: Use Prometheus-Eval or lightweight models built into Ragas for the Inner/Middle Loop.
+2. **Local evaluator models**: Connect a separately hosted judge to the Inner/Middle Loop and validate both evaluation quality and local inference infrastructure costs.
 3. **Sampling strategy**: Use 100 stratified samples for the Middle Loop instead of 500, with a full 500-case run once a month.
 4. **Caching**: Cache judge results for identical prompt/response pairs and skip reevaluation when the input has not changed.
 5. **Asynchronous evaluation**: Make selected metrics advisory rather than blocking PRs.
 
 ### 7.3 Cost-Effective Tool Combinations
 
-| Team Size | Combination | Estimated Monthly Cost Range |
+Team size alone does not determine monthly cost. Calculate the following cost components using the actual call volumes in section 7.4.
+
+| Team Size | Combination | Cost Components |
 |--------|------|----------------|
-| Small (&lt;5 people) | Local Ragas + Langfuse OSS + Haiku judge | $50-200 |
-| Medium (5–20 people) | Ragas + DeepEval + Langfuse + Haiku/4o-mini | $300-1,500 |
-| Large (20+ people) | Braintrust SaaS or LangSmith + 4o judge | $2,000-10,000+ |
+| Small (&lt;5 people) | Locally run Ragas + Langfuse OSS + smaller judge | Judge/embedding calls + self-hosting |
+| Medium (5–20 people) | Ragas + DeepEval + Langfuse + judge routing | Calls/retries per metric + trace retention |
+| Large (20+ people) | Braintrust SaaS or LangSmith + judge | Judge calls + SaaS contract/usage + storage |
 
 ### 7.4 Cost Estimation Worksheet
 
-Use the following formula to estimate the scale of an evaluation budget for an organization.
+Apply this formula to evaluations sharing the same metric, model, and token-length assumptions. `T_in` and `T_out` are average input/output tokens per judge call; `P_in` and `P_out` are the respective prices in **USD per million tokens**. Calculate CI and production separately when their assumptions differ, then add the costs.
 
 ```text
-Monthly evaluation cost ≈
-  (CI runs/month × dataset size × metric count × judge token unit price)
-+ (production traces/month × sampling rate × metric count × judge token unit price)
-+ (weekly public benchmark execution costs)
+Evaluated cases/month =
+  CI runs/month × cases/run + production traces/month × sampling rate
+Judge calls/month =
+  evaluated cases/month × metric count × average judge calls/metric
+Judge cost (USD/month) ≈
+  judge calls/month × (T_in × P_in + T_out × P_out) / 1,000,000
+Total evaluation cost (USD/month) ≈
+  judge cost + separate benchmark runs/month × cost (USD/run)
+  + pipeline generation/embedding/infrastructure/SaaS/storage costs (USD/month)
 ```
 
-Example: 50 PRs per month, a 200-case dataset, five metrics, and an average of 2k tokens per judge call at GPT-4o-mini pricing. The CI portion alone is approximately 50 × 200 × 5 × 2,000 tokens = 100M tokens/month. At this scale, smaller judge models and sampling become necessary.
+Example: 50 CI runs/month × 200 cases × five metrics × one call per metric = **50,000 judge calls/month**. At 1,600 input tokens + 400 output tokens per call, usage is **80M input + 20M output = 100M total tokens/month**. With hypothetical worksheet prices of `P_in = $0.20/1M` and `P_out = $0.80/1M`, judge cost is `80 × $0.20 + 20 × $0.80 = $32/month`. These are not current prices for a particular model. This CI judge example excludes production evaluation and the other costs listed above.
+
+For a real budget, apply the provider's billing token categories and prices, accounting for caching, retries, and calls per metric. Do not count benchmark costs again if their calls are already included.
 
 ---
 
@@ -454,7 +473,16 @@ flowchart LR
 
 ### 8.3 Sampler and Evaluation Worker Pseudocode
 
+This is a **synchronous worker scaffold invoked by a queue**, using the same DeepEval contract as section 4.1. `fetch_trace` must wrap the tracing SDK and return a normalized trace with `input: str`, `output: str`, and `retrieved_docs: list[str]`. The sampler also requires `error: bool`, `user_rating: number or None`, and `estimated_cost_usd: number`. The project injects storage, dataset promotion, notification functions, and `judge_model`.
+
+The returned/stored schema is `{"faithfulness": float, "answer_relevancy": float}`, with finite scores in the range 0–1. Read `metric.score` after calling `measure(case)` for [Faithfulness](https://deepeval.com/docs/metrics-faithfulness) and [Answer Relevancy](https://deepeval.com/docs/metrics-answer-relevancy). This worker promotes cases and alerts when `faithfulness < 0.85`. Evaluation failures propagate as exceptions, separate from low quality scores. Queue retries, error recording, and duplicate handling still require implementation.
+
 ```python
+import math
+import random
+from deepeval.metrics import FaithfulnessMetric, AnswerRelevancyMetric
+from deepeval.test_case import LLMTestCase
+
 # sampler.py — stratified sampling
 def should_sample(trace):
     if trace.error or trace.user_rating is not None and trace.user_rating <= 2:
@@ -463,16 +491,29 @@ def should_sample(trace):
         return True  # Sample 100% of high-cost traces
     return random.random() < 0.05  # Randomly sample 5% of the remainder
 
-# worker.py — asynchronous evaluator
-def evaluate_trace(trace_id):
-    trace = langfuse.fetch_trace(trace_id)
-    cases = [LLMTestCase(input=trace.input, actual_output=trace.output,
-                         retrieval_context=trace.retrieved_docs)]
-    result = ragas.evaluate(cases, metrics=[faithfulness, answer_relevancy])
-    store_result(trace_id, result, target="s3://eval-results/")
-    if result.faithfulness < 0.85:
+# worker.py — synchronous handler invoked by a queue
+def evaluate_trace(trace_id, *, fetch_trace, judge_model, store_result,
+                   promote_to_dataset, alert_team):
+    trace = fetch_trace(trace_id)
+    case = LLMTestCase(input=trace.input, actual_output=trace.output,
+                       retrieval_context=trace.retrieved_docs)
+    metrics = {
+        "faithfulness": FaithfulnessMetric(threshold=0.85, model=judge_model),
+        "answer_relevancy": AnswerRelevancyMetric(threshold=0.80, model=judge_model),
+    }
+    scores = {}
+    for name, metric in metrics.items():
+        metric.measure(case)
+        score = metric.score
+        if (isinstance(score, bool) or not isinstance(score, (int, float))
+                or not math.isfinite(score) or not 0 <= score <= 1):
+            raise ValueError(f"Invalid {name} score: {score!r}")
+        scores[name] = float(score)
+    store_result(trace_id, scores, target="s3://eval-results/")
+    if scores["faithfulness"] < 0.85:
         promote_to_dataset(trace, dataset="regression_v2")
         alert_team(trace_id, severity="warning")
+    return scores
 ```
 
 ### 8.4 Security and Governance

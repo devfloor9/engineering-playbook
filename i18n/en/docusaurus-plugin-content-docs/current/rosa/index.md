@@ -5,7 +5,7 @@ created: "2025-02-05"
 last_update:
   date: 2026-09-18
   author: devfloor9
-reading_time: 12
+reading_time: 16
 tags:
   - scope:nav
 sidebar_label: ROSA
@@ -163,16 +163,18 @@ graph TB
 
 ## ROSA vs EKS vs On-Premises OpenShift
 
-| Item | ROSA | EKS | On-Premises OpenShift |
+Apply these criteria to the same workload, availability, and support requirements. Service names alone do not establish rankings for security, total cost, or deployment speed. Check management boundaries against the [ROSA architecture](https://docs.aws.amazon.com/rosa/latest/userguide/rosa-architecture-models.html), [Amazon EKS overview](https://docs.aws.amazon.com/eks/latest/userguide/what-is-eks.html), and [self-managed OpenShift guide](https://www.redhat.com/en/resources/self-managed-openshift-subscription-guide).
+
+| Selection Criterion | ROSA | EKS | On-Premises OpenShift |
 |------|------|-----|----------------|
-| **Control Plane Management** | Red Hat/AWS | AWS | Customer responsibility |
-| **Security** | Highest level | High | Requires configuration |
-| **Cost** | Medium to high | Low to medium | High initial investment |
-| **Operational Complexity** | Low | Low | High |
-| **Developer Experience** | Excellent | High | Very high |
-| **Deployment Speed** | Fast | Fast | Slow |
-| **Hybrid Support** | Excellent | Average | Excellent |
-| **Multi-Cloud** | Excellent | AWS only | Excellent |
+| **Control Plane Management** | Red Hat manages it; HCP runs in Red Hat's AWS account, Classic in the customer's AWS account | AWS manages it | Customer installs, upgrades, and operates recovery |
+| **Security Responsibilities** | Check the [shared responsibility boundary](https://docs.aws.amazon.com/rosa/latest/userguide/security.html) and customer access, workload, and data configuration | Check shared responsibility and patch/access ownership for the chosen node option | Check customer controls and operations from infrastructure through cluster and workloads |
+| **Cost Components** | ROSA service fees include OpenShift; add AWS infrastructure and distinguish HCP/Classic | Cluster + compute/storage/network + optional feature charges | OpenShift subscription + hardware/virtualization/facilities/operations |
+| **Operations Scope** | Check managed service coverage and customer application/node capacity management | Check data plane ownership for Standard/Auto Mode/Hybrid Nodes | Check customer infrastructure/platform staffing and automation |
+| **Developer Tool Fit** | Check compatibility with existing OpenShift APIs, tools, and Operators | Check Kubernetes APIs/add-ons and integration with existing CI/CD tools | Check features of the selected OpenShift edition and self-managed tooling |
+| **Deployment Prerequisites** | HCP/Classic topology and AWS quota/network readiness | Node option and AWS quota/network readiness | Server/storage/network availability and installation automation |
+| **Hybrid Placement** | Design integration between AWS-hosted ROSA and external OpenShift environments | [EKS Hybrid Nodes](https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-overview.html) connects on-premises/edge nodes to an AWS control plane and requires reliable connectivity | Design connectivity and operations between on-premises clusters and external environments |
+| **Placement in Other Clouds** | ROSA is an AWS service; verify separate deployment/support for OpenShift in other clouds | Running Hybrid Nodes on other cloud infrastructure is unsupported | Verify supported platforms, subscriptions, and management tools for the target cloud |
 
 ## Deployment Patterns
 
@@ -227,7 +229,7 @@ Joint management by AWS and Red Hat reduces the burden of operating the ROSA con
 :::
 
 :::warning Licensing Notice
-ROSA requires separate OpenShift licensing. Include both ROSA service costs and OpenShift licensing costs when calculating the budget.
+ROSA service fees include access to OpenShift software and cluster management by Red Hat SREs. Add the underlying AWS infrastructure fees without counting the same OpenShift entitlement again as a separate license cost. Check HCP/Classic billing components and any separate add-on products or contract terms against the [official Marketplace billing guide](https://docs.aws.amazon.com/rosa/latest/userguide/integration-marketplace.html) and your agreement. This describes ROSA, separately from self-managed subscriptions for on-premises OpenShift.
 :::
 
 :::success Migration Guidance
