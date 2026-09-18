@@ -4,13 +4,11 @@ import {useMDXComponents} from '@mdx-js/react';
 import DocTools from '@site/src/components/DocTools';
 import CopyButton from '@site/src/components/CopyButton';
 import Content from '@site/src/theme/DocItem/Content';
-import {forgetManifest} from '@site/src/components/DocTools/manifest';
 import {TestContext} from './browser-context';
 
 const nativeFetch = window.fetch.bind(window);
 const params = new URLSearchParams(window.location.search);
 const rootPath = '/engineering-playbook/';
-const manifestPath = `${rootPath}llm-wiki/manifest.json`;
 const origin = 'https://example.test';
 const defaultContext = {
   doc: {
@@ -20,16 +18,6 @@ const defaultContext = {
   },
   site: {siteConfig: {url: origin, trailingSlash: false, customFields: {documentationBaseUrl: rootPath}}, i18n: {currentLocale: 'ko'}},
 };
-const manifest = {
-  language: 'ko',
-  docs: [
-    {url: `${origin}${rootPath}docs/aidlc`, md_url: `${origin}${rootPath}llm-wiki/aidlc/index.md`},
-    {url: `${origin}${rootPath}docs/other`, md_url: `${origin}${rootPath}llm-wiki/other.md`},
-  ],
-};
-// Component-state tests use deterministic response promises. Real Response
-// parsing, MIME checks and HTTP failures are covered by manifest.test.cjs.
-const manifestResponse = () => ({ok: true, json: async () => manifest});
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 const deferred = () => {
   let resolve, reject;
@@ -40,15 +28,24 @@ const assert = (condition, message) => { if (!condition) throw new Error(message
 const buttons = host => [...host.querySelectorAll('button')];
 const named = (host, text) => buttons(host).find(button => button.textContent === text);
 const text = host => host.textContent;
-const clearManifest = () => forgetManifest(manifestPath);
 const withLocale = locale => ({
   ...defaultContext,
   site: {...defaultContext.site, i18n: {currentLocale: locale}},
 });
-const withDoc = pathname => ({
-  ...defaultContext,
-  doc: {...defaultContext.doc, metadata: {...defaultContext.doc.metadata, permalink: pathname}},
+const withDoc = (pathname, context = defaultContext) => ({
+  ...context,
+  doc: {...context.doc, metadata: {...context.doc.metadata, permalink: pathname}},
 });
+const labels = locale => locale === 'ko'
+  ? {copy: '링크 복사', guide: 'AI용 문서 안내', reading: '6분 읽기', copied: '링크 복사: 복사했습니다.'}
+  : {copy: 'Copy link', guide: 'AI documentation guide', reading: '6 min read', copied: 'Copy link: Copied.'};
+const actionsIn = host => [...host.querySelectorAll('button, a')];
+function metadataBeforeActions(host, firstAction, locale) {
+  const dates = [...host.querySelectorAll('time')];
+  const reading = [...host.querySelectorAll('span')].find(node => node.textContent === labels(locale).reading);
+  return dates.length === 2 && reading && firstAction &&
+    [...dates, reading].every(node => node.compareDocumentPosition(firstAction) & Node.DOCUMENT_POSITION_FOLLOWING);
+}
 
 function Body() {
   const {h1: Title} = useMDXComponents();
@@ -74,85 +71,57 @@ async function testSuite() {
   window.IS_REACT_ACT_ENVIRONMENT = true;
   const reports = [];
   const originalClipboard = Object.getOwnPropertyDescriptor(navigator, 'clipboard');
-  let writes;
+  let writes, requests;
   const setClipboard = fn => Object.defineProperty(navigator, 'clipboard', {configurable: true, value: {writeText: fn}});
   async function test(name, run) {
     writes = [];
+    requests = [];
     setClipboard(async value => { writes.push(value); });
-    clearManifest();
-    window.fetch = async () => manifestResponse();
-    try { await run(); reports.push({name, passed: true}); }
+    window.fetch = async url => {
+      requests.push(String(url));
+      throw new Error('The article toolbar must not fetch a manifest or Markdown.');
+    };
+    try {
+      await run();
+      assert(requests.length === 0, `unexpected toolbar requests: ${requests.join(', ')}`);
+      reports.push({name, passed: true});
+    }
     catch (error) { reports.push({name, passed: false, error: error.message}); }
   }
 
-  await test('loading keeps link/guide available; supported exposes four SVG/text actions', async () => {
-    const pending = deferred();
-    window.fetch = () => pending.promise;
-    const page = await mount(<DocTools />);
-    try {
-      assert(text(page.host).includes('지원 여부'), 'loading status');
-      assert(page.host.querySelectorAll('[role="group"] button, [role="group"] a').length === 2, 'initial actions');
-      assert(!page.host.querySelector('details'), 'no closed disclosure');
-      await act(async () => pending.resolve(manifestResponse()));
-      const actions = [...page.host.querySelectorAll('[role="group"] button, [role="group"] a')];
-      assert(actions.length === 4, 'all four actions');
-      assert(actions.every(action => action.querySelector('svg') && action.textContent.trim()), 'SVG and text');
-      assert(page.host.querySelector('a[target="_blank"]').textContent.includes('새 탭'), 'new tab announcement');
-    } finally { await page.unmount(); }
-  });
+  for (const locale of ['ko', 'en']) {
+    await test(`${locale}: metadata precedes exactly two localized actions without content requests or toolbar status`, async () => {
+      const page = await mount(<DocTools />, withLocale(locale));
+      try {
+        const expected = labels(locale);
+        const actions = actionsIn(page.host);
+        assert(actions.length === 2, 'only Copy link and AI guide');
+        assert(actions.map(action => action.textContent.trim()).join('|') === `${expected.copy}|${expected.guide}`, 'localized action labels and order');
+        assert(actions[0].tagName === 'BUTTON' && actions[1].tagName === 'A', 'copy button and guide link');
+        assert(actions.every(action => action.querySelector('svg') && action.textContent.trim()), 'SVG and text');
+        assert(metadataBeforeActions(page.host, actions[0], locale), 'dates and reading time precede actions');
+        assert(actions[1].pathname === `${rootPath}${locale === 'en' ? 'en/' : ''}ai-docs`, 'localized guide destination');
+        assert(!page.host.querySelector('details, a[target="_blank"]'), 'no removed Markdown disclosure or link');
+        assert(!text(page.host).includes('Markdown'), 'no Markdown action or loading/error text');
+        const status = [...page.host.querySelectorAll('[role="status"]')];
+        const copyControl = actions[0].closest('[data-state]');
+        assert(status.length === 1 && copyControl?.contains(status[0]) && status[0].textContent === '', 'only empty clipboard feedback remains');
+        if (locale === 'en') assert(!/[가-힣]/u.test(text(page.host)), 'English labels only');
+      } finally { await page.unmount(); }
+    });
+  }
   await test('link copy normalizes a category permalink and preserves its current fragment', async () => {
-    history.replaceState(null, '', '#existing-section');
-    const page = await mount(<DocTools />, withDoc(`${rootPath}docs/aidlc/`));
-    try {
-      await act(async () => named(page.host, '링크 복사').click());
-      assert(writes[0] === `${origin}${rootPath}docs/aidlc#existing-section`, 'canonical fragment');
-      assert(text(page.host).includes('링크 복사: 복사했습니다.'), 'identified live status');
-    } finally { await page.unmount(); }
-  });
-  await test('English mismatch stays unsupported without Korean fallback', async () => {
-    const page = await mount(<DocTools />, withLocale('en'));
-    try {
-      assert(text(page.host).includes('Markdown export is not available'), 'unsupported status');
-      assert(!page.host.querySelector('a[target="_blank"]'), 'no fallback link');
-      assert(!/[가-힣]/u.test(text(page.host)), 'English labels only');
-      assert(page.host.querySelector('a').pathname === `${rootPath}en/ai-docs`, 'localized guide');
-    } finally { await page.unmount(); }
-  });
-  await test('manifest error has retry and recovers to supported', async () => {
-    let requests = 0;
-    window.fetch = async () => {
-      if (++requests === 1) throw new Error('offline');
-      return manifestResponse();
-    };
-    const page = await mount(<DocTools />);
-    try {
-      assert(text(page.host).includes('불러오지 못했습니다'), 'error differs from unsupported');
-      await act(async () => named(page.host, '다시 시도').click());
-      assert(requests === 2 && page.host.querySelector('a[target="_blank"]'), 'retry fetch recovered');
-    } finally { await page.unmount(); }
-  });
-  await test('Markdown copy uses the validated URL and retries after an HTML response', async () => {
-    const requested = [];
-    let htmlResponse = true;
-    window.fetch = async (url, init) => {
-      if (url === manifestPath) return manifestResponse();
-      requested.push(url);
-      assert(init.redirect === 'error', 'no redirect following');
-      return {
-        ok: true,
-        headers: {get: () => htmlResponse ? 'text/html' : 'text/markdown'},
-        text: async () => '# Exact exported document',
-      };
-    };
-    const page = await mount(<DocTools />);
-    try {
-      await act(async () => named(page.host, 'Markdown 복사').click());
-      assert(writes.length === 0 && text(page.host).includes('복사하지 못했습니다'), 'HTML was not copied');
-      htmlResponse = false;
-      await act(async () => named(page.host, 'Markdown 복사').click());
-      assert(writes[0] === '# Exact exported document', 'exported text copied on retry');
-      assert(requested.every(url => url === `${rootPath}llm-wiki/aidlc/index.md`), 'manifest URL only');
-    } finally { await page.unmount(); }
+    for (const locale of ['ko', 'en']) {
+      const pathname = `${rootPath}${locale === 'en' ? 'en/' : ''}docs/aidlc`;
+      history.replaceState(null, '', '#before-mount');
+      const page = await mount(<DocTools />, withDoc(`${pathname}/`, withLocale(locale)));
+      try {
+        history.replaceState(null, '', '#existing-section');
+        await act(async () => named(page.host, labels(locale).copy).click());
+        assert(writes.at(-1) === `${origin}${pathname}#existing-section`, 'canonical URL with click-time fragment');
+        assert(text(page.host).includes(labels(locale).copied), 'identified localized clipboard status');
+      } finally { await page.unmount(); }
+    }
   });
   await test('legacy text/label/ariaLabel API and asynchronous getText precedence', async () => {
     const pending = deferred();
@@ -223,16 +192,6 @@ async function testSuite() {
       assert(text(page.host).includes('복사하지 못했습니다'), 'missing clipboard');
     } finally { await page.unmount(); }
   });
-  await test('a late manifest response resolves only the current document URL', async () => {
-    const pending = deferred();
-    window.fetch = () => pending.promise;
-    const page = await mount(<DocTools />);
-    try {
-      await page.render(<DocTools />, withDoc(`${rootPath}docs/other`));
-      await act(async () => pending.resolve(manifestResponse()));
-      assert(page.host.querySelector('a[target="_blank"]').pathname === `${rootPath}llm-wiki/other.md`, 'new URL only');
-    } finally { await page.unmount(); }
-  });
   if (originalClipboard) Object.defineProperty(navigator, 'clipboard', originalClipboard);
   else delete navigator.clipboard;
   window.fetch = nativeFetch;
@@ -247,25 +206,35 @@ async function preview() {
   const theme = params.get('theme') || 'light';
   document.documentElement.dataset.theme = theme;
   const locale = params.get('locale') || 'ko';
-  const state = params.get('state') || 'supported';
-  window.fetch = async () => {
-    if (state === 'error') throw new Error('fixture offline');
-    if (state === 'loading') return new Promise(() => {});
-    return Response.json(manifest);
+  const requests = [];
+  window.fetch = async url => {
+    requests.push(String(url));
+    throw new Error('The article toolbar must not fetch a manifest or Markdown.');
   };
   const context = locale === 'en' ? withLocale('en') : defaultContext;
   createRoot(document.getElementById('fixture')).render(
     <TestContext.Provider value={context}><Content><Body /></Content></TestContext.Provider>);
   await delay(150);
-  const actions = [...document.querySelectorAll('[role="group"] a, [role="group"] button')];
+  const host = document.getElementById('fixture');
+  const actions = actionsIn(host);
+  const expected = labels(locale);
+  const copyControl = actions[0]?.closest('[data-state]');
+  const statuses = [...host.querySelectorAll('[role="status"]')];
   const report = {
-    theme, locale, state, viewport: innerWidth,
+    theme, locale, viewport: innerWidth,
+    actionCount: actions.length,
+    localizedActions: actions.map(action => action.textContent.trim()).join('|') === `${expected.copy}|${expected.guide}`,
+    guideDestination: actions[1]?.pathname === `${rootPath}${locale === 'en' ? 'en/' : ''}ai-docs`,
+    metadataBeforeActions: !!metadataBeforeActions(host, actions[0], locale),
+    noContentRequests: requests.length === 0,
+    noMarkdownControls: !text(host).includes('Markdown'),
+    clipboardFeedbackOnly: statuses.length === 1 && !!copyControl?.contains(statuses[0]) && statuses[0].textContent === '',
     noOverflow: document.documentElement.scrollWidth <= innerWidth,
     minActionHeight: Math.min(...actions.map(action => action.getBoundingClientRect().height)),
     graphicalLabels: actions.every(action => action.querySelector('svg') && action.textContent.trim()),
     oneH1: document.querySelectorAll('h1').length === 1,
     anchor: !!document.getElementById('aidlc-ai-driven-development-lifecycle'),
-    focusOutline: getComputedStyle(actions[0]).getPropertyValue('--ep-focus-ring'),
+    focusOutline: actions[0] ? getComputedStyle(actions[0]).getPropertyValue('--ep-focus-ring') : null,
   };
   document.getElementById('results').textContent = JSON.stringify(report, null, 2);
   await nativeFetch('/results', {method: 'POST', body: JSON.stringify({suite: 'layout', report})});

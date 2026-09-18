@@ -60,12 +60,13 @@ compiler.run((error, stats) => {
 #results{white-space:pre-wrap;overflow-wrap:anywhere;font:12px/1.5 monospace;margin:24px;padding:12px;border:1px solid var(--ep-outline-variant)}
 @media(max-width:500px){#fixture{padding:16px}h1{font-size:1.875rem}}
 </style></head><body><main id="fixture"></main><pre id="results" aria-label="Verification results"></pre><script src="/fixture.js"></script></body></html>`;
-  const matrix = `<!doctype html><html><head><meta charset="utf-8"><title>Document tools light/dark verification matrix</title></head><body style="font-family:system-ui;background:#eee;margin:16px">
-<h1>Document tools verification</h1><p><a href="/?test=1">Run state and clipboard tests</a> · <a href="/?state=error">Manifest error/retry</a> · <a href="/?locale=en">English unsupported</a></p>
-<div style="display:flex;gap:24px"><section><h2>Light · 320px</h2><iframe title="Light 320px" src="/?theme=light" width="320" height="860" style="border:0"></iframe></section>
-<section><h2>Dark · 320px</h2><iframe title="Dark 320px" src="/?theme=dark" width="320" height="860" style="border:0"></iframe></section></div>
-<h2>Light · 1280px</h2><iframe title="Light desktop" src="/?theme=light" width="1280" height="720" style="border:0"></iframe>
-<h2>Dark · 1280px</h2><iframe title="Dark desktop" src="/?theme=dark" width="1280" height="720" style="border:0"></iframe></body></html>`;
+  const matrix = locale => `<!doctype html><html><head><meta charset="utf-8"><title>Document tools light/dark verification matrix</title></head><body style="font-family:system-ui;background:#eee;margin:16px">
+<h1>Document tools verification · ${locale.toUpperCase()}</h1><p><a href="/?test=1">Run action, URL and clipboard tests</a> · <a href="/matrix?locale=ko">Korean matrix</a> · <a href="/matrix?locale=en">English matrix</a></p>
+<p>Metadata precedes Copy link and the localized AI guide. No manifest or Markdown requests or toolbar loading/error status.</p>
+<div style="display:flex;gap:24px"><section><h2>Light · 320px</h2><iframe title="${locale.toUpperCase()} light 320px" src="/?theme=light&amp;locale=${locale}" width="320" height="860" style="border:0"></iframe></section>
+<section><h2>Dark · 320px</h2><iframe title="${locale.toUpperCase()} dark 320px" src="/?theme=dark&amp;locale=${locale}" width="320" height="860" style="border:0"></iframe></section></div>
+<h2>Light · 1280px</h2><iframe title="${locale.toUpperCase()} light desktop" src="/?theme=light&amp;locale=${locale}" width="1280" height="720" style="border:0"></iframe>
+<h2>Dark · 1280px</h2><iframe title="${locale.toUpperCase()} dark desktop" src="/?theme=dark&amp;locale=${locale}" width="1280" height="720" style="border:0"></iframe></body></html>`;
   const server = http.createServer((request, response) => {
     const url = new URL(request.url, 'http://localhost');
     if (request.method === 'POST' && url.pathname === '/results') {
@@ -87,7 +88,7 @@ compiler.run((error, stats) => {
       response.end(fs.readFileSync(path.join(foundation, 'src/css/custom.css'), 'utf8').replace(/^@import.*$/gm, ''));
     } else {
       response.setHeader('content-type', 'text/html; charset=utf-8');
-      response.end(url.pathname === '/matrix' ? matrix : html);
+      response.end(url.pathname === '/matrix' ? matrix(url.searchParams.get('locale') === 'en' ? 'en' : 'ko') : html);
     }
   });
   server.listen(0, '127.0.0.1', () => {

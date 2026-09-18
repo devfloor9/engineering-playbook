@@ -17,10 +17,10 @@
   max-width: 100%;
   min-width: 0;
   padding: 10px var(--ep-space-3);
-  border: 1px solid var(--ep-outline);
+  border: 1px solid var(--ep-action-border, var(--ep-outline));
   border-radius: var(--ep-radius-control);
-  background: var(--ep-surface-container-lowest);
-  color: var(--ep-on-surface);
+  background: var(--ep-action-surface, var(--ep-surface-container-lowest));
+  color: var(--ep-action-text, var(--ep-on-surface));
   font: inherit;
   font-size: var(--ep-font-size-caption);
   line-height: 1.5;
@@ -31,12 +31,12 @@
 }
 
 .button:hover {
-  background: var(--ep-surface-container-low);
-  color: var(--ep-on-surface);
+  background: var(--ep-action-hover, var(--ep-surface-container-low));
+  color: var(--ep-action-text, var(--ep-on-surface));
   text-decoration: none;
 }
 .button:focus-visible {
-  outline: var(--ep-focus-ring);
+  outline: var(--ep-action-focus-ring, var(--ep-focus-ring));
   outline-offset: var(--ep-focus-offset);
 }
 .button:disabled {

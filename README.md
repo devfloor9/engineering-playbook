@@ -32,7 +32,7 @@ Examples have different levels of validation. Read each guide's prerequisites, r
 The homepage introduces the topics and offers search, direct entry points, and reading paths. Articles share its typography, colors, navigation, and icon system while keeping technical content in readable tables, code blocks, and figures.
 
 - Document titles are followed by creation and content-revision dates, reading estimates, and document tools.
-- Tools provide **Copy link** and the **AI documentation guide**. **View Markdown** and **Copy Markdown** appear when the export manifest supports the current page and locale.
+- Tools provide **Copy link** and the **AI documentation guide** in muted blue-gray buttons. The guide explains the Markdown exports and discovery endpoints.
 - Tables keep captions, column associations, and horizontal scrolling on narrow screens. Supported figures include source captions and data equivalents; Mermaid diagrams provide a keyboard-accessible zoom dialog.
 - Korean is the source language. English counterparts live under `i18n/en/` and are available through the language selector. Translation coverage does not certify every example's operational behavior.
 
