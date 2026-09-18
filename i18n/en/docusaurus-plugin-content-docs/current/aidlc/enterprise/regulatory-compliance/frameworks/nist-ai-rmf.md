@@ -1,9 +1,9 @@
 ---
-title: NIST AI RMF — U.S. Federal AI Risk Management Framework
-description: NIST AI Risk Management Framework 1.1's 4 Functions (GOVERN/MAP/MEASURE/MANAGE) and AIDLC integration guide
+title: NIST AI RMF — AI Risk Management in AIDLC
+description: AI RMF 1.0, the Generative AI Profile, accurate Core mappings, policy history, and practical AIDLC records
 created: "2026-04-19"
 last_update:
-  date: "2026-06-30"
+  date: "2026-09-18"
   author: devfloor9
 reading_time: 8
 tags:
@@ -17,205 +17,183 @@ sidebar_label: NIST AI RMF
 
 ## Overview
 
-**NIST AI RMF (Risk Management Framework)** is the AI risk management framework published by the U.S. National Institute of Standards and Technology (NIST) in 2023.
+The **NIST AI Risk Management Framework (AI RMF)** is a voluntary framework for managing risks throughout the design, development, deployment, and use of AI systems. This guide maps AIDLC activities to **AI RMF 1.0 (NIST AI 100-1, January 2023)** and the **Generative AI Profile (NIST AI 600-1, July 2024)**.
 
-**Key Features:**
-- **Voluntary Compliance** — No legal enforcement
-- **Federal Procurement Requirement**: NIST AI RMF compliance mandatory for U.S. government contracts (EO 14110)
-- **International Compatibility**: Interoperable with ISO/IEC 42001
-
-**Version History:**
-- v1.0 (Jan 2023): Initial release
-- v1.1 (Dec 2024): Added Generative AI section, enhanced transparency
-
----
+- **Scope:** The framework is not limited to a particular industry or federal procurement. Select activities according to the system's context, risk tolerance, and organizational responsibilities.
+- **Legal requirements:** Distinguish the voluntary framework from obligations in applicable laws, agency policies, and contracts. An AI RMF mapping alone does not establish compliance.
+- **Evidence:** Connect each risk to an owner, evaluation method, decision record, and residual risk.
 
 ## 4 Functions — GOVERN, MAP, MEASURE, MANAGE
 
+GOVERN applies across the other three functions. MAP, MEASURE, and MANAGE are activities repeated throughout the system lifecycle, rather than a fixed certification sequence.
+
 ```mermaid
-graph LR
-    GOV[GOVERN<br/>Governance & Policy]
-    MAP[MAP<br/>Context & Risk ID]
-    MEASURE[MEASURE<br/>Assessment & Testing]
-    MANAGE[MANAGE<br/>Response & Monitoring]
-
+flowchart TB
+    accTitle: The four NIST AI RMF functions
+    accDescr: GOVERN supports MAP, MEASURE, and MANAGE as they repeat context identification, measurement, and risk response.
+    GOV["GOVERN<br/>Responsibilities, policies, risk tolerance"]
+    MAP["MAP<br/>Context and impacts"]
+    MEASURE["MEASURE<br/>Evaluation and uncertainty"]
+    MANAGE["MANAGE<br/>Priorities, response, recovery"]
     GOV --> MAP
-    MAP --> MEASURE
-    MEASURE --> MANAGE
-    MANAGE -.Feedback.-> GOV
-
-    style GOV fill:#9c27b0,color:#fff
-    style MAP fill:#2196f3,color:#fff
-    style MEASURE fill:#ff9800,color:#fff
-    style MANAGE fill:#4caf50,color:#fff
+    GOV --> MEASURE
+    GOV --> MANAGE
+    MAP --> MEASURE --> MANAGE --> MAP
 ```
+
+The identifiers below are selected [official AI RMF Core subcategories](https://airc.nist.gov/airmf-resources/airmf/5-sec-core/). Their descriptions are summaries; the AIDLC mappings are this guide's implementation examples.
 
 ### 1. GOVERN
 
-**Purpose**: Establish AI system governance policies, culture, and accountability
+**Purpose:** Establish the policies, responsibilities, and organizational basis for risk management.
 
-**Core Subcategories:**
-- **GOVERN-1.1**: Establish AI risk management strategy
-- **GOVERN-1.2**: Clarify accountability (AI system owners)
-- **GOVERN-1.3**: Integrate legal, regulatory, and ethical considerations
-- **GOVERN-1.4**: Foster organization-wide AI risk culture
+- **GOVERN 1.1:** Understand, manage, and document applicable legal and regulatory requirements.
+- **GOVERN 1.2:** Incorporate trustworthy AI characteristics into organizational policies, processes, and practices.
+- **GOVERN 1.3:** Determine the level of risk management needed according to organizational risk tolerance.
+- **GOVERN 2.1:** Document clear roles, responsibilities, and communication paths.
 
-**AIDLC Mapping**: [Governance Framework](../../governance-framework.md) — 3-layer governance model
+**AIDLC mapping:** Connect these activities to owners, review criteria, and exception records in the [governance framework](../../governance-framework.md).
 
 ### 2. MAP
 
-**Purpose**: Understand AI system context, identify risks
+**Purpose:** Understand the system's context and potential impacts.
 
-**Core Subcategories:**
-- **MAP-1.1**: Understand business context (use cases, stakeholders)
-- **MAP-1.2**: Define AI system scope (inputs, outputs, dependencies)
-- **MAP-2.1**: Assess data quality
-- **MAP-3.1**: Identify risks (bias, privacy, security)
-- **MAP-5.1**: Impact assessment
+- **MAP 1.1:** Document intended uses, users, deployment contexts, expectations, and limitations.
+- **MAP 1.6:** Elicit and understand system requirements with relevant stakeholders.
+- **MAP 2.1:** Define the tasks and implementation methods the system will support.
+- **MAP 4.1:** Identify technical and legal risks in components, including third-party data and software.
+- **MAP 5.1:** Document the likelihood and magnitude of identified impacts.
 
-**AIDLC Mapping**: Inception → Requirements Analysis, Reverse Engineering
+**AIDLC mapping:** Specify context, dependencies, and failure impacts during Inception's Requirements Analysis and Reverse Engineering.
 
 ### 3. MEASURE
 
-**Purpose**: Measure AI system performance, trustworthiness, fairness
+**Purpose:** Evaluate identified risks and trustworthiness characteristics, including measurement limitations.
 
-**Core Subcategories:**
-- **MEASURE-1.1**: Define performance metrics (accuracy, F1, AUC)
-- **MEASURE-2.1**: Assess explainability
-- **MEASURE-2.2**: Bias testing (demographic parity, equalized odds)
-- **MEASURE-2.3**: Robustness testing (adversarial robustness)
-- **MEASURE-3.1**: Privacy impact assessment
+- **MEASURE 1.1:** Select methods for priority risks and document risks that cannot be measured.
+- **MEASURE 2.1:** Document evaluation conditions, including test data, metrics, and tools.
+- **MEASURE 2.3:** Evaluate performance or assurance criteria under conditions similar to deployment.
+- **MEASURE 2.7:** Evaluate security and resilience.
+- **MEASURE 2.9 / 2.10 / 2.11:** Evaluate explanation and interpretation, privacy risk, and fairness and bias, respectively.
 
-**AIDLC Mapping**: Construction → Build & Test, [Harness Engineering](../../../methodology/harness-engineering.md) Quality Gates
+**AIDLC mapping:** Connect these activities to Construction's Build & Test and [harness engineering](../../../methodology/harness-engineering.md) quality gates. Code coverage and successful SAST scans do not substitute for evaluating AI fairness or reliability.
 
 ### 4. MANAGE
 
-**Purpose**: AI risk response, monitoring, continuous improvement
+**Purpose:** Allocate risk-response resources according to evaluation results and improve operations.
 
-**Core Subcategories:**
-- **MANAGE-1.1**: Execute risk mitigation strategies
-- **MANAGE-2.1**: Incident response planning
-- **MANAGE-3.1**: Continuous monitoring
-- **MANAGE-4.1**: Feedback loop (risk reassessment)
+- **MANAGE 1.1:** Decide whether the system meets its objectives and whether development or deployment should proceed.
+- **MANAGE 1.2:** Prioritize risk treatment by impact, likelihood, and available resources.
+- **MANAGE 2.3 / 2.4:** Respond to and recover from new risks; disengage or replace the system when needed.
+- **MANAGE 3.1:** Monitor risks and benefits of third-party resources.
+- **MANAGE 4.1 / 4.3:** Implement monitoring, change, and recovery plans and communicate incidents to relevant parties.
 
-**AIDLC Mapping**: Operations → Post-market monitoring, incident response
+**AIDLC mapping:** Connect these activities to monitoring, incident response, rollback, and risk reassessment during Operations.
 
----
+## AI RMF 1.0 and the Generative AI Profile {#nist-ai-rmf-10--11-major-changes}
 
-## NIST AI RMF 1.0 → 1.1 Major Changes
+| Resource | Role | Use |
+|---|---|---|
+| AI RMF 1.0, January 2023 | Defines the four functions, categories, and subcategories | Design system-specific risk activities and evidence records |
+| NIST AI 600-1, July 2024 | A cross-sectoral generative AI profile of AI RMF 1.0 | Select generative AI risk actions for the intended context |
+| AI RMF Playbook | Companion implementation resources | Consult suggested activities and review questions |
 
-| Item | v1.0 (Jan 2023) | v1.1 (Dec 2024) |
-|------|---------------|---------------|
-| **Generative AI** | Brief mention | Dedicated section added (Appendix B) |
-| **Transparency** | MEASURE-2.1 | Enhanced (Model Card, Data Sheet examples) |
-| **Red Teaming** | - | Added MEASURE-2.3 (adversarial testing) |
-| **Supply Chain** | GOVERN-1.5 | Expanded (open-source model risks) |
+The Generative AI Profile is **not a separate AI RMF 1.1 revision**. This guide uses the publications identified above; check NIST's publication history when adopting the framework.
 
----
+## U.S. Federal Procurement and Policy History {#us-federal-procurement-requirements-eo-14110}
 
-## U.S. Federal Procurement Requirements (EO 14110)
+EO 14110 was issued on October 30, 2023, but **EO 14148 revoked it on January 20, 2025**. It should therefore not be cited as a current blanket requirement for all federal contractors to comply with AI RMF, or as a current model-training reporting obligation. The status of individual regulations and agency actions after revocation must be checked separately.
 
-**Executive Order 14110 (Oct 30, 2023)**: "Safe, Secure, and Trustworthy AI"
+OMB M-25-21 and M-25-22, issued in April 2025, address federal AI use and acquisition. This guide does not determine their applicability to a particular contract. Review the OMB guidance, agency policy, solicitation, and contract clauses applicable at the time, then map the required controls to AI RMF activities.
 
-**Key Points:**
-- Federal agencies **must comply with NIST AI RMF** when deploying AI
-- Models exceeding 10^26 FLOP **must report to government**
-- Federal procurement contracts **must include AI risk management clauses**
-
-**AIDLC Response**: NIST AI RMF mapping mandatory for U.S. federal contract projects
-
----
+**Record:** The applicable document and version, agency and contract scope, requirement identifier, control owner, evidence location, and review date.
 
 ## AIDLC Integration Examples
+
+The YAML below illustrates **project-owned records**. It is neither a NIST standard schema nor configuration automatically executed by AIDLC tooling. Validate and choose thresholds and tests for the specific use case.
 
 ### Inception Stage: GOVERN + MAP
 
 ```yaml
-# .aidlc/compliance/nist-map.yaml
 project: federal-contract-ai-tool
-assessment_date: 2026-04-18
-
-# GOVERN-1.1: AI Risk Management Strategy
+assessment_date: "2026-09-18"
+framework: "NIST AI RMF 1.0"
 governance:
-  strategy: "Federal contract-compliant AI code generation tool"
-  responsible_party: "AI Governance Team"
-
-# MAP-1.1: Business Context
-business_context:
-  use_case: "Federal agency backend service code generation"
-  stakeholders:
-    - "Federal procurement officers"
-    - "Development team"
-    - "Security team"
-
-# MAP-3.1: Risk Identification
-identified_risks:
-  - risk_id: RISK-001
-    category: "Security"
-    description: "Vulnerabilities in generated code"
-    mitigation: "Automated SAST scanning"
-  - risk_id: RISK-002
-    category: "Privacy"
-    description: "PII exposure"
-    mitigation: "Guardrails filtering"
+  references: ["GOVERN 1.1", "GOVERN 2.1"]
+  responsible_team: "AI Governance Team"
+  applicable_requirements: [] # Populate from the applicable contract and policy review.
+context:
+  references: ["MAP 1.1", "MAP 2.1", "MAP 4.1"]
+  intended_use: "Generate draft backend code for human review"
+  autonomous_deployment: false
+  dependencies: ["model-provider", "code-repository"]
+risks:
+  - id: RISK-001
+    description: "Generated code introduces vulnerabilities"
+    planned_controls: ["security testing", "human review"]
+  - id: RISK-002
+    description: "Prompts disclose restricted information"
+    planned_controls: ["data minimization", "access controls"]
 ```
 
 ### Construction Stage: MEASURE
 
 ```yaml
-# .aidlc/harness/nist-measure-gates.yaml
-quality_gates:
-  # MEASURE-1.1: Performance Metrics
-  - gate: performance_metrics
-    enabled: true
-    metrics:
-      code_coverage: ">= 80%"
-      duplication: "<= 3%"
-
-  # MEASURE-2.2: Bias Testing
-  - gate: bias_test
-    enabled: true
-    tests:
-      - "demographic_parity_check"
-      - "equalized_odds_check"
-
-  # MEASURE-2.3: Robustness Testing
-  - gate: adversarial_robustness
-    enabled: true
-    tools:
-      - "bandit"  # SAST
-      - "semgrep"
+evaluation_plan:
+  references: ["MEASURE 1.1", "MEASURE 2.1", "MEASURE 2.3"]
+  dataset_revision: "replace-with-reviewed-revision"
+  model_revision: "replace-with-pinned-revision"
+  task_success:
+    minimum_rate: 0.95 # Illustrative project threshold, not a NIST requirement.
+    uncertainty: "Record sample size and a confidence interval"
+  security:
+    reference: "MEASURE 2.7"
+    checks: ["SAST", "dependency review", "prompt injection tests"]
+  privacy:
+    reference: "MEASURE 2.10"
+    checks: ["prompt data review", "output disclosure tests"]
+  fairness:
+    reference: "MEASURE 2.11"
+    decision: "Define relevant groups and metrics, or document non-applicability"
+  unmeasured_risks: [] # Record limitations before a release decision.
 ```
 
 ### Operations Stage: MANAGE
 
 ```yaml
-# .aidlc/monitoring/nist-manage.yaml
-continuous_monitoring:
-  # MANAGE-3.1: Continuous Monitoring
-  metrics:
-    - name: "error_rate"
-      target: "< 1%"
-      alert_threshold: 0.95
-    - name: "bias_score"
-      target: "< 0.05"
-      alert_threshold: 0.04
-
-  # MANAGE-4.1: Feedback Loop
-  feedback_loop:
-    frequency: "monthly"
-    action: "Risk reassessment and mitigation strategy update"
+operations_plan:
+  references: ["MANAGE 2.4", "MANAGE 4.1", "MANAGE 4.3"]
+  task_failure_rate:
+    unit: "fraction of evaluated tasks"
+    observation_window: "1h"
+    warning_threshold: 0.008 # 0.8%; illustrative.
+    release_limit: 0.01 # 1%; illustrative.
+    minimum_evaluated_tasks: 1000 # Choose using a workload-specific sample plan.
+    missing_evaluations: "Track coverage separately; do not treat as success"
+  incident_response:
+    owner: "on-call platform team"
+    actions: ["pause automated actions", "review impact", "restore approved revision"]
+    communication: "Follow the applicable incident notification plan"
+  risk_review:
+    triggers: ["model change", "material incident", "new use case", "scheduled review"]
 ```
-
----
 
 ## References
 
-**Official Documents:**
-- [NIST AI RMF 1.1 (Dec 2024)](https://www.nist.gov/itl/ai-risk-management-framework)
-- [Executive Order 14110 (White House)](https://www.whitehouse.gov/briefing-room/presidential-actions/2023/10/30/executive-order-on-the-safe-secure-and-trustworthy-development-and-use-of-artificial-intelligence/)
+**Official framework:**
 
-**Related Documentation:**
-- [Regulatory Compliance Overview](../index.md)
-- [Governance Framework](../../governance-framework.md)
-- [Harness Engineering](../../../methodology/harness-engineering.md)
+- [NIST AI RMF 1.0](https://nvlpubs.nist.gov/nistpubs/ai/NIST.AI.100-1.pdf)
+- [AI RMF Core — functions, categories, and subcategories](https://airc.nist.gov/airmf-resources/airmf/5-sec-core/)
+- [Generative AI Profile, NIST AI 600-1](https://nvlpubs.nist.gov/nistpubs/ai/NIST.AI.600-1.pdf)
+- [NIST AI RMF publications](https://www.nist.gov/itl/ai-risk-management-framework)
+
+**Policy history and procurement:**
+
+- [EO 14148 — revocation of EO 14110](https://www.whitehouse.gov/presidential-actions/2025/01/initial-rescissions-of-harmful-executive-orders-and-actions/)
+- [OMB M-25-21 and M-25-22 publication announcement](https://www.whitehouse.gov/fact-sheets/2025/04/fact-sheet-eliminating-barriers-for-federal-artificial-intelligence-use-and-procurement/)
+
+**Related documents:**
+
+- [Regulatory compliance overview](../index.md)
+- [Governance framework](../../governance-framework.md)
+- [Harness engineering](../../../methodology/harness-engineering.md)

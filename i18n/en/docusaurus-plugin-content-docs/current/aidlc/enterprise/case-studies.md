@@ -1,9 +1,9 @@
 ---
-title: AIDLC Case Studies
-description: AIDLC Enterprise Adoption Case Studies — Anonymized real-world cases, quantitative before/after metrics, failure patterns and lessons learned
+title: AIDLC Adoption Scenarios and Validation Plans
+description: Illustrative financial, manufacturing, public-sector, and fintech scenarios for planning AIDLC adoption and harness validation
 created: "2026-04-07"
 last_update:
-  date: "2026-06-30"
+  date: "2026-09-18"
   author: devfloor9
 reading_time: 32
 tags:
@@ -11,13 +11,13 @@ tags:
   - enterprise
   - agentic-ai
   - scope:enterprise
-sidebar_label: Case Studies
+sidebar_label: AIDLC Adoption Scenarios
 ---
 
-This document provides **real-world cases** of AIDLC enterprise adoption in anonymized form. Each case includes quantitative metrics, challenges, adoption strategies, and lessons learned, offering concrete insights you can reference when adopting AIDLC in your organization.
+This document presents **fictional adoption scenarios** for financial services, manufacturing, the public sector, and fintech. Organizations, timelines, costs, incidents, and outcomes are illustrative inputs, not anonymized customer evidence or validated results. Use the scenarios to formulate review questions and validation plans.
 
-:::info Anonymization Notice
-All cases are based on actual projects, but company-identifying information has been removed. Quantitative data is provided as reference ranges, and actual numbers may vary depending on organizational and project characteristics.
+:::note How to use the numbers
+Before/After tables demonstrate calculations with assumed values. To assess an actual adoption, define the comparison period, sample size, workload scope, staff and tool costs, and quality criteria, then measure the results. The improvements and timelines below are not guarantees.
 :::
 
 ---
@@ -30,7 +30,7 @@ Each case is organized with the following structure:
 1. Context         — Industry, project scale, organizational structure
 2. Challenges      — Problems that needed solving
 3. AIDLC Approach  — What strategy was used for adoption
-4. Quantitative Results — Before/After metrics
+4. Quantitative Assumptions — Before/After metrics
 5. Lessons Learned — What was learned
 ```
 
@@ -43,7 +43,7 @@ Each case is organized with the following structure:
 | Item | Details |
 |------|---------|
 | **Industry** | Financial Services (Asset Management) |
-| **Project Scale** | Small (~$6M, 6 months) |
+| **Project Scale** | Small (~KRW 800 million, 6 months) |
 | **Organizational Structure** | Waterfall-based, strong role silos (planning/dev/QA separated) |
 | **Tech Stack** | Legacy Monolith(Java) → MSA(Spring Boot + K8s) transition |
 | **Team Composition** | 1 PM, 1 Architect, 5 Developers, 2 QA Engineers |
@@ -100,17 +100,19 @@ Strategy:
 
 ### 1.4 Quantitative Results
 
+**Illustrative assumptions:** These values are not measurements. Unless indicated otherwise, improvement percentages are relative to the baseline.
+
 | Metric | Before | After | Improvement |
 |--------|--------|-------|-------------|
 | **Requirements Analysis Time** | Average 3 weeks | Average 1.5 weeks | **-50%** |
 | **Code Review Time** | 4 hours/dev/week | 2.2 hours/dev/week | **-45%** |
-| **Initial Defect Rate** | 8.5 per 100 LOC | 5.9 per 100 LOC | **-30%** |
-| **Development Schedule** | 6 months planned | 4.8 months completed | **-20%** |
+| **Initial Defect Rate** | 8.5 per 100 LOC | 5.9 per 100 LOC | **-31%** |
+| **Development Schedule** | 6 months planned | 4.8 months assumed | **-20%** |
 | **Test Coverage** | 52% | 81% | **+56%** |
 
 **Cost Benefits:**
-- Project cost: $6M → actual spending $5.1M (**$900K savings**)
-- Opportunity cost savings from early completion: approximately $1.5M value (new customer acquisition)
+- Project cost: KRW 800 million → assumed spending KRW 680 million (**KRW 120 million savings**)
+- Opportunity cost savings from early completion: approximately KRW 200 million (new customer acquisition)
 
 ### 1.5 Lessons Learned
 
@@ -137,9 +139,9 @@ Strategy:
    - Solution: Redefined PM as "AI proposal validator + business context provider"
    - Result: PM focused more on strategic decision-making
 
-**🔑 Key Insight:**
+**Review perspective:**
 
-> "AI is not a tool but a collaborator. When you reverse the direction of conversation, team productivity increases multiplicatively, not additively."
+> Define responsibilities first and measure collaboration outcomes for each workload.
 
 ---
 
@@ -150,7 +152,7 @@ Strategy:
 | Item | Details |
 |------|---------|
 | **Industry** | Manufacturing (Automotive Parts) |
-| **Project Scale** | Medium (~$23M, 12 months) |
+| **Project Scale** | Medium (~KRW 3 billion, 12 months) |
 | **Organizational Structure** | Agile Scrum (3 parallel teams) |
 | **Tech Stack** | IoT(MQTT) + Real-time Data(Kafka) + K8s + TimescaleDB |
 | **Team Composition** | 1 PM, 2 Architects, 12 Developers, 3 SREs |
@@ -208,18 +210,20 @@ Strategy:
 
 ### 2.4 Quantitative Results
 
+**Illustrative assumptions:** These values are not measurements. Unless indicated otherwise, improvement percentages are relative to the baseline.
+
 | Metric | Before | After | Improvement |
 |--------|--------|-------|-------------|
 | **Error Rate** | 8.3% | 1.2% (31-day avg) | **-85%** |
 | **MTTR** | Average 45 min | Average 18 min | **-60%** |
 | **Incident Auto-Recovery Rate** | 0% | 38% | **New** |
-| **Operating Cost** | $240K/month | $180K/month | **-25%** |
-| **Predictive Maintenance Accuracy** | 91.2% | 99.1% | **+8.7%p** |
+| **Operating Cost** | KRW 32 million/month | KRW 24 million/month | **-25%** |
+| **Predictive Maintenance Accuracy** | 91.2% | 99.1% | **+7.9%p** |
 
 **Cost Benefits:**
-- Operating cost savings: $720K annually
-- Prevented unexpected production downtime: $2.1M annual loss prevention
-- ROI: **Investment recovered within 1 year**
+- Operating cost savings: KRW 96 million annually
+- Prevented unexpected production downtime: KRW 280 million annual loss prevention
+- Payback: Calculate the incremental adoption cost and benefit separately. The assumptions above do not establish payback within one year.
 
 ### 2.5 Lessons Learned
 
@@ -245,13 +249,13 @@ Strategy:
    - Result: Domain experts took ownership of ontology evolution
 
 2. **Real-time Processing vs AI Inference Latency**
-   - Problem: AI model inference time violated real-time requirements (50ms target → 200ms actual)
+   - Problem: AI model inference time violated real-time requirements (50ms target → assume 200ms was observed)
    - Solution: Edge AI + Cloud AI hybrid (urgent → Edge, complex → Cloud)
-   - Result: 95% processed at Edge, average latency 60ms achieved
+   - Result: Assume 95% is processed at Edge with 60ms average latency; the 50ms target still requires further work
 
-**🔑 Key Insight:**
+**Review perspective:**
 
-> "Ontology is not a cost but an investment. The initial 2 months of modeling investment accelerated development speed 3x for the following 10 months."
+> Scope domain modeling and evaluate comprehension, rework, and maintenance costs together.
 
 ---
 
@@ -262,7 +266,7 @@ Strategy:
 | Item | Details |
 |------|---------|
 | **Industry** | Public Sector (Central Government Agency) |
-| **Project Scale** | Large (~$38M, 18 months) |
+| **Project Scale** | Large (~KRW 5 billion, 18 months) |
 | **Organizational Structure** | Multi-layer governance (client + general SI + 3 subcontractors) |
 | **Tech Stack** | On-premises K8s + Open-weight model(GLM-5) + PostgreSQL |
 | **Team Composition** | 2 PMs, 3 EAs, 30 Developers, 5 Security Audit Team |
@@ -276,7 +280,7 @@ Strategy:
 
 **Technical Challenges:**
 - Cloud usage restrictions (on-premises priority)
-- External LLM API call prohibition
+- Sending sensitive data to external LLM APIs is prohibited; general work also requires policy approval
 - Lack of open-weight model operation experience
 
 **Organizational Challenges:**
@@ -291,8 +295,8 @@ Strategy:
 ```
 Goal: Data residency compliance + cost reduction
 Strategy:
-  - Sensitive information processing → On-premises GLM-5 (EKS + vLLM)
-  - General business → Cloud Claude 3.5 Sonnet
+  - Sensitive information processing → GLM-5 on on-premises Kubernetes with vLLM
+  - General business → An approved cloud model only when permitted by policy
   - Automated routing with LiteLLM Gateway
 ```
 
@@ -320,18 +324,20 @@ Strategy:
 
 ### 3.4 Quantitative Results
 
+**Illustrative assumptions:** These values are not measurements. Unless indicated otherwise, improvement percentages are relative to the baseline.
+
 | Metric | Before | After | Improvement |
 |--------|--------|-------|-------------|
-| **LLM API Cost** | $135K/month projected | $95K/month actual | **-30%** |
-| **Security Compliance** | Manual verification (3 weeks/cycle) | Automated verification (1 day/cycle) | **-95%** |
+| **LLM API Cost** | KRW 18 million/month assumed | KRW 12.6 million/month assumed | **-30%** |
+| **Security Compliance** | Manual evidence checks (15 working days/cycle) | Automated evidence checks (1 working day/cycle) | **-93%** |
 | **Deployment Lead Time** | Average 5 days | Average 1.5 days | **-70%** |
 | **Code Quality Variance** | ±35% by subcontractor | ±8% after integration verification | **-77%** |
 | **Security Vulnerabilities** | Average 23 per milestone | Average 4 per milestone | **-83%** |
 
 **Cost Benefits:**
-- Project cost: $38M → actual spending $36.5M (**$1.5M savings**)
-- LLM cost savings: $480K annually
-- Security audit response time savings: approximately $900K value
+- Project cost: KRW 5 billion → assumed spending KRW 4.8 billion (**KRW 200 million savings**)
+- LLM cost savings: KRW 64.8 million annually
+- Security audit response time savings: approximately KRW 120 million
 
 ### 3.5 Lessons Learned
 
@@ -358,10 +364,10 @@ Strategy:
 
 2. **On-premises Open-weight Model Operation Difficulty**
    - Problem: vLLM installation, GPU resource management, model version management complexity
-   - Solution: AWS ProServe support, applied [EKS GPU Node Strategy](/docs/agentic-ai-platform/model-serving/gpu-infrastructure/eks-gpu-node-strategy)
+   - Solution: Specialist review, applied [EKS GPU Node Strategy](/docs/agentic-ai-platform/model-serving/gpu-infrastructure/eks-gpu-node-strategy)
    - Result: Stabilized by month 3
 
-**🔑 Key Insight:**
+**Review perspective:**
 
 > "Attempting AIDLC in large projects without governance is like sending 30 soldiers to battle without a commander."
 
@@ -381,9 +387,9 @@ Strategy:
 
 ### 4.2 Incident Overview
 
-:::danger Real Case: $2,200 Loss Incident
+:::note Fictional incident scenario: uncontrolled retries
 
-In December 2025, a fintech startup's AI agent executed **847 API retries in one loop**, resulting in:
+Assume an email-drafting agent retries **847 times** during one task. The values below are inputs for analysis, not a reported incident:
 
 - **$2,200 in LLM API costs** (4x budget)
 - **14 incomplete emails** sent to customers (credibility hit)
@@ -406,16 +412,11 @@ In December 2025, a fintech startup's AI agent executed **847 API retries in one
 | **Circuit Breaker** | ❌ None | Continued trying after 847 failures |
 | **Cost Limit** | ❌ None | No alert until $2,200 charge |
 
-**Important: This is not a model problem**
-
-```
-✅ Model Used: GPT-4 (latest version)
-✅ Prompt: Clear and structured
-✅ Code Logic: Function itself was normal
-❌ Architecture: Harness absence
-```
+This scenario does not identify whether the initial failure arose from the model, prompt, or code. Investigate request logs and input/model revisions, and verify that repeated failures cannot cause unbounded spending or external messages.
 
 ### 4.4 Redesign with Harness Applied
+
+The YAML below is a design-review example, not executable configuration for a particular SDK. Implement each limit in the actual execution path. Use idempotency keys and send approval for email, and atomically track shared budgets and attempts across concurrent jobs.
 
 **Retry Budget Configuration:**
 ```yaml
@@ -459,19 +460,21 @@ cost_limit:
 
 ### 4.5 Post-Redesign Results
 
-| Metric | Before (Incident) | After (Redesign) |
-|--------|------------------|------------------|
-| **API Retry Count** | 847 times | Max 3 times |
-| **Cost** | $2,200 (1 time) | $8.40 (30-day avg) |
-| **Incomplete Emails** | 14 sent | 0 (gate blocked) |
-| **Service Outage Time** | 3 hours | 0 minutes (auto-recovery) |
+| Metric | Fictional incident input | Validation condition |
+|--------|--------------------------|----------------------|
+| **API attempts per task** | Unbounded retries | Verify that `max_attempts: 3` includes the initial call and is not exceeded |
+| **Cost** | $2,200 | Measure spending limits and termination under normal, failing, and concurrent load |
+| **Incomplete emails** | 14 sent | Verify blocking on validation failure, duplicate requests, and missing approval |
+| **Service downtime** | 3 hours | Measure recovery with fault injection and compare with the agreed objective |
+
+Redesign alone does not establish a cost of $8.40, zero incomplete emails, or zero downtime. Acceptance requires execution records, evaluation scope, failure cases, and residual-risk review.
 
 ### 4.6 Lessons Learned
 
 **✅ Key Lessons:**
 
 1. **Importance of Harness Engineering**
-   - AI system failures mostly originate from **architecture design absence**, not models
+   - Verify that execution controls limit harm regardless of the initial failure cause
    - "Agents aren't hard; harnesses are"
 
 2. **Harness is Essential, Not Optional**
@@ -483,7 +486,7 @@ cost_limit:
      - Cost limit
 
 3. **Harness Verification Before Production**
-   - Production deployment without harness is a **time bomb**
+   - Verify failure paths for retries, external messages, and spending limits before deployment
    - Pre-verify harness with Chaos Engineering
 
 **⚠️ Anti-patterns:**
@@ -502,15 +505,15 @@ cost_limit:
 ✅ Harness Chaos Test essential before production
 ```
 
-**🔑 Key Insight:**
+**Review perspective:**
 
-> "AI is powerful, but AI without harness is like releasing a sports car without safety features onto the highway."
+> Include both model evaluation and execution-control validation in release decisions.
 
 ---
 
 ## Common Failure Patterns and Lessons
 
-**Failure patterns** and **lessons** derived from analyzing 4 cases and 10 additional projects.
+The following patterns and questions support review of the fictional scenarios above. They are not frequency estimates or causal findings from a sample of real projects.
 
 ### Failure Pattern 1: Big Bang Adoption
 
@@ -542,7 +545,7 @@ cost_limit:
 
 **Lesson:**
 - Tools are means, methodology is essence
-- AIDLC without ontology + harness is **failure guaranteed**
+- Evaluate domain understanding and execution controls before expanding adoption
 
 ---
 
@@ -599,15 +602,15 @@ cost_limit:
 
 ## Success Factor Summary
 
-**5 key success factors** derived from analyzing 14 projects:
+Review these five areas when building an adoption plan:
 
-| Rank | Success Factor | Description | Importance |
+| Item | Review Area | Description | Evidence |
 |------|---------------|-------------|------------|
-| 1 | **Gradual Adoption** | Phased transition Phase 1→2→3→4, 2-3 month stabilization per Phase | ⭐⭐⭐⭐⭐ |
-| 2 | **Ontology Investment** | Invest 2-3 months upfront in domain knowledge formalization, key to long-term ROI | ⭐⭐⭐⭐⭐ |
-| 3 | **Harness Engineering** | Implement 5 essential harness patterns, verify before production deployment | ⭐⭐⭐⭐⭐ |
-| 4 | **Executive Sponsorship** | Full support from CIO/CTO level, authority for organizational change | ⭐⭐⭐⭐ |
-| 5 | **Measurement-based Expansion** | Measure Before/After metrics, data-driven expansion decisions | ⭐⭐⭐⭐ |
+| 1 | **Gradual Adoption** | Phased transition Phase 1→2→3→4, Advance after the phase validation criteria are met | Validation plan and results |
+| 2 | **Ontology Investment** | Assess the required domain scope and its maintenance cost | Validation plan and results |
+| 3 | **Harness Engineering** | Implement 5 essential harness patterns, verify before production deployment | Validation plan and results |
+| 4 | **Executive Sponsorship** | Full support from CIO/CTO level, authority for organizational change | Owners and review records |
+| 5 | **Measurement-based Expansion** | Measure Before/After metrics, data-driven expansion decisions | Owners and review records |
 
 **Additional Success Factors:**
 - **Role Redefinition**: Clarify roles as AI collaborators (see [Role Redefinition](./role-composition.md))
@@ -641,6 +644,6 @@ If you've gained concrete insights on AIDLC adoption through these case studies,
 - [AgenticOps](/docs/aidlc/operations)
 
 ### External References
-- [Harness Engineering: Governing AI Agents](https://www.nxcode.io/resources/news/harness-engineering-complete-guide-ai-agent-codex-2026) — NxCode, 2026.03
-- [The $2,200 Runaway AI Agent](https://www.anthropic.com/news/harness-engineering-lessons) — Anthropic Case Study, 2025.12
-- [AI-DLC Enterprise Adoption Patterns](https://aws.amazon.com/blogs/devops/ai-dlc-enterprise-adoption/) — AWS Blog
+
+- [Effective harnesses for long-running agents](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents) — Harness design methods
+- [AI-Driven Development Life Cycle](https://aws.amazon.com/blogs/devops/ai-driven-development-life-cycle/) — AIDLC methodology

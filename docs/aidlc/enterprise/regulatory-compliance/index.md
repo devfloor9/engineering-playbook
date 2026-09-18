@@ -3,7 +3,7 @@ title: AI 규제 컴플라이언스 프레임워크
 description: EU AI Act, NIST AI RMF, ISO/IEC 42001, 한국 AI 기본법 4개 프레임워크의 AIDLC 통합 가이드
 created: "2026-04-18"
 last_update:
-  date: "2026-06-30"
+  date: "2026-09-18"
   author: devfloor9
 reading_time: 8
 tags:
@@ -21,7 +21,7 @@ sidebar_label: Regulatory Compliance
 2026년 현재, 글로벌 기업은 **여러 지역의 AI 규제를 동시에 준수**해야 하는 복잡한 환경에 직면했습니다:
 
 - **EU**: AI Act (2024 채택, 2026-2027 단계적 적용 시작)
-- **미국**: NIST AI RMF 1.1 (연방 조달 요구사항), 주별 개별 규제
+- **미국**: NIST AI RMF 1.0 (자발적 프레임워크), 적용되는 연방·기관별 조달 정책, 주별 개별 규제
 - **한국**: AI 기본법 (2026 시행 예정)
 - **국제 표준**: ISO/IEC 42001:2023 (AI Management System 인증)
 
@@ -87,12 +87,12 @@ graph TB
 
 [상세 가이드 →](./frameworks/eu-ai-act.md)
 
-### NIST AI RMF 1.1
+### NIST AI RMF 1.0 {#nist-ai-rmf-11}
 
 **핵심 특징:**
-- 미국 NIST 발표 (자발적 준수, 연방 조달 필수)
+- 미국 NIST 발표; 법률·기관 정책·계약의 의무와 별도로 적용하는 자발적 프레임워크
 - 4 Functions: GOVERN, MAP, MEASURE, MANAGE
-- Generative AI 전용 섹션 (v1.1, 2024.12)
+- Generative AI Profile (NIST AI 600-1, 2024.07)은 AI RMF 1.0의 보조 자료
 - 국제 호환 (ISO/IEC 42001 상호 매핑 가능)
 
 **AIDLC 적용:**
@@ -140,16 +140,16 @@ graph TB
 
 | 통제 요소 | EU AI Act | NIST AI RMF | ISO/IEC 42001 | 한국 AI 기본법 |
 |----------|-----------|-------------|---------------|---------------|
-| **리스크 평가** | Art. 6, 9 (위험 관리) | MAP-3.1 | A.5.1 (정책), A.10.2 (위험 관리) | 영향 평가 (고영향 AI) |
-| **데이터 거버넌스** | Art. 10 (데이터 품질) | MAP-2.1 | A.7.* (데이터 12개 controls) | PIPA 준수 |
-| **투명성·설명가능성** | Art. 13 (투명성) | MEASURE-2.1 | A.8.2 (투명성), A.8.3 (설명) | 생성형 AI 표시 의무 |
-| **인간 감독 (HITL)** | Art. 14 (인간 감독) | MANAGE-3.1 | A.10.5 (인간 개입) | - |
-| **기술 문서** | Art. 11 (문서화) | GOVERN-1.4 | A.8.1 (문서), A.10.6 (기록) | - |
-| **성능 모니터링** | Art. 15 (정확성) | MEASURE-1.1 | A.11.1 (성능 메트릭) | - |
-| **사후 모니터링** | Art. 72 (post-market) | MANAGE-3.1 | A.10.10 (지속 모니터링) | 사후 관리 의무 |
-| **사고 보고** | Art. 73 (15일 이내) | MANAGE-2.1 | A.10.11 (사고 대응) | 중대 사고 보고 |
-| **보안** | Art. 15 (사이버보안) | MEASURE-2.3 | A.12.* (보안 10개) | ISMS-P 연계 |
-| **공급망 관리** | - | GOVERN-1.5 | A.13.* (타사 6개) | - |
+| **리스크 평가** | Art. 6, 9 (위험 관리) | MAP 5.1 | A.5.1 (정책), A.10.2 (위험 관리) | 영향 평가 (고영향 AI) |
+| **데이터 거버넌스** | Art. 10 (데이터 품질) | MAP 2.3 | A.7.* (데이터 12개 controls) | PIPA 준수 |
+| **투명성·설명가능성** | Art. 13 (투명성) | MEASURE 2.8 / 2.9 | A.8.2 (투명성), A.8.3 (설명) | 생성형 AI 표시 의무 |
+| **인간 감독 (HITL)** | Art. 14 (인간 감독) | MAP 3.5 | A.10.5 (인간 개입) | - |
+| **기술 문서** | Art. 11 (문서화) | GOVERN 1.4 | A.8.1 (문서), A.10.6 (기록) | - |
+| **성능 모니터링** | Art. 15 (정확성) | MEASURE 2.3 / 2.4 | A.11.1 (성능 메트릭) | - |
+| **사후 모니터링** | Art. 72 (post-market) | MANAGE 4.1 | A.10.10 (지속 모니터링) | 사후 관리 의무 |
+| **사고 보고** | Art. 73 (15일 이내) | MANAGE 4.3 | A.10.11 (사고 대응) | 중대 사고 보고 |
+| **보안** | Art. 15 (사이버보안) | MEASURE 2.7 | A.12.* (보안 10개) | ISMS-P 연계 |
+| **공급망 관리** | - | GOVERN 6.1 / MANAGE 3.1 | A.13.* (타사 6개) | - |
 
 ### AIDLC 단계별 규제 요구사항 집계
 
@@ -212,7 +212,7 @@ import DocCardList from '@theme/DocCardList';
 - [EU AI Act Timeline (European Commission)](https://digital-strategy.ec.europa.eu/en/policies/regulatory-framework-ai)
 
 **NIST AI RMF:**
-- [NIST AI RMF 1.1 (2024.12)](https://www.nist.gov/itl/ai-risk-management-framework)
+- [NIST AI RMF 1.0 (2023.01)](https://www.nist.gov/itl/ai-risk-management-framework)
 - [Executive Order 14110 (White House)](https://www.whitehouse.gov/briefing-room/presidential-actions/2023/10/30/executive-order-on-the-safe-secure-and-trustworthy-development-and-use-of-artificial-intelligence/)
 
 **ISO/IEC 42001:**
