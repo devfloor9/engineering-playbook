@@ -1824,29 +1824,6 @@ spec:
 `priority: 10`은 같은 pool의 우선순위 0 요청보다 먼저 처리하도록 표현한 정책 예시입니다. [Flow control](https://github.com/llm-d/llm-d/blob/v0.8.1/docs/architecture/core/router/epp/flow-control.md)을 사용하는 경우 EPP에서 `flowControl` feature gate를 활성화하고, 신뢰할 수 있는 인증 계층이 `x-llm-d-inference-objective: interactive` 헤더를 설정해야 합니다. Objective를 만드는 것만으로 모든 요청에 자동 적용되지 않습니다. 외부 사용자가 우선순위를 임의로 올리지 못하도록 헤더를 검증·재설정합니다. 이 값은 전용 GPU 예약이나 Pod `PriorityClass`가 아닙니다.
 
 ---
-# InferencePool: GPU 백엔드 풀 정의
-apiVersion: inference.gateway.networking.k8s.io/v1alpha1
-kind: InferencePool
-metadata:
-  name: gpu-pool
-spec:
-  targetPortNumber: 8000
-  selector:
-    matchLabels:
-      app: vllm
-```
-
-**현재 상태 (2025년 기준):**
-
-- `InferenceModel`, `InferencePool` CRD: v1alpha1
-- 구현체: llm-d, Envoy Gateway, kgateway 등에서 실험적 지원
-- 예상 GA: 2026년 상반기
-
-:::tip 현재 권장 전략
-Gateway API Inference Extension이 GA되기 전까지는 **Option 1 (Cilium + Cilium Gateway API + llm-d)**을 채택하고, 추후 Inference Extension이 안정화되면 llm-d를 Inference Extension 기반 구성으로 전환하는 점진적 마이그레이션을 권장합니다.
-:::
-
----
 
 ## 관련 문서
 
