@@ -3,9 +3,9 @@ title: CRIU 기반 GPU 마이그레이션 검증 (Experimental)
 description: GPU checkpoint/restore의 버전별 제약과 EKS graceful drain·warm-start 운영 증거 절차 (Experimental)
 created: "2026-04-18"
 last_update:
-  date: "2026-09-18"
+  date: 2026-09-18
   author: YoungJoon Jeong
-reading_time: 21
+reading_time: 18
 tags:
   - criu
   - gpu

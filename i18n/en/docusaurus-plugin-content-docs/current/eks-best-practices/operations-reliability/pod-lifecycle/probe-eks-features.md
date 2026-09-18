@@ -3,9 +3,9 @@ title: EKS features and probes
 description: Explore examples of integrating probes with EKS features.
 created: "2026-02-12"
 last_update:
-  date: "2026-09-18"
+  date: 2026-09-18
   author: devfloor9
-reading_time: 9
+reading_time: 12
 tags:
   - eks
   - kubernetes

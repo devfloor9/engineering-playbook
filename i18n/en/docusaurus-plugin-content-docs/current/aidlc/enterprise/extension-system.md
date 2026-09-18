@@ -3,9 +3,9 @@ title: Extension System
 description: AWS Labs AIDLC Extension System — integrate organization-specific security, compliance, and domain rules into AIDLC workflows via opt-in mechanism
 created: "2026-04-18"
 last_update:
-  date: "2026-09-18"
+  date: 2026-09-18
   author: devfloor9
-reading_time: 11
+reading_time: 9
 tags:
   - aidlc
   - extension

@@ -3,9 +3,9 @@ title: Audit & Governance Logging
 description: AIDLC Checkpoint Approval gates and ISO 8601-based audit logs — Implementation guide for AIDLC audit trails in regulated industries
 created: "2026-04-18"
 last_update:
-  date: "2026-09-18"
+  date: 2026-09-18
   author: devfloor9
-reading_time: 14
+reading_time: 12
 tags:
   - aidlc
   - audit

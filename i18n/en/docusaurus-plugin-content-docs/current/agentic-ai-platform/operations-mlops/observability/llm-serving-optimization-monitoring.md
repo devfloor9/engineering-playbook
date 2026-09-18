@@ -3,9 +3,9 @@ title: Monitoring Strategy for LLM Serving Optimization
 description: Connect cache efficiency, KV capacity, latency, and routing across seven observability layers, with explicit delivery, evaluation coverage, and quality gates.
 created: "2026-09-03"
 last_update:
-  date: "2026-09-18"
+  date: 2026-09-18
   author: YoungJoon Jeong
-reading_time: 52
+reading_time: 48
 tags:
   - vllm
   - prometheus

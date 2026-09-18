@@ -3,9 +3,9 @@ title: Pod lifecycle hooks
 description: Review the execution flow and examples for PostStart and PreStop.
 created: "2026-02-12"
 last_update:
-  date: "2026-09-18"
+  date: 2026-09-18
   author: devfloor9
-reading_time: 3
+reading_time: 4
 tags:
   - eks
   - kubernetes

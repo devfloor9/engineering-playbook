@@ -3,9 +3,9 @@ title: AIDLC Common Rules
 description: AWS Labs AIDLC 공식 11개 공통 규칙 해설 — Question Format부터 Audit Logging까지, 엔터프라이즈 적용 가이드
 created: "2026-04-18"
 last_update:
-  date: "2026-09-18"
+  date: 2026-09-18
   author: YoungJoon Jeong
-reading_time: 14
+reading_time: 12
 tags:
   - aidlc
   - common-rules

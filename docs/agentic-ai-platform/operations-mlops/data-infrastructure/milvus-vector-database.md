@@ -3,9 +3,9 @@ title: Milvus 벡터 데이터베이스 통합
 description: Amazon EKS에서 Milvus 벡터 데이터베이스를 배포하고 RAG 파이프라인과 통합하는 방법
 created: "2026-02-05"
 last_update:
-  date: "2026-09-18"
+  date: 2026-09-18
   author: YoungJoon Jeong
-reading_time: 10
+reading_time: 11
 tags:
   - milvus
   - vector-database

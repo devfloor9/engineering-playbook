@@ -3,9 +3,9 @@ title: EKS High Availability Architecture Guide
 description: Architecture patterns and operational strategies for achieving high availability and fault tolerance in Amazon EKS environments
 created: "2026-02-10"
 last_update:
-  date: "2026-09-18"
+  date: 2026-09-18
   author: devfloor9
-reading_time: 28
+reading_time: 45
 tags:
   - eks
   - kubernetes

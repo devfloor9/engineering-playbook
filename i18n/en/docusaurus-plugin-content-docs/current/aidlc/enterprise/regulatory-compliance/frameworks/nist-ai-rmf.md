@@ -3,9 +3,9 @@ title: NIST AI RMF — AI Risk Management in AIDLC
 description: AI RMF 1.0, the Generative AI Profile, accurate Core mappings, policy history, and practical AIDLC records
 created: "2026-04-19"
 last_update:
-  date: "2026-09-18"
+  date: 2026-09-18
   author: devfloor9
-reading_time: 8
+reading_time: 12
 tags:
   - nist
   - ai-rmf

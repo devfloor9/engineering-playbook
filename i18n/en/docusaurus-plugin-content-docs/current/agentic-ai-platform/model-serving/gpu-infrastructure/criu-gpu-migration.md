@@ -3,9 +3,9 @@ title: CRIU GPU Migration Verification (Experimental)
 description: Version-specific GPU checkpoint/restore constraints and an EKS graceful-drain and warm-start evidence procedure (Experimental)
 created: "2026-04-18"
 last_update:
-  date: "2026-09-18"
+  date: 2026-09-18
   author: devfloor9
-reading_time: 31
+reading_time: 29
 tags:
   - criu
   - gpu

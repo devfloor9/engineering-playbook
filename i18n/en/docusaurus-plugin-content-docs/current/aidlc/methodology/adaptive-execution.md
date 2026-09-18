@@ -3,9 +3,9 @@ title: AIDLC Adaptive Execution
 description: AIDLC official Adaptive Workflows — conditional stage execution decision tree, Inception 7-stage and Construction per-unit loop explained
 created: "2026-04-18"
 last_update:
-  date: "2026-09-18"
+  date: 2026-09-18
   author: devfloor9
-reading_time: 17
+reading_time: 16
 tags:
   - aidlc
   - adaptive-execution

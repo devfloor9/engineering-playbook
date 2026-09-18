@@ -3,9 +3,9 @@ title: Prefix Cache Tuning and Accuracy Correlation Validation
 description: Define cached-token, turn-gap, and preemption data contracts, correlation limits, and non-inferiority quality gates for prefix cache tuning.
 created: "2026-09-05"
 last_update:
-  date: "2026-09-18"
+  date: 2026-09-18
   author: YoungJoon Jeong
-reading_time: 43
+reading_time: 38
 tags:
   - vllm
   - langfuse

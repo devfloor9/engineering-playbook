@@ -3,9 +3,9 @@ title: Karpenter and node drain
 description: Review Pod termination during node replacement and scale-down.
 created: "2026-02-12"
 last_update:
-  date: "2026-09-18"
+  date: 2026-09-18
   author: devfloor9
-reading_time: 6
+reading_time: 8
 tags:
   - eks
   - kubernetes

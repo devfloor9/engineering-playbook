@@ -3,9 +3,9 @@ title: Probe types and configuration
 description: Review probe types, mechanisms, and timing together.
 created: "2026-02-12"
 last_update:
-  date: "2026-09-18"
+  date: 2026-09-18
   author: devfloor9
-reading_time: 7
+reading_time: 10
 tags:
   - eks
   - kubernetes

@@ -3,9 +3,9 @@ title: AI-assisted probe optimization
 description: Review probe optimization examples that use observability data and AI.
 created: "2026-02-12"
 last_update:
-  date: "2026-09-18"
+  date: 2026-09-18
   author: devfloor9
-reading_time: 5
+reading_time: 6
 tags:
   - eks
   - kubernetes

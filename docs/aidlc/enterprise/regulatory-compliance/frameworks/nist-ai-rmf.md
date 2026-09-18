@@ -3,9 +3,9 @@ title: NIST AI RMF — AI 위험 관리와 AIDLC 적용
 description: NIST AI RMF 1.0과 Generative AI Profile의 관계, 네 기능의 정확한 매핑, 정책 이력과 AIDLC 적용 예시
 created: "2026-04-18"
 last_update:
-  date: "2026-09-18"
+  date: 2026-09-18
   author: YoungJoon Jeong
-reading_time: 5
+reading_time: 6
 tags:
   - nist
   - ai-rmf

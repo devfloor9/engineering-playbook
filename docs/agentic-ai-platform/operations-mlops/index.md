@@ -3,9 +3,9 @@ title: 운영 & 거버넌스
 description: AI 플랫폼 모니터링, Observability, 평가, 컴플라이언스, 도메인 특화 운영 가이드
 created: "2026-03-06"
 last_update:
-  date: "2026-09-18"
+  date: 2026-09-18
   author: devfloor9
-reading_time: 3
+reading_time: 2
 tags:
   - operations
   - monitoring

@@ -3,9 +3,9 @@ title: EKS Auto Mode checklist
 description: Review probe and shutdown configurations in Auto Mode environments.
 created: "2026-02-12"
 last_update:
-  date: "2026-09-18"
+  date: 2026-09-18
   author: devfloor9
-reading_time: 5
+reading_time: 11
 tags:
   - eks
   - kubernetes

@@ -3,9 +3,9 @@ title: AIDLC 도입 시나리오와 검증 계획
 description: 금융·제조·공공·Fintech의 가상 시나리오로 AIDLC 도입과 하네스 검증 계획을 구성하는 방법
 created: "2026-04-07"
 last_update:
-  date: "2026-09-18"
+  date: 2026-09-18
   author: YoungJoon Jeong
-reading_time: 16
+reading_time: 14
 tags:
   - aidlc
   - enterprise

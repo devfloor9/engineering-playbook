@@ -3,9 +3,9 @@ title: AgentCore Hybrid Strategy
 description: Decision framework and pattern catalog for combining Bedrock AgentCore managed service with EKS-based self-hosted agents in hybrid deployment
 created: "2026-04-18"
 last_update:
-  date: "2026-09-18"
+  date: 2026-09-18
   author: YoungJoon Jeong
-reading_time: 21
+reading_time: 25
 tags:
   - agentcore
   - bedrock

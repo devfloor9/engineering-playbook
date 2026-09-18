@@ -3,9 +3,9 @@ title: NVIDIA Dynamo Inference Benchmark
 description: Benchmark comparing Aggregated vs Disaggregated LLM serving performance using NVIDIA Dynamo — Running AIPerf 4 modes in an EKS environment
 created: "2026-03-20"
 last_update:
-  date: "2026-09-18"
+  date: 2026-09-18
   author: devfloor9
-reading_time: 13
+reading_time: 12
 tags:
   - benchmark
   - nvidia

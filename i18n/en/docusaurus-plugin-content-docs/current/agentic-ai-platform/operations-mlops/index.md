@@ -3,7 +3,7 @@ title: Operations & Governance
 description: AI platform monitoring, observability, evaluation, compliance, and domain-specific operations guide
 created: "2026-03-06"
 last_update:
-  date: "2026-09-18"
+  date: 2026-09-18
   author: devfloor9
 reading_time: 3
 tags:

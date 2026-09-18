@@ -3,9 +3,9 @@ title: Knowledge Feature Store Expansion
 description: 3-plane design integrating ontology and Knowledge Graph into traditional Feature Store to reduce hallucinations, enable provenance tracking, and enhance domain entity utilization
 created: "2026-04-18"
 last_update:
-  date: "2026-09-18"
+  date: 2026-09-18
   author: devfloor9
-reading_time: 14
+reading_time: 27
 tags:
   - feature-store
   - knowledge-graph

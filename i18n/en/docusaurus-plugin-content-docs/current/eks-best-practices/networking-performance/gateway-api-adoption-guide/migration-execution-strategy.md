@@ -3,9 +3,9 @@ title: Migration Execution Strategy
 description: Gateway API migration 5-Phase strategy, CRD installation, step-by-step execution guide, validation scripts, and troubleshooting
 created: "2026-02-14"
 last_update:
-  date: "2026-06-26"
+  date: 2026-09-18
   author: devfloor9
-reading_time: 4
+reading_time: 8
 tags:
   - eks
   - gateway-api

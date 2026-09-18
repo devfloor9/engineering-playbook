@@ -3,9 +3,9 @@ title: 하이브리드 GPU 워크로드와 SR-IOV 네트워킹
 description: EKS Hybrid Nodes에서 온프렘 GPU 노드를 1차 추론 계층으로 활용하고, DGX H200 SR-IOV VF 이름 불일치 문제를 드라이버 호환성·영구 명명·systemd 오케스트레이션으로 해결하는 실전 가이드
 created: "2025-09-01"
 last_update:
-  date: "2026-09-18"
+  date: 2026-09-18
   author: YoungJoon Jeong
-reading_time: 7
+reading_time: 9
 tags:
   - eks
   - hybrid-node

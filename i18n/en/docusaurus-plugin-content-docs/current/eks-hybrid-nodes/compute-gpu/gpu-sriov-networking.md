@@ -3,9 +3,9 @@ title: Hybrid GPU Workloads and SR-IOV Networking
 description: A hands-on guide to using on-premises GPU nodes as the primary inference tier on EKS Hybrid Nodes, and resolving DGX H200 SR-IOV VF name inconsistency through driver compatibility, persistent naming, and systemd orchestration
 created: "2025-09-01"
 last_update:
-  date: "2026-09-18"
+  date: 2026-09-18
   author: YoungJoon Jeong
-reading_time: 7
+reading_time: 16
 tags:
   - eks
   - hybrid-node

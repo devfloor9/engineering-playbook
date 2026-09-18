@@ -3,9 +3,9 @@ title: LLM 서빙 최적화를 위한 모니터링 전략
 description: 캐시 효율·KV 용량·지연·라우팅 지표를 7개 관측 계층으로 연결하고, 스트림 완료·평가 커버리지·품질 점수를 구분하여 서빙 최적화의 효과와 회귀를 검증하는 운영 전략입니다.
 created: "2026-09-03"
 last_update:
-  date: "2026-09-18"
+  date: 2026-09-18
   author: YoungJoon Jeong
-reading_time: 29
+reading_time: 24
 tags:
   - vllm
   - prometheus

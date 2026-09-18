@@ -3,9 +3,9 @@ title: Reference Architecture
 description: Production deployment and configuration reference architecture for the Agentic AI Platform
 created: "2026-04-06"
 last_update:
-  date: "2026-09-18"
+  date: 2026-09-18
   author: devfloor9
-reading_time: 15
+reading_time: 24
 tags:
   - reference-architecture
   - deployment

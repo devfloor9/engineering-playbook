@@ -3,9 +3,9 @@ title: Observability & Monitoring
 description: Agent execution tracing, LLM serving optimization monitoring, cache tuning quality validation, and agent lifecycle observability
 created: "2026-04-20"
 last_update:
-  date: "2026-09-18"
+  date: 2026-09-18
   author: devfloor9
-reading_time: 2
+reading_time: 3
 tags:
   - operations
   - observability

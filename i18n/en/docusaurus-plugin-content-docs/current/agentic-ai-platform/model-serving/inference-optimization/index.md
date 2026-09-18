@@ -3,9 +3,9 @@ title: Inference Optimization on EKS
 description: EKS architecture overview for maximizing LLM Inference performance — starting point for vLLM, KV Cache-Aware Routing, Disaggregated Serving, LWS multi-node, and GPU autoscaling
 created: "2026-04-03"
 last_update:
-  date: "2026-09-18"
+  date: 2026-09-18
   author: devfloor9
-reading_time: 7
+reading_time: 15
 tags:
   - inference
   - optimization

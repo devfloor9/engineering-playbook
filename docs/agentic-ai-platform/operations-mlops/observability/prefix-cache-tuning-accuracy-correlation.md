@@ -3,9 +3,9 @@ title: Prefix 캐시 히트율 튜닝과 정확도 상관 검증
 description: Prefix 캐시 튜닝의 효율 개선과 품질 회귀를 구분하기 위해 cached 토큰·턴 간격·preemption의 데이터 계약, 상관 분석의 한계, 비열등성 기반 품질 게이트를 정의하는 운영 가이드입니다.
 created: "2026-09-05"
 last_update:
-  date: "2026-09-18"
+  date: 2026-09-18
   author: YoungJoon Jeong
-reading_time: 23
+reading_time: 18
 tags:
   - vllm
   - langfuse

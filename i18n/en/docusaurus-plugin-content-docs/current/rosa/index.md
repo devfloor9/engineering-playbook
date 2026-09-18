@@ -3,9 +3,9 @@ title: ROSA (Red Hat OpenShift on AWS)
 description: Technical documentation on deploying and operating Red Hat OpenShift Service on AWS (ROSA)
 created: "2025-02-05"
 last_update:
-  date: "2026-09-18"
+  date: 2026-09-18
   author: devfloor9
-reading_time: 5
+reading_time: 12
 tags:
   - scope:nav
 sidebar_label: ROSA

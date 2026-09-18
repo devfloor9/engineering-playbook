@@ -3,7 +3,7 @@ title: Load balancer health checks
 description: Connect load balancer health checks with Pod Readiness Gates.
 created: "2026-02-12"
 last_update:
-  date: "2026-09-18"
+  date: 2026-09-18
   author: devfloor9
 reading_time: 7
 tags:

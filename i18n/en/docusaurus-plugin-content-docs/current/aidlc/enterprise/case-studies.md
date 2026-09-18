@@ -3,9 +3,9 @@ title: AIDLC Adoption Scenarios and Validation Plans
 description: Illustrative financial, manufacturing, public-sector, and fintech scenarios for planning AIDLC adoption and harness validation
 created: "2026-04-07"
 last_update:
-  date: "2026-09-18"
+  date: 2026-09-18
   author: devfloor9
-reading_time: 32
+reading_time: 33
 tags:
   - aidlc
   - enterprise

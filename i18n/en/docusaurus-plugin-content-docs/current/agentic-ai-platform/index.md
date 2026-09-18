@@ -3,9 +3,9 @@ title: Agentic AI Platform
 description: In-depth technical documentation on the architecture, deployment, and operations of the Agentic AI Platform
 created: "2026-02-04"
 last_update:
-  date: "2026-09-18"
+  date: 2026-09-18
   author: devfloor9
-reading_time: 6
+reading_time: 4
 tags:
   - eks
   - kubernetes
