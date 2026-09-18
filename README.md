@@ -140,14 +140,16 @@ The development server alone does not generate the LLM artifacts. Use the produc
 ```sh
 npm run test:llm-wiki
 npm run test:links
+npm run test:tags
+npm run test:tools
 npm run test:ssr
 npm run test:metadata
 npm run validate-metadata
 ```
 
-The GitHub Actions workflow runs the exporter, link-validator, Unicode, and revision-metadata regression checks, builds Korean and English pages, generates the LLM artifacts, and validates internal routes and fragments. Pull requests build the site; successful builds on `main` deploy to GitHub Pages.
+The GitHub Actions workflow checks the exporter, internal links, generated tag routes, document tools, Unicode rendering, and revision metadata. It builds Korean and English pages, generates the LLM artifacts, compares component exports with rendered HTML, and validates internal routes and fragments. Broken internal links fail the build. Pull requests build the site; successful builds on `main` deploy to GitHub Pages.
 
-For changes to component output, run the optional rendered-HTML parity check after building:
+For changes to component output, run the rendered-HTML parity check locally after building:
 
 ```sh
 LLM_WIKI_BASELINE_HTML="$PWD/build" npm run test:llm-wiki
