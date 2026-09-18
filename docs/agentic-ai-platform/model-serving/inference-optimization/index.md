@@ -28,7 +28,7 @@ import DocCardList from '@theme/DocCardList';
 
 ## 다루는 내용
 
-이 카테고리의 전체 문서입니다. 게이트웨이 구성과 모델 선택 정책은 별도의 [추론 라우팅](../inference-routing/index.md) 카테고리에서 다룹니다.
+이 카테고리의 전체 문서입니다. 게이트웨이 구성과 모델 선택 정책은 별도의 [추론 라우팅](../inference-routing/routing-strategy.md) 카테고리에서 다룹니다.
 
 <DocCardList />
 

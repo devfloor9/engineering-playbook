@@ -28,7 +28,7 @@ Results depend on the model, input and output lengths, concurrency, hardware, an
 
 ## Covered Content
 
-All documents in this category are listed below. Gateway configuration and model selection policies belong to the separate [inference routing](../inference-routing/index.md) category.
+All documents in this category are listed below. Gateway configuration and model selection policies belong to the separate [inference routing](../inference-routing/routing-strategy.md) category.
 
 <DocCardList />
 
