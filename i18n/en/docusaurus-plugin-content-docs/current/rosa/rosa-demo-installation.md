@@ -14,6 +14,7 @@ tags:
   - demo
   - autoscaling
   - iam
+  - scope:ops
 sidebar_label: ROSA Demo Installation
 category: rosa
 ---

@@ -12,6 +12,7 @@ tags:
   - network
   - storage
   - sriov
+  - scope:tech
 sidebar_label: Report 7. Hybrid Infrastructure [Upcoming]
 sidebar_position: 7
 category: benchmarks

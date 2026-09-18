@@ -3,9 +3,9 @@ title: Agentic AI Platform
 description: In-depth technical documentation on the architecture, deployment, and operations of the Agentic AI Platform
 created: "2026-02-04"
 last_update:
-  date: "2026-09-17"
+  date: 2026-09-18
   author: devfloor9
-reading_time: 6
+reading_time: 4
 tags:
   - eks
   - kubernetes
@@ -20,7 +20,7 @@ sidebar_position: 3
 category: genai-aiml
 ---
 
-import { DocCard, DocCardGrid } from '@site/src/components/DocCards';
+import DocCardList from '@theme/DocCardList';
 
 Design, model serving, operations, and implementation guides for AI platforms. Choose a starting path below.
 
@@ -32,45 +32,15 @@ Design, model serving, operations, and implementation guides for AI platforms. C
 
 ## Documentation Structure
 
-<DocCardGrid columns={2}>
-  <DocCard
-    to="/docs/agentic-ai-platform/design-architecture"
-    icon="🏗️"
-    title="Design & Architecture"
-    description="Platform 6 layers + 3 planes design, 5 key challenges, AWS Native vs EKS implementation, 2-Tier Inference Gateway & Cascade Routing strategy."
-    color="#667eea"
-  />
-  <DocCard
-    to="/docs/agentic-ai-platform/model-serving"
-    icon="🚀"
-    title="Model Serving & Inference Infrastructure"
-    description="EKS GPU node strategy, Karpenter scaling, vLLM inference engine, llm-d distributed inference, MoE serving, NVIDIA GPU stack, NeMo training framework."
-    color="#ff6b6b"
-  />
-  <DocCard
-    to="/docs/agentic-ai-platform/operations-mlops"
-    icon="📈"
-    title="Operations & Governance"
-    description="Agent monitoring, LLMOps Observability, RAG quality evaluation, Agentic Playbook, compliance, domain customization."
-    color="#8b5cf6"
-  />
-  <DocCard
-    to="/docs/agentic-ai-platform/reference-architecture"
-    icon="📐"
-    title="Reference Architecture"
-    description="Production deployment guides: custom model deployment, Inference Gateway setup, MLOps pipelines, SageMaker-EKS integration."
-    color="#f59e0b"
-  />
-</DocCardGrid>
+<DocCardList />
 
 ---
 
 ## Background
 
-The Agentic AI Platform is a unified platform that enables autonomous AI agents to perform complex tasks. Deploying a single monolithic LLM for mission-critical enterprise workloads has clear limitations in terms of **cost**, **latency**, **accuracy (hallucination)**, and **governance**. Organizations must transition to a **heterogeneous multi-model ecosystem** where LLMs handle complex reasoning while domain-specific SLMs handle repetitive tasks — and **platform-level infrastructure** is the key to operating this efficiently. Kubernetes is rapidly expanding AI-native capabilities such as DRA, Gateway API Inference Extension, and Kueue, and this platform supports multi-model switching **without code changes** on top of the K8s ecosystem.
+This manual helps platform architects and engineers connect requirements to design decisions, deployment configuration, and operational measurements. Choose or combine managed services and EKS according to data boundaries, model control, and operating capacity. Evaluate quality, latency, and cost for the actual workload before choosing a single-model or multi-model design.
 
-This documentation series guides you through understanding the platform architecture, identifying the **5 key challenges** faced during deployment, and addressing them through two approaches: **AWS Native managed services** and **EKS-based open architecture**. These two approaches are complementary, and we recommend a gradual journey starting with AWS Native and expanding to EKS as needed.
-
+The architecture chapters use **six runtime layers and three shared planes** to describe platform responsibilities. The model-serving chapters use **L0–L5 tuning layers** as a separate view of inference performance. These numbers are not a one-to-one mapping. Implementation procedures belong in Reference Architecture. A model replacement also requires checking tool calls, output formats, and evaluation results beyond API compatibility.
 
 ## Related Categories
 

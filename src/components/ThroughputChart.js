@@ -1,172 +1,77 @@
 import React from 'react';
+import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
+import Figure from './Figure';
+import Icon from './Icon';
+import ManualTable from './ArchitectureTables/ManualTable';
+import styles from './ThroughputChart.module.css';
 
 const scenarios = [
-  { id: 'A', label: 'VPC CNI', color: 'var(--ifm-color-emphasis-600)', tcp: 12.41, udp: 10.00 },
-  { id: 'B', label: 'Cilium+kp', color: '#8b5cf6', tcp: 12.34, udp: 7.92 },
-  { id: 'C', label: 'kp-less', color: '#10b981', tcp: 12.34, udp: 7.92 },
-  { id: 'D', label: 'ENI', color: '#3b82f6', tcp: 12.41, udp: 10.00 },
-  { id: 'E', label: 'ENI+Tuned', color: '#059669', tcp: 12.40, udp: 7.96 },
+  { id: 'A', label: 'VPC CNI', color: 'var(--ep-chart-1)', tcp: 12.41, udp: 10.00 },
+  { id: 'B', label: 'Cilium+kp', color: 'var(--ep-chart-2)', tcp: 12.34, udp: 7.92 },
+  { id: 'C', label: 'kp-less', color: 'var(--ep-chart-3)', tcp: 12.34, udp: 7.92 },
+  { id: 'D', label: 'ENI', color: 'var(--ep-chart-4)', tcp: 12.41, udp: 10.00 },
+  { id: 'E', label: 'ENI+Tuned', color: 'var(--ep-chart-5)', tcp: 12.40, udp: 7.96 },
 ];
-
 const nicLimit = 12.5;
+const maxValue = 14;
 
-function Bar({ value, max, color, label, scenarioId, unit }) {
-  const pct = (value / max) * 100;
+function Bar({value, color, label, scenarioId, lossLabel}) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.6rem' }}>
-      <div style={{
-        width: '90px', textAlign: 'right', fontSize: '0.8rem',
-        fontWeight: 500, color: 'var(--ifm-color-emphasis-600)', flexShrink: 0,
-      }}>
-        {scenarioId}: {label}
+    <div className={styles.row}>
+      <div className={styles.label}>{scenarioId}: {label}</div>
+      <div className={styles.value}>{value.toFixed(2)} Gbps</div>
+      <div className={styles.track} aria-hidden="true">
+        <div className={styles.bar} data-loss={lossLabel ? 'true' : undefined}
+          style={{width: `${(value / maxValue) * 100}%`, backgroundColor: lossLabel ? 'var(--ep-error)' : color}} />
       </div>
-      <div style={{
-        flex: 1, background: 'var(--ifm-color-emphasis-100)', borderRadius: '6px',
-        height: '28px', position: 'relative', overflow: 'visible',
-      }}>
-        <div style={{
-          width: `${Math.max(pct, 2)}%`,
-          background: `${color}cc`,
-          height: '100%', borderRadius: '6px', transition: 'width 0.6s ease',
-          display: 'flex', alignItems: 'center', justifyContent: 'flex-end',
-          paddingRight: '8px', boxSizing: 'border-box', minWidth: '70px',
-        }}>
-          <span style={{
-            color: '#fff', fontSize: '0.78rem', fontWeight: 700,
-            textShadow: '0 1px 2px rgba(0,0,0,0.3)', whiteSpace: 'nowrap',
-          }}>
-            {value.toFixed(2)} {unit}
-          </span>
-        </div>
-      </div>
+      {lossLabel && <div className={styles.status} data-status="error">
+        <Icon name="alert-triangle" size={16} /> {lossLabel}
+      </div>}
     </div>
   );
 }
 
 export default function ThroughputChart() {
+  const {i18n} = useDocusaurusContext();
+  const isKo = i18n.currentLocale === 'ko';
+  const lossLabel = isKo ? '20% 손실' : '20% loss';
   return (
-    <div style={{
-      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-      maxWidth: '720px',
-    }}>
-      {/* TCP Throughput */}
-      <div style={{
-        background: 'var(--ifm-background-surface-color)', border: '1px solid var(--ifm-color-emphasis-200)',
-        borderRadius: '10px', padding: '1.2rem 1.5rem', marginBottom: '1rem',
-      }}>
-        <div style={{
-          display: 'flex', justifyContent: 'space-between',
-          alignItems: 'baseline', marginBottom: '1rem',
-        }}>
-          <h4 style={{ margin: 0, fontSize: '0.95rem', color: 'var(--ifm-font-color-base)' }}>
-            TCP Throughput (Gbps)
-          </h4>
-          <span style={{ fontSize: '0.75rem', color: 'var(--ifm-color-emphasis-500)', fontStyle: 'italic' }}>
-            NIC limit: {nicLimit} Gbps
-          </span>
-        </div>
-        <div>
-          {scenarios.map(s => (
-            <Bar
-              key={`tcp-${s.id}`}
-              value={s.tcp}
-              max={14}
-              color={s.color}
-              label={s.label}
-              scenarioId={s.id}
-              unit="Gbps"
-            />
-          ))}
-        </div>
-        <div style={{
-          marginTop: '0.8rem', paddingTop: '0.8rem',
-          borderTop: '1px solid #f1f5f9',
-          fontSize: '0.78rem', color: 'var(--ifm-color-emphasis-600)', lineHeight: 1.6,
-        }}>
-          All scenarios saturated at NIC bandwidth (~12.4 Gbps).
-          TCP throughput is not a differentiator across CNI configurations.
-        </div>
-      </div>
-
-      {/* UDP Throughput */}
-      <div style={{
-        background: 'var(--ifm-background-surface-color)', border: '1px solid var(--ifm-color-emphasis-200)',
-        borderRadius: '10px', padding: '1.2rem 1.5rem',
-      }}>
-        <div style={{
-          display: 'flex', justifyContent: 'space-between',
-          alignItems: 'baseline', marginBottom: '1rem',
-        }}>
-          <h4 style={{ margin: 0, fontSize: '0.95rem', color: 'var(--ifm-font-color-base)' }}>
-            UDP Throughput (Gbps)
-          </h4>
-          <span style={{ fontSize: '0.75rem', color: 'var(--ifm-color-emphasis-500)', fontStyle: 'italic' }}>
-            Higher ≠ better · check loss rate
-          </span>
-        </div>
-        <div>
-          {scenarios.map(s => {
-            const hasHighLoss = s.id === 'A' || s.id === 'D';
-            return (
-              <div key={`udp-${s.id}`} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.6rem' }}>
-                <div style={{
-                  width: '90px', textAlign: 'right', fontSize: '0.8rem',
-                  fontWeight: 500, color: 'var(--ifm-color-emphasis-600)', flexShrink: 0,
-                }}>
-                  {s.id}: {s.label}
-                </div>
-                <div style={{
-                  flex: 1, background: 'var(--ifm-color-emphasis-100)', borderRadius: '6px',
-                  height: '28px', position: 'relative', overflow: 'visible',
-                }}>
-                  <div style={{
-                    width: `${Math.max((s.udp / 14) * 100, 2)}%`,
-                    background: hasHighLoss
-                      ? 'linear-gradient(90deg, #fca5a5, #ef4444)'
-                      : `${s.color}cc`,
-                    height: '100%', borderRadius: '6px', transition: 'width 0.6s ease',
-                    border: hasHighLoss ? '2px solid #ef4444' : 'none',
-                    display: 'flex', alignItems: 'center', justifyContent: 'flex-end',
-                    paddingRight: '8px', boxSizing: 'border-box', minWidth: '70px',
-                  }}>
-                    <span style={{
-                      color: '#fff', fontSize: '0.78rem', fontWeight: 700,
-                      textShadow: '0 1px 2px rgba(0,0,0,0.3)', whiteSpace: 'nowrap',
-                    }}>
-                      {s.udp.toFixed(2)} Gbps
-                    </span>
-                  </div>
-                  {hasHighLoss && (
-                    <span style={{
-                      position: 'absolute', right: '-90px', top: '50%',
-                      transform: 'translateY(-50%)', fontSize: '0.7rem',
-                      fontWeight: 600, color: '#ef4444', whiteSpace: 'nowrap',
-                    }}>
-                      ⚠ 20% loss
-                    </span>
-                  )}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-        <div style={{
-          marginTop: '0.8rem', paddingTop: '0.8rem',
-          borderTop: '1px solid #f1f5f9',
-          fontSize: '0.78rem', color: 'var(--ifm-color-emphasis-600)', lineHeight: 1.6,
-        }}>
-          <span style={{ color: '#ef4444', fontWeight: 600 }}>Red bars</span> indicate
-          high throughput with 20%+ packet loss (no Bandwidth Manager).
-          Effective data transfer is lower despite higher raw throughput.
-        </div>
-      </div>
-
-      <p style={{
-        textAlign: 'center', fontSize: '0.72rem', color: 'var(--ifm-color-emphasis-500)',
-        fontStyle: 'italic', marginTop: '0.75rem', marginBottom: 0,
-      }}>
-        iperf3 · 10s duration · m6i.xlarge (12.5 Gbps baseline) · Median of 3+ runs
-      </p>
+    <div data-ep-theme="manual" className={styles.root}>
+      <Figure
+        title={isKo ? 'CNI 구성별 TCP·UDP 처리량' : 'TCP and UDP Throughput by CNI Configuration'}
+        description={isKo
+          ? 'A–E 시나리오의 처리량 비교입니다. 두 막대 그래프의 눈금 범위는 0–14 Gbps입니다. UDP는 패킷 손실률과 함께 해석해야 합니다.'
+          : 'Throughput comparison for scenarios A–E. Both bar charts use a 0–14 Gbps scale. Interpret UDP throughput together with packet loss.'}
+        source="iperf3 · 10s duration · m6i.xlarge (12.5 Gbps baseline) · Median of 3+ runs"
+        dataFallback={<ManualTable
+          title={isKo ? '처리량 원본 데이터' : 'Throughput Data'}
+          headers={[isKo ? '시나리오' : 'Scenario', 'TCP (Gbps)', 'UDP (Gbps)', isKo ? 'UDP 손실 관측' : 'UDP Loss Observation']}
+          rows={scenarios.map(s => [
+            `${s.id}: ${s.label}`, s.tcp.toFixed(2), s.udp.toFixed(2),
+            s.id === 'A' || s.id === 'D'
+              ? <span className={styles.status} data-status="error"><Icon name="alert-triangle" size={16} /> {lossLabel}</span>
+              : (isKo ? '이 차트에 손실 수치 미제공' : 'Loss value not supplied in this chart'),
+          ])}
+          numericColumns={[1, 2]} />}
+      >
+        <section className={styles.section} aria-label={isKo ? 'TCP 처리량' : 'TCP Throughput'}>
+          <p className={styles.sectionTitle}>{isKo ? 'TCP 처리량 (Gbps)' : 'TCP Throughput (Gbps)'}</p>
+          <p className={styles.note}>{isKo ? 'NIC 한도: ' : 'NIC limit: '}{nicLimit} Gbps</p>
+          {scenarios.map(s => <Bar key={`tcp-${s.id}`} value={s.tcp} color={s.color} label={s.label} scenarioId={s.id} />)}
+          <p className={styles.note}>{isKo
+            ? '모든 시나리오가 NIC 대역폭(~12.4 Gbps)에 도달했습니다. TCP 처리량은 CNI 구성 간 차별 요소가 아닙니다.'
+            : 'All scenarios saturated at NIC bandwidth (~12.4 Gbps). TCP throughput is not a differentiator across CNI configurations.'}</p>
+        </section>
+        <section className={styles.section} aria-label={isKo ? 'UDP 처리량' : 'UDP Throughput'}>
+          <p className={styles.sectionTitle}>{isKo ? 'UDP 처리량 (Gbps)' : 'UDP Throughput (Gbps)'}</p>
+          <p className={styles.note}>{isKo ? '높음 ≠ 우수 · 손실률 확인' : 'Higher ≠ better · check loss rate'}</p>
+          {scenarios.map(s => <Bar key={`udp-${s.id}`} value={s.udp} color={s.color} label={s.label} scenarioId={s.id}
+            lossLabel={s.id === 'A' || s.id === 'D' ? lossLabel : undefined} />)}
+          <p className={styles.note}>{isKo
+            ? '손실 경고가 표시된 막대는 높은 처리량과 20%+ 패킷 손실을 나타냅니다(Bandwidth Manager 미사용). 원시 처리량이 높아도 실제 데이터 전송량은 더 낮습니다.'
+            : 'Bars marked with a loss warning indicate high throughput with 20%+ packet loss (no Bandwidth Manager). Effective data transfer is lower despite higher raw throughput.'}</p>
+        </section>
+      </Figure>
     </div>
   );
 }

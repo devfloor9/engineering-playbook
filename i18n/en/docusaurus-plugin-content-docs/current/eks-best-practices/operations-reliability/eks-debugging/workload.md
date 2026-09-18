@@ -13,6 +13,7 @@ tags:
   - debugging
   - pod
   - deployment
+  - scope:ops
 sidebar_label: Workload
 ---
 

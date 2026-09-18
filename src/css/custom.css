@@ -1,144 +1,178 @@
 /**
  * Engineering Playbook — Design System
- * Based on "The Technical Architect" philosophy
- * Colors: Primary #005DAC, Secondary #006B57
- * Fonts: Plus Jakarta Sans (headlines), Inter (body)
- * Surface hierarchy: #F7F9FF → #F1F4F9 → #FFFFFF
+ * Shared manual palette, typography, and layout tokens.
+ * Component migrations must preserve technical data and semantic colors.
  */
 
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
 
-/* ── Design Tokens ── */
+/* Shared editorial system: charcoal, paper, and one restrained accent. */
+@import 'pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css';
+
 :root {
-  /* Primary palette */
-  --ifm-color-primary: #005DAC;
-  --ifm-color-primary-dark: #00539A;
-  --ifm-color-primary-darker: #004E91;
-  --ifm-color-primary-darkest: #004078;
-  --ifm-color-primary-light: #1976D2;
-  --ifm-color-primary-lighter: #2B82D9;
-  --ifm-color-primary-lightest: #5BA0E5;
+  --ep-surface: #fafafa;
+  --ep-surface-container-lowest: #ffffff;
+  --ep-surface-container-low: #f2f2f3;
+  --ep-surface-container: #ebebed;
+  --ep-surface-container-high: #e4e4e7;
+  --ep-surface-container-highest: #dddde1;
+  --ep-surface-bright: var(--ep-surface-container-lowest);
+  --ep-on-surface: #202024;
+  --ep-on-surface-variant: #5b5b65;
+  --ep-outline-variant: #d8d8de;
+  --ep-outline: #5b5b65;
+  --ifm-color-primary: #b31567;
+  --ifm-color-primary-dark: #9e1159;
+  --ifm-color-primary-darker: #8b0f4e;
+  --ifm-color-primary-darkest: #710c40;
+  --ifm-color-primary-light: #c7287c;
+  --ifm-color-primary-lighter: #d13a8b;
+  --ifm-color-primary-lightest: #de5a9f;
+  --ep-secondary: var(--ifm-color-primary);
+  --ep-secondary-container: #f8e5ef;
+  --ep-on-secondary-container: #870d4c;
 
-  /* Surface hierarchy */
-  --ep-surface: #F7F9FF;
-  --ep-surface-container-low: #F1F4F9;
-  --ep-surface-container: #EBEEF3;
-  --ep-surface-container-high: #E5E8EE;
-  --ep-surface-container-highest: #E0E3E8;
-  --ep-surface-container-lowest: #FFFFFF;
-  --ep-surface-bright: #F7F9FF;
+  /* Status text stays separate from categorical chart series. */
+  --ep-success: #176443;
+  --ep-success-surface: #e4f2e9;
+  --ep-warning: #805600;
+  --ep-warning-surface: #fff3d6;
+  --ep-error: #b02a2a;
+  --ep-error-surface: #fbe9e7;
+  --ep-info: #245da2;
+  --ep-info-surface: #eaf1fb;
+  --ep-chart-1: #006b57;
+  --ep-chart-2: #3568b0;
+  --ep-chart-3: #8755ad;
+  --ep-chart-4: #a65a20;
+  --ep-chart-5: #a43d6b;
+  --ep-chart-6: #387687;
 
-  /* Semantic colors */
-  --ep-on-surface: #181C20;
-  --ep-on-surface-variant: #414752;
-  --ep-outline: #717783;
-  --ep-outline-variant: #C1C6D4;
-  --ep-secondary: #006B57;
-  --ep-secondary-container: #6EFAD5;
-  --ep-on-secondary-container: #00725C;
-  --ep-error: #BA1A1A;
+  --ep-space-1: 0.25rem;
+  --ep-space-2: 0.5rem;
+  --ep-space-3: 0.75rem;
+  --ep-space-4: 1rem;
+  --ep-space-5: 1.5rem;
+  --ep-space-6: 2rem;
+  --ep-space-7: 3rem;
+  --ep-space-8: 3.5rem;
+  --ep-radius-control: 6px;
+  --ep-radius-card: 8px;
+  --ep-control-height: 44px;
+  --ep-card-padding: 20px;
+  --ep-font-size-body: 1.02rem;
+  --ep-font-size-table: 0.9rem;
+  --ep-font-size-caption: 0.875rem;
+  --ep-line-height-body: 1.8;
+  --ep-line-height-table: 1.6;
+  --ep-line-height-caption: 1.5;
+  --ep-prose-width: 46rem;
+  --ep-article-width: 72rem;
+  --ep-focus-ring: 3px solid var(--ifm-color-primary);
+  --ep-focus-offset: 3px;
 
-  /* Typography */
-  --ifm-font-family-base: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --ifm-heading-font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+  --ifm-font-family-base: 'Inter', 'Pretendard Variable', 'Pretendard', system-ui, sans-serif;
+  --ep-font-mono: 'JetBrains Mono', 'SFMono-Regular', 'Pretendard Variable', monospace;
+  --ifm-heading-font-family: var(--ep-font-mono);
   --ifm-font-color-base: var(--ep-on-surface);
-
-  /* Layout */
+  --ifm-heading-color: var(--ep-on-surface);
+  --ifm-link-color: var(--ifm-color-primary);
+  --ifm-link-hover-color: var(--ifm-color-primary-dark);
   --ifm-background-color: var(--ep-surface);
   --ifm-background-surface-color: var(--ep-surface-container-lowest);
   --ifm-code-font-size: 95%;
-  --ifm-global-radius: 0.375rem;
-  --ifm-border-color: transparent;
-
-  /* Navbar */
-  --ifm-navbar-background-color: rgba(255, 255, 255, 0.8);
+  --ifm-code-background: var(--ep-surface-container-low);
+  --ifm-global-radius: var(--ep-radius-control);
+  --ifm-border-color: var(--ep-outline-variant);
+  --ifm-navbar-background-color: var(--ep-surface);
   --ifm-navbar-shadow: none;
-  --ifm-navbar-height: 3.75rem;
-
-  /* Sidebar — no border, background shift */
-  --ifm-toc-border-color: transparent;
+  --ifm-navbar-height: 5rem;
+  --ifm-toc-border-color: var(--ep-outline-variant);
   --doc-sidebar-width: 280px;
-
-  /* Footer */
   --ifm-footer-background-color: var(--ep-surface-container-lowest);
   --ifm-footer-color: var(--ep-on-surface-variant);
-
-  /* Code blocks */
-  --docusaurus-highlighted-code-line-bg: rgba(0, 93, 172, 0.08);
-
-  /* Shadows — blue-tinted, ultra-diffused */
-  --ep-shadow-ambient: 0 20px 40px rgba(0, 28, 58, 0.06);
-  --ep-shadow-sm: 0 4px 12px rgba(0, 28, 58, 0.04);
+  --ifm-table-cell-padding: var(--ep-space-3) var(--ep-space-4);
+  --ifm-table-head-font-weight: 600;
+  --ifm-table-stripe-background: var(--ep-surface-container-low);
+  --ifm-table-border-color: var(--ep-outline-variant);
+  --ifm-hr-border-color: var(--ep-outline-variant);
+  --ifm-tabs-color-active: var(--ifm-color-primary);
+  --docusaurus-highlighted-code-line-bg: var(--ep-surface-container-low);
+  --ep-shadow-ambient: 0 20px 40px rgb(23 46 59 / 6%);
+  --ep-shadow-sm: 0 4px 12px rgb(23 46 59 / 4%);
 }
 
-[data-theme='dark'] {
-  /* Primary — brighter for dark backgrounds */
-  --ifm-color-primary: #6DB3F8;
-  --ifm-color-primary-dark: #4DA0F5;
-  --ifm-color-primary-darker: #3D96F3;
-  --ifm-color-primary-darkest: #1D82EF;
-  --ifm-color-primary-light: #8DC3FA;
-  --ifm-color-primary-lighter: #A0CDFA;
-  --ifm-color-primary-lightest: #C3E0FC;
-
-  /* Surface — slightly lifted for better contrast */
-  --ep-surface: #14171C;
-  --ep-surface-container-low: #1B1F25;
-  --ep-surface-container: #22262D;
-  --ep-surface-container-high: #2C3038;
-  --ep-surface-container-highest: #363B44;
-  --ep-surface-container-lowest: #0F1115;
-  --ep-surface-bright: #2C3038;
-
-  /* Text — high contrast */
-  --ep-on-surface: #ECEEF4;
-  --ep-on-surface-variant: #B4BAC8;
-  --ep-outline: #9AA0AD;
-  --ep-outline-variant: #4A5060;
-  --ep-secondary-container: #004D3D;
-  --ep-on-secondary-container: #6EFAD5;
-
+:root[data-theme='dark'] {
+  --ep-surface: #171719;
+  --ep-surface-container-lowest: #202023;
+  --ep-surface-container-low: #202023;
+  --ep-surface-container: #28282c;
+  --ep-surface-container-high: #323237;
+  --ep-surface-container-highest: #3b3b42;
+  --ep-on-surface: #f2f2f5;
+  --ep-on-surface-variant: #b6b6c0;
+  --ep-outline-variant: #3e3e46;
+  --ep-outline: #b6b6c0;
+  --ifm-color-primary: #f28cbc;
+  --ifm-color-primary-dark: #ed73ad;
+  --ifm-color-primary-darker: #e85a9e;
+  --ifm-color-primary-darkest: #e2408e;
+  --ifm-color-primary-light: #f6a8cc;
+  --ifm-color-primary-lighter: #f9bed9;
+  --ifm-color-primary-lightest: #fcd8e8;
+  --ep-secondary-container: #3b2431;
+  --ep-on-secondary-container: #f28cbc;
+  --ep-success: #9bdfb5;
+  --ep-success-surface: #1e3b2d;
+  --ep-warning: #f1cd7a;
+  --ep-warning-surface: #3e321c;
+  --ep-error: #ffb4ab;
+  --ep-error-surface: #472826;
+  --ep-info: #a9caff;
+  --ep-info-surface: #23344d;
+  --ep-chart-1: #a7e7cb;
+  --ep-chart-2: #9fc7ff;
+  --ep-chart-3: #d4b2f0;
+  --ep-chart-4: #f0ba8e;
+  --ep-chart-5: #efaccb;
+  --ep-chart-6: #93d4e1;
   --ifm-background-color: var(--ep-surface);
-  --ifm-navbar-background-color: rgba(20, 23, 28, 0.85);
-  --ifm-footer-background-color: var(--ep-surface-container-low);
-  --docusaurus-highlighted-code-line-bg: rgba(109, 179, 248, 0.15);
-
-  /* Infima overrides for content elements */
+  --ifm-background-surface-color: var(--ep-surface-container-lowest);
   --ifm-font-color-base: var(--ep-on-surface);
-  --ifm-heading-color: #F0F2F8;
-  --ifm-link-color: #6DB3F8;
-  --ifm-link-hover-color: #8DC3FA;
-  --ifm-table-stripe-background: rgba(255, 255, 255, 0.03);
-  --ifm-table-border-color: rgba(255, 255, 255, 0.08);
-  --ifm-hr-border-color: rgba(255, 255, 255, 0.08);
-  --ifm-code-background: rgba(255, 255, 255, 0.08);
-  --ifm-tabs-color-active: #6DB3F8;
-
-  /* Alert/Admonition — vivid text on dark bg */
-  --ifm-color-info-dark: #5AABF5;
-  --ifm-color-info-contrast-background: rgba(90, 171, 245, 0.08);
-  --ifm-color-success-dark: #4AD8A0;
-  --ifm-color-success-contrast-background: rgba(74, 216, 160, 0.08);
-  --ifm-color-warning-dark: #F5C542;
-  --ifm-color-warning-contrast-background: rgba(245, 197, 66, 0.08);
-  --ifm-color-danger-dark: #F07070;
-  --ifm-color-danger-contrast-background: rgba(240, 112, 112, 0.08);
-  --ifm-color-secondary-dark: #B4BAC8;
-  --ifm-color-secondary-contrast-background: rgba(180, 186, 200, 0.06);
+  --ifm-heading-color: var(--ep-on-surface);
+  --ifm-link-color: var(--ifm-color-primary);
+  --ifm-link-hover-color: var(--ifm-color-primary-light);
+  --ifm-navbar-background-color: var(--ep-surface);
+  --ifm-footer-background-color: var(--ep-surface-container-lowest);
+  --ifm-code-background: var(--ep-surface-container-low);
+  --ifm-table-stripe-background: var(--ep-surface-container-low);
+  --ifm-table-border-color: var(--ep-outline-variant);
+  --ifm-hr-border-color: var(--ep-outline-variant);
+  --ifm-tabs-color-active: var(--ifm-color-primary);
+  --ifm-color-info-dark: var(--ep-info);
+  --ifm-color-info-contrast-background: var(--ep-info-surface);
+  --ifm-color-success-dark: var(--ep-success);
+  --ifm-color-success-contrast-background: var(--ep-success-surface);
+  --ifm-color-warning-dark: var(--ep-warning);
+  --ifm-color-warning-contrast-background: var(--ep-warning-surface);
+  --ifm-color-danger-dark: var(--ep-error);
+  --ifm-color-danger-contrast-background: var(--ep-error-surface);
+  --ifm-color-secondary-dark: var(--ep-on-surface-variant);
+  --ifm-color-secondary-contrast-background: var(--ep-surface-container-low);
 }
 
 /* Dark mode — Mermaid diagrams high contrast */
-[data-theme='dark'] .docusaurus-mermaid-container svg {
+[data-theme='dark'] .docusaurus-mermaid-container svg:not([data-ep-theme], [data-ep-theme] *) {
   filter: brightness(1.15) saturate(1.2);
 }
 
-[data-theme='dark'] .docusaurus-mermaid-container text {
-  fill: #ECEEF4 !important;
+[data-theme='dark'] .docusaurus-mermaid-container text:not([data-ep-theme], [data-ep-theme] *) {
+  fill: var(--ep-on-surface) !important;
 }
 
-[data-theme='dark'] .docusaurus-mermaid-container .nodeLabel,
-[data-theme='dark'] .docusaurus-mermaid-container .edgeLabel {
-  color: #ECEEF4 !important;
+[data-theme='dark'] .docusaurus-mermaid-container .nodeLabel:not([data-ep-theme], [data-ep-theme] *),
+[data-theme='dark'] .docusaurus-mermaid-container .edgeLabel:not([data-ep-theme], [data-ep-theme] *) {
+  color: var(--ep-on-surface) !important;
 }
 
 /* Dark mode — badges/chips legibility */
@@ -146,18 +180,6 @@
 [data-theme='dark'] [class*="tag_"] {
   --ifm-badge-background-color: var(--ep-surface-container-high);
   color: var(--ep-on-surface);
-}
-
-/* Dark mode — table text contrast */
-[data-theme='dark'] table th {
-  background: var(--ep-surface-container);
-  color: #ECEEF4;
-  border-bottom-color: rgba(255, 255, 255, 0.1);
-}
-
-[data-theme='dark'] table td {
-  color: var(--ep-on-surface);
-  border-bottom-color: rgba(255, 255, 255, 0.06);
 }
 
 /* Dark mode — code blocks */
@@ -176,13 +198,13 @@
 }
 
 [data-theme='dark'] .alert a {
-  color: #6DB3F8;
+  color: var(--ifm-color-primary);
 }
 
 /* Dark mode — sidebar active */
 [data-theme='dark'] .menu__link--active:not(.menu__link--sublist) {
   background: var(--ep-surface-container);
-  color: #6DB3F8;
+  color: var(--ifm-color-primary);
 }
 
 /* Dark mode — TOC */
@@ -191,7 +213,7 @@
 }
 
 [data-theme='dark'] .table-of-contents__link--active {
-  color: #6DB3F8;
+  color: var(--ifm-color-primary);
 }
 
 /* ── Global Typography ── */
@@ -206,17 +228,35 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-p, li, td, th {
-  line-height: 1.7;
+p, li {
+  line-height: var(--ep-line-height-body);
 }
 
 /* ── Navbar — Glassmorphism ── */
 .navbar {
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(193, 198, 212, 0.15);
+  padding: 0.75rem 1rem;
+  background: var(--ep-surface);
   box-shadow: none;
 }
+.navbar__inner {
+  max-width: 96rem;
+  margin-inline: auto;
+  padding-inline: 1.25rem;
+  border: 1px solid var(--ep-outline-variant);
+  border-radius: 999px;
+  background: var(--ep-surface-container-lowest);
+}
+.navbar__brand { min-width: 0; }
+.navbar__title { overflow: hidden; text-overflow: ellipsis; }
+.navbar__logo { height: 1.55rem; }
+.navbar__link { letter-spacing: 0.01em; }
+.navbar-sidebar { background: var(--ep-surface-container-lowest); }
+@media (max-width: 576px) {
+  .navbar { padding-inline: 0.5rem; }
+  .navbar__inner { padding-inline: 0.75rem; border-radius: 1rem; }
+  .navbar__title { font-size: 0.8rem; }
+}
+
 
 .navbar__title {
   font-family: var(--ifm-heading-font-family);
@@ -242,8 +282,8 @@ p, li, td, th {
 }
 
 nav.menu {
-  background: var(--ep-surface-container-low);
-  padding: 1rem 0.75rem;
+  background: var(--ep-surface);
+  padding: 1.25rem 0.75rem;
 }
 
 .menu__link {
@@ -262,7 +302,7 @@ nav.menu {
   background: var(--ep-surface-container-lowest);
   color: var(--ifm-color-primary);
   font-weight: 600;
-  box-shadow: var(--ep-shadow-sm);
+  box-shadow: inset 2px 0 var(--ifm-color-primary);
 }
 
 .menu__list-item-collapsible > .menu__link {
@@ -279,7 +319,7 @@ nav.menu {
 article {
   width: 100%;
   min-width: 0;
-  max-width: 72rem;
+  max-width: var(--ep-article-width);
 }
 
 /* Allow the document column to shrink beside the sidebar. */
@@ -294,7 +334,7 @@ main[class*='docMainContainer'] .row > .col,
   overflow-wrap: anywhere;
 }
 
-.theme-doc-markdown > div[style] {
+.theme-doc-markdown > div[style]:not([data-ep-theme]) {
   max-width: 100%;
   overflow-x: auto;
 }
@@ -314,19 +354,37 @@ main[class*='docMainContainer'] .row > .col,
   max-width: 100%;
 }
 
-/* ── Cards — No border lines, surface shifts ── */
+/* Navigation surfaces use borders and focus, without motion or shadows. */
 .card {
   background: var(--ep-surface-container-lowest);
-  border: none;
-  border-radius: 0.75rem;
-  transition: all 0.2s ease;
+  border: 1px solid var(--ep-outline-variant);
+  border-radius: var(--ep-radius-card);
   box-shadow: none;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+.card:hover {
+  border-color: var(--ifm-color-primary);
+  box-shadow: none;
+  transform: none;
 }
 
-.card:hover {
-  background: var(--ep-surface-bright);
-  box-shadow: var(--ep-shadow-ambient);
-  transform: translateY(-2px);
+/* Docusaurus DocCardList keeps its item filtering and localized data. */
+.row:has(> article > [data-ep-card]) {
+  container-type: inline-size;
+  gap: var(--ep-space-4);
+  margin: var(--ep-space-4) 0 var(--ep-space-5);
+}
+.row > article:has(> [data-ep-card]) {
+  flex: 0 0 100%;
+  max-width: 100%;
+  padding: 0;
+  margin: 0;
+}
+@container (min-width: 44rem) {
+  .row > article:has(> [data-ep-card]) {
+    flex-basis: calc((100% - var(--ep-space-4)) / 2);
+    max-width: calc((100% - var(--ep-space-4)) / 2);
+  }
 }
 
 /* ── Code blocks — surface-container-highest ── */
@@ -355,46 +413,39 @@ div[class*="codeBlockTitle"] {
   padding: 0.75rem 1.5rem;
 }
 
-/* ── Tables — softer ── */
-table {
+/* Low-specificity defaults let data components preserve semantic colors. */
+:where(table) {
   border-collapse: separate;
   border-spacing: 0;
   width: 100%;
-  overflow: hidden;
-  border-radius: 0.5rem;
+  font-size: var(--ep-font-size-table);
+  line-height: var(--ep-line-height-table);
+  font-variant-numeric: tabular-nums;
 }
-
-/* Keep words intact when tables calculate column widths. */
-.theme-doc-markdown table {
-  overflow-wrap: break-word;
+:where(.theme-doc-markdown table) { overflow-wrap: break-word; }
+:where(table th, table td) {
+  padding: var(--ep-space-3) var(--ep-space-4);
+  font-size: var(--ep-font-size-table);
+  line-height: var(--ep-line-height-table);
+  vertical-align: top;
+  border: 0;
+  border-bottom: 1px solid var(--ep-outline-variant);
 }
-
-table th {
+:where(table th) {
   background: var(--ep-surface-container-low);
   font-family: var(--ifm-heading-font-family);
   font-weight: 600;
-  font-size: 0.9rem;
   text-transform: none;
   letter-spacing: normal;
-  border: none;
-  border-bottom: 1px solid var(--ep-outline-variant);
-  padding: 0.875rem 1rem;
 }
-
-table td {
-  border: none;
-  border-bottom: 1px solid rgba(193, 198, 212, 0.2);
-  padding: 0.875rem 1rem;
-  font-size: 0.9rem;
+:where(table caption) {
+  color: var(--ep-on-surface-variant);
+  text-align: start;
+  padding-block: var(--ep-space-2);
+  font-size: var(--ep-font-size-caption);
+  line-height: var(--ep-line-height-caption);
 }
-
-table tr:last-child td {
-  border-bottom: none;
-}
-
-table tr:hover td {
-  background: var(--ep-surface-container-low);
-}
+:where(table tr:last-child td) { border-bottom: 0; }
 
 /* ── Admonitions — softer ── */
 .alert {
@@ -454,7 +505,7 @@ table tr:hover td {
   border-radius: 0.5rem !important;
   padding: 0.5rem 1rem !important;
   background: var(--ep-surface-container-low) !important;
-  border: 1px solid rgba(193, 198, 212, 0.2) !important;
+  border: 1px solid var(--ep-outline-variant) !important;
   font-size: 0.875rem;
   transition: all 0.2s ease;
 }
@@ -470,15 +521,15 @@ table tr:hover td {
 
 /* ── Pagination ── */
 .pagination-nav__link {
-  border: none;
+  border: 1px solid var(--ep-outline-variant);
   background: var(--ep-surface-container-lowest);
-  border-radius: 0.75rem;
-  transition: all 0.2s ease;
+  border-radius: var(--ep-radius-card);
+  transition: border-color 0.2s ease, background-color 0.2s ease;
 }
 
 .pagination-nav__link:hover {
-  background: var(--ep-surface-bright);
-  box-shadow: var(--ep-shadow-sm);
+  background: var(--ep-surface-container-low);
+  border-color: var(--ifm-color-primary);
 }
 
 /* ── Breadcrumbs ── */
@@ -489,7 +540,7 @@ table tr:hover td {
 
 /* ── Footer ── */
 .footer {
-  border-top: 1px solid rgba(193, 198, 212, 0.15);
+  border-top: 1px solid var(--ep-outline-variant);
 }
 
 .footer__title {
@@ -505,7 +556,7 @@ table tr:hover td {
   padding: 4px 12px;
   border-radius: 0.375rem;
   background: var(--ep-surface-container-low);
-  border: 1px solid rgba(193, 198, 212, 0.2);
+  border: 1px solid var(--ep-outline-variant);
   color: var(--ep-on-surface) !important;
   font-size: 13px;
   font-weight: 500;
@@ -606,134 +657,148 @@ table tr:hover td {
 /* ── Markdown content ── */
 .markdown img { max-width: 100%; height: auto; border-radius: 0.5rem; }
 .markdown pre { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-.markdown table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+/* Bare Markdown fallback; DataTableFrame/MDX adapters own their own scroller. */
+:where(.markdown > table) {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+  border: 1px solid var(--ep-outline-variant);
+  border-radius: var(--ep-radius-control);
+  -webkit-overflow-scrolling: touch;
+}
 
-/* ═══════════════════════════════════════════════════════
-   DARK MODE — React Component Global Overrides
-   Force all inline-styled content to use theme colors.
-   Targets the doc content area broadly for maximum coverage.
-   ═══════════════════════════════════════════════════════ */
-
-/*
- * Nuclear option: override ALL text & background colors
- * inside doc content area for dark mode.
- * Specificity: [data-theme='dark'] .theme-doc-markdown [style]
+/* Temporary legacy bridge. Only known neutral light surfaces are replaced.
+ * Keep colored fills, gradients, chart bars, and local text colors intact.
+ * A neutral surface containing local color/background overrides stays intact
+ * until its owner migrates the surface and its children together.
+ * Migrated roots MUST carry data-ep-theme="manual"; their entire subtree is
+ * excluded here and from the legacy Mermaid bridge below. Remove these
+ * allowlisted corrections after the remaining component owners review them.
  */
-
-/* Force all styled divs/spans in doc content to use readable text */
-[data-theme='dark'] .theme-doc-markdown div[style],
-[data-theme='dark'] .theme-doc-markdown span[style],
-[data-theme='dark'] .theme-doc-markdown p[style],
-[data-theme='dark'] .theme-doc-markdown li[style],
-[data-theme='dark'] .theme-doc-markdown td[style],
-[data-theme='dark'] .theme-doc-markdown th[style],
-[data-theme='dark'] .markdown div[style],
-[data-theme='dark'] .markdown span[style],
-[data-theme='dark'] .markdown p[style],
-[data-theme='dark'] .markdown li[style] {
+[data-theme='dark'] :where(.markdown) :is(
+  [style*="background:#fff;"],
+  [style$="background:#fff"],
+  [style*="background: #fff;"],
+  [style$="background: #fff"],
+  [style*="background-color:#fff;"],
+  [style$="background-color:#fff"],
+  [style*="background-color: #fff;"],
+  [style$="background-color: #fff"],
+  [style*="background:#ffffff;"],
+  [style$="background:#ffffff"],
+  [style*="background: #ffffff;"],
+  [style$="background: #ffffff"],
+  [style*="background-color:#ffffff;"],
+  [style$="background-color:#ffffff"],
+  [style*="background-color: #ffffff;"],
+  [style$="background-color: #ffffff"],
+  [style*="background:white;"],
+  [style$="background:white"],
+  [style*="background: white;"],
+  [style$="background: white"],
+  [style*="background-color:white;"],
+  [style$="background-color:white"],
+  [style*="background-color: white;"],
+  [style$="background-color: white"],
+  [style*="background:#f8fafc;"],
+  [style$="background:#f8fafc"],
+  [style*="background: #f8fafc;"],
+  [style$="background: #f8fafc"],
+  [style*="background-color:#f8fafc;"],
+  [style$="background-color:#f8fafc"],
+  [style*="background-color: #f8fafc;"],
+  [style$="background-color: #f8fafc"],
+  [style*="background:#f9fafb;"],
+  [style$="background:#f9fafb"],
+  [style*="background: #f9fafb;"],
+  [style$="background: #f9fafb"],
+  [style*="background-color:#f9fafb;"],
+  [style$="background-color:#f9fafb"],
+  [style*="background-color: #f9fafb;"],
+  [style$="background-color: #f9fafb"],
+  [style*="background:#f1f5f9;"],
+  [style$="background:#f1f5f9"],
+  [style*="background: #f1f5f9;"],
+  [style$="background: #f1f5f9"],
+  [style*="background-color:#f1f5f9;"],
+  [style$="background-color:#f1f5f9"],
+  [style*="background-color: #f1f5f9;"],
+  [style$="background-color: #f1f5f9"],
+  [style*="background:#f3f4f6;"],
+  [style$="background:#f3f4f6"],
+  [style*="background: #f3f4f6;"],
+  [style$="background: #f3f4f6"],
+  [style*="background-color:#f3f4f6;"],
+  [style$="background-color:#f3f4f6"],
+  [style*="background-color: #f3f4f6;"],
+  [style$="background-color: #f3f4f6"],
+  [style*="background:#f8f9fa;"],
+  [style$="background:#f8f9fa"],
+  [style*="background: #f8f9fa;"],
+  [style$="background: #f8f9fa"],
+  [style*="background-color:#f8f9fa;"],
+  [style$="background-color:#f8f9fa"],
+  [style*="background-color: #f8f9fa;"],
+  [style$="background-color: #f8f9fa"],
+  [style*="background:#fafafa;"],
+  [style$="background:#fafafa"],
+  [style*="background: #fafafa;"],
+  [style$="background: #fafafa"],
+  [style*="background-color:#fafafa;"],
+  [style$="background-color:#fafafa"],
+  [style*="background-color: #fafafa;"],
+  [style$="background-color: #fafafa"],
+  [style*="background:#f5f5f5;"],
+  [style$="background:#f5f5f5"],
+  [style*="background: #f5f5f5;"],
+  [style$="background: #f5f5f5"],
+  [style*="background-color:#f5f5f5;"],
+  [style$="background-color:#f5f5f5"],
+  [style*="background-color: #f5f5f5;"],
+  [style$="background-color: #f5f5f5"],
+  [style*="background:rgb(255, 255, 255);"],
+  [style$="background:rgb(255, 255, 255)"],
+  [style*="background: rgb(255, 255, 255);"],
+  [style$="background: rgb(255, 255, 255)"],
+  [style*="background-color:rgb(255, 255, 255);"],
+  [style$="background-color:rgb(255, 255, 255)"],
+  [style*="background-color: rgb(255, 255, 255);"],
+  [style$="background-color: rgb(255, 255, 255)"],
+  [style*="background:rgb(248, 250, 252);"],
+  [style$="background:rgb(248, 250, 252)"],
+  [style*="background: rgb(248, 250, 252);"],
+  [style$="background: rgb(248, 250, 252)"],
+  [style*="background-color:rgb(248, 250, 252);"],
+  [style$="background-color:rgb(248, 250, 252)"],
+  [style*="background-color: rgb(248, 250, 252);"],
+  [style$="background-color: rgb(248, 250, 252)"],
+  [style*="background:rgb(249, 250, 251);"],
+  [style$="background:rgb(249, 250, 251)"],
+  [style*="background: rgb(249, 250, 251);"],
+  [style$="background: rgb(249, 250, 251)"],
+  [style*="background-color:rgb(249, 250, 251);"],
+  [style$="background-color:rgb(249, 250, 251)"],
+  [style*="background-color: rgb(249, 250, 251);"],
+  [style$="background-color: rgb(249, 250, 251)"],
+  [style*="background:rgb(241, 245, 249);"],
+  [style$="background:rgb(241, 245, 249)"],
+  [style*="background: rgb(241, 245, 249);"],
+  [style$="background: rgb(241, 245, 249)"],
+  [style*="background-color:rgb(241, 245, 249);"],
+  [style$="background-color:rgb(241, 245, 249)"],
+  [style*="background-color: rgb(241, 245, 249);"],
+  [style$="background-color: rgb(241, 245, 249)"],
+  [style*="background:rgb(243, 244, 246);"],
+  [style$="background:rgb(243, 244, 246)"],
+  [style*="background: rgb(243, 244, 246);"],
+  [style$="background: rgb(243, 244, 246)"],
+  [style*="background-color:rgb(243, 244, 246);"],
+  [style$="background-color:rgb(243, 244, 246)"],
+  [style*="background-color: rgb(243, 244, 246);"],
+  [style$="background-color: rgb(243, 244, 246)"]
+):not([data-ep-theme], [data-ep-theme] *):not(:has([style*='color'], [style*='background'])) {
+  background: var(--ep-surface-container-lowest) !important;
   color: var(--ep-on-surface) !important;
-}
-
-/* Preserve white text in intentionally dark containers (gradient headers etc) */
-[data-theme='dark'] .theme-doc-markdown div[style*="color: white"] *,
-[data-theme='dark'] .theme-doc-markdown div[style*="color: white"],
-[data-theme='dark'] .theme-doc-markdown div[style*="color: #fff"] *,
-[data-theme='dark'] .theme-doc-markdown div[style*="color: #fff"],
-[data-theme='dark'] .markdown div[style*="color: white"] *,
-[data-theme='dark'] .markdown div[style*="color: white"],
-[data-theme='dark'] .markdown div[style*="color: #fff"] *,
-[data-theme='dark'] .markdown div[style*="color: #fff"] {
-  color: #ECEEF4 !important;
-}
-
-/* Force background overrides for light-colored containers */
-[data-theme='dark'] .theme-doc-markdown div[style*="background"],
-[data-theme='dark'] .markdown div[style*="background"] {
-  background: var(--ep-surface-container) !important;
-  border-color: var(--ep-outline-variant) !important;
-}
-
-/* Exception: preserve gradient headers (dark gradients are fine) */
-[data-theme='dark'] .theme-doc-markdown div[style*="linear-gradient(135deg, #1e"],
-[data-theme='dark'] .theme-doc-markdown div[style*="linear-gradient(135deg, #0"],
-[data-theme='dark'] .theme-doc-markdown div[style*="linear-gradient(135deg, #2"],
-[data-theme='dark'] .theme-doc-markdown div[style*="linear-gradient(135deg, #3"],
-[data-theme='dark'] .markdown div[style*="linear-gradient(135deg, #1e"],
-[data-theme='dark'] .markdown div[style*="linear-gradient(135deg, #0"],
-[data-theme='dark'] .markdown div[style*="linear-gradient(135deg, #2"],
-[data-theme='dark'] .markdown div[style*="linear-gradient(135deg, #3"] {
-  background: linear-gradient(135deg, var(--ep-surface-container-high) 0%, var(--ep-surface-container) 100%) !important;
-}
-
-/* Exception: preserve colored brand gradient headers */
-[data-theme='dark'] .theme-doc-markdown div[style*="linear-gradient(135deg, #5f"],
-[data-theme='dark'] .theme-doc-markdown div[style*="linear-gradient(135deg, #76"],
-[data-theme='dark'] .theme-doc-markdown div[style*="linear-gradient(135deg, #27"],
-[data-theme='dark'] .theme-doc-markdown div[style*="linear-gradient(135deg, #c0"],
-[data-theme='dark'] .markdown div[style*="linear-gradient(135deg, #5f"],
-[data-theme='dark'] .markdown div[style*="linear-gradient(135deg, #76"],
-[data-theme='dark'] .markdown div[style*="linear-gradient(135deg, #27"],
-[data-theme='dark'] .markdown div[style*="linear-gradient(135deg, #c0"] {
-  filter: brightness(0.8) saturate(0.9);
-  background: revert !important;
-}
-
-/* Colored accent border-left cards — dark bg */
-[data-theme='dark'] .theme-doc-markdown div[style*="borderLeft"],
-[data-theme='dark'] .markdown div[style*="borderLeft"] {
-  background: var(--ep-surface-container) !important;
-}
-
-/* Nested children inherit readable color */
-[data-theme='dark'] .theme-doc-markdown div[style] div,
-[data-theme='dark'] .theme-doc-markdown div[style] span,
-[data-theme='dark'] .theme-doc-markdown div[style] p,
-[data-theme='dark'] .theme-doc-markdown div[style] li,
-[data-theme='dark'] .theme-doc-markdown div[style] strong,
-[data-theme='dark'] .markdown div[style] div,
-[data-theme='dark'] .markdown div[style] span,
-[data-theme='dark'] .markdown div[style] p,
-[data-theme='dark'] .markdown div[style] li,
-[data-theme='dark'] .markdown div[style] strong {
-  color: inherit !important;
-}
-
-/* But allow emoji and icon spans to keep their style */
-[data-theme='dark'] .theme-doc-markdown span[style*="fontSize: '24px'"],
-[data-theme='dark'] .theme-doc-markdown span[style*="fontSize: '20px'"],
-[data-theme='dark'] .markdown span[style*="fontSize: '24px'"],
-[data-theme='dark'] .markdown span[style*="fontSize: '20px'"] {
-  color: unset !important;
-}
-
-/* Links inside styled containers */
-[data-theme='dark'] .theme-doc-markdown div[style] a,
-[data-theme='dark'] .markdown div[style] a {
-  color: var(--ifm-color-primary) !important;
-}
-
-/* Table-like grid containers — ensure header rows are visible */
-[data-theme='dark'] .theme-doc-markdown div[style*="fontWeight: '600'"],
-[data-theme='dark'] .theme-doc-markdown div[style*="fontWeight: 600"],
-[data-theme='dark'] .theme-doc-markdown span[style*="fontWeight: '600'"],
-[data-theme='dark'] .theme-doc-markdown span[style*="fontWeight: 600"],
-[data-theme='dark'] .markdown div[style*="fontWeight: '600'"],
-[data-theme='dark'] .markdown span[style*="fontWeight: '600'"] {
-  color: #ECEEF4 !important;
-}
-
-/* Subtle text / labels */
-[data-theme='dark'] .theme-doc-markdown div[style*="opacity: 0.9"],
-[data-theme='dark'] .theme-doc-markdown div[style*="opacity: 0.8"],
-[data-theme='dark'] .markdown div[style*="opacity: 0.9"],
-[data-theme='dark'] .markdown div[style*="opacity: 0.8"] {
-  opacity: 0.85 !important;
-}
-
-/* Box shadows — remove hard light-mode shadows */
-[data-theme='dark'] .theme-doc-markdown div[style*="boxShadow"],
-[data-theme='dark'] .markdown div[style*="boxShadow"] {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -741,140 +806,118 @@ table tr:hover td {
    ═══════════════════════════════════════════════════════ */
 
 /* Mermaid container — boost visibility */
-[data-theme='dark'] .docusaurus-mermaid-container svg {
+[data-theme='dark'] .docusaurus-mermaid-container svg:not([data-ep-theme], [data-ep-theme] *) {
   filter: none;
 }
 
 /* Node backgrounds — darken light fills, keep stroke colors */
-[data-theme='dark'] .docusaurus-mermaid-container .node rect,
-[data-theme='dark'] .docusaurus-mermaid-container .node circle,
-[data-theme='dark'] .docusaurus-mermaid-container .node ellipse,
-[data-theme='dark'] .docusaurus-mermaid-container .node polygon,
-[data-theme='dark'] .docusaurus-mermaid-container .node path {
+[data-theme='dark'] .docusaurus-mermaid-container .node rect:not([data-ep-theme], [data-ep-theme] *),
+[data-theme='dark'] .docusaurus-mermaid-container .node circle:not([data-ep-theme], [data-ep-theme] *),
+[data-theme='dark'] .docusaurus-mermaid-container .node ellipse:not([data-ep-theme], [data-ep-theme] *),
+[data-theme='dark'] .docusaurus-mermaid-container .node polygon:not([data-ep-theme], [data-ep-theme] *),
+[data-theme='dark'] .docusaurus-mermaid-container .node path:not([data-ep-theme], [data-ep-theme] *) {
   filter: brightness(0.35) saturate(1.5);
   stroke-width: 1.5px;
 }
 
 /* But keep the stroke visible */
-[data-theme='dark'] .docusaurus-mermaid-container .node rect[style*="fill:#e"],
-[data-theme='dark'] .docusaurus-mermaid-container .node rect[style*="fill:#f"],
-[data-theme='dark'] .docusaurus-mermaid-container .node rect[style*="fill: #e"],
-[data-theme='dark'] .docusaurus-mermaid-container .node rect[style*="fill: #f"] {
+[data-theme='dark'] .docusaurus-mermaid-container .node rect[style*="fill:#e"]:not([data-ep-theme], [data-ep-theme] *),
+[data-theme='dark'] .docusaurus-mermaid-container .node rect[style*="fill:#f"]:not([data-ep-theme], [data-ep-theme] *),
+[data-theme='dark'] .docusaurus-mermaid-container .node rect[style*="fill: #e"]:not([data-ep-theme], [data-ep-theme] *),
+[data-theme='dark'] .docusaurus-mermaid-container .node rect[style*="fill: #f"]:not([data-ep-theme], [data-ep-theme] *) {
   filter: brightness(0.3) saturate(2);
 }
 
 /* Node text — always high contrast white */
-[data-theme='dark'] .docusaurus-mermaid-container .nodeLabel,
-[data-theme='dark'] .docusaurus-mermaid-container .node .label,
-[data-theme='dark'] .docusaurus-mermaid-container .node .label div,
-[data-theme='dark'] .docusaurus-mermaid-container .node .label span,
-[data-theme='dark'] .docusaurus-mermaid-container .node .label p,
-[data-theme='dark'] .docusaurus-mermaid-container .node foreignObject div,
-[data-theme='dark'] .docusaurus-mermaid-container text,
-[data-theme='dark'] .docusaurus-mermaid-container text tspan,
-[data-theme='dark'] .docusaurus-mermaid-container .label,
-[data-theme='dark'] .docusaurus-mermaid-container .label div,
-[data-theme='dark'] .docusaurus-mermaid-container .label text,
-[data-theme='dark'] .docusaurus-mermaid-container tspan {
-  fill: #ECEEF4 !important;
-  color: #ECEEF4 !important;
+[data-theme='dark'] .docusaurus-mermaid-container .nodeLabel:not([data-ep-theme], [data-ep-theme] *),
+[data-theme='dark'] .docusaurus-mermaid-container .node .label:not([data-ep-theme], [data-ep-theme] *),
+[data-theme='dark'] .docusaurus-mermaid-container .node .label div:not([data-ep-theme], [data-ep-theme] *),
+[data-theme='dark'] .docusaurus-mermaid-container .node .label span:not([data-ep-theme], [data-ep-theme] *),
+[data-theme='dark'] .docusaurus-mermaid-container .node .label p:not([data-ep-theme], [data-ep-theme] *),
+[data-theme='dark'] .docusaurus-mermaid-container .node foreignObject div:not([data-ep-theme], [data-ep-theme] *),
+[data-theme='dark'] .docusaurus-mermaid-container text:not([data-ep-theme], [data-ep-theme] *),
+[data-theme='dark'] .docusaurus-mermaid-container text tspan:not([data-ep-theme], [data-ep-theme] *),
+[data-theme='dark'] .docusaurus-mermaid-container .label:not([data-ep-theme], [data-ep-theme] *),
+[data-theme='dark'] .docusaurus-mermaid-container .label div:not([data-ep-theme], [data-ep-theme] *),
+[data-theme='dark'] .docusaurus-mermaid-container .label text:not([data-ep-theme], [data-ep-theme] *),
+[data-theme='dark'] .docusaurus-mermaid-container tspan:not([data-ep-theme], [data-ep-theme] *) {
+  fill: var(--ep-on-surface) !important;
+  color: var(--ep-on-surface) !important;
 }
 
 /* Subgraph title text */
-[data-theme='dark'] .docusaurus-mermaid-container .cluster-label .nodeLabel,
-[data-theme='dark'] .docusaurus-mermaid-container .cluster-label span {
-  fill: #B4BAC8 !important;
-  color: #B4BAC8 !important;
+[data-theme='dark'] .docusaurus-mermaid-container .cluster-label .nodeLabel:not([data-ep-theme], [data-ep-theme] *),
+[data-theme='dark'] .docusaurus-mermaid-container .cluster-label span:not([data-ep-theme], [data-ep-theme] *) {
+  fill: var(--ep-on-surface-variant) !important;
+  color: var(--ep-on-surface-variant) !important;
 }
 
 /* Edge labels */
-[data-theme='dark'] .docusaurus-mermaid-container .edgeLabel {
+[data-theme='dark'] .docusaurus-mermaid-container .edgeLabel:not([data-ep-theme], [data-ep-theme] *) {
   background-color: var(--ep-surface-container) !important;
-  color: #B4BAC8 !important;
+  color: var(--ep-on-surface-variant) !important;
 }
 
-[data-theme='dark'] .docusaurus-mermaid-container .edgeLabel rect {
+[data-theme='dark'] .docusaurus-mermaid-container .edgeLabel rect:not([data-ep-theme], [data-ep-theme] *) {
   fill: var(--ep-surface-container) !important;
   opacity: 0.9;
 }
 
-[data-theme='dark'] .docusaurus-mermaid-container .edgeLabel span {
-  color: #B4BAC8 !important;
+[data-theme='dark'] .docusaurus-mermaid-container .edgeLabel span:not([data-ep-theme], [data-ep-theme] *) {
+  color: var(--ep-on-surface-variant) !important;
 }
 
 /* Edge paths */
-[data-theme='dark'] .docusaurus-mermaid-container .edgePath .path,
-[data-theme='dark'] .docusaurus-mermaid-container .flowchart-link {
+[data-theme='dark'] .docusaurus-mermaid-container .edgePath .path:not([data-ep-theme], [data-ep-theme] *),
+[data-theme='dark'] .docusaurus-mermaid-container .flowchart-link:not([data-ep-theme], [data-ep-theme] *) {
   stroke: var(--ep-outline) !important;
   stroke-width: 1.5px;
 }
 
 /* Arrowheads */
-[data-theme='dark'] .docusaurus-mermaid-container marker path {
+[data-theme='dark'] .docusaurus-mermaid-container marker path:not([data-ep-theme], [data-ep-theme] *) {
   fill: var(--ep-outline) !important;
 }
 
 /* Subgraph backgrounds */
-[data-theme='dark'] .docusaurus-mermaid-container .cluster rect {
+[data-theme='dark'] .docusaurus-mermaid-container .cluster rect:not([data-ep-theme], [data-ep-theme] *) {
   fill: var(--ep-surface-container-low) !important;
   stroke: var(--ep-outline-variant) !important;
   rx: 6;
 }
 
-[data-theme='dark'] .docusaurus-mermaid-container .cluster span,
-[data-theme='dark'] .docusaurus-mermaid-container .cluster text {
+[data-theme='dark'] .docusaurus-mermaid-container .cluster span:not([data-ep-theme], [data-ep-theme] *),
+[data-theme='dark'] .docusaurus-mermaid-container .cluster text:not([data-ep-theme], [data-ep-theme] *) {
   fill: var(--ep-on-surface-variant) !important;
   color: var(--ep-on-surface-variant) !important;
 }
 
 /* Colored nodes — keep color but ensure text readable */
-[data-theme='dark'] .docusaurus-mermaid-container .node rect[style*="fill: #232f3e"],
-[data-theme='dark'] .docusaurus-mermaid-container .node rect[style*="fill:#232f3e"] {
+[data-theme='dark'] .docusaurus-mermaid-container .node rect[style*="fill: #232f3e"]:not([data-ep-theme], [data-ep-theme] *),
+[data-theme='dark'] .docusaurus-mermaid-container .node rect[style*="fill:#232f3e"]:not([data-ep-theme], [data-ep-theme] *) {
   fill: #2C3038 !important;
 }
 
-[data-theme='dark'] .docusaurus-mermaid-container .node rect[style*="fill: #527fff"],
-[data-theme='dark'] .docusaurus-mermaid-container .node rect[style*="fill:#527fff"] {
+[data-theme='dark'] .docusaurus-mermaid-container .node rect[style*="fill: #527fff"]:not([data-ep-theme], [data-ep-theme] *),
+[data-theme='dark'] .docusaurus-mermaid-container .node rect[style*="fill:#527fff"]:not([data-ep-theme], [data-ep-theme] *) {
   fill: #3D6FE0 !important;
 }
 
-[data-theme='dark'] .docusaurus-mermaid-container .node rect[style*="fill: #ff9900"],
-[data-theme='dark'] .docusaurus-mermaid-container .node rect[style*="fill:#ff9900"] {
+[data-theme='dark'] .docusaurus-mermaid-container .node rect[style*="fill: #ff9900"]:not([data-ep-theme], [data-ep-theme] *),
+[data-theme='dark'] .docusaurus-mermaid-container .node rect[style*="fill:#ff9900"]:not([data-ep-theme], [data-ep-theme] *) {
   fill: #E08800 !important;
 }
 
-[data-theme='dark'] .docusaurus-mermaid-container .node rect[style*="fill: #ffd93d"],
-[data-theme='dark'] .docusaurus-mermaid-container .node rect[style*="fill:#ffd93d"] {
+[data-theme='dark'] .docusaurus-mermaid-container .node rect[style*="fill: #ffd93d"]:not([data-ep-theme], [data-ep-theme] *),
+[data-theme='dark'] .docusaurus-mermaid-container .node rect[style*="fill:#ffd93d"]:not([data-ep-theme], [data-ep-theme] *) {
   fill: #C4A420 !important;
 }
 
 /* Mermaid overall background */
-[data-theme='dark'] .docusaurus-mermaid-container {
+[data-theme='dark'] .docusaurus-mermaid-container:not([data-ep-theme], [data-ep-theme] *) {
   background: var(--ep-surface-container-low);
   border-radius: 0.5rem;
   padding: 1rem;
-}
-
-/* ═══════════════════════════════════════════════════════
-   LIGHT MODE — React Component Enhancements
-   Match the design system surface hierarchy
-   ═══════════════════════════════════════════════════════ */
-
-/* Improve light mode table/card containers */
-.markdown div[style*="border: 1px solid"] {
-  border-color: rgba(193, 198, 212, 0.3) !important;
-  border-radius: 0.5rem;
-}
-
-/* Softer gradient headers in light mode */
-.markdown div[style*="linear-gradient(135deg, #1e293b"] {
-  border-radius: 0.5rem 0.5rem 0 0;
-}
-
-/* Card containers — ensure rounded corners */
-.markdown div[style*="borderRadius: '8px'"],
-.markdown div[style*="border-radius: 8px"] {
-  overflow: hidden;
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -885,15 +928,15 @@ table tr:hover td {
 /* Reading measure — 본문 텍스트는 읽기 좋은 행폭으로 제한하되,
    표·코드·다이어그램은 전체 폭 활용 */
 .theme-doc-markdown {
-  font-size: 1.02rem;
-  line-height: 1.8;
+  font-size: var(--ep-font-size-body);
+  line-height: var(--ep-line-height-body);
 }
 
 .theme-doc-markdown > p,
 .theme-doc-markdown > ul,
 .theme-doc-markdown > ol,
 .theme-doc-markdown > blockquote {
-  max-width: 46rem;
+  max-width: var(--ep-prose-width);
 }
 
 /* 문단 리듬 — 단락 간 여백 */
@@ -911,7 +954,9 @@ table tr:hover td {
 
 /* ── 헤딩 계층 — 명확한 시각적 위계 ── */
 .theme-doc-markdown h1 {
-  font-size: 2.25rem;
+  font-size: clamp(2rem, 3.3vw, 3rem);
+  letter-spacing: -0.055em;
+  text-wrap: balance;
   font-weight: 800;
   line-height: 1.25;
   margin-bottom: 1.25rem;
@@ -919,6 +964,8 @@ table tr:hover td {
 
 .theme-doc-markdown h2 {
   font-size: 1.6rem;
+  letter-spacing: -0.04em;
+  line-height: 1.35;
   font-weight: 700;
   margin-top: 3.5rem;
   margin-bottom: 1.25rem;
@@ -926,6 +973,7 @@ table tr:hover td {
 
 .theme-doc-markdown h3 {
   font-size: 1.25rem;
+  line-height: 1.4;
   font-weight: 700;
   margin-top: 2.5rem;
   margin-bottom: 0.875rem;
@@ -933,6 +981,7 @@ table tr:hover td {
 
 .theme-doc-markdown h4 {
   font-size: 1.05rem;
+  line-height: 1.45;
   font-weight: 600;
   margin-top: 2rem;
   margin-bottom: 0.75rem;
@@ -952,14 +1001,14 @@ table tr:hover td {
 
 .theme-doc-markdown .hash-link:focus-visible {
   opacity: 1;
-  outline: 2px solid var(--ifm-color-primary);
+  outline: var(--ep-focus-ring);
   outline-offset: 3px;
 }
 
 /* ── 인라인 코드 — 톤다운 배경 + 프라이머리 컬러 ── */
 .theme-doc-markdown code:not([class*="codeBlock"]):not(pre code) {
-  background: rgba(0, 93, 172, 0.07);
-  color: #00468A;
+  background: var(--ep-surface-container-low);
+  color: var(--ifm-color-primary);
   border: none;
   border-radius: 0.3rem;
   padding: 0.15em 0.4em;
@@ -967,10 +1016,6 @@ table tr:hover td {
   font-weight: 500;
 }
 
-[data-theme='dark'] .theme-doc-markdown code:not([class*="codeBlock"]):not(pre code) {
-  background: rgba(109, 179, 248, 0.12);
-  color: #8DC3FA;
-}
 
 /* 헤딩 안의 인라인 코드는 크기 상속 */
 .theme-doc-markdown h2 code,
@@ -995,36 +1040,30 @@ table tr:hover td {
 }
 
 /* ── 본문 링크 — 밑줄 + 부드러운 호버 ── */
-.theme-doc-markdown a:not(.hash-link):not(.card) {
+.theme-doc-markdown a:not(.hash-link):not(.card):not([data-ep-action]) {
   text-decoration: underline;
-  text-decoration-color: rgba(0, 93, 172, 0.3);
+  text-decoration-color: var(--ifm-color-primary);
   text-underline-offset: 3px;
   transition: text-decoration-color 0.15s ease;
 }
 
-.theme-doc-markdown a:not(.hash-link):not(.card):hover {
+.theme-doc-markdown a:not(.hash-link):not(.card):not([data-ep-action]):hover {
   text-decoration-color: var(--ifm-color-primary);
 }
 
-[data-theme='dark'] .theme-doc-markdown a:not(.hash-link):not(.card) {
-  text-decoration-color: rgba(109, 179, 248, 0.35);
-}
 
 /* ── 수평선 — 섹션 구분 여백 강화 ── */
 .theme-doc-markdown hr {
   margin: 3rem 0;
   border: none;
   height: 1px;
-  background: rgba(193, 198, 212, 0.35);
+  background: var(--ep-outline-variant);
 }
 
-[data-theme='dark'] .theme-doc-markdown hr {
-  background: rgba(255, 255, 255, 0.1);
-}
 
 /* ── 문서 제목 아래 메타(수정일·읽기시간) 여백 ── */
 .theme-doc-markdown header {
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
 }
 
 /* ── 이미지 — 캡션 느낌의 여백과 그림자 ── */
@@ -1039,39 +1078,23 @@ div[class*="codeBlockTitle"] {
   letter-spacing: 0.01em;
 }
 
-/* ── 표 스크롤 그림자 힌트 ── */
-.markdown table {
-  box-shadow: var(--ep-shadow-sm);
-  border: 1px solid rgba(193, 198, 212, 0.25);
-}
-
-[data-theme='dark'] .markdown table {
-  border-color: rgba(255, 255, 255, 0.08);
-}
-
 /* ── TOC — 좌측 인디케이터 라인 ── */
 .table-of-contents {
-  border-left: 1px solid rgba(193, 198, 212, 0.3);
+  border-left: 1px solid var(--ep-outline-variant);
   padding-left: 0.75rem;
 }
 
-[data-theme='dark'] .table-of-contents {
-  border-left-color: rgba(255, 255, 255, 0.1);
-}
 
 .table-of-contents__link {
   padding: 0.15rem 0;
   display: block;
-  transition: color 0.15s ease, transform 0.15s ease;
+  transition: color 0.15s ease;
 }
 
 .table-of-contents__link:hover {
   color: var(--ifm-color-primary);
 }
 
-.table-of-contents__link--active {
-  transform: translateX(2px);
-}
 
 /* ── 페이지네이션 카드 — 라벨 강조 ── */
 .pagination-nav__sublabel {
@@ -1093,14 +1116,34 @@ div[class*="codeBlockTitle"] {
   font-weight: 700;
 }
 
-/* ── 콘텐츠 페이드인 — 문서 진입 시 부드러운 등장 ── */
-@media (prefers-reduced-motion: no-preference) {
-  .theme-doc-markdown {
-    animation: docFadeIn 0.4s ease both;
-  }
-
-  @keyframes docFadeIn {
-    from { opacity: 0; transform: translateY(8px); }
-    to { opacity: 1; transform: translateY(0); }
+/* Shared document focus and responsive reading dimensions. */
+:where(.theme-doc-markdown, .pagination-nav, .menu, .navbar, .table-of-contents) :is(a, button, input, select, summary, [tabindex]):focus-visible {
+  outline: var(--ep-focus-ring);
+  outline-offset: var(--ep-focus-offset);
+}
+.theme-doc-markdown :is(h1, h2, h3, h4, h5, h6) {
+  scroll-margin-top: calc(var(--ifm-navbar-height) + var(--ep-space-4));
+}
+@media (max-width: 576px) {
+  main[class*='docMainContainer'] > .container { padding-inline: var(--ep-space-4); }
+  .theme-doc-markdown h1 { font-size: 1.875rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  :where(.card, .pagination-nav__link, .menu__link, .table-of-contents__link, .hash-link) {
+    transition: none;
   }
 }
+
+/* Navigation labels connect the cover and article without shrinking the prose. */
+.theme-doc-breadcrumbs,
+.pagination-nav__sublabel,
+.footer__title {
+  font-family: var(--ep-font-mono);
+  letter-spacing: 0.025em;
+}
+.theme-doc-breadcrumbs { margin-bottom: 1.75rem; }
+.theme-doc-sidebar-menu { font-size: 0.875rem; }
+.footer { border-top: 1px solid var(--ep-outline-variant); }
+.footer__title { font-size: 0.875rem; }
+.footer__link-item { line-height: 2; }
+::selection { background: var(--ep-secondary-container); color: var(--ep-on-secondary-container); }

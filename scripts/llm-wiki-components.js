@@ -1,6 +1,20 @@
 const metrics = require('../src/data/coredns-metrics.json');
 const models = require('../src/data/moe-memory-models.json');
 const parallelization = require('../src/data/moe-parallelization.json');
+const path = require('node:path');
+const {StaticRenderer, StaticGap, OPTIONS} = require('./llm-wiki-static');
+const {parseExpression} = require('@babel/parser');
+const {markdown} = require('./llm-wiki-markdown');
+const {adapters, stateProfiles} = require('./llm-wiki-profiles');
+const {sidebarCards} = require('./llm-wiki-navigation');
+const {inlinePipeline, embeddedDiagram} = require('./llm-wiki-diagrams');
+const root = path.resolve(__dirname, '..');
+const staticRenderer = new StaticRenderer({root, adapters, stateProfiles});
+const sharedSources = {
+  CoreDnsMetricsTable: ['src/components/CoreDnsTables/CoreDnsMetricsTable.js', 'src/data/coredns-metrics.json'],
+  GpuMemoryRequirements: ['src/components/MoeModelTables/GpuMemoryRequirements.js', 'src/data/moe-memory-models.json'],
+  ParallelizationStrategies: ['src/components/MoeModelTables/ParallelizationStrategies.js', 'src/data/moe-parallelization.json'],
+};
 
 function cell(value) {
   return String(value).replace(/\|/g, '\\|').replace(/\r?\n/g, '<br />');
@@ -45,6 +59,43 @@ const componentModules = {
   ParallelizationStrategies: 'MoeModelTables',
 };
 
+// Only the repository's Figure may wrap a repository-owned draw.io resource.
+// Replace one direct iframe with its already validated graph tree; all other
+// JSX, props, and imports still pass through the bounded source interpreter.
+function figureWithDiagram(source, imports, context, resolved) {
+  if (staticRenderer.relative(resolved) !== 'src/components/Figure/index.js') return null;
+  const node = parseExpression(source, OPTIONS);
+  const frames = node.children?.filter(child =>
+    child.type === 'JSXElement' && child.openingElement.name.name === 'iframe') || [];
+  if (!frames.length) return null;
+  if (frames.length !== 1) throw new StaticGap('Figure must have one static drawing');
+  const frame = frames[0];
+  const diagram = embeddedDiagram({node: frame}, {
+    ...context, renderer: staticRenderer, includeTree: true,
+  });
+  const marker = 'llm-static-figure-drawing';
+  if (source.includes(marker)) throw new StaticGap('Reserved static figure marker');
+  const replaced = source.slice(0, frame.start) +
+    `<span data-llm-drawing="${marker}" />` + source.slice(frame.end);
+  const replaceDrawing = tree => {
+    if (Array.isArray(tree)) return tree.map(replaceDrawing);
+    if (!tree || typeof tree !== 'object') return tree;
+    if (tree.tag === 'span' && tree.props?.['data-llm-drawing'] === marker) return diagram.tree;
+    return {...tree, children: tree.children?.map(replaceDrawing)};
+  };
+  const tree = replaceDrawing(staticRenderer.expression(replaced, imports, context.filePath));
+  return {
+    name: 'Figure', method: 'static-drawio-source',
+    markdown: markdown(tree), source: diagram.source,
+    component_source: '@site/src/components/Figure#default',
+    source_files: [...new Set([
+      ...diagram.source_files,
+      ...[...staticRenderer.files].map(file => staticRenderer.relative(file)),
+    ])].sort(),
+    graph_counts: diagram.graph_counts,
+  };
+}
+
 // Component names are not unique across the site. Resolve the imported module
 // and exported name before choosing a serializer, including local aliases.
 function componentName(tag, imports = new Map()) {
@@ -62,13 +113,61 @@ function componentName(tag, imports = new Map()) {
   return null;
 }
 
-// Only serialize the prop-free form whose data is shared with the site.
-function renderComponent(line, imports) {
+// Keep the established shared-data serializers, then interpret other actual
+// source bindings. Supplying props never silently selects a prop-free default.
+function renderComponent(line, imports, context = {}) {
   const match = line.trim().match(/^<([A-Z][A-Za-z0-9]*)\s*\/>$/);
-  if (!match) return null;
-  const name = componentName(match[1], imports);
-  if (!Object.hasOwn(renderers, name)) return null;
-  return {name, markdown: renderers[name]()};
+  if (match) {
+    const name = componentName(match[1], imports);
+    if (Object.hasOwn(renderers, name)) {
+      const binding = imports.get(match[1]);
+      return {name, markdown: renderers[name](), method: 'shared-data',
+        source: `${binding.source}#${binding.exported}`,
+        source_files: [...sharedSources[name], ...(context.filePath ? [staticRenderer.relative(context.filePath)] : [])].sort()};
+    }
+  }
+  const tag = line.trim().match(/^<([A-Z][\w.]*)\b/)?.[1];
+  let binding = imports.get(tag);
+  if (tag?.includes('.')) {
+    const [namespace, exported, extra] = tag.split('.');
+    const namespaceBinding = imports.get(namespace);
+    if (!extra && namespaceBinding?.exported === '*') binding = {...namespaceBinding, exported};
+  }
+  staticRenderer.reset();
+  if (context.filePath) staticRenderer.files.add(context.filePath);
+  try {
+    if (!binding) {
+      if (tag && new RegExp(`^<${tag.replaceAll('.', '\\.')}\\s*/>$`).test(line.trim())) return inlinePipeline(tag, {...context, renderer: staticRenderer});
+      return null;
+    }
+    const resolved = staticRenderer.resolve(binding.source, context.filePath || path.join(root, 'docs/unknown.md'));
+    if (!resolved || !staticRenderer.relative(resolved).startsWith('src/components/')) return null;
+    if (binding.exported === 'default') {
+      const figure = figureWithDiagram(line, imports, context, resolved);
+      if (figure) return figure;
+    }
+    const fn = staticRenderer.imported(binding.source, binding.exported, context.filePath || path.join(root, 'docs/unknown.md'));
+    // Unknown props on a prop-free component must not select default data.
+    if (fn?.kind === 'closure' && !fn.node.params.length && !/^<[A-Z][\w.]*\s*\/>$/.test(line.trim())) {
+      throw new StaticGap('Component does not declare these props');
+    }
+    const tree = staticRenderer.expression(line, imports, context.filePath);
+    const output = markdown(tree);
+    if (!output) throw new StaticGap('No static content was rendered');
+    const name = binding.exported === 'default' ? (path.basename(resolved) === 'index.js' ? path.basename(path.dirname(resolved)) : path.basename(resolved).replace(/\.jsx?$/, '')) : binding.exported;
+    return {
+      name,
+      ...(fn?.sourceFile === path.join(root, 'src/components/LegacySectionLinks/index.js') ? {names: [name]} : {}),
+      markdown: output,
+      method: fn?.kind === 'native' ? 'source-adapter' : 'static-source',
+      source: `${binding.source}#${binding.exported}`,
+      source_files: [...staticRenderer.files].map(file => staticRenderer.relative(file)).sort(),
+    };
+  } catch (error) {
+    if (!(error instanceof StaticGap)) throw error;
+    if (context.diagnostics) context.diagnostics.push({component: tag, source: binding ? `${binding.source}#${binding.exported}` : context.filePath, reason: error.message});
+    return null;
+  }
 }
 
 function staticAttributes(text, allowed) {
@@ -93,7 +192,19 @@ function label(text) {
 
 // Navigation uses literal MDX attributes as its shared source. Expressions,
 // spreads and unknown children stay omitted rather than being evaluated.
-function renderNavigation(block, imports) {
+function renderNavigation(block, imports, context = {}) {
+  if (context.filePath && /^<\w+\s*(?:items=|\s*\/>)/.test(block)) {
+    staticRenderer.reset();
+    staticRenderer.files.add(context.filePath);
+    try {
+      const rendered = sidebarCards(block, imports, {...context, renderer: staticRenderer});
+      if (rendered) return rendered;
+    } catch (error) {
+      if (!(error instanceof StaticGap)) throw error;
+      context.diagnostics?.push({component: block.match(/^<(\w+)/)?.[1], reason: error.message});
+      return null;
+    }
+  }
   const grid = block.match(/^<([A-Z][A-Za-z0-9]*)([^>]*)>([\s\S]*)<\/\1>\s*$/);
   if (!grid || componentName(grid[1], imports) !== 'DocCardGrid') return null;
   if (!staticAttributes(grid[2], ['columns'])) return null;
@@ -112,11 +223,16 @@ function renderNavigation(block, imports) {
     cards.push(`- [${label(attrs.title)}](${target})${attrs.description ? ` — ${label(attrs.description)}` : ''}`);
     offset = child.lastIndex;
   }
-  return cards.length ? {names: ['DocCardGrid', 'DocCard'], markdown: cards.join('\n')} : null;
+  return cards.length ? {
+    names: ['DocCardGrid', 'DocCard'], markdown: cards.join('\n'), method: 'static-props',
+    source: '@site/src/components/DocCards#DocCardGrid',
+    source_files: ['src/components/DocCards.js', ...(context.filePath ? [staticRenderer.relative(context.filePath)] : [])],
+  } : null;
 }
 
 module.exports = {
   renderComponent, renderNavigation, componentName,
   supportedComponents: Object.keys(renderers),
-  supportedNavigationComponents: ['DocCardGrid', 'DocCard'],
+  supportedNavigationComponents: ['DocCardGrid', 'DocCard', 'DocCardList', 'LegacySectionLinks'],
+  staticRenderer,
 };

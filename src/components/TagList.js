@@ -1,6 +1,7 @@
 import React from 'react';
 import Link from '@docusaurus/Link';
 import {translate} from '@docusaurus/Translate';
+import {tagPageRoute} from './TagList/routes';
 
 const TagList = ({tags, showCount = false}) => {
   if (!tags || tags.length === 0) {
@@ -60,7 +61,7 @@ const TagList = ({tags, showCount = false}) => {
       {tags.map((tag, index) => (
         <Link
           key={index}
-          to={`/tags/${tag}`}
+          to={tagPageRoute(tag)}
           className="tag-item"
           style={{
             backgroundColor: getTagColor(tag),

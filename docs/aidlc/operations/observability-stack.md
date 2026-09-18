@@ -3,7 +3,7 @@ title: 관찰성 스택
 description: AIDLC Operations의 데이터 기반 — 3-Pillar 관찰성 + AI 분석 레이어 구축
 created: "2026-04-07"
 last_update:
-  date: "2026-06-30"
+  date: 2026-09-18
   author: YoungJoon Jeong
 reading_time: 16
 tags:
@@ -555,8 +555,8 @@ graph LR
 - [Amazon EKS Observability Best Practices Guide](https://aws-observability.github.io/observability-best-practices/)
 - [ADOT (AWS Distro for OpenTelemetry) Documentation](https://aws-otel.github.io/docs/introduction)
 - [CloudWatch Container Insights for EKS](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/ContainerInsights.html)
-- [CloudWatch Application Signals](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-Application-Signals.html)
-- [AWS MCP Servers](https://github.com/aws/mcp-servers)
+- [CloudWatch Application Signals](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-Application-Monitoring-Sections.html)
+- [AWS MCP Servers](https://github.com/awslabs/mcp)
 
 **커뮤니티 리소스**:
 - [OpenTelemetry Operator for Kubernetes](https://opentelemetry.io/docs/kubernetes/operator/)

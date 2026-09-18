@@ -3,9 +3,9 @@ title: AI Gateway Guardrails
 description: LLM Gateway 레벨 Guardrails — PII Redaction, Prompt Injection 방어, Content Filtering, 도구 비교와 한국 금융권 컴플라이언스 매핑
 created: "2026-04-17"
 last_update:
-  date: "2026-08-11"
+  date: 2026-09-18
   author: YoungJoon Jeong
-reading_time: 24
+reading_time: 20
 tags:
   - guardrails
   - pii
@@ -593,7 +593,7 @@ Langfuse는 LLM 호출별 span을 제공하므로 `safety_violation=true` 필터
 ## 10. 참고 자료
 
 ### 공식 문서
-- [Guardrails AI Documentation](https://docs.guardrailsai.com/) — Validator Hub, RAIL 스키마
+- [Guardrails AI Documentation](https://guardrailsai.com/guardrails/docs) — Validator Hub, RAIL 스키마
 - [NVIDIA NeMo Guardrails](https://docs.nvidia.com/nemo/guardrails/latest/index.html) — Colang DSL, 공식 사용 가이드
 - [AWS Bedrock Guardrails](https://docs.aws.amazon.com/bedrock/latest/userguide/guardrails.html) + [ApplyGuardrail API](https://docs.aws.amazon.com/bedrock/latest/userguide/guardrails-use-independent-api.html)
 - [Meta Llama Guard 3 Model Card](https://github.com/meta-llama/PurpleLlama/tree/main/Llama-Guard3) — 14개 카테고리(S1~S14) 분류 (MLCommons 13개 위험 분류 + Code Interpreter Abuse)

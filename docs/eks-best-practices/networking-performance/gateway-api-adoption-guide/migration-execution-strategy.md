@@ -3,9 +3,9 @@ title: 마이그레이션 실행 전략
 description: Gateway API 마이그레이션 5-Phase 전략, CRD 설치, 단계별 실행 가이드, 검증 스크립트, 트러블슈팅
 created: "2026-02-14"
 last_update:
-  date: "2026-06-28"
+  date: 2026-09-18
   author: YoungJoon Jeong
-reading_time: 5
+reading_time: 8
 tags:
   - eks
   - gateway-api
@@ -27,16 +27,16 @@ import { MigrationFeatureMappingTable, TroubleshootingTable } from '@site/src/co
 
 ## 1. 사전 요구사항: CRD 설치
 
-모든 Gateway API 구현체는 공통적으로 Kubernetes Gateway API CRDs를 필요로 합니다.
+Gateway API CRD 버전은 선택한 컨트롤러의 지원 버전과 맞춰야 합니다. 아래 공통 예시는 연결된 Cilium 1.19.3 가이드의 v1.4.1 기준입니다. Standard/Experimental 번들을 서로 다른 릴리스로 덮어쓰지 마세요. 다른 컨트롤러나 Cilium 가이드 9.4절의 추론 Gateway에는 각자의 호환성 기준을 적용해야 합니다.
 
 ### 1.1 Gateway API 표준 CRDs
 
 ```bash
-# Gateway API v1.5.1 표준 설치
-kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.5.1/standard-install.yaml
+# Cilium 1.19.3 기준 Standard CRD
+kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.4.1/standard-install.yaml
 
-# 실험적(Experimental) 기능 포함 설치 (선택사항)
-kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.4.0/experimental-install.yaml
+# Experimental 리소스가 필요하면 동일 버전의 번들을 대신 선택
+# kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.4.1/experimental-install.yaml
 ```
 
 **설치되는 CRDs:**
@@ -44,13 +44,13 @@ kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/downloa
 - `gateways.gateway.networking.k8s.io`
 - `httproutes.gateway.networking.k8s.io`
 - `referencegrants.gateway.networking.k8s.io`
-- `grpcroutes.gateway.networking.k8s.io` (Experimental)
+- `grpcroutes.gateway.networking.k8s.io` (Standard)
 - `tcproutes.gateway.networking.k8s.io` (Experimental)
 - `tlsroutes.gateway.networking.k8s.io` (Experimental)
 - `udproutes.gateway.networking.k8s.io` (Experimental)
 
 ### 1.2 각 컨트롤러별 추가 설치
-
+아래는 **컨트롤러별 설치 구성 템플릿**입니다. 모든 조합을 v1.4.1에서 검증했다는 의미는 아닙니다. AWS LBC v3.0.0의 공식 가이드는 Gateway API v1.3.0을 기준으로 하며 추가 LBC Gateway CRD도 필요합니다. NGINX/Envoy 역시 선택한 릴리스의 설치·호환성 문서에 맞춰 CRD와 차트 버전을 함께 선택하세요. 서로 다른 컨트롤러 설치 명령을 순서대로 모두 실행하지 않습니다.
 **AWS Native (ALB + NLB Gateway)**
 
 ```bash
@@ -64,16 +64,20 @@ eksctl create iamserviceaccount \
   --namespace=kube-system \
   --name=aws-load-balancer-controller \
   --role-name AmazonEKSLoadBalancerControllerRole \
-  --attach-policy-arn=arn:aws:iam::aws:policy/AWSLoadBalancerControllerIAMPolicy \
+  --attach-policy-arn=arn:aws:iam::<account-id>:policy/AWSLoadBalancerControllerIAMPolicy \
   --approve
 
+# 공식 IAM 정책을 계정에 먼저 생성하고 호환 차트 버전을 지정
+# https://kubernetes-sigs.github.io/aws-load-balancer-controller/latest/deploy/installation/
+: "${LBC_CHART_VERSION:?Set a chart version compatible with the chosen Gateway API CRDs}"
 # Helm 설치
 helm install aws-load-balancer-controller eks/aws-load-balancer-controller \
-  -n kube-system \
+  --version "$LBC_CHART_VERSION" -n kube-system \
   --set clusterName=<클러스터명> \
   --set serviceAccount.create=false \
   --set serviceAccount.name=aws-load-balancer-controller \
-  --set enableGatewayAPI=true  # Gateway API 활성화 (핵심!)
+  --set controllerConfig.featureGates.ALBGatewayAPI=true \
+  --set controllerConfig.featureGates.NLBGatewayAPI=true
 
 # 설치 확인
 kubectl get deployment -n kube-system aws-load-balancer-controller
@@ -297,8 +301,10 @@ kubectl apply -f poc-gateway.yaml
 # 외부 IP 확인
 kubectl get gateway poc-gateway -n dev -o jsonpath='{.status.addresses[0].value}'
 
-# DNS 레코드 추가 (Route 53 예시)
+# 아래 A 레코드는 IPv4 주소에만 사용; NLB DNS 이름에는 Route 53 Alias 사용
+GATEWAY_TYPE=$(kubectl get gateway poc-gateway -n dev -o jsonpath='{.status.addresses[0].type}')
 GATEWAY_IP=$(kubectl get gateway poc-gateway -n dev -o jsonpath='{.status.addresses[0].value}')
+[[ "$GATEWAY_TYPE" == IPAddress && "$GATEWAY_IP" != *:* ]] || { echo "Use an Alias for a load balancer hostname; use AAAA for IPv6"; exit 1; }
 aws route53 change-resource-record-sets \
   --hosted-zone-id Z1234567890ABC \
   --change-batch "{
@@ -354,7 +360,7 @@ k6 run poc-benchmark.js
   <TabItem value="phase3" label="Phase 3: 병렬 운영">
 
 **Step 3.1: 프로덕션 Gateway 생성**
-
+이 예시는 Cilium Gateway와 NLB를 사용합니다. `infra/wildcard-tls-cert`에 `api.example.com`을 포함하는 유효한 인증서가 있어야 하고 `production/api-service:8080`에 준비된 백엔드가 있어야 합니다. AWS LBC 자체 Gateway API의 ALB/L7 구성과 혼동하지 마세요.
 ```yaml
 # production-gateway.yaml
 apiVersion: gateway.networking.k8s.io/v1
@@ -362,12 +368,13 @@ kind: Gateway
 metadata:
   name: production-gateway
   namespace: infra
-  annotations:
-    # AWS Native인 경우
-    service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
-    service.beta.kubernetes.io/aws-load-balancer-scheme: "internet-facing"
 spec:
   gatewayClassName: cilium
+  infrastructure:
+    annotations:
+      service.beta.kubernetes.io/aws-load-balancer-type: external
+      service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: instance
+      service.beta.kubernetes.io/aws-load-balancer-scheme: internet-facing
   listeners:
     - name: https
       protocol: HTTPS
@@ -425,28 +432,29 @@ spec:
 **Step 3.3: 내부 검증 (프록시 테스트)**
 
 ```bash
-# Gateway의 Cluster IP로 직접 테스트 (외부 DNS 변경 전)
-GATEWAY_SVC=$(kubectl get svc -n infra -l gateway.networking.k8s.io/gateway-name=production-gateway -o jsonpath='{.items[0].metadata.name}')
-GATEWAY_IP=$(kubectl get svc $GATEWAY_SVC -n infra -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+# DNS 변경 전 외부 Gateway 주소에 연결하되 TLS SNI·인증서 검증은 유지
+GATEWAY_ADDRESS=$(kubectl get gateway production-gateway -n infra -o jsonpath='{.status.addresses[0].value}')
+: "${GATEWAY_ADDRESS:?Gateway address is not assigned}"
+[[ "$GATEWAY_ADDRESS" == *:* ]] && GATEWAY_ADDRESS="[$GATEWAY_ADDRESS]"
 
-# Host 헤더를 포함한 curl 테스트
-curl -H "Host: api.example.com" https://$GATEWAY_IP/api/v1/health --insecure
+curl --fail-with-body --connect-to "api.example.com:443:${GATEWAY_ADDRESS}:443"   https://api.example.com/api/v1/health
 
-# 응답 시간 비교 (NGINX Ingress vs Gateway API)
-echo "=== NGINX Ingress ==="
-curl -w "Time: %{time_total}s\n" -o /dev/null -s https://api.example.com/api/v1/health
-
-echo "=== Gateway API (직접 접근) ==="
-curl -w "Time: %{time_total}s\n" -o /dev/null -s -H "Host: api.example.com" https://$GATEWAY_IP/api/v1/health --insecure
+# 단일 요청 시간은 벤치마크가 아님
+curl -w "Time: %{time_total}s\n" -o /dev/null -sS   https://api.example.com/api/v1/health
+curl -w "Time: %{time_total}s\n" -o /dev/null -sS   --connect-to "api.example.com:443:${GATEWAY_ADDRESS}:443"   https://api.example.com/api/v1/health
 ```
 
   </TabItem>
   <TabItem value="phase4" label="Phase 4: 전환">
 
 **Step 4.1: DNS 가중치 라우팅 (10% 전환)**
-
+가중치는 DNS 응답 선택 비율이며 HTTP 요청의 정확한 10%를 보장하지 않습니다. 아래 A 레코드는 실제 IPv4 엔드포인트에만 사용하는 예시입니다. NLB DNS 이름에는 같은 이름·타입의 가중 Alias 레코드와 각 NLB의 canonical hosted zone ID를 사용하세요. 기존 simple 레코드가 있다면 동일 이름의 weighted 레코드와 충돌하지 않도록 별도 변경 배치를 계획해야 합니다. [Route 53 가중 라우팅](https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/routing-policy-weighted.html)을 참고하세요.
 ```bash
-# Route 53 가중치 레코드 생성
+# 실제 IPv4 주소인지 확인
+GATEWAY_TYPE=$(kubectl get gateway production-gateway -n infra -o jsonpath='{.status.addresses[0].type}')
+GATEWAY_IP=$(kubectl get gateway production-gateway -n infra -o jsonpath='{.status.addresses[0].value}')
+[[ "$GATEWAY_TYPE" == IPAddress && "$GATEWAY_IP" != *:* ]] || { echo "Use weighted Alias records for a load balancer hostname; use AAAA for IPv6"; exit 1; }
+# Route 53 weighted records
 # 기존 NGINX Ingress (가중치 90)
 aws route53 change-resource-record-sets \
   --hosted-zone-id Z1234567890ABC \
@@ -577,14 +585,15 @@ aws s3 cp backup-ingress-resources-$(date +%Y%m%d).yaml s3://my-backup-bucket/in
 **Step 5.2: NGINX Ingress 제거 (2주 후)**
 
 ```bash
-# 2주간 모니터링 후 이상 없으면 제거
-kubectl delete ingress --all -A  # Ingress 리소스 삭제
-helm uninstall ingress-nginx -n ingress-nginx  # NGINX Controller 제거
-kubectl delete namespace ingress-nginx
+# 소유·마이그레이션 완료를 확인한 리소스 이름만 제거
+# Ingress 전체 삭제나 공유 namespace 삭제 금지
+kubectl delete ingress <migrated-ingress-name> -n <application-namespace>
+# 이 release를 사용하는 Ingress가 더 없을 때만 제거
+helm uninstall ingress-nginx -n ingress-nginx
 ```
 
 **Step 5.3: 문서화**
-
+아래 보고서는 **가상의 작성 예시**입니다. 날짜·리소스 수·성능 수치는 실제 완료 기록이나 벤치마크가 아닙니다. 실제 측정 환경, 원시 결과와 검증된 값을 기록하세요.
 ```markdown
 # migration-report.md
 
@@ -629,103 +638,71 @@ kubectl delete namespace ingress-nginx
 ---
 
 ## 4. 검증 스크립트
+이 스크립트는 selector 기반 Service 백엔드의 HTTP/HTTPS 경로에 대한 제한된 점검입니다. Bash, jq, kubectl, curl이 필요합니다. 테스트 호스트·경로는 선택한 리스너와 Route에 맞게 명시하며, 헤더·메서드·인증 등의 추가 조건은 별도 테스트하세요. 성공 응답만으로 모든 트래픽이나 백엔드 정체성을 검증한 것은 아닙니다.
 
 ```bash
 #!/bin/bash
-# validate-httproute.sh
-
-set -e
-
-NAMESPACE=${1:-default}
-HTTPROUTE_NAME=${2:-}
-
-if [ -z "$HTTPROUTE_NAME" ]; then
-  echo "Usage: $0 <namespace> <httproute-name>"
+# validate-httproute.sh: selector-backed Service routes, explicit Gateway/listener and probe.
+set -euo pipefail
+if [ "$#" -ne 7 ]; then
+  echo "Usage: $0 <route-namespace> <route-name> <gateway-namespace> <gateway-name> <listener> <probe-host> <probe-path>" >&2
   exit 1
 fi
+NS=$1; ROUTE_NAME=$2; GW_NS=$3; GW_NAME=$4; LISTENER=$5; HOST=$6; PROBE_PATH=$7
+[[ "$HOST" != *'*'* && "$PROBE_PATH" == /* ]] || { echo "Use a concrete hostname and absolute path" >&2; exit 1; }
+ROUTE=$(kubectl get httproute "$ROUTE_NAME" -n "$NS" -o json)
+GW=$(kubectl get gateway "$GW_NAME" -n "$GW_NS" -o json)
+CLASS=$(jq -r '.spec.gatewayClassName' <<<"$GW")
+CONTROLLER=$(kubectl get gatewayclass "$CLASS" -o jsonpath='{.spec.controllerName}')
 
-echo "=== HTTPRoute Validation ==="
-echo "Namespace: $NAMESPACE"
-echo "HTTPRoute: $HTTPROUTE_NAME"
-echo ""
+# Gateway readiness is distinct from the HTTPRoute parent status; reject stale conditions.
+jq -e '.metadata.generation as $g | .status.conditions as $c |
+  all(["Accepted", "Programmed"][]; . as $t |
+    any($c[]?; .type == $t and .status == "True" and .observedGeneration == $g))' <<<"$GW" >/dev/null
+LISTENER_JSON=$(jq -ce --arg l "$LISTENER" '.spec.listeners[] | select(.name == $l)' <<<"$GW")
+PORT=$(jq -r '.port' <<<"$LISTENER_JSON")
+PROTOCOL=$(jq -r '.protocol' <<<"$LISTENER_JSON")
+case "$PROTOCOL" in HTTP) SCHEME=http ;; HTTPS) SCHEME=https ;; *) echo "Only HTTP/HTTPS probes are supported" >&2; exit 1 ;; esac
 
-# 1. HTTPRoute 존재 확인
-if ! kubectl get httproute $HTTPROUTE_NAME -n $NAMESPACE &>/dev/null; then
-  echo "❌ HTTPRoute not found"
-  exit 1
-fi
-echo "✅ HTTPRoute exists"
+# Match the intended parent and its controller, including namespace, sectionName and port.
+jq -e --arg ns "$NS" --arg gn "$GW_NAME" --arg gns "$GW_NS" --arg l "$LISTENER" \
+  --arg c "$CONTROLLER" --argjson port "$PORT" '
+  def canonical: {group:(.group // "gateway.networking.k8s.io"), kind:(.kind // "Gateway"),
+    namespace:(.namespace // $ns), name, sectionName:(.sectionName // null), port:(.port // null)};
+  .metadata.generation as $g |
+  [.spec.parentRefs[] | canonical | select(.group == "gateway.networking.k8s.io" and .kind == "Gateway"
+    and .name == $gn and .namespace == $gns and (.sectionName == null or .sectionName == $l)
+    and (.port == null or .port == $port))] as $refs |
+  any(.status.parents[]?; . as $p | (.parentRef | canonical) as $ref |
+    .controllerName == $c and any($refs[]; . == $ref) and
+    all(["Accepted", "ResolvedRefs"][]; . as $t |
+      any($p.conditions[]?; .type == $t and .status == "True" and .observedGeneration == $g)))' <<<"$ROUTE" >/dev/null
 
-# 2. Accepted Condition 확인
-ACCEPTED=$(kubectl get httproute $HTTPROUTE_NAME -n $NAMESPACE -o jsonpath='{.status.parents[0].conditions[?(@.type=="Accepted")].status}')
-if [ "$ACCEPTED" != "True" ]; then
-  REASON=$(kubectl get httproute $HTTPROUTE_NAME -n $NAMESPACE -o jsonpath='{.status.parents[0].conditions[?(@.type=="Accepted")].reason}')
-  echo "❌ HTTPRoute not accepted. Reason: $REASON"
-  exit 1
-fi
-echo "✅ HTTPRoute accepted by Gateway"
+# This focused check supports ordinary Service backends, including cross-namespace references.
+jq -e '[.spec.rules[]?.backendRefs[]?] as $b | ($b | length) > 0 and
+  all($b[]; (.group // "") == "" and (.kind // "Service") == "Service")' <<<"$ROUTE" >/dev/null
+BACKENDS=$(jq -r --arg ns "$NS" '[.spec.rules[]?.backendRefs[]? |
+  [(.namespace // $ns), .name]] | unique[] | @tsv' <<<"$ROUTE")
+while IFS=$'\t' read -r BACKEND_NS SERVICE; do
+  kubectl get service "$SERVICE" -n "$BACKEND_NS" -o json >/dev/null
+  kubectl get endpointslices -n "$BACKEND_NS" -l "kubernetes.io/service-name=$SERVICE" -o json |
+    jq -e 'any(.items[]?.endpoints[]?; .conditions.ready != false and (.addresses | length) > 0)' >/dev/null
+done <<<"$BACKENDS"
 
-# 3. Programmed Condition 확인
-PROGRAMMED=$(kubectl get httproute $HTTPROUTE_NAME -n $NAMESPACE -o jsonpath='{.status.parents[0].conditions[?(@.type=="Programmed")].status}')
-if [ "$PROGRAMMED" != "True" ]; then
-  REASON=$(kubectl get httproute $HTTPROUTE_NAME -n $NAMESPACE -o jsonpath='{.status.parents[0].conditions[?(@.type=="Programmed")].reason}')
-  echo "❌ HTTPRoute not programmed. Reason: $REASON"
-  exit 1
-fi
-echo "✅ HTTPRoute programmed in dataplane"
-
-# 4. Backend 서비스 확인
-BACKEND_SERVICES=$(kubectl get httproute $HTTPROUTE_NAME -n $NAMESPACE -o jsonpath='{.spec.rules[*].backendRefs[*].name}')
-for svc in $BACKEND_SERVICES; do
-  if ! kubectl get service $svc -n $NAMESPACE &>/dev/null; then
-    echo "❌ Backend service not found: $svc"
-    exit 1
-  fi
-
-  ENDPOINTS=$(kubectl get endpoints $svc -n $NAMESPACE -o jsonpath='{.subsets[*].addresses[*].ip}' | wc -w)
-  if [ "$ENDPOINTS" -eq 0 ]; then
-    echo "⚠️  Warning: Service $svc has no endpoints"
-  else
-    echo "✅ Backend service $svc has $ENDPOINTS endpoint(s)"
-  fi
-done
-
-# 5. Gateway 주소 확인
-PARENT_GATEWAY=$(kubectl get httproute $HTTPROUTE_NAME -n $NAMESPACE -o jsonpath='{.spec.parentRefs[0].name}')
-PARENT_NAMESPACE=$(kubectl get httproute $HTTPROUTE_NAME -n $NAMESPACE -o jsonpath='{.spec.parentRefs[0].namespace}')
-PARENT_NAMESPACE=${PARENT_NAMESPACE:-$NAMESPACE}
-
-GATEWAY_ADDRESS=$(kubectl get gateway $PARENT_GATEWAY -n $PARENT_NAMESPACE -o jsonpath='{.status.addresses[0].value}')
-if [ -z "$GATEWAY_ADDRESS" ]; then
-  echo "❌ Gateway has no address assigned"
-  exit 1
-fi
-echo "✅ Gateway address: $GATEWAY_ADDRESS"
-
-# 6. 실제 HTTP 요청 테스트
-HOSTNAMES=$(kubectl get httproute $HTTPROUTE_NAME -n $NAMESPACE -o jsonpath='{.spec.hostnames[*]}')
-FIRST_HOST=$(echo $HOSTNAMES | awk '{print $1}')
-FIRST_PATH=$(kubectl get httproute $HTTPROUTE_NAME -n $NAMESPACE -o jsonpath='{.spec.rules[0].matches[0].path.value}')
-
-echo ""
-echo "=== HTTP Request Test ==="
-HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" -H "Host: $FIRST_HOST" http://$GATEWAY_ADDRESS$FIRST_PATH --max-time 5)
-
-if [ "$HTTP_CODE" -ge 200 ] && [ "$HTTP_CODE" -lt 400 ]; then
-  echo "✅ HTTP request successful (HTTP $HTTP_CODE)"
-else
-  echo "❌ HTTP request failed (HTTP $HTTP_CODE)"
-  exit 1
-fi
-
-echo ""
-echo "=== All Checks Passed ==="
+ADDRESS=$(jq -er '.status.addresses[0].value | select(length > 0)' <<<"$GW")
+[[ "$ADDRESS" == *:* ]] && ADDRESS="[$ADDRESS]"
+# --connect-to changes the destination while retaining Host, TLS SNI and certificate checks.
+HTTP_CODE=$(curl --silent --show-error --output /dev/null --write-out '%{http_code}' \
+  --connect-to "${HOST}:${PORT}:${ADDRESS}:${PORT}" \
+  --max-time 10 "${SCHEME}://${HOST}:${PORT}${PROBE_PATH}")
+[[ "$HTTP_CODE" =~ ^[23][0-9][0-9]$ ]] || { echo "Probe failed: HTTP $HTTP_CODE" >&2; exit 1; }
+echo "Selected parent accepted/resolved; Gateway programmed; ready backends; probe HTTP $HTTP_CODE"
 ```
 
 **사용 예시:**
 ```bash
 chmod +x validate-httproute.sh
-./validate-httproute.sh production api-route
+./validate-httproute.sh production api-route infra production-gateway https api.example.com /api/v1/health
 ```
 
 ---

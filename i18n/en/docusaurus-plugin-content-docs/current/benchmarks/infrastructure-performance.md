@@ -12,6 +12,7 @@ tags:
   - performance
   - network
   - dns
+  - scope:tech
 sidebar_label: Report 6. Infrastructure Performance [Upcoming]
 sidebar_position: 6
 category: benchmarks

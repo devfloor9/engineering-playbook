@@ -1,0 +1,41 @@
+.page {
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: 3rem 1.5rem 4rem;
+  color: var(--ep-on-surface);
+}
+.hero { max-width: 48rem; margin-bottom: 2.5rem; }
+.eyebrow { display: inline-flex; align-items: center; gap: 0.625rem; font: 0.75rem/1.5 var(--ep-font-mono); letter-spacing: 0.1em; color: var(--ifm-color-primary); }
+.hero h1 { margin: 1rem 0; font-size: clamp(2rem, 4vw, 3.5rem); line-height: 1.2; letter-spacing: -0.04em; overflow-wrap: anywhere; }
+.hero p { font-size: 1.1rem; line-height: 1.8; color: var(--ep-on-surface-variant); }
+.steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); padding: 0; margin: 0 0 3.5rem; border-block: 1px solid var(--ep-outline-variant); list-style: none; }
+.steps li { min-width: 0; padding: 1.5rem; }
+.steps li:first-child { padding-left: 0; }
+.steps li + li { border-left: 1px solid var(--ep-outline-variant); }
+.number { font: 0.8rem/1.5 var(--ep-font-mono); color: var(--ifm-color-primary); }
+.steps h2 { font-size: 1.05rem; line-height: 1.5; margin: 0.75rem 0; }
+.steps p { font-size: 0.95rem; line-height: 1.7; color: var(--ep-on-surface-variant); margin: 0; }
+.sectionHeading { margin-bottom: 1.5rem; }
+.sectionHeading h2 { margin: 0.75rem 0 0; font-size: clamp(1.5rem, 3vw, 2rem); line-height: 1.4; }
+.endpoints { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+.endpoint { display: flex; flex-direction: column; min-width: 0; padding: 1.75rem; border: 1px solid var(--ep-outline-variant); border-radius: var(--ep-radius-card); background: var(--ep-surface-container-lowest); }
+.endpointIcon { display: inline-flex; align-items: center; justify-content: center; width: 2.75rem; height: 2.75rem; border-radius: var(--ep-radius-control); background: var(--ep-secondary-container); color: var(--ep-on-secondary-container); margin-bottom: 1.25rem; }
+.endpoint h3 { font-size: 1.2rem; line-height: 1.4; margin-bottom: 0.5rem; }
+.endpoint code { align-self: flex-start; max-width: 100%; font-size: 0.85rem; overflow-wrap: anywhere; }
+.endpoint p { color: var(--ep-on-surface-variant); line-height: 1.7; margin: 1rem 0 1.5rem; }
+.actions { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: flex-start; margin-top: auto; }
+.open { display: inline-flex; gap: 0.5rem; align-items: center; justify-content: center; min-height: 44px; padding: 0.625rem 1rem; border: 1px solid var(--ifm-color-primary); border-radius: var(--ep-radius-control); background: var(--ep-secondary-container); color: var(--ep-on-secondary-container); font-size: 0.875rem; line-height: 1.5; }
+.open:hover { background: var(--ep-surface-container); color: var(--ifm-color-primary); text-decoration: none; }
+.open:focus-visible { outline: var(--ep-focus-ring); outline-offset: var(--ep-focus-offset); }
+.coverage { display: flex; gap: 1rem; padding-top: 2rem; margin-top: 2.5rem; border-top: 1px solid var(--ep-outline-variant); }
+.coverage > svg { flex-shrink: 0; margin-top: 0.25rem; color: var(--ifm-color-primary); }
+.coverage h2 { font-size: 1.2rem; line-height: 1.5; }
+.coverage p { max-width: 52rem; line-height: 1.8; color: var(--ep-on-surface-variant); }
+@media (max-width: 700px) {
+  .page { padding: 2rem 1rem 3rem; }
+  .steps, .endpoints { grid-template-columns: 1fr; }
+  .steps li, .steps li:first-child { padding: 1.25rem 0; }
+  .steps li + li { border-left: 0; border-top: 1px solid var(--ep-outline-variant); }
+  .endpoint { padding: 1.25rem; }
+  .coverage { gap: 0.75rem; }
+}

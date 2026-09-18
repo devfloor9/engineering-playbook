@@ -49,7 +49,7 @@ const config = {
   deploymentBranch: 'gh-pages', // The branch of your docs repo that you are publishing to GitHub pages
   trailingSlash: false, // GitHub Pages adds a trailing slash to Docusaurus URLs by default
 
-  onBrokenLinks: 'warn',
+  onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'warn',
 
   // Leadfeeder(Dealfront) 트래커 — 방문 기업(B2B) 식별
@@ -236,24 +236,20 @@ const config = {
   themeConfig:
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     ({
+      colorMode: {
+        defaultMode: 'dark',
+        disableSwitch: false,
+        respectPrefersColorScheme: false,
+      },
       // Mermaid theme for light/dark mode
       mermaid: {
         theme: {
           light: 'neutral',
-          dark: 'dark',
+          dark: 'neutral',
         },
         options: {
           themeVariables: {
-            darkMode: true,
-            primaryColor: '#2C3038',
-            primaryTextColor: '#ECEEF4',
-            primaryBorderColor: '#9AA0AD',
-            lineColor: '#9AA0AD',
-            secondaryColor: '#22262D',
-            tertiaryColor: '#1B1F25',
-            noteBkgColor: '#22262D',
-            noteTextColor: '#B4BAC8',
-            fontFamily: 'Inter, sans-serif',
+            fontFamily: 'Inter, Pretendard Variable, sans-serif',
           },
         },
       },

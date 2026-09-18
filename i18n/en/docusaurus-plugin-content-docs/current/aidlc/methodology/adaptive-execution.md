@@ -3,9 +3,9 @@ title: AIDLC Adaptive Execution
 description: AIDLC official Adaptive Workflows — conditional stage execution decision tree, Inception 7-stage and Construction per-unit loop explained
 created: "2026-04-18"
 last_update:
-  date: "2026-06-30"
+  date: 2026-09-18
   author: devfloor9
-reading_time: 17
+reading_time: 16
 tags:
   - aidlc
   - adaptive-execution
@@ -522,8 +522,8 @@ Items to verify when adopting AIDLC Adaptive Execution in your organization:
 ## 8. References
 
 ### Official Repositories
-- [AWS Labs AIDLC Inception Stages](https://github.com/awslabs/aidlc-workflows/tree/main/aws-aidlc-rule-details/inception) — Detailed rules for 7 stages
-- [AWS Labs AIDLC Construction](https://github.com/awslabs/aidlc-workflows/tree/main/aws-aidlc-rule-details/construction) — per-Unit loop specification
+- [AWS Labs AIDLC Inception Stages](https://github.com/awslabs/aidlc-workflows/tree/v0.1.7/aidlc-rules/aws-aidlc-rule-details/inception) — Detailed rules for 7 stages
+- [AWS Labs AIDLC Construction](https://github.com/awslabs/aidlc-workflows/tree/v0.1.7/aidlc-rules/aws-aidlc-rule-details/construction) — per-Unit loop specification
 - [Open-Sourcing Adaptive Workflows for AI-DLC (AWS Blog)](https://aws.amazon.com/blogs/devops/open-sourcing-adaptive-workflows-for-ai-driven-development-life-cycle-ai-dlc/) — Original Adaptive concept
 
 ### Related Documentation

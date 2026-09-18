@@ -3,9 +3,9 @@ title: Extension System
 description: AWS Labs AIDLC Extension System — opt-in 메커니즘으로 조직별 보안·컴플라이언스·도메인 규칙을 AIDLC 워크플로에 통합
 created: "2026-04-18"
 last_update:
-  date: "2026-06-30"
+  date: 2026-09-18
   author: YoungJoon Jeong
-reading_time: 6
+reading_time: 5
 tags:
   - aidlc
   - extension
@@ -477,8 +477,8 @@ Extension 이 실제로 가치를 제공하는지 측정:
 ## 7. 참고 자료
 
 ### 공식 저장소
-- [AWS Labs AIDLC Extensions](https://github.com/awslabs/aidlc-workflows/tree/main/aws-aidlc-rule-details/extensions) — Built-in extension 원문
-- [AWS Labs AIDLC Common Rules](https://github.com/awslabs/aidlc-workflows/tree/main/aws-aidlc-rule-details/common) — Extension 과 상호작용하는 공통 규칙
+- [AWS Labs AIDLC Extensions](https://github.com/awslabs/aidlc-workflows/tree/v0.1.7/aidlc-rules/aws-aidlc-rule-details/extensions) — Built-in extension 원문
+- [AWS Labs AIDLC Common Rules](https://github.com/awslabs/aidlc-workflows/tree/v0.1.7/aidlc-rules/aws-aidlc-rule-details/common) — Extension 과 상호작용하는 공통 규칙
 
 ### 관련 문서
 - [Common Rules](../methodology/common-rules.md) — Extension 과 함께 적용되는 11개 공통 규칙

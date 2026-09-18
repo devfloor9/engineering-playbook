@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>eBPF Deep Dive — Programming the Kernel</title>
+<!-- #64 canonical integration (2026-09-18). Original 39-slide structure retained.
+     Reviewed corrections from slides/eks-networking/REVIEW.md are integrated here.
+     Regenerate the packed export from these canonical sources with pack_deck.py. -->
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpolygon points='16,2 28,9 28,23 16,30 4,23 4,9' fill='none' stroke='%23ff9900' stroke-width='2.5'/%3E%3Ctext x='16' y='21' font-family='monospace' font-size='11' font-weight='bold' fill='%23ff9900' text-anchor='middle'%3EBPF%3C/text%3E%3C/svg%3E">
 <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -35,7 +38,7 @@
   <div class="kicker" data-a="1"><span data-edit="cover-kicker">Engineering Playbook · Deep Dive Session</span></div>
   <div class="titleblock">
     <h1 class="display" data-a="2">eBPF —<br><span class="hot">Programming</span> the Kernel</h1>
-    <p class="sub" data-a="3">No reboots. No crashes. <b>Sandboxed programs running safely inside the kernel</b> —
+    <p class="sub" data-a="3">No reboot required. <b>Restricted programs verified before running inside the kernel</b> —
     dissected in three chapters, from the virtual machine internals to production on EKS.</p>
   </div>
   <div class="chips" data-a="4">
@@ -45,7 +48,7 @@
   </div>
   <div class="speakers" data-speakers data-a="5"></div>
   <aside class="notes">
-    Opening — start with the question "Who here has used eBPF?". One-sentence promise: <b>program the kernel with no reboots and no crashes</b>. Walk the three chapters (internals → real-world tools → EKS) in chip order.
+    Opening — start with the question "Who here has used eBPF?". One-sentence promise: <b>extend the kernel without rebooting, subject to verifier constraints and kernel correctness</b>. Walk the three chapters (internals → real-world tools → EKS) in chip order.
   </aside>
 </section>
 
@@ -66,7 +69,7 @@
     </div>
     <div class="ag" data-a="5">
       <span class="n">03</span>
-      <div><h3>eBPF on EKS</h3><p>VPC CNI NetworkPolicy · Cilium ENI · Hubble · hands-on benchmarks — EKS already runs on eBPF</p></div>
+      <div><h3>eBPF on EKS</h3><p>VPC CNI NetworkPolicy · Cilium ENI · Hubble · reported benchmarks — EKS components using eBPF when enabled</p></div>
       <span class="tag">AWS</span>
     </div>
   </div>
@@ -104,9 +107,9 @@
     <div class="panel" style="--pc:var(--green)" data-a="5">
       <h3>eBPF program</h3>
       <ul>
-        <li><b>The Verifier proves safety before load</b> — crashing is impossible</li>
-        <li>Runs in a register-based sandboxed VM, JIT (Just-In-Time) compiled to native speed</li>
-        <li><b>CO-RE</b> (Compile Once – Run Everywhere) ports across kernel versions — no recompilation</li>
+        <li><b>The Verifier checks safety constraints before load</b> — verifier checks reduce risk but do not eliminate kernel bugs</li>
+        <li>Runs in a register-based restricted instruction model, JIT (Just-In-Time) compiled to native speed</li>
+        <li><b>CO-RE</b> (Compile Once – Run Everywhere) adapts to compatible kernel layouts — required hooks and features must still exist</li>
         <li>Attach / detach instantly — no reboot, no module load</li>
       </ul>
     </div>
@@ -117,6 +120,7 @@
   </div>
   <aside class="notes">
     Start with kernel-module dread — <b>one bug = kernel panic</b>; if you have a war story about why security teams hate modules, tell it here. The ptrace/strace chip is the supporting argument that instrumentation shares the dilemma. Bridge: "the answer to this problem existed 30 years ago".
+  <p>Source: <a href="https://docs.kernel.org/bpf/verifier.html" target="_blank" rel="noopener">Kernel verifier</a>.</p>
   </aside>
 </section>
 
@@ -322,7 +326,7 @@
       <tr><td>What is virtualized</td><td>Entire CPU · memory · devices</td><td>An instruction-set spec — 11 registers · 64-bit · 512 B stack</td></tr>
       <tr><td>Reason to exist</td><td>OS-level isolation</td><td><b>A verifiable intermediate representation</b> + architecture independence (x86 · ARM · RISC-V)</td></tr>
       <tr><td>Execution</td><td>Via hypervisor</td><td class="good">JIT-compiled → resides in the kernel as <b>native machine code</b></td></tr>
-      <tr><td>Runtime overhead</td><td class="bad">Always present</td><td class="good">Effectively zero — same cost as a kernel function call, no interpreter</td></tr>
+      <tr><td>Runtime overhead</td><td class="bad">Always present</td><td class="good">JIT avoids interpretation; hooks, helpers, maps and the program still consume CPU</td></tr>
     </tbody>
   </table>
   <div class="chips" data-a="5" style="display:flex;gap:12px;margin-top:2.6vh;flex-wrap:wrap">
@@ -333,11 +337,12 @@
     <span class="chip">④ Maps and Helpers/KFuncs are the only doors — arbitrary kernel memory access is blocked</span>
   </div>
   <div class="chips" data-a="6" style="display:flex;gap:12px;margin-top:1.4vh;flex-wrap:wrap">
-    <span class="chip">The real cost is paid once at load time — Verifier analysis + JIT compilation</span>
+    <span class="chip">Load-time costs: Verifier analysis + JIT compilation; runtime cost depends on the program and hook</span>
     <span class="chip">Runtime limits constrain expressiveness, not speed — the 512 B stack and instruction cap are the price of the proof</span>
   </div>
   <aside class="notes">
-    The JVM analogy lands best — not VMware, but <b>a bytecode execution spec</b>. The chips below ("four reasons it earns the name VM") matter more than the table. Runtime cost is effectively zero; the real cost is one-time at load.
+    The JVM analogy lands best — not VMware, but <b>a bytecode execution spec</b>. The chips below ("four reasons it earns the name VM") matter more than the table. Separate load-time verification and JIT costs from runtime CPU spent on hooks, helpers, maps, and program execution.
+  <p>Source: <a href="https://docs.kernel.org/bpf/libbpf/libbpf_overview.html" target="_blank" rel="noopener">Kernel libbpf</a>.</p>
   </aside>
 </section>
 
@@ -345,7 +350,7 @@
 <section class="slide">
   <div class="kicker" data-a="1">Register machine</div>
   <h1 class="display md" data-a="2">11 registers — designed to map <span class="hot">1:1 onto hardware</span></h1>
-  <p class="sub" data-a="3">Instructions are <b>fixed 8-byte</b>; registers correspond directly to x86_64/ARM64 registers —
+  <p class="sub" data-a="3">Basic instructions are <b>8 bytes; wide instructions use 16 bytes</b>; registers correspond directly to x86_64/ARM64 registers —
   which is why the JIT emits native machine code with no extra translation layer.</p>
   <div class="ladder">
     <div class="rung" style="--rc:var(--orange)" data-a="4">
@@ -370,11 +375,12 @@
     </div>
   </div>
   <div class="chips" data-a="8" style="display:flex;gap:12px;margin-top:2.6vh;flex-wrap:wrap">
-    <span class="chip">Fixed-length instructions + 1:1 register mapping — minimal JIT translation cost is baked into the design</span>
-    <span class="chip hot">Proof point — Meta Strobelight: one code-line fix found via eBPF profiling saved the equivalent of 15,000 servers a year</span>
+    <span class="chip">Compact instructions + architecture-specific register mapping — minimal JIT translation cost is baked into the design</span>
+    <span class="chip hot">Profiling can identify expensive code paths — quantify improvements with workload-specific measurements</span>
   </div>
   <aside class="notes">
-    R10, the <b>read-only frame pointer</b>, is the star of this slide — stack manipulation is blocked by design. Hardware 1:1 mapping = why the JIT is fast. Close with the Strobelight chip (15,000 servers saved) to remind everyone why this is worth learning.
+    R10, the <b>read-only frame pointer</b>, is the star of this slide. Distinguish basic 8-byte instructions from wide 16-byte instructions and explain architecture-specific register mapping. Close with the profiling chip: measure improvements on the actual workload.
+  <p>Source: <a href="https://docs.kernel.org/bpf/standardization/instruction-set.html" target="_blank" rel="noopener">BPF instruction set</a>.</p>
   </aside>
 </section>
 
@@ -521,7 +527,7 @@
 <section class="slide">
   <div class="kicker" data-a="1">Shared state</div>
   <h1 class="display md" data-a="2">Maps — <span class="hot">shared state</span> between kernel and userspace</h1>
-  <p class="sub" data-a="3">eBPF programs cannot hold state — all state lives in <b>maps</b>, and all kernel functionality is reached through <b>helpers and kfuncs</b>.</p>
+  <p class="sub" data-a="3">Persistent state is commonly stored in <b>maps</b>; global variables are also backed by maps, and all kernel functionality is reached through <b>helpers and kfuncs</b>.</p>
   <div class="split">
     <div class="panel" style="--pc:var(--blue)" data-a="4">
       <h3>Key map types</h3>
@@ -550,7 +556,7 @@
 <!-- ============ 14 · RINGBUF PRIMER ============ -->
 <section class="slide">
   <div class="kicker" data-a="1">Data structure primer</div>
-  <h1 class="display md" data-a="2">The ring buffer — an infinite queue from a fixed array and <span class="hot">two pointers</span></h1>
+  <h1 class="display md" data-a="2">The ring buffer — a bounded queue from a fixed array and <span class="hot">two pointers</span></h1>
   <p class="sub" data-a="3">eBPF did not invent this — <b>printk/dmesg logs · NIC RX/TX rings · ftrace · perf · io_uring</b>:
   a data structure proven for decades all over the kernel.</p>
   <div class="split w64">
@@ -612,7 +618,7 @@
     </div>
   </div>
   <div class="chips" data-a="6" style="display:flex;gap:12px;margin-top:2.6vh;flex-wrap:wrap">
-    <span class="chip">The full-buffer policy defines the use case — logs (dmesg) overwrite the oldest; event pipes (perf · eBPF) drop the new event and count it</span>
+    <span class="chip">The full-buffer policy defines the use case — logs (dmesg) overwrite the oldest; event pipes can reject new records; programs must account for failed ringbuf reservations</span>
     <span class="chip hot">Perf Buffer and BPF Ring Buffer both descend from this structure — what changed is the next four slides</span>
   </div>
   <aside class="notes">
@@ -623,7 +629,7 @@
 <!-- ============ 15 · PERFBUF FLOW ============ -->
 <section class="slide">
   <div class="kicker" data-a="1">Legacy path — how it worked</div>
-  <h1 class="display md" data-a="2">The old path — per-CPU rings: <span class="hot">assemble → copy → notify every time</span></h1>
+  <h1 class="display md" data-a="2">The old path — per-CPU rings: <span class="hot">assemble → copy → threshold-based notification</span></h1>
   <p class="sub" data-a="3">Perf Buffer takes the ring from the last slide and puts <b>one on every CPU</b> — each BPF program writes
   only to its own CPU's ring, and the consumer reads and merges as many rings as there are CPUs.</p>
   <div class="arch" data-a="4">
@@ -685,8 +691,8 @@
       <rect x="45" y="346" width="690" height="56" rx="12" fill="rgba(65,179,255,.08)" stroke="#41b3ff" stroke-width="1.5"/>
       <text x="390" y="370" class="an" font-size="16" text-anchor="middle">Userspace consumer</text>
       <text x="390" y="392" class="am" font-size="12" text-anchor="middle">epoll on fd × CPU count — reads each ring separately; time-ordering is the consumer's job</text>
-      <text x="770" y="368" class="am" font-size="12" fill="#ad5cff">③ unconditional notify per event</text>
-      <text x="770" y="388" class="am" font-size="12" fill="#ad5cff">— ignores consumer state · wakeup storms at high rates</text>
+      <text x="770" y="368" class="am" font-size="12" fill="#ad5cff">③ event-count / byte-watermark notification</text>
+      <text x="770" y="388" class="am" font-size="12" fill="#ad5cff">— tune thresholds to batch wakeups</text>
     </svg>
   </div>
   <div class="chips" data-a="5" style="display:flex;gap:12px;flex-wrap:wrap">
@@ -694,7 +700,7 @@
     <span class="chip hot">Four costs fall straight out of this picture (next slide)</span>
   </div>
   <aside class="notes">
-    Describe Perf Buffer's behavior neutrally, no judgment — <b>a ring per CPU, assemble on the stack then copy, notify on every event</b>. Point at the three unbalanced CPUs in the figure (overflowing / uneven / near-empty). Save the verdict for the next slide.
+    Describe Perf Buffer's behavior neutrally, no judgment — <b>a ring per CPU, assemble on the stack then copy, notify at configured thresholds</b>. Point at the three unbalanced CPUs in the figure (overflowing / uneven / near-empty). Save the verdict for the next slide.
   </aside>
 </section>
 
@@ -722,7 +728,7 @@
     </div>
     <div class="rung" style="--rc:var(--purple)" data-a="7">
       <span class="k">04</span>
-      <div><h3>Wakeup storms</h3><p><b>Unconditional signal per event</b>, regardless of consumer state — at high event rates the notification cost dominates</p></div>
+      <div><h3>Wakeup storms</h3><p>Notifications use <b>event-count or byte thresholds</b>; low thresholds can increase wakeup overhead</p></div>
       <span class="tag">SIGNAL STORM</span>
     </div>
   </div>
@@ -730,7 +736,8 @@
     <span class="chip hot">The fix converges to one move — merge the buffers into a single global one (next slide)</span>
   </div>
   <aside class="notes">
-    Walk the four limits one by one — stress that all of them derive from <b>the single choice of "a buffer per CPU"</b>. The fork → exec reversal is the most intuitive example. The fix converges too: merge the buffers.
+    Walk the four costs one by one. <b>Per-CPU buffers explain memory imbalance and cross-CPU ordering</b>; copying and wakeups also depend on the API and notification thresholds. The fork → exec reversal is the most intuitive example.
+  <p>Source: <a href="https://github.com/torvalds/linux/blob/master/include/uapi/linux/perf_event.h" target="_blank" rel="noopener">perf_event.h thresholds</a>.</p>
   </aside>
 </section>
 
@@ -802,10 +809,10 @@
       <rect x="15" y="302" width="1170" height="110" rx="18" fill="rgba(65,179,255,.03)" stroke="#41b3ff" stroke-width="1.2" stroke-dasharray="8 6"/>
       <text x="45" y="328" class="am" font-size="13" fill="#41b3ff" letter-spacing="3">USER SPACE</text>
       <text x="60" y="366" class="am" font-size="12" fill="#ad5cff">④ adaptive notification</text>
-      <text x="60" y="386" class="am" font-size="12" fill="#ad5cff">— wake only when the consumer lags</text>
+      <text x="60" y="386" class="am" font-size="12" fill="#ad5cff">— notify when the consumer has caught up</text>
       <rect x="400" y="336" width="560" height="60" rx="12" fill="rgba(65,179,255,.08)" stroke="#41b3ff" stroke-width="1.5"/>
       <text x="680" y="362" class="an" font-size="16" text-anchor="middle">Userspace consumer</text>
-      <text x="680" y="384" class="am" font-size="12" text-anchor="middle">one fd — direct reads via mmap · global order preserved</text>
+      <text x="680" y="384" class="am" font-size="12" text-anchor="middle">one fd — direct reads via mmap · reservation order within one ring</text>
     </svg>
   </div>
   <div class="chips" data-a="5" style="display:flex;gap:12px;flex-wrap:wrap">
@@ -820,14 +827,14 @@
 <!-- ============ 18 · RING BUFFER ============ -->
 <section class="slide">
   <div class="kicker" data-a="1">Kernel → userspace</div>
-  <h1 class="display md" data-a="2">BPF Ring Buffer — the new architecture that became the <span class="hot">default</span> (v5.8+)</h1>
+  <h1 class="display md" data-a="2">BPF Ring Buffer — a shared-buffer <span class="hot">alternative</span> (v5.8+)</h1>
   <p class="sub" data-a="3">An <b>MPSC (Multi-Producer Single-Consumer)</b> design where all CPUs share one buffer —
   answering Perf Buffer's four limitations with four mechanisms.</p>
   <div class="tiles four">
     <div class="tile" data-a="4">
       <span class="tn">MPSC</span>
       <h3>One global shared buffer</h3>
-      <p>Every CPU writes to one buffer; userspace reads it — <b>global event ordering</b> and memory efficiency at once.</p>
+      <p>Every CPU writes to one buffer; userspace reads it — <b>reservation ordering within one ring</b> and memory efficiency at once.</p>
       <span class="tt">ORDER + MEMORY</span>
     </div>
     <div class="tile tc-blue" data-a="5">
@@ -839,7 +846,7 @@
     <div class="tile tc-purple" data-a="6">
       <span class="tn">ADAPTIVE</span>
       <h3>Adaptive notification</h3>
-      <p>If the consumer is already processing, <b>the signal is suppressed</b>; wake only when it lags — notification cost scales with consumer state, not data volume.</p>
+      <p>Notify if the consumer has <b>caught up to the committed record</b>; otherwise it will reach the record without another wakeup.</p>
       <span class="tt">NO SIGNAL STORM</span>
     </div>
     <div class="tile" data-a="7">
@@ -855,6 +862,7 @@
   </div>
   <aside class="notes">
     Wrap up with the 1:1 limitation ↔ mechanism mapping — over-allocation→MPSC, copying→reserve/submit, loss detection→fail-fast, wakeup storms→adaptive notification. <b>reserve must end in submit/discard — §11's Verifier reference tracking pays off right here</b>.
+  <p>Source: <a href="https://docs.kernel.org/bpf/ringbuf.html" target="_blank" rel="noopener">Kernel ring buffer</a>.</p>
   </aside>
 </section>
 
@@ -872,17 +880,18 @@
       <tr><td>Layout</td><td class="bad">Independent ring per CPU — as many rings as CPUs</td><td class="good">One global ring — MPSC, shared by all CPUs</td></tr>
       <tr><td>Write path</td><td class="bad">Assemble record on the stack, then <b>copy</b> into the buffer</td><td class="good"><code>reserve()</code> → <b>write directly</b> into the buffer → <code>submit()</code> — zero-copy</td></tr>
       <tr><td>Out of space</td><td class="bad">Discovered only at copy time — assembly cost already paid</td><td class="good"><code>reserve()</code> fails immediately — the program can react</td></tr>
-      <tr><td>Event ordering</td><td class="bad">No cross-CPU guarantee — fork → exec can reverse</td><td class="good">Single buffer — global order guaranteed</td></tr>
+      <tr><td>Event ordering</td><td class="bad">No cross-CPU guarantee — fork → exec can reverse</td><td class="good">Single buffer — reservation order within one ring</td></tr>
       <tr><td>Boundary handling</td><td class="bad">Records split at the boundary — read twice and reassemble</td><td class="good">Virtual-memory double mapping — contiguous read, no split</td></tr>
-      <tr><td>Consumer notification</td><td class="bad">Unconditional signal per event</td><td class="good">Adaptive — wake only when the consumer lags</td></tr>
+      <tr><td>Consumer notification</td><td class="bad">Configurable event-count / byte thresholds</td><td class="good">Adaptive — notify when the consumer has caught up</td></tr>
     </tbody>
   </table>
   <div class="chips" data-a="5" style="display:flex;gap:12px;margin-top:2.4vh;flex-wrap:wrap">
     <span class="chip">Consumer APIs look alike — <code>perf_buffer__poll</code> ↔ <code>ring_buffer__poll</code>; migration is cheap</span>
-    <span class="chip hot">Ring Buffer is the default for new development — Perf Buffer only for pre-v5.8 kernel compatibility</span>
+    <span class="chip hot">Choose by ordering, contention and compatibility requirements — per-CPU Perf Buffers remain useful</span>
   </div>
   <aside class="notes">
-    Run the table top to bottom quickly — let the audience read, state only the conclusion: <b>Ring Buffer is the default for new development</b>; Perf Buffer is for pre-v5.8 compatibility. Similar APIs keep migration cost low.
+    Run the table top to bottom quickly — let the audience read, then conclude: <b>choose by ordering, contention, and compatibility requirements</b>. Per-CPU Perf Buffers remain useful; similar polling APIs help migration.
+  <p>Source: <a href="https://docs.kernel.org/bpf/ringbuf.html" target="_blank" rel="noopener">Kernel ring buffer</a>.</p>
   </aside>
 </section>
 
@@ -890,7 +899,7 @@
 <section class="slide">
   <div class="kicker" data-a="1">Compile once — run everywhere</div>
   <h1 class="display md" data-a="2">CO-RE — compile once, <span class="hot">run everywhere</span></h1>
-  <p class="sub" data-a="3">The root problem: <b>kernel struct offsets differ across versions and configs.</b> CO-RE recomputes the offsets at runtime.</p>
+  <p class="sub" data-a="3">The root problem: <b>kernel struct offsets differ across versions and configs.</b> CO-RE resolves relocations at load time using target BTF.</p>
   <div class="arch" data-a="4">
     <svg viewBox="0 0 1200 400">
       <!-- compile time zone -->
@@ -907,9 +916,9 @@
       <text x="440" y="228" class="am" font-size="13" text-anchor="middle">.BTF + .BTF.ext</text>
       <text x="440" y="250" class="am" font-size="13" text-anchor="middle">"which fields does it touch"</text>
 
-      <!-- runtime zone -->
+      <!-- load-time zone -->
       <rect x="625" y="20" width="560" height="360" rx="18" fill="rgba(0,229,0,.03)" stroke="#00e500" stroke-width="1.2" stroke-dasharray="8 6"/>
-      <text x="655" y="56" class="am" font-size="14" fill="#00e500" letter-spacing="3">RUNTIME · TARGET NODE</text>
+      <text x="655" y="56" class="am" font-size="14" fill="#00e500" letter-spacing="3">LOAD TIME · TARGET NODE</text>
       <rect x="655" y="85" width="250" height="90" rx="12" fill="#131a24" stroke="#00e500" stroke-width="1.5"/>
       <text x="780" y="118" class="an" font-size="17" text-anchor="middle">The kernel's own BTF</text>
       <text x="780" y="146" class="am" font-size="12" text-anchor="middle">/sys/kernel/btf/vmlinux</text>
@@ -934,7 +943,8 @@
     <span class="chip hot">Slim static binaries with no runtime compilation — unlike BCC (BPF Compiler Collection) embedding clang</span>
   </div>
   <aside class="notes">
-    Start with the problem — <b>kernel struct offsets differ per version</b>. Then compile time (relocation records) → runtime (kernel BTF + libbpf patching). The measured pt_regs chip (di=112…) is the proof that real bytecode gets patched.
+    Start with the problem — <b>kernel struct offsets differ per version</b>. Then compile time (relocation records) → load time (target BTF + libbpf relocation). The pt_regs example (di=112…) illustrates bytecode patching for that target.
+  <p>Source: <a href="https://docs.kernel.org/bpf/libbpf/libbpf_overview.html" target="_blank" rel="noopener">Kernel libbpf CO-RE</a>.</p>
   </aside>
 </section>
 
@@ -1026,7 +1036,7 @@
       <span class="tn">EXPERIMENTAL</span>
       <h3>bpftime</h3>
       <p>Kernel uprobes trap via <code>int3</code> with a <b>heavy kernel round-trip</b> —
-      bpftime rewrites the binary to run probes in userspace, roughly 10× faster. Kernel entry is removed entirely.</p>
+      bpftime instruments supported probes in userspace. Performance and compatibility depend on the workload.</p>
       <span class="tt">USERSPACE RUNTIME</span>
     </div>
   </div>
@@ -1053,7 +1063,7 @@
   <div class="ladder">
     <div class="rung" style="--rc:var(--yellow)" data-a="3">
       <span class="k">↑</span>
-      <div><h3>bpftrace</h3><p>DSL (Domain-Specific Language) one-liners — <b>the standard for ad-hoc diagnosis</b>. Use like awk, then throw away. <code>bpftrace -e 'kprobe:do_sys_open {...}'</code></p></div>
+      <div><h3>bpftrace</h3><p>DSL (Domain-Specific Language) one-liners — <b>the standard for ad-hoc diagnosis</b>. Use like awk, then throw away. <code>bpftrace -e 'tracepoint:syscalls:sys_enter_openat { @[comm] = count(); }'</code></p></div>
       <span class="tag">AD-HOC</span>
     </div>
     <div class="rung" style="--rc:var(--purple)" data-a="4">
@@ -1093,7 +1103,7 @@
     <div class="tile tc-blue" data-a="5">
       <span class="tn">DETECT</span>
       <h3>Runtime detection</h3>
-      <p><b>Falco</b> — rule-based syscall behavior detection with the largest ruleset (§29). <b>Tracee</b> — Aqua Security; forensics-oriented detection with precise kernel event capture.</p>
+      <p><b>Falco</b> — rule-based syscall behavior detection with configurable rules (§29). <b>Tracee</b> — Aqua Security; forensics-oriented detection with precise kernel event capture.</p>
       <span class="tt">ALERT-ONLY</span>
     </div>
     <div class="tile tc-pink" data-a="6">
@@ -1133,7 +1143,7 @@
       </ul>
     </div>
     <div class="codeblock" data-file="BCC memleak" data-a="4"><span class="cm"># track outstanding allocations of PID 1234 every 10 s</span>
-$ <span class="ck">memleak</span> -p 1234 --interval 10
+$ <span class="ck">memleak</span> -p 1234 10
 
 <span class="cm">[13:42:01] Top 10 stacks with outstanding allocations:</span>
   <span class="cs">524288 bytes</span> in <span class="cs">128 allocations</span> from stack
@@ -1142,16 +1152,17 @@ $ <span class="ck">memleak</span> -p 1234 --interval 10
     <span class="cv">handle_connection</span>+0x8d
     start_thread+0xd9
 
-<span class="cm"># --older: only "true leaks" unfreed for 60 s+ · omit -p to trace kernel leaks</span>
+<span class="cm"># --older: allocation candidates still outstanding after 60 s · omit -p to trace kernel leaks</span>
 $ <span class="ck">memleak</span> -p 1234 --older 60000</div>
   </div>
   <div class="chips" data-a="5" style="display:flex;gap:12px;margin-top:2.6vh;flex-wrap:wrap">
     <span class="chip">Unlike Valgrind, <b>no restart needed</b> — attaches dynamically to a running process; in-kernel aggregation, no CPU emulation</span>
     <span class="chip">The cost of uprobes — an <code>int3</code> breakpoint trap round-trips the kernel per call; at high malloc rates the trap itself is the bottleneck</span>
-    <span class="chip hot">The workaround removes kernel entry — bpftime runs the probe as a userspace inline hook, ~10× faster (§22)</span>
+    <span class="chip hot">The workaround removes kernel entry — bpftime runs the probe as a userspace inline hook, with workload-dependent overhead (§22)</span>
   </div>
   <aside class="notes">
     First case study — the Valgrind contrast (<b>no restart, attaches to a live process</b>) gets the first reaction. All aggregation in-kernel = minimal overhead. Close by collecting the uprobe int3 trap cost → bpftime (§22).
+  <p>Source: <a href="https://github.com/iovisor/bcc/blob/master/tools/memleak.py" target="_blank" rel="noopener">BCC memleak source</a>.</p>
   </aside>
 </section>
 
@@ -1218,7 +1229,7 @@ $ <span class="ck">memleak</span> -p 1234 --older 60000</div>
         <text x="380" y="212" class="an" font-size="16" text-anchor="middle">runqlat — wait distribution from runnable to running</text>
         <text x="380" y="236" class="am" font-size="13" text-anchor="middle">normally tens of µs → skews right with 100 ms-class spikes under throttling</text>
         <path class="wire" d="M395 116 C 395 150, 390 165, 380 185" stroke="#ff5c85"/>
-        <text x="380" y="285" class="am" font-size="13" text-anchor="middle" fill="#a6b2c3">throttled windows surface directly as the long tail of the run-queue latency histogram</text>
+        <text x="380" y="285" class="am" font-size="13" text-anchor="middle" fill="#a6b2c3">cross-check scheduler delay with cpu.stat throttling counters and node CPU pressure</text>
       </svg>
     </div>
     <div class="panel" style="--pc:var(--pink)" data-a="4">
@@ -1226,7 +1237,7 @@ $ <span class="ck">memleak</span> -p 1234 --older 60000</div>
       <ul>
         <li>The CPU utilization graph sits <b>flat</b> against the limit — busy and strangled look identical</li>
         <li>cAdvisor throttle counters give <b>counts and totals only</b> — no idea which code path got delayed by how much</li>
-        <li><code>runqlat</code> spikes + Off-CPU stacks (§27) showing <b>no blocking traces</b> (no <code>io_schedule</code>, no <code>futex_wait</code>) → not I/O, not locks: <b>throttling, confirmed</b></li>
+        <li><code>runqlat</code> spikes + Off-CPU stacks (§27) showing <b>no blocking traces</b> (no <code>io_schedule</code>, no <code>futex_wait</code>) → investigate <b>CPU contention or quota throttling</b>; confirm with cpu.stat throttle deltas</li>
         <li>The <b>cross-reading</b> of the two tools is your quantitative basis for resizing limits</li>
       </ul>
     </div>
@@ -1236,19 +1247,20 @@ $ <span class="ck">memleak</span> -p 1234 --older 60000</div>
       <tr><th>Observed combination</th><th class="hl">Diagnosis</th><th>Prescription</th></tr>
     </thead>
     <tbody>
-      <tr><td>runqlat <b>spikes</b> + <b>no</b> blocking traces in stacks — awake but can't run</td><td><b>CFS throttling</b> — CPU allocation too small</td><td class="good">Raising limits.cpu is effective</td></tr>
+      <tr><td>runqlat <b>spikes</b> + <b>no</b> blocking traces in stacks — awake but can't run</td><td><b>CPU contention or quota throttling</b> — correlate cpu.stat</td><td class="good">Raise quota only after confirming throttling and available node CPU</td></tr>
       <tr><td>runqlat <b>normal</b> + stacks ending in <code>io_schedule</code>/<code>futex_wait</code> — went to sleep voluntarily</td><td><b>I/O / lock bottleneck</b> — unrelated to CPU</td><td class="bad">Raising limits does nothing — fix storage or lock design</td></tr>
     </tbody>
   </table>
   <aside class="notes">
-    Symptom first — the CPU graph is flat, but latency spikes. The core logic is the cross-reading: <b>runqlat spikes + no blocking traces in Off-CPU stacks = throttling, confirmed</b>. The two table rows are the prescription fork: "will raising limits help?".
+    Symptom first — the CPU graph is flat, but latency spikes. The core logic is the cross-reading: <b>runqlat spikes without blocking traces suggest scheduling delay, not proof of throttling; correlate cpu.stat nr_throttled/throttled_usec and node contention</b>. The two table rows are the prescription fork: "will raising limits help?".
+  <p>Source: <a href="https://docs.kernel.org/admin-guide/cgroup-v2.html" target="_blank" rel="noopener">cgroup v2 cpu.stat</a>.</p>
   </aside>
 </section>
 
 <!-- ============ 29 · FALCO ============ -->
 <section class="slide">
   <div class="kicker" data-a="1">Runtime security № 1</div>
-  <h1 class="display md" data-a="2">Falco — sees everything, <span class="hot">stops nothing</span></h1>
+  <h1 class="display md" data-a="2">Falco — syscall detection and <span class="hot">alerts</span></h1>
   <div class="arch" data-a="3">
     <svg viewBox="0 0 1200 340">
       <rect x="20" y="120" width="180" height="90" rx="12" fill="#131a24" stroke="#a6b2c3" stroke-width="1.5"/>
@@ -1272,18 +1284,18 @@ $ <span class="ck">memleak</span> -p 1234 --older 60000</div>
       <path class="wire" d="M780 165 H860" stroke="#fbd332"/>
 
       <rect x="280" y="255" width="890" height="60" rx="12" fill="rgba(255,92,133,.05)" stroke="#ff5c85" stroke-width="1.5" stroke-dasharray="6 5"/>
-      <text x="725" y="280" class="an" font-size="16" text-anchor="middle" fill="#ff5c85">by the time the verdict arrives, the syscall has already finished executing</text>
+      <text x="725" y="280" class="an" font-size="16" text-anchor="middle" fill="#ff5c85">asynchronous detection does not guarantee blocking before the syscall completes</text>
       <text x="725" y="303" class="am" font-size="13" text-anchor="middle" fill="#ff5c85">time of argument check ≠ time of use → TOCTOU (Time-of-Check to Time-of-Use) race</text>
       <text x="110" y="70" class="am" font-size="14" fill="#a6b2c3">an asynchronous pipeline —</text>
       <text x="110" y="92" class="am" font-size="14" fill="#a6b2c3">detection only</text>
     </svg>
   </div>
   <div class="chips" data-a="4" style="display:flex;gap:12px;flex-wrap:wrap">
-    <span class="chip">Detection is strong — the largest ruleset and ecosystem</span>
-    <span class="chip hot">But blocking is after the fact — by kill time, it's already too late</span>
+    <span class="chip">Rule-based detection with ecosystem integrations</span>
+    <span class="chip hot">A later response cannot guarantee prevention of the triggering operation</span>
   </div>
   <aside class="notes">
-    Follow the pipeline left to right, then the twist — <b>by the time the verdict arrives, the syscall has already finished</b>. One line on TOCTOU. Be clear this is a structural placement issue, not a knock on Falco (its detection is genuinely strong).
+    Follow the pipeline left to right, then the twist — <b>asynchronous detection does not guarantee pre-execution blocking</b>. One line on TOCTOU. Be clear this is a structural placement issue, not a knock on Falco (its detection is genuinely strong).
   </aside>
 </section>
 
@@ -1312,8 +1324,8 @@ $ <span class="ck">memleak</span> -p 1234 --older 60000</div>
 
       <rect x="970" y="185" width="200" height="110" rx="12" fill="rgba(255,92,133,.08)" stroke="#ff5c85" stroke-width="1.5"/>
       <text x="1070" y="218" class="an" font-size="17" text-anchor="middle" fill="#ff5c85">Block</text>
-      <text x="1070" y="245" class="am" font-size="12" text-anchor="middle" fill="#ff5c85">bpf_override_return → -EPERM</text>
-      <text x="1070" y="268" class="am" font-size="12" text-anchor="middle" fill="#ff5c85">bpf_send_signal → SIGKILL</text>
+      <text x="1070" y="245" class="am" font-size="12" text-anchor="middle" fill="#ff5c85">LSM return value → denial</text>
+      <text x="1070" y="268" class="am" font-size="12" text-anchor="middle" fill="#ff5c85">other actions depend on hook type</text>
 
       <path class="wire" d="M200 165 H290" stroke="#a6b2c3"/>
       <path class="wire" d="M530 165 H620" stroke="#41b3ff"/>
@@ -1329,7 +1341,7 @@ $ <span class="ck">memleak</span> -p 1234 --older 60000</div>
     <span class="chip">The next step is correlation — weaving kernel eBPF data with cloud API and app signals into full attack stories (ARMO CADR · Cloud Application Detection &amp; Response)</span>
   </div>
   <aside class="notes">
-    The contrast is everything — Falco detects asynchronously after the fact; <b>Tetragon issues a synchronous verdict at the LSM hook and completes the block in the same kernel context</b>. Two blocking levers: -EPERM vs SIGKILL. Also K8s-native via the TracingPolicy CRD.
+    Contrast asynchronous detection with the illustrated enforcement path: <b>a Tetragon policy can deny an operation through the LSM return value</b>. Other actions depend on the hook type; do not treat return override or signaling as universal LSM actions. Also K8s-native via the TracingPolicy CRD.
   </aside>
 </section>
 
@@ -1345,7 +1357,7 @@ $ <span class="ck">memleak</span> -p 1234 --older 60000</div>
     </div>
     <div class="rung" style="--rc:var(--blue)" data-a="4">
       <span class="k">02</span>
-      <div><h3>Memory accounting — a kernel-version fork</h3><p>Before v5.11: map memory counts against <code>RLIMIT_MEMLOCK</code> — raising <code>ulimit -l</code> is mandatory. <b>v5.11+: switched to cgroup memory accounting</b> — container memory limits now include BPF maps, so size them accordingly.</p></div>
+      <div><h3>Memory accounting — a kernel-version fork</h3><p>Before v5.11: map memory counts against <code>RLIMIT_MEMLOCK</code> — check and raise <code>ulimit -l</code> when the configured limit is insufficient. <b>v5.11+: switched to cgroup memory accounting</b> — container memory limits now include BPF maps, so size them accordingly.</p></div>
       <span class="tag">MEMLOCK</span>
     </div>
     <div class="rung" style="--rc:var(--green)" data-a="5">
@@ -1371,7 +1383,7 @@ $ <span class="ck">memleak</span> -p 1234 --older 60000</div>
   <h1 class="display" data-a="2"><span class="hot">eBPF</span> on EKS</h1>
   <p class="mono-tag" data-a="3">vpc cni · cilium · hubble · benchmarks</p>
   <aside class="notes">
-    Chapter break — the key reversal: <b>on EKS, eBPF is not a technology to adopt — it is already running</b>. The next slide's landscape is the evidence.
+    Chapter break — the key reversal: <b>EKS offers several components that use eBPF when installed and enabled</b>. The next slide's landscape is the evidence.
   </aside>
 </section>
 
@@ -1379,18 +1391,18 @@ $ <span class="ck">memleak</span> -p 1234 --older 60000</div>
 <section class="slide">
   <div class="kicker" data-a="1">Already in production</div>
   <h1 class="display md" data-a="2">The EKS eBPF landscape — <span class="hot">already in production</span></h1>
-  <p class="sub" data-a="3">eBPF is not something to adopt — it is <b>already running in your cluster</b>. Understanding it adds a debugging layer.</p>
+  <p class="sub" data-a="3">eBPF powers these EKS networking options <b>when installed and enabled</b>. Understanding it adds a debugging layer.</p>
   <div class="tiles four">
     <div class="tile" data-a="4">
       <span class="tn">AWS · v1.14+</span>
       <h3>VPC CNI NetworkPolicy</h3>
-      <p>The node agent <b>attaches eBPF probes to each Pod's host veth</b>. Policy enforcement with no iptables chains.</p>
+      <p>When NetworkPolicy is enabled, the agent <b>attaches eBPF programs to supported Pods' host veth</b>. Policy enforcement with no iptables chains.</p>
       <span class="tt">POLICY</span>
     </div>
     <div class="tile tc-blue" data-a="5">
       <span class="tn">CNCF</span>
       <h3>Cilium</h3>
-      <p>The whole CNI (Container Network Interface) in eBPF — <b>kube-proxy replacement</b>, ENI (Elastic Network Interface) routing, O(1) lookups.</p>
+      <p>An eBPF network datapath with userspace IPAM/control components. Optional <b>kube-proxy replacement</b> and ENI routing.</p>
       <span class="tt">CNI</span>
     </div>
     <div class="tile tc-green" data-a="6">
@@ -1454,8 +1466,8 @@ $ <span class="ck">memleak</span> -p 1234 --older 60000</div>
     </svg>
   </div>
   <div class="chips" data-a="4" style="display:flex;gap:12px;flex-wrap:wrap">
-    <span class="chip hot">No iptables chains — rule traversal cost does not grow linearly with policy count</span>
-    <span class="chip">Troubleshooting step one: check the PolicyEndpoints CRD, not the NetworkPolicy</span>
+    <span class="chip hot">eBPF policy enforcement — enable NetworkPolicy and check supported nodes</span>
+    <span class="chip">Troubleshooting step one: inspect PolicyEndpoint resources alongside the NetworkPolicy</span>
     <span class="chip">Scope — Pod eth0 only · does not apply to host networking / Windows / Fargate</span>
   </div>
   <aside class="notes">
@@ -1471,31 +1483,32 @@ $ <span class="ck">memleak</span> -p 1234 --older 60000</div>
   <div class="ladder">
     <div class="rung" style="--rc:var(--orange)" data-a="4">
       <span class="k">HOOK</span>
-      <div><h3>A single sock_ops program</h3><p><code>BPF_PROG_TYPE_SOCK_OPS</code> on cgroup v2 — no packet capture, only TCP-stack callbacks (connect · RTT · retransmit). Always returns <code>BPF_OK</code> — <b>never touches customer connections</b> (source comment)</p></div>
+      <div><h3>A single sock_ops program</h3><p><code>sock_ops</code> callbacks on cgroup v2 collect TCP connect, RTT and retransmits. The BPF_OK return does not block connections.</p></div>
       <span class="tag">§12 APPLIED</span>
     </div>
     <div class="rung" style="--rc:var(--blue)" data-a="5">
       <span class="k">MAP</span>
-      <div><h3>Map polling instead of a Ring Buffer</h3><p>Per-socket stats accumulate in maps; userspace collects every 500 ms — <b>not an event stream → the ring buffer isn't the answer</b></p></div>
+      <div><h3>Map polling instead of a Ring Buffer</h3><p>Per-socket maps are aggregated every <b>500 ms</b> by default. This design does not stream every event through a ring buffer.</p></div>
       <span class="tag">§18 COUNTERPOINT</span>
     </div>
     <div class="rung" style="--rc:var(--green)" data-a="6">
       <span class="k">SAMPLE</span>
-      <div><h3>Sampling at the entrance only</h3><p>Sampling is decided once, at new-socket entry — every event of a tracked socket is collected: <b>internally consistent flow stats</b></p></div>
+      <div><h3>Sampling at the entrance only</h3><p>Sampling is decided at new-socket entry. <b>Map capacity, eviction and processing errors</b> can still limit tracking.</p></div>
       <span class="tag">CONSISTENCY</span>
     </div>
     <div class="rung" style="--rc:var(--pink)" data-a="7">
       <span class="k">CAP</span>
-      <div><h3>Drops its own privileges</h3><p>After loading, drops <code>CAP_SYS_ADMIN</code>/<code>CAP_NET_ADMIN</code>, keeping <b>only CAP_BPF for map reads</b> — least privilege, executed</p></div>
+      <div><h3>Drops its own privileges</h3><p>Drops <code>CAP_SYS_ADMIN</code>, <code>CAP_PERFMON</code> and <code>CAP_NET_ADMIN</code> after initialization; retains CAP_BPF. Other privileges depend on deployment.</p></div>
       <span class="tag">LEAST PRIV</span>
     </div>
   </div>
   <div class="chips" data-a="8" style="display:flex;gap:12px;margin-top:2.6vh;flex-wrap:wrap">
-    <span class="chip hot">License history rhymes — GPL-only-helper kernels (SUSE 15 SP5 · Ubuntu 20.04) reject the Apache-2.0 agent; the DTrace CDDL wall again (§6)</span>
+    <span class="chip hot">Support is version-specific — consult AWS supported Linux distributions and kernel requirements (5.8+)</span>
     <span class="chip">Ops detail (NHI · enrichment · rollout) — Playbook NFM doc</span>
   </div>
   <aside class="notes">
-    The highlight of chapter 1 collection — reading AWS's own eBPF in the source. <b>The map-polling rung is the gem: if it isn't an event stream, the Ring Buffer isn't the answer</b> (a deliberate counterpoint to §18). CAP self-drop, then the license chip — the modern rerun of §6's DTrace CDDL.
+    Connect chapter 1 to AWS's source: <b>NFM polls aggregated maps instead of streaming each event through a Ring Buffer</b> (§18). Explain sampling limits, the specific capabilities dropped, and the remaining deployment permissions. Finish with version-specific distribution and kernel support.
+  <p>Source: <a href="https://github.com/aws/network-flow-monitor-agent/blob/3bf328bc44c53ffb2a35696e58484c06fc4259f8/nfm-controller/src/lib.rs" target="_blank" rel="noopener">NFM privileges source</a>.</p>
   </aside>
 </section>
 
@@ -1520,7 +1533,7 @@ $ <span class="ck">memleak</span> -p 1234 --older 60000</div>
 
         <rect x="240" y="170" width="220" height="75" rx="12" fill="rgba(255,92,133,.06)" stroke="#ff5c85" stroke-width="1.5" stroke-dasharray="5 4"/>
         <text x="350" y="200" class="an" font-size="15" text-anchor="middle" fill="#ff5c85">kube-proxy</text>
-        <text x="350" y="224" class="am" font-size="12" text-anchor="middle" fill="#ff5c85">removed — iptables service chains gone</text>
+        <text x="350" y="224" class="am" font-size="12" text-anchor="middle" fill="#ff5c85">optional replacement — separate setting</text>
 
         <rect x="20" y="290" width="230" height="75" rx="12" fill="rgba(173,92,255,.08)" stroke="#ad5cff" stroke-width="1.5"/>
         <text x="135" y="320" class="an" font-size="15" text-anchor="middle">Cilium Operator</text>
@@ -1543,15 +1556,15 @@ $ <span class="ck">memleak</span> -p 1234 --older 60000</div>
     <div class="panel" style="--pc:var(--blue)" data-a="4">
       <h3>What changes</h3>
       <ul>
-        <li><b>kube-proxy replacement</b> — iptables O(n) chain traversal → eBPF hash-map <b>O(1) lookup</b>; lookup cost stays flat as services grow</li>
+        <li><b>Optional kube-proxy replacement</b> — configured separately from ENI IPAM; eBPF maps replace iptables Service chains</li>
         <li><b>ENI IPAM</b> (IP Address Management) — Pods get VPC IPs directly, overlay overhead removed</li>
-        <li><b>Hubble</b> — flow observability for free, from the same datapath</li>
-        <li>Absorbs mesh features — Gateway API · mTLS · Bandwidth Manager</li>
+        <li><b>Hubble</b> — enable flow observability; L7 requires protocol-aware proxy configuration</li>
+        <li>Optional integrations — Gateway API · mutual authentication · Bandwidth Manager; ENI mode alone does not enable them</li>
       </ul>
     </div>
   </div>
   <aside class="notes">
-    Cilium ENI mode's three big changes — <b>kube-proxy removed (iptables O(n) → eBPF O(1))</b>, Pods get VPC IPs directly (no overlay), Hubble observability for free. Point at the red dashed box (kube-proxy gone).
+    Cilium ENI mode's three big changes — <b>optional kube-proxy replacement (separate from ENI IPAM)</b>, Pods get VPC IPs directly (no overlay), Hubble observability when enabled. The red dashed box applies when kube-proxy replacement is configured.
   </aside>
 </section>
 
@@ -1559,24 +1572,25 @@ $ <span class="ck">memleak</span> -p 1234 --older 60000</div>
 <section class="slide">
   <div class="kicker" data-a="1">Numbers, not vibes</div>
   <h1 class="display md" data-a="2">eBPF in numbers — hands-on benchmarks</h1>
-  <p class="sub" data-a="3">Measured by this playbook — <b>EKS 1.31 · m6i.xlarge · 5 scenarios</b>, median of 3 runs.</p>
+  <p class="sub" data-a="3">Reported in the playbook benchmark — <b>2026-02-09 · EKS 1.31 · m6i.xlarge</b>, median of at least 3 runs. Not rerun for this review.</p>
   <table class="compare" data-a="4">
     <thead>
       <tr><th>Metric</th><th>A · VPC CNI (default)</th><th class="hl">E · Cilium ENI + full tuning</th><th>Reading</th></tr>
     </thead>
     <tbody>
-      <tr><td>TCP throughput</td><td>12.41 Gbps</td><td>12.40 Gbps</td><td>Every scenario <b>saturates the NIC (12.5 Gbps)</b> — throughput doesn't differentiate</td></tr>
+      <tr><td>TCP throughput</td><td>12.41 Gbps</td><td>12.40 Gbps</td><td>Similar measured throughput in this test; not proof of sustained instance bandwidth</td></tr>
       <tr><td>Pod-to-Pod RTT p50</td><td>4,894 µs</td><td class="good">3,135 µs</td><td>eBPF datapath + tuning — <b>~36% lower</b></td></tr>
-      <tr><td>UDP loss (iperf3 saturation)</td><td class="bad">20.4%</td><td class="good">0.03%</td><td>Bandwidth Manager — EDT (Earliest Departure Time) rate limiting; a <b>feature</b> difference, not performance</td></tr>
+      <tr><td>UDP loss (iperf3 saturation)</td><td class="bad">20.4%</td><td class="good">0.03%</td><td>Tuned configuration differs; the table alone cannot isolate the cause of UDP loss</td></tr>
       <tr><td>HTTP p99 @1k QPS</td><td>10.9 ms</td><td class="good">9.9 ms</td><td>The gap narrows at the application level — <b>the CNI is only part of the bottleneck</b></td></tr>
     </tbody>
   </table>
   <div class="chips" data-a="5" style="display:flex;gap:12px;margin-top:2.4vh;flex-wrap:wrap">
     <span class="chip hot">Conclusion: pick a CNI on latency · features · operating model — not throughput</span>
-    <span class="chip">Service meshes follow the same arc — sidecars (a proxy per Pod) → eBPF + node proxies (Cilium Mesh · Istio Ambient)</span>
+    <span class="chip">Cilium service mesh and Istio Ambient use different datapaths; both can reduce per-Pod sidecar deployment</span>
   </div>
   <aside class="notes">
-    Stress these are our own measurements — not vendor numbers. The twist: <b>throughput is identical everywhere — all NIC-saturated</b>; the differences are RTT (−36%) and UDP loss 20.4%→0.03% (a feature difference). Conclusion chip: pick a CNI on latency, features, and operating model — not throughput.
+    These are historical figures reported in the repository benchmark, not reproduced in this review. Throughput is similar; RTT and UDP loss differ. Multiple settings changed, so causal attribution requires a controlled test. Conclusion chip: pick a CNI on latency, features, and operating model — not throughput.
+  <p>Source: <a href="https://devfloor9.github.io/engineering-playbook/docs/benchmarks/cni-performance-comparison" target="_blank" rel="noopener">Historical benchmark</a>.</p>
   </aside>
 </section>
 
@@ -1585,8 +1599,8 @@ $ <span class="ck">memleak</span> -p 1234 --older 60000</div>
   <div class="kicker" data-a="1">Take these home</div>
   <h1 class="display md" data-a="2">Read the kernel, and <span class="hot">the cluster comes into focus</span></h1>
   <div class="takeaways">
-    <div class="take" data-a="3"><span class="tk">1</span><h3>The Verifier is the contract</h3><p>eBPF's safety is a <b>load-time proof</b>, not runtime isolation. Constraints like the 512 B stack and bounded loops are the price of that proof.</p></div>
-    <div class="take" data-a="4"><span class="tk">2</span><h3>CO-RE changed shipping</h3><p>BTF relocation ended per-kernel recompilation. <b>libbpf static binaries</b> are the production standard — keep BCC for experiments.</p></div>
+    <div class="take" data-a="3"><span class="tk">1</span><h3>The Verifier is the contract</h3><p>eBPF uses <b>load-time verification</b>, not runtime isolation. Constraints like the 512 B stack and bounded loops are the price of that proof.</p></div>
+    <div class="take" data-a="4"><span class="tk">2</span><h3>CO-RE changed shipping</h3><p>BTF relocation reduces per-kernel recompilation on compatible targets. <b>libbpf static binaries</b> are the production standard — keep BCC for experiments.</p></div>
     <div class="take" data-a="5"><span class="tk">3</span><h3>On EKS it's already table stakes</h3><p>The NetworkPolicy agent, Cilium, and NFM all run on eBPF — and NFM's source is public. <b>The moment you understand it, you gain a debugging layer.</b></p></div>
   </div>
   <p class="sub" data-a="6" style="margin-top:4vh">One sentence through all three chapters — <b>eBPF is a verified programming layer that changes the kernel's behavior without changing the kernel</b>.</p>
@@ -1611,7 +1625,7 @@ $ <span class="ck">memleak</span> -p 1234 --older 60000</div>
       <h3>Build on EKS</h3>
       <div class="rl"><span class="mglyph">C</span><a href="https://docs.cilium.io/en/stable/network/concepts/ipam/eni/" target="_blank" rel="noopener">Cilium ENI Mode</a><span class="rtag">CNI</span></div>
       <div class="rl"><span class="mglyph">T</span><a href="https://tetragon.io/" target="_blank" rel="noopener">Tetragon — eBPF Security Observability</a><span class="rtag">SECURITY</span></div>
-      <div class="rl"><span class="mglyph">PB</span><a href="https://devfloor9.github.io/engineering-playbook/docs/eks-best-practices/networking-performance/vpc-cni-deep-dive" target="_blank" rel="noopener">Playbook — VPC CNI Deep Dive</a><span class="rtag">INTERNAL</span></div>
+      <div class="rl"><span class="mglyph">PB</span><a href="https://devfloor9.github.io/engineering-playbook/docs/eks-best-practices/networking-performance/vpc-cni-deep-dive" target="_blank" rel="noopener">Playbook — VPC CNI Deep Dive</a><span class="rtag">PLAYBOOK</span></div>
     </div>
   </div>
   <div class="chips" data-a="6">
@@ -1630,9 +1644,9 @@ $ <span class="ck">memleak</span> -p 1234 --older 60000</div>
 </section>
 
 <!-- presenter setup — stored in this browser's localStorage only; never travels with a shared link -->
-<aside class="setup" id="setup" hidden>
+<aside class="setup" id="setup" role="dialog" aria-modal="true" aria-labelledby="setupTitle" hidden>
   <header>
-    <span class="st">PRESENTER SETUP</span>
+    <span class="st" id="setupTitle">PRESENTER SETUP</span>
     <button id="setupClose" aria-label="Close">×</button>
   </header>
   <p class="note">Saved in this browser only — set it once and it persists; sharing the link never shares your speaker info.</p>

@@ -12,6 +12,7 @@ tags:
   - kyverno
   - policy
   - governance
+  - scope:ops
 sidebar_label: Kyverno Policy Management
 category: security
 ---

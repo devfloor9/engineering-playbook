@@ -3,9 +3,9 @@ title: 배포 체크리스트와 참고 자료
 description: 배포 전 점검 항목과 전체 참고 자료를 확인합니다.
 created: "2026-02-12"
 last_update:
-  date: "2026-09-17"
+  date: 2026-09-18
   author: YoungJoon Jeong
-reading_time: 8
+reading_time: 4
 tags:
   - eks
   - kubernetes
@@ -97,5 +97,5 @@ category: operations
 
 - [gRPC Health Checking Protocol](https://github.com/grpc/grpc/blob/master/doc/health-checking.md)
 - [Google Distroless Images](https://github.com/GoogleContainerTools/distroless)
-- [AWS Prescriptive Guidance - Container Image Optimization](https://docs.aws.amazon.com/prescriptive-guidance/latest/patterns/optimize-docker-images-for-eks.html)
+- [EKS Best Practices - Container Image Size](https://docs.aws.amazon.com/eks/latest/best-practices/cost-opt-storage.html)
 - [Learnk8s - Graceful Shutdown](https://learnk8s.io/graceful-shutdown)

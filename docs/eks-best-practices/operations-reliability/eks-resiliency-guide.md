@@ -3,9 +3,9 @@ title: EKS 고가용성 아키텍처 가이드
 description: Amazon EKS 환경에서 고가용성과 장애 회복력을 확보하기 위한 아키텍처 패턴과 운영 전략 가이드
 created: "2026-02-10"
 last_update:
-  date: "2026-06-30"
+  date: 2026-09-18
   author: YoungJoon Jeong
-reading_time: 28
+reading_time: 25
 tags:
   - eks
   - kubernetes
@@ -822,14 +822,16 @@ Istio 1.22+에서는 `networking.istio.io/v1`과 `networking.istio.io/v1beta1` �
 
 ### PodDisruptionBudgets (PDB)
 
-PDB는 자발적 중단(Voluntary Disruption) 시 — 노드 Drain, 클러스터 업그레이드, Karpenter 통합 등 — 최소한의 Pod 가용성을 보장합니다.
+PDB는 Eviction API를 사용하는 자발적 중단에서 중단 예산을 초과하는 요청을 제한합니다. 기본 `kubectl drain`이나 이 API를 사용하는 노드 업그레이드·통합이 해당합니다. Deployment·StatefulSet의 롤링 업데이트와 Pod 직접 삭제는 PDB로 제한되지 않습니다.
 
 | 설정 | 동작 | 적합한 상황 |
 |------|------|------------|
-| `minAvailable: 2` | 항상 최소 2개 Pod 유지 | replica 수가 적은 서비스 (3-5개) |
-| `minAvailable: "50%"` | 전체의 50% 이상 유지 | replica 수가 많은 서비스 |
-| `maxUnavailable: 1` | 동시에 최대 1개만 중단 | 롤링 업데이트 중 안정성 |
-| `maxUnavailable: "25%"` | 전체의 25%까지 동시 중단 허용 | 빠른 배포가 필요한 경우 |
+| `minAvailable: 2` | 최소 healthy Pod 2개 기준으로 Eviction 허용 여부 판단 | replica 수가 적은 서비스 (3-5개)의 노드 Drain |
+| `minAvailable: "50%"` | 원하는 replica 수의 50% 이상이 healthy 상태로 남는지 판단 | replica 수가 많은 서비스의 Eviction 예산 |
+| `maxUnavailable: 1` | 이미 비가용인 Pod를 포함해 최대 1개 기준으로 Eviction 제한 | 노드 유지보수 중 동시 중단 제한 |
+| `maxUnavailable: "25%"` | 이미 비가용인 Pod를 포함해 25% 기준으로 Eviction 제한 | Eviction API 기반 노드 교체·축소 |
+
+롤아웃이나 장애로 비가용 상태가 된 Pod도 PDB 예산에 반영되지만, PDB가 해당 중단 자체를 막지는 못합니다. 롤링 업데이트 가용성은 Deployment의 `maxUnavailable`·`maxSurge` 같은 workload controller 설정과 Readiness로 관리합니다. [Kubernetes PDB 적용 범위](https://kubernetes.io/docs/concepts/workloads/pods/disruptions/#pod-disruption-budgets)와 [Deployment 전략](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#strategy)을 참조하세요.
 
 ```yaml
 apiVersion: policy/v1

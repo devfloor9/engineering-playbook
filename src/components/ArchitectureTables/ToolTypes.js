@@ -1,5 +1,7 @@
 import React from 'react';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
+import ManualTable from './ManualTable';
+import Icon from '../Icon';
 const ToolTypes = () => {
   const {
     i18n
@@ -9,126 +11,23 @@ const ToolTypes = () => {
     type: 'API',
     description: isKo ? '외부 REST/gRPC API 호출' : 'Call external REST/gRPC API',
     examples: isKo ? '웹 검색, 티켓 생성' : 'Web search, ticket creation',
-    icon: '🌐',
-    color: '#3b82f6'
+    icon: "network"
   }, {
     type: 'Retrieval',
     description: isKo ? '벡터 저장소 검색' : 'Search vector store',
     examples: isKo ? '문서 검색, FAQ 조회' : 'Document search, FAQ lookup',
-    icon: '🔍',
-    color: '#8b5cf6'
+    icon: "search"
   }, {
     type: 'Code',
     description: isKo ? '코드 실행 (샌드박스)' : 'Execute code (sandboxed)',
     examples: isKo ? 'Python 스크립트, SQL 쿼리' : 'Python script, SQL query',
-    icon: '💻',
-    color: '#10b981'
+    icon: "terminal"
   }, {
     type: 'Human',
     description: isKo ? '사람의 승인/입력 대기' : 'Wait for human approval/input',
     examples: isKo ? '결제 승인, 민감 작업 확인' : 'Payment approval, sensitive task confirmation',
-    icon: '👤',
-    color: '#f59e0b'
+    icon: "shield"
   }];
-  return <div style={{
-    maxWidth: '900px',
-    margin: '20px auto',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif'
-  }}>
-      <div style={{
-      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-      color: 'white',
-      padding: '20px 24px',
-      borderRadius: '8px 8px 0 0'
-    }}>
-        <div style={{
-        fontSize: '20px',
-        fontWeight: '600'
-      }}>
-          {isKo ? '도구 유형' : 'Tool Types'}
-        </div>
-      </div>
-
-      <div style={{
-      background: 'var(--ifm-background-surface-color)',
-      border: '1px solid var(--ifm-color-emphasis-200)',
-      borderTop: 'none',
-      borderRadius: '0 0 8px 8px',
-      padding: '20px'
-    }}>
-        <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(380px, 1fr))',
-        gap: '16px'
-      }}>
-          {tools.map((tool, index) => <div key={index} style={{
-          background: `${tool.color}10`,
-          padding: '20px',
-          borderRadius: '8px',
-          borderLeft: `4px solid ${tool.color}`,
-          transition: 'transform 0.2s, box-shadow 0.2s',
-          cursor: 'default'
-        }}>
-              <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '12px',
-            marginBottom: '12px'
-          }}>
-                <span style={{
-              fontSize: '32px'
-            }}>{tool.icon}</span>
-                <span style={{
-              fontSize: '18px',
-              fontWeight: '600',
-              color: tool.color
-            }}>
-                  {tool.type}
-                </span>
-              </div>
-
-              <div style={{
-            marginBottom: '12px'
-          }}>
-                <div style={{
-              fontSize: '12px',
-              fontWeight: '600',
-              color: 'var(--ifm-color-emphasis-600)',
-              marginBottom: '4px',
-              textTransform: 'uppercase'
-            }}>
-                  {isKo ? '설명' : 'Description'}
-                </div>
-                <div style={{
-              fontSize: '14px',
-              color: 'var(--ifm-font-color-base)',
-              lineHeight: '1.5'
-            }}>
-                  {tool.description}
-                </div>
-              </div>
-
-              <div>
-                <div style={{
-              fontSize: '12px',
-              fontWeight: '600',
-              color: 'var(--ifm-color-emphasis-600)',
-              marginBottom: '4px',
-              textTransform: 'uppercase'
-            }}>
-                  {isKo ? '예시' : 'Examples'}
-                </div>
-                <div style={{
-              fontSize: '14px',
-              color: 'var(--ifm-color-emphasis-800)',
-              fontStyle: 'italic'
-            }}>
-                  {tool.examples}
-                </div>
-              </div>
-            </div>)}
-        </div>
-      </div>
-    </div>;
+  return <ManualTable title={isKo ? "도구 유형" : "Tool Types"} headers={[isKo ? "유형" : "Type", isKo ? "설명" : "Description", isKo ? "예시" : "Examples"]} rows={tools.map(row => [<><Icon name={row.icon} size={18} /> {row.type}</>, row.description, row.examples])} />;
 };
 export default ToolTypes;

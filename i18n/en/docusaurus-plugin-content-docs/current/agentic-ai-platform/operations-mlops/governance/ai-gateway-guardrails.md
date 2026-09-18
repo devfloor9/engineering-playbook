@@ -3,9 +3,9 @@ title: AI Gateway Guardrails
 description: LLM Gateway-level Guardrails — PII redaction, prompt injection defense, content filtering, tool comparison, and Korean financial compliance mapping
 created: "2026-04-17"
 last_update:
-  date: "2026-08-11"
+  date: 2026-09-18
   author: devfloor9
-reading_time: 36
+reading_time: 35
 tags:
   - guardrails
   - pii
@@ -574,7 +574,7 @@ Verify OpenRouter's detailed data-handling specifics (prompt caching, BYOK, etc.
 ## 10. References
 
 ### Official Documentation
-- [Guardrails AI Documentation](https://docs.guardrailsai.com/) — Validator Hub, RAIL schema
+- [Guardrails AI Documentation](https://guardrailsai.com/guardrails/docs) — Validator Hub, RAIL schema
 - [NVIDIA NeMo Guardrails](https://docs.nvidia.com/nemo/guardrails/latest/index.html) — Colang DSL, Official user guide
 - [AWS Bedrock Guardrails](https://docs.aws.amazon.com/bedrock/latest/userguide/guardrails.html) + [ApplyGuardrail API](https://docs.aws.amazon.com/bedrock/latest/userguide/guardrails-use-independent-api.html)
 - [Meta Llama Guard 3 Model Card](https://github.com/meta-llama/PurpleLlama/tree/main/Llama-Guard3) — 13 category classification

@@ -1,0 +1,69 @@
+.root {
+  min-width: 0;
+  max-width: 100%;
+  color: var(--ep-on-surface);
+  font-size: var(--ep-font-size-table);
+  line-height: var(--ep-line-height-table);
+}
+
+.root table {
+  border-collapse: collapse;
+  color: var(--ep-on-surface);
+}
+
+.root table th,
+.root table td {
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: normal;
+  font-size: var(--ep-font-size-table);
+  line-height: var(--ep-line-height-table);
+}
+
+/* Compatibility with the original frame's fixed-width sticky row headings. */
+.root table th[scope='row'] {
+  position: static;
+  min-width: 0;
+  max-width: none;
+  text-align: start;
+  background: inherit;
+}
+
+.root table thead th {
+  position: static;
+  background: var(--ep-surface-container-low);
+  color: var(--ep-on-surface);
+  text-align: start;
+}
+
+.root table [data-numeric='true'] {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.root table code {
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+.status svg {
+  vertical-align: -0.15em;
+  margin-inline-end: var(--ep-space-1);
+}
+
+.status[data-status='success'] { color: var(--ep-success); }
+.status[data-status='warning'] { color: var(--ep-warning); }
+.status[data-status='error'] { color: var(--ep-error); }
+
+.note {
+  margin-block: var(--ep-space-3);
+  color: var(--ep-on-surface-variant);
+  font-size: var(--ep-font-size-caption);
+  line-height: var(--ep-line-height-caption);
+  overflow-wrap: anywhere;
+}
+
+.sectionTitle {
+  margin-block: var(--ep-space-5) var(--ep-space-2);
+  font-weight: 600;
+}

@@ -13,6 +13,7 @@ tags:
   - ebs
   - efs
   - pvc
+  - scope:ops
 sidebar_label: Storage
 ---
 

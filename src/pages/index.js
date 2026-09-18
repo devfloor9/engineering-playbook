@@ -5,6 +5,7 @@ import useBaseUrl from '@docusaurus/useBaseUrl';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 import Layout from '@theme/Layout';
 import styles from './index.module.css';
+import Icon from '@site/src/components/Icon';
 
 const topics = [
   {title: 'EKS Best Practices', href: '/docs/eks-best-practices', category: 'Infrastructure',
@@ -33,7 +34,7 @@ const topics = [
 ];
 
 function Arrow() {
-  return <span aria-hidden="true" className={styles.arrow}>↗</span>;
+  return <Icon name="arrow-right" size={18} className={styles.arrow} />;
 }
 
 function HomeStructuredData() {
@@ -59,10 +60,10 @@ function ManualCover() {
       <svg className={styles.coverDiagram} viewBox="0 0 360 170" fill="none">
         <path d="M30 85H115M180 30V140M245 85H330M115 30H245V140H115Z" stroke="currentColor" strokeWidth="1" />
         <path d="M30 30H115M245 140H330M65 30V140M295 30V140" stroke="currentColor" strokeOpacity=".35" />
-        <circle cx="30" cy="85" r="10" fill="#C8F5DD" /><circle cx="330" cy="85" r="10" fill="#C8F5DD" />
-        <path d="m180 57 28 28-28 28-28-28Z" fill="#C8F5DD" />
-        <circle cx="115" cy="30" r="5" fill="#172E3B" stroke="currentColor" />
-        <circle cx="245" cy="140" r="5" fill="#172E3B" stroke="currentColor" />
+        <circle cx="30" cy="85" r="10" fill="currentColor" /><circle cx="330" cy="85" r="10" fill="currentColor" />
+        <path d="m180 57 28 28-28 28-28-28Z" fill="currentColor" />
+        <circle cx="115" cy="30" r="5" fill="var(--ep-surface-container-lowest)" stroke="currentColor" />
+        <circle cx="245" cy="140" r="5" fill="var(--ep-surface-container-lowest)" stroke="currentColor" />
         <path d="M22 25v10m-5-5h10M328 135v10m-5-5h10" stroke="currentColor" strokeOpacity=".6" />
       </svg>
       <div className={styles.coverBottom}><span>CLOUD INFRASTRUCTURE<br />& AI PLATFORMS</span><span className={styles.coverMark}>ep.</span></div>
@@ -91,7 +92,7 @@ function Hero({ko}) {
           <a className={styles.contentsLink} href="#contents">{ko ? '전체 목차' : 'Explore the contents'}<span aria-hidden="true">↓</span></a>
         </div>
         <form role="search" aria-label={ko ? '문서 검색' : 'Search the manual'} action={searchUrl} method="get" className={styles.homeSearch}>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" stroke="currentColor" strokeWidth="1.6" /><path d="m16 16 5 5" stroke="currentColor" strokeWidth="1.6" /></svg>
+          <Icon name="search" size={18} />
           <label className={styles.srOnly} htmlFor="home-search">{ko ? '검색어' : 'Search terms'}</label>
           <input id="home-search" type="search" name="q" required placeholder={ko ? 'CoreDNS, KV Cache, 장애 진단…' : 'CoreDNS, KV cache, troubleshooting…'} />
           <button type="submit">{ko ? '검색' : 'Search'}<span aria-hidden="true">↵</span></button>
@@ -178,6 +179,6 @@ export default function Home() {
   const ko = i18n.currentLocale === 'ko';
   return <Layout title="Engineering Playbook" description={ko ? 'EKS 운영, AI 플랫폼 구축, 성능 검증을 다루는 실전 엔지니어링 매뉴얼' : 'A practical engineering manual for EKS operations, AI platforms, and performance testing.'}>
     <HomeStructuredData />
-    <main className={styles.home}><Hero ko={ko} /><Contents ko={ko} /><ReadingPaths ko={ko} /><Repositories ko={ko} /></main>
+    <main className={styles.home} data-ep-theme="manual"><Hero ko={ko} /><Contents ko={ko} /><ReadingPaths ko={ko} /><Repositories ko={ko} /></main>
   </Layout>;
 }

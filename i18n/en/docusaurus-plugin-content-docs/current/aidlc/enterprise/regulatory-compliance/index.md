@@ -3,9 +3,9 @@ title: AI Regulatory Compliance Framework
 description: "AIDLC integration guide for 4 frameworks: EU AI Act, NIST AI RMF, ISO/IEC 42001, and Korea AI Basic Act"
 created: "2026-04-19"
 last_update:
-  date: "2026-06-30"
+  date: 2026-09-18
   author: devfloor9
-reading_time: 13
+reading_time: 12
 tags:
   - compliance
   - regulation
@@ -21,7 +21,7 @@ sidebar_label: Regulatory Compliance
 As of 2026, global enterprises face a complex environment requiring **simultaneous compliance with AI regulations across multiple jurisdictions**:
 
 - **EU**: AI Act (adopted 2024, phased enforcement begins 2026-2027)
-- **United States**: NIST AI RMF 1.1 (federal procurement requirement), state-level regulations
+- **United States**: NIST AI RMF 1.0 (voluntary framework), applicable federal and agency procurement policies, state-level regulations
 - **Korea**: AI Framework Act (AI 기본법, enforcement expected 2026)
 - **International Standard**: ISO/IEC 42001:2023 (AI Management System certification)
 
@@ -87,12 +87,12 @@ graph TB
 
 [Detailed Guide →](./frameworks/eu-ai-act.md)
 
-### NIST AI RMF 1.1
+### NIST AI RMF 1.0 {#nist-ai-rmf-11}
 
 **Key Features:**
-- Published by U.S. NIST (voluntary compliance, mandatory for federal procurement)
+- Published by U.S. NIST; voluntary adoption is distinct from obligations in laws, agency policies, and contracts
 - 4 Functions: GOVERN, MAP, MEASURE, MANAGE
-- Dedicated Generative AI section (v1.1, Dec 2024)
+- The Generative AI Profile (NIST AI 600-1, July 2024) is a companion to AI RMF 1.0
 - International compatibility (interoperable with ISO/IEC 42001)
 
 **AIDLC Application:**
@@ -140,16 +140,16 @@ graph TB
 
 | Control Element | EU AI Act | NIST AI RMF | ISO/IEC 42001 | Korea AI Basic Act |
 |----------|-----------|-------------|---------------|---------------|
-| **Risk Assessment** | Art. 6, 9 (risk mgmt) | MAP-3.1 | A.5.1 (policy), A.10.2 (risk mgmt) | Impact assessment (high-impact AI) |
-| **Data Governance** | Art. 10 (data quality) | MAP-2.1 | A.7.* (12 data controls) | PIPA compliance |
-| **Transparency & Explainability** | Art. 13 (transparency) | MEASURE-2.1 | A.8.2 (transparency), A.8.3 (explanation) | Generative AI labeling obligation |
-| **Human Oversight (HITL)** | Art. 14 (human oversight) | MANAGE-3.1 | A.10.5 (human intervention) | - |
-| **Technical Documentation** | Art. 11 (documentation) | GOVERN-1.4 | A.8.1 (docs), A.10.6 (records) | - |
-| **Performance Monitoring** | Art. 15 (accuracy) | MEASURE-1.1 | A.11.1 (performance metrics) | - |
-| **Post-Market Monitoring** | Art. 72 (post-market) | MANAGE-3.1 | A.10.10 (continuous monitoring) | Post-deployment mgmt obligation |
-| **Incident Reporting** | Art. 73 (within 15 days) | MANAGE-2.1 | A.10.11 (incident response) | Major incident reporting |
-| **Security** | Art. 15 (cybersecurity) | MEASURE-2.3 | A.12.* (10 security controls) | ISMS-P integration |
-| **Supply Chain Management** | - | GOVERN-1.5 | A.13.* (6 third-party controls) | - |
+| **Risk Assessment** | Art. 6, 9 (risk mgmt) | MAP 5.1 | A.5.1 (policy), A.10.2 (risk mgmt) | Impact assessment (high-impact AI) |
+| **Data Governance** | Art. 10 (data quality) | MAP 2.3 | A.7.* (12 data controls) | PIPA compliance |
+| **Transparency & Explainability** | Art. 13 (transparency) | MEASURE 2.8 / 2.9 | A.8.2 (transparency), A.8.3 (explanation) | Generative AI labeling obligation |
+| **Human Oversight (HITL)** | Art. 14 (human oversight) | MAP 3.5 | A.10.5 (human intervention) | - |
+| **Technical Documentation** | Art. 11 (documentation) | GOVERN 1.4 | A.8.1 (docs), A.10.6 (records) | - |
+| **Performance Monitoring** | Art. 15 (accuracy) | MEASURE 2.3 / 2.4 | A.11.1 (performance metrics) | - |
+| **Post-Market Monitoring** | Art. 72 (post-market) | MANAGE 4.1 | A.10.10 (continuous monitoring) | Post-deployment mgmt obligation |
+| **Incident Reporting** | Art. 73 (within 15 days) | MANAGE 4.3 | A.10.11 (incident response) | Major incident reporting |
+| **Security** | Art. 15 (cybersecurity) | MEASURE 2.7 | A.12.* (10 security controls) | ISMS-P integration |
+| **Supply Chain Management** | - | GOVERN 6.1 / MANAGE 3.1 | A.13.* (6 third-party controls) | - |
 
 ### Regulatory Requirements by AIDLC Stage
 
@@ -212,12 +212,12 @@ import DocCardList from '@theme/DocCardList';
 - [EU AI Act Timeline (European Commission)](https://digital-strategy.ec.europa.eu/en/policies/regulatory-framework-ai)
 
 **NIST AI RMF:**
-- [NIST AI RMF 1.1 (2024.12)](https://www.nist.gov/itl/ai-risk-management-framework)
-- [Executive Order 14110 (White House)](https://www.whitehouse.gov/briefing-room/presidential-actions/2023/10/30/executive-order-on-the-safe-secure-and-trustworthy-development-and-use-of-artificial-intelligence/)
+- [NIST AI RMF 1.0 (January 2023)](https://www.nist.gov/itl/ai-risk-management-framework)
+- [Executive Order 14110 (Federal Register)](https://www.federalregister.gov/documents/2023/11/01/2023-24283/safe-secure-and-trustworthy-development-and-use-of-artificial-intelligence)
 
 **ISO/IEC 42001:**
 - [ISO/IEC 42001:2023 (ISO Store)](https://www.iso.org/standard/81230.html)
-- [ISO 42001 Implementation Guide (BSI)](https://www.bsigroup.com/en-GB/iso-42001-artificial-intelligence-management-system/)
+- [ISO/IEC 42001 AI Management System (BSI)](https://www.bsigroup.com/en-GB/products-and-services/standards/iso-42001-ai-management-system/)
 
 **Korea AI Basic Act:**
 - [Ministry of Science and ICT AI Policy](https://www.msit.go.kr/bbs/list.do?sCode=user&mId=113&mPid=112)

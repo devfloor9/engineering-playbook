@@ -41,6 +41,12 @@ jobs:
       - name: Generate tag pages
         run: npm run generate-tags
 
+      - name: Verify generated tag routes
+        run: npm run test:tags
+
+      - name: Verify document tools
+        run: npm run test:tools
+
       - name: Verify LLM wiki component exports
         run: npm run test:llm-wiki
 
@@ -50,6 +56,9 @@ jobs:
       - name: Verify streamed Unicode text and anchors
         run: npm run test:ssr
 
+      - name: Verify document revision metadata
+        run: npm run test:metadata
+
       - name: Build website
         run: npm run build
 
@@ -58,6 +67,9 @@ jobs:
 
       - name: Generate LLM Wiki (per-page markdown + manifest)
         run: npm run generate-llm-wiki
+
+      - name: Verify LLM exports against rendered pages
+        run: LLM_WIKI_BASELINE_HTML="$PWD/build" npm run test:llm-wiki
 
       - name: Verify internal routes and fragments
         run: >-

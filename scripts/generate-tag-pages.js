@@ -9,17 +9,15 @@
 
 const fs = require('fs');
 const path = require('path');
+const {createHash} = require('node:crypto');
 const matter = require('gray-matter');
+const {Globby, getPluginI18nPath, loadFreshModule} = require('@docusaurus/utils');
+const {applyTrailingSlash} = require('@docusaurus/utils-common');
+const {documentRoute, blogRoute, contentOptions} = require('./tag-routes');
+const {tagPageRoute} = require('../src/components/TagList/routes');
 
 // Configuration
-const DOCS_DIR = path.join(__dirname, '..', 'docs');
-const BLOG_DIR = path.join(__dirname, '..', 'blog');
-const TAGS_OUTPUT_DIR = path.join(__dirname, '..', 'src', 'pages', 'tags');
-
-// Ensure tags directory exists
-if (!fs.existsSync(TAGS_OUTPUT_DIR)) {
-  fs.mkdirSync(TAGS_OUTPUT_DIR, { recursive: true });
-}
+const SITE_DIR = path.join(__dirname, '..');
 
 // Scan directory for markdown files
 function scanMarkdownFiles(dir, basePath = '') {
@@ -66,44 +64,96 @@ function extractMetadata(filePath) {
   }
 }
 
-// Generate tag statistics
-function generateTagStats(documents) {
-  const tagStats = {};
-  
-  documents.forEach(doc => {
-    if (doc.metadata.tags) {
-      doc.metadata.tags.forEach(tag => {
-        if (!tagStats[tag]) {
-          tagStats[tag] = {
-            count: 0,
-            documents: [],
-            categories: new Set(),
-            totalWords: 0
-          };
-        }
-        
-        tagStats[tag].count++;
-        tagStats[tag].documents.push(doc);
-        tagStats[tag].totalWords += doc.metadata.wordCount || 0;
-        
-        if (doc.metadata.category) {
-          tagStats[tag].categories.add(doc.metadata.category);
-        }
+async function collectDocuments({siteDir = SITE_DIR, siteConfig}) {
+  const i18n = siteConfig.i18n || {};
+  const locales = i18n.locales || ['en'];
+  const defaultLocale = i18n.defaultLocale || locales[0];
+  const documents = [];
+  for (const type of ['docs', 'blog']) {
+    const options = contentOptions(siteConfig, type);
+    if (!options) continue;
+    const contentDir = path.resolve(siteDir, options.path);
+    if (!fs.existsSync(contentDir)) continue;
+    const sources = await Globby(options.include, {cwd: contentDir, ignore: options.exclude});
+    for (const relativePath of sources.sort()) {
+      const fullPath = path.join(contentDir, relativePath);
+      const metadata = extractMetadata(fullPath);
+      const pathsByLocale = {};
+      const metadataByLocale = {};
+      for (const locale of locales) {
+        const localeConfig = i18n.localeConfigs?.[locale] || {};
+        const localizedDir = getPluginI18nPath({
+          localizationDir: path.resolve(siteDir, i18n.path || 'i18n', localeConfig.path || locale),
+          pluginName: `docusaurus-plugin-content-${type}`,
+          pluginId: options.id || 'default',
+        });
+        const localizedFile = path.join(localizedDir, type === 'docs' ? 'current' : '', relativePath);
+        const localized = localeConfig.translate !== false && fs.existsSync(localizedFile)
+          ? extractMetadata(localizedFile) : metadata;
+        metadataByLocale[locale] = localized;
+        pathsByLocale[locale] = localized.draft || localized.unlisted ? null
+          : (type === 'docs' ? documentRoute : blogRoute)(relativePath, localized, options);
+      }
+      if (!locales.some(locale => pathsByLocale[locale] && metadataByLocale[locale].tags?.length)) continue;
+      documents.push({
+        fullPath, relativePath, name: path.basename(relativePath), metadata,
+        path: pathsByLocale[defaultLocale], pathsByLocale, metadataByLocale,
+        type: type === 'docs' ? 'doc' : 'blog',
       });
     }
-  });
-  
-  // Convert categories Set to Array
-  Object.keys(tagStats).forEach(tag => {
-    tagStats[tag].categories = Array.from(tagStats[tag].categories);
-  });
-  
+  }
+  return documents;
+}
+
+// Generate tag statistics
+function generateTagStats(documents) {
+  const tagStats = Object.create(null);
+  const emptyStats = () => ({count: 0, categories: new Set(), totalWords: 0});
+  const addMetadata = (stats, metadata) => {
+    stats.count++;
+    stats.totalWords += metadata.wordCount || 0;
+    if (metadata.category) stats.categories.add(metadata.category);
+  };
+
+  for (const doc of documents) {
+    const variants = Object.entries(doc.metadataByLocale || {default: doc.metadata})
+      .filter(([locale]) => !doc.pathsByLocale || doc.pathsByLocale[locale]);
+    const tags = new Set(variants.flatMap(([, metadata]) => metadata.tags || []));
+    for (const tag of tags) {
+      const stats = tagStats[tag] ||= {...emptyStats(), documents: [], byLocale: {}};
+      const matching = variants.filter(([, metadata]) => metadata.tags?.includes(tag));
+      stats.documents.push(doc);
+      addMetadata(stats, matching[0][1]);
+      for (const [locale, metadata] of matching) {
+        addMetadata(stats.byLocale[locale] ||= emptyStats(), metadata);
+      }
+    }
+  }
+  for (const stats of Object.values(tagStats)) {
+    for (const summary of [stats, ...Object.values(stats.byLocale)]) {
+      summary.categories = [...summary.categories];
+    }
+  }
   return tagStats;
+}
+
+function documentListing(metadata, name) {
+  return {
+    title: metadata.title || name,
+    description: metadata.description || metadata.excerpt || '',
+    date: metadata.date,
+    category: metadata.category,
+    tags: metadata.tags || [],
+    authors: metadata.authors || [],
+    difficulty: metadata.difficulty,
+    estimatedTime: metadata.estimated_time,
+    wordCount: metadata.wordCount || 0,
+  };
 }
 
 // Generate tag page content
 function generateTagPageContent(tag, stats) {
-  const { count, documents, categories, totalWords } = stats;
+  const {documents} = stats;
   
   // Sort documents by date (newest first)
   const sortedDocs = documents.sort((a, b) => {
@@ -112,28 +162,30 @@ function generateTagPageContent(tag, stats) {
     return dateB - dateA;
   });
   
-  const categoryList = categories.length > 0 
-    ? categories.map(cat => `"${cat}"`).join(', ')
-    : '없음';
-  
   return `import React from 'react';
 import Layout from '@theme/Layout';
 import Link from '@docusaurus/Link';
 import TagList from '@site/src/components/TagList';
+import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
+import {documentRouteForLocale} from '@site/src/components/TagList/routes';
 
 export default function Tag${tag.replace(/[^a-zA-Z0-9]/g, '').charAt(0).toUpperCase() + tag.replace(/[^a-zA-Z0-9]/g, '').slice(1)}Page() {
-  const tagName = '${tag}';
+  const {i18n: {currentLocale}} = useDocusaurusContext();
+  const tagName = ${JSON.stringify(tag)};
   const documents = ${JSON.stringify(sortedDocs.map(doc => ({
-    title: doc.metadata.title || doc.name,
+    ...documentListing(doc.metadata, doc.name),
     path: doc.path,
-    description: doc.metadata.description || doc.metadata.excerpt || '',
-    date: doc.metadata.date,
-    category: doc.metadata.category,
-    tags: doc.metadata.tags || [],
-    authors: doc.metadata.authors || [],
-    difficulty: doc.metadata.difficulty,
-    estimatedTime: doc.metadata.estimated_time
-  })), null, 2)};
+    pathsByLocale: doc.pathsByLocale,
+    contentByLocale: doc.metadataByLocale && Object.fromEntries(
+      Object.entries(doc.metadataByLocale).map(([locale, metadata]) =>
+        [locale, documentListing(metadata, doc.name)])),
+  })), null, 2)}.map(doc => ({
+    ...doc, ...doc.contentByLocale?.[currentLocale],
+    path: documentRouteForLocale(doc, currentLocale),
+  })).filter(doc => doc.path && doc.tags.includes(tagName));
+  const categories = [...new Set(documents.map(doc => doc.category).filter(Boolean))];
+  const totalWords = documents.reduce((total, doc) => total + doc.wordCount, 0);
+  const categoryList = categories.length ? categories.map(category => JSON.stringify(category)).join(', ') : '없음';
 
   return (
     <Layout
@@ -161,7 +213,7 @@ export default function Tag${tag.replace(/[^a-zA-Z0-9]/g, '').charAt(0).toUpperC
                     <div className="card">
                       <div className="card__body text--center">
                         <h3 style={{color: 'var(--ifm-color-primary)', margin: 0}}>
-                          ${count}
+                          {documents.length}
                         </h3>
                         <p style={{margin: 0, fontSize: '0.9rem'}}>문서</p>
                       </div>
@@ -171,7 +223,7 @@ export default function Tag${tag.replace(/[^a-zA-Z0-9]/g, '').charAt(0).toUpperC
                     <div className="card">
                       <div className="card__body text--center">
                         <h3 style={{color: 'var(--ifm-color-primary)', margin: 0}}>
-                          ${categories.length}
+                          {categories.length}
                         </h3>
                         <p style={{margin: 0, fontSize: '0.9rem'}}>카테고리</p>
                       </div>
@@ -181,7 +233,7 @@ export default function Tag${tag.replace(/[^a-zA-Z0-9]/g, '').charAt(0).toUpperC
                     <div className="card">
                       <div className="card__body text--center">
                         <h3 style={{color: 'var(--ifm-color-primary)', margin: 0}}>
-                          ${Math.round(totalWords / 1000)}k
+                          {Math.round(totalWords / 1000)}k
                         </h3>
                         <p style={{margin: 0, fontSize: '0.9rem'}}>단어</p>
                       </div>
@@ -191,7 +243,7 @@ export default function Tag${tag.replace(/[^a-zA-Z0-9]/g, '').charAt(0).toUpperC
                     <div className="card">
                       <div className="card__body text--center">
                         <h3 style={{color: 'var(--ifm-color-primary)', margin: 0}}>
-                          ${Math.round(totalWords / 200)}
+                          {Math.round(totalWords / 200)}
                         </h3>
                         <p style={{margin: 0, fontSize: '0.9rem'}}>분 읽기</p>
                       </div>
@@ -200,7 +252,7 @@ export default function Tag${tag.replace(/[^a-zA-Z0-9]/g, '').charAt(0).toUpperC
                 </div>
               </div>
               <p className="margin-top--md" style={{fontSize: '1.1rem'}}>
-                <strong>관련 카테고리:</strong> ${categoryList}
+                <strong>관련 카테고리:</strong> {categoryList}
               </p>
             </header>
 
@@ -308,18 +360,25 @@ function getDifficultyName(difficulty) {
 
 // Generate tags index page
 function generateTagsIndexPage(tagStats) {
-  const sortedTags = Object.entries(tagStats)
-    .sort(([,a], [,b]) => b.count - a.count);
+  const summaries = Object.fromEntries(Object.entries(tagStats).map(([tag, stats]) => [
+    tag, {count: stats.count, categories: stats.categories, totalWords: stats.totalWords, byLocale: stats.byLocale},
+  ]));
   
   return `import React, {useState} from 'react';
 import Layout from '@theme/Layout';
 import Link from '@docusaurus/Link';
+import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
+import {tagPageRoute} from '@site/src/components/TagList/routes';
 
 export default function TagsIndexPage() {
+  const {i18n: {currentLocale}} = useDocusaurusContext();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
 
-  const tagStats = ${JSON.stringify(tagStats, null, 2)};
+  const tagStats = Object.fromEntries(Object.entries(${JSON.stringify(summaries, null, 2)})
+    .map(([tag, stats]) => [tag, stats.byLocale
+      ? (stats.byLocale[currentLocale] || stats.byLocale.default) : stats])
+    .filter(([, stats]) => stats?.count));
 
   const filteredTags = Object.entries(tagStats).filter(([tag, stats]) => {
     const matchesSearch = tag.toLowerCase().includes(searchTerm.toLowerCase());
@@ -395,7 +454,7 @@ export default function TagsIndexPage() {
               {filteredTags.map(([tag, stats]) => (
                 <div key={tag} className="col col--6 col--lg-4 margin-bottom--md">
                   <Link
-                    to={\`/tags/\${tag}\`}
+                    to={tagPageRoute(tag)}
                     className="card"
                     style={{
                       textDecoration: 'none',
@@ -466,39 +525,123 @@ export default function TagsIndexPage() {
 }`;
 }
 
-// Main function
-function main() {
-  console.log('🏷️  Generating tag pages...');
-  
-  // Scan all markdown files
-  const docsFiles = scanMarkdownFiles(DOCS_DIR);
-  const blogFiles = scanMarkdownFiles(BLOG_DIR);
-  const allFiles = [...docsFiles, ...blogFiles];
-  
-  console.log(`Found ${allFiles.length} markdown files`);
-  
-  // Extract metadata from all files
-  const documents = allFiles.map(file => {
-    const metadata = extractMetadata(file.fullPath);
-    const isDoc = file.fullPath.includes('/docs/');
-    const isBlog = file.fullPath.includes('/blog/');
-    
-    let urlPath;
-    if (isDoc) {
-      urlPath = '/docs/' + file.relativePath.replace(/\.mdx?$/, '').replace(/\/README$/, '');
-    } else if (isBlog) {
-      urlPath = '/blog/' + file.relativePath.replace(/\.mdx?$/, '');
-    } else {
-      urlPath = '/' + file.relativePath.replace(/\.mdx?$/, '');
+const GENERATED_PREFIX = '// Generated by scripts/generate-tag-pages.js; sha256=';
+const contentHash = content => createHash('sha256').update(content).digest('hex');
+const generatedContent = content => `${GENERATED_PREFIX}${contentHash(content)}\n${content}`;
+// Both slash variants address the same page, regardless of the site's preferred
+// trailingSlash setting. Keep the emitted routes unchanged; canonicalize keys only.
+const tagRouteKey = tag => applyTrailingSlash(tagPageRoute(tag), {
+  baseUrl: '/', trailingSlash: false,
+});
+
+function isGeneratedOutput(content, relativePath) {
+  if (content.startsWith(GENERATED_PREFIX)) {
+    const newline = content.indexOf('\n');
+    return newline !== -1 &&
+      content.slice(GENERATED_PREFIX.length, newline) === contentHash(content.slice(newline + 1));
+  }
+  // Adopt only exact outputs of the pre-marker generator. Compare the entire
+  // template and canonical JSON payload; a filename or partial header is not proof.
+  try {
+    if (relativePath === 'index.js') {
+      const match = content.match(/  const tagStats = Object\.fromEntries\(Object\.entries\((\{[\s\S]*?\})\)\n    \.map/);
+      if (!match) return false;
+      const payload = JSON.stringify(JSON.parse(match[1]), null, 2);
+      return content === generateTagsIndexPage({}).replace(
+        '  const tagStats = Object.fromEntries(Object.entries({})',
+        () => `  const tagStats = Object.fromEntries(Object.entries(${payload})`);
     }
-    
-    return {
-      ...file,
-      metadata,
-      path: urlPath,
-      type: isDoc ? 'doc' : isBlog ? 'blog' : 'page'
-    };
-  }).filter(doc => doc.metadata.tags && doc.metadata.tags.length > 0);
+    const match = content.match(/  const documents = (\[[\s\S]*?\])\.map\(doc => \(\{/);
+    if (!match || !relativePath.endsWith('.js')) return false;
+    const payload = JSON.stringify(JSON.parse(match[1]), null, 2);
+    return content === generateTagPageContent(relativePath.slice(0, -3), {documents: []})
+      .replace('  const documents = []', () => `  const documents = ${payload}`);
+  } catch {
+    return false;
+  }
+}
+
+function readOutputFiles(outputDir) {
+  const entries = new Map();
+  if (!fs.existsSync(outputDir)) {
+    // existsSync follows links and returns false for a dangling symlink.
+    if (fs.lstatSync(outputDir, {throwIfNoEntry: false})) {
+      throw new Error(`Refusing symlinked output directory: ${outputDir}`);
+    }
+    return entries;
+  }
+  if (!fs.lstatSync(outputDir).isDirectory()) {
+    throw new Error(`Output directory is not a regular directory: ${outputDir}`);
+  }
+  function visit(directory, prefix = '') {
+    for (const entry of fs.readdirSync(directory, {withFileTypes: true})) {
+      const relative = prefix + entry.name;
+      const fullPath = path.join(directory, entry.name);
+      if (entry.isDirectory()) {
+        entries.set(relative, {directory: true});
+        visit(fullPath, `${relative}/`);
+      } else {
+        const content = entry.isFile() && relative.endsWith('.js')
+          ? fs.readFileSync(fullPath, 'utf8') : null;
+        entries.set(relative, {
+          content,
+          generated: content !== null && isGeneratedOutput(content, relative),
+        });
+      }
+    }
+  }
+  visit(outputDir);
+  return entries;
+}
+
+function planOutputs(outputDir, tagStats) {
+  const routes = new Set([tagRouteKey('index')]);
+  const planned = new Map();
+  for (const [tag, stats] of Object.entries(tagStats)) {
+    const relative = path.relative(outputDir, path.resolve(outputDir, `${tag}.js`));
+    if (relative === '..' || relative.startsWith(`..${path.sep}`) || path.isAbsolute(relative)) {
+      throw new Error(`Tag filename leaves the output directory: ${tag}`);
+    }
+    if (tag.includes('\\') || tag.split('/').some(part => !part || part === '.' || part === '..')) {
+      throw new Error(`Unsupported generated tag filename: ${tag}`);
+    }
+    const route = tagRouteKey(tag);
+    if (routes.has(route)) throw new Error(`Duplicate generated tag route: ${route}`);
+    routes.add(route);
+    planned.set(`${tag}.js`, generatedContent(generateTagPageContent(tag, stats)));
+  }
+  planned.set('index.js', generatedContent(generateTagsIndexPage(tagStats)));
+
+  const existing = readOutputFiles(outputDir);
+  for (const relative of planned.keys()) {
+    const entry = existing.get(relative);
+    if (entry && !entry.generated) {
+      throw new Error(`Refusing to overwrite manual or modified output: ${relative}`);
+    }
+    for (let parent = path.posix.dirname(relative); parent !== '.'; parent = path.posix.dirname(parent)) {
+      if (existing.has(parent) && !existing.get(parent).directory) {
+        throw new Error(`Output parent is not a regular directory: ${parent}`);
+      }
+    }
+  }
+  for (const [relative, entry] of existing) {
+    if (!entry.generated && !entry.directory && relative.endsWith('.js') &&
+        routes.has(tagRouteKey(relative.slice(0, -3)))) {
+      throw new Error(`Generated tag route conflicts with manual output: ${relative}`);
+    }
+  }
+  return {
+    planned,
+    obsolete: [...existing].filter(([relative, entry]) => entry.generated && !planned.has(relative))
+      .map(([relative]) => relative),
+  };
+}
+
+// Main function
+async function main({siteDir = SITE_DIR, siteConfig, outputDir = path.join(siteDir, 'src/pages/tags')} = {}) {
+  console.log('🏷️  Generating tag pages...');
+  const config = siteConfig || await loadFreshModule(path.join(siteDir, 'docusaurus.config.js'));
+  const documents = await collectDocuments({siteDir, siteConfig: config});
   
   console.log(`Found ${documents.length} documents with tags`);
   
@@ -507,25 +650,21 @@ function main() {
   const tagCount = Object.keys(tagStats).length;
   
   console.log(`Generated statistics for ${tagCount} tags`);
-  
-  // Generate individual tag pages
-  let generatedPages = 0;
-  Object.entries(tagStats).forEach(([tag, stats]) => {
-    const pageContent = generateTagPageContent(tag, stats);
-    const fileName = `${tag}.js`;
-    const filePath = path.join(TAGS_OUTPUT_DIR, fileName);
-    
-    fs.writeFileSync(filePath, pageContent);
-    generatedPages++;
-  });
-  
-  // Generate tags index page
-  const indexContent = generateTagsIndexPage(tagStats);
-  const indexPath = path.join(TAGS_OUTPUT_DIR, 'index.js');
-  fs.writeFileSync(indexPath, indexContent);
+
+  // Validate the complete write/delete plan before changing any output.
+  const {planned, obsolete} = planOutputs(outputDir, tagStats);
+  fs.mkdirSync(outputDir, {recursive: true});
+  for (const [relative, content] of planned) {
+    const filePath = path.join(outputDir, relative);
+    fs.mkdirSync(path.dirname(filePath), {recursive: true});
+    fs.writeFileSync(filePath, content);
+  }
+  // Unlink only verified generated files; leave manual files and directories alone.
+  for (const relative of obsolete) fs.unlinkSync(path.join(outputDir, relative));
+  const generatedPages = tagCount;
   
   console.log(`✅ Generated ${generatedPages} tag pages and 1 index page`);
-  console.log(`📁 Output directory: ${TAGS_OUTPUT_DIR}`);
+  console.log(`📁 Output directory: ${outputDir}`);
   
   // Generate summary
   const topTags = Object.entries(tagStats)
@@ -536,11 +675,15 @@ function main() {
   topTags.forEach(([tag, stats]) => {
     console.log(`   ${tag}: ${stats.count} documents`);
   });
+  return {documents, tagStats, generatedPages, removedPages: obsolete.length, outputDir};
 }
 
 // Run the script
 if (require.main === module) {
-  main();
+  main().catch(error => {
+    console.error(error);
+    process.exitCode = 1;
+  });
 }
 
 module.exports = {
@@ -548,5 +691,7 @@ module.exports = {
   extractMetadata,
   generateTagStats,
   generateTagPageContent,
-  generateTagsIndexPage
+  generateTagsIndexPage,
+  collectDocuments,
+  main
 };

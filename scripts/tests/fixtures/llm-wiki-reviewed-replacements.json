@@ -1,0 +1,13 @@
+{
+  "issue": 69,
+  "slug": "eks-best-practices/resource-cost/karpenter-autoscaling",
+  "reason": "Replace unsupported fixed latency, price, and allocation guarantees with reviewed source Markdown. These are content corrections, not serializer omissions.",
+  "components": {
+    "AutoModeComparison": ["EKS Auto Mode vs Self-managed Karpenter", "HPA/VPA", "인스턴스별 요율"],
+    "ControlPlaneComparison": ["| 기준 | Standard | Provisioned |", "scaling tier", "API Priority and Fairness"],
+    "PracticalGuide": ["스케일링 전략 의사결정 프레임워크", "| 반응형 |", "| 예측형 |", "| 복원력 |", "| 기본 용량 |"],
+    "ScalingBenchmark": ["검증 가능한 확장 측정 설계", "| 탐지 지연 |", "| 프로비저닝 지연 |", "P50/P95/P99"],
+    "ScalingLatencyBreakdown": ["스케일링 지연 시간 분해 분석", "메트릭 반영", "트래픽 처리 시각", "백분위수"],
+    "WarmPoolCostAnalysis": ["Warm Pool 크기 계산 방법", "20 CPU·40Gi", "3 × 0.20 × 12 × 22 = $158.40"]
+  }
+}

@@ -12,6 +12,7 @@ tags:
   - guardduty
   - threat-detection
   - mitre
+  - scope:ops
 sidebar_label: GuardDuty Extended
 category: security
 ---

@@ -1,15 +1,23 @@
 import React, {useEffect, useRef, useState} from 'react';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
+import {useLocation} from '@docusaurus/router';
+import Icon from '@site/src/components/Icon';
 import styles from './styles.module.css';
 
-export default function CopyButton({text, getText, label, ariaLabel}) {
+export default function CopyButton(props) {
+  const {pathname} = useLocation();
+  const {i18n} = useDocusaurusContext();
+  return <CopyControl key={`${i18n.currentLocale}:${pathname}`} {...props} />;
+}
+
+function CopyControl({text, getText, label, ariaLabel, icon}) {
   const {i18n} = useDocusaurusContext();
   const ko = i18n.currentLocale === 'ko';
   const [status, setStatus] = useState('idle');
-  const mounted = useRef(true);
+  const operation = useRef(0);
+  const pending = useRef(false);
   useEffect(() => {
-    mounted.current = true;
-    return () => { mounted.current = false; };
+    return () => { operation.current += 1; };
   }, []);
   useEffect(() => {
     if (status !== 'success' && status !== 'error') return undefined;
@@ -18,16 +26,22 @@ export default function CopyButton({text, getText, label, ariaLabel}) {
   }, [status]);
 
   async function copy() {
+    if (pending.current) return;
+    pending.current = true;
+    const currentOperation = ++operation.current;
     setStatus('pending');
     try {
       const value = getText ? await getText() : text;
-      if (typeof value !== 'string' || !navigator.clipboard) {
+      if (currentOperation !== operation.current) return;
+      if (typeof value !== 'string' || typeof navigator.clipboard?.writeText !== 'function') {
         throw new Error('Clipboard is unavailable');
       }
       await navigator.clipboard.writeText(value);
-      if (mounted.current) setStatus('success');
+      if (currentOperation === operation.current) setStatus('success');
     } catch {
-      if (mounted.current) setStatus('error');
+      if (currentOperation === operation.current) setStatus('error');
+    } finally {
+      if (currentOperation === operation.current) pending.current = false;
     }
   }
 
@@ -38,13 +52,17 @@ export default function CopyButton({text, getText, label, ariaLabel}) {
     error: ko ? '복사하지 못했습니다. 다시 시도하세요.' : 'Copy failed. Please try again.',
   }[status];
 
+  const statusIcon = {pending: 'clock', success: 'check', error: 'x-circle'}[status];
   return (
-    <span className={styles.control}>
+    <span className={styles.control} data-ep-theme="manual" data-state={status}>
       <button type="button" className={styles.button} onClick={copy}
-        disabled={status === 'pending'} aria-label={ariaLabel}>
-        {label || (ko ? '복사' : 'Copy')}
+        disabled={status === 'pending'} aria-label={ariaLabel} aria-busy={status === 'pending'}>
+        {(statusIcon || icon) && <Icon name={statusIcon || icon} size={18} />}
+        <span>{label || (ko ? '복사' : 'Copy')}</span>
       </button>
-      <span role="status" className={styles.status}>{message}</span>
+      <span role="status" aria-live="polite" aria-atomic="true" className={styles.status}>
+        {message && `${label || (ko ? '복사' : 'Copy')}: ${message}`}
+      </span>
     </span>
   );
 }

@@ -3,9 +3,9 @@ title: Inference Gateway & LLM Gateway Routing Strategy
 description: kgateway + Bifrost/LiteLLM 2-Tier architecture with Cascade Routing, Semantic Router, and Hybrid Routing design patterns
 created: "2025-02-05"
 last_update:
-  date: "2026-08-11"
+  date: 2026-09-18
   author: YoungJoon Jeong
-reading_time: 51
+reading_time: 38
 tags:
   - kgateway
   - bifrost
@@ -485,7 +485,7 @@ For actual code examples and YAML manifests, refer to Reference Architecture sec
 - [Kubernetes Gateway API](https://gateway-api.sigs.k8s.io/)
 - [Gateway API Inference Extension (Proposal)](https://github.com/kubernetes-sigs/gateway-api/issues/2813)
 - [kgateway Official Documentation](https://kgateway.dev/docs/)
-- [agentgateway GitHub](https://github.com/kgateway-dev/agentgateway)
+- [agentgateway GitHub](https://github.com/agentgateway/agentgateway)
 - [Bifrost Official Documentation](https://www.getmaxim.ai/bifrost/docs)
 - [LiteLLM Official Documentation](https://docs.litellm.ai/)
 - [LiteLLM Complexity Routing](https://docs.litellm.ai/docs/routing)

@@ -13,6 +13,7 @@ tags:
   - monitoring
   - prometheus
   - adot
+  - scope:ops
 sidebar_label: Observability
 ---
 

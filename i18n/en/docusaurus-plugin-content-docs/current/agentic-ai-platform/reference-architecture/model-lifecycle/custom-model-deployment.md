@@ -3,9 +3,9 @@ title: Custom Model Deployment Guide
 description: Hands-on guide to deploying large open-source models on EKS, based on the GLM-5.1 experience
 created: "2026-04-04"
 last_update:
-  date: "2026-07-13"
+  date: 2026-09-18
   author: devfloor9
-reading_time: 33
+reading_time: 32
 tags:
   - deployment
   - glm-5
@@ -969,7 +969,7 @@ For large GPU instances (p5en, p6), use **EKS Standard Mode**. Auto Mode + MNG h
 
 - [GLM-5 Model Card](https://huggingface.co/zai-org/GLM-5-FP8)
 - [vLLM Documentation](https://docs.vllm.ai/)
-- [SGLang GLM-5 Guide](https://sglang.readthedocs.io/en/latest/models/glm5.html)
+- [SGLang GLM-5 Guide](https://docs.sglang.io/cookbook/autoregressive/GLM/GLM-5)
 - [LeaderWorkerSet GitHub](https://github.com/kubernetes-sigs/lws)
 - [NVIDIA GPU Operator](https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/)
 - [s5cmd GitHub](https://github.com/peak/s5cmd)

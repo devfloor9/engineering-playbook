@@ -1,203 +1,72 @@
 import React from 'react';
-import { useColorMode } from '@docusaurus/theme-common';
+import Figure from './Figure';
+import Icon from './Icon';
+import ManualTable from './ArchitectureTables/ManualTable';
+import styles from './ThroughputChart.module.css';
 
 const i18n = {
   en: {
-    title: 'Inference Throughput',
-    unit: 'tokens/sec',
-    higherBetter: 'Higher is better',
-    scoutLabel: 'Llama 4 Scout',
-    maverickLabel: 'Llama 4 Maverick',
-    best: 'Best',
+    title: 'Inference Throughput', unit: 'tokens/sec', higherBetter: 'Higher is better',
+    scoutLabel: 'Llama 4 Scout', maverickLabel: 'Llama 4 Maverick', best: 'Best',
+    description: 'Inference throughput by model and instance. Both charts use a 0–5,000 tokens/sec scale. Best marks the highest value within each model.',
+    dataTitle: 'Inference Throughput Data', model: 'Model', scenario: 'Scenario', status: 'Comparison', other: 'Other result',
   },
   ko: {
-    title: '추론 처리량',
-    unit: 'tokens/sec',
-    higherBetter: '높을수록 좋음',
-    scoutLabel: 'Llama 4 Scout',
-    maverickLabel: 'Llama 4 Maverick',
-    best: '최적',
+    title: '추론 처리량', unit: 'tokens/sec', higherBetter: '높을수록 좋음',
+    scoutLabel: 'Llama 4 Scout', maverickLabel: 'Llama 4 Maverick', best: '최적',
+    description: '모델과 인스턴스별 추론 처리량입니다. 두 차트의 눈금 범위는 0–5,000 tokens/sec입니다. 최적 표시는 각 모델의 최댓값을 의미합니다.',
+    dataTitle: '추론 처리량 원본 데이터', model: '모델', scenario: '시나리오', status: '비교', other: '기타 결과',
   },
 };
-
 const scoutData = [
-  { id: 'A', label: 'p5/H100', color: 'var(--ifm-color-emphasis-600)', value: 4200 },
-  { id: 'B', label: 'p4d/A100', color: '#8b5cf6', value: 1800 },
-  { id: 'C', label: 'g6e/L40S', color: '#f59e0b', value: 1400 },
-  { id: 'D', label: 'trn2', color: '#3b82f6', value: 3500 },
-  { id: 'E', label: 'inf2', color: '#10b981', value: 2800 },
+  { id: 'A', label: 'p5/H100', color: 'var(--ep-chart-1)', value: 4200 },
+  { id: 'B', label: 'p4d/A100', color: 'var(--ep-chart-2)', value: 1800 },
+  { id: 'C', label: 'g6e/L40S', color: 'var(--ep-chart-3)', value: 1400 },
+  { id: 'D', label: 'trn2', color: 'var(--ep-chart-4)', value: 3500 },
+  { id: 'E', label: 'inf2', color: 'var(--ep-chart-5)', value: 2800 },
 ];
-
 const maverickData = [
-  { id: 'A', label: 'p5/H100', color: 'var(--ifm-color-emphasis-600)', value: 2800 },
-  { id: 'D', label: 'trn2', color: '#3b82f6', value: 2200 },
+  { id: 'A', label: 'p5/H100', color: 'var(--ep-chart-1)', value: 2800 },
+  { id: 'D', label: 'trn2', color: 'var(--ep-chart-4)', value: 2200 },
 ];
+const maxValue = 5000;
 
-function Bar({ value, max, color, label, scenarioId, isBest, bestLabel, isDark }) {
-  const pct = (value / max) * 100;
-
-  return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.6rem' }}>
-      <div style={{
-        width: '90px',
-        textAlign: 'right',
-        fontSize: '0.8rem',
-        fontWeight: 500,
-        color: isDark ? 'var(--ifm-color-emphasis-200)' : '#475569',
-        flexShrink: 0,
-      }}>
-        {scenarioId}: {label}
-      </div>
-      <div style={{
-        flex: 1,
-        background: isDark ? '#334155' : '#f1f5f9',
-        borderRadius: '6px',
-        height: '28px',
-        position: 'relative',
-        overflow: 'visible',
-      }}>
-        <div style={{
-          width: `${Math.max(pct, 2)}%`,
-          background: isBest
-            ? `linear-gradient(90deg, ${color}cc, ${color})`
-            : `${color}cc`,
-          height: '100%',
-          borderRadius: '6px',
-          transition: 'width 0.6s ease',
-          boxShadow: isBest ? `0 0 8px ${color}60` : 'none',
-          border: isBest ? `2px solid ${color}` : 'none',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'flex-end',
-          paddingRight: '8px',
-          boxSizing: 'border-box',
-          minWidth: '60px',
-        }}>
-          <span style={{
-            color: '#fff',
-            fontSize: '0.78rem',
-            fontWeight: 700,
-            textShadow: '0 1px 2px rgba(0,0,0,0.3)',
-            whiteSpace: 'nowrap',
-          }}>
-            {value.toLocaleString()}
-          </span>
-        </div>
-        {isBest && (
-          <span style={{
-            position: 'absolute',
-            right: '-70px',
-            top: '50%',
-            transform: 'translateY(-50%)',
-            fontSize: '0.7rem',
-            fontWeight: 600,
-            color: color,
-            whiteSpace: 'nowrap',
-          }}>
-            ✓ {bestLabel}
-          </span>
-        )}
-      </div>
+function Bar({value, color, label, scenarioId, isBest, bestLabel, unit, locale}) {
+  return <div className={styles.row}>
+    <div className={styles.label}>{scenarioId}: {label}</div>
+    <div className={styles.value}>{value.toLocaleString(locale)} {unit}</div>
+    <div className={styles.track} aria-hidden="true">
+      <div className={styles.bar} style={{width: `${(value / maxValue) * 100}%`, backgroundColor: color}} />
     </div>
-  );
+    {isBest && <div className={styles.status} data-status="success"><Icon name="check" size={16} /> {bestLabel}</div>}
+  </div>;
 }
 
-export default function InferenceThroughputChart({ locale = 'en' }) {
+export default function InferenceThroughputChart({locale = 'en'}) {
   const t = i18n[locale] || i18n.en;
-  const { colorMode } = useColorMode();
-  const isDark = colorMode === 'dark';
-
-  const theme = {
-    text: isDark ? 'var(--ifm-color-emphasis-200)' : '#1f2937',
-    textSecondary: isDark ? '#cbd5e1' : '#475569',
-    bgSurface: isDark ? '#1e293b' : '#ffffff',
-    bgHeader: isDark ? '#0f172a' : 'var(--ifm-background-surface-color)',
-    border: isDark ? '#334155' : 'var(--ifm-color-emphasis-200)',
-  };
-
+  const numberLocale = locale === 'ko' ? 'ko-KR' : 'en-US';
   const highestScout = Math.max(...scoutData.map(s => s.value));
   const highestMaverick = Math.max(...maverickData.map(s => s.value));
-  const maxValue = 5000;
-
-  return (
-    <div style={{
-      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-      maxWidth: '720px',
-    }}>
-      {/* Scout Section */}
-      <div style={{
-        background: theme.bgSurface,
-        border: `1px solid ${theme.border}`,
-        borderRadius: '10px',
-        padding: '1.2rem 1.5rem',
-        marginBottom: '1rem',
-      }}>
-        <div style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'baseline',
-          marginBottom: '1rem',
-        }}>
-          <h4 style={{ margin: 0, fontSize: '0.95rem', color: isDark ? '#f1f5f9' : '#334155' }}>
-            {t.scoutLabel}
-          </h4>
-          <span style={{ fontSize: '0.75rem', color: theme.textSecondary, fontStyle: 'italic' }}>
-            {t.higherBetter}
-          </span>
-        </div>
-        <div style={{ paddingRight: '70px' }}>
-          {scoutData.map(s => (
-            <Bar
-              key={`scout-${s.id}`}
-              value={s.value}
-              max={maxValue}
-              color={s.color}
-              label={s.label}
-              scenarioId={s.id}
-              isBest={s.value === highestScout}
-              bestLabel={t.best}
-              isDark={isDark}
-            />
-          ))}
-        </div>
-      </div>
-
-      {/* Maverick Section */}
-      <div style={{
-        background: theme.bgSurface,
-        border: `1px solid ${theme.border}`,
-        borderRadius: '10px',
-        padding: '1.2rem 1.5rem',
-      }}>
-        <div style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'baseline',
-          marginBottom: '1rem',
-        }}>
-          <h4 style={{ margin: 0, fontSize: '0.95rem', color: isDark ? '#f1f5f9' : '#334155' }}>
-            {t.maverickLabel}
-          </h4>
-          <span style={{ fontSize: '0.75rem', color: theme.textSecondary, fontStyle: 'italic' }}>
-            {t.higherBetter}
-          </span>
-        </div>
-        <div style={{ paddingRight: '70px' }}>
-          {maverickData.map(s => (
-            <Bar
-              key={`maverick-${s.id}`}
-              value={s.value}
-              max={maxValue}
-              color={s.color}
-              label={s.label}
-              scenarioId={s.id}
-              isBest={s.value === highestMaverick}
-              bestLabel={t.best}
-              isDark={isDark}
-            />
-          ))}
-        </div>
-      </div>
-    </div>
-  );
+  return <div data-ep-theme="manual" className={styles.root}>
+    <Figure title={t.title} description={t.description}
+      dataFallback={<ManualTable title={t.dataTitle}
+        headers={[`${t.model} / ${t.scenario}`, t.unit, t.status]}
+        rows={scoutData.map(s => [`${t.scoutLabel} — ${s.id}: ${s.label}`, s.value.toLocaleString(numberLocale), s.value === highestScout ? t.best : t.other])
+          .concat(maverickData.map(s => [`${t.maverickLabel} — ${s.id}: ${s.label}`, s.value.toLocaleString(numberLocale), s.value === highestMaverick ? t.best : t.other]))}
+        numericColumns={[1]} />}
+    >
+      <section className={styles.section} aria-label={t.scoutLabel}>
+        <p className={styles.sectionTitle}>{t.scoutLabel}</p>
+        <p className={styles.note}>{t.higherBetter}</p>
+        {scoutData.map(s => <Bar key={`scout-${s.id}`} value={s.value} color={s.color} label={s.label} scenarioId={s.id}
+          isBest={s.value === highestScout} bestLabel={t.best} unit={t.unit} locale={numberLocale} />)}
+      </section>
+      <section className={styles.section} aria-label={t.maverickLabel}>
+        <p className={styles.sectionTitle}>{t.maverickLabel}</p>
+        <p className={styles.note}>{t.higherBetter}</p>
+        {maverickData.map(s => <Bar key={`maverick-${s.id}`} value={s.value} color={s.color} label={s.label} scenarioId={s.id}
+          isBest={s.value === highestMaverick} bestLabel={t.best} unit={t.unit} locale={numberLocale} />)}
+      </section>
+    </Figure>
+  </div>;
 }

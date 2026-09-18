@@ -1,5 +1,6 @@
 import React from 'react';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
+import ManualTable from './ManualTable';
 const CoreCapabilities = () => {
   const {
     i18n
@@ -7,90 +8,23 @@ const CoreCapabilities = () => {
   const isKo = i18n.currentLocale === 'ko';
   const capabilities = [{
     name: isKo ? '에이전트 오케스트레이션' : 'Agent Orchestration',
-    description: isKo ? 'AI 에이전트 라이프사이클 선언적 관리' : 'Declarative AI agent lifecycle management',
-    color: '#4ecdc4'
+    description: isKo ? 'AI 에이전트 라이프사이클 선언적 관리' : 'Declarative AI agent lifecycle management'
   }, {
     name: isKo ? '지능형 라우팅' : 'Intelligent Routing',
-    description: isKo ? '추론 요청의 지능형 동적 라우팅' : 'Intelligent dynamic routing of inference requests',
-    color: '#ff6b6b'
+    description: isKo ? '추론 요청의 지능형 동적 라우팅' : 'Intelligent dynamic routing of inference requests'
   }, {
     name: isKo ? '벡터 검색' : 'Vector Search',
-    description: isKo ? '벡터 DB 기반 RAG(Retrieval-Augmented Generation) 지원' : 'Vector DB-based RAG (Retrieval-Augmented Generation) support',
-    color: '#45b7d1'
+    description: isKo ? '벡터 DB 기반 RAG(Retrieval-Augmented Generation) 지원' : 'Vector DB-based RAG (Retrieval-Augmented Generation) support'
   }, {
     name: isKo ? '관측성' : 'Observability',
-    description: isKo ? '에이전트 동작 추적, LLM 트레이싱, 비용 분석' : 'Agent behavior tracking, LLM tracing, and cost analysis',
-    color: '#96ceb4'
+    description: isKo ? '에이전트 동작 추적, LLM 트레이싱, 비용 분석' : 'Agent behavior tracking, LLM tracing, and cost analysis'
   }, {
     name: isKo ? '확장성' : 'Scalability',
-    description: isKo ? 'Kubernetes 네이티브 수평적 확장' : 'Horizontal scaling native to Kubernetes',
-    color: '#f9ca24'
+    description: isKo ? 'Kubernetes 네이티브 수평적 확장' : 'Horizontal scaling native to Kubernetes'
   }, {
     name: isKo ? '멀티테넌트' : 'Multi-Tenancy',
-    description: isKo ? '리소스 격리와 공정한 분배를 통한 다중 팀 지원' : 'Support multiple teams with resource isolation and fair distribution',
-    color: '#eb4d4b'
+    description: isKo ? '리소스 격리와 공정한 분배를 통한 다중 팀 지원' : 'Support multiple teams with resource isolation and fair distribution'
   }];
-  return <div style={{
-    maxWidth: '1000px',
-    margin: '20px auto',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif'
-  }}>
-      <div style={{
-      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-      color: 'white',
-      padding: '20px 24px',
-      borderRadius: '8px 8px 0 0'
-    }}>
-        <div style={{
-        fontSize: '20px',
-        fontWeight: '600'
-      }}>
-          {isKo ? '핵심 기능' : 'Core Capabilities'}
-        </div>
-      </div>
-
-      <div style={{
-      background: 'var(--ifm-background-surface-color)',
-      border: '1px solid var(--ifm-color-emphasis-200)',
-      borderTop: 'none',
-      borderRadius: '0 0 8px 8px',
-      overflow: 'hidden'
-    }}>
-        {capabilities.map((capability, index) => <div key={index} style={{
-        display: 'flex',
-        alignItems: 'center',
-        padding: '16px 24px',
-        borderBottom: index < capabilities.length - 1 ? '1px solid var(--ifm-color-emphasis-200)' : 'none',
-        transition: 'background-color 0.2s'
-      }}>
-            <div style={{
-          width: '4px',
-          height: '40px',
-          background: capability.color,
-          borderRadius: '2px',
-          marginRight: '16px'
-        }} />
-            <div style={{
-          flex: 1
-        }}>
-              <div style={{
-            fontSize: '16px',
-            fontWeight: '600',
-            color: 'var(--ifm-font-color-base)',
-            marginBottom: '4px'
-          }}>
-                {capability.name}
-              </div>
-              <div style={{
-            fontSize: '14px',
-            color: 'var(--ifm-color-emphasis-700)',
-            lineHeight: '1.5'
-          }}>
-                {capability.description}
-              </div>
-            </div>
-          </div>)}
-      </div>
-    </div>;
+  return <ManualTable title={isKo ? "핵심 기능" : "Core Capabilities"} headers={[isKo ? "기능" : "Capability", isKo ? "설명" : "Description"]} rows={capabilities.map(row => [row.name, row.description])} />;
 };
 export default CoreCapabilities;

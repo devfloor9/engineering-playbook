@@ -13,6 +13,7 @@ tags:
   - vpc-cni
   - dns
   - service
+  - scope:ops
 sidebar_label: Networking
 ---
 

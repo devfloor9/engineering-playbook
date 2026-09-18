@@ -3,9 +3,9 @@ title: Cascade Routing Production Tuning
 description: Guide to tuning Inference Gateway Cascade Routing classification thresholds, Canary rollout, Fallback, and cost drift alerts based on production traces
 created: "2026-04-18"
 last_update:
-  date: "2026-06-26"
+  date: 2026-09-18
   author: devfloor9
-reading_time: 23
+reading_time: 32
 tags:
   - cascade-routing
   - inference-gateway
@@ -23,293 +23,189 @@ This document targets platform operators and MLOps engineers. It assumes LLM Cla
 :::
 
 :::caution Verification pending
-SLO values, Langfuse queries, Canary stages, and Fallback order in this document are design drafts awaiting production validation. Real-deployment verification by the Classifier v7 operator will update the banner and value footnotes.
+Query contracts, rollout gates, and fallback design have received static review; operational verification remains pending. The earlier draft did not provide verifiable artifacts for its dates, request counts, or performance numbers, so those numbers are not presented as measurements. Operators must complete and review the evidence procedure below.
 
-Verification tracking: [Issue #5](https://github.com/devfloor9/engineering-playbook/issues/5)
+[Issue #5](https://github.com/devfloor9/engineering-playbook/issues/5)
 :::
 
 ---
 
 ## Tuning Goals and SLO Definition
 
-Cascade Routing tuning must simultaneously achieve **cost reduction** and **quality maintenance**. Without clear SLOs, excessive optimization can degrade user experience.
+Evaluate cost, quality, and availability together. Workload owners must approve targets before evaluation; illustrative numbers below are not accepted SLOs.
 
 ### SLO Examples (GLM-5 + Qwen3-4B Environment)
 
-| Metric | Target | Measurement Method | Notes |
-|------|--------|----------|------|
-| **TTFT P95** | < 3sec | Langfuse trace `time_to_first_token` | Qwen3-4B baseline, GLM-5 is < 10sec |
-| **Cost per 1k Requests** | < $5.00 | Daily total cost / request count × 1000 | 38% reduction vs current $8.20 |
-| **Misroute Rate** | ≤ 5% | (FN + FP) / total requests | FN: needed strong→weak used, FP: used strong but weak sufficient |
-| **SLM Usage Rate** | 60-70% | weak routing / total requests | Too low = insufficient cost reduction, too high = quality degradation |
-| **User Satisfaction** | ≥ 4.0/5.0 | Langfuse feedback score average | thumb-down < 10% |
+| Metric | Definition | Required evidence |
+|---|---|---|
+| TTFT p95/p99 | Seconds from gateway receipt to first response token | Histograms by model/input length; separate total stream duration |
+| Cost per request | Allocated window cost / initial requests in that window | Ledger including retries, fallback, and idle GPUs |
+| Classification error | (FP + FN) / N labeled samples | Label rules, sample seed, denominator, confidence interval |
+| Routing mismatch | classifier_result differs from actual_tier / completed requests | fallback_reason and actual model per attempt |
+| SLM usage | Final weak responses / final responses | Failures, cache hits, and incomplete requests reported separately |
 
 ### Measurement Cycle
 
-- **Real-time monitoring**: TTFT P95, Cost per Request (Grafana dashboard)
-- **Daily review**: Misroute Rate, SLM usage rate (Langfuse analysis)
-- **Weekly tuning**: Keyword add/remove, threshold adjustment (offline labeling-based)
+Observe errors, TTFT, and fallback_reason continuously and review daily labeled samples. Match control and candidate by time window, request class, and token-length distribution. Feedback-only samples do not estimate the overall error rate.
 
 ### Success Metric Calculation Example
 
+This function consumes a normalized local export, not Langfuse SDK objects. Rates are fractions from 0 to 1; missing cost is not converted to zero.
+
 ```python
-# Langfuse trace data-based calculation
-def calculate_metrics(traces: list):
-    total = len(traces)
-    weak_count = sum(1 for t in traces if t.tags.get("tier") == "weak")
-    misroute_count = sum(1 for t in traces if t.tags.get("misroute"))
-    total_cost = sum(t.calculated_total_cost or 0 for t in traces)
-    
+def calculate_metrics(rows):
+    # Normalized local export: one row per initial request, not per attempt.
+    labeled = [r for r in rows if r.get("required_tier") in {"weak", "strong"}
+               and r.get("classifier_result") in {"weak", "strong"}]
+    completed = [r for r in rows if r.get("actual_tier") in {"weak", "strong"}]
+    known_cost = [r for r in rows if r.get("allocated_cost_usd") is not None]
+    def ratio(n, denominator):
+        return n / denominator if denominator else None
     return {
-        "slm_usage_rate": weak_count / total * 100,
-        "misroute_rate": misroute_count / total * 100,
-        "cost_per_1k": (total_cost / total) * 1000,
+        "misroute_rate": ratio(sum(r["classifier_result"] != r["required_tier"]
+                                   for r in labeled), len(labeled)),
+        "label_coverage": ratio(len(labeled), len(rows)),
+        "slm_usage_rate": ratio(sum(r["actual_tier"] == "weak" for r in completed),
+                                len(completed)),
+        "cost_coverage": ratio(len(known_cost), len(rows)),
+        "cost_per_1k": (1000 * sum(r["allocated_cost_usd"] for r in rows) / len(rows)
+                        if rows and len(known_cost) == len(rows) else None),
     }
 ```
 
-:::warning SLO Trade-offs
-Too high SLM usage degrades quality, too low provides minimal cost savings. **Find optimal balance through weekly A/B testing**.
-:::
-
----
-
 ## Classification Threshold Baseline (v7 baseline)
 
-### Production-validated Classification Criteria
+v7 names a comparison heuristic. It does not establish a deployed version or operational acceptance.
 
-Baseline derived from 2-week production testing in GLM-5 744B (H200 × 8, $12/hr) and Qwen3-4B (L4 × 1, $0.3/hr) environment.
+### Classification Criteria for Verification {#production-validated-classification-criteria}
 
-:::note Measurement Conditions
-- **Environment**: us-east-2, EKS Auto Mode, p5en.48xlarge (GLM-5) + g6.xlarge (Qwen3-4B)
-- **Measurement period**: 2026-03-30 ~ 2026-04-13 (14 days)
-- **Total samples**: ~42,000 requests (internal coding tool traffic), daily average 3,000
-- **Labeling**: Weekly 100 random sample manual labeling (total 200) → Precision/Recall calculation
-- **Reproduction method**: See § 4 weekly tuning cycle in this document
-
-This baseline is measured on internal single workload (coding tool). Retuning required if customer traffic characteristics differ. Measurement paused after us-east-2 teardown (2026-04-18), values will be updated upon redeployment.
-:::
+The earlier 14-day, 42,000-request, cost, and error-rate claims lacked linked evidence and have been removed. Record the UTC window, private environment identifier, configuration digest, sample manifest, and labeling rubric for reevaluation. Publish only approved aggregates.
 
 #### STRONG_KEYWORDS (17)
 
+Keywords are candidate complexity signals, not proof that a request requires a particular model.
+
 ```python
 STRONG_KEYWORDS = [
-    # Korean (7)
     "리팩터", "아키텍처", "설계", "분석", "최적화", "디버그", "마이그레이션",
-    
-    # English (10)
     "refactor", "architect", "design", "analyze", "optimize", "debug",
-    "migration", "complex", "performance", "security"
+    "migration", "complex", "performance", "security",
 ]
 ```
 
-**Keyword selection rationale**:
-- **리팩터/refactor**: Requires full code structure understanding — Qwen3-4B loses context in 1,000+ line codebases
-- **아키텍처/architect**: Multi-file dependency analysis — SLM insufficient with shallow reasoning
-- **분석/analyze**: Root cause tracing — GLM-5's chain-of-thought essential
-- **최적화/optimize**: Algorithm complexity calculation — Mathematical reasoning ability difference
-- **디버그/debug**: Stack trace backtracking — Long context required
-- **마이그레이션/migration**: API change mapping — Deep framework understanding required
-- **complex**: User explicitly mentions complexity
-- **performance**: Profiling, bottleneck analysis — System-level understanding
-- **security**: CVE analysis, vulnerability detection — Security domain knowledge
+#### Character Threshold (500 chars) {#token_threshold-500-chars}
 
-#### TOKEN_THRESHOLD (500 chars)
-
-```python
-TOKEN_THRESHOLD = 500  # ~250-300 tokens in Korean
-```
-
-**Rationale**:
-- **< 500 chars**: Simple queries (code snippet explanation, single function writing) — Qwen3-4B sufficient
-- **≥ 500 chars**: Multi-turn dialogue accumulation, long code blocks — GLM-5 required
-- Recommend adding `len(content.encode('utf-8')) > 600` condition for Korean/English mix due to higher English token density
+The previous `TOKEN_THRESHOLD` counted characters. The example uses `CHAR_THRESHOLD = 500`. Characters, UTF-8 bytes, and tokens are different units. Check model token limits separately using its tokenizer and chat template.
 
 #### TURN_THRESHOLD (5 turns)
 
-```python
-TURN_THRESHOLD = 5
-```
-
-**Rationale**:
-- **≤ 5 turns**: Independent queries — Low context window burden
-- **> 5 turns**: Accumulated context becomes complex, referencing previous dialogue increases — Leverage GLM-5's long context processing ability
+A turn is defined here as one user message, not `len(messages)` including system, assistant, and tool messages. Five is an unvalidated candidate threshold.
 
 ### v7 Classification Logic Complete Code
 
+The code supports text messages only. Multimodal inputs require a separate contract and must not be silently omitted.
+
 ```python
-STRONG_KEYWORDS = [
-    "리팩터", "아키텍처", "설계", "분석", "최적화", "디버그", "마이그레이션",
-    "refactor", "architect", "design", "analyze", "optimize", "debug",
-    "migration", "complex", "performance", "security"
-]
-TOKEN_THRESHOLD = 500
+CHAR_THRESHOLD = 500
 TURN_THRESHOLD = 5
 
 def classify_v7(messages: list[dict]) -> str:
-    """
-    v7 classification criteria (2-week production validation)
-    - Misroute Rate: 4.2%
-    - SLM usage rate: 68%
-    - Cost per 1k: $5.80
-    """
-    content = " ".join(m.get("content", "") for m in messages if m.get("content"))
-    lower = content.lower()
-    
-    # 1. Keyword matching (highest priority)
-    if any(kw in lower for kw in STRONG_KEYWORDS):
+    if any(not isinstance(m.get("content", ""), str) for m in messages):
+        raise ValueError("Only text messages are supported by this example")
+    content = " ".join(m.get("content", "") for m in messages)
+    user_turns = sum(m.get("role") == "user" for m in messages)
+    if any(kw in content.lower() for kw in STRONG_KEYWORDS):
         return "strong"
-    
-    # 2. Input length
-    if len(content) > TOKEN_THRESHOLD:
+    if len(content) > CHAR_THRESHOLD or user_turns > TURN_THRESHOLD:
         return "strong"
-    
-    # 3. Dialogue turn count
-    if len(messages) > TURN_THRESHOLD:
-        return "strong"
-    
     return "weak"
 ```
 
 ### Derivation Process Summary
 
-| Version | STRONG_KEYWORDS count | TOKEN_THRESHOLD | TURN_THRESHOLD | Misroute Rate | SLM usage rate | Notes |
-|------|-------------------|----------------|----------------|---------------|-----------|------|
-| v1 | 5 | 1000 | 10 | 12.3% | 82% | SLM overuse, quality degradation |
-| v3 | 10 | 750 | 7 | 8.1% | 74% | Improved accuracy with keyword addition |
-| v5 | 15 | 600 | 6 | 5.6% | 70% | Korean keyword reinforcement |
-| **v7** | **17** | **500** | **5** | **4.2%** | **68%** | **Current production baseline** |
-
----
+Record version, configuration hash, sample hash, label count, FN/FP, and cost coverage. Do not use an unverified version-performance table as a baseline.
 
 ## Langfuse OTel Trace-based Misroute Detection
 
+Classification quality, execution routing, and user feedback are different observations. Join by request_id without counting each retry as a new request.
+
 ### Misroute Definition
 
-| Type | Description | Detection Method |
-|------|------|----------|
-| **False Negative (FN)** | Weak routed but strong needed | thumb-down + `tier: weak` tag |
-| **False Positive (FP)** | Strong routed but weak sufficient | `tier: strong` + simple query pattern (manual labeling) |
+| Type | Exact condition |
+|---|---|
+| FN | classifier_result=weak, required_tier=strong |
+| FP | classifier_result=strong, required_tier=weak |
+| Routing mismatch | classifier_result != actual_tier; may be an intended fallback |
+| Review candidate | Negative feedback or retry; not FN/FP until labeled |
 
 ### Langfuse Trace Tag Structure
 
-LLM Classifier sends the following tags to Langfuse for all requests:
+Langfuse tags are a list of strings, not a dictionary. This illustrates the current OTel-based Python SDK. Pin server/SDK versions and verify export field mappings. Do not record request bodies or credentials.
 
 ```python
-from langfuse import Langfuse
+from langfuse import get_client, propagate_attributes
 
-langfuse = Langfuse()
-
-# Add tags during classification
-trace = langfuse.trace(
-    name="llm_request",
-    tags=["tier:weak", "keyword_match:false", "turn_count:3"],
-    metadata={
-        "classifier_version": "v7",
-        "content_length": 320,
-        "strong_keywords_found": [],
-    }
-)
+langfuse = get_client()
+with propagate_attributes(tags=["classifier:v7"], metadata={
+    "requestId": "synthetic-request-001",
+    "classifierResult": "weak",
+    "actualModelUsed": "qwen3-4b",
+    "actualTier": "weak",
+    "fallbackReason": "none",
+    "classifierVersion": "v7",
+}):
+    with langfuse.start_as_current_observation(
+        name="routing-decision", as_type="span"
+    ):
+        pass  # Synthetic instrumentation example; no model invocation.
+# Short-lived scripts must flush before exit.
+langfuse.flush()
 ```
+
+The export adapter maps camelCase metadata to request_id, classifier_result, actual_model_used, actual_tier, fallback_reason, and classifier_version respectively. propagate_attributes metadata uses short string values and alphanumeric keys. Verify observation-to-trace aggregation locations for the pinned server/SDK versions.
 
 ### Misroute Detection Queries (Langfuse UI)
 
+UI filters select candidates. The SQL below is a **read contract for a normalized export in SQLite/an analytics database**, not Langfuse internal tables or UI query syntax. OTel describes telemetry, not a SQL storage schema.
+
 #### FN Detection (weak → strong needed)
 
-**Filter**:
-```
-tags: tier:weak
-feedback.score: <= 2  (thumb-down)
-```
-
-**Extract information**:
-- Full prompt
-- Response quality
-- User feedback comments
-
-**Weekly analysis procedure**:
-1. Langfuse UI → Traces → Filter: `tier:weak AND feedback.score <= 2`
-2. Extract 100 samples (random)
-3. Manual labeling whether strong was actually needed
-4. Extract common patterns → Derive keyword candidates
+Select candidates with classifier_result=weak and a low named feedback score, then confirm required_tier=strong with independent labeling. Binary thumbs use 0/1; star scores use a different scale. Fix the score name and scale.
 
 #### FP Detection (strong → weak sufficient)
 
-**Filter**:
-```
-tags: tier:strong
-calculated_total_cost: > 0.01  (high-cost requests)
-metadata.content_length: < 200  (short queries)
-```
+Count FP only when classifier_result=strong and required_tier=weak. A short prompt or fast TTFT does not establish that a weaker model is sufficient.
 
-**Extract information**:
-- Prompt conciseness
-- Actual response complexity
-- TTFT (if < 2sec, weak likely sufficient)
+### Normalized Export and SQL Reconciliation {#automatic-extraction-via-python-script}
 
-### Automatic Extraction via Python Script
+The export adapter must consume all pages and join the final execution outcome with an independent label per request_id. Load the schema below, then compare SQL results with calculate_metrics on the same local data. Report duplicate, unlabeled, and missing-cost counts separately.
 
-```python
-from langfuse import Langfuse
-import pandas as pd
-
-langfuse = Langfuse()
-
-def extract_fn_candidates(days=7, limit=100):
-    """Extract FN candidates — weak but received thumb-down"""
-    traces = langfuse.get_traces(
-        tags=["tier:weak"],
-        from_timestamp=datetime.now() - timedelta(days=days),
-        limit=limit
-    )
-    
-    fn_candidates = []
-    for trace in traces:
-        feedback = trace.get_feedback()
-        if feedback and feedback.score <= 2:
-            fn_candidates.append({
-                "trace_id": trace.id,
-                "prompt": trace.input,
-                "response": trace.output,
-                "feedback_comment": feedback.comment,
-                "content_length": len(trace.input),
-            })
-    
-    return pd.DataFrame(fn_candidates)
-
-# Weekly FN analysis
-fn_df = extract_fn_candidates(days=7, limit=200)
-fn_df.to_csv("fn_candidates_week12.csv")
+```sql
+-- One row per request; nullable labels/costs are intentional.
+CREATE TABLE routing_evidence (
+  request_id TEXT PRIMARY KEY, classifier_version TEXT NOT NULL,
+  classifier_result TEXT NOT NULL CHECK (classifier_result IN ('weak','strong')),
+  actual_tier TEXT CHECK (actual_tier IN ('weak','strong')),
+  actual_model_used TEXT, fallback_reason TEXT,
+  required_tier TEXT CHECK (required_tier IN ('weak','strong')),
+  allocated_cost_usd REAL
+);
+SELECT classifier_version,
+       COUNT(*) AS labeled_n,
+       SUM(CASE WHEN classifier_result='weak' AND required_tier='strong'
+                THEN 1 ELSE 0 END) AS fn,
+       SUM(CASE WHEN classifier_result='strong' AND required_tier='weak'
+                THEN 1 ELSE 0 END) AS fp,
+       1.0 * SUM(CASE WHEN classifier_result<>required_tier THEN 1 ELSE 0 END)
+         / NULLIF(COUNT(*), 0) AS misroute_rate
+FROM routing_evidence
+WHERE required_tier IN ('weak','strong')
+GROUP BY classifier_version;
 ```
 
 ### Retry Pattern-based FN Detection (Advanced)
 
-If users retry the same query, the first response was likely unsatisfactory.
-
-```python
-def detect_retry_pattern(traces):
-    """Classify as FN when same user retries similar query within 5min"""
-    user_sessions = defaultdict(list)
-    
-    for trace in traces:
-        user_id = trace.user_id
-        user_sessions[user_id].append(trace)
-    
-    fn_retries = []
-    for user_id, sessions in user_sessions.items():
-        for i in range(len(sessions) - 1):
-            current = sessions[i]
-            next_req = sessions[i + 1]
-            
-            time_diff = (next_req.timestamp - current.timestamp).seconds
-            if time_diff < 300:  # Within 5min
-                similarity = cosine_similarity(current.input, next_req.input)
-                if similarity > 0.8 and current.tags.get("tier") == "weak":
-                    fn_retries.append(current.id)
-    
-    return fn_retries
-```
-
----
+Sort requests within a pseudonymous session by UTC timestamp and use total_seconds() for elapsed time. Repeated/similar requests are review candidates only. Pin the similarity function and threshold. Neither retries nor fallback_reason replace required_tier labels.
 
 ## Keyword·Length·Turn 3-dim Tuning Playbook
 
@@ -330,142 +226,43 @@ flowchart LR
 
 ### Stage 1: Trace Collection
 
+Langfuse Public API trace retrieval uses GET and HTTP Basic authentication with the public/secret key pair. This read-only example retrieves one page; continue through meta.totalPages. Set host, window, and page explicitly; API JSON names differ from SDK attributes.
+
 ```bash
-# Download week's traces via Langfuse API
-curl -X POST https://langfuse.your-domain.com/api/public/traces \
-  -H "Authorization: Bearer ${LANGFUSE_SECRET_KEY}" \
-  -d '{
-    "filter": {
-      "tags": ["tier:weak", "tier:strong"],
-      "from": "2026-04-11T00:00:00Z",
-      "to": "2026-04-18T00:00:00Z"
-    },
-    "limit": 1000
-  }' | jq . > traces_week12.json
+curl --fail-with-body --silent --show-error --get \
+  "${LANGFUSE_HOST:?}/api/public/traces" \
+  --user "${LANGFUSE_PUBLIC_KEY:?}:${LANGFUSE_SECRET_KEY:?}" \
+  --data-urlencode "fromTimestamp=${FROM_UTC:?}" \
+  --data-urlencode "toTimestamp=${TO_UTC:?}" \
+  --data-urlencode "page=${PAGE:?}" \
+  --data-urlencode "limit=100" > traces-page.json
 ```
+
+Do not place keys in shared shell history or logs. Use approved secret injection.
 
 ### Stage 2: Offline Labeling (100 samples)
 
-**Labeling tool**: Jupyter Notebook + pandas
-
-```python
-import pandas as pd
-import json
-
-# Load traces
-with open("traces_week12.json") as f:
-    traces = json.load(f)["data"]
-
-# Random 100 sampling
-sample = pd.DataFrame(traces).sample(100)
-
-# Add labeling column
-sample["ground_truth"] = None  # Manually input "weak" or "strong"
-
-# Save CSV
-sample.to_csv("labeling_week12.csv", index=False)
-```
-
-**Labeling criteria**:
-- **strong needed**: Multi-file reference, algorithm explanation, complex debugging, security analysis
-- **weak sufficient**: Single function writing, simple query, grammar explanation, code formatting
+100 is illustrative. Sample the full traffic population with a fixed seed and report cohort/language/length coverage. Keep targeted severe-FN samples separate. Exclude unlabeled rows from the error denominator while reporting their rate.
 
 ### Stage 3: Precision/Recall Calculation
 
-```python
-def evaluate_classifier(df):
-    """
-    Precision: Ratio of actual strong among strong predictions (minimize FP)
-    Recall: Ratio of strong predictions among actual strong (minimize FN)
-    """
-    tp = len(df[(df.predicted == "strong") & (df.ground_truth == "strong")])
-    fp = len(df[(df.predicted == "strong") & (df.ground_truth == "weak")])
-    fn = len(df[(df.predicted == "weak") & (df.ground_truth == "strong")])
-    tn = len(df[(df.predicted == "weak") & (df.ground_truth == "weak")])
-    
-    precision = tp / (tp + fp) if (tp + fp) > 0 else 0
-    recall = tp / (tp + fn) if (tp + fn) > 0 else 0
-    f1 = 2 * (precision * recall) / (precision + recall) if (precision + recall) > 0 else 0
-    
-    return {
-        "precision": precision,
-        "recall": recall,
-        "f1": f1,
-        "misroute_rate": (fp + fn) / len(df) * 100
-    }
-
-# Evaluate after labeling completion
-df = pd.read_csv("labeling_week12_labeled.csv")
-metrics = evaluate_classifier(df)
-print(f"Precision: {metrics['precision']:.2%}")
-print(f"Recall: {metrics['recall']:.2%}")
-print(f"F1: {metrics['f1']:.2%}")
-print(f"Misroute Rate: {metrics['misroute_rate']:.1%}")
-```
+Keep raw TP/FP/FN/TN counts. precision=TP/(TP+FP), recall=TP/(TP+FN), misroute=(FP+FN)/labeled count. Display a zero denominator as N/A. Do not multiply a fraction by 100 before applying percent formatting.
 
 ### Stage 4: STRONG_KEYWORDS diff PR
 
-**Extract common keywords from FN cases**:
-
-```python
-def extract_keyword_candidates(fn_traces):
-    """Extract high-frequency words from FN cases"""
-    from collections import Counter
-    import re
-    
-    words = []
-    for trace in fn_traces:
-        content = trace["input"].lower()
-        words.extend(re.findall(r'\b\w+\b', content))
-    
-    # Remove stopwords
-    stopwords = {"the", "a", "is", "in", "to", "for", "and", "of", "이", "그", "저"}
-    filtered = [w for w in words if w not in stopwords and len(w) > 3]
-    
-    # Sort by frequency
-    counter = Counter(filtered)
-    return counter.most_common(20)
-
-# Output keyword candidates
-candidates = extract_keyword_candidates(fn_df.to_dict("records"))
-print("Top 20 keyword candidates:")
-for word, count in candidates:
-    print(f"  {word}: {count} times")
-```
-
-**PR example**:
-
-```markdown
-## [Cascade Routing] STRONG_KEYWORDS Tuning — Week 12
-
-### Changes
-- Added 3 to `STRONG_KEYWORDS`: "review", "benchmark", "scale"
-
-### Rationale
-- FN analysis found 12 of 100 cases were "code review" queries → weak routing → quality degradation
-- "benchmark" keyword frequently appears in performance comparison analysis requests (8 cases)
-- "scale" keyword found in system scalability design queries (6 cases)
-
-### Before/After Metrics (Expected)
-| Metric | Before (v7) | After (v8) |
-|------|------------|-----------|
-| Misroute Rate | 4.2% | 3.1% |
-| SLM usage rate | 68% | 64% |
-| Cost per 1k | $5.80 | $6.20 |
-
-### Deployment Plan
-- Canary rollout: 10% → 50% → 100% (2-day observation per stage)
-```
-
----
+Include the configuration diff, preregistered SLOs, label-set hash, sample size, observation window, before/after counts and confidence intervals, and rollback configuration. Leave unavailable results as pending.
 
 ## Canary Threshold Rollout
 
+10% → 50% → 100% is a candidate progression. Each promotion requires both minimum observation time and minimum sample size; 48 elapsed hours alone is not approval.
+
 ### kgateway BackendRef Weight-based Canary
 
-When updating LLM Classifier from v7 to v8, minimize risk with gradual traffic transition.
+HTTPRoute backendRefs weights are relative. They do not guarantee an exact request percentage or session affinity. For a parentRef across namespaces, verify the Gateway listener’s allowedRoutes. Check Accepted, ResolvedRefs, and observed cohort share.
 
 #### Phase 1: 10% Canary
+
+This is an unapplied example. The cascade_* PromQL metrics are application-owned instrumentation, not default Envoy metrics. The TTFT histogram covers requests that received a first token, so also check failures before first token.
 
 ```yaml
 apiVersion: gateway.networking.k8s.io/v1
@@ -483,496 +280,210 @@ spec:
             type: PathPrefix
             value: /v1/
       backendRefs:
-        # v7 (stable) - 90%
         - name: llm-classifier-v7
           port: 8080
           weight: 90
-        # v8 (canary) - 10%
         - name: llm-classifier-v8
           port: 8080
           weight: 10
-      timeouts:
-        request: 300s
 ```
 
-**Observation period**: 48 hours
-
-**Monitoring metrics**:
 ```promql
-# v8 error rate
-rate(envoy_http_downstream_rq_xx{envoy_response_code_class="5", backend="llm-classifier-v8"}[5m])
-/ 
-rate(envoy_http_downstream_rq_total{backend="llm-classifier-v8"}[5m]) * 100
+# Application-owned counters/histograms; instrument these names explicitly.
+100 * sum by (classifier_version) (
+  rate(cascade_requests_total{outcome="error"}[5m])
+) / sum by (classifier_version) (rate(cascade_requests_total[5m]))
 
-# v8 P99 latency
-histogram_quantile(0.99, 
-  rate(envoy_http_downstream_rq_time_bucket{backend="llm-classifier-v8"}[5m])
+histogram_quantile(0.95,
+  sum by (le, classifier_version) (rate(cascade_ttft_seconds_bucket[5m]))
 )
 ```
 
-#### Phase 2: 50% (error rate < 2%)
+#### Phase 2: 50% Acceptance Gates {#phase-2-50-error-rate--2}
 
-```bash
-# Adjust weight (v7: 50%, v8: 50%)
-kubectl patch httproute llm-classifier-canary -n ai-inference --type=json -p='[
-  {"op": "replace", "path": "/spec/rules/0/backendRefs/0/weight", "value": 50},
-  {"op": "replace", "path": "/spec/rules/0/backendRefs/1/weight", "value": 50}
-]'
-```
+Before changing 90:10 to 50:50, compare control and candidate errors, TTFT, FN/FP, cost coverage, and fallback rate. Promotion follows preregistered gates.
 
-**Observation period**: 48 hours
+#### Phase 3: 100% Acceptance Gates {#phase-3-100-error-rate--2-p99--15s}
 
-#### Phase 3: 100% (error rate < 2%, P99 < 15s)
-
-```bash
-# Complete transition to v8
-kubectl patch httproute llm-classifier-canary -n ai-inference --type=json -p='[
-  {"op": "replace", "path": "/spec/rules/0/backendRefs/0/weight", "value": 0},
-  {"op": "replace", "path": "/spec/rules/0/backendRefs/1/weight", "value": 100}
-]'
-```
+Before moving to 0:100, verify label quality, sample size, representative windows, and rollback rehearsal evidence. Approve end-to-end response duration separately from TTFT.
 
 ### Rollback Triggers
 
-| Condition | Action | Recovery Time |
-|------|--------|----------|
-| **5xx > 2%** (5min consecutive) | Immediate rollback to weight 0 | < 1min |
-| **P99 > 15s** (5min consecutive) | Immediate rollback to weight 0 | < 1min |
-| **Misroute Rate > 8%** (Langfuse daily analysis) | Next day weight 0, restore v7 | 12 hours |
-
-**Automatic rollback script**:
-
-```bash
-#!/bin/bash
-# auto_rollback.sh
-
-# Check 5xx error rate
-ERROR_RATE=$(curl -s "http://prometheus:9090/api/v1/query?query=rate(envoy_http_downstream_rq_xx%7Benvoy_response_code_class%3D%225%22%2Cbackend%3D%22llm-classifier-v8%22%7D%5B5m%5D)%2Frate(envoy_http_downstream_rq_total%7Bbackend%3D%22llm-classifier-v8%22%7D%5B5m%5D)*100" | jq -r '.data.result[0].value[1]')
-
-if (( $(echo "$ERROR_RATE > 2" | bc -l) )); then
-  echo "ERROR: 5xx rate ${ERROR_RATE}% > 2%, rolling back..."
-  kubectl patch httproute llm-classifier-canary -n ai-inference --type=json -p='[
-    {"op": "replace", "path": "/spec/rules/0/backendRefs/0/weight", "value": 100},
-    {"op": "replace", "path": "/spec/rules/0/backendRefs/1/weight", "value": 0}
-  ]'
-  exit 1
-fi
-
-echo "OK: 5xx rate ${ERROR_RATE}%"
-```
-
----
+SLO violations, severe quality regression, missing cost/telemetry, and NaN/empty series stop promotion. Under approved rollback conditions, restore stable:canary to 100:0 and record controller propagation, surviving streams, and response recovery. One Prometheus sample cannot establish five continuous minutes; use an alert for: 5m or interval evidence.
 
 ## Spot Interruption·Rate Limit Fallback
 
-### Automatic Downgrade on Spot Interruption
+Fallback depends on quality/security policy, remaining deadline, and execution state. Bound retries across both the gateway and Bifrost.
 
-If running GLM-5 on p5en.48xlarge Spot, automatically fallback to Qwen3-4B during Spot interruption.
+### Approved Alternate Paths on Spot Interruption {#automatic-downgrade-on-spot-interruption}
+
+On Spot warning, direct new requests to healthy equivalent capacity. Use a lower tier only when the request policy permits it. Rate limiting is admission control, not a destination. Cache reuse requires matching tenant, authorization, model/prompt version, and TTL.
 
 #### kgateway Retry Configuration
 
-```yaml
-apiVersion: gateway.networking.k8s.io/v1
-kind: HTTPRoute
-metadata:
-  name: llm-classifier-route
-  namespace: ai-inference
-spec:
-  parentRefs:
-    - name: unified-gateway
-      namespace: ai-gateway
-  rules:
-    - matches:
-        - path:
-            type: PathPrefix
-            value: /v1/
-      backendRefs:
-        # Primary: LLM Classifier (automatic GLM-5 + Qwen3 branching)
-        - name: llm-classifier
-          port: 8080
-          weight: 100
-      # Fallback configuration
-      filters:
-        - type: ExtensionRef
-          extensionRef:
-            group: gateway.envoyproxy.io
-            kind: EnvoyRetry
-            name: llm-fallback-policy
----
-apiVersion: gateway.envoyproxy.io/v1alpha1
-kind: EnvoyRetry
-metadata:
-  name: llm-fallback-policy
-  namespace: ai-inference
-spec:
-  retryOn:
-    - "5xx"
-    - "connect-failure"
-    - "refused-stream"
-    - "retriable-status-codes"
-  retriableStatusCodes:
-    - 503  # Service Unavailable (Spot interruption)
-    - 429  # Rate Limit
-  numRetries: 2
-  perTryTimeout: 30s
-  retryHostPredicate:
-    - name: envoy.retry_host_predicates.previous_hosts
-```
+gateway.envoyproxy.io/BackendTrafficPolicy belongs to Envoy Gateway, not kgateway. Use the deployed kgateway version’s documented retry policy/CRD. HTTPRoute weights do not define a failover order. Honor Retry-After and the total deadline for 429.
 
 #### LLM Classifier Internal Fallback Logic
 
-```python
-import httpx
-from fastapi import Request, HTTPException
+This is an implementation state-machine contract, not executable code. Do not retry side-effecting tool calls unless deduplication has been verified.
 
-WEAK_URL = "http://qwen3-serving:8000"
-STRONG_URL = "http://glm5-serving:8000"
-FALLBACK_URL = WEAK_URL  # Fallback to Qwen3 on GLM-5 failure
+```text
+admit within quota and total deadline
+  -> approved valid cache hit: return cached response
+  -> healthy primary / equivalent backend
+  -> retry eligible transient failure within shared attempt budget
+  -> approved lower tier if quality/data policy allows
+  -> approved cache if still valid and available
+  -> explicit 429/503 (or stream error after headers)
 
-@app.post("/v1/{path:path}")
-async def proxy(path: str, request: Request):
-    body = await request.json()
-    messages = body.get("messages", [])
-    tier = classify_v7(messages)
-    backend = STRONG_URL if tier == "strong" else WEAK_URL
-    target = f"{backend}/v1/{path}"
-    
-    async with httpx.AsyncClient(timeout=300) as client:
-        try:
-            resp = await client.post(target, json=body)
-            resp.raise_for_status()
-            return resp.json()
-        except (httpx.HTTPStatusError, httpx.ConnectError) as e:
-            if backend == STRONG_URL:
-                # GLM-5 failure → Fallback to Qwen3
-                print(f"WARN: GLM-5 unavailable, falling back to Qwen3. Error: {e}")
-                fallback_target = f"{FALLBACK_URL}/v1/{path}"
-                resp = await client.post(fallback_target, json=body)
-                return resp.json()
-            else:
-                raise HTTPException(status_code=503, detail="All backends unavailable")
+401/403/invalid request: no downgrade or provider bypass
+first response token sent: no transparent replay of the stream
+record every attempt, model ID, reason, status, and elapsed time
 ```
 
 ### Rate Limit Fallback (External Providers)
 
-Automatically switch to another provider when Rate Limit occurs while calling external LLM API (OpenAI, Anthropic) via Bifrost/LiteLLM.
+Provider switching requires compatible data boundaries, model capabilities, context length, and tool schemas. Merely configuring another provider does not enable fallback.
 
 #### LiteLLM Fallback Configuration
 
-```yaml
-# litellm_config.yaml
-model_list:
-  # Primary: OpenAI GPT-4o
-  - model_name: gpt-4o
-    litellm_params:
-      model: gpt-4o
-      api_key: os.environ/OPENAI_API_KEY
-  
-  # Fallback: Anthropic Claude Sonnet 4.6
-  - model_name: gpt-4o
-    litellm_params:
-      model: claude-sonnet-4.6
-      api_key: os.environ/ANTHROPIC_API_KEY
-
-router_settings:
-  routing_strategy: simple-shuffle
-  fallbacks:
-    - gpt-4o: ["claude-sonnet-4.6"]
-  retry_policy:
-    - TimeoutError
-    - InternalServerError
-    - RateLimitError  # 429 automatic fallback
-  num_retries: 2
-```
+Define distinct LiteLLM model_name groups and reference those names in fallbacks. Two deployments with the same model_name form a load-balancing group. Do not attach an Anthropic API key to a Bedrock inference-profile ID. Verify actual model IDs, authentication, and retry settings against the pinned LiteLLM version.
 
 #### Bifrost CEL Rules Fallback
 
-Bifrost implements header-based Fallback with CEL Rules.
-
-```json
-{
-  "plugins": [
-    {
-      "enabled": true,
-      "name": "cel_rules",
-      "config": {
-        "rules": [
-          {
-            "condition": "response.status == 429",
-            "action": "retry",
-            "target": "anthropic",
-            "max_retries": 2
-          }
-        ]
-      }
-    }
-  ]
-}
-```
-
----
+Bifrost’s documented fallback request uses an ordered list of provider/model pairs. Validate governance rule configuration against the deployed schema. The speculative CEL/retry JSON has been removed. Replay 429, connection failure, exhausted deadline, authorization failure, and partial streams separately and record actual attempt order.
 
 ## Cost Drift Monitoring·Alerts
 
+Derive estimates from a ledger that can be reconciled with billing. The count of up targets is not the number of billed nodes or idle cost.
+
 ### AMP Recording Rule (Hourly Cost)
 
+cascade_allocated_cost_usd_total is a cumulative counter exported by the cost ledger. Allocate each cost interval once and handle retries, idle capacity, and shared-node double counting. Do not apply increase() to an hourly-cost gauge. AMP ruler files use groups/rules; PrometheusRule is an Operator CRD, not a direct AMP rule format.
+
 ```yaml
-# prometheus-rules.yaml
-apiVersion: monitoring.coreos.com/v1
-kind: PrometheusRule
-metadata:
-  name: cascade-cost-rules
-  namespace: observability
-spec:
-  groups:
-    - name: llm_cost
-      interval: 60s
-      rules:
-        # GLM-5 hourly cost (H200 x8 Spot $12/hr)
-        - record: cascade:glm5_cost_usd_per_hour
-          expr: |
-            12.0 * count(up{job="glm5-serving"} == 1)
-        
-        # Qwen3 hourly cost (L4 x1 Spot $0.3/hr)
-        - record: cascade:qwen3_cost_usd_per_hour
-          expr: |
-            0.3 * count(up{job="qwen3-serving"} == 1)
-        
-        # Total hourly cost
-        - record: cascade:total_cost_usd_per_hour
-          expr: |
-            cascade:glm5_cost_usd_per_hour + cascade:qwen3_cost_usd_per_hour
-        
-        # Average cost per request (last 1 hour)
-        - record: cascade:cost_per_request_usd
-          expr: |
-            increase(cascade:total_cost_usd_per_hour[1h]) 
-            / 
-            increase(llm_requests_total[1h])
+groups:
+  - name: cascade_cost
+    rules:
+      - record: cascade:cost_usd_per_hour
+        expr: sum(rate(cascade_allocated_cost_usd_total[1h])) * 3600
+      - record: cascade:cost_per_request_usd
+        expr: |
+          (sum(increase(cascade_allocated_cost_usd_total[1h]))
+           / sum(increase(cascade_requests_total[1h])))
+          and (sum(increase(cascade_requests_total[1h])) > 0)
 ```
 
 ### Grafana Panel (Cost Trend)
 
-```json
-{
-  "title": "Cascade Routing Cost Trend",
-  "targets": [
-    {
-      "expr": "cascade:total_cost_usd_per_hour",
-      "legendFormat": "Total Cost ($/hr)"
-    },
-    {
-      "expr": "cascade:glm5_cost_usd_per_hour",
-      "legendFormat": "GLM-5 Cost ($/hr)"
-    },
-    {
-      "expr": "cascade:qwen3_cost_usd_per_hour",
-      "legendFormat": "Qwen3 Cost ($/hr)"
-    }
-  ],
-  "yAxes": [
-    {
-      "label": "Cost (USD/hr)",
-      "format": "currencyUSD"
-    }
-  ]
-}
-```
+Display cascade:cost_usd_per_hour as USD/hour and cascade:cost_per_request_usd as USD/request. Show collection delay, missing data, and request volume; zero-request windows are N/A.
 
 ### Budget 80% Alert
 
+The $80 threshold is illustrative. [24h] is a rolling window, not a calendar day. Reconcile monthly budgets using a ledger aligned to billing time zone and calendar boundaries.
+
 ```yaml
-# alertmanager-config.yaml
-apiVersion: monitoring.coreos.com/v1
-kind: PrometheusRule
-metadata:
-  name: cascade-budget-alerts
-  namespace: observability
-spec:
-  groups:
-    - name: budget
-      rules:
-        # Daily budget 80% reached
-        - alert: DailyBudget80Percent
-          expr: |
-            sum(increase(cascade:total_cost_usd_per_hour[24h])) > 80.0
-          for: 5m
-          labels:
-            severity: warning
-          annotations:
-            summary: "Daily budget 80% reached"
-            description: "Total cost in last 24h: {{ $value | humanize }}. Budget: $100/day"
-        
-        # Monthly budget 90% reached
-        - alert: MonthlyBudget90Percent
-          expr: |
-            sum(increase(cascade:total_cost_usd_per_hour[30d])) > 2700.0
-          for: 1h
-          labels:
-            severity: critical
-          annotations:
-            summary: "Monthly budget 90% reached"
-            description: "Total cost in last 30d: {{ $value | humanize }}. Budget: $3000/month"
+groups:
+  - name: cascade_budget
+    rules:
+      - alert: Rolling24HourBudget80Percent
+        expr: sum(increase(cascade_allocated_cost_usd_total[24h])) > 80
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Rolling 24-hour allocated cost exceeded example threshold"
 ```
 
 ### Cost Drift Detection (Weekly Comparison)
 
-```promql
-# This week vs last week cost increase rate
-(
-  sum(increase(cascade:total_cost_usd_per_hour[7d]))
-  -
-  sum(increase(cascade:total_cost_usd_per_hour[7d] offset 7d))
-)
-/
-sum(increase(cascade:total_cost_usd_per_hour[7d] offset 7d))
-* 100
-```
-
-**Alert condition**: Slack notification when weekly cost increases by 20% or more
-
-```yaml
-- alert: CostDriftDetected
-  expr: |
-    (
-      sum(increase(cascade:total_cost_usd_per_hour[7d]))
-      - sum(increase(cascade:total_cost_usd_per_hour[7d] offset 7d))
-    )
-    / sum(increase(cascade:total_cost_usd_per_hour[7d] offset 7d))
-    * 100 > 20
-  labels:
-    severity: warning
-  annotations:
-    summary: "Cost drift detected — 20%+ increase"
-    description: "Weekly cost increased by {{ $value | humanize }}%"
-```
-
----
+Compare weekly cost using increase(...[7d]) on the cumulative cost counter. Suppress ratio alerts when the previous period is zero or coverage is insufficient and report insufficient data. Separate volume, model mix, and token-length changes from unit-cost drift.
 
 ## Anti-patterns and Practical Pitfalls
 
+These are risk scenarios for review. To publish one as an incident, an operator must supply date, versions, cause, response, and deidentified evidence.
+
 ### Anti-pattern 1: Bifrost single base_url Bypass Failure
 
-**Problem**: Bifrost only supports single `network_config.base_url` per provider, so if SLM and LLM are in different Services, routing to same provider impossible.
-
-**Wrong attempt**:
-```json
-{
-  "providers": {
-    "openai": {
-      "keys": [
-        {"name": "qwen3", "models": ["qwen3-4b"]},
-        {"name": "glm5", "models": ["glm-5"]}
-      ],
-      "network_config": {
-        "base_url": "???"  // Cannot set 2 base_urls
-      }
-    }
-  }
-}
-```
-
-**Correct solution**: Place LLM Classifier in front of Bifrost for automatic backend selection.
+Model distinct vLLM endpoints as separate Bifrost custom providers and validate base_provider_type, base_url, and allowed models against the versioned schema. Do not assume a path override also permits overriding the host.
 
 ### Anti-pattern 2: RouteLLM Production Deployment Forcing
 
-**Problem**: RouteLLM is a research project, causing following issues in K8s deployment:
-- `torch`, `transformers` dependency conflicts
-- Container image 10GB+ (unsuitable for lightweight router)
-- pip dependency resolution failure
-
-**Lesson**: Only reference RouteLLM's MF classifier **concept**, use LLM Classifier (heuristic) or LiteLLM (external providers) in production.
+Research results alone do not establish operational suitability for RouteLLM or another router. Verify pinned dependencies, image size, startup, quality, and failure behavior; do not claim a project always fails to install.
 
 ### Anti-pattern 3: model: "auto" Hardcoding Omission
 
-**Problem**: LLM Classifier requires client to request with `model: "auto"` (or arbitrary model name), but some IDEs don't auto-fill `model` field.
-
-**Symptom**: Client hardcodes `model: "glm-5"` → LLM Classifier only analyzes `messages` → Ignores `model` field → Selects different backend than intended
-
-**Solution**: Force remove `model` field in LLM Classifier.
+Set the selected backend’s served model ID for OpenAI-compatible requests. Removing model may make the request invalid. Define precedence for explicit-model requests versus auto routing.
 
 ```python
-@app.post("/v1/{path:path}")
-async def proxy(path: str, request: Request):
-    body = await request.json()
-    messages = body.get("messages", [])
-    tier = classify_v7(messages)
-    
-    # Force remove model field (backend uses its own model)
-    body.pop("model", None)
-    
-    backend = STRONG_URL if tier == "strong" else WEAK_URL
-    target = f"{backend}/v1/{path}"
-    # ...
+SERVED_MODELS = {"weak": "qwen3-4b", "strong": "glm-5"}
+
+def backend_body(body, tier):
+    return {**body, "model": SERVED_MODELS[tier]}
 ```
 
 ### Anti-pattern 4: Korean/English Mixed Keyword Omission
 
-**Problem**: Korean users use "리팩터링", English users use "refactor" → Need to register keywords for both languages.
-
-**Omission example**:
-```python
-STRONG_KEYWORDS = ["refactor", "architect"]  # "리팩터", "아키텍처" omitted
-```
-
-**Result**: All Korean queries route to weak → Quality degradation
-
-**Solution**: Include major keywords in both Korean/English.
-
-```python
-STRONG_KEYWORDS = [
-    "리팩터", "refactor",
-    "아키텍처", "architect",
-    "설계", "design",
-    # ...
-]
-```
+Measure recall by language and cover mixed language, spacing, case, and boundaries with local fixtures. A missing keyword does not force every request to weak.
 
 ### Anti-pattern 5: v7 → v8 Transition Without Canary Rollout
 
-**Problem**: Immediately deploy new version to 100% → Bug affects all traffic.
-
-**Lesson**: Always perform gradual 10% → 50% → 100% transition.
+Do not promote to 100% before validating promotion/rollback gates and endpoint propagation. The 10/50/100 shares are service-specific choices.
 
 ### Anti-pattern 6: Only Watch Misroute Rate, Ignore SLM Usage Rate
 
-**Problem**: Achieved 2% Misroute Rate but SLM usage rate 30% → Insufficient cost reduction.
+Do not sacrifice quality to maximize SLM share. Compare quality, cost per request, errors, and TTFT on the same labeled population.
 
-**Balance point**: Must simultaneously satisfy Misroute Rate ≤ 5% and SLM usage rate 60-70%.
+## Operator acceptance evidence {#operator-acceptance-evidence}
 
----
+1. Pin the UTC window, region, private cluster/namespace identifiers, Langfuse server/SDK, classifier, kgateway, Bifrost, model/tokenizer, and configuration digest in a private manifest. This documentation review performed no deployment, load test, or model invocation.
+2. Check local synthetic fixtures with one TP/FP/FN/TN each, intended fallback, missing label, duplicate request_id, missing cost, and zero requests. The four base labels yield 2/4 errors. SQL and Python must agree on denominators and results. Static fixtures do not validate deployed Langfuse data.
+3. Verify metadata-to-export schema mapping, pagination, and attempt deduplication on approved exports. Reconcile SQL results and missing-data rates with manually adjudicated counts.
+4. In an operator-approved environment, preregister minimum cohort counts, observation time, and error/TTFT/classification/cost tolerances. Preserve control comparisons and rollback timelines at 10/50/100. Missing telemetry stops promotion.
+5. Validate 429/Retry-After, 503, connection failure, both backends failing, cache miss/expiry/authorization mismatch, and partial streams. Expected and observed attempt order must match, without duplicate tool execution or unauthorized model/tenant switching.
+6. Record deidentified results, configuration hash, UTC timestamps, decisions, and approver. Add incident examples only when real evidence is approved for publication. Keep verification pending until every residual item is accepted.
 
-## References
+## Related documents {#references}
 
 ### Architecture and Strategy
+
 - [Gateway Routing Strategy](./routing-strategy.md) - 2-Tier architecture, Cascade/Semantic Router, LLM Classifier concepts
 - [Inference Gateway Deployment Guide](../../reference-architecture/inference-gateway/setup/) - kgateway Helm installation, HTTPRoute YAML, LLM Classifier deployment code
 
 ### Monitoring and Cost
+
 - [Agent Monitoring](../../operations-mlops/observability/agent-monitoring.md) - Langfuse architecture, core metrics, alert strategy
 - [Monitoring Stack Configuration Guide](../../reference-architecture/integrations/monitoring-observability-setup.md) - Langfuse Helm, AMP/AMG, ServiceMonitor, Grafana dashboard
 - [Coding Tools & Cost Analysis](../../reference-architecture/integrations/coding-tools-cost-analysis.md) - Aider/Cline connection, cost optimization tips
 
 ### Frameworks and Models
+
 - [vLLM Model Serving](../../model-serving/inference-frameworks/vllm-model-serving.md) - vLLM deployment, PagedAttention, Multi-LoRA
 - [Semantic Caching Strategy](../inference-optimization/semantic-caching-strategy.md) - 3-tier cache, similarity thresholds, observability
 
 ---
 
-## References
+## References {#references-1}
 
 ### Official Documentation
+
 - [Langfuse Documentation](https://langfuse.com/docs)
 - [LiteLLM Routing](https://docs.litellm.ai/docs/routing)
 - [Bifrost Documentation](https://www.getmaxim.ai/bifrost/docs)
 - [Kubernetes Gateway API](https://gateway-api.sigs.k8s.io/)
 - [Amazon Managed Prometheus](https://docs.aws.amazon.com/prometheus/)
+- [Langfuse SDK instrumentation](https://langfuse.com/docs/observability/sdk/instrumentation) — OTel SDK contract
+- [Langfuse API reference](https://api.reference.langfuse.com/) — traces, pagination, HTTP Basic authentication
+- [Gateway API traffic splitting](https://gateway-api.sigs.k8s.io/guides/user-guides/traffic-splitting/) — relative weights
+- [Prometheus functions](https://prometheus.io/docs/prometheus/latest/querying/functions/) — counters, rate, histograms
+- [Bifrost fallbacks](https://docs.getbifrost.ai/features/retries-and-fallbacks) — provider/model fallback order
 
 ### Research Materials
+
 - [RouteLLM: Learning to Route LLMs with Preference Data (arXiv)](https://arxiv.org/abs/2406.18665)
 - [LMSYS Chatbot Arena Leaderboard](https://arena.ai/leaderboard/text)
 - [FrugalGPT: How to Use Large Language Models While Reducing Cost and Improving Performance](https://arxiv.org/abs/2305.05176)
 
 ### Related Blogs
+
 - [LLM Router Pattern: Model Switching](https://markaicode.com/llm-router-pattern-model-switching/)
-- [Cost-Effective LLM Inference with Cascade Routing](https://www.anthropic.com/research/cost-effective-inference)

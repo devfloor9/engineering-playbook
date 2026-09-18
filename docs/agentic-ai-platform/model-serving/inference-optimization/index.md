@@ -3,9 +3,9 @@ title: Inference Optimization on EKS
 description: LLM Inference 성능을 극대화하는 EKS 아키텍처 개요 — vLLM, KV Cache-Aware Routing, Disaggregated Serving, LWS 멀티노드, GPU 오토스케일링의 시작점
 created: "2026-04-03"
 last_update:
-  date: "2026-07-17"
+  date: 2026-09-18
   author: devfloor9
-reading_time: 14
+reading_time: 8
 tags:
   - inference
   - optimization
@@ -22,137 +22,66 @@ import DocCardList from '@theme/DocCardList';
 
 ## 개요
 
-프로덕션 LLM 서비스에서 **Inference 비용은 전체 AI 운영 비용의 80-90%** 를 차지합니다 (AWS 공식 문구 "up to 90% of overall operational costs for machine learning initiatives"). 학습은 1회성이지만 추론은 서비스가 살아있는 한 24/7 지속되기 때문입니다. GPU 시간이 곧 비용이며, p5.48xlarge(H100×8) 한 대의 On-Demand 가격은 2025년 6월 가격 인하 후 시간당 $55.04입니다. 월 2대 운영 시 약 $79,258에 달합니다.
+추론 지연, 처리량, GPU 메모리, 비용을 함께 측정하고 병목에 맞는 최적화 기법을 선택하는 문서 모음입니다. 먼저 [추론 인프라 개요](../index.md)에서 L0–L5 튜닝 계층을 확인한 뒤, 아래 문서에서 구현 조건과 검증 절차를 살펴보세요. 이 계층은 플랫폼 전체의 6개 런타임 레이어와 별도의 분석 관점입니다.
 
-이 문서는 통신사 Agentic AI 플랫폼 구축 과정에서 축적된 교훈과 GLM-5(744B), Kimi K2.5(1T) 등 대형 MoE 모델 배포 사례를 기반으로, EKS 위에서 LLM Inference 성능을 극대화하는 아키텍처 패턴을 정리합니다.
+최적화 결과는 모델, 입력·출력 길이, 동시 요청 수, 하드웨어, 라우팅 정책에 따라 달라집니다. 이 페이지는 운영 환경의 성능이나 절감률을 보장하는 구성표가 아니라 상세 문서의 선택 기준을 제공합니다.
 
 ## 다루는 내용
 
-본 카테고리는 추론 최적화 심화 문서와 게이트웨이 라우팅 문서로 구성됩니다. 전체 구조와 계층별 튜닝 레버의 지도는 [추론 인프라 개요](../index.md)를 먼저 참조하세요.
+이 카테고리의 전체 문서입니다. 게이트웨이 구성과 모델 선택 정책은 별도의 [추론 라우팅](../inference-routing/routing-strategy.md) 카테고리에서 다룹니다.
 
-<DocCardList items={[
-  {
-    type: 'link',
-    href: '/docs/agentic-ai-platform/model-serving/inference-optimization/kv-cache-optimization',
-    label: 'KV Cache 최적화 (vLLM Deep Dive + Cache-Aware Routing)',
-    description: 'vLLM PagedAttention·Continuous Batching·FP8 KV Cache 등 핵심 기술과 llm-d/Dynamo의 KV Cache-Aware Routing 비교'
-  },
-  {
-    type: 'link',
-    href: '/docs/agentic-ai-platform/model-serving/inference-optimization/disaggregated-serving',
-    label: 'Disaggregated Serving + LWS 멀티노드',
-    description: 'Prefill/Decode 분리 아키텍처, NIXL KV 전송, LeaderWorkerSet 기반 700B+ 대형 모델 멀티노드 배포'
-  },
-  {
-    type: 'link',
-    href: '/docs/agentic-ai-platform/model-serving/inference-optimization/lmcache',
-    label: 'LMCache: KV 캐시 오프로딩과 공유',
-    description: 'GPU 메모리 너머 CPU·디스크로 KV 캐시를 오프로딩하고 인스턴스 간 공유하는 KV 캐시 계층, vLLM·NIXL·kvaware 라우팅과의 관계'
-  },
-  {
-    type: 'link',
-    href: '/docs/agentic-ai-platform/model-serving/inference-optimization/cache-hit-strategy',
-    label: '캐시 히트 전략',
-    description: 'KV/Prefix·Prompt·Semantic 3계층 캐시를 하나의 의사결정 프레임으로 통합, 계층별 히트율 목표와 측정 지점'
-  },
-  {
-    type: 'link',
-    href: '/docs/agentic-ai-platform/model-serving/inference-optimization/semantic-caching-strategy',
-    label: 'Semantic Caching 전략',
-    description: 'LLM Gateway 레벨 의미 기반 캐싱 설계 원칙 — 유사도 임계값, 캐시 키 설계, 멀티테넌시, 관측성'
-  },
-  {
-    type: 'link',
-    href: '/docs/agentic-ai-platform/model-serving/inference-routing/tiered-gateway-architecture',
-    label: '티어드 게이트웨이 아키텍처',
-    description: 'Tier 1 Ingress, Tier 2 추론 라우팅·LLM API 게이트웨이, Agent Data Plane의 역할 구분과 채움 전략'
-  },
-  {
-    type: 'link',
-    href: '/docs/agentic-ai-platform/model-serving/inference-routing/routing-strategy',
-    label: '라우팅 전략 (Cascade·Semantic·Inference Extension)',
-    description: 'kgateway·Bifrost·LiteLLM 비교, Request Cascading 지능형 모델 라우팅, Gateway API Inference Extension(EPP)'
-  },
-  {
-    type: 'link',
-    href: '/docs/agentic-ai-platform/model-serving/inference-optimization/gpu-autoscaling-operations',
-    label: 'GPU 오토스케일링과 대형 모델 배포 운영',
-    description: '2-Tier 오토스케일링(KEDA·Karpenter), DRA 호환성, 대형 MoE(GLM-5·Kimi K2.5) 배포 실전 교훈'
-  }
-]} />
+<DocCardList />
 
 ### 문서별 핵심 주제
 
-1. **EKS GPU 인프라 전략** — Auto Mode vs Karpenter vs MNG 선택 기준 (본 문서)
-2. **모델 서빙 엔진** — vLLM 핵심 기술과 GPU 메모리 설계 ([KV Cache 최적화](./kv-cache-optimization.md))
-3. **KV Cache-Aware Routing** — llm-d와 NVIDIA Dynamo 비교 ([KV Cache 최적화](./kv-cache-optimization.md))
-4. **Disaggregated Serving** — Prefill/Decode 분리 아키텍처 ([Disaggregated Serving](./disaggregated-serving.md))
-5. **LWS 멀티노드 서빙** — LeaderWorkerSet 기반 700B+ 모델 배포 ([Disaggregated Serving](./disaggregated-serving.md))
-6. **GPU 오토스케일링** — 2-Tier 스케일링(KEDA·Karpenter)과 DRA 호환성 ([오토스케일링 & 배포 운영](./gpu-autoscaling-operations.md))
-7. **대형 모델 배포 실전 교훈** — 모델 다운로드 실패 대응, MoE 배포 함정 ([오토스케일링 & 배포 운영](./gpu-autoscaling-operations.md))
+- **캐시 재사용**: [KV Cache 최적화](./kv-cache-optimization.md) → [LMCache](./lmcache.md) → [캐시 히트 전략](./cache-hit-strategy.md)
+- **지연과 처리량 분리**: [Disaggregated Serving](./disaggregated-serving.md)에서 Prefill/Decode 분리의 이점과 전송 비용을 비교합니다.
+- **응답 재사용의 품질**: [Semantic Caching](./semantic-caching-strategy.md)에서 캐시 키, 테넌트 경계, 오응답 평가를 확인합니다.
+- **용량과 복구**: [GPU 오토스케일링](./gpu-autoscaling-operations.md)에서 대기열, 콜드 스타트, 배포 실패 대응을 확인합니다.
 
 ## 핵심 성능 지표
 
-| 지표 | 설명 | 최적화 목표 |
-|------|------|-----------|
-| **TTFT** (Time to First Token) | 첫 토큰 생성까지의 시간 | &lt; 2초 (대화형), &lt; 5초 (배치) |
-| **TPS** (Tokens per Second) | 초당 토큰 생성 속도 | 모델별 상이 |
-| **GPU Utilization** | GPU 연산 활용률 | &gt; 70% |
-| **KV Cache Hit Rate** | KV 캐시 재사용 비율 | &gt; 60% (공유 프롬프트) |
-| **P99 Latency** | 99 퍼센타일 응답 시간 | SLO 기준 준수 |
+서비스별 SLO와 동일한 요청 집합을 기준으로 전후를 비교합니다. 아래 지표에 공통으로 적용되는 보편적 목표값은 없습니다.
+
+| 지표 | 확인할 내용 | 함께 기록할 조건 |
+|------|-----------|----------------|
+| **TTFT** | 요청 시작부터 첫 토큰까지의 지연 분포 | 대기 시간 포함 여부, 입력 길이, 동시성 |
+| **출력 토큰 처리량** | 완료된 요청의 생성 토큰 수 / 측정 시간 | 클라이언트별 속도와 서버 전체 처리량 구분 |
+| **GPU 메모리·사용률** | 메모리 여유, 연산·메모리 병목 | GPU 종류, 정밀도, 배치 설정 |
+| **캐시 히트율** | 재사용 단위별 적중 수와 조회 수 | 토큰·요청 분모, 캐시 종류, cold/warm 구간 |
+| **꼬리 지연·오류율** | p95/p99 응답 지연과 완료율 | 타임아웃·재시도·실패 요청 포함 |
+| **품질·비용** | 평가 통과율과 성공 요청당 총비용 | 평가셋, GPU 대기 비용, 게이트웨이·저장소 비용 |
 
 ## EKS GPU 인프라 전략
 
 ### 3가지 배포 모델 비교
 
-EKS에서 GPU 워크로드를 운영할 때, 노드 관리 방식에 따라 기능과 운영 복잡도가 크게 달라집니다.
+노드 관리 방식과 GPU 소프트웨어의 관리 주체를 먼저 구분합니다. GPU 개수나 모델 크기로 노드 관리 방식을 자동 결정하지 않습니다.
 
-| 기준 | EKS Auto Mode | Karpenter + GPU Operator | MNG + Cluster Autoscaler |
-|------|:---:|:---:|:---:|
-| **GPU 드라이버 관리** | AWS 자동 관리 | AMI 사전 설치 | AMI 사전 설치 |
-| **MIG / Time-Slicing** | 불가 | 가능 | 가능 |
-| **DRA 호환** | 미지원 | 미지원 | 유일한 선택지 |
-| **DCGM 모니터링** | GPU Operator 설치 시 가능 | 완전 지원 | 완전 지원 |
-| **운영 복잡도** | 낮음 | 중간 | 중간 |
-| **적합 모델 크기** | 70B+ (GPU 전체 활용) | 7B~700B+ (MIG 분할 가능) | DRA 필요 워크로드 |
+| 방식 | 관리 경계 | 상세 확인 |
+|------|----------|----------|
+| EKS Auto Mode | EKS가 GPU 드라이버와 Device Plugin을 관리 | 제공 기능과 사용자 설치 구성요소의 지원 범위 |
+| Karpenter | NodePool 정책에 따라 노드를 프로비저닝 | 선택한 AMI, GPU 구성요소, 정적·동적 용량 구분 |
+| Managed Node Group | 노드 그룹과 AMI를 기준으로 용량 관리 | AMI 사전 설치 구성요소와 별도 설치할 드라이버/플러그인 |
 
-:::tip 선택 가이드
-- **빠른 시작 / PoC**: Auto Mode — GPU 드라이버, Device Plugin 자동 관리
-- **프로덕션 (GPU 세밀 제어)**: Karpenter + GPU Operator — MIG, Custom AMI 지원
-- **DRA 필요 시**: MNG + Cluster Autoscaler — Karpenter/Auto Mode에서 DRA Pod를 skip하는 아키텍처적 한계
-:::
+DRA 지원 여부는 Kubernetes 버전과 용량 프로비저닝 방식에 따라 확인합니다. 현재 [EKS NVIDIA 장치 관리 안내](https://docs.aws.amazon.com/eks/latest/userguide/device-management-nvidia.html)는 Auto Mode를 제외하고 Karpenter 정적 용량, MNG, 자체 관리 노드를 구분합니다. 세부 선택 기준은 [GPU 노드 전략](../gpu-infrastructure/eks-gpu-node-strategy.md)을 참고하세요.
 
 ### GPU 인스턴스 선택 매트릭스
 
-| 인스턴스 | GPU | GPU 메모리 (총합) | 적합 모델 크기 | 시간당 비용 (On-Demand) |
-|---------|-----|----------------|-------------|---------------------|
-| g5.xlarge~48xlarge | A10G | 24~192GB | 7B 이하 | $1.01~$16.29 |
-| g6e.xlarge~48xlarge | L40S | 48~384GB | 13B~70B | 비용 효율적 |
-| p4d.24xlarge | A100 40GB × 8 | 320GB | 13B~70B | $21.96 |
-| p5.48xlarge | H100 80GB × 8 | 640GB | 70B~700B+ | $55.04 |
-| p5e.48xlarge | H200 141GB × 8 | 1,128GB | 100B+ | 최대 메모리 |
-| p6-b200.48xlarge | B200 180GB × 8 | 1,440GB | 700B+ | TBD |
+| 결정 항목 | 검토 기준 |
+|----------|----------|
+| 메모리 | 가중치 정밀도, KV Cache, 동시성, 런타임 여유분 |
+| 통신 | 단일 GPU·노드 내·노드 간 병렬화에 필요한 대역폭 |
+| 가용성 | 목표 리전·AZ의 용량, 할당량, 대체 인스턴스 |
+| 비용 | 조회 날짜·리전·구매 옵션을 명시한 견적과 실측 처리량 |
+
+모델 파라미터 수만으로 GPU 수를 정하지 않습니다. [vLLM 서빙](../inference-frameworks/vllm-model-serving.md)에서 메모리 설정을, [GPU 리소스 관리](../gpu-infrastructure/gpu-resource-management.md)에서 할당 정책을 확인합니다.
 
 ### Auto Mode GPU Operator 하이브리드 구성
 
-Auto Mode에서도 GPU Operator를 설치할 수 있습니다. Device Plugin만 노드 레이블로 비활성화하고, DCGM Exporter, NFD, GFD는 정상 동작합니다.
+Auto Mode가 관리하는 구성요소를 별도 GPU Operator가 중복 관리하지 않도록 해야 합니다. AL2023 또는 Bottlerocket용 GPU Operator 설치 옵션을 Auto Mode에 그대로 적용하는 일반 설치 절차는 제공하지 않습니다.
 
-```yaml
-# GPU Operator 설치 (Auto Mode 호환)
-helm install gpu-operator nvidia/gpu-operator \
-  --namespace gpu-operator --create-namespace \
-  --set driver.enabled=false \
-  --set toolkit.enabled=false
-
-# NodePool에 Device Plugin 비활성화 레이블 추가
-# nvidia.com/gpu.deploy.device-plugin: "false"
-```
-
-이를 통해 Auto Mode의 편의성을 유지하면서 DCGM 세밀 메트릭(SM 활용률, NVLink 대역폭)을 수집할 수 있습니다. KAI Scheduler 등 ClusterPolicy 의존 프로젝트도 사용 가능합니다.
-
-:::warning GPU Operator + Auto Mode 주의사항
-`devicePlugin.enabled=true`로 설치하면 Auto Mode 내장 Device Plugin과 충돌하여 `allocatable=0`이 됩니다. **반드시 `devicePlugin.enabled=false`** 또는 노드 레이블로 비활성화해야 합니다.
-:::
+[가속 AMI 안내](https://docs.aws.amazon.com/eks/latest/userguide/ml-eks-optimized-ami.html)의 GPU Operator 설정은 AMI별 사전 설치 구성요소에 따라 다릅니다. 관측성만 필요한 경우에도 대상 노드의 지원 범위를 확인하고 [NVIDIA GPU 스택](../gpu-infrastructure/nvidia-gpu-stack.md)의 구성요소별 설명을 참고하세요.
 
 ## 모델 규모별 권장 아키텍처
 
@@ -160,101 +89,56 @@ helm install gpu-operator nvidia/gpu-operator \
 
 ```mermaid
 flowchart TD
-    START[모델 규모 확인] --> SIZE{모델 크기?}
-
-    SIZE -->|"≤32B (단일 GPU)"| SMALL["Tier 1: 경량 구성"]
-    SIZE -->|"70B~200B (멀티 GPU)"| MEDIUM["Tier 2: 중규모 구성"]
-    SIZE -->|"700B+ MoE (멀티노드)"| LARGE["Tier 3: 대규모 구성"]
-
-    SMALL --> S_DETAIL["Auto Mode + vLLM<br/>g6e/p5 단일 GPU<br/>FP8 양자화"]
-    MEDIUM --> M_DETAIL["Karpenter + vLLM TP<br/>llm-d KV Cache 라우팅<br/>KEDA 오토스케일링"]
-    LARGE --> L_DETAIL["MNG/Karpenter + LWS<br/>Disaggregated Serving<br/>NIXL KV 전송"]
-
-    style START fill:#f5f5f5
-    style S_DETAIL fill:#4ecdc4,color:#fff
-    style M_DETAIL fill:#326ce5,color:#fff
-    style L_DETAIL fill:#ff6b6b,color:#fff
+    accTitle: 추론 배포 방식 선택
+    accDescr: 먼저 단일 GPU에서 메모리와 SLO를 확인하고, 필요할 때 노드 내 병렬화와 멀티노드를 검토한다.
+    A[모델·요청 분포·SLO 정의] --> B{단일 GPU로 충족?}
+    B -->|예| C[단일 GPU 기준선 측정]
+    B -->|아니오| D{노드 내 병렬화로 충족?}
+    D -->|예| E[통신 비용과 처리량 측정]
+    D -->|아니오| F[멀티노드·분리 서빙 검토]
+    C --> G[장애·확장·품질 검증]
+    E --> G
+    F --> G
 ```
 
 ### 3-Tier 권장 구성
 
-| Tier | 모델 규모 | 인프라 | 서빙 엔진 | 라우팅 | 예시 |
-|------|---------|--------|---------|--------|------|
-| **Tier 1** | ≤32B | Auto Mode, g6e/p5 | vLLM (단일 GPU) | Round-Robin | Qwen3-32B FP8 |
-| **Tier 2** | 70B~200B | Karpenter + GPU Operator | vLLM TP=4~8 | llm-d KV Cache-aware | Llama-3.3-70B |
-| **Tier 3** | 700B+ MoE | MNG 또는 Karpenter + LWS | vLLM/SGLang PP+TP | Disaggregated + NIXL | GLM-5, Kimi K2.5 |
+다음은 검토 순서입니다. 특정 파라미터 수에 대응하는 고정 사양이 아닙니다.
 
-**모든 Tier 공통**: Bifrost Cascade Routing으로 Bedrock 폴백 구성 권장 (GPU 장애/Spot 중단 시 무중단 서비스)
+| 단계 | 적용 조건 | 다음 문서 |
+|------|----------|----------|
+| 단일 GPU | 메모리와 SLO를 모두 충족 | [vLLM 서빙](../inference-frameworks/vllm-model-serving.md) |
+| 노드 내 병렬화 | 단일 GPU의 메모리 또는 성능 한계 | [MoE 서빙](../inference-frameworks/moe-model-serving.md) |
+| 멀티노드·분리 서빙 | 측정 결과 노드 내 구성이 부족 | [Disaggregated Serving](./disaggregated-serving.md) |
 
 ### 하이브리드 아키텍처: 전체 그림
 
-```mermaid
-flowchart TB
-    C[Client App] --> BF[Bifrost Gateway<br/>Cascade Routing]
-
-    subgraph OnPrem["On-Premises (Hybrid Node)"]
-        HP[DGX A100<br/>기본 추론<br/>고정 비용]
-    end
-
-    subgraph Cloud["AWS Cloud (EKS)"]
-        subgraph AutoMode["Auto Mode"]
-            AM[vLLM<br/>Qwen3-32B<br/>Tier 1]
-        end
-        subgraph Karpenter["Karpenter + GPU Operator"]
-            KP[llm-d + vLLM<br/>Llama-70B<br/>Tier 2]
-        end
-        subgraph LWS["LWS Multi-Node"]
-            LW[GLM-5 744B<br/>PP=2 TP=8<br/>Tier 3]
-        end
-    end
-
-    subgraph Managed["AWS Managed"]
-        BR[Amazon Bedrock<br/>Claude Sonnet<br/>Fallback]
-    end
-
-    BF -->|"1차"| HP
-    BF -->|"2차"| AM
-    BF -->|"2차"| KP
-    BF -->|"2차"| LW
-    BF -->|"3차 Fallback"| BR
-
-    style BF fill:#ff9900,color:#fff
-    style OnPrem fill:#e8f5e9
-    style Cloud fill:#e3f2fd
-    style BR fill:#ff6b6b,color:#fff
-```
+EKS, 온프레미스, 관리형 모델 API를 함께 사용하는 경우 [티어드 게이트웨이](../inference-routing/tiered-gateway-architecture.md)에서 각 계층의 책임을 확인합니다. 폴백 대상의 API·도구 호출 호환성, 데이터 전송 정책, 할당량, 응답 품질을 검증해야 합니다. 라우팅 경로가 있다는 사실만으로 중단 없는 서비스를 보장하지 않습니다.
 
 ### 마이그레이션 경로
 
-단계별 전환으로 운영 리스크를 최소화하면서 점진적으로 성능을 향상시킬 수 있습니다.
-
-**Phase 1**: Auto Mode + vLLM + Bifrost→Bedrock 폴백 → PoC, 개발 환경
-
-**Phase 1.5**: Auto Mode + GPU Operator + llm-d → 모니터링 강화, KV Cache 라우팅
-
-**Phase 2**: Karpenter + llm-d Disaggregated + LWS 멀티노드 → MIG, Prefill/Decode 분리
-
-**Phase 3**: Karpenter + Dynamo + Hybrid Node → 온프레미스 통합, 3-Tier Cascade
-
-**Phase 4**: 전체 통합 → On-Prem→Cloud→Bedrock Cascade, SLO 기반 오토스케일링
+1. 단일 경로에서 성능·품질·비용 기준선을 기록합니다.
+2. 확인된 병목에 맞춰 캐시, 라우팅, 배치 설정 중 하나를 변경합니다.
+3. 동일한 평가셋과 부하 조건으로 회귀를 확인합니다.
+4. 제한된 트래픽에서 검증한 뒤 확대하고, 기존 경로로 복구할 조건을 정합니다.
 
 ## 참고 자료
 
 ### 공식 문서
-- [Amazon EKS User Guide](https://docs.aws.amazon.com/eks/latest/userguide/) — EKS 클러스터 및 노드 관리
-- [EKS Hybrid Nodes](https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes.html) — 온프레미스 GPU 서버 EKS 통합
-- [Amazon Bedrock Documentation](https://docs.aws.amazon.com/bedrock/) — 관리형 FM 서비스 (Cascade Fallback 대상)
-- [SOCI (Seekable OCI)](https://docs.aws.amazon.com/AmazonECR/latest/userguide/container-images-soci.html) — 컨테이너 이미지 lazy-loading
+
+- [EKS NVIDIA 장치 관리](https://docs.aws.amazon.com/eks/latest/userguide/device-management-nvidia.html)
+- [EKS 가속 AMI](https://docs.aws.amazon.com/eks/latest/userguide/ml-eks-optimized-ami.html)
+- [EKS Compute and Autoscaling](https://docs.aws.amazon.com/eks/latest/best-practices/aiml-compute.html)
 
 ### 논문·기술 블로그
-- [a16z "The Economics of AI"](https://a16z.com/navigating-the-high-cost-of-ai-compute/) — AI 인프라 비용 구조
-- [GenAI on EKS Starter Kit](https://github.com/aws-samples/sample-genai-on-eks-starter-kit) — Bifrost, vLLM, Langfuse 배포 자동화
-- [Scalable Model Inference on Amazon EKS](https://github.com/aws-solutions-library-samples/guidance-for-scalable-model-inference-and-agentic-ai-on-amazon-eks) — llm-d, Karpenter, RAG 종합 아키텍처
+
+구현 프로젝트의 구성은 선택한 릴리스와 문서의 예제를 함께 확인합니다.
+
+- [GenAI on EKS Starter Kit](https://github.com/aws-samples/sample-genai-on-eks-starter-kit)
+- [Scalable Model Inference on Amazon EKS](https://github.com/aws-solutions-library-samples/guidance-for-scalable-model-inference-and-agentic-ai-on-amazon-eks)
 
 ### 관련 문서
-- [EKS GPU 노드 전략](../gpu-infrastructure/eks-gpu-node-strategy.md) — Auto Mode, Karpenter, Hybrid Node 비교
-- [GPU 리소스 관리](../gpu-infrastructure/gpu-resource-management.md) — GPU 스케일링, DRA, 비용 최적화
-- [NVIDIA GPU 소프트웨어 스택](../gpu-infrastructure/nvidia-gpu-stack.md) — GPU Operator, DCGM, MIG, Dynamo
-- [vLLM 기반 FM 배포 및 성능 최적화](../inference-frameworks/vllm-model-serving.md) — vLLM 상세 가이드
-- [llm-d 기반 EKS 분산 추론](../inference-frameworks/llm-d-eks-automode.md) — llm-d 배포 가이드
-- [MoE 모델 서빙 가이드](../inference-frameworks/moe-model-serving.md) — MoE 모델 배포
+
+- [서빙 최적화 모니터링](../../operations-mlops/observability/llm-serving-optimization-monitoring.md) — 측정 단위와 쿼리 검증
+- [Prefix Cache 튜닝과 정확도](../../operations-mlops/observability/prefix-cache-tuning-accuracy-correlation.md) — 실험 설계와 품질 판정
+- [라우팅 전략](../inference-routing/routing-strategy.md) — 모델 선택과 폴백 경계

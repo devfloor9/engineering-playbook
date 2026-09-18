@@ -1,0 +1,2252 @@
+{
+  "issue": 52,
+  "baseline": {
+    "doc_count": 222,
+    "docs_with_omissions": 58,
+    "docs_with_technical_omissions": 43,
+    "docs_with_navigation_omissions": 15,
+    "omitted_component_count": 169
+  },
+  "current": {
+    "doc_count": 222,
+    "docs_with_omissions": 0,
+    "docs_with_technical_omissions": 0,
+    "docs_with_navigation_omissions": 0,
+    "omitted_component_count": 0,
+    "serialized_occurrences": 226,
+    "supported_source_count": 182
+  },
+  "inventory": [
+    {
+      "slug": "agentic-ai-platform/design-architecture/advanced-patterns/index",
+      "components": [
+        {
+          "component": "DocCardList",
+          "status": "serialized",
+          "sources": [
+            "@theme/DocCardList#default"
+          ],
+          "methods": [
+            "static-sidebar"
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "agentic-ai-platform/design-architecture/foundations/agentic-ai-challenges",
+      "components": [
+        {
+          "component": "ChallengeSummary",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/AgenticChallengesTables#ChallengeSummary"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "agentic-ai-platform/design-architecture/foundations/agentic-platform-architecture",
+      "components": [
+        {
+          "component": "LayerRoles",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/ArchitectureTables#LayerRoles"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "RequestProcessing",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/ArchitectureTables#RequestProcessing"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "TenantIsolation",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/ArchitectureTables#TenantIsolation"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "agentic-ai-platform/design-architecture/foundations/index",
+      "components": [
+        {
+          "component": "DocCardList",
+          "status": "serialized",
+          "sources": [
+            "@theme/DocCardList#default"
+          ],
+          "methods": [
+            "static-sidebar"
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "agentic-ai-platform/design-architecture/platform-selection/agentic-ai-solutions-eks",
+      "components": [
+        {
+          "component": "AckControllers",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/AgenticSolutionsTables#AckControllers"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "AutomationComponents",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/AgenticSolutionsTables#AutomationComponents"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "ChallengeSolutionsSummary",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/AgenticSolutionsTables#ChallengeSolutionsSummary"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "DeploymentTimeComparison",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/AgenticSolutionsTables#DeploymentTimeComparison"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "EksAutoModeBenefits",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/AgenticSolutionsTables#EksAutoModeBenefits"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "EksAutoModeVsStandard",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/AgenticSolutionsTables#EksAutoModeVsStandard"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "EksCapabilities",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/AgenticSolutionsTables#EksCapabilities"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "EksClusterConfiguration",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/AgenticSolutionsTables#EksClusterConfiguration"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "EksIntegrationBenefits",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/AgenticSolutionsTables#EksIntegrationBenefits"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "EksKarpenterLayers",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/AgenticSolutionsTables#EksKarpenterLayers"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "agentic-ai-platform/design-architecture/platform-selection/ai-platform-decision-framework",
+      "components": [
+        {
+          "component": "HybridPatternSummary",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/DecisionFrameworkTables#HybridPatternSummary"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "MaturityPathTable",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/DecisionFrameworkTables#MaturityPathTable"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "PlatformComparisonMatrix",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/DecisionFrameworkTables#PlatformComparisonMatrix"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "agentic-ai-platform/design-architecture/platform-selection/aws-native-agentic-platform",
+      "components": [
+        {
+          "component": "EKSMCPFeatures",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/BedrockMcpTables#EKSMCPFeatures"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "KagentVsAgentCore",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/BedrockMcpTables#KagentVsAgentCore"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "MCPServerEcosystem",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/BedrockMcpTables#MCPServerEcosystem"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "MultiAgentPatterns",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/BedrockMcpTables#MultiAgentPatterns"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "agentic-ai-platform/design-architecture/platform-selection/index",
+      "components": [
+        {
+          "component": "DocCardList",
+          "status": "serialized",
+          "sources": [
+            "@theme/DocCardList#default"
+          ],
+          "methods": [
+            "static-sidebar"
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "agentic-ai-platform/design-architecture/platform-selection/sovereign-hybrid-deployment",
+      "components": [
+        {
+          "component": "SovereigntySpectrum",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/DecisionFrameworkTables#SovereigntySpectrum"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "agentic-ai-platform/model-serving/gpu-infrastructure/gpu-resource-management",
+      "components": [
+        {
+          "component": "ComparisonTable",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/tables#ComparisonTable"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "CostOptimizationStrategies",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/AgenticSolutionsTables#CostOptimizationStrategies"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "DraLimitationsTable",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/GpuResourceTables#DraLimitationsTable"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "KarpenterGpuOptimization",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/AgenticSolutionsTables#KarpenterGpuOptimization"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "SavingsPlansPricingTraining",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/AgenticSolutionsTables#SavingsPlansPricingTraining"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "SpecificationTable",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/tables#SpecificationTable"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "SpotInstancePricingInference",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/AgenticSolutionsTables#SpotInstancePricingInference"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "agentic-ai-platform/model-serving/gpu-infrastructure/nvidia-gpu-stack",
+      "components": [
+        {
+          "component": "ComparisonTable",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/tables#ComparisonTable"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "SpecificationTable",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/tables#SpecificationTable"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "agentic-ai-platform/model-serving/index",
+      "components": [
+        {
+          "component": "TieredGatewayDiagram",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/GatewayApiTables#TieredGatewayDiagram"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "agentic-ai-platform/model-serving/inference-frameworks/llm-d-eks-automode",
+      "components": [
+        {
+          "component": "CostOptimizationTable",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/LlmdTables#CostOptimizationTable"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "GatewayCRDTable",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/LlmdTables#GatewayCRDTable"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "KVCacheEffectsTable",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/LlmdTables#KVCacheEffectsTable"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "ModelLoadingTable",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/LlmdTables#ModelLoadingTable"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "MonitoringMetricsTable",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/LlmdTables#MonitoringMetricsTable"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "P5InstanceTable",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/LlmdTables#P5InstanceTable"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "P5eInstanceTable",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/LlmdTables#P5eInstanceTable"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "Qwen3SpecsTable",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/LlmdTables#Qwen3SpecsTable"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "VllmComparisonTable",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/LlmdTables#VllmComparisonTable"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "WellLitPathTable",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/LlmdTables#WellLitPathTable"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "agentic-ai-platform/model-serving/inference-frameworks/moe-model-serving",
+      "components": [
+        {
+          "component": "BatchOptimization",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/MoeModelTables#BatchOptimization"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "GpuVsTrainium2",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/MoeModelTables#GpuVsTrainium2"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "KvCacheConfig",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/MoeModelTables#KvCacheConfig"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "MoeVsDense",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/MoeModelTables#MoeVsDense"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "MonitoringMetrics",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/MoeModelTables#MonitoringMetrics"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "RoutingMechanisms",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/MoeModelTables#RoutingMechanisms"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "TensorParallelismConfig",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/MoeModelTables#TensorParallelismConfig"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "VllmVsTgi",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/MoeModelTables#VllmVsTgi"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "agentic-ai-platform/model-serving/inference-frameworks/nemo-framework",
+      "components": [
+        {
+          "component": "CheckpointSharding",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/NemoTables#CheckpointSharding"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "GPURequirements",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/NemoTables#GPURequirements"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "MonitoringMetrics",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/NemoTables#MonitoringMetrics"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "NCCLImportance",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/NemoTables#NCCLImportance"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "NemoComponents",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/NemoTables#NemoComponents"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "agentic-ai-platform/model-serving/inference-frameworks/vllm-model-serving",
+      "components": [
+        {
+          "component": "ComparisonTable",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/tables/ComparisonTable#default"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "SpecificationTable",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/tables/SpecificationTable#default"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "agentic-ai-platform/model-serving/inference-optimization/index",
+      "components": [
+        {
+          "component": "DocCardList",
+          "status": "serialized",
+          "sources": [
+            "@theme/DocCardList#default"
+          ],
+          "methods": [
+            "static-props"
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "agentic-ai-platform/model-serving/inference-routing/openclaw-example",
+      "components": [
+        {
+          "component": "OpenClawArchitecture",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/OpenClawArchitecture#default"
+          ],
+          "methods": [
+            "source-adapter"
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "agentic-ai-platform/model-serving/inference-routing/routing-strategy",
+      "components": [
+        {
+          "component": "ComponentStructureTable",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/InferenceGatewayTables#ComponentStructureTable"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "MonitoringMetricsTable",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/InferenceGatewayTables#MonitoringMetricsTable"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "TopologyEffectsTable",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/InferenceGatewayTables#TopologyEffectsTable"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "agentic-ai-platform/operations-mlops/data-infrastructure/index",
+      "components": [
+        {
+          "component": "DocCardList",
+          "status": "serialized",
+          "sources": [
+            "@theme/DocCardList#default"
+          ],
+          "methods": [
+            "static-sidebar"
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "agentic-ai-platform/operations-mlops/data-infrastructure/milvus-vector-database",
+      "components": [
+        {
+          "component": "ComponentRolesTable",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/MilvusTables#ComponentRolesTable"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "GPUIndexingPerformanceTable",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/MilvusTables#GPUIndexingPerformanceTable"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "GPUInstanceTable",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/MilvusTables#GPUInstanceTable"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "IndexComparisonTable",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/MilvusTables#IndexComparisonTable"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "MonitoringMetricsTable",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/MilvusTables#MonitoringMetricsTable"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "StorageCostComparisonTable",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/MilvusTables#StorageCostComparisonTable"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "agentic-ai-platform/operations-mlops/governance/index",
+      "components": [
+        {
+          "component": "DocCardList",
+          "status": "serialized",
+          "sources": [
+            "@theme/DocCardList#default"
+          ],
+          "methods": [
+            "static-sidebar"
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "agentic-ai-platform/operations-mlops/governance/ragas-evaluation",
+      "components": [
+        {
+          "component": "CostComparison",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/RagasTables#CostComparison"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "CostOptimizationStrategies",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/RagasTables#CostOptimizationStrategies"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "ImprovementChecklist",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/RagasTables#ImprovementChecklist"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "RagasMetrics",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/RagasTables#RagasMetrics"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "RagasVsBedrockComparison",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/RagasTables#RagasVsBedrockComparison"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "agentic-ai-platform/operations-mlops/observability/agent-monitoring",
+      "components": [
+        {
+          "component": "DailyChecksTable",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/AgentMonitoringTables#DailyChecksTable"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "ErrorRateMetricsTable",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/AgentMonitoringTables#ErrorRateMetricsTable"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "LatencyMetricsTable",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/AgentMonitoringTables#LatencyMetricsTable"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "MaturityModelTable",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/AgentMonitoringTables#MaturityModelTable"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "TokenUsageMetricsTable",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/AgentMonitoringTables#TokenUsageMetricsTable"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "WeeklyChecksTable",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/AgentMonitoringTables#WeeklyChecksTable"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "agentic-ai-platform/operations-mlops/observability/index",
+      "components": [
+        {
+          "component": "DocCardList",
+          "status": "serialized",
+          "sources": [
+            "@theme/DocCardList#default"
+          ],
+          "methods": [
+            "static-sidebar"
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "agentic-ai-platform/operations-mlops/observability/kagent-kubernetes-agents",
+      "components": [
+        {
+          "component": "ComponentsTable",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/KagentTables#ComponentsTable"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "SolutionsComparisonTable",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/KagentTables#SolutionsComparisonTable"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "agentic-ai-platform/reference-architecture/index",
+      "components": [
+        {
+          "component": "DocCardList",
+          "status": "serialized",
+          "sources": [
+            "@theme/DocCardList#default"
+          ],
+          "methods": [
+            "static-sidebar"
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "agentic-ai-platform/reference-architecture/inference-gateway/index",
+      "components": [
+        {
+          "component": "DocCardList",
+          "status": "serialized",
+          "sources": [
+            "@theme/DocCardList#default"
+          ],
+          "methods": [
+            "static-sidebar"
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "agentic-ai-platform/reference-architecture/inference-gateway/setup/index",
+      "components": [
+        {
+          "component": "InferencePipelineDiagram",
+          "status": "serialized",
+          "sources": [
+            "docs/agentic-ai-platform/reference-architecture/inference-gateway/setup/index.md#InferencePipelineDiagram"
+          ],
+          "methods": [
+            "static-html-source"
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "agentic-ai-platform/reference-architecture/integrations/index",
+      "components": [
+        {
+          "component": "DocCardList",
+          "status": "serialized",
+          "sources": [
+            "@theme/DocCardList#default"
+          ],
+          "methods": [
+            "static-sidebar"
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "agentic-ai-platform/reference-architecture/integrations/sagemaker-eks-integration",
+      "components": [
+        {
+          "component": "CostOptimization",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/SagemakerTables#CostOptimization"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "HybridComparison",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/SagemakerTables#HybridComparison"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "agentic-ai-platform/reference-architecture/model-lifecycle/continuous-training/index",
+      "components": [
+        {
+          "component": "DocCardList",
+          "status": "serialized",
+          "sources": [
+            "@theme/DocCardList#default"
+          ],
+          "methods": [
+            "static-sidebar"
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "agentic-ai-platform/reference-architecture/model-lifecycle/index",
+      "components": [
+        {
+          "component": "DocCardList",
+          "status": "serialized",
+          "sources": [
+            "@theme/DocCardList#default"
+          ],
+          "methods": [
+            "static-sidebar"
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "agentic-ai-platform/reference-architecture/model-lifecycle/mlops-pipeline-eks",
+      "components": [
+        {
+          "component": "GitOpsDeployment",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/MlOpsTables#GitOpsDeployment"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "PipelineComponents",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/MlOpsTables#PipelineComponents"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "aidlc/enterprise/agent-versioning/index",
+      "components": [
+        {
+          "component": "DocCardList",
+          "status": "serialized",
+          "sources": [
+            "@theme/DocCardList#default"
+          ],
+          "methods": [
+            "static-sidebar"
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "aidlc/enterprise/cost-estimation",
+      "components": [
+        {
+          "component": "DetailedMetrics",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/AidlcTables#DetailedMetrics"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "ProductivityMetrics",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/AidlcTables#ProductivityMetrics"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "aidlc/enterprise/msa-complexity/index",
+      "components": [
+        {
+          "component": "DocCardList",
+          "status": "serialized",
+          "sources": [
+            "@theme/DocCardList#default"
+          ],
+          "methods": [
+            "static-sidebar"
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "aidlc/enterprise/regulatory-compliance/index",
+      "components": [
+        {
+          "component": "DocCardList",
+          "status": "serialized",
+          "sources": [
+            "@theme/DocCardList#default"
+          ],
+          "methods": [
+            "static-sidebar"
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "aidlc/methodology/harness-engineering",
+      "components": [
+        {
+          "component": "QualityGates",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/AidlcTables#QualityGates"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "aidlc/methodology/principles-and-model",
+      "components": [
+        {
+          "component": "AidlcArtifacts",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/AidlcTables#AidlcArtifacts"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "AidlcPhaseActivities",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/AidlcTables#AidlcPhaseActivities"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "AidlcPhaseMapping",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/AidlcTables#AidlcPhaseMapping"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "AidlcPrinciples",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/AidlcTables#AidlcPrinciples"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "aidlc/operations/autonomous-response",
+      "components": [
+        {
+          "component": "AiopsMaturityModel",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/AiopsIntroTables#AiopsMaturityModel"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "ChaosExperiments",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/PredictiveOpsTables#ChaosExperiments"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "OperationPatternsComparison",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/AiopsIntroTables#OperationPatternsComparison"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "ResponsePatterns",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/PredictiveOpsTables#ResponsePatterns"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "aidlc/operations/observability-stack",
+      "components": [
+        {
+          "component": "ArchitectureLayers",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/ObservabilityStackTables#ArchitectureLayers"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "ObservabilityPillars",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/ObservabilityStackTables#ObservabilityPillars"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "StackSelectionPatterns",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/ObservabilityStackTables#StackSelectionPatterns"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "aidlc/operations/predictive-operations",
+      "components": [
+        {
+          "component": "MLModelComparison",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/PredictiveOpsTables#MLModelComparison"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "MaturityTable",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/PredictiveOpsTables#MaturityTable"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "ScalingComparison",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/PredictiveOpsTables#ScalingComparison"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "aidlc/toolchain/ai-coding-agents",
+      "components": [
+        {
+          "component": "AiCodingAgentComparison",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/AidlcTables#AiCodingAgentComparison"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "aidlc/toolchain/eks-declarative-automation",
+      "components": [
+        {
+          "component": "AidlcPipeline",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/AidlcTables#AidlcPipeline"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "EksCapabilities",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/AidlcTables#EksCapabilities"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "benchmarks/ai-ml-workload",
+      "components": [
+        {
+          "component": "ConcurrencyChart",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/ConcurrencyChart#default"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "CostPerTokenChart",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/CostPerTokenChart#default"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "InferenceThroughputChart",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/InferenceThroughputChart#default"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "InfraComparisonChart",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/InfraComparisonChart#default"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "ItlChart",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/ItlChart#default"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "KeyFindingsMLChart",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/KeyFindingsMLChart#default"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "MLOverviewChart",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/MLOverviewChart#default"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "MLRecommendationChart",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/MLRecommendationChart#default"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "ModelSpecChart",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/ModelSpecChart#default"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "TtftChart",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/TtftChart#default"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "benchmarks/cni-performance-comparison",
+      "components": [
+        {
+          "component": "AimlRelevanceChart",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/AimlRelevanceChart#default"
+          ],
+          "methods": [
+            "source-adapter"
+          ]
+        },
+        {
+          "component": "CniConclusionInfographic",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/CniConclusionInfographic#default"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "DnsResourceChart",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/DnsResourceChart#default"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "HttpPerformanceChart",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/HttpPerformanceChart#default"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "KeyFindingsChart",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/KeyFindingsChart#default"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "KeyResultsSummaryChart",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/KeyResultsSummaryChart#default"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "KubeproxyScalingChart",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/KubeproxyScalingChart#default"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "LatencyChart",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/LatencyChart#default"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "NetworkPolicyChart",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/NetworkPolicyChart#default"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "OverviewSummaryChart",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/OverviewSummaryChart#default"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "RecommendationChart",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/RecommendationChart#default"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "ScenarioComparisonChart",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/ScenarioComparisonChart#default"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "ServiceScalingChart",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/ServiceScalingChart#default"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "TestEnvironmentChart",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/TestEnvironmentChart#default"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "ThroughputChart",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/ThroughputChart#default"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "TuningPointsChart",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/TuningPointsChart#default"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "UdpLossChart",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/UdpLossChart#default"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "XdpCompatibilityChart",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/XdpCompatibilityChart#default"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "eks-best-practices/networking-performance/coredns-monitoring-optimization",
+      "components": [
+        {
+          "component": "GoldenSignals",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/CoreDnsTables#GoldenSignals"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "MonitoringArchitecture",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/CoreDnsTables#MonitoringArchitecture"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "PerformanceBenchmarks",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/CoreDnsTables#PerformanceBenchmarks"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "TroubleshootingTable",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/CoreDnsTables#TroubleshootingTable"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "TtlConfigGuide",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/CoreDnsTables#TtlConfigGuide"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "eks-best-practices/networking-performance/east-west-traffic-best-practice",
+      "components": [
+        {
+          "component": "CostSimulation",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/EastWestTrafficTables#CostSimulation"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "LatencyCostComparison",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/EastWestTrafficTables#LatencyCostComparison"
+          ],
+          "methods": [
+            "source-adapter"
+          ]
+        },
+        {
+          "component": "ScenarioMatrix",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/EastWestTrafficTables#ScenarioMatrix"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "ServiceTypeComparison",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/EastWestTrafficTables#ServiceTypeComparison"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "eks-best-practices/networking-performance/gateway-api-adoption-guide/cilium-eni-gateway-api",
+      "components": [
+        {
+          "component": "AlgorithmComparisonTable",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/GatewayApiTables#AlgorithmComparisonTable"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "EksRequirementsTable",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/GatewayApiTables#EksRequirementsTable"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "InstanceTypeTable",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/GatewayApiTables#InstanceTypeTable"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "LatencyComparisonTable",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/GatewayApiTables#LatencyComparisonTable"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "eks-best-practices/networking-performance/gateway-api-adoption-guide/index",
+      "components": [
+        {
+          "component": "ArchitectureComparisonTable",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/GatewayApiTables#ArchitectureComparisonTable"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "CostComparisonTable",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/GatewayApiTables#CostComparisonTable"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "DifficultyComparisonTable",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/GatewayApiTables#DifficultyComparisonTable"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "DocumentStructureTable",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/GatewayApiTables#DocumentStructureTable"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "FeatureComparisonMatrix",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/GatewayApiTables#FeatureComparisonMatrix"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "FeatureMappingTable",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/GatewayApiTables#FeatureMappingTable"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "GaStatusTable",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/GatewayApiTables#GaStatusTable"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "GatewayApiBenefits",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/GatewayApiBenefits#default"
+          ],
+          "methods": [
+            "source-adapter"
+          ]
+        },
+        {
+          "component": "RiskAssessmentTable",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/GatewayApiTables#RiskAssessmentTable"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "RoadmapTimeline",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/GatewayApiTables#RoadmapTimeline"
+          ],
+          "methods": [
+            "source-adapter"
+          ]
+        },
+        {
+          "component": "RoleSeparationTable",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/GatewayApiTables#RoleSeparationTable"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "RouteRecommendationTable",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/GatewayApiTables#RouteRecommendationTable"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "ScenarioRecommendationTable",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/GatewayApiTables#ScenarioRecommendationTable"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "SolutionOverviewMatrix",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/GatewayApiTables#SolutionOverviewMatrix"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "SolutionSelectorCards",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/GatewayApiTables#SolutionSelectorCards"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "TieredGatewayDiagram",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/GatewayApiTables#TieredGatewayDiagram"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "eks-best-practices/networking-performance/gateway-api-adoption-guide/migration-execution-strategy",
+      "components": [
+        {
+          "component": "MigrationFeatureMappingTable",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/GatewayApiTables#MigrationFeatureMappingTable"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "TroubleshootingTable",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/GatewayApiTables#TroubleshootingTable"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "eks-best-practices/networking-performance/service-mesh/gamma-initiative",
+      "components": [
+        {
+          "component": "GammaInfographic",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/GatewayApiTables#GammaInfographic"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "GammaSupportTable",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/GatewayApiTables#GammaSupportTable"
+          ],
+          "methods": [
+            "source-adapter"
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "eks-best-practices/operations-reliability/eks-debugging/control-plane",
+      "components": [
+        {
+          "component": "ClusterHealthTable",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/EksDebugTables#ClusterHealthTable"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "ControlPlaneLogTable",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/EksDebugTables#ControlPlaneLogTable"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "eks-best-practices/operations-reliability/eks-debugging/index",
+      "components": [
+        {
+          "component": "ErrorQuickRefTable",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/EksDebugTables#ErrorQuickRefTable"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "IncidentEscalationTable",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/EksDebugTables#IncidentEscalationTable"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "ZonalShiftImpactTable",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/EksDebugTables#ZonalShiftImpactTable"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "eks-best-practices/operations-reliability/eks-debugging/node",
+      "components": [
+        {
+          "component": "NodeGroupErrorTable",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/EksDebugTables#NodeGroupErrorTable"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "eks-best-practices/operations-reliability/eks-pod-health-lifecycle",
+      "components": [
+        {
+          "component": "LegacySectionLinks",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/LegacySectionLinks#default"
+          ],
+          "methods": [
+            "source-adapter"
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "eks-best-practices/resource-cost/karpenter-autoscaling",
+      "components": [
+        {
+          "component": "AutoModeComparison",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/KarpenterTables#AutoModeComparison"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "ControlPlaneComparison",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/KarpenterTables#ControlPlaneComparison"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "PracticalGuide",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/KarpenterTables#PracticalGuide"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "ScalingBenchmark",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/KarpenterTables#ScalingBenchmark"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "ScalingLatencyBreakdown",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/KarpenterTables#ScalingLatencyBreakdown"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        },
+        {
+          "component": "WarmPoolCostAnalysis",
+          "status": "serialized",
+          "sources": [
+            "@site/src/components/KarpenterTables#WarmPoolCostAnalysis"
+          ],
+          "methods": [
+            "static-source"
+          ]
+        }
+      ]
+    }
+  ],
+  "remaining": []
+}

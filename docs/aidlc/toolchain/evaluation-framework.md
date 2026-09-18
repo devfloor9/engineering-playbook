@@ -3,7 +3,7 @@ title: AIDLC Evaluation Framework
 description: Agent/LLM 개발 프로세스의 Evaluation-driven Loop — SWE-bench Verified, METR, Ragas, DeepEval, LangSmith, Braintrust, AWS Labs aidlc-evaluator 비교
 created: "2026-04-18"
 last_update:
-  date: "2026-06-30"
+  date: 2026-09-18
   author: YoungJoon Jeong
 reading_time: 28
 tags:
@@ -146,7 +146,7 @@ URL: [metr.org/blog/2025-03-19-measuring-ai-ability-to-complete-long-tasks](http
 | 도구 | 라이선스 | 주요 메트릭 | CI 통합 방식 | 프로덕션 샘플링 | 강점 | 한계 |
 |------|---------|-----------|-------------|----------------|------|------|
 | **Ragas v0.2+** | Apache 2.0 | faithfulness, context_precision, context_recall, answer_relevancy, noise_sensitivity | Python SDK, GH Actions, CodeBuild | 공식 지원 (Langfuse/Phoenix 연동) | RAG 평가에서 가장 성숙, 레퍼런스 풍부 | LLM-as-judge 호출 비용 |
-| **DeepEval** | Apache 2.0 | 30+ (G-Eval, Toxicity, PII, Hallucination, Bias, Correctness 등) | PyTest-like DSL (`@pytest.mark.llm_eval`) | 자체 Confident AI 연동 | PyTest 사용자에게 가장 친숙, 커스텀 메트릭 DSL | 생태계 성숙도 중간, 일부 메트릭 validation 필요 |
+| **DeepEval** | Apache 2.0 | 30+ (G-Eval, Toxicity, PII, Hallucination, Bias, Correctness 등) | PyTest 통합 (`assert_test()`) | 자체 Confident AI 연동 | PyTest 사용자에게 가장 친숙, 커스텀 메트릭 DSL | 생태계 성숙도 중간, 일부 메트릭 validation 필요 |
 | **LangSmith** | SaaS + self-host beta | Trace, Dataset, Auto/Custom Evaluator, LLM-as-judge | `langsmith evaluate` CLI, GH Actions | Managed (LangChain 네이티브) | LangChain/LangGraph 통합, A/B 실험 관리 | SaaS 의존, 데이터 거버넌스 이슈 |
 | **Braintrust** | SaaS + self-host Enterprise | Dataset, Grading, Replay, Playground | `braintrust eval` CLI | Managed, log SDK | 개발자 경험 탁월, Playground UX 우수 | 벤더 락인, 온프레미스 제약 |
 | **AWS Labs aidlc-evaluator** | Apache 2.0 (early, v0.1.6+) | AIDLC phase 산출물 준수도 · Common Rules 적합성 · Stage Transition 지표 | `scripts/` 실행 (Python) | - | AIDLC 방법론 적합성 평가 자체를 대상으로 함 | 범용 품질 메트릭 부족 → Ragas/DeepEval 과 병행 |
@@ -179,7 +179,7 @@ RAG 파이프라인은 "검색 품질" 과 "생성 품질" 이 얽혀 문제를 
 
 ### 3.3 DeepEval 의 PyTest 통합
 
-DeepEval 은 `@pytest.mark.llm_eval` 마커와 `assert_test()` 헬퍼로 기존 PyTest 파이프라인에 평가 케이스를 그대로 끼워 넣을 수 있습니다. 결과는 Confident AI 대시보드에 전송되거나 로컬 JSON 으로 저장됩니다.
+DeepEval 은 `assert_test()` 헬퍼와 `deepeval test run` 명령으로 PyTest 파이프라인에 평가 케이스를 통합합니다. `assert_test()` 는 임계값 미달을 테스트 실패로 처리합니다. 대시보드 전송과 결과 저장은 실행 환경에서 별도로 구성합니다. [공식 CI/CD 가이드](https://deepeval.com/docs/evaluation-unit-testing-in-ci-cd)
 
 - **G-Eval**: 임의 기준(rubric) 을 자연어로 기술하면 LLM-as-judge 로 점수화
 - **Hallucination / Bias / Toxicity**: 안전성 관련 메트릭 내장
@@ -214,24 +214,31 @@ v0.1.x 단계라 범용성·안정성은 제한적이지만, AIDLC 를 조직 �
 
 ### 4.1 Inner Loop — 개발자 로컬
 
-- 도구: `pytest-deepeval`, `promptfoo`, `ragas.evaluate()` 인 라인 호출
+- 도구: `deepeval` 의 PyTest 통합, `promptfoo`, `ragas.evaluate()` 인 라인 호출
 - 데이터: 10-20개 고정 샘플 (smoke set)
 - 주기: 코드 저장 시 pre-commit 또는 `make eval-fast`
 - 목적: 치명적 회귀 즉시 차단, 초 단위 피드백
 
+아래 코드는 **프로젝트에 연결해야 하는 scaffold** 입니다. `deepeval` 과 PyTest 외에 세 fixture 가 필요합니다: `smoke_questions` 는 비어 있지 않은 질문 목록, `run_pipeline(q)` 는 같은 실행의 `(응답 문자열, 실제 검색 문서 문자열 목록)` 을 반환하는 함수, `judge_model` 은 명시적으로 선택한 모델 ID 또는 `DeepEvalBaseLLM` 구현입니다. 검증한 라이브러리 버전을 고정하고 모델 접근 설정과 비용 예산을 마련한 뒤 실행해야 하며, 이 문서에 fixture 구현은 포함하지 않습니다.
+
 ```python
-# Inner Loop 예시 — DeepEval smoke test
-import pytest
-from deepeval import evaluate
+# Inner Loop scaffold — DeepEval smoke test
+from deepeval import assert_test
 from deepeval.metrics import FaithfulnessMetric, AnswerRelevancyMetric
 from deepeval.test_case import LLMTestCase
 
-@pytest.mark.llm_eval
-def test_rag_smoke():
-    cases = [LLMTestCase(input=q, actual_output=run_pipeline(q), retrieval_context=ctx)
-             for q, ctx in smoke_dataset]
-    metrics = [FaithfulnessMetric(threshold=0.85), AnswerRelevancyMetric(threshold=0.80)]
-    evaluate(cases, metrics)
+def test_rag_smoke(run_pipeline, smoke_questions, judge_model):
+    assert smoke_questions, "Smoke dataset must not be empty"
+    for question in smoke_questions:
+        response, contexts = run_pipeline(question)
+        case = LLMTestCase(
+            input=question, actual_output=response, retrieval_context=contexts
+        )
+        metrics = [
+            FaithfulnessMetric(threshold=0.85, model=judge_model),
+            AnswerRelevancyMetric(threshold=0.80, model=judge_model),
+        ]
+        assert_test(test_case=case, metrics=metrics)
 ```
 
 ### 4.2 Middle Loop — CI (GitHub Actions)
@@ -240,6 +247,8 @@ def test_rag_smoke():
 - 데이터: 200-500개 regression dataset (도메인 특화 + 공개 벤치마크 부분집합)
 - 주기: Pull Request, main 병합 시
 - 목적: 회귀 감지, 변경 영향 시각화, 배포 게이트
+
+아래 YAML 도 **통합 scaffold** 입니다. `requirements-eval.txt`, 데이터셋, `run_ragas.py`, `gate.py` 는 프로젝트가 제공해야 합니다. Ragas 를 선택하면 [공식 `evaluate()` 계약](https://docs.ragas.io/en/stable/references/evaluate/)에 맞는 `EvaluationDataset` 과 judge/embedding 설정을 사용하고, 결과를 `gate.py` 가 읽는 스키마로 변환해야 합니다. DeepEval 의 `LLMTestCase` 를 Ragas 에 직접 전달하지 않습니다.
 
 ```yaml
 # .github/workflows/eval.yml (발췌)
@@ -258,14 +267,15 @@ jobs:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: python eval/run_ragas.py --dataset eval/datasets/regression.jsonl --out results.json
       - name: Gate on thresholds
-        run: python eval/gate.py results.json \
-               --faithfulness 0.90 --context-precision 0.85 --answer-relevancy 0.85
+        run: |
+          python eval/gate.py results.json \
+            --faithfulness 0.90 --context-precision 0.85 --answer-relevancy 0.85
       - uses: actions/upload-artifact@v4
         with: {name: eval-results, path: results.json}
 ```
 
-- `gate.py` 는 임계값 미달 시 `exit 1`, PR 블록 처리
-- 결과는 아티팩트로 업로드하고 Langfuse/Braintrust 대시보드에 push
+- `gate.py` 는 임계값 미달, 누락/비유한 점수, 평가 오류 시 `exit 1` 을 반환하도록 구현합니다. Ragas 의 기본 오류 결과인 `NaN` 을 통과로 처리하지 않아야 합니다.
+- 예시는 결과 아티팩트 업로드만 포함합니다. Langfuse/Braintrust 대시보드 전송은 별도 어댑터가 필요합니다.
 
 ### 4.3 Outer Loop — 프로덕션 샘플링
 
@@ -379,38 +389,47 @@ Data Drift 는 coverage 보강으로, Concept Drift 는 ground truth 재작성�
 
 ### 7.1 LLM-as-judge 비용 구조
 
-- 1케이스당 평가 호출 2-5회 (메트릭 수만큼) × judge 모델 토큰 × 데이터셋 크기
-- 데이터셋 500개 × 메트릭 5개 × GPT-4.1 기준: **1회 실행 수천 ~ 수만 토큰** 규모
+- 메트릭 수와 judge 호출 수는 다릅니다. 한 메트릭이 여러 단계로 LLM 을 호출할 수 있으므로, 재시도를 포함한 실제 호출 수와 호출당 입력·출력 토큰을 측정합니다. [DeepEval Faithfulness 계산 과정](https://deepeval.com/docs/metrics-faithfulness)
+- 예를 들어 500케이스 × 5메트릭 × 메트릭당 1회 호출 × 호출당 입력·출력 합계 2,000토큰을 가정하면 **1회 실행 5,000,000토큰(5M)** 입니다. 실제 호출 수와 토큰 길이에 따라 달라집니다.
 - CI 에서 매 PR 돌리면 월간 비용이 상당 — 비용 상한 필요
 
 ### 7.2 비용 절감 전략
 
 1. **Judge 모델 다운그레이드**: GPT-4.1 → GPT-4.1-mini 또는 Claude Haiku 4.5 로 1차 판정 후 경계 케이스만 상위 모델로 재검증
-2. **로컬 Evaluator 모델**: Prometheus-Eval, Ragas 내장 경량 모델로 Inner/Middle Loop 대체
+2. **로컬 Evaluator 모델**: 별도로 호스팅한 judge 를 Inner/Middle Loop 에 연결하고, 모델 품질과 로컬 추론 인프라 비용을 함께 검증
 3. **샘플링 전략**: 500개 대신 계층 샘플링된 100개로 Middle Loop, 월 1회 500개 풀 스윕
 4. **캐시 활용**: 동일 prompt + response 쌍에 대한 judge 결과 캐시 (입력 변동 없으면 재계산 생략)
 5. **비동기 평가**: PR 블록이 아닌 "Advisory" 평가로 일부 메트릭 전환
 
 ### 7.3 Cost-effective 조합 패턴
 
-| 팀 규모 | 조합 | 예상 월 비용 범위 |
+팀 규모만으로 월 비용을 정할 수 없습니다. 아래 조합별 비용 항목을 7.4 의 실제 호출량과 함께 계산합니다.
+
+| 팀 규모 | 조합 | 비용 산정 항목 |
 |--------|------|----------------|
-| 소규모 (&lt;5명) | Ragas 로컬 + Langfuse OSS + Haiku judge | $50-200 |
-| 중간 (5-20명) | Ragas + DeepEval + Langfuse + Haiku/4o-mini | $300-1,500 |
-| 대규모 (20+명) | Braintrust SaaS 또는 LangSmith + 4o judge | $2,000-10,000+ |
+| 소규모 (&lt;5명) | Ragas 로컬 실행 + Langfuse OSS + 소형 judge | Judge/embedding 호출 + 자체 호스팅 |
+| 중간 (5-20명) | Ragas + DeepEval + Langfuse + judge 라우팅 | 메트릭별 호출·재시도 + 추적 데이터 보관 |
+| 대규모 (20+명) | Braintrust SaaS 또는 LangSmith + judge | Judge 호출 + SaaS 계약·사용량 + 저장 비용 |
 
 ### 7.4 비용 추정 워크시트
 
-비용 예산을 수립할 때 아래 수식을 사용하면 조직별 상황에 맞는 규모 감각을 잡을 수 있습니다.
+동일한 메트릭·모델·토큰 길이 가정을 사용하는 평가 작업에 아래 수식을 적용합니다. `T_in`, `T_out` 은 judge 호출당 평균 입력·출력 토큰 수이고, `P_in`, `P_out` 은 각각 **USD/100만 토큰** 단가입니다. CI 와 프로덕션의 가정이 다르면 따로 계산해 합산합니다.
 
-```
-월 평가 비용 ≈
-  (CI 실행 수/월 × 데이터셋 크기 × 메트릭 수 × judge 토큰 단가)
-+ (프로덕션 trace 수/월 × 샘플링 비율 × 메트릭 수 × judge 토큰 단가)
-+ (주간 공개 벤치마크 실행 비용)
+```text
+평가 케이스 수/월 =
+  CI 실행 수/월 × 케이스 수/실행 + 프로덕션 trace 수/월 × 샘플링 비율
+Judge 호출 수/월 =
+  평가 케이스 수/월 × 메트릭 수 × 메트릭당 평균 judge 호출 수
+Judge 비용(USD/월) ≈
+  Judge 호출 수/월 × (T_in × P_in + T_out × P_out) / 1,000,000
+전체 평가 비용(USD/월) ≈
+  Judge 비용 + 별도 벤치마크 실행 수/월 × 비용(USD/실행)
+  + 파이프라인 생성·embedding·인프라·SaaS·저장 비용(USD/월)
 ```
 
-예: PR 50회/월, 200-case dataset, 5 metrics, judge 당 평균 2k 토큰, GPT-4o-mini 단가 기준 → CI 부분만 약 50 × 200 × 5 × 2,000 tokens = 100M tokens/월. 이 규모부터는 judge 모델 다운그레이드와 샘플링 전략이 필수입니다.
+예: CI 50회/월 × 200케이스 × 5메트릭 × 메트릭당 1회 호출 = **50,000 judge 호출/월**. 호출당 입력 1,600토큰 + 출력 400토큰이면 **입력 80M + 출력 20M = 합계 100M 토큰/월** 입니다. 계산 연습용 가상 단가 `P_in = $0.20/1M`, `P_out = $0.80/1M` 을 적용하면 judge 비용은 `80 × $0.20 + 20 × $0.80 = $32/월` 입니다. 이는 특정 모델의 현재 요금이 아니며, 프로덕션 평가와 위의 기타 비용은 제외한 CI judge 예시입니다.
+
+실제 예산에는 공급자의 청구 토큰 구분과 단가를 적용하고, 캐시·재시도·메트릭별 호출 차이를 반영합니다. 벤치마크 비용은 앞에서 계산한 호출과 중복 합산하지 않습니다.
 
 ---
 
@@ -454,7 +473,16 @@ flowchart LR
 
 ### 8.3 샘플링·평가 Worker 의사코드
 
+이 코드는 **Queue 에서 호출할 동기 Worker scaffold** 이며, 4.1 과 같은 DeepEval 계약을 사용합니다. `fetch_trace` 는 SDK 호출을 감싸 `input: str`, `output: str`, `retrieved_docs: list[str]` 를 가진 정규화된 trace 를 반환해야 합니다. 샘플러에는 `error: bool`, `user_rating: 숫자 또는 None`, `estimated_cost_usd: 숫자` 도 필요합니다. 저장·데이터셋 승격·알림 함수와 `judge_model` 은 프로젝트가 주입합니다.
+
+반환·저장 스키마는 `{"faithfulness": float, "answer_relevancy": float}` 이며 두 점수는 유한한 0–1 값입니다. [Faithfulness](https://deepeval.com/docs/metrics-faithfulness)와 [Answer Relevancy](https://deepeval.com/docs/metrics-answer-relevancy)의 `measure(case)` 실행 후 `metric.score` 를 읽습니다. 이 Worker 의 데이터셋 승격·알림 조건은 `faithfulness < 0.85` 입니다. 평가 실패는 낮은 품질 점수와 구분해 예외로 전파하며, Queue 의 재시도·오류 기록과 중복 처리 방지는 별도로 구현해야 합니다.
+
 ```python
+import math
+import random
+from deepeval.metrics import FaithfulnessMetric, AnswerRelevancyMetric
+from deepeval.test_case import LLMTestCase
+
 # sampler.py — 계층 샘플링
 def should_sample(trace):
     if trace.error or trace.user_rating is not None and trace.user_rating <= 2:
@@ -463,16 +491,29 @@ def should_sample(trace):
         return True  # 고비용 trace 100%
     return random.random() < 0.05  # 나머지 5% 랜덤
 
-# worker.py — 비동기 evaluator
-def evaluate_trace(trace_id):
-    trace = langfuse.fetch_trace(trace_id)
-    cases = [LLMTestCase(input=trace.input, actual_output=trace.output,
-                         retrieval_context=trace.retrieved_docs)]
-    result = ragas.evaluate(cases, metrics=[faithfulness, answer_relevancy])
-    store_result(trace_id, result, target="s3://eval-results/")
-    if result.faithfulness < 0.85:
+# worker.py — Queue 가 호출하는 동기 handler
+def evaluate_trace(trace_id, *, fetch_trace, judge_model, store_result,
+                   promote_to_dataset, alert_team):
+    trace = fetch_trace(trace_id)
+    case = LLMTestCase(input=trace.input, actual_output=trace.output,
+                       retrieval_context=trace.retrieved_docs)
+    metrics = {
+        "faithfulness": FaithfulnessMetric(threshold=0.85, model=judge_model),
+        "answer_relevancy": AnswerRelevancyMetric(threshold=0.80, model=judge_model),
+    }
+    scores = {}
+    for name, metric in metrics.items():
+        metric.measure(case)
+        score = metric.score
+        if (isinstance(score, bool) or not isinstance(score, (int, float))
+                or not math.isfinite(score) or not 0 <= score <= 1):
+            raise ValueError(f"Invalid {name} score: {score!r}")
+        scores[name] = float(score)
+    store_result(trace_id, scores, target="s3://eval-results/")
+    if scores["faithfulness"] < 0.85:
         promote_to_dataset(trace, dataset="regression_v2")
         alert_team(trace_id, severity="warning")
+    return scores
 ```
 
 ### 8.4 보안과 거버넌스
@@ -519,7 +560,7 @@ def evaluate_trace(trace_id):
 ### 연구 보고서
 
 - METR — Measuring AI Ability to Complete Long Tasks — [metr.org/blog/2025-03-19-measuring-ai-ability-to-complete-long-tasks](https://metr.org/blog/2025-03-19-measuring-ai-ability-to-complete-long-tasks/)
-- METR HCAST — [metr.org/blog/2025-01-27-hcast](https://metr.org/blog/2025-01-27-hcast/)
+- METR HCAST — [HCAST paper](https://metr.org/hcast.pdf)
 
 ### 내부 문서
 

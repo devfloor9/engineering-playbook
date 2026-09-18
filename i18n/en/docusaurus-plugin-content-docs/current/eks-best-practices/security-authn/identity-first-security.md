@@ -12,6 +12,7 @@ tags:
   - pod-identity
   - irsa
   - zero-trust
+  - scope:ops
 sidebar_label: Identity-First Security
 category: security
 ---

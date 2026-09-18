@@ -3,9 +3,9 @@ title: Milvus Vector Database Integration
 description: Deploying Milvus vector database on Amazon EKS and integrating with RAG pipelines
 created: "2026-02-05"
 last_update:
-  date: "2026-06-26"
+  date: 2026-09-18
   author: devfloor9
-reading_time: 16
+reading_time: 18
 tags:
   - milvus
   - vector-database
@@ -418,7 +418,7 @@ Production environments should implement disaster recovery strategy through cros
 - **Automation**: Periodic backup and synchronization using CronJob
 
 :::info Detailed Backup Guide
-For backup tool installation, configuration file creation, CronJob setup procedures, see [Milvus Backup and Restore Guide](https://milvus.io/docs/backup_and_restore.md).
+For backup tool installation, configuration file creation, CronJob setup procedures, see [Milvus Backup and Restore Guide](https://milvus.io/docs/milvus_backup_cli.md).
 :::
 
 ## 8. Monitoring and Metrics
@@ -495,7 +495,7 @@ For Milvus Operator installation, CRD schema, GPU configuration examples, see [M
 ### Official Documentation
 - [Milvus Official Documentation](https://milvus.io/docs)
 - [Milvus Helm Chart](https://milvus.io/docs/install_cluster-helm.md)
-- [Milvus Backup and Restore](https://milvus.io/docs/backup_and_restore.md)
+- [Milvus Backup and Restore](https://milvus.io/docs/milvus_backup_cli.md)
 - [Milvus Monitoring](https://milvus.io/docs/monitor.md)
 - [Milvus Operator](https://milvus.io/docs/install_cluster-milvusoperator.md)
 

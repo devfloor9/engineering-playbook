@@ -3,9 +3,9 @@ title: 기술 로드맵
 description: AIDLC 기술 투자 의사결정 — Build-vs-Wait 매트릭스, 도구 성숙도 평가, 6/12/18개월 호라이즌
 created: "2026-04-07"
 last_update:
-  date: "2026-06-30"
+  date: 2026-09-18
   author: YoungJoon Jeong
-reading_time: 18
+reading_time: 16
 tags:
   - aidlc
   - toolchain
@@ -73,7 +73,7 @@ AIDLC 구현 시 조직이 직면하는 대표적인 질문들:
 | **ACK (AWS Controllers for Kubernetes)** | GA (50+ services) | ✅ 즉시 도입 | 선언적 AWS 리소스 관리. 대안: Crossplane |
 | **KRO (Kubernetes Resource Orchestrator)** | GA | ✅ 즉시 도입 | 복잡한 Kubernetes 리소스 그래프 자동화. 대안: Helm, Kustomize |
 | **Gateway API + LBC v3** | GA | ✅ 즉시 도입 | ExtProc 지원, AI Gateway 구축 기반. 대안: Istio + EnvoyFilter |
-| **MCP Servers** | 50+ GA | 🟡 선택적 도입 | 도구별 성숙도 차이 큼. 실험 후 안정화된 것만 도입. [mcp.run](https://mcp.run) 참조 |
+| **MCP Servers** | 서버별 상이 | 🟡 선택적 도입 | 도구별 성숙도 차이 큼. 실험 후 안정화된 것만 도입. [MCP Registry](https://registry.modelcontextprotocol.io) 참조 |
 | **Kagent** | Early | 🟠 실험 단계 | K8s AI Agent 자동화. 프로덕션 적용 전 충분한 테스트 필요. 대안: kubectl + 스크립트 |
 | **Strands Agents SDK** | GA | ✅ 커스텀 에이전트 시 | Bedrock Agents + CDK 기반. 대안: LangGraph, CrewAI |
 | **vLLM** | v0.22+ / v0.23.x (Mature) | ✅ 데이터 레지던시 시 | 오픈 웨이트 모델 서빙. 대안: TensorRT-LLM, SGLang |
@@ -120,7 +120,7 @@ AIDLC 구현 시 조직이 직면하는 대표적인 질문들:
 - **권장**: 안정성 검증된 서버만 도입 (예: `@modelcontextprotocol/server-filesystem`, `@modelcontextprotocol/server-github`)
 - **대안**: 직접 API 통합 (MCP 없이)
 
-MCP 서버 목록 및 평가: [mcp.run](https://mcp.run)
+MCP 서버 검색: [MCP Registry](https://registry.modelcontextprotocol.io)
 
 #### Kagent
 - **성숙도**: Early (2025년 오픈소스 공개)
@@ -433,7 +433,7 @@ AIDLC 도구 생태계는 빠르게 변화합니다. **분기마다 이 문서�
 - [AWS Labs AIDLC Workflows (GitHub)](https://github.com/awslabs/aidlc-workflows)
 
 **도구 평가 참고:**
-- [MCP Servers 목록](https://mcp.run)
+- [MCP Servers 목록](https://registry.modelcontextprotocol.io)
 - [CNCF Technology Radar](https://radar.cncf.io/)
 - [ThoughtWorks Technology Radar](https://www.thoughtworks.com/radar)
 

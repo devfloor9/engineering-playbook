@@ -3,9 +3,9 @@ title: Domain Specialization (LoRA + RAG)
 description: Guide to improving technical domain coding quality with LoRA Fine-tuning, VectorRAG, and GraphRAG — including FSI SI production scenarios
 created: "2026-04-04"
 last_update:
-  date: "2026-06-26"
+  date: 2026-09-18
   author: devfloor9
-reading_time: 17
+reading_time: 15
 tags:
   - lora
   - rag
@@ -473,7 +473,7 @@ For detailed per-phase implementation guides, see the [Custom Model Pipeline Gui
 - [LoRA Paper (Hu et al., 2021)](https://arxiv.org/abs/2106.09685)
 - [QLoRA Paper (Dettmers et al., 2023)](https://arxiv.org/abs/2305.14314)
 - [vLLM Multi-LoRA](https://docs.vllm.ai/en/latest/features/lora/)
-- [Langchain RAG Tutorial](https://python.langchain.com/docs/tutorials/rag/)
+- [LangChain Retrieval and RAG](https://docs.langchain.com/oss/python/langchain/retrieval)
 - [Neo4j GraphRAG](https://neo4j.com/labs/genai-ecosystem/langchain/)
 - [RAGAS Evaluation](https://docs.ragas.io/)
 - [Unsloth Fast Training](https://github.com/unslothai/unsloth)

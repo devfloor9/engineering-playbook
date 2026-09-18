@@ -14,6 +14,7 @@ tags:
   - networking
   - performance
   - eks
+  - scope:tech
 sidebar_label: Report 1. CNI Performance
 sidebar_position: 1
 category: benchmark

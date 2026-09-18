@@ -3,9 +3,9 @@ title: 고급 기능
 description: LLM Classifier, CloudFront/WAF, Semantic Caching 구성
 created: "2026-04-06"
 last_update:
-  date: "2026-07-17"
+  date: 2026-09-18
   author: YoungJoon Jeong
-reading_time: 17
+reading_time: 15
 tags:
   - llm-classifier
   - inference-extension
@@ -329,7 +329,7 @@ helm install ${POOL_NAME} \
 ```
 
 :::note provider.name
-`provider.name`은 게이트웨이 구현체에 맞춥니다. kgateway는 Envoy 계열이므로 별도 provider 통합 없이 `none`으로 두고 InferencePool/EPP만 배포한 뒤, 아래 HTTPRoute에서 InferencePool을 backend로 참조합니다. 정확한 값과 옵션은 [GIE Getting Started](https://gateway-api-inference-extension.sigs.k8s.io/guides/)에서 배포 시점 기준으로 확인하세요.
+`provider.name`은 게이트웨이 구현체에 맞춥니다. kgateway는 Envoy 계열이므로 별도 provider 통합 없이 `none`으로 두고 InferencePool/EPP만 배포한 뒤, 아래 HTTPRoute에서 InferencePool을 backend로 참조합니다. 정확한 값과 옵션은 [GIE v1.5.0 InferencePool chart values](https://github.com/kubernetes-sigs/gateway-api-inference-extension/blob/v1.5.0/config/charts/inferencepool/values.yaml)에서 배포 시점 기준으로 확인하세요.
 :::
 
 차트가 생성하는 InferencePool은 다음 형태입니다(직접 작성 시 참고 — 필드는 `inference.networking.k8s.io/v1` 기준):

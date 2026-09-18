@@ -9,9 +9,10 @@
  *  - title         : 기존 보존. 없으면 리포트(스크립트가 임의 생성하지 않음 - 의미 보강은 LLM 단계).
  *  - description   : 기존 보존. 없으면 리포트.
  *  - created       : 기존값 절대 보존. 없을 때만 git 최초 커밋일로 backfill.
- *  - last_update   : object 형식 {date, author}. date 없으면 git 최종 커밋일. author 없으면 DEFAULT_AUTHOR.
- *                    기존 date 보존(오늘로 bump 안 함).
- *  - reading_time  : 본문(코드블록/frontmatter 제외) 문자수 / RATE 올림, 최소 1. 균일화 위해 항상 재산출.
+ *  - last_update   : preserve the content revision date; fall back to created.
+ *                    A formatting commit is not evidence of a content revision.
+ *  - reading_time  : preserve existing estimates; fill missing values only.
+ *                    Use update-doc-metadata.js after substantive edits.
  *  - tags          : 기존 보존(배열 정규화). scope 태그 없으면 경로 기반 1개 추가.
  *
  * dry-run: node scripts/normalize-frontmatter.js
@@ -22,6 +23,7 @@ const path = require('path');
 const cp = require('child_process');
 const matter = require('gray-matter');
 const yaml = require('js-yaml');
+const {readingTime, CHARACTERS_PER_MINUTE, writeBatch} = require('./doc-metadata');
 
 // frontmatter를 안전하게 직렬화한다.
 // js-yaml 직접 사용 + lineWidth 무제한으로 긴 한국어 값(콜론/하이픈 포함)이 깨지지 않게 한다.
@@ -42,7 +44,7 @@ const APPLY = process.argv.includes('--apply');
 const INCLUDE_EN = process.argv.includes('--include-en');
 const ROOT = path.join(__dirname, '..');
 const DEFAULT_AUTHOR = 'YoungJoon Jeong';
-const RATE = 424; // 글자/분 - 기존 우수 문서 reading_time 중앙값에서 역산(calibrated)
+const RATE = CHARACTERS_PER_MINUTE;
 
 const TEMPLATE_ORDER = [
   'title',
@@ -82,11 +84,10 @@ function scopeForPath(rel) {
   return null;
 }
 
-function gitDate(file, kind) {
+function gitCreatedDate(file) {
   try {
-    if (kind === 'created') {
       const out = cp
-        .execSync(`git log --diff-filter=A --follow --format=%as -- "${file}"`, {
+        .execFileSync('git', ['log', '--diff-filter=A', '--follow', '--format=%as', '--', file], {
           cwd: ROOT,
           stdio: ['ignore', 'pipe', 'ignore'],
         })
@@ -95,30 +96,9 @@ function gitDate(file, kind) {
         .split('\n')
         .filter(Boolean);
       return out.length ? out[out.length - 1] : null;
-    } else {
-      const out = cp
-        .execSync(`git log -1 --format=%as -- "${file}"`, {
-          cwd: ROOT,
-          stdio: ['ignore', 'pipe', 'ignore'],
-        })
-        .toString()
-        .trim();
-      return out || null;
-    }
   } catch {
     return null;
   }
-}
-
-function bodyChars(body) {
-  const noCode = body.replace(/```[\s\S]*?```/g, '').replace(/`[^`]*`/g, '');
-  const stripped = noCode.replace(/[\s#>*|\-_=\[\]()`!]/g, '');
-  return [...stripped].length;
-}
-
-function computeReadingTime(body) {
-  const chars = bodyChars(body);
-  return Math.max(1, Math.ceil(chars / RATE));
 }
 
 function normalizeTags(tags, rel) {
@@ -138,13 +118,15 @@ function walk(dir) {
   if (!fs.existsSync(dir)) return out;
   for (const item of fs.readdirSync(dir)) {
     const full = path.join(dir, item);
-    const st = fs.statSync(full);
+    const st = fs.lstatSync(full);
+    if (st.isSymbolicLink()) throw new Error(`Symlinked documentation paths require review: ${full}`);
     if (st.isDirectory()) out.push(...walk(full));
     else if (item.endsWith('.md')) out.push(full);
   }
   return out;
 }
 
+async function main() {
 const targets = [...walk(path.join(ROOT, 'docs'))];
 if (INCLUDE_EN) targets.push(...walk(path.join(ROOT, 'i18n/en/docusaurus-plugin-content-docs/current')));
 
@@ -158,6 +140,7 @@ const missingDesc = [];
 const fewTags = [];
 const parseErrors = [];
 let createdMutationGuardHits = 0;
+const updates = [];
 
 for (const file of targets) {
   const rel = path.relative(ROOT, file);
@@ -179,7 +162,7 @@ for (const file of targets) {
     fm.created = toISODate(fm.created);
     createdPreserved++;
   } else {
-    const gd = gitDate(file, 'created');
+    const gd = gitCreatedDate(file);
     if (gd) {
       fm.created = gd;
       createdBackfilled++;
@@ -197,11 +180,11 @@ for (const file of targets) {
   } else if (lu) {
     luDate = toISODate(lu);
   }
-  if (!luDate) luDate = gitDate(file, 'updated') || fm.created || null;
+  if (!luDate) luDate = fm.created || null;
   if (!luAuthor) luAuthor = DEFAULT_AUTHOR;
   if (luDate) fm.last_update = { date: luDate, author: luAuthor };
 
-  const newRt = computeReadingTime(body);
+  const newRt = fm.reading_time || await readingTime(raw, file);
   if (fm.reading_time !== newRt) rtRecomputed++;
   fm.reading_time = newRt;
 
@@ -217,7 +200,7 @@ for (const file of targets) {
 
   if (originalCreated && fm.created !== originalCreated) {
     createdMutationGuardHits++;
-    console.error(`CREATED MUTATION BLOCKED: ${rel} (${originalCreated} -> ${fm.created}) - 원복`);
+    console.error(`CREATED MUTATION BLOCKED: ${rel} (${originalCreated} -> ${fm.created}); preserved original value`);
     fm.created = originalCreated;
   }
 
@@ -233,22 +216,24 @@ for (const file of targets) {
 
   if (output !== raw) {
     changed++;
-    if (APPLY) fs.writeFileSync(file, output, 'utf8');
+    updates.push({full: file, source: raw, output});
   }
 }
 
-console.log(`\n${APPLY ? 'APPLIED' : 'DRY-RUN'}  (RATE=${RATE}자/분, 대상 ${targets.length}개)`);
-console.log(`  파일 변경: ${changed}`);
-console.log(`  created 보존: ${createdPreserved} / git backfill: ${createdBackfilled}`);
-console.log(`  reading_time 재산출(변경): ${rtRecomputed}`);
-console.log(`  scope 태그 추가: ${scopeAdded}`);
-console.log(`\n-- 의미 보강 필요(LLM 단계) --`);
-console.log(`  title 누락: ${missingTitle.length}`);
-console.log(`  description 누락: ${missingDesc.length}`);
-console.log(`  비-scope 태그 3개 미만: ${fewTags.length}`);
-console.log(`\ncreated 불변 가드 차단 횟수: ${createdMutationGuardHits} (0이어야 정상)`);
+if (parseErrors.length) throw new Error(`No documents written. YAML errors:\n${parseErrors.join('\n')}`);
+if (APPLY) writeBatch(updates);
+console.log(`\n${APPLY ? 'APPLIED' : 'DRY-RUN'} (RATE=${RATE} characters/minute, ${targets.length} documents)`);
+console.log(`  Changed files: ${changed}`);
+console.log(`  Creation dates preserved: ${createdPreserved}; backfilled from Git: ${createdBackfilled}`);
+console.log(`  Missing reading estimates filled: ${rtRecomputed}`);
+console.log(`  Scope tags added: ${scopeAdded}`);
+console.log(`\nContent review needed:`);
+console.log(`  Missing titles: ${missingTitle.length}`);
+console.log(`  Missing descriptions: ${missingDesc.length}`);
+console.log(`  Fewer than three non-scope tags: ${fewTags.length}`);
+console.log(`\nBlocked creation-date changes: ${createdMutationGuardHits} (expected: 0)`);
 if (parseErrors.length) {
-  console.log(`\nYAML 파스 에러 ${parseErrors.length}건 (수동 수정 필요):`);
+  console.log(`\nYAML parse errors requiring review: ${parseErrors.length}`);
   parseErrors.forEach((e) => console.log('  ' + e));
 }
 
@@ -263,8 +248,11 @@ const report = {
   fewTags,
   parseErrors,
 };
+fs.mkdirSync(path.join(ROOT, '.omc'), {recursive: true});
 fs.writeFileSync(
   path.join(ROOT, '.omc/frontmatter-normalize-report.json'),
   JSON.stringify(report, null, 2)
 );
-console.log(`\n리포트: .omc/frontmatter-normalize-report.json`);
+console.log(`\nReport: .omc/frontmatter-normalize-report.json`);
+}
+if (require.main === module) main().catch(error => {console.error(error.message); process.exitCode = 1;});

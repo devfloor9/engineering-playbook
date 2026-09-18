@@ -12,6 +12,7 @@ tags:
   - control-plane
   - debugging
   - troubleshooting
+  - scope:ops
 sidebar_label: Control Plane
 ---
 

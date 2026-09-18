@@ -12,6 +12,7 @@ tags:
   - incident-response
   - namespace
   - troubleshooting
+  - scope:ops
 sidebar_label: Default Namespace Incident
 category: security-compliance
 ---

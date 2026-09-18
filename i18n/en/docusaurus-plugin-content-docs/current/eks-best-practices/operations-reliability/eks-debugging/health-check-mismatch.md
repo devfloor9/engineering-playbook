@@ -14,6 +14,7 @@ tags:
   - alb
   - nlb
   - ingress
+  - scope:ops
 sidebar_label: Health Check Mismatch
 ---
 

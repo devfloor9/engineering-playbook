@@ -3,9 +3,9 @@ title: 엔터프라이즈 컴플라이언스 프레임워크
 description: SOC2, ISO27001, 전자금융감독규정, ISMS-P를 AI 운영에 매핑하는 컴플라이언스 가이드
 created: "2026-04-04"
 last_update:
-  date: "2026-07-17"
+  date: 2026-09-18
   author: YoungJoon Jeong
-reading_time: 10
+reading_time: 8
 tags:
   - compliance
   - soc2
@@ -326,4 +326,4 @@ def check_compliance(playbook_path):
 - [Agent 모니터링 아키텍처](../observability/agent-monitoring.md)
 - [LLMOps Observability 비교](../observability/llmops-observability.md)
 - [AI Gateway Guardrails](./ai-gateway-guardrails.md) — 기술 구현 상세 (PII, Injection 방어, 도구 비교)
-- [Guardrails AI Security](https://docs.guardrailsai.com/concepts/security/)
+- [Guardrails AI Trust Center](https://trust.guardrailsai.com/)

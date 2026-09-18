@@ -3,9 +3,9 @@ title: NVIDIA Dynamo Inference Benchmark
 description: Benchmark comparing Aggregated vs Disaggregated LLM serving performance using NVIDIA Dynamo — Running AIPerf 4 modes in an EKS environment
 created: "2026-03-20"
 last_update:
-  date: "2026-06-30"
+  date: 2026-09-18
   author: devfloor9
-reading_time: 13
+reading_time: 12
 tags:
   - benchmark
   - nvidia
@@ -17,6 +17,7 @@ tags:
   - eks
   - kv-cache
   - nixl
+  - scope:tech
 sidebar_label: Report 5. Dynamo Inference [New]
 sidebar_position: 5
 category: benchmark
@@ -260,5 +261,5 @@ Recommendations will be written based on actual measurement results.
 
 - [NVIDIA Dynamo Documentation](https://docs.nvidia.com/dynamo/)
 - [vLLM Project](https://docs.vllm.ai/)
-- [AIPerf Benchmark Tool](https://github.com/NVIDIA/dynamo)
+- [AIPerf Benchmark Tool](https://github.com/ai-dynamo/aiperf)
 - [NVIDIA GPU Stack Guide](/docs/agentic-ai-platform/model-serving/gpu-infrastructure/nvidia-gpu-stack)

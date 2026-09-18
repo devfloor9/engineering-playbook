@@ -3,9 +3,9 @@ title: Agentic AI Platform
 description: Agentic AI 플랫폼의 아키텍처, 구축, 운영에 대한 심화 기술 문서
 created: "2025-09-11"
 last_update:
-  date: "2026-09-17"
+  date: 2026-09-18
   author: devfloor9
-reading_time: 4
+reading_time: 2
 tags:
   - eks
   - kubernetes
@@ -20,7 +20,7 @@ sidebar_position: 3
 category: genai-aiml
 ---
 
-import { DocCard, DocCardGrid } from '@site/src/components/DocCards';
+import DocCardList from '@theme/DocCardList';
 
 AI 플랫폼의 설계, 모델 서빙, 운영, 구현 예제를 다룹니다. 목적에 따라 아래 경로에서 시작할 수 있습니다.
 
@@ -34,45 +34,15 @@ AI 플랫폼의 설계, 모델 서빙, 운영, 구현 예제를 다룹니다. �
 
 ## 문서 구성
 
-<DocCardGrid columns={2}>
-  <DocCard
-    to="/docs/agentic-ai-platform/design-architecture"
-    icon="🏗️"
-    title="설계 & 아키텍처"
-    description="플랫폼 6 레이어 + 3 플레인 설계, 5가지 도전과제, AWS Native vs EKS 구현, 2-Tier 추론 게이트웨이 & Cascade Routing 전략."
-    color="#667eea"
-  />
-  <DocCard
-    to="/docs/agentic-ai-platform/model-serving"
-    icon="🚀"
-    title="모델 서빙 & 추론 인프라"
-    description="EKS GPU 노드 전략, Karpenter 스케일링, vLLM 추론 엔진, llm-d 분산 추론, MoE 서빙, NVIDIA GPU 스택, NeMo 학습 프레임워크."
-    color="#ff6b6b"
-  />
-  <DocCard
-    to="/docs/agentic-ai-platform/operations-mlops"
-    icon="📈"
-    title="운영 & 거버넌스"
-    description="Agent 모니터링, LLMOps Observability, RAG 품질 평가, Agentic Playbook, 컴플라이언스, 도메인 커스터마이징."
-    color="#8b5cf6"
-  />
-  <DocCard
-    to="/docs/agentic-ai-platform/reference-architecture"
-    icon="📐"
-    title="Reference Architecture"
-    description="실전 배포 가이드: 커스텀 모델 배포, Inference Gateway 구성, MLOps 파이프라인, SageMaker-EKS 통합."
-    color="#f59e0b"
-  />
-</DocCardGrid>
+<DocCardList />
 
 ---
 
 ## 배경
 
-Agentic AI Platform은 자율적인 AI 에이전트가 복잡한 작업을 수행할 수 있도록 지원하는 통합 플랫폼입니다. 단일 거대 LLM을 기업의 주요 업무에 투입하기에는 **비용**, **응답 지연**, **정보 정확성(환각)**, **거버넌스** 측면에서 분명한 한계가 존재합니다. 기업은 복잡한 추론은 LLM이, 반복적 실무는 도메인 특화 SLM이 담당하는 **이질적 다중 모델 생태계**로 전환해야 하며, 이를 효율적으로 운영하기 위한 **인프라 플랫폼화**가 핵심입니다. Kubernetes는 DRA, Gateway API Inference Extension, Kueue 등 AI 네이티브 기능을 빠르게 확장하고 있으며, 이 플랫폼은 이러한 K8s 생태계 위에서 다중 모델 전환을 **코드 변경 없이** 지원합니다.
+이 매뉴얼은 플랫폼 아키텍트와 엔지니어가 요구사항을 설계 결정, 배포 구성, 운영 지표로 연결하도록 구성했습니다. 관리형 서비스와 EKS 기반 구성은 데이터 경계, 모델 제어 범위, 운영 역량에 따라 선택하거나 함께 사용할 수 있습니다. 단일 모델과 다중 모델 중 어느 쪽이 적합한지도 실제 업무의 품질·지연·비용 평가로 결정합니다.
 
-이 문서 시리즈는 플랫폼의 아키텍처를 이해하고, 구축 시 직면하는 **5가지 핵심 도전과제**를 파악한 후, **AWS Native 매니지드 접근**과 **EKS 기반 오픈 아키텍처** 두 가지 방식으로 해결하는 여정을 안내합니다. 두 접근은 상호 보완적이며, AWS Native로 시작하여 필요에 따라 EKS로 확장하는 점진적 여정을 권장합니다.
-
+아키텍처 문서의 **6개 런타임 레이어와 3개 공통 플레인**은 플랫폼의 책임을 구분합니다. 모델 서빙 문서의 **L0–L5 튜닝 계층**은 추론 성능을 분석하는 별도 관점입니다. 같은 번호로 대응하지 않으며, 구현 절차는 Reference Architecture에서 확인합니다. 모델 교체 시에는 API 형식뿐 아니라 도구 호출, 출력 형식, 평가 결과의 호환성도 확인해야 합니다.
 
 ## 관련 카테고리
 

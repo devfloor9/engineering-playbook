@@ -3,9 +3,9 @@ title: AIDLC 10대 원칙과 실행 모델
 description: AIDLC의 핵심 철학과 Intent → Unit → Bolt 실행 모델 — AWS Labs 공식 용어 매핑 포함
 created: "2026-04-07"
 last_update:
-  date: "2026-06-30"
+  date: 2026-09-18
   author: YoungJoon Jeong
-reading_time: 20
+reading_time: 21
 tags:
   - aidlc
   - principles
@@ -573,9 +573,9 @@ AIDLC의 핵심 개념과 실행 모델을 이해했다면, 다음 문서를 참
 
 ### AIDLC 공식 레퍼런스
 - [AWS Labs AIDLC Workflows](https://github.com/awslabs/aidlc-workflows) — **공식 레퍼런스 저장소** (v0.1.7, 2026-04-02). `aws-aidlc-rule-details/common/` 에 11개 공통 규칙과 5대 원칙 정의
-- [AWS Labs AIDLC Common Rules](https://github.com/awslabs/aidlc-workflows/tree/main/aws-aidlc-rule-details/common) — 11개 공통 규칙 permalink
-- [AWS Labs AIDLC Inception Stages](https://github.com/awslabs/aidlc-workflows/tree/main/aws-aidlc-rule-details/inception) — 7 단계 Decision Tree
-- [AWS Labs AIDLC Extensions](https://github.com/awslabs/aidlc-workflows/tree/main/aws-aidlc-rule-details/extensions) — Built-in security/testing extensions + opt-in 메커니즘
+- [AWS Labs AIDLC Common Rules](https://github.com/awslabs/aidlc-workflows/tree/v0.1.7/aidlc-rules/aws-aidlc-rule-details/common) — 11개 공통 규칙 permalink
+- [AWS Labs AIDLC Inception Stages](https://github.com/awslabs/aidlc-workflows/tree/v0.1.7/aidlc-rules/aws-aidlc-rule-details/inception) — 7 단계 Decision Tree
+- [AWS Labs AIDLC Extensions](https://github.com/awslabs/aidlc-workflows/tree/v0.1.7/aidlc-rules/aws-aidlc-rule-details/extensions) — Built-in security/testing extensions + opt-in 메커니즘
 - [AWS AI-DLC Method Definition](https://prod.d13rzhkk8cj2z0.amplifyapp.com/) — AIDLC 원문 (Raja SP, AWS)
 - [AWS AI-Driven Development Life Cycle Blog](https://aws.amazon.com/blogs/devops/ai-driven-development-life-cycle/)
 - [Open-Sourcing Adaptive Workflows for AI-DLC](https://aws.amazon.com/blogs/devops/open-sourcing-adaptive-workflows-for-ai-driven-development-life-cycle-ai-dlc/) — AWS, 2025.11

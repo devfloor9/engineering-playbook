@@ -3,7 +3,7 @@ title: SageMaker-EKS Hybrid ML Architecture
 description: A hybrid ML architecture that trains on SageMaker and serves on EKS
 created: "2026-02-11"
 last_update:
-  date: "2026-06-26"
+  date: 2026-09-18
   author: devfloor9
 reading_time: 8
 tags:
@@ -841,4 +841,4 @@ The SageMaker-EKS hybrid architecture combines the advantages of managed trainin
 - [ArgoCD Documentation](https://argo-cd.readthedocs.io/)
 - [OpenTelemetry Collector](https://opentelemetry.io/docs/collector/)
 - [Langfuse Self-Hosting](https://langfuse.com/docs/deployment/self-host)
-- [AWS Multi-Region Architecture](https://aws.amazon.com/solutions/implementations/multi-region-application-architecture/)
+- [AWS Multi-Region Fundamentals](https://docs.aws.amazon.com/prescriptive-guidance/latest/aws-multi-region-fundamentals/introduction.html)

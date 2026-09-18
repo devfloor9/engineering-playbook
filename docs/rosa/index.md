@@ -3,9 +3,9 @@ title: ROSA (Red Hat OpenShift on AWS)
 description: Red Hat OpenShift Service on AWS (ROSA) 구축 및 운영에 대한 기술 문서
 created: "2025-02-05"
 last_update:
-  date: "2026-06-30"
+  date: 2026-09-18
   author: devfloor9
-reading_time: 6
+reading_time: 7
 tags:
   - scope:nav
 sidebar_label: ROSA
@@ -161,16 +161,18 @@ graph TB
 
 ## 📊 ROSA vs EKS vs 온프레미스 OpenShift
 
-| 항목 | ROSA | EKS | 온프레미스 OpenShift |
+선택 시 아래 기준을 같은 워크로드·가용성·지원 요구사항에 적용합니다. 보안 수준, 총비용, 배포 속도는 서비스 이름만으로 순위를 정할 수 없습니다. 관리 범위는 [ROSA 아키텍처](https://docs.aws.amazon.com/rosa/latest/userguide/rosa-architecture-models.html), [Amazon EKS 개요](https://docs.aws.amazon.com/eks/latest/userguide/what-is-eks.html), [자체 관리 OpenShift 가이드](https://www.redhat.com/en/resources/self-managed-openshift-subscription-guide)를 기준으로 확인합니다.
+
+| 확인 기준 | ROSA | EKS | 온프레미스 OpenShift |
 |------|------|-----|----------------|
-| **컨트롤 플레인 관리** | Red Hat/AWS | AWS | 고객 책임 |
-| **보안** | 최고 수준 | 높음 | 구성 필요 |
-| **비용** | 중간~높음 | 낮음~중간 | 초기 투자 큼 |
-| **운영 복잡도** | 낮음 | 낮음 | 높음 |
-| **개발자 경험** | 최고 | 높음 | 매우 높음 |
-| **배포 속도** | 빠름 | 빠름 | 느림 |
-| **하이브리드 지원** | 우수 | 보통 | 우수 |
-| **멀티 클라우드** | 우수 | AWS만 | 우수 |
+| **컨트롤 플레인 관리** | Red Hat 관리; HCP 는 Red Hat AWS 계정, Classic 은 고객 AWS 계정에 배치 | AWS 관리 | 고객이 설치·업그레이드·복구 운영 |
+| **보안 책임** | [공동 책임 범위](https://docs.aws.amazon.com/rosa/latest/userguide/security.html)와 고객의 접근·워크로드·데이터 설정 확인 | 공동 책임 범위와 선택한 노드 방식의 패치·접근 책임 확인 | 인프라부터 클러스터·워크로드까지 고객 통제·운영 범위 확인 |
+| **비용 산정** | OpenShift 를 포함한 ROSA 서비스 요금 + AWS 인프라; HCP/Classic 구분 | 클러스터 + 컴퓨팅·스토리지·네트워크 + 선택 기능 요금 | OpenShift 구독 + 하드웨어·가상화·시설·운영 비용 |
+| **운영 범위** | 관리 서비스 범위와 고객의 애플리케이션·노드 용량 관리 확인 | Standard/Auto Mode/Hybrid Nodes 에 따라 데이터 플레인 관리 범위 확인 | 고객의 인프라·플랫폼 운영 인력과 자동화 확인 |
+| **개발 도구 적합성** | 기존 OpenShift API·도구·Operator 와의 호환성 확인 | Kubernetes API·추가 기능과 기존 CI/CD 도구의 통합 확인 | 선택한 OpenShift 에디션의 기능과 자체 운영 도구 확인 |
+| **배포 준비 조건** | HCP/Classic 토폴로지, AWS 할당량·네트워크 준비 | 노드 방식, AWS 할당량·네트워크 준비 | 서버·스토리지·네트워크 확보와 설치 자동화 준비 |
+| **하이브리드 배치** | AWS 에서 운영되는 ROSA 와 외부 OpenShift 환경의 연동 설계 | [EKS Hybrid Nodes](https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-overview.html)는 온프레미스·엣지 노드를 AWS 컨트롤 플레인에 연결; 안정적인 연결 필요 | 온프레미스 클러스터와 외부 환경의 연결·운영 설계 |
+| **다른 클라우드 배치** | ROSA 는 AWS 서비스; 다른 클라우드의 OpenShift 는 별도 배치·지원 범위 확인 | Hybrid Nodes 를 다른 클라우드 인프라에서 실행하는 것은 지원하지 않음 | 대상 클라우드의 OpenShift 지원 플랫폼·구독·관리 도구 확인 |
 
 ## 🚀 배포 패턴
 
@@ -225,7 +227,7 @@ ROSA는 AWS와 Red Hat이 공동 관리하는 서비스로, 컨트롤 플레인 
 :::
 
 :::warning 주의 - 라이선싱
-ROSA는 OpenShift 라이선싱이 별도로 필요합니다. 비용 계산 시 ROSA 서비스 비용과 OpenShift 라이선싱 비용을 모두 고려하세요.
+ROSA 서비스 요금에는 OpenShift 소프트웨어 사용과 Red Hat SRE의 클러스터 관리가 포함됩니다. 여기에 기반 AWS 인프라 요금을 더하며, 같은 OpenShift 사용 권한을 별도 라이선스 비용으로 중복 계산하지 않습니다. HCP와 Classic의 과금 항목 및 별도 추가 제품·계약 범위는 [공식 Marketplace 청구 안내](https://docs.aws.amazon.com/rosa/latest/userguide/integration-marketplace.html)와 실제 계약에서 확인하세요. 이 설명은 ROSA에 대한 것이며, 온프레미스 OpenShift의 자체 관리 구독과는 구분됩니다.
 :::
 
 :::success 마이그레이션 팁

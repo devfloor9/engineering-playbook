@@ -3,9 +3,9 @@ title: Reference Architecture
 description: Agentic AI Platform 실전 배포 및 구성 레퍼런스 아키텍처
 created: "2026-04-06"
 last_update:
-  date: "2026-08-06"
+  date: 2026-09-18
   author: devfloor9
-reading_time: 10
+reading_time: 18
 tags:
   - reference-architecture
   - deployment
@@ -18,8 +18,9 @@ sidebar_position: 7
 ---
 
 import DocCardList from '@theme/DocCardList';
+import Figure from '@site/src/components/Figure';
 
-이 섹션은 Agentic AI Platform의 **실전 배포 및 구성 가이드**를 제공합니다. 개념과 설계 원칙은 [Documentation 섹션](../design-architecture/foundations/agentic-platform-architecture.md)에서 다루며, 이곳에서는 실제 클러스터에 배포하고 운영하기 위한 구체적인 설정, YAML 매니페스트, 검증 절차를 다룹니다.
+Agentic AI Platform을 배포하고 운영하는 플랫폼 엔지니어를 위한 구현 가이드입니다. 필요한 영역의 문서를 먼저 선택한 뒤, 환경별 요구사항과 검증 절차를 확인하세요. 설계 결정의 배경은 [플랫폼 아키텍처](../design-architecture/foundations/agentic-platform-architecture.md)에서 다룹니다.
 
 :::info Documentation vs Reference Architecture
 | 구분 | Documentation | Reference Architecture |
@@ -30,16 +31,53 @@ import DocCardList from '@theme/DocCardList';
 | **업데이트 주기** | 설계 변경 시 | 배포/운영 경험 축적 시 |
 :::
 
+## 문서 목록
+
+<DocCardList />
+
+## 사전 요구사항
+
+Reference Architecture를 배포하기 위한 사전 요구사항입니다.
+
+### AWS 계정 및 권한
+
+- EKS 클러스터 생성 권한 (IAM, VPC, EC2, EKS)
+- GPU 인스턴스 Spot 할당량 (p5en.48xlarge: vCPU 192개 이상)
+- S3 버킷 생성 권한
+- AMP/AMG 생성 권한 (모니터링 구성 시)
+- ECR 레지스트리 생성 권한 (커스텀 이미지 빌드 시)
+
+### 도구
+
+배포 문서에 지정된 도구 버전과 클러스터 호환성을 확인합니다. 설치된 버전은 검증 기록에 남깁니다.
+
+| 도구 | 용도 |
+|------|------|
+| `eksctl`, `aws` CLI | 클러스터 및 AWS 리소스 관리 |
+| `kubectl`, `helm` | Kubernetes 리소스와 차트 관리 |
+| 컨테이너 빌드 도구 | 커스텀 이미지 빌드 |
+| `s5cmd` | 예제에서 사용하는 S3 모델 파일 전송 |
+
+### 네트워크
+
+- 퍼블릭 서브넷: NLB 배포용 (코딩 도구 외부 접근 시)
+- 프라이빗 서브넷: GPU 노드, vLLM, Bifrost 배포용
+- NAT Gateway: S3, ECR, HuggingFace Hub 접근용
+- VPC 엔드포인트 (권장): S3, ECR, AMP
+
 ## 플랫폼 아키텍처
 
-Agentic AI Platform의 전체 아키텍처입니다. Ontology 기반 Knowledge Feature Store, 6 레이어 + 3 플레인 구조, 모델 서빙/파인튜닝 파이프라인을 포함합니다.
+플랫폼의 6개 런타임 레이어와 3개 공통 플레인, Knowledge Feature Store, 모델 서빙·파인튜닝 경로를 보여줍니다. 아래 배포 순서의 6개 영역은 구현 단계이며, 런타임 레이어 번호와 대응하지 않습니다.
 
+<Figure title="플랫폼 전체 구조" description="요청 처리 경로와 공통 제어 영역을 보여주는 원본 아키텍처 그림입니다. 큰 화면에서 세부 연결을 확인하려면 아래 원본 링크를 사용하세요." source={<a href="https://app.diagrams.net/?src=about#Uhttps%3A%2F%2Fraw.githubusercontent.com%2Fdevfloor9%2Fengineering-playbook%2Fmain%2Fstatic%2FAgentic%2520AI%2520Platform(with%2520Ontology%2520and%2520fine%2520tunning%2520feature).drawio">원본 그림 열기</a>}>
 <iframe
   src="https://viewer.diagrams.net/?highlight=0000ff&nav=1&title=Agentic%20AI%20Platform&url=https%3A%2F%2Fraw.githubusercontent.com%2Fdevfloor9%2Fengineering-playbook%2Fmain%2Fstatic%2FAgentic%2520AI%2520Platform(with%2520Ontology%2520and%2520fine%2520tunning%2520feature).drawio"
-  style={{width: '100%', height: '1200px', border: 'none', borderRadius: '12px', background: '#fff'}}
+  width="100%"
+  height="480"
   title="Agentic AI Platform Architecture"
   loading="lazy"
 />
+</Figure>
 
 :::tip draw.io에서 편집
 [draw.io에서 열기](https://app.diagrams.net/?src=about#Uhttps%3A%2F%2Fraw.githubusercontent.com%2Fdevfloor9%2Fengineering-playbook%2Fmain%2Fstatic%2FAgentic%2520AI%2520Platform(with%2520Ontology%2520and%2520fine%2520tunning%2520feature).drawio) — 로그인 없이 바로 열람·편집할 수 있습니다. 편집 후 File → Save As로 사본을 저장합니다.
@@ -89,9 +127,9 @@ EKS 클러스터와 GPU 노드 그룹을 구성합니다. Auto Mode와 Standard 
 
 | 항목 | 세부사항 |
 |------|---------|
-| EKS 버전 | 1.33+ (권장 1.35/1.36) |
-| 노드 그룹 | MNG p5en.48xlarge (Spot) |
-| GPU Operator | `devicePlugin.enabled=false` (Auto Mode 충돌 방지) |
+| EKS 버전 | 선택한 배포 가이드와 애드온이 지원하는 버전 |
+| 노드 그룹 | 모델 메모리·SLO·용량을 확인한 MNG 또는 NodePool |
+| GPU Operator | AMI에 사전 설치된 구성요소를 확인하고 중복 관리를 피함 |
 | 모니터링 에이전트 | DCGM Exporter, GFD, Node Status Exporter |
 
 ### Phase 2: 모델 배포
@@ -148,10 +186,6 @@ Aider, Cline 등 AI 코딩 도구를 자체 호스팅 모델에 연결합니다.
 | 연결 경로 | 코딩 도구 → NLB → kgateway → Bifrost/LiteLLM → vLLM |
 | 모니터링 | Bifrost/LiteLLM OTel → Langfuse (요청별 추적) |
 
-## 문서 목록
-
-<DocCardList />
-
 ## 핵심 설계 원칙
 
 Reference Architecture는 다음 원칙을 따릅니다.
@@ -162,7 +196,7 @@ Reference Architecture는 다음 원칙을 따릅니다.
 
 ### 2. Spot 인스턴스 활용
 
-GPU Spot 인스턴스는 On-Demand 대비 리전 및 시점에 따라 약 70-90% 저렴합니다(AWS 공식 최대 90% 할인). 추론 워크로드는 상태가 없으므로 Spot 회수 시 새 인스턴스에서 즉시 재시작할 수 있습니다. 모델 가중치는 S3에서 빠르게 복원합니다.
+Spot 사용 여부는 가격뿐 아니라 중단 시 서비스가 견딜 수 있는 시간을 기준으로 결정합니다. 추론 서버도 이미지·가중치 로드, 엔진 초기화, 진행 중인 요청 처리가 필요하므로 즉시 복구를 가정할 수 없습니다. 대체 용량, 준비된 복제본, 드레인·재시도 정책과 실제 콜드 스타트를 검증하세요. [EKS Compute and Autoscaling](https://docs.aws.amazon.com/eks/latest/best-practices/aiml-compute.html)의 실시간 워크로드 고려사항을 함께 확인합니다.
 
 ### 3. 표준 도구 체인
 
@@ -179,45 +213,17 @@ GPU Spot 인스턴스는 On-Demand 대비 리전 및 시점에 따라 약 70-90%
 
 ### 4. 비용 최적화 계층화
 
-비용 최적화는 단일 기법이 아닌 **계층적 접근**을 사용합니다.
+각 기법의 효과는 트래픽, 캐시 적중률, 품질 기준, 운영 시간에 따라 달라집니다. 절감률을 단순 합산하지 말고 성공 요청당 총비용과 SLO를 같은 조건에서 비교합니다.
 
 ```mermaid
 graph TD
-    A[Spot 인스턴스<br/>70-90% 절감] --> B[Cascade Routing<br/>70-80% GPU 절감]
-    B --> C[Semantic Caching<br/>캐시 히트 시 GPU 0원]
-    C --> D[8시간/일 운영<br/>67% 절감]
-    D --> E[Multi-LoRA 공유<br/>인프라 1/N]
+    accTitle: 비용 최적화 검토 순서
+    accDescr: 구매 옵션, 라우팅, 캐시, 운영 시간, 모델 공유를 검토하고 각 변경의 비용과 품질을 측정한다.
+    A[구매 옵션과 중단 허용 범위] --> B[라우팅 품질과 비용]
+    B --> C[캐시 정확도와 적중률]
+    C --> D[운영 시간과 콜드 스타트]
+    D --> E[모델 공유와 자원 격리]
 ```
-
-## 사전 요구사항
-
-Reference Architecture를 배포하기 위한 사전 요구사항입니다.
-
-### AWS 계정 및 권한
-
-- EKS 클러스터 생성 권한 (IAM, VPC, EC2, EKS)
-- GPU 인스턴스 Spot 할당량 (p5en.48xlarge: vCPU 192개 이상)
-- S3 버킷 생성 권한
-- AMP/AMG 생성 권한 (모니터링 구성 시)
-- ECR 레지스트리 생성 권한 (커스텀 이미지 빌드 시)
-
-### 도구
-
-| 도구 | 최소 버전 | 용도 |
-|------|----------|------|
-| `eksctl` | 0.200+ | EKS 클러스터 관리 |
-| `kubectl` | 1.33+ | Kubernetes 리소스 관리 |
-| `helm` | 3.16+ | 차트 배포 |
-| `aws` CLI | 2.22+ | AWS 리소스 관리 |
-| `docker` | 27+ | 커스텀 이미지 빌드 |
-| `s5cmd` | 2.2+ | 고속 S3 동기화 |
-
-### 네트워크
-
-- 퍼블릭 서브넷: NLB 배포용 (코딩 도구 외부 접근 시)
-- 프라이빗 서브넷: GPU 노드, vLLM, Bifrost 배포용
-- NAT Gateway: S3, ECR, HuggingFace Hub 접근용
-- VPC 엔드포인트 (권장): S3, ECR, AMP
 
 ## 다음 단계
 
@@ -231,5 +237,5 @@ Reference Architecture를 배포하기 위한 사전 요구사항입니다.
 ---
 
 :::tip 피드백
-이 Reference Architecture는 실전 배포 경험을 바탕으로 지속적으로 업데이트됩니다. 개선 제안이나 추가 사례가 있다면 이슈로 남겨주세요.
+예제의 검증 환경과 실제 운영 환경은 다를 수 있습니다. 재현 조건과 검증 결과를 함께 기록하고, 수정이 필요한 내용은 이슈로 남겨주세요.
 :::

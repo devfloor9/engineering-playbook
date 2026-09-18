@@ -14,6 +14,7 @@ tags:
   - argocd
   - flux
   - disaster-recovery
+  - scope:ops
 sidebar_label: Cross-Cluster Replication (HA)
 sidebar_position: 3
 category: infrastructure

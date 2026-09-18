@@ -1,5 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
+import Icon from '@site/src/components/Icon';
 import BaseTable from './BaseTable';
 import styles from './ComparisonTable.module.css';
 
@@ -26,21 +28,25 @@ export default function ComparisonTable({
   rows,
   recommendedId,
   highlightOnHover = true,
-  sortable = true,
+  sortable = false,
   searchable = false,
   ...baseProps
 }) {
+  const {i18n} = useDocusaurusContext();
+  const ko = i18n.currentLocale === 'ko';
   const enhancedRows = rows.map(row => {
-    const isRecommended = row.id === recommendedId;
+    const isRecommended = row.id === recommendedId || row.recommended === true;
     
     return {
       ...row,
+      sortValues: row.sortValues || row.cells,
       cells: isRecommended
         ? row.cells.map((cell, index) => 
             index === 0 ? (
               <span className={styles.recommendedCell}>
                 {cell}
-                <span className={styles.badge} aria-label="추천">추천</span>
+                {' '}
+                <span className={styles.badge}><Icon name="check" size={16} />{ko ? '추천' : 'Recommended'}</span>
               </span>
             ) : cell
           )
@@ -50,13 +56,12 @@ export default function ComparisonTable({
   });
 
   return (
-    <div className={styles.comparisonTableWrapper}>
+    <div data-ep-theme="manual" className={styles.comparisonTableWrapper}>
       <BaseTable
         headers={headers}
         rows={enhancedRows}
         sortable={sortable}
         searchable={searchable}
-        ariaLabel="비교 테이블"
         {...baseProps}
       />
     </div>
@@ -65,17 +70,18 @@ export default function ComparisonTable({
 
 ComparisonTable.propTypes = {
   /** Array of header labels */
-  headers: PropTypes.arrayOf(PropTypes.string).isRequired,
+  headers: PropTypes.arrayOf(PropTypes.node).isRequired,
   /** Array of row objects */
   rows: PropTypes.arrayOf(
     PropTypes.shape({
-      id: PropTypes.string.isRequired,
+      id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
       cells: PropTypes.arrayOf(PropTypes.node).isRequired,
-      className: PropTypes.string
+      className: PropTypes.string,
+      recommended: PropTypes.bool
     })
   ).isRequired,
   /** ID of the recommended row */
-  recommendedId: PropTypes.string,
+  recommendedId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   /** Enable hover highlighting */
   highlightOnHover: PropTypes.bool,
   /** Enable sorting */

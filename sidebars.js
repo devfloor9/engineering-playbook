@@ -301,6 +301,8 @@ const sidebars = {
               },
               items: [
                 'agentic-ai-platform/operations-mlops/observability/agent-monitoring',
+                'agentic-ai-platform/operations-mlops/observability/llm-serving-optimization-monitoring',
+                'agentic-ai-platform/operations-mlops/observability/prefix-cache-tuning-accuracy-correlation',
                 'agentic-ai-platform/operations-mlops/observability/llmops-observability',
                 'agentic-ai-platform/operations-mlops/observability/kagent-kubernetes-agents',
               ],
