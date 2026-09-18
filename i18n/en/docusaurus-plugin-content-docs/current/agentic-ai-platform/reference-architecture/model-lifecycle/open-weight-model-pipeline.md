@@ -230,11 +230,13 @@ An exhaustive search of 3×2×3×2=36 combinations wastes GPU time. The default 
 
 **Framework comparison.** Run vLLM, SGLang, and TensorRT-LLM with their respective optimal configurations on the same model, instance, and workload, keeping the ISL/OSL distributions fixed, and compare the same metrics. Consistent comparison conditions are essential: results measured with different concurrency levels or sequence lengths across frameworks cannot be included in the report.
 
-**Interconnect comparison (NVLink vs EFA).** Run this only for models that do not fit on a single node, such as unquantized 70B+ models and large MoE models.
+**Interconnect comparison (NVLink vs EFA).** Use a model that can run in both single-node and multi-node configurations. Keep the model, precision, context length, workload, and GPU type fixed.
 
 - Compare single-node TP over NVLink/NVSwitch with multi-node TP/PP over EFA using the same total GPU count.
 - Use vLLM + Ray or LeaderWorkerSet for multi-node execution. First verify the EFA bandwidth baseline with the aws-ofi-nccl plugin and `nccl-tests` (all_reduce_perf).
-- The evaluation criterion is the degradation in tok/s per GPU for multi-node execution relative to single-node execution. Because TP configurations that do not cross node boundaries generally perform better, the report must specify the minimum model size that requires multiple nodes.
+- Compare the change in tok/s per GPU, TTFT, and TPOT between the single-node and multi-node runs. Record the TP/PP placement and memory use per GPU; do not assume which configuration performs better before measuring.
+
+**Models that require multiple nodes.** If a model cannot fit on one node under the same conditions, evaluate its scalability separately. Mark the single-node baseline as `N/A` and compare the smallest viable node configuration with larger configurations. Do not calculate a degradation rate against a single-node run that cannot execute.
 
 **SME intervention during execution.** At the end of each sweep round, the workflow enters a suspend step with a summary of intermediate results. An SME can choose one of three actions.
 
