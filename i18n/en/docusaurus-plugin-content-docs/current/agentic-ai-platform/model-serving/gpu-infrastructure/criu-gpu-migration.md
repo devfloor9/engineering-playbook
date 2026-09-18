@@ -94,7 +94,7 @@ No official basis was established for a universal checkpoint-restore = true sett
 
 #### K8s ContainerCheckpoint API (KEP-2008)
 
-The standard interface is an authenticated kubelet POST /checkpoint/{namespace}/{pod}/{container}, with an optional timeout query. There is no standard kubectl checkpoint create command. Checkpointing creates a host artifact; referencing a path in ordinary Pod YAML does not restore it. Runtime support and kubelet authorization are required. GPU/InfiniBand restoration guarantees are outside this API’s scope.
+The standard interface is an authenticated kubelet `POST /checkpoint/{namespace}/{pod}/{container}`, with an optional timeout query. There is no standard `kubectl checkpoint create` command. Checkpointing creates a host artifact; referencing a path in ordinary Pod YAML does not restore it. Runtime support and kubelet authorization are required. GPU/InfiniBand restoration guarantees are outside this API’s scope.
 
 ## 3. Fundamental Constraints of GPU State Checkpoint
 
