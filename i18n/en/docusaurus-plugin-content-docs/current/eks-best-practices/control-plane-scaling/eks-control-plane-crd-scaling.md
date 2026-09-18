@@ -5,7 +5,7 @@ created: "2026-03-24"
 last_update:
   date: 2026-09-18
   author: devfloor9
-reading_time: 35
+reading_time: 41
 tags:
   - eks
   - kubernetes
@@ -100,18 +100,18 @@ In the Standard tier, etcd database size is **fixed at 8GB**. This limit is the 
 
 ### 3.1 Overview
 
-**EKS Provisioned Control Plane (PCP)** became generally available at re:Invent 2025[^1]. It allows customers to select a control plane scaling tier, or T-shirt size, to establish a **performance floor**.
+**EKS Provisioned Control Plane (PCP)** became generally available at re:Invent 2025[^1]. It allows customers to select a control plane scaling tier, or T-shirt size, to establish **pre-allocated capacity**.
 
 [^1]: The 8XL tier and 99.99% SLA guarantee were added in March 2026.
 
-Previously, customers relied entirely on VAS auto-scaling. PCP allows them to **provision a guaranteed minimum performance level proactively**.
+PCP provisions the selected tier’s capacity in advance. Actual API throughput and latency depend on request types, controller patterns, and the Kubernetes version, so workload validation is required.
 
 ### 3.2 Two Operating Modes
 
 | Mode | Description |
 |------|------|
 | **Standard** (dynamic mode) | Existing behavior: scales automatically with load and scales down conservatively when load decreases |
-| **Provisioned** (provisioned mode) | Customers select XL, 2XL, 4XL, or 8XL. The control plane never scales below that tier and can automatically scale above it when needed |
+| **Provisioned** (provisioned mode) | Customers select XL, 2XL, 4XL, or 8XL. There is no automatic transition between tiers; an administrator changes the tier or configures separate automation |
 
 ### 3.3 Tier Specifications and Pricing
 
@@ -123,13 +123,15 @@ Previously, customers relied entirely on VAS auto-scaling. PCP allows them to **
 | **4XL** | **16GB** | **99.99%** | $6.90 |
 | **8XL** | **16GB** | **99.99%** | $13.90 |
 
-> Refer to [AWS EKS Pricing](https://aws.amazon.com/eks/pricing/) for current prices.
+> Standard’s $0.10/hour is the Kubernetes standard-support charge. Provisioned row prices are **tier charges added to** standard/extended-support charges. Refer to [AWS EKS Pricing](https://aws.amazon.com/eks/pricing/) for current prices.
+
+The [official tier specifications](https://docs.aws.amazon.com/eks/latest/userguide/eks-provisioned-control-plane.html) give Standard an 8 GB etcd limit and XL, 2XL, 4XL, and 8XL the same 16 GB limit. GB follows the official documentation’s unit. Raising a Provisioned tier does not increase etcd capacity. Check the Kubernetes-version-specific API concurrency and scheduling settings.
 
 ### 3.4 Features Available Only in Provisioned Tiers
 
 | Feature | Standard | XL and Above |
 |------|----------|--------|
-| API server horizontal scaling (beyond 2 instances) | Limited to 2 | Supported |
+| Pre-allocated API concurrency capacity | Automatic capacity adjustment with load | Capacity selected by Kubernetes version and tier |
 | 16GB etcd database | Fixed at 8GB | 16GB |
 | etcd Event Sharding | Unavailable | Available (separates event objects into a dedicated etcd partition) |
 | 99.99% SLA | 99.95% | 99.99% |
@@ -142,7 +144,7 @@ Previously, customers relied entirely on VAS auto-scaling. PCP allows them to **
 For Kubernetes parameters by tier (API server inflight requests and scheduler QPS), the APF seat calculation formula, a 10K-node sizing example, customer examples, and ClusterLoader2 performance validation, refer to the **[PCP Tier Sizing & Performance Validation Guide](./eks-pcp-tier-sizing-validation)**.
 :::
 
-### 3.6 CLI/API Usage
+### 3.5 CLI/API Usage {#36-cliapi-usage}
 
 **Specify a tier when creating a cluster:**
 
@@ -176,7 +178,7 @@ aws eks describe-cluster --name example
 
 > **Note:** The CLI flag syntax (`--control-plane-scaling-config tier=XL`) may vary by AWS CLI version. Refer to the [AWS CLI Command Reference - EKS](https://docs.aws.amazon.com/cli/latest/reference/eks/) for the current syntax.
 
-### 3.7 PCP Cluster Properties
+### 3.6 PCP Cluster Properties {#37-pcp-cluster-properties}
 
 | Property | Description |
 |------|------|
@@ -269,22 +271,24 @@ For clusters running Kubernetes 1.28 or later, key control plane metrics are aut
 | Component | Metric | Description | Priority |
 |---------|--------|------|-------|
 | API Server | `apiserver_request_total` | Total API requests | Essential |
-| API Server | `apiserver_request_total_4xx` | Requests with 4xx errors | Essential |
-| API Server | `apiserver_request_total_5xx` | Requests with 5xx errors | Essential |
+| API Server | `apiserver_request_total_4XX` | Requests with 4xx errors | Essential |
+| API Server | `apiserver_request_total_5XX` | Requests with 5xx errors | Essential |
 | API Server | `apiserver_request_total_429` | Requests throttled with 429 responses | Essential |
-| API Server | `apiserver_request_duration_seconds` | API request latency | Recommended |
-| API Server | `apiserver_storage_size_bytes` | etcd storage size before defragmentation | Essential |
+| API Server | `apiserver_request_duration_seconds_GET_P99` | GET request latency at p99 | Recommended |
+| etcd | `etcd_mvcc_db_total_size_in_bytes` | Physical file size, including unused space; not the quota-enforcement metric | Recommended |
 | Scheduler | `scheduler_schedule_attempts_total` | Total scheduling attempts | Recommended |
 | Scheduler | `scheduler_schedule_attempts_SCHEDULED` | Successful scheduling attempts | Essential |
 | Scheduler | `scheduler_schedule_attempts_UNSCHEDULABLE` | Unschedulable attempts | Recommended |
 
-**Additional PCP-specific metrics:**
+**Tier utilization metrics:**
 
 | Metric | Description | Usage |
 |--------|------|------|
-| `apiserver_flowcontrol_current_executing_seats_total` | Currently executing concurrent seats on the API server | Monitor against the tier's API Request Concurrency limit |
+| `apiserver_flowcontrol_current_executing_seats` | Currently executing concurrent seats on the API server | Monitor against the tier's API Request Concurrency limit |
 | `etcd_mvcc_db_total_size_in_use_in_bytes` | Actual etcd database space in use | Monitor against the tier's Cluster Database Size limit |
-| `apiserver_storage_size_bytes` | Storage size before defragmentation | Alternative metric for etcd database size |
+| `etcd_mvcc_db_total_size_in_bytes` | Physical etcd file size | Compare with actual usage to identify unused space |
+
+These names follow the [CloudWatch `AWS/EKS` metrics](https://docs.aws.amazon.com/eks/latest/userguide/cloudwatch.html). Prometheus `apiserver_storage_size_bytes` also measures physical file size, which differs from actual usage used for quota enforcement. Use `etcd_mvcc_db_total_size_in_use_in_bytes` for usage alarms. Check whether the cluster exposes that metric through Prometheus; otherwise, use its CloudWatch value.
 
 ### 5.2 Prometheus-Compatible Metrics Endpoints
 
@@ -475,30 +479,32 @@ EKS Console → Select cluster → Observability tab
 
 ### 7.1 PCP Tier Selection by CRD Scale
 
-| Workload Profile | Recommended Tier | Key Rationale | Estimated Monthly Cost |
-|--------------|---------|---------|------------|
-| ~50 nodes, basic add-ons (Karpenter, cert-manager) | Standard | Default auto-scaling is sufficient | ~$73 |
-| ~200 nodes, 5+ operators (ArgoCD, Prometheus, custom controllers) | **XL** | 16GB etcd capacity and 99.99% SLA | ~$1,204 |
-| ~500 nodes, service mesh + GitOps + multi-tenancy | **2XL** | Increased API server throughput | ~$2,482 |
-| 1,000+ nodes, AI/ML operators + large CRD-based pipelines | **4XL** | API server horizontal scaling | ~$5,037 |
+Do not select a tier from node count alone. Narrow the candidates using the conditions below, then validate API latency, APF seat utilization, and scheduling rate under representative peak load.
+
+| Validation Condition | Mode/Tier to Consider | Check |
+|---|---|---|
+| Standard meets latency and throughput targets with sufficient etcd headroom | Standard | Default choice for most use cases |
+| Pre-allocated capacity, 16 GB etcd, or a 99.99% SLA is required | Provisioned XL or above | Validate that XL meets actual peak demand |
+| XL API concurrency or scheduling capacity is insufficient | 2XL | Compare with the tier specifications for the Kubernetes version |
+| 2XL capacity does not meet the target | 4XL or 8XL | 8XL still has 16 GB etcd and may have the same scheduling setting as 4XL |
 
 ### 7.2 Control Plane Metrics Reference by Scale {#control-plane-metrics-reference-by-scale}
 
-The following industry-average reference values describe key metrics that inform EKS control plane scaling at each scale. Actual values depend on workload patterns. **Consider a higher tier when thresholds are exceeded**.
+Do not use unsupported industry averages for QPS, object counts, or latency by node count to select a tier. Separate published capacity limits from operating targets measured for your own workload.
 
-| Metric | ~50 Nodes (Standard) | ~200 Nodes (XL) | ~500 Nodes (2XL) | 1,000+ Nodes (4XL) |
-|--------|-------------------|---------------|----------------|-----------------|
-| **etcd DB Size** | 0.5~1.5 GB | 2~5 GB | 5~10 GB | 10~20 GB |
-| **etcd Object Count** | ~5,000 | ~30,000 | ~100,000 | 300,000+ |
-| **API QPS** (requests/second) | 20~50 | 100~300 | 300~800 | 1,000~3,000 |
-| **API Request Latency** (p99) | < 200ms | < 500ms | < 1s | < 1.5s (target) |
-| **429 Throttle** (per minute) | 0 | < 5 | < 20 | Point at which a higher tier is needed |
-| **Watch Connections** | ~200 | ~1,500 | ~5,000 | 15,000+ |
-| **CRD Types** (reference) | 5~15 | 15~40 | 40~80 | 80+ |
-| **Controller Reconciliations/Second** | 5~20 | 50~150 | 150~500 | 500~2,000 |
+| Metric | Measurement | Decision Basis |
+|---|---|---|
+| **etcd DB Size** | Collect actual usage and physical file size separately | Compare actual usage with the 8 GB Standard or 16 GB Provisioned limit |
+| **etcd Object Count** | Count and size by resource | Investigate growth and retention rather than infer a tier from counts alone |
+| **API QPS** (requests/second) | Request rate by verb and resource | Validate APF costs by request type and peak demand |
+| **API Request Latency** (p99) | Latency distribution by verb | Compare with the service’s own latency target |
+| **429 Throttle** | Fraction of requests returning 429 and duration | Investigate APF, client retries, and request patterns |
+| **Watch Connections** | Long-running WATCH request count | Check reconnect storms and changes by controller |
+| **CRD Types** | Installed CRDs and CR counts | Do not infer capacity or performance from type counts alone |
+| **Controller Reconciliations/Second** | Rate, processing time, and queue depth by controller | Distinguish retry storms from processing delays |
 
 :::info How to Measure
-- **etcd DB size**: `apiserver_storage_size_bytes` (CloudWatch or Prometheus)
+- **Actual etcd usage**: CloudWatch `etcd_mvcc_db_total_size_in_use_in_bytes`; distinguish it from physical file size
 - **API QPS**: Rate of `apiserver_request_total` (separate by verb where possible)
 - **429 throttling**: `apiserver_request_total{code="429"}`; investigate immediately if nonzero
 - **Watch connections**: `apiserver_longrunning_requests{verb="WATCH"}`; proportional to controller and node counts
@@ -506,22 +512,26 @@ The following industry-average reference values describe key metrics that inform
 :::
 
 :::warning etcd Size Alert Thresholds
-- **Standard**: Warning above 6GB → consider moving to XL
-- **XL/2XL**: Warning above 12GB → remove unnecessary CRs or consider a higher tier
-- **4XL**: Critical above 20GB → consider splitting the architecture across multiple clusters
+These are **illustrative operating thresholds**, not AWS default alarms. For the example calculation, GB is converted to 10⁹ bytes. Adjust thresholds for usage growth and response time so action occurs before the limit is reached.
+- **Standard (8 GB)**: Warning at 6 GB; Critical at 7.2 GB
+- **XL/2XL/4XL/8XL (16 GB)**: Warning at 12 GB; Critical at 14.4 GB
+- Remove unused CRs and retained data, and investigate object growth. Standard can move to Provisioned, but **raising a Provisioned tier does not increase the etcd limit**. Consider external data storage or separate clusters if usage continues to grow.
 :::
 
 ### 7.3 Key Alarm Configuration
 
+The following thresholds and durations are operating examples. For one-minute CloudWatch metrics, use `Sum` for request/scheduling counts and `Maximum` for etcd usage. Do not interpret missing data as zero usage. Tune these examples to your SLOs and normal load.
+
 | Alarm Name | Metric | Threshold | Severity | Response |
 |---------|--------|-------|-------|---------|
-| API Throttling | `apiserver_request_total_429` | > 10/minute for 5 minutes | Critical | Consider upgrading the PCP tier |
-| API Server Errors | `apiserver_request_total_5xx` | > 5/minute for 3 minutes | Critical | Check control plane logs |
-| etcd DB Usage | `apiserver_storage_size_bytes` | > 6GB (Standard) / > 12GB (Provisioned) | Warning | Remove unnecessary CRD resources |
+| API Throttling | `apiserver_request_total_429` | > 10/minute for 5 minutes | Critical | Investigate APF, retries, and request load before changing capacity |
+| API Server Errors | `apiserver_request_total_5XX` | > 5/minute for 3 minutes | Critical | Check control plane logs |
+| etcd DB Usage | `etcd_mvcc_db_total_size_in_use_in_bytes` | > 6 GB (Standard) / > 12 GB (Provisioned) | Warning | Remove unnecessary CRD resources |
+| etcd DB Headroom | `etcd_mvcc_db_total_size_in_use_in_bytes` | > 7.2 GB (Standard) / > 14.4 GB (Provisioned) | Critical | Restrain growth, clean up data, or consider separation before reaching the limit |
 | Scheduling Failures | `scheduler_schedule_attempts_UNSCHEDULABLE` | > 0 for 10 minutes | Warning | Check node resources |
-| API Concurrency | `apiserver_flowcontrol_current_executing_seats_total` | > 80% of the tier limit | Warning | Consider provisioning a higher tier |
+| API Concurrency | `apiserver_flowcontrol_current_executing_seats` | > 80% of tier seats for the Kubernetes version | Warning | Consider provisioning a higher tier |
 
-### 7.3 Recommended Integrated Monitoring Stack
+### 7.4 Recommended Integrated Monitoring Stack {#73-recommended-integrated-monitoring-stack}
 
 ```text
 Integrated Monitoring Architecture
@@ -544,7 +554,7 @@ Integrated Monitoring Architecture
     → PCP tier recommendations (future)
 ```
 
-### 7.4 Phased Adoption Roadmap
+### 7.5 Phased Adoption Roadmap {#74-phased-adoption-roadmap}
 
 | Phase | Duration | Main Activities |
 |------|------|---------|
@@ -553,15 +563,15 @@ Integrated Monitoring Architecture
 | **Phase 3: PCP Adoption** | 1 week | Analyze the workload profile and select an appropriate PCP tier (XL or above recommended) |
 | **Phase 4: Optimization** | Ongoing | Use Cluster Insights, adjust tiers based on monitoring data, and tune CRD controllers |
 
-### 7.5 Summary of Responses to Key Challenges
+### 7.6 Summary of Responses to Key Challenges {#75-summary-of-responses-to-key-challenges}
 
 | Challenge | EKS Capabilities | CRD Design Response |
 |------|-----------|------------|
-| **etcd Overload from CRDs** | Provisioned tier: 16GB etcd + Event Sharding + auto-scaling | Adopt a Provisioned tier and minimize CR object size |
-| **API Server Performance Degradation** | Guaranteed inflight requests by PCP tier + APF priority management | Optimize controller List/Watch patterns and use a current Kubernetes version |
-| **Scheduling Limits** | API server horizontal scaling in higher tiers | Provision a higher tier in advance when workload growth is expected |
-| **Control Plane Stability** | Multi-AZ and 99.99% SLA (Provisioned) | Use a Provisioned tier for production clusters |
-| **Cost Predictability** | Fixed pricing by PCP tier ($0.10 ~ $13.90/hr) | Select a tier that matches the workload profile |
+| **etcd Overload from CRDs** | Provisioned tier: 16GB etcd + Event Sharding | Reduce CR object size and retention; consider Provisioned based on actual storage usage |
+| **API Server Performance Degradation** | API concurrency capacity by Kubernetes version and PCP tier + APF priority management | Validate API throughput and latency under representative peak load; optimize controller List/Watch patterns |
+| **Scheduling Limits** | Scheduling settings by Kubernetes version and PCP tier | Validate scheduling throughput under representative peak load before selecting capacity |
+| **Control Plane Stability** | Multi-AZ and 99.99% SLA (Provisioned) | Select Standard or Provisioned based on SLOs and the need for pre-allocated capacity |
+| **Cost Predictability** | Kubernetes support charges plus the selected PCP tier’s hourly charge | Select a tier that matches the workload profile |
 | **Limited Visibility** | Four monitoring channels (Vended Metrics, Prometheus, Logging, Insights) | Introduce monitoring through Phases 1–4 |
 
 ---
@@ -571,6 +581,7 @@ Integrated Monitoring Architecture
 **AWS Official Documentation:**
 - [Amazon EKS Provisioned Control Plane](https://docs.aws.amazon.com/eks/latest/userguide/eks-provisioned-control-plane.html)
 - [EKS Control Plane Metrics](https://docs.aws.amazon.com/eks/latest/userguide/view-raw-metrics.html)
+- [CloudWatch EKS Metrics — Names and Statistics](https://docs.aws.amazon.com/eks/latest/userguide/cloudwatch.html)
 - [EKS Best Practices — Control Plane](https://docs.aws.amazon.com/eks/latest/best-practices/control-plane.html)
 - [EKS Cluster Insights](https://docs.aws.amazon.com/eks/latest/userguide/cluster-insights.html)
 - [EKS Pricing](https://aws.amazon.com/eks/pricing/)

@@ -5,7 +5,7 @@ created: "2026-03-24"
 last_update:
   date: 2026-09-18
   author: YoungJoon Jeong
-reading_time: 21
+reading_time: 24
 tags:
   - eks
   - kubernetes
@@ -100,18 +100,18 @@ Standard 티어에서는 etcd DB Size가 **8GB로 고정**됩니다. CRD 오브�
 
 ### 3.1 개요
 
-**EKS Provisioned Control Plane(PCP)**은 re:Invent 2025에서 GA로 출시되었습니다[^1]. 고객이 직접 Control Plane의 스케일링 티어(T-Shirt Size)를 선택하여 **성능 바닥(floor)**을 설정할 수 있는 기능입니다.
+**EKS Provisioned Control Plane(PCP)**은 re:Invent 2025에서 GA로 출시되었습니다[^1]. 고객이 직접 Control Plane의 스케일링 티어(T-Shirt Size)를 선택하여 **미리 할당할 용량**을 설정할 수 있는 기능입니다.
 
 [^1]: 8XL 티어 및 99.99% SLA 보장은 2026년 3월에 추가 출시되었습니다.
 
-기존에는 VAS의 자동 스케일링에만 의존했지만, PCP를 통해 **선제적으로 최소 성능 보장 수준을 확보**할 수 있습니다.
+PCP는 선택한 티어의 용량을 선제적으로 확보합니다. 실제 API 처리량과 지연 시간은 요청 종류, 컨트롤러 패턴, Kubernetes 버전에 따라 달라지므로 워크로드 검증이 필요합니다.
 
 ### 3.2 두 가지 운영 모드
 
 | 모드 | 설명 |
 |------|------|
 | **Standard** (동적 모드) | 기존과 동일. 자동으로 부하에 따라 스케일링. 부하 감소 시 보수적으로 스케일다운 |
-| **Provisioned** (프로비저닝 모드) | 고객이 XL/2XL/4XL/8XL 중 원하는 티어를 선택. 해당 티어 아래로 절대 스케일다운하지 않음. 필요시 티어 이상으로 자동 스케일업 가능 |
+| **Provisioned** (프로비저닝 모드) | 고객이 XL/2XL/4XL/8XL 중 원하는 티어를 선택. 티어 간 자동 전환은 없으며, 관리자가 변경하거나 별도의 자동화를 구성해야 함 |
 
 ### 3.3 티어별 사양 및 가격
 
@@ -123,13 +123,15 @@ Standard 티어에서는 etcd DB Size가 **8GB로 고정**됩니다. CRD 오브�
 | **4XL** | **16GB** | **99.99%** | $6.90 |
 | **8XL** | **16GB** | **99.99%** | $13.90 |
 
-> 최신 가격은 [AWS EKS Pricing](https://aws.amazon.com/eks/pricing/) 페이지에서 확인하세요.
+> Standard의 $0.10/시간은 Kubernetes 표준 지원 요금입니다. Provisioned 행의 금액은 표준/연장 지원 요금에 **추가되는 티어 요금**입니다. 최신 가격은 [AWS EKS Pricing](https://aws.amazon.com/eks/pricing/)에서 확인하세요.
+
+[공식 티어 사양](https://docs.aws.amazon.com/eks/latest/userguide/eks-provisioned-control-plane.html)에 따르면 Standard의 etcd 한도는 8 GB, XL·2XL·4XL·8XL은 모두 16 GB입니다. GB 표기는 공식 문서의 단위를 따릅니다. Provisioned 내에서 티어를 높여도 etcd 용량은 증가하지 않습니다. API 동시 처리 seat와 스케줄링 설정은 Kubernetes 버전별 사양을 확인하세요.
 
 ### 3.4 Provisioned 티어에서만 사용 가능한 기능
 
 | 기능 | Standard | XL 이상 |
 |------|----------|--------|
-| API Server 수평 확장 (2개 이상) | 2개 제한 | 가능 |
+| API 동시 처리 용량 사전 지정 | 부하에 따른 자동 용량 조정 | Kubernetes 버전·티어별 용량 사전 지정 |
 | etcd DB Size 16GB | 8GB 고정 | 16GB |
 | etcd Event Sharding | 불가 | 가능 (이벤트 객체를 별도 etcd 파티션으로 분리) |
 | 99.99% SLA | 99.95% | 99.99% |
@@ -142,7 +144,7 @@ CRD 기반 플랫폼에서 가장 먼저 한계에 도달하는 것은 **etcd DB
 티어별 K8s 파라미터 (API Server inflight, Scheduler QPS), APF seat 산정 공식, 10K 노드 사이징 예시, 실제 고객 사례, ClusterLoader2 성능 검증 방법은 **[PCP 티어 사이징 & 성능 검증 가이드](./eks-pcp-tier-sizing-validation)**를 참조하세요.
 :::
 
-### 3.6 CLI/API 사용법
+### 3.5 CLI/API 사용법 {#36-cliapi-사용법}
 
 **클러스터 생성 시 티어 지정:**
 
@@ -176,7 +178,7 @@ aws eks describe-cluster --name example
 
 > **참고:** CLI 플래그 형식(`--control-plane-scaling-config tier=XL`)은 AWS CLI 버전에 따라 변경될 수 있습니다. 최신 명령 형식은 [AWS CLI Command Reference - EKS](https://docs.aws.amazon.com/cli/latest/reference/eks/)를 확인하세요.
 
-### 3.7 PCP 관련 클러스터 속성
+### 3.6 PCP 관련 클러스터 속성 {#37-pcp-관련-클러스터-속성}
 
 | 속성 | 설명 |
 |------|------|
@@ -269,22 +271,24 @@ K8s 1.28 이상 클러스터에서 추가 비용 없이 자동으로 CloudWatch 
 | 컴포넌트 | 메트릭 | 설명 | 중요도 |
 |---------|--------|------|-------|
 | API Server | `apiserver_request_total` | 총 API 요청 수 | 필수 |
-| API Server | `apiserver_request_total_4xx` | 4xx 에러 요청 수 | 필수 |
-| API Server | `apiserver_request_total_5xx` | 5xx 에러 요청 수 | 필수 |
+| API Server | `apiserver_request_total_4XX` | 4xx 에러 요청 수 | 필수 |
+| API Server | `apiserver_request_total_5XX` | 5xx 에러 요청 수 | 필수 |
 | API Server | `apiserver_request_total_429` | 429 Throttling 요청 수 | 필수 |
-| API Server | `apiserver_request_duration_seconds` | API 요청 지연 시간 | 권장 |
-| API Server | `apiserver_storage_size_bytes` | etcd 스토리지 크기 (defrag 전) | 필수 |
+| API Server | `apiserver_request_duration_seconds_GET_P99` | GET 요청 지연 시간 p99 | 권장 |
+| etcd | `etcd_mvcc_db_total_size_in_bytes` | 물리 파일 크기 (미사용 공간 포함, 용량 한도 판단용 아님) | 권장 |
 | Scheduler | `scheduler_schedule_attempts_total` | 전체 스케줄링 시도 수 | 권장 |
 | Scheduler | `scheduler_schedule_attempts_SCHEDULED` | 성공 스케줄링 수 | 필수 |
 | Scheduler | `scheduler_schedule_attempts_UNSCHEDULABLE` | 스케줄 불가 수 | 권장 |
 
-**PCP 전용 추가 메트릭:**
+**티어 사용량 모니터링 메트릭:**
 
 | 메트릭 | 설명 | 활용 |
 |--------|------|------|
-| `apiserver_flowcontrol_current_executing_seats_total` | API Server 현재 동시 실행 시트 수 | API Request Concurrency 티어 한도 대비 모니터링 |
+| `apiserver_flowcontrol_current_executing_seats` | API Server 현재 동시 실행 시트 수 | API Request Concurrency 티어 한도 대비 모니터링 |
 | `etcd_mvcc_db_total_size_in_use_in_bytes` | etcd DB 실제 사용 크기 | Cluster Database Size 티어 한도 대비 모니터링 |
-| `apiserver_storage_size_bytes` | defrag 전 스토리지 크기 | etcd DB 크기 대체 메트릭 |
+| `etcd_mvcc_db_total_size_in_bytes` | etcd 물리 파일 크기 | 실제 사용량과 비교해 미사용 공간 확인 |
+
+위 이름은 [CloudWatch `AWS/EKS` 지표](https://docs.aws.amazon.com/eks/latest/userguide/cloudwatch.html) 기준입니다. Prometheus의 `apiserver_storage_size_bytes`도 물리 파일 크기이며, 용량 한도 초과를 결정하는 실제 사용량과 다릅니다. 사용량 알람에는 `etcd_mvcc_db_total_size_in_use_in_bytes`를 사용하세요. 이 지표의 Prometheus 제공 여부는 클러스터에서 확인하고, 제공되지 않으면 CloudWatch 값을 사용합니다.
 
 ### 5.2 Prometheus 호환 메트릭 엔드포인트
 
@@ -475,30 +479,32 @@ EKS Console → Cluster 선택 → Observability 탭
 
 ### 7.1 CRD 규모별 PCP 티어 선택 가이드
 
-| 워크로드 프로파일 | 권장 티어 | 핵심 이유 | 월 비용 (예상) |
-|--------------|---------|---------|------------|
-| 노드 ~50개, 기본 애드온 (Karpenter, cert-manager) | Standard | 기본 자동 스케일링으로 충분 | ~$73 |
-| 노드 ~200개, 5개+ 오퍼레이터 (ArgoCD, Prometheus, 커스텀 컨트롤러) | **XL** | etcd 16GB 확보, 99.99% SLA | ~$1,204 |
-| 노드 ~500개, 서비스 메시 + GitOps + 멀티테넌트 | **2XL** | 향상된 API Server 처리량 | ~$2,482 |
-| 노드 1,000개+, AI/ML 오퍼레이터 + 대규모 CRD 기반 파이프라인 | **4XL** | API Server 수평 확장 | ~$5,037 |
+노드 수만으로 티어를 결정하지 않습니다. 아래는 후보를 좁히는 조건이며, 대표 피크 부하에서 API 지연·APF seat 사용량·스케줄링 속도를 검증해 선택합니다.
+
+| 검증 조건 | 검토할 모드/티어 | 확인 사항 |
+|---|---|---|
+| Standard에서 목표 지연과 처리량을 충족하고 etcd 여유가 충분함 | Standard | 대부분의 사용 사례에 대한 기본 선택 |
+| 용량 사전 확보, 16 GB etcd 또는 99.99% SLA가 필요함 | Provisioned XL 이상 | XL이 실제 피크 부하를 충족하는지 검증 |
+| XL의 API 동시 처리 또는 스케줄링 용량이 부족함 | 2XL | 해당 Kubernetes 버전의 티어 사양과 비교 |
+| 2XL의 용량으로 목표를 충족하지 못함 | 4XL 또는 8XL | 8XL도 etcd는 16 GB이며, 스케줄링 설정은 4XL과 같을 수 있음 |
 
 ### 7.2 규모별 컨트롤 플레인 메트릭 참고치
 
-각 규모에서 EKS 컨트롤 플레인 스케일링 팩터가 되는 핵심 메트릭의 산업 평균 참고치입니다. 실제 수치는 워크로드 패턴에 따라 달라지며, **임계값 초과 시 상위 티어를 검토**해야 합니다.
+노드 수별 QPS·오브젝트 수·지연 시간의 산업 평균을 티어 선택 기준으로 사용하지 않습니다. 공개된 용량 한도와 자체 워크로드에서 측정한 운영 기준을 구분하세요.
 
-| 메트릭 | ~50 노드 (Standard) | ~200 노드 (XL) | ~500 노드 (2XL) | 1,000+ 노드 (4XL) |
-|--------|-------------------|---------------|----------------|-----------------|
-| **etcd DB 크기** | 0.5~1.5 GB | 2~5 GB | 5~10 GB | 10~20 GB |
-| **etcd 오브젝트 수** | ~5,000 | ~30,000 | ~100,000 | 300,000+ |
-| **API QPS** (요청/초) | 20~50 | 100~300 | 300~800 | 1,000~3,000 |
-| **API 요청 지연** (p99) | < 200ms | < 500ms | < 1s | < 1.5s (목표) |
-| **429 Throttle** (분당) | 0 | < 5 | < 20 | 상위 티어 필요 시점 |
-| **Watch 연결 수** | ~200 | ~1,500 | ~5,000 | 15,000+ |
-| **CRD 타입 수** (참고) | 5~15 | 15~40 | 40~80 | 80+ |
-| **컨트롤러 Reconcile/초** | 5~20 | 50~150 | 150~500 | 500~2,000 |
+| 메트릭 | 측정 기준 | 판단 기준 |
+|---|---|---|
+| **etcd DB 크기** | 실제 사용량과 물리 파일 크기를 각각 수집 | Standard 8 GB, 모든 Provisioned 티어 16 GB 한도와 실제 사용량 비교 |
+| **etcd 오브젝트 수** | 리소스별 개수와 오브젝트 크기 | 개수만으로 티어를 추정하지 않고 증가 원인·보관 정책 확인 |
+| **API QPS** (요청/초) | verb·리소스별 요청 rate | 요청 종류별 APF 비용과 피크 부하를 함께 검증 |
+| **API 요청 지연** (p99) | verb별 지연 분포 | 서비스의 자체 지연 목표와 비교 |
+| **429 Throttle** | 요청 수 대비 429 비율과 지속 시간 | APF, 클라이언트 재시도 및 요청 패턴 조사 |
+| **Watch 연결 수** | 장기 실행 WATCH 요청 수 | 재연결 폭주와 컨트롤러별 변화 확인 |
+| **CRD 타입 수** | 설치된 CRD와 각 CR 개수 | 타입 수만으로 용량이나 성능을 단정하지 않음 |
+| **컨트롤러 Reconcile/초** | 컨트롤러별 rate·처리 시간·큐 깊이 | 재처리 폭주와 처리 지연을 구분 |
 
 :::info 측정 방법
-- **etcd DB 크기**: `apiserver_storage_size_bytes` (CloudWatch 또는 Prometheus)
+- **etcd 실제 사용량**: CloudWatch `etcd_mvcc_db_total_size_in_use_in_bytes`; 물리 파일 크기와 구분
 - **API QPS**: `apiserver_request_total` rate (verb별 분리 권장)
 - **429 Throttle**: `apiserver_request_total{code="429"}` — 0이 아니면 즉시 조사
 - **Watch 연결**: `apiserver_longrunning_requests{verb="WATCH"}` — 컨트롤러/노드 수에 비례
@@ -506,22 +512,26 @@ EKS Console → Cluster 선택 → Observability 탭
 :::
 
 :::warning etcd 크기 경고 기준
-- **Standard**: 6GB 초과 시 Warning → XL 전환 검토
-- **XL/2XL**: 12GB 초과 시 Warning → 불필요 CR 정리 또는 상위 티어
-- **4XL**: 20GB 초과 시 Critical → 아키텍처 분리 (멀티 클러스터) 검토
+아래 값은 AWS 기본 알람이 아닌 **운영 예시**입니다. 문서의 GB를 예시 계산에서는 10⁹ bytes로 환산했으며, 실제 사용량 증가 속도와 대응 시간을 반영해 한도 도달 전에 조치하도록 조정하세요.
+- **Standard (8 GB)**: Warning 6 GB, Critical 7.2 GB
+- **XL/2XL/4XL/8XL (16 GB)**: Warning 12 GB, Critical 14.4 GB
+- 사용하지 않는 CR과 보관 데이터를 정리하고 오브젝트 증가 원인을 조사합니다. Standard에서는 Provisioned 전환을 검토할 수 있지만, **Provisioned 티어 상향은 etcd 한도를 늘리지 않습니다**. 사용량이 계속 증가하면 데이터 외부화 또는 클러스터 분리를 검토합니다.
 :::
 
 ### 7.3 핵심 알람 설정
 
+다음 임계값과 지속 시간은 운영 예시입니다. CloudWatch의 1분 주기 지표를 기준으로 요청·스케줄링 건수는 `Sum`, etcd 사용량은 `Maximum`을 사용하며, 누락 데이터를 정상 사용량 0으로 간주하지 않습니다. 자체 SLO와 정상 부하를 바탕으로 조정하세요.
+
 | 알람 이름 | 메트릭 | 임계값 | 심각도 | 대응 액션 |
 |---------|--------|-------|-------|---------|
-| API Throttling | `apiserver_request_total_429` | > 10/분, 5분간 | Critical | PCP 티어 업그레이드 검토 |
-| API Server Errors | `apiserver_request_total_5xx` | > 5/분, 3분간 | Critical | Control Plane 로그 확인 |
-| etcd DB 사용량 | `apiserver_storage_size_bytes` | > 6GB (Standard) / > 12GB (Provisioned) | Warning | 불필요한 CRD 리소스 정리 |
+| API Throttling | `apiserver_request_total_429` | > 10/분, 5분간 | Critical | APF·재시도·요청 부하 조사 후 용량 검토 |
+| API Server Errors | `apiserver_request_total_5XX` | > 5/분, 3분간 | Critical | Control Plane 로그 확인 |
+| etcd DB 사용량 | `etcd_mvcc_db_total_size_in_use_in_bytes` | > 6 GB (Standard) / > 12 GB (Provisioned) | Warning | 불필요한 CRD 리소스 정리 |
+| etcd DB 용량 여유 | `etcd_mvcc_db_total_size_in_use_in_bytes` | > 7.2 GB (Standard) / > 14.4 GB (Provisioned) | Critical | 한도 도달 전 증가 억제·데이터 정리·분리 검토 |
 | Scheduling 실패 | `scheduler_schedule_attempts_UNSCHEDULABLE` | > 0, 10분간 | Warning | 노드 리소스 확인 |
-| API Concurrency | `apiserver_flowcontrol_current_executing_seats_total` | > 80% of 티어 한도 | Warning | 상위 티어 프로비저닝 검토 |
+| API Concurrency | `apiserver_flowcontrol_current_executing_seats` | Kubernetes 버전별 티어 seat의 > 80% | Warning | 상위 티어 프로비저닝 검토 |
 
-### 7.3 통합 모니터링 스택 권장
+### 7.4 통합 모니터링 스택 권장 {#73-통합-모니터링-스택-권장}
 
 ```
 통합 모니터링 아키텍처
@@ -544,7 +554,7 @@ EKS Console → Cluster 선택 → Observability 탭
     → PCP 티어 추천 기능 (향후)
 ```
 
-### 7.4 단계별 도입 로드맵
+### 7.5 단계별 도입 로드맵 {#74-단계별-도입-로드맵}
 
 | 단계 | 기간 | 주요 활동 |
 |------|------|---------|
@@ -553,15 +563,15 @@ EKS Console → Cluster 선택 → Observability 탭
 | **Phase 3: PCP 적용** | 1주 | 워크로드 프로파일 분석 후 적정 PCP 티어 선택 (XL 이상 권장) |
 | **Phase 4: 최적화** | 지속 | Cluster Insights 활용, 모니터링 데이터 기반 티어 조정, CRD 컨트롤러 튜닝 |
 
-### 7.5 최종 요약 — 주요 과제별 대응 전략
+### 7.6 최종 요약 — 주요 과제별 대응 전략 {#75-최종-요약--주요-과제별-대응-전략}
 
 | 과제 | EKS 기능 활용 | CRD 설계 대응 |
 |------|-----------|------------|
-| **CRD로 인한 etcd 과부하** | Provisioned 티어: etcd 16GB + Event Sharding + 자동 스케일링 | Provisioned 티어 적용, CR 오브젝트 크기 최소화 |
-| **API Server 성능 저하** | PCP 티어별 보장된 inflight requests + APF 우선순위 관리 | 컨트롤러 List/Watch 패턴 최적화, K8s 최신 버전 사용 |
-| **스케줄링 한계** | 상위 티어에서 API Server 수평 확장 | 워크로드 증가 예측 시 상위 티어 사전 프로비저닝 |
-| **Control Plane 안정성** | Multi-AZ, 99.99% SLA (Provisioned) | 프로덕션 클러스터는 Provisioned 티어 권장 |
-| **비용 예측성** | PCP 티어별 고정 가격 ($0.10 ~ $13.90/hr) | 워크로드 프로파일에 맞는 적정 티어 선택 |
+| **CRD로 인한 etcd 과부하** | Provisioned 티어: etcd 16GB + Event Sharding | CR 오브젝트 크기·보관량을 줄이고 실제 사용량에 따라 Provisioned 전환 검토 |
+| **API Server 성능 저하** | Kubernetes 버전·PCP 티어별 API 동시 처리 용량 + APF 우선순위 관리 | 대표 피크 부하에서 API 처리량·지연 검증, 컨트롤러 List/Watch 패턴 최적화 |
+| **스케줄링 한계** | Kubernetes 버전·PCP 티어별 스케줄링 설정 | 대표 피크 부하에서 스케줄링 처리량 검증 후 필요한 용량 선택 |
+| **Control Plane 안정성** | Multi-AZ, 99.99% SLA (Provisioned) | SLO와 사전 확보 용량 필요성에 따라 Standard 또는 Provisioned 선택 |
+| **비용 예측성** | Kubernetes 지원 요금 + 선택한 PCP 티어의 시간당 추가 요금 | 워크로드 프로파일에 맞는 적정 티어 선택 |
 | **가시성 부족** | 4가지 모니터링 채널 (Vended Metrics, Prometheus, Logging, Insights) | Phase 1~4 단계별 모니터링 도입 |
 
 ---
@@ -571,6 +581,7 @@ EKS Console → Cluster 선택 → Observability 탭
 **AWS 공식 문서:**
 - [Amazon EKS Provisioned Control Plane](https://docs.aws.amazon.com/eks/latest/userguide/eks-provisioned-control-plane.html)
 - [EKS Control Plane Metrics](https://docs.aws.amazon.com/eks/latest/userguide/view-raw-metrics.html)
+- [CloudWatch EKS Metrics — 지표 이름과 통계](https://docs.aws.amazon.com/eks/latest/userguide/cloudwatch.html)
 - [EKS Best Practices — Control Plane](https://docs.aws.amazon.com/eks/latest/best-practices/control-plane.html)
 - [EKS Cluster Insights](https://docs.aws.amazon.com/eks/latest/userguide/cluster-insights.html)
 - [EKS Pricing](https://aws.amazon.com/eks/pricing/)
