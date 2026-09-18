@@ -11,7 +11,7 @@ const PlatformComparisonMatrix = () => {
     bedrock: isKo ? '사용량 과금, GPU 관리 불필요' : 'Usage-based pricing, no GPU management',
     sagemaker: isKo ? '인스턴스+사용량 혼합, 노트북/학습 별도' : 'Instance+usage hybrid, notebook/training separate',
     eks: isKo ? 'Spot/MIG 최적화, 초기 투자 필요' : 'Spot/MIG optimization, upfront investment needed',
-    hybrid: isKo ? 'Bedrock + 자체 SLM 혼합, Cascade 66% 절감' : 'Bedrock + self-hosted SLM, Cascade 66% savings'
+    hybrid: isKo ? 'API 사용량 + SLM 고정비, 라우팅 효과 실측' : 'API usage + SLM fixed cost; measure routing effects'
   }, {
     axis: isKo ? '운영 부담' : 'Operational Burden',
     bedrock: isKo ? '최소 — AWS 완전 관리' : 'Minimal — AWS fully managed',
@@ -32,10 +32,10 @@ const PlatformComparisonMatrix = () => {
     hybrid: isKo ? '필요에 따라 선택적 확장' : 'Selective expansion as needed'
   }, {
     axis: isKo ? 'Time-to-Value' : 'Time-to-Value',
-    bedrock: isKo ? '2-4주 — API 호출만으로 시작' : '2-4 weeks — start with API calls only',
-    sagemaker: isKo ? '4-8주 — 환경 구성 + 파이프라인 설정' : '4-8 weeks — environment setup + pipeline configuration',
-    eks: isKo ? '2-4개월 — 클러스터 + GPU + 모델 서빙 구축' : '2-4 months — cluster + GPU + model serving setup',
-    hybrid: isKo ? '1-3개월 — Bedrock 시작 + EKS 점진 확장' : '1-3 months — Bedrock start + gradual EKS expansion'
+    bedrock: isKo ? 'API 연결·권한·품질 평가' : 'API integration, permissions, and quality evaluation',
+    sagemaker: isKo ? '환경·데이터 접근·파이프라인 구성' : 'Environment, data access, and pipeline setup',
+    eks: isKo ? '클러스터·GPU·모델 서빙 및 운영 준비' : 'Cluster, GPU, serving, and operating readiness',
+    hybrid: isKo ? '두 경로의 연동·품질·전환 검증' : 'Integration, quality, and transition across both paths'
   }];
   return <ManualTable title={isKo ? 'AI 플랫폼 5축 비교 매트릭스' : 'AI Platform 5-Axis Comparison Matrix'} headers={[isKo ? '평가축' : 'Evaluation Axis', "Bedrock + AgentCore", "SageMaker Unified Studio", isKo ? 'EKS+오픈소스' : 'EKS+Open Source', isKo ? '하이브리드' : 'Hybrid']} rows={data.map(row => [row.axis, row.bedrock, row.sagemaker, row.eks, row.hybrid])} />;
 };

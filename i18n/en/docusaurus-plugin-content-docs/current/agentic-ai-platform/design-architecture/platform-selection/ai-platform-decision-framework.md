@@ -5,7 +5,7 @@ created: "2026-04-17"
 last_update:
   date: 2026-09-18
   author: devfloor9
-reading_time: 22
+reading_time: 23
 tags:
   - decision-framework
   - sagemaker
@@ -149,7 +149,7 @@ flowchart TD
     
     Q1{"Need to self-host<br/>Open Weight models?<br/>(Llama, Qwen, DeepSeek, etc.)"}
     Q2{"Data sovereignty<br/>hard requirement?<br/>(Model+Data isolation in VPC)"}
-    Q3{"Monthly inference<br/>volume > 1.5M?"}
+    Q3{"Hybrid total-cost advantage<br/>validated at matched<br/>quality and latency?"}
     Q4{"Need integrated<br/>ML training +<br/>data engineering?"}
     Q5{"Starting AI/ML<br/>workloads for<br/>the first time?"}
     
@@ -210,6 +210,8 @@ For SCP region enforcement policies, Bedrock Geographic cross-Region inference, 
 
 Starting points and expansion paths vary based on the customer's current AI/ML maturity level.
 
+The durations below are initial planning inputs for stage-specific work. Define milestones such as API integration, pilot operation, and production acceptance before estimating a schedule from team readiness.
+
 <MaturityPathTable />
 
 ```mermaid
@@ -238,7 +240,7 @@ journey
 
 ## Hybrid Combination Patterns
 
-Most enterprises converge on hybrid approaches rather than a single path. Here are 4 proven combination patterns.
+The following four examples separate service responsibilities. Validate fit against data boundaries, operating capability, and quality, latency, and cost requirements.
 
 <HybridPatternSummary />
 
@@ -249,15 +251,15 @@ flowchart LR
     Client --> GW["kgateway"]
     GW --> Classifier["LLM Classifier"]
     Classifier -->|"Complex requests"| Bedrock["Bedrock<br/>Claude/Nova"]
-    Classifier -->|"Simple requests (66%)"| SLM["EKS<br/>Qwen3-4B"]
+    Classifier -->|"Requests eligible for lower-cost path"| SLM["EKS<br/>Qwen3-4B"]
     
     style Bedrock fill:#ff9900,color:#fff
     style SLM fill:#10b981,color:#fff
 ```
 
-**When to use**: When monthly inference volume exceeds 500K requests and 60-70% of requests are simple tasks (code completion, translation, summarization)
+**When to use**: A request subset meets quality requirements on a self-hosted SLM, and its share and the total operating cost of both paths can be measured.
 
-**Core value**: Maintain Bedrock API quality while reducing costs by 40-60%
+**Value to validate**: Reduce actual total cost while meeting quality and latency requirements. Request share alone does not establish lower GPU fixed costs or preserved quality.
 
 **Reference**: [Inference Gateway & Cascade Routing](../../model-serving/inference-routing/routing-strategy.md)
 
@@ -319,17 +321,17 @@ This pattern is chosen by large enterprises to meet different requirements acros
 
 ## Cost Simulation Summary
 
-Optimal options and estimated costs based on monthly inference volume.
+Monthly request count alone does not determine the best option or its cost. Collect the following inputs for the same task set and service requirements.
 
-| Monthly Inference Volume | Optimal Option | Est. Monthly Cost | Notes |
-|-------------------------|----------------|-------------------|-------|
-| ~100K requests | Bedrock API | ~$300-500 | No GPU management, fastest start |
-| ~500K requests | Bedrock + Cascade | ~$800-1,200 | Start separating simple requests with SLM |
-| ~1.5M requests | Hybrid transition point | ~$2,500-3,500 | Near self-hosting break-even |
-| ~5M+ requests | EKS self-hosting | ~$3,500-5,000 | 60%+ savings with Spot + Cascade |
+| Option | Inputs to collect | Conditions to verify |
+|--------|-------------------|----------------------|
+| Bedrock API | Model, region, inference mode, input/output/cache tokens | Quality, latency, and actual billing |
+| Bedrock + EKS SLM | Routing share, API billing, SLM fixed costs | Classification errors, fallback, and idle capacity |
+| EKS self-hosting | Node hours, capacity, total infrastructure/operating cost | Peak load, availability, and capacity ranges |
+| IDE subscription tools | Actual task credits and subscription spend | Matched task completion and feature scope |
 
 :::info Detailed Cost Analysis
-For detailed analysis of instance costs, Spot savings rates, and Cascade Routing effects, refer to [Coding Tools Cost Analysis](../../reference-architecture/integrations/coding-tools-cost-analysis.md).
+For billing units, hypothetical break-even arithmetic, and fixed-cost boundaries for cascade routing, see [Coding Tools Cost Analysis](../../reference-architecture/integrations/coding-tools-cost-analysis.md).
 :::
 
 ---

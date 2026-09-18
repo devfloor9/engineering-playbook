@@ -3,7 +3,7 @@ title: "AI 플랫폼 선택 가이드: 매니지드 vs 오픈소스 vs 하이브
 description: SageMaker Unified Studio, Bedrock AgentCore, EKS 오픈 아키텍처 중 고객 상황에 맞는 최적 접근 선택을 위한 의사결정 프레임워크
 created: "2026-04-17"
 last_update:
-  date: "2026-07-17"
+  date: 2026-09-18
   author: YoungJoon Jeong
 reading_time: 12
 tags:
@@ -149,7 +149,7 @@ flowchart TD
     
     Q1{"Open Weight 모델<br/>자체 호스팅 필요?<br/>(Llama, Qwen, DeepSeek 등)"}
     Q2{"데이터 주권이<br/>하드 요구사항?<br/>(VPC 내 모델+데이터 격리)"}
-    Q3{"월 추론 볼륨<br/>> 150만 건?"}
+    Q3{"같은 품질·지연 조건에서<br/>하이브리드의 전체 비용<br/>이점을 검증했는가?"}
     Q4{"ML 학습 +<br/>데이터 엔지니어링<br/>통합 필요?"}
     Q5{"AI/ML 워크로드를<br/>처음 시작?"}
     
@@ -210,6 +210,8 @@ SCP 리전 강제 정책, Bedrock Geographic cross-Region inference, EKS Hybrid 
 
 고객의 현재 AI/ML 성숙도에 따라 시작점과 확장 경로가 달라집니다.
 
+아래 기간은 단계별 작업 범위를 논의하기 위한 초기 계획값입니다. API 연결, 시범 운영, 운영 승인처럼 완료 기준을 먼저 정하고 팀의 준비 상태에 따라 다시 산정합니다.
+
 <MaturityPathTable />
 
 ```mermaid
@@ -238,7 +240,7 @@ journey
 
 ## 하이브리드 조합 패턴
 
-대부분의 엔터프라이즈는 단일 접근이 아닌 하이브리드로 수렴합니다. 검증된 4가지 조합 패턴입니다.
+다음은 서비스 책임을 나누는 4가지 조합 예제입니다. 실제 적합성은 데이터 경계, 운영 역량, 품질·지연·비용 평가로 확인합니다.
 
 <HybridPatternSummary />
 
@@ -249,15 +251,15 @@ flowchart LR
     Client --> GW["kgateway"]
     GW --> Classifier["LLM Classifier"]
     Classifier -->|"복잡한 요청"| Bedrock["Bedrock<br/>Claude/Nova"]
-    Classifier -->|"단순 요청 (66%)"| SLM["EKS<br/>Qwen3-4B"]
+    Classifier -->|"저비용 경로 적격 요청"| SLM["EKS<br/>Qwen3-4B"]
     
     style Bedrock fill:#ff9900,color:#fff
     style SLM fill:#10b981,color:#fff
 ```
 
-**사용 시점**: 월 추론 볼륨이 50만 건을 초과하며, 요청의 60-70%가 단순 작업(코드 완성, 번역, 요약)인 경우
+**사용 시점**: 자체 SLM으로 품질 기준을 충족하는 요청 집합이 있고, 해당 비중과 두 경로의 전체 운영 비용을 측정할 수 있는 경우
 
-**핵심 가치**: Bedrock API의 품질을 유지하면서 비용을 40-60% 절감
+**검증할 가치**: 품질·지연 기준을 유지하면서 실제 총비용을 줄이는지 확인합니다. 요청 비율만으로 GPU 고정비 감소나 품질 보존을 가정하지 않습니다.
 
 **참고**: [추론 게이트웨이 & Cascade Routing](../../model-serving/inference-routing/routing-strategy.md)
 
@@ -319,17 +321,17 @@ flowchart LR
 
 ## 비용 시뮬레이션 요약
 
-월 추론 볼륨에 따른 최적 옵션과 예상 비용입니다.
+월 요청량만으로 최적 옵션이나 비용을 결정할 수 없습니다. 다음 입력을 같은 작업 집합과 서비스 수준에서 수집해 비교합니다.
 
-| 월 추론 볼륨 | 최적 옵션 | 예상 월 비용 | 비고 |
-|-------------|----------|------------|------|
-| ~10만 건 | Bedrock API | ~$300-500 | GPU 관리 불필요, 가장 빠른 시작 |
-| ~50만 건 | Bedrock + Cascade | ~$800-1,200 | SLM으로 단순 요청 분리 시작 |
-| ~150만 건 | 하이브리드 전환점 | ~$2,500-3,500 | 자체 호스팅 손익분기 근접 |
-| ~500만 건+ | EKS 자체 호스팅 | ~$3,500-5,000 | Spot + Cascade로 60%+ 절감 |
+| 비교 대상 | 수집할 입력 | 확인할 조건 |
+|-----------|-------------|-------------|
+| Bedrock API | 모델·리전·추론 방식, 입력/출력·캐시 토큰 | 품질·지연과 실제 청구량 |
+| Bedrock + EKS SLM | 라우팅 비중, API 청구량, SLM 고정비 | 분류 오류·fallback·유휴 용량 |
+| EKS 자체 호스팅 | 노드시간, 처리 용량, 전체 인프라·운영 비용 | 피크 부하·가용성·확장 구간 |
+| IDE 구독 도구 | 실제 작업별 크레딧과 구독 총액 | 동일 작업 완료율과 기능 범위 |
 
 :::info 상세 비용 분석
-구체적인 인스턴스 비용, Spot 절감률, Cascade Routing 효과에 대한 상세 분석은 [코딩 도구 비용 분석](../../reference-architecture/integrations/coding-tools-cost-analysis.md)을 참고하세요.
+과금 단위, 가상의 손익분기 계산과 Cascade 고정비 경계는 [코딩 도구 비용 분석](../../reference-architecture/integrations/coding-tools-cost-analysis.md)을 참고하세요.
 :::
 
 ---

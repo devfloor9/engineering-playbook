@@ -5,7 +5,7 @@ created: "2026-04-06"
 last_update:
   date: 2026-09-18
   author: devfloor9
-reading_time: 20
+reading_time: 28
 tags:
   - aider
   - cline
@@ -26,13 +26,13 @@ To leverage AI coding tools in enterprise environments, three factors must be co
 
 | Constraint | SaaS (Kiro, Copilot) | Self-Hosting |
 |------------|---------------------|--------------|
-| **Data sovereignty** | Code transmitted externally | ✅ Complete VPC isolation |
+| **Data sovereignty** | Check service data handling and contracts | Validate VPC, external calls, and access policy |
 | **Customization** | Only provided models | ✅ LoRA Fine-tuning |
-| **Cost control** | Fixed token pricing | ✅ Cascade 66% savings |
+| **Cost control** | Service-specific subscription/usage billing | Verify capacity, routing, and actual billing |
 | **Observability** | Limited | ✅ Full Langfuse control |
 
 :::tip Core Strategy
-Deploy an **LLM Classifier** behind kgateway so clients use a single endpoint (`/v1`), and SLM (Qwen3-4B) or LLM (GLM-5) is automatically selected based on prompt content. Track all requests with Langfuse, achieving 66% cost savings through Cascade Routing without manual model selection.
+Deploy an **LLM Classifier** behind kgateway so clients use a single endpoint (`/v1`), and SLM (Qwen3-4B) or LLM (GLM-5) is automatically selected based on prompt content. Track routing, execution, and costs with Langfuse. Assess savings from measured model quality, request mix, fallback, and actual billed capacity.
 :::
 
 ---
@@ -69,7 +69,7 @@ aider --model openai/auto
 ```
 
 :::info Automatic Model Routing
-When requesting with `model: "auto"`, the LLM Classifier analyzes prompt content and automatically selects SLM (Qwen3-4B) or LLM (GLM-5 744B). Simple code completion routes to Qwen3-4B ($0.3/hr), while refactoring/architecture analysis routes to GLM-5 ($12/hr).
+When requesting with `model: "auto"`, the LLM Classifier analyzes prompt content and automatically selects SLM (Qwen3-4B) or LLM (GLM-5 744B). This is the intended routing for an example deployment of both models. Verify the served model and cost from classification results, fallback, and provisioned capacity.
 :::
 
 #### Why Aider Is Recommended
@@ -153,17 +153,17 @@ response = client.chat.completions.create(
 
 ## Kiro vs Self-Hosting Comparison
 
-In April 2026, [Kiro IDE began natively supporting GLM-5](https://kiro.dev/changelog/models/glm-5-now-available-in-kiro). Kiro hosts open weight models on its own infrastructure (us-east-1) at 0.5x credit.
+In April 2026, [Kiro IDE began natively supporting GLM-5](https://kiro.dev/changelog/models/glm-5-now-available-in-kiro). Check current model availability and credit consumption in the service configuration and [billing documentation](https://kiro.dev/docs/billing/).
 
 ### Feature Comparison
 
 | | **Kiro Hosted** | **Self-Hosting (EKS + vLLM)** |
 |---|---|---|
 | **Infrastructure** | Kiro/AWS managed | Self-operated (EKS + GPU nodes) |
-| **Cost** | Usage-based (0.5x credit) | GPU Spot ~$12/hr |
+| **Cost** | Actual subscription and credit consumption | Billed node hours plus infrastructure and operations |
 | **LoRA Fine-tuning** | ❌ Not available | ✅ Domain-specific customization |
-| **Data sovereignty** | Via Kiro infrastructure | ✅ Complete VPC isolation |
-| **Compliance** | Depends on Kiro policy | ✅ Self-controlled SOC2/ISO27001 |
+| **Data sovereignty** | Check service data handling and contracts | Design and validate data paths and access policy |
+| **Compliance** | Verify service scope and customer responsibilities | Implement controls and prepare audit evidence |
 | **Observability** | Kiro dashboard | ✅ Full Langfuse + AMP/AMG control |
 | **Gateway** | None | ✅ Bifrost (guardrails, caching) |
 | **Steering/Spec** | ✅ Native | Separate implementation needed |
@@ -187,233 +187,158 @@ In April 2026, [Kiro IDE began natively supporting GLM-5](https://kiro.dev/chang
 
 ## 5. Cost Threshold Analysis: Bedrock vs Kiro vs Self-Hosting
 
-Comparing per-token costs for three methods of using GLM-5.
+Compare the **total cost of completed work under the same quality, latency, and availability requirements**. Request counts alone do not normalize models, token lengths, or operating hours. The amounts below illustrate a calculation method; they are not a model/region price quote or measured operating results.
 
-### 5.1 Per-Token Cost (as of 2026-04-17)[^1]
+### 5.1 Billing Units and Inputs[^1] {#51-per-token-cost-as-of-2026-04-17}
 
-| | **Bedrock API** | **Kiro (0.5x credit)** | **Self-Hosting (EKS)** |
-|---|---|---|---|
-| Input ($/1M tokens) | $1.00 | ~$0.80 (est.) | **Variable** |
-| Output ($/1M tokens) | $3.20 | ~$2.56 (est.) | **Variable** |
-| Avg request cost (1K in + 500 out) | **$0.0026** | **$0.0021** | **Fixed cost ÷ request volume** |
-| Monthly subscription | None (pay-as-you-go) | $20~200/month | None |
-| Minimum cost | $0 | $20/month | $8,900/month |
-| LoRA Fine-tuning | ❌ | ❌ | ✅ |
-| Data sovereignty | △ VPC Endpoint | ❌ | ✅ VPC isolation |
+| Approach | Billing unit to verify | Inputs needed for comparison |
+|----------|------------------------|------------------------------|
+| Bedrock On-Demand | Input/output tokens and other units for the selected model, region, and inference mode | Actual tokens, cache treatment, retries, and additional features |
+| Bedrock Provisioned Throughput | Provisioned model capacity, hours, and commitment | Billed capacity including idle time and commitment terms |
+| Kiro | Subscription and credit consumption | Selected plan, model, actual credits per task, and add-on purchases |
+| Self-hosting | Node operating hours and surrounding infrastructure | GPU/CPU, storage, networking, observability/operations, and serving capacity |
 
-[^1]: Based on GLM-5. Latest Bedrock pricing: [AWS Bedrock Pricing](https://aws.amazon.com/bedrock/pricing/), Kiro pricing: [Kiro Pricing](https://kiro.dev/pricing)
-
-:::info Kiro Pricing Estimate Basis
-Kiro provides GLM-5 at 0.5x credit. Pro plan $20/month = 1,000 credits, excess at $0.04/credit. Assuming 1 credit ≈ 1 request (~1.5K tokens), per-token cost is ~20% cheaper than Bedrock.
-:::
+Verify the selected configuration against [Bedrock pricing](https://aws.amazon.com/bedrock/pricing/) and [Kiro billing](https://kiro.dev/docs/billing/). Kiro credit consumption varies with task complexity and model; do not equate **one credit, one request, and a fixed token count**. Dividing observed total spend by completed tasks gives an effective rate for that sample, not a provider token price.
 
 ### 5.2 Self-Hosting Fixed Costs
 
-| Item | 24/7 Operation | 8hr/day Operation |
-|------|---------------|-------------------|
-| p5en.48xlarge Spot | $8,640/month | $2,880/month |
-| EKS + Storage + Monitoring | $243/month | $243/month |
-| **Total** | **$8,900/month** | **$3,120/month** |
+A simplified monthly model is `C_self(Q) = F + v × Q`, where `F` is the configuration's fixed monthly cost, `v` is its incremental cost per request, and `Q` is the number of comparable completed requests. Adding nodes changes `F`; recalculate within each capacity range.
+
+| Cost category | Include |
+|---------------|---------|
+| Compute | Actual billed GPU/CPU node hours, idle/reserve capacity, startup and model loading |
+| Platform | EKS, storage, load balancers, NAT/data transfer, and other services used |
+| Routing and caching | Classifier, fallback/retries, embeddings, cache storage and lookups |
+| Operations | Observability data, security controls, incident response, and allocated operating effort |
+
+Reducing Pods does not reduce GPU charges if the nodes continue running. Business-hours operation requires validating actual node hours and off-hours service requirements. Allocate each item once so fixed and variable costs do not double-count the same expense.
 
 ### 5.3 Monthly Cost Comparison by Request Volume (USD)
 
-| Monthly Requests | Monthly Tokens (M) | **Bedrock** | **Kiro** | **Self-Hosting 24/7** | **Self-Hosting 8h** | **Self+Cascade** |
-|-----------------|-------------------|------------|---------|---------------------|-------------------|----------------|
-| 50,000 | 75M | $130 | $105 | $8,900 | $3,120 | $3,620 |
-| 200,000 | 300M | $520 | $420 | $8,900 | $3,120 | $3,620 |
-| 500,000 | 750M | $1,300 | $1,050 | $8,900 | $3,120 | $3,620 |
-| 1,000,000 | 1.5B | $2,600 | $2,100 | $8,900 | **$3,120** | **$3,620** |
-| 3,000,000 | 4.5B | **$7,800** | **$6,300** | $8,900 | **$3,120** | **$3,620** |
-| 5,000,000 | 7.5B | **$13,000** | **$10,500** | $8,900 | **$3,120** | **$3,620** |
-| 10,000,000 | 15B | **$26,000** | **$21,000** | $8,900 | **$3,120** | **$3,620** |
+**Assumptions**: API cost `c_api = $0.0026/request`, self-hosting fixed cost `F = $8,900/month`, and incremental cost `v = $0.0004/request`. The API rate uses hypothetical input/output rates of $1/$3.20 per million tokens and 1,000 input/500 output tokens per request. These are not product prices.
+
+| Monthly completed requests `Q` | API: `0.0026 × Q` | Self-hosting: `8,900 + 0.0004 × Q` |
+|-------------------------------|------------------|----------------------------------|
+| 50,000 | $130 | $8,920 |
+| 500,000 | $1,300 | $9,100 |
+| 1,000,000 | $2,600 | $9,300 |
+| 5,000,000 | $13,000 | $10,900 |
+
+This is an arithmetic example, not evidence that the assumed capacity serves each volume at equivalent quality and latency. Compare Kiro separately using observed credits and subscription spend for a matched task sample.
 
 ### 5.4 Break-Even Points
 
-| Comparison | Break-Even (Monthly Requests) | Break-Even (Monthly Cost) |
-|-----------|------------------------------|--------------------------|
-| Bedrock vs Self-Hosting 24/7 | ~3,400,000 | ~$8,900 |
-| Bedrock vs Self-Hosting 8h | ~1,200,000 | ~$3,120 |
-| Kiro vs Self-Hosting 24/7 | ~4,200,000 | ~$8,900 |
-| Kiro vs Self-Hosting 8h | ~1,500,000 | ~$3,120 |
-| Bedrock vs Self+Cascade | ~1,400,000 | ~$3,620 |
+Within the same capacity range, `Q_break_even = F / (c_api − v)` applies only when `c_api > v`. The assumptions above give approximately **4,045,455 requests/month**. Recalculate when additional nodes, availability requirements, discounts/commitments, or token distributions change. When `c_api ≤ v`, this simplified model has no cost crossover in favor of self-hosting.
 
 ```mermaid
 graph LR
-    subgraph "Under 1M requests/month"
-        A[Kiro $2,100] -->|Cheapest| WIN1[✅ Kiro]
-    end
-    
-    subgraph "1-3M requests/month"
-        B[Bedrock $7,800] --> WIN2[✅ Self-Hosting 8h<br/>$3,120]
-    end
-    
-    subgraph "3M+ requests/month"
-        C[Bedrock $26,000] --> WIN3[✅ Self-Hosting<br/>+ Cascade<br/>$3,620]
-    end
-    
-    style WIN1 fill:#2ecc71
-    style WIN2 fill:#3498db
-    style WIN3 fill:#9b59b6
+    A[Match quality, latency, availability] --> B[Collect billing units and total costs]
+    B --> C[Verify capacity and idle time]
+    C --> D[Compare within each capacity range]
+    D --> E[Include operating ownership and transition cost]
 ```
 
 ---
 
-## Cost Optimization Options (Not Available on Bedrock/Kiro)
+## Cost Optimization Options {#cost-optimization-options-not-available-on-bedrockkiro}
 
-Cost optimization strategies only possible with self-hosting.
+Available features depend on the provider, model, engine, and version. Check the selected service's support rather than assuming caching or routing optimization is exclusive to self-hosting.
 
 ### 6.1 Optimization Options Comparison
 
-| Optimization | Effect | Description |
-|-------------|--------|-------------|
-| **8hr/day operation** | 67% savings | CronJob scales up only during business hours ($8,900 → $3,120) |
-| **Cascade Routing** | 70-80% savings | Simple requests to SLM (8B), complex requests only to GLM-5 |
-| **KV Cache Aware Routing** | 90% TTFT reduction | llm-d prefix-cache aware scheduling, reuse same context |
-| **Semantic Caching** | $0 GPU cost (cache hit) | Bifrost similarity threshold 0.85 caches similar requests |
-| **Spot Instance** | 84% savings | On-Demand $76/hr → Spot $12/hr |
-| **Multi-LoRA sharing** | 1/N infrastructure cost | GLM-5 x1 + LoRA xN = serve N customers |
+| Optimization | Effect to verify | Cost and quality boundaries |
+|--------------|------------------|-----------------------------|
+| **Business-hours operation** | Reduced billed node hours | Include loading, reserve capacity, and off-hours service |
+| **Cascade Routing** | Eligible requests use a lower-cost path | Include classification errors, fallback, quality, and actual capacity costs |
+| **KV Cache Aware Routing** | Less prefill work for repeated prefixes | Measure hits, eviction, load imbalance, and TTFT distributions |
+| **Semantic Caching** | Eligible hits avoid model calls | Include cache/embedding costs, correctness, authorization, and expiry |
+| **Spot Instance** | Lower actual purchase cost for the selected instances | Include capacity availability, interruption, retries, and recovery |
+| **Multi-LoRA sharing** | Shared base capacity for supported models | Verify adapter memory, concurrency, and tenant isolation |
 
 ### 6.2 Cascade Routing Architecture (LLM Classifier)
 
 ```mermaid
 graph LR
-    Req[Request] --> CLS[LLM Classifier]
-    CLS -->|weak: no keywords, <500 chars 70%| SLM[Qwen3-4B<br/>L4 $0.3/hr]
-    CLS -->|strong: refactor, design, analysis 30%| LLM[GLM-5 744B<br/>H200 $12/hr]
+    Req[Request] --> CLS[Classifier]
+    CLS -->|Eligible for lower-cost path| SLM[SLM]
+    CLS -->|Higher-capability path required| LLM[LLM]
     SLM --> Resp[Response]
     LLM --> Resp
-    CLS -.->|OTel| LF[Langfuse]
-    
-    style CLS fill:#326ce5,color:#fff
-    style SLM fill:#2ecc71
-    style LLM fill:#e74c3c,color:#fff
-    style LF fill:#9c27b0,color:#fff
+    CLS -.->|Decision, execution, cost records| LF[Observability]
 ```
+
+Measure the routing mix. Keyword and character-count rules are an evaluation starting point, not a guarantee of model selection or quality. Pin models, router version, classification rules, and fallback policy before evaluating an actual request set.
 
 #### Cascade Cost Analysis
 
-| | SLM Only | LLM Only | **Cascade (70:30)** |
-|---|---|---|---|
-| **Monthly cost** | $500 | $8,900 | **$3,020** |
-| **Accuracy** | 70% | 95% | **92%** |
-| **Cost savings** | - | - | **66%** |
+**Hypothetical proportional-cost example**: assume the same request set costs $500 entirely on the SLM or $8,900 entirely on the LLM, with costs scaling fully in proportion to request share. A 70% SLM/30% LLM split gives `0.70 × 500 + 0.30 × 8,900 = $3,020`, an arithmetic reduction of approximately **66.07%**.
 
-:::tip ROI Calculation
-Introducing LLM Classifier Cascade saves $5,880/month ($70,560/year). LLM Classifier deploys as a single FastAPI Pod, and setup takes about half a day, making it **immediately worthwhile**.
-:::
+Do not apply that weighted formula directly to fixed GPU pools. If both pools remain provisioned at $500 and $8,900 per month, they total **$9,400**, not $3,020. The proportional example also excludes the classifier, cache, fallback, retries, transition, and operations. Establish the reduction in actual node hours or API billing before claiming savings.
 
-:::info LLM Classifier Classification Criteria
-| Criteria | weak (SLM) | strong (LLM) |
-|----------|-----------|-------------|
-| Keywords | None | Refactor, architecture, design, analysis, debug, optimize, etc. |
-| Input length | &lt;500 chars | ≥500 chars |
-| Conversation turns | ≤5 turns | &gt;5 turns |
-
-Detailed deployment guide: [Inference Gateway Setup: LLM Classifier](../inference-gateway/setup/advanced-features#llm-classifier-deployment)
-:::
+Accuracy cannot be derived from the cost split. Use the matched-sample quality, latency, and cost requirements in [Cascade Routing Tuning](../../model-serving/inference-routing/cascade-routing-tuning.md). Distinguish expected effects from measured results until the relevant scope is accepted.
 
 ### 6.3 Semantic Caching
 
-Bifrost supports embedding-based semantic caching.
+Use cache configuration supported by the selected gateway version. A similarity threshold alone does not establish response correctness.
 
-```json
-{
-  "semantic_cache": {
-    "enabled": true,
-    "similarity_threshold": 0.85,
-    "embedding_model": "text-embedding-3-small",
-    "max_cache_size": 10000
-  }
-}
-```
-
-**Effect:**
-- Similar requests (similarity >= 0.85) return instantly from cache
-- GPU cost $0
-- Response latency &lt;50ms (vs inference 2-10s)
+- Include tenant, authorization, model, and prompt version in cache boundaries; verify expiry, invalidation, and sensitive-data handling.
+- Measure hit/miss latency, incorrect reuse, and embedding/storage/lookup costs together.
+- Avoiding a model call can still incur cache costs, while provisioned GPU charges remain.
 
 ### 6.4 KV Cache Aware Routing
 
-Using llm-d routes requests reusing the same context to the same GPU, reducing TTFT by 90%.
+Repeated prefixes can reduce prefill work. Results depend on engine support, hit rate, request length, eviction, and scheduling; do not assume a fixed TTFT reduction.
 
-```yaml
-# llm-d Deployment
-spec:
-  replicas: 3
-  template:
-    spec:
-      containers:
-      - name: llm-d
-        args:
-          - --enable-prefix-caching
-          - --scheduler-strategy=prefix-aware
-```
-
-**Effect:**
-- TTFT: 10s → 1s (on prefix cache hit)
-- Same GPU cost (instance count may decrease due to increased throughput)
-
-Reference: [llm-d EKS Auto Mode](../../model-serving/inference-frameworks/llm-d-eks-automode.md)
+Model-server prefix caching and cache-aware request scheduling are separate configurations. Do not combine them into unverified Deployment arguments; consult the versioned setup in [llm-d EKS Auto Mode](../../model-serving/inference-frameworks/llm-d-eks-automode.md). Compare TTFT, throughput, and errors under the same load, and count node savings only when capacity is actually reduced.
 
 ### 6.5 Multi-LoRA Sharing
 
-Load multiple LoRA adapters simultaneously on a single GLM-5 instance for per-customer custom serving.
+First verify LoRA support for the selected base model and serving engine. Supported configurations can share base-model capacity, but adapter memory and concurrency prevent assuming cost falls in inverse proportion to tenant count.
 
 ```mermaid
 graph TD
-    G[Bifrost Gateway] --> V[vLLM Server]
-    V --> B[Base Model: GLM-5]
-    B --> L1[LoRA: Banking-Ledger]
-    B --> L2[LoRA: Securities-Orders]
-    B --> L3[LoRA: Insurance-Contracts]
-    L1 -->|Customer A| R1[Response]
-    L2 -->|Customer B| R2[Response]
-    L3 -->|Customer C| R3[Response]
+    G[Gateway] --> V[Supported model server]
+    V --> B[Shared base model]
+    B --> L1[Tenant A adapter]
+    B --> L2[Tenant B adapter]
+    B --> L3[Tenant C adapter]
 ```
 
-**Effect:**
-- 3 customers = 1 GPU instance
-- Infrastructure cost 1/3
-- Each customer uses domain-specific model
-
-Reference: [Custom Model Pipeline](../model-lifecycle/custom-model-pipeline.md)
+Validate adapter-selection authorization, concurrent load, loading/eviction, and per-tenant quality. See [Custom Model Pipeline](../model-lifecycle/custom-model-pipeline.md) for model-specific support and implementation.
 
 ---
 
 ## Selection Criteria Summary
 
-| Criteria | Recommendation |
-|----------|---------------|
-| &lt;500K requests/month + quick start | **Kiro** (cheapest) |
-| 500K-1.5M + API integration | **Bedrock** (pay-as-you-go, no infrastructure) |
-| 1.5M+ (24/7) or 1.2M+ (8h) | **Self-Hosting** |
-| With Cascade, 1.4M+ | **Self-Hosting** (savings vs Bedrock) |
-| LoRA/Compliance needed | **Self-Hosting** (regardless of volume) |
-| Steering/Spec workflow | **Kiro** |
+| Requirement | Compare |
+|-------------|---------|
+| Managed IDE workflow | Kiro features/models, actual credit consumption, and subscription spend |
+| API integration | Quality, tokens, and additional costs for the selected Bedrock model/inference mode |
+| Control over models/adapters | Supported serving configuration, operating capability, and total infrastructure cost |
+| Cascade or caching | Matched-task quality, latency, cost, fallback, and isolation |
+| Regulation/data boundaries | Service-specific data paths, contracts, configuration, and audit evidence |
 
-:::tip Combined Cost Optimization Strategy
-**Most cost-efficient self-hosting**: 8hr/day operation + Cascade Routing + Spot
-- Monthly cost: ~$3,620 (fixed)
-- Unlimited request processing
-- Break-even vs Bedrock: **~1.4M requests/month**
-- At 10M requests/month: Bedrock $26,000 vs Self-hosting $3,620 → **86% savings**
-:::
+Fixed cost does not mean unlimited capacity. Compare configurations that satisfy peak concurrency, token distributions, availability, and operating ownership instead of selecting a “cheapest” platform from request count alone. Deployment and cost acceptance require actual validation.
 
 ---
 
+[^1]: Check current provider billing terms separately from the assumptions in the arithmetic example. Operating results and price quotes require their own evidence.
+
 ## Next Steps
 
-### Phase 1: Basic Integration (1 day)
+These stages describe work order, not measured delivery times. Set milestones and schedules based on platform readiness, security review, supported models, and accountable owners.
+
+### Phase 1: Basic Integration {#phase-1-basic-integration-1-day}
 - [ ] Deploy kgateway + Bifrost + Langfuse
 - [ ] Test Aider connection
 - [ ] Verify Langfuse dashboard
 
-### Phase 2: Cost Optimization (1 week)
+### Phase 2: Cost Optimization {#phase-2-cost-optimization-1-week}
 - [ ] Deploy SLM (g6.xlarge)
 - [ ] Configure Bifrost Cascade
 - [ ] Enable Semantic Caching
 
-### Phase 3: Domain Specialization (2-4 weeks)
+### Phase 3: Domain Specialization {#phase-3-domain-specialization-2-4-weeks}
 - [ ] Collect LoRA Fine-tuning data
 - [ ] QLoRA training (NeMo/Unsloth)
 - [ ] Deploy Multi-LoRA
