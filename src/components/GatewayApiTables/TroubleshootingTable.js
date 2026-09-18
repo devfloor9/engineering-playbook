@@ -32,5 +32,5 @@ export default function TroubleshootingTable({locale = 'ko'}) {
     cells: [row.symptom, row.cause, row.solution],
   }));
   return <BaseTable caption={title} description={description} headers={headers}
-    rows={rows} rowHeaderColumn={0} minWidth="48rem" />;
+    rows={rows} rowHeaderColumn={0} minWidth="40rem" />;
 }
