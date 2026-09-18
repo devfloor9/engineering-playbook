@@ -4,10 +4,22 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const http = require('node:http');
+const https = require('node:https');
+const dns = require('node:dns');
+const {EventEmitter} = require('node:events');
 const {spawnSync} = require('node:child_process');
 const yaml = require('js-yaml');
 const {extractDocument, createContext, checkInternalLink, normalizeExternal, classifyResponse,
   checkExternalLink, validate, markdownReport, exitCode, parseArgs, readPreviousReport} = require('../validate-links');
+
+const resolvePublic = async () => [{address: '93.184.216.34', family: 4}];
+
+function lookupResult(lookup, hostname, options = {all: true}) {
+  return new Promise((resolve, reject) => lookup(hostname, options, (error, address, family) => {
+    if (error) reject(error);
+    else resolve(options.all ? address : {address, family});
+  }));
+}
 
 function fixture(t, {build = true, trailingSlash = false, baseUrl = '/playbook/'} = {}) {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'playbook-links-'));
@@ -158,8 +170,204 @@ test('malformed URLs, empty YouTube placeholders and network failures are explic
   assert.equal((await checkExternalLink('https://[')).category, 'invalid_url');
   assert.equal((await checkExternalLink('https://www.youtube.com/watch?v=')).category, 'invalid_placeholder');
   assert.equal((await checkExternalLink('http://localhost:8080')).category, 'excluded_example');
-  assert.equal((await checkExternalLink('https://real.org/', {request: async () => ({error: 'ENOTFOUND'})})).category, 'network_error');
-  assert.equal((await checkExternalLink('https://real.org/', {request: async () => ({statusCode: 302, headers: {location: '/next'}}), maxRedirects: 0})).category, 'redirect_error');
+  assert.equal((await checkExternalLink('https://real.org/', {resolve: resolvePublic, request: async () => ({error: 'ENOTFOUND'})})).category, 'network_error');
+  assert.equal((await checkExternalLink('https://real.org/', {resolve: resolvePublic, request: async () => ({statusCode: 302, headers: {location: '/next'}}), maxRedirects: 0})).category, 'redirect_error');
+});
+
+test('non-public IP literals never reach DNS or the transport', async () => {
+  const request = async () => assert.fail('A blocked address reached the transport');
+  const resolve = async () => assert.fail('An IP literal reached DNS');
+  for (const host of [
+    '0.0.0.0', '0.1.2.3', '10.0.0.1', '100.64.0.1', '100.127.255.254',
+    '127.0.0.1', '127.0.0.2', '127.1', '2130706433', '0x7f000001', '0177.0.0.1',
+    '169.254.169.254', '172.16.0.1', '172.31.255.254', '192.0.0.1', '192.0.2.1',
+    '192.88.99.1', '192.168.0.1', '198.18.0.1', '198.19.255.254', '198.51.100.1',
+    '203.0.113.1', '224.0.0.1', '239.255.255.255', '240.0.0.1', '255.255.255.255',
+    '[::]', '[::1]', '[0:0:0:0:0:0:0:1]', '[::ffff:127.0.0.1]', '[::ffff:10.0.0.1]',
+    '[::127.0.0.1]', '[64:ff9b::7f00:1]', '[64:ff9b:1::1]', '[100::1]',
+    '[fc00::1]', '[fd12:3456::1]', '[fe80::1]', '[fec0::1]', '[ff02::1]',
+    '[2001::1]', '[2001:2::1]', '[2001:db8::1]', '[2002:7f00:1::]', '[3fff::1]',
+  ]) {
+    const result = await checkExternalLink(`http://${host}/`, {resolve, request});
+    assert.equal(result.category, 'blocked_destination', host);
+    assert.equal(result.exists, null, host);
+    assert.match(result.reason, /no request made/, host);
+  }
+  for (const host of ['8.8.8.8', '1.1.1.1', '[2606:4700:4700::1111]', '[2001:4860:4860::8888]']) {
+    assert.equal((await checkExternalLink(`https://${host}/`, {
+      resolve, request: async () => ({statusCode: 200}),
+    })).category, 'valid', host);
+  }
+});
+
+test('every DNS address must be public and lookup failures do not send requests', async () => {
+  let requests = 0;
+  const request = async () => {requests++; return {statusCode: 200};};
+  for (const answer of [
+    [{address: '127.0.0.2', family: 4}],
+    [{address: '169.254.169.254', family: 4}],
+    [{address: '10.1.2.3', family: 4}],
+    [{address: 'fd00::1', family: 6}],
+    [{address: '::ffff:127.0.0.1', family: 6}],
+    [{address: '93.184.216.34', family: 4}, {address: '192.168.0.1', family: 4}],
+    [{address: '2606:4700:4700::1111', family: 6}, {address: 'fe80::1', family: 6}],
+    [{address: '93.184.216.34', family: 4}, {address: '::1', family: 6}],
+  ]) {
+    const resolve = async (hostname, options) => {
+      assert.equal(hostname, 'real.org');
+      assert.deepEqual(options, {all: true, verbatim: true});
+      return answer;
+    };
+    assert.equal((await checkExternalLink('https://real.org/', {resolve, request})).category, 'blocked_destination');
+  }
+  for (const answer of [[], undefined, [{address: 'not-an-ip', family: 4}], [{address: '127.0.0.1', family: 6}]]) {
+    assert.equal((await checkExternalLink('https://real.org/', {resolve: async () => answer, request})).category, 'network_error');
+  }
+  const failure = await checkExternalLink('https://real.org/', {
+    resolve: async () => {throw Object.assign(new Error('DNS failed'), {code: 'ENOTFOUND'});}, request,
+  });
+  assert.equal(failure.category, 'network_error');
+  assert.equal(failure.reason, 'ENOTFOUND');
+  assert.equal((await checkExternalLink('https://real.org/', {
+    resolve: () => new Promise(() => {}), request, timeoutMs: 20,
+  })).category, 'timeout');
+  assert.equal(requests, 0);
+});
+
+test('redirects revalidate IP literals and DNS, including rebinding on the same hostname', async () => {
+  for (const location of ['http://127.0.0.2/admin', 'http://[::ffff:127.0.0.1]/', 'https://next.org/private', '/next']) {
+    const resolutions = [];
+    const calls = [];
+    const result = await checkExternalLink('https://real.org/start', {
+      resolve: async hostname => {
+        resolutions.push(hostname);
+        return [{address: resolutions.length === 1 ? '93.184.216.34' : '10.0.0.1', family: 4}];
+      },
+      request: async url => {calls.push(url); return {statusCode: 302, headers: {location}};},
+    });
+    assert.equal(result.category, 'blocked_destination', location);
+    assert.equal(result.exists, null);
+    assert.equal(result.redirects.length, 1);
+    assert.deepEqual(calls, ['https://real.org/start']);
+    assert.equal(result.finalUrl, new URL(location, calls[0]).href);
+    assert.equal(resolutions.length, location.includes('127.0.0') ? 1 : 2);
+  }
+});
+
+test('public redirects retain a pinned lookup supporting both native callback formats', async () => {
+  const resolutions = [];
+  const result = await checkExternalLink('https://real.org/start', {
+    resolve: async hostname => {
+      resolutions.push(hostname);
+      return [{address: '93.184.216.34', family: 4}, {address: '2606:4700:4700::1111', family: 6}];
+    },
+    request: async (url, {lookup}) => {
+      const hostname = new URL(url).hostname;
+      const all = await lookupResult(lookup, hostname);
+      assert.deepEqual(all, await resolvePublic().then(v4 => [...v4, {address: '2606:4700:4700::1111', family: 6}]));
+      all[0].address = '127.0.0.2';
+      assert.deepEqual(await lookupResult(lookup, hostname, {family: 4}), {address: '93.184.216.34', family: 4});
+      assert.deepEqual(await lookupResult(lookup, hostname, 6), {address: '2606:4700:4700::1111', family: 6});
+      await assert.rejects(lookupResult(lookup, 'other.org'), {code: 'ENOTFOUND'});
+      return resolutions.length === 1 ? {statusCode: 301, headers: {location: 'https://next.org/final'}} : {statusCode: 200};
+    },
+  });
+  assert.deepEqual(resolutions, ['real.org', 'next.org']);
+  assert.equal(result.category, 'redirect');
+  assert.equal(result.exists, true);
+  assert.equal(result.finalUrl, 'https://next.org/final');
+});
+
+test('native HTTP and HTTPS transports receive the verified lookup and original hostname', async t => {
+  let connections = 0;
+  for (const [protocol, transport] of [['http:', http], ['https:', https]]) {
+    let resolutions = 0;
+    const answer = [{address: '93.184.216.34', family: 4}];
+    t.mock.method(transport, 'request', (url, options, onResponse) => {
+      assert.equal(url, `${protocol}//real.org/start`);
+      assert.equal(options.agent, false);
+      assert.equal(options.method, 'GET');
+      answer[0].address = '127.0.0.2';
+      const req = new EventEmitter();
+      req.destroy = () => {};
+      req.end = () => {
+        options.lookup('real.org', {all: true}, (error, addresses) => {
+          assert.ifError(error);
+          assert.deepEqual(addresses, [{address: '93.184.216.34', family: 4}]);
+          connections++;
+          const res = new EventEmitter();
+          res.statusCode = 200;
+          res.headers = {};
+          res.destroy = () => {};
+          onResponse(res);
+          res.emit('end');
+        });
+      };
+      return req;
+    });
+    const result = await checkExternalLink(`${protocol}//real.org/start`, {
+      resolve: async () => {resolutions++; return answer;},
+    });
+    assert.equal(result.category, 'valid');
+    assert.equal(resolutions, 1);
+  }
+  assert.equal(connections, 2);
+});
+
+test('the native socket uses the pinned DNS result without a second system lookup', async t => {
+  const hosts = [];
+  const server = http.createServer((req, res) => {hosts.push(req.headers.host); res.end('OK');});
+  await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
+  t.after(() => {server.closeAllConnections(); return new Promise(resolve => server.close(resolve));});
+  let systemLookups = 0;
+  t.mock.method(dns, 'lookup', (...args) => {
+    systemLookups++;
+    args.at(-1)(Object.assign(new Error('Unexpected system DNS lookup'), {code: 'ENOTFOUND'}));
+  });
+  const port = server.address().port;
+  let resolutions = 0;
+  const result = await checkExternalLink(`http://localhost:${port}/`, {
+    allowLocal: true,
+    resolve: async () => {
+      resolutions++;
+      assert.equal(resolutions, 1, 'DNS resolution must not repeat during connection');
+      return [{address: '127.0.0.1', family: 4}];
+    },
+  });
+  assert.equal(result.category, 'valid');
+  assert.equal(systemLookups, 0);
+  assert.deepEqual(hosts, [`localhost:${port}`]);
+});
+
+test('allowLocal requires an explicit in-process boolean and only admits loopback', async () => {
+  let requests = 0;
+  const request = async () => {requests++; return {statusCode: 200};};
+  for (const allowLocal of [undefined, false, 'true', 1]) {
+    assert.equal((await checkExternalLink('http://127.0.0.1/', {allowLocal, request})).category, 'blocked_destination');
+  }
+  assert.equal(requests, 0);
+  assert.equal((await checkExternalLink('http://127.0.0.1/', {allowLocal: true, request})).category, 'valid');
+  assert.equal((await checkExternalLink('http://10.0.0.1/', {allowLocal: true, request})).category, 'blocked_destination');
+  assert.equal(requests, 1);
+  for (const flag of ['--allow-local', '--allowLocal']) assert.throws(() => parseArgs([flag]), /Unknown argument/);
+});
+
+test('blocked destinations remain explicit findings under advisory and strict exit policies', async t => {
+  const f = fixture(t);
+  f.put('docs/start.md', '[blocked](https://real.org/blocked)\n');
+  let requests = 0;
+  const report = await validate({...f, external: true, advisory: true,
+    resolve: async () => [{address: '10.0.0.1', family: 4}],
+    request: async () => {requests++; return {statusCode: 200};},
+  });
+  assert.equal(requests, 0);
+  assert.equal(report.status, 'findings');
+  assert.equal(report.summary.externalCategories.blocked_destination, 1);
+  assert.equal(report.summary.externalActionable, 1);
+  assert.equal(exitCode(report, {advisory: true}), 0);
+  assert.equal(exitCode(report, {}), 1);
+  assert.match(markdownReport(report), /blocked_destination/);
+  assert.match(markdownReport(report), /no request made/);
 });
 
 test('external opt-in, deduplication and advisory reporting preserve findings and query identity', async t => {
@@ -171,7 +379,7 @@ test('external opt-in, deduplication and advisory reporting preserve findings an
   assert.equal(requests, 0);
   assert.equal(offline.summary.externalUnique, 2);
   assert.equal(offline.summary.externalCategories.not_checked, 2);
-  const report = await validate({...f, external: true, advisory: true, request});
+  const report = await validate({...f, external: true, advisory: true, resolve: resolvePublic, request});
   assert.equal(requests, 2);
   assert.equal(report.summary.externalOccurrences, 3);
   assert.equal(report.summary.externalActionable, 2);
@@ -182,7 +390,7 @@ test('external opt-in, deduplication and advisory reporting preserve findings an
   assert.match(markdownReport(report), /not that links are valid/);
   assert.match(markdownReport(report), /missing_page/);
   assert.match(markdownReport(report), /docs\/start.md:1/);
-  const externalOnly = await validate({...f, externalOnly: true, external: true, request});
+  const externalOnly = await validate({...f, externalOnly: true, external: true, resolve: resolvePublic, request});
   assert.equal(externalOnly.summary.internalChecked, 0);
 });
 
@@ -192,7 +400,7 @@ test('prior report rechecks only distinct HTTP failures that remain referenced',
   f.put('docs/start.md', '[a](https://real.org/a#fragment)\n[b](https://real.org/new)');
   assert.equal(readPreviousReport(path.join(f.root, 'prior.md')).size, 2);
   let requests = 0;
-  const report = await validate({...f, external: true, externalFromReport: path.join(f.root, 'prior.md'), request: async () => {requests++; return {statusCode: 404};}});
+  const report = await validate({...f, external: true, externalFromReport: path.join(f.root, 'prior.md'), resolve: resolvePublic, request: async () => {requests++; return {statusCode: 404};}});
   assert.equal(requests, 1);
   assert.deepEqual(report.scope.previousNoLongerReferenced, ['https://real.org/removed']);
 });

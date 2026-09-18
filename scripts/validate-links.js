@@ -5,12 +5,14 @@ const fs = require('node:fs');
 const path = require('node:path');
 const http = require('node:http');
 const https = require('node:https');
+const dns = require('node:dns').promises;
+const {BlockList, isIP} = require('node:net');
 const matter = require('gray-matter');
 const {parse, parseFragment} = require('parse5');
 const {loadFreshModule, createSlugger, parseMarkdownHeadingId} = require('@docusaurus/utils');
 
 const ROOT = path.resolve(__dirname, '..');
-const ACTIONABLE = new Set(['missing_page', 'invalid_url', 'invalid_placeholder', 'redirect_error', 'http_error']);
+const ACTIONABLE = new Set(['missing_page', 'invalid_url', 'invalid_placeholder', 'redirect_error', 'http_error', 'blocked_destination']);
 let parserPromise;
 
 function walkFiles(dir, accept = () => true) {
@@ -293,13 +295,75 @@ function classifyResponse(statusCode, headers = {}, body = '') {
 
 function placeholderReason(url) {
   const {hostname, pathname, searchParams} = new URL(url);
-  if (/(^|\.)(example\.(com|org|net)|localhost|local|invalid|test)$/.test(hostname) || /^(your[-.]|\$|%)/.test(hostname)
-      || hostname === '127.0.0.1' || hostname === '[::1]') return 'Example or local URL; no public request made';
+  if (/(^|\.)(example\.(com|org|net)|localhost|local|invalid|test)$/.test(hostname) || /^(your[-.]|\$|%)/.test(hostname)) return 'Example or local URL; no public request made';
   if (/(^|\.)youtube\.com$/.test(hostname) && pathname === '/watch' && !searchParams.get('v')) return 'YouTube watch URL has no video ID';
   return null;
 }
 
-function requestUrl(url, {timeoutMs, method}) {
+// Exclude special-purpose IPv4 ranges, including documentation and multicast.
+const nonPublicAddresses = new BlockList();
+for (const [address, prefix] of [
+  ['0.0.0.0', 8], ['10.0.0.0', 8], ['100.64.0.0', 10], ['127.0.0.0', 8],
+  ['169.254.0.0', 16], ['172.16.0.0', 12], ['192.0.0.0', 24], ['192.0.2.0', 24],
+  ['192.88.99.0', 24], ['192.168.0.0', 16], ['198.18.0.0', 15],
+  ['198.51.100.0', 24], ['203.0.113.0', 24], ['224.0.0.0', 4], ['240.0.0.0', 4],
+]) nonPublicAddresses.addSubnet(address, prefix, 'ipv4');
+// Conservatively admit IPv6 global unicast only, excluding special-purpose,
+// documentation and tunneling ranges. This also rejects mapped IPv4 and NAT64.
+const globalIpv6 = new BlockList();
+globalIpv6.addSubnet('2000::', 3, 'ipv6');
+for (const [address, prefix] of [
+  ['2001::', 23], ['2001:db8::', 32], ['2002::', 16], ['3fff::', 20],
+]) nonPublicAddresses.addSubnet(address, prefix, 'ipv6');
+const loopbackAddresses = new BlockList();
+loopbackAddresses.addSubnet('127.0.0.0', 8, 'ipv4');
+loopbackAddresses.addAddress('::1', 'ipv6');
+
+async function destinationLookup(url, {resolve = dns.lookup, timeoutMs, allowLocal}) {
+  const hostname = new URL(url).hostname.replace(/^\[|\]$/g, '');
+  const literalFamily = isIP(hostname);
+  let addresses;
+  let timer;
+  try {
+    addresses = literalFamily ? [{address: hostname, family: literalFamily}] : await Promise.race([
+      Promise.resolve().then(() => resolve(hostname, {all: true, verbatim: true})),
+      new Promise((_, reject) => {
+        timer = setTimeout(() => reject(Object.assign(new Error('DNS lookup timed out'), {code: 'TIMEOUT'})), timeoutMs);
+      }),
+    ]);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (!Array.isArray(addresses) || !addresses.length ||
+      addresses.some(entry => !entry || ![4, 6].includes(entry.family) || isIP(entry.address) !== entry.family)) {
+    throw Object.assign(new Error('DNS lookup returned no usable addresses'), {code: 'ENOTFOUND'});
+  }
+  // Copy the resolution before checking it; neither a resolver nor a transport
+  // may mutate the verified addresses used by the pinned lookup.
+  addresses = addresses.map(({address, family}) => ({address, family}));
+  const blocked = addresses.some(({address, family}) => {
+    const type = family === 4 ? 'ipv4' : 'ipv6';
+    // This boolean is an in-process test hook, never a CLI or environment flag.
+    if (allowLocal === true && loopbackAddresses.check(address, type)) return false;
+    return nonPublicAddresses.check(address, type) || (family === 6 && !globalIpv6.check(address, type));
+  });
+  if (blocked) throw Object.assign(new Error('Non-public destination; no request made'), {code: 'BLOCKED_DESTINATION'});
+  return (requestedHost, options, callback) => {
+    const family = typeof options === 'number' ? options : options.family;
+    const matches = addresses.filter(entry => !family || entry.family === family);
+    queueMicrotask(() => {
+      if (requestedHost !== hostname || !matches.length) {
+        callback(Object.assign(new Error('No verified address for this lookup'), {code: 'ENOTFOUND'}));
+      } else if (options.all) {
+        callback(null, matches.map(entry => ({...entry})));
+      } else {
+        callback(null, matches[0].address, matches[0].family);
+      }
+    });
+  };
+}
+
+function requestUrl(url, {timeoutMs, method, lookup}) {
   return new Promise(resolve => {
     const client = url.startsWith('https:') ? https : http;
     let settled = false;
@@ -310,7 +374,9 @@ function requestUrl(url, {timeoutMs, method}) {
       clearTimeout(timer);
       resolve(result);
     };
-    const req = client.request(url, {method, headers: {'User-Agent': 'EngineeringPlaybook-LinkValidator/1.0', Accept: 'text/html,application/xhtml+xml,*/*;q=0.8'}}, res => {
+    // Keep the URL hostname for Host/SNI, but use only the verified resolution.
+    // A fresh agent prevents a pooled socket from bypassing this request's check.
+    const req = client.request(url, {method, lookup, agent: false, headers: {'User-Agent': 'EngineeringPlaybook-LinkValidator/1.0', Accept: 'text/html,application/xhtml+xml,*/*;q=0.8'}}, res => {
       let body = '';
       const complete = () => finish({statusCode: res.statusCode, headers: res.headers, body});
       // Only a bounded prefix is needed to recognize common bot challenge pages.
@@ -331,8 +397,9 @@ function requestUrl(url, {timeoutMs, method}) {
 async function checkExternalLink(input, options = {}) {
   let url;
   try { url = normalizeExternal(input); } catch { return {category: 'invalid_url', exists: false, reason: 'Invalid HTTP(S) URL'}; }
+  const allowLocal = options.allowLocal === true;
   const placeholder = placeholderReason(url);
-  if (placeholder && !options.allowLocal) return {category: /video ID/.test(placeholder) ? 'invalid_placeholder' : 'excluded_example', exists: null, reason: placeholder};
+  if (placeholder && !allowLocal) return {category: /video ID/.test(placeholder) ? 'invalid_placeholder' : 'excluded_example', exists: null, reason: placeholder};
   const timeoutMs = options.timeoutMs || 10000;
   const maxRedirects = options.maxRedirects ?? 5;
   const request = options.request || requestUrl;
@@ -342,7 +409,15 @@ async function checkExternalLink(input, options = {}) {
   for (;;) {
     if (visited.has(current)) return {category: 'redirect_error', exists: false, reason: 'Redirect loop', finalUrl: current, redirects};
     visited.add(current);
-    const response = await request(current, {timeoutMs, method: 'GET'});
+    const started = Date.now();
+    let lookup;
+    try {
+      lookup = await destinationLookup(current, {resolve: options.resolve, timeoutMs, allowLocal});
+    } catch (error) {
+      const category = error.code === 'BLOCKED_DESTINATION' ? 'blocked_destination' : error.code === 'TIMEOUT' ? 'timeout' : 'network_error';
+      return {category, exists: null, reason: error.code === 'BLOCKED_DESTINATION' ? error.message : error.code || error.message, finalUrl: current, redirects};
+    }
+    const response = await request(current, {timeoutMs: Math.max(1, timeoutMs - (Date.now() - started)), method: 'GET', lookup});
     if (response.error) return {category: response.error === 'TIMEOUT' ? 'timeout' : 'network_error', exists: null, reason: response.error, finalUrl: current, redirects};
     const {statusCode, headers = {}, body = ''} = response;
     const category = classifyResponse(statusCode, headers, body);
@@ -353,7 +428,7 @@ async function checkExternalLink(input, options = {}) {
         return {category: 'redirect_error', exists: false, statusCode, reason: 'Invalid redirect target', finalUrl: current, redirects};
       }
       redirects.push({from: current, to: next, statusCode});
-      if (!options.allowLocal && placeholderReason(next)) return {category: 'redirect_error', exists: null, reason: 'Redirect targets an example or local URL', finalUrl: next, redirects};
+      if (!allowLocal && placeholderReason(next)) return {category: 'redirect_error', exists: null, reason: 'Redirect targets an example or local URL', finalUrl: next, redirects};
       current = next;
       continue;
     }
