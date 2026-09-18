@@ -242,7 +242,7 @@ def verify_mcp_token(token: str) -> dict:
 
 ### CloudWatch GenAI Observability ↔ Langfuse OTel Bridge
 
-OTel trace IDs are 16 bytes (32 hex), span IDs are 8 bytes (16 hex), and valid IDs are not all-zero. Do not use strings such as ac-{session_id} as trace IDs. Propagate W3C traceparent/tracestate and keep session/request identifiers in separate attributes.
+OTel trace IDs are 16 bytes (32 hex), span IDs are 8 bytes (16 hex), and valid IDs are not all-zero. Do not use strings such as `ac-{session_id}` as trace IDs. Propagate W3C `traceparent`/`tracestate` and keep session/request identifiers in separate attributes.
 
 Explicitly configure instrumentation, approved OTel collectors/exporters, and CloudWatch/Langfuse destinations. There is no automatic contract that CloudWatch exports spans through EventBridge to the former Lambda example. Verify parent/child correlation, sampling, duplicates, loss, and PII redaction.
 
