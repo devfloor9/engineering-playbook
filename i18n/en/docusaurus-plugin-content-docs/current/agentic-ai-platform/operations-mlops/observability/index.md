@@ -1,9 +1,9 @@
 ---
 title: Observability & Monitoring
-description: Documentation covering Agent execution tracing, LLM call monitoring, and agent lifecycle observability
+description: Agent execution tracing, LLM serving optimization monitoring, cache tuning quality validation, and agent lifecycle observability
 created: "2026-04-20"
 last_update:
-  date: "2026-06-26"
+  date: "2026-09-18"
   author: devfloor9
 reading_time: 2
 tags:
@@ -17,7 +17,7 @@ sidebar_label: Observability
 
 ## Overview
 
-Reliability in production Agentic AI environments begins with **observability**. This section holistically covers Agent execution tracing (Agent Monitoring), LLMOps observability tool comparisons, and Kubernetes-based Agent lifecycle management (Kagent). It provides tool-specific characteristics for Langfuse, LangSmith, Helicone, and patterns for Agent deployment and monitoring using Kagent CRDs.
+This section covers agent execution tracing, serving optimization monitoring, and quality validation for cache tuning. It also compares observability tools such as Langfuse, LangSmith, and Helicone, and explains agent deployment and lifecycle management with Kagent CRDs.
 
 ## Document List
 
