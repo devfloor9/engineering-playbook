@@ -35,7 +35,7 @@
   <div class="kicker" data-a="1"><span data-edit="cover-kicker">Engineering Playbook · Deep Dive Session</span></div>
   <div class="titleblock">
     <h1 class="display" data-a="2">eBPF —<br>커널을 <span class="hot">프로그래밍</span>하다</h1>
-    <p class="sub" data-a="3">재부팅 없이, 크래시 없이. <b>커널 내부에서 안전하게 실행되는 샌드박스 프로그램</b> —
+    <p class="sub" data-a="3">재부팅 없이. <b>실행 전 검증을 거쳐 커널 내부에서 동작하는 제한된 프로그램</b> —
     가상머신의 내부 구조부터 EKS 프로덕션 적용까지 세 챕터로 해부합니다.</p>
   </div>
   <div class="chips" data-a="4">
@@ -45,7 +45,7 @@
   </div>
   <div class="speakers" data-speakers data-a="5"></div>
   <aside class="notes">
-    오프닝 — "eBPF 써본 분?" 질문으로 시작. 핵심 약속 한 문장: <b>재부팅 없이, 크래시 없이 커널을 프로그래밍한다</b>. 세 챕터 구성(내부 구조 → 실전 도구 → EKS)을 칩 순서대로 짚고 넘어간다.
+    오프닝 — "eBPF 써본 분?" 질문으로 시작. 핵심 약속 한 문장: <b>Verifier의 제약과 커널의 올바른 동작을 전제로, 재부팅 없이 커널을 확장한다</b>. 세 챕터 구성(내부 구조 → 실전 도구 → EKS)을 칩 순서대로 짚고 넘어간다.
   </aside>
 </section>
 
@@ -66,7 +66,7 @@
     </div>
     <div class="ag" data-a="5">
       <span class="n">03</span>
-      <div><h3>eBPF on EKS</h3><p>VPC CNI NetworkPolicy · Cilium ENI · Hubble · 실측 벤치마크 — EKS는 이미 eBPF 위에서 돈다</p></div>
+      <div><h3>eBPF on EKS</h3><p>VPC CNI NetworkPolicy · Cilium ENI · Hubble · 보고된 벤치마크 — 활성화하면 eBPF를 사용하는 EKS 구성 요소</p></div>
       <span class="tag">AWS</span>
     </div>
   </div>
@@ -104,9 +104,9 @@
     <div class="panel" style="--pc:var(--green)" data-a="5">
       <h3>eBPF 프로그램</h3>
       <ul>
-        <li><b>Verifier가 로드 전에 안전성을 증명</b> — 크래시 불가</li>
-        <li>레지스터 기반 샌드박스 VM에서 실행, JIT(Just-In-Time) 컴파일로 네이티브 성능</li>
-        <li><b>CO-RE</b>(Compile Once – Run Everywhere)로 커널 버전 간 이식 — 재컴파일 없음</li>
+        <li><b>Verifier가 로드 전에 안전 제약을 검사</b> — 위험을 줄이지만 커널 버그까지 없애지는 못함</li>
+        <li>레지스터 기반의 제한된 명령어 모델에서 실행, JIT(Just-In-Time) 컴파일로 네이티브 성능</li>
+        <li><b>CO-RE</b>(Compile Once – Run Everywhere)로 호환되는 커널 레이아웃에 대응 — 필요한 훅과 기능은 대상 커널에도 있어야 함</li>
         <li>재부팅·모듈 로드 없이 즉시 attach / detach</li>
       </ul>
     </div>
@@ -117,6 +117,7 @@
   </div>
   <aside class="notes">
     커널 모듈의 공포부터 — <b>버그 하나 = 커널 패닉</b>, 보안팀이 왜 모듈을 싫어하는지 경험담이 있으면 여기서. ptrace/strace 칩은 계측 쪽도 같은 딜레마라는 보조 논거. 브릿지: "이 문제의 답은 30년 전에 있었다".
+  <p>출처: <a href="https://docs.kernel.org/bpf/verifier.html" target="_blank" rel="noopener">Kernel verifier</a>.</p>
   </aside>
 </section>
 
@@ -322,7 +323,7 @@
       <tr><td>가상화 대상</td><td>CPU · 메모리 · 디바이스 전체</td><td>명령어 세트 규격 — 레지스터 11개 · 64-bit · 스택 512 B</td></tr>
       <tr><td>존재 이유</td><td>OS 단위 격리</td><td><b>검증 가능한 중간 표현</b> + 아키텍처 독립 (x86 · ARM · RISC-V)</td></tr>
       <tr><td>실행 방식</td><td>하이퍼바이저 경유</td><td class="good">JIT 컴파일 → <b>네이티브 기계어</b>로 커널에 상주</td></tr>
-      <tr><td>런타임 오버헤드</td><td class="bad">상시 존재</td><td class="good">사실상 0 — 커널 함수 호출과 동일 비용, 인터프리터 없음</td></tr>
+      <tr><td>런타임 오버헤드</td><td class="bad">상시 존재</td><td class="good">JIT는 인터프리터 비용을 없애지만 훅·헬퍼·맵과 프로그램 실행은 CPU를 사용</td></tr>
     </tbody>
   </table>
   <div class="chips" data-a="5" style="display:flex;gap:12px;margin-top:2.6vh;flex-wrap:wrap">
@@ -333,11 +334,12 @@
     <span class="chip">④ 소통 창구는 Maps · Helper/KFunc뿐 — 임의 커널 메모리 접근 차단</span>
   </div>
   <div class="chips" data-a="6" style="display:flex;gap:12px;margin-top:1.4vh;flex-wrap:wrap">
-    <span class="chip">실제 비용은 로드 타임 1회 — Verifier 검증 + JIT 컴파일</span>
+    <span class="chip">로드 시 비용: Verifier 검증 + JIT 컴파일; 런타임 비용은 프로그램과 훅에 따라 달라짐</span>
     <span class="chip">런타임 제약은 속도가 아니라 표현력 — 512 B 스택 · 명령어 한도는 증명의 대가</span>
   </div>
   <aside class="notes">
-    JVM 비유가 가장 잘 통한다 — VMware가 아니라 <b>바이트코드 실행 규격</b>. 표보다 아래 칩의 "VM이라 부를 수 있는 4가지 근거"가 핵심 메시지. 런타임 비용은 사실상 0, 실제 비용은 로드 타임 1회.
+    JVM 비유가 가장 잘 통한다 — VMware가 아니라 <b>바이트코드 실행 규격</b>. 표보다 아래 칩의 "VM이라 부를 수 있는 4가지 근거"가 핵심 메시지. 로드 시 검증·JIT 비용과 훅·헬퍼·맵·프로그램 실행의 런타임 CPU 비용을 구분한다.
+  <p>출처: <a href="https://docs.kernel.org/bpf/libbpf/libbpf_overview.html" target="_blank" rel="noopener">Kernel libbpf</a>.</p>
   </aside>
 </section>
 
@@ -345,7 +347,7 @@
 <section class="slide">
   <div class="kicker" data-a="1">Register machine</div>
   <h1 class="display md" data-a="2">레지스터 11개 — <span class="hot">하드웨어에 1:1</span>로 매핑되는 설계</h1>
-  <p class="sub" data-a="3">명령어는 <b>8바이트 고정 길이</b>, 레지스터는 x86_64·ARM64 레지스터에 직접 대응 —
+  <p class="sub" data-a="3">기본 명령어는 <b>8바이트, wide 명령어는 16바이트</b>이며 레지스터는 x86_64·ARM64 레지스터에 직접 대응 —
   JIT가 추가 변환 계층 없이 곧바로 네이티브 기계어를 뽑아내는 근거입니다.</p>
   <div class="ladder">
     <div class="rung" style="--rc:var(--orange)" data-a="4">
@@ -370,11 +372,12 @@
     </div>
   </div>
   <div class="chips" data-a="8" style="display:flex;gap:12px;margin-top:2.6vh;flex-wrap:wrap">
-    <span class="chip">고정 길이 명령어 + 1:1 레지스터 매핑 — JIT 번역 비용의 최소화가 설계 단계에 내장</span>
-    <span class="chip hot">실증 — Meta Strobelight: eBPF 프로파일링으로 찾은 코드 한 줄 수정이 연간 서버 15,000대 상당 절감</span>
+    <span class="chip">간결한 명령어 + 아키텍처별 레지스터 매핑 — JIT 번역 비용의 최소화가 설계 단계에 내장</span>
+    <span class="chip hot">프로파일링으로 비용이 큰 코드 경로를 찾고, 워크로드별 측정으로 개선 효과를 확인</span>
   </div>
   <aside class="notes">
-    R10 <b>읽기 전용 프레임 포인터</b>가 이 장의 주인공 — 스택 조작 차단이 설계에 박혀 있다. 하드웨어 1:1 매핑 = JIT가 빠른 이유. 마지막 Strobelight 칩(서버 15,000대 절감)으로 "왜 배우는가"를 환기.
+    R10 <b>읽기 전용 프레임 포인터</b>가 이 장의 주인공. 기본 8바이트 명령어와 wide 16바이트 명령어를 구분하고 아키텍처별 레지스터 매핑을 설명한다. 마지막 프로파일링 칩으로 실제 워크로드에서 개선 효과를 측정해야 함을 강조한다.
+  <p>출처: <a href="https://docs.kernel.org/bpf/standardization/instruction-set.html" target="_blank" rel="noopener">BPF instruction set</a>.</p>
   </aside>
 </section>
 
@@ -521,7 +524,7 @@
 <section class="slide">
   <div class="kicker" data-a="1">Shared state</div>
   <h1 class="display md" data-a="2">Maps — 커널과 유저스페이스의 <span class="hot">공유 상태</span></h1>
-  <p class="sub" data-a="3">eBPF 프로그램은 상태를 가질 수 없습니다 — 상태는 전부 <b>맵</b>에, 커널 확장 기능은 <b>헬퍼와 kfunc</b>에 있습니다.</p>
+  <p class="sub" data-a="3">지속 상태는 주로 <b>맵</b>에 저장하며 전역 변수도 맵으로 구현됩니다. 커널 확장 기능은 <b>헬퍼와 kfunc</b>를 통해 사용합니다.</p>
   <div class="split">
     <div class="panel" style="--pc:var(--blue)" data-a="4">
       <h3>주요 맵 타입</h3>
@@ -550,7 +553,7 @@
 <!-- ============ 14 · RINGBUF PRIMER ============ -->
 <section class="slide">
   <div class="kicker" data-a="1">Data structure primer</div>
-  <h1 class="display md" data-a="2">링 버퍼 — 고정 배열과 <span class="hot">포인터 두 개</span>로 만드는 무한 큐</h1>
+  <h1 class="display md" data-a="2">링 버퍼 — 고정 배열과 <span class="hot">포인터 두 개</span>로 만드는 유한 큐</h1>
   <p class="sub" data-a="3">eBPF가 발명한 구조가 아닙니다 — <b>printk/dmesg 로그 · NIC RX/TX 링 · ftrace · perf · io_uring</b>까지,
   커널 도처에서 수십 년 검증된 자료구조입니다.</p>
   <div class="split w64">
@@ -612,7 +615,7 @@
     </div>
   </div>
   <div class="chips" data-a="6" style="display:flex;gap:12px;margin-top:2.6vh;flex-wrap:wrap">
-    <span class="chip">가득 참 정책이 용도를 가른다 — 로그(dmesg)는 오래된 것 덮어쓰기, 이벤트 파이프(perf·eBPF)는 새 이벤트 손실 + 카운트</span>
+    <span class="chip">가득 참 정책이 용도를 가른다 — 로그(dmesg)는 오래된 것 덮어쓰기, 이벤트 파이프는 새 레코드를 거부할 수 있음; ringbuf 예약 실패는 프로그램이 집계해야 함</span>
     <span class="chip hot">Perf Buffer도 BPF Ring Buffer도 이 구조의 후예 — 무엇이 달라졌는가가 다음 네 장</span>
   </div>
   <aside class="notes">
@@ -623,7 +626,7 @@
 <!-- ============ 15 · PERFBUF FLOW ============ -->
 <section class="slide">
   <div class="kicker" data-a="1">Legacy path — how it worked</div>
-  <h1 class="display md" data-a="2">기존 동작 방식 — CPU별 링에 <span class="hot">조립 → 복사 → 즉시 알림</span></h1>
+  <h1 class="display md" data-a="2">기존 동작 방식 — CPU별 링에 <span class="hot">조립 → 복사 → 임계값 기반 알림</span></h1>
   <p class="sub" data-a="3">Perf Buffer는 앞 장의 링을 <b>CPU마다 하나씩</b> 둡니다 — BPF 프로그램은 자기 CPU의 링에만 쓰고,
   소비자가 CPU 수만큼의 링을 따로 읽어 병합합니다.</p>
   <div class="arch" data-a="4">
@@ -685,8 +688,8 @@
       <rect x="45" y="346" width="690" height="56" rx="12" fill="rgba(65,179,255,.08)" stroke="#41b3ff" stroke-width="1.5"/>
       <text x="390" y="370" class="an" font-size="16" text-anchor="middle">유저스페이스 소비자</text>
       <text x="390" y="392" class="am" font-size="12" text-anchor="middle">fd × CPU 수를 epoll — 링마다 따로 읽고, 시간순 병합은 소비자 몫</text>
-      <text x="770" y="368" class="am" font-size="12" fill="#ad5cff">③ 이벤트마다 무조건 알림</text>
-      <text x="770" y="388" class="am" font-size="12" fill="#ad5cff">— 소비자 상태 무관 · 고빈도에서 웨이크업 폭풍</text>
+      <text x="770" y="368" class="am" font-size="12" fill="#ad5cff">③ 이벤트 수 / 바이트 임계값 기반 알림</text>
+      <text x="770" y="388" class="am" font-size="12" fill="#ad5cff">— 임계값을 조정해 웨이크업을 묶음 처리</text>
     </svg>
   </div>
   <div class="chips" data-a="5" style="display:flex;gap:12px;flex-wrap:wrap">
@@ -694,7 +697,7 @@
     <span class="chip hot">이 그림에서 네 가지 대가가 그대로 파생 (다음 장)</span>
   </div>
   <aside class="notes">
-    Perf Buffer의 동작을 비난 없이 담담하게 — <b>CPU마다 링 하나, 스택에서 조립 후 복사, 이벤트마다 알림</b>. 그림의 세 CPU 불균형(넘침/제각각/텅 빔)을 손으로 가리키며. 판단은 다음 장으로 미룬다.
+    Perf Buffer의 동작을 비난 없이 담담하게 — <b>CPU마다 링 하나, 스택에서 조립 후 복사, 설정한 임계값에 따라 알림</b>. 그림의 세 CPU 불균형(넘침/제각각/텅 빔)을 손으로 가리키며. 판단은 다음 장으로 미룬다.
   </aside>
 </section>
 
@@ -722,7 +725,7 @@
     </div>
     <div class="rung" style="--rc:var(--purple)" data-a="7">
       <span class="k">04</span>
-      <div><h3>웨이크업 폭풍</h3><p>소비자 상태와 무관하게 <b>이벤트마다 무조건 신호</b> — 고빈도 이벤트에서 알림 비용이 지배</p></div>
+      <div><h3>웨이크업 폭풍</h3><p>알림은 <b>이벤트 수 또는 바이트 임계값</b>을 사용 — 임계값이 낮으면 웨이크업 오버헤드가 커질 수 있음</p></div>
       <span class="tag">SIGNAL STORM</span>
     </div>
   </div>
@@ -730,7 +733,8 @@
     <span class="chip hot">해법도 하나로 수렴 — 버퍼를 전역 하나로 합친다 (다음 장)</span>
   </div>
   <aside class="notes">
-    네 한계를 하나씩 — 전부 <b>"버퍼가 CPU마다 따로"라는 한 가지 설계</b>에서 파생됨을 강조. fork → exec 역전 사례가 가장 직관적. 해법도 하나로 수렴: 버퍼를 합친다.
+    네 비용을 하나씩 살펴본다. <b>CPU별 버퍼는 메모리 불균형과 CPU 간 순서 문제를 설명</b>하며, 복사와 웨이크업은 API·알림 임계값에도 영향을 받는다. fork → exec 역전 사례가 가장 직관적.
+  <p>출처: <a href="https://github.com/torvalds/linux/blob/master/include/uapi/linux/perf_event.h" target="_blank" rel="noopener">perf_event.h thresholds</a>.</p>
   </aside>
 </section>
 
@@ -802,10 +806,10 @@
       <rect x="15" y="302" width="1170" height="110" rx="18" fill="rgba(65,179,255,.03)" stroke="#41b3ff" stroke-width="1.2" stroke-dasharray="8 6"/>
       <text x="45" y="328" class="am" font-size="13" fill="#41b3ff" letter-spacing="3">USER SPACE</text>
       <text x="60" y="366" class="am" font-size="12" fill="#ad5cff">④ 적응형 알림</text>
-      <text x="60" y="386" class="am" font-size="12" fill="#ad5cff">— 소비자가 밀릴 때만 깨움</text>
+      <text x="60" y="386" class="am" font-size="12" fill="#ad5cff">— 소비자가 해당 레코드까지 따라잡았을 때 알림</text>
       <rect x="400" y="336" width="560" height="60" rx="12" fill="rgba(65,179,255,.08)" stroke="#41b3ff" stroke-width="1.5"/>
       <text x="680" y="362" class="an" font-size="16" text-anchor="middle">유저스페이스 소비자</text>
-      <text x="680" y="384" class="am" font-size="12" text-anchor="middle">fd 1개 — mmap으로 직접 읽기 · 전역 순서 그대로</text>
+      <text x="680" y="384" class="am" font-size="12" text-anchor="middle">fd 1개 — mmap으로 직접 읽기 · 단일 링 내 예약 순서</text>
     </svg>
   </div>
   <div class="chips" data-a="5" style="display:flex;gap:12px;flex-wrap:wrap">
@@ -820,14 +824,14 @@
 <!-- ============ 18 · RING BUFFER ============ -->
 <section class="slide">
   <div class="kicker" data-a="1">Kernel → userspace</div>
-  <h1 class="display md" data-a="2">BPF Ring Buffer — <span class="hot">기본값</span>이 된 새 아키텍처 (v5.8+)</h1>
+  <h1 class="display md" data-a="2">BPF Ring Buffer — 공유 버퍼를 사용하는 <span class="hot">대안</span> (v5.8+)</h1>
   <p class="sub" data-a="3">모든 CPU가 하나의 버퍼를 공유하는 <b>MPSC(Multi-Producer Single-Consumer)</b> 구조 —
   Perf Buffer의 네 가지 한계를 네 가지 메커니즘으로 되갚습니다.</p>
   <div class="tiles four">
     <div class="tile" data-a="4">
       <span class="tn">MPSC</span>
       <h3>전역 단일 공유 버퍼</h3>
-      <p>모든 CPU가 한 버퍼에 쓰고 유저스페이스가 읽음 — <b>전역 이벤트 순서 보장</b> + 메모리 효율을 동시에.</p>
+      <p>모든 CPU가 한 버퍼에 쓰고 유저스페이스가 읽음 — <b>단일 링 내 예약 순서 보장</b> + 메모리 효율을 동시에.</p>
       <span class="tt">ORDER + MEMORY</span>
     </div>
     <div class="tile tc-blue" data-a="5">
@@ -839,7 +843,7 @@
     <div class="tile tc-purple" data-a="6">
       <span class="tn">ADAPTIVE</span>
       <h3>적응형 알림</h3>
-      <p>소비자가 이미 처리 중이면 <b>신호 억제</b>, 지연될 때만 깨움 — 알림 비용을 데이터 양이 아닌 소비자 상태에 비례시킴.</p>
+      <p>소비자가 <b>커밋되는 레코드 위치까지 따라잡았으면 알림</b>. 그렇지 않으면 추가 웨이크업 없이도 해당 레코드를 읽게 됨.</p>
       <span class="tt">NO SIGNAL STORM</span>
     </div>
     <div class="tile" data-a="7">
@@ -855,6 +859,7 @@
   </div>
   <aside class="notes">
     한계 ↔ 메커니즘 1:1 매핑으로 정리 — 과다할당→MPSC, 복사→reserve/submit, 유실 감지→즉시 실패, 웨이크업 폭풍→적응형 알림. <b>reserve는 반드시 submit/discard로 종결 — 11장 Verifier 레퍼런스 추적이 여기서 회수</b>된다.
+  <p>출처: <a href="https://docs.kernel.org/bpf/ringbuf.html" target="_blank" rel="noopener">Kernel ring buffer</a>.</p>
   </aside>
 </section>
 
@@ -872,17 +877,18 @@
       <tr><td>배치 구조</td><td class="bad">CPU마다 독립 링 — CPU 수만큼 존재</td><td class="good">전역 단일 링 — MPSC, 모든 CPU가 공유</td></tr>
       <tr><td>쓰기 경로</td><td class="bad">스택에 레코드 조립 후 버퍼로 <b>복사</b></td><td class="good"><code>reserve()</code> → 버퍼에 <b>직접 작성</b> → <code>submit()</code> — 제로카피</td></tr>
       <tr><td>공간 부족</td><td class="bad">복사 시점에야 발견 — 조립 비용은 선지불</td><td class="good"><code>reserve()</code>가 즉시 실패 — 프로그램이 대응 가능</td></tr>
-      <tr><td>이벤트 순서</td><td class="bad">CPU 간 비보장 — fork → exec 역전</td><td class="good">단일 버퍼라 전역 순서 보장</td></tr>
+      <tr><td>이벤트 순서</td><td class="bad">CPU 간 비보장 — fork → exec 역전</td><td class="good">단일 링 내 예약 순서 보장</td></tr>
       <tr><td>경계 처리</td><td class="bad">경계에 걸친 레코드는 분할 — 두 번 읽어 재조립</td><td class="good">가상 메모리 이중 매핑 — 분할 없이 연속 읽기</td></tr>
-      <tr><td>소비자 알림</td><td class="bad">이벤트마다 무조건 신호</td><td class="good">적응형 — 소비자가 밀릴 때만 깨움</td></tr>
+      <tr><td>소비자 알림</td><td class="bad">이벤트 수 / 바이트 임계값 설정 가능</td><td class="good">적응형 — 소비자가 해당 레코드까지 따라잡았을 때 알림</td></tr>
     </tbody>
   </table>
   <div class="chips" data-a="5" style="display:flex;gap:12px;margin-top:2.4vh;flex-wrap:wrap">
     <span class="chip">소비 API 형태는 유사 — <code>perf_buffer__poll</code> ↔ <code>ring_buffer__poll</code>, 이전 비용은 낮다</span>
-    <span class="chip hot">신규 개발 기본값은 Ring Buffer — Perf Buffer는 v5.8 미만 커널 호환용으로만</span>
+    <span class="chip hot">순서·경합·호환성 요구에 따라 선택 — CPU별 Perf Buffer도 여전히 유용</span>
   </div>
   <aside class="notes">
-    표는 위에서 아래로 빠르게 — 청중이 읽게 두고 결론만: <b>신규 개발 기본값은 Ring Buffer</b>, Perf Buffer는 v5.8 미만 호환용. API 형태가 유사해 이전 비용도 낮다.
+    표는 위에서 아래로 빠르게 — 청중이 읽게 두고 결론: <b>순서·경합·호환성 요구에 따라 선택</b>한다. CPU별 Perf Buffer도 여전히 유용하며 유사한 폴링 API는 이전에 도움이 된다.
+  <p>출처: <a href="https://docs.kernel.org/bpf/ringbuf.html" target="_blank" rel="noopener">Kernel ring buffer</a>.</p>
   </aside>
 </section>
 
@@ -890,7 +896,7 @@
 <section class="slide">
   <div class="kicker" data-a="1">Compile once — run everywhere</div>
   <h1 class="display md" data-a="2">CO-RE — 한 번 컴파일해서 <span class="hot">어디서나 실행</span></h1>
-  <p class="sub" data-a="3">문제의 근원: <b>커널 구조체 오프셋은 버전·설정마다 다릅니다.</b> CO-RE는 오프셋을 런타임에 다시 계산합니다.</p>
+  <p class="sub" data-a="3">문제의 근원: <b>커널 구조체 오프셋은 버전·설정마다 다릅니다.</b> CO-RE는 대상 커널의 BTF를 사용해 로드 시 재배치를 처리합니다.</p>
   <div class="arch" data-a="4">
     <svg viewBox="0 0 1200 400">
       <!-- compile time zone -->
@@ -907,9 +913,9 @@
       <text x="440" y="228" class="am" font-size="13" text-anchor="middle">.BTF + .BTF.ext</text>
       <text x="440" y="250" class="am" font-size="13" text-anchor="middle">"어떤 필드에 접근하는가"</text>
 
-      <!-- runtime zone -->
+      <!-- load-time zone -->
       <rect x="625" y="20" width="560" height="360" rx="18" fill="rgba(0,229,0,.03)" stroke="#00e500" stroke-width="1.2" stroke-dasharray="8 6"/>
-      <text x="655" y="56" class="am" font-size="14" fill="#00e500" letter-spacing="3">런타임 · 타깃 노드</text>
+      <text x="655" y="56" class="am" font-size="14" fill="#00e500" letter-spacing="3">로드 시점 · 타깃 노드</text>
       <rect x="655" y="85" width="250" height="90" rx="12" fill="#131a24" stroke="#00e500" stroke-width="1.5"/>
       <text x="780" y="118" class="an" font-size="17" text-anchor="middle">커널 자체 BTF</text>
       <text x="780" y="146" class="am" font-size="12" text-anchor="middle">/sys/kernel/btf/vmlinux</text>
@@ -934,7 +940,8 @@
     <span class="chip hot">BCC(BPF Compiler Collection)의 런타임 컴파일(clang 내장) 없이 경량 정적 바이너리 배포</span>
   </div>
   <aside class="notes">
-    문제 제기부터 — <b>커널 구조체 오프셋은 버전마다 다르다</b>. 컴파일 타임(재배치 레코드) → 런타임(커널 BTF + libbpf 패치) 순으로. pt_regs 실측 칩(di=112…)이 "진짜 바이트코드를 고친다"는 증거.
+    문제 제기부터 — <b>커널 구조체 오프셋은 버전마다 다르다</b>. 컴파일 시점(재배치 레코드) → 로드 시점(대상 BTF + libbpf 재배치) 순으로. pt_regs 예제(di=112…)는 해당 대상에 맞춘 바이트코드 수정을 보여준다.
+  <p>출처: <a href="https://docs.kernel.org/bpf/libbpf/libbpf_overview.html" target="_blank" rel="noopener">Kernel libbpf CO-RE</a>.</p>
   </aside>
 </section>
 
@@ -1026,7 +1033,7 @@
       <span class="tn">EXPERIMENTAL</span>
       <h3>bpftime</h3>
       <p>커널 uprobe는 <code>int3</code> 트랩으로 <b>커널 왕복 오버헤드</b>가 큼 —
-      바이너리 재작성으로 프로브를 유저스페이스에서 실행해 약 10배 이상 단축. 커널 진입 자체를 제거.</p>
+      bpftime은 지원되는 프로브를 유저스페이스에서 실행하며, 성능과 호환성은 워크로드에 따라 달라집니다.</p>
       <span class="tt">USERSPACE RUNTIME</span>
     </div>
   </div>
@@ -1053,7 +1060,7 @@
   <div class="ladder">
     <div class="rung" style="--rc:var(--yellow)" data-a="3">
       <span class="k">↑</span>
-      <div><h3>bpftrace</h3><p>DSL(Domain-Specific Language) 원라이너 — <b>즉석 진단의 표준</b>. awk처럼 쓰고 버린다. <code>bpftrace -e 'kprobe:do_sys_open {...}'</code></p></div>
+      <div><h3>bpftrace</h3><p>DSL(Domain-Specific Language) 원라이너 — <b>즉석 진단의 표준</b>. awk처럼 쓰고 버린다. <code>bpftrace -e 'tracepoint:syscalls:sys_enter_openat { @[comm] = count(); }'</code></p></div>
       <span class="tag">AD-HOC</span>
     </div>
     <div class="rung" style="--rc:var(--purple)" data-a="4">
@@ -1093,7 +1100,7 @@
     <div class="tile tc-blue" data-a="5">
       <span class="tn">DETECT</span>
       <h3>런타임 탐지</h3>
-      <p><b>Falco</b> — 룰 기반 syscall 행위 탐지, 가장 방대한 룰셋(29장). <b>Tracee</b> — Aqua Security, 커널 이벤트를 정밀 수집하는 포렌식 지향 탐지.</p>
+      <p><b>Falco</b> — 설정 가능한 룰로 syscall 행위를 탐지(29장). <b>Tracee</b> — Aqua Security, 커널 이벤트를 정밀 수집하는 포렌식 지향 탐지.</p>
       <span class="tt">ALERT-ONLY</span>
     </div>
     <div class="tile tc-pink" data-a="6">
@@ -1133,7 +1140,7 @@
       </ul>
     </div>
     <div class="codeblock" data-file="BCC memleak" data-a="4"><span class="cm"># PID 1234의 미해제 할당을 10초 간격으로 추적</span>
-$ <span class="ck">memleak</span> -p 1234 --interval 10
+$ <span class="ck">memleak</span> -p 1234 10
 
 <span class="cm">[13:42:01] Top 10 stacks with outstanding allocations:</span>
   <span class="cs">524288 bytes</span> in <span class="cs">128 allocations</span> from stack
@@ -1142,16 +1149,17 @@ $ <span class="ck">memleak</span> -p 1234 --interval 10
     <span class="cv">handle_connection</span>+0x8d
     start_thread+0xd9
 
-<span class="cm"># --older: 60초 이상 미해제 '진성 누수'만 · -p 생략 시 커널 누수 추적</span>
+<span class="cm"># --older: 60초 이상 미해제 상태인 누수 후보 · -p 생략 시 커널 누수 추적</span>
 $ <span class="ck">memleak</span> -p 1234 --older 60000</div>
   </div>
   <div class="chips" data-a="5" style="display:flex;gap:12px;margin-top:2.6vh;flex-wrap:wrap">
     <span class="chip">Valgrind와 달리 <b>재기동 불필요</b> — 실행 중인 프로세스에 동적 부착, CPU 에뮬레이션 없이 커널 내 집계</span>
     <span class="chip">uprobe의 비용 — <code>int3</code> 브레이크포인트 트랩으로 매 호출마다 커널 왕복, 고빈도 malloc에선 트랩 자체가 병목</span>
-    <span class="chip hot">우회로는 커널 진입 제거 — bpftime이 프로브를 유저스페이스 인라인 훅으로 실행, 약 10배 단축 (22장)</span>
+    <span class="chip hot">우회로는 커널 진입 제거 — bpftime이 프로브를 유저스페이스 인라인 훅으로 실행, 오버헤드는 워크로드에 따라 달라짐 (22장)</span>
   </div>
   <aside class="notes">
     케이스 스터디 시작 — Valgrind와의 대비(<b>재기동 불필요, 실행 중 프로세스에 부착</b>)가 첫 반응 포인트. 집계가 전부 커널 안 = 오버헤드 최소. uprobe int3 트랩 비용 → bpftime(22장) 회수로 마무리.
+  <p>출처: <a href="https://github.com/iovisor/bcc/blob/master/tools/memleak.py" target="_blank" rel="noopener">BCC memleak source</a>.</p>
   </aside>
 </section>
 
@@ -1218,7 +1226,7 @@ $ <span class="ck">memleak</span> -p 1234 --older 60000</div>
         <text x="380" y="212" class="an" font-size="16" text-anchor="middle">runqlat — Runnable → 실행까지의 대기 분포</text>
         <text x="380" y="236" class="am" font-size="13" text-anchor="middle">평소 수십 µs → 스로틀링 시 100ms대 스파이크로 오른쪽 왜곡</text>
         <path class="wire" d="M395 116 C 395 150, 390 165, 380 185" stroke="#ff5c85"/>
-        <text x="380" y="285" class="am" font-size="13" text-anchor="middle" fill="#a6b2c3">스로틀 구간이 런큐 대기 히스토그램의 긴 꼬리로 그대로 드러난다</text>
+        <text x="380" y="285" class="am" font-size="13" text-anchor="middle" fill="#a6b2c3">스케줄러 지연을 cpu.stat 스로틀링 카운터·노드 CPU 경합과 교차 확인</text>
       </svg>
     </div>
     <div class="panel" style="--pc:var(--pink)" data-a="4">
@@ -1226,7 +1234,7 @@ $ <span class="ck">memleak</span> -p 1234 --older 60000</div>
       <ul>
         <li>CPU 사용률 그래프는 limit에 붙어 <b>평평</b> — 일하는 중인지 목이 졸린 중인지 구분 불가</li>
         <li>cAdvisor 스로틀 카운터는 <b>횟수·총량만</b> — 어느 코드 경로가 얼마나 늦었는지 없음</li>
-        <li><code>runqlat</code> 스파이크 + Off-CPU 스택(27장)에 <b>블로킹 흔적 없음</b>(<code>io_schedule</code>·<code>futex_wait</code> 부재) → I/O도 락도 아닌 <b>스로틀링</b>으로 확정</li>
+        <li><code>runqlat</code> 스파이크 + Off-CPU 스택(27장)에 <b>블로킹 흔적 없음</b>(<code>io_schedule</code>·<code>futex_wait</code> 부재) → <b>CPU 경합 또는 쿼터 스로틀링</b> 조사; cpu.stat 스로틀링 카운터의 증가량으로 확인</li>
         <li>두 도구의 <b>교차 판독</b>이 limits 재산정의 정량 근거가 된다</li>
       </ul>
     </div>
@@ -1236,19 +1244,20 @@ $ <span class="ck">memleak</span> -p 1234 --older 60000</div>
       <tr><th>관측 조합</th><th class="hl">진단</th><th>처방</th></tr>
     </thead>
     <tbody>
-      <tr><td>runqlat <b>스파이크</b> + 스택에 블로킹 흔적 <b>없음</b> — 깨어 있는데 못 뛴다</td><td><b>CFS 스로틀링</b> — CPU 할당 부족</td><td class="good">limits.cpu 상향이 유효</td></tr>
+      <tr><td>runqlat <b>스파이크</b> + 스택에 블로킹 흔적 <b>없음</b> — 깨어 있는데 못 뛴다</td><td><b>CPU 경합 또는 쿼터 스로틀링</b> — cpu.stat과 대조</td><td class="good">스로틀링과 노드 CPU 여유를 확인한 뒤 쿼터 상향</td></tr>
       <tr><td>runqlat <b>정상</b> + 스택 끝에 <code>io_schedule</code>·<code>futex_wait</code> — 스스로 잠들었다</td><td><b>I/O·락 병목</b> — CPU와 무관</td><td class="bad">limits 상향 무효 — 스토리지·락 설계를 개선</td></tr>
     </tbody>
   </table>
   <aside class="notes">
-    증상부터 — CPU 그래프는 평평한데 지연이 튄다. <b>runqlat 스파이크 + Off-CPU 스택에 블로킹 흔적 없음 = 스로틀링 확정</b>이라는 교차 판독 논리가 핵심. 아래 표의 두 행이 "limits 상향이 유효한가"를 가르는 처방 분기.
+    증상부터 — CPU 그래프는 평평한데 지연이 튄다. 교차 판독의 핵심: <b>블로킹 흔적 없는 runqlat 스파이크는 스케줄링 지연을 시사하지만 스로틀링의 증거는 아니다. cpu.stat의 nr_throttled·throttled_usec와 노드 경합을 함께 확인한다</b>. 아래 표의 두 행이 "limits 상향이 유효한가"를 가르는 처방 분기.
+  <p>출처: <a href="https://docs.kernel.org/admin-guide/cgroup-v2.html" target="_blank" rel="noopener">cgroup v2 cpu.stat</a>.</p>
   </aside>
 </section>
 
 <!-- ============ 29 · FALCO ============ -->
 <section class="slide">
   <div class="kicker" data-a="1">Runtime security № 1</div>
-  <h1 class="display md" data-a="2">Falco — 관측은 하지만, <span class="hot">막지는 못한다</span></h1>
+  <h1 class="display md" data-a="2">Falco — 시스템 콜 탐지와 <span class="hot">알림</span></h1>
   <div class="arch" data-a="3">
     <svg viewBox="0 0 1200 340">
       <rect x="20" y="120" width="180" height="90" rx="12" fill="#131a24" stroke="#a6b2c3" stroke-width="1.5"/>
@@ -1272,18 +1281,18 @@ $ <span class="ck">memleak</span> -p 1234 --older 60000</div>
       <path class="wire" d="M780 165 H860" stroke="#fbd332"/>
 
       <rect x="280" y="255" width="890" height="60" rx="12" fill="rgba(255,92,133,.05)" stroke="#ff5c85" stroke-width="1.5" stroke-dasharray="6 5"/>
-      <text x="725" y="280" class="an" font-size="16" text-anchor="middle" fill="#ff5c85">판정이 도착했을 때, 시스템 콜은 이미 실행이 끝나 있다</text>
+      <text x="725" y="280" class="an" font-size="16" text-anchor="middle" fill="#ff5c85">비동기 탐지는 시스템 콜 완료 전 차단을 보장하지 않는다</text>
       <text x="725" y="303" class="am" font-size="13" text-anchor="middle" fill="#ff5c85">인자 검사 시점 ≠ 사용 시점 → TOCTOU(Time-of-Check to Time-of-Use) 경쟁 조건</text>
       <text x="110" y="70" class="am" font-size="14" fill="#a6b2c3">비동기 파이프라인 —</text>
       <text x="110" y="92" class="am" font-size="14" fill="#a6b2c3">탐지(detect)까지만</text>
     </svg>
   </div>
   <div class="chips" data-a="4" style="display:flex;gap:12px;flex-wrap:wrap">
-    <span class="chip">탐지는 강력 — 방대한 룰셋과 생태계</span>
-    <span class="chip hot">그러나 차단은 사후 대응 — kill은 이미 늦은 시점</span>
+    <span class="chip">룰 기반 탐지와 생태계 통합</span>
+    <span class="chip hot">사후 대응으로는 탐지를 유발한 동작의 예방을 보장할 수 없음</span>
   </div>
   <aside class="notes">
-    그림의 파이프라인을 왼→오로 따라간 뒤 반전 — <b>판정이 도착했을 때 시스템 콜은 이미 끝나 있다</b>. TOCTOU 한 줄 설명. Falco 폄하가 아니라 구조적 위치의 문제임을 분명히(탐지 자체는 강력).
+    그림의 파이프라인을 왼→오로 따라간 뒤 핵심 — <b>비동기 탐지는 실행 전 차단을 보장하지 않는다</b>. TOCTOU 한 줄 설명. Falco 폄하가 아니라 구조적 위치의 문제임을 분명히(탐지 자체는 강력).
   </aside>
 </section>
 
@@ -1312,8 +1321,8 @@ $ <span class="ck">memleak</span> -p 1234 --older 60000</div>
 
       <rect x="970" y="185" width="200" height="110" rx="12" fill="rgba(255,92,133,.08)" stroke="#ff5c85" stroke-width="1.5"/>
       <text x="1070" y="218" class="an" font-size="17" text-anchor="middle" fill="#ff5c85">차단</text>
-      <text x="1070" y="245" class="am" font-size="12" text-anchor="middle" fill="#ff5c85">bpf_override_return → -EPERM</text>
-      <text x="1070" y="268" class="am" font-size="12" text-anchor="middle" fill="#ff5c85">bpf_send_signal → SIGKILL</text>
+      <text x="1070" y="245" class="am" font-size="12" text-anchor="middle" fill="#ff5c85">LSM 반환값 → 거부</text>
+      <text x="1070" y="268" class="am" font-size="12" text-anchor="middle" fill="#ff5c85">다른 액션은 훅 타입에 따라 다름</text>
 
       <path class="wire" d="M200 165 H290" stroke="#a6b2c3"/>
       <path class="wire" d="M530 165 H620" stroke="#41b3ff"/>
@@ -1329,7 +1338,7 @@ $ <span class="ck">memleak</span> -p 1234 --older 60000</div>
     <span class="chip">다음 단계는 상관 분석 — 커널 eBPF 데이터를 클라우드 API·앱 시그널과 엮어 전체 공격 스토리 재구성 (ARMO CADR · Cloud Application Detection &amp; Response)</span>
   </div>
   <aside class="notes">
-    대비가 전부 — Falco는 비동기 사후 탐지, <b>Tetragon은 LSM 훅에서 동기 판정, 같은 커널 컨텍스트에서 차단까지 완결</b>. -EPERM vs SIGKILL 두 차단 수단. TracingPolicy CRD로 K8s 네이티브라는 점도.
+    비동기 탐지와 그림의 차단 경로를 대비한다: <b>Tetragon 정책은 LSM 반환값으로 동작을 거부할 수 있다</b>. 다른 액션은 훅 타입에 따라 달라지며 반환값 재정의나 시그널 전송을 모든 LSM 훅의 공통 액션으로 설명하지 않는다. TracingPolicy CRD로 K8s 네이티브라는 점도.
   </aside>
 </section>
 
@@ -1345,7 +1354,7 @@ $ <span class="ck">memleak</span> -p 1234 --older 60000</div>
     </div>
     <div class="rung" style="--rc:var(--blue)" data-a="4">
       <span class="k">02</span>
-      <div><h3>메모리 회계 — 커널 버전 분기</h3><p>v5.11 미만: 맵 메모리가 <code>RLIMIT_MEMLOCK</code>에 잡힘 — <code>ulimit -l</code> 상향 필수. <b>v5.11+: cgroup memory 회계로 전환</b> — 컨테이너 memory limit이 BPF 맵을 포함하므로 limit 산정에 반영.</p></div>
+      <div><h3>메모리 회계 — 커널 버전 분기</h3><p>v5.11 미만: 맵 메모리가 <code>RLIMIT_MEMLOCK</code>에 잡힘 — 설정값을 확인하고 부족하면 <code>ulimit -l</code> 상향. <b>v5.11+: cgroup memory 회계로 전환</b> — 컨테이너 memory limit이 BPF 맵을 포함하므로 limit 산정에 반영.</p></div>
       <span class="tag">MEMLOCK</span>
     </div>
     <div class="rung" style="--rc:var(--green)" data-a="5">
@@ -1371,7 +1380,7 @@ $ <span class="ck">memleak</span> -p 1234 --older 60000</div>
   <h1 class="display" data-a="2">EKS 위의 <span class="hot">eBPF</span></h1>
   <p class="mono-tag" data-a="3">vpc cni · cilium · hubble · benchmarks</p>
   <aside class="notes">
-    챕터 전환 — 핵심 반전: <b>EKS에서 eBPF는 도입할 기술이 아니라 이미 돌고 있는 기술</b>. 다음 장 지형도가 그 증거.
+    챕터 전환 — 핵심: <b>EKS는 설치·활성화하면 eBPF를 사용하는 여러 구성 요소를 제공한다</b>. 다음 장 지형도에서 확인한다.
   </aside>
 </section>
 
@@ -1379,18 +1388,18 @@ $ <span class="ck">memleak</span> -p 1234 --older 60000</div>
 <section class="slide">
   <div class="kicker" data-a="1">Already in production</div>
   <h1 class="display md" data-a="2">EKS eBPF 지형도 — <span class="hot">이미 프로덕션에 있다</span></h1>
-  <p class="sub" data-a="3">eBPF는 도입할 기술이 아니라 <b>이미 클러스터에서 돌고 있는 기술</b>입니다. 이해하면 디버깅 계층이 하나 늘어납니다.</p>
+  <p class="sub" data-a="3">이 EKS 네트워킹 옵션들은 <b>설치·활성화하면</b> eBPF로 동작합니다. 이해하면 디버깅 계층이 하나 늘어납니다.</p>
   <div class="tiles four">
     <div class="tile" data-a="4">
       <span class="tn">AWS · v1.14+</span>
       <h3>VPC CNI NetworkPolicy</h3>
-      <p>노드 에이전트가 <b>eBPF 프로브를 Pod host veth에 attach</b>. iptables 체인 없이 정책 적용.</p>
+      <p>NetworkPolicy를 활성화하면 에이전트가 <b>지원되는 Pod의 host veth에 eBPF 프로그램을 attach</b>. iptables 체인 없이 정책 적용.</p>
       <span class="tt">POLICY</span>
     </div>
     <div class="tile tc-blue" data-a="5">
       <span class="tn">CNCF</span>
       <h3>Cilium</h3>
-      <p>CNI(Container Network Interface) 전체를 eBPF로 — <b>kube-proxy 대체</b>, ENI(Elastic Network Interface) 라우팅, O(1) 룩업.</p>
+      <p>eBPF 네트워크 데이터패스와 유저스페이스 IPAM·제어 구성 요소. <b>kube-proxy 대체</b>와 ENI 라우팅은 선택 기능.</p>
       <span class="tt">CNI</span>
     </div>
     <div class="tile tc-green" data-a="6">
@@ -1454,8 +1463,8 @@ $ <span class="ck">memleak</span> -p 1234 --older 60000</div>
     </svg>
   </div>
   <div class="chips" data-a="4" style="display:flex;gap:12px;flex-wrap:wrap">
-    <span class="chip hot">iptables 체인 없음 — 정책이 늘어도 규칙 순회 비용 선형 증가 없음</span>
-    <span class="chip">트러블슈팅 1순위: NetworkPolicy가 아니라 PolicyEndpoints CRD 확인</span>
+    <span class="chip hot">eBPF 정책 적용 — NetworkPolicy를 활성화하고 지원되는 노드인지 확인</span>
+    <span class="chip">트러블슈팅 1순위: NetworkPolicy와 PolicyEndpoint 리소스를 함께 확인</span>
     <span class="chip">적용 범위 — Pod eth0 한정 · host networking / Windows / Fargate 미적용</span>
   </div>
   <aside class="notes">
@@ -1471,31 +1480,32 @@ $ <span class="ck">memleak</span> -p 1234 --older 60000</div>
   <div class="ladder">
     <div class="rung" style="--rc:var(--orange)" data-a="4">
       <span class="k">HOOK</span>
-      <div><h3>sock_ops 단일 프로그램</h3><p><code>BPF_PROG_TYPE_SOCK_OPS</code>를 cgroup v2에 attach — 패킷 캡처 없이 커널 TCP 스택의 콜백(연결·RTT·재전송)만 구독. 콜백 리턴은 무조건 <code>BPF_OK</code> — <b>고객 연결에 개입하지 않는다</b>(소스 주석)</p></div>
+      <div><h3>sock_ops 단일 프로그램</h3><p>cgroup v2의 <code>sock_ops</code> 콜백으로 TCP 연결·RTT·재전송을 수집. BPF_OK 반환값은 연결을 차단하지 않음.</p></div>
       <span class="tag">§12 실전</span>
     </div>
     <div class="rung" style="--rc:var(--blue)" data-a="5">
       <span class="k">MAP</span>
-      <div><h3>Ring Buffer 대신 맵 폴링</h3><p>소켓별 누적 통계를 맵에 쌓고 유저스페이스가 500ms 주기로 수거 — <b>이벤트 스트림이 아니면 링 버퍼가 정답이 아니다</b></p></div>
+      <div><h3>Ring Buffer 대신 맵 폴링</h3><p>소켓별 맵을 기본 <b>500ms</b> 주기로 집계. 이 설계는 모든 이벤트를 링 버퍼로 스트리밍하지 않음.</p></div>
       <span class="tag">§18 반례</span>
     </div>
     <div class="rung" style="--rc:var(--green)" data-a="6">
       <span class="k">SAMPLE</span>
-      <div><h3>입구에서만 샘플링</h3><p>신규 소켓 진입 시에만 샘플링 판정 — 일단 추적을 시작한 소켓의 이벤트는 전부 수집, <b>flow 통계의 내적 일관성</b> 보장</p></div>
+      <div><h3>입구에서만 샘플링</h3><p>신규 소켓 진입 시 샘플링을 판정. 이후에도 <b>맵 용량·엔트리 제거·처리 오류</b>로 추적이 제한될 수 있음.</p></div>
       <span class="tag">CONSISTENCY</span>
     </div>
     <div class="rung" style="--rc:var(--pink)" data-a="7">
       <span class="k">CAP</span>
-      <div><h3>스스로 권한을 내려놓는다</h3><p>eBPF 로드가 끝나면 <code>CAP_SYS_ADMIN</code>·<code>CAP_NET_ADMIN</code>을 드롭하고 <b>맵 읽기용 CAP_BPF만 유지</b> — 최소 권한 원칙의 실행</p></div>
+      <div><h3>스스로 권한을 내려놓는다</h3><p>초기화 후 <code>CAP_SYS_ADMIN</code>·<code>CAP_PERFMON</code>·<code>CAP_NET_ADMIN</code>을 드롭하고 CAP_BPF 유지. 다른 권한은 배포 설정에 따라 달라짐.</p></div>
       <span class="tag">LEAST PRIV</span>
     </div>
   </div>
   <div class="chips" data-a="8" style="display:flex;gap:12px;margin-top:2.6vh;flex-wrap:wrap">
-    <span class="chip hot">라이선스 회귀 — GPL 전용 helper 강제 커널(SUSE 15 SP5 · Ubuntu 20.04)에선 Apache-2.0 에이전트 미동작, DTrace CDDL 장벽(6장)의 현대판</span>
+    <span class="chip hot">지원 범위는 버전별로 다름 — AWS의 지원 Linux 배포판과 커널 요구 사항(5.8+) 확인</span>
     <span class="chip">운영 상세(NHI · enrichment · 배포)는 Playbook NFM 문서 참조</span>
   </div>
   <aside class="notes">
-    이 장이 챕터 1 회수의 하이라이트 — AWS가 직접 쓴 eBPF를 소스로 읽는다. <b>맵 폴링 rung이 백미: 이벤트 스트림이 아니면 Ring Buffer가 정답이 아니다</b>(18장의 의도적 반례). CAP 셀프 드롭, 그리고 라이선스 회귀 칩 — 6장 DTrace CDDL의 현대판.
+    챕터 1을 AWS 소스와 연결한다: <b>NFM은 이벤트마다 Ring Buffer로 스트리밍하는 대신 집계된 맵을 폴링</b>한다(18장). 샘플링 한계, 드롭하는 capability와 배포에 남는 권한을 설명한다. 버전별 배포판·커널 지원 범위로 마무리한다.
+  <p>출처: <a href="https://github.com/aws/network-flow-monitor-agent/blob/3bf328bc44c53ffb2a35696e58484c06fc4259f8/nfm-controller/src/lib.rs" target="_blank" rel="noopener">NFM privileges source</a>.</p>
   </aside>
 </section>
 
@@ -1520,7 +1530,7 @@ $ <span class="ck">memleak</span> -p 1234 --older 60000</div>
 
         <rect x="240" y="170" width="220" height="75" rx="12" fill="rgba(255,92,133,.06)" stroke="#ff5c85" stroke-width="1.5" stroke-dasharray="5 4"/>
         <text x="350" y="200" class="an" font-size="15" text-anchor="middle" fill="#ff5c85">kube-proxy</text>
-        <text x="350" y="224" class="am" font-size="12" text-anchor="middle" fill="#ff5c85">제거됨 — iptables 서비스 체인 소멸</text>
+        <text x="350" y="224" class="am" font-size="12" text-anchor="middle" fill="#ff5c85">선택적 대체 — 별도 설정 필요</text>
 
         <rect x="20" y="290" width="230" height="75" rx="12" fill="rgba(173,92,255,.08)" stroke="#ad5cff" stroke-width="1.5"/>
         <text x="135" y="320" class="an" font-size="15" text-anchor="middle">Cilium Operator</text>
@@ -1543,15 +1553,15 @@ $ <span class="ck">memleak</span> -p 1234 --older 60000</div>
     <div class="panel" style="--pc:var(--blue)" data-a="4">
       <h3>무엇이 달라지나</h3>
       <ul>
-        <li><b>kube-proxy replacement</b> — iptables O(n) 체인 순회 → eBPF 해시맵 <b>O(1) 조회</b>, 서비스 수가 늘어도 룩업 비용 일정</li>
+        <li><b>선택적 kube-proxy replacement</b> — ENI IPAM과 별도로 설정; eBPF 맵이 iptables Service 체인을 대체</li>
         <li><b>ENI IPAM</b>(IP Address Management) — Pod에 VPC IP 직접 부여, 오버레이 오버헤드 제거</li>
-        <li><b>Hubble</b> — 동일 데이터패스에서 플로우 관측을 덤으로 획득</li>
-        <li>Gateway API·mTLS·Bandwidth Manager 등 메시 기능 흡수</li>
+        <li><b>Hubble</b> — 활성화하면 플로우 관측 가능; L7에는 프로토콜을 인식하는 프록시 설정 필요</li>
+        <li>선택적 통합 — Gateway API·상호 인증·Bandwidth Manager; ENI 모드만으로 활성화되지 않음</li>
       </ul>
     </div>
   </div>
   <aside class="notes">
-    Cilium ENI 모드의 3대 변화 — <b>kube-proxy 제거(iptables O(n) → eBPF O(1))</b>, Pod에 VPC IP 직접 부여(오버레이 없음), Hubble 관측 덤. 빨간 점선 박스(kube-proxy 소멸)를 가리키며.
+    Cilium ENI 모드와 함께 살펴볼 세 가지 — <b>선택적 kube-proxy 대체(ENI IPAM과 별도 설정)</b>, Pod에 VPC IP 직접 부여(오버레이 없음), 활성화한 Hubble로 관측. 빨간 점선 박스는 kube-proxy 대체를 설정했을 때 적용된다.
   </aside>
 </section>
 
@@ -1559,24 +1569,25 @@ $ <span class="ck">memleak</span> -p 1234 --older 60000</div>
 <section class="slide">
   <div class="kicker" data-a="1">Numbers, not vibes</div>
   <h1 class="display md" data-a="2">숫자로 보는 eBPF — 실측 벤치마크</h1>
-  <p class="sub" data-a="3">이 플레이북의 자체 측정 결과입니다 — <b>EKS 1.31 · m6i.xlarge · 시나리오 5종</b>, 3회 반복 중앙값.</p>
+  <p class="sub" data-a="3">플레이북 벤치마크에 보고된 수치 — <b>2026-02-09 · EKS 1.31 · m6i.xlarge</b>, 최소 3회 반복 중앙값. 이번 검토에서 재측정하지 않았습니다.</p>
   <table class="compare" data-a="4">
     <thead>
       <tr><th>메트릭</th><th>A · VPC CNI (기본)</th><th class="hl">E · Cilium ENI + 풀 튜닝</th><th>해석</th></tr>
     </thead>
     <tbody>
-      <tr><td>TCP 처리량</td><td>12.41 Gbps</td><td>12.40 Gbps</td><td>모든 시나리오가 <b>NIC 대역폭(12.5 Gbps)에 포화</b> — 처리량으론 차이 없음</td></tr>
+      <tr><td>TCP 처리량</td><td>12.41 Gbps</td><td>12.40 Gbps</td><td>이 테스트의 측정 처리량은 비슷함; 인스턴스의 지속 대역폭을 입증하지는 않음</td></tr>
       <tr><td>Pod-to-Pod RTT p50</td><td>4,894 µs</td><td class="good">3,135 µs</td><td>eBPF 데이터패스 + 튜닝으로 <b>약 36% 단축</b></td></tr>
-      <tr><td>UDP 손실 (iperf3 포화)</td><td class="bad">20.4%</td><td class="good">0.03%</td><td>Bandwidth Manager — EDT(Earliest Departure Time) rate limiting, 성능이 아닌 <b>기능</b> 차이</td></tr>
+      <tr><td>UDP 손실 (iperf3 포화)</td><td class="bad">20.4%</td><td class="good">0.03%</td><td>튜닝 설정이 다르므로 이 표만으로 UDP 손실 차이의 원인을 분리할 수 없음</td></tr>
       <tr><td>HTTP p99 @1k QPS</td><td>10.9 ms</td><td class="good">9.9 ms</td><td>애플리케이션 레벨에선 격차 축소 — <b>CNI는 병목의 일부일 뿐</b></td></tr>
     </tbody>
   </table>
   <div class="chips" data-a="5" style="display:flex;gap:12px;margin-top:2.4vh;flex-wrap:wrap">
     <span class="chip hot">결론: CNI 선택 기준은 처리량이 아니라 지연 · 기능 · 운영 모델</span>
-    <span class="chip">서비스 메시도 같은 흐름 — 사이드카(Pod당 프록시) → eBPF + 노드 프록시(Cilium Mesh · Istio Ambient)</span>
+    <span class="chip">Cilium 서비스 메시와 Istio Ambient는 데이터패스가 다름; 둘 다 Pod별 사이드카 배포를 줄일 수 있음</span>
   </div>
   <aside class="notes">
-    자체 실측임을 강조 — 벤더 수치가 아니다. 반전 포인트: <b>처리량은 전부 NIC 포화로 동일</b>, 차이는 RTT 36%·UDP 손실 20.4%→0.03%(기능 차이). 결론 칩: CNI 선택 기준은 처리량이 아니라 지연·기능·운영 모델.
+    저장소 벤치마크에 보고된 과거 수치이며 이번 검토에서 재현하지 않았다. 처리량은 비슷하고 RTT와 UDP 손실은 다르다. 여러 설정이 바뀌었으므로 원인을 특정하려면 통제된 테스트가 필요하다. 결론 칩: CNI 선택 기준은 처리량이 아니라 지연·기능·운영 모델.
+  <p>출처: <a href="https://devfloor9.github.io/engineering-playbook/docs/benchmarks/cni-performance-comparison" target="_blank" rel="noopener">Historical benchmark</a>.</p>
   </aside>
 </section>
 
@@ -1585,8 +1596,8 @@ $ <span class="ck">memleak</span> -p 1234 --older 60000</div>
   <div class="kicker" data-a="1">Take these home</div>
   <h1 class="display md" data-a="2">커널을 읽을 수 있으면, <span class="hot">클러스터가 보인다</span></h1>
   <div class="takeaways">
-    <div class="take" data-a="3"><span class="tk">1</span><h3>Verifier가 계약이다</h3><p>eBPF의 안전은 런타임 격리가 아니라 <b>로드 타임 증명</b>. 512 B 스택·bounded loop 같은 제약은 그 증명의 대가다.</p></div>
-    <div class="take" data-a="4"><span class="tk">2</span><h3>CO-RE가 배포를 바꿨다</h3><p>BTF 재배치로 커널별 재컴파일이 사라졌다. <b>libbpf 정적 바이너리</b>가 프로덕션 표준 — BCC는 실험용으로.</p></div>
+    <div class="take" data-a="3"><span class="tk">1</span><h3>Verifier가 계약이다</h3><p>eBPF는 런타임 격리가 아니라 <b>로드 타임 검증</b>을 사용. 512 B 스택·bounded loop 같은 제약은 그 검증을 위한 조건이다.</p></div>
+    <div class="take" data-a="4"><span class="tk">2</span><h3>CO-RE가 배포를 바꿨다</h3><p>BTF 재배치로 호환되는 대상에서 커널별 재컴파일을 줄인다. <b>libbpf 정적 바이너리</b>가 프로덕션 표준 — BCC는 실험용으로.</p></div>
     <div class="take" data-a="5"><span class="tk">3</span><h3>EKS에선 이미 기본기</h3><p>NetworkPolicy 에이전트·Cilium·NFM 모두 eBPF 위에서 돌고, NFM은 소스까지 공개되어 있다. <b>이해하는 순간 디버깅 계층이 하나 더 생긴다.</b></p></div>
   </div>
   <p class="sub" data-a="6" style="margin-top:4vh">세 챕터를 관통하는 한 문장 — <b>eBPF는 커널을 고치지 않고 커널의 동작을 바꾸는, 검증된 프로그래밍 계층</b>입니다.</p>
@@ -1611,7 +1622,7 @@ $ <span class="ck">memleak</span> -p 1234 --older 60000</div>
       <h3>Build on EKS</h3>
       <div class="rl"><span class="mglyph">C</span><a href="https://docs.cilium.io/en/stable/network/concepts/ipam/eni/" target="_blank" rel="noopener">Cilium ENI Mode</a><span class="rtag">CNI</span></div>
       <div class="rl"><span class="mglyph">T</span><a href="https://tetragon.io/" target="_blank" rel="noopener">Tetragon — eBPF Security Observability</a><span class="rtag">SECURITY</span></div>
-      <div class="rl"><span class="mglyph">PB</span><a href="https://devfloor9.github.io/engineering-playbook/docs/eks-best-practices/networking-performance/vpc-cni-deep-dive" target="_blank" rel="noopener">Playbook — VPC CNI 동작 원리 Deep Dive</a><span class="rtag">INTERNAL</span></div>
+      <div class="rl"><span class="mglyph">PB</span><a href="https://devfloor9.github.io/engineering-playbook/docs/eks-best-practices/networking-performance/vpc-cni-deep-dive" target="_blank" rel="noopener">Playbook — VPC CNI 동작 원리 Deep Dive</a><span class="rtag">PLAYBOOK</span></div>
     </div>
   </div>
   <div class="chips" data-a="6">
@@ -1630,9 +1641,9 @@ $ <span class="ck">memleak</span> -p 1234 --older 60000</div>
 </section>
 
 <!-- presenter setup — 브라우저 localStorage에만 저장, 링크 공유로 전달되지 않음 -->
-<aside class="setup" id="setup" hidden>
+<aside class="setup" id="setup" role="dialog" aria-modal="true" aria-labelledby="setupTitle" hidden>
   <header>
-    <span class="st">PRESENTER SETUP</span>
+    <span class="st" id="setupTitle">PRESENTER SETUP</span>
     <button id="setupClose" aria-label="닫기">×</button>
   </header>
   <p class="note">이 브라우저에만 저장됩니다 — 한 번 설정하면 유지되고, 링크를 공유해도 발표자 정보는 전달되지 않습니다.</p>

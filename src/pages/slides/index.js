@@ -64,6 +64,13 @@ const slideDecks = [
         slides: 39,
         href: '/slides/ebpf-deep-dive/',
       },
+      {
+        title: 'EKS Networking Deep Dive',
+        description: 'VPC CNI · IPAM · NetworkPolicy · Network Flow Monitor — Pod 네트워크 경로와 IP 할당, 정책 적용, TCP 흐름 관측',
+        badge: 'Deep Dive',
+        slides: 22,
+        href: '/slides/eks-networking/',
+      },
     ],
   },
   {

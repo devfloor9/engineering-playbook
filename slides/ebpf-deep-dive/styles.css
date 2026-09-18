@@ -437,3 +437,53 @@ h1.display.md { font-size: clamp(30px, 3.8vw, 54px); }
     opacity: 1 !important; transform: none !important; transition: none !important; animation: none !important;
   }
 }
+
+/* #64: keyboard access and overflow-safe reading of the packed deck. */
+[hidden] { display: none !important; }
+:focus-visible { outline: 3px solid var(--blue); outline-offset: 4px; }
+.slide { overflow-y: auto; justify-content: safe center; padding-bottom: 100px; }
+.chapter { overflow: hidden; }
+.slide[aria-hidden="true"] { visibility: hidden; }
+.navbtns button { width: 44px; height: 44px; }
+.setup header button { min-width: 44px; min-height: 44px; }
+@media (max-width: 700px) {
+  .slide { padding: 64px 24px 125px; justify-content: flex-start; }
+  .tiles, .tiles.four, .tiles.two, .takeaways { grid-template-columns: 1fr; }
+  .arch { overflow-x: auto; flex-shrink: 0; }
+  .arch svg { min-width: 660px; }
+  .compare { display: block; overflow-x: auto; flex-shrink: 0; }
+  .chip { border-radius: 12px; font-size: 12px; overflow-wrap: anywhere; }
+  .hud .keys, .hud .legal, .hud .brand { display: none; }
+  .setup { width: calc(100vw - 32px); right: 16px; }
+  .ag { grid-template-columns: 44px 1fr; padding: 18px; }
+  .ag .tag { grid-column: 2; justify-self: start; }
+  .rung { grid-template-columns: minmax(0, 1fr); gap: 8px; padding: 16px; }
+  .rung .tag { justify-self: start; }
+  .qrbox { position: relative; inset: auto; margin-top: 24px; }
+  #notesbar { width: 90vw; max-height: 35vh; bottom: 110px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+  #splash { display: none !important; }
+}
+@media print {
+  .slide[aria-hidden="true"] { visibility: visible; }
+  .slide { overflow: hidden; }
+}
+
+@media screen and (min-width: 701px) and (max-height: 800px) {
+  .slide { padding-top: 42px; padding-bottom: 88px; }
+  h1.display.md { font-size: 36px; }
+  .sub { font-size: 17px; line-height: 1.45; margin-top: 12px; }
+  .kicker { margin-bottom: 14px; }
+  .slide .chips { margin-top: 14px !important; gap: 8px !important; }
+  .chip { font-size: 12px; padding: 8px 12px; }
+  .panel { padding: 18px; }
+  .panel li, .panel p, .tile p { font-size: 15px; line-height: 1.45; }
+  .compare th, .compare td { padding: 9px 12px; font-size: 14px; }
+  .rung { padding-top: 12px; padding-bottom: 12px; }
+  .rung p { font-size: 15px; line-height: 1.45; }
+  .arch { margin-top: 16px; }
+}
+
+.codeblock { white-space: pre-wrap; overflow-wrap: anywhere; overflow-x: auto; }

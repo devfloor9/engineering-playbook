@@ -16,6 +16,9 @@ const slides = [...document.querySelectorAll('.slide')];
 const progress = document.getElementById('progress');
 const counter = document.getElementById('counter');
 const TOTAL = slides.length;
+counter.setAttribute('role', 'status');
+counter.setAttribute('aria-live', 'polite');
+counter.setAttribute('aria-atomic', 'true');
 let cur = 0;
 
 function clamp(n) { return Math.max(0, Math.min(TOTAL - 1, n)); }
@@ -24,6 +27,12 @@ function show(n, push = true) {
   n = clamp(n);
   slides.forEach((s, i) => {
     s.classList.toggle('active', i === n);
+    s.inert = i !== n;
+    s.setAttribute('aria-hidden', String(i !== n));
+    s.setAttribute('role', 'group');
+    s.setAttribute('aria-roledescription', LANG === 'ko' ? '슬라이드' : 'slide');
+    s.setAttribute('aria-label', (i + 1) + ' / ' + TOTAL);
+    if (i === n) s.scrollTop = 0;
     if (i !== n) s.classList.remove('built');
   });
   cur = n;
@@ -46,21 +55,30 @@ function advance() {
 function retreat() { show(cur - 1); }
 
 addEventListener('keydown', (e) => {
-  if (e.key === 'Escape' && !setup.hidden) { setup.hidden = true; return; }
+  if (e.key === 'Escape' && !setup.hidden) { e.preventDefault(); closeSetup(); return; }
+  if (!setup.hidden && e.key === 'Tab') {
+    const controls = [...setup.querySelectorAll('button, input, select, a[href]')].filter(el => el.getClientRects().length);
+    const first = controls[0], last = controls[controls.length - 1];
+    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    return;
+  }
+  if (e.ctrlKey || e.metaKey || e.altKey) return;
   if (e.target && e.target.closest && e.target.closest('input, textarea, select')) return;
   if (e.target && e.target.isContentEditable) return;
   if (!e.metaKey && !e.ctrlKey && !e.altKey) {
-    if (e.code === 'KeyE') { e.preventDefault(); setup.hidden = !setup.hidden; if (!setup.hidden) pFill(); return; }
+    if (e.code === 'KeyE') { e.preventDefault(); if (setup.hidden) openSetup(); else closeSetup(); return; }
     if (e.code === 'KeyQ') { e.preventDefault(); pcfg.qrHidden = !pcfg.qrHidden; pStore(); pRender(); return; }
     if (e.code === 'KeyS') { e.preventDefault(); sOpen(); return; }
     if (e.code === 'KeyN') { e.preventDefault(); notesbar.hidden = !notesbar.hidden; nRender(); return; }
     if (e.code === 'KeyP') { e.preventDefault(); window.print(); return; }
   }
   if (!setup.hidden) return;
+  if (e.target?.closest?.('button, a[href]')) return;
   if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') { e.preventDefault(); advance(); }
   else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); retreat(); }
-  else if (e.key === 'Home') show(0);
-  else if (e.key === 'End') show(TOTAL - 1);
+  else if (e.key === 'Home') { e.preventDefault(); show(0); }
+  else if (e.key === 'End') { e.preventDefault(); show(TOTAL - 1); }
 });
 
 addEventListener('hashchange', () => {
@@ -81,11 +99,13 @@ if (langBtn) {
 }
 
 // touch swipe
-let tx0 = null;
-addEventListener('touchstart', (e) => { tx0 = e.touches[0].clientX; }, { passive: true });
+let tx0 = null, ty0 = null;
+addEventListener('touchstart', (e) => { if (!setup.hidden || e.target?.closest?.('input, button, a, [contenteditable]')) { tx0 = null; return; } tx0 = e.touches[0].clientX; ty0 = e.touches[0].clientY; }, { passive: true });
 addEventListener('touchend', (e) => {
   if (tx0 === null) return;
   const dx = e.changedTouches[0].clientX - tx0;
+  const dy = e.changedTouches[0].clientY - ty0;
+  if (Math.abs(dy) >= Math.abs(dx)) { tx0 = null; return; }
   if (dx < -40) advance(); else if (dx > 40) retreat();
   tx0 = null;
 }, { passive: true });
@@ -207,6 +227,16 @@ const P_DEFAULT = {
   ],
 };
 const setup = document.getElementById('setup');
+let setupReturnFocus = null;
+function openSetup() {
+  setupReturnFocus = document.activeElement;
+  setup.hidden = false; pFill();
+  document.getElementById('setupClose').focus();
+}
+function closeSetup() {
+  setup.hidden = true;
+  if (setupReturnFocus?.isConnected) setupReturnFocus.focus();
+}
 const F = (id) => document.getElementById(id);
 const esc = (s) => String(s == null ? '' : s)
   .replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -224,7 +254,7 @@ function pLoad() {
 }
 let pcfg = pLoad();
 
-function pStore() { localStorage.setItem(PKEY, JSON.stringify(pcfg)); }
+function pStore() { try { localStorage.setItem(PKEY, JSON.stringify(pcfg)); } catch (_) { /* Private/file contexts may deny storage; keep session settings. */ } }
 
 function pRender() {
   document.querySelectorAll('[data-speakers]').forEach((el) => {
@@ -277,16 +307,16 @@ function pSave() {
   pcfg.survey = F('surveyUrl').value.trim();
   pStore();
   pRender();
-  setup.hidden = true;
+  closeSetup();
 }
 
 setup.querySelectorAll('.seg button').forEach((b) =>
   b.addEventListener('click', () => { pcfg.count = +b.dataset.count; pFill(); }));
-F('setupClose').addEventListener('click', () => { setup.hidden = true; });
+F('setupClose').addEventListener('click', closeSetup);
 F('setupSave').addEventListener('click', pSave);
 F('setupReset').addEventListener('click', () => {
   pcfg = JSON.parse(JSON.stringify(P_DEFAULT));
-  localStorage.removeItem(PKEY);
+  try { localStorage.removeItem(PKEY); } catch (_) { /* Defaults still apply in memory. */ }
   pFill();
   pRender();
 });
@@ -298,10 +328,11 @@ document.querySelectorAll('[data-edit]').forEach((el) => {
   el.contentEditable = 'true';
   el.spellcheck = false;
   const key = DECK_ID + '-edit-' + el.dataset.edit;
-  const saved = localStorage.getItem(key);
+  let saved = null;
+  try { saved = localStorage.getItem(key); } catch (_) { /* Continue with default text. */ }
   if (saved !== null && saved.trim() !== '') el.textContent = saved;
   el.addEventListener('input', () => {
-    localStorage.setItem(key, el.textContent);
+    try { localStorage.setItem(key, el.textContent); } catch (_) { /* Keep edits in this session. */ }
     document.querySelectorAll('[data-edit="' + el.dataset.edit + '"]').forEach((o) => {
       if (o !== el && o.textContent !== el.textContent) o.textContent = el.textContent;
     });

@@ -14,9 +14,9 @@
   HTML/CSS/JS, no build step, no tracking. Presenter settings (E key) live
   only in this browser's localStorage and do not travel with the file.
 -->
-<!-- Reviewed packed export for #64 (2026-09-18). Original 39-slide draft retained.
-     Regeneration requires the accompanying canonical-source correction patch
-     identified in slides/eks-networking/REVIEW.md; shared source files were outside review ownership. -->
+<!-- #64 canonical integration (2026-09-18). Original 39-slide structure retained.
+     Reviewed corrections from slides/eks-networking/REVIEW.md are integrated here.
+     Regenerate the packed export from these canonical sources with pack_deck.py. -->
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpolygon points='16,2 28,9 28,23 16,30 4,23 4,9' fill='none' stroke='%23ff9900' stroke-width='2.5'/%3E%3Ctext x='16' y='21' font-family='monospace' font-size='11' font-weight='bold' fill='%23ff9900' text-anchor='middle'%3EBPF%3C/text%3E%3C/svg%3E">
 <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -570,7 +570,7 @@ h1.display.md { font-size: clamp(30px, 3.8vw, 54px); }
     </div>
     <div class="ag" data-a="5">
       <span class="n">03</span>
-      <div><h3>eBPF on EKS</h3><p>VPC CNI NetworkPolicy · Cilium ENI · Hubble · hands-on benchmarks — EKS already runs on eBPF</p></div>
+      <div><h3>eBPF on EKS</h3><p>VPC CNI NetworkPolicy · Cilium ENI · Hubble · reported benchmarks — EKS components using eBPF when enabled</p></div>
       <span class="tag">AWS</span>
     </div>
   </div>
@@ -842,7 +842,7 @@ h1.display.md { font-size: clamp(30px, 3.8vw, 54px); }
     <span class="chip">Runtime limits constrain expressiveness, not speed — the 512 B stack and instruction cap are the price of the proof</span>
   </div>
   <aside class="notes">
-    The JVM analogy lands best — not VMware, but <b>a bytecode execution spec</b>. The chips below ("four reasons it earns the name VM") matter more than the table. Runtime cost is effectively zero; the real cost is one-time at load.
+    The JVM analogy lands best — not VMware, but <b>a bytecode execution spec</b>. The chips below ("four reasons it earns the name VM") matter more than the table. Separate load-time verification and JIT costs from runtime CPU spent on hooks, helpers, maps, and program execution.
   <p>Source: <a href="https://docs.kernel.org/bpf/libbpf/libbpf_overview.html" target="_blank" rel="noopener">Kernel libbpf</a>.</p>
   </aside>
 </section>
@@ -880,7 +880,7 @@ h1.display.md { font-size: clamp(30px, 3.8vw, 54px); }
     <span class="chip hot">Profiling can identify expensive code paths — quantify improvements with workload-specific measurements</span>
   </div>
   <aside class="notes">
-    R10, the <b>read-only frame pointer</b>, is the star of this slide — stack manipulation is blocked by design. Hardware 1:1 mapping = why the JIT is fast. Close with the Strobelight chip (15,000 servers saved) to remind everyone why this is worth learning.
+    R10, the <b>read-only frame pointer</b>, is the star of this slide. Distinguish basic 8-byte instructions from wide 16-byte instructions and explain architecture-specific register mapping. Close with the profiling chip: measure improvements on the actual workload.
   <p>Source: <a href="https://docs.kernel.org/bpf/standardization/instruction-set.html" target="_blank" rel="noopener">BPF instruction set</a>.</p>
   </aside>
 </section>
@@ -1237,7 +1237,7 @@ h1.display.md { font-size: clamp(30px, 3.8vw, 54px); }
     <span class="chip hot">The fix converges to one move — merge the buffers into a single global one (next slide)</span>
   </div>
   <aside class="notes">
-    Walk the four limits one by one — stress that all of them derive from <b>the single choice of "a buffer per CPU"</b>. The fork → exec reversal is the most intuitive example. The fix converges too: merge the buffers.
+    Walk the four costs one by one. <b>Per-CPU buffers explain memory imbalance and cross-CPU ordering</b>; copying and wakeups also depend on the API and notification thresholds. The fork → exec reversal is the most intuitive example.
   <p>Source: <a href="https://github.com/torvalds/linux/blob/master/include/uapi/linux/perf_event.h" target="_blank" rel="noopener">perf_event.h thresholds</a>.</p>
   </aside>
 </section>
@@ -1313,7 +1313,7 @@ h1.display.md { font-size: clamp(30px, 3.8vw, 54px); }
       <text x="60" y="386" class="am" font-size="12" fill="#ad5cff">— notify when the consumer has caught up</text>
       <rect x="400" y="336" width="560" height="60" rx="12" fill="rgba(65,179,255,.08)" stroke="#41b3ff" stroke-width="1.5"/>
       <text x="680" y="362" class="an" font-size="16" text-anchor="middle">Userspace consumer</text>
-      <text x="680" y="384" class="am" font-size="12" text-anchor="middle">one fd — direct reads via mmap · global order preserved</text>
+      <text x="680" y="384" class="am" font-size="12" text-anchor="middle">one fd — direct reads via mmap · reservation order within one ring</text>
     </svg>
   </div>
   <div class="chips" data-a="5" style="display:flex;gap:12px;flex-wrap:wrap">
@@ -1391,7 +1391,7 @@ h1.display.md { font-size: clamp(30px, 3.8vw, 54px); }
     <span class="chip hot">Choose by ordering, contention and compatibility requirements — per-CPU Perf Buffers remain useful</span>
   </div>
   <aside class="notes">
-    Run the table top to bottom quickly — let the audience read, state only the conclusion: <b>Ring Buffer is the default for new development</b>; Perf Buffer is for pre-v5.8 compatibility. Similar APIs keep migration cost low.
+    Run the table top to bottom quickly — let the audience read, then conclude: <b>choose by ordering, contention, and compatibility requirements</b>. Per-CPU Perf Buffers remain useful; similar polling APIs help migration.
   <p>Source: <a href="https://docs.kernel.org/bpf/ringbuf.html" target="_blank" rel="noopener">Kernel ring buffer</a>.</p>
   </aside>
 </section>
@@ -1417,9 +1417,9 @@ h1.display.md { font-size: clamp(30px, 3.8vw, 54px); }
       <text x="440" y="228" class="am" font-size="13" text-anchor="middle">.BTF + .BTF.ext</text>
       <text x="440" y="250" class="am" font-size="13" text-anchor="middle">"which fields does it touch"</text>
 
-      <!-- runtime zone -->
+      <!-- load-time zone -->
       <rect x="625" y="20" width="560" height="360" rx="18" fill="rgba(0,229,0,.03)" stroke="#00e500" stroke-width="1.2" stroke-dasharray="8 6"/>
-      <text x="655" y="56" class="am" font-size="14" fill="#00e500" letter-spacing="3">RUNTIME · TARGET NODE</text>
+      <text x="655" y="56" class="am" font-size="14" fill="#00e500" letter-spacing="3">LOAD TIME · TARGET NODE</text>
       <rect x="655" y="85" width="250" height="90" rx="12" fill="#131a24" stroke="#00e500" stroke-width="1.5"/>
       <text x="780" y="118" class="an" font-size="17" text-anchor="middle">The kernel's own BTF</text>
       <text x="780" y="146" class="am" font-size="12" text-anchor="middle">/sys/kernel/btf/vmlinux</text>
@@ -1444,7 +1444,8 @@ h1.display.md { font-size: clamp(30px, 3.8vw, 54px); }
     <span class="chip hot">Slim static binaries with no runtime compilation — unlike BCC (BPF Compiler Collection) embedding clang</span>
   </div>
   <aside class="notes">
-    Start with the problem — <b>kernel struct offsets differ per version</b>. Then compile time (relocation records) → runtime (kernel BTF + libbpf patching). The measured pt_regs chip (di=112…) is the proof that real bytecode gets patched.
+    Start with the problem — <b>kernel struct offsets differ per version</b>. Then compile time (relocation records) → load time (target BTF + libbpf relocation). The pt_regs example (di=112…) illustrates bytecode patching for that target.
+  <p>Source: <a href="https://docs.kernel.org/bpf/libbpf/libbpf_overview.html" target="_blank" rel="noopener">Kernel libbpf CO-RE</a>.</p>
   </aside>
 </section>
 
@@ -1792,7 +1793,7 @@ $ <span class="ck">memleak</span> -p 1234 --older 60000</div>
   </div>
   <div class="chips" data-a="4" style="display:flex;gap:12px;flex-wrap:wrap">
     <span class="chip">Rule-based detection with ecosystem integrations</span>
-    <span class="chip hot">But blocking is after the fact — by kill time, it's already too late</span>
+    <span class="chip hot">A later response cannot guarantee prevention of the triggering operation</span>
   </div>
   <aside class="notes">
     Follow the pipeline left to right, then the twist — <b>asynchronous detection does not guarantee pre-execution blocking</b>. One line on TOCTOU. Be clear this is a structural placement issue, not a knock on Falco (its detection is genuinely strong).
@@ -1841,7 +1842,7 @@ $ <span class="ck">memleak</span> -p 1234 --older 60000</div>
     <span class="chip">The next step is correlation — weaving kernel eBPF data with cloud API and app signals into full attack stories (ARMO CADR · Cloud Application Detection &amp; Response)</span>
   </div>
   <aside class="notes">
-    The contrast is everything — Falco detects asynchronously after the fact; <b>Tetragon issues a synchronous verdict at the LSM hook and completes the block in the same kernel context</b>. Two blocking levers: -EPERM vs SIGKILL. Also K8s-native via the TracingPolicy CRD.
+    Contrast asynchronous detection with the illustrated enforcement path: <b>a Tetragon policy can deny an operation through the LSM return value</b>. Other actions depend on the hook type; do not treat return override or signaling as universal LSM actions. Also K8s-native via the TracingPolicy CRD.
   </aside>
 </section>
 
@@ -2007,7 +2008,7 @@ $ <span class="ck">memleak</span> -p 1234 --older 60000</div>
     <span class="chip">Ops detail (NHI · enrichment · rollout) — Playbook NFM doc</span>
   </div>
   <aside class="notes">
-    The highlight of chapter 1 collection — reading AWS's own eBPF in the source. <b>The map-polling rung is the gem: if it isn't an event stream, the Ring Buffer isn't the answer</b> (a deliberate counterpoint to §18). CAP self-drop, then the license chip — the modern rerun of §6's DTrace CDDL.
+    Connect chapter 1 to AWS's source: <b>NFM polls aggregated maps instead of streaming each event through a Ring Buffer</b> (§18). Explain sampling limits, the specific capabilities dropped, and the remaining deployment permissions. Finish with version-specific distribution and kernel support.
   <p>Source: <a href="https://github.com/aws/network-flow-monitor-agent/blob/3bf328bc44c53ffb2a35696e58484c06fc4259f8/nfm-controller/src/lib.rs" target="_blank" rel="noopener">NFM privileges source</a>.</p>
   </aside>
 </section>
