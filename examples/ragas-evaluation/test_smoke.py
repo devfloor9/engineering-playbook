@@ -4,6 +4,7 @@ import copy
 import inspect
 import io
 import json
+import math
 import os
 import tempfile
 import unittest
@@ -158,6 +159,32 @@ class SmokeTests(unittest.IsolatedAsyncioTestCase):
         low = await example.score_samples(self.samples, metrics)
         self.assertTrue(example.quality_failures(low))
 
+    async def test_gate_accepts_scores_exactly_at_thresholds(self):
+        for count in (1, 3, 6, 50, 100):
+            with self.subTest(count=count):
+                samples = [copy.deepcopy(self.samples[0]) for _ in range(count)]
+                metrics = {
+                    name: StubMetric(threshold)
+                    for name, threshold in example.QUALITY_GATES.items()
+                }
+                report = await example.score_samples(samples, metrics)
+                self.assertEqual(report["metrics"], example.QUALITY_GATES)
+                self.assertEqual(example.quality_failures(report), [])
+
+    async def test_gate_rejects_scores_just_below_thresholds(self):
+        samples = [copy.deepcopy(self.samples[0]) for _ in range(50)]
+        for name, threshold in example.QUALITY_GATES.items():
+            with self.subTest(metric=name):
+                metrics = {
+                    metric: StubMetric(limit)
+                    for metric, limit in example.QUALITY_GATES.items()
+                }
+                metrics[name] = StubMetric(math.nextafter(threshold, -math.inf))
+                report = await example.score_samples(samples, metrics)
+                failures = example.quality_failures(report)
+                self.assertEqual(len(failures), 1)
+                self.assertTrue(failures[0].startswith(f"{name}:"))
+
     async def test_cache_preserves_order_and_invalidates_changed_inputs(self):
         metrics, cache = stub_metrics(), {}
         await example.score_samples(self.samples[:1], metrics, cache)
@@ -229,6 +256,27 @@ class SmokeTests(unittest.IsolatedAsyncioTestCase):
 
         self.assertEqual(example.collect_samples(example.CASES, adapter), self.samples)
         self.assertEqual(seen, [case["user_input"] for case in example.CASES])
+
+    def test_adapter_snapshots_reused_context_buffer(self):
+        contexts = []
+
+        def adapter(question):
+            contexts[:] = [example.DEMO_DOCUMENTS[question]]
+            return {"response": contexts[0], "retrieved_contexts": contexts}
+
+        samples = example.collect_samples(example.CASES, adapter)
+        self.assertEqual(samples, self.samples)
+        contexts.clear()
+        self.assertEqual(samples, self.samples)
+
+    def test_adapter_rejects_nonlist_contexts(self):
+        for contexts in ("text", ("text",), {"text": "context"}, None):
+            with self.subTest(contexts=contexts):
+                def adapter(question):
+                    return {"response": "Fixture response", "retrieved_contexts": contexts}
+
+                with self.assertRaises(ValueError):
+                    example.collect_samples(example.CASES, adapter)
 
     def test_cli_requires_explicit_live_flag_and_credentials(self):
         for argv in (["ragas_eval.py"], ["ragas_eval.py", "--live"]):

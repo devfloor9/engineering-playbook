@@ -9,6 +9,7 @@ import os
 from collections.abc import Callable
 from importlib.metadata import version
 from pathlib import Path
+from statistics import mean
 
 os.environ.setdefault("RAGAS_DO_NOT_TRACK", "true")
 
@@ -84,11 +85,12 @@ def collect_samples(cases: list[dict], pipeline: Callable[[str], dict]) -> list[
     samples = []
     for case in cases:
         output = pipeline(case["user_input"])
+        contexts = output["retrieved_contexts"]
         samples.append({
             "user_input": case["user_input"],
             "reference": case["reference"],
             "response": output["response"],
-            "retrieved_contexts": output["retrieved_contexts"],
+            "retrieved_contexts": contexts.copy() if isinstance(contexts, list) else contexts,
         })
     validate_samples(samples)
     return samples
@@ -199,7 +201,7 @@ async def score_samples(
         values = [row["scores"][name] for row in rows]
         # Never hide failed samples by averaging only successful scores.
         summary[name] = (
-            sum(values) / len(values) if all(map(finite_score, values)) else None
+            mean(values) if all(map(finite_score, values)) else None
         )
     return {
         "config": config, "sample_count": len(samples), "metrics": summary,
@@ -226,7 +228,7 @@ def quality_failures(report: dict) -> list[str]:
     failures = []
     for name in names:
         aggregate = report.get("metrics", {}).get(name)
-        actual = sum(row["scores"][name] for row in rows) / count
+        actual = mean(row["scores"][name] for row in rows)
         if not finite_score(aggregate) or not math.isclose(aggregate, actual):
             failures.append(f"{name}: missing, non-finite, or inconsistent aggregate")
         elif name in QUALITY_GATES and actual < QUALITY_GATES[name]:
