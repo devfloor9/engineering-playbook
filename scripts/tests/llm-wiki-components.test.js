@@ -193,3 +193,7 @@ After`;
     assert.ok(output.endsWith('After'));
   }
 });
+
+// Keep the established npm test:llm-wiki entry point; no root package changes.
+require('./llm-wiki-boundaries.test');
+require('./llm-wiki-parity.test');

@@ -1,0 +1,709 @@
+{
+  "description": "Issue #52 baseline after #59; source snapshot 2026-09-18. All affected pages retained.",
+  "doc_count": 222,
+  "component_coverage": {
+    "supported_components": [
+      "CoreDnsMetricsTable",
+      "GpuMemoryRequirements",
+      "ParallelizationStrategies"
+    ],
+    "supported_navigation_components": [
+      "DocCardGrid",
+      "DocCard"
+    ],
+    "docs_with_omissions": 58,
+    "docs_with_technical_omissions": 43,
+    "docs_with_navigation_omissions": 15,
+    "omitted_component_count": 169
+  },
+  "docs": [
+    {
+      "slug": "agentic-ai-platform/design-architecture/advanced-patterns/index",
+      "content_coverage": {
+        "omitted_components": [
+          "DocCardList"
+        ],
+        "omitted_navigation_components": [
+          "DocCardList"
+        ]
+      }
+    },
+    {
+      "slug": "agentic-ai-platform/design-architecture/foundations/agentic-ai-challenges",
+      "content_coverage": {
+        "omitted_components": [
+          "ChallengeSummary"
+        ],
+        "omitted_navigation_components": []
+      }
+    },
+    {
+      "slug": "agentic-ai-platform/design-architecture/foundations/agentic-platform-architecture",
+      "content_coverage": {
+        "omitted_components": [
+          "LayerRoles",
+          "RequestProcessing",
+          "TenantIsolation"
+        ],
+        "omitted_navigation_components": []
+      }
+    },
+    {
+      "slug": "agentic-ai-platform/design-architecture/foundations/index",
+      "content_coverage": {
+        "omitted_components": [
+          "DocCardList"
+        ],
+        "omitted_navigation_components": [
+          "DocCardList"
+        ]
+      }
+    },
+    {
+      "slug": "agentic-ai-platform/design-architecture/platform-selection/agentic-ai-solutions-eks",
+      "content_coverage": {
+        "omitted_components": [
+          "AckControllers",
+          "AutomationComponents",
+          "ChallengeSolutionsSummary",
+          "DeploymentTimeComparison",
+          "EksAutoModeBenefits",
+          "EksAutoModeVsStandard",
+          "EksCapabilities",
+          "EksClusterConfiguration",
+          "EksIntegrationBenefits",
+          "EksKarpenterLayers"
+        ],
+        "omitted_navigation_components": []
+      }
+    },
+    {
+      "slug": "agentic-ai-platform/design-architecture/platform-selection/ai-platform-decision-framework",
+      "content_coverage": {
+        "omitted_components": [
+          "HybridPatternSummary",
+          "MaturityPathTable",
+          "PlatformComparisonMatrix"
+        ],
+        "omitted_navigation_components": []
+      }
+    },
+    {
+      "slug": "agentic-ai-platform/design-architecture/platform-selection/aws-native-agentic-platform",
+      "content_coverage": {
+        "omitted_components": [
+          "EKSMCPFeatures",
+          "KagentVsAgentCore",
+          "MCPServerEcosystem",
+          "MultiAgentPatterns"
+        ],
+        "omitted_navigation_components": []
+      }
+    },
+    {
+      "slug": "agentic-ai-platform/design-architecture/platform-selection/index",
+      "content_coverage": {
+        "omitted_components": [
+          "DocCardList"
+        ],
+        "omitted_navigation_components": [
+          "DocCardList"
+        ]
+      }
+    },
+    {
+      "slug": "agentic-ai-platform/design-architecture/platform-selection/sovereign-hybrid-deployment",
+      "content_coverage": {
+        "omitted_components": [
+          "SovereigntySpectrum"
+        ],
+        "omitted_navigation_components": []
+      }
+    },
+    {
+      "slug": "agentic-ai-platform/model-serving/gpu-infrastructure/gpu-resource-management",
+      "content_coverage": {
+        "omitted_components": [
+          "ComparisonTable",
+          "CostOptimizationStrategies",
+          "DraLimitationsTable",
+          "KarpenterGpuOptimization",
+          "SavingsPlansPricingTraining",
+          "SpecificationTable",
+          "SpotInstancePricingInference"
+        ],
+        "omitted_navigation_components": []
+      }
+    },
+    {
+      "slug": "agentic-ai-platform/model-serving/gpu-infrastructure/nvidia-gpu-stack",
+      "content_coverage": {
+        "omitted_components": [
+          "ComparisonTable",
+          "SpecificationTable"
+        ],
+        "omitted_navigation_components": []
+      }
+    },
+    {
+      "slug": "agentic-ai-platform/model-serving/index",
+      "content_coverage": {
+        "omitted_components": [
+          "TieredGatewayDiagram"
+        ],
+        "omitted_navigation_components": []
+      }
+    },
+    {
+      "slug": "agentic-ai-platform/model-serving/inference-frameworks/llm-d-eks-automode",
+      "content_coverage": {
+        "omitted_components": [
+          "CostOptimizationTable",
+          "GatewayCRDTable",
+          "KVCacheEffectsTable",
+          "ModelLoadingTable",
+          "MonitoringMetricsTable",
+          "P5InstanceTable",
+          "P5eInstanceTable",
+          "Qwen3SpecsTable",
+          "VllmComparisonTable",
+          "WellLitPathTable"
+        ],
+        "omitted_navigation_components": []
+      }
+    },
+    {
+      "slug": "agentic-ai-platform/model-serving/inference-frameworks/moe-model-serving",
+      "content_coverage": {
+        "omitted_components": [
+          "BatchOptimization",
+          "GpuVsTrainium2",
+          "KvCacheConfig",
+          "MoeVsDense",
+          "MonitoringMetrics",
+          "RoutingMechanisms",
+          "TensorParallelismConfig",
+          "VllmVsTgi"
+        ],
+        "omitted_navigation_components": []
+      }
+    },
+    {
+      "slug": "agentic-ai-platform/model-serving/inference-frameworks/nemo-framework",
+      "content_coverage": {
+        "omitted_components": [
+          "CheckpointSharding",
+          "GPURequirements",
+          "MonitoringMetrics",
+          "NCCLImportance",
+          "NemoComponents"
+        ],
+        "omitted_navigation_components": []
+      }
+    },
+    {
+      "slug": "agentic-ai-platform/model-serving/inference-frameworks/vllm-model-serving",
+      "content_coverage": {
+        "omitted_components": [
+          "ComparisonTable",
+          "SpecificationTable"
+        ],
+        "omitted_navigation_components": []
+      }
+    },
+    {
+      "slug": "agentic-ai-platform/model-serving/inference-optimization/index",
+      "content_coverage": {
+        "omitted_components": [
+          "DocCardList"
+        ],
+        "omitted_navigation_components": [
+          "DocCardList"
+        ]
+      }
+    },
+    {
+      "slug": "agentic-ai-platform/model-serving/inference-routing/openclaw-example",
+      "content_coverage": {
+        "omitted_components": [
+          "OpenClawArchitecture"
+        ],
+        "omitted_navigation_components": []
+      }
+    },
+    {
+      "slug": "agentic-ai-platform/model-serving/inference-routing/routing-strategy",
+      "content_coverage": {
+        "omitted_components": [
+          "ComponentStructureTable",
+          "MonitoringMetricsTable",
+          "TopologyEffectsTable"
+        ],
+        "omitted_navigation_components": []
+      }
+    },
+    {
+      "slug": "agentic-ai-platform/operations-mlops/data-infrastructure/index",
+      "content_coverage": {
+        "omitted_components": [
+          "DocCardList"
+        ],
+        "omitted_navigation_components": [
+          "DocCardList"
+        ]
+      }
+    },
+    {
+      "slug": "agentic-ai-platform/operations-mlops/data-infrastructure/milvus-vector-database",
+      "content_coverage": {
+        "omitted_components": [
+          "ComponentRolesTable",
+          "GPUIndexingPerformanceTable",
+          "GPUInstanceTable",
+          "IndexComparisonTable",
+          "MonitoringMetricsTable",
+          "StorageCostComparisonTable"
+        ],
+        "omitted_navigation_components": []
+      }
+    },
+    {
+      "slug": "agentic-ai-platform/operations-mlops/governance/index",
+      "content_coverage": {
+        "omitted_components": [
+          "DocCardList"
+        ],
+        "omitted_navigation_components": [
+          "DocCardList"
+        ]
+      }
+    },
+    {
+      "slug": "agentic-ai-platform/operations-mlops/governance/ragas-evaluation",
+      "content_coverage": {
+        "omitted_components": [
+          "CostComparison",
+          "CostOptimizationStrategies",
+          "ImprovementChecklist",
+          "RagasMetrics",
+          "RagasVsBedrockComparison"
+        ],
+        "omitted_navigation_components": []
+      }
+    },
+    {
+      "slug": "agentic-ai-platform/operations-mlops/observability/agent-monitoring",
+      "content_coverage": {
+        "omitted_components": [
+          "DailyChecksTable",
+          "ErrorRateMetricsTable",
+          "LatencyMetricsTable",
+          "MaturityModelTable",
+          "TokenUsageMetricsTable",
+          "WeeklyChecksTable"
+        ],
+        "omitted_navigation_components": []
+      }
+    },
+    {
+      "slug": "agentic-ai-platform/operations-mlops/observability/index",
+      "content_coverage": {
+        "omitted_components": [
+          "DocCardList"
+        ],
+        "omitted_navigation_components": [
+          "DocCardList"
+        ]
+      }
+    },
+    {
+      "slug": "agentic-ai-platform/operations-mlops/observability/kagent-kubernetes-agents",
+      "content_coverage": {
+        "omitted_components": [
+          "ComponentsTable",
+          "SolutionsComparisonTable"
+        ],
+        "omitted_navigation_components": []
+      }
+    },
+    {
+      "slug": "agentic-ai-platform/reference-architecture/index",
+      "content_coverage": {
+        "omitted_components": [
+          "DocCardList"
+        ],
+        "omitted_navigation_components": [
+          "DocCardList"
+        ]
+      }
+    },
+    {
+      "slug": "agentic-ai-platform/reference-architecture/inference-gateway/index",
+      "content_coverage": {
+        "omitted_components": [
+          "DocCardList"
+        ],
+        "omitted_navigation_components": [
+          "DocCardList"
+        ]
+      }
+    },
+    {
+      "slug": "agentic-ai-platform/reference-architecture/inference-gateway/setup/index",
+      "content_coverage": {
+        "omitted_components": [
+          "InferencePipelineDiagram"
+        ],
+        "omitted_navigation_components": []
+      }
+    },
+    {
+      "slug": "agentic-ai-platform/reference-architecture/integrations/index",
+      "content_coverage": {
+        "omitted_components": [
+          "DocCardList"
+        ],
+        "omitted_navigation_components": [
+          "DocCardList"
+        ]
+      }
+    },
+    {
+      "slug": "agentic-ai-platform/reference-architecture/integrations/sagemaker-eks-integration",
+      "content_coverage": {
+        "omitted_components": [
+          "CostOptimization",
+          "HybridComparison"
+        ],
+        "omitted_navigation_components": []
+      }
+    },
+    {
+      "slug": "agentic-ai-platform/reference-architecture/model-lifecycle/continuous-training/index",
+      "content_coverage": {
+        "omitted_components": [
+          "DocCardList"
+        ],
+        "omitted_navigation_components": [
+          "DocCardList"
+        ]
+      }
+    },
+    {
+      "slug": "agentic-ai-platform/reference-architecture/model-lifecycle/index",
+      "content_coverage": {
+        "omitted_components": [
+          "DocCardList"
+        ],
+        "omitted_navigation_components": [
+          "DocCardList"
+        ]
+      }
+    },
+    {
+      "slug": "agentic-ai-platform/reference-architecture/model-lifecycle/mlops-pipeline-eks",
+      "content_coverage": {
+        "omitted_components": [
+          "GitOpsDeployment",
+          "PipelineComponents"
+        ],
+        "omitted_navigation_components": []
+      }
+    },
+    {
+      "slug": "aidlc/enterprise/agent-versioning/index",
+      "content_coverage": {
+        "omitted_components": [
+          "DocCardList"
+        ],
+        "omitted_navigation_components": [
+          "DocCardList"
+        ]
+      }
+    },
+    {
+      "slug": "aidlc/enterprise/cost-estimation",
+      "content_coverage": {
+        "omitted_components": [
+          "DetailedMetrics",
+          "ProductivityMetrics"
+        ],
+        "omitted_navigation_components": []
+      }
+    },
+    {
+      "slug": "aidlc/enterprise/msa-complexity/index",
+      "content_coverage": {
+        "omitted_components": [
+          "DocCardList"
+        ],
+        "omitted_navigation_components": [
+          "DocCardList"
+        ]
+      }
+    },
+    {
+      "slug": "aidlc/enterprise/regulatory-compliance/index",
+      "content_coverage": {
+        "omitted_components": [
+          "DocCardList"
+        ],
+        "omitted_navigation_components": [
+          "DocCardList"
+        ]
+      }
+    },
+    {
+      "slug": "aidlc/methodology/harness-engineering",
+      "content_coverage": {
+        "omitted_components": [
+          "QualityGates"
+        ],
+        "omitted_navigation_components": []
+      }
+    },
+    {
+      "slug": "aidlc/methodology/principles-and-model",
+      "content_coverage": {
+        "omitted_components": [
+          "AidlcArtifacts",
+          "AidlcPhaseActivities",
+          "AidlcPhaseMapping",
+          "AidlcPrinciples"
+        ],
+        "omitted_navigation_components": []
+      }
+    },
+    {
+      "slug": "aidlc/operations/autonomous-response",
+      "content_coverage": {
+        "omitted_components": [
+          "AiopsMaturityModel",
+          "ChaosExperiments",
+          "OperationPatternsComparison",
+          "ResponsePatterns"
+        ],
+        "omitted_navigation_components": []
+      }
+    },
+    {
+      "slug": "aidlc/operations/observability-stack",
+      "content_coverage": {
+        "omitted_components": [
+          "ArchitectureLayers",
+          "ObservabilityPillars",
+          "StackSelectionPatterns"
+        ],
+        "omitted_navigation_components": []
+      }
+    },
+    {
+      "slug": "aidlc/operations/predictive-operations",
+      "content_coverage": {
+        "omitted_components": [
+          "MLModelComparison",
+          "MaturityTable",
+          "ScalingComparison"
+        ],
+        "omitted_navigation_components": []
+      }
+    },
+    {
+      "slug": "aidlc/toolchain/ai-coding-agents",
+      "content_coverage": {
+        "omitted_components": [
+          "AiCodingAgentComparison"
+        ],
+        "omitted_navigation_components": []
+      }
+    },
+    {
+      "slug": "aidlc/toolchain/eks-declarative-automation",
+      "content_coverage": {
+        "omitted_components": [
+          "AidlcPipeline",
+          "EksCapabilities"
+        ],
+        "omitted_navigation_components": []
+      }
+    },
+    {
+      "slug": "benchmarks/ai-ml-workload",
+      "content_coverage": {
+        "omitted_components": [
+          "ConcurrencyChart",
+          "CostPerTokenChart",
+          "InferenceThroughputChart",
+          "InfraComparisonChart",
+          "ItlChart",
+          "KeyFindingsMLChart",
+          "MLOverviewChart",
+          "MLRecommendationChart",
+          "ModelSpecChart",
+          "TtftChart"
+        ],
+        "omitted_navigation_components": []
+      }
+    },
+    {
+      "slug": "benchmarks/cni-performance-comparison",
+      "content_coverage": {
+        "omitted_components": [
+          "AimlRelevanceChart",
+          "CniConclusionInfographic",
+          "DnsResourceChart",
+          "HttpPerformanceChart",
+          "KeyFindingsChart",
+          "KeyResultsSummaryChart",
+          "KubeproxyScalingChart",
+          "LatencyChart",
+          "NetworkPolicyChart",
+          "OverviewSummaryChart",
+          "RecommendationChart",
+          "ScenarioComparisonChart",
+          "ServiceScalingChart",
+          "TestEnvironmentChart",
+          "ThroughputChart",
+          "TuningPointsChart",
+          "UdpLossChart",
+          "XdpCompatibilityChart"
+        ],
+        "omitted_navigation_components": []
+      }
+    },
+    {
+      "slug": "eks-best-practices/networking-performance/coredns-monitoring-optimization",
+      "content_coverage": {
+        "omitted_components": [
+          "GoldenSignals",
+          "MonitoringArchitecture",
+          "PerformanceBenchmarks",
+          "TroubleshootingTable",
+          "TtlConfigGuide"
+        ],
+        "omitted_navigation_components": []
+      }
+    },
+    {
+      "slug": "eks-best-practices/networking-performance/east-west-traffic-best-practice",
+      "content_coverage": {
+        "omitted_components": [
+          "CostSimulation",
+          "LatencyCostComparison",
+          "ScenarioMatrix",
+          "ServiceTypeComparison"
+        ],
+        "omitted_navigation_components": []
+      }
+    },
+    {
+      "slug": "eks-best-practices/networking-performance/gateway-api-adoption-guide/cilium-eni-gateway-api",
+      "content_coverage": {
+        "omitted_components": [
+          "AlgorithmComparisonTable",
+          "EksRequirementsTable",
+          "InstanceTypeTable",
+          "LatencyComparisonTable"
+        ],
+        "omitted_navigation_components": []
+      }
+    },
+    {
+      "slug": "eks-best-practices/networking-performance/gateway-api-adoption-guide/index",
+      "content_coverage": {
+        "omitted_components": [
+          "ArchitectureComparisonTable",
+          "CostComparisonTable",
+          "DifficultyComparisonTable",
+          "DocumentStructureTable",
+          "FeatureComparisonMatrix",
+          "FeatureMappingTable",
+          "GaStatusTable",
+          "GatewayApiBenefits",
+          "RiskAssessmentTable",
+          "RoadmapTimeline",
+          "RoleSeparationTable",
+          "RouteRecommendationTable",
+          "ScenarioRecommendationTable",
+          "SolutionOverviewMatrix",
+          "SolutionSelectorCards",
+          "TieredGatewayDiagram"
+        ],
+        "omitted_navigation_components": []
+      }
+    },
+    {
+      "slug": "eks-best-practices/networking-performance/gateway-api-adoption-guide/migration-execution-strategy",
+      "content_coverage": {
+        "omitted_components": [
+          "MigrationFeatureMappingTable",
+          "TroubleshootingTable"
+        ],
+        "omitted_navigation_components": []
+      }
+    },
+    {
+      "slug": "eks-best-practices/networking-performance/service-mesh/gamma-initiative",
+      "content_coverage": {
+        "omitted_components": [
+          "GammaInfographic",
+          "GammaSupportTable"
+        ],
+        "omitted_navigation_components": []
+      }
+    },
+    {
+      "slug": "eks-best-practices/operations-reliability/eks-debugging/control-plane",
+      "content_coverage": {
+        "omitted_components": [
+          "ClusterHealthTable",
+          "ControlPlaneLogTable"
+        ],
+        "omitted_navigation_components": []
+      }
+    },
+    {
+      "slug": "eks-best-practices/operations-reliability/eks-debugging/index",
+      "content_coverage": {
+        "omitted_components": [
+          "ErrorQuickRefTable",
+          "IncidentEscalationTable",
+          "ZonalShiftImpactTable"
+        ],
+        "omitted_navigation_components": []
+      }
+    },
+    {
+      "slug": "eks-best-practices/operations-reliability/eks-debugging/node",
+      "content_coverage": {
+        "omitted_components": [
+          "NodeGroupErrorTable"
+        ],
+        "omitted_navigation_components": []
+      }
+    },
+    {
+      "slug": "eks-best-practices/operations-reliability/eks-pod-health-lifecycle",
+      "content_coverage": {
+        "omitted_components": [
+          "LegacySectionLinks"
+        ],
+        "omitted_navigation_components": []
+      }
+    },
+    {
+      "slug": "eks-best-practices/resource-cost/karpenter-autoscaling",
+      "content_coverage": {
+        "omitted_components": [
+          "AutoModeComparison",
+          "ControlPlaneComparison",
+          "PracticalGuide",
+          "ScalingBenchmark",
+          "ScalingLatencyBreakdown",
+          "WarmPoolCostAnalysis"
+        ],
+        "omitted_navigation_components": []
+      }
+    }
+  ]
+}

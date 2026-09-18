@@ -15,10 +15,12 @@
 const fs = require('fs');
 const path = require('path');
 const matter = require('gray-matter');
-const {parse} = require('@babel/parser');
+const {readImports, fenceMarker, jsxBlock, compactMarkdown, inlineComponentOffset} = require('./llm-wiki-source');
+const {rewriteMarkdownLinks} = require('./llm-wiki-links');
+const {embeddedDiagram} = require('./llm-wiki-diagrams');
+const {StaticGap} = require('./llm-wiki-static');
 const {
-  renderComponent, renderNavigation, componentName,
-  supportedComponents, supportedNavigationComponents,
+  renderComponent, renderNavigation, componentName, supportedNavigationComponents, staticRenderer,
 } = require('./llm-wiki-components');
 
 const ROOT = path.resolve(__dirname, '..');
@@ -119,210 +121,113 @@ function toPermalink(filePath) {
   return routePath ? `/docs/${routePath}` : '/docs';
 }
 
-// 자식이 마크다운 본문인 컨테이너 컴포넌트 — 태그 라인만 제거하고 내용은 보존한다
-const MARKDOWN_CONTAINER_TAGS = new Set(['Tabs', 'TabItem']);
-
-function readImports(content) {
-  const lines = content.split('\n');
-  const imports = new Map();
-  let fence = null;
-  for (let index = 0; index < lines.length; index++) {
-    const marker = lines[index].trim().match(/^(`{3,}|~{3,})/);
-    if (marker) {
-      if (!fence) fence = marker[1];
-      else if (marker[1][0] === fence[0] && marker[1].length >= fence.length) fence = null;
-      continue;
-    }
-    if (fence || !/^import\s/.test(lines[index].trim())) continue;
-    let end = index;
-    let declaration = null;
-    // Parse one declaration at a time. Comments and side-effect imports must
-    // never make the first import consume prose or borrow the next module.
-    for (; end < lines.length && end - index < 30; end++) {
-      if (end > index && /^import\s/.test(lines[end].trim())) break;
-      let program;
-      try {
-        program = parse(lines.slice(index, end + 1).join('\n'), {sourceType: 'module'}).program;
-      } catch {
-        continue;
-      }
-      if (program.body.length === 1 && program.body[0].type === 'ImportDeclaration') declaration = program.body[0];
-      break;
-    }
-    if (!declaration) continue;
-    for (const specifier of declaration.specifiers) {
-      const exported = specifier.type === 'ImportDefaultSpecifier' ? 'default'
-        : specifier.type === 'ImportSpecifier' ? specifier.imported.name ?? specifier.imported.value
-          : null;
-      if (exported) imports.set(specifier.local.name, {source: declaration.source.value, exported});
-    }
-    for (let removed = index; removed <= end; removed++) lines[removed] = '';
-    index = end;
-  }
-  return {lines, imports};
-}
-
-// MDX import 라인과 JSX 컴포넌트 블록을 제거한다.
-// - import ... from '...' 라인 제거
-// - 대문자로 시작하는 JSX 요소(<XxxTables />, <Xxx>...</Xxx>)는 닫는 태그까지 통째로 제거
-//   (내부의 자기 닫힘 자식 <DocCard ... /> 이 바깥 블록을 조기 종료시키지 않도록
-//    여는 태그의 속성 구간과 자식 구간을 구분해 처리)
-// - Tabs/TabItem 은 자식이 일반 마크다운이므로 태그 라인만 벗겨낸다
-//   (라인 단위 보수적 처리 — 문서 내 컴포넌트는 항상 독립 라인/블록으로 사용된다)
+// Work on source spans: prose and fenced code remain untouched. A component is
+// replaced only after Babel has found the complete JSX expression boundary.
 function stripMdx(content, {
   sourceUrl = '', omitted = new Set(), serialized = new Set(),
   navigation = new Set(), omittedNavigation = new Set(),
+  filePath, diagnostics = [], renderedSources = [],
 } = {}) {
-  const {lines, imports} = readImports(content);
+  const {lines, imports, declarations} = readImports(content);
   const out = [];
-  let inCodeFence = false;
-  let stripTag = null; // 통째 제거 중인 요소의 태그명 (닫는 태그 대기)
-  let stripInAttrs = false; // 여는 태그의 속성 라인(>가 아직 안 나옴)을 지나는 중
-  let containerInAttrs = false; // 컨테이너 여는 태그가 여러 줄일 때 속성 라인 스킵
-
+  let fence = null;
   for (let index = 0; index < lines.length; index++) {
-    const line = lines[index];
-    const trimmed = line.trim();
-
-    // 통째 제거 모드: 요소가 끝날 때까지 모든 라인을 버린다
-    if (stripTag) {
-      if (stripInAttrs) {
-        if (/\/>\s*$/.test(trimmed)) {
-          // 여는 태그가 자기 닫힘으로 종료: <Comp ... />
-          stripTag = null;
-          stripInAttrs = false;
-        } else if (/>\s*$/.test(trimmed)) {
-          // 속성 구간 끝 → 자식 구간 진입
-          stripInAttrs = false;
-        }
-      } else if (new RegExp(`^</${stripTag}>\\s*$`).test(trimmed)) {
-        stripTag = null;
-      }
+    let line = lines[index];
+    let trimmed = line.trim();
+    const marker = fenceMarker(line, fence);
+    fence = marker.fence;
+    if (fence || marker.boundary || /^ {4}|^\t/.test(line)) { out.push(line); continue; }
+    const container = trimmed.match(/^<\/?(Tabs|TabItem)\b/);
+    if (container && (!imports.has(container[1]) || imports.get(container[1]).source === `@theme/${container[1]}`)) {
+      // Markdown children are not JSX and must not be parsed as JavaScript.
+      while (!/>(?:\s*)$/.test(lines[index]) && index + 1 < lines.length) index++;
       continue;
     }
-
-    // 컨테이너 여는 태그의 속성 라인 스킵
-    if (containerInAttrs) {
-      if (/\/?>\s*$/.test(trimmed)) containerInAttrs = false;
-      continue;
-    }
-
-    // 코드 펜스 내부는 건드리지 않는다
-    if (/^(```|~~~)/.test(trimmed)) {
-      inCodeFence = !inCodeFence;
-      out.push(line);
-      continue;
-    }
-    if (inCodeFence) {
-      out.push(line);
-      continue;
-    }
-
-    // import 라인 제거
-    if (/^import\s+.+\s+from\s+['"].+['"];?\s*$/.test(trimmed)) continue;
-
-    // 닫는 JSX 태그 단독 라인 제거 (컨테이너의 </Tabs>, </TabItem> 등)
-    if (/^<\/[A-Z][A-Za-z0-9]*>\s*$/.test(trimmed)) continue;
-
-    // JSX 컴포넌트 시작 (대문자 태그)
-    const jsxOpen = trimmed.match(/^<([A-Z][A-Za-z0-9]*)/);
-    if (jsxOpen) {
-      const tag = jsxOpen[1];
-      if (MARKDOWN_CONTAINER_TAGS.has(tag)) {
-        // 컨테이너: 태그 라인만 제거, 자식 마크다운은 보존
-        if (!/\/?>\s*$/.test(trimmed)) containerInAttrs = true;
-        continue;
+    if (!trimmed.startsWith('<')) {
+      const offset = inlineComponentOffset(line, imports, declarations);
+      if (offset !== -1) {
+        out.push(line.slice(0, offset));
+        line = lines[index] = line.slice(offset);
+        trimmed = line.trim();
       }
-      if (componentName(tag, imports) === 'DocCardGrid') {
-        const end = lines.findIndex((candidate, position) => position >= index && candidate.includes(`</${tag}>`));
-        if (end !== -1) {
-          const rendered = renderNavigation(lines.slice(index, end + 1).join('\n').trim(), imports);
-          if (rendered) {
-            out.push('', rendered.markdown, '');
-            for (const name of rendered.names) {
-              serialized.add(name);
-              navigation.add(name);
-            }
-            index = end;
-            continue;
-          }
-        }
+    }
+    const tag = trimmed.match(/^<([A-Z][\w.]*|iframe|svg|canvas|object|embed)\b/)?.[1];
+    if (!tag) { out.push(line); continue; }
+    const block = jsxBlock(lines, index);
+    if (!block) {
+      throw new Error(`Cannot delimit JSX ${tag} in ${filePath || 'Markdown'}:${index + 1}`);
+    }
+    const context = {filePath, diagnostics, declarations};
+    let rendered;
+    if (tag === 'iframe') {
+      staticRenderer.reset();
+      try { rendered = embeddedDiagram(block, {...context, renderer: staticRenderer}); }
+      catch (error) {
+        if (!(error instanceof StaticGap)) throw error;
+        diagnostics.push({component: tag, reason: error.message});
       }
-      const rendered = renderComponent(trimmed, imports);
-      if (rendered) {
-        out.push('', rendered.markdown, '');
-        serialized.add(rendered.name);
-        continue;
+    } else rendered = renderNavigation(block.text, imports, context) || renderComponent(block.text, imports, context);
+    if (rendered) {
+      out.push('', rendered.markdown, '');
+      for (const name of rendered.names || [rendered.name]) {
+        serialized.add(name);
+        if (rendered.names) navigation.add(name);
       }
+      renderedSources.push({component: tag, ...rendered, markdown: undefined});
+    } else {
       omitted.add(tag);
-      if (['DocCardGrid', 'DocCard', 'DocCardList'].includes(componentName(tag, imports))) omittedNavigation.add(tag);
+      if (['DocCardGrid', 'DocCard', 'DocCardList'].includes(componentName(tag, imports)) ||
+          imports.get(tag)?.source === '@site/src/components/LegacySectionLinks') omittedNavigation.add(tag);
       const reference = sourceUrl ? `[web version](${sourceUrl})` : 'web version';
-      out.push('', `> Export note: the \`${tag}\` component is not included in this Markdown export. Read its content in the ${reference}.`, '');
-      // 한 줄로 끝나는 경우: <Comp ... /> 또는 <Comp>...</Comp>
-      if (
-        /\/>\s*$/.test(trimmed) ||
-        new RegExp(`</${tag}>\\s*$`).test(trimmed)
-      ) {
-        continue;
+      let detail = diagnostics.findLast(d => d.component === tag);
+      if (!detail) {
+        const binding = imports.get(tag);
+        detail = {component: tag, source: binding ? `${binding.source}#${binding.exported}` : null,
+          reason: 'No supported static source or literal props for this component'};
+        diagnostics.push(detail);
       }
-      stripTag = tag;
-      // 여는 태그가 같은 줄에서 닫혔으면(<Comp ...>) 바로 자식 구간
-      stripInAttrs = !/>\s*$/.test(trimmed);
-      continue;
+      const reason = detail.reason;
+      out.push('', `> Export note: the \`${tag}\` component is not included in this Markdown export.${reason ? ` ${reason}.` : ''} Read its content in the ${reference}.`, '');
     }
-
-    out.push(line);
+    if (block.trailing && inlineComponentOffset(block.trailing, imports, declarations) !== -1) {
+      lines[block.end] = block.trailing;
+      index = block.end - 1;
+    } else {
+      if (block.trailing) out.push(block.trailing);
+      index = block.end;
+    }
   }
-
-  // 3줄 이상 연속 빈 줄 압축
-  return out.join('\n').replace(/\n{3,}/g, '\n\n');
+  return compactMarkdown(out.join('\n'));
 }
 
 // 마크다운 링크 재작성 + related slug 추출
 // - 상대 .md/.mdx 링크: wiki 내 포함 문서면 유지(.mdx→.md), 제외/부재면 사람용 절대 URL로
 // - 절대 경로 링크(/docs/..., /img/... 등): 사이트 절대 URL로
 // - 그 외(외부 URL, 앵커, 이미지 상대 경로)는 그대로 둔다
-function rewriteLinks(content, filePath, includedSet) {
+async function rewriteLinks(content, filePath, includedSet) {
   const fileDir = path.dirname(filePath);
   const related = new Set();
-
-  const rewritten = content.replace(
-    /(\]\()([^)\s]+)(\))/g,
-    (m, open, target, close) => {
-      // 외부 URL / 앵커 / mailto는 그대로
-      if (/^(https?:|mailto:|#)/.test(target)) return m;
-
-      const [rawPath, anchor] = target.split('#');
-      const suffix = anchor ? `#${anchor}` : '';
-
-      // 절대 경로(/...): 사이트 절대 URL로 재작성
-      if (rawPath.startsWith('/')) {
-        return `${open}${SITE.baseUrl}${rawPath}${suffix}${close}`;
+  const rewritten = await rewriteMarkdownLinks(content, target => {
+    if (/^(?:[a-z][a-z0-9+.-]*:|#|\/\/)/i.test(target)) return target;
+    const [, rawPath, suffix = ''] = target.match(/^([^?#]*)([?#][\s\S]*)?$/);
+    if (rawPath.startsWith('/')) {
+      const basePath = new URL(SITE.baseUrl).pathname;
+      return `${rawPath.startsWith(basePath + '/') ? new URL(SITE.baseUrl).origin : SITE.baseUrl}${rawPath}${suffix}`;
+    }
+    if (/\.mdx?$/.test(rawPath)) {
+      const resolved = path.resolve(fileDir, rawPath);
+      if (includedSet.has(resolved)) {
+        related.add(toSlug(resolved));
+        return `${rawPath.replace(/\.mdx$/, '.md')}${suffix}`;
       }
-
-      // 상대 .md/.mdx 링크
-      if (/\.mdx?$/.test(rawPath)) {
-        const resolved = path.resolve(fileDir, rawPath);
-        if (includedSet.has(resolved)) {
-          related.add(toSlug(resolved));
-          // wiki가 docs/ 디렉토리 구조를 그대로 미러링하므로 상대 경로 유지 (.mdx만 정규화)
-          return `${open}${rawPath.replace(/\.mdx$/, '.md')}${suffix}${close}`;
-        }
-        // 제외 문서(industry 등) 또는 부재 파일 → 사람용 사이트 절대 URL
-        if (fs.existsSync(resolved)) {
-          return `${open}${SITE.baseUrl}${toPermalink(resolved)}${suffix}${close}`;
-        }
-        return m; // 깨진 링크는 손대지 않는다 (원본 이슈로 보존)
-      }
-
-      return m;
-    },
-  );
-
-  return { rewritten, related: [...related] };
+      if (fs.existsSync(resolved)) return `${SITE.baseUrl}${toPermalink(resolved)}${suffix}`;
+    }
+    return target;
+  });
+  return {rewritten, related: [...related]};
 }
 
-function main() {
+async function main() {
   const outRoot = parseOutDir();
   const outDir = path.join(outRoot, 'llm-wiki');
 
@@ -358,8 +263,10 @@ function main() {
     const serialized = new Set();
     const navigation = new Set();
     const omittedNavigation = new Set();
-    const stripped = stripMdx(content, {sourceUrl: url, omitted, serialized, navigation, omittedNavigation});
-    const { rewritten, related } = rewriteLinks(stripped, file, includedSet);
+    const diagnostics = [];
+    const renderedSources = [];
+    const stripped = stripMdx(content, {sourceUrl: url, omitted, serialized, navigation, omittedNavigation, filePath: file, diagnostics, renderedSources});
+    const { rewritten, related } = await rewriteLinks(stripped, file, includedSet);
 
     // 표준화된 최소 frontmatter로 재작성
     const fm = [
@@ -397,6 +304,8 @@ function main() {
         omitted_components: [...omitted].sort(),
         serialized_navigation_components: [...navigation].sort(),
         omitted_navigation_components: [...omittedNavigation].sort(),
+        rendered_sources: renderedSources,
+        omission_details: diagnostics,
       },
     };
     docs.push(entry);
@@ -412,8 +321,10 @@ function main() {
     language: 'ko',
     doc_count: docs.length,
     component_coverage: {
-      supported_components: supportedComponents,
+      supported_components: [...new Set(docs.flatMap(doc => doc.content_coverage.serialized_components.filter(name => !doc.content_coverage.serialized_navigation_components.includes(name))))].sort(),
       supported_navigation_components: supportedNavigationComponents,
+      supported_sources: [...new Set(docs.flatMap(doc => doc.content_coverage.rendered_sources.map(r => r.source)))].sort(),
+      serialized_occurrences: docs.reduce((sum, doc) => sum + doc.content_coverage.rendered_sources.length, 0),
       docs_with_omissions: docs.filter(doc => doc.content_coverage.omitted_components.length).length,
       docs_with_technical_omissions: docs.filter(doc =>
         doc.content_coverage.omitted_components.some(name =>
@@ -443,7 +354,7 @@ function main() {
   index += `> ${SITE.description}\n\n`;
   index += `Machine-friendly markdown mirror of the technical domains (industry demos excluded).\n`;
   index += `Each entry links to a clean per-page markdown file. Programmatic access: [manifest.json](${SITE.baseUrl}/llm-wiki/manifest.json)\n\n`;
-  index += "Component coverage: supported technical components use the same data as the website; static navigation cards become links. Unsupported components have an inline export note and a link to the web version. Check each manifest entry's `content_coverage` before treating a Markdown page as complete.\n\n";
+  index += "Component coverage: source-qualified static JSX, shared datasets, expanded static tables and text equivalents preserve article content. Navigation is derived from literal props or the source sidebar. Interactive controls, animation and theme changes are not reproduced. Unknown runtime content remains explicitly omitted; check each entry's `content_coverage`, `rendered_sources` and `omission_details`. Zero omissions describes this source snapshot, not arbitrary MDX support.\n\n";
   index += `- Pages with omitted technical content: ${manifest.component_coverage.docs_with_technical_omissions}\n`;
   index += `- Pages with omitted navigation: ${manifest.component_coverage.docs_with_navigation_omissions}\n`;
   index += `- Documents: ${docs.length}\n`;
@@ -464,7 +375,7 @@ function main() {
     `✓ llm-wiki: ${docs.length} docs exported (${excludedCount} excluded: industry-solutions/sales), ${Object.keys(byDomain).length} domains`,
   );
   console.log(`  → ${path.relative(ROOT, outDir)}/{manifest.json, index.md, <domain>/*.md}`);
-  console.log(`Component coverage: ${supportedComponents.length} technical and ${supportedNavigationComponents.length} navigation serializers; ${manifest.component_coverage.docs_with_omissions} pages identify omitted components.`);
+  console.log(`Component coverage: ${manifest.component_coverage.supported_components.length} technical and ${supportedNavigationComponents.length} navigation components; ${manifest.component_coverage.docs_with_omissions} pages identify omitted components.`);
 }
 
 // created가 Date 객체로 파싱된 경우 방어
@@ -473,5 +384,5 @@ function toDateStr(v) {
   return String(v).slice(0, 10);
 }
 
-if (require.main === module) main();
-module.exports = {stripMdx};
+if (require.main === module) main().catch(error => { console.error(error); process.exitCode = 1; });
+module.exports = {stripMdx, rewriteLinks, collectDocs, isIncluded, readImports, main};
