@@ -1,10 +1,13 @@
 .tools {
   margin-block: var(--ep-space-4) var(--ep-space-6);
+  padding-bottom: var(--ep-space-4);
+  border-bottom: 1px solid var(--ep-outline-variant);
   color: var(--ep-on-surface);
   font-size: var(--ep-font-size-caption);
   line-height: 1.5;
 }
 
+.headerRow,
 .actions,
 .feedback {
   display: flex;
@@ -12,6 +15,17 @@
   align-items: center;
   gap: var(--ep-space-2);
   min-width: 0;
+}
+
+.headerRow { gap: var(--ep-space-3); }
+.tools .guide {
+  border-color: var(--ifm-color-primary);
+  background: var(--ep-secondary-container);
+  color: var(--ep-on-secondary-container);
+}
+.tools .guide:hover {
+  background: var(--ep-surface-container);
+  color: var(--ifm-color-primary);
 }
 
 .feedback {
@@ -34,7 +48,11 @@
   margin-top: var(--ep-space-1);
 }
 
-.srOnly {
+.srOnly,
+.feedback[data-state='supported'],
+.feedback[data-state='unsupported'],
+.tools [data-state='success'] [role='status'],
+.tools [data-state='pending'] [role='status'] {
   position: absolute;
   width: 1px;
   height: 1px;

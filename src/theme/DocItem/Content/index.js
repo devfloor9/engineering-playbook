@@ -6,7 +6,6 @@ import {ThemeClassNames} from '@docusaurus/theme-common';
 import {useDoc} from '@docusaurus/plugin-content-docs/client';
 import Heading from '@theme/Heading';
 import MDXContent from '@theme/MDXContent';
-import DocMeta from '@theme/DocMeta';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 import DocTools from '@site/src/components/DocTools';
 import useBrokenLinks from '@docusaurus/useBrokenLinks';
@@ -73,7 +72,6 @@ function ContentTitleHeading(props) {
   return (
     <>
       <h1 {...props} data-ep-theme="manual" />
-      <DocMeta />
       <DocTools />
     </>
   );
@@ -98,7 +96,7 @@ export default function DocItemContent({children}) {
           <Heading as="h1">{syntheticTitle}</Heading>
         </header>
       )}
-      {!hasContentTitle && <><DocMeta /><DocTools /></>}
+      {!hasContentTitle && <DocTools />}
       <MDXContent>
         {hasContentTitle ? (
           <MDXProvider components={contentTitleComponents}>{children}</MDXProvider>

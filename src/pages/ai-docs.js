@@ -1,28 +1,80 @@
 import React from 'react';
 import Layout from '@theme/Layout';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
+import Icon from '@site/src/components/Icon';
+import CopyButton from '@site/src/components/CopyButton';
+import styles from './ai-docs.module.css';
 
 export default function AiDocs() {
   const {siteConfig, i18n} = useDocusaurusContext();
   const ko = i18n.currentLocale === 'ko';
   const root = siteConfig.customFields.documentationBaseUrl;
-  const title = ko ? 'AI용 문서 사용 안내' : 'Using the AI documentation endpoints';
+  const title = ko ? 'AI용 문서 안내' : 'Documentation for AI tools';
+  const endpoints = [
+    {file: 'llms.txt', icon: 'book-open', label: ko ? '먼저 살펴보기' : 'Start here',
+      description: ko ? '사이트의 범위와 주요 문서 경로를 파악하는 간결한 색인입니다.' : 'A concise index of the site scope and key documentation paths.'},
+    {file: 'llm-wiki/index.md', icon: 'file-text', label: ko ? '주제별 문서 찾기' : 'Browse by topic',
+      description: ko ? '주제별 목록에서 필요한 문서의 Markdown을 선택할 수 있습니다.' : 'Find individual Markdown documents in a directory grouped by topic.'},
+    {file: 'llm-wiki/manifest.json', icon: 'terminal', label: ko ? '도구에 연결하기' : 'Connect a tool',
+      description: ko ? '문서·Markdown URL, 태그, 수정일과 내보내기 범위를 조회하는 구조화된 목록입니다.' : 'A structured catalog of page and Markdown URLs, tags, revision dates, and export coverage.'},
+    {file: 'llms-full.txt', icon: 'layers', label: ko ? '전체 원문 읽기' : 'Read the combined source',
+      description: ko ? '기술 문서의 원문을 하나로 모았습니다. MDX import와 JSX가 포함될 수 있습니다.' : 'Technical source documents combined into one file. It may include MDX imports and JSX.'},
+  ];
+  const steps = ko ? [
+    ['문서 링크 복사', '문서 상단의 작성일·수정일·읽기시간 뒤에 있는 링크 복사 버튼을 사용하세요.'],
+    ['필요한 Markdown 선택', 'Markdown이 제공되는 문서는 같은 위치에서 열거나 복사해 AI 도구에 전달할 수 있습니다.'],
+    ['원문과 함께 확인', '시각적 배치나 대화형 동작이 중요하면 웹 문서도 함께 확인하세요.'],
+  ] : [
+    ['Copy the page link', 'Use Copy link beside the publication date, revision date, and reading estimate.'],
+    ['Choose the Markdown', 'When available, open or copy Markdown from the same toolbar and pass it to your AI tool.'],
+    ['Keep the web page nearby', 'Refer to the web page when visual layout or interactive behavior matters.'],
+  ];
   return (
     <Layout title={title} description={ko ? '문서를 Markdown으로 읽고 AI 도구에 전달하는 방법' : 'Read and share the documentation as Markdown'}>
-      <main className="container margin-vert--lg">
-        <article className="markdown">
+      <main className={styles.page} data-ep-theme="manual">
+        <header className={styles.hero}>
+          <span className={styles.eyebrow}><Icon name="book-open" size={18} /> AI DOCUMENTATION</span>
           <h1>{title}</h1>
-          <p>{ko ? '문서 상단의 “문서 도구”에서 현재 페이지의 링크를 복사할 수 있습니다. Markdown이 제공되는 문서는 원문을 열거나 복사하여 AI 도구에 전달할 수 있습니다.' : 'Open “Document tools” below a page title to copy its link. When a Markdown version is available, you can open or copy it for an AI tool.'}</p>
-          <h2>{ko ? '필요한 자료 선택' : 'Choose an endpoint'}</h2>
-          <ul>
-            <li><a href={`${root}llms.txt`}>llms.txt</a> — {ko ? '사이트 범위와 주요 문서 경로를 파악하는 시작점' : 'A starting point for the site scope and key documentation paths'}</li>
-            <li><a href={`${root}llm-wiki/index.md`}>LLM Wiki index</a> — {ko ? '주제별 Markdown 문서 목록' : 'Markdown documents grouped by topic'}</li>
-            <li><a href={`${root}llm-wiki/manifest.json`}>Document manifest</a> — {ko ? '문서 URL, Markdown URL, 태그, 수정일을 조회하는 목록' : 'A machine-readable list of page URLs, Markdown URLs, tags, and update dates'}</li>
-          </ul>
-          <h2>{ko ? '제공 범위' : 'Coverage'}</h2>
-          <p>{ko ? '현재 LLM Wiki는 한국어 기술 문서를 제공합니다. 영어 페이지와 Industry Solutions처럼 내보내기 대상이 아닌 문서에는 Markdown 버튼이 표시되지 않습니다. 표나 대화형 컴포넌트의 시각적 정보가 필요한 경우 웹 문서도 함께 확인하세요.' : 'The LLM Wiki currently exports Korean technical documentation. English pages and excluded topics such as Industry Solutions do not show Markdown buttons. Use the web page alongside Markdown when you need visual tables or interactive components.'}</p>
-          <p>{ko ? 'CoreDNS 메트릭과 MoE 가중치 표는 웹과 같은 원본 데이터에서 내보냅니다. 아직 변환하지 못하는 컴포넌트는 본문에 Export note로 표시하고 웹 문서로 연결합니다. manifest의 content_coverage에서 serialized_components와 omitted_components를 확인하여 누락 여부를 판단하세요.' : 'CoreDNS metrics and MoE weight tables are exported from the same data as the website. Components without a serializer have an inline Export note linking to the web page. Inspect serialized_components and omitted_components under content_coverage in the manifest before treating an export as complete.'}</p>
-        </article>
+          <p>{ko ? '한 편의 문서를 공유하거나, 필요한 자료를 찾아 도구에 연결하세요. Engineering Playbook은 웹 문서와 함께 읽을 수 있는 Markdown과 문서 목록을 제공합니다.' : 'Share a page, find the material you need, or connect a tool. Engineering Playbook provides Markdown and document catalogs alongside the web manual.'}</p>
+        </header>
+        <ol className={styles.steps} aria-label={ko ? '사용 순서' : 'How to use it'}>
+          {steps.map(([heading, description], index) => <li key={heading}>
+            <span className={styles.number} aria-hidden="true">0{index + 1}</span>
+            <h2>{heading}</h2><p>{description}</p>
+          </li>)}
+        </ol>
+        <section aria-labelledby="endpoints-title">
+          <div className={styles.sectionHeading}>
+            <span className={styles.eyebrow}>THE ENDPOINTS</span>
+            <h2 id="endpoints-title">{ko ? '목적에 맞는 자료를 선택하세요.' : 'Choose the material you need.'}</h2>
+          </div>
+          <div className={styles.endpoints}>
+            {endpoints.map(endpoint => <article className={styles.endpoint} key={endpoint.file}>
+              <span className={styles.endpointIcon}><Icon name={endpoint.icon} size={24} /></span>
+              <h3>{endpoint.label}</h3>
+              <code>{endpoint.file}</code>
+              <p>{endpoint.description}</p>
+              <div className={styles.actions}>
+                <a href={`${root}${endpoint.file}`} className={styles.open}
+                  aria-label={`${endpoint.file} — ${ko ? '열기' : 'Open'}`}>
+                  {ko ? '열기' : 'Open'} <Icon name="arrow-right" size={18} />
+                </a>
+                <CopyButton icon="link" label={ko ? '주소 복사' : 'Copy URL'}
+                  ariaLabel={`${endpoint.file} — ${ko ? '주소 복사' : 'Copy URL'}`}
+                  getText={() => new URL(`${root}${endpoint.file}`, siteConfig.url).href} />
+              </div>
+            </article>)}
+          </div>
+        </section>
+        <section className={styles.coverage} aria-labelledby="coverage-title">
+          <Icon name="info" size={20} />
+          <div>
+            <h2 id="coverage-title">{ko ? '제공 범위와 읽는 방법' : 'Coverage and interpretation'}</h2>
+            <p>{ko ? 'LLM Wiki는 한국어 기술 문서와 시작 안내를 제공합니다. 영어 페이지, Industry Solutions, sales 문서는 내보내기 대상에 포함되지 않습니다.' : 'The LLM Wiki exports Korean technical documents and the introduction. English pages, Industry Solutions, and sales documents are outside its scope.'}</p>
+            <p>{ko ? '지원되는 표·그림·탐색 요소는 저장소의 원본 데이터에서 내보냅니다. 변환하지 못한 요소는 Export note와 웹 문서 링크로 표시합니다.' : 'Supported tables, figures, and navigation are exported from repository sources. Unsupported elements have an Export note and a link to the web page.'}</p>
+            <p>{ko ? 'manifest의 ' : 'Inspect '}<code>content_coverage</code>{ko ? '에서 변환·누락 항목과 출처를 확인하세요. 대화형 제어와 애니메이션은 Markdown에 재현되지 않습니다.' : ' in the manifest for serialized elements, omissions, and source provenance. Interactive controls and animations are not reproduced in Markdown.'}</p>
+          </div>
+        </section>
       </main>
     </Layout>
   );

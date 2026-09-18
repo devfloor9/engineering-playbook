@@ -5,6 +5,7 @@ import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 import {useDoc} from '@docusaurus/plugin-content-docs/client';
 import CopyButton from '../CopyButton';
 import Icon from '@site/src/components/Icon';
+import DocMeta from '@theme/DocMeta';
 import {forgetManifest, loadManifest, loadMarkdownText, markdownUrlFromManifest} from './manifest';
 import controlStyles from '../CopyButton/styles.module.css';
 import styles from './styles.module.css';
@@ -49,11 +50,18 @@ function DocumentTools({metadata, siteConfig, i18n}) {
   return (
     <section className={styles.tools} data-ep-theme="manual"
       aria-label={ko ? '문서 도구' : 'Document tools'}>
-      <div className={styles.actions} role="group"
+      <div className={styles.headerRow} role="group"
         aria-label={ko ? '문서 작업' : 'Document actions'} aria-describedby={statusId}>
-        <CopyButton icon="link" label={ko ? '링크 복사' : 'Copy link'}
-          getText={() => new URL(metadata.permalink, siteConfig.url).href + window.location.hash} />
-        {markdown.status === 'supported' && <>
+        <DocMeta />
+        <div className={styles.actions}>
+          <CopyButton icon="link" label={ko ? '링크 복사' : 'Copy link'}
+            getText={() => new URL(metadata.permalink, siteConfig.url).href + window.location.hash} />
+          <Link data-ep-action="" className={`${controlStyles.button} ${styles.guide}`} to={helpUrl}>
+            <Icon name="book-open" size={18} />
+            <span>{ko ? 'AI용 문서 안내' : 'AI documentation guide'}</span>
+          </Link>
+        </div>
+        {markdown.status === 'supported' && <div className={styles.actions}>
           <a data-ep-action="" className={controlStyles.button} href={markdown.url} target="_blank" rel="noopener noreferrer">
             <Icon name="file-text" size={18} />
             <span>{ko ? 'Markdown 보기' : 'View Markdown'}</span>
@@ -61,11 +69,7 @@ function DocumentTools({metadata, siteConfig, i18n}) {
           </a>
           <CopyButton icon="copy" label={ko ? 'Markdown 복사' : 'Copy Markdown'}
             getText={() => loadMarkdownText(markdown.url)} />
-        </>}
-        <Link data-ep-action="" className={controlStyles.button} to={helpUrl}>
-          <Icon name="book-open" size={18} />
-          <span>{ko ? 'AI용 문서 안내' : 'AI documentation guide'}</span>
-        </Link>
+        </div>}
       </div>
       <div className={styles.feedback} data-state={markdown.status}>
         <p id={statusId} role="status" aria-live="polite" aria-atomic="true" className={styles.status}>

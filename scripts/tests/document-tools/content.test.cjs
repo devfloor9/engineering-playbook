@@ -52,7 +52,7 @@ test('synthetic title precedes metadata, tools and introduction; existing altern
   const Content = load(path.join(root, 'src/theme/DocItem/Content')).default;
   const html = renderToStaticMarkup(h(Content, null, h('p', {id: 'intro'}, 'Introduction')));
   const nodes = elements(html);
-  const positions = ['h1', 'time', 'section', 'p'].map(tag => nodes.findIndex(node => node.tagName === tag));
+  const positions = ['h1', 'time', 'button', 'p'].map(tag => nodes.findIndex(node => node.tagName === tag));
   assert.deepEqual(positions, [...positions].sort((a, b) => a - b));
   assert.equal(nodes.filter(node => node.tagName === 'h1').length, 1);
   assert.match(html, /type="text\/markdown" href="https:\/\/devfloor9.github.io\/engineering-playbook\/llm-wiki\/aidlc\/index.md"/);
@@ -81,7 +81,7 @@ test('compiled source H1 keeps inline content, explicit ID and title/meta/tools/
     assert.match(html, /<strong>meaningful<\/strong>/);
     assert.match(html, /id="section-old"/);
     assert.ok(html.indexOf('<h1') < html.indexOf('<time'));
-    assert.ok(html.indexOf('<time') < html.indexOf('aria-label="문서 도구"'));
+    assert.ok(html.indexOf('<time') < html.indexOf('<button'));
     assert.ok(html.indexOf('aria-label="문서 도구"') < html.indexOf('Introduction.'));
     assert.deepEqual(anchors, ['original-title']);
   }

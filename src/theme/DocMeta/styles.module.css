@@ -4,11 +4,9 @@
   flex-wrap: wrap;
   align-items: center;
   gap: var(--ep-space-2);
-  margin-block: var(--ep-space-3) var(--ep-space-4);
-  padding-bottom: var(--ep-space-4);
-  border-bottom: 1px solid var(--ep-outline-variant);
+  margin: 0;
   font-family: var(--ep-font-mono);
-  font-size: var(--ep-font-size-caption);
+  font-size: 0.75rem;
   line-height: 1.5;
   color: var(--ep-on-surface-variant);
 }
