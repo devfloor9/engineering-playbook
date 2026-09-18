@@ -3,9 +3,9 @@ title: Inference Optimization on EKS
 description: EKS architecture overview for maximizing LLM Inference performance — starting point for vLLM, KV Cache-Aware Routing, Disaggregated Serving, LWS multi-node, and GPU autoscaling
 created: "2026-04-03"
 last_update:
-  date: "2026-06-26"
+  date: "2026-09-18"
   author: devfloor9
-reading_time: 17
+reading_time: 7
 tags:
   - inference
   - optimization
@@ -22,112 +22,66 @@ import DocCardList from '@theme/DocCardList';
 
 ## Overview
 
-In production LLM services, **Inference costs account for 80-90% of total AI operational expenses** ([a16z "The Economics of AI"](https://a16z.com/navigating-the-high-cost-of-ai-compute/), [NVIDIA GTC 2024](https://www.nvidia.com/en-us/on-demand/), [SemiAnalysis](https://semianalysis.com/)). Training is a one-time operation, but inference runs 24/7 as long as the service is live. GPU time translates directly to cost, with a single p5.48xlarge (H100×8) On-Demand instance costing $98/hour. Operating two nodes monthly amounts to approximately $141,580.
+Guides for measuring inference latency, throughput, GPU memory, and cost, then choosing an optimization that addresses the observed bottleneck. Start with the L0–L5 tuning view in the [inference infrastructure overview](../index.md). These tuning layers are separate from the platform's six runtime layers.
 
-This document consolidates architectural patterns for maximizing LLM Inference performance on EKS, based on lessons learned from building a telecommunications carrier's Agentic AI platform and deployment cases of large MoE models such as GLM-5 (744B) and Kimi K2.5 (1T).
+Results depend on the model, input and output lengths, concurrency, hardware, and routing policy. This page helps select detailed guides; it does not prescribe a configuration that guarantees production performance or savings.
 
 ## Covered Content
 
-This category consists of three deep-dive documents.
+All documents in this category are listed below. Gateway configuration and model selection policies belong to the separate [inference routing](../inference-routing/index.md) category.
 
-<DocCardList items={[
-  {
-    type: 'link',
-    href: '/docs/agentic-ai-platform/model-serving/inference-optimization/kv-cache-optimization',
-    label: 'KV Cache Optimization (vLLM Deep Dive + Cache-Aware Routing)',
-    description: 'Core technologies like vLLM PagedAttention, Continuous Batching, FP8 KV Cache, and comparison of llm-d/Dynamo KV Cache-Aware Routing'
-  },
-  {
-    type: 'link',
-    href: '/docs/agentic-ai-platform/model-serving/inference-optimization/disaggregated-serving',
-    label: 'Disaggregated Serving + LWS Multi-Node',
-    description: 'Prefill/Decode separation architecture, NIXL KV transfer, LeaderWorkerSet-based 700B+ large model multi-node deployment'
-  },
-  {
-    type: 'link',
-    href: '/docs/agentic-ai-platform/model-serving/inference-optimization/semantic-caching-strategy',
-    label: 'Semantic Caching Strategy',
-    description: 'LLM Gateway-level semantic caching design principles — similarity thresholds, cache key design, multi-tenancy, observability'
-  },
-  {
-    type: 'link',
-    href: '/docs/agentic-ai-platform/model-serving/inference-optimization/gpu-autoscaling-operations',
-    label: 'GPU Autoscaling & Large Model Deployment Operations',
-    description: '2-Tier autoscaling (KEDA·Karpenter), DRA compatibility, and lessons learned from deploying large MoE models (GLM-5·Kimi K2.5)'
-  }
-]} />
+<DocCardList />
 
 ### Key Topics by Document
 
-1. **EKS GPU Infrastructure Strategy** — Auto Mode vs Karpenter vs MNG selection criteria (this document)
-2. **Model Serving Engine** — vLLM core technologies and GPU memory design ([KV Cache Optimization](./kv-cache-optimization.md))
-3. **KV Cache-Aware Routing** — Comparison of llm-d and NVIDIA Dynamo ([KV Cache Optimization](./kv-cache-optimization.md))
-4. **Disaggregated Serving** — Prefill/Decode separation architecture ([Disaggregated Serving](./disaggregated-serving.md))
-5. **LWS Multi-Node Serving** — LeaderWorkerSet-based 700B+ model deployment ([Disaggregated Serving](./disaggregated-serving.md))
-6. **GPU Autoscaling** — 2-Tier scaling (KEDA·Karpenter) and DRA compatibility ([Autoscaling & Deployment Ops](./gpu-autoscaling-operations.md))
-7. **Large Model Deployment Lessons** — Model download failure mitigation, MoE deployment pitfalls ([Autoscaling & Deployment Ops](./gpu-autoscaling-operations.md))
+- **Cache reuse**: [KV cache optimization](./kv-cache-optimization.md) → [LMCache](./lmcache.md) → [cache-hit strategy](./cache-hit-strategy.md)
+- **Latency and throughput isolation**: compare the benefits and transfer costs of prefill/decode separation in [disaggregated serving](./disaggregated-serving.md).
+- **Response-reuse quality**: review cache keys, tenant boundaries, and incorrect-hit evaluation in [semantic caching](./semantic-caching-strategy.md).
+- **Capacity and recovery**: review queues, cold starts, and deployment failures in [GPU autoscaling](./gpu-autoscaling-operations.md).
 
 ## Key Performance Metrics
 
-| Metric | Description | Optimization Target |
-|------|------|-----------|
-| **TTFT** (Time to First Token) | Time to generate first token | &lt; 2s (conversational), &lt; 5s (batch) |
-| **TPS** (Tokens per Second) | Token generation rate | Varies by model |
-| **GPU Utilization** | GPU compute utilization | &gt; 70% |
-| **KV Cache Hit Rate** | KV cache reuse ratio | &gt; 60% (shared prompts) |
-| **P99 Latency** | 99th percentile response time | Adhere to SLO requirements |
+Compare before and after against the service SLO and the same request set. There is no universal target for the metrics below.
+
+| Metric | What to inspect | Conditions to record |
+|--------|-----------------|----------------------|
+| **TTFT** | Request-start to first-token latency distribution | Queue-time inclusion, input length, concurrency |
+| **Output-token throughput** | Generated tokens in completed requests / measurement duration | Per-client rate versus aggregate server throughput |
+| **GPU memory and utilization** | Memory headroom, compute and memory bottlenecks | GPU type, precision, batch settings |
+| **Cache-hit ratio** | Hits and lookups for each reuse unit | Token or request denominator, cache type, cold/warm interval |
+| **Tail latency and errors** | p95/p99 response latency and completion rate | Timeouts, retries, and failed requests |
+| **Quality and cost** | Evaluation pass rate and total cost per successful request | Evaluation set, idle GPU cost, gateway and storage costs |
 
 ## EKS GPU Infrastructure Strategy
 
 ### Three Deployment Model Comparison
 
-When running GPU workloads on EKS, capabilities and operational complexity vary significantly depending on node management approach.
+Separate node management from ownership of GPU software. GPU count or model size alone does not determine the node-management approach.
 
-| Criteria | EKS Auto Mode | Karpenter + GPU Operator | MNG + Cluster Autoscaler |
-|------|:---:|:---:|:---:|
-| **GPU Driver Management** | AWS managed | Pre-installed in AMI | Pre-installed in AMI |
-| **MIG / Time-Slicing** | Not possible | Supported | Supported |
-| **DRA Compatibility** | Not supported | Not supported | Only option |
-| **DCGM Monitoring** | Possible with GPU Operator | Fully supported | Fully supported |
-| **Operational Complexity** | Low | Medium | Medium |
-| **Suitable Model Size** | 70B+ (full GPU utilization) | 7B~700B+ (MIG partitioning) | DRA-required workloads |
+| Approach | Management boundary | Detailed checks |
+|----------|---------------------|-----------------|
+| EKS Auto Mode | EKS manages the GPU driver and device plugin | Available features and support for user-installed components |
+| Karpenter | Provisions nodes according to NodePool policy | Selected AMI, GPU components, static versus dynamic capacity |
+| Managed node group | Manages capacity through a node group and AMI | Pre-installed components versus separately installed drivers/plugins |
 
-:::tip Selection Guide
-- **Quick Start / PoC**: Auto Mode — Automatic GPU driver and Device Plugin management
-- **Production (Fine GPU Control)**: Karpenter + GPU Operator — MIG and Custom AMI support
-- **When DRA Required**: MNG + Cluster Autoscaler — Architectural limitation where Karpenter/Auto Mode skips DRA Pods
-:::
+Check DRA support against both Kubernetes version and capacity provisioning. The current [EKS NVIDIA device guide](https://docs.aws.amazon.com/eks/latest/userguide/device-management-nvidia.html) distinguishes Karpenter static capacity, managed node groups, and self-managed nodes while excluding Auto Mode. See [GPU node strategy](../gpu-infrastructure/eks-gpu-node-strategy.md) for selection criteria.
 
 ### GPU Instance Selection Matrix
 
-| Instance | GPU | GPU Memory (Total) | Suitable Model Size | Hourly Cost (On-Demand) |
-|---------|-----|----------------|-------------|---------------------|
-| g5.xlarge~48xlarge | A10G | 24~192GB | ≤7B | $1.01~$16.29 |
-| g6e.xlarge~48xlarge | L40S | 48~384GB | 13B~70B | Cost-effective |
-| p4d.24xlarge | A100 40GB × 8 | 320GB | 13B~70B | $32.77 |
-| p5.48xlarge | H100 80GB × 8 | 640GB | 70B~700B+ | $98.32 |
-| p5e.48xlarge | H200 141GB × 8 | 1,128GB | 100B+ | Maximum memory |
+| Decision | Evaluation criteria |
+|----------|---------------------|
+| Memory | Weight precision, KV cache, concurrency, runtime headroom |
+| Communication | Bandwidth for single-GPU, within-node, or cross-node parallelism |
+| Availability | Capacity, quotas, and alternatives in the target Region and AZs |
+| Cost | Quote date, Region, purchase option, and measured throughput |
+
+Do not derive GPU count from parameter count alone. Review memory settings in [vLLM serving](../inference-frameworks/vllm-model-serving.md) and allocation policies in [GPU resource management](../gpu-infrastructure/gpu-resource-management.md).
 
 ### Auto Mode GPU Operator Hybrid Configuration
 
-GPU Operator can be installed on Auto Mode. Disable only the Device Plugin via node labels, while DCGM Exporter, NFD, and GFD operate normally.
+A separate GPU Operator must not take duplicate ownership of components managed by Auto Mode. This overview does not provide a generic installation procedure that applies AL2023 or Bottlerocket GPU Operator options to Auto Mode.
 
-```yaml
-# GPU Operator installation (Auto Mode compatible)
-helm install gpu-operator nvidia/gpu-operator \
-  --namespace gpu-operator --create-namespace \
-  --set driver.enabled=false \
-  --set toolkit.enabled=false
-
-# Add Device Plugin disable label to NodePool
-# nvidia.com/gpu.deploy.device-plugin: "false"
-```
-
-This maintains Auto Mode convenience while collecting granular DCGM metrics (SM utilization, NVLink bandwidth). ClusterPolicy-dependent projects like KAI Scheduler are also usable.
-
-:::warning GPU Operator + Auto Mode Caution
-Installing with `devicePlugin.enabled=true` conflicts with Auto Mode's built-in Device Plugin, resulting in `allocatable=0`. **Must disable with `devicePlugin.enabled=false`** or via node labels.
-:::
+The [accelerated AMI guide](https://docs.aws.amazon.com/eks/latest/userguide/ml-eks-optimized-ami.html) describes options according to each AMI's pre-installed components. Even when only observability is needed, verify support on the target nodes and consult the component descriptions in the [NVIDIA GPU stack](../gpu-infrastructure/nvidia-gpu-stack.md).
 
 ## Recommended Architecture by Model Scale
 
@@ -135,101 +89,56 @@ Installing with `devicePlugin.enabled=true` conflicts with Auto Mode's built-in 
 
 ```mermaid
 flowchart TD
-    START[Check Model Scale] --> SIZE{Model Size?}
-
-    SIZE -->|"≤32B (Single GPU)"| SMALL["Tier 1: Lightweight Config"]
-    SIZE -->|"70B~200B (Multi-GPU)"| MEDIUM["Tier 2: Mid-Scale Config"]
-    SIZE -->|"700B+ MoE (Multi-Node)"| LARGE["Tier 3: Large-Scale Config"]
-
-    SMALL --> S_DETAIL["Auto Mode + vLLM<br/>g6e/p5 Single GPU<br/>FP8 Quantization"]
-    MEDIUM --> M_DETAIL["Karpenter + vLLM TP<br/>llm-d KV Cache Routing<br/>KEDA Autoscaling"]
-    LARGE --> L_DETAIL["MNG/Karpenter + LWS<br/>Disaggregated Serving<br/>NIXL KV Transfer"]
-
-    style START fill:#f5f5f5
-    style S_DETAIL fill:#4ecdc4,color:#fff
-    style M_DETAIL fill:#326ce5,color:#fff
-    style L_DETAIL fill:#ff6b6b,color:#fff
+    accTitle: Choosing an inference deployment
+    accDescr: Test memory and SLOs on one GPU first, then evaluate within-node parallelism and multiple nodes when needed.
+    A[Define model, request distribution, and SLO] --> B{One GPU meets requirements?}
+    B -->|Yes| C[Measure single-GPU baseline]
+    B -->|No| D{Within-node parallelism meets requirements?}
+    D -->|Yes| E[Measure communication cost and throughput]
+    D -->|No| F[Evaluate multi-node or disaggregated serving]
+    C --> G[Validate recovery, scaling, and quality]
+    E --> G
+    F --> G
 ```
 
 ### 3-Tier Recommended Configuration
 
-| Tier | Model Scale | Infrastructure | Serving Engine | Routing | Examples |
-|------|---------|--------|---------|--------|------|
-| **Tier 1** | ≤32B | Auto Mode, g6e/p5 | vLLM (Single GPU) | Round-Robin | Qwen3-32B FP8 |
-| **Tier 2** | 70B~200B | Karpenter + GPU Operator | vLLM TP=4~8 | llm-d KV Cache-aware | Llama-3.3-70B |
-| **Tier 3** | 700B+ MoE | MNG or Karpenter + LWS | vLLM/SGLang PP+TP | Disaggregated + NIXL | GLM-5, Kimi K2.5 |
+These are evaluation stages, not fixed specifications tied to parameter counts.
 
-**Common to All Tiers**: Bifrost Cascade Routing with Bedrock fallback recommended (uninterrupted service during GPU failures/Spot interruptions)
+| Stage | Condition | Next guide |
+|-------|-----------|------------|
+| Single GPU | Meets both memory and SLO requirements | [vLLM serving](../inference-frameworks/vllm-model-serving.md) |
+| Within-node parallelism | A single GPU reaches a memory or performance limit | [MoE serving](../inference-frameworks/moe-model-serving.md) |
+| Multi-node or disaggregated serving | Measurements show within-node capacity is insufficient | [Disaggregated serving](./disaggregated-serving.md) |
 
 ### Hybrid Architecture: Complete Picture
 
-```mermaid
-flowchart TB
-    C[Client App] --> BF[Bifrost Gateway<br/>Cascade Routing]
-
-    subgraph OnPrem["On-Premises (Hybrid Node)"]
-        HP[DGX A100<br/>Base Inference<br/>Fixed Cost]
-    end
-
-    subgraph Cloud["AWS Cloud (EKS)"]
-        subgraph AutoMode["Auto Mode"]
-            AM[vLLM<br/>Qwen3-32B<br/>Tier 1]
-        end
-        subgraph Karpenter["Karpenter + GPU Operator"]
-            KP[llm-d + vLLM<br/>Llama-70B<br/>Tier 2]
-        end
-        subgraph LWS["LWS Multi-Node"]
-            LW[GLM-5 744B<br/>PP=2 TP=8<br/>Tier 3]
-        end
-    end
-
-    subgraph Managed["AWS Managed"]
-        BR[Amazon Bedrock<br/>Claude Sonnet<br/>Fallback]
-    end
-
-    BF -->|"Primary"| HP
-    BF -->|"Secondary"| AM
-    BF -->|"Secondary"| KP
-    BF -->|"Secondary"| LW
-    BF -->|"Tertiary Fallback"| BR
-
-    style BF fill:#ff9900,color:#fff
-    style OnPrem fill:#e8f5e9
-    style Cloud fill:#e3f2fd
-    style BR fill:#ff6b6b,color:#fff
-```
+When combining EKS, on-premises infrastructure, and managed model APIs, use the [tiered gateway](../inference-routing/tiered-gateway-architecture.md) guide to identify each layer's responsibilities. Validate fallback API and tool-call compatibility, data-transfer policy, quotas, and response quality. A routing path alone does not guarantee uninterrupted service.
 
 ### Migration Path
 
-Phased transitions minimize operational risk while progressively improving performance.
-
-**Phase 1**: Auto Mode + vLLM + Bifrost→Bedrock fallback → PoC, dev environments
-
-**Phase 1.5**: Auto Mode + GPU Operator + llm-d → Enhanced monitoring, KV Cache routing
-
-**Phase 2**: Karpenter + llm-d Disaggregated + LWS multi-node → MIG, Prefill/Decode separation
-
-**Phase 3**: Karpenter + Dynamo + Hybrid Node → On-premises integration, 3-Tier Cascade
-
-**Phase 4**: Full integration → On-Prem→Cloud→Bedrock Cascade, SLO-based autoscaling
+1. Record performance, quality, and cost on a single baseline path.
+2. Change one cache, routing, or batching setting for an observed bottleneck.
+3. Check regressions with the same evaluation set and load conditions.
+4. Validate limited traffic before expansion and define when to restore the original path.
 
 ## References
 
 ### Official Documentation
-- [Amazon EKS User Guide](https://docs.aws.amazon.com/eks/latest/userguide/) — EKS cluster and node management
-- [EKS Hybrid Nodes](https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes.html) — On-premises GPU server EKS integration
-- [Amazon Bedrock Documentation](https://docs.aws.amazon.com/bedrock/) — Managed FM service (Cascade Fallback target)
-- [SOCI (Seekable OCI)](https://docs.aws.amazon.com/AmazonECR/latest/userguide/container-images-soci.html) — Container image lazy-loading
+
+- [EKS NVIDIA device management](https://docs.aws.amazon.com/eks/latest/userguide/device-management-nvidia.html)
+- [EKS accelerated AMIs](https://docs.aws.amazon.com/eks/latest/userguide/ml-eks-optimized-ami.html)
+- [EKS Compute and Autoscaling](https://docs.aws.amazon.com/eks/latest/best-practices/aiml-compute.html)
 
 ### Papers & Technical Blogs
-- [a16z "The Economics of AI"](https://a16z.com/navigating-the-high-cost-of-ai-compute/) — AI infrastructure cost structure
-- [GenAI on EKS Starter Kit](https://github.com/aws-samples/sample-genai-on-eks-starter-kit) — Bifrost, vLLM, Langfuse deployment automation
-- [Scalable Model Inference on Amazon EKS](https://github.com/aws-solutions-library-samples/guidance-for-scalable-model-inference-and-agentic-ai-on-amazon-eks) — Comprehensive llm-d, Karpenter, RAG architecture
+
+Check implementation projects against the selected release and its documented examples.
+
+- [GenAI on EKS Starter Kit](https://github.com/aws-samples/sample-genai-on-eks-starter-kit)
+- [Scalable Model Inference on Amazon EKS](https://github.com/aws-solutions-library-samples/guidance-for-scalable-model-inference-and-agentic-ai-on-amazon-eks)
 
 ### Related Documentation
-- [EKS GPU Node Strategy](../gpu-infrastructure/eks-gpu-node-strategy.md) — Auto Mode, Karpenter, Hybrid Node comparison
-- [GPU Resource Management](../gpu-infrastructure/gpu-resource-management.md) — GPU scaling, DRA, cost optimization
-- [NVIDIA GPU Software Stack](../gpu-infrastructure/nvidia-gpu-stack.md) — GPU Operator, DCGM, MIG, Dynamo
-- [vLLM-based FM Deployment and Performance Optimization](../inference-frameworks/vllm-model-serving.md) — vLLM detailed guide
-- [llm-d-based EKS Distributed Inference](../inference-frameworks/llm-d-eks-automode.md) — llm-d deployment guide
-- [MoE Model Serving Guide](../inference-frameworks/moe-model-serving.md) — MoE model deployment
+
+- [Serving optimization monitoring](../../operations-mlops/observability/llm-serving-optimization-monitoring.md) — measurement units and query validation
+- [Prefix-cache tuning and accuracy](../../operations-mlops/observability/prefix-cache-tuning-accuracy-correlation.md) — experiment design and quality criteria
+- [Routing strategy](../inference-routing/routing-strategy.md) — model selection and fallback boundaries

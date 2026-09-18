@@ -3,7 +3,7 @@ title: Reference Architecture
 description: Production deployment and configuration reference architecture for the Agentic AI Platform
 created: "2026-04-06"
 last_update:
-  date: "2026-08-06"
+  date: "2026-09-18"
   author: devfloor9
 reading_time: 15
 tags:
@@ -18,8 +18,9 @@ sidebar_position: 7
 ---
 
 import DocCardList from '@theme/DocCardList';
+import Figure from '@site/src/components/Figure';
 
-This section provides **production deployment and configuration guides** for the Agentic AI Platform. Concepts and design principles are covered in the [Documentation section](../design-architecture/foundations/agentic-platform-architecture.md); here we focus on specific configurations, YAML manifests, and verification procedures for deploying and operating on actual clusters.
+Implementation guides for platform engineers deploying and operating the Agentic AI Platform. Choose the relevant area, then check its environment requirements and validation steps. Design decisions are covered in the [platform architecture](../design-architecture/foundations/agentic-platform-architecture.md).
 
 :::info Documentation vs Reference Architecture
 | Aspect | Documentation | Reference Architecture |
@@ -30,16 +31,53 @@ This section provides **production deployment and configuration guides** for the
 | **Update Cadence** | On design changes | As deployment/operations experience accumulates |
 :::
 
+## Documents
+
+<DocCardList />
+
+## Prerequisites
+
+Prerequisites for deploying the Reference Architecture.
+
+### AWS Account and Permissions
+
+- EKS cluster creation permissions (IAM, VPC, EC2, EKS)
+- GPU instance Spot quotas (p5en.48xlarge: 192+ vCPUs)
+- S3 bucket creation permissions
+- AMP/AMG creation permissions (for monitoring setup)
+- ECR registry creation permissions (for custom image builds)
+
+### Tools
+
+Check the tool versions and cluster compatibility specified by the deployment chapter. Record installed versions with the validation results.
+
+| Tool | Purpose |
+|------|---------|
+| `eksctl`, `aws` CLI | Cluster and AWS resource management |
+| `kubectl`, `helm` | Kubernetes resource and chart management |
+| Container build tool | Custom image builds |
+| `s5cmd` | S3 model-file transfer used by the examples |
+
+### Networking
+
+- Public subnets: For NLB deployment (when coding tools need external access)
+- Private subnets: For GPU nodes, vLLM, Bifrost deployment
+- NAT Gateway: For S3, ECR, HuggingFace Hub access
+- VPC Endpoints (recommended): S3, ECR, AMP
+
 ## Platform Architecture
 
-The complete architecture of the Agentic AI Platform, including the Ontology-based Knowledge Feature Store, 6 layers + 3 planes structure, and model serving/fine-tuning pipelines.
+The diagram shows six runtime layers, three shared planes, the Knowledge Feature Store, and serving/fine-tuning paths. The six deployment areas below describe implementation stages, not matching runtime-layer numbers.
 
+<Figure title="Platform architecture" description="The original architecture diagram shows request processing and shared control areas. Use the source link below to inspect detailed connections on a larger canvas." source={<a href="https://app.diagrams.net/?src=about#Uhttps%3A%2F%2Fraw.githubusercontent.com%2Fdevfloor9%2Fengineering-playbook%2Fmain%2Fstatic%2FAgentic%2520AI%2520Platform(with%2520Ontology%2520and%2520fine%2520tunning%2520feature).drawio">Open source diagram</a>}>
 <iframe
   src="https://viewer.diagrams.net/?highlight=0000ff&nav=1&title=Agentic%20AI%20Platform&url=https%3A%2F%2Fraw.githubusercontent.com%2Fdevfloor9%2Fengineering-playbook%2Fmain%2Fstatic%2FAgentic%2520AI%2520Platform(with%2520Ontology%2520and%2520fine%2520tunning%2520feature).drawio"
-  style={{width: '100%', height: '1200px', border: 'none', borderRadius: '12px', background: '#fff'}}
+  width="100%"
+  height="480"
   title="Agentic AI Platform Architecture"
   loading="lazy"
 />
+</Figure>
 
 :::tip Edit in draw.io
 [Open in draw.io](https://app.diagrams.net/?src=about#Uhttps%3A%2F%2Fraw.githubusercontent.com%2Fdevfloor9%2Fengineering-playbook%2Fmain%2Fstatic%2FAgentic%2520AI%2520Platform(with%2520Ontology%2520and%2520fine%2520tunning%2520feature).drawio) — Opens without login for viewing and editing. Use File → Save As to save a copy.
@@ -89,9 +127,9 @@ Configure the EKS cluster and GPU node groups. Covers differences between Auto M
 
 | Item | Details |
 |------|---------|
-| EKS Version | 1.32+ (recommended 1.33) |
-| Node Group | MNG p5en.48xlarge (Spot) |
-| GPU Operator | `devicePlugin.enabled=false` (to prevent Auto Mode conflicts) |
+| EKS Version | A version supported by the selected deployment guide and add-ons |
+| Node Group | MNG or NodePool selected for model memory, SLOs, and available capacity |
+| GPU Operator | Check pre-installed AMI components and avoid duplicate ownership |
 | Monitoring Agents | DCGM Exporter, GFD, Node Status Exporter |
 
 ### Phase 2: Model Deployment
@@ -148,10 +186,6 @@ Connect AI coding tools such as Aider and Cline to self-hosted models.
 | Connection Path | Coding tool → NLB → kgateway → Bifrost/LiteLLM → vLLM |
 | Monitoring | Bifrost/LiteLLM OTel → Langfuse (per-request tracing) |
 
-## Documents
-
-<DocCardList />
-
 ## Core Design Principles
 
 The Reference Architecture follows these principles.
@@ -162,7 +196,7 @@ Multi-node distribution significantly increases complexity and failure potential
 
 ### 2. Spot Instance Utilization
 
-GPU Spot instances are 80-85% cheaper than On-Demand. Inference workloads are stateless, so they can immediately restart on new instances upon Spot reclamation. Model weights are rapidly restored from S3.
+Choose Spot according to interruption tolerance as well as price. Inference servers still need image and weight loading, engine initialization, and handling for in-flight requests; recovery is not instantaneous. Validate replacement capacity, ready replicas, drain/retry policy, and actual cold-start time. Review the real-time workload considerations in [EKS Compute and Autoscaling](https://docs.aws.amazon.com/eks/latest/best-practices/aiml-compute.html).
 
 ### 3. Standard Toolchain
 
@@ -179,45 +213,17 @@ Use standard tools from the CNCF and Kubernetes ecosystem wherever possible.
 
 ### 4. Layered Cost Optimization
 
-Cost optimization uses a **layered approach** rather than a single technique.
+Effects depend on traffic, cache-hit rate, quality criteria, and operating hours. Do not add percentage savings across techniques. Compare total cost per successful request and SLOs under the same conditions.
 
 ```mermaid
 graph TD
-    A[Spot Instances<br/>84% savings] --> B[Cascade Routing<br/>70-80% GPU savings]
-    B --> C[Semantic Caching<br/>$0 GPU on cache hit]
-    C --> D[8hr/day operation<br/>67% savings]
-    D --> E[Multi-LoRA sharing<br/>1/N infrastructure]
+    accTitle: Cost optimization review sequence
+    accDescr: Review purchase options, routing, caching, operating hours, and model sharing, measuring cost and quality after each change.
+    A[Purchase options and interruption tolerance] --> B[Routing quality and cost]
+    B --> C[Cache accuracy and hit rate]
+    C --> D[Operating hours and cold starts]
+    D --> E[Model sharing and resource isolation]
 ```
-
-## Prerequisites
-
-Prerequisites for deploying the Reference Architecture.
-
-### AWS Account and Permissions
-
-- EKS cluster creation permissions (IAM, VPC, EC2, EKS)
-- GPU instance Spot quotas (p5en.48xlarge: 192+ vCPUs)
-- S3 bucket creation permissions
-- AMP/AMG creation permissions (for monitoring setup)
-- ECR registry creation permissions (for custom image builds)
-
-### Tools
-
-| Tool | Minimum Version | Purpose |
-|------|----------------|---------|
-| `eksctl` | 0.200+ | EKS cluster management |
-| `kubectl` | 1.32+ | Kubernetes resource management |
-| `helm` | 3.16+ | Chart deployment |
-| `aws` CLI | 2.22+ | AWS resource management |
-| `docker` | 27+ | Custom image builds |
-| `s5cmd` | 2.2+ | High-speed S3 sync |
-
-### Networking
-
-- Public subnets: For NLB deployment (when coding tools need external access)
-- Private subnets: For GPU nodes, vLLM, Bifrost deployment
-- NAT Gateway: For S3, ECR, HuggingFace Hub access
-- VPC Endpoints (recommended): S3, ECR, AMP
 
 ## Next Steps
 
