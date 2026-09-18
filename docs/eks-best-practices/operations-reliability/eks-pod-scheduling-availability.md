@@ -3,7 +3,7 @@ title: EKS Pod 스케줄링 & 가용성 패턴
 description: Kubernetes Pod 스케줄링 전략, Affinity/Anti-Affinity, PDB, Priority/Preemption, Taints/Tolerations 모범 사례
 created: "2026-02-12"
 last_update:
-  date: "2026-06-30"
+  date: "2026-09-18"
   author: YoungJoon Jeong
 reading_time: 79
 tags:
@@ -45,7 +45,7 @@ Kubernetes의 Pod 스케줄링은 서비스 가용성, 성능, 비용 효율성�
 | **장애 격리** | 모든 replica가 같은 노드 → 노드 장애 시 전체 중단 | Anti-Affinity로 노드 분산 → 부분 장애만 발생 |
 | **리소스 경합** | CPU 집약적 Pod들이 한 노드에 집중 → 성능 저하 | Node Affinity로 워크로드 분리 → 안정적 성능 |
 | **비용 최적화** | GPU 필요 없는 Pod가 GPU 노드에 배치 → 비용 낭비 | Taints/Tolerations로 전용 노드 격리 → 비용 절감 |
-| **업그레이드 안전성** | PDB 미설정 → 롤링 업데이트 중 서비스 중단 | PDB 설정 → 최소 가용 Pod 보장 |
+| **업그레이드 안전성** | 롤아웃 전략·Readiness 미설계, 노드 Drain 시 PDB 미설정 → 가용 replica 과다 감소 | 롤링 업데이트는 workload controller 설정으로 제어하고, Eviction API 기반 노드 Drain은 PDB로 제한 |
 | **긴급 대응** | 우선순위 미설정 → 중요 워크로드 Pending | PriorityClass 설정 → 중요 Pod 우선 스케줄링 |
 
 ---
@@ -138,7 +138,7 @@ Pod가 `Pending` 상태로 남아있다면, `kubectl describe pod <pod-name>`으
 | **Topology Spread** | Pod | Scoring | Hard/Soft | AZ/노드 간 균등 분산 |
 | **PriorityClass** | Pod | Preemption | Hard | 우선순위 기반 리소스 선점 |
 | **Resource Requests** | Pod | Filtering | Hard | 최소 리소스 보장 |
-| **PDB** | Pod Group | Eviction | Hard | 최소 가용 Pod 보장 |
+| **PDB** | Pod Group | Eviction API | Hard | 중단 예산을 초과하는 Eviction 요청 제한 |
 
 **Hard vs Soft 제약:**
 - **Hard (Required)**: 조건을 충족하지 못하면 스케줄링 실패 → `Pending` 상태
@@ -1036,12 +1036,14 @@ spec:
 
 #### 패턴 3: 노드 유지보수 (Drain 준비)
 
+계획된 유지보수에서 PDB를 적용하려면 `kubectl drain`의 기본 Eviction API 경로를 사용합니다. 아래 `NoExecute` 예시는 Taint 기반 삭제 동작을 보여주며, PDB를 적용하는 Drain 절차를 대신하지 않습니다.
+
 ```bash
 # Step 1: 노드에 NoExecute Taint 적용
 kubectl taint nodes node-1 maintenance=true:NoExecute
 
 # 결과: Toleration 없는 모든 Pod가 즉시 Evict되고 다른 노드로 이동
-# PDB가 설정된 경우, minAvailable을 존중하며 순차적으로 Evict
+# NoExecute에 의한 삭제는 Eviction API를 거치지 않으므로 PDB로 제한되지 않음
 
 # Step 2: 유지보수 완료 후 Taint 제거
 kubectl taint nodes node-1 maintenance=true:NoExecute-
@@ -1649,7 +1651,7 @@ kubectl delete nodes -l karpenter.sh/nodepool
 
 ## 6. PodDisruptionBudget (PDB) 고급 패턴
 
-PodDisruptionBudget은 **자발적 중단(Voluntary Disruption)** 시 최소한의 Pod 가용성을 보장합니다.
+PodDisruptionBudget은 **Eviction API를 통한 자발적 중단**에서 중단 예산을 초과하는 요청을 제한합니다. Deployment·StatefulSet의 롤링 업데이트나 Pod 직접 삭제는 PDB로 제한되지 않습니다. 롤아웃 중 비가용 Pod도 중단 예산에는 반영되지만, 업데이트 자체의 가용성은 해당 workload controller의 전략과 Readiness 설정으로 관리합니다. 자세한 범위는 [Kubernetes Pod disruption budgets](https://kubernetes.io/docs/concepts/workloads/pods/disruptions/#pod-disruption-budgets)를 참조하세요.
 
 ### 6.1 PDB 기본 복습
 
@@ -1661,8 +1663,9 @@ PDB의 기본 개념과 Karpenter와의 상호작용은 [EKS 고가용성 아키
 
 | 중단 유형 | 예시 | PDB 적용 | 대응 방법 |
 |----------|------|---------|----------|
-| **자발적** | 노드 Drain, 클러스터 업그레이드, Karpenter 통합 | ✅ 적용 | PDB 설정 |
-| **비자발적** | 노드 크래시, OOM Kill, 하드웨어 장애, AZ 장애 | ❌ 미적용 | Replica 증가, Anti-Affinity |
+| **자발적: Eviction API 사용** | 기본 `kubectl drain`, Eviction API를 사용하는 노드 업그레이드·통합 | ✅ Eviction 요청 제한 | PDB 설정 |
+| **자발적: controller 롤아웃·직접 삭제** | Deployment·StatefulSet 롤링 업데이트, Pod 직접 삭제 | ❌ 작업을 제한하지 않음; 비가용 Pod는 예산에 반영 | 롤아웃 전략·Readiness 설정, 직접 삭제 회피 |
+| **비자발적** | 노드 크래시, OOM Kill, 하드웨어 장애, AZ 장애 | ❌ 중단을 막지 않음; 비가용 Pod는 예산에 반영 | Replica 증가, Anti-Affinity |
 
 ### 6.2 PDB 고급 전략
 
@@ -1678,8 +1681,8 @@ spec:
   strategy:
     type: RollingUpdate
     rollingUpdate:
-      maxSurge: 2         # 최대 12개까지 증가 허용
-      maxUnavailable: 0   # 동시에 사용 불가 Pod 0개 (무중단 배포)
+      maxSurge: 2         # 롤아웃 중 추가 replica 최대 2개 허용
+      maxUnavailable: 0   # 롤아웃으로 가용 replica를 목표 수 아래로 줄이지 않음
   selector:
     matchLabels:
       app: api-server
@@ -1697,15 +1700,17 @@ kind: PodDisruptionBudget
 metadata:
   name: api-server-pdb
 spec:
-  minAvailable: 8  # 항상 최소 8개 유지 (80% 가용성)
+  minAvailable: 8  # Eviction 허용 여부를 판단하는 최소 healthy Pod 수
   selector:
     matchLabels:
       app: api-server
 ```
 
 **효과:**
-- Rolling Update 중: `maxUnavailable: 0`으로 기존 Pod가 새 Pod가 Ready될 때까지 유지
-- 노드 Drain 중: PDB가 최소 8개 보장 → 동시에 최대 2개만 Evict 허용
+- Rolling Update 중: Deployment의 `maxUnavailable: 0`과 `maxSurge: 2`가 교체 속도를 제어합니다. 새 Pod의 가용성은 Readiness와 `minReadySeconds`로 판단하며, PDB가 롤아웃을 제어하지는 않습니다. 예제의 컨테이너에는 Readiness Probe가 생략되어 있으므로 실제 서비스 준비 상태에 맞는 Probe를 추가해야 합니다.
+- 노드 Drain 중: 정상 Pod가 10개이고 다른 중단이 없다면 `minAvailable: 8`은 2개 Pod의 추가 Eviction을 허용하는 예산을 만듭니다. 롤아웃이나 장애로 이미 비가용 Pod가 있으면 예산이 줄어듭니다. PDB는 장애나 직접 삭제에 의한 가용성 저하를 막지 못합니다.
+
+롤아웃 설정의 의미는 [Kubernetes Deployment 전략](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#strategy)을 참조하세요.
 
 #### 전략 2: StatefulSet + PDB (데이터베이스 클러스터)
 
@@ -1923,7 +1928,7 @@ description: "High priority for mission-critical services"
 10억 이상의 값은 Kubernetes 시스템 컴포넌트(kube-system)용으로 예약되어 있습니다. 사용자 정의 PriorityClass는 10억 미만의 값을 사용하세요.
 :::
 
-### 7.2 프로덕션 4-Tier 우선순위 체계
+### 7.2 프로덕션 5-Tier 우선순위 체계 {#72-프로덕션-4-tier-우선순위-체계}
 
 **권장 우선순위 계층:**
 
@@ -2053,12 +2058,12 @@ flowchart TB
 1. **높은 우선순위 Pod 스케줄링 실패**
 2. **Preemption 후보 노드 탐색**: 낮은 우선순위 Pod를 제거하면 스케줄링 가능한 노드 찾기
 3. **Victim Pod 선택**: 가장 낮은 우선순위부터 제거 대상 선정
-4. **PDB 확인**: Victim Pod가 PDB로 보호되는지 확인 → PDB 위반 시 다른 노드 탐색
+4. **PDB 고려**: PDB 위반을 피하는 Victim 조합을 우선 탐색하되, 가능한 조합이 없으면 PDB를 위반하는 Preemption도 허용
 5. **Graceful Eviction**: `terminationGracePeriodSeconds` 존중하며 Evict
 6. **리소스 확보 후 스케줄링**: 높은 우선순위 Pod 배치
 
 :::tip Preemption과 PDB의 관계
-Preemption은 PDB를 **존중합니다**. PDB의 `minAvailable`을 위반하는 Eviction은 발생하지 않습니다. 즉, PDB가 설정된 낮은 우선순위 Pod도 보호받을 수 있습니다.
+스케줄러의 Preemption은 PDB를 **best effort로 고려**합니다. PDB를 위반하지 않는 Victim을 찾지 못하면 낮은 우선순위 Pod를 제거하면서 PDB를 위반할 수 있습니다. Eviction API의 예산 강제와 같은 보장이 아닙니다. [Kubernetes Preemption의 PDB 지원 범위](https://kubernetes.io/docs/concepts/scheduling-eviction/pod-priority-preemption/#poddisruptionbudget-is-supported-but-not-guaranteed)를 참조하세요.
 :::
 
 **Preemption 예시 시나리오:**
@@ -3426,8 +3431,10 @@ AI/ML 워크로드는 학습(Training)과 추론(Inference)의 요구사항이 �
 
 **학습 워크로드 스케줄링 예시:**
 
+이 Job의 목표 병렬도는 8개 Pod이며, 각 Pod가 GPU 4개를 요청하므로 모두 실행될 때 총 32개 GPU를 할당합니다. [G5 사양](https://aws.amazon.com/ec2/instance-types/g5/)상 `g5.12xlarge`는 A10G GPU 4개를 제공하므로 GPU 공유를 구성하지 않은 경우 목표 병렬도에는 이 인스턴스 8대가 필요합니다. `parallelism`은 [Job의 Pod 병렬도](https://kubernetes.io/docs/concepts/workloads/controllers/job/#controlling-parallelism)이며 GPU 수 자체가 아닙니다. GPU의 `requests`와 `limits`는 [Kubernetes GPU 리소스 규칙](https://kubernetes.io/docs/tasks/manage-gpus/scheduling-gpus/#using-device-plugins)에 따라 같은 값으로 설정합니다.
+
 ```yaml
-# 대규모 분산 학습: 8-GPU Job
+# 대규모 분산 학습: 32-GPU Job (8 Pod × Pod당 4 GPU)
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -3465,9 +3472,11 @@ spec:
         image: ml/pytorch-distributed:v2.0
         resources:
           requests:
-            nvidia.com/gpu: 4  # 노드당 4 GPU
+            nvidia.com/gpu: 4  # Pod당 4 GPU
             cpu: "45"
             memory: 180Gi
+          limits:
+            nvidia.com/gpu: 4
         env:
         - name: MASTER_ADDR
           value: "distributed-training-master"
@@ -3668,6 +3677,8 @@ Setu는 커뮤니티 프로젝트로, 프로덕션 환경에서는 다음을 검
 
 **추론 워크로드 스케줄링 예시:**
 
+하나의 `podAntiAffinity` 아래에 노드별 필수 조건과 AZ별 선호 조건을 함께 둡니다. 4개 replica는 서로 다른 적격 노드 4대가 필요하지만, AZ는 선호 조건이므로 3개 AZ에서도 배치할 수 있습니다. AZ별 균등 분산을 보장하는 설정은 아닙니다. 필수 anti-affinity의 `topologyKey`를 `kubernetes.io/hostname`으로 제한하는 admission 설정도 고려한 구성입니다. [Kubernetes inter-pod affinity와 anti-affinity](https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#inter-pod-affinity-and-anti-affinity)를 참조하세요.
+
 ```yaml
 # 고가용성 추론 서비스: On-Demand GPU 노드
 apiVersion: apps/v1
@@ -3698,13 +3709,14 @@ spec:
               matchLabels:
                 app: ml-inference
             topologyKey: kubernetes.io/hostname
-        # AZ 분산
-        podAntiAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-          - labelSelector:
-              matchLabels:
-                app: ml-inference
-            topologyKey: topology.kubernetes.io/zone
+          # Soft Anti-Affinity: 가능하면 다른 AZ에 분산
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchLabels:
+                  app: ml-inference
+              topologyKey: topology.kubernetes.io/zone
       priorityClassName: high-priority
       containers:
       - name: inference
@@ -3736,7 +3748,7 @@ spec:
           initialDelaySeconds: 15
           periodSeconds: 5
 ---
-# PDB: 최소 2개 replica 유지
+# PDB: Eviction API 요청에 최소 2개 healthy Pod 기준 적용
 apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
@@ -3892,7 +3904,7 @@ flowchart TB
 2. **하드웨어 요구사항** → Node Affinity, Taints/Tolerations
 3. **비용 최적화** → Spot 노드 허용 여부
 4. **고가용성 요구사항** → Topology Spread, Anti-Affinity
-5. **업그레이드 안전성** → PDB 설정
+5. **업그레이드 안전성** → 롤아웃 전략·Readiness 설정, Eviction API 기반 노드 Drain에는 PDB 설정
 
 ---
 

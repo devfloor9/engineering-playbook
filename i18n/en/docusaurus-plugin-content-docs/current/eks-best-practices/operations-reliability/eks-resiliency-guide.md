@@ -822,14 +822,16 @@ Application-level fault tolerance patterns must be implemented alongside infrast
 
 ### PodDisruptionBudgets (PDB)
 
-PDBs ensure a minimum level of Pod availability during voluntary disruptions, such as node drains, cluster upgrades, and Karpenter consolidation.
+A PDB constrains requests that exceed the disruption budget during voluntary disruptions that use the Eviction API. This includes the default `kubectl drain` path and node upgrades or consolidation that use that API. PDBs do not constrain Deployment or StatefulSet rolling updates or direct Pod deletion.
 
 | Setting | Behavior | Suitable Situations |
 |------|------|------------|
-| `minAvailable: 2` | Always maintain at least 2 Pods | Services with a small replica count (3-5) |
-| `minAvailable: "50%"` | Maintain at least 50% of all Pods | Services with a large replica count |
-| `maxUnavailable: 1` | Disrupt at most 1 Pod at a time | Stability during rolling updates |
-| `maxUnavailable: "25%"` | Allow simultaneous disruption of up to 25% of all Pods | When rapid deployments are required |
+| `minAvailable: 2` | Evaluate eviction admission against a minimum of 2 healthy Pods | Node drains for services with a small replica count (3-5) |
+| `minAvailable: "50%"` | Check that at least 50% of desired replicas remain healthy | Eviction budgets for services with a large replica count |
+| `maxUnavailable: 1` | Constrain evictions against a maximum of 1 unavailable Pod, including Pods already unavailable | Limit concurrent disruption during node maintenance |
+| `maxUnavailable: "25%"` | Constrain evictions against a 25% threshold, including Pods already unavailable | Eviction API-based node replacement or scale-down |
+
+Pods made unavailable by rollouts or failures count against the PDB budget, but the PDB cannot prevent those disruptions themselves. Manage rolling-update availability through workload controller settings, such as a Deployment's `maxUnavailable` and `maxSurge`, together with readiness. See the [Kubernetes PDB scope](https://kubernetes.io/docs/concepts/workloads/pods/disruptions/#pod-disruption-budgets) and [Deployment strategy](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#strategy).
 
 ```yaml
 apiVersion: policy/v1

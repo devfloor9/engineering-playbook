@@ -45,7 +45,7 @@ This document focuses on scheduling patterns at the **Pod level**. For cluster-w
 | **Failure isolation** | All replicas on the same node → Complete outage if the node fails | Distribute across nodes with Anti-Affinity → Only partial failures |
 | **Resource contention** | CPU-intensive Pods concentrated on one node → Performance degradation | Separate workloads with Node Affinity → Stable performance |
 | **Cost optimization** | Pods that do not need GPUs placed on GPU nodes → Wasted cost | Isolate dedicated nodes with Taints/Tolerations → Lower cost |
-| **Upgrade safety** | No PDB configured → Service interruption during rolling updates | PDB configured → Minimum available Pods guaranteed |
+| **Upgrade safety** | Unplanned rollout strategy/readiness and no PDB for node drains → Excessive loss of available replicas | Control rolling updates through workload controller settings and constrain Eviction API-based node drains with a PDB |
 | **Emergency response** | No priorities configured → Critical workloads remain Pending | PriorityClass configured → Critical Pods scheduled first |
 
 ---
@@ -138,7 +138,7 @@ If a Pod remains `Pending`, inspect the Events section with `kubectl describe po
 | **Topology Spread** | Pod | Scoring | Hard/Soft | Distribute evenly across AZs/nodes |
 | **PriorityClass** | Pod | Preemption | Hard | Preempt resources based on priority |
 | **Resource Requests** | Pod | Filtering | Hard | Guarantee minimum resources |
-| **PDB** | Pod Group | Eviction | Hard | Guarantee minimum available Pods |
+| **PDB** | Pod Group | Eviction API | Hard | Constrain eviction requests that exceed the disruption budget |
 
 **Hard vs Soft Constraints:**
 - **Hard (Required)**: Scheduling fails if conditions are not met → `Pending` state
@@ -1036,12 +1036,14 @@ spec:
 
 #### Pattern 3: Node Maintenance (Preparing to Drain)
 
+For planned maintenance that respects PDBs, use the default Eviction API path of `kubectl drain`. The following `NoExecute` example illustrates taint-based deletion; it does not replace a drain procedure that enforces PDBs.
+
 ```bash
 # Step 1: Apply a NoExecute Taint to the node
 kubectl taint nodes node-1 maintenance=true:NoExecute
 
 # Result: All Pods without a Toleration are immediately evicted and moved to other nodes
-# If a PDB is configured, evict sequentially while respecting minAvailable
+# NoExecute deletions do not use the Eviction API and are not constrained by PDBs
 
 # Step 2: Remove the Taint after maintenance is complete
 kubectl taint nodes node-1 maintenance=true:NoExecute-
@@ -1649,7 +1651,7 @@ kubectl delete nodes -l karpenter.sh/nodepool
 
 ## 6. Advanced PodDisruptionBudget (PDB) Patterns
 
-PodDisruptionBudget ensures a minimum level of Pod availability during **voluntary disruptions**.
+PodDisruptionBudget constrains requests that exceed the disruption budget during **voluntary disruptions through the Eviction API**. It does not constrain Deployment or StatefulSet rolling updates or direct Pod deletion. Pods unavailable during a rollout count against the disruption budget, but availability during the update itself is managed through the workload controller's strategy and readiness settings. See [Kubernetes Pod disruption budgets](https://kubernetes.io/docs/concepts/workloads/pods/disruptions/#pod-disruption-budgets) for the exact scope.
 
 ### 6.1 Review of PDB Basics
 
@@ -1661,8 +1663,9 @@ The basic concepts of PDB and its interaction with Karpenter are covered in the 
 
 | Disruption type | Examples | PDB applies | Response |
 |----------|------|---------|----------|
-| **Voluntary** | Node drain, cluster upgrades, Karpenter consolidation | ✅ Yes | Configure PDB |
-| **Involuntary** | Node crashes, OOM kills, hardware failures, AZ failures | ❌ No | Increase replicas, Anti-Affinity |
+| **Voluntary: Eviction API** | Default `kubectl drain`, node upgrades/consolidation that use the Eviction API | ✅ Constrains eviction requests | Configure PDB |
+| **Voluntary: controller rollout/direct deletion** | Deployment or StatefulSet rolling updates, direct Pod deletion | ❌ Does not constrain the operation; unavailable Pods count against the budget | Configure rollout strategy/readiness; avoid direct deletion |
+| **Involuntary** | Node crashes, OOM kills, hardware failures, AZ failures | ❌ Does not prevent disruption; unavailable Pods count against the budget | Increase replicas, Anti-Affinity |
 
 ### 6.2 Advanced PDB Strategies
 
@@ -1678,8 +1681,8 @@ spec:
   strategy:
     type: RollingUpdate
     rollingUpdate:
-      maxSurge: 2         # Allow an increase to a maximum of 12
-      maxUnavailable: 0   # 0 unavailable Pods at a time (zero-downtime deployment)
+      maxSurge: 2         # Allow up to 2 additional replicas during the rollout
+      maxUnavailable: 0   # Do not reduce available replicas below the target through the rollout
   selector:
     matchLabels:
       app: api-server
@@ -1697,15 +1700,17 @@ kind: PodDisruptionBudget
 metadata:
   name: api-server-pdb
 spec:
-  minAvailable: 8  # Always maintain at least 8 (80% availability)
+  minAvailable: 8  # Minimum healthy Pod count used when admitting evictions
   selector:
     matchLabels:
       app: api-server
 ```
 
 **Effects:**
-- During rolling updates: `maxUnavailable: 0` retains existing Pods until new Pods are Ready
-- During node drains: PDB ensures at least 8 Pods → allows at most 2 concurrent evictions
+- During rolling updates: the Deployment's `maxUnavailable: 0` and `maxSurge: 2` control replacement. Readiness and `minReadySeconds` determine when new Pods become available; the PDB does not control the rollout. The example container omits a Readiness Probe, so add a Probe that reflects the service's actual readiness.
+- During node drains: with 10 healthy Pods and no other disruptions, `minAvailable: 8` provides a budget for 2 additional Pod evictions. Pods already unavailable due to rollouts or failures reduce that budget. A PDB cannot prevent availability loss caused by failures or direct deletion.
+
+See the [Kubernetes Deployment strategy](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#strategy) for the meaning of the rollout settings.
 
 #### Strategy 2: StatefulSet + PDB (Database Cluster)
 
@@ -1923,7 +1928,7 @@ description: "High priority for mission-critical services"
 Values of 1 billion or greater are reserved for Kubernetes system components (kube-system). Use values below 1 billion for user-defined PriorityClasses.
 :::
 
-### 7.2 Four-Tier Priority System for Production
+### 7.2 Five-Tier Priority System for Production {#72-four-tier-priority-system-for-production}
 
 **Recommended priority hierarchy:**
 
@@ -2053,12 +2058,12 @@ flowchart TB
 1. **Scheduling of a high-priority Pod fails**
 2. **Find candidate nodes for preemption**: Find nodes where the Pod can be scheduled after removing lower-priority Pods
 3. **Select victim Pods**: Select Pods for removal starting with the lowest priority
-4. **Check PDB**: Check whether victim Pods are protected by PDB → search other nodes if eviction would violate PDB
+4. **Consider PDB**: Prefer victim sets that avoid PDB violations, but allow preemption that violates a PDB if no suitable set exists
 5. **Graceful eviction**: Evict while respecting `terminationGracePeriodSeconds`
 6. **Schedule after resources become available**: Place the high-priority Pod
 
 :::tip Relationship Between Preemption and PDB
-Preemption **respects** PDB. Evictions that violate the PDB's `minAvailable` do not occur. This means that even low-priority Pods can be protected when a PDB is configured.
+Scheduler preemption considers PDBs on a **best-effort basis**. If it cannot find victims that avoid a PDB violation, it can remove lower-priority Pods despite violating the PDB. This is not the same guarantee as budget enforcement through the Eviction API. See [Kubernetes PDB support during preemption](https://kubernetes.io/docs/concepts/scheduling-eviction/pod-priority-preemption/#poddisruptionbudget-is-supported-but-not-guaranteed).
 :::
 
 **Example preemption scenario:**
@@ -3426,8 +3431,10 @@ AI/ML training and inference have significantly different requirements, so each 
 
 **Training workload scheduling example:**
 
+This Job targets 8 parallel Pods, each requesting 4 GPUs, for a total allocation of 32 GPUs when all are running. The [G5 specifications](https://aws.amazon.com/ec2/instance-types/g5/) list 4 A10G GPUs per `g5.12xlarge`, so reaching the target parallelism requires 8 such instances when GPU sharing is not configured. `parallelism` specifies [Job Pod parallelism](https://kubernetes.io/docs/concepts/workloads/controllers/job/#controlling-parallelism), not the GPU count itself. GPU `requests` and `limits` are set to equal values according to the [Kubernetes GPU resource rules](https://kubernetes.io/docs/tasks/manage-gpus/scheduling-gpus/#using-device-plugins).
+
 ```yaml
-# Large-scale distributed training: 8-GPU Job
+# Large-scale distributed training: 32-GPU Job (8 Pods × 4 GPUs per Pod)
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -3465,9 +3472,11 @@ spec:
         image: ml/pytorch-distributed:v2.0
         resources:
           requests:
-            nvidia.com/gpu: 4  # 4 GPUs per node
+            nvidia.com/gpu: 4  # 4 GPUs per Pod
             cpu: "45"
             memory: 180Gi
+          limits:
+            nvidia.com/gpu: 4
         env:
         - name: MASTER_ADDR
           value: "distributed-training-master"
@@ -3668,6 +3677,8 @@ Setu is a community project. Verify the following in production environments:
 
 **Inference workload scheduling example:**
 
+One `podAntiAffinity` mapping contains both the required node-level rule and the preferred AZ-level rule. The 4 replicas require 4 distinct eligible nodes, but the AZ rule is a preference, allowing placement across 3 AZs. This does not guarantee an even distribution across AZs. The configuration also accommodates admission settings that restrict the `topologyKey` of required anti-affinity to `kubernetes.io/hostname`. See [Kubernetes inter-pod affinity and anti-affinity](https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#inter-pod-affinity-and-anti-affinity).
+
 ```yaml
 # Highly available inference service: On-Demand GPU nodes
 apiVersion: apps/v1
@@ -3698,13 +3709,14 @@ spec:
               matchLabels:
                 app: ml-inference
             topologyKey: kubernetes.io/hostname
-        # Spread across AZs
-        podAntiAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-          - labelSelector:
-              matchLabels:
-                app: ml-inference
-            topologyKey: topology.kubernetes.io/zone
+          # Soft Anti-Affinity: Prefer distribution across different AZs
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchLabels:
+                  app: ml-inference
+              topologyKey: topology.kubernetes.io/zone
       priorityClassName: high-priority
       containers:
       - name: inference
@@ -3736,7 +3748,7 @@ spec:
           initialDelaySeconds: 15
           periodSeconds: 5
 ---
-# PDB: Maintain at least 2 replicas
+# PDB: Apply a minimum of 2 healthy Pods to Eviction API requests
 apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
@@ -3892,7 +3904,7 @@ flowchart TB
 2. **Hardware requirements** → Node Affinity, Taints/Tolerations
 3. **Cost optimization** → Decide whether to allow Spot nodes
 4. **High availability requirements** → Topology Spread, Anti-Affinity
-5. **Upgrade safety** → Configure PDB
+5. **Upgrade safety** → Configure rollout strategy/readiness, and a PDB for Eviction API-based node drains
 
 ---
 
