@@ -18,7 +18,7 @@ const defaultContext = {
     metadata: {title: 'AIDLC: AI-Driven Development Lifecycle', permalink: `${rootPath}docs/aidlc`},
     frontMatter: {created: '2026-02-05', last_update: {date: '2026-09-18', author: 'Preserved author'}, reading_time: 6},
   },
-  site: {siteConfig: {url: origin, customFields: {documentationBaseUrl: rootPath}}, i18n: {currentLocale: 'ko'}},
+  site: {siteConfig: {url: origin, trailingSlash: false, customFields: {documentationBaseUrl: rootPath}}, i18n: {currentLocale: 'ko'}},
 };
 const manifest = {
   language: 'ko',
@@ -100,9 +100,9 @@ async function testSuite() {
       assert(page.host.querySelector('a[target="_blank"]').textContent.includes('새 탭'), 'new tab announcement');
     } finally { await page.unmount(); }
   });
-  await test('link copy preserves canonical permalink and current fragment', async () => {
+  await test('link copy normalizes a category permalink and preserves its current fragment', async () => {
     history.replaceState(null, '', '#existing-section');
-    const page = await mount(<DocTools />);
+    const page = await mount(<DocTools />, withDoc(`${rootPath}docs/aidlc/`));
     try {
       await act(async () => named(page.host, '링크 복사').click());
       assert(writes[0] === `${origin}${rootPath}docs/aidlc#existing-section`, 'canonical fragment');

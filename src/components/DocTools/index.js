@@ -7,6 +7,7 @@ import CopyButton from '../CopyButton';
 import Icon from '@site/src/components/Icon';
 import DocMeta from '@theme/DocMeta';
 import {forgetManifest, loadManifest, loadMarkdownText, markdownUrlFromManifest} from './manifest';
+import {canonicalDocumentUrl} from './url';
 import controlStyles from '../CopyButton/styles.module.css';
 import styles from './styles.module.css';
 
@@ -55,7 +56,10 @@ function DocumentTools({metadata, siteConfig, i18n}) {
         <DocMeta />
         <div className={styles.actions}>
           <CopyButton icon="link" label={ko ? '링크 복사' : 'Copy link'}
-            getText={() => new URL(metadata.permalink, siteConfig.url).href + window.location.hash} />
+            getText={() => canonicalDocumentUrl({
+              permalink: metadata.permalink, siteUrl: siteConfig.url,
+              trailingSlash: siteConfig.trailingSlash, hash: window.location.hash,
+            })} />
           <Link data-ep-action="" className={`${controlStyles.button} ${styles.guide}`} to={helpUrl}>
             <Icon name="book-open" size={18} />
             <span>{ko ? 'AI용 문서 안내' : 'AI documentation guide'}</span>
