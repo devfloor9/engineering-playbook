@@ -83,370 +83,221 @@ AWS Bedrock RAG Evaluation became **GA in March 2025**. With Bedrock native inte
 
 <RagasMetrics />
 
-:::note Ragas 0.2+ API Changes
-In Ragas 0.2+, the `context_relevancy` metric has been removed. Use a combination of `context_precision` and `context_recall` for context quality evaluation.
+:::note Ragas baseline for this page
+Use Ragas **0.4.3**, Python **3.11**, and `ascore()` from `ragas.metrics.collections`. Following the [official migration guide](https://docs.ragas.io/en/stable/howtos/migrations/migrate_from_v03_to_v04/), configure LLMs and embeddings explicitly and read `MetricResult.value`. Basic, comprehensive, CI, and caching examples all use this API.
 :::
 
 ## 2. Installation and Basic Setup
 
 ### Python Environment Setup
 
-```bash
-# Install Ragas (0.2+ recommended)
-pip install "ragas>=0.2" langchain-openai datasets
+The runnable module and pinned dependencies are in [examples/ragas-evaluation](https://github.com/devfloor9/engineering-playbook/tree/main/examples/ragas-evaluation). Run the subsequent Python examples from that directory after installation.
 
-# Additional dependencies
-pip install pandas numpy
+```bash
+# Run from the repository root; Python 3.11 is the verified baseline.
+python3.11 -m venv /tmp/ragas-evaluation-venv
+source /tmp/ragas-evaluation-venv/bin/activate
+python -m pip install -r examples/ragas-evaluation/requirements.txt
+cd examples/ragas-evaluation
+python test_smoke.py
 ```
+
+`requirements.txt` pins Ragas 0.4.3, OpenAI 2.54.0, Instructor 1.17.0, and the tested transitive dependencies. Ragas 0.4.3 imports a VertexAI module absent from `langchain-community` 0.4.2, so the environment pins the verified 0.3.31 release. The example itself does not use LangChain wrappers. Installing only `ragas>=0.2` does not reproduce this configuration.
+
+`test_smoke.py` blocks network connections and runs real metrics against mocked HTTP responses. It needs neither an API key nor paid calls. These checks do not validate model quality or access to a live service.
 
 ### Basic Evaluation Code
 
+`make_metrics()` in `ragas_eval.py` configures evaluators as shown below. The LLM produces structured judgments; embeddings provide question similarity for `AnswerRelevancy`. Both models are explicit.
+
 ```python
-from ragas import evaluate
-from ragas.metrics import (
-    faithfulness,
-    answer_relevancy,
-    context_precision,
-    context_recall,
+from openai import AsyncOpenAI
+from ragas.embeddings import OpenAIEmbeddings
+from ragas.llms import llm_factory
+from ragas.metrics.collections import (
+    Faithfulness, AnswerRelevancy, ContextPrecision, ContextRecall,
 )
-from datasets import Dataset
 
-# Prepare evaluation dataset
-eval_data = {
-    "question": [
-        "How is GPU scheduling done in Kubernetes?",
-        "What are Karpenter's key features?",
-    ],
-    "answer": [
-        "GPU scheduling in Kubernetes is performed through the NVIDIA Device Plugin...",
-        "Karpenter provides automatic node provisioning, consolidation, and drift detection...",
-    ],
-    "contexts": [
-        ["GPU scheduling is done through Device Plugin...", "NVIDIA GPU Operator..."],
-        ["Karpenter is a Kubernetes node auto-scaler...", "Through NodePool CRD..."],
-    ],
-    "ground_truth": [
-        "GPU resources are scheduled using NVIDIA Device Plugin and GPU Operator.",
-        "Karpenter provides automatic node provisioning, consolidation, drift detection, and disruption handling.",
-    ],
-}
-
-dataset = Dataset.from_dict(eval_data)
-
-# Run evaluation (with error handling)
-try:
-    results = evaluate(
-        dataset,
-        metrics=[
-            faithfulness,
-            answer_relevancy,
-            context_precision,
-            context_recall,
-        ],
-    )
-    print(results)
-except Exception as e:
-    print(f"Error during evaluation: {e}")
-    # Logging or retry logic
+# The caller supplies an AsyncOpenAI client with an explicit API key and base URL.
+def make_basic_metrics(client: AsyncOpenAI):
+    llm = llm_factory("gpt-4o-mini", provider="openai", client=client, temperature=0)
+    embeddings = OpenAIEmbeddings(client=client, model="text-embedding-3-small")
+    return {
+        "faithfulness": Faithfulness(llm=llm),
+        "answer_relevancy": AnswerRelevancy(llm=llm, embeddings=embeddings, strictness=3),
+        "context_precision": ContextPrecision(llm=llm),
+        "context_recall": ContextRecall(llm=llm),
+    }
 ```
+
+The following code **makes paid API calls**. Set `OPENAI_API_KEY` in the environment and confirm access to both configured models before running it. Keep credentials out of source files. `CASES` and `demo_pipeline` are two deterministic fixtures defined in the module, not a dataset measuring production RAG quality.
+
+```python
+import asyncio
+import os
+from openai import AsyncOpenAI
+from ragas_eval import (
+    BASE_URL, CASES, collect_samples, demo_pipeline,
+    make_metrics, quality_failures, score_samples,
+)
+
+async def main():
+    samples = collect_samples(CASES, demo_pipeline)
+    async with AsyncOpenAI(
+        api_key=os.environ["OPENAI_API_KEY"], base_url=BASE_URL,
+        timeout=60, max_retries=0,
+    ) as client:
+        report = await score_samples(samples, make_metrics(client))
+    print(report["metrics"])
+    failures = quality_failures(report)
+    if failures:
+        raise RuntimeError("; ".join(failures))
+
+asyncio.run(main())
+```
+
+`score_samples()` passes only the required fields to each `await metric.ascore(...)`. Exceptions, NaN, infinity, and nonnumeric results become `null` scores with an error type. If any sample fails a metric, that metric's aggregate is `null` and quality gates fail. Failed rows are neither omitted from averages nor replaced with zero. In a notebook, use `await main()` instead of `asyncio.run(main())`.
 
 ## 3. Core Metric Details
 
 ### 1. Faithfulness
 
-Measures how faithful the answer is to the provided context. A key metric for detecting hallucination.
-
-```python
-from ragas.metrics import faithfulness
-
-# Faithfulness calculation process:
-# 1. Decompose answer into individual claims
-# 2. Verify each claim is inferable from context
-# 3. Verified claims / Total claims = Faithfulness score
-
-# Score interpretation:
-# 1.0: All claims supported by context
-# 0.5: Only half of claims supported by context
-# 0.0: No claims supported by context (severe hallucination)
-```
+`Faithfulness(llm=llm)` splits the response into claims and checks whether retrieved contexts support each claim. Call `ascore(user_input=..., response=..., retrieved_contexts=...)`. The 0.4.3 implementation can return NaN when no statements are generated, so validate that every result is finite.
 
 ### 2. Answer Relevancy
 
-Measures how relevant the answer is to the question.
-
-```python
-from ragas.metrics import answer_relevancy
-
-# Answer Relevancy calculation process:
-# 1. Generate questions from the answer in reverse
-# 2. Calculate similarity between generated and original questions
-# 3. Repeat multiple times and calculate average
-
-# Score interpretation:
-# High score: Answer directly relates to question
-# Low score: Answer contains content unrelated to question
-```
+`AnswerRelevancy(llm=llm, embeddings=embeddings, strictness=3)` generates questions from the response and compares their embeddings with the original question. Call `ascore(user_input=..., response=...)`. Evaluate factual correctness separately; treat NaN as an evaluation failure rather than a low relevance score.
 
 ### 3. Context Precision
 
-Measures the proportion of actually useful information among retrieved contexts.
-
-```python
-from ragas.metrics import context_precision
-
-# Context Precision calculation:
-# - Identify context needed to generate ground truth answer
-# - Check if useful information exists in top-ranked context
-# - Higher score when relevant context is in higher ranks
-```
+This example uses `ContextPrecision(llm=llm)` **with a reference answer**. Call `ascore(user_input=..., reference=..., retrieved_contexts=...)` to evaluate how early useful contexts appear in the retrieval ranking. It is not simply the fraction of retrieved documents that are relevant.
 
 ### 4. Context Recall
 
-Measures whether the information needed to generate the correct answer is included in the retrieved context.
+`ContextRecall(llm=llm)` evaluates the fraction of reference-answer claims supported by retrieved contexts. Call `ascore(user_input=..., retrieved_contexts=..., reference=...)`. A missing reference therefore violates this page's evaluation data contract.
 
-```python
-from ragas.metrics import context_recall
-
-# Context Recall calculation:
-# 1. Decompose ground truth into individual sentences
-# 2. Check if each sentence is inferable from retrieved context
-# 3. Inferable sentences / Total sentences = Recall score
-```
+These descriptions follow the [official metric documentation](https://docs.ragas.io/en/stable/concepts/metrics/available_metrics/faithfulness/) and the [0.4.3 implementation](https://github.com/vibrantlabsai/ragas/tree/v0.4.3/src/ragas/metrics/collections).
 
 ## 4. Comprehensive Evaluation Pipeline
 
 ### Full RAG System Evaluation
 
+The adapter contract is `pipeline(question: str) -> {"response": str, "retrieved_contexts": list[str]}`. `collect_samples(cases, pipeline)` joins its output with questions and references. Preserve retrieval order and return the contexts actually supplied to the generator. This complete adapter uses fixtures so that the example can run as written.
+
 ```python
-import os
-from ragas import evaluate
-from ragas.metrics import (
-    faithfulness,
-    answer_relevancy,
-    context_precision,
-    context_recall,
-    answer_correctness,
-)
-from datasets import Dataset
-from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+from pathlib import Path
+from ragas_eval import CASES, DEMO_DOCUMENTS, collect_samples, save_json
 
-# LLM configuration (for evaluation)
-os.environ["OPENAI_API_KEY"] = "your-api-key"
+# A complete fixture adapter. Replace its body with your initialized RAG pipeline.
+def pipeline(question: str) -> dict:
+    context = DEMO_DOCUMENTS[question]
+    return {"response": context, "retrieved_contexts": [context]}
 
-def evaluate_rag_pipeline(questions, rag_chain, ground_truths):
-    """Comprehensive RAG pipeline evaluation"""
-    
-    answers = []
-    contexts = []
-    
-    for question in questions:
-        # Execute RAG chain
-        result = rag_chain.invoke({"query": question})
-        answers.append(result["result"])
-        contexts.append([doc.page_content for doc in result["source_documents"]])
-    
-    # Construct evaluation dataset
-    eval_dataset = Dataset.from_dict({
-        "question": questions,
-        "answer": answers,
-        "contexts": contexts,
-        "ground_truth": ground_truths,
-    })
-    
-    # Evaluate with all metrics
-    results = evaluate(
-        eval_dataset,
-        metrics=[
-            faithfulness,
-            answer_relevancy,
-            context_precision,
-            context_recall,
-            answer_correctness,
-        ],
-    )
-    
-    return results
-
-# Usage example
-questions = [
-    "How to configure Karpenter on EKS?",
-    "How to configure GPU node auto-scaling?",
-    "How to set up Inference Gateway dynamic routing?",
-]
-
-ground_truths = [
-    "Karpenter is installed via Helm chart and configured by defining NodePool CRD.",
-    "Configure GPU usage-based scaling by integrating DCGM Exporter metrics with KEDA.",
-    "Use Gateway API's HTTPRoute to configure weight-based traffic distribution.",
-]
-
-# Run evaluation
-results = evaluate_rag_pipeline(questions, rag_chain, ground_truths)
-print(results.to_pandas())
+# Only the question goes to the pipeline; reference answers stay with the evaluator.
+samples = collect_samples(CASES, pipeline)
+save_json(Path("samples.json"), samples)
 ```
+
+```bash
+# Paid evaluation, after setting OPENAI_API_KEY in the environment.
+python ragas_eval.py --live --comprehensive --samples samples.json \
+  --output results/evaluation.json
+```
+
+For a real system, replace the body of `pipeline()` with calls to your initialized retriever and generator, and replace `CASES` with questions and references reviewed by domain experts. The adapter is synchronous. An asynchronous pipeline can instead save its outputs as a JSON array with the same schema and pass it through `--samples`. Inputs must be nonempty; every sample requires `user_input`, `response`, `retrieved_contexts`, and `reference`. Adapter or input-validation errors fail the run before evaluation starts.
+
+`--comprehensive` adds `AnswerCorrectness(llm=llm, embeddings=embeddings, weights=[0.75, 0.25], beta=1.0)` to the four basic metrics. It evaluates `user_input`, `response`, and `reference` using the same evaluator, with configuration recorded in the report. The CLI requires both `--live` and an API key before making calls.
 
 ### Evaluation Result Analysis
 
 ```python
-import pandas as pd
-import matplotlib.pyplot as plt
+import json
+from pathlib import Path
+from ragas_eval import quality_failures
 
-def analyze_evaluation_results(results):
-    """Analyze and visualize evaluation results"""
-    
-    df = results.to_pandas()
-    
-    # Average score per metric
-    metrics_summary = df.mean(numeric_only=True)
-    print("=== Average Score per Metric ===")
-    print(metrics_summary)
-    
-    # Identify problem areas
-    print("\n=== Areas Needing Improvement ===")
-    for metric, score in metrics_summary.items():
-        if score < 0.7:
-            print(f"Warning {metric}: {score:.2f} - Needs improvement")
-        elif score < 0.85:
-            print(f"Info {metric}: {score:.2f} - Good")
-        else:
-            print(f"Success {metric}: {score:.2f} - Excellent")
-    
-    # Visualization
-    fig, ax = plt.subplots(figsize=(10, 6))
-    metrics_summary.plot(kind='bar', ax=ax, color=['#4285f4', '#34a853', '#fbbc04', '#ea4335', '#9c27b0', '#00bcd4'])
-    ax.set_ylabel('Score')
-    ax.set_title('RAG Pipeline Evaluation Results')
-    ax.set_ylim(0, 1)
-    ax.axhline(y=0.7, color='r', linestyle='--', label='Minimum Threshold')
-    ax.legend()
-    plt.tight_layout()
-    plt.savefig('rag_evaluation_results.png')
-    
-    return metrics_summary
-
-# Run analysis
-summary = analyze_evaluation_results(results)
+report = json.loads(Path("results/evaluation.json").read_text(encoding="utf-8"))
+for metric, score in report["metrics"].items():
+    print(f"{metric}: {score:.3f}" if score is not None else f"{metric}: FAILED")
+print(f"Failed samples: {report['failed_samples']}/{report['sample_count']}")
+for failure in quality_failures(report):
+    print(failure)
 ```
+
+The report contains `metrics` (means across all samples), `rows` (per-sample scores, errors, and cache status), `failed_samples`, `sample_count`, and `config`. A `null` score is not a valid result that can be excluded from comparisons. Resolve that sample's error and rerun evaluation. Reports include questions, responses, contexts, and references, so choose suitable sharing rules for test data and result files.
 
 ## 5. CI/CD Pipeline Integration
 
 ### GitHub Actions Workflow
 
-```yaml
-# .github/workflows/rag-evaluation.yml
-name: RAG Pipeline Evaluation
+This illustrative workflow can be installed separately by a consuming project. Pull requests run only offline checks; selecting `live` during manual dispatch enables evaluation with a repository secret. The paid example evaluates fixtures; supply your own `--samples` file for an actual regression gate. Execution on a Linux GitHub runner is outside this page's local verification scope.
 
+```yaml
+# Illustrative .github/workflows/rag-evaluation.yml; not installed by this guide.
+name: Ragas Evaluation
 on:
-  push:
-    paths:
-      - 'src/rag/**'
-      - 'data/knowledge_base/**'
   pull_request:
     paths:
-      - 'src/rag/**'
-  schedule:
-    - cron: '0 0 * * *'  # Daily at midnight
-
+      - 'examples/ragas-evaluation/**'
+  workflow_dispatch:
+    inputs:
+      live:
+        description: 'Run paid evaluation of the bundled fixtures'
+        type: boolean
+        default: false
+permissions:
+  contents: read
 jobs:
   evaluate:
     runs-on: ubuntu-latest
-    
+    defaults:
+      run:
+        working-directory: examples/ragas-evaluation
     steps:
-    - uses: actions/checkout@v4
-    
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.11'
-    
-    - name: Install dependencies
-      run: |
-        pip install ragas langchain-openai datasets pandas
-    
-    - name: Run RAG Evaluation
-      env:
-        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-      run: |
-        python scripts/evaluate_rag.py --output results/evaluation.json
-    
-    - name: Check Quality Gates
-      run: |
-        python scripts/check_quality_gates.py results/evaluation.json
-    
-    - name: Upload Results
-      uses: actions/upload-artifact@v4
-      with:
-        name: evaluation-results
-        path: results/
-    
-    - name: Comment PR with Results
-      if: github.event_name == 'pull_request'
-      uses: actions/github-script@v7
-      with:
-        script: |
-          const fs = require('fs');
-          const results = JSON.parse(fs.readFileSync('results/evaluation.json'));
-          
-          let comment = '## RAG Evaluation Results\n\n';
-          comment += '| Metric | Score | Status |\n';
-          comment += '|--------|-------|--------|\n';
-          
-          for (const [metric, score] of Object.entries(results.metrics)) {
-            const status = score >= 0.7 ? 'Pass' : 'Warning';
-            comment += `| ${metric} | ${score.toFixed(2)} | ${status} |\n`;
-          }
-          
-          github.rest.issues.createComment({
-            issue_number: context.issue.number,
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            body: comment
-          });
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install the same pinned dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Offline smoke checks
+        run: python test_smoke.py
+      - name: Evaluate and enforce quality gates
+        if: github.event_name == 'workflow_dispatch' && inputs.live
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          RAGAS_DO_NOT_TRACK: 'true'
+        run: python ragas_eval.py --live --comprehensive --output results/evaluation.json
+      - name: Upload evaluation report even if quality gates fail
+        if: always() && github.event_name == 'workflow_dispatch' && inputs.live
+        uses: actions/upload-artifact@v4
+        with:
+          name: evaluation-results
+          path: examples/ragas-evaluation/results/evaluation.json
 ```
 
 ### Quality Gate Script
 
+The CLI writes the report before returning exit code 1 on gate failure. Recheck a saved report using the same function:
+
 ```python
-# scripts/check_quality_gates.py
 import json
-import sys
+from pathlib import Path
+from ragas_eval import quality_failures
 
-QUALITY_GATES = {
-    "faithfulness": 0.8,
-    "answer_relevancy": 0.75,
-    "context_precision": 0.7,
-    "context_recall": 0.7,
-}
-
-def check_quality_gates(results_file):
-    with open(results_file) as f:
-        results = json.load(f)
-    
-    failed_gates = []
-    
-    for metric, threshold in QUALITY_GATES.items():
-        score = results["metrics"].get(metric, 0)
-        if score < threshold:
-            failed_gates.append({
-                "metric": metric,
-                "score": score,
-                "threshold": threshold,
-            })
-    
-    if failed_gates:
-        print("Quality gates failed:")
-        for gate in failed_gates:
-            print(f"  - {gate['metric']}: {gate['score']:.2f} < {gate['threshold']}")
-        sys.exit(1)
-    else:
-        print("All quality gates passed!")
-        sys.exit(0)
-
-if __name__ == "__main__":
-    check_quality_gates(sys.argv[1])
+report = json.loads(Path("results/evaluation.json").read_text(encoding="utf-8"))
+failures = quality_failures(report)
+for failure in failures:
+    print(failure)
+raise SystemExit(1 if failures else 0)
 ```
 
+Illustrative thresholds are 0.8 for faithfulness, 0.75 for answer relevancy, and 0.7 each for context precision and recall. These are neither Ragas defaults nor measured acceptance criteria; calibrate them against your evaluation set. Missing or non-finite scores, empty results, incomplete row counts, and inconsistent aggregates also fail. Comprehensive evaluation checks answer correctness for validity but does not assign it a separate score threshold in this example.
+
 ## 6. Kubernetes Job for Regular Evaluation
+
+:::note Deployment outline
+The Kubernetes resources in this section assume a custom evaluator image, configuration loader, and storage integrations. The Python example above does not implement ConfigMap loading, S3 output, or Milvus connectivity. Verification of the runnable Ragas example covers local smoke checks only.
+:::
 
 ### Evaluation Job Definition
 
@@ -535,78 +386,16 @@ RAG evaluation requires LLM API calls, so costs are incurred. Optimize costs wit
 
 <CostOptimizationStrategies />
 
-```python
-import hashlib
-import json
-from functools import lru_cache
+Caching is an optional feature of the same runnable module. It preserves input order and reuses duplicate inputs within a run. Keys include the question, response, retrieved contexts, reference, metric list, model and endpoint configuration, parameters, dependency versions, and prompt revision. Only samples with all metrics successful are stored; failed or NaN cache entries are recomputed.
 
-class CachedEvaluator:
-    """Cost-optimized evaluator with caching"""
-    
-    def __init__(self, cache_file='eval_cache.json'):
-        self.cache_file = cache_file
-        self.cache = self._load_cache()
-    
-    def _load_cache(self):
-        try:
-            with open(self.cache_file, 'r') as f:
-                return json.load(f)
-        except FileNotFoundError:
-            return {}
-    
-    def _save_cache(self):
-        with open(self.cache_file, 'w') as f:
-            json.dump(self.cache, f)
-    
-    def _get_cache_key(self, question, answer, contexts):
-        """Generate unique key for evaluation item"""
-        content = f"{question}|{answer}|{'|'.join(contexts)}"
-        return hashlib.md5(content.encode()).hexdigest()
-    
-    def evaluate_with_cache(self, dataset, metrics):
-        """Evaluation with caching"""
-        cached_results = []
-        new_items = []
-        
-        for item in dataset:
-            cache_key = self._get_cache_key(
-                item['question'], 
-                item['answer'], 
-                item['contexts']
-            )
-            
-            if cache_key in self.cache:
-                cached_results.append(self.cache[cache_key])
-            else:
-                new_items.append(item)
-        
-        # Evaluate only new items
-        if new_items:
-            new_dataset = Dataset.from_dict({
-                k: [item[k] for item in new_items]
-                for k in new_items[0].keys()
-            })
-            
-            new_results = evaluate(new_dataset, metrics=metrics)
-            
-            # Update cache
-            for item, result in zip(new_items, new_results):
-                cache_key = self._get_cache_key(
-                    item['question'], 
-                    item['answer'], 
-                    item['contexts']
-                )
-                self.cache[cache_key] = result
-            
-            self._save_cache()
-            cached_results.extend(new_results)
-        
-        return cached_results
-
-# Usage example
-evaluator = CachedEvaluator()
-results = evaluator.evaluate_with_cache(dataset, metrics)
+```bash
+# The same metrics, configuration, sample format, and quality gates as above.
+python ragas_eval.py --live --comprehensive --samples samples.json \
+  --cache results/eval-cache.json --revision default-prompts-v1 \
+  --output results/evaluation.json
 ```
+
+Change `--revision` or remove the cache when the model behind an alias, prompts, or metric settings change. Reusing old scores cannot measure quality after those changes. This JSON cache is for one process and does not provide concurrent-writer locking or automatic expiration.
 
 ### AWS Bedrock RAG Evaluation Usage
 
@@ -696,7 +485,10 @@ flowchart TB
 ## References
 
 ### Official Documentation
-- [Ragas Documentation](https://docs.ragas.io/)
+- [Ragas 0.4 migration guide](https://docs.ragas.io/en/stable/howtos/migrations/migrate_from_v03_to_v04/)
+- [Ragas 0.4.3 collections source](https://github.com/vibrantlabsai/ragas/tree/v0.4.3/src/ragas/metrics/collections)
+- [Ragas 0.4.3 LLM factory and imports](https://github.com/vibrantlabsai/ragas/blob/v0.4.3/src/ragas/llms/base.py)
+- [Ragas 0.4.3 native OpenAI embeddings](https://github.com/vibrantlabsai/ragas/blob/v0.4.3/src/ragas/embeddings/openai_provider.py)
 - [AWS Bedrock RAG Evaluation](https://docs.aws.amazon.com/bedrock/)
 
 ### Related Documentation
