@@ -1,4 +1,5 @@
 import React from 'react';
+import BaseTable from '../tables/BaseTable';
 
 const data = {
   ko: [
@@ -21,36 +22,15 @@ const data = {
   ],
 };
 
-export default function TroubleshootingTable({ locale = 'ko' }) {
-  const rows = data[locale];
-  const title = locale === 'ko' ? '🔧 Gateway API 트러블슈팅 가이드' : '🔧 Gateway API Troubleshooting Guide';
-  const subtitle = locale === 'ko' ? '일반적인 문제와 해결 방법' : 'Common issues and solutions';
-
-  return (
-    <div style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', maxWidth: 760, margin: '0 0 1.5rem 0' }}>
-      <div style={{ background: 'linear-gradient(135deg, #b71c1c 0%, #c62828 100%)', borderRadius: '12px 12px 0 0', padding: '1rem 1.5rem', color: 'white' }}>
-        <div style={{ fontSize: '0.95rem', fontWeight: 700 }}>{title}</div>
-        <div style={{ fontSize: '0.72rem', opacity: 0.7, marginTop: 2 }}>{subtitle}</div>
-      </div>
-      <div style={{ background: 'var(--ifm-background-surface-color)', border: '1px solid var(--ifm-color-emphasis-200)', borderTop: 'none', borderRadius: '0 0 12px 12px', padding: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-        {rows.map((row, idx) => (
-          <div key={idx} style={{ border: '1.5px solid #c6282820', borderLeft: '4px solid #c62828', borderRadius: 8, padding: '0.7rem 1rem', background: 'var(--ifm-background-surface-color)' }}>
-            <div style={{ marginBottom: '0.4rem' }}>
-              <span style={{ background: 'var(--ifm-color-emphasis-100)', color: '#c62828', padding: '3px 10px', borderRadius: 6, fontSize: '0.75rem', fontWeight: 700 }}>
-                ❌ {row.symptom}
-              </span>
-            </div>
-            <div style={{ marginBottom: '0.4rem' }}>
-              <span style={{ background: 'var(--ifm-color-emphasis-100)', color: '#e65100', padding: '2px 8px', borderRadius: 4, fontSize: '0.74rem', fontWeight: 600 }}>
-                {locale === 'ko' ? '원인' : 'Cause'}: {row.cause}
-              </span>
-            </div>
-            <div style={{ fontSize: '0.76rem', color: 'var(--ifm-font-color-base)', paddingLeft: '0.5rem', borderLeft: '3px solid #4caf50', marginLeft: '0.2rem' }}>
-              <strong style={{ color: '#2e7d32' }}>{locale === 'ko' ? '해결' : 'Resolution'}:</strong> {row.solution}
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
+export default function TroubleshootingTable({locale = 'ko'}) {
+  const ko = locale === 'ko';
+  const title = ko ? 'Gateway API 트러블슈팅 가이드' : 'Gateway API Troubleshooting Guide';
+  const description = ko ? '일반적인 문제와 해결 방법' : 'Common issues and solutions';
+  const headers = ko ? ['증상', '원인', '해결'] : ['Symptom', 'Cause', 'Resolution'];
+  const rows = data[locale].map(row => ({
+    id: row.symptom,
+    cells: [row.symptom, row.cause, row.solution],
+  }));
+  return <BaseTable caption={title} description={description} headers={headers}
+    rows={rows} rowHeaderColumn={0} minWidth="48rem" />;
 }
