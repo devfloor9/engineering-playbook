@@ -1,40 +1,31 @@
 ---
 created: 2026-02-16
 last_update:
-  date: 2026-09-17
-reading_time: 2
+  date: 2026-09-18
+reading_time: 4
 ---
-# Translation Status: EKS Pod Resource Optimization
+# English translation coverage
 
-The English page is a short overview, not a complete translation of the Korean guide.
+Korean is the source language of Engineering Playbook. The English document tree now has a counterpart for each Korean source path. Path coverage is checked separately from technical accuracy and operational validation.
 
-## Source and current translation
+The review tracked in [#31](https://github.com/devfloor9/engineering-playbook/issues/31) expanded 30 English overview or incomplete pages, including scheduling, resiliency, the Pod lifecycle chapters, resource and cost management, networking, API authentication, CRD scaling, evaluation, and the ROSA index.
 
-| File | Lines on 2026-09-17 | Coverage |
-|---|---:|---|
-| [Korean guide](docs/eks-best-practices/resource-cost/eks-resource-optimization.md) | 5,411 | Full source guide |
-| [English overview](i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/resource-cost/eks-resource-optimization.md) | 73 | Resource basics, QoS, VPA, and right-sizing summaries |
+## Resource and cost guides
 
-Line counts describe file size; they are not a translation-completion percentage. The English page does not yet carry the source's detailed procedures, examples, tables, or full discussion of HPA and other workload patterns.
+The English resource-optimization page is now a full chapter rather than the former short overview. The three related guides were reviewed together in [#69](https://github.com/devfloor9/engineering-playbook/issues/69).
 
-## Remaining work
+| Guide | Korean source | English counterpart |
+| --- | --- | --- |
+| Pod resource optimization | [Korean](docs/eks-best-practices/resource-cost/eks-resource-optimization.md) | [English](i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/resource-cost/eks-resource-optimization.md) |
+| Karpenter autoscaling | [Korean](docs/eks-best-practices/resource-cost/karpenter-autoscaling.md) | [English](i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/resource-cost/karpenter-autoscaling.md) |
+| Cost management | [Korean](docs/eks-best-practices/resource-cost/cost-management.md) | [English](i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/resource-cost/cost-management.md) |
 
-Translate and review the source in bounded sections:
+Both locales retain the original section anchors and cover prerequisites, examples, tables, and operational considerations. The technical review corrected API fields, resource units, allocation calculations, and unsupported timing or savings guarantees. Complete manifests, fragments, and integration contracts are identified at their points of use.
 
-1. Resource requests and limits, including CPU, memory, and ephemeral storage.
-2. QoS, eviction behavior, and workload-specific settings.
-3. VPA and HPA behavior, prerequisites, and interactions.
-4. Right-sizing procedures, quotas, and operational checks.
-5. Auto Mode, architecture-specific considerations, and references.
+Scoped compilation, source and anchor comparisons, applicable schema checks, and offline example tests support these changes. They do not establish live controller behavior, resource availability, workload performance, or billing outcomes.
 
-For each section, preserve configuration values and cross-links, translate diagram labels, and check that recommendations still match their cited sources. Review the existing English summary as well; brevity does not establish technical accuracy.
+## Keeping translations current
 
-## Completion checks
+When a Korean article changes, review its English counterpart in the same issue. Preserve document paths, heading anchors, creation dates, and author attribution. Recheck code and tables alongside prose; matching file names or section counts alone do not establish equivalent meaning.
 
-- [ ] Every source section has an English counterpart or an explicitly documented omission.
-- [ ] Code, tables, diagrams, and links are reviewed alongside prose.
-- [ ] Kubernetes and AWS terminology is consistent.
-- [ ] Examples distinguish runnable configurations from excerpts.
-- [ ] Reading time and update metadata match the finished page.
-
-Tracked in #31. The creation date follows the file's first repository commit on 2026-02-16; the earlier duplicate footer date has been removed.
+For substantive edits, update each affected locale's revision date and reading estimate with `npm run update-doc-metadata`. Presentation-only changes preserve the existing article date. See the [contribution workflow](README.md#contribute) for commands and verification steps.
