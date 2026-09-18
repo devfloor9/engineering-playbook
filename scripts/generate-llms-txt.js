@@ -31,7 +31,7 @@ const CATEGORY_ORDER = [
   'eks-best-practices',
   'agentic-ai-platform',
   'aidlc',
-  'hybrid-infrastructure',
+  'eks-hybrid-nodes',
   'rosa',
   'benchmarks',
 ];
@@ -43,7 +43,7 @@ const CATEGORY_LABELS = {
   'eks-best-practices': 'EKS Best Practices',
   'agentic-ai-platform': 'Agentic AI Platform',
   aidlc: 'AIDLC',
-  'hybrid-infrastructure': 'Hybrid Infrastructure',
+  'eks-hybrid-nodes': 'EKS Hybrid Nodes',
   rosa: 'ROSA',
   benchmarks: 'Benchmarks',
   'industry-solutions': 'Industry Solutions',
