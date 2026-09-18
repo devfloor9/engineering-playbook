@@ -66,7 +66,7 @@ test('committed baseline HTML fixtures retain table values, captions and navigat
   }
 });
 
-test('the full baseline omission inventory resolves to sources, never disappearance or silent omission', () => {
+test('baseline omissions are serialized or have explicit reviewed content replacements', () => {
   const {auditCoverage} = require('../audit-llm-wiki');
   const baseline = require('./fixtures/llm-wiki-52-baseline.json');
   assert.equal(baseline.doc_count, 222);
@@ -82,11 +82,24 @@ test('the full baseline omission inventory resolves to sources, never disappeara
   const manifest = {docs, doc_count: docs.length, component_coverage: {supported_sources: []}};
   const report = auditCoverage(baseline, manifest);
   assert.equal(report.remaining.length, 0);
+  const replacement = require('./fixtures/llm-wiki-reviewed-replacements.json');
+  const replacementFile = path.join(root, 'docs', `${replacement.slug}.md`);
+  const replacementText = stripMdx(fs.readFileSync(replacementFile, 'utf8'), {filePath: replacementFile});
+  const reviewed = new Set();
   for (const page of report.inventory) for (const component of page.components) {
+    if (page.slug === replacement.slug && replacement.components[component.component]) {
+      assert.equal(component.status, 'source-changed', 'A reviewed replacement must remain visible in the audit');
+      for (const value of replacement.components[component.component]) {
+        assert.ok(normalize(replacementText).includes(normalize(value)), `Missing reviewed replacement: ${component.component}: ${value}`);
+      }
+      reviewed.add(component.component);
+      continue;
+    }
     assert.equal(component.status, 'serialized', `${page.slug}: ${component.component}`);
     assert.ok(component.sources.length, component.component);
     assert.ok(component.methods.length, component.component);
   }
+  assert.deepEqual([...reviewed].sort(), Object.keys(replacement.components).sort());
 });
 
 test('every supported corpus component retains independently rendered React text, table cells and links', async t => {

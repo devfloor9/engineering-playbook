@@ -1,11 +1,11 @@
 ---
-title: "Large-Scale EKS Cost Management: Strategies for 30-90% Savings"
-description: FinOps strategies for achieving substantial cost savings of 30-90% in Amazon EKS environments. Covers cost structure analysis, Karpenter optimization, tool selection, and real-world success stories
+title: "Large-Scale EKS Cost Management: Allocation, Optimization, and Verification"
+description: "FinOps guidance for Amazon EKS cost allocation and optimization with SCAD, CUR 2.0, Karpenter v1.13, tagging, per-container rightsizing, and ROI verification."
 created: "2025-02-05"
 last_update:
-  date: "2026-06-30"
+  date: 2026-09-18
   author: YoungJoon Jeong
-reading_time: 16
+reading_time: 60
 tags:
   - eks
   - cost-management
@@ -18,53 +18,47 @@ sidebar_label: EKS Cost Management
 category: performance-networking
 ---
 
-> **📌 Update**: 2026-06-15 - Includes Karpenter v1.13+ and EKS Auto Mode cost analysis
+> **Scope**: Karpenter v1.13 documentation/APIs; technical review 2026-09-18.
 
 ## Overview
 
-Cost management in Amazon EKS environments is one of the most important challenges in cloud operations. With total AWS customer spending projected to exceed $100 billion in 2024, an average of 30-35% of cloud costs are wasted. In Kubernetes environments in particular, 68% of organizations experience cost overruns.
+EKS cost management allocates billed costs to workloads while accounting for usage, performance, and availability constraints. This chapter connects FinOps assessment, SCAD, Karpenter, tagging, and review-only rightsizing. Measure savings using consistent pricing, periods, and traffic; no savings percentage or company case study is guaranteed.
 
-This guide covers practical strategies for achieving cost savings of 30-90% in EKS environments. It provides comprehensive coverage, from FinOps principles and advanced optimization with Karpenter to real-world enterprise success stories.
-
-:::tip EKS Auto Mode Cost Considerations
-EKS Auto Mode, which became generally available in December 2024, includes Karpenter for automatic cost optimization:
-
-- **Additional cost**: A premium of ~10% over EC2 pricing for EKS Auto Mode nodes
-- **Savings**: Reduced operating costs through automatic Spot optimization, bin packing, and node consolidation
-- **Comparative analysis**: Requires evaluating total cost of ownership (TCO) against self-managed clusters
-- **Best suited for**: Teams that want cost optimization without a dedicated FinOps engineer
-:::
+EKS Auto Mode management charges are additional to EC2 charges and depend on instance type. Do not apply a blanket 10% premium. Compare management fees, operating effort, observability, and migration costs with self-managed Karpenter. [EKS pricing](https://aws.amazon.com/eks/pricing/)
 
 ### Key Topics
 
-- **FinOps fundamentals**: Cost management principles and maturity models specific to Kubernetes environments
-- **Cost structure analysis**: The 3-layer model of EKS costs and identification of sources of waste
-- **Tool use**: Comparison of cost management tools, including SCAD, Kubecost, and OpenCost
-- **Karpenter optimization**: Cost savings of 25-40% through next-generation autoscaling
-- **Real-world examples**: Strategies used by companies that achieved cost savings of 70% or more
+- FinOps maturity and cost ownership
+- Pod allocation through SCAD and CUR 2.0
+- Karpenter node selection, consolidation, and availability constraints
+- Per-container rightsizing review and savings verification
 
 ### Learning Objectives
 
-After completing this guide, readers will be able to:
-
-- Understand and accurately analyze the cost structure of EKS environments
-- Assess organizational FinOps maturity and establish an improvement roadmap
-- Select and implement suitable cost management tools
-- Optimize costs with Karpenter and Spot Instances
-- Achieve cost savings of 10-20% within 30 days
+- Distinguish billed costs from estimated allocations.
+- Identify cost drivers and potentially excessive resource requests.
+- Define reviewable changes and recovery criteria.
+- Track actual savings alongside performance and availability.
 
 ## Prerequisites
 
+Examples are design and review material for an existing EKS environment. Set the account, AWS profile, Region, cluster, and namespace for the intended environment.
+
 ### Required Tools
 
-| Tool | Version | Purpose |
-|------|------|------|
-| kubectl | 1.28+ | Kubernetes cluster management |
-| helm | 3.12+ | Cost management tool installation |
-| aws-cli | 2.13+ | AWS resource management |
-| eksctl | 0.150+ | EKS cluster configuration |
+| Tool | Scope | Purpose |
+|------|-------|---------|
+| kubectl | Supported version skew with the API server | Resource inspection |
+| Helm | Version supported by the selected chart | Reviewed chart installation |
+| AWS CLI v2 | Version providing `bcm-data-exports` | Billing export inspection and configuration |
+| Python | 3.11 or later, standard library | Offline calculations and tests |
+| Karpenter | Examples use v1.13 APIs and documentation | Self-managed NodePools |
+
+Check compatibility tables and installed CRDs for Kubernetes, Karpenter, and charts. A version number alone does not satisfy installation prerequisites.
 
 ### Required Permissions
+
+Grant the analysis role read access to the relevant billing data, cluster, and resources. Billing opt-in, S3 exports, Karpenter installation, and EC2 tagging require separate mutation permissions and resource scopes. This policy is a read-only example, not a complete installation policy.
 
 ```json
 {
@@ -74,11 +68,11 @@ After completing this guide, readers will be able to:
       "Effect": "Allow",
       "Action": [
         "ce:GetCostAndUsage",
-        "ce:GetCostForecast",
         "eks:DescribeCluster",
         "ec2:DescribeInstances",
-        "ec2:DescribeSpotPriceHistory",
-        "cloudwatch:GetMetricStatistics"
+        "ec2:DescribeInstanceTypeOfferings",
+        "bcm-data-exports:ListExports",
+        "bcm-data-exports:GetExport"
       ],
       "Resource": "*"
     }
@@ -88,76 +82,49 @@ After completing this guide, readers will be able to:
 
 ### Prior Knowledge
 
-- Basic Kubernetes concepts (Pod, Deployment, Service)
-- Understanding of AWS EKS architecture
-- Container resource management (requests, limits)
-- Basic cloud cost structure
+Understand Kubernetes requests and limits, Pod ownership, EKS node configuration, AWS cost allocation tags, and IAM roles.
 
 ## Architecture
 
+Separate cost analysis from the controllers that implement approved changes.
+
 ### EKS Cost Monitoring System Architecture
+
+This is a conceptual flow. Alertmanager notifications do not directly change Karpenter policies. An implemented, approved GitOps/IaC integration must deliver policy changes; Karpenter provisions capacity through EC2 APIs.
 
 ```mermaid
 graph TB
-    subgraph "EKS Cluster"
-        A[Workload Pods] --> B[Kubecost Agent]
-        A --> C[Prometheus]
-        B --> C
-    end
-
-    subgraph "AWS Native"
-        D[Cost Explorer]
-        E[SCAD - Split Cost Allocation]
-        F[CUR - Cost and Usage Report]
-        E --> F
-    end
-
-    subgraph "Cost Analysis Layer"
-        C --> G[Grafana Dashboards]
-        F --> H[Athena Queries]
-        B --> I[Kubecost UI]
-    end
-
-    subgraph "Optimization Execution"
-        G --> J[Alert Manager]
-        I --> J
-        J --> K[Karpenter]
-        K --> L[EC2 Auto Scaling]
-    end
-
-    subgraph "Decision Making"
-        G --> M[FinOps Team]
-        I --> M
-        D --> M
-        M --> N[Cost Policies]
-        N --> K
-    end
-
+    A[Workload metrics] --> B[Prometheus]
+    B --> C[Grafana and alerts]
+    D[Billing SCAD] --> E[CUR 2.0 in S3]
+    E --> F[Athena allocation]
+    G[Cost Explorer] --> H[FinOps review]
+    C --> H
+    F --> H
+    H --> I[Approved GitOps or IaC change]
+    I --> J[Karpenter NodePool policy]
+    K[Unschedulable Pods] --> J
+    J --> L[EC2 APIs]
     style A fill:#e1f5ff
-    style K fill:#fff3cd
-    style M fill:#d4edda
+    style J fill:#fff3cd
+    style H fill:#d4edda
 ```
 
 ### 3-Layer Cost Allocation Model
 
+Define separate allocation policies for shared control-plane, networking, and observability costs. Pod EC2 allocation costs are not the total cluster bill.
+
 ```mermaid
 graph LR
-    A[AWS Bill] --> B[Cluster Level]
-    B --> C[Namespace Level]
-    C --> D[Workload Level]
-
-    B --> E[Control Plane<br/>$0.10/hour]
-    B --> F[Worker Nodes<br/>EC2 Costs]
-    B --> G[Network<br/>NAT/LB]
-
-    C --> H[Team A Namespace]
-    C --> I[Team B Namespace]
-    C --> J[Shared Resources]
-
-    D --> K[CPU/Memory per Pod]
-    D --> L[Storage Volumes]
-    D --> M[Network Traffic]
-
+    A[AWS bill] --> B[Cluster]
+    B --> C[Namespace]
+    C --> D[Workload]
+    B --> E[Control plane and support tier]
+    B --> F[EC2 and storage]
+    B --> G[Networking and observability]
+    C --> H[Team allocation]
+    C --> I[Shared and unallocated costs]
+    D --> J[Pod CPU memory and accelerator allocation]
     style A fill:#ff6b6b
     style B fill:#ffd93d
     style C fill:#6bcf7f
@@ -166,359 +133,190 @@ graph LR
 
 ## Implementation
 
+Proceed through visibility, change review, gradual rollout, and billing reconciliation.
+
 ### Step 1: Assess FinOps Maturity
 
-The first step is to assess the organization's current FinOps maturity.
+Identify cost management activities the organization can repeat and the owner of each activity.
 
 #### Maturity Model
 
-| Stage | Characteristics | Cost Allocation Accuracy | Automation Level |
-|------|------|-----------------|-------------|
-| **Crawl** | Manual processes, basic visibility | Below 50% | Almost none |
-| **Walk** | Automated tracking, proactive optimization | 70-90% | Partial automation |
-| **Run** | Full automation, business alignment | 90% or more | Full automation |
+This is an internal assessment example. Do not assign fixed allocation accuracy or automation percentages to FinOps stages.
+
+| Stage | Activity | Evidence |
+|-------|----------|----------|
+| Crawl | Inspect costs and identify owners | Monthly bills and missing tags |
+| Walk | Allocate to teams and optimize regularly | Review records and before/after metrics |
+| Run | Connect cost to business metrics | Cost per transaction and policy automation evidence |
 
 #### Self-Assessment Checklist
 
-**Crawl Stage (Foundation)**
-
-- [ ] Review monthly costs with AWS Cost Explorer
-- [ ] Distinguish costs by EKS cluster
-- [ ] Identify the main drivers of cost increases
-
-**Walk Stage (Growth)**
-
-- [ ] Allocate costs by namespace/team
-- [ ] Configure automated cost alerts
-- [ ] Conduct weekly cost review meetings
-- [ ] Operate resource rightsizing policies
-
-**Run Stage (Maturity)**
-
-- [ ] Operate real-time cost dashboards
-- [ ] Track costs at the Pod level
-- [ ] Use automated optimization workflows
-- [ ] Link costs to business metrics
+- [ ] Identify cluster, team, and workload owners.
+- [ ] Report shared and unallocated costs.
+- [ ] Keep weekly review and change approval records.
+- [ ] Define recovery criteria for performance or availability regression.
+- [ ] Track cost per business unit such as request, job, or customer.
 
 ### Step 2: Understand the EKS Cost Structure
 
+Fix the billing scope and cost basis before comparing tools.
+
 #### Cost Components
 
-**1. Control Plane Costs**
+| Cost component | Calculation basis | Review |
+|----------------|-------------------|--------|
+| EKS control plane | Support-tier hourly rate × actual running hours | Extended support and additional feature charges |
+| EC2 | Instance, Region, OS, and purchase option | On-Demand does not guarantee capacity |
+| Savings Plans and RI | Commitments, upfront amortization, covered usage | Unused commitments and coverage |
+| Spot | Actual runtime and applicable price | Interruptions, retries, and checkpoints |
+| EBS, LB, NAT, transfer | Storage, requests, processing, and traffic paths | Regional and service-specific charges |
+| Auto Mode and observability | Management, ingestion, storage, and queries | Charges additional to EC2 |
 
-```
-Cost: $0.10/hour = $72/month (per cluster)
-Characteristics: Fixed cost, cannot be optimized
-Recommendation: Reduce the number of clusters through consolidation
-```
-
-**2. Worker Node Costs (Largest Share)**
-
-| Pricing Model | Cost | Savings | Interruption Risk |
-|----------|------|--------|----------|
-| On-Demand | Base price | 0% | None |
-| Savings Plans | -28~-72% | Up to 72% | None |
-| Reserved Instances | -40~-75% | Up to 75% | None |
-| Spot Instances | -50~-90% | Up to 90% | Yes (2-minute warning) |
-
-**3. Hidden Cost Components**
-
-```yaml
-# Cost items that are easy to overlook
-hidden_costs:
-  load_balancers:
-    - classic_lb: "$18/month (base) + data transfer"
-    - alb: "$22.50/month (base) + LCU costs"
-    - nlb: "$20/month (base) + NLCU costs"
-
-  nat_gateways:
-    cost: "$32.40/month/AZ + $0.045/GB processed"
-    optimization: "Use NAT instances or VPC endpoints"
-
-  data_transfer:
-    - inter_az: "$0.01/GB (between AZs)"
-    - inter_region: "$0.02/GB (between Regions)"
-    - internet_egress: "$0.09/GB (first 10TB)"
-
-  ebs_volumes:
-    - gp3: "$0.08/GB/month"
-    - unused_volumes: "20-30% unused on average"
-```
+Applying the $0.10/hour standard-support example in [EKS pricing](https://aws.amazon.com/eks/pricing/) to an assumed 730-hour month gives $73. This excludes extended support, Auto Mode, and other service charges. Cluster consolidation also requires an isolation and failure-domain review.
 
 #### Identifying Cost Waste Patterns
 
-**Overprovisioning (30% Waste on Average)**
+Requests express scheduling requirements; usage describes observed load. A low CPU average does not imply that the entire node bill is removable. Check memory, peaks, placement constraints, and missing telemetry. This query inventories container requests; it does not measure efficiency by itself.
+
+Compare Regions using the same instance, OS, currency, and price timestamp, alongside latency, transfer costs, and regulatory constraints.
 
 ```bash
-# Check resource efficiency by namespace
 kubectl get pods -A -o json | jq -r '
-  .items[] |
-  select(.status.phase=="Running") |
-  {
-    namespace: .metadata.namespace,
-    pod: .metadata.name,
-    containers: [
-      .spec.containers[] | {
-        name: .name,
-        cpu_request: .resources.requests.cpu,
-        mem_request: .resources.requests.memory
-      }
-    ]
-  }
-' | jq -s 'group_by(.namespace) |
-  map({
-    namespace: .[0].namespace,
-    total_pods: length
-  })'
+  .items[] | select(.status.phase == "Running") |
+  .metadata as $m | .spec.containers[] |
+  [$m.namespace, $m.name, .name,
+   (.resources.requests.cpu // "missing"),
+   (.resources.requests.memory // "missing")] | @tsv'
 ```
-
-**Idle Resources (Nights/Weekends)**
-
-```python
-# Example utilization analysis script
-import boto3
-from datetime import datetime, timedelta
-
-cloudwatch = boto3.client('cloudwatch')
-
-def analyze_idle_resources(cluster_name, hours=168):  # 1 week
-    metrics = cloudwatch.get_metric_statistics(
-        Namespace='ContainerInsights',
-        MetricName='node_cpu_utilization',
-        Dimensions=[{'Name': 'ClusterName', 'Value': cluster_name}],
-        StartTime=datetime.now() - timedelta(hours=hours),
-        EndTime=datetime.now(),
-        Period=3600,
-        Statistics=['Average']
-    )
-
-    idle_hours = sum(1 for m in metrics['Datapoints'] if m['Average'] < 10)
-    idle_percentage = (idle_hours / hours) * 100
-
-    return {
-        'idle_hours': idle_hours,
-        'idle_percentage': idle_percentage,
-        'potential_savings': f"{idle_percentage}% of node costs"
-    }
-```
-
-**Regional Cost Differences (Up to 40%)**
-
-| Region | t3.xlarge On-Demand | Savings Opportunity |
-|------|-------------------|----------|
-| us-east-1 (Virginia) | $0.1664/hour | Baseline |
-| ap-northeast-2 (Seoul) | $0.2016/hour | +21% |
-| eu-west-1 (Ireland) | $0.1856/hour | +12% |
 
 ### Step 3: Implement Cost Management Tools
 
+Select tools by data latency, allocation model, retention, and operating cost.
+
 #### AWS Split Cost Allocation Data (SCAD)
 
-**Advantages**: AWS native, no additional cost, Pod-level visibility
+SCAD is a Billing feature that allocates EC2 costs to Pods. It is not an EKS `resourcesVpcConfig` setting. Follow the [activation procedure](https://docs.aws.amazon.com/cur/latest/userguide/enabling-split-cost-allocation-data.html) and [CUR 2.0 configuration](https://docs.aws.amazon.com/cur/latest/userguide/table-dictionary-cur2.html).
 
-**How to Enable**
+1. In a regular or payer account, open Billing and Cost Management → **Cost Management preferences** and opt in to split cost allocation data for Amazon EKS.
+2. Select a measurement method. **Resource requests** uses Pods with CPU and memory requests. AMP requires all AWS Organizations features, the service-linked role, and an implemented Prometheus collection setup. Accelerated instances use Resource requests.
+3. In Data Exports select CUR 2.0, hourly granularity, resource IDs, and split cost allocation data. Prepare the destination S3 bucket, delivery policy, and export permissions first.
+4. Save the following JSON as `cur2-export.json`, replace the bucket and Region, then run the command. `COST_AND_USAGE_REPORT` is the actual Data Exports table name. [CLI schema](https://docs.aws.amazon.com/cli/latest/reference/bcm-data-exports/create-export.html)
+5. After delivery, configure a Glue/Athena table for the S3 Parquet files. `eks_cur2` below names that table. Distinguish Athena SQL from the SQL executed by Data Exports itself.
 
-```bash
-# 1. Enable the Cost and Usage Report
-aws cur put-report-definition \
-  --report-definition file://cur-definition.json
+SCAD is unavailable in Cost Explorer. Preparation of current-month data and initial delivery take time; the official guide allows up to 24 hours for CUR visibility. S3, Athena, AMP, and Container Insights usage charges are separate.
 
-# cur-definition.json
-cat > cur-definition.json << 'EOF'
+```json
 {
-  "ReportName": "eks-cost-report",
-  "TimeUnit": "HOURLY",
-  "Format": "Parquet",
-  "Compression": "Parquet",
-  "AdditionalSchemaElements": ["RESOURCES", "SPLIT_COST_ALLOCATION_DATA"],
-  "S3Bucket": "your-cur-bucket",
-  "S3Prefix": "cur-reports",
-  "S3Region": "us-east-1",
-  "AdditionalArtifacts": ["ATHENA"],
-  "RefreshClosedReports": true,
-  "ReportVersioning": "OVERWRITE_REPORT"
+  "Name": "eks-cost-report",
+  "DataQuery": {
+    "QueryStatement": "SELECT * FROM COST_AND_USAGE_REPORT",
+    "TableConfigurations": {
+      "COST_AND_USAGE_REPORT": {
+        "TIME_GRANULARITY": "HOURLY",
+        "INCLUDE_RESOURCES": "TRUE",
+        "INCLUDE_SPLIT_COST_ALLOCATION_DATA": "TRUE"
+      }
+    }
+  },
+  "DestinationConfigurations": {
+    "S3Destination": {
+      "S3Bucket": "REPLACE_WITH_BILLING_EXPORT_BUCKET",
+      "S3Prefix": "cur2",
+      "S3Region": "us-east-1",
+      "S3OutputConfigurations": {
+        "OutputType": "CUSTOM",
+        "Format": "PARQUET",
+        "Compression": "PARQUET",
+        "Overwrite": "OVERWRITE_REPORT"
+      }
+    }
+  },
+  "RefreshCadence": {
+    "Frequency": "SYNCHRONOUS"
+  }
 }
-EOF
-
-# 2. Enable SCAD on the EKS cluster
-aws eks update-cluster-config \
-  --name your-cluster \
-  --resources-vpc-config splitCostAllocationEnabled=true
 ```
 
-**Example Athena Queries**
+```bash
+aws bcm-data-exports create-export --region us-east-1 \
+  --export file://cur2-export.json
+```
+
+[Tag keys](https://docs.aws.amazon.com/cur/latest/userguide/split-cost-allocation-data.html) reside in the `resource_tags` map. Check the [map schema](https://docs.aws.amazon.com/cur/latest/userguide/table-dictionary-cur2-resource-tags.html) and delivered keys, adapting normalized names if necessary. These queries target a CUR 2.0 table whose map uses original tag names. Sum [SplitCost and UnusedCost](https://docs.aws.amazon.com/cur/latest/userguide/split-line-item-columns.html) to include the allocated share of unused EC2 cost. For an after-discount basis, use NetSplitCost and NetUnusedCost, falling back to their non-net counterparts for nulls. Adding parent EC2 billing rows to split rows double-counts costs. Average hourly cost requires aggregating CPU and memory rows by hour before dividing by observed hours.
 
 ```sql
--- Daily costs by namespace
-SELECT
-    line_item_usage_start_date,
-    split_line_item_split_cost_kubernetes_namespace as namespace,
-    SUM(line_item_unblended_cost) as daily_cost
-FROM eks_cost_report
-WHERE split_line_item_split_cost_kubernetes_namespace IS NOT NULL
-GROUP BY 1, 2
-ORDER BY 1 DESC, 3 DESC
-LIMIT 100;
+-- Inspect the delivered schema and tag keys before selecting an allocation.
+DESCRIBE eks_cur2;
+SELECT DISTINCT tag_key
+FROM eks_cur2 CROSS JOIN UNNEST(map_keys(resource_tags)) AS t(tag_key)
+WHERE split_line_item_parent_resource_id IS NOT NULL;
 
--- Highest costs by Pod
-SELECT
-    split_line_item_split_cost_kubernetes_pod as pod_name,
-    split_line_item_split_cost_kubernetes_namespace as namespace,
-    SUM(line_item_unblended_cost) as total_cost,
-    AVG(line_item_unblended_cost) as avg_hourly_cost
-FROM eks_cost_report
-WHERE line_item_usage_start_date >= DATE_ADD('day', -7, CURRENT_DATE)
+-- Daily Pod EC2 allocation, including the allocated unused share.
+SELECT date_trunc('day', line_item_usage_start_date) AS day,
+       element_at(resource_tags, 'aws:eks:cluster-name') AS cluster_name,
+       element_at(resource_tags, 'aws:eks:namespace') AS namespace,
+       line_item_currency_code AS currency,
+       SUM(COALESCE(split_line_item_split_cost, 0)
+           + COALESCE(split_line_item_unused_cost, 0)) AS allocated_cost
+FROM eks_cur2
+WHERE split_line_item_parent_resource_id IS NOT NULL
+  AND element_at(resource_tags, 'aws:eks:namespace') IS NOT NULL
+GROUP BY 1, 2, 3, 4
+ORDER BY 1 DESC, 5 DESC;
+
+-- Pod resource IDs, not invented Pod-name columns.
+SELECT line_item_resource_id AS pod_resource_id,
+       line_item_currency_code AS currency,
+       SUM(COALESCE(split_line_item_split_cost, 0)
+           + COALESCE(split_line_item_unused_cost, 0)) AS allocated_cost
+FROM eks_cur2
+WHERE split_line_item_parent_resource_id IS NOT NULL
+  AND line_item_usage_start_date >= date_add('day', -7, current_timestamp)
 GROUP BY 1, 2
 ORDER BY 3 DESC
 LIMIT 20;
 ```
 
-**Limitations**
-
-- Data delay of 24-48 hours
-- Available only in CUR (not supported in Cost Explorer)
-- Historical data cannot be reprocessed
-
 #### Kubecost Implementation
 
-**Advantages**: Real-time visibility, 15 days of free retention, optimization recommendations
+Kubecost provides Kubernetes allocation models and billing integration. Check retention, licensing, and features against the product version and contract; do not assume a fixed free retention period or Enterprise monthly price.
 
-**Installation (Helm)**
+Use the selected release README, values, and AWS integration instructions in the [official Helm chart](https://github.com/kubecost/cost-analyzer-helm-chart) to prepare the following:
 
-```bash
-# 1. Add the Helm repository
-helm repo add kubecost https://kubecost.github.io/cost-analyzer/
-helm repo update
+1. Verify the selected release’s collection architecture. Version 2.x uses Prometheus, while 3.x uses direct collection; do not carry 2.x Prometheus values unchanged into 3.x.
+2. Configure the billing integration read role, S3/Athena location, Region, and workgroup. Do not substitute an example project ID for an AWS account ID.
+3. Configure retention, storage, resource requests, and authenticated dashboard access.
+4. Review manifests and RBAC rendered from the same chart version before installing in a separate environment. Derive service names and ports from that output.
+5. Reconcile namespace totals and shared/idle cost inclusion with billing data.
 
-# 2. Create a production values.yaml
-cat > kubecost-values.yaml << 'EOF'
-global:
-  prometheus:
-    enabled: true
-    fqdn: http://prometheus-server.monitoring.svc.cluster.local
-
-kubecostProductConfigs:
-  clusterName: "production-eks"
-  awsSpotDataRegion: "ap-northeast-2"
-  awsSpotDataBucket: "your-spot-data-bucket"
-
-  # AWS integration
-  athenaProjectID: "your-project-id"
-  athenaBucketName: "your-athena-results"
-  athenaRegion: "ap-northeast-2"
-  athenaDatabase: "athenacurcfn_eks_cost_report"
-  athenaTable: "eks_cost_report"
-
-# Resource allocation
-kubecostModel:
-  resources:
-    requests:
-      cpu: "500m"
-      memory: "512Mi"
-    limits:
-      cpu: "1000m"
-      memory: "1Gi"
-
-# Ingress configuration (optional)
-ingress:
-  enabled: true
-  annotations:
-    kubernetes.io/ingress.class: alb
-    alb.ingress.kubernetes.io/scheme: internal
-    alb.ingress.kubernetes.io/target-type: ip
-  hosts:
-    - kubecost.your-domain.com
-EOF
-
-# 3. Install
-helm install kubecost kubecost/cost-analyzer \
-  --namespace kubecost \
-  --create-namespace \
-  -f kubecost-values.yaml
-
-# 4. Verify installation
-kubectl get pods -n kubecost
-kubectl port-forward -n kubecost svc/kubecost-cost-analyzer 9090:9090
-```
-
-**Using Key Features**
-
-```bash
-# Call the cost API by namespace
-curl "http://localhost:9090/model/allocation/compute?window=7d&aggregate=namespace"
-
-# Configure cost alerts
-cat > kubecost-alert.yaml << 'EOF'
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: alert-configs
-  namespace: kubecost
-data:
-  alerts.json: |
-    [
-      {
-        "type": "budget",
-        "threshold": 1000,
-        "window": "daily",
-        "aggregation": "namespace",
-        "filter": "namespace:production",
-        "ownerContact": ["team-platform@company.com"]
-      },
-      {
-        "type": "efficiency",
-        "threshold": 0.5,
-        "window": "7d",
-        "aggregation": "deployment",
-        "ownerContact": ["team-devops@company.com"]
-      }
-    ]
-EOF
-
-kubectl apply -f kubecost-alert.yaml
-```
+Creating an alert ConfigMap alone does not wire an integration. Implement the alert API or Prometheus/Alertmanager integration supported by the selected Kubecost version.
 
 #### Tool Selection Guide
 
-| Tool | Best Use Case | Cost | Implementation Complexity |
-|------|---------------|------|------------|
-| **SCAD** | Preference for AWS native tools, long-term analysis | Free | Low |
-| **Kubecost (Free)** | Small to medium scale, real-time requirements | Free | Medium |
-| **Kubecost (Enterprise)** | Large scale, advanced features | $~month | Medium |
-| **OpenCost** | Preference for open source, customization | Free | High |
-| **CloudHealth** | Multicloud governance | $$$$ | High |
-| **CAST AI** | Preference for full automation | % of savings | Low |
+| Tool | Primary use | Cost review | Integration requirements |
+|------|-------------|-------------|--------------------------|
+| SCAD + Athena | Billing-based AWS Pod allocation | Query, storage, and collection charges | Billing opt-in and CUR 2.0 |
+| Kubecost | Kubernetes allocation dashboards | Edition quote and operating cost | Release-specific collection and billing integration |
+| OpenCost | Open allocation model and customization | Operation, collection, and storage | Metrics and pricing data |
+| Commercial FinOps platform | Multicloud governance and automation | Vendor quote and contract scope | Permissions, data, and change controls |
 
-**Decision Tree**
-
-```
-Organization size?
-├─ Small (< 5 clusters)
-│  └─ Budget?
-│     ├─ Limited → SCAD + Cost Explorer
-│     └─ Flexible → Kubecost Free
-│
-├─ Medium (5-20 clusters)
-│  └─ Real-time data required?
-│     ├─ Yes → Kubecost Enterprise
-│     └─ No → SCAD + Athena + Grafana
-│
-└─ Large (20+ clusters)
-   └─ Multicloud?
-      ├─ Yes → CloudHealth / CloudCheckr
-      └─ No → Kubecost Enterprise + SCAD
-```
+Do not select products by cluster count alone. Compare billing reconciliation, multicluster aggregation, latency, retention, and operating ownership against actual requirements.
 
 ### Step 4: Optimize Costs with Karpenter
 
-Karpenter is a next-generation Kubernetes autoscaler that achieves cost savings of 25-40% compared with Cluster Autoscaler.
+Karpenter provisions nodes for unschedulable Pods and evaluates consolidation opportunities. There is no fixed savings percentage relative to other autoscalers.
 
 #### How Karpenter Reduces Costs
 
-**1. Real-Time Selection of Optimal Instances**
+This configuration uses the [v1.13 NodePool](https://karpenter.sh/v1.13/concepts/nodepools/) and [EC2NodeClass](https://karpenter.sh/v1.13/concepts/nodeclasses/) schemas. First satisfy the IAM, node access, and networking prerequisites in the installation section. `al2023@latest` illustrates AMI discovery in a test environment. In production, pin an AMI release alias or ID validated for the Kubernetes version and architecture.
+
+`Gt: 5` means strictly greater than generation 5. Put `expireAfter` in the node template and `reasons` in a budget. Use `EC2NodeClass.spec.tags` for EC2 cost tags; environment variables do not tag resources. The one-hour node termination grace period is an example policy requiring review of expiry, forced termination, and PDB effects.
+
+For a bin-packing illustration, assume three equally priced nodes with four allocatable CPUs each carry six CPU requests in total. Consolidating to two nodes, with no other constraints, reduces those node costs by `(3 - 2) / 3 = 33.3%`. This is not a measured scheduler comparison and omits memory, DaemonSet, and topology constraints.
+
+A Spot-only pool uses `capacity-type: [spot]`. Taints select eligible workloads; they do not handle interruptions. Spot-to-Spot replacement also requires checking the [version-specific feature flag and instance flexibility conditions](https://karpenter.sh/v1.13/concepts/disruption/).
 
 ```yaml
-# Example NodePool configuration
 apiVersion: karpenter.sh/v1
 kind: NodePool
 metadata:
@@ -526,8 +324,13 @@ metadata:
 spec:
   template:
     spec:
+      expireAfter: 720h
+      terminationGracePeriod: 1h
+      nodeClassRef:
+        group: karpenter.k8s.aws
+        kind: EC2NodeClass
+        name: default
       requirements:
-        # Allow a variety of instance types
         - key: karpenter.sh/capacity-type
           operator: In
           values: ["spot", "on-demand"]
@@ -539,1187 +342,622 @@ spec:
           values: ["c", "m", "r"]
         - key: karpenter.k8s.aws/instance-generation
           operator: Gt
-          values: ["5"]  # Use only generation 5 or later
-
-      nodeClassRef:
-        name: default
-
-  # Cost optimization settings
+          values: ["5"]  # Strictly greater than generation 5.
   disruption:
-    consolidationPolicy: WhenUnderutilized
+    consolidationPolicy: WhenEmptyOrUnderutilized
     consolidateAfter: 30s
-    expireAfter: 720h  # 30 days
-
+    budgets:
+      - nodes: "10%"
+        reasons: ["Empty", "Underutilized", "Drifted"]
   limits:
     cpu: "1000"
     memory: "1000Gi"
-
 ---
 apiVersion: karpenter.k8s.aws/v1
 kind: EC2NodeClass
 metadata:
   name: default
 spec:
-  amiFamily: AL2
-  role: "KarpenterNodeRole-your-cluster"
+  amiFamily: AL2023
+  amiSelectorTerms:
+    - alias: al2023@latest
+  role: KarpenterNodeRole-your-cluster
   subnetSelectorTerms:
     - tags:
-        karpenter.sh/discovery: "your-cluster"
+        karpenter.sh/discovery: your-cluster
   securityGroupSelectorTerms:
     - tags:
-        karpenter.sh/discovery: "your-cluster"
-
-  # Spot Instance optimization
-  instanceStorePolicy: RAID0
-
-  # Add cost tags through user data
-  userData: |
-    #!/bin/bash
-    echo "export CLUSTER_NAME=your-cluster" >> /etc/environment
-```
-
-**2. Bin Packing Algorithm**
-
-Karpenter places as many Pods as possible on the fewest nodes:
-
-```
-Before (Cluster Autoscaler):
-Node 1: [Pod A(2 CPU)] [Pod B(1 CPU)] - Total 3/4 CPU used
-Node 2: [Pod C(2 CPU)] --------------- - Total 2/4 CPU used
-Node 3: [Pod D(1 CPU)] --------------- - Total 1/4 CPU used
-Total cost: 3 nodes
-
-After (Karpenter):
-Node 1: [Pod A(2 CPU)] [Pod B(1 CPU)] [Pod D(1 CPU)] - Total 4/4 CPU used
-Node 2: [Pod C(2 CPU)] ---------------------------- - Total 2/4 CPU used
-Total cost: 2 nodes (33% savings)
-```
-
-**3. Spot Instance Integration**
-
-```yaml
-# Spot-first strategy
-apiVersion: karpenter.sh/v1
-kind: NodePool
-metadata:
-  name: spot-optimized
-spec:
-  template:
-    spec:
-      requirements:
-        - key: karpenter.sh/capacity-type
-          operator: In
-          values: ["spot"]
-
-        # Diversify instance types to spread interruption risk
-        - key: node.kubernetes.io/instance-type
-          operator: In
-          values:
-            - "c5.xlarge"
-            - "c5a.xlarge"
-            - "c5n.xlarge"
-            - "c6i.xlarge"
-            - "m5.xlarge"
-            - "m5a.xlarge"
-
-      # Handle Spot interruptions
-      taints:
-        - key: spot
-          value: "true"
-          effect: NoSchedule
-
-  disruption:
-    consolidationPolicy: WhenUnderutilized
-    # Spot consolidation (Spot → Spot migration)
-    budgets:
-      - nodes: "10%"
-        reason: "Underutilized"
-```
-
-**Marking Workloads as Spot-Tolerant**
-
-```yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: spot-friendly-app
-spec:
-  replicas: 10
-  template:
-    spec:
-      # Allow Spot nodes
-      tolerations:
-        - key: spot
-          operator: Equal
-          value: "true"
-          effect: NoSchedule
-
-      # Use with a PodDisruptionBudget
-      affinity:
-        podAntiAffinity:
-          preferredDuringSchedulingIgnoredDuringExecution:
-            - weight: 100
-              podAffinityTerm:
-                labelSelector:
-                  matchLabels:
-                    app: spot-friendly-app
-                topologyKey: kubernetes.io/hostname
-
----
-apiVersion: policy/v1
-kind: PodDisruptionBudget
-metadata:
-  name: spot-friendly-app-pdb
-spec:
-  minAvailable: 7  # Maintain at least 7 Pods
-  selector:
-    matchLabels:
-      app: spot-friendly-app
+        karpenter.sh/discovery: your-cluster
+  tags:
+    CostCenter: CC-12345
+    Environment: development
+    Team: platform
 ```
 
 #### Karpenter Installation (Self-Managed on EKS)
 
+Use IAM/CloudFormation templates and settings from the same release as the [v1.13 installation guide](https://karpenter.sh/v1.13/getting-started/getting-started-with-karpenter/). These are required configuration steps for an existing cluster, not a shortened installation that attaches only a read policy.
+
+1. Select the AWS account, Region, cluster, and Karpenter version; check compatibility. Provide existing controller capacity and access to the Kubernetes API, EC2, SSM, and other required endpoints.
+2. Create the node role with EC2 trust, required node/image-pull permissions, and an EKS access entry or node authentication mapping appropriate to the cluster.
+3. Create a dedicated controller role with the release-specific resource/tag-constrained policy. Review the official template covering EC2 provisioning and discovery, instance profile management, restricted `iam:PassRole`, SSM, EKS reads, and interruption queue access. `AmazonEKSWorkerNodePolicy` alone is not a controller policy.
+4. For the official Pod Identity setup, configure the agent, trust, and association. For IRSA, construct trust from the actual cluster OIDC issuer and ServiceAccount namespace/name/audience. Do not copy an example OIDC ID.
+5. Prepare interruption SQS/EventBridge resources and permissions, subnet/security-group discovery tags, and CRDs.
+6. Wire actual `settings.clusterName`, `settings.interruptionQueue`, and the selected identity mechanism into the release-matched chart; review rendered output. After installation, inspect NodeClass/NodePool Ready conditions and controller logs.
+
+These commands only inspect state. This chapter does not report an executed controller installation or node provisioning test.
+
 ```bash
-# 1. Create an IAM role
-export CLUSTER_NAME="your-cluster"
-export AWS_ACCOUNT_ID="$(aws sts get-caller-identity --query Account --output text)"
-export AWS_REGION="ap-northeast-2"
-
-cat > karpenter-trust-policy.json << EOF
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Principal": {
-        "Federated": "arn:aws:iam::${AWS_ACCOUNT_ID}:oidc-provider/oidc.eks.${AWS_REGION}.amazonaws.com/id/EXAMPLED539D4633E53DE1B71EXAMPLE"
-      },
-      "Action": "sts:AssumeRoleWithWebIdentity",
-      "Condition": {
-        "StringEquals": {
-          "oidc.eks.${AWS_REGION}.amazonaws.com/id/EXAMPLED539D4633E53DE1B71EXAMPLE:sub": "system:serviceaccount:karpenter:karpenter",
-          "oidc.eks.${AWS_REGION}.amazonaws.com/id/EXAMPLED539D4633E53DE1B71EXAMPLE:aud": "sts.amazonaws.com"
-        }
-      }
-    }
-  ]
-}
-EOF
-
-aws iam create-role \
-  --role-name "KarpenterControllerRole-${CLUSTER_NAME}" \
-  --assume-role-policy-document file://karpenter-trust-policy.json
-
-# 2. Attach the Karpenter policy
-aws iam attach-role-policy \
-  --role-name "KarpenterControllerRole-${CLUSTER_NAME}" \
-  --policy-arn "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"
-
-# 3. Install Karpenter with Helm
-helm upgrade --install karpenter oci://public.ecr.aws/karpenter/karpenter \
-  --version v1.13.0 \
-  --namespace karpenter \
-  --create-namespace \
-  --set settings.clusterName=${CLUSTER_NAME} \
-  --set settings.clusterEndpoint=$(aws eks describe-cluster --name ${CLUSTER_NAME} --query "cluster.endpoint" --output text) \
-  --set serviceAccount.annotations."eks\.amazonaws\.com/role-arn"="arn:aws:iam::${AWS_ACCOUNT_ID}:role/KarpenterControllerRole-${CLUSTER_NAME}" \
-  --set controller.resources.requests.cpu=1 \
-  --set controller.resources.requests.memory=1Gi \
-  --wait
-
-# 4. Verify
 kubectl get pods -n karpenter
-kubectl logs -n karpenter -l app.kubernetes.io/name=karpenter
+kubectl get ec2nodeclasses,nodepools,nodeclaims
+kubectl logs -n karpenter -l app.kubernetes.io/name=karpenter --tail=100
 ```
 
 #### Production NodePool Strategy
 
-**Multi-Environment Strategy**
+| Pool | Example requirements | Workload conditions |
+|------|----------------------|---------------------|
+| Production | `capacity-type=on-demand`, `instance-category` values `c,m,r` | Review SLOs, multiple AZs, and capacity alternatives |
+| Development/staging | `capacity-type=spot`, `instance-category` values `c,m,r,t` | Interruption tolerance and job retries |
+| GPU | `instance-category` values `g,p` or `instance-family` values `g4dn,p3` | Validate model, GPU memory, architecture, and drivers |
 
-```yaml
-# Production: On-Demand first
----
-apiVersion: karpenter.sh/v1
-kind: NodePool
-metadata:
-  name: production-on-demand
-spec:
-  template:
-    spec:
-      requirements:
-        - key: karpenter.sh/capacity-type
-          operator: In
-          values: ["on-demand"]
-        - key: node.kubernetes.io/instance-type
-          operator: In
-          values: ["m5.2xlarge", "m5.4xlarge"]
-      taints:
-        - key: workload
-          value: production
-          effect: NoSchedule
-  limits:
-    cpu: "500"
+Do not mix `instance-category` and `instance-family`. Every pool needs a `nodeClassRef` with group, kind, and name. GPU pools need a separate NodeClass with a validated GPU AMI and device plugin. [NodeClass AMI requirements](https://karpenter.sh/v1.13/concepts/nodeclasses/)
 
----
-# Development/staging: Spot only
-apiVersion: karpenter.sh/v1
-kind: NodePool
-metadata:
-  name: development-spot
-spec:
-  template:
-    spec:
-      requirements:
-        - key: karpenter.sh/capacity-type
-          operator: In
-          values: ["spot"]
-        - key: karpenter.k8s.aws/instance-category
-          operator: In
-          values: ["c", "m", "r", "t3"]
-      taints:
-        - key: workload
-          value: development
-          effect: NoSchedule
-  disruption:
-    consolidationPolicy: WhenUnderutilized
-    consolidateAfter: 30s
-
----
-# GPU workloads
-apiVersion: karpenter.sh/v1
-kind: NodePool
-metadata:
-  name: gpu-workloads
-spec:
-  template:
-    spec:
-      requirements:
-        - key: karpenter.k8s.aws/instance-category
-          operator: In
-          values: ["g4dn", "p3"]
-        - key: karpenter.sh/capacity-type
-          operator: In
-          values: ["spot", "on-demand"]
-      taints:
-        - key: nvidia.com/gpu
-          value: "true"
-          effect: NoSchedule
-  limits:
-    cpu: "200"
-```
+When multiple pools match, a higher `weight` is preferred. Weight and value order do not guarantee Spot/On-Demand ratios or a G-before-P sequence. Taints/tolerations only permit placement; use labels and nodeSelector/affinity to target a pool. [Scheduling scope](https://karpenter.sh/v1.13/concepts/nodepools/)
 
 ### Step 5: Cost Allocation and Tagging Strategy
 
+Document the path between Kubernetes labels and AWS resource tags. Adding a namespace label does not automatically create EC2 tags.
+
 #### Hierarchical Tagging Architecture
 
-```yaml
-# Define tagging standards
-cost_allocation_tags:
-  business:
-    - cost_center: "CC-12345"
-    - business_unit: "Engineering"
-    - product: "Platform"
-    - environment: "production"
+Manage `cost_center`, `environment`, and `team` with their owners, and activate AWS cost allocation tags in Billing. Prefer direct NodeClass tagging for EC2 cost tags. In a supplementary Lambda integration, extract the cluster name from the **key suffix** of `kubernetes.io/cluster/<name>`. The values `owned` and `shared` are not names.
 
-  technical:
-    - cluster: "prod-eks-01"
-    - namespace: "backend-services"
-    - team: "platform-team"
-    - component: "api-gateway"
-
-  governance:
-    - owner: "john.doe@company.com"
-    - managed_by: "terraform"
-    - compliance: "pci-dss"
-
-  financial:
-    - billing_code: "PROJ-2024-001"
-    - budget_category: "infrastructure"
-    - charge_method: "chargeback"
-```
-
-**Automatic Tagging Lambda Function**
+This code performs offline tag transformation and tests. It rejects ambiguous cluster ownership and does not replace unknown teams with arbitrary valid-looking values.
 
 ```python
-# lambda_tag_enforcer.py
-import boto3
-import json
+# tag_review.py: offline, no AWS calls.
+PREFIX = "kubernetes.io/cluster/"
 
-ec2 = boto3.client('ec2')
-eks = boto3.client('eks')
-
-def lambda_handler(event, context):
-    """
-    Automatically add cost tags when an EKS node starts
-    """
-    instance_id = event['detail']['instance-id']
-
-    # Retrieve instance information
-    instance = ec2.describe_instances(InstanceIds=[instance_id])
-    tags = instance['Reservations'][0]['Instances'][0].get('Tags', [])
-
-    # Extract the cluster name
-    cluster_tag = next((t['Value'] for t in tags
-                       if t['Key'].startswith('kubernetes.io/cluster/')), None)
-
-    if not cluster_tag:
-        return {'statusCode': 400, 'body': 'Not an EKS node'}
-
-    # Retrieve EKS cluster metadata
-    cluster = eks.describe_cluster(name=cluster_tag)
-    cluster_tags = cluster['cluster'].get('tags', {})
-
-    # Create cost tags
-    cost_tags = [
-        {'Key': 'CostCenter', 'Value': cluster_tags.get('cost_center', 'unallocated')},
-        {'Key': 'Environment', 'Value': cluster_tags.get('environment', 'unknown')},
-        {'Key': 'Team', 'Value': cluster_tags.get('team', 'unassigned')},
-        {'Key': 'ManagedBy', 'Value': 'karpenter'},
-        {'Key': 'AutoTagged', 'Value': 'true'}
-    ]
-
-    # Apply tags
-    ec2.create_tags(Resources=[instance_id], Tags=cost_tags)
-
-    return {
-        'statusCode': 200,
-        'body': json.dumps(f'Tagged instance {instance_id}')
+def cluster_name_from_tags(tags):
+    names = {
+        tag["Key"][len(PREFIX):]
+        for tag in tags
+        if tag.get("Key", "").startswith(PREFIX)
+        and tag.get("Value") in {"owned", "shared"}
+        and tag["Key"][len(PREFIX):]
     }
+    if len(names) > 1:
+        raise ValueError("Ambiguous cluster ownership; review required")
+    return next(iter(names), None)
+
+def proposed_cost_tags(cluster_tags):
+    mapping = {"cost_center": "CostCenter", "environment": "Environment", "team": "Team"}
+    return [{"Key": target, "Value": cluster_tags[source]}
+            for source, target in mapping.items()
+            if cluster_tags.get(source)]
+
+if __name__ == "__main__":
+    assert cluster_name_from_tags([
+        {"Key": "kubernetes.io/cluster/prod-eks", "Value": "owned"}
+    ]) == "prod-eks"
+    assert cluster_name_from_tags([]) is None
+    try:
+        cluster_name_from_tags([
+            {"Key": "kubernetes.io/cluster/a", "Value": "owned"},
+            {"Key": "kubernetes.io/cluster/b", "Value": "shared"}
+        ])
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("Ambiguous ownership must be rejected")
+    assert proposed_cost_tags({"team": "platform"}) == [
+        {"Key": "Team", "Value": "platform"}
+    ]
 ```
 
-**EventBridge Rule**
+The following integration must be implemented. It requires an EventBridge target, Lambda invoke permission, Region/account validation, retries, idempotency, and existing-tag conflict handling. Do not grant unconditional write access for every EC2 event.
 
-```json
-{
-  "source": ["aws.ec2"],
-  "detail-type": ["EC2 Instance State-change Notification"],
-  "detail": {
-    "state": ["running"]
-  }
-}
+```text
+EC2 running event -> EventBridge target -> Lambda with resource-scoped IAM
+  -> DescribeInstances in the event Region/account
+  -> cluster_name_from_tags(instance tags); skip absent, reject ambiguous
+  -> DescribeCluster(name=extracted key suffix)
+  -> proposed_cost_tags(cluster tags)
+  -> compare existing tags; produce an audit record and reviewed change
+  -> approved implementation calls CreateTags for that instance only
 ```
 
 #### Enforcing Tags with Policy as Code
 
-```yaml
-# OPA/Gatekeeper policy
-apiVersion: templates.gatekeeper.sh/v1
-kind: ConstraintTemplate
-metadata:
-  name: k8srequiredtags
-spec:
-  crd:
-    spec:
-      names:
-        kind: K8sRequiredTags
-      validation:
-        openAPIV3Schema:
-          type: object
-          properties:
-            tags:
-              type: array
-              items:
-                type: string
+The policy detects missing Kubernetes labels; it does not propagate AWS cost tags. With Gatekeeper, check ConstraintTemplate/Rego support in the installed release and audit existing namespaces and system exemptions first.
 
-  targets:
-    - target: admission.k8s.gatekeeper.sh
-      rego: |
-        package k8srequiredtags
+This is policy intent. Implement and test the actual ConstraintTemplate, Constraint, exemptions, and GitOps delivery.
 
-        violation[{"msg": msg}] {
-          input.review.kind.kind == "Namespace"
-          provided := {tag | input.review.object.metadata.labels[tag]}
-          required := {tag | tag := input.parameters.tags[_]}
-          missing := required - provided
-          count(missing) > 0
-          msg := sprintf("Namespace must have required tags: %v", [missing])
-        }
-
----
-apiVersion: constraints.gatekeeper.sh/v1beta1
-kind: K8sRequiredTags
-metadata:
-  name: namespace-must-have-cost-tags
-spec:
-  match:
-    kinds:
-      - apiGroups: [""]
-        kinds: ["Namespace"]
-  parameters:
-    tags:
-      - "cost-center"
-      - "team"
-      - "environment"
+```text
+For each namespace outside the reviewed exemption list:
+  require nonempty labels: cost-center, team, environment
+  validate values against the approved ownership registry
+  audit existing violations before enabling admission denial
+  separately reconcile AWS resource tags and Billing tag activation
 ```
 
 ### Step 6: Configure Monitoring and Alerts
 
+Cost alerts should include data-quality checks and reconciliation with actual billing.
+
 #### Grafana Cost Dashboard
 
+This is a Prometheus recording-rule file for one cluster. Load it through [rule_files](https://prometheus.io/docs/prometheus/latest/configuration/recording_rules/), or translate it into a PrometheusRule selected by the installed Operator. A ConfigMap alone does not load rules.
+
+`finops_node_hourly_cost_usd{node}` is a **custom input metric**. An implemented collector must supply USD/node/hour prices for the actual node, purchase option, Region, currency, and timestamp. Alert on missing or stale prices; deduplicate per-node price/allocatable series and container metrics. For multiple clusters, include a cluster label in every aggregation and join.
+
+The units are `requested cores × (USD/node/hour ÷ allocatable cores/node)`. This is a **simple estimation policy** allocating the entire node price by CPU requests, not a GPU/memory-weighted or billed allocation model. Report unrequested capacity as residual cost. For example, a one-core request on a four-allocatable-core node priced at $0.40/hour is allocated $0.10/hour.
+
+Display `namespace:cpu_allocated_cost_usd_per_hour:sum` as USD/hour in Grafana. Multiplying it by 24 projects the current rate over a day; actual daily cost requires time integration or a daily CUR total. A usage/request ratio can exceed one, so its difference from one is not billed waste.
+
+Allocate current cost only to assigned `Pending` and `Running` Pods. Match `(namespace, pod, uid)` so completed Jobs and reused Pod names do not inflate requests. `max by` removes duplicate scrapes of the same source; it does not reconcile different clusters or conflicting prices.
+
 ```yaml
-# Custom Prometheus metrics
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: prometheus-cost-rules
-  namespace: monitoring
-data:
-  cost-rules.yml: |
-    groups:
-      - name: cost_efficiency
-        interval: 5m
-        rules:
-          # Hourly cost by namespace
-          - record: namespace:cost_per_hour:sum
-            expr: |
-              sum by (namespace) (
-                label_replace(
-                  kube_pod_container_resource_requests{resource="cpu"}
-                  * on(node) group_left(label_node_kubernetes_io_instance_type)
-                  kube_node_labels{label_node_kubernetes_io_instance_type!=""}
-                  * on(label_node_kubernetes_io_instance_type)
-                  aws_ec2_instance_type_cost_per_hour,
-                  "namespace", "$1", "exported_namespace", "(.*)"
-                )
+groups:
+  - name: active_cost_estimates
+    interval: 1m
+    rules:
+      - record: pod:active_assigned:info
+        expr: |
+          max by (namespace, pod, uid, node) (
+            kube_pod_info{node!="", uid!=""}
+          )
+          and on (namespace, pod, uid)
+          (
+            max by (namespace, pod, uid) (
+              kube_pod_status_phase{phase=~"Pending|Running", uid!=""}
+            ) == 1
+          )
+      - record: pod_container:cpu_requests_active:cores
+        expr: |
+          max by (namespace, pod, uid, node, container) (
+            kube_pod_container_resource_requests{
+              resource="cpu", unit="core", node!="", uid!=""
+            }
+          )
+          and on (namespace, pod, uid, node)
+          pod:active_assigned:info
+      - record: namespace:cpu_requests_active:cores
+        expr: |
+          sum by (namespace) (pod_container:cpu_requests_active:cores)
+      - record: namespace:cpu_allocated_cost_usd_per_hour:sum
+        expr: |
+          sum by (namespace) (
+            sum by (namespace, node) (
+              pod_container:cpu_requests_active:cores
+            )
+            * on (node) group_left()
+            (
+              max by (node) (finops_node_hourly_cost_usd)
+              / on (node)
+              (
+                max by (node) (
+                  kube_node_status_allocatable{resource="cpu", unit="core"}
+                ) > 0
               )
+            )
+          )
+```
 
-          # Resource efficiency
-          - record: namespace:resource_efficiency:ratio
-            expr: |
-              sum by (namespace) (
-                rate(container_cpu_usage_seconds_total[5m])
-              ) / sum by (namespace) (
-                kube_pod_container_resource_requests{resource="cpu"}
-              )
+CPU usage/request ratios must use the same Pod population. The additional rules below require **one total-CPU counter per container with the actual Pod UID supplied by the collection pipeline**. Default kubelet cAdvisor counters have no `uid`, so applying these rules to the raw input yields no ratio. Attaching the current UID through `(namespace, pod)` alone can associate old usage with a replacement Pod. Verify identity-preserving inputs before adding these rules, and display missing data separately from zero.
 
-          # Wasted costs
-          - record: namespace:wasted_cost_per_hour:sum
-            expr: |
-              namespace:cost_per_hour:sum
-              * (1 - namespace:resource_efficiency:ratio)
-
----
-# Grafana dashboard JSON (excerpt)
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: grafana-cost-dashboard
-  namespace: monitoring
-data:
-  eks-cost-dashboard.json: |
-    {
-      "dashboard": {
-        "title": "EKS Cost Analysis",
-        "panels": [
-          {
-            "title": "Total Daily Cost Trend",
-            "targets": [
-              {
-                "expr": "sum(namespace:cost_per_hour:sum) * 24"
-              }
-            ],
-            "type": "graph"
-          },
-          {
-            "title": "Top 10 Expensive Namespaces",
-            "targets": [
-              {
-                "expr": "topk(10, sum by (namespace) (namespace:cost_per_hour:sum))"
-              }
-            ],
-            "type": "table"
-          },
-          {
-            "title": "Resource Efficiency by Namespace",
-            "targets": [
-              {
-                "expr": "namespace:resource_efficiency:ratio"
-              }
-            ],
-            "type": "bargauge"
-          }
-        ]
-      }
-    }
+```yaml
+groups:
+  - name: uid_usage_contract
+    interval: 1m
+    rules:
+      - record: pod_container:cpu_usage_active:cores
+        expr: |
+          max by (namespace, pod, uid, container) (
+            rate(container_cpu_usage_seconds_total{
+              container!="", container!="POD", uid!=""
+            }[5m])
+          )
+          and on (namespace, pod, uid)
+          pod:active_assigned:info
+      - record: namespace:cpu_request_utilization:ratio
+        expr: |
+          sum by (namespace) (pod_container:cpu_usage_active:cores)
+          / on (namespace)
+          (namespace:cpu_requests_active:cores > 0)
 ```
 
 #### Multichannel Alert Configuration
 
+The illustrative threshold is a 50% increase over the same time yesterday sustained for 30 minutes. Subtracting 1 makes the displayed value an increase fraction. Handle a missing or zero previous value through separate data-quality/new-workload alerts.
+
+Connect Prometheus alerting to the actual Alertmanager and route `alert_type="cost"` to a cost-review receiver using [Alertmanager configuration](https://prometheus.io/docs/alerting/latest/configuration/). Supply Slack webhooks and PagerDuty keys through Secrets or protected files. Receiver configuration, permissions, and test notification verification are separate integration work.
+
 ```yaml
-# AlertManager configuration
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: alertmanager-config
-  namespace: monitoring
-data:
-  alertmanager.yml: |
-    global:
-      slack_api_url: 'https://hooks.slack.com/services/YOUR/WEBHOOK/URL'
-
-    route:
-      receiver: 'default'
-      group_by: ['alertname', 'namespace']
-      group_wait: 30s
-      group_interval: 5m
-      repeat_interval: 4h
-
-      routes:
-        - match:
-            severity: critical
-          receiver: 'pagerduty-critical'
-
-        - match:
-            severity: warning
-            alert_type: cost
-          receiver: 'slack-cost-alerts'
-
-    receivers:
-      - name: 'default'
-        slack_configs:
-          - channel: '#platform-alerts'
-            title: 'EKS Alert'
-            text: '{{ range .Alerts }}{{ .Annotations.description }}{{ end }}'
-
-      - name: 'slack-cost-alerts'
-        slack_configs:
-          - channel: '#finops-alerts'
-            title: 'Cost Alert: {{ .GroupLabels.namespace }}'
-            text: |
-              {{ range .Alerts }}
-              *Alert:* {{ .Labels.alertname }}
-              *Namespace:* {{ .Labels.namespace }}
-              *Current Cost:* ${{ .Annotations.current_cost }}/hour
-              *Threshold:* ${{ .Annotations.threshold }}/hour
-              *Recommendation:* {{ .Annotations.recommendation }}
-              {{ end }}
-
-      - name: 'pagerduty-critical'
-        pagerduty_configs:
-          - service_key: 'YOUR_PAGERDUTY_KEY'
-
----
-# Cost alert rules
-apiVersion: monitoring.coreos.com/v1
-kind: PrometheusRule
-metadata:
-  name: cost-alerts
-  namespace: monitoring
-spec:
-  groups:
-    - name: cost_thresholds
-      interval: 5m
-      rules:
-        - alert: HighNamespaceCost
-          expr: |
-            namespace:cost_per_hour:sum > 50
-          for: 1h
-          labels:
-            severity: warning
-            alert_type: cost
-          annotations:
-            description: 'Namespace {{ $labels.namespace }} is costing ${{ $value }}/hour'
-            current_cost: '{{ $value }}'
-            threshold: '50'
-            recommendation: 'Review resource requests and consider rightsizing'
-
-        - alert: UnusualCostSpike
-          expr: |
-            (
-              namespace:cost_per_hour:sum
-              / namespace:cost_per_hour:sum offset 24h
-            ) > 1.5
-          for: 30m
-          labels:
-            severity: warning
-            alert_type: cost
-          annotations:
-            description: 'Namespace {{ $labels.namespace }} cost increased by {{ $value | humanizePercentage }}'
-
-        - alert: LowResourceEfficiency
-          expr: |
-            namespace:resource_efficiency:ratio < 0.3
-          for: 2h
-          labels:
-            severity: info
-            alert_type: efficiency
-          annotations:
-            description: 'Namespace {{ $labels.namespace }} has only {{ $value | humanizePercentage }} resource efficiency'
-            recommendation: 'Reduce resource requests or increase actual usage'
+groups:
+  - name: cost_alerts
+    rules:
+      - alert: UnusualCostSpike
+        expr: |
+          (
+            namespace:cpu_allocated_cost_usd_per_hour:sum
+            / (namespace:cpu_allocated_cost_usd_per_hour:sum offset 24h > 0)
+            - 1
+          ) > 0.5
+        for: 30m
+        labels:
+          severity: warning
+          alert_type: cost
+        annotations:
+          description: 'CPU-based cost estimate increased by {{ $value | humanizePercentage }} versus 24h ago'
 ```
 
 ### Step 7: Automated Optimization
 
+Begin automation with candidate calculation and review evidence. Apply changes only after workload-owner approval and performance validation.
+
 #### Automated Rightsizing Pipeline
 
+This Python normalizes CPU to cores and memory to bytes, then **rounds up** to mCPU and MiB. It distinguishes decimal/binary [Kubernetes quantities](https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/) and rejects unsupported strings. `1.8Gi × 1.2 = 2.16Gi`, rounded up to Mi, is `2212Mi`.
+
+Each input row contains requests and observations for the same cluster, namespace, Pod UID, and container. Do not copy Pod totals into every container. The collector must distinguish recreated Pods and duplicate scrapes, calculating `observed_hours` from valid samples. The example's 168 hours and 20% headroom are review assumptions, not safety guarantees. Missing or short observations produce no candidate.
+
+Collect CPU P95 from the time distribution of `rate(container_cpu_usage_seconds_total[5m])` and memory P95 from per-container working-set bytes. Separately inspect memory peaks, OOMs, and startup usage. Review existing limits, LimitRange, HPA denominators, QoS, and SLOs. The returned percentage is a CPU request change, not monetary savings.
+
+The code does not call API clients, authentication, owner lookup, or patch functions. An actual PR generator must resolve ReplicaSet→Deployment or StatefulSet ownership, combine observations across replicas, and update **only the matching container**. Implement owner approval, canary validation, and restoration of previous requests without conflicting with GitOps declarations.
+
 ```python
-# auto_rightsizing.py
-import boto3
-import kubernetes
-from datetime import datetime, timedelta
+# rightsizing_review.py: standard library only; no network or Kubernetes writes.
+import json
+import re
+from decimal import Decimal, ROUND_CEILING
 
-def calculate_recommendations(namespace, days=7):
-    """
-    Calculate recommended resources by analyzing actual usage over the past 7 days
-    """
-    prom = PrometheusConnect(url="http://prometheus:9090")
+D = Decimal
+SUFFIX = {"": D(1), "n": D("1e-9"), "u": D("1e-6"), "m": D("1e-3")}
+SUFFIX.update({s: D(1000) ** i for i, s in enumerate("kMGTPE", 1)})
+SUFFIX.update({s + "i": D(1024) ** i for i, s in enumerate("KMGTPE", 1)})
+PATTERN = re.compile(r"([+]?(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+))([eE][+-]?[0-9]+|[numkMGTPE]|[KMGTPE]i)?")
 
-    # Actual CPU usage (P95)
-    cpu_query = f'''
-        quantile_over_time(0.95,
-            sum by (pod) (
-                rate(container_cpu_usage_seconds_total{{namespace="{namespace}"}}[5m])
-            )[{days}d:5m]
-        )
-    '''
-    cpu_actual = prom.custom_query(query=cpu_query)
+def number(value):
+    value = D(str(value))
+    if not value.is_finite() or value < 0:
+        raise ValueError("Expected a finite nonnegative number")
+    return value
 
-    # Actual memory usage (P95)
-    mem_query = f'''
-        quantile_over_time(0.95,
-            sum by (pod) (
-                container_memory_working_set_bytes{{namespace="{namespace}"}}
-            )[{days}d:5m]
-        )
-    '''
-    mem_actual = prom.custom_query(query=mem_query)
+def quantity(value):
+    match = PATTERN.fullmatch(str(value))
+    if not match:
+        raise ValueError("Unsupported resource quantity")
+    base, suffix = match.groups()
+    suffix = suffix or ""
+    factor = SUFFIX[suffix] if suffix in SUFFIX else D(10) ** int(suffix[1:])
+    return number(base) * factor
 
-    # Current resource requests
-    k8s = kubernetes.client.CoreV1Api()
-    pods = k8s.list_namespaced_pod(namespace)
+def ceil_units(value, unit):
+    return int((value / unit).to_integral_value(rounding=ROUND_CEILING))
 
-    recommendations = []
-    for pod in pods.items:
-        pod_name = pod.metadata.name
+def review(row, min_hours=168, headroom="1.2"):
+    # The observation window/headroom are review assumptions, not safety guarantees.
+    margin = number(headroom)
+    if margin < 1:
+        raise ValueError("Headroom must be at least one")
+    for key in ("cpu_p95_cores", "memory_p95_bytes", "observed_hours"):
+        if row.get(key) is None:
+            return None
+    if number(row["observed_hours"]) < number(min_hours):
+        return None
+    cpu = quantity(row["requests"]["cpu"])
+    memory = quantity(row["requests"]["memory"])
+    if cpu <= 0 or memory <= 0:
+        raise ValueError("Positive current requests are required")
+    target_cpu = max(1, ceil_units(number(row["cpu_p95_cores"]) * margin, D("0.001")))
+    target_mem = max(1, ceil_units(number(row["memory_p95_bytes"]) * margin, D(2) ** 20))
+    return {
+        "identity": {key: row[key] for key in ("cluster", "namespace", "pod_uid", "container")},
+        "current_requests": row["requests"],
+        "review_requests": {"cpu": f"{target_cpu}m", "memory": f"{target_mem}Mi"},
+        "cpu_request_change_pct": str((D(target_cpu) / 1000 / cpu - 1) * 100),
+        "review_only": True,
+    }
 
-        # Current requests
-        current_cpu = sum(float(c.resources.requests.get('cpu', '0').rstrip('m'))
-                         for c in pod.spec.containers if c.resources.requests)
-        current_mem = sum(parse_memory(c.resources.requests.get('memory', '0'))
-                         for c in pod.spec.containers if c.resources.requests)
-
-        # Actual usage (P95 + 20% buffer)
-        actual_cpu = next((float(m['value'][1]) for m in cpu_actual
-                          if m['metric']['pod'] == pod_name), 0) * 1.2
-        actual_mem = next((float(m['value'][1]) for m in mem_actual
-                          if m['metric']['pod'] == pod_name), 0) * 1.2
-
-        # Calculate cost savings
-        if current_cpu > actual_cpu * 1.5:  # Overprovisioned by 50% or more
-            recommendations.append({
-                'pod': pod_name,
-                'namespace': namespace,
-                'current_cpu': current_cpu,
-                'recommended_cpu': int(actual_cpu),
-                'current_memory': current_mem,
-                'recommended_memory': int(actual_mem),
-                'potential_savings_pct': ((current_cpu - actual_cpu) / current_cpu) * 100
-            })
-
-    return recommendations
-
-def apply_recommendations(recommendations, dry_run=True):
-    """
-    Apply recommendations to actual deployments (update Deployment/StatefulSet)
-    """
-    apps_v1 = kubernetes.client.AppsV1Api()
-
-    for rec in recommendations:
-        namespace = rec['namespace']
-        pod_name = rec['pod']
-
-        # Find the Pod owner (Deployment/StatefulSet)
-        core_v1 = kubernetes.client.CoreV1Api()
-        pod = core_v1.read_namespaced_pod(pod_name, namespace)
-        owner = pod.metadata.owner_references[0]
-
-        if owner.kind == 'ReplicaSet':
-            # Find the Deployment
-            rs = apps_v1.read_namespaced_replica_set(owner.name, namespace)
-            deploy_name = rs.metadata.owner_references[0].name
-
-            # Update the Deployment
-            deploy = apps_v1.read_namespaced_deployment(deploy_name, namespace)
-
-            for container in deploy.spec.template.spec.containers:
-                container.resources.requests['cpu'] = f"{rec['recommended_cpu']}m"
-                container.resources.requests['memory'] = f"{rec['recommended_memory']}Mi"
-
-            if not dry_run:
-                apps_v1.patch_namespaced_deployment(
-                    deploy_name, namespace, deploy
-                )
-                print(f"✅ Updated {deploy_name} in {namespace}")
-            else:
-                print(f"🔍 Would update {deploy_name}: CPU {rec['current_cpu']}m → {rec['recommended_cpu']}m")
-
-# Run
-if __name__ == '__main__':
-    namespaces = ['backend-services', 'frontend', 'data-processing']
-
-    for ns in namespaces:
-        print(f"\n📊 Analyzing namespace: {ns}")
-        recs = calculate_recommendations(ns)
-
-        if recs:
-            print(f"Found {len(recs)} optimization opportunities:")
-            for r in recs:
-                print(f"  - {r['pod']}: {r['potential_savings_pct']:.1f}% savings")
-
-            apply_recommendations(recs, dry_run=False)
+if __name__ == "__main__":
+    sample = {"cluster": "example", "namespace": "backend", "pod_uid": "example-uid",
+              "container": "app", "requests": {"cpu": "500m", "memory": "512Mi"},
+              "cpu_p95_cores": "0.2", "memory_p95_bytes": 200 * 2**20, "observed_hours": 168}
+    result = review(sample)
+    assert result["review_requests"] == {"cpu": "240m", "memory": "240Mi"}
+    assert quantity("1") == quantity("1000m")
+    assert quantity("1Gi") == quantity("1024Mi")
+    assert quantity("1G") == D(10)**9
+    assert quantity("1e3") == 1000
+    assert quantity("250000000n") == D("0.25")
+    assert review({**sample, "cpu_p95_cores": None}) is None
+    assert review({**sample, "observed_hours": 24}) is None
+    sidecar = review({**sample, "container": "sidecar", "cpu_p95_cores": "0.01"})
+    assert sidecar["review_requests"]["cpu"] == "12m"
+    assert review({**sample, "memory_p95_bytes": str(D("1.8") * 2**30)})["review_requests"]["memory"] == "2212Mi"
+    print(json.dumps(result, indent=2))
 ```
 
 ## GPU Workload Cost Optimization
 
-GPU uptime accounts for most of the cost of LLM serving and training workloads, so they require optimization strategies different from those for general CPU workloads. A single p5.48xlarge (H100×8) has an On-Demand price of approximately $98 per hour, reaching approximately $141,000 per month when running 2 instances.
+Evaluate GPU costs using device count, runtime, model fit, and interruption recovery time. Do not assume fixed GPU prices or immediate availability in a Region.
 
 ### GPU Cost Savings Stack
 
-Combining the following 4 strategies can reduce GPU infrastructure costs by up to ~85%.
+| Strategy | Cost mechanism | Validation |
+|----------|----------------|------------|
+| Spot | Changes execution rate | Retry, model reload, and recovery costs |
+| Consolidation | Removes unnecessary node hours | PDBs, placement feasibility, and spare capacity |
+| Rightsizing | Selects required GPU and memory | Load tests, quality, and SLOs |
+| Scheduled demand changes | Reduces actual replicas or jobs | A separate scheduler coordinated with HPA |
 
-| Strategy | Savings | Implementation |
-|------|---------|---------|
-| **Spot Instances** | 60-90% | Karpenter `capacity-type: spot`, p5 Spot at $13-15/hr (us-east-2, compared with On-Demand at $98/hr) |
-| **Consolidation** | 20-30% | `consolidationPolicy: WhenEmptyOrUnderutilized`, 30-second wait |
-| **Right-sizing** | 15-25% | Automatic instance type selection based on model size (NodePool weight) |
-| **Time-Based Scheduling** | 30-40% | Reduce capacity by 50%+ outside business hours with disruption budgets |
-
-:::warning Handling GPU Spot Interruptions
-Because GPU instances need to reload model weights (taking several minutes) after a Spot interruption, inference workloads should be configured with a managed fallback such as Bedrock to ensure uninterrupted service. For detailed patterns, see [Agent Monitoring & Operations — Cascade Fallback](/docs/agentic-ai-platform/operations-mlops/observability/agent-monitoring).
-:::
+Effects overlap; adding or multiplying claimed savings does not create a guarantee. As an illustrative calculation, removing 100 hours from each of two GPU nodes priced at an assumed $10/hour saves $2,000 gross; subtract retry, storage, networking, and operating costs separately. A managed-model fallback requires model/API/quality compatibility, quota, and cost validation and does not guarantee uninterrupted service.
 
 ### Time-Based Disruption Budgets
 
-Configure Karpenter disruption budgets by time of day to prioritize stability during business hours and cost savings outside business hours.
+A [Karpenter disruption budget](https://karpenter.sh/v1.13/concepts/disruption/) limits voluntary disruptions. It does not reduce replicas/queue demand or schedule removal of 50% of nodes overnight. When multiple budgets are active, the most restrictive limit applies.
+
+The example has a 10% baseline limit and blocks Underutilized consolidation Monday–Friday **00:00–09:00 UTC (09:00–18:00 KST)**. The baseline remains in force outside that window and on weekends. Schedules use UTC and have no timezone field. Implement actual demand reduction through separate workload scheduling, queue admission, and HPA coordination.
+
+This example references the earlier general CPU NodeClass. For GPUs, substitute a validated GPU NodeClass, device plugin, and model-fit requirements. Budgets do not block every termination, including Spot interruptions and expiry.
 
 ```yaml
-# Example time-based Karpenter disruption budgets (GPU NodePool)
-disruption:
-  consolidationPolicy: WhenEmptyOrUnderutilized
-  consolidateAfter: 30s
-  budgets:
-    # Business hours: prioritize stability (allow only 10% disruption)
-    - nodes: "10%"
-      schedule: "0 9 * * 1-5"
-      duration: 9h
-    # Outside business hours: prioritize cost (consolidate up to 50%)
-    - nodes: "50%"
-      schedule: "0 18 * * 1-5"
-      duration: 15h
+apiVersion: karpenter.sh/v1
+kind: NodePool
+metadata:
+  name: scheduled-consolidation
+spec:
+  template:
+    spec:
+      nodeClassRef:
+        group: karpenter.k8s.aws
+        kind: EC2NodeClass
+        name: default
+      requirements:
+        - key: kubernetes.io/arch
+          operator: In
+          values: ["amd64"]
+        - key: karpenter.k8s.aws/instance-category
+          operator: In
+          values: ["c", "m", "r"]
+  disruption:
+    consolidationPolicy: WhenEmptyOrUnderutilized
+    consolidateAfter: 30s
+    budgets:
+      - nodes: "10%"
+      - nodes: "0"
+        reasons: ["Underutilized"]
+        schedule: "0 0 * * 1-5"
+        duration: 9h
 ```
 
 ### Securing GPU Instance Capacity
 
-The p5.48xlarge frequently encounters `InsufficientCapacity` in the Seoul/Tokyo Regions. Spot capacity is available in us-east-2 (Ohio) at $13-15 per hour, saving approximately 85% compared with On-Demand at $98/hr.
+Instance offerings, account/Regional quotas, and launch-time capacity are separate. Check the applicable G/VT and P On-Demand/Spot quotas in Service Quotas for the account. Do not assume a universal 64-vCPU default.
 
-| Region | p5.48xlarge On-Demand | p5.48xlarge Spot |
-|------|---------------------|-----------------|
-| ap-northeast-2 (Seoul) | Frequent InsufficientCapacity | Unverified |
-| ap-northeast-1 (Tokyo) | Frequent InsufficientCapacity | Unverified |
-| **us-east-2 (Ohio)** | Variable availability | **Available at $13~15/hr** |
+`describe-instance-type-offerings` reports types offered in a Region/AZ; it does not guarantee available capacity. Diagnose failures using Fleet errors in NodeClaim/controller logs and EC2 events. Broaden compatible types, AZs, and purchase options, and evaluate capacity reservation options and model compatibility where needed. The order in `instance-category: [g,p]` is not a G-first policy.
 
-:::tip GPU Quota Pitfalls
-EC2 vCPU quotas are separated by instance bucket. The default for `Running On-Demand G and VT instances` is 64 vCPUs, which cannot accommodate even 1 g6e.48xlarge, so a quota increase is required. If a GPU NodePool specifies both categories with `instance-category: [g, p]`, Karpenter may try G types first and hit the G quota. Specify P types explicitly if only P types are needed.
-:::
-
-For details on autoscaling and serving optimization for GPU workloads, see [GPU Autoscaling and Large Model Deployment Operations](/docs/agentic-ai-platform/model-serving/inference-optimization/gpu-autoscaling-operations).
+See [GPU resource management](../../agentic-ai-platform/model-serving/gpu-infrastructure/gpu-resource-management.md) for GPU operations design.
 
 ## Verification
 
+Record actual validation separately from illustrative calculations.
+
 ### Measuring Cost Savings
+
+Compare before/after costs and traffic using the same account, tags, currency, and amortization basis.
 
 #### 1. Establish a Baseline
 
-```bash
-# Record monthly costs before optimization
-aws ce get-cost-and-usage \
-  --time-period Start=2025-01-01,End=2025-01-31 \
-  --granularity MONTHLY \
-  --metrics UnblendedCost \
-  --filter file://eks-filter.json
+This is a historical January 2025 query. [Cost Explorer API](https://docs.aws.amazon.com/aws-cost-management/latest/APIReference/API_GetCostAndUsage.html) end dates are exclusive, so use the first day of the following month. The tag must be enabled for cost allocation and present on the relevant cost rows. `owned` is the tag value here; the cluster name is in the key.
 
-# eks-filter.json
+The filter includes only tagged costs. It does not automatically include control-plane, shared networking, or untagged costs and is not a SCAD Pod cost query. Check retention settings and data availability for older periods. Compare Savings Plans/RI on an amortized basis when appropriate.
+
+```bash
+cat > eks-filter.json <<'EOF'
 {
   "Tags": {
     "Key": "kubernetes.io/cluster/your-cluster",
     "Values": ["owned"]
   }
 }
+EOF
+aws ce get-cost-and-usage \
+  --time-period Start=2025-01-01,End=2025-02-01 \
+  --granularity MONTHLY \
+  --metrics UnblendedCost \
+  --filter file://eks-filter.json
 ```
-
-**Baseline Metrics**
-
-| Metric | Measurement Method | Target |
-|--------|----------|------|
-| Total monthly cost | AWS Cost Explorer | -30% |
-| CPU efficiency | Actual usage/request ratio | 60% or more |
-| Memory efficiency | Actual usage/request ratio | 70% or more |
-| Spot usage ratio | Spot nodes/total nodes | 50% or more |
-| Unallocated costs | Untagged costs | Below 5% |
 
 #### 2. Weekly Tracking
 
+Keep the same CUR 2.0 allocation basis for weekly tracking. Mark partial weeks and check data availability before SCAD opt-in. For Spot share, join a separately verified parent-EC2 purchase-model classification; do not assume Pod usage types contain `SpotUsage`. Treat ratios with zero total cost as undefined.
+
 ```sql
--- Athena query: weekly cost trends
-SELECT
-    DATE_TRUNC('week', line_item_usage_start_date) as week,
-    SUM(line_item_unblended_cost) as weekly_cost,
-    SUM(CASE WHEN line_item_usage_type LIKE '%SpotUsage%'
-        THEN line_item_unblended_cost ELSE 0 END) as spot_cost,
-    SUM(CASE WHEN line_item_usage_type LIKE '%SpotUsage%'
-        THEN line_item_unblended_cost ELSE 0 END) / SUM(line_item_unblended_cost) * 100 as spot_percentage
-FROM eks_cost_report
-WHERE line_item_usage_start_date >= DATE_ADD('month', -3, CURRENT_DATE)
-GROUP BY 1
+SELECT date_trunc('week', line_item_usage_start_date) AS week,
+       line_item_currency_code AS currency,
+       SUM(COALESCE(split_line_item_split_cost, 0)
+           + COALESCE(split_line_item_unused_cost, 0)) AS allocated_ec2_cost
+FROM eks_cur2
+WHERE split_line_item_parent_resource_id IS NOT NULL
+  AND element_at(resource_tags, 'aws:eks:cluster-name') = 'your-cluster'
+  AND line_item_usage_start_date >= date_add('month', -3, current_timestamp)
+GROUP BY 1, 2
 ORDER BY 1 DESC;
 ```
 
 #### 3. Calculate ROI
 
+Define ROI explicitly. Here it is first-year net benefit divided by `initial implementation cost + first-year tool cost`. Payback divides initial cost by monthly savings after tool costs. ROI is undefined with zero investment, and no finite payback exists when net monthly savings are nonpositive.
+
+Amounts are illustrative assumptions in one currency; `500/month` is not a product quote. Do not subtract tools twice if current cost already includes them. Add ongoing operating effort, retries, migration costs, and traffic changes to an actual assessment. This example yields 17,500 net monthly savings, 194,000 first-year net benefit, approximately 881.8% ROI, and 0.914-month payback.
+
 ```python
-# roi_calculator.py
-def calculate_finops_roi(
-    baseline_monthly_cost,
-    current_monthly_cost,
-    implementation_hours,
-    avg_hourly_rate=100,
-    tool_monthly_cost=0
-):
-    """
-    Calculate the return on investment for FinOps
-    """
-    # Monthly savings
-    monthly_savings = baseline_monthly_cost - current_monthly_cost
+# roi_calculator.py: illustrative amounts in one currency, no AWS calls.
+from decimal import Decimal
 
-    # Implementation cost
-    implementation_cost = implementation_hours * avg_hourly_rate
+D = Decimal
 
-    # Net savings (first year)
-    annual_savings = monthly_savings * 12
-    annual_tool_cost = tool_monthly_cost * 12
-    net_annual_savings = annual_savings - annual_tool_cost - implementation_cost
-
-    # ROI
-    roi_percentage = (net_annual_savings / implementation_cost) * 100
-
-    # Payback period
-    payback_months = implementation_cost / monthly_savings
-
+def calculate_finops_roi(baseline_monthly_cost, current_monthly_cost,
+                         implementation_hours, avg_hourly_rate=100,
+                         tool_monthly_cost=0):
+    values = [D(str(v)) for v in (baseline_monthly_cost, current_monthly_cost,
+              implementation_hours, avg_hourly_rate, tool_monthly_cost)]
+    if any(not v.is_finite() or v < 0 for v in values):
+        raise ValueError("Inputs must be finite and nonnegative")
+    baseline, current, hours, rate, tools = values
+    gross = baseline - current
+    initial = hours * rate
+    monthly_net = gross - tools
+    first_year_net = monthly_net * 12 - initial
+    investment = initial + tools * 12
     return {
-        'monthly_savings': monthly_savings,
-        'annual_savings': annual_savings,
-        'implementation_cost': implementation_cost,
-        'net_annual_savings': net_annual_savings,
-        'roi_percentage': roi_percentage,
-        'payback_months': payback_months
+        "gross_monthly_savings": gross,
+        "net_monthly_savings": monthly_net,
+        "implementation_cost": initial,
+        "net_first_year_savings": first_year_net,
+        "roi_pct": first_year_net / investment * 100 if investment else None,
+        "payback_months": initial / monthly_net if monthly_net > 0 else None,
     }
 
-# Example
-result = calculate_finops_roi(
-    baseline_monthly_cost=50000,   # $50k/month
-    current_monthly_cost=32000,    # $32k/month (36% savings)
-    implementation_hours=160,      # 1 month full-time
-    tool_monthly_cost=500          # Kubecost Enterprise
-)
-
-print(f"""
-FinOps ROI Analysis
---------------
-Monthly savings: ${result['monthly_savings']:,.0f}
-Annual savings: ${result['annual_savings']:,.0f}
-Implementation cost: ${result['implementation_cost']:,.0f}
-Net annual savings: ${result['net_annual_savings']:,.0f}
-ROI: {result['roi_percentage']:.0f}%
-Payback period: {result['payback_months']:.1f} months
-""")
+if __name__ == "__main__":
+    result = calculate_finops_roi(50000, 32000, 160, tool_monthly_cost=500)
+    assert result["net_monthly_savings"] == 17500
+    assert result["net_first_year_savings"] == 194000
+    assert result["payback_months"] == D(16000) / D(17500)
+    assert calculate_finops_roi(100, 100, 0)["roi_pct"] is None
+    assert calculate_finops_roi(100, 120, 1)["payback_months"] is None
+    assert calculate_finops_roi(100, 50, 0)["payback_months"] == 0
+    print(result)
 ```
 
 #### 4. Verification Checklist
 
-**Verification After 30 Days**
+| Milestone | Checks | Evidence |
+|-----------|--------|----------|
+| 30 days | Visibility, allocation, data quality, alerts | Missing-data list, billing reconciliation, alert tests |
+| 90 days | Rightsizing and node-policy effects | Cost, latency, errors, and OOMs under comparable load |
+| 180 days | Repeatable FinOps operations | Unit cost, ROI, recurring reviews, and recovery records |
 
-- [ ] Total monthly cost reduced by 10-20%
-- [ ] Pod-level visibility established with Kubecost or SCAD
-- [ ] Cost allocation by namespace at 70% or more
-- [ ] Cost alerts functioning correctly
-- [ ] At least 1 monthly cost review conducted per team
-
-**Verification After 90 Days**
-
-- [ ] Total monthly cost reduced by 30-40%
-- [ ] Karpenter deployed and functioning correctly
-- [ ] Spot Instance ratio at 50% or more
-- [ ] CPU efficiency at 60% or more
-- [ ] Memory efficiency at 70% or more
-- [ ] Unallocated costs below 5%
-- [ ] Automated rightsizing policies in operation
-
-**Verification After 180 Days**
-
-- [ ] Total monthly cost reduced by 40-60%
-- [ ] FinOps maturity at "Walk" or higher
-- [ ] Automated optimization workflows established
-- [ ] Costs linked to business metrics
-- [ ] ROI of 300% or more achieved
+Do not impose fixed savings percentages or Spot shares as success criteria. Approve targets according to organizational SLOs, traffic, and commitments. Reduced requests may not lower bills if the nodes remain.
 
 ## Troubleshooting
 
+Identify the cause before narrowing the change scope. Distinguish price, quota, capacity, and permission issues.
+
 ### Common Issues and Solutions
+
+The procedures below describe diagnosis and valid examples; they are not reports of production validation.
 
 #### Issue 1: SCAD Data Does Not Appear in CUR
 
-**Symptoms**
+First check the Billing EKS SCAD opt-in and measurement method. Then verify `INCLUDE_SPLIT_COST_ALLOCATION_DATA="TRUE"` and resource IDs in the export's `COST_AND_USAGE_REPORT` configuration. [SCAD activation](https://docs.aws.amazon.com/cur/latest/userguide/enabling-split-cost-allocation-data.html)
+
+Check S3 delivery status, bucket policy, export freshness, and Athena table locations/partitions. Investigate missing CPU/memory requests in requests mode, inactive tags, and preparation delays. Do not infer missing Pod split rows from EC2 resource IDs alone. Set the ARN below to the actual export.
 
 ```bash
-# Athena query returns no results
-SELECT * FROM eks_cost_report
-WHERE split_line_item_split_cost IS NOT NULL
-LIMIT 10;
-# 0 rows returned
+aws bcm-data-exports list-exports --region us-east-1
+aws bcm-data-exports get-export --region us-east-1 \
+  --export-arn "$EXPORT_ARN"
 ```
 
-**Causes**
-
-- A delay of 24-48 hours after enabling SCAD
-- SCAD not enabled on the EKS cluster
-- Missing SPLIT_COST_ALLOCATION_DATA schema element in CUR
-
-**Solution**
-
-```bash
-# 1. Check whether SCAD is enabled on the cluster
-aws eks describe-cluster --name your-cluster \
-  --query 'cluster.resourcesVpcConfig.splitCostAllocationEnabled'
-
-# 2. Check the CUR definition
-aws cur describe-report-definitions \
-  --query 'ReportDefinitions[?ReportName==`eks-cost-report`].AdditionalSchemaElements'
-
-# 3. Re-enable if necessary
-aws eks update-cluster-config \
-  --name your-cluster \
-  --resources-vpc-config splitCostAllocationEnabled=true
+```sql
+SELECT line_item_resource_id, split_line_item_parent_resource_id,
+       split_line_item_split_cost, resource_tags
+FROM eks_cur2
+WHERE split_line_item_parent_resource_id IS NOT NULL
+LIMIT 10;
 ```
 
 #### Issue 2: Karpenter Does Not Provision Nodes
 
-**Symptoms**
+Compare Pod requirements, taints, and node limits with NodePool/EC2NodeClass Ready conditions. Inspect the controller role and attached policies appropriate to the installation method. Distinguish discovery tags, AMI selection, and EKS node-access failures. [v1.13 diagnostic prerequisites](https://karpenter.sh/v1.13/getting-started/getting-started-with-karpenter/)
+
+The [offerings API](https://docs.aws.amazon.com/cli/latest/reference/ec2/describe-instance-type-offerings.html) query only checks whether an instance type is **offered** in AZs in ap-northeast-2. It is not a live EC2 capacity check. Diagnose the cause before creating a permissive debug NodePool; if needed, review a complete v1 configuration based on the earlier example with cost limits.
 
 ```bash
-kubectl get pods
-# STATUS: Pending (not scheduled)
-
-kubectl logs -n karpenter -l app.kubernetes.io/name=karpenter
-# No suitable node class found
-```
-
-**Causes**
-
-- Mismatch between NodePool requirements and workloads
-- Insufficient IAM permissions
-- Missing subnet/security group tags
-- Insufficient capacity for the instance type
-
-**Solution**
-
-```bash
-# 1. Compare NodePool and Pod requirements
 kubectl get nodepool default -o yaml
-kubectl get pod <pending-pod> -o yaml | grep -A 10 "nodeSelector\|affinity\|tolerations"
-
-# 2. Check Karpenter permissions
-aws iam get-role-policy \
-  --role-name KarpenterControllerRole-your-cluster \
-  --policy-name KarpenterControllerPolicy
-
-# 3. Check subnet tags
-aws ec2 describe-subnets \
-  --filters "Name=tag:karpenter.sh/discovery,Values=your-cluster"
-
-# 4. Check security group tags
-aws ec2 describe-security-groups \
-  --filters "Name=tag:karpenter.sh/discovery,Values=your-cluster"
-
-# 5. Check EC2 capacity
+kubectl get ec2nodeclass default -o yaml
+kubectl get nodeclaims -o wide
+kubectl get events -A --field-selector reason=FailedScheduling
 aws ec2 describe-instance-type-offerings \
   --location-type availability-zone \
   --filters "Name=instance-type,Values=m5.xlarge" \
   --region ap-northeast-2
 ```
 
-**NodePool Debugging**
-
-```yaml
-# Test with broad requirements
-apiVersion: karpenter.sh/v1
-kind: NodePool
-metadata:
-  name: debug-nodepool
-spec:
-  template:
-    spec:
-      requirements:
-        - key: karpenter.sh/capacity-type
-          operator: In
-          values: ["on-demand"]  # Exclude Spot
-        - key: kubernetes.io/arch
-          operator: In
-          values: ["amd64"]
-        # No instance type restrictions
-      nodeClassRef:
-        name: default
-```
-
 #### Issue 3: Large Cost Discrepancies in Kubecost
 
-**Symptoms**
+Do not classify discrepancies as normal or erroneous using an arbitrary 20% threshold. First align periods, currency, billed/amortized/discounted cost basis, and shared/idle cost inclusion.
 
-- Costs in the Kubecost UI differ from the AWS bill by 20% or more
-- Abnormally high costs for specific namespaces
-
-**Causes**
-
-- Missing Prometheus metrics
-- Incorrect AWS Spot pricing data
-- Errors in the shared resource allocation method
-
-**Solution**
-
-```bash
-# 1. Check Prometheus metrics
-kubectl port-forward -n kubecost svc/kubecost-prometheus-server 9090:80
-# Open http://localhost:9090 in a browser
-# Query: up{job="kubecost-cost-model"}
-
-# 2. Validate the Kubecost configuration
-kubectl get configmap -n kubecost kubecost-cost-analyzer -o yaml | grep -A 20 "kubecostProductConfigs"
-
-# 3. Reconfigure AWS integration
-cat > kubecost-aws-fix.yaml << 'EOF'
-kubecostProductConfigs:
-  awsSpotDataRegion: "ap-northeast-2"
-  awsSpotDataBucket: "your-bucket"
-  spotLabel: "karpenter.sh/capacity-type"
-  spotLabelValue: "spot"
-
-  # CUR integration
-  athenaProjectID: "your-project"
-  athenaBucketName: "s3://your-athena-results"
-  athenaRegion: "ap-northeast-2"
-  athenaDatabase: "athenacurcfn_eks_cost_report"
-  athenaTable: "eks_cost_report"
-  athenaWorkgroup: "primary"
-EOF
-
-helm upgrade kubecost kubecost/cost-analyzer \
-  -n kubecost \
-  -f kubecost-aws-fix.yaml
-
-# 4. Force cost recalculation
-kubectl delete pod -n kubecost -l app=cost-model
-```
+Inspect collection health for the installed version: scrape health and duplicate series for Prometheus-based 2.x, and the direct collection agent for 3.x. Also reconcile node-price freshness, tags, and CUR delivery. Compare actual settings and permissions with the [selected Kubecost release's billing integration](https://github.com/kubecost/cost-analyzer-helm-chart). Do not overwrite values from a different chart version or delete Pods to force cost recalculation. Use the product version's supported reprocessing procedure if needed.
 
 #### Issue 4: Service Impact from Spot Instance Interruptions
 
-**Symptoms**
+A [PDB](https://kubernetes.io/docs/concepts/workloads/pods/disruptions/) limits voluntary disruptions through the eviction API. It does not guarantee 80% availability during Spot reclamation or node failure. With five replicas, `minAvailable: "80%"` requires four healthy Pods, while spare capacity, readiness, and involuntary failures remain separate concerns.
 
-- Abrupt Pod termination after a 2-minute warning
-- Reduced availability
+This is a complete Deployment/PDB example for a dedicated test namespace. The application is nginx; pin a validated digest under the production image policy. Put `terminationGracePeriodSeconds` in the Pod spec. The five-second endpoint propagation delay and nginx graceful quit are illustrative; validate connection draining and maximum request duration for the actual service. preStop runs within the overall termination grace period. [Pod termination flow](https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/)
 
-**Mitigation Strategy**
+[Spot interruption notices](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/spot-instance-termination-notices.html) are delivered on a best-effort basis. A two-minute notice is not a guaranteed application grace period, and hibernation may start immediately. Configure the official SQS/EventBridge interruption handling for Karpenter-managed nodes. Avoid overlapping drain ownership with a separate Node Termination Handler. Evaluate compatible instance types/AZs, topology spread, and tested On-Demand/managed fallbacks without guaranteeing uninterrupted service. [Karpenter interruption handling](https://karpenter.sh/v1.13/concepts/disruption/)
 
 ```yaml
-# 1. Strengthen the PodDisruptionBudget
-apiVersion: policy/v1
-kind: PodDisruptionBudget
-metadata:
-  name: critical-app-pdb
-spec:
-  minAvailable: 80%  # Always maintain 80% of Pods
-  selector:
-    matchLabels:
-      app: critical-app
-
----
-# 2. Use diverse Spot pools
-apiVersion: karpenter.sh/v1
-kind: NodePool
-metadata:
-  name: diversified-spot
-spec:
-  template:
-    spec:
-      requirements:
-        - key: karpenter.sh/capacity-type
-          operator: In
-          values: ["spot"]
-        - key: node.kubernetes.io/instance-type
-          operator: In
-          values:
-            # 15+ different instance types
-            - "c5.xlarge"
-            - "c5.2xlarge"
-            - "c5a.xlarge"
-            - "c5a.2xlarge"
-            - "c6i.xlarge"
-            - "c6i.2xlarge"
-            - "m5.xlarge"
-            - "m5.2xlarge"
-            - "m5a.xlarge"
-            - "m5a.2xlarge"
-            - "m6i.xlarge"
-            - "m6i.2xlarge"
-            - "r5.xlarge"
-            - "r5a.xlarge"
-            - "r6i.xlarge"
-
----
-# 3. Implement graceful shutdown
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: spot-aware-app
 spec:
+  replicas: 5
+  selector:
+    matchLabels:
+      app: spot-aware-app
   template:
+    metadata:
+      labels:
+        app: spot-aware-app
     spec:
+      terminationGracePeriodSeconds: 60
       containers:
         - name: app
+          image: nginx:1.28
+          ports:
+            - containerPort: 80
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 80
+          resources:
+            requests:
+              cpu: 100m
+              memory: 64Mi
+            limits:
+              memory: 128Mi
           lifecycle:
             preStop:
               exec:
-                command: ["/bin/sh", "-c", "sleep 120"]  # Wait 2 minutes
-          terminationGracePeriodSeconds: 130
-```
-
-**Spot Interruption Monitoring**
-
-```bash
-# Install AWS Node Termination Handler
-helm repo add eks https://aws.github.io/eks-charts
-helm install aws-node-termination-handler \
-  --namespace kube-system \
-  eks/aws-node-termination-handler \
-  --set enableSpotInterruptionDraining=true \
-  --set enableScheduledEventDraining=true
+                command: ["/bin/sh", "-c", "sleep 5; nginx -s quit"]
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: spot-aware-app-pdb
+spec:
+  minAvailable: "80%"
+  selector:
+    matchLabels:
+      app: spot-aware-app
 ```
 
 #### Issue 5: High Data Transfer Costs
 
-**Symptoms**
+Separate transfer, NAT processing, LB processing, and endpoint hourly/processing charges by traffic path. This Service uses the annotation-based [Topology Aware Routing](https://kubernetes.io/docs/concepts/services-networking/topology-aware-routing/) configuration, without `topologyKeys`. Ready Pods labeled `app: backend` must serve port 8080, with endpoints distributed across AZs.
 
-- Data transfer costs on the AWS bill exceed expectations
-- A sharp increase in the "DataTransfer-Regional-Bytes" line item
+Topology hints depend on endpoint distribution and consumer support; they do not guarantee same-AZ routing or eliminate transfer charges. This example does not require the newer `trafficDistribution` field. A single-AZ NodePool reduces resilience to AZ failure and is not a default cost optimization.
 
-**Causes**
-
-- Unnecessary traffic between AZs
-- Unoptimized internet-bound traffic
-- Excessive NAT gateway usage
-
-**Solution**
+For private ECR access, review ECR API/DKR interface endpoints, the S3 image-layer path, DNS, endpoint policies, and security groups together. Associate an S3 gateway endpoint with route tables. Compare actual NAT paths with interface endpoint hourly and processing charges before choosing a design. [ECR VPC endpoint prerequisites](https://docs.aws.amazon.com/AmazonECR/latest/userguide/vpc-endpoints.html)
 
 ```yaml
-# 1. Enable topology-aware routing
 apiVersion: v1
 kind: Service
 metadata:
@@ -1727,128 +965,61 @@ metadata:
   annotations:
     service.kubernetes.io/topology-mode: Auto
 spec:
+  type: ClusterIP
   selector:
     app: backend
   ports:
-    - port: 80
-  # Prefer traffic within the same AZ
-  topologyKeys:
-    - "topology.kubernetes.io/zone"
-    - "kubernetes.io/hostname"
-    - "*"
-
----
-# 2. Configure Karpenter single-AZ consolidation
-apiVersion: karpenter.sh/v1
-kind: NodePool
-metadata:
-  name: single-az-consolidation
-spec:
-  disruption:
-    consolidationPolicy: WhenUnderutilized
-    consolidateAfter: 30s
-  template:
-    spec:
-      requirements:
-        # Pin workloads to a specific AZ
-        - key: topology.kubernetes.io/zone
-          operator: In
-          values: ["ap-northeast-2a"]
-```
-
-**Using VPC Endpoints**
-
-```bash
-# Create VPC endpoints for AWS services such as S3 and ECR
-aws ec2 create-vpc-endpoint \
-  --vpc-id vpc-xxxxx \
-  --service-name com.amazonaws.ap-northeast-2.s3 \
-  --route-table-ids rtb-xxxxx
-
-aws ec2 create-vpc-endpoint \
-  --vpc-id vpc-xxxxx \
-  --vpc-endpoint-type Interface \
-  --service-name com.amazonaws.ap-northeast-2.ecr.dkr \
-  --subnet-ids subnet-xxxxx subnet-yyyyy \
-  --security-group-ids sg-xxxxx
+    - name: http
+      port: 80
+      targetPort: 8080
+      protocol: TCP
 ```
 
 ## Conclusion
 
+Cost optimization combines allocation models, observations, and controlled changes.
+
 ### Key Takeaways
 
-This guide covered comprehensive strategies for achieving cost savings of 30-90% in EKS environments.
+First define the billing basis and cost owners, then establish visibility through SCAD or a Kubernetes allocation tool. Review requests, node policies, and purchase options, measuring actual cost and SLO changes. Neither rightsizing output nor a disruption budget guarantees billing savings.
 
-**10 Actions to Take Immediately**
-
-1. **Review current EKS costs in AWS Cost Explorer** (30 minutes)
-2. **Enable SCAD for Pod-level visibility** (1 hour)
-3. **Install Kubecost Free and review the dashboard** (2 hours)
-4. **Add cost allocation tags to namespaces** (1 hour)
-5. **Identify and rightsize overprovisioned workloads** (4 hours)
-6. **Identify workloads that can use Spot Instances** (2 hours)
-7. **Deploy 1 Karpenter NodePool (development environment)** (4 hours)
-8. **Configure cost alerts (when thresholds are exceeded)** (1 hour)
-9. **Schedule weekly cost review meetings** (30 minutes)
-10. **Create a 90-day optimization roadmap** (2 hours)
-
-**Expected Savings Timeline**
-
-| Period | Savings | Key Activities |
-|------|--------|-----------|
-| **0-30 days** | 10-20% | Set up visibility tools, achieve quick wins (rightsizing) |
-| **31-90 days** | 30-40% | Deploy Karpenter, integrate Spot, automate |
-| **91-180 days** | 40-60% | Advanced optimization, cultural adoption, continuous improvement |
-| **180+ days** | 60-90% | Full automation, predictive analytics, business alignment |
-
-**Success Factors**
-
-- **Executive support**: Recognize FinOps as a strategic initiative
-- **Dedicated team**: At least 1 full-time FinOps engineer
-- **Clear KPIs**: Measurable cost efficiency targets
-- **Cultural change**: Make cost awareness part of engineering excellence
-- **Continuous improvement**: Weekly reviews and quarterly strategy adjustments
-
-**Pitfalls to Avoid**
-
-- **Optimization without visibility**: Start with data collection
-- **Overoptimization**: Do not sacrifice stability
-- **Overinvestment in tools**: Choose tools that match the maturity level
-- **One-time projects**: Operate as a continuous process
-- **Team exclusion**: Involve all stakeholders
+| Stage | Activity | Deliverable |
+|-------|----------|-------------|
+| Baseline | Check tags, billing scope, and collection quality | Baseline cost and missing-data list |
+| Candidate review | Analyze containers, nodes, and networking | Reviewable change proposal |
+| Gradual rollout | Validate tests, performance, and recovery | Before/after evidence |
+| Continuous operation | Weekly review, ROI, and unit costs | Actual effects and next priorities |
 
 ### Additional Learning Resources
 
-**Official Documentation**
+**Official documentation**
 
-- [AWS EKS Best Practices - Cost Optimization](https://docs.aws.amazon.com/eks/latest/best-practices/cost-opt.html)
-- [Karpenter Documentation](https://karpenter.sh/)
-- [Kubecost Architecture](https://docs.kubecost.com/)
-- [FinOps Foundation](https://www.finops.org/framework/)
+- [SCAD opt-in](https://docs.aws.amazon.com/cur/latest/userguide/enabling-split-cost-allocation-data.html) — Billing activation and collection prerequisites
+- [CUR 2.0](https://docs.aws.amazon.com/cur/latest/userguide/table-dictionary-cur2.html) — Table configuration and export scope
+- [CUR 2.0 resource tags](https://docs.aws.amazon.com/cur/latest/userguide/table-dictionary-cur2-resource-tags.html) — Map schema
+- [Split line item details](https://docs.aws.amazon.com/cur/latest/userguide/split-line-item-columns.html) — Allocated and unused cost definitions
+- [EKS cost allocation tags](https://docs.aws.amazon.com/cur/latest/userguide/split-cost-allocation-data.html) — Pod attributes and tags
+- [Data Exports CLI](https://docs.aws.amazon.com/cli/latest/reference/bcm-data-exports/create-export.html) — create-export input schema
+- [EKS pricing](https://aws.amazon.com/eks/pricing/) — Support tiers and Auto Mode pricing
+- [Karpenter v1.13 NodePools](https://karpenter.sh/v1.13/concepts/nodepools/) — NodePool schema and weight
+- [Karpenter v1.13 NodeClasses](https://karpenter.sh/v1.13/concepts/nodeclasses/) — AMIs and EC2 tags
+- [Karpenter v1.13 disruption](https://karpenter.sh/v1.13/concepts/disruption/) — Budgets and interruption handling
+- [Karpenter v1.13 installation](https://karpenter.sh/v1.13/getting-started/getting-started-with-karpenter/) — IAM, node roles, and queue setup
+- [Kubernetes resource management](https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/) — Resource quantities
+- [Kubernetes disruptions](https://kubernetes.io/docs/concepts/workloads/pods/disruptions/) — PDB scope
+- [Pod lifecycle](https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/) — Termination grace and preStop
+- [Topology Aware Routing](https://kubernetes.io/docs/concepts/services-networking/topology-aware-routing/) — Service hints and constraints
+- [Prometheus recording rules](https://prometheus.io/docs/prometheus/latest/configuration/recording_rules/) — Rule loading and validation
+- [Kubecost Helm chart](https://github.com/kubecost/cost-analyzer-helm-chart) — Release-scoped installation and integration
 
-**Real-World Examples**
+**Related documents**
 
-- [AWS Containers Blog - Cost Optimization](https://aws.amazon.com/blogs/containers/)
-- [FinOps Foundation - Rate Optimization](https://www.finops.org/framework/capabilities/rate-optimization/)
-
-**Related Documents**
-
-- [4. Karpenter Autoscaling](./karpenter-autoscaling.md)
-- [1. Gateway API Adoption Guide](../networking-performance/gateway-api-adoption-guide/)
-- [GitOps Cluster Operations](../operations-reliability/gitops-cluster-operation.md)
-- [EKS Hybrid Nodes Best Practices](/docs/eks-hybrid-nodes)
-
-**Community**
-
-- [FinOps Foundation](https://www.finops.org/)
-- [Karpenter Slack](https://kubernetes.slack.com/archives/C02SFFZSA2K)
-- [AWS Containers Roadmap](https://github.com/aws/containers-roadmap)
+- [Karpenter autoscaling](./karpenter-autoscaling.md) — Node scaling design
+- [EKS resource optimization](./eks-resource-optimization.md) — Requests, limits, and observability
+- [GitOps cluster operations](../operations-reliability/gitops-cluster-operation.md) — Change management
 
 ---
 
-**Feedback and Contributions**
+**Document version**: v2.2 (2026-09-18)
 
-Submit feedback or suggestions for this document through [GitHub Issues](https://github.com/devfloor9/engineering-playbook/issues).
-
-**Document Version**: v2.1 (2026-06-15)
-**Next Review**: 2026-09-15
+**Next review**: 2026-12-18

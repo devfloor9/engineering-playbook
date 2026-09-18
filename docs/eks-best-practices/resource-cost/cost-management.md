@@ -1,11 +1,11 @@
 ---
-title: "대규모 EKS 비용 관리: 30-90% 절감 전략"
-description: Amazon EKS 환경에서 30-90%의 획기적 비용 절감을 달성하는 FinOps 전략. 비용 구조 분석, Karpenter 최적화, 도구 선택, 실제 성공 사례 포함
+title: "대규모 EKS 비용 관리: 할당·최적화·검증"
+description: "Amazon EKS의 비용 할당과 최적화를 위한 FinOps 가이드. SCAD·CUR 2.0, Karpenter v1.13, 태깅, 컨테이너별 Rightsizing과 ROI 검증을 설명합니다."
 created: "2025-02-05"
 last_update:
-  date: "2026-06-30"
+  date: 2026-09-18
   author: YoungJoon Jeong
-reading_time: 16
+reading_time: 31
 tags:
   - eks
   - cost-management
@@ -18,53 +18,47 @@ sidebar_label: EKS 비용 관리
 category: performance-networking
 ---
 
-> **📌 업데이트**: 2026-06-15 - Karpenter v1.13+ 및 EKS Auto Mode 비용 분석 반영
+> **범위**: Karpenter v1.13 문서·API 기준, 기술 검토 2026-09-18.
 
 ## 개요
 
-Amazon EKS 환경의 비용 관리는 클라우드 운영에서 가장 중요한 과제 중 하나입니다. 2024년 기준 AWS 고객들의 총 지출이 1,000억 달러를 넘어설 것으로 예상되는 가운데, 평균 30-35%의 클라우드 비용이 낭비되고 있습니다. 특히 Kubernetes 환경에서는 68%의 조직이 비용 초과를 경험하고 있습니다.
+EKS 비용 관리는 청구 비용을 워크로드에 할당하고, 사용량·성능·가용성 제약을 함께 검토하는 작업입니다. 이 문서는 FinOps 평가, SCAD, Karpenter, 태깅, 검토용 Rightsizing을 연결합니다. 절감액은 동일한 가격·기간·트래픽 기준으로 측정하며, 특정 절감률이나 기업 사례를 보장하지 않습니다.
 
-이 가이드는 EKS 환경에서 30-90%의 비용 절감을 달성하기 위한 실전 전략을 다룹니다. FinOps 원칙부터 Karpenter를 활용한 고급 최적화, 실제 기업의 성공 사례까지 포괄적으로 설명합니다.
-
-:::tip EKS Auto Mode 비용 고려사항
-2024년 12월 GA된 EKS Auto Mode는 Karpenter를 내장하여 자동 비용 최적화를 제공합니다:
-
-- **추가 비용**: EKS Auto Mode 노드에 대해 EC2 가격의 ~10% 프리미엄
-- **절감 효과**: 자동 Spot 최적화, 빈패킹, 노드 통합으로 운영 비용 절감
-- **비교 분석**: Self-managed 클러스터 대비 총 소유 비용(TCO) 평가 필요
-- **적합한 경우**: 전용 FinOps 엔지니어 없이 비용 최적화를 원하는 팀
-:::
+EKS Auto Mode의 관리 요금은 EC2 요금에 추가되며 인스턴스 유형별 가격표로 계산합니다. 모든 노드에 고정 10%를 적용하지 않습니다. 자체 관리형 Karpenter와 비교할 때 관리 요금, 운영 인력, 관측성, 마이그레이션 비용을 포함합니다. [EKS 요금](https://aws.amazon.com/eks/pricing/)
 
 ### 핵심 내용
 
-- **FinOps 기초**: Kubernetes 환경에 특화된 비용 관리 원칙과 성숙도 모델
-- **비용 구조 분석**: EKS 비용의 3계층 모델과 낭비 요인 식별
-- **도구 활용**: SCAD, Kubecost, OpenCost 등 비용 관리 도구 비교
-- **Karpenter 최적화**: 차세대 오토스케일링으로 25-40% 비용 절감
-- **실전 사례**: 70% 이상 비용 절감을 달성한 기업들의 전략
+- FinOps 성숙도와 비용 책임 체계
+- SCAD·CUR 2.0 기반 Pod 비용 할당
+- Karpenter의 노드 선택·통합과 가용성 제약
+- 컨테이너별 Rightsizing 검토와 비용 효과 검증
 
 ### 학습 목표
 
-이 가이드를 완료하면 다음을 수행할 수 있습니다:
-
-- EKS 환경의 비용 구조를 정확히 이해하고 분석
-- 조직의 FinOps 성숙도 평가 및 개선 로드맵 수립
-- 적절한 비용 관리 도구 선택 및 구현
-- Karpenter와 Spot 인스턴스를 활용한 비용 최적화
-- 30일 내 10-20% 비용 절감 달성
+- 청구 비용과 추정 할당 비용을 구분합니다.
+- 비용 증가 원인과 리소스 과다 요청 후보를 찾습니다.
+- 검토 가능한 변경안과 복구 기준을 정의합니다.
+- 실제 절감과 성능·가용성 변화를 함께 추적합니다.
 
 ## 사전 요구사항
 
+예시는 기존 EKS 환경에 대한 설계·검토 자료입니다. 계정, AWS 프로파일, 리전, 클러스터, 네임스페이스를 실제 환경에 맞춰 지정합니다.
+
 ### 필요한 도구
 
-| 도구 | 버전 | 용도 |
+| 도구 | 범위 | 용도 |
 |------|------|------|
-| kubectl | 1.28+ | Kubernetes 클러스터 관리 |
-| helm | 3.12+ | 비용 관리 도구 설치 |
-| aws-cli | 2.13+ | AWS 리소스 관리 |
-| eksctl | 0.150+ | EKS 클러스터 구성 |
+| kubectl | API 서버와 지원되는 버전 차이 | 리소스 조회 |
+| Helm | 선택한 차트가 지원하는 버전 | 검토된 차트 설치 |
+| AWS CLI v2 | `bcm-data-exports` 명령 제공 버전 | Billing 내보내기 조회·구성 |
+| Python | 3.11 이상, 표준 라이브러리 | 오프라인 계산·테스트 |
+| Karpenter | 이 장의 예시는 v1.13 API·문서 기준 | 자체 관리형 NodePool |
+
+설치한 Kubernetes·Karpenter·차트의 호환성 표와 CRD를 대조합니다. 버전 번호만으로 설치 전제조건이 충족되지는 않습니다.
 
 ### 필요한 권한
+
+분석 역할에는 대상 비용 데이터·클러스터·리소스 조회 권한을 부여합니다. Billing opt-in, S3 내보내기, Karpenter 설치, EC2 태깅은 별도의 변경 권한과 리소스 범위가 필요합니다. 아래 정책은 조회용 예시이며 전체 설치 정책이 아닙니다.
 
 ```json
 {
@@ -74,11 +68,11 @@ Amazon EKS 환경의 비용 관리는 클라우드 운영에서 가장 중요한
       "Effect": "Allow",
       "Action": [
         "ce:GetCostAndUsage",
-        "ce:GetCostForecast",
         "eks:DescribeCluster",
         "ec2:DescribeInstances",
-        "ec2:DescribeSpotPriceHistory",
-        "cloudwatch:GetMetricStatistics"
+        "ec2:DescribeInstanceTypeOfferings",
+        "bcm-data-exports:ListExports",
+        "bcm-data-exports:GetExport"
       ],
       "Resource": "*"
     }
@@ -88,76 +82,49 @@ Amazon EKS 환경의 비용 관리는 클라우드 운영에서 가장 중요한
 
 ### 선행 지식
 
-- Kubernetes 기본 개념 (Pod, Deployment, Service)
-- AWS EKS 아키텍처 이해
-- 컨테이너 리소스 관리 (requests, limits)
-- 기본적인 클라우드 비용 구조
+Kubernetes requests·limits, Pod 소유자 관계, EKS 노드 구성, AWS 비용 할당 태그, IAM 역할을 이해해야 합니다.
 
 ## 아키텍처
 
+비용 분석 시스템과 실제 변경을 수행하는 컨트롤러의 책임을 분리합니다.
+
 ### EKS 비용 모니터링 시스템 구조
+
+아래는 개념 흐름입니다. Alertmanager 알림이 Karpenter 정책을 직접 수정하지 않습니다. 승인된 GitOps/IaC 통합이 정책 변경을 전달해야 하며 Karpenter는 EC2 API로 용량을 프로비저닝합니다.
 
 ```mermaid
 graph TB
-    subgraph "EKS 클러스터"
-        A[워크로드 Pod] --> B[Kubecost Agent]
-        A --> C[Prometheus]
-        B --> C
-    end
-
-    subgraph "AWS 네이티브"
-        D[Cost Explorer]
-        E[SCAD - Split Cost Allocation]
-        F[CUR - Cost and Usage Report]
-        E --> F
-    end
-
-    subgraph "비용 분석 레이어"
-        C --> G[Grafana 대시보드]
-        F --> H[Athena 쿼리]
-        B --> I[Kubecost UI]
-    end
-
-    subgraph "최적화 실행"
-        G --> J[Alert Manager]
-        I --> J
-        J --> K[Karpenter]
-        K --> L[EC2 Auto Scaling]
-    end
-
-    subgraph "의사결정"
-        G --> M[FinOps 팀]
-        I --> M
-        D --> M
-        M --> N[비용 정책]
-        N --> K
-    end
-
+    A[Workload metrics] --> B[Prometheus]
+    B --> C[Grafana and alerts]
+    D[Billing SCAD] --> E[CUR 2.0 in S3]
+    E --> F[Athena allocation]
+    G[Cost Explorer] --> H[FinOps review]
+    C --> H
+    F --> H
+    H --> I[Approved GitOps or IaC change]
+    I --> J[Karpenter NodePool policy]
+    K[Unschedulable Pods] --> J
+    J --> L[EC2 APIs]
     style A fill:#e1f5ff
-    style K fill:#fff3cd
-    style M fill:#d4edda
+    style J fill:#fff3cd
+    style H fill:#d4edda
 ```
 
 ### 3계층 비용 할당 모델
 
+공유 컨트롤 플레인·네트워크·관측성 비용의 배분 기준을 별도로 정의합니다. Pod의 EC2 할당 비용을 클러스터 전체 청구 비용과 동일시하지 않습니다.
+
 ```mermaid
 graph LR
-    A[AWS 청구서] --> B[클러스터 레벨]
-    B --> C[네임스페이스 레벨]
-    C --> D[워크로드 레벨]
-
-    B --> E[컨트롤 플레인<br/>$0.10/시간]
-    B --> F[워커 노드<br/>EC2 비용]
-    B --> G[네트워크<br/>NAT/LB]
-
-    C --> H[팀 A 네임스페이스]
-    C --> I[팀 B 네임스페이스]
-    C --> J[공유 리소스]
-
-    D --> K[Pod별 CPU/메모리]
-    D --> L[스토리지 볼륨]
-    D --> M[네트워크 트래픽]
-
+    A[AWS bill] --> B[Cluster]
+    B --> C[Namespace]
+    C --> D[Workload]
+    B --> E[Control plane and support tier]
+    B --> F[EC2 and storage]
+    B --> G[Networking and observability]
+    C --> H[Team allocation]
+    C --> I[Shared and unallocated costs]
+    D --> J[Pod CPU memory and accelerator allocation]
     style A fill:#ff6b6b
     style B fill:#ffd93d
     style C fill:#6bcf7f
@@ -166,359 +133,190 @@ graph LR
 
 ## 구현
 
+가시성 확보, 변경 검토, 점진적 적용, 청구 대조 순서로 진행합니다.
+
 ### 1단계: FinOps 성숙도 평가
 
-첫 번째 단계는 조직의 현재 FinOps 성숙도를 평가하는 것입니다.
+조직이 반복해서 수행할 수 있는 비용 관리 활동과 책임자를 확인합니다.
 
 #### 성숙도 모델
 
-| 단계 | 특징 | 비용 할당 정확도 | 자동화 수준 |
-|------|------|-----------------|-------------|
-| **Crawl (기어가기)** | 수동 프로세스, 기본 가시성 | 50% 미만 | 거의 없음 |
-| **Walk (걷기)** | 자동화된 추적, 사전 최적화 | 70-90% | 부분 자동화 |
-| **Run (달리기)** | 완전 자동화, 비즈니스 정렬 | 90% 이상 | 완전 자동화 |
+아래는 내부 평가용 예시입니다. FinOps 단계에 고정된 비용 할당 정확도나 자동화 비율을 부여하지 않습니다.
+
+| 단계 | 활동 | 확인할 근거 |
+|------|------|-------------|
+| Crawl | 비용 확인과 소유자 식별 | 월별 청구·태그 누락 목록 |
+| Walk | 팀별 할당과 정기 최적화 | 리뷰 기록·변경 전후 지표 |
+| Run | 비즈니스 지표와 비용 연결 | 거래당 비용·정책 자동화 근거 |
 
 #### 자가 평가 체크리스트
 
-**Crawl 단계 (기초)**
-
-- [ ] AWS Cost Explorer로 월별 비용 확인
-- [ ] EKS 클러스터별 비용 구분 가능
-- [ ] 주요 비용 증가 원인 파악 가능
-
-**Walk 단계 (성장)**
-
-- [ ] 네임스페이스/팀별 비용 할당
-- [ ] 자동화된 비용 알림 설정
-- [ ] 주간 비용 리뷰 미팅 진행
-- [ ] 리소스 rightsizing 정책 운영
-
-**Run 단계 (성숙)**
-
-- [ ] 실시간 비용 대시보드 운영
-- [ ] Pod 레벨 비용 추적
-- [ ] 자동화된 최적화 워크플로우
-- [ ] 비즈니스 메트릭과 비용 연계
+- [ ] 클러스터·팀·워크로드 소유자를 식별합니다.
+- [ ] 공유 비용과 미할당 비용을 보고합니다.
+- [ ] 주간 비용 리뷰와 변경 승인 기록을 유지합니다.
+- [ ] 성능·가용성 악화 시 복구 기준을 정의합니다.
+- [ ] 요청·작업·고객 등 비즈니스 단위당 비용을 추적합니다.
 
 ### 2단계: EKS 비용 구조 이해
 
+청구 범위와 비용 기준을 먼저 고정해야 도구 간 비교가 가능합니다.
+
 #### 비용 구성 요소
 
-**1. 컨트롤 플레인 비용**
+| 비용 항목 | 계산 기준 | 검토 사항 |
+|-----------|-----------|-----------|
+| EKS 컨트롤 플레인 | 지원 단계별 시간 요금 × 실제 운영 시간 | 확장 지원·추가 기능 요금 확인 |
+| EC2 | 인스턴스·리전·OS·구매 옵션별 요금 | On-Demand도 용량을 보장하지 않음 |
+| Savings Plans·RI | 약정·선결제 상각 및 적용 사용량 | 미사용 약정과 적용 범위 |
+| Spot | 실제 실행 시간과 해당 가격 | 중단·재시도·체크포인트 비용 |
+| EBS·LB·NAT·데이터 전송 | 저장량·요청·처리량·경로별 요금 | 리전과 서비스별 과금 차이 |
+| Auto Mode·관측성 | 관리 요금·수집·저장·조회 사용량 | EC2 비용에 추가되는 항목 |
 
-```
-비용: $0.10/시간 = $72/월 (클러스터당)
-특징: 고정 비용, 최적화 불가
-권장사항: 클러스터 통합으로 수 줄이기
-```
-
-**2. 워커 노드 비용 (가장 큰 비중)**
-
-| 가격 모델 | 비용 | 절감률 | 중단 위험 |
-|----------|------|--------|----------|
-| 온디맨드 | 기준가 | 0% | 없음 |
-| Savings Plans | -28~-72% | 최대 72% | 없음 |
-| Reserved Instances | -40~-75% | 최대 75% | 없음 |
-| Spot Instances | -50~-90% | 최대 90% | 있음 (2분 경고) |
-
-**3. 숨겨진 비용 요소**
-
-```yaml
-# 간과하기 쉬운 비용 항목
-hidden_costs:
-  load_balancers:
-    - classic_lb: "$18/월 (기본) + 데이터 전송"
-    - alb: "$22.50/월 (기본) + LCU 비용"
-    - nlb: "$20/월 (기본) + NLCU 비용"
-
-  nat_gateways:
-    cost: "$32.40/월/AZ + $0.045/GB 처리"
-    optimization: "NAT 인스턴스 또는 VPC 엔드포인트 활용"
-
-  data_transfer:
-    - inter_az: "$0.01/GB (AZ 간)"
-    - inter_region: "$0.02/GB (리전 간)"
-    - internet_egress: "$0.09/GB (첫 10TB)"
-
-  ebs_volumes:
-    - gp3: "$0.08/GB/월"
-    - unused_volumes: "평균 20-30% 미사용"
-```
+[EKS 요금](https://aws.amazon.com/eks/pricing/)의 표준 지원 예시 단가 $0.10/시간을 730시간에 적용하면 $73입니다. 이는 가정한 월 길이에 대한 계산이며, 확장 지원과 Auto Mode·기타 서비스 요금은 제외합니다. 클러스터 통합은 격리·장애 범위를 함께 검토해야 합니다.
 
 #### 비용 낭비 패턴 식별
 
-**과다 프로비저닝 (평균 30% 낭비)**
+요청량은 예약 의도를, 사용량은 실제 부하를 나타냅니다. 낮은 CPU 평균만으로 노드 비용 전체를 절감할 수 있다고 계산하지 않습니다. 메모리·피크·Pod 배치 제약과 측정 누락을 확인합니다. 아래 조회는 컨테이너 requests 인벤토리이며 효율성 측정 자체는 아닙니다.
+
+리전 비교는 같은 인스턴스·OS·통화·시점의 가격과 지연·데이터 전송·규제 조건을 함께 평가합니다.
 
 ```bash
-# 네임스페이스별 리소스 효율성 확인
 kubectl get pods -A -o json | jq -r '
-  .items[] |
-  select(.status.phase=="Running") |
-  {
-    namespace: .metadata.namespace,
-    pod: .metadata.name,
-    containers: [
-      .spec.containers[] | {
-        name: .name,
-        cpu_request: .resources.requests.cpu,
-        mem_request: .resources.requests.memory
-      }
-    ]
-  }
-' | jq -s 'group_by(.namespace) |
-  map({
-    namespace: .[0].namespace,
-    total_pods: length
-  })'
+  .items[] | select(.status.phase == "Running") |
+  .metadata as $m | .spec.containers[] |
+  [$m.namespace, $m.name, .name,
+   (.resources.requests.cpu // "missing"),
+   (.resources.requests.memory // "missing")] | @tsv'
 ```
-
-**유휴 리소스 (야간/주말)**
-
-```python
-# 사용률 분석 스크립트 예시
-import boto3
-from datetime import datetime, timedelta
-
-cloudwatch = boto3.client('cloudwatch')
-
-def analyze_idle_resources(cluster_name, hours=168):  # 1주일
-    metrics = cloudwatch.get_metric_statistics(
-        Namespace='ContainerInsights',
-        MetricName='node_cpu_utilization',
-        Dimensions=[{'Name': 'ClusterName', 'Value': cluster_name}],
-        StartTime=datetime.now() - timedelta(hours=hours),
-        EndTime=datetime.now(),
-        Period=3600,
-        Statistics=['Average']
-    )
-
-    idle_hours = sum(1 for m in metrics['Datapoints'] if m['Average'] < 10)
-    idle_percentage = (idle_hours / hours) * 100
-
-    return {
-        'idle_hours': idle_hours,
-        'idle_percentage': idle_percentage,
-        'potential_savings': f"{idle_percentage}% of node costs"
-    }
-```
-
-**리전별 비용 차이 (최대 40%)**
-
-| 리전 | t3.xlarge 온디맨드 | 절감 기회 |
-|------|-------------------|----------|
-| us-east-1 (버지니아) | $0.1664/시간 | 기준 |
-| ap-northeast-2 (서울) | $0.2016/시간 | +21% |
-| eu-west-1 (아일랜드) | $0.1856/시간 | +12% |
 
 ### 3단계: 비용 관리 도구 구현
 
+비용 데이터의 지연, 할당 모델, 보존 기간, 운영 비용을 기준으로 도구를 선택합니다.
+
 #### AWS Split Cost Allocation Data (SCAD)
 
-**장점**: AWS 네이티브, 추가 비용 없음, Pod 레벨 가시성
+SCAD는 EC2 비용을 Pod에 배분하는 Billing 기능입니다. EKS `resourcesVpcConfig`의 설정이 아닙니다. [활성화 절차](https://docs.aws.amazon.com/cur/latest/userguide/enabling-split-cost-allocation-data.html)와 [CUR 2.0 설정](https://docs.aws.amazon.com/cur/latest/userguide/table-dictionary-cur2.html)에 따라 구성합니다.
 
-**활성화 방법**
+1. 일반 계정 또는 payer 계정의 Billing and Cost Management → **Cost Management preferences**에서 Amazon EKS의 Split cost allocation data를 활성화합니다.
+2. 측정 방식을 선택합니다. **Resource requests** 방식은 CPU·메모리 requests가 있는 Pod를 대상으로 합니다. AMP 방식은 Organizations의 모든 기능 활성화, 서비스 연결 역할, 실제 Prometheus 수집 구성이 필요합니다. 가속 인스턴스는 Resource requests 방식을 사용합니다.
+3. Data Exports에서 CUR 2.0, hourly granularity, resource IDs, split cost allocation data를 선택합니다. 대상 S3 버킷·전달 정책과 내보내기 권한을 먼저 준비합니다.
+4. 아래 JSON을 `cur2-export.json`으로 저장하고 버킷·리전을 바꾼 뒤 명령을 실행합니다. `COST_AND_USAGE_REPORT`가 실제 Data Exports 테이블 이름입니다. [CLI 스키마](https://docs.aws.amazon.com/cli/latest/reference/bcm-data-exports/create-export.html)
+5. 첫 전달 후 S3 Parquet용 Glue/Athena 테이블을 구성합니다. 아래 SQL의 `eks_cur2`는 그 테이블 이름입니다. Data Exports 자체에서 실행하는 SQL과 Athena SQL은 구분합니다.
 
-```bash
-# 1. Cost and Usage Report 활성화
-aws cur put-report-definition \
-  --report-definition file://cur-definition.json
+SCAD는 Cost Explorer에서 제공되지 않습니다. 현재 월 데이터 준비와 최초 전달에는 시간이 걸리며 공식 문서는 CUR 가시성까지 최대 24시간을 안내합니다. S3·Athena·AMP·Container Insights 사용 요금은 별도입니다.
 
-# cur-definition.json
-cat > cur-definition.json << 'EOF'
+```json
 {
-  "ReportName": "eks-cost-report",
-  "TimeUnit": "HOURLY",
-  "Format": "Parquet",
-  "Compression": "Parquet",
-  "AdditionalSchemaElements": ["RESOURCES", "SPLIT_COST_ALLOCATION_DATA"],
-  "S3Bucket": "your-cur-bucket",
-  "S3Prefix": "cur-reports",
-  "S3Region": "us-east-1",
-  "AdditionalArtifacts": ["ATHENA"],
-  "RefreshClosedReports": true,
-  "ReportVersioning": "OVERWRITE_REPORT"
+  "Name": "eks-cost-report",
+  "DataQuery": {
+    "QueryStatement": "SELECT * FROM COST_AND_USAGE_REPORT",
+    "TableConfigurations": {
+      "COST_AND_USAGE_REPORT": {
+        "TIME_GRANULARITY": "HOURLY",
+        "INCLUDE_RESOURCES": "TRUE",
+        "INCLUDE_SPLIT_COST_ALLOCATION_DATA": "TRUE"
+      }
+    }
+  },
+  "DestinationConfigurations": {
+    "S3Destination": {
+      "S3Bucket": "REPLACE_WITH_BILLING_EXPORT_BUCKET",
+      "S3Prefix": "cur2",
+      "S3Region": "us-east-1",
+      "S3OutputConfigurations": {
+        "OutputType": "CUSTOM",
+        "Format": "PARQUET",
+        "Compression": "PARQUET",
+        "Overwrite": "OVERWRITE_REPORT"
+      }
+    }
+  },
+  "RefreshCadence": {
+    "Frequency": "SYNCHRONOUS"
+  }
 }
-EOF
-
-# 2. EKS 클러스터에서 SCAD 활성화
-aws eks update-cluster-config \
-  --name your-cluster \
-  --resources-vpc-config splitCostAllocationEnabled=true
 ```
 
-**Athena 쿼리 예시**
+```bash
+aws bcm-data-exports create-export --region us-east-1 \
+  --export file://cur2-export.json
+```
+
+[태그 키](https://docs.aws.amazon.com/cur/latest/userguide/split-cost-allocation-data.html)는 `resource_tags` map에 저장됩니다. [map 스키마](https://docs.aws.amazon.com/cur/latest/userguide/table-dictionary-cur2-resource-tags.html)와 전달된 키를 확인하고 필요 시 정규화된 키 이름으로 맞춥니다. 다음 쿼리는 map 키가 원래 태그 이름인 CUR 2.0 테이블을 대상으로 합니다. [SplitCost·UnusedCost](https://docs.aws.amazon.com/cur/latest/userguide/split-line-item-columns.html)를 합산해 EC2 미사용 비용의 배분분까지 포함합니다. 할인 후 기준이 필요하면 NetSplitCost·NetUnusedCost를 사용하고 null에는 대응하는 비-net 값을 적용합니다. 부모 EC2 청구 행과 split 행을 함께 더하면 중복 집계가 발생합니다. 평균 시간당 비용은 먼저 시간별 CPU·메모리 행을 합산한 뒤 관측 시간으로 나눠야 합니다.
 
 ```sql
--- 네임스페이스별 일일 비용
-SELECT
-    line_item_usage_start_date,
-    split_line_item_split_cost_kubernetes_namespace as namespace,
-    SUM(line_item_unblended_cost) as daily_cost
-FROM eks_cost_report
-WHERE split_line_item_split_cost_kubernetes_namespace IS NOT NULL
-GROUP BY 1, 2
-ORDER BY 1 DESC, 3 DESC
-LIMIT 100;
+-- Inspect the delivered schema and tag keys before selecting an allocation.
+DESCRIBE eks_cur2;
+SELECT DISTINCT tag_key
+FROM eks_cur2 CROSS JOIN UNNEST(map_keys(resource_tags)) AS t(tag_key)
+WHERE split_line_item_parent_resource_id IS NOT NULL;
 
--- Pod별 상위 비용
-SELECT
-    split_line_item_split_cost_kubernetes_pod as pod_name,
-    split_line_item_split_cost_kubernetes_namespace as namespace,
-    SUM(line_item_unblended_cost) as total_cost,
-    AVG(line_item_unblended_cost) as avg_hourly_cost
-FROM eks_cost_report
-WHERE line_item_usage_start_date >= DATE_ADD('day', -7, CURRENT_DATE)
+-- Daily Pod EC2 allocation, including the allocated unused share.
+SELECT date_trunc('day', line_item_usage_start_date) AS day,
+       element_at(resource_tags, 'aws:eks:cluster-name') AS cluster_name,
+       element_at(resource_tags, 'aws:eks:namespace') AS namespace,
+       line_item_currency_code AS currency,
+       SUM(COALESCE(split_line_item_split_cost, 0)
+           + COALESCE(split_line_item_unused_cost, 0)) AS allocated_cost
+FROM eks_cur2
+WHERE split_line_item_parent_resource_id IS NOT NULL
+  AND element_at(resource_tags, 'aws:eks:namespace') IS NOT NULL
+GROUP BY 1, 2, 3, 4
+ORDER BY 1 DESC, 5 DESC;
+
+-- Pod resource IDs, not invented Pod-name columns.
+SELECT line_item_resource_id AS pod_resource_id,
+       line_item_currency_code AS currency,
+       SUM(COALESCE(split_line_item_split_cost, 0)
+           + COALESCE(split_line_item_unused_cost, 0)) AS allocated_cost
+FROM eks_cur2
+WHERE split_line_item_parent_resource_id IS NOT NULL
+  AND line_item_usage_start_date >= date_add('day', -7, current_timestamp)
 GROUP BY 1, 2
 ORDER BY 3 DESC
 LIMIT 20;
 ```
 
-**제한사항**
-
-- 24-48시간 데이터 지연
-- CUR에서만 확인 가능 (Cost Explorer 미지원)
-- 역사적 데이터 재처리 불가
-
 #### Kubecost 구현
 
-**장점**: 실시간 가시성, 15일 무료 보존, 최적화 권장사항
+Kubecost는 Kubernetes 할당 모델과 청구 통합을 제공합니다. 보존 기간·라이선스·기능은 제품 버전과 계약별로 확인합니다. 고정된 무료 보존 기간이나 Enterprise 월 가격을 가정하지 않습니다.
 
-**설치 (Helm)**
+[공식 Helm 차트](https://github.com/kubecost/cost-analyzer-helm-chart)의 선택한 릴리스 README·values·AWS 통합 지침을 기준으로 다음을 준비합니다.
 
-```bash
-# 1. Helm 레포지토리 추가
-helm repo add kubecost https://kubecost.github.io/cost-analyzer/
-helm repo update
+1. 선택한 릴리스의 수집 구조를 확인합니다. 2.x는 Prometheus 기반이고 3.x는 직접 수집 구조를 사용하므로, 2.x의 Prometheus values를 3.x에 그대로 적용하지 않습니다.
+2. AWS 청구 통합의 읽기 역할, S3·Athena 데이터 위치·리전·workgroup을 지정합니다. 예시 프로젝트 ID를 AWS 계정 ID 대신 사용하지 않습니다.
+3. 보존 기간·스토리지·리소스 requests를 지정하고 인증된 대시보드 접근을 구성합니다.
+4. 같은 차트 버전으로 렌더링한 매니페스트와 RBAC를 검토한 후 별도 환경에서 설치합니다. 서비스 이름·포트는 렌더링 결과로 확인합니다.
+5. 네임스페이스 합계와 공유·유휴 비용의 포함 규칙을 청구 데이터와 대조합니다.
 
-# 2. 프로덕션 values.yaml 생성
-cat > kubecost-values.yaml << 'EOF'
-global:
-  prometheus:
-    enabled: true
-    fqdn: http://prometheus-server.monitoring.svc.cluster.local
-
-kubecostProductConfigs:
-  clusterName: "production-eks"
-  awsSpotDataRegion: "ap-northeast-2"
-  awsSpotDataBucket: "your-spot-data-bucket"
-
-  # AWS 통합
-  athenaProjectID: "your-project-id"
-  athenaBucketName: "your-athena-results"
-  athenaRegion: "ap-northeast-2"
-  athenaDatabase: "athenacurcfn_eks_cost_report"
-  athenaTable: "eks_cost_report"
-
-# 리소스 할당
-kubecostModel:
-  resources:
-    requests:
-      cpu: "500m"
-      memory: "512Mi"
-    limits:
-      cpu: "1000m"
-      memory: "1Gi"
-
-# Ingress 설정 (선택사항)
-ingress:
-  enabled: true
-  annotations:
-    kubernetes.io/ingress.class: alb
-    alb.ingress.kubernetes.io/scheme: internal
-    alb.ingress.kubernetes.io/target-type: ip
-  hosts:
-    - kubecost.your-domain.com
-EOF
-
-# 3. 설치
-helm install kubecost kubecost/cost-analyzer \
-  --namespace kubecost \
-  --create-namespace \
-  -f kubecost-values.yaml
-
-# 4. 설치 확인
-kubectl get pods -n kubecost
-kubectl port-forward -n kubecost svc/kubecost-cost-analyzer 9090:9090
-```
-
-**주요 기능 활용**
-
-```bash
-# 네임스페이스별 비용 API 호출
-curl "http://localhost:9090/model/allocation/compute?window=7d&aggregate=namespace"
-
-# 비용 알림 설정
-cat > kubecost-alert.yaml << 'EOF'
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: alert-configs
-  namespace: kubecost
-data:
-  alerts.json: |
-    [
-      {
-        "type": "budget",
-        "threshold": 1000,
-        "window": "daily",
-        "aggregation": "namespace",
-        "filter": "namespace:production",
-        "ownerContact": ["team-platform@company.com"]
-      },
-      {
-        "type": "efficiency",
-        "threshold": 0.5,
-        "window": "7d",
-        "aggregation": "deployment",
-        "ownerContact": ["team-devops@company.com"]
-      }
-    ]
-EOF
-
-kubectl apply -f kubecost-alert.yaml
-```
+알림 ConfigMap을 만들기만 해서는 연동되지 않습니다. 선택한 Kubecost 버전의 알림 API 또는 Prometheus/Alertmanager 통합을 실제로 구성해야 합니다.
 
 #### 도구 선택 가이드
 
-| 도구 | 최적 사용 사례 | 비용 | 구현 복잡도 |
-|------|---------------|------|------------|
-| **SCAD** | AWS 네이티브 선호, 장기 분석 | 무료 | 낮음 |
-| **Kubecost (Free)** | 중소규모, 실시간 필요 | 무료 | 중간 |
-| **Kubecost (Enterprise)** | 대규모, 고급 기능 | $~월 | 중간 |
-| **OpenCost** | 오픈소스 선호, 커스터마이징 | 무료 | 높음 |
-| **CloudHealth** | 멀티클라우드 거버넌스 | $$$$ | 높음 |
-| **CAST AI** | 완전 자동화 선호 | % 절감액 | 낮음 |
+| 도구 | 주요 용도 | 비용 검토 | 통합 요구사항 |
+|------|-----------|-----------|----------------|
+| SCAD + Athena | AWS 청구 기반 Pod 비용 분석 | 분석·저장·수집 요금 | Billing opt-in, CUR 2.0 |
+| Kubecost | Kubernetes 할당 대시보드 | 해당 에디션 견적과 운영비 | 릴리스별 수집·청구 통합 |
+| OpenCost | 공개 할당 모델과 커스터마이징 | 운영·수집·저장 비용 | 메트릭과 가격 데이터 |
+| 상용 FinOps 플랫폼 | 멀티클라우드 거버넌스·자동화 | 공급자 견적·계약 범위 | 권한·데이터·변경 통제 |
 
-**의사결정 트리**
-
-```
-조직 규모는?
-├─ 소규모 (< 5 클러스터)
-│  └─ 예산은?
-│     ├─ 제한적 → SCAD + Cost Explorer
-│     └─ 여유 → Kubecost Free
-│
-├─ 중규모 (5-20 클러스터)
-│  └─ 실시간 필요?
-│     ├─ Yes → Kubecost Enterprise
-│     └─ No → SCAD + Athena + Grafana
-│
-└─ 대규모 (20+ 클러스터)
-   └─ 멀티클라우드?
-      ├─ Yes → CloudHealth / CloudCheckr
-      └─ No → Kubecost Enterprise + SCAD
-```
+클러스터 수만으로 제품을 결정하지 않습니다. 청구 대조, 멀티클러스터 집계, 지연, 보존, 운영 책임을 실제 요구사항과 비교합니다.
 
 ### 4단계: Karpenter로 비용 최적화
 
-Karpenter는 차세대 Kubernetes 오토스케일러로, Cluster Autoscaler 대비 25-40% 비용 절감을 달성합니다.
+Karpenter는 미스케줄 Pod의 요구사항에 맞춰 노드를 만들고 통합 후보를 평가합니다. 다른 오토스케일러 대비 고정 절감률은 없습니다.
 
 #### Karpenter의 비용 절감 메커니즘
 
-**1. 실시간 최적 인스턴스 선택**
+다음은 [v1.13 NodePool](https://karpenter.sh/v1.13/concepts/nodepools/)과 [EC2NodeClass](https://karpenter.sh/v1.13/concepts/nodeclasses/)의 구성 예시입니다. 설치 섹션의 IAM·노드 접근·네트워크 전제조건이 충족되어야 합니다. `al2023@latest`는 테스트 환경의 AMI 탐색 예시입니다. 프로덕션에서는 해당 Kubernetes 버전·아키텍처에서 검증한 AMI 릴리스 alias 또는 ID로 고정합니다.
+
+`Gt: 5`는 5보다 큰 세대를 뜻합니다. `expireAfter`는 노드 템플릿에, `reasons`는 budget에 둡니다. EC2 비용 태그는 `EC2NodeClass.spec.tags`로 전달하며 환경 변수로 대체하지 않습니다. 노드 종료 유예 1시간은 예시 정책으로, 만료·강제 종료와 PDB 영향을 함께 검토해야 합니다.
+
+빈패킹 설명용으로 동일 단가·가용 CPU 4개인 노드 3개에 CPU 요청 합계 6개가 배치되어 있다고 가정합니다. 다른 제약 없이 2개 노드로 통합되면 해당 노드 비용은 `(3 - 2) / 3 = 33.3%` 감소합니다. 이는 스케줄러 비교 측정이 아니며 메모리·DaemonSet·토폴로지 제약을 생략한 계산입니다.
+
+Spot-only 풀은 `capacity-type: [spot]`을 사용합니다. taint는 워크로드 선택 장치이며 중단 처리 기능이 아닙니다. Spot→Spot 교체는 [해당 버전의 기능 플래그와 인스턴스 유연성 조건](https://karpenter.sh/v1.13/concepts/disruption/)을 별도로 확인합니다.
 
 ```yaml
-# NodePool 설정 예시
 apiVersion: karpenter.sh/v1
 kind: NodePool
 metadata:
@@ -526,8 +324,13 @@ metadata:
 spec:
   template:
     spec:
+      expireAfter: 720h
+      terminationGracePeriod: 1h
+      nodeClassRef:
+        group: karpenter.k8s.aws
+        kind: EC2NodeClass
+        name: default
       requirements:
-        # 다양한 인스턴스 타입 허용
         - key: karpenter.sh/capacity-type
           operator: In
           values: ["spot", "on-demand"]
@@ -539,1187 +342,622 @@ spec:
           values: ["c", "m", "r"]
         - key: karpenter.k8s.aws/instance-generation
           operator: Gt
-          values: ["5"]  # 5세대 이상만 사용
-
-      nodeClassRef:
-        name: default
-
-  # 비용 최적화 설정
+          values: ["5"]  # Strictly greater than generation 5.
   disruption:
-    consolidationPolicy: WhenUnderutilized
+    consolidationPolicy: WhenEmptyOrUnderutilized
     consolidateAfter: 30s
-    expireAfter: 720h  # 30일
-
+    budgets:
+      - nodes: "10%"
+        reasons: ["Empty", "Underutilized", "Drifted"]
   limits:
     cpu: "1000"
     memory: "1000Gi"
-
 ---
 apiVersion: karpenter.k8s.aws/v1
 kind: EC2NodeClass
 metadata:
   name: default
 spec:
-  amiFamily: AL2
-  role: "KarpenterNodeRole-your-cluster"
+  amiFamily: AL2023
+  amiSelectorTerms:
+    - alias: al2023@latest
+  role: KarpenterNodeRole-your-cluster
   subnetSelectorTerms:
     - tags:
-        karpenter.sh/discovery: "your-cluster"
+        karpenter.sh/discovery: your-cluster
   securityGroupSelectorTerms:
     - tags:
-        karpenter.sh/discovery: "your-cluster"
-
-  # Spot 인스턴스 최적화
-  instanceStorePolicy: RAID0
-
-  # 사용자 데이터로 비용 태그 추가
-  userData: |
-    #!/bin/bash
-    echo "export CLUSTER_NAME=your-cluster" >> /etc/environment
-```
-
-**2. 빈패킹(Bin Packing) 알고리즘**
-
-Karpenter는 최소한의 노드로 최대한 많은 Pod를 배치합니다:
-
-```
-Before (Cluster Autoscaler):
-Node 1: [Pod A(2 CPU)] [Pod B(1 CPU)] - 총 3/4 CPU 사용
-Node 2: [Pod C(2 CPU)] --------------- - 총 2/4 CPU 사용
-Node 3: [Pod D(1 CPU)] --------------- - 총 1/4 CPU 사용
-총 비용: 3 노드
-
-After (Karpenter):
-Node 1: [Pod A(2 CPU)] [Pod B(1 CPU)] [Pod D(1 CPU)] - 총 4/4 CPU 사용
-Node 2: [Pod C(2 CPU)] ---------------------------- - 총 2/4 CPU 사용
-총 비용: 2 노드 (33% 절감)
-```
-
-**3. Spot 인스턴스 통합**
-
-```yaml
-# Spot 우선 전략
-apiVersion: karpenter.sh/v1
-kind: NodePool
-metadata:
-  name: spot-optimized
-spec:
-  template:
-    spec:
-      requirements:
-        - key: karpenter.sh/capacity-type
-          operator: In
-          values: ["spot"]
-
-        # 다양한 인스턴스 타입으로 중단 위험 분산
-        - key: node.kubernetes.io/instance-type
-          operator: In
-          values:
-            - "c5.xlarge"
-            - "c5a.xlarge"
-            - "c5n.xlarge"
-            - "c6i.xlarge"
-            - "m5.xlarge"
-            - "m5a.xlarge"
-
-      # Spot 중단 처리
-      taints:
-        - key: spot
-          value: "true"
-          effect: NoSchedule
-
-  disruption:
-    consolidationPolicy: WhenUnderutilized
-    # Spot 통합 (Spot → Spot 이동)
-    budgets:
-      - nodes: "10%"
-        reason: "Underutilized"
-```
-
-**워크로드에 Spot 허용 표시**
-
-```yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: spot-friendly-app
-spec:
-  replicas: 10
-  template:
-    spec:
-      # Spot 노드 허용
-      tolerations:
-        - key: spot
-          operator: Equal
-          value: "true"
-          effect: NoSchedule
-
-      # PodDisruptionBudget과 함께 사용
-      affinity:
-        podAntiAffinity:
-          preferredDuringSchedulingIgnoredDuringExecution:
-            - weight: 100
-              podAffinityTerm:
-                labelSelector:
-                  matchLabels:
-                    app: spot-friendly-app
-                topologyKey: kubernetes.io/hostname
-
----
-apiVersion: policy/v1
-kind: PodDisruptionBudget
-metadata:
-  name: spot-friendly-app-pdb
-spec:
-  minAvailable: 7  # 최소 7개 Pod 유지
-  selector:
-    matchLabels:
-      app: spot-friendly-app
+        karpenter.sh/discovery: your-cluster
+  tags:
+    CostCenter: CC-12345
+    Environment: development
+    Team: platform
 ```
 
 #### Karpenter 설치 (EKS 자체 관리형)
 
+[v1.13 설치 가이드](https://karpenter.sh/v1.13/getting-started/getting-started-with-karpenter/)의 IAM/CloudFormation 템플릿과 설정을 같은 릴리스로 맞춰 사용합니다. 다음 단계는 기존 클러스터에서 필요한 구성 목록이며, 조회용 정책만 붙이는 축약 설치 절차가 아닙니다.
+
+1. AWS 계정·리전·클러스터와 Karpenter 버전을 선택하고 호환성을 확인합니다. 컨트롤러를 실행할 기존 용량과 API·EC2·SSM 등 필요한 엔드포인트 접근을 준비합니다.
+2. 노드 역할에 EC2 trust, 필요한 노드·이미지 풀 권한을 부여하고 EKS access entry 또는 클러스터 인증 방식에 맞는 노드 접근 매핑을 구성합니다.
+3. 컨트롤러 전용 역할과 해당 릴리스의 리소스·태그 조건부 정책을 구성합니다. EC2 provisioning, discovery, instance profile 관리, 제한된 `iam:PassRole`, SSM, EKS 조회, 중단 큐 접근 등을 포함한 공식 템플릿을 검토합니다. `AmazonEKSWorkerNodePolicy`만으로 컨트롤러 권한을 대체할 수 없습니다.
+4. 공식 가이드의 Pod Identity 구성을 사용할 경우 agent·trust·association을 설정합니다. IRSA를 선택하면 실제 클러스터 OIDC issuer와 ServiceAccount의 namespace/name/audience를 사용해 trust를 구성합니다. 예시 OIDC ID를 복사하지 않습니다.
+5. 중단 처리용 SQS 큐와 EventBridge 규칙·권한, subnet/security-group discovery 태그, CRD를 준비합니다.
+6. 선택한 버전의 차트에 실제 `settings.clusterName`, `settings.interruptionQueue`와 선택한 인증 방식을 연결하고 렌더링 결과를 검토합니다. 컨트롤러 설치 후 NodeClass·NodePool Ready 조건과 로그를 확인합니다.
+
+아래 명령은 상태 조회만 수행합니다. 이 문서는 컨트롤러 설치나 노드 프로비저닝을 실행한 결과를 제시하지 않습니다.
+
 ```bash
-# 1. IAM 역할 생성
-export CLUSTER_NAME="your-cluster"
-export AWS_ACCOUNT_ID="$(aws sts get-caller-identity --query Account --output text)"
-export AWS_REGION="ap-northeast-2"
-
-cat > karpenter-trust-policy.json << EOF
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Principal": {
-        "Federated": "arn:aws:iam::${AWS_ACCOUNT_ID}:oidc-provider/oidc.eks.${AWS_REGION}.amazonaws.com/id/EXAMPLED539D4633E53DE1B71EXAMPLE"
-      },
-      "Action": "sts:AssumeRoleWithWebIdentity",
-      "Condition": {
-        "StringEquals": {
-          "oidc.eks.${AWS_REGION}.amazonaws.com/id/EXAMPLED539D4633E53DE1B71EXAMPLE:sub": "system:serviceaccount:karpenter:karpenter",
-          "oidc.eks.${AWS_REGION}.amazonaws.com/id/EXAMPLED539D4633E53DE1B71EXAMPLE:aud": "sts.amazonaws.com"
-        }
-      }
-    }
-  ]
-}
-EOF
-
-aws iam create-role \
-  --role-name "KarpenterControllerRole-${CLUSTER_NAME}" \
-  --assume-role-policy-document file://karpenter-trust-policy.json
-
-# 2. Karpenter 정책 연결
-aws iam attach-role-policy \
-  --role-name "KarpenterControllerRole-${CLUSTER_NAME}" \
-  --policy-arn "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"
-
-# 3. Helm으로 Karpenter 설치
-helm upgrade --install karpenter oci://public.ecr.aws/karpenter/karpenter \
-  --version v1.13.0 \
-  --namespace karpenter \
-  --create-namespace \
-  --set settings.clusterName=${CLUSTER_NAME} \
-  --set settings.clusterEndpoint=$(aws eks describe-cluster --name ${CLUSTER_NAME} --query "cluster.endpoint" --output text) \
-  --set serviceAccount.annotations."eks\.amazonaws\.com/role-arn"="arn:aws:iam::${AWS_ACCOUNT_ID}:role/KarpenterControllerRole-${CLUSTER_NAME}" \
-  --set controller.resources.requests.cpu=1 \
-  --set controller.resources.requests.memory=1Gi \
-  --wait
-
-# 4. 검증
 kubectl get pods -n karpenter
-kubectl logs -n karpenter -l app.kubernetes.io/name=karpenter
+kubectl get ec2nodeclasses,nodepools,nodeclaims
+kubectl logs -n karpenter -l app.kubernetes.io/name=karpenter --tail=100
 ```
 
 #### 프로덕션 NodePool 전략
 
-**다중 환경 전략**
+| 풀 | 예시 요구사항 | 워크로드 조건 |
+|----|----------------|----------------|
+| 프로덕션 | `capacity-type=on-demand`, `instance-category`의 `c,m,r` | SLO·다중 AZ·용량 대안 검토 |
+| 개발·스테이징 | `capacity-type=spot`, `instance-category`의 `c,m,r,t` | 중단 허용·작업 재시도 |
+| GPU | `instance-category`의 `g,p` 또는 `instance-family`의 `g4dn,p3` | 모델·GPU 메모리·아키텍처·드라이버 검증 |
 
-```yaml
-# 프로덕션: 온디맨드 우선
----
-apiVersion: karpenter.sh/v1
-kind: NodePool
-metadata:
-  name: production-on-demand
-spec:
-  template:
-    spec:
-      requirements:
-        - key: karpenter.sh/capacity-type
-          operator: In
-          values: ["on-demand"]
-        - key: node.kubernetes.io/instance-type
-          operator: In
-          values: ["m5.2xlarge", "m5.4xlarge"]
-      taints:
-        - key: workload
-          value: production
-          effect: NoSchedule
-  limits:
-    cpu: "500"
+`instance-category`와 `instance-family`를 혼용하지 않습니다. 모든 풀에는 group·kind·name이 있는 `nodeClassRef`가 필요합니다. GPU 풀에는 검증된 GPU AMI와 device plugin을 갖춘 별도 NodeClass를 사용합니다. [NodeClass AMI 요구사항](https://karpenter.sh/v1.13/concepts/nodeclasses/)
 
----
-# 개발/스테이징: Spot 전용
-apiVersion: karpenter.sh/v1
-kind: NodePool
-metadata:
-  name: development-spot
-spec:
-  template:
-    spec:
-      requirements:
-        - key: karpenter.sh/capacity-type
-          operator: In
-          values: ["spot"]
-        - key: karpenter.k8s.aws/instance-category
-          operator: In
-          values: ["c", "m", "r", "t3"]
-      taints:
-        - key: workload
-          value: development
-          effect: NoSchedule
-  disruption:
-    consolidationPolicy: WhenUnderutilized
-    consolidateAfter: 30s
-
----
-# GPU 워크로드
-apiVersion: karpenter.sh/v1
-kind: NodePool
-metadata:
-  name: gpu-workloads
-spec:
-  template:
-    spec:
-      requirements:
-        - key: karpenter.k8s.aws/instance-category
-          operator: In
-          values: ["g4dn", "p3"]
-        - key: karpenter.sh/capacity-type
-          operator: In
-          values: ["spot", "on-demand"]
-      taints:
-        - key: nvidia.com/gpu
-          value: "true"
-          effect: NoSchedule
-  limits:
-    cpu: "200"
-```
+여러 풀이 일치하면 높은 `weight`가 우선 고려됩니다. weight나 값 나열 순서로 Spot/On-Demand 비율 또는 G→P 순서를 보장할 수 없습니다. taint/toleration은 허용만 하므로 풀을 지정하려면 label과 nodeSelector/affinity를 함께 설계합니다. [스케줄링 범위](https://karpenter.sh/v1.13/concepts/nodepools/)
 
 ### 5단계: 비용 할당 및 태깅 전략
 
+Kubernetes label과 AWS 리소스 tag의 전달 경로를 명시합니다. 네임스페이스 label을 추가해도 EC2 태그가 자동으로 생성되지는 않습니다.
+
 #### 계층적 태깅 아키텍처
 
-```yaml
-# 태그 표준 정의
-cost_allocation_tags:
-  business:
-    - cost_center: "CC-12345"
-    - business_unit: "Engineering"
-    - product: "Platform"
-    - environment: "production"
+`cost_center`, `environment`, `team`을 소유자와 함께 관리하고 AWS 비용 할당 태그를 Billing에서 활성화합니다. EC2 비용 태그는 NodeClass에서 직접 설정하는 방식을 우선 검토합니다. 보완용 Lambda를 구현할 때 클러스터 이름은 `kubernetes.io/cluster/<name>`의 **키 접미사**에서 가져옵니다. 값 `owned`나 `shared`는 이름이 아닙니다.
 
-  technical:
-    - cluster: "prod-eks-01"
-    - namespace: "backend-services"
-    - team: "platform-team"
-    - component: "api-gateway"
-
-  governance:
-    - owner: "john.doe@company.com"
-    - managed_by: "terraform"
-    - compliance: "pci-dss"
-
-  financial:
-    - billing_code: "PROJ-2024-001"
-    - budget_category: "infrastructure"
-    - charge_method: "chargeback"
-```
-
-**자동 태깅 Lambda 함수**
+다음 코드는 오프라인 태그 변환과 테스트입니다. 모호한 클러스터 태그는 거부하며, 알 수 없는 팀을 임의의 유효한 값으로 치환하지 않습니다.
 
 ```python
-# lambda_tag_enforcer.py
-import boto3
-import json
+# tag_review.py: offline, no AWS calls.
+PREFIX = "kubernetes.io/cluster/"
 
-ec2 = boto3.client('ec2')
-eks = boto3.client('eks')
-
-def lambda_handler(event, context):
-    """
-    EKS 노드가 시작되면 자동으로 비용 태그 추가
-    """
-    instance_id = event['detail']['instance-id']
-
-    # 인스턴스 정보 조회
-    instance = ec2.describe_instances(InstanceIds=[instance_id])
-    tags = instance['Reservations'][0]['Instances'][0].get('Tags', [])
-
-    # 클러스터 이름 추출
-    cluster_tag = next((t['Value'] for t in tags
-                       if t['Key'].startswith('kubernetes.io/cluster/')), None)
-
-    if not cluster_tag:
-        return {'statusCode': 400, 'body': 'Not an EKS node'}
-
-    # EKS 클러스터 메타데이터 조회
-    cluster = eks.describe_cluster(name=cluster_tag)
-    cluster_tags = cluster['cluster'].get('tags', {})
-
-    # 비용 태그 생성
-    cost_tags = [
-        {'Key': 'CostCenter', 'Value': cluster_tags.get('cost_center', 'unallocated')},
-        {'Key': 'Environment', 'Value': cluster_tags.get('environment', 'unknown')},
-        {'Key': 'Team', 'Value': cluster_tags.get('team', 'unassigned')},
-        {'Key': 'ManagedBy', 'Value': 'karpenter'},
-        {'Key': 'AutoTagged', 'Value': 'true'}
-    ]
-
-    # 태그 적용
-    ec2.create_tags(Resources=[instance_id], Tags=cost_tags)
-
-    return {
-        'statusCode': 200,
-        'body': json.dumps(f'Tagged instance {instance_id}')
+def cluster_name_from_tags(tags):
+    names = {
+        tag["Key"][len(PREFIX):]
+        for tag in tags
+        if tag.get("Key", "").startswith(PREFIX)
+        and tag.get("Value") in {"owned", "shared"}
+        and tag["Key"][len(PREFIX):]
     }
+    if len(names) > 1:
+        raise ValueError("Ambiguous cluster ownership; review required")
+    return next(iter(names), None)
+
+def proposed_cost_tags(cluster_tags):
+    mapping = {"cost_center": "CostCenter", "environment": "Environment", "team": "Team"}
+    return [{"Key": target, "Value": cluster_tags[source]}
+            for source, target in mapping.items()
+            if cluster_tags.get(source)]
+
+if __name__ == "__main__":
+    assert cluster_name_from_tags([
+        {"Key": "kubernetes.io/cluster/prod-eks", "Value": "owned"}
+    ]) == "prod-eks"
+    assert cluster_name_from_tags([]) is None
+    try:
+        cluster_name_from_tags([
+            {"Key": "kubernetes.io/cluster/a", "Value": "owned"},
+            {"Key": "kubernetes.io/cluster/b", "Value": "shared"}
+        ])
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("Ambiguous ownership must be rejected")
+    assert proposed_cost_tags({"team": "platform"}) == [
+        {"Key": "Team", "Value": "platform"}
+    ]
 ```
 
-**EventBridge 규칙**
+다음은 구현해야 하는 통합 흐름입니다. EventBridge target·Lambda 호출 권한·리전/계정 검증·재시도·멱등성·기존 태그 충돌 처리가 필요합니다. 일반 EC2 이벤트 전체에 무조건 쓰기 권한을 부여하지 않습니다.
 
-```json
-{
-  "source": ["aws.ec2"],
-  "detail-type": ["EC2 Instance State-change Notification"],
-  "detail": {
-    "state": ["running"]
-  }
-}
+```text
+EC2 running event -> EventBridge target -> Lambda with resource-scoped IAM
+  -> DescribeInstances in the event Region/account
+  -> cluster_name_from_tags(instance tags); skip absent, reject ambiguous
+  -> DescribeCluster(name=extracted key suffix)
+  -> proposed_cost_tags(cluster tags)
+  -> compare existing tags; produce an audit record and reviewed change
+  -> approved implementation calls CreateTags for that instance only
 ```
 
 #### Policy as Code로 태그 강제
 
-```yaml
-# OPA/Gatekeeper 정책
-apiVersion: templates.gatekeeper.sh/v1
-kind: ConstraintTemplate
-metadata:
-  name: k8srequiredtags
-spec:
-  crd:
-    spec:
-      names:
-        kind: K8sRequiredTags
-      validation:
-        openAPIV3Schema:
-          type: object
-          properties:
-            tags:
-              type: array
-              items:
-                type: string
+정책은 Kubernetes label 누락을 검출하며 AWS 비용 태그 전파를 대신하지 않습니다. Gatekeeper를 사용하는 경우 설치한 릴리스의 ConstraintTemplate/Rego 지원을 확인하고 먼저 audit 모드에서 기존 네임스페이스와 시스템 예외를 검토합니다.
 
-  targets:
-    - target: admission.k8s.gatekeeper.sh
-      rego: |
-        package k8srequiredtags
+아래는 정책 의도입니다. 실제 ConstraintTemplate과 Constraint, 예외 규칙, GitOps 적용을 구현·테스트해야 합니다.
 
-        violation[{"msg": msg}] {
-          input.review.kind.kind == "Namespace"
-          provided := {tag | input.review.object.metadata.labels[tag]}
-          required := {tag | tag := input.parameters.tags[_]}
-          missing := required - provided
-          count(missing) > 0
-          msg := sprintf("Namespace must have required tags: %v", [missing])
-        }
-
----
-apiVersion: constraints.gatekeeper.sh/v1beta1
-kind: K8sRequiredTags
-metadata:
-  name: namespace-must-have-cost-tags
-spec:
-  match:
-    kinds:
-      - apiGroups: [""]
-        kinds: ["Namespace"]
-  parameters:
-    tags:
-      - "cost-center"
-      - "team"
-      - "environment"
+```text
+For each namespace outside the reviewed exemption list:
+  require nonempty labels: cost-center, team, environment
+  validate values against the approved ownership registry
+  audit existing violations before enabling admission denial
+  separately reconcile AWS resource tags and Billing tag activation
 ```
 
 ### 6단계: 모니터링 및 알림 설정
 
+비용 알림은 데이터 품질과 실제 청구 대조를 함께 제공해야 합니다.
+
 #### Grafana 비용 대시보드
 
+아래는 단일 클러스터용 Prometheus recording rule 파일입니다. [rule_files 설정](https://prometheus.io/docs/prometheus/latest/configuration/recording_rules/)으로 Prometheus에 로드하거나, 설치한 Operator가 선택하는 PrometheusRule로 변환해야 합니다. ConfigMap 존재만으로 로드되지 않습니다.
+
+`finops_node_hourly_cost_usd{node}`는 **사용자 정의 입력 메트릭**입니다. 별도 수집기가 실제 노드·구매 옵션·리전·통화·시점에 맞는 USD/노드/시간 가격을 공급해야 합니다. 가격 누락·지연을 경고하고, node별 가격·allocatable 시계열과 컨테이너 메트릭을 중복 없이 수집합니다. 여러 클러스터는 모든 집계와 join에 cluster label을 추가합니다.
+
+계산은 `요청 core × (USD/노드/시간 ÷ allocatable core/노드)`입니다. 전체 노드 가격을 CPU 요청 비율로 배분하는 **단순 추정 정책**이며 GPU·메모리 가중치나 실제 청구 할당 모델이 아닙니다. 미요청 용량은 잔여 비용으로 따로 표시합니다. 예를 들어 4 allocatable core의 $0.40/시간 노드에 1 core를 요청하면 추정 배분액은 $0.10/시간입니다.
+
+Grafana는 `namespace:cpu_allocated_cost_usd_per_hour:sum`을 USD/시간으로 표시합니다. 24를 곱한 값은 현재 요율의 일일 환산치이며, 실제 하루 비용은 시간 적분 또는 CUR 일별 합계로 구합니다. 사용/요청 비율을 추가할 경우 1을 초과할 수 있으므로 그 차이를 청구 낭비로 해석하지 않습니다.
+
+현재 비용은 node가 할당된 `Pending`·`Running` Pod에만 배분합니다. `(namespace, pod, uid)`로 대상을 구분하므로 완료된 Job이나 재사용된 Pod 이름이 요청량에 합산되지 않습니다. `max by`는 동일 원본을 수집한 replica의 중복을 제거하기 위한 것이며, 서로 다른 클러스터나 충돌하는 가격을 합치는 규칙이 아닙니다.
+
 ```yaml
-# Prometheus 커스텀 메트릭
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: prometheus-cost-rules
-  namespace: monitoring
-data:
-  cost-rules.yml: |
-    groups:
-      - name: cost_efficiency
-        interval: 5m
-        rules:
-          # 네임스페이스별 시간당 비용
-          - record: namespace:cost_per_hour:sum
-            expr: |
-              sum by (namespace) (
-                label_replace(
-                  kube_pod_container_resource_requests{resource="cpu"}
-                  * on(node) group_left(label_node_kubernetes_io_instance_type)
-                  kube_node_labels{label_node_kubernetes_io_instance_type!=""}
-                  * on(label_node_kubernetes_io_instance_type)
-                  aws_ec2_instance_type_cost_per_hour,
-                  "namespace", "$1", "exported_namespace", "(.*)"
-                )
+groups:
+  - name: active_cost_estimates
+    interval: 1m
+    rules:
+      - record: pod:active_assigned:info
+        expr: |
+          max by (namespace, pod, uid, node) (
+            kube_pod_info{node!="", uid!=""}
+          )
+          and on (namespace, pod, uid)
+          (
+            max by (namespace, pod, uid) (
+              kube_pod_status_phase{phase=~"Pending|Running", uid!=""}
+            ) == 1
+          )
+      - record: pod_container:cpu_requests_active:cores
+        expr: |
+          max by (namespace, pod, uid, node, container) (
+            kube_pod_container_resource_requests{
+              resource="cpu", unit="core", node!="", uid!=""
+            }
+          )
+          and on (namespace, pod, uid, node)
+          pod:active_assigned:info
+      - record: namespace:cpu_requests_active:cores
+        expr: |
+          sum by (namespace) (pod_container:cpu_requests_active:cores)
+      - record: namespace:cpu_allocated_cost_usd_per_hour:sum
+        expr: |
+          sum by (namespace) (
+            sum by (namespace, node) (
+              pod_container:cpu_requests_active:cores
+            )
+            * on (node) group_left()
+            (
+              max by (node) (finops_node_hourly_cost_usd)
+              / on (node)
+              (
+                max by (node) (
+                  kube_node_status_allocatable{resource="cpu", unit="core"}
+                ) > 0
               )
+            )
+          )
+```
 
-          # 리소스 효율성
-          - record: namespace:resource_efficiency:ratio
-            expr: |
-              sum by (namespace) (
-                rate(container_cpu_usage_seconds_total[5m])
-              ) / sum by (namespace) (
-                kube_pod_container_resource_requests{resource="cpu"}
-              )
+CPU 사용/요청 비율은 같은 Pod 집합을 사용해야 합니다. 아래 추가 규칙은 **수집 단계에서 실제 Pod UID가 붙은 컨테이너 전체 CPU counter**가 있을 때만 사용할 수 있습니다. 기본 kubelet cAdvisor counter에는 `uid`가 없으므로 그대로 적용하면 비율이 나오지 않습니다. 현재 `(namespace, pod)`만으로 UID를 덧붙이면 이름이 재사용된 Pod의 과거 사용량을 잘못 연결할 수 있습니다. UID가 보존된 입력을 검증한 뒤 다음 규칙을 추가하고, 입력 누락은 0이 아닌 데이터 없음으로 표시합니다.
 
-          # 낭비 비용
-          - record: namespace:wasted_cost_per_hour:sum
-            expr: |
-              namespace:cost_per_hour:sum
-              * (1 - namespace:resource_efficiency:ratio)
-
----
-# Grafana 대시보드 JSON (일부)
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: grafana-cost-dashboard
-  namespace: monitoring
-data:
-  eks-cost-dashboard.json: |
-    {
-      "dashboard": {
-        "title": "EKS Cost Analysis",
-        "panels": [
-          {
-            "title": "Total Daily Cost Trend",
-            "targets": [
-              {
-                "expr": "sum(namespace:cost_per_hour:sum) * 24"
-              }
-            ],
-            "type": "graph"
-          },
-          {
-            "title": "Top 10 Expensive Namespaces",
-            "targets": [
-              {
-                "expr": "topk(10, sum by (namespace) (namespace:cost_per_hour:sum))"
-              }
-            ],
-            "type": "table"
-          },
-          {
-            "title": "Resource Efficiency by Namespace",
-            "targets": [
-              {
-                "expr": "namespace:resource_efficiency:ratio"
-              }
-            ],
-            "type": "bargauge"
-          }
-        ]
-      }
-    }
+```yaml
+groups:
+  - name: uid_usage_contract
+    interval: 1m
+    rules:
+      - record: pod_container:cpu_usage_active:cores
+        expr: |
+          max by (namespace, pod, uid, container) (
+            rate(container_cpu_usage_seconds_total{
+              container!="", container!="POD", uid!=""
+            }[5m])
+          )
+          and on (namespace, pod, uid)
+          pod:active_assigned:info
+      - record: namespace:cpu_request_utilization:ratio
+        expr: |
+          sum by (namespace) (pod_container:cpu_usage_active:cores)
+          / on (namespace)
+          (namespace:cpu_requests_active:cores > 0)
 ```
 
 #### 멀티채널 알림 설정
 
+예시 임계값은 전일 같은 시각 대비 50% 증가가 30분 지속되는 조건입니다. 비율에서 1을 빼므로 표시 값은 증가율입니다. 전일 값이 0이거나 누락되면 별도 데이터 품질·신규 워크로드 알림으로 처리합니다.
+
+Prometheus의 alerting 설정을 실제 Alertmanager에 연결하고, [Alertmanager 라우팅](https://prometheus.io/docs/alerting/latest/configuration/)에서 `alert_type="cost"`를 비용 검토 수신자로 전달합니다. Slack webhook·PagerDuty 키는 Secret 또는 보호된 파일로 주입합니다. 수신자 설정, 권한, 테스트 알림 검증은 별도 구현 사항입니다.
+
 ```yaml
-# AlertManager 설정
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: alertmanager-config
-  namespace: monitoring
-data:
-  alertmanager.yml: |
-    global:
-      slack_api_url: 'https://hooks.slack.com/services/YOUR/WEBHOOK/URL'
-
-    route:
-      receiver: 'default'
-      group_by: ['alertname', 'namespace']
-      group_wait: 30s
-      group_interval: 5m
-      repeat_interval: 4h
-
-      routes:
-        - match:
-            severity: critical
-          receiver: 'pagerduty-critical'
-
-        - match:
-            severity: warning
-            alert_type: cost
-          receiver: 'slack-cost-alerts'
-
-    receivers:
-      - name: 'default'
-        slack_configs:
-          - channel: '#platform-alerts'
-            title: 'EKS Alert'
-            text: '{{ range .Alerts }}{{ .Annotations.description }}{{ end }}'
-
-      - name: 'slack-cost-alerts'
-        slack_configs:
-          - channel: '#finops-alerts'
-            title: 'Cost Alert: {{ .GroupLabels.namespace }}'
-            text: |
-              {{ range .Alerts }}
-              *Alert:* {{ .Labels.alertname }}
-              *Namespace:* {{ .Labels.namespace }}
-              *Current Cost:* ${{ .Annotations.current_cost }}/hour
-              *Threshold:* ${{ .Annotations.threshold }}/hour
-              *Recommendation:* {{ .Annotations.recommendation }}
-              {{ end }}
-
-      - name: 'pagerduty-critical'
-        pagerduty_configs:
-          - service_key: 'YOUR_PAGERDUTY_KEY'
-
----
-# 비용 알림 규칙
-apiVersion: monitoring.coreos.com/v1
-kind: PrometheusRule
-metadata:
-  name: cost-alerts
-  namespace: monitoring
-spec:
-  groups:
-    - name: cost_thresholds
-      interval: 5m
-      rules:
-        - alert: HighNamespaceCost
-          expr: |
-            namespace:cost_per_hour:sum > 50
-          for: 1h
-          labels:
-            severity: warning
-            alert_type: cost
-          annotations:
-            description: 'Namespace {{ $labels.namespace }} is costing ${{ $value }}/hour'
-            current_cost: '{{ $value }}'
-            threshold: '50'
-            recommendation: 'Review resource requests and consider rightsizing'
-
-        - alert: UnusualCostSpike
-          expr: |
-            (
-              namespace:cost_per_hour:sum
-              / namespace:cost_per_hour:sum offset 24h
-            ) > 1.5
-          for: 30m
-          labels:
-            severity: warning
-            alert_type: cost
-          annotations:
-            description: 'Namespace {{ $labels.namespace }} cost increased by {{ $value | humanizePercentage }}'
-
-        - alert: LowResourceEfficiency
-          expr: |
-            namespace:resource_efficiency:ratio < 0.3
-          for: 2h
-          labels:
-            severity: info
-            alert_type: efficiency
-          annotations:
-            description: 'Namespace {{ $labels.namespace }} has only {{ $value | humanizePercentage }} resource efficiency'
-            recommendation: 'Reduce resource requests or increase actual usage'
+groups:
+  - name: cost_alerts
+    rules:
+      - alert: UnusualCostSpike
+        expr: |
+          (
+            namespace:cpu_allocated_cost_usd_per_hour:sum
+            / (namespace:cpu_allocated_cost_usd_per_hour:sum offset 24h > 0)
+            - 1
+          ) > 0.5
+        for: 30m
+        labels:
+          severity: warning
+          alert_type: cost
+        annotations:
+          description: 'CPU-based cost estimate increased by {{ $value | humanizePercentage }} versus 24h ago'
 ```
 
 ### 7단계: 자동화된 최적화
 
+자동화는 후보 계산과 검토 자료 생성부터 시작합니다. 실제 변경은 워크로드 소유자의 승인과 성능 검증을 거쳐 적용합니다.
+
 #### 자동 Rightsizing 파이프라인
 
+다음 Python은 CPU를 core, 메모리를 byte로 정규화한 뒤 CPU는 mCPU, 메모리는 MiB로 **올림**합니다. [Kubernetes quantity](https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/)의 decimal·binary 단위를 구분하며 지원하지 않는 문자열은 거부합니다. `1.8Gi × 1.2 = 2.16Gi`는 Mi 단위 올림 시 `2212Mi`입니다.
+
+입력 한 행은 동일한 cluster·namespace·Pod UID·container의 requests와 관측값입니다. Pod 합계를 모든 컨테이너에 복사하지 않습니다. 수집기는 재생성된 Pod와 중복 scrape를 구분하고 실제 유효 표본으로 `observed_hours`를 계산해야 합니다. 예시의 168시간·20% 여유분은 검토 가정이며 안전성을 보장하지 않습니다. 누락·짧은 관측은 후보를 만들지 않습니다.
+
+CPU P95는 `rate(container_cpu_usage_seconds_total[5m])`의 시간 분포에서, 메모리 P95는 컨테이너 working-set byte에서 수집합니다. 메모리 피크·OOM·시작 시점 사용량은 별도로 확인합니다. 현재 limits, LimitRange, HPA 기준, QoS와 SLO도 검토합니다. 반환한 변화율은 CPU requests 변화이며 절감액이 아닙니다.
+
+이 코드는 API 클라이언트·인증·owner 조회·patch 함수를 호출하지 않습니다. 실제 PR 생성기는 ReplicaSet→Deployment 또는 StatefulSet 등 소유 관계를 확인하고 replica별 관측을 통합한 뒤 **해당 컨테이너만** 수정해야 합니다. 기존 GitOps 선언과 충돌하지 않도록 소유자 승인, canary 검증, 이전 requests 복구를 별도 구현합니다.
+
 ```python
-# auto_rightsizing.py
-import boto3
-import kubernetes
-from datetime import datetime, timedelta
+# rightsizing_review.py: standard library only; no network or Kubernetes writes.
+import json
+import re
+from decimal import Decimal, ROUND_CEILING
 
-def calculate_recommendations(namespace, days=7):
-    """
-    과거 7일간 실제 사용량 분석하여 권장 리소스 계산
-    """
-    prom = PrometheusConnect(url="http://prometheus:9090")
+D = Decimal
+SUFFIX = {"": D(1), "n": D("1e-9"), "u": D("1e-6"), "m": D("1e-3")}
+SUFFIX.update({s: D(1000) ** i for i, s in enumerate("kMGTPE", 1)})
+SUFFIX.update({s + "i": D(1024) ** i for i, s in enumerate("KMGTPE", 1)})
+PATTERN = re.compile(r"([+]?(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+))([eE][+-]?[0-9]+|[numkMGTPE]|[KMGTPE]i)?")
 
-    # 실제 CPU 사용량 (P95)
-    cpu_query = f'''
-        quantile_over_time(0.95,
-            sum by (pod) (
-                rate(container_cpu_usage_seconds_total{{namespace="{namespace}"}}[5m])
-            )[{days}d:5m]
-        )
-    '''
-    cpu_actual = prom.custom_query(query=cpu_query)
+def number(value):
+    value = D(str(value))
+    if not value.is_finite() or value < 0:
+        raise ValueError("Expected a finite nonnegative number")
+    return value
 
-    # 실제 메모리 사용량 (P95)
-    mem_query = f'''
-        quantile_over_time(0.95,
-            sum by (pod) (
-                container_memory_working_set_bytes{{namespace="{namespace}"}}
-            )[{days}d:5m]
-        )
-    '''
-    mem_actual = prom.custom_query(query=mem_query)
+def quantity(value):
+    match = PATTERN.fullmatch(str(value))
+    if not match:
+        raise ValueError("Unsupported resource quantity")
+    base, suffix = match.groups()
+    suffix = suffix or ""
+    factor = SUFFIX[suffix] if suffix in SUFFIX else D(10) ** int(suffix[1:])
+    return number(base) * factor
 
-    # 현재 요청량
-    k8s = kubernetes.client.CoreV1Api()
-    pods = k8s.list_namespaced_pod(namespace)
+def ceil_units(value, unit):
+    return int((value / unit).to_integral_value(rounding=ROUND_CEILING))
 
-    recommendations = []
-    for pod in pods.items:
-        pod_name = pod.metadata.name
+def review(row, min_hours=168, headroom="1.2"):
+    # The observation window/headroom are review assumptions, not safety guarantees.
+    margin = number(headroom)
+    if margin < 1:
+        raise ValueError("Headroom must be at least one")
+    for key in ("cpu_p95_cores", "memory_p95_bytes", "observed_hours"):
+        if row.get(key) is None:
+            return None
+    if number(row["observed_hours"]) < number(min_hours):
+        return None
+    cpu = quantity(row["requests"]["cpu"])
+    memory = quantity(row["requests"]["memory"])
+    if cpu <= 0 or memory <= 0:
+        raise ValueError("Positive current requests are required")
+    target_cpu = max(1, ceil_units(number(row["cpu_p95_cores"]) * margin, D("0.001")))
+    target_mem = max(1, ceil_units(number(row["memory_p95_bytes"]) * margin, D(2) ** 20))
+    return {
+        "identity": {key: row[key] for key in ("cluster", "namespace", "pod_uid", "container")},
+        "current_requests": row["requests"],
+        "review_requests": {"cpu": f"{target_cpu}m", "memory": f"{target_mem}Mi"},
+        "cpu_request_change_pct": str((D(target_cpu) / 1000 / cpu - 1) * 100),
+        "review_only": True,
+    }
 
-        # 현재 requests
-        current_cpu = sum(float(c.resources.requests.get('cpu', '0').rstrip('m'))
-                         for c in pod.spec.containers if c.resources.requests)
-        current_mem = sum(parse_memory(c.resources.requests.get('memory', '0'))
-                         for c in pod.spec.containers if c.resources.requests)
-
-        # 실제 사용량 (P95 + 20% 버퍼)
-        actual_cpu = next((float(m['value'][1]) for m in cpu_actual
-                          if m['metric']['pod'] == pod_name), 0) * 1.2
-        actual_mem = next((float(m['value'][1]) for m in mem_actual
-                          if m['metric']['pod'] == pod_name), 0) * 1.2
-
-        # 비용 절감 계산
-        if current_cpu > actual_cpu * 1.5:  # 50% 이상 과다 프로비저닝
-            recommendations.append({
-                'pod': pod_name,
-                'namespace': namespace,
-                'current_cpu': current_cpu,
-                'recommended_cpu': int(actual_cpu),
-                'current_memory': current_mem,
-                'recommended_memory': int(actual_mem),
-                'potential_savings_pct': ((current_cpu - actual_cpu) / current_cpu) * 100
-            })
-
-    return recommendations
-
-def apply_recommendations(recommendations, dry_run=True):
-    """
-    권장사항을 실제 배포에 적용 (Deployment/StatefulSet 업데이트)
-    """
-    apps_v1 = kubernetes.client.AppsV1Api()
-
-    for rec in recommendations:
-        namespace = rec['namespace']
-        pod_name = rec['pod']
-
-        # Pod의 소유자 찾기 (Deployment/StatefulSet)
-        core_v1 = kubernetes.client.CoreV1Api()
-        pod = core_v1.read_namespaced_pod(pod_name, namespace)
-        owner = pod.metadata.owner_references[0]
-
-        if owner.kind == 'ReplicaSet':
-            # Deployment 찾기
-            rs = apps_v1.read_namespaced_replica_set(owner.name, namespace)
-            deploy_name = rs.metadata.owner_references[0].name
-
-            # Deployment 업데이트
-            deploy = apps_v1.read_namespaced_deployment(deploy_name, namespace)
-
-            for container in deploy.spec.template.spec.containers:
-                container.resources.requests['cpu'] = f"{rec['recommended_cpu']}m"
-                container.resources.requests['memory'] = f"{rec['recommended_memory']}Mi"
-
-            if not dry_run:
-                apps_v1.patch_namespaced_deployment(
-                    deploy_name, namespace, deploy
-                )
-                print(f"✅ Updated {deploy_name} in {namespace}")
-            else:
-                print(f"🔍 Would update {deploy_name}: CPU {rec['current_cpu']}m → {rec['recommended_cpu']}m")
-
-# 실행
-if __name__ == '__main__':
-    namespaces = ['backend-services', 'frontend', 'data-processing']
-
-    for ns in namespaces:
-        print(f"\n📊 Analyzing namespace: {ns}")
-        recs = calculate_recommendations(ns)
-
-        if recs:
-            print(f"Found {len(recs)} optimization opportunities:")
-            for r in recs:
-                print(f"  - {r['pod']}: {r['potential_savings_pct']:.1f}% savings")
-
-            apply_recommendations(recs, dry_run=False)
+if __name__ == "__main__":
+    sample = {"cluster": "example", "namespace": "backend", "pod_uid": "example-uid",
+              "container": "app", "requests": {"cpu": "500m", "memory": "512Mi"},
+              "cpu_p95_cores": "0.2", "memory_p95_bytes": 200 * 2**20, "observed_hours": 168}
+    result = review(sample)
+    assert result["review_requests"] == {"cpu": "240m", "memory": "240Mi"}
+    assert quantity("1") == quantity("1000m")
+    assert quantity("1Gi") == quantity("1024Mi")
+    assert quantity("1G") == D(10)**9
+    assert quantity("1e3") == 1000
+    assert quantity("250000000n") == D("0.25")
+    assert review({**sample, "cpu_p95_cores": None}) is None
+    assert review({**sample, "observed_hours": 24}) is None
+    sidecar = review({**sample, "container": "sidecar", "cpu_p95_cores": "0.01"})
+    assert sidecar["review_requests"]["cpu"] == "12m"
+    assert review({**sample, "memory_p95_bytes": str(D("1.8") * 2**30)})["review_requests"]["memory"] == "2212Mi"
+    print(json.dumps(result, indent=2))
 ```
 
 ## GPU 워크로드 비용 최적화
 
-LLM 서빙·학습 워크로드는 GPU 가동 시간이 비용의 대부분을 차지하므로, 일반 CPU 워크로드와 다른 최적화 전략이 필요합니다. p5.48xlarge(H100×8) 한 대의 On-Demand 가격은 시간당 약 $98로, 월 2대 운영 시 약 $141,000에 달합니다.
+GPU 비용은 장치 수·가동 시간·모델 적합성·중단 후 복구 시간을 함께 평가합니다. 특정 리전의 GPU 가격이나 즉시 확보 가능성을 고정값으로 가정하지 않습니다.
 
 ### GPU 비용 절감 스택
 
-다음 4가지 전략을 조합하면 GPU 인프라 비용을 최대 ~85% 절감할 수 있습니다.
+| 전략 | 비용 변화 경로 | 검증 사항 |
+|------|----------------|-----------|
+| Spot | 실행 단가 변경 | 재시도·모델 재로딩·복구 비용 |
+| Consolidation | 불필요한 노드 시간 축소 | PDB·배치 가능성·여유 용량 |
+| Right-sizing | 모델에 필요한 GPU·메모리 선택 | 부하 테스트·정확도·SLO |
+| 시간대별 수요 조정 | 실제 replica·작업 수 감소 | 별도 스케줄러와 HPA 간 조정 |
 
-| 전략 | 절감 효과 | 적용 방법 |
-|------|---------|---------|
-| **Spot 인스턴스** | 60-90% | Karpenter `capacity-type: spot`, p5 Spot $13-15/hr (us-east-2, On-Demand $98/hr 대비) |
-| **Consolidation** | 20-30% | `consolidationPolicy: WhenEmptyOrUnderutilized`, 30초 대기 |
-| **Right-sizing** | 15-25% | 모델 크기별 인스턴스 타입 자동 선택 (NodePool weight) |
-| **시간대별 스케줄링** | 30-40% | disruption budget으로 비업무 시간 50%+ 축소 |
-
-:::warning GPU Spot 중단 대응
-GPU 인스턴스는 Spot 중단 시 모델 가중치 재로딩(수 분)이 필요하므로, 추론 워크로드는 Bedrock 등 관리형 폴백과 함께 구성하여 무중단성을 확보하는 것이 권장됩니다. 상세 패턴은 [Agent 모니터링 & 운영 — Cascade Fallback](/docs/agentic-ai-platform/operations-mlops/observability/agent-monitoring)을 참조하세요.
-:::
+효과는 겹치므로 각 절감률을 더하거나 곱해 보장하지 않습니다. 예시 계산으로 단가 $10/시간인 GPU 노드 2대를 각각 100시간 줄이면 총 $2,000이며, 재시도·저장·네트워크·운영 비용은 별도로 차감합니다. 관리형 모델 폴백은 모델·API·품질 호환성과 한도·비용을 검증해야 하며 무중단을 보장하지 않습니다.
 
 ### 시간대별 disruption budget
 
-업무 시간에는 안정성을, 비업무 시간에는 비용을 우선하도록 Karpenter disruption budget을 시간대별로 구성합니다.
+[Karpenter disruption budget](https://karpenter.sh/v1.13/concepts/disruption/)은 자발적 중단의 상한입니다. replica·큐 수요를 줄이거나 야간에 노드의 50%를 제거하는 스케줄러가 아닙니다. 여러 budget이 활성화되면 가장 제한적인 한도를 적용합니다.
+
+아래 기본 상한은 10%이며, 월–금 **00:00–09:00 UTC(09:00–18:00 KST)**에는 Underutilized 통합을 차단합니다. 그 밖의 시간과 주말에는 기본 상한이 유지됩니다. 스케줄은 UTC이고 timezone 필드는 없습니다. 실제 수요 감소는 별도 워크로드 스케줄링·큐 admission·HPA 조정으로 구현해야 합니다.
+
+예시는 앞의 일반 CPU NodeClass를 참조합니다. GPU에 적용하려면 검증된 GPU NodeClass, device plugin, 모델 적합성 요구사항으로 바꿉니다. budget이 Spot 중단·만료 등 모든 종료를 막는 것은 아닙니다.
 
 ```yaml
-# Karpenter 시간대별 disruption budget 예시 (GPU NodePool)
-disruption:
-  consolidationPolicy: WhenEmptyOrUnderutilized
-  consolidateAfter: 30s
-  budgets:
-    # 업무 시간: 안정성 우선 (10%만 중단 허용)
-    - nodes: "10%"
-      schedule: "0 9 * * 1-5"
-      duration: 9h
-    # 비업무 시간: 비용 우선 (50%까지 통합)
-    - nodes: "50%"
-      schedule: "0 18 * * 1-5"
-      duration: 15h
+apiVersion: karpenter.sh/v1
+kind: NodePool
+metadata:
+  name: scheduled-consolidation
+spec:
+  template:
+    spec:
+      nodeClassRef:
+        group: karpenter.k8s.aws
+        kind: EC2NodeClass
+        name: default
+      requirements:
+        - key: kubernetes.io/arch
+          operator: In
+          values: ["amd64"]
+        - key: karpenter.k8s.aws/instance-category
+          operator: In
+          values: ["c", "m", "r"]
+  disruption:
+    consolidationPolicy: WhenEmptyOrUnderutilized
+    consolidateAfter: 30s
+    budgets:
+      - nodes: "10%"
+      - nodes: "0"
+        reasons: ["Underutilized"]
+        schedule: "0 0 * * 1-5"
+        duration: 9h
 ```
 
 ### GPU 인스턴스 용량 확보
 
-서울/도쿄 리전에서 p5.48xlarge는 `InsufficientCapacity`가 빈번합니다. us-east-2(Ohio) Spot에서 시간당 $13-15로 확보 가능하며, On-Demand $98/hr 대비 약 85%를 절감합니다.
+인스턴스 제공 여부, 계정·리전별 quota, 실행 시점 용량은 서로 다릅니다. G/VT·P 등의 On-Demand/Spot quota를 해당 계정의 Service Quotas에서 확인합니다. 기본 quota를 보편적인 64 vCPU로 단정하지 않습니다.
 
-| 리전 | p5.48xlarge On-Demand | p5.48xlarge Spot |
-|------|---------------------|-----------------|
-| ap-northeast-2 (서울) | InsufficientCapacity 빈번 | 미확인 |
-| ap-northeast-1 (도쿄) | InsufficientCapacity 빈번 | 미확인 |
-| **us-east-2 (Ohio)** | 가용성 변동 | **$13~15/hr 확보 가능** |
+`describe-instance-type-offerings`는 리전/AZ에서 제공하는 유형을 보여주며 현재 여유 용량을 보장하지 않습니다. 실제 실패는 NodeClaim·컨트롤러 로그의 Fleet 오류와 EC2 이벤트로 분석합니다. 허용 가능한 유형·AZ·구매 옵션을 넓히고 필요 시 용량 예약 옵션과 모델 호환성을 검토합니다. `instance-category: [g,p]`의 나열 순서는 G 우선 정책이 아닙니다.
 
-:::tip GPU 쿼터 함정
-EC2 vCPU 쿼터는 인스턴스 버킷별로 분리됩니다. `Running On-Demand G and VT instances` 기본값은 64 vCPU로, g6e.48xlarge 1대도 불가하여 쿼터 증가가 필요합니다. GPU NodePool에 `instance-category: [g, p]`를 함께 설정하면 Karpenter가 G 타입을 먼저 시도하여 G 쿼터에 걸릴 수 있으므로, P 타입만 필요하면 명시적으로 지정합니다.
-:::
-
-GPU 워크로드의 오토스케일링·서빙 최적화 상세는 [GPU 오토스케일링과 대형 모델 배포 운영](/docs/agentic-ai-platform/model-serving/inference-optimization/gpu-autoscaling-operations)을 참조하세요.
+GPU 운영 설계는 [GPU 리소스 관리](../../agentic-ai-platform/model-serving/gpu-infrastructure/gpu-resource-management.md)를 참조합니다.
 
 ## 검증
 
+검증 결과는 실제 실행한 범위와 계산 예시를 구분해 기록합니다.
+
 ### 비용 절감 효과 측정
+
+동일한 계정·태그·통화·상각 기준으로 전후 비용과 트래픽을 비교합니다.
 
 #### 1. 베이스라인 수립
 
-```bash
-# 최적화 전 월별 비용 기록
-aws ce get-cost-and-usage \
-  --time-period Start=2025-01-01,End=2025-01-31 \
-  --granularity MONTHLY \
-  --metrics UnblendedCost \
-  --filter file://eks-filter.json
+다음은 2025년 1월의 과거 기간 조회 예시입니다. [Cost Explorer API](https://docs.aws.amazon.com/aws-cost-management/latest/APIReference/API_GetCostAndUsage.html)의 종료일은 제외되므로 다음 달 1일을 사용합니다. 해당 태그가 비용 할당 태그로 활성화되어 있고 해당 비용 행에 존재해야 합니다. `owned`는 여기서 태그 값이며 클러스터 이름은 키에 있습니다.
 
-# eks-filter.json
+이 필터는 해당 태그가 있는 비용만 포함합니다. 컨트롤 플레인·공유 네트워크·미태그 비용을 자동 포함하지 않으며 SCAD Pod 비용 조회가 아닙니다. 오래된 기간은 계정의 보존 설정과 데이터 가용성을 먼저 확인합니다. Savings Plans·RI는 필요 시 상각 비용 기준으로 따로 비교합니다.
+
+```bash
+cat > eks-filter.json <<'EOF'
 {
   "Tags": {
     "Key": "kubernetes.io/cluster/your-cluster",
     "Values": ["owned"]
   }
 }
+EOF
+aws ce get-cost-and-usage \
+  --time-period Start=2025-01-01,End=2025-02-01 \
+  --granularity MONTHLY \
+  --metrics UnblendedCost \
+  --filter file://eks-filter.json
 ```
-
-**베이스라인 메트릭**
-
-| 메트릭 | 측정 방법 | 목표 |
-|--------|----------|------|
-| 월별 총 비용 | AWS Cost Explorer | -30% |
-| CPU 효율성 | 실사용/요청 비율 | 60% 이상 |
-| 메모리 효율성 | 실사용/요청 비율 | 70% 이상 |
-| Spot 사용 비율 | Spot 노드/전체 노드 | 50% 이상 |
-| 할당되지 않은 비용 | 태그 없는 비용 | 5% 미만 |
 
 #### 2. 주간 추적
 
+주간 비용은 같은 CUR 2.0 할당 기준을 유지합니다. 기간 일부만 포함된 주는 표시하고, SCAD opt-in 이전의 데이터 가용성을 확인합니다. Spot 비중이 필요하면 별도의 검증된 부모 EC2 가격 모델 분류를 조인합니다. Pod의 usage type에 `SpotUsage` 문자열이 있다고 가정하지 않습니다. 비율 계산에서는 총비용이 0이면 결과를 정의되지 않음으로 처리합니다.
+
 ```sql
--- Athena 쿼리: 주간 비용 추이
-SELECT
-    DATE_TRUNC('week', line_item_usage_start_date) as week,
-    SUM(line_item_unblended_cost) as weekly_cost,
-    SUM(CASE WHEN line_item_usage_type LIKE '%SpotUsage%'
-        THEN line_item_unblended_cost ELSE 0 END) as spot_cost,
-    SUM(CASE WHEN line_item_usage_type LIKE '%SpotUsage%'
-        THEN line_item_unblended_cost ELSE 0 END) / SUM(line_item_unblended_cost) * 100 as spot_percentage
-FROM eks_cost_report
-WHERE line_item_usage_start_date >= DATE_ADD('month', -3, CURRENT_DATE)
-GROUP BY 1
+SELECT date_trunc('week', line_item_usage_start_date) AS week,
+       line_item_currency_code AS currency,
+       SUM(COALESCE(split_line_item_split_cost, 0)
+           + COALESCE(split_line_item_unused_cost, 0)) AS allocated_ec2_cost
+FROM eks_cur2
+WHERE split_line_item_parent_resource_id IS NOT NULL
+  AND element_at(resource_tags, 'aws:eks:cluster-name') = 'your-cluster'
+  AND line_item_usage_start_date >= date_add('month', -3, current_timestamp)
+GROUP BY 1, 2
 ORDER BY 1 DESC;
 ```
 
 #### 3. ROI 계산
 
+ROI의 정의를 명시합니다. 여기서는 첫해 순이익을 `초기 구현 비용 + 첫해 도구 비용`으로 나눈 값을 ROI로 정의합니다. 회수 기간은 월 절감에서 도구 비용을 뺀 순월절감으로 초기 비용을 나눕니다. 투자가 0이면 ROI는 정의되지 않으며 순월절감이 0 이하이면 유한 회수 기간이 없습니다.
+
+금액은 가정한 동일 통화의 예시이고 `500/월`은 제품 견적이 아닙니다. current 비용에 도구 비용이 이미 포함되어 있으면 다시 차감하지 않습니다. 지속적인 운영 인력·재시도·마이그레이션 비용과 트래픽 변화를 실제 평가에 추가합니다. 이 예시의 순월절감은 17,500, 첫해 순이익은 194,000, ROI는 약 881.8%, 회수 기간은 약 0.914개월입니다.
+
 ```python
-# roi_calculator.py
-def calculate_finops_roi(
-    baseline_monthly_cost,
-    current_monthly_cost,
-    implementation_hours,
-    avg_hourly_rate=100,
-    tool_monthly_cost=0
-):
-    """
-    FinOps 투자 대비 수익률 계산
-    """
-    # 월별 절감액
-    monthly_savings = baseline_monthly_cost - current_monthly_cost
+# roi_calculator.py: illustrative amounts in one currency, no AWS calls.
+from decimal import Decimal
 
-    # 구현 비용
-    implementation_cost = implementation_hours * avg_hourly_rate
+D = Decimal
 
-    # 순 절감 (첫 해)
-    annual_savings = monthly_savings * 12
-    annual_tool_cost = tool_monthly_cost * 12
-    net_annual_savings = annual_savings - annual_tool_cost - implementation_cost
-
-    # ROI
-    roi_percentage = (net_annual_savings / implementation_cost) * 100
-
-    # 회수 기간
-    payback_months = implementation_cost / monthly_savings
-
+def calculate_finops_roi(baseline_monthly_cost, current_monthly_cost,
+                         implementation_hours, avg_hourly_rate=100,
+                         tool_monthly_cost=0):
+    values = [D(str(v)) for v in (baseline_monthly_cost, current_monthly_cost,
+              implementation_hours, avg_hourly_rate, tool_monthly_cost)]
+    if any(not v.is_finite() or v < 0 for v in values):
+        raise ValueError("Inputs must be finite and nonnegative")
+    baseline, current, hours, rate, tools = values
+    gross = baseline - current
+    initial = hours * rate
+    monthly_net = gross - tools
+    first_year_net = monthly_net * 12 - initial
+    investment = initial + tools * 12
     return {
-        'monthly_savings': monthly_savings,
-        'annual_savings': annual_savings,
-        'implementation_cost': implementation_cost,
-        'net_annual_savings': net_annual_savings,
-        'roi_percentage': roi_percentage,
-        'payback_months': payback_months
+        "gross_monthly_savings": gross,
+        "net_monthly_savings": monthly_net,
+        "implementation_cost": initial,
+        "net_first_year_savings": first_year_net,
+        "roi_pct": first_year_net / investment * 100 if investment else None,
+        "payback_months": initial / monthly_net if monthly_net > 0 else None,
     }
 
-# 예시
-result = calculate_finops_roi(
-    baseline_monthly_cost=50000,   # $50k/월
-    current_monthly_cost=32000,    # $32k/월 (36% 절감)
-    implementation_hours=160,      # 1개월 풀타임
-    tool_monthly_cost=500          # Kubecost Enterprise
-)
-
-print(f"""
-FinOps ROI 분석
---------------
-월별 절감: ${result['monthly_savings']:,.0f}
-연간 절감: ${result['annual_savings']:,.0f}
-구현 비용: ${result['implementation_cost']:,.0f}
-순 연간 절감: ${result['net_annual_savings']:,.0f}
-ROI: {result['roi_percentage']:.0f}%
-회수 기간: {result['payback_months']:.1f}개월
-""")
+if __name__ == "__main__":
+    result = calculate_finops_roi(50000, 32000, 160, tool_monthly_cost=500)
+    assert result["net_monthly_savings"] == 17500
+    assert result["net_first_year_savings"] == 194000
+    assert result["payback_months"] == D(16000) / D(17500)
+    assert calculate_finops_roi(100, 100, 0)["roi_pct"] is None
+    assert calculate_finops_roi(100, 120, 1)["payback_months"] is None
+    assert calculate_finops_roi(100, 50, 0)["payback_months"] == 0
+    print(result)
 ```
 
 #### 4. 검증 체크리스트
 
-**30일 후 검증**
+| 시점 | 확인 항목 | 판단 근거 |
+|------|-----------|-----------|
+| 30일 | 가시성·할당·데이터 품질·알림 | 누락 목록·청구 대조·알림 테스트 |
+| 90일 | Rightsizing·노드 정책 효과 | 같은 부하의 비용·지연·오류·OOM 비교 |
+| 180일 | 반복 가능한 FinOps 운영 | 단위 비용·ROI·정기 리뷰·복구 기록 |
 
-- [ ] 월별 총 비용 10-20% 감소
-- [ ] Kubecost 또는 SCAD로 Pod 레벨 가시성 확보
-- [ ] 네임스페이스별 비용 할당 70% 이상
-- [ ] 비용 알림 정상 작동
-- [ ] 팀별 월간 비용 리뷰 1회 이상 실시
-
-**90일 후 검증**
-
-- [ ] 월별 총 비용 30-40% 감소
-- [ ] Karpenter 배포 완료 및 정상 작동
-- [ ] Spot 인스턴스 비율 50% 이상
-- [ ] CPU 효율성 60% 이상
-- [ ] 메모리 효율성 70% 이상
-- [ ] 할당되지 않은 비용 5% 미만
-- [ ] 자동화된 rightsizing 정책 운영
-
-**180일 후 검증**
-
-- [ ] 월별 총 비용 40-60% 감소
-- [ ] FinOps 성숙도 "Walk" 이상
-- [ ] 자동화된 최적화 워크플로우 구축
-- [ ] 비즈니스 메트릭과 비용 연계
-- [ ] ROI 300% 이상 달성
+기간별 절감률과 고정 Spot 비중을 성공 기준으로 강제하지 않습니다. 조직의 SLO·트래픽·약정 조건에 맞춰 목표를 승인합니다. 후보가 줄어도 노드가 유지되면 청구 비용이 감소하지 않을 수 있습니다.
 
 ## 트러블슈팅
 
+원인을 먼저 확인하고 변경 범위를 좁힙니다. 가격·quota·가용성·권한 문제를 구분합니다.
+
 ### 일반적인 문제와 해결 방법
+
+다음 절차는 진단 순서와 유효한 예시를 설명합니다. 운영 환경에서 수행한 검증 결과는 아닙니다.
 
 #### 문제 1: SCAD 데이터가 CUR에 나타나지 않음
 
-**증상**
+Billing의 EKS SCAD opt-in과 측정 방식을 먼저 확인합니다. 이어서 export의 `COST_AND_USAGE_REPORT` 설정에 `INCLUDE_SPLIT_COST_ALLOCATION_DATA="TRUE"`와 resource IDs가 있는지 확인합니다. [SCAD 활성화](https://docs.aws.amazon.com/cur/latest/userguide/enabling-split-cost-allocation-data.html)
+
+S3 전달 상태·버킷 정책·최근 export 갱신·Athena 테이블 위치/파티션을 확인합니다. requests 방식에서 CPU·메모리 requests가 없는 Pod, 미활성 태그, 데이터 준비 지연도 조사합니다. EC2 리소스 ID만 보고 Pod split 행이 없다고 단정하지 않습니다. 아래 조회의 ARN은 실제 값으로 설정합니다.
 
 ```bash
-# Athena 쿼리 결과가 비어있음
-SELECT * FROM eks_cost_report
-WHERE split_line_item_split_cost IS NOT NULL
-LIMIT 10;
-# 0 rows returned
+aws bcm-data-exports list-exports --region us-east-1
+aws bcm-data-exports get-export --region us-east-1 \
+  --export-arn "$EXPORT_ARN"
 ```
 
-**원인**
-
-- SCAD 활성화 후 24-48시간 지연
-- EKS 클러스터에서 SCAD 미활성화
-- CUR에 SPLIT_COST_ALLOCATION_DATA 스키마 요소 누락
-
-**해결**
-
-```bash
-# 1. 클러스터 SCAD 활성화 확인
-aws eks describe-cluster --name your-cluster \
-  --query 'cluster.resourcesVpcConfig.splitCostAllocationEnabled'
-
-# 2. CUR 정의 확인
-aws cur describe-report-definitions \
-  --query 'ReportDefinitions[?ReportName==`eks-cost-report`].AdditionalSchemaElements'
-
-# 3. 필요시 재활성화
-aws eks update-cluster-config \
-  --name your-cluster \
-  --resources-vpc-config splitCostAllocationEnabled=true
+```sql
+SELECT line_item_resource_id, split_line_item_parent_resource_id,
+       split_line_item_split_cost, resource_tags
+FROM eks_cur2
+WHERE split_line_item_parent_resource_id IS NOT NULL
+LIMIT 10;
 ```
 
 #### 문제 2: Karpenter가 노드를 프로비저닝하지 않음
 
-**증상**
+Pod 요구사항·taint·노드 한도와 NodePool/EC2NodeClass Ready 조건을 비교합니다. 컨트롤러 IAM 정책은 설치 방식에 맞는 역할과 연결된 정책을 확인합니다. discovery 태그·AMI 선택·EKS 노드 접근 오류를 구분합니다. [v1.13 진단 기준](https://karpenter.sh/v1.13/getting-started/getting-started-with-karpenter/)
+
+[offerings API](https://docs.aws.amazon.com/cli/latest/reference/ec2/describe-instance-type-offerings.html)를 사용하는 다음 조회는 ap-northeast-2의 AZ별 인스턴스 **제공 여부**만 확인합니다. 실시간 EC2 용량 검사가 아닙니다. 요구사항을 완화하는 임시 NodePool을 만들기 전에 실제 원인을 확인하고, 필요한 경우 앞의 완전한 v1 예시를 바탕으로 비용 한도를 포함해 검토합니다.
 
 ```bash
-kubectl get pods
-# STATUS: Pending (스케줄되지 않음)
-
-kubectl logs -n karpenter -l app.kubernetes.io/name=karpenter
-# No suitable node class found
-```
-
-**원인**
-
-- NodePool 요구사항과 워크로드 불일치
-- IAM 권한 부족
-- 서브넷/보안 그룹 태그 누락
-- 인스턴스 타입 용량 부족
-
-**해결**
-
-```bash
-# 1. NodePool과 Pod 요구사항 비교
 kubectl get nodepool default -o yaml
-kubectl get pod <pending-pod> -o yaml | grep -A 10 "nodeSelector\|affinity\|tolerations"
-
-# 2. Karpenter 권한 확인
-aws iam get-role-policy \
-  --role-name KarpenterControllerRole-your-cluster \
-  --policy-name KarpenterControllerPolicy
-
-# 3. 서브넷 태그 확인
-aws ec2 describe-subnets \
-  --filters "Name=tag:karpenter.sh/discovery,Values=your-cluster"
-
-# 4. 보안 그룹 태그 확인
-aws ec2 describe-security-groups \
-  --filters "Name=tag:karpenter.sh/discovery,Values=your-cluster"
-
-# 5. EC2 용량 확인
+kubectl get ec2nodeclass default -o yaml
+kubectl get nodeclaims -o wide
+kubectl get events -A --field-selector reason=FailedScheduling
 aws ec2 describe-instance-type-offerings \
   --location-type availability-zone \
   --filters "Name=instance-type,Values=m5.xlarge" \
   --region ap-northeast-2
 ```
 
-**NodePool 디버깅**
-
-```yaml
-# 광범위한 요구사항으로 테스트
-apiVersion: karpenter.sh/v1
-kind: NodePool
-metadata:
-  name: debug-nodepool
-spec:
-  template:
-    spec:
-      requirements:
-        - key: karpenter.sh/capacity-type
-          operator: In
-          values: ["on-demand"]  # Spot 제외
-        - key: kubernetes.io/arch
-          operator: In
-          values: ["amd64"]
-        # 인스턴스 타입 제한 없음
-      nodeClassRef:
-        name: default
-```
-
 #### 문제 3: Kubecost에서 높은 비용 불일치
 
-**증상**
+비용 차이를 임의의 20% 임계값으로 정상·오류 판정하지 않습니다. 기간·통화·청구/상각/할인 기준과 공유·유휴 비용 포함 여부를 먼저 일치시킵니다.
 
-- Kubecost UI 비용과 AWS 청구서 20% 이상 차이
-- 특정 네임스페이스 비용이 비정상적으로 높음
-
-**원인**
-
-- Prometheus 메트릭 누락
-- 잘못된 AWS Spot 가격 데이터
-- 공유 리소스 할당 방법 오류
-
-**해결**
-
-```bash
-# 1. Prometheus 메트릭 확인
-kubectl port-forward -n kubecost svc/kubecost-prometheus-server 9090:80
-# 브라우저에서 http://localhost:9090 열기
-# 쿼리: up{job="kubecost-cost-model"}
-
-# 2. Kubecost 설정 검증
-kubectl get configmap -n kubecost kubecost-cost-analyzer -o yaml | grep -A 20 "kubecostProductConfigs"
-
-# 3. AWS 통합 재구성
-cat > kubecost-aws-fix.yaml << 'EOF'
-kubecostProductConfigs:
-  awsSpotDataRegion: "ap-northeast-2"
-  awsSpotDataBucket: "your-bucket"
-  spotLabel: "karpenter.sh/capacity-type"
-  spotLabelValue: "spot"
-
-  # CUR 통합
-  athenaProjectID: "your-project"
-  athenaBucketName: "s3://your-athena-results"
-  athenaRegion: "ap-northeast-2"
-  athenaDatabase: "athenacurcfn_eks_cost_report"
-  athenaTable: "eks_cost_report"
-  athenaWorkgroup: "primary"
-EOF
-
-helm upgrade kubecost kubecost/cost-analyzer \
-  -n kubecost \
-  -f kubecost-aws-fix.yaml
-
-# 4. 비용 재계산 강제
-kubectl delete pod -n kubecost -l app=cost-model
-```
+설치한 버전의 수집 상태를 확인합니다. Prometheus 기반 2.x에서는 scrape·중복 시계열을, 3.x에서는 직접 수집 agent를 확인합니다. 노드 가격의 최신성·태그·CUR 전달 상태도 대조합니다. [선택한 Kubecost 릴리스의 청구 통합](https://github.com/kubecost/cost-analyzer-helm-chart)에서 요구하는 설정과 실제 권한을 비교합니다. 차트 버전이 다른 values를 덮어쓰거나 Pod를 삭제해 비용 재계산을 강제하지 않습니다. 재처리가 필요하면 해당 제품 버전의 지원 절차를 따릅니다.
 
 #### 문제 4: Spot 인스턴스 중단으로 서비스 영향
 
-**증상**
+[PDB](https://kubernetes.io/docs/concepts/workloads/pods/disruptions/)는 eviction API를 사용하는 자발적 중단을 제한합니다. Spot 회수·노드 장애에서 항상 80% 가용성을 유지하지 않습니다. 5개 replica의 `minAvailable: "80%"`는 정상 Pod 4개를 요구하지만, 실제 여유 용량·준비 상태·비자발적 장애는 별도입니다.
 
-- 2분 경고 후 Pod 갑작스런 종료
-- 가용성 저하
+아래는 전용 테스트 네임스페이스에 적용할 수 있는 완전한 Deployment/PDB 예시입니다. 애플리케이션은 nginx이며 production 이미지 정책에 맞는 검증된 digest로 고정해야 합니다. `terminationGracePeriodSeconds`는 Pod spec에 둡니다. 5초 endpoint 전파 대기와 nginx graceful quit은 예시 동작이며, 실제 서비스의 연결 drain·요청 최대 시간으로 검증해야 합니다. preStop 시간은 전체 종료 유예에 포함됩니다. [Pod 종료 과정](https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/)
 
-**해결 전략**
+[Spot 중단 알림](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/spot-instance-termination-notices.html)은 best effort로 전달됩니다. 2분 알림은 보장된 애플리케이션 유예 시간이 아니며 hibernation은 즉시 시작될 수 있습니다. Karpenter 관리 노드는 공식 SQS/EventBridge 중단 처리를 구성합니다. 별도 Node Termination Handler와 중복 drain 책임을 만들지 않습니다. 여러 호환 인스턴스 유형·AZ, topology spread, 테스트한 On-Demand/관리형 폴백을 검토하되 무중단을 보장하지 않습니다. [Karpenter 중단 처리](https://karpenter.sh/v1.13/concepts/disruption/)
 
 ```yaml
-# 1. PodDisruptionBudget 강화
-apiVersion: policy/v1
-kind: PodDisruptionBudget
-metadata:
-  name: critical-app-pdb
-spec:
-  minAvailable: 80%  # 항상 80% Pod 유지
-  selector:
-    matchLabels:
-      app: critical-app
-
----
-# 2. 다양한 Spot 풀 사용
-apiVersion: karpenter.sh/v1
-kind: NodePool
-metadata:
-  name: diversified-spot
-spec:
-  template:
-    spec:
-      requirements:
-        - key: karpenter.sh/capacity-type
-          operator: In
-          values: ["spot"]
-        - key: node.kubernetes.io/instance-type
-          operator: In
-          values:
-            # 15+ 다양한 인스턴스 타입
-            - "c5.xlarge"
-            - "c5.2xlarge"
-            - "c5a.xlarge"
-            - "c5a.2xlarge"
-            - "c6i.xlarge"
-            - "c6i.2xlarge"
-            - "m5.xlarge"
-            - "m5.2xlarge"
-            - "m5a.xlarge"
-            - "m5a.2xlarge"
-            - "m6i.xlarge"
-            - "m6i.2xlarge"
-            - "r5.xlarge"
-            - "r5a.xlarge"
-            - "r6i.xlarge"
-
----
-# 3. Graceful shutdown 구현
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: spot-aware-app
 spec:
+  replicas: 5
+  selector:
+    matchLabels:
+      app: spot-aware-app
   template:
+    metadata:
+      labels:
+        app: spot-aware-app
     spec:
+      terminationGracePeriodSeconds: 60
       containers:
         - name: app
+          image: nginx:1.28
+          ports:
+            - containerPort: 80
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 80
+          resources:
+            requests:
+              cpu: 100m
+              memory: 64Mi
+            limits:
+              memory: 128Mi
           lifecycle:
             preStop:
               exec:
-                command: ["/bin/sh", "-c", "sleep 120"]  # 2분 대기
-          terminationGracePeriodSeconds: 130
-```
-
-**Spot 중단 모니터링**
-
-```bash
-# AWS Node Termination Handler 설치
-helm repo add eks https://aws.github.io/eks-charts
-helm install aws-node-termination-handler \
-  --namespace kube-system \
-  eks/aws-node-termination-handler \
-  --set enableSpotInterruptionDraining=true \
-  --set enableScheduledEventDraining=true
+                command: ["/bin/sh", "-c", "sleep 5; nginx -s quit"]
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: spot-aware-app-pdb
+spec:
+  minAvailable: "80%"
+  selector:
+    matchLabels:
+      app: spot-aware-app
 ```
 
 #### 문제 5: 높은 데이터 전송 비용
 
-**증상**
+경로별 데이터 전송, NAT 처리, LB 처리, 엔드포인트 시간·처리 요금을 분리합니다. 다음은 [Topology Aware Routing](https://kubernetes.io/docs/concepts/services-networking/topology-aware-routing/)의 annotation 기반 Service 예시입니다. `topologyKeys`는 사용하지 않습니다. `app: backend`인 Ready Pod가 8080 포트에서 제공되고, 여러 AZ에 endpoint가 있어야 합니다.
 
-- AWS 청구서에서 데이터 전송 비용이 예상보다 높음
-- "DataTransfer-Regional-Bytes" 항목 급증
+토폴로지 힌트는 endpoint 분포·소비자 지원 등 조건에 따라 적용되며 같은 AZ 라우팅이나 전송비 제거를 보장하지 않습니다. 이 예시는 더 새로운 `trafficDistribution` 필드를 요구하지 않습니다. 단일 AZ NodePool 고정은 AZ 장애 시 복원력을 낮추므로 비용 절감 기본값으로 제시하지 않습니다.
 
-**원인**
-
-- AZ 간 불필요한 트래픽
-- 인터넷으로 나가는 트래픽 미최적화
-- NAT 게이트웨이 과다 사용
-
-**해결**
+ECR용 private 경로는 ECR API·DKR 인터페이스 엔드포인트와 S3 레이어 다운로드 경로, DNS, endpoint policy, 보안 그룹을 함께 검토합니다. S3 gateway endpoint는 route table과 연결합니다. 실제 NAT 경로와 인터페이스 엔드포인트 시간·처리 비용을 비교한 뒤 설계합니다. [ECR VPC endpoint 전제조건](https://docs.aws.amazon.com/AmazonECR/latest/userguide/vpc-endpoints.html)
 
 ```yaml
-# 1. Topology-aware routing 활성화
 apiVersion: v1
 kind: Service
 metadata:
@@ -1727,128 +965,61 @@ metadata:
   annotations:
     service.kubernetes.io/topology-mode: Auto
 spec:
+  type: ClusterIP
   selector:
     app: backend
   ports:
-    - port: 80
-  # 동일 AZ 내 트래픽 우선
-  topologyKeys:
-    - "topology.kubernetes.io/zone"
-    - "kubernetes.io/hostname"
-    - "*"
-
----
-# 2. Karpenter 단일 AZ 통합 설정
-apiVersion: karpenter.sh/v1
-kind: NodePool
-metadata:
-  name: single-az-consolidation
-spec:
-  disruption:
-    consolidationPolicy: WhenUnderutilized
-    consolidateAfter: 30s
-  template:
-    spec:
-      requirements:
-        # 특정 AZ에 워크로드 고정
-        - key: topology.kubernetes.io/zone
-          operator: In
-          values: ["ap-northeast-2a"]
-```
-
-**VPC 엔드포인트 활용**
-
-```bash
-# S3, ECR 등 AWS 서비스용 VPC 엔드포인트 생성
-aws ec2 create-vpc-endpoint \
-  --vpc-id vpc-xxxxx \
-  --service-name com.amazonaws.ap-northeast-2.s3 \
-  --route-table-ids rtb-xxxxx
-
-aws ec2 create-vpc-endpoint \
-  --vpc-id vpc-xxxxx \
-  --vpc-endpoint-type Interface \
-  --service-name com.amazonaws.ap-northeast-2.ecr.dkr \
-  --subnet-ids subnet-xxxxx subnet-yyyyy \
-  --security-group-ids sg-xxxxx
+    - name: http
+      port: 80
+      targetPort: 8080
+      protocol: TCP
 ```
 
 ## 결론
 
+비용 최적화는 할당 모델·관측 데이터·변경 통제를 함께 운영하는 과정입니다.
+
 ### 핵심 요약
 
-이 가이드에서는 EKS 환경에서 30-90% 비용 절감을 달성하기 위한 포괄적인 전략을 다뤘습니다.
+우선 청구 기준과 비용 소유자를 정의하고 SCAD 또는 Kubernetes 할당 도구로 가시성을 확보합니다. 다음으로 requests·노드 정책·구매 옵션을 검토하고 실제 비용과 SLO 변화를 측정합니다. Rightsizing 결과나 disruption budget 자체를 청구 절감 보장으로 해석하지 않습니다.
 
-**즉시 실행 가능한 10가지 액션**
-
-1. **AWS Cost Explorer에서 EKS 비용 현황 파악** (30분)
-2. **SCAD 활성화로 Pod 레벨 가시성 확보** (1시간)
-3. **Kubecost Free 설치 및 대시보드 확인** (2시간)
-4. **네임스페이스에 비용 할당 태그 추가** (1시간)
-5. **과다 프로비저닝된 워크로드 식별 및 rightsizing** (4시간)
-6. **Spot 인스턴스 사용 가능 워크로드 선별** (2시간)
-7. **Karpenter NodePool 1개 배포 (개발 환경)** (4시간)
-8. **비용 알림 설정 (임계값 초과시)** (1시간)
-9. **주간 비용 리뷰 미팅 일정 수립** (30분)
-10. **90일 최적화 로드맵 작성** (2시간)
-
-**예상 절감 타임라인**
-
-| 기간 | 절감률 | 주요 활동 |
-|------|--------|-----------|
-| **0-30일** | 10-20% | 가시성 도구 구축, 빠른 승리 (rightsizing) |
-| **31-90일** | 30-40% | Karpenter 배포, Spot 통합, 자동화 |
-| **91-180일** | 40-60% | 고급 최적화, 문화 정착, 지속적 개선 |
-| **180일+** | 60-90% | 완전 자동화, 예측 분석, 비즈니스 정렬 |
-
-**성공 요인**
-
-- **경영진 지원**: FinOps를 전략적 이니셔티브로 인식
-- **전담 팀**: 최소 1명의 풀타임 FinOps 엔지니어
-- **명확한 KPI**: 측정 가능한 비용 효율성 목표
-- **문화 변화**: 비용 의식을 엔지니어링 우수성의 일부로
-- **지속적 개선**: 주간 리뷰와 분기별 전략 조정
-
-**피해야 할 함정**
-
-- **가시성 없이 최적화**: 데이터 수집부터 시작
-- **과도한 최적화**: 안정성 희생은 금물
-- **도구 과다 투자**: 성숙도에 맞는 도구 선택
-- **일회성 프로젝트**: 지속적 프로세스로 운영
-- **팀 소외**: 모든 이해관계자 참여
+| 단계 | 활동 | 산출물 |
+|------|------|--------|
+| 기준 수립 | 태그·청구 범위·수집 품질 확인 | 기준 비용과 누락 목록 |
+| 후보 검토 | 컨테이너·노드·네트워크 분석 | 승인 가능한 변경안 |
+| 점진적 적용 | 테스트·성능·복구 검증 | 변경 전후 증거 |
+| 지속 운영 | 주간 리뷰·ROI·단위 비용 | 실제 효과와 다음 우선순위 |
 
 ### 추가 학습 리소스
 
 **공식 문서**
 
-- [AWS EKS Best Practices - Cost Optimization](https://docs.aws.amazon.com/eks/latest/best-practices/cost-opt.html)
-- [Karpenter Documentation](https://karpenter.sh/)
-- [Kubecost Architecture](https://docs.kubecost.com/)
-- [FinOps Foundation](https://www.finops.org/framework/)
-
-**실전 사례**
-
-- [AWS Containers Blog - Cost Optimization](https://aws.amazon.com/blogs/containers/)
-- [FinOps Foundation - Rate Optimization](https://www.finops.org/framework/capabilities/rate-optimization/)
+- [SCAD opt-in](https://docs.aws.amazon.com/cur/latest/userguide/enabling-split-cost-allocation-data.html) — Billing 활성화와 수집 전제조건
+- [CUR 2.0](https://docs.aws.amazon.com/cur/latest/userguide/table-dictionary-cur2.html) — 테이블 구성과 내보내기 범위
+- [CUR 2.0 resource tags](https://docs.aws.amazon.com/cur/latest/userguide/table-dictionary-cur2-resource-tags.html) — map 스키마
+- [Split line item details](https://docs.aws.amazon.com/cur/latest/userguide/split-line-item-columns.html) — 비용·미사용 비용 정의
+- [EKS cost allocation tags](https://docs.aws.amazon.com/cur/latest/userguide/split-cost-allocation-data.html) — Pod 속성·태그
+- [Data Exports CLI](https://docs.aws.amazon.com/cli/latest/reference/bcm-data-exports/create-export.html) — create-export 입력 스키마
+- [EKS pricing](https://aws.amazon.com/eks/pricing/) — 지원 단계·Auto Mode 요금
+- [Karpenter v1.13 NodePools](https://karpenter.sh/v1.13/concepts/nodepools/) — NodePool 스키마·weight
+- [Karpenter v1.13 NodeClasses](https://karpenter.sh/v1.13/concepts/nodeclasses/) — AMI·EC2 태그
+- [Karpenter v1.13 disruption](https://karpenter.sh/v1.13/concepts/disruption/) — budget·중단 처리
+- [Karpenter v1.13 installation](https://karpenter.sh/v1.13/getting-started/getting-started-with-karpenter/) — IAM·노드 역할·큐 설정
+- [Kubernetes resource management](https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/) — 리소스 단위
+- [Kubernetes disruptions](https://kubernetes.io/docs/concepts/workloads/pods/disruptions/) — PDB 적용 범위
+- [Pod lifecycle](https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/) — 종료 유예와 preStop
+- [Topology Aware Routing](https://kubernetes.io/docs/concepts/services-networking/topology-aware-routing/) — Service 힌트와 제약
+- [Prometheus recording rules](https://prometheus.io/docs/prometheus/latest/configuration/recording_rules/) — 규칙 로드·검증
+- [Kubecost Helm chart](https://github.com/kubecost/cost-analyzer-helm-chart) — 릴리스별 설치·통합
 
 **관련 문서**
 
-- [4. Karpenter 오토스케일링](./karpenter-autoscaling.md)
-- [1. Gateway API 도입 가이드](../networking-performance/gateway-api-adoption-guide/)
-- [GitOps 클러스터 운영](../operations-reliability/gitops-cluster-operation.md)
-- [EKS Hybrid Nodes Best Practices](/docs/eks-hybrid-nodes)
-
-**커뮤니티**
-
-- [FinOps Foundation](https://www.finops.org/)
-- [Karpenter Slack](https://kubernetes.slack.com/archives/C02SFFZSA2K)
-- [AWS Containers Roadmap](https://github.com/aws/containers-roadmap)
+- [Karpenter 오토스케일링](./karpenter-autoscaling.md) — 노드 확장 설계
+- [EKS 리소스 최적화](./eks-resource-optimization.md) — requests·limits·관측성
+- [GitOps 클러스터 운영](../operations-reliability/gitops-cluster-operation.md) — 변경 관리
 
 ---
 
-**피드백 및 기여**
+**문서 버전**: v2.2 (2026-09-18)
 
-이 문서에 대한 피드백이나 개선 제안은 [GitHub Issues](https://github.com/devfloor9/engineering-playbook/issues)에 등록해주세요.
-
-**문서 버전**: v2.1 (2026-06-15)
-**다음 리뷰**: 2026-09-15
+**다음 리뷰**: 2026-12-18
