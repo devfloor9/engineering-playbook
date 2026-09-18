@@ -24,8 +24,8 @@ The smoke checks use dummy credentials and HTTPX's mock transport with sockets
 blocked. They exercise all five actual collections metrics through the native
 OpenAI and Instructor clients, plus adapter validation, failure aggregation,
 quality gates, and cache invalidation. Synthetic scores test code paths only.
-They do not measure RAG quality, confirm live model access, or validate a Linux CI
-runner. Ragas 0.4.3 may emit an upstream `ResourceWarning` while reading its local
+The same checks run on Python 3.11 in Linux CI. They do not measure RAG quality or
+confirm live model access. Ragas 0.4.3 may emit an upstream `ResourceWarning` while reading its local
 analytics identifier; telemetry is disabled for these checks.
 
 ## Run evaluation
