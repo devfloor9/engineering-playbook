@@ -1,121 +1,33 @@
 import React from 'react';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
+import ManualTable from '../ArchitectureTables/ManualTable';
+import Icon from '../Icon';
 const LlmdFeatures = () => {
   const {
     i18n
   } = useDocusaurusContext();
   const isKo = i18n.currentLocale === 'ko';
   const features = [{
-    icon: '🎯',
+    icon: "compass",
     name: isKo ? 'Prefix Caching 인식' : 'Prefix Caching Awareness',
     description: isKo ? '동일 프롬프트 프리픽스를 가진 요청을 같은 인스턴스로 라우팅' : 'Routes requests with the same prompt prefix to the same instance',
     k8sIntegration: isKo ? 'Service Discovery 활용' : 'Leverages Service Discovery'
   }, {
-    icon: '⚖️',
+    icon: "network",
     name: isKo ? '로드 밸런싱' : 'Load Balancing',
     description: isKo ? 'GPU 사용률 기반 지능형 분배' : 'Intelligent distribution based on GPU utilization',
     k8sIntegration: isKo ? 'Prometheus 메트릭 연동' : 'Prometheus metrics integration'
   }, {
-    icon: '🔄',
+    icon: "refresh",
     name: isKo ? '장애 복구' : 'Failure Recovery',
     description: isKo ? '인스턴스 장애 시 자동 재라우팅' : 'Automatic re-routing on instance failure',
     k8sIntegration: isKo ? 'Health Check + Endpoint Slice' : 'Health Check + Endpoint Slice'
   }, {
-    icon: '📊',
+    icon: "chart",
     name: isKo ? '동적 스케일링' : 'Dynamic Scaling',
     description: isKo ? '요청량에 따른 백엔드 확장' : 'Backend expansion based on request volume',
     k8sIntegration: isKo ? 'KEDA 연동' : 'KEDA integration'
   }];
-  return <div style={{
-    maxWidth: '760px',
-    margin: '0 auto',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-    fontSize: '15px',
-    lineHeight: '1.6'
-  }}>
-      <div style={{
-      background: 'linear-gradient(135deg, #c0392b 0%, #e74c3c 100%)',
-      color: 'white',
-      padding: '20px 24px',
-      borderRadius: '8px 8px 0 0'
-    }}>
-        <div style={{
-        fontSize: '20px',
-        fontWeight: '600',
-        marginBottom: '4px'
-      }}>
-          {isKo ? '🚀 llm.d 핵심 기능' : '🚀 llm.d Core Features'}
-        </div>
-        <div style={{
-        fontSize: '14px',
-        opacity: 0.9
-      }}>
-          {isKo ? '지능형 LLM 프록시 및 라우팅' : 'Intelligent LLM proxy and routing'}
-        </div>
-      </div>
-
-      <div style={{
-      background: 'var(--ifm-background-surface-color)',
-      border: '1px solid var(--ifm-color-emphasis-200)',
-      borderTop: 'none',
-      borderRadius: '0 0 8px 8px',
-      padding: '16px'
-    }}>
-        <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-        gap: '16px'
-      }}>
-          {features.map((feature, index) => <div key={index} style={{
-          background: 'linear-gradient(135deg, #fff5f5 0%, #ffe5e5 100%)',
-          padding: '20px',
-          borderRadius: '8px',
-          border: '2px solid #e74c3c',
-          boxShadow: '0 3px 6px rgba(231, 76, 60, 0.15)',
-          transition: 'transform 0.2s, box-shadow 0.2s'
-        }}>
-              <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '12px',
-            marginBottom: '12px'
-          }}>
-                <span style={{
-              fontSize: '28px'
-            }}>{feature.icon}</span>
-                <div style={{
-              fontSize: '16px',
-              fontWeight: '600',
-              color: '#c0392b',
-              lineHeight: '1.3'
-            }}>
-                  {feature.name}
-                </div>
-              </div>
-
-              <div style={{
-            fontSize: '14px',
-            color: '#2c3e50',
-            marginBottom: '12px',
-            lineHeight: '1.5'
-          }}>
-                {feature.description}
-              </div>
-
-              <div style={{
-            display: 'inline-block',
-            fontSize: '12px',
-            padding: '6px 12px',
-            background: '#326ce5',
-            color: 'white',
-            borderRadius: '16px',
-            fontWeight: '500'
-          }}>
-                {feature.k8sIntegration}
-              </div>
-            </div>)}
-        </div>
-      </div>
-    </div>;
+  return <ManualTable title={isKo ? "llm.d 핵심 기능" : "llm.d Core Features"} icon="cpu" description={isKo ? '지능형 LLM 프록시 및 라우팅' : 'Intelligent LLM proxy and routing'} headers={[isKo ? "기능" : "Feature", isKo ? "설명" : "Description", isKo ? "Kubernetes 통합" : "Kubernetes Integration"]} rows={features.map(row => [<><Icon name={row.icon} size={18} /> {row.name}</>, row.description, row.k8sIntegration])} />;
 };
 export default LlmdFeatures;

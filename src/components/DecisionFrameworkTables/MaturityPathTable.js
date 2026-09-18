@@ -1,5 +1,6 @@
 import React from 'react';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
+import ManualTable from '../ArchitectureTables/ManualTable';
 const MaturityPathTable = () => {
   const {
     i18n
@@ -24,120 +25,6 @@ const MaturityPathTable = () => {
     services: isKo ? 'EKS + vLLM/llm-d + kgateway + Bifrost + Langfuse' : 'EKS + vLLM/llm-d + kgateway + Bifrost + Langfuse',
     timeline: isKo ? '3-6개월' : '3-6 months'
   }];
-  return <div style={{
-    maxWidth: '900px',
-    margin: '20px auto',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-    fontSize: '15px'
-  }}>
-      <div style={{
-      background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-      color: 'white',
-      padding: '16px 20px',
-      borderRadius: '8px 8px 0 0',
-      fontWeight: '600',
-      fontSize: '16px'
-    }}>
-        {isKo ? 'AI 플랫폼 성숙도 경로' : 'AI Platform Maturity Path'}
-      </div>
-
-      <div style={{
-      background: 'var(--ifm-background-surface-color)',
-      border: '1px solid var(--ifm-color-emphasis-200)',
-      borderTop: 'none',
-      borderRadius: '0 0 8px 8px',
-      overflow: 'hidden'
-    }}>
-        <table style={{
-        width: '100%',
-        borderCollapse: 'collapse'
-      }}>
-          <thead>
-            <tr style={{
-            background: 'var(--ifm-color-emphasis-100)'
-          }}>
-              <th style={{
-              padding: '12px',
-              textAlign: 'left',
-              borderBottom: '2px solid var(--ifm-color-emphasis-200)',
-              fontWeight: '600'
-            }}>
-                {isKo ? '성숙도' : 'Maturity Level'}
-              </th>
-              <th style={{
-              padding: '12px',
-              textAlign: 'left',
-              borderBottom: '2px solid var(--ifm-color-emphasis-200)',
-              fontWeight: '600'
-            }}>
-                {isKo ? '특징' : 'Characteristics'}
-              </th>
-              <th style={{
-              padding: '12px',
-              textAlign: 'left',
-              borderBottom: '2px solid var(--ifm-color-emphasis-200)',
-              fontWeight: '600'
-            }}>
-                {isKo ? '권장 스택' : 'Recommended Stack'}
-              </th>
-              <th style={{
-              padding: '12px',
-              textAlign: 'left',
-              borderBottom: '2px solid var(--ifm-color-emphasis-200)',
-              fontWeight: '600'
-            }}>
-                {isKo ? '핵심 서비스' : 'Core Services'}
-              </th>
-              <th style={{
-              padding: '12px',
-              textAlign: 'left',
-              borderBottom: '2px solid var(--ifm-color-emphasis-200)',
-              fontWeight: '600'
-            }}>
-                {isKo ? '기간' : 'Timeline'}
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {data.map((row, index) => <tr key={index} style={{
-            background: index % 2 === 0 ? 'transparent' : 'var(--ifm-color-emphasis-50)',
-            transition: 'background 0.2s'
-          }}>
-                <td style={{
-              padding: '12px',
-              borderBottom: '1px solid var(--ifm-color-emphasis-100)',
-              fontWeight: '500'
-            }}>
-                  {row.level}
-                </td>
-                <td style={{
-              padding: '12px',
-              borderBottom: '1px solid var(--ifm-color-emphasis-100)'
-            }}>
-                  {row.characteristics}
-                </td>
-                <td style={{
-              padding: '12px',
-              borderBottom: '1px solid var(--ifm-color-emphasis-100)'
-            }}>
-                  {row.recommended}
-                </td>
-                <td style={{
-              padding: '12px',
-              borderBottom: '1px solid var(--ifm-color-emphasis-100)'
-            }}>
-                  {row.services}
-                </td>
-                <td style={{
-              padding: '12px',
-              borderBottom: '1px solid var(--ifm-color-emphasis-100)'
-            }}>
-                  {row.timeline}
-                </td>
-              </tr>)}
-          </tbody>
-        </table>
-      </div>
-    </div>;
+  return <ManualTable title={isKo ? 'AI 플랫폼 성숙도 경로' : 'AI Platform Maturity Path'} headers={[isKo ? '성숙도' : 'Maturity Level', isKo ? '특징' : 'Characteristics', isKo ? '권장 스택' : 'Recommended Stack', isKo ? '핵심 서비스' : 'Core Services', isKo ? '기간' : 'Timeline']} rows={data.map(row => [row.level, row.characteristics, row.recommended, row.services, row.timeline])} numericColumns={[4]} />;
 };
 export default MaturityPathTable;

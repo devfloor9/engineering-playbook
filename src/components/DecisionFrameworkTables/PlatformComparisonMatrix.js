@@ -1,5 +1,6 @@
 import React from 'react';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
+import ManualTable from '../ArchitectureTables/ManualTable';
 const PlatformComparisonMatrix = () => {
   const {
     i18n
@@ -36,120 +37,6 @@ const PlatformComparisonMatrix = () => {
     eks: isKo ? '2-4개월 — 클러스터 + GPU + 모델 서빙 구축' : '2-4 months — cluster + GPU + model serving setup',
     hybrid: isKo ? '1-3개월 — Bedrock 시작 + EKS 점진 확장' : '1-3 months — Bedrock start + gradual EKS expansion'
   }];
-  return <div style={{
-    maxWidth: '900px',
-    margin: '20px auto',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-    fontSize: '15px'
-  }}>
-      <div style={{
-      background: 'linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)',
-      color: 'white',
-      padding: '16px 20px',
-      borderRadius: '8px 8px 0 0',
-      fontWeight: '600',
-      fontSize: '16px'
-    }}>
-        {isKo ? 'AI 플랫폼 5축 비교 매트릭스' : 'AI Platform 5-Axis Comparison Matrix'}
-      </div>
-
-      <div style={{
-      background: 'var(--ifm-background-surface-color)',
-      border: '1px solid var(--ifm-color-emphasis-200)',
-      borderTop: 'none',
-      borderRadius: '0 0 8px 8px',
-      overflow: 'hidden'
-    }}>
-        <table style={{
-        width: '100%',
-        borderCollapse: 'collapse'
-      }}>
-          <thead>
-            <tr style={{
-            background: 'var(--ifm-color-emphasis-100)'
-          }}>
-              <th style={{
-              padding: '12px',
-              textAlign: 'left',
-              borderBottom: '2px solid var(--ifm-color-emphasis-200)',
-              fontWeight: '600'
-            }}>
-                {isKo ? '평가축' : 'Evaluation Axis'}
-              </th>
-              <th style={{
-              padding: '12px',
-              textAlign: 'left',
-              borderBottom: '2px solid var(--ifm-color-emphasis-200)',
-              fontWeight: '600'
-            }}>
-                Bedrock + AgentCore
-              </th>
-              <th style={{
-              padding: '12px',
-              textAlign: 'left',
-              borderBottom: '2px solid var(--ifm-color-emphasis-200)',
-              fontWeight: '600'
-            }}>
-                SageMaker Unified Studio
-              </th>
-              <th style={{
-              padding: '12px',
-              textAlign: 'left',
-              borderBottom: '2px solid var(--ifm-color-emphasis-200)',
-              fontWeight: '600'
-            }}>
-                {isKo ? 'EKS+오픈소스' : 'EKS+Open Source'}
-              </th>
-              <th style={{
-              padding: '12px',
-              textAlign: 'left',
-              borderBottom: '2px solid var(--ifm-color-emphasis-200)',
-              fontWeight: '600'
-            }}>
-                {isKo ? '하이브리드' : 'Hybrid'}
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {data.map((row, index) => <tr key={index} style={{
-            background: index % 2 === 0 ? 'transparent' : 'var(--ifm-color-emphasis-50)',
-            transition: 'background 0.2s'
-          }}>
-                <td style={{
-              padding: '12px',
-              borderBottom: '1px solid var(--ifm-color-emphasis-100)',
-              fontWeight: '500'
-            }}>
-                  {row.axis}
-                </td>
-                <td style={{
-              padding: '12px',
-              borderBottom: '1px solid var(--ifm-color-emphasis-100)'
-            }}>
-                  {row.bedrock}
-                </td>
-                <td style={{
-              padding: '12px',
-              borderBottom: '1px solid var(--ifm-color-emphasis-100)'
-            }}>
-                  {row.sagemaker}
-                </td>
-                <td style={{
-              padding: '12px',
-              borderBottom: '1px solid var(--ifm-color-emphasis-100)'
-            }}>
-                  {row.eks}
-                </td>
-                <td style={{
-              padding: '12px',
-              borderBottom: '1px solid var(--ifm-color-emphasis-100)'
-            }}>
-                  {row.hybrid}
-                </td>
-              </tr>)}
-          </tbody>
-        </table>
-      </div>
-    </div>;
+  return <ManualTable title={isKo ? 'AI 플랫폼 5축 비교 매트릭스' : 'AI Platform 5-Axis Comparison Matrix'} headers={[isKo ? '평가축' : 'Evaluation Axis', "Bedrock + AgentCore", "SageMaker Unified Studio", isKo ? 'EKS+오픈소스' : 'EKS+Open Source', isKo ? '하이브리드' : 'Hybrid']} rows={data.map(row => [row.axis, row.bedrock, row.sagemaker, row.eks, row.hybrid])} />;
 };
 export default PlatformComparisonMatrix;

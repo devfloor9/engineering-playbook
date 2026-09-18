@@ -1,5 +1,6 @@
 import React from 'react';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
+import ManualTable from '../ArchitectureTables/ManualTable';
 const HybridPatternSummary = () => {
   const {
     i18n
@@ -26,106 +27,6 @@ const HybridPatternSummary = () => {
     scenario: isKo ? '엔터프라이즈 AI CoE, 전체 AI 라이프사이클 관리' : 'Enterprise AI CoE, full AI lifecycle management',
     complexity: '★★★★☆'
   }];
-  return <div style={{
-    maxWidth: '900px',
-    margin: '20px auto',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-    fontSize: '15px'
-  }}>
-      <div style={{
-      background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
-      color: 'white',
-      padding: '16px 20px',
-      borderRadius: '8px 8px 0 0',
-      fontWeight: '600',
-      fontSize: '16px'
-    }}>
-        {isKo ? '하이브리드 패턴 요약' : 'Hybrid Pattern Summary'}
-      </div>
-
-      <div style={{
-      background: 'var(--ifm-background-surface-color)',
-      border: '1px solid var(--ifm-color-emphasis-200)',
-      borderTop: 'none',
-      borderRadius: '0 0 8px 8px',
-      overflow: 'hidden'
-    }}>
-        <table style={{
-        width: '100%',
-        borderCollapse: 'collapse'
-      }}>
-          <thead>
-            <tr style={{
-            background: 'var(--ifm-color-emphasis-100)'
-          }}>
-              <th style={{
-              padding: '12px',
-              textAlign: 'left',
-              borderBottom: '2px solid var(--ifm-color-emphasis-200)',
-              fontWeight: '600'
-            }}>
-                {isKo ? '패턴' : 'Pattern'}
-              </th>
-              <th style={{
-              padding: '12px',
-              textAlign: 'left',
-              borderBottom: '2px solid var(--ifm-color-emphasis-200)',
-              fontWeight: '600'
-            }}>
-                {isKo ? '구성' : 'Configuration'}
-              </th>
-              <th style={{
-              padding: '12px',
-              textAlign: 'left',
-              borderBottom: '2px solid var(--ifm-color-emphasis-200)',
-              fontWeight: '600'
-            }}>
-                {isKo ? '적합 시나리오' : 'Best Fit Scenario'}
-              </th>
-              <th style={{
-              padding: '12px',
-              textAlign: 'left',
-              borderBottom: '2px solid var(--ifm-color-emphasis-200)',
-              fontWeight: '600'
-            }}>
-                {isKo ? '복잡도' : 'Complexity'}
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {data.map((row, index) => <tr key={index} style={{
-            background: index % 2 === 0 ? 'transparent' : 'var(--ifm-color-emphasis-50)',
-            transition: 'background 0.2s'
-          }}>
-                <td style={{
-              padding: '12px',
-              borderBottom: '1px solid var(--ifm-color-emphasis-100)',
-              fontWeight: '500'
-            }}>
-                  {row.pattern}
-                </td>
-                <td style={{
-              padding: '12px',
-              borderBottom: '1px solid var(--ifm-color-emphasis-100)'
-            }}>
-                  {row.configuration}
-                </td>
-                <td style={{
-              padding: '12px',
-              borderBottom: '1px solid var(--ifm-color-emphasis-100)'
-            }}>
-                  {row.scenario}
-                </td>
-                <td style={{
-              padding: '12px',
-              borderBottom: '1px solid var(--ifm-color-emphasis-100)'
-            }}>
-                  {row.complexity}
-                </td>
-              </tr>)}
-          </tbody>
-        </table>
-      </div>
-    </div>;
+  return <ManualTable title={isKo ? '하이브리드 패턴 요약' : 'Hybrid Pattern Summary'} headers={[isKo ? '패턴' : 'Pattern', isKo ? '구성' : 'Configuration', isKo ? '적합 시나리오' : 'Best Fit Scenario', isKo ? '복잡도' : 'Complexity']} rows={data.map(row => [row.pattern, row.configuration, row.scenario, <>{row.complexity} ({row.complexity.split('★').length - 1}/5)</>])} numericColumns={[3]} />;
 };
 export default HybridPatternSummary;
