@@ -22,11 +22,11 @@ export default function AiDocs() {
   ];
   const steps = ko ? [
     ['문서 링크 복사', '문서 상단의 작성일·수정일·읽기시간 뒤에 있는 링크 복사 버튼을 사용하세요.'],
-    ['필요한 Markdown 선택', 'Markdown이 제공되는 문서는 같은 위치에서 열거나 복사해 AI 도구에 전달할 수 있습니다.'],
+    ['필요한 Markdown 선택', '아래 주제별 문서 목록에서 필요한 Markdown을 찾아 해당 주소를 AI 도구에 전달하세요.'],
     ['원문과 함께 확인', '시각적 배치나 대화형 동작이 중요하면 웹 문서도 함께 확인하세요.'],
   ] : [
     ['Copy the page link', 'Use Copy link beside the publication date, revision date, and reading estimate.'],
-    ['Choose the Markdown', 'When available, open or copy Markdown from the same toolbar and pass it to your AI tool.'],
+    ['Choose the Markdown', 'Use Browse by topic below to find the Markdown document and share its URL with your AI tool.'],
     ['Keep the web page nearby', 'Refer to the web page when visual layout or interactive behavior matters.'],
   ];
   return (

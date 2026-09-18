@@ -63,7 +63,7 @@ For implementation code, see [AI on EKS](https://github.com/devfloor9/ai-on-eks)
 | [llm-wiki/manifest.json](https://devfloor9.github.io/engineering-playbook/llm-wiki/manifest.json) | Per-page metadata, Markdown URLs, source provenance, and content-coverage information |
 | [llm-wiki/index.md](https://devfloor9.github.io/engineering-playbook/llm-wiki/index.md) | Links to component-aware Markdown pages grouped by domain |
 
-The LLM Wiki exports Korean pages from six technical domains plus the root introduction. Industry Solutions and sales material are excluded. English pages currently offer link copying and the AI guide, without a Korean Markdown action being presented as an English export.
+The LLM Wiki exports Korean pages from six technical domains plus the root introduction. English pages, Industry Solutions, and sales material are excluded. Articles in either language provide link copying and access to the AI guide.
 
 Supported static components export their text, table rows, navigation targets, and diagram equivalents from repository sources. Unknown runtime content is identified by an export note and a link to the web page. Inspect `content_coverage`, `rendered_sources`, and `omission_details` in the manifest; a clean snapshot does not imply support for arbitrary MDX. Interactive controls and animations are not reproduced.
 
@@ -122,7 +122,7 @@ The site is served under `/engineering-playbook/`. For the English development s
 npm start -- --locale en
 ```
 
-Generate and inspect the deployable site, including the Markdown actions:
+Generate and inspect the deployable site, including the Markdown exports:
 
 ```sh
 npm run generate-tags
@@ -133,7 +133,7 @@ node scripts/validate-links.js --build-dir build
 npm run serve
 ```
 
-The development server alone does not generate the LLM artifacts. Use the production output to verify manifest-backed tools. Generated files under `build/` are deployment artifacts and are not committed.
+The development server alone does not generate the LLM artifacts. Use the production output to verify discovery and Markdown export endpoints. Generated files under `build/` are deployment artifacts and are not committed.
 
 ### Verification
 
