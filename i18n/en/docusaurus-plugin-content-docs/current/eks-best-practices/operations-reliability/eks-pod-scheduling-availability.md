@@ -923,6 +923,8 @@ spec:
 
 ---
 
+<span id="5-9-taintstolerations-topology-spread-pdb-priorityclass-descheduler-advanced-patterns" />
+
 ## 5. Taints & Tolerations
 
 Taints and Tolerations are a **node-level repulsion mechanism**. When a Taint is applied to a node, only Pods that tolerate that Taint are scheduled on it.
@@ -3908,6 +3910,8 @@ flowchart TB
 
 ---
 
+<span id="10-2025-2026-aws-innovations" />
+
 ## 10. AWS Innovations in 2025-2026 and Scheduling Strategies
 
 Key innovations announced at AWS re:Invent 2025 are significantly influencing EKS scheduling strategies. This section covers how the latest features, including Provisioned Control Plane, EKS Auto Mode, Karpenter + ARC integration, and Container Network Observability, apply to Pod scheduling and availability.
@@ -5049,6 +5053,8 @@ kubectl get events --sort-by='.lastTimestamp' -A | grep -i warning
 # 9. Check Descheduler logs (if installed)
 kubectl logs -n kube-system -l app=descheduler --tail=100
 ```
+
+<span id="related-documents" />
 
 ### 11.2 Related Documents
 

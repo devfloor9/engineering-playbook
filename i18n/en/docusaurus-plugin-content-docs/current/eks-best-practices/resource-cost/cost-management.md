@@ -131,9 +131,13 @@ graph LR
     style D fill:#4d96ff
 ```
 
+<span id="implementation-steps" />
+
 ## Implementation
 
 Proceed through visibility, change review, gradual rollout, and billing reconciliation.
+
+<span id="step-1-finops-maturity-assessment" />
 
 ### Step 1: Assess FinOps Maturity
 
@@ -156,6 +160,8 @@ This is an internal assessment example. Do not assign fixed allocation accuracy 
 - [ ] Keep weekly review and change approval records.
 - [ ] Define recovery criteria for performance or availability regression.
 - [ ] Track cost per business unit such as request, job, or customer.
+
+<span id="step-2-eks-cost-structure" />
 
 ### Step 2: Understand the EKS Cost Structure
 
@@ -188,6 +194,8 @@ kubectl get pods -A -o json | jq -r '
    (.resources.requests.cpu // "missing"),
    (.resources.requests.memory // "missing")] | @tsv'
 ```
+
+<span id="step-3-cost-management-tools" />
 
 ### Step 3: Implement Cost Management Tools
 
@@ -302,6 +310,8 @@ Creating an alert ConfigMap alone does not wire an integration. Implement the al
 
 Do not select products by cluster count alone. Compare billing reconciliation, multicluster aggregation, latency, retention, and operating ownership against actual requirements.
 
+<span id="step-4-karpenter-cost-optimization" />
+
 ### Step 4: Optimize Costs with Karpenter
 
 Karpenter provisions nodes for unschedulable Pods and evaluates consolidation opportunities. There is no fixed savings percentage relative to other autoscalers.
@@ -405,6 +415,8 @@ Do not mix `instance-category` and `instance-family`. Every pool needs a `nodeCl
 
 When multiple pools match, a higher `weight` is preferred. Weight and value order do not guarantee Spot/On-Demand ratios or a G-before-P sequence. Taints/tolerations only permit placement; use labels and nodeSelector/affinity to target a pool. [Scheduling scope](https://karpenter.sh/v1.13/concepts/nodepools/)
 
+<span id="step-5-cost-allocation--tagging" />
+
 ### Step 5: Cost Allocation and Tagging Strategy
 
 Document the path between Kubernetes labels and AWS resource tags. Adding a namespace label does not automatically create EC2 tags.
@@ -481,6 +493,8 @@ For each namespace outside the reviewed exemption list:
   audit existing violations before enabling admission denial
   separately reconcile AWS resource tags and Billing tag activation
 ```
+
+<span id="step-6-monitoring--alerting" />
 
 ### Step 6: Configure Monitoring and Alerts
 
@@ -989,6 +1003,8 @@ First define the billing basis and cost owners, then establish visibility throug
 | Candidate review | Analyze containers, nodes, and networking | Reviewable change proposal |
 | Gradual rollout | Validate tests, performance, and recovery | Before/after evidence |
 | Continuous operation | Weekly review, ROI, and unit costs | Actual effects and next priorities |
+
+<span id="references" />
 
 ### Additional Learning Resources
 

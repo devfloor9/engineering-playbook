@@ -38,10 +38,14 @@ Pod health checks and lifecycle management are fundamental to service stability 
 
 This guide covers the entire Pod lifecycle, from how Kubernetes Probes work to language-specific Graceful Shutdown implementations, Init Container patterns, and container image optimization.
 
+<span id="related-documents" />
+
 :::info Related Documentation
 - **Probe debugging**: See the "Probe Debugging and Best Practices" section of the [EKS Troubleshooting Guide](/docs/eks-best-practices/operations-reliability/eks-debugging).
 - **High availability design**: See the "Graceful Shutdown," "PDB," and "Pod Readiness Gates" sections of the [EKS High Availability Architecture Guide](/docs/eks-best-practices/operations-reliability/eks-resiliency-guide).
 :::
+
+<span id="reading-paths" />
 
 ## Reading Paths by Objective
 
@@ -66,13 +70,17 @@ flowchart TD
 
 ## All Topics
 
+<span id="2-kubernetes-probe-deep-dive" />
+
 ### Probes
 
-- [Probe Types and Configuration Basics](./pod-lifecycle/probe-basics.md): Review Probe types, mechanisms, and timing together.
-- [Workload-Specific Probe Patterns](./pod-lifecycle/probe-workloads.md): Review examples for REST, gRPC, batch, JVM, and AI workloads.
+- <span id="three-probe-types" /><span id="probe-mechanisms" /><span id="timing-design" />[Probe Types and Configuration Basics](./pod-lifecycle/probe-basics.md): Review Probe types, mechanisms, and timing together.
+- <span id="workload-specific-patterns" />[Workload-Specific Probe Patterns](./pod-lifecycle/probe-workloads.md): Review examples for REST, gRPC, batch, JVM, and AI workloads.
 - [Probe Antipatterns](./pod-lifecycle/probe-antipatterns.md): Identify unnecessary restarts and incorrect health check configurations.
 - [ALB/NLB and Probe Integration](./pod-lifecycle/probe-load-balancers.md): Connect load balancer health checks with Pod Readiness Gates.
 - [EKS Features and Probe Integration](./pod-lifecycle/probe-eks-features.md): Review Probe integration examples for individual EKS features.
+
+<span id="3-8-graceful-shutdown-init-containers-container-image-optimization" />
 
 ### Termination and Node Lifecycle
 

@@ -82,6 +82,8 @@ A queue converts scaling latency into queue waiting time. Design retention, visi
 
 The [SQS scaler](https://keda.sh/docs/2.20/scalers/aws-sqs/) requires queue permissions and authentication. Derive target queue length from measured message processing time, and deploy Istio/Envoy policies through the APIs supported by their installed versions.
 
+<span id="approach-4-baseline-capacity" />
+
 ### Approach 4: Adequate Baseline Capacity
 
 Calculate baseline capacity from load-tested per-replica throughput and failure headroom. This HPA targets an existing Deployment and requires Metrics Server. Each container needs CPU requests for utilization calculation. Choose either this HPA or a KEDA ScaledObject for the Deployment; do not configure competing autoscalers.
@@ -126,13 +128,21 @@ spec:
 
 Scaling latency is not solely a CPU-metric problem. Observe metric publication/collection, control loops, scheduling constraints, EC2 capacity, IP allocation, image downloads, initialization, and readiness probes separately. CPU remains a useful saturation signal; queue length and request rate can complement it depending on the workload.
 
+<span id="karpenter-direct-to-metal-provisioning" />
+
 ## Karpenter Node Provisioning Path {#the-karpenter-revolution-direct-to-metal-provisioning}
 
+<span id="references" />
+
 Karpenter creates NodeClaims and requests EC2 capacity from Pending Pod requirements. Self-managed Karpenter does not require a separate ASG per node group. Drift does not guarantee immediate replacement for every configuration change: detection rules, disruption budgets, and PDBs all matter. See [provisioning](https://karpenter.sh/v1.13/concepts/nodepools/) and [drift](https://karpenter.sh/v1.13/concepts/disruption/#drift).
+
+<span id="high-speed-metrics-architecture" />
 
 ## High-Speed Metrics Architecture: Two Approaches
 
 CloudWatch and Prometheus can both support scaling, but collection cadence, API quotas, authentication, storage costs, and operational responsibility differ. Compare them under the same load and with identical start/end events.
+
+<span id="cloudwatch-high-resolution" />
 
 ### Approach 1: CloudWatch High-Resolution Integration
 
@@ -145,6 +155,8 @@ Applications publish metrics through PutMetricData or EMF logs; a KEDA CloudWatc
 #### Scaling Timeline
 
 Record publication, ingestion, query, HPA reconciliation, Pod creation, and node/container readiness timestamps. High-resolution storage guarantees neither immediate end-to-end visibility nor immediate HPA execution. There is no universal 5,000-Pod ceiling implied by this architecture. Check the account/Region’s actual [CloudWatch service quotas](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/cloudwatch_limits.html).
+
+<span id="adot--prometheus" />
 
 ### Approach 2: ADOT + Prometheus Architecture
 
@@ -182,6 +194,8 @@ flowchart LR
     Node --> Start
     Start --> Ready[Application Ready and serving]
 ```
+
+<span id="production-patterns" />
 
 ## Core Karpenter Configuration
 

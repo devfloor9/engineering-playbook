@@ -67,15 +67,21 @@ kubectl auth can-i create verticalpodautoscaler
 - Basic understanding of Linux cgroups (recommended)
 - Basic Prometheus/Grafana usage (recommended)
 
+<span id="resource-requests--limits-deep-dive" />
+
 ## Resource Requests & Limits in Depth {#resource-requests--limits-in-depth}
 
 
+
+<span id="requests-vs-limits" />
 
 ### 2.1 Exact Meaning of Requests vs. Limits {#21-exact-meaning-of-requests-vs-limits}
 
 Requests are scheduling inputs compared with node allocatable capacity, not a guarantee that runtime usage is always available. CPU requests also affect CPU weights under contention. CPU limits constrain execution time and may throttle work. Memory limits are enforced reactively and excess usage can cause a container process to be OOM-killed. A memory request does not replace a limit.
 
 [Kubernetes resources](https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/)
+
+<span id="cpu-deep-dive" />
 
 ### 2.2 CPU Resources in Depth {#22-cpu-resources-in-depth}
 
@@ -123,6 +129,8 @@ spec:
       limits:
         memory: "256Mi"
 ```
+
+<span id="memory-deep-dive" />
 
 ### 2.3 Memory Resources in Depth {#23-memory-resources-in-depth}
 
@@ -187,6 +195,8 @@ volumes:
 ```
 
 [Kubernetes resources](https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/)
+
+<span id="eks-auto-mode-resource-optimization" />
 
 ### 2.5 EKS Auto Mode Resource Optimization {#25-eks-auto-mode-resource-optimization}
 
@@ -267,6 +277,8 @@ spec:
 Auto Mode uses configured requests and scheduling constraints to provision nodes. Do not assume a built-in Pod VPA/right-sizing dashboard or automatic HPA configuration. Review recommendations from a separately installed VPA in Off mode or external metrics analysis, then update through GitOps. A 7–14 day window is an initial plan for weekly patterns, not a guarantee of recommendation quality.
 
 [EKS Auto Mode](https://docs.aws.amazon.com/eks/latest/eksctl/auto-mode.html) · [VPA 1.4.0 FAQ](https://github.com/kubernetes/autoscaler/blob/vertical-pod-autoscaler-1.4.0/vertical-pod-autoscaler/docs/faq.md)
+
+<span id="qos-classes" />
 
 ## QoS (Quality of Service) Classes {#qos-quality-of-service-classes}
 
@@ -376,6 +388,8 @@ For memory-pressure eviction, the kubelet considers whether usage exceeds reques
 Choose Burstable or Guaranteed for API services by balancing CPU throttling and isolation. Databases also need memory headroom, replication, and recovery. Do not assign the system-only `system-cluster-critical` PriorityClass to ordinary applications. Define application PriorityClasses and PDBs according to operational policy.
 
 [Kubernetes resources](https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/) · [Node-pressure eviction](https://kubernetes.io/docs/concepts/scheduling-eviction/node-pressure-eviction/)
+
+<span id="vpa-vertical-pod-autoscaler" />
 
 ## Detailed VPA (Vertical Pod Autoscaler) Guide {#detailed-vpa-vertical-pod-autoscaler-guide}
 

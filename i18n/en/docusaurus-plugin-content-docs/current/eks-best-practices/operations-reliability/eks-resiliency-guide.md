@@ -1405,6 +1405,8 @@ echo "============================================"
 
 ---
 
+<span id="7-resiliency-checklist" />
+
 ## 7. Resiliency Checklist & References
 
 ### Resiliency Implementation Checklist
@@ -1476,6 +1478,8 @@ Costs increase with higher resiliency levels. Multi-Region Active-Active require
 - [GitOps-Based EKS Cluster Operations](./gitops-cluster-operation.md) — Cluster management with ArgoCD and KRO
 - [High-Speed Autoscaling with Karpenter](/docs/eks-best-practices/resource-cost/karpenter-autoscaling) — In-depth Karpenter configuration and HPA optimization
 - [EKS Service Mesh Solution Comparison Guide](/docs/eks-best-practices/networking-performance/service-mesh) — Criteria for selecting mesh solutions that provide resiliency patterns such as retries and circuit breakers
+
+<span id="references" />
 
 ### External References
 
