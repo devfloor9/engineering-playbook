@@ -15,7 +15,10 @@
 const fs = require('fs');
 const path = require('path');
 const matter = require('gray-matter');
-const {renderComponent, supportedComponents} = require('./llm-wiki-components');
+const {
+  renderComponent, renderNavigation, componentName,
+  supportedComponents, supportedNavigationComponents,
+} = require('./llm-wiki-components');
 
 const ROOT = path.resolve(__dirname, '..');
 const DOCS_DIR = path.join(ROOT, 'docs');
@@ -118,6 +121,42 @@ function toPermalink(filePath) {
 // 자식이 마크다운 본문인 컨테이너 컴포넌트 — 태그 라인만 제거하고 내용은 보존한다
 const MARKDOWN_CONTAINER_TAGS = new Set(['Tabs', 'TabItem']);
 
+function readImports(content) {
+  const lines = content.split('\n');
+  const imports = new Map();
+  let fence = null;
+  for (let index = 0; index < lines.length; index++) {
+    const marker = lines[index].trim().match(/^(`{3,}|~{3,})/);
+    if (marker) {
+      if (!fence) fence = marker[1];
+      else if (marker[1][0] === fence[0] && marker[1].length >= fence.length) fence = null;
+      continue;
+    }
+    if (fence || !/^import\s/.test(lines[index].trim())) continue;
+    let end = index;
+    let declaration = lines[index];
+    while (!/\sfrom\s+['"][^'"]+['"];?\s*$/.test(declaration) &&
+           end + 1 < lines.length && end - index < 30) {
+      declaration += `\n${lines[++end]}`;
+    }
+    const match = declaration.trim().match(/^import\s+([\s\S]+?)\s+from\s+(['"])([^'"]+)\2;?\s*$/);
+    if (!match) continue;
+    const specifiers = match[1].trim();
+    const defaultName = specifiers.match(/^([A-Za-z_$][\w$]*)(?:\s*,|\s*$)/);
+    if (defaultName) imports.set(defaultName[1], {source: match[3], exported: 'default'});
+    const named = specifiers.match(/\{([^}]+)\}/);
+    if (named) {
+      for (const specifier of named[1].split(',')) {
+        const binding = specifier.trim().match(/^([A-Za-z_$][\w$]*)(?:\s+as\s+([A-Za-z_$][\w$]*))?$/);
+        if (binding) imports.set(binding[2] || binding[1], {source: match[3], exported: binding[1]});
+      }
+    }
+    for (let removed = index; removed <= end; removed++) lines[removed] = '';
+    index = end;
+  }
+  return {lines, imports};
+}
+
 // MDX import 라인과 JSX 컴포넌트 블록을 제거한다.
 // - import ... from '...' 라인 제거
 // - 대문자로 시작하는 JSX 요소(<XxxTables />, <Xxx>...</Xxx>)는 닫는 태그까지 통째로 제거
@@ -125,15 +164,19 @@ const MARKDOWN_CONTAINER_TAGS = new Set(['Tabs', 'TabItem']);
 //    여는 태그의 속성 구간과 자식 구간을 구분해 처리)
 // - Tabs/TabItem 은 자식이 일반 마크다운이므로 태그 라인만 벗겨낸다
 //   (라인 단위 보수적 처리 — 문서 내 컴포넌트는 항상 독립 라인/블록으로 사용된다)
-function stripMdx(content, {sourceUrl = '', omitted = new Set(), serialized = new Set()} = {}) {
-  const lines = content.split('\n');
+function stripMdx(content, {
+  sourceUrl = '', omitted = new Set(), serialized = new Set(),
+  navigation = new Set(), omittedNavigation = new Set(),
+} = {}) {
+  const {lines, imports} = readImports(content);
   const out = [];
   let inCodeFence = false;
   let stripTag = null; // 통째 제거 중인 요소의 태그명 (닫는 태그 대기)
   let stripInAttrs = false; // 여는 태그의 속성 라인(>가 아직 안 나옴)을 지나는 중
   let containerInAttrs = false; // 컨테이너 여는 태그가 여러 줄일 때 속성 라인 스킵
 
-  for (const line of lines) {
+  for (let index = 0; index < lines.length; index++) {
+    const line = lines[index];
     const trimmed = line.trim();
 
     // 통째 제거 모드: 요소가 끝날 때까지 모든 라인을 버린다
@@ -185,13 +228,29 @@ function stripMdx(content, {sourceUrl = '', omitted = new Set(), serialized = ne
         if (!/\/?>\s*$/.test(trimmed)) containerInAttrs = true;
         continue;
       }
-      const rendered = renderComponent(trimmed);
+      if (componentName(tag, imports) === 'DocCardGrid') {
+        const end = lines.findIndex((candidate, position) => position >= index && candidate.includes(`</${tag}>`));
+        if (end !== -1) {
+          const rendered = renderNavigation(lines.slice(index, end + 1).join('\n').trim(), imports);
+          if (rendered) {
+            out.push('', rendered.markdown, '');
+            for (const name of rendered.names) {
+              serialized.add(name);
+              navigation.add(name);
+            }
+            index = end;
+            continue;
+          }
+        }
+      }
+      const rendered = renderComponent(trimmed, imports);
       if (rendered) {
         out.push('', rendered.markdown, '');
         serialized.add(rendered.name);
         continue;
       }
       omitted.add(tag);
+      if (['DocCardGrid', 'DocCard', 'DocCardList'].includes(componentName(tag, imports))) omittedNavigation.add(tag);
       const reference = sourceUrl ? `[web version](${sourceUrl})` : 'web version';
       out.push('', `> Export note: the \`${tag}\` component is not included in this Markdown export. Read its content in the ${reference}.`, '');
       // 한 줄로 끝나는 경우: <Comp ... /> 또는 <Comp>...</Comp>
@@ -292,7 +351,9 @@ function main() {
     // 본문 정제: MDX 제거 → 링크 재작성
     const omitted = new Set();
     const serialized = new Set();
-    const stripped = stripMdx(content, {sourceUrl: url, omitted, serialized});
+    const navigation = new Set();
+    const omittedNavigation = new Set();
+    const stripped = stripMdx(content, {sourceUrl: url, omitted, serialized, navigation, omittedNavigation});
     const { rewritten, related } = rewriteLinks(stripped, file, includedSet);
 
     // 표준화된 최소 frontmatter로 재작성
@@ -329,6 +390,8 @@ function main() {
       content_coverage: {
         serialized_components: [...serialized].sort(),
         omitted_components: [...omitted].sort(),
+        serialized_navigation_components: [...navigation].sort(),
+        omitted_navigation_components: [...omittedNavigation].sort(),
       },
     };
     docs.push(entry);
@@ -345,7 +408,14 @@ function main() {
     doc_count: docs.length,
     component_coverage: {
       supported_components: supportedComponents,
+      supported_navigation_components: supportedNavigationComponents,
       docs_with_omissions: docs.filter(doc => doc.content_coverage.omitted_components.length).length,
+      docs_with_technical_omissions: docs.filter(doc =>
+        doc.content_coverage.omitted_components.some(name =>
+          !doc.content_coverage.omitted_navigation_components.includes(name))).length,
+      docs_with_navigation_omissions: docs.filter(doc =>
+        doc.content_coverage.omitted_navigation_components.length).length,
+      omitted_component_count: new Set(docs.flatMap(doc => doc.content_coverage.omitted_components)).size,
     },
     domains: Object.keys(byDomain).map((d) => ({
       id: d === '__root__' ? 'getting-started' : d,
@@ -368,7 +438,9 @@ function main() {
   index += `> ${SITE.description}\n\n`;
   index += `Machine-friendly markdown mirror of the technical domains (industry demos excluded).\n`;
   index += `Each entry links to a clean per-page markdown file. Programmatic access: [manifest.json](${SITE.baseUrl}/llm-wiki/manifest.json)\n\n`;
-  index += 'Component coverage: supported tables are exported from the same data used by the website. Other components have an inline export note and a link to the web version. Check each manifest entry\\\'s `content_coverage` before treating a Markdown page as complete.\\n\\n';
+  index += "Component coverage: supported technical components use the same data as the website; static navigation cards become links. Unsupported components have an inline export note and a link to the web version. Check each manifest entry's `content_coverage` before treating a Markdown page as complete.\n\n";
+  index += `- Pages with omitted technical content: ${manifest.component_coverage.docs_with_technical_omissions}\n`;
+  index += `- Pages with omitted navigation: ${manifest.component_coverage.docs_with_navigation_omissions}\n`;
   index += `- Documents: ${docs.length}\n`;
   index += `- Language: Korean (ko)\n`;
   index += `- Discovery: ${SITE.baseUrl}/llms.txt\n\n`;
@@ -387,7 +459,7 @@ function main() {
     `✓ llm-wiki: ${docs.length} docs exported (${excludedCount} excluded: industry-solutions/sales), ${Object.keys(byDomain).length} domains`,
   );
   console.log(`  → ${path.relative(ROOT, outDir)}/{manifest.json, index.md, <domain>/*.md}`);
-  console.log(`Component coverage: ${supportedComponents.length} serializers; ${manifest.component_coverage.docs_with_omissions} pages identify omitted components.`);
+  console.log(`Component coverage: ${supportedComponents.length} technical and ${supportedNavigationComponents.length} navigation serializers; ${manifest.component_coverage.docs_with_omissions} pages identify omitted components.`);
 }
 
 // created가 Date 객체로 파싱된 경우 방어

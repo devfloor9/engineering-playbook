@@ -1,0 +1,26 @@
+[
+  {
+    "strategy": "Tensor Parallelism (TP)",
+    "description": {"ko": "레이어 내 텐서를 GPU 간 분할", "en": "Split tensors within layers across GPUs"},
+    "advantages": {"ko": "낮은 지연시간", "en": "Low latency"},
+    "disadvantages": {"ko": "높은 통신 오버헤드", "en": "High communication overhead"},
+    "color": "#3b82f6",
+    "icon": "🔷"
+  },
+  {
+    "strategy": "Expert Parallelism (EP)",
+    "description": {"ko": "Expert를 GPU 간 분산", "en": "Distribute experts across GPUs"},
+    "advantages": {"ko": "MoE에 최적화", "en": "Optimized for MoE"},
+    "disadvantages": {"ko": "All-to-All 통신 필요", "en": "Requires all-to-all communication"},
+    "color": "#8b5cf6",
+    "icon": "🎯"
+  },
+  {
+    "strategy": "Pipeline Parallelism (PP)",
+    "description": {"ko": "레이어를 GPU 간 순차 분할", "en": "Split layers sequentially across GPUs"},
+    "advantages": {"ko": "메모리 효율적", "en": "Memory efficient"},
+    "disadvantages": {"ko": "파이프라인 버블 발생", "en": "Pipeline bubble overhead"},
+    "color": "#10b981",
+    "icon": "📊"
+  }
+]
