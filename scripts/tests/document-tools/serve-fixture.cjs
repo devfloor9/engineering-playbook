@@ -48,6 +48,10 @@ compiler.run((error, stats) => {
     process.exitCode = 1;
     return;
   }
+  if (process.argv.includes('--check')) {
+    console.log('Document tools browser fixture compiled successfully.');
+    return;
+  }
   const reports = [];
   const html = `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Document tools scoped verification</title>
 <link rel="stylesheet" href="/foundation.css"><style>

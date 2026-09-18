@@ -27,6 +27,9 @@ const manifest = {
     {url: `${origin}${rootPath}docs/other`, md_url: `${origin}${rootPath}llm-wiki/other.md`},
   ],
 };
+// Component-state tests use deterministic response promises. Real Response
+// parsing, MIME checks and HTTP failures are covered by manifest.test.cjs.
+const manifestResponse = () => ({ok: true, json: async () => manifest});
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 const deferred = () => {
   let resolve, reject;
@@ -62,8 +65,6 @@ async function mount(element, context = defaultContext) {
   const root = createRoot(host);
   const render = async (nextElement = element, nextContext = context) => {
     await act(async () => root.render(<TestContext.Provider value={nextContext}>{nextElement}</TestContext.Provider>));
-    // Response.json() consumes a browser stream; let that task finish in act.
-    await act(async () => { await delay(0); });
   };
   await render();
   return {host, render, unmount: async () => act(() => root.unmount())};
@@ -79,7 +80,7 @@ async function testSuite() {
     writes = [];
     setClipboard(async value => { writes.push(value); });
     clearManifest();
-    window.fetch = async () => Response.json(manifest);
+    window.fetch = async () => manifestResponse();
     try { await run(); reports.push({name, passed: true}); }
     catch (error) { reports.push({name, passed: false, error: error.message}); }
   }
@@ -92,7 +93,7 @@ async function testSuite() {
       assert(text(page.host).includes('지원 여부'), 'loading status');
       assert(page.host.querySelectorAll('[role="group"] button, [role="group"] a').length === 2, 'initial actions');
       assert(!page.host.querySelector('details'), 'no closed disclosure');
-      await act(async () => pending.resolve(Response.json(manifest)));
+      await act(async () => pending.resolve(manifestResponse()));
       const actions = [...page.host.querySelectorAll('[role="group"] button, [role="group"] a')];
       assert(actions.length === 4, 'all four actions');
       assert(actions.every(action => action.querySelector('svg') && action.textContent.trim()), 'SVG and text');
@@ -121,13 +122,36 @@ async function testSuite() {
     let requests = 0;
     window.fetch = async () => {
       if (++requests === 1) throw new Error('offline');
-      return Response.json(manifest);
+      return manifestResponse();
     };
     const page = await mount(<DocTools />);
     try {
       assert(text(page.host).includes('불러오지 못했습니다'), 'error differs from unsupported');
       await act(async () => named(page.host, '다시 시도').click());
       assert(requests === 2 && page.host.querySelector('a[target="_blank"]'), 'retry fetch recovered');
+    } finally { await page.unmount(); }
+  });
+  await test('Markdown copy uses the validated URL and retries after an HTML response', async () => {
+    const requested = [];
+    let htmlResponse = true;
+    window.fetch = async (url, init) => {
+      if (url === manifestPath) return manifestResponse();
+      requested.push(url);
+      assert(init.redirect === 'error', 'no redirect following');
+      return {
+        ok: true,
+        headers: {get: () => htmlResponse ? 'text/html' : 'text/markdown'},
+        text: async () => '# Exact exported document',
+      };
+    };
+    const page = await mount(<DocTools />);
+    try {
+      await act(async () => named(page.host, 'Markdown 복사').click());
+      assert(writes.length === 0 && text(page.host).includes('복사하지 못했습니다'), 'HTML was not copied');
+      htmlResponse = false;
+      await act(async () => named(page.host, 'Markdown 복사').click());
+      assert(writes[0] === '# Exact exported document', 'exported text copied on retry');
+      assert(requested.every(url => url === `${rootPath}llm-wiki/aidlc/index.md`), 'manifest URL only');
     } finally { await page.unmount(); }
   });
   await test('legacy text/label/ariaLabel API and asynchronous getText precedence', async () => {
@@ -205,7 +229,7 @@ async function testSuite() {
     const page = await mount(<DocTools />);
     try {
       await page.render(<DocTools />, withDoc(`${rootPath}docs/other`));
-      await act(async () => pending.resolve(Response.json(manifest)));
+      await act(async () => pending.resolve(manifestResponse()));
       assert(page.host.querySelector('a[target="_blank"]').pathname === `${rootPath}llm-wiki/other.md`, 'new URL only');
     } finally { await page.unmount(); }
   });
