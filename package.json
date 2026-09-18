@@ -18,6 +18,7 @@
     "generate-llm-wiki": "node scripts/generate-llm-wiki.js --out build",
     "test:llm-wiki": "node --test scripts/tests/llm-wiki-components.test.js",
     "test:links": "node --test scripts/tests/validate-links.test.js",
+    "test:ssr": "node --test scripts/tests/ssr-unicode.test.js",
     "new-post": "node scripts/new-post.js",
     "validate-metadata": "node scripts/validate-metadata-new.js",
     "validate-links": "node scripts/validate-links.js",
@@ -39,8 +40,8 @@
     "clsx": "^2.0.0",
     "prism-react-renderer": "^2.4.1",
     "prismjs": "^1.30.0",
-    "react": "^18.0.0",
-    "react-dom": "^18.0.0",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
     "roughjs": "^4.6.6",
     "shell-quote": "^1.8.4"
   },

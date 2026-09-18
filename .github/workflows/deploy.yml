@@ -47,6 +47,9 @@ jobs:
       - name: Verify link validator regressions
         run: npm run test:links
 
+      - name: Verify streamed Unicode text and anchors
+        run: npm run test:ssr
+
       - name: Build website
         run: npm run build
 
