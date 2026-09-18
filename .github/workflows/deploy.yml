@@ -68,6 +68,9 @@ jobs:
       - name: Generate LLM Wiki (per-page markdown + manifest)
         run: npm run generate-llm-wiki
 
+      - name: Verify LLM exports against rendered pages
+        run: LLM_WIKI_BASELINE_HTML="$PWD/build" npm run test:llm-wiki
+
       - name: Verify internal routes and fragments
         run: >-
           node scripts/validate-links.js --build-dir build
