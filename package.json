@@ -21,6 +21,8 @@
     "test:ssr": "node --test scripts/tests/ssr-unicode.test.js",
     "new-post": "node scripts/new-post.js",
     "validate-metadata": "node scripts/validate-metadata-new.js",
+    "update-doc-metadata": "node scripts/update-doc-metadata.js",
+    "test:metadata": "node --test scripts/tests/doc-metadata.test.js",
     "validate-links": "node scripts/validate-links.js",
     "generate-tags": "node scripts/generate-tag-pages.js",
     "auto-categorize": "node scripts/auto-categorize.js",

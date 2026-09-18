@@ -50,6 +50,9 @@ jobs:
       - name: Verify streamed Unicode text and anchors
         run: npm run test:ssr
 
+      - name: Verify document revision metadata
+        run: npm run test:metadata
+
       - name: Build website
         run: npm run build
 

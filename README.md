@@ -172,6 +172,29 @@ npm run build
 
 Issues, PRs, and feedback are all welcome. See [GitHub Issues](https://github.com/devfloor9/engineering-playbook/issues) for details.
 
+`last_update.date` records a content revision, not a deployment or the last Git
+commit. Update it when changing explanations, examples, data, recommendations,
+or references. Preserve it for layout, typography, icons, Markdown formatting,
+navigation styling, and equivalent table or diagram rendering. Keep `created`
+and author attribution unchanged.
+
+After reviewing a content edit, update its date and reading estimate together:
+
+```sh
+npm run update-doc-metadata -- --kind content --date YYYY-MM-DD --apply docs/path/to/article.md
+```
+
+Apply the same process to an edited English counterpart. The estimate uses
+visible prose and table text, including supported static components; code blocks,
+markup, URLs, and decorative icons do not add reading time. The existing rate is
+424 characters per minute, rounded up, so a small edit can leave the displayed
+minutes unchanged. An unsupported component stops the update for review.
+
+For presentation changes, leave both fields intact. The command supports
+`--kind presentation` as a no-change check. It does not infer whether a change
+is substantive; that distinction belongs in the document review. Builds and
+metadata normalization must not assign the current date to an unchanged article.
+
 ## License
 
 Content in this project is available under the [MIT License](LICENSE).
