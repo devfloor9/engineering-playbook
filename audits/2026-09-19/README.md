@@ -60,21 +60,24 @@ Corrections were committed separately from the frozen records. The catalogs conn
 | ROSA | Separated HCP/Classic responsibility and access boundaries, and labeled historical installation output and untested assumptions. | `2761da9b` |
 | EKS scheduling | Removed unsafe bulk rollback, corrected PDB rounding, GPU resource requests, affinity conditions and toleration defaults. | `8a5f693c`, `12166b9f` |
 
-The compact navbar and reduced-motion Mermaid changes concern presentation. They preserve article revision dates. LLM export tests now check the reviewed replacements for removed benchmark components in both Markdown and actual rendered HTML, while retaining checks for active components.
+The compact navbar and Mermaid geometry and title-layout changes concern presentation. They preserve article revision dates. LLM export tests now check the reviewed replacements for removed benchmark components in both Markdown and actual rendered HTML, while retaining checks for active components.
 
 One scheduling finding, `EKSN-RES-022`, was withdrawn after rechecking the alias. The CNI review also withdrew its initial suggestion to exclude DSR/XDP after inspecting the runner; the accepted correction distinguishes requested settings from observed activation. [editorial-qualifications.json](editorial-qualifications.json) records final assessment wording changes without altering source quotations.
 
 ## Remaining correction work
 
-[tracking.json](tracking.json) assigns every grouped item to an existing GitHub issue or a prepared correction proposal. Registration status is explicit in that file. Each workstream requires a disposition for the complete assigned inventory, not only the examples in an issue description.
+[tracking.json](tracking.json) assigns every grouped item to a registered GitHub issue. Each workstream requires a disposition for the complete assigned inventory, not only the examples in an issue description.
 
-The remaining work includes:
+The new correction workstreams are:
 
-1. Repair versioned SDK, CRD and command examples; make prerequisites and intentionally incomplete fragments explicit.
-2. Correct sizing, metric units, billing arithmetic and evaluation gates before using their results in recommendations.
-3. Explain identity, authorization, lifecycle and recovery through the actual request or state transition, including failure conditions.
-4. Distinguish public proposals, illustrative outputs, vendor-reported results and independently retained measurements.
-5. Restore meaningful Korean/English parity in prose, tables and diagrams after resolving factual differences.
+- [#95 — Agentic architecture and serving](https://github.com/devfloor9/engineering-playbook/issues/95): 391 items covering model sizing, runtime contracts, examples, security boundaries and bilingual presentation.
+- [#96 — Agentic operations and reference implementations](https://github.com/devfloor9/engineering-playbook/issues/96): 294 items covering request lifetimes, deployment artifacts, telemetry, evaluation and integrations.
+- [#97 — EKS platform and networking](https://github.com/devfloor9/engineering-playbook/issues/97): 201 items covering access, Gateway API, networking, mesh, DRA and resource optimization.
+- [#98 — EKS operations](https://github.com/devfloor9/engineering-playbook/issues/98): 316 items covering lifecycle, readiness, identity, diagnostics, node management and recovery.
+- [#99 — AI-DLC](https://github.com/devfloor9/engineering-playbook/issues/99): 404 items covering methodology, executable examples, approvals, evaluation, quantities and legal scope.
+- [#100 — Industry and sales examples](https://github.com/devfloor9/engineering-playbook/issues/100): 283 industry items and 14 sales/event items covering evidence, implementation status and assumptions.
+
+The remaining Hybrid Nodes and scheduling/resiliency corrections continue in [#88](https://github.com/devfloor9/engineering-playbook/issues/88) and [#92](https://github.com/devfloor9/engineering-playbook/issues/92). The tracking file records 86 accepted source corrections, 2,104 open review items and one withdrawn finding. “Open” includes unresolved evidence and misleading qualifications; it does not mean 2,104 confirmed errors.
 
 Follow-up edits must preserve useful detail, routes, anchors, creation dates and author attribution. Content changes update the revision date and reading estimate together; presentation-only changes preserve them.
 
@@ -90,4 +93,4 @@ The public payload contains repository-relative source references and public evi
 
 The [legal reconfirmation record](aidlc/legal-reconfirmation.json) distinguishes current provisions from changes adopted after a document's revision date. It does not establish compliance for a particular organization or system.
 
-See [verification.json](verification.json) for recorded checks and remaining verification, and [manifest.json](manifest.json) for the complete data file inventory. Package preparation notes describe their original review stage; the central tracking file records subsequent issue ownership.
+See [verification.json](verification.json) for recorded checks and verification limits, and [manifest.json](manifest.json) for the complete data file inventory. Package preparation notes describe their original review stage; the central tracking file records subsequent issue ownership.
