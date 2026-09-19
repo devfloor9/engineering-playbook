@@ -3,9 +3,9 @@ title: ROSA (Red Hat OpenShift on AWS)
 description: Technical documentation on deploying and operating Red Hat OpenShift Service on AWS (ROSA)
 created: "2025-02-05"
 last_update:
-  date: 2026-09-18
+  date: 2026-09-19
   author: devfloor9
-reading_time: 16
+reading_time: 21
 tags:
   - scope:nav
 sidebar_label: ROSA
@@ -15,151 +15,98 @@ category: rosa
 
 <a id="rosa-red-hat-openshift-on-aws" />
 
-This section provides technical documentation for deploying and operating Red Hat OpenShift Service on AWS (ROSA). ROSA is a fully managed OpenShift service jointly managed by AWS and Red Hat that supports deployment of enterprise-grade Kubernetes platforms.
+ROSA is a managed OpenShift service running on AWS. AWS operates the underlying cloud infrastructure; Red Hat manages the OpenShift platform and node operating-system lifecycle. Customers manage their applications, data, access permissions, and worker capacity. This section contains a Classic demo installation record and an administrator access-control design.
 
 ## Key Documents (Implementation Order)
 
 ### Step 1: Cluster Installation & Configuration
 
-- **[1. ROSA Demo Installation](./rosa-demo-installation.md)**
-  - Cluster creation using Security Token Service (STS)
-  - Step-by-step installation with the ROSA CLI
-  - Auto-scaling configuration
-  - Network and IAM role configuration
-  - Initial cluster validation
-  - Lab environment setup and testing
+The [ROSA demo installation](./rosa-demo-installation.md) explains a historical Classic single-AZ configuration, its STS roles, fixed worker capacity, and verification steps. Check current supported releases and account prerequisites before attempting a new installation.
 
 ### Step 2: Security & Access Control
 
-- **[2. ROSA Security Compliance](./rosa-security-compliance.md)**
-  - Red Hat Hybrid Cloud Console access control configuration
-  - Access control strategies for financial-sector security requirements
-  - Identity provider (IdP) integration and MFA configuration
-  - Role-based access control (RBAC) configuration
-  - Audit and logging setup
+The [ROSA console access-control design](./rosa-security-compliance.md) covers corporate IdP integration, MFA, login-location restrictions, and authorization checks. It describes controls to validate, rather than a completed implementation or compliance assessment.
 
 ## Learning Objectives
 
-This section covers:
-
-- ROSA cluster installation and initial configuration
-- STS-based IAM role configuration and security best practices
-- Centralized management through Red Hat Hybrid Cloud Console
-- Strategies for meeting financial-sector security requirements
-- IdP integration and user authentication management
-- Cluster auto-scaling and resource management
-- ROSA cluster operations and monitoring
-- Migration from on-premises OpenShift to ROSA
+Use these documents to separate managed-service duties from customer preparation. The installation record covers account, network, and role checks. The access-control design treats AWS, the Red Hat management console, and the OpenShift cluster as separate authentication and authorization scopes. Migration and multi-region recovery below are design considerations, not demonstrated results.
 
 ## Architecture Pattern
 
+The [ROSA architecture guide](https://docs.aws.amazon.com/rosa/latest/userguide/rosa-architecture-models.html) distinguishes HCP from Classic. HCP places the control plane in Red Hat's AWS account and connects to workers in the customer's VPC through PrivateLink. Platform components also run on workers, without dedicated infrastructure nodes. Classic places control-plane, infrastructure, and worker nodes in the customer's AWS account.
+
 ```mermaid
-graph TB
-    subgraph AWS["AWS Cloud"]
-        subgraph ROSA["ROSA Cluster"]
-            CP["Control Plane<br/>(Red Hat Managed)"]
-            WN["Worker Nodes<br/>(Customer Managed)"]
-            IN["Infrastructure Nodes<br/>(System Components)"]
+flowchart TB
+    subgraph HCP["ROSA with hosted control planes"]
+        subgraph RH["Red Hat AWS account"]
+            HC["Control plane<br/>Red Hat operates the platform"]
         end
-        IAM["IAM Roles<br/>(STS Token Service)"]
-        VPC["VPC & Networking<br/>(Customer VPC)"]
-        KMS["KMS & Secrets<br/>(Encryption)"]
+        subgraph CustomerH["Customer AWS account / VPC"]
+            HW["Worker nodes<br/>Applications and platform components"]
+        end
+        HC <-->|AWS PrivateLink| HW
     end
-
-    subgraph RedHat["Red Hat"]
-        HCC["Hybrid Cloud Console<br/>(Central Management)"]
-        Registry["Quay Registry<br/>(Container Images)"]
-        OIDC["OIDC Provider<br/>(Authentication)"]
+    subgraph Classic["ROSA Classic: customer AWS account / VPC"]
+        CC["Control plane"]
+        CI["Dedicated infrastructure nodes"]
+        CW["Worker nodes"]
+        CC --> CI
+        CC --> CW
     end
-
-    subgraph Customer["Customer Environment"]
-        IdP["Identity Provider<br/>(Okta/Azure AD/etc)"]
-        Admin["Administrators<br/>(Access Management)"]
-        OnPrem["On-Premises Systems<br/>(Hybrid Integration)"]
-    end
-
-    Admin -->|Authentication| IdP
-    IdP -->|OIDC Tokens| OIDC
-    OIDC -->|Identity| HCC
-    HCC -->|Management| CP
-    CP -->|Orchestration| WN
-    CP -->|System| IN
-    WN & IN -->|Compute| AWS
-    IAM <-->|STS| ROSA
-    KMS <-->|Encryption| ROSA
-    VPC <-->|Networking| ROSA
-    HCC -->|Container Images| Registry
-    OnPrem <-->|Hybrid Workloads| ROSA
-
-    style AWS fill:#ff9900
-    style RedHat fill:#c41e3a
-    style Customer fill:#34a853
+    Registry["Image registry"]
+    HW -->|Pull images| Registry
+    CW -->|Pull images| Registry
 ```
+
+Account ownership and operating-system management are separate responsibilities. Customers adjust machine-pool capacity through supported ROSA CLI or OpenShift Cluster Manager interfaces. This does not imply unrestricted operating-system changes as with self-managed EC2 nodes.
 
 ## Key Technologies
 
-| Technology | Description | Purpose |
-|------|------|------|
-| **ROSA CLI** | Command-line tool for managing OpenShift clusters | Cluster creation, management, and deletion |
-| **STS (Security Token Service)** | Temporary security credentials | More secure IAM role management |
-| **OIDC** | OpenID Connect protocol | External identity provider integration |
-| **OVNKubernetes** | OpenShift network plugin | High-performance networking |
-| **Cluster Autoscaler** | Auto-scaling | Automatic node adjustment based on workload |
-| **Hybrid Cloud Console** | Red Hat central management portal | Centralized multi-cluster management |
-| **Quay Registry** | Container image registry | Build and deployment automation |
+| Tool or component | Role | Boundary |
+| --- | --- | --- |
+| ROSA CLI | Manage clusters and machine pools | Use `oc` for OpenShift resources |
+| AWS STS and IAM roles | Give service components access to AWS APIs | Separate from human console permissions |
+| OIDC | Carry user or workload identity, depending on the integration | Configure corporate SSO separately from Operator federation to AWS |
+| OVN-Kubernetes | Cluster networking | Check policy and network features for the selected OpenShift release |
+| Cluster Autoscaler | Adjust eligible machine pools for unschedulable Pods | Constrained by pool bounds, Pod requests, and placement rules |
+| Hybrid Cloud Console / OpenShift Cluster Manager | Manage organizations and clusters | Does not replace cluster API RBAC |
+| Image registry | Supply container images to node runtimes | Quay is one option; HCC is not the image consumer |
 
 ## Key Concepts
 
 ### ROSA Characteristics
 
-- **Fully managed service**: AWS and Red Hat jointly operate the control plane.
-- **High availability**: Automated patching and updates.
-- **Security**: STS-based temporary credentials and OIDC provider integration.
-- **Flexibility**: Customers retain full control of worker nodes.
+Under the [shared responsibilities](https://docs.aws.amazon.com/rosa/latest/userguide/rosa-responsibilities.html), Red Hat maintains platform and node versions and executes upgrades. Customers choose maintenance schedules, acknowledge and schedule minor upgrades, test application compatibility, and remain on supported releases.
+
+Patching alone does not establish high availability. Design AZ placement, application replicas, storage, and data recovery together.
 
 ### Benefits of STS-Based Authentication
 
-- **Temporary credentials**: Permanent access keys are unnecessary.
-- **Automatic token renewal**: Tokens are renewed before expiration.
-- **Least privilege**: Grant only the minimum required permissions.
-- **Audit trail**: All access records are stored in CloudTrail.
+STS issues temporary credentials through IAM roles. Review both the role trust policy and its permissions, and confirm that service components can refresh credentials. Using STS alone does not prove least privilege.
+
+Use [CloudTrail](https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-concepts.html) for AWS API auditing, with the required data events and retention configured. Manage OpenShift platform audits, HCC and IdP logins, and application access through their respective log collection, retention, and access controls.
 
 ### Role of Red Hat Hybrid Cloud Console
 
-- **Centralized management**: Manage multiple clusters from one location.
-- **Multi-cloud support**: Unified management of AWS, Azure, GCP, and on-premises OpenShift.
-- **Policy-based management**: Enforce security policies centrally.
-- **Cost tracking**: Monitor costs per cluster.
+OpenShift Cluster Manager in Hybrid Cloud Console provides the organization's cluster inventory and management operations. Configure HCC login, OCM organization or cluster permissions, and OpenShift API authentication and RBAC separately. Cost management and cross-cluster policy enforcement require the relevant service or product integrations, subscriptions, and permissions.
 
 ### Network Configuration
 
-- **OVNKubernetes**: High-performance networking based on Open vSwitch.
-- **Network Policy**: Full support for Kubernetes network policies.
-- **Ingress Controller**: Built-in ingress controller.
-- **Service Mesh Ready**: Support for Istio/Kiali integration.
+Review OpenShift Ingress and Route for external application access, and NetworkPolicy for Pod traffic restrictions. Design private API access, on-premises connectivity, DNS, and egress separately. Service Mesh is an optional addition; installation alone does not demonstrate that authentication or encryption policies protect an application.
 
 ## Use Cases
 
 ### Enterprise Migration
 
-- **On-premises OpenShift → ROSA**: Migrate existing OpenShift environments to ROSA.
-- **Reduced management burden**: Automate control plane operations.
-- **Cost savings**: Reduce operating costs.
-- **Global expansion**: Deploy across multiple regions.
+Before moving OpenShift workloads, verify API, Operator, and storage compatibility and the data migration path. A managed service takes over some platform operations, but savings depend on service fees, AWS resources, migration costs, and actual staffing requirements.
 
 ### Financial-Sector Compliance
 
-- **Security requirements**: Advanced security through STS, OIDC, MFA, and related capabilities.
-- **Access control**: Fine-grained permission management.
-- **Audit logging**: Record and track all activities.
-- **Data protection**: KMS-based encryption.
+Map STS, identity federation, MFA, encryption, and audit logs to the required controls and retain configuration and test evidence. Selecting ROSA or using private networking does not establish compliance with a particular financial regulation. Review applicable controls, assessment scope, and customer responsibilities alongside the [ROSA security guidance](https://docs.aws.amazon.com/rosa/latest/userguide/security.html).
 
 ### Hybrid Cloud Strategy
 
-- **On-premises + AWS**: Manage both environments through a single platform.
-- **Multi-cloud**: Manage AWS, Azure, and GCP together.
-- **Cloud bursting**: Expand into the cloud during peak demand.
-- **Disaster recovery**: Implement multi-region disaster recovery strategies.
+ROSA runs on AWS. Connecting it to OpenShift on premises or in another cloud requires network, identity, deployment, and data-operation design. Cloud bursting and cross-region recovery need separate capacity, state replication, and traffic switching.
 
 ## ROSA vs EKS vs On-Premises OpenShift
 
@@ -180,32 +127,24 @@ Apply these criteria to the same workload, availability, and support requirement
 
 ### 1. Single-Cluster Deployment
 
-```text
-ROSA Cluster
-├── Development namespace
-├── Staging namespace
-└── Production namespace
-```
+Development, staging, and production can use separate namespaces in one cluster. Namespaces alone do not establish fault or security isolation: review RBAC, NetworkPolicy, ResourceQuota, and the shared control plane. Use separate clusters when stronger production isolation is required.
 
 ### 2. Multi-Cluster Deployment
 
-```text
-Hybrid Cloud Console (central management)
-├── AWS Region 1 (ROSA)
-├── AWS Region 2 (ROSA)
-├── On-Premises (OpenShift)
-└── Multi-Cloud (Azure/GCP)
-```
+Separate clusters by region or operational purpose and manage their inventory and permissions. Check the chosen management product's support for registering other OpenShift clusters or applying fleet policies. Registering a cluster does not synchronize applications or data automatically.
 
 ### 3. High-Availability Deployment
 
+This is a possible customer-designed multi-region recovery flow. It does not represent built-in ROSA failover for application data.
+
 ```text
-Primary Region (ROSA)
-├── Active Cluster
-├── Replication to DR
-└── Auto-failover
-    └── Secondary Region (ROSA)
+Primary-region application and data
+    -> Selected replication / backup mechanism
+    -> Secondary-region application and data
+    -> Health decision, traffic switch, and failback procedure
 ```
+
+Define replication lag and consistency, RPO and RTO, failure detection, protection against conflicting writes, and failback, then test recovery. The [responsibility guide](https://docs.aws.amazon.com/rosa/latest/userguide/rosa-responsibilities.html) assigns application and data backup and multi-cluster DNS or load balancing to the customer.
 
 ## Related Categories
 
@@ -216,7 +155,7 @@ Primary Region (ROSA)
 ---
 
 :::tip Operational Benefits
-Joint management by AWS and Red Hat reduces the burden of operating the ROSA control plane. Its security and compliance capabilities are particularly relevant to financial-sector and enterprise environments.
+Start with the managed-platform boundary and customer application and data responsibilities. Validate access control, recovery, and compliance requirements for the actual environment.
 :::
 
 :::info Recommended Learning Path
