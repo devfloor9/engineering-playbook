@@ -1491,6 +1491,1712 @@
         "Seven Korean Mermaid diagrams rendered after repairing sequence-message punctuation. Both source variants preserve existing headings and matching diagram code."
       ],
       "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-aidlc-c021",
+      "package": "aidlc",
+      "id": "AIDLC-C021",
+      "issue": 99,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Replace the unpaired/equal-variance illustration with a conditional paired binary comparison, finite/binary validation and an exact discordant-pair test; keep significance separate from approval and distinguish 0.02 staging versus 0.05 alert margins.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "156896e6287d6d37875f7dcc556776b3bec2c0ba",
+      "source_commits": [
+        "64c24adf974a08ca07fa8e195225130634517ac9"
+      ],
+      "source_files": [
+        "docs/aidlc/enterprise/agent-versioning/governance-automation.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/aidlc/enterprise/agent-versioning/governance-automation.md",
+        "docs/aidlc/toolchain/evaluation-framework.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/aidlc/toolchain/evaluation-framework.md"
+      ],
+      "verification": [
+        "Repository tests extract both source variants and exercise approval boundaries, immutable input identity, durable winning records and interrupted-run recovery.",
+        "Independent PromQL fixtures check matched cohorts, no-data behavior and exact tolerance boundaries against Prometheus 3.14."
+      ],
+      "evidence_limit": "Source correction and offline verification only. Cloud execution, model quality, runtime compatibility, deployment recovery, measured cost and legal compliance are not established by this record."
+    },
+    {
+      "record_id": "2026-09-19-aidlc-c022",
+      "package": "aidlc",
+      "id": "AIDLC-C022",
+      "issue": 99,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Normalize version labels/metric schema, deduplicate identical scrape replicas, retain comparison cohort labels, aggregate histogram buckets before quantiles, and distinguish missing/conflicting data from a pass.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "156896e6287d6d37875f7dcc556776b3bec2c0ba",
+      "source_commits": [
+        "64c24adf974a08ca07fa8e195225130634517ac9"
+      ],
+      "source_files": [
+        "docs/aidlc/enterprise/agent-versioning/governance-automation.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/aidlc/enterprise/agent-versioning/governance-automation.md",
+        "docs/aidlc/toolchain/evaluation-framework.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/aidlc/toolchain/evaluation-framework.md"
+      ],
+      "verification": [
+        "Repository tests extract both source variants and exercise approval boundaries, immutable input identity, durable winning records and interrupted-run recovery.",
+        "Independent PromQL fixtures check matched cohorts, no-data behavior and exact tolerance boundaries against Prometheus 3.14."
+      ],
+      "evidence_limit": "Source correction and offline verification only. Cloud execution, model quality, runtime compatibility, deployment recovery, measured cost and legal compliance are not established by this record."
+    },
+    {
+      "record_id": "2026-09-19-aidlc-c023",
+      "package": "aidlc",
+      "id": "AIDLC-C023",
+      "issue": 99,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Explicitly check out the PR head SHA and use the same SHA for the evaluator argument and reporter expectation. Validate artifact schema, finite scores, case minimum, exact evaluated SHA and upstream job success; derive one metric decision and await a complete GitHub comment call. Separate read-only evaluation from reporting and require the project evaluator to bind its actual checkout and executed dataset manifest to its result.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "156896e6287d6d37875f7dcc556776b3bec2c0ba",
+      "source_commits": [
+        "64c24adf974a08ca07fa8e195225130634517ac9"
+      ],
+      "source_files": [
+        "docs/aidlc/enterprise/agent-versioning/governance-automation.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/aidlc/enterprise/agent-versioning/governance-automation.md",
+        "docs/aidlc/toolchain/evaluation-framework.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/aidlc/toolchain/evaluation-framework.md"
+      ],
+      "verification": [
+        "Repository tests extract both source variants and exercise approval boundaries, immutable input identity, durable winning records and interrupted-run recovery.",
+        "Independent PromQL fixtures check matched cohorts, no-data behavior and exact tolerance boundaries against Prometheus 3.14."
+      ],
+      "evidence_limit": "Source correction and offline verification only. Cloud execution, model quality, runtime compatibility, deployment recovery, measured cost and legal compliance are not established by this record."
+    },
+    {
+      "record_id": "2026-09-19-aidlc-c024",
+      "package": "aidlc",
+      "id": "AIDLC-C024",
+      "issue": 99,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Use create_prompt(config=..., commit_message=...), staging label and returned candidate.version; treat approval references as provenance rather than authority.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "156896e6287d6d37875f7dcc556776b3bec2c0ba",
+      "source_commits": [
+        "64c24adf974a08ca07fa8e195225130634517ac9"
+      ],
+      "source_files": [
+        "docs/aidlc/enterprise/agent-versioning/governance-automation.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/aidlc/enterprise/agent-versioning/governance-automation.md",
+        "docs/aidlc/toolchain/evaluation-framework.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/aidlc/toolchain/evaluation-framework.md"
+      ],
+      "verification": [
+        "Repository tests extract both source variants and exercise approval boundaries, immutable input identity, durable winning records and interrupted-run recovery.",
+        "Independent PromQL fixtures check matched cohorts, no-data behavior and exact tolerance boundaries against Prometheus 3.14."
+      ],
+      "evidence_limit": "Source correction and offline verification only. Cloud execution, model quality, runtime compatibility, deployment recovery, measured cost and legal compliance are not established by this record."
+    },
+    {
+      "record_id": "2026-09-19-aidlc-c025",
+      "package": "aidlc",
+      "id": "AIDLC-C025",
+      "issue": 99,
+      "previous_status": "open",
+      "disposition": "partial",
+      "summary": "Replace unsupported UpdatePromptAlias with an expressly illustrative CreatePromptVersion event excerpt and separate application configuration mapping/audit from prompt snapshot creation.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "156896e6287d6d37875f7dcc556776b3bec2c0ba",
+      "source_commits": [
+        "64c24adf974a08ca07fa8e195225130634517ac9"
+      ],
+      "source_files": [
+        "docs/aidlc/enterprise/agent-versioning/governance-automation.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/aidlc/enterprise/agent-versioning/governance-automation.md",
+        "docs/aidlc/toolchain/evaluation-framework.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/aidlc/toolchain/evaluation-framework.md"
+      ],
+      "verification": [
+        "Repository tests extract both source variants and exercise approval boundaries, immutable input identity, durable winning records and interrupted-run recovery.",
+        "Independent PromQL fixtures check matched cohorts, no-data behavior and exact tolerance boundaries against Prometheus 3.14."
+      ],
+      "evidence_limit": "Source correction and offline verification only. Cloud execution, model quality, runtime compatibility, deployment recovery, measured cost and legal compliance are not established by this record.",
+      "remaining": "Four deprecated Langfuse observation aliases remain in other document occurrences outside the evaluation and governance pairs."
+    },
+    {
+      "record_id": "2026-09-19-aidlc-c026",
+      "package": "aidlc",
+      "id": "AIDLC-C026",
+      "issue": 99,
+      "previous_status": "open",
+      "disposition": "partial",
+      "summary": "Describe 60-second documented default TTL and request-triggered background revalidation; require deployed-client version/traffic verification rather than a 30-second polling or five-minute recovery guarantee.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "156896e6287d6d37875f7dcc556776b3bec2c0ba",
+      "source_commits": [
+        "64c24adf974a08ca07fa8e195225130634517ac9"
+      ],
+      "source_files": [
+        "docs/aidlc/enterprise/agent-versioning/governance-automation.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/aidlc/enterprise/agent-versioning/governance-automation.md",
+        "docs/aidlc/toolchain/evaluation-framework.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/aidlc/toolchain/evaluation-framework.md"
+      ],
+      "verification": [
+        "Repository tests extract both source variants and exercise approval boundaries, immutable input identity, durable winning records and interrupted-run recovery.",
+        "Independent PromQL fixtures check matched cohorts, no-data behavior and exact tolerance boundaries against Prometheus 3.14."
+      ],
+      "evidence_limit": "Source correction and offline verification only. Cloud execution, model quality, runtime compatibility, deployment recovery, measured cost and legal compliance are not established by this record.",
+      "remaining": "Two recovery explanations remain in other document occurrences outside the evaluation and governance pairs."
+    },
+    {
+      "record_id": "2026-09-19-aidlc-c027",
+      "package": "aidlc",
+      "id": "AIDLC-C027",
+      "issue": 99,
+      "previous_status": "open",
+      "disposition": "partial",
+      "summary": "Keep all 7/3/1-year quantities as explicitly unverified organizational-policy examples; separate Langfuse database from configured archives.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "156896e6287d6d37875f7dcc556776b3bec2c0ba",
+      "source_commits": [
+        "64c24adf974a08ca07fa8e195225130634517ac9"
+      ],
+      "source_files": [
+        "docs/aidlc/enterprise/agent-versioning/governance-automation.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/aidlc/enterprise/agent-versioning/governance-automation.md",
+        "docs/aidlc/toolchain/evaluation-framework.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/aidlc/toolchain/evaluation-framework.md"
+      ],
+      "verification": [
+        "Repository tests extract both source variants and exercise approval boundaries, immutable input identity, durable winning records and interrupted-run recovery.",
+        "Independent PromQL fixtures check matched cohorts, no-data behavior and exact tolerance boundaries against Prometheus 3.14."
+      ],
+      "evidence_limit": "Source correction and offline verification only. Cloud execution, model quality, runtime compatibility, deployment recovery, measured cost and legal compliance are not established by this record.",
+      "remaining": "Two legal-policy explanations remain in other document occurrences outside the evaluation and governance pairs."
+    },
+    {
+      "record_id": "2026-09-19-aidlc-c028",
+      "package": "aidlc",
+      "id": "AIDLC-C028",
+      "issue": 99,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Replace a guessed internal schema with an explicitly application-owned append-only deployment-event schema/query, scoped by project/prompt/version/event type and a half-open UTC interval.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "156896e6287d6d37875f7dcc556776b3bec2c0ba",
+      "source_commits": [
+        "64c24adf974a08ca07fa8e195225130634517ac9"
+      ],
+      "source_files": [
+        "docs/aidlc/enterprise/agent-versioning/governance-automation.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/aidlc/enterprise/agent-versioning/governance-automation.md",
+        "docs/aidlc/toolchain/evaluation-framework.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/aidlc/toolchain/evaluation-framework.md"
+      ],
+      "verification": [
+        "Repository tests extract both source variants and exercise approval boundaries, immutable input identity, durable winning records and interrupted-run recovery.",
+        "Independent PromQL fixtures check matched cohorts, no-data behavior and exact tolerance boundaries against Prometheus 3.14."
+      ],
+      "evidence_limit": "Source correction and offline verification only. Cloud execution, model quality, runtime compatibility, deployment recovery, measured cost and legal compliance are not established by this record."
+    },
+    {
+      "record_id": "2026-09-19-aidlc-c029",
+      "package": "aidlc",
+      "id": "AIDLC-C029",
+      "issue": 99,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Correct the latency increase to approximately 8.33%, express judge change as +0.03 score units, and label template measurements/check states illustrative.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "156896e6287d6d37875f7dcc556776b3bec2c0ba",
+      "source_commits": [
+        "64c24adf974a08ca07fa8e195225130634517ac9"
+      ],
+      "source_files": [
+        "docs/aidlc/enterprise/agent-versioning/governance-automation.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/aidlc/enterprise/agent-versioning/governance-automation.md",
+        "docs/aidlc/toolchain/evaluation-framework.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/aidlc/toolchain/evaluation-framework.md"
+      ],
+      "verification": [
+        "Repository tests extract both source variants and exercise approval boundaries, immutable input identity, durable winning records and interrupted-run recovery.",
+        "Independent PromQL fixtures check matched cohorts, no-data behavior and exact tolerance boundaries against Prometheus 3.14."
+      ],
+      "evidence_limit": "Source correction and offline verification only. Cloud execution, model quality, runtime compatibility, deployment recovery, measured cost and legal compliance are not established by this record."
+    },
+    {
+      "record_id": "2026-09-19-aidlc-c030",
+      "package": "aidlc",
+      "id": "AIDLC-C030",
+      "issue": 99,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Hold the 1.2% error-rate rollout instead of promoting, require the remaining gates/approvals for further rollout, and replace five-minute completion claims with pending verification.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "156896e6287d6d37875f7dcc556776b3bec2c0ba",
+      "source_commits": [
+        "64c24adf974a08ca07fa8e195225130634517ac9"
+      ],
+      "source_files": [
+        "docs/aidlc/enterprise/agent-versioning/governance-automation.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/aidlc/enterprise/agent-versioning/governance-automation.md",
+        "docs/aidlc/toolchain/evaluation-framework.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/aidlc/toolchain/evaluation-framework.md"
+      ],
+      "verification": [
+        "Repository tests extract both source variants and exercise approval boundaries, immutable input identity, durable winning records and interrupted-run recovery.",
+        "Independent PromQL fixtures check matched cohorts, no-data behavior and exact tolerance boundaries against Prometheus 3.14."
+      ],
+      "evidence_limit": "Source correction and offline verification only. Cloud execution, model quality, runtime compatibility, deployment recovery, measured cost and legal compliance are not established by this record."
+    },
+    {
+      "record_id": "2026-09-19-aidlc-c031",
+      "package": "aidlc",
+      "id": "AIDLC-C031",
+      "issue": 99,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Use get_prompt/update_prompt signatures with a recorded approved target, fresh registry reads, durable intent, duplicate/stale-event checks and an injected authenticated/serialized control boundary; report only registry verification.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "156896e6287d6d37875f7dcc556776b3bec2c0ba",
+      "source_commits": [
+        "64c24adf974a08ca07fa8e195225130634517ac9"
+      ],
+      "source_files": [
+        "docs/aidlc/enterprise/agent-versioning/governance-automation.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/aidlc/enterprise/agent-versioning/governance-automation.md",
+        "docs/aidlc/toolchain/evaluation-framework.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/aidlc/toolchain/evaluation-framework.md"
+      ],
+      "verification": [
+        "Repository tests extract both source variants and exercise approval boundaries, immutable input identity, durable winning records and interrupted-run recovery.",
+        "Independent PromQL fixtures check matched cohorts, no-data behavior and exact tolerance boundaries against Prometheus 3.14."
+      ],
+      "evidence_limit": "Source correction and offline verification only. Cloud execution, model quality, runtime compatibility, deployment recovery, measured cost and legal compliance are not established by this record."
+    },
+    {
+      "record_id": "2026-09-19-aidlc-c032",
+      "package": "aidlc",
+      "id": "AIDLC-C032",
+      "issue": 99,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Label four role/threshold gates and operational rollout as organizational extensions while retaining official checkpoints and the v0.1.7 Operations placeholder scope.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "156896e6287d6d37875f7dcc556776b3bec2c0ba",
+      "source_commits": [
+        "64c24adf974a08ca07fa8e195225130634517ac9"
+      ],
+      "source_files": [
+        "docs/aidlc/enterprise/agent-versioning/governance-automation.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/aidlc/enterprise/agent-versioning/governance-automation.md",
+        "docs/aidlc/toolchain/evaluation-framework.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/aidlc/toolchain/evaluation-framework.md"
+      ],
+      "verification": [
+        "Repository tests extract both source variants and exercise approval boundaries, immutable input identity, durable winning records and interrupted-run recovery.",
+        "Independent PromQL fixtures check matched cohorts, no-data behavior and exact tolerance boundaries against Prometheus 3.14."
+      ],
+      "evidence_limit": "Source correction and offline verification only. Cloud execution, model quality, runtime compatibility, deployment recovery, measured cost and legal compliance are not established by this record."
+    },
+    {
+      "record_id": "2026-09-19-aidlc-c342",
+      "package": "aidlc",
+      "id": "AIDLC-C342",
+      "issue": 99,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Restore AI-Driven Development Lifecycle and explain deterministic tests plus stochastic evaluations as complementary in both lifecycle approaches.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "156896e6287d6d37875f7dcc556776b3bec2c0ba",
+      "source_commits": [
+        "64c24adf974a08ca07fa8e195225130634517ac9"
+      ],
+      "source_files": [
+        "docs/aidlc/enterprise/agent-versioning/governance-automation.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/aidlc/enterprise/agent-versioning/governance-automation.md",
+        "docs/aidlc/toolchain/evaluation-framework.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/aidlc/toolchain/evaluation-framework.md"
+      ],
+      "verification": [
+        "Repository tests extract both source variants and exercise approval boundaries, immutable input identity, durable winning records and interrupted-run recovery.",
+        "Independent PromQL fixtures check matched cohorts, no-data behavior and exact tolerance boundaries against Prometheus 3.14."
+      ],
+      "evidence_limit": "Source correction and offline verification only. Cloud execution, model quality, runtime compatibility, deployment recovery, measured cost and legal compliance are not established by this record."
+    },
+    {
+      "record_id": "2026-09-19-aidlc-c343",
+      "package": "aidlc",
+      "id": "AIDLC-C343",
+      "issue": 99,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Identify Inner/Middle/Outer evaluation layers and sample counts as repository design examples, distinct from official lifecycle phases.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "156896e6287d6d37875f7dcc556776b3bec2c0ba",
+      "source_commits": [
+        "64c24adf974a08ca07fa8e195225130634517ac9"
+      ],
+      "source_files": [
+        "docs/aidlc/enterprise/agent-versioning/governance-automation.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/aidlc/enterprise/agent-versioning/governance-automation.md",
+        "docs/aidlc/toolchain/evaluation-framework.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/aidlc/toolchain/evaluation-framework.md"
+      ],
+      "verification": [
+        "Repository tests extract both source variants and exercise approval boundaries, immutable input identity, durable winning records and interrupted-run recovery.",
+        "Independent PromQL fixtures check matched cohorts, no-data behavior and exact tolerance boundaries against Prometheus 3.14."
+      ],
+      "evidence_limit": "Source correction and offline verification only. Cloud execution, model quality, runtime compatibility, deployment recovery, measured cost and legal compliance are not established by this record."
+    },
+    {
+      "record_id": "2026-09-19-aidlc-c344",
+      "package": "aidlc",
+      "id": "AIDLC-C344",
+      "issue": 99,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Retain 2,294/500 task counts and contamination/statistical caveats; bound SWE-bench conclusions to tasks, harness and tests and qualify determinism/lifecycle/cost claims.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "156896e6287d6d37875f7dcc556776b3bec2c0ba",
+      "source_commits": [
+        "64c24adf974a08ca07fa8e195225130634517ac9"
+      ],
+      "source_files": [
+        "docs/aidlc/enterprise/agent-versioning/governance-automation.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/aidlc/enterprise/agent-versioning/governance-automation.md",
+        "docs/aidlc/toolchain/evaluation-framework.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/aidlc/toolchain/evaluation-framework.md"
+      ],
+      "verification": [
+        "Repository tests extract both source variants and exercise approval boundaries, immutable input identity, durable winning records and interrupted-run recovery.",
+        "Independent PromQL fixtures check matched cohorts, no-data behavior and exact tolerance boundaries against Prometheus 3.14."
+      ],
+      "evidence_limit": "Source correction and offline verification only. Cloud execution, model quality, runtime compatibility, deployment recovery, measured cost and legal compliance are not established by this record."
+    },
+    {
+      "record_id": "2026-09-19-aidlc-c345",
+      "package": "aidlc",
+      "id": "AIDLC-C345",
+      "issue": 99,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Correct five answer options to up to ten while preserving 14 domains; explicitly leave the separate 80%+ convergence claim unverified.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "156896e6287d6d37875f7dcc556776b3bec2c0ba",
+      "source_commits": [
+        "64c24adf974a08ca07fa8e195225130634517ac9"
+      ],
+      "source_files": [
+        "docs/aidlc/enterprise/agent-versioning/governance-automation.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/aidlc/enterprise/agent-versioning/governance-automation.md",
+        "docs/aidlc/toolchain/evaluation-framework.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/aidlc/toolchain/evaluation-framework.md"
+      ],
+      "verification": [
+        "Repository tests extract both source variants and exercise approval boundaries, immutable input identity, durable winning records and interrupted-run recovery.",
+        "Independent PromQL fixtures check matched cohorts, no-data behavior and exact tolerance boundaries against Prometheus 3.14."
+      ],
+      "evidence_limit": "Source correction and offline verification only. Cloud execution, model quality, runtime compatibility, deployment recovery, measured cost and legal compliance are not established by this record."
+    },
+    {
+      "record_id": "2026-09-19-aidlc-c346",
+      "package": "aidlc",
+      "id": "AIDLC-C346",
+      "issue": 99,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Bind the seven-month trend to the March 2025 study, human task duration and 50% success; qualify extrapolation and enterprise reliability conclusions.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "156896e6287d6d37875f7dcc556776b3bec2c0ba",
+      "source_commits": [
+        "64c24adf974a08ca07fa8e195225130634517ac9"
+      ],
+      "source_files": [
+        "docs/aidlc/enterprise/agent-versioning/governance-automation.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/aidlc/enterprise/agent-versioning/governance-automation.md",
+        "docs/aidlc/toolchain/evaluation-framework.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/aidlc/toolchain/evaluation-framework.md"
+      ],
+      "verification": [
+        "Repository tests extract both source variants and exercise approval boundaries, immutable input identity, durable winning records and interrupted-run recovery.",
+        "Independent PromQL fixtures check matched cohorts, no-data behavior and exact tolerance boundaries against Prometheus 3.14."
+      ],
+      "evidence_limit": "Source correction and offline verification only. Cloud execution, model quality, runtime compatibility, deployment recovery, measured cost and legal compliance are not established by this record."
+    },
+    {
+      "record_id": "2026-09-19-aidlc-c347",
+      "package": "aidlc",
+      "id": "AIDLC-C347",
+      "issue": 99,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Correct Inspect AI to MIT from the retrieved license and separate a library from government certification.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "156896e6287d6d37875f7dcc556776b3bec2c0ba",
+      "source_commits": [
+        "64c24adf974a08ca07fa8e195225130634517ac9"
+      ],
+      "source_files": [
+        "docs/aidlc/enterprise/agent-versioning/governance-automation.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/aidlc/enterprise/agent-versioning/governance-automation.md",
+        "docs/aidlc/toolchain/evaluation-framework.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/aidlc/toolchain/evaluation-framework.md"
+      ],
+      "verification": [
+        "Repository tests extract both source variants and exercise approval boundaries, immutable input identity, durable winning records and interrupted-run recovery.",
+        "Independent PromQL fixtures check matched cohorts, no-data behavior and exact tolerance boundaries against Prometheus 3.14."
+      ],
+      "evidence_limit": "Source correction and offline verification only. Cloud execution, model quality, runtime compatibility, deployment recovery, measured cost and legal compliance are not established by this record."
+    },
+    {
+      "record_id": "2026-09-19-aidlc-c348",
+      "package": "aidlc",
+      "id": "AIDLC-C348",
+      "issue": 99,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Describe six stages from workflow tag v0.1.7; update comparison, selection and phase mentions, and distinguish *.opt-in.md prompts, enabled extension state and implemented evaluator checks.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "156896e6287d6d37875f7dcc556776b3bec2c0ba",
+      "source_commits": [
+        "64c24adf974a08ca07fa8e195225130634517ac9"
+      ],
+      "source_files": [
+        "docs/aidlc/enterprise/agent-versioning/governance-automation.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/aidlc/enterprise/agent-versioning/governance-automation.md",
+        "docs/aidlc/toolchain/evaluation-framework.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/aidlc/toolchain/evaluation-framework.md"
+      ],
+      "verification": [
+        "Repository tests extract both source variants and exercise approval boundaries, immutable input identity, durable winning records and interrupted-run recovery.",
+        "Independent PromQL fixtures check matched cohorts, no-data behavior and exact tolerance boundaries against Prometheus 3.14."
+      ],
+      "evidence_limit": "Source correction and offline verification only. Cloud execution, model quality, runtime compatibility, deployment recovery, measured cost and legal compliance are not established by this record."
+    },
+    {
+      "record_id": "2026-09-19-aidlc-c349",
+      "package": "aidlc",
+      "id": "AIDLC-C349",
+      "issue": 99,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Define rank-sensitive Context Precision and reference/context-attributable Noise Sensitivity, input requirements, score direction and diagnostic limitations.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "156896e6287d6d37875f7dcc556776b3bec2c0ba",
+      "source_commits": [
+        "64c24adf974a08ca07fa8e195225130634517ac9"
+      ],
+      "source_files": [
+        "docs/aidlc/enterprise/agent-versioning/governance-automation.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/aidlc/enterprise/agent-versioning/governance-automation.md",
+        "docs/aidlc/toolchain/evaluation-framework.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/aidlc/toolchain/evaluation-framework.md"
+      ],
+      "verification": [
+        "Repository tests extract both source variants and exercise approval boundaries, immutable input identity, durable winning records and interrupted-run recovery.",
+        "Independent PromQL fixtures check matched cohorts, no-data behavior and exact tolerance boundaries against Prometheus 3.14."
+      ],
+      "evidence_limit": "Source correction and offline verification only. Cloud execution, model quality, runtime compatibility, deployment recovery, measured cost and legal compliance are not established by this record."
+    },
+    {
+      "record_id": "2026-09-19-aidlc-c350",
+      "package": "aidlc",
+      "id": "AIDLC-C350",
+      "issue": 99,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Run artifact upload with always(), preserve failure status and make missing results an error rather than a pass.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "156896e6287d6d37875f7dcc556776b3bec2c0ba",
+      "source_commits": [
+        "64c24adf974a08ca07fa8e195225130634517ac9"
+      ],
+      "source_files": [
+        "docs/aidlc/enterprise/agent-versioning/governance-automation.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/aidlc/enterprise/agent-versioning/governance-automation.md",
+        "docs/aidlc/toolchain/evaluation-framework.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/aidlc/toolchain/evaluation-framework.md"
+      ],
+      "verification": [
+        "Repository tests extract both source variants and exercise approval boundaries, immutable input identity, durable winning records and interrupted-run recovery.",
+        "Independent PromQL fixtures check matched cohorts, no-data behavior and exact tolerance boundaries against Prometheus 3.14."
+      ],
+      "evidence_limit": "Source correction and offline verification only. Cloud execution, model quality, runtime compatibility, deployment recovery, measured cost and legal compliance are not established by this record."
+    },
+    {
+      "record_id": "2026-09-19-aidlc-c351",
+      "package": "aidlc",
+      "id": "AIDLC-C351",
+      "issue": 99,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Label the 95% coverage and combined gates as organizational examples, define the coverage denominator and retain version-specific human approval requirements.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "156896e6287d6d37875f7dcc556776b3bec2c0ba",
+      "source_commits": [
+        "64c24adf974a08ca07fa8e195225130634517ac9"
+      ],
+      "source_files": [
+        "docs/aidlc/enterprise/agent-versioning/governance-automation.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/aidlc/enterprise/agent-versioning/governance-automation.md",
+        "docs/aidlc/toolchain/evaluation-framework.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/aidlc/toolchain/evaluation-framework.md"
+      ],
+      "verification": [
+        "Repository tests extract both source variants and exercise approval boundaries, immutable input identity, durable winning records and interrupted-run recovery.",
+        "Independent PromQL fixtures check matched cohorts, no-data behavior and exact tolerance boundaries against Prometheus 3.14."
+      ],
+      "evidence_limit": "Source correction and offline verification only. Cloud execution, model quality, runtime compatibility, deployment recovery, measured cost and legal compliance are not established by this record."
+    },
+    {
+      "record_id": "2026-09-19-aidlc-c352",
+      "package": "aidlc",
+      "id": "AIDLC-C352",
+      "issue": 99,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Remove a universal 200-sample method boundary, define paired/cluster resampling and effect-size denominator, and distinguish FWER from FDR objectives.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "156896e6287d6d37875f7dcc556776b3bec2c0ba",
+      "source_commits": [
+        "64c24adf974a08ca07fa8e195225130634517ac9"
+      ],
+      "source_files": [
+        "docs/aidlc/enterprise/agent-versioning/governance-automation.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/aidlc/enterprise/agent-versioning/governance-automation.md",
+        "docs/aidlc/toolchain/evaluation-framework.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/aidlc/toolchain/evaluation-framework.md"
+      ],
+      "verification": [
+        "Repository tests extract both source variants and exercise approval boundaries, immutable input identity, durable winning records and interrupted-run recovery.",
+        "Independent PromQL fixtures check matched cohorts, no-data behavior and exact tolerance boundaries against Prometheus 3.14."
+      ],
+      "evidence_limit": "Source correction and offline verification only. Cloud execution, model quality, runtime compatibility, deployment recovery, measured cost and legal compliance are not established by this record."
+    },
+    {
+      "record_id": "2026-09-19-aidlc-c353",
+      "package": "aidlc",
+      "id": "AIDLC-C353",
+      "issue": 99,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Add a tenant-scoped canonical cache key including ordered actual context/reference and all effective dataset/pipeline/prompt/model/retriever/judge/metric/rubric/transformation versions/settings. Reject missing versions/nonfinite JSON.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "156896e6287d6d37875f7dcc556776b3bec2c0ba",
+      "source_commits": [
+        "64c24adf974a08ca07fa8e195225130634517ac9"
+      ],
+      "source_files": [
+        "docs/aidlc/enterprise/agent-versioning/governance-automation.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/aidlc/enterprise/agent-versioning/governance-automation.md",
+        "docs/aidlc/toolchain/evaluation-framework.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/aidlc/toolchain/evaluation-framework.md"
+      ],
+      "verification": [
+        "Repository tests extract both source variants and exercise approval boundaries, immutable input identity, durable winning records and interrupted-run recovery.",
+        "Independent PromQL fixtures check matched cohorts, no-data behavior and exact tolerance boundaries against Prometheus 3.14."
+      ],
+      "evidence_limit": "Source correction and offline verification only. Cloud execution, model quality, runtime compatibility, deployment recovery, measured cost and legal compliance are not established by this record."
+    },
+    {
+      "record_id": "2026-09-19-aidlc-c354",
+      "package": "aidlc",
+      "id": "AIDLC-C354",
+      "issue": 99,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Record priority-union/ordinary inclusion probabilities and population weighting limits; route low-quality cases to reviewed-label queues rather than treating failed responses as references.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "156896e6287d6d37875f7dcc556776b3bec2c0ba",
+      "source_commits": [
+        "64c24adf974a08ca07fa8e195225130634517ac9"
+      ],
+      "source_files": [
+        "docs/aidlc/enterprise/agent-versioning/governance-automation.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/aidlc/enterprise/agent-versioning/governance-automation.md",
+        "docs/aidlc/toolchain/evaluation-framework.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/aidlc/toolchain/evaluation-framework.md"
+      ],
+      "verification": [
+        "Repository tests extract both source variants and exercise approval boundaries, immutable input identity, durable winning records and interrupted-run recovery.",
+        "Independent PromQL fixtures check matched cohorts, no-data behavior and exact tolerance boundaries against Prometheus 3.14."
+      ],
+      "evidence_limit": "Source correction and offline verification only. Cloud execution, model quality, runtime compatibility, deployment recovery, measured cost and legal compliance are not established by this record."
+    },
+    {
+      "record_id": "2026-09-19-aidlc-c355",
+      "package": "aidlc",
+      "id": "AIDLC-C355",
+      "issue": 99,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Separate HPA/KEDA-style worker replica scaling from Karpenter node provisioning, including concurrency/backpressure/capacity budgets.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "156896e6287d6d37875f7dcc556776b3bec2c0ba",
+      "source_commits": [
+        "64c24adf974a08ca07fa8e195225130634517ac9"
+      ],
+      "source_files": [
+        "docs/aidlc/enterprise/agent-versioning/governance-automation.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/aidlc/enterprise/agent-versioning/governance-automation.md",
+        "docs/aidlc/toolchain/evaluation-framework.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/aidlc/toolchain/evaluation-framework.md"
+      ],
+      "verification": [
+        "Repository tests extract both source variants and exercise approval boundaries, immutable input identity, durable winning records and interrupted-run recovery.",
+        "Independent PromQL fixtures check matched cohorts, no-data behavior and exact tolerance boundaries against Prometheus 3.14."
+      ],
+      "evidence_limit": "Source correction and offline verification only. Cloud execution, model quality, runtime compatibility, deployment recovery, measured cost and legal compliance are not established by this record."
+    },
+    {
+      "record_id": "2026-09-19-aidlc-c356",
+      "package": "aidlc",
+      "id": "AIDLC-C356",
+      "issue": 99,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Require tenant authorization and a trusted approved payload transformation before constructing/invoking the judge; bind evaluated payload identity to transformation/evaluator provenance.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "156896e6287d6d37875f7dcc556776b3bec2c0ba",
+      "source_commits": [
+        "64c24adf974a08ca07fa8e195225130634517ac9"
+      ],
+      "source_files": [
+        "docs/aidlc/enterprise/agent-versioning/governance-automation.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/aidlc/enterprise/agent-versioning/governance-automation.md",
+        "docs/aidlc/toolchain/evaluation-framework.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/aidlc/toolchain/evaluation-framework.md"
+      ],
+      "verification": [
+        "Repository tests extract both source variants and exercise approval boundaries, immutable input identity, durable winning records and interrupted-run recovery.",
+        "Independent PromQL fixtures check matched cohorts, no-data behavior and exact tolerance boundaries against Prometheus 3.14."
+      ],
+      "evidence_limit": "Source correction and offline verification only. Cloud execution, model quality, runtime compatibility, deployment recovery, measured cost and legal compliance are not established by this record."
+    },
+    {
+      "record_id": "2026-09-19-aidlc-c357",
+      "package": "aidlc",
+      "id": "AIDLC-C357",
+      "issue": 99,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Persist tenant, trace and stable evaluation-run identities plus full spec/cache identity and sampling provenance; require conditional storage and consistent retries.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "156896e6287d6d37875f7dcc556776b3bec2c0ba",
+      "source_commits": [
+        "64c24adf974a08ca07fa8e195225130634517ac9"
+      ],
+      "source_files": [
+        "docs/aidlc/enterprise/agent-versioning/governance-automation.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/aidlc/enterprise/agent-versioning/governance-automation.md",
+        "docs/aidlc/toolchain/evaluation-framework.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/aidlc/toolchain/evaluation-framework.md"
+      ],
+      "verification": [
+        "Repository tests extract both source variants and exercise approval boundaries, immutable input identity, durable winning records and interrupted-run recovery.",
+        "Independent PromQL fixtures check matched cohorts, no-data behavior and exact tolerance boundaries against Prometheus 3.14."
+      ],
+      "evidence_limit": "Source correction and offline verification only. Cloud execution, model quality, runtime compatibility, deployment recovery, measured cost and legal compliance are not established by this record."
+    },
+    {
+      "record_id": "2026-09-19-aidlc-c358",
+      "package": "aidlc",
+      "id": "AIDLC-C358",
+      "issue": 99,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Enforce tenant identity across worker boundaries and require replayed/read-only/isolated tool effects for shadow traffic; preserve human promotion approval.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "156896e6287d6d37875f7dcc556776b3bec2c0ba",
+      "source_commits": [
+        "64c24adf974a08ca07fa8e195225130634517ac9"
+      ],
+      "source_files": [
+        "docs/aidlc/enterprise/agent-versioning/governance-automation.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/aidlc/enterprise/agent-versioning/governance-automation.md",
+        "docs/aidlc/toolchain/evaluation-framework.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/aidlc/toolchain/evaluation-framework.md"
+      ],
+      "verification": [
+        "Repository tests extract both source variants and exercise approval boundaries, immutable input identity, durable winning records and interrupted-run recovery.",
+        "Independent PromQL fixtures check matched cohorts, no-data behavior and exact tolerance boundaries against Prometheus 3.14."
+      ],
+      "evidence_limit": "Source correction and offline verification only. Cloud execution, model quality, runtime compatibility, deployment recovery, measured cost and legal compliance are not established by this record."
+    },
+    {
+      "record_id": "2026-09-19-aor-eval-001",
+      "package": "agentic-operations",
+      "id": "AOR-EVAL-001",
+      "issue": 96,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Disjoint experimental prefix; correct ID field; 30/120/365-day transitions; no pseudo-exception or permanent-retention guarantee.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "156896e6287d6d37875f7dcc556776b3bec2c0ba",
+      "source_commits": [
+        "b8b7f61758c0139b9df3a5d37117021b2a0a2318"
+      ],
+      "source_files": [
+        "docs/agentic-ai-platform/reference-architecture/model-lifecycle/continuous-training/evaluation-rollout.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/model-lifecycle/continuous-training/evaluation-rollout.md",
+        "docs/agentic-ai-platform/reference-architecture/integrations/sagemaker-eks-integration.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/integrations/sagemaker-eks-integration.md",
+        "src/components/SagemakerTables/CostOptimization.js"
+      ],
+      "verification": [
+        "83 repository tests extract both source variants and check approval identity, artifact integrity, regional release isolation, finite evaluation results and complete current canary observations.",
+        "Independent create-only release guards and Prometheus/parser boundary checks passed. Producer inventory and observation timestamps remain explicit operator-supplied contracts."
+      ],
+      "evidence_limit": "Source correction and offline verification only. Cloud execution, model quality, runtime compatibility, deployment recovery, measured cost and legal compliance are not established by this record."
+    },
+    {
+      "record_id": "2026-09-19-aor-eval-002",
+      "package": "agentic-operations",
+      "id": "AOR-EVAL-002",
+      "issue": 96,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Restore the attached route, preserve parent/host/path/ports, verify current-generation status and data-plane convergence, drain before scaling down.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "156896e6287d6d37875f7dcc556776b3bec2c0ba",
+      "source_commits": [
+        "b8b7f61758c0139b9df3a5d37117021b2a0a2318"
+      ],
+      "source_files": [
+        "docs/agentic-ai-platform/reference-architecture/model-lifecycle/continuous-training/evaluation-rollout.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/model-lifecycle/continuous-training/evaluation-rollout.md",
+        "docs/agentic-ai-platform/reference-architecture/integrations/sagemaker-eks-integration.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/integrations/sagemaker-eks-integration.md",
+        "src/components/SagemakerTables/CostOptimization.js"
+      ],
+      "verification": [
+        "83 repository tests extract both source variants and check approval identity, artifact integrity, regional release isolation, finite evaluation results and complete current canary observations.",
+        "Independent create-only release guards and Prometheus/parser boundary checks passed. Producer inventory and observation timestamps remain explicit operator-supplied contracts."
+      ],
+      "evidence_limit": "Source correction and offline verification only. Cloud execution, model quality, runtime compatibility, deployment recovery, measured cost and legal compliance are not established by this record."
+    },
+    {
+      "record_id": "2026-09-19-aor-eval-003",
+      "package": "agentic-operations",
+      "id": "AOR-EVAL-003",
+      "issue": 96,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Define custom metric population/labels and zero error series; bucket-rate P99, matching across track, error fractions, stale/no-data/sample gates; align recording and dashboard consumers.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "156896e6287d6d37875f7dcc556776b3bec2c0ba",
+      "source_commits": [
+        "b8b7f61758c0139b9df3a5d37117021b2a0a2318"
+      ],
+      "source_files": [
+        "docs/agentic-ai-platform/reference-architecture/model-lifecycle/continuous-training/evaluation-rollout.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/model-lifecycle/continuous-training/evaluation-rollout.md",
+        "docs/agentic-ai-platform/reference-architecture/integrations/sagemaker-eks-integration.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/integrations/sagemaker-eks-integration.md",
+        "src/components/SagemakerTables/CostOptimization.js"
+      ],
+      "verification": [
+        "83 repository tests extract both source variants and check approval identity, artifact integrity, regional release isolation, finite evaluation results and complete current canary observations.",
+        "Independent create-only release guards and Prometheus/parser boundary checks passed. Producer inventory and observation timestamps remain explicit operator-supplied contracts."
+      ],
+      "evidence_limit": "Source correction and offline verification only. Cloud execution, model quality, runtime compatibility, deployment recovery, measured cost and legal compliance are not established by this record."
+    },
+    {
+      "record_id": "2026-09-19-aor-eval-004",
+      "package": "agentic-operations",
+      "id": "AOR-EVAL-004",
+      "issue": 96,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Separate candidate response capture from Ragas judging; use pinned EvaluationDataset API, explicit judge/embeddings and separately observed latency.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "156896e6287d6d37875f7dcc556776b3bec2c0ba",
+      "source_commits": [
+        "b8b7f61758c0139b9df3a5d37117021b2a0a2318"
+      ],
+      "source_files": [
+        "docs/agentic-ai-platform/reference-architecture/model-lifecycle/continuous-training/evaluation-rollout.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/model-lifecycle/continuous-training/evaluation-rollout.md",
+        "docs/agentic-ai-platform/reference-architecture/integrations/sagemaker-eks-integration.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/integrations/sagemaker-eks-integration.md",
+        "src/components/SagemakerTables/CostOptimization.js"
+      ],
+      "verification": [
+        "83 repository tests extract both source variants and check approval identity, artifact integrity, regional release isolation, finite evaluation results and complete current canary observations.",
+        "Independent create-only release guards and Prometheus/parser boundary checks passed. Producer inventory and observation timestamps remain explicit operator-supplied contracts."
+      ],
+      "evidence_limit": "Source correction and offline verification only. Cloud execution, model quality, runtime compatibility, deployment recovery, measured cost and legal compliance are not established by this record."
+    },
+    {
+      "record_id": "2026-09-19-aor-eval-005",
+      "package": "agentic-operations",
+      "id": "AOR-EVAL-005",
+      "issue": 96,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Reject missing, malformed, nonfinite, empty, duplicate, incomplete or mismatched evaluations; validate baseline latency and signal failure with exit status.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "156896e6287d6d37875f7dcc556776b3bec2c0ba",
+      "source_commits": [
+        "b8b7f61758c0139b9df3a5d37117021b2a0a2318"
+      ],
+      "source_files": [
+        "docs/agentic-ai-platform/reference-architecture/model-lifecycle/continuous-training/evaluation-rollout.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/model-lifecycle/continuous-training/evaluation-rollout.md",
+        "docs/agentic-ai-platform/reference-architecture/integrations/sagemaker-eks-integration.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/integrations/sagemaker-eks-integration.md",
+        "src/components/SagemakerTables/CostOptimization.js"
+      ],
+      "verification": [
+        "83 repository tests extract both source variants and check approval identity, artifact integrity, regional release isolation, finite evaluation results and complete current canary observations.",
+        "Independent create-only release guards and Prometheus/parser boundary checks passed. Producer inventory and observation timestamps remain explicit operator-supplied contracts."
+      ],
+      "evidence_limit": "Source correction and offline verification only. Cloud execution, model quality, runtime compatibility, deployment recovery, measured cost and legal compliance are not established by this record."
+    },
+    {
+      "record_id": "2026-09-19-aor-eval-006",
+      "package": "agentic-operations",
+      "id": "AOR-EVAL-006",
+      "issue": 96,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Explicit .Succeeded DAG dependencies and manual approvals at every promotion; complete route and expression tags; real exit-code gate and parsed/fresh finite Prometheus vectors.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "156896e6287d6d37875f7dcc556776b3bec2c0ba",
+      "source_commits": [
+        "b8b7f61758c0139b9df3a5d37117021b2a0a2318"
+      ],
+      "source_files": [
+        "docs/agentic-ai-platform/reference-architecture/model-lifecycle/continuous-training/evaluation-rollout.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/model-lifecycle/continuous-training/evaluation-rollout.md",
+        "docs/agentic-ai-platform/reference-architecture/integrations/sagemaker-eks-integration.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/integrations/sagemaker-eks-integration.md",
+        "src/components/SagemakerTables/CostOptimization.js"
+      ],
+      "verification": [
+        "83 repository tests extract both source variants and check approval identity, artifact integrity, regional release isolation, finite evaluation results and complete current canary observations.",
+        "Independent create-only release guards and Prometheus/parser boundary checks passed. Producer inventory and observation timestamps remain explicit operator-supplied contracts."
+      ],
+      "evidence_limit": "Source correction and offline verification only. Cloud execution, model quality, runtime compatibility, deployment recovery, measured cost and legal compliance are not established by this record."
+    },
+    {
+      "record_id": "2026-09-19-aor-eval-007",
+      "package": "agentic-operations",
+      "id": "AOR-EVAL-007",
+      "issue": 96,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Replace instruction-only networking/fallback with a return-control action group and allowlisted caller dispatch; name required authenticated caller adapters and draft/alias promotion.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "156896e6287d6d37875f7dcc556776b3bec2c0ba",
+      "source_commits": [
+        "b8b7f61758c0139b9df3a5d37117021b2a0a2318"
+      ],
+      "source_files": [
+        "docs/agentic-ai-platform/reference-architecture/model-lifecycle/continuous-training/evaluation-rollout.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/model-lifecycle/continuous-training/evaluation-rollout.md",
+        "docs/agentic-ai-platform/reference-architecture/integrations/sagemaker-eks-integration.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/integrations/sagemaker-eks-integration.md",
+        "src/components/SagemakerTables/CostOptimization.js"
+      ],
+      "verification": [
+        "83 repository tests extract both source variants and check approval identity, artifact integrity, regional release isolation, finite evaluation results and complete current canary observations.",
+        "Independent create-only release guards and Prometheus/parser boundary checks passed. Producer inventory and observation timestamps remain explicit operator-supplied contracts."
+      ],
+      "evidence_limit": "Source correction and offline verification only. Cloud execution, model quality, runtime compatibility, deployment recovery, measured cost and legal compliance are not established by this record."
+    },
+    {
+      "record_id": "2026-09-19-aor-eval-008",
+      "package": "agentic-operations",
+      "id": "AOR-EVAL-008",
+      "issue": 96,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Keep 5/25/100 policy detail but label Rollouts excerpt non-applyable; enumerate absent workload/Service/plugin/analysis integration and prohibit competing route owners.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "156896e6287d6d37875f7dcc556776b3bec2c0ba",
+      "source_commits": [
+        "b8b7f61758c0139b9df3a5d37117021b2a0a2318"
+      ],
+      "source_files": [
+        "docs/agentic-ai-platform/reference-architecture/model-lifecycle/continuous-training/evaluation-rollout.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/model-lifecycle/continuous-training/evaluation-rollout.md",
+        "docs/agentic-ai-platform/reference-architecture/integrations/sagemaker-eks-integration.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/integrations/sagemaker-eks-integration.md",
+        "src/components/SagemakerTables/CostOptimization.js"
+      ],
+      "verification": [
+        "83 repository tests extract both source variants and check approval identity, artifact integrity, regional release isolation, finite evaluation results and complete current canary observations.",
+        "Independent create-only release guards and Prometheus/parser boundary checks passed. Producer inventory and observation timestamps remain explicit operator-supplied contracts."
+      ],
+      "evidence_limit": "Source correction and offline verification only. Cloud execution, model quality, runtime compatibility, deployment recovery, measured cost and legal compliance are not established by this record."
+    },
+    {
+      "record_id": "2026-09-19-aor-eval-009",
+      "package": "agentic-operations",
+      "id": "AOR-EVAL-009",
+      "issue": 96,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Use cumulative GPU-seconds counter and one seconds-to-hours conversion; subtract comparable quality gauges; filter nonpositive denominators; distinguish illustrative rate, rules file/AMP upload, and Grafana query specification.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "156896e6287d6d37875f7dcc556776b3bec2c0ba",
+      "source_commits": [
+        "b8b7f61758c0139b9df3a5d37117021b2a0a2318"
+      ],
+      "source_files": [
+        "docs/agentic-ai-platform/reference-architecture/model-lifecycle/continuous-training/evaluation-rollout.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/model-lifecycle/continuous-training/evaluation-rollout.md",
+        "docs/agentic-ai-platform/reference-architecture/integrations/sagemaker-eks-integration.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/integrations/sagemaker-eks-integration.md",
+        "src/components/SagemakerTables/CostOptimization.js"
+      ],
+      "verification": [
+        "83 repository tests extract both source variants and check approval identity, artifact integrity, regional release isolation, finite evaluation results and complete current canary observations.",
+        "Independent create-only release guards and Prometheus/parser boundary checks passed. Producer inventory and observation timestamps remain explicit operator-supplied contracts."
+      ],
+      "evidence_limit": "Source correction and offline verification only. Cloud execution, model quality, runtime compatibility, deployment recovery, measured cost and legal compliance are not established by this record."
+    },
+    {
+      "record_id": "2026-09-19-aor-eval-010",
+      "package": "agentic-operations",
+      "id": "AOR-EVAL-010",
+      "issue": 96,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Replace inconsistent LTV/monthly arithmetic with dimensioned first-month scenario and computed -95% output; label synthetic training history and unverified churn causality.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "156896e6287d6d37875f7dcc556776b3bec2c0ba",
+      "source_commits": [
+        "b8b7f61758c0139b9df3a5d37117021b2a0a2318"
+      ],
+      "source_files": [
+        "docs/agentic-ai-platform/reference-architecture/model-lifecycle/continuous-training/evaluation-rollout.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/model-lifecycle/continuous-training/evaluation-rollout.md",
+        "docs/agentic-ai-platform/reference-architecture/integrations/sagemaker-eks-integration.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/integrations/sagemaker-eks-integration.md",
+        "src/components/SagemakerTables/CostOptimization.js"
+      ],
+      "verification": [
+        "83 repository tests extract both source variants and check approval identity, artifact integrity, regional release isolation, finite evaluation results and complete current canary observations.",
+        "Independent create-only release guards and Prometheus/parser boundary checks passed. Producer inventory and observation timestamps remain explicit operator-supplied contracts."
+      ],
+      "evidence_limit": "Source correction and offline verification only. Cloud execution, model quality, runtime compatibility, deployment recovery, measured cost and legal compliance are not established by this record."
+    },
+    {
+      "record_id": "2026-09-19-aor-smeks-001",
+      "package": "agentic-operations",
+      "id": "AOR-SMEKS-001",
+      "issue": 96,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Stop KFP at PendingManualApproval; explicit UpdateModelPackage review; every EKS deployment rechecks the exact Completed+Approved version and matching artifact metadata. No automatic AWS enforcement or recall on EKS.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "156896e6287d6d37875f7dcc556776b3bec2c0ba",
+      "source_commits": [
+        "b8b7f61758c0139b9df3a5d37117021b2a0a2318"
+      ],
+      "source_files": [
+        "docs/agentic-ai-platform/reference-architecture/model-lifecycle/continuous-training/evaluation-rollout.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/model-lifecycle/continuous-training/evaluation-rollout.md",
+        "docs/agentic-ai-platform/reference-architecture/integrations/sagemaker-eks-integration.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/integrations/sagemaker-eks-integration.md",
+        "src/components/SagemakerTables/CostOptimization.js"
+      ],
+      "verification": [
+        "83 repository tests extract both source variants and check approval identity, artifact integrity, regional release isolation, finite evaluation results and complete current canary observations.",
+        "Independent create-only release guards and Prometheus/parser boundary checks passed. Producer inventory and observation timestamps remain explicit operator-supplied contracts."
+      ],
+      "evidence_limit": "Source correction and offline verification only. Cloud execution, model quality, runtime compatibility, deployment recovery, measured cost and legal compliance are not established by this record."
+    },
+    {
+      "record_id": "2026-09-19-aor-smeks-002",
+      "package": "agentic-operations",
+      "id": "AOR-SMEKS-002",
+      "issue": 96,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Require reviewed HF causal-LM artifact contract, versioned S3 materialization, checksum and safe extraction; serve local directory and reuse the same adapter in regional/monitoring paths. Do not deny separate vLLM S3 loaders.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "156896e6287d6d37875f7dcc556776b3bec2c0ba",
+      "source_commits": [
+        "b8b7f61758c0139b9df3a5d37117021b2a0a2318"
+      ],
+      "source_files": [
+        "docs/agentic-ai-platform/reference-architecture/model-lifecycle/continuous-training/evaluation-rollout.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/model-lifecycle/continuous-training/evaluation-rollout.md",
+        "docs/agentic-ai-platform/reference-architecture/integrations/sagemaker-eks-integration.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/integrations/sagemaker-eks-integration.md",
+        "src/components/SagemakerTables/CostOptimization.js"
+      ],
+      "verification": [
+        "83 repository tests extract both source variants and check approval identity, artifact integrity, regional release isolation, finite evaluation results and complete current canary observations.",
+        "Independent create-only release guards and Prometheus/parser boundary checks passed. Producer inventory and observation timestamps remain explicit operator-supplied contracts."
+      ],
+      "evidence_limit": "Source correction and offline verification only. Cloud execution, model quality, runtime compatibility, deployment recovery, measured cost and legal compliance are not established by this record."
+    },
+    {
+      "record_id": "2026-09-19-aor-smeks-003",
+      "package": "agentic-operations",
+      "id": "AOR-SMEKS-003",
+      "issue": 96,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Use custom KFP 2.7 wrappers, run-level service_account and disabled caching; remove legacy task.apply/static secret injection.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "156896e6287d6d37875f7dcc556776b3bec2c0ba",
+      "source_commits": [
+        "b8b7f61758c0139b9df3a5d37117021b2a0a2318"
+      ],
+      "source_files": [
+        "docs/agentic-ai-platform/reference-architecture/model-lifecycle/continuous-training/evaluation-rollout.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/model-lifecycle/continuous-training/evaluation-rollout.md",
+        "docs/agentic-ai-platform/reference-architecture/integrations/sagemaker-eks-integration.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/integrations/sagemaker-eks-integration.md",
+        "src/components/SagemakerTables/CostOptimization.js"
+      ],
+      "verification": [
+        "83 repository tests extract both source variants and check approval identity, artifact integrity, regional release isolation, finite evaluation results and complete current canary observations.",
+        "Independent create-only release guards and Prometheus/parser boundary checks passed. Producer inventory and observation timestamps remain explicit operator-supplied contracts."
+      ],
+      "evidence_limit": "Source correction and offline verification only. Cloud execution, model quality, runtime compatibility, deployment recovery, measured cost and legal compliance are not established by this record."
+    },
+    {
+      "record_id": "2026-09-19-aor-smeks-004",
+      "package": "agentic-operations",
+      "id": "AOR-SMEKS-004",
+      "issue": 96,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Make the actual training program, /opt/ml paths, artifact format and digest-pinned BYOC image required inputs; remove generic DLC defaults and unimplemented automatic paid training.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "156896e6287d6d37875f7dcc556776b3bec2c0ba",
+      "source_commits": [
+        "b8b7f61758c0139b9df3a5d37117021b2a0a2318"
+      ],
+      "source_files": [
+        "docs/agentic-ai-platform/reference-architecture/model-lifecycle/continuous-training/evaluation-rollout.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/model-lifecycle/continuous-training/evaluation-rollout.md",
+        "docs/agentic-ai-platform/reference-architecture/integrations/sagemaker-eks-integration.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/integrations/sagemaker-eks-integration.md",
+        "src/components/SagemakerTables/CostOptimization.js"
+      ],
+      "verification": [
+        "83 repository tests extract both source variants and check approval identity, artifact integrity, regional release isolation, finite evaluation results and complete current canary observations.",
+        "Independent create-only release guards and Prometheus/parser boundary checks passed. Producer inventory and observation timestamps remain explicit operator-supplied contracts."
+      ],
+      "evidence_limit": "Source correction and offline verification only. Cloud execution, model quality, runtime compatibility, deployment recovery, measured cost and legal compliance are not established by this record."
+    },
+    {
+      "record_id": "2026-09-19-aor-smeks-005",
+      "package": "agentic-operations",
+      "id": "AOR-SMEKS-005",
+      "issue": 96,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Use Kubernetes Python client with bounded request timeouts; state separate pipeline/execution/deployment/loader identities and scoped RBAC, resources, probes and prerequisites.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "156896e6287d6d37875f7dcc556776b3bec2c0ba",
+      "source_commits": [
+        "b8b7f61758c0139b9df3a5d37117021b2a0a2318"
+      ],
+      "source_files": [
+        "docs/agentic-ai-platform/reference-architecture/model-lifecycle/continuous-training/evaluation-rollout.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/model-lifecycle/continuous-training/evaluation-rollout.md",
+        "docs/agentic-ai-platform/reference-architecture/integrations/sagemaker-eks-integration.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/integrations/sagemaker-eks-integration.md",
+        "src/components/SagemakerTables/CostOptimization.js"
+      ],
+      "verification": [
+        "83 repository tests extract both source variants and check approval identity, artifact integrity, regional release isolation, finite evaluation results and complete current canary observations.",
+        "Independent create-only release guards and Prometheus/parser boundary checks passed. Producer inventory and observation timestamps remain explicit operator-supplied contracts."
+      ],
+      "evidence_limit": "Source correction and offline verification only. Cloud execution, model quality, runtime compatibility, deployment recovery, measured cost and legal compliance are not established by this record."
+    },
+    {
+      "record_id": "2026-09-19-aor-smeks-006",
+      "package": "agentic-operations",
+      "id": "AOR-SMEKS-006",
+      "issue": 96,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Include DeleteMarkerReplication in both filtered replication rules and Metrics with both RTC destinations; document versioning/IAM/KMS and asynchronous replication limits.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "156896e6287d6d37875f7dcc556776b3bec2c0ba",
+      "source_commits": [
+        "b8b7f61758c0139b9df3a5d37117021b2a0a2318"
+      ],
+      "source_files": [
+        "docs/agentic-ai-platform/reference-architecture/model-lifecycle/continuous-training/evaluation-rollout.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/model-lifecycle/continuous-training/evaluation-rollout.md",
+        "docs/agentic-ai-platform/reference-architecture/integrations/sagemaker-eks-integration.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/integrations/sagemaker-eks-integration.md",
+        "src/components/SagemakerTables/CostOptimization.js"
+      ],
+      "verification": [
+        "83 repository tests extract both source variants and check approval identity, artifact integrity, regional release isolation, finite evaluation results and complete current canary observations.",
+        "Independent create-only release guards and Prometheus/parser boundary checks passed. Producer inventory and observation timestamps remain explicit operator-supplied contracts."
+      ],
+      "evidence_limit": "Source correction and offline verification only. Cloud execution, model quality, runtime compatibility, deployment recovery, measured cost and legal compliance are not established by this record."
+    },
+    {
+      "record_id": "2026-09-19-aor-smeks-007",
+      "package": "agentic-operations",
+      "id": "AOR-SMEKS-007",
+      "issue": 96,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Use package ARN Region for Registry; explicitly map each actual replica object version and cluster context; reuse checksum-validating materialization.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "156896e6287d6d37875f7dcc556776b3bec2c0ba",
+      "source_commits": [
+        "b8b7f61758c0139b9df3a5d37117021b2a0a2318"
+      ],
+      "source_files": [
+        "docs/agentic-ai-platform/reference-architecture/model-lifecycle/continuous-training/evaluation-rollout.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/model-lifecycle/continuous-training/evaluation-rollout.md",
+        "docs/agentic-ai-platform/reference-architecture/integrations/sagemaker-eks-integration.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/integrations/sagemaker-eks-integration.md",
+        "src/components/SagemakerTables/CostOptimization.js"
+      ],
+      "verification": [
+        "83 repository tests extract both source variants and check approval identity, artifact integrity, regional release isolation, finite evaluation results and complete current canary observations.",
+        "Independent create-only release guards and Prometheus/parser boundary checks passed. Producer inventory and observation timestamps remain explicit operator-supplied contracts."
+      ],
+      "evidence_limit": "Source correction and offline verification only. Cloud execution, model quality, runtime compatibility, deployment recovery, measured cost and legal compliance are not established by this record."
+    },
+    {
+      "record_id": "2026-09-19-aor-smeks-008",
+      "package": "agentic-operations",
+      "id": "AOR-SMEKS-008",
+      "issue": 96,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Create/update matching ClusterIP Service and Deployment, wait for observed generation/replicas, require identity/smoke callback, and return ready only after verification.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "156896e6287d6d37875f7dcc556776b3bec2c0ba",
+      "source_commits": [
+        "b8b7f61758c0139b9df3a5d37117021b2a0a2318"
+      ],
+      "source_files": [
+        "docs/agentic-ai-platform/reference-architecture/model-lifecycle/continuous-training/evaluation-rollout.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/model-lifecycle/continuous-training/evaluation-rollout.md",
+        "docs/agentic-ai-platform/reference-architecture/integrations/sagemaker-eks-integration.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/integrations/sagemaker-eks-integration.md",
+        "src/components/SagemakerTables/CostOptimization.js"
+      ],
+      "verification": [
+        "83 repository tests extract both source variants and check approval identity, artifact integrity, regional release isolation, finite evaluation results and complete current canary observations.",
+        "Independent create-only release guards and Prometheus/parser boundary checks passed. Producer inventory and observation timestamps remain explicit operator-supplied contracts."
+      ],
+      "evidence_limit": "Source correction and offline verification only. Cloud execution, model quality, runtime compatibility, deployment recovery, measured cost and legal compliance are not established by this record."
+    },
+    {
+      "record_id": "2026-09-19-aor-smeks-009",
+      "package": "agentic-operations",
+      "id": "AOR-SMEKS-009",
+      "issue": 96,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Use Langfuse OTLP /api/public/otel with Basic public:secret auth; explicitly enable vLLM OTLP HTTP/protobuf; separate tracing from redacted application capture and scope fragments.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "156896e6287d6d37875f7dcc556776b3bec2c0ba",
+      "source_commits": [
+        "b8b7f61758c0139b9df3a5d37117021b2a0a2318"
+      ],
+      "source_files": [
+        "docs/agentic-ai-platform/reference-architecture/model-lifecycle/continuous-training/evaluation-rollout.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/model-lifecycle/continuous-training/evaluation-rollout.md",
+        "docs/agentic-ai-platform/reference-architecture/integrations/sagemaker-eks-integration.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/integrations/sagemaker-eks-integration.md",
+        "src/components/SagemakerTables/CostOptimization.js"
+      ],
+      "verification": [
+        "83 repository tests extract both source variants and check approval identity, artifact integrity, regional release isolation, finite evaluation results and complete current canary observations.",
+        "Independent create-only release guards and Prometheus/parser boundary checks passed. Producer inventory and observation timestamps remain explicit operator-supplied contracts."
+      ],
+      "evidence_limit": "Source correction and offline verification only. Cloud execution, model quality, runtime compatibility, deployment recovery, measured cost and legal compliance are not established by this record."
+    },
+    {
+      "record_id": "2026-09-19-aor-smeks-010",
+      "package": "agentic-operations",
+      "id": "AOR-SMEKS-010",
+      "issue": 96,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Use DefaultModelMonitor/EndpointInput for actual SageMaker endpoints only; obtain baseline and schedule from monitor instance; provide separate concrete offline EKS feature-drift function.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "156896e6287d6d37875f7dcc556776b3bec2c0ba",
+      "source_commits": [
+        "b8b7f61758c0139b9df3a5d37117021b2a0a2318"
+      ],
+      "source_files": [
+        "docs/agentic-ai-platform/reference-architecture/model-lifecycle/continuous-training/evaluation-rollout.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/model-lifecycle/continuous-training/evaluation-rollout.md",
+        "docs/agentic-ai-platform/reference-architecture/integrations/sagemaker-eks-integration.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/integrations/sagemaker-eks-integration.md",
+        "src/components/SagemakerTables/CostOptimization.js"
+      ],
+      "verification": [
+        "83 repository tests extract both source variants and check approval identity, artifact integrity, regional release isolation, finite evaluation results and complete current canary observations.",
+        "Independent create-only release guards and Prometheus/parser boundary checks passed. Producer inventory and observation timestamps remain explicit operator-supplied contracts."
+      ],
+      "evidence_limit": "Source correction and offline verification only. Cloud execution, model quality, runtime compatibility, deployment recovery, measured cost and legal compliance are not established by this record."
+    },
+    {
+      "record_id": "2026-09-19-aor-smeks-011",
+      "package": "agentic-operations",
+      "id": "AOR-SMEKS-011",
+      "issue": 96,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "State current new-customer closure/existing-customer continuity; scope Monitor example, diagram and summary; identify customer-owned EKS monitoring for new deployments.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "156896e6287d6d37875f7dcc556776b3bec2c0ba",
+      "source_commits": [
+        "b8b7f61758c0139b9df3a5d37117021b2a0a2318"
+      ],
+      "source_files": [
+        "docs/agentic-ai-platform/reference-architecture/model-lifecycle/continuous-training/evaluation-rollout.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/model-lifecycle/continuous-training/evaluation-rollout.md",
+        "docs/agentic-ai-platform/reference-architecture/integrations/sagemaker-eks-integration.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/integrations/sagemaker-eks-integration.md",
+        "src/components/SagemakerTables/CostOptimization.js"
+      ],
+      "verification": [
+        "83 repository tests extract both source variants and check approval identity, artifact integrity, regional release isolation, finite evaluation results and complete current canary observations.",
+        "Independent create-only release guards and Prometheus/parser boundary checks passed. Producer inventory and observation timestamps remain explicit operator-supplied contracts."
+      ],
+      "evidence_limit": "Source correction and offline verification only. Cloud execution, model quality, runtime compatibility, deployment recovery, measured cost and legal compliance are not established by this record."
+    },
+    {
+      "record_id": "2026-09-19-aor-smeks-012",
+      "package": "agentic-operations",
+      "id": "AOR-SMEKS-012",
+      "issue": 96,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Validate exact SNS/alarm/account/state/time; stable transition ID and conditional durable approval request; separate reviewed, bounded paid-training dispatcher with reconciliation requirements.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "156896e6287d6d37875f7dcc556776b3bec2c0ba",
+      "source_commits": [
+        "b8b7f61758c0139b9df3a5d37117021b2a0a2318"
+      ],
+      "source_files": [
+        "docs/agentic-ai-platform/reference-architecture/model-lifecycle/continuous-training/evaluation-rollout.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/model-lifecycle/continuous-training/evaluation-rollout.md",
+        "docs/agentic-ai-platform/reference-architecture/integrations/sagemaker-eks-integration.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/integrations/sagemaker-eks-integration.md",
+        "src/components/SagemakerTables/CostOptimization.js"
+      ],
+      "verification": [
+        "83 repository tests extract both source variants and check approval identity, artifact integrity, regional release isolation, finite evaluation results and complete current canary observations.",
+        "Independent create-only release guards and Prometheus/parser boundary checks passed. Producer inventory and observation timestamps remain explicit operator-supplied contracts."
+      ],
+      "evidence_limit": "Source correction and offline verification only. Cloud execution, model quality, runtime compatibility, deployment recovery, measured cost and legal compliance are not established by this record."
+    },
+    {
+      "record_id": "2026-09-19-aor-smeks-013",
+      "package": "agentic-operations",
+      "id": "AOR-SMEKS-013",
+      "issue": 96,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Distinguish allowlisted training usage types from all SageMaker; label tagged EC2 compute subset and exclusions, activated tags, pagination, currency and Estimated state.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "156896e6287d6d37875f7dcc556776b3bec2c0ba",
+      "source_commits": [
+        "b8b7f61758c0139b9df3a5d37117021b2a0a2318"
+      ],
+      "source_files": [
+        "docs/agentic-ai-platform/reference-architecture/model-lifecycle/continuous-training/evaluation-rollout.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/model-lifecycle/continuous-training/evaluation-rollout.md",
+        "docs/agentic-ai-platform/reference-architecture/integrations/sagemaker-eks-integration.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/integrations/sagemaker-eks-integration.md",
+        "src/components/SagemakerTables/CostOptimization.js"
+      ],
+      "verification": [
+        "83 repository tests extract both source variants and check approval identity, artifact integrity, regional release isolation, finite evaluation results and complete current canary observations.",
+        "Independent create-only release guards and Prometheus/parser boundary checks passed. Producer inventory and observation timestamps remain explicit operator-supplied contracts."
+      ],
+      "evidence_limit": "Source correction and offline verification only. Cloud execution, model quality, runtime compatibility, deployment recovery, measured cost and legal compliance are not established by this record."
+    },
+    {
+      "record_id": "2026-09-19-aor-smeks-014",
+      "package": "agentic-operations",
+      "id": "AOR-SMEKS-014",
+      "issue": 96,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Label custom YAML as design-only, map fields to real SDK/controller responsibilities, disable unverified GPU sharing by default and remove fixed 70% claim; retain AWS conditional up-to-90% bound as unmeasured.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "156896e6287d6d37875f7dcc556776b3bec2c0ba",
+      "source_commits": [
+        "b8b7f61758c0139b9df3a5d37117021b2a0a2318"
+      ],
+      "source_files": [
+        "docs/agentic-ai-platform/reference-architecture/model-lifecycle/continuous-training/evaluation-rollout.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/model-lifecycle/continuous-training/evaluation-rollout.md",
+        "docs/agentic-ai-platform/reference-architecture/integrations/sagemaker-eks-integration.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/integrations/sagemaker-eks-integration.md",
+        "src/components/SagemakerTables/CostOptimization.js"
+      ],
+      "verification": [
+        "83 repository tests extract both source variants and check approval identity, artifact integrity, regional release isolation, finite evaluation results and complete current canary observations.",
+        "Independent create-only release guards and Prometheus/parser boundary checks passed. Producer inventory and observation timestamps remain explicit operator-supplied contracts."
+      ],
+      "evidence_limit": "Source correction and offline verification only. Cloud execution, model quality, runtime compatibility, deployment recovery, measured cost and legal compliance are not established by this record."
+    },
+    {
+      "record_id": "2026-09-19-aor-smeks-015",
+      "package": "agentic-operations",
+      "id": "AOR-SMEKS-015",
+      "issue": 96,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Correct orchestration/artifact-reference/request arrows and vLLM/Triton alternatives; repair nearby regional DNS and telemetry/capture diagrams without changing layout styles.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "156896e6287d6d37875f7dcc556776b3bec2c0ba",
+      "source_commits": [
+        "b8b7f61758c0139b9df3a5d37117021b2a0a2318"
+      ],
+      "source_files": [
+        "docs/agentic-ai-platform/reference-architecture/model-lifecycle/continuous-training/evaluation-rollout.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/model-lifecycle/continuous-training/evaluation-rollout.md",
+        "docs/agentic-ai-platform/reference-architecture/integrations/sagemaker-eks-integration.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/integrations/sagemaker-eks-integration.md",
+        "src/components/SagemakerTables/CostOptimization.js"
+      ],
+      "verification": [
+        "83 repository tests extract both source variants and check approval identity, artifact integrity, regional release isolation, finite evaluation results and complete current canary observations.",
+        "Independent create-only release guards and Prometheus/parser boundary checks passed. Producer inventory and observation timestamps remain explicit operator-supplied contracts."
+      ],
+      "evidence_limit": "Source correction and offline verification only. Cloud execution, model quality, runtime compatibility, deployment recovery, measured cost and legal compliance are not established by this record."
+    },
+    {
+      "record_id": "2026-09-19-aor-smeks-016",
+      "package": "agentic-operations",
+      "id": "AOR-SMEKS-016",
+      "issue": 96,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Use vllm/vllm-openai:v0.23.0 in both locales and all remaining executable/merge examples; leave image digest and runtime compatibility to actual deployment validation.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "156896e6287d6d37875f7dcc556776b3bec2c0ba",
+      "source_commits": [
+        "b8b7f61758c0139b9df3a5d37117021b2a0a2318"
+      ],
+      "source_files": [
+        "docs/agentic-ai-platform/reference-architecture/model-lifecycle/continuous-training/evaluation-rollout.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/model-lifecycle/continuous-training/evaluation-rollout.md",
+        "docs/agentic-ai-platform/reference-architecture/integrations/sagemaker-eks-integration.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/integrations/sagemaker-eks-integration.md",
+        "src/components/SagemakerTables/CostOptimization.js"
+      ],
+      "verification": [
+        "83 repository tests extract both source variants and check approval identity, artifact integrity, regional release isolation, finite evaluation results and complete current canary observations.",
+        "Independent create-only release guards and Prometheus/parser boundary checks passed. Producer inventory and observation timestamps remain explicit operator-supplied contracts."
+      ],
+      "evidence_limit": "Source correction and offline verification only. Cloud execution, model quality, runtime compatibility, deployment recovery, measured cost and legal compliance are not established by this record."
+    },
+    {
+      "record_id": "2026-09-19-aor-smeks-017",
+      "package": "agentic-operations",
+      "id": "AOR-SMEKS-017",
+      "issue": 96,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Correct both localized shared table cells: path-dependent transfer/NAT/endpoint costs; retained customer data/IAM/model operations; distinguish S3 gateway endpoint strategy.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "156896e6287d6d37875f7dcc556776b3bec2c0ba",
+      "source_commits": [
+        "b8b7f61758c0139b9df3a5d37117021b2a0a2318"
+      ],
+      "source_files": [
+        "docs/agentic-ai-platform/reference-architecture/model-lifecycle/continuous-training/evaluation-rollout.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/model-lifecycle/continuous-training/evaluation-rollout.md",
+        "docs/agentic-ai-platform/reference-architecture/integrations/sagemaker-eks-integration.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/integrations/sagemaker-eks-integration.md",
+        "src/components/SagemakerTables/CostOptimization.js"
+      ],
+      "verification": [
+        "83 repository tests extract both source variants and check approval identity, artifact integrity, regional release isolation, finite evaluation results and complete current canary observations.",
+        "Independent create-only release guards and Prometheus/parser boundary checks passed. Producer inventory and observation timestamps remain explicit operator-supplied contracts."
+      ],
+      "evidence_limit": "Source correction and offline verification only. Cloud execution, model quality, runtime compatibility, deployment recovery, measured cost and legal compliance are not established by this record."
+    },
+    {
+      "record_id": "2026-09-19-parfit-trace-autoscale",
+      "package": "agentic-reference",
+      "id": "PARFIT-TRACE-AUTOSCALE",
+      "issue": 96,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Use the same verified predictor Deployment target in both locales, Standard/external autoscaling, the vLLM waiting metric and model_name label; qualify queue-only scaling.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "156896e6287d6d37875f7dcc556776b3bec2c0ba",
+      "source_commits": [
+        "156896e6287d6d37875f7dcc556776b3bec2c0ba"
+      ],
+      "source_files": [
+        "docs/agentic-ai-platform/reference-architecture/model-lifecycle/continuous-training/trace-to-dataset.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/model-lifecycle/continuous-training/trace-to-dataset.md"
+      ],
+      "verification": [
+        "Repository tests extract both source variants and exercise materialization, schema, reward validation and authorization changes around synchronous and asynchronous dispatch.",
+        "Independent review checked the pinned Ragas synchronous embedding path. In-memory HTTPX/httpcore probes cover approval checks before headers and body writes without contacting a model endpoint."
+      ],
+      "evidence_limit": "Source correction and offline verification only. Cloud execution, model quality, runtime compatibility, deployment recovery, measured cost and legal compliance are not established by this record."
+    },
+    {
+      "record_id": "2026-09-19-parfit-trace-cost",
+      "package": "agentic-reference",
+      "id": "PARFIT-TRACE-COST",
+      "issue": 96,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Replace unsupported provider prices and savings with explicitly hypothetical arithmetic and list the inputs required for a measured, quality-matched comparison.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "156896e6287d6d37875f7dcc556776b3bec2c0ba",
+      "source_commits": [
+        "156896e6287d6d37875f7dcc556776b3bec2c0ba"
+      ],
+      "source_files": [
+        "docs/agentic-ai-platform/reference-architecture/model-lifecycle/continuous-training/trace-to-dataset.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/model-lifecycle/continuous-training/trace-to-dataset.md"
+      ],
+      "verification": [
+        "Repository tests extract both source variants and exercise materialization, schema, reward validation and authorization changes around synchronous and asynchronous dispatch.",
+        "Independent review checked the pinned Ragas synchronous embedding path. In-memory HTTPX/httpcore probes cover approval checks before headers and body writes without contacting a model endpoint."
+      ],
+      "evidence_limit": "Source correction and offline verification only. Cloud execution, model quality, runtime compatibility, deployment recovery, measured cost and legal compliance are not established by this record."
+    },
+    {
+      "record_id": "2026-09-19-parfit-trace-hudi",
+      "package": "agentic-reference",
+      "id": "PARFIT-TRACE-HUDI",
+      "issue": 96,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "State conditional, version/engine-dependent schema evolution for Hudi and explicit supported changes for Iceberg.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "156896e6287d6d37875f7dcc556776b3bec2c0ba",
+      "source_commits": [
+        "156896e6287d6d37875f7dcc556776b3bec2c0ba"
+      ],
+      "source_files": [
+        "docs/agentic-ai-platform/reference-architecture/model-lifecycle/continuous-training/trace-to-dataset.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/model-lifecycle/continuous-training/trace-to-dataset.md"
+      ],
+      "verification": [
+        "Repository tests extract both source variants and exercise materialization, schema, reward validation and authorization changes around synchronous and asynchronous dispatch.",
+        "Independent review checked the pinned Ragas synchronous embedding path. In-memory HTTPX/httpcore probes cover approval checks before headers and body writes without contacting a model endpoint."
+      ],
+      "evidence_limit": "Source correction and offline verification only. Cloud execution, model quality, runtime compatibility, deployment recovery, measured cost and legal compliance are not established by this record."
+    },
+    {
+      "record_id": "2026-09-19-parfit-trace-iceberg",
+      "package": "agentic-reference",
+      "id": "PARFIT-TRACE-ICEBERG",
+      "issue": 96,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Register plain Parquet external snapshot tables and partitions; do not label raw files as an Iceberg commit. Validate existing catalog definitions on retry and fail for reconciliation.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "156896e6287d6d37875f7dcc556776b3bec2c0ba",
+      "source_commits": [
+        "156896e6287d6d37875f7dcc556776b3bec2c0ba"
+      ],
+      "source_files": [
+        "docs/agentic-ai-platform/reference-architecture/model-lifecycle/continuous-training/trace-to-dataset.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/model-lifecycle/continuous-training/trace-to-dataset.md"
+      ],
+      "verification": [
+        "Repository tests extract both source variants and exercise materialization, schema, reward validation and authorization changes around synchronous and asynchronous dispatch.",
+        "Independent review checked the pinned Ragas synchronous embedding path. In-memory HTTPX/httpcore probes cover approval checks before headers and body writes without contacting a model endpoint."
+      ],
+      "evidence_limit": "Source correction and offline verification only. Cloud execution, model quality, runtime compatibility, deployment recovery, measured cost and legal compliance are not established by this record."
+    },
+    {
+      "record_id": "2026-09-19-parfit-trace-model",
+      "package": "agentic-reference",
+      "id": "PARFIT-TRACE-MODEL",
+      "issue": 96,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Use the published Qwen/Qwen3-4B repository and recorded revision, with qwen3-judge as the consistent served/requested alias; do not imply evaluated judge quality.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "156896e6287d6d37875f7dcc556776b3bec2c0ba",
+      "source_commits": [
+        "156896e6287d6d37875f7dcc556776b3bec2c0ba"
+      ],
+      "source_files": [
+        "docs/agentic-ai-platform/reference-architecture/model-lifecycle/continuous-training/trace-to-dataset.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/model-lifecycle/continuous-training/trace-to-dataset.md"
+      ],
+      "verification": [
+        "Repository tests extract both source variants and exercise materialization, schema, reward validation and authorization changes around synchronous and asynchronous dispatch.",
+        "Independent review checked the pinned Ragas synchronous embedding path. In-memory HTTPX/httpcore probes cover approval checks before headers and body writes without contacting a model endpoint."
+      ],
+      "evidence_limit": "Source correction and offline verification only. Cloud execution, model quality, runtime compatibility, deployment recovery, measured cost and legal compliance are not established by this record."
+    },
+    {
+      "record_id": "2026-09-19-parfit-trace-ragas",
+      "package": "agentic-reference",
+      "id": "PARFIT-TRACE-RAGAS",
+      "issue": 96,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Use EvaluationDataset/SingleTurnSample, required contexts/reference, explicit LLM and embedding adapters, per-input results and failure propagation.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "156896e6287d6d37875f7dcc556776b3bec2c0ba",
+      "source_commits": [
+        "156896e6287d6d37875f7dcc556776b3bec2c0ba"
+      ],
+      "source_files": [
+        "docs/agentic-ai-platform/reference-architecture/model-lifecycle/continuous-training/trace-to-dataset.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/model-lifecycle/continuous-training/trace-to-dataset.md"
+      ],
+      "verification": [
+        "Repository tests extract both source variants and exercise materialization, schema, reward validation and authorization changes around synchronous and asynchronous dispatch.",
+        "Independent review checked the pinned Ragas synchronous embedding path. In-memory HTTPX/httpcore probes cover approval checks before headers and body writes without contacting a model endpoint."
+      ],
+      "evidence_limit": "Source correction and offline verification only. Cloud execution, model quality, runtime compatibility, deployment recovery, measured cost and legal compliance are not established by this record."
+    },
+    {
+      "record_id": "2026-09-19-parfit-trace-reward",
+      "package": "agentic-reference",
+      "id": "PARFIT-TRACE-REWARD",
+      "issue": 96,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Correct the weighted Ragas result to 0.894 and the documented combined result to 0.8764.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "156896e6287d6d37875f7dcc556776b3bec2c0ba",
+      "source_commits": [
+        "156896e6287d6d37875f7dcc556776b3bec2c0ba"
+      ],
+      "source_files": [
+        "docs/agentic-ai-platform/reference-architecture/model-lifecycle/continuous-training/trace-to-dataset.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/model-lifecycle/continuous-training/trace-to-dataset.md"
+      ],
+      "verification": [
+        "Repository tests extract both source variants and exercise materialization, schema, reward validation and authorization changes around synchronous and asynchronous dispatch.",
+        "Independent review checked the pinned Ragas synchronous embedding path. In-memory HTTPX/httpcore probes cover approval checks before headers and body writes without contacting a model endpoint."
+      ],
+      "evidence_limit": "Source correction and offline verification only. Cloud execution, model quality, runtime compatibility, deployment recovery, measured cost and legal compliance are not established by this record."
+    },
+    {
+      "record_id": "2026-09-19-parfit-trace-reward-validation",
+      "package": "agentic-reference",
+      "id": "PARFIT-TRACE-REWARD-VALIDATION",
+      "issue": 96,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Reject non-finite/out-of-range/wrong-type scores, duplicate or unexpected JSON fields, truncation, missing metrics and current-approval failures; publish no successful candidate artifact after a rejected evaluation.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "156896e6287d6d37875f7dcc556776b3bec2c0ba",
+      "source_commits": [
+        "156896e6287d6d37875f7dcc556776b3bec2c0ba"
+      ],
+      "source_files": [
+        "docs/agentic-ai-platform/reference-architecture/model-lifecycle/continuous-training/trace-to-dataset.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/model-lifecycle/continuous-training/trace-to-dataset.md"
+      ],
+      "verification": [
+        "Repository tests extract both source variants and exercise materialization, schema, reward validation and authorization changes around synchronous and asynchronous dispatch.",
+        "Independent review checked the pinned Ragas synchronous embedding path. In-memory HTTPX/httpcore probes cover approval checks before headers and body writes without contacting a model endpoint."
+      ],
+      "evidence_limit": "Source correction and offline verification only. Cloud execution, model quality, runtime compatibility, deployment recovery, measured cost and legal compliance are not established by this record."
+    },
+    {
+      "record_id": "2026-09-19-parfit-trace-s3",
+      "package": "agentic-reference",
+      "id": "PARFIT-TRACE-S3",
+      "issue": 96,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Upload a rewound BytesIO through S3Hook.load_file_obj with explicit KMS extra_args; use content-addressed objects and a completion manifest written last.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "156896e6287d6d37875f7dcc556776b3bec2c0ba",
+      "source_commits": [
+        "156896e6287d6d37875f7dcc556776b3bec2c0ba"
+      ],
+      "source_files": [
+        "docs/agentic-ai-platform/reference-architecture/model-lifecycle/continuous-training/trace-to-dataset.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/model-lifecycle/continuous-training/trace-to-dataset.md"
+      ],
+      "verification": [
+        "Repository tests extract both source variants and exercise materialization, schema, reward validation and authorization changes around synchronous and asynchronous dispatch.",
+        "Independent review checked the pinned Ragas synchronous embedding path. In-memory HTTPX/httpcore probes cover approval checks before headers and body writes without contacting a model endpoint."
+      ],
+      "evidence_limit": "Source correction and offline verification only. Cloud execution, model quality, runtime compatibility, deployment recovery, measured cost and legal compliance are not established by this record."
+    },
+    {
+      "record_id": "2026-09-19-parfit-trace-sdk",
+      "package": "agentic-reference",
+      "id": "PARFIT-TRACE-SDK",
+      "issue": 96,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Use one pinned AsyncOpenAI client contract and an explicitly resolved endpoint/alias; remove legacy ChatCompletion and assumed KServe service port.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "156896e6287d6d37875f7dcc556776b3bec2c0ba",
+      "source_commits": [
+        "156896e6287d6d37875f7dcc556776b3bec2c0ba"
+      ],
+      "source_files": [
+        "docs/agentic-ai-platform/reference-architecture/model-lifecycle/continuous-training/trace-to-dataset.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/model-lifecycle/continuous-training/trace-to-dataset.md"
+      ],
+      "verification": [
+        "Repository tests extract both source variants and exercise materialization, schema, reward validation and authorization changes around synchronous and asynchronous dispatch.",
+        "Independent review checked the pinned Ragas synchronous embedding path. In-memory HTTPX/httpcore probes cover approval checks before headers and body writes without contacting a model endpoint."
+      ],
+      "evidence_limit": "Source correction and offline verification only. Cloud execution, model quality, runtime compatibility, deployment recovery, measured cost and legal compliance are not established by this record."
+    },
+    {
+      "record_id": "2026-09-19-parfit-trace-store",
+      "package": "agentic-reference",
+      "id": "PARFIT-TRACE-STORE",
+      "issue": 96,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Use the versioned public observations export contract, completed GENERATIONs, bounded pagination and UTC interval semantics; replace invented SQL and storage diagrams. Bind an application-defined redacted sample to an independent exact-content approval.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "156896e6287d6d37875f7dcc556776b3bec2c0ba",
+      "source_commits": [
+        "156896e6287d6d37875f7dcc556776b3bec2c0ba"
+      ],
+      "source_files": [
+        "docs/agentic-ai-platform/reference-architecture/model-lifecycle/continuous-training/trace-to-dataset.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/model-lifecycle/continuous-training/trace-to-dataset.md"
+      ],
+      "verification": [
+        "Repository tests extract both source variants and exercise materialization, schema, reward validation and authorization changes around synchronous and asynchronous dispatch.",
+        "Independent review checked the pinned Ragas synchronous embedding path. In-memory HTTPX/httpcore probes cover approval checks before headers and body writes without contacting a model endpoint."
+      ],
+      "evidence_limit": "Source correction and offline verification only. Cloud execution, model quality, runtime compatibility, deployment recovery, measured cost and legal compliance are not established by this record."
+    },
+    {
+      "record_id": "2026-09-19-parfit-trace-training-contract",
+      "package": "agentic-reference",
+      "id": "PARFIT-TRACE-TRAINING-CONTRACT",
+      "issue": 96,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Call outputs scored-trace candidates, not ready DPO/GRPO datasets; make same-prompt preference pairing, GRPO generation/reward conversion, split/decontamination and approval lifecycle explicit.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "156896e6287d6d37875f7dcc556776b3bec2c0ba",
+      "source_commits": [
+        "156896e6287d6d37875f7dcc556776b3bec2c0ba"
+      ],
+      "source_files": [
+        "docs/agentic-ai-platform/reference-architecture/model-lifecycle/continuous-training/trace-to-dataset.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/model-lifecycle/continuous-training/trace-to-dataset.md"
+      ],
+      "verification": [
+        "Repository tests extract both source variants and exercise materialization, schema, reward validation and authorization changes around synchronous and asynchronous dispatch.",
+        "Independent review checked the pinned Ragas synchronous embedding path. In-memory HTTPX/httpcore probes cover approval checks before headers and body writes without contacting a model endpoint."
+      ],
+      "evidence_limit": "Source correction and offline verification only. Cloud execution, model quality, runtime compatibility, deployment recovery, measured cost and legal compliance are not established by this record."
     }
   ]
 }

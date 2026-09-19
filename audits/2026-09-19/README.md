@@ -66,7 +66,7 @@ One scheduling finding, `EKSN-RES-022`, was withdrawn after rechecking the alias
 
 ## Subsequent source corrections
 
-[corrections.json](corrections.json) records later decisions without changing the frozen catalogs. The first follow-up covers 62 items in 12 Korean/English documents: 58 source corrections accepted and four still partial. Together with the initial 86 corrections, this gives 144 accepted source corrections.
+[corrections.json](corrections.json) records later decisions without changing the frozen catalogs. The first follow-up covered 62 items in 12 Korean/English documents: 58 source corrections accepted and four still partial.
 
 | Area | Reviewed change | Source commit |
 | --- | --- | --- |
@@ -77,6 +77,16 @@ One scheduling finding, `EKSN-RES-022`, was withdrawn after rechecking the alias
 | EKS resiliency | Correct scheduling, readiness, storage and fault-action examples; replace unsafe bulk procedures and qualify recovery claims. | `48a061b8` |
 
 The Trainium specification conflict remains open as `ADS-MOE-008`. Gateway items `EPN-CB-003`, `EPN-CB-004` and `EPN-CB-006` remain partial because related rate-limit, session-affinity and legacy API examples occur outside the corrected authentication section. No workstream issue is closed by this subset.
+
+The second follow-up covers 68 items in 10 Korean/English documents: 65 source corrections accepted and three partial. Together with the initial 86 and first follow-up's 58, this gives 209 accepted source corrections.
+
+| Area | Reviewed change | Source commit |
+| --- | --- | --- |
+| AI-DLC evaluation and governance | Match paired comparisons and approval thresholds; recover the winning durable result without repeating completed evaluation. | `64c24adf` |
+| Model release and rollout | Require approved immutable artifacts, create separate release resources, and reject missing or stale canary observations. | `b8b7f617` |
+| Trace datasets and reward evaluation | Validate approved snapshots and manifests; preserve per-sample results and recheck authorization on synchronous and asynchronous requests. | `156896e6` |
+
+`AIDLC-C025`, `AIDLC-C026` and `AIDLC-C027` remain partial: four deprecated observation aliases, two recovery explanations and two legal-policy explanations occur in other documents. The evaluation changes do not establish production model quality, deployment success or legal compliance.
 
 Each ledger entry identifies the source commit, reviewed files, checks and remaining limits. Offline examples use fakes or parsers; browser checks establish rendering. Neither establishes successful cloud execution, fault recovery or measured performance. Later entries, if present, are authoritative for subsequent decisions; the original occurrence and classification totals remain unchanged.
 
@@ -93,7 +103,7 @@ The new correction workstreams are:
 - [#99 — AI-DLC](https://github.com/devfloor9/engineering-playbook/issues/99): 404 items covering methodology, executable examples, approvals, evaluation, quantities and legal scope.
 - [#100 — Industry and sales examples](https://github.com/devfloor9/engineering-playbook/issues/100): 283 industry items and 14 sales/event items covering evidence, implementation status and assumptions.
 
-The remaining Hybrid Nodes and scheduling/resiliency corrections continue in [#88](https://github.com/devfloor9/engineering-playbook/issues/88) and [#92](https://github.com/devfloor9/engineering-playbook/issues/92). The tracking file now records 144 accepted source corrections, 2,046 open review items and one withdrawn finding. “Open” includes unresolved evidence and misleading qualifications; it does not mean 2,046 confirmed errors.
+The remaining Hybrid Nodes and scheduling/resiliency corrections continue in [#88](https://github.com/devfloor9/engineering-playbook/issues/88) and [#92](https://github.com/devfloor9/engineering-playbook/issues/92). The tracking file now records 209 accepted source corrections, 1,981 open review items and one withdrawn finding. “Open” includes unresolved evidence and misleading qualifications; it does not mean 1,981 confirmed errors.
 
 Follow-up edits must preserve useful detail, routes, anchors, creation dates and author attribution. Content changes update the revision date and reading estimate together; presentation-only changes preserve them.
 
