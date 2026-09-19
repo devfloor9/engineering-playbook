@@ -1,0 +1,1496 @@
+{
+  "schema_version": 1,
+  "audit_baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+  "initial_correction_revision": "8793957c72076579143ea0a48432499015185683",
+  "scope": "Later source corrections. Original quotations and classifications remain in the frozen catalogs.",
+  "limits": "Addressed means the stated source correction was reviewed; it does not establish cloud execution or resolve unrelated evidence gaps.",
+  "records": [
+    {
+      "record_id": "2026-09-19-hyp-ops-236",
+      "package": "eks-operations",
+      "id": "HYP-OPS-236",
+      "issue": 98,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Gate new HTTP request dispatch; preserve active responses while server.close drains; only destroy tracked sockets on explicit timeout, report failure and avoid unconditional process.exit(0). State Node 24 / HTTP/1.1 scope and remaining Pod grace.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "48a061b8c7a13620abd574561d8e737373f976c2",
+      "source_commits": [
+        "876fde948d7e0529274a57d9606f88d27a7e4d60"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/pod-lifecycle/shutdown-draining.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/pod-lifecycle/shutdown-draining.md"
+      ],
+      "verification": [
+        "36 offline tests extract both current source variants and exercise request admission, delayed handlers, transaction completion, timeout and failure paths.",
+        "Independent source review found no additional actionable regression."
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-hyp-ops-237",
+      "package": "eks-operations",
+      "id": "HYP-OPS-237",
+      "issue": 98,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Remove the unused context import and explicitly identify the missing application-generated proto/module/RPC implementation. Retain GracefulStop with forced Stop fallback, ignore only the documented already-stopped Serve result, and use a failed-drain exit on timeout.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "48a061b8c7a13620abd574561d8e737373f976c2",
+      "source_commits": [
+        "876fde948d7e0529274a57d9606f88d27a7e4d60"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/pod-lifecycle/shutdown-draining.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/pod-lifecycle/shutdown-draining.md"
+      ],
+      "verification": [
+        "36 offline tests extract both current source variants and exercise request admission, delayed handlers, transaction completion, timeout and failure paths.",
+        "Independent source review found no additional actionable regression."
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-hyp-ops-238",
+      "package": "eks-operations",
+      "id": "HYP-OPS-238",
+      "issue": 98,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Stop new requests/jobs, await already-admitted handlers/workers including later database calls, then close the pool. active_transactions counts entered transaction() scopes only; it does not drain whole handler/job lifetimes. Use ThreadedConnectionPool with transaction/connection-return guards; a timeout is unsuccessful and leaves the pool open. Application-specific cooperative cancellation and cleanup remain explicit integration prerequisites.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "48a061b8c7a13620abd574561d8e737373f976c2",
+      "source_commits": [
+        "876fde948d7e0529274a57d9606f88d27a7e4d60"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/pod-lifecycle/shutdown-draining.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/pod-lifecycle/shutdown-draining.md"
+      ],
+      "verification": [
+        "36 offline tests extract both current source variants and exercise request admission, delayed handlers, transaction completion, timeout and failure paths.",
+        "Independent source review found no additional actionable regression."
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-hr-private-01",
+      "package": "hybrid-rosa-and-operations",
+      "id": "HR-PRIVATE-01",
+      "issue": 88,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Replace the on-premises S3 gateway path with S3 interface access, including the table, creation command, DNS mode, traffic diagram and summary. Keep gateway usage scoped to VPC-local clients.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "48a061b8c7a13620abd574561d8e737373f976c2",
+      "source_commits": [
+        "58fbb05cb6f93a33730a6541a0ae2f81574ff41a"
+      ],
+      "source_files": [
+        "docs/eks-hybrid-nodes/networking/private-vpc-endpoints.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/networking/private-vpc-endpoints.md",
+        "docs/eks-hybrid-nodes/networking/index.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/networking/index.md"
+      ],
+      "verification": [
+        "Independent review compiled four MDX sources, checked six Bash fragments without execution and validated 20 internal links.",
+        "The changed Korean diagram rendered in the local browser; desktop and narrow layouts had no page overflow."
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-hr-private-02",
+      "package": "hybrid-rosa-and-operations",
+      "id": "HR-PRIVATE-02",
+      "issue": 88,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Separate private Kubernetes API DNS answers from IP reachability and AWS service PrivateLink DNS. Keep Resolver forwarding as this design's default-service-hostname path, not a universal API DNS requirement.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "48a061b8c7a13620abd574561d8e737373f976c2",
+      "source_commits": [
+        "58fbb05cb6f93a33730a6541a0ae2f81574ff41a"
+      ],
+      "source_files": [
+        "docs/eks-hybrid-nodes/networking/private-vpc-endpoints.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/networking/private-vpc-endpoints.md",
+        "docs/eks-hybrid-nodes/networking/index.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/networking/index.md"
+      ],
+      "verification": [
+        "Independent review compiled four MDX sources, checked six Bash fragments without execution and validated 20 internal links.",
+        "The changed Korean diagram rendered in the local browser; desktop and narrow layouts had no page overflow."
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-hr-private-03",
+      "package": "hybrid-rosa-and-operations",
+      "id": "HR-PRIVATE-03",
+      "issue": 88,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Select Private-only for this design and explicitly preserve the public AWS pages' cannot-use versus not-recommended discrepancy instead of asserting a settled universal support boundary.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "48a061b8c7a13620abd574561d8e737373f976c2",
+      "source_commits": [
+        "58fbb05cb6f93a33730a6541a0ae2f81574ff41a"
+      ],
+      "source_files": [
+        "docs/eks-hybrid-nodes/networking/private-vpc-endpoints.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/networking/private-vpc-endpoints.md",
+        "docs/eks-hybrid-nodes/networking/index.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/networking/index.md"
+      ],
+      "verification": [
+        "Independent review compiled four MDX sources, checked six Bash fragments without execution and validated 20 internal links.",
+        "The changed Korean diagram rendered in the local browser; desktop and narrow layouts had no page overflow."
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-hr-private-04",
+      "package": "hybrid-rosa-and-operations",
+      "id": "HR-PRIVATE-04",
+      "issue": 88,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Make endpoint requirements feature-dependent. Prefer ssmmessages for available modern agents and restrict ec2messages to actual legacy needs in Regions launched before 2024.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "48a061b8c7a13620abd574561d8e737373f976c2",
+      "source_commits": [
+        "58fbb05cb6f93a33730a6541a0ae2f81574ff41a"
+      ],
+      "source_files": [
+        "docs/eks-hybrid-nodes/networking/private-vpc-endpoints.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/networking/private-vpc-endpoints.md",
+        "docs/eks-hybrid-nodes/networking/index.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/networking/index.md"
+      ],
+      "verification": [
+        "Independent review compiled four MDX sources, checked six Bash fragments without execution and validated 20 internal links.",
+        "The changed Korean diagram rendered in the local browser; desktop and narrow layouts had no page overflow."
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-hr-private-05",
+      "package": "hybrid-rosa-and-operations",
+      "id": "HR-PRIVATE-05",
+      "issue": 88,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Query api.ecr.<region>.amazonaws.com, not the service-identifier ordering ecr.api.<region>.amazonaws.com; compare responses with intended endpoint ENIs.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "48a061b8c7a13620abd574561d8e737373f976c2",
+      "source_commits": [
+        "58fbb05cb6f93a33730a6541a0ae2f81574ff41a"
+      ],
+      "source_files": [
+        "docs/eks-hybrid-nodes/networking/private-vpc-endpoints.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/networking/private-vpc-endpoints.md",
+        "docs/eks-hybrid-nodes/networking/index.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/networking/index.md"
+      ],
+      "verification": [
+        "Independent review compiled four MDX sources, checked six Bash fragments without execution and validated 20 internal links.",
+        "The changed Korean diagram rendered in the local browser; desktop and narrow layouts had no page overflow."
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-hr-private-06",
+      "package": "hybrid-rosa-and-operations",
+      "id": "HR-PRIVATE-06",
+      "issue": 88,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Label get-login-password as authorization-token retrieval for the tested CLI identity. Separate DNS, nodeadm diagnostics and a complete, cache-aware, digest-pinned runtime pull with manifest and S3-layer evidence.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "48a061b8c7a13620abd574561d8e737373f976c2",
+      "source_commits": [
+        "58fbb05cb6f93a33730a6541a0ae2f81574ff41a"
+      ],
+      "source_files": [
+        "docs/eks-hybrid-nodes/networking/private-vpc-endpoints.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/networking/private-vpc-endpoints.md",
+        "docs/eks-hybrid-nodes/networking/index.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/networking/index.md"
+      ],
+      "verification": [
+        "Independent review compiled four MDX sources, checked six Bash fragments without execution and validated 20 internal links.",
+        "The changed Korean diagram rendered in the local browser; desktop and narrow layouts had no page overflow."
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-ads-moe-001",
+      "package": "agentic-design-serving",
+      "id": "ADS-MOE-001",
+      "issue": 95,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Correct Switch to token-choice Top-1; distinguish Expert Choice, Soft MoE, and Hash Layers; scope the four-step explanation to token-choice routing.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "48a061b8c7a13620abd574561d8e737373f976c2",
+      "source_commits": [
+        "a9b9c629153b5f3347d18e56387fc2adc36619a0"
+      ],
+      "source_files": [
+        "docs/agentic-ai-platform/model-serving/inference-frameworks/moe-model-serving.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/model-serving/inference-frameworks/moe-model-serving.md",
+        "src/data/moe-parallelization.json",
+        "src/components/MoeModelTables/index.js",
+        "scripts/tests/fixtures/llm-wiki-reviewed-replacements.json"
+      ],
+      "verification": [
+        "Independent review checked both MDX/SSR variants, 26 heading identities per locale, shared-data exports and all 137 replacement guards.",
+        "Eight obsolete table components were removed after checking their only active hosts. Existing export coverage thresholds were preserved."
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-ads-moe-002",
+      "package": "agentic-design-serving",
+      "id": "ADS-MOE-002",
+      "issue": 95,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Replace two independent 7B experts with selected FFNs in one Mixtral layer; retain whole-model 47B/13B context and identify omitted shared layers.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "48a061b8c7a13620abd574561d8e737373f976c2",
+      "source_commits": [
+        "a9b9c629153b5f3347d18e56387fc2adc36619a0"
+      ],
+      "source_files": [
+        "docs/agentic-ai-platform/model-serving/inference-frameworks/moe-model-serving.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/model-serving/inference-frameworks/moe-model-serving.md",
+        "src/data/moe-parallelization.json",
+        "src/components/MoeModelTables/index.js",
+        "scripts/tests/fixtures/llm-wiki-reviewed-replacements.json"
+      ],
+      "verification": [
+        "Independent review checked both MDX/SSR variants, 26 heading identities per locale, shared-data exports and all 137 replacement guards.",
+        "Eight obsolete table components were removed after checking their only active hosts. Existing export coverage thresholds were preserved."
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-ads-moe-003",
+      "package": "agentic-design-serving",
+      "id": "ADS-MOE-003",
+      "issue": 95,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Replace universal 10–25% with model-specific examples 27.6%, 5.4%, 3.2%; separate active fraction from memory and measured speed.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "48a061b8c7a13620abd574561d8e737373f976c2",
+      "source_commits": [
+        "a9b9c629153b5f3347d18e56387fc2adc36619a0"
+      ],
+      "source_files": [
+        "docs/agentic-ai-platform/model-serving/inference-frameworks/moe-model-serving.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/model-serving/inference-frameworks/moe-model-serving.md",
+        "src/data/moe-parallelization.json",
+        "src/components/MoeModelTables/index.js",
+        "scripts/tests/fixtures/llm-wiki-reviewed-replacements.json"
+      ],
+      "verification": [
+        "Independent review checked both MDX/SSR variants, 26 heading identities per locale, shared-data exports and all 137 replacement guards.",
+        "Eight obsolete table components were removed after checking their only active hosts. Existing export coverage thresholds were preserved."
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-ads-moe-004",
+      "package": "agentic-design-serving",
+      "id": "ADS-MOE-004",
+      "issue": 95,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Align both locales: learned routing does not guarantee domain specialists; cite Mixtral's no-obvious-topic-pattern finding.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "48a061b8c7a13620abd574561d8e737373f976c2",
+      "source_commits": [
+        "a9b9c629153b5f3347d18e56387fc2adc36619a0"
+      ],
+      "source_files": [
+        "docs/agentic-ai-platform/model-serving/inference-frameworks/moe-model-serving.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/model-serving/inference-frameworks/moe-model-serving.md",
+        "src/data/moe-parallelization.json",
+        "src/components/MoeModelTables/index.js",
+        "scripts/tests/fixtures/llm-wiki-reviewed-replacements.json"
+      ],
+      "verification": [
+        "Independent review checked both MDX/SSR variants, 26 heading identities per locale, shared-data exports and all 137 replacement guards.",
+        "Eight obsolete table components were removed after checking their only active hosts. Existing export coverage thresholds were preserved."
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-ads-moe-005",
+      "package": "agentic-design-serving",
+      "id": "ADS-MOE-005",
+      "issue": 95,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Require --enable-expert-parallel; describe EP=TP×DP and attention TP/replication in v0.25.0; repair the two-rank EP diagram.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "48a061b8c7a13620abd574561d8e737373f976c2",
+      "source_commits": [
+        "a9b9c629153b5f3347d18e56387fc2adc36619a0"
+      ],
+      "source_files": [
+        "docs/agentic-ai-platform/model-serving/inference-frameworks/moe-model-serving.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/model-serving/inference-frameworks/moe-model-serving.md",
+        "src/data/moe-parallelization.json",
+        "src/components/MoeModelTables/index.js",
+        "scripts/tests/fixtures/llm-wiki-reviewed-replacements.json"
+      ],
+      "verification": [
+        "Independent review checked both MDX/SSR variants, 26 heading identities per locale, shared-data exports and all 137 replacement guards.",
+        "Eight obsolete table components were removed after checking their only active hosts. Existing export coverage thresholds were preserved."
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-ads-moe-006",
+      "package": "agentic-design-serving",
+      "id": "ADS-MOE-006",
+      "issue": 95,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Derive 40/20/20/20 from the five drawn Top-1 assignments; distinguish arithmetic illustration from Mixtral and measurements.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "48a061b8c7a13620abd574561d8e737373f976c2",
+      "source_commits": [
+        "a9b9c629153b5f3347d18e56387fc2adc36619a0"
+      ],
+      "source_files": [
+        "docs/agentic-ai-platform/model-serving/inference-frameworks/moe-model-serving.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/model-serving/inference-frameworks/moe-model-serving.md",
+        "src/data/moe-parallelization.json",
+        "src/components/MoeModelTables/index.js",
+        "scripts/tests/fixtures/llm-wiki-reviewed-replacements.json"
+      ],
+      "verification": [
+        "Independent review checked both MDX/SSR variants, 26 heading identities per locale, shared-data exports and all 137 replacement guards.",
+        "Eight obsolete table components were removed after checking their only active hosts. Existing export coverage thresholds were preserved."
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-ads-moe-007",
+      "package": "agentic-design-serving",
+      "id": "ADS-MOE-007",
+      "issue": 95,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Retain the four models, replace GPU-fit recommendations with ideal BF16 uniform-shard arithmetic, and scope memory/startup/network planning.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "48a061b8c7a13620abd574561d8e737373f976c2",
+      "source_commits": [
+        "a9b9c629153b5f3347d18e56387fc2adc36619a0"
+      ],
+      "source_files": [
+        "docs/agentic-ai-platform/model-serving/inference-frameworks/moe-model-serving.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/model-serving/inference-frameworks/moe-model-serving.md",
+        "src/data/moe-parallelization.json",
+        "src/components/MoeModelTables/index.js",
+        "scripts/tests/fixtures/llm-wiki-reviewed-replacements.json"
+      ],
+      "verification": [
+        "Independent review checked both MDX/SSR variants, 26 heading identities per locale, shared-data exports and all 137 replacement guards.",
+        "Eight obsolete table components were removed after checking their only active hosts. Existing export coverage thresholds were preserved."
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-ads-moe-008",
+      "package": "agentic-design-serving",
+      "id": "ADS-MOE-008",
+      "issue": 95,
+      "previous_status": "open",
+      "disposition": "partial",
+      "summary": "Distinguish Trainium2 chips, physical/logical cores and four-instance UltraServers; attribute memory units to Neuron and aggregate bandwidth to the EC2 product page.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "48a061b8c7a13620abd574561d8e737373f976c2",
+      "source_commits": [
+        "a9b9c629153b5f3347d18e56387fc2adc36619a0"
+      ],
+      "source_files": [
+        "docs/agentic-ai-platform/model-serving/inference-frameworks/moe-model-serving.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/model-serving/inference-frameworks/moe-model-serving.md",
+        "src/data/moe-parallelization.json",
+        "src/components/MoeModelTables/index.js",
+        "scripts/tests/fixtures/llm-wiki-reviewed-replacements.json"
+      ],
+      "verification": [
+        "Independent review checked both MDX/SSR variants, 26 heading identities per locale, shared-data exports and all 137 replacement guards.",
+        "Eight obsolete table components were removed after checking their only active hosts. Existing export coverage thresholds were preserved."
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost.",
+      "remaining": "Official Trainium references disagree on accelerator memory and aggregate bandwidth. Both documents disclose the conflicting sources; the specification conflict remains unresolved."
+    },
+    {
+      "record_id": "2026-09-19-ads-moe-009",
+      "package": "agentic-design-serving",
+      "id": "ADS-MOE-009",
+      "issue": 95,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Remove unscoped prices and cost rankings; preserve comparison candidates and give a dimensionally correct measured-cost/accepted-output-token formula.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "48a061b8c7a13620abd574561d8e737373f976c2",
+      "source_commits": [
+        "a9b9c629153b5f3347d18e56387fc2adc36619a0"
+      ],
+      "source_files": [
+        "docs/agentic-ai-platform/model-serving/inference-frameworks/moe-model-serving.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/model-serving/inference-frameworks/moe-model-serving.md",
+        "src/data/moe-parallelization.json",
+        "src/components/MoeModelTables/index.js",
+        "scripts/tests/fixtures/llm-wiki-reviewed-replacements.json"
+      ],
+      "verification": [
+        "Independent review checked both MDX/SSR variants, 26 heading identities per locale, shared-data exports and all 137 replacement guards.",
+        "Eight obsolete table components were removed after checking their only active hosts. Existing export coverage thresholds were preserved."
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-ads-moe-010",
+      "package": "agentic-design-serving",
+      "id": "ADS-MOE-010",
+      "issue": 95,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Use v0.25.0 V1 KV fraction and counter rates, preserve engine/model labels, and remove deterministic rejection/scale-out interpretations.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "48a061b8c7a13620abd574561d8e737373f976c2",
+      "source_commits": [
+        "a9b9c629153b5f3347d18e56387fc2adc36619a0"
+      ],
+      "source_files": [
+        "docs/agentic-ai-platform/model-serving/inference-frameworks/moe-model-serving.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/model-serving/inference-frameworks/moe-model-serving.md",
+        "src/data/moe-parallelization.json",
+        "src/components/MoeModelTables/index.js",
+        "scripts/tests/fixtures/llm-wiki-reviewed-replacements.json"
+      ],
+      "verification": [
+        "Independent review checked both MDX/SSR variants, 26 heading identities per locale, shared-data exports and all 137 replacement guards.",
+        "Eight obsolete table components were removed after checking their only active hosts. Existing export coverage thresholds were preserved."
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-ads-moe-011",
+      "package": "agentic-design-serving",
+      "id": "ADS-MOE-011",
+      "issue": 95,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Define framebuffer gauges in MiB and show a same-label used/(used+free) ratio with a nonzero denominator guard; distinguish reserved memory.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "48a061b8c7a13620abd574561d8e737373f976c2",
+      "source_commits": [
+        "a9b9c629153b5f3347d18e56387fc2adc36619a0"
+      ],
+      "source_files": [
+        "docs/agentic-ai-platform/model-serving/inference-frameworks/moe-model-serving.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/model-serving/inference-frameworks/moe-model-serving.md",
+        "src/data/moe-parallelization.json",
+        "src/components/MoeModelTables/index.js",
+        "scripts/tests/fixtures/llm-wiki-reviewed-replacements.json"
+      ],
+      "verification": [
+        "Independent review checked both MDX/SSR variants, 26 heading identities per locale, shared-data exports and all 137 replacement guards.",
+        "Eight obsolete table components were removed after checking their only active hosts. Existing export coverage thresholds were preserved."
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-ads-moe-012",
+      "package": "agentic-design-serving",
+      "id": "ADS-MOE-012",
+      "issue": 95,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Limit FP8 halving to KV element storage; define APC prefill reuse; scope LoRA/GGUF and KV tuning to release/model/backend compatibility.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "48a061b8c7a13620abd574561d8e737373f976c2",
+      "source_commits": [
+        "a9b9c629153b5f3347d18e56387fc2adc36619a0"
+      ],
+      "source_files": [
+        "docs/agentic-ai-platform/model-serving/inference-frameworks/moe-model-serving.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/model-serving/inference-frameworks/moe-model-serving.md",
+        "src/data/moe-parallelization.json",
+        "src/components/MoeModelTables/index.js",
+        "scripts/tests/fixtures/llm-wiki-reviewed-replacements.json"
+      ],
+      "verification": [
+        "Independent review checked both MDX/SSR variants, 26 heading identities per locale, shared-data exports and all 137 replacement guards.",
+        "Eight obsolete table components were removed after checking their only active hosts. Existing export coverage thresholds were preserved."
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-ads-moe-013",
+      "package": "agentic-design-serving",
+      "id": "ADS-MOE-013",
+      "issue": 95,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Remove speculative speed multiplier and identical-output guarantee, correct the standard sampling diagram, and include draft KV/runtime memory.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "48a061b8c7a13620abd574561d8e737373f976c2",
+      "source_commits": [
+        "a9b9c629153b5f3347d18e56387fc2adc36619a0"
+      ],
+      "source_files": [
+        "docs/agentic-ai-platform/model-serving/inference-frameworks/moe-model-serving.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/model-serving/inference-frameworks/moe-model-serving.md",
+        "src/data/moe-parallelization.json",
+        "src/components/MoeModelTables/index.js",
+        "scripts/tests/fixtures/llm-wiki-reviewed-replacements.json"
+      ],
+      "verification": [
+        "Independent review checked both MDX/SSR variants, 26 heading identities per locale, shared-data exports and all 137 replacement guards.",
+        "Eight obsolete table components were removed after checking their only active hosts. Existing export coverage thresholds were preserved."
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-ads-moe-014",
+      "package": "agentic-design-serving",
+      "id": "ADS-MOE-014",
+      "issue": 95,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Use vLLM v0.25.0 consistently in both locales, pinned to a release that predates the audit date.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "48a061b8c7a13620abd574561d8e737373f976c2",
+      "source_commits": [
+        "a9b9c629153b5f3347d18e56387fc2adc36619a0"
+      ],
+      "source_files": [
+        "docs/agentic-ai-platform/model-serving/inference-frameworks/moe-model-serving.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/model-serving/inference-frameworks/moe-model-serving.md",
+        "src/data/moe-parallelization.json",
+        "src/components/MoeModelTables/index.js",
+        "scripts/tests/fixtures/llm-wiki-reviewed-replacements.json"
+      ],
+      "verification": [
+        "Independent review checked both MDX/SSR variants, 26 heading identities per locale, shared-data exports and all 137 replacement guards.",
+        "Eight obsolete table components were removed after checking their only active hosts. Existing export coverage thresholds were preserved."
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-ads-moe-015",
+      "package": "agentic-design-serving",
+      "id": "ADS-MOE-015",
+      "issue": 95,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Replace unmeasured engine rankings/format checkmarks with comparison criteria; preserve TGI PagedAttention, maintenance, and migration-contract nuance.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "48a061b8c7a13620abd574561d8e737373f976c2",
+      "source_commits": [
+        "a9b9c629153b5f3347d18e56387fc2adc36619a0"
+      ],
+      "source_files": [
+        "docs/agentic-ai-platform/model-serving/inference-frameworks/moe-model-serving.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/model-serving/inference-frameworks/moe-model-serving.md",
+        "src/data/moe-parallelization.json",
+        "src/components/MoeModelTables/index.js",
+        "scripts/tests/fixtures/llm-wiki-reviewed-replacements.json"
+      ],
+      "verification": [
+        "Independent review checked both MDX/SSR variants, 26 heading identities per locale, shared-data exports and all 137 replacement guards.",
+        "Eight obsolete table components were removed after checking their only active hosts. Existing export coverage thresholds were preserved."
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-epn-cb-001",
+      "package": "eks-platform-networking",
+      "id": "EPN-CB-001",
+      "issue": 97,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Use LBC v3 ListenerRuleConfiguration jwt-validation with issuer/JWKS/audience on HTTPS; retain actual supported ALB JWT validation without invented claimsToHeaders or browser-OIDC equivalence.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "48a061b8c7a13620abd574561d8e737373f976c2",
+      "source_commits": [
+        "0ffe5ec4dad56043eb0a8eabeb063edec8f2adf6"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/networking-performance/gateway-api-adoption-guide/feature-implementation-cookbook.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/networking-performance/gateway-api-adoption-guide/feature-implementation-cookbook.md"
+      ],
+      "verification": [
+        "12 repository tests extract the five authentication alternatives in both languages and reject concrete invalid-authentication and proxy-bypass mutations.",
+        "Pinned CRD structural checks and independent source review were performed offline; no controller admission or authentication request was executed."
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-epn-cb-002",
+      "package": "eks-platform-networking",
+      "id": "EPN-CB-002",
+      "issue": 97,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Remove header matching as an authentication boundary, preserve the existing Cilium JWT/OIDC warning verbatim, and route browser OIDC through OAuth2 Proxy with backend isolation prerequisites. Main must add the actual backend-Pod label/effective-isolation checks.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "48a061b8c7a13620abd574561d8e737373f976c2",
+      "source_commits": [
+        "0ffe5ec4dad56043eb0a8eabeb063edec8f2adf6"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/networking-performance/gateway-api-adoption-guide/feature-implementation-cookbook.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/networking-performance/gateway-api-adoption-guide/feature-implementation-cookbook.md"
+      ],
+      "verification": [
+        "12 repository tests extract the five authentication alternatives in both languages and reject concrete invalid-authentication and proxy-bypass mutations.",
+        "Pinned CRD structural checks and independent source review were performed offline; no controller admission or authentication request was executed."
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-epn-cb-003",
+      "package": "eks-platform-networking",
+      "id": "EPN-CB-003",
+      "issue": 97,
+      "previous_status": "open",
+      "disposition": "partial",
+      "summary": "Replace the incomplete authentication CEC with a complete separately deployed OIDC proxy path allowed by the existing warning. Leave later rate/body listener fragments for the owning follow-up.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "48a061b8c7a13620abd574561d8e737373f976c2",
+      "source_commits": [
+        "0ffe5ec4dad56043eb0a8eabeb063edec8f2adf6"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/networking-performance/gateway-api-adoption-guide/feature-implementation-cookbook.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/networking-performance/gateway-api-adoption-guide/feature-implementation-cookbook.md"
+      ],
+      "verification": [
+        "12 repository tests extract the five authentication alternatives in both languages and reject concrete invalid-authentication and proxy-bypass mutations.",
+        "Pinned CRD structural checks and independent source review were performed offline; no controller admission or authentication request was executed."
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost.",
+      "remaining": "Authentication was corrected, but the cookbook still has CiliumEnvoyConfig rate-limit and listener examples outside the authentication section."
+    },
+    {
+      "record_id": "2026-09-19-epn-cb-004",
+      "package": "eks-platform-networking",
+      "id": "EPN-CB-004",
+      "issue": 97,
+      "previous_status": "open",
+      "disposition": "partial",
+      "summary": "Use the supported NGF AuthenticationFilter Basic contract and htpasswd Secret, expressly distinguish Basic from JWT/OIDC, and remove UpstreamSettingsPolicy from authentication.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "48a061b8c7a13620abd574561d8e737373f976c2",
+      "source_commits": [
+        "0ffe5ec4dad56043eb0a8eabeb063edec8f2adf6"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/networking-performance/gateway-api-adoption-guide/feature-implementation-cookbook.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/networking-performance/gateway-api-adoption-guide/feature-implementation-cookbook.md"
+      ],
+      "verification": [
+        "12 repository tests extract the five authentication alternatives in both languages and reject concrete invalid-authentication and proxy-bypass mutations.",
+        "Pinned CRD structural checks and independent source review were performed offline; no controller admission or authentication request was executed."
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost.",
+      "remaining": "Authentication was corrected, but the later session-affinity examples remain outside this correction."
+    },
+    {
+      "record_id": "2026-09-19-epn-cb-005",
+      "package": "eks-platform-networking",
+      "id": "EPN-CB-005",
+      "issue": 97,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Use SecurityPolicy.extAuth.http.backendRefs, explicit failOpen false/timeout and the HTTP ext_authz allow/deny contract; do not assume an arbitrary browser proxy is an auth-check endpoint.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "48a061b8c7a13620abd574561d8e737373f976c2",
+      "source_commits": [
+        "0ffe5ec4dad56043eb0a8eabeb063edec8f2adf6"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/networking-performance/gateway-api-adoption-guide/feature-implementation-cookbook.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/networking-performance/gateway-api-adoption-guide/feature-implementation-cookbook.md"
+      ],
+      "verification": [
+        "12 repository tests extract the five authentication alternatives in both languages and reject concrete invalid-authentication and proxy-bypass mutations.",
+        "Pinned CRD structural checks and independent source review were performed offline; no controller admission or authentication request was executed."
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-epn-cb-006",
+      "package": "eks-platform-networking",
+      "id": "EPN-CB-006",
+      "issue": 97,
+      "previous_status": "open",
+      "disposition": "partial",
+      "summary": "Use gateway.kgateway.dev TrafficPolicy.jwtAuth.extensionRef and a JWT GatewayExtension with a local JWKS ConfigMap; leave later transplanted RouteOption/ListenerOption examples untouched.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "48a061b8c7a13620abd574561d8e737373f976c2",
+      "source_commits": [
+        "0ffe5ec4dad56043eb0a8eabeb063edec8f2adf6"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/networking-performance/gateway-api-adoption-guide/feature-implementation-cookbook.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/networking-performance/gateway-api-adoption-guide/feature-implementation-cookbook.md"
+      ],
+      "verification": [
+        "12 repository tests extract the five authentication alternatives in both languages and reject concrete invalid-authentication and proxy-bypass mutations.",
+        "Pinned CRD structural checks and independent source review were performed offline; no controller admission or authentication request was executed."
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost.",
+      "remaining": "Authentication was corrected, but legacy kgateway API group and RouteOption examples remain in later sections."
+    },
+    {
+      "record_id": "2026-09-19-eksn-res-001",
+      "package": "eks-scheduling",
+      "id": "EKSN-RES-001",
+      "issue": 92,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Complete illustrative Deployment; remove minDomains: 3, retain hard zone/soft hostname distinction and explain eligible-domain limits. Dummy application image intentionally remains non-deployable.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "48a061b8c7a13620abd574561d8e737373f976c2",
+      "source_commits": [
+        "48a061b8c7a13620abd574561d8e737373f976c2"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-resiliency-guide.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-resiliency-guide.md"
+      ],
+      "verification": [
+        "107 offline checks passed against current source using pinned evidence, parsers and fixtures. An independent reviewer inspected the complete selected occurrence set.",
+        "Seven Korean Mermaid diagrams rendered after repairing sequence-message punctuation. Both source variants preserve existing headings and matching diagram code."
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-eksn-res-002",
+      "package": "eks-scheduling",
+      "id": "EKSN-RES-002",
+      "issue": 92,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Clarify ceil rounding, deleting/NotReady subtraction, most restrictive active budget and UTC schedule without changing the configured 20% policy.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "48a061b8c7a13620abd574561d8e737373f976c2",
+      "source_commits": [
+        "48a061b8c7a13620abd574561d8e737373f976c2"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-resiliency-guide.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-resiliency-guide.md"
+      ],
+      "verification": [
+        "107 offline checks passed against current source using pinned evidence, parsers and fixtures. An independent reviewer inspected the complete selected occurrence set.",
+        "Seven Korean Mermaid diagrams rendered after repairing sequence-message punctuation. Both source variants preserve existing headings and matching diagram code."
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-eksn-res-003",
+      "package": "eks-scheduling",
+      "id": "EKSN-RES-003",
+      "issue": 92,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Keep the existing requirements/NodeClass reference while removing distribution/mix guarantees and require a separately provisioned compatible EC2NodeClass.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "48a061b8c7a13620abd574561d8e737373f976c2",
+      "source_commits": [
+        "48a061b8c7a13620abd574561d8e737373f976c2"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-resiliency-guide.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-resiliency-guide.md"
+      ],
+      "verification": [
+        "107 offline checks passed against current source using pinned evidence, parsers and fixtures. An independent reviewer inspected the complete selected occurrence set.",
+        "Seven Korean Mermaid diagrams rendered after repairing sequence-message punctuation. Both source variants preserve existing headings and matching diagram code."
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-eksn-res-004",
+      "package": "eks-scheduling",
+      "id": "EKSN-RES-004",
+      "issue": 92,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Replace the bootstrap diagram with registration-time guards and an all-required-guards join. Separate controller, condition reporters and ordinary Scheduler constraints; pin v0.1.1.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "48a061b8c7a13620abd574561d8e737373f976c2",
+      "source_commits": [
+        "48a061b8c7a13620abd574561d8e737373f976c2"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-resiliency-guide.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-resiliency-guide.md"
+      ],
+      "verification": [
+        "107 offline checks passed against current source using pinned evidence, parsers and fixtures. An independent reviewer inspected the complete selected occurrence set.",
+        "Seven Korean Mermaid diagrams rendered after repairing sequence-message punctuation. Both source variants preserve existing headings and matching diagram code."
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-eksn-res-005",
+      "package": "eks-scheduling",
+      "id": "EKSN-RES-005",
+      "issue": 92,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Add v2.14 injection prerequisites and an explicit maxUnavailable: 0 / maxSurge: 1 strategy fragment. Preserve namespace configuration; require capacity and real gate/target health evidence.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "48a061b8c7a13620abd574561d8e737373f976c2",
+      "source_commits": [
+        "48a061b8c7a13620abd574561d8e737373f976c2"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-resiliency-guide.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-resiliency-guide.md"
+      ],
+      "verification": [
+        "107 offline checks passed against current source using pinned evidence, parsers and fixtures. An independent reviewer inspected the complete selected occurrence set.",
+        "Seven Korean Mermaid diagrams rendered after repairing sequence-message punctuation. Both source variants preserve existing headings and matching diagram code."
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-eksn-res-006",
+      "package": "eks-scheduling",
+      "id": "EKSN-RES-006",
+      "issue": 92,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Replace the AZ-wide deletion-prone loop with a fail-on-error single-node template, default inspection and exact approval; retain Pod grace/PDB/local data and inspect all namespaces. Recovery is state-aware and never blindly uncordons.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "48a061b8c7a13620abd574561d8e737373f976c2",
+      "source_commits": [
+        "48a061b8c7a13620abd574561d8e737373f976c2"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-resiliency-guide.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-resiliency-guide.md"
+      ],
+      "verification": [
+        "107 offline checks passed against current source using pinned evidence, parsers and fixtures. An independent reviewer inspected the complete selected occurrence set.",
+        "Seven Korean Mermaid diagrams rendered after repairing sequence-message punctuation. Both source variants preserve existing headings and matching diagram code."
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-eksn-res-007",
+      "package": "eks-scheduling",
+      "id": "EKSN-RES-007",
+      "issue": 92,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Distinguish Regional and One Zone EFS, plus mount/network/client recovery requirements.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "48a061b8c7a13620abd574561d8e737373f976c2",
+      "source_commits": [
+        "48a061b8c7a13620abd574561d8e737373f976c2"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-resiliency-guide.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-resiliency-guide.md"
+      ],
+      "verification": [
+        "107 offline checks passed against current source using pinned evidence, parsers and fixtures. An independent reviewer inspected the complete selected occurrence set.",
+        "Seven Korean Mermaid diagrams rendered after repairing sequence-message punctuation. Both source variants preserve existing headings and matching diagram code."
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-eksn-res-008",
+      "package": "eks-scheduling",
+      "id": "EKSN-RES-008",
+      "issue": 92,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Add third-source-AZ locality weights and qualify cost/byte claims; three rule sums of 100 are configuration checks, not measured distribution.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "48a061b8c7a13620abd574561d8e737373f976c2",
+      "source_commits": [
+        "48a061b8c7a13620abd574561d8e737373f976c2"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-resiliency-guide.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-resiliency-guide.md"
+      ],
+      "verification": [
+        "107 offline checks passed against current source using pinned evidence, parsers and fixtures. An independent reviewer inspected the complete selected occurrence set.",
+        "Seven Korean Mermaid diagrams rendered after repairing sequence-message punctuation. Both source variants preserve existing headings and matching diagram code."
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-eksn-res-009",
+      "package": "eks-scheduling",
+      "id": "EKSN-RES-009",
+      "issue": 92,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Qualify cluster/cell isolation and weighted ALB routing without removing implementation detail or the existing namespace/ResourceQuota example.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "48a061b8c7a13620abd574561d8e737373f976c2",
+      "source_commits": [
+        "48a061b8c7a13620abd574561d8e737373f976c2"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-resiliency-guide.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-resiliency-guide.md"
+      ],
+      "verification": [
+        "107 offline checks passed against current source using pinned evidence, parsers and fixtures. An independent reviewer inspected the complete selected occurrence set.",
+        "Seven Korean Mermaid diagrams rendered after repairing sequence-message punctuation. Both source variants preserve existing headings and matching diagram code."
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-eksn-res-010",
+      "package": "eks-scheduling",
+      "id": "EKSN-RES-010",
+      "issue": 92,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Keep assignment ConfigMap and C(8,2)=28; identify the absent routing/health/data/retry consumer rather than pretending the ConfigMap implements failover.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "48a061b8c7a13620abd574561d8e737373f976c2",
+      "source_commits": [
+        "48a061b8c7a13620abd574561d8e737373f976c2"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-resiliency-guide.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-resiliency-guide.md"
+      ],
+      "verification": [
+        "107 offline checks passed against current source using pinned evidence, parsers and fixtures. An independent reviewer inspected the complete selected occurrence set.",
+        "Seven Korean Mermaid diagrams rendered after repairing sequence-message punctuation. Both source variants preserve existing headings and matching diagram code."
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-eksn-res-011",
+      "package": "eks-scheduling",
+      "id": "EKSN-RES-011",
+      "issue": 92,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Keep all four DR patterns but replace unsupported numerical RTO/RPO with the actual determining dependencies and measurement requirement.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "48a061b8c7a13620abd574561d8e737373f976c2",
+      "source_commits": [
+        "48a061b8c7a13620abd574561d8e737373f976c2"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-resiliency-guide.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-resiliency-guide.md"
+      ],
+      "verification": [
+        "107 offline checks passed against current source using pinned evidence, parsers and fixtures. An independent reviewer inspected the complete selected occurrence set.",
+        "Seven Korean Mermaid diagrams rendered after repairing sequence-message punctuation. Both source variants preserve existing headings and matching diagram code."
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-eksn-res-012",
+      "package": "eks-scheduling",
+      "id": "EKSN-RES-012",
+      "issue": 92,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Explain standard Global Accelerator endpoint selection and limits of endpoint health/connection routing.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "48a061b8c7a13620abd574561d8e737373f976c2",
+      "source_commits": [
+        "48a061b8c7a13620abd574561d8e737373f976c2"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-resiliency-guide.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-resiliency-guide.md"
+      ],
+      "verification": [
+        "107 offline checks passed against current source using pinned evidence, parsers and fixtures. An independent reviewer inspected the complete selected occurrence set.",
+        "Seven Korean Mermaid diagrams rendered after repairing sequence-message punctuation. Both source variants preserve existing headings and matching diagram code."
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-eksn-res-013",
+      "package": "eks-scheduling",
+      "id": "EKSN-RES-013",
+      "issue": 92,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Add matching selector and template labels to the complete web-server Deployment; preserve existing immutable selector when adapting.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "48a061b8c7a13620abd574561d8e737373f976c2",
+      "source_commits": [
+        "48a061b8c7a13620abd574561d8e737373f976c2"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-resiliency-guide.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-resiliency-guide.md"
+      ],
+      "verification": [
+        "107 offline checks passed against current source using pinned evidence, parsers and fixtures. An independent reviewer inspected the complete selected occurrence set.",
+        "Seven Korean Mermaid diagrams rendered after repairing sequence-message punctuation. Both source variants preserve existing headings and matching diagram code."
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-eksn-res-014",
+      "package": "eks-scheduling",
+      "id": "EKSN-RES-014",
+      "issue": 92,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Keep the illustrative hook while removing five-second/55-second/lossless guarantees; correct EndpointSlice and grace-period timing in both prose and diagram.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "48a061b8c7a13620abd574561d8e737373f976c2",
+      "source_commits": [
+        "48a061b8c7a13620abd574561d8e737373f976c2"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-resiliency-guide.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-resiliency-guide.md"
+      ],
+      "verification": [
+        "107 offline checks passed against current source using pinned evidence, parsers and fixtures. An independent reviewer inspected the complete selected occurrence set.",
+        "Seven Korean Mermaid diagrams rendered after repairing sequence-message punctuation. Both source variants preserve existing headings and matching diagram code."
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-eksn-res-015",
+      "package": "eks-scheduling",
+      "id": "EKSN-RES-015",
+      "issue": 92,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Keep retries configuration, count three additional retries plus initial request and backoff against the overall deadline.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "48a061b8c7a13620abd574561d8e737373f976c2",
+      "source_commits": [
+        "48a061b8c7a13620abd574561d8e737373f976c2"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-resiliency-guide.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-resiliency-guide.md"
+      ],
+      "verification": [
+        "107 offline checks passed against current source using pinned evidence, parsers and fixtures. An independent reviewer inspected the complete selected occurrence set.",
+        "Seven Korean Mermaid diagrams rendered after repairing sequence-message punctuation. Both source variants preserve existing headings and matching diagram code."
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-eksn-res-016",
+      "package": "eks-scheduling",
+      "id": "EKSN-RES-016",
+      "issue": 92,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Correct passive outlier interval and distinguish connection-pool concurrent retries from per-request attempts.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "48a061b8c7a13620abd574561d8e737373f976c2",
+      "source_commits": [
+        "48a061b8c7a13620abd574561d8e737373f976c2"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-resiliency-guide.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-resiliency-guide.md"
+      ],
+      "verification": [
+        "107 offline checks passed against current source using pinned evidence, parsers and fixtures. An independent reviewer inspected the complete selected occurrence set.",
+        "Seven Korean Mermaid diagrams rendered after repairing sequence-message punctuation. Both source variants preserve existing headings and matching diagram code."
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-eksn-res-017",
+      "package": "eks-scheduling",
+      "id": "EKSN-RES-017",
+      "issue": 92,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "State built-in Auto Mode pool defaults, custom-pool requirements and conditional Spot replacement; remove arbitrary universal probe/shutdown thresholds.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "48a061b8c7a13620abd574561d8e737373f976c2",
+      "source_commits": [
+        "48a061b8c7a13620abd574561d8e737373f976c2"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-resiliency-guide.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-resiliency-guide.md"
+      ],
+      "verification": [
+        "107 offline checks passed against current source using pinned evidence, parsers and fixtures. An independent reviewer inspected the complete selected occurrence set.",
+        "Seven Korean Mermaid diagrams rendered after repairing sequence-message punctuation. Both source variants preserve existing headings and matching diagram code."
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-eksn-res-018",
+      "package": "eks-scheduling",
+      "id": "EKSN-RES-018",
+      "issue": 92,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Use valid parameter-based Pod selection with one dedicated approval label and an explicit same-namespace action ServiceAccount; remove AWS resourceTags.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "48a061b8c7a13620abd574561d8e737373f976c2",
+      "source_commits": [
+        "48a061b8c7a13620abd574561d8e737373f976c2"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-resiliency-guide.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-resiliency-guide.md"
+      ],
+      "verification": [
+        "107 offline checks passed against current source using pinned evidence, parsers and fixtures. An independent reviewer inspected the complete selected occurrence set.",
+        "Seven Korean Mermaid diagrams rendered after repairing sequence-message punctuation. Both source variants preserve existing headings and matching diagram code."
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-eksn-res-019",
+      "package": "eks-scheduling",
+      "id": "EKSN-RES-019",
+      "issue": 92,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Supply required roleArn/stopConditions and illustrative idempotency tokens for all three FIS request shapes; keep IAM/alarm/resource prerequisites explicit.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "48a061b8c7a13620abd574561d8e737373f976c2",
+      "source_commits": [
+        "48a061b8c7a13620abd574561d8e737373f976c2"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-resiliency-guide.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-resiliency-guide.md"
+      ],
+      "verification": [
+        "107 offline checks passed against current source using pinned evidence, parsers and fixtures. An independent reviewer inspected the complete selected occurrence set.",
+        "Seven Korean Mermaid diagrams rendered after repairing sequence-message punctuation. Both source variants preserve existing headings and matching diagram code."
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-eksn-res-020",
+      "package": "eks-scheduling",
+      "id": "EKSN-RES-020",
+      "issue": 92,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Retitle selected-worker stop semantics and choose explicit ARN allowlist. Do not mix ARN targeting with filters; check AZ/cluster membership in preflight inventory.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "48a061b8c7a13620abd574561d8e737373f976c2",
+      "source_commits": [
+        "48a061b8c7a13620abd574561d8e737373f976c2"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-resiliency-guide.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-resiliency-guide.md"
+      ],
+      "verification": [
+        "107 offline checks passed against current source using pinned evidence, parsers and fixtures. An independent reviewer inspected the complete selected occurrence set.",
+        "Seven Korean Mermaid diagrams rendered after repairing sequence-message punctuation. Both source variants preserve existing headings and matching diagram code."
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-eksn-res-021",
+      "package": "eks-scheduling",
+      "id": "EKSN-RES-021",
+      "issue": 92,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Disable implicit dependency installation, name OS/agent/tools/interface prerequisites and distinguish fault DurationSeconds, FIS monitoring window and real SSM/cleanup completion.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "48a061b8c7a13620abd574561d8e737373f976c2",
+      "source_commits": [
+        "48a061b8c7a13620abd574561d8e737373f976c2"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-resiliency-guide.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-resiliency-guide.md"
+      ],
+      "verification": [
+        "107 offline checks passed against current source using pinned evidence, parsers and fixtures. An independent reviewer inspected the complete selected occurrence set.",
+        "Seven Korean Mermaid diagrams rendered after repairing sequence-message punctuation. Both source variants preserve existing headings and matching diagram code."
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-eksn-res-023",
+      "package": "eks-scheduling",
+      "id": "EKSN-RES-023",
+      "issue": 92,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Preserve ChaosEngine schema and consistent Helm alias; mark it non-runnable without versioned experiment/runner/namespace RBAC/agent/probe prerequisites. No fabricated cluster-admin deployment.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "48a061b8c7a13620abd574561d8e737373f976c2",
+      "source_commits": [
+        "48a061b8c7a13620abd574561d8e737373f976c2"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-resiliency-guide.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-resiliency-guide.md"
+      ],
+      "verification": [
+        "107 offline checks passed against current source using pinned evidence, parsers and fixtures. An independent reviewer inspected the complete selected occurrence set.",
+        "Seven Korean Mermaid diagrams rendered after repairing sequence-message punctuation. Both source variants preserve existing headings and matching diagram code."
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-eksn-res-024",
+      "package": "eks-scheduling",
+      "id": "EKSN-RES-024",
+      "issue": 92,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Replace obsolete nested scheduler with a pinned v2.8.4 Schedule CR; make one-shot PodKill and immediate grace-period effects explicit.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "48a061b8c7a13620abd574561d8e737373f976c2",
+      "source_commits": [
+        "48a061b8c7a13620abd574561d8e737373f976c2"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-resiliency-guide.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-resiliency-guide.md"
+      ],
+      "verification": [
+        "107 offline checks passed against current source using pinned evidence, parsers and fixtures. An independent reviewer inspected the complete selected occurrence set.",
+        "Seven Korean Mermaid diagrams rendered after repairing sequence-message punctuation. Both source variants preserve existing headings and matching diagram code."
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-eksn-res-025",
+      "package": "eks-scheduling",
+      "id": "EKSN-RES-025",
+      "issue": 92,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Correct tool infrastructure scope, probe stopping capabilities and FIS action-minute/target-account charging dimensions.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "48a061b8c7a13620abd574561d8e737373f976c2",
+      "source_commits": [
+        "48a061b8c7a13620abd574561d8e737373f976c2"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-resiliency-guide.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-resiliency-guide.md"
+      ],
+      "verification": [
+        "107 offline checks passed against current source using pinned evidence, parsers and fixtures. An independent reviewer inspected the complete selected occurrence set.",
+        "Seven Korean Mermaid diagrams rendered after repairing sequence-message punctuation. Both source variants preserve existing headings and matching diagram code."
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-eksn-res-026",
+      "package": "eks-scheduling",
+      "id": "EKSN-RES-026",
+      "issue": 92,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Replace the unbound Game Day executor with an explicit account/region/context/endpoint-checked read-only evidence collector.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "48a061b8c7a13620abd574561d8e737373f976c2",
+      "source_commits": [
+        "48a061b8c7a13620abd574561d8e737373f976c2"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-resiliency-guide.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-resiliency-guide.md"
+      ],
+      "verification": [
+        "107 offline checks passed against current source using pinned evidence, parsers and fixtures. An independent reviewer inspected the complete selected occurrence set.",
+        "Seven Korean Mermaid diagrams rendered after repairing sequence-message punctuation. Both source variants preserve existing headings and matching diagram code."
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-eksn-res-027",
+      "package": "eks-scheduling",
+      "id": "EKSN-RES-027",
+      "issue": 92,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Name zonal evacuation as traffic/placement control, distinct from AZ failure injection; record shift ID, expiry, cancellation and surviving capacity.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "48a061b8c7a13620abd574561d8e737373f976c2",
+      "source_commits": [
+        "48a061b8c7a13620abd574561d8e737373f976c2"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-resiliency-guide.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-resiliency-guide.md"
+      ],
+      "verification": [
+        "107 offline checks passed against current source using pinned evidence, parsers and fixtures. An independent reviewer inspected the complete selected occurrence set.",
+        "Seven Korean Mermaid diagrams rendered after repairing sequence-message punctuation. Both source variants preserve existing headings and matching diagram code."
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-eksn-res-028",
+      "package": "eks-scheduling",
+      "id": "EKSN-RES-028",
+      "issue": 92,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Read Ready by condition.type and output condition.status; retain Unknown/Missing distinctly and record snapshot times.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "48a061b8c7a13620abd574561d8e737373f976c2",
+      "source_commits": [
+        "48a061b8c7a13620abd574561d8e737373f976c2"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-resiliency-guide.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-resiliency-guide.md"
+      ],
+      "verification": [
+        "107 offline checks passed against current source using pinned evidence, parsers and fixtures. An independent reviewer inspected the complete selected occurrence set.",
+        "Seven Korean Mermaid diagrams rendered after repairing sequence-message punctuation. Both source variants preserve existing headings and matching diagram code."
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-eksn-res-029",
+      "package": "eks-scheduling",
+      "id": "EKSN-RES-029",
+      "issue": 92,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Remove random target selection, direct deletion/minimum-one bug and fixed-wait success claim from generic automation; specify per-action authorization, original state, stop, cleanup and measured recovery contract.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "48a061b8c7a13620abd574561d8e737373f976c2",
+      "source_commits": [
+        "48a061b8c7a13620abd574561d8e737373f976c2"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-resiliency-guide.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-resiliency-guide.md"
+      ],
+      "verification": [
+        "107 offline checks passed against current source using pinned evidence, parsers and fixtures. An independent reviewer inspected the complete selected occurrence set.",
+        "Seven Korean Mermaid diagrams rendered after repairing sequence-message punctuation. Both source variants preserve existing headings and matching diagram code."
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-eksn-res-030",
+      "package": "eks-scheduling",
+      "id": "EKSN-RES-030",
+      "issue": 92,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Align checklist with selected-Pod Eviction API budget, current health and disruptionsAllowed rather than perpetual availability.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "48a061b8c7a13620abd574561d8e737373f976c2",
+      "source_commits": [
+        "48a061b8c7a13620abd574561d8e737373f976c2"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-resiliency-guide.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-resiliency-guide.md"
+      ],
+      "verification": [
+        "107 offline checks passed against current source using pinned evidence, parsers and fixtures. An independent reviewer inspected the complete selected occurrence set.",
+        "Seven Korean Mermaid diagrams rendered after repairing sequence-message punctuation. Both source variants preserve existing headings and matching diagram code."
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-eksn-res-031",
+      "package": "eks-scheduling",
+      "id": "EKSN-RES-031",
+      "issue": 92,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Align both explanation/checklist with initial volume topology selection and continuing EBS AZ confinement.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "48a061b8c7a13620abd574561d8e737373f976c2",
+      "source_commits": [
+        "48a061b8c7a13620abd574561d8e737373f976c2"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-resiliency-guide.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-resiliency-guide.md"
+      ],
+      "verification": [
+        "107 offline checks passed against current source using pinned evidence, parsers and fixtures. An independent reviewer inspected the complete selected occurrence set.",
+        "Seven Korean Mermaid diagrams rendered after repairing sequence-message punctuation. Both source variants preserve existing headings and matching diagram code."
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-eksn-res-032",
+      "package": "eks-scheduling",
+      "id": "EKSN-RES-032",
+      "issue": 92,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Separate manual/custom automation from explicitly enabled autoshift, correct diagram and bind manual-shift template to account/region/cluster/approved AZ.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "48a061b8c7a13620abd574561d8e737373f976c2",
+      "source_commits": [
+        "48a061b8c7a13620abd574561d8e737373f976c2"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-resiliency-guide.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-resiliency-guide.md"
+      ],
+      "verification": [
+        "107 offline checks passed against current source using pinned evidence, parsers and fixtures. An independent reviewer inspected the complete selected occurrence set.",
+        "Seven Korean Mermaid diagrams rendered after repairing sequence-message punctuation. Both source variants preserve existing headings and matching diagram code."
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-eksn-res-033",
+      "package": "eks-scheduling",
+      "id": "EKSN-RES-033",
+      "issue": 92,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Remove unsupported savings ranges and universal 2x multiplier; retain each optimization strategy and specify like-for-like measured inputs and evidence-pending outcomes.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "48a061b8c7a13620abd574561d8e737373f976c2",
+      "source_commits": [
+        "48a061b8c7a13620abd574561d8e737373f976c2"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-resiliency-guide.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-resiliency-guide.md"
+      ],
+      "verification": [
+        "107 offline checks passed against current source using pinned evidence, parsers and fixtures. An independent reviewer inspected the complete selected occurrence set.",
+        "Seven Korean Mermaid diagrams rendered after repairing sequence-message punctuation. Both source variants preserve existing headings and matching diagram code."
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    }
+  ]
+}
