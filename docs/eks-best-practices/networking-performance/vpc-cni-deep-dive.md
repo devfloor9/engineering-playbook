@@ -5,7 +5,7 @@ created: "2026-08-04"
 last_update:
   date: "2026-09-19"
   author: YoungJoon Jeong
-reading_time: 16
+reading_time: 15
 tags:
   - eks
   - vpc-cni

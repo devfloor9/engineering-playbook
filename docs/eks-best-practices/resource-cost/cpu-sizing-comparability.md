@@ -3,9 +3,9 @@ title: CPU 성능 비교 가능성과 Pod·노드 사이징 표준
 description: 같은 워크로드의 CPU 사용률이 인스턴스 크기·세대에 따라 달라지는 원인을 정리하고, 크기·세대 비교에 쓸 KPI와 스로틀링·스케줄링 대기의 관측 경로, Pod 사이징 기준, 혼합 노드풀 판단 절차를 제시합니다.
 created: "2026-09-19"
 last_update:
-  date: "2026-09-19"
+  date: 2026-09-19
   author: YoungJoon Jeong
-reading_time: 27
+reading_time: 26
 tags:
   - eks
   - cpu
@@ -28,7 +28,9 @@ category: performance-networking
 
 ## 개요
 
-같은 컨테이너 이미지를 다른 크기나 다른 세대의 노드로 옮기면 CPU 사용률(CPU%)이 달라 보이는 경우가 많습니다. 도메인팀은 이를 성능 저하로 받아들이고 플랫폼팀은 노드 크기 정책을 되돌려야 하는지 고민하게 되는데, CPU%는 크기·세대 사이에서 그대로 비교할 수 있는 지표가 아닙니다. CPU%가 달라지는 원인을 짚고, 크기와 세대를 비교할 때 써야 하는 지표와 그 지표를 어디서 얻는지, Pod 사이징 기준, 여러 크기·세대를 한 워크로드에 섞어 쓸지 판단하는 절차를 정리합니다. 노드 크기 정책을 정하는 플랫폼팀과 CPU% 알람을 운영하는 도메인팀을 대상으로 합니다.
+같은 컨테이너 이미지를 다른 크기나 세대의 노드로 옮기면 CPU 사용률(CPU%)이 달라질 수 있습니다. 사용률이 높아졌다는 사실만으로 처리 성능이 나빠졌다고 판단할 수는 없습니다. 먼저 사용률의 분모를 확인하고, 같은 부하에서 처리량과 응답 시간이 어떻게 달라졌는지 비교해야 합니다.
+
+이 문서는 노드 크기를 정하는 플랫폼팀과 애플리케이션을 운영하는 팀을 위한 비교 절차입니다. CPU 사용률의 차이를 해석하고, 스로틀링과 스케줄링 대기를 관측한 뒤, 측정 결과로 Pod 크기와 노드 후보를 정하는 순서로 설명합니다.
 
 ## 배경
 
@@ -36,10 +38,10 @@ requests와 limits의 의미, CFS bandwidth throttling이 cgroup에서 동작하
 
 용어는 다음 의미로 사용합니다.
 
-- **SMT(Simultaneous Multithreading)** — 물리 코어 하나가 하드웨어 스레드(vCPU) 둘 이상을 노출하는 기술. x86 인스턴스의 1 vCPU는 하이퍼스레드 하나이고, AWS Graviton은 SMT가 없어 1 vCPU가 물리 코어 하나에 대응합니다
+- **SMT(Simultaneous Multithreading)** — 물리 코어 하나가 여러 하드웨어 스레드를 노출하는 기술. SMT를 사용하는 EC2 타입에서는 vCPU가 논리 CPU 스레드에 대응하지만, Graviton과 x86 C7a처럼 vCPU가 물리 코어에 대응하는 타입도 있습니다. 인스턴스 타입과 CPU 옵션의 실제 topology를 확인합니다
 - **run queue** — 실행 준비는 끝났지만 아직 vCPU를 받지 못한 스레드의 대기열. 길어질수록 스케줄링 대기가 늘어납니다
-- **LLC(Last-Level Cache)** — 소켓 안의 코어들이 공유하는 최하위 캐시. 이웃 워크로드와 경합하면 적중률이 떨어집니다
-- **CFS(Completely Fair Scheduler)** — Linux 기본 스케줄러. CPU limit은 이 스케줄러의 bandwidth quota로 강제됩니다
+- **LLC(Last-Level Cache)** — CPU의 마지막 단계 캐시. 캐시를 공유하는 코어의 범위는 하드웨어 구조에 따라 다르며, 소켓 전체와 같다고 가정하지 않습니다
+- **CFS bandwidth** — 일정 주기 동안 cgroup이 사용할 CPU 시간을 제한하는 기능. CFS라는 이름의 quota와 메트릭이 남아 있어도 태스크 선택 알고리즘은 커널 버전에 따라 다릅니다. Linux는 6.6부터 [EEVDF로 전환](https://docs.kernel.org/scheduler/sched-eevdf.html)하기 시작했습니다
 - **PSI(Pressure Stall Information)** — 태스크가 자원을 기다리며 멈춰 있던 시간의 비율을 커널이 집계한 값. cgroup v2에서는 cgroup별 `cpu.pressure` 파일로 노출됩니다
 
 벤치마크 하네스 구현과 부하 도구 배포는 범위 밖이며, 세대별 벤치마크는 파이프라인 설계까지만 다룹니다.
@@ -50,8 +52,8 @@ CPU 사용률은 물리 하드웨어에서 Pod 관측치까지 여러 층을 거
 
 ```mermaid
 flowchart TB
-    PC["물리 코어<br/>(LLC·메모리 대역폭 공유, NUMA)"] --> VCPU["vCPU<br/>(x86: SMT sibling / Graviton: 1:1 물리 코어)"]
-    VCPU --> CG["cgroup CFS quota<br/>(cpu.max = quota / period)"]
+    PC["물리 코어<br/>(LLC·메모리 대역폭 공유, NUMA)"] --> VCPU["vCPU<br/>(타입별 논리 CPU 또는 물리 코어)"]
+    VCPU --> CG["cgroup CPU bandwidth<br/>(cpu.max: MAX PERIOD)"]
     CG --> RQ["scheduler run queue<br/>(대기 시간 · context switch)"]
     RQ --> OBS["Pod 관측치<br/>(CPU% · throttled period · latency)"]
     NOISE["다른 테넌트 Pod<br/>(noisy neighbor)"] -.->|LLC·대역폭 경합| PC
@@ -60,17 +62,19 @@ flowchart TB
     MET -.-> SINK["Prometheus · AMP · CloudWatch"]
 ```
 
+`cpu.max`에는 CPU 시간 상한과 주기가 공백으로 구분되어 들어갑니다. 두 수를 나눈 값이 평균적으로 허용하는 CPU 용량이며, 나눗셈 자체가 파일 형식은 아닙니다. `max`는 해당 cgroup의 상한을 해제하지만 상위 cgroup의 제한까지 없애지는 않습니다([cgroup v2 CPU 인터페이스](https://docs.kernel.org/admin-guide/cgroup-v2.html#cpu-interface-files)).
+
 ## CPU 사용률이 비교되지 않는 이유
 
 같은 이미지를 다른 인스턴스에서 돌렸을 때 CPU%가 달라지는 원인은 하드웨어부터 스케줄러까지 여러 층에 걸쳐 있습니다.
 
-- LLC와 메모리 대역폭은 같은 소켓의 코어가 공유합니다. 인스턴스 크기에 따라 코어당 몫이 다르고, 이웃 Pod의 부하에 따라 같은 코드가 더 많은 stall을 겪습니다.
-- x86의 1 vCPU는 물리 코어의 하드웨어 스레드 하나입니다. 형제 스레드가 같은 실행 유닛을 쓰면 두 vCPU의 처리량은 물리 코어 하나보다 작습니다. Graviton은 SMT가 없으므로 같은 vCPU 수라도 x86과 실효 성능을 나란히 놓고 비교할 수 없습니다.
+- LLC와 메모리 대역폭의 공유 범위는 CPU 구조에 따라 다릅니다. 같은 하드웨어 자원을 쓰는 이웃 Pod의 부하가 캐시 적중률과 대기 시간에 영향을 줄 수 있습니다. 캐시별 공유 CPU 목록은 [sysfs의 `shared_cpu_list`](https://docs.kernel.org/admin-guide/abi-testing.html)로 확인하고, 성능 영향은 워크로드로 측정합니다.
+- SMT를 사용하는 x86에서는 형제 vCPU 두 개가 물리 코어 하나의 실행 자원을 공유합니다. 이를 독립된 물리 코어 두 개와 같은 처리량으로 볼 수 없으며, 단일 스레드 대비 이득이나 손실은 워크로드에 따라 달라집니다. x86 C7a와 Graviton처럼 SMT가 없는 타입도 있으므로 아키텍처 이름만으로 대응 관계를 정하지 않습니다.
 - 세대가 바뀌면 클록, 캐시 크기, 코어 마이크로아키텍처가 달라져 같은 명령 수를 처리하는 시간이 달라집니다. 시간 비율인 CPU%에는 이 차이가 드러나지 않습니다. Graviton 세대별 코어와 캐시 구성은 [AWS Graviton Technical Guide](https://github.com/aws/aws-graviton-getting-started)에 정리되어 있습니다.
 - 사용률이 낮아도 run queue 대기가 길면 지연이 늘어납니다. 사용률과 지연은 따로 봐야 합니다.
 - CPU limit이 있는 멀티스레드 컨테이너는 사용률이 낮은 상태에서도 quota를 일찍 소진해 스로틀될 수 있습니다. 동작과 PromQL은 [Pod 리소스 최적화 가이드의 CPU Throttling 관측](./eks-resource-optimization.md#633-cpu-throttling-자동-탐지)을 참조합니다.
 
-새 세대 인스턴스는 IPC가 높아 같은 일을 더 빨리 끝내므로, 동시성이 낮은 구간에서는 CPU%가 오히려 낮게 나옵니다. 반대로 소형 노드에서는 DaemonSet과 사이드카가 차지하는 비중이 커져서 애플리케이션 Pod의 CPU%가 부하 변화 없이 올라간 것처럼 보입니다. 크기와 세대가 섞인 플릿에서 CPU% 절대값을 임계로 쓰면 이런 요인이 오탐으로 나타납니다.
+먼저 CPU%의 분모를 고정합니다. 소비한 CPU-seconds를 경과 시간으로 나눈 코어 사용량인지, Pod request·limit 또는 노드 전체 CPU로 정규화한 비율인지에 따라 뜻이 달라집니다. 새 세대가 같은 작업을 더 적은 CPU 시간으로 끝낼 수는 있지만 이는 측정할 결과입니다. 소형 노드에서 DaemonSet 비중이 커진다는 사실만으로 애플리케이션 컨테이너의 CPU 사용량이나 고정 request 대비 사용률이 자동으로 증가하지는 않습니다. 노드 오버헤드, 경합, 애플리케이션 소비량을 나누어 비교합니다.
 
 ## 비교 가능한 KPI
 
@@ -86,7 +90,7 @@ flowchart TB
 
 도메인팀의 CPU% 임계 알람은 SLO(지연·오류율) 기반 알람으로 바꾸는 편이 오탐이 적습니다. throttled-period 비율은 quota 부족을 직접 보여 주므로 CPU%를 대신하는 보조 지표로 쓸 수 있습니다.
 
-cost-per-1K-req는 인스턴스 시간당 단가를 sustained RPS로 나눈 값입니다. 세대와 아키텍처가 다르면 단가와 처리 능력이 같이 달라지므로, 요청당 비용으로 정규화해야 비교가 됩니다. 이 값은 같은 SLO 안에서 측정한 RPS를 기준으로 할 때만 의미가 있습니다.
+단일 인스턴스의 시간당 비용을 `H`, SLO 안에서 측정한 sustained RPS를 `R`이라고 하면 `cost-per-1K-req = H × 1000 / (3600 × R)`입니다. 예를 들어 시간당 $3.60, 100 RPS라면 1,000 요청당 $0.01입니다. 여러 노드를 비교할 때는 같은 측정 범위의 총비용과 처리량을 사용하고 포함·제외한 비용을 명시합니다.
 
 ## 스로틀링과 스케줄링 대기 관측
 
@@ -107,26 +111,28 @@ cost-per-1K-req는 인스턴스 시간당 단가를 sustained RPS로 나눈 값�
 
 - PSI는 태스크가 CPU를 기다리며 멈춘 시간의 비율을 cgroup 단위로 보여 줍니다. cgroup v2의 `cpu.pressure`(노드 전체는 `/proc/pressure/cpu`)에 `some`(일부 태스크가 대기)과 `full`(모든 태스크가 대기)의 avg10/avg60/avg300과 누적 `total`이 있습니다. 스로틀과 경합을 구분하지는 않지만 파일 하나로 "기다렸는가"에 답합니다. Kubernetes는 1.33부터 kubelet이 PSI를 수집하고 1.36에서 GA되어 `KubeletPSI` 게이트가 고정되었으며, `/metrics/cadvisor`의 `container_pressure_cpu_waiting_seconds_total`(some)·`container_pressure_cpu_stalled_seconds_total`(full)과 Summary API에서 노드·Pod·컨테이너 단위로 읽을 수 있습니다. 커널 4.20 이상, `CONFIG_PSI`, cgroup v2가 전제이고(EKS의 AL2023·Bottlerocket AMI는 cgroup v2가 기본입니다), 배포판이 PSI를 꺼 두었다면 커널 파라미터 `psi=1`이 필요합니다.
 - `/proc/<pid>/schedstat`는 스레드별로 CPU에서 실행한 시간, run queue에서 기다린 시간(ns), 타임슬라이스 수를 제공합니다. cAdvisor의 `container_cpu_schedstat_runqueue_seconds_total`과 `container_cpu_schedstat_run_seconds_total`이 이 값을 컨테이너 단위로 합산한 것이지만, `sched` 메트릭 그룹에 속해 기본 비활성이고 kubelet 내장 엔드포인트에는 노출되지 않으므로 standalone cAdvisor DaemonSet에서 `-enable_metrics=sched`로 켜야 합니다.
-- 대기 시간의 분포(히스토그램)까지 필요할 때 eBPF `runqlat`이나 `perf sched latency`를 씁니다. eBPF는 이 단계에서만 필요합니다.
+- 대기 시간의 분포가 필요하면 eBPF `runqlat`을 사용할 수 있습니다. eBPF를 쓰지 않는 경로로는 `perf sched record`로 스케줄 이벤트를 기록하고 `perf sched latency`의 태스크별 통계 또는 `perf sched timehist`의 이벤트별 지연을 분석할 수 있습니다.
 
 ## Pod 사이징 기준
 
 ### 비율과 최소 크기
 
-Pod의 CPU:memory 비율을 인스턴스 패밀리에 맞추면 bin-packing 낭비가 줄고 노드 크기의 편차도 줄어듭니다. 아래 표는 결정 템플릿이며 값은 워크로드로 검증합니다.
+Pod의 CPU·메모리 요청량과 노드의 가용 용량을 함께 보며 배치를 계획합니다. 아래 비율은 vCPU:GiB 단위의 검토 예시입니다. 실제 인스턴스 제원, DaemonSet과 시스템 예약량, 워크로드 측정치를 확인해 값을 정합니다. 모든 서비스에 2 vCPU 하한이 필요하다는 의미는 아닙니다.
 
-| Pod 프로파일 | CPU:mem 비율 | 정렬 패밀리 | 최소 vCPU 권장 | QoS·정책 |
+| Pod 프로파일 | CPU:mem 비율 | 검토할 패밀리 | CPU 요청량 예시 | QoS·정책 |
 |---|---|---|---|---|
 | CPU 집약 | 1:2 | c (compute) | 2 vCPU 이상(스레드 풀 런타임은 상향 검토) | Burstable, CPU limit 생략 검토 |
 | 범용 | 1:4 | m (general) | 2 vCPU | Burstable |
 | 메모리 집약 | 1:8 | r (memory) | 2 vCPU | Burstable |
 | 지연 민감·격리 필요 | 워크로드별 | c/m | 정수 vCPU | Guaranteed + CPU Manager static |
 
-최소 vCPU 하한을 두는 이유는 24xlarge 같은 대형 노드에 1~2 vCPU Pod가 몰리면 IP와 스케줄 슬롯만 소비하고 밀도가 떨어지기 때문입니다. IP 소비 관점은 [IP 용량 계획과 Karpenter 노드 사이징](../networking-performance/ip-capacity-planning-karpenter.md)과 이어집니다. 지연에 민감한 서비스에서 CPU limit을 생략할지는 격리 요구, 테넌트 정책, LimitRange와의 충돌을 함께 보고 정합니다([Pod 리소스 최적화 가이드의 CFS Bandwidth Throttling](./eks-resource-optimization.md#cfs-bandwidth-throttling)). 노드 단위 대안으로 Karpenter EC2NodeClass의 `spec.kubelet.cpuCFSQuota: false`가 있습니다. kubelet이 CFS quota를 적용하지 않으므로 스로틀은 사라지지만 그 노드의 모든 Pod에서 CPU limit이 무력화되므로, 지연 민감 워크로드 전용 NodePool에서만 검토합니다.
+Pod가 많아 IP나 maxPods에 먼저 닿는지 확인한 뒤 사이징 정책을 정합니다. request 하한만 높여도 고정된 replica 수나 Pod IP 수는 줄지 않으며, 필요한 노드 수가 오히려 늘 수 있습니다. 더 큰 Pod와 적은 replica로 바꾸는 선택은 처리량·SLO 검증을 포함한 워크로드 변경입니다. IP 예산은 [IP 용량 계획과 Karpenter 노드 사이징](../networking-performance/ip-capacity-planning-karpenter.md)을 참조합니다.
+
+지연에 민감한 서비스에서 CPU limit을 생략할지는 격리 요구, 테넌트 정책, LimitRange와의 충돌을 함께 보고 정합니다([Pod 리소스 최적화 가이드의 CFS Bandwidth Throttling](./eks-resource-optimization.md#cfs-bandwidth-throttling)). 노드 단위 설정인 Karpenter EC2NodeClass의 `spec.kubelet.cpuCFSQuota: false`는 CPU limit을 지정한 컨테이너에 대한 kubelet의 quota 적용을 끕니다. 상위 cgroup의 quota나 CPU 경합까지 없애는 설정은 아니므로, 모든 스로틀링이 사라진다고 볼 수 없습니다. 해당 노드 전체에 영향을 주므로 전용 NodePool에서 유효한 cgroup 계층과 격리 정책을 확인한 뒤 검토합니다([커널 bandwidth 계층](https://docs.kernel.org/scheduler/sched-bwc.html#hierarchical-considerations)).
 
 ### Guaranteed 정수 CPU와 CPU Manager static
 
-Kubernetes CPU Manager의 `static` policy는 Guaranteed QoS이면서 CPU request가 정수인 컨테이너에만 배타적 코어(cpuset)를 줍니다. 분수 request나 Burstable·BestEffort Pod는 공유 풀에서 실행됩니다. `static`을 켤 때는 kubelet에 `--reserved-cpus` 또는 `--kube-reserved`/`--system-reserved`로 0보다 큰 CPU 예약이 있어야 하며, 없으면 kubelet이 기동을 거부합니다. 코어를 고정하면 캐시 지역성은 좋아지지만 고정된 코어를 다른 Pod가 쓰지 못해 노드 전체 활용도는 떨어집니다.
+CPU Manager `static`은 Guaranteed QoS이면서 CPU request가 정수인 컨테이너에 배타적인 논리 CPU cpuset을 할당합니다. SMT 환경에서 물리 코어 전체를 격리하려면 `full-pcpus-only` 등 해당 Kubernetes 버전의 policy option과 SMT 폭에 맞는 요청량을 별도로 검토해야 합니다. `static`만으로 형제 스레드까지 배타적으로 확보한다고 가정하지 않습니다. 분수 request와 Burstable·BestEffort Pod는 공유 풀을 사용합니다. `--reserved-cpus` 또는 `--kube-reserved`/`--system-reserved`로 0보다 큰 CPU 예약도 필요합니다. 캐시 지역성과 활용도에 미치는 영향은 실제 워크로드로 확인합니다.
 
 ### 런타임 스레드 수
 
@@ -179,7 +185,7 @@ spec:
 
 ### CPU limit 생략을 허용하는 ResourceQuota
 
-`limits.cpu`를 quota에 넣지 않으면 CPU limit이 없는 Pod를 허용할 수 있습니다. 메모리는 request=limit을 강제해 Guaranteed 경로를 유지합니다.
+`limits.cpu`를 quota에서 생략하면 CPU limit 없는 Pod를 허용할 수 있습니다. 아래의 동일한 memory quota 값은 namespace 전체 request 합계와 limit 합계를 각각 제한할 뿐, 컨테이너마다 request=limit을 강제하지 않습니다. Guaranteed QoS를 원하면 각 컨테이너의 CPU·memory request와 limit을 명시적으로 같게 설정해야 합니다.
 
 ```yaml
 apiVersion: v1
@@ -197,7 +203,9 @@ spec:
 
 ### CPU Manager static 노드풀
 
-`static` policy는 노드 kubelet 설정이므로 별도 NodePool로 분리해 배타적 코어가 필요한 워크로드만 배치합니다. Karpenter v1 EC2NodeClass의 `spec.kubelet`은 kubelet 설정 중 일부 필드만 지원하고 `cpuManagerPolicy`는 포함되지 않습니다. 예약 CPU는 `spec.kubelet`으로 두고, 정책은 AL2023 `NodeConfig` userData로 전달합니다(Karpenter가 생성한 NodeConfig와 병합됩니다). AMI는 `@latest` 대신 날짜 버전으로 고정합니다. 노드가 다시 뜰 때 AMI가 바뀌면 세대·성능 비교의 기준선이 함께 움직이기 때문입니다. NodePool 문법과 weight는 [Karpenter 오토스케일링](./karpenter-autoscaling.md)을 참조합니다.
+`static` policy는 노드 kubelet 설정이므로 별도 NodePool로 분리해 배타적 논리 CPU가 필요한 워크로드만 배치합니다. Karpenter v1 EC2NodeClass의 `spec.kubelet`은 kubelet 설정 중 일부 필드만 지원하고 `cpuManagerPolicy`는 포함되지 않습니다. 예약 CPU는 `spec.kubelet`으로 두고, 정책은 AL2023 `NodeConfig` userData로 전달합니다(Karpenter가 생성한 NodeConfig와 병합됩니다). AMI는 `@latest` 대신 날짜 버전으로 고정합니다. 노드가 다시 뜰 때 AMI가 바뀌면 세대·성능 비교의 기준선이 함께 움직이기 때문입니다. NodePool 문법과 weight는 [Karpenter 오토스케일링](./karpenter-autoscaling.md)을 참조합니다.
+
+아래 YAML은 기존의 유효한 EC2NodeClass에 병합할 설정 발췌이며 독립적으로 적용할 manifest가 아닙니다. `role` 또는 `instanceProfile` 중 하나, subnet·security group selector를 유지하고 AMI 날짜 자리표시자를 검증한 실제 버전으로 바꿉니다.
 
 EKS Auto Mode 노드에는 이 방식이 적용되지 않습니다. Auto Mode는 NodeClass `advancedCompute.kubelet`으로 `maxPods`(최대 110), `podPidsLimit`, eviction 임계값, 컨테이너 로그 로테이션, `singleProcessOOMKill`, `allowedUnsafeSysctls`를 조정할 수 있고 `advancedCompute.kernel.sysctl`로 커널 파라미터도 바꿀 수 있지만, CPU Manager 정책·CFS quota·예약 CPU는 노출하지 않으며 userData(NodeConfig)도 받지 않습니다. 배타적 코어가 필요한 워크로드는 Auto Mode 밖의 자체 관리 NodePool에 둡니다. 반대로 배타적 코어가 필요하지 않은 일반 워크로드는 Auto Mode의 조정 범위로 충분한지 먼저 확인하고, 두 종류의 노드를 한 클러스터에 두어 워크로드별로 나누는 구성도 검토할 수 있습니다.
 
@@ -265,7 +273,7 @@ For each (instance-size x generation) target NodePool:
 - 60초 평균은 1분 미만의 스로틀 스파이크를 가리므로 15~30초 해상도와 히스토그램을 사용합니다. PSI의 avg10이 avg300보다 뚜렷하게 높으면 최근에 생긴 경합이고, avg300까지 올라오면 지속적인 병목입니다.
 - cAdvisor의 CFS·schedstat·pressure 카운터는 counter 타입이므로 `rate()`를 먼저 적용한 뒤 비율을 계산합니다. 여러 replica를 하나의 값으로 합치지 않고 namespace/pod/container 식별자를 유지하며, Pod 재생성으로 인한 시계열 단절과 scrape 중복도 확인합니다.
 - 스로틀 비율 알림은 p99·오류율과 함께 봅니다. 비율이 높아도 SLO 안이면 limit 조정 후보로만 기록하고, SLO를 벗어날 때 조치합니다.
-- `bcc`/`bpftrace`의 `runqlat`·`offcputime`, [Inspektor Gadget](https://www.inspektor-gadget.io/) 같은 eBPF 도구는 커널 BTF/CO-RE 지원과 특권 수집 경로가 전제입니다. 커스텀 Linux 배포판에서는 커널 버전과 BTF 지원을 먼저 확인하고 수집 오버헤드를 따로 평가합니다.
+- eBPF 도구의 요구사항은 배포 방식마다 다릅니다. CO-RE 기반 도구는 BTF를 요구할 수 있고, 전통적인 BCC 도구는 커널 헤더와 LLVM/Clang을 이용해 컴파일할 수 있습니다. 선택한 `bcc`/`bpftrace` 또는 [Inspektor Gadget](https://www.inspektor-gadget.io/) 버전의 커널·권한·수집 오버헤드를 확인합니다.
 
 ## 트러블슈팅
 
@@ -274,13 +282,15 @@ For each (instance-size x generation) target NodePool:
 | 소형 노드나 다른 세대 노드에서 CPU% 상승 알람 | 크기·세대 간 비교 불가(캐시·대역폭 공유, SMT, IPC 차이) | SLO 기반 알람으로 전환, 벤치마크로 임계치 재정의 | p99·오류율 불변 확인 |
 | 사용률은 낮은데 latency 증가 | CFS 글로벌 quota가 멀티스레드를 스로틀 | CPU limit 생략 검토 또는 스레드 수 정렬 | `cpu.stat`의 nr_throttled/nr_periods, 스로틀 비율 PromQL |
 | 스로틀 비율은 0인데 latency 증가 | quota는 남아 있지만 run queue 대기(노드 경합) | 노드 밀도 조정, Guaranteed 정수 CPU 또는 CPU Manager static 검토 | `cpu.pressure` some 비율, schedstat runqueue 시간 |
-| 24xlarge에 1~2 vCPU Pod 다수 | Pod 사이징 기준 부재 | LimitRange 최소값·비율 정렬 | 노드 Pod 수·IP 사용 감소 |
+| Pod 수가 IP 또는 maxPods 상한에 접근 | replica 수·배치·주소 예산의 제약 | 주소 용량과 배치부터 확인하고, replica 수 변경을 포함한 vertical sizing은 SLO로 검증 | 실제 Pod·노드 수, IP 소비, 처리량·지연 |
 | Guaranteed 정수 CPU Pod도 성능 편차 | 공유 풀 스케줄, noisy neighbor | `cpuManagerPolicy: static`과 reserved-cpus(여유 코어 손실 명시) | cpuset 확인, run queue latency |
 | JVM/Go가 노드 전체 코어 기준으로 스레드 생성 | 런타임이 컨테이너 CPU를 인식하지 못함 | `-XX:ActiveProcessorCount`, Go 1.25+/automaxprocs | 스레드 수·throttled 비율 |
 
 ## 결론
 
-CPU 사용률은 인스턴스 크기·세대 사이에서 직접 비교할 수 없는 지표이며, 비교에는 동일 조건에서 측정한 sustained RPS, p99, cost-per-1K-req를 사용합니다. CFS 스로틀은 커널이 cgroup `cpu.stat`에 기록하고 kubelet 내장 cAdvisor가 노출하므로 Prometheus, AMP, CloudWatch 어느 경로로도 수집할 수 있고, eBPF는 스케줄링 대기의 분포를 볼 때만 필요합니다. Pod 사이징은 CPU:memory 비율을 패밀리에 맞추고 최소 vCPU 하한을 두며, 지연 민감 워크로드는 Guaranteed 정수 CPU와 CPU Manager static의 트레이드오프를 평가합니다. 세대별 비교는 벤치마크 파이프라인으로 자동화하고, SLO를 만족하는 크기·세대만 노드풀 후보로 유지합니다.
+인스턴스 크기·세대를 비교할 때는 CPU 사용률의 분모를 맞추고, 동일한 부하에서 sustained RPS, p99, cost-per-1K-req를 함께 측정합니다. 응답 시간이 늘었다면 `cpu.stat`의 스로틀링 카운터와 스케줄링 대기를 구분해 원인을 좁힙니다.
+
+Pod 요청량은 측정한 처리량과 메모리 사용량에 맞춰 정합니다. CPU request만 올려서는 replica 수나 Pod IP 수가 줄지 않습니다. CPU 격리가 필요한 워크로드는 Guaranteed QoS와 CPU Manager 설정을 검토하고, SLO를 만족한 인스턴스 크기·세대만 노드풀 후보로 유지합니다.
 
 ## 참고 자료
 

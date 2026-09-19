@@ -3,9 +3,9 @@ title: "IP Capacity Planning and Karpenter Node Sizing: Subnet, NAU, and SGP Bud
 description: How Pod IPs on EKS consume subnet addresses, VPC NAU, and branch ENI limits, and how to keep Karpenter's instance-size fallback from turning into IP exhaustion through NodePool and VPC CNI settings.
 created: "2026-09-19"
 last_update:
-  date: "2026-09-19"
+  date: 2026-09-19
   author: YoungJoon Jeong
-reading_time: 24
+reading_time: 40
 tags:
   - eks
   - vpc-cni
@@ -27,7 +27,7 @@ category: performance-networking
 
 ## Overview
 
-Amazon VPC CNI hands every Pod a real IP address from a VPC subnet. As Pod counts grow, three separate ceilings come into play: the free addresses in the subnet, the VPC's Network Address Usage (NAU) quota, and the per-instance branch ENI limit. Whichever one is hit first stops new Pods and new nodes. This guide shows how to work out the IPs and NAU a single node consumes, and under what conditions Karpenter's fallback from large to small instances combines with warm pool settings to drain a subnet quickly. It is written for platform teams that own both node autoscaling and subnet design, typically in environments where many clusters share one VPC.
+Amazon VPC CNI assigns subnet addresses to ordinary Pods; hostNetwork Pods share the node network. Subnet addresses and VPC NAU constrain resource growth, while the branch ENI limit constrains further SGP Pod placement on a particular node. Reaching a node's branch limit does not stop all ordinary Pods or the creation of other nodes. This guide explains node IP budgets and how warm pools increase address consumption when Karpenter falls back from large to small instances. It is intended for platform teams managing node scaling and subnet design across clusters that share a VPC.
 
 ## Background
 
@@ -42,7 +42,7 @@ The algorithm ipamd uses to fill the warm pool, the mechanics of Prefix Delegati
 
 On EKS Auto Mode clusters, AWS manages node networking (including the ENI lifecycle), so there are no VPC CNI environment variables such as `WARM_*` or `MINIMUM_IP_TARGET`. IP allocation is controlled through the NodeClass instead. `advancedNetworking.ipv4PrefixSize` is either `Auto` (the default: Prefix Delegation, one /28 assigned to each node up front and another added when it fills) or `"32"` (secondary IP mode, one IP per Pod, only one spare IP kept warm). `secondaryIPv4Count` and `secondaryIPv4PrefixCount` under `advancedNetworking.networkInterfaces` fix the IP count per ENI at launch, after which no IPs, prefixes, or ENIs are added. Pod subnets are separated from node subnets with `podSubnetSelectorTerms`.
 
-Security Groups for Pods is not supported on Auto Mode; `podSecurityGroupSelectorTerms` on the NodeClass takes its place, and nodes are capped at 110 Pods. The warm-target and NodePool guidance below applies to self-managed nodes where you run Karpenter yourself. On Auto Mode, a large fleet with few Pods per node avoids the 16-IP-per-node reservation of prefix mode by choosing `ipv4PrefixSize: "32"`.
+Auto Mode does not support Security Groups for Pods. Configure `podSubnetSelectorTerms` and `podSecurityGroupSelectorTerms` together; all Pods on nodes using that NodeClass share the same Pod security groups. This has different granularity from a per-Pod SecurityGroupPolicy. Separate workloads that require different policies with separate NodeClasses/NodePools and placement constraints. Pod capacity is the lowest of configured maxPods, instance IP capacity and Auto Mode's limit of 110. The warm-target settings below apply to self-managed CNI nodes. For sparse Auto Mode workloads, `ipv4PrefixSize: "32"` reduces the minimum prefix reservation.
 
 ## Architecture
 
@@ -58,8 +58,8 @@ flowchart TB
         SENI -->|secondary IP / /28 prefix| POOL
         TENI -->|one branch ENI each| BR["SGP Pod<br/>(1 primary IP)"]
     end
-    POOL -->|1 IP = 1 NAU<br/>1 prefix = 1 NAU| SUBNET["Subnet free IPs"]
-    BR -->|1 IP = 1 NAU| SUBNET
+    POOL -->|1 secondary IP or 16 addresses per prefix| SUBNET["Subnet free IPs"]
+    BR -->|1 branch primary IP| SUBNET
     SUBNET --> CIDR["VPC CIDR block"]
     CIDR --> NAU["VPC NAU counter<br/>(default 64,000 / VPC)"]
 ```
@@ -70,32 +70,35 @@ Which subnet a secondary ENI lands in is decided by the VPC CNI settings and Enh
 
 ### What one node holds
 
-Because of the warm pool, a node always holds more IPs than it has Pods. If `MINIMUM_IP_TARGET` is above the Pod count, ipamd fills up to that value; otherwise it fills up to the Pod count plus `WARM_IP_TARGET`. SGP Pods each take one more IP on a branch ENI, outside this pool.
+Distinguish the Pod address pool from the node's total address consumption. Primary addresses on IPv4 ENIs are separate from the secondary-IP pool; trunk and branch addresses also belong in the budget. The following identity counts private IPv4 addresses allocated to the node. Add other VPC resources separately.
 
 ```text
-IPs per node ≈ max(MINIMUM_IP_TARGET, non-SGP Pods + WARM_IP_TARGET) + SGP Pods
-IPs per cluster ≈ sum over nodes
+Allocated IPv4 for the node = E + A + 16 × F + B
+E = primary IPv4 addresses on ordinary and trunk ENIs
+A = individual secondary IPv4 addresses allocated for ordinary Pods
+F = allocated IPv4 /28 prefixes
+B = primary IPv4 addresses on branch ENIs
 ```
 
-If neither `WARM_IP_TARGET` nor `MINIMUM_IP_TARGET` is set, the `WARM_ENI_TARGET` default of 1 applies and a whole ENI's worth of IPs is reserved. Actual consumption is then higher than the formula above.
+The steady-state ordinary-Pod pool target can be approximated as `T = max(MINIMUM_IP_TARGET, P + WARM_IP_TARGET)`, where `P` counts used Pod addresses excluding hostNetwork and SGP. In secondary-IP mode, `A ≈ T`; in prefix mode, `16 × F ≈ 16 × ceil(T / 16)`, subject to ENI limits, allocation delays and cooldown. This target is not the total including node/trunk/branch addresses. Without warm IP targets, also check the mode-specific ENI or prefix warm target.
 
 ### VPC NAU
 
-NAU counts one IP assigned to an ENI, one prefix assigned to an ENI, and one additional ENI as 1 each. In secondary IP mode a Pod costs 1 NAU; in Prefix Delegation mode only the prefix is counted, so 16 Pods cost 1 NAU. The quota is 64,000 per VPC by default and can be raised to 256,000. VPCs peered within the same Region also share an aggregate quota (default 128,000, maximum 512,000); peering across Regions is not included.
+NAU is a resource-accounting measure separate from subnet address consumption. The current VPC guide lists assigned addresses, additional ENIs and prefixes as NAU items, and also lists an Amazon EKS Pod as one NAU item. A prefix costing one NAU therefore does not establish a cluster-wide conversion of 16 Pods to one NAU. Reconcile the actual resource inventory with the official NAU table and observed VPC NAU. The default quota is 64,000 per VPC, adjustable to 256,000. The combined intra-Region peering quota defaults to 128,000 and can reach 512,000; cross-Region peering is excluded from that aggregate.
 
 When dozens of clusters share a single VPC, the NAU quota can be reached while subnets still have free addresses. That is why subnet size and NAU belong in the same spreadsheet.
 
 ### Effect of instance size
 
-The table below takes the same 2,000 Pods and changes only the instance size. Pods per node are assumed to scale with vCPU (100 on a 24xlarge, 33 on an 8xlarge, 16 on a 4xlarge); all Pods are non-SGP, secondary IP mode is used, `WARM_IP_TARGET=2`, and `MINIMUM_IP_TARGET` is tuned to each size's Pod count. Real Pod counts depend on kubelet `max-pods` and workload requests.
+The following example compares only the **secondary-IP pool for exactly 2,000 ordinary Pods**. All Pods exclude hostNetwork and SGP, `WARM_IP_TARGET=2`, and `MINIMUM_IP_TARGET` equals each row's maximum Pod count (100, 33 or 16). The 61-node row places 33 Pods on 48 nodes and 32 on 13 nodes. Add node and additional-ENI primary addresses to the table's totals.
 
-| Instance size | Pods per node | Nodes | IPs per node | IPs per cluster | Total warm IPs |
-|---|---|---|---|---|---|
-| 24xlarge | 100 | 20 | 102 | 2,040 | 40 |
-| 8xlarge | 33 | 61 | 35 | 2,135 | 122 |
-| 4xlarge | 16 | 125 | 18 | 2,250 | 250 |
+| Size | Pod placement | Nodes | Pool IPs | Unused IPs |
+|---|---|---|---|---|
+| 24xlarge | 20 × 100 = 2,000 | 20 | 2,040 | 40 |
+| 8xlarge | 48 × 33 + 13 × 32 = 2,000 | 61 | 2,122 | 122 |
+| 4xlarge | 125 × 16 = 2,000 | 125 | 2,250 | 250 |
 
-Same Pod count, six times the nodes, six times the warm IPs. This is the optimistic case where `MINIMUM_IP_TARGET` is tuned per size. In practice there is exactly one value for the whole cluster, and the next section shows what that does.
+More nodes increase both warm-pool and ENI-primary-address overhead. Placement also changes the unused capacity imposed by the minimum target: filling 60 nodes with 33 Pods and placing 20 on the last leaves that last pool at its minimum of 33, for 2,133 Pod-pool IPs. This comparison assumes separate targets by size; one aws-node DaemonSet applies a common set of environment variables.
 
 ## Over-reservation on Small-Instance Fallback
 
@@ -109,11 +112,11 @@ Example: 100 − 16 = 84
 
 None of this shows up on a normal day. While large instances are available, the reserved IPs are mostly used by Pods. The waste appears when fallback happens all at once: a DR drill or a large redeploy during a regional capacity shortage brings up hundreds of small nodes together and empties the subnet. IPs released by deleted Pods are reusable only after the default 30-second cooldown (`IP_COOLDOWN_PERIOD`), so in a large redeploy that waiting stock adds to the momentary consumption as well.
 
-Lowering the warm targets alone does not fix it. A value tuned for large nodes slows Pod startup on those nodes if reduced, and wastes addresses on small nodes if left alone. The other half of the fix is to keep fallback from dropping straight from 24xlarge to 4xlarge: split NodePools so it passes through the 8–16xlarge range and the spread of node sizes stays narrow.
+Tune warm targets against expected Pod density and creation rate. Separate NodePools make candidate sizes and preferences easier to manage, but weights do not guarantee a strict 24xlarge → 8–16xlarge → 4xlarge sequence. Exclude unacceptable sizes with requirements and separately monitor growth in small nodes and subnet headroom.
 
 ## IP Consumption by Security Groups for Pods
 
-With `ENABLE_POD_ENI=true`, every Pod matched by a `SecurityGroupPolicy` gets a branch ENI, and each branch ENI consumes one primary IP. Branch ENI counts are a separate per-instance-type limit, independent of the secondary IP limit; the values are listed in [limits.go in vpc-resource-controller](https://github.com/aws/amazon-vpc-resource-controller-k8s/blob/master/pkg/aws/vpc/limits.go). A c5.4xlarge, for example, can hold up to 234 secondary IPs (or /28 prefixes) on its standard ENIs and attach up to 54 branch ENIs on top; the branch ENI limit is additive to the secondary IP limit.
+With `ENABLE_POD_ENI=true`, Pods matched by a `SecurityGroupPolicy` use a branch ENI's primary IP. The [vpc-resource-controller limits](https://github.com/aws/amazon-vpc-resource-controller-k8s/blob/93df905c6fb7bec57d90afd490e926b1ad04a57e/pkg/aws/vpc/limits.go) list eight ENIs, 30 IPv4 addresses per ENI and 54 branch ENIs for c5.4xlarge. Subtracting each ENI's primary address gives a raw secondary-address slot ceiling of `8 × (30 − 1) = 232`. The current CNI README's '234 secondary IPs' example conflicts with that calculation and should not be used as a capacity guarantee. Determine the actual Pod limit from interface use, including trunk/custom networking, the CNI version and kubelet maxPods.
 
 In clusters where most Pods use SGP, a few properties make IP planning harder.
 
@@ -161,19 +164,25 @@ aws ec2 describe-subnets --subnet-ids subnet-0def \
 
 ### Managing warm targets through add-on configuration
 
-Values changed with `kubectl set env` revert to defaults when the VPC CNI add-on is updated. Tuning that quietly disappears and brings IP exhaustion back is a common outcome. Managing the values as add-on configuration keeps them across updates.
+Whether changes made with `kubectl set env` survive an add-on update depends on conflict resolution. `PRESERVE` can retain existing edits, while `OVERWRITE` can replace managed fields. Even through the add-on API, existing advanced settings omitted from new `configuration-values` can revert to defaults.
+
+Save the current `configurationValues` and effective aws-node configuration, then check the schema for the installed add-on version. Review a complete `reviewed-vpc-cni-config.json` that merges `WARM_ENI_TARGET="0"`, `WARM_IP_TARGET="2"`, and `MINIMUM_IP_TARGET="12"` into the existing settings. These are example targets; adjust them for Pod density and scale-out rate. Run the following command after selecting the intended cluster and Region and preparing that complete file.
 
 ```bash
 aws eks update-addon --cluster-name my-cluster --addon-name vpc-cni \
-  --configuration-values '{"env":{"WARM_ENI_TARGET":"0","WARM_IP_TARGET":"2","MINIMUM_IP_TARGET":"12"}}' \
-  --resolve-conflicts OVERWRITE
+  --configuration-values file://reviewed-vpc-cni-config.json \
+  --resolve-conflicts PRESERVE
 ```
+
+Use the returned update ID to check for `Successful` in `describe-update`, then inspect the add-on status, health issues, and `configurationValues` with `describe-addon`. Compare environment variables in the aws-node DaemonSet and running Pods against the intended values. `PRESERVE` does not guarantee that every requested value took effect.
+
+If a conflict or connectivity problem occurs, stop further rollout, assess the affected workloads, and recover using the saved configuration after reviewing the differences. Follow the validation steps in [Update an Amazon EKS add-on](https://docs.aws.amazon.com/eks/latest/userguide/updating-an-add-on.html) before changing production settings.
 
 Set `MINIMUM_IP_TARGET` to the Pod count expected on the dominant node size, and set `WARM_IP_TARGET` alongside it to a small value greater than 0. With `MINIMUM_IP_TARGET` alone, `WARM_IP_TARGET` is treated as 0 and no spare IPs are acquired once the minimum is reached. A smaller `WARM_IP_TARGET` saves IPs but adds an EC2 API call every time a Pod comes or goes, so on a large cluster or one with high Pod churn it can trigger EC2 API throttling. The VPC CNI README advises against relying on `WARM_IP_TARGET` alone in that situation; covering the base with `MINIMUM_IP_TARGET` and keeping `WARM_IP_TARGET` small is the compromise.
 
 ### Three-tier weighted NodePools
 
-Instead of letting fallback jump from 24xlarge to 4xlarge, split the sizes and families into three NodePools with descending weights. The `weight`, `limits`, and disruption `budgets` syntax is covered in [Karpenter Autoscaling](../resource-cost/karpenter-autoscaling.md).
+Assign weights to three NodePools split by size and family to express preference. Pod batching, bin packing and use of existing nodes can select a lower-weight pool, so this is not a guaranteed staged-fallback sequence. The `weight`, `limits` and disruption `budgets` syntax is covered in [Karpenter Autoscaling](../resource-cost/karpenter-autoscaling.md).
 
 ```yaml
 apiVersion: karpenter.sh/v1
@@ -204,7 +213,7 @@ spec:
     cpu: "20000"
 ```
 
-Give the second NodePool `weight: 50` with `instance-size In ["8xlarge","12xlarge","16xlarge"]`, and give the last 4xlarge NodePool a low weight plus `limits` so small nodes cannot grow without bound. Constrain size with the `karpenter.k8s.aws/instance-size` label, and family and generation with `instance-family` and `instance-generation`.
+The second pool can use `weight: 50` and `instance-size In ["8xlarge","12xlarge","16xlarge"]`; the final 4xlarge pool can use a lower weight and `limits`. Limit checking is eventually consistent and may overrun during rapid scale-out, so retain subnet headroom rather than treating it as a strict IP safety barrier. Constrain size, family and generation with the corresponding Karpenter requirements labels.
 
 ### Narrowing the SGP scope
 
@@ -224,10 +233,10 @@ Options for the case where large instances cannot be obtained.
 
 ## Operational Considerations
 
-- Read subnet headroom from `AvailableIpAddressCount` in `aws ec2 describe-subnets`, and the headroom of subnets Karpenter can choose from the EC2NodeClass `status.subnets`.
+- Read each subnet's actual headroom from `AvailableIpAddressCount` in `aws ec2 describe-subnets`. Use EC2NodeClass `status.subnets` to identify the selected subnet IDs and AZs; it does not expose the available-IP count itself.
 - Keep metrics exposure on aws-node enabled (`DISABLE_METRICS=false`, the default) and deploy the CNI Metrics Helper to get the number of ENIs the cluster can support, ENIs and IPs assigned, and total and maximum available IPs into CloudWatch. With Prometheus, scrape port 61678 on aws-node directly.
 - Monitor VPC NAU in CloudWatch and request a quota increase before the limit is reached. Past the quota, calls such as `RunInstances` and `AssignPrivateIpAddresses` fail with `NetworkAddressUsageLimitExceeded`.
-- Alarm at 80% on both subnet free IPs and NAU usage. Adding a CIDR after exhaustion still leaves a gap before ENIs appear in the new subnets.
+- An example threshold is subnet utilization at or above 80% (available capacity at or below 20%), or NAU utilization at or above 80%. Also track absolute available addresses and reserve headroom for the planned DR scale. Adding a CIDR after exhaustion still takes time before new ENIs can use it.
 - The step-by-step procedure for diagnosing IP exhaustion symptoms is in [Networking Debugging](../operations-reliability/eks-debugging/networking.md).
 - Hundreds of small nodes arriving at once during DR put load on the API server. Stage the scale-out and, where needed, arrange control plane capacity in advance.
 
@@ -241,12 +250,12 @@ Options for the case where large instances cannot be obtained.
 | `InsufficientCidrBlocks` in prefix mode | Fragmented subnet, no contiguous /28 | Subnet CIDR reservation or a dedicated subnet | Reservation usage |
 | IP pressure persists after enabling Prefix Delegation | SGP Pods consume branch ENI IPs (no prefix benefit) | Narrow the SGP scope, replace with Network Policy | SGP Pod share, branch ENI count |
 | Pending with `Insufficient vpc.amazonaws.com/pod-eni` | Per-instance branch ENI limit reached | Account for per-type limits, narrow the SGP scope | Node allocatable `pod-eni` |
-| IP exhaustion returns after an add-on update | Values set with `kubectl set env` reverted to defaults | Move to `update-addon --configuration-values`, manage through GitOps | Values in `describe-addon` |
+| IP exhaustion returns after an add-on update | Conflict resolution or omitted settings in a new configuration-values object | Compare old and new configuration and manage the complete merged settings through the add-on API | Compare describe-addon configurationValues with the actual DaemonSet |
 | Small nodes surge during DR when large instances are unavailable | Single pinned type, regional capacity shortage | Weighted NodePools across sizes and families, ODCR, pre-warm | Node size distribution, ICE event count |
 
 ## Summary
 
-In the routable Pod IP model, capacity is set by whichever of subnet free IPs, the VPC NAU quota, and the per-instance branch ENI limit is reached first. IPs per node are approximately the larger of the warm target and the Pod count, plus SGP Pods; because the warm target is a cluster-wide setting, fallback from large to small instances wastes addresses. Karpenter checks subnet IPs only at launch time and cannot see CNI-level exhaustion, so subnet expansion and size-split weighted NodePools have to be in place beforehand. SGP Pods get no benefit from Prefix Delegation, so reducing the SGP scope contributes directly to IP and ENI efficiency.
+Subnet addresses, VPC NAU and per-node branch ENI limits apply at different scopes. Budget node, trunk and branch addresses and prefix allocation units alongside Pod-pool warm targets. A shared warm target can increase idle addresses on small fallback nodes. Karpenter's launch-time subnet selection alone does not prevent Pod-level CNI IP exhaustion. Design subnet headroom and NodePool candidates together, treat weights as preferences, and budget SGP branch addresses separately from prefix-mode benefits.
 
 ## References
 
