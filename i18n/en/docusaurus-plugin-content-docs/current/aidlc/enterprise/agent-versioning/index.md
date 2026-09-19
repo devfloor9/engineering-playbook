@@ -3,9 +3,9 @@ title: Agent Versioning & Change Management
 description: Integrated change management system for enterprise agent prompts, models, deployment strategies, and governance
 created: "2026-04-19"
 last_update:
-  date: "2026-06-30"
+  date: 2026-09-19
   author: devfloor9
-reading_time: 8
+reading_time: 9
 tags:
   - agent-versioning
   - prompt-registry
@@ -40,7 +40,7 @@ In traditional software, change management targets code, configuration, and infr
    When receiving reports like "it worked yesterday but is strange today," recovery is impossible without knowing who changed which prompt and when.
 
 4. **Regulatory Requirements**  
-   Financial, medical, and public sectors must maintain audit records of "which prompt version and model version generated this response."
+   Linking prompt and model versions to change records helps explain which configuration produced a response. Include this in the organization's audit-policy proposal, then determine what to collect and how long to retain it from the duties that apply to the jurisdiction, regulated role or system, and record type. [NIST AI RMF GOVERN 1.1](https://airc.nist.gov/airmf-resources/playbook/govern/) also recommends identifying and documenting applicable requirements. This guide does not set legal duties or retention periods for every financial, medical or public-sector system.
 
 ---
 
@@ -73,8 +73,8 @@ Regression detection, automatic rollback, approval workflows, audit trails, and 
 1. **All Changes Are Version Controlled**: Prompt, model, and parameter changes must be traceable like Git commits.
 2. **Progressive Deployment**: Don't change all traffic at once. Canary → gradual expansion.
 3. **Automatic Regression Detection**: Immediately detect performance degradation through Golden Dataset evaluation + real-time metric monitoring.
-4. **Fast Rollback**: Mechanism to recover within 1 minute when issues occur is essential.
-5. **Audit Evidence**: 7-year retention system for financial, medical, and public sector regulatory compliance.
+4. **Fast Rollback**: Set a recovery objective, such as “within 1 minute,” and test it. Measure from the label or configuration change through application and traffic recovery, including requests in progress and fallback behavior. One minute is an example target in this guide.
+5. **Audit Evidence**: Use 7 years as an example to review when setting an organizational retention policy. Do not apply it as a universal statutory period. Define the authority for each record's retention, minimum collection, access, deletion and legal-hold requirements in the [audit-evidence policy](./governance-automation.md#audit-evidence).
 
 ---
 

@@ -3,9 +3,9 @@ title: Prompt & Model Registry
 description: Comparison and implementation guide for Langfuse, PromptLayer, Braintrust, AWS Bedrock Prompt Management
 created: "2026-04-19"
 last_update:
-  date: "2026-06-30"
+  date: 2026-09-19
   author: devfloor9
-reading_time: 10
+reading_time: 16
 tags:
   - prompt-registry
   - versioning
@@ -21,7 +21,7 @@ Central repository managing prompt and model versions like code. Solves the foll
 
 - **Version Tracking**: "It worked yesterday but is strange today" → track which prompts changed
 - **Environment-specific Deployment**: Use different versions for staging/canary/production environments
-- **Rollback**: Immediate recovery to previous version when issues occur
+- **Rollback**: Restore an approved earlier version in the label or application configuration, then check that applications use it and that errors and latency have recovered.
 - **Audit Evidence**: Retain change history for financial/medical regulatory compliance
 
 ---
@@ -55,6 +55,36 @@ client.create_prompt(
 # After validation
 client.update_prompt_label("financial-analysis", version=6, label="production")
 ```
+
+**Rollback verification:** applications can continue using the previous prompt after a label changes. [Langfuse's prompt cache](https://langfuse.com/docs/prompt-management/features/caching) has a default TTL of 60 seconds and can return an expired entry while fetching a new value in the background. The deployed SDK version, TTL settings, failed refreshes, fallback prompts and requests already in progress affect when the change takes effect.
+
+The function below reads the version assigned to `production` directly from the registry, bypassing its local cache. It uses the [`get_prompt` implementation](https://raw.githubusercontent.com/langfuse/langfuse-python/main/langfuse/_client/client.py) checked on 2026-09-19; pin your SDK version and verify its arguments and return value. Supply a client authenticated to the intended project and the recovery version from the approved change record.
+
+This read does not clear other processes' caches. A successful result still requires a separate check that applications use the restored version to serve requests.
+
+```python
+# registry_label_check.py
+def confirm_registry_target(client, *, prompt_name, expected_version):
+    """Read registry state only; this does not verify recovered traffic."""
+    if not isinstance(prompt_name, str) or not prompt_name.strip():
+        raise ValueError("prompt_name_required")
+    if type(expected_version) is not int or expected_version < 1:
+        raise ValueError("positive_integer_version_required")
+    prompt = client.get_prompt(
+        prompt_name, label="production", cache_ttl_seconds=0, fallback=None
+    )
+    if (prompt.name != prompt_name or prompt.is_fallback
+            or type(prompt.version) is not int
+            or prompt.version != expected_version):
+        raise ValueError("registry_target_not_confirmed")
+    return {
+        "prompt_name": prompt.name,
+        "registry_version": prompt.version,
+        "traffic_recovery_verified": False,
+    }
+```
+
+Next, check the version used by each application group in the rollout, along with request counts, errors and latency. Inspect requests in progress and fallback behavior as well. When observations are missing or stale, continue incident response until the [rollback plan](./governance-automation.md#rollback-plan-required) exit criteria are met. The function above only performs the registry lookup.
 
 **Advantages**:
 - Self-hosted, RBAC, S3+KMS backend capable
@@ -108,30 +138,56 @@ client.update_prompt_label("financial-analysis", version=6, label="production")
 
 AWS Bedrock provides [Prompt Management](https://docs.aws.amazon.com/bedrock/latest/userguide/prompt-management.html) features (GA November 2024).
 
-- **Prompt Versions**: Create immutable versions with `CreatePromptVersion` API
-- **Alias**: Connect aliases like `PROD`, `STAGING` to versions
-- **IAM Integration**: Set policies to allow only specific versions
-- **CloudTrail**: Audit logs of who deployed which version and when
+- **Prompt Versions**: Create a static snapshot with `CreatePromptVersion` and retain its returned version ARN.
+- **Environment Mapping**: Store `PROD`/`STAGING` → version ARN in the application's actual configuration system. The inspected Bedrock Prompt management API model has no `CreatePromptAlias` or `UpdatePromptAlias` operation.
+- **IAM Integration**: Configure and verify permissions for the actual prompt operations and resources.
+- **CloudTrail**: Audit supported prompt-management operations. Audit the separate configuration change that moves application traffic in that configuration system.
+
+The function below calls [CreatePromptVersion](https://docs.aws.amazon.com/bedrock/latest/APIReference/API_agent_CreatePromptVersion.html) and returns the version ARN from its response. Supply a `bedrock-agent` client authenticated to the intended account and Region, and the unversioned ARN returned by prompt creation or lookup. A prompt's human-readable name cannot replace the ID in that ARN. The example checks commercial-partition (`arn:aws`) ARNs; configure credentials and permissions before running it.
 
 ```python
-import boto3
+# bedrock_prompt_version.py
+import re
 
-bedrock = boto3.client('bedrock-agent')
 
-# Create new version
-response = bedrock.create_prompt_version(
-    promptIdentifier='arn:aws:bedrock:us-east-1:123456789012:prompt/fin-analysis',
-    description='Changed to conservative investment advisor style'
-)
-version_id = response['version']
+def validate_client_token(value):
+    if (not isinstance(value, str) or not 33 <= len(value) <= 256
+            or re.fullmatch(r"[A-Za-z0-9](?:-*[A-Za-z0-9])*", value) is None):
+        raise ValueError("invalid_client_token")
 
-# Update production alias
-bedrock.update_prompt_alias(
-    promptIdentifier='arn:aws:bedrock:us-east-1:123456789012:prompt/fin-analysis',
-    aliasIdentifier='PROD',
-    promptVersion=version_id
-)
+
+def snapshot_prompt(bedrock, prompt_arn, *, description, client_token):
+    """Create a candidate snapshot; do not change application configuration."""
+    match = re.fullmatch(
+        r"arn:aws:bedrock:[a-z0-9-]{1,20}:[0-9]{12}:prompt/([A-Za-z0-9]{10})",
+        prompt_arn if isinstance(prompt_arn, str) else "",
+    )
+    if match is None:
+        raise ValueError("expected_unversioned_prompt_arn")
+    if not isinstance(description, str) or not 1 <= len(description) <= 200:
+        raise ValueError("invalid_description")
+    validate_client_token(client_token)
+    response = bedrock.create_prompt_version(
+        promptIdentifier=prompt_arn,
+        description=description,
+        clientToken=client_token,
+    )
+    version = response.get("version")
+    if (not isinstance(version, str)
+            or re.fullmatch(r"[1-9][0-9]{0,4}", version) is None
+            or response.get("id") != match[1]
+            or response.get("arn") != f"{prompt_arn}:{version}"):
+        raise ValueError("unexpected_prompt_version_response")
+    return {
+        "prompt_id": response["id"],
+        "version": version,
+        "version_arn": response["arn"],
+    }
 ```
+
+Save `client_token` with the original request and reuse it only when retrying the same operation and inputs. Keep the returned `version_arn` with the evaluation results and approval record.
+
+After evaluation and approval, map `PROD` to that ARN in the application configuration. Use the configuration system to control access and concurrent changes, record the change, and read back the saved value. The function above implements candidate creation only. Rollback also requires restoring an approved ARN and checking application behavior and traffic health.
 
 **Advantages**:
 - AWS native, IAM/CloudTrail/KMS integration
@@ -149,7 +205,7 @@ bedrock.update_prompt_alias(
 |---------|----------|-------------|------------|------------|
 | **Deployment Method** | Self-hosted | SaaS | SaaS | AWS Managed |
 | **Version Control** | ✅ | ✅ | ✅ | ✅ |
-| **Labels/Alias** | ✅ | ✅ | ❌ | ✅ |
+| **Labels/Alias** | ✅ | ✅ | ❌ | Application-owned version-ARN mapping |
 | **Visual Diff** | Basic | ✅ | ✅ | ❌ |
 | **Approval Workflow** | ❌ | ✅ | ❌ | ❌(Implement with IAM) |
 | **A/B Experiments** | Manual | ✅ | ✅ | Manual |
@@ -203,40 +259,49 @@ helm install langfuse langfuse/langfuse -f langfuse-values.yaml
 
 ### Bedrock Prompt Management Setup
 
+First create a draft with [CreatePrompt](https://docs.aws.amazon.com/bedrock/latest/APIReference/API_agent_CreatePrompt.html), then create a version with `snapshot_prompt` above. `defaultVariant` names the selected variant, which stores the template, `modelId` and inference settings together.
+
+Supply the model or inference-profile ID approved for the intended account and Region. Confirm that the model supports the `TEXT` template and the example's `temperature=0.2` and `maxTokens=1024` settings. Successful prompt creation still requires separate checks for model access, inference compatibility and response quality.
+
 ```python
-import boto3
+# bedrock_prompt_setup.py
+from bedrock_prompt_version import snapshot_prompt, validate_client_token
 
-bedrock = boto3.client('bedrock-agent', region_name='us-east-1')
 
-# 1. Create prompt
-prompt_response = bedrock.create_prompt(
-    name='financial-analysis',
-    description='Financial analysis expert prompt',
-    variants=[{
-        'name': 'default',
-        'templateType': 'TEXT',
-        'templateConfiguration': {
-            'text': {
-                'text': 'You are a financial analysis expert...'
-            }
-        }
-    }]
-)
-prompt_arn = prompt_response['arn']
-
-# 2. Create version
-version_response = bedrock.create_prompt_version(
-    promptIdentifier=prompt_arn,
-    description='v1 initial version'
-)
-
-# 3. Create PROD alias
-bedrock.create_prompt_alias(
-    promptIdentifier=prompt_arn,
-    name='PROD',
-    promptVersion='1'
-)
+def create_initial_prompt_version(
+    bedrock, *, model_id, prompt_text, create_token, snapshot_token
+):
+    """Create a model-bound draft and return its candidate version descriptor."""
+    if not isinstance(model_id, str) or not model_id.strip():
+        raise ValueError("model_id_required")
+    if not isinstance(prompt_text, str) or not prompt_text.strip():
+        raise ValueError("prompt_text_required")
+    validate_client_token(create_token)
+    validate_client_token(snapshot_token)
+    draft = bedrock.create_prompt(
+        name="financial-analysis",
+        description="Financial analysis expert prompt",
+        defaultVariant="default",
+        variants=[{
+            "name": "default",
+            "modelId": model_id,
+            "templateType": "TEXT",
+            "templateConfiguration": {"text": {"text": prompt_text}},
+            "inferenceConfiguration": {
+                "text": {"temperature": 0.2, "maxTokens": 1024}
+            },
+        }],
+        clientToken=create_token,
+    )
+    return snapshot_prompt(
+        bedrock, draft["arn"], description="Initial candidate snapshot",
+        client_token=snapshot_token,
+    )
 ```
+
+Pass the reviewed financial-analysis instruction as `prompt_text`, for example “You are a financial analysis expert...”. Save separate `create_token` and `snapshot_token` values with their original request inputs before execution. If you store the result in `candidate`, use `candidate["version_arn"]` in the proposed `PROD` configuration. Evaluate and approve the returned version before deployment instead of hardcoding version `1`.
+
+If version creation fails, the draft may already exist. Keep the original inputs and tokens, and check the current state before retrying. The two API calls do not succeed or roll back as a single operation.
 
 ---
 
