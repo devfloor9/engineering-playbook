@@ -3,7 +3,7 @@ title: "Karpenter Autoscaling"
 description: "Node provisioning, scaling signals, readiness, and cost validation with Karpenter v1.13 and EKS Auto Mode"
 created: "2025-02-09"
 last_update:
-  date: 2026-09-18
+  date: 2026-09-19
   author: YoungJoon Jeong
 reading_time: 82
 tags:
@@ -343,7 +343,7 @@ Derive latency, error-rate, and queue-age alarms from the SLO. Observe P99 as we
 
 ## Troubleshooting Common Issues
 
-First inspect Pending Pod events, requests, affinity, taints, and PVCs, then NodePool/EC2NodeClass conditions and NodeClaim events. Distinguish EC2 supply failures from quotas, constrained instance/AZ choices, and subnet IP exhaustion. `describe-instance-type-offerings` lists supported locations; it is not a live spare-capacity API.
+First inspect Pending Pod events, requests, affinity, taints, and PVCs, then NodePool/EC2NodeClass conditions and NodeClaim events. Distinguish EC2 supply failures from quotas, constrained instance/AZ choices, and subnet IP exhaustion. `describe-instance-type-offerings` lists supported locations; it is not a live spare-capacity API. For the quantitative model of subnet and NAU budgets and of IP consumption on instance-size fallback, see [IP Capacity Planning and Karpenter Node Sizing](../networking-performance/ip-capacity-planning-karpenter.md).
 
 ```bash
 kubectl get pods -n production --field-selector=status.phase=Pending

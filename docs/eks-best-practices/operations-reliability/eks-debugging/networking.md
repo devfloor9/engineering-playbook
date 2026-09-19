@@ -3,7 +3,7 @@ title: 네트워킹 디버깅
 description: EKS 네트워킹 문제 진단 및 해결 가이드 - VPC CNI, DNS, Service, NetworkPolicy
 created: "2026-04-07"
 last_update:
-  date: "2026-06-30"
+  date: "2026-09-19"
   author: YoungJoon Jeong
 reading_time: 6
 tags:
@@ -99,6 +99,10 @@ kubectl get daemonset aws-node -n kube-system -o yaml | grep ENABLE_PREFIX_DELEG
 **예**: c5.xlarge 인스턴스
 - 기본 모드: 최대 58개 Pod (4 ENI × 15 IP - 1)
 - Prefix Delegation: 최대 110개 Pod (4 ENI × 16 prefix × 16 IP)
+:::
+
+:::caution 임시 조치와 영구 설정
+`kubectl set env`로 바꾼 VPC CNI 값은 add-on 업데이트 시 기본값으로 되돌아갑니다. 진단 후 유지할 설정은 `aws eks update-addon --configuration-values`로 이관합니다. 서브넷 가용 IP가 남아 있는데도 `NetworkAddressUsageLimitExceeded`(VPC NAU 쿼터)나 Karpenter NodeClaim 이벤트의 `InsufficientFreeAddressesInSubnet`이 보이면 용량 계획 단계의 문제이므로 [IP 용량 계획과 Karpenter 노드 사이징](../../networking-performance/ip-capacity-planning-karpenter.md)을 참조합니다.
 :::
 
 ### ENI 제한 및 IP 한도
@@ -523,3 +527,4 @@ aws ec2 describe-security-groups \
 - [워크로드 디버깅](./workload.md) - Pod 상태별 문제 해결
 - [스토리지 디버깅](./storage.md) - PVC 마운트 실패
 - [Health Check 불일치](./health-check-mismatch.md) - ALB/NLB Target Group Health Check 문제
+- [IP 용량 계획과 Karpenter 노드 사이징](../../networking-performance/ip-capacity-planning-karpenter.md) - 서브넷·NAU 예산과 크기 fallback 시 IP 소비
